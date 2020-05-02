@@ -71,6 +71,7 @@
 #include "stream_lib_ffmpeg_common.h"
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #include "stream_lib_guids.h"
+#include "stream_lib_mediafoundation_mediasource.h"
 #endif // ACE_WIN32 || ACE_WIN64
 
 #include "net_defines.h"
@@ -833,5 +834,11 @@ struct Test_I_Target_UI_CBData
 };
 #endif // ACE_WIN32 || ACE_WIN64
 #endif // GUI_SUPPORT
+
+typedef Stream_MediaFramework_MediaFoundation_MediaSource_T<Common_TimePolicy_t,
+                                                            Test_I_Target_MediaFoundation_SessionMessage,
+                                                            Test_I_Target_MediaFoundation_Stream_Message,
+                                                            struct Test_I_MediaFoundationConfiguration,
+                                                            IMFMediaType*> Stream_MediaFramework_MediaFoundation_MediaSource_t;
 
 #endif

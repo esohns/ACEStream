@@ -21,6 +21,7 @@
 #include "ace/Guard_T.h"
 #include "ace/Log_Msg.h"
 
+#include <mfapi.h>
 #include <mferror.h>
 #include <shlwapi.h>
 
@@ -63,10 +64,7 @@ Stream_MediaFramework_MediaFoundation_MediaSource_T<TimePolicyType,
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to instantiate Stream_MediaFramework_MediaFoundation_MediaSource_T: \"%s\", aborting\n"),
                 ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
-
-    // clean up
-    instance_p->Release ();
-
+    instance_p->Release (); instance_p = NULL;
     return result;
   } // end IF
   result = instance_p->QueryInterface (interfaceID_in, interface_out);
@@ -75,14 +73,11 @@ Stream_MediaFramework_MediaFoundation_MediaSource_T<TimePolicyType,
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Stream_MediaFramework_MediaFoundation_MediaSource_T::QueryInterface(): \"%s\", aborting\n"),
                 ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
-
-    // clean up
-    instance_p->Release ();
-
+    instance_p->Release (); instance_p = NULL;
     return result;
   } // end IF
   ACE_ASSERT (interface_out);
-  instance_p->Release ();
+  instance_p->Release (); instance_p = NULL;
 
   return result;
 }
@@ -229,7 +224,12 @@ Stream_MediaFramework_MediaFoundation_MediaSource_T<TimePolicyType,
   {
     QITABENT (OWN_TYPE_T, IMFSchemeHandler),
     QITABENT (OWN_TYPE_T, IMFMediaEventGenerator),
+#if COMMON_OS_WIN32_TARGET_PLATFORM (0x0602) // _WIN32_WINNT_WIN8
+    QITABENT (OWN_TYPE_T, IMFMediaSourceEx),
+#else
     QITABENT (OWN_TYPE_T, IMFMediaSource),
+#endif // _WIN32_WINNT_WIN8
+    //QITABENT (OWN_TYPE_T, IMarshal),
     { 0 },
   };
 
@@ -439,12 +439,12 @@ Stream_MediaFramework_MediaFoundation_MediaSource_T<TimePolicyType,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_MediaFoundation_MediaSource_T::CreatePresentationDescriptor"));
 
-  ACE_UNUSED_ARG (presentationDescriptor_out);
+  // sanity check(s)
+  ACE_ASSERT (presentationDescriptor_out);
 
-  ACE_ASSERT (false);
-  ACE_NOTSUP_RETURN (E_FAIL);
+  *presentationDescriptor_out = this;
 
-  ACE_NOTREACHED (return E_FAIL;)
+  return S_OK;
 }
 template <typename TimePolicyType,
           typename SessionMessageType,
@@ -594,6 +594,589 @@ Stream_MediaFramework_MediaFoundation_MediaSource_T<TimePolicyType,
 
   ACE_NOTREACHED (return E_FAIL;)
 }
+
+template <typename TimePolicyType,
+          typename SessionMessageType,
+          typename ProtocolMessageType,
+          typename ConfigurationType,
+          typename MediaType>
+HRESULT
+Stream_MediaFramework_MediaFoundation_MediaSource_T<TimePolicyType,
+                                                    SessionMessageType,
+                                                    ProtocolMessageType,
+                                                    ConfigurationType,
+                                                    MediaType>::Clone (IMFPresentationDescriptor** ppPresentationDescriptor)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_MediaFoundation_MediaSource_T::Clone"));
+
+  ACE_UNUSED_ARG (ppPresentationDescriptor);
+
+  ACE_ASSERT (false);
+  ACE_NOTSUP_RETURN (E_FAIL);
+
+  ACE_NOTREACHED (return E_FAIL;)
+}
+template <typename TimePolicyType,
+          typename SessionMessageType,
+          typename ProtocolMessageType,
+          typename ConfigurationType,
+          typename MediaType>
+HRESULT
+Stream_MediaFramework_MediaFoundation_MediaSource_T<TimePolicyType,
+                                                    SessionMessageType,
+                                                    ProtocolMessageType,
+                                                    ConfigurationType,
+                                                    MediaType>::DeselectStream (DWORD dwIndex)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_MediaFoundation_MediaSource_T::DeselectStream"));
+
+  ACE_UNUSED_ARG (dwIndex);
+
+  ACE_ASSERT (false);
+  ACE_NOTSUP_RETURN (E_FAIL);
+
+  ACE_NOTREACHED (return E_FAIL;)
+}
+template <typename TimePolicyType,
+          typename SessionMessageType,
+          typename ProtocolMessageType,
+          typename ConfigurationType,
+          typename MediaType>
+HRESULT
+Stream_MediaFramework_MediaFoundation_MediaSource_T<TimePolicyType,
+                                                    SessionMessageType,
+                                                    ProtocolMessageType,
+                                                    ConfigurationType,
+                                                    MediaType>::GetStreamDescriptorByIndex (DWORD dwIndex,
+                                                                                            BOOL* pfSelected,
+                                                                                            IMFStreamDescriptor** ppStreamDescriptor)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_MediaFoundation_MediaSource_T::GetStreamDescriptorByIndex"));
+
+  ACE_UNUSED_ARG (dwIndex);
+
+  // sanity check(s)
+  ACE_ASSERT (pfSelected);
+  ACE_ASSERT (ppStreamDescriptor);
+
+  *pfSelected = TRUE;
+  *ppStreamDescriptor = this;
+
+  return S_OK;
+}
+template <typename TimePolicyType,
+          typename SessionMessageType,
+          typename ProtocolMessageType,
+          typename ConfigurationType,
+          typename MediaType>
+HRESULT
+Stream_MediaFramework_MediaFoundation_MediaSource_T<TimePolicyType,
+                                                    SessionMessageType,
+                                                    ProtocolMessageType,
+                                                    ConfigurationType,
+                                                    MediaType>::GetStreamDescriptorCount (DWORD* pdwDescriptorCount)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_MediaFoundation_MediaSource_T::DeselectStream"));
+
+  // sanity check(s)
+  ACE_ASSERT (pdwDescriptorCount);
+
+  *pdwDescriptorCount = 1;
+
+  return S_OK;
+}
+template <typename TimePolicyType,
+          typename SessionMessageType,
+          typename ProtocolMessageType,
+          typename ConfigurationType,
+          typename MediaType>
+HRESULT
+Stream_MediaFramework_MediaFoundation_MediaSource_T<TimePolicyType,
+                                                    SessionMessageType,
+                                                    ProtocolMessageType,
+                                                    ConfigurationType,
+                                                    MediaType>::SelectStream (DWORD dwIndex)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_MediaFoundation_MediaSource_T::SelectStream"));
+
+  ACE_UNUSED_ARG (dwIndex);
+
+  return S_OK;
+}
+
+template <typename TimePolicyType,
+          typename SessionMessageType,
+          typename ProtocolMessageType,
+          typename ConfigurationType,
+          typename MediaType>
+HRESULT
+Stream_MediaFramework_MediaFoundation_MediaSource_T<TimePolicyType,
+                                                    SessionMessageType,
+                                                    ProtocolMessageType,
+                                                    ConfigurationType,
+                                                    MediaType>::GetMediaTypeHandler (IMFMediaTypeHandler** ppMediaTypeHandler)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_MediaFoundation_MediaSource_T::GetMediaTypeHandler"));
+
+  // sanity check(s)
+  ACE_ASSERT (ppMediaTypeHandler);
+
+  *ppMediaTypeHandler = this;
+
+  return S_OK;
+}
+template <typename TimePolicyType,
+          typename SessionMessageType,
+          typename ProtocolMessageType,
+          typename ConfigurationType,
+          typename MediaType>
+HRESULT
+Stream_MediaFramework_MediaFoundation_MediaSource_T<TimePolicyType,
+                                                    SessionMessageType,
+                                                    ProtocolMessageType,
+                                                    ConfigurationType,
+                                                    MediaType>::GetStreamIdentifier (DWORD* pdwStreamIdentifier)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_MediaFoundation_MediaSource_T::GetStreamIdentifier"));
+
+  // sanity check(s)
+  ACE_ASSERT (pdwStreamIdentifier);
+
+  *pdwStreamIdentifier = 0;
+
+  return S_OK;
+}
+
+template <typename TimePolicyType,
+          typename SessionMessageType,
+          typename ProtocolMessageType,
+          typename ConfigurationType,
+          typename MediaType>
+HRESULT
+Stream_MediaFramework_MediaFoundation_MediaSource_T<TimePolicyType,
+                                                    SessionMessageType,
+                                                    ProtocolMessageType,
+                                                    ConfigurationType,
+                                                    MediaType>::GetCurrentMediaType (IMFMediaType** ppMediaType)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_MediaFoundation_MediaSource_T::GetCurrentMediaType"));
+
+  // sanity check(s)
+  ACE_ASSERT (ppMediaType && !*ppMediaType);
+
+  HRESULT result = MFCreateMediaType (ppMediaType);
+  ACE_ASSERT (SUCCEEDED (result)); ACE_ASSERT (*ppMediaType);
+
+  result = (*ppMediaType)->SetGUID (MF_MT_MAJOR_TYPE,
+                                    MFMediaType_Video);
+  ACE_ASSERT (SUCCEEDED (result));
+  result =
+    (*ppMediaType)->SetUINT32 (MF_MT_INTERLACE_MODE,
+                               MFVideoInterlace_Unknown);
+  ACE_ASSERT (SUCCEEDED (result));
+  result = MFSetAttributeRatio (*ppMediaType,
+                                MF_MT_PIXEL_ASPECT_RATIO,
+                                1, 1);
+  ACE_ASSERT (SUCCEEDED (result));
+  result = (*ppMediaType)->SetGUID (MF_MT_SUBTYPE,
+                                    MFVideoFormat_RGB32);
+  ACE_ASSERT (SUCCEEDED (result));
+  result = MFSetAttributeSize (*ppMediaType,
+                               MF_MT_FRAME_RATE,
+                               STREAM_DEV_CAM_DEFAULT_CAPTURE_RATE, 1);
+  ACE_ASSERT (SUCCEEDED (result));
+  result = MFSetAttributeSize (*ppMediaType,
+                               MF_MT_FRAME_SIZE,
+                               STREAM_DEV_CAM_DEFAULT_CAPTURE_SIZE_WIDTH,
+                               STREAM_DEV_CAM_DEFAULT_CAPTURE_SIZE_HEIGHT);
+  ACE_ASSERT (SUCCEEDED (result));
+  result = (*ppMediaType)->SetUINT32 (MF_MT_ALL_SAMPLES_INDEPENDENT,
+                                      1);
+  ACE_ASSERT (SUCCEEDED (result));
+  result = (*ppMediaType)->SetUINT32 (MF_MT_FIXED_SIZE_SAMPLES,
+                                      1);
+  ACE_ASSERT (SUCCEEDED (result));
+  UINT32 frame_size = 0;
+  result = MFCalculateImageSize (MFVideoFormat_RGB32,
+                                 STREAM_DEV_CAM_DEFAULT_CAPTURE_SIZE_WIDTH,
+                                 STREAM_DEV_CAM_DEFAULT_CAPTURE_SIZE_HEIGHT,
+                                 &frame_size);
+  ACE_ASSERT (SUCCEEDED (result));
+  result = (*ppMediaType)->SetUINT32 (MF_MT_SAMPLE_SIZE,
+                                      frame_size);
+  ACE_ASSERT (SUCCEEDED (result));
+
+  return S_OK;
+}
+template <typename TimePolicyType,
+          typename SessionMessageType,
+          typename ProtocolMessageType,
+          typename ConfigurationType,
+          typename MediaType>
+HRESULT
+Stream_MediaFramework_MediaFoundation_MediaSource_T<TimePolicyType,
+                                                    SessionMessageType,
+                                                    ProtocolMessageType,
+                                                    ConfigurationType,
+                                                    MediaType>::GetMajorType (GUID* pguidMajorType)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_MediaFoundation_MediaSource_T::GetMajorType"));
+
+  // sanity check(s)
+  ACE_ASSERT (pguidMajorType);
+
+  *pguidMajorType = MFMediaType_Video;
+
+  return S_OK;
+}
+template <typename TimePolicyType,
+          typename SessionMessageType,
+          typename ProtocolMessageType,
+          typename ConfigurationType,
+          typename MediaType>
+HRESULT
+Stream_MediaFramework_MediaFoundation_MediaSource_T<TimePolicyType,
+                                                    SessionMessageType,
+                                                    ProtocolMessageType,
+                                                    ConfigurationType,
+                                                    MediaType>::GetMediaTypeByIndex (DWORD dwIndex,
+                                                                                     IMFMediaType** ppType)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_MediaFoundation_MediaSource_T::GetMajorType"));
+
+  // sanity check(s)
+  ACE_ASSERT (!ppType);
+
+  ACE_ASSERT (false);
+
+  return S_OK;
+}
+template <typename TimePolicyType,
+          typename SessionMessageType,
+          typename ProtocolMessageType,
+          typename ConfigurationType,
+          typename MediaType>
+HRESULT
+Stream_MediaFramework_MediaFoundation_MediaSource_T<TimePolicyType,
+                                                    SessionMessageType,
+                                                    ProtocolMessageType,
+                                                    ConfigurationType,
+                                                    MediaType>::GetMediaTypeCount (DWORD* pdwTypeCount)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_MediaFoundation_MediaSource_T::GetMediaTypeCount"));
+
+  // sanity check(s)
+  ACE_ASSERT (!pdwTypeCount);
+
+  *pdwTypeCount = 1;
+
+  return S_OK;
+}
+template <typename TimePolicyType,
+          typename SessionMessageType,
+          typename ProtocolMessageType,
+          typename ConfigurationType,
+          typename MediaType>
+HRESULT
+Stream_MediaFramework_MediaFoundation_MediaSource_T<TimePolicyType,
+                                                    SessionMessageType,
+                                                    ProtocolMessageType,
+                                                    ConfigurationType,
+                                                    MediaType>::IsMediaTypeSupported (IMFMediaType* pMediaType,
+                                                                                      IMFMediaType** ppMediaType)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_MediaFoundation_MediaSource_T::IsMediaTypeSupported"));
+
+  // sanity check(s)
+  ACE_ASSERT (pMediaType);
+
+  ACE_ASSERT (false);
+
+  return S_OK;
+}
+template <typename TimePolicyType,
+          typename SessionMessageType,
+          typename ProtocolMessageType,
+          typename ConfigurationType,
+          typename MediaType>
+HRESULT
+Stream_MediaFramework_MediaFoundation_MediaSource_T<TimePolicyType,
+                                                    SessionMessageType,
+                                                    ProtocolMessageType,
+                                                    ConfigurationType,
+                                                    MediaType>::SetCurrentMediaType (IMFMediaType* pMediaType)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_MediaFoundation_MediaSource_T::IsMediaTypeSupported"));
+
+  // sanity check(s)
+  ACE_ASSERT (pMediaType);
+
+  return S_OK;
+}
+
+//template <typename TimePolicyType,
+//          typename SessionMessageType,
+//          typename ProtocolMessageType,
+//          typename ConfigurationType,
+//          typename MediaType>
+//HRESULT
+//Stream_MediaFramework_MediaFoundation_MediaSource_T<TimePolicyType,
+//                                                    SessionMessageType,
+//                                                    ProtocolMessageType,
+//                                                    ConfigurationType,
+//                                                    MediaType>::GetItem (REFGUID guidKey,
+//                                                                         PROPVARIANT* pValue)
+//{
+//  ACE_ASSERT (false);
+//}
+//template <typename TimePolicyType,
+//          typename SessionMessageType,
+//          typename ProtocolMessageType,
+//          typename ConfigurationType,
+//          typename MediaType>
+//HRESULT
+//Stream_MediaFramework_MediaFoundation_MediaSource_T<TimePolicyType,
+//                                                    SessionMessageType,
+//                                                    ProtocolMessageType,
+//                                                    ConfigurationType,
+//                                                    MediaType>::GetItemType (REFGUID guidKey,
+//                                                                             MF_ATTRIBUTE_TYPE* pType)
+//{
+//  ACE_ASSERT (false);
+//}
+//template <typename TimePolicyType,
+//          typename SessionMessageType,
+//          typename ProtocolMessageType,
+//          typename ConfigurationType,
+//          typename MediaType>
+//HRESULT
+//Stream_MediaFramework_MediaFoundation_MediaSource_T<TimePolicyType,
+//                                                    SessionMessageType,
+//                                                    ProtocolMessageType,
+//                                                    ConfigurationType,
+//                                                    MediaType>::CompareItem (REFGUID guidKey,
+//                                                                             REFPROPVARIANT Value,
+//                                                                             BOOL* pbResult)
+//{
+//  ACE_ASSERT (false);
+//}
+//template <typename TimePolicyType,
+//          typename SessionMessageType,
+//          typename ProtocolMessageType,
+//          typename ConfigurationType,
+//          typename MediaType>
+//HRESULT
+//Stream_MediaFramework_MediaFoundation_MediaSource_T<TimePolicyType,
+//                                                    SessionMessageType,
+//                                                    ProtocolMessageType,
+//                                                    ConfigurationType,
+//                                                    MediaType>::Compare (IMFAttributes* pTheirs,
+//                                                                         MF_ATTRIBUTES_MATCH_TYPE MatchType,
+//                                                                         BOOL* pbResult)
+//{
+//  ACE_ASSERT (false);
+//}
+//template <typename TimePolicyType,
+//          typename SessionMessageType,
+//          typename ProtocolMessageType,
+//          typename ConfigurationType,
+//          typename MediaType>
+//HRESULT
+//Stream_MediaFramework_MediaFoundation_MediaSource_T<TimePolicyType,
+//                                                    SessionMessageType,
+//                                                    ProtocolMessageType,
+//                                                    ConfigurationType,
+//                                                    MediaType>::GetUINT32 (REFGUID guidKey,
+//                                                                           UINT32* punValue)
+//{
+//  ACE_ASSERT (false);
+//}
+  //virtual STDMETHODIMP GetUINT64 (REFGUID, // guidKey
+  //                                UINT64); // punValue
+  //virtual STDMETHODIMP GetDouble (REFGUID,  // guidKey
+  //                                double*); // pfValue
+  //virtual STDMETHODIMP GetGUID (REFGUID, // guidKey
+  //                              GUID*);  // pguidValue
+  //virtual STDMETHODIMP GetStringLength (REFGUID,  // guidKey
+  //                                      UINT32*); // pcchLength
+  //virtual STDMETHODIMP GetString (REFGUID,  // guidKey
+  //                                LPWSTR,   // pwszValue
+  //                                UINT32,   // cchBufSize
+  //                                UINT32*); // pcchLength
+  //virtual STDMETHODIMP GetAllocatedString (REFGUID,  // guidKey
+  //                                         LPWSTR*,  // ppwszValue
+  //                                         UINT32*); // pcchLength
+  //virtual STDMETHODIMP GetBlobSize (REFGUID,  // guidKey
+  //                                  UINT32*); // pcbBlobSize
+  //virtual STDMETHODIMP GetBlob (REFGUID,  // guidKey
+  //                              UINT8*,   // pBuf
+  //                              UINT32,   // cbBufSize
+  //                              UINT32*); // pcbBlobSize
+  //virtual STDMETHODIMP GetAllocatedBlob (REFGUID,  // guidKey
+  //                                       UINT8**,  // ppBuf
+  //                                       UINT32*); // pcbSize
+  //virtual STDMETHODIMP GetUnknown (REFGUID, // guidKey
+  //                                 REFIID,  // riid
+  //                                 LPVOID); // ppv
+  //virtual STDMETHODIMP SetItem (REFGUID,         // guidKey
+  //                              REFPROPVARIANT); // Value
+  //virtual STDMETHODIMP DeleteItem (REFGUID); // guidKey
+  //virtual STDMETHODIMP DeleteAllItems (void);
+  //virtual STDMETHODIMP SetUINT32 (REFGUID, // guidKey
+  //                                UINT32); // unValue
+  //virtual STDMETHODIMP SetUINT64 (REFGUID, // guidKey
+  //                                UINT64); // unValue
+  //virtual STDMETHODIMP SetDouble (REFGUID, // guidKey
+  //                                double); // fValue
+  //virtual STDMETHODIMP SetGUID (REFGUID,  // guidKey
+  //                              REFGUID); // guidValue
+  //virtual STDMETHODIMP SetString (REFGUID,  // guidKey
+  //                                LPCWSTR); // wszValue
+  //virtual STDMETHODIMP SetBlob (REFGUID,      // guidKey
+  //                              const UINT8*, // pBuf
+  //                              UINT32);      // cbBufSize
+  //virtual STDMETHODIMP SetUnknown (REFGUID,    // guidKey
+  //                                 IUnknown*); // pUnknown
+  //virtual STDMETHODIMP LockStore (void);
+  //virtual STDMETHODIMP UnlockStore (void);
+  //virtual STDMETHODIMP GetCount (UINT32*); // pcItems
+  //virtual STDMETHODIMP GetItemByIndex (UINT32,        // unIndex
+  //                                     GUID*,         // pguidKey
+  //                                     PROPVARIANT*); // pValue
+  //virtual STDMETHODIMP CopyAllItems (IMFAttributes); // pDest
+
+
+//template <typename TimePolicyType,
+//          typename SessionMessageType,
+//          typename ProtocolMessageType,
+//          typename ConfigurationType,
+//          typename MediaType>
+//HRESULT
+//Stream_MediaFramework_MediaFoundation_MediaSource_T<TimePolicyType,
+//                                                    SessionMessageType,
+//                                                    ProtocolMessageType,
+//                                                    ConfigurationType,
+//                                                    MediaType>::GetUnmarshalClass (REFIID riid,
+//                                                                                   void *pv,
+//                                                                                   DWORD dwDestContext,
+//                                                                                   void *pvDestContext,
+//                                                                                   DWORD mshlflags,
+//                                                                                   CLSID *pCid)
+//{
+//  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_MediaFoundation_MediaSource_T::GetUnmarshalClass"));
+//
+//  ACE_ASSERT (false);
+//  ACE_NOTSUP_RETURN (E_FAIL);
+//
+//  ACE_NOTREACHED (return E_FAIL;)
+//}
+//template <typename TimePolicyType,
+//          typename SessionMessageType,
+//          typename ProtocolMessageType,
+//          typename ConfigurationType,
+//          typename MediaType>
+//HRESULT
+//Stream_MediaFramework_MediaFoundation_MediaSource_T<TimePolicyType,
+//                                                    SessionMessageType,
+//                                                    ProtocolMessageType,
+//                                                    ConfigurationType,
+//                                                    MediaType>::GetMarshalSizeMax (REFIID riid,
+//                                                                                   void *pv,
+//                                                                                   DWORD dwDestContext,
+//                                                                                   void *pvDestContext,
+//                                                                                   DWORD mshlflags,
+//                                                                                   DWORD *pSize)
+//{
+//  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_MediaFoundation_MediaSource_T::GetMarshalSizeMax"));
+//
+//  ACE_ASSERT (false);
+//  ACE_NOTSUP_RETURN (E_FAIL);
+//
+//  ACE_NOTREACHED (return E_FAIL;)
+//}
+//template <typename TimePolicyType,
+//          typename SessionMessageType,
+//          typename ProtocolMessageType,
+//          typename ConfigurationType,
+//          typename MediaType>
+//HRESULT
+//Stream_MediaFramework_MediaFoundation_MediaSource_T<TimePolicyType,
+//                                                    SessionMessageType,
+//                                                    ProtocolMessageType,
+//                                                    ConfigurationType,
+//                                                    MediaType>::MarshalInterface (IStream *pStm,
+//                                                                                  REFIID riid,
+//                                                                                  void *pv,
+//                                                                                  DWORD dwDestContext,
+//                                                                                  void *pvDestContext,
+//                                                                                  DWORD mshlflags)
+//{
+//  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_MediaFoundation_MediaSource_T::MarshalInterface"));
+//
+//  ACE_ASSERT (false);
+//  ACE_NOTSUP_RETURN (E_FAIL);
+//
+//  ACE_NOTREACHED (return E_FAIL;)
+//}
+//template <typename TimePolicyType,
+//          typename SessionMessageType,
+//          typename ProtocolMessageType,
+//          typename ConfigurationType,
+//          typename MediaType>
+//HRESULT
+//Stream_MediaFramework_MediaFoundation_MediaSource_T<TimePolicyType,
+//                                                    SessionMessageType,
+//                                                    ProtocolMessageType,
+//                                                    ConfigurationType,
+//                                                    MediaType>::UnmarshalInterface (IStream *pStm,
+//                                                                                    REFIID riid,
+//                                                                                    void **ppv)
+//{
+//  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_MediaFoundation_MediaSource_T::UnmarshalInterface"));
+//
+//  ACE_ASSERT (false);
+//  ACE_NOTSUP_RETURN (E_FAIL);
+//
+//  ACE_NOTREACHED (return E_FAIL;)
+//}
+//template <typename TimePolicyType,
+//          typename SessionMessageType,
+//          typename ProtocolMessageType,
+//          typename ConfigurationType,
+//          typename MediaType>
+//HRESULT
+//Stream_MediaFramework_MediaFoundation_MediaSource_T<TimePolicyType,
+//                                                    SessionMessageType,
+//                                                    ProtocolMessageType,
+//                                                    ConfigurationType,
+//                                                    MediaType>::ReleaseMarshalData (IStream *pStm)
+//{
+//  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_MediaFoundation_MediaSource_T::ReleaseMarshalData"));
+//
+//  ACE_ASSERT (false);
+//  ACE_NOTSUP_RETURN (E_FAIL);
+//
+//  ACE_NOTREACHED (return E_FAIL;)
+//}
+//template <typename TimePolicyType,
+//          typename SessionMessageType,
+//          typename ProtocolMessageType,
+//          typename ConfigurationType,
+//          typename MediaType>
+//HRESULT
+//Stream_MediaFramework_MediaFoundation_MediaSource_T<TimePolicyType,
+//                                                    SessionMessageType,
+//                                                    ProtocolMessageType,
+//                                                    ConfigurationType,
+//                                                    MediaType>::DisconnectObject (DWORD dwReserved)
+//{
+//  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_MediaFoundation_MediaSource_T::DisconnectObject"));
+//
+//  ACE_ASSERT (false);
+//  ACE_NOTSUP_RETURN (E_FAIL);
+//
+//  ACE_NOTREACHED (return E_FAIL;)
+//}
 
 template <typename TimePolicyType,
           typename SessionMessageType,

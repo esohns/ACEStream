@@ -553,6 +553,7 @@ do_work (unsigned int bufferSize_in,
     statisticReportingInterval_in;
 
 //  connection_configuration.connectionManager = iconnection_manager_p;
+  connection_configuration.allocatorConfiguration = &allocator_configuration;
   connection_configuration.allocatorConfiguration->defaultBufferSize = bufferSize_in;
   connection_configuration.messageAllocator = &message_allocator;
 
@@ -593,6 +594,7 @@ do_work (unsigned int bufferSize_in,
   if (bufferSize_in)
     allocator_configuration.defaultBufferSize = bufferSize_in;
 
+  stream_configuration.allocatorConfiguration = &allocator_configuration;
   stream_configuration.messageAllocator = &message_allocator;
   stream_configuration.module =
     (!UIDefinitionFile_in.empty () ? &event_handler

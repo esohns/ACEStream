@@ -665,6 +665,7 @@ continue_:
   } // end IF
 
   Stream_Device_Tools::initialize ();
+  Stream_MediaFramework_MediaFoundation_Tools::initialize ();
 
   //// work out the GUID for the subtype from the header info
   //// *TODO*: cannot use GetBitmapSubtype(), as it returns MEDIASUBTYPE_RGB32

@@ -55,6 +55,8 @@
 
 #include "common_tools.h"
 
+#include "stream_lib_guids.h"
+
 //WINADVAPI
 LSTATUS
 APIENTRY

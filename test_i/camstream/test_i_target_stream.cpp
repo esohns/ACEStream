@@ -652,10 +652,125 @@ Test_I_Target_MediaFoundation_TCPStream::initialize (const CONFIGURATION_T& conf
   // sanity check(s)
   ACE_ASSERT (configuration_p->sourceFormat);
 
+  bool release_source = false;
+  IMFTopologyNode* topology_node_p = NULL;
+  IMFTopologyNode* topology_node_2 = NULL;
+  TOPOID node_id = 0;
+  IMFPresentationDescriptor* presentation_descriptor_p = NULL;
+  IMFStreamDescriptor* stream_descriptor_p = NULL;
+  BOOL is_selected = FALSE;
+  IMFMediaType* media_type_p = NULL;
+  IMFMediaSink* media_sink_p = NULL;
+  IMFStreamSink* stream_sink_p = NULL;
+  IMFActivate* activate_p = NULL;
+#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0602) // _WIN32_WINNT_WIN8
+  IMFMediaSourceEx* media_source_p = NULL;
+#else
+  IMFMediaSource* media_source_p = NULL;
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0602)
+
+  result_2 = MFCreateTopology (&topology_p);
+  if (FAILED (result_2))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to MFCreateTopology(): \"%s\", aborting\n"),
+                ACE_TEXT (Common_Error_Tools::errorToString (result_2).c_str ())));
+    goto error;
+  } // end IF
+#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0601) // _WIN32_WINNT_WIN7
+  result_2 = topology_p->SetUINT32 (MF_TOPOLOGY_DXVA_MODE,
+                                    MFTOPOLOGY_DXVA_FULL);
+  ACE_ASSERT (SUCCEEDED (result_2));
+  result_2 = topology_p->SetUINT32 (MF_TOPOLOGY_ENUMERATE_SOURCE_TYPES,
+                                    FALSE);
+  ACE_ASSERT (SUCCEEDED (result_2));
+  result_2 = topology_p->SetUINT32 (MF_TOPOLOGY_HARDWARE_MODE,
+                                    MFTOPOLOGY_HWMODE_USE_HARDWARE);
+  ACE_ASSERT (SUCCEEDED (result_2));
+  result_2 = topology_p->SetUINT32 (MF_TOPOLOGY_STATIC_PLAYBACK_OPTIMIZATIONS,
+                                    FALSE);
+  ACE_ASSERT (SUCCEEDED (result_2));
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0601)
+#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
+  result_2 = topology_p->SetUINT32 (MF_TOPOLOGY_NO_MARKIN_MARKOUT,
+                                    TRUE);
+  ACE_ASSERT (SUCCEEDED (result_2));
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
+
+#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
+  result_2 = MFCreateTopologyNode (MF_TOPOLOGY_SOURCESTREAM_NODE,
+                                   &topology_node_p);
+  if (FAILED (result_2))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to MFCreateTopologyNode(MF_TOPOLOGY_SOURCESTREAM_NODE): \"%s\", aborting\n"),
+                ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
+    goto error;
+  } // end IF
+  ACE_ASSERT (topology_node_p);
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
+  result_2 = topology_node_p->SetUINT32 (MF_TOPONODE_CONNECT_METHOD,
+                                         MF_CONNECT_DIRECT);
+  ACE_ASSERT (SUCCEEDED (result_2));
+
+  result_2 =
+    Stream_MediaFramework_MediaFoundation_MediaSource_t::CreateInstance (NULL,
+                                                                         IID_IMFMediaSource,
+                                                                         reinterpret_cast<void**> (&media_source_p));
+  ACE_ASSERT (SUCCEEDED (result_2));
+  ACE_ASSERT (media_source_p);
+  result_2 = topology_node_p->SetUnknown (MF_TOPONODE_SOURCE,
+                                          media_source_p);
+  ACE_ASSERT (SUCCEEDED (result_2));
+  result_2 =
+    media_source_p->CreatePresentationDescriptor (&presentation_descriptor_p);
+  if (FAILED (result_2))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to IMFMediaSource::CreatePresentationDescriptor(): \"%s\", aborting\n"),
+                ACE_TEXT (Common_Error_Tools::errorToString (result_2).c_str ())));
+    goto error;
+  } // end IF
+  result_2 =
+    topology_node_p->SetUnknown (MF_TOPONODE_PRESENTATION_DESCRIPTOR,
+                                 presentation_descriptor_p);
+  ACE_ASSERT (SUCCEEDED (result_2));
+  result_2 =
+    presentation_descriptor_p->GetStreamDescriptorByIndex (0,
+                                                           &is_selected,
+                                                           &stream_descriptor_p);
+  if (FAILED (result_2))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to IMFPresentationDescriptor::GetStreamDescriptor(): \"%s\", aborting\n"),
+                ACE_TEXT (Common_Error_Tools::errorToString (result_2).c_str ())));
+    goto error;
+  } // end IF
+  ACE_ASSERT (is_selected);
+  presentation_descriptor_p->Release (); presentation_descriptor_p = NULL;
+  result_2 = topology_node_p->SetUnknown (MF_TOPONODE_STREAM_DESCRIPTOR,
+                                          stream_descriptor_p);
+  ACE_ASSERT (SUCCEEDED (result_2));
+  stream_descriptor_p->Release (); stream_descriptor_p = NULL;
+
+  result_2 = topology_p->AddNode (topology_node_p);
+  if (FAILED (result_2))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to IMFTopology::AddNode(): \"%s\", aborting\n"),
+                ACE_TEXT (Common_Error_Tools::errorToString (result_2).c_str ())));
+    goto error;
+  } // end IF
+  result_2 = topology_node_p->GetTopoNodeID (&node_id);
+  ACE_ASSERT (SUCCEEDED (result_2));
+  ACE_DEBUG ((LM_DEBUG,
+              ACE_TEXT ("added source node (id: %q)...\n"),
+              node_id));
+  topology_node_p->Release (); topology_node_p = NULL;
+
   if (!Stream_Module_Decoder_Tools::loadTargetRendererTopology (url_string,
                                                                 configuration_p->sourceFormat,
-                                                                NULL,
-                                                                //configuration_p->window,
+                                                                configuration_p->window,
                                                                 session_data_r.rendererNodeId,
                                                                 topology_p))
   {

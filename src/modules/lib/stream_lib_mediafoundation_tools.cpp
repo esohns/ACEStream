@@ -46,6 +46,7 @@
 
 #include "stream_lib_defines.h"
 #include "stream_lib_directshow_tools.h"
+#include "stream_lib_guids.h"
 #include "stream_lib_tools.h"
 
 // initialize statics
@@ -1029,57 +1030,67 @@ Stream_MediaFramework_MediaFoundation_Tools::loadSourceTopology (const std::stri
   ACE_ASSERT (SUCCEEDED (result));
   if (!mediaSource_inout)
   {
-#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
-    DWORD flags = MF_RESOLUTION_MEDIASOURCE;
-    enum MF_OBJECT_TYPE object_type = MF_OBJECT_INVALID;
-    IUnknown* unknown_p = NULL;
-    IMFSourceResolver* source_resolver_p = NULL;
-    result = MFCreateSourceResolver (&source_resolver_p);
-    if (FAILED (result))
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to MFCreateSourceResolver(): \"%s\", aborting\n"),
-                  ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
-      goto error;
-    } // end IF
-    result =
-      source_resolver_p->CreateObjectFromURL (ACE_TEXT_ALWAYS_WCHAR (URL_in.c_str ()),
-                                              flags,
-                                              NULL, // properties
-                                              &object_type,
-                                              &unknown_p);
-    if (FAILED (result)) // 0xc00d36c3: MF_E_UNSUPPORTED_SCHEME
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to IMFSourceResolver::CreateObjectFromURL(\"%s\"): \"%s\", aborting\n"),
-                  ACE_TEXT (URL_in.c_str ()),
-                  ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
-      PROPVARIANT prop_s;
-      PropVariantInit (&prop_s);
-      MFGetSupportedSchemes (&prop_s);
-      PropVariantClear (&prop_s);
-      source_resolver_p->Release (); source_resolver_p = NULL;
-      goto error;
-    } // end IF
-    ACE_ASSERT (unknown_p);
-    ACE_ASSERT (object_type = MF_OBJECT_MEDIASOURCE);
-    source_resolver_p->Release (); source_resolver_p = NULL;
-    result = unknown_p->QueryInterface (IID_PPV_ARGS (&mediaSource_inout));
-    if (FAILED (result))
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to IUnknown::QueryInterface(IID_IMFMediaSource): \"%s\", aborting\n"),
-                  ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
-      unknown_p->Release (); unknown_p = NULL;
-      goto error;
-    } // end IF
-    unknown_p->Release (); unknown_p = NULL;
-    release_source = true;
-#else
-    ACE_ASSERT (false);
-    ACE_NOTSUP_RETURN (false);
-    ACE_NOTREACHED (return false;)
-#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
+//#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
+//    DWORD flags = MF_RESOLUTION_MEDIASOURCE;
+//    enum MF_OBJECT_TYPE object_type = MF_OBJECT_INVALID;
+//    IUnknown* unknown_p = NULL;
+//    IMFSourceResolver* source_resolver_p = NULL;
+//    result = MFCreateSourceResolver (&source_resolver_p);
+//    if (FAILED (result))
+//    {
+//      ACE_DEBUG ((LM_ERROR,
+//                  ACE_TEXT ("failed to MFCreateSourceResolver(): \"%s\", aborting\n"),
+//                  ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
+//      goto error;
+//    } // end IF
+//    result =
+//      source_resolver_p->CreateObjectFromURL (ACE_TEXT_ALWAYS_WCHAR (URL_in.c_str ()),
+//                                              flags,
+//                                              NULL, // properties
+//                                              &object_type,
+//                                              &unknown_p);
+//    if (FAILED (result)) // 0xc00d36c3: MF_E_UNSUPPORTED_SCHEME
+//    {
+//      ACE_DEBUG ((LM_ERROR,
+//                  ACE_TEXT ("failed to IMFSourceResolver::CreateObjectFromURL(\"%s\"): \"%s\", aborting\n"),
+//                  ACE_TEXT (URL_in.c_str ()),
+//                  ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
+//      PROPVARIANT prop_s;
+//      PropVariantInit (&prop_s);
+//      MFGetSupportedSchemes (&prop_s);
+//      PropVariantClear (&prop_s);
+//      source_resolver_p->Release (); source_resolver_p = NULL;
+//      goto error;
+//    } // end IF
+//    ACE_ASSERT (unknown_p);
+//    ACE_ASSERT (object_type = MF_OBJECT_MEDIASOURCE);
+//    source_resolver_p->Release (); source_resolver_p = NULL;
+//    result = unknown_p->QueryInterface (IID_PPV_ARGS (&mediaSource_inout));
+//    if (FAILED (result))
+//    {
+//      ACE_DEBUG ((LM_ERROR,
+//                  ACE_TEXT ("failed to IUnknown::QueryInterface(IID_IMFMediaSource): \"%s\", aborting\n"),
+//                  ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
+//      unknown_p->Release (); unknown_p = NULL;
+//      goto error;
+//    } // end IF
+//    unknown_p->Release (); unknown_p = NULL;
+//    release_source = true;
+//#else
+    //result =
+    //  CoCreateInstance (CLSID_ACEStream_MediaFramework_MF_MediaSource, NULL,
+    //                    CLSCTX_INPROC_SERVER,
+    //                    IID_PPV_ARGS (&mediaSource_inout));
+    //if (FAILED (result))
+    //{
+    //  ACE_DEBUG ((LM_ERROR,
+    //              ACE_TEXT ("failed to CoCreateInstance(\"%s\"): \"%s\", aborting\n"),
+    //              ACE_TEXT (Common_Tools::GUIDToString (CLSID_ACEStream_MediaFramework_MF_MediaSource).c_str ()),
+    //              ACE_TEXT (Common_Error_Tools::errorToString (result, false).c_str ())));
+    //  goto error;
+    //} // end IF
+    //ACE_ASSERT (mediaSource_inout);
+//#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
   } // end IF
   ACE_ASSERT (mediaSource_inout);
   result = topology_node_p->SetUnknown (MF_TOPONODE_SOURCE,
@@ -3450,7 +3461,7 @@ Stream_MediaFramework_MediaFoundation_Tools::toString (const IMFMediaType* media
     ACE_ASSERT (SUCCEEDED (result_2));
     if (InlineIsEqualGUID (guid_s, MF_MT_ALL_SAMPLES_INDEPENDENT))
     { ACE_ASSERT (SUCCEEDED (value_v.vt == VT_UINT));
-      result += ACE_TEXT_ALWAYS_CHAR ("\nindependent samples: \"");
+      result += ACE_TEXT_ALWAYS_CHAR ("\nindependent samples: ");
       result +=
         (value_v.uintVal ? ACE_TEXT_ALWAYS_CHAR ("true")
                          : ACE_TEXT_ALWAYS_CHAR ("false"));

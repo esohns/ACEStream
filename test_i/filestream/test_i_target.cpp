@@ -570,6 +570,7 @@ do_work (unsigned int bufferSize_in,
   if (bufferSize_in)
     allocator_configuration.defaultBufferSize = bufferSize_in;
 
+  stream_configuration.allocatorConfiguration = &allocator_configuration;
   stream_configuration.cloneModule = true;
   stream_configuration.messageAllocator = &message_allocator;
   stream_configuration.module =

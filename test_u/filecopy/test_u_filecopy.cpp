@@ -449,6 +449,7 @@ do_work (unsigned int bufferSize_in,
     allocator_configuration.defaultBufferSize = bufferSize_in;
 
   struct Stream_Configuration stream_configuration;
+  stream_configuration.allocatorConfiguration = &allocator_configuration;
   stream_configuration.messageAllocator = &message_allocator;
   stream_configuration.module =
     (!UIDefinitionFile_in.empty () ? &event_handler
