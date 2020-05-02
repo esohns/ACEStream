@@ -646,6 +646,7 @@ do_work (unsigned int bufferSize_in,
   modulehandler_configuration.URL = URL_in;
   // ******************** (sub-)stream configuration data *********************
   struct Stream_Configuration steam_configuration;
+  steam_configuration.allocatorConfiguration = &allocator_configuration;
   steam_configuration.messageAllocator = &message_allocator;
   steam_configuration.module =
     (!interfaceDefinitionFile_in.empty () ? &event_handler_module

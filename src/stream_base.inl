@@ -1837,7 +1837,6 @@ Stream_Base_T<ACE_SYNCH_USE,
     ACE_ASSERT (task_p->msg_queue_);
     do
     {
-      //result = task_p->msg_queue_->wait ();
       message_count = task_p->msg_queue_->message_count ();
       if (likely (!message_count))
         break;

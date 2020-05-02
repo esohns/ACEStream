@@ -22,7 +22,7 @@
 #define HTTP_GET_DEFINES_H
 
 #define HTTP_GET_DEFAULT_OUTPUT_FILE "output.bin"
-#define HTTP_GET_DEFAULT_URI         "http://www.mirc.com/servers.ini"
+#define HTTP_GET_DEFAULT_URI         "https://www.mirc.com/servers.ini"
 
 //#define HTTP_GET_DEFAULT_BUFFER_SIZE 16384 // bytes
 
