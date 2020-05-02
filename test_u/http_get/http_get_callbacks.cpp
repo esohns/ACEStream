@@ -852,12 +852,13 @@ idle_update_info_display_cb (gpointer userData_in)
           break;
         }
         case COMMON_UI_EVENT_STARTED:
+        case COMMON_UI_EVENT_STOPPED:
           break;
         default:
         {
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("invalid/unknown event type (was: %d), continuing\n"),
-                      event_e));
+                      *event_p));
           break;
         }
       } // end SWITCH
