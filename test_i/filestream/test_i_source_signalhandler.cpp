@@ -149,7 +149,7 @@ Test_I_Source_SignalHandler::handle (const struct Common_Signal& signal_in)
     Test_I_Source_ITCPConnectionManager_t* connection_manager_p =
         TEST_I_SOURCE_TCP_CONNECTIONMANAGER_SINGLETON::instance ();
     ACE_ASSERT (connection_manager_p);
-    connection_manager_p->stop ();
+    connection_manager_p->stop (false, false);
     connection_manager_p->abort ();
 
     // step3: stop UI event processing ?

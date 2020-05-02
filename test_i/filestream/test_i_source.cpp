@@ -458,7 +458,7 @@ do_work (unsigned int bufferSize_in,
 
   // step0a: initialize event dispatch
   CBData_in.configuration->dispatchConfiguration.numberOfReactorThreads =
-      numberOfDispatchThreads_in;
+      1;
   CBData_in.configuration->dispatchConfiguration.numberOfProactorThreads =
       numberOfDispatchThreads_in;
   if (!Common_Tools::initializeEventDispatch (CBData_in.configuration->dispatchConfiguration))
@@ -590,7 +590,8 @@ do_work (unsigned int bufferSize_in,
 
   // ********************* (sub-)stream configuration data *********************
   struct Test_I_Source_StreamConfiguration stream_configuration;
-  Test_I_Source_StreamConfiguration_t stream_configuration_2;
+  struct Test_I_Source_StreamConfiguration stream_configuration_2;
+  Test_I_Source_StreamConfiguration_t stream_configuration_3;
   if (bufferSize_in)
     allocator_configuration.defaultBufferSize = bufferSize_in;
 
@@ -604,13 +605,14 @@ do_work (unsigned int bufferSize_in,
                                                            modulehandler_configuration,
                                                            stream_configuration);
 
-  stream_configuration.module = NULL;
-  stream_configuration_2.initialize (module_configuration,
+  stream_configuration_2 = stream_configuration;
+  stream_configuration_2.module = NULL;
+  stream_configuration_3.initialize (module_configuration,
                                      modulehandler_configuration,
-                                     stream_configuration);
-  connection_configuration.initialize (stream_configuration_2);
+                                     stream_configuration_2);
+  connection_configuration.initialize (stream_configuration_3);
   //  stream_iterator =
-  //    v4l2CBData_in.configuration->streamConfigurations.find (ACE_TEXT_ALWAYS_CHAR (STREAM_NET_DEFAULT_NAME_STRING));
+  //    CBData_in.configuration->streamConfigurations.find (ACE_TEXT_ALWAYS_CHAR (STREAM_NET_DEFAULT_NAME_STRING));
   //  ACE_ASSERT (stream_iterator != v4l2CBData_in.configuration->streamConfigurations.end ());
 
   // step0c: initialize connection manager
