@@ -448,7 +448,7 @@ do_work (unsigned int bufferSize_in,
 
   // step0a: initialize configuration
   CBData_in.configuration->dispatchConfiguration.numberOfReactorThreads =
-      numberOfDispatchThreads_in;
+      1;
   CBData_in.configuration->dispatchConfiguration.numberOfProactorThreads =
       numberOfDispatchThreads_in;
   //configuration.userData.connectionConfiguration =

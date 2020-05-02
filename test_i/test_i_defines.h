@@ -24,7 +24,7 @@
 #include "ace/config-lite.h"
 
 // stream
-#define TEST_I_DEFAULT_BUFFER_SIZE                   4096 // bytes
+#define TEST_I_DEFAULT_BUFFER_SIZE                   16384 // bytes
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #define TEST_I_DEFAULT_NUMBER_OF_DISPATCHING_THREADS 1
