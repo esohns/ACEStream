@@ -148,7 +148,7 @@ struct Test_I_MP3Player_ModuleHandlerConfiguration
    , pushStatisticMessages (true)
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
-   , asynchPlayback (true)
+   , asynchPlayback (false)
    , deviceIdentifier ()
    , playbackDeviceHandle (NULL)
 #endif // ACE_WIN32 || ACE_WIN64

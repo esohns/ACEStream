@@ -310,7 +310,9 @@ Stream_Decoder_MP3Decoder_T<ACE_SYNCH_USE,
   waveformatex_p->nAvgBytesPerSec =
     (waveformatex_p->nSamplesPerSec * waveformatex_p->nBlockAlign);
 #else
-  ACE_ASSERT (false); // *TODO*
+  media_type_s.channels = channels_i;
+  ACE_ASSERT (encoding_i == MPG123_ENC_SIGNED_16);
+  media_type_s.rate = rate_l;
 #endif // ACE_WIN32 || ACE_WIN64
 
   do
