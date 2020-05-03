@@ -269,7 +269,7 @@ Stream_Module_Vis_GTK_Cairo_T<ACE_SYNCH_USE,
       ACE_ASSERT (inherited::sessionData_);
       const SessionDataType& session_data_r = inherited::sessionData_->getR ();
       const MediaType& media_type_r = session_data_r.formats.front ();
-      struct Stream_MediaFramework_FFMPEG_MediaType media_type_s;
+      struct Stream_MediaFramework_FFMPEG_VideoMediaType media_type_s;
       inherited2::getMediaType (media_type_r,
                                 media_type_s);
       unsigned int frame_size_i =

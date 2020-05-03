@@ -21,7 +21,9 @@
 #ifndef TEST_I_STREAM_COMMON_H
 #define TEST_I_STREAM_COMMON_H
 
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
 #include "strmif.h"
+#endif // ACE_WIN32 || ACE_WIN64
 
 #include <list>
 #include <map>
@@ -47,6 +49,11 @@
 #include "stream_dec_common.h"
 #include "stream_dec_defines.h"
 
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#else
+#include "stream_lib_alsa_common.h"
+#endif // ACE_WIN32 || ACE_WIN64
+
 #include "test_i_configuration.h"
 
 // forward declarations
@@ -60,14 +67,22 @@ typedef int Stream_CommandType_t;
 //struct Test_I_HTTPGet_ConnectionState;
 struct Test_I_MP3Player_SessionData
  : Stream_SessionDataMediaBase_T<struct Stream_SessionData,
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
                                  struct _AMMediaType,
+#else
+                                 struct Stream_MediaFramework_ALSA_MediaType,
+#endif // ACE_WIN32 || ACE_WIN64
                                  struct Test_I_MP3Player_StreamState,
                                  struct Stream_Statistic,
                                  struct Stream_UserData>
 {
   Test_I_MP3Player_SessionData ()
    : Stream_SessionDataMediaBase_T<struct Stream_SessionData,
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
                                    struct _AMMediaType,
+#else
+                                   struct Stream_MediaFramework_ALSA_MediaType,
+#endif // ACE_WIN32 || ACE_WIN64
                                    struct Test_I_MP3Player_StreamState,
                                    struct Stream_Statistic,
                                    struct Stream_UserData> ()
@@ -78,7 +93,11 @@ struct Test_I_MP3Player_SessionData
   {
     // *NOTE*: the idea is to 'merge' the data
     Stream_SessionDataMediaBase_T<struct Stream_SessionData,
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
                                   struct _AMMediaType,
+#else
+                                  struct Stream_MediaFramework_ALSA_MediaType,
+#endif // ACE_WIN32 || ACE_WIN64
                                   struct Test_I_MP3Player_StreamState,
                                   struct Stream_Statistic,
                                   struct Stream_UserData>::operator+= (rhs_in);
@@ -127,9 +146,21 @@ struct Test_I_MP3Player_ModuleHandlerConfiguration
   Test_I_MP3Player_ModuleHandlerConfiguration ()
    : Test_I_ModuleHandlerConfiguration ()
    , pushStatisticMessages (true)
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#else
+   , asynchPlayback (true)
+   , deviceIdentifier ()
+   , playbackDeviceHandle (NULL)
+#endif // ACE_WIN32 || ACE_WIN64
   {}
 
   bool pushStatisticMessages;
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#else
+  bool             asynchPlayback;
+  std::string      deviceIdentifier;
+  struct _snd_pcm* playbackDeviceHandle;
+#endif // ACE_WIN32 || ACE_WIN64
 };
 
 struct Test_I_MP3Player_StreamConfiguration

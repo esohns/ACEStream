@@ -84,14 +84,14 @@
 //                                            Stream_ImageScreen_Message_t,
 //                                            Stream_ImageScreen_SessionMessage_t,
 //                                            Stream_ImageScreen_SessionData_t,
-//                                            struct Stream_MediaFramework_FFMPEG_MediaType> Stream_ImageScreen_Decode;
+//                                            struct Stream_MediaFramework_FFMPEG_VideoMediaType> Stream_ImageScreen_Decode;
 //typedef Stream_Visualization_LibAVResize1_T<ACE_MT_SYNCH,
 //                                            Common_TimePolicy_t,
 //                                            struct Stream_ImageScreen_ModuleHandlerConfiguration,
 //                                            Stream_ControlMessage_t,
 //                                            Stream_ImageScreen_Message_t,
 //                                            Stream_ImageScreen_SessionMessage_t,
-//                                            struct Stream_MediaFramework_FFMPEG_MediaType> Stream_ImageScreen_Resize;
+//                                            struct Stream_MediaFramework_FFMPEG_VideoMediaType> Stream_ImageScreen_Resize;
 #endif // FFMPEG_SUPPORT
 #if defined (IMAGEMAGICK_SUPPORT)
 typedef Stream_File_ImageMagick_Source_T<ACE_MT_SYNCH,
@@ -104,21 +104,21 @@ typedef Stream_File_ImageMagick_Source_T<ACE_MT_SYNCH,
                                          struct Stream_Statistic,
                                          Common_Timer_Manager_t,
                                          struct Stream_UserData,
-                                         struct Stream_MediaFramework_FFMPEG_MediaType> Stream_ImageScreen_Source;
+                                         struct Stream_MediaFramework_FFMPEG_VideoMediaType> Stream_ImageScreen_Source;
 //typedef Stream_Decoder_ImageMagick_Decoder_T<ACE_MT_SYNCH,
 //                                             Common_TimePolicy_t,
 //                                             struct Stream_ImageScreen_ModuleHandlerConfiguration,
 //                                             Stream_ControlMessage_t,
 //                                             Stream_ImageScreen_Message_t,
 //                                             Stream_ImageScreen_SessionMessage_t,
-//                                             struct Stream_MediaFramework_FFMPEG_MediaType> Stream_ImageScreen_ImageMagickDecoder;
+//                                             struct Stream_MediaFramework_FFMPEG_VideoMediaType> Stream_ImageScreen_ImageMagickDecoder;
 typedef Stream_Visualization_ImageMagickResize1_T<ACE_MT_SYNCH,
                                                   Common_TimePolicy_t,
                                                   struct Stream_ImageScreen_ModuleHandlerConfiguration,
                                                   Stream_ControlMessage_t,
                                                   Stream_ImageScreen_Message_t,
                                                   Stream_ImageScreen_SessionMessage_t,
-                                                  struct Stream_MediaFramework_FFMPEG_MediaType> Stream_ImageScreen_Resize;
+                                                  struct Stream_MediaFramework_FFMPEG_VideoMediaType> Stream_ImageScreen_Resize;
 #endif // IMAGEMAGICK_SUPPORT
 typedef Stream_Decoder_LibAVConverter1_T<ACE_MT_SYNCH,
                                          Common_TimePolicy_t,
@@ -127,7 +127,7 @@ typedef Stream_Decoder_LibAVConverter1_T<ACE_MT_SYNCH,
                                          Stream_ImageScreen_Message_t,
                                          Stream_ImageScreen_SessionMessage_t,
                                          Stream_ImageScreen_SessionData_t,
-                                         struct Stream_MediaFramework_FFMPEG_MediaType> Stream_ImageScreen_Convert;
+                                         struct Stream_MediaFramework_FFMPEG_VideoMediaType> Stream_ImageScreen_Convert;
 
 typedef Stream_Module_Delay_T<ACE_MT_SYNCH,
                               Common_TimePolicy_t,
@@ -146,7 +146,7 @@ typedef Stream_Vis_Target_Direct3D_T<ACE_MT_SYNCH,
                                      Stream_ImageScreen_SessionMessage_t,
                                      Stream_ImageScreen_SessionData,
                                      Stream_ImageScreen_SessionData_t,
-                                     struct Stream_MediaFramework_FFMPEG_MediaType> Stream_ImageScreen_Display;
+                                     struct Stream_MediaFramework_FFMPEG_VideoMediaType> Stream_ImageScreen_Display;
 #else
 typedef Stream_Module_Vis_X11_Window_T<ACE_MT_SYNCH,
                                        Common_TimePolicy_t,
@@ -155,7 +155,7 @@ typedef Stream_Module_Vis_X11_Window_T<ACE_MT_SYNCH,
                                        Stream_ImageScreen_Message_t,
                                        Stream_ImageScreen_SessionMessage_t,
                                        Stream_ImageScreen_SessionData_t,
-                                       struct Stream_MediaFramework_FFMPEG_MediaType> Stream_ImageScreen_Display;
+                                       struct Stream_MediaFramework_FFMPEG_VideoMediaType> Stream_ImageScreen_Display;
 #endif // ACE_WIN32 || ACE_WIN64
 
 typedef Stream_Module_MessageHandler_T<ACE_MT_SYNCH,

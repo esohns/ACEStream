@@ -202,7 +202,7 @@ class Stream_MediaFramework_DirectShow_Tools
                                bool = false);              // condensed version ?
 
   // *IMPORTANT NOTE*: callers must 'delete_' return values
-  static struct _AMMediaType* to (const struct Stream_MediaFramework_FFMPEG_MediaType&); // media type
+  static struct _AMMediaType* to (const struct Stream_MediaFramework_FFMPEG_VideoMediaType&); // media type
 
  private:
   ACE_UNIMPLEMENTED_FUNC (Stream_MediaFramework_DirectShow_Tools ())

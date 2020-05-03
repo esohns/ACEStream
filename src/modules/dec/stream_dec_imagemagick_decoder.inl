@@ -177,7 +177,7 @@ Stream_Decoder_ImageMagick_Decoder_T<ACE_SYNCH_USE,
 
   const typename DataMessageType::DATA_T& message_data_r =
       message_inout->getR ();
-  struct Stream_MediaFramework_FFMPEG_MediaType media_type_s;
+  struct Stream_MediaFramework_FFMPEG_VideoMediaType media_type_s;
   inherited2::getMediaType (message_data_r.format,
                             media_type_s);
   size_i =

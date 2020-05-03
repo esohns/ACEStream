@@ -61,7 +61,7 @@ extern const char libacestream_default_vis_opengl_glut_module_name_string[];
 
 struct OpenGL_GLUT_WindowData
 {
-  struct Stream_MediaFramework_FFMPEG_MediaType mediaType;
+  struct Stream_MediaFramework_FFMPEG_VideoMediaType mediaType;
   ACE_Message_Queue_Base*                       queue;
 };
 

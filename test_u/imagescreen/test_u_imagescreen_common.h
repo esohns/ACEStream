@@ -65,7 +65,7 @@ class Stream_ImageScreen_EventHandler_T;
 
 class Stream_ImageScreen_SessionData
  : public Stream_SessionDataMediaBase_T<struct Test_U_SessionData,
-                                        struct Stream_MediaFramework_FFMPEG_MediaType,
+                                        struct Stream_MediaFramework_FFMPEG_VideoMediaType,
                                         struct Stream_State,
                                         struct Stream_Statistic,
                                         struct Stream_UserData>
@@ -73,7 +73,7 @@ class Stream_ImageScreen_SessionData
  public:
   Stream_ImageScreen_SessionData ()
    : Stream_SessionDataMediaBase_T<struct Test_U_SessionData,
-                                   struct Stream_MediaFramework_FFMPEG_MediaType,
+                                   struct Stream_MediaFramework_FFMPEG_VideoMediaType,
                                    struct Stream_State,
                                    struct Stream_Statistic,
                                    struct Stream_UserData> ()
@@ -83,7 +83,7 @@ class Stream_ImageScreen_SessionData
 //  {
 //    // *NOTE*: the idea is to 'merge' the data
 //    Stream_SessionDataMediaBase_T<struct Test_U_SessionData,
-//                                  struct Stream_MediaFramework_FFMPEG_MediaType,
+//                                  struct Stream_MediaFramework_FFMPEG_VideoMediaType,
 //                                  struct Stream_State,
 //                                  struct Stream_Statistic,
 //                                  struct Stream_UserData>::operator+= (rhs_in);
@@ -156,7 +156,7 @@ struct Stream_ImageScreen_ModuleHandlerConfiguration
   // *NOTE*: treat each image separately (different sizes)
   bool                                          fullScreen;
   bool                                          individualFormat;
-  struct Stream_MediaFramework_FFMPEG_MediaType outputFormat;
+  struct Stream_MediaFramework_FFMPEG_VideoMediaType outputFormat;
   Stream_ImageScreen_ISessionNotify_t*          subscriber;
   Stream_ImageScreen_Subscribers_t*             subscribers;
 #if defined (GTK_USE)
@@ -201,7 +201,7 @@ struct Stream_ImageScreen_StreamConfiguration
     printFinalReport = true;
   }
 
-//  struct Stream_MediaFramework_FFMPEG_MediaType format;
+//  struct Stream_MediaFramework_FFMPEG_VideoMediaType format;
   enum Stream_Visualization_VideoRenderer       renderer;
 };
 

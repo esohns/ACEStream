@@ -688,12 +688,12 @@ close:
   return return_value;
 }
 
-struct Stream_MediaFramework_FFMPEG_MediaType
+struct Stream_MediaFramework_FFMPEG_VideoMediaType
 Stream_Device_Tools::convert (const struct Stream_MediaFramework_V4L_MediaType& format_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Device_Tools::convert"));
 
-  struct Stream_MediaFramework_FFMPEG_MediaType result;
+  struct Stream_MediaFramework_FFMPEG_VideoMediaType result;
 
   result.format =
       Stream_Device_Tools::v4l2FormatToffmpegFormat (format_in.format.pixelformat);

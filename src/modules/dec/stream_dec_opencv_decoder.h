@@ -112,7 +112,7 @@ class Stream_Decoder_OpenCVDecoder_T
   ACE_UNIMPLEMENTED_FUNC (Stream_Decoder_OpenCVDecoder_T (const Stream_Decoder_OpenCVDecoder_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Decoder_OpenCVDecoder_T& operator= (const Stream_Decoder_OpenCVDecoder_T&))
 
-  struct Stream_MediaFramework_FFMPEG_MediaType mediaType_;
+  struct Stream_MediaFramework_FFMPEG_VideoMediaType mediaType_;
 };
 
 // include template definition

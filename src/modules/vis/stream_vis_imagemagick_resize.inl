@@ -216,7 +216,7 @@ Stream_Visualization_ImageMagickResize_T<ACE_SYNCH_USE,
       Common_Image_Resolution_t resolution_s;
 
       // stash input format
-      struct Stream_MediaFramework_FFMPEG_MediaType media_type_2;
+      struct Stream_MediaFramework_FFMPEG_VideoMediaType media_type_2;
       inherited::getMediaType (media_type_r,
                                media_type_2);
       inherited::inputFormat_ = media_type_2.format;
@@ -290,7 +290,7 @@ error:
 
       int result = -1;
       int flags_i = 0;
-      struct Stream_MediaFramework_FFMPEG_MediaType media_type_2;
+      struct Stream_MediaFramework_FFMPEG_VideoMediaType media_type_2;
       inherited::getMediaType (media_type_r,
                                media_type_2);
 

@@ -838,13 +838,13 @@ bool
 do_initialize_v4l (const std::string& deviceIdentifier_in,
                    struct Stream_Device_Identifier& deviceIdentifier_out,
                    struct Stream_MediaFramework_V4L_MediaType& captureFormat_out,
-                   struct Stream_MediaFramework_FFMPEG_MediaType& outputFormat_out)
+                   struct Stream_MediaFramework_FFMPEG_VideoMediaType& outputFormat_out)
 {
   STREAM_TRACE (ACE_TEXT ("::do_initialize_v4l"));
 
   // intialize return value(s)
   ACE_OS::memset (&captureFormat_out, 0, sizeof (struct Stream_MediaFramework_V4L_MediaType));
-//  ACE_OS::memset (&outputFormat_out, 0, sizeof (struct Stream_MediaFramework_FFMPEG_MediaType));
+//  ACE_OS::memset (&outputFormat_out, 0, sizeof (struct Stream_MediaFramework_FFMPEG_VideoMediaType));
 
   // sanity check(s)
   ACE_ASSERT (!deviceIdentifier_in.empty ());
@@ -878,7 +878,7 @@ do_initialize_v4l (const std::string& deviceIdentifier_in,
               captureFormat_out.format.width, captureFormat_out.format.height,
               captureFormat_out.frameRate.numerator, captureFormat_out.frameRate.denominator));
 #endif // _DEBUG
-  struct Stream_MediaFramework_FFMPEG_MediaType media_type_s =
+  struct Stream_MediaFramework_FFMPEG_VideoMediaType media_type_s =
       Stream_Device_Tools::convert (captureFormat_out);
   if (!Stream_Module_Decoder_Tools::isRGB (media_type_s.format))
   {

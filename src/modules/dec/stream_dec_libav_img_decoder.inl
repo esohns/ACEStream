@@ -183,7 +183,7 @@ Stream_Decoder_LibAV_ImageDecoder_T<ACE_SYNCH_USE,
 #endif // _DEBUG
   //profile_ = configuration_in.codecProfile;
 
-  struct Stream_MediaFramework_FFMPEG_MediaType media_type_s;
+  struct Stream_MediaFramework_FFMPEG_VideoMediaType media_type_s;
   inherited2::getMediaType (configuration_in.outputFormat,
                             outputFormat_);
   if (unlikely (outputFormat_.format == AV_PIX_FMT_NONE))

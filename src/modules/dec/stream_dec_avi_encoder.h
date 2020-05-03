@@ -239,7 +239,7 @@ class Stream_Decoder_AVIEncoder_WriterTask_T
   //         side processing)
   bool                                          isFirst_;
 
-  struct Stream_MediaFramework_FFMPEG_MediaType format_;
+  struct Stream_MediaFramework_FFMPEG_VideoMediaType format_;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
   struct AVFormatContext*                       formatContext_;

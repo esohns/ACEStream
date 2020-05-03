@@ -256,7 +256,7 @@ Stream_Decoder_LibAVDecoder_T<ACE_SYNCH_USE,
     return false;
   } // end IF
 
-  struct Stream_MediaFramework_FFMPEG_MediaType media_type_s;
+  struct Stream_MediaFramework_FFMPEG_VideoMediaType media_type_s;
   inherited2::getMediaType (configuration_in.outputFormat,
                             media_type_s);
   outputFormat_ = media_type_s.format;
@@ -647,7 +647,7 @@ Stream_Decoder_LibAVDecoder_T<ACE_SYNCH_USE,
       // *TODO*: remove type inference
       ACE_ASSERT (!session_data_r.formats.empty ());
       MediaType media_type_2 = session_data_r.formats.front ();
-      struct Stream_MediaFramework_FFMPEG_MediaType media_type_s;
+      struct Stream_MediaFramework_FFMPEG_VideoMediaType media_type_s;
       inherited2::getMediaType (media_type_2,
                                 media_type_s);
 #if defined (ACE_WIN32) || defined (ACE_WIN64)

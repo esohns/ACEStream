@@ -271,13 +271,13 @@ Stream_Visualization_LibAVResize_T<ACE_SYNCH_USE,
       Common_Image_Resolution_t resolution_s;
 
       // remember input format
-      struct Stream_MediaFramework_FFMPEG_MediaType media_type_2;
+      struct Stream_MediaFramework_FFMPEG_VideoMediaType media_type_2;
       inherited::getMediaType (media_type_r,
                                media_type_2);
       inherited::inputFormat_ = media_type_2.format;
       sourceResolution_ = media_type_2.resolution;
 
-      struct Stream_MediaFramework_FFMPEG_MediaType media_type_3;
+      struct Stream_MediaFramework_FFMPEG_VideoMediaType media_type_3;
       inherited::getMediaType (inherited::configuration_->outputFormat,
                                media_type_3);
 
@@ -427,7 +427,7 @@ error:
 
       int result = -1;
       int flags_i = 0;
-      struct Stream_MediaFramework_FFMPEG_MediaType media_type_2;
+      struct Stream_MediaFramework_FFMPEG_VideoMediaType media_type_2;
       inherited::getMediaType (media_type_r,
                                media_type_2);
 
@@ -888,7 +888,7 @@ Stream_Visualization_LibAVResize1_T<ACE_SYNCH_USE,
       int result = -1;
 
       // sanity check(s)
-      struct Stream_MediaFramework_FFMPEG_MediaType media_type_3;
+      struct Stream_MediaFramework_FFMPEG_VideoMediaType media_type_3;
       inherited::getMediaType (inherited::configuration_->outputFormat,
                                media_type_3);
 
@@ -953,7 +953,7 @@ error:
 
       int result = -1;
       int flags_i = 0;
-      struct Stream_MediaFramework_FFMPEG_MediaType media_type_2;
+      struct Stream_MediaFramework_FFMPEG_VideoMediaType media_type_2;
       inherited::getMediaType (media_type_r,
                                media_type_2);
 

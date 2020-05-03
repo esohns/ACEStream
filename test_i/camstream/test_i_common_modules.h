@@ -152,7 +152,7 @@ typedef Stream_Module_Splitter_T<ACE_MT_SYNCH,
                                  Test_I_Target_DirectShow_Stream_Message,
                                  Test_I_Target_DirectShow_SessionMessage,
                                  Test_I_Target_DirectShow_SessionData,
-                                 struct Stream_MediaFramework_FFMPEG_MediaType> Test_I_Target_DirectShow_Splitter;
+                                 struct Stream_MediaFramework_FFMPEG_VideoMediaType> Test_I_Target_DirectShow_Splitter;
 typedef Stream_Module_Splitter_T<ACE_MT_SYNCH,
                                  Common_TimePolicy_t,
                                  struct Test_I_Target_MediaFoundation_ModuleHandlerConfiguration,
@@ -160,7 +160,7 @@ typedef Stream_Module_Splitter_T<ACE_MT_SYNCH,
                                  Test_I_Target_MediaFoundation_Stream_Message,
                                  Test_I_Target_MediaFoundation_SessionMessage,
                                  Test_I_Target_MediaFoundation_SessionData,
-                                 struct Stream_MediaFramework_FFMPEG_MediaType> Test_I_Target_MediaFoundation_Splitter;
+                                 struct Stream_MediaFramework_FFMPEG_VideoMediaType> Test_I_Target_MediaFoundation_Splitter;
 #else
 typedef Stream_Module_Splitter_T<ACE_MT_SYNCH,
                                  Common_TimePolicy_t,
@@ -169,7 +169,7 @@ typedef Stream_Module_Splitter_T<ACE_MT_SYNCH,
                                  Test_I_Target_Stream_Message,
                                  Test_I_Target_SessionMessage,
                                  Test_I_Target_SessionData,
-                                 struct Stream_MediaFramework_FFMPEG_MediaType> Test_I_Target_Splitter;
+                                 struct Stream_MediaFramework_FFMPEG_VideoMediaType> Test_I_Target_Splitter;
 #endif // ACE_WIN32 || ACE_WIN64
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -677,7 +677,7 @@ typedef Stream_Visualization_LibAVResize_T<ACE_MT_SYNCH,
                                            Test_I_Target_Stream_Message,
                                            Test_I_Target_SessionMessage,
                                            Test_I_Target_SessionData_t,
-                                           struct Stream_MediaFramework_FFMPEG_MediaType> Test_I_Target_Resize;
+                                           struct Stream_MediaFramework_FFMPEG_VideoMediaType> Test_I_Target_Resize;
 typedef Stream_Module_Vis_GTK_Pixbuf_T<ACE_MT_SYNCH,
                                        Common_TimePolicy_t,
                                        struct Test_I_Target_ModuleHandlerConfiguration,
@@ -685,7 +685,7 @@ typedef Stream_Module_Vis_GTK_Pixbuf_T<ACE_MT_SYNCH,
                                        Test_I_Target_Stream_Message,
                                        Test_I_Target_SessionMessage,
                                        Test_I_Target_SessionData_t,
-                                       struct Stream_MediaFramework_FFMPEG_MediaType> Test_I_Target_Display;
+                                       struct Stream_MediaFramework_FFMPEG_VideoMediaType> Test_I_Target_Display;
 #endif // GTK_USE
 #endif // GUI_SUPPORT
 #endif // ACE_WIN32 || ACE_WIN64

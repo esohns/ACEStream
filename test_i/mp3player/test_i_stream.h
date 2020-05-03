@@ -109,11 +109,15 @@ class Test_I_Stream
   void ping ();
 
   // modules
-  Test_I_MP3Decoder_Module      MP3Decoder_;
+  Test_I_MP3Decoder_Module      decoder_;
   Test_I_StatisticReport_Module statisticReport_;
   //Test_I_WAVEncoder_Module      WAVEncoder_;
   //Test_I_FileWriter_Module      FileSink_;
-  Test_I_WavOutPlayer_Module    WavOut_;
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  Test_I_WavOutPlayer_Module    player_;
+#else
+  Test_I_ALSAPlayer_Module      player_;
+#endif // ACE_WIN32 || ACE_WIN64
 };
 
 #endif

@@ -106,7 +106,7 @@ class Stream_Decoder_ImageMagick_Decoder_T
 
  protected:
   struct _MagickWand*                           context_;
-  struct Stream_MediaFramework_FFMPEG_MediaType outputFormat_;
+  struct Stream_MediaFramework_FFMPEG_VideoMediaType outputFormat_;
 
  private:
   // convenient types

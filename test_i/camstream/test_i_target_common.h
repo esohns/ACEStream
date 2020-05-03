@@ -215,7 +215,7 @@ typedef Stream_SessionData_T<Test_I_Target_MediaFoundation_SessionData> Test_I_T
 #else
 class Test_I_Target_SessionData
  : public Stream_SessionDataMediaBase_T<struct Test_I_CamStream_V4L_SessionData,
-                                        struct Stream_MediaFramework_FFMPEG_MediaType,
+                                        struct Stream_MediaFramework_FFMPEG_VideoMediaType,
                                         struct Test_I_Target_StreamState,
                                         struct Stream_Statistic,
                                         struct Stream_UserData>
@@ -223,7 +223,7 @@ class Test_I_Target_SessionData
  public:
   Test_I_Target_SessionData ()
    : Stream_SessionDataMediaBase_T<struct Test_I_CamStream_V4L_SessionData,
-                                   struct Stream_MediaFramework_FFMPEG_MediaType,
+                                   struct Stream_MediaFramework_FFMPEG_VideoMediaType,
                                    struct Test_I_Target_StreamState,
                                    struct Stream_Statistic,
                                    struct Stream_UserData> ()
@@ -234,7 +234,7 @@ class Test_I_Target_SessionData
   {
     // *NOTE*: the idea is to 'merge' the data
     Stream_SessionDataMediaBase_T<struct Test_I_CamStream_V4L_SessionData,
-                                  struct Stream_MediaFramework_FFMPEG_MediaType,
+                                  struct Stream_MediaFramework_FFMPEG_VideoMediaType,
                                   struct Test_I_Target_StreamState,
                                   struct Stream_Statistic,
                                   struct Stream_UserData>::operator+= (rhs_in);
@@ -479,7 +479,7 @@ struct Test_I_Target_ModuleHandlerConfiguration
 #endif // GTK_USE
 #endif // GUI_SUPPORT
   bool                                          crunch;            // splitter module
-  struct Stream_MediaFramework_FFMPEG_MediaType outputFormat; // gtk pixbuf module
+  struct Stream_MediaFramework_FFMPEG_VideoMediaType outputFormat; // gtk pixbuf module
   ACE_Message_Queue_Base*                       queue;  // (inbound) buffer queue handle
   // *TODO*: remove this ASAP
   Test_I_Target_StreamConfiguration_t*          streamConfiguration;
@@ -634,7 +634,7 @@ struct Test_I_Target_StreamConfiguration
 #endif // GUI_SUPPORT
   {}
 
-  struct Stream_MediaFramework_FFMPEG_MediaType format;
+  struct Stream_MediaFramework_FFMPEG_VideoMediaType format;
 #if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
   GdkWindow*                                    window;

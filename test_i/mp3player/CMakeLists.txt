@@ -1,6 +1,10 @@
 if (UNIX)
+ set (MPG123_LIB_FILE libmpg123.so.0)
+ find_library (MPG123_LIBRARY ${MPG123_LIB_FILE}
+#               PATH_SUFFIXES lib
+               DOC "searching for \"${MPG123_LIB_FILE}\"")
 elseif (WIN32)
- unset (MPG123_LIB_FILE)
+# unset (MPG123_LIB_FILE)
  set (MPG123_LIB_FILE libmpg123-0.lib)
  find_library (MPG123_LIBRARY ${MPG123_LIB_FILE}
 #               PATHS ${CMAKE_CURRENT_SOURCE_DIR}/../../../../libmysql
@@ -8,10 +12,10 @@ elseif (WIN32)
                PATHS $ENV{LIB_ROOT}/mpg123
 #               PATH_SUFFIXES cmake/libmysql/Debug
                DOC "searching for \"${MPG123_LIB_FILE}\"")
- if (NOT MPG123_LIBRARY)
-  message (FATAL_ERROR "could not find \"${MPG123_LIB_FILE}\"), aborting")
- endif (NOT MPG123_LIBRARY)
 endif ()
+if (NOT MPG123_LIBRARY)
+ message (FATAL_ERROR "could not find \"${MPG123_LIB_FILE}\"), aborting")
+endif (NOT MPG123_LIBRARY)
 #add_dependencies (${PROJECT_NAME}_Database libmysqlpp.so)
 
 get_filename_component (BUILD_PATH ${CMAKE_CURRENT_BINARY_DIR}/../.. REALPATH DIRECTORY)
@@ -183,13 +187,14 @@ elseif (WIN32)
  set_target_properties (${EXECUTABLE} PROPERTIES LINK_FLAGS /FORCE:MULTIPLE)
  set_target_properties (${EXECUTABLE} PROPERTIES LINK_FLAGS /SAFESEH:NO)
 endif ()
+target_link_libraries (${EXECUTABLE} ${MPG123_LIBRARY})
 target_link_libraries (${EXECUTABLE} ${ACE_LIBRARY})
 if (SSL_SUPPORT)
  target_link_libraries (${EXECUTABLE} ${ACE_SSL_LIBRARY})
 endif (SSL_SUPPORT)
 if (UNIX)
- target_link_libraries (${EXECUTABLE} ${PKG_MYSQL_LIBRARIES})
- target_link_libraries (${EXECUTABLE} ${PKG_LIBXML2_LIBRARIES})
+# target_link_libraries (${EXECUTABLE} ${PKG_MYSQL_LIBRARIES})
+# target_link_libraries (${EXECUTABLE} ${PKG_LIBXML2_LIBRARIES})
  #target_link_libraries (${EXECUTABLE} ${PKG_FFMPEG_LIBRARIES})
 elseif (WIN32)
 # set (CMAKE_EXE_LINKER_FLAGS /NODEFAULTLIB:\"libcmt.lib\")
@@ -197,7 +202,6 @@ elseif (WIN32)
 # target_link_libraries (${EXECUTABLE} mf.lib)
 # target_link_libraries (${EXECUTABLE} mfplat.lib)
 # *TODO*: repair pkgconfig support
- target_link_libraries (${EXECUTABLE} ${MPG123_LIBRARY})
 endif ()
 
 if (WIN32)

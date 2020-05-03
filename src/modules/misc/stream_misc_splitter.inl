@@ -240,7 +240,7 @@ Stream_Module_Splitter1_T<ACE_SYNCH_USE,
 
   Stream_MediaFramework_DirectShow_Tools::free (media_type_s);
 #else
-  struct Stream_MediaFramework_FFMPEG_MediaType media_type_s;
+  struct Stream_MediaFramework_FFMPEG_VideoMediaType media_type_s;
   inherited2::getMediaType (configuration_in.outputFormat,
                             media_type_s);
 #endif // ACE_WIN32 || ACE_WIN64
@@ -466,7 +466,7 @@ Stream_Module_Splitter_T<ACE_SYNCH_USE,
 
   Stream_MediaFramework_DirectShow_Tools::free (media_type_s);
 #else
-  struct Stream_MediaFramework_FFMPEG_MediaType media_type_s;
+  struct Stream_MediaFramework_FFMPEG_VideoMediaType media_type_s;
   inherited2::getMediaType (configuration_in.outputFormat,
                             media_type_s);
   PDUSize_ =

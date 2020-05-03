@@ -115,7 +115,7 @@ Stream_ImageScreen_Stream::initialize (const typename inherited::CONFIGURATION_T
   typename inherited::CONFIGURATION_T::ITERATOR_T iterator;
   struct Stream_ImageScreen_ModuleHandlerConfiguration* configuration_p = NULL;
   Stream_ImageScreen_Source* source_impl_p = NULL;
-  struct Stream_MediaFramework_FFMPEG_MediaType media_type_s;
+  struct Stream_MediaFramework_FFMPEG_VideoMediaType media_type_s;
 
   // allocate a new session state, reset stream
   const_cast<typename inherited::CONFIGURATION_T&> (configuration_in).configuration->setupPipeline =

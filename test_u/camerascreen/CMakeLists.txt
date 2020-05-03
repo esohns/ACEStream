@@ -279,8 +279,8 @@ install (TARGETS ${EXECUTABLE}
          EXPORT ${PROJECT_NAME}Targets
          RUNTIME DESTINATION ${INSTALL_BIN_DIR} COMPONENT test_u)
 if (UNIX)
- install (FILES etc/${ui_definition_file}
-          DESTINATION "${INSTALL_SHARE_DIR}/${PROJECT_NAME}/${EXECUTABLE}" COMPONENT config)
+# install (FILES etc/${ui_definition_file}
+#          DESTINATION "${INSTALL_SHARE_DIR}/${PROJECT_NAME}/${EXECUTABLE}" COMPONENT config)
 elseif (WIN32)
  get_filename_component (ACE_LIB_PATH ${ACE_LIBRARY}
                          DIRECTORY)

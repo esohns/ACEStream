@@ -362,7 +362,7 @@ Stream_Decoder_LibAVConverter_T<ACE_SYNCH_USE,
       // sanity check(s)
       // *TODO*: remove type inference
       ACE_ASSERT (!session_data_r.formats.empty ());
-      struct Stream_MediaFramework_FFMPEG_MediaType media_type_s;
+      struct Stream_MediaFramework_FFMPEG_VideoMediaType media_type_s;
       inherited2::getMediaType (session_data_r.formats.front (),
                                 media_type_s);
       MediaType media_type_2;
@@ -370,7 +370,7 @@ Stream_Decoder_LibAVConverter_T<ACE_SYNCH_USE,
                                 media_type_2);
       int flags = 0;
       inputFormat_ = media_type_s.format;
-      struct Stream_MediaFramework_FFMPEG_MediaType media_type_3;
+      struct Stream_MediaFramework_FFMPEG_VideoMediaType media_type_3;
       inherited2::getMediaType (inherited::configuration_->outputFormat,
                                 media_type_3);
       int result = -1;
@@ -485,7 +485,7 @@ error:
       ACE_ASSERT (!session_data_r.formats.empty ());
 
       int result = -1;
-      struct Stream_MediaFramework_FFMPEG_MediaType media_type_s;
+      struct Stream_MediaFramework_FFMPEG_VideoMediaType media_type_s;
       inherited2::getMediaType (session_data_r.formats.back (),
                                 media_type_s);
 
@@ -677,7 +677,7 @@ Stream_Decoder_LibAVConverter1_T<ACE_SYNCH_USE,
   AVFrame* frame_p = NULL;
   typename DataMessageType::DATA_T& message_data_r =
       const_cast<typename DataMessageType::DATA_T&> (message_inout->getR ());
-  struct Stream_MediaFramework_FFMPEG_MediaType media_type_s;
+  struct Stream_MediaFramework_FFMPEG_VideoMediaType media_type_s;
   typename DataMessageType::DATA_T message_data_2;
   int line_sizes[AV_NUM_DATA_POINTERS];
   uint8_t* data[AV_NUM_DATA_POINTERS];

@@ -48,11 +48,11 @@ Stream_MediaFramework_MediaTypeConverter_T<MediaType
 template <typename MediaType>
 void
 Stream_MediaFramework_MediaTypeConverter_T<MediaType>::getMediaType (const struct _AMMediaType& mediaType_in,
-                                                                     struct Stream_MediaFramework_FFMPEG_MediaType& mediaType_out)
+                                                                     struct Stream_MediaFramework_FFMPEG_VideoMediaType& mediaType_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_MediaTypeConverter_T::getMediaType"));
 
-  ACE_OS::memset (&mediaType_out, 0, sizeof (struct Stream_MediaFramework_FFMPEG_MediaType));
+  ACE_OS::memset (&mediaType_out, 0, sizeof (struct Stream_MediaFramework_FFMPEG_VideoMediaType));
 
   mediaType_out.format =
       Stream_Module_Decoder_Tools::mediaSubTypeToAVPixelFormat (mediaType_in.subtype,
@@ -158,11 +158,11 @@ Stream_MediaFramework_MediaTypeConverter_T<MediaType>::getMediaType (const IMFMe
 template <typename MediaType>
 void
 Stream_MediaFramework_MediaTypeConverter_T<MediaType>::getMediaType (const IMFMediaType* mediaType_in,
-                                                                     struct Stream_MediaFramework_FFMPEG_MediaType& mediaType_out)
+                                                                     struct Stream_MediaFramework_FFMPEG_VideoMediaType& mediaType_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_MediaTypeConverter_T::getMediaType"));
 
-  ACE_OS::memset (&mediaType_out, 0, sizeof (struct Stream_MediaFramework_FFMPEG_MediaType));
+  ACE_OS::memset (&mediaType_out, 0, sizeof (struct Stream_MediaFramework_FFMPEG_VideoMediaType));
 
   // sanity check(s)
   ACE_ASSERT (mediaType_in);
@@ -179,7 +179,7 @@ Stream_MediaFramework_MediaTypeConverter_T<MediaType>::getMediaType (const IMFMe
 
 template <typename MediaType>
 void
-Stream_MediaFramework_MediaTypeConverter_T<MediaType>::getMediaType (const struct Stream_MediaFramework_FFMPEG_MediaType& mediaType_in,
+Stream_MediaFramework_MediaTypeConverter_T<MediaType>::getMediaType (const struct Stream_MediaFramework_FFMPEG_VideoMediaType& mediaType_in,
                                                                      struct _AMMediaType& mediaType_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_MediaTypeConverter_T::getMediaType"));
@@ -197,11 +197,11 @@ Stream_MediaFramework_MediaTypeConverter_T<MediaType>::getMediaType (const struc
 //void
 //Stream_MediaFramework_MediaTypeConverter_T<MediaType,
 //                                           SessionDataType>::getMediaType_impl (const struct Stream_MediaFramework_V4L_MediaType& mediaType_in,
-//                                                                                struct Stream_MediaFramework_FFMPEG_MediaType& mediaType_out)
+//                                                                                struct Stream_MediaFramework_FFMPEG_VideoMediaType& mediaType_out)
 //{
 //  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_MediaTypeConverter_T::getMediaType_impl"));
 
-//  ACE_OS::memset (&mediaType_out, 0, sizeof (struct Stream_MediaFramework_FFMPEG_MediaType));
+//  ACE_OS::memset (&mediaType_out, 0, sizeof (struct Stream_MediaFramework_FFMPEG_VideoMediaType));
 
 //  mediaType_out.format =
 //      Stream_Device_Tools::v4l2FormatToffmpegFormat (mediaType_in.format.pixelformat);
@@ -215,7 +215,7 @@ template <typename MediaType,
           typename SessionDataType>
 void
 Stream_MediaFramework_MediaTypeConverter_T<MediaType,
-                                           SessionDataType>::getMediaType (const struct Stream_MediaFramework_FFMPEG_MediaType& mediaType_in,
+                                           SessionDataType>::getMediaType (const struct Stream_MediaFramework_FFMPEG_VideoMediaType& mediaType_in,
                                                                            struct Stream_MediaFramework_V4L_MediaType& mediaType_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_MediaTypeConverter_T::getMediaType"));
@@ -235,11 +235,11 @@ template <typename MediaType,
 void
 Stream_MediaFramework_MediaTypeConverter_T<MediaType,
                                            SessionDataType>::getMediaType (const struct Stream_MediaFramework_V4L_MediaType& mediaType_in,
-                                                                           struct Stream_MediaFramework_FFMPEG_MediaType& mediaType_out)
+                                                                           struct Stream_MediaFramework_FFMPEG_VideoMediaType& mediaType_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_MediaTypeConverter_T::getMediaType"));
 
-  ACE_OS::memset (&mediaType_out, 0, sizeof (struct Stream_MediaFramework_FFMPEG_MediaType));
+  ACE_OS::memset (&mediaType_out, 0, sizeof (struct Stream_MediaFramework_FFMPEG_VideoMediaType));
 
   mediaType_out.format =
       Stream_Device_Tools::v4l2FormatToffmpegFormat (mediaType_in.format.pixelformat);

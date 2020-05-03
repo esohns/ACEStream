@@ -529,7 +529,7 @@ struct Test_I_Source_V4L_ModuleHandlerConfiguration
   Net_ConnectionConfigurations_t*               connectionConfigurations;
   Test_I_Source_V4L_TCPConnectionManager_t*     connectionManager; // TCP IO module
   enum v4l2_memory                              method; // v4l2 camera source
-  struct Stream_MediaFramework_FFMPEG_MediaType outputFormat; // display module
+  struct Stream_MediaFramework_FFMPEG_VideoMediaType outputFormat; // display module
   //struct Stream_MediaFramework_V4L_MediaType     sourceFormat; // source module
   ACE_Time_Value                                statisticCollectionInterval;
   // *TODO*: remove this ASAP

@@ -142,7 +142,7 @@ class Stream_Decoder_LibAV_ImageDecoder_T
 
   enum AVCodecID                                codecId_;
 //  struct AVCodecContext*                        context_;
-  struct Stream_MediaFramework_FFMPEG_MediaType outputFormat_;
+  struct Stream_MediaFramework_FFMPEG_VideoMediaType outputFormat_;
 //  int                                           profile_; // codec-
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)

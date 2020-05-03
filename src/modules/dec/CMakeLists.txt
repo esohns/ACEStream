@@ -391,7 +391,7 @@ if (UNIX)
 endif (UNIX)
 
 install (FILES
-         ${PROJECT_NAME}_Decoder_LIB_HDRS
+         ${${PROJECT_NAME}_Decoder_LIB_HDRS}
          DESTINATION "${INSTALL_INCLUDE_DIR}/${PROJECT_NAME}"
          COMPONENT mod_include)
 install (TARGETS ${PROJECT_NAME}_Decoder

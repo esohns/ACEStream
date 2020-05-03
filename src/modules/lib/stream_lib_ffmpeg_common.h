@@ -27,19 +27,21 @@ extern "C" {
 #include "libavcodec/avcodec.h"
 #include "libavutil/pixfmt.h"
 #include "libavutil/rational.h"
+#include "libavutil/samplefmt.h"
 } // extern "C"
 
 #include "common_image_common.h"
 
-struct Stream_MediaFramework_FFMPEG_MediaType
+struct Stream_MediaFramework_FFMPEG_VideoMediaType
 {
-  Stream_MediaFramework_FFMPEG_MediaType ()
+  Stream_MediaFramework_FFMPEG_VideoMediaType ()
    : codec (AV_CODEC_ID_NONE)
    , format (AV_PIX_FMT_NONE)
    , frameRate ()
    , resolution ()
   {
     frameRate.den = 1;
+//    frameRate.num = 0;
   }
 
   enum AVCodecID            codec;
@@ -47,7 +49,23 @@ struct Stream_MediaFramework_FFMPEG_MediaType
   struct AVRational         frameRate;
   Common_Image_Resolution_t resolution;
 };
-typedef std::deque<struct Stream_MediaFramework_FFMPEG_MediaType> Stream_MediaFramework_FFMPEG_Formats_t;
-typedef Stream_MediaFramework_FFMPEG_Formats_t::iterator Stream_MediaFramework_FFMPEG_FormatsIterator_t;
+typedef std::deque<struct Stream_MediaFramework_FFMPEG_VideoMediaType> Stream_MediaFramework_FFMPEG_VideoFormats_t;
+typedef Stream_MediaFramework_FFMPEG_VideoFormats_t::iterator Stream_MediaFramework_FFMPEG_VideoFormatsIterator_t;
 
+struct Stream_MediaFramework_FFMPEG_AudioMediaType
+{
+  Stream_MediaFramework_FFMPEG_AudioMediaType ()
+   : codec (AV_CODEC_ID_NONE)
+   , format (AV_SAMPLE_FMT_NONE)
+   , channels (0)
+   , sampleRate (0)
+  {}
+
+  enum AVCodecID      codec;
+  enum AVSampleFormat format;
+  unsigned int        channels;
+  unsigned int        sampleRate;
+};
+typedef std::deque<struct Stream_MediaFramework_FFMPEG_AudioMediaType> Stream_MediaFramework_FFMPEG_AudioFormats_t;
+typedef Stream_MediaFramework_FFMPEG_AudioFormats_t::iterator Stream_MediaFramework_FFMPEG_AudioFormatsIterator_t;
 #endif

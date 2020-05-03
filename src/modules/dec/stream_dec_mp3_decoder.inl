@@ -232,14 +232,14 @@ Stream_Decoder_MP3Decoder_T<ACE_SYNCH_USE,
   int result = -1;
   int result_2 = -1;
   int error = 0;
-  ssize_t bytes_read = -1;
+//  ssize_t bytes_read = -1;
   ACE_Message_Block* message_block_p = NULL;
   ACE_Time_Value no_wait = COMMON_TIME_NOW;
   int message_type = -1;
   DataMessageType* message_p = NULL;
   bool finished = false;
   bool stop_processing = false;
-  int file_index_i = 0;
+//  int file_index_i = 0;
   std::string file_path_string;
   unsigned int file_size_i = 0;
   int encoding_i = 0, channels_i = 0;

@@ -173,7 +173,7 @@ Stream_Module_Vis_X11_Window_T<ACE_SYNCH_USE,
 //      inherited::sessionData_->getR ();
 //  ACE_ASSERT (!session_data_r.formats.empty ());
 //  const MediaType& media_type_r = session_data_r.formats.front ();
-//  struct Stream_MediaFramework_FFMPEG_MediaType media_type_2;
+//  struct Stream_MediaFramework_FFMPEG_VideoMediaType media_type_2;
 //  inherited2::getMediaType (media_type_r,
 //                            media_type_2);
   Common_Image_Resolution_t resolution_s =
@@ -330,7 +330,7 @@ Stream_Module_Vis_X11_Window_T<ACE_SYNCH_USE,
           inherited::sessionData_->getR ();
 //      ACE_ASSERT (!session_data_r.formats.empty ());
 //      const MediaType& media_type_r = session_data_r.formats.front ();
-//      struct Stream_MediaFramework_FFMPEG_MediaType media_type_2;
+//      struct Stream_MediaFramework_FFMPEG_VideoMediaType media_type_2;
 //      inherited2::getMediaType (media_type_r,
 //                                media_type_2);
       Common_Image_Resolution_t resolution_s =

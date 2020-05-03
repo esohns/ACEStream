@@ -304,8 +304,8 @@ install (TARGETS ${EXECUTABLE}
          EXPORT ${PROJECT_NAME}Targets
          RUNTIME DESTINATION ${INSTALL_BIN_DIR} COMPONENT test_u)
 if (UNIX)
- install (FILES ${ui_definition_file}
-          DESTINATION "${CMAKE_INSTALL_DATAROOTDIR}/${PROJECT_NAME}" COMPONENT config)
+ install (FILES etc/${ui_definition_file}
+          DESTINATION "${CMAKE_INSTALL_DATAROOTDIR}/${PROJECT_NAME}/${EXECUTABLE}" COMPONENT config)
 elseif (WIN32)
  get_filename_component (ACE_LIB_PATH ${ACE_LIBRARY}
                          DIRECTORY)
@@ -342,7 +342,7 @@ elseif (WIN32)
                 ${ACENetwork_DIR}/src/protocol/http/Debug/ACENetwork_Protocol_HTTP.dll
                 ${CMAKE_CURRENT_SOURCE_DIR}/../../../libmysql_2/cmake/libmysql/Debug/libmysql.dll
           DESTINATION ${INSTALL_BIN_DIR} COMPONENT test_u)
- install (FILES ${ui_definition_file} ${EXECUTABLE}.fbp
+ install (FILES etc/${ui_definition_file} ${EXECUTABLE}.fbp
           DESTINATION "data/${PROJECT_NAME}/${EXECUTABLE}" COMPONENT config)
 #          DESTINATION "$ENV{APPDATA}/${PROJECT_NAME}/${EXECUTABLE}" COMPONENT config)
 endif ()

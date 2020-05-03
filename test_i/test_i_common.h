@@ -52,6 +52,8 @@
 #include "stream_lib_defines.h"
 #else
 #include "stream_dev_defines.h"
+
+#include "stream_lib_v4l_common.h"
 #endif // ACE_WIN32 || ACE_WIN64
 
 // forward declarations

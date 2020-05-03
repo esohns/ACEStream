@@ -18,7 +18,14 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
 #include "mtype.h"
+#else
+extern "C"
+{
+#include "alsa/asoundlib.h"
+}
+#endif // ACE_WIN32 || ACE_WIN64
 
 #include "ace/Log_Msg.h"
 
@@ -28,16 +35,16 @@
 
 Test_I_Stream::Test_I_Stream ()
  : inherited ()
- , MP3Decoder_ (this,
-                ACE_TEXT_ALWAYS_CHAR ("MP3Decoder"))
+ , decoder_ (this,
+             ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_MPEG_1LAYER3_DEFAULT_NAME_STRING))
  , statisticReport_ (this,
-                     ACE_TEXT_ALWAYS_CHAR ("StatisticReport"))
+                     ACE_TEXT_ALWAYS_CHAR (MODULE_STAT_REPORT_DEFAULT_NAME_STRING))
  //, WAVEncoder_ (this,
  //               ACE_TEXT_ALWAYS_CHAR ("WAVEncoder"))
  //, FileSink_ (this,
  //             ACE_TEXT_ALWAYS_CHAR ("FileSink"))
- , WavOut_ (this,
-            ACE_TEXT_ALWAYS_CHAR ("WavOut"))
+ , player_ (this,
+            ACE_TEXT_ALWAYS_CHAR ("Player"))
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_Stream::Test_I_Stream"));
 
@@ -60,11 +67,11 @@ Test_I_Stream::load (Stream_ILayout* layout_in,
   // initialize return value(s)
   delete_out = false;
 
-  layout_in->append (&MP3Decoder_, NULL, 0);
+  layout_in->append (&decoder_, NULL, 0);
   layout_in->append (&statisticReport_, NULL, 0);
   //layout_in->append (&WAVEncoder_, NULL, 0);
   //layout_in->append (&FileSink_, NULL, 0);
-  layout_in->append (&WavOut_, NULL, 0);
+  layout_in->append (&player_, NULL, 0);
 
   return true;
 }
@@ -83,6 +90,12 @@ Test_I_Stream::initialize (const Test_I_StreamConfiguration_t& configuration_in)
   struct Test_I_MP3Player_SessionData* session_data_p = NULL;
   typename inherited::CONFIGURATION_T::ITERATOR_T iterator;
   Test_I_MP3Decoder* MP3Decoder_impl_p = NULL;
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  struct _AMMediaType media_type_s;
+  WAVEFORMATEX format_s;
+#else
+  struct Stream_MediaFramework_ALSA_MediaType media_type_s;
+#endif // ACE_WIN32 || ACE_WIN64
 
   // allocate a new session state, reset stream
   const_cast<Test_I_StreamConfiguration_t&> (configuration_in).configuration->setupPipeline =
@@ -105,8 +118,8 @@ Test_I_Stream::initialize (const Test_I_StreamConfiguration_t& configuration_in)
   iterator =
       const_cast<Test_I_StreamConfiguration_t&> (configuration_in).find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (iterator != configuration_in.end ());
-  struct _AMMediaType media_type_s;
-  WAVEFORMATEX format_s;
+
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
   format_s.wFormatTag = WAVE_FORMAT_PCM;
   format_s.nChannels = 2;
   format_s.nSamplesPerSec = 44100;
@@ -123,7 +136,13 @@ Test_I_Stream::initialize (const Test_I_StreamConfiguration_t& configuration_in)
                 ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ())));
     goto failed;
   } // end IF
-  session_data_p->formats.push_back (media_type_s);
+#else
+//  media_type_s.access = SND_PCM_ACCESS_RW_INTERLEAVED;
+  media_type_s.channels = 2;
+  media_type_s.format = SND_PCM_FORMAT_S16;
+  media_type_s.rate = 44100;
+#endif // ACE_WIN32 || ACE_WIN64
+  session_data_p->formats.push_front (media_type_s);
   session_data_p->targetFileName =
     configuration_in.configuration->fileIdentifier.identifier;
 //  configuration_in.moduleConfiguration.streamState = &state_;
@@ -134,7 +153,7 @@ Test_I_Stream::initialize (const Test_I_StreamConfiguration_t& configuration_in)
   // ---------------------------------------------------------------------------
   // ******************* HTTP Marshal ************************
   MP3Decoder_impl_p =
-    dynamic_cast<Test_I_MP3Decoder*> (MP3Decoder_.writer ());
+    dynamic_cast<Test_I_MP3Decoder*> (decoder_.writer ());
   if (!MP3Decoder_impl_p)
   {
     ACE_DEBUG ((LM_ERROR,
@@ -147,7 +166,7 @@ Test_I_Stream::initialize (const Test_I_StreamConfiguration_t& configuration_in)
   // *NOTE*: push()ing the module will open() it
   //         --> set the argument that is passed along (head module expects a
   //             handle to the session data)
-  MP3Decoder_.arg (inherited::sessionData_);
+  decoder_.arg (inherited::sessionData_);
 
   if (configuration_in.configuration->setupPipeline)
     if (!inherited::setup ())

@@ -107,7 +107,7 @@ class Stream_Device_Tools
 
   static struct Stream_MediaFramework_V4L_MediaType defaultCaptureFormat (const std::string&); // device identifier
 
-  static struct Stream_MediaFramework_FFMPEG_MediaType convert (const struct Stream_MediaFramework_V4L_MediaType&);
+  static struct Stream_MediaFramework_FFMPEG_VideoMediaType convert (const struct Stream_MediaFramework_V4L_MediaType&);
 
   static void dump (int); // file descriptor
 

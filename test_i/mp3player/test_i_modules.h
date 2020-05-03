@@ -35,7 +35,13 @@
 #include "stream_stat_statistic_report.h"
 
 //#include "stream_dec_wav_encoder.h"
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
 #include "stream_dev_target_wavout.h"
+#else
+#include "stream_dev_target_alsa.h"
+
+#include "stream_lib_alsa_common.h"
+#endif // ACE_WIN32 || ACE_WIN64
 
 //#include "stream_file_sink.h"
 
@@ -61,7 +67,7 @@ typedef Stream_Decoder_MP3Decoder_T<ACE_MT_SYNCH,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
                                     struct _AMMediaType> Test_I_MP3Decoder;
 #else
-                                    struct Stream_MediaFramework_FFMPEG_MediaType> Test_I_MP3Decoder;
+                                    struct Stream_MediaFramework_ALSA_MediaType> Test_I_MP3Decoder;
 #endif // ACE_WIN32 || ACE_WIN64
 DATASTREAM_MODULE_INPUT_ONLY (struct Test_I_MP3Player_SessionData,      // session data type
                               enum Stream_SessionMessageType,           // session event type
@@ -101,6 +107,7 @@ DATASTREAM_MODULE_DUPLEX (struct Test_I_MP3Player_SessionData,      // session d
                           Test_I_Statistic_WriterTask_t,            // writer type
                           Test_I_StatisticReport);                  // name
 
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
 typedef Stream_Dev_Target_WavOut_T<ACE_MT_SYNCH,
                                    Common_TimePolicy_t,
                                    struct Test_I_MP3Player_ModuleHandlerConfiguration,
@@ -115,6 +122,22 @@ DATASTREAM_MODULE_INPUT_ONLY (struct Test_I_MP3Player_SessionData,         // se
                               libacestream_default_dev_target_wavout_module_name_string,
                               Stream_INotify_t,                         // stream notification interface type
                               Test_I_WavOutPlayer);                          // writer type
+#else
+typedef Stream_Dev_Target_ALSA_T<ACE_MT_SYNCH,
+                                 Common_TimePolicy_t,
+                                 struct Test_I_MP3Player_ModuleHandlerConfiguration,
+                                 Stream_ControlMessage_t,
+                                 Test_I_Stream_Message,
+                                 Test_I_Stream_SessionMessage,
+                                 Stream_SessionId_t,
+                                 struct Test_I_MP3Player_SessionData> Test_I_ALSAPlayer;
+DATASTREAM_MODULE_INPUT_ONLY (struct Test_I_MP3Player_SessionData,         // session data type
+                              enum Stream_SessionMessageType,           // session event type
+                              struct Test_I_MP3Player_ModuleHandlerConfiguration, // module handler configuration type
+                              libacestream_default_dev_target_alsa_module_name_string,
+                              Stream_INotify_t,                         // stream notification interface type
+                              Test_I_ALSAPlayer);                          // writer type
+#endif // ACE_WIN32 || ACE_WIN64
 
 //typedef Stream_Decoder_WAVEncoder_T<ACE_MT_SYNCH,
 //                                    Common_TimePolicy_t,

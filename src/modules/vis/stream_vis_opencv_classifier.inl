@@ -83,7 +83,7 @@ Stream_Visualization_OpenCVClassifier_T<ACE_SYNCH_USE,
 
   if (inherited::isInitialized_)
   {
-    ACE_OS::memset (&mediaType_, 0, sizeof (struct Stream_MediaFramework_FFMPEG_MediaType));
+    ACE_OS::memset (&mediaType_, 0, sizeof (struct Stream_MediaFramework_FFMPEG_VideoMediaType));
   } // end IF
 
   bool result = false;

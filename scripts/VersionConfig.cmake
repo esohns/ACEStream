@@ -31,14 +31,14 @@ set (PACKAGE_STRING "${PROJECT_NAME} ${VERSION_FULL}")
 set (${PROJECT_NAME}_PACKAGE_STRING ${PACKAGE_STRING})
 set (PACKAGE_DESCRIPTION "\
 user-space wrapper library for the pipes-and-filters pattern, based on the ACE \
-framework (see: http://www.cs.wustl.edu/~schmidt/ACE.html). In particular, the \
+framework \(see: http://www.cs.wustl.edu/~schmidt/ACE.html\). In particular, the \
 library lightly encapsulates the ACE_Stream and ACE_Module classes, introducing\
- a new set of (control) interfaces to support asynchronous operation and \
+ a new set of interfaces to support asynchronous operation and \
 additional concepts, such as 'session' data and messages. In conjunction with \
-additional, modular data processing functionality (see e.g.: \
-https://github.com/esohns/libACENetwork), this approach facilitates the \
+additional, modular data processing functionality \(see e.g.: \
+https://github.com/esohns/ACENetwork\), this approach facilitates the \
 separation of data processing from application-specific logic and therefore \
-enables portable approaches to (distributed) application design")
+enables portable approaches to distributed application design")
 set (${PROJECT_NAME}_PACKAGE_DESCRIPTION ${PACKAGE_DESCRIPTION})
 set (PACKAGE_DESCRIPTION_SUMMARY "(wrapper) library for streams functionality, based on the ACE framework")
 set (${PROJECT_NAME}_PACKAGE_DESCRIPTION_SUMMARY ${PACKAGE_DESCRIPTION_SUMMARY})

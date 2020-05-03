@@ -618,7 +618,7 @@ struct Stream_CamSave_V4L_ModuleHandlerConfiguration
   enum AVPixelFormat                            codecFormat; // preferred output-
   enum AVCodecID                                codecId;
   enum v4l2_memory                              method; // v4l camera source
-  struct Stream_MediaFramework_FFMPEG_MediaType outputFormat;
+  struct Stream_MediaFramework_FFMPEG_VideoMediaType outputFormat;
   Stream_CamSave_V4L_ISessionNotify_t*          subscriber;
   Stream_CamSave_V4L_Subscribers_t*             subscribers;
 };

@@ -50,7 +50,7 @@ struct Stream_ImageScreen_MessageData
    , relinquishMemory (NULL)
   {}
 
-  struct Stream_MediaFramework_FFMPEG_MediaType format;
+  struct Stream_MediaFramework_FFMPEG_VideoMediaType format;
   // free memory with MagickRelinquishMemory() ?
   void*                                         relinquishMemory;
 };

@@ -113,7 +113,7 @@ class Stream_Visualization_OpenCVClassifier_T
   ACE_UNIMPLEMENTED_FUNC (Stream_Visualization_OpenCVClassifier_T& operator= (const Stream_Visualization_OpenCVClassifier_T&))
 
   cv::CascadeClassifier                         cascadeClassifier_;
-  struct Stream_MediaFramework_FFMPEG_MediaType mediaType_;
+  struct Stream_MediaFramework_FFMPEG_VideoMediaType mediaType_;
 };
 
 // include template definition
