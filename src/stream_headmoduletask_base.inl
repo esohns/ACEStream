@@ -2483,6 +2483,10 @@ continue_:
         session_data_container_p = inherited::sessionData_;
         if (likely (session_data_container_p))
           session_data_container_p->increase ();
+        else
+          ACE_DEBUG ((LM_ERROR, // *TODO*
+                      ACE_TEXT ("%s: no session data for final message, continuing\n"),
+                      inherited::mod_->name ()));
 
         release_lock = false;
         if (unlikely (!hasReentrantSynchronousSubDownstream_))
