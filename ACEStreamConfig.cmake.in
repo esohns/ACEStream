@@ -3,14 +3,14 @@
 #  LIBACESTEAM_LIBRARIES    - libraries to link against
 
 # Compute paths
-get_filename_component (LIBACESTREAM_CMAKE_DIR "${CMAKE_CURRENT_LIST_FILE}" PATH)
-set (LIBACESTREAM_INCLUDE_DIRS "@CONF_INCLUDE_DIRS@")
+get_filename_component (ACESTREAM_CMAKE_DIR "${CMAKE_CURRENT_LIST_FILE}" PATH)
+set (ACESTREAM_INCLUDE_DIRS "@CONF_INCLUDE_DIRS@")
 
 # library dependencies (contains definitions for IMPORTED targets)
-if (NOT TARGET libACEStream AND NOT LIBACESTREAM_BINARY_DIR)
+if (NOT TARGET ACEStream AND NOT LIBACESTREAM_BINARY_DIR)
  cmake_policy (SET CMP0024 OLD)
- include ("${LIBACESTREAM_CMAKE_DIR}/ACEStreamTargets.cmake")
+ include ("${ACESTREAM_CMAKE_DIR}/ACEStreamTargets.cmake")
 endif ()
 
-# These are IMPORTED targets created by libACEStreamTargets.cmake
-set (LIBACESTREAM_LIBRARIES ACEStream)
+# These are IMPORTED targets created by ACEStreamTargets.cmake
+set (ACESTREAM_LIBRARIES ACEStream)
