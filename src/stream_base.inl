@@ -732,9 +732,9 @@ Stream_Base_T<ACE_SYNCH_USE,
   result = inherited::top (module_p);
   if (unlikely ((result == -1) ||
                 !module_p))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: no head module found: \"%m\", returning\n"),
+  { // already closed ?
+    ACE_DEBUG ((LM_WARNING,
+                ACE_TEXT ("%s: no head module found, returning\n"),
                 ACE_TEXT (StreamName)));
     return;
   } // end IF
