@@ -182,10 +182,6 @@ do_printUsage (const std::string& programName_in)
             << TEST_I_DEFAULT_PORT
             << ACE_TEXT_ALWAYS_CHAR ("]")
             << std::endl;
-  std::cout << ACE_TEXT_ALWAYS_CHAR ("-r          : use reactor [")
-            << (COMMON_EVENT_DEFAULT_DISPATCH == COMMON_EVENT_DISPATCH_REACTOR)
-            << ACE_TEXT_ALWAYS_CHAR ("]")
-            << std::endl;
   std::cout << ACE_TEXT_ALWAYS_CHAR ("-s [VALUE]  : statistic reporting interval (second(s)) [")
             << STREAM_DEFAULT_STATISTIC_REPORTING_INTERVAL
             << ACE_TEXT_ALWAYS_CHAR ("] [0: off]")
@@ -203,7 +199,7 @@ do_printUsage (const std::string& programName_in)
             << ACE_TEXT_ALWAYS_CHAR ("]")
             << std::endl;
   std::cout << ACE_TEXT_ALWAYS_CHAR ("-x [VALUE]  : #dispatch threads [")
-            << NET_CLIENT_DEFAULT_NUMBER_OF_DISPATCH_THREADS
+            << NET_CLIENT_DEFAULT_NUMBER_OF_PROACTOR_DISPATCH_THREADS
             << ACE_TEXT_ALWAYS_CHAR ("]")
             << std::endl;
 }
@@ -231,7 +227,7 @@ do_processArguments (int argc_in,
                      bool& traceInformation_out,
                      bool& useUDP_out,
                      bool& printVersionAndExit_out,
-                     unsigned int& numberOfDispatchThreads_out)
+                     unsigned int& numberOfProactorDispatchThreads_out)
 {
   STREAM_TRACE (ACE_TEXT ("::do_processArguments"));
 
@@ -269,15 +265,15 @@ do_processArguments (int argc_in,
   traceInformation_out = false;
   useUDP_out = false;
   printVersionAndExit_out = false;
-  numberOfDispatchThreads_out =
-    NET_CLIENT_DEFAULT_NUMBER_OF_DISPATCH_THREADS;
+  numberOfProactorDispatchThreads_out =
+    NET_CLIENT_DEFAULT_NUMBER_OF_PROACTOR_DISPATCH_THREADS;
 
   ACE_Get_Opt argumentParser (argc_in,
                               argv_in,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-                              ACE_TEXT ("b:ce:fg::h:lmp:rs:tuvx:"),
+                              ACE_TEXT ("b:ce:fg::h:lmp:s:tuvx:"),
 #else
-                              ACE_TEXT ("b:d:e:fg::h:lp:rs:tuvx:"),
+                              ACE_TEXT ("b:d:e:fg::h:lp:s:tuvx:"),
 #endif
                               1,                          // skip command name
                               1,                          // report parsing errors
@@ -355,11 +351,6 @@ do_processArguments (int argc_in,
         converter >> port_out;
         break;
       }
-      case 'r':
-      {
-        eventDispatchType_in = COMMON_EVENT_DISPATCH_REACTOR;
-        break;
-      }
       case 's':
       {
         converter.clear ();
@@ -388,7 +379,7 @@ do_processArguments (int argc_in,
         converter.clear ();
         converter.str (ACE_TEXT_ALWAYS_CHAR (""));
         converter << argumentParser.opt_arg ();
-        converter >> numberOfDispatchThreads_out;
+        converter >> numberOfProactorDispatchThreads_out;
         break;
       }
       // error handling
@@ -811,7 +802,7 @@ do_work (const std::string& deviceIdentifier_in,
          enum Common_EventDispatchType eventDispatchType_in,
          unsigned int statisticReportingInterval_in,
          bool useUDP_in,
-         unsigned int numberOfDispatchThreads_in,
+         unsigned int numberOfProactorDispatchThreads_in,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
          struct Test_I_Source_MediaFoundation_UI_CBData& mediaFoundationCBData_in,
          struct Test_I_Source_DirectShow_UI_CBData& directShowCBData_in,
@@ -861,11 +852,8 @@ do_work (const std::string& deviceIdentifier_in,
 #endif // ACE_WIN32 || ACE_WIN64
   ACE_ASSERT (camstream_configuration_p);
   camstream_configuration_p->dispatchConfiguration.numberOfProactorThreads =
-    ((eventDispatchType_in == COMMON_EVENT_DISPATCH_PROACTOR) ? numberOfDispatchThreads_in
-                                                              : 0);
-  camstream_configuration_p->dispatchConfiguration.numberOfReactorThreads =
-    ((eventDispatchType_in == COMMON_EVENT_DISPATCH_REACTOR) ? numberOfDispatchThreads_in
-                                                             : 0);
+    numberOfProactorDispatchThreads_in;
+  camstream_configuration_p->dispatchConfiguration.numberOfReactorThreads = 1;
   if (!Common_Tools::initializeEventDispatch (camstream_configuration_p->dispatchConfiguration))
   {
     ACE_DEBUG ((LM_ERROR,
@@ -2124,8 +2112,8 @@ ACE_TMAIN (int argc_in,
   bool trace_information = false;
   bool use_UDP = false;
   bool print_version_and_exit = false;
-  unsigned int number_of_dispatch_threads =
-    NET_CLIENT_DEFAULT_NUMBER_OF_DISPATCH_THREADS;
+  unsigned int number_of_proactor_dispatch_threads =
+    NET_CLIENT_DEFAULT_NUMBER_OF_PROACTOR_DISPATCH_THREADS;
 
   // step1b: parse/process/validate configuration
   if (!do_processArguments (argc_in,
@@ -2150,7 +2138,7 @@ ACE_TMAIN (int argc_in,
                             trace_information,
                             use_UDP,
                             print_version_and_exit,
-                            number_of_dispatch_threads))
+                            number_of_proactor_dispatch_threads))
   {
     do_printUsage (ACE::basename (argv_in[0]));
     Common_Tools::finalize ();
@@ -2201,8 +2189,6 @@ ACE_TMAIN (int argc_in,
 #endif // ACE_WIN32 || ACE_WIN64
     return EXIT_FAILURE;
   } // end IF
-  if (number_of_dispatch_threads == 0)
-    number_of_dispatch_threads = 1;
 
   Common_MessageStack_t* logstack_p = NULL;
   ACE_SYNCH_MUTEX* lock_p = NULL;
@@ -2503,7 +2489,7 @@ ACE_TMAIN (int argc_in,
            event_dispatch_type_e,
            statistic_reporting_interval,
            use_UDP,
-           number_of_dispatch_threads,
+           number_of_proactor_dispatch_threads,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
            mediafoundation_ui_cb_data,
            directshow_ui_cb_data,

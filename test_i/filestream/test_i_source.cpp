@@ -161,7 +161,7 @@ do_printUsage (const std::string& programName_in)
             << ACE_TEXT_ALWAYS_CHAR ("]")
             << std::endl;
   std::cout << ACE_TEXT_ALWAYS_CHAR ("-x [VALUE]  : #dispatch threads [")
-            << NET_CLIENT_DEFAULT_NUMBER_OF_DISPATCH_THREADS
+            << NET_CLIENT_DEFAULT_NUMBER_OF_PROACTOR_DISPATCH_THREADS
             << ACE_TEXT_ALWAYS_CHAR ("]")
             << std::endl;
   std::cout << ACE_TEXT_ALWAYS_CHAR ("-z [VALUE]  : loop [")
@@ -222,7 +222,7 @@ do_processArguments (int argc_in,
   useUDP_out = false;
   printVersionAndExit_out = false;
   numberOfDispatchThreads_out =
-    NET_CLIENT_DEFAULT_NUMBER_OF_DISPATCH_THREADS;
+    NET_CLIENT_DEFAULT_NUMBER_OF_PROACTOR_DISPATCH_THREADS;
   loop_out = 0;
 
   ACE_Get_Opt argumentParser (argc_in,
@@ -437,7 +437,7 @@ do_work (unsigned int bufferSize_in,
          unsigned short port_in,
          unsigned int statisticReportingInterval_in,
          bool useUDP_in,
-         unsigned int numberOfDispatchThreads_in,
+         unsigned int numberOfProactorDispatchThreads_in,
          struct Test_I_Source_UI_CBData& CBData_in,
          const ACE_Sig_Set& signalSet_in,
          const ACE_Sig_Set& ignoredSignalSet_in,
@@ -460,7 +460,7 @@ do_work (unsigned int bufferSize_in,
   CBData_in.configuration->dispatchConfiguration.numberOfReactorThreads =
       1;
   CBData_in.configuration->dispatchConfiguration.numberOfProactorThreads =
-      numberOfDispatchThreads_in;
+      numberOfProactorDispatchThreads_in;
   if (!Common_Tools::initializeEventDispatch (CBData_in.configuration->dispatchConfiguration))
   {
     ACE_DEBUG ((LM_ERROR,
@@ -942,8 +942,8 @@ ACE_TMAIN (int argc_in,
   bool trace_information = false;
   bool use_UDP = false;
   bool print_version_and_exit = false;
-  unsigned int number_of_dispatch_threads =
-    NET_CLIENT_DEFAULT_NUMBER_OF_DISPATCH_THREADS;
+  unsigned int number_of_proactor_dispatch_threads =
+    NET_CLIENT_DEFAULT_NUMBER_OF_PROACTOR_DISPATCH_THREADS;
   size_t loop = 0;
 
   // step1b: parse/process/validate configuration
@@ -960,7 +960,7 @@ ACE_TMAIN (int argc_in,
                             trace_information,
                             use_UDP,
                             print_version_and_exit,
-                            number_of_dispatch_threads,
+                            number_of_proactor_dispatch_threads,
                             loop))
   {
     do_printUsage (ACE_TEXT_ALWAYS_CHAR (ACE::basename (argv_in[0])));
@@ -1014,8 +1014,6 @@ ACE_TMAIN (int argc_in,
 #endif
     return EXIT_FAILURE;
   } // end IF
-  if (number_of_dispatch_threads == 0)
-    number_of_dispatch_threads = 1;
 
   Common_MessageStack_t* logstack_p = NULL;
   ACE_SYNCH_MUTEX* lock_p = NULL;
@@ -1200,7 +1198,7 @@ ACE_TMAIN (int argc_in,
            port,
            statistic_reporting_interval,
            use_UDP,
-           number_of_dispatch_threads,
+           number_of_proactor_dispatch_threads,
            ui_cb_data,
            signal_set,
            ignored_signal_set,
