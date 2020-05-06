@@ -124,7 +124,6 @@ typedef Net_Client_AsynchConnector_T<Test_I_Target_DirectShow_AsynchUDPConnectio
                                      struct Net_StreamConnectionState,
                                      Net_StreamStatistic_t,
                                      Net_UDPSocketConfiguration_t,
-                                     Net_UDPSocketConfiguration_t,
                                      Test_I_Target_DirectShow_UDPStream,
                                      struct Net_UserData> Test_I_Target_DirectShow_UDPAsynchConnector_t;
 typedef Net_Client_Connector_T<ACE_NULL_SYNCH,
@@ -135,7 +134,6 @@ typedef Net_Client_Connector_T<ACE_NULL_SYNCH,
                                struct Net_StreamConnectionState,
                                Net_StreamStatistic_t,
                                Net_UDPSocketConfiguration_t,
-                               Net_UDPSocketConfiguration_t,
                                Test_I_Target_DirectShow_UDPStream,
                                struct Net_UserData> Test_I_Target_DirectShow_UDPConnector_t;
 
@@ -144,7 +142,6 @@ typedef Net_Client_AsynchConnector_T<Test_I_Target_MediaFoundation_AsynchUDPConn
                                      Test_I_Target_MediaFoundation_UDPConnectionConfiguration_t,
                                      struct Net_StreamConnectionState,
                                      Net_StreamStatistic_t,
-                                     Net_UDPSocketConfiguration_t,
                                      Net_UDPSocketConfiguration_t,
                                      Test_I_Target_MediaFoundation_UDPStream,
                                      struct Net_UserData> Test_I_Target_MediaFoundation_UDPAsynchConnector_t;
@@ -156,7 +153,6 @@ typedef Net_Client_Connector_T<ACE_NULL_SYNCH,
                                struct Net_StreamConnectionState,
                                Net_StreamStatistic_t,
                                Net_UDPSocketConfiguration_t,
-                               Net_UDPSocketConfiguration_t,
                                Test_I_Target_MediaFoundation_UDPStream,
                                struct Net_UserData> Test_I_Target_MediaFoundation_UDPConnector_t;
 #else
@@ -165,7 +161,6 @@ typedef Net_Client_AsynchConnector_T<Test_I_Target_AsynchUDPConnection_t,
                                      Test_I_Target_UDPConnectionConfiguration_t,
                                      struct Net_StreamConnectionState,
                                      Net_StreamStatistic_t,
-                                     Net_UDPSocketConfiguration_t,
                                      Net_UDPSocketConfiguration_t,
                                      Test_I_Target_UDPStream,
                                      struct Net_UserData> Test_I_Target_UDPAsynchConnector_t;
@@ -176,7 +171,6 @@ typedef Net_Client_Connector_T<ACE_NULL_SYNCH,
                                Test_I_Target_UDPConnectionConfiguration_t,
                                struct Net_StreamConnectionState,
                                Net_StreamStatistic_t,
-                               Net_UDPSocketConfiguration_t,
                                Net_UDPSocketConfiguration_t,
                                Test_I_Target_UDPStream,
                                struct Net_UserData> Test_I_Target_UDPConnector_t;

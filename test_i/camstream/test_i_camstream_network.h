@@ -661,13 +661,11 @@ typedef Net_Client_Connector_T<ACE_NULL_SYNCH,
                                struct Net_StreamConnectionState,
                                Net_StreamStatistic_t,
                                Net_TCPSocketConfiguration_t,
-                               Net_TCPSocketConfiguration_t,
                                Test_I_Source_DirectShow_Net_TCPStream_t,
                                struct Net_UserData> Test_I_Source_DirectShow_TCPConnector_t;
 #if defined (SSL_SUPPORT)
 typedef Net_Client_SSL_Connector_T<Test_I_Source_DirectShow_SSLConnection_t,
                                    ACE_SSL_SOCK_Connector,
-                                   ACE_INET_Addr,
                                    Test_I_Source_DirectShow_TCPConnectionConfiguration_t,
                                    struct Net_StreamConnectionState,
                                    Net_StreamStatistic_t,
@@ -680,7 +678,6 @@ typedef Net_Client_AsynchConnector_T<Test_I_Source_DirectShow_AsynchTCPConnectio
                                      struct Net_StreamConnectionState,
                                      Net_StreamStatistic_t,
                                      Net_TCPSocketConfiguration_t,
-                                     Net_TCPSocketConfiguration_t,
                                      Test_I_Source_DirectShow_Net_TCPStream_t,
                                      struct Net_UserData> Test_I_Source_DirectShow_TCPAsynchConnector_t;
 
@@ -692,7 +689,6 @@ typedef Net_Client_Connector_T<ACE_NULL_SYNCH,
                                struct Net_StreamConnectionState,
                                Net_StreamStatistic_t,
                                Net_UDPSocketConfiguration_t,
-                               Net_UDPSocketConfiguration_t,
                                Test_I_Source_DirectShow_Net_UDPStream_t,
                                struct Net_UserData> Test_I_Source_DirectShow_UDPConnector_t;
 typedef Net_Client_AsynchConnector_T<Test_I_Source_DirectShow_AsynchUDPConnection_t,
@@ -700,7 +696,6 @@ typedef Net_Client_AsynchConnector_T<Test_I_Source_DirectShow_AsynchUDPConnectio
                                      Test_I_Source_DirectShow_UDPConnectionConfiguration_t,
                                      struct Net_StreamConnectionState,
                                      Net_StreamStatistic_t,
-                                     Net_UDPSocketConfiguration_t,
                                      Net_UDPSocketConfiguration_t,
                                      Test_I_Source_DirectShow_Net_UDPStream_t,
                                      struct Net_UserData> Test_I_Source_DirectShow_UDPAsynchConnector_t;
@@ -713,13 +708,11 @@ typedef Net_Client_Connector_T<ACE_NULL_SYNCH,
                                struct Net_StreamConnectionState,
                                Net_StreamStatistic_t,
                                Net_TCPSocketConfiguration_t,
-                               Net_TCPSocketConfiguration_t,
                                Test_I_Source_MediaFoundation_Net_TCPStream_t,
                                struct Net_UserData> Test_I_Source_MediaFoundation_TCPConnector_t;
 #if defined (SSL_SUPPORT)
 typedef Net_Client_SSL_Connector_T<Test_I_Source_MediaFoundation_SSLConnection_t,
                                    ACE_SSL_SOCK_Connector,
-                                   ACE_INET_Addr,
                                    Test_I_Source_MediaFoundation_TCPConnectionConfiguration_t,
                                    struct Net_StreamConnectionState,
                                    Net_StreamStatistic_t,
@@ -732,7 +725,6 @@ typedef Net_Client_AsynchConnector_T<Test_I_Source_MediaFoundation_AsynchTCPConn
                                      struct Net_StreamConnectionState,
                                      Net_StreamStatistic_t,
                                      Net_TCPSocketConfiguration_t,
-                                     Net_TCPSocketConfiguration_t,
                                      Test_I_Source_MediaFoundation_Net_TCPStream_t,
                                      struct Net_UserData> Test_I_Source_MediaFoundation_TCPAsynchConnector_t;
 
@@ -744,7 +736,6 @@ typedef Net_Client_Connector_T<ACE_NULL_SYNCH,
                                struct Net_StreamConnectionState,
                                Net_StreamStatistic_t,
                                Net_UDPSocketConfiguration_t,
-                               Net_UDPSocketConfiguration_t,
                                Test_I_Source_MediaFoundation_Net_UDPStream_t,
                                struct Net_UserData> Test_I_Source_MediaFoundation_UDPConnector_t;
 typedef Net_Client_AsynchConnector_T<Test_I_Source_MediaFoundation_AsynchUDPConnection_t,
@@ -752,7 +743,6 @@ typedef Net_Client_AsynchConnector_T<Test_I_Source_MediaFoundation_AsynchUDPConn
                                      Test_I_Source_MediaFoundation_UDPConnectionConfiguration_t,
                                      struct Net_StreamConnectionState,
                                      Net_StreamStatistic_t,
-                                     Net_UDPSocketConfiguration_t,
                                      Net_UDPSocketConfiguration_t,
                                      Test_I_Source_MediaFoundation_Net_UDPStream_t,
                                      struct Net_UserData> Test_I_Source_MediaFoundation_UDPAsynchConnector_t;
@@ -765,13 +755,11 @@ typedef Net_Client_Connector_T<ACE_NULL_SYNCH,
                                struct Net_StreamConnectionState,
                                Net_StreamStatistic_t,
                                Net_TCPSocketConfiguration_t,
-                               Net_TCPSocketConfiguration_t,
                                Test_I_Source_V4L_Net_TCPStream_t,
                                struct Net_UserData> Test_I_Source_V4L_TCPConnector_t;
 #if defined (SSL_SUPPORT)
 typedef Net_Client_SSL_Connector_T<Test_I_Source_V4L_SSLConnection_t,
                                    ACE_SSL_SOCK_Connector,
-                                   ACE_INET_Addr,
                                    Test_I_Source_V4L_TCPConnectionConfiguration_t,
                                    struct Net_StreamConnectionState,
                                    Net_StreamStatistic_t,
@@ -784,7 +772,6 @@ typedef Net_Client_AsynchConnector_T<Test_I_Source_V4L_AsynchTCPConnection_t,
                                      struct Net_StreamConnectionState,
                                      Net_StreamStatistic_t,
                                      Net_TCPSocketConfiguration_t,
-                                     Net_TCPSocketConfiguration_t,
                                      Test_I_Source_V4L_Net_TCPStream_t,
                                      struct Net_UserData> Test_I_Source_V4L_TCPAsynchConnector_t;
 
@@ -796,7 +783,6 @@ typedef Net_Client_Connector_T<ACE_NULL_SYNCH,
                                struct Net_StreamConnectionState,
                                Net_StreamStatistic_t,
                                Net_UDPSocketConfiguration_t,
-                               Net_UDPSocketConfiguration_t,
                                Test_I_Source_V4L_Net_UDPStream_t,
                                struct Net_UserData> Test_I_Source_V4L_UDPConnector_t;
 typedef Net_Client_AsynchConnector_T<Test_I_Source_V4L_AsynchUDPConnection_t,
@@ -804,7 +790,6 @@ typedef Net_Client_AsynchConnector_T<Test_I_Source_V4L_AsynchUDPConnection_t,
                                      Test_I_Source_V4L_UDPConnectionConfiguration_t,
                                      struct Net_StreamConnectionState,
                                      Net_StreamStatistic_t,
-                                     Net_UDPSocketConfiguration_t,
                                      Net_UDPSocketConfiguration_t,
                                      Test_I_Source_V4L_Net_UDPStream_t,
                                      struct Net_UserData> Test_I_Source_V4L_UDPAsynchConnector_t;

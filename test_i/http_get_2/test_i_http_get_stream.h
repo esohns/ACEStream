@@ -143,7 +143,6 @@ typedef Net_TCPConnectionBase_T<ACE_MT_SYNCH,
                                 struct Net_UserData> Test_I_SSLConnection_t;
 typedef Net_Client_SSL_Connector_T<Test_I_SSLConnection_t,
                                    ACE_SSL_SOCK_Connector,
-                                   ACE_INET_Addr,
                                    Test_I_HTTPGet_ConnectionConfiguration_t,
                                    struct Net_StreamConnectionState,
                                    Net_StreamStatistic_t,
