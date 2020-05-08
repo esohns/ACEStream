@@ -158,7 +158,7 @@ Stream_Decoder_LibAVConverter_T<ACE_SYNCH_USE,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Decoder_LibAVConverter_T::initialize"));
 
-  int result = -1;
+//  int result = -1;
 //  int flags = 0;
 
   if (unlikely (inherited::isInitialized_))

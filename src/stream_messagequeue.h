@@ -47,6 +47,9 @@ class Stream_MessageQueue_T
   // implement (part of) Stream_IMessageQueue
   virtual unsigned int flush (bool = false); // flush session messages ?
 
+  // *WORKAROUND*: circumvent strange __cxa_pure_virtual errors
+  inline virtual size_t message_count (void) { return inherited::cur_count_; }
+
  private:
   ACE_UNIMPLEMENTED_FUNC (Stream_MessageQueue_T ())
   ACE_UNIMPLEMENTED_FUNC (Stream_MessageQueue_T (const Stream_MessageQueue_T&))

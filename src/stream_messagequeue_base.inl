@@ -67,10 +67,11 @@ Stream_MessageQueueBase_T<ACE_SYNCH_USE,
   ACE_Time_Value one_second (1, 0);
   size_t number_of_messages = 0;
   int result = -1;
+  OWN_TYPE_T* this_p = const_cast<OWN_TYPE_T*> (this);
 
   do
   {
-    number_of_messages = const_cast<OWN_TYPE_T*> (this)->message_count ();
+    number_of_messages = this_p->message_count ();
     if (unlikely (number_of_messages > 0))
     {
 #if defined (_DEBUG)
@@ -88,7 +89,7 @@ Stream_MessageQueueBase_T<ACE_SYNCH_USE,
       continue;
     } // end IF
 
-    // OK: queue is empty (at the moment)
+    // OK: queue is empty ATM
     break;
   } while (true);
 }

@@ -48,7 +48,7 @@ class Stream_MessageQueueBase_T
   inline virtual ~Stream_MessageQueueBase_T () {}
 
   // implement Stream_IMessageQueue
-  virtual unsigned int flush (bool = false);
+  virtual unsigned int flush (bool = false); // flush session messages ?
   virtual void waitForIdleState () const;
 
   // implement Common_IDumpState

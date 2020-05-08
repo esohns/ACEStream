@@ -81,7 +81,7 @@ Stream_Base_T<ACE_SYNCH_USE,
   STREAM_TRACE (ACE_TEXT ("Stream_Base_T::Stream_Base_T"));
 
   // *NOTE*: pass a handle to the message queue member to the head module reader
-  //         task; this will become the outbound queue
+  //         task; this will become the 'outbound' queue
 
   int result = -1;
   HEAD_T* writer_p = NULL, *reader_p = NULL;
@@ -825,22 +825,18 @@ Stream_Base_T<ACE_SYNCH_USE,
   } // end IF
 
   if (unlikely (!isRunning ()))
-    goto wait;
+    return;
 
   // delegate to the head module, skip over ACE_Stream_Head
   result = inherited::top (module_p);
   if (unlikely ((result == -1) ||
                 !module_p))
-  {
-    ACE_DEBUG ((LM_ERROR,
+  { // already close()d ?
+    ACE_DEBUG ((LM_WARNING,
                 ACE_TEXT ("%s: no head module found: \"%m\", returning\n"),
                 ACE_TEXT (StreamName)));
     return;
   } // end IF
-  // *WARNING*: cannot flush(), as this deactivates() the queue as well, which
-  //            causes mayhem for any (blocked) worker(s)
-  // *TODO*: consider optimizing this
-  //module->writer ()->flush ();
   istreamcontrol_p =
     dynamic_cast<ISTREAM_CONTROL_T*> (module_p->writer ());
   if (unlikely (!istreamcontrol_p))
@@ -1159,9 +1155,9 @@ Stream_Base_T<ACE_SYNCH_USE,
   if (unlikely ((result == -1) ||
                 !module_p))
   { // connection failed ?
-    ACE_DEBUG ((LM_WARNING,
-                ACE_TEXT ("%s: failed to ACE_Stream::top(), continuing\n"),
-                ACE_TEXT (StreamName)));
+//    ACE_DEBUG ((LM_WARNING,
+//                ACE_TEXT ("%s: failed to ACE_Stream::top(), continuing\n"),
+//                ACE_TEXT (StreamName)));
     goto continue_;
   } // end IF
   ACE_ASSERT (module_p);
@@ -1322,24 +1318,25 @@ continue_:
        iterator != modules_a.rend ();
        ++iterator)
   {
+    if (!(*iterator)) continue;
     task_p = (*iterator)->reader ();
     if (unlikely (!task_p))
       continue; // close()d already ?
 
-    ACE_ASSERT (task_p->msg_queue_);
     iqueue_p = dynamic_cast<Stream_IMessageQueue*> (task_p->msg_queue_);
     if (unlikely (!iqueue_p))
     {
-      // *NOTE*: most probable cause: stream head, or module does not have a
-      //         reader task
-      result_2 = task_p->msg_queue_->flush ();
+      // *NOTE*: most probable cause: stream head/tail, or module does not have
+      //         a reader task
+      if (task_p->msg_queue_)
+        result_2 = task_p->msg_queue_->flush ();
     } // end IF
     else
       result_2 = static_cast<int> (iqueue_p->flush (flushSessionMessages_in));
     if (unlikely (result_2 == -1))
     {
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("%s/%s reader: failed to Stream_IMessageQueue::flushData(): \"%m\", continuing\n"),
+                  ACE_TEXT ("%s/%s reader: failed to Stream_IMessageQueue::flush(): \"%m\", continuing\n"),
                   ACE_TEXT (StreamName), (*iterator)->name ()));
     } // end IF
     else if (likely (result))
@@ -1760,8 +1757,8 @@ Stream_Base_T<ACE_SYNCH_USE,
     return;
   result = iterator.advance ();
   if (unlikely (result == 0))
-  {
-    ACE_DEBUG ((LM_ERROR,
+  { // already closed ?
+    ACE_DEBUG ((LM_WARNING,
                 ACE_TEXT ("%s: no head module found, returning\n"),
                 ACE_TEXT (StreamName)));
     return;
@@ -1769,8 +1766,8 @@ Stream_Base_T<ACE_SYNCH_USE,
   const MODULE_T* module_p = NULL;
   result = iterator.next (module_p);
   if (unlikely (!result))
-  {
-    ACE_DEBUG ((LM_ERROR,
+  { // already closed ?
+    ACE_DEBUG ((LM_WARNING,
                 ACE_TEXT ("%s: no head module found, returning\n"),
                 ACE_TEXT (StreamName)));
     return;
@@ -1811,7 +1808,7 @@ Stream_Base_T<ACE_SYNCH_USE,
 
   // step1b: wait for inbound processing (i.e. the 'writer' side) to complete
   //         --> grab the lock to freeze the layout
-  ACE_GUARD (ACE_SYNCH_RECURSIVE_MUTEX, aGuard, lock_);
+//  ACE_GUARD (ACE_SYNCH_RECURSIVE_MUTEX, aGuard, lock_);
 
   Stream_ModuleList_t modules_a = layout_.list (false);
   Stream_ModuleList_t main_modules_a = layout_.list (true);
@@ -1820,6 +1817,8 @@ Stream_Base_T<ACE_SYNCH_USE,
   ACE_Time_Value one_second (1, 0);
   size_t message_count = 0;
   ACE_Reverse_Lock<ACE_SYNCH_RECURSIVE_MUTEX> reverse_lock (lock_);
+  unsigned int head_reader_retries_i = 0;
+
   for (Stream_ModuleListIterator_t iterator_2 = modules_a.begin ();
        iterator_2 != modules_a.end ();
        ++iterator_2)
@@ -1911,6 +1910,22 @@ Stream_Base_T<ACE_SYNCH_USE,
                     ACE_TEXT ("%s/%s reader: failed to ACE_OS::sleep(%#T): \"%m\", continuing\n"),
                     ACE_TEXT (StreamName), (*iterator_2)->name (),
                     &one_second));
+
+      // *NOTE*: there is a chance that outbound data is being dispatched while
+      //         waiting; no flush()ing/idle()ing can prevent this race
+      //         --> bail out after x retries
+      if (unlikely ((*iterator_2) == modules_a.front ()))
+      {
+        if (head_reader_retries_i == STREAM_DEFAULT_STOP_WAIT_HEAD_READER_RETRIES)
+        {
+          ACE_DEBUG ((LM_WARNING,
+                      ACE_TEXT ("%s/%s reader: retried waiting %d time(s), giving up\n"),
+                      ACE_TEXT (StreamName), (*iterator_2)->name (),
+                      STREAM_DEFAULT_STOP_WAIT_HEAD_READER_RETRIES));
+          break;
+        } // end IF
+        ++head_reader_retries_i;
+      } // end IF
     } while (true);
 
     if (waitForThreads_in)

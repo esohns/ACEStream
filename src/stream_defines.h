@@ -59,6 +59,12 @@
 
 // stream
 #define STREAM_DEFAULT_MODULE_SOURCE_EVENT_POLL_INTERVAL 10 // ms
+// *IMPORTANT NOTE*: this affects waiting on the 'stream head' reader only
+//                   --> writer/outbound side for connections
+//                   This means that during a stream stop(true), x seconds worth
+//                   of outbound data may still be dispatched to the kernel
+// *NOTE*: this may well depend on whether the event dispatch is multithreaded
+#define STREAM_DEFAULT_STOP_WAIT_HEAD_READER_RETRIES     3 // s
 
 #define STREAM_SUBSTREAM_DISPLAY_NAME                    "display"
 #define STREAM_SUBSTREAM_NETWORK_NAME                    "network"
