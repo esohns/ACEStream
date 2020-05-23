@@ -4413,7 +4413,7 @@ Stream_MediaFramework_DirectShow_Tools::toBitrate (const struct _AMMediaType& me
 }
 
 struct _AMMediaType*
-Stream_MediaFramework_DirectShow_Tools::to (const struct Stream_MediaFramework_FFMPEG_MediaType& mediaType_in)
+Stream_MediaFramework_DirectShow_Tools::to (const struct Stream_MediaFramework_FFMPEG_VideoMediaType& mediaType_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_DirectShow_Tools::to"));
 
