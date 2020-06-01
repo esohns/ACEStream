@@ -288,41 +288,14 @@ Stream_Module_Net_Source_HTTP_Get_T<ACE_SYNCH_USE,
 
   switch (message_inout->type ())
   {
-//    case STREAM_SESSION_MESSAGE_BEGIN:
-//    {
-//      // sanity check(s)
-//      ACE_ASSERT (inherited::configuration_);
-
-//      // send HTTP request
-//      if (!send (inherited::configuration_->URL,
-//                 inherited::configuration_->HTTPHeaders,
-//                 inherited::configuration_->HTTPForm))
-//      {
-//        ACE_DEBUG ((LM_ERROR,
-//                    ACE_TEXT ("%s: failed to send HTTP request \"%s\", aborting\n"),
-//                    inherited::mod_->name (),
-//                    ACE_TEXT (inherited::configuration_->URL.c_str ())));
-//        goto error;
-//      } // end IF
-//#if defined (_DEBUG)
-//      ACE_DEBUG ((LM_DEBUG,
-//                  ACE_TEXT ("%s: started HTTP request for \"%s\"\n"),
-//                  inherited::mod_->name (),
-//                  ACE_TEXT (inherited::configuration_->URL.c_str ())));
-//#endif // _DEBUG
-//      break;
-
-//error:
-//      this->notify (STREAM_SESSION_MESSAGE_ABORT);
-
-//      break;
-//    }
-    case STREAM_SESSION_MESSAGE_CONNECT:
+    case STREAM_SESSION_MESSAGE_BEGIN:
     {
       // sanity check(s)
       ACE_ASSERT (inherited::configuration_);
 
-      // send HTTP request
+      // send HTTP request ?
+      if (inherited::configuration_->waitForConnect)
+        break;
       if (!send (inherited::configuration_->URL,
                  inherited::configuration_->HTTPHeaders,
                  inherited::configuration_->HTTPForm))
@@ -342,6 +315,37 @@ Stream_Module_Net_Source_HTTP_Get_T<ACE_SYNCH_USE,
       break;
 
 error:
+      this->notify (STREAM_SESSION_MESSAGE_ABORT);
+
+      break;
+    }
+    case STREAM_SESSION_MESSAGE_CONNECT:
+    {
+      // sanity check(s)
+      ACE_ASSERT (inherited::configuration_);
+
+      // send HTTP request ?
+      if (!inherited::configuration_->waitForConnect)
+        break;
+      if (!send (inherited::configuration_->URL,
+                 inherited::configuration_->HTTPHeaders,
+                 inherited::configuration_->HTTPForm))
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("%s: failed to send HTTP request \"%s\", aborting\n"),
+                    inherited::mod_->name (),
+                    ACE_TEXT (inherited::configuration_->URL.c_str ())));
+        goto error_2;
+      } // end IF
+#if defined (_DEBUG)
+      ACE_DEBUG ((LM_DEBUG,
+                  ACE_TEXT ("%s: started HTTP request for \"%s\"\n"),
+                  inherited::mod_->name (),
+                  ACE_TEXT (inherited::configuration_->URL.c_str ())));
+#endif // _DEBUG
+      break;
+
+error_2:
       this->notify (STREAM_SESSION_MESSAGE_ABORT);
 
       break;

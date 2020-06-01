@@ -235,7 +235,6 @@ class Stream_Module_Parser_T
   virtual void handleSessionMessage (SessionMessageType*&, // session message handle
                                      bool&);               // return value: pass message downstream ?
 
-
  protected:
   // convenient types
   typedef Stream_TaskBaseSynch_T<ACE_SYNCH_USE,

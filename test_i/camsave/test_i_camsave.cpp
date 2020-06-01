@@ -1160,8 +1160,6 @@ do_work (const std::string& captureinterfaceIdentifier_in,
     {
       mediafoundation_modulehandler_configuration.allocatorConfiguration =
         &allocator_configuration;
-      mediafoundation_modulehandler_configuration.concurrency =
-        STREAM_HEADMODULECONCURRENCY_ACTIVE;
       mediafoundation_modulehandler_configuration.deviceIdentifier.identifierDiscriminator =
         Stream_Device_Identifier::STRING;
       ACE_OS::strcpy (mediafoundation_modulehandler_configuration.deviceIdentifier.identifier._string,

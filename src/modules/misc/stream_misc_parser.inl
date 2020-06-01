@@ -817,8 +817,10 @@ Stream_Module_Parser_T<ACE_SYNCH_USE,
 
   // sanity check(s)
   ACE_ASSERT (configuration_in.parserConfiguration);
+  bool reset_queue = false;
   if (!configuration_in.parserConfiguration->messageQueue)
   {
+    reset_queue = true;
     const_cast<ConfigurationType&> (configuration_in).parserConfiguration->messageQueue =
       &parserQueue_;
     ACE_DEBUG ((LM_DEBUG,
@@ -836,6 +838,9 @@ Stream_Module_Parser_T<ACE_SYNCH_USE,
                 inherited::mod_->name ()));
     return false;
   } // end IF
+  if (reset_queue)
+    const_cast<ConfigurationType&> (configuration_in).parserConfiguration->messageQueue =
+      NULL;
 
   return inherited::initialize (configuration_in,
                                 allocator_in);

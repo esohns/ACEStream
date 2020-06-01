@@ -25,4 +25,4 @@
 #include "stream_dec_defines.h"
 
 const char libacestream_default_dec_avi_decoder_module_name_string[] =
-  ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_ENCODER_WAV_DEFAULT_NAME_STRING);
+  ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_AVI_DEFAULT_NAME_STRING);

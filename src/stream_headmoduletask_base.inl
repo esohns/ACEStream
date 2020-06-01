@@ -870,6 +870,143 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
 #endif // _DEBUG
       } // end IF
 
+      if ((concurrency_ == STREAM_HEADMODULECONCURRENCY_ACTIVE) &&
+          !inherited::thr_count_)
+      {
+        // spawn a worker thread
+        // *TODO*: rewrite for thread counts > 1 (see also: wait() above)
+        ACE_ASSERT (inherited::threadCount_ >= 1);
+
+        ACE_thread_t* thread_ids_p = NULL;
+        ACE_NEW_NORETURN (thread_ids_p,
+                          ACE_thread_t[inherited::threadCount_]);
+        if (unlikely (!thread_ids_p))
+        {
+          ACE_DEBUG ((LM_CRITICAL,
+                      ACE_TEXT ("%s: failed to allocate memory (%u), aborting\n"),
+                      inherited::mod_->name (),
+                      (sizeof (ACE_thread_t) * inherited::threadCount_)));
+          goto error;
+        } // end IF
+        ACE_OS::memset (thread_ids_p, 0, sizeof (thread_ids_p));
+        ACE_hthread_t* thread_handles_p = NULL;
+        ACE_NEW_NORETURN (thread_handles_p,
+                          ACE_hthread_t[inherited::threadCount_]);
+        if (unlikely (!thread_handles_p))
+        {
+          ACE_DEBUG ((LM_CRITICAL,
+                      ACE_TEXT ("%s: failed to allocate memory (%u), aborting\n"),
+                      inherited::mod_->name (),
+                      (sizeof (ACE_hthread_t) * inherited::threadCount_)));
+          delete [] thread_ids_p; thread_ids_p = NULL;
+          goto error;
+        } // end IF
+        ACE_OS::memset (thread_handles_p, 0, sizeof (thread_handles_p));
+        const char** thread_names_p = NULL;
+        ACE_NEW_NORETURN (thread_names_p,
+                          const char*[inherited::threadCount_]);
+        if (unlikely (!thread_names_p))
+        {
+          ACE_DEBUG ((LM_CRITICAL,
+                      ACE_TEXT ("%s: failed to allocate memory (%u), aborting\n"),
+                      inherited::mod_->name (),
+                      (sizeof (const char*) * inherited::threadCount_)));
+          delete [] thread_ids_p; thread_ids_p = NULL;
+          delete [] thread_handles_p; thread_handles_p = NULL;
+          goto error;
+        } // end IF
+        ACE_OS::memset (thread_names_p, 0, sizeof (thread_names_p));
+        char* thread_name_p = NULL;
+        std::string buffer;
+        std::ostringstream converter;
+        for (unsigned int i = 0;
+             i < inherited::threadCount_;
+             ++i)
+        {
+          thread_name_p = NULL;
+          ACE_NEW_NORETURN (thread_name_p,
+                            char[BUFSIZ]);
+          if (unlikely (!thread_name_p))
+          {
+            ACE_DEBUG ((LM_CRITICAL,
+                        ACE_TEXT ("%s: failed to allocate memory (%u), aborting\n"),
+                        inherited::mod_->name (),
+                        (sizeof (char) * BUFSIZ)));
+            delete [] thread_ids_p; thread_ids_p = NULL;
+            delete [] thread_handles_p; thread_handles_p = NULL;
+            for (unsigned int j = 0; j < i; j++)
+              delete [] thread_names_p[j];
+            delete [] thread_names_p; thread_names_p = NULL;
+            goto error;
+          } // end IF
+          ACE_OS::memset (thread_name_p, 0, sizeof (thread_name_p));
+          converter.clear ();
+          converter.str (ACE_TEXT_ALWAYS_CHAR (""));
+          converter << (i + 1);
+          buffer = inherited::threadName_;
+          buffer += ACE_TEXT_ALWAYS_CHAR (" #");
+          buffer += converter.str ();
+          ACE_OS::strcpy (thread_name_p,
+                          buffer.c_str ());
+          thread_names_p[i] = thread_name_p;
+        } // end FOR
+        result =
+          ACE_Task_Base::activate ((THR_NEW_LWP      |
+                                    THR_JOINABLE     |
+                                    THR_INHERIT_SCHED),                         // flags
+                                    static_cast<int> (inherited::threadCount_), // # threads
+                                    0,                                           // force spawning
+                                    ACE_DEFAULT_THREAD_PRIORITY,                 // priority
+                                    inherited::grp_id (),                       // group id (see above)
+                                    NULL,                                        // corresp. task --> use 'this'
+                                    thread_handles_p,                            // thread handle(s)
+                                    NULL,                                        // thread stack(s)
+                                    NULL,                                        // thread stack size(s)
+                                    thread_ids_p,                                // thread id(s)
+                                    thread_names_p);                             // thread name(s)
+        if (unlikely (result == -1))
+        {
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("%s: failed to ACE_Task_Base::activate(): \"%m\", continuing\n"),
+                      inherited::mod_->name ()));
+          delete[] thread_ids_p; thread_ids_p = NULL;
+          delete[] thread_handles_p; thread_handles_p = NULL;
+          for (unsigned int i = 0; i < inherited::threadCount_; i++)
+            delete[] thread_names_p[i];
+          delete[] thread_names_p; thread_names_p = NULL;
+          goto error;
+        } // end IF
+
+        std::ostringstream string_stream;
+        ACE_Thread_ID thread_id;
+        { ACE_GUARD (typename inherited::ITASKCONTROL_T::MUTEX_T, aGuard, inherited::lock_);
+          for (unsigned int i = 0;
+               i < inherited::threadCount_;
+               ++i)
+          {
+            string_stream << ACE_TEXT_ALWAYS_CHAR ("#") << (i + 1)
+                          << ACE_TEXT_ALWAYS_CHAR (" ")
+                          << thread_ids_p[i]
+                          << ACE_TEXT_ALWAYS_CHAR ("\n");
+            delete [] thread_names_p[i];
+            thread_id.handle (thread_handles_p[i]);
+            thread_id.id (thread_ids_p[i]);
+            inherited::threads_.push_back (thread_id);
+          } // end FOR
+        } // end lock scope
+        std::string thread_ids_string = string_stream.str ();
+        ACE_DEBUG ((LM_DEBUG,
+                    ACE_TEXT ("%s/%s spawned %u worker thread(s) (group: %d):\n%s"),
+                    inherited::mod_->name (),
+                    ACE_TEXT (inherited::threadName_.c_str ()),
+                    inherited::threadCount_,
+                    inherited::grp_id (),
+                    ACE_TEXT (thread_ids_string.c_str ())));
+        delete [] thread_ids_p; thread_ids_p = NULL;
+        delete [] thread_handles_p; thread_handles_p = NULL;
+        delete [] thread_names_p; thread_names_p = NULL;
+      } // end IF
+
       break;
 
 error:

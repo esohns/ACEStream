@@ -141,6 +141,7 @@ struct HTTPGet_ModuleHandlerConfiguration
    , subscribers (NULL)
    , targetFileName ()
    , URL ()
+   , waitForConnect (true)
   {
     crunchMessages = HTTP_DEFAULT_CRUNCH_MESSAGES; // HTTP parser module
     passive = false;
@@ -160,6 +161,7 @@ struct HTTPGet_ModuleHandlerConfiguration
   HTTPGet_Subscribers_t*          subscribers;
   std::string                     targetFileName;           // file writer module
   std::string                     URL;                      // HTTP get module
+  bool                            waitForConnect;
 };
 
 struct HTTPGet_StreamState

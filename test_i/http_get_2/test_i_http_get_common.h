@@ -227,6 +227,7 @@ struct Test_I_HTTPGet_ModuleHandlerConfiguration
    , stockItems ()
    , streamConfiguration (NULL)
    , URL ()
+   , waitForConnect (true)
   {}
 
   struct Common_Parser_FlexAllocatorConfiguration* allocatorConfiguration;
@@ -245,6 +246,7 @@ struct Test_I_HTTPGet_ModuleHandlerConfiguration
   Test_I_StockItems_t                             stockItems; // HTTP get module
   Test_I_HTTPGet_StreamConfiguration_t*           streamConfiguration; // net source module
   std::string                                     URL; // HTTP get module
+  bool                                            waitForConnect;
 };
 //typedef std::map<std::string,
 //                 struct Test_I_HTTPGet_ModuleHandlerConfiguration> Test_I_HTTPGet_ModuleHandlerConfigurations_t;

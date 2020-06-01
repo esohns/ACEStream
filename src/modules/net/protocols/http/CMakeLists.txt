@@ -14,7 +14,7 @@ add_library (${PROJECT_NAME}_Network_Protocol_HTTPGet STATIC "")
 
 if (UNIX)
  target_include_directories (${PROJECT_NAME}_Network_Protocol_HTTPGet PUBLIC
-                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../../../ACE_TAO/ACE>)
+                             $<BUILD_INTERFACE:$ENV{LIB_ROOT}/ACE_TAO/ACE>)
 
  target_include_directories (${PROJECT_NAME}_Network_Protocol_HTTPGet PUBLIC
                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../../../Common/src>)
@@ -33,7 +33,7 @@ elseif (WIN32)
                               $<BUILD_INTERFACE:$ENV{ACE_ROOT}>)
  else ()
   target_include_directories (${PROJECT_NAME}_Network_Protocol_HTTPGet PUBLIC
-                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../../../ACE_TAO/ACE>)
+                              $<BUILD_INTERFACE:$ENV{LIB_ROOT}/ACE_TAO/ACE>)
  endif (DEFINED ENV{ACE_ROOT})
 
  target_include_directories (${PROJECT_NAME}_Network_Protocol_HTTPGet PUBLIC

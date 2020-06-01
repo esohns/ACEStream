@@ -995,8 +995,6 @@ do_work (const std::string& deviceIdentifier_in,
 
       mediafoundation_modulehandler_configuration.allocatorConfiguration =
         allocator_configuration_p;
-      mediafoundation_modulehandler_configuration.concurrency =
-        STREAM_HEADMODULECONCURRENCY_ACTIVE;
       mediafoundation_modulehandler_configuration.configuration =
         mediaFoundationCBData_in.configuration;
       mediafoundation_modulehandler_configuration.connectionConfigurations =

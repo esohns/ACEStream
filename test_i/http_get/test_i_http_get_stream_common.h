@@ -236,6 +236,7 @@ struct Test_I_HTTPGet_ModuleHandlerConfiguration
    , streamConfiguration (NULL)
    , targetFileName ()
    , URL ()
+   , waitForConnect (true)
   {
     crunchMessages = HTTP_DEFAULT_CRUNCH_MESSAGES; // HTTP parser module
     passive = false;
@@ -257,6 +258,7 @@ struct Test_I_HTTPGet_ModuleHandlerConfiguration
   Test_I_StreamConfiguration_t*              streamConfiguration; // net source module
   std::string                                targetFileName; // file writer module
   std::string                                URL; // HTTP get module
+  bool                                       waitForConnect;
 };
 
 struct Test_I_HTTPGet_StreamConfiguration
