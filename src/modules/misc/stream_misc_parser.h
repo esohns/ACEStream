@@ -248,22 +248,20 @@ class Stream_Module_Parser_T
                                  enum Stream_ControlType,
                                  enum Stream_SessionMessageType,
                                  UserDataType> STREAM_TASK_BASE_T;
+  typedef Stream_MessageQueueBase_T<ACE_MT_SYNCH,
+                                    Common_TimePolicy_t> MESSAGE_QUEUE_T;
+
+  MESSAGE_QUEUE_T parserQueue_;
 
  private:
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_Parser_T ())
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_Parser_T (const Stream_Module_Parser_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_Parser_T& operator= (const Stream_Module_Parser_T&))
 
-  // convenient types
-  typedef Stream_MessageQueueBase_T<ACE_MT_SYNCH,
-                                    Common_TimePolicy_t> MESSAGE_QUEUE_T;
-
   // override some ACE_Task_T methods
   virtual int svc (void);
 
   void stop ();
-
-  MESSAGE_QUEUE_T parserQueue_;
 };
 
 // include template definition

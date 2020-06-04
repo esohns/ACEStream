@@ -73,9 +73,6 @@ class Stream_SessionDataMediaBase_T
   std::string                     targetFileName;
 
   UserDataType*                   userData;
-
- private:
-  ACE_UNIMPLEMENTED_FUNC (Stream_SessionDataMediaBase_T& operator= (const Stream_SessionDataMediaBase_T&))
 };
 
 //////////////////////////////////////////

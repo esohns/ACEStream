@@ -110,6 +110,41 @@ Stream_SessionDataMediaBase_T<BaseType,
   return *this;
 }
 
+//template <typename BaseType,
+//          typename MediaFormatType,
+//          typename StreamStateType,
+//          typename StatisticType,
+//          typename UserDataType>
+//Stream_SessionDataMediaBase_T<BaseType,
+//                              MediaFormatType,
+//                              StreamStateType,
+//                              StatisticType,
+//                              UserDataType>&
+//Stream_SessionDataMediaBase_T<BaseType,
+//                              MediaFormatType,
+//                              StreamStateType,
+//                              StatisticType,
+//                              UserDataType>::operator= (const Stream_SessionDataMediaBase_T<BaseType,
+//                                                                                            MediaFormatType,
+//                                                                                            StreamStateType,
+//                                                                                            StatisticType,
+//                                                                                            UserDataType>& rhs_in)
+//{
+//  STREAM_TRACE (ACE_TEXT ("Stream_SessionDataMediaBase_T::operator="));
+
+//  // *NOTE*: the idea is to 'merge' the data
+//  inherited::operator= (rhs_in);
+////  ACE_ASSERT (formats.size () == rhs_in.formats.size ());
+////  state = (state ? state : rhs_in.state);
+//  statistic =
+//      ((statistic.timeStamp >= rhs_in.statistic.timeStamp) ? statistic
+//                                                           : rhs_in.statistic);
+
+//  userData = (userData ? userData : rhs_in.userData);
+
+//  return *this;
+//}
+
 //////////////////////////////////////////
 
 //template <typename DataType>

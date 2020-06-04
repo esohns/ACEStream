@@ -43,6 +43,7 @@ extern "C"
 #include "stream_dec_defines.h"
 #include "stream_dec_tools.h"
 
+#include "stream_lib_ffmpeg_common.h"
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #include "stream_lib_tools.h"
 #endif // ACE_WIN32 || ACE_WIN64
@@ -246,6 +247,13 @@ Stream_Decoder_LibAVDecoder_T<ACE_SYNCH_USE,
 
   // *TODO*: remove type inferences
   codecId_ = configuration_in.codecId;
+//  if (unlikely (codecId_ == AV_CODEC_ID_NONE))
+//  {
+//    ACE_DEBUG ((LM_ERROR,
+//                ACE_TEXT ("%s: invalid codec, aborting\n"),
+//                inherited::mod_->name ()));
+//    return false;
+//  } // end IF
 
   frame_ = av_frame_alloc ();
   if (unlikely (!frame_))
@@ -646,7 +654,7 @@ Stream_Decoder_LibAVDecoder_T<ACE_SYNCH_USE,
       // sanity check(s)
       // *TODO*: remove type inference
       ACE_ASSERT (!session_data_r.formats.empty ());
-      MediaType media_type_2 = session_data_r.formats.front ();
+      MediaType media_type_2 = session_data_r.formats.back ();
       struct Stream_MediaFramework_FFMPEG_VideoMediaType media_type_s;
       inherited2::getMediaType (media_type_2,
                                 media_type_s);
