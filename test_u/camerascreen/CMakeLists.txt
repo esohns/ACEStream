@@ -43,6 +43,7 @@ if (UNIX)
  pkg_check_modules (PKG_CAP REQUIRED libcap)
  pkg_check_modules (PKG_V4L2 REQUIRED libv4l2)
  pkg_check_modules (PKG_FFMPEG REQUIRED libswscale libavutil libavformat libavcodec)
+ pkg_check_modules (PKG_WAYLAND REQUIRED wayland-client)
 endif (UNIX)
 # *TODO*: repair WIN32 pkgconfig support
 
@@ -217,6 +218,7 @@ if (UNIX)
 # target_link_libraries (${EXECUTABLE} libgobject-2.0.so libglib-2.0.so libgdk-3.so libgtk-3.so)
  target_link_libraries (${EXECUTABLE} ${PKG_V4L2_LIBRARIES})
  target_link_libraries (${EXECUTABLE} ${PKG_FFMPEG_LIBRARIES})
+ target_link_libraries (${EXECUTABLE} ${PKG_WAYLAND_LIBRARIES})
 
 # target_link_libraries (${EXECUTABLE} ${ACEXML_LIBRARY})
 elseif (WIN32)

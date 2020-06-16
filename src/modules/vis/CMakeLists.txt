@@ -239,6 +239,9 @@ endif (OPENGL_SUPPORT)
 if (UNIX)
  set (source_files
       ${source_files}
+      stream_vis_wayland_window.cpp
+      stream_vis_wayland_window.h
+      stream_vis_wayland_window.inl
       stream_vis_x11_window.cpp
       stream_vis_x11_window.h
       stream_vis_x11_window.inl)

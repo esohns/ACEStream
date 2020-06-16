@@ -36,6 +36,7 @@
 #define STREAM_VIS_GDI_DEFAULT_NAME_STRING                                "GDI"
 #define STREAM_VIS_MEDIAFOUNDATION_DEFAULT_NAME_STRING                    "MediaFoundation"
 #else
+#define STREAM_VIS_WAYLAND_WINDOW_DEFAULT_NAME_STRING                     "Wayland"
 #define STREAM_VIS_X11_WINDOW_DEFAULT_NAME_STRING                         "X11"
 #endif // ACE_WIN32 || ACE_WIN64
 #define STREAM_VIS_GTK_CAIRO_DEFAULT_NAME_STRING                          "GTK_Cairo"

@@ -535,6 +535,8 @@ struct Stream_CameraScreen_V4L_ModuleHandlerConfiguration
    , outputFormat ()
    , subscriber (NULL)
    , subscribers (NULL)
+   , surface (NULL)
+   , waylandDisplay (NULL)
   {
     // *PORTABILITY*: v4l2: device path (e.g. "[/dev/]video0")
     deviceIdentifier.identifier =
@@ -543,13 +545,15 @@ struct Stream_CameraScreen_V4L_ModuleHandlerConfiguration
     ACE_OS::memset (&outputFormat, 0, sizeof (struct Stream_MediaFramework_V4L_MediaType));
   }
 
-  __u32                                         buffers; // v4l device buffers
-  enum AVPixelFormat                            codecFormat; // preferred output-
-  enum AVCodecID                                codecId;
-  enum v4l2_memory                              method; // v4l camera source
+  __u32                                              buffers; // v4l device buffers
+  enum AVPixelFormat                                 codecFormat; // preferred output-
+  enum AVCodecID                                     codecId;
+  enum v4l2_memory                                   method; // v4l camera source
   struct Stream_MediaFramework_FFMPEG_VideoMediaType outputFormat;
-  Stream_CameraScreen_ISessionNotify_t*         subscriber;
-  Stream_CameraScreen_Subscribers_t*            subscribers;
+  Stream_CameraScreen_ISessionNotify_t*              subscriber;
+  Stream_CameraScreen_Subscribers_t*                 subscribers;
+  struct wl_shell_surface*                           surface;
+  struct wl_display*                                 waylandDisplay;
 };
 #endif // ACE_WIN32 || ACE_WIN64
 

@@ -1172,10 +1172,12 @@ Stream_CameraScreen_Stream::Stream_CameraScreen_Stream ()
              ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_LIBAV_CONVERTER_DEFAULT_NAME_STRING))
  , resize_ (this,
             ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_LIBAV_RESIZE_DEFAULT_NAME_STRING))
- , display_ (this,
-             ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_X11_WINDOW_DEFAULT_NAME_STRING))
- , display_2_ (this,
-               ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_GTK_WINDOW_DEFAULT_NAME_STRING))
+ , GTKDisplay_ (this,
+                ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_GTK_WINDOW_DEFAULT_NAME_STRING))
+ , WaylandDisplay_ (this,
+                    ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_WAYLAND_WINDOW_DEFAULT_NAME_STRING))
+ , X11Display_ (this,
+                ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_X11_WINDOW_DEFAULT_NAME_STRING))
  , OpenGLDisplay_ (this,
                    ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_OPENGL_GLUT_DEFAULT_NAME_STRING))
 {
@@ -1214,7 +1216,7 @@ Stream_CameraScreen_Stream::load (Stream_ILayout* layout_in,
   // layout_in->append (&display_, NULL, 0);
 //  else
 //  layout_in->append (&display_2_, NULL, 0);
-  layout_in->append (&OpenGLDisplay_, NULL, 0);
+  layout_in->append (&WaylandDisplay_, NULL, 0);
 
   return true;
 }
