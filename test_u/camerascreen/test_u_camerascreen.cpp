@@ -1088,6 +1088,7 @@ do_work (const std::string& captureinterfaceIdentifier_in,
       //if (bufferSize_in)
       //  directShowCBData_in.configuration->streamConfiguration.allocatorConfiguration_.defaultBufferSize =
       //      bufferSize_in;
+      directshow_stream_configuration.allocatorConfiguration = &allocator_configuration;
       directshow_stream_configuration.messageAllocator =
           &directshow_message_allocator;
       directshow_stream_configuration.module =

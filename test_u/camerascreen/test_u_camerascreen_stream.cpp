@@ -19,7 +19,6 @@
  ***************************************************************************/
 #include "stdafx.h"
 
-//#include "ace/Synch.h"
 #include "test_u_camerascreen_stream.h"
 
 #include "ace/Log_Msg.h"
@@ -50,8 +49,10 @@ Stream_CameraScreen_DirectShow_Stream::Stream_CameraScreen_DirectShow_Stream ()
             ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_CAM_SOURCE_DIRECTSHOW_DEFAULT_NAME_STRING))
  //, report_ (this,
  //           ACE_TEXT_ALWAYS_CHAR (MODULE_STAT_REPORT_DEFAULT_NAME_STRING))
- , display_ (this,
-             ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_DIRECTSHOW_DEFAULT_NAME_STRING))
+ , DirectShowDisplay_ (this,
+                       ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_DIRECTSHOW_DEFAULT_NAME_STRING))
+ , GDIDisplay_ (this,
+                ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_GDI_DEFAULT_NAME_STRING))
  , OpenGLDisplay_ (this,
                    ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_OPENGL_GLUT_DEFAULT_NAME_STRING))
 {
@@ -83,7 +84,8 @@ Stream_CameraScreen_DirectShow_Stream::load (Stream_ILayout* layout_in,
   layout_in->append (&source_, NULL, 0);
   //modules_out.push_back (&statisticReport_);
   //layout_in->append (&display_, NULL, 0);
-  layout_in->append (&OpenGLDisplay_, NULL, 0);
+  layout_in->append (&GDIDisplay_, NULL, 0);
+  //layout_in->append (&OpenGLDisplay_, NULL, 0);
 
   return true;
 }
@@ -219,7 +221,8 @@ continue_:
   if (!Stream_Module_Decoder_Tools::loadVideoRendererGraph (CLSID_VideoInputDeviceCategory,
                                                             configuration_in.configuration->format,
                                                             (*iterator).second.second.outputFormat,
-                                                            (*iterator).second.second.window,
+                                                            NULL, // use NULL-VideoRenderer
+                                                            //(*iterator).second.second.window,
                                                             (*iterator).second.second.builder,
                                                             graph_configuration))
   {

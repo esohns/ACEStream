@@ -56,6 +56,7 @@
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #include "stream_vis_target_direct3d.h"
 #include "stream_vis_target_directshow.h"
+#include "stream_vis_target_gdi.h"
 #include "stream_vis_target_mediafoundation.h"
 #else
 #include "stream_vis_libav_resize.h"
@@ -267,6 +268,16 @@ typedef Stream_Visualization_OpenGL_GLUT_T<ACE_MT_SYNCH,
                                            Stream_CameraScreen_DirectShow_SessionData_t,
                                            struct _AMMediaType> Stream_CameraScreen_OpenGL_Display;
 
+typedef Stream_Vis_Target_GDI_T<ACE_MT_SYNCH,
+                                Common_TimePolicy_t,
+                                struct Stream_CameraScreen_DirectShow_ModuleHandlerConfiguration,
+                                Stream_ControlMessage_t,
+                                Stream_CameraScreen_DirectShow_Message_t,
+                                Stream_CameraScreen_DirectShow_SessionMessage_t,
+                                Stream_CameraScreen_DirectShow_SessionData,
+                                Stream_CameraScreen_DirectShow_SessionData_t,
+                                struct _AMMediaType> Stream_CameraScreen_GDI_Display;
+
 typedef Stream_Vis_Target_MediaFoundation_T<ACE_MT_SYNCH,
                                             Common_TimePolicy_t,
                                             struct Stream_CameraScreen_MediaFoundation_ModuleHandlerConfiguration,
@@ -459,6 +470,13 @@ DATASTREAM_MODULE_INPUT_ONLY (Stream_CameraScreen_MediaFoundation_SessionData,  
                               libacestream_default_vis_mediafoundation_module_name_string,
                               Stream_INotify_t,                                           // stream notification interface type
                               Stream_CameraScreen_MediaFoundation_DisplayNull); // writer type
+
+DATASTREAM_MODULE_INPUT_ONLY (Stream_CameraScreen_DirectShow_SessionData,       // session data type
+                              enum Stream_SessionMessageType,                   // session event type
+                              struct Stream_CameraScreen_DirectShow_ModuleHandlerConfiguration, // module handler configuration type
+                              libacestream_default_vis_gdi_module_name_string,
+                              Stream_INotify_t,                                 // stream notification interface type
+                              Stream_CameraScreen_GDI_Display);                 // writer type
 #else
 DATASTREAM_MODULE_INPUT_ONLY (Stream_CameraScreen_V4L_SessionData,                   // session data type
                               enum Stream_SessionMessageType,                   // session event type

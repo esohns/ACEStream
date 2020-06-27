@@ -254,6 +254,9 @@ elseif (WIN32)
       stream_vis_target_directshow.cpp
       stream_vis_target_directshow.h
       stream_vis_target_directshow.inl
+      stream_vis_target_gdi.cpp
+      stream_vis_target_gdi.h
+      stream_vis_target_gdi.inl
       stream_vis_target_mediafoundation.cpp
       stream_vis_target_mediafoundation.h
       stream_vis_target_mediafoundation.inl)
@@ -388,6 +391,8 @@ elseif (WIN32)
       stream_vis_target_direct3d.inl
       stream_vis_target_directshow.h
       stream_vis_target_directshow.inl
+      stream_vis_target_gdi.h
+      stream_vis_target_gdi.inl
       stream_vis_target_mediafoundation.h
       stream_vis_target_mediafoundation.inl)
 endif ()
