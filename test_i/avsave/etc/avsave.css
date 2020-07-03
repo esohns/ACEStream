@@ -1,0 +1,13 @@
+.button {
+  padding: 30px; /* px unit added */
+  background-color: shade (@bg_color, 55);
+}
+    
+.togglebutton .entry {
+  color: #900185; /* # added */
+}
+    
+.button:active {
+  background-color: #0274d9;
+}
+

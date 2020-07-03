@@ -29,8 +29,6 @@
 #include <map>
 #include <string>
 
-//#include "libxml/tree.h"
-
 #include "ace/config-macros.h"
 #include "ace/Synch_Traits.h"
 #include "ace/Time_Value.h"
@@ -53,6 +51,8 @@
 #else
 #include "stream_lib_alsa_common.h"
 #endif // ACE_WIN32 || ACE_WIN64
+
+#include "stream_dev_common.h"
 
 #include "test_i_configuration.h"
 
@@ -145,22 +145,22 @@ struct Test_I_MP3Player_ModuleHandlerConfiguration
 {
   Test_I_MP3Player_ModuleHandlerConfiguration ()
    : Test_I_ModuleHandlerConfiguration ()
-   , pushStatisticMessages (true)
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
    , asynchPlayback (false)
    , deviceIdentifier ()
    , playbackDeviceHandle (NULL)
 #endif // ACE_WIN32 || ACE_WIN64
+   , pushStatisticMessages (true)
   {}
 
-  bool pushStatisticMessages;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
-  bool             asynchPlayback;
-  std::string      deviceIdentifier;
-  struct _snd_pcm* playbackDeviceHandle;
+  bool                            asynchPlayback;
+  struct Stream_Device_Identifier deviceIdentifier;
+  struct _snd_pcm*                playbackDeviceHandle;
 #endif // ACE_WIN32 || ACE_WIN64
+  bool                            pushStatisticMessages;
 };
 
 struct Test_I_MP3Player_StreamConfiguration

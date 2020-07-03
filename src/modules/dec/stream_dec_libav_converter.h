@@ -122,11 +122,12 @@ class Stream_Decoder_LibAVConverter_T
                                      bool&);               // return value: pass message downstream ?
 
  protected:
-  DataMessageType*   buffer_;
-  struct SwsContext* context_;
-  struct AVFrame*    frame_;
-  unsigned int       frameSize_; // output-
-  enum AVPixelFormat inputFormat_;
+  DataMessageType*                                   buffer_;
+  struct SwsContext*                                 context_;
+  struct AVFrame*                                    frame_;
+  unsigned int                                       frameSize_; // output-
+  enum AVPixelFormat                                 inputFormat_;
+  struct Stream_MediaFramework_FFMPEG_VideoMediaType outputFormat_;
 
  private:
   // convenient types

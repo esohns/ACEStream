@@ -490,10 +490,10 @@ Stream_Base_T<ACE_SYNCH_USE,
       imodule_p = dynamic_cast<IMODULE_T*> (*iterator);
       if (unlikely (!imodule_p))
       {
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("%s/%s: dynamic_cast<Stream_IModule_T> failed, returning\n"),
+        ACE_DEBUG ((LM_WARNING,
+                    ACE_TEXT ("%s/%s: dynamic_cast<Stream_IModule_T> failed, continuing\n"),
                     ACE_TEXT (StreamName), (*iterator)->name ()));
-        return;
+        continue;
       } // end IF
       imodule_p->reset ();
 

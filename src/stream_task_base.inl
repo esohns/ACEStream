@@ -1057,7 +1057,7 @@ Stream_TaskBase_T<ACE_SYNCH_USE,
     case ACE_Message_Block::MB_USER:
     { // *NOTE*: currently, all of these are 'session' messages
       SessionMessageType* session_message_p =
-        dynamic_cast<SessionMessageType*> (messageBlock_in);
+        static_cast<SessionMessageType*> (messageBlock_in);
       if (unlikely (!session_message_p))
       {
         ACE_DEBUG ((LM_ERROR,

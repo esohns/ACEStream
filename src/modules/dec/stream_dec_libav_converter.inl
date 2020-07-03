@@ -41,41 +41,6 @@ extern "C"
 
 #include "stream_lib_ffmpeg_common.h"
 
-//// initialize statics
-//#if defined (ACE_WIN32) || defined (ACE_WIN64)
-//template <ACE_SYNCH_DECL,
-//          typename TimePolicyType,
-//          typename ConfigurationType,
-//          typename ControlMessageType,
-//          typename DataMessageType,
-//          typename SessionMessageType,
-//          typename SessionDataContainerType>
-//char
-//Stream_Decoder_LibAVConverter_T<ACE_SYNCH_USE,
-//                                TimePolicyType,
-//                                ConfigurationType,
-//                                ControlMessageType,
-//                                DataMessageType,
-//                                SessionMessageType,
-//                                SessionDataContainerType>::paddingBuffer[AV_INPUT_BUFFER_PADDING_SIZE];
-//#else
-//template <ACE_SYNCH_DECL,
-//          typename TimePolicyType,
-//          typename ConfigurationType,
-//          typename ControlMessageType,
-//          typename DataMessageType,
-//          typename SessionMessageType,
-//          typename SessionDataContainerType>
-//char
-//Stream_Decoder_LibAVConverter_T<ACE_SYNCH_USE,
-//                                TimePolicyType,
-//                                ConfigurationType,
-//                                ControlMessageType,
-//                                DataMessageType,
-//                                SessionMessageType,
-//                                SessionDataContainerType>::paddingBuffer[FF_INPUT_BUFFER_PADDING_SIZE];
-//#endif
-
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ConfigurationType,
@@ -103,6 +68,7 @@ Stream_Decoder_LibAVConverter_T<ACE_SYNCH_USE,
  , frame_ (NULL)
  , frameSize_ (0)
  , inputFormat_ (AV_PIX_FMT_NONE)
+ , outputFormat_ ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Decoder_LibAVConverter_T::Stream_Decoder_LibAVConverter_T"));
 
@@ -187,6 +153,9 @@ Stream_Decoder_LibAVConverter_T<ACE_SYNCH_USE,
   // *NOTE*: this level logs all messages
 //  av_log_set_level (std::numeric_limits<int>::max ());
 #endif // _DEBUG
+
+  inherited2::getMediaType (configuration_in.outputFormat,
+                            outputFormat_);
 
 //continue_:
   return inherited::initialize (configuration_in,

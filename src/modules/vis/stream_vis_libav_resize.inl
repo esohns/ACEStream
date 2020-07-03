@@ -142,14 +142,14 @@ Stream_Visualization_LibAVResize_T<ACE_SYNCH_USE,
                                                      sourceResolution_.cx, sourceResolution_.cy,
                                                      inherited::inputFormat_,
                                                      data_a,
-                                                     inherited::configuration_->outputFormat.resolution.cx, inherited::configuration_->outputFormat.resolution.cy,
+                                                     inherited::outputFormat_.resolution.cx, inherited::outputFormat_.resolution.cy,
                                                      inherited::frame_->data)))
 #else
   if (unlikely (!Stream_Module_Decoder_Tools::scale (inherited::context_,
                                                      sourceResolution_.width, sourceResolution_.height,
                                                      inherited::inputFormat_,
                                                      data_a,
-                                                     inherited::configuration_->outputFormat.resolution.width, inherited::configuration_->outputFormat.resolution.height,
+                                                     inherited::outputFormat_.resolution.width, inherited::outputFormat_.resolution.height,
                                                      inherited::frame_->data)))
 #endif // ACE_WIN32 || ACE_WIN64
   {
@@ -292,13 +292,12 @@ Stream_Visualization_LibAVResize_T<ACE_SYNCH_USE,
       } // end IF
       // *TODO*: remove type inferences
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-      if (unlikely ((sourceResolution_.cx == inherited::configuration_->outputFormat.resolution.cx) &&
-                    (sourceResolution_.cy == inherited::configuration_->outputFormat.resolution.cy)))
+      if (unlikely ((sourceResolution_.cx == inherited::outputFormat_.resolution.cx) &&
+                    (sourceResolution_.cy == inherited::outputFormat_.resolution.cy)))
 #else
-      if (unlikely ((sourceResolution_.width == inherited::configuration_->outputFormat.resolution.width) &&
-                    (sourceResolution_.height == inherited::configuration_->outputFormat.resolution.height)))
+      if (unlikely ((sourceResolution_.width == inherited::outputFormat_.resolution.width) &&
+                    (sourceResolution_.height == inherited::outputFormat_.resolution.height)))
 #endif // ACE_WIN32 || ACE_WIN64
-
       {
         ACE_DEBUG ((LM_WARNING,
                     ACE_TEXT ("%s: output size is input size, nothing to do\n"),
@@ -311,13 +310,13 @@ Stream_Visualization_LibAVResize_T<ACE_SYNCH_USE,
                     ACE_TEXT ("%s: resizing %ux%u to %ux%u\n"),
                     inherited::mod_->name (),
                     sourceResolution_.cx, sourceResolution_.cy,
-                    inherited::configuration_->outputFormat.resolution.cx, inherited::configuration_->outputFormat.resolution.cy));
+                    inherited::outputFormat_.resolution.cx, inherited::outputFormat_.resolution.cy));
 #else
         ACE_DEBUG ((LM_DEBUG,
                     ACE_TEXT ("%s: resizing %ux%u to %ux%u\n"),
                     inherited::mod_->name (),
                     sourceResolution_.width, sourceResolution_.height,
-                    inherited::configuration_->outputFormat.resolution.width, inherited::configuration_->outputFormat.resolution.height));
+                    inherited::outputFormat_.resolution.width, inherited::outputFormat_.resolution.height));
 #endif // ACE_WIN32 || ACE_WIN64
 #endif // _DEBUG
 
@@ -443,7 +442,7 @@ error:
                   ACE_TEXT ("%s: resizing %ux%u to %ux%u\n"),
                   inherited::mod_->name (),
                   media_type_2.resolution.width, media_type_2.resolution.height,
-                  inherited::configuration_->outputFormat.resolution.width, inherited::configuration_->outputFormat.resolution.height));
+                  inherited::outputFormat_.resolution.width, inherited::outputFormat_.resolution.height));
 #endif // ACE_WIN32 || ACE_WIN64
 #endif // _DEBUG
 
@@ -457,10 +456,10 @@ error:
           sws_getCachedContext (NULL,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
                                 media_type_2.resolution.cx, media_type_2.resolution.cy, inherited::inputFormat_,
-                                inherited::configuration_->outputFormat.resolution.cx, inherited::configuration_->outputFormat.resolution.cy, inherited::inputFormat_,
+                                inherited::outputFormat_.resolution.cx, inherited::outputFormat_.resolution.cy, inherited::inputFormat_,
 #else
                                 media_type_2.resolution.width, media_type_2.resolution.height, inherited::inputFormat_,
-                                inherited::configuration_->outputFormat.resolution.width, inherited::configuration_->outputFormat.resolution.height, inherited::inputFormat_,
+                                inherited::outputFormat_.resolution.width, inherited::outputFormat_.resolution.height, inherited::inputFormat_,
 #endif // ACE_WIN32 || ACE_WIN64
                                 flags_i,                      // flags
                                 NULL, NULL,

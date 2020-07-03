@@ -604,11 +604,11 @@ Stream_Dev_Target_ALSA_T<ACE_SYNCH_USE,
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("failed to snd_pcm_dump(\"%s\"): \"%s\", aborting\n"),
-                    ACE_TEXT (inherited::configuration_->deviceIdentifier.c_str ()),
+                    ACE_TEXT (inherited::configuration_->deviceIdentifier.identifier.c_str ()),
                     ACE_TEXT (snd_strerror (result))));
         goto error;
       } // end IF
-#endif
+#endif // _DEBUG
 
       if (useALSAAsynch_)
       {

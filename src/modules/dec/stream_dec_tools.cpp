@@ -5111,3 +5111,18 @@ error:
   return false;
 }
 #endif
+
+std::string
+Stream_Module_Decoder_Tools::audioFormatToString (enum AVSampleFormat format_in)
+{
+  std::string result;
+
+  if (format_in == AV_SAMPLE_FMT_NONE)
+    return result;
+
+  char buffer_a[BUFSIZ];
+  av_get_sample_fmt_string (buffer_a, sizeof (char[BUFSIZ]), format_in);
+  result = buffer_a;
+
+  return result;
+}

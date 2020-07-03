@@ -22,6 +22,9 @@
 #define STREAM_LIB_DEFINES_H
 
 #include "ace/config-lite.h"
+
+#define STREAM_LIB_TAGGER_DEFAULT_NAME_STRING                    "Tagger"
+
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #define STREAM_LIB_DEFAULT_MEDIAFRAMEWORK                        STREAM_MEDIAFRAMEWORK_DIRECTSHOW
 

@@ -5250,13 +5250,13 @@ togglebutton_record_toggled_cb (GtkToggleButton* toggleButton_in,
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
     {
-      (*directshow_modulehandler_configuration_iterator).second.second.deviceIdentifier =
+      (*directshow_modulehandler_configuration_iterator).second.second.deviceIdentifier.identifier =
         g_value_get_string (&value);
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
     {
-      (*mediafoundation_modulehandler_configuration_iterator).second.second.deviceIdentifier =
+      (*mediafoundation_modulehandler_configuration_iterator).second.second.deviceIdentifier.identifier =
         g_value_get_string (&value);
       break;
     }
@@ -5269,7 +5269,7 @@ togglebutton_record_toggled_cb (GtkToggleButton* toggleButton_in,
     }
   } // end SWITCH
 #else
-  (*modulehandler_configuration_iterator).second.second.deviceIdentifier =
+  (*modulehandler_configuration_iterator).second.second.deviceIdentifier.identifier =
     g_value_get_string (&value);
 #endif
   g_value_unset (&value);

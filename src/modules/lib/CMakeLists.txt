@@ -54,6 +54,9 @@ if (UNIX)
                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../Common/src/timer>)
  target_include_directories (${PROJECT_NAME}_MediaFramework PUBLIC
                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../Common/src/ui>)
+
+ target_include_directories (${PROJECT_NAME}_MediaFramework PUBLIC
+                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../3rd_party/tree>)
 elseif (WIN32)
  if (DEFINED ENV{DXSDK_DIR})
   target_include_directories (${PROJECT_NAME}_MediaFramework PUBLIC
@@ -128,11 +131,13 @@ target_include_directories (${PROJECT_NAME}_MediaFramework PUBLIC
 set (source_files
      stream_lib_common.h
      stream_lib_defines.h
-#     stream_lib_exports.h
      stream_lib_ffmpeg_common.h
      stream_lib_mediatype_converter.cpp
      stream_lib_mediatype_converter.h
      stream_lib_mediatype_converter.inl
+     stream_lib_tagger.cpp
+     stream_lib_tagger.h
+     stream_lib_tagger.inl
      stream_lib_tools.cpp
      stream_lib_tools.h)
 if (UNIX)
@@ -251,10 +256,11 @@ unset (source_files)
 set (source_files
      stream_lib_common.h
      stream_lib_defines.h
-#     stream_lib_exports.h
      stream_lib_ffmpeg_common.h
      stream_lib_mediatype_converter.h
      stream_lib_mediatype_converter.inl
+     stream_lib_tagger.h
+     stream_lib_tagger.inl
      stream_lib_tools.h)
 if (UNIX)
  set (source_files

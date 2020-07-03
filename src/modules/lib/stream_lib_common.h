@@ -29,13 +29,23 @@
 #include <Guiddef.h>
 #endif // ACE_WIN32 || ACE_WIN64
 
+enum Stream_MediaType_Type
+{
+  STREAM_MEDIATYPE_AUDIO = 0,
+  STREAM_MEDIATYPE_VIDEO,
+  ////////////////////////////////////////
+  STREAM_MEDIATYPE_MAX,
+  STREAM_MEDIATYPE_INVALID
+};
+
 enum Stream_MediaFramework_Type
 {
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   STREAM_MEDIAFRAMEWORK_DIRECTSHOW = 0,
   STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION,
 #else
-  STREAM_MEDIAFRAMEWORK_V4L = 0,
+  STREAM_MEDIAFRAMEWORK_ALSA = 0,
+  STREAM_MEDIAFRAMEWORK_V4L,
 #endif // ACE_WIN32 || ACE_WIN64
   ////////////////////////////////////////
   STREAM_MEDIAFRAMEWORK_MAX,

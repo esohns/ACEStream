@@ -376,7 +376,7 @@ struct Test_U_AudioEffect_ModuleHandlerConfiguration
   int                                               audioOutput;
   // *PORTABILITY*: Win32: (usb) device path
   //                UNIX : (ALSA/OSS/...) device file path (e.g. "/dev/snd/pcmC0D0c", "/dev/dsp" (Linux))
-  std::string                                       deviceIdentifier;
+  struct Stream_Device_Identifier                   deviceIdentifier;
   Test_U_AudioEffect_IDispatch_t*                   dispatch;
   unsigned int                                      fps;
   bool                                              mute;
@@ -496,7 +496,7 @@ struct Test_U_AudioEffect_ALSA_ModuleHandlerConfiguration
    , subscriber (NULL)
    , subscribers (NULL)
   {
-    deviceIdentifier =
+    deviceIdentifier.identifier =
         ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_MIC_ALSA_DEFAULT_DEVICE_NAME);
   }
 

@@ -160,6 +160,7 @@ class Stream_Module_Decoder_Tools
 
   static std::string compressionFormatToString (enum Stream_Decoder_CompressionFormatType);
 
+  static std::string audioFormatToString (enum AVSampleFormat);
   inline static std::string pixelFormatToString (enum AVPixelFormat format_in) { std::string result = ((format_in == AV_PIX_FMT_NONE) ? ACE_TEXT_ALWAYS_CHAR ("") : av_get_pix_fmt_name (format_in)); return result; }
 
   static bool convert (struct SwsContext*, // context ? : use sws_getCachedContext()

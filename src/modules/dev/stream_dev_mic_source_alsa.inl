@@ -433,7 +433,7 @@ Stream_Dev_Mic_Source_ALSA_T<ACE_SYNCH_USE,
 //    snd_spcm_init();
         result =
             snd_pcm_open (&deviceHandle_,
-                          inherited::configuration_->deviceIdentifier.c_str (),
+                          inherited::configuration_->deviceIdentifier.identifier.c_str (),
                           SND_PCM_STREAM_CAPTURE,
                           mode);
         if (result < 0)
@@ -441,14 +441,14 @@ Stream_Dev_Mic_Source_ALSA_T<ACE_SYNCH_USE,
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("%s: failed to snd_pcm_open(\"%s\") for capture: \"%s\", aborting\n"),
                       inherited::mod_->name (),
-                      ACE_TEXT (inherited::configuration_->deviceIdentifier.c_str ()),
+                      ACE_TEXT (inherited::configuration_->deviceIdentifier.identifier.c_str ()),
                       ACE_TEXT (snd_strerror (result))));
           goto error;
         } // end IF
         ACE_DEBUG ((LM_DEBUG,
                     ACE_TEXT ("%s: opened ALSA device (capture) \"%s\"...\n"),
                     inherited::mod_->name (),
-                    ACE_TEXT (inherited::configuration_->deviceIdentifier.c_str ())));
+                    ACE_TEXT (inherited::configuration_->deviceIdentifier.identifier.c_str ())));
 
         // *TODO*: remove type inference
         if (!Stream_Device_Tools::setFormat (deviceHandle_,
@@ -470,7 +470,7 @@ Stream_Dev_Mic_Source_ALSA_T<ACE_SYNCH_USE,
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: failed to snd_pcm_dump(\"%s\"): \"%s\", continuing\n"),
                     inherited::mod_->name (),
-                    ACE_TEXT (inherited::configuration_->deviceIdentifier.c_str ()),
+                    ACE_TEXT (inherited::configuration_->deviceIdentifier.identifier.c_str ()),
                     ACE_TEXT (snd_strerror (result))));
       result = snd_pcm_dump_setup (deviceHandle_,
                                    debugOutput_);
@@ -478,7 +478,7 @@ Stream_Dev_Mic_Source_ALSA_T<ACE_SYNCH_USE,
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: failed to snd_pcm_dump_setup(\"%s\"): \"%s\", continuing\n"),
                     inherited::mod_->name (),
-                    ACE_TEXT (inherited::configuration_->deviceIdentifier.c_str ()),
+                    ACE_TEXT (inherited::configuration_->deviceIdentifier.identifier.c_str ()),
                     ACE_TEXT (snd_strerror (result))));
 //      result = snd_pcm_dump_hw_setup (deviceHandle_,
 //                                      debugOutput_);
