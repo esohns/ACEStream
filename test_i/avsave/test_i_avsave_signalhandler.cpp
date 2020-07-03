@@ -99,6 +99,12 @@ Stream_AVSave_SignalHandler::handle (const struct Common_Signal& signal_in)
 
       break;
     }
+    case SIGCHLD:
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#else
+    case SIGIO:
+#endif // ACE_WIN32 || ACE_WIN64
+      break;
     default:
     {
       // *PORTABILITY*: tracing in a signal handler context is not portable

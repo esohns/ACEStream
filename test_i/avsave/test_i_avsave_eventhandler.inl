@@ -117,7 +117,7 @@ Stream_AVSave_EventHandler_T<NotificationType,
   ACE_ASSERT (interface_);
 #endif
 #endif // GUI_SUPPORT
-  ACE_ASSERT (!sessionData_);
+//  ACE_ASSERT (!sessionData_);
 
 #if defined (GUI_SUPPORT)
 #if defined (GTK_USE)

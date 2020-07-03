@@ -172,7 +172,7 @@ Stream_Decoder_LibAVEncoder_T<ACE_SYNCH_USE,
   //av_log_set_callback (Stream_Decoder_LibAVDecoder_LoggingCB);
   // *NOTE*: this level logs all messages
   //av_log_set_level (std::numeric_limits<int>::max ());
-#endif // _DEBUG^^^
+#endif // _DEBUG
   av_register_all ();
 //  avcodec_register_all ();
 
@@ -204,16 +204,16 @@ Stream_Decoder_LibAVEncoder_T<ACE_SYNCH_USE,
     return false;
   } // end IF
 
-  struct Stream_MediaFramework_FFMPEG_VideoMediaType media_type_s;
-  inherited2::getMediaType (configuration_in.outputFormat,
-                            media_type_s);
-  if (unlikely (media_type_s.format == AV_PIX_FMT_NONE))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: invalid output format, aborting\n"),
-                inherited::mod_->name ()));
-    return false;
-  } // end IF
+//  struct Stream_MediaFramework_FFMPEG_VideoMediaType media_type_s;
+//  inherited2::getMediaType (configuration_in.outputFormat,
+//                            media_type_s);
+//  if (unlikely (media_type_s.format == AV_PIX_FMT_NONE))
+//  {
+//    ACE_DEBUG ((LM_ERROR,
+//                ACE_TEXT ("%s: invalid output format, aborting\n"),
+//                inherited::mod_->name ()));
+//    return false;
+//  } // end IF
 
   return inherited::initialize (configuration_in,
                                 allocator_in);
@@ -266,6 +266,8 @@ Stream_Decoder_LibAVEncoder_T<ACE_SYNCH_USE,
     {
       codec_context_p = videoCodecContext_;
       frame_p = videoFrame_;
+      frame_p->nb_samples = message_block_p->length () / videoFrameSize_;
+      frame_p->pts += frame_p->nb_samples;
       stream_p = videoStream_;
       break;
     }
@@ -316,7 +318,7 @@ Stream_Decoder_LibAVEncoder_T<ACE_SYNCH_USE,
                            stream_p->time_base);
       packet_s.stream_index = stream_p->index;
 
-      /* Write the compressed frame to the media file. */
+      /* Write the frame to the media file. */
       result = av_interleaved_write_frame (formatContext_, &packet_s);
       av_packet_unref (&packet_s);
       if (result < 0)
@@ -333,16 +335,10 @@ Stream_Decoder_LibAVEncoder_T<ACE_SYNCH_USE,
     if (!message_block_p)
       break;
   } while (true);
-//  message_inout->release (); message_inout = NULL;
 
   return;
 
 error:
-//  if (message_inout)
-//  {
-//    message_inout->release (); message_inout = NULL;
-//  } // end IF
-
   this->notify (STREAM_SESSION_MESSAGE_ABORT);
 }
 
@@ -383,8 +379,6 @@ Stream_Decoder_LibAVEncoder_T<ACE_SYNCH_USE,
         const_cast<typename SessionDataContainerType::DATA_T&> (session_data_container_r.getR ());
 
       int result = -1;
-      struct AVCodec* audio_codec_p = NULL;
-      struct AVCodec* video_codec_p = NULL;
 //      struct Stream_MediaFramework_FFMPEG_AudioMediaType media_type_3;
       struct Stream_MediaFramework_FFMPEG_VideoMediaType media_type_4;
       AVOutputFormat* output_format_p = NULL;
@@ -397,7 +391,7 @@ Stream_Decoder_LibAVEncoder_T<ACE_SYNCH_USE,
       ACE_ASSERT (output_format_p);
       output_format_p->audio_codec = AV_CODEC_ID_PCM_S16LE;
       output_format_p->video_codec = AV_CODEC_ID_RAWVIDEO;
-      output_format_p->codec_tag = 0;
+//      output_format_p->codec_tag = 0;
 
       result =
           avformat_alloc_output_context2 (&formatContext_,
@@ -439,6 +433,8 @@ continue_:
           MediaType media_type_2 = session_data_r.formats.back ();
           inherited2::getMediaType (media_type_2,
                                     media_type_4);
+//          videoFrame_->format = media_type_4.format;
+          videoFrame_->format = AV_PIX_FMT_RGBA;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
           videoFrame_->height =
               static_cast<unsigned int> (std::abs (media_type_4.resolution.cy));
@@ -461,8 +457,8 @@ continue_:
       } // end SWITCH
 
 audio:
-      audio_codec_p = avcodec_find_encoder (formatContext_->oformat->audio_codec);
-      if (unlikely (!audio_codec_p))
+      formatContext_->audio_codec = avcodec_find_encoder (formatContext_->oformat->audio_codec);
+      if (unlikely (!formatContext_->audio_codec))
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: avcodec_find_encoder(%d) failed: \"%m\", aborting\n"),
@@ -470,6 +466,7 @@ audio:
                     formatContext_->oformat->audio_codec));
         goto error;
       } // end IF
+      formatContext_->audio_codec_id = formatContext_->oformat->audio_codec;
 
       audioStream_ = avformat_new_stream (formatContext_, NULL);
       if (!audioStream_)
@@ -481,7 +478,7 @@ audio:
       } // end IF
       audioStream_->id = formatContext_->nb_streams - 1;
 
-      audioCodecContext_ = avcodec_alloc_context3 (audio_codec_p);
+      audioCodecContext_ = avcodec_alloc_context3 (formatContext_->audio_codec);
       if (unlikely (!audioCodecContext_))
       {
         ACE_DEBUG ((LM_ERROR,
@@ -490,10 +487,12 @@ audio:
         goto error;
       } // end IF
       ACE_ASSERT (audioCodecContext_);
+      audioStream_->codec = audioCodecContext_;
 
-      audioFrameSize_ = audioCodecContext_->frame_size;
+      audioFrameSize_ = 4;
+//      audioFrameSize_ = audioCodecContext_->frame_size;
       audioCodecContext_->sample_fmt = AV_SAMPLE_FMT_S16;
-      audioCodecContext_->bit_rate   = 64000;
+      audioCodecContext_->bit_rate   = 128000;
       audioCodecContext_->sample_rate = 44100;
 //      if ((*codec)->supported_samplerates) {
 //          c->sample_rate = (*codec)->supported_samplerates[0];
@@ -515,9 +514,14 @@ audio:
 //      c->channels        = av_get_channel_layout_nb_channels(c->channel_layout);
       audioStream_->time_base =
           (AVRational){ 1, audioCodecContext_->sample_rate };
+      audioCodecContext_->time_base = audioStream_->time_base;
+
+      audioFrame_->format = audioCodecContext_->sample_fmt;
+      audioFrame_->channel_layout = audioCodecContext_->channel_layout;
+      audioFrame_->sample_rate = audioCodecContext_->sample_rate;
 
       result = avcodec_open2 (audioCodecContext_,
-                              audioCodecContext_->codec,
+                              formatContext_->audio_codec,
                               NULL);
       if (unlikely (result < 0))
       {
@@ -536,8 +540,8 @@ audio:
       goto continue_2;
 
 video:
-      video_codec_p = avcodec_find_encoder (formatContext_->oformat->video_codec);
-      if (unlikely (!video_codec_p))
+      formatContext_->video_codec = avcodec_find_encoder (formatContext_->oformat->video_codec);
+      if (unlikely (!formatContext_->video_codec))
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: avcodec_find_encoder(%d) failed: \"%m\", aborting\n"),
@@ -545,6 +549,7 @@ video:
                     formatContext_->oformat->video_codec));
         goto error;
       } // end IF
+      formatContext_->video_codec_id = formatContext_->oformat->video_codec;
 
       videoStream_ = avformat_new_stream (formatContext_, NULL);
       if (!videoStream_)
@@ -556,7 +561,7 @@ video:
       } // end IF
       videoStream_->id = formatContext_->nb_streams - 1;
 
-      videoCodecContext_ = avcodec_alloc_context3 (video_codec_p);
+      videoCodecContext_ = avcodec_alloc_context3 (formatContext_->video_codec);
       if (unlikely (!videoCodecContext_))
       {
         ACE_DEBUG ((LM_ERROR,
@@ -565,6 +570,7 @@ video:
         goto error;
       } // end IF
       ACE_ASSERT (videoCodecContext_);
+      videoStream_->codec = videoCodecContext_;
 
       videoCodecContext_->codec_id = formatContext_->oformat->video_codec;
 
@@ -585,7 +591,7 @@ video:
        * of which frame timestamps are represented. For fixed-fps content,
        * timebase should be 1/framerate and timestamp increments should be
        * identical to 1. */
-      videoCodecContext_->time_base       = videoStream_->time_base;
+      videoCodecContext_->time_base          = videoStream_->time_base;
 
 //      c->gop_size      = 12; /* emit one intra frame every twelve frames at most */
 //      if (c->codec_id == AV_CODEC_ID_MPEG2VIDEO) {
@@ -600,7 +606,7 @@ video:
 //      }
 
       result = avcodec_open2 (videoCodecContext_,
-                              videoCodecContext_->codec,
+                              formatContext_->video_codec,
                               NULL);
       if (unlikely (result < 0))
       {
@@ -629,7 +635,6 @@ error:
       break;
 
 continue_2:
-
       if (!headerWritten_ && (formatContext_->nb_streams == 2))
       {
         result = avformat_write_header (formatContext_, NULL);
@@ -674,14 +679,14 @@ continue_2:
       avformat_free_context (formatContext_); formatContext_ = NULL;
 
 continue_3:
-      if (audioCodecContext_)
-      {
-        avcodec_free_context (&audioCodecContext_); ACE_ASSERT (!audioCodecContext_);
-      } // end IF
-      if (videoCodecContext_)
-      {
-        avcodec_free_context (&videoCodecContext_); ACE_ASSERT (!videoCodecContext_);
-      } // end IF
+//      if (audioCodecContext_)
+//      {
+//        avcodec_free_context (&audioCodecContext_); ACE_ASSERT (!audioCodecContext_);
+//      } // end IF
+//      if (videoCodecContext_)
+//      {
+//        avcodec_free_context (&videoCodecContext_); ACE_ASSERT (!videoCodecContext_);
+//      } // end IF
 
       break;
     }

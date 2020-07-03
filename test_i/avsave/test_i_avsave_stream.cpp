@@ -1272,7 +1272,6 @@ Stream_AVSave_V4L_Stream::load (Stream_ILayout* layout_in,
 
   layout_in->append (&source_, NULL, 0);
 //  layout_inout.append (&statisticReport_, NULL, 0);
-  layout_in->append (&tagger_, NULL, 0);
 //  if (display_b || save_to_file_b)
 //  {
     layout_in->append (&decoder_, NULL, 0); // output is uncompressed RGB
@@ -1312,6 +1311,7 @@ Stream_AVSave_V4L_Stream::load (Stream_ILayout* layout_in,
     if (save_to_file_b)
     { ACE_ASSERT (inherited::configuration_->configuration->module_2);
       layout_in->append (&converter_2, NULL, 0); // output is uncompressed 32-bit RGB
+      layout_in->append (&tagger_, NULL, 0);
       layout_in->append (inherited::configuration_->configuration->module_2, NULL, 0); // output is AVI
 //      layout_in->append (&fileWriter_, branch_p, index_i);
     } // end IF

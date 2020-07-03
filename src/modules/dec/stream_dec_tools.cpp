@@ -5121,6 +5121,7 @@ Stream_Module_Decoder_Tools::audioFormatToString (enum AVSampleFormat format_in)
     return result;
 
   char buffer_a[BUFSIZ];
+  ACE_OS::memset (buffer_a, 0, sizeof (char[BUFSIZ]));
   av_get_sample_fmt_string (buffer_a, sizeof (char[BUFSIZ]), format_in);
   result = buffer_a;
 

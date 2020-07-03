@@ -2011,8 +2011,10 @@ stream_processing_function (void* arg_in)
 
   ACE_ASSERT (stream_p && stream_2);
   stream_p->start ();
+  ACE_ASSERT (stream_p->isRunning ());
+  ACE_OS::sleep (ACE_Time_Value (1, 0));
   stream_2->start ();
-  //ACE_ASSERT (!stream_p->isRunning ());
+  ACE_ASSERT (stream_2->isRunning ());
   stream_p->wait (true, false, false);
   stream_2->wait (true, false, false);
 
@@ -3509,7 +3511,7 @@ togglebutton_record_toggled_cb (GtkToggleButton* toggleButton_in,
   // sanity check(s)
   ACE_ASSERT (ui_cb_data_base_p);
 
-  Stream_IStreamControlBase* stream_p = NULL;
+  Stream_IStreamControlBase* stream_p = NULL, *stream_2 = NULL;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   struct Stream_AVSave_DirectShow_UI_CBData* directshow_cb_data_p = NULL;
   Stream_AVSave_DirectShow_StreamConfiguration_t::ITERATOR_T directshow_stream_iterator;
@@ -3551,7 +3553,8 @@ togglebutton_record_toggled_cb (GtkToggleButton* toggleButton_in,
 #else
   struct Stream_AVSave_V4L_UI_CBData* ui_cb_data_p =
     static_cast<struct Stream_AVSave_V4L_UI_CBData*> (ui_cb_data_base_p);
-  stream_p = ui_cb_data_p->videoStream;
+  stream_p = ui_cb_data_p->audioStream;
+  stream_2 = ui_cb_data_p->videoStream;
   ACE_ASSERT (ui_cb_data_p->configuration);
   Stream_AVSave_V4L_StreamConfiguration_t::ITERATOR_T iterator_2 =
     ui_cb_data_p->configuration->videoStreamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
@@ -3567,6 +3570,9 @@ togglebutton_record_toggled_cb (GtkToggleButton* toggleButton_in,
 
     // stop stream
     stream_p->stop (false, // wait ?
+                    true); // locked access ?
+    ACE_OS::sleep (ACE_Time_Value (1, 0));
+    stream_2->stop (true, // wait ?
                     true); // locked access ?
 
     return;
