@@ -1846,7 +1846,7 @@ Stream_Base_T<ACE_SYNCH_USE,
                   task_p->msg_queue_->message_bytes (), message_count));
 #endif // _DEBUG
 
-      { ACE_GUARD (ACE_Reverse_Lock<ACE_SYNCH_RECURSIVE_MUTEX>, aGuard2, reverse_lock);
+      { //ACE_GUARD (ACE_Reverse_Lock<ACE_SYNCH_RECURSIVE_MUTEX>, aGuard2, reverse_lock);
         result = ACE_OS::sleep (one_second);
       } // end lock scope
       if (unlikely (result == -1))
@@ -1858,7 +1858,7 @@ Stream_Base_T<ACE_SYNCH_USE,
 
     if (waitForThreads_in)
     {
-      { ACE_GUARD (ACE_Reverse_Lock<ACE_SYNCH_RECURSIVE_MUTEX>, aGuard2, reverse_lock);
+      { //ACE_GUARD (ACE_Reverse_Lock<ACE_SYNCH_RECURSIVE_MUTEX>, aGuard2, reverse_lock);
         result = task_p->wait ();
       } // end lock scope
       if (unlikely (result == -1))
@@ -1902,7 +1902,7 @@ Stream_Base_T<ACE_SYNCH_USE,
                   task_p->msg_queue_->message_bytes (), message_count));
 #endif // _DEBUG
 
-      { ACE_GUARD (ACE_Reverse_Lock<ACE_SYNCH_RECURSIVE_MUTEX>, aGuard2, reverse_lock);
+      { //ACE_GUARD (ACE_Reverse_Lock<ACE_SYNCH_RECURSIVE_MUTEX>, aGuard2, reverse_lock);
         result = ACE_OS::sleep (one_second);
       } // end lock scope
       if (unlikely (result == -1))
@@ -1930,7 +1930,7 @@ Stream_Base_T<ACE_SYNCH_USE,
 
     if (waitForThreads_in)
     {
-      { ACE_GUARD (ACE_Reverse_Lock<ACE_SYNCH_RECURSIVE_MUTEX>, aGuard2, reverse_lock);
+      { //ACE_GUARD (ACE_Reverse_Lock<ACE_SYNCH_RECURSIVE_MUTEX>, aGuard2, reverse_lock);
         result = task_p->wait ();
       } // end lock scope
       if (unlikely (result == -1))

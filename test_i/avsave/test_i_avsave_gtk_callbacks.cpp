@@ -2011,7 +2011,9 @@ stream_processing_function (void* arg_in)
 
   ACE_ASSERT (stream_p && stream_2);
   stream_p->start ();
-  ACE_ASSERT (stream_p->isRunning ());
+  // *NOTE*: make sure the video stream starts first so that it becomes stream 0
+  //         in the AVI file (some players don't play the audio otherwise; might
+  //         be a standards issue)
   ACE_OS::sleep (ACE_Time_Value (1, 0));
   stream_2->start ();
   ACE_ASSERT (stream_2->isRunning ());
