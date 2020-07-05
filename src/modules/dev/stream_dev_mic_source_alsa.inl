@@ -497,6 +497,7 @@ Stream_Dev_Mic_Source_ALSA_T<ACE_SYNCH_USE,
 #endif
 
       asynchCBData_.allocator = inherited::configuration_->messageAllocator;
+      ACE_ASSERT (asynchCBData_.allocator);
       asynchCBData_.statistic = &session_data_r.statistic;
       //  asynchCBData_.areas = areas;
       asynchCBData_.bufferSize =

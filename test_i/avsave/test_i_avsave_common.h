@@ -447,14 +447,14 @@ struct Stream_AVSave_ModuleHandlerConfiguration
   Stream_AVSave_ModuleHandlerConfiguration ()
    : Test_I_ModuleHandlerConfiguration ()
    , deviceIdentifier ()
-//   , display ()
-//   , fullScreen (false)
-//#if defined (ACE_WIN32) || defined (ACE_WIN64)
-//   , window (NULL)
-//#else
-//   , window (None)
-//   , X11Display (NULL)
-//#endif // ACE_WIN32 || ACE_WIN64
+   , display ()
+   , fullScreen (false)
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+   , window (NULL)
+#else
+   , window (None)
+   , X11Display (NULL)
+#endif // ACE_WIN32 || ACE_WIN64
    , targetFileName ()
   {
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -466,14 +466,14 @@ struct Stream_AVSave_ModuleHandlerConfiguration
   }
 
   struct Stream_Device_Identifier deviceIdentifier; // source module
-  //  struct Common_UI_DisplayDevice  display; // display module
-//  bool                            fullScreen;
-//#if defined (ACE_WIN32) || defined (ACE_WIN64)
-//  HWND                            window;
-//#else
-//  Window                          window;
-//  Display*                        X11Display;
-//#endif // ACE_WIN32 || ACE_WIN64
+  struct Common_UI_DisplayDevice  display; // display module
+  bool                            fullScreen;
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  HWND                            window;
+#else
+  Window                          window;
+  Display*                        X11Display;
+#endif // ACE_WIN32 || ACE_WIN64
   std::string                     targetFileName;
 };
 //extern const char stream_name_string_[];

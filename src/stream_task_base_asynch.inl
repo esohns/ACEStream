@@ -213,14 +213,17 @@ Stream_TaskBaseAsynch_T<ACE_SYNCH_USE,
     return -1;
   } // end IF
 
-  // step2: spawn worker thread(s)
-  result = inherited::open (NULL);
-  if (unlikely (result == -1))
+  // step2: spawn worker thread(s) ?
+  if (!inherited::thr_count_)
   {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: failed to Common_TaskBase_T::open(): \"%m\", aborting\n"),
-                inherited::mod_->name ()));
-    goto error;
+    result = inherited::open (NULL);
+    if (unlikely (result == -1))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("%s: failed to Common_TaskBase_T::open(): \"%m\", aborting\n"),
+                  inherited::mod_->name ()));
+      goto error;
+    } // end IF
   } // end IF
   //for (unsigned int i = 0;
   //     i < inherited::threadIds_.size ();
@@ -367,9 +370,9 @@ Stream_TaskBaseAsynch_T<ACE_SYNCH_USE,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_TaskBaseAsynch_T::module_closed"));
 
-  if (inherited::thr_count_ > 0)
-    inherited::stop (true,   // wait ?
-                     false); // N/A
+//  if (inherited::thr_count_ > 0)
+//    inherited::stop (true,   // wait ?
+//                     false); // N/A
 
   return 0;
 }

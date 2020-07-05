@@ -36,7 +36,7 @@ extern "C"
 
 #include "common_ui_common.h"
 
-#include "stream_task_base_synch.h"
+#include "stream_task_base_asynch.h"
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
@@ -66,17 +66,16 @@ template <ACE_SYNCH_DECL,
           ////////////////////////////////
           typename MediaType>
 class Stream_Decoder_LibAVEncoder_T
- : public Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
-                                 TimePolicyType,
-                                 Common_ILock_T<ACE_SYNCH_USE>,
-                                 ConfigurationType,
-                                 ControlMessageType,
-                                 DataMessageType,
-                                 SessionMessageType,
-                                 Stream_SessionId_t,
-                                 enum Stream_ControlType,
-                                 enum Stream_SessionMessageType,
-                                 struct Stream_UserData>
+ : public Stream_TaskBaseAsynch_T<ACE_SYNCH_USE,
+                                  TimePolicyType,
+                                  ConfigurationType,
+                                  ControlMessageType,
+                                  DataMessageType,
+                                  SessionMessageType,
+                                  Stream_SessionId_t,
+                                  enum Stream_ControlType,
+                                  enum Stream_SessionMessageType,
+                                  struct Stream_UserData>
  , public Stream_MediaFramework_MediaTypeConverter_T<MediaType
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
                                                     >
@@ -84,17 +83,16 @@ class Stream_Decoder_LibAVEncoder_T
                                                      ,typename SessionDataContainerType::DATA_T>
 #endif // ACE_WIN32 || ACE_WIN64
 {
-  typedef Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
-                                 TimePolicyType,
-                                 Common_ILock_T<ACE_SYNCH_USE>,
-                                 ConfigurationType,
-                                 ControlMessageType,
-                                 DataMessageType,
-                                 SessionMessageType,
-                                 Stream_SessionId_t,
-                                 enum Stream_ControlType,
-                                 enum Stream_SessionMessageType,
-                                 struct Stream_UserData> inherited;
+  typedef Stream_TaskBaseAsynch_T<ACE_SYNCH_USE,
+                                  TimePolicyType,
+                                  ConfigurationType,
+                                  ControlMessageType,
+                                  DataMessageType,
+                                  SessionMessageType,
+                                  Stream_SessionId_t,
+                                  enum Stream_ControlType,
+                                  enum Stream_SessionMessageType,
+                                  struct Stream_UserData> inherited;
   typedef Stream_MediaFramework_MediaTypeConverter_T<MediaType
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
                                                     > inherited2;

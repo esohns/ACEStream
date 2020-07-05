@@ -566,6 +566,9 @@ Stream_Module_Vis_X11_Window_T<ACE_SYNCH_USE,
   } // end IF
   else
   {
+    struct Stream_MediaFramework_FFMPEG_VideoMediaType media_type_s;
+    inherited2::getMediaType (configuration_in.outputFormat,
+                              media_type_s);
     int x =
         (configuration_in.fullScreen ? configuration_in.display.clippingArea.x
                                      : 0);
@@ -574,10 +577,10 @@ Stream_Module_Vis_X11_Window_T<ACE_SYNCH_USE,
                                      : 0);
     unsigned int width_i =
         (configuration_in.fullScreen ? configuration_in.display.clippingArea.width
-                                     : configuration_in.outputFormat.resolution.width);
+                                     : media_type_s.resolution.width);
     unsigned int height_i =
         (configuration_in.fullScreen ? configuration_in.display.clippingArea.height
-                                     : configuration_in.outputFormat.resolution.height);
+                                     : media_type_s.resolution.height);
     unsigned long valuemask_i =
         (CWBackPixel       |
          CWBorderPixel     |

@@ -106,13 +106,13 @@ Stream_Decoder_LibAVEncoder_T<ACE_SYNCH_USE,
 
   int result = -1;
 
-  if (audioCodecContext_)
-    avcodec_free_context (&audioCodecContext_);
-  if (videoCodecContext_)
-    avcodec_free_context (&videoCodecContext_);
-
   if (formatContext_)
     avformat_free_context (formatContext_);
+
+//  if (audioCodecContext_)
+//    avcodec_free_context (&audioCodecContext_);
+//  if (videoCodecContext_)
+//    avcodec_free_context (&videoCodecContext_);
 
   if (audioFrame_)
     av_frame_free (&audioFrame_);
@@ -176,16 +176,6 @@ Stream_Decoder_LibAVEncoder_T<ACE_SYNCH_USE,
   av_register_all ();
 //  avcodec_register_all ();
 
-  // *TODO*: remove type inferences
-//  codecId_ = configuration_in.codecId;
-//  if (unlikely (codecId_ == AV_CODEC_ID_NONE))
-//  {
-//    ACE_DEBUG ((LM_ERROR,
-//                ACE_TEXT ("%s: invalid codec, aborting\n"),
-//                inherited::mod_->name ()));
-//    return false;
-//  } // end IF
-
   audioFrame_ = av_frame_alloc ();
   if (unlikely (!audioFrame_))
   {
@@ -194,6 +184,7 @@ Stream_Decoder_LibAVEncoder_T<ACE_SYNCH_USE,
                 inherited::mod_->name ()));
     return false;
   } // end IF
+  audioFrame_->pts = 0;
 
   videoFrame_ = av_frame_alloc ();
   if (unlikely (!videoFrame_))
@@ -203,17 +194,7 @@ Stream_Decoder_LibAVEncoder_T<ACE_SYNCH_USE,
                 inherited::mod_->name ()));
     return false;
   } // end IF
-
-//  struct Stream_MediaFramework_FFMPEG_VideoMediaType media_type_s;
-//  inherited2::getMediaType (configuration_in.outputFormat,
-//                            media_type_s);
-//  if (unlikely (media_type_s.format == AV_PIX_FMT_NONE))
-//  {
-//    ACE_DEBUG ((LM_ERROR,
-//                ACE_TEXT ("%s: invalid output format, aborting\n"),
-//                inherited::mod_->name ()));
-//    return false;
-//  } // end IF
+  videoFrame_->pts = 0;
 
   return inherited::initialize (configuration_in,
                                 allocator_in);
@@ -274,7 +255,7 @@ Stream_Decoder_LibAVEncoder_T<ACE_SYNCH_USE,
     default:
     {
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("%s: invalid/unknown message media type (was: %d), aborting\n"),
+                  ACE_TEXT ("%s: invalid/unknown message media type (was: %d), continuing\n"),
                   inherited::mod_->name (),
                   message_inout->getMediaType ()));
       goto error;
@@ -319,6 +300,7 @@ Stream_Decoder_LibAVEncoder_T<ACE_SYNCH_USE,
       packet_s.stream_index = stream_p->index;
 
       /* Write the frame to the media file. */
+//      result = av_write_frame (formatContext_, &packet_s);
       result = av_interleaved_write_frame (formatContext_, &packet_s);
       av_packet_unref (&packet_s);
       if (result < 0)
@@ -339,7 +321,8 @@ Stream_Decoder_LibAVEncoder_T<ACE_SYNCH_USE,
   return;
 
 error:
-  this->notify (STREAM_SESSION_MESSAGE_ABORT);
+//  this->notify (STREAM_SESSION_MESSAGE_ABORT);
+  ;
 }
 
 template <ACE_SYNCH_DECL,
@@ -430,11 +413,11 @@ continue_:
           // sanity check(s)
           // *TODO*: remove type inference
           ACE_ASSERT (!session_data_r.formats.empty ());
-          MediaType media_type_2 = session_data_r.formats.back ();
+          MediaType media_type_2 = session_data_r.formats.front ();
           inherited2::getMediaType (media_type_2,
                                     media_type_4);
-//          videoFrame_->format = media_type_4.format;
-          videoFrame_->format = AV_PIX_FMT_RGBA;
+          videoFrame_->format = media_type_4.format;
+//          videoFrame_->format = AV_PIX_FMT_RGB24;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
           videoFrame_->height =
               static_cast<unsigned int> (std::abs (media_type_4.resolution.cy));
@@ -487,7 +470,6 @@ audio:
         goto error;
       } // end IF
       ACE_ASSERT (audioCodecContext_);
-      audioStream_->codec = audioCodecContext_;
 
       audioFrameSize_ = 4;
 //      audioFrameSize_ = audioCodecContext_->frame_size;
@@ -521,7 +503,7 @@ audio:
       audioFrame_->sample_rate = audioCodecContext_->sample_rate;
 
       result = avcodec_open2 (audioCodecContext_,
-                              formatContext_->audio_codec,
+                              audioCodecContext_->codec,
                               NULL);
       if (unlikely (result < 0))
       {
@@ -536,6 +518,10 @@ audio:
                   inherited::mod_->name (),
                   ACE_TEXT (audioCodecContext_->codec->long_name),
                   ACE_TEXT (Stream_Module_Decoder_Tools::audioFormatToString (audioCodecContext_->sample_fmt).c_str ())));
+
+//      audioStream_->codec = audioCodecContext_;
+      avcodec_parameters_from_context (audioStream_->codecpar,
+                                       audioCodecContext_);
 
       goto continue_2;
 
@@ -570,11 +556,11 @@ video:
         goto error;
       } // end IF
       ACE_ASSERT (videoCodecContext_);
-      videoStream_->codec = videoCodecContext_;
 
       videoCodecContext_->codec_id = formatContext_->oformat->video_codec;
 
-      videoCodecContext_->pix_fmt = AV_PIX_FMT_RGBA;
+      videoCodecContext_->pix_fmt =
+          static_cast<AVPixelFormat> (videoFrame_->format);
       videoFrameSize_ =
         av_image_get_buffer_size (videoCodecContext_->pix_fmt,
                                   videoFrame_->width,
@@ -582,8 +568,8 @@ video:
                                   1); // *TODO*: linesize alignment
 
       videoStream_->time_base = (AVRational){ 1, media_type_4.frameRate.num };
-      videoCodecContext_->bit_rate =
-          videoFrameSize_ * videoStream_->time_base.den * 8;
+//      videoCodecContext_->bit_rate =
+//          videoFrameSize_ * videoStream_->time_base.den * 8;
       /* Resolution must be a multiple of two. */
       videoCodecContext_->width    = videoFrame_->width;
       videoCodecContext_->height   = videoFrame_->height;
@@ -606,7 +592,7 @@ video:
 //      }
 
       result = avcodec_open2 (videoCodecContext_,
-                              formatContext_->video_codec,
+                              videoCodecContext_->codec,
                               NULL);
       if (unlikely (result < 0))
       {
@@ -621,6 +607,15 @@ video:
                   inherited::mod_->name (),
                   ACE_TEXT (videoCodecContext_->codec->long_name),
                   ACE_TEXT (Stream_Module_Decoder_Tools::pixelFormatToString (videoCodecContext_->pix_fmt).c_str ())));
+
+//      videoStream_->codec = videoCodecContext_;
+      avcodec_parameters_from_context (videoStream_->codecpar,
+                                       videoCodecContext_);
+
+      result = av_image_fill_linesizes (videoFrame_->linesize,
+                                        static_cast<AVPixelFormat> (videoFrame_->format),
+                                        static_cast<int> (videoFrame_->width));
+      ACE_ASSERT (result >= 0);
 
       goto continue_2;
 

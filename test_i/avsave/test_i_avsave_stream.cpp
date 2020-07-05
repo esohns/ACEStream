@@ -1204,8 +1204,6 @@ Stream_AVSave_V4L_Stream::Stream_AVSave_V4L_Stream ()
             ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_CAM_SOURCE_V4L_DEFAULT_NAME_STRING))
 // , statisticReport_ (this,
 //                     ACE_TEXT_ALWAYS_CHAR (MODULE_STAT_REPORT_DEFAULT_NAME_STRING))
- , tagger_ (this,
-            ACE_TEXT_ALWAYS_CHAR (STREAM_LIB_TAGGER_DEFAULT_NAME_STRING))
  , decoder_ (this,
              ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_LIBAV_DECODER_DEFAULT_NAME_STRING))
  , converter_ (this,
@@ -1221,11 +1219,13 @@ Stream_AVSave_V4L_Stream::Stream_AVSave_V4L_Stream ()
 // , display_2_ (this,
 //               ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_GTK_WINDOW_DEFAULT_NAME_STRING))
 #endif // GTK_USE
-// , display_2_ (this,
-//               ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_X11_WINDOW_DEFAULT_NAME_STRING))
 #endif // GUI_SUPPORT
  , converter_2 (this,
                 ACE_TEXT_ALWAYS_CHAR ("LibAV_Converter_2"))
+ , tagger_ (this,
+            ACE_TEXT_ALWAYS_CHAR (STREAM_LIB_TAGGER_DEFAULT_NAME_STRING))
+ , display_ (this,
+             ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_X11_WINDOW_DEFAULT_NAME_STRING))
 // , encoder_ (this,
 //             ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_ENCODER_AVI_DEFAULT_NAME_STRING))
 // , fileWriter_ (this,
@@ -1308,13 +1308,13 @@ Stream_AVSave_V4L_Stream::load (Stream_ILayout* layout_in,
 //#endif // GUI_SUPPORT
 //      ++index_i;
 //    } // end IF
-    if (save_to_file_b)
-    { ACE_ASSERT (inherited::configuration_->configuration->module_2);
-      layout_in->append (&converter_2, NULL, 0); // output is uncompressed 32-bit RGB
+//    if (save_to_file_b)
+//    { ACE_ASSERT (inherited::configuration_->configuration->module_2);
+      layout_in->append (&converter_2, NULL, 0);
       layout_in->append (&tagger_, NULL, 0);
+//      layout_in->append (&display_, NULL, 0);
       layout_in->append (inherited::configuration_->configuration->module_2, NULL, 0); // output is AVI
-//      layout_in->append (&fileWriter_, branch_p, index_i);
-    } // end IF
+//    } // end IF
 //  } // end IF
 
   return true;

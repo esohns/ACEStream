@@ -1079,6 +1079,15 @@ do_work (const std::string& captureinterfaceIdentifier_in,
   //if (bufferSize_in)
   //  allocator_configuration.defaultBufferSize = bufferSize_in;
 
+  Stream_AllocatorHeap_T<ACE_MT_SYNCH,
+                         struct Common_AllocatorConfiguration> heap_allocator;
+  if (!heap_allocator.initialize (allocator_configuration))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to initialize heap allocator, returning\n")));
+    return;
+  } // end IF
+
   struct Stream_ModuleConfiguration module_configuration;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   struct Stream_AVSave_DirectShow_ModuleHandlerConfiguration directshow_modulehandler_configuration;
@@ -1190,12 +1199,20 @@ do_work (const std::string& captureinterfaceIdentifier_in,
     }
   } // end SWITCH
 #else
+  Stream_AVSave_ALSA_MessageAllocator_t audio_message_allocator (TEST_I_MAX_MESSAGES, // maximum #buffers
+                                                                 &heap_allocator,     // heap allocator handle
+                                                                 true);               // block ?
+  Stream_AVSave_V4L_MessageAllocator_t video_message_allocator (TEST_I_MAX_MESSAGES, // maximum #buffers
+                                                                &heap_allocator,     // heap allocator handle
+                                                                true);               // block ?
+
 //  Stream_AVSave_V4L_StreamConfiguration_t::ITERATOR_T v4l_stream_iterator;
 //  Stream_AVSave_V4L_StreamConfiguration_t::ITERATOR_T v4l_stream_iterator_2;
   audio_modulehandler_configuration.allocatorConfiguration = &allocator_configuration;
 //  audio_modulehandler_configuration.outputFormat.
 //  audio_modulehandler_configuration.deviceIdentifier.identifier =
 //    STREAM_DEV_MIC_ALSA_DEFAULT_DEVICE_NAME;
+  audio_modulehandler_configuration.messageAllocator = &audio_message_allocator;
 
   video_modulehandler_configuration.allocatorConfiguration = &allocator_configuration;
   video_modulehandler_configuration.buffers =
@@ -1211,7 +1228,7 @@ do_work (const std::string& captureinterfaceIdentifier_in,
 //  modulehandler_configuration.method = STREAM_DEV_CAM_V4L_DEFAULT_IO_METHOD;
   video_modulehandler_configuration.outputFormat =
       Stream_Device_Tools::defaultCaptureFormat (captureinterfaceIdentifier_in);
-  video_modulehandler_configuration.outputFormat.format.pixelformat = V4L2_PIX_FMT_RGB32;
+  video_modulehandler_configuration.outputFormat.format.pixelformat = V4L2_PIX_FMT_BGR24;
 //  if (statisticReportingInterval_in)
 //  {
 //    video_modulehandler_configuration.statisticCollectionInterval.set (0,
@@ -1224,15 +1241,6 @@ do_work (const std::string& captureinterfaceIdentifier_in,
 #endif // GUI_SUPPORT
   video_modulehandler_configuration.targetFileName = targetFilename_in;
 #endif // ACE_WIN32 || ACE_WIN64
-
-  Stream_AllocatorHeap_T<ACE_MT_SYNCH,
-                         struct Common_AllocatorConfiguration> heap_allocator;
-  if (!heap_allocator.initialize (allocator_configuration))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to initialize heap allocator, returning\n")));
-    return;
-  } // end IF
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   Stream_AVSave_DirectShow_MessageAllocator_t directshow_message_allocator (TEST_I_MAX_MESSAGES, // maximum #buffers
@@ -1322,13 +1330,6 @@ do_work (const std::string& captureinterfaceIdentifier_in,
     }
   } // end SWITCH
 #else
-  Stream_AVSave_ALSA_MessageAllocator_t audio_message_allocator (TEST_I_MAX_MESSAGES, // maximum #buffers
-                                                                 &heap_allocator,     // heap allocator handle
-                                                                 true);               // block ?
-  Stream_AVSave_V4L_MessageAllocator_t video_message_allocator (TEST_I_MAX_MESSAGES, // maximum #buffers
-                                                                &heap_allocator,     // heap allocator handle
-                                                                true);               // block ?
-
   Stream_AVSave_ALSA_Stream audio_stream;
   Stream_AVSave_V4L_Stream video_stream;
   Stream_AVSave_MessageHandler_Module message_handler (&video_stream,
