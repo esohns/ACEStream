@@ -68,11 +68,11 @@ Test_U_AudioEffect_DirectShow_Message::~Test_U_AudioEffect_DirectShow_Message ()
   STREAM_TRACE (ACE_TEXT ("Test_U_AudioEffect_DirectShow_Message::~Test_U_AudioEffect_DirectShow_Message"));
 
   // release media sample ?
-  if (inherited::data_.sample)
-  {
-    inherited::data_.sample->Release ();
-    inherited::data_.sample = NULL;
-  } // end IF
+  //if (inherited::data_.sample)
+  //{
+  //  inherited::data_.sample->Release ();
+  //  inherited::data_.sample = NULL;
+  //} // end IF
 }
 
 ACE_Message_Block*
@@ -131,16 +131,28 @@ Test_U_AudioEffect_DirectShow_Message::duplicate (void) const
   return message_p;
 }
 
-//const Stream_HeaderType_t&
-//Test_U_AudioEffect_DirectShow_Message::get () const
-//{
-//  STREAM_TRACE (ACE_TEXT ("Test_U_AudioEffect_DirectShow_Message::get"));
-//
-//  ACE_ASSERT (false);
-//  ACE_NOTSUP_RETURN (-1);
-//
-//  ACE_NOTREACHED (return -1;)
-//}
+ACE_Message_Block*
+Test_U_AudioEffect_DirectShow_Message::release (void)
+{
+  STREAM_TRACE (ACE_TEXT ("Test_U_AudioEffect_DirectShow_Message::release"));
+
+  // release any continuations first
+  if (inherited::cont_)
+  {
+    inherited::cont_->release (); inherited::cont_ = NULL;
+  } // end IF
+
+  if ((inherited::data_.index == -1) || // not a device data buffer (-clone)
+      !inherited::data_.task)           // clean up (device data)
+    return inherited::release ();
+
+  // sanity check(s)
+  ACE_ASSERT (inherited::data_block_);
+
+  inherited::data_.task->set (inherited::data_.index);
+
+  return NULL;
+}
 
 std::string
 Test_U_AudioEffect_DirectShow_Message::CommandTypeToString (Stream_CommandType_t command_in)

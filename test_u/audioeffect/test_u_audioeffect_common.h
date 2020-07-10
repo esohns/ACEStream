@@ -156,12 +156,16 @@ class Test_U_AudioEffect_Stream;
 struct Test_U_AudioEffect_DirectShow_MessageData
 {
   Test_U_AudioEffect_DirectShow_MessageData ()
-   : sample (NULL)
-   , sampleTime (0)
+   //: sample (NULL)
+   //, sampleTime (0)
+    : task (NULL)
+    , index (-1)
   {}
 
-  IMediaSample* sample;
-  double        sampleTime;
+  //IMediaSample* sample;
+  //double        sampleTime;
+  Common_ISet_T<unsigned int>* task;
+  unsigned int                 index;
 };
 struct Test_U_AudioEffect_MediaFoundation_MessageData
 {
@@ -332,6 +336,7 @@ struct Test_U_AudioEffect_ModuleHandlerConfiguration
 #endif /* GTKGL_SUPPORT */
 #endif // GTK_USE
 #endif // GUI_SUPPORT
+   , audioInput (0)
    , audioOutput (0)
    , deviceIdentifier ()
    , dispatch (NULL)
@@ -373,6 +378,7 @@ struct Test_U_AudioEffect_ModuleHandlerConfiguration
 #endif /* GTKGL_SUPPORT */
 #endif // GTK_USE
 #endif // GUI_SUPPORT
+  int                                               audioInput; // waveIn
   int                                               audioOutput;
   // *PORTABILITY*: Win32: (usb) device path
   //                UNIX : (ALSA/OSS/...) device file path (e.g. "/dev/snd/pcmC0D0c", "/dev/dsp" (Linux))

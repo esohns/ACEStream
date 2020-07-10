@@ -2696,15 +2696,15 @@ idle_initialize_UI_cb (gpointer userData_in)
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
     { ACE_ASSERT (!(*directshow_stream_iterator).second.second.window);
-      ACE_ASSERT (!directshow_cb_data_p->configuration->direct3DConfiguration.presentationParameters.hDeviceWindow);
+      //ACE_ASSERT (!directshow_cb_data_p->configuration->direct3DConfiguration.presentationParameters.hDeviceWindow);
       //ACE_ASSERT (!directshow_cb_data_p->configuration->direct3DConfiguration.focusWindow);
       ACE_ASSERT (gdk_win32_window_is_win32 (window_p));
       (*directshow_stream_iterator).second.second.window =
         gdk_win32_window_get_impl_hwnd (window_p);
-      directshow_cb_data_p->configuration->direct3DConfiguration.focusWindow =
-        NULL;
-      directshow_cb_data_p->configuration->direct3DConfiguration.presentationParameters.hDeviceWindow =
-        gdk_win32_window_get_impl_hwnd (window_p);
+      //directshow_cb_data_p->configuration->direct3DConfiguration.focusWindow =
+      //  NULL;
+      //directshow_cb_data_p->configuration->direct3DConfiguration.presentationParameters.hDeviceWindow =
+      //  gdk_win32_window_get_impl_hwnd (window_p);
 
       (*directshow_stream_iterator).second.second.area.bottom =
         allocation.y + allocation.height;
@@ -2716,7 +2716,7 @@ idle_initialize_UI_cb (gpointer userData_in)
       //(*directshow_stream_iterator).second.second.pixelBuffer =
       //  ui_cb_data_base_p->pixelBuffer;
 
-      ACE_ASSERT (IsWindow (directshow_cb_data_p->configuration->direct3DConfiguration.presentationParameters.hDeviceWindow));
+      //ACE_ASSERT (IsWindow (directshow_cb_data_p->configuration->direct3DConfiguration.presentationParameters.hDeviceWindow));
 #if defined (_DEBUG)
       ACE_DEBUG ((LM_DEBUG,
                   ACE_TEXT ("drawing area window handle: 0x%@; size: %dx%d\n"),
@@ -4709,16 +4709,16 @@ combobox_source_changed_cb (GtkWidget* widget_in,
         (*directshow_stream_iterator).second.second.builder->Release (); (*directshow_stream_iterator).second.second.builder = NULL;
       } // end IF
       IAMBufferNegotiation* buffer_negotiation_p = NULL;
-      if (directshow_cb_data_p->videoStreamConfiguration)
+      if (directshow_cb_data_p->streamConfiguration)
       {
-        directshow_cb_data_p->videoStreamConfiguration->Release (); directshow_cb_data_p->videoStreamConfiguration = NULL;
+        directshow_cb_data_p->streamConfiguration->Release (); directshow_cb_data_p->streamConfiguration = NULL;
       } // end IF
       Stream_MediaFramework_DirectShow_Graph_t graph_layout;
       if (!Stream_Device_DirectShow_Tools::loadDeviceGraph (device_identifier_string,
                                                             CLSID_VideoInputDeviceCategory,
                                                             (*directshow_stream_iterator).second.second.builder,
                                                             buffer_negotiation_p,
-                                                            directshow_cb_data_p->videoStreamConfiguration,
+                                                            directshow_cb_data_p->streamConfiguration,
                                                             graph_layout))
       {
         ACE_DEBUG ((LM_ERROR,
@@ -4728,29 +4728,29 @@ combobox_source_changed_cb (GtkWidget* widget_in,
       } // end IF
       ACE_ASSERT ((*directshow_stream_iterator).second.second.builder);
       ACE_ASSERT (buffer_negotiation_p);
-      ACE_ASSERT (directshow_cb_data_p->videoStreamConfiguration);
+      ACE_ASSERT (directshow_cb_data_p->streamConfiguration);
 
       buffer_negotiation_p->Release (); buffer_negotiation_p = NULL;
 
-      if (directshow_cb_data_p->configuration->direct3DConfiguration.handle)
-      {
-        directshow_cb_data_p->configuration->direct3DConfiguration.handle->Release (); directshow_cb_data_p->configuration->direct3DConfiguration.handle = NULL;
-      } // end IF
+      //if (directshow_cb_data_p->configuration->direct3DConfiguration.handle)
+      //{
+      //  directshow_cb_data_p->configuration->direct3DConfiguration.handle->Release (); directshow_cb_data_p->configuration->direct3DConfiguration.handle = NULL;
+      //} // end IF
       IDirect3DDeviceManager9* direct3D_manager_p = NULL;
       UINT reset_token_i = 0;
-      if (!Stream_MediaFramework_DirectDraw_Tools::getDevice (directshow_cb_data_p->configuration->direct3DConfiguration,
-                                                              direct3D_manager_p,
-                                                              reset_token_i))
-      {
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("failed to Stream_MediaFramework_DirectDraw_Tools::getDevice(), returning\n")));
-        return;
-      } // end IF
-      ACE_ASSERT (directshow_cb_data_p->configuration->direct3DConfiguration.handle);
-      if (direct3D_manager_p)
-      {
-        direct3D_manager_p->Release (); direct3D_manager_p = NULL;
-      } // end IF
+      //if (!Stream_MediaFramework_DirectDraw_Tools::getDevice (directshow_cb_data_p->configuration->direct3DConfiguration,
+      //                                                        direct3D_manager_p,
+      //                                                        reset_token_i))
+      //{
+      //  ACE_DEBUG ((LM_ERROR,
+      //              ACE_TEXT ("failed to Stream_MediaFramework_DirectDraw_Tools::getDevice(), returning\n")));
+      //  return;
+      //} // end IF
+      //ACE_ASSERT (directshow_cb_data_p->configuration->direct3DConfiguration.handle);
+      //if (direct3D_manager_p)
+      //{
+      //  direct3D_manager_p->Release (); direct3D_manager_p = NULL;
+      //} // end IF
 
       break;
     }
@@ -4899,7 +4899,7 @@ combobox_source_changed_cb (GtkWidget* widget_in,
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
     {
-      result = load_formats (directshow_cb_data_p->videoStreamConfiguration,
+      result = load_formats (directshow_cb_data_p->streamConfiguration,
                              list_store_p);
       break;
     }
@@ -5178,8 +5178,8 @@ combobox_format_changed_cb (GtkWidget* widget_in,
   switch (ui_cb_data_base_p->mediaFramework)
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
-    { ACE_ASSERT (directshow_cb_data_p->videoStreamConfiguration);
-      result = load_resolutions (directshow_cb_data_p->videoStreamConfiguration,
+    { ACE_ASSERT (directshow_cb_data_p->streamConfiguration);
+      result = load_resolutions (directshow_cb_data_p->streamConfiguration,
                                  GUID_s,
                                  list_store_p);
       break;
@@ -5440,18 +5440,18 @@ combobox_resolution_changed_cb (GtkWidget* widget_in,
 
       //ACE_ASSERT ((resolution_s.cx != directshow_cb_data_p->configuration->direct3DConfiguration.presentationParameters.BackBufferWidth) &&
       //            (resolution_s.cy != directshow_cb_data_p->configuration->direct3DConfiguration.presentationParameters.BackBufferHeight));
-      directshow_cb_data_p->configuration->direct3DConfiguration.presentationParameters.BackBufferWidth =
-        resolution_s.cx;
-      directshow_cb_data_p->configuration->direct3DConfiguration.presentationParameters.BackBufferHeight =
-        resolution_s.cy;
-      if (directshow_cb_data_p->configuration->direct3DConfiguration.handle)
-        if (unlikely (!Stream_MediaFramework_DirectDraw_Tools::reset (directshow_cb_data_p->configuration->direct3DConfiguration.handle,
-                                                                      directshow_cb_data_p->configuration->direct3DConfiguration)))
-        {
-          ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("failed to Stream_MediaFramework_DirectDraw_Tools::reset(), returning\n")));
-          return;
-        } // end IF
+      //directshow_cb_data_p->configuration->direct3DConfiguration.presentationParameters.BackBufferWidth =
+      //  resolution_s.cx;
+      //directshow_cb_data_p->configuration->direct3DConfiguration.presentationParameters.BackBufferHeight =
+      //  resolution_s.cy;
+      //if (directshow_cb_data_p->configuration->direct3DConfiguration.handle)
+      //  if (unlikely (!Stream_MediaFramework_DirectDraw_Tools::reset (directshow_cb_data_p->configuration->direct3DConfiguration.handle,
+      //                                                                directshow_cb_data_p->configuration->direct3DConfiguration)))
+      //  {
+      //    ACE_DEBUG ((LM_ERROR,
+      //                ACE_TEXT ("failed to Stream_MediaFramework_DirectDraw_Tools::reset(), returning\n")));
+      //    return;
+      //  } // end IF
 
       break;
     }
@@ -5504,7 +5504,7 @@ combobox_resolution_changed_cb (GtkWidget* widget_in,
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
     {
-      result = load_rates (directshow_cb_data_p->videoStreamConfiguration,
+      result = load_rates (directshow_cb_data_p->streamConfiguration,
                            GUID_s,
                            width,
                            list_store_p);

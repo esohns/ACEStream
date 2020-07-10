@@ -961,6 +961,8 @@ do_work (unsigned int bufferSize_in,
     { ACE_ASSERT (directShowCBData_in.configuration);
       directshow_modulehandler_configuration.allocatorConfiguration =
         allocator_configuration_p;
+      directshow_modulehandler_configuration.messageAllocator =
+        &directshow_message_allocator;
       directShowCBData_in.configuration->streamConfiguration.initialize (module_configuration,
                                                                          directshow_modulehandler_configuration,
                                                                          directshow_stream_configuration);
@@ -1121,6 +1123,7 @@ do_work (unsigned int bufferSize_in,
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
     {
+      directshow_stream_configuration.allocatorConfiguration = &allocator_configuration;
       directshow_stream_configuration.messageAllocator = &directshow_message_allocator;
       directshow_stream_configuration.module =
         (!UIDefinitionFile_in.empty () ? &directshow_event_handler
@@ -1173,7 +1176,7 @@ do_work (unsigned int bufferSize_in,
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
     {
       result =
-        do_initialize_directshow ((*directshow_modulehandler_iterator).second.second.deviceIdentifier,
+        do_initialize_directshow ((*directshow_modulehandler_iterator).second.second.deviceIdentifier.identifier._string,
                                   (*directshow_modulehandler_iterator).second.second.builder,
                                   directShowCBData_in.streamConfiguration,
                                   directshow_stream_configuration.format,

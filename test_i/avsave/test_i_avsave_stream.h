@@ -103,12 +103,11 @@ class Stream_AVSave_DirectShow_Stream
 
   // modules
   Stream_AVSave_DirectShow_Source_Module            source_;
-  Stream_AVSave_DirectShow_StatisticReport_Module   statisticReport_;
-  Stream_AVSave_DirectShow_Direct3DDisplay_Module   direct3DDisplay_;
+  //Stream_AVSave_DirectShow_StatisticReport_Module   statisticReport_;
+  //Stream_AVSave_DirectShow_Direct3DDisplay_Module   display_;
   //Stream_AVSave_DirectShow_DirectShowDisplay_Module directShowDisplay_;
   //Stream_AVSave_DirectShow_GTKCairoDisplay_Module   GTKCairoDisplay_;
-  Stream_AVSave_DirectShow_AVIEncoder_Module        encoder_;
-  Stream_AVSave_DirectShow_FileWriter_Module        fileWriter_;
+  Stream_AVSave_DirectShow_Encoder_Module           encoder_;
 };
 
 class Stream_AVSave_MediaFoundation_Stream
@@ -178,13 +177,12 @@ class Stream_AVSave_MediaFoundation_Stream
 
   // modules
   Stream_AVSave_MediaFoundation_Source_Module                     source_;
-  Stream_AVSave_MediaFoundation_StatisticReport_Module            statisticReport_;
+  //Stream_AVSave_MediaFoundation_StatisticReport_Module            statisticReport_;
   //Stream_AVSave_MediaFoundation_MediaFoundationDisplay_Module     mediaFoundationDisplay_;
   //Stream_AVSave_MediaFoundation_MediaFoundationDisplayNull_Module mediaFoundationDisplayNull_;
-  Stream_AVSave_MediaFoundation_Direct3DDisplay_Module            direct3DDisplay_;
+  //Stream_AVSave_MediaFoundation_Direct3DDisplay_Module            display_;
   //Stream_AVSave_MediaFoundation_GTKCairoDisplay_Module            GTKCairoDisplay_;
-  Stream_AVSave_MediaFoundation_AVIEncoder_Module                 encoder_;
-  Stream_AVSave_MediaFoundation_FileWriter_Module                 fileWriter_;
+  //Stream_AVSave_MediaFoundation_AVIEncoder_Module                 encoder_;
 
 #if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
   // media session

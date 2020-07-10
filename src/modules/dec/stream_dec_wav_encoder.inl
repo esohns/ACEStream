@@ -254,7 +254,7 @@ Stream_Decoder_WAVEncoder_T<ACE_SYNCH_USE,
 #endif // ACE_WIN32 || ACE_WIN64
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  if (inherited::isFirst_)
+  if (unlikely (inherited::isFirst_))
   {
     inherited::isFirst_ = false;
 

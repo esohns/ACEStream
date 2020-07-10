@@ -175,7 +175,7 @@ Stream_Statistic_StatisticAnalysis_T<ACE_SYNCH_USE,
   ACE_UNUSED_ARG (passMessageDownstream_out);
 
   ACE_ASSERT (iterator_.sampleSize_);
-  ACE_ASSERT (message_inout->length () % iterator_.sampleSize_ == 0);
+  //ACE_ASSERT (message_inout->length () % iterator_.sampleSize_ == 0);
   ACE_ASSERT (iterator_.subSampleSize_);
   ACE_ASSERT (message_inout->length () % iterator_.subSampleSize_ == 0);
 

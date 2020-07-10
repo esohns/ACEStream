@@ -393,12 +393,10 @@ template <typename DataMessageType,
           typename SessionDataType>
 class Stream_AVSave_SessionMessage_T;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-typedef Stream_AVSave_Message_T<struct Stream_AVSave_DirectShow_MessageData,
-                                Stream_AVSave_DirectShow_SessionData_t> Stream_AVSave_DirectShow_Message_t;
+typedef Stream_AVSave_Message_T<struct Stream_AVSave_DirectShow_MessageData> Stream_AVSave_DirectShow_Message_t;
 typedef Stream_AVSave_SessionMessage_T<Stream_AVSave_DirectShow_Message_t,
                                        Stream_AVSave_DirectShow_SessionData_t> Stream_AVSave_DirectShow_SessionMessage_t;
-typedef Stream_AVSave_Message_T<struct Stream_AVSave_MediaFoundation_MessageData,
-                                Stream_AVSave_MediaFoundation_SessionData_t> Stream_AVSave_MediaFoundation_Message_t;
+typedef Stream_AVSave_Message_T<struct Stream_AVSave_MediaFoundation_MessageData> Stream_AVSave_MediaFoundation_Message_t;
 typedef Stream_AVSave_SessionMessage_T<Stream_AVSave_MediaFoundation_Message_t,
                                        Stream_AVSave_MediaFoundation_SessionData_t> Stream_AVSave_MediaFoundation_SessionMessage_t;
 
@@ -487,7 +485,7 @@ struct Stream_AVSave_DirectShow_ModuleHandlerConfiguration
  : Stream_AVSave_ModuleHandlerConfiguration
 {
   Stream_AVSave_DirectShow_ModuleHandlerConfiguration ()
-   : Stream_AvSave_ModuleHandlerConfiguration ()
+   : Stream_AVSave_ModuleHandlerConfiguration ()
    , area ()
    , builder (NULL)
    , direct3DConfiguration (NULL)
@@ -820,18 +818,19 @@ struct Stream_AVSave_DirectShow_Configuration
 #endif // GTK_USE
 #endif // GUI_SUPPORT
    , signalHandlerConfiguration ()
-   , direct3DConfiguration ()
-   , streamConfiguration ()
+   , audioStreamConfiguration ()
+   , videoStreamConfiguration ()
    , userData ()
   {}
 
   // **************************** signal data **********************************
   struct Stream_AVSave_SignalHandlerConfiguration    signalHandlerConfiguration;
   // **************************** stream data **********************************
-  struct Stream_MediaFramework_Direct3D_Configuration direct3DConfiguration;
-  Stream_AVSave_DirectShow_StreamConfiguration_t     streamConfiguration;
+  Stream_AVSave_DirectShow_StreamConfiguration_t      audioStreamConfiguration;
+  //struct Stream_MediaFramework_Direct3D_Configuration direct3DConfiguration;
+  Stream_AVSave_DirectShow_StreamConfiguration_t      videoStreamConfiguration;
 
-  struct Stream_UserData                      userData;
+  struct Stream_UserData                              userData;
 };
 
 struct Stream_AVSave_MediaFoundation_Configuration
@@ -852,16 +851,17 @@ struct Stream_AVSave_MediaFoundation_Configuration
 #endif // GTK_USE
 #endif // GUI_SUPPORT
    , signalHandlerConfiguration ()
-   , direct3DConfiguration ()
-   , streamConfiguration ()
+   , audioStreamConfiguration ()
+   , videoStreamConfiguration ()
    , userData ()
   {}
 
   // **************************** signal data **********************************
   struct Stream_AVSave_SignalHandlerConfiguration     signalHandlerConfiguration;
   // **************************** stream data **********************************
-  struct Stream_MediaFramework_Direct3D_Configuration  direct3DConfiguration;
-  Stream_AVSave_MediaFoundation_StreamConfiguration_t streamConfiguration;
+  Stream_AVSave_MediaFoundation_StreamConfiguration_t audioStreamConfiguration;
+  //struct Stream_MediaFramework_Direct3D_Configuration  direct3DConfiguration;
+  Stream_AVSave_MediaFoundation_StreamConfiguration_t videoStreamConfiguration;
 
   struct Stream_UserData                       userData;
 };
@@ -1049,14 +1049,16 @@ struct Stream_AVSave_DirectShow_UI_CBData
   Stream_AVSave_DirectShow_UI_CBData ()
    : Stream_AVSave_UI_CBData ()
    , configuration (NULL)
-   , stream (NULL)
+   , audioStream (NULL)
+   , videoStream (NULL)
    , streamConfiguration (NULL)
    , subscribers ()
   {}
 
   struct Stream_AVSave_DirectShow_Configuration* configuration;
-  Stream_AVSave_DirectShow_Stream*               stream;
-  IAMStreamConfig*                                streamConfiguration;
+  Stream_AVSave_DirectShow_Stream*               audioStream;
+  Stream_AVSave_DirectShow_Stream*               videoStream;
+  IAMStreamConfig*                               streamConfiguration;
   Stream_AVSave_DirectShow_Subscribers_t         subscribers;
 };
 
@@ -1067,12 +1069,14 @@ struct Stream_AVSave_MediaFoundation_UI_CBData
   Stream_AVSave_MediaFoundation_UI_CBData ()
    : Stream_AVSave_UI_CBData ()
    , configuration (NULL)
-   , stream (NULL)
+   , audioStream (NULL)
+   , videoStream (NULL)
    , subscribers ()
   {}
 
   struct Stream_AVSave_MediaFoundation_Configuration* configuration;
-  Stream_AVSave_MediaFoundation_Stream*               stream;
+  Stream_AVSave_MediaFoundation_Stream*               audioStream;
+  Stream_AVSave_MediaFoundation_Stream*               videoStream;
   Stream_AVSave_MediaFoundation_Subscribers_t         subscribers;
 };
 #else

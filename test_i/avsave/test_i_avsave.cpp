@@ -1145,8 +1145,8 @@ do_work (const std::string& captureinterfaceIdentifier_in,
         Stream_Device_Identifier::STRING;
       ACE_OS::strcpy (directshow_modulehandler_configuration.deviceIdentifier.identifier._string,
                       captureinterfaceIdentifier_in.c_str ());
-      directshow_modulehandler_configuration.direct3DConfiguration =
-        &directShowConfiguration_in.direct3DConfiguration;
+      //directshow_modulehandler_configuration.direct3DConfiguration =
+      //  &directShowConfiguration_in.direct3DConfiguration;
       directshow_modulehandler_configuration.lock = &state_r.subscribersLock;
 
       if (statisticReportingInterval_in)
@@ -1171,8 +1171,8 @@ do_work (const std::string& captureinterfaceIdentifier_in,
         Stream_Device_Identifier::STRING;
       ACE_OS::strcpy (mediafoundation_modulehandler_configuration.deviceIdentifier.identifier._string,
                       captureinterfaceIdentifier_in.c_str ());
-      mediafoundation_modulehandler_configuration.direct3DConfiguration =
-        &mediaFoundationConfiguration_in.direct3DConfiguration;
+      //mediafoundation_modulehandler_configuration.direct3DConfiguration =
+      //  &mediaFoundationConfiguration_in.direct3DConfiguration;
       mediafoundation_modulehandler_configuration.lock = &state_r.subscribersLock;
 
       if (statisticReportingInterval_in)
@@ -1267,29 +1267,29 @@ do_work (const std::string& captureinterfaceIdentifier_in,
           (!UIDefinitionFilename_in.empty () ? &directshow_message_handler
                                              : NULL);
 #endif // GUI_SUPPORT
-      //directShowConfiguration_in.streamConfiguration.configuration_.renderer =
+      //directShowConfiguration_in.videoStreamConfiguration.configuration_.renderer =
       //  renderer_in;
 
       directshow_modulehandler_configuration.display = displayDevice_in;
 
       directshow_stream_configuration.allocatorConfiguration = &allocator_configuration;
 
-      directShowConfiguration_in.streamConfiguration.initialize (module_configuration,
-                                                                 directshow_modulehandler_configuration,
-                                                                 directshow_stream_configuration);
+      directShowConfiguration_in.videoStreamConfiguration.initialize (module_configuration,
+                                                                      directshow_modulehandler_configuration,
+                                                                      directshow_stream_configuration);
       //directshow_modulehandler_configuration.deviceIdentifier.identifierDiscriminator =
       //  Stream_Device_Identifier::STRING;
       //ACE_OS::strcpy (directshow_modulehandler_configuration.deviceIdentifier.identifier._string,
       //                displayDevice_in.device.c_str ());
-      directShowConfiguration_in.streamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_DIRECT3D_DEFAULT_NAME_STRING),
-                                                                             std::make_pair (module_configuration,
-                                                                                             directshow_modulehandler_configuration)));
+      directShowConfiguration_in.videoStreamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_DIRECT3D_DEFAULT_NAME_STRING),
+                                                                                  std::make_pair (module_configuration,
+                                                                                                  directshow_modulehandler_configuration)));
       directshow_stream_iterator =
-        directShowConfiguration_in.streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
-      ACE_ASSERT (directshow_stream_iterator != directShowConfiguration_in.streamConfiguration.end ());
+        directShowConfiguration_in.videoStreamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
+      ACE_ASSERT (directshow_stream_iterator != directShowConfiguration_in.videoStreamConfiguration.end ());
       directshow_stream_iterator_2 =
-        directShowConfiguration_in.streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_DIRECT3D_DEFAULT_NAME_STRING));
-      ACE_ASSERT (directshow_stream_iterator_2 != directShowConfiguration_in.streamConfiguration.end ());
+        directShowConfiguration_in.videoStreamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_DIRECT3D_DEFAULT_NAME_STRING));
+      ACE_ASSERT (directshow_stream_iterator_2 != directShowConfiguration_in.videoStreamConfiguration.end ());
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
@@ -1301,24 +1301,24 @@ do_work (const std::string& captureinterfaceIdentifier_in,
           (!UIDefinitionFilename_in.empty () ? &mediafoundation_message_handler
                                              : NULL);
 #endif // GUI_SUPPORT
-      //mediaFoundationConfiguration_in.streamConfiguration.configuration_.renderer =
+      //mediaFoundationConfiguration_in.videoStreamConfiguration.configuration_.renderer =
       //  renderer_in;
       mediafoundation_stream_configuration.allocatorConfiguration = &allocator_configuration;
 
-      mediaFoundationConfiguration_in.streamConfiguration.initialize (module_configuration,
-                                                                      mediafoundation_modulehandler_configuration,
-                                                                      mediafoundation_stream_configuration);
+      mediaFoundationConfiguration_in.videoStreamConfiguration.initialize (module_configuration,
+                                                                           mediafoundation_modulehandler_configuration,
+                                                                           mediafoundation_stream_configuration);
       mediafoundation_stream_iterator =
-        mediaFoundationConfiguration_in.streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
-      ACE_ASSERT (mediafoundation_stream_iterator != mediaFoundationConfiguration_in.streamConfiguration.end ());
+        mediaFoundationConfiguration_in.videoStreamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
+      ACE_ASSERT (mediafoundation_stream_iterator != mediaFoundationConfiguration_in.videoStreamConfiguration.end ());
 
-      mediaFoundationConfiguration_in.streamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_MEDIAFOUNDATION_DEFAULT_NAME_STRING),
-                                                                                  std::make_pair (module_configuration,
-                                                                                                  mediafoundation_modulehandler_configuration)));
+      mediaFoundationConfiguration_in.videoStreamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_MEDIAFOUNDATION_DEFAULT_NAME_STRING),
+                                                                                       std::make_pair (module_configuration,
+                                                                                                       mediafoundation_modulehandler_configuration)));
 
       mediafoundation_stream_iterator_2 =
-        mediaFoundationConfiguration_in.streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_MEDIAFOUNDATION_DEFAULT_NAME_STRING));
-      ACE_ASSERT (mediafoundation_stream_iterator_2 != mediaFoundationConfiguration_in.streamConfiguration.end ());
+        mediaFoundationConfiguration_in.videoStreamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_MEDIAFOUNDATION_DEFAULT_NAME_STRING));
+      ACE_ASSERT (mediafoundation_stream_iterator_2 != mediaFoundationConfiguration_in.videoStreamConfiguration.end ());
       break;
     }
     default:
@@ -1502,30 +1502,30 @@ do_work (const std::string& captureinterfaceIdentifier_in,
   //  Stream_MediaFramework_DirectDraw_Tools::getDisplayMode (directShowConfiguration_in.direct3DConfiguration.adapter,
   //                                                          STREAM_LIB_DIRECTDRAW_3D_DEFAULT_FORMAT,
   //                                                          resolution_s);
-  ACE_ASSERT (!directShowConfiguration_in.direct3DConfiguration.presentationParameters.hDeviceWindow);
+  //ACE_ASSERT (!directShowConfiguration_in.direct3DConfiguration.presentationParameters.hDeviceWindow);
   //directShowConfiguration_in.direct3DConfiguration.focusWindow =
   //    GetConsoleWindow ();
-  directShowConfiguration_in.direct3DConfiguration.presentationParameters.BackBufferWidth =
-      resolution_s.cx;
-  directShowConfiguration_in.direct3DConfiguration.presentationParameters.BackBufferHeight =
-      resolution_s.cy;
-  directShowConfiguration_in.direct3DConfiguration.presentationParameters.hDeviceWindow =
-    GetConsoleWindow ();
+  //directShowConfiguration_in.direct3DConfiguration.presentationParameters.BackBufferWidth =
+  //    resolution_s.cx;
+  //directShowConfiguration_in.direct3DConfiguration.presentationParameters.BackBufferHeight =
+  //    resolution_s.cy;
+  //directShowConfiguration_in.direct3DConfiguration.presentationParameters.hDeviceWindow =
+  //  GetConsoleWindow ();
   IDirect3DDeviceManager9* direct3D_manager_p = NULL;
   UINT reset_token = 0;
-  if (!Stream_MediaFramework_DirectDraw_Tools::getDevice (directShowConfiguration_in.direct3DConfiguration,
-                                                          direct3D_manager_p,
-                                                          reset_token))
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to Stream_MediaFramework_DirectDraw_Tools::getDevice(), continuing\n")));
-  else
-  {
-    ACE_ASSERT (directShowConfiguration_in.direct3DConfiguration.handle);
-    ACE_ASSERT (direct3D_manager_p);
-    ACE_ASSERT (reset_token);
-    direct3D_manager_p->Release (); direct3D_manager_p = NULL;
-    reset_token = 0;
-  } // end ELSE
+  //if (!Stream_MediaFramework_DirectDraw_Tools::getDevice (directShowConfiguration_in.direct3DConfiguration,
+  //                                                        direct3D_manager_p,
+  //                                                        reset_token))
+  //  ACE_DEBUG ((LM_ERROR,
+  //              ACE_TEXT ("failed to Stream_MediaFramework_DirectDraw_Tools::getDevice(), continuing\n")));
+  //else
+  //{
+  //  ACE_ASSERT (directShowConfiguration_in.direct3DConfiguration.handle);
+  //  ACE_ASSERT (direct3D_manager_p);
+  //  ACE_ASSERT (reset_token);
+  //  direct3D_manager_p->Release (); direct3D_manager_p = NULL;
+  //  reset_token = 0;
+  //} // end ELSE
 #endif // ACE_WIN32 || ACE_WIN64
 #endif // GUI_SUPPORT
 
@@ -1602,7 +1602,7 @@ do_work (const std::string& captureinterfaceIdentifier_in,
     {
       case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
       {
-        directShowCBData_in.stream = &directshow_stream;
+        directShowCBData_in.videoStream = &directshow_stream;
 #if defined (GTK_USE)
         directShowCBData_in.UIState = &state_r;
         directShowCBData_in.progressData.state = &state_r;
@@ -1616,7 +1616,7 @@ do_work (const std::string& captureinterfaceIdentifier_in,
       }
       case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
       {
-        mediaFoundationCBData_in.stream = &mediafoundation_stream;
+        mediaFoundationCBData_in.videoStream = &mediafoundation_stream;
 #if defined (GTK_USE)
         mediaFoundationCBData_in.UIState = &state_r;
         mediaFoundationCBData_in.progressData.state = &state_r;
@@ -1705,7 +1705,7 @@ do_work (const std::string& captureinterfaceIdentifier_in,
         Common_UI_GTK_Tools::initialize (directShowCBData_in.configuration->GTKConfiguration.argc,
                                          directShowCBData_in.configuration->GTKConfiguration.argv);
 
-        if (!directshow_stream.initialize (directShowConfiguration_in.streamConfiguration))
+        if (!directshow_stream.initialize (directShowConfiguration_in.videoStreamConfiguration))
         {
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("failed to initialize stream, returning\n")));
@@ -1719,7 +1719,7 @@ do_work (const std::string& captureinterfaceIdentifier_in,
         Common_UI_GTK_Tools::initialize (mediaFoundationCBData_in.configuration->GTKConfiguration.argc,
                                          mediaFoundationCBData_in.configuration->GTKConfiguration.argv);
 
-        if (!mediafoundation_stream.initialize (mediaFoundationConfiguration_in.streamConfiguration))
+        if (!mediafoundation_stream.initialize (mediaFoundationConfiguration_in.videoStreamConfiguration))
         {
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("failed to initialize stream, returning\n")));
@@ -1798,8 +1798,8 @@ clean:
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
     {
       Stream_AVSave_MediaFoundation_StreamConfiguration_t::ITERATOR_T iterator =
-      mediaFoundationConfiguration_in.streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
-      ACE_ASSERT (iterator != mediaFoundationConfiguration_in.streamConfiguration.end ());
+      mediaFoundationConfiguration_in.videoStreamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
+      ACE_ASSERT (iterator != mediaFoundationConfiguration_in.videoStreamConfiguration.end ());
       do_finalize_mediafoundation ((*iterator).second.second.session);
       break;
     }

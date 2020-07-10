@@ -88,7 +88,7 @@ class Test_U_AudioEffect_DirectShow_Stream
   ACE_UNIMPLEMENTED_FUNC (Test_U_AudioEffect_DirectShow_Stream (const Test_U_AudioEffect_DirectShow_Stream&))
   ACE_UNIMPLEMENTED_FUNC (Test_U_AudioEffect_DirectShow_Stream& operator= (const Test_U_AudioEffect_DirectShow_Stream&))
 
-  IGraphBuilder* graphBuilder_;
+  //IGraphBuilder* graphBuilder_;
 };
 
 //////////////////////////////////////////

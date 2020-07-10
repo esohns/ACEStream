@@ -424,7 +424,7 @@ error_3:
       ACE_ASSERT (!IAMDroppedFrames_);
 
       // *TODO*: remove type inferences
-      if (unlikely (!initialize_DirectShow (inherited::configuration_->deviceIdentifier,
+      if (unlikely (!initialize_DirectShow (inherited::configuration_->deviceIdentifier.identifier._string,
                                             inherited::configuration_->audioOutput,
                                             ICaptureGraphBuilder2_,
                                             IAMDroppedFrames_,

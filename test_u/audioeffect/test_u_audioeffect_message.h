@@ -69,6 +69,8 @@ class Test_U_AudioEffect_DirectShow_Message
   // --> create a "shallow" copy of ourselves that references the same packet
   // *NOTE*: this uses our allocator (if any) to create a new message
   virtual ACE_Message_Block* duplicate (void) const;
+  // insert this buffer back into the device incoming queue
+  virtual ACE_Message_Block* release (void);
 
   inline virtual Stream_CommandType_t command () const { return ACE_Message_Block::MB_DATA; }
   static std::string CommandTypeToString (Stream_CommandType_t);

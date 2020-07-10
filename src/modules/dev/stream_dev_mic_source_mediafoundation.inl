@@ -437,7 +437,7 @@ Stream_Dev_Mic_Source_MediaFoundation_T<ACE_SYNCH_USE,
       { ACE_ASSERT (!session_data_r.formats.empty ());
         IMFMediaType* media_type_p = session_data_r.formats.back ();
         IMFTopology* topology_p = NULL;
-        if (!Stream_Module_Decoder_Tools::loadAudioRendererTopology (inherited::configuration_->deviceIdentifier,
+        if (!Stream_Module_Decoder_Tools::loadAudioRendererTopology (inherited::configuration_->deviceIdentifier.identifier._string,
                                                                      media_type_p,
                                                                      this,
                                                                      (inherited::configuration_->mute ? -1

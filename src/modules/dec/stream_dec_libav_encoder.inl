@@ -494,8 +494,8 @@ audio:
 //          }
 //      }
 //      c->channels        = av_get_channel_layout_nb_channels(c->channel_layout);
-      audioStream_->time_base =
-          (AVRational){ 1, audioCodecContext_->sample_rate };
+      audioStream_->time_base.num = 1;
+      audioStream_->time_base.den = audioCodecContext_->sample_rate;
       audioCodecContext_->time_base = audioStream_->time_base;
 
       audioFrame_->format = audioCodecContext_->sample_fmt;
@@ -567,7 +567,8 @@ video:
                                   videoFrame_->height,
                                   1); // *TODO*: linesize alignment
 
-      videoStream_->time_base = (AVRational){ 1, media_type_4.frameRate.num };
+      videoStream_->time_base.num = 1;
+      videoStream_->time_base.den = media_type_4.frameRate.num;
 //      videoCodecContext_->bit_rate =
 //          videoFrameSize_ * videoStream_->time_base.den * 8;
       /* Resolution must be a multiple of two. */

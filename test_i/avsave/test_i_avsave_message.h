@@ -54,6 +54,20 @@ class Stream_AVSave_Message_T
                                    enum Stream_MediaType_Type> inherited;
 
   // grant access to specific private ctors
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  friend class Stream_MessageAllocatorHeapBase_T<ACE_MT_SYNCH,
+                                                 struct Common_AllocatorConfiguration,
+                                                 Stream_ControlMessage_t,
+                                                 Stream_AVSave_Message_T<DataType>,
+                                                 Stream_AVSave_SessionMessage_T<Stream_AVSave_Message_T<DataType>,
+                                                                                Stream_AVSave_DirectShow_SessionData_t> >;
+  friend class Stream_MessageAllocatorHeapBase_T<ACE_MT_SYNCH,
+                                                 struct Common_AllocatorConfiguration,
+                                                 Stream_ControlMessage_t,
+                                                 Stream_AVSave_Message_T<DataType>,
+                                                 Stream_AVSave_SessionMessage_T<Stream_AVSave_Message_T<DataType>,
+                                                                                Stream_AVSave_MediaFoundation_SessionData_t> >;
+#else
   friend class Stream_MessageAllocatorHeapBase_T<ACE_MT_SYNCH,
                                                  struct Common_AllocatorConfiguration,
                                                  Stream_ControlMessage_t,
@@ -66,6 +80,7 @@ class Stream_AVSave_Message_T
                                                  Stream_AVSave_Message_T<DataType>,
                                                  Stream_AVSave_SessionMessage_T<Stream_AVSave_Message_T<DataType>,
                                                                                 Stream_AVSave_V4L_SessionData_t> >;
+#endif // ACE_WIN32 || ACE_WIN64
 
  public:
   Stream_AVSave_Message_T (unsigned int); // size

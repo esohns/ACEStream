@@ -137,6 +137,9 @@ if (WIN32)
       stream_dev_mic_source_mediafoundation.cpp
       stream_dev_mic_source_mediafoundation.h
       stream_dev_mic_source_mediafoundation.inl
+      stream_dev_mic_source_wavein.cpp
+      stream_dev_mic_source_wavein.h
+      stream_dev_mic_source_wavein.inl
       stream_dev_target_wavout.cpp
       stream_dev_target_wavout.h
       stream_dev_target_wavout.inl)
@@ -251,6 +254,8 @@ elseif (WIN32)
           stream_dev_cam_source_mediafoundation.inl
           stream_dev_mic_source_directshow.h
           stream_dev_mic_source_directshow.inl
+          stream_dev_mic_source_wavein.h
+          stream_dev_mic_source_wavein.inl
           stream_dev_mic_source_mediafoundation.h
           stream_dev_mic_source_mediafoundation.inl
           stream_dev_target_wavout.h

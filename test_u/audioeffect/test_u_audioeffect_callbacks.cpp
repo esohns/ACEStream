@@ -4613,6 +4613,7 @@ idle_update_info_display_cb (gpointer userData_in)
           ACE_ASSERT (spin_button_p);
           break;
         }
+        case COMMON_UI_EVENT_FINISHED:
         case COMMON_UI_EVENT_STOPPED:
         {
           spin_button_p =
@@ -4659,7 +4660,7 @@ idle_update_info_display_cb (gpointer userData_in)
         {
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("invalid/unknown event type (was: %d), continuing\n"),
-                      event_e));
+                      *event_p));
           break;
         }
       } // end SWITCH
@@ -4927,14 +4928,12 @@ continue_:
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
     {
-      window_p =
-        gtk_widget_get_window (GTK_WIDGET ((*directshow_modulehandler_configuration_iterator).second.second.window));
+      window_p = (*directshow_modulehandler_configuration_iterator).second.second.window;
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
     {
-      window_p =
-        gtk_widget_get_window (GTK_WIDGET ((*mediafoundation_modulehandler_configuration_iterator).second.second.window));
+      window_p = (*mediafoundation_modulehandler_configuration_iterator).second.second.window;
       break;
     }
     default:
@@ -4946,8 +4945,7 @@ continue_:
     }
   } // end SWITCH
 #else
-  window_p =
-    gtk_widget_get_window (GTK_WIDGET ((*modulehandler_configuration_iterator).second.second.window));
+  window_p = (*modulehandler_configuration_iterator).second.second.window;
 #endif // ACE_WIN32 || ACE_WIN64
 #else
   drawing_area_p =
@@ -5250,14 +5248,14 @@ togglebutton_record_toggled_cb (GtkToggleButton* toggleButton_in,
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
     {
-      (*directshow_modulehandler_configuration_iterator).second.second.deviceIdentifier.identifier =
-        g_value_get_string (&value);
+      ACE_OS::strcpy ((*directshow_modulehandler_configuration_iterator).second.second.deviceIdentifier.identifier._string,
+                      ACE_TEXT_ALWAYS_CHAR (g_value_get_string (&value)));
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
     {
-      (*mediafoundation_modulehandler_configuration_iterator).second.second.deviceIdentifier.identifier =
-        g_value_get_string (&value);
+      ACE_OS::strcpy ((*mediafoundation_modulehandler_configuration_iterator).second.second.deviceIdentifier.identifier._string,
+                      ACE_TEXT_ALWAYS_CHAR (g_value_get_string (&value)));
       break;
     }
     default:
@@ -5373,7 +5371,7 @@ togglebutton_record_toggled_cb (GtkToggleButton* toggleButton_in,
       ACE_ASSERT (directshow_ui_cb_data_p->configuration->streamConfiguration.configuration->format.pbFormat);
       struct tWAVEFORMATEX* waveformatex_p =
         reinterpret_cast<struct tWAVEFORMATEX*> (directshow_ui_cb_data_p->configuration->streamConfiguration.configuration->format.pbFormat);
-      waveformatex_p->nSamplesPerSec = g_value_get_uint (&value);
+      //waveformatex_p->nSamplesPerSec = g_value_get_uint (&value);
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
@@ -7463,7 +7461,7 @@ combobox_source_changed_cb (GtkWidget* widget_in,
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
     {
       module_name =
-        ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_MIC_SOURCE_DIRECTSHOW_DEFAULT_NAME_STRING);
+        ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_MIC_SOURCE_WAVEIN_DEFAULT_NAME_STRING);
       module_p =
         const_cast<Stream_Module_t*> (istream_p->find (module_name));
       break;
@@ -7500,8 +7498,9 @@ combobox_source_changed_cb (GtkWidget* widget_in,
 
   bool result_2 = false;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
+  //Test_U_Dev_Mic_Source_DirectShow* directshow_source_impl_p = NULL;
+  Test_U_Dev_Mic_Source_WaveIn* directshow_source_impl_p = NULL;
   Test_U_Dev_Mic_Source_MediaFoundation* mediafoundation_source_impl_p = NULL;
-  Test_U_Dev_Mic_Source_DirectShow* directshow_source_impl_p = NULL;
   IMFTopology* topology_p = NULL;
   switch (ui_cb_data_base_p->mediaFramework)
   {
@@ -8233,7 +8232,7 @@ combobox_frequency_changed_cb (GtkWidget* widget_in,
       ACE_ASSERT (InlineIsEqualGUID (directshow_ui_cb_data_p->configuration->streamConfiguration.configuration->format.formattype, FORMAT_WaveFormatEx));
       struct tWAVEFORMATEX* audio_info_header_p =
         reinterpret_cast<struct tWAVEFORMATEX*> (directshow_ui_cb_data_p->configuration->streamConfiguration.configuration->format.pbFormat);
-      audio_info_header_p->nSamplesPerSec = sample_rate;
+      //audio_info_header_p->nSamplesPerSec = sample_rate;
 
       result_2 = load_sample_resolutions (directshow_ui_cb_data_p->streamConfiguration,
                                           GUID_s,

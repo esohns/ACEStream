@@ -47,18 +47,16 @@ Stream_AVSave_DirectShow_Stream::Stream_AVSave_DirectShow_Stream ()
  : inherited ()
  , source_ (this,
             ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_CAM_SOURCE_DIRECTSHOW_DEFAULT_NAME_STRING))
- , statisticReport_ (this,
-                     ACE_TEXT_ALWAYS_CHAR (MODULE_STAT_REPORT_DEFAULT_NAME_STRING))
- , direct3DDisplay_ (this,
-                     ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_DIRECT3D_DEFAULT_NAME_STRING))
+ //, statisticReport_ (this,
+ //                    ACE_TEXT_ALWAYS_CHAR (MODULE_STAT_REPORT_DEFAULT_NAME_STRING))
+ //, display_ (this,
+ //            ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_DIRECT3D_DEFAULT_NAME_STRING))
  //, directShowDisplay_ (this,
  //                      ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_DIRECTSHOW_DEFAULT_NAME_STRING))
  //, GTKCairoDisplay_ (this,
  //                    ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_GTK_CAIRO_DEFAULT_NAME_STRING))
  , encoder_ (this,
-             ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_ENCODER_AVI_DEFAULT_NAME_STRING))
- , fileWriter_ (this,
-                ACE_TEXT_ALWAYS_CHAR (STREAM_FILE_SINK_DEFAULT_NAME_STRING))
+             ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_LIBAV_ENCODER_DEFAULT_NAME_STRING))
 {
   STREAM_TRACE (ACE_TEXT ("Stream_AVSave_DirectShow_Stream::Stream_AVSave_DirectShow_Stream"));
 
@@ -96,12 +94,11 @@ Stream_AVSave_DirectShow_Stream::load (Stream_ILayout* layout_in,
   //         close()d
 
   layout_in->append (&source_, NULL, 0);
-  layout_in->append (&statisticReport_, NULL, 0);
-  layout_in->append (&direct3DDisplay_, NULL, 0);
+  //layout_in->append (&statisticReport_, NULL, 0);
+  //layout_in->append (&direct3DDisplay_, NULL, 0);
   //modules_out.push_back (&directShowDisplay_);
   //modules_out.push_back (&GTKCairoDisplay_);
   layout_in->append (&encoder_, NULL, 0);
-  layout_in->append (&fileWriter_, NULL, 0);
 
   return true;
 }
@@ -519,20 +516,18 @@ Stream_AVSave_MediaFoundation_Stream::Stream_AVSave_MediaFoundation_Stream ()
  : inherited ()
  , source_ (this,
             ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_CAM_SOURCE_MEDIAFOUNDATION_DEFAULT_NAME_STRING))
- , statisticReport_ (this,
-                     ACE_TEXT_ALWAYS_CHAR (MODULE_STAT_REPORT_DEFAULT_NAME_STRING))
- , direct3DDisplay_ (this,
-                     ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_DIRECT3D_DEFAULT_NAME_STRING))
+ //, statisticReport_ (this,
+ //                    ACE_TEXT_ALWAYS_CHAR (MODULE_STAT_REPORT_DEFAULT_NAME_STRING))
+ //, display_ (this,
+ //            ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_DIRECT3D_DEFAULT_NAME_STRING))
  //, mediaFoundationDisplay_ (this,
  //                           ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_MEDIAFOUNDATION_DEFAULT_NAME_STRING))
  //, mediaFoundationDisplayNull_ (this,
  //                               ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_NULL_DEFAULT_NAME_STRING))
  //, GTKCairoDisplay_ (this,
  //                    ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_GTK_CAIRO_DEFAULT_NAME_STRING))
- , encoder_ (this,
-             ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_ENCODER_AVI_DEFAULT_NAME_STRING))
- , fileWriter_ (this,
-                ACE_TEXT_ALWAYS_CHAR (STREAM_FILE_SINK_DEFAULT_NAME_STRING))
+ //, encoder_ (this,
+ //            ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_LIBAV_ENCODER_DEFAULT_NAME_STRING))
 #if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
  , mediaSession_ (NULL)
 #endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
@@ -895,13 +890,12 @@ Stream_AVSave_MediaFoundation_Stream::load (Stream_ILayout* layout_in,
   //         close()d
 
   layout_in->append (&source_, NULL, 0);
-  layout_in->append (&statisticReport_, NULL, 0);
-  layout_in->append (&direct3DDisplay_, NULL, 0);
+  //layout_in->append (&statisticReport_, NULL, 0);
+  //layout_in->append (&display_, NULL, 0);
   //modules_out.push_back (&mediaFoundationDisplay_);
   //modules_out.push_back (&mediaFoundationDisplayNull_);
   //modules_out.push_back (&GTKCairoDisplay_);
-  layout_in->append (&encoder_, NULL, 0);
-  layout_in->append (&fileWriter_, NULL, 0);
+  //layout_in->append (&encoder_, NULL, 0);
 
   return true;
 }
