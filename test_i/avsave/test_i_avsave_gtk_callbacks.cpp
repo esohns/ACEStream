@@ -1936,12 +1936,12 @@ stream_processing_function (void* arg_in)
         const_cast<Stream_AVSave_DirectShow_StreamConfiguration_t::ITERATOR_T&> (directshow_cb_data_p->configuration->videoStreamConfiguration.find (ACE_TEXT_ALWAYS_CHAR ("")));
       ACE_ASSERT (iterator != directshow_cb_data_p->configuration->videoStreamConfiguration.end ());
 
-      // *NOTE*: let the display output module handle the Direct3D device
-      if ((*iterator).second.second.direct3DConfiguration->handle)
+      if (!directshow_cb_data_p->audioStream->initialize (directshow_cb_data_p->configuration->audioStreamConfiguration))
       {
-        (*iterator).second.second.direct3DConfiguration->handle->Release (); (*iterator).second.second.direct3DConfiguration->handle = NULL;
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("failed to initialize stream, aborting\n")));
+        goto error;
       } // end IF
-
       if (!directshow_cb_data_p->videoStream->initialize (directshow_cb_data_p->configuration->videoStreamConfiguration))
       {
         ACE_DEBUG ((LM_ERROR,
@@ -1949,6 +1949,7 @@ stream_processing_function (void* arg_in)
         goto error;
       } // end IF
       stream_p = directshow_cb_data_p->videoStream;
+      stream_2 = directshow_cb_data_p->audioStream;
       directshow_session_data_container_p =
         &directshow_cb_data_p->videoStream->getR_2 ();
       directshow_session_data_p = &directshow_session_data_container_p->getR ();
@@ -3526,7 +3527,8 @@ togglebutton_record_toggled_cb (GtkToggleButton* toggleButton_in,
     {
       directshow_cb_data_p =
         static_cast<struct Stream_AVSave_DirectShow_UI_CBData*> (ui_cb_data_base_p);
-      stream_p = directshow_cb_data_p->videoStream;
+      stream_p = directshow_cb_data_p->audioStream;
+      stream_2 = directshow_cb_data_p->videoStream;
       ACE_ASSERT (directshow_cb_data_p->configuration);
       directshow_stream_iterator =
         directshow_cb_data_p->configuration->videoStreamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
@@ -3574,7 +3576,7 @@ togglebutton_record_toggled_cb (GtkToggleButton* toggleButton_in,
     stream_p->stop (false, // wait ?
                     true); // locked access ?
     ACE_OS::sleep (ACE_Time_Value (1, 0));
-    stream_2->stop (true, // wait ?
+    stream_2->stop (false, // wait ?
                     true); // locked access ?
 
     return;

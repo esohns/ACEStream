@@ -413,11 +413,11 @@ error:
         inherited::timerId_ = -1;
       } // end IF
 
-      MMRESULT result = waveInStop (context_);
+      MMRESULT result = waveInReset (context_);
       if (unlikely (result != MMSYSERR_NOERROR))
       { waveInGetErrorText (result, error_msg_a, BUFSIZ - 1);
         ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("%s: failed to waveInStop(): \"%s\", continuing\n"),
+                    ACE_TEXT ("%s: failed to waveInReset(): \"%s\", continuing\n"),
                     inherited::mod_->name (),
                     ACE_TEXT (error_msg_a)));
       } // end IF

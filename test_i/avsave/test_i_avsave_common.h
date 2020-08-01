@@ -156,10 +156,16 @@ struct Stream_AVSave_DirectShow_MessageData
   Stream_AVSave_DirectShow_MessageData ()
    : sample (NULL)
    , sampleTime (0)
+   , task (NULL)
+   , index (-1)
   {}
 
-  IMediaSample* sample;
-  double        sampleTime;
+  // video
+  IMediaSample*                sample;
+  double                       sampleTime;
+  // audio
+  Common_ISet_T<unsigned int>* task;
+  unsigned int                 index;
 };
 typedef Stream_DataBase_T<struct Stream_AVSave_DirectShow_MessageData> Stream_AvSave_DirectShow_MessageData_t;
 
@@ -168,10 +174,16 @@ struct Stream_AVSave_MediaFoundation_MessageData
   Stream_AVSave_MediaFoundation_MessageData ()
    : sample (NULL)
    , sampleTime (0)
+   , task (NULL)
+   , index (-1)
   {}
 
+  // video
   IMFSample* sample;
   LONGLONG   sampleTime;
+  // audio
+  Common_ISet_T<unsigned int>* task;
+  unsigned int                 index;
 };
 typedef Stream_DataBase_T<struct Stream_AVSave_MediaFoundation_MessageData> Stream_AvSave_MediaFoundation_MessageData_t;
 #else
@@ -233,9 +245,9 @@ class Stream_AVSave_DirectShow_SessionData
                                    struct Stream_AVSave_DirectShow_StreamState,
                                    struct Stream_AVSave_StatisticData,
                                    struct Stream_UserData> ()
-   , direct3DDevice (NULL)
-   , direct3DManagerResetToken (0)
-   , resetToken (0)
+   //, direct3DDevice (NULL)
+   //, direct3DManagerResetToken (0)
+   //, resetToken (0)
   {}
 
   Stream_AVSave_DirectShow_SessionData& operator+= (const Stream_AVSave_DirectShow_SessionData& rhs_in)
@@ -247,22 +259,22 @@ class Stream_AVSave_DirectShow_SessionData
                                   struct Stream_AVSave_StatisticData,
                                   struct Stream_UserData>::operator+= (rhs_in);
 
-    direct3DDevice = (direct3DDevice ? direct3DDevice : rhs_in.direct3DDevice);
-    direct3DManagerResetToken =
-      (direct3DManagerResetToken ? direct3DManagerResetToken
-                                 : rhs_in.direct3DManagerResetToken);
-    resetToken = (resetToken ? resetToken : rhs_in.resetToken);
+    //direct3DDevice = (direct3DDevice ? direct3DDevice : rhs_in.direct3DDevice);
+    //direct3DManagerResetToken =
+    //  (direct3DManagerResetToken ? direct3DManagerResetToken
+    //                             : rhs_in.direct3DManagerResetToken);
+    //resetToken = (resetToken ? resetToken : rhs_in.resetToken);
 
     return *this;
   }
 
-#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
-  IDirect3DDevice9Ex* direct3DDevice;
-#else
-  IDirect3DDevice9*   direct3DDevice;
-#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
-  UINT                direct3DManagerResetToken;
-  UINT                resetToken;
+//#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
+//  IDirect3DDevice9Ex* direct3DDevice;
+//#else
+//  IDirect3DDevice9*   direct3DDevice;
+//#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
+//  UINT                direct3DManagerResetToken;
+//  UINT                resetToken;
 
  private:
   //ACE_UNIMPLEMENTED_FUNC (Stream_AVSave_DirectShow_SessionData (const Stream_AVSave_DirectShow_SessionData&))
@@ -487,6 +499,7 @@ struct Stream_AVSave_DirectShow_ModuleHandlerConfiguration
   Stream_AVSave_DirectShow_ModuleHandlerConfiguration ()
    : Stream_AVSave_ModuleHandlerConfiguration ()
    , area ()
+   , audioInput (0)
    , builder (NULL)
    , direct3DConfiguration (NULL)
    , filterConfiguration (NULL)
@@ -545,6 +558,7 @@ struct Stream_AVSave_DirectShow_ModuleHandlerConfiguration
   }
 
   struct tagRECT                                        area;
+  UINT_PTR                                              audioInput;
   IGraphBuilder*                                        builder;
   struct Stream_MediaFramework_Direct3D_Configuration*  direct3DConfiguration;
   struct Stream_AVSave_DirectShow_FilterConfiguration* filterConfiguration;
@@ -1042,6 +1056,7 @@ struct Stream_AVSave_UI_CBData
   struct Stream_AVSave_ProgressData progressData;
 };
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
+class Stream_AVSave_WaveIn_Stream;
 class Stream_AVSave_DirectShow_Stream;
 struct Stream_AVSave_DirectShow_UI_CBData
  : Stream_AVSave_UI_CBData
@@ -1056,7 +1071,7 @@ struct Stream_AVSave_DirectShow_UI_CBData
   {}
 
   struct Stream_AVSave_DirectShow_Configuration* configuration;
-  Stream_AVSave_DirectShow_Stream*               audioStream;
+  Stream_AVSave_WaveIn_Stream*                   audioStream;
   Stream_AVSave_DirectShow_Stream*               videoStream;
   IAMStreamConfig*                               streamConfiguration;
   Stream_AVSave_DirectShow_Subscribers_t         subscribers;

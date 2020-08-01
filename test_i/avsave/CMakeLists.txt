@@ -392,7 +392,7 @@ elseif (WIN32)
  if (GUI_SUPPORT)
 	file (TO_NATIVE_PATH "${ui_definition_file}" ui_definition_file)
 	message (STATUS "ui_definition_file: ${ui_definition_file}")
-	string (REGEX REPLACE "\\\\" "/" ui_definition_file "${ui_definition_file}")
+	string (REGEX REPLACE "\\\\" "\\\\\\\\" ui_definition_file "${ui_definition_file}")
 	message (STATUS "ui_definition_file: ${ui_definition_file}")
   set (ARGS "-g.\\\\${ui_definition_file} ${ARGS}")
 
@@ -429,7 +429,7 @@ create_target_launcher (${EXECUTABLE}
                         ARGS ${ARGS}
 #                        FORWARD_ARGS
                         RUNTIME_LIBRARY_DIRS ${RUNTIME_LIBRARY_DIRS}
-                        WORKING_DIRECTORY ${PROJECT_BINARY_DIR}/../test_i/camsave
+                        WORKING_DIRECTORY ${PROJECT_BINARY_DIR}/../test_i/avsave
                         ENVIRONMENT ${ENVIRONMENT})
 
 ##########################################

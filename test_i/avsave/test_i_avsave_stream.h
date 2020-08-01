@@ -103,6 +103,7 @@ class Stream_AVSave_DirectShow_Stream
 
   // modules
   Stream_AVSave_DirectShow_Source_Module            source_;
+  Stream_AVSave_DirectShow_Video_Tagger_Module      tagger_;
   //Stream_AVSave_DirectShow_StatisticReport_Module   statisticReport_;
   //Stream_AVSave_DirectShow_Direct3DDisplay_Module   display_;
   //Stream_AVSave_DirectShow_DirectShowDisplay_Module directShowDisplay_;
@@ -189,6 +190,60 @@ class Stream_AVSave_MediaFoundation_Stream
   IMFMediaSession*                                                 mediaSession_;
 #endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
   ULONG                                                            referenceCount_;
+};
+
+class Stream_AVSave_WaveIn_Stream
+ : public Stream_Base_T<ACE_MT_SYNCH,
+                        Common_TimePolicy_t,
+                        stream_name_string_2,
+                        enum Stream_ControlType,
+                        enum Stream_SessionMessageType,
+                        enum Stream_StateMachine_ControlState,
+                        struct Stream_AVSave_DirectShow_StreamState,
+                        struct Stream_AVSave_DirectShow_StreamConfiguration,
+                        struct Stream_AVSave_StatisticData,
+                        struct Stream_AVSave_DirectShow_ModuleHandlerConfiguration,
+                        Stream_AVSave_DirectShow_SessionData,
+                        Stream_AVSave_DirectShow_SessionData_t,
+                        Stream_ControlMessage_t,
+                        Stream_AVSave_DirectShow_Message_t,
+                        Stream_AVSave_DirectShow_SessionMessage_t>
+{
+  typedef Stream_Base_T<ACE_MT_SYNCH,
+                        Common_TimePolicy_t,
+                        stream_name_string_2,
+                        enum Stream_ControlType,
+                        enum Stream_SessionMessageType,
+                        enum Stream_StateMachine_ControlState,
+                        struct Stream_AVSave_DirectShow_StreamState,
+                        struct Stream_AVSave_DirectShow_StreamConfiguration,
+                        struct Stream_AVSave_StatisticData,
+                        struct Stream_AVSave_DirectShow_ModuleHandlerConfiguration,
+                        Stream_AVSave_DirectShow_SessionData,
+                        Stream_AVSave_DirectShow_SessionData_t,
+                        Stream_ControlMessage_t,
+                        Stream_AVSave_DirectShow_Message_t,
+                        Stream_AVSave_DirectShow_SessionMessage_t> inherited;
+
+ public:
+  Stream_AVSave_WaveIn_Stream ();
+  virtual ~Stream_AVSave_WaveIn_Stream ();
+
+  // implement (part of) Stream_IStreamControlBase
+  virtual bool load (Stream_ILayout*, // i/o value: layout
+                     bool&);          // return value: delete modules ?
+
+  // implement Common_IInitialize_T
+  virtual bool initialize (const typename inherited::CONFIGURATION_T&); // configuration
+
+ private:
+  ACE_UNIMPLEMENTED_FUNC (Stream_AVSave_WaveIn_Stream (const Stream_AVSave_WaveIn_Stream&))
+  ACE_UNIMPLEMENTED_FUNC (Stream_AVSave_WaveIn_Stream& operator= (const Stream_AVSave_WaveIn_Stream&))
+
+  // modules
+  Stream_AVSave_WaveIn_Source_Module     source_;
+//  Stream_AVSave_StatisticReport_Module statisticReport_;
+  Stream_AVSave_WaveIn_Tagger_Module     tagger_;
 };
 #else
 class Stream_AVSave_V4L_Stream

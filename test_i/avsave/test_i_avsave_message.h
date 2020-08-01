@@ -90,11 +90,8 @@ class Stream_AVSave_Message_T
   // --> create a "shallow" copy that references the same packet
   // *NOTE*: uses the allocator (if any)
   virtual ACE_Message_Block* duplicate (void) const;
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-#else
   // insert this buffer back into the device incoming queue
   virtual ACE_Message_Block* release (void);
-#endif // ACE_WIN32 || ACE_WIN64
 
   // implement Stream_MessageBase_T
   inline virtual enum Stream_MediaType_Type command () const { return mediaType_; }

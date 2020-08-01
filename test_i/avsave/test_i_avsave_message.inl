@@ -129,6 +129,29 @@ Stream_AVSave_Message_T<DataType>::duplicate (void) const
 }
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
+template <typename DataType>
+ACE_Message_Block*
+Stream_AVSave_Message_T<DataType>::release (void)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_AVSave_Message_T::release"));
+
+  // release any continuations first
+  if (inherited::cont_)
+  {
+    inherited::cont_->release (); inherited::cont_ = NULL;
+  } // end IF
+
+  if ((inherited::data_.index == static_cast<unsigned int> (-1)) || // not a device data buffer (-clone)
+      !inherited::data_.task)           // clean up (device data)
+    return inherited::release ();
+
+  // sanity check(s)
+  ACE_ASSERT (inherited::data_block_);
+
+  inherited::data_.task->set (inherited::data_.index);
+
+  return NULL;
+}
 #else
 template <typename DataType>
 ACE_Message_Block*

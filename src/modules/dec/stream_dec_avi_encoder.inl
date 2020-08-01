@@ -798,7 +798,7 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
       struct AVCodec* codec_p = NULL;
       struct AVCodecContext* codec_context_p = NULL;
       struct AVStream* stream_p = NULL;
-      int flags = (SWS_FAST_BILINEAR | SWS_ACCURATE_RND);
+//      int flags = (SWS_FAST_BILINEAR | SWS_ACCURATE_RND);
       //                 SWS_LANCZOS | SWS_ACCURATE_RND);
 
       inherited2::getMediaType (media_type_s,

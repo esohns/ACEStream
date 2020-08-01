@@ -248,6 +248,7 @@ Stream_Decoder_LibAVEncoder_T<ACE_SYNCH_USE,
       codec_context_p = videoCodecContext_;
       frame_p = videoFrame_;
       frame_p->nb_samples = message_block_p->length () / videoFrameSize_;
+      ACE_ASSERT (frame_p->nb_samples == 1);
       frame_p->pts += frame_p->nb_samples;
       stream_p = videoStream_;
       break;
@@ -281,9 +282,8 @@ Stream_Decoder_LibAVEncoder_T<ACE_SYNCH_USE,
     while (result >= 0)
     {
       struct AVPacket packet_s = { 0 };
-
       result = avcodec_receive_packet (codec_context_p, &packet_s);
-      if (result == AVERROR(EAGAIN) || result == AVERROR_EOF)
+      if (result == AVERROR (EAGAIN) || result == AVERROR_EOF)
           break;
       else if (result < 0) {
         ACE_DEBUG ((LM_ERROR,
@@ -294,9 +294,9 @@ Stream_Decoder_LibAVEncoder_T<ACE_SYNCH_USE,
       } // end ELSE IF
 
       /* rescale output packet timestamp values from codec to stream timebase */
-      av_packet_rescale_ts(&packet_s,
-                           codec_context_p->time_base,
-                           stream_p->time_base);
+      av_packet_rescale_ts (&packet_s,
+                            codec_context_p->time_base,
+                            stream_p->time_base);
       packet_s.stream_index = stream_p->index;
 
       /* Write the frame to the media file. */
@@ -390,7 +390,7 @@ Stream_Decoder_LibAVEncoder_T<ACE_SYNCH_USE,
       } // end IF
 
       result = avio_open (&formatContext_->pb,
-                          ACE_TEXT_ALWAYS_CHAR ("/var/tmp/output.avi"),
+                          ACE_TEXT_ALWAYS_CHAR (session_data_r.targetFileName.c_str ()),
                           AVIO_FLAG_WRITE);
       if (unlikely (result < 0))
       {
@@ -451,7 +451,7 @@ audio:
       } // end IF
       formatContext_->audio_codec_id = formatContext_->oformat->audio_codec;
 
-      audioStream_ = avformat_new_stream (formatContext_, NULL);
+      audioStream_ = avformat_new_stream (formatContext_, formatContext_->audio_codec);
       if (!audioStream_)
       {
         ACE_DEBUG ((LM_ERROR,
@@ -537,7 +537,7 @@ video:
       } // end IF
       formatContext_->video_codec_id = formatContext_->oformat->video_codec;
 
-      videoStream_ = avformat_new_stream (formatContext_, NULL);
+      videoStream_ = avformat_new_stream (formatContext_, formatContext_->video_codec);
       if (!videoStream_)
       {
         ACE_DEBUG ((LM_ERROR,
@@ -569,8 +569,8 @@ video:
 
       videoStream_->time_base.num = 1;
       videoStream_->time_base.den = media_type_4.frameRate.num;
-//      videoCodecContext_->bit_rate =
-//          videoFrameSize_ * videoStream_->time_base.den * 8;
+      videoCodecContext_->bit_rate =
+          videoFrameSize_ * videoStream_->time_base.den * 8;
       /* Resolution must be a multiple of two. */
       videoCodecContext_->width    = videoFrame_->width;
       videoCodecContext_->height   = videoFrame_->height;

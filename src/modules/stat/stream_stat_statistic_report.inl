@@ -524,7 +524,7 @@ Stream_Statistic_StatisticReport_WriterTask_T<ACE_SYNCH_USE,
 
   ACE_UNUSED_ARG (interval_in);
 
-  int result = -1;
+//  int result = -1;
   SessionDataType* session_data_p = NULL;
 
   // sanity check(s)

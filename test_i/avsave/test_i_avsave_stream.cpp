@@ -47,6 +47,8 @@ Stream_AVSave_DirectShow_Stream::Stream_AVSave_DirectShow_Stream ()
  : inherited ()
  , source_ (this,
             ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_CAM_SOURCE_DIRECTSHOW_DEFAULT_NAME_STRING))
+ , tagger_ (this,
+            ACE_TEXT_ALWAYS_CHAR (STREAM_LIB_TAGGER_DEFAULT_NAME_STRING))
  //, statisticReport_ (this,
  //                    ACE_TEXT_ALWAYS_CHAR (MODULE_STAT_REPORT_DEFAULT_NAME_STRING))
  //, display_ (this,
@@ -94,6 +96,7 @@ Stream_AVSave_DirectShow_Stream::load (Stream_ILayout* layout_in,
   //         close()d
 
   layout_in->append (&source_, NULL, 0);
+  layout_in->append (&tagger_, NULL, 0);
   //layout_in->append (&statisticReport_, NULL, 0);
   //layout_in->append (&direct3DDisplay_, NULL, 0);
   //modules_out.push_back (&directShowDisplay_);
@@ -496,12 +499,12 @@ error:
   } // end IF
   if (session_data_p)
   {
-    if (session_data_p->direct3DDevice)
-    {
-      session_data_p->direct3DDevice->Release (); session_data_p->direct3DDevice = NULL;
-    } // end IF
+    //if (session_data_p->direct3DDevice)
+    //{
+    //  session_data_p->direct3DDevice->Release (); session_data_p->direct3DDevice = NULL;
+    //} // end IF
     Stream_MediaFramework_DirectShow_Tools::free (session_data_p->formats);
-    session_data_p->resetToken = 0;
+    //session_data_p->resetToken = 0;
   } // end IF
 
   if (COM_initialized)
@@ -1188,6 +1191,146 @@ error:
 
   if (COM_initialized)
     CoUninitialize ();
+
+  return false;
+}
+
+Stream_AVSave_WaveIn_Stream::Stream_AVSave_WaveIn_Stream ()
+ : inherited ()
+ , source_ (this,
+            ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_MIC_SOURCE_WAVEIN_DEFAULT_NAME_STRING))
+// , statisticReport_ (this,
+//                     ACE_TEXT_ALWAYS_CHAR (MODULE_STAT_REPORT_DEFAULT_NAME_STRING))
+ , tagger_ (this,
+            ACE_TEXT_ALWAYS_CHAR (STREAM_LIB_TAGGER_DEFAULT_NAME_STRING))
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_AVSave_WaveIn_Stream::Stream_AVSave_WaveIn_Stream"));
+
+}
+
+Stream_AVSave_WaveIn_Stream::~Stream_AVSave_WaveIn_Stream ()
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_AVSave_WaveIn_Stream::~Stream_AVSave_WaveIn_Stream"));
+
+  // *NOTE*: this implements an ordered shutdown on destruction...
+  inherited::shutdown ();
+}
+
+bool
+Stream_AVSave_WaveIn_Stream::load (Stream_ILayout* layout_in,
+                                   bool& delete_out)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_AVSave_WaveIn_Stream::load"));
+
+  // initialize return value(s)
+  delete_out = false;
+
+  // sanity check(s)
+//  ACE_ASSERT (layout_in->empty ());
+  ACE_ASSERT (configuration_);
+  //typename inherited::CONFIGURATION_T::ITERATOR_T iterator =
+  //    configuration_->find (ACE_TEXT_ALWAYS_CHAR (""));
+  //ACE_ASSERT (iterator != configuration_->end ());
+//  bool save_to_file_b = !(*iterator).second.second.targetFileName.empty ();
+
+  layout_in->append (&source_, NULL, 0);
+  layout_in->append (&tagger_, NULL, 0);
+  ACE_ASSERT (inherited::configuration_->configuration->module_2);
+  layout_in->append (inherited::configuration_->configuration->module_2, NULL, 0); // output is AVI
+
+  return true;
+}
+
+bool
+Stream_AVSave_WaveIn_Stream::initialize (const typename inherited::CONFIGURATION_T& configuration_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_AVSave_WaveIn_Stream::initialize"));
+
+  // sanity check(s)
+  ACE_ASSERT (!isRunning ());
+
+  bool setup_pipeline = configuration_in.configuration->setupPipeline;
+  bool reset_setup_pipeline = false;
+  Stream_AVSave_DirectShow_SessionData* session_data_p = NULL;
+  typename inherited::CONFIGURATION_T::ITERATOR_T iterator;
+  struct Stream_AVSave_DirectShow_ModuleHandlerConfiguration* configuration_p = NULL;
+  Stream_AVSave_WaveIn_Source* source_impl_p = NULL;
+
+  // allocate a new session state, reset stream
+  const_cast<typename inherited::CONFIGURATION_T&> (configuration_in).configuration->setupPipeline =
+    false;
+  reset_setup_pipeline = true;
+  if (!inherited::initialize (configuration_in))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s: failed to Stream_Base_T::initialize(), aborting\n"),
+                ACE_TEXT (stream_name_string_)));
+    goto error;
+  } // end IF
+  const_cast<typename inherited::CONFIGURATION_T&> (configuration_in).configuration->setupPipeline =
+    setup_pipeline;
+  reset_setup_pipeline = false;
+
+  // sanity check(s)
+  ACE_ASSERT (inherited::sessionData_);
+
+  session_data_p =
+    &const_cast<Stream_AVSave_DirectShow_SessionData&> (inherited::sessionData_->getR ());
+  iterator =
+      const_cast<typename inherited::CONFIGURATION_T&> (configuration_in).find (ACE_TEXT_ALWAYS_CHAR (""));
+
+  // sanity check(s)
+  ACE_ASSERT (iterator != configuration_in.end ());
+
+  configuration_p =
+      dynamic_cast<struct Stream_AVSave_DirectShow_ModuleHandlerConfiguration*> (&(*iterator).second.second);
+
+  // sanity check(s)
+  ACE_ASSERT (configuration_p);
+
+  // *TODO*: remove type inferences
+  ACE_ASSERT (session_data_p->formats.empty ());
+  session_data_p->formats.push_back (configuration_in.configuration->format);
+  session_data_p->targetFileName = configuration_p->targetFileName;
+
+  // ---------------------------------------------------------------------------
+
+  // ******************* Camera Source ************************
+  source_impl_p =
+    dynamic_cast<Stream_AVSave_WaveIn_Source*> (source_.writer ());
+  if (!source_impl_p)
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s: dynamic_cast<Strean_AVSave_WaveIn_Source> failed, aborting\n"),
+                ACE_TEXT (stream_name_string_)));
+    goto error;
+  } // end IF
+  source_impl_p->setP (&(inherited::state_));
+
+  // *NOTE*: push()ing the module will open() it
+  //         --> set the argument that is passed along (head module expects a
+  //             handle to the session data)
+  source_.arg (inherited::sessionData_);
+
+  if (configuration_in.configuration->setupPipeline)
+    if (!inherited::setup (NULL))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("%s: failed to set up pipeline, aborting\n"),
+                  ACE_TEXT (stream_name_string_)));
+      goto error;
+    } // end IF
+
+  // -------------------------------------------------------------
+
+  inherited::isInitialized_ = true;
+
+  return true;
+
+error:
+  if (reset_setup_pipeline)
+    const_cast<typename inherited::CONFIGURATION_T&> (configuration_in).configuration->setupPipeline =
+      setup_pipeline;
 
   return false;
 }
