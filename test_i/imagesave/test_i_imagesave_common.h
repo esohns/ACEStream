@@ -241,29 +241,29 @@ struct Test_I_ImageSave_ModuleHandlerConfiguration
    , direct3DConfiguration (NULL)
 //   , window (NULL)
 #else
-//   , window (None)
-//   , X11Display (NULL)
+   , display ()
+   , fullScreen (false)
+   , window (None)
+   , X11Display (NULL)
 #endif // ACE_WIN32 || ACE_WIN64
    , outputFormat ()
    , subscriber (NULL)
    , subscribers (NULL)
    , targetFileName ()
   {
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-    concurrency = STREAM_HEADMODULECONCURRENCY_CONCURRENT;
-#else
     concurrency = STREAM_HEADMODULECONCURRENCY_ACTIVE;
-#endif // ACE_WIN32 || ACE_WIN64
     hasHeader = true;
   }
 
   enum AVCodecID                                     codecId;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   struct Stream_MediaFramework_Direct3D_Configuration* direct3DConfiguration;
-//  HWND                           window;
+//  HWND                                               window;
 #else
-//  Window                         window;
-//  Display*                       X11Display;
+  struct Common_UI_DisplayDevice                     display;
+  bool                                               fullScreen;
+  Window                                             window;
+  Display*                                           X11Display;
 #endif // ACE_WIN32 || ACE_WIN64
   struct Stream_MediaFramework_FFMPEG_VideoMediaType outputFormat;
   Test_I_ISessionNotify_t*                           subscriber;
@@ -325,7 +325,9 @@ struct Test_I_ImageSave_Configuration
 #endif // GTK_USE
 #endif // GUI_SUPPORT
    , signalHandlerConfiguration ()
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
    , direct3DConfiguration ()
+#endif // ACE_WIN32 || ACE_WIN64
    , streamConfiguration ()
    , userData ()
   {}
@@ -333,7 +335,9 @@ struct Test_I_ImageSave_Configuration
   // **************************** signal data **********************************
   struct Test_I_SignalHandlerConfiguration            signalHandlerConfiguration;
   // **************************** stream data **********************************
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
   struct Stream_MediaFramework_Direct3D_Configuration direct3DConfiguration;
+#endif // ACE_WIN32 || ACE_WIN64
   Test_I_StreamConfiguration_t                        streamConfiguration;
 
   struct Stream_UserData                              userData;

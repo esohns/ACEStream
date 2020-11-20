@@ -151,14 +151,16 @@ stream_processing_function (void* arg_in)
   converter.clear ();
   converter.str (ACE_TEXT_ALWAYS_CHAR (""));
   Test_I_StreamConfiguration_t::ITERATOR_T iterator_2 =
-    const_cast<Test_I_StreamConfiguration_t::ITERATOR_T&> (cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR ("")));
+    cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (iterator_2 != cb_data_p->configuration->streamConfiguration.end ());
 
   // *NOTE*: let the display output module handle the Direct3D device
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
   if ((*iterator_2).second.second.direct3DConfiguration->handle)
   {
     (*iterator_2).second.second.direct3DConfiguration->handle->Release (); (*iterator_2).second.second.direct3DConfiguration->handle = NULL;
   } // end IF
+#endif // ACE_WIN32 || ACE_WIN64
 
   ACE_ASSERT (cb_data_p->stream);
   if (!cb_data_p->stream->initialize (cb_data_p->configuration->streamConfiguration))
@@ -306,14 +308,14 @@ idle_initialize_UI_cb (gpointer userData_in)
     GTK_FILE_FILTER (gtk_builder_get_object ((*iterator).second.second,
                                              ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_FILEFILTER_MP4_NAME)));
   ACE_ASSERT (file_filter_p);
+//  gtk_file_filter_add_mime_type (file_filter_p,
+//                                 ACE_TEXT ("application/x-troff-msvideo"));
   gtk_file_filter_add_mime_type (file_filter_p,
-                                 ACE_TEXT ("application/x-troff-msvideo"));
-  gtk_file_filter_add_mime_type (file_filter_p,
-                                 ACE_TEXT ("video/avi"));
-  gtk_file_filter_add_mime_type (file_filter_p,
-                                 ACE_TEXT ("video/msvideo"));
-  gtk_file_filter_add_mime_type (file_filter_p,
-                                 ACE_TEXT ("video/x-msvideo"));
+                                 ACE_TEXT ("video/mp4"));
+//  gtk_file_filter_add_mime_type (file_filter_p,
+//                                 ACE_TEXT ("video/msvideo"));
+//  gtk_file_filter_add_mime_type (file_filter_p,
+//                                 ACE_TEXT ("video/x-msvideo"));
   gtk_file_filter_add_pattern (file_filter_p,
                                ACE_TEXT ("*.mp4"));
   gtk_file_filter_set_name (file_filter_p,
@@ -327,16 +329,20 @@ idle_initialize_UI_cb (gpointer userData_in)
   //bool is_display_b = false, is_fullscreen_b = false;
   unsigned int buffer_size_i = 0;
   Test_I_StreamConfiguration_t::ITERATOR_T stream_iterator;
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
   Test_I_StreamConfiguration_t::ITERATOR_T stream_iterator_2;
+#endif // ACE_WIN32 || ACE_WIN64
   cb_data_p =
     static_cast<struct Test_I_ImageSave_UI_CBData*> (cb_data_p);
   ACE_ASSERT (cb_data_p->configuration);
   stream_iterator =
     cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (stream_iterator != cb_data_p->configuration->streamConfiguration.end ());
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
   stream_iterator_2 =
     cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_DIRECT3D_DEFAULT_NAME_STRING));
   ACE_ASSERT (stream_iterator_2 != cb_data_p->configuration->streamConfiguration.end ());
+#endif // ACE_WIN32 || ACE_WIN64
 
   //format_s =
   //  cb_data_p->configuration->streamConfiguration.configuration->format.format;
@@ -348,6 +354,19 @@ idle_initialize_UI_cb (gpointer userData_in)
   std::string file_uri =
     ACE_TEXT_ALWAYS_CHAR ("file://") +
     (filename_string.empty () ? Common_File_Tools::getTempDirectory () : filename_string);
+  if (!gtk_file_chooser_set_current_folder_uri (GTK_FILE_CHOOSER (file_chooser_button_p),
+                                                file_uri.c_str ()))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to gtk_file_chooser_set_current_folder_uri (\"%s\"): \"%s\", aborting\n"),
+                ACE_TEXT (file_uri.c_str ())));
+    return G_SOURCE_REMOVE;
+  } // end IF
+
+  file_chooser_button_p =
+      GTK_FILE_CHOOSER_BUTTON (gtk_builder_get_object ((*iterator).second.second,
+                                                       ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_FILECHOOSERBUTTON_TARGET_NAME)));
+  ACE_ASSERT (file_chooser_button_p);
   if (!gtk_file_chooser_set_current_folder_uri (GTK_FILE_CHOOSER (file_chooser_button_p),
                                                 file_uri.c_str ()))
   {
@@ -540,6 +559,7 @@ idle_initialize_UI_cb (gpointer userData_in)
   //ACE_ASSERT (!(*stream_iterator).second.second.window);
   //ACE_ASSERT (!cb_data_p->configuration->direct3DConfiguration.presentationParameters.hDeviceWindow);
   //ACE_ASSERT (!cb_data_p->configuration->direct3DConfiguration.focusWindow);
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
   ACE_ASSERT (gdk_win32_window_is_win32 (window_p));
   //(*stream_iterator).second.second.window =
   //  gdk_win32_window_get_impl_hwnd (window_p);
@@ -547,6 +567,7 @@ idle_initialize_UI_cb (gpointer userData_in)
     NULL;
   cb_data_p->configuration->direct3DConfiguration.presentationParameters.hDeviceWindow =
     gdk_win32_window_get_impl_hwnd (window_p);
+#endif // ACE_WIN32 || ACE_WIN64
 
   //(*stream_iterator).second.second.area.bottom =
   //  allocation.y + allocation.height;
@@ -558,6 +579,7 @@ idle_initialize_UI_cb (gpointer userData_in)
   //(*stream_iterator).second.second.pixelBuffer =
   //  cb_data_p->pixelBuffer;
 
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
   ACE_ASSERT (IsWindow (cb_data_p->configuration->direct3DConfiguration.presentationParameters.hDeviceWindow));
 #if defined (_DEBUG)
   ACE_DEBUG ((LM_DEBUG,
@@ -565,6 +587,7 @@ idle_initialize_UI_cb (gpointer userData_in)
               cb_data_p->configuration->direct3DConfiguration.presentationParameters.hDeviceWindow,
               allocation.width, allocation.height));
 #endif // _DEBUG
+#endif // ACE_WIN32 || ACE_WIN64
 
 #if GTK_CHECK_VERSION(2,30,0)
   GValue value = G_VALUE_INIT;
@@ -1176,6 +1199,7 @@ togglebutton_process_toggled_cb (GtkToggleButton* toggleButton_in,
     GTK_FILE_CHOOSER_BUTTON (gtk_builder_get_object ((*iterator).second.second,
                                                      ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_FILECHOOSERBUTTON_TARGET_NAME)));
   ACE_ASSERT (file_chooser_button_p);
+  ACE_ASSERT (gtk_file_chooser_get_current_folder (GTK_FILE_CHOOSER (file_chooser_button_p)));
   filename_string =
     gtk_file_chooser_get_current_folder (GTK_FILE_CHOOSER (file_chooser_button_p));
   ACE_ASSERT (Common_File_Tools::isDirectory (filename_string));
@@ -1548,9 +1572,6 @@ combobox_format_changed_cb (GtkWidget* widget_in,
     GTK_LIST_STORE (gtk_builder_get_object ((*iterator).second.second,
                                             ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_LISTSTORE_RESOLUTION_NAME)));
   ACE_ASSERT (list_store_p);
-
-  bool result = false;
-  HRESULT result_2 = E_FAIL;
 } // combobox_format_changed_cb
 
 void
@@ -1658,8 +1679,14 @@ combobox_resolution_changed_cb (GtkWidget* widget_in,
   unsigned int height = g_value_get_uint (&value_2);
   g_value_unset (&value_2);
   Common_Image_Resolution_t resolution_s;
+
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
   resolution_s.cx = width;
   resolution_s.cy = height;
+#else
+  resolution_s.width = width;
+  resolution_s.height = height;
+#endif // ACE_WIN32 || ACE_WIN64
 } // combobox_resolution_changed_cb
 
 void

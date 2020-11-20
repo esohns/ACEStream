@@ -223,6 +223,8 @@ add_dependencies (${PROJECT_NAME}_MediaFramework ${PROJECT_NAME})
 
 if (UNIX)
  target_link_libraries (${PROJECT_NAME}_MediaFramework X11)
+
+ target_link_libraries (${PROJECT_NAME}_MediaFramework ${PROJECT_NAME}_Device)
 elseif (WIN32)
  if (DEFINED ENV{DXSDK_DIR})
   target_link_libraries (${PROJECT_NAME}_MediaFramework $ENV{DXSDK_DIR}/Lib/x86/D3dx9.lib)

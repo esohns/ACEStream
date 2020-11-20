@@ -301,9 +301,9 @@ add_subdirectory (mp3player)
 add_custom_target (test_i ALL
                    COMMENT "building test_i...")
 if (UNIX)
- add_dependencies (test_i avsave camsave camsource camtarget filesource filetarget HTTP_get_1 HTTP_get_2 mp3player)
+ add_dependencies (test_i avsave camsave camsource camtarget filesource filetarget HTTP_get_1 HTTP_get_2 imagesave mp3player)
 elseif (WIN32)
- add_dependencies (test_i avsave camsave camsource camtarget camtarget_source camtarget_source_mf filesource filetarget HTTP_get_1 HTTP_get_2 mp3player)
+ add_dependencies (test_i avsave camsave camsource camtarget camtarget_source camtarget_source_mf filesource filetarget HTTP_get_1 HTTP_get_2 imagesave mp3player)
 endif ()
 
 cmake_policy (SET CMP0012 NEW)

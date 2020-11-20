@@ -31,6 +31,7 @@
 
 #include "stream_dev_tools.h"
 #endif // ACE_WIN32 || ACE_WIN64
+#include "stream_file_defines.h"
 
 #include "stream_stat_defines.h"
 
@@ -45,8 +46,13 @@ Test_I_Stream::Test_I_Stream ()
               ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_LIBAV_DECODER_DEFAULT_NAME_STRING))
   //, report_ (this,
  //           ACE_TEXT_ALWAYS_CHAR (MODULE_STAT_REPORT_DEFAULT_NAME_STRING))
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
  , display_ (this,
              ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_DIRECT3D_DEFAULT_NAME_STRING))
+#else
+ , display_ (this,
+             ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_X11_WINDOW_DEFAULT_NAME_STRING))
+#endif // ACE_WIN32 || ACE_WIN64
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_Stream::Test_I_Stream"));
 
@@ -105,23 +111,27 @@ Test_I_Stream::initialize (const inherited::CONFIGURATION_T& configuration_in)
   Test_I_ImageSave_SessionData* session_data_p = NULL;
   inherited::CONFIGURATION_T::ITERATOR_T iterator, iterator_2;
   Test_I_Source* source_impl_p = NULL;
-  ULONG reference_count = 0;
   std::string log_file_name;
   struct Stream_MediaFramework_FFMPEG_VideoMediaType media_type_s;
 
   iterator =
     const_cast<inherited::CONFIGURATION_T&> (configuration_in).find (ACE_TEXT_ALWAYS_CHAR (""));
+  // sanity check(s)
+  ACE_ASSERT (iterator != const_cast<inherited::CONFIGURATION_T&> (configuration_in).end ());
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
   iterator_2 =
     const_cast<inherited::CONFIGURATION_T&> (configuration_in).find (ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_DIRECT3D_DEFAULT_NAME_STRING));
   // sanity check(s)
-  ACE_ASSERT (iterator != const_cast<inherited::CONFIGURATION_T&> (configuration_in).end ());
   ACE_ASSERT (iterator_2 != const_cast<inherited::CONFIGURATION_T&> (configuration_in).end ());
+#endif // ACE_WIN32 || ACE_WIN64
 
   // ---------------------------------------------------------------------------
 
   // ---------------------------------------------------------------------------
   // step2: update stream module configuration(s)
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
   (*iterator_2).second.second = (*iterator).second.second;
+#endif // ACE_WIN32 || ACE_WIN64
 
   // ---------------------------------------------------------------------------
   // step3: allocate a new session state, reset stream

@@ -471,8 +471,10 @@ do_work (
     &allocator_configuration;
   modulehandler_configuration.concurrency = STREAM_HEADMODULECONCURRENCY_ACTIVE;
   modulehandler_configuration.codecId = AV_CODEC_ID_H264;
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
   modulehandler_configuration.direct3DConfiguration =
     &configuration_in.direct3DConfiguration;
+#endif // ACE_WIN32 || ACE_WIN64
   modulehandler_configuration.fileIdentifier.identifier = sourceFilename_in;
   modulehandler_configuration.lock = &state_r.subscribersLock;
   modulehandler_configuration.subscriber = &ui_event_handler;
@@ -507,17 +509,23 @@ do_work (
   configuration_in.streamConfiguration.initialize (module_configuration,
                                                    modulehandler_configuration,
                                                    stream_configuration);
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
   configuration_in.streamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_DIRECT3D_DEFAULT_NAME_STRING),
                                                                std::make_pair (module_configuration,
                                                                                modulehandler_configuration)));
+#endif // ACE_WIN32 || ACE_WIN64
   stream_iterator =
     configuration_in.streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (stream_iterator != configuration_in.streamConfiguration.end ());
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
   stream_iterator_2 =
     configuration_in.streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_DIRECT3D_DEFAULT_NAME_STRING));
   ACE_ASSERT (stream_iterator_2 != configuration_in.streamConfiguration.end ());
+#endif // ACE_WIN32 || ACE_WIN64
 
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
   HWND window_handle = NULL;
+#endif // ACE_WIN32 || ACE_WIN64
   //if ((*iterator).second.second.window)
   //{
   //  ACE_ASSERT (gdk_win32_window_is_win32 ((*iterator).second.second.window));
@@ -527,9 +535,16 @@ do_work (
   //    static_cast<HWND> (GDK_WINDOW_HWND ((*iterator).second.second.window));
   //} // end IF
   (*stream_iterator).second.second.outputFormat.format = AV_PIX_FMT_RGB32;
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
   (*stream_iterator).second.second.outputFormat.resolution.cx = 1920;
   (*stream_iterator).second.second.outputFormat.resolution.cy = 1080;
+#else
+  (*stream_iterator).second.second.outputFormat.resolution.width = 1920;
+  (*stream_iterator).second.second.outputFormat.resolution.height = 1080;
+#endif // ACE_WIN32 || ACE_WIN64
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
   (*stream_iterator_2).second.second.outputFormat = (*stream_iterator).second.second.outputFormat;
+#endif // ACE_WIN32 || ACE_WIN64
   configuration_in.streamConfiguration.configuration->format =
     (*stream_iterator).second.second.outputFormat;
 
@@ -540,6 +555,7 @@ do_work (
   //  Stream_MediaFramework_DirectDraw_Tools::getDisplayMode (directShowConfiguration_in.direct3DConfiguration.adapter,
   //                                                          STREAM_LIB_DIRECTDRAW_3D_DEFAULT_FORMAT,
   //                                                          resolution_s);
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
   ACE_ASSERT (!configuration_in.direct3DConfiguration.presentationParameters.hDeviceWindow);
   //directShowConfiguration_in.direct3DConfiguration.focusWindow =
   //    GetConsoleWindow ();
@@ -564,6 +580,7 @@ do_work (
     direct3D_manager_p->Release (); direct3D_manager_p = NULL;
     reset_token = 0;
   } // end ELSE
+#endif // ACE_WIN32 || ACE_WIN64
 #endif // GUI_SUPPORT
 
   struct Common_TimerConfiguration timer_configuration;
