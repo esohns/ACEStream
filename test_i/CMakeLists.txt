@@ -295,6 +295,7 @@ add_subdirectory (camstream)
 add_subdirectory (filestream)
 add_subdirectory (http_get)
 add_subdirectory (http_get_2)
+add_subdirectory (imagesave)
 add_subdirectory (mp3player)
 
 add_custom_target (test_i ALL

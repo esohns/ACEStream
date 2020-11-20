@@ -333,6 +333,6 @@ Stream_Visualization_OpenGL_GLUT_T<ACE_SYNCH_USE,
     // *TODO*
   } while (true);
 
-done:
+//done:
   return result_2;
 }

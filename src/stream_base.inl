@@ -859,7 +859,7 @@ Stream_Base_T<ACE_SYNCH_USE,
     return;
   }
 
-wait:
+//wait:
   if (wait_in)
     wait (true,   // wait for any worker thread(s) ?
           false,  // wait for upstream (if any) ?

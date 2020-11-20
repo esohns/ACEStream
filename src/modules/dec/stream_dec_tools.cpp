@@ -612,6 +612,9 @@ Stream_Module_Decoder_Tools::AVPixelFormatToMediaSubType (enum AVPixelFormat pix
 
   switch (pixelFormat_in)
   {
+    case AV_PIX_FMT_NONE:
+      //return MEDIASUBTYPE_None;
+      return GUID_NULL;
     case AV_PIX_FMT_MONOBLACK:
       return MEDIASUBTYPE_RGB1;
     case AV_PIX_FMT_RGB4:

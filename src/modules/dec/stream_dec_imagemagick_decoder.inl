@@ -139,7 +139,7 @@ Stream_Decoder_ImageMagick_Decoder_T<ACE_SYNCH_USE,
     ACE_DEBUG ((LM_WARNING,
                 ACE_TEXT ("%s: no output format specified, using default\n"),
                 inherited::mod_->name ()));
-    outputFormat_.format == AV_PIX_FMT_RGB24;
+    outputFormat_.format = AV_PIX_FMT_RGB24;
   } // end IF
 //  ACE_ASSERT (outputFormat_.format == AV_PIX_FMT_RGB24);
 

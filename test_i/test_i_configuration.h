@@ -42,18 +42,7 @@
 #include "stream_lib_defines.h"
 
 #include "test_i_common.h"
-//#include "test_i_connection_common.h"
 #include "test_i_defines.h"
-
-//struct Test_I_AllocatorConfiguration
-// : Stream_AllocatorConfiguration
-//{
-//  Test_I_AllocatorConfiguration ()
-//   : Stream_AllocatorConfiguration ()
-//  {
-//    defaultBufferSize = TEST_I_DEFAULT_BUFFER_SIZE;
-//  }
-//};
 
 struct Test_I_ModuleHandlerConfiguration
  : Stream_ModuleHandlerConfiguration

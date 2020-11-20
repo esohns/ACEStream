@@ -184,7 +184,7 @@ Test_U_AudioEffect_DirectShow_Stream::initialize (const inherited::CONFIGURATION
 
   // ---------------------------------------------------------------------------
 
-  struct _AllocatorProperties allocator_properties;
+  //struct _AllocatorProperties allocator_properties;
   IAMBufferNegotiation* buffer_negotiation_p = NULL;
   //bool COM_initialized = false;
   bool release_builder = false;

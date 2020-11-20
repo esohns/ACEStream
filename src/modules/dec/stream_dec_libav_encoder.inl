@@ -374,8 +374,6 @@ Stream_Decoder_LibAVEncoder_T<ACE_SYNCH_USE,
       ACE_ASSERT (output_format_p);
       output_format_p->audio_codec = AV_CODEC_ID_PCM_S16LE;
       output_format_p->video_codec = AV_CODEC_ID_RAWVIDEO;
-//      output_format_p->codec_tag = 0;
-
       result =
           avformat_alloc_output_context2 (&formatContext_,
                                           output_format_p,

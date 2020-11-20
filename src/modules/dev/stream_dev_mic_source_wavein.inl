@@ -259,7 +259,6 @@ Stream_Dev_Mic_Source_WaveIn_T<ACE_SYNCH_USE,
       WAVEINCAPS   capabilities_s;
       WAVEFORMATEX wave_format_ex_s;
       ACE_OS::memset (&wave_format_ex_s, 0, sizeof (WAVEFORMATEX));
-      UINT         device_id_i;
       MMRESULT     result;
       UINT         num_devices_i = waveInGetNumDevs ();
 

@@ -259,7 +259,8 @@ Stream_Module_FileReaderH_T<ACE_SYNCH_USE,
 
 next:
   file_path_string = inherited::configuration_->fileIdentifier.identifier;
-  if (directory_.length ())
+  if ((inherited::configuration_->fileIdentifier.identifierDiscriminator == Common_File_Identifier::DIRECTORY) &&
+      directory_.length ())
   {
     file_path_string += ACE_DIRECTORY_SEPARATOR_STR;
     file_path_string += directory_[file_index_i++]->d_name;

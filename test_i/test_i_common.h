@@ -167,7 +167,7 @@ class Test_I_DirectShow_SessionData
   }
 
   struct Net_ConnectionState* connectionState;
-  std::string                    targetFileName;
+  std::string                 targetFileName;
 };
 typedef Stream_SessionData_T<Test_I_DirectShow_SessionData> Test_I_DirectShow_SessionData_t;
 

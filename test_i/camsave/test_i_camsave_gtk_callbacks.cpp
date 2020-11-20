@@ -2683,7 +2683,7 @@ idle_initialize_UI_cb (gpointer userData_in)
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
     { ACE_ASSERT (!(*directshow_stream_iterator).second.second.window);
-      ACE_ASSERT (!directshow_cb_data_p->configuration->direct3DConfiguration.presentationParameters.hDeviceWindow);
+      //ACE_ASSERT (!directshow_cb_data_p->configuration->direct3DConfiguration.presentationParameters.hDeviceWindow);
       //ACE_ASSERT (!directshow_cb_data_p->configuration->direct3DConfiguration.focusWindow);
       ACE_ASSERT (gdk_win32_window_is_win32 (window_p));
       (*directshow_stream_iterator).second.second.window =

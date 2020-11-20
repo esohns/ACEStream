@@ -725,7 +725,7 @@ Stream_Visualization_ImageMagickResize1_T<ACE_SYNCH_USE,
 
       break;
 
-error:
+//error:
       this->notify (STREAM_SESSION_MESSAGE_ABORT);
 
       break;

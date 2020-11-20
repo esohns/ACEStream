@@ -4456,7 +4456,7 @@ Stream_MediaFramework_DirectShow_Tools::to (const struct Stream_MediaFramework_F
   video_info_header_p->bmiHeader.biPlanes = 1;
   video_info_header_p->bmiHeader.biBitCount =
     Stream_MediaFramework_Tools::toBitCount (result_p->subtype);
-  ACE_ASSERT (video_info_header_p->bmiHeader.biBitCount);
+  //ACE_ASSERT (video_info_header_p->bmiHeader.biBitCount);
   video_info_header_p->bmiHeader.biCompression = BI_RGB;
   video_info_header_p->bmiHeader.biSizeImage =
     DIBSIZE (video_info_header_p->bmiHeader);
