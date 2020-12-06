@@ -57,8 +57,8 @@ Stream_AVSave_DirectShow_Stream::Stream_AVSave_DirectShow_Stream ()
  //                      ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_DIRECTSHOW_DEFAULT_NAME_STRING))
  //, GTKCairoDisplay_ (this,
  //                    ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_GTK_CAIRO_DEFAULT_NAME_STRING))
- , encoder_ (this,
-             ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_LIBAV_ENCODER_DEFAULT_NAME_STRING))
+ //, encoder_ (this,
+ //            ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_LIBAV_ENCODER_DEFAULT_NAME_STRING))
 {
   STREAM_TRACE (ACE_TEXT ("Stream_AVSave_DirectShow_Stream::Stream_AVSave_DirectShow_Stream"));
 
@@ -101,7 +101,9 @@ Stream_AVSave_DirectShow_Stream::load (Stream_ILayout* layout_in,
   //layout_in->append (&direct3DDisplay_, NULL, 0);
   //modules_out.push_back (&directShowDisplay_);
   //modules_out.push_back (&GTKCairoDisplay_);
-  layout_in->append (&encoder_, NULL, 0);
+  //layout_in->append (&encoder_, NULL, 0);
+  ACE_ASSERT (inherited::configuration_->configuration->module_2);
+  layout_in->append (inherited::configuration_->configuration->module_2, NULL, 0); // output is AVI
 
   return true;
 }

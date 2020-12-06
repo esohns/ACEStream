@@ -560,7 +560,8 @@ Stream_Dev_Mic_Source_WaveIn_T<ACE_SYNCH_USE,
 
   char         error_msg_a[BUFSIZ];
 
-  CBData_.buffers[index_in]->reset ();
+  if (CBData_.buffers[index_in]) // *NOTE*: stream may have already finished
+    CBData_.buffers[index_in]->reset ();
   MMRESULT result = waveInAddBuffer (context_,
                                      &bufferHeaders_[index_in],
                                      sizeof (struct wavehdr_tag));

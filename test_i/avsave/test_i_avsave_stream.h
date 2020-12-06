@@ -108,7 +108,7 @@ class Stream_AVSave_DirectShow_Stream
   //Stream_AVSave_DirectShow_Direct3DDisplay_Module   display_;
   //Stream_AVSave_DirectShow_DirectShowDisplay_Module directShowDisplay_;
   //Stream_AVSave_DirectShow_GTKCairoDisplay_Module   GTKCairoDisplay_;
-  Stream_AVSave_DirectShow_Encoder_Module           encoder_;
+  //Stream_AVSave_DirectShow_Encoder_Module           encoder_;
 };
 
 class Stream_AVSave_MediaFoundation_Stream

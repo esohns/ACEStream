@@ -567,6 +567,9 @@ video:
 
       videoStream_->time_base.num = 1;
       videoStream_->time_base.den = media_type_4.frameRate.num;
+      videoStream_->avg_frame_rate.num = media_type_4.frameRate.num;
+      videoStream_->avg_frame_rate.den = media_type_4.frameRate.den;
+
       videoCodecContext_->bit_rate =
           videoFrameSize_ * videoStream_->time_base.den * 8;
       /* Resolution must be a multiple of two. */
@@ -577,18 +580,6 @@ video:
        * timebase should be 1/framerate and timestamp increments should be
        * identical to 1. */
       videoCodecContext_->time_base          = videoStream_->time_base;
-
-//      c->gop_size      = 12; /* emit one intra frame every twelve frames at most */
-//      if (c->codec_id == AV_CODEC_ID_MPEG2VIDEO) {
-//          /* just for testing, we also add B-frames */
-//          c->max_b_frames = 2;
-//      }
-//      if (c->codec_id == AV_CODEC_ID_MPEG1VIDEO) {
-//          /* Needed to avoid using macroblocks in which some coeffs overflow.
-//           * This does not happen with normal video, it just happens here as
-//           * the motion of the chroma plane does not match the luma plane. */
-//          c->mb_decision = 2;
-//      }
 
       result = avcodec_open2 (videoCodecContext_,
                               videoCodecContext_->codec,
