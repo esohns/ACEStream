@@ -104,8 +104,6 @@ Stream_Decoder_LibAVEncoder_T<ACE_SYNCH_USE,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Decoder_LibAVEncoder_T::~Stream_Decoder_LibAVEncoder_T"));
 
-  int result = -1;
-
   if (formatContext_)
     avformat_free_context (formatContext_);
 
@@ -141,7 +139,7 @@ Stream_Decoder_LibAVEncoder_T<ACE_SYNCH_USE,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Decoder_LibAVEncoder_T::initialize"));
 
-  int result = -1;
+//  int result = -1;
 
   if (inherited::isInitialized_)
   {
@@ -230,7 +228,7 @@ Stream_Decoder_LibAVEncoder_T<ACE_SYNCH_USE,
   AVCodecContext* codec_context_p = NULL;
   AVFrame* frame_p = NULL;
   AVStream* stream_p = NULL;
-  unsigned int stream_frame_size_i = 0;
+//  unsigned int stream_frame_size_i = 0;
 
   switch (message_inout->getMediaType ())
   {

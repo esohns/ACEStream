@@ -105,7 +105,6 @@ Test_I_Stream::initialize (const inherited::CONFIGURATION_T& configuration_in)
   // sanity check(s)
   ACE_ASSERT (!isRunning ());
 
-  bool result = false;
   bool setup_pipeline = configuration_in.configuration->setupPipeline;
   bool reset_setup_pipeline = false;
   Test_I_ImageSave_SessionData* session_data_p = NULL;

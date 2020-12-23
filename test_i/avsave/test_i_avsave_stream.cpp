@@ -1397,7 +1397,7 @@ Stream_AVSave_V4L_Stream::load (Stream_ILayout* layout_in,
   typename inherited::CONFIGURATION_T::ITERATOR_T iterator =
       inherited::configuration_->find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (iterator != configuration_->end ());
-  bool save_to_file_b = !(*iterator).second.second.targetFileName.empty ();
+//  bool save_to_file_b = !(*iterator).second.second.targetFileName.empty ();
 //  typename inherited::CONFIGURATION_T::ITERATOR_T iterator_2 =
 //      configuration_->find (Stream_Visualization_Tools::rendererToModuleName (STREAM_VISUALIZATION_VIDEORENDERER_X11));
 //  ACE_ASSERT (iterator_2 != configuration_->end ());

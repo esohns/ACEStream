@@ -75,7 +75,7 @@ Test_U_RIFFDecoder_Stream::initialize (const inherited::CONFIGURATION_T& configu
 //  bool result = false;
   bool setup_pipeline = configuration_in.configuration->setupPipeline;
   bool reset_setup_pipeline = false;
-  struct Test_U_RIFFDecoder_SessionData* session_data_p = NULL;
+//  struct Test_U_RIFFDecoder_SessionData* session_data_p = NULL;
   Test_U_RIFFDecoder_Module_Source* source_impl_p = NULL;
 
   // allocate a new session state, reset stream
@@ -93,8 +93,8 @@ Test_U_RIFFDecoder_Stream::initialize (const inherited::CONFIGURATION_T& configu
     setup_pipeline;
   reset_setup_pipeline = false;
   ACE_ASSERT (inherited::sessionData_);
-  session_data_p =
-    &const_cast<struct Test_U_RIFFDecoder_SessionData&> (inherited::sessionData_->getR ());
+//  session_data_p =
+//    &const_cast<struct Test_U_RIFFDecoder_SessionData&> (inherited::sessionData_->getR ());
 
   // things to be done here:
   // [- initialize base class]

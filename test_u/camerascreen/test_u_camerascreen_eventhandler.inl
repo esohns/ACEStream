@@ -119,13 +119,13 @@ Stream_CameraScreen_EventHandler_T<NotificationType,
 
   ACE_UNUSED_ARG (sessionId_in);
 
-  int result = -1;
+//  int result = -1;
   enum Common_UI_EventType event_e = COMMON_UI_EVENT_INVALID;
   switch (sessionMessage_in.type ())
   {
     case STREAM_SESSION_MESSAGE_STATISTIC:
     {
-      float current_bytes = 0.0F;
+//      float current_bytes = 0.0F;
 
       // sanity check(s)
       if (!sessionData_)

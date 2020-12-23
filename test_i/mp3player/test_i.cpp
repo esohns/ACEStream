@@ -379,7 +379,7 @@ do_work (unsigned int bufferSize_in,
   Stream_StatisticHandler_t statistic_handler (COMMON_STATISTIC_ACTION_REPORT,
                                                &stream,
                                                false);
-  long timer_id = -1;
+//  long timer_id = -1;
   //if (statisticReportingInterval_in)
   //{
   //  ACE_Time_Value interval (statisticReportingInterval_in, 0);

@@ -1148,7 +1148,7 @@ togglebutton_process_toggled_cb (GtkToggleButton* toggleButton_in,
     return;
   } // end IF
 
-  GtkButton* button_p = NULL;
+//  GtkButton* button_p = NULL;
   GtkFrame* frame_p = NULL;
 
   // --> user pressed process
@@ -1165,7 +1165,7 @@ togglebutton_process_toggled_cb (GtkToggleButton* toggleButton_in,
 
 //  GtkSpinButton* spin_button_p = NULL;
 //  unsigned int buffer_size_i = 0;
-  gdouble value_d = 0.0;
+//  gdouble value_d = 0.0;
 
   // step0: modify widgets
   gtk_button_set_label (GTK_BUTTON (toggleButton_in),

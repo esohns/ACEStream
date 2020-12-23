@@ -47,10 +47,10 @@ Stream_Miscellaneous_Distributor_T<ACE_SYNCH_USE,
  : inherited (stream_in)
 // , lock_ ()
  , branches_ ()
- , data_ ()
  , heads_ ()
  , modules_ ()
  , queues_ ()
+ , data_ ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Miscellaneous_Distributor_T::Stream_Miscellaneous_Distributor_T"));
 

@@ -150,7 +150,7 @@ Stream_Module_QueueReader_T<ACE_SYNCH_USE,
   {
     case STREAM_SESSION_MESSAGE_BEGIN:
     {
-      int result = inherited::activate ();
+      result = inherited::activate ();
       if (result == -1)
       {
         ACE_DEBUG ((LM_ERROR,

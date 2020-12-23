@@ -152,7 +152,7 @@ Parser_EventHandler::notify (Stream_SessionId_t sessionId_in,
 //  ACE_ASSERT (CBData_);
 //#endif // GUI_SUPPORT
 
-  int result = -1;
+//  int result = -1;
   enum Common_UI_EventType event_e = COMMON_UI_EVENT_SESSION;
 //#if defined (GUI_SUPPORT)
 //#if defined (GTK_USE)
@@ -175,10 +175,10 @@ Parser_EventHandler::notify (Stream_SessionId_t sessionId_in,
       //event_e = COMMON_UI_EVENT_CONTROL; break;
     case STREAM_SESSION_MESSAGE_STATISTIC:
     {
-      const Parser_SessionData_t& session_data_container_r =
-        message_in.getR ();
-      struct Parser_SessionData& session_data_r =
-        const_cast<struct Parser_SessionData&> (session_data_container_r.getR ());
+//      const Parser_SessionData_t& session_data_container_r =
+//        message_in.getR ();
+//      struct Parser_SessionData& session_data_r =
+//        const_cast<struct Parser_SessionData&> (session_data_container_r.getR ());
 
 //#if defined (GUI_SUPPORT)
 //#if defined (GTK_USE)

@@ -326,8 +326,8 @@ Stream_Module_Vis_X11_Window_T<ACE_SYNCH_USE,
       ACE_ASSERT (inherited::sessionData_);
       ACE_ASSERT (display_);
       ACE_ASSERT (window_);
-      const typename SessionDataContainerType::DATA_T& session_data_r =
-          inherited::sessionData_->getR ();
+//      const typename SessionDataContainerType::DATA_T& session_data_r =
+//          inherited::sessionData_->getR ();
 //      ACE_ASSERT (!session_data_r.formats.empty ());
 //      const MediaType& media_type_r = session_data_r.formats.front ();
 //      struct Stream_MediaFramework_FFMPEG_VideoMediaType media_type_2;

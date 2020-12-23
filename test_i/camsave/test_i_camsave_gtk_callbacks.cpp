@@ -3579,7 +3579,7 @@ togglebutton_record_toggled_cb (GtkToggleButton* toggleButton_in,
 
 //  GtkSpinButton* spin_button_p = NULL;
 //  unsigned int buffer_size_i = 0;
-  gdouble value_d = 0.0;
+//  gdouble value_d = 0.0;
 
   if (ui_cb_data_base_p->isFirst)
     ui_cb_data_base_p->isFirst = false;
