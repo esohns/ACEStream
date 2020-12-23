@@ -250,10 +250,10 @@ Stream_Visualization_OpenGL_GLUT_T<ACE_SYNCH_USE,
 
   int result = -1;
   int result_2 = -1;
-  ssize_t bytes_read = -1;
+//  ssize_t bytes_read = -1;
   ACE_Message_Block* message_block_p = NULL;
   ACE_Time_Value no_wait = COMMON_TIME_NOW;
-  DataMessageType* message_p = NULL;
+//  DataMessageType* message_p = NULL;
   bool finished = false;
   bool stop_processing = false;
 
