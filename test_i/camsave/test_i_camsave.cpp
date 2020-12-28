@@ -1323,8 +1323,8 @@ do_work (const std::string& captureinterfaceIdentifier_in,
                                                            &heap_allocator,     // heap allocator handle
                                                            true);               // block ?
   Stream_CamSave_V4L_Stream stream;
-  Stream_CamSave_MessageHandler_Module message_handler (&stream,
-                                                        ACE_TEXT_ALWAYS_CHAR (STREAM_MISC_MESSAGEHANDLER_DEFAULT_NAME_STRING));
+  Stream_CamSave_V4L_MessageHandler_Module message_handler (&stream,
+                                                            ACE_TEXT_ALWAYS_CHAR (STREAM_MISC_MESSAGEHANDLER_DEFAULT_NAME_STRING));
 
   //if (bufferSize_in)
   //  CBData_in.configuration->streamConfiguration.allocatorConfiguration_.defaultBufferSize =

@@ -480,44 +480,6 @@ continue_:
       } // end IF
     } // end lock scope
 
-//    // dequeue pending events
-//    result = v4l2_ioctl (captureFileDescriptor_,
-//                         VIDIOC_DQEVENT,
-//                         &event_s);
-//    if (result == -1)
-//    {
-//      ACE_DEBUG ((LM_ERROR,
-//                  ACE_TEXT ("failed to v4l2_ioctl(%d,%s): \"%m\", continuing\n"),
-//                  captureFileDescriptor_, ACE_TEXT ("VIDIOC_DQEVENT")));
-//    } // end IF
-//    else
-//    {
-//      for (unsigned int i = 0;
-//           i < event_s.pending;
-//           ++i)
-//      {
-//        result = v4l2_ioctl (captureFileDescriptor_,
-//                             VIDIOC_DQEVENT,
-//                             &event_s);
-//        if (result == -1)
-//          ACE_DEBUG ((LM_ERROR,
-//                      ACE_TEXT ("failed to v4l2_ioctl(%d,%s): \"%m\", continuing\n"),
-//                      captureFileDescriptor_, ACE_TEXT ("VIDIOC_DQEVENT")));
-//      } // end FOR
-//    } // end ELSE
-
-//    queued =
-//        Stream_Module_Device_Tools::queued (captureFileDescriptor_,
-//                                            inherited::configuration_->buffers,
-//                                            done);
-//    ACE_DEBUG ((LM_DEBUG,
-//                ACE_TEXT ("#queued/done buffers: %u/%u...\n"),
-//                queued, done));
-
-    // *NOTE*: blocks until:
-    //         - a buffer is available
-    //         - a frame has been written by the device
-
     result_2 = inherited::put_next (message_block_p, NULL);
     if (unlikely (result_2 == -1))
     {

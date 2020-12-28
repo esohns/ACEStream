@@ -1203,8 +1203,8 @@ Stream_CamSave_V4L_Stream::Stream_CamSave_V4L_Stream ()
  : inherited ()
  , source_ (this,
             ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_CAM_SOURCE_V4L_DEFAULT_NAME_STRING))
- , statisticReport_ (this,
-                     ACE_TEXT_ALWAYS_CHAR (MODULE_STAT_REPORT_DEFAULT_NAME_STRING))
+// , statisticReport_ (this,
+//                     ACE_TEXT_ALWAYS_CHAR (MODULE_STAT_REPORT_DEFAULT_NAME_STRING))
  , decoder_ (this,
              ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_LIBAV_DECODER_DEFAULT_NAME_STRING))
  , distributor_ (this,
