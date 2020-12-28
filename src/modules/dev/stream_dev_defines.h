@@ -17,6 +17,7 @@
 
 #define STREAM_DEV_TARGET_WAVOUT_DEFAULT_NAME_STRING              "WavOutPlayback"
 #else
+#define STREAM_DEV_CAM_SOURCE_LIBCAMERA_DEFAULT_NAME_STRING       "libCameraCamSource"
 #define STREAM_DEV_CAM_SOURCE_V4L_DEFAULT_NAME_STRING             "V4LCamSource"
 
 #define STREAM_DEV_MIC_SOURCE_ALSA_DEFAULT_NAME_STRING            "ALSAMicSource"

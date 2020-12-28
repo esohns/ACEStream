@@ -50,6 +50,11 @@ extern "C"
 }
 #endif /* __cplusplus */
 
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#else
+#include "libcamera/formats.h"
+#endif // ACE_WIN32 || ACE_WIN64
+
 #include "ace/Dirent_Selector.h"
 #include "ace/Log_Msg.h"
 #include "ace/OS.h"
@@ -116,6 +121,8 @@ Stream_Device_Tools::initialize (bool initializeFrameworks_in)
     Stream_Device_DirectShow_Tools::initialize (true); // initialize COM ?
     Stream_Device_MediaFoundation_Tools::initialize ();
   } // end IF
+#else
+  ACE_UNUSED_ARG (initializeFrameworks_in);
 #endif // ACE_WIN32 || ACE_WIN64
 }
 
@@ -2274,4 +2281,251 @@ Stream_Device_Tools::v4l2FormatToffmpegFormat (__u32 format_in)
 
   return AV_PIX_FMT_NONE;
 }
+
+libcamera::PixelFormat
+Stream_Device_Tools::ffmpegFormatToLibCameraFormat (enum AVPixelFormat format_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Device_Tools::ffmpegFormatToLibCameraFormat"));
+
+  switch (format_in)
+  {
+    case AV_PIX_FMT_YUV420P:
+      return libcamera::formats::YUV420;
+    case AV_PIX_FMT_YUYV422:
+      return libcamera::formats::YUV422;
+    case AV_PIX_FMT_RGB24:
+      return libcamera::formats::RGB888;
+    case AV_PIX_FMT_BGR24:
+      return libcamera::formats::BGR888;
+    case AV_PIX_FMT_YUV422P:
+      return libcamera::formats::YUV422;
+    case AV_PIX_FMT_YUV444P:
+      return libcamera::formats::YUV422;
+    case AV_PIX_FMT_YUV410P:
+      return libcamera::formats::YUV422;
+    case AV_PIX_FMT_YUV411P:
+      return libcamera::formats::YUV422;
+    case AV_PIX_FMT_GRAY8:
+      return libcamera::formats::R8;
+//    case AV_PIX_FMT_MONOWHITE:
+//    case AV_PIX_FMT_MONOBLACK:
+    case AV_PIX_FMT_PAL8:
+      return libcamera::formats::R8;
+//    case AV_PIX_FMT_YUVJ420P:
+    case AV_PIX_FMT_YUVJ422P:
+      // *TODO*: libav doesn't specify a pixel format for MJPEG (it is a codec)
+      return libcamera::formats::MJPEG;
+//    case AV_PIX_FMT_YUVJ444P:
+//    case AV_PIX_FMT_XVMC_MPEG2_MC:
+//    case AV_PIX_FMT_XVMC_MPEG2_IDCT:
+//    case AV_PIX_FMT_XVMC:
+    case AV_PIX_FMT_UYVY422:
+      return libcamera::formats::UYVY;
+//    case AV_PIX_FMT_UYYVYY411:
+//    case AV_PIX_FMT_BGR8:
+//    case AV_PIX_FMT_BGR4:
+//    case AV_PIX_FMT_BGR4_BYTE:
+//    case AV_PIX_FMT_RGB8:
+//    case AV_PIX_FMT_RGB4:
+//    case AV_PIX_FMT_RGB4_BYTE:
+    case AV_PIX_FMT_NV12:
+      return libcamera::formats::NV12;
+    case AV_PIX_FMT_NV21:
+      return libcamera::formats::NV21;
+    case AV_PIX_FMT_ARGB:
+      return libcamera::formats::ARGB8888;
+//    case AV_PIX_FMT_RGBA:
+    case AV_PIX_FMT_ABGR:
+      return libcamera::formats::ABGR8888;
+//    case AV_PIX_FMT_BGRA:
+//    case AV_PIX_FMT_GRAY16BE:
+//    case AV_PIX_FMT_GRAY16LE:
+//    case AV_PIX_FMT_YUV440P:
+//    case AV_PIX_FMT_YUVJ440P:
+    case AV_PIX_FMT_YUVA420P:
+      return libcamera::formats::YUV420;
+//    case AV_PIX_FMT_VDPAU_H264:
+//    case AV_PIX_FMT_VDPAU_MPEG1:
+//    case AV_PIX_FMT_VDPAU_MPEG2:
+//    case AV_PIX_FMT_VDPAU_WMV3:
+//    case AV_PIX_FMT_VDPAU_VC1:
+//     case AV_PIX_FMT_RGB48BE:
+//     case AV_PIX_FMT_RGB48LE:
+     case AV_PIX_FMT_RGB565BE:
+      return libcamera::formats::RGB565;
+    case AV_PIX_FMT_RGB565LE:
+      return libcamera::formats::RGB565;
+//    case AV_PIX_FMT_RGB555BE:
+//    case AV_PIX_FMT_RGB555LE:
+//    case AV_PIX_FMT_BGR565BE:
+//    case AV_PIX_FMT_BGR565LE:
+//    case AV_PIX_FMT_BGR555BE:
+//    case AV_PIX_FMT_BGR555LE:
+//    case AV_PIX_FMT_VAAPI_MOCO:
+//    case AV_PIX_FMT_VAAPI_IDCT:
+//    case AV_PIX_FMT_VAAPI_VLD:
+//    case AV_PIX_FMT_VAAPI:
+//    case AV_PIX_FMT_YUV420P16LE:
+//    case AV_PIX_FMT_YUV420P16BE:
+//    case AV_PIX_FMT_YUV422P16LE:
+//    case AV_PIX_FMT_YUV422P16BE:
+//    case AV_PIX_FMT_YUV444P16LE:
+//    case AV_PIX_FMT_YUV444P16BE:
+//    case AV_PIX_FMT_VDPAU_MPEG4:
+//    case AV_PIX_FMT_DXVA2_VLD:
+//    case AV_PIX_FMT_RGB444LE:
+//    case AV_PIX_FMT_RGB444BE:
+//    case AV_PIX_FMT_BGR444LE:
+//    case AV_PIX_FMT_BGR444BE:
+//    case AV_PIX_FMT_YA8:
+//    case AV_PIX_FMT_Y400A:
+//    case AV_PIX_FMT_GRAY8A:
+//    case AV_PIX_FMT_BGR48BE:
+//    case AV_PIX_FMT_BGR48LE:
+//    case AV_PIX_FMT_YUV420P9BE:
+//    case AV_PIX_FMT_YUV420P9LE:
+//    case AV_PIX_FMT_YUV420P10BE:
+//    case AV_PIX_FMT_YUV420P10LE:
+//    case AV_PIX_FMT_YUV422P10BE:
+//    case AV_PIX_FMT_YUV422P10LE:
+//    case AV_PIX_FMT_YUV444P9BE:
+//    case AV_PIX_FMT_YUV444P9LE:
+//    case AV_PIX_FMT_YUV444P10BE:
+//    case AV_PIX_FMT_YUV444P10LE:
+//    case AV_PIX_FMT_YUV422P9BE:
+//    case AV_PIX_FMT_YUV422P9LE:
+//    case AV_PIX_FMT_VDA_VLD:
+//    case AV_PIX_FMT_GBRP:
+//    case AV_PIX_FMT_GBR24P:
+//    case AV_PIX_FMT_GBRP9BE:
+//    case AV_PIX_FMT_GBRP9LE:
+//    case AV_PIX_FMT_GBRP10BE:
+//    case AV_PIX_FMT_GBRP10LE:
+//    case AV_PIX_FMT_GBRP16BE:
+//    case AV_PIX_FMT_GBRP16LE:
+//    case AV_PIX_FMT_YUVA422P:
+//    case AV_PIX_FMT_YUVA444P:
+//    case AV_PIX_FMT_YUVA420P9BE:
+//    case AV_PIX_FMT_YUVA420P9LE:
+//    case AV_PIX_FMT_YUVA422P9BE:
+//    case AV_PIX_FMT_YUVA422P9LE:
+//    case AV_PIX_FMT_YUVA444P9BE:
+//    case AV_PIX_FMT_YUVA444P9LE:
+//    case AV_PIX_FMT_YUVA420P10BE:
+//    case AV_PIX_FMT_YUVA420P10LE:
+//    case AV_PIX_FMT_YUVA422P10BE:
+//    case AV_PIX_FMT_YUVA422P10LE:
+//    case AV_PIX_FMT_YUVA444P10BE:
+//    case AV_PIX_FMT_YUVA444P10LE:
+//    case AV_PIX_FMT_YUVA420P16BE:
+//    case AV_PIX_FMT_YUVA420P16LE:
+//    case AV_PIX_FMT_YUVA422P16BE:
+//    case AV_PIX_FMT_YUVA422P16LE:
+//    case AV_PIX_FMT_YUVA444P16BE:
+//    case AV_PIX_FMT_YUVA444P16LE:
+//    case AV_PIX_FMT_VDPAU:
+//    case AV_PIX_FMT_XYZ12LE:
+//    case AV_PIX_FMT_XYZ12BE:
+    case AV_PIX_FMT_NV16:
+      return libcamera::formats::NV16;
+//    case AV_PIX_FMT_NV20LE:
+//    case AV_PIX_FMT_NV20BE:
+//    case AV_PIX_FMT_RGBA64BE:
+//    case AV_PIX_FMT_RGBA64LE:
+//    case AV_PIX_FMT_BGRA64BE:
+//    case AV_PIX_FMT_BGRA64LE:
+    case AV_PIX_FMT_YVYU422:
+      return libcamera::formats::YVYU;
+//    case AV_PIX_FMT_VDA:
+//    case AV_PIX_FMT_YA16BE:
+//    case AV_PIX_FMT_YA16LE:
+//    case AV_PIX_FMT_GBRAP:
+//    case AV_PIX_FMT_GBRAP16BE:
+//    case AV_PIX_FMT_GBRAP16LE:
+//    case AV_PIX_FMT_QSV:
+//    case AV_PIX_FMT_MMAL:
+//    case AV_PIX_FMT_D3D11VA_VLD:
+//    case AV_PIX_FMT_CUDA:
+//    case AV_PIX_FMT_0RGB:
+//    case AV_PIX_FMT_RGB0:
+//    case AV_PIX_FMT_0BGR:
+//    case AV_PIX_FMT_BGR0:
+//    case AV_PIX_FMT_YUV420P12BE:
+//    case AV_PIX_FMT_YUV420P12LE:
+//    case AV_PIX_FMT_YUV420P14BE:
+//    case AV_PIX_FMT_YUV420P14LE:
+//    case AV_PIX_FMT_YUV422P12BE:
+//    case AV_PIX_FMT_YUV422P12LE:
+//    case AV_PIX_FMT_YUV422P14BE:
+//    case AV_PIX_FMT_YUV422P14LE:
+//    case AV_PIX_FMT_YUV444P12BE:
+//    case AV_PIX_FMT_YUV444P12LE:
+//    case AV_PIX_FMT_YUV444P14BE:
+//    case AV_PIX_FMT_YUV444P14LE:
+//    case AV_PIX_FMT_GBRP12BE:
+//    case AV_PIX_FMT_GBRP12LE:
+//    case AV_PIX_FMT_GBRP14BE:
+//    case AV_PIX_FMT_GBRP14LE:
+//    case AV_PIX_FMT_YUVJ411P:
+    case AV_PIX_FMT_BAYER_BGGR8:
+      return libcamera::formats::SBGGR8;
+    case AV_PIX_FMT_BAYER_RGGB8:
+      return libcamera::formats::SRGGB8;
+    case AV_PIX_FMT_BAYER_GBRG8:
+      return libcamera::formats::SGBRG8;
+    case AV_PIX_FMT_BAYER_GRBG8:
+      return libcamera::formats::SGRBG8;
+    case AV_PIX_FMT_BAYER_BGGR16LE:
+    case AV_PIX_FMT_BAYER_BGGR16BE:
+      return libcamera::formats::SBGGR16;
+    case AV_PIX_FMT_BAYER_RGGB16LE:
+    case AV_PIX_FMT_BAYER_RGGB16BE:
+      return libcamera::formats::SRGGB16;
+    case AV_PIX_FMT_BAYER_GBRG16LE:
+    case AV_PIX_FMT_BAYER_GBRG16BE:
+      return libcamera::formats::SGBRG16;
+    case AV_PIX_FMT_BAYER_GRBG16LE:
+    case AV_PIX_FMT_BAYER_GRBG16BE:
+      return libcamera::formats::SGRBG16;
+////     case AV_PIX_FMT_XVMC:
+//    case AV_PIX_FMT_YUV440P10LE:
+//    case AV_PIX_FMT_YUV440P10BE:
+//    case AV_PIX_FMT_YUV440P12LE:
+//    case AV_PIX_FMT_YUV440P12BE:
+//    case AV_PIX_FMT_AYUV64LE:
+//    case AV_PIX_FMT_AYUV64BE:
+//    case AV_PIX_FMT_VIDEOTOOLBOX:
+//    case AV_PIX_FMT_P010LE:
+//    case AV_PIX_FMT_P010BE:
+//    case AV_PIX_FMT_GBRAP12BE:
+//    case AV_PIX_FMT_GBRAP12LE:
+//    case AV_PIX_FMT_GBRAP10BE:
+//    case AV_PIX_FMT_GBRAP10LE:
+//    case AV_PIX_FMT_MEDIACODEC:
+//    case AV_PIX_FMT_GRAY12BE:
+//    case AV_PIX_FMT_GRAY12LE:
+//    case AV_PIX_FMT_GRAY10BE:
+//    case AV_PIX_FMT_GRAY10LE:
+//    case AV_PIX_FMT_P016LE:
+//    case AV_PIX_FMT_P016BE:
+//    case AV_PIX_FMT_D3D11:
+//    case AV_PIX_FMT_GRAY9BE:
+//    case AV_PIX_FMT_GRAY9LE:
+//    case AV_PIX_FMT_GBRPF32BE:
+//    case AV_PIX_FMT_GBRPF32LE:
+//    case AV_PIX_FMT_GBRAPF32BE:
+//    case AV_PIX_FMT_GBRAPF32LE:
+//    case AV_PIX_FMT_DRM_PRIME:
+    default:
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("invalid/unknown ffmpeg pixel format (was: %d), aborting\n"),
+                  format_in));
+      break;
+    }
+  } // end SWITCH
+
+  return libcamera::PixelFormat (0, 0);
+}
+
 #endif // ACE_WIN32 || ACE_WIN64

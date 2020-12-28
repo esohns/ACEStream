@@ -6,6 +6,8 @@ endif (GTK_SUPPORT)
 
 if (UNIX)
  pkg_check_modules (PKG_ALSA REQUIRED alsa)
+ pkg_check_modules (PKG_FFMPEG REQUIRED libavutil)
+# pkg_check_modules (PKG_LIBCAMERA REQUIRED libcamera)
  pkg_check_modules (PKG_SOX REQUIRED sox)
 endif (UNIX)
 
@@ -33,6 +35,10 @@ if (UNIX)
 
  target_include_directories (${PROJECT_NAME}_MediaFramework PUBLIC
                              $<BUILD_INTERFACE:${PKG_ALSA_INCLUDE_DIRS}>)
+# target_include_directories (${PROJECT_NAME}_MediaFramework PUBLIC
+#                             $<BUILD_INTERFACE:${PKG_LIBCAMERA_INCLUDE_DIRS}>)
+ target_include_directories (${PROJECT_NAME}_MediaFramework PUBLIC
+                             $<BUILD_INTERFACE:/usr/local/include/libcamera>)
  target_include_directories (${PROJECT_NAME}_MediaFramework PUBLIC
                              $<BUILD_INTERFACE:${PKG_SOX_INCLUDE_DIRS}>)
 
@@ -144,6 +150,7 @@ if (UNIX)
  set (source_files
       ${source_files}
       stream_lib_alsa_common.h
+      stream_lib_libcamera_common.h
       stream_lib_v4l_common.h)
 elseif (WIN32)
  set (source_files
@@ -268,6 +275,7 @@ if (UNIX)
  set (source_files
       ${source_files}
       stream_lib_alsa_common.h
+      stream_lib_libcamera_common.h
       stream_lib_v4l_common.h)
 elseif (WIN32)
  set (source_files

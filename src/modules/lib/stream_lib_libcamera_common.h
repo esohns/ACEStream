@@ -18,41 +18,45 @@
 *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
 ***************************************************************************/
 
-#ifndef STREAM_LIB_V4L_COMMON_H
-#define STREAM_LIB_V4L_COMMON_H
+#ifndef STREAM_LIB_LIBCAMERA_COMMON_H
+#define STREAM_LIB_LIBCAMERA_COMMON_H
 
 //#include <deque>
 #include <list>
 #include <string>
 #include <utility>
 
-#include "linux/videodev2.h"
+#include "libcamera/pixel_format.h"
+#include "libcamera/formats.h"
+#include "libcamera/geometry.h"
 
-typedef std::list<std::pair<__u32, std::string> > Stream_MediaFramework_V4L_CaptureFormats_t;
-typedef Stream_MediaFramework_V4L_CaptureFormats_t::iterator Stream_MediaFramework_V4L_CaptureFormatsIterator_t;
+#include "ace/Basic_Types.h"
 
-struct Stream_MediaFramework_V4L_MediaType
+typedef std::list<std::pair<libcamera::PixelFormat, std::string> > Stream_MediaFramework_LibCamera_CaptureFormats_t;
+typedef Stream_MediaFramework_LibCamera_CaptureFormats_t::iterator Stream_MediaFramework_LibCamera_CaptureFormatsIterator_t;
+
+struct Stream_MediaFramework_LibCamera_MediaType
 {
-  Stream_MediaFramework_V4L_MediaType ()
+  Stream_MediaFramework_LibCamera_MediaType ()
    : format ()
-   , frameRate ()
+   , frameRateNumerator (0)
+   , frameRateDenominator (1)
+   , resolution ()
+  {}
+
+  bool operator== (struct Stream_MediaFramework_LibCamera_MediaType rhs_in)
   {
-    ACE_OS::memset (&format, 0, sizeof (struct v4l2_pix_format));
-    ACE_OS::memset (&frameRate, 0, sizeof (struct v4l2_fract));
-    frameRate.denominator = 1;
+    return (((format == rhs_in.format)                             &&
+             (resolution.width == rhs_in.resolution.width)         &&
+             (resolution.height == rhs_in.resolution.height))      &&
+            ((frameRateNumerator == rhs_in.frameRateNumerator) &&
+             (frameRateDenominator == rhs_in.frameRateDenominator)));
   }
 
-  bool operator== (struct Stream_MediaFramework_V4L_MediaType rhs_in)
-  {
-    return (((format.pixelformat == rhs_in.format.pixelformat) &&
-             (format.width == rhs_in.format.width)             &&
-             (format.height == rhs_in.format.height)) &&
-            ((frameRate.numerator == rhs_in.frameRate.numerator) &&
-             (frameRate.denominator == rhs_in.frameRate.denominator)));
-  }
-
-  struct v4l2_pix_format format;
-  struct v4l2_fract      frameRate;
+  libcamera::PixelFormat format;
+  ACE_UINT32             frameRateNumerator;
+  ACE_UINT32             frameRateDenominator;
+  libcamera::Size        resolution;
 };
 //typedef std::deque<struct Stream_MediaFramework_V4L_MediaType> Stream_MediaFramework_V4L_Formats_t;
 //typedef Stream_MediaFramework_V4L_Formats_t::iterator Stream_MediaFramework_V4L_FormatsIterator_t;

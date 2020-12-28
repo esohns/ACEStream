@@ -50,6 +50,8 @@ extern "C"
 #include "libavutil/pixfmt.h"
 }
 #endif // __cplusplus
+
+#include "libcamera/pixel_format.h"
 #endif // ACE_WIN32 || ACE_WIN64
 
 #include "ace/Global_Macros.h"
@@ -153,6 +155,8 @@ class Stream_Device_Tools
 
   static __u32 ffmpegFormatToV4L2Format (enum AVPixelFormat); // format
   static enum AVPixelFormat v4l2FormatToffmpegFormat (__u32); // format (fourcc)
+
+  static libcamera::PixelFormat ffmpegFormatToLibCameraFormat (enum AVPixelFormat); // format
 #endif // ACE_WIN32 || ACE_WIN64
 
  private:

@@ -8,6 +8,7 @@ include (FindPkgConfig)
 if (UNIX)
  pkg_check_modules (PKG_LIBALSA REQUIRED alsa)
  pkg_check_modules (PKG_FFMPEG REQUIRED libavutil)
+ # pkg_check_modules (PKG_LIBCAMERA REQUIRED libcamera)
  pkg_check_modules (PKG_LIBV4L2 REQUIRED libv4l2)
 endif (UNIX)
 
@@ -38,9 +39,10 @@ if (UNIX)
  target_include_directories (${PROJECT_NAME}_Device PUBLIC
                              $<BUILD_INTERFACE:${PKG_FFMPEG_INCLUDE_DIRS}>)
 
+# target_include_directories (${PROJECT_NAME}_MediaFramework PUBLIC
+#                             $<BUILD_INTERFACE:${PKG_LIBCAMERA_INCLUDE_DIRS}>)
  target_include_directories (${PROJECT_NAME}_Device PUBLIC
-                             $<BUILD_INTERFACE:$ENV{LIB_ROOT}/ACE_TAO/ACE>)
-#                             $<BUILD_INTERFACE:/usr/local/src/ACE_wrappers>)
+                             $<BUILD_INTERFACE:/usr/local/include/libcamera>)
 
  target_include_directories (${PROJECT_NAME}_Device PUBLIC
                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../Common/src>)
@@ -146,6 +148,9 @@ if (WIN32)
 elseif (UNIX)
  set (source_files
       ${source_files}
+      stream_dev_cam_source_libcamera.cpp
+      stream_dev_cam_source_libcamera.h
+      stream_dev_cam_source_libcamera.inl
       stream_dev_cam_source_v4l.cpp
       stream_dev_cam_source_v4l.h
       stream_dev_cam_source_v4l.inl
@@ -231,6 +236,8 @@ if (UNIX)
           stream_dev_defines.h
           stream_dev_tools.h
           stream_dev_tools.inl
+          stream_dev_cam_source_libcamera.h
+          stream_dev_cam_source_libcamera.inl
           stream_dev_cam_source_v4l.h
           stream_dev_cam_source_v4l.inl
           stream_dev_mic_source_alsa.h
