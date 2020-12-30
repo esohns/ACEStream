@@ -39,6 +39,8 @@
 #else
 #include "linux/videodev2.h"
 
+//#include "X11/Xlib.h"
+
 #ifdef __cplusplus
 extern "C"
 {
@@ -119,6 +121,8 @@ extern "C"
 // forward declarations
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 struct ISampleGrabber;
+#else
+struct _XDisplay;
 #endif // ACE_WIN32 || ACE_WIN64
 class Stream_IAllocator;
 template <typename NotificationType,
@@ -243,7 +247,7 @@ struct Test_I_ImageSave_ModuleHandlerConfiguration
 #else
    , display ()
    , fullScreen (false)
-   , window (None)
+   , window (0)
    , X11Display (NULL)
 #endif // ACE_WIN32 || ACE_WIN64
    , outputFormat ()
@@ -262,8 +266,8 @@ struct Test_I_ImageSave_ModuleHandlerConfiguration
 #else
   struct Common_UI_DisplayDevice                     display;
   bool                                               fullScreen;
-  Window                                             window;
-  Display*                                           X11Display;
+  unsigned long                                      window;
+  struct _XDisplay*                                  X11Display;
 #endif // ACE_WIN32 || ACE_WIN64
   struct Stream_MediaFramework_FFMPEG_VideoMediaType outputFormat;
   Test_I_ISessionNotify_t*                           subscriber;

@@ -1,6 +1,8 @@
 ﻿if (UNIX)
  pkg_check_modules (PKG_FFMPEG REQUIRED libavutil)
 # pkg_check_modules (PKG_LIBCAMERA REQUIRED libcamera)
+
+ add_compile_options (-std=c++17)
 endif (UNIX)
 
 add_library (${PROJECT_NAME}_Miscellaneous STATIC "")

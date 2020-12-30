@@ -32,7 +32,7 @@
 
 #include "ace/Basic_Types.h"
 
-typedef std::list<std::pair<libcamera::PixelFormat, std::string> > Stream_MediaFramework_LibCamera_CaptureFormats_t;
+typedef std::list<std::pair<uint32_t, std::string> > Stream_MediaFramework_LibCamera_CaptureFormats_t;
 typedef Stream_MediaFramework_LibCamera_CaptureFormats_t::iterator Stream_MediaFramework_LibCamera_CaptureFormatsIterator_t;
 
 struct Stream_MediaFramework_LibCamera_MediaType

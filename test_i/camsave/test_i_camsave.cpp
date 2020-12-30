@@ -25,6 +25,9 @@
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #include <initguid.h> // *NOTE*: this exports DEFINE_GUIDs (see stream_misc_common.h)
 #include <mfapi.h>
+#else
+#include "libcamera/libcamera.h"
+#include "libv4l2.h"
 #endif // ACE_WIN32 || ACE_WIN64
 
 #if defined (GUI_SUPPORT)
@@ -47,7 +50,6 @@
 #include "ace/Profile_Timer.h"
 #include "ace/Sig_Handler.h"
 #include "ace/Signal.h"
-//#include "ace/Synch.h"
 #include "ace/Version.h"
 
 #if defined (HAVE_CONFIG_H)
@@ -152,6 +154,11 @@ do_printUsage (const std::string& programName_in)
             << false
             << ACE_TEXT_ALWAYS_CHAR ("])")
             << std::endl;
+#else
+  std::cout << ACE_TEXT_ALWAYS_CHAR ("-c          : use libcamera [")
+            << false
+            << ACE_TEXT_ALWAYS_CHAR ("])")
+            << std::endl;
 #endif // ACE_WIN32 || ACE_WIN64
   std::string capture_device_identifier;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -243,10 +250,6 @@ do_printUsage (const std::string& programName_in)
             << false
             << ACE_TEXT_ALWAYS_CHAR ("]")
             << std::endl;
-  //std::cout << ACE_TEXT_ALWAYS_CHAR ("-y          : run stress-test [")
-  //  << false
-  //  << ACE_TEXT_ALWAYS_CHAR ("]")
-  //  << std::endl;
 }
 
 bool
@@ -255,6 +258,8 @@ do_processArguments (int argc_in,
                      std::string& captureinterfaceIdentifier_out,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
                      bool& showConsole_out,
+#else
+                     bool& useLibCamera_out,
 #endif // ACE_WIN32 || ACE_WIN64
                      std::string& targetFileName_out,
 #if defined (GUI_SUPPORT)
@@ -279,6 +284,7 @@ do_processArguments (int argc_in,
   captureinterfaceIdentifier_out.clear ();
   showConsole_out = false;
 #else
+  useLibCamera_out = false;
   captureinterfaceIdentifier_out =
     ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_DEVICE_DIRECTORY);
   captureinterfaceIdentifier_out += ACE_DIRECTORY_SEPARATOR_CHAR_A;
@@ -312,13 +318,13 @@ do_processArguments (int argc_in,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
                               ACE_TEXT ("cd:f::g::hlmo:s:tvx"),
 #else
-                              ACE_TEXT ("d:f::g::hlo:s:tvx"),
+                              ACE_TEXT ("cd:f::g::hlo:s:tvx"),
 #endif // ACE_WIN32 || ACE_WIN64
 #else
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
                               ACE_TEXT ("cd:f::hlmo:s:tvx"),
 #else
-                              ACE_TEXT ("d:f::hlo:s:tvx"),
+                              ACE_TEXT ("cd:f::hlo:s:tvx"),
 #endif // ACE_WIN32 || ACE_WIN64
 #endif // GUI_SUPPORT
                               1,                          // skip command name
@@ -332,13 +338,15 @@ do_processArguments (int argc_in,
   {
     switch (option)
     {
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
       case 'c':
       {
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
         showConsole_out = true;
+#else
+        useLibCamera_out = true;
+#endif // ACE_WIN32 || ACE_WIN64
         break;
       }
-#endif // ACE_WIN32 || ACE_WIN64
       case 'd':
       {
         captureinterfaceIdentifier_out =
@@ -929,6 +937,77 @@ do_finalize_mediafoundation (IMFMediaSession*& mediaSession_inout)
 }
 #else
 bool
+do_initialize_libcamera (struct Stream_Device_Identifier& deviceIdentifier_out,
+                         struct Stream_MediaFramework_LibCamera_MediaType& captureFormat_out,
+                         struct Stream_MediaFramework_FFMPEG_VideoMediaType& outputFormat_out)
+{
+  STREAM_TRACE (ACE_TEXT ("::do_initialize_libcamera"));
+
+  int result = -1;
+
+  Stream_Device_List_t devices_a;
+  libcamera::Camera* camera_p = NULL;
+  libcamera::CameraManager* camera_manager_p = NULL;
+  ACE_NEW_NORETURN (camera_manager_p,
+                    libcamera::CameraManager ());
+  ACE_ASSERT (camera_manager_p);
+  result = camera_manager_p->start();
+  if (result)
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to libcamera::CameraManager::start(): \"%m\", aborting\n")));
+    goto error;
+  } // end IF
+
+  devices_a =
+    Stream_Device_Tools::getVideoCaptureDevices (camera_manager_p);
+  if (devices_a.empty ())
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("found no video capture devices, aborting\n")));
+    result = -1;
+    goto error;
+  } // end IF
+  camera_p = Stream_Device_Tools::getCamera (camera_manager_p,
+                                             devices_a.front ().identifier);
+  ACE_ASSERT (camera_p);
+  captureFormat_out =
+      Stream_Device_Tools::defaultCaptureFormat (camera_p);
+#if defined (_DEBUG)
+  ACE_DEBUG ((LM_DEBUG,
+              ACE_TEXT ("\"%s\": default capture format: \"%s\", resolution: %ux%u, framerate: %u/%u\n"),
+              ACE_TEXT (devices_a.front ().identifier.c_str ()),
+              ACE_TEXT (captureFormat_out.format.toString ().c_str ()),
+              captureFormat_out.resolution.width, captureFormat_out.resolution.height,
+              captureFormat_out.frameRateNumerator, captureFormat_out.frameRateDenominator));
+#endif // _DEBUG
+  // *NOTE*: Gtk 2 expects RGB24
+  // *NOTE*: "...CAIRO_FORMAT_ARGB32: each pixel is a 32-bit quantity, with
+  //         alpha in the upper 8 bits, then red, then green, then blue. The
+  //         32-bit quantities are stored native-endian. ..."
+  // *TODO*: determine color depth of selected (default) screen (i.e.'Display'
+  //         ":0")
+  outputFormat_out.format = AV_PIX_FMT_RGB32;
+#if defined (GUI_SUPPORT)
+#if defined (GTK_USE)
+#if defined (GTK2_USE)
+  outputFormat_out.format = AV_PIX_FMT_RGB24;
+#endif // GTK2_USE
+#endif // GTK_USE
+#endif // GUI_SUPPORT
+  outputFormat_out.frameRate.num = 30;
+  outputFormat_out.frameRate.den = 1;
+  outputFormat_out.resolution.height = captureFormat_out.resolution.height;
+  outputFormat_out.resolution.width = captureFormat_out.resolution.width;
+
+error:
+  camera_manager_p->stop ();
+  delete camera_manager_p; camera_manager_p = NULL;
+
+  return (result == 0);
+}
+
+bool
 do_initialize_v4l (const std::string& deviceIdentifier_in,
                    struct Stream_Device_Identifier& deviceIdentifier_out,
                    struct Stream_MediaFramework_V4L_MediaType& captureFormat_out,
@@ -1032,6 +1111,8 @@ void
 do_work (const std::string& captureinterfaceIdentifier_in,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
          bool showConsole_in,
+#else
+         bool useLibCamera_in,
 #endif // ACE_WIN32 || ACE_WIN64
          const std::string& targetFilename_in,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -1051,7 +1132,8 @@ do_work (const std::string& captureinterfaceIdentifier_in,
          struct Stream_CamSave_DirectShow_UI_CBData& directShowCBData_in,
          struct Stream_CamSave_MediaFoundation_UI_CBData& mediaFoundationCBData_in,
 #else
-         struct Stream_CamSave_V4L_UI_CBData& CBData_in,
+         struct Stream_CamSave_LibCamera_UI_CBData& libCamera_CBData_in,
+         struct Stream_CamSave_V4L_UI_CBData& v4l_CBData_in,
 #endif // ACE_WIN32 || ACE_WIN64
 #if defined (WXWIDGETS_USE)
          Common_UI_wxWidgets_IApplicationBase_t* iapplication_in,
@@ -1110,17 +1192,28 @@ do_work (const std::string& captureinterfaceIdentifier_in,
   Stream_CamSave_MediaFoundation_EventHandler_t mediafoundation_ui_event_handler;
 #endif // GUI_SUPPORT
 #else
-  struct Stream_CamSave_V4L_ModuleHandlerConfiguration modulehandler_configuration;
-  struct Stream_CamSave_V4L_StreamConfiguration stream_configuration;
-  Stream_CamSave_V4L_EventHandler_t ui_event_handler (
+  struct Stream_CamSave_LibCamera_ModuleHandlerConfiguration libcamera_modulehandler_configuration;
+  struct Stream_CamSave_V4L_ModuleHandlerConfiguration v4l_modulehandler_configuration;
+  struct Stream_CamSave_LibCamera_StreamConfiguration libcamera_stream_configuration;
+  struct Stream_CamSave_V4L_StreamConfiguration v4l_stream_configuration;
+  Stream_CamSave_V4L_EventHandler_t v4l_ui_event_handler (
 #if defined (GUI_SUPPORT)
-                                                      &CBData_in
+                                                          &v4l_CBData_in
 #if defined (GTK_USE)
 #elif defined (WXWIDGETS_USE)
-                                                      ,iapplication_in
+                                                          ,iapplication_in
 #endif
 #endif // GUI_SUPPORT
-                                                     );
+                                                         );
+  Stream_CamSave_LibCamera_EventHandler_t libcamera_ui_event_handler (
+#if defined (GUI_SUPPORT)
+                                                                      &libCamera_CBData_in
+#if defined (GTK_USE)
+#elif defined (WXWIDGETS_USE)
+                                                                      ,iapplication_in
+#endif
+#endif // GUI_SUPPORT
+                                                                     );
 #endif // ACE_WIN32 || ACE_WIN64
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -1194,32 +1287,61 @@ do_work (const std::string& captureinterfaceIdentifier_in,
 #else
   Stream_CamSave_V4L_StreamConfiguration_t::ITERATOR_T v4l_stream_iterator;
   Stream_CamSave_V4L_StreamConfiguration_t::ITERATOR_T v4l_stream_iterator_2;
-  modulehandler_configuration.allocatorConfiguration = &allocator_configuration;
-  modulehandler_configuration.buffers =
-    STREAM_DEV_CAM_V4L_DEFAULT_DEVICE_BUFFERS;
-  modulehandler_configuration.deviceIdentifier.identifier =
-      captureinterfaceIdentifier_in;
-#if defined (GUI_SUPPORT)
-#if defined (GTK_USE)
-//  modulehandler_configuration.pixelBufferLock = &state_r.lock;
-#endif // GTK_USE
-#endif // GUI_SUPPORT
-//  // *TODO*: turn these into an option
-//  modulehandler_configuration.method = STREAM_DEV_CAM_V4L_DEFAULT_IO_METHOD;
-  modulehandler_configuration.outputFormat =
-      Stream_Device_Tools::convert (Stream_Device_Tools::defaultCaptureFormat (captureinterfaceIdentifier_in));
-  modulehandler_configuration.outputFormat.format = AV_PIX_FMT_RGB32;
-  if (statisticReportingInterval_in)
+
+  if (useLibCamera_in)
   {
-    modulehandler_configuration.statisticCollectionInterval.set (0,
-                                                                 STREAM_DEV_CAM_STATISTIC_COLLECTION_INTERVAL * 1000);
-    modulehandler_configuration.statisticReportingInterval =
-      statisticReportingInterval_in;
-  } // end IF
+    libcamera_modulehandler_configuration.allocatorConfiguration =
+        &allocator_configuration;
+    libcamera_modulehandler_configuration.deviceIdentifier.identifier =
+        captureinterfaceIdentifier_in;
+    libcamera::Camera* camera_p = NULL;
+    libcamera::CameraManager* camera_manager_p = NULL;
+    ACE_NEW_NORETURN (camera_manager_p,
+                      libcamera::CameraManager ());
+    ACE_ASSERT (camera_manager_p);
+    int result = camera_manager_p->start();
+    if (result)
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to libcamera::CameraManager::start(): \"%m\", aborting\n")));
+      goto error;
+    } // end IF
+    camera_p = Stream_Device_Tools::getCamera (camera_manager_p,
+                                               captureinterfaceIdentifier_in);
+    ACE_ASSERT (camera_p);
+    libcamera_modulehandler_configuration.outputFormat =
+        Stream_Device_Tools::convert (Stream_Device_Tools::defaultCaptureFormat (camera_p));
+    libcamera_modulehandler_configuration.outputFormat.format = AV_PIX_FMT_RGB32;
 #if defined (GUI_SUPPORT)
-  modulehandler_configuration.subscriber = &ui_event_handler;
+  libcamera_modulehandler_configuration.subscriber = &libcamera_ui_event_handler;
 #endif // GUI_SUPPORT
-  modulehandler_configuration.targetFileName = targetFilename_in;
+    libcamera_modulehandler_configuration.targetFileName = targetFilename_in;
+error:
+    camera_manager_p->stop ();
+    delete camera_manager_p; camera_manager_p = NULL;
+  } // end IF
+  else
+  {
+    v4l_modulehandler_configuration.allocatorConfiguration = &allocator_configuration;
+    v4l_modulehandler_configuration.buffers =
+      STREAM_DEV_CAM_V4L_DEFAULT_DEVICE_BUFFERS;
+    v4l_modulehandler_configuration.deviceIdentifier.identifier =
+        captureinterfaceIdentifier_in;
+    v4l_modulehandler_configuration.outputFormat =
+        Stream_Device_Tools::convert (Stream_Device_Tools::defaultCaptureFormat (captureinterfaceIdentifier_in));
+    v4l_modulehandler_configuration.outputFormat.format = AV_PIX_FMT_RGB32;
+    if (statisticReportingInterval_in)
+    {
+      v4l_modulehandler_configuration.statisticCollectionInterval.set (0,
+                                                                       STREAM_DEV_CAM_STATISTIC_COLLECTION_INTERVAL * 1000);
+      v4l_modulehandler_configuration.statisticReportingInterval =
+        statisticReportingInterval_in;
+    } // end IF
+#if defined (GUI_SUPPORT)
+  v4l_modulehandler_configuration.subscriber = &v4l_ui_event_handler;
+#endif // GUI_SUPPORT
+    v4l_modulehandler_configuration.targetFileName = targetFilename_in;
+  } // end ELSE
 #endif // ACE_WIN32 || ACE_WIN64
 
   Stream_AllocatorHeap_T<ACE_MT_SYNCH,
@@ -1319,21 +1441,32 @@ do_work (const std::string& captureinterfaceIdentifier_in,
     }
   } // end SWITCH
 #else
-  Stream_CamSave_V4L_MessageAllocator_t message_allocator (TEST_I_MAX_MESSAGES, // maximum #buffers
-                                                           &heap_allocator,     // heap allocator handle
-                                                           true);               // block ?
-  Stream_CamSave_V4L_Stream stream;
-  Stream_CamSave_V4L_MessageHandler_Module message_handler (&stream,
-                                                            ACE_TEXT_ALWAYS_CHAR (STREAM_MISC_MESSAGEHANDLER_DEFAULT_NAME_STRING));
+  Stream_CamSave_LibCamera_MessageAllocator_t libcamera_message_allocator (TEST_I_MAX_MESSAGES, // maximum #buffers
+                                                                           &heap_allocator,     // heap allocator handle
+                                                                           true);               // block ?
+  Stream_CamSave_V4L_MessageAllocator_t v4l_message_allocator (TEST_I_MAX_MESSAGES, // maximum #buffers
+                                                               &heap_allocator,     // heap allocator handle
+                                                               true);               // block ?
+  Stream_CamSave_LibCamera_Stream libcamera_stream;
+  Stream_CamSave_V4L_Stream v4l_stream;
+  Stream_CamSave_LibCamera_MessageHandler_Module libcamera_message_handler (&libcamera_stream,
+                                                                            ACE_TEXT_ALWAYS_CHAR (STREAM_MISC_MESSAGEHANDLER_DEFAULT_NAME_STRING));
+  Stream_CamSave_V4L_MessageHandler_Module v4l_message_handler (&v4l_stream,
+                                                                ACE_TEXT_ALWAYS_CHAR (STREAM_MISC_MESSAGEHANDLER_DEFAULT_NAME_STRING));
 
   //if (bufferSize_in)
   //  CBData_in.configuration->streamConfiguration.allocatorConfiguration_.defaultBufferSize =
   //      bufferSize_in;
-  stream_configuration.allocatorConfiguration = &allocator_configuration;
-  stream_configuration.messageAllocator = &message_allocator;
+  libcamera_stream_configuration.allocatorConfiguration = &allocator_configuration;
+  libcamera_stream_configuration.messageAllocator = &libcamera_message_allocator;
+  v4l_stream_configuration.allocatorConfiguration = &allocator_configuration;
+  v4l_stream_configuration.messageAllocator = &v4l_message_allocator;
 #if defined (GUI_SUPPORT)
-  stream_configuration.module =
-      (!UIDefinitionFilename_in.empty () ? &message_handler
+  libcamera_stream_configuration.module =
+      (!UIDefinitionFilename_in.empty () ? &libcamera_message_handler
+                                         : NULL);
+  v4l_stream_configuration.module =
+      (!UIDefinitionFilename_in.empty () ? &v4l_message_handler
                                          : NULL);
 #endif // GUI_SUPPORT
 
@@ -1416,33 +1549,55 @@ do_work (const std::string& captureinterfaceIdentifier_in,
     }
   } // end SWITCH
 #else
-  configuration_in.streamConfiguration.initialize (module_configuration,
-                                                   modulehandler_configuration,
-                                                   stream_configuration);
+  configuration_in.libCamera_streamConfiguration.initialize (module_configuration,
+                                                             libcamera_modulehandler_configuration,
+                                                             libcamera_stream_configuration);
+  configuration_in.v4l_streamConfiguration.initialize (module_configuration,
+                                                       v4l_modulehandler_configuration,
+                                                       v4l_stream_configuration);
 
-  if (!do_initialize_v4l (captureinterfaceIdentifier_in,
-                          modulehandler_configuration.deviceIdentifier,
-                          configuration_in.streamConfiguration.configuration->format,
-                          modulehandler_configuration.outputFormat))
+  if (useLibCamera_in)
   {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to ::do_initialize_v4l(), returning\n")));
-    return;
-  } // end IF
+    if (!do_initialize_libcamera (libcamera_modulehandler_configuration.deviceIdentifier,
+                                  configuration_in.libCamera_streamConfiguration.configuration->format,
+                                  libcamera_modulehandler_configuration.outputFormat))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to ::do_initialize_libcamera(), returning\n")));
+      return;
+    } // end IF
+  }
+  else
+    if (!do_initialize_v4l (captureinterfaceIdentifier_in,
+                            v4l_modulehandler_configuration.deviceIdentifier,
+                            configuration_in.v4l_streamConfiguration.configuration->format,
+                            v4l_modulehandler_configuration.outputFormat))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to ::do_initialize_v4l(), returning\n")));
+      return;
+    } // end IF
 
-  modulehandler_configuration.display = displayDevice_in;
-  configuration_in.streamConfiguration.insert (std::make_pair (Stream_Visualization_Tools::rendererToModuleName (STREAM_VISUALIZATION_VIDEORENDERER_X11),
-                                                               std::make_pair (module_configuration,
-                                                                               modulehandler_configuration)));
+  libcamera_modulehandler_configuration.display = displayDevice_in;
+  v4l_modulehandler_configuration.display = displayDevice_in;
+  configuration_in.libCamera_streamConfiguration.insert (std::make_pair (Stream_Visualization_Tools::rendererToModuleName (STREAM_VISUALIZATION_VIDEORENDERER_X11),
+                                                                         std::make_pair (module_configuration,
+                                                                                         libcamera_modulehandler_configuration)));
+  configuration_in.v4l_streamConfiguration.insert (std::make_pair (Stream_Visualization_Tools::rendererToModuleName (STREAM_VISUALIZATION_VIDEORENDERER_X11),
+                                                                   std::make_pair (module_configuration,
+                                                                                  v4l_modulehandler_configuration)));
   // *NOTE*: apparently, Windows Media Player supports only RGB 5:5:5 16bpp AVI
   //         content (see also avienc.c:448)
-  modulehandler_configuration.outputFormat.format = AV_PIX_FMT_BGR24;
-  configuration_in.streamConfiguration.insert (std::make_pair (std::string (std::string (ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_LIBAV_CONVERTER_DEFAULT_NAME_STRING)) + ACE_TEXT_ALWAYS_CHAR ("_2")),
-                                                               std::make_pair (module_configuration,
-                                                                               modulehandler_configuration)));
+  v4l_modulehandler_configuration.outputFormat.format = AV_PIX_FMT_BGR24;
+  configuration_in.libCamera_streamConfiguration.insert (std::make_pair (std::string (std::string (ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_LIBAV_CONVERTER_DEFAULT_NAME_STRING)) + ACE_TEXT_ALWAYS_CHAR ("_2")),
+                                                                         std::make_pair (module_configuration,
+                                                                                         libcamera_modulehandler_configuration)));
+  configuration_in.v4l_streamConfiguration.insert (std::make_pair (std::string (std::string (ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_LIBAV_CONVERTER_DEFAULT_NAME_STRING)) + ACE_TEXT_ALWAYS_CHAR ("_2")),
+                                                                   std::make_pair (module_configuration,
+                                                                                   v4l_modulehandler_configuration)));
   v4l_stream_iterator =
-    configuration_in.streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
-  ACE_ASSERT (v4l_stream_iterator != configuration_in.streamConfiguration.end ());
+    configuration_in.v4l_streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
+  ACE_ASSERT (v4l_stream_iterator != configuration_in.v4l_streamConfiguration.end ());
 #endif // ACE_WIN32 || ACE_WIN64
 
 #if defined (GUI_SUPPORT)
@@ -1537,7 +1692,7 @@ do_work (const std::string& captureinterfaceIdentifier_in,
   } // end SWITCH
 #else
   configuration_in.signalHandlerConfiguration.messageAllocator =
-    &message_allocator;
+    &v4l_message_allocator;
   signalHandler_in.initialize (configuration_in.signalHandlerConfiguration);
 #endif // ACE_WIN32 || ACE_WIN64
   if (!Common_Signal_Tools::initialize (COMMON_SIGNAL_DISPATCH_SIGNAL,
@@ -1609,10 +1764,13 @@ do_work (const std::string& captureinterfaceIdentifier_in,
       }
     } // end SWITCH
 #else
-    CBData_in.stream = &stream;
+    libCamera_CBData_in.stream = &libcamera_stream;
+    v4l_CBData_in.stream = &v4l_stream;
 #if defined (GTK_USE)
-    CBData_in.UIState = &state_r;
-    CBData_in.progressData.state = &state_r;
+    libCamera_CBData_in.UIState = &state_r;
+    libCamera_CBData_in.progressData.state = &state_r;
+    v4l_CBData_in.UIState = &state_r;
+    v4l_CBData_in.progressData.state = &state_r;
 //    CBData_in.pixelBufferLock = &state_r.lock;
 #elif defined (WXWIDGETS_USE)
     struct Common_UI_wxWidgets_State& state_r =
@@ -1710,18 +1868,31 @@ do_work (const std::string& captureinterfaceIdentifier_in,
 #else
 #if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
-    Common_UI_GTK_Tools::initialize (CBData_in.configuration->GTKConfiguration.argc,
-                                     CBData_in.configuration->GTKConfiguration.argv);
+    if (useLibCamera_in)
+      Common_UI_GTK_Tools::initialize (libCamera_CBData_in.configuration->GTKConfiguration.argc,
+                                       libCamera_CBData_in.configuration->GTKConfiguration.argv);
+    else
+      Common_UI_GTK_Tools::initialize (v4l_CBData_in.configuration->GTKConfiguration.argc,
+                                       v4l_CBData_in.configuration->GTKConfiguration.argv);
 #endif // GTK_USE
 #endif // GUI_SUPPORT
 
-    if (!stream.initialize (configuration_in.streamConfiguration))
+    if (!libcamera_stream.initialize (configuration_in.libCamera_streamConfiguration))
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to initialize stream, returning\n")));
       goto clean;
     } // end IF
-    stream_p = &stream;
+    if (!v4l_stream.initialize (configuration_in.v4l_streamConfiguration))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to initialize stream, returning\n")));
+      goto clean;
+    } // end IF
+    if (useLibCamera_in)
+      stream_p = &libcamera_stream;
+    else
+      stream_p = &v4l_stream;
 #endif // ACE_WIN32 || ACE_WIN64
     ACE_ASSERT (stream_p);
     // *NOTE*: this will block until the file has been copied...
@@ -1952,16 +2123,11 @@ ACE_TMAIN (int argc_in,
 #endif // ACE_WIN32 || ACE_WIN64
 
   // step1a set defaults
-  //unsigned int buffer_size = TEST_U_STREAM_CAMSAVE_DEFAULT_BUFFER_SIZE;
   std::string capture_device_identifier;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   bool show_console = false;
 #else
-  capture_device_identifier =
-    ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_DEVICE_DIRECTORY);
-  capture_device_identifier += ACE_DIRECTORY_SEPARATOR_CHAR_A;
-  capture_device_identifier +=
-    ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_DEFAULT_VIDEO_DEVICE);
+  bool use_libcamera = false;
 #endif // ACE_WIN32 || ACE_WIN64
   std::string path = Common_File_Tools::getTempDirectory ();
   path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
@@ -2001,6 +2167,8 @@ ACE_TMAIN (int argc_in,
                             capture_device_identifier,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
                             show_console,
+#else
+                            use_libcamera,
 #endif // ACE_WIN32 || ACE_WIN64
                             target_filename,
 #if defined (GUI_SUPPORT)
@@ -2026,6 +2194,8 @@ ACE_TMAIN (int argc_in,
     return EXIT_FAILURE;
   } // end IF
 
+  // step1a set defaults (II)
+
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   if (capture_device_identifier.empty ())
     switch (media_framework_e)
@@ -2048,15 +2218,16 @@ ACE_TMAIN (int argc_in,
                     ACE_TEXT ("invalid/unknown media framework (was: %d), returning\n"),
                     media_framework_e));
         // *PORTABILITY*: on Windows, finalize ACE...
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
         result = ACE::fini ();
         if (result == -1)
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("failed to ACE::fini(): \"%m\", continuing\n")));
-#endif // ACE_WIN32 || ACE_WIN64
         return EXIT_FAILURE;
       }
     } // end SWITCH
+#else
+  capture_device_identifier =
+      Stream_Device_Tools::getDefaultVideoCaptureDevice (use_libcamera);
 #endif // ACE_WIN32 || ACE_WIN64
 
   // step1c: validate arguments
@@ -2196,7 +2367,7 @@ ACE_TMAIN (int argc_in,
 #endif // ACE_WIN32 || ACE_WIN64
 
 #if defined (GUI_SUPPORT)
-  struct Stream_CamSave_UI_CBData* ui_cb_data_p = NULL;
+//  struct Stream_CamSave_UI_CBData* ui_cb_data_p = NULL;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   struct Stream_CamSave_DirectShow_Configuration directshow_configuration;
   struct Stream_CamSave_DirectShow_UI_CBData directshow_ui_cb_data;
@@ -2209,7 +2380,7 @@ ACE_TMAIN (int argc_in,
     {
       directshow_ui_cb_data.configuration = &directshow_configuration;
       directshow_ui_cb_data.mediaFramework = media_framework_e;
-      ui_cb_data_p = &directshow_ui_cb_data;
+//      ui_cb_data_p = &directshow_ui_cb_data;
 
       directshow_ui_cb_data.configuration->GTKConfiguration.argc = argc_in;
       directshow_ui_cb_data.configuration->GTKConfiguration.argv = argv_in;
@@ -2226,7 +2397,7 @@ ACE_TMAIN (int argc_in,
     {
       mediafoundation_ui_cb_data.configuration = &mediafoundation_configuration;
       mediafoundation_ui_cb_data.mediaFramework = media_framework_e;
-      ui_cb_data_p = &mediafoundation_ui_cb_data;
+//      ui_cb_data_p = &mediafoundation_ui_cb_data;
 
       mediafoundation_ui_cb_data.configuration->GTKConfiguration.argc = argc_in;
       mediafoundation_ui_cb_data.configuration->GTKConfiguration.argv = argv_in;
@@ -2256,26 +2427,49 @@ ACE_TMAIN (int argc_in,
   } // end SWITCH
 #else
   struct Stream_CamSave_Configuration configuration;
-  struct Stream_CamSave_V4L_UI_CBData ui_cb_data;
-  ui_cb_data.configuration = &configuration;
-  ui_cb_data_p = &ui_cb_data;
+  struct Stream_CamSave_LibCamera_UI_CBData libcamera_ui_cb_data;
+  struct Stream_CamSave_V4L_UI_CBData v4l_ui_cb_data;
+  if (use_libcamera)
+  {
+    libcamera_ui_cb_data.useLibCamera = true;
+    libcamera_ui_cb_data.configuration = &configuration;
+  } // end IF
+  else
+    v4l_ui_cb_data.configuration = &configuration;
+//  ui_cb_data_p = &ui_cb_data;
 
 #if defined (GTK_USE)
-  ui_cb_data.configuration->GTKConfiguration.argc = argc_in;
-  ui_cb_data.configuration->GTKConfiguration.argv = argv_in;
-  ui_cb_data.configuration->GTKConfiguration.CBData = &ui_cb_data;
-  ui_cb_data.configuration->GTKConfiguration.eventHooks.finiHook =
-      idle_finalize_UI_cb;
-  ui_cb_data.configuration->GTKConfiguration.eventHooks.initHook =
-      idle_initialize_UI_cb;
-  ui_cb_data.configuration->GTKConfiguration.definition = &gtk_ui_definition;
+  if (use_libcamera)
+  {
+    libcamera_ui_cb_data.configuration->GTKConfiguration.argc = argc_in;
+    libcamera_ui_cb_data.configuration->GTKConfiguration.argv = argv_in;
+    libcamera_ui_cb_data.configuration->GTKConfiguration.CBData =
+        &libcamera_ui_cb_data;
+    libcamera_ui_cb_data.configuration->GTKConfiguration.eventHooks.finiHook =
+        idle_finalize_UI_cb;
+    libcamera_ui_cb_data.configuration->GTKConfiguration.eventHooks.initHook =
+        idle_initialize_UI_cb;
+    libcamera_ui_cb_data.configuration->GTKConfiguration.definition = &gtk_ui_definition;
+  } // end IF
+  else
+  {
+    v4l_ui_cb_data.configuration->GTKConfiguration.argc = argc_in;
+    v4l_ui_cb_data.configuration->GTKConfiguration.argv = argv_in;
+    v4l_ui_cb_data.configuration->GTKConfiguration.CBData = &v4l_ui_cb_data;
+    v4l_ui_cb_data.configuration->GTKConfiguration.eventHooks.finiHook =
+        idle_finalize_UI_cb;
+    v4l_ui_cb_data.configuration->GTKConfiguration.eventHooks.initHook =
+        idle_initialize_UI_cb;
+    v4l_ui_cb_data.configuration->GTKConfiguration.definition = &gtk_ui_definition;
+  } // end ELSE
 #endif // GTK_USE
 #endif // ACE_WIN32 || ACE_WIN64
-  ACE_ASSERT (ui_cb_data_p);
+  //ACE_ASSERT (ui_cb_data_p);
 #endif // GUI_SUPPORT
 
   // step1h: initialize UI framework
 #if defined (GUI_SUPPORT)
+  Common_UI_Tools::initialize ();
   struct Common_UI_State* ui_state_p = NULL;
 #if defined (GTK_USE)
   ui_state_p = &const_cast<Common_UI_GTK_State_t&> (gtk_manager_p->getR_2 ());
@@ -2558,8 +2752,12 @@ ACE_TMAIN (int argc_in,
     } // end SWITCH
 #else
 #if defined (GTK_USE)
+  if (use_libcamera)
     result_2 =
-        gtk_manager_p->initialize (ui_cb_data.configuration->GTKConfiguration);
+        gtk_manager_p->initialize (libcamera_ui_cb_data.configuration->GTKConfiguration);
+  else
+    result_2 =
+        gtk_manager_p->initialize (v4l_ui_cb_data.configuration->GTKConfiguration);
 #endif // GTK_USE
 #endif // ACE_WIN32 || ACE_WIN64
 #if defined (GTK_USE)
@@ -2593,6 +2791,8 @@ ACE_TMAIN (int argc_in,
   do_work (capture_device_identifier,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
            show_console,
+#else
+           use_libcamera,
 #endif // ACE_WIN32 || ACE_WIN64
            target_filename,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -2612,7 +2812,8 @@ ACE_TMAIN (int argc_in,
            directshow_ui_cb_data,
            mediafoundation_ui_cb_data,
 #else
-           ui_cb_data,
+           libcamera_ui_cb_data,
+           v4l_ui_cb_data,
 #endif // ACE_WIN32 || ACE_WIN64
 #if defined (WXWIDGETS_USE)
            iapplication_p,

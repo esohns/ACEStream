@@ -21,8 +21,6 @@
 #ifndef TEST_U_IMAGESCREEN_COMMON_H
 #define TEST_U_IMAGESCREEN_COMMON_H
 
-//#include <wx/apptrait.h>
-
 #ifdef __cplusplus
 extern "C"
 {
@@ -30,6 +28,11 @@ extern "C"
 #include "libavutil/pixfmt.h"
 }
 #endif // __cplusplus
+
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#else
+#include "X11/Xlib.h"
+#endif // ACE_WIN32 || ACE_WIN64
 
 #include "common_isubscribe.h"
 

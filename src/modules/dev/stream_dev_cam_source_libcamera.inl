@@ -360,14 +360,6 @@ Stream_Module_CamSource_LibCamera_T<ACE_SYNCH_USE,
   int result_2 = -1;
   const SessionDataType& session_data_r = inherited::sessionData_->getR ();
   bool stop_processing = false;
-
-  struct v4l2_buffer buffer_s;
-  ACE_OS::memset (&buffer_s, 0, sizeof (struct v4l2_buffer));
-  buffer_s.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-  buffer_s.memory = inherited::configuration_->method;
-//  struct v4l2_event event_s;
-//  ACE_OS::memset (&event_s, 0, sizeof (struct v4l2_event));
-  Stream_Device_BufferMapIterator_t iterator;
   typename inherited::ISTREAM_T* stream_p =
       const_cast<typename inherited::ISTREAM_T*> (inherited::getP ());
 

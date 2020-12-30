@@ -8,6 +8,10 @@ if (IMAGEMAGICK_SUPPORT)
  add_definitions (-DIMAGEMAGICK_SUPPORT)
 endif (IMAGEMAGICK_SUPPORT)
 
+if (UNIX)
+ add_compile_options (-std=c++17)
+endif (UNIX)
+
 ##########################################
 
 add_library (${PROJECT_NAME}_File STATIC "")

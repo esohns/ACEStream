@@ -1,4 +1,8 @@
-﻿add_library (${PROJECT_NAME}_Statistic STATIC "")
+﻿if (UNIX)
+ add_compile_options (-std=c++17)
+endif (UNIX)
+
+add_library (${PROJECT_NAME}_Statistic STATIC "")
 
 if (UNIX)
  target_include_directories (${PROJECT_NAME}_Statistic PUBLIC

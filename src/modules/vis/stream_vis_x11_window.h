@@ -36,8 +36,11 @@
 
 #include "stream_lib_mediatype_converter.h"
 
-int libacestream_vis_x11_error_handler_cb (Display*, XErrorEvent*);
-int libacestream_vis_x11_io_error_handler_cb (Display*);
+// forward declarations
+//struct _XDisplay;
+
+int libacestream_vis_x11_error_handler_cb (struct _XDisplay*, XErrorEvent*);
+int libacestream_vis_x11_io_error_handler_cb (struct _XDisplay*);
 
 extern const char libacestream_default_vis_x11_window_module_name_string[];
 
@@ -118,8 +121,8 @@ class Stream_Module_Vis_X11_Window_T
 //  GC                 context_;
   struct _XDisplay* display_;
   bool              isFirst_;
-  XID               pixmap_;
-  XID               window_;
+  unsigned long     pixmap_;
+  unsigned long     window_;
 };
 
 // include template definition

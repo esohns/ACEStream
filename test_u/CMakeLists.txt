@@ -2,6 +2,10 @@
 
 include (${CMAKE_CURRENT_SOURCE_DIR}/../../Common/scripts/ACE.cmake)
 
+if (UNIX)
+ add_compile_options (-std=c++17) # *NOTE*: required by libcamera
+endif (UNIX)
+
 option (BUILD_TEST_U "build test_u" OFF)
 
 # user interface

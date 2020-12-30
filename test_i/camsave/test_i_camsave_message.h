@@ -47,12 +47,10 @@ template <typename DataType,
           typename SessionDataType> // derives off Stream_SessionData_T
 class Stream_CamSave_Message_T
  : public Stream_DataMessageBase_T<DataType,
-//                                   struct Stream_AllocatorConfiguration,
                                    enum Stream_MessageType,
                                    int>
 {
   typedef Stream_DataMessageBase_T<DataType,
-//                                   struct Stream_AllocatorConfiguration,
                                    enum Stream_MessageType,
                                    int> inherited;
 
@@ -103,6 +101,65 @@ class Stream_CamSave_Message_T
                             ACE_Allocator*); // message allocator
   ACE_UNIMPLEMENTED_FUNC (Stream_CamSave_Message_T& operator= (const Stream_CamSave_Message_T&))
 };
+
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#else
+template <typename DataType,
+          typename SessionDataType> // derives off Stream_SessionData_T
+class Stream_CamSave_LibCamera_Message_T
+ : public Stream_DataMessageBase_T<DataType,
+                                   enum Stream_MessageType,
+                                   int>
+{
+  typedef Stream_DataMessageBase_T<DataType,
+                                   enum Stream_MessageType,
+                                   int> inherited;
+
+  // grant access to specific private ctors
+  friend class Stream_MessageAllocatorHeapBase_T<ACE_MT_SYNCH,
+                                                 struct Common_AllocatorConfiguration,
+                                                 Stream_ControlMessage_t,
+                                                 Stream_CamSave_LibCamera_Message_T<DataType,
+                                                                                    SessionDataType>,
+                                                 Stream_CamSave_SessionMessage_T<Stream_CamSave_LibCamera_Message_T<DataType,
+                                                                                                                    SessionDataType>,
+                                                                                 SessionDataType> >;
+
+ public:
+  Stream_CamSave_LibCamera_Message_T (unsigned int); // size
+  virtual ~Stream_CamSave_LibCamera_Message_T ();
+
+  // overrides from ACE_Message_Block
+  // --> create a "shallow" copy that references the same packet
+  // *NOTE*: uses the allocator (if any)
+  virtual ACE_Message_Block* duplicate (void) const;
+  // insert this buffer back into the device incoming queue
+  virtual ACE_Message_Block* release (void);
+
+  // implement Stream_MessageBase_T
+  inline virtual int command () const { return ACE_Message_Block::MB_DATA; }
+
+ protected:
+  // convenient types
+  typedef Stream_CamSave_LibCamera_Message_T<DataType,
+                                             SessionDataType> OWN_TYPE_T;
+
+  // copy ctor to be used by duplicate() and child classes
+  // --> uses an (incremented refcount of) the same datablock ("shallow copy")
+  Stream_CamSave_LibCamera_Message_T (const OWN_TYPE_T&);
+
+ private:
+  ACE_UNIMPLEMENTED_FUNC (Stream_CamSave_LibCamera_Message_T ())
+  // *NOTE*: to be used by message allocators
+  Stream_CamSave_LibCamera_Message_T (Stream_SessionId_t,
+                                      ACE_Data_Block*, // data block to use
+                                      ACE_Allocator*,  // message allocator
+                                      bool = true);    // increment running message counter ?
+  Stream_CamSave_LibCamera_Message_T (Stream_SessionId_t,
+                                      ACE_Allocator*); // message allocator
+  ACE_UNIMPLEMENTED_FUNC (Stream_CamSave_LibCamera_Message_T& operator= (const Stream_CamSave_LibCamera_Message_T&))
+};
+#endif // ACE_WIN32 || ACE_WIN64
 
 // include template definition
 #include "test_i_camsave_message.inl"

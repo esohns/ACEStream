@@ -39,6 +39,8 @@
 #else
 #include "linux/videodev2.h"
 
+#include "X11/Xlib.h"
+
 #ifdef __cplusplus
 extern "C"
 {
@@ -394,7 +396,7 @@ struct Stream_CameraScreen_ModuleHandlerConfiguration
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   HWND                            window;
 #else
-  XID                             window;
+  Window                          window;
   Display*                        X11Display;
 #endif // ACE_WIN32 || ACE_WIN64
 };

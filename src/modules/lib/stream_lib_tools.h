@@ -30,8 +30,6 @@
 #include <mfobjects.h>
 #include <strmif.h>
 #else
-#include "X11/Xlib.h"
-
 #include "alsa/asoundlib.h"
 
 #include "sox.h"
@@ -42,18 +40,25 @@
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
-#include "common_ui_common.h"
+#include "common_image_common.h"
 #endif // ACE_WIN32 || ACE_WIN64
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #include "stream_lib_common.h"
 #include "stream_lib_defines.h"
+#else
+#include "stream_lib_v4l_common.h"
+
+// forward declarations
+struct _XDisplay;
 #endif // ACE_WIN32 || ACE_WIN64
 
 class Stream_MediaFramework_Tools
 {
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
   friend class Stream_MediaFramework_DirectShow_Tools;
   friend class Stream_MediaFramework_MediaFoundation_Tools;
+#endif // ACE_WIN32 || ACE_WIN64
 
  public:
   inline static std::string FOURCCToString (ACE_UINT32 fourCC_in) { return std::string (reinterpret_cast<char*> (&fourCC_in), 4); }
@@ -83,10 +88,10 @@ class Stream_MediaFramework_Tools
   static void finalize ();
 
   // X11
-  static Common_Image_Resolution_t toResolution (const Display&, // display
-                                                 Window);        // window
-  static std::string toString (const Display&, // display
-                               int);           // error code
+  static Common_Image_Resolution_t toResolution (const struct _XDisplay&, // display
+                                                 unsigned long);          // window
+  static std::string toString (const struct _XDisplay&, // display
+                               int);                    // error code
 
   // ALSA
   static void ALSAToSoX (enum _snd_pcm_format,       // format

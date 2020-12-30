@@ -34,8 +34,6 @@ extern "C"
 #include "common_ilock.h"
 #include "common_time_common.h"
 
-#include "common_ui_common.h"
-
 #include "stream_task_base_asynch.h"
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)

@@ -39,6 +39,7 @@
 #else
 #include "linux/videodev2.h"
 
+#include "X11/Xlib.h"
 #ifdef __cplusplus
 extern "C"
 {

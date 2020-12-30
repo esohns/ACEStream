@@ -215,3 +215,133 @@ Stream_CamSave_Message_T<DataType,
   return NULL;
 }
 #endif
+
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#else
+template <typename DataType,
+          typename SessionDataType>
+Stream_CamSave_LibCamera_Message_T<DataType,
+                                   SessionDataType>::Stream_CamSave_LibCamera_Message_T (unsigned int size_in)
+ : inherited (size_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_CamSave_LibCamera_Message_T::Stream_CamSave_LibCamera_Message_T"));
+
+}
+
+template <typename DataType,
+          typename SessionDataType>
+Stream_CamSave_LibCamera_Message_T<DataType,
+                                   SessionDataType>::Stream_CamSave_LibCamera_Message_T (const OWN_TYPE_T& message_in)
+ : inherited (message_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_CamSave_LibCamera_Message_T::Stream_CamSave_LibCamera_Message_T"));
+
+}
+
+template <typename DataType,
+          typename SessionDataType>
+Stream_CamSave_LibCamera_Message_T<DataType,
+                                   SessionDataType>::Stream_CamSave_LibCamera_Message_T (Stream_SessionId_t sessionId_in,
+                                                                                         ACE_Data_Block* dataBlock_in,
+                                                                                         ACE_Allocator* messageAllocator_in,
+                                                                                         bool incrementMessageCounter_in)
+ : inherited (sessionId_in,
+              dataBlock_in,               // use (don't own (!) memory of-) this data block
+              messageAllocator_in,        // message block allocator
+              incrementMessageCounter_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_CamSave_LibCamera_Message_T::Stream_CamSave_LibCamera_Message_T"));
+
+}
+
+template <typename DataType,
+          typename SessionDataType>
+Stream_CamSave_LibCamera_Message_T<DataType,
+                                   SessionDataType>::Stream_CamSave_LibCamera_Message_T (Stream_SessionId_t sessionId_in,
+                                                                                         ACE_Allocator* messageAllocator_in)
+ : inherited (sessionId_in,
+              messageAllocator_in) // message block allocator
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_CamSave_Message_T::Stream_CamSave_Message_T"));
+
+}
+
+template <typename DataType,
+          typename SessionDataType>
+Stream_CamSave_LibCamera_Message_T<DataType,
+                                   SessionDataType>::~Stream_CamSave_LibCamera_Message_T ()
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_CamSave_LibCamera_Message_T::~Stream_CamSave_LibCamera_Message_T"));
+
+}
+
+template <typename DataType,
+          typename SessionDataType>
+ACE_Message_Block*
+Stream_CamSave_LibCamera_Message_T<DataType,
+                                   SessionDataType>::duplicate (void) const
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_CamSave_LibCamera_Message_T::duplicate"));
+
+  OWN_TYPE_T* message_p = NULL;
+
+  // if there is no allocator, use the standard new and delete calls.
+  ACE_NEW_NORETURN (message_p,
+                    OWN_TYPE_T (this->length ()));
+  if (unlikely (!message_p))
+  {
+    ACE_DEBUG ((LM_CRITICAL,
+                ACE_TEXT ("failed to allocate Stream_CamSave_Message_T: \"%m\", aborting\n")));
+    return NULL;
+  } // end IF
+  int result = message_p->copy (this->rd_ptr (),
+                                this->length ());
+  ACE_ASSERT (result == 0);
+
+  // increment the reference counts of any continuation messages
+  if (inherited::cont_)
+  {
+    message_p->cont_ = inherited::cont_->duplicate ();
+    if (unlikely (!message_p->cont_))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to Stream_CamSave_Message_T::duplicate(): \"%m\", aborting\n")));
+      message_p->release (); message_p = NULL;
+      return NULL;
+    } // end IF
+  } // end IF
+
+  // *NOTE*: if "this" is initialized, so is the "clone" (and vice-versa)...
+
+  // *NOTE*: duplicates may reuse the device buffer memory, but only the
+  //         original message will requeue it (see release() below)
+  return message_p;
+}
+
+template <typename DataType,
+          typename SessionDataType>
+ACE_Message_Block*
+Stream_CamSave_LibCamera_Message_T<DataType,
+                                   SessionDataType>::release (void)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_CamSave_LibCamera_Message_T::release"));
+
+  // release any continuations first
+  if (inherited::cont_)
+  {
+    inherited::cont_->release (); inherited::cont_ = NULL;
+  } // end IF
+
+  int reference_count = inherited::reference_count ();
+  if ((reference_count > 1)     || // not the last reference
+      inherited::data_.release)    // clean up (device data)
+    return inherited::release ();
+
+  // sanity check(s)
+  ACE_ASSERT (inherited::data_block_);
+
+//requeue:
+
+  return NULL;
+}
+#endif

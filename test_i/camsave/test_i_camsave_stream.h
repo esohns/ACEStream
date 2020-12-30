@@ -192,6 +192,76 @@ class Stream_CamSave_MediaFoundation_Stream
   ULONG                                                            referenceCount_;
 };
 #else
+class Stream_CamSave_LibCamera_Stream
+ : public Stream_Base_T<ACE_MT_SYNCH,
+                        Common_TimePolicy_t,
+                        stream_name_string_,
+                        enum Stream_ControlType,
+                        enum Stream_SessionMessageType,
+                        enum Stream_StateMachine_ControlState,
+                        struct Stream_CamSave_LibCamera_StreamState,
+                        struct Stream_CamSave_LibCamera_StreamConfiguration,
+                        struct Stream_CamSave_StatisticData,
+                        struct Stream_CamSave_LibCamera_ModuleHandlerConfiguration,
+                        Stream_CamSave_LibCamera_SessionData,
+                        Stream_CamSave_LibCamera_SessionData_t,
+                        Stream_ControlMessage_t,
+                        Stream_CamSave_LibCamera_Message_t,
+                        Stream_CamSave_LibCamera_SessionMessage_t>
+{
+  typedef Stream_Base_T<ACE_MT_SYNCH,
+                        Common_TimePolicy_t,
+                        stream_name_string_,
+                        enum Stream_ControlType,
+                        enum Stream_SessionMessageType,
+                        enum Stream_StateMachine_ControlState,
+                        struct Stream_CamSave_LibCamera_StreamState,
+                        struct Stream_CamSave_LibCamera_StreamConfiguration,
+                        struct Stream_CamSave_StatisticData,
+                        struct Stream_CamSave_LibCamera_ModuleHandlerConfiguration,
+                        Stream_CamSave_LibCamera_SessionData,
+                        Stream_CamSave_LibCamera_SessionData_t,
+                        Stream_ControlMessage_t,
+                        Stream_CamSave_LibCamera_Message_t,
+                        Stream_CamSave_LibCamera_SessionMessage_t> inherited;
+
+ public:
+  Stream_CamSave_LibCamera_Stream ();
+  virtual ~Stream_CamSave_LibCamera_Stream ();
+
+  // implement (part of) Stream_IStreamControlBase
+  virtual bool load (Stream_ILayout*, // i/o value: layout
+                     bool&);          // return value: delete modules ?
+
+  // implement Common_IInitialize_T
+  virtual bool initialize (const typename inherited::CONFIGURATION_T&); // configuration
+
+ private:
+  ACE_UNIMPLEMENTED_FUNC (Stream_CamSave_LibCamera_Stream (const Stream_CamSave_LibCamera_Stream&))
+  ACE_UNIMPLEMENTED_FUNC (Stream_CamSave_LibCamera_Stream& operator= (const Stream_CamSave_LibCamera_Stream&))
+
+  // modules
+  Stream_CamSave_LibCamera_Source_Module         source_;
+//  Stream_CamSave_StatisticReport_Module statisticReport_;
+  Stream_CamSave_LibCamera_LibAVDecoder_Module   decoder_; // --> RGB
+  Stream_CamSave_LibCamera_Distributor_Module    distributor_; // (sub-)branch ?
+  ////////////////////////////////////////
+  Stream_CamSave_LibCamera_LibAVConverter_Module converter_; // --> 24-bit RGB (display format)
+  Stream_CamSave_LibCamera_LibAVResize_Module    resizer_; // --> window size/fullscreen
+#if defined (GUI_SUPPORT)
+#if defined (GTK_USE)
+//  Stream_CamSave_GTKCairoDisplay_Module GTKCairoDisplay_;
+//  Stream_CamSave_LibCamera_Display_Module        display_;
+//  Stream_CamSave_Display_2_Module       display_2_;
+#endif // GTK_USE
+  Stream_CamSave_LibCamera_Display_2_Module      display_2_;
+#endif // GUI_SUPPORT
+  ////////////////////////////////////////
+  Stream_CamSave_LibCamera_LibAVConverter_Module converter_2; // --> 32-bit RGB (AVI format)
+  Stream_CamSave_LibCamera_AVIEncoder_Module     encoder_; // --> AVI
+  Stream_CamSave_LibCamera_FileWriter_Module     fileWriter_;
+};
+
 class Stream_CamSave_V4L_Stream
  : public Stream_Base_T<ACE_MT_SYNCH,
                         Common_TimePolicy_t,

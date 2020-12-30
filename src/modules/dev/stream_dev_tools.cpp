@@ -19,7 +19,6 @@
  ***************************************************************************/
 #include "stdafx.h"
 
-//#include "ace/Synch.h"
 #include "stream_dev_tools.h"
 
 #include <sstream>
@@ -52,7 +51,7 @@ extern "C"
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
-#include "libcamera/formats.h"
+#include "libcamera/libcamera.h"
 #endif // ACE_WIN32 || ACE_WIN64
 
 #include "ace/Dirent_Selector.h"
@@ -232,6 +231,229 @@ Stream_Device_Tools::dump (struct _snd_pcm* deviceHandle_in)
 error:
   if (format_p)
     snd_pcm_hw_params_free (format_p);
+}
+
+std::string
+Stream_Device_Tools::getDefaultVideoCaptureDevice (bool useLibCamera_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Device_Tools::getDefaultVideoCaptureDevice"));
+
+  // initialize return value(s)
+  std::string return_value;
+
+  if (useLibCamera_in)
+  {
+    int result = -1;
+    Stream_Device_List_t devices_a;
+    libcamera::CameraManager* camera_manager_p = NULL;
+    ACE_NEW_NORETURN (camera_manager_p,
+                      libcamera::CameraManager ());
+    ACE_ASSERT (camera_manager_p);
+    result = camera_manager_p->start();
+    if (result)
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to libcamera::CameraManager::start(): \"%m\", aborting\n")));
+      goto error;
+    } // end IF
+
+    devices_a =
+      Stream_Device_Tools::getVideoCaptureDevices (camera_manager_p);
+    if (devices_a.empty ())
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("found no video capture devices, aborting\n")));
+      result = -1;
+      goto error;
+    } // end IF
+    return_value = devices_a.front ().identifier;
+
+error:
+    camera_manager_p->stop ();
+    delete camera_manager_p; camera_manager_p = NULL;
+  } // end IF
+  else
+  {
+    return_value =
+      ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_DEVICE_DIRECTORY);
+    return_value += ACE_DIRECTORY_SEPARATOR_CHAR_A;
+    return_value +=
+      ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_DEFAULT_VIDEO_DEVICE);
+  } // end ELSE
+
+  return return_value;
+}
+
+Stream_Device_List_t
+Stream_Device_Tools::getVideoCaptureDevices (libcamera::CameraManager* manager_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Device_Tools::getVideoCaptureDevices"));
+
+  // sanity check(s)
+  ACE_ASSERT (manager_in);
+
+  // initialize return value(s)
+  Stream_Device_List_t return_value;
+
+  std::vector<std::shared_ptr<libcamera::Camera> > cameras_a =
+    manager_in->cameras();
+#if defined (_DEBUG)
+  if (unlikely (cameras_a.empty ()))
+    ACE_DEBUG ((LM_DEBUG,
+                ACE_TEXT ("no video capture devices found, continuing\n")));
+#endif // _DEBUG
+
+  struct Stream_Device_Identifier device_identifier_s;
+  for (std::vector<std::shared_ptr<libcamera::Camera> >::iterator iterator = cameras_a.begin ();
+       iterator != cameras_a.end ();
+       ++iterator)
+  {
+#if defined (_DEBUG)
+    ACE_DEBUG ((LM_DEBUG,
+                ACE_TEXT ("found video capture device \"%s\"\n"),
+                ACE_TEXT ((*iterator)->id ().c_str ())));
+#endif // _DEBUG
+    device_identifier_s.identifier = (*iterator)->id ();
+    return_value.push_back (device_identifier_s);
+  } // end FOR
+
+  return return_value;
+}
+
+libcamera::Camera*
+Stream_Device_Tools::getCamera (libcamera::CameraManager* manager_in,
+                                const std::string& deviceIdentifier_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Device_Tools::getCamera"));
+
+  // sanity check(s)
+  ACE_ASSERT (manager_in);
+
+  std::vector<std::shared_ptr<libcamera::Camera> > cameras_a =
+    manager_in->cameras();
+  for (std::vector<std::shared_ptr<libcamera::Camera> >::iterator iterator = cameras_a.begin ();
+       iterator != cameras_a.end ();
+       ++iterator)
+  {
+    if ((*iterator)->id () == deviceIdentifier_in)
+      return (*iterator).get ();
+  } // end FOR
+
+  return NULL;
+}
+
+Stream_MediaFramework_LibCamera_CaptureFormats_t
+Stream_Device_Tools::getCaptureFormats (libcamera::Camera* camera_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Device_Tools::getCaptureFormats"));
+
+  // sanity check(s)
+  ACE_ASSERT (camera_in);
+
+  // initialize return value(s)
+  Stream_MediaFramework_LibCamera_CaptureFormats_t return_value;
+
+  libcamera::StreamRoles roles_a;
+  roles_a.push_back (libcamera::StreamRole::Viewfinder);
+  std::unique_ptr<libcamera::CameraConfiguration> configuration_p =
+    camera_in->generateConfiguration (roles_a);
+  if (!configuration_p)
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to generate configuration from role(s), aborting\n")));
+    return return_value;
+  }
+  ACE_ASSERT (!configuration_p->empty ());
+  for (libcamera::CameraConfiguration::iterator iterator = configuration_p->begin ();
+       iterator != configuration_p->end ();
+       ++iterator)
+    return_value.push_back (std::make_pair ((*iterator).pixelFormat,
+                                            (*iterator).pixelFormat.toString ()));
+
+  return return_value;
+}
+
+Common_Image_Resolutions_t
+Stream_Device_Tools::getCaptureResolutions (libcamera::Camera* camera_in,
+                                            const libcamera::PixelFormat& format_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Device_Tools::getCaptureFormats"));
+
+  // sanity check(s)
+  ACE_ASSERT (camera_in);
+
+  // initialize return value(s)
+  Common_Image_Resolutions_t return_value;
+
+  libcamera::StreamRoles roles_a;
+  roles_a.push_back (libcamera::StreamRole::Viewfinder);
+  std::unique_ptr<libcamera::CameraConfiguration> configuration_p =
+    camera_in->generateConfiguration (roles_a);
+  if (!configuration_p)
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to generate configuration from role(s), aborting\n")));
+    return return_value;
+  }
+  ACE_ASSERT (!configuration_p->empty ());
+  for (libcamera::CameraConfiguration::iterator iterator = configuration_p->begin ();
+       iterator != configuration_p->end ();
+       ++iterator)
+    if ((*iterator).pixelFormat == format_in)
+    {
+      Common_Image_Resolution_t resolution_s;
+      resolution_s.width = (*iterator).size.width;
+      resolution_s.height = (*iterator).size.height;
+      return_value.push_back (resolution_s);
+    } // end IF
+
+  return return_value;
+}
+
+struct Stream_MediaFramework_LibCamera_MediaType
+Stream_Device_Tools::defaultCaptureFormat (libcamera::Camera* camera_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Device_Tools::defaultCaptureFormat"));
+
+  // sanity check(s)
+  ACE_ASSERT (camera_in);
+
+  // initialize return value(s)
+  struct Stream_MediaFramework_LibCamera_MediaType return_value;
+
+  libcamera::StreamRoles roles_a;
+  roles_a.push_back (libcamera::StreamRole::Viewfinder);
+  std::unique_ptr<libcamera::CameraConfiguration> configuration_p =
+    camera_in->generateConfiguration (roles_a);
+  if (!configuration_p)
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to generate configuration from role(s), aborting\n")));
+    return return_value;
+  }
+  ACE_ASSERT (!configuration_p->empty ());
+  libcamera::StreamConfiguration& configuration_2 = configuration_p->at (0);
+  return_value.format = configuration_2.pixelFormat;
+  return_value.resolution = configuration_2.size;
+
+  return return_value;
+}
+
+struct Stream_MediaFramework_FFMPEG_VideoMediaType
+Stream_Device_Tools::convert (const struct Stream_MediaFramework_LibCamera_MediaType& format_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Device_Tools::convert"));
+
+  struct Stream_MediaFramework_FFMPEG_VideoMediaType result;
+
+  result.format =
+      Stream_Device_Tools::libCameraFormatToffmpegFormat (format_in.format);
+  result.frameRate.num = format_in.frameRateNumerator;
+  result.frameRate.den = format_in.frameRateDenominator;
+  result.resolution.width = format_in.resolution.width;
+  result.resolution.height = format_in.resolution.height;
+
+  return result;
 }
 
 bool
@@ -2526,6 +2748,113 @@ Stream_Device_Tools::ffmpegFormatToLibCameraFormat (enum AVPixelFormat format_in
   } // end SWITCH
 
   return libcamera::PixelFormat (0, 0);
+}
+
+enum AVPixelFormat
+Stream_Device_Tools::libCameraFormatToffmpegFormat (const libcamera::PixelFormat& format_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Device_Tools::libCameraFormatToffmpegFormat"));
+
+  switch (format_in)
+  {
+    case libcamera::formats::R8:
+      return AV_PIX_FMT_GRAY8;
+    case libcamera::formats::RGB565:
+      return AV_PIX_FMT_RGB565;
+    case libcamera::formats::RGB888:
+      return AV_PIX_FMT_RGB24;
+    case libcamera::formats::BGR888:
+      return AV_PIX_FMT_BGR24;
+    case libcamera::formats::XRGB8888:
+      return AV_PIX_FMT_ARGB;
+    case libcamera::formats::XBGR8888:
+      return AV_PIX_FMT_ABGR;
+    case libcamera::formats::RGBX8888:
+      return AV_PIX_FMT_RGBA;
+    case libcamera::formats::BGRX8888:
+      return AV_PIX_FMT_BGRA;
+    case libcamera::formats::ARGB8888:
+      return AV_PIX_FMT_ARGB;
+    case libcamera::formats::ABGR8888:
+      return AV_PIX_FMT_ABGR;
+    case libcamera::formats::RGBA8888:
+      return AV_PIX_FMT_RGBA;
+    case libcamera::formats::BGRA8888:
+      return AV_PIX_FMT_BGRA;
+    case libcamera::formats::YUYV:
+      return AV_PIX_FMT_YUYV422;
+    case libcamera::formats::YVYU:
+      return AV_PIX_FMT_YVYU422;
+    case libcamera::formats::UYVY:
+      return AV_PIX_FMT_UYVY422;
+    case libcamera::formats::VYUY:
+      return AV_PIX_FMT_UYVY422;
+    case libcamera::formats::NV12:
+      return AV_PIX_FMT_NV12;
+    case libcamera::formats::NV21:
+      return AV_PIX_FMT_NV21;
+    case libcamera::formats::NV16:
+      return AV_PIX_FMT_NV16;
+    case libcamera::formats::NV61:
+      return AV_PIX_FMT_NV16;
+    case libcamera::formats::NV24:
+      return AV_PIX_FMT_NV24;
+    case libcamera::formats::NV42:
+      return AV_PIX_FMT_NV42;
+    case libcamera::formats::YUV420:
+      return AV_PIX_FMT_YUV420P;
+    case libcamera::formats::YVU420:
+      return AV_PIX_FMT_YUV420P; // *TODO*: this is wrong
+    case libcamera::formats::YUV422:
+      return AV_PIX_FMT_YUV422P;
+    case libcamera::formats::MJPEG:
+      return AV_PIX_FMT_YUVJ420P; // *TODO*: this is wrong
+    case libcamera::formats::SRGGB8:
+      return AV_PIX_FMT_BAYER_RGGB8;
+    case libcamera::formats::SGRBG8:
+      return AV_PIX_FMT_BAYER_GRBG8;
+    case libcamera::formats::SGBRG8:
+      return AV_PIX_FMT_BAYER_GBRG8;
+    case libcamera::formats::SBGGR8:
+      return AV_PIX_FMT_BAYER_BGGR8;
+//    case libcamera::formats::SRGGB10:
+//    case libcamera::formats::SGRBG10:
+//    case libcamera::formats::SGBRG10:
+//    case libcamera::formats::SBGGR10:
+//    case libcamera::formats::SRGGB12:
+//    case libcamera::formats::SGRBG12:
+//    case libcamera::formats::SGBRG12:
+//    case libcamera::formats::SBGGR12:
+    case libcamera::formats::SRGGB16:
+      return AV_PIX_FMT_BAYER_RGGB16;
+    case libcamera::formats::SGRBG16:
+      return AV_PIX_FMT_BAYER_GRBG16;
+    case libcamera::formats::SGBRG16:
+      return AV_PIX_FMT_BAYER_GBRG16;
+    case libcamera::formats::SBGGR16:
+      return AV_PIX_FMT_BAYER_BGGR16;
+//    case libcamera::formats::SRGGB10_CSI2P:
+//    case libcamera::formats::SGRBG10_CSI2P:
+//    case libcamera::formats::SGBRG10_CSI2P:
+//    case libcamera::formats::SBGGR10_CSI2P:
+//    case libcamera::formats::SRGGB12_CSI2P:
+//    case libcamera::formats::SGRBG12_CSI2P:
+//    case libcamera::formats::SGBRG12_CSI2P:
+//    case libcamera::formats::SBGGR12_CSI2P:
+//    case libcamera::formats::SRGGB10_IPU3:
+//    case libcamera::formats::SGRBG10_IPU3:
+//    case libcamera::formats::SGBRG10_IPU3:
+//    case libcamera::formats::SBGGR10_IPU3:
+    default:
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("invalid/unknown libcamera pixel format (was: \"%s\"), aborting\n"),
+                  ACE_TEXT (format_in.toString().c_str ())));
+      break;
+    }
+  } // end SWITCH
+
+  return AV_PIX_FMT_NONE;
 }
 
 #endif // ACE_WIN32 || ACE_WIN64

@@ -19,7 +19,6 @@
  ***************************************************************************/
 #include "stdafx.h"
 
-//#include "ace/Synch.h"
 #include "stream_lib_tools.h"
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -44,8 +43,6 @@ extern "C"
 #include "libavutil/imgutils.h"
 }
 #endif /* __cplusplus */
-
-#include "X11/Xlib.h"
 #endif // ACE_WIN32 || ACE_WIN64
 
 #include "ace/Log_Msg.h"
@@ -61,6 +58,8 @@ extern "C"
 #include "stream_lib_mediafoundation_tools.h"
 #else
 #include "stream_dev_tools.h"
+
+#include "X11/Xlib.h"
 #endif // ACE_WIN32 || ACE_WIN64
 
 // initialize statics

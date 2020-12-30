@@ -50,8 +50,6 @@ extern "C"
 #include "libavutil/pixfmt.h"
 }
 #endif // __cplusplus
-
-#include "libcamera/pixel_format.h"
 #endif // ACE_WIN32 || ACE_WIN64
 
 #include "ace/Global_Macros.h"
@@ -66,12 +64,17 @@ extern "C"
 
 #include "stream_lib_common.h"
 #include "stream_lib_alsa_common.h"
-#include "stream_lib_ffmpeg_common.h"
+#include "stream_lib_libcamera_common.h"
 #include "stream_lib_v4l_common.h"
 
 // forward declarations
+namespace libcamera {
+class Camera;
+class CameraManager;
+};
 class Stream_IAllocator;
 #endif // ACE_WIN32 || ACE_WIN64
+#include "stream_lib_ffmpeg_common.h"
 
 class Stream_Device_Tools
 {
@@ -79,7 +82,11 @@ class Stream_Device_Tools
   static void initialize (bool = true); // initialize media frameworks ?
 
   static std::string getDefaultAudioCaptureDevice ();
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
   static std::string getDefaultVideoCaptureDevice ();
+#else
+  static std::string getDefaultVideoCaptureDevice (bool = false); // use libcamera ? : v4l
+#endif // ACE_WIN32 || ACE_WIN64
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
@@ -93,6 +100,18 @@ class Stream_Device_Tools
   static std::string formatToString (const struct _snd_pcm_hw_params*); // format
 
   static void dump (struct _snd_pcm*); // device handle
+
+  // libcamera
+  static Stream_Device_List_t getVideoCaptureDevices (libcamera::CameraManager*);
+  static libcamera::Camera* getCamera (libcamera::CameraManager*,
+                                       const std::string&); // device identifier
+  static Stream_MediaFramework_LibCamera_CaptureFormats_t getCaptureFormats (libcamera::Camera*);
+  static Common_Image_Resolutions_t getCaptureResolutions (libcamera::Camera*,
+                                                           const libcamera::PixelFormat&);
+
+  static struct Stream_MediaFramework_LibCamera_MediaType defaultCaptureFormat (libcamera::Camera*);
+
+  static struct Stream_MediaFramework_FFMPEG_VideoMediaType convert (const struct Stream_MediaFramework_LibCamera_MediaType&);
 
   // v4l
   static Stream_Device_List_t getVideoCaptureDevices ();
@@ -156,6 +175,7 @@ class Stream_Device_Tools
   static __u32 ffmpegFormatToV4L2Format (enum AVPixelFormat); // format
   static enum AVPixelFormat v4l2FormatToffmpegFormat (__u32); // format (fourcc)
 
+  static enum AVPixelFormat libCameraFormatToffmpegFormat (const libcamera::PixelFormat&); // format
   static libcamera::PixelFormat ffmpegFormatToLibCameraFormat (enum AVPixelFormat); // format
 #endif // ACE_WIN32 || ACE_WIN64
 

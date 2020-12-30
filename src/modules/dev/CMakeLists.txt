@@ -10,6 +10,8 @@ if (UNIX)
  pkg_check_modules (PKG_FFMPEG REQUIRED libavutil)
  # pkg_check_modules (PKG_LIBCAMERA REQUIRED libcamera)
  pkg_check_modules (PKG_LIBV4L2 REQUIRED libv4l2)
+
+ add_compile_options (-std=c++17)
 endif (UNIX)
 
 if (UNIX)
@@ -190,6 +192,10 @@ add_dependencies (${PROJECT_NAME}_Device ${PROJECT_NAME})
 
 if (UNIX)
  target_link_libraries (${PROJECT_NAME}_Device ${PKG_LIBALSA_LIBRARIES})
+
+# target_link_libraries (${PROJECT_NAME}_Device ${PKG_LIBCAMERA_LIBRARIES})
+ target_link_libraries (${PROJECT_NAME}_Device /usr/local/lib64/libcamera.so)
+
  target_link_libraries (${PROJECT_NAME}_Device ${PKG_LIBV4L2_LIBRARIES})
 elseif (WIN32)
  target_link_libraries (${PROJECT_NAME}_Device d3d9.lib)
