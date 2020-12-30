@@ -296,7 +296,7 @@ Stream_Device_Tools::getVideoCaptureDevices (libcamera::CameraManager* manager_i
   Stream_Device_List_t return_value;
 
   std::vector<std::shared_ptr<libcamera::Camera> > cameras_a =
-    manager_in->cameras();
+    manager_in->cameras ();
 #if defined (_DEBUG)
   if (unlikely (cameras_a.empty ()))
     ACE_DEBUG ((LM_DEBUG,
@@ -313,6 +313,11 @@ Stream_Device_Tools::getVideoCaptureDevices (libcamera::CameraManager* manager_i
                 ACE_TEXT ("found video capture device \"%s\"\n"),
                 ACE_TEXT ((*iterator)->id ().c_str ())));
 #endif // _DEBUG
+    const libcamera::ControlList& properties_r = (*iterator)->properties ();
+    ACE_ASSERT (properties_r.contains(libcamera::properties::Model));
+
+    device_identifier_s.description =
+        properties_r.get (libcamera::properties::Model);
     device_identifier_s.identifier = (*iterator)->id ();
     return_value.push_back (device_identifier_s);
   } // end FOR
@@ -320,7 +325,7 @@ Stream_Device_Tools::getVideoCaptureDevices (libcamera::CameraManager* manager_i
   return return_value;
 }
 
-libcamera::Camera*
+std::shared_ptr<libcamera::Camera>
 Stream_Device_Tools::getCamera (libcamera::CameraManager* manager_in,
                                 const std::string& deviceIdentifier_in)
 {
@@ -330,16 +335,16 @@ Stream_Device_Tools::getCamera (libcamera::CameraManager* manager_in,
   ACE_ASSERT (manager_in);
 
   std::vector<std::shared_ptr<libcamera::Camera> > cameras_a =
-    manager_in->cameras();
+    manager_in->cameras ();
   for (std::vector<std::shared_ptr<libcamera::Camera> >::iterator iterator = cameras_a.begin ();
        iterator != cameras_a.end ();
        ++iterator)
   {
     if ((*iterator)->id () == deviceIdentifier_in)
-      return (*iterator).get ();
+      return *iterator;
   } // end FOR
 
-  return NULL;
+  return std::shared_ptr<libcamera::Camera> (nullptr);
 }
 
 Stream_MediaFramework_LibCamera_CaptureFormats_t

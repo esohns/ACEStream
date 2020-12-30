@@ -969,7 +969,7 @@ do_initialize_libcamera (struct Stream_Device_Identifier& deviceIdentifier_out,
     goto error;
   } // end IF
   camera_p = Stream_Device_Tools::getCamera (camera_manager_p,
-                                             devices_a.front ().identifier);
+                                             devices_a.front ().identifier).get ();
   ACE_ASSERT (camera_p);
   captureFormat_out =
       Stream_Device_Tools::defaultCaptureFormat (camera_p);
@@ -1306,8 +1306,9 @@ do_work (const std::string& captureinterfaceIdentifier_in,
                   ACE_TEXT ("failed to libcamera::CameraManager::start(): \"%m\", aborting\n")));
       goto error;
     } // end IF
-    camera_p = Stream_Device_Tools::getCamera (camera_manager_p,
-                                               captureinterfaceIdentifier_in);
+    camera_p =
+        Stream_Device_Tools::getCamera (camera_manager_p,
+                                        captureinterfaceIdentifier_in).get ();
     ACE_ASSERT (camera_p);
     libcamera_modulehandler_configuration.outputFormat =
         Stream_Device_Tools::convert (Stream_Device_Tools::defaultCaptureFormat (camera_p));

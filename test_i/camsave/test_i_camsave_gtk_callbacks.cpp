@@ -1205,7 +1205,7 @@ load_formats (bool useLibCamera_in,
       goto error;
     } // end IF
     camera_p = Stream_Device_Tools::getCamera (camera_manager_p,
-                                               deviceIdentifier_in);
+                                               deviceIdentifier_in).get ();
     ACE_ASSERT (camera_p);
     formats_a = Stream_Device_Tools::getCaptureFormats (camera_p);
     for (Stream_MediaFramework_LibCamera_CaptureFormatsIterator_t iterator_2 = formats_a.begin ();
@@ -1335,7 +1335,7 @@ load_resolutions (bool useLibCamera_in,
       goto error;
     } // end IF
     camera_p = Stream_Device_Tools::getCamera (camera_manager_p,
-                                               deviceIdentifier_in);
+                                               deviceIdentifier_in).get ();
     ACE_ASSERT (camera_p);
     resolutions_a =
         Stream_Device_Tools::getCaptureResolutions (camera_p,
@@ -1993,7 +1993,7 @@ stream_processing_function (void* arg_in)
 #endif // ACE_WIN32 || ACE_WIN64
 
   struct Stream_CamSave_UI_ThreadData* thread_data_p =
-      static_cast<struct Stream_CamSave_UI_ThreadData*> (arg_in);
+    static_cast<struct Stream_CamSave_UI_ThreadData*> (arg_in);
 
   // sanity check(s)
   ACE_ASSERT (thread_data_p);
@@ -2044,12 +2044,51 @@ stream_processing_function (void* arg_in)
     }
   } // end SWITCH
 #else
-  struct Stream_CamSave_V4L_UI_CBData* cb_data_p =
-    static_cast<struct Stream_CamSave_V4L_UI_CBData*> (thread_data_p->CBData);
-  ACE_ASSERT (cb_data_p->configuration);
-  ACE_ASSERT (cb_data_p->stream);
-  const Stream_CamSave_V4L_SessionData_t* session_data_container_p = NULL;
-  const Stream_CamSave_V4L_SessionData* session_data_p = NULL;
+  struct Stream_CamSave_UI_CBData* ui_cb_data_base_p =
+      static_cast<struct Stream_CamSave_UI_CBData*> (thread_data_p->CBData);
+  struct Stream_CamSave_LibCamera_UI_CBData* libcamera_cb_data_p = NULL;
+  struct Stream_CamSave_V4L_UI_CBData* v4l_cb_data_p = NULL;
+
+  if (ui_cb_data_base_p->useLibCamera)
+  {
+    libcamera_cb_data_p =
+      static_cast<struct Stream_CamSave_LibCamera_UI_CBData*> (thread_data_p->CBData);
+    ACE_ASSERT (libcamera_cb_data_p->configuration);
+    ACE_ASSERT (libcamera_cb_data_p->stream);
+    stream_p = libcamera_cb_data_p->stream;
+    const Stream_CamSave_LibCamera_SessionData_t* session_data_container_p = NULL;
+    const Stream_CamSave_LibCamera_SessionData* session_data_p = NULL;
+    if (!libcamera_cb_data_p->stream->initialize (libcamera_cb_data_p->configuration->libCamera_streamConfiguration))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to Stream_CamSave_Stream::initialize(), aborting\n")));
+      goto error;
+    } // end IF
+    session_data_container_p = &libcamera_cb_data_p->stream->getR_2 ();
+    session_data_p = &session_data_container_p->getR ();
+    thread_data_p->sessionId = session_data_p->sessionId;
+    converter << session_data_p->sessionId;
+  } // end IF
+  else
+  {
+    v4l_cb_data_p =
+      static_cast<struct Stream_CamSave_V4L_UI_CBData*> (thread_data_p->CBData);
+    ACE_ASSERT (v4l_cb_data_p->configuration);
+    ACE_ASSERT (v4l_cb_data_p->stream);
+    stream_p = v4l_cb_data_p->stream;
+    const Stream_CamSave_V4L_SessionData_t* session_data_container_p = NULL;
+    const Stream_CamSave_V4L_SessionData* session_data_p = NULL;
+    if (!v4l_cb_data_p->stream->initialize (v4l_cb_data_p->configuration->v4l_streamConfiguration))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to Stream_CamSave_Stream::initialize(), aborting\n")));
+      goto error;
+    } // end IF
+    session_data_container_p = &v4l_cb_data_p->stream->getR_2 ();
+    session_data_p = &session_data_container_p->getR ();
+    thread_data_p->sessionId = session_data_p->sessionId;
+    converter << session_data_p->sessionId;
+  } // end ELSE
 #endif // ACE_WIN32 || ACE_WIN64
 
   iterator =
@@ -2072,8 +2111,6 @@ stream_processing_function (void* arg_in)
 
   gdk_threads_leave ();
 
-  converter.clear ();
-  converter.str (ACE_TEXT_ALWAYS_CHAR (""));
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   switch (thread_data_p->CBData->mediaFramework)
   {
@@ -2128,18 +2165,6 @@ stream_processing_function (void* arg_in)
       goto error;
     }
   } // end SWITCH
-#else
-  if (!cb_data_p->stream->initialize (cb_data_p->configuration->v4l_streamConfiguration))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to Stream_CamSave_Stream::initialize(), aborting\n")));
-    goto error;
-  } // end IF
-  stream_p = cb_data_p->stream;
-  session_data_container_p = &cb_data_p->stream->getR_2 ();
-  session_data_p = &session_data_container_p->getR ();
-  thread_data_p->sessionId = session_data_p->sessionId;
-  converter << session_data_p->sessionId;
 #endif // ACE_WIN32 || ACE_WIN64
 
   // generate context id
@@ -5447,9 +5472,6 @@ combobox_resolution_changed_cb (GtkWidget* widget_in,
   struct Stream_CamSave_V4L_UI_CBData* ui_cb_data_p =
     static_cast<struct Stream_CamSave_V4L_UI_CBData*> (ui_cb_data_base_p);
   ACE_ASSERT (ui_cb_data_p->configuration);
-  Stream_CamSave_V4L_StreamConfiguration_t::ITERATOR_T iterator_2 =
-    ui_cb_data_p->configuration->v4l_streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
-  ACE_ASSERT (iterator_2 != ui_cb_data_p->configuration->v4l_streamConfiguration.end ());
 #endif
   ACE_ASSERT (iterator != ui_cb_data_base_p->UIState->builders.end ());
 
@@ -5621,12 +5643,30 @@ combobox_resolution_changed_cb (GtkWidget* widget_in,
     }
   } // end SWITCH
 #else
-  ui_cb_data_p->configuration->v4l_streamConfiguration.configuration->format.format.height =
-      height;
-  ui_cb_data_p->configuration->v4l_streamConfiguration.configuration->format.format.width =
-      width;
-  (*iterator_2).second.second.outputFormat.resolution.height = height;
-  (*iterator_2).second.second.outputFormat.resolution.width = width;
+  if (ui_cb_data_p->useLibCamera)
+  {
+    ui_cb_data_p->configuration->libCamera_streamConfiguration.configuration->format.resolution.height =
+        height;
+    ui_cb_data_p->configuration->libCamera_streamConfiguration.configuration->format.resolution.width =
+        width;
+    Stream_CamSave_LibCamera_StreamConfiguration_t::ITERATOR_T iterator_2 =
+      ui_cb_data_p->configuration->libCamera_streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
+    ACE_ASSERT (iterator_2 != ui_cb_data_p->configuration->libCamera_streamConfiguration.end ());
+    (*iterator_2).second.second.outputFormat.resolution.height = height;
+    (*iterator_2).second.second.outputFormat.resolution.width = width;
+  } // end IF
+  else
+  {
+    ui_cb_data_p->configuration->v4l_streamConfiguration.configuration->format.format.height =
+        height;
+    ui_cb_data_p->configuration->v4l_streamConfiguration.configuration->format.format.width =
+        width;
+    Stream_CamSave_V4L_StreamConfiguration_t::ITERATOR_T iterator_2 =
+      ui_cb_data_p->configuration->v4l_streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
+    ACE_ASSERT (iterator_2 != ui_cb_data_p->configuration->v4l_streamConfiguration.end ());
+    (*iterator_2).second.second.outputFormat.resolution.height = height;
+    (*iterator_2).second.second.outputFormat.resolution.width = width;
+  } // end ELSE
 #endif // ACE_WIN32 || ACE_WIN64
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -5701,8 +5741,8 @@ combobox_resolution_changed_cb (GtkWidget* widget_in,
                 width));
 #else
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to ::load_rates(%d,%u,%u,%u), returning\n"),
-                (*iterator_2).second.second.deviceIdentifier.fileDescriptor,
+                ACE_TEXT ("failed to ::load_rates(\"%s\",%u,%u,%u), returning\n"),
+                ACE_TEXT (device_identifier_string.c_str ()),
                 format_i,
                 width, height));
 #endif // ACE_WIN32 || ACE_WIN64

@@ -37,6 +37,8 @@
 #endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0602)
 #include <strmif.h>
 #else
+#include <memory>
+
 #include "alsa/asoundlib.h"
 
 #include "linux/videodev2.h"
@@ -103,8 +105,8 @@ class Stream_Device_Tools
 
   // libcamera
   static Stream_Device_List_t getVideoCaptureDevices (libcamera::CameraManager*);
-  static libcamera::Camera* getCamera (libcamera::CameraManager*,
-                                       const std::string&); // device identifier
+  static std::shared_ptr<libcamera::Camera> getCamera (libcamera::CameraManager*,
+                                                       const std::string&); // device identifier
   static Stream_MediaFramework_LibCamera_CaptureFormats_t getCaptureFormats (libcamera::Camera*);
   static Common_Image_Resolutions_t getCaptureResolutions (libcamera::Camera*,
                                                            const libcamera::PixelFormat&);

@@ -820,7 +820,7 @@ DATASTREAM_MODULE_INPUT_ONLY (Stream_CamSave_MediaFoundation_SessionData,       
 #else
 DATASTREAM_MODULE_INPUT_ONLY (Stream_CamSave_LibCamera_SessionData,             // session data type
                               enum Stream_SessionMessageType,                   // session event type
-                              struct Stream_CamSave_V4L_ModuleHandlerConfiguration, // module handler configuration type
+                              struct Stream_CamSave_LibCamera_ModuleHandlerConfiguration, // module handler configuration type
                               libacestream_default_file_sink_module_name_string,
                               Stream_INotify_t,                                 // stream notification interface type
                               Stream_CamSave_LibCamera_FileWriter);             // writer type

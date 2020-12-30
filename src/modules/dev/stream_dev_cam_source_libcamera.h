@@ -21,6 +21,10 @@
 #ifndef STREAM_MODULE_CAMSOURCE_LIBCAMERA_T_H
 #define STREAM_MODULE_CAMSOURCE_LIBCAMERA_T_H
 
+#include <map>
+#include <list>
+#include <vector>
+
 #ifdef __cplusplus
 extern "C"
 {
@@ -28,7 +32,7 @@ extern "C"
 } // extern "C"
 #endif // __cplusplus
 
-#include "libcamera/pixel_format.h"
+#include "libcamera/libcamera.h"
 
 #include "ace/Global_Macros.h"
 #include "ace/Synch_Traits.h"
@@ -119,6 +123,21 @@ class Stream_Module_CamSource_LibCamera_T
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_CamSource_LibCamera_T (const Stream_Module_CamSource_LibCamera_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_CamSource_LibCamera_T& operator= (const Stream_Module_CamSource_LibCamera_T&))
 
+  // convenient types
+  typedef Stream_Module_CamSource_LibCamera_T<ACE_SYNCH_USE,
+                                              ControlMessageType,
+                                              DataMessageType,
+                                              SessionMessageType,
+                                              ConfigurationType,
+                                              StreamControlType,
+                                              StreamNotificationType,
+                                              StreamStateType,
+                                              SessionDataType,
+                                              SessionDataContainerType,
+                                              StatisticContainerType,
+                                              StatisticHandlerType,
+                                              UserDataType> OWN_TYPE_T;
+
   virtual int svc (void);
 
   // helper methods
@@ -127,6 +146,17 @@ class Stream_Module_CamSource_LibCamera_T
   inline struct Stream_MediaFramework_LibCamera_MediaType getMediaType_impl (const struct Stream_MediaFramework_LibCamera_MediaType& mediaType_in) { return const_cast<struct Stream_MediaFramework_LibCamera_MediaType&> (mediaType_in); }
   inline struct Stream_MediaFramework_LibCamera_MediaType getMediaType_impl (const enum AVPixelFormat& format_in) { struct Stream_MediaFramework_LibCamera_MediaType return_value; return_value.format = Stream_Device_Tools::ffmpegFormatToLibCameraFormat (format_in); return return_value; }
 //  inline struct Stream_MediaFramework_V4L_MediaType getMediaType_impl (const struct v4l2_format& format_in) { struct Stream_MediaFramework_V4L_MediaType return_value; return_value.format = format_in.fmt.pix; return return_value; }
+
+  // callbacks
+  void requestComplete (libcamera::Request*);
+
+  std::shared_ptr<libcamera::Camera> camera_;
+  libcamera::CameraConfiguration* cameraConfiguration_;
+  libcamera::CameraManager* cameraManager_;
+  libcamera::FrameBufferAllocator* frameBufferAllocator_;
+  std::map<libcamera::FrameBuffer*, std::pair<void*, ACE_UINT32> > mappedBuffers_;
+  std::list<libcamera::FrameBuffer*> freeBuffers_;
+  std::vector<libcamera::Request*> requests_;
 };
 
 // include template definition
