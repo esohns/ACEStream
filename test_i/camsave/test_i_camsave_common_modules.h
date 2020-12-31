@@ -605,22 +605,22 @@ DATASTREAM_MODULE_INPUT_ONLY (Stream_CamSave_V4L_SessionData,                   
                               Stream_INotify_t,                                 // stream notification interface type
                               Stream_CamSave_V4L_Source);                       // writer type
 
-DATASTREAM_MODULE_INPUT_ONLY (Stream_CamSave_LibCamera_SessionData,                   // session data type
+DATASTREAM_MODULE_INPUT_ONLY (Stream_CamSave_LibCamera_SessionData,             // session data type
+                              enum Stream_SessionMessageType,                   // session event type
+                              struct Stream_CamSave_LibCamera_ModuleHandlerConfiguration, // module handler configuration type
+                              libacestream_default_dec_libav_decoder_module_name_string,
+                              Stream_INotify_t,                                 // stream notification interface type
+                              Stream_CamSave_LibCamera_LibAVDecoder);           // writer type
+DATASTREAM_MODULE_INPUT_ONLY (Stream_CamSave_LibCamera_SessionData,             // session data type
                               enum Stream_SessionMessageType,                   // session event type
                               struct Stream_CamSave_LibCamera_ModuleHandlerConfiguration, // module handler configuration type
                               libacestream_default_dec_libav_converter_module_name_string,
                               Stream_INotify_t,                                 // stream notification interface type
-                              Stream_CamSave_LibCamera_LibAVDecoder);                 // writer type
-DATASTREAM_MODULE_INPUT_ONLY (Stream_CamSave_LibCamera_SessionData,                   // session data type
-                              enum Stream_SessionMessageType,                   // session event type
-                              struct Stream_CamSave_LibCamera_ModuleHandlerConfiguration, // module handler configuration type
-                              libacestream_default_dec_libav_converter_module_name_string,
-                              Stream_INotify_t,                                 // stream notification interface type
-                              Stream_CamSave_LibCamera_LibAVConverter);               // writer type
+                              Stream_CamSave_LibCamera_LibAVConverter);         // writer type
 DATASTREAM_MODULE_INPUT_ONLY (Stream_CamSave_V4L_SessionData,                   // session data type
                               enum Stream_SessionMessageType,                   // session event type
                               struct Stream_CamSave_V4L_ModuleHandlerConfiguration, // module handler configuration type
-                              libacestream_default_dec_libav_converter_module_name_string,
+                              libacestream_default_dec_libav_decoder_module_name_string,
                               Stream_INotify_t,                                 // stream notification interface type
                               Stream_CamSave_V4L_LibAVDecoder);                 // writer type
 DATASTREAM_MODULE_INPUT_ONLY (Stream_CamSave_V4L_SessionData,                   // session data type

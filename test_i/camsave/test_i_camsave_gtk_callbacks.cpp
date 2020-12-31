@@ -3085,9 +3085,6 @@ idle_initialize_UI_cb (gpointer userData_in)
 #endif // ACE_WIN32 || ACE_WIN64
     if (!device_identifier_string.empty ())
     {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("selecting device \"%s\"...\n"),
-                  ACE_TEXT (device_identifier_string.c_str ())));
       index_i =
           Common_UI_GTK_Tools::valueToIndex (GTK_TREE_MODEL (list_store_p),
                                              value,
@@ -5213,10 +5210,7 @@ combobox_format_changed_cb (GtkWidget* widget_in,
   struct Stream_CamSave_V4L_UI_CBData* ui_cb_data_p =
     static_cast<struct Stream_CamSave_V4L_UI_CBData*> (ui_cb_data_base_p);
   ACE_ASSERT (ui_cb_data_p->configuration);
-  Stream_CamSave_V4L_StreamConfiguration_t::ITERATOR_T iterator_2 =
-    ui_cb_data_p->configuration->v4l_streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
-  ACE_ASSERT (iterator_2 != ui_cb_data_p->configuration->v4l_streamConfiguration.end ());
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
   ACE_ASSERT (iterator != ui_cb_data_base_p->UIState->builders.end ());
 
   GtkComboBox* combo_box_p =
@@ -5321,11 +5315,25 @@ combobox_format_changed_cb (GtkWidget* widget_in,
   } // end SWITCH
 #else
   if (ui_cb_data_p->useLibCamera)
+  {
     ui_cb_data_p->configuration->libCamera_streamConfiguration.configuration->format.format =
         libcamera::PixelFormat (format_i, 0);
+    Stream_CamSave_LibCamera_StreamConfiguration_t::ITERATOR_T iterator_2 =
+      ui_cb_data_p->configuration->libCamera_streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
+    ACE_ASSERT (iterator_2 != ui_cb_data_p->configuration->libCamera_streamConfiguration.end ());
+    (*iterator_2).second.second.codecId =
+        Stream_Module_Decoder_Tools::AVPixelFormatToAVCodecId (Stream_Device_Tools::libCameraFormatToffmpegFormat (libcamera::PixelFormat (format_i, 0)));
+  } // end IF
   else
-  ui_cb_data_p->configuration->v4l_streamConfiguration.configuration->format.format.pixelformat =
+  {
+    ui_cb_data_p->configuration->v4l_streamConfiguration.configuration->format.format.pixelformat =
       format_i;
+    Stream_CamSave_V4L_StreamConfiguration_t::ITERATOR_T iterator_2 =
+      ui_cb_data_p->configuration->v4l_streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
+    ACE_ASSERT (iterator_2 != ui_cb_data_p->configuration->v4l_streamConfiguration.end ());
+    (*iterator_2).second.second.codecId =
+        Stream_Module_Decoder_Tools::AVPixelFormatToAVCodecId (Stream_Device_Tools::v4l2FormatToffmpegFormat (format_i));
+  } // end ELSE
 #endif // ACE_WIN32 || ACE_WIN64
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -5396,8 +5404,8 @@ combobox_format_changed_cb (GtkWidget* widget_in,
                 Stream_MediaFramework_Tools::mediaSubTypeToString (GUID_s, ui_cb_data_base_p->mediaFramework).c_str ()));
 #else
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to ::load_resolutions(%d,%u), returning\n"),
-                (*iterator_2).second.second.deviceIdentifier.fileDescriptor,
+                ACE_TEXT ("failed to ::load_resolutions(\"%s\",%u), returning\n"),
+                ACE_TEXT (device_identifier_string.c_str ()),
                 format_i));
 #endif
     return;

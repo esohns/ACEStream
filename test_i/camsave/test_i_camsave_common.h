@@ -39,7 +39,7 @@
 #else
 #include "linux/videodev2.h"
 
-//#include "X11/Xlib.h"
+#include "libcamera/libcamera.h"
 #ifdef __cplusplus
 extern "C"
 {
@@ -186,10 +186,18 @@ typedef Stream_DataBase_T<struct Stream_CamSave_MediaFoundation_MessageData> Str
 struct Stream_CamSave_LibCamera_MessageData
 {
   Stream_CamSave_LibCamera_MessageData ()
-   : release (false)
+   : buffer (NULL)
+   , camera (NULL)
+   , release (false)
+   , request (NULL)
+   , stream (NULL)
   {}
 
-  bool release;
+  libcamera::FrameBuffer* buffer;
+  libcamera::Camera*      camera;
+  bool                    release;
+  libcamera::Request*     request;
+  libcamera::Stream*      stream;
 };
 
 struct Stream_CamSave_V4L_MessageData

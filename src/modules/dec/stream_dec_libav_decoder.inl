@@ -417,8 +417,10 @@ Stream_Decoder_LibAVDecoder_T<ACE_SYNCH_USE,
 //#endif
     if (unlikely (result < 0))
     { // *NOTE*: do not abort on transient errors such as
-      //       - "No start code is found."
-      if (result != -1094995529) // *TODO*: use error descriptor
+      // *TODO*: use proper error descriptor
+      if ((result != -1094995529) && // "No start code is found."
+          (result != -558323010)  && // "Internal bug, should not have happened"
+          (result != -22))           // "Got unexpected packet size after a partial decode"
       {
         ACE_DEBUG ((LM_ERROR,
                     //ACE_TEXT ("%s: failed to avcodec_send_packet(): \"%s\", returning\n"),
@@ -429,9 +431,7 @@ Stream_Decoder_LibAVDecoder_T<ACE_SYNCH_USE,
       } // end IF
       break; // <-- transient error --> retry with the next chunk
     } // end IF
-//#if defined (ACE_WIN32) || defined (ACE_WIN64)
-//#else
-    ACE_ASSERT (result == packet_s.size);
+//    ACE_ASSERT (result == packet_s.size);
     if (!got_frame)
     {
       message_block_p = message_block_p->cont ();
@@ -439,7 +439,6 @@ Stream_Decoder_LibAVDecoder_T<ACE_SYNCH_USE,
         break;
       continue;
     } // end IF
-//#endif
 
 //#if defined (ACE_WIN32) || defined (ACE_WIN64)
 //next_frame:

@@ -91,7 +91,7 @@ Stream_Device_Tools::initializeBuffers (int fd_in,
         } // end IF
         else
           ACE_NEW_NORETURN (message_block_p,
-                            ACE_Message_Block (format.fmt.pix.sizeimage));
+                            MessageType (format.fmt.pix.sizeimage));
         if (!message_block_p)
         {
           ACE_DEBUG ((LM_CRITICAL,
@@ -187,7 +187,7 @@ Stream_Device_Tools::initializeBuffers (int fd_in,
         } // end IF
         else
           ACE_NEW_NORETURN (message_block_p,
-                            ACE_Message_Block (format.fmt.pix.sizeimage));
+                            MessageType (format.fmt.pix.sizeimage));
         if (!message_block_p)
         {
           ACE_DEBUG ((LM_CRITICAL,

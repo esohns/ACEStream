@@ -130,6 +130,8 @@ class Stream_CamSave_LibCamera_Message_T
   virtual ~Stream_CamSave_LibCamera_Message_T ();
 
   // overrides from ACE_Message_Block
+  // create a "deep" copy
+  virtual ACE_Message_Block* clone (ACE_Message_Block::Message_Flags = 0) const;
   // --> create a "shallow" copy that references the same packet
   // *NOTE*: uses the allocator (if any)
   virtual ACE_Message_Block* duplicate (void) const;

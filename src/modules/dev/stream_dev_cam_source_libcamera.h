@@ -151,12 +151,13 @@ class Stream_Module_CamSource_LibCamera_T
   void requestComplete (libcamera::Request*);
 
   std::shared_ptr<libcamera::Camera> camera_;
-  libcamera::CameraConfiguration* cameraConfiguration_;
+  std::unique_ptr<libcamera::CameraConfiguration> cameraConfiguration_;
   libcamera::CameraManager* cameraManager_;
+  libcamera::Stream* cameraStream_;
   libcamera::FrameBufferAllocator* frameBufferAllocator_;
   std::map<libcamera::FrameBuffer*, std::pair<void*, ACE_UINT32> > mappedBuffers_;
   std::list<libcamera::FrameBuffer*> freeBuffers_;
-  std::vector<libcamera::Request*> requests_;
+  std::vector<std::unique_ptr<libcamera::Request> > requests_;
 };
 
 // include template definition

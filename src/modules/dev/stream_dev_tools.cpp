@@ -2564,7 +2564,8 @@ Stream_Device_Tools::ffmpegFormatToLibCameraFormat (enum AVPixelFormat format_in
 //    case AV_PIX_FMT_RGBA:
     case AV_PIX_FMT_ABGR:
       return libcamera::formats::ABGR8888;
-//    case AV_PIX_FMT_BGRA:
+    case AV_PIX_FMT_BGRA:
+      return libcamera::formats::BGRA8888;
 //    case AV_PIX_FMT_GRAY16BE:
 //    case AV_PIX_FMT_GRAY16LE:
 //    case AV_PIX_FMT_YUV440P:
@@ -2813,7 +2814,7 @@ Stream_Device_Tools::libCameraFormatToffmpegFormat (const libcamera::PixelFormat
     case libcamera::formats::YUV422:
       return AV_PIX_FMT_YUV422P;
     case libcamera::formats::MJPEG:
-      return AV_PIX_FMT_YUVJ420P; // *TODO*: this is wrong
+      return AV_PIX_FMT_YUVJ422P; // *TODO*: this is wrong
     case libcamera::formats::SRGGB8:
       return AV_PIX_FMT_BAYER_RGGB8;
     case libcamera::formats::SGRBG8:

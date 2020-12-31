@@ -57,8 +57,9 @@ Stream_Module_CamSource_LibCamera_T<ACE_SYNCH_USE,
               concurrency_in, // concurrency
               true)           // generate sesssion messages ?
  , camera_ (nullptr)
- , cameraConfiguration_ (NULL)
+ , cameraConfiguration_ (nullptr)
  , cameraManager_ (NULL)
+ , cameraStream_ (NULL)
  , frameBufferAllocator_ (NULL)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_CamSource_LibCamera_T::Stream_Module_CamSource_LibCamera_T"));
@@ -95,7 +96,10 @@ Stream_Module_CamSource_LibCamera_T<ACE_SYNCH_USE,
   STREAM_TRACE (ACE_TEXT ("Stream_Module_CamSource_LibCamera_T::~Stream_Module_CamSource_LibCamera_T"));
 
   if (camera_)
+  {
+    camera_->stop ();
     camera_->release ();
+  } // end IF
 
   if (cameraManager_)
   {
@@ -159,12 +163,16 @@ Stream_Module_CamSource_LibCamera_T<ACE_SYNCH_USE,
 
       libcamera::StreamRoles roles_a;
       libcamera::StreamConfiguration* configuration_p = NULL;
-      libcamera::Stream* stream_p = NULL;
       libcamera::FrameBuffer* buffer_p = NULL;
+      int status_i = -1;
+      ACE_Message_Block* message_block_p = NULL;
+      std::unique_ptr<libcamera::Request> request_p;
+      DataMessageType* message_p = NULL;
+      typename DataMessageType::DATA_T* message_data_p = NULL;
 
       roles_a.push_back (libcamera::StreamRole::Viewfinder);
-      cameraConfiguration_ = camera_->generateConfiguration (roles_a).get ();
-      if (!cameraConfiguration_)
+      cameraConfiguration_ = camera_->generateConfiguration (roles_a);
+      if (!cameraConfiguration_.get ())
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: failed to libcamera::Camera::generateConfiguration(), aborting\n"),
@@ -175,7 +183,8 @@ Stream_Module_CamSource_LibCamera_T<ACE_SYNCH_USE,
       configuration_p = &cameraConfiguration_->at (0);
       configuration_p->pixelFormat = media_type_s.format;
       configuration_p->size = media_type_s.resolution;
-      switch (cameraConfiguration_->validate ())
+      status_i = cameraConfiguration_->validate ();
+      switch (status_i)
       {
         case libcamera::CameraConfiguration::Adjusted:
         {
@@ -202,7 +211,10 @@ Stream_Module_CamSource_LibCamera_T<ACE_SYNCH_USE,
           goto error;
         }
       } // end SWITCH
-      result = camera_->configure (cameraConfiguration_);
+
+      result = camera_->acquire ();
+      ACE_ASSERT (result == 0);
+      result = camera_->configure (cameraConfiguration_.get ());
       if (result < 0)
       {
         ACE_DEBUG ((LM_ERROR,
@@ -215,10 +227,10 @@ Stream_Module_CamSource_LibCamera_T<ACE_SYNCH_USE,
                   inherited::mod_->name ()));
 
       // step2: fill buffer queue(s)
-      stream_p = configuration_p->stream ();
-      ACE_ASSERT (stream_p);
+      cameraStream_ = configuration_p->stream ();
+      ACE_ASSERT (cameraStream_);
       ACE_ASSERT (frameBufferAllocator_);
-      result = frameBufferAllocator_->allocate (stream_p);
+      result = frameBufferAllocator_->allocate (cameraStream_);
       if (result < 0)
       {
         ACE_DEBUG ((LM_ERROR,
@@ -226,45 +238,61 @@ Stream_Module_CamSource_LibCamera_T<ACE_SYNCH_USE,
                     inherited::mod_->name ()));
         goto error;
       } // end IF
-      for (std::vector<std::unique_ptr<libcamera::FrameBuffer> >::const_iterator iterator = frameBufferAllocator_->buffers (stream_p).begin ();
-           iterator != frameBufferAllocator_->buffers (stream_p).end ();
+      for (std::vector<std::unique_ptr<libcamera::FrameBuffer> >::const_iterator iterator = frameBufferAllocator_->buffers (cameraStream_).begin ();
+           iterator != frameBufferAllocator_->buffers (cameraStream_).end ();
            ++iterator)
       {
         /* Map memory buffers and cache the mappings */
-        const libcamera::FrameBuffer::Plane& plane_r = (*iterator)->planes ().front ();
+        const libcamera::FrameBuffer::Plane& plane_r =
+            (*iterator)->planes ().front ();
         void* memory_p =
             ::mmap (NULL, plane_r.length, PROT_READ, MAP_SHARED, plane_r.fd.fd (), 0);
         mappedBuffers_[(*iterator).get ()] =
             std::make_pair (memory_p, plane_r.length);
 
-        /* Store buffers on the free list. */
-        freeBuffers_.push_back ((*iterator).get ());
-      } // end FOR
+        try {
+          message_block_p =
+              static_cast<ACE_Message_Block*> (inherited::allocator_->malloc (plane_r.length));
+        } catch (...) {
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("caught exception in Stream_IAllocator::malloc(%u), aborting\n"),
+                      plane_r.length));
+          message_block_p = NULL;
+          goto error;
+        }
+        ACE_ASSERT (message_block_p);
+        message_block_p->base (static_cast<char*> (memory_p),
+                               plane_r.length,
+                               ACE_Message_Block::DONT_DELETE);
+        message_block_p->wr_ptr (plane_r.length);
 
-      /* Create requests and fill them with buffers */
-      while (!freeBuffers_.empty ())
-      {
-        libcamera::FrameBuffer* buffer_p = freeBuffers_.front ();
-        freeBuffers_.pop_front ();
-        ACE_ASSERT (buffer_p);
-        libcamera::Request* request_p = camera_->createRequest ().get ();
-        if (!request_p)
+        request_p = camera_->createRequest (reinterpret_cast<uint64_t> (message_block_p));
+        if (!request_p.get ())
         {
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("%s: failed to allocate request, aborting\n"),
                       inherited::mod_->name ()));
           goto error;
         } // end IF
-        result = request_p->addBuffer (stream_p, buffer_p);
+        message_p = dynamic_cast<DataMessageType*> (message_block_p);
+        ACE_ASSERT (message_p);
+        message_data_p =
+            &const_cast<typename DataMessageType::DATA_T&> (message_p->getR ());
+        message_data_p->buffer = (*iterator).get ();
+        message_data_p->camera = camera_.get ();
+        message_data_p->request = request_p.get ();
+        message_data_p->stream = cameraStream_;
+
+        result = request_p->addBuffer (cameraStream_, (*iterator).get ());
         if (result < 0)
         {
           ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("%s: failed to allocate request, aborting\n"),
+                      ACE_TEXT ("%s: failed to add buffer to request, aborting\n"),
                       inherited::mod_->name ()));
           goto error;
         } // end IF
-        requests_.push_back (request_p);
-      } // end WHILE
+        requests_.push_back (std::move (request_p));
+      } // end FOR
 
       // step3: start stream
       result = camera_->start ();
@@ -278,11 +306,11 @@ Stream_Module_CamSource_LibCamera_T<ACE_SYNCH_USE,
       camera_->requestCompleted.connect (this, &OWN_TYPE_T::requestComplete);
 
       /* Queue all requests. */
-      for (std::vector<libcamera::Request*>::iterator iterator = requests_.begin ();
+      for (std::vector<std::unique_ptr<libcamera::Request> >::iterator iterator = requests_.begin ();
            iterator != requests_.end ();
            ++iterator)
       {
-        result = camera_->queueRequest (*iterator);
+        result = camera_->queueRequest ((*iterator).get ());
         if (result < 0)
         {
           ACE_DEBUG ((LM_ERROR,
@@ -297,11 +325,8 @@ Stream_Module_CamSource_LibCamera_T<ACE_SYNCH_USE,
 error:
       camera_->requestCompleted.disconnect (this, &OWN_TYPE_T::requestComplete);
       camera_->stop ();
+      result = camera_->release ();
 
-      for (std::vector<libcamera::Request*>::iterator iterator = requests_.begin ();
-           iterator != requests_.end ();
-           ++iterator)
-        delete *iterator;
       requests_.clear ();
 
       for (std::map<libcamera::FrameBuffer*, std::pair<void*, ACE_UINT32> >::iterator iterator = mappedBuffers_.begin ();
@@ -676,16 +701,6 @@ continue_:
         inherited::STATE_MACHINE_T::finished ();
       } // end IF
     } // end lock scope
-
-    result_2 = inherited::put_next (message_block_p, NULL);
-    if (unlikely (result_2 == -1))
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("%s: failed to ACE_Task::put_next(): \"%m\", aborting\n"),
-                  inherited::mod_->name ()));
-      message_block_p->release (); message_block_p = NULL;
-      break;
-    } // end IF
   } while (true);
   result = -1;
 
@@ -725,4 +740,19 @@ Stream_Module_CamSource_LibCamera_T<ACE_SYNCH_USE,
 
   // sanity check(s)
   ACE_ASSERT (request_in);
+  if (request_in->status () == libcamera::Request::RequestCancelled)
+    return;
+  const std::map<const libcamera::Stream*, libcamera::FrameBuffer*>& buffer_map_r =
+      request_in->buffers ();
+  ACE_ASSERT (buffer_map_r.count (cameraStream_));
+  libcamera::FrameBuffer* buffer_p = buffer_map_r.at (cameraStream_);
+  ACE_ASSERT (buffer_p);
+
+  ACE_Message_Block* message_block_p = reinterpret_cast<ACE_Message_Block*> (request_in->cookie ());
+  ACE_ASSERT (message_block_p);
+  int result = inherited::putq (message_block_p, NULL);
+  if (unlikely (result == -1))
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s: failed to ACE_Task_T::putq(): \"%m\", continuing\n"),
+                inherited::mod_->name ()));
 }

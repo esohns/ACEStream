@@ -1038,7 +1038,7 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
       stream_p->codec->width = format_.resolution.width;
       stream_p->codec->height = format_.resolution.height;
       stream_p->time_base.num = format_.frameRate.den;
-      stream_p->time_base.den = format_.frameRate.num;
+      stream_p->time_base.den = (format_.frameRate.num ? format_.frameRate.num : 30);
 //      stream_p->sample_aspect_ratio = 0;
       stream_p->avg_frame_rate.num = format_.frameRate.num;
       stream_p->avg_frame_rate.den = format_.frameRate.den;
