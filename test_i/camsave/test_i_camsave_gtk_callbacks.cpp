@@ -1844,10 +1844,10 @@ set_capture_format (struct Stream_CamSave_UI_CBData* CBData_in)
     }
   } // end SWITCH
 #else
-  Stream_Device_Tools::setFormat ((*iterator_2).second.second.deviceIdentifier.fileDescriptor,
-                                  pixel_format_s);
-  Stream_Device_Tools::setFrameRate ((*iterator_2).second.second.deviceIdentifier.fileDescriptor,
-                                     framerate_s);
+//  Stream_Device_Tools::setFormat ((*iterator_2).second.second.deviceIdentifier.fileDescriptor,
+//                                  pixel_format_s);
+//  Stream_Device_Tools::setFrameRate ((*iterator_2).second.second.deviceIdentifier.fileDescriptor,
+//                                     framerate_s);
 #endif // ACE_WIN32 || ACE_WIN64
 }
 

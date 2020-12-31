@@ -359,7 +359,7 @@ Stream_Device_Tools::getCaptureFormats (libcamera::Camera* camera_in)
   Stream_MediaFramework_LibCamera_CaptureFormats_t return_value;
 
   libcamera::StreamRoles roles_a;
-  roles_a.push_back (libcamera::StreamRole::Viewfinder);
+  roles_a.push_back (libcamera::StreamRole::Raw);
   std::unique_ptr<libcamera::CameraConfiguration> configuration_p =
     camera_in->generateConfiguration (roles_a);
   if (!configuration_p)
@@ -367,13 +367,20 @@ Stream_Device_Tools::getCaptureFormats (libcamera::Camera* camera_in)
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to generate configuration from role(s), aborting\n")));
     return return_value;
-  }
+  } // end IF
   ACE_ASSERT (!configuration_p->empty ());
   for (libcamera::CameraConfiguration::iterator iterator = configuration_p->begin ();
        iterator != configuration_p->end ();
        ++iterator)
-    return_value.push_back (std::make_pair ((*iterator).pixelFormat,
-                                            (*iterator).pixelFormat.toString ()));
+  {
+    const libcamera::StreamFormats& formats_r = (*iterator).formats ();
+    std::vector<libcamera::PixelFormat> formats_2 = formats_r.pixelformats ();
+    for (std::vector<libcamera::PixelFormat>::iterator iterator_2 = formats_2.begin ();
+         iterator_2 != formats_2.end ();
+         ++iterator_2)
+      return_value.push_back (std::make_pair (*iterator_2,
+                                              (*iterator_2).toString ()));
+  } // end FOR
 
   return return_value;
 }
@@ -391,7 +398,7 @@ Stream_Device_Tools::getCaptureResolutions (libcamera::Camera* camera_in,
   Common_Image_Resolutions_t return_value;
 
   libcamera::StreamRoles roles_a;
-  roles_a.push_back (libcamera::StreamRole::Viewfinder);
+  roles_a.push_back (libcamera::StreamRole::Raw);
   std::unique_ptr<libcamera::CameraConfiguration> configuration_p =
     camera_in->generateConfiguration (roles_a);
   if (!configuration_p)
@@ -404,13 +411,19 @@ Stream_Device_Tools::getCaptureResolutions (libcamera::Camera* camera_in,
   for (libcamera::CameraConfiguration::iterator iterator = configuration_p->begin ();
        iterator != configuration_p->end ();
        ++iterator)
-    if ((*iterator).pixelFormat == format_in)
+  {
+    const libcamera::StreamFormats& formats_r = (*iterator).formats ();
+    std::vector<libcamera::Size> sizes = formats_r.sizes (format_in);
+    for (std::vector<libcamera::Size>::iterator iterator_2 = sizes.begin ();
+         iterator_2 != sizes.end ();
+         ++iterator_2)
     {
       Common_Image_Resolution_t resolution_s;
-      resolution_s.width = (*iterator).size.width;
-      resolution_s.height = (*iterator).size.height;
+      resolution_s.width = (*iterator_2).width;
+      resolution_s.height = (*iterator_2).height;
       return_value.push_back (resolution_s);
-    } // end IF
+    } // end FOR
+  } // end FOR
 
   return return_value;
 }
