@@ -156,6 +156,7 @@ Stream_Module_CamSource_LibCamera_T<ACE_SYNCH_USE,
     {
       // sanity check(s)
       ACE_ASSERT (inherited::sessionData_);
+      ACE_ASSERT (camera_);
 
       SessionDataType& session_data_r =
           const_cast<SessionDataType&> (inherited::sessionData_->getR ());
@@ -364,6 +365,7 @@ error:
 
       // step1: empty buffer queue(s)
       camera_->requestCompleted.disconnect (this, &OWN_TYPE_T::requestComplete);
+      camera_->stop ();
       for (std::vector<std::unique_ptr<libcamera::Request> >::iterator iterator = requests_.begin ();
            iterator != requests_.end ();
            ++iterator)
@@ -380,7 +382,6 @@ error:
       requests_.clear ();
 
       // step2: stop stream
-      camera_->stop ();
       result = camera_->release ();
 
       // step3: deallocate device buffer queue slots
@@ -389,6 +390,17 @@ error:
            ++iterator)
         munmap ((*iterator).second.first, (*iterator).second.second);
       mappedBuffers_.clear ();
+
+      if (camera_)
+      {
+        camera_ = nullptr;
+      } // end IF
+
+      if (cameraManager_)
+      {
+        cameraManager_->stop ();
+        delete cameraManager_; cameraManager_ = NULL;
+      } // end IF
 
       if (likely (inherited::concurrency_ != STREAM_HEADMODULECONCURRENCY_CONCURRENT))
         inherited::TASK_BASE_T::stop (false,  // wait for completion ?
@@ -522,6 +534,12 @@ Stream_Module_CamSource_LibCamera_T<ACE_SYNCH_USE,
       camera_ = nullptr;
     } // end IF
 
+    if (cameraManager_)
+    {
+      cameraManager_->stop ();
+      delete cameraManager_; cameraManager_ = NULL;
+    } // end IF
+
     if (frameBufferAllocator_)
     {
       delete frameBufferAllocator_; frameBufferAllocator_ = NULL;
@@ -542,6 +560,7 @@ Stream_Module_CamSource_LibCamera_T<ACE_SYNCH_USE,
   } // end IF
 
   ACE_ASSERT (!configuration_in.deviceIdentifier.identifier.empty ());
+  ACE_ASSERT (!camera_);
   camera_ =
       Stream_Device_Tools::getCamera (cameraManager_,
                                       configuration_in.deviceIdentifier.identifier);

@@ -407,6 +407,7 @@ load_capture_devices (bool useLibCamera_in,
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to libcamera::CameraManager::start(): \"%m\", aborting\n")));
+      delete camera_manager_p; camera_manager_p = NULL;
       return false;
     } // end IF
     capture_devices_a = Stream_Device_Tools::getVideoCaptureDevices (camera_manager_p);
