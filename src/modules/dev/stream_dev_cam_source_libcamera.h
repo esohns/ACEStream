@@ -156,7 +156,7 @@ class Stream_Module_CamSource_LibCamera_T
   libcamera::Stream* cameraStream_;
   libcamera::FrameBufferAllocator* frameBufferAllocator_;
   std::map<libcamera::FrameBuffer*, std::pair<void*, ACE_UINT32> > mappedBuffers_;
-  std::list<libcamera::FrameBuffer*> freeBuffers_;
+  //std::list<libcamera::FrameBuffer*> freeBuffers_;
   std::vector<std::unique_ptr<libcamera::Request> > requests_;
 };
 

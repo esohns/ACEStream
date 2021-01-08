@@ -146,6 +146,10 @@ Stream_Module_CamSource_LibCamera_T<ACE_SYNCH_USE,
   ACE_ASSERT (inherited::configuration_);
 
   int result = -1;
+  ACE_Message_Block* message_block_p = NULL;
+  DataMessageType* message_p = NULL;
+  typename DataMessageType::DATA_T* message_data_p = NULL;
+
   switch (message_inout->type ())
   {
     case STREAM_SESSION_MESSAGE_BEGIN:
@@ -165,10 +169,7 @@ Stream_Module_CamSource_LibCamera_T<ACE_SYNCH_USE,
       libcamera::StreamConfiguration* configuration_p = NULL;
       libcamera::FrameBuffer* buffer_p = NULL;
       int status_i = -1;
-      ACE_Message_Block* message_block_p = NULL;
       std::unique_ptr<libcamera::Request> request_p;
-      DataMessageType* message_p = NULL;
-      typename DataMessageType::DATA_T* message_data_p = NULL;
 
       roles_a.push_back (libcamera::StreamRole::Viewfinder);
       cameraConfiguration_ = camera_->generateConfiguration (roles_a);
@@ -324,22 +325,30 @@ Stream_Module_CamSource_LibCamera_T<ACE_SYNCH_USE,
 
 error:
       camera_->requestCompleted.disconnect (this, &OWN_TYPE_T::requestComplete);
+
+      for (std::vector<std::unique_ptr<libcamera::Request> >::iterator iterator = requests_.begin ();
+           iterator != requests_.end ();
+           ++iterator)
+      {
+        message_block_p = reinterpret_cast<ACE_Message_Block*> ((*iterator)->cookie ());
+        ACE_ASSERT (message_block_p);
+        message_p = dynamic_cast<DataMessageType*> (message_block_p);
+        ACE_ASSERT (message_p);
+        message_data_p =
+          &const_cast<typename DataMessageType::DATA_T&> (message_p->getR ());
+        message_data_p->release = true;
+        message_p->release ();
+      } // end FOR
+      requests_.clear ();
+
       camera_->stop ();
       result = camera_->release ();
-
-      requests_.clear ();
 
       for (std::map<libcamera::FrameBuffer*, std::pair<void*, ACE_UINT32> >::iterator iterator = mappedBuffers_.begin ();
            iterator != mappedBuffers_.end ();
            ++iterator)
         munmap ((*iterator).second.first, (*iterator).second.second);
       mappedBuffers_.clear ();
-
-      for (std::list<libcamera::FrameBuffer*>::iterator iterator = freeBuffers_.begin ();
-           iterator != freeBuffers_.end ();
-           ++iterator)
-        delete *iterator;
-      freeBuffers_.clear ();
 
       this->notify (STREAM_SESSION_MESSAGE_ABORT);
 
@@ -354,10 +363,32 @@ error:
       } // end lock scope
 
       // step1: empty buffer queue(s)
+      camera_->requestCompleted.disconnect (this, &OWN_TYPE_T::requestComplete);
+      for (std::vector<std::unique_ptr<libcamera::Request> >::iterator iterator = requests_.begin ();
+           iterator != requests_.end ();
+           ++iterator)
+      {
+        message_block_p = reinterpret_cast<ACE_Message_Block*> ((*iterator)->cookie ());
+        ACE_ASSERT (message_block_p);
+        message_p = dynamic_cast<DataMessageType*> (message_block_p);
+        ACE_ASSERT (message_p);
+        message_data_p =
+          &const_cast<typename DataMessageType::DATA_T&> (message_p->getR ());
+        message_data_p->release = true;
+        message_p->release ();
+      } // end FOR
+      requests_.clear ();
 
       // step2: stop stream
+      camera_->stop ();
+      result = camera_->release ();
 
       // step3: deallocate device buffer queue slots
+      for (std::map<libcamera::FrameBuffer*, std::pair<void*, ACE_UINT32> >::iterator iterator = mappedBuffers_.begin ();
+           iterator != mappedBuffers_.end ();
+           ++iterator)
+        munmap ((*iterator).second.first, (*iterator).second.second);
+      mappedBuffers_.clear ();
 
       if (likely (inherited::concurrency_ != STREAM_HEADMODULECONCURRENCY_CONCURRENT))
         inherited::TASK_BASE_T::stop (false,  // wait for completion ?
