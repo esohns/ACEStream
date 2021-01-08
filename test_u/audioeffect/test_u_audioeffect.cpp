@@ -61,6 +61,7 @@
 #include "common_timer_tools.h"
 
 #if defined (GUI_SUPPORT)
+#include "common_ui_tools.h"
 #if defined (GTK_USE)
 #include "common_ui_gtk_builder_definition.h"
 #include "common_ui_gtk_manager_common.h"
@@ -1668,6 +1669,7 @@ ACE_TMAIN (int argc_in,
   //  action_mode = Net_Client_TimeoutHandler::ACTION_STRESS;
 
 #if defined (GUI_SUPPORT)
+  Common_UI_Tools::initialize ();
 #if defined (GTK_USE)
   Common_UI_GtkBuilderDefinition_t gtk_ui_definition;
   struct Common_UI_GTK_GLConfiguration* gtk_configuration_p = NULL;
