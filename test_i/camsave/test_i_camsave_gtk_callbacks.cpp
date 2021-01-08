@@ -2419,12 +2419,13 @@ idle_initialize_UI_cb (gpointer userData_in)
     }
   } // end SWITCH
 #else
-  struct Stream_CamSave_V4L_UI_CBData* ui_cb_data_p =
-    static_cast<struct Stream_CamSave_V4L_UI_CBData*> (ui_cb_data_base_p);
-  ACE_ASSERT (ui_cb_data_p->configuration);
 
-  if (ui_cb_data_p->useLibCamera)
+  if (ui_cb_data_base_p->useLibCamera)
   {
+    struct Stream_CamSave_LibCamera_UI_CBData* ui_cb_data_p =
+      static_cast<struct Stream_CamSave_LibCamera_UI_CBData*> (ui_cb_data_base_p);
+    ACE_ASSERT (ui_cb_data_p->configuration);
+
     resolution_s.width =
         ui_cb_data_p->configuration->libCamera_streamConfiguration.configuration->format.resolution.width;
     resolution_s.height =
@@ -2447,13 +2448,19 @@ idle_initialize_UI_cb (gpointer userData_in)
 
     (*iterator_3).second.second.outputFormat.resolution.height =
   //      static_cast<__u32> (allocation.height);
-        480;
+        240;
     (*iterator_3).second.second.outputFormat.resolution.width =
-        640;
+        320;
   //      static_cast<__u32> (allocation.width);
+    buffer_size_i =
+      ui_cb_data_p->configuration->libCamera_streamConfiguration.configuration->allocatorConfiguration->defaultBufferSize;
   } // end IF
   else
   {
+    struct Stream_CamSave_V4L_UI_CBData* ui_cb_data_p =
+      static_cast<struct Stream_CamSave_V4L_UI_CBData*> (ui_cb_data_base_p);
+    ACE_ASSERT (ui_cb_data_p->configuration);
+
     resolution_s.width =
         ui_cb_data_p->configuration->v4l_streamConfiguration.configuration->format.format.width;
     resolution_s.height =
@@ -2476,10 +2483,12 @@ idle_initialize_UI_cb (gpointer userData_in)
 
     (*iterator_3).second.second.outputFormat.resolution.height =
   //      static_cast<__u32> (allocation.height);
-        480;
+        240;
     (*iterator_3).second.second.outputFormat.resolution.width =
-        640;
+        320;
   //      static_cast<__u32> (allocation.width);
+    buffer_size_i =
+      ui_cb_data_p->configuration->v4l_streamConfiguration.configuration->allocatorConfiguration->defaultBufferSize;
   } // end ELSE
 #endif // ACE_WIN32 || ACE_WIN64
   gtk_entry_set_text (entry_p,
@@ -2718,12 +2727,7 @@ idle_initialize_UI_cb (gpointer userData_in)
     }
   } // end SWITCH
 #else
-  ACE_ASSERT (ui_cb_data_p);
-  ACE_ASSERT (ui_cb_data_p->configuration);
-
-  buffer_size_i =
-    ui_cb_data_p->configuration->v4l_streamConfiguration.configuration->allocatorConfiguration->defaultBufferSize;
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
 
   GtkProgressBar* progress_bar_p =
     GTK_PROGRESS_BAR (gtk_builder_get_object ((*iterator).second.second,
@@ -3113,10 +3117,20 @@ idle_initialize_UI_cb (gpointer userData_in)
                       Common_Tools::GUIDToString (format_s).c_str ());
 #else
   converter.str (ACE_TEXT_ALWAYS_CHAR (""));
-  if (ui_cb_data_p->useLibCamera)
+  if (ui_cb_data_base_p->useLibCamera)
+  {
+    struct Stream_CamSave_LibCamera_UI_CBData* ui_cb_data_p =
+      static_cast<struct Stream_CamSave_LibCamera_UI_CBData*> (ui_cb_data_base_p);
+    ACE_ASSERT (ui_cb_data_p->configuration);
     converter << ui_cb_data_p->configuration->libCamera_streamConfiguration.configuration->format.format.fourcc ();
+  } // end IF
   else
+  {
+    struct Stream_CamSave_V4L_UI_CBData* ui_cb_data_p =
+      static_cast<struct Stream_CamSave_V4L_UI_CBData*> (ui_cb_data_base_p);
+    ACE_ASSERT (ui_cb_data_p->configuration);
     converter << ui_cb_data_p->configuration->v4l_streamConfiguration.configuration->format.format.pixelformat;
+  } // end ELSE
   g_value_set_string (&value,
                       converter.str ().c_str ());
 #endif // ACE_WIN32 || ACE_WIN64
@@ -3894,9 +3908,11 @@ continue_:
   //  }
   //} // end SWITCH
 #else
+//  ui_cb_data_p->configuration->libCamera_streamConfiguration.configuration->allocatorConfiguration->defaultBufferSize =
+//    ui_cb_data_p->configuration->libCamera_streamConfiguration.configuration->format.format.sizeimage;
   ui_cb_data_p->configuration->v4l_streamConfiguration.configuration->allocatorConfiguration->defaultBufferSize =
     ui_cb_data_p->configuration->v4l_streamConfiguration.configuration->format.format.sizeimage;
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
 
   // sanity check(s)
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -4129,13 +4145,27 @@ togglebutton_save_toggled_cb (GtkToggleButton* toggleButton_in,
     }
   } // end SWITCH
 #else
-  struct Stream_CamSave_V4L_UI_CBData* cb_data_p =
-    static_cast<struct Stream_CamSave_V4L_UI_CBData*> (ui_cb_data_base_p);
-  ACE_ASSERT (cb_data_p->configuration);
-  Stream_CamSave_V4L_StreamConfiguration_t::ITERATOR_T iterator_2 =
-    cb_data_p->configuration->v4l_streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
-  ACE_ASSERT (iterator_2 != cb_data_p->configuration->v4l_streamConfiguration.end ());
-#endif
+  Stream_CamSave_LibCamera_StreamConfiguration_t::ITERATOR_T libcamera_iterator_2;
+  Stream_CamSave_V4L_StreamConfiguration_t::ITERATOR_T v4l_iterator_2;
+  if (ui_cb_data_base_p->useLibCamera)
+  {
+    struct Stream_CamSave_LibCamera_UI_CBData* libcamera_cb_data_p =
+      static_cast<struct Stream_CamSave_LibCamera_UI_CBData*> (ui_cb_data_base_p);
+    ACE_ASSERT (libcamera_cb_data_p->configuration);
+    libcamera_iterator_2 =
+      libcamera_cb_data_p->configuration->libCamera_streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
+    ACE_ASSERT (libcamera_iterator_2 != libcamera_cb_data_p->configuration->libCamera_streamConfiguration.end ());
+  } // end IF
+  else
+  {
+    struct Stream_CamSave_V4L_UI_CBData* v4l_cb_data_p =
+      static_cast<struct Stream_CamSave_V4L_UI_CBData*> (ui_cb_data_base_p);
+    ACE_ASSERT (v4l_cb_data_p->configuration);
+    v4l_iterator_2 =
+      v4l_cb_data_p->configuration->v4l_streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
+    ACE_ASSERT (v4l_iterator_2 != v4l_cb_data_p->configuration->v4l_streamConfiguration.end ());
+  } // end ELSE
+#endif // ACE_WIN32 || ACE_WIN64
 
   GtkFileChooserButton* file_chooser_button_p =
     GTK_FILE_CHOOSER_BUTTON (gtk_builder_get_object ((*iterator).second.second,
@@ -4195,8 +4225,11 @@ togglebutton_save_toggled_cb (GtkToggleButton* toggleButton_in,
     }
   } // end SWITCH
 #else
-  (*iterator_2).second.second.targetFileName = filename_string;
-#endif
+  if (ui_cb_data_base_p->useLibCamera)
+    (*libcamera_iterator_2).second.second.targetFileName = filename_string;
+  else
+    (*v4l_iterator_2).second.second.targetFileName = filename_string;
+#endif // ACE_WIN32 || ACE_WIN64
 } // toggleaction_save_toggled_cb
 
 void
@@ -4252,13 +4285,27 @@ togglebutton_display_toggled_cb (GtkToggleButton* toggleButton_in,
     }
   } // end SWITCH
 #else
-  struct Stream_CamSave_V4L_UI_CBData* cb_data_p =
-    static_cast<struct Stream_CamSave_V4L_UI_CBData*> (ui_cb_data_base_p);
-  ACE_ASSERT (cb_data_p->configuration);
-  Stream_CamSave_V4L_StreamConfiguration_t::ITERATOR_T iterator_2 =
-    cb_data_p->configuration->v4l_streamConfiguration.find (Stream_Visualization_Tools::rendererToModuleName (STREAM_VISUALIZATION_VIDEORENDERER_X11));
-  ACE_ASSERT (iterator_2 != cb_data_p->configuration->v4l_streamConfiguration.end ());
-#endif
+  Stream_CamSave_LibCamera_StreamConfiguration_t::ITERATOR_T libcamera_iterator_2;
+  Stream_CamSave_V4L_StreamConfiguration_t::ITERATOR_T v4l_iterator_2;
+  if (ui_cb_data_base_p->useLibCamera)
+  {
+    struct Stream_CamSave_LibCamera_UI_CBData* cb_data_p =
+      static_cast<struct Stream_CamSave_LibCamera_UI_CBData*> (ui_cb_data_base_p);
+    ACE_ASSERT (cb_data_p->configuration);
+    libcamera_iterator_2 =
+      cb_data_p->configuration->libCamera_streamConfiguration.find (Stream_Visualization_Tools::rendererToModuleName (STREAM_VISUALIZATION_VIDEORENDERER_X11));
+    ACE_ASSERT (libcamera_iterator_2 != cb_data_p->configuration->libCamera_streamConfiguration.end ());
+  } // end IF
+  else
+  {
+    struct Stream_CamSave_V4L_UI_CBData* cb_data_p =
+      static_cast<struct Stream_CamSave_V4L_UI_CBData*> (ui_cb_data_base_p);
+    ACE_ASSERT (cb_data_p->configuration);
+    v4l_iterator_2 =
+      cb_data_p->configuration->v4l_streamConfiguration.find (Stream_Visualization_Tools::rendererToModuleName (STREAM_VISUALIZATION_VIDEORENDERER_X11));
+    ACE_ASSERT (v4l_iterator_2 != cb_data_p->configuration->v4l_streamConfiguration.end ());
+  } // end ELSE
+#endif // ACE_WIN32 || ACE_WIN64
 
   if (!gtk_toggle_button_get_active (toggleButton_in))
   {
@@ -4284,7 +4331,10 @@ togglebutton_display_toggled_cb (GtkToggleButton* toggleButton_in,
       }
     } // end SWITCH
 #else
-    (*iterator_2).second.second.display.device.clear ();
+  if (ui_cb_data_base_p->useLibCamera)
+    (*libcamera_iterator_2).second.second.display.device.clear ();
+  else
+    (*v4l_iterator_2).second.second.display.device.clear ();
 #endif
     return;
   } // end IF
@@ -4336,8 +4386,11 @@ togglebutton_display_toggled_cb (GtkToggleButton* toggleButton_in,
     }
   } // end SWITCH
 #else
-  (*iterator_2).second.second.display.device = g_value_get_string (&value);
-#endif
+  if (ui_cb_data_base_p->useLibCamera)
+    (*libcamera_iterator_2).second.second.display.device = g_value_get_string (&value);
+  else
+    (*v4l_iterator_2).second.second.display.device = g_value_get_string (&value);
+#endif // ACE_WIN32 || ACE_WIN64
   g_value_unset (&value);
 }
 
