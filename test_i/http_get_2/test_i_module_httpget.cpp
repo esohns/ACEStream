@@ -19,7 +19,6 @@
  ***************************************************************************/
 #include "stdafx.h"
 
-//#include "ace/Synch.h"
 #include "test_i_module_httpget.h"
 
 #include "ace/Log_Msg.h"
@@ -48,6 +47,7 @@ Test_I_Stream_HTTPGet::handleDataMessage (Test_I_Stream_Message*& message_inout,
   // sanity check(s)
   ACE_ASSERT (inherited::mod_);
   ACE_ASSERT (inherited::configuration_);
+  ACE_ASSERT (inherited::sessionData_);
 
   // don't care (implies yes per default, if part of a stream)
   ACE_UNUSED_ARG (passMessageDownstream_out);
@@ -72,8 +72,15 @@ Test_I_Stream_HTTPGet::handleDataMessage (Test_I_Stream_Message*& message_inout,
   // send next request ?
   do
   {
-    if (++iterator_ ==  inherited::configuration_->stockItems.end ())
+    if (++iterator_ == inherited::configuration_->stockItems.end ())
+    { // done --> close connection
+      Test_I_HTTPGet_SessionData& session_data_r =
+        const_cast<Test_I_HTTPGet_SessionData&> (inherited::sessionData_->getR ());
+      ACE_ASSERT (session_data_r.connection);
+      session_data_r.connection->close ();
+      session_data_r.connection = NULL;
       return; // done
+    } // end IF
 
     if (!(*iterator_).ISIN.empty ())
       break;

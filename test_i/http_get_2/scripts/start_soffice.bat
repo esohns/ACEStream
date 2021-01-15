@@ -27,13 +27,12 @@ if %ERRORLEVEL% EQU 0 (
 )
 
 :Next_2
-::start ""
-%SOfficeEXE% --accept="socket,host=localhost,port=2083;urp;StarOffice.ServiceManager" --nofirststartwizard --nologo --headless --norestore --invisible >>%TEMP%\ACEStream\libreoffice.log
-if %ERRORLEVEL% NEQ 0 (
- echo failed to start office server %SOfficeEXE%^, exiting
- set RC=%ERRORLEVEL%
- goto Failed
-)
+start "" %SOfficeEXE% --accept="socket,host=localhost,port=2083;urp;StarOffice.ServiceManager" --nofirststartwizard --nologo --headless --norestore --invisible >>%TEMP%\ACEStream\libreoffice.log
+::if %ERRORLEVEL% NEQ 0 (
+:: echo failed to start office server %SOfficeEXE%^, exiting
+:: set RC=%ERRORLEVEL%
+:: goto Failed
+::)
 for /F "tokens=2" %%a in ('tasklist /NH /FI "imagename eq %SOfficeIMAGE%"') do (
  set /A PID=%%a
 )

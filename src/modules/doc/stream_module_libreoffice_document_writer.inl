@@ -63,8 +63,8 @@ Stream_Module_LibreOffice_Document_Writer_T<SynchStrategyType,
                                             DocumentType>::Stream_Module_LibreOffice_Document_Writer_T (typename inherited::ISTREAM_T* stream_in)
 #endif
  : inherited (stream_in)
- , component_ ()
- , componentContext_ ()
+ , component_ (NULL)
+ , componentContext_ (NULL)
  , interactionHandler_ ()
  , releaseHandler_ (false)
  /////////////////////////////////////////

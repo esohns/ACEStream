@@ -372,7 +372,7 @@ elseif (WIN32)
                            ${SSL_LIBRARY_PATH}
                            ${ZLIB_LIBRARY_PATH})
  create_target_launcher (${EXECUTABLE}
-                         ARGS "-c.\\\\etc\\\\soffice.ini -d -f.\\\\etc\\\\template.ods -h localhost -i.\\\\etc\\\\symbols.ini -l -o .\\\\output.ods -p 2083 -r -t -u https://kurse.boerse.ard.de/ard/kurse_einzelkurs_suche.htn"
+                         ARGS "-c.\\\\etc\\\\soffice.ini -f.\\\\etc\\\\template.ods -h localhost -i.\\\\etc\\\\symbols.ini -l -o .\\\\output.ods -p 2083 -r -t -u https://www.tagesschau.de/wirtschaft/boersenkurse/suche/"
 #                        FORWARD_ARGS
                          RUNTIME_LIBRARY_DIRS ${RUNTIME_LIBRARY_DIRS}
                                               ${PROJECT_SOURCE_DIR}/../Common/cmake/src/Debug

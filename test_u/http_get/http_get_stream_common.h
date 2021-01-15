@@ -46,7 +46,7 @@
 #include "http_common.h"
 #include "http_defines.h"
 
-#include "http_get_network.h"
+//#include "http_get_network.h"
 
 // forward declarations
 struct HTTPGet_AllocatorConfiguration;
@@ -70,40 +70,6 @@ struct HTTPGet_MessageData
 };
 typedef Stream_DataBase_T<struct HTTPGet_MessageData> HTTPGet_MessageData_t;
 
-struct HTTPGet_SessionData
- : Stream_SessionData
-{
-  HTTPGet_SessionData ()
-   : Stream_SessionData ()
-   , format (STREAM_COMPRESSION_FORMAT_INVALID)
-   , targetFileName ()
-  {};
-
-  HTTPGet_SessionData& operator+= (const struct HTTPGet_SessionData& rhs_in)
-  {
-    // *NOTE*: the idea is to 'merge' the data
-    Stream_SessionData::operator+= (rhs_in);
-
-    //format =
-    targetFileName = (targetFileName.empty () ? rhs_in.targetFileName
-                                              : targetFileName);
-
-    return *this;
-  }
-
-  enum Stream_Decoder_CompressionFormatType format; // decompressor module
-  std::string                               targetFileName; // file writer module
-};
-typedef Stream_SessionData_T<struct HTTPGet_SessionData> HTTPGet_SessionData_t;
-
-typedef Stream_ISessionDataNotify_T<Stream_SessionId_t,
-                                    struct HTTPGet_SessionData,
-                                    enum Stream_SessionMessageType,
-                                    HTTPGet_Message,
-                                    HTTPGet_SessionMessage> HTTPGet_Notification_t;
-typedef std::list<HTTPGet_Notification_t*> HTTPGet_Subscribers_t;
-typedef HTTPGet_Subscribers_t::iterator HTTPGet_SubscribersIterator_t;
-
 // forward declarations
 //extern const char stream_name_string_[];
 struct HTTPGet_ModuleHandlerConfiguration;
@@ -122,6 +88,42 @@ typedef Net_Connection_Manager_T<ACE_MT_SYNCH,
                                  struct Net_StreamConnectionState,
                                  Net_StreamStatistic_t,
                                  struct Net_UserData> HTTPGet_ConnectionManager_t;
+struct HTTPGet_SessionData
+ : Stream_SessionData
+{
+  HTTPGet_SessionData ()
+   : Stream_SessionData ()
+   , connection (NULL)
+   , format (STREAM_COMPRESSION_FORMAT_INVALID)
+   , targetFileName ()
+  {};
+
+  HTTPGet_SessionData& operator+= (const struct HTTPGet_SessionData& rhs_in)
+  {
+    // *NOTE*: the idea is to 'merge' the data
+    Stream_SessionData::operator+= (rhs_in);
+
+    //format =
+    targetFileName = (targetFileName.empty () ? rhs_in.targetFileName
+                                              : targetFileName);
+
+    return *this;
+  }
+
+  HTTPGet_IConnection_t*                    connection;
+  enum Stream_Decoder_CompressionFormatType format; // decompressor module
+  std::string                               targetFileName; // file writer module
+};
+typedef Stream_SessionData_T<struct HTTPGet_SessionData> HTTPGet_SessionData_t;
+
+typedef Stream_ISessionDataNotify_T<Stream_SessionId_t,
+                                    struct HTTPGet_SessionData,
+                                    enum Stream_SessionMessageType,
+                                    HTTPGet_Message,
+                                    HTTPGet_SessionMessage> HTTPGet_Notification_t;
+typedef std::list<HTTPGet_Notification_t*> HTTPGet_Subscribers_t;
+typedef HTTPGet_Subscribers_t::iterator HTTPGet_SubscribersIterator_t;
+
 struct HTTPGet_ModuleHandlerConfiguration
  : Stream_ModuleHandlerConfiguration
 {

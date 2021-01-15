@@ -48,7 +48,7 @@
 #define TEST_I_DEFAULT_PORT                          STREAM_DOCUMENT_DEFAULT_LIBREOFFICE_SERVER_PORT
 
 #define TEST_I_URL_SYMBOL_PLACEHOLDER                "%s"
-#define TEST_I_DEFAULT_URL                           "https://kurse.boerse.ard.de/ard/kurse_einzelkurs_suche.htn"
+#define TEST_I_DEFAULT_URL                           "https://www.tagesschau.de/wirtschaft/boersenkurse/suche/"
 #define TEST_I_DEFAULT_FORM_KEY_SEARCH_STRING        "suchbegriff"
 
 #endif

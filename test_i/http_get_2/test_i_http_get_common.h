@@ -116,6 +116,7 @@ struct Test_I_HTTPGet_SessionData
 {
   Test_I_HTTPGet_SessionData ()
    : Test_I_SessionData ()
+   , connection (NULL)
    , data ()
    , format (STREAM_COMPRESSION_FORMAT_INVALID)
    //, parserContext (NULL)
@@ -135,6 +136,7 @@ struct Test_I_HTTPGet_SessionData
     return *this;
   }
 
+  Test_I_IConnection_t*                     connection;
   Test_I_StockRecords_t                     data; // html parser/spreadsheet writer module
   enum Stream_Decoder_CompressionFormatType format; // decompressor module
   //Test_I_SAXParserContext*                  parserContext; // html parser/handler module
@@ -154,12 +156,15 @@ enum Test_I_SAXParserState : int
   //SAXPARSER_STATE_IN_HEAD_TITLE,
   ////////////////////////////////////////
   SAXPARSER_STATE_IN_BODY_DIV_CONTENT,
-  SAXPARSER_STATE_IN_SYMBOL_H1_CONTENT,
+  SAXPARSER_STATE_IN_TBODY_CONTENT,
+  SAXPARSER_STATE_IN_TR_CONTENT,
   ////////////////////////////////////////
-  SAXPARSER_STATE_READ_CHANGE,
-  SAXPARSER_STATE_READ_DATE,
-  SAXPARSER_STATE_READ_ISIN_WKN,
   SAXPARSER_STATE_READ_SYMBOL,
+  SAXPARSER_STATE_READ_WKN,
+  SAXPARSER_STATE_READ_ISIN,
+  SAXPARSER_STATE_READ_CHANGE,
+  SAXPARSER_STATE_READ_CHANGE_2,
+  SAXPARSER_STATE_READ_DATE,
   SAXPARSER_STATE_READ_VALUE
 };
 struct Test_I_SAXParserContext

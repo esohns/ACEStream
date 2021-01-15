@@ -165,6 +165,7 @@ struct Test_I_Stream_SessionData
 {
   Test_I_Stream_SessionData ()
    : Stream_SessionData ()
+   , connection (NULL)
    , data ()
    , format (STREAM_COMPRESSION_FORMAT_INVALID)
    , parserContext (NULL)
@@ -186,6 +187,7 @@ struct Test_I_Stream_SessionData
     return *this;
   }
 
+  Test_I_IConnection_t*                     connection;
   struct Test_I_DataSet                     data; // html handler module
   enum Stream_Decoder_CompressionFormatType format; // decompressor module
   struct Test_I_SAXParserContext*           parserContext; // html parser/handler module

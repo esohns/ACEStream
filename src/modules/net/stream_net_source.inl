@@ -660,6 +660,8 @@ continue_:
       // sanity check(s)
       ACE_ASSERT (connection_);
 
+      session_data_r.connection = connection_;
+
       if (notify_connect)
         inherited::notify (STREAM_SESSION_MESSAGE_CONNECT);
 
