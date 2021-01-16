@@ -34,8 +34,8 @@
 #include "com/sun/star/frame/XComponentLoader.hpp"
 #include "com/sun/star/lang/XMultiComponentFactory.hpp"
 
-#include "net_common_tools.h"
-#include "net_connection_configuration.h"
+//#include "net_common_tools.h"
+//#include "net_connection_configuration.h"
 
 #include "stream_macros.h"
 
@@ -232,40 +232,40 @@ Stream_Module_LibreOffice_Document_Writer_T<SynchStrategyType,
         document::MacroExecMode::ALWAYS_EXECUTE_NO_WARN;
 
       // sanity check(s)
-      ACE_ASSERT (inherited::configuration_->connectionConfigurations);
-      ACE_ASSERT (!inherited::configuration_->connectionConfigurations->empty ());
+//      ACE_ASSERT (inherited::configuration_->connectionConfigurations);
+//      ACE_ASSERT (!inherited::configuration_->connectionConfigurations->empty ());
 
-      Net_ConnectionConfigurationsIterator_t iterator =
-        inherited::configuration_->connectionConfigurations->find (inherited::mod_->name ());
-      if (iterator == inherited::configuration_->connectionConfigurations->end ())
-        iterator =
-          inherited::configuration_->connectionConfigurations->find (ACE_TEXT_ALWAYS_CHAR (""));
-#if defined (_DEBUG)
-      else
-        ACE_DEBUG ((LM_DEBUG,
-                    ACE_TEXT ("%s: applying connection configuration\n"),
-                    inherited::mod_->name ()));
-#endif // _DEBUG
-      ACE_ASSERT (iterator != inherited::configuration_->connectionConfigurations->end ());
-      ACE_TCHAR host_address[BUFSIZ];
-      ACE_OS::memset (host_address, 0, sizeof (host_address));
-      // *TODO*: remove type inferences
-      result_p =
-        NET_SOCKET_CONFIGURATION_TCP_CAST ((*iterator).second)->address.get_host_addr (host_address,
-                                                                                       sizeof (host_address));
-      if (unlikely (!result_p || (result_p != host_address)))
-      {
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("%s: failed to ACE_INET_Addr::get_host_addr(%s): \"%m\", aborting\n"),
-                    inherited::mod_->name (),
-                    ACE_TEXT (Net_Common_Tools::IPAddressToString (NET_SOCKET_CONFIGURATION_TCP_CAST((*iterator).second)->address).c_str ())));
-        goto error;
-      } // end IF
-
-      connection_string += ACE_TEXT_ALWAYS_CHAR (host_address);
-      connection_string += ACE_TEXT_ALWAYS_CHAR (",port=");
+//      Net_ConnectionConfigurationsIterator_t iterator =
+//        inherited::configuration_->connectionConfigurations->find (inherited::mod_->name ());
+//      if (iterator == inherited::configuration_->connectionConfigurations->end ())
+//        iterator =
+//          inherited::configuration_->connectionConfigurations->find (ACE_TEXT_ALWAYS_CHAR (""));
+//#if defined (_DEBUG)
+//      else
+//        ACE_DEBUG ((LM_DEBUG,
+//                    ACE_TEXT ("%s: applying connection configuration\n"),
+//                    inherited::mod_->name ()));
+//#endif // _DEBUG
+//      ACE_ASSERT (iterator != inherited::configuration_->connectionConfigurations->end ());
+//      ACE_TCHAR host_address[BUFSIZ];
+//      ACE_OS::memset (host_address, 0, sizeof (host_address));
+//      // *TODO*: remove type inferences
+//      result_p =
+//        NET_SOCKET_CONFIGURATION_TCP_CAST ((*iterator).second)->address.get_host_addr (host_address,
+//                                                                                       sizeof (host_address));
+//      if (unlikely (!result_p || (result_p != host_address)))
+//      {
+//        ACE_DEBUG ((LM_ERROR,
+//                    ACE_TEXT ("%s: failed to ACE_INET_Addr::get_host_addr(%s): \"%m\", aborting\n"),
+//                    inherited::mod_->name (),
+//                    ACE_TEXT (Net_Common_Tools::IPAddressToString (NET_SOCKET_CONFIGURATION_TCP_CAST((*iterator).second)->address).c_str ())));
+//        goto error;
+//      } // end IF
+//      connection_string += ACE_TEXT_ALWAYS_CHAR (host_address);
+      connection_string += ACE_TEXT_ALWAYS_CHAR ("localhost,port=");
       converter <<
-        NET_SOCKET_CONFIGURATION_TCP_CAST((*iterator).second)->address.get_port_number ();
+        inherited::configuration_->libreOfficeHost.get_port_number ();
+//        NET_SOCKET_CONFIGURATION_TCP_CAST((*iterator).second)->address.get_port_number ();
       connection_string += converter.str ();
       connection_string += ACE_TEXT_ALWAYS_CHAR (";urp;StarOffice.ServiceManager");
       connection_string_2 =
