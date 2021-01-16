@@ -183,15 +183,15 @@ Test_I_Stream_SpreadsheetWriter::handleSessionMessage (Test_I_Stream_SessionMess
       //ACE_ASSERT (inherited::configuration_->socketConfigurations);
       //ACE_ASSERT (!inherited::configuration_->socketConfigurations->empty ());
 
-      uno::Reference<lang::XMultiComponentFactory> multi_component_factory_p; // local
+      uno::Reference<lang::XMultiComponentFactory> multi_component_factory_p = NULL; // local
       std::string connection_string = ACE_TEXT_ALWAYS_CHAR ("uno:socket,host=");
       std::ostringstream converter;
       ::rtl::OUString connection_string_2;
-      uno::Reference<bridge::XUnoUrlResolver> url_resolver_p;
-      uno::Reference<frame::XDesktop2> desktop_p;
-      uno::Reference<frame::XComponentLoader> component_loader_p;
-      uno::Reference<beans::XPropertySet> property_set_p;
-      uno::Reference<sheet::XSpreadsheets> spreadsheets_p;
+      uno::Reference<bridge::XUnoUrlResolver> url_resolver_p = NULL;
+      uno::Reference<frame::XDesktop2> desktop_p = NULL;
+      uno::Reference<frame::XComponentLoader> component_loader_p = NULL;
+      uno::Reference<beans::XPropertySet> property_set_p = NULL;
+      uno::Reference<sheet::XSpreadsheets> spreadsheets_p = NULL;
 
       // --> create new frame (see below)
       ::rtl::OUString target_frame_name (RTL_CONSTASCII_USTRINGPARAM (ACE_TEXT_ALWAYS_CHAR (STREAM_DOCUMENT_LIBREOFFICE_FRAME_BLANK)));
@@ -224,7 +224,8 @@ Test_I_Stream_SpreadsheetWriter::handleSessionMessage (Test_I_Stream_SessionMess
                     ACE_TEXT (::rtl::OUStringToOString (exception_in.Message,
                                                         RTL_TEXTENCODING_ASCII_US,
                                                         OUSTRING_TO_OSTRING_CVTFLAGS).getStr ())));
-        goto error;
+        notify (STREAM_SESSION_MESSAGE_ABORT);
+        return;
       }
 
       // *NOTE*: strip suffix from .ini/.rc file (see
@@ -285,7 +286,8 @@ Test_I_Stream_SpreadsheetWriter::handleSessionMessage (Test_I_Stream_SessionMess
                     ACE_TEXT ("%s: failed to ACE_INET_Addr::get_host_addr(%s): \"%m\", aborting\n"),
                     inherited::mod_->name (),
                     ACE_TEXT (Net_Common_Tools::IPAddressToString (inherited::configuration_->libreOfficeHost).c_str ())));
-        goto error;
+        notify (STREAM_SESSION_MESSAGE_ABORT);
+        return;
       } // end IF
       connection_string += ACE_TEXT_ALWAYS_CHAR (host_address);
       connection_string += ACE_TEXT_ALWAYS_CHAR (",port=");
@@ -293,7 +295,7 @@ Test_I_Stream_SpreadsheetWriter::handleSessionMessage (Test_I_Stream_SessionMess
         inherited::configuration_->libreOfficeHost.get_port_number ();
       connection_string += converter.str ();
       connection_string +=
-        ACE_TEXT_ALWAYS_CHAR (";urp;StarOffice.ServiceManager");
+        ACE_TEXT_ALWAYS_CHAR (",tcpNoDelay=1;urp;StarOffice.ServiceManager");
       connection_string_2 =
         ::rtl::OUString::createFromAscii (ACE_TEXT_ALWAYS_CHAR (connection_string.c_str ()));
       result_4 =
@@ -317,7 +319,8 @@ Test_I_Stream_SpreadsheetWriter::handleSessionMessage (Test_I_Stream_SessionMess
                     ACE_TEXT (::rtl::OUStringToOString (exception_in.Message,
                                                         RTL_TEXTENCODING_ASCII_US,
                                                         OUSTRING_TO_OSTRING_CVTFLAGS).getStr ())));
-        goto error;
+        notify (STREAM_SESSION_MESSAGE_ABORT);
+        return;
       }
       ACE_ASSERT (property_set_p.is ());
       ACE_ASSERT (result_4);
@@ -333,14 +336,13 @@ Test_I_Stream_SpreadsheetWriter::handleSessionMessage (Test_I_Stream_SessionMess
       ACE_ASSERT (handler_2);
       handler_2->initialize (inherited::componentContext_);
 
-      result_4 =
-        multi_component_factory_p.set (inherited::componentContext_->getServiceManager (),
-                                       uno::UNO_QUERY);
-      ACE_ASSERT (multi_component_factory_p.is () && result_4);
+//      result_4 =
+//        multi_component_factory_p.set (inherited::componentContext_->getServiceManager (),
+//                                       uno::UNO_QUERY);
+//      ACE_ASSERT (multi_component_factory_p.is () && result_4);
 //      desktop_p =
 //          multi_component_factory_p->createInstanceWithContext (::rtl::OUString (RTL_CONSTASCII_USTRINGPARAM (ACE_TEXT_ALWAYS_CHAR ("com.sun.star.frame.Desktop"))),
 //                                                                inherited::componentContext_);
-//      ACE_ASSERT (desktop_p.is ());
       desktop_p = ::com::sun::star::frame::Desktop::create (inherited::componentContext_);
       ACE_ASSERT (desktop_p.is ());
       result_4 =
@@ -381,7 +383,8 @@ Test_I_Stream_SpreadsheetWriter::handleSessionMessage (Test_I_Stream_SessionMess
                     ACE_TEXT (::rtl::OUStringToOString (exception_in.Message,
                                                         RTL_TEXTENCODING_ASCII_US,
                                                         OUSTRING_TO_OSTRING_CVTFLAGS).getStr ())));
-        goto error;
+        notify (STREAM_SESSION_MESSAGE_ABORT);
+        return;
       } catch (...) {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: caught exception in XComponentLoader::loadComponentFromURL(\"%s\"), aborting\n"),
@@ -389,9 +392,11 @@ Test_I_Stream_SpreadsheetWriter::handleSessionMessage (Test_I_Stream_SessionMess
                     ACE_TEXT (::rtl::OUStringToOString (absolute_filename_url,
                                                         RTL_TEXTENCODING_ASCII_US,
                                                         OUSTRING_TO_OSTRING_CVTFLAGS).getStr ())));
-        goto error;
+        notify (STREAM_SESSION_MESSAGE_ABORT);
+        return;
       }
       ACE_ASSERT (inherited::component_.is ());
+      uno::Reference<sheet::XSpreadsheetDocument> xSpreadsheetDocument (inherited::component_, uno::UNO_QUERY);
       result_4 = document_.set (inherited::component_,
                                 uno::UNO_QUERY);
       ACE_ASSERT (document_.is () && result_4);
@@ -402,7 +407,7 @@ Test_I_Stream_SpreadsheetWriter::handleSessionMessage (Test_I_Stream_SessionMess
                                                       RTL_TEXTENCODING_ASCII_US,
                                                       OUSTRING_TO_OSTRING_CVTFLAGS).getStr ())));
       try {
-        spreadsheets_p = document_->getSheets ();
+        spreadsheets_p = xSpreadsheetDocument->getSheets ();
       } catch (uno::Exception& exception_in) {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: caught exception in XSpreadSheetDocument::getSheets(): \"%s\", aborting\n"),

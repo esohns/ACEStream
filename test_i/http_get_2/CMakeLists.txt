@@ -118,10 +118,9 @@ add_definitions (-DHAVE_CONFIG_H)
 #set_property (SOURCE PROPERTY COMPILE_DEFINITIONS HAVE_CONFIG_H)
 
 if (UNIX)
-# include_directories (${PKG_CAP_INCLUDE_DIRS})
-# if (SSL_SUPPORT)
-#  include_directories (${PKG_SSL_INCLUDE_DIRS})
-# endif (SSL_SUPPORT)
+ add_definitions (-DSAL_UNX) # libreoffice
+ add_definitions (-DUNX)     # openoffice
+ add_definitions (-DCPPU_ENV=gcc3)
 
  include_directories (${PKG_XML2_INCLUDE_DIRS})
 # include_directories (${PKG_FFMPEG_INCLUDE_DIRS})

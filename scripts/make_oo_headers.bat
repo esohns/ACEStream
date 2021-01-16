@@ -19,7 +19,7 @@ if %errorlevel%==0 goto main
 echo CreateObject("Shell.Application").ShellExecute "%~f0", "", "", "runas">"%temp%/elevate.vbs"
 "%temp%/elevate.vbs"
 del "%temp%/elevate.vbs"
-exit
+@rem exit
 
 :main
 goto Begin
@@ -49,18 +49,19 @@ if NOT exist "%UNO_PATH%" (
 
 @rem step1: copy sal3.dll, salhelper3msc.dll, unoiddlo.dll, uwinapi.dll and
 @rem        reglo.dll storelo.dll to the path of cppumaker.exe (dependencies)
-@rem for %%A in (sal3.dll salhelper3msc.dll unoidllo.dll uwinapi.dll reglo.dll storelo.dll) do (
 for %%A in (sal3.dll unoidllo.dll salhelper3MSC.dll reglo.dll storelo.dll) do (
+@rem for %%A in (sal3.dll unoidllo.dll uwinapi.dll salhelper3MSC.dll reglo.dll storelo.dll) do (
+@rem for %%A in (sal3.dll unoidllo.dll uwinapi.dll salhelper3MSC.dll reglo.dll storelo.dll) do (
  if NOT exist "%UNO_PATH%\%%A" (
   echo invalid .dll file ^(was: %%A^)^, exiting
   goto Failed
  )
  copy /Y "%UNO_PATH%\%%A" "%OO_SDK_HOME%\bin" >NUL
- if %ERRORLEVEL% NEQ 0 (
-  echo failed to copy dll^, exiting
-  set RC=%ERRORLEVEL%
-  goto Failed
- )
+@rem if %ERRORLEVEL% NEQ 0 (
+@rem  echo failed to copy dll "%UNO_PATH%\%%A" to "%OO_SDK_HOME%\bin"^, exiting
+@rem  set RC=%ERRORLEVEL%
+@rem  goto Failed
+@rem )
  echo copied %%A...DONE
 )
 
@@ -80,12 +81,12 @@ if NOT exist "%SERVICES_RDB%" (
  echo invalid .rdb file ^(was: "%SERVICES_RDB%"^)^, exiting
  goto Failed
 )
-set OOAPI_RDB=%UNO_PATH%\types\offapi.rdb
+set OOAPI_RDB=%OO_SDK_HOME%\..\program\types\offapi.rdb
 if NOT exist "%OOAPI_RDB%" (
  echo invalid .rdb file ^(was: "%OOAPI_RDB%"^)^, exiting
  goto Failed
 )
-set OOVBAAPI_RDB=%UNO_PATH%\types\oovbaapi.rdb
+set OOVBAAPI_RDB=%OO_SDK_HOME%\..\program\types\oovbaapi.rdb
 if NOT exist "%OOVBAAPI_RDB%" (
  echo invalid .rdb file ^(was: "%OOVBAAPI_RDB%"^)^, exiting
  goto Failed

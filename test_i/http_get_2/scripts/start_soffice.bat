@@ -27,7 +27,7 @@ if %ERRORLEVEL% EQU 0 (
 )
 
 :Next_2
-start "" %SOfficeEXE% --accept="socket,host=localhost,port=2083;urp;StarOffice.ServiceManager" --nofirststartwizard --nologo --headless --norestore --invisible >>%TEMP%\ACEStream\libreoffice.log
+start "" %SOfficeEXE% --accept="socket,host=localhost,port=2083,tcpNoDelay=1;urp;StarOffice.ServiceManager" --nofirststartwizard --nologo --headless --norestore --invisible >>%TEMP%\ACEStream\libreoffice.log
 ::if %ERRORLEVEL% NEQ 0 (
 :: echo failed to start office server %SOfficeEXE%^, exiting
 :: set RC=%ERRORLEVEL%

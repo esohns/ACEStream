@@ -41,9 +41,10 @@ target_include_directories (${PROJECT_NAME}_Document PUBLIC
 if (UNIX)
  add_definitions (-DSAL_UNX) # libreoffice
  add_definitions (-DUNX)     # openoffice
+ add_definitions (-DCPPU_ENV=gcc3)
 
-  target_include_directories (${PROJECT_NAME}_Document PUBLIC
-                              $<BUILD_INTERFACE:$ENV{LIB_ROOT}/ACE_TAO/ACE>)
+ target_include_directories (${PROJECT_NAME}_Document PUBLIC
+                             $<BUILD_INTERFACE:$ENV{LIB_ROOT}/ACE_TAO/ACE>)
 #                             $<BUILD_INTERFACE:/usr/local/src/ACE_wrappers>)
 
  target_include_directories (${PROJECT_NAME}_Document PUBLIC
