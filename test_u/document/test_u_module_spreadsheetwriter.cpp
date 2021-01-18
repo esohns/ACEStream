@@ -23,8 +23,6 @@
 
 #include "ace/Log_Msg.h"
 
-#include "rtl/bootstrap.h"
-
 #include "com/sun/star/beans/Optional.hpp"
 #include "com/sun/star/document/MacroExecMode.hpp"
 #include "com/sun/star/frame/Desktop.hpp"
@@ -33,11 +31,12 @@
 #include "com/sun/star/frame/XDesktop2.hpp"
 #include "com/sun/star/frame/XStorable.hpp"
 #include "com/sun/star/lang/XComponent.hpp"
-//#include <com/sun/star/registry/XSimpleRegistry.hpp>
 #include "com/sun/star/sheet/XCalculatable.hpp"
 #include "com/sun/star/sheet/XSpreadsheet.hpp"
 #include "com/sun/star/table/XCell.hpp"
 #include "com/sun/star/table/XCellRange.hpp"
+
+#include "rtl/bootstrap.h"
 
 #include "common_file_tools.h"
 
@@ -150,7 +149,7 @@ Test_U_SpreadsheetWriter::~Test_U_SpreadsheetWriter ()
 
 void
 Test_U_SpreadsheetWriter::handleSessionMessage (Test_U_SessionMessage*& message_inout,
-                                                       bool& passMessageDownstream_out)
+                                                bool& passMessageDownstream_out)
 {
   STREAM_TRACE (ACE_TEXT ("Test_U_SpreadsheetWriter::handleSessionMessage"));
 
@@ -209,25 +208,6 @@ Test_U_SpreadsheetWriter::handleSessionMessage (Test_U_SessionMessage*& message_
       document_properties[2].Value <<=
         document::MacroExecMode::ALWAYS_EXECUTE_NO_WARN;
 
-      // *TODO*: ::cppu::defaultBootstrap_InitialComponentContext () appears to
-      //         work but segfaults in XComponentLoader::loadComponentFromURL()
-      //         later on (why ?)
-      try {
-        result_4 = inherited::componentContext_.set (::cppu::defaultBootstrap_InitialComponentContext (),
-//        result_4 = inherited::componentContext_.set (::cppu::bootstrap (),
-                                                     uno::UNO_QUERY);
-      } catch (uno::Exception& exception_in) {
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("%s: caught exception in ::cppu::defaultBootstrap_InitialComponentContext(): \"%s\", aborting\n"),
-//                    ACE_TEXT ("%s: caught exception in ::cppu::bootstrap(): \"%s\", aborting\n"),
-                    inherited::mod_->name (),
-                    ACE_TEXT (::rtl::OUStringToOString (exception_in.Message,
-                                                        RTL_TEXTENCODING_ASCII_US,
-                                                        OUSTRING_TO_OSTRING_CVTFLAGS).getStr ())));
-        notify (STREAM_SESSION_MESSAGE_ABORT);
-        return;
-      }
-
       // *NOTE*: strip suffix from .ini/.rc file (see
       //         also: http://api.libreoffice.org/docs/cpp/ref/a00365.html#a296238ca64cb9898a6b8303f12877faa)
       //std::string::size_type position =
@@ -237,14 +217,14 @@ Test_U_SpreadsheetWriter::handleSessionMessage (Test_U_SessionMessage*& message_
       //ACE_ASSERT (position != std::string::npos);
       //std::string filename_string =
       //    inherited::configuration_->libreOfficeRc.substr (0, ++position);
-      //filename = ::rtl::OUString::createFromAscii (filename_string.c_str ());
-      //result_3 = ::osl::FileBase::getFileURLFromSystemPath (filename,
-      //                                                      filename_url);
-      //ACE_ASSERT (result_3 == ::osl::FileBase::RC::E_None);
-      //result_3 = ::osl::FileBase::getAbsoluteFileURL (working_directory,
-      //                                                filename_url,
-      //                                                absolute_filename_url);
-      //ACE_ASSERT (result_3 == ::osl::FileBase::RC::E_None);
+      filename = ::rtl::OUString::createFromAscii (inherited::configuration_->libreOfficeRc.c_str ());
+      result_3 = ::osl::FileBase::getFileURLFromSystemPath (filename,
+                                                            filename_url);
+      ACE_ASSERT (result_3 == ::osl::FileBase::RC::E_None);
+      result_3 = ::osl::FileBase::getAbsoluteFileURL (working_directory,
+                                                      filename_url,
+                                                      absolute_filename_url);
+      ACE_ASSERT (result_3 == ::osl::FileBase::RC::E_None);
 //      registry_p->open (absolute_filename_url,
 //                        sal_True,
 //                        sal_False);
@@ -252,10 +232,10 @@ Test_U_SpreadsheetWriter::handleSessionMessage (Test_U_SessionMessage*& message_
 //                             ::rtl::Bootstrap::encode (absolute_filename_url));
       //rtl_bootstrap_setIniFileName (absolute_filename_url.pData);
   //    try {
-  //      result_4 =
-  //        component_context_p.set (::cppu::defaultBootstrap_InitialComponentContext (absolute_filename_url.pData),
+        result_4 =
+          inherited::componentContext_.set (::cppu::defaultBootstrap_InitialComponentContext (absolute_filename_url),
   ////          component_context_p.set (::cppu::bootstrap_InitialComponentContext (registry_p),
-  //                                 uno::UNO_QUERY);
+                                            uno::UNO_QUERY);
   //    } catch (::uno::Exception& exception_in) {
   //      ACE_DEBUG ((LM_ERROR,
   //                  ACE_TEXT ("%s: caught exception in ::cppu::defaultBootstrap_InitialComponentContext (): \"%s\", aborting\n"),
@@ -285,8 +265,7 @@ Test_U_SpreadsheetWriter::handleSessionMessage (Test_U_SessionMessage*& message_
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: failed to ACE_INET_Addr::get_host_addr(): \"%m\", aborting\n"),
                     inherited::mod_->name ()));
-        notify (STREAM_SESSION_MESSAGE_ABORT);
-        return;
+        goto error;
       } // end IF
       connection_string += ACE_TEXT_ALWAYS_CHAR (host_address);
       connection_string += ACE_TEXT_ALWAYS_CHAR (",port=");
@@ -318,8 +297,7 @@ Test_U_SpreadsheetWriter::handleSessionMessage (Test_U_SessionMessage*& message_
                     ACE_TEXT (::rtl::OUStringToOString (exception_in.Message,
                                                         RTL_TEXTENCODING_ASCII_US,
                                                         OUSTRING_TO_OSTRING_CVTFLAGS).getStr ())));
-        notify (STREAM_SESSION_MESSAGE_ABORT);
-        return;
+        goto error;
       }
       ACE_ASSERT (property_set_p.is ());
       ACE_ASSERT (result_4);
@@ -368,9 +346,10 @@ Test_U_SpreadsheetWriter::handleSessionMessage (Test_U_SessionMessage*& message_
       try {
         inherited::component_ =
             component_loader_p->loadComponentFromURL (absolute_filename_url, // URL
-                                                      //rtl::OUString::createFromAscii("private:factory/scalc"),
+//                                                      rtl::OUString::createFromAscii("private:factory/scalc"),
                                                       target_frame_name,     // target frame name
                                                       search_flags,          // search flags
+//                                                      0,
                                                       document_properties);  // properties
       } catch (uno::Exception& exception_in) {
         ACE_DEBUG ((LM_ERROR,
@@ -382,8 +361,7 @@ Test_U_SpreadsheetWriter::handleSessionMessage (Test_U_SessionMessage*& message_
                     ACE_TEXT (::rtl::OUStringToOString (exception_in.Message,
                                                         RTL_TEXTENCODING_ASCII_US,
                                                         OUSTRING_TO_OSTRING_CVTFLAGS).getStr ())));
-        notify (STREAM_SESSION_MESSAGE_ABORT);
-        return;
+        goto error;
       } catch (...) {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: caught exception in XComponentLoader::loadComponentFromURL(\"%s\"), aborting\n"),
@@ -391,11 +369,9 @@ Test_U_SpreadsheetWriter::handleSessionMessage (Test_U_SessionMessage*& message_
                     ACE_TEXT (::rtl::OUStringToOString (absolute_filename_url,
                                                         RTL_TEXTENCODING_ASCII_US,
                                                         OUSTRING_TO_OSTRING_CVTFLAGS).getStr ())));
-        notify (STREAM_SESSION_MESSAGE_ABORT);
-        return;
+        goto error;
       }
       ACE_ASSERT (inherited::component_.is ());
-      uno::Reference<sheet::XSpreadsheetDocument> xSpreadsheetDocument (inherited::component_, uno::UNO_QUERY);
       result_4 = document_.set (inherited::component_,
                                 uno::UNO_QUERY);
       ACE_ASSERT (document_.is () && result_4);
@@ -405,23 +381,6 @@ Test_U_SpreadsheetWriter::handleSessionMessage (Test_U_SessionMessage*& message_
                   ACE_TEXT (::rtl::OUStringToOString (absolute_filename_url,
                                                       RTL_TEXTENCODING_ASCII_US,
                                                       OUSTRING_TO_OSTRING_CVTFLAGS).getStr ())));
-      try {
-        spreadsheets_p = xSpreadsheetDocument->getSheets ();
-      } catch (uno::Exception& exception_in) {
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("%s: caught exception in XSpreadSheetDocument::getSheets(): \"%s\", aborting\n"),
-                    inherited::mod_->name (),
-                    ACE_TEXT (::rtl::OUStringToOString (exception_in.Message,
-                                                        RTL_TEXTENCODING_ASCII_US,
-                                                        OUSTRING_TO_OSTRING_CVTFLAGS).getStr ())));
-        goto error;
-      } catch (...) {
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("%s: caught exception in XSpreadSheetDocument::getSheets(), aborting\n"),
-                    inherited::mod_->name ()));
-        goto error;
-      }
-      ACE_ASSERT (spreadsheets_p.is () && result_4);
 
       break;
 
@@ -440,10 +399,7 @@ error:
       uno::Reference<frame::XStorable> storable_p;
       uno::Reference<table::XCell> cell_p;
       ::rtl::OUString cell_value_string;
-      unsigned int column;
-      unsigned int row;
       uno::Reference<table::XCellRange> cell_range_p;
-      bool is_reference = false;
       uno::Reference<sheet::XCalculatable> calculatable_p;
       ACE_TCHAR buffer[BUFSIZ];
       ACE_OS::memset (buffer, 0, sizeof (buffer));
@@ -490,17 +446,14 @@ error:
       ACE_ASSERT (result_4);
       ACE_ASSERT (cell_range_p.is ());
 
-      // set index data
-      column = 0;
-
       // set date
       cell_p =
-        cell_range_p->getCellByPosition (5,
-                                         5);
+        cell_range_p->getCellByPosition (8,
+                                         3);
       ACE_ASSERT (cell_p.is ());
 
       timestamp_string =
-        Common_Timer_Tools::timestampToString (COMMON_TIME_NOW,
+        Common_Timer_Tools::timestampToString (ACE_OS::gettimeofday(),
                                                false,
                                                false);
       ACE_ASSERT (!timestamp_string.empty ());
@@ -564,25 +517,28 @@ error:
 continue_:
 error_2:
       if (inherited::component_.is ())
-        inherited::component_->dispose ();
-      if (inherited::componentContext_.is ())
       {
-        uno::Reference<lang::XComponent> component_p = NULL;
-        try {
-          component_p =
-            uno::Reference<lang::XComponent>::query (inherited::componentContext_);
-        } catch (com::sun::star::uno::Exception& exception_in) {
-            ACE_DEBUG ((LM_ERROR,
-                        ACE_TEXT ("%s: caught exception in XComponentComtext::query(XComponent): \"%s\", continuing\n"),
-                        inherited::mod_->name (),
-                        ACE_TEXT (::rtl::OUStringToOString (exception_in.Message,
-                                                            RTL_TEXTENCODING_ASCII_US,
-                                                            OUSTRING_TO_OSTRING_CVTFLAGS).getStr ())));
-        }
-        if (component_p.is ())
-          component_p->dispose ();
-        inherited::componentContext_.clear ();
+        inherited::component_->dispose ();
+        inherited::component_.clear ();
       } // end IF
+//      if (inherited::componentContext_.is ())
+//      {
+//        uno::Reference<lang::XComponent> component_p = NULL;
+//        try {
+//          component_p =
+//            uno::Reference<lang::XComponent>::query (inherited::componentContext_);
+//        } catch (com::sun::star::uno::Exception& exception_in) {
+//            ACE_DEBUG ((LM_ERROR,
+//                        ACE_TEXT ("%s: caught exception in XComponentComtext::query(XComponent): \"%s\", continuing\n"),
+//                        inherited::mod_->name (),
+//                        ACE_TEXT (::rtl::OUStringToOString (exception_in.Message,
+//                                                            RTL_TEXTENCODING_ASCII_US,
+//                                                            OUSTRING_TO_OSTRING_CVTFLAGS).getStr ())));
+//        }
+//        if (component_p.is ())
+//          component_p->dispose ();
+//        inherited::componentContext_.clear ();
+//      } // end IF
 
       break;
     }

@@ -66,6 +66,7 @@ bool
 do_process_arguments (int argc_in,
                       ACE_TCHAR** argv_in, // cannot be const...
                       std::string& templateFileName_out,
+                      std::string& rcFileName_out,
                       bool& logToFile_out,
                       bool& traceInformation_out)
 {
@@ -80,12 +81,19 @@ do_process_arguments (int argc_in,
   templateFileName_out += ACE_DIRECTORY_SEPARATOR_CHAR_A;
   templateFileName_out +=
       ACE_TEXT_ALWAYS_CHAR (TEST_U_DEFAULT_INPUT_FILE);
+  rcFileName_out = path_root;
+  rcFileName_out += ACE_DIRECTORY_SEPARATOR_CHAR_A;
+  rcFileName_out +=
+    ACE_TEXT_ALWAYS_CHAR (COMMON_LOCATION_CONFIGURATION_SUBDIRECTORY);
+  rcFileName_out += ACE_DIRECTORY_SEPARATOR_CHAR_A;
+  rcFileName_out +=
+      ACE_TEXT_ALWAYS_CHAR (TEST_U_DEFAULT_RC_FILE);
   logToFile_out = false;
   traceInformation_out = false;
 
   ACE_Get_Opt argument_parser (argc_in,
                                argv_in,
-                               ACE_TEXT ("f:lt"),
+                               ACE_TEXT ("f:lr:t"),
                                1,                         // skip command name
                                1,                         // report parsing errors
                                ACE_Get_Opt::PERMUTE_ARGS, // ordering
@@ -106,6 +114,12 @@ do_process_arguments (int argc_in,
       case 'l':
       {
         logToFile_out = true;
+        break;
+      }
+      case 'r':
+      {
+        rcFileName_out =
+            ACE_TEXT_ALWAYS_CHAR (argument_parser.opt_arg ());
         break;
       }
       case 't':
@@ -150,7 +164,8 @@ do_process_arguments (int argc_in,
 void
 do_work (int argc_in,
          ACE_TCHAR* argv_in[],
-         const std::string& templateFileName_in)
+         const std::string& templateFileName_in,
+         const std::string& rcFileName_in)
 {
   int result = -1;
   Test_U_Message* message_p = NULL;
@@ -188,6 +203,7 @@ do_work (int argc_in,
   module_configuration.stream = &stream;
   modulehandler_configuration.concurrency = STREAM_HEADMODULECONCURRENCY_CONCURRENT;
   modulehandler_configuration.fileName = templateFileName_in;
+  modulehandler_configuration.libreOfficeRc = rcFileName_in;
   modulehandler_configuration.messageAllocator = &message_allocator;
   modulehandler_configuration.queue = &message_queue;
   modulehandler_configuration.subscriber = &event_handler;
@@ -266,11 +282,19 @@ ACE_TMAIN (int argc_in,
   template_filename += ACE_DIRECTORY_SEPARATOR_CHAR_A;
   template_filename +=
     ACE_TEXT_ALWAYS_CHAR (TEST_U_DEFAULT_INPUT_FILE);
+  std::string rc_filename = Common_File_Tools::getWorkingDirectory ();
+  rc_filename += ACE_DIRECTORY_SEPARATOR_CHAR_A;
+  rc_filename +=
+    ACE_TEXT_ALWAYS_CHAR (COMMON_LOCATION_CONFIGURATION_SUBDIRECTORY);
+  rc_filename += ACE_DIRECTORY_SEPARATOR_CHAR_A;
+  rc_filename +=
+      ACE_TEXT_ALWAYS_CHAR (TEST_U_DEFAULT_RC_FILE);
 
   // step1b: parse/process/validate configuration
   if (!do_process_arguments (argc_in,
                              argv_in,
                              template_filename,
+                             rc_filename,
                              log_to_file,
                              trace_information))
   {
@@ -307,7 +331,8 @@ ACE_TMAIN (int argc_in,
   // step2: do actual work
   do_work (argc_in,
            argv_in,
-           template_filename);
+           template_filename,
+           rc_filename);
   timer.stop ();
 
   // debug info

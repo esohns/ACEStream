@@ -117,10 +117,10 @@ Stream_Module_LibreOffice_Document_Writer_T<SynchStrategyType,
     component_->dispose ();
   if (componentContext_.is ())
   {
-    uno::Reference<lang::XComponent> component_p =
-        uno::Reference<lang::XComponent>::query (componentContext_);
-    if (component_p.is ())
-      component_p->dispose ();
+//    uno::Reference<lang::XComponent> component_p =
+//        uno::Reference<lang::XComponent>::query (componentContext_);
+//    if (component_p.is ())
+//      component_p->dispose ();
     componentContext_.clear ();
   } // end IF
   interactionHandler_.clear ();

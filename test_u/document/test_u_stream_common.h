@@ -110,6 +110,7 @@ struct Test_U_ModuleHandlerConfiguration
    , libreOfficeHost (STREAM_DOCUMENT_DEFAULT_LIBREOFFICE_SERVER_PORT,
                       ACE_TEXT_ALWAYS_CHAR (ACE_LOCALHOST),
                       ACE_ADDRESS_FAMILY_INET)
+   , libreOfficeRc ()
    , printProgressDot (false)
    , pushStatisticMessages (true)
    , queue (NULL)
@@ -121,6 +122,7 @@ struct Test_U_ModuleHandlerConfiguration
   Common_File_Identifier        fileIdentifier;
   std::string                   fileName;
   ACE_INET_Addr                 libreOfficeHost; // spreadsheet writer module
+  std::string                   libreOfficeRc; // spreadsheet writer module
   bool                          printProgressDot;         // file writer module
   bool                          pushStatisticMessages;
   ACE_Message_Queue_Base*       queue;

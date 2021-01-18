@@ -24,5 +24,6 @@
 #include "ace/config-lite.h"
 
 #define TEST_U_DEFAULT_INPUT_FILE                    "template.ods"
+#define TEST_U_DEFAULT_RC_FILE                       "sofficerc"
 
 #endif
