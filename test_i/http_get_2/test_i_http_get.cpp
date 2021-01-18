@@ -237,8 +237,8 @@ do_processArguments (int argc_in,
   traceInformation_out = false;
   URI_out = ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_URL);
   printVersionAndExit_out = false;
-  numberOfDispatchThreads_out = 1;
-//    TEST_I_DEFAULT_NUMBER_OF_DISPATCHING_THREADS;
+  numberOfDispatchThreads_out =
+    TEST_I_DEFAULT_NUMBER_OF_DISPATCHING_THREADS;
   int result =
     remoteHost_out.set (static_cast<u_short> (HTTP_DEFAULT_SERVER_PORT),
                         static_cast<ACE_UINT32> (INADDR_LOOPBACK),
@@ -891,6 +891,8 @@ do_work (const std::string& bootstrapFileName_in,
   //} // end IF
 
   // step0c: initialize signal handling
+  configuration.signalHandlerConfiguration.dispatchState =
+      &event_dispatch_state_s;
   //configuration.signalHandlerConfiguration.statisticReportingHandler =
   //  connection_manager_p;
   //configuration.signalHandlerConfiguration.statisticReportingTimerID = timer_id;
@@ -1109,7 +1111,7 @@ ACE_TMAIN (int argc_in,
   URL = ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_URL);
   print_version_and_exit = false;
   number_of_dispatch_threads =
-    1;
+    TEST_I_DEFAULT_NUMBER_OF_DISPATCHING_THREADS;
   result = remote_host.set (static_cast<u_short> (HTTP_DEFAULT_SERVER_PORT),
                             static_cast<ACE_UINT32> (INADDR_LOOPBACK),
                             1,

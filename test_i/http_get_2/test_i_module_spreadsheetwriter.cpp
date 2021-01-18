@@ -209,42 +209,14 @@ Test_I_Stream_SpreadsheetWriter::handleSessionMessage (Test_I_Stream_SessionMess
       document_properties[2].Value <<=
         document::MacroExecMode::ALWAYS_EXECUTE_NO_WARN;
 
-      // *TODO*: ::cppu::defaultBootstrap_InitialComponentContext () appears to
-      //         work but segfaults in XComponentLoader::loadComponentFromURL()
-      //         later on (why ?)
-      try {
-        result_4 = inherited::componentContext_.set (::cppu::defaultBootstrap_InitialComponentContext (),
-//        result_4 = inherited::componentContext_.set (::cppu::bootstrap (),
-                                                     uno::UNO_QUERY);
-      } catch (uno::Exception& exception_in) {
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("%s: caught exception in ::cppu::defaultBootstrap_InitialComponentContext(): \"%s\", aborting\n"),
-//                    ACE_TEXT ("%s: caught exception in ::cppu::bootstrap(): \"%s\", aborting\n"),
-                    inherited::mod_->name (),
-                    ACE_TEXT (::rtl::OUStringToOString (exception_in.Message,
-                                                        RTL_TEXTENCODING_ASCII_US,
-                                                        OUSTRING_TO_OSTRING_CVTFLAGS).getStr ())));
-        notify (STREAM_SESSION_MESSAGE_ABORT);
-        return;
-      }
-
-      // *NOTE*: strip suffix from .ini/.rc file (see
-      //         also: http://api.libreoffice.org/docs/cpp/ref/a00365.html#a296238ca64cb9898a6b8303f12877faa)
-      //std::string::size_type position =
-      //    inherited::configuration_->libreOfficeRc.find_last_of (ACE_TEXT_ALWAYS_CHAR (STREAM_DOCUMENT_LIBREOFFICE_BOOTSTRAP_FILE_SUFFIX),
-      //                                                           std::string::npos,
-      //                                                           ACE_OS::strlen (ACE_TEXT_ALWAYS_CHAR (STREAM_DOCUMENT_LIBREOFFICE_BOOTSTRAP_FILE_SUFFIX)));
-      //ACE_ASSERT (position != std::string::npos);
-      //std::string filename_string =
-      //    inherited::configuration_->libreOfficeRc.substr (0, ++position);
-      //filename = ::rtl::OUString::createFromAscii (filename_string.c_str ());
-      //result_3 = ::osl::FileBase::getFileURLFromSystemPath (filename,
-      //                                                      filename_url);
-      //ACE_ASSERT (result_3 == ::osl::FileBase::RC::E_None);
-      //result_3 = ::osl::FileBase::getAbsoluteFileURL (working_directory,
-      //                                                filename_url,
-      //                                                absolute_filename_url);
-      //ACE_ASSERT (result_3 == ::osl::FileBase::RC::E_None);
+      filename = ::rtl::OUString::createFromAscii (inherited::configuration_->libreOfficeRc.c_str ());
+      result_3 = ::osl::FileBase::getFileURLFromSystemPath (filename,
+                                                            filename_url);
+      ACE_ASSERT (result_3 == ::osl::FileBase::RC::E_None);
+      result_3 = ::osl::FileBase::getAbsoluteFileURL (working_directory,
+                                                      filename_url,
+                                                      absolute_filename_url);
+      ACE_ASSERT (result_3 == ::osl::FileBase::RC::E_None);
 //      registry_p->open (absolute_filename_url,
 //                        sal_True,
 //                        sal_False);
@@ -253,9 +225,9 @@ Test_I_Stream_SpreadsheetWriter::handleSessionMessage (Test_I_Stream_SessionMess
       //rtl_bootstrap_setIniFileName (absolute_filename_url.pData);
   //    try {
   //      result_4 =
-  //        component_context_p.set (::cppu::defaultBootstrap_InitialComponentContext (absolute_filename_url.pData),
+      inherited::componentContext_.set (::cppu::defaultBootstrap_InitialComponentContext (absolute_filename_url),
   ////          component_context_p.set (::cppu::bootstrap_InitialComponentContext (registry_p),
-  //                                 uno::UNO_QUERY);
+                                        uno::UNO_QUERY);
   //    } catch (::uno::Exception& exception_in) {
   //      ACE_DEBUG ((LM_ERROR,
   //                  ACE_TEXT ("%s: caught exception in ::cppu::defaultBootstrap_InitialComponentContext (): \"%s\", aborting\n"),
@@ -266,7 +238,7 @@ Test_I_Stream_SpreadsheetWriter::handleSessionMessage (Test_I_Stream_SessionMess
   //      goto error;
   //    }
       ACE_ASSERT (inherited::componentContext_.is ());
-      ACE_ASSERT (result_4);
+//      ACE_ASSERT (result_4);
 
       result_4 =
         multi_component_factory_p.set (inherited::componentContext_->getServiceManager (),
@@ -629,24 +601,24 @@ continue_:
 error_2:
       if (inherited::component_.is ())
         inherited::component_->dispose ();
-      if (inherited::componentContext_.is ())
-      {
-        uno::Reference<lang::XComponent> component_p = NULL;
-        try {
-          component_p =
-            uno::Reference<lang::XComponent>::query (inherited::componentContext_);
-        } catch (com::sun::star::uno::Exception& exception_in) {
-            ACE_DEBUG ((LM_ERROR,
-                        ACE_TEXT ("%s: caught exception in XComponentComtext::query(XComponent): \"%s\", continuing\n"),
-                        inherited::mod_->name (),
-                        ACE_TEXT (::rtl::OUStringToOString (exception_in.Message,
-                                                            RTL_TEXTENCODING_ASCII_US,
-                                                            OUSTRING_TO_OSTRING_CVTFLAGS).getStr ())));
-        }
-        if (component_p.is ())
-          component_p->dispose ();
-        inherited::componentContext_.clear ();
-      } // end IF
+//      if (inherited::componentContext_.is ())
+//      {
+//        uno::Reference<lang::XComponent> component_p = NULL;
+//        try {
+//          component_p =
+//            uno::Reference<lang::XComponent>::query (inherited::componentContext_);
+//        } catch (com::sun::star::uno::Exception& exception_in) {
+//            ACE_DEBUG ((LM_ERROR,
+//                        ACE_TEXT ("%s: caught exception in XComponentComtext::query(XComponent): \"%s\", continuing\n"),
+//                        inherited::mod_->name (),
+//                        ACE_TEXT (::rtl::OUStringToOString (exception_in.Message,
+//                                                            RTL_TEXTENCODING_ASCII_US,
+//                                                            OUSTRING_TO_OSTRING_CVTFLAGS).getStr ())));
+//        }
+//        if (component_p.is ())
+//          component_p->dispose ();
+//        inherited::componentContext_.clear ();
+//      } // end IF
 
       break;
     }
