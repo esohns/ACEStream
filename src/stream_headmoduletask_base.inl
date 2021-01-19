@@ -717,7 +717,7 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
           {
             has_finished = true;
             // enqueue(/process) STREAM_SESSION_END
-            inherited::finished ();
+            inherited2::finished ();
           } // end IF
 
           continue; // continue processing until STREAM_SESSION_END

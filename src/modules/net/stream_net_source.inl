@@ -660,6 +660,8 @@ continue_:
       // sanity check(s)
       ACE_ASSERT (connection_);
 
+      session_data_r =
+        const_cast<typename SessionMessageType::DATA_T::DATA_T&> (inherited::sessionData_->getR ());
       session_data_r.connection = connection_;
 
       if (notify_connect)

@@ -76,7 +76,7 @@ Test_I_Stream_HTTPGet::handleDataMessage (Test_I_Stream_Message*& message_inout,
     { // done --> close connection
       Test_I_HTTPGet_SessionData& session_data_r =
         const_cast<Test_I_HTTPGet_SessionData&> (inherited::sessionData_->getR ());
-//      ACE_ASSERT (session_data_r.connection);
+      ACE_ASSERT (session_data_r.connection);
       if (session_data_r.connection)
       {
         session_data_r.connection->close ();

@@ -600,7 +600,10 @@ error:
 continue_:
 error_2:
       if (inherited::component_.is ())
+      {
         inherited::component_->dispose ();
+        inherited::component_.clear ();
+      } // end IF
 //      if (inherited::componentContext_.is ())
 //      {
 //        uno::Reference<lang::XComponent> component_p = NULL;

@@ -231,20 +231,20 @@ Test_U_SpreadsheetWriter::handleSessionMessage (Test_U_SessionMessage*& message_
 //      ::rtl::Bootstrap::set (::rtl::OUString::createFromAscii (ACE_TEXT_ALWAYS_CHAR ("URE_MORE_TYPES")),
 //                             ::rtl::Bootstrap::encode (absolute_filename_url));
       //rtl_bootstrap_setIniFileName (absolute_filename_url.pData);
-  //    try {
+      try {
         result_4 =
           inherited::componentContext_.set (::cppu::defaultBootstrap_InitialComponentContext (absolute_filename_url),
   ////          component_context_p.set (::cppu::bootstrap_InitialComponentContext (registry_p),
                                             uno::UNO_QUERY);
-  //    } catch (::uno::Exception& exception_in) {
-  //      ACE_DEBUG ((LM_ERROR,
-  //                  ACE_TEXT ("%s: caught exception in ::cppu::defaultBootstrap_InitialComponentContext (): \"%s\", aborting\n"),
-  //                  inherited::mod_->name (),
-  //                  ACE_TEXT (::rtl::OUStringToOString (exception_in.Message,
-  //                                                      RTL_TEXTENCODING_ASCII_US,
-  //                                                      OUSTRING_TO_OSTRING_CVTFLAGS).getStr ())));
-  //      goto error;
-  //    }
+      } catch (::uno::Exception& exception_in) {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("%s: caught exception in ::cppu::defaultBootstrap_InitialComponentContext (): \"%s\", aborting\n"),
+                    inherited::mod_->name (),
+                    ACE_TEXT (::rtl::OUStringToOString (exception_in.Message,
+                                                        RTL_TEXTENCODING_ASCII_US,
+                                                        OUSTRING_TO_OSTRING_CVTFLAGS).getStr ())));
+        goto error;
+      }
       ACE_ASSERT (inherited::componentContext_.is ());
       ACE_ASSERT (result_4);
 

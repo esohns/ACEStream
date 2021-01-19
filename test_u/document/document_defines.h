@@ -24,6 +24,10 @@
 #include "ace/config-lite.h"
 
 #define TEST_U_DEFAULT_INPUT_FILE                    "template.ods"
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#define TEST_U_DEFAULT_RC_FILE                       "soffice.ini"
+#else
 #define TEST_U_DEFAULT_RC_FILE                       "sofficerc"
+#endif // ACE_WIN32 || ACE_WIN64
 
 #endif

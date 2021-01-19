@@ -114,6 +114,7 @@ include_directories (${CMAKE_CURRENT_BINARY_DIR}/../..)
 
 ############## next target ###############
 set (document_EXE_SRCS
+     document_defines.h
      test_u_common_modules.h
      test_u_eventhandler.cpp
      test_u_eventhandler.h
@@ -188,7 +189,8 @@ create_target_launcher (${EXECUTABLE}
 #                         FORWARD_ARGS
                         RUNTIME_LIBRARY_DIRS ${RUNTIME_LIBRARY_DIRS}
                                              ${PROJECT_SOURCE_DIR}/cmake/src/Debug
-                        WORKING_DIRECTORY ${PROJECT_BINARY_DIR}/../test_u/branch
+                                             \"${OO_APP_DIRECTORY}\"
+                        WORKING_DIRECTORY ${PROJECT_BINARY_DIR}/../test_u/document
                         ENVIRONMENT foo=bar)
 
 ################ tests ###################
