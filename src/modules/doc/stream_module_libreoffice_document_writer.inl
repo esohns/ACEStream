@@ -34,8 +34,9 @@
 #include "com/sun/star/frame/XComponentLoader.hpp"
 #include "com/sun/star/lang/XMultiComponentFactory.hpp"
 
-//#include "net_common_tools.h"
-//#include "net_connection_configuration.h"
+#include "common_defines.h"
+#include "common_file_tools.h"
+#include "common_process_tools.h"
 
 #include "stream_macros.h"
 
@@ -130,6 +131,12 @@ Stream_Module_LibreOffice_Document_Writer_T<SynchStrategyType,
 
   if (handler_)
     delete handler_;
+
+  // kill soffice.bin
+  pid_t process_id =
+    Common_Process_Tools::id (ACE_TEXT_ALWAYS_CHAR (STREAM_DOCUMENT_DEFAULT_LIBREOFFICE_PROCESS_EXE));
+  ACE_ASSERT (process_id != 0);
+  Common_Process_Tools::kill (process_id);
 }
 
 //template <typename SessionMessageType,
@@ -144,19 +151,6 @@ Stream_Module_LibreOffice_Document_Writer_T<SynchStrategyType,
 //                                                                 bool& passMessageDownstream_out)
 //{
 //  STREAM_TRACE (ACE_TEXT ("Stream_Module_LibreOffice_Document_Writer_T::handleDataMessage"));
-//
-//  ssize_t bytes_written = -1;
-//
-//  // don't care (implies yes per default, if part of a stream)
-//  ACE_UNUSED_ARG (passMessageDownstream_out);
-//
-//  // sanity check(s)
-//  if (unlikely (!connection_))
-//  {
-////    ACE_DEBUG ((LM_ERROR,
-////                ACE_TEXT ("failed to open db connection, returning\n")));
-//    return;
-//  } // end IF
 //}
 
 template <typename SynchStrategyType,
@@ -408,6 +402,46 @@ Stream_Module_LibreOffice_Document_Writer_T<SynchStrategyType,
       uno::Reference<lang::XComponent>::query (componentContext_)->dispose (); componentContext_ = NULL;
     } // end IF
   } // end IF
+
+  // start libreoffice server process
+  // sanity check(s)
+  pid_t process_id =
+    Common_Process_Tools::id (ACE_TEXT_ALWAYS_CHAR (STREAM_DOCUMENT_DEFAULT_LIBREOFFICE_PROCESS_EXE));
+  if (process_id != 0)
+    ACE_DEBUG ((LM_WARNING,
+                ACE_TEXT ("%s: LibreOffice already running (PID was: %d), continuing\n"),
+                inherited::mod_->name (),
+                process_id));
+  std::string command_line_string = Common_File_Tools::getWorkingDirectory ();
+  command_line_string += ACE_DIRECTORY_SEPARATOR_STR;
+  command_line_string += ACE_TEXT_ALWAYS_CHAR (COMMON_LOCATION_SCRIPTS_SUBDIRECTORY);
+  command_line_string += ACE_DIRECTORY_SEPARATOR_STR;
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  command_line_string += ACE_TEXT_ALWAYS_CHAR ("start_soffice.bat");
+#else
+  command_line_string += ACE_TEXT_ALWAYS_CHAR ("start_libreoffice.sh");
+#endif // ACE_WIN32 || ACE_WIN64
+  ACE_ASSERT (Common_File_Tools::exists (command_line_string) &&
+              Common_File_Tools::isExecutable (command_line_string));
+  int exit_status = 0;
+  std::string stdout_string;
+  if (!Common_Process_Tools::command (command_line_string,
+                                      exit_status,
+                                      stdout_string))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s: failed to start LibreOffice server process (cmdline was: \"%s\"), aborting\n"),
+                inherited::mod_->name (),
+                ACE_TEXT (command_line_string.c_str ())));
+    return false;
+  } // end IF
+  process_id =
+    Common_Process_Tools::id (ACE_TEXT_ALWAYS_CHAR (STREAM_DOCUMENT_DEFAULT_LIBREOFFICE_PROCESS_EXE));
+  ACE_ASSERT (process_id != 0);
+  ACE_DEBUG ((LM_DEBUG,
+              ACE_TEXT ("%s: started LibreOffice server process (PID: %d)\n"),
+              inherited::mod_->name (),
+              process_id));
 
   return inherited::initialize (configuration_in,
                                 allocator_in);

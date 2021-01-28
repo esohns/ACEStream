@@ -70,6 +70,7 @@ struct Test_I_Source_SessionData
 {
   Test_I_Source_SessionData ()
    : Test_I_SessionData ()
+   , connection (NULL)
    , fileName ()
    , size (0)
    , targetFileName ()
@@ -89,9 +90,10 @@ struct Test_I_Source_SessionData
     return *this;
   }
 
-  std::string  fileName;
-  unsigned int size;
-  std::string  targetFileName;
+  Net_IINETConnection_t* connection;
+  std::string            fileName;
+  unsigned int           size;
+  std::string            targetFileName;
 };
 typedef Stream_SessionData_T<struct Test_I_Source_SessionData> Test_I_Source_SessionData_t;
 
@@ -127,7 +129,7 @@ struct Test_I_Source_ModuleHandlerConfiguration
    , subscribers (NULL)
   {}
 
-  Test_I_Source_ITCPConnection_t*       connection; // TCP target module
+  Net_IINETConnection_t*                connection; // TCP/UDP target module
   Net_ConnectionConfigurations_t*       connectionConfigurations;
   Test_I_Source_TCPConnectionManager_t* connectionManager; // TCP target module
   Common_File_Identifier                fileIdentifier; // file reader module

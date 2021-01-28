@@ -117,7 +117,7 @@ Stream_Module_Net_IOReader_T<ACE_SYNCH_USE,
                 inherited::sibling ()));
     return;
   } // end IF
-  const SessionDataType* session_data_p = NULL;
+  SessionDataType* session_data_p = NULL;
 
   // sanity check(s)
   ACE_ASSERT (connection_manager_p);
@@ -125,12 +125,12 @@ Stream_Module_Net_IOReader_T<ACE_SYNCH_USE,
   if (unlikely (!sibling_task_p->sessionData_))
     goto continue_; // something went wrong: session aborted ?
 
-  session_data_p = &sibling_task_p->sessionData_->getR ();
+  session_data_p =
+    &const_cast<SessionDataType&> (sibling_task_p->sessionData_->getR ());
 
   // sanity check(s)
   // *TODO*: remove type inferences
   ACE_ASSERT (session_data_p->lock);
-
   { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, *session_data_p->lock);
     ACE_ASSERT (!session_data_p->connectionStates.empty ());
     ACE_ASSERT (session_data_p->connectionStates.size () == 1);
@@ -157,6 +157,11 @@ Stream_Module_Net_IOReader_T<ACE_SYNCH_USE,
 continue_:
   switch (controlMessage_in.type ())
   {
+    //case STREAM_CONTROL_MESSAGE_CONNECT:
+    //{ ACE_ASSERT (!session_data_p->connection);
+    //  session_data_p->connection = connection_p;
+    //  break;
+    //}
     case STREAM_CONTROL_MESSAGE_DISCONNECT:
     {
       if (likely (connection_p))
@@ -210,6 +215,11 @@ continue_:
     default:
       break;
   } // end SWITCH
+
+  if (likely (connection_p))
+  {
+    connection_p->decrease (); connection_p = NULL;
+  } // end IF
 }
 
 //////////////////////////////////////////
@@ -581,11 +591,48 @@ continue_3:
 
       break;
     }
+    case STREAM_SESSION_MESSAGE_CONNECT:
+    { ACE_ASSERT (inherited::sessionData_);
+      SessionDataType& session_data_r =
+        const_cast<SessionDataType&> (inherited::sessionData_->getR ());
+      ConnectionManagerType* connection_manager_p =
+        ConnectionManagerType::SINGLETON_T::instance ();
+      typename ConnectionManagerType::CONNECTION_T* connection_p = NULL;
+      ACE_ASSERT (connection_manager_p);
+      ACE_ASSERT (session_data_r.lock);
+      { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, *session_data_r.lock);
+        ACE_ASSERT (!session_data_r.connectionStates.empty ());
+        ACE_ASSERT (session_data_r.connectionStates.size () == 1);
+        ACE_ASSERT ((*session_data_r.connectionStates.begin ()).first != ACE_INVALID_HANDLE);
+        connection_p =
+          connection_manager_p->get ((*session_data_r.connectionStates.begin ()).first);
+      } // end lock scope
+      if (unlikely (!connection_p))
+      {
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("%s: failed to retrieve connection (id was: 0x%@), returning\n"),
+                    inherited::mod_->name (),
+                    (*session_data_r.connectionStates.begin ()).first));
+#else
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("%s: failed to retrieve connection (id was: %d), returning\n"),
+                    inherited::mod_->name (),
+                    (*session_data_r.connectionStates.begin ()).first));
+#endif
+        return;
+      } // end IF
+      ACE_ASSERT (!session_data_r.connection);
+      session_data_r.connection = connection_p;
+      break;
+    }
     case STREAM_SESSION_MESSAGE_DISCONNECT:
     {
-//      ACE_DEBUG ((LM_DEBUG,
-//                  ACE_TEXT ("%s: disconnected\n"),
-//                  inherited::mod_->name ()));
+      ACE_ASSERT (inherited::sessionData_);
+      SessionDataType& session_data_r =
+        const_cast<SessionDataType&> (inherited::sessionData_->getR ());
+      ACE_ASSERT (session_data_r.connection);
+      session_data_r.connection->decrease (); session_data_r.connection = NULL;
       break;
     }
     case STREAM_SESSION_MESSAGE_END:

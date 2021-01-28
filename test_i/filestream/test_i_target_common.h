@@ -49,6 +49,7 @@
 #include "stream_isessionnotify.h"
 #include "stream_session_data.h"
 
+#include "net_common.h"
 #include "net_configuration.h"
 #include "net_defines.h"
 #include "net_ilistener.h"
@@ -73,6 +74,7 @@ struct Test_I_Target_SessionData
 {
   Test_I_Target_SessionData ()
    : Test_I_SessionData ()
+   , connection (NULL)
    , size (0)
    , targetFileName ()
   {}
@@ -82,16 +84,17 @@ struct Test_I_Target_SessionData
     // *NOTE*: the idea is to 'merge' the data
     Test_I_SessionData::operator+= (rhs_in);
 
+    connection = ((connection == NULL) ? rhs_in.connection : connection);
     size = ((size == 0) ? rhs_in.size : size);
     targetFileName = (targetFileName.empty () ? rhs_in.targetFileName
                                               : targetFileName);
-    userData = (userData ? userData : rhs_in.userData);
 
     return *this;
   }
 
-  unsigned int                   size;
-  std::string                    targetFileName;
+  Net_IINETConnection_t* connection;
+  unsigned int           size;
+  std::string            targetFileName;
 };
 typedef Stream_SessionData_T<struct Test_I_Target_SessionData> Test_I_Target_SessionData_t;
 

@@ -459,59 +459,59 @@ typedef Stream_Module_Net_IO_Stream_T<ACE_MT_SYNCH,
 //////////////////////////////////////////
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-typedef Net_IConnection_T<ACE_INET_Addr,
-                          Test_I_Source_DirectShow_TCPConnectionConfiguration_t,
-                          struct Net_StreamConnectionState,
-                          Net_StreamStatistic_t> Test_I_Source_DirectShow_ITCPConnection_t;
-typedef Net_IConnection_T<ACE_INET_Addr,
-                          Test_I_Source_DirectShow_UDPConnectionConfiguration_t,
-                          struct Net_StreamConnectionState,
-                          Net_StreamStatistic_t> Test_I_Source_DirectShow_IUDPConnection_t;
-
-typedef Net_IConnection_T<ACE_INET_Addr,
-                          Test_I_Target_DirectShow_TCPConnectionConfiguration_t,
-                          struct Net_StreamConnectionState,
-                          Net_StreamStatistic_t> Test_I_Target_DirectShow_ITCPConnection_t;
-typedef Net_IConnection_T<ACE_INET_Addr,
-                          Test_I_Target_DirectShow_UDPConnectionConfiguration_t,
-                          struct Net_StreamConnectionState,
-                          Net_StreamStatistic_t> Test_I_Target_DirectShow_IUDPConnection_t;
-
-typedef Net_IConnection_T<ACE_INET_Addr,
-                          Test_I_Source_MediaFoundation_TCPConnectionConfiguration_t,
-                          struct Net_StreamConnectionState,
-                          Net_StreamStatistic_t> Test_I_Source_MediaFoundation_ITCPConnection_t;
-typedef Net_IConnection_T<ACE_INET_Addr,
-                          Test_I_Source_MediaFoundation_UDPConnectionConfiguration_t,
-                          struct Net_StreamConnectionState,
-                          Net_StreamStatistic_t> Test_I_Source_MediaFoundation_IUDPConnection_t;
-
-typedef Net_IConnection_T<ACE_INET_Addr,
-                          Test_I_Target_MediaFoundation_TCPConnectionConfiguration_t,
-                          struct Net_StreamConnectionState,
-                          Net_StreamStatistic_t> Test_I_Target_MediaFoundation_ITCPConnection_t;
-typedef Net_IConnection_T<ACE_INET_Addr,
-                          Test_I_Target_MediaFoundation_UDPConnectionConfiguration_t,
-                          struct Net_StreamConnectionState,
-                          Net_StreamStatistic_t> Test_I_Target_MediaFoundation_IUDPConnection_t;
+//typedef Net_IConnection_T<ACE_INET_Addr,
+//                          //Test_I_Source_DirectShow_TCPConnectionConfiguration_t,
+//                          struct Net_StreamConnectionState,
+//                          Net_StreamStatistic_t> Test_I_Source_DirectShow_ITCPConnection_t;
+//typedef Net_IConnection_T<ACE_INET_Addr,
+//                          //Test_I_Source_DirectShow_UDPConnectionConfiguration_t,
+//                          struct Net_StreamConnectionState,
+//                          Net_StreamStatistic_t> Test_I_Source_DirectShow_IUDPConnection_t;
+//
+//typedef Net_IConnection_T<ACE_INET_Addr,
+//                          //Test_I_Target_DirectShow_TCPConnectionConfiguration_t,
+//                          struct Net_StreamConnectionState,
+//                          Net_StreamStatistic_t> Test_I_Target_DirectShow_ITCPConnection_t;
+//typedef Net_IConnection_T<ACE_INET_Addr,
+//                          //Test_I_Target_DirectShow_UDPConnectionConfiguration_t,
+//                          struct Net_StreamConnectionState,
+//                          Net_StreamStatistic_t> Test_I_Target_DirectShow_IUDPConnection_t;
+//
+//typedef Net_IConnection_T<ACE_INET_Addr,
+//                          //Test_I_Source_MediaFoundation_TCPConnectionConfiguration_t,
+//                          struct Net_StreamConnectionState,
+//                          Net_StreamStatistic_t> Test_I_Source_MediaFoundation_ITCPConnection_t;
+//typedef Net_IConnection_T<ACE_INET_Addr,
+//                          //Test_I_Source_MediaFoundation_UDPConnectionConfiguration_t,
+//                          struct Net_StreamConnectionState,
+//                          Net_StreamStatistic_t> Test_I_Source_MediaFoundation_IUDPConnection_t;
+//
+//typedef Net_IConnection_T<ACE_INET_Addr,
+//                          //Test_I_Target_MediaFoundation_TCPConnectionConfiguration_t,
+//                          struct Net_StreamConnectionState,
+//                          Net_StreamStatistic_t> Test_I_Target_MediaFoundation_ITCPConnection_t;
+//typedef Net_IConnection_T<ACE_INET_Addr,
+//                          //Test_I_Target_MediaFoundation_UDPConnectionConfiguration_t,
+//                          struct Net_StreamConnectionState,
+//                          Net_StreamStatistic_t> Test_I_Target_MediaFoundation_IUDPConnection_t;
 #else
-typedef Net_IConnection_T<ACE_INET_Addr,
-                          Test_I_Source_V4L_TCPConnectionConfiguration_t,
-                          struct Net_StreamConnectionState,
-                          Net_StreamStatistic_t> Test_I_Source_V4L_ITCPConnection_t;
-typedef Net_IConnection_T<ACE_INET_Addr,
-                          Test_I_Source_V4L_UDPConnectionConfiguration_t,
-                          struct Net_StreamConnectionState,
-                          Net_StreamStatistic_t> Test_I_Source_V4L_IUDPConnection_t;
-
-typedef Net_IConnection_T<ACE_INET_Addr,
-                          Test_I_Target_TCPConnectionConfiguration_t,
-                          struct Net_StreamConnectionState,
-                          Net_StreamStatistic_t> Test_I_Target_ITCPConnection_t;
-typedef Net_IConnection_T<ACE_INET_Addr,
-                          Test_I_Target_UDPConnectionConfiguration_t,
-                          struct Net_StreamConnectionState,
-                          Net_StreamStatistic_t> Test_I_Target_IUDPConnection_t;
+//typedef Net_IConnection_T<ACE_INET_Addr,
+//                          //Test_I_Source_V4L_TCPConnectionConfiguration_t,
+//                          struct Net_StreamConnectionState,
+//                          Net_StreamStatistic_t> Test_I_Source_V4L_ITCPConnection_t;
+//typedef Net_IConnection_T<ACE_INET_Addr,
+//                          //Test_I_Source_V4L_UDPConnectionConfiguration_t,
+//                          struct Net_StreamConnectionState,
+//                          Net_StreamStatistic_t> Test_I_Source_V4L_IUDPConnection_t;
+//
+//typedef Net_IConnection_T<ACE_INET_Addr,
+//                          //Test_I_Target_TCPConnectionConfiguration_t,
+//                          struct Net_StreamConnectionState,
+//                          Net_StreamStatistic_t> Test_I_Target_ITCPConnection_t;
+//typedef Net_IConnection_T<ACE_INET_Addr,
+//                          //Test_I_Target_UDPConnectionConfiguration_t,
+//                          struct Net_StreamConnectionState,
+//                          Net_StreamStatistic_t> Test_I_Target_IUDPConnection_t;
 #endif
 
 //////////////////////////////////////////

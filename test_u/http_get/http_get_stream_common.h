@@ -78,10 +78,10 @@ typedef Stream_Configuration_T<//stream_name_string_,
                                struct HTTPGet_ModuleHandlerConfiguration> HTTPGet_StreamConfiguration_t;
 typedef Net_StreamConnectionConfiguration_T<HTTPGet_StreamConfiguration_t,
                                             NET_TRANSPORTLAYER_TCP> HTTPGet_ConnectionConfiguration_t;
-typedef Net_IConnection_T<ACE_INET_Addr,
-                          HTTPGet_ConnectionConfiguration_t,
-                          struct Net_StreamConnectionState,
-                          Net_StreamStatistic_t> HTTPGet_IConnection_t;
+//typedef Net_IConnection_T<ACE_INET_Addr,
+//                          //HTTPGet_ConnectionConfiguration_t,
+//                          struct Net_StreamConnectionState,
+//                          Net_StreamStatistic_t> HTTPGet_IConnection_t;
 typedef Net_Connection_Manager_T<ACE_MT_SYNCH,
                                  ACE_INET_Addr,
                                  HTTPGet_ConnectionConfiguration_t,
@@ -110,7 +110,7 @@ struct HTTPGet_SessionData
     return *this;
   }
 
-  HTTPGet_IConnection_t*                    connection;
+  Net_IINETConnection_t*                    connection;
   enum Stream_Decoder_CompressionFormatType format; // decompressor module
   std::string                               targetFileName; // file writer module
 };
@@ -129,6 +129,7 @@ struct HTTPGet_ModuleHandlerConfiguration
 {
   HTTPGet_ModuleHandlerConfiguration ()
    : Stream_ModuleHandlerConfiguration ()
+   , closeAfterReception (HTTP_DEFAULT_CLOSE_AFTER_RECEPTION)
    , configuration (NULL)
    , connection (NULL)
    , connectionConfigurations (NULL)
@@ -149,8 +150,9 @@ struct HTTPGet_ModuleHandlerConfiguration
     passive = false;
   };
 
+  bool                            closeAfterReception;      // HTTP get module
   struct HTTPGet_Configuration*   configuration;
-  HTTPGet_IConnection_t*          connection;               // TCP target/IO module
+  Net_IINETConnection_t*          connection;               // TCP target/IO module
   Net_ConnectionConfigurations_t* connectionConfigurations;
   HTTPGet_ConnectionManager_t*    connectionManager;        // TCP IO module
   HTTP_Form_t                     HTTPForm;                 // HTTP get module

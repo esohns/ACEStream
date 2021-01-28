@@ -54,8 +54,8 @@ Stream_Module_Net_Source_HTTP_Get_T<ACE_SYNCH_USE,
                                     SessionMessageType>::Stream_Module_Net_Source_HTTP_Get_T (typename inherited::ISTREAM_T* stream_in)
 #endif
  : inherited (stream_in)
- , parsed_ (false)
- , received_ (false)
+ , receivedBytes_ (0)
+ , resentRequest_ (false)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Net_Source_HTTP_Get_T::Stream_Module_Net_Source_HTTP_Get_T"));
 
@@ -82,8 +82,8 @@ Stream_Module_Net_Source_HTTP_Get_T<ACE_SYNCH_USE,
   {
   } // end IF
 
-  parsed_ = false;
-  received_ = false;
+  receivedBytes_ = 0;
+  resentRequest_ = false;
 
   // *TODO*: validate URI
   return inherited::initialize (configuration_in,
@@ -109,17 +109,14 @@ Stream_Module_Net_Source_HTTP_Get_T<ACE_SYNCH_USE,
 
   // sanity check(s)
   ACE_ASSERT (inherited::configuration_);
-  //ACE_ASSERT (inherited::sessionData_);
+  ACE_ASSERT (inherited::sessionData_);
 
   struct HTTP_Record* record_p = NULL;
   bool delete_record = false;
   HTTP_HeadersIterator_t iterator;
   std::string uri_string, host_name_string;
-  //typename SessionMessageType::DATA_T::DATA_T& session_data_r =
-  //  const_cast<typename SessionMessageType::DATA_T::DATA_T&> (inherited::sessionData_->get ());
-
-  if (received_)
-    return; // done
+  typename SessionMessageType::DATA_T::DATA_T& session_data_r =
+    const_cast<typename SessionMessageType::DATA_T::DATA_T&> (inherited::sessionData_->getR ());
 
   passMessageDownstream_out = false;
 
@@ -150,7 +147,30 @@ Stream_Module_Net_Source_HTTP_Get_T<ACE_SYNCH_USE,
   {
     case HTTP_Codes::HTTP_STATUS_OK:
     {
-      received_ = true;
+      receivedBytes_ += message_inout->total_length ();
+      // step1: got all data ? --> close connection
+      iterator =
+          record_p->headers.find (ACE_TEXT_ALWAYS_CHAR (HTTP_PRT_HEADER_CONTENT_LENGTH_STRING));
+      if (iterator == record_p->headers.end ())
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("%s: missing \"%s\" HTTP header, aborting\n"),
+                    inherited::mod_->name (),
+                    ACE_TEXT (HTTP_PRT_HEADER_CONTENT_LENGTH_STRING)));
+        goto error;
+      } // end IF
+      std::istringstream converter ((*iterator).second);
+      unsigned int content_length = 0;
+      converter >> content_length;
+      if (inherited::configuration_->closeAfterReception &&
+          (content_length == receivedBytes_))
+      {
+        ACE_DEBUG ((LM_DEBUG,
+                    ACE_TEXT ("%s: received all content, closing connection\n"),
+                    inherited::mod_->name ()));
+        ACE_ASSERT (session_data_r.connection);
+        session_data_r.connection->close ();
+      } // end IF
 
       passMessageDownstream_out = true;
 
@@ -211,11 +231,9 @@ Stream_Module_Net_Source_HTTP_Get_T<ACE_SYNCH_USE,
                   (use_SSL != use_SSL_2)))
       {
         ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("%s: URL (was: \"%s\") redirects to a different host, and/or requires a HTTPS connection, cannot proceed\n"),
+                    ACE_TEXT ("%s: URL (was: \"%s\") redirects to a different host, and/or requires a HTTP(S) connection, cannot proceed\n"),
                     inherited::mod_->name (),
                     ACE_TEXT (inherited::configuration_->URL.c_str ())));
-
-        received_ = false;
 
         passMessageDownstream_out = false;
 
@@ -253,10 +271,7 @@ error:
 
 continue_:
   if (delete_record)
-  {
-    // sanity check(s)
-    ACE_ASSERT (record_p);
-
+  { ACE_ASSERT (record_p);
     delete record_p;
   } // end IF
 
@@ -648,8 +663,6 @@ Stream_Module_Net_Source_HTTP_Get_T<ACE_SYNCH_USE,
       } // end WHILE
       message_in.rd_ptr (offset);
 
-      received_ = true;
-
       break;
     }
     case HTTP_Codes::HTTP_STATUS_MULTIPLECHOICES:
@@ -689,7 +702,7 @@ Stream_Module_Net_Source_HTTP_Get_T<ACE_SYNCH_USE,
       } // end IF
       // *TODO*: remove type inference
       ACE_DEBUG ((LM_INFO,
-                  ACE_TEXT ("%s: \"%s\" has been redirected to \"%s\" (status was: %d)\n"),
+                  ACE_TEXT ("%s: \"%s\" has been redirected to \"%s\" (status was: %d), resending HTTP request\n"),
                   inherited::mod_->name (),
                   ACE_TEXT (inherited::configuration_->URL.c_str ()), ACE_TEXT (location.c_str ()),
                   result_p->status));
@@ -705,6 +718,7 @@ Stream_Module_Net_Source_HTTP_Get_T<ACE_SYNCH_USE,
                     ACE_TEXT (location.c_str ())));
         break;
       } // end IF
+      resentRequest_ = true;
 
       break;
     }
@@ -717,8 +731,6 @@ Stream_Module_Net_Source_HTTP_Get_T<ACE_SYNCH_USE,
       goto error;
     }
   } // end SWITCH
-
-  parsed_ = true;
 
   return result_p;
 

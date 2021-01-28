@@ -149,23 +149,23 @@ typedef Net_IConnectionManager_T<ACE_MT_SYNCH,
 
 //////////////////////////////////////////
 
-typedef Net_IConnection_T<ACE_INET_Addr,
-                          Test_I_Source_TCPConnectionConfiguration_t,
-                          struct Net_StreamConnectionState,
-                          Net_StreamStatistic_t> Test_I_Source_ITCPConnection_t;
-typedef Net_IConnection_T<ACE_INET_Addr,
-                          Test_I_Source_UDPConnectionConfiguration_t,
-                          struct Net_StreamConnectionState,
-                          Net_StreamStatistic_t> Test_I_Source_IUDPConnection_t;
-
-typedef Net_IConnection_T<ACE_INET_Addr,
-                          Test_I_Target_TCPConnectionConfiguration_t,
-                          struct Net_StreamConnectionState,
-                          Net_StreamStatistic_t> Test_I_Target_ITCPConnection_t;
-typedef Net_IConnection_T<ACE_INET_Addr,
-                          Test_I_Target_UDPConnectionConfiguration_t,
-                          struct Net_StreamConnectionState,
-                          Net_StreamStatistic_t> Test_I_Target_IUDPConnection_t;
+//typedef Net_IConnection_T<ACE_INET_Addr,
+//                          //Test_I_Source_TCPConnectionConfiguration_t,
+//                          struct Net_StreamConnectionState,
+//                          Net_StreamStatistic_t> Test_I_Source_ITCPConnection_t;
+//typedef Net_IConnection_T<ACE_INET_Addr,
+//                          //Test_I_Source_UDPConnectionConfiguration_t,
+//                          struct Net_StreamConnectionState,
+//                          Net_StreamStatistic_t> Test_I_Source_IUDPConnection_t;
+//
+//typedef Net_IConnection_T<ACE_INET_Addr,
+//                          //Test_I_Target_TCPConnectionConfiguration_t,
+//                          struct Net_StreamConnectionState,
+//                          Net_StreamStatistic_t> Test_I_Target_ITCPConnection_t;
+//typedef Net_IConnection_T<ACE_INET_Addr,
+//                          //Test_I_Target_UDPConnectionConfiguration_t,
+//                          struct Net_StreamConnectionState,
+//                          Net_StreamStatistic_t> Test_I_Target_IUDPConnection_t;
 
 //////////////////////////////////////////
 

@@ -53,12 +53,11 @@ Test_I_Stream_HTTPGet::handleDataMessage (Test_I_Stream_Message*& message_inout,
   ACE_UNUSED_ARG (passMessageDownstream_out);
 
   // handle redirects
-  inherited::received_ = false;
+  inherited::resentRequest_ = false;
   inherited::handleDataMessage (message_inout,
                                 passMessageDownstream_out);
-  if (!inherited::received_)
+  if (inherited::resentRequest_)
   {
-    // probable reason: re-sent request
     // --> wait for response
     return;
   } // end IF
@@ -74,6 +73,7 @@ Test_I_Stream_HTTPGet::handleDataMessage (Test_I_Stream_Message*& message_inout,
   {
     if (++iterator_ == inherited::configuration_->stockItems.end ())
     { // done --> close connection
+      ACE_ASSERT (inherited::sessionData_);
       Test_I_HTTPGet_SessionData& session_data_r =
         const_cast<Test_I_HTTPGet_SessionData&> (inherited::sessionData_->getR ());
       ACE_ASSERT (session_data_r.connection);

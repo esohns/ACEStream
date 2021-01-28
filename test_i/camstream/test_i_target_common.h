@@ -157,6 +157,7 @@ class Test_I_Target_DirectShow_SessionData
                                    struct Test_I_Target_DirectShow_StreamState,
                                    struct Stream_Statistic,
                                    struct Stream_UserData> ()
+   , connection (NULL)
    , targetFileName ()
    , windowController (NULL)
   {}
@@ -173,8 +174,9 @@ class Test_I_Target_DirectShow_SessionData
     return *this;
   }
 
-  std::string   targetFileName;
-  IVideoWindow* windowController;
+  Net_IINETConnection_t* connection;
+  std::string            targetFileName;
+  IVideoWindow*          windowController;
 };
 typedef Stream_SessionData_T<Test_I_Target_DirectShow_SessionData> Test_I_Target_DirectShow_SessionData_t;
 
@@ -192,6 +194,7 @@ class Test_I_Target_MediaFoundation_SessionData
                                    struct Test_I_Target_MediaFoundation_StreamState,
                                    struct Stream_Statistic,
                                    struct Stream_UserData> ()
+   , connection (NULL)
    , outputFormat (NULL)
    , sourceFormat (NULL)
   {}
@@ -208,8 +211,9 @@ class Test_I_Target_MediaFoundation_SessionData
     return *this;
   }
 
-  IMFMediaType* outputFormat;
-  IMFMediaType* sourceFormat;
+  Net_IINETConnection_t* connection;
+  IMFMediaType*          outputFormat;
+  IMFMediaType*          sourceFormat;
 };
 typedef Stream_SessionData_T<Test_I_Target_MediaFoundation_SessionData> Test_I_Target_MediaFoundation_SessionData_t;
 #else
@@ -321,7 +325,7 @@ struct Test_I_Target_DirectShow_ModuleHandlerConfiguration
   struct tagRECT                                       area;              // display module
 #endif // GUI_SUPPORT
   IGraphBuilder*                                       builder;           // display module
-  Test_I_Target_DirectShow_ITCPConnection_t*           connection;        // Net source/IO module
+  Net_IINETConnection_t*                               connection;        // Net source/IO module
   Net_ConnectionConfigurations_t*                      connectionConfigurations;
   Test_I_Target_DirectShow_TCPConnectionManager_t*     connectionManager; // Net IO module
 #if defined (GUI_SUPPORT)
@@ -402,7 +406,7 @@ struct Test_I_Target_MediaFoundation_ModuleHandlerConfiguration
 #if defined (GUI_SUPPORT)
   struct tagRECT                                        area;                      // display module
 #endif // GUI_SUPPORT
-  Test_I_Target_MediaFoundation_ITCPConnection_t*       connection;                // net source/IO module
+  Net_IINETConnection_t*                                connection;                // net source/IO module
   Net_ConnectionConfigurations_t*                       connectionConfigurations;
   Test_I_Target_MediaFoundation_TCPConnectionManager_t* connectionManager;         // net IO module
 #if defined (GUI_SUPPORT)

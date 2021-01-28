@@ -120,10 +120,10 @@ typedef Stream_Module_Net_IO_Stream_T<ACE_MT_SYNCH,
 
 //////////////////////////////////////////
 
-typedef Net_IConnection_T<ACE_INET_Addr,
-                          HTTPGet_ConnectionConfiguration_t,
-                          struct Net_StreamConnectionState,
-                          Net_StreamStatistic_t> HTTPGet_IConnection_t;
+//typedef Net_IConnection_T<ACE_INET_Addr,
+//                          //HTTPGet_ConnectionConfiguration_t,
+//                          struct Net_StreamConnectionState,
+//                          Net_StreamStatistic_t> HTTPGet_IConnection_t;
 
 //////////////////////////////////////////
 

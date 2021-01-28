@@ -187,7 +187,7 @@ struct Test_I_Stream_SessionData
     return *this;
   }
 
-  Test_I_IConnection_t*                     connection;
+  Net_IINETConnection_t*                    connection;
   struct Test_I_DataSet                     data; // html handler module
   enum Stream_Decoder_CompressionFormatType format; // decompressor module
   struct Test_I_SAXParserContext*           parserContext; // html parser/handler module
@@ -222,6 +222,7 @@ struct Test_I_HTTPGet_ModuleHandlerConfiguration
 {
   Test_I_HTTPGet_ModuleHandlerConfiguration ()
    : Test_I_ModuleHandlerConfiguration ()
+   , closeAfterReception (HTTP_DEFAULT_CLOSE_AFTER_RECEPTION)
    , configuration (NULL)
    , connection (NULL)
    , connectionConfigurations (NULL)
@@ -244,8 +245,9 @@ struct Test_I_HTTPGet_ModuleHandlerConfiguration
     passive = false;
   }
 
+  bool                                       closeAfterReception; // HTTP get module
   struct Test_I_HTTPGet_Configuration*       configuration;
-  Test_I_IConnection_t*                      connection; // TCP target/IO module
+  Net_IINETConnection_t*                     connection; // TCP target/IO module
   Net_ConnectionConfigurations_t*            connectionConfigurations;
   Test_I_Stream_InetConnectionManager_t*     connectionManager; // TCP IO module
   std::string                                dataBaseOptionsFileName; // db writer module

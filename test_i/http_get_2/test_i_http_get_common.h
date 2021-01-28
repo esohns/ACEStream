@@ -37,6 +37,7 @@
 #include "stream_module_htmlparser.h"
 
 #include "http_common.h"
+#include "http_defines.h"
 
 #include "test_i_common.h"
 #include "test_i_configuration.h"
@@ -137,7 +138,7 @@ struct Test_I_HTTPGet_SessionData
     return *this;
   }
 
-  Test_I_IConnection_t*                     connection;
+  Net_IINETConnection_t*                    connection;
   Test_I_StockRecords_t                     data; // html parser/spreadsheet writer module
   enum Stream_Decoder_CompressionFormatType format; // decompressor module
   //Test_I_SAXParserContext*                  parserContext; // html parser/handler module
@@ -216,6 +217,7 @@ struct Test_I_HTTPGet_ModuleHandlerConfiguration
   Test_I_HTTPGet_ModuleHandlerConfiguration ()
    : Test_I_ModuleHandlerConfiguration ()
    , allocatorConfiguration (NULL)
+   , closeAfterReception (HTTP_DEFAULT_CLOSE_AFTER_RECEPTION)
    , configuration (NULL)
    , connection (NULL)
    , connectionConfigurations (NULL)
@@ -237,22 +239,23 @@ struct Test_I_HTTPGet_ModuleHandlerConfiguration
   {}
 
   struct Common_Parser_FlexAllocatorConfiguration* allocatorConfiguration;
-  struct Test_I_HTTPGet_Configuration*            configuration;
-  Test_I_IConnection_t*                           connection; // net source/IO module
-  Net_ConnectionConfigurations_t*                 connectionConfigurations;
-  Test_I_HTTPGet_InetConnectionManager_t*         connectionManager; // net source/IO module
-  std::string                                     fileName; // spreadsheet writer module
-  HTTP_Form_t                                     HTTPForm; // HTTP get module
-  HTTP_Headers_t                                  HTTPHeaders; // HTTP get module
-  ACE_INET_Addr                                   libreOfficeHost; // spreadsheet writer module
-  std::string                                     libreOfficeRc; // spreadsheet writer module
-  unsigned int                                    libreOfficeSheetStartColumn; // spreadsheet writer module
-  unsigned int                                    libreOfficeSheetStartRow; // spreadsheet writer module
-  enum Stream_Module_HTMLParser_Mode              mode; // HTML parser module
-  Test_I_StockItems_t                             stockItems; // HTTP get module
-  Test_I_HTTPGet_StreamConfiguration_t*           streamConfiguration; // net source module
-  std::string                                     URL; // HTTP get module
-  bool                                            waitForConnect;
+  bool                                             closeAfterReception;      // HTTP get module
+  struct Test_I_HTTPGet_Configuration*             configuration;
+  Net_IINETConnection_t*                           connection; // net source/IO module
+  Net_ConnectionConfigurations_t*                  connectionConfigurations;
+  Test_I_HTTPGet_InetConnectionManager_t*          connectionManager; // net source/IO module
+  std::string                                      fileName; // spreadsheet writer module
+  HTTP_Form_t                                      HTTPForm; // HTTP get module
+  HTTP_Headers_t                                   HTTPHeaders; // HTTP get module
+  ACE_INET_Addr                                    libreOfficeHost; // spreadsheet writer module
+  std::string                                      libreOfficeRc; // spreadsheet writer module
+  unsigned int                                     libreOfficeSheetStartColumn; // spreadsheet writer module
+  unsigned int                                     libreOfficeSheetStartRow; // spreadsheet writer module
+  enum Stream_Module_HTMLParser_Mode               mode; // HTML parser module
+  Test_I_StockItems_t                              stockItems; // HTTP get module
+  Test_I_HTTPGet_StreamConfiguration_t*            streamConfiguration; // net source module
+  std::string                                      URL; // HTTP get module
+  bool                                             waitForConnect; // HTTP get module
 };
 //typedef std::map<std::string,
 //                 struct Test_I_HTTPGet_ModuleHandlerConfiguration> Test_I_HTTPGet_ModuleHandlerConfigurations_t;

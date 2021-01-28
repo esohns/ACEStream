@@ -91,10 +91,10 @@ typedef Net_Connection_Manager_T<ACE_MT_SYNCH,
 
 //////////////////////////////////////////
 
-typedef Net_IConnection_T<ACE_INET_Addr,
-                          Test_I_HTTPGet_ConnectionConfiguration_t,
-                          struct Net_StreamConnectionState,
-                          Net_StreamStatistic_t> Test_I_IConnection_t;
+//typedef Net_IConnection_T<ACE_INET_Addr,
+//                          //Test_I_HTTPGet_ConnectionConfiguration_t,
+//                          struct Net_StreamConnectionState,
+//                          Net_StreamStatistic_t> Test_I_IConnection_t;
 
 //////////////////////////////////////////
 

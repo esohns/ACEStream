@@ -105,33 +105,6 @@ template <typename SessionIdType,
 class Test_I_Source_EventHandler_T;
 extern const char stream_name_string_[];
 
-//struct Test_I_Source_Stream_StatisticData
-// : Stream_Statistic
-//{
-//  Test_I_Source_Stream_StatisticData ()
-//   : Stream_Statistic ()
-//#if defined (ACE_WIN32) || defined (ACE_WIN64)
-//   , capturedFrames (0)
-//#endif // ACE_WIN32 || ACE_WIN64
-//  {}
-//
-//  struct Test_I_Source_Stream_StatisticData operator+= (const struct Test_I_Source_Stream_StatisticData& rhs_in)
-//  {
-//    Stream_Statistic::operator+= (rhs_in);
-//#if defined (ACE_WIN32) || defined (ACE_WIN64)
-//    capturedFrames += rhs_in.capturedFrames;
-//#endif // ACE_WIN32 || ACE_WIN64
-//
-//    return *this;
-//  }
-//
-//#if defined (ACE_WIN32) || defined (ACE_WIN64)
-//  unsigned int capturedFrames;
-//#endif // ACE_WIN32 || ACE_WIN64
-//};
-//typedef Common_IStatistic_T<struct Test_I_Source_Stream_StatisticData> Test_I_Source_Stream_IStatistic_t;
-//typedef Common_StatisticHandler_T<struct Test_I_Source_Stream_StatisticData> Test_I_Source_Stream_StatisticHandler_t;
-
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 class Test_I_Source_DirectShow_SessionData
  : public Stream_SessionDataMediaBase_T<struct Test_I_CamStream_DirectShow_SessionData,
@@ -147,6 +120,7 @@ class Test_I_Source_DirectShow_SessionData
                                    struct Test_I_Source_DirectShow_StreamState,
                                    struct Stream_Statistic,
                                    struct Stream_UserData> ()
+   , connection (NULL)
   {}
 
   Test_I_Source_DirectShow_SessionData& operator+= (const Test_I_Source_DirectShow_SessionData& rhs_in)
@@ -158,8 +132,12 @@ class Test_I_Source_DirectShow_SessionData
                                   struct Stream_Statistic,
                                   struct Stream_UserData>::operator+= (rhs_in);
 
+    connection = ((connection == NULL) ? rhs_in.connection : connection);
+
     return *this;
   }
+
+  Net_IINETConnection_t* connection;
 };
 typedef Stream_SessionData_T<Test_I_Source_DirectShow_SessionData> Test_I_Source_DirectShow_SessionData_t;
 
@@ -177,6 +155,7 @@ class Test_I_Source_MediaFoundation_SessionData
                                    struct Test_I_Source_MediaFoundation_StreamState,
                                    struct Stream_Statistic,
                                    struct Stream_UserData> ()
+   , connection (NULL)
   {}
 
   Test_I_Source_MediaFoundation_SessionData& operator+= (const Test_I_Source_MediaFoundation_SessionData& rhs_in)
@@ -188,8 +167,12 @@ class Test_I_Source_MediaFoundation_SessionData
                                   struct Stream_Statistic,
                                   struct Stream_UserData>::operator+= (rhs_in);
 
+    connection = ((connection == NULL) ? rhs_in.connection : connection);
+
     return *this;
   }
+
+  Net_IINETConnection_t* connection;
 };
 typedef Stream_SessionData_T<Test_I_Source_MediaFoundation_SessionData> Test_I_Source_MediaFoundation_SessionData_t;
 #else
@@ -406,7 +389,7 @@ struct Test_I_Source_DirectShow_ModuleHandlerConfiguration
   struct tagRECT                                       area; // visualization module
 #endif // GUI_SUPPORT
   IGraphBuilder*                                       builder;
-  Test_I_Source_DirectShow_ITCPConnection_t*           connection; // TCP target/IO module
+  Net_IINETConnection_t*                               connection; // TCP target/IO module
   Net_ConnectionConfigurations_t*                      connectionConfigurations;
   Test_I_Source_DirectShow_TCPConnectionManager_t*     connectionManager; // TCP IO module
 #if defined (GUI_SUPPORT)
@@ -465,7 +448,7 @@ struct Test_I_Source_MediaFoundation_ModuleHandlerConfiguration
   }
 
   struct tagRECT                                            area;
-  Test_I_Source_MediaFoundation_ITCPConnection_t*           connection; // TCP target/IO module
+  Net_IINETConnection_t*                                    connection; // TCP target/IO module
   Net_ConnectionConfigurations_t*                           connectionConfigurations;
   Test_I_Source_MediaFoundation_TCPConnectionManager_t*     connectionManager; // TCP IO module
 #if COMMON_OS_WIN32_TARGET_PLATFORM(0x0602) // _WIN32_WINNT_WIN8

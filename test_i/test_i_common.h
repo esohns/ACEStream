@@ -115,7 +115,6 @@ struct Test_I_SessionData
 {
   Test_I_SessionData ()
    : Stream_SessionData ()
-   , connectionState (NULL)
   {}
 
   struct Test_I_SessionData& operator+= (const struct Test_I_SessionData& rhs_in)
@@ -123,12 +122,8 @@ struct Test_I_SessionData
     // *NOTE*: the idea is to 'merge' the data
     Stream_SessionData::operator+= (rhs_in);
 
-    connectionState = (connectionState ? connectionState : rhs_in.connectionState);
-
     return *this;
   }
-
-  struct Net_ConnectionState* connectionState;
 };
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 class Test_I_DirectShow_SessionData
