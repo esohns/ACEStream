@@ -46,8 +46,6 @@
 
 #include "stream_document_defines.h"
 
-//#include "test_i_http_get_defines.h"
-
 Test_U_DocumentHandler::Test_U_DocumentHandler ()
  : inherited ()
  , resolver_ ()
