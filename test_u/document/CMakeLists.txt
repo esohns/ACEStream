@@ -149,7 +149,7 @@ if (UNIX)
 elseif (WIN32)
  # *WARNING*: linking Common requires "/FORCE:MULTIPLE"
  set_target_properties (${EXECUTABLE} PROPERTIES LINK_FLAGS /FORCE:MULTIPLE)
-endif (WIN32)
+endif ()
 target_link_libraries (${EXECUTABLE} Common)
 target_link_libraries (${EXECUTABLE} CommonLog)
 #target_link_libraries (${EXECUTABLE} CommonParser)

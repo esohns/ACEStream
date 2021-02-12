@@ -74,7 +74,7 @@
 #include "ace/Synch_Traits.h"
 
 #include "common_file_tools.h"
-#include "common_tools.h"
+#include "common_process_tools.h"
 
 #if defined (GTKGL_SUPPORT)
 //#include "common_gl_defines.h"
@@ -1995,9 +1995,9 @@ error:
   char buffer_a[BUFSIZ];
   ACE_OS::memset (buffer_a, 0, sizeof (char[BUFSIZ]));
   int exit_status = 0;
-  if (!Common_Tools::command (command_line_string,
-                              exit_status,
-                              command_output_string))
+  if (!Common_Process_Tools::command (command_line_string,
+                                      exit_status,
+                                      command_output_string))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Common_Tools::command(\"%s\"), aborting\n"),

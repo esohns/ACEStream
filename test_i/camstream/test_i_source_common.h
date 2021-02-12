@@ -190,6 +190,7 @@ class Test_I_Source_V4L_SessionData
                                    struct Test_I_Source_V4L_StreamState,
                                    struct Stream_Statistic,
                                    struct Stream_UserData> ()
+   , connection (NULL)
   {}
 
   Test_I_Source_V4L_SessionData& operator+= (const Test_I_Source_V4L_SessionData& rhs_in)
@@ -201,8 +202,12 @@ class Test_I_Source_V4L_SessionData
                                   struct Stream_Statistic,
                                   struct Stream_UserData>::operator+= (rhs_in);
 
+    connection = ((connection == NULL) ? rhs_in.connection : connection);
+
     return *this;
   }
+
+  Net_IINETConnection_t* connection;
 };
 typedef Stream_SessionData_T<Test_I_Source_V4L_SessionData> Test_I_Source_V4L_SessionData_t;
 #endif // ACE_WIN32 || ACE_WIN64
@@ -508,7 +513,7 @@ struct Test_I_Source_V4L_ModuleHandlerConfiguration
   struct v4l2_rect                              area;
 #endif // GUI_SUPPORT
   __u32                                         buffers; // v4l device buffers
-  Test_I_Source_V4L_ITCPConnection_t*           connection; // TCP target/IO module
+  Net_IINETConnection_t*                        connection; // TCP target/IO module
   Net_ConnectionConfigurations_t*               connectionConfigurations;
   Test_I_Source_V4L_TCPConnectionManager_t*     connectionManager; // TCP IO module
   enum v4l2_memory                              method; // v4l2 camera source

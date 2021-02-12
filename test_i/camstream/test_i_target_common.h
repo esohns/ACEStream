@@ -171,6 +171,8 @@ class Test_I_Target_DirectShow_SessionData
                                   struct Stream_Statistic,
                                   struct Stream_UserData>::operator+= (rhs_in);
 
+    connection = ((connection == NULL) ? rhs_in.connection : connection);
+
     return *this;
   }
 
@@ -208,6 +210,8 @@ class Test_I_Target_MediaFoundation_SessionData
                                   struct Stream_Statistic,
                                   struct Stream_UserData>::operator+= (rhs_in);
 
+    connection = ((connection == NULL) ? rhs_in.connection : connection);
+
     return *this;
   }
 
@@ -231,7 +235,7 @@ class Test_I_Target_SessionData
                                    struct Test_I_Target_StreamState,
                                    struct Stream_Statistic,
                                    struct Stream_UserData> ()
-//   , targetFileName ()
+   , connection (NULL)
   {}
 
   Test_I_Target_SessionData& operator+= (const Test_I_Target_SessionData& rhs_in)
@@ -243,13 +247,14 @@ class Test_I_Target_SessionData
                                   struct Stream_Statistic,
                                   struct Stream_UserData>::operator+= (rhs_in);
 
+    connection = ((connection == NULL) ? rhs_in.connection : connection);
     targetFileName =
       (targetFileName.empty () ? rhs_in.targetFileName : targetFileName);
 
     return *this;
   }
 
-//  std::string targetFileName;
+  Net_IINETConnection_t* connection;
 };
 typedef Stream_SessionData_T<Test_I_Target_SessionData> Test_I_Target_SessionData_t;
 #endif // ACE_WIN32 || ACE_WIN64

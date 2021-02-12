@@ -4612,6 +4612,7 @@ button_report_clicked_cb (GtkButton* button_in,
 {
   STREAM_TRACE (ACE_TEXT ("::button_report_clicked_cb"));
 
+  ACE_UNUSED_ARG (button_in);
   struct Stream_CamSave_UI_CBData* ui_cb_data_base_p =
     static_cast<struct Stream_CamSave_UI_CBData*> (userData_in);
 
@@ -4626,6 +4627,7 @@ button_hw_settings_clicked_cb (GtkButton* button_in,
 {
   STREAM_TRACE (ACE_TEXT ("::button_hw_settings_clicked_cb"));
 
+  ACE_UNUSED_ARG (button_in);
   struct Stream_CamSave_UI_CBData* ui_cb_data_base_p =
     static_cast<struct Stream_CamSave_UI_CBData*> (userData_in);
 
@@ -4639,6 +4641,7 @@ button_format_reset_clicked_cb (GtkButton* button_in,
 {
   STREAM_TRACE (ACE_TEXT ("::button_format_reset_clicked_cb"));
 
+  ACE_UNUSED_ARG (button_in);
   struct Stream_CamSave_UI_CBData* ui_cb_data_base_p =
     static_cast<struct Stream_CamSave_UI_CBData*> (userData_in);
 
@@ -4665,6 +4668,7 @@ button_snapshot_clicked_cb (GtkButton* button_in,
 {
   STREAM_TRACE (ACE_TEXT ("::button_snapshot_clicked_cb"));
 
+  ACE_UNUSED_ARG (button_in);
   struct Stream_CamSave_UI_CBData* ui_cb_data_base_p =
     static_cast<struct Stream_CamSave_UI_CBData*> (userData_in);
 
@@ -5166,7 +5170,7 @@ combobox_source_changed_cb (GtkWidget* widget_in,
     }
   } // end SWITCH
 #else
-  int result_2 = -1;
+//  int result_2 = -1;
   result = load_formats (ui_cb_data_base_p->useLibCamera,
                          device_identifier_string,
                          list_store_p);
@@ -6163,6 +6167,7 @@ drawingarea_draw_cb (GtkWidget* widget_in,
 
   // sanity check(s)
   ACE_UNUSED_ARG (widget_in);
+  ACE_UNUSED_ARG (context_in);
   ACE_ASSERT (userData_in);
 
   struct Stream_CamSave_UI_CBData* ui_cb_data_base_p =

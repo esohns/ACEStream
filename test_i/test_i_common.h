@@ -284,7 +284,7 @@ class Test_I_V4L_SessionData
   }
 
   struct Net_ConnectionState* connectionState;
-  std::string                    targetFileName;
+  std::string                 targetFileName;
 };
 typedef Stream_SessionData_T<Test_I_V4L_SessionData> Test_I_V4L_SessionData_t;
 #endif // ACE_WIN32 || ACE_WIN64
