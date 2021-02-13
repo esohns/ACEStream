@@ -91,6 +91,8 @@ extern "C"
 
 #include "common_error_tools.h"
 
+#include "common_image_tools.h"
+
 #include "stream_macros.h"
 
 #include "stream_lib_defines.h"
@@ -429,31 +431,6 @@ Stream_Module_Decoder_Tools::isRGB32 (enum AVPixelFormat format_in)
   return false;
 }
 
-std::string
-Stream_Module_Decoder_Tools::errorToString (int error_in)
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_Module_Decoder_Tools::errorToString"));
-
-  // initialize return value(s)
-  std::string return_value;
-
-  int result_2 = -1;
-  char buffer_a[AV_ERROR_MAX_STRING_SIZE];
-  ACE_OS::memset (buffer_a, 0, sizeof (char[AV_ERROR_MAX_STRING_SIZE]));
-
-  result_2 = av_strerror (error_in,
-                          buffer_a,
-                          sizeof (char[AV_ERROR_MAX_STRING_SIZE]));
-  if (unlikely (result_2))
-    ACE_DEBUG ((LM_ERROR,
-                ((result_2 < 0) ? ACE_TEXT ("failed to av_strerror(%d), cannot find error description: \"%m\", continuing\n")
-                                : ACE_TEXT ("failed to av_strerror(%d): \"%m\", continuing\n")),
-                error_in));
-  return_value = buffer_a;
-
-  return return_value;
-}
-
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 enum AVCodecID
 Stream_Module_Decoder_Tools::mediaSubTypeToAVCodecId (REFGUID mediaSubType_in,
@@ -777,7 +754,7 @@ Stream_Module_Decoder_Tools::convert (struct SwsContext* context_in,
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to sws_getCachedContext(): \"%s\", aborting\n"),
-                ACE_TEXT (Stream_Module_Decoder_Tools::errorToString (errno).c_str ())));
+                ACE_TEXT (Common_Image_Tools::errorToString (errno).c_str ())));
     return false;
   } // end IF
 
@@ -801,7 +778,7 @@ Stream_Module_Decoder_Tools::convert (struct SwsContext* context_in,
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to sws_scale(): \"%s\", aborting\n"),
-                ACE_TEXT (Stream_Module_Decoder_Tools::errorToString (result_2).c_str ())));
+                ACE_TEXT (Common_Image_Tools::errorToString (result_2).c_str ())));
     goto clean;
   } // end IF
   // *NOTE*: ffmpeg returns fewer than the expected number of rows in some cases
@@ -882,7 +859,7 @@ Stream_Module_Decoder_Tools::scale (struct SwsContext* context_in,
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to sws_scale(): \"%s\", aborting\n"),
-                ACE_TEXT (Stream_Module_Decoder_Tools::errorToString (result_2).c_str ())));
+                ACE_TEXT (Common_Image_Tools::errorToString (result_2).c_str ())));
     goto clean;
   } // end IF
   // *NOTE*: ffmpeg returns fewer than the expected number of rows in some cases

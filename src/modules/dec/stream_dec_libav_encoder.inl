@@ -31,12 +31,11 @@ extern "C"
 #include "ace/Log_Msg.h"
 
 #include "common_tools.h"
-
 #if defined (_DEBUG)
 #include "common_file_tools.h"
+#endif // _DEBUG
 
 #include "common_image_tools.h"
-#endif // _DEBUG
 
 #include "stream_macros.h"
 
@@ -273,7 +272,7 @@ Stream_Decoder_LibAVEncoder_T<ACE_SYNCH_USE,
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: failed to avcodec_send_frame(): \"%s\", returning\n"),
                   inherited::mod_->name (),
-                  ACE_TEXT (Stream_Module_Decoder_Tools::errorToString (result).c_str ())));
+                  ACE_TEXT (Common_Image_Tools::errorToString (result).c_str ())));
       goto error;
     } // end IF
 
@@ -287,7 +286,7 @@ Stream_Decoder_LibAVEncoder_T<ACE_SYNCH_USE,
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: failed to avcodec_receive_packet(): \"%s\", returning\n"),
                     inherited::mod_->name (),
-                    ACE_TEXT (Stream_Module_Decoder_Tools::errorToString (result).c_str ())));
+                    ACE_TEXT (Common_Image_Tools::errorToString (result).c_str ())));
         goto error;
       } // end ELSE IF
 
@@ -306,7 +305,7 @@ Stream_Decoder_LibAVEncoder_T<ACE_SYNCH_USE,
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: failed to av_interleaved_write_frame(): \"%s\", returning\n"),
                     inherited::mod_->name (),
-                    ACE_TEXT (Stream_Module_Decoder_Tools::errorToString (result).c_str ())));
+                    ACE_TEXT (Common_Image_Tools::errorToString (result).c_str ())));
         goto error;
       } // end IF
     } // end WHILE
@@ -506,7 +505,7 @@ audio:
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: avcodec_open2() failed: \"%s\", aborting\n"),
                     inherited::mod_->name (),
-                    ACE_TEXT (Stream_Module_Decoder_Tools::errorToString (result).c_str ())));
+                    ACE_TEXT (Common_Image_Tools::errorToString (result).c_str ())));
         goto error;
       } // end IF
       ACE_DEBUG ((LM_DEBUG,
@@ -587,7 +586,7 @@ video:
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: avcodec_open2() failed: \"%s\", aborting\n"),
                     inherited::mod_->name (),
-                    ACE_TEXT (Stream_Module_Decoder_Tools::errorToString (result).c_str ())));
+                    ACE_TEXT (Common_Image_Tools::errorToString (result).c_str ())));
         goto error;
       } // end IF
       ACE_DEBUG ((LM_DEBUG,
@@ -647,7 +646,7 @@ continue_2:
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("%s: av_write_trailer() failed: \"%s\", continuing\n"),
                       inherited::mod_->name (),
-                      ACE_TEXT (Stream_Module_Decoder_Tools::errorToString (result).c_str ())));
+                      ACE_TEXT (Common_Image_Tools::errorToString (result).c_str ())));
         if (!(formatContext_->oformat->flags & AVFMT_NOFILE) && formatContext_->pb)
         {
           result = avio_close (formatContext_->pb);
@@ -655,7 +654,7 @@ continue_2:
             ACE_DEBUG ((LM_ERROR,
                         ACE_TEXT ("%s: avio_close() failed: \"%s\", continuing\n"),
                         inherited::mod_->name (),
-                        ACE_TEXT (Stream_Module_Decoder_Tools::errorToString (result).c_str ())));
+                        ACE_TEXT (Common_Image_Tools::errorToString (result).c_str ())));
         } // end IF
       } // end IF
 

@@ -31,12 +31,11 @@ extern "C"
 #include "ace/Log_Msg.h"
 
 #include "common_tools.h"
-
 #if defined (_DEBUG)
 #include "common_file_tools.h"
+#endif // _DEBUG
 
 #include "common_image_tools.h"
-#endif // _DEBUG
 
 #include "stream_macros.h"
 
@@ -169,7 +168,7 @@ Stream_Decoder_LibAVDecoder_T<ACE_SYNCH_USE,
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: avcodec_close() failed: \"%s\", continuing\n"),
                   inherited::mod_->name (),
-                  ACE_TEXT (Stream_Module_Decoder_Tools::errorToString (result).c_str ())));
+                  ACE_TEXT (Common_Image_Tools::errorToString (result).c_str ())));
     avcodec_free_context (&context_);
   } // end IF
 
@@ -218,7 +217,7 @@ Stream_Decoder_LibAVDecoder_T<ACE_SYNCH_USE,
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: avcodec_close() failed: \"%s\", continuing\n"),
                     inherited::mod_->name (),
-                    ACE_TEXT (Stream_Module_Decoder_Tools::errorToString (result).c_str ())));
+                    ACE_TEXT (Common_Image_Tools::errorToString (result).c_str ())));
       avcodec_free_context (&context_);
     } // end IF
     format_ = AV_PIX_FMT_NONE;
@@ -426,7 +425,7 @@ Stream_Decoder_LibAVDecoder_T<ACE_SYNCH_USE,
                     //ACE_TEXT ("%s: failed to avcodec_send_packet(): \"%s\", returning\n"),
                     ACE_TEXT ("%s: failed to avcodec_decode_video2(): \"%s\", returning\n"),
                     inherited::mod_->name (),
-                    ACE_TEXT (Stream_Module_Decoder_Tools::errorToString (result).c_str ())));
+                    ACE_TEXT (Common_Image_Tools::errorToString (result).c_str ())));
         goto error;
       } // end IF
       break; // <-- transient error --> retry with the next chunk
@@ -450,7 +449,7 @@ Stream_Decoder_LibAVDecoder_T<ACE_SYNCH_USE,
 //        ACE_DEBUG ((LM_ERROR,
 //                    ACE_TEXT ("%s: failed to avcodec_receive_frame(): \"%s\", returning\n"),
 //                    inherited::mod_->name (),
-//                    ACE_TEXT (Stream_Module_Decoder_Tools::errorToString (result).c_str ())));
+//                    ACE_TEXT (Common_Image_Tools::errorToString (result).c_str ())));
 //      goto loop_outer;
 //    } // end IF
 //#endif
@@ -731,7 +730,7 @@ Stream_Decoder_LibAVDecoder_T<ACE_SYNCH_USE,
 //      {
 //        ACE_DEBUG ((LM_ERROR,
 //                    ACE_TEXT ("avcodec_get_context_defaults3() failed: \"%s\", aborting\n"),
-//                    ACE_TEXT (Stream_Module_Decoder_Tools::errorToString (result).c_str ())));
+//                    ACE_TEXT (Common_Image_Tools::errorToString (result).c_str ())));
 //        goto error;
 //      } // end IF
 
@@ -955,7 +954,7 @@ Stream_Decoder_LibAVDecoder_T<ACE_SYNCH_USE,
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: avcodec_parameters_to_context() failed: \"%s\", aborting\n"),
                     inherited::mod_->name (),
-                    ACE_TEXT (Stream_Module_Decoder_Tools::errorToString (result).c_str ())));
+                    ACE_TEXT (Common_Image_Tools::errorToString (result).c_str ())));
         goto error;
       } // end IF
       avcodec_parameters_free (&codec_parameters_p); codec_parameters_p = NULL;
@@ -979,7 +978,7 @@ Stream_Decoder_LibAVDecoder_T<ACE_SYNCH_USE,
                     ACE_TEXT ("%s: avcodec_open2(%d) failed: \"%s\", aborting\n"),
                     inherited::mod_->name (),
                     codecId_,
-                    ACE_TEXT (Stream_Module_Decoder_Tools::errorToString (result).c_str ())));
+                    ACE_TEXT (Common_Image_Tools::errorToString (result).c_str ())));
         av_dict_free (&dictionary_p); dictionary_p = NULL;
         goto error;
       } // end IF

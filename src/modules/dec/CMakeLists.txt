@@ -342,6 +342,7 @@ elseif (WIN32)
  target_link_libraries (${PROJECT_NAME}_Decoder PUBLIC ${ACE_LIBRARY})
 endif ()
 target_link_libraries (${PROJECT_NAME}_Decoder PUBLIC Common)
+target_link_libraries (${PROJECT_NAME}_Decoder PUBLIC CommonImage)
 
 target_link_libraries (${PROJECT_NAME}_Decoder PUBLIC ${PROJECT_NAME})
 

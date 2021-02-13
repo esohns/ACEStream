@@ -81,8 +81,6 @@ class Stream_Module_Decoder_Tools
   static bool isRGB (enum AVPixelFormat); // pixel format
   static bool isRGB32 (enum AVPixelFormat); // pixel format
 
-  static std::string errorToString (int); // libav error
-
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   // *NOTE*: supports non-RGB AND non-Chroma-Luminance types only
   static enum AVCodecID mediaSubTypeToAVCodecId (REFGUID,                                                              // media subtype
