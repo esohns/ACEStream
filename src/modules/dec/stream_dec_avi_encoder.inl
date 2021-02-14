@@ -57,6 +57,8 @@ extern "C"
 
 #include "common_file_tools.h"
 
+#include "common_image_tools.h"
+
 #include "stream_macros.h"
 
 #include "stream_dec_defines.h"
@@ -466,7 +468,7 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("%s: avcodec_close() failed: \"%s\", continuing\n"),
                       inherited::mod_->name (),
-                      ACE_TEXT (Stream_Module_Decoder_Tools::errorToString (result).c_str ())));
+                      ACE_TEXT (Common_Image_Tools::errorToString (result).c_str ())));
       } // end IF
     avformat_free_context (formatContext_); formatContext_ = NULL;
   } // end IF
@@ -518,7 +520,7 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
             ACE_DEBUG ((LM_ERROR,
                         ACE_TEXT ("%s: avcodec_close() failed: \"%s\", continuing\n"),
                         inherited::mod_->name (),
-                        ACE_TEXT (Stream_Module_Decoder_Tools::errorToString (result).c_str ())));
+                        ACE_TEXT (Common_Image_Tools::errorToString (result).c_str ())));
         } // end IF
 
       avformat_free_context (formatContext_); formatContext_ = NULL;
@@ -1010,7 +1012,7 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
                     ACE_TEXT ("%s: avcodec_open2(%d) failed: \"%s\", returning\n"),
                     inherited::mod_->name (),
                     codec_id,
-                    ACE_TEXT (Stream_Module_Decoder_Tools::errorToString (result).c_str ())));
+                    ACE_TEXT (Common_Image_Tools::errorToString (result).c_str ())));
         goto error;
       } // end IF
 
@@ -1586,7 +1588,7 @@ continue_2:
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: avformat_write_header() failed: \"%s\", aborting\n"),
                 inherited::mod_->name (),
-                ACE_TEXT (Stream_Module_Decoder_Tools::errorToString (result).c_str ())));
+                ACE_TEXT (Common_Image_Tools::errorToString (result).c_str ())));
     return false;
   } // end IF
   avio_flush (formatContext_->pb);
@@ -1733,7 +1735,7 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: av_write_trailer() failed: \"%s\", continuing\n"),
                 inherited::mod_->name (),
-                ACE_TEXT (Stream_Module_Decoder_Tools::errorToString (result).c_str ())));
+                ACE_TEXT (Common_Image_Tools::errorToString (result).c_str ())));
 #endif // ACE_WIN32 || ACE_WIN64
 
   return true;
