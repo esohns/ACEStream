@@ -40,6 +40,8 @@ Stream_ImageScreen_Stream::Stream_ImageScreen_Stream ()
  , ffmpeg_source_ (this,
                    ACE_TEXT_ALWAYS_CHAR (STREAM_FILE_SOURCE_DEFAULT_NAME_STRING))
 #if defined (FFMPEG_SUPPORT)
+ , ffmpeg_decode_ (this,
+                   ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_LIBAV_DECODER_DEFAULT_NAME_STRING))
  , ffmpeg_resize_ (this,
                    ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_LIBAV_RESIZE_DEFAULT_NAME_STRING))
  , ffmpeg_convert_ (this,
@@ -93,7 +95,7 @@ Stream_ImageScreen_Stream::load (Stream_ILayout* layout_in,
   layout_in->append (&imagemagick_resize_, NULL, 0); // output is window size/fullscreen
 #else
   layout_in->append (&ffmpeg_source_, NULL, 0);
-  //layout_in->append (&ffmpeg_decode_, NULL, 0); // output is uncompressed RGBA
+  layout_in->append (&ffmpeg_decode_, NULL, 0); // output is uncompressed RGBA
   layout_in->append (&ffmpeg_resize_, NULL, 0); // output is window size/fullscreen
   layout_in->append (&ffmpeg_convert_, NULL, 0); // output is uncompressed BGRA
 #endif // IMAGEMAGICK_SUPPORT
@@ -154,23 +156,14 @@ Stream_ImageScreen_Stream::initialize (const typename inherited::CONFIGURATION_T
       dynamic_cast<struct Stream_ImageScreen_ModuleHandlerConfiguration*> (&(*iterator).second.second);
   ACE_ASSERT (configuration_p);
 
-//  if (!Stream_Device_Tools::getFormat (configuration_in.moduleHandlerConfiguration->fileDescriptor,
-//                                       session_data_r.v4l2Format))
-//  {
-//    ACE_DEBUG ((LM_ERROR,
-//                ACE_TEXT ("failed to Stream_Device_Tools::getFormat(%d), aborting\n"),
-//                configuration_in.moduleHandlerConfiguration->fileDescriptor));
-//    return false;
-//  } // end IF
-//  if (!Stream_Device_Tools::getFrameRate (configuration_in.moduleHandlerConfiguration->fileDescriptor,
-//                                          session_data_r.v4l2FrameRate))
-//  {
-//    ACE_DEBUG ((LM_ERROR,
-//                ACE_TEXT ("failed to Stream_Device_Tools::getFrameRate(%d), aborting\n"),
-//                configuration_in.moduleHandlerConfiguration->fileDescriptor));
-//    return false;
-//  } // end IF
   media_type_s.format = AV_PIX_FMT_RGB32;
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  media_type_s.resolution.cx = 640;
+  media_type_s.resolution.cy = 480;
+#else
+  media_type_s.resolution.width  = 640;
+  media_type_s.resolution.height = 480;
+#endif // ACE_WIN32 || ACE_WIN64
   session_data_p->formats.push_front (media_type_s);
   //  session_data_p->targetFileName = configuration_p->fileIdentifier.identifier;
 

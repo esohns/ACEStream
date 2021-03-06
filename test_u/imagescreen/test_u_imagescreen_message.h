@@ -47,12 +47,16 @@ struct Stream_ImageScreen_MessageData
 {
   Stream_ImageScreen_MessageData ()
    : format ()
+#if defined (IMAGEMAGICK_SUPPORT)
    , relinquishMemory (NULL)
+#endif // IMAGEMAGICK_SUPPORT
   {}
 
   struct Stream_MediaFramework_FFMPEG_VideoMediaType format;
+#if defined (IMAGEMAGICK_SUPPORT)
   // free memory with MagickRelinquishMemory() ?
   void*                                              relinquishMemory;
+#endif // IMAGEMAGICK_SUPPORT
 };
 
 template <typename SessionDataType> // derives off Stream_SessionData_T

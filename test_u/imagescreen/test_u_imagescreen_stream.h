@@ -102,6 +102,7 @@ class Stream_ImageScreen_Stream
   // modules
   Stream_ImageScreen_FFMPEG_Source_Module       ffmpeg_source_;
 #if defined (FFMPEG_SUPPORT)
+  Stream_ImageScreen_FFMPEG_Decode_Module       ffmpeg_decode_;
   Stream_ImageScreen_FFMPEG_Resize_Module       ffmpeg_resize_; // --> window size/fullscreen
   Stream_ImageScreen_FFMPEG_Convert_Module      ffmpeg_convert_; // RGB32 --> BGR32
 #endif // FFMPEG_SUPPORT

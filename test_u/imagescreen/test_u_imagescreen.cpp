@@ -380,7 +380,7 @@ do_work (int argc_in,
 //  Stream_ImageScreen_StreamConfiguration_t::ITERATOR_T stream_configuration_iterator;
   modulehandler_configuration.allocatorConfiguration =
     &allocator_configuration;
-  modulehandler_configuration.codecId = AV_CODEC_ID_PNG;
+  modulehandler_configuration.codecId = AV_CODEC_ID_MJPEG;
   modulehandler_configuration.display = Common_UI_Tools::getDefaultDisplay ();
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   modulehandler_configuration.direct3DConfiguration = &configuration.direct3DConfiguration;
