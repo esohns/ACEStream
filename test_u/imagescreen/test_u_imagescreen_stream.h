@@ -100,9 +100,16 @@ class Stream_ImageScreen_Stream
   ACE_UNIMPLEMENTED_FUNC (Stream_ImageScreen_Stream& operator= (const Stream_ImageScreen_Stream&))
 
   // modules
-  Stream_ImageScreen_Source_Module  source_;
-  Stream_ImageScreen_Resize_Module  resize_; // --> window size/fullscreen
-  Stream_ImageScreen_Convert_Module convert_; // RGB32 --> BGR32
+  Stream_ImageScreen_FFMPEG_Source_Module       ffmpeg_source_;
+#if defined (FFMPEG_SUPPORT)
+  Stream_ImageScreen_FFMPEG_Resize_Module       ffmpeg_resize_; // --> window size/fullscreen
+  Stream_ImageScreen_FFMPEG_Convert_Module      ffmpeg_convert_; // RGB32 --> BGR32
+#endif // FFMPEG_SUPPORT
+#if defined (IMAGEMAGICK_SUPPORT)
+  Stream_ImageScreen_ImageMagick_Source_Module  imagemagick_source_;
+  Stream_ImageScreen_ImageMagick_Resize_Module  imagemagick_resize_; // --> window size/fullscreen
+  //Stream_ImageScreen_ImageMagick_Convert_Module imagemagick_convert_; // RGB32 --> BGR32
+#endif // FFMPEG_SUPPORT || IMAGEMAGICK_SUPPORT
   Stream_ImageScreen_Delay_Module   delay_;
   Stream_ImageScreen_Display_Module display_;
 };

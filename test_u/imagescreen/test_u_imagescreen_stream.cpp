@@ -37,24 +37,22 @@
 
 Stream_ImageScreen_Stream::Stream_ImageScreen_Stream ()
  : inherited ()
- , source_ (this,
+ , ffmpeg_source_ (this,
+                   ACE_TEXT_ALWAYS_CHAR (STREAM_FILE_SOURCE_DEFAULT_NAME_STRING))
 #if defined (FFMPEG_SUPPORT)
-            ACE_TEXT_ALWAYS_CHAR (STREAM_FILE_SOURCE_DEFAULT_NAME_STRING))
-#elif defined (IMAGEMAGICK_SUPPORT)
-            ACE_TEXT_ALWAYS_CHAR (STREAM_FILE_IMAGEMAGICK_SOURCE_DEFAULT_NAME_STRING))
-#endif // FFMPEG_SUPPORT || IMAGEMAGICK_SUPPORT
-// , decode_ (this,
-//            ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_IMAGEMAGICK_DECODER_DEFAULT_NAME_STRING))
- , resize_ (this,
-#if defined (FFMPEG_SUPPORT)
-            ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_LIBAV_RESIZE_DEFAULT_NAME_STRING))
-#elif defined (IMAGEMAGICK_SUPPORT)
-            ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_IMAGEMAGICK_RESIZE_DEFAULT_NAME_STRING))
-#endif // FFMPEG_SUPPORT || IMAGEMAGICK_SUPPORT
- , convert_ (this,
-             ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_LIBAV_CONVERTER_DEFAULT_NAME_STRING))
-// , statisticReport_ (this,
-//                     ACE_TEXT_ALWAYS_CHAR (MODULE_STAT_REPORT_DEFAULT_NAME_STRING))
+ , ffmpeg_resize_ (this,
+                   ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_LIBAV_RESIZE_DEFAULT_NAME_STRING))
+ , ffmpeg_convert_ (this,
+                    ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_LIBAV_CONVERTER_DEFAULT_NAME_STRING))
+#endif // FFMPEG_SUPPORT
+#if defined (IMAGEMAGICK_SUPPORT)
+  , imagemagick_source_ (this,
+                         ACE_TEXT_ALWAYS_CHAR (STREAM_FILE_IMAGEMAGICK_SOURCE_DEFAULT_NAME_STRING))
+  , imagemagick_resize_ (this,
+                         ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_IMAGEMAGICK_RESIZE_DEFAULT_NAME_STRING))
+// , imagemagick_decode_ (this,
+//                        ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_IMAGEMAGICK_DECODER_DEFAULT_NAME_STRING))
+#endif // IMAGEMAGICK_SUPPORT
  , delay_ (this,
            ACE_TEXT_ALWAYS_CHAR (STREAM_MISC_DELAY_DEFAULT_NAME_STRING))
 #if defined (GUI_SUPPORT)
@@ -90,11 +88,15 @@ Stream_ImageScreen_Stream::load (Stream_ILayout* layout_in,
   // initialize return value(s)
   delete_out = false;
 
-  layout_in->append (&source_, NULL, 0);
-//  layout_in->append (&statisticReport_, NULL, 0);
-//  layout_in->append (&decode_, NULL, 0); // output is uncompressed RGBA
-  layout_in->append (&resize_, NULL, 0); // output is window size/fullscreen
-  layout_in->append (&convert_, NULL, 0); // output is uncompressed BGRA
+#if defined (IMAGEMAGICK_SUPPORT)
+  layout_in->append (&imagemagick_source_, NULL, 0);
+  layout_in->append (&imagemagick_resize_, NULL, 0); // output is window size/fullscreen
+#else
+  layout_in->append (&ffmpeg_source_, NULL, 0);
+  //layout_in->append (&ffmpeg_decode_, NULL, 0); // output is uncompressed RGBA
+  layout_in->append (&ffmpeg_resize_, NULL, 0); // output is window size/fullscreen
+  layout_in->append (&ffmpeg_convert_, NULL, 0); // output is uncompressed BGRA
+#endif // IMAGEMAGICK_SUPPORT
   layout_in->append (&delay_, NULL, 0);
   layout_in->append (&display_, NULL, 0);
 
@@ -114,7 +116,11 @@ Stream_ImageScreen_Stream::initialize (const typename inherited::CONFIGURATION_T
   Stream_ImageScreen_SessionData* session_data_p = NULL;
   typename inherited::CONFIGURATION_T::ITERATOR_T iterator;
   struct Stream_ImageScreen_ModuleHandlerConfiguration* configuration_p = NULL;
-  Stream_ImageScreen_Source* source_impl_p = NULL;
+#if defined (IMAGEMAGICK_SUPPORT)
+  Stream_ImageScreen_ImageMagick_Source* source_impl_p = NULL;
+#else
+  Stream_ImageScreen_FFMPEG_Source* source_impl_p = NULL;
+#endif // IMAGEMAGICK_SUPPORT
   struct Stream_MediaFramework_FFMPEG_VideoMediaType media_type_s;
 
   // allocate a new session state, reset stream
@@ -171,14 +177,23 @@ Stream_ImageScreen_Stream::initialize (const typename inherited::CONFIGURATION_T
   // ---------------------------------------------------------------------------
 
   // ******************* Camera Source ************************
-  source_impl_p = dynamic_cast<Stream_ImageScreen_Source*> (source_.writer ());
+  source_impl_p =
+#if defined (IMAGEMAGICK_SUPPORT)
+    dynamic_cast<Stream_ImageScreen_ImageMagick_Source*> (imagemagick_source_.writer ());
+#else
+    dynamic_cast<Stream_ImageScreen_FFMPEG_Source*> (ffmpeg_source_.writer ());
+#endif // IMAGEMAGICK_SUPPORT
   ACE_ASSERT (source_impl_p);
   source_impl_p->setP (&(inherited::state_));
 
   // *NOTE*: push()ing the module will open() it
   //         --> set the argument that is passed along (head module expects a
   //             handle to the session data)
-  source_.arg (inherited::sessionData_);
+#if defined (IMAGEMAGICK_SUPPORT)
+  imagemagick_source_.arg (inherited::sessionData_);
+#else
+  ffmpeg_source_.arg (inherited::sessionData_);
+#endif // IMAGEMAGICK_SUPPORT
 
   if (configuration_in.configuration->setupPipeline)
     if (!inherited::setup (NULL))

@@ -274,15 +274,24 @@ Stream_Decoder_LibAV_ImageDecoder_T<ACE_SYNCH_USE,
   ACE_ASSERT (data_p);
   message_inout->release (); message_inout = NULL;
   length_i =
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+      static_cast<unsigned int> (av_image_get_buffer_size (outputFormat_.format,
+                                                           outputFormat_.resolution.cx,
+                                                           outputFormat_.resolution.cy,
+                                                           1));
+#else
       static_cast<unsigned int> (av_image_get_buffer_size (outputFormat_.format,
                                                            outputFormat_.resolution.width,
                                                            outputFormat_.resolution.height,
                                                            1));
+#endif // ACE_WIN32 || ACE_WIN64
   message_p->base (reinterpret_cast<char*> (data_p),
                    length_i,
                    0); // --> delete[] the data in dtor
   message_p->wr_ptr (length_i);
-  message_p->initialize (outputFormat_,
+  typename DataMessageType::DATA_T data_s;
+  data_s.format = outputFormat_;
+  message_p->initialize (data_s,
                          message_p->sessionId (),
                          NULL);
 

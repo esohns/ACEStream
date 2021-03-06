@@ -52,7 +52,7 @@ struct Stream_ImageScreen_MessageData
 
   struct Stream_MediaFramework_FFMPEG_VideoMediaType format;
   // free memory with MagickRelinquishMemory() ?
-  void*                                         relinquishMemory;
+  void*                                              relinquishMemory;
 };
 
 template <typename SessionDataType> // derives off Stream_SessionData_T
