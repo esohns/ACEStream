@@ -3070,29 +3070,8 @@ Stream_Base_T<ACE_SYNCH_USE,
     return false;
   } // end IF
 
-  // update session data as well ?
-  bool release_lock = false;
   bool result_2 = false;
-  if (unlikely (!state_.sessionData))
-    goto continue_;
-
-  if (likely (state_.sessionData->lock))
-  {
-    result = state_.sessionData->lock->acquire ();
-    if (unlikely (result == -1))
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("%s: failed to ACE_SYNCH_MUTEX::acquire(): \"%m\", aborting\n"),
-                  ACE_TEXT (StreamName)));
-      return false;
-    } // end IF
-    release_lock = true;
-  } // end IF
-
-  state_.sessionData->statistic.timeStamp = COMMON_TIME_NOW;
-
   // delegate to the statistic module
-continue_:
   try {
     result_2 = statistic_impl_p->collect (data_out);
   } catch (...) {
@@ -3105,16 +3084,14 @@ continue_:
                 ACE_TEXT ("%s: failed to Common_IStatistic_T::collect(), aborting\n"),
                 ACE_TEXT (StreamName)));
   else
-    state_.sessionData->statistic = data_out;
-
-  if (likely (release_lock))
-  { ACE_ASSERT (state_.sessionData->lock);
-    result = state_.sessionData->lock->release ();
-    if (unlikely (result == -1))
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("%s: failed to ACE_SYNCH_MUTEX::release(): \"%m\", continuing\n"),
-                  ACE_TEXT (StreamName)));
-  } // end IF
+  {
+    // update session data as well
+    ACE_ASSERT (state_.sessionData->lock);
+    { ACE_GUARD_RETURN (ACE_SYNCH_MUTEX_T, aGuard, *state_.sessionData->lock, false);
+      state_.sessionData->statistic = data_out;
+      state_.sessionData->statistic.timeStamp = COMMON_TIME_NOW;
+    } // end lock scope
+  } // end ELSE
 
   return result_2;
 }

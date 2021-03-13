@@ -598,27 +598,28 @@ continue_3:
       ConnectionManagerType* connection_manager_p =
         ConnectionManagerType::SINGLETON_T::instance ();
       typename ConnectionManagerType::CONNECTION_T* connection_p = NULL;
+      ACE_HANDLE handle_h = ACE_INVALID_HANDLE;
       ACE_ASSERT (connection_manager_p);
       ACE_ASSERT (session_data_r.lock);
       { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, *session_data_r.lock);
         ACE_ASSERT (!session_data_r.connectionStates.empty ());
         ACE_ASSERT (session_data_r.connectionStates.size () == 1);
-        ACE_ASSERT ((*session_data_r.connectionStates.begin ()).first != ACE_INVALID_HANDLE);
-        connection_p =
-          connection_manager_p->get ((*session_data_r.connectionStates.begin ()).first);
+        handle_h = (*session_data_r.connectionStates.begin ()).first;
       } // end lock scope
+      ACE_ASSERT (handle_h != ACE_INVALID_HANDLE);
+      connection_p = connection_manager_p->get (handle_h);
       if (unlikely (!connection_p))
       {
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: failed to retrieve connection (id was: 0x%@), returning\n"),
                     inherited::mod_->name (),
-                    (*session_data_r.connectionStates.begin ()).first));
+                    handle_h));
 #else
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: failed to retrieve connection (id was: %d), returning\n"),
                     inherited::mod_->name (),
-                    (*session_data_r.connectionStates.begin ()).first));
+                    handle_h));
 #endif
         return;
       } // end IF
