@@ -21,6 +21,8 @@
 #include "ace/Guard_T.h"
 #include "ace/Log_Msg.h"
 
+#include "common_time_common.h"
+
 #include "stream_defines.h"
 #include "stream_iallocator.h"
 #include "stream_macros.h"
@@ -484,6 +486,7 @@ Stream_Statistic_StatisticReport_WriterTask_T<ACE_SYNCH_USE,
 
   // initialize return value(s)
   ACE_OS::memset (&data_out, 0, sizeof (StatisticContainerType));
+  data_out.timeStamp = COMMON_TIME_NOW;
 
   { ACE_GUARD_RETURN (ACE_SYNCH_MUTEX_T, aGuard, inherited::lock_, false);
     // *TODO*: remove type inferences
