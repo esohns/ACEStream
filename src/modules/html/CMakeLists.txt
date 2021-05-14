@@ -89,9 +89,9 @@ set_property (TARGET ${PROJECT_NAME}_HTML PROPERTY FOLDER "modules")
 add_dependencies (${PROJECT_NAME}_HTML Common)
 add_dependencies (${PROJECT_NAME}_HTML ${PROJECT_NAME})
 
-if (WIN32)
- target_link_libraries (${PROJECT_NAME}_HTML ${ACE_LIBRARY})
-endif (WIN32)
+if (UNIX)
+ target_link_libraries (${PROJECT_NAME}_HTML ${PKG_LIBXML2_LIBRARIES})
+endif (UNIX)
 target_link_libraries (${PROJECT_NAME}_HTML Common)
 target_link_libraries (${PROJECT_NAME}_HTML ${PROJECT_NAME})
 

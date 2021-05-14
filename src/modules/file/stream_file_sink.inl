@@ -212,11 +212,11 @@ Stream_Module_FileWriter_T<ACE_SYNCH_USE,
                     ACE_TEXT (session_data_r.targetFileName.c_str ())));
         return;
       } // end IF
-    if (Common_File_Tools::isReadable (session_data_r.targetFileName))
-      ACE_DEBUG ((LM_WARNING,
-                  ACE_TEXT ("%s: target file \"%s\" exists, continuing\n"),
-                  inherited::mod_->name (),
-                  ACE_TEXT (session_data_r.targetFileName.c_str ())));
+      if (Common_File_Tools::isReadable (session_data_r.targetFileName))
+        ACE_DEBUG ((LM_WARNING,
+                    ACE_TEXT ("%s: target file \"%s\" exists, continuing\n"),
+                    inherited::mod_->name (),
+                    ACE_TEXT (session_data_r.targetFileName.c_str ())));
 
       const ACE_TCHAR* path_name_p = path_.get_path_name ();
       ACE_ASSERT (path_name_p);

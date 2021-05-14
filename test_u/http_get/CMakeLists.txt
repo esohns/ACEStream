@@ -212,6 +212,8 @@ endif (UNIX)
 
 target_link_libraries (${EXECUTABLE} ${ACE_LIBRARY})
 if (SSL_SUPPORT)
+ target_link_libraries (${EXECUTABLE} ${SSL_LIBRARIES})
+
  target_link_libraries (${EXECUTABLE} ${ACE_SSL_LIBRARY})
 endif (SSL_SUPPORT)
 
