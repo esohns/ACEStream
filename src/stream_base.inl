@@ -1654,7 +1654,7 @@ Stream_Base_T<ACE_SYNCH_USE,
           if (likely (task_p->msg_queue_->is_empty ()))
             break; // nothing to do
           ACE_DEBUG ((LM_DEBUG,
-                      ACE_TEXT ("%s/%s writer: waiting to process ~ %d byte(s) in %u message(s)...\n"),
+                      ACE_TEXT ("%s/%s writer: waiting to process %d byte(s) in %u message(s)...\n"),
                       ACE_TEXT (StreamName),
                       (*iterator)->name (),
                       task_p->msg_queue_->message_bytes (),

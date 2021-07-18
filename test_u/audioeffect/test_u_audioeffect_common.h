@@ -315,7 +315,7 @@ typedef std::list<Test_U_AudioEffect_MediaFoundation_ISessionNotify_t*> Test_U_A
 typedef Test_U_AudioEffect_MediaFoundation_Subscribers_t::iterator Test_U_AudioEffect_MediaFoundation_SubscribersIterator_t;
 #else
 typedef Stream_ISessionDataNotify_T<Stream_SessionId_t,
-                                    struct Test_U_AudioEffect_SessionData,
+                                    Test_U_AudioEffect_SessionData,
                                     enum Stream_SessionMessageType,
                                     Test_U_AudioEffect_Message,
                                     Test_U_AudioEffect_SessionMessage> Test_U_AudioEffect_ISessionNotify_t;

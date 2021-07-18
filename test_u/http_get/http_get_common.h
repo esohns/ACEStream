@@ -21,7 +21,6 @@
 #ifndef HTTP_GET_COMMON_H
 #define HTTP_GET_COMMON_H
 
-#include "ace/Singleton.h"
 #include "ace/Synch_Traits.h"
 
 #if defined (GUI_SUPPORT)

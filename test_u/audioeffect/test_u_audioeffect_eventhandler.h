@@ -129,7 +129,7 @@ class Test_U_AudioEffect_EventHandler
 
   // implement Stream_ISessionDataNotify_T
   virtual void start (Stream_SessionId_t,
-                      const struct Test_U_AudioEffect_SessionData&);
+                      const Test_U_AudioEffect_SessionData&);
   virtual void notify (Stream_SessionId_t,
                        const enum Stream_SessionMessageType&);
   virtual void end (Stream_SessionId_t);
@@ -144,10 +144,10 @@ class Test_U_AudioEffect_EventHandler
   ACE_UNIMPLEMENTED_FUNC (Test_U_AudioEffect_EventHandler& operator= (const Test_U_AudioEffect_EventHandler&))
 
 #if defined (GUI_SUPPORT)
-  struct Test_U_AudioEffect_UI_CBData*   CBData_;
+  struct Test_U_AudioEffect_UI_CBData* CBData_;
 #endif // GUI_SUPPORT
-  struct Test_U_AudioEffect_SessionData* sessionData_;
+  Test_U_AudioEffect_SessionData*      sessionData_;
 };
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
 
 #endif

@@ -46,7 +46,7 @@ Stream_Module_MessageHandler_T<ACE_SYNCH_USE,
                                UserDataType>::Stream_Module_MessageHandler_T (ISTREAM_T* stream_in)
 #else
                                UserDataType>::Stream_Module_MessageHandler_T (typename inherited::ISTREAM_T* stream_in)
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
  : inherited (stream_in)
  , delete_ (false)
  , lock_ (NULL)
@@ -216,12 +216,7 @@ Stream_Module_MessageHandler_T<ACE_SYNCH_USE,
   ACE_UNUSED_ARG (passMessageDownstream_out);
 
   // sanity check(s)
-  if (!(inherited::sessionData_))
-    return;
   ACE_ASSERT (lock_ && subscribers_);
-
-  // forward the message to any subscriber(s)
-  const SessionDataType& session_data_r = inherited::sessionData_->getR ();
 
   // synch access
   { ACE_GUARD (typename ACE_SYNCH_USE::RECURSIVE_MUTEX, aGuard, *lock_);
@@ -236,7 +231,7 @@ Stream_Module_MessageHandler_T<ACE_SYNCH_USE,
     {
       try {
         // *TODO*: remove type inference
-        (*iterator++)->notify (session_data_r.sessionId,
+        (*iterator++)->notify (message_inout->sessionId (),
                                *message_inout);
       } catch (...) {
         ACE_DEBUG ((LM_ERROR,
@@ -295,7 +290,7 @@ Stream_Module_MessageHandler_T<ACE_SYNCH_USE,
         {
           try {
             // *TODO*: remove type inference
-            (*iterator++)->start (session_data_p->sessionId,
+            (*iterator++)->start (message_inout->sessionId (),
                                   *session_data_p);
           } catch (...) {
             ACE_DEBUG ((LM_ERROR,
@@ -315,13 +310,6 @@ error:
     }
     case STREAM_SESSION_MESSAGE_END:
     {
-      // *NOTE*: the modules' session data handle may have gone away already
-      //         --> use the messages' reference instead
-      const typename SessionMessageType::DATA_T* session_data_container_p =
-        (inherited::sessionData_ ? inherited::sessionData_ 
-                                 : &message_inout->getR ());
-      session_data_p = &session_data_container_p->getR ();
-
       { ACE_GUARD (typename ACE_SYNCH_USE::RECURSIVE_MUTEX, aGuard, *lock_);
         // *WARNING* if callees unsubscribe() within the callback bad things
         //           happen, as the current iterator is invalidated
@@ -334,7 +322,7 @@ error:
         {
           try {
             // *TODO*: remove type inference
-            (*(iterator++))->end (session_data_p->sessionId);
+            (*(iterator++))->end (message_inout->sessionId ());
           } catch (...) {
             ACE_DEBUG ((LM_ERROR,
                         ACE_TEXT ("%s: caught exception in Common_INotify_T::end(), continuing\n"),
@@ -347,16 +335,6 @@ error:
     }
     default:
     {
-      // *NOTE*: the modules' session data handle may not (have been)/be set
-      //         (yet)/
-      //         --> (try to) use the messages' reference instead ?
-      const typename SessionMessageType::DATA_T* session_data_container_p =
-        inherited::sessionData_;
-        //(inherited::sessionData_ ? inherited::sessionData_
-        //                         : &message_inout->getR ());
-      if (session_data_container_p)
-        session_data_p = &session_data_container_p->getR ();
-
       { ACE_GUARD (typename ACE_SYNCH_USE::RECURSIVE_MUTEX, aGuard, *lock_);
         // *WARNING* callees unsubscribe()ing within the callback invalidate the
         //           iterator
@@ -369,7 +347,7 @@ error:
         {
           try {
             // *TODO*: remove type inference
-            (*(iterator++))->notify ((session_data_p ? session_data_p->sessionId : -1),
+            (*(iterator++))->notify (message_inout->sessionId (),
                                      *message_inout);
           } catch (...) {
             ACE_DEBUG ((LM_ERROR,
@@ -409,13 +387,6 @@ Stream_Module_MessageHandler_T<ACE_SYNCH_USE,
   // sanity check(s)
   ACE_ASSERT (lock_ && subscribers_);
   ACE_ASSERT (interfaceHandle_in);
-  //if (!interfaceHandle_in)
-  //{
-  //  ACE_DEBUG ((LM_ERROR,
-  //              ACE_TEXT ("invalid argument (was: 0x%@), returning\n"),
-  //              interfaceHandle_in));
-  //  return;
-  //} // end IF
 
   { ACE_GUARD (typename ACE_SYNCH_USE::RECURSIVE_MUTEX, aGuard, *lock_);
     subscribers_->push_back (interfaceHandle_in);
@@ -546,7 +517,7 @@ Stream_Module_MessageHandlerA_T<ACE_SYNCH_USE,
                                 UserDataType>::Stream_Module_MessageHandlerA_T (ISTREAM_T* stream_in)
 #else
                                 UserDataType>::Stream_Module_MessageHandlerA_T (typename inherited::ISTREAM_T* stream_in)
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
  : inherited (stream_in)
  , delete_ (false)
  , subscribers_ (NULL)
@@ -659,8 +630,7 @@ continue_3:
       // clean up
       if (delete_)
       {
-        delete subscribersLock_;
-        subscribersLock_ = NULL;
+        delete subscribersLock_; subscribersLock_ = NULL;
       } // end IF
       delete_ = false;
 
@@ -712,7 +682,6 @@ Stream_Module_MessageHandlerA_T<ACE_SYNCH_USE,
   // sanity check(s)
   ACE_ASSERT (subscribersLock_ && subscribers_);
 
-  SessionIdType session_id = message_inout->sessionId ();
   // forward the message to any subscriber(s)
   { ACE_GUARD (typename ACE_SYNCH_USE::RECURSIVE_MUTEX, aGuard, *subscribersLock_);
     // *WARNING* callees unsubscribe()ing within the callback invalidate the
@@ -726,7 +695,7 @@ Stream_Module_MessageHandlerA_T<ACE_SYNCH_USE,
     {
       try {
         // *TODO*: remove type inference
-        (*iterator++)->notify (session_id,
+        (*iterator++)->notify (message_inout->sessionId (),
                                *message_inout);
       } catch (...) {
         ACE_DEBUG ((LM_ERROR,
@@ -774,7 +743,7 @@ Stream_Module_MessageHandlerA_T<ACE_SYNCH_USE,
       message_inout->type ();
   SessionIdType session_id = message_inout->sessionId ();
   // the base class release()s all messages --> create duplicates
-  SessionMessageType* message_p = 
+  SessionMessageType* message_p =
     dynamic_cast<SessionMessageType*> (message_inout->duplicate ());
   ACE_ASSERT (message_p);
   inherited::handleSessionMessage (message_p,
@@ -897,8 +866,7 @@ error:
   } // end lock scope
 
   // clean up
-  message_inout->release ();
-  message_inout = NULL;
+  message_inout->release (); message_inout = NULL;
 }
 
 template <ACE_SYNCH_DECL,

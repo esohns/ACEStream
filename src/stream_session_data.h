@@ -30,7 +30,8 @@
 
 #include "common_idumpstate.h"
 #include "common_iget.h"
-#include "common_referencecounter_base.h"
+#include "common_ilock.h"
+#include "common_referencecounter.h"
 
 #include "stream_common.h"
 
@@ -79,12 +80,13 @@ class Stream_SessionDataMediaBase_T
 
 template <typename DataType> // inherits Stream_SessionData
 class Stream_SessionData_T
- : public Common_ReferenceCounterBase
+ : public Common_ReferenceCounter_T<ACE_MT_SYNCH>
+ , public Common_ILock_T<ACE_MT_SYNCH>
  , public Common_IGetSetR_T<DataType>
 // , public Common_ISetP_T<DataType>
  , public Common_IDumpState
 {
-  typedef Common_ReferenceCounterBase inherited;
+  typedef Common_ReferenceCounter_T<ACE_MT_SYNCH> inherited;
 
  public:
   // convenient types
@@ -94,9 +96,10 @@ class Stream_SessionData_T
   Stream_SessionData_T (DataType*&); // session data handle
   virtual ~Stream_SessionData_T ();
 
-  // override Common_ReferenceCounterBase
-  //inline virtual unsigned int increase () { return static_cast<unsigned int> (inherited::increment ()); };
-  //inline virtual unsigned int decrease () { return static_cast<unsigned int> (inherited::decrement ()); };
+  // implement Common_ILock_T
+  virtual bool lock (bool = true); // block ?
+  inline virtual int unlock (bool = false) { return inherited::lock_.release (); }
+  inline virtual const ACE_MT_SYNCH::MUTEX& getR_2 () const { return inherited::lock_; }
 
   // implement Common_IGetSet_T
   virtual const DataType& getR () const;

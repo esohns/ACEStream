@@ -70,7 +70,7 @@ class Stream_TaskBase_T
                                   ConfigurationType>
  , public Common_IGetP_T<Stream_IStream_T<ACE_SYNCH_USE,
                                           TimePolicyType> >
- , public Common_IGetR_2_T<ConfigurationType>
+ , public Common_IGetR_T<ConfigurationType>
 {
   typedef Common_TaskBase_T<ACE_SYNCH_USE,
                             TimePolicyType,
@@ -103,7 +103,7 @@ class Stream_TaskBase_T
 
   // implement Common_IGet_T
   virtual const ISTREAM_T* const getP () const;
-  inline virtual const ConfigurationType& getR_2 () const { ACE_ASSERT (configuration_);  return *configuration_; }
+  inline virtual const ConfigurationType& getR () const { ACE_ASSERT (configuration_);  return *configuration_; }
 
 //  // implement Common_IDumpState
 //  inline virtual void dump_state () const {};

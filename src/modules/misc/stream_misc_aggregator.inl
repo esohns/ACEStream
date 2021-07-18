@@ -454,8 +454,7 @@ Stream_Module_Aggregator_WriterTask_T<ACE_SYNCH_USE,
 
   // clean up
   passMessageDownstream_out = false;
-  message_inout->release ();
-  message_inout = NULL;
+  message_inout->release (); message_inout = NULL;
 }
 
 template <ACE_SYNCH_DECL,
@@ -545,8 +544,7 @@ insert:
 
   // clean up
   passMessageDownstream_out = false;
-  message_inout->release ();
-  message_inout = NULL;
+  message_inout->release (); message_inout = NULL;
 }
 
 template <ACE_SYNCH_DECL,

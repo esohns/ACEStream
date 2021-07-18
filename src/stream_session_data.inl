@@ -177,6 +177,32 @@ Stream_SessionData_T<DataType>::~Stream_SessionData_T ()
 }
 
 template <typename DataType>
+bool
+Stream_SessionData_T<DataType>::lock (bool block_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_SessionData_T::lock"));
+
+  int result = -1;
+
+  result = (block_in ? inherited::lock_.acquire ()
+                     : inherited::lock_.tryacquire ());
+  if (unlikely (result == -1))
+  {
+    if (block_in)
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to ACE_SYNCH_MUTEX::acquire(): \"%m\", aborting\n")));
+    else
+    { int error = ACE_OS::last_error ();
+      if (error != EBUSY)
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("failed to ACE_SYNCH_MUTEX::tryacquire(): \"%m\", aborting\n")));
+    } // end ELSE
+  } // end IF
+
+  return (result == 0);
+}
+
+template <typename DataType>
 const DataType&
 Stream_SessionData_T<DataType>::getR () const
 {

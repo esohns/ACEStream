@@ -122,7 +122,7 @@ Test_I_EventHandler_T<NotificationType,
 #if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
   UIStateType& state_r =
-    const_cast<UIStateType&> (gtk_manager_p->getR_2 ());
+    const_cast<UIStateType&> (gtk_manager_p->getR ());
 #elif defined (WXWIDGETS_USE)
   UIStateType& state_r =
     const_cast<UIStateType&> (interface_->getR ());
@@ -212,7 +212,7 @@ Test_I_EventHandler_T<NotificationType,
 #if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
   UIStateType& state_r =
-    const_cast<UIStateType&> (gtk_manager_p->getR_2 ());
+    const_cast<UIStateType&> (gtk_manager_p->getR ());
 #elif defined (WXWIDGETS_USE)
   UIStateType& state_r =
     const_cast<UIStateType&> (interface_->getR ());
@@ -285,7 +285,7 @@ Test_I_EventHandler_T<NotificationType,
 #if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
   UIStateType& state_r =
-    const_cast<UIStateType&> (gtk_manager_p->getR_2 ());
+    const_cast<UIStateType&> (gtk_manager_p->getR ());
 #elif defined (WXWIDGETS_USE)
   UIStateType& state_r =
     const_cast<UIStateType&> (interface_->getR ());
@@ -356,7 +356,7 @@ Test_I_EventHandler_T<NotificationType,
 #if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
   UIStateType& state_r =
-    const_cast<UIStateType&> (gtk_manager_p->getR_2 ());
+    const_cast<UIStateType&> (gtk_manager_p->getR ());
 #elif defined (WXWIDGETS_USE)
   UIStateType& state_r =
     const_cast<UIStateType&> (interface_->getR ());

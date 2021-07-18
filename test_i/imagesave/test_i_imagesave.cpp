@@ -438,7 +438,7 @@ do_work (
       COMMON_UI_GTK_MANAGER_SINGLETON::instance ();
   ACE_ASSERT (gtk_manager_p);
     Common_UI_GTK_State_t& state_r =
-        const_cast<Common_UI_GTK_State_t&> (gtk_manager_p->getR_2 ());
+        const_cast<Common_UI_GTK_State_t&> (gtk_manager_p->getR ());
     //CBData_in.UIState->gladeXML[ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN)] =
     //  std::make_pair (UIDefinitionFile_in, static_cast<GladeXML*> (NULL));
     state_r.builders[ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN)] =
@@ -866,7 +866,7 @@ ACE_TMAIN (int argc_in,
     COMMON_UI_GTK_MANAGER_SINGLETON::instance ();
   ACE_ASSERT (gtk_manager_p);
   Common_UI_GTK_State_t& state_r =
-    const_cast<Common_UI_GTK_State_t&> (gtk_manager_p->getR_2 ());
+    const_cast<Common_UI_GTK_State_t&> (gtk_manager_p->getR ());
   logstack_p = &state_r.logStack;
   lock_p = &state_r.logStackLock;
 
@@ -953,7 +953,7 @@ ACE_TMAIN (int argc_in,
 #if defined (GUI_SUPPORT)
   struct Common_UI_State* ui_state_p = NULL;
 #if defined (GTK_USE)
-  ui_state_p = &const_cast<Common_UI_GTK_State_t&> (gtk_manager_p->getR_2 ());
+  ui_state_p = &const_cast<Common_UI_GTK_State_t&> (gtk_manager_p->getR ());
 #elif defined (WXWIDGETS_USE)
   Common_UI_wxWidgets_IApplicationBase_t* iapplication_p = NULL;
   ACE_NEW_NORETURN (iapplication_p,

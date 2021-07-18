@@ -28,8 +28,8 @@
 //#include "stream_directshow_message_base.h"
 //#include "stream_mediafoundation_message_base.h"
 #else
-#include "common_referencecounter_base.h"
-#endif
+#include "common_referencecounter.h"
+#endif // ACE_WIN32 || ACE_WIN64
 
 #include "test_i_source_common.h"
 
@@ -148,13 +148,13 @@ class Test_I_Source_V4L_Stream_Message
 //                                   struct Common_AllocatorConfiguration,
                                    enum Stream_MessageType,
                                    Test_I_CommandType_t>
- , public Common_ReferenceCounterBase
+ , public Common_ReferenceCounter_T<ACE_MT_SYNCH>
 {
   typedef Stream_DataMessageBase_T<struct Test_I_V4L_MessageData,
 //                                   struct Common_AllocatorConfiguration,
                                    enum Stream_MessageType,
                                    Test_I_CommandType_t> inherited;
-  typedef Common_ReferenceCounterBase inherited2;
+  typedef Common_ReferenceCounter_T<ACE_MT_SYNCH> inherited2;
 
   // grant access to specific private ctors
   friend class Stream_MessageAllocatorHeapBase_T<ACE_MT_SYNCH,

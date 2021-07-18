@@ -108,7 +108,7 @@ Stream_ImageScreen_EventHandler_T<NotificationType,
 
 #if defined (GTK_USE)
   UIStateType& state_r =
-    const_cast<UIStateType&> (gtk_manager_p->getR_2 ());
+    const_cast<UIStateType&> (gtk_manager_p->getR ());
 #elif defined (WXWIDGETS_USE)
   UIStateType& state_r =
     const_cast<UIStateType&> (interface_->getR ());
@@ -185,7 +185,7 @@ Stream_ImageScreen_EventHandler_T<NotificationType,
 
 #if defined (GTK_USE)
   UIStateType& state_r =
-    const_cast<UIStateType&> (gtk_manager_p->getR_2 ());
+    const_cast<UIStateType&> (gtk_manager_p->getR ());
 #elif defined (WXWIDGETS_USE)
   UIStateType& state_r =
     const_cast<UIStateType&> (interface_->getR ());
@@ -244,7 +244,7 @@ Stream_ImageScreen_EventHandler_T<NotificationType,
 
 #if defined (GTK_USE)
   UIStateType& state_r =
-    const_cast<UIStateType&> (gtk_manager_p->getR_2 ());
+    const_cast<UIStateType&> (gtk_manager_p->getR ());
 #elif defined (WXWIDGETS_USE)
   UIStateType& state_r =
     const_cast<UIStateType&> (interface_->getR ());
@@ -307,7 +307,7 @@ Stream_ImageScreen_EventHandler_T<NotificationType,
 
 #if defined (GTK_USE)
   UIStateType& state_r =
-    const_cast<UIStateType&> (gtk_manager_p->getR_2 ());
+    const_cast<UIStateType&> (gtk_manager_p->getR ());
 #elif defined (WXWIDGETS_USE)
   UIStateType& state_r =
     const_cast<UIStateType&> (interface_->getR ());
