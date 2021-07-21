@@ -65,24 +65,21 @@ typedef int Stream_HeaderType_t;
 typedef int Stream_CommandType_t;
 
 struct Test_I_MessageData
+ : HTTP_Record
 {
   Test_I_MessageData ()
-   : HTTPRecord (NULL)
+   : HTTP_Record ()
    , HTMLDocument (NULL)
   {}
 
   virtual ~Test_I_MessageData ()
   {
-    if (HTTPRecord)
-      delete HTTPRecord;
     if (HTMLDocument)
       xmlFreeDoc (HTMLDocument);
   }
  inline void operator+= (struct Test_I_MessageData rhs_in) { ACE_UNUSED_ARG (rhs_in); ACE_ASSERT (false); ACE_NOTSUP; ACE_NOTREACHED (return;) }
- inline operator struct HTTP_Record&() const { ACE_ASSERT (HTTPRecord); return *HTTPRecord; }
 
-  struct HTTP_Record* HTTPRecord;
-  xmlDocPtr           HTMLDocument;
+  xmlDocPtr HTMLDocument;
 };
 //typedef Stream_DataBase_T<struct Test_I_MessageData> Test_I_MessageData_t;
 

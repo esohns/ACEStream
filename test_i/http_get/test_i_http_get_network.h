@@ -129,7 +129,7 @@ typedef Net_TCPConnectionBase_T<ACE_MT_SYNCH,
                                 struct Net_StreamConnectionState,
                                 Net_StreamStatistic_t,
                                 Test_I_NetStream_t,
-                                struct Stream_UserData> Test_I_SSLConnection_t;
+                                struct Net_UserData> Test_I_SSLConnection_t;
 #endif // SSL_SUPPORT
 typedef Net_AsynchTCPConnectionBase_T<Net_AsynchTCPSocketHandler_t,
                                       Test_I_HTTPGet_ConnectionConfiguration_t,

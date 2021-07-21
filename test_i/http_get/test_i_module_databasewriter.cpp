@@ -132,7 +132,7 @@ Test_I_Module_DataBaseWriter::handleSessionMessage (Test_I_Stream_SessionMessage
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
       if (inherited::configuration_->loginOptions.useNamedPipe)
         host_p = ACE_TEXT_ALWAYS_CHAR (".");
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
       user_name_string_p =
         (inherited::configuration_->loginOptions.user.empty () ? NULL // current user (Unix) : options file (?)
                                                                : inherited::configuration_->loginOptions.user.c_str ());
@@ -141,7 +141,7 @@ Test_I_Module_DataBaseWriter::handleSessionMessage (Test_I_Stream_SessionMessage
       //         --> pass root instead
       if (!user_name_string_p)
         user_name_string_p = ACE_TEXT_ALWAYS_CHAR (MODULE_DB_MYSQL_DEFAULT_USER);
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
       password_string_p =
         (inherited::configuration_->loginOptions.password.empty () ? NULL // (user table ?, options file (?))
                                                                    : inherited::configuration_->loginOptions.password.c_str ());

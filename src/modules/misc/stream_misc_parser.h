@@ -251,7 +251,8 @@ class Stream_Module_Parser_T
   typedef Stream_MessageQueueBase_T<ACE_MT_SYNCH,
                                     Common_TimePolicy_t> MESSAGE_QUEUE_T;
 
-  MESSAGE_QUEUE_T parserQueue_;
+  DataMessageType* headFragment_;
+  MESSAGE_QUEUE_T  parserQueue_;
 
  private:
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_Parser_T ())

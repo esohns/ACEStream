@@ -54,19 +54,14 @@ class HTTPGet_Message;
 class HTTPGet_SessionMessage;
 
 struct HTTPGet_MessageData
+ : HTTP_Record
 {
   HTTPGet_MessageData ()
-   : HTTPRecord (NULL)
+   : HTTP_Record ()
   {};
   virtual ~HTTPGet_MessageData ()
-  {
-    if (HTTPRecord)
-      delete HTTPRecord;
-  };
+  {};
   inline void operator+= (struct HTTPGet_MessageData rhs_in) { ACE_UNUSED_ARG (rhs_in); ACE_ASSERT (false); ACE_NOTSUP; ACE_NOTREACHED (return;) }
-  inline operator struct HTTP_Record&() const { ACE_ASSERT (HTTPRecord); return *HTTPRecord; }
-
-  struct HTTP_Record* HTTPRecord;
 };
 typedef Stream_DataBase_T<struct HTTPGet_MessageData> HTTPGet_MessageData_t;
 

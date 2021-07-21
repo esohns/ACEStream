@@ -61,8 +61,15 @@ Test_I_Stream_MessageData::setPR (struct HTTP_Record*& record_inout)
                 ACE_TEXT ("failed to allocate Test_I_MessageData: \"%m\", returning\n")));
     return;
   } // end IF
-  data_p->HTTPRecord = record_inout;
-  record_inout = NULL;
+  data_p->form = record_inout->form; // request
+  data_p->headers = record_inout->headers;
+  data_p->method = record_inout->method;
+  data_p->reason = record_inout->reason; // response
+  data_p->status = record_inout->status; // response
+  data_p->URI = record_inout->URI;
+  data_p->version = record_inout->version;
+
+  delete record_inout; record_inout= NULL;
 
   inherited::setPR (data_p);
 }
@@ -173,8 +180,7 @@ Test_I_Stream_Message::command () const
 
   const Test_I_MessageData& data_r = inherited::data_->getR ();
 
-  return (data_r.HTTPRecord ? data_r.HTTPRecord->method
-                            : HTTP_Codes::HTTP_METHOD_INVALID);
+  return (data_r.method);
 }
 
 void
@@ -187,10 +193,9 @@ Test_I_Stream_Message::dump_state () const
     return;
   const Test_I_MessageData& data_r = inherited::data_->getR ();
 
-  if (data_r.HTTPRecord)
-    ACE_DEBUG ((LM_INFO,
-                ACE_TEXT ("%s"),
-                ACE_TEXT (HTTP_Tools::dump (*data_r.HTTPRecord).c_str ())));
+  ACE_DEBUG ((LM_INFO,
+              ACE_TEXT ("%s"),
+              ACE_TEXT (HTTP_Tools::dump (data_r).c_str ())));
   ACE_DEBUG ((LM_INFO,
               ACE_TEXT ("ISIN: %s / symbol: %s / WKN: %s\n"),
               ACE_TEXT (data_r.stockItem.ISIN.c_str ()),

@@ -126,9 +126,9 @@ Stream_Module_Net_Source_HTTP_Get_T<ACE_SYNCH_USE,
   {
     const typename DataMessageType::DATA_T& data_container_r =
         message_inout->getR ();
-    const typename DataMessageType::DATA_T::DATA_T& data_r =
-        data_container_r.getR ();
-    record_p = data_r.HTTPRecord;
+    typename DataMessageType::DATA_T::DATA_T& data_r =
+        const_cast<typename DataMessageType::DATA_T::DATA_T&> (data_container_r.getR ());
+    record_p = &data_r;
   } // end IF
   else
   {
@@ -416,16 +416,6 @@ Stream_Module_Net_Source_HTTP_Get_T<ACE_SYNCH_USE,
                 inherited::mod_->name ()));
     return NULL;
   } // end IF
-  ACE_NEW_NORETURN (message_data_p->HTTPRecord,
-                    struct HTTP_Record ());
-  if (!message_data_p->HTTPRecord)
-  {
-    ACE_DEBUG ((LM_CRITICAL,
-                ACE_TEXT ("%s: failed to allocate memory, aborting\n"),
-                inherited::mod_->name ()));
-    delete message_data_p; message_data_p = NULL;
-    return NULL;
-  } // end IF
   // *IMPORTANT NOTE*: fire-and-forget API (message_data_p)
   typename DataMessageType::DATA_T* message_data_container_p = NULL;
   ACE_NEW_NORETURN (message_data_container_p,
@@ -459,13 +449,13 @@ Stream_Module_Net_Source_HTTP_Get_T<ACE_SYNCH_USE,
       message_out->getR ();
   typename DataMessageType::DATA_T::DATA_T& message_data_r =
       const_cast<typename DataMessageType::DATA_T::DATA_T&> (message_data_container_r.getR ());
-  message_data_r.HTTPRecord->form = form_in;
-  message_data_r.HTTPRecord->headers = headers_in;
-  message_data_r.HTTPRecord->method =
+  message_data_r.form = form_in;
+  message_data_r.headers = headers_in;
+  message_data_r.method =
     (form_in.empty () ? HTTP_Codes::HTTP_METHOD_GET
                       : HTTP_Codes::HTTP_METHOD_POST);
-  message_data_r.HTTPRecord->URI = URI_in;
-  message_data_r.HTTPRecord->version = HTTP_Codes::HTTP_VERSION_1_1;
+  message_data_r.URI = URI_in;
+  message_data_r.version = HTTP_Codes::HTTP_VERSION_1_1;
 
   return message_out;
 }

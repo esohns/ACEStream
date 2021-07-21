@@ -623,7 +623,9 @@ continue_3:
 #endif
         return;
       } // end IF
-      ACE_ASSERT (!session_data_r.connection);
+      // *NOTE*: if this connection was initiated by a stream (e.g. the net
+      //         source module), the session data already contains the
+      //         connection handle
       session_data_r.connection = connection_p;
       break;
     }

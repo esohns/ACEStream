@@ -750,6 +750,7 @@ Stream_Module_Parser_T<ACE_SYNCH_USE,
                        UserDataType>::Stream_Module_Parser_T (typename inherited::ISTREAM_T* stream_in)
 #endif
  : inherited (stream_in)
+ , headFragment_ (NULL)
  , parserQueue_ (STREAM_QUEUE_MAX_SLOTS, NULL)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Parser_T::Stream_Module_Parser_T"));
@@ -775,6 +776,8 @@ Stream_Module_Parser_T<ACE_SYNCH_USE,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Parser_T::~Stream_Module_Parser_T"));
 
+  if (headFragment_)
+    headFragment_->release ();
 }
 
 template <ACE_SYNCH_DECL,
@@ -1082,8 +1085,8 @@ Stream_Module_Parser_T<ACE_SYNCH_USE,
 
 continue_:
         // parse incoming data fragment(s)
-        ACE_ASSERT (!inherited2::fragment_);
-        inherited2::fragment_ = message_block_p;
+        ACE_ASSERT (!headFragment_);
+        headFragment_ = message_p;
         try {
           result_2 = inherited2::parse (message_block_p);
         } catch (...) {
@@ -1102,9 +1105,9 @@ continue_:
           goto error;
         } // end IF
 
-        // more data ?
-        if (inherited2::fragment_)
-          goto continue_;
+//        // more data ?
+//        if (inherited2::fragment_)
+//          goto continue_;
 
         break;
 
