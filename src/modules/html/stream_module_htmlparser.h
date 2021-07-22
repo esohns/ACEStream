@@ -163,6 +163,8 @@ class Stream_Module_HTMLParser_T
   bool resetParser ();
 
   enum Stream_Module_HTMLParser_Mode mode_;
+  bool                               isFirst_;
+  unsigned int                       bytesMissing_;
 };
 
 // include template definition

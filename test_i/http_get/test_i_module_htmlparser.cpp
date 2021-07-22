@@ -208,6 +208,8 @@ test_i_libxml2_sax_characters_cb (void* userData_in,
 {
   STREAM_TRACE (ACE_TEXT ("::test_i_libxml2_sax_characters_cb"));
 
+  ACE_UNUSED_ARG (length_in);
+
   struct Test_I_SAXParserContext* data_p =
       static_cast<struct Test_I_SAXParserContext*> (userData_in);
 
@@ -327,10 +329,8 @@ test_i_libxml2_sax_start_element_cb (void* userData_in,
   if (xmlStrEqual (name_in,
                    BAD_CAST (ACE_TEXT_ALWAYS_CHAR ("title"))))
   {
-    // sanity check(s)
-    ACE_ASSERT (data_p->state == SAXPARSER_STATE_IN_HEAD);
-
-    data_p->state = SAXPARSER_STATE_READ_TITLE;
+    if (data_p->state == SAXPARSER_STATE_IN_HEAD)
+      data_p->state = SAXPARSER_STATE_READ_TITLE;
 
     return;
   } // end IF

@@ -416,11 +416,7 @@ Stream_Module_LibreOffice_Document_Writer_T<SynchStrategyType,
   command_line_string += ACE_DIRECTORY_SEPARATOR_STR;
   command_line_string += ACE_TEXT_ALWAYS_CHAR (COMMON_LOCATION_SCRIPTS_SUBDIRECTORY);
   command_line_string += ACE_DIRECTORY_SEPARATOR_STR;
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-  command_line_string += ACE_TEXT_ALWAYS_CHAR ("start_soffice.bat");
-#else
-  command_line_string += ACE_TEXT_ALWAYS_CHAR ("start_libreoffice.sh");
-#endif // ACE_WIN32 || ACE_WIN64
+  command_line_string += ACE_TEXT_ALWAYS_CHAR (STREAM_DOCUMENT_DEFAULT_LIBREOFFICE_START_SH);
   ACE_ASSERT (Common_File_Tools::exists (command_line_string) &&
               Common_File_Tools::isExecutable (command_line_string));
   int exit_status = 0;

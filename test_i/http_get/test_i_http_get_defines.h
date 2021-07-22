@@ -21,7 +21,7 @@
 #ifndef TEST_I_HTTP_GET_DEFINES_H
 #define TEST_I_HTTP_GET_DEFINES_H
 
-#define TEST_T_DEFAULT_URL                           "https://www.heise.de/newsticker/index.html"
+#define TEST_T_DEFAULT_URL                           "https://www.heise.de/newsticker/"
 
 #define TEST_I_DEFAULT_OUTPUT_DB                     "news"
 #define TEST_I_DEFAULT_OUTPUT_DB_OPTIONS_FILE        "options.cnf"

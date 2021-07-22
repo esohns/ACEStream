@@ -20,9 +20,14 @@
 
 #include "ace/Log_Msg.h"
 
+#include "common_string_tools.h"
+
 #include "stream_macros.h"
 
 #include "stream_html_tools.h"
+
+#include "http_common.h"
+#include "http_defines.h"
 
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,
@@ -51,6 +56,8 @@ Stream_Module_HTMLParser_T<ACE_SYNCH_USE,
  , parserContext_ ()
  , SAXHandler_ ()
  , mode_ (STREAM_MODULE_HTMLPARSER_DEFAULT_MODE)
+ , isFirst_ (true)
+ , bytesMissing_ (0)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_HTMLParser_T::Stream_Module_HTMLParser_T"));
 
@@ -118,12 +125,29 @@ Stream_Module_HTMLParser_T<ACE_SYNCH_USE,
   ACE_Message_Block* message_block_p = message_inout;
   //xmlParserErrors parse_errors = XML_ERR_OK;
   xmlErrorPtr error_p = NULL;
+  const typename DataMessageType::DATA_T& data_container_r =
+      message_inout->getR ();
+  typename DataMessageType::DATA_T::DATA_T& data_r =
+      const_cast<typename DataMessageType::DATA_T::DATA_T&> (data_container_r.getR ());
 
   // don't care (implies yes per default, if part of a stream)
   ACE_UNUSED_ARG (passMessageDownstream_out);
 
+  if (isFirst_)
+  {
+    isFirst_ = false;
+    // *TODO*: this depends on (upstream) HTTP parser
+    //         --> remove ASAP
+    HTTP_HeadersIterator_t iterator =
+      data_r.headers.find (Common_String_Tools::tolower (ACE_TEXT_ALWAYS_CHAR (HTTP_PRT_HEADER_CONTENT_LENGTH_STRING)));
+    ACE_ASSERT (iterator != data_r.headers.end ());
+    std::istringstream converter;
+    converter.str ((*iterator).second);
+    ACE_ASSERT (!bytesMissing_);
+    converter >> bytesMissing_;
+  } // end IF
+
   // sanity check(s)
-  ACE_ASSERT (inherited::mod_);
   ACE_ASSERT (parserContext_.parserContext);
 
   do
@@ -147,14 +171,11 @@ Stream_Module_HTMLParser_T<ACE_SYNCH_USE,
       //            ACE_TEXT (error_p->message)));
       //xmlCtxtResetLastError (parserContext_.parserContext);
     } // end IF
+    bytesMissing_ -= message_block_p->length ();
     message_block_p = message_block_p->cont ();
-    if (!message_block_p)
+    if (!message_block_p && bytesMissing_)
       break; // done --> more fragments to arrive
-
-    // *TODO*: this depends on current (upstream) HTTP parser behavior
-    //         --> remove ASAP
-    if ((message_block_p->length () == 0) &&
-        (message_block_p->cont () == NULL))
+    if (!bytesMissing_)
     {
       complete_ = true;
       break; // --> parsed all bytes: done
@@ -192,10 +213,6 @@ Stream_Module_HTMLParser_T<ACE_SYNCH_USE,
 //    ACE_DEBUG ((LM_DEBUG,
 //                ACE_TEXT ("parsing HTML...DONE\n")));
 
-    const typename DataMessageType::DATA_T& data_container_r =
-        message_inout->getR ();
-    typename DataMessageType::DATA_T::DATA_T& data_r =
-        const_cast<typename DataMessageType::DATA_T::DATA_T&> (data_container_r.getR ());
     ACE_ASSERT (!data_r.HTMLDocument);
     data_r.HTMLDocument = parserContext_.parserContext->myDoc;
 //    data_r.HTMLDocument = xmlCopyDoc (parserContext_.parserContext->myDoc);
@@ -372,6 +389,9 @@ Stream_Module_HTMLParser_T<ACE_SYNCH_USE,
     } // end IF
 
     xmlCleanupParser ();
+
+    isFirst_ = true;
+    bytesMissing_ = 0;
   } // end IF
 
   xmlInitParser ();

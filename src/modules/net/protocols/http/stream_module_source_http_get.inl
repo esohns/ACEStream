@@ -181,8 +181,8 @@ Stream_Module_Net_Source_HTTP_Get_T<ACE_SYNCH_USE,
     case HTTP_Codes::HTTP_STATUS_MOVEDTEMPORARILY:
     case HTTP_Codes::HTTP_STATUS_NOTMODIFIED:
     {
-      std::string host_name_string, host_name_string_2;
-      std::string uri_string, uri_string_2;
+      std::string host_name_string_2;
+      std::string uri_string_2;
       bool use_SSL = false, use_SSL_2 = false;
 
       // step1: redirected --> extract location

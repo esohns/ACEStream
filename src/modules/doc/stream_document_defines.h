@@ -28,6 +28,11 @@
 #define MODULE_DOCUMENT_MSOFFICE_WRITER_DEFAULT_NAME_STRING           "MSOfficeWriter"
 #endif // ACE_WIN32 || ACE_WIN64
 
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#define STREAM_DOCUMENT_DEFAULT_LIBREOFFICE_START_SH                  "start_soffice.bat"
+#else
+#define STREAM_DOCUMENT_DEFAULT_LIBREOFFICE_START_SH                  "start_soffice.sh"
+#endif // ACE_WIN32 || ACE_WIN64
 #define STREAM_DOCUMENT_DEFAULT_LIBREOFFICE_PROCESS_EXE               "soffice.bin"
 
 #define STREAM_DOCUMENT_DEFAULT_LIBREOFFICE_SERVER_HOST               ACE_LOCALHOST
