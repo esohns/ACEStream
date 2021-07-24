@@ -676,9 +676,6 @@ Stream_Module_MessageHandlerA_T<ACE_SYNCH_USE,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_MessageHandlerA_T::handleDataMessage"));
 
-  // don't care (implies yes per default, if part of a stream)
-  ACE_UNUSED_ARG (passMessageDownstream_out);
-
   // sanity check(s)
   ACE_ASSERT (subscribersLock_ && subscribers_);
 
@@ -732,9 +729,6 @@ Stream_Module_MessageHandlerA_T<ACE_SYNCH_USE,
                                                                      bool& passMessageDownstream_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_MessageHandlerA_T::handleSessionMessage"));
-
-  // don't care (implies yes per default, if part of a stream)
-  ACE_UNUSED_ARG (passMessageDownstream_out);
 
   // sanity check(s)
   ACE_ASSERT (subscribersLock_ && subscribers_);

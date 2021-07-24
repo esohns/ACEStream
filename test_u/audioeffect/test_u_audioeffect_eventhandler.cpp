@@ -88,7 +88,7 @@ Test_U_AudioEffect_DirectShow_EventHandler::start (Stream_SessionId_t sessionId_
   {
 #if defined (GTK_USE)
     Common_UI_GTK_State_t& state_r =
-      const_cast<Common_UI_GTK_State_t&> (COMMON_UI_GTK_MANAGER_SINGLETON::instance ()->getR_2 ());
+      const_cast<Common_UI_GTK_State_t&> (COMMON_UI_GTK_MANAGER_SINGLETON::instance ()->getR ());
     { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, state_r.lock);
       state_r.eventStack.push (COMMON_UI_EVENT_STARTED);
     } // end lock scope
@@ -112,7 +112,7 @@ Test_U_AudioEffect_DirectShow_EventHandler::end (Stream_SessionId_t sessionId_in
   {
 #if defined (GTK_USE)
     Common_UI_GTK_State_t& state_r =
-      const_cast<Common_UI_GTK_State_t&> (COMMON_UI_GTK_MANAGER_SINGLETON::instance ()->getR_2 ());
+      const_cast<Common_UI_GTK_State_t&> (COMMON_UI_GTK_MANAGER_SINGLETON::instance ()->getR ());
     { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, state_r.lock);
       event_source_id = g_idle_add (idle_session_end_cb,
                                     CBData_);
@@ -154,7 +154,7 @@ Test_U_AudioEffect_DirectShow_EventHandler::notify (Stream_SessionId_t sessionId
   {
 #if defined (GTK_USE)
     Common_UI_GTK_State_t& state_r =
-      const_cast<Common_UI_GTK_State_t&> (COMMON_UI_GTK_MANAGER_SINGLETON::instance ()->getR_2 ());
+      const_cast<Common_UI_GTK_State_t&> (COMMON_UI_GTK_MANAGER_SINGLETON::instance ()->getR ());
     { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, state_r.lock);
       CBData_->progressData.statistic.bytes += message_in.total_length ();
       state_r.eventStack.push (COMMON_UI_EVENT_DATA);
@@ -188,7 +188,7 @@ Test_U_AudioEffect_DirectShow_EventHandler::notify (Stream_SessionId_t sessionId
   {
 #if defined (GTK_USE)
     Common_UI_GTK_State_t& state_r =
-      const_cast<Common_UI_GTK_State_t&> (COMMON_UI_GTK_MANAGER_SINGLETON::instance ()->getR_2 ());
+      const_cast<Common_UI_GTK_State_t&> (COMMON_UI_GTK_MANAGER_SINGLETON::instance ()->getR ());
     { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, state_r.lock);
       state_r.eventStack.push (event_e);
     } // end lock scope
@@ -235,7 +235,7 @@ Test_U_AudioEffect_MediaFoundation_EventHandler::start (Stream_SessionId_t sessi
   {
 #if defined (GTK_USE)
     Common_UI_GTK_State_t& state_r =
-      const_cast<Common_UI_GTK_State_t&> (COMMON_UI_GTK_MANAGER_SINGLETON::instance ()->getR_2 ());
+      const_cast<Common_UI_GTK_State_t&> (COMMON_UI_GTK_MANAGER_SINGLETON::instance ()->getR ());
     { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, state_r.lock);
       state_r.eventStack.push (COMMON_UI_EVENT_STARTED);
     } // end lock scope
@@ -259,7 +259,7 @@ Test_U_AudioEffect_MediaFoundation_EventHandler::end (Stream_SessionId_t session
   {
 #if defined (GTK_USE)
     Common_UI_GTK_State_t& state_r =
-      const_cast<Common_UI_GTK_State_t&> (COMMON_UI_GTK_MANAGER_SINGLETON::instance ()->getR_2 ());
+      const_cast<Common_UI_GTK_State_t&> (COMMON_UI_GTK_MANAGER_SINGLETON::instance ()->getR ());
     { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, state_r.lock);
       event_source_id = g_idle_add (idle_session_end_cb,
                                     CBData_);
@@ -301,7 +301,7 @@ Test_U_AudioEffect_MediaFoundation_EventHandler::notify (Stream_SessionId_t sess
   {
 #if defined (GTK_USE)
     Common_UI_GTK_State_t& state_r =
-      const_cast<Common_UI_GTK_State_t&> (COMMON_UI_GTK_MANAGER_SINGLETON::instance ()->getR_2 ());
+      const_cast<Common_UI_GTK_State_t&> (COMMON_UI_GTK_MANAGER_SINGLETON::instance ()->getR ());
     { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, state_r.lock);
       CBData_->progressData.statistic.bytes += message_in.total_length ();
       state_r.eventStack.push (COMMON_UI_EVENT_DATA);
@@ -335,7 +335,7 @@ Test_U_AudioEffect_MediaFoundation_EventHandler::notify (Stream_SessionId_t sess
   {
 #if defined (GTK_USE)
     Common_UI_GTK_State_t& state_r =
-      const_cast<Common_UI_GTK_State_t&> (COMMON_UI_GTK_MANAGER_SINGLETON::instance ()->getR_2 ());
+      const_cast<Common_UI_GTK_State_t&> (COMMON_UI_GTK_MANAGER_SINGLETON::instance ()->getR ());
     { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, state_r.lock);
       state_r.eventStack.push (event_e);
     } // end lock scope

@@ -342,7 +342,11 @@ elseif (WIN32)
                 ${ACENetwork_DIR}/src/protocol/http/Debug/ACENetwork_Protocol_HTTP.dll
                 ${CMAKE_CURRENT_SOURCE_DIR}/../../../libmysql_2/cmake/libmysql/Debug/libmysql.dll
           DESTINATION ${INSTALL_BIN_DIR} COMPONENT test_u)
- install (FILES etc/${ui_definition_file} ${EXECUTABLE}.fbp
+ set (config_files "${EXECUTABLE}.fbp")
+ if (NOT ${ui_definition_file} STREQUAL "")
+  set (config_files "${config_files} etc/${ui_definition_file}")
+ endif ()
+ install (FILES ${config_files}
           DESTINATION "data/${PROJECT_NAME}/${EXECUTABLE}" COMPONENT config)
 #          DESTINATION "$ENV{APPDATA}/${PROJECT_NAME}/${EXECUTABLE}" COMPONENT config)
 endif ()
