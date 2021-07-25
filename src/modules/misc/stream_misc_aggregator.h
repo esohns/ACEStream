@@ -163,11 +163,10 @@ class Stream_Module_Aggregator_WriterTask_T
 #endif
   virtual ~Stream_Module_Aggregator_WriterTask_T ();
 
-  // override ACE_Task_Base members
+  // override ACE_Task_Base member(s)
   virtual int put (ACE_Message_Block*,      // data chunk
                    ACE_Time_Value* = NULL); // timeout value
-
-  // override ACE_Task members
+  // override ACE_Task member(s)
   virtual TASK_T* next (void);
 
   // override (part of) Stream_IModuleHandler_T

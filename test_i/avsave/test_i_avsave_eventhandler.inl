@@ -166,11 +166,6 @@ Stream_AVSave_EventHandler_T<NotificationType,
 
   ACE_UNUSED_ARG (sessionId_in);
   ACE_UNUSED_ARG (sessionEvent_in);
-
-  ACE_ASSERT (false);
-  ACE_NOTSUP;
-
-  ACE_NOTREACHED (return;)
 }
 
 template <typename NotificationType,

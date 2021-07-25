@@ -74,7 +74,7 @@ Stream_AVSave_DirectShow_Stream::~Stream_AVSave_DirectShow_Stream ()
 
 bool
 Stream_AVSave_DirectShow_Stream::load (Stream_ILayout* layout_in,
-                                        bool& delete_out)
+                                       bool& delete_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_AVSave_DirectShow_Stream::load"));
 

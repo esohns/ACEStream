@@ -1243,22 +1243,22 @@ do_work (const std::string& captureinterfaceIdentifier_in,
 #endif // ACE_WIN32 || ACE_WIN64
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
+  Stream_AVSave_DirectShow_MessageHandler_Module directshow_message_handler (NULL,
+                                                                             ACE_TEXT_ALWAYS_CHAR (STREAM_MISC_MESSAGEHANDLER_DEFAULT_NAME_STRING));
+  Stream_AVSave_MediaFoundation_MessageHandler_Module mediafoundation_message_handler (NULL,
+                                                                                       ACE_TEXT_ALWAYS_CHAR (STREAM_MISC_MESSAGEHANDLER_DEFAULT_NAME_STRING));
+  Stream_AVSave_DirectShow_Encoder_Module encoder (NULL,
+                                                   ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_LIBAV_ENCODER_DEFAULT_NAME_STRING));
+  Stream_AVSave_WaveIn_Stream wavein_stream;
+  Stream_AVSave_DirectShow_Stream directshow_stream;
+  Stream_AVSave_MediaFoundation_Stream mediafoundation_stream;
+
   Stream_AVSave_DirectShow_MessageAllocator_t directshow_message_allocator (TEST_I_MAX_MESSAGES, // maximum #buffers
                                                                              &heap_allocator,     // heap allocator handle
                                                                              true);               // block ?
-  Stream_AVSave_WaveIn_Stream wavein_stream;
-  Stream_AVSave_DirectShow_Stream directshow_stream;
-  Stream_AVSave_DirectShow_MessageHandler_Module directshow_message_handler (&directshow_stream,
-                                                                              ACE_TEXT_ALWAYS_CHAR (STREAM_MISC_MESSAGEHANDLER_DEFAULT_NAME_STRING));
-  Stream_AVSave_DirectShow_Encoder_Module encoder (&directshow_stream,
-                                                   ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_LIBAV_ENCODER_DEFAULT_NAME_STRING));
-
   Stream_AVSave_MediaFoundation_MessageAllocator_t mediafoundation_message_allocator (TEST_I_MAX_MESSAGES, // maximum #buffers
                                                                                        &heap_allocator,     // heap allocator handle
                                                                                        true);               // block ?
-  Stream_AVSave_MediaFoundation_Stream mediafoundation_stream;
-  Stream_AVSave_MediaFoundation_MessageHandler_Module mediafoundation_message_handler (&mediafoundation_stream,
-                                                                                        ACE_TEXT_ALWAYS_CHAR (STREAM_MISC_MESSAGEHANDLER_DEFAULT_NAME_STRING));
   switch (mediaFramework_in)
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:

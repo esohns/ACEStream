@@ -2717,7 +2717,7 @@ Stream_Base_T<ACE_SYNCH_USE,
 
   std::string stream_layout_string;
 
-  const MODULE_T* module_p = NULL;
+  const MODULE_T* module_p = NULL, *module_2 = NULL;
   std::vector<Stream_IDistributorModule*> distributors_a;
   Stream_IDistributorModule* idistributor_p = NULL;
   for (ITERATOR_T iterator (*this);
@@ -2740,12 +2740,16 @@ Stream_Base_T<ACE_SYNCH_USE,
     } // end IF
 
     stream_layout_string.append (Stream_Tools::sanitizeUniqueName (ACE_TEXT_ALWAYS_CHAR (module_p->name ())));
-    ACE_ASSERT (const_cast<MODULE_T*> (module_p)->next ());
-    if (ACE_OS::strcmp (const_cast<MODULE_T*> (module_p)->next ()->name (),
-                        ACE_TEXT (STREAM_MODULE_TAIL_NAME)) &&
-        ACE_OS::strcmp (const_cast<MODULE_T*> (module_p)->next ()->name (),
-                        ACE_TEXT ("ACE_Stream_Tail")))
+
+    module_2 = const_cast<MODULE_T*> (module_p)->next ();
+    if (module_2 && // *NOTE*: module_p might be an aggregator
+        (ACE_OS::strcmp (module_2->name (),
+                         ACE_TEXT (STREAM_MODULE_TAIL_NAME)) &&
+         ACE_OS::strcmp (module_2->name (),
+                         ACE_TEXT ("ACE_Stream_Tail"))))
       stream_layout_string += ACE_TEXT_ALWAYS_CHAR (" --> ");
+    if (!module_2) // *NOTE*: module_p is an aggregator
+      stream_layout_string.append (ACE_TEXT (" |"));
 
     idistributor_p =
         dynamic_cast<Stream_IDistributorModule*> (const_cast<MODULE_T*> (module_p)->writer ());
@@ -4048,9 +4052,14 @@ Stream_Base_T<ACE_SYNCH_USE,
   STREAM_TRACE (ACE_TEXT ("Stream_Base_T::unlinkModules"));
 
   MODULE_T* head_p = inherited::head ();
+  MODULE_T* next_p = NULL;
   for (MODULE_T* module_p = head_p;
        module_p;
-       module_p = module_p->next ())
+       )
+  {
+    next_p = module_p->next ();
     module_p->next (NULL);
+    module_p = next_p;
+  } // end FOR
   head_p->next (inherited::tail ());
 }

@@ -216,6 +216,8 @@ class Stream_Module_MessageHandlerA_T
 
  public:
   // convenient types
+  typedef ACE_Task<ACE_SYNCH_USE,
+                   TimePolicyType> TASK_T;
   typedef Stream_ISessionDataNotify_T<SessionIdType,
                                       SessionDataType,
                                       enum Stream_SessionMessageType,
@@ -230,6 +232,9 @@ class Stream_Module_MessageHandlerA_T
   Stream_Module_MessageHandlerA_T (typename inherited::ISTREAM_T*); // stream handle
 #endif // ACE_WIN32 || ACE_WIN64
   virtual ~Stream_Module_MessageHandlerA_T ();
+
+  // override ACE_Task member(s)
+  inline virtual TASK_T* next (void) { return NULL; };
 
   // override (part of) Stream_IModuleHandler_T
   virtual bool initialize (const ConfigurationType&,

@@ -609,11 +609,9 @@ Stream_Module_BaseA_T<ACE_SYNCH_USE,
 
   typename inherited::TASK_T* task_p = inherited::writer ();
   ACE_ASSERT (task_p);
-
   typename inherited::TASK_T* task_2 = task_p->next ();
-  ACE_ASSERT (task_2);
 
-  return task_2->mod_;
+  return (task_2 ? task_2->mod_ : NULL);
 }
 
 template <ACE_SYNCH_DECL,

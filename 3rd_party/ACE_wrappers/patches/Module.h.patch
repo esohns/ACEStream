@@ -1,5 +1,5 @@
---- D:/projects/ATCD/ACE/ace/Module.h	Fri Aug 18 22:45:15 2017
-+++ C:/Users/Erik/Desktop/Module.h	Fri Aug 18 22:33:13 2017
+--- C:\Users\Erik\OneDrive\Desktop\Module.h
++++ H:\lib\ACE_TAO\ACE\ace\Module.h
 @@ -59,6 +59,8 @@
      /// Indicates that close() should not delete any Tasks.
      M_DELETE_NONE = 4
@@ -9,12 +9,13 @@
  };
  
  /**
-@@ -162,7 +164,7 @@
-   ACE_Module<ACE_SYNCH_USE, TIME_POLICY> *next (void);
+@@ -158,7 +160,7 @@
+   void link (ACE_Module<ACE_SYNCH_USE, TIME_POLICY> *m);
+ 
+   /// Get the next pointer to the module above in the stream.
+-  ACE_Module<ACE_SYNCH_USE, TIME_POLICY> *next (void);
++  virtual ACE_Module<ACE_SYNCH_USE, TIME_POLICY> *next (void);
  
    /// Set the next pointer to the module above in the stream.
--  void next (ACE_Module<ACE_SYNCH_USE, TIME_POLICY> *m);
-+  virtual void next (ACE_Module<ACE_SYNCH_USE, TIME_POLICY> *m);
- 
-   /// Dump the state of an object.
-   void dump (void) const;
+   virtual void next (ACE_Module<ACE_SYNCH_USE, TIME_POLICY> *m);
+

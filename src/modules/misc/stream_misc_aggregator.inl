@@ -217,6 +217,8 @@ Stream_Module_Aggregator_WriterTask_T<ACE_SYNCH_USE,
       const_cast<typename inherited::STREAM_T&> (iget_p->getR ());
   ACE_ASSERT (stream_r.tail ());
 
+  // *WARNING*: this retrieves the tail end of the last stream this was push()ed
+  //            on. The problem: this stream may have already gone away !
   return stream_r.tail ()->writer ();
 }
 
@@ -266,6 +268,7 @@ Stream_Module_Aggregator_WriterTask_T<ACE_SYNCH_USE,
     outboundStreamName_.clear ();
   } // end IF
 
+  // *TODO*: remove type inference
   outboundStreamName_ = configuration_in.outboundStreamName;
 
   return inherited::initialize (configuration_in,

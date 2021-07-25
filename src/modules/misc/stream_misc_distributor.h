@@ -110,7 +110,7 @@ class Stream_Miscellaneous_Distributor_T
   virtual std::string branch (Stream_Module_t*) const;
   virtual bool has (const std::string&,
                     unsigned int&) const;
-  virtual Stream_ModuleList_t next ();
+  virtual Stream_ModuleList_t next () const;
 
  protected:
   // convenient types

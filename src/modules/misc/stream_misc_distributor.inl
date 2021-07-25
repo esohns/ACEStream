@@ -502,7 +502,7 @@ Stream_Miscellaneous_Distributor_T<ACE_SYNCH_USE,
                                    ControlMessageType,
                                    DataMessageType,
                                    SessionMessageType,
-                                   SessionDataType>::next ()
+                                   SessionDataType>::next () const
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Miscellaneous_Distributor_T::next"));
 

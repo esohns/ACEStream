@@ -526,7 +526,7 @@ continue_:
 
   return true;
 
-error:
+//error:
   if (reset_setup_pipeline)
     const_cast<inherited::CONFIGURATION_T&> (configuration_in).configuration->setupPipeline =
       setup_pipeline;

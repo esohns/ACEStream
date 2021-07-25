@@ -505,6 +505,7 @@ struct Stream_AVSave_DirectShow_ModuleHandlerConfiguration
    , direct3DConfiguration (NULL)
    , filterConfiguration (NULL)
    , filterCLSID (GUID_NULL)
+   , outboundStreamName ()
    , outputFormat ()
    , push (STREAM_LIB_DIRECTSHOW_FILTER_SOURCE_DEFAULT_PUSH)
    //, sourceFormat ()
@@ -564,6 +565,7 @@ struct Stream_AVSave_DirectShow_ModuleHandlerConfiguration
   struct Stream_MediaFramework_Direct3D_Configuration*  direct3DConfiguration;
   struct Stream_AVSave_DirectShow_FilterConfiguration* filterConfiguration;
   CLSID                                                 filterCLSID;
+  std::string                                           outboundStreamName; // message handler
   struct _AMMediaType                                   outputFormat;
   bool                                                  push;
   //struct _AMMediaType                                   sourceFormat;
@@ -585,6 +587,7 @@ struct Stream_AVSave_MediaFoundation_ModuleHandlerConfiguration
    : Stream_AVSave_ModuleHandlerConfiguration ()
    , area ()
    , direct3DConfiguration (NULL)
+   , outboundStreamName ()
    , outputFormat (NULL)
    , rendererNodeId (0)
    , sampleGrabberNodeId (0)
@@ -599,6 +602,7 @@ struct Stream_AVSave_MediaFoundation_ModuleHandlerConfiguration
 
   struct tagRECT                                       area;
   struct Stream_MediaFramework_Direct3D_Configuration* direct3DConfiguration;
+  std::string                                          outboundStreamName; // message handler
   IMFMediaType*                                        outputFormat;
   TOPOID                                               rendererNodeId;
   TOPOID                                               sampleGrabberNodeId;
@@ -626,6 +630,7 @@ struct Stream_AVSave_V4L_ModuleHandlerConfiguration
    , codecFormat (AV_PIX_FMT_NONE)
    , codecId (AV_CODEC_ID_NONE)
    , method (STREAM_DEV_CAM_V4L_DEFAULT_IO_METHOD)
+   , outboundStreamName ()
    , outputFormat ()
    , subscriber (NULL)
    , subscribers (NULL)
@@ -648,6 +653,7 @@ struct Stream_AVSave_V4L_ModuleHandlerConfiguration
   enum AVPixelFormat                         codecFormat; // preferred output-
   enum AVCodecID                             codecId;
   enum v4l2_memory                           method; // v4l camera source
+  std::string                                outboundStreamName; // message handler
   struct Stream_MediaFramework_V4L_MediaType outputFormat;
   Stream_AVSave_V4L_ISessionNotify_t*        subscriber;
   Stream_AVSave_V4L_Subscribers_t*           subscribers;

@@ -233,7 +233,7 @@ Stream_Decoder_LibAV_ImageDecoder_T<ACE_SYNCH_USE,
 //#endif // ACE_WIN32 || ACE_WIN64
   DataMessageType* message_p = NULL;
   ACE_Message_Block* message_block_p = NULL;
-  uint8_t* data_p = NULL;
+  uint8_t* data_a[4] = { reinterpret_cast<uint8_t*> (message_inout->rd_ptr ()), 0, 0, 0 }, * data_2[4] = { 0, 0, 0, 0 };
   unsigned int length_i = 0;
 
 //  // step2: (re-)pad [see above] the buffer chain
@@ -257,12 +257,12 @@ Stream_Decoder_LibAV_ImageDecoder_T<ACE_SYNCH_USE,
   message_p = dynamic_cast<DataMessageType*> (message_block_p);
   ACE_ASSERT (message_p);
 
-  if (unlikely (!Common_Image_Tools::load (reinterpret_cast<uint8_t*> (message_inout->rd_ptr ()),
+  if (unlikely (!Common_Image_Tools::load (data_a,
                                            message_inout->length (),
                                            codecId_,
                                            outputFormat_.format,
                                            outputFormat_.resolution,
-                                           data_p)))
+                                           data_2)))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to Common_Image_Tools::load(), returning\n"),
@@ -271,7 +271,7 @@ Stream_Decoder_LibAV_ImageDecoder_T<ACE_SYNCH_USE,
     message_block_p->release (); message_block_p = NULL;
     return;
   } // end IF
-  ACE_ASSERT (data_p);
+  ACE_ASSERT (data_2[0]);
   message_inout->release (); message_inout = NULL;
   length_i =
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -285,7 +285,7 @@ Stream_Decoder_LibAV_ImageDecoder_T<ACE_SYNCH_USE,
                                                            outputFormat_.resolution.height,
                                                            1));
 #endif // ACE_WIN32 || ACE_WIN64
-  message_p->base (reinterpret_cast<char*> (data_p),
+  message_p->base (reinterpret_cast<char*> (data_2[0]),
                    length_i,
                    0); // --> delete[] the data in dtor
   message_p->wr_ptr (length_i);
@@ -298,7 +298,7 @@ Stream_Decoder_LibAV_ImageDecoder_T<ACE_SYNCH_USE,
 #if defined (_DEBUG)
     std::string filename_string = ACE_TEXT_ALWAYS_CHAR ("output.rgb");
     if (!Common_File_Tools::store (filename_string,
-                                   data_p,
+                                   data_2[0],
                                    length_i))
     {
       ACE_DEBUG ((LM_ERROR,
@@ -307,7 +307,7 @@ Stream_Decoder_LibAV_ImageDecoder_T<ACE_SYNCH_USE,
       message_block_p->release (); message_block_p = NULL;
       return;
     } // end IF
-#endif
+#endif // _DEBUG
 
   int result = inherited::put_next (message_block_p, NULL);
   if (unlikely (result == -1))
