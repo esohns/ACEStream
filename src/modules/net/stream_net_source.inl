@@ -376,7 +376,7 @@ Stream_Module_Net_Source_Writer_T<ACE_SYNCH_USE,
       ACE_HANDLE handle_h = ACE_INVALID_HANDLE;
       typename ConnectorType::ADDRESS_T local_SAP, peer_SAP;
       bool is_error = false;
-      int result = -1;
+//      int result = -1;
       typename inherited::ISTREAM_T* istream_p = NULL;
       typename ConnectorType::CONFIGURATION_T* configuration_p = NULL;
 

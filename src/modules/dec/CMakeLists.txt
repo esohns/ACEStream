@@ -47,7 +47,7 @@ if (UNIX)
   pkg_check_modules (PKG_SOX REQUIRED sox)
  endif (SOX_SUPPORT)
 
- add_compile_options (-std=c++17)
+# add_compile_options (-std=c++17)
 endif (UNIX)
 
 if (UNIX)

@@ -174,15 +174,6 @@ elseif (WIN32)
  endif (WIN32 AND (CMAKE_BUILD_TYPE STREQUAL Debug))
 endif ()
 
-set (LLVM_COMPILER_ID_STRING "Clang")
-string (TOLOWER "${LLVM_COMPILER_ID_STRING}" LLVM_COMPILER_ID_STRING_LOWER)
-string (TOLOWER "${CMAKE_CXX_COMPILER_ID}" CXX_COMPILER_ID_STRING_LOWER)
-if (CXX_COMPILER_ID_STRING_LOWER STREQUAL LLVM_COMPILER_ID_STRING_LOWER)
- add_compile_options (-std=c++11)
-#add_compile_options (-fPIC)
- add_definitions (-D_GLIBCXX_USE_CXX11_ABI=0)
-endif ()
-
 cmake_policy (SET CMP0065 OLD) # do not add flags to export symbols from executables without the ENABLE_EXPORTS target property
 
 add_executable (${EXECUTABLE}
@@ -217,6 +208,8 @@ target_link_libraries (${EXECUTABLE} ${CMAKE_THREAD_LIBS_INIT})
 if (UNIX)
 # target_link_libraries (${EXECUTABLE} libgobject-2.0.so libglib-2.0.so libgdk-3.so libgtk-3.so)
  target_link_libraries (${EXECUTABLE} ${PKG_V4L2_LIBRARIES})
+ link_directories (/usr/local/lib64)
+ target_link_libraries (${EXECUTABLE} camera-base camera)
  target_link_libraries (${EXECUTABLE} ${PKG_FFMPEG_LIBRARIES})
  target_link_libraries (${EXECUTABLE} ${PKG_WAYLAND_LIBRARIES})
 
@@ -260,8 +253,6 @@ endif (GUI_SUPPORT)
 if (UNIX)
  target_link_libraries (${EXECUTABLE} CommonXML)
 endif (UNIX)
-#target_link_libraries (${EXECUTABLE} Common_Test_U)
-
 target_link_libraries (${EXECUTABLE} ${PROJECT_NAME})
 target_link_libraries (${EXECUTABLE} ${PROJECT_NAME}_Decoder)
 target_link_libraries (${EXECUTABLE} ${PROJECT_NAME}_Device)
@@ -272,6 +263,11 @@ target_link_libraries (${EXECUTABLE} ${PROJECT_NAME}_Statistic)
 target_link_libraries (${EXECUTABLE} ${PROJECT_NAME}_Visualization)
 
 target_link_libraries (${EXECUTABLE} ${PROJECT_NAME}_Test_U)
+
+if (UNIX)
+ link_directories (/usr/local/lib64)
+ target_link_libraries (${EXECUTABLE} camera-base camera)
+endif (UNIX)
 
 # add PCH
 set_target_properties (${EXECUTABLE} PROPERTIES COTIRE_CXX_PREFIX_HEADER_INIT "stdafx.h")

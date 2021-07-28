@@ -204,7 +204,7 @@ Stream_Decoder_SoXEffect_T<ACE_SYNCH_USE,
   ACE_Message_Block* message_block_p = NULL;
   ACE_Message_Block* message_block_2 = NULL;
   char* effect_options[1];
-  struct sox_format_t* input_buffer_p, *output_buffer_p;
+  struct sox_format_t* input_buffer_p = NULL, *output_buffer_p = NULL;
 
   input_buffer_p =
       sox_open_mem_read (message_inout->rd_ptr (),

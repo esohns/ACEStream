@@ -118,9 +118,9 @@ target_sources (${PROJECT_NAME}_Document
                PRIVATE stdafx.h
                ${absolute_source_files})
 
-if (CMAKE_CXX_COMPILER_ID STREQUAL "CLang")
- add_compile_options (-std=c++0x -fPIC)
-endif ()
+#if (CMAKE_CXX_COMPILER_ID STREQUAL "CLang")
+# add_compile_options (-std=c++0x -fPIC)
+#endif ()
 
 set_property (TARGET ${PROJECT_NAME}_Document PROPERTY FOLDER "modules")
 

@@ -522,7 +522,7 @@ Stream_Module_MySQLReader_T<ACE_SYNCH_USE,
 
   int result = -1;
   int result_2 = -1;
-  ssize_t bytes_read = -1;
+//  ssize_t bytes_read = -1;
   ACE_Message_Block* message_block_p = NULL;
   ACE_Time_Value no_wait = COMMON_TIME_NOW;
   DataMessageType* message_p = NULL;

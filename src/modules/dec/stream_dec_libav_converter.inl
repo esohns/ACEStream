@@ -593,7 +593,7 @@ Stream_Decoder_LibAVConverter1_T<ACE_SYNCH_USE,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Decoder_LibAVConverter1_T::initialize"));
 
-  int result = -1;
+//  int result = -1;
 //  int flags = 0;
 
   if (unlikely (inherited::isInitialized_))
@@ -640,9 +640,9 @@ Stream_Decoder_LibAVConverter1_T<ACE_SYNCH_USE,
   ACE_Message_Block* message_block_p = NULL;
   DataMessageType* message_p = NULL;
   struct SwsContext* context_p = NULL;
-  unsigned char* data_p = NULL;
+//  unsigned char* data_p = NULL;
   int flags_i = 0;
-  size_t size_i = 0, size_2 = 0;
+  size_t size_i = 0;//, size_2 = 0;
   AVFrame* frame_p = NULL;
   typename DataMessageType::DATA_T& message_data_r =
       const_cast<typename DataMessageType::DATA_T&> (message_inout->getR ());
@@ -874,10 +874,10 @@ Stream_Decoder_LibAVConverter1_T<ACE_SYNCH_USE,
   // sanity check(s)
   ACE_ASSERT (inherited::configuration_);
 
-  const SessionDataContainerType& session_data_container_r =
-    message_inout->getR ();
-  typename SessionDataContainerType::DATA_T& session_data_r =
-    const_cast<typename SessionDataContainerType::DATA_T&> (session_data_container_r.getR ());
+//  const SessionDataContainerType& session_data_container_r =
+//    message_inout->getR ();
+//  typename SessionDataContainerType::DATA_T& session_data_r =
+//    const_cast<typename SessionDataContainerType::DATA_T&> (session_data_container_r.getR ());
 
   switch (message_inout->type ())
   {

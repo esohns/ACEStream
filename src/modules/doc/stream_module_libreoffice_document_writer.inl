@@ -211,7 +211,7 @@ Stream_Module_LibreOffice_Document_Writer_T<SynchStrategyType,
 
       // --> create new frame (see below)
       ::rtl::OUString target_frame_name (RTL_CONSTASCII_USTRINGPARAM (ACE_TEXT_ALWAYS_CHAR (STREAM_DOCUMENT_LIBREOFFICE_FRAME_BLANK)));
-      const char* result_p = NULL;
+//      const char* result_p = NULL;
       sal_Int32 search_flags = frame::FrameSearchFlag::AUTO;
       document_properties.realloc (3);
       document_properties[0].Name =

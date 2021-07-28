@@ -640,8 +640,8 @@ Stream_Decoder_H264_NAL_Decoder_T<ACE_SYNCH_USE,
   ACE_Message_Block* message_block_p = NULL;
   bool done = false;
   SessionMessageType* session_message_p = NULL;
-  enum Stream_SessionMessageType session_message_type =
-      STREAM_SESSION_MESSAGE_INVALID;
+//  enum Stream_SessionMessageType session_message_type =
+//      STREAM_SESSION_MESSAGE_INVALID;
   bool is_data = false;
   bool stop_processing = false;
 

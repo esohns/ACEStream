@@ -245,7 +245,7 @@ Stream_Module_Vis_Wayland_Window_T<ACE_SYNCH_USE,
 
       break;
 
-error:
+//error:
       this->notify (STREAM_SESSION_MESSAGE_ABORT);
 
       break;

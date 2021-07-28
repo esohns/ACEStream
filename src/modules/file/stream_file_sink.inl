@@ -1383,7 +1383,7 @@ Stream_Module_FileWriterH_T<ACE_SYNCH_USE,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_FileWriterH_T::initialize"));
 
-  bool result = false;
+//  bool result = false;
   int result_2 = -1;
 
   if (inherited::initialized_)

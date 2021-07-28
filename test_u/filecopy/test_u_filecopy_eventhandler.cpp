@@ -227,9 +227,13 @@ Stream_Filecopy_EventHandler::notify (Stream_SessionId_t sessionId_in,
   ACE_ASSERT (CBData_);
 #endif // GUI_SUPPORT
 
+#if defined (GUI_SUPPORT)
+#if defined (GTK_USE)
   enum Common_UI_EventType event_e =
     ((sessionMessage_in.type () == STREAM_SESSION_MESSAGE_STATISTIC) ? COMMON_UI_EVENT_STATISTIC
                                                                      : COMMON_UI_EVENT_INVALID);
+#endif // GTK_USE
+#endif // GUI_SUPPORT
 
 #if defined (GUI_SUPPORT)
 #if defined (GTK_USE)

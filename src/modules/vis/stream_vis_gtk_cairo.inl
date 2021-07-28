@@ -222,7 +222,7 @@ Stream_Module_Vis_GTK_Cairo_T<ACE_SYNCH_USE,
 
   return;
 
-error:
+//error:
   //  if (leave_gdk)
   //    gdk_threads_leave ();
 
@@ -333,7 +333,7 @@ Stream_Module_Vis_GTK_Cairo_T<ACE_SYNCH_USE,
 
       break;
 
-error:
+//error:
       this->notify (STREAM_SESSION_MESSAGE_ABORT);
 
       break;
@@ -399,7 +399,7 @@ Stream_Module_Vis_GTK_Cairo_T<ACE_SYNCH_USE,
 
   int scale_i = 0, width_i = 0, height_i = 0;
   int width_2 = 0, height_2 = 0, row_stride_i = 0, n_channels_i = 0;
-  cairo_format_t format_e = CAIRO_FORMAT_INVALID;
+//  cairo_format_t format_e = CAIRO_FORMAT_INVALID;
   GdkRectangle clip_area_s;
 
   if (inherited::isInitialized_)

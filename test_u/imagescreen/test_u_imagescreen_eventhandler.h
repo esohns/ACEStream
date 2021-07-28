@@ -45,7 +45,9 @@ class Stream_ImageScreen_EventHandler_T
 #elif defined (QT_USE)
                                     );
 #elif defined (WXWIDGETS_USE)
-                                     ,InterfaceType*);                // wxWidgets application handle
+                                     ,InterfaceType*);                    // wxWidgets application handle
+#else
+                                    );
 #endif
   inline virtual ~Stream_ImageScreen_EventHandler_T () {}
 

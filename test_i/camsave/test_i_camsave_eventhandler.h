@@ -51,6 +51,8 @@ class Stream_CamSave_EventHandler_T
                                 );
 #elif defined (WXWIDGETS_USE)
                                  ,InterfaceType*);                // wxWidgets application handle
+#else
+                                );
 #endif
 #else
   Stream_CamSave_EventHandler_T ();
@@ -77,10 +79,9 @@ class Stream_CamSave_EventHandler_T
 
 #if defined (GUI_SUPPORT)
   struct Stream_CamSave_UI_CBData*             CBData_;
-#if defined (GTK_USE)
-#elif defined (WXWIDGETS_USE)
+#if defined (WXWIDGETS_USE)
   InterfaceType*                               interface_;
-#endif // GTK_USE
+#endif // WXWIDGETS_USE
 #endif // GUI_SUPPORT
   typename SessionMessageType::DATA_T::DATA_T* sessionData_;
 };

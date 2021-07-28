@@ -168,10 +168,10 @@ Test_U_SpreadsheetWriter::handleSessionMessage (Test_U_SessionMessage*& message_
   ACE_ASSERT (result_2 == osl_Process_E_None);
   uno::Sequence<beans::PropertyValue> document_properties;
 
-  const Test_U_SessionData_t& session_data_container_r =
-    message_inout->getR ();
-  struct Test_U_SessionData& session_data_r =
-    const_cast<struct Test_U_SessionData&> (session_data_container_r.getR ());
+//  const Test_U_SessionData_t& session_data_container_r =
+//    message_inout->getR ();
+//  struct Test_U_SessionData& session_data_r =
+//    const_cast<struct Test_U_SessionData&> (session_data_container_r.getR ());
   switch (message_inout->type ())
   {
     case STREAM_SESSION_MESSAGE_BEGIN:

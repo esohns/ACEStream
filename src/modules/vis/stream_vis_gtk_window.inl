@@ -73,7 +73,7 @@ Stream_Module_Vis_GTK_Window_T<ACE_SYNCH_USE,
   if (window_)
     gdk_window_destroy (window_);
   if (mainLoop_)
-    g_main_destroy (mainLoop_);
+    g_main_loop_unref (mainLoop_);
 }
 
 template <ACE_SYNCH_DECL,
@@ -113,7 +113,7 @@ Stream_Module_Vis_GTK_Window_T<ACE_SYNCH_USE,
     return;
   }
 
-  int result = -1;
+//  int result = -1;
   bool leave_gdk = false;
   GdkPixbuf* buffer_p = NULL;
   gint width_i, height_i;
@@ -240,7 +240,7 @@ Stream_Module_Vis_GTK_Window_T<ACE_SYNCH_USE,
 
       break;
 
-error:
+//error:
       this->notify (STREAM_SESSION_MESSAGE_ABORT);
 
       break;
@@ -252,12 +252,12 @@ error:
         gdk_window_destroy (window_); window_ = NULL;
       } // end IF
 
-      ACE_ASSERT (g_main_is_running (mainLoop_));
-      g_main_quit (mainLoop_);
+      ACE_ASSERT (g_main_loop_is_running (mainLoop_));
+      g_main_loop_quit (mainLoop_);
 
       if (mainLoop_)
       {
-        g_main_destroy (mainLoop_); mainLoop_ = NULL;
+        g_main_loop_unref (mainLoop_); mainLoop_ = NULL;
       } // end IF
 
       break;
@@ -343,7 +343,7 @@ Stream_Module_Vis_GTK_Window_T<ACE_SYNCH_USE,
 //  ACE_ASSERT (Common_UI_GTK_Tools::GTKInitialized);
   ACE_ASSERT (mainLoop_);
 
-  g_main_run (mainLoop_);
+  g_main_loop_run (mainLoop_);
 
   return 0;
 }

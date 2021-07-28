@@ -1219,8 +1219,8 @@ Test_I_Target_TCPStream::initialize (const typename inherited::CONFIGURATION_T& 
   // sanity check(s)
   ACE_ASSERT (inherited::sessionData_);
 
-  struct Test_I_Target_SessionData& session_data_r =
-    const_cast<struct Test_I_Target_SessionData&> (inherited::sessionData_->getR ());
+  Test_I_Target_SessionData& session_data_r =
+    const_cast<Test_I_Target_SessionData&> (inherited::sessionData_->getR ());
   // *TODO*: remove type inferences
   session_data_r.lock = &(inherited::sessionDataLock_);
   inherited::state_.sessionData = &session_data_r;
@@ -1369,8 +1369,8 @@ Test_I_Target_UDPStream::initialize (const typename inherited::CONFIGURATION_T& 
   // sanity check(s)
   ACE_ASSERT (inherited::sessionData_);
 
-  struct Test_I_Target_SessionData& session_data_r =
-    const_cast<struct Test_I_Target_SessionData&> (inherited::sessionData_->getR ());
+  Test_I_Target_SessionData& session_data_r =
+    const_cast<Test_I_Target_SessionData&> (inherited::sessionData_->getR ());
   // *TODO*: remove type inferences
   session_data_r.lock = &(inherited::sessionDataLock_);
   inherited::state_.sessionData = &session_data_r;

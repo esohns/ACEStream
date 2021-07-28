@@ -64,12 +64,13 @@ Stream_ImageScreen_EventHandler_T<NotificationType,
                                                                                       )
 #elif defined (WXWIDGETS_USE)
                                                                                       ,InterfaceType* interface_in)
+#else
+                                                                                      )
 #endif // GTK_USE
  : CBData_ (CBData_in)
-#if defined (GTK_USE)
-#elif defined (WXWIDGETS_USE)
+#if defined (WXWIDGETS_USE)
  , interface_ (interface_in)
-#endif // GTK_USE
+#endif // WXWIDGETS_USE
  , sessionData_ (NULL)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_ImageScreen_EventHandler_T::Stream_ImageScreen_EventHandler_T"));

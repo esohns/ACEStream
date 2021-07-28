@@ -1,6 +1,6 @@
-﻿if (UNIX)
- add_compile_options (-std=c++17)
-endif (UNIX)
+﻿#if (UNIX)
+# add_compile_options (-std=c++17)
+#endif (UNIX)
 
 add_library (${PROJECT_NAME}_Statistic STATIC "")
 

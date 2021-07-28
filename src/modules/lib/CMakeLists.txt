@@ -10,7 +10,7 @@ if (UNIX)
 # pkg_check_modules (PKG_LIBCAMERA REQUIRED libcamera)
  pkg_check_modules (PKG_SOX REQUIRED sox)
 
- add_compile_options (-std=c++17)
+# add_compile_options (-std=c++17)
 endif (UNIX)
 
 if (WIN32)

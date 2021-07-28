@@ -342,7 +342,7 @@ struct Test_I_V4L_StreamState
    , sessionData (NULL)
   {}
 
-  struct Test_I_V4L_SessionData* sessionData;
+  Test_I_V4L_SessionData* sessionData;
 };
 #endif // ACE_WIN32 || ACE_WIN64
 

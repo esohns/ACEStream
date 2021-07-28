@@ -1008,6 +1008,8 @@ typedef Stream_CamSave_EventHandler_T<Stream_CamSave_LibCamera_ISessionNotify_t,
                                       Common_UI_wxWidgets_IApplicationBase_t,
 #elif defined (QT_USE)
                                       struct Common_UI_Qt_State,
+#else
+                                      struct Common_UI_State,
 #endif
 #endif // GUI_SUPPORT
                                       Stream_CamSave_LibCamera_SessionMessage_t> Stream_CamSave_LibCamera_EventHandler_t;
@@ -1021,6 +1023,8 @@ typedef Stream_CamSave_EventHandler_T<Stream_CamSave_V4L_ISessionNotify_t,
                                       Common_UI_wxWidgets_IApplicationBase_t,
 #elif defined (QT_USE)
                                       struct Common_UI_Qt_State,
+#else
+                                      struct Common_UI_State,
 #endif
 #endif // GUI_SUPPORT
                                       Stream_CamSave_V4L_SessionMessage_t> Stream_CamSave_V4L_EventHandler_t;
@@ -1036,6 +1040,8 @@ struct Stream_CamSave_ProgressData
  : Test_I_Qt_ProgressData
 #elif defined (WXWIDGETS_USE)
  : Test_I_wxWidgets_ProgressData
+#else
+ : Test_I_UI_ProgressData
 #endif
 {
   Stream_CamSave_ProgressData ()
@@ -1045,6 +1051,8 @@ struct Stream_CamSave_ProgressData
     : Test_I_Qt_ProgressData ()
 #elif defined (WXWIDGETS_USE)
    : Test_I_wxWidgets_ProgressData ()
+#else
+   : Test_I_UI_ProgressData ()
 #endif
    , statistic ()
   {}
@@ -1059,6 +1067,8 @@ struct Stream_CamSave_UI_CBData
  : Test_I_Qt_CBData
 #elif defined (WXWIDGETS_USE)
  : Test_I_wxWidgets_CBData
+#else
+ : Test_I_UI_CBData
 #endif
 {
   Stream_CamSave_UI_CBData ()
@@ -1068,6 +1078,8 @@ struct Stream_CamSave_UI_CBData
    : Test_I_Qt_CBData ()
 #elif defined (WXWIDGETS_USE)
    : Test_I_wxWidgets_CBData ()
+#else
+   : Test_I_UI_CBData ()
 #endif
    , isFirst (true)
    , progressData ()
@@ -1192,6 +1204,8 @@ struct Stream_CamSave_UI_ThreadData
  : Test_I_Qt_ThreadData
 #elif defined (WXWIDGETS_USE)
  : Test_I_wxWidgets_ThreadData
+#else
+ : Test_I_UI_ThreadData
 #endif
 {
   Stream_CamSave_UI_ThreadData ()
@@ -1201,6 +1215,8 @@ struct Stream_CamSave_UI_ThreadData
    : Test_I_Qt_ThreadData ()
 #elif defined (WXWIDGETS_USE)
    : Test_I_wxWidgets_ThreadData ()
+#else
+   : Test_I_UI_ThreadData ()
 #endif
    , CBData (NULL)
   {}

@@ -36,6 +36,8 @@
 #define TEST_I_UI_DEFINITION_FILE              "mainwindow.ui"
 #elif defined (WXWIDGETS_USE)
 #define TEST_I_UI_DEFINITION_FILE              "camsave.xrc"
+#else
+#define TEST_I_UI_DEFINITION_FILE              ""
 #endif // WXWIDGETS_USE
 #define TEST_I_UI_CSS_FILE                     "camsave.css"
 

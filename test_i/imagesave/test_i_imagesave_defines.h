@@ -34,7 +34,9 @@
 #define TEST_I_UI_DEFINITION_FILE              "mainwindow.ui"
 #elif defined (WXWIDGETS_USE)
 #define TEST_I_UI_DEFINITION_FILE              "imagesave.xrc"
-#endif // WXWIDGETS_USE
+#else
+#define TEST_I_UI_DEFINITION_FILE              ""
+#endif
 #define TEST_I_UI_CSS_FILE                     "imagesave.css"
 
 //---------------------------------------

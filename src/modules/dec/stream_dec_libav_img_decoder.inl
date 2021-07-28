@@ -152,7 +152,7 @@ Stream_Decoder_LibAV_ImageDecoder_T<ACE_SYNCH_USE,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Decoder_LibAV_ImageDecoder_T::initialize"));
 
-  int result = -1;
+//  int result = -1;
 
   if (inherited::isInitialized_)
   {

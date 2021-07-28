@@ -111,7 +111,7 @@ Stream_Decoder_ImageMagick_Decoder_T<ACE_SYNCH_USE,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Decoder_ImageMagick_Decoder_T::initialize"));
 
-  int result = -1;
+//  int result = -1;
 
   if (inherited::isInitialized_)
   {

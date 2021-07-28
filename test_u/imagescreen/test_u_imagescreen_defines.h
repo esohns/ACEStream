@@ -31,7 +31,9 @@
 #define TEST_U_UI_DEFINITION_FILE              "imagescreen.ui"
 #elif defined (WXWIDGETS_USE)
 #define TEST_U_UI_DEFINITION_FILE              "imagescreen.xrc"
-#endif // WXWIDGETS_USE
+#else
+#define TEST_U_UI_DEFINITION_FILE              ""
+#endif
 #define TEST_U_UI_CSS_FILE                     "imagescreen.css"
 
 //---------------------------------------

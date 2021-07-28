@@ -367,10 +367,16 @@ typedef Test_I_EventHandler_T<Test_I_ISessionNotify_t,
 #if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
                               Common_UI_GTK_State_t,
+#elif defined (QT_USE)
+                              struct Common_UI_Qt_State,
 #elif defined (WXWIDGETS_USE)
                               struct Common_UI_wxWidgets_State,
                               Common_UI_wxWidgets_IApplicationBase_t,
+#else
+                              struct Common_UI_State,
 #endif
+#else
+                              struct Common_UI_State,
 #endif // GUI_SUPPORT
                               Test_I_SessionMessage_t> Test_I_EventHandler_t;
 
@@ -384,6 +390,8 @@ struct Test_I_ImageSave_ProgressData
  : Test_I_Qt_ProgressData
 #elif defined (WXWIDGETS_USE)
  : Test_I_wxWidgets_ProgressData
+#else
+ : Test_I_UI_ProgressData
 #endif
 {
   Test_I_ImageSave_ProgressData ()
@@ -393,6 +401,8 @@ struct Test_I_ImageSave_ProgressData
     : Test_I_Qt_ProgressData ()
 #elif defined (WXWIDGETS_USE)
    : Test_I_wxWidgets_ProgressData ()
+#else
+   : Test_I_UI_ProgressData ()
 #endif
    , statistic ()
   {}
@@ -408,6 +418,8 @@ struct Test_I_ImageSave_UI_CBData
  : Test_I_Qt_CBData
 #elif defined (WXWIDGETS_USE)
  : Test_I_wxWidgets_CBData
+#else
+ : Test_I_UI_CBData
 #endif
 {
   Test_I_ImageSave_UI_CBData ()
@@ -417,6 +429,8 @@ struct Test_I_ImageSave_UI_CBData
    : Test_I_Qt_CBData ()
 #elif defined (WXWIDGETS_USE)
    : Test_I_wxWidgets_CBData ()
+#else
+   : Test_I_UI_CBData ()
 #endif
    , configuration (NULL)
    , progressData ()
@@ -439,6 +453,8 @@ struct Test_I_ImageSave_UI_ThreadData
  : Test_I_Qt_ThreadData
 #elif defined (WXWIDGETS_USE)
  : Test_I_wxWidgets_ThreadData
+#else
+ : Test_I_UI_ThreadData
 #endif
 {
   Test_I_ImageSave_UI_ThreadData ()
@@ -448,6 +464,8 @@ struct Test_I_ImageSave_UI_ThreadData
    : Test_I_Qt_ThreadData ()
 #elif defined (WXWIDGETS_USE)
    : Test_I_wxWidgets_ThreadData ()
+#else
+   : Test_I_UI_ThreadData ()
 #endif
    , CBData (NULL)
   {}

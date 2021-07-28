@@ -113,7 +113,7 @@ class Test_U_AudioEffect_MediaFoundation_EventHandler
 #if defined (GUI_SUPPORT)
 struct Test_U_AudioEffect_UI_CBData;
 #endif // GUI_SUPPORT
-struct Test_U_AudioEffect_SessionData;
+class Test_U_AudioEffect_SessionData;
 
 class Test_U_AudioEffect_EventHandler
  : public Test_U_AudioEffect_ISessionNotify_t

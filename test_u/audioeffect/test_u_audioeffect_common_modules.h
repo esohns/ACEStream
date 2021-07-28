@@ -124,11 +124,11 @@ typedef Stream_Dev_Mic_Source_ALSA_T<ACE_MT_SYNCH,
                                      enum Stream_ControlType,
                                      enum Stream_SessionMessageType,
                                      struct Test_U_AudioEffect_StreamState,
-                                     struct Test_U_AudioEffect_SessionData,
+                                     Test_U_AudioEffect_SessionData,
                                      Test_U_AudioEffect_SessionData_t,
                                      struct Test_U_AudioEffect_Statistic,
                                      Common_Timer_Manager_t> Test_U_Dev_Mic_Source_ALSA;
-DATASTREAM_MODULE_INPUT_ONLY (struct Test_U_AudioEffect_SessionData,                // session data type
+DATASTREAM_MODULE_INPUT_ONLY (Test_U_AudioEffect_SessionData,                       // session data type
                               enum Stream_SessionMessageType,                       // session event type
                               struct Test_U_AudioEffect_ALSA_ModuleHandlerConfiguration, // module handler configuration type
                               libacestream_default_dev_mic_source_alsa_module_name_string,
@@ -242,11 +242,11 @@ typedef Stream_Statistic_StatisticAnalysis_T<ACE_MT_SYNCH,
                                              Test_U_AudioEffect_Message,
                                              Test_U_AudioEffect_SessionMessage,
                                              struct Test_U_AudioEffect_Statistic,
-                                             struct Test_U_AudioEffect_SessionData,
+                                             Test_U_AudioEffect_SessionData,
                                              Test_U_AudioEffect_SessionData_t,
                                              struct Stream_MediaFramework_ALSA_MediaType,
                                              double, 1> Test_U_AudioEffect_StatisticAnalysis;
-DATASTREAM_MODULE_INPUT_ONLY (struct Test_U_AudioEffect_SessionData,                // session data type
+DATASTREAM_MODULE_INPUT_ONLY (Test_U_AudioEffect_SessionData,                       // session data type
                               enum Stream_SessionMessageType,                       // session event type
                               struct Test_U_AudioEffect_ALSA_ModuleHandlerConfiguration, // module handler configuration type
                               libacestream_default_stat_analysis_module_name_string,
@@ -262,7 +262,7 @@ typedef Stream_Statistic_StatisticReport_ReaderTask_T<ACE_MT_SYNCH,
                                                       Stream_CommandType_t,
                                                       struct Test_U_AudioEffect_Statistic,
                                                       Common_Timer_Manager_t,
-                                                      struct Test_U_AudioEffect_SessionData,
+                                                      Test_U_AudioEffect_SessionData,
                                                       Test_U_AudioEffect_SessionData_t> Test_U_AudioEffect_Module_Statistic_ReaderTask_t;
 typedef Stream_Statistic_StatisticReport_WriterTask_T<ACE_MT_SYNCH,
                                                       Common_TimePolicy_t,
@@ -273,9 +273,9 @@ typedef Stream_Statistic_StatisticReport_WriterTask_T<ACE_MT_SYNCH,
                                                       Stream_CommandType_t,
                                                       struct Test_U_AudioEffect_Statistic,
                                                       Common_Timer_Manager_t,
-                                                      struct Test_U_AudioEffect_SessionData,
+                                                      Test_U_AudioEffect_SessionData,
                                                       Test_U_AudioEffect_SessionData_t> Test_U_AudioEffect_Module_Statistic_WriterTask_t;
-DATASTREAM_MODULE_DUPLEX (struct Test_U_AudioEffect_SessionData,                // session data type
+DATASTREAM_MODULE_DUPLEX (Test_U_AudioEffect_SessionData,                       // session data type
                           enum Stream_SessionMessageType,                       // session event type
                           struct Test_U_AudioEffect_ALSA_ModuleHandlerConfiguration, // module handler configuration type
                           libacestream_default_stat_report_module_name_string,
@@ -362,8 +362,8 @@ typedef Stream_Decoder_SoXEffect_T<ACE_MT_SYNCH,
                                    Test_U_AudioEffect_Message,
                                    Test_U_AudioEffect_SessionMessage,
                                    Test_U_AudioEffect_SessionData_t,
-                                   struct Test_U_AudioEffect_SessionData> Test_U_AudioEffect_SoXEffect;
-DATASTREAM_MODULE_INPUT_ONLY (struct Test_U_AudioEffect_SessionData,                  // session data type
+                                   Test_U_AudioEffect_SessionData> Test_U_AudioEffect_SoXEffect;
+DATASTREAM_MODULE_INPUT_ONLY (Test_U_AudioEffect_SessionData,                         // session data type
                               enum Stream_SessionMessageType,                         // session event type
                               struct Test_U_AudioEffect_ALSA_ModuleHandlerConfiguration,   // module handler configuration type
                               libacestream_default_dec_sox_effect_module_name_string,
@@ -377,8 +377,8 @@ typedef Stream_Dev_Target_ALSA_T<ACE_MT_SYNCH,
                                  Test_U_AudioEffect_Message,
                                  Test_U_AudioEffect_SessionMessage,
                                  Stream_SessionId_t,
-                                 struct Test_U_AudioEffect_SessionData> Test_U_AudioEffect_Target_ALSA;
-DATASTREAM_MODULE_INPUT_ONLY (struct Test_U_AudioEffect_SessionData,                   // session data type
+                                 Test_U_AudioEffect_SessionData> Test_U_AudioEffect_Target_ALSA;
+DATASTREAM_MODULE_INPUT_ONLY (Test_U_AudioEffect_SessionData,                          // session data type
                               enum Stream_SessionMessageType,                          // session event type
                               struct Test_U_AudioEffect_ALSA_ModuleHandlerConfiguration,    // module handler configuration type
                               libacestream_default_dev_target_alsa_module_name_string,
@@ -411,10 +411,10 @@ typedef Stream_Decoder_WAVEncoder_T<ACE_MT_SYNCH,
                                     Test_U_AudioEffect_Message,
                                     Test_U_AudioEffect_SessionMessage,
                                     Test_U_AudioEffect_SessionData_t,
-                                    struct Test_U_AudioEffect_SessionData,
+                                    Test_U_AudioEffect_SessionData,
                                     struct Stream_MediaFramework_ALSA_MediaType,
                                     struct Test_U_AudioEffect_Statistic> Test_U_AudioEffect_ALSA_WAVEncoder;
-DATASTREAM_MODULE_INPUT_ONLY (struct Test_U_AudioEffect_SessionData,                   // session data type
+DATASTREAM_MODULE_INPUT_ONLY (Test_U_AudioEffect_SessionData,                          // session data type
                               enum Stream_SessionMessageType,                          // session event type
                               struct Test_U_AudioEffect_ALSA_ModuleHandlerConfiguration,    // module handler configuration type
                               libacestream_default_dec_wav_encoder_module_name_string,
@@ -454,7 +454,7 @@ typedef Stream_Module_FileWriter_T<ACE_MT_SYNCH,
                                    Stream_ControlMessage_t,
                                    Test_U_AudioEffect_Message,
                                    Test_U_AudioEffect_SessionMessage> Test_U_AudioEffect_Module_FileWriter;
-DATASTREAM_MODULE_INPUT_ONLY (struct Test_U_AudioEffect_SessionData,                // session data type
+DATASTREAM_MODULE_INPUT_ONLY (Test_U_AudioEffect_SessionData,                       // session data type
                               enum Stream_SessionMessageType,                       // session event type
                               struct Test_U_AudioEffect_ALSA_ModuleHandlerConfiguration, // module handler configuration type
                               libacestream_default_file_sink_module_name_string,

@@ -2,9 +2,9 @@ include (${CMAKE_CURRENT_SOURCE_DIR}/../../Common/scripts/Threads.cmake)
 
 include (${CMAKE_CURRENT_SOURCE_DIR}/../../Common/scripts/ACE.cmake)
 
-if (UNIX)
- add_compile_options (-std=c++17) # *NOTE*: required by libcamera
-endif (UNIX)
+#if (UNIX)
+# add_compile_options (-std=c++17) # *NOTE*: required by libcamera
+#endif (UNIX)
 
 option (BUILD_TEST_I "build test_i" OFF)
 

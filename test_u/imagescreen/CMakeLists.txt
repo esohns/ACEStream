@@ -157,15 +157,6 @@ elseif (WIN32)
  endif (WIN32 AND (CMAKE_BUILD_TYPE STREQUAL Debug))
 endif ()
 
-set (LLVM_COMPILER_ID_STRING "Clang")
-string (TOLOWER "${LLVM_COMPILER_ID_STRING}" LLVM_COMPILER_ID_STRING_LOWER)
-string (TOLOWER "${CMAKE_CXX_COMPILER_ID}" CXX_COMPILER_ID_STRING_LOWER)
-if (CXX_COMPILER_ID_STRING_LOWER STREQUAL LLVM_COMPILER_ID_STRING_LOWER)
- add_compile_options (-std=c++11)
-#add_compile_options (-fPIC)
- add_definitions (-D_GLIBCXX_USE_CXX11_ABI=0)
-endif ()
-
 cmake_policy (SET CMP0065 OLD) # do not add flags to export symbols from executables without the ENABLE_EXPORTS target property
 
 set (ui_definition_file "")
@@ -304,7 +295,10 @@ install (TARGETS ${EXECUTABLE}
          EXPORT ${PROJECT_NAME}Targets
          RUNTIME DESTINATION ${INSTALL_BIN_DIR} COMPONENT test_u)
 if (UNIX)
- install (FILES etc/${ui_definition_file}
+ if (NOT ${ui_definition_file} STREQUAL "")
+  set (config_files "${config_files} etc/${ui_definition_file}")
+ endif ()
+ install (FILES ${config_files}
           DESTINATION "${CMAKE_INSTALL_DATAROOTDIR}/${PROJECT_NAME}/${EXECUTABLE}" COMPONENT config)
 elseif (WIN32)
  get_filename_component (ACE_LIB_PATH ${ACE_LIBRARY}

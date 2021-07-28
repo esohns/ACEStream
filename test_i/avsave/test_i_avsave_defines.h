@@ -36,6 +36,8 @@
 #define TEST_I_UI_DEFINITION_FILE              "mainwindow.ui"
 #elif defined (WXWIDGETS_USE)
 #define TEST_I_UI_DEFINITION_FILE              "avsave.xrc"
+#else
+#define TEST_I_UI_DEFINITION_FILE              ""
 #endif // WXWIDGETS_USE
 #define TEST_I_UI_CSS_FILE                     "avsave.css"
 

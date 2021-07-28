@@ -168,7 +168,7 @@ Stream_Module_CamSource_LibCamera_T<ACE_SYNCH_USE,
 
       libcamera::StreamRoles roles_a;
       libcamera::StreamConfiguration* configuration_p = NULL;
-      libcamera::FrameBuffer* buffer_p = NULL;
+//      libcamera::FrameBuffer* buffer_p = NULL;
       int status_i = -1;
       std::unique_ptr<libcamera::Request> request_p;
 

@@ -1313,7 +1313,7 @@ Test_U_AudioEffect_ALSA_Stream::initialize (const typename inherited::CONFIGURAT
   ACE_ASSERT (configuration_in.configuration);
   bool setup_pipeline = configuration_in.configuration->setupPipeline;
   bool reset_setup_pipeline = false;
-  struct Test_U_AudioEffect_SessionData* session_data_p = NULL;
+  Test_U_AudioEffect_SessionData* session_data_p = NULL;
   typename inherited::CONFIGURATION_T::ITERATOR_T iterator;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   struct Test_U_AudioEffect_DirectShow_ModuleHandlerConfiguration* directshow_configuration_p =
@@ -1358,7 +1358,7 @@ Test_U_AudioEffect_ALSA_Stream::initialize (const typename inherited::CONFIGURAT
   // sanity check(s)
   ACE_ASSERT (inherited::sessionData_);
   session_data_p =
-    &const_cast<struct Test_U_AudioEffect_SessionData&> (inherited::sessionData_->getR ());
+    &const_cast<Test_U_AudioEffect_SessionData&> (inherited::sessionData_->getR ());
   // *TODO*: remove type inferences
   // sanity check(s)
   iterator =

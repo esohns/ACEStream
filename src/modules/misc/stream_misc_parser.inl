@@ -1015,7 +1015,7 @@ Stream_Module_Parser_T<ACE_SYNCH_USE,
   DataMessageType* message_p = NULL;
   typename DataMessageType::DATA_T* message_data_container_p = NULL;
   typename DataMessageType::DATA_T::DATA_T* message_data_p = NULL;
-  bool do_scan_end = false;
+//  bool do_scan_end = false;
   const typename SessionMessageType::DATA_T::DATA_T* session_data_p = NULL;
   bool result_2 = false;
 

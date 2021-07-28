@@ -271,6 +271,8 @@ typedef Stream_ImageScreen_EventHandler_T<Stream_ImageScreen_ISessionNotify_t,
                                           Common_UI_wxWidgets_IApplicationBase_t,
 #elif defined (QT_USE)
                                           struct Common_UI_Qt_State,
+#else
+                                          struct Common_UI_State,
 #endif
                                           Stream_ImageScreen_SessionMessage_t> Stream_ImageScreen_EventHandler_t;
 
@@ -283,6 +285,8 @@ struct Stream_ImageScreen_ProgressData
  : Test_U_wxWidgets_ProgressData
 #elif defined (QT_USE)
  : Test_U_Qt_ProgressData
+#else
+ : Test_U_UI_ProgressData
 #endif
 {
   Stream_ImageScreen_ProgressData ()
@@ -292,6 +296,8 @@ struct Stream_ImageScreen_ProgressData
    : Test_U_wxWidgets_ProgressData ()
 #elif defined (QT_USE)
    : Test_U_Qt_ProgressData ()
+#else
+   : Test_U_UI_ProgressData ()
 #endif
    , current (0)
    , total (0)
@@ -309,6 +315,8 @@ struct Stream_ImageScreen_UI_CBData
  : Test_U_Qt_CBData
 #elif defined (WXWIDGETS_USE)
  : Test_U_wxWidgets_CBData
+#else
+ : Test_U_UI_CBData
 #endif
 {
   Stream_ImageScreen_UI_CBData ()
@@ -318,6 +326,8 @@ struct Stream_ImageScreen_UI_CBData
    : Test_U_Qt_CBData ()
 #elif defined (WXWIDGETS_USE)
    : Test_U_wxWidgets_CBData ()
+#else
+   : Test_U_UI_CBData ()
 #endif
    , configuration (NULL)
    , isFirst (true)
@@ -342,6 +352,8 @@ struct Stream_ImageScreen_UI_ThreadData
  : Test_U_Qt_ThreadData
 #elif defined (WXWIDGETS_USE)
  : Test_U_wxWidgets_ThreadData
+#else
+ : Test_U_UI_ThreadData
 #endif
 {
   Stream_ImageScreen_UI_ThreadData ()
@@ -351,6 +363,8 @@ struct Stream_ImageScreen_UI_ThreadData
    : Test_U_Qt_ThreadData ()
 #elif defined (WXWIDGETS_USE)
    : Test_U_wxWidgets_ThreadData ()
+#else
+   : Test_U_UI_ThreadData ()
 #endif
    , CBData (NULL)
   {}

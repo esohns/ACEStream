@@ -2297,7 +2297,9 @@ ACE_TMAIN (int argc_in,
                                             NULL))                                        // (ui) logger ?
 #elif defined (WXWIDGETS_USE)
                                             NULL))                                        // (ui) logger ?
-#endif // XXX_USE
+#else
+                                            NULL))                                        // (ui) logger ?
+#endif
 #else
                                             NULL))                                        // (ui) logger ?
 #endif // GUI_SUPPORT

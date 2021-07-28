@@ -46,11 +46,13 @@ class Test_I_EventHandler_T
 #if defined (GUI_SUPPORT)
   Test_I_EventHandler_T (struct Test_I_ImageSave_UI_CBData* // UI callback data
 #if defined (GTK_USE)
-                                );
+                         );
 #elif defined (QT_USE)
-                                );
+                         );
 #elif defined (WXWIDGETS_USE)
-                                 ,InterfaceType*);                // wxWidgets application handle
+                         ,InterfaceType*);                // wxWidgets application handle
+#else
+                         );
 #endif
 #else
   Test_I_EventHandler_T ();

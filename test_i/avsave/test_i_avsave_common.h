@@ -1005,6 +1005,8 @@ typedef Stream_AVSave_EventHandler_T<Stream_AVSave_V4L_ISessionNotify_t,
                                       Common_UI_wxWidgets_IApplicationBase_t,
 #elif defined (QT_USE)
                                       struct Common_UI_Qt_State,
+#else
+                                      struct Common_UI_State,
 #endif
 #endif // GUI_SUPPORT
                                       Stream_AVSave_V4L_SessionMessage_t> Stream_AVSave_V4L_EventHandler_t;
@@ -1020,6 +1022,8 @@ struct Stream_AVSave_ProgressData
  : Test_I_Qt_ProgressData
 #elif defined (WXWIDGETS_USE)
  : Test_I_wxWidgets_ProgressData
+#else
+ : Test_I_UI_ProgressData
 #endif
 {
   Stream_AVSave_ProgressData ()
@@ -1029,6 +1033,8 @@ struct Stream_AVSave_ProgressData
     : Test_I_Qt_ProgressData ()
 #elif defined (WXWIDGETS_USE)
    : Test_I_wxWidgets_ProgressData ()
+#else
+   : Test_I_UI_ProgressData ()
 #endif
    , statistic ()
   {}
@@ -1043,6 +1049,8 @@ struct Stream_AVSave_UI_CBData
  : Test_I_Qt_CBData
 #elif defined (WXWIDGETS_USE)
  : Test_I_wxWidgets_CBData
+#else
+ : Test_I_UI_CBData
 #endif
 {
   Stream_AVSave_UI_CBData ()
@@ -1052,6 +1060,8 @@ struct Stream_AVSave_UI_CBData
    : Test_I_Qt_CBData ()
 #elif defined (WXWIDGETS_USE)
    : Test_I_wxWidgets_CBData ()
+#else
+   : Test_I_UI_CBData ()
 #endif
    , isFirst (true)
    , progressData ()
@@ -1146,6 +1156,8 @@ struct Stream_AVSave_UI_ThreadData
  : Test_I_Qt_ThreadData
 #elif defined (WXWIDGETS_USE)
  : Test_I_wxWidgets_ThreadData
+#else
+ : Test_I_UI_ThreadData
 #endif
 {
   Stream_AVSave_UI_ThreadData ()
@@ -1155,6 +1167,8 @@ struct Stream_AVSave_UI_ThreadData
    : Test_I_Qt_ThreadData ()
 #elif defined (WXWIDGETS_USE)
    : Test_I_wxWidgets_ThreadData ()
+#else
+   : Test_I_UI_ThreadData ()
 #endif
    , CBData (NULL)
   {}

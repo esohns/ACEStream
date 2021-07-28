@@ -210,9 +210,9 @@ Stream_Visualization_ImageMagickResize_T<ACE_SYNCH_USE,
       // *TODO*: remove type inference
       ACE_ASSERT (!session_data_r.formats.empty ());
 
-      int flags_i = 0;
+//      int flags_i = 0;
       MediaType media_type_s;
-      int result = -1;
+//      int result = -1;
       Common_Image_Resolution_t resolution_s;
 
       // stash input format

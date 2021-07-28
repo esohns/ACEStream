@@ -457,9 +457,13 @@ do_work (
 #if defined (GUI_SUPPORT)
   Test_I_EventHandler_t ui_event_handler (&CBData_in
 #if defined (GTK_USE)
-                                                                       );
+                                          );
+#elif defined (QT_USE)
+                                          );
 #elif defined (WXWIDGETS_USE)
-                                                                        ,iapplication_in);
+                                          ,iapplication_in);
+#else
+                                          );
 #endif
 #else
   Test_I_EventHandler_t ui_event_handler;
@@ -476,7 +480,11 @@ do_work (
     &configuration_in.direct3DConfiguration;
 #endif // ACE_WIN32 || ACE_WIN64
   modulehandler_configuration.fileIdentifier.identifier = sourceFilename_in;
+#if defined (GUI_SUPPORT)
+#if defined (GTK_USE) || defined (WXWIDGETS_USE)
   modulehandler_configuration.lock = &state_r.subscribersLock;
+#endif // GTK_USE || WXWIDGETS_USE
+#endif // GUI_SUPPORT
   modulehandler_configuration.subscriber = &ui_event_handler;
   modulehandler_configuration.subscribers = &CBData_in.subscribers;
   modulehandler_configuration.targetFileName = targetFilename_in;
@@ -681,8 +689,12 @@ do_work (
   {
 #endif // GUI_SUPPORT
     Stream_IStreamControlBase* stream_p = NULL;
+#if defined (GUI_SUPPORT)
+#if defined (GTK_USE)
     Common_UI_GTK_Tools::initialize (CBData_in.configuration->GTKConfiguration.argc,
                                      CBData_in.configuration->GTKConfiguration.argv);
+#endif // GTK_USE
+#endif // GUI_SUPPORT
 
     if (!stream.initialize (configuration_in.streamConfiguration))
     {
@@ -892,7 +904,9 @@ ACE_TMAIN (int argc_in,
                                             NULL))                                        // (ui) logger ?
 #elif defined (WXWIDGETS_USE)
                                             NULL))                                        // (ui) logger ?
-#endif // XXX_USE
+#else
+                                            NULL))                                        // (ui) logger ?
+#endif
 #else
                                             NULL))                                        // (ui) logger ?
 #endif // GUI_SUPPORT
@@ -938,6 +952,7 @@ ACE_TMAIN (int argc_in,
   ui_cb_data.configuration = &configuration;
   ui_cb_data_p = &ui_cb_data;
 
+#if defined (GTK_USE)
   ui_cb_data.configuration->GTKConfiguration.argc = argc_in;
   ui_cb_data.configuration->GTKConfiguration.argv = argv_in;
   ui_cb_data.configuration->GTKConfiguration.CBData = &ui_cb_data;
@@ -946,6 +961,7 @@ ACE_TMAIN (int argc_in,
   ui_cb_data.configuration->GTKConfiguration.eventHooks.initHook =
       idle_initialize_UI_cb;
   ui_cb_data.configuration->GTKConfiguration.definition = &gtk_ui_definition;
+#endif // GTK_USE
   ACE_ASSERT (ui_cb_data_p);
 #endif // GUI_SUPPORT
 

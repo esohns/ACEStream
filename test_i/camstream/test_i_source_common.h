@@ -531,6 +531,8 @@ struct Test_I_Source_V4L_ModuleHandlerConfiguration
   wxWindow*                                     window;
 #elif defined (QT_USE)
   XID                                           window;
+#else
+  void*                                         window;
 #endif
 #endif // GUI_SUPPORT
 };

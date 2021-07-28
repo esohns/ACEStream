@@ -51,6 +51,8 @@ class Stream_AVSave_EventHandler_T
                                 );
 #elif defined (WXWIDGETS_USE)
                                  ,InterfaceType*);                // wxWidgets application handle
+#else
+                                );
 #endif
 #else
   Stream_AVSave_EventHandler_T ();
@@ -76,11 +78,10 @@ class Stream_AVSave_EventHandler_T
   ACE_UNIMPLEMENTED_FUNC (Stream_AVSave_EventHandler_T& operator= (const Stream_AVSave_EventHandler_T&))
 
 #if defined (GUI_SUPPORT)
-  struct Stream_AVSave_UI_CBData*             CBData_;
-#if defined (GTK_USE)
-#elif defined (WXWIDGETS_USE)
+  struct Stream_AVSave_UI_CBData*              CBData_;
+#if defined (WXWIDGETS_USE)
   InterfaceType*                               interface_;
-#endif // GTK_USE
+#endif // WXWIDGETS_USE
 #endif // GUI_SUPPORT
   typename SessionMessageType::DATA_T::DATA_T* sessionData_;
 };

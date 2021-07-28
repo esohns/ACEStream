@@ -31,7 +31,7 @@ if (UNIX)
   pkg_check_modules (PKG_OPENGL_GLUT REQUIRED glut)
  endif (OPENGL_SUPPORT)
 
- add_compile_options (-std=c++17)
+# add_compile_options (-std=c++17)
 endif (UNIX)
 if (IMAGEMAGICK_SUPPORT)
  find_package (ImageMagick COMPONENTS MagickCore MagickWand)

@@ -61,21 +61,22 @@ Test_I_EventHandler_T<NotificationType,
 #if defined (GUI_SUPPORT)
                       SessionMessageType>::Test_I_EventHandler_T (struct Test_I_ImageSave_UI_CBData* CBData_in
 #if defined (GTK_USE)
-                                                                                 )
+                                                                  )
 #elif defined (QT_USE)
-                                                                                 )
+                                                                  )
 #elif defined (WXWIDGETS_USE)
-                                                                                  ,InterfaceType* interface_in)
-#endif // GTK_USE
+                                                                  ,InterfaceType* interface_in)
+#else
+                                                                  )
+#endif
 #else
                               SessionMessageType>::Test_I_EventHandler_T ()
 #endif // GUI_SUPPORT
 #if defined (GUI_SUPPORT)
  : CBData_ (CBData_in)
-#if defined (GTK_USE)
-#elif defined (WXWIDGETS_USE)
+#if defined (WXWIDGETS_USE)
  , interface_ (interface_in)
-#endif // GTK_USE
+#endif // WXWIDGETS_USE
 #endif // GUI_SUPPORT
  , sessionData_ (NULL)
 {
