@@ -33,6 +33,10 @@
 
 #if defined (GUI_SUPPORT)
 #include "common_ui_defines.h"
+
+#if defined (GTK_USE)
+#include "common_ui_gtk_manager_common.h"
+#endif // GTK_USE
 #endif // GUI_SUPPORT
 
 #include "stream_macros.h"

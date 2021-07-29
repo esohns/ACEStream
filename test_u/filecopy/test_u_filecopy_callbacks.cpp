@@ -51,7 +51,7 @@ stream_processing_function (void* arg_in)
   result = std::numeric_limits<unsigned long>::max ();
 #else
   result = arg_in;
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
 
   struct Stream_Filecopy_ThreadData* data_p =
       static_cast<struct Stream_Filecopy_ThreadData*> (arg_in);
@@ -115,14 +115,14 @@ stream_processing_function (void* arg_in)
   result = 0;
 #else
   result = NULL;
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
 
 //done:
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   { ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, state_r.lock, -1);
 #else
   { ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, state_r.lock, std::numeric_limits<void*>::max ());
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
     data_p->CBData->progressData.completedActions.insert (ACE_Thread::self ());
   } // end lock scope
 

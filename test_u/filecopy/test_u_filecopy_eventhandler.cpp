@@ -19,19 +19,24 @@
  ***************************************************************************/
 #include "stdafx.h"
 
-//#if defined (GUI_SUPPORT)
-//#if defined (GTK_USE)
-//#include "gtk/gtk.h"
-//#endif // GTK_USE
-//#endif // GUI_SUPPORT
+#if defined (GUI_SUPPORT)
+#if defined (GTK_USE)
+#include "gtk/gtk.h"
+#endif // GTK_USE
+#endif // GUI_SUPPORT
 
-//#include "ace/Synch.h"
 #include "test_u_filecopy_eventhandler.h"
 
 #include "ace/Guard_T.h"
 #include "ace/Synch_Traits.h"
 
 #include "common_ui_defines.h"
+
+#if defined (GUI_SUPPORT)
+#if defined (GTK_USE)
+#include "common_ui_gtk_manager_common.h"
+#endif // GTK_USE
+#endif // GUI_SUPPORT
 
 #include "stream_macros.h"
 

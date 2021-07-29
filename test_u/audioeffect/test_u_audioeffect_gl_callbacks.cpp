@@ -19,7 +19,6 @@
  ***************************************************************************/
 #include "stdafx.h"
 
-//#include "ace/Synch.h"
 #include "test_u_audioeffect_gl_callbacks.h"
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -32,11 +31,12 @@
 
 #include "ace/Log_Msg.h"
 
-#include "stream_macros.h"
+#include "common_file_tools.h"
 
 #include "common_gl_defines.h"
 #include "common_gl_tools.h"
 
+#include "stream_macros.h"
 #ifdef __cplusplus
 extern "C"
 {
