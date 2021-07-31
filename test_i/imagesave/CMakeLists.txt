@@ -234,7 +234,7 @@ if (UNIX)
  target_link_libraries (${EXECUTABLE} ${PKG_V4L2_LIBRARIES})
  target_link_libraries (${EXECUTABLE} ${PKG_FFMPEG_LIBRARIES})
 
-# target_link_libraries (${EXECUTABLE} ${ACEXML_LIBRARY})
+# target_link_libraries (${EXECUTABLE} ${ACE_XML_LIBRARY})
 elseif (WIN32)
  if (MSVC)
   set (CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /NODEFAULTLIB:\"libcmt.lib\"")

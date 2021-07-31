@@ -213,7 +213,7 @@ if (UNIX)
  target_link_libraries (${EXECUTABLE} ${PKG_FFMPEG_LIBRARIES})
  target_link_libraries (${EXECUTABLE} ${PKG_WAYLAND_LIBRARIES})
 
-# target_link_libraries (${EXECUTABLE} ${ACEXML_LIBRARY})
+# target_link_libraries (${EXECUTABLE} ${ACE_XML_LIBRARY})
 elseif (WIN32)
 # target_link_libraries (${EXECUTABLE} dxguid.lib)
  target_link_libraries (${EXECUTABLE} mfplat.lib)
