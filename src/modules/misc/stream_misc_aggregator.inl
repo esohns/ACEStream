@@ -207,19 +207,20 @@ Stream_Module_Aggregator_WriterTask_T<ACE_SYNCH_USE,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Aggregator_WriterTask_T::next"));
 
-  // sanity check(s)
-  ACE_ASSERT (inherited::mod_);
-  typename inherited::IGET_T* iget_p =
-      dynamic_cast<typename inherited::IGET_T*> (inherited::mod_);
-  ACE_ASSERT (iget_p);
-  // *WARNING*: this retrieves the 'most upstream' (sub-)stream
-  typename inherited::STREAM_T& stream_r =
-      const_cast<typename inherited::STREAM_T&> (iget_p->getR ());
-  ACE_ASSERT (stream_r.tail ());
+//  // sanity check(s)
+//  ACE_ASSERT (inherited::mod_);
+//  typename inherited::IGET_T* iget_p =
+//      dynamic_cast<typename inherited::IGET_T*> (inherited::mod_);
+//  ACE_ASSERT (iget_p);
+//  // *WARNING*: this retrieves the 'most upstream' (sub-)stream
+//  typename inherited::STREAM_T& stream_r =
+//      const_cast<typename inherited::STREAM_T&> (iget_p->getR ());
+//  ACE_ASSERT (stream_r.tail ());
 
-  // *WARNING*: this retrieves the tail end of the last stream this was push()ed
-  //            on. The problem: this stream may have already gone away !
-  return stream_r.tail ()->writer ();
+//  // *WARNING*: this retrieves the tail end of the last stream this was push()ed
+//  //            on. The problem: this stream may have already gone away !
+//  return stream_r.tail ()->writer ();
+  return NULL;
 }
 
 template <ACE_SYNCH_DECL,
@@ -573,12 +574,12 @@ Stream_Module_Aggregator_WriterTask_T<ACE_SYNCH_USE,
   // sanity check(s)
   ACE_ASSERT (module_in);
 
-  const MODULE_T* module_p = dynamic_cast<MODULE_T*> (module_in);
-  const MODULE_T* module_2 = NULL;
-  const MODULE_T* tail_p = NULL;
+  MODULE_T* module_p = static_cast<MODULE_T*> (module_in);
+  MODULE_T* module_2 = NULL;
   typename inherited::IGET_T* iget_p = NULL;
   typename inherited::STREAM_T* stream_p = NULL;
   typename inherited::TASK_BASE_T::ISTREAM_T* istream_p = NULL;
+  std::string stream_name;
 
   // sanity check(s)
   ACE_ASSERT (module_p);
@@ -591,96 +592,65 @@ Stream_Module_Aggregator_WriterTask_T<ACE_SYNCH_USE,
     //         --> nothing to do
     return;
   } // end IF
+
+  // step1: (try to) retrieve a stream handle
+  iget_p = dynamic_cast<typename inherited::IGET_T*> (module_p);
+  if (unlikely (!iget_p))
+  {
+    ACE_DEBUG ((LM_DEBUG,
+                ACE_TEXT ("%s: dynamic_cast<Common_IGetR_T>(0x%@) failed, continuing\n"),
+                inherited::mod_->name (),
+                module_p));
+    goto continue_;
+  } // end IF
+  stream_p =
+      &const_cast<typename inherited::STREAM_T&> (iget_p->getR ());
+  istream_p =
+      dynamic_cast<typename inherited::TASK_BASE_T::ISTREAM_T*> (stream_p);
+  if (unlikely (!istream_p))
+  {
+    ACE_DEBUG ((LM_DEBUG,
+                ACE_TEXT ("%s: dynamic_cast<Stream_IStream_T>(0x%@) failed, continuing\n"),
+                inherited::mod_->name (),
+                stream_p));
+    goto continue_;
+  } // end IF
+  stream_name = istream_p->name ();
+
+continue_:
   module_2 = const_cast<MODULE_T*> (module_p)->next ();
   ACE_ASSERT (module_2);
   if (!ACE_OS::strcmp (inherited::mod_->name (),
                        module_2->name ()))
   {
-    // *NOTE*: 'this' is 'downstream'
-    //         --> nothing to do
+    // *NOTE*: 'this' is (the head of-) 'downstream'
+
+    // step2: add map entry
+    { ACE_GUARD (ACE_SYNCH_MUTEX_T, aGuard, lock_);
+      readerLinks_.insert (std::make_pair (stream_name,
+                                           module_p));
+    } // end lock scope
+    //ACE_DEBUG ((LM_DEBUG,
+    //            ACE_TEXT ("%s: linked (%s --> x --> %s)\n"),
+    //            inherited::mod_->name (),
+    //            module_p->name (),
+    //            inherited::mod_->name ()));
+
     return;
   } // end IF
 
-  // *NOTE*: 'this' is (the tail end of-) 'upstream' --> proceed
+  // *NOTE*: 'this' is (the tail end of-) 'upstream'
 
-  // step1: retrieve a stream handle of the module
-  iget_p =
-      dynamic_cast<typename inherited::IGET_T*> (const_cast<MODULE_T*> (module_p));
-  if (!iget_p)
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: dynamic_cast<Common_IGetR_T<ACE_Stream>>(0x%@) failed, returning\n"),
-                module_p->name (),
-                module_p));
-    return;
-  } // end IF
-  stream_p =
-      &const_cast<typename inherited::STREAM_T&> (iget_p->getR ());
-  tail_p = stream_p->tail ();
-  ACE_ASSERT (tail_p);
-  istream_p =
-      dynamic_cast<typename inherited::TASK_BASE_T::ISTREAM_T*> (stream_p);
-  if (unlikely (!istream_p))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: dynamic_cast<Stream_IStream_T>(0x%@) failed, returning\n"),
-                module_p->name (),
-                stream_p));
-    return;
-  } // end IF
-  stream_p = istream_p->upstream (false); // do not recurse
-  ACE_ASSERT (stream_p);
-  istream_p =
-      dynamic_cast<typename inherited::TASK_BASE_T::ISTREAM_T*> (stream_p);
-  if (unlikely (!istream_p))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: dynamic_cast<Stream_IStream_T>(0x%@) failed, returning\n"),
-                module_p->name (),
-                stream_p));
-    return;
-  } // end IF
-
-  // step2: find upstream module (on that stream)
-  for (STREAM_ITERATOR_T iterator (*stream_p);
-       iterator.next (module_2);
-       iterator.advance ())
-  { ACE_ASSERT (const_cast<MODULE_T*> (module_2)->next ());
-    if (!ACE_OS::strcmp (const_cast<MODULE_T*> (module_2)->next ()->name (),
-                         inherited::mod_->name ()))
-      break;
-  } // end FOR
-  if (unlikely (!module_2))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: could not find upstream module, returning\n"),
-                module_p->name ()));
-    return;
-  } // end IF
-
-  // step3: add map entry
+  // step2: add map entry
   { ACE_GUARD (ACE_SYNCH_MUTEX_T, aGuard, lock_);
-    readerLinks_.insert (std::make_pair (istream_p->name (),
-                                         const_cast<MODULE_T*> (module_2)));
-    writerLinks_.insert (std::make_pair (istream_p->name (),
+    writerLinks_.insert (std::make_pair (stream_name,
                                          const_cast<MODULE_T*> (module_p)));
   } // end lock scope
-
-  // step4: reset 'next' module to the stream tail
-  // *IMPORTANT NOTE*: 'this' always references the tail of the modules' stream
-  //                   most recently linked; that may not be accurate
-  // *NOTE*: avoid ACE_Module::link(); it implicitly invokes
-  //         Stream_Module_Base_T::next(), which would effectively remove the
-  //         reader/writer link(s) (see above) again
-  //inherited::mod_->link (tail_p);
-  inherited::mod_->writer ()->next (const_cast<MODULE_T*> (tail_p)->writer ());
-  const_cast<MODULE_T*> (tail_p)->reader ()->next (inherited::mod_->reader ());
-  inherited::mod_->MODULE_T::next (const_cast<MODULE_T*> (tail_p));
 
   //ACE_DEBUG ((LM_DEBUG,
   //            ACE_TEXT ("%s: linked (%s --> x --> %s)\n"),
   //            inherited::mod_->name (),
-  //            module_2->name (),
+  //            inherited::mod_->name (),
   //            module_p->name ()));
 }
 template <ACE_SYNCH_DECL,
@@ -705,7 +675,7 @@ Stream_Module_Aggregator_WriterTask_T<ACE_SYNCH_USE,
 
   // sanity check(s)
   typename inherited::MODULE_T* module_p =
-    dynamic_cast<typename inherited::MODULE_T*> (module_in);
+    static_cast<typename inherited::MODULE_T*> (module_in);
   ACE_ASSERT (module_p);
 
   // remove map entry
@@ -718,6 +688,23 @@ Stream_Module_Aggregator_WriterTask_T<ACE_SYNCH_USE,
       if (!ACE_OS::strcmp (module_p->name (),
                            (*iterator).second->name ()))
         break;
+    iterator_2 = readerLinks_.begin ();
+    for (;
+         iterator_2 != readerLinks_.end ();
+         ++iterator_2)
+      if (!ACE_OS::strcmp (module_p->name (),
+                           (*iterator_2).second->name ()))
+        break;
+
+    if (iterator_2 != readerLinks_.end ())
+    {
+      //ACE_DEBUG ((LM_DEBUG,
+      //            ACE_TEXT ("%s: unlinked (%s: x --> %s)\n"),
+      //            inherited::mod_->name (),
+      //            ACE_TEXT ((*iterator).first.c_str ()),
+      //            (*iterator).second->name ()));
+      readerLinks_.erase (iterator_2);
+    } // end IF
     if (iterator != writerLinks_.end ())
     {
       //ACE_DEBUG ((LM_DEBUG,
@@ -725,9 +712,6 @@ Stream_Module_Aggregator_WriterTask_T<ACE_SYNCH_USE,
       //            inherited::mod_->name (),
       //            ACE_TEXT ((*iterator).first.c_str ()),
       //            (*iterator).second->name ()));
-      iterator_2 = readerLinks_.find ((*iterator).first);
-      ACE_ASSERT (iterator_2 != readerLinks_.end ());
-      readerLinks_.erase (iterator_2);
       writerLinks_.erase (iterator);
     } // end IF
   } // end lock scope

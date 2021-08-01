@@ -31,7 +31,7 @@ class Stream_IOutboundDataNotify
  //: public Common_IGetP_T<ACE_Notification_Strategy>
 {
  public:
-  virtual const ACE_Notification_Strategy* const getP (bool = true) const = 0; // recurse upstream ?
+  virtual const ACE_Notification_Strategy* const getP (bool = false) const = 0; // recurse upstream ?
   // set up event dispatch notification for any outbound data reaching the
   // (most upstream) head modules' ('reader'-)task queue
   virtual bool initialize_2 (ACE_Notification_Strategy*,                                         // strategy handle

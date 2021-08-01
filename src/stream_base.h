@@ -273,6 +273,7 @@ class Stream_Base_T
   virtual void report () const;
 
   // override ACE_Stream method(s)
+  virtual ACE_Module<ACE_SYNCH_USE, TimePolicyType>* tail ();
   inline virtual int get (ACE_Message_Block*& messageBlock_inout, ACE_Time_Value* timeout_in) { return (upstream_ ? upstream_->get (messageBlock_inout, timeout_in) : inherited::get (messageBlock_inout, timeout_in)); }
 
   // *NOTE*: the ACE implementation close(s) the removed module. This is not the

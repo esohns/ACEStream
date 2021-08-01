@@ -224,6 +224,14 @@ class Stream_Module_MessageHandlerA_T
                                       DataMessageType,
                                       SessionMessageType> INOTIFY_T;
   typedef std::list<INOTIFY_T*> SUBSCRIBERS_T;
+  typedef Stream_Module_Aggregator_ReaderTask_T <ACE_SYNCH_USE,
+                                                 TimePolicyType,
+                                                 ConfigurationType,
+                                                 ControlMessageType,
+                                                 DataMessageType,
+                                                 SessionMessageType,
+                                                 Stream_SessionId_t,
+                                                 SessionDataType> READER_T;
 
   // *TODO*: on MSVC 2015u3 the accurate declaration does not compile
 #if defined (ACE_WIN32) || defined (ACE_WIN64)

@@ -98,7 +98,7 @@ class Stream_Miscellaneous_Distributor_T
   inline virtual void waitForIdleState () const { OWN_TYPE_T* this_p = const_cast<OWN_TYPE_T*> (this); this_p->idle (); }
 
   // implement (part of) Stream_ITaskBase_T
-  inline virtual void handleDataMessage (DataMessageType*& message_inout, bool& passMessageDownstream_out) { /*passMessageDownstream_out = true;*/ forward (message_inout, false); }
+  inline virtual void handleDataMessage (DataMessageType*& message_inout, bool& passMessageDownstream_out) { ACE_UNUSED_ARG (passMessageDownstream_out); forward (message_inout, false); }
   virtual void handleSessionMessage (SessionMessageType*&, // session message handle
                                      bool&);               // return value: pass message downstream ?
 

@@ -267,7 +267,7 @@ Stream_Module_Net_IO_Stream_T<ACE_SYNCH_USE,
   typename inherited::CONFIGURATION_T::ITERATOR_T iterator;
 //  HandlerConfigurationType* configuration_p = NULL;
 //  bool reset_configuration = false;
-  MODULE_T* module_p = NULL;
+  typename inherited::MODULE_T* module_p = NULL;
   WRITER_T* IOWriter_impl_p = NULL;
 
   // allocate a new session state, reset stream
@@ -322,9 +322,9 @@ Stream_Module_Net_IO_Stream_T<ACE_SYNCH_USE,
 
   // ******************* IO ************************
   module_p =
-    const_cast<MODULE_T*> (inherited::find (ACE_TEXT_ALWAYS_CHAR (MODULE_NET_IO_DEFAULT_NAME_STRING),
-                                            true,    // sanitize module names ?
-                                            false)); // recurse upstream ?
+    const_cast<typename inherited::MODULE_T*> (inherited::find (ACE_TEXT_ALWAYS_CHAR (MODULE_NET_IO_DEFAULT_NAME_STRING),
+                                               true,    // sanitize module names ?
+                                               false)); // recurse upstream ?
   if (!module_p)
   {
     ACE_DEBUG ((LM_ERROR,
@@ -642,20 +642,32 @@ Stream_Module_Net_IO_Stream_T<ACE_SYNCH_USE,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Net_IO_Stream_T::getP"));
 
+  const typename inherited::MODULE_T* module_p = NULL;
+  typename inherited::TASK_T* task_p = NULL;
   std::string module_name_string = ACE_TEXT_ALWAYS_CHAR ("ACE_Stream_Head");
-  const typename Stream_IStream_T<ACE_SYNCH_USE,
-                                  TimePolicyType>::MODULE_T* module_p =
-    NULL;
-  typename Stream_IStream_T<ACE_SYNCH_USE, TimePolicyType>::TASK_T* task_p =
-    NULL;
 
-  module_p = 
-    (recurseUpstream_in ? const_cast<OWN_TYPE_T*> (this)->inherited::tail ()
-                        : const_cast<OWN_TYPE_T*> (this)->inherited::head ());
+  if (recurseUpstream_in)
+  {
+    typename inherited::ISTREAM_T::STREAM_T* stream_p =
+        inherited::upstream (recurseUpstream_in);
+    if (stream_p)
+    {
+      Stream_IOutboundDataNotify* inotify =
+          dynamic_cast<Stream_IOutboundDataNotify*> (stream_p);
+      if (!inotify)
+        ACE_DEBUG ((LM_WARNING,
+                    ACE_TEXT ("%s: dynamic_cast<Stream_IOutboundDataNotify>(0x%@) failed, continuing\n"),
+                    ACE_TEXT (name_.c_str ()),
+                    stream_p));
+      else
+        return inotify->getP (false);
+    } // end IF
+  } // end IF
+
+  module_p = const_cast<OWN_TYPE_T*> (this)->inherited::head ();
   ACE_ASSERT (module_p);
   task_p =
-      const_cast<typename Stream_IStream_T<ACE_SYNCH_USE,
-                                           TimePolicyType>::MODULE_T*> (module_p)->reader ();
+      const_cast<typename inherited::ISTREAM_T::MODULE_T*> (module_p)->reader ();
   ACE_ASSERT (task_p);
   ACE_ASSERT (task_p->module ());
 retry:
@@ -673,8 +685,7 @@ retry:
     {
       module_name_string = ACE_TEXT_ALWAYS_CHAR (STREAM_MODULE_HEAD_NAME);
       task_p =
-          const_cast<typename Stream_IStream_T<ACE_SYNCH_USE,
-                                               TimePolicyType>::MODULE_T*> (module_p)->reader ();
+          const_cast<typename inherited::MODULE_T*> (module_p)->reader ();
       ACE_ASSERT (task_p);
       ACE_ASSERT (task_p->module ());
       goto retry;
@@ -745,10 +756,8 @@ Stream_Module_Net_IO_Stream_T<ACE_SYNCH_USE,
   std::string module_name_string =
       (moduleName_in.empty () ? ACE_TEXT_ALWAYS_CHAR ("ACE_Stream_Head")
                               : moduleName_in);
-  const typename Stream_IStream_T<ACE_SYNCH_USE, TimePolicyType>::MODULE_T* module_p =
-      NULL;
-  typename Stream_IStream_T<ACE_SYNCH_USE, TimePolicyType>::TASK_T* task_p =
-      NULL;
+  const typename inherited::MODULE_T* module_p = NULL;
+  typename inherited::TASK_T* task_p = NULL;
 
   // sanity check(s)
   ACE_ASSERT (!module_name_string.empty ());
@@ -756,7 +765,7 @@ Stream_Module_Net_IO_Stream_T<ACE_SYNCH_USE,
   module_p = inherited::tail ();
   ACE_ASSERT (module_p);
   task_p =
-      const_cast<typename inherited::ISTREAM_T::MODULE_T*> (module_p)->reader ();
+      const_cast<typename inherited::MODULE_T*> (module_p)->reader ();
   ACE_ASSERT (task_p);
   ACE_ASSERT (task_p->module ());
 retry:
@@ -773,15 +782,16 @@ retry:
     {
       module_name_string = ACE_TEXT_ALWAYS_CHAR (STREAM_MODULE_HEAD_NAME);
       task_p =
-          const_cast<typename inherited::ISTREAM_T::MODULE_T*> (module_p)->reader ();
+          const_cast<typename inherited::MODULE_T*> (module_p)->reader ();
       ACE_ASSERT (task_p);
       ACE_ASSERT (task_p->module ());
       goto retry;
     } // end IF
 
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: no head module reader task found, aborting\n"),
-                ACE_TEXT (name_.c_str ())));
+                ACE_TEXT ("%s: no module (name was: \"%s\") reader task found, aborting\n"),
+                ACE_TEXT (name_.c_str ()),
+                ACE_TEXT (moduleName_in.c_str ())));
     return false;
   } // end IF
   ACE_ASSERT (task_p->msg_queue_);
@@ -859,7 +869,7 @@ Stream_Module_Net_IO_Stream_T<ACE_SYNCH_USE,
     if (!inherited::finishOnDisconnect_)
     {
       inherited::finishOnDisconnect_ = true;
-      ACE_DEBUG ((LM_DEBUG,
+      ACE_DEBUG ((LM_WARNING,
                   ACE_TEXT ("%s: reset finish-on-disconnect\n"),
                   ACE_TEXT (name_.c_str ())));
     } // end ELSE

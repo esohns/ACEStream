@@ -108,8 +108,6 @@ class Stream_Module_Net_IO_Stream_T
 
  public:
   // convenient types
-  typedef ACE_Module<ACE_SYNCH_USE,
-                     TimePolicyType> MODULE_T;
   typedef Stream_Base_T<ACE_SYNCH_USE,
                         TimePolicyType,
                         StreamName,
@@ -162,7 +160,7 @@ class Stream_Module_Net_IO_Stream_T
   inline virtual void waitForIdleState () const { inherited::messageQueue_.waitForIdleState (); }
 
   // implement Stream_IOutboundDataNotify
-  virtual const ACE_Notification_Strategy* const getP (bool = true) const; // recurse upstream ?
+  virtual const ACE_Notification_Strategy* const getP (bool = false) const; // recurse upstream ?
   virtual bool initialize_2 (ACE_Notification_Strategy*,                                     // strategy handle
                              const std::string& = ACE_TEXT_ALWAYS_CHAR ("ACE_Stream_Head")); // module name
 

@@ -24,17 +24,12 @@
 #include <string>
 
 #include "ace/Global_Macros.h"
+#include "ace/Module.h"
+#include "ace/Stream.h"
 #include "ace/Stream_Modules.h"
+#include "ace/Task_T.h"
 
 #include "stream_imodule.h"
-
-// forward declaration(s)
-template <ACE_SYNCH_DECL, class TIME_POLICY>
-class ACE_Task;
-template <ACE_SYNCH_DECL, class TIME_POLICY>
-class ACE_Module;
-template <ACE_SYNCH_DECL, class TIME_POLICY>
-class ACE_Stream;
 
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,
@@ -81,7 +76,8 @@ class Stream_Module_Base_T
   virtual ~Stream_Module_Base_T ();
 
   // override ACE_Module members
-  virtual void next (MODULE_T*); // downstream module handle
+  inline virtual ACE_Module<ACE_SYNCH_USE, TimePolicyType>* next (void) { return inherited::next (); }
+  virtual void next (ACE_Module<ACE_SYNCH_USE, TimePolicyType>*); // downstream module handle
 
   // implement (part of) Stream_IModule_T
   // *IMPORTANT NOTE*: the default implementation simply forwards all module
@@ -186,14 +182,11 @@ class Stream_Module_BaseA_T
                                WriterTaskType> inherited;
 
  public:
-  // convenient types
-  typedef ACE_Module<ACE_SYNCH_USE,
-                     TimePolicyType> MODULE_T;
-
   inline virtual ~Stream_Module_BaseA_T () {}
 
   // override ACE_Module members
-  virtual MODULE_T* next (void); // return value: downstream module handle
+  inline virtual ACE_Module<ACE_SYNCH_USE, TimePolicyType>* next (void) { return NULL; }
+  inline virtual void next (ACE_Module<ACE_SYNCH_USE, TimePolicyType>* module_in) { ACE_UNUSED_ARG (module_in); }
 
  protected:
   Stream_Module_BaseA_T (const std::string&,          // name

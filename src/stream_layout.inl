@@ -109,7 +109,7 @@ Stream_Layout_T<ACE_SYNCH_USE,
   } // end FOR
 
   // step3: set up any sub-branches
-  module_p = stream_in.tail ();
+  module_p = stream_in.STREAM_T::tail ();
   ACE_ASSERT (module_p);
   for (typename std::vector<typename inherited::tree_node*>::const_iterator iterator = distributors_a.begin ();
        iterator != distributors_a.end ();
@@ -313,7 +313,7 @@ Stream_Layout_T<ACE_SYNCH_USE,
       Stream_IDistributorModule* inext_p =
           dynamic_cast<Stream_IDistributorModule*> ((*iterator)->writer ());
       if (!inext_p)
-        break; // *TODO*: something is wrong with the stream
+        break; // --> module is an aggregator
       return_value = inext_p->next ();
       break;
     } // end IF

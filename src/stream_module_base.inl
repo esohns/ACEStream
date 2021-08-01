@@ -319,7 +319,7 @@ Stream_Module_Base_T<ACE_SYNCH_USE,
                      ModuleName,
                      NotificationType,
                      ReaderTaskType,
-                     WriterTaskType>::next (MODULE_T* module_in)
+                     WriterTaskType>::next (ACE_Module<ACE_SYNCH_USE, TimePolicyType>* module_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Base_T::next"));
 
@@ -579,39 +579,6 @@ Stream_Module_BaseA_T<ACE_SYNCH_USE,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_BaseA_T::Stream_Module_BaseA_T"));
 
-}
-
-template <ACE_SYNCH_DECL,
-          typename TimePolicyType,
-          typename SessionIdType,
-          typename SessionDataType,
-          typename SessionEventType,
-          typename ConfigurationType,
-          typename HandlerConfigurationType,
-          const char* ModuleName,
-          typename NotificationType,
-          typename ReaderTaskType,
-          typename WriterTaskType>
-ACE_Module<ACE_SYNCH_USE, TimePolicyType>*
-Stream_Module_BaseA_T<ACE_SYNCH_USE,
-                      TimePolicyType,
-                      SessionIdType,
-                      SessionDataType,
-                      SessionEventType,
-                      ConfigurationType,
-                      HandlerConfigurationType,
-                      ModuleName,
-                      NotificationType,
-                      ReaderTaskType,
-                      WriterTaskType>::next (void)
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_Module_BaseA_T::next"));
-
-  typename inherited::TASK_T* task_p = inherited::writer ();
-  ACE_ASSERT (task_p);
-  typename inherited::TASK_T* task_2 = task_p->next ();
-
-  return (task_2 ? task_2->mod_ : NULL);
 }
 
 template <ACE_SYNCH_DECL,

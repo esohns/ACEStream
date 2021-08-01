@@ -1711,7 +1711,7 @@ Stream_Base_T<ACE_SYNCH_USE,
               ControlMessageType,
               DataMessageType,
               SessionMessageType>::wait (bool waitForThreads_in,
-                                         bool waitForupstream_in,
+                                         bool waitForUpstream_in,
                                          bool waitForDownStream_in) const
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Base_T::wait"));
@@ -1722,7 +1722,7 @@ Stream_Base_T<ACE_SYNCH_USE,
 
   // forward upstream ?
   if (upstream_ &&
-      waitForupstream_in)
+      waitForUpstream_in)
   {
     istreamcontrol_p = dynamic_cast<ISTREAM_CONTROL_T*> (upstream_);
     if (unlikely (!istreamcontrol_p))
@@ -1736,7 +1736,7 @@ Stream_Base_T<ACE_SYNCH_USE,
     } // end IF
     try {
       istreamcontrol_p->wait (waitForThreads_in,
-                              waitForupstream_in,
+                              waitForUpstream_in,
                               waitForDownStream_in);
     } catch (...) {
       ISTREAM_T* istream_p = dynamic_cast<ISTREAM_T*> (upstream_);
@@ -1796,7 +1796,7 @@ Stream_Base_T<ACE_SYNCH_USE,
   } // end IF
   try {
     istreamcontrol_p->wait (false,                 // wait for threads ?
-                            waitForupstream_in,
+                            waitForUpstream_in,
                             waitForDownStream_in);
   } catch (...) {
     ACE_DEBUG ((LM_ERROR,
@@ -3255,6 +3255,47 @@ template <ACE_SYNCH_DECL,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType>
+ACE_Module<ACE_SYNCH_USE, TimePolicyType>*
+Stream_Base_T<ACE_SYNCH_USE,
+              TimePolicyType,
+              StreamName,
+              ControlType,
+              NotificationType,
+              StatusType,
+              StateType,
+              ConfigurationType,
+              StatisticContainerType,
+              HandlerConfigurationType,
+              SessionDataType,
+              SessionDataContainerType,
+              ControlMessageType,
+              DataMessageType,
+              SessionMessageType>::tail ()
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Base_T::tail"));
+
+  Stream_ModuleList_t modules_a = layout_.list (true);
+  if (likely (!modules_a.empty ()))
+    return modules_a.back ();
+
+  return inherited::tail ();
+}
+
+template <ACE_SYNCH_DECL,
+          typename TimePolicyType,
+          const char* StreamName,
+          typename ControlType,
+          typename NotificationType,
+          typename StatusType,
+          typename StateType,
+          typename ConfigurationType,
+          typename StatisticContainerType,
+          typename HandlerConfigurationType,
+          typename SessionDataType,
+          typename SessionDataContainerType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType>
 int
 Stream_Base_T<ACE_SYNCH_USE,
               TimePolicyType,
@@ -3322,7 +3363,7 @@ Stream_Base_T<ACE_SYNCH_USE,
 
   // locate the module just above the upstreams' tail and this' 'top' module
   // (i.e. the module just below the head)
-  MODULE_T* upstream_tail_module_p = upstream_in.tail ();
+  MODULE_T* upstream_tail_module_p = upstream_in.STREAM_T::tail ();
   MODULE_T* trailing_module_p = upstream_in.head ();
   MODULE_T* heading_module_p = NULL;
 
@@ -3518,7 +3559,7 @@ Stream_Base_T<ACE_SYNCH_USE,
   // sanity check(s)
   if (unlikely (!upstream_))
   {
-    ACE_DEBUG ((LM_DEBUG,
+    ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: no upstream; cannot unlink, aborting\n"),
                 ACE_TEXT (StreamName)));
     return -1;
@@ -3527,7 +3568,7 @@ Stream_Base_T<ACE_SYNCH_USE,
   int result = -1;
   // locate the module just above the upstreams' tail and this' 'top' module
   // (i.e. the module just below the head)
-  MODULE_T* upstream_tail_module_p = upstream_->tail ();
+  MODULE_T* upstream_tail_module_p = upstream_->STREAM_T::tail ();
   MODULE_T* trailing_module_p = upstream_->head ();
   MODULE_T* heading_module_p = NULL;
 
@@ -3547,19 +3588,10 @@ Stream_Base_T<ACE_SYNCH_USE,
   MODULE_T* module_p = trailing_module_p->next ();
   do
   {
-    if (unlikely (!module_p))
-    {
-      ISTREAM_T* istream_p = dynamic_cast<ISTREAM_T*> (upstream_);
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("%s/%s: failed to ACE_Module::next(), aborting\n"),
-                  (istream_p ? ACE_TEXT (istream_p->name ().c_str ()) : ACE_TEXT ("")),
-                  trailing_module_p->name ()));
-      return -1;
-    } // end IF
-    ACE_ASSERT (module_p->next ());
-    if (!ACE_OS::strcmp (module_p->next ()->name (),
+    // *IMPORTANT NOTE*: aggregated modules return NULL as next()
+    if (!module_p->next () ||
+        !ACE_OS::strcmp (module_p->next ()->name (),
                          heading_module_p->name ()) ||
-        // *IMPORTANT NOTE*: aggregated modules return tail as next()
         (!ACE_OS::strcmp (module_p->next ()->name (),
                           ACE_TEXT ("ACE_Stream_Tail")) ||
          !ACE_OS::strcmp (module_p->next ()->name (),
@@ -3574,8 +3606,11 @@ Stream_Base_T<ACE_SYNCH_USE,
 
   // separate these two modules
   heading_module_p->reader ()->next (inherited::head ()->reader ());
-  trailing_module_p->next (upstream_tail_module_p);
-  trailing_module_p->writer ()->next (upstream_tail_module_p->writer ());
+  if (likely (trailing_module_p->next ()))
+  {
+    trailing_module_p->next (upstream_tail_module_p);
+    trailing_module_p->writer ()->next (upstream_tail_module_p->writer ());
+  } // end IF
 
   ////////////////////////////////////////
 
