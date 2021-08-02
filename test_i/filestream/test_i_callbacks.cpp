@@ -327,7 +327,7 @@ idle_initialize_source_UI_cb (gpointer userData_in)
     ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (iterator_2 != ui_cb_data_p->configuration->streamConfiguration.end ());
   std::string path =
-      ((*iterator_2).second.second.fileIdentifier.identifier.empty () ? Common_File_Tools::getHomeDirectory (std::string ())
+      ((*iterator_2).second.second.fileIdentifier.identifier.empty () ? Common_File_Tools::getHomeDirectory (ACE_TEXT_ALWAYS_CHAR (""))
                                                                       : (*iterator_2).second.second.fileIdentifier.identifier);
   GFile* file_p = g_file_new_for_path (path.c_str ());
   ACE_ASSERT (file_p);
