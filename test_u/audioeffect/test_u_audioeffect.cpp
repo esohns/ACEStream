@@ -1672,7 +1672,11 @@ ACE_TMAIN (int argc_in,
   Common_UI_Tools::initialize ();
 #if defined (GTK_USE)
   Common_UI_GtkBuilderDefinition_t gtk_ui_definition;
+#if defined (GTKGL_SUPPORT) && defined (GTKGL_USE)
   struct Common_UI_GTK_GLConfiguration* gtk_configuration_p = NULL;
+#else
+  struct Common_UI_GTK_Configuration* gtk_configuration_p = NULL;
+#endif // GTKGL_SUPPORT && GTKGL_USE
   Common_UI_GTK_Manager_t* gtk_manager_p =
     COMMON_UI_GTK_MANAGER_SINGLETON::instance ();
   ACE_ASSERT (gtk_manager_p);
@@ -1772,7 +1776,7 @@ ACE_TMAIN (int argc_in,
   if (!UI_CSS_file.empty ())
     ui_cb_data.configuration->GTKConfiguration.CSSProviders[UI_CSS_file] = NULL;
 #endif // GTK_CHECK_VERSION(3,0,0)
-    gtk_configuration_p = &ui_cb_data.configuration->GTKConfiguration;
+  gtk_configuration_p = &ui_cb_data.configuration->GTKConfiguration;
 #endif // GTK_USE
   cb_data_base_p = &ui_cb_data;
 #endif // ACE_WIN32 || ACE_WIN64
