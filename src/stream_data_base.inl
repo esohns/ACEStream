@@ -95,6 +95,13 @@ Stream_DataBase_T<DataType>::dump_state () const
 {
   STREAM_TRACE (ACE_TEXT ("Stream_DataBase_T::dump_state"));
 
+//  if (data_)
+//  {
+//    Common_IDumpState* idumpstate_p = static_cast<Common_IDumpState*> (data_);
+//    if (idumpstate_p)
+//      idumpstate_p->dump_state ();
+//  } // end IF
+
   ACE_DEBUG ((LM_DEBUG,
               ACE_TEXT ("reference count: %d, delete: %s\n"),
               inherited::refcount_.value (),

@@ -2110,7 +2110,9 @@ do_work (unsigned int bufferSize_in,
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("failed to connect to %s, returning\n"),
-                    ACE_TEXT (Net_Common_Tools::IPAddressToString (listen_address).c_str ())));
+                    ACE_TEXT (Net_Common_Tools::IPAddressToString (listen_address,
+                                                                   false,
+                                                                   false).c_str ())));
 
         // clean up
 #if defined (ACE_WIN32) || defined (ACE_WIN64)

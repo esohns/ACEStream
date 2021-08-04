@@ -579,8 +579,7 @@ Stream_DataMessageBase_2<DataType,
                   ACE_TEXT ("caught exception in Common_IDumpState::dump_state(), continuing\n")));
     }
   } // end IF
-  //   //delegate to base
-  //   inherited::dump_state ();
+  inherited::dump_state ();
 }
 
 template <typename DataType,

@@ -537,7 +537,7 @@ do_work (unsigned int bufferSize_in,
   ACE_ASSERT (iterator != CBData_in.configuration->connectionConfigurations.end ());
   Net_ConnectionConfigurationsIterator_t iterator_2 =
     CBData_in.configuration->connectionConfigurations.find (ACE_TEXT_ALWAYS_CHAR ("UDP"));
-  ACE_ASSERT (iterator != CBData_in.configuration->connectionConfigurations.end ());
+  ACE_ASSERT (iterator_2 != CBData_in.configuration->connectionConfigurations.end ());
   // ********************** stream configuration data **************************
   if (bufferSize_in)
     allocator_configuration.defaultBufferSize = bufferSize_in;
@@ -867,7 +867,9 @@ do_work (unsigned int bufferSize_in,
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("failed to connect to %s, returning\n"),
-                    ACE_TEXT (Net_Common_Tools::IPAddressToString (NET_SOCKET_CONFIGURATION_UDP_CAST((*iterator).second)->listenAddress).c_str ())));
+                    ACE_TEXT (Net_Common_Tools::IPAddressToString (NET_SOCKET_CONFIGURATION_UDP_CAST((*iterator).second)->listenAddress,
+                                                                   false,
+                                                                   false).c_str ())));
 
         Common_Tools::finalizeEventDispatch (event_dispatch_state_s.proactorGroupId,
                                              event_dispatch_state_s.reactorGroupId,

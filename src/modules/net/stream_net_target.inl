@@ -129,7 +129,7 @@ close:
     ACE_DEBUG ((LM_WARNING,
                 ACE_TEXT ("%s: closed connection to %s in dtor --> check implementation !\n"),
                 inherited::mod_->name (),
-                ACE_TEXT (Net_Common_Tools::IPAddressToString (address_).c_str ())));
+                ACE_TEXT (Net_Common_Tools::IPAddressToString (address_, false, false).c_str ())));
   } // end IF
 
   if (unlikely (connection_))
@@ -304,7 +304,7 @@ Stream_Module_Net_Target_T<ACE_SYNCH_USE,
                     ACE_TEXT ("%s: session %u aborted, closed connection to %s\n"),
                     inherited::mod_->name (),
                     session_data_r.sessionId,
-                    ACE_TEXT (Net_Common_Tools::IPAddressToString (address_).c_str ())));
+                    ACE_TEXT (Net_Common_Tools::IPAddressToString (address_, false, false).c_str ())));
       } // end IF
       isOpen_ = false;
 

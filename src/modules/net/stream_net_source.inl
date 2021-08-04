@@ -166,9 +166,9 @@ Stream_Module_Net_Source_Writer_T<ACE_SYNCH_USE,
     {
       connection_->close ();
       ACE_DEBUG ((LM_WARNING,
-                  ACE_TEXT ("%s: closed connection to \"%s\" in dtor --> check implementation !\n"),
+                  ACE_TEXT ("%s: closed connection to %s in dtor --> check implementation !\n"),
                   inherited::mod_->name (),
-                  ACE_TEXT (Net_Common_Tools::IPAddressToString (address_).c_str ())));
+                  ACE_TEXT (Net_Common_Tools::IPAddressToString (address_, false, false).c_str ())));
     } // end IF
 
     connection_->decrease ();
@@ -231,7 +231,7 @@ Stream_Module_Net_Source_Writer_T<ACE_SYNCH_USE,
       ACE_DEBUG ((LM_DEBUG,
                   ACE_TEXT ("%s: closed connection to %s (id was: %u)\n"),
                   inherited::mod_->name (),
-                  ACE_TEXT (Net_Common_Tools::IPAddressToString (peer_address).c_str ()),
+                  ACE_TEXT (Net_Common_Tools::IPAddressToString (peer_address, false, false).c_str ()),
                   id));
     } // end IF
     isOpen_ = false;

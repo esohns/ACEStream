@@ -408,10 +408,18 @@ Stream_MessageBase_T<//AllocatorConfigurationType,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MessageBase_T::dump_state"));
 
-  ACE_DEBUG ((LM_INFO,
-              ACE_TEXT ("message (id: %u, type: %d)\n"),
+  char buffer_a[BUFSIZ + 1];
+  unsigned int bytes_to_copy =
+      ((inherited::length () > BUFSIZ) ? BUFSIZ : inherited::length ());
+  ACE_OS::memcpy (buffer_a,
+                  inherited::rd_ptr (),
+                  bytes_to_copy);
+  buffer_a[bytes_to_copy] = '\0';
+  ACE_DEBUG ((LM_DEBUG,
+              ACE_TEXT ("message (id: %u, type: %d)\n%s\n"),
               id_,
-              type_));
+              type_,
+              buffer_a));
 }
 
 template <//typename AllocatorConfigurationType,

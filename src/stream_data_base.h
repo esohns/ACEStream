@@ -36,9 +36,7 @@ class Stream_DataBase_T
  , public Common_ISetPR_T<DataType>
  , public Common_IDumpState
 {
-// friend class Stream_DataMessageBase_T<AllocatorConfigurationType,
-//                                       Stream_DataBase_T<DataType>,
-//                                       CommandType>;
+  typedef ACE_Refcountable_T<ACE_SYNCH_MUTEX> inherited;
 
  public:
   Stream_DataBase_T ();
@@ -73,8 +71,6 @@ class Stream_DataBase_T
   typedef DataType DATA_T;
 
  private:
-  typedef ACE_Refcountable_T<ACE_SYNCH_MUTEX> inherited;
-
   DataType* data_;
   bool      delete_;
 };

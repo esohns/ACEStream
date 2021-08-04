@@ -180,6 +180,10 @@ Stream_Module_Net_Source_HTTP_Get_T<ACE_SYNCH_USE,
     case HTTP_Codes::HTTP_STATUS_MOVEDPERMANENTLY:
     case HTTP_Codes::HTTP_STATUS_MOVEDTEMPORARILY:
     case HTTP_Codes::HTTP_STATUS_NOTMODIFIED:
+    case HTTP_Codes::HTTP_STATUS_USEPROXY:
+    case HTTP_Codes::HTTP_STATUS_SWITCHPROXY:
+    case HTTP_Codes::HTTP_STATUS_TEMPORARYREDIRECT:
+    case HTTP_Codes::HTTP_STATUS_PERMANENTREDIRECT:
     {
       std::string host_name_string_2;
       std::string uri_string_2;
@@ -196,7 +200,7 @@ Stream_Module_Net_Source_HTTP_Get_T<ACE_SYNCH_USE,
                     ACE_TEXT (HTTP_PRT_HEADER_LOCATION_STRING)));
         goto error;
       } // end IF
-      ACE_DEBUG ((LM_INFO,
+      ACE_DEBUG ((LM_DEBUG,
                   ACE_TEXT ("%s: \"%s\" has been redirected to \"%s\" (status was: %d)\n"),
                   inherited::mod_->name (),
                   ACE_TEXT (inherited::configuration_->URL.c_str ()),
@@ -229,7 +233,7 @@ Stream_Module_Net_Source_HTTP_Get_T<ACE_SYNCH_USE,
       } // end IF
       if (likely ((host_name_string != host_name_string_2) ||
                   (use_SSL != use_SSL_2)))
-      {
+      { // *TODO*
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: URL (was: \"%s\") redirects to a different host, and/or requires a HTTP(S) connection, cannot proceed\n"),
                     inherited::mod_->name (),
