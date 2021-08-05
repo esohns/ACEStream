@@ -619,8 +619,8 @@ Stream_AVSave_MediaFoundation_Stream::start ()
 
 void
 Stream_AVSave_MediaFoundation_Stream::stop (bool waitForCompletion_in,
-                                             bool recurseUpstream_in,
-                                             bool lockedAccess_in)
+                                            bool recurseUpstream_in,
+                                            bool lockedAccess_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_AVSave_MediaFoundation_Stream::stop"));
 
@@ -820,6 +820,7 @@ Stream_AVSave_MediaFoundation_Stream::Invoke (IMFAsyncResult* result_in)
                   ACE_TEXT (stream_name_string_)));
       if (isRunning ())
         stop (false,
+              false,
               true);
       break;
     }

@@ -121,11 +121,9 @@ class Stream_Statistic_StatisticAnalysis_T
   ACE_UNIMPLEMENTED_FUNC (Stream_Statistic_StatisticAnalysis_T (const Stream_Statistic_StatisticAnalysis_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Statistic_StatisticAnalysis_T& operator= (const Stream_Statistic_StatisticAnalysis_T&))
 
-  //virtual int svc (void);
-
   virtual void Process (unsigned int,  // starting slot index
                         unsigned int); // ending slot index
-  inline virtual ValueType Value (unsigned int slot_in, unsigned int subSlot_in) const { ACE_ASSERT (false); ACE_NOTSUP_RETURN (0); ACE_NOTREACHED (return 0;) }
+  inline virtual ValueType Value (unsigned int slot_in, unsigned int subSlot_in) const { ACE_UNUSED_ARG (slot_in); ACE_UNUSED_ARG (subSlot_in); ACE_ASSERT (false); ACE_NOTSUP_RETURN (0); ACE_NOTREACHED (return 0;) }
 
   // peak detection
 

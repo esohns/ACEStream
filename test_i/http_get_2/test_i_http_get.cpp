@@ -966,7 +966,8 @@ do_work (const std::string& bootstrapFileName_in,
   istream_base_p->wait (true, false, false);
 
   // step3: clean up
-  connection_manager_p->stop ();
+  connection_manager_p->stop (false, true, true);
+  connection_manager_p->abort ();
   connection_manager_p->wait ();
   Common_Tools::finalizeEventDispatch (event_dispatch_state_s.proactorGroupId,
                                        event_dispatch_state_s.reactorGroupId,

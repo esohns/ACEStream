@@ -137,10 +137,5 @@ Stream_Filecopy_SignalHandler::handle (const struct Common_Signal& signal_in)
     //                configuration_.actionTimerId));
     //  configuration_.actionTimerId = -1;
     //} // end IF
-
-    // step2: stop GTK event processing
-    // *NOTE*: triggering UI shutdown from a widget callback is more consistent,
-    //         compared to doing it here
-//    COMMON_UI_GTK_MANAGER_SINGLETON::instance ()->stop (false, true);
   } // end IF
 }

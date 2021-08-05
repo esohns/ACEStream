@@ -61,7 +61,12 @@ template <ACE_SYNCH_DECL,
 class Stream_TaskBase_T
  : public Common_TaskBase_T<ACE_SYNCH_USE,
                             TimePolicyType,
-                            LockType>
+                            LockType,
+                            ACE_Message_Block,
+                            ACE_Message_Queue<ACE_SYNCH_USE,
+                                              TimePolicyType>,
+                            ACE_Task<ACE_SYNCH_USE,
+                                     TimePolicyType> >
  , public Stream_ITask_T<ControlMessageType,
                          DataMessageType,
                          SessionMessageType>
@@ -74,19 +79,27 @@ class Stream_TaskBase_T
 {
   typedef Common_TaskBase_T<ACE_SYNCH_USE,
                             TimePolicyType,
-                            LockType> inherited;
+                            LockType,
+                            ACE_Message_Block,
+                            ACE_Message_Queue<ACE_SYNCH_USE,
+                                              TimePolicyType>,
+                            ACE_Task<ACE_SYNCH_USE,
+                                     TimePolicyType> > inherited;
 
  public:
   // convenient types
   typedef Common_TaskBase_T<ACE_SYNCH_USE,
                             TimePolicyType,
-                            LockType> TASK_BASE_T;
+                            LockType,
+                            ACE_Message_Block,
+                            ACE_Message_Queue<ACE_SYNCH_USE,
+                                              TimePolicyType>,
+                            ACE_Task<ACE_SYNCH_USE,
+                                     TimePolicyType> > TASK_BASE_T;
   typedef Stream_IStream_T<ACE_SYNCH_USE,
                            TimePolicyType> ISTREAM_T;
 
   virtual ~Stream_TaskBase_T ();
-
-//  using inherited::finished;
 
   // implement (part of) Stream_ITaskBase_T
   // *NOTE*: these are just default (essentially NOP) implementations
@@ -105,16 +118,10 @@ class Stream_TaskBase_T
   virtual const ISTREAM_T* const getP () const;
   inline virtual const ConfigurationType& getR () const { ACE_ASSERT (configuration_);  return *configuration_; }
 
-//  // implement Common_IDumpState
-//  inline virtual void dump_state () const {};
-
  protected:
   // convenient types
   typedef ACE_Stream<ACE_SYNCH_USE,
                      TimePolicyType> STREAM_T;
-  typedef Common_TaskBase_T<ACE_SYNCH_USE,
-                            TimePolicyType,
-                            LockType> COMMON_TASK_BASE_T;
   typedef Common_IGetR_T<STREAM_T> IGET_T;
   typedef Stream_MessageQueue_T<ACE_SYNCH_USE,
                                 TimePolicyType,
@@ -145,6 +152,13 @@ class Stream_TaskBase_T
                                   bool&);             // return value: pass message downstream ?
 
   virtual void notify (SessionEventType); // session event
+
+  // helper methods
+  // *NOTE*: 'high priority' effectively means that the message is enqueued at
+  //         the head end (i.e. will be the next to dequeue), whereas it would
+  //         be enqueued at the tail end otherwise
+  virtual void control (int,           // message type
+                        bool = false); // high-priority ?
 
   // *TODO*: make this 'private' and use 'friend' access
   bool                                 aggregate_; // support multiple initializations ?
@@ -178,7 +192,6 @@ class Stream_TaskBase_T
   ACE_UNIMPLEMENTED_FUNC (Stream_TaskBase_T& operator= (const Stream_TaskBase_T&))
 
   // override/hide ACE_Task_Base members
-  //virtual void next (typename inherited::TASK_T*); // downstream task handle
   inline virtual int put (ACE_Message_Block* messageBlock_in, ACE_Time_Value* timeValue_in) { return inherited::put_next (messageBlock_in, timeValue_in); }
 
   bool                                 freeSessionData_;

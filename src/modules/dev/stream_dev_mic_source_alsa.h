@@ -105,10 +105,6 @@ class Stream_Dev_Mic_Source_ALSA_T
   virtual bool initialize (const ConfigurationType&,
                            Stream_IAllocator* = NULL);
 
-  //virtual void start ();
-  //virtual void stop (bool = true,  // wait for completion ?
-  //                   bool = true); // locked access ?
-
   // implement Common_IStatistic
   // *NOTE*: implements regular (timer-based) statistic collection
   virtual bool collect (StatisticContainerType&); // return value: (currently unused !)
@@ -118,8 +114,6 @@ class Stream_Dev_Mic_Source_ALSA_T
   bool isInitialized () const;
 
 //  // implement (part of) Stream_ITaskBase
-//  virtual void handleDataMessage (ProtocolMessageType*&, // data message handle
-//                                  bool&);                // return value: pass message downstream ?
   virtual void handleSessionMessage (SessionMessageType*&, // session message handle
                                      bool&);               // return value: pass message downstream ?
 

@@ -138,4 +138,5 @@ continue_:
     default:
       return;
   } // end SWITCH
+  ACE_UNUSED_ARG (event_e);
 }

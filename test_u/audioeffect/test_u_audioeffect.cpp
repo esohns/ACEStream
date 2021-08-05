@@ -1455,7 +1455,9 @@ do_work (unsigned int bufferSize_in,
 error:
 #if defined (GUI_SUPPORT)
   if (!UIDefinitionFile_in.empty () && itask_control_p)
-    itask_control_p->stop (true); // wait for completion ?
+    itask_control_p->stop (true,  // wait ?
+                           true,  // high priority ?
+                           true); // locked access ?
 #endif // GUI_SUPPORT
   timer_manager_p->stop ();
 }

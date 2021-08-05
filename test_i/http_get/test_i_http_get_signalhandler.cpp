@@ -146,8 +146,9 @@ Stream_Source_SignalHandler::handle (const struct Common_Signal& signal_in)
     Test_I_Stream_IInetConnectionManager_t* connection_manager_p =
         TEST_I_STREAM_CONNECTIONMANAGER_SINGLETON::instance ();
     ACE_ASSERT (connection_manager_p);
-    connection_manager_p->stop ();
+    connection_manager_p->stop (false, true, true);
     connection_manager_p->abort ();
+    connection_manager_p->wait ();
 
     // step5: stop reactor (&& proactor, if applicable)
     Common_Tools::finalizeEventDispatch (inherited::configuration_->dispatchState->reactorGroupId,  // stop reactor ?

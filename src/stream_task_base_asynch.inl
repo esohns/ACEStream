@@ -371,8 +371,9 @@ Stream_TaskBaseAsynch_T<ACE_SYNCH_USE,
   STREAM_TRACE (ACE_TEXT ("Stream_TaskBaseAsynch_T::module_closed"));
 
 //  if (inherited::thr_count_ > 0)
-//    inherited::stop (true,   // wait ?
-//                     false); // N/A
+//    inherited::stop (true,  // wait ?
+//                     false, // high priority ?
+//                     true); // locked access ?
 
   return 0;
 }
@@ -438,7 +439,7 @@ template <ACE_SYNCH_DECL,
           typename SessionControlType,
           typename SessionEventType,
           typename UserDataType>
-int
+void
 Stream_TaskBaseAsynch_T<ACE_SYNCH_USE,
                         TimePolicyType,
                         ConfigurationType,
@@ -448,70 +449,19 @@ Stream_TaskBaseAsynch_T<ACE_SYNCH_USE,
                         SessionIdType,
                         SessionControlType,
                         SessionEventType,
-                        UserDataType>::svc (void)
+                        UserDataType>::stop (bool waitForCompletion_in,
+                                             bool highPriority_in,
+                                             bool lockedAccess_in)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_TaskBaseAsynch_T::svc"));
+  STREAM_TRACE (ACE_TEXT ("Stream_TaskBaseAsynch_T::stop"));
 
-#if defined (_DEBUG)
-  ACE_DEBUG ((LM_DEBUG,
-              ACE_TEXT ("%s: worker thread %t starting...\n"),
-              inherited::mod_->name ()));
-#endif // _DEBUG
+  ACE_UNUSED_ARG (lockedAccess_in);
 
-  ACE_Message_Block* message_block_p = NULL;
-  ACE_Message_Block::ACE_Message_Type message_type;
-  int result = -1;
-  int result_2 = -1;
-  int error = -1;
-  bool stop_processing = false;
+  control (ACE_Message_Block::MB_STOP,
+           highPriority_in);
 
-  do
-  {
-    result = inherited::getq (message_block_p, NULL);
-    if (unlikely (result == -1))
-    {
-      error = ACE_OS::last_error ();
-      if (error != ESHUTDOWN)
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("%s: worker thread %t failed to ACE_Task::getq(): \"%m\", aborting\n"),
-                    inherited::mod_->name ()));
-      break;
-    } // end IF
-    ACE_ASSERT (message_block_p);
-
-    message_type = message_block_p->msg_type ();
-    if (message_type == ACE_Message_Block::MB_STOP)
-    {
-      if (inherited::thr_count_ > 1)
-      {
-        result_2 = inherited::putq (message_block_p, NULL);
-        if (unlikely (result_2 == -1))
-          ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("%s: failed to ACE_Task::putq(): \"%m\", aborting\n"),
-                      inherited::mod_->name ()));
-        else
-          result = 0;
-      } // end IF
-      else
-        result = 0;
-
-      // clean up
-      message_block_p->release (); message_block_p = NULL;
-
-      break; // done
-    } // end IF
-
-    // process manually
-    inherited::handleMessage (message_block_p,
-                              stop_processing);
-    if (unlikely (stop_processing && inherited::thr_count_))
-      inherited::stop (false,  // wait ?
-                       false); // N/A
-
-    message_block_p = NULL;
-  } while (true);
-
-  return result;
+  if (waitForCompletion_in)
+    this->wait (true);
 }
 
 template <ACE_SYNCH_DECL,
@@ -534,33 +484,152 @@ Stream_TaskBaseAsynch_T<ACE_SYNCH_USE,
                         SessionIdType,
                         SessionControlType,
                         SessionEventType,
-                        UserDataType>::handleSessionMessage (SessionMessageType*& message_inout,
-                                                             bool& passMessageDownstream_out)
+                        UserDataType>::control (int messageType_in,
+                                                bool highPriority_in)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_TaskBaseAsynch_T::handleSessionMessage"));
+  STREAM_TRACE (ACE_TEXT ("Stream_TaskBaseAsynch_T::control"));
 
-  // don't care (implies yes per default, if part of a stream)
-  ACE_UNUSED_ARG (passMessageDownstream_out);
+  int result = -1;
+  ACE_Message_Block* message_block_p = NULL;
 
   // sanity check(s)
-  ACE_ASSERT (message_inout);
-
-  switch (message_inout->type ())
+  if (unlikely (!inherited::msg_queue_))
   {
-    case STREAM_SESSION_MESSAGE_END:
-    {
-      // *IMPORTANT NOTE*: derived classes need to follow this pattern so that
-      //                   no data messages get processed after the session end
-      //                   has been signalled
-      // *NOTE*: that stop() cannot wait, as this is the workers' thread
-      //         context (i.e. would deadlock)
-      //if (inherited::thr_count_)
-      //  inherited::stop (false,  // wait for completion ?
-      //                   false); // N/A
+    if (inherited::mod_)
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("%s: task has no message queue, returning\n"),
+                  inherited::mod_->name ()));
+    else
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("task has no message queue, returning\n")));
+    return;
+  } // end IF
 
+  // enqueue a control message
+  ACE_NEW_NORETURN (message_block_p,
+                    ACE_Message_Block (0,                                  // size
+                                       messageType_in,                     // type
+                                       NULL,                               // continuation
+                                       NULL,                               // data
+                                       NULL,                               // buffer allocator
+                                       NULL,                               // locking strategy
+                                       ACE_DEFAULT_MESSAGE_BLOCK_PRIORITY, // priority
+                                       ACE_Time_Value::zero,               // execution time
+                                       ACE_Time_Value::max_time,           // deadline time
+                                       NULL,                               // data block allocator
+                                       NULL));                             // message allocator
+  if (unlikely (!message_block_p))
+  {
+    if (inherited::mod_)
+      ACE_DEBUG ((LM_CRITICAL,
+                  ACE_TEXT ("%s: failed to allocate ACE_Message_Block: \"%m\", returning\n"),
+                  inherited::mod_->name ()));
+    else
+      ACE_DEBUG ((LM_CRITICAL,
+                  ACE_TEXT ("failed to allocate ACE_Message_Block: \"%m\", returning\n")));
+    return;
+  } // end IF
+
+  result = (highPriority_in ? inherited::ungetq (message_block_p, NULL)
+                            : inherited::putq (message_block_p, NULL));
+  if (unlikely (result == -1))
+  {
+    if (inherited::mod_)
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("%s: failed to ACE_Task::putq(): \"%m\", continuing\n"),
+                  inherited::mod_->name ()));
+    else
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to ACE_Task::putq(): \"%m\", continuing\n")));
+
+    message_block_p->release (); message_block_p = NULL;
+  } // end IF
+}
+
+template <ACE_SYNCH_DECL,
+          typename TimePolicyType,
+          typename ConfigurationType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
+          typename SessionIdType,
+          typename SessionControlType,
+          typename SessionEventType,
+          typename UserDataType>
+int
+Stream_TaskBaseAsynch_T<ACE_SYNCH_USE,
+                        TimePolicyType,
+                        ConfigurationType,
+                        ControlMessageType,
+                        DataMessageType,
+                        SessionMessageType,
+                        SessionIdType,
+                        SessionControlType,
+                        SessionEventType,
+                        UserDataType>::svc (void)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_TaskBaseAsynch_T::svc"));
+
+#if defined (_DEBUG)
+  ACE_DEBUG ((LM_DEBUG,
+              ACE_TEXT ("%s: worker thread %t starting...\n"),
+              inherited::mod_->name ()));
+#endif // _DEBUG
+
+  ACE_Message_Block* message_block_p = NULL;
+  int result = -1;
+  int result_2 = -1;
+  int error = -1;
+  bool stop_processing = false;
+
+  do
+  {
+    result = inherited::getq (message_block_p, NULL);
+    if (unlikely (result == -1))
+    {
+      error = ACE_OS::last_error ();
+      if (error != ESHUTDOWN)
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("%s: worker thread %t failed to ACE_Task::getq(): \"%m\", aborting\n"),
+                    inherited::mod_->name ()));
+      else
+        result = 0; // OK, queue has been close()d
       break;
-    }
-    default:
-      break;
-  } // end SWITCH
+    } // end IF
+    ACE_ASSERT (message_block_p);
+    if (unlikely (message_block_p->msg_type () == ACE_Message_Block::MB_STOP))
+    {
+      result = 0;
+      if (inherited::thr_count_ > 1)
+      {
+        result_2 = inherited::putq (message_block_p, NULL);
+        if (unlikely (result_2 == -1))
+        {
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("%s: failed to ACE_Task::putq(): \"%m\", aborting\n"),
+                      inherited::mod_->name ()));
+          result = -1;
+        } // end IF
+        message_block_p = NULL;
+      } // end IF
+      // clean up ?
+      if (message_block_p)
+      {
+        message_block_p->release (); message_block_p = NULL;
+      } // end IF
+      break; // done
+    } // end IF
+
+    // process manually
+    inherited::handleMessage (message_block_p,
+                              stop_processing);
+    if (unlikely (stop_processing && inherited::thr_count_))
+      this->stop (false, // wait ?
+                  true,  // high priority ?
+                  true); // locked access ?
+
+    message_block_p = NULL;
+  } while (true);
+
+  return result;
 }

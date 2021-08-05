@@ -478,11 +478,11 @@ ACE_TMAIN (int argc_in,
 {
   STREAM_TRACE (ACE_TEXT ("::main"));
 
-  int result = -1;
-
   // step0: initialize
   // *PORTABILITY*: on Windows, initialize ACE...
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
+  int result = -1;
+
   result = ACE::init ();
   if (result == -1)
   {

@@ -170,6 +170,7 @@ class Stream_Miscellaneous_Distributor_T
 
   // override Common_ITaskControl_T members
   virtual void stop (bool = true,  // wait for completion ?
+                     bool = true,  // high priority ?
                      bool = true); // locked access ?
   virtual void idle ();
   virtual void wait (bool = true) const; // wait for the message queue(s) ? : worker thread(s) only

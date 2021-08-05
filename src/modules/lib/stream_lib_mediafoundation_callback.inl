@@ -242,8 +242,9 @@ Stream_MediaFramework_MediaFoundation_Callback_T<ConfigurationType>::Invoke (IMF
       ACE_ASSERT (controller_);
 
       if (controller_->isRunning ())
-        controller_->stop (false,
-                           true);
+        controller_->stop (false, // wait ?
+                           false, // recurse upstream ?
+                           true); // locked access ?
       break;
     }
     case MESessionTopologySet:

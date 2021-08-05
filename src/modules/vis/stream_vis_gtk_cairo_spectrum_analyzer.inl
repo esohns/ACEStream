@@ -682,7 +682,7 @@ error:
         renderHandlerTimerId_ = -1;
       } // end IF
       if (shutdown)
-        inherited::stop (false); // wait ?
+        inherited::control (ACE_Message_Block::MB_STOP);
 
       this->notify (STREAM_SESSION_MESSAGE_ABORT);
 
@@ -714,13 +714,13 @@ error:
         renderHandlerTimerId_ = -1;
       } // end IF
 
-      // *IMPORTANT NOTE*: at this stage no new data should be arriving (i.e.
-      //                   the DirectShow graph should have stopped
+      // *IMPORTANT NOTE*: at this stage no new data should be arriving
       //                   --> join with the renderer thread
       if (inherited::thr_count_ > 0)
       {
         inherited::stop (true,  // wait ?
-                         true); // N/A
+                         false, // high priority ?
+                         true); // locked access ?
 #if defined (_DEBUG)
         ACE_DEBUG ((LM_DEBUG,
                     ACE_TEXT ("%s: joined renderer thread\n"),

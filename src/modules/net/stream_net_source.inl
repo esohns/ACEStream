@@ -1700,8 +1700,9 @@ continue_2:
       } // end IF
 
       if (inherited::concurrency_ != STREAM_HEADMODULECONCURRENCY_CONCURRENT)
-        inherited::TASK_BASE_T::stop (false,  // wait for completion ?
-                                      false); // N/A
+        inherited::TASK_BASE_T::stop (false, // wait ?
+                                      false, // high priority ?
+                                      true); // locked access ?
 
       break;
     }

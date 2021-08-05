@@ -758,14 +758,6 @@ Stream_Module_FileReader_Writer_T<ACE_SYNCH_USE,
     {
       aborted_ = NULL;
 
-      //// *NOTE*: in passive 'concurrent' scenarios, there is no 'worker' thread
-      ////         running svc()
-      ////         --> do not signal completion in this case
-      //// *TODO*: remove type inference
-      //if (inherited::thr_count_)
-      //  inherited::stop (false,  // wait for completion ?
-      //                   false); // N/A
-
       break;
     }
     default:
@@ -878,8 +870,9 @@ Stream_Module_FileReader_Writer_T<ACE_SYNCH_USE,
       {
         // *IMPORTANT NOTE*: message_block_p has already been released() !
 
-        inherited::stop (false,  // wait ?
-                         false); // N/A
+        inherited::stop (false, // wait ?
+                         true,  // high priority ?
+                         true); // locked access ?
 
         // MB_STOP has been enqueued --> process
         continue;

@@ -127,6 +127,7 @@ class Stream_Module_QueueReader_T
   // helper methods
   virtual int svc (void);
 
+  // *NOTE*: this enqueues the STOP message at the tail end...
   void stop ();
 
   ACE_Message_Queue_Base* queue_;

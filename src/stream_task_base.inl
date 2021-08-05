@@ -1117,6 +1117,7 @@ Stream_TaskBase_T<ACE_SYNCH_USE,
     }
   } // end SWITCH
 }
+
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename LockType,
@@ -1170,67 +1171,76 @@ Stream_TaskBase_T<ACE_SYNCH_USE,
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: caught exception in Stream_ISessionNotify_T::notify(%u,%d), continuing\n"),
                 inherited::mod_->name (),
-                session_id, sessionEvent_in));
+                session_id,
+                sessionEvent_in));
   }
 }
 
-//template <ACE_SYNCH_DECL,
-//          typename TimePolicyType,
-//          typename ConfigurationType,
-//          typename ControlMessageType,
-//          typename DataMessageType,
-//          typename SessionMessageType,
-//          typename SessionIdType,
-//          typename SessionControlType,
-//          typename SessionEventType,
-//          typename UserDataType>
-//void
-//Stream_TaskBase_T<ACE_SYNCH_USE,
-//                  TimePolicyType,
-//                  ConfigurationType,
-//                  ControlMessageType,
-//                  DataMessageType,
-//                  SessionMessageType,
-//                  SessionIdType,
-//                  SessionControlType,
-//                  SessionEventType,
-//                  UserDataType>::next (typename inherited::TASK_T* task_in)
-//{
-//  STREAM_TRACE (ACE_TEXT ("Stream_TaskBase_T::next"));
-//
-//  Stream_IModuleLinkCB* imodulelink_p =
-//    (task_in ? dynamic_cast<Stream_IModuleLinkCB*> (task_in->module ())
-//             : (inherited::next_ ? dynamic_cast<Stream_IModuleLinkCB*> (inherited::next_->module ())
-//                                 : NULL));
-//
-//  if (task_in)
-//    inherited::next (task_in);
-//
-//  // notify ? 
-//  if (!imodulelink_p)
-//    goto continue_;
-//  if (task_in)
-//  {
-//    try {
-//      imodulelink_p->onLink ();
-//    } catch (...) {
-//      ACE_DEBUG ((LM_ERROR,
-//                  ACE_TEXT ("%s: caught exception in Stream_IModuleLinkCB::onLink(), continuing\n"),
-//                  task_in->module ()->name ()));
-//    }
-//  } // end IF
-//  else
-//  {
-//    try {
-//      imodulelink_p->onUnlink ();
-//    } catch (...) {
-//      ACE_DEBUG ((LM_ERROR,
-//                  ACE_TEXT ("%s: caught exception in Stream_IModuleLinkCB::onUnlink(), continuing\n"),
-//                  (inherited::next_ ? inherited::next_->module ()->name () : ACE_TEXT ("N/A"))));
-//    }
-//  } // end ELSE
-//
-//continue_:
-//  if (!task_in)
-//    inherited::next (task_in);
-//}
+template <ACE_SYNCH_DECL,
+          typename TimePolicyType,
+          typename LockType,
+          typename ConfigurationType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
+          typename SessionIdType,
+          typename SessionControlType,
+          typename SessionEventType,
+          typename UserDataType>
+void
+Stream_TaskBase_T<ACE_SYNCH_USE,
+                  TimePolicyType,
+                  LockType,
+                  ConfigurationType,
+                  ControlMessageType,
+                  DataMessageType,
+                  SessionMessageType,
+                  SessionIdType,
+                  SessionControlType,
+                  SessionEventType,
+                  UserDataType>::control (int messageType_in,
+                                          bool highPriority_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_TaskBase_T::control"));
+
+  ACE_UNUSED_ARG (highPriority_in);
+
+  int result = -1;
+  ACE_Message_Block* message_block_p = NULL;
+  ACE_NEW_NORETURN (message_block_p,
+                    ACE_Message_Block (0,                                  // size
+                                       messageType_in,                     // type
+                                       NULL,                               // continuation
+                                       NULL,                               // data
+                                       NULL,                               // buffer allocator
+                                       NULL,                               // locking strategy
+                                       ACE_DEFAULT_MESSAGE_BLOCK_PRIORITY, // priority
+                                       ACE_Time_Value::zero,               // execution time
+                                       ACE_Time_Value::max_time,           // deadline time
+                                       NULL,                               // data block allocator
+                                       NULL));                             // message allocator
+  if (unlikely (!message_block_p))
+  {
+    if (inherited::mod_)
+      ACE_DEBUG ((LM_CRITICAL,
+                  ACE_TEXT ("%s: failed to allocate ACE_Message_Block: \"%m\", returning\n"),
+                  inherited::mod_->name ()));
+    else
+      ACE_DEBUG ((LM_CRITICAL,
+                  ACE_TEXT ("failed to allocate ACE_Message_Block: \"%m\", returning\n")));
+    return;
+  } // end IF
+
+  result = this->put (message_block_p, NULL);
+  if (unlikely (result == -1))
+  {
+    if (inherited::mod_)
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("%s: failed to ACE_Task_Base::put(): \"%m\", continuing\n"),
+                  inherited::mod_->name ()));
+    else
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to ACE_Task_Base::put(): \"%m\", continuing\n")));
+    message_block_p->release (); message_block_p = NULL;
+  } // end IF
+}

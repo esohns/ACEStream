@@ -809,7 +809,8 @@ do_work (unsigned int bufferSize_in,
                   false); // wait for downstream (if any) ?
 
   // clean up
-  connection_manager_p->stop (true);
+  connection_manager_p->stop (false, true, true);
+  connection_manager_p->abort ();
   connection_manager_p->wait ();
   Common_Tools::finalizeEventDispatch (dispatch_state_s.proactorGroupId,
                                        dispatch_state_s.reactorGroupId,

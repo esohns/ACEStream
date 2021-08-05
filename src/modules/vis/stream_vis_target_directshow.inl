@@ -949,8 +949,9 @@ error_2:
       {
         // stop DirectShow streaming thread ?
         if (inherited::push_)
-          inherited::stop (false,  // wait for completion ?
-                           false); // N/A
+          inherited::stop (true,  // wait ?
+                           false, // high priority ?
+                           true); // locked access ?
 
         // stop previewing video data (blocks)
         result_2 = inherited::IMediaControl_->Stop ();

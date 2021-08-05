@@ -838,7 +838,9 @@ error:
       else
       {
         if (inherited::thr_count_)
-          inherited::stop (false); // wait ?
+          inherited::stop (false, // wait ?
+                           false, // high priority ?
+                           true); // locked access ?
       } // end IF
 
       break;

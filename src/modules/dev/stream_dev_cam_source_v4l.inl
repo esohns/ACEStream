@@ -374,8 +374,9 @@ error:
 //      } // end IF
 
       if (likely (inherited::concurrency_ != STREAM_HEADMODULECONCURRENCY_CONCURRENT))
-        inherited::TASK_BASE_T::stop (false,  // wait for completion ?
-                                      false); // N/A
+        this->stop (false, // wait ?
+                    false, // high priority ?
+                    true); // locked access ?
 
       break;
     }
@@ -700,7 +701,6 @@ Stream_Module_CamSource_V4L_T<ACE_SYNCH_USE,
                     inherited::mod_->name ()));
         break;
       } // end IF
-
       goto continue_;
     } // end IF
     ACE_ASSERT (message_block_p);
@@ -724,12 +724,18 @@ Stream_Module_CamSource_V4L_T<ACE_SYNCH_USE,
         {
           result_2 = inherited::putq (message_block_p, NULL);
           if (result_2 == -1)
+          {
             ACE_DEBUG ((LM_ERROR,
                         ACE_TEXT ("%s: failed to ACE_Task::putq(): \"%m\", aborting\n"),
                         inherited::mod_->name ()));
+            message_block_p->release (); message_block_p = NULL;
+          } // end IF
+          message_block_p = NULL;
         } // end IF
         else
-          message_block_p->release ();
+        {
+          message_block_p->release (); message_block_p = NULL;
+        } // end ELSE
 
         // has STREAM_SESSION_END been processed ?
         if (!inherited::sessionEndProcessed_)

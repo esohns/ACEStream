@@ -533,50 +533,6 @@ Stream_Dev_Mic_Source_ALSA_T<ACE_SYNCH_USE,
                   signal,
                   signal));
 
-      // *TODO*: remove type inference
-//      if (inherited::configuration_->format)
-//        if (!Stream_Module_Device_Tools::setCaptureFormat (deviceHandle_,
-//                                                           media_type_r))
-//        {
-//          ACE_DEBUG ((LM_ERROR,
-//                      ACE_TEXT ("failed to Stream_Module_Device_Tools::setCaptureFormat(): \"%m\", aborting\n")));
-//          goto error;
-//        } // end IF
-
-//      if (inherited::configuration_->statisticCollectionInterval != ACE_Time_Value::zero)
-//      {
-//        // schedule regular statistic collection
-//        ACE_ASSERT (inherited::timerID_ == -1);
-//        ACE_Event_Handler* handler_p = &(inherited::statisticCollectionHandler_);
-//        inherited::timerID_ =
-//            COMMON_TIMERMANAGER_SINGLETON::instance ()->schedule_timer (handler_p,                                                                // event handler
-//                                                                        NULL,                                                                     // argument
-//                                                                        COMMON_TIME_NOW + inherited::configuration_->statisticCollectionInterval, // first wakeup time
-//                                                                        inherited::configuration_->statisticCollectionInterval);                  // interval
-//        if (inherited::timerID_ == -1)
-//        {
-//          ACE_DEBUG ((LM_ERROR,
-//                      ACE_TEXT ("failed to Common_Timer_Manager::schedule_timer(): \"%m\", aborting\n")));
-//          goto error;
-//        } // end IF
-//        ACE_DEBUG ((LM_DEBUG,
-//                    ACE_TEXT ("scheduled statistic collecting timer (ID: %d) for interval %#T...\n"),
-//                    inherited::timerID_,
-//                    &inherited::configuration_->statisticCollectionInterval));
-//      } // end IF
-
-//      if (!Stream_Module_Device_Tools::initializeBuffers<DataMessageType> (deviceHandle_,
-//                                                                           inherited::configuration_->method,
-//                                                                           inherited::configuration_->buffers,
-//                                                                           bufferMap_,
-//                                                                           inherited::configuration_->messageAllocator))
-//      {
-//        ACE_DEBUG ((LM_ERROR,
-//                    ACE_TEXT ("failed to Stream_Module_Device_Tools::initializeBuffers(%d): \"%m\", aborting\n"),
-//                    captureFileDescriptor_));
-//        goto error;
-//      } // end IF
-
       if (deviceHandle_)
       {
         result =  snd_pcm_start (deviceHandle_);
@@ -620,19 +576,6 @@ error:
           break; // done
         inherited::sessionEndProcessed_ = true;
       } // end lock scope
-
-//      if (inherited::timerId_ != -1)
-//      {
-//        const void* act_p = NULL;
-//        result =
-//            COMMON_TIMERMANAGER_SINGLETON::instance ()->cancel_timer (inherited::timerID_,
-//                                                                      &act_p);
-//        if (result == -1)
-//          ACE_DEBUG ((LM_ERROR,
-//                      ACE_TEXT ("failed to cancel timer (ID: %d): \"%m\", continuing\n"),
-//                      inherited::timerId_));
-//        inherited::timerID_ = -1;
-//      } // end IF
 
       if (deviceHandle_)
       {
@@ -692,8 +635,9 @@ error:
       } // end IF
 
       if (inherited::concurrency_ != STREAM_HEADMODULECONCURRENCY_CONCURRENT)
-        inherited::TASK_BASE_T::stop (false,  // wait for completion ?
-                                      false); // N/A
+        this->stop (false, // wait ?
+                    false, // high priority ?
+                    true); // locked access ?
 
       break;
     }

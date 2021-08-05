@@ -428,9 +428,6 @@ continue_:
     }
     case STREAM_SESSION_MESSAGE_END:
     {
-      //if (inherited::thr_count_)
-      //  inherited::stop (false); // wait ?
-
       if (likely (isOpen_))
       {
         result = stream_.get_local_addr (path_);
@@ -864,9 +861,6 @@ continue_:
     }
     case STREAM_SESSION_MESSAGE_END:
     {
-      //if (inherited::thr_count_)
-      //  inherited::stop (false); // wait ?
-
       if (likely (isOpen_))
       {
         result = stream_.get_local_addr (path_);

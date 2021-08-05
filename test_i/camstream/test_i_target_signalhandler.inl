@@ -160,8 +160,9 @@ Test_I_Target_SignalHandler_T<ConfigurationType,
     //         compared to doing it here
 #if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
-      COMMON_UI_GTK_MANAGER_SINGLETON::instance ()->stop (false,  // wait for completion ?
-                                                          false); // N/A
+      COMMON_UI_GTK_MANAGER_SINGLETON::instance ()->stop (false, // wait ?
+                                                          true,  // high priority ?
+                                                          true); // locked access ?
 #endif // GTK_USE
 #endif // GUI_SUPPORT
 
@@ -169,10 +170,10 @@ Test_I_Target_SignalHandler_T<ConfigurationType,
     if (inherited::configuration_->listener)
     {
       try {
-        inherited::configuration_->listener->stop ();
+        inherited::configuration_->listener->stop (true, true, true);
       } catch (...) {
         ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("caught exception in Common_IControl::stop(), returning\n")));
+                    ACE_TEXT ("caught exception in Common_ITask::stop(), returning\n")));
         return;
       }
     } // end IF
@@ -199,9 +200,9 @@ Test_I_Target_SignalHandler_T<ConfigurationType,
     //connection_manager_p->stop ();
     //connection_manager_p->abort ();
 //    connection_manager_p->wait ();
-    inherited::configuration_->connectionManager->stop ();
+    inherited::configuration_->connectionManager->stop (false, true, true);
     inherited::configuration_->connectionManager->abort ();
-    //inherited::configuration_->connectionManager->wait ();
+    inherited::configuration_->connectionManager->wait ();
 
     // step5: stop reactor (&& proactor, if applicable)
     Common_Tools::finalizeEventDispatch (inherited::configuration_->dispatchState->proactorGroupId,

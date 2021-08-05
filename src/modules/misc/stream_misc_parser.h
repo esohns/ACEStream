@@ -262,6 +262,7 @@ class Stream_Module_Parser_T
   // override some ACE_Task_T methods
   virtual int svc (void);
 
+  // *NOTE*: this enqueues the STOP message at the tail end...
   void stop ();
 };
 

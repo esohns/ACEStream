@@ -246,7 +246,8 @@ error:
     {
       forward (message_inout, false);
 
-      stop (false, // wait for completion ?
+      stop (false, // wait ?
+            false, // high priority ?
             true); // locked access ?
 
       { ACE_GUARD (typename inherited::ITASKCONTROL_T::MUTEX_T, aGuard, inherited::lock_);
@@ -574,10 +575,12 @@ Stream_Miscellaneous_Distributor_T<ACE_SYNCH_USE,
                                    DataMessageType,
                                    SessionMessageType,
                                    SessionDataType>::stop (bool waitForCompletion_in,
+                                                           bool highPriority_in,
                                                            bool lockedAccess_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Miscellaneous_Distributor_T::stop"));
 
+  ACE_UNUSED_ARG (highPriority_in);
   ACE_UNUSED_ARG (lockedAccess_in);
 
   // sanity check(s)

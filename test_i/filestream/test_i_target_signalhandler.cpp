@@ -146,7 +146,7 @@ Stream_Target_SignalHandler::handle (const struct Common_Signal& signal_in)
     if (inherited::configuration_->listener)
     {
       try {
-        inherited::configuration_->listener->stop ();
+        inherited::configuration_->listener->stop (true, true, true);
       } catch (...) {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("caught exception in Common_IControl::stop(), returning\n")));
@@ -176,8 +176,9 @@ Stream_Target_SignalHandler::handle (const struct Common_Signal& signal_in)
     } // end IF
 
     // step4: stop/abort(/wait) for connections
-    connection_manager_p->stop ();
+    connection_manager_p->stop (false, true, true);
     connection_manager_p->abort ();
+    connection_manager_p->wait ();
 
     // step5: stop reactor (&& proactor, if applicable)
     Common_Tools::finalizeEventDispatch (inherited::configuration_->dispatchState->reactorGroupId,  // stop reactor ?

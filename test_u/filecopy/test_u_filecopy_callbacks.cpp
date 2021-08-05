@@ -1117,7 +1117,7 @@ action_stop_activate_cb (GtkAction* action_in,
   ACE_ASSERT (action_p);
   gtk_action_set_stock_id (action_p, GTK_STOCK_MEDIA_PLAY);
 
-  data_p->stream->stop (false);
+  data_p->stream->stop (false, true, true);
 } // action_stop_activate_cb
 
 // -----------------------------------------------------------------------------
@@ -1254,7 +1254,9 @@ button_quit_clicked_cb (GtkWidget* widget_in,
   // step3: stop GTK event processing
   // *NOTE*: triggering UI shutdown here is more consistent, compared to doing
   //         it from the signal handler
-  COMMON_UI_GTK_MANAGER_SINGLETON::instance()->stop (false, true);
+  COMMON_UI_GTK_MANAGER_SINGLETON::instance()->stop (false, // wait ?
+                                                     true,  // high priority ?
+                                                     true); // locked access ?
 
   return FALSE;
 } // button_quit_clicked_cb

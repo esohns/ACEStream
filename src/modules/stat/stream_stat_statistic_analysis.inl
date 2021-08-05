@@ -267,7 +267,6 @@ Stream_Statistic_StatisticAnalysis_T<ACE_SYNCH_USE,
           const_cast<SessionDataType&> (inherited::sessionData_->getR ());
 
       bool result_2 = false;
-//      bool shutdown = false;
 
       unsigned int sample_size = 0;
       unsigned int sub_sample_size = 0;
@@ -335,15 +334,9 @@ Stream_Statistic_StatisticAnalysis_T<ACE_SYNCH_USE,
         goto error;
       } // end IF
 
-//        inherited::start ();
-//        shutdown = true;
-
       break;
 
 error:
-//      if (shutdown)
-//        inherited::stop (false); // wait ?
-
       this->notify (STREAM_SESSION_MESSAGE_ABORT);
 
       break;
@@ -368,20 +361,6 @@ error:
     }
     case STREAM_SESSION_MESSAGE_END:
     {
-      // *IMPORTANT NOTE*: at this stage no new data should be arriving (i.e.
-      //                   the DirectShow graph should have stopped
-      //                   --> join with the renderer thread
-      if (inherited::thr_count_ > 0)
-      {
-        inherited::stop (true,  // wait ?
-                         true); // N/A
-#if defined (_DEBUG)
-        ACE_DEBUG ((LM_DEBUG,
-                    ACE_TEXT ("%s: joined renderer thread\n"),
-                    inherited::mod_->name ()));
-#endif
-      } // end IF
-
       break;
     }
     default:

@@ -460,8 +460,8 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
       if (likely (inherited::msg_queue_))
       {
         stop (false, // wait for completion ?
+              true,  // N/A
               true); // N/A
-
         result = 0;
       } // end IF
       else
@@ -469,7 +469,6 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
                     ACE_TEXT ("%s: cannot signal %d worker thread(s) (no message queue) --> check implementation\n"),
                     inherited::mod_->name (),
                     inherited::thr_count_));
-
       break;
     }
     default:
@@ -538,8 +537,9 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
     ACE_DEBUG ((LM_WARNING,
                 ACE_TEXT ("%s: stream still active in Stream_HeadModuleTaskBase_T::module_closed(), continuing\n"),
                 inherited::mod_->name ()));
-    stop (true,   // wait for completion ?
-          false); // N/A
+    stop (true,  // wait ?
+          true,  // N/A
+          true); // N/A
   } // end IF
 
   return 0;
@@ -991,7 +991,7 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
             delete [] thread_names_p[i];
             thread_id.handle (thread_handles_p[i]);
             thread_id.id (thread_ids_p[i]);
-            inherited::threads_.push_back (thread_id);
+            inherited::threadIds_.push_back (thread_id);
           } // end FOR
         } // end lock scope
         std::string thread_ids_string = string_stream.str ();
@@ -1048,8 +1048,9 @@ error:
       } // end IF
 
       if (likely (concurrency_ != STREAM_HEADMODULECONCURRENCY_CONCURRENT))
-        inherited::stop (false, // wait for completion ?
-                         true); // N/A
+        this->stop (false, // wait for completion ?
+                    false, // high priority ?
+                    true); // locked access ?
 
       break;
     }
@@ -1791,9 +1792,9 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
   //         thread to join
   //         --> prevent this by comparing thread ids
   // *TODO*: check the whole array
-  if (unlikely (inherited::threads_.empty () ||
+  if (unlikely (inherited::threadIds_.empty () ||
                 ACE_OS::thr_equal (ACE_OS::thr_self (),
-                                   inherited::threads_[0].id ())))
+                                   inherited::threadIds_[0].id ())))
     goto continue_;
 
   switch (concurrency_)
@@ -1807,10 +1808,10 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
     }
     case STREAM_HEADMODULECONCURRENCY_PASSIVE:
     {
-      ACE_thread_t thread_id = inherited::threads_[0].id ();
+      ACE_thread_t thread_id = inherited::threadIds_[0].id ();
       ACE_THR_FUNC_RETURN status;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-      ACE_hthread_t handle = inherited::threads_[0].handle ();
+      ACE_hthread_t handle = inherited::threadIds_[0].handle ();
       if (likely (handle != ACE_INVALID_HANDLE))
       {
         { ACE_GUARD (ACE_Reverse_Lock<LOCK_T>, aGuard_2, reverse_lock);
@@ -1824,9 +1825,9 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
         {
           // *NOTE*: successful join()s close the thread handle
           //         (see OS_NS_Thread.inl:2971)
-          this_p->inherited::threads_[0].handle (ACE_INVALID_HANDLE);
+          this_p->inherited::threadIds_[0].handle (ACE_INVALID_HANDLE);
         } // end IF
-        this_p->inherited::threads_[0].id (std::numeric_limits<DWORD>::max ());
+        this_p->inherited::threadIds_[0].id (std::numeric_limits<DWORD>::max ());
       } // end IF
       else
         result = 0;
@@ -1836,7 +1837,7 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
         { ACE_GUARD (ACE_Reverse_Lock<LOCK_T>, aGuard_2, reverse_lock);
           result = ACE_Thread::join (thread_id, NULL, &status);
         } // end lock scope
-        this_p->inherited::threads_[0].id (-1);
+        this_p->inherited::threadIds_[0].id (-1);
       } // end IF
       else
         result = 0;
@@ -2000,10 +2001,10 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
       sessionEndProcessed_ = false;
 
       // --> re-initialize ?
-      if (unlikely (!inherited::threads_.empty ()))
+      if (unlikely (!inherited::threadIds_.empty ()))
       {
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-        ACE_hthread_t handle = inherited::threads_[0].handle ();
+        ACE_hthread_t handle = inherited::threadIds_[0].handle ();
         if (handle != ACE_INVALID_HANDLE)
           if (!::CloseHandle (handle))
             ACE_DEBUG ((LM_ERROR,
@@ -2012,7 +2013,7 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
                         handle,
                         ACE_TEXT (Common_Error_Tools::errorToString (::GetLastError ()).c_str ())));
 #endif // ACE_WIN32 || ACE_WIN64
-        inherited::threads_.clear ();
+        inherited::threadIds_.clear ();
       } // end IF
       break;
     }
@@ -2042,7 +2043,7 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
 
               ACE_hthread_t handle;
               { ACE_GUARD (typename inherited::ITASKCONTROL_T::MUTEX_T, aGuard, inherited::lock_);
-                handle = inherited::threads_[0].handle ();
+                handle = inherited::threadIds_[0].handle ();
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
                 ACE_ASSERT (handle != ACE_INVALID_HANDLE);
 #else
@@ -2238,7 +2239,7 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
               delete [] thread_names_p[i];
               thread_id.handle (thread_handles_p[i]);
               thread_id.id (thread_ids_p[i]);
-              inherited::threads_.push_back (thread_id);
+              inherited::threadIds_.push_back (thread_id);
             } // end FOR
           } // end lock scope
           std::string thread_ids_string = string_stream.str ();
@@ -2267,7 +2268,7 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
 
           { ACE_GUARD (typename inherited::ITASKCONTROL_T::MUTEX_T, aGuard_2, inherited::lock_);
             // sanity check(s)
-            ACE_ASSERT (inherited::threads_.empty ());
+            ACE_ASSERT (inherited::threadIds_.empty ());
 
             ACE_Thread_ID thread_id;
             thread_id.id (ACE_Thread::self ());
@@ -2289,7 +2290,7 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
                           ACE_TEXT (Common_Error_Tools::errorToString (::GetLastError (), false).c_str ())));
 #endif // ACE_WIN32 || ACE_WIN64
             thread_id.handle (handle);
-            inherited::threads_.push_back (thread_id);
+            inherited::threadIds_.push_back (thread_id);
           } // end lock scope
 
           result = svc ();
@@ -2388,7 +2389,7 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
         case STREAM_HEADMODULECONCURRENCY_PASSIVE:
         { ACE_GUARD (typename inherited::ITASKCONTROL_T::MUTEX_T, aGuard_2, inherited::lock_);
           // task object not active --> suspend the borrowed thread
-          ACE_hthread_t handle = inherited::threads_[0].handle ();
+          ACE_hthread_t handle = inherited::threadIds_[0].handle ();
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
           ACE_ASSERT (handle != ACE_INVALID_HANDLE);
 #else
@@ -2434,7 +2435,7 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
               { ACE_GUARD (typename inherited::ITASKCONTROL_T::MUTEX_T, aGuard_2, inherited::lock_);
                 // task is not 'active' --> resume the calling thread (i.e. the
                 // thread that invoked start())
-                ACE_hthread_t handle = inherited::threads_[0].handle ();
+                ACE_hthread_t handle = inherited::threadIds_[0].handle ();
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
                 ACE_ASSERT (handle != ACE_INVALID_HANDLE);
 #else
@@ -2474,17 +2475,19 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
       {
         case STREAM_HEADMODULECONCURRENCY_ACTIVE:
         {
-          inherited::stop (false, // wait ?
-                           true); // N/A
+          this->stop (false, // wait ?
+                      false, // high priority ?
+                      true); // locked access ?
           break;
         }
         case STREAM_HEADMODULECONCURRENCY_PASSIVE:
         { ACE_GUARD (typename inherited::ITASKCONTROL_T::MUTEX_T, aGuard_2, inherited::lock_);
-          ACE_ASSERT (!inherited::threads_.empty ());
+          ACE_ASSERT (!inherited::threadIds_.empty ());
           if (!ACE_OS::thr_equal (ACE_OS::thr_self (),
-                                  inherited::threads_[0].id ()))
-            inherited::stop (false, // wait ?
-                             true); // N/A
+                                  inherited::threadIds_[0].id ()))
+            this->stop (false, // wait ?
+                        false, // high priority ?
+                        true); // locked access ?
           //// signal the controller
           //inherited2::finished ();
           break;

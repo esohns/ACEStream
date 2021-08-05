@@ -726,7 +726,7 @@ do_work (unsigned int bufferSize_in,
                   ACE_TEXT ("failed to ::GetConsoleWindow(), returning\n")));
       timer_manager_p->stop ();
 #if defined (GTK_USE)
-      gtk_manager_p->stop (true);
+      gtk_manager_p->stop (true, true, true);
 #endif // GTK_USE
       return;
     } // end IF
@@ -754,7 +754,7 @@ do_work (unsigned int bufferSize_in,
 #if defined (GUI_SUPPORT)
     if (!UIDefinitionFile_in.empty ())
 #if defined (GTK_USE)
-      gtk_manager_p->stop ();
+      gtk_manager_p->stop (true, true, true);
 #endif // GTK_USE
 #endif // GUI_SUPPORT
     timer_manager_p->stop ();
@@ -795,7 +795,7 @@ do_work (unsigned int bufferSize_in,
 #if defined (GUI_SUPPORT)
         if (!UIDefinitionFile_in.empty ())
 #if defined (GTK_USE)
-          gtk_manager_p->stop ();
+          gtk_manager_p->stop (true, true, true);
 #endif // GTK_USE
 #endif // GUI_SUPPORT
         timer_manager_p->stop ();
@@ -821,7 +821,7 @@ do_work (unsigned int bufferSize_in,
 #if defined (GUI_SUPPORT)
         if (!UIDefinitionFile_in.empty ())
 #if defined (GTK_USE)
-          gtk_manager_p->stop ();
+          gtk_manager_p->stop (true, true, true);
 #endif // GTK_USE
 #endif // GUI_SUPPORT
         timer_manager_p->stop ();
@@ -885,7 +885,7 @@ do_work (unsigned int bufferSize_in,
 #if defined (GUI_SUPPORT)
         if (!UIDefinitionFile_in.empty ())
 #if defined (GTK_USE)
-          gtk_manager_p->stop ();
+          gtk_manager_p->stop (true, true, true);
 #endif // GTK_USE
 #endif // GUI_SUPPORT
         timer_manager_p->stop ();
@@ -919,7 +919,7 @@ do_work (unsigned int bufferSize_in,
 #if defined (GUI_SUPPORT)
         if (!UIDefinitionFile_in.empty ())
 #if defined (GTK_USE)
-          gtk_manager_p->stop ();
+          gtk_manager_p->stop (true, true, true);
 #endif // GTK_USE
 #endif // GUI_SUPPORT
         timer_manager_p->stop ();
@@ -948,7 +948,7 @@ do_work (unsigned int bufferSize_in,
 #if defined (GUI_SUPPORT)
         if (!UIDefinitionFile_in.empty ())
 #if defined (GTK_USE)
-          gtk_manager_p->stop ();
+          gtk_manager_p->stop (true, true, true);
 #endif // GTK_USE
 #endif // GUI_SUPPORT
         timer_manager_p->stop ();
@@ -982,7 +982,7 @@ do_work (unsigned int bufferSize_in,
   timer_manager_p->stop ();
 
   // wait for connection processing to complete
-  connection_manager_p->stop ();
+  connection_manager_p->stop (false, true, true);
   connection_manager_p->abort ();
   connection_manager_p->wait ();
 

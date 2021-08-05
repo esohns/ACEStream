@@ -1820,6 +1820,7 @@ update_buffer_size (struct Stream_AVSave_UI_CBData* CBData_in)
 #else
   frame_size_i =
       ui_cb_data_p->configuration->videoStreamConfiguration.configuration->format.format.sizeimage;
+  (*iterator_2).second.second.allocatorConfiguration->defaultBufferSize = frame_size_i;
 #endif
   //gtk_spin_button_set_value (spin_button_p,
   //                           static_cast<gdouble> (frame_size_i));

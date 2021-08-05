@@ -1914,7 +1914,7 @@ error:
 clean:
 #if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
-  gtk_manager_p->stop (true);
+  gtk_manager_p->stop (true, true, true);
 #endif // GTK_USE
 #endif // GUI_SUPPORT
   timer_manager_p->stop ();

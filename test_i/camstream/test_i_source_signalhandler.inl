@@ -136,8 +136,9 @@ Test_I_Source_SignalHandler_T<ConfigurationType>::handle (const struct Common_Si
     // [- UI dispatch]
 #if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
-    COMMON_UI_GTK_MANAGER_SINGLETON::instance ()->stop (false,  // wait for completion ?
-                                                        false); // N/A
+    COMMON_UI_GTK_MANAGER_SINGLETON::instance ()->stop (false, // wait for completion ?
+                                                        true,  // high priority ?
+                                                        true); // locked access ?
 #endif // GTK_USE
 #endif // GUI_SUPPORT
 
@@ -152,8 +153,9 @@ Test_I_Source_SignalHandler_T<ConfigurationType>::handle (const struct Common_Si
     //ACE_ASSERT (connection_manager_p);
     //connection_manager_p->stop ();
     ACE_ASSERT (inherited::configuration_->connectionManager);
-    inherited::configuration_->connectionManager->stop ();
-    //    connection_manager_p->abort ();
+    inherited::configuration_->connectionManager->stop (false, true, true);
+    inherited::configuration_->connectionManager->abort ();
+    inherited::configuration_->connectionManager->wait ();
 
     //    // step3: stop reactor (&& proactor, if applicable)
     //    Common_Tools::finalizeEventDispatch (inherited::configuration_->useReactor,  // stop reactor ?

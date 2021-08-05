@@ -2623,7 +2623,7 @@ action_listen_activate_cb (GtkAction* action_in,
         if (ui_cb_data_p->configuration->signalHandlerConfiguration.listener->isRunning ())
         {
           try {
-            ui_cb_data_p->configuration->signalHandlerConfiguration.listener->stop ();
+            ui_cb_data_p->configuration->signalHandlerConfiguration.listener->stop (true, true, true);
           } catch (...) {
             ACE_DEBUG ((LM_ERROR,
                         ACE_TEXT ("caught exception in Net_Server_IListener::stop(): \"%m\", continuing\n")));
@@ -2779,7 +2779,7 @@ action_listen_activate_cb (GtkAction* action_in,
   {
     ACE_ASSERT (ui_cb_data_p->configuration->signalHandlerConfiguration.listener);
     try {
-      ui_cb_data_p->configuration->signalHandlerConfiguration.listener->stop ();
+      ui_cb_data_p->configuration->signalHandlerConfiguration.listener->stop (true, true, true);
     } catch (...) {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("caught exception in Net_Server_IListener::stop(): \"%m\", continuing\n")));
@@ -3149,7 +3149,9 @@ button_quit_clicked_cb (GtkWidget* widget_in,
   // step3: stop GTK event processing
   // *NOTE*: triggering UI shutdown here is more consistent, compared to doing
   //         it from the signal handler
-  COMMON_UI_GTK_MANAGER_SINGLETON::instance ()->stop (false, true);
+  COMMON_UI_GTK_MANAGER_SINGLETON::instance ()->stop (false, // wait ?
+                                                      true,  // high priority ?
+                                                      true); // locked access ?
 
   return FALSE;
 } // button_quit_clicked_cb

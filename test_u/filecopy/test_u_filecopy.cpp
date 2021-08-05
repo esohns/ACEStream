@@ -527,7 +527,7 @@ do_work (unsigned int bufferSize_in,
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to ::GetConsoleWindow(), returning\n")));
 #if defined (GTK_USE)
-      COMMON_UI_GTK_MANAGER_SINGLETON::instance ()->stop (true);
+      COMMON_UI_GTK_MANAGER_SINGLETON::instance ()->stop (true, true, true);
 #endif // GTK_USE
       return;
     } // end IF

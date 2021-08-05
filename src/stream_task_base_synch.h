@@ -89,6 +89,12 @@ class Stream_TaskBaseSynch_T
 
   inline virtual int put (ACE_Message_Block* messageBlock_in, ACE_Time_Value* timeout_in = NULL) { ACE_UNUSED_ARG (timeout_in); bool stop_processing = false; inherited::handleMessage (messageBlock_in, stop_processing); return 0; }
 
+  // implement Common_ITaskControl_T
+  inline virtual void stop (bool = true,    // wait for completion ?
+                            bool = true,    // high priority ? (i.e. do not wait for queued messages)
+                            bool = true) {} // locked access ?
+
+  // implement Stream_ITask_T
   inline virtual void waitForIdleState () const {}
 
  protected:

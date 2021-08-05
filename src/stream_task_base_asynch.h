@@ -86,12 +86,14 @@ class Stream_TaskBaseAsynch_T
   virtual int put (ACE_Message_Block*,
                    ACE_Time_Value* = NULL);
 
-  // override (part of) Common_ITask_T
-  inline virtual void waitForIdleState () const { queue_.waitForIdleState (); }
+  // implement Common_ITaskControl_T
+  // enqueue MB_STOP --> stop worker thread(s)
+  virtual void stop (bool = true,  // wait for completion ?
+                     bool = true,  // high priority ? (i.e. do not wait for queued messages)
+                     bool = true); // locked access ?
 
-  // override (part of) Stream_ITaskBase
-  virtual void handleSessionMessage (SessionMessageType*&, // session message handle
-                                     bool&);               // return value: pass message downstream ?
+  // override (part of) Stream_ITask_T
+  inline virtual void waitForIdleState () const { queue_.waitForIdleState (); }
 
   // override (part of) Stream_IModuleHandler_T
   virtual bool initialize (const ConfigurationType&,
@@ -99,9 +101,9 @@ class Stream_TaskBaseAsynch_T
 
  protected:
   // convenient types
-  typedef Stream_MessageQueue_T<ACE_SYNCH_USE,
-                                TimePolicyType,
-                                SessionMessageType> MESSAGE_QUEUE_T;
+//  typedef Stream_MessageQueue_T<ACE_SYNCH_USE,
+//                                TimePolicyType,
+//                                SessionMessageType> MESSAGE_QUEUE_T;
   typedef Stream_TaskBase_T<ACE_SYNCH_USE,
                             TimePolicyType,
                             Common_IRecursiveLock_T<ACE_SYNCH_USE>,
@@ -116,12 +118,19 @@ class Stream_TaskBaseAsynch_T
 
   Stream_TaskBaseAsynch_T (typename TASK_BASE_T::ISTREAM_T* = NULL); // stream handle
 
-  MESSAGE_QUEUE_T queue_;
+  typename inherited::MESSAGE_QUEUE_T queue_;
 
  private:
   ACE_UNIMPLEMENTED_FUNC (Stream_TaskBaseAsynch_T ())
   ACE_UNIMPLEMENTED_FUNC (Stream_TaskBaseAsynch_T (const Stream_TaskBaseAsynch_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_TaskBaseAsynch_T& operator= (const Stream_TaskBaseAsynch_T&))
+
+  // helper methods
+  // *NOTE*: 'high priority' effectively means that the message is enqueued at
+  //         the head end (i.e. will be the next to dequeue), whereas it would
+  //         be enqueued at the tail end otherwise
+  virtual void control (int,           // message type
+                        bool = false); // high-priority ?
 
   // override (part of) ACE_Task_Base
   virtual int svc (void);

@@ -4960,9 +4960,8 @@ continue_:
   gdk_window_invalidate_rect (window_p,
                               NULL,
                               false);
-#endif /* GTKGL_SUPPORT */
-
 continue_2:
+#endif /* GTKGL_SUPPORT */
   return G_SOURCE_CONTINUE;
 }
 

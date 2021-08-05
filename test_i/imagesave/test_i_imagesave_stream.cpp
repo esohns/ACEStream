@@ -106,7 +106,7 @@ Test_I_Stream::initialize (const inherited::CONFIGURATION_T& configuration_in)
   ACE_ASSERT (!isRunning ());
 
   bool setup_pipeline = configuration_in.configuration->setupPipeline;
-  bool reset_setup_pipeline = false;
+//  bool reset_setup_pipeline = false;
   Test_I_ImageSave_SessionData* session_data_p = NULL;
   inherited::CONFIGURATION_T::ITERATOR_T iterator, iterator_2;
   Test_I_Source* source_impl_p = NULL;
@@ -136,7 +136,7 @@ Test_I_Stream::initialize (const inherited::CONFIGURATION_T& configuration_in)
   // step3: allocate a new session state, reset stream
   const_cast<inherited::CONFIGURATION_T&> (configuration_in).configuration->setupPipeline =
     false;
-  reset_setup_pipeline = true;
+//  reset_setup_pipeline = true;
   if (!inherited::initialize (configuration_in))
   {
     ACE_DEBUG ((LM_ERROR,
@@ -146,7 +146,7 @@ Test_I_Stream::initialize (const inherited::CONFIGURATION_T& configuration_in)
   } // end IF
   const_cast<inherited::CONFIGURATION_T&> (configuration_in).configuration->setupPipeline =
     setup_pipeline;
-  reset_setup_pipeline = false;
+//  reset_setup_pipeline = false;
 
   // sanity check(s)
   ACE_ASSERT (inherited::sessionData_);

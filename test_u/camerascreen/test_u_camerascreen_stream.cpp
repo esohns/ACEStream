@@ -793,8 +793,9 @@ Stream_CameraScreen_MediaFoundation_Stream::Invoke (IMFAsyncResult* result_in)
                   ACE_TEXT ("%s: received MESessionStopped, stopping\n"),
                   ACE_TEXT (stream_name_string_)));
       if (isRunning ())
-        stop (false,
-              true);
+        stop (false, // wait ?
+              true,  // high priority ?
+              true); // locked access ?
       break;
     }
     case MESessionTopologySet:

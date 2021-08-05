@@ -82,7 +82,7 @@ Test_U_Stream::initialize (const typename inherited::CONFIGURATION_T& configurat
   ACE_ASSERT (!this->isRunning ());
 
   Test_U_StreamConfiguration_t::ITERATOR_T iterator;
-  struct Test_U_SessionData* session_data_p = NULL;
+//  struct Test_U_SessionData* session_data_p = NULL;
   struct Test_U_ModuleHandlerConfiguration* configuration_p = NULL;
   Stream_Module_t* module_p = NULL;
   Test_U_Source* source_impl_p = NULL;
@@ -106,8 +106,8 @@ Test_U_Stream::initialize (const typename inherited::CONFIGURATION_T& configurat
     setup_pipeline;
   reset_setup_pipeline = false;
   ACE_ASSERT (inherited::sessionData_);
-  session_data_p =
-      &const_cast<struct Test_U_SessionData&> (inherited::sessionData_->getR ());
+//  session_data_p =
+//      &const_cast<struct Test_U_SessionData&> (inherited::sessionData_->getR ());
   // *TODO*: remove type inferences
   iterator =
     const_cast<inherited::CONFIGURATION_T&> (configuration_in).find (ACE_TEXT_ALWAYS_CHAR (""));

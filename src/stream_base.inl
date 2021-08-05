@@ -790,7 +790,7 @@ Stream_Base_T<ACE_SYNCH_USE,
               ControlMessageType,
               DataMessageType,
               SessionMessageType>::stop (bool wait_in,
-                                         bool recurseupstream_in,
+                                         bool recurseUpstream_in,
                                          bool lockedAccess_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Base_T::stop"));
@@ -801,7 +801,7 @@ Stream_Base_T<ACE_SYNCH_USE,
 
   // stop upstream ?
   if (upstream_ &&
-      recurseupstream_in)
+      recurseUpstream_in)
   {
     istreamcontrol_p = dynamic_cast<ISTREAM_CONTROL_T*> (upstream_);
     if (unlikely (!istreamcontrol_p))
@@ -814,7 +814,8 @@ Stream_Base_T<ACE_SYNCH_USE,
     } // end IF
     try {
       istreamcontrol_p->stop (wait_in,
-                               lockedAccess_in);
+                              recurseUpstream_in,
+                              lockedAccess_in);
     } catch (...) {
       ISTREAM_T* istream_p = dynamic_cast<ISTREAM_T*> (upstream_);
       ACE_DEBUG ((LM_ERROR,
@@ -849,7 +850,7 @@ Stream_Base_T<ACE_SYNCH_USE,
   } // end IF
   try {
     istreamcontrol_p->stop (wait_in,
-                            recurseupstream_in,
+                            recurseUpstream_in,
                             lockedAccess_in);
   } catch (...) {
     ACE_DEBUG ((LM_ERROR,
