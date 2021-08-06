@@ -34,34 +34,21 @@ class Stream_CachedAllocatorHeap_T
  : public Stream_AllocatorBase_T<ConfigurationType>
  , public ACE_Dynamic_Cached_Allocator<ACE_SYNCH_MUTEX>
 {
+  typedef Stream_AllocatorBase_T<ConfigurationType> inherited;
+  typedef ACE_Dynamic_Cached_Allocator<ACE_SYNCH_MUTEX> inherited2;
+
  public:
   Stream_CachedAllocatorHeap_T (unsigned int,  // pool size
                                 unsigned int); // chunk size
   virtual ~Stream_CachedAllocatorHeap_T ();
 
   // implement Stream_IAllocator
-  inline virtual bool block ()
-  {
-    return true;
-  };
-  inline virtual void* calloc ()
-  {
-    return inherited2::calloc (sizeof (ACE_Message_Block), '\0');
-  };
+  inline virtual bool block () { return true; }
+  inline virtual void* calloc () { return inherited2::calloc (sizeof (ACE_Message_Block), '\0'); }
   // *IMPORTANT NOTE*: need to implement these as ACE_Dynamic_Cached_Allocator
   // doesn't implement them as virtual (BUG)
-  inline virtual void* malloc (size_t bytes_in)
-  {
-    // sanity check(s)
-    ACE_ASSERT (inherited::configuration_);
-
-    // *TODO*: remove type inference
-    return inherited2::malloc (bytes_in + inherited::configuration_->paddingBytes);
-  };
-  inline virtual void free (void* address_in)
-  {
-    inherited2::free (address_in);
-  };
+  inline virtual void* malloc (size_t bytes_in) { return inherited2::malloc (bytes_in); }
+  inline virtual void free (void* address_in) { inherited2::free (address_in); }
 
   // *NOTE*: these return the amount of allocated (heap) memory
   virtual size_t cache_depth () const;
@@ -71,9 +58,6 @@ class Stream_CachedAllocatorHeap_T
   virtual void dump_state () const;
 
  private:
-  typedef Stream_AllocatorBase_T<ConfigurationType> inherited;
-  typedef ACE_Dynamic_Cached_Allocator<ACE_SYNCH_MUTEX> inherited2;
-
   // convenient types
   typedef Stream_CachedAllocatorHeap_T<ConfigurationType> OWN_TYPE_T;
 
