@@ -327,6 +327,10 @@ Stream_Module_Net_Target_T<ACE_SYNCH_USE,
       typename ConnectorType::CONFIGURATION_T* connection_configuration_p;
       bool notify_connect = false;
       Net_ConnectionConfigurationsIterator_t iterator_2;
+      // *NOTE*: (currently,) this could be a TCP (--> test peer address),
+      //         or a UDP (--> test local address) connection
+      bool is_peer_address =
+          (iconnector_p->transportLayer () == NET_TRANSPORTLAYER_TCP);
       typename inherited::TASK_BASE_T::STREAM_T* stream_2 = NULL;
       bool is_error = false;
       ACE_HANDLE handle_h = ACE_INVALID_HANDLE;
@@ -430,10 +434,11 @@ Stream_Module_Net_Target_T<ACE_SYNCH_USE,
       else
       {
         enum Net_Connection_Status status = NET_CONNECTION_STATUS_INVALID;
-        ACE_Time_Value timeout (NET_CONNECTION_ASYNCH_DEFAULT_TIMEOUT_S, 0);
-        ACE_Time_Value deadline;
+        ACE_Time_Value timeout (NET_CONNECTION_ASYNCH_DEFAULT_ESTABLISHMENT_TIMEOUT_S,
+                                0);
+        ACE_Time_Value deadline = COMMON_TIME_NOW + timeout;
 
-        // step0: wait for the connection attempt to complete
+        // step0a: wait for the connection attempt to complete
         typename ConnectorType::IASYNCH_CONNECTOR_T* iasynch_connector_p =
           dynamic_cast<typename ConnectorType::IASYNCH_CONNECTOR_T*> (&connector_);
         ACE_ASSERT (iasynch_connector_p);
@@ -457,16 +462,14 @@ Stream_Module_Net_Target_T<ACE_SYNCH_USE,
           is_error = true;
           goto reset;
         } // end IF
-        // *TODO*: deduct the interval from the deadline
 
-        // step3a: wait for the connection to register with the manager
+        // step0b: wait for the connection to register with the manager
         // *TODO*: this may not be accurate/applicable for/to all protocols
-        deadline = COMMON_TIME_NOW + timeout;
         do
         {
           // *TODO*: avoid this tight loop
           connection_ = iconnection_manager_p->get (address_,
-                                                    true);
+                                                    is_peer_address);
           if (connection_)
             break;
         } while (COMMON_TIME_NOW < deadline);
@@ -481,10 +484,12 @@ Stream_Module_Net_Target_T<ACE_SYNCH_USE,
           goto reset;
         } // end IF
 
-        // step3b: wait for the connection to finish initializing
+        // step0c: wait for the connection to finish initializing
+        // *TODO*: avoid these tight loops
         do
         {
           status = connection_->status ();
+          // *TODO*: break early upon failure too
           if (status == NET_CONNECTION_STATUS_OK)
             break;
         } while (COMMON_TIME_NOW < deadline);
@@ -498,11 +503,11 @@ Stream_Module_Net_Target_T<ACE_SYNCH_USE,
           goto reset;
         } // end IF
 
-        // step3c: wait for the connection stream to finish initializing
+        // step0d: wait for the connection stream to finish initializing
         istream_connection_p =
             dynamic_cast<typename ConnectorType::ISTREAM_CONNECTION_T*> (connection_);
         if (unlikely (!istream_connection_p))
-        {
+        { // *TODO*: handle case where it's not a 'stream' connection !
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("%s: failed to dynamic_cast<Net_IStreamConnection_T>(0x%@), aborting\n"),
                       inherited::mod_->name (),

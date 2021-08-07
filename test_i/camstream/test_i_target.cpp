@@ -1988,13 +1988,8 @@ do_work (unsigned int bufferSize_in,
 #else
       configuration.handle = i_udp_connector_p->connect (listen_address);
 #endif // ACE_WIN32 || ACE_WIN64
-      // *TODO*: avoid tight loop here
-      ACE_Time_Value timeout (NET_CONNECTION_ASYNCH_DEFAULT_TIMEOUT_S, 0);
-      //result = ACE_OS::sleep (timeout);
-      //if (result == -1)
-      //  ACE_DEBUG ((LM_ERROR,
-      //              ACE_TEXT ("failed to ACE_OS::sleep(%#T): \"%m\", continuing\n"),
-      //              &timeout));
+      ACE_Time_Value timeout (NET_CONNECTION_ASYNCH_DEFAULT_ESTABLISHMENT_TIMEOUT_S,
+                              0);
       ACE_Time_Value deadline = COMMON_TIME_NOW + timeout;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
       Test_I_Target_MediaFoundation_UDPAsynchConnector_t::ICONNECTION_T* mediafoundation_connection_p =
@@ -2006,6 +2001,7 @@ do_work (unsigned int bufferSize_in,
       typename Test_I_Target_UDPAsynchConnector_t::ICONNECTION_T* connection_p =
           NULL;
 #endif // ACE_WIN32 || ACE_WIN64
+      // *TODO*: avoid tight loop here
       do
       {
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -2014,13 +2010,15 @@ do_work (unsigned int bufferSize_in,
           case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
           {
             directshow_connection_p =
-              directshow_udp_connection_manager_p->get (listen_address);
+              directshow_udp_connection_manager_p->get (listen_address,
+                                                        false);
             break;
           }
           case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
           {
             mediafoundation_connection_p =
-              mediafoundation_udp_connection_manager_p->get (listen_address);
+              mediafoundation_udp_connection_manager_p->get (listen_address,
+                                                             false);
             break;
           }
           default:
@@ -2032,7 +2030,8 @@ do_work (unsigned int bufferSize_in,
           } // end ELSE
         } // end SWITCH
 #else
-        connection_p = udp_connection_manager_p->get (listen_address);
+        connection_p = udp_connection_manager_p->get (listen_address,
+                                                      false);
 #endif // ACE_WIN32 || ACE_WIN64
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
         switch (mediaFramework_in)
@@ -2043,7 +2042,7 @@ do_work (unsigned int bufferSize_in,
             {
               directshow_configuration.handle =
                 reinterpret_cast<ACE_HANDLE> (directshow_connection_p->id ());
-              directshow_connection_p->decrease ();
+              directshow_connection_p->decrease (); directshow_connection_p = NULL;
               done = true;
               break;
             } // end IF
@@ -2055,7 +2054,7 @@ do_work (unsigned int bufferSize_in,
             {
               mediafoundation_configuration.handle =
                 reinterpret_cast<ACE_HANDLE> (mediafoundation_connection_p->id ());
-              mediafoundation_connection_p->decrease ();
+              mediafoundation_connection_p->decrease (); mediafoundation_connection_p = NULL;
               done = true;
               break;
             } // end IF
@@ -2076,7 +2075,7 @@ do_work (unsigned int bufferSize_in,
         {
           configuration.handle =
               static_cast<ACE_HANDLE> (connection_p->id ());
-          connection_p->decrease ();
+          connection_p->decrease (); connection_p = NULL;
           break;
         } // end IF
 #endif // ACE_WIN32 || ACE_WIN64

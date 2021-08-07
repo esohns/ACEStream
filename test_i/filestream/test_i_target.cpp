@@ -836,19 +836,16 @@ do_work (unsigned int bufferSize_in,
         connector_p->connect (NET_SOCKET_CONFIGURATION_UDP_CAST((*iterator).second)->listenAddress);
 //      if (!useReactor_in)
 //      {
-        // *TODO*: avoid tight loop here
-        ACE_Time_Value timeout (NET_CONNECTION_ASYNCH_DEFAULT_TIMEOUT_S, 0);
-        //result = ACE_OS::sleep (timeout);
-        //if (result == -1)
-        //  ACE_DEBUG ((LM_ERROR,
-        //              ACE_TEXT ("failed to ACE_OS::sleep(%#T): \"%m\", continuing\n"),
-        //              &timeout));
+        ACE_Time_Value timeout (NET_CONNECTION_ASYNCH_DEFAULT_ESTABLISHMENT_TIMEOUT_S,
+                                0);
         ACE_Time_Value deadline = COMMON_TIME_NOW + timeout;
         Test_I_InboundUDPAsynchConnector_t::ICONNECTION_T* connection_p = NULL;
+        // *TODO*: avoid tight loop here
         do
         {
           connection_p =
-            iconnection_manager_p->get (NET_SOCKET_CONFIGURATION_UDP_CAST((*iterator).second)->peerAddress);
+            iconnection_manager_p->get (NET_SOCKET_CONFIGURATION_UDP_CAST((*iterator).second)->peerAddress,
+                                        true);
           if (connection_p)
           {
 #if defined (ACE_WIN32) || defined (ACE_WIN64)

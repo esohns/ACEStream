@@ -2687,16 +2687,12 @@ action_listen_activate_cb (GtkAction* action_in,
         //         running the dispatch loop for a limited time...
         if (ui_cb_data_p->configuration->dispatchConfiguration.numberOfProactorThreads > 0)
         {
-          // *TODO*: avoid tight loop here
-          ACE_Time_Value timeout (NET_CONNECTION_ASYNCH_DEFAULT_TIMEOUT_S, 0);
-          //result = ACE_OS::sleep (timeout);
-          //if (result == -1)
-          //  ACE_DEBUG ((LM_ERROR,
-          //              ACE_TEXT ("failed to ACE_OS::sleep(%#T): \"%m\", continuing\n"),
-          //              &timeout));
+          ACE_Time_Value timeout (NET_CONNECTION_ASYNCH_DEFAULT_ESTABLISHMENT_TIMEOUT_S,
+                                  0);
           ACE_Time_Value deadline = COMMON_TIME_NOW + timeout;
           Test_I_InboundUDPAsynchConnector_t::ICONNECTION_T* connection_p =
             NULL;
+          // *TODO*: avoid tight loop here
           do
           {
             connection_p =

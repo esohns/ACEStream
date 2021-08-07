@@ -5737,15 +5737,11 @@ toggleaction_listen_activate_cb (GtkToggleAction* toggleAction_in,
         //         running the dispatch loop for a limited time...
         if (!use_reactor)
         {
-          // *TODO*: avoid tight loop here
-          ACE_Time_Value timeout (NET_CONNECTION_ASYNCH_DEFAULT_TIMEOUT_S, 0);
-          //result = ACE_OS::sleep (timeout);
-          //if (result == -1)
-          //  ACE_DEBUG ((LM_ERROR,
-          //              ACE_TEXT ("failed to ACE_OS::sleep(%#T): \"%m\", continuing\n"),
-          //              &timeout));
+          ACE_Time_Value timeout (NET_CONNECTION_ASYNCH_DEFAULT_ESTABLISHMENT_TIMEOUT_S,
+                                  0);
           ACE_Time_Value deadline = COMMON_TIME_NOW + timeout;
           bool done = false;
+          // *TODO*: avoid tight loop here
           do
           {
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -5753,11 +5749,13 @@ toggleaction_listen_activate_cb (GtkToggleAction* toggleAction_in,
             {
               case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
                 directshow_udp_connection_p =
-                  directshow_udp_connection_manager_p->get (inet_address);
+                  directshow_udp_connection_manager_p->get (inet_address,
+                                                            false);
                 break;
               case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
                 mediafoundation_udp_connection_p =
-                  mediafoundation_udp_connection_manager_p->get (inet_address);
+                  mediafoundation_udp_connection_manager_p->get (inet_address,
+                                                                 false);
                 break;
               default:
               {
@@ -5768,7 +5766,8 @@ toggleaction_listen_activate_cb (GtkToggleAction* toggleAction_in,
               }
             } // end SWITCH
 #else
-            connection_p = udp_connection_manager_p->get (inet_address);
+            connection_p = udp_connection_manager_p->get (inet_address,
+                                                          false);
 #endif // ACE_WIN32 || ACE_WIN64
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -5780,7 +5779,7 @@ toggleaction_listen_activate_cb (GtkToggleAction* toggleAction_in,
                 {
                   handle =
                     reinterpret_cast<ACE_HANDLE> (directshow_udp_connection_p->id ());
-                  directshow_udp_connection_p->decrease ();
+                  directshow_udp_connection_p->decrease (); directshow_udp_connection_p = NULL;
                   done = true;
                   break;
                 } // end IF
@@ -5792,7 +5791,7 @@ toggleaction_listen_activate_cb (GtkToggleAction* toggleAction_in,
                 {
                   handle =
                     reinterpret_cast<ACE_HANDLE> (mediafoundation_udp_connection_p->id ());
-                  mediafoundation_udp_connection_p->decrease ();
+                  mediafoundation_udp_connection_p->decrease (); mediafoundation_udp_connection_p = NULL;
                   done = true;
                   break;
                 }
@@ -5810,7 +5809,7 @@ toggleaction_listen_activate_cb (GtkToggleAction* toggleAction_in,
             if (connection_p)
             {
               handle = static_cast<ACE_HANDLE> (connection_p->id ());
-              connection_p->decrease ();
+              connection_p->decrease (); connection_p = NULL;
               done = true;
               break;
             } // end IF
