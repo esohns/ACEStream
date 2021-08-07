@@ -458,9 +458,9 @@ continue_:
         file_index_i < directory_.length ())
       goto next;
 
-    inherited::TASK_BASE_T::stop (false, // wait ?
-                                  true,  // high priority ?
-                                  true); // locked access ?
+    this->stop (false, // wait ?
+                true,  // high priority ?
+                true); // locked access ?
   } while (true);
 
 continue_2:

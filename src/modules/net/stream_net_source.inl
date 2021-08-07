@@ -347,7 +347,7 @@ Stream_Module_Net_Source_Writer_T<ACE_SYNCH_USE,
                     ACE_TEXT ("%s: session (id was: %u) aborted, closed connection to %s\n"),
                     inherited::mod_->name (),
                     session_data_r.sessionId,
-                    ACE_TEXT (Net_Common_Tools::IPAddressToString (address_).c_str ())));
+                    ACE_TEXT (Net_Common_Tools::IPAddressToString (address_, false, false).c_str ())));
       } // end IF
       isOpen_ = false;
 
