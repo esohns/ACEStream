@@ -772,9 +772,9 @@ error:
 
       inherited::sessionEndProcessed_ = true;
       if (inherited::concurrency_ != STREAM_HEADMODULECONCURRENCY_CONCURRENT)
-        inherited::TASK_BASE_T::stop (false, // wait ?
-                                      false, // high priority ?
-                                      true); // locked access ?
+        inherited::stop (false, // wait ?
+                         false, // high priority ?
+                         true); // locked access ?
 
       break;
     }

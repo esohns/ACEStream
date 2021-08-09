@@ -752,9 +752,9 @@ continue_:
         CoUninitialize ();
 
       if (likely (inherited::concurrency_ != STREAM_HEADMODULECONCURRENCY_CONCURRENT))
-        COMMON_TASK_BASE_T::stop (false, // wait ?
-                                  false, // high priority ?
-                                  true); // locked access ?
+        inherited::stop (false, // wait ?
+                         false, // high priority ?
+                         true); // locked access ?
 
       break;
     }

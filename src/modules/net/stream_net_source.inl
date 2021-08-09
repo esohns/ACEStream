@@ -503,7 +503,7 @@ Stream_Module_Net_Source_Writer_T<ACE_SYNCH_USE,
                       inherited::mod_->name (),
                       ACE_TEXT (Net_Common_Tools::IPAddressToString (address_).c_str ()),
                       ACE_TEXT (ACE_OS::strerror (result))));
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
           is_error = true;
           goto reset;
         } // end IF

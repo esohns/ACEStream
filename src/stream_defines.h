@@ -42,7 +42,7 @@
 //                       otherwise the pipeline could lock without progressing
 #define STREAM_QUEUE_MAX_MESSAGES                        1000
 // *IMPORTANT NOTE*: pre-cached messages (cached allocators only)
-#define STREAM_QUEUE_DEFAULT_CACHED_MESSAGES             1000
+#define STREAM_QUEUE_DEFAULT_CACHED_MESSAGES             ACE_DEFAULT_FREE_LIST_HWM
 
 // module
 #define STREAM_MODULE_TASK_GROUP_ID                      10

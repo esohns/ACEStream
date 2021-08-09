@@ -1131,9 +1131,8 @@ Test_U_AudioEffect_MediaFoundation_Stream::Invoke (IMFAsyncResult* result_in)
                   ACE_TEXT (stream_name_string_)));
 
       if (isRunning ())
-        stop (false, // wait ?
-              true,  // high priority ?
-              true); // locked access ?
+        this->stop (false, // wait ?
+                    true); // locked access ?
       break;
     }
     case MESessionTopologySet:
