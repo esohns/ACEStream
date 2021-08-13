@@ -504,16 +504,17 @@ do_work (unsigned int bufferSize_in,
   // ********************** connection configuration data **********************
   Test_I_Target_TCPConnectionConfiguration_t tcp_connection_configuration;
   Test_I_Target_UDPConnectionConfiguration_t udp_connection_configuration;
-  tcp_connection_configuration.address.set_port_number (listeningPortNumber_in,
-                                                        1);
-  tcp_connection_configuration.useLoopBackDevice = useLoopBack_in;
+  tcp_connection_configuration.socketConfiguration.address.set_port_number (listeningPortNumber_in,
+                                                                            1);
+  tcp_connection_configuration.socketConfiguration.useLoopBackDevice =
+    useLoopBack_in;
   if (useLoopBack_in)
   {
     result =
-      tcp_connection_configuration.address.set (listeningPortNumber_in,
-                                                INADDR_LOOPBACK,
-                                                1,
-                                                0);
+      tcp_connection_configuration.socketConfiguration.address.set (listeningPortNumber_in,
+                                                                    INADDR_LOOPBACK,
+                                                                    1,
+                                                                    0);
     if (result == -1)
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to ACE_INET_Addr::set(): \"%m\", continuing\n")));
@@ -524,7 +525,8 @@ do_work (unsigned int bufferSize_in,
     statisticReportingInterval_in;
 //  connection_configuration.connectionManager = connection_manager_p;
   tcp_connection_configuration.messageAllocator = &message_allocator;
-  tcp_connection_configuration.initialize (CBData_in.configuration->streamConfiguration);
+  tcp_connection_configuration.streamConfiguration =
+    &CBData_in.configuration->streamConfiguration;
 
   CBData_in.configuration->connectionConfigurations.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (""),
                                                                             &tcp_connection_configuration));
@@ -611,7 +613,7 @@ do_work (unsigned int bufferSize_in,
   connection_manager_p->initialize ((maximumNumberOfConnections_in ? maximumNumberOfConnections_in
                                                                    : std::numeric_limits<unsigned int>::max ()),
                                     ACE_Time_Value (0, NET_STATISTIC_DEFAULT_VISIT_INTERVAL_MS * 1000));
-  connection_manager_p->set (*dynamic_cast<Test_I_Target_TCPConnectionConfiguration_t*> ((*iterator).second),
+  connection_manager_p->set (*static_cast<Test_I_Target_TCPConnectionConfiguration_t*> ((*iterator).second),
                              &user_data_s);
 
   // step0d: initialize regular (global) statistic reporting
@@ -802,7 +804,7 @@ do_work (unsigned int bufferSize_in,
         return;
       } // end IF
       //  Stream_IInetConnector_t* iconnector_p = &connector;
-      if (!connector_p->initialize (*dynamic_cast<Test_I_Target_UDPConnectionConfiguration_t*> ((*iterator).second)))
+      if (!connector_p->initialize (*static_cast<Test_I_Target_UDPConnectionConfiguration_t*> ((*iterator).second)))
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("failed to initialize connector: \"%m\", returning\n")));
@@ -833,7 +835,7 @@ do_work (unsigned int bufferSize_in,
       // *TODO*: support one-thread operation by scheduling a signal and manually
       //         running the dispatch loop for a limited time
       CBData_in.configuration->handle =
-        connector_p->connect (NET_SOCKET_CONFIGURATION_UDP_CAST((*iterator).second)->listenAddress);
+        connector_p->connect (NET_CONFIGURATION_UDP_CAST ((*iterator).second)->socketConfiguration.listenAddress);
 //      if (!useReactor_in)
 //      {
         ACE_Time_Value timeout (NET_CONNECTION_ASYNCH_DEFAULT_ESTABLISHMENT_TIMEOUT_S,
@@ -844,7 +846,7 @@ do_work (unsigned int bufferSize_in,
         do
         {
           connection_p =
-            iconnection_manager_p->get (NET_SOCKET_CONFIGURATION_UDP_CAST((*iterator).second)->peerAddress,
+            iconnection_manager_p->get (NET_CONFIGURATION_UDP_CAST ((*iterator).second)->socketConfiguration.peerAddress,
                                         true);
           if (connection_p)
           {
@@ -864,7 +866,7 @@ do_work (unsigned int bufferSize_in,
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("failed to connect to %s, returning\n"),
-                    ACE_TEXT (Net_Common_Tools::IPAddressToString (NET_SOCKET_CONFIGURATION_UDP_CAST((*iterator).second)->listenAddress,
+                    ACE_TEXT (Net_Common_Tools::IPAddressToString (NET_CONFIGURATION_UDP_CAST ((*iterator).second)->socketConfiguration.listenAddress,
                                                                    false,
                                                                    false).c_str ())));
 
@@ -891,7 +893,7 @@ do_work (unsigned int bufferSize_in,
       } // end IF
       ACE_DEBUG ((LM_DEBUG,
                   ACE_TEXT ("listening to UDP %s\n"),
-                  ACE_TEXT (Net_Common_Tools::IPAddressToString (NET_SOCKET_CONFIGURATION_UDP_CAST((*iterator).second)->listenAddress).c_str ())));
+                  ACE_TEXT (Net_Common_Tools::IPAddressToString (NET_CONFIGURATION_UDP_CAST ((*iterator).second)->socketConfiguration.listenAddress).c_str ())));
 
       delete connector_p; connector_p = NULL;
     } // end IF

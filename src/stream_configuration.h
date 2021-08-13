@@ -294,7 +294,7 @@ class Stream_Configuration_T
 
   virtual void dump_state () const;
 
-  ConfigurationType* configuration;
+  ConfigurationType* configuration_;
   bool               isInitialized_;
 };
 

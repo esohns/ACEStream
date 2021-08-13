@@ -2802,13 +2802,13 @@ idle_initialize_UI_cb (gpointer userData_in)
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
     {
       buffer_size =
-        directshow_ui_cb_data_p->configuration->streamConfiguration.configuration->allocatorConfiguration->defaultBufferSize;
+        directshow_ui_cb_data_p->configuration->streamConfiguration.configuration_->allocatorConfiguration->defaultBufferSize;
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
     {
       buffer_size =
-        mediafoundation_ui_cb_data_p->configuration->streamConfiguration.configuration->allocatorConfiguration->defaultBufferSize;
+        mediafoundation_ui_cb_data_p->configuration->streamConfiguration.configuration_->allocatorConfiguration->defaultBufferSize;
       break;
     }
     default:
@@ -5154,13 +5154,13 @@ togglebutton_record_toggled_cb (GtkToggleButton* toggleButton_in,
     {
       case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
       {
-        directshow_ui_cb_data_p->configuration->streamConfiguration.configuration->allocatorConfiguration->defaultBufferSize =
+        directshow_ui_cb_data_p->configuration->streamConfiguration.configuration_->allocatorConfiguration->defaultBufferSize =
           value_i;
         break;
       }
       case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
       {
-        mediafoundation_ui_cb_data_p->configuration->streamConfiguration.configuration->allocatorConfiguration->defaultBufferSize =
+        mediafoundation_ui_cb_data_p->configuration->streamConfiguration.configuration_->allocatorConfiguration->defaultBufferSize =
           value_i;
         break;
       }
@@ -5173,9 +5173,9 @@ togglebutton_record_toggled_cb (GtkToggleButton* toggleButton_in,
       }
     } // end SWITCH
 #else
-    ui_cb_data_p->configuration->streamConfiguration.configuration->allocatorConfiguration->defaultBufferSize =
+    ui_cb_data_p->configuration->streamConfiguration.configuration_->allocatorConfiguration->defaultBufferSize =
       static_cast<unsigned int> (value_i);
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
   } // end IF
   else
   {
@@ -5185,13 +5185,13 @@ togglebutton_record_toggled_cb (GtkToggleButton* toggleButton_in,
       case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
       {
         value_i =
-          directshow_ui_cb_data_p->configuration->streamConfiguration.configuration->allocatorConfiguration->defaultBufferSize;
+          directshow_ui_cb_data_p->configuration->streamConfiguration.configuration_->allocatorConfiguration->defaultBufferSize;
         break;
       }
       case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
       {
         value_i =
-          mediafoundation_ui_cb_data_p->configuration->streamConfiguration.configuration->allocatorConfiguration->defaultBufferSize;
+          mediafoundation_ui_cb_data_p->configuration->streamConfiguration.configuration_->allocatorConfiguration->defaultBufferSize;
         break;
       }
       default:
@@ -5204,8 +5204,8 @@ togglebutton_record_toggled_cb (GtkToggleButton* toggleButton_in,
     } // end SWITCH
 #else
     value_i =
-      static_cast<gint> (ui_cb_data_p->configuration->streamConfiguration.configuration->allocatorConfiguration->defaultBufferSize);
-#endif
+      static_cast<gint> (ui_cb_data_p->configuration->streamConfiguration.configuration_->allocatorConfiguration->defaultBufferSize);
+#endif // ACE_WIN32 || ACE_WIN64
     gtk_spin_button_set_value (spin_button_p,
                                static_cast<gdouble> (value_i));
   } // end ELSE
@@ -5240,7 +5240,7 @@ togglebutton_record_toggled_cb (GtkToggleButton* toggleButton_in,
                             0, &value);
 #else
                             1, &value);
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
   ACE_ASSERT (G_VALUE_TYPE (&value) == G_TYPE_STRING);
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   switch (ui_cb_data_base_p->mediaFramework)
@@ -5268,7 +5268,7 @@ togglebutton_record_toggled_cb (GtkToggleButton* toggleButton_in,
 #else
   (*modulehandler_configuration_iterator).second.second.deviceIdentifier.identifier =
     g_value_get_string (&value);
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
   g_value_unset (&value);
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
@@ -5281,7 +5281,7 @@ togglebutton_record_toggled_cb (GtkToggleButton* toggleButton_in,
   } // end IF
   (*modulehandler_configuration_iterator).second.second.captureDeviceHandle =
       ui_cb_data_p->handle;
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
 
   combo_box_p =
     GTK_COMBO_BOX (gtk_builder_get_object ((*iterator).second.second,
@@ -5307,7 +5307,7 @@ togglebutton_record_toggled_cb (GtkToggleButton* toggleButton_in,
 #else
                             2, &value);
   ACE_ASSERT (G_VALUE_TYPE (&value) == G_TYPE_INT);
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   GUID_s = Common_Tools::StringToGUID (g_value_get_string (&value));
   HRESULT result = E_FAIL;
@@ -5315,15 +5315,15 @@ togglebutton_record_toggled_cb (GtkToggleButton* toggleButton_in,
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
     {
-      directshow_ui_cb_data_p->configuration->streamConfiguration.configuration->format.subtype =
+      directshow_ui_cb_data_p->configuration->streamConfiguration.configuration_->format.subtype =
         GUID_s;
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
-    { ACE_ASSERT (mediafoundation_ui_cb_data_p->configuration->streamConfiguration.configuration->format);
+    { ACE_ASSERT (mediafoundation_ui_cb_data_p->configuration->streamConfiguration.configuration_->format);
       result =
-        mediafoundation_ui_cb_data_p->configuration->streamConfiguration.configuration->format->SetGUID (MF_MT_SUBTYPE,
-                                                                                                         GUID_s);
+        mediafoundation_ui_cb_data_p->configuration->streamConfiguration.configuration_->format->SetGUID (MF_MT_SUBTYPE,
+                                                                                                          GUID_s);
       ACE_ASSERT (SUCCEEDED (result));
       break;
     }
@@ -5336,9 +5336,9 @@ togglebutton_record_toggled_cb (GtkToggleButton* toggleButton_in,
     }
   } // end SWITCH
 #else
-//  ui_cb_data_p->configuration->streamConfiguration.configuration->format.format =
+//  ui_cb_data_p->configuration->streamConfiguration.configuration_->format.format =
 //    static_cast<enum _snd_pcm_format> (g_value_get_int (&value));
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
   g_value_unset (&value);
 
   combo_box_p =
@@ -5366,18 +5366,18 @@ togglebutton_record_toggled_cb (GtkToggleButton* toggleButton_in,
   switch (ui_cb_data_base_p->mediaFramework)
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
-    { ACE_ASSERT (directshow_ui_cb_data_p->configuration->streamConfiguration.configuration->format.cbFormat == sizeof (struct tWAVEFORMATEX));
-      ACE_ASSERT (directshow_ui_cb_data_p->configuration->streamConfiguration.configuration->format.pbFormat);
+    { ACE_ASSERT (directshow_ui_cb_data_p->configuration->streamConfiguration.configuration_->format.cbFormat == sizeof (struct tWAVEFORMATEX));
+      ACE_ASSERT (directshow_ui_cb_data_p->configuration->streamConfiguration.configuration_->format.pbFormat);
       struct tWAVEFORMATEX* waveformatex_p =
-        reinterpret_cast<struct tWAVEFORMATEX*> (directshow_ui_cb_data_p->configuration->streamConfiguration.configuration->format.pbFormat);
+        reinterpret_cast<struct tWAVEFORMATEX*> (directshow_ui_cb_data_p->configuration->streamConfiguration.configuration_->format.pbFormat);
       //waveformatex_p->nSamplesPerSec = g_value_get_uint (&value);
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
-    { ACE_ASSERT (mediafoundation_ui_cb_data_p->configuration->streamConfiguration.configuration->format);
+    { ACE_ASSERT (mediafoundation_ui_cb_data_p->configuration->streamConfiguration.configuration_->format);
       result =
-        mediafoundation_ui_cb_data_p->configuration->streamConfiguration.configuration->format->SetUINT32 (MF_MT_AUDIO_SAMPLES_PER_SECOND,
-                                                                                                           g_value_get_uint (&value));
+        mediafoundation_ui_cb_data_p->configuration->streamConfiguration.configuration_->format->SetUINT32 (MF_MT_AUDIO_SAMPLES_PER_SECOND,
+                                                                                                            g_value_get_uint (&value));
       ACE_ASSERT (SUCCEEDED (result));
       break;
     }
@@ -5390,9 +5390,9 @@ togglebutton_record_toggled_cb (GtkToggleButton* toggleButton_in,
     }
   } // end SWITCH
 #else
-  ui_cb_data_p->configuration->streamConfiguration.configuration->format.rate =
+  ui_cb_data_p->configuration->streamConfiguration.configuration_->format.rate =
     g_value_get_uint (&value);
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
   g_value_unset (&value);
 
   combo_box_p =
@@ -5421,18 +5421,18 @@ togglebutton_record_toggled_cb (GtkToggleButton* toggleButton_in,
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
     {
-      ACE_ASSERT (directshow_ui_cb_data_p->configuration->streamConfiguration.configuration->format.cbFormat == sizeof (struct tWAVEFORMATEX));
-      ACE_ASSERT (directshow_ui_cb_data_p->configuration->streamConfiguration.configuration->format.pbFormat);
+      ACE_ASSERT (directshow_ui_cb_data_p->configuration->streamConfiguration.configuration_->format.cbFormat == sizeof (struct tWAVEFORMATEX));
+      ACE_ASSERT (directshow_ui_cb_data_p->configuration->streamConfiguration.configuration_->format.pbFormat);
       struct tWAVEFORMATEX* waveformatex_p =
-        reinterpret_cast<struct tWAVEFORMATEX*> (directshow_ui_cb_data_p->configuration->streamConfiguration.configuration->format.pbFormat);
+        reinterpret_cast<struct tWAVEFORMATEX*> (directshow_ui_cb_data_p->configuration->streamConfiguration.configuration_->format.pbFormat);
       waveformatex_p->wBitsPerSample = static_cast<WORD> (g_value_get_uint (&value));
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
-    { ACE_ASSERT (mediafoundation_ui_cb_data_p->configuration->streamConfiguration.configuration->format);
+    { ACE_ASSERT (mediafoundation_ui_cb_data_p->configuration->streamConfiguration.configuration_->format);
       result =
-        mediafoundation_ui_cb_data_p->configuration->streamConfiguration.configuration->format->SetUINT32 (MF_MT_AUDIO_BITS_PER_SAMPLE,
-                                                                                                           g_value_get_uint (&value));
+        mediafoundation_ui_cb_data_p->configuration->streamConfiguration.configuration_->format->SetUINT32 (MF_MT_AUDIO_BITS_PER_SAMPLE,
+                                                                                                            g_value_get_uint (&value));
       ACE_ASSERT (SUCCEEDED (result));
       break;
     }
@@ -5449,11 +5449,11 @@ togglebutton_record_toggled_cb (GtkToggleButton* toggleButton_in,
   //         already been set at this stage
   ACE_DEBUG ((LM_DEBUG,
               ACE_TEXT ("%s --> %d\n"),
-              ACE_TEXT (snd_pcm_format_description (ui_cb_data_p->configuration->streamConfiguration.configuration->format.format)),
-              snd_pcm_format_width (ui_cb_data_p->configuration->streamConfiguration.configuration->format.format)));
+              ACE_TEXT (snd_pcm_format_description (ui_cb_data_p->configuration->streamConfiguration.configuration_->format.format)),
+              snd_pcm_format_width (ui_cb_data_p->configuration->streamConfiguration.configuration_->format.format)));
 //  ui_cb_data_p->configuration->streamConfiguration.format. =
 //    g_value_get_uint (&value);
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
   g_value_unset (&value);
 
   combo_box_p =
@@ -5481,18 +5481,18 @@ togglebutton_record_toggled_cb (GtkToggleButton* toggleButton_in,
   switch (ui_cb_data_base_p->mediaFramework)
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
-    { ACE_ASSERT (directshow_ui_cb_data_p->configuration->streamConfiguration.configuration->format.cbFormat == sizeof (struct tWAVEFORMATEX));
-      ACE_ASSERT (directshow_ui_cb_data_p->configuration->streamConfiguration.configuration->format.pbFormat);
+    { ACE_ASSERT (directshow_ui_cb_data_p->configuration->streamConfiguration.configuration_->format.cbFormat == sizeof (struct tWAVEFORMATEX));
+      ACE_ASSERT (directshow_ui_cb_data_p->configuration->streamConfiguration.configuration_->format.pbFormat);
       struct tWAVEFORMATEX* waveformatex_p =
-        reinterpret_cast<struct tWAVEFORMATEX*> (directshow_ui_cb_data_p->configuration->streamConfiguration.configuration->format.pbFormat);
+        reinterpret_cast<struct tWAVEFORMATEX*> (directshow_ui_cb_data_p->configuration->streamConfiguration.configuration_->format.pbFormat);
       waveformatex_p->nChannels = static_cast<WORD> (g_value_get_uint (&value));
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
-    { ACE_ASSERT (mediafoundation_ui_cb_data_p->configuration->streamConfiguration.configuration->format);
+    { ACE_ASSERT (mediafoundation_ui_cb_data_p->configuration->streamConfiguration.configuration_->format);
       result =
-        mediafoundation_ui_cb_data_p->configuration->streamConfiguration.configuration->format->SetUINT32 (MF_MT_AUDIO_NUM_CHANNELS,
-                                                                                                           g_value_get_uint (&value));
+        mediafoundation_ui_cb_data_p->configuration->streamConfiguration.configuration_->format->SetUINT32 (MF_MT_AUDIO_NUM_CHANNELS,
+                                                                                                            g_value_get_uint (&value));
       ACE_ASSERT (SUCCEEDED (result));
       break;
     }
@@ -5505,9 +5505,9 @@ togglebutton_record_toggled_cb (GtkToggleButton* toggleButton_in,
     }
   } // end SWITCH
 #else
-  ui_cb_data_p->configuration->streamConfiguration.configuration->format.channels =
+  ui_cb_data_p->configuration->streamConfiguration.configuration_->format.channels =
     g_value_get_uint (&value);
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
   g_value_unset (&value);
 
   toggle_button_p =
@@ -5567,7 +5567,7 @@ togglebutton_record_toggled_cb (GtkToggleButton* toggleButton_in,
         Common_UI_GTK_Tools::UTF8ToLocale (filename_p, -1);
     else
       (*modulehandler_configuration_iterator).second.second.targetFileName.clear ();
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
     g_free (filename_p);
   } // end IF
 
@@ -5601,7 +5601,7 @@ togglebutton_record_toggled_cb (GtkToggleButton* toggleButton_in,
 #else
   (*modulehandler_configuration_iterator).second.second.mute =
     gtk_toggle_button_get_active (toggle_button_p);
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
 
   // sanity check(s)
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -5671,7 +5671,7 @@ togglebutton_record_toggled_cb (GtkToggleButton* toggleButton_in,
 //                ACE_TEXT ("failed to Stream_Device_Tools::setCaptureFormat(), aborting\n")));
 //    goto error;
 //  } // end IF
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
 //#if defined (ACE_WIN32) || defined (ACE_WIN64)
 //  topology_p->Release ();
 //#endif
@@ -5773,7 +5773,7 @@ togglebutton_record_toggled_cb (GtkToggleButton* toggleButton_in,
   if (thread_data_p)
     static_cast<struct Test_U_AudioEffect_ThreadData*> (thread_data_p)->CBData =
       ui_cb_data_p;
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
   if (!thread_data_p)
   {
     ACE_DEBUG ((LM_CRITICAL,
@@ -5864,6 +5864,7 @@ togglebutton_record_toggled_cb (GtkToggleButton* toggleButton_in,
     state_r.eventSourceIds.insert (ui_cb_data_base_p->progressData.eventSourceId);
   } // end lock scope
 } // togglebutton_record_toggled_cb
+
 void
 button_cut_clicked_cb (GtkButton* button_in,
                        gpointer userData_in)
@@ -7520,7 +7521,7 @@ combobox_source_changed_cb (GtkWidget* widget_in,
                                                             (*directshow_modulehandler_configuration_iterator).second.second.builder,
                                                             buffer_negotiation_p,
                                                             directshow_ui_cb_data_p->streamConfiguration,
-                                                            directshow_ui_cb_data_p->configuration->streamConfiguration.configuration->filterGraphConfiguration))
+                                                            directshow_ui_cb_data_p->configuration->streamConfiguration.configuration_->filterGraphConfiguration))
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("failed to Stream_Device_DirectShow_Tools::loadDeviceGraph(\"%s\"), returning\n"),
@@ -7679,16 +7680,14 @@ combobox_source_changed_cb (GtkWidget* widget_in,
                 ACE_TEXT (snd_strerror (result))));
     goto error;
   } // end IF
-#if defined (_DEBUG)
   ACE_DEBUG ((LM_ERROR,
               ACE_TEXT ("%s: default format:\n%s"),
               ACE_TEXT (snd_pcm_name (ui_cb_data_p->handle)),
               ACE_TEXT (Stream_Device_Tools::formatToString (format_p).c_str ())));
-#endif // _DEBUG
   snd_pcm_hw_params_free (format_p); format_p = NULL;
 
   if (!Stream_Device_Tools::getFormat (ui_cb_data_p->handle,
-                                       ui_cb_data_p->configuration->streamConfiguration.configuration->format))
+                                       ui_cb_data_p->configuration->streamConfiguration.configuration_->format))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Stream_Device_Tools::getFormat(): \"%m\", aborting\n")));
@@ -7699,9 +7698,9 @@ combobox_source_changed_cb (GtkWidget* widget_in,
 
   result_2 =
       load_formats (ui_cb_data_p->handle,
-                    ui_cb_data_p->configuration->streamConfiguration.configuration->format,
+                    ui_cb_data_p->configuration->streamConfiguration.configuration_->format,
                     list_store_p);
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
   if (!result_2)
   {
     ACE_DEBUG ((LM_ERROR,
@@ -7745,7 +7744,7 @@ combobox_source_changed_cb (GtkWidget* widget_in,
       return;
     }
   } // end SWITCH
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
 
   return;
 
@@ -7788,7 +7787,7 @@ error:
   {
     snd_pcm_hw_params_free (format_p); format_p = NULL;
   } // end IF
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
 } // combobox_source_changed_cb
 
 void
@@ -7860,7 +7859,7 @@ combobox_format_changed_cb (GtkWidget* widget_in,
   Test_U_AudioEffect_ALSA_StreamConfiguration_t::ITERATOR_T modulehandler_configuration_iterator =
     ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (modulehandler_configuration_iterator != ui_cb_data_p->configuration->streamConfiguration.end ());
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
 
   Common_UI_GTK_BuildersConstIterator_t iterator =
     state_r.builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN));
@@ -7900,7 +7899,7 @@ combobox_format_changed_cb (GtkWidget* widget_in,
   ACE_ASSERT (G_VALUE_TYPE (&value) == G_TYPE_INT);
   enum _snd_pcm_format format_e =
       static_cast<enum _snd_pcm_format> (g_value_get_int (&value));
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
   g_value_unset (&value);
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   struct _GUID GUID_s = Common_Tools::StringToGUID (format_string);
@@ -7913,7 +7912,7 @@ combobox_format_changed_cb (GtkWidget* widget_in,
   } // end IF
 #else
 //  snd_pcm_format_t format_i = snd_pcm_format_value (format_string.c_str ());
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
   list_store_p =
     GTK_LIST_STORE (gtk_builder_get_object ((*iterator).second.second,
                                             ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_LISTSTORE_FREQUENCY_NAME)));
@@ -7930,7 +7929,7 @@ combobox_format_changed_cb (GtkWidget* widget_in,
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
     { ACE_ASSERT (directshow_ui_cb_data_p->configuration);
-      directshow_ui_cb_data_p->configuration->streamConfiguration.configuration->format.subtype =
+      directshow_ui_cb_data_p->configuration->streamConfiguration.configuration_->format.subtype =
         GUID_s;
 
       result_2 =
@@ -7941,12 +7940,12 @@ combobox_format_changed_cb (GtkWidget* widget_in,
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
     { ACE_ASSERT (mediafoundation_ui_cb_data_p->configuration);
-      ACE_ASSERT (mediafoundation_ui_cb_data_p->configuration->streamConfiguration.configuration->format);
+      ACE_ASSERT (mediafoundation_ui_cb_data_p->configuration->streamConfiguration.configuration_->format);
       ACE_ASSERT ((*mediafoundation_modulehandler_configuration_iterator).second.second.session);
 
       HRESULT result =
-        mediafoundation_ui_cb_data_p->configuration->streamConfiguration.configuration->format->SetGUID (MF_MT_SUBTYPE,
-                                                                                                         GUID_s);
+        mediafoundation_ui_cb_data_p->configuration->streamConfiguration.configuration_->format->SetGUID (MF_MT_SUBTYPE,
+                                                                                                          GUID_s);
       if (FAILED (result))
       {
         ACE_DEBUG ((LM_ERROR,
@@ -7985,19 +7984,19 @@ combobox_format_changed_cb (GtkWidget* widget_in,
   ACE_ASSERT (ui_cb_data_p->configuration);
   ACE_ASSERT (ui_cb_data_p->handle);
 
-  ui_cb_data_p->configuration->streamConfiguration.configuration->format.format =
+  ui_cb_data_p->configuration->streamConfiguration.configuration_->format.format =
       format_e;
   // *TODO*: format setting doesn't work yet
   ACE_DEBUG ((LM_ERROR,
               ACE_TEXT ("format setting is currently broken, continuing\n")));
-  ui_cb_data_p->configuration->streamConfiguration.configuration->format.format =
+  ui_cb_data_p->configuration->streamConfiguration.configuration_->format.format =
       STREAM_DEV_MIC_ALSA_DEFAULT_FORMAT;
 
   result_2 =
       load_sample_rates (ui_cb_data_p->handle,
-                         ui_cb_data_p->configuration->streamConfiguration.configuration->format,
+                         ui_cb_data_p->configuration->streamConfiguration.configuration_->format,
                          list_store_p);
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
   if (!result_2)
   {
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -8009,7 +8008,7 @@ combobox_format_changed_cb (GtkWidget* widget_in,
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to ::load_sample_rates(), returning\n")));
     return;
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
   } // end IF
   gint n_rows =
     gtk_tree_model_iter_n_children (GTK_TREE_MODEL (list_store_p), NULL);
@@ -8065,7 +8064,7 @@ error_2:
       return;
     }
   } // end SWITCH
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
 } // combobox_format_changed_cb
 
 void
@@ -8137,7 +8136,7 @@ combobox_frequency_changed_cb (GtkWidget* widget_in,
   Test_U_AudioEffect_ALSA_StreamConfiguration_t::ITERATOR_T modulehandler_configuration_iterator =
     ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (modulehandler_configuration_iterator != ui_cb_data_p->configuration->streamConfiguration.end ());
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
 
   Common_UI_GTK_BuildersConstIterator_t iterator =
     state_r.builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN));
@@ -8180,7 +8179,7 @@ combobox_frequency_changed_cb (GtkWidget* widget_in,
   enum _snd_pcm_format format_e =
       static_cast<enum _snd_pcm_format> (g_value_get_int (&value));
   ACE_UNUSED_ARG (format_e);
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
   g_value_unset (&value);
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   struct _GUID GUID_s = Common_Tools::StringToGUID (format_string);
@@ -8193,7 +8192,7 @@ combobox_frequency_changed_cb (GtkWidget* widget_in,
   } // end IF
 #else
 //  snd_pcm_format_t format_i = snd_pcm_format_value (format_string.c_str ());
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
   if (!gtk_combo_box_get_active_iter (GTK_COMBO_BOX (widget_in),
                                       &iterator_2))
   {
@@ -8228,9 +8227,9 @@ combobox_frequency_changed_cb (GtkWidget* widget_in,
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
     { ACE_ASSERT (directshow_ui_cb_data_p->configuration);
-      ACE_ASSERT (InlineIsEqualGUID (directshow_ui_cb_data_p->configuration->streamConfiguration.configuration->format.formattype, FORMAT_WaveFormatEx));
+      ACE_ASSERT (InlineIsEqualGUID (directshow_ui_cb_data_p->configuration->streamConfiguration.configuration_->format.formattype, FORMAT_WaveFormatEx));
       struct tWAVEFORMATEX* audio_info_header_p =
-        reinterpret_cast<struct tWAVEFORMATEX*> (directshow_ui_cb_data_p->configuration->streamConfiguration.configuration->format.pbFormat);
+        reinterpret_cast<struct tWAVEFORMATEX*> (directshow_ui_cb_data_p->configuration->streamConfiguration.configuration_->format.pbFormat);
       //audio_info_header_p->nSamplesPerSec = sample_rate;
 
       result_2 = load_sample_resolutions (directshow_ui_cb_data_p->streamConfiguration,
@@ -8241,14 +8240,14 @@ combobox_frequency_changed_cb (GtkWidget* widget_in,
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
     { ACE_ASSERT (mediafoundation_ui_cb_data_p->configuration);
-      ACE_ASSERT (mediafoundation_ui_cb_data_p->configuration->streamConfiguration.configuration->format);
+      ACE_ASSERT (mediafoundation_ui_cb_data_p->configuration->streamConfiguration.configuration_->format);
 #if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
       ACE_ASSERT ((*mediafoundation_modulehandler_configuration_iterator).second.second.session);
 #endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
 
       HRESULT result =
-        mediafoundation_ui_cb_data_p->configuration->streamConfiguration.configuration->format->SetUINT32 (MF_MT_AUDIO_SAMPLES_PER_SECOND,
-                                                                                                           sample_rate);
+        mediafoundation_ui_cb_data_p->configuration->streamConfiguration.configuration_->format->SetUINT32 (MF_MT_AUDIO_SAMPLES_PER_SECOND,
+                                                                                                            sample_rate);
       if (FAILED (result))
       {
         ACE_DEBUG ((LM_ERROR,
@@ -8288,12 +8287,12 @@ combobox_frequency_changed_cb (GtkWidget* widget_in,
   ACE_ASSERT (ui_cb_data_p->configuration);
   ACE_ASSERT (ui_cb_data_p->handle);
 
-  ui_cb_data_p->configuration->streamConfiguration.configuration->format.rate =
+  ui_cb_data_p->configuration->streamConfiguration.configuration_->format.rate =
       sample_rate;
 
   result_2 =
       load_sample_resolutions (ui_cb_data_p->handle,
-                               ui_cb_data_p->configuration->streamConfiguration.configuration->format,
+                               ui_cb_data_p->configuration->streamConfiguration.configuration_->format,
                                list_store_p);
 #endif // ACE_WIN32 || ACE_WIN64
   if (!result_2)
@@ -8439,7 +8438,7 @@ combobox_resolution_changed_cb (GtkWidget* widget_in,
   Test_U_AudioEffect_ALSA_StreamConfiguration_t::ITERATOR_T modulehandler_configuration_iterator =
     ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (modulehandler_configuration_iterator != ui_cb_data_p->configuration->streamConfiguration.end ());
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
 
   Common_UI_GTK_BuildersConstIterator_t iterator =
     state_r.builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN));
@@ -8482,7 +8481,7 @@ combobox_resolution_changed_cb (GtkWidget* widget_in,
   enum _snd_pcm_format format_e =
       static_cast<enum _snd_pcm_format> (g_value_get_int (&value));
   ACE_UNUSED_ARG (format_e);
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
   g_value_unset (&value);
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   struct _GUID GUID_s = Common_Tools::StringToGUID (format_string);
@@ -8495,7 +8494,7 @@ combobox_resolution_changed_cb (GtkWidget* widget_in,
   } // end IF
 #else
 //  snd_pcm_format_t format_i = snd_pcm_format_value (format_string.c_str ());
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
   combo_box_p =
     GTK_COMBO_BOX (gtk_builder_get_object ((*iterator).second.second,
                                            ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_COMBOBOX_FREQUENCY_NAME)));
@@ -8554,10 +8553,10 @@ combobox_resolution_changed_cb (GtkWidget* widget_in,
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
     { ACE_ASSERT (directshow_ui_cb_data_p->configuration);
-      ACE_ASSERT (InlineIsEqualGUID (directshow_ui_cb_data_p->configuration->streamConfiguration.configuration->format.formattype, FORMAT_WaveFormatEx));
+      ACE_ASSERT (InlineIsEqualGUID (directshow_ui_cb_data_p->configuration->streamConfiguration.configuration_->format.formattype, FORMAT_WaveFormatEx));
 
       struct tWAVEFORMATEX* audio_info_header_p =
-        reinterpret_cast<struct tWAVEFORMATEX*> (directshow_ui_cb_data_p->configuration->streamConfiguration.configuration->format.pbFormat);
+        reinterpret_cast<struct tWAVEFORMATEX*> (directshow_ui_cb_data_p->configuration->streamConfiguration.configuration_->format.pbFormat);
       audio_info_header_p->wBitsPerSample = bits_per_sample;
 
       result_2 = load_channels (directshow_ui_cb_data_p->streamConfiguration,
@@ -8569,14 +8568,14 @@ combobox_resolution_changed_cb (GtkWidget* widget_in,
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
     { ACE_ASSERT (mediafoundation_ui_cb_data_p->configuration);
-      ACE_ASSERT (mediafoundation_ui_cb_data_p->configuration->streamConfiguration.configuration->format);
+      ACE_ASSERT (mediafoundation_ui_cb_data_p->configuration->streamConfiguration.configuration_->format);
 #if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
       ACE_ASSERT ((*mediafoundation_modulehandler_configuration_iterator).second.second.session);
 #endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
 
       HRESULT result =
-        mediafoundation_ui_cb_data_p->configuration->streamConfiguration.configuration->format->SetUINT32 (MF_MT_AUDIO_BITS_PER_SAMPLE,
-                                                                                                           bits_per_sample);
+        mediafoundation_ui_cb_data_p->configuration->streamConfiguration.configuration_->format->SetUINT32 (MF_MT_AUDIO_BITS_PER_SAMPLE,
+                                                                                                            bits_per_sample);
       if (FAILED (result))
       {
         ACE_DEBUG ((LM_ERROR,
@@ -8622,7 +8621,7 @@ combobox_resolution_changed_cb (GtkWidget* widget_in,
 
   result_2 =
       load_channels (ui_cb_data_p->handle,
-                     ui_cb_data_p->configuration->streamConfiguration.configuration->format,
+                     ui_cb_data_p->configuration->streamConfiguration.configuration_->format,
                      list_store_p);
 #endif // ACE_WIN32 || ACE_WIN64
   if (!result_2)
@@ -8895,21 +8894,21 @@ combobox_channels_changed_cb (GtkWidget* widget_in,
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
     { ACE_ASSERT (directshow_ui_cb_data_p->configuration);
-      ACE_ASSERT (InlineIsEqualGUID (directshow_ui_cb_data_p->configuration->streamConfiguration.configuration->format.formattype, FORMAT_WaveFormatEx));
+      ACE_ASSERT (InlineIsEqualGUID (directshow_ui_cb_data_p->configuration->streamConfiguration.configuration_->format.formattype, FORMAT_WaveFormatEx));
 
       struct tWAVEFORMATEX* audio_info_header_p =
-        reinterpret_cast<struct tWAVEFORMATEX*> (directshow_ui_cb_data_p->configuration->streamConfiguration.configuration->format.pbFormat);
+        reinterpret_cast<struct tWAVEFORMATEX*> (directshow_ui_cb_data_p->configuration->streamConfiguration.configuration_->format.pbFormat);
       audio_info_header_p->nChannels = number_of_channels;
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
     { ACE_ASSERT (mediafoundation_ui_cb_data_p->configuration);
-      ACE_ASSERT (mediafoundation_ui_cb_data_p->configuration->streamConfiguration.configuration->format);
+      ACE_ASSERT (mediafoundation_ui_cb_data_p->configuration->streamConfiguration.configuration_->format);
       //ACE_ASSERT ((*mediafoundation_modulehandler_configuration_iterator).second.second.session);
 
       HRESULT result =
-        mediafoundation_ui_cb_data_p->configuration->streamConfiguration.configuration->format->SetUINT32 (MF_MT_AUDIO_NUM_CHANNELS,
-                                                                                                           number_of_channels);
+        mediafoundation_ui_cb_data_p->configuration->streamConfiguration.configuration_->format->SetUINT32 (MF_MT_AUDIO_NUM_CHANNELS,
+                                                                                                            number_of_channels);
       if (FAILED (result))
       {
         ACE_DEBUG ((LM_ERROR,
@@ -8933,7 +8932,7 @@ combobox_channels_changed_cb (GtkWidget* widget_in,
   ACE_ASSERT (ui_cb_data_p->handle);
   ACE_ASSERT (ui_cb_data_p->configuration);
 
-  ui_cb_data_p->configuration->streamConfiguration.configuration->format.channels =
+  ui_cb_data_p->configuration->streamConfiguration.configuration_->format.channels =
       number_of_channels;
 #endif // ACE_WIN32 || ACE_WIN64
 

@@ -254,7 +254,7 @@ idle_initialize_ui_cb (gpointer userData_in)
                              0.0,
                              std::numeric_limits<unsigned int>::max ());
   gtk_spin_button_set_value (spin_button_p,
-                             ui_cb_data_p->configuration->streamConfiguration.configuration->allocatorConfiguration->defaultBufferSize);
+                             ui_cb_data_p->configuration->streamConfiguration.configuration_->allocatorConfiguration->defaultBufferSize);
 
   GtkEntry* entry_p =
     GTK_ENTRY (gtk_builder_get_object ((*iterator).second.second,
@@ -1118,8 +1118,8 @@ button_execute_clicked_cb (GtkButton* button_in,
     hostname_string_2 += converter.str ();
   } // end IF
   result =
-	  NET_SOCKET_CONFIGURATION_TCP_CAST ((*iterator_3).second)->address.set (hostname_string_2.c_str (),
-                                                                           AF_INET);
+	  NET_CONFIGURATION_TCP_CAST ((*iterator_3).second)->socketConfiguration.address.set (hostname_string_2.c_str (),
+                                                                                        AF_INET);
   if (result == -1)
   {
     ACE_DEBUG ((LM_ERROR,
@@ -1127,8 +1127,8 @@ button_execute_clicked_cb (GtkButton* button_in,
                 ACE_TEXT (hostname_string_2.c_str ())));
     return;
   } // end IF
-  NET_SOCKET_CONFIGURATION_TCP_CAST ((*iterator_3).second)->useLoopBackDevice =
-	  NET_SOCKET_CONFIGURATION_TCP_CAST ((*iterator_3).second)->address.is_loopback ();
+  NET_CONFIGURATION_TCP_CAST ((*iterator_3).second)->socketConfiguration.useLoopBackDevice =
+	  NET_CONFIGURATION_TCP_CAST ((*iterator_3).second)->socketConfiguration.address.is_loopback ();
 
   // save to file ?
   check_button_p =

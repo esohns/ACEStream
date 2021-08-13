@@ -110,12 +110,12 @@ Test_I_Target_DirectShow_TCPStream::initialize (const CONFIGURATION_T& configura
   ACE_ASSERT (!isRunning ());
 
   bool result = false;
-  bool setup_pipeline = configuration_in.configuration->setupPipeline;
+  bool setup_pipeline = configuration_in.configuration_->setupPipeline;
   bool reset_setup_pipeline = false;
   inherited::CONFIGURATION_T::ITERATOR_T iterator;
 
   // allocate a new session state, reset stream
-  const_cast<inherited::CONFIGURATION_T&> (configuration_in).configuration->setupPipeline =
+  const_cast<inherited::CONFIGURATION_T&> (configuration_in).configuration_->setupPipeline =
     false;
   reset_setup_pipeline = true;
   if (!inherited::initialize (configuration_in,
@@ -126,7 +126,7 @@ Test_I_Target_DirectShow_TCPStream::initialize (const CONFIGURATION_T& configura
                 ACE_TEXT (stream_name_string_)));
     goto error;
   } // end IF
-  const_cast<inherited::CONFIGURATION_T&> (configuration_in).configuration->setupPipeline =
+  const_cast<inherited::CONFIGURATION_T&> (configuration_in).configuration_->setupPipeline =
     setup_pipeline;
   reset_setup_pipeline = false;
   ACE_ASSERT (inherited::sessionData_);
@@ -185,8 +185,8 @@ Test_I_Target_DirectShow_TCPStream::initialize (const CONFIGURATION_T& configura
 
   // ---------------------------------------------------------------------------
 
-  if (configuration_in.configuration->setupPipeline)
-    if (!inherited::setup (configuration_in.configuration->notificationStrategy))
+  if (configuration_in.configuration_->setupPipeline)
+    if (!inherited::setup (configuration_in.configuration_->notificationStrategy))
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: failed to set up pipeline, aborting\n"),
@@ -198,7 +198,7 @@ Test_I_Target_DirectShow_TCPStream::initialize (const CONFIGURATION_T& configura
 
 error:
   if (reset_setup_pipeline)
-    const_cast<inherited::CONFIGURATION_T&> (configuration_in).configuration->setupPipeline =
+    const_cast<inherited::CONFIGURATION_T&> (configuration_in).configuration_->setupPipeline =
       setup_pipeline;
   if (!session_data_r.formats.empty ())
     session_data_r.formats.clear ();
@@ -342,12 +342,12 @@ Test_I_Target_DirectShow_UDPStream::initialize (const CONFIGURATION_T& configura
   ACE_ASSERT (!isRunning ());
 
   bool result = false;
-  bool setup_pipeline = configuration_in.configuration->setupPipeline;
+  bool setup_pipeline = configuration_in.configuration_->setupPipeline;
   bool reset_setup_pipeline = false;
   inherited::CONFIGURATION_T::ITERATOR_T iterator;
 
   // allocate a new session state, reset stream
-  const_cast<inherited::CONFIGURATION_T&> (configuration_in).configuration->setupPipeline =
+  const_cast<inherited::CONFIGURATION_T&> (configuration_in).configuration_->setupPipeline =
     false;
   reset_setup_pipeline = true;
   if (!inherited::initialize (configuration_in,
@@ -358,7 +358,7 @@ Test_I_Target_DirectShow_UDPStream::initialize (const CONFIGURATION_T& configura
                 ACE_TEXT (stream_name_string_)));
     goto error;
   } // end IF
-  const_cast<inherited::CONFIGURATION_T&> (configuration_in).configuration->setupPipeline =
+  const_cast<inherited::CONFIGURATION_T&> (configuration_in).configuration_->setupPipeline =
     setup_pipeline;
   reset_setup_pipeline = false;
   ACE_ASSERT (inherited::sessionData_);
@@ -417,8 +417,8 @@ Test_I_Target_DirectShow_UDPStream::initialize (const CONFIGURATION_T& configura
 
   // ---------------------------------------------------------------------------
 
-  if (configuration_in.configuration->setupPipeline)
-    if (!inherited::setup (configuration_in.configuration->notificationStrategy))
+  if (configuration_in.configuration_->setupPipeline)
+    if (!inherited::setup (configuration_in.configuration_->notificationStrategy))
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: failed to set up pipeline, aborting\n"),
@@ -430,7 +430,7 @@ Test_I_Target_DirectShow_UDPStream::initialize (const CONFIGURATION_T& configura
 
 error:
   if (reset_setup_pipeline)
-    const_cast<inherited::CONFIGURATION_T&> (configuration_in).configuration->setupPipeline =
+    const_cast<inherited::CONFIGURATION_T&> (configuration_in).configuration_->setupPipeline =
       setup_pipeline;
   if (!session_data_r.formats.empty ())
     session_data_r.formats.clear ();
@@ -578,14 +578,14 @@ Test_I_Target_MediaFoundation_TCPStream::initialize (const CONFIGURATION_T& conf
   ACE_ASSERT (!isRunning ());
 
   bool result = false;
-  bool setup_pipeline = configuration_in.configuration->setupPipeline;
+  bool setup_pipeline = configuration_in.configuration_->setupPipeline;
   bool reset_setup_pipeline = false;
   inherited::CONFIGURATION_T::ITERATOR_T iterator;
   std::string url_string = ACE_TEXT_ALWAYS_CHAR (CAMSTREAM_TARGET_DEFAULT_SCHEME_HANDLER_URL);
   //url_string += ACE_TEXT_ALWAYS_CHAR ("//test");
 
   // allocate a new session state, reset stream
-  const_cast<inherited::CONFIGURATION_T&> (configuration_in).configuration->setupPipeline =
+  const_cast<inherited::CONFIGURATION_T&> (configuration_in).configuration_->setupPipeline =
     false;
   reset_setup_pipeline = true;
   if (!inherited::initialize (configuration_in,
@@ -596,7 +596,7 @@ Test_I_Target_MediaFoundation_TCPStream::initialize (const CONFIGURATION_T& conf
                 ACE_TEXT (stream_name_string_)));
     goto error;
   } // end IF
-  const_cast<inherited::CONFIGURATION_T&> (configuration_in).configuration->setupPipeline =
+  const_cast<inherited::CONFIGURATION_T&> (configuration_in).configuration_->setupPipeline =
     setup_pipeline;
   reset_setup_pipeline = false;
   ACE_ASSERT (inherited::sessionData_);
@@ -837,8 +837,8 @@ Test_I_Target_MediaFoundation_TCPStream::initialize (const CONFIGURATION_T& conf
 
   // ---------------------------------------------------------------------------
 
-  if (configuration_in.configuration->setupPipeline)
-    if (!inherited::setup (configuration_in.configuration->notificationStrategy))
+  if (configuration_in.configuration_->setupPipeline)
+    if (!inherited::setup (configuration_in.configuration_->notificationStrategy))
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: failed to set up pipeline, aborting\n"),
@@ -852,7 +852,7 @@ Test_I_Target_MediaFoundation_TCPStream::initialize (const CONFIGURATION_T& conf
 
 error:
   if (reset_setup_pipeline)
-    const_cast<inherited::CONFIGURATION_T&> (configuration_in).configuration->setupPipeline =
+    const_cast<inherited::CONFIGURATION_T&> (configuration_in).configuration_->setupPipeline =
       setup_pipeline;
   if (session_data_r.direct3DDevice)
   {
@@ -943,13 +943,13 @@ Test_I_Target_MediaFoundation_UDPStream::initialize (const CONFIGURATION_T& conf
   ACE_ASSERT (!isRunning ());
 
   bool result = false;
-  bool setup_pipeline = configuration_in.configuration->setupPipeline;
+  bool setup_pipeline = configuration_in.configuration_->setupPipeline;
   bool reset_setup_pipeline = false;
   inherited::CONFIGURATION_T::ITERATOR_T iterator;
   std::string url_string = ACE_TEXT_ALWAYS_CHAR (CAMSTREAM_TARGET_DEFAULT_SCHEME_HANDLER_URL);
 
   // allocate a new session state, reset stream
-  const_cast<inherited::CONFIGURATION_T&> (configuration_in).configuration->setupPipeline =
+  const_cast<inherited::CONFIGURATION_T&> (configuration_in).configuration_->setupPipeline =
     false;
   reset_setup_pipeline = true;
   if (!inherited::initialize (configuration_in,
@@ -960,7 +960,7 @@ Test_I_Target_MediaFoundation_UDPStream::initialize (const CONFIGURATION_T& conf
                 ACE_TEXT (stream_name_string_)));
     goto error;
   } // end IF
-  const_cast<inherited::CONFIGURATION_T&> (configuration_in).configuration->setupPipeline =
+  const_cast<inherited::CONFIGURATION_T&> (configuration_in).configuration_->setupPipeline =
     setup_pipeline;
   reset_setup_pipeline = false;
   ACE_ASSERT (inherited::sessionData_);
@@ -1085,8 +1085,8 @@ Test_I_Target_MediaFoundation_UDPStream::initialize (const CONFIGURATION_T& conf
 
   // ---------------------------------------------------------------------------
 
-  if (configuration_in.configuration->setupPipeline)
-    if (!inherited::setup (configuration_in.configuration->notificationStrategy))
+  if (configuration_in.configuration_->setupPipeline)
+    if (!inherited::setup (configuration_in.configuration_->notificationStrategy))
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: failed to set up pipeline, aborting\n"),
@@ -1100,7 +1100,7 @@ Test_I_Target_MediaFoundation_UDPStream::initialize (const CONFIGURATION_T& conf
 
 error:
   if (reset_setup_pipeline)
-    const_cast<inherited::CONFIGURATION_T&> (configuration_in).configuration->setupPipeline =
+    const_cast<inherited::CONFIGURATION_T&> (configuration_in).configuration_->setupPipeline =
       setup_pipeline;
   if (session_data_r.direct3DDevice)
   {

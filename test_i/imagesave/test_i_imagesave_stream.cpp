@@ -105,7 +105,7 @@ Test_I_Stream::initialize (const inherited::CONFIGURATION_T& configuration_in)
   // sanity check(s)
   ACE_ASSERT (!isRunning ());
 
-  bool setup_pipeline = configuration_in.configuration->setupPipeline;
+  bool setup_pipeline = configuration_in.configuration_->setupPipeline;
 //  bool reset_setup_pipeline = false;
   Test_I_ImageSave_SessionData* session_data_p = NULL;
   inherited::CONFIGURATION_T::ITERATOR_T iterator, iterator_2;
@@ -134,7 +134,7 @@ Test_I_Stream::initialize (const inherited::CONFIGURATION_T& configuration_in)
 
   // ---------------------------------------------------------------------------
   // step3: allocate a new session state, reset stream
-  const_cast<inherited::CONFIGURATION_T&> (configuration_in).configuration->setupPipeline =
+  const_cast<inherited::CONFIGURATION_T&> (configuration_in).configuration_->setupPipeline =
     false;
 //  reset_setup_pipeline = true;
   if (!inherited::initialize (configuration_in))
@@ -144,7 +144,7 @@ Test_I_Stream::initialize (const inherited::CONFIGURATION_T& configuration_in)
                 ACE_TEXT (stream_name_string_)));
     goto error;
   } // end IF
-  const_cast<inherited::CONFIGURATION_T&> (configuration_in).configuration->setupPipeline =
+  const_cast<inherited::CONFIGURATION_T&> (configuration_in).configuration_->setupPipeline =
     setup_pipeline;
 //  reset_setup_pipeline = false;
 
@@ -179,7 +179,7 @@ Test_I_Stream::initialize (const inherited::CONFIGURATION_T& configuration_in)
 
   // ---------------------------------------------------------------------------
   // step5: update session data
-  session_data_p->formats.push_front (configuration_in.configuration->format);
+  session_data_p->formats.push_front (configuration_in.configuration_->format);
 
   // ---------------------------------------------------------------------------
   // step6: initialize head module
@@ -191,7 +191,7 @@ Test_I_Stream::initialize (const inherited::CONFIGURATION_T& configuration_in)
   source_.arg (inherited::sessionData_);
 
   // step7: assemble stream
-  if (configuration_in.configuration->setupPipeline)
+  if (configuration_in.configuration_->setupPipeline)
     if (!inherited::setup (NULL))
     {
       ACE_DEBUG ((LM_ERROR,

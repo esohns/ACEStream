@@ -605,10 +605,10 @@ do_work (unsigned int bufferSize_in,
   // *********************** socket configuration data ************************
   Test_I_HTTPGet_ConnectionConfiguration_t connection_configuration;
   int result =
-    connection_configuration.address.set (port_in,
-                                          hostName_in.c_str (),
-                                          1,
-                                          ACE_ADDRESS_FAMILY_INET);
+    connection_configuration.socketConfiguration.address.set (port_in,
+                                                              hostName_in.c_str (),
+                                                              1,
+                                                              ACE_ADDRESS_FAMILY_INET);
   if (result == -1)
   {
     ACE_DEBUG ((LM_ERROR,
@@ -621,16 +621,18 @@ do_work (unsigned int bufferSize_in,
 
     return;
   } // end IF
-  connection_configuration.useLoopBackDevice =
-    connection_configuration.address.is_loopback ();
+  connection_configuration.socketConfiguration.useLoopBackDevice =
+    connection_configuration.socketConfiguration.address.is_loopback ();
 //  connection_configuration.socketHandlerConfiguration.socketConfiguration_2.writeOnly =
 //    true;
   connection_configuration.statisticReportingInterval =
     statisticReportingInterval_in;
   connection_configuration.messageAllocator = &message_allocator;
   connection_configuration.allocatorConfiguration = &allocator_configuration;
-  connection_configuration.allocatorConfiguration->defaultBufferSize = bufferSize_in;
-  connection_configuration.initialize (configuration.streamConfiguration);
+  connection_configuration.allocatorConfiguration->defaultBufferSize =
+    bufferSize_in;
+  connection_configuration.streamConfiguration =
+    &configuration.streamConfiguration;
 
   configuration.connectionConfigurations.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (""),
                                                                  &connection_configuration));
@@ -699,7 +701,7 @@ do_work (unsigned int bufferSize_in,
   struct Net_UserData user_data_s;
   connection_manager_p->initialize (std::numeric_limits<unsigned int>::max (),
                                     ACE_Time_Value (0, NET_STATISTIC_DEFAULT_VISIT_INTERVAL_MS * 1000));
-  connection_manager_p->set (*dynamic_cast<Test_I_HTTPGet_ConnectionConfiguration_t*> ((*iterator).second),
+  connection_manager_p->set (*static_cast<Test_I_HTTPGet_ConnectionConfiguration_t*> ((*iterator).second),
                              &user_data_s);
 
   // step0d: initialize regular (global) statistic reporting

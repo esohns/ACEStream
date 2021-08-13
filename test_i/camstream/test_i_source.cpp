@@ -1231,7 +1231,7 @@ do_work (const std::string& deviceIdentifier_in,
                                   !UIDefinitionFilename_in.empty (), // has UI ?
                                   (*directshow_modulehandler_iterator).second.second.builder,
                                   directShowCBData_in.streamConfiguration,
-                                  (*directshow_stream_iterator).second.configuration->format,
+                                  (*directshow_stream_iterator).second.configuration_->format,
                                   (*directshow_modulehandler_iterator).second.second.outputFormat);
       break;
     }
@@ -1303,8 +1303,8 @@ do_work (const std::string& deviceIdentifier_in,
       ACE_ASSERT (directshow_stream_iterator != directShowCBData_in.configuration->streamConfigurations.end ());
 
       directshow_tcp_connection_configuration.allocatorConfiguration = allocator_configuration_p;
-      result =
-        directshow_tcp_connection_configuration.initialize ((*directshow_stream_iterator).second);
+      directshow_tcp_connection_configuration.streamConfiguration =
+        &(*directshow_stream_iterator).second;
       ACE_ASSERT (result);
       directShowCBData_in.configuration->connectionConfigurations.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (""),
                                                                                           &directshow_tcp_connection_configuration));
@@ -1317,8 +1317,8 @@ do_work (const std::string& deviceIdentifier_in,
       ACE_ASSERT (mediafoundation_stream_iterator != mediaFoundationCBData_in.configuration->streamConfigurations.end ());
 
       mediafoundation_tcp_connection_configuration.allocatorConfiguration = allocator_configuration_p;
-      result =
-        mediafoundation_tcp_connection_configuration.initialize ((*mediafoundation_stream_iterator).second);
+      mediafoundation_tcp_connection_configuration.streamConfiguration =
+        &(*mediafoundation_stream_iterator).second;
       mediaFoundationCBData_in.configuration->connectionConfigurations.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (""),
                                                                                                &mediafoundation_tcp_connection_configuration));
 
@@ -1379,7 +1379,7 @@ do_work (const std::string& deviceIdentifier_in,
       ACE_ASSERT (directshow_tcp_connection_manager_p);
       directshow_tcp_connection_manager_p->initialize (std::numeric_limits<unsigned int>::max (),
                                                        ACE_Time_Value (0, NET_STATISTIC_DEFAULT_VISIT_INTERVAL_MS * 1000));
-      directshow_tcp_connection_manager_p->set (*dynamic_cast<Test_I_Source_DirectShow_TCPConnectionConfiguration_t*> ((*connection_iterator).second),
+      directshow_tcp_connection_manager_p->set (*static_cast<Test_I_Source_DirectShow_TCPConnectionConfiguration_t*> ((*connection_iterator).second),
                                                 &user_data_s);
       (*directshow_modulehandler_iterator).second.second.connectionManager =
         directshow_tcp_connection_manager_p;
@@ -1398,7 +1398,7 @@ do_work (const std::string& deviceIdentifier_in,
       ACE_ASSERT (mediafoundation_tcp_connection_manager_p);
       mediafoundation_tcp_connection_manager_p->initialize (std::numeric_limits<unsigned int>::max (),
                                                             ACE_Time_Value (0, NET_STATISTIC_DEFAULT_VISIT_INTERVAL_MS * 1000));
-      mediafoundation_tcp_connection_manager_p->set (*dynamic_cast<Test_I_Source_MediaFoundation_TCPConnectionConfiguration_t*> ((*connection_iterator).second),
+      mediafoundation_tcp_connection_manager_p->set (*static_cast<Test_I_Source_MediaFoundation_TCPConnectionConfiguration_t*> ((*connection_iterator).second),
                                                      &user_data_s);
 
       mediafoundation_modulehandler_iterator =
@@ -1482,10 +1482,10 @@ do_work (const std::string& deviceIdentifier_in,
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
     {
       result_2 =
-        NET_SOCKET_CONFIGURATION_TCP_CAST ((*connection_iterator).second)->address.set (port_in,
-                                                                                        hostName_in.c_str (),
-                                                                                        1,
-                                                                                        ACE_ADDRESS_FAMILY_INET);
+        NET_CONFIGURATION_TCP_CAST ((*connection_iterator).second)->socketConfiguration.address.set (port_in,
+                                                                                                     hostName_in.c_str (),
+                                                                                                     1,
+                                                                                                     ACE_ADDRESS_FAMILY_INET);
       if (result_2 == -1)
       {
         ACE_DEBUG ((LM_ERROR,
@@ -1494,15 +1494,16 @@ do_work (const std::string& deviceIdentifier_in,
                     port_in));
         goto clean;
       } // end IF
-      (*connection_iterator).second->bufferSize = bufferSize_in;
-      (*connection_iterator).second->useLoopBackDevice =
-        NET_SOCKET_CONFIGURATION_TCP_CAST ((*connection_iterator).second)->address.is_loopback ();
+      NET_CONFIGURATION_TCP_CAST ((*connection_iterator).second)->socketConfiguration.bufferSize =
+        bufferSize_in;
+      NET_CONFIGURATION_TCP_CAST ((*connection_iterator).second)->socketConfiguration.useLoopBackDevice =
+        NET_CONFIGURATION_TCP_CAST ((*connection_iterator).second)->socketConfiguration.address.is_loopback ();
       //(*connection_iterator).second->writeOnly = true;
 
       (*connection_iterator).second->statisticReportingInterval =
         statisticReportingInterval_in;
 
-      dynamic_cast<Test_I_Source_DirectShow_TCPConnectionConfiguration_t*> ((*connection_iterator).second)->messageAllocator =
+      static_cast<Test_I_Source_DirectShow_TCPConnectionConfiguration_t*> ((*connection_iterator).second)->messageAllocator =
         &directshow_message_allocator;
       //(*connection_iterator).second->PDUSize = bufferSize_in;
       //dynamic_cast<Test_I_Source_DirectShow_TCPConnectionConfiguration_t*> ((*connection_iterator).second)->initialize ((*directshow_stream_iterator).second);
@@ -1516,10 +1517,10 @@ do_work (const std::string& deviceIdentifier_in,
                                                                                       : mediaFoundationCBData_in.UDPStream);
 
       result_2 =
-        NET_SOCKET_CONFIGURATION_TCP_CAST ((*connection_iterator).second)->address.set (port_in,
-                                                                                        hostName_in.c_str (),
-                                                                                        1,
-                                                                                        ACE_ADDRESS_FAMILY_INET);
+        NET_CONFIGURATION_TCP_CAST ((*connection_iterator).second)->socketConfiguration.address.set (port_in,
+                                                                                                     hostName_in.c_str (),
+                                                                                                     1,
+                                                                                                     ACE_ADDRESS_FAMILY_INET);
       if (result_2 == -1)
       {
         ACE_DEBUG ((LM_ERROR,
@@ -1528,15 +1529,16 @@ do_work (const std::string& deviceIdentifier_in,
                     port_in));
         goto clean;
       } // end IF
-      (*connection_iterator).second->bufferSize = bufferSize_in;
-      (*connection_iterator).second->useLoopBackDevice =
-        NET_SOCKET_CONFIGURATION_TCP_CAST ((*connection_iterator).second)->address.is_loopback ();
+      NET_CONFIGURATION_TCP_CAST ((*connection_iterator).second)->socketConfiguration.bufferSize =
+        bufferSize_in;
+      NET_CONFIGURATION_TCP_CAST ((*connection_iterator).second)->socketConfiguration.useLoopBackDevice =
+        NET_CONFIGURATION_TCP_CAST ((*connection_iterator).second)->socketConfiguration.address.is_loopback ();
       //(*connection_iterator).second->writeOnly = true;
 
       (*connection_iterator).second->statisticReportingInterval =
         statisticReportingInterval_in;
 
-      dynamic_cast<Test_I_Source_MediaFoundation_TCPConnectionConfiguration_t*> ((*connection_iterator).second)->messageAllocator =
+      static_cast<Test_I_Source_MediaFoundation_TCPConnectionConfiguration_t*> ((*connection_iterator).second)->messageAllocator =
         &mediafoundation_message_allocator;
       //(*connection_iterator).second->PDUSize = bufferSize_in;
       //dynamic_cast<Test_I_Source_MediaFoundation_TCPConnectionConfiguration_t*> ((*connection_iterator).second)->initialize ((*mediafoundation_stream_iterator).second);
@@ -1552,10 +1554,10 @@ do_work (const std::string& deviceIdentifier_in,
   } // end SWITCH
 #else
   result_2 =
-    NET_SOCKET_CONFIGURATION_TCP_CAST ((*connection_iterator).second)->address.set (port_in,
-                                                                                    hostName_in.c_str (),
-                                                                                    1,
-                                                                                    ACE_ADDRESS_FAMILY_INET);
+    NET_CONFIGURATION_TCP_CAST ((*connection_iterator).second)->socketConfiguration.address.set (port_in,
+                                                                                                 hostName_in.c_str (),
+                                                                                                 1,
+                                                                                                 ACE_ADDRESS_FAMILY_INET);
   if (result_2 == -1)
   {
     ACE_DEBUG ((LM_ERROR,
@@ -1565,16 +1567,16 @@ do_work (const std::string& deviceIdentifier_in,
     goto clean;
   } // end IF
 //  (*connection_iterator).second->bufferSize = static_cast<int> (bufferSize_in);
-  (*connection_iterator).second->useLoopBackDevice =
-      NET_SOCKET_CONFIGURATION_TCP_CAST ((*connection_iterator).second)->address.is_loopback ();
+  NET_SOCKET_CONFIGURATION_TCP_CAST ((*connection_iterator).second)->socketConfiguration.useLoopBackDevice =
+      NET_SOCKET_CONFIGURATION_TCP_CAST ((*connection_iterator).second)->socketConfiguration.address.is_loopback ();
 //  (*connection_iterator).second.writeOnly = true;
   (*connection_iterator).second->statisticReportingInterval =
     statisticReportingInterval_in;
-  dynamic_cast<Test_I_Source_V4L_TCPConnectionConfiguration_t*> ((*connection_iterator).second)->messageAllocator =
+  static_cast<Test_I_Source_V4L_TCPConnectionConfiguration_t*> ((*connection_iterator).second)->messageAllocator =
       &message_allocator;
-  dynamic_cast<Test_I_Source_V4L_TCPConnectionConfiguration_t*> ((*connection_iterator).second)->initialize ((*stream_iterator).second);
+  static_cast<Test_I_Source_V4L_TCPConnectionConfiguration_t*> ((*connection_iterator).second)->initialize ((*stream_iterator).second);
 
-  connection_manager_p->set (*dynamic_cast<Test_I_Source_V4L_TCPConnectionConfiguration_t*> ((*connection_iterator).second),
+  connection_manager_p->set (*static_cast<Test_I_Source_V4L_TCPConnectionConfiguration_t*> ((*connection_iterator).second),
                              &user_data_s);
 #endif // ACE_WIN32 || ACE_WIN64
   // ********************** module configuration data **************************

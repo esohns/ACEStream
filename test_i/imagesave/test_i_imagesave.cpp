@@ -553,7 +553,7 @@ do_work (
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   (*stream_iterator_2).second.second.outputFormat = (*stream_iterator).second.second.outputFormat;
 #endif // ACE_WIN32 || ACE_WIN64
-  configuration_in.streamConfiguration.configuration->format =
+  configuration_in.streamConfiguration.configuration_->format =
     (*stream_iterator).second.second.outputFormat;
 
 #if defined (GUI_SUPPORT)

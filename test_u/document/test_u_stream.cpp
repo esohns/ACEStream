@@ -88,11 +88,11 @@ Test_U_Stream::initialize (const typename inherited::CONFIGURATION_T& configurat
   Test_U_Source* source_impl_p = NULL;
 
 //  bool result = false;
-  bool setup_pipeline = configuration_in.configuration->setupPipeline;
+  bool setup_pipeline = configuration_in.configuration_->setupPipeline;
   bool reset_setup_pipeline = false;
 
   // allocate a new session state, reset stream
-  const_cast<inherited::CONFIGURATION_T&> (configuration_in).configuration->setupPipeline =
+  const_cast<inherited::CONFIGURATION_T&> (configuration_in).configuration_->setupPipeline =
     false;
   reset_setup_pipeline = true;
   if (!inherited::initialize (configuration_in))
@@ -102,7 +102,7 @@ Test_U_Stream::initialize (const typename inherited::CONFIGURATION_T& configurat
                 ACE_TEXT (default_stream_name_string_)));
     goto failed;
   } // end IF
-  const_cast<inherited::CONFIGURATION_T&> (configuration_in).configuration->setupPipeline =
+  const_cast<inherited::CONFIGURATION_T&> (configuration_in).configuration_->setupPipeline =
     setup_pipeline;
   reset_setup_pipeline = false;
   ACE_ASSERT (inherited::sessionData_);
@@ -148,7 +148,7 @@ Test_U_Stream::initialize (const typename inherited::CONFIGURATION_T& configurat
 
   // ---------------------------------------------------------------------------
 
-  if (configuration_in.configuration->setupPipeline)
+  if (configuration_in.configuration_->setupPipeline)
     if (!inherited::setup ())
     {
       ACE_DEBUG ((LM_ERROR,
@@ -164,7 +164,7 @@ Test_U_Stream::initialize (const typename inherited::CONFIGURATION_T& configurat
 
 failed:
   if (reset_setup_pipeline)
-    const_cast<inherited::CONFIGURATION_T&> (configuration_in).configuration->setupPipeline =
+    const_cast<inherited::CONFIGURATION_T&> (configuration_in).configuration_->setupPipeline =
       setup_pipeline;
   if (!inherited::reset ())
     ACE_DEBUG ((LM_ERROR,

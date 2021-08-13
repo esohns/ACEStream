@@ -1357,18 +1357,19 @@ do_work (unsigned int bufferSize_in,
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
     {
-      NET_SOCKET_CONFIGURATION_TCP_CAST ((*connection_configuration_iterator).second)->address.set_port_number (listeningPortNumber_in,
+      NET_CONFIGURATION_TCP_CAST ((*connection_configuration_iterator).second)->socketConfiguration.address.set_port_number (listeningPortNumber_in,
                                                                                                                 1);
-      (*connection_configuration_iterator).second->bufferSize = bufferSize_in;
-      (*connection_configuration_iterator).second->useLoopBackDevice =
+      NET_CONFIGURATION_TCP_CAST ((*connection_configuration_iterator).second)->socketConfiguration.bufferSize =
+        bufferSize_in;
+      NET_CONFIGURATION_TCP_CAST ((*connection_configuration_iterator).second)->socketConfiguration.useLoopBackDevice =
         useLoopBack_in;
-      if ((*connection_configuration_iterator).second->useLoopBackDevice)
+      if (NET_CONFIGURATION_TCP_CAST ((*connection_configuration_iterator).second)->socketConfiguration.useLoopBackDevice)
       {
         result =
-          NET_SOCKET_CONFIGURATION_TCP_CAST ((*connection_configuration_iterator).second)->address.set (listeningPortNumber_in,
-                                                                                                        INADDR_LOOPBACK,
-                                                                                                        1,
-                                                                                                        0);
+          NET_CONFIGURATION_TCP_CAST ((*connection_configuration_iterator).second)->socketConfiguration.address.set (listeningPortNumber_in,
+                                                                                                                     INADDR_LOOPBACK,
+                                                                                                                     1,
+                                                                                                                     0);
         if (result == -1)
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("failed to ACE_INET_Addr::set(): \"%m\", continuing\n")));
@@ -1376,30 +1377,32 @@ do_work (unsigned int bufferSize_in,
       //if (bufferSize_in)
       //  NET_SOCKET_CONFIGURATION_TCP_CAST ((*connection_configuration_iterator).second)->PDUSize =
       //    bufferSize_in;
-      NET_SOCKET_CONFIGURATION_TCP_CAST ((*connection_configuration_iterator).second)->statisticReportingInterval =
+      NET_CONFIGURATION_TCP_CAST ((*connection_configuration_iterator).second)->statisticReportingInterval =
         statisticReportingInterval_in;
-      dynamic_cast<Test_I_Target_DirectShow_TCPConnectionConfiguration_t*> ((*connection_configuration_iterator).second)->messageAllocator =
+      static_cast<Test_I_Target_DirectShow_TCPConnectionConfiguration_t*> ((*connection_configuration_iterator).second)->messageAllocator =
         &directshow_message_allocator;
-      dynamic_cast<Test_I_Target_DirectShow_TCPConnectionConfiguration_t*> ((*connection_configuration_iterator).second)->initialize (directshow_configuration.streamConfiguration);
+      static_cast<Test_I_Target_DirectShow_TCPConnectionConfiguration_t*> ((*connection_configuration_iterator).second)->streamConfiguration =
+        &directshow_configuration.streamConfiguration;
 
-      directshow_tcp_connection_manager_p->set (*dynamic_cast<Test_I_Target_DirectShow_TCPConnectionConfiguration_t*> ((*connection_configuration_iterator).second),
+      directshow_tcp_connection_manager_p->set (*static_cast<Test_I_Target_DirectShow_TCPConnectionConfiguration_t*> ((*connection_configuration_iterator).second),
                                                 &user_data_s);
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
     {
-      NET_SOCKET_CONFIGURATION_TCP_CAST ((*connection_configuration_iterator).second)->address.set_port_number (listeningPortNumber_in,
-                                                                                                                1);
-      (*connection_configuration_iterator).second->bufferSize = bufferSize_in;
-      (*connection_configuration_iterator).second->useLoopBackDevice =
+      NET_CONFIGURATION_TCP_CAST ((*connection_configuration_iterator).second)->socketConfiguration.address.set_port_number (listeningPortNumber_in,
+                                                                                                                             1);
+      NET_CONFIGURATION_TCP_CAST ((*connection_configuration_iterator).second)->socketConfiguration.bufferSize =
+        bufferSize_in;
+      NET_CONFIGURATION_TCP_CAST ((*connection_configuration_iterator).second)->socketConfiguration.useLoopBackDevice =
         useLoopBack_in;
-      if ((*connection_configuration_iterator).second->useLoopBackDevice)
+      if (NET_CONFIGURATION_TCP_CAST ((*connection_configuration_iterator).second)->socketConfiguration.useLoopBackDevice)
       {
         result =
-          NET_SOCKET_CONFIGURATION_TCP_CAST ((*connection_configuration_iterator).second)->address.set (listeningPortNumber_in,
-                                                                                                        INADDR_LOOPBACK,
-                                                                                                        1,
-                                                                                                        0);
+          NET_CONFIGURATION_TCP_CAST ((*connection_configuration_iterator).second)->socketConfiguration.address.set (listeningPortNumber_in,
+                                                                                                                     INADDR_LOOPBACK,
+                                                                                                                     1,
+                                                                                                                     0);
         if (result == -1)
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("failed to ACE_INET_Addr::set(): \"%m\", continuing\n")));
@@ -1410,11 +1413,12 @@ do_work (unsigned int bufferSize_in,
       (*connection_configuration_iterator).second->statisticReportingInterval =
         statisticReportingInterval_in;
 
-      dynamic_cast<Test_I_Target_MediaFoundation_TCPConnectionConfiguration_t*> ((*connection_configuration_iterator).second)->messageAllocator =
+      static_cast<Test_I_Target_MediaFoundation_TCPConnectionConfiguration_t*> ((*connection_configuration_iterator).second)->messageAllocator =
         &mediafoundation_message_allocator;
-      dynamic_cast<Test_I_Target_MediaFoundation_TCPConnectionConfiguration_t*> ((*connection_configuration_iterator).second)->initialize (mediafoundation_configuration.streamConfiguration);
+      static_cast<Test_I_Target_MediaFoundation_TCPConnectionConfiguration_t*> ((*connection_configuration_iterator).second)->streamConfiguration =
+        &mediafoundation_configuration.streamConfiguration;
 
-      mediafoundation_tcp_connection_manager_p->set (*dynamic_cast<Test_I_Target_MediaFoundation_TCPConnectionConfiguration_t*> ((*connection_configuration_iterator).second),
+      mediafoundation_tcp_connection_manager_p->set (*static_cast<Test_I_Target_MediaFoundation_TCPConnectionConfiguration_t*> ((*connection_configuration_iterator).second),
                                                      &user_data_s);
       break;
     } // end IF
@@ -1427,17 +1431,18 @@ do_work (unsigned int bufferSize_in,
     } // end ELSE
   } // end SWITCH
 #else
-  connection_configuration.address.set_port_number (listeningPortNumber_in,
-                                                    1);
+  connection_configuration.socketConfiguration.address.set_port_number (listeningPortNumber_in,
+                                                                        1);
   connection_configuration.allocatorConfiguration = &allocator_configuration;
-  connection_configuration.useLoopBackDevice = useLoopBack_in;
-  if (connection_configuration.useLoopBackDevice)
+  connection_configuration.socketConfiguration.useLoopBackDevice =
+    useLoopBack_in;
+  if (connection_configuration.socketConfiguration.useLoopBackDevice)
   {
     result =
-      connection_configuration.address.set (listeningPortNumber_in,
-                                            INADDR_LOOPBACK,
-                                            1,
-                                            0);
+      connection_configuration.socketConfiguration.address.set (listeningPortNumber_in,
+                                                                INADDR_LOOPBACK,
+                                                                1,
+                                                                0);
     if (result == -1)
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to ACE_INET_Addr::set(): \"%m\", continuing\n")));
@@ -1447,7 +1452,8 @@ do_work (unsigned int bufferSize_in,
   connection_configuration.statisticReportingInterval =
     statisticReportingInterval_in;
   connection_configuration.messageAllocator = &message_allocator;
-  connection_configuration.initialize (configuration.streamConfiguration);
+  connection_configuration.streamConfiguration =
+    &configuration.streamConfiguration;
 
   configuration.connectionConfigurations.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (""),
                                                                  &connection_configuration));
@@ -1455,7 +1461,7 @@ do_work (unsigned int bufferSize_in,
     configuration.connectionConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (iterator_2 != configuration.connectionConfigurations.end ());
 
-  tcp_connection_manager_p->set (*dynamic_cast<Test_I_Target_TCPConnectionConfiguration_t*> ((*iterator_2).second),
+  tcp_connection_manager_p->set (*static_cast<Test_I_Target_TCPConnectionConfiguration_t*> ((*iterator_2).second),
                                  &user_data_s);
 #endif // ACE_WIN32 || ACE_WIN64
 
@@ -1936,13 +1942,13 @@ do_work (unsigned int bufferSize_in,
         case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
         {
           listen_address =
-            directshow_udp_connection_configuration.listenAddress;
+            directshow_udp_connection_configuration.socketConfiguration.listenAddress;
           break;
         }
         case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
         {
           listen_address =
-            mediafoundation_udp_connection_configuration.listenAddress;
+            mediafoundation_udp_connection_configuration.socketConfiguration.listenAddress;
           break;
         }
         default:
@@ -2205,13 +2211,13 @@ do_work (unsigned int bufferSize_in,
         case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
         {
           result_2 =
-            directShowCBData_in.configuration->signalHandlerConfiguration.listener->initialize (*dynamic_cast<Test_I_Target_DirectShow_TCPConnectionConfiguration_t*> ((*connection_configuration_iterator).second));
+            directShowCBData_in.configuration->signalHandlerConfiguration.listener->initialize (*static_cast<Test_I_Target_DirectShow_TCPConnectionConfiguration_t*> ((*connection_configuration_iterator).second));
           break;
         }
         case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
         {
           result_2 =
-            mediaFoundationCBData_in.configuration->signalHandlerConfiguration.listener->initialize (*dynamic_cast<Test_I_Target_MediaFoundation_TCPConnectionConfiguration_t*> ((*connection_configuration_iterator).second));
+            mediaFoundationCBData_in.configuration->signalHandlerConfiguration.listener->initialize (*static_cast<Test_I_Target_MediaFoundation_TCPConnectionConfiguration_t*> ((*connection_configuration_iterator).second));
           break;
         }
         default:
@@ -2224,7 +2230,7 @@ do_work (unsigned int bufferSize_in,
       } // end SWITCH
 #else
       result_2 =
-        CBData_in.configuration->signalHandlerConfiguration.listener->initialize (*dynamic_cast<Test_I_Target_TCPConnectionConfiguration_t*> ((*iterator_2).second));
+        CBData_in.configuration->signalHandlerConfiguration.listener->initialize (*static_cast<Test_I_Target_TCPConnectionConfiguration_t*> ((*iterator_2).second));
 #endif // ACE_WIN32 || ACE_WIN64
       if (!result_2)
       {

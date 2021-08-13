@@ -113,7 +113,7 @@ Stream_ImageScreen_Stream::initialize (const typename inherited::CONFIGURATION_T
   // sanity check(s)
   ACE_ASSERT (!isRunning ());
 
-  bool setup_pipeline = configuration_in.configuration->setupPipeline;
+  bool setup_pipeline = configuration_in.configuration_->setupPipeline;
   bool reset_setup_pipeline = false;
   Stream_ImageScreen_SessionData* session_data_p = NULL;
   typename inherited::CONFIGURATION_T::ITERATOR_T iterator;
@@ -126,7 +126,7 @@ Stream_ImageScreen_Stream::initialize (const typename inherited::CONFIGURATION_T
   struct Stream_MediaFramework_FFMPEG_VideoMediaType media_type_s;
 
   // allocate a new session state, reset stream
-  const_cast<typename inherited::CONFIGURATION_T&> (configuration_in).configuration->setupPipeline =
+  const_cast<typename inherited::CONFIGURATION_T&> (configuration_in).configuration_->setupPipeline =
     false;
   reset_setup_pipeline = true;
   if (!inherited::initialize (configuration_in))
@@ -136,7 +136,7 @@ Stream_ImageScreen_Stream::initialize (const typename inherited::CONFIGURATION_T
                 ACE_TEXT (stream_name_string_)));
     goto error;
   } // end IF
-  const_cast<typename inherited::CONFIGURATION_T&> (configuration_in).configuration->setupPipeline =
+  const_cast<typename inherited::CONFIGURATION_T&> (configuration_in).configuration_->setupPipeline =
     setup_pipeline;
   reset_setup_pipeline = false;
 
@@ -188,7 +188,7 @@ Stream_ImageScreen_Stream::initialize (const typename inherited::CONFIGURATION_T
   ffmpeg_source_.arg (inherited::sessionData_);
 #endif // IMAGEMAGICK_SUPPORT
 
-  if (configuration_in.configuration->setupPipeline)
+  if (configuration_in.configuration_->setupPipeline)
     if (!inherited::setup (NULL))
     {
       ACE_DEBUG ((LM_ERROR,
@@ -205,7 +205,7 @@ Stream_ImageScreen_Stream::initialize (const typename inherited::CONFIGURATION_T
 
 error:
   if (reset_setup_pipeline)
-    const_cast<typename inherited::CONFIGURATION_T&> (configuration_in).configuration->setupPipeline =
+    const_cast<typename inherited::CONFIGURATION_T&> (configuration_in).configuration_->setupPipeline =
       setup_pipeline;
 
   return false;

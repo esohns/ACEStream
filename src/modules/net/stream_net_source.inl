@@ -270,12 +270,16 @@ Stream_Module_Net_Source_Writer_T<ACE_SYNCH_USE,
                 inherited::mod_->name ()));
 #endif // _DEBUG
   ACE_ASSERT (iterator != configuration_in.connectionConfigurations->end ());
+
+  typename ConnectorType::ISTREAM_CONNECTION_T::CONFIGURATION_T* configuration_p =
+    static_cast<typename ConnectorType::ISTREAM_CONNECTION_T::CONFIGURATION_T*> ((*iterator).second);
+  ACE_ASSERT (configuration_p);
   switch (connector_.transportLayer ())
   {
     case NET_TRANSPORTLAYER_TCP:
     {
       Net_TCPSocketConfiguration_t* socket_configuration_p =
-          dynamic_cast<Net_TCPSocketConfiguration_t*> ((*iterator).second);
+          reinterpret_cast<Net_TCPSocketConfiguration_t*> (configuration_p);
       ACE_ASSERT (socket_configuration_p);
       address_ = socket_configuration_p->address;
       break;
@@ -283,7 +287,7 @@ Stream_Module_Net_Source_Writer_T<ACE_SYNCH_USE,
     case NET_TRANSPORTLAYER_UDP:
     {
       Net_UDPSocketConfiguration_t* socket_configuration_p =
-          dynamic_cast<Net_UDPSocketConfiguration_t*> ((*iterator).second);
+        reinterpret_cast<Net_UDPSocketConfiguration_t*> (configuration_p);
       ACE_ASSERT (socket_configuration_p);
       address_ = socket_configuration_p->listenAddress;
       break;
@@ -438,16 +442,16 @@ Stream_Module_Net_Source_Writer_T<ACE_SYNCH_USE,
 #endif // _DEBUG
       ACE_ASSERT (iterator != inherited::configuration_->connectionConfigurations->end ());
       configuration_p =
-          dynamic_cast<typename ConnectorType::CONFIGURATION_T*> ((*iterator).second);
+          static_cast<typename ConnectorType::CONFIGURATION_T*> ((*iterator).second);
       ACE_ASSERT (configuration_p);
 
       clone_module =
-        inherited::configuration_->streamConfiguration->configuration->cloneModule;
+        inherited::configuration_->streamConfiguration->configuration_->cloneModule;
       module_p =
-        inherited::configuration_->streamConfiguration->configuration->module;
-      inherited::configuration_->streamConfiguration->configuration->cloneModule =
+        inherited::configuration_->streamConfiguration->configuration_->module;
+      inherited::configuration_->streamConfiguration->configuration_->cloneModule =
           false;
-      inherited::configuration_->streamConfiguration->configuration->module =
+      inherited::configuration_->streamConfiguration->configuration_->module =
           NULL;
 
       if (!iconnector_p->initialize (*configuration_p))
@@ -581,9 +585,9 @@ Stream_Module_Net_Source_Writer_T<ACE_SYNCH_USE,
       } // end lock scope
 
 reset:
-      inherited::configuration_->streamConfiguration->configuration->cloneModule =
+      inherited::configuration_->streamConfiguration->configuration_->cloneModule =
           clone_module;
-      inherited::configuration_->streamConfiguration->configuration->module =
+      inherited::configuration_->streamConfiguration->configuration_->module =
           module_p;
 
       if (is_error)

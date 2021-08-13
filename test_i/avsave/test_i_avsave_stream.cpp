@@ -102,8 +102,8 @@ Stream_AVSave_DirectShow_Stream::load (Stream_ILayout* layout_in,
   //modules_out.push_back (&directShowDisplay_);
   //modules_out.push_back (&GTKCairoDisplay_);
   //layout_in->append (&encoder_, NULL, 0);
-  ACE_ASSERT (inherited::configuration_->configuration->module_2);
-  layout_in->append (inherited::configuration_->configuration->module_2, NULL, 0); // output is AVI
+  ACE_ASSERT (inherited::configuration_->configuration_->module_2);
+  layout_in->append (inherited::configuration_->configuration_->module_2, NULL, 0); // output is AVI
 
   return true;
 }
@@ -117,7 +117,7 @@ Stream_AVSave_DirectShow_Stream::initialize (const inherited::CONFIGURATION_T& c
   ACE_ASSERT (!isRunning ());
 
   bool result = false;
-  bool setup_pipeline = configuration_in.configuration->setupPipeline;
+  bool setup_pipeline = configuration_in.configuration_->setupPipeline;
   bool reset_setup_pipeline = false;
   Stream_AVSave_DirectShow_SessionData* session_data_p = NULL;
   inherited::CONFIGURATION_T::ITERATOR_T iterator, iterator_2;
@@ -210,7 +210,7 @@ Stream_AVSave_DirectShow_Stream::initialize (const inherited::CONFIGURATION_T& c
 continue_:
   if (!Stream_Device_DirectShow_Tools::setCaptureFormat ((*iterator).second.second.builder,
                                                          CLSID_VideoInputDeviceCategory,
-                                                         configuration_in.configuration->format))
+                                                         configuration_in.configuration_->format))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to Stream_Device_DirectShow_Tools::setCaptureFormat(), aborting\n"),
@@ -237,7 +237,7 @@ continue_:
   //direct3D_manager_p->Release (); direct3D_manager_p = NULL;
 
   if (!Stream_Module_Decoder_Tools::loadVideoRendererGraph (CLSID_VideoInputDeviceCategory,
-                                                            configuration_in.configuration->format,
+                                                            configuration_in.configuration_->format,
                                                             (*iterator).second.second.outputFormat,
                                                             //(*iterator).second.second.direct3DConfiguration->presentationParameters.hDeviceWindow
                                                             NULL,
@@ -302,7 +302,7 @@ continue_:
   //         if this is -1/0 (why ?)
   allocator_properties.cbAlign = 1;
   allocator_properties.cbBuffer =
-    configuration_in.configuration->allocatorConfiguration->defaultBufferSize;
+    configuration_in.configuration_->allocatorConfiguration->defaultBufferSize;
   allocator_properties.cbPrefix = -1; // <-- use default
   allocator_properties.cBuffers =
     STREAM_DEV_CAM_DIRECTSHOW_DEFAULT_DEVICE_BUFFERS;
@@ -402,7 +402,7 @@ continue_:
 
   // ---------------------------------------------------------------------------
   // step3: allocate a new session state, reset stream
-  const_cast<inherited::CONFIGURATION_T&> (configuration_in).configuration->setupPipeline =
+  const_cast<inherited::CONFIGURATION_T&> (configuration_in).configuration_->setupPipeline =
     false;
   reset_setup_pipeline = true;
   if (!inherited::initialize (configuration_in))
@@ -412,7 +412,7 @@ continue_:
                 ACE_TEXT (stream_name_string_)));
     goto error;
   } // end IF
-  const_cast<inherited::CONFIGURATION_T&> (configuration_in).configuration->setupPipeline =
+  const_cast<inherited::CONFIGURATION_T&> (configuration_in).configuration_->setupPipeline =
     setup_pipeline;
   reset_setup_pipeline = false;
 
@@ -447,7 +447,7 @@ continue_:
 
   // ---------------------------------------------------------------------------
   // step5: update session data
-  session_data_p->formats.push_front (configuration_in.configuration->format);
+  session_data_p->formats.push_front (configuration_in.configuration_->format);
   ACE_OS::memset (&media_type_s, 0, sizeof (struct _AMMediaType));
   if (!Stream_MediaFramework_DirectShow_Tools::getOutputFormat ((*iterator).second.second.builder,
                                                                 STREAM_LIB_DIRECTSHOW_FILTER_NAME_GRAB,
@@ -472,7 +472,7 @@ continue_:
   source_.arg (inherited::sessionData_);
 
   // step7: assemble stream
-  if (configuration_in.configuration->setupPipeline)
+  if (configuration_in.configuration_->setupPipeline)
     if (!inherited::setup (NULL))
     {
       ACE_DEBUG ((LM_ERROR,
@@ -915,7 +915,7 @@ Stream_AVSave_MediaFoundation_Stream::initialize (const inherited::CONFIGURATION
   ACE_ASSERT (!isRunning ());
 
   bool result = false;
-  bool setup_pipeline = configuration_in.configuration->setupPipeline;
+  bool setup_pipeline = configuration_in.configuration_->setupPipeline;
   bool reset_setup_pipeline = false;
   Stream_AVSave_MediaFoundation_SessionData* session_data_p = NULL;
   inherited::CONFIGURATION_T::ITERATOR_T iterator;
@@ -924,7 +924,7 @@ Stream_AVSave_MediaFoundation_Stream::initialize (const inherited::CONFIGURATION
   Stream_AVSave_MediaFoundation_Source* source_impl_p = NULL;
 
   // allocate a new session state, reset stream
-  const_cast<inherited::CONFIGURATION_T&> (configuration_in).configuration->setupPipeline =
+  const_cast<inherited::CONFIGURATION_T&> (configuration_in).configuration_->setupPipeline =
     false;
   reset_setup_pipeline = true;
   if (!inherited::initialize (configuration_in))
@@ -934,7 +934,7 @@ Stream_AVSave_MediaFoundation_Stream::initialize (const inherited::CONFIGURATION
                 ACE_TEXT (stream_name_string_)));
     goto error;
   } // end IF
-  const_cast<inherited::CONFIGURATION_T&> (configuration_in).configuration->setupPipeline =
+  const_cast<inherited::CONFIGURATION_T&> (configuration_in).configuration_->setupPipeline =
     setup_pipeline;
   reset_setup_pipeline = false;
 
@@ -1049,7 +1049,7 @@ Stream_AVSave_MediaFoundation_Stream::initialize (const inherited::CONFIGURATION
 
   ACE_ASSERT (configuration_p->deviceIdentifier.identifierDiscriminator == Stream_Device_Identifier::STRING);
   if (!Stream_Module_Decoder_Tools::loadVideoRendererTopology (ACE_TEXT_ALWAYS_CHAR (configuration_p->deviceIdentifier.identifier._string),
-                                                               configuration_in.configuration->format,
+                                                               configuration_in.configuration_->format,
                                                                source_impl_p,
                                                                NULL,
                                                                //configuration_p->window,
@@ -1071,7 +1071,7 @@ Stream_AVSave_MediaFoundation_Stream::initialize (const inherited::CONFIGURATION
 
 continue_:
   if (!Stream_Device_MediaFoundation_Tools::setCaptureFormat (topology_p,
-                                                              configuration_in.configuration->format))
+                                                              configuration_in.configuration_->format))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to Stream_Device_MediaFoundation_Tools::setCaptureFormat(), aborting\n"),
@@ -1082,12 +1082,12 @@ continue_:
   ACE_DEBUG ((LM_DEBUG,
               ACE_TEXT ("%s: capture format: \"%s\"\n"),
               ACE_TEXT (stream_name_string_),
-              ACE_TEXT (Stream_MediaFramework_MediaFoundation_Tools::toString (configuration_in.configuration->format).c_str ())));
+              ACE_TEXT (Stream_MediaFramework_MediaFoundation_Tools::toString (configuration_in.configuration_->format).c_str ())));
 #endif // _DEBUG
 
   ACE_ASSERT (session_data_p->formats.empty ());
   media_type_p =
-    Stream_MediaFramework_MediaFoundation_Tools::copy (configuration_in.configuration->format);
+    Stream_MediaFramework_MediaFoundation_Tools::copy (configuration_in.configuration_->format);
   if (!media_type_p)
   {
     ACE_DEBUG ((LM_ERROR,
@@ -1152,7 +1152,7 @@ continue_:
   //             handle to the session data)
   source_.arg (inherited::sessionData_);
 
-  if (configuration_in.configuration->setupPipeline)
+  if (configuration_in.configuration_->setupPipeline)
     if (!inherited::setup (NULL))
     {
       ACE_DEBUG ((LM_ERROR,
@@ -1169,7 +1169,7 @@ continue_:
 
 error:
   if (reset_setup_pipeline)
-    const_cast<inherited::CONFIGURATION_T&> (configuration_in).configuration->setupPipeline =
+    const_cast<inherited::CONFIGURATION_T&> (configuration_in).configuration_->setupPipeline =
       setup_pipeline;
   if (media_type_p)
     media_type_p->Release ();
@@ -1238,8 +1238,8 @@ Stream_AVSave_WaveIn_Stream::load (Stream_ILayout* layout_in,
 
   layout_in->append (&source_, NULL, 0);
   layout_in->append (&tagger_, NULL, 0);
-  ACE_ASSERT (inherited::configuration_->configuration->module_2);
-  layout_in->append (inherited::configuration_->configuration->module_2, NULL, 0); // output is AVI
+  ACE_ASSERT (inherited::configuration_->configuration_->module_2);
+  layout_in->append (inherited::configuration_->configuration_->module_2, NULL, 0); // output is AVI
 
   return true;
 }
@@ -1252,7 +1252,7 @@ Stream_AVSave_WaveIn_Stream::initialize (const typename inherited::CONFIGURATION
   // sanity check(s)
   ACE_ASSERT (!isRunning ());
 
-  bool setup_pipeline = configuration_in.configuration->setupPipeline;
+  bool setup_pipeline = configuration_in.configuration_->setupPipeline;
   bool reset_setup_pipeline = false;
   Stream_AVSave_DirectShow_SessionData* session_data_p = NULL;
   typename inherited::CONFIGURATION_T::ITERATOR_T iterator;
@@ -1260,7 +1260,7 @@ Stream_AVSave_WaveIn_Stream::initialize (const typename inherited::CONFIGURATION
   Stream_AVSave_WaveIn_Source* source_impl_p = NULL;
 
   // allocate a new session state, reset stream
-  const_cast<typename inherited::CONFIGURATION_T&> (configuration_in).configuration->setupPipeline =
+  const_cast<typename inherited::CONFIGURATION_T&> (configuration_in).configuration_->setupPipeline =
     false;
   reset_setup_pipeline = true;
   if (!inherited::initialize (configuration_in))
@@ -1270,7 +1270,7 @@ Stream_AVSave_WaveIn_Stream::initialize (const typename inherited::CONFIGURATION
                 ACE_TEXT (stream_name_string_)));
     goto error;
   } // end IF
-  const_cast<typename inherited::CONFIGURATION_T&> (configuration_in).configuration->setupPipeline =
+  const_cast<typename inherited::CONFIGURATION_T&> (configuration_in).configuration_->setupPipeline =
     setup_pipeline;
   reset_setup_pipeline = false;
 
@@ -1293,7 +1293,7 @@ Stream_AVSave_WaveIn_Stream::initialize (const typename inherited::CONFIGURATION
 
   // *TODO*: remove type inferences
   ACE_ASSERT (session_data_p->formats.empty ());
-  session_data_p->formats.push_back (configuration_in.configuration->format);
+  session_data_p->formats.push_back (configuration_in.configuration_->format);
   session_data_p->targetFileName = configuration_p->targetFileName;
 
   // ---------------------------------------------------------------------------
@@ -1315,7 +1315,7 @@ Stream_AVSave_WaveIn_Stream::initialize (const typename inherited::CONFIGURATION
   //             handle to the session data)
   source_.arg (inherited::sessionData_);
 
-  if (configuration_in.configuration->setupPipeline)
+  if (configuration_in.configuration_->setupPipeline)
     if (!inherited::setup (NULL))
     {
       ACE_DEBUG ((LM_ERROR,
@@ -1332,7 +1332,7 @@ Stream_AVSave_WaveIn_Stream::initialize (const typename inherited::CONFIGURATION
 
 error:
   if (reset_setup_pipeline)
-    const_cast<typename inherited::CONFIGURATION_T&> (configuration_in).configuration->setupPipeline =
+    const_cast<typename inherited::CONFIGURATION_T&> (configuration_in).configuration_->setupPipeline =
       setup_pipeline;
 
   return false;

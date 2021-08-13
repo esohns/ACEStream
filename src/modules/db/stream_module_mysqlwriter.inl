@@ -174,7 +174,7 @@ Stream_Module_MySQLWriter_T<ACE_SYNCH_USE,
       ACE_ASSERT (iterator != inherited::configuration_->connectionConfigurations->end ());
       // *TODO*: remove type inferences
       ACE_INET_Addr host_address =
-          NET_SOCKET_CONFIGURATION_TCP_CAST((*iterator).second)->address;
+          NET_CONFIGURATION_TCP_CAST ((*iterator).second)->socketConfiguration.address;
       ACE_TCHAR host_address_string[BUFSIZ];
       ACE_OS::memset (host_address_string, 0, sizeof (host_address_string));
       unsigned long client_flags = 0;

@@ -220,28 +220,23 @@ Stream_Module_Net_Target_T<ACE_SYNCH_USE,
                 inherited::mod_->name ()));
 #endif // _DEBUG
   ACE_ASSERT (iterator != configuration_in.connectionConfigurations->end ());
+  typename ConnectorType::ISTREAM_CONNECTION_T::CONFIGURATION_T* configuration_p =
+    static_cast<typename ConnectorType::ISTREAM_CONNECTION_T::CONFIGURATION_T*> ((*iterator).second);
+  ACE_ASSERT (configuration_p);
   switch (connector_.transportLayer ())
   {
     case NET_TRANSPORTLAYER_TCP:
     {
       Net_TCPSocketConfiguration_t* socket_configuration_p =
-          dynamic_cast<Net_TCPSocketConfiguration_t*> ((*iterator).second);
-      ACE_ASSERT (socket_configuration_p);
+        reinterpret_cast<Net_TCPSocketConfiguration_t*> (&configuration_p->socketConfiguration);
       address_ = socket_configuration_p->address;
       break;
     }
     case NET_TRANSPORTLAYER_UDP:
     {
       Net_UDPSocketConfiguration_t* socket_configuration_p =
-          dynamic_cast<Net_UDPSocketConfiguration_t*> ((*iterator).second);
-      ACE_ASSERT (socket_configuration_p);
+        reinterpret_cast<Net_UDPSocketConfiguration_t*> (&configuration_p->socketConfiguration);
       address_ = socket_configuration_p->peerAddress;
-//#if defined (_DEBUG)
-//      ACE_DEBUG ((LM_DEBUG,
-//                  ACE_TEXT ("%s: peer address: %s\n"),
-//                  inherited::mod_->name (),
-//                  ACE_TEXT (Net_Common_Tools::IPAddressToString (address_).c_str ())));
-//#endif // _DEBUG
       break;
     }
     default:
@@ -395,7 +390,7 @@ Stream_Module_Net_Target_T<ACE_SYNCH_USE,
       ACE_ASSERT (iterator_2 != inherited::configuration_->connectionConfigurations->end ());
 
       connection_configuration_p =
-          dynamic_cast<typename ConnectorType::CONFIGURATION_T*> ((*iterator_2).second);
+          static_cast<typename ConnectorType::CONFIGURATION_T*> ((*iterator_2).second);
       ACE_ASSERT (connection_configuration_p);
       if (unlikely (!iconnector_p->initialize (*connection_configuration_p)))
       {

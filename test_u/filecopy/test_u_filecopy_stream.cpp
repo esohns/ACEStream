@@ -83,7 +83,7 @@ Stream_Filecopy_Stream::initialize (const inherited::CONFIGURATION_T& configurat
   ACE_ASSERT (!isRunning ());
 
 //  bool result = false;
-  bool setup_pipeline = configuration_in.configuration->setupPipeline;
+  bool setup_pipeline = configuration_in.configuration_->setupPipeline;
   bool reset_setup_pipeline = false;
   struct Stream_Filecopy_SessionData* session_data_p = NULL;
   inherited::CONFIGURATION_T::ITERATOR_T iterator;
@@ -91,7 +91,7 @@ Stream_Filecopy_Stream::initialize (const inherited::CONFIGURATION_T& configurat
   Stream_Module_t* module_p = NULL;
 
   // allocate a new session state, reset stream
-  const_cast<inherited::CONFIGURATION_T&> (configuration_in).configuration->setupPipeline =
+  const_cast<inherited::CONFIGURATION_T&> (configuration_in).configuration_->setupPipeline =
     false;
   reset_setup_pipeline = true;
   if (!inherited::initialize (configuration_in))
@@ -101,7 +101,7 @@ Stream_Filecopy_Stream::initialize (const inherited::CONFIGURATION_T& configurat
                 ACE_TEXT (stream_name_string_)));
     goto error;
   } // end IF
-  const_cast<inherited::CONFIGURATION_T&> (configuration_in).configuration->setupPipeline =
+  const_cast<inherited::CONFIGURATION_T&> (configuration_in).configuration_->setupPipeline =
     setup_pipeline;
   reset_setup_pipeline = false;
 
@@ -149,7 +149,7 @@ Stream_Filecopy_Stream::initialize (const inherited::CONFIGURATION_T& configurat
   //             handle to the session data)
   module_p->arg (inherited::sessionData_);
 
-  if (inherited::configuration_->configuration->setupPipeline)
+  if (inherited::configuration_->configuration_->setupPipeline)
     if (!inherited::setup ())
     {
       ACE_DEBUG ((LM_ERROR,
@@ -167,7 +167,7 @@ Stream_Filecopy_Stream::initialize (const inherited::CONFIGURATION_T& configurat
 
 error:
   if (reset_setup_pipeline)
-    const_cast<inherited::CONFIGURATION_T&> (configuration_in).configuration->setupPipeline =
+    const_cast<inherited::CONFIGURATION_T&> (configuration_in).configuration_->setupPipeline =
       setup_pipeline;
 
   return false;

@@ -85,7 +85,7 @@ Test_I_Stream::initialize (const Test_I_StreamConfiguration_t& configuration_in)
   ACE_ASSERT (!this->isRunning ());
 
 //  bool result = false;
-  bool setup_pipeline = configuration_in.configuration->setupPipeline;
+  bool setup_pipeline = configuration_in.configuration_->setupPipeline;
   bool reset_setup_pipeline = false;
   struct Test_I_MP3Player_SessionData* session_data_p = NULL;
   typename inherited::CONFIGURATION_T::ITERATOR_T iterator;
@@ -98,7 +98,7 @@ Test_I_Stream::initialize (const Test_I_StreamConfiguration_t& configuration_in)
 #endif // ACE_WIN32 || ACE_WIN64
 
   // allocate a new session state, reset stream
-  const_cast<Test_I_StreamConfiguration_t&> (configuration_in).configuration->setupPipeline =
+  const_cast<Test_I_StreamConfiguration_t&> (configuration_in).configuration_->setupPipeline =
     false;
   reset_setup_pipeline = true;
   if (!inherited::initialize (configuration_in))
@@ -108,7 +108,7 @@ Test_I_Stream::initialize (const Test_I_StreamConfiguration_t& configuration_in)
                 ACE_TEXT (stream_name_string_)));
     goto failed;
   } // end IF
-  const_cast<Test_I_StreamConfiguration_t&> (configuration_in).configuration->setupPipeline =
+  const_cast<Test_I_StreamConfiguration_t&> (configuration_in).configuration_->setupPipeline =
     setup_pipeline;
   reset_setup_pipeline = false;
   ACE_ASSERT (inherited::sessionData_);
@@ -144,7 +144,7 @@ Test_I_Stream::initialize (const Test_I_StreamConfiguration_t& configuration_in)
 #endif // ACE_WIN32 || ACE_WIN64
   session_data_p->formats.push_front (media_type_s);
   session_data_p->targetFileName =
-    configuration_in.configuration->fileIdentifier.identifier;
+    configuration_in.configuration_->fileIdentifier.identifier;
 //  configuration_in.moduleConfiguration.streamState = &state_;
 
   // ---------------------------------------------------------------------------
@@ -168,7 +168,7 @@ Test_I_Stream::initialize (const Test_I_StreamConfiguration_t& configuration_in)
   //             handle to the session data)
   decoder_.arg (inherited::sessionData_);
 
-  if (configuration_in.configuration->setupPipeline)
+  if (configuration_in.configuration_->setupPipeline)
     if (!inherited::setup ())
     {
       ACE_DEBUG ((LM_ERROR,
@@ -185,7 +185,7 @@ Test_I_Stream::initialize (const Test_I_StreamConfiguration_t& configuration_in)
 
 failed:
   if (reset_setup_pipeline)
-    const_cast<Test_I_StreamConfiguration_t&> (configuration_in).configuration->setupPipeline =
+    const_cast<Test_I_StreamConfiguration_t&> (configuration_in).configuration_->setupPipeline =
       setup_pipeline;
   if (!inherited::reset ())
     ACE_DEBUG ((LM_ERROR,

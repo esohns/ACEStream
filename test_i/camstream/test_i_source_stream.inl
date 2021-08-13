@@ -202,7 +202,7 @@ Test_I_Source_DirectShow_Stream_T<StreamStateType,
   ACE_ASSERT (!isRunning ());
 
   bool result = false;
-  bool setup_pipeline = configuration_in.configuration->setupPipeline;
+  bool setup_pipeline = configuration_in.configuration_->setupPipeline;
   bool reset_setup_pipeline = false;
   SessionDataType* session_data_p = NULL;
   typename inherited::CONFIGURATION_T::ITERATOR_T iterator, iterator_2;
@@ -301,7 +301,7 @@ Test_I_Source_DirectShow_Stream_T<StreamStateType,
 continue_:
   if (!Stream_Device_DirectShow_Tools::setCaptureFormat ((*iterator).second.second.builder,
                                                          CLSID_VideoInputDeviceCategory,
-                                                         configuration_in.configuration->format))
+                                                         configuration_in.configuration_->format))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to Stream_Device_DirectShow_Tools::setCaptureFormat(), aborting\n"),
@@ -332,7 +332,7 @@ continue_:
   //ACE_ASSERT ((*iterator).second.second.direct3DConfiguration->handle);
 
   if (!Stream_Module_Decoder_Tools::loadVideoRendererGraph (CLSID_VideoInputDeviceCategory,
-                                                            configuration_in.configuration->format,
+                                                            configuration_in.configuration_->format,
                                                             (*iterator).second.second.outputFormat,
                                                             (*iterator).second.second.window,
                                                             (*iterator).second.second.builder,
@@ -396,7 +396,7 @@ continue_:
   //         if this is -1/0 (why ?)
   allocator_properties.cbAlign = 1;
   allocator_properties.cbBuffer =
-    configuration_in.configuration->allocatorConfiguration->defaultBufferSize;
+    configuration_in.configuration_->allocatorConfiguration->defaultBufferSize;
   allocator_properties.cbPrefix = -1; // <-- use default
   allocator_properties.cBuffers =
     STREAM_DEV_CAM_DIRECTSHOW_DEFAULT_DEVICE_BUFFERS;
@@ -497,7 +497,7 @@ continue_:
 
   // ---------------------------------------------------------------------------
   // step3: allocate a new session state, reset stream
-  const_cast<typename inherited::CONFIGURATION_T&> (configuration_in).configuration->setupPipeline =
+  const_cast<typename inherited::CONFIGURATION_T&> (configuration_in).configuration_->setupPipeline =
     false;
   reset_setup_pipeline = true;
   if (!inherited::initialize (configuration_in))
@@ -507,7 +507,7 @@ continue_:
                 ACE_TEXT (stream_name_string_)));
     goto error;
   } // end IF
-  const_cast<typename inherited::CONFIGURATION_T&> (configuration_in).configuration->setupPipeline =
+  const_cast<typename inherited::CONFIGURATION_T&> (configuration_in).configuration_->setupPipeline =
     setup_pipeline;
   reset_setup_pipeline = false;
 
@@ -550,7 +550,7 @@ continue_:
   // ---------------------------------------------------------------------------
   // step5: update session data
   ACE_ASSERT (session_data_p->formats.empty ());
-  session_data_p->formats.push_back (configuration_in.configuration->format);
+  session_data_p->formats.push_back (configuration_in.configuration_->format);
   ACE_OS::memset (&media_type_s, 0, sizeof (struct _AMMediaType));
   if (!Stream_MediaFramework_DirectShow_Tools::getOutputFormat ((*iterator).second.second.builder,
                                                                 STREAM_LIB_DIRECTSHOW_FILTER_NAME_GRAB,
@@ -575,7 +575,7 @@ continue_:
   module_p->arg (inherited::sessionData_);
 
   // step7: assemble stream
-  if (configuration_in.configuration->setupPipeline)
+  if (configuration_in.configuration_->setupPipeline)
     if (!inherited::setup (NULL))
     {
       ACE_DEBUG ((LM_ERROR,
@@ -906,8 +906,8 @@ Test_I_Source_MediaFoundation_Stream_T<StreamStateType,
 
   // allocate a new session state, reset stream
   bool setup_pipeline =
-    const_cast<typename inherited::CONFIGURATION_T&> (configuration_in).configuration->setupPipeline;
-  const_cast<typename inherited::CONFIGURATION_T&> (configuration_in).configuration->setupPipeline =
+    const_cast<typename inherited::CONFIGURATION_T&> (configuration_in).configuration_->setupPipeline;
+  const_cast<typename inherited::CONFIGURATION_T&> (configuration_in).configuration_->setupPipeline =
     false;
   bool reset_setup_pipeline = true;
   if (!inherited::initialize (configuration_in))
@@ -915,11 +915,11 @@ Test_I_Source_MediaFoundation_Stream_T<StreamStateType,
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to Test_I_Source_MediaFoundation_Stream_T::initialize(), aborting\n"),
                 ACE_TEXT (stream_name_string_)));
-    const_cast<typename inherited::CONFIGURATION_T&> (configuration_in).configuration->setupPipeline =
+    const_cast<typename inherited::CONFIGURATION_T&> (configuration_in).configuration_->setupPipeline =
       setup_pipeline;
     return false;
   } // end IF
-  const_cast<typename inherited::CONFIGURATION_T&> (configuration_in).configuration->setupPipeline =
+  const_cast<typename inherited::CONFIGURATION_T&> (configuration_in).configuration_->setupPipeline =
     setup_pipeline;
   reset_setup_pipeline = false;
   ACE_ASSERT (inherited::sessionData_);
@@ -986,39 +986,39 @@ Test_I_Source_MediaFoundation_Stream_T<StreamStateType,
   UINT32 item_count = 0;
   ULONG reference_count = 0;
 
-  if (!configuration_in.configuration->format)
+  if (!configuration_in.configuration_->format)
   {
-    result = MFCreateMediaType (&configuration_in.configuration->format);
+    result = MFCreateMediaType (&configuration_in.configuration_->format);
     ACE_ASSERT (SUCCEEDED (result));
     //result =
     //  configuration_in.configuration->format->SetGUID (MF_MT_SUBTYPE,
     //                                                   MFVideoFormat_RGB24);
     //ACE_ASSERT (SUCCEEDED (result));
     result =
-      MFSetAttributeSize (configuration_in.configuration->format,
+      MFSetAttributeSize (configuration_in.configuration_->format,
                           MF_MT_FRAME_RATE,
                           STREAM_DEV_CAM_DEFAULT_CAPTURE_RATE, 1);
     ACE_ASSERT (SUCCEEDED (result));
     result =
-        MFSetAttributeSize (configuration_in.configuration->format,
+        MFSetAttributeSize (configuration_in.configuration_->format,
                             MF_MT_FRAME_SIZE,
                             STREAM_DEV_CAM_DEFAULT_CAPTURE_SIZE_WIDTH,
                             STREAM_DEV_CAM_DEFAULT_CAPTURE_SIZE_HEIGHT);
     ACE_ASSERT (SUCCEEDED (result));
     result =
-      configuration_in.configuration->format->SetUINT32 (MF_MT_INTERLACE_MODE,
-                                                         MFVideoInterlace_Progressive);
+      configuration_in.configuration_->format->SetUINT32 (MF_MT_INTERLACE_MODE,
+                                                          MFVideoInterlace_Progressive);
     ACE_ASSERT (SUCCEEDED (result));
     result =
-      MFSetAttributeRatio (configuration_in.configuration->format,
+      MFSetAttributeRatio (configuration_in.configuration_->format,
                            MF_MT_PIXEL_ASPECT_RATIO,
                            1, 1);
     ACE_ASSERT (SUCCEEDED (result));
     input_mediatype_was_null = true;
   } // end IF
-  ACE_ASSERT (configuration_in.configuration->format);
+  ACE_ASSERT (configuration_in.configuration_->format);
   if (!Stream_Module_Decoder_Tools::loadVideoRendererTopology ((*iterator).second.second.deviceIdentifier.identifier._string,
-                                                               configuration_in.configuration->format,
+                                                               configuration_in.configuration_->format,
                                                                source_impl_p,
                                                                (*iterator).second.second.window,
                                                                (*iterator).second.second.sampleGrabberNodeId,
@@ -1066,10 +1066,10 @@ Test_I_Source_MediaFoundation_Stream_T<StreamStateType,
     ACE_DEBUG ((LM_DEBUG,
                 ACE_TEXT ("%s: capture format: %s\n"),
                 ACE_TEXT (stream_name_string_),
-                ACE_TEXT (Stream_MediaFramework_MediaFoundation_Tools::toString (configuration_in.configuration->format).c_str ())));
+                ACE_TEXT (Stream_MediaFramework_MediaFoundation_Tools::toString (configuration_in.configuration_->format).c_str ())));
 #endif // _DEBUG
   media_type_p =
-    Stream_MediaFramework_MediaFoundation_Tools::copy (configuration_in.configuration->format);
+    Stream_MediaFramework_MediaFoundation_Tools::copy (configuration_in.configuration_->format);
   if (!media_type_p)
   {
     ACE_DEBUG ((LM_ERROR,
@@ -1146,7 +1146,7 @@ Test_I_Source_MediaFoundation_Stream_T<StreamStateType,
   //             handle to the session data)
   module_p->arg (inherited::sessionData_);
 
-  if (configuration_in.configuration->setupPipeline)
+  if (configuration_in.configuration_->setupPipeline)
     if (!inherited::setup (NULL))
     {
       ACE_DEBUG ((LM_ERROR,
@@ -1166,9 +1166,9 @@ Test_I_Source_MediaFoundation_Stream_T<StreamStateType,
   //  Common_File_Tools::size (configuration_in.moduleHandlerConfiguration->fileName);
 
   // *TODO*: remove type inferences
-  const_cast<typename inherited::CONFIGURATION_T&> (configuration_in).configuration->mediaFoundationConfiguration->mediaSession =
+  const_cast<typename inherited::CONFIGURATION_T&> (configuration_in).configuration_->mediaFoundationConfiguration->mediaSession =
     mediaSession_;
-  if (!inherited2::initialize (*configuration_in.configuration->mediaFoundationConfiguration))
+  if (!inherited2::initialize (*configuration_in.configuration_->mediaFoundationConfiguration))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to Stream_Misc_MediaFoundation_Callback_T::initialize(), aborting\n"),

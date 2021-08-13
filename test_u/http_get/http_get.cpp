@@ -602,9 +602,9 @@ do_work (unsigned int bufferSize_in,
 
   // *********************** socket configuration data ************************
   HTTPGet_ConnectionConfiguration_t connection_configuration;
-  connection_configuration.address = remoteHost_in;
-  connection_configuration.useLoopBackDevice =
-    connection_configuration.address.is_loopback ();
+  connection_configuration.socketConfiguration.address = remoteHost_in;
+  connection_configuration.socketConfiguration.useLoopBackDevice =
+    connection_configuration.socketConfiguration.address.is_loopback ();
 
   connection_configuration.statisticReportingInterval =
     statisticReportingInterval_in;
@@ -612,7 +612,8 @@ do_work (unsigned int bufferSize_in,
   connection_configuration.allocatorConfiguration = &allocator_configuration;
   connection_configuration.allocatorConfiguration->defaultBufferSize = bufferSize_in;
   connection_configuration.messageAllocator = &message_allocator;
-  connection_configuration.initialize (CBData_in.configuration->streamConfiguration);
+  connection_configuration.streamConfiguration =
+    &CBData_in.configuration->streamConfiguration;
 
   CBData_in.configuration->connectionConfigurations.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (""),
                                                                             &connection_configuration));
@@ -657,7 +658,7 @@ do_work (unsigned int bufferSize_in,
                                                            steam_configuration);
 
   if (bufferSize_in)
-    CBData_in.configuration->streamConfiguration.configuration->allocatorConfiguration->defaultBufferSize =
+    CBData_in.configuration->streamConfiguration.configuration_->allocatorConfiguration->defaultBufferSize =
       bufferSize_in;
 
   CBData_in.stream = istream_p;
@@ -668,7 +669,7 @@ do_work (unsigned int bufferSize_in,
   struct Net_UserData user_data_s;
   connection_manager_p->initialize (std::numeric_limits<unsigned int>::max (),
                                     ACE_Time_Value (0, NET_STATISTIC_DEFAULT_VISIT_INTERVAL_MS * 1000));
-  connection_manager_p->set (*dynamic_cast<HTTPGet_ConnectionConfiguration_t*> ((*iterator).second),
+  connection_manager_p->set (*static_cast<HTTPGet_ConnectionConfiguration_t*> ((*iterator).second),
                              &user_data_s);
 
   Common_Timer_Manager_t* timer_manager_p =

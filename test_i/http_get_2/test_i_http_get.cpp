@@ -751,14 +751,15 @@ do_work (const std::string& bootstrapFileName_in,
       numberOfDispatchThreads_in;
 
   // *********************** socket configuration data ************************
-  connection_configuration.address = remoteHost_in;
-  connection_configuration.useLoopBackDevice =
-    connection_configuration.address.is_loopback ();
+  connection_configuration.socketConfiguration.address = remoteHost_in;
+  connection_configuration.socketConfiguration.useLoopBackDevice =
+    connection_configuration.socketConfiguration.address.is_loopback ();
   //connection_configuration.writeOnly = true;
   connection_configuration.messageAllocator = &message_allocator;
   connection_configuration.allocatorConfiguration = &allocator_configuration;
   connection_configuration.allocatorConfiguration->defaultBufferSize = TEST_I_DEFAULT_BUFFER_SIZE;
-  connection_configuration.initialize (configuration.streamConfiguration);
+  connection_configuration.streamConfiguration =
+    &configuration.streamConfiguration;
 
   configuration.connectionConfigurations.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (""),
                                                                  &connection_configuration));
@@ -854,7 +855,7 @@ do_work (const std::string& bootstrapFileName_in,
   // step0c: (re-)configure connection manager
   connection_manager_p->initialize (std::numeric_limits<unsigned int>::max (),
                                     ACE_Time_Value (NET_STATISTIC_DEFAULT_COLLECTION_INTERVAL_MS, 0));
-  connection_manager_p->set (*dynamic_cast<Test_I_HTTPGet_ConnectionConfiguration_t*> ((*iterator).second),
+  connection_manager_p->set (*static_cast<Test_I_HTTPGet_ConnectionConfiguration_t*> ((*iterator).second),
                              &user_data_s);
 
   // step0d: initialize regular (global) statistic reporting

@@ -346,7 +346,7 @@ idle_initialize_UI_cb (gpointer userData_in)
 
   //format_s =
   //  cb_data_p->configuration->streamConfiguration.configuration->format.format;
-  resolution_s = cb_data_p->configuration->streamConfiguration.configuration->format.resolution;
+  resolution_s = cb_data_p->configuration->streamConfiguration.configuration_->format.resolution;
   filename_string = (*stream_iterator).second.second.targetFileName;
   gtk_entry_set_text (entry_p,
                       (filename_string.empty () ? ACE_TEXT_ALWAYS_CHAR ("")
@@ -442,7 +442,7 @@ idle_initialize_UI_cb (gpointer userData_in)
   ACE_ASSERT (cb_data_p);
   ACE_ASSERT (cb_data_p->configuration);
   buffer_size_i =
-    cb_data_p->configuration->streamConfiguration.configuration->allocatorConfiguration->defaultBufferSize;
+    cb_data_p->configuration->streamConfiguration.configuration_->allocatorConfiguration->defaultBufferSize;
 
   GtkProgressBar* progress_bar_p =
     GTK_PROGRESS_BAR (gtk_builder_get_object ((*iterator).second.second,

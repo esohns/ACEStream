@@ -41,6 +41,8 @@
 
 #include "stream_file_defines.h"
 
+#include "net_connection_configuration.h"
+
 #include "test_i_common.h"
 #include "test_i_message.h"
 #include "test_i_session_message.h"
@@ -355,7 +357,8 @@ idle_initialize_source_UI_cb (gpointer userData_in)
   Net_ConnectionConfigurationsIterator_t iterator_3 =
     ui_cb_data_p->configuration->connectionConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (iterator_3 != ui_cb_data_p->configuration->connectionConfigurations.end ());
-  ACE_INET_Addr address_s = NET_SOCKET_CONFIGURATION_TCP_CAST((*iterator_3).second)->address;
+  ACE_INET_Addr address_s =
+    NET_CONFIGURATION_TCP_CAST ((*iterator_3).second)->socketConfiguration.address;
   gtk_entry_set_text (entry_p,
                       address_s.get_host_name ());
 
@@ -386,7 +389,7 @@ idle_initialize_source_UI_cb (gpointer userData_in)
                                               ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_CHECKBUTTON_LOOPBACK_NAME)));
   ACE_ASSERT (check_button_p);
   gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (check_button_p),
-                                (*iterator_3).second->useLoopBackDevice);
+                                NET_CONFIGURATION_TCP_CAST ((*iterator_3).second)->socketConfiguration.useLoopBackDevice);
 
   spin_button_p =
     //GTK_SPIN_BUTTON (glade_xml_get_widget ((*iterator).second.second,
@@ -410,7 +413,7 @@ idle_initialize_source_UI_cb (gpointer userData_in)
                              0.0,
                              std::numeric_limits<double>::max ());
   gtk_spin_button_set_value (spin_button_p,
-                             static_cast<double> (ui_cb_data_p->configuration->streamConfiguration.configuration->allocatorConfiguration->defaultBufferSize));
+                             static_cast<double> (ui_cb_data_p->configuration->streamConfiguration.configuration_->allocatorConfiguration->defaultBufferSize));
 
   // step4: initialize text view, setup auto-scrolling
   GtkTextView* view_p =
@@ -1056,7 +1059,7 @@ idle_initialize_target_UI_cb (gpointer userData_in)
     ui_cb_data_p->configuration->connectionConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (iterator_3 != ui_cb_data_p->configuration->connectionConfigurations.end ());
   gtk_spin_button_set_value (spin_button_p,
-                             static_cast<double> (NET_SOCKET_CONFIGURATION_TCP_CAST((*iterator_3).second)->address.get_port_number ()));
+                             static_cast<double> (NET_CONFIGURATION_TCP_CAST ((*iterator_3).second)->socketConfiguration.address.get_port_number ()));
 
   GtkRadioButton* radio_button_p = NULL;
   if (ui_cb_data_p->configuration->protocol == NET_TRANSPORTLAYER_UDP)
@@ -1078,7 +1081,7 @@ idle_initialize_target_UI_cb (gpointer userData_in)
                                               ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_CHECKBUTTON_LOOPBACK_NAME)));
   ACE_ASSERT (check_button_p);
   gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (check_button_p),
-                                (*iterator_3).second->useLoopBackDevice);
+                                NET_CONFIGURATION_TCP_CAST ((*iterator_3).second)->socketConfiguration.useLoopBackDevice);
 
   spin_button_p =
       //GTK_SPIN_BUTTON (glade_xml_get_widget ((*iterator).second.second,
@@ -1090,7 +1093,7 @@ idle_initialize_target_UI_cb (gpointer userData_in)
                              0.0,
                              std::numeric_limits<double>::max ());
   gtk_spin_button_set_value (spin_button_p,
-                              static_cast<double> (ui_cb_data_p->configuration->streamConfiguration.configuration->allocatorConfiguration->defaultBufferSize));
+                              static_cast<double> (ui_cb_data_p->configuration->streamConfiguration.configuration_->allocatorConfiguration->defaultBufferSize));
 
   GtkProgressBar* progressbar_p =
     GTK_PROGRESS_BAR (gtk_builder_get_object ((*iterator).second.second,
@@ -2106,8 +2109,8 @@ toggle_action_start_toggled_cb (GtkToggleAction* action_in,
   Net_ConnectionConfigurationsIterator_t iterator_2 =
     ui_cb_data_p->configuration->connectionConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (iterator_2 != ui_cb_data_p->configuration->connectionConfigurations.end ());
-  NET_SOCKET_CONFIGURATION_TCP_CAST ((*iterator_2).second)->address.set_port_number (port_number,
-                                                                                     1);
+  NET_CONFIGURATION_TCP_CAST ((*iterator_2).second)->socketConfiguration.address.set_port_number (port_number,
+                                                                                                  1);
 
   // retrieve protocol
   GtkRadioButton* radio_button_p =
@@ -2128,7 +2131,7 @@ toggle_action_start_toggled_cb (GtkToggleAction* action_in,
     GTK_SPIN_BUTTON (gtk_builder_get_object ((*iterator).second.second,
                                              ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_SPINBUTTON_BUFFERSIZE_NAME)));
   ACE_ASSERT (spin_button_p);
-  ui_cb_data_p->configuration->streamConfiguration.configuration->allocatorConfiguration->defaultBufferSize =
+  ui_cb_data_p->configuration->streamConfiguration.configuration_->allocatorConfiguration->defaultBufferSize =
     static_cast<unsigned int> (gtk_spin_button_get_value_as_int (spin_button_p));
 
   // retrieve loop
@@ -2439,7 +2442,7 @@ filechooserbutton_source_cb (GtkFileChooserButton* button_in,
   ACE_ASSERT (iterator_3 != ui_cb_data_p->configuration->connectionConfigurations.end ());
   bool activate =
       (!(*iterator_2).second.second.fileIdentifier.identifier.empty () &&
-       !NET_SOCKET_CONFIGURATION_TCP_CAST ((*iterator_3).second)->address.is_any ());
+       !NET_CONFIGURATION_TCP_CAST ((*iterator_3).second)->socketConfiguration.address.is_any ());
   gtk_action_set_sensitive (action_p, activate);
 } // filechooserbutton_source_cb
 
@@ -2598,7 +2601,7 @@ action_listen_activate_cb (GtkAction* action_in,
         //ui_cb_data_p->configuration->listenerConfiguration.address =
         //  (*iterator_2).second.address;
         ACE_ASSERT (ui_cb_data_p->configuration->signalHandlerConfiguration.listener);
-        if (!ui_cb_data_p->configuration->signalHandlerConfiguration.listener->initialize (*dynamic_cast<Test_I_Target_TCPConnectionConfiguration_t*>((*iterator_2).second)))
+        if (!ui_cb_data_p->configuration->signalHandlerConfiguration.listener->initialize (*static_cast<Test_I_Target_TCPConnectionConfiguration_t*>((*iterator_2).second)))
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("failed to initialize listener, continuing\n")));
         ACE_thread_t thread_id = 0;
@@ -2672,7 +2675,7 @@ action_listen_activate_cb (GtkAction* action_in,
         Net_ConnectionConfigurationsIterator_t iterator_3 =
           ui_cb_data_p->configuration->connectionConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
         ACE_ASSERT (iterator_3 != ui_cb_data_p->configuration->connectionConfigurations.end ());
-        if (!connector_p->initialize (*dynamic_cast<Test_I_Target_UDPConnectionConfiguration_t*>((*iterator_3).second)))
+        if (!connector_p->initialize (*static_cast<Test_I_Target_UDPConnectionConfiguration_t*>((*iterator_3).second)))
         {
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("failed to initialize connector: \"%m\", returning\n")));
@@ -2682,7 +2685,7 @@ action_listen_activate_cb (GtkAction* action_in,
 
         // connect
         ui_cb_data_p->configuration->handle =
-          connector_p->connect (NET_SOCKET_CONFIGURATION_UDP_CAST((*iterator_3).second)->listenAddress);
+          connector_p->connect (NET_CONFIGURATION_UDP_CAST ((*iterator_3).second)->socketConfiguration.listenAddress);
         // *TODO*: support one-thread operation by scheduling a signal and manually
         //         running the dispatch loop for a limited time...
         if (ui_cb_data_p->configuration->dispatchConfiguration.numberOfProactorThreads > 0)
@@ -2696,7 +2699,7 @@ action_listen_activate_cb (GtkAction* action_in,
           do
           {
             connection_p =
-              connection_manager_p->get (NET_SOCKET_CONFIGURATION_UDP_CAST((*iterator_3).second)->listenAddress,
+              connection_manager_p->get (NET_CONFIGURATION_UDP_CAST ((*iterator_3).second)->socketConfiguration.listenAddress,
                                          false);
             if (connection_p)
             {
@@ -2715,7 +2718,7 @@ action_listen_activate_cb (GtkAction* action_in,
         {
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("failed to connect to %s, returning\n"),
-                      ACE_TEXT (Net_Common_Tools::IPAddressToString (NET_SOCKET_CONFIGURATION_UDP_CAST((*iterator_3).second)->listenAddress).c_str ())));
+                      ACE_TEXT (Net_Common_Tools::IPAddressToString (NET_CONFIGURATION_UDP_CAST ((*iterator_3).second)->socketConfiguration.listenAddress).c_str ())));
           delete connector_p; connector_p = NULL;
           return;
         } // end IF
@@ -2723,12 +2726,12 @@ action_listen_activate_cb (GtkAction* action_in,
         ACE_DEBUG ((LM_DEBUG,
                     ACE_TEXT ("0x%@: started listening (UDP) (%s)...\n"),
                     ui_cb_data_p->configuration->handle,
-                    ACE_TEXT (Net_Common_Tools::IPAddressToString (NET_SOCKET_CONFIGURATION_UDP_CAST((*iterator_3).second)->listenAddress).c_str ())));
+                    ACE_TEXT (Net_Common_Tools::IPAddressToString (NET_CONFIGURATION_UDP_CAST ((*iterator_3).second)->socketConfiguration.listenAddress).c_str ())));
 #else
         ACE_DEBUG ((LM_DEBUG,
                     ACE_TEXT ("%d: started listening (UDP) (%s)...\n"),
                     ui_cb_data_p->configuration->handle,
-                    ACE_TEXT (Net_Common_Tools::IPAddressToString (NET_SOCKET_CONFIGURATION_UDP_CAST((*iterator_3).second)->listenAddress).c_str ())));
+                    ACE_TEXT (Net_Common_Tools::IPAddressToString (NET_CONFIGURATION_UDP_CAST ((*iterator_3).second)->socketConfiguration.listenAddress).c_str ())));
 #endif // ACE_WIN32 || ACE_WIN64
         delete connector_p; connector_p = NULL;
         break;

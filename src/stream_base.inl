@@ -466,13 +466,13 @@ Stream_Base_T<ACE_SYNCH_USE,
     if (state_.module)
     {
       if (!layout_.append (state_.module,
-                           configuration_->configuration->moduleBranch))
+                           configuration_->configuration_->moduleBranch))
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: failed to Stream_Layout_T::append(\"%s\",\"%s\"), returning\n"),
                     ACE_TEXT (StreamName),
                     state_.module->name (),
-                    ACE_TEXT (configuration_->configuration->moduleBranch.c_str ())));
+                    ACE_TEXT (configuration_->configuration_->moduleBranch.c_str ())));
         return;
       } // end IF
 //#if defined (_DEBUG)
@@ -541,9 +541,9 @@ Stream_Base_T<ACE_SYNCH_USE,
           continue;
         } // end IF
       } // end IF
-      ACE_ASSERT (configuration_->configuration);
+      ACE_ASSERT (configuration_->configuration_);
       if (unlikely (!imodule_handler_p->initialize ((*iterator_2).second.second,
-                                                    configuration_->configuration->messageAllocator)))
+                                                    configuration_->configuration_->messageAllocator)))
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s/%s: failed to Stream_IModuleHandler_T::initialize(), continuing\n"),
                     ACE_TEXT (StreamName), (*iterator)->name ()));
@@ -719,10 +719,10 @@ Stream_Base_T<ACE_SYNCH_USE,
   // *TODO*: remove type inferences
   ACE_ASSERT (session_data_r.lock);
   { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, *session_data_r.lock);
-    ACE_ASSERT (configuration_->configuration);
+    ACE_ASSERT (configuration_->configuration_);
     session_data_r.sessionId =
-      (configuration_->configuration->sessionId ? configuration_->configuration->sessionId
-                                                : ++inherited2::currentSessionId);
+      (configuration_->configuration_->sessionId ? configuration_->configuration_->sessionId
+                                                 : ++inherited2::currentSessionId);
     session_data_r.startOfSession = COMMON_TIME_NOW;
     session_data_r.state = &state_;
   } // end lock scope
@@ -2934,8 +2934,8 @@ Stream_Base_T<ACE_SYNCH_USE,
       return false;
     }// end IF
 
-    ACE_ASSERT (configuration_->configuration);
-    if (configuration_->configuration->resetSessionData &&
+    ACE_ASSERT (configuration_->configuration_);
+    if (configuration_->configuration_->resetSessionData &&
         sessionData_)
     {
       sessionData_->decrease (); sessionData_ = NULL;
@@ -2946,22 +2946,22 @@ Stream_Base_T<ACE_SYNCH_USE,
 
   configuration_ = &const_cast<CONFIGURATION_T&> (configuration_in);
   ACE_ASSERT (configuration_->isInitialized_);
-  ACE_ASSERT (configuration_->configuration);
+  ACE_ASSERT (configuration_->configuration_);
 
   // *TODO*: remove type inferences
-  if (configuration_->configuration->module)
+  if (configuration_->configuration_->module)
   {
     { ACE_GUARD_RETURN (ACE_SYNCH_RECURSIVE_MUTEX, aGuard, lock_, false);
       ACE_ASSERT (!state_.module);
-      if (configuration_->configuration->cloneModule)
+      if (configuration_->configuration_->cloneModule)
       {
         IMODULE_T* imodule_p =
-            dynamic_cast<IMODULE_T*> (configuration_->configuration->module);
+            dynamic_cast<IMODULE_T*> (configuration_->configuration_->module);
         if (unlikely (!imodule_p))
         {
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("%s/%s: dynamic_cast<Stream_IModule_T> failed, aborting\n"),
-                      ACE_TEXT (StreamName), configuration_->configuration->module->name ()));
+                      ACE_TEXT (StreamName), configuration_->configuration_->module->name ()));
           return false;
         } // end IF
 
@@ -2970,13 +2970,13 @@ Stream_Base_T<ACE_SYNCH_USE,
         } catch (...) {
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("%s/%s: caught exception in Stream_IModule_T::clone(), aborting\n"),
-                      ACE_TEXT (StreamName), configuration_->configuration->module->name ()));
+                      ACE_TEXT (StreamName), configuration_->configuration_->module->name ()));
         }
         if (unlikely (!state_.module))
         {
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("%s/%s: failed to Stream_IModule_T::clone(), aborting\n"),
-                      ACE_TEXT (StreamName), configuration_->configuration->module->name ()));
+                      ACE_TEXT (StreamName), configuration_->configuration_->module->name ()));
           return false;
         } // end IF
         state_.moduleIsClone = true;
@@ -2989,7 +2989,7 @@ Stream_Base_T<ACE_SYNCH_USE,
       } // end IF
       else
       {
-        state_.module = configuration_->configuration->module;
+        state_.module = configuration_->configuration_->module;
         state_.moduleIsClone = false;
       } // end ELSE
       ACE_ASSERT (state_.module);
@@ -3008,12 +3008,12 @@ Stream_Base_T<ACE_SYNCH_USE,
   } // end FOR
 
   { ACE_GUARD_RETURN (ACE_SYNCH_RECURSIVE_MUTEX, aGuard, lock_, false);
-    state_.userData = configuration_->configuration->userData;
+    state_.userData = configuration_->configuration_->userData;
   } // end lock scope
 
   // *TODO*: initialize the module handler configuration here as well
-  initialize (configuration_->configuration->setupPipeline,
-              configuration_->configuration->resetSessionData);
+  initialize (configuration_->configuration_->setupPipeline,
+              configuration_->configuration_->resetSessionData);
 
   return true;
 }
@@ -3987,6 +3987,7 @@ Stream_Base_T<ACE_SYNCH_USE,
 
   // sanity check(s)
   ACE_ASSERT (configuration_);
+  ACE_ASSERT (configuration_->configuration_);
   ACE_ASSERT (sessionData_);
 
   const SessionDataType& session_data_r = sessionData_->getR ();
@@ -3998,11 +3999,11 @@ Stream_Base_T<ACE_SYNCH_USE,
   // allocate SESSION_END session message
   SessionMessageType* message_p = NULL;
   // *TODO*: remove type inference
-  if (configuration_->configuration->messageAllocator)
+  if (configuration_->configuration_->messageAllocator)
   {
     try { // *NOTE*: 0 --> session message
       message_p =
-        static_cast<SessionMessageType*> (configuration_->configuration->messageAllocator->malloc (0));
+        static_cast<SessionMessageType*> (configuration_->configuration_->messageAllocator->malloc (0));
     } catch (...) {
       ACE_DEBUG ((LM_CRITICAL,
                   ACE_TEXT ("%s: caught exception in Stream_IAllocator::malloc(0), returning\n"),
@@ -4018,7 +4019,7 @@ Stream_Base_T<ACE_SYNCH_USE,
     ACE_NEW_NORETURN (message_p,
                       SessionMessageType (session_data_r.sessionId,
                                           STREAM_SESSION_MESSAGE_END,
-                                          sessionData_,
+                                          sessionData_, // *NOTE*: fire-and-forget sessionData_
                                           state_.userData));
   if (unlikely (!message_p))
   {
@@ -4032,10 +4033,10 @@ Stream_Base_T<ACE_SYNCH_USE,
     return;
   } // end IF
   // *TODO*: remove type inferences
-  if (configuration_->configuration->messageAllocator)
+  if (configuration_->configuration_->messageAllocator)
     message_p->initialize (session_data_r.sessionId,
                            STREAM_SESSION_MESSAGE_END,
-                           sessionData_,
+                           sessionData_, // *NOTE*: fire-and-forget sessionData_
                            state_.userData);
 
   // forward message

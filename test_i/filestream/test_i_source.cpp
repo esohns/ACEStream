@@ -531,10 +531,10 @@ do_work (unsigned int bufferSize_in,
   // ********************** connection configuration data **********************
   Test_I_Source_TCPConnectionConfiguration_t connection_configuration;
   int result =
-    connection_configuration.address.set (port_in,
-                                          hostName_in.c_str (),
-                                          1,
-                                          ACE_ADDRESS_FAMILY_INET);
+    connection_configuration.socketConfiguration.address.set (port_in,
+                                                              hostName_in.c_str (),
+                                                              1,
+                                                              ACE_ADDRESS_FAMILY_INET);
   if (result == -1)
   {
     ACE_DEBUG ((LM_ERROR,
@@ -545,8 +545,8 @@ do_work (unsigned int bufferSize_in,
     delete CBData_in.UDPStream; CBData_in.UDPStream = NULL;
     return;
   } // end IF
-  connection_configuration.useLoopBackDevice =
-    connection_configuration.address.is_loopback ();
+  connection_configuration.socketConfiguration.useLoopBackDevice =
+    connection_configuration.socketConfiguration.address.is_loopback ();
 //  connection_configuration.writeOnly = true;
 
   connection_configuration.statisticReportingInterval =
@@ -610,7 +610,7 @@ do_work (unsigned int bufferSize_in,
   stream_configuration_3.initialize (module_configuration,
                                      modulehandler_configuration,
                                      stream_configuration_2);
-  connection_configuration.initialize (stream_configuration_3);
+  connection_configuration.streamConfiguration = &stream_configuration_3;
   //  stream_iterator =
   //    CBData_in.configuration->streamConfigurations.find (ACE_TEXT_ALWAYS_CHAR (STREAM_NET_DEFAULT_NAME_STRING));
   //  ACE_ASSERT (stream_iterator != v4l2CBData_in.configuration->streamConfigurations.end ());
@@ -619,7 +619,7 @@ do_work (unsigned int bufferSize_in,
   struct Net_UserData user_data_s;
   iconnection_manager_p->initialize (std::numeric_limits<unsigned int>::max (),
                                      ACE_Time_Value (0, NET_STATISTIC_DEFAULT_VISIT_INTERVAL_MS * 1000));
-  iconnection_manager_p->set (*dynamic_cast<Test_I_Source_TCPConnectionConfiguration_t*> ((*iterator).second),
+  iconnection_manager_p->set (*static_cast<Test_I_Source_TCPConnectionConfiguration_t*> ((*iterator).second),
                               &user_data_s);
 
   // step0d: initialize regular (global) statistic reporting

@@ -29,7 +29,7 @@ Stream_Configuration_T<//StreamName,
                        ConfigurationType,
                        ModuleHandlerConfigurationType>::Stream_Configuration_T ()
  : inherited ()
- , configuration (NULL)
+ , configuration_ (NULL)
  , isInitialized_ (false)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Configuration_T::Stream_Configuration_T"));
@@ -54,7 +54,7 @@ Stream_Configuration_T<//StreamName,
   inherited::insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (""),
                                      std::make_pair (moduleConfiguration_in,
                                                      moduleHandlerConfiguration_in)));
-  configuration = &const_cast<ConfigurationType&> (configuration_in);
+  configuration_ = &const_cast<ConfigurationType&> (configuration_in);
   isInitialized_ = true;
 
   return true;
