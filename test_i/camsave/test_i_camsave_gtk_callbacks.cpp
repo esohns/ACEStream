@@ -1968,7 +1968,7 @@ update_buffer_size (struct Stream_CamSave_UI_CBData* CBData_in)
   } // end SWITCH
 #else
   frame_size_i =
-      ui_cb_data_p->configuration->v4l_streamConfiguration.configuration->format.format.sizeimage;
+      ui_cb_data_p->configuration->v4l_streamConfiguration.configuration_->format.format.sizeimage;
 #endif
   //gtk_spin_button_set_value (spin_button_p,
   //                           static_cast<gdouble> (frame_size_i));
@@ -2428,12 +2428,12 @@ idle_initialize_UI_cb (gpointer userData_in)
     ACE_ASSERT (ui_cb_data_p->configuration);
 
     resolution_s.width =
-        ui_cb_data_p->configuration->libCamera_streamConfiguration.configuration->format.resolution.width;
+        ui_cb_data_p->configuration->libCamera_streamConfiguration.configuration_->format.resolution.width;
     resolution_s.height =
-        ui_cb_data_p->configuration->libCamera_streamConfiguration.configuration->format.resolution.height;
+        ui_cb_data_p->configuration->libCamera_streamConfiguration.configuration_->format.resolution.height;
     framerate_i =
-      ui_cb_data_p->configuration->libCamera_streamConfiguration.configuration->format.frameRateNumerator;
-    ACE_ASSERT (ui_cb_data_p->configuration->libCamera_streamConfiguration.configuration->format.frameRateDenominator == 1);
+      ui_cb_data_p->configuration->libCamera_streamConfiguration.configuration_->format.frameRateNumerator;
+    ACE_ASSERT (ui_cb_data_p->configuration->libCamera_streamConfiguration.configuration_->format.frameRateDenominator == 1);
     Stream_CamSave_LibCamera_StreamConfiguration_t::ITERATOR_T iterator_2 =
       ui_cb_data_p->configuration->libCamera_streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
     ACE_ASSERT (iterator_2 != ui_cb_data_p->configuration->libCamera_streamConfiguration.end ());
@@ -2454,7 +2454,7 @@ idle_initialize_UI_cb (gpointer userData_in)
         320;
   //      static_cast<__u32> (allocation.width);
     buffer_size_i =
-      ui_cb_data_p->configuration->libCamera_streamConfiguration.configuration->allocatorConfiguration->defaultBufferSize;
+      ui_cb_data_p->configuration->libCamera_streamConfiguration.configuration_->allocatorConfiguration->defaultBufferSize;
   } // end IF
   else
   {
@@ -2463,12 +2463,12 @@ idle_initialize_UI_cb (gpointer userData_in)
     ACE_ASSERT (ui_cb_data_p->configuration);
 
     resolution_s.width =
-        ui_cb_data_p->configuration->v4l_streamConfiguration.configuration->format.format.width;
+        ui_cb_data_p->configuration->v4l_streamConfiguration.configuration_->format.format.width;
     resolution_s.height =
-        ui_cb_data_p->configuration->v4l_streamConfiguration.configuration->format.format.height;
+        ui_cb_data_p->configuration->v4l_streamConfiguration.configuration_->format.format.height;
     framerate_i =
-      ui_cb_data_p->configuration->v4l_streamConfiguration.configuration->format.frameRate.numerator;
-    ACE_ASSERT (ui_cb_data_p->configuration->v4l_streamConfiguration.configuration->format.frameRate.denominator == 1);
+      ui_cb_data_p->configuration->v4l_streamConfiguration.configuration_->format.frameRate.numerator;
+    ACE_ASSERT (ui_cb_data_p->configuration->v4l_streamConfiguration.configuration_->format.frameRate.denominator == 1);
     Stream_CamSave_V4L_StreamConfiguration_t::ITERATOR_T iterator_2 =
       ui_cb_data_p->configuration->v4l_streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
     ACE_ASSERT (iterator_2 != ui_cb_data_p->configuration->v4l_streamConfiguration.end ());
@@ -2489,7 +2489,7 @@ idle_initialize_UI_cb (gpointer userData_in)
         320;
   //      static_cast<__u32> (allocation.width);
     buffer_size_i =
-      ui_cb_data_p->configuration->v4l_streamConfiguration.configuration->allocatorConfiguration->defaultBufferSize;
+      ui_cb_data_p->configuration->v4l_streamConfiguration.configuration_->allocatorConfiguration->defaultBufferSize;
   } // end ELSE
 #endif // ACE_WIN32 || ACE_WIN64
   gtk_entry_set_text (entry_p,
@@ -3123,14 +3123,14 @@ idle_initialize_UI_cb (gpointer userData_in)
     struct Stream_CamSave_LibCamera_UI_CBData* ui_cb_data_p =
       static_cast<struct Stream_CamSave_LibCamera_UI_CBData*> (ui_cb_data_base_p);
     ACE_ASSERT (ui_cb_data_p->configuration);
-    converter << ui_cb_data_p->configuration->libCamera_streamConfiguration.configuration->format.format.fourcc ();
+    converter << ui_cb_data_p->configuration->libCamera_streamConfiguration.configuration_->format.format.fourcc ();
   } // end IF
   else
   {
     struct Stream_CamSave_V4L_UI_CBData* ui_cb_data_p =
       static_cast<struct Stream_CamSave_V4L_UI_CBData*> (ui_cb_data_base_p);
     ACE_ASSERT (ui_cb_data_p->configuration);
-    converter << ui_cb_data_p->configuration->v4l_streamConfiguration.configuration->format.format.pixelformat;
+    converter << ui_cb_data_p->configuration->v4l_streamConfiguration.configuration_->format.format.pixelformat;
   } // end ELSE
   g_value_set_string (&value,
                       converter.str ().c_str ());
@@ -3911,8 +3911,8 @@ continue_:
 #else
 //  ui_cb_data_p->configuration->libCamera_streamConfiguration.configuration->allocatorConfiguration->defaultBufferSize =
 //    ui_cb_data_p->configuration->libCamera_streamConfiguration.configuration->format.format.sizeimage;
-  ui_cb_data_p->configuration->v4l_streamConfiguration.configuration->allocatorConfiguration->defaultBufferSize =
-    ui_cb_data_p->configuration->v4l_streamConfiguration.configuration->format.format.sizeimage;
+  ui_cb_data_p->configuration->v4l_streamConfiguration.configuration_->allocatorConfiguration->defaultBufferSize =
+    ui_cb_data_p->configuration->v4l_streamConfiguration.configuration_->format.format.sizeimage;
 #endif // ACE_WIN32 || ACE_WIN64
 
   // sanity check(s)
@@ -4734,7 +4734,7 @@ button_about_clicked_cb (GtkWidget* widget_in,
   if (!dialog_p)
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to glade_xml_get_widget(\"%s\"): \"%m\", aborting\n"),
+                ACE_TEXT ("failed to gtk_builder_get_object(\"%s\"): \"%m\", aborting\n"),
                 ACE_TEXT (TEST_I_UI_GTK_DIALOG_ABOUT_NAME)));
     return TRUE; // propagate
   } // end IF
@@ -5374,7 +5374,7 @@ combobox_format_changed_cb (GtkWidget* widget_in,
 #else
   if (ui_cb_data_p->useLibCamera)
   {
-    ui_cb_data_p->configuration->libCamera_streamConfiguration.configuration->format.format =
+    ui_cb_data_p->configuration->libCamera_streamConfiguration.configuration_->format.format =
         libcamera::PixelFormat (format_i, 0);
     Stream_CamSave_LibCamera_StreamConfiguration_t::ITERATOR_T iterator_2 =
       ui_cb_data_p->configuration->libCamera_streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
@@ -5384,7 +5384,7 @@ combobox_format_changed_cb (GtkWidget* widget_in,
   } // end IF
   else
   {
-    ui_cb_data_p->configuration->v4l_streamConfiguration.configuration->format.format.pixelformat =
+    ui_cb_data_p->configuration->v4l_streamConfiguration.configuration_->format.format.pixelformat =
       format_i;
     Stream_CamSave_V4L_StreamConfiguration_t::ITERATOR_T iterator_2 =
       ui_cb_data_p->configuration->v4l_streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
@@ -5711,9 +5711,9 @@ combobox_resolution_changed_cb (GtkWidget* widget_in,
 #else
   if (ui_cb_data_p->useLibCamera)
   {
-    ui_cb_data_p->configuration->libCamera_streamConfiguration.configuration->format.resolution.height =
+    ui_cb_data_p->configuration->libCamera_streamConfiguration.configuration_->format.resolution.height =
         height;
-    ui_cb_data_p->configuration->libCamera_streamConfiguration.configuration->format.resolution.width =
+    ui_cb_data_p->configuration->libCamera_streamConfiguration.configuration_->format.resolution.width =
         width;
     Stream_CamSave_LibCamera_StreamConfiguration_t::ITERATOR_T iterator_2 =
       ui_cb_data_p->configuration->libCamera_streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
@@ -5723,9 +5723,9 @@ combobox_resolution_changed_cb (GtkWidget* widget_in,
   } // end IF
   else
   {
-    ui_cb_data_p->configuration->v4l_streamConfiguration.configuration->format.format.height =
+    ui_cb_data_p->configuration->v4l_streamConfiguration.configuration_->format.format.height =
         height;
-    ui_cb_data_p->configuration->v4l_streamConfiguration.configuration->format.format.width =
+    ui_cb_data_p->configuration->v4l_streamConfiguration.configuration_->format.format.width =
         width;
     Stream_CamSave_V4L_StreamConfiguration_t::ITERATOR_T iterator_2 =
       ui_cb_data_p->configuration->v4l_streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
@@ -5996,9 +5996,9 @@ combobox_rate_changed_cb (GtkWidget* widget_in,
 #else
   // *NOTE*: the frame rate is the reciprocal value of the time-per-frame
   //         interval
-  ui_cb_data_p->configuration->v4l_streamConfiguration.configuration->format.frameRate.numerator =
+  ui_cb_data_p->configuration->v4l_streamConfiguration.configuration_->format.frameRate.numerator =
       frame_rate_numerator;
-  ui_cb_data_p->configuration->v4l_streamConfiguration.configuration->format.frameRate.denominator =
+  ui_cb_data_p->configuration->v4l_streamConfiguration.configuration_->format.frameRate.denominator =
       frame_rate_denominator;
 #endif // ACE_WIN32 || ACE_WIN64
   set_capture_format (ui_cb_data_base_p);

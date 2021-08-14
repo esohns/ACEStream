@@ -227,7 +227,7 @@ class Stream_CamSave_LibCamera_Stream
 
  public:
   Stream_CamSave_LibCamera_Stream ();
-  virtual ~Stream_CamSave_LibCamera_Stream ();
+  inline virtual ~Stream_CamSave_LibCamera_Stream () { inherited::shutdown (); }
 
   // implement (part of) Stream_IStreamControlBase
   virtual bool load (Stream_ILayout*, // i/o value: layout
@@ -297,7 +297,7 @@ class Stream_CamSave_V4L_Stream
 
  public:
   Stream_CamSave_V4L_Stream ();
-  virtual ~Stream_CamSave_V4L_Stream ();
+  inline virtual ~Stream_CamSave_V4L_Stream () { inherited::shutdown (); }
 
   // implement (part of) Stream_IStreamControlBase
   virtual bool load (Stream_ILayout*, // i/o value: layout

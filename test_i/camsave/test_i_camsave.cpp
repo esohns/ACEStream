@@ -1560,7 +1560,7 @@ error:
   if (useLibCamera_in)
   {
     if (!do_initialize_libcamera (libcamera_modulehandler_configuration.deviceIdentifier,
-                                  configuration_in.libCamera_streamConfiguration.configuration->format,
+                                  configuration_in.libCamera_streamConfiguration.configuration_->format,
                                   libcamera_modulehandler_configuration.outputFormat))
     {
       ACE_DEBUG ((LM_ERROR,
@@ -1571,7 +1571,7 @@ error:
   else
     if (!do_initialize_v4l (captureinterfaceIdentifier_in,
                             v4l_modulehandler_configuration.deviceIdentifier,
-                            configuration_in.v4l_streamConfiguration.configuration->format,
+                            configuration_in.v4l_streamConfiguration.configuration_->format,
                             v4l_modulehandler_configuration.outputFormat))
     {
       ACE_DEBUG ((LM_ERROR,

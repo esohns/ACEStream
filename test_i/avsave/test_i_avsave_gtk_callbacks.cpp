@@ -1819,9 +1819,9 @@ update_buffer_size (struct Stream_AVSave_UI_CBData* CBData_in)
   } // end SWITCH
 #else
   frame_size_i =
-      ui_cb_data_p->configuration->videoStreamConfiguration.configuration->format.format.sizeimage;
+      ui_cb_data_p->configuration->videoStreamConfiguration.configuration_->format.format.sizeimage;
   (*iterator_2).second.second.allocatorConfiguration->defaultBufferSize = frame_size_i;
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
   //gtk_spin_button_set_value (spin_button_p,
   //                           static_cast<gdouble> (frame_size_i));
 }
@@ -2268,14 +2268,14 @@ idle_initialize_UI_cb (gpointer userData_in)
 //    ui_cb_data_p->configuration->videoStreamConfiguration.find (Stream_Visualization_Tools::rendererToModuleName (STREAM_VISUALIZATION_VIDEORENDERER_X11));
 //  ACE_ASSERT (iterator_3 != ui_cb_data_p->configuration->videoStreamConfiguration.end ());
   resolution_s.width =
-      ui_cb_data_p->configuration->videoStreamConfiguration.configuration->format.format.width;
+      ui_cb_data_p->configuration->videoStreamConfiguration.configuration_->format.format.width;
   resolution_s.height =
-      ui_cb_data_p->configuration->videoStreamConfiguration.configuration->format.format.height;
+      ui_cb_data_p->configuration->videoStreamConfiguration.configuration_->format.format.height;
   framerate_i =
-    ui_cb_data_p->configuration->videoStreamConfiguration.configuration->format.frameRate.numerator;
-  ACE_ASSERT (ui_cb_data_p->configuration->videoStreamConfiguration.configuration->format.frameRate.denominator == 1);
+    ui_cb_data_p->configuration->videoStreamConfiguration.configuration_->format.frameRate.numerator;
+  ACE_ASSERT (ui_cb_data_p->configuration->videoStreamConfiguration.configuration_->format.frameRate.denominator == 1);
   filename_string = (*iterator_2).second.second.targetFileName;
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
   gtk_entry_set_text (entry_p,
                       (filename_string.empty () ? ACE_TEXT_ALWAYS_CHAR ("")
                                                 : ACE_TEXT_ALWAYS_CHAR (ACE::basename (filename_string.c_str (), ACE_DIRECTORY_SEPARATOR_CHAR))));
@@ -2408,7 +2408,7 @@ idle_initialize_UI_cb (gpointer userData_in)
 //  is_display_b =
 //      !(*iterator_3).second.second.deviceIdentifier.identifier.empty ();
 //  is_fullscreen_b = (*iterator_2).second.second.fullScreen;
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
   toggle_button_p =
     GTK_TOGGLE_BUTTON (gtk_builder_get_object ((*iterator).second.second,
                                                ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_TOGGLEBUTTON_DISPLAY_NAME)));
@@ -2519,8 +2519,8 @@ idle_initialize_UI_cb (gpointer userData_in)
   ACE_ASSERT (ui_cb_data_p->configuration);
 
   buffer_size_i =
-    ui_cb_data_p->configuration->videoStreamConfiguration.configuration->allocatorConfiguration->defaultBufferSize;
-#endif
+    ui_cb_data_p->configuration->videoStreamConfiguration.configuration_->allocatorConfiguration->defaultBufferSize;
+#endif // ACE_WIN32 || ACE_WIN64
 
   GtkProgressBar* progress_bar_p =
     GTK_PROGRESS_BAR (gtk_builder_get_object ((*iterator).second.second,
@@ -2911,7 +2911,7 @@ idle_initialize_UI_cb (gpointer userData_in)
                       Common_Tools::GUIDToString (format_s).c_str ());
 #else
   converter.str (ACE_TEXT_ALWAYS_CHAR (""));
-  converter << ui_cb_data_p->configuration->videoStreamConfiguration.configuration->format.format.pixelformat;
+  converter << ui_cb_data_p->configuration->videoStreamConfiguration.configuration_->format.format.pixelformat;
   g_value_set_string (&value,
                       converter.str ().c_str ());
 #endif // ACE_WIN32 || ACE_WIN64
@@ -3693,7 +3693,7 @@ continue_:
   } // end SWITCH
 #else
   (*iterator_2).second.second.targetFileName = filename_string;
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
 
 //  spin_button_p =
 //    GTK_SPIN_BUTTON (gtk_builder_get_object ((*iterator).second.second,
@@ -3721,9 +3721,9 @@ continue_:
   //  }
   //} // end SWITCH
 #else
-  ui_cb_data_p->configuration->videoStreamConfiguration.configuration->allocatorConfiguration->defaultBufferSize =
-    ui_cb_data_p->configuration->videoStreamConfiguration.configuration->format.format.sizeimage;
-#endif
+  ui_cb_data_p->configuration->videoStreamConfiguration.configuration_->allocatorConfiguration->defaultBufferSize =
+    ui_cb_data_p->configuration->videoStreamConfiguration.configuration_->format.format.sizeimage;
+#endif // ACE_WIN32 || ACE_WIN64
 
   // sanity check(s)
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -3787,7 +3787,7 @@ continue_:
 //                ACE_TEXT ("failed to Stream_Device_Tools::setFrameRate(), aborting\n")));
 //    goto error;
 //  } // end IF
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
 
   // step3: start processing thread
   ACE_NEW_NORETURN (thread_data_p,
@@ -4322,6 +4322,8 @@ button_display_reset_clicked_cb (GtkButton* button_in,
 {
   STREAM_TRACE (ACE_TEXT ("::button_display_reset_clicked_cb"));
 
+  ACE_UNUSED_ARG (button_in);
+  ACE_UNUSED_ARG (userData_in);
 }
 
 void
@@ -4329,6 +4331,8 @@ button_cut_clicked_cb (GtkButton* button_in,
                        gpointer userData_in)
 {
   STREAM_TRACE (ACE_TEXT ("::button_cut_clicked_cb"));
+
+  ACE_UNUSED_ARG (button_in);
 
   struct Stream_AVSave_UI_CBData* ui_cb_data_base_p =
     static_cast<struct Stream_AVSave_UI_CBData*> (userData_in);
@@ -4381,6 +4385,8 @@ button_report_clicked_cb (GtkButton* button_in,
 {
   STREAM_TRACE (ACE_TEXT ("::button_report_clicked_cb"));
 
+  ACE_UNUSED_ARG (button_in);
+
   struct Stream_AVSave_UI_CBData* ui_cb_data_base_p =
     static_cast<struct Stream_AVSave_UI_CBData*> (userData_in);
 
@@ -4395,6 +4401,8 @@ button_hw_settings_clicked_cb (GtkButton* button_in,
 {
   STREAM_TRACE (ACE_TEXT ("::button_hw_settings_clicked_cb"));
 
+  ACE_UNUSED_ARG (button_in);
+
   struct Stream_AVSave_UI_CBData* ui_cb_data_base_p =
     static_cast<struct Stream_AVSave_UI_CBData*> (userData_in);
 
@@ -4407,6 +4415,8 @@ button_format_reset_clicked_cb (GtkButton* button_in,
                                 gpointer userData_in)
 {
   STREAM_TRACE (ACE_TEXT ("::button_format_reset_clicked_cb"));
+
+  ACE_UNUSED_ARG (button_in);
 
   struct Stream_AVSave_UI_CBData* ui_cb_data_base_p =
     static_cast<struct Stream_AVSave_UI_CBData*> (userData_in);
@@ -4433,6 +4443,8 @@ button_snapshot_clicked_cb (GtkButton* button_in,
                             gpointer userData_in)
 {
   STREAM_TRACE (ACE_TEXT ("::button_snapshot_clicked_cb"));
+
+  ACE_UNUSED_ARG (button_in);
 
   struct Stream_AVSave_UI_CBData* ui_cb_data_base_p =
     static_cast<struct Stream_AVSave_UI_CBData*> (userData_in);
@@ -4499,7 +4511,7 @@ button_about_clicked_cb (GtkWidget* widget_in,
   if (!dialog_p)
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to glade_xml_get_widget(\"%s\"): \"%m\", aborting\n"),
+                ACE_TEXT ("failed to gtk_builder_get_object(\"%s\"): \"%m\", aborting\n"),
                 ACE_TEXT (TEST_I_UI_GTK_DIALOG_ABOUT_NAME)));
     return TRUE; // propagate
   } // end IF
@@ -5173,7 +5185,7 @@ combobox_format_changed_cb (GtkWidget* widget_in,
     }
   } // end SWITCH
 #else
-  ui_cb_data_p->configuration->videoStreamConfiguration.configuration->format.format.pixelformat =
+  ui_cb_data_p->configuration->videoStreamConfiguration.configuration_->format.format.pixelformat =
       format_i;
 #endif
 
@@ -5494,9 +5506,9 @@ combobox_resolution_changed_cb (GtkWidget* widget_in,
     }
   } // end SWITCH
 #else
-  ui_cb_data_p->configuration->videoStreamConfiguration.configuration->format.format.height =
+  ui_cb_data_p->configuration->videoStreamConfiguration.configuration_->format.format.height =
       height;
-  ui_cb_data_p->configuration->videoStreamConfiguration.configuration->format.format.width =
+  ui_cb_data_p->configuration->videoStreamConfiguration.configuration_->format.format.width =
       width;
   (*iterator_2).second.second.outputFormat.format.height = height;
   (*iterator_2).second.second.outputFormat.format.width = width;
@@ -5762,9 +5774,9 @@ combobox_rate_changed_cb (GtkWidget* widget_in,
 #else
   // *NOTE*: the frame rate is the reciprocal value of the time-per-frame
   //         interval
-  ui_cb_data_p->configuration->videoStreamConfiguration.configuration->format.frameRate.numerator =
+  ui_cb_data_p->configuration->videoStreamConfiguration.configuration_->format.frameRate.numerator =
       frame_rate_numerator;
-  ui_cb_data_p->configuration->videoStreamConfiguration.configuration->format.frameRate.denominator =
+  ui_cb_data_p->configuration->videoStreamConfiguration.configuration_->format.frameRate.denominator =
       frame_rate_denominator;
 #endif // ACE_WIN32 || ACE_WIN64
   set_capture_format (ui_cb_data_base_p);
@@ -5933,6 +5945,7 @@ drawingarea_draw_cb (GtkWidget* widget_in,
 
   // sanity check(s)
   ACE_UNUSED_ARG (widget_in);
+  ACE_UNUSED_ARG (context_in);
   ACE_ASSERT (userData_in);
 
   struct Stream_AVSave_UI_CBData* ui_cb_data_base_p =

@@ -1588,7 +1588,8 @@ do_work (unsigned int bufferSize_in,
 //      tcp_connection_manager_p;
 //  configuration.listenerConfiguration.statisticReportingInterval =
 //      statisticReportingInterval_in;
-  (*iterator_2).second->useLoopBackDevice = useLoopBack_in;
+  NET_CONFIGURATION_TCP_CAST ((*iterator_2).second)->socketConfiguration.useLoopBackDevice =
+      useLoopBack_in;
 #endif // ACE_WIN32 || ACE_WIN64
 
   // step0d: initialize regular (global) statistic reporting
@@ -1849,7 +1850,7 @@ do_work (unsigned int bufferSize_in,
                           Test_I_Target_UDPAsynchConnector_t (true));
       ACE_ASSERT (i_udp_connector_p);
       result_2 =
-          i_udp_connector_p->initialize (*dynamic_cast<Test_I_Target_UDPConnectionConfiguration_t*> ((*iterator_2).second));
+          i_udp_connector_p->initialize (*static_cast<Test_I_Target_UDPConnectionConfiguration_t*> ((*iterator_2).second));
       if (!i_udp_connector_p)
 #endif // ACE_WIN32 || ACE_WIN64
       {
@@ -1961,7 +1962,7 @@ do_work (unsigned int bufferSize_in,
       } // end SWITCH
 #else
       listen_address =
-          NET_SOCKET_CONFIGURATION_UDP_CAST ((*iterator_2).second)->listenAddress;
+          NET_CONFIGURATION_UDP_CAST ((*iterator_2).second)->socketConfiguration.listenAddress;
 #endif // ACE_WIN32 || ACE_WIN64
       if (result == -1)
         ACE_DEBUG ((LM_ERROR,

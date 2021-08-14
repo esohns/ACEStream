@@ -1326,12 +1326,12 @@ Test_I_Source_V4L_Stream_T<StreamStateType,
   layout_inout->append (module_p, NULL, 0);
   typename inherited::MODULE_T* branch_p = NULL; // NULL: 'main' branch
   branch_p = module_p;
-  inherited::configuration_->configuration->branches.push_back (ACE_TEXT_ALWAYS_CHAR (STREAM_SUBSTREAM_DISPLAY_NAME));
+  inherited::configuration_->configuration_->branches.push_back (ACE_TEXT_ALWAYS_CHAR (STREAM_SUBSTREAM_DISPLAY_NAME));
   //inherited::configuration_->configuration->branches.push_back (ACE_TEXT_ALWAYS_CHAR (STREAM_SUBSTREAM_NETWORK_NAME));
   Stream_IDistributorModule* idistributor_p =
       dynamic_cast<Stream_IDistributorModule*> (module_p->writer ());
   ACE_ASSERT (idistributor_p);
-  idistributor_p->initialize (inherited::configuration_->configuration->branches);
+  idistributor_p->initialize (inherited::configuration_->configuration_->branches);
   ACE_NEW_RETURN (module_p,
                   Test_I_Source_V4L_Resize_Module (this,
                                                    ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_LIBAV_RESIZE_DEFAULT_NAME_STRING)),
@@ -1379,11 +1379,11 @@ Test_I_Source_V4L_Stream_T<StreamStateType,
   STREAM_TRACE (ACE_TEXT ("Test_I_Source_V4L_Stream_T::initialize"));
 
 //  bool result = false;
-  bool setup_pipeline = configuration_in.configuration->setupPipeline;
+  bool setup_pipeline = configuration_in.configuration_->setupPipeline;
   bool reset_setup_pipeline = false;
 
   // allocate a new session state, reset stream
-  const_cast<ConfigurationType&> (configuration_in).configuration->setupPipeline =
+  const_cast<ConfigurationType&> (configuration_in).configuration_->setupPipeline =
       false;
   reset_setup_pipeline = true;
   if (!inherited::initialize (configuration_in))
@@ -1393,7 +1393,7 @@ Test_I_Source_V4L_Stream_T<StreamStateType,
                 ACE_TEXT (stream_name_string_)));
     return false;
   } // end IF
-  const_cast<ConfigurationType&> (configuration_in).configuration->setupPipeline =
+  const_cast<ConfigurationType&> (configuration_in).configuration_->setupPipeline =
       setup_pipeline;
   reset_setup_pipeline = false;
   ACE_ASSERT (inherited::sessionData_);
@@ -1404,7 +1404,7 @@ Test_I_Source_V4L_Stream_T<StreamStateType,
       const_cast<ConfigurationType&> (configuration_in).find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (iterator != configuration_in.end ());
   ACE_ASSERT (session_data_r.formats.empty ());
-  session_data_r.formats.push_front (configuration_in.configuration->format);
+  session_data_r.formats.push_front (configuration_in.configuration_->format);
 
   // ---------------------------------------------------------------------------
   // sanity check(s)
@@ -1441,7 +1441,7 @@ Test_I_Source_V4L_Stream_T<StreamStateType,
   //             handle to the session data)
   module_p->arg (inherited::sessionData_);
 
-  if (configuration_in.configuration->setupPipeline)
+  if (configuration_in.configuration_->setupPipeline)
     if (!inherited::setup (NULL))
     {
       ACE_DEBUG ((LM_ERROR,
@@ -1467,7 +1467,7 @@ Test_I_Source_V4L_Stream_T<StreamStateType,
 
 error:
   if (reset_setup_pipeline)
-    const_cast<ConfigurationType&> (configuration_in).configuration->setupPipeline =
+    const_cast<ConfigurationType&> (configuration_in).configuration_->setupPipeline =
       setup_pipeline;
 
   return false;

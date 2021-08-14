@@ -2821,7 +2821,7 @@ idle_initialize_UI_cb (gpointer userData_in)
   } // end SWITCH
 #else
   buffer_size =
-    data_p->configuration->streamConfiguration.configuration->allocatorConfiguration->defaultBufferSize;
+    data_p->configuration->streamConfiguration.configuration_->allocatorConfiguration->defaultBufferSize;
 #endif // ACE_WIN32 || ACE_WIN64
   spin_button_p =
     GTK_SPIN_BUTTON (gtk_builder_get_object ((*iterator).second.second,
@@ -7693,7 +7693,7 @@ combobox_source_changed_cb (GtkWidget* widget_in,
                 ACE_TEXT ("failed to Stream_Device_Tools::getFormat(): \"%m\", aborting\n")));
     goto error;
   } // end IF
-  ui_cb_data_p->configuration->streamConfiguration.configuration->format.access =
+  ui_cb_data_p->configuration->streamConfiguration.configuration_->format.access =
     STREAM_DEV_MIC_ALSA_DEFAULT_ACCESS;
 
   result_2 =
@@ -9061,11 +9061,11 @@ drawingarea_query_tooltip_cb (GtkWidget*  widget_in,
   mode =
     (*modulehandler_configuration_iterator).second.second.spectrumAnalyzer2DMode;
   is_signed_format =
-      snd_pcm_format_signed (ui_cb_data_p->configuration->streamConfiguration.configuration->format.format);
+      snd_pcm_format_signed (ui_cb_data_p->configuration->streamConfiguration.configuration_->format.format);
   sample_size =
-      snd_pcm_format_physical_width (ui_cb_data_p->configuration->streamConfiguration.configuration->format.format) / 8;
+      snd_pcm_format_physical_width (ui_cb_data_p->configuration->streamConfiguration.configuration_->format.format) / 8;
   channels =
-    ui_cb_data_p->configuration->streamConfiguration.configuration->format.channels;
+    ui_cb_data_p->configuration->streamConfiguration.configuration_->format.channels;
 #endif // ACE_WIN32 || ACE_WIN64
   ACE_ASSERT (istream_p);
 

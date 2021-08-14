@@ -387,7 +387,7 @@ class Test_I_Target_TCPStream
 
  public:
   Test_I_Target_TCPStream ();
-  virtual ~Test_I_Target_TCPStream ();
+  inline virtual ~Test_I_Target_TCPStream () { inherited::shutdown (); }
 
   // implement (part of) Stream_IStreamControlBase
   virtual bool load (Stream_ILayout*, // return value: module list
@@ -451,7 +451,7 @@ class Test_I_Target_UDPStream
 
  public:
   Test_I_Target_UDPStream ();
-  virtual ~Test_I_Target_UDPStream ();
+  inline virtual ~Test_I_Target_UDPStream () { inherited::shutdown (); }
 
   // implement (part of) Stream_IStreamControlBase
   virtual bool load (Stream_ILayout*, // return value: module list

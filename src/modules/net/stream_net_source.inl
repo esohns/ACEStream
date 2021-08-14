@@ -279,7 +279,7 @@ Stream_Module_Net_Source_Writer_T<ACE_SYNCH_USE,
     case NET_TRANSPORTLAYER_TCP:
     {
       Net_TCPSocketConfiguration_t* socket_configuration_p =
-          reinterpret_cast<Net_TCPSocketConfiguration_t*> (configuration_p);
+          (Net_TCPSocketConfiguration_t*)&configuration_p->socketConfiguration;
       ACE_ASSERT (socket_configuration_p);
       address_ = socket_configuration_p->address;
       break;
@@ -287,7 +287,7 @@ Stream_Module_Net_Source_Writer_T<ACE_SYNCH_USE,
     case NET_TRANSPORTLAYER_UDP:
     {
       Net_UDPSocketConfiguration_t* socket_configuration_p =
-        reinterpret_cast<Net_UDPSocketConfiguration_t*> (configuration_p);
+        (Net_UDPSocketConfiguration_t*)&configuration_p->socketConfiguration;
       ACE_ASSERT (socket_configuration_p);
       address_ = socket_configuration_p->listenAddress;
       break;
@@ -518,7 +518,7 @@ Stream_Module_Net_Source_Writer_T<ACE_SYNCH_USE,
         {
           // *TODO*: avoid this tight loop
           connection_ = iconnection_manager_p->get (address_,
-                                                    true);
+                                                    is_peer_address);
           if (connection_)
             break;
         } while (COMMON_TIME_NOW < deadline);
@@ -1092,12 +1092,15 @@ close:
                 inherited::mod_->name ()));
 #endif // _DEBUG
   ACE_ASSERT (iterator != configuration_in.connectionConfigurations->end ());
+  typename ConnectorType::ISTREAM_CONNECTION_T::CONFIGURATION_T* configuration_p =
+    static_cast<typename ConnectorType::ISTREAM_CONNECTION_T::CONFIGURATION_T*> ((*iterator).second);
+  ACE_ASSERT (configuration_p);
   switch (connector_.transportLayer ())
   {
     case NET_TRANSPORTLAYER_TCP:
     {
       Net_TCPSocketConfiguration_t* socket_configuration_p =
-          dynamic_cast<Net_TCPSocketConfiguration_t*> ((*iterator).second);
+          &configuration_p->socketConfiguration;
       ACE_ASSERT (socket_configuration_p);
       address_ = socket_configuration_p->address;
       break;
@@ -1105,7 +1108,7 @@ close:
     case NET_TRANSPORTLAYER_UDP:
     {
       Net_UDPSocketConfiguration_t* socket_configuration_p =
-          dynamic_cast<Net_UDPSocketConfiguration_t*> ((*iterator).second);
+          &configuration_p->socketConfiguration;
       ACE_ASSERT (socket_configuration_p);
       address_ = socket_configuration_p->listenAddress;
       break;

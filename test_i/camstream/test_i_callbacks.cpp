@@ -1557,10 +1557,10 @@ set_capture_format (struct Test_I_CamStream_UI_CBData* CBData_in)
     }
   } // end SWITCH
 #else
-  (*stream_iterator).second.configuration->format.format.height = height;
-  (*stream_iterator).second.configuration->format.format.width = width;
+  (*stream_iterator).second.configuration_->format.format.height = height;
+  (*stream_iterator).second.configuration_->format.format.width = width;
   Stream_Device_Tools::setFormat (V4L_ui_cb_data_p->fileDescriptor,
-                                  (*stream_iterator).second.configuration->format.format);
+                                  (*stream_iterator).second.configuration_->format.format);
 #endif
 }
 
@@ -1693,7 +1693,7 @@ update_buffer_size (struct Test_I_CamStream_UI_CBData* CBData_in)
   } // end SWITCH
 #else
   frame_size_i =
-      (*stream_iterator).second.configuration->format.format.sizeimage;
+      (*stream_iterator).second.configuration_->format.format.sizeimage;
 #endif // ACE_WIN32 || ACE_WIN64
   gtk_spin_button_set_value (spin_button_p,
                              static_cast<gdouble> (frame_size_i));
@@ -2370,7 +2370,7 @@ idle_initialize_source_UI_cb (gpointer userData_in)
   use_loopback =
     NET_CONFIGURATION_TCP_CAST ((*iterator_2).second)->socketConfiguration.useLoopBackDevice;
   buffer_size =
-    (*stream_iterator).second.configuration->allocatorConfiguration->defaultBufferSize;
+    (*stream_iterator).second.configuration_->allocatorConfiguration->defaultBufferSize;
 #endif // ACE_WIN32 || ACE_WIN64
   ACE_ASSERT (string_p);
   gtk_entry_set_text (entry_p, string_p);
@@ -4980,7 +4980,7 @@ toggleaction_stream_toggled_cb (GtkToggleAction* toggleAction_in,
 #else
   result_3 =
     Stream_Device_Tools::setFormat ((*modulehandler_iterator).second.second.deviceIdentifier.fileDescriptor,
-                                    (*stream_iterator).second.configuration->format.format);
+                                    (*stream_iterator).second.configuration_->format.format);
 #endif
   if (!result_3)
   {
@@ -5707,7 +5707,7 @@ toggleaction_listen_activate_cb (GtkToggleAction* toggleAction_in,
           ui_cb_data_p->configuration->connectionConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
         ACE_ASSERT (iterator_3 != ui_cb_data_p->configuration->connectionConfigurations.end ());
         inet_address =
-            NET_SOCKET_CONFIGURATION_UDP_CAST ((*iterator_3).second)->socketConfiguration.listenAddress;
+            NET_CONFIGURATION_UDP_CAST ((*iterator_3).second)->socketConfiguration.listenAddress;
         use_reactor =
           (ui_cb_data_p->configuration->dispatchConfiguration.numberOfReactorThreads > 0);
         Test_I_Target_IUDPConnector_t* iconnector_2 = NULL;
@@ -6480,7 +6480,7 @@ button_about_clicked_cb (GtkWidget* widget_in,
   if (!about_dialog)
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to glade_xml_get_widget(\"%s\"): \"%m\", aborting\n"),
+                ACE_TEXT ("failed to gtk_builder_get_object(\"%s\"): \"%m\", aborting\n"),
                 ACE_TEXT (TEST_I_STREAM_UI_GTK_DIALOG_ABOUT_NAME)));
     return TRUE; // propagate
   } // end IF
@@ -7198,7 +7198,7 @@ combobox_format_changed_cb (GtkComboBox* comboBox_in,
     }
   } // end SWITCH
 #else
-  (*stream_iterator).second.configuration->format.format.pixelformat = format_i;
+  (*stream_iterator).second.configuration_->format.format.pixelformat = format_i;
   (*modulehandler_iterator).second.second.outputFormat.format =
       Stream_Device_Tools::v4l2FormatToffmpegFormat (format_i);
 
@@ -7508,8 +7508,8 @@ combobox_resolution_changed_cb (GtkComboBox* comboBox_in,
     }
   } // end SWITCH
 #else
-  (*stream_iterator).second.configuration->format.format.width = width;
-  (*stream_iterator).second.configuration->format.format.height = height;
+  (*stream_iterator).second.configuration_->format.format.width = width;
+  (*stream_iterator).second.configuration_->format.format.height = height;
 
   result = load_rates (V4L_ui_cb_data_p->fileDescriptor,
                        format_i,
@@ -7742,9 +7742,9 @@ combobox_rate_changed_cb (GtkComboBox* comboBox_in,
     }
   } // end SWITCH
 #else
-  (*stream_iterator).second.configuration->format.frameRate.numerator =
+  (*stream_iterator).second.configuration_->format.frameRate.numerator =
       frame_rate;
-  (*stream_iterator).second.configuration->format.frameRate.denominator =
+  (*stream_iterator).second.configuration_->format.frameRate.denominator =
       frame_rate_denominator;
 #endif // ACE_WIN32 || ACE_WIN64
   set_capture_format (ui_cb_data_p);

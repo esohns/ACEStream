@@ -56,11 +56,8 @@
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
-static sox_bool
-sox_overwrite_permitted (char const* filename_in)
-{
-  return sox_true;
-}
+inline static sox_bool
+sox_overwrite_permitted (char const* filename_in) { return sox_true; }
 #endif // ACE_WIN32 || ACE_WIN64
 
 template <ACE_SYNCH_DECL,

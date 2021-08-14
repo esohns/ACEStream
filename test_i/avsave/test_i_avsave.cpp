@@ -1454,7 +1454,7 @@ do_work (const std::string& captureinterfaceIdentifier_in,
 
   if (!do_initialize_v4l (captureinterfaceIdentifier_in,
                           video_modulehandler_configuration.deviceIdentifier,
-                          configuration_in.videoStreamConfiguration.configuration->format,
+                          configuration_in.videoStreamConfiguration.configuration_->format,
                           video_modulehandler_configuration.outputFormat))
   {
     ACE_DEBUG ((LM_ERROR,

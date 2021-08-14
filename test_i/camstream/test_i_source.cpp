@@ -1428,7 +1428,7 @@ do_work (const std::string& deviceIdentifier_in,
   ACE_ASSERT (connection_manager_p);
   connection_manager_p->initialize (std::numeric_limits<unsigned int>::max (),
                                     ACE_Time_Value (0, NET_STATISTIC_DEFAULT_VISIT_INTERVAL_MS * 1000));
-  connection_manager_p->set (*dynamic_cast<Test_I_Source_V4L_TCPConnectionConfiguration_t*> ((*connection_iterator).second),
+  connection_manager_p->set (*static_cast<Test_I_Source_V4L_TCPConnectionConfiguration_t*> ((*connection_iterator).second),
                              &user_data_s);
   (*modulehandler_iterator).second.second.connectionManager =
     connection_manager_p;
@@ -1567,14 +1567,15 @@ do_work (const std::string& deviceIdentifier_in,
     goto clean;
   } // end IF
 //  (*connection_iterator).second->bufferSize = static_cast<int> (bufferSize_in);
-  NET_SOCKET_CONFIGURATION_TCP_CAST ((*connection_iterator).second)->socketConfiguration.useLoopBackDevice =
-      NET_SOCKET_CONFIGURATION_TCP_CAST ((*connection_iterator).second)->socketConfiguration.address.is_loopback ();
+  NET_CONFIGURATION_TCP_CAST ((*connection_iterator).second)->socketConfiguration.useLoopBackDevice =
+      NET_CONFIGURATION_TCP_CAST ((*connection_iterator).second)->socketConfiguration.address.is_loopback ();
 //  (*connection_iterator).second.writeOnly = true;
   (*connection_iterator).second->statisticReportingInterval =
     statisticReportingInterval_in;
   static_cast<Test_I_Source_V4L_TCPConnectionConfiguration_t*> ((*connection_iterator).second)->messageAllocator =
       &message_allocator;
-  static_cast<Test_I_Source_V4L_TCPConnectionConfiguration_t*> ((*connection_iterator).second)->initialize ((*stream_iterator).second);
+  static_cast<Test_I_Source_V4L_TCPConnectionConfiguration_t*> ((*connection_iterator).second)->streamConfiguration =
+      &(*stream_iterator).second;
 
   connection_manager_p->set (*static_cast<Test_I_Source_V4L_TCPConnectionConfiguration_t*> ((*connection_iterator).second),
                              &user_data_s);

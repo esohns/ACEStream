@@ -1125,13 +1125,6 @@ Test_I_Target_TCPStream::Test_I_Target_TCPStream ()
 
 }
 
-Test_I_Target_TCPStream::~Test_I_Target_TCPStream ()
-{
-  STREAM_TRACE (ACE_TEXT ("Test_I_Target_TCPStream::~Test_I_Target_TCPStream"));
-
-  inherited::shutdown ();
-}
-
 bool
 Test_I_Target_TCPStream::load (Stream_ILayout* layout_in,
                                bool& delete_out)
@@ -1197,11 +1190,11 @@ Test_I_Target_TCPStream::initialize (const typename inherited::CONFIGURATION_T& 
   ACE_ASSERT (!isRunning ());
 
 //  bool result = false;
-  bool setup_pipeline = configuration_in.configuration->setupPipeline;
+  bool setup_pipeline = configuration_in.configuration_->setupPipeline;
   bool reset_setup_pipeline = false;
 
   // allocate a new session state, reset stream
-  const_cast<typename inherited::CONFIGURATION_T&> (configuration_in).configuration->setupPipeline =
+  const_cast<typename inherited::CONFIGURATION_T&> (configuration_in).configuration_->setupPipeline =
       false;
   reset_setup_pipeline = true;
   if (!inherited::initialize (configuration_in,
@@ -1212,7 +1205,7 @@ Test_I_Target_TCPStream::initialize (const typename inherited::CONFIGURATION_T& 
                 ACE_TEXT (stream_name_string_)));
     return false;
   } // end IF
-  const_cast<typename inherited::CONFIGURATION_T&> (configuration_in).configuration->setupPipeline =
+  const_cast<typename inherited::CONFIGURATION_T&> (configuration_in).configuration_->setupPipeline =
       setup_pipeline;
   reset_setup_pipeline = false;
 
@@ -1232,7 +1225,7 @@ Test_I_Target_TCPStream::initialize (const typename inherited::CONFIGURATION_T& 
   ACE_ASSERT (configuration_p);
 
   ACE_ASSERT (session_data_r.formats.empty ());
-  session_data_r.formats.push_front (configuration_in.configuration->format);
+  session_data_r.formats.push_front (configuration_in.configuration_->format);
   //  session_data_r.sessionId = configuration_p->sessionId;
   session_data_r.targetFileName = configuration_p->targetFileName;
 
@@ -1241,8 +1234,8 @@ Test_I_Target_TCPStream::initialize (const typename inherited::CONFIGURATION_T& 
 
   // ---------------------------------------------------------------------------
 
-  if (configuration_in.configuration->setupPipeline)
-    if (!inherited::setup (configuration_in.configuration->notificationStrategy))
+  if (configuration_in.configuration_->setupPipeline)
+    if (!inherited::setup (configuration_in.configuration_->notificationStrategy))
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: failed to set up pipeline, aborting\n"),
@@ -1254,7 +1247,7 @@ Test_I_Target_TCPStream::initialize (const typename inherited::CONFIGURATION_T& 
 
 error:
   if (reset_setup_pipeline)
-    const_cast<typename inherited::CONFIGURATION_T&> (configuration_in).configuration->setupPipeline =
+    const_cast<typename inherited::CONFIGURATION_T&> (configuration_in).configuration_->setupPipeline =
       setup_pipeline;
 
   return false;
@@ -1278,13 +1271,6 @@ Test_I_Target_UDPStream::Test_I_Target_UDPStream ()
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_Target_UDPStream::Test_I_Target_UDPStream"));
 
-}
-
-Test_I_Target_UDPStream::~Test_I_Target_UDPStream ()
-{
-  STREAM_TRACE (ACE_TEXT ("Test_I_Target_UDPStream::~Test_I_Target_UDPStream"));
-
-  inherited::shutdown ();
 }
 
 bool
@@ -1347,11 +1333,11 @@ Test_I_Target_UDPStream::initialize (const typename inherited::CONFIGURATION_T& 
   ACE_ASSERT (!isRunning ());
 
 //  bool result = false;
-  bool setup_pipeline = configuration_in.configuration->setupPipeline;
+  bool setup_pipeline = configuration_in.configuration_->setupPipeline;
   bool reset_setup_pipeline = false;
 
   // allocate a new session state, reset stream
-  const_cast<typename inherited::CONFIGURATION_T&> (configuration_in).configuration->setupPipeline =
+  const_cast<typename inherited::CONFIGURATION_T&> (configuration_in).configuration_->setupPipeline =
       false;
   reset_setup_pipeline = true;
   if (!inherited::initialize (configuration_in,
@@ -1362,7 +1348,7 @@ Test_I_Target_UDPStream::initialize (const typename inherited::CONFIGURATION_T& 
                 ACE_TEXT (stream_name_string_)));
     return false;
   } // end IF
-  const_cast<typename inherited::CONFIGURATION_T&> (configuration_in).configuration->setupPipeline =
+  const_cast<typename inherited::CONFIGURATION_T&> (configuration_in).configuration_->setupPipeline =
       setup_pipeline;
   reset_setup_pipeline = false;
 
@@ -1382,7 +1368,7 @@ Test_I_Target_UDPStream::initialize (const typename inherited::CONFIGURATION_T& 
   ACE_ASSERT (configuration_p);
 
   ACE_ASSERT (session_data_r.formats.empty ());
-  session_data_r.formats.push_front (configuration_in.configuration->format);
+  session_data_r.formats.push_front (configuration_in.configuration_->format);
   //  session_data_r.sessionId = configuration_p->sessionId;
   session_data_r.targetFileName = configuration_p->targetFileName;
 
@@ -1391,8 +1377,8 @@ Test_I_Target_UDPStream::initialize (const typename inherited::CONFIGURATION_T& 
 
   // ---------------------------------------------------------------------------
 
-  if (configuration_in.configuration->setupPipeline)
-    if (!inherited::setup (configuration_in.configuration->notificationStrategy))
+  if (configuration_in.configuration_->setupPipeline)
+    if (!inherited::setup (configuration_in.configuration_->notificationStrategy))
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: failed to set up pipeline, aborting\n"),
@@ -1404,7 +1390,7 @@ Test_I_Target_UDPStream::initialize (const typename inherited::CONFIGURATION_T& 
 
 error:
   if (reset_setup_pipeline)
-    const_cast<typename inherited::CONFIGURATION_T&> (configuration_in).configuration->setupPipeline =
+    const_cast<typename inherited::CONFIGURATION_T&> (configuration_in).configuration_->setupPipeline =
       setup_pipeline;
 
   return false;

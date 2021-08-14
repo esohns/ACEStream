@@ -94,8 +94,6 @@ Stream_DataBlockAllocatorHeap_T<ACE_SYNCH_USE,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_DataBlockAllocatorHeap_T::malloc"));
 
-  int result = -1;
-
   // sanity check(s)
   if (heapAllocator_)
   {
