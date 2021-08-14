@@ -110,9 +110,7 @@ Stream_DataBlockAllocatorHeap_T<ACE_SYNCH_USE,
     // *TODO*: use the heap allocator to allocate the instance
     ACE_NEW_MALLOC_NORETURN (data_block_p,
                              static_cast<ACE_Data_Block*> (inherited::malloc (sizeof (ACE_Data_Block))),
-                             ACE_Data_Block ((bytes_in ? (heapAllocator_ ? bytes_in + heapAllocator_->configuration_->paddingBytes
-                                                                         : bytes_in)
-                                                       : 0),                          // size of data chunk
+                             ACE_Data_Block (bytes_in,                                 // size of data chunk
                                              (bytes_in ? ACE_Message_Block::MB_DATA : ACE_Message_Block::MB_USER),
                                              NULL,                                     // data --> use allocator !
                                              (bytes_in ? heapAllocator_ : NULL),       // heap allocator
@@ -122,31 +120,16 @@ Stream_DataBlockAllocatorHeap_T<ACE_SYNCH_USE,
   } catch (...) {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("caught exception in ACE_NEW_MALLOC_NORETURN(ACE_Data_Block(%u)): \"%m\", continuing\n"),
-                (bytes_in ? (heapAllocator_ ? bytes_in + heapAllocator_->configuration_->paddingBytes
-                                            : bytes_in)
-                          : 0)));
+                bytes_in));
   }
   if (unlikely (!data_block_p))
   {
     ACE_DEBUG ((LM_CRITICAL,
                 ACE_TEXT ("failed to allocate ACE_Data_Block(%u): \"%m\", aborting\n"),
-                (bytes_in ? (heapAllocator_ ? bytes_in + heapAllocator_->configuration_->paddingBytes
-                                            : bytes_in)
-                          : 0)));
+                bytes_in));
     return NULL;
   } // end IF
-  if (likely (bytes_in))
-  {
-    result = data_block_p->size (bytes_in);
-    if (unlikely (result == -1))
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to ACE_Data_Block::size(%u): \"%m\", aborting\n"),
-                  bytes_in));
-      data_block_p->release (); data_block_p = NULL;
-      return NULL;
-    } // end IF
-  } // end IF
+  ACE_ASSERT (data_block_p->size () == bytes_in);
 
   // increment running counter
 //   poolSize_ += data_block->capacity ();
