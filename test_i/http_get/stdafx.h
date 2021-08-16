@@ -40,7 +40,6 @@
 #include "ace/config-lite.h"
 #include "ace/Global_Macros.h"
 #include "ace/Log_Msg.h"
-//#include "ace/Synch.h"
 
 // Local Header Files
 #if defined (HAVE_CONFIG_H)

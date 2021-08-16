@@ -26,6 +26,8 @@
 
 #include "ace/OS.h"
 #include "ace/OS_NS_Thread.h"
+#include "ace/Synch_Traits.h"
+#include "ace/Thread_Mutex.h"
 
 #include "common_defines.h"
 

@@ -9,7 +9,7 @@
 // *NOTE*: work around quirky MSVC...
 #define NOMINMAX
 
-//#include "targetver.h"
+#include "targetver.h"
 
 // Windows Header Files
 #include <windows.h>
@@ -29,7 +29,6 @@
 #include "ace/config-lite.h"
 #include "ace/Global_Macros.h"
 #include "ace/Log_Msg.h"
-#include "ace/Synch.h"
 
 // Local Header Files
 #if defined (HAVE_CONFIG_H)

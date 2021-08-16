@@ -9,6 +9,8 @@
 //         work around that, define NOMINMAX
 #define NOMINMAX
 
+#include "targetver.h"
+
 // Windows Header Files
 #include <windows.h>
 

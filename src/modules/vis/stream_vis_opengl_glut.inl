@@ -263,7 +263,7 @@ Stream_Visualization_OpenGL_GLUT_T<ACE_SYNCH_USE,
 
   char* myargv[1];
   int myargc = 1;
-  myargv[0] = strdup ("Myappname");
+  myargv[0] = ACE_OS::strdup ("Myappname");
   glutInit (&myargc, myargv);
 
 //  glutInitDisplayMode (GLUT_RGB | GLUT_DOUBLE);

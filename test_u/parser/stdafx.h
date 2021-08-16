@@ -8,6 +8,8 @@
 // <limits> does not work correctly with these macros
 #define NOMINMAX
 
+#include "targetver.h"
+
 // Windows Header Files
 #include <windows.h>
 

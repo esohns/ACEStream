@@ -78,9 +78,6 @@ Stream_DataMessageBase_T<DataType,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_DataMessageBase_T::Stream_DataMessageBase_T"));
 
-//  // ... and read/write pointers
-//  inherited::rd_ptr (message_in.rd_ptr ());
-//  inherited::wr_ptr (message_in.wr_ptr ());
 }
 
 template <typename DataType,

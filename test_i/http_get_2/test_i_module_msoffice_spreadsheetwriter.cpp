@@ -272,8 +272,8 @@ error:
                   inherited::mod_->name (),
                   session_data_r.data.size ()));
 
-continue_:
-error_2:
+//continue_:
+//error_2:
       break;
     }
     default:
