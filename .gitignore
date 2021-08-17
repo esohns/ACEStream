@@ -62,13 +62,13 @@ ipch/
 *.vcxproj.user
 *.log
 *.opensdf
-
 build/
-bak/
 
-# qtcreator
+# links (linux-specific)
+modules/ACE
+
+# qtcreator (linux-specific)
 Makefile.am.user
 CMakeLists.txt.user*
 
 test_u/imagescreen/data/
-
