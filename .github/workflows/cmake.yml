@@ -37,6 +37,8 @@ jobs:
      run: sudo rm -f modules/Common
    - name: Checkout submodules
      run: git submodule update --init --recursive
+   - name: Add Common link
+     run: sudo ln -s modules/Common ${{github.workspace}}/../Common
 
    - name: Install dependencies (packages)
      uses: ./.github/actions/install_deps
