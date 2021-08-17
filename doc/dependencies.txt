@@ -32,6 +32,4 @@ src/db:  libmysqlclient-dev
 src/dec: libsox-dev libmpg123-dev
 src/dev: libasound2-dev libv4l-dev
 src/doc: libreoffice-dev
-
-test_u:  freeglut3-dev
-
+src/vis: freeglut3-dev

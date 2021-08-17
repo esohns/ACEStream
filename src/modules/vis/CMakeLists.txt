@@ -27,8 +27,8 @@ if (UNIX)
   pkg_check_modules (PKG_FFMPEG REQUIRED libswscale libavcodec libavutil)
  endif (FFMPEG_SUPPORT)
  if (OPENGL_SUPPORT)
-#  pkg_check_modules (PKG_OPENGL_GLUT REQUIRED freeglut)
-  pkg_check_modules (PKG_OPENGL_GLUT REQUIRED glut)
+#  pkg_check_modules (PKG_OPENGL_GLUT REQUIRED glut) # Fedora
+  pkg_check_modules (PKG_OPENGL_GLUT REQUIRED freeglut3) # Ubuntu
  endif (OPENGL_SUPPORT)
 
 # add_compile_options (-std=c++17)

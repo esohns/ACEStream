@@ -2,7 +2,6 @@
 
 get_filename_component (BUILD_PATH ${CMAKE_CURRENT_BINARY_DIR}/../../.. REALPATH DIRECTORY)
 get_filename_component (BUILD_PATH_SUFFIX ${BUILD_PATH} NAME)
-#message (STATUS "BUILD_PATH_SUFFIX: ${BUILD_PATH_SUFFIX}")
 find_package (ACENetwork ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_MICRO}
               REQUIRED
               CONFIG
@@ -19,10 +18,6 @@ if (UNIX)
 
  target_include_directories (${PROJECT_NAME}_HTML PUBLIC
                              $<BUILD_INTERFACE:${PKG_LIBXML2_INCLUDE_DIRS}>)
-
-# target_include_directories (${PROJECT_NAME}_HTML PUBLIC
-#                             $<BUILD_INTERFACE:$ENV{LIB_ROOT}/ACE_TAO/ACE>)
-##                             $<BUILD_INTERFACE:/usr/local/src/ACE_wrappers>)
 
  target_include_directories (${PROJECT_NAME}_HTML PUBLIC
                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../Common/src>)
@@ -41,14 +36,6 @@ elseif (WIN32)
                              $<BUILD_INTERFACE:$ENV{LIB_ROOT}/libiconv/include>)
  target_include_directories (${PROJECT_NAME}_HTML PUBLIC
                              $<BUILD_INTERFACE:$ENV{LIB_ROOT}/libxml2/include>)
-
-# if (DEFINED ENV{ACE_ROOT})
-#  target_include_directories (${PROJECT_NAME}_HTML PUBLIC
-#                              $<BUILD_INTERFACE:$ENV{ACE_ROOT}>)
-# else ()
-#  target_include_directories (${PROJECT_NAME}_HTML PUBLIC
-#                              $<BUILD_INTERFACE:$ENV{LIB_ROOT}/ACE_TAO/ACE>)
-# endif (DEFINED ENV{ACE_ROOT})
 
  target_include_directories (${PROJECT_NAME}_HTML PUBLIC
                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../Common/src>)
