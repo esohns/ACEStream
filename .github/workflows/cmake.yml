@@ -59,9 +59,10 @@ jobs:
           sudo ln -s ACEStream/modules/Common Common
           cd ${{github.workspace}}
 
-   - name: Configure CMake
+   - name: Configure CMake (Common)
      run: |
           cd modules/Common
+          git submodule update --init --recursive
           cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
 
    - name: Configure CMake
