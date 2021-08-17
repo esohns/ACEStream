@@ -65,6 +65,9 @@ jobs:
           git submodule update --init --recursive
           cmake -B ${{github.workspace}}/modules/Common/build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
 
+   - name: Apply Patch To (Temporarily) Remove Dependency on ACENetwork
+     run: git apply scripts/github_repo_build.patch
+
    - name: Configure CMake
      run: cmake -B ${{github.workspace}}/build -DCommon_DIR=modules/Common/build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
 
