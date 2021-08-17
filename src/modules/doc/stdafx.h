@@ -40,7 +40,4 @@
 #include "stream_common.h"
 #include "stream_macros.h"
 
-// *NOTE*: do not use the Apache snprintf.h header
-#define _SNPRINTF_H
-
 #endif

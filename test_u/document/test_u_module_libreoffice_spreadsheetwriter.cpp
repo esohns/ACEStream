@@ -19,7 +19,7 @@
  ***************************************************************************/
 #include "stdafx.h"
 
-#include "test_u_module_spreadsheetwriter.h"
+#include "test_u_module_libreoffice_spreadsheetwriter.h"
 
 #include "ace/Log_Msg.h"
 
@@ -46,18 +46,18 @@
 
 #include "stream_document_defines.h"
 
-Test_U_DocumentHandler::Test_U_DocumentHandler ()
+Test_U_LibreOffice_DocumentHandler::Test_U_LibreOffice_DocumentHandler ()
  : inherited ()
  , resolver_ ()
 {
-  STREAM_TRACE (ACE_TEXT ("Test_U_DocumentHandler::Test_U_DocumentHandler"));
+  STREAM_TRACE (ACE_TEXT ("Test_U_LibreOffice_DocumentHandler::Test_U_LibreOffice_DocumentHandler"));
 
 }
 
 void
-Test_U_DocumentHandler::initialize (uno::Reference<uno::XComponentContext>& context_in)
+Test_U_LibreOffice_DocumentHandler::initialize (uno::Reference<uno::XComponentContext>& context_in)
 {
-  STREAM_TRACE (ACE_TEXT ("Test_U_DocumentHandler::initialize"));
+  STREAM_TRACE (ACE_TEXT ("Test_U_LibreOffice_DocumentHandler::initialize"));
 
   //// sanity check(s)
   //ACE_ASSERT (context_in.is ());
@@ -75,9 +75,9 @@ Test_U_DocumentHandler::initialize (uno::Reference<uno::XComponentContext>& cont
 }
 
 void SAL_CALL
-Test_U_DocumentHandler::handle (const uno::Reference<task::XInteractionRequest>& request_in)
+Test_U_LibreOffice_DocumentHandler::handle (const uno::Reference<task::XInteractionRequest>& request_in)
 {
-  STREAM_TRACE (ACE_TEXT ("Test_U_DocumentHandler::handle"));
+  STREAM_TRACE (ACE_TEXT ("Test_U_LibreOffice_DocumentHandler::handle"));
 
   //// sanity check(s)
   //ACE_ASSERT (resolver_.is ());
@@ -107,16 +107,16 @@ Test_U_DocumentHandler::handle (const uno::Reference<task::XInteractionRequest>&
 
 //////////////////////////////////////////
 
-Test_U_SpreadsheetWriter::Test_U_SpreadsheetWriter (ISTREAM_T* stream_in)
+Test_U_LibreOffice_SpreadsheetWriter::Test_U_LibreOffice_SpreadsheetWriter (ISTREAM_T* stream_in)
  : inherited (stream_in)
  , document_ ()
  , handler_2 (NULL)
 {
-  STREAM_TRACE (ACE_TEXT ("Test_U_SpreadsheetWriter::Test_U_SpreadsheetWriter"));
+  STREAM_TRACE (ACE_TEXT ("Test_U_LibreOffice_SpreadsheetWriter::Test_U_LibreOffice_SpreadsheetWriter"));
 
 //  ACE_NEW_NORETURN (handler_,
 //                    Test_U_DocumentHandler ());
-  handler_2 = new Test_U_DocumentHandler ();
+  handler_2 = new Test_U_LibreOffice_DocumentHandler ();
   if (!handler_2)
   {
     ACE_DEBUG ((LM_CRITICAL,
@@ -134,9 +134,9 @@ Test_U_SpreadsheetWriter::Test_U_SpreadsheetWriter (ISTREAM_T* stream_in)
   inherited::releaseHandler_ = false;
 }
 
-Test_U_SpreadsheetWriter::~Test_U_SpreadsheetWriter ()
+Test_U_LibreOffice_SpreadsheetWriter::~Test_U_LibreOffice_SpreadsheetWriter ()
 {
-  STREAM_TRACE (ACE_TEXT ("Test_U_SpreadsheetWriter::~Test_U_SpreadsheetWriter"));
+  STREAM_TRACE (ACE_TEXT ("Test_U_LibreOffice_SpreadsheetWriter::~Test_U_LibreOffice_SpreadsheetWriter"));
 
   if (handler_2)
   {
@@ -146,10 +146,10 @@ Test_U_SpreadsheetWriter::~Test_U_SpreadsheetWriter ()
 }
 
 void
-Test_U_SpreadsheetWriter::handleSessionMessage (Test_U_SessionMessage*& message_inout,
-                                                bool& passMessageDownstream_out)
+Test_U_LibreOffice_SpreadsheetWriter::handleSessionMessage (Test_U_SessionMessage*& message_inout,
+                                                            bool& passMessageDownstream_out)
 {
-  STREAM_TRACE (ACE_TEXT ("Test_U_SpreadsheetWriter::handleSessionMessage"));
+  STREAM_TRACE (ACE_TEXT ("Test_U_LibreOffice_SpreadsheetWriter::handleSessionMessage"));
 
 //  int result = -1;
   oslProcessError result_2 = osl_Process_E_InvalidError;

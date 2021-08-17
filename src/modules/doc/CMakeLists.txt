@@ -1,59 +1,15 @@
-set (OPENOFFICE_DEFAULT OFF)
-option (OPENOFFICE_SUPPORT "support OpenOffice/LibreOffice" ${OPENOFFICE_DEFAULT})
-if (OPENOFFICE_SUPPORT)
-# message (STATUS "OpenOffice support set, set OO_SDK_HOME and UNO_PATH and run make_oo_headers.bat from 'scripts' to generate the necessary #include headers")
- add_definitions (-DOPENOFFICE_SUPPORT)
-endif (OPENOFFICE_SUPPORT)
+include (Office)
 
 ##########################################
 
 add_library (${PROJECT_NAME}_Document STATIC "")
 
-if (UNIX)
- if (OPENOFFICE_SUPPORT)
-  if (DEFINED ENV{OO_SDK_HOME})
-   set (OO_SDK_DIRECTORY $ENV{OO_SDK_HOME})
-  elseif (DEFINED ENV{UNO_PATH})
-    message (WARNING "OO_SDK_HOME not set, falling back to UNO_PATH (was: \"${UNO_PATH}\")")
-    set (OO_SDK_DIRECTORY $ENV{UNO_PATH}/../sdk)
-  else ()
-   set (OO_SDK_DIRECTORY /usr/lib64/libreoffice/sdk) # Fedora
-#   set (OO_SDK_DIRECTORY /usr/lib/libreoffice/sdk) # Ubuntu
-   message (WARNING "OO_SDK_HOME|UNO_PATH not set, falling back to /usr/lib64/libreoffice/sdk")
-  endif ()
-  if (NOT EXISTS ${OO_SDK_DIRECTORY})
-   message (FATAL_ERROR "OpenOffice SDK directory not found (was: \"${OO_SDK_DIRECTORY}\"), aborting")
-  endif (NOT EXISTS ${OO_SDK_DIRECTORY})
- endif (OPENOFFICE_SUPPORT)
-elseif (WIN32)
- if (OPENOFFICE_SUPPORT)
-  if (DEFINED ENV{OO_SDK_HOME})
-   set (OO_SDK_DIRECTORY $ENV{OO_SDK_HOME})
-  elseif (DEFINED ENV{UNO_HOME})
-   message (WARNING "OO_SDK_HOME not set, falling back to UNO_HOME (was: \"${UNO_HOME}\")")
-   set (OO_SDK_DIRECTORY $ENV{UNO_HOME}\..\sdk)
-  else ()
-   message (WARNING "%OO_SDK_HOME%/%UNO_HOME% not set, falling back")
-   set (OO_SDK_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/../../../../openoffice/sdk)
-  endif ()
- endif (OPENOFFICE_SUPPORT)
-endif ()
-if (OPENOFFICE_SUPPORT)
+if (LIBREOFFICE_SUPPORT)
  target_include_directories (${PROJECT_NAME}_Document PUBLIC
                              $<BUILD_INTERFACE:${OO_SDK_DIRECTORY}/include>)
-endif (OPENOFFICE_SUPPORT)
+endif (LIBREOFFICE_SUPPORT)
 
 if (UNIX)
- if (OPENOFFICE_SUPPORT)
-  add_definitions (-DSAL_UNX) # libreoffice
-  add_definitions (-DUNX)     # openoffice
-  add_definitions (-DCPPU_ENV=gcc3)
- endif (OPENOFFICE_SUPPORT)
-
-# target_include_directories (${PROJECT_NAME}_Document PUBLIC
-#                             $<BUILD_INTERFACE:$ENV{LIB_ROOT}/ACE_TAO/ACE>)
-##                             $<BUILD_INTERFACE:/usr/local/src/ACE_wrappers>)
-
  target_include_directories (${PROJECT_NAME}_Document PUBLIC
                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../Common/src>)
  target_include_directories (${PROJECT_NAME}_Document PUBLIC
@@ -61,22 +17,9 @@ if (UNIX)
  target_include_directories (${PROJECT_NAME}_Document PUBLIC
                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../Common/src/timer>)
 
- target_include_directories (${PROJECT_NAME}_Document PUBLIC
-                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../ACENetwork/src>)
+# target_include_directories (${PROJECT_NAME}_Document PUBLIC
+#                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../ACENetwork/src>)
 elseif (WIN32)
- if (OPENOFFICE_SUPPORT)
-  add_definitions (-DCPPU_ENV=msci)
-  add_definitions (-DWNT)
- endif (OPENOFFICE_SUPPORT)
-
-# if (DEFINED ENV{ACE_ROOT})
-#  target_include_directories (${PROJECT_NAME}_Document PUBLIC
-#                              $<BUILD_INTERFACE:$ENV{ACE_ROOT}>)
-# else ()
-#  target_include_directories (${PROJECT_NAME}_Document PUBLIC
-#                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../ACE_TAO/ACE>)
-# endif (DEFINED ENV{ACE_ROOT})
-
  target_include_directories (${PROJECT_NAME}_Document PUBLIC
                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../Common/src>)
  target_include_directories (${PROJECT_NAME}_Document PUBLIC
@@ -86,8 +29,8 @@ elseif (WIN32)
  target_include_directories (${PROJECT_NAME}_Document PUBLIC
                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../Common/src/timer>)
 
- target_include_directories (${PROJECT_NAME}_Document PUBLIC
-                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../ACENetwork/src>)
+# target_include_directories (${PROJECT_NAME}_Document PUBLIC
+#                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../ACENetwork/src>)
 endif ()
 target_include_directories (${PROJECT_NAME}_Document PUBLIC
                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../..>)
@@ -99,7 +42,7 @@ target_include_directories (${PROJECT_NAME}_Document PUBLIC
 ############## next target ################
 set (source_files
      stream_document_defines.h)
-if (OPENOFFICE_SUPPORT)
+if (LIBREOFFICE_SUPPORT)
  set (source_files
       ${source_files}
       stream_module_libreoffice_document_handler.cpp
@@ -107,7 +50,7 @@ if (OPENOFFICE_SUPPORT)
       stream_module_libreoffice_document_writer.cpp
       stream_module_libreoffice_document_writer.h
       stream_module_libreoffice_document_writer.inl)
-endif (OPENOFFICE_SUPPORT)
+endif (LIBREOFFICE_SUPPORT)
 
 # Include dir for installed targets
 set (INCLUDE_DIR include/${PROJECT_NAME}-${upstream_version})
@@ -127,24 +70,34 @@ target_sources (${PROJECT_NAME}_Document
                PRIVATE stdafx.h
                ${absolute_source_files})
 
-#if (CMAKE_CXX_COMPILER_ID STREQUAL "CLang")
-# add_compile_options (-std=c++0x -fPIC)
-#endif ()
-
 set_property (TARGET ${PROJECT_NAME}_Document PROPERTY FOLDER "modules")
 
 add_dependencies (${PROJECT_NAME}_Document Common)
 add_dependencies (${PROJECT_NAME}_Document ${PROJECT_NAME})
 
-if (WIN32)
- target_link_libraries (${PROJECT_NAME}_Document ${ACE_LIBRARY})
+if (UNIX)
+ if (LIBREOFFICE_SUPPORT)
+  target_link_libraries (${PROJECT_NAME}_Document ${PKG_LIBREOFFICE_LIBRARIES})
+#  target_link_libraries (${EXECUTABLE} ${OO_SDK_DIRECTORY}/lib/libuno_sal.so)
+#  target_link_libraries (${EXECUTABLE} ${OO_SDK_DIRECTORY}/../program/libgcc3_uno.so)
+#  target_link_libraries (${EXECUTABLE} ${OO_SDK_DIRECTORY}/lib/libuno_cppu.so)
 
- if (OPENOFFICE_SUPPORT)
+#  target_link_libraries (${EXECUTABLE} ${OO_SDK_DIRECTORY}/../program/libstorelo.so)
+#  target_link_libraries (${EXECUTABLE} ${OO_SDK_DIRECTORY}/../program/libreglo.so)
+
+#  target_link_libraries (${EXECUTABLE} ${OO_SDK_DIRECTORY}/../program/libxmlreaderlo.so)
+#  target_link_libraries (${EXECUTABLE} ${OO_SDK_DIRECTORY}/../program/libunoidllo.so)
+#  target_link_libraries (${EXECUTABLE} ${OO_SDK_DIRECTORY}/lib/libuno_cppuhelpergcc3.so)
+ endif (LIBREOFFICE_SUPPORT)
+elseif (WIN32)
+ if (LIBREOFFICE_SUPPORT)
   target_link_libraries (${PROJECT_NAME}_Document ${OO_SDK_DIRECTORY}/lib/isal.lib)
 
   target_link_libraries (${PROJECT_NAME}_Document ${OO_SDK_DIRECTORY}/lib/icppu.lib)
   target_link_libraries (${PROJECT_NAME}_Document ${OO_SDK_DIRECTORY}/lib/icppuhelper.lib)
- endif (OPENOFFICE_SUPPORT)
+ endif (LIBREOFFICE_SUPPORT)
+
+ target_link_libraries (${PROJECT_NAME}_Document ${ACE_LIBRARY})
 endif ()
 target_link_libraries (${PROJECT_NAME}_Document Common)
 target_link_libraries (${PROJECT_NAME}_Document ${PROJECT_NAME})
@@ -164,13 +117,16 @@ export (TARGETS ${PROJECT_NAME}_Document
 install (FILES
          stream_document_defines.h
 #         stream_document_exports.h
-if (OPENOFFICE_SUPPORT)
-         stream_module_libreoffice_document_handler.h
-         stream_module_libreoffice_document_writer.h
-         stream_module_libreoffice_document_writer.inl
-endif (OPENOFFICE_SUPPORT)
          DESTINATION "${INSTALL_INCLUDE_DIR}/${PROJECT_NAME}"
          COMPONENT mod_include)
+if (LIBREOFFICE_SUPPORT)
+ install (FILES
+          stream_module_libreoffice_document_handler.h
+          stream_module_libreoffice_document_writer.h
+          stream_module_libreoffice_document_writer.inl
+          DESTINATION "${INSTALL_INCLUDE_DIR}/${PROJECT_NAME}"
+          COMPONENT mod_include)
+endif (LIBREOFFICE_SUPPORT)
 install (TARGETS ${PROJECT_NAME}_Document
          EXPORT ${PROJECT_NAME}Targets
          ARCHIVE DESTINATION "${INSTALL_LIB_DIR}" COMPONENT mod_lib

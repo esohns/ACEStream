@@ -71,7 +71,7 @@ class Test_U_Stream
 
  public:
   Test_U_Stream ();
-  virtual ~Test_U_Stream ();
+  inline virtual ~Test_U_Stream () { inherited::shutdown (); }
 
   // implement (part of) Stream_IStreamControlBase
   virtual bool load (Stream_ILayout*, // layout handle

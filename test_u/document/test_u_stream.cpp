@@ -29,21 +29,15 @@
 #include "stream_stat_defines.h"
 
 #include "test_u_common_modules.h"
-#include "test_u_module_spreadsheetwriter.h"
+#if defined (LIBREOFFICE_SUPPORT)
+#include "test_u_module_libreoffice_spreadsheetwriter.h"
+#endif // LIBREOFFICE_SUPPORT
 
 Test_U_Stream::Test_U_Stream ()
  : inherited ()
 {
   STREAM_TRACE (ACE_TEXT ("Test_u_Stream::Test_u_Stream"));
 
-}
-
-Test_U_Stream::~Test_U_Stream ()
-{
-  STREAM_TRACE (ACE_TEXT ("Test_u_Stream::~Test_u_Stream"));
-
-  // *NOTE*: this implements an ordered shutdown on destruction
-  inherited::shutdown ();
 }
 
 bool
@@ -60,13 +54,15 @@ Test_U_Stream::load (Stream_ILayout* layout_inout,
   ACE_ASSERT (module_p);
   layout_inout->append (module_p, NULL, 0);
   module_p = NULL;
+#if defined (LIBREOFFICE_SUPPORT)
   ACE_NEW_RETURN (module_p,
-                  Test_U_SpreadsheetWriter_Module (this,
-                                                   ACE_TEXT_ALWAYS_CHAR (MODULE_DOCUMENT_LIBREOFFICE_WRITER_DEFAULT_NAME_STRING)),
+                  Test_U_LibreOffice_SpreadsheetWriter_Module (this,
+                                                               ACE_TEXT_ALWAYS_CHAR (MODULE_DOCUMENT_LIBREOFFICE_WRITER_DEFAULT_NAME_STRING)),
                   false);
   ACE_ASSERT (module_p);
   layout_inout->append (module_p, NULL, 0);
   module_p = NULL;
+#endif // LIBREOFFICE_SUPPORT
 
   delete_out = true;
 

@@ -18,8 +18,8 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#ifndef TEST_U_MODULE_SPREADSHEETWRITER_H
-#define TEST_U_MODULE_SPREADSHEETWRITER_H
+#ifndef TEST_U_MODULE_LIBREOFFICE_SPREADSHEETWRITER_H
+#define TEST_U_MODULE_LIBREOFFICE_SPREADSHEETWRITER_H
 
 #include "ace/Global_Macros.h"
 #include "ace/Synch_Traits.h"
@@ -44,14 +44,14 @@
 
 using namespace ::com::sun::star;
 
-class Test_U_DocumentHandler
+class Test_U_LibreOffice_DocumentHandler
  : public Stream_Module_LibreOffice_Document_Handler
 {
   typedef Stream_Module_LibreOffice_Document_Handler inherited;
   
  public:
-  Test_U_DocumentHandler ();
-  inline virtual ~Test_U_DocumentHandler () {}
+  Test_U_LibreOffice_DocumentHandler ();
+  inline virtual ~Test_U_LibreOffice_DocumentHandler () {}
 
   void initialize (uno::Reference<uno::XComponentContext>&);
 
@@ -59,15 +59,15 @@ class Test_U_DocumentHandler
   virtual void SAL_CALL handle (const uno::Reference<task::XInteractionRequest>&) /* throw (uno::RuntimeException, ::std::exception) */;
 
  private:
-  ACE_UNIMPLEMENTED_FUNC (Test_U_DocumentHandler (const Test_U_DocumentHandler&))
-  ACE_UNIMPLEMENTED_FUNC (Test_U_DocumentHandler& operator= (const Test_U_DocumentHandler&))
+  ACE_UNIMPLEMENTED_FUNC (Test_U_LibreOffice_DocumentHandler (const Test_U_LibreOffice_DocumentHandler&))
+  ACE_UNIMPLEMENTED_FUNC (Test_U_LibreOffice_DocumentHandler& operator= (const Test_U_LibreOffice_DocumentHandler&))
 
   uno::Reference<task::XInteractionRequestStringResolver> resolver_;
 };
 
 //////////////////////////////////////////
 
-class Test_U_SpreadsheetWriter
+class Test_U_LibreOffice_SpreadsheetWriter
  : public Stream_Module_LibreOffice_Document_Writer_T<ACE_MT_SYNCH,
                                                       Common_TimePolicy_t,
                                                       struct Test_U_ModuleHandlerConfiguration,
@@ -87,20 +87,20 @@ class Test_U_SpreadsheetWriter
                                                       sheet::XSpreadsheetDocument> inherited;
 
  public:
-  Test_U_SpreadsheetWriter (ISTREAM_T*); // stream handle
-  virtual ~Test_U_SpreadsheetWriter ();
+  Test_U_LibreOffice_SpreadsheetWriter (ISTREAM_T*); // stream handle
+  virtual ~Test_U_LibreOffice_SpreadsheetWriter ();
 
   // implement (part of) Stream_ITaskBase
   virtual void handleSessionMessage (Test_U_SessionMessage*&, // session message handle
                                      bool&);                  // return value: pass message downstream ?
 
  private:
-  ACE_UNIMPLEMENTED_FUNC (Test_U_SpreadsheetWriter ())
-  ACE_UNIMPLEMENTED_FUNC (Test_U_SpreadsheetWriter (const Test_U_SpreadsheetWriter&))
-  ACE_UNIMPLEMENTED_FUNC (Test_U_SpreadsheetWriter& operator= (const Test_U_SpreadsheetWriter&))
+  ACE_UNIMPLEMENTED_FUNC (Test_U_LibreOffice_SpreadsheetWriter ())
+  ACE_UNIMPLEMENTED_FUNC (Test_U_LibreOffice_SpreadsheetWriter (const Test_U_LibreOffice_SpreadsheetWriter&))
+  ACE_UNIMPLEMENTED_FUNC (Test_U_LibreOffice_SpreadsheetWriter& operator= (const Test_U_LibreOffice_SpreadsheetWriter&))
 
   uno::Reference<sheet::XSpreadsheetDocument> document_;
-  Test_U_DocumentHandler*                     handler_2;
+  Test_U_LibreOffice_DocumentHandler*         handler_2;
 };
 
 // declare module
@@ -109,6 +109,6 @@ DATASTREAM_MODULE_INPUT_ONLY (struct Test_U_SessionData,                 // sess
                               struct Test_U_ModuleHandlerConfiguration,  // module handler configuration type
                               libacestream_default_doc_libreoffice_writer_module_name_string,
                               Stream_INotify_t,                          // stream notification interface type
-                              Test_U_SpreadsheetWriter);                 // writer type
+                              Test_U_LibreOffice_SpreadsheetWriter);     // writer type
 
 #endif
