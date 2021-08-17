@@ -15,11 +15,12 @@ if (OPENCV_SUPPORT)
  add_definitions (-DOPENCV_SUPPORT)
 endif (OPENCV_SUPPORT)
 
-include (${CMAKE_CURRENT_SOURCE_DIR}/../../../../Common/src/ui/scripts/PreUIFramework.cmake)
-include (${CMAKE_CURRENT_SOURCE_DIR}/../../../../Common/src/ui/scripts/SetUIFramework.cmake)
-if (GTK_SUPPORT)
- include (${CMAKE_CURRENT_SOURCE_DIR}/../../../../Common/src/ui/scripts/SetGTKVersion.cmake)
-endif (GTK_SUPPORT)
+set (CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_CURRENT_SOURCE_DIR}/../../../../Common/src/ui/scripts")
+include (PreUIFramework)
+include (SetUIFramework)
+if (GTK_USE)
+ include (SetGTKVersion)
+endif (GTK_USE)
 
 if (UNIX)
 # pkg_check_modules (PKG_SOX REQUIRED sox)
@@ -41,7 +42,16 @@ if (UNIX)
  endif (OPENGL_SUPPORT)
 
 # pkg_check_modules (PKG_WAYLAND REQUIRED wayland-client) # Fedora
- pkg_check_modules (PKG_WAYLAND REQUIRED libwayland-dev) # Ubuntu
+# *NOTE*: (on Ubuntu,) libwayland does not come with pkg-config support
+# pkg_check_modules (PKG_WAYLAND REQUIRED libwayland-dev) # Ubuntu
+ set (WAYLAND_LIB_FILE libwayland-client.so)
+ find_library (WAYLAND_LIBRARY ${WAYLAND_LIB_FILE}
+               DOC "searching for \"${WAYLAND_LIB_FILE}\"")
+ if (NOT WAYLAND_LIBRARY)
+  message (FATAL_ERROR "could not find libglut (was: \"${WAYLAND_LIB_FILE}\"), aborting")
+ endif (NOT WAYLAND_LIBRARY)
+ set (PKG_WAYLAND_INCLUDE_DIRS "/usr/include")
+ set (PKG_WAYLAND_LIBRARIES ${WAYLAND_LIBRARY})
 endif (UNIX)
 if (IMAGEMAGICK_SUPPORT)
  find_package (ImageMagick COMPONENTS MagickCore MagickWand)
