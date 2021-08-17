@@ -1,6 +1,6 @@
-﻿include (${CMAKE_CURRENT_SOURCE_DIR}/../../Common/scripts/Threads.cmake)
+﻿include (Threads)
 
-include (${CMAKE_CURRENT_SOURCE_DIR}/../../Common/scripts/ACE.cmake)
+include (ACE)
 
 get_filename_component (BUILD_PATH ${CMAKE_CURRENT_BINARY_DIR}/.. REALPATH DIRECTORY)
 get_filename_component (BUILD_PATH_SUFFIX ${BUILD_PATH} NAME)
@@ -23,46 +23,52 @@ add_definitions (-DHAVE_CONFIG_H)
 add_library (${PROJECT_NAME} STATIC "")
 
 if (UNIX)
- target_include_directories (${PROJECT_NAME} PUBLIC
-                             $<BUILD_INTERFACE:${PKG_FFMPEG_INCLUDE_DIRS}>)
+# target_include_directories (${PROJECT_NAME} PUBLIC
+#                             $<BUILD_INTERFACE:${PKG_FFMPEG_INCLUDE_DIRS}>)
 
- target_include_directories (${PROJECT_NAME} PUBLIC
-                             $<BUILD_INTERFACE:$ENV{LIB_ROOT}/ACE_TAO/ACE>)
+ #target_include_directories (${PROJECT_NAME} PUBLIC
+ #                            $<BUILD_INTERFACE:$ENV{LIB_ROOT}/ACE_TAO/ACE>)
 
- target_include_directories (${PROJECT_NAME} PUBLIC
-                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../Common/cmake>)
+# target_include_directories (${PROJECT_NAME} PUBLIC
+#                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../Common/${BUILD_PATH_SUFFIX}>)
  target_include_directories (${PROJECT_NAME} PUBLIC
                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../Common/src>)
  target_include_directories (${PROJECT_NAME} PUBLIC
                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../Common/src/parser>)
  target_include_directories (${PROJECT_NAME} PUBLIC
+                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../Common/src/signal>)
+ target_include_directories (${PROJECT_NAME} PUBLIC
                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../Common/src/task>)
  target_include_directories (${PROJECT_NAME} PUBLIC
                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../Common/src/timer>)
 elseif (WIN32)
- if (DEFINED ENV{ACE_ROOT})
-  target_include_directories (${PROJECT_NAME} PUBLIC
-                              $<BUILD_INTERFACE:$ENV{ACE_ROOT}>)
- else ()
-  target_include_directories (${PROJECT_NAME} PUBLIC
-                              $<BUILD_INTERFACE:$ENV{LIB_ROOT}/ACE_TAO/ACE>)
- endif (DEFINED ENV{ACE_ROOT})
+# if (DEFINED ENV{ACE_ROOT})
+#  target_include_directories (${PROJECT_NAME} PUBLIC
+#                              $<BUILD_INTERFACE:$ENV{ACE_ROOT}>)
+# else ()
+#  target_include_directories (${PROJECT_NAME} PUBLIC
+#                              $<BUILD_INTERFACE:$ENV{LIB_ROOT}/ACE_TAO/ACE>)
+# endif (DEFINED ENV{ACE_ROOT})
 
- target_include_directories (${PROJECT_NAME} PUBLIC
-                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../Common/cmake>)
+# target_include_directories (${PROJECT_NAME} PUBLIC
+#                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../Common/${BUILD_PATH_SUFFIX}>)
  target_include_directories (${PROJECT_NAME} PUBLIC
                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../Common/src>)
  target_include_directories (${PROJECT_NAME} PUBLIC
                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../Common/src/error>)
+ target_include_directories (${PROJECT_NAME} PUBLIC
+                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../Common/src/signal>)
  target_include_directories (${PROJECT_NAME} PUBLIC
                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../Common/src/task>)
  target_include_directories (${PROJECT_NAME} PUBLIC
                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../Common/src/timer>)
 endif ()
 target_include_directories (${PROJECT_NAME} PUBLIC
-                            $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../3rd_party/tree>)
-target_include_directories (${PROJECT_NAME} PUBLIC
                             $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/..>)
+target_include_directories (${PROJECT_NAME} PUBLIC
+                            $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../include>)
+target_include_directories (${PROJECT_NAME} PUBLIC
+                            $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../3rd_party/tree>)
 target_include_directories (${PROJECT_NAME} PUBLIC
                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>)
 target_include_directories (${PROJECT_NAME} PUBLIC

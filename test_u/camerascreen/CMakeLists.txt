@@ -43,7 +43,7 @@ if (UNIX)
  pkg_check_modules (PKG_CAP REQUIRED libcap)
  pkg_check_modules (PKG_V4L2 REQUIRED libv4l2)
  pkg_check_modules (PKG_FFMPEG REQUIRED libswscale libavutil libavformat libavcodec)
- pkg_check_modules (PKG_WAYLAND REQUIRED wayland-client)
+# pkg_check_modules (PKG_WAYLAND REQUIRED wayland-client)
 endif (UNIX)
 # *TODO*: repair WIN32 pkgconfig support
 

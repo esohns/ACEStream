@@ -50,12 +50,12 @@
 
 #include "common_timer_tools.h"
 
-#include "stream_allocatorheap.h"
-#include "stream_macros.h"
-
 #if defined (HAVE_CONFIG_H)
 #include "ACEStream_config.h"
 #endif // HAVE_CONFIG_H
+
+#include "stream_allocatorheap.h"
+#include "stream_macros.h"
 
 #include "stream_dec_common.h"
 

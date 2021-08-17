@@ -1,10 +1,6 @@
-include (${CMAKE_CURRENT_SOURCE_DIR}/../../Common/scripts/Threads.cmake)
+include (Threads)
 
-include (${CMAKE_CURRENT_SOURCE_DIR}/../../Common/scripts/ACE.cmake)
-
-#if (UNIX)
-# add_compile_options (-std=c++17) # *NOTE*: required by libcamera
-#endif (UNIX)
+include (ACE)
 
 option (BUILD_TEST_I "build test_i" OFF)
 
@@ -12,13 +8,17 @@ option (BUILD_TEST_I "build test_i" OFF)
 option (GUI_SUPPORT "enable graphical user interface support" ON)
 if (GUI_SUPPORT)
  add_definitions (-DGUI_SUPPORT)
- include (${CMAKE_CURRENT_SOURCE_DIR}/../../Common/src/ui/scripts/Macros.cmake)
- include (${CMAKE_CURRENT_SOURCE_DIR}/../../Common/src/ui/scripts/PreUIFramework.cmake)
- include (${CMAKE_CURRENT_SOURCE_DIR}/../../Common/src/ui/scripts/SetUIFramework.cmake)
+ set (CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_CURRENT_SOURCE_DIR}/../../Common/src/ui/scripts")
+ include (PreUIFramework)
+ include (SetUIFramework)
 
  if (CURSES_USE)
  elseif (GTK_USE)
-  include (${CMAKE_CURRENT_SOURCE_DIR}/../../Common/src/ui/scripts/SetGTKVersion.cmake)
+  include (SetGTKVersion)
+
+  if (CMAKE_BUILD_TYPE STREQUAL Debug)
+   add_definitions (-DG_ERRORCHECK_MUTEXES)
+  endif (CMAKE_BUILD_TYPE STREQUAL Debug)
  elseif (WXWIDGETS_USE)
   message (STATUS "wxWidgets_DEFINITIONS: ${wxWidgets_DEFINITIONS}")
   message (STATUS "wxWidgets_DEFINITIONS_DEBUG: ${wxWidgets_DEFINITIONS_DEBUG}")
@@ -47,6 +47,7 @@ add_library (${PROJECT_NAME}_Test_I STATIC "")
 
 get_filename_component (BUILD_PATH ${CMAKE_CURRENT_BINARY_DIR}/.. REALPATH DIRECTORY)
 get_filename_component (BUILD_PATH_SUFFIX ${BUILD_PATH} NAME)
+message (STATUS "BUILD_PATH_SUFFIX:${BUILD_PATH_SUFFIX}")
 find_package (Common ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_MICRO}
               REQUIRED
               CONFIG
@@ -95,21 +96,27 @@ if (UNIX)
  endif (GUI_SUPPORT)
 
  target_include_directories (${PROJECT_NAME}_Test_I PUBLIC
-                             $<BUILD_INTERFACE:/usr/local/src/ACE_wrappers>)
-
+                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../modules/Common/${BUILD_PATH_SUFFIX}>)
  target_include_directories (${PROJECT_NAME}_Test_I PUBLIC
-                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../Common/src>)
+                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../modules/Common/src>)
  target_include_directories (${PROJECT_NAME}_Test_I PUBLIC
-                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../Common/src/parser>)
+                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../modules/Common/src/log>)
+ target_include_directories (${PROJECT_NAME}_Test_I PUBLIC
+                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../modules/Common/src/parser>)
+ target_include_directories (${PROJECT_NAME}_Test_I PUBLIC
+                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../modules/Common/src/signal>)
  if (GUI_SUPPORT)
   target_include_directories (${PROJECT_NAME}_Test_I PUBLIC
-                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../Common/src/ui>)
+                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../modules/Common/src/ui>)
   if (GTK_USE)
    target_include_directories (${PROJECT_NAME}_Test_I PUBLIC
-                               $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../Common/src/ui/gtk>)
+                               $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../modules/Common/src/ui/gtk>)
+  elseif (QT_USE)
+   target_include_directories (${PROJECT_NAME}_Test_I PUBLIC
+                               $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../modules/Common/src/ui/qt>)
   elseif (WXWIDGETS_USE)
    target_include_directories (${PROJECT_NAME}_Test_I PUBLIC
-                               $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../Common/src/ui/wxwidgets>)
+                               $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../modules/Common/src/ui/wxwidgets>)
   endif ()
  endif (GUI_SUPPORT)
 elseif (WIN32)
@@ -121,36 +128,34 @@ elseif (WIN32)
    target_include_directories (${PROJECT_NAME}_Test_I PUBLIC
                                $<BUILD_INTERFACE:${GTK_INCLUDE_DIRS}>)
 
-   if (GTKGLAREA_SUPPORT)
+   if (OPENGL_SUPPORT AND GTKGLAREA_SUPPORT)
 # *NOTE*: check out the 'master' branch for gtk3-based applications
 # *NOTE*: check out the 'gtkglarea-2' branch for gtk2-based applications
 # *TODO*: verify automatically
     target_include_directories (${PROJECT_NAME}_Test_I PUBLIC
                                 $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../gtkglarea>)
-   endif (GTKGLAREA_SUPPORT)
+   endif (OPENGL_SUPPORT AND GTKGLAREA_SUPPORT)
 
-# libglade
-# include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../libglade-2.6.4/include/libglade-2.0)
+   if (LIBGLADE_SUPPORT)
+    target_include_directories (${PROJECT_NAME}_Test_I PUBLIC
+                                $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../libglade-2.6.4/include/libglade-2.0>)
+   endif (LIBGLADE_SUPPORT)
   elseif (WXWIDGETS_USE)
    target_include_directories (${PROJECT_NAME}_Test_I PUBLIC
                                $<BUILD_INTERFACE:${wxWidgets_INCLUDE_DIRS}>)
   endif ()
  endif (GUI_SUPPORT)
 
- if (DEFINED ENV{ACE_ROOT})
-  target_include_directories (${PROJECT_NAME}_Test_I PUBLIC
-                              $<BUILD_INTERFACE:$ENV{ACE_ROOT}>)
- else ()
-  target_include_directories (${PROJECT_NAME}_Test_I PUBLIC
-                              $<BUILD_INTERFACE:$ENV{LIB_ROOT}/ACE_TAO/ACE>)
- endif (DEFINED ENV{ACE_ROOT})
-
+ target_include_directories (${PROJECT_NAME}_Test_I PUBLIC
+                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../Common/${BUILD_PATH_SUFFIX}>)
  target_include_directories (${PROJECT_NAME}_Test_I PUBLIC
                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../Common/src>)
  target_include_directories (${PROJECT_NAME}_Test_I PUBLIC
                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../Common/src/log>)
  target_include_directories (${PROJECT_NAME}_Test_I PUBLIC
                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../Common/src/parser>)
+ target_include_directories (${PROJECT_NAME}_Test_I PUBLIC
+                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../Common/src/signal>)
  target_include_directories (${PROJECT_NAME}_Test_I PUBLIC
                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../Common/src/timer>)
  if (GUI_SUPPORT)
@@ -168,30 +173,32 @@ elseif (WIN32)
   endif ()
  endif (GUI_SUPPORT)
 endif ()
+
 target_include_directories (${PROJECT_NAME}_Test_I PUBLIC
                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../3rd_party/tree>)
 target_include_directories (${PROJECT_NAME}_Test_I PUBLIC
+                            $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/..>)
+target_include_directories (${PROJECT_NAME}_Test_I PUBLIC
+                            $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../include>)
+target_include_directories (${PROJECT_NAME}_Test_I PUBLIC
                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../src>)
-if (UNIX)
- target_include_directories (${PROJECT_NAME}_Test_I PUBLIC
-                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../src/modules/dev>)
-endif (UNIX)
+#if (UNIX)
+# target_include_directories (${PROJECT_NAME}_Test_I PUBLIC
+#                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../src/modules/dev>)
+#endif (UNIX)
 target_include_directories (${PROJECT_NAME}_Test_I PUBLIC
                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../src/modules/lib>)
-target_include_directories (${PROJECT_NAME}_Test_I PUBLIC
-                            $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/..>)
 
 if (UNIX)
  if (GUI_SUPPORT)
+  target_link_libraries (${PROJECT_NAME}_Test_I X11)
   if (GTK_USE)
    target_link_libraries (${PROJECT_NAME}_Test_I ${GTK_LIBRARIES})
 
    if (GTKGL_SUPPORT)
     if (GTKGLAREA_SUPPORT)
-     target_link_libraries (${PROJECT_NAME}_Test_I X11)
      target_link_libraries (${PROJECT_NAME}_Test_I GL)
      target_link_libraries (${PROJECT_NAME}_Test_I $ENV{LIB_ROOT}/gtkglarea/gtkgl/.libs/libgtkgl-2.0.a)
-     target_link_libraries (${PROJECT_NAME}_Test_I GL)
     endif (GTKGLAREA_SUPPORT)
 
 #    target_link_libraries (${PROJECT_NAME}_Test_I CommonOpenGL)

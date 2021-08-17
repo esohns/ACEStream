@@ -10,7 +10,7 @@ runs:
   - run: |
          sudo apt-get update
          sudo apt-get install -y libaio-dev libcap-dev libdbus-1-dev libsystemd-dev libmagick++-dev libmagickwand-6.q16-dev libglu1-mesa-dev libglm-dev libassimp-dev libavcodec-dev libavformat-dev libswscale-dev libavutil-dev libgtk2.0-dev libcups2-dev
-         sudo apt-get install -y libmysqlclient-dev libsox-dev libmpg123-dev libasound2-dev libv4l-dev libreoffice-dev freeglut3-dev
+         sudo apt-get install -y libmysqlclient-dev libsox-dev libmpg123-dev libasound2-dev libv4l-dev libreoffice-dev freeglut3-dev libwayland-dev
     shell: bash
 #    if: inputs.os == 'ubuntu-latest'
 #  - run:

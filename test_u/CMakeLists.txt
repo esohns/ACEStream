@@ -1,10 +1,6 @@
-﻿include (${CMAKE_CURRENT_SOURCE_DIR}/../../Common/scripts/Threads.cmake)
+﻿include (Threads)
 
-include (${CMAKE_CURRENT_SOURCE_DIR}/../../Common/scripts/ACE.cmake)
-
-#if (UNIX)
-# add_compile_options (-std=c++17) # *NOTE*: required by libcamera
-#endif (UNIX)
+include (ACE)
 
 option (BUILD_TEST_U "build test_u" OFF)
 
@@ -12,12 +8,13 @@ option (BUILD_TEST_U "build test_u" OFF)
 option (GUI_SUPPORT "enable graphical user interface support" ON)
 if (GUI_SUPPORT)
  add_definitions (-DGUI_SUPPORT)
- include (${CMAKE_CURRENT_SOURCE_DIR}/../../Common/src/ui/scripts/PreUIFramework.cmake)
- include (${CMAKE_CURRENT_SOURCE_DIR}/../../Common/src/ui/scripts/SetUIFramework.cmake)
+ set (CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_CURRENT_SOURCE_DIR}/../../Common/src/ui/scripts")
+ include (PreUIFramework)
+ include (SetUIFramework)
 
  if (CURSES_USE)
  elseif (GTK_USE)
-  include (${CMAKE_CURRENT_SOURCE_DIR}/../../Common/src/ui/scripts/SetGTKVersion.cmake)
+  include (SetGTKVersion)
 
   if (CMAKE_BUILD_TYPE STREQUAL Debug)
    add_definitions (-DG_ERRORCHECK_MUTEXES)
@@ -48,7 +45,7 @@ endif (GUI_SUPPORT)
 
 add_library (${PROJECT_NAME}_Test_U STATIC "")
 
-get_filename_component (BUILD_PATH ${CMAKE_CURRENT_BINARY_DIR}/../.. REALPATH DIRECTORY)
+get_filename_component (BUILD_PATH ${CMAKE_CURRENT_BINARY_DIR}/.. REALPATH DIRECTORY)
 get_filename_component (BUILD_PATH_SUFFIX ${BUILD_PATH} NAME)
 find_package (Common ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_MICRO}
               REQUIRED
@@ -71,10 +68,6 @@ if (GUI_SUPPORT)
 endif (GUI_SUPPORT)
 
 if (UNIX)
- pkg_check_modules (PKG_FFMPEG REQUIRED libavutil)
- target_include_directories (${PROJECT_NAME}_Test_U PUBLIC
-                             $<BUILD_INTERFACE:${PKG_FFMPEG_INCLUDE_DIRS}>)
-
  if (GUI_SUPPORT)
   if (CURSES_USE)
    target_include_directories (${PROJECT_NAME}_Test_U PUBLIC
@@ -102,31 +95,35 @@ if (UNIX)
  endif (GUI_SUPPORT)
 
  target_include_directories (${PROJECT_NAME}_Test_U PUBLIC
-                             $<BUILD_INTERFACE:$ENV{LIB_ROOT}/ACE_TAO/ACE>)
-
+                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../modules/Common/${BUILD_PATH_SUFFIX}>)
  target_include_directories (${PROJECT_NAME}_Test_U PUBLIC
-                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../Common/src>)
+                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../modules/Common/src>)
  target_include_directories (${PROJECT_NAME}_Test_U PUBLIC
-                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../Common/src/log>)
+                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../modules/Common/src/log>)
  target_include_directories (${PROJECT_NAME}_Test_U PUBLIC
-                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../Common/src/parser>)
+                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../modules/Common/src/parser>)
+ target_include_directories (${PROJECT_NAME}_Test_U PUBLIC
+                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../modules/Common/src/signal>)
  if (GUI_SUPPORT)
   target_include_directories (${PROJECT_NAME}_Test_U PUBLIC
-                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../Common/src/ui>)
+                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../modules/Common/src/ui>)
   if (GTK_USE)
    target_include_directories (${PROJECT_NAME}_Test_U PUBLIC
-                               $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../Common/src/ui/gtk>)
+                               $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../modules/Common/src/ui/gtk>)
   elseif (QT_USE)
    target_include_directories (${PROJECT_NAME}_Test_U PUBLIC
-                               $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../Common/src/ui/qt>)
+                               $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../modules/Common/src/ui/qt>)
   elseif (WXWIDGETS_USE)
    target_include_directories (${PROJECT_NAME}_Test_U PUBLIC
-                               $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../Common/src/ui/wxwidgets>)
+                               $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../modules/Common/src/ui/wxwidgets>)
   endif ()
  endif (GUI_SUPPORT)
 elseif (WIN32)
  if (GUI_SUPPORT)
-  if (GTK_USE)
+  if (CURSES_USE)
+   target_include_directories (${PROJECT_NAME}_Test_U PUBLIC
+                               $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../pdcurses>)
+  elseif (GTK_USE)
    target_include_directories (${PROJECT_NAME}_Test_U PUBLIC
                                $<BUILD_INTERFACE:${GTK_INCLUDE_DIRS}>)
 
@@ -148,20 +145,16 @@ elseif (WIN32)
   endif ()
  endif (GUI_SUPPORT)
 
- if (DEFINED ENV{ACE_ROOT})
-  target_include_directories (${PROJECT_NAME}_Test_U PUBLIC
-                              $<BUILD_INTERFACE:$ENV{ACE_ROOT}>)
- else ()
-  target_include_directories (${PROJECT_NAME}_Test_U PUBLIC
-                              $<BUILD_INTERFACE:$ENV{LIB_ROOT}/ACE_TAO/ACE>)
- endif (DEFINED ENV{ACE_ROOT})
-
+ target_include_directories (${PROJECT_NAME}_Test_U PUBLIC
+                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../Common/${BUILD_PATH_SUFFIX}>)
  target_include_directories (${PROJECT_NAME}_Test_U PUBLIC
                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../Common/src>)
  target_include_directories (${PROJECT_NAME}_Test_U PUBLIC
                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../Common/src/log>)
  target_include_directories (${PROJECT_NAME}_Test_U PUBLIC
                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../Common/src/parser>)
+ target_include_directories (${PROJECT_NAME}_Test_U PUBLIC
+                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../Common/src/signal>)
  target_include_directories (${PROJECT_NAME}_Test_U PUBLIC
                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../Common/src/timer>)
  if (GUI_SUPPORT)
@@ -178,25 +171,29 @@ elseif (WIN32)
 endif ()
 
 target_include_directories (${PROJECT_NAME}_Test_U PUBLIC
+                            $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../3rd_party/tree>)
+target_include_directories (${PROJECT_NAME}_Test_U PUBLIC
                             $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/..>)
 target_include_directories (${PROJECT_NAME}_Test_U PUBLIC
+                            $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../include>)
+target_include_directories (${PROJECT_NAME}_Test_U PUBLIC
                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../src>)
-if (UNIX)
- target_include_directories (${PROJECT_NAME}_Test_U PUBLIC
-                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../src/modules/dev>)
-endif (UNIX)
+#if (UNIX)
+# target_include_directories (${PROJECT_NAME}_Test_U PUBLIC
+#                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../src/modules/dev>)
+#endif (UNIX)
 target_include_directories (${PROJECT_NAME}_Test_U PUBLIC
                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../src/modules/lib>)
 
 if (UNIX)
  if (GUI_SUPPORT)
+  target_link_libraries (${PROJECT_NAME}_Test_U X11)
   if (GTK_USE)
    target_link_libraries (${PROJECT_NAME}_Test_U ${GTK_LIBRARIES})
+
    if (GTKGLAREA_SUPPORT)
-    target_link_libraries (${PROJECT_NAME}_Test_U X11)
     target_link_libraries (${PROJECT_NAME}_Test_U GL)
     target_link_libraries (${PROJECT_NAME}_Test_U $ENV{LIB_ROOT}/gtkglarea/gtkgl/.libs/libgtkgl-2.0.a)
-    target_link_libraries (${PROJECT_NAME}_Test_U GL)
    endif (GTKGLAREA_SUPPORT)
 
    if (GTKGL_SUPPORT)
@@ -222,7 +219,7 @@ elseif (WIN32)
 
     if (GTKGLAREA_SUPPORT)
      target_link_libraries (${PROJECT_NAME}_Test_U $ENV{LIB_ROOT}/libepoxy/lib/epoxy.lib)
-     target_link_libraries (${PROJECT_NAME}_Test_U $ENV{LIB_ROOT}/gtkglarea/cmake/${CMAKE_BUILD_TYPE}/gtkglarea.lib)
+     target_link_libraries (${PROJECT_NAME}_Test_U $ENV{LIB_ROOT}/gtkglarea/${BUILD_PATH_SUFFIX}/${CMAKE_BUILD_TYPE}/gtkglarea.lib)
     endif (GTKGLAREA_SUPPORT)
 #    if (GTK2_USE)
 #     target_link_libraries (${PROJECT_NAME}_Test_U "C:/Documents and Settings/Erik/My Documents/Visual Studio 2010/Projects/gtkglarea/gtk2/${CMAKE_BUILD_TYPE}/gtkglarea.lib")

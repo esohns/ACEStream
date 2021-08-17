@@ -1,14 +1,15 @@
-﻿include (${CMAKE_CURRENT_SOURCE_DIR}/../Common/scripts/PreToolChain.cmake)
-include (${CMAKE_CURRENT_SOURCE_DIR}/../Common/scripts/SetToolChain.cmake)
-include (${CMAKE_CURRENT_SOURCE_DIR}/../Common/scripts/ToolChain.cmake)
+﻿include (${CMAKE_CURRENT_SOURCE_DIR}/scripts/VersionConfig.cmake)
+
+set (CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_CURRENT_SOURCE_DIR}/../Common/scripts;${CMAKE_CURRENT_SOURCE_DIR}/scripts")
+include (Configuration)
+include (Macros)
+
+include (PreToolChain)
+include (SetToolChain)
+include (ToolChain)
 # *NOTE*: or use the cmake.exe '-T' option instead
-include (${CMAKE_CURRENT_SOURCE_DIR}/../Common/scripts/SetTargetPlatform.cmake)
-include (${CMAKE_CURRENT_SOURCE_DIR}/../Common/scripts/TargetPlatform.cmake)
-
-include (${CMAKE_CURRENT_SOURCE_DIR}/../Common/scripts/Configuration.cmake)
-include (${CMAKE_CURRENT_SOURCE_DIR}/../Common/scripts/Macros.cmake)
-
-include (${CMAKE_CURRENT_SOURCE_DIR}/scripts/VersionConfig.cmake)
+include (SetTargetPlatform)
+include (TargetPlatform)
 
 cmake_minimum_required (VERSION 2.8)
 

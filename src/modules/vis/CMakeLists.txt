@@ -22,7 +22,7 @@ if (GTK_SUPPORT)
 endif (GTK_SUPPORT)
 
 if (UNIX)
- pkg_check_modules (PKG_SOX REQUIRED sox)
+# pkg_check_modules (PKG_SOX REQUIRED sox)
  if (FFMPEG_SUPPORT)
   pkg_check_modules (PKG_FFMPEG REQUIRED libswscale libavcodec libavutil)
  endif (FFMPEG_SUPPORT)
@@ -40,14 +40,14 @@ if (UNIX)
   set (PKG_OPENGL_GLUT_LIBRARIES ${GLUT_LIBRARY})
  endif (OPENGL_SUPPORT)
 
-# add_compile_options (-std=c++17)
+# pkg_check_modules (PKG_WAYLAND REQUIRED wayland-client) # Fedora
+ pkg_check_modules (PKG_WAYLAND REQUIRED libwayland-dev) # Ubuntu
 endif (UNIX)
 if (IMAGEMAGICK_SUPPORT)
  find_package (ImageMagick COMPONENTS MagickCore MagickWand)
 endif (IMAGEMAGICK_SUPPORT)
 
 if (UNIX)
-# add_definitions (-D_GLIBCXX_INCLUDE_NEXT_C_HEADERS)
 elseif (WIN32)
  add_definitions (-D__STDC_CONSTANT_MACROS)
 
@@ -60,7 +60,7 @@ endif ()
 add_library (${PROJECT_NAME}_Visualization STATIC "")
 
 if (GTK_SUPPORT)
- message (STATUS "VIS:: GTK_INCLUDE_DIRS: ${GTK_INCLUDE_DIRS}")
+# message (STATUS "VIS:: GTK_INCLUDE_DIRS: ${GTK_INCLUDE_DIRS}")
  target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
                              "$<BUILD_INTERFACE:${GTK_INCLUDE_DIRS}>")
  if (GTKGL_SUPPORT)
@@ -75,14 +75,23 @@ if (GTK_SUPPORT)
 endif (GTK_SUPPORT)
 
 if (UNIX)
+# target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
+#                             $<BUILD_INTERFACE:${PKG_SOX_INCLUDE_DIRS}>)
+ if (FFMPEG_SUPPORT)
+  target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
+                              $<BUILD_INTERFACE:${PKG_FFMPEG_INCLUDE_DIRS}>)
+ endif (FFMPEG_SUPPORT)
+ if (OPENGL_SUPPORT)
+  target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
+                              $<BUILD_INTERFACE:${PKG_OPENGL_GLUT_INCLUDE_DIRS}>)
+ endif (OPENGL_SUPPORT)
+
  target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
-                             $<BUILD_INTERFACE:${PKG_SOX_INCLUDE_DIRS}>)
- target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
-                             $<BUILD_INTERFACE:${PKG_FFMPEG_INCLUDE_DIRS}>)
- target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
-                             $<BUILD_INTERFACE:${PKG_OPENGL_GLUT_INCLUDE_DIRS}>)
- target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
-                             "$<BUILD_INTERFACE:${ImageMagick_INCLUDE_DIRS}>")
+                             $<BUILD_INTERFACE:${PKG_WAYLAND_INCLUDE_DIRS}>)
+ if (IMAGEMAGICK_SUPPORT)
+  target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
+                              "$<BUILD_INTERFACE:${ImageMagick_INCLUDE_DIRS}>")
+ endif (IMAGEMAGICK_SUPPORT)
 
  target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../Common/src>)
@@ -279,12 +288,20 @@ set_property (TARGET ${PROJECT_NAME}_Visualization PROPERTY FOLDER "modules")
 add_dependencies (${PROJECT_NAME}_Visualization Common)
 if (WIN32)
  add_dependencies (${PROJECT_NAME}_Visualization CommonError)
-endif ()
+endif (WIN32)
 add_dependencies (${PROJECT_NAME}_Visualization CommonMath)
 
 add_dependencies (${PROJECT_NAME}_Visualization ${PROJECT_NAME})
 
-if (WIN32)
+if (UNIX)
+ if (FFMPEG_SUPPORT)
+  target_link_libraries (${PROJECT_NAME}_Visualization ${PKG_FFMPEG_LIBRARIES})
+ endif (FFMPEG_SUPPORT)
+ if (OPENGL_SUPPORT)
+  target_link_libraries (${PROJECT_NAME}_Visualization ${GLUT_LIBRARY})
+ endif (OPENGL_SUPPORT)
+ target_link_libraries (${PROJECT_NAME}_Visualization ${PKG_WAYLAND_LIBRARIES})
+elseif (WIN32)
  target_link_libraries (${PROJECT_NAME}_Visualization Advapi32.lib)
  target_link_libraries (${PROJECT_NAME}_Visualization Evr.lib)
  target_link_libraries (${PROJECT_NAME}_Visualization Ole32.lib)
@@ -294,28 +311,31 @@ if (WIN32)
 # target_link_libraries (${PROJECT_NAME}_Visualization ucrt${LIB_FILE_SUFFIX}.lib)
 # target_link_libraries (${PROJECT_NAME}_Visualization uuids.lib)
  target_link_libraries (${PROJECT_NAME}_Visualization User32.lib)
-endif (WIN32)
+
+ if (OPENGL_SUPPORT)
+  target_link_libraries (${PROJECT_NAME}_Visualization $ENV{LIB_ROOT}/freeglut/lib/freeglut.lib)
+ endif (OPENGL_SUPPORT)
+endif ()
 if (GTK_SUPPORT)
  target_link_libraries (${PROJECT_NAME}_Visualization ${GTK_LIBRARIES})
 endif (GTK_SUPPORT)
-target_link_libraries (${PROJECT_NAME}_Visualization ${PKG_SOX_LIBRARIES})
-target_link_libraries (${PROJECT_NAME}_Visualization ${PKG_FFMPEG_LIBRARIES})
-target_link_libraries (${PROJECT_NAME}_Visualization ${ImageMagick_LIBRARIES})
-if (UNIX)
- target_link_libraries (${PROJECT_NAME}_Visualization ${PKG_OPENGL_GLUT_LIBRARIES})
-elseif (WIN32)
- target_link_libraries (${PROJECT_NAME}_Visualization $ENV{LIB_ROOT}/freeglut/lib/freeglut.lib)
-endif ()
+#target_link_libraries (${PROJECT_NAME}_Visualization ${PKG_SOX_LIBRARIES})
+#target_link_libraries (${PROJECT_NAME}_Visualization ${PKG_FFMPEG_LIBRARIES})
+if (IMAGEMAGICK_SUPPORT)
+ target_link_libraries (${PROJECT_NAME}_Visualization ${ImageMagick_LIBRARIES})
+endif (IMAGEMAGICK_SUPPORT)
 
 target_link_libraries (${PROJECT_NAME}_Visualization ${ACE_LIBRARY})
 
 target_link_libraries (${PROJECT_NAME}_Visualization Common)
-target_link_libraries (${PROJECT_NAME}_Visualization CommonOpenGL)
+if (OPENGL_SUPPORT)
+ target_link_libraries (${PROJECT_NAME}_Visualization CommonOpenGL)
+endif (OPENGL_SUPPORT)
 
 target_link_libraries (${PROJECT_NAME}_Visualization ${PROJECT_NAME})
 
-set_target_properties (${PROJECT_NAME}_Visualization PROPERTIES DEFINE_SYMBOL STREAM_VIS_BUILD_DLL)
-set_target_properties (${PROJECT_NAME}_Visualization PROPERTIES VERSION ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_MICRO} SOVERSION 1)
+#set_target_properties (${PROJECT_NAME}_Visualization PROPERTIES DEFINE_SYMBOL STREAM_VIS_BUILD_DLL)
+#set_target_properties (${PROJECT_NAME}_Visualization PROPERTIES VERSION ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_MICRO} SOVERSION 1)
 
 # add PCH
 set_target_properties (${PROJECT_NAME}_Visualization PROPERTIES COTIRE_CXX_PREFIX_HEADER_INIT "stdafx.h")
