@@ -1,0 +1,13 @@
+diff --git "a/src/modules/html/CMakeLists.txt" "b/src/modules/html/CMakeLists.txt"
+index 2050892f..d4bef148 100644
+--- "a/src/modules/html/CMakeLists.txt"
++++ "b/src/modules/html/CMakeLists.txt"
+@@ -2,7 +2,7 @@
+ 
+ get_filename_component (BUILD_PATH ${CMAKE_CURRENT_BINARY_DIR}/../../.. REALPATH DIRECTORY)
+ get_filename_component (BUILD_PATH_SUFFIX ${BUILD_PATH} NAME)
+-message (STATUS "BUILD_PATH_SUFFIX: ${BUILD_PATH_SUFFIX}")
++#message (STATUS "BUILD_PATH_SUFFIX: ${BUILD_PATH_SUFFIX}")
+ find_package (ACENetwork ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_MICRO}
+               REQUIRED
+               CONFIG

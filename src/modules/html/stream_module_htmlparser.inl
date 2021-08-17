@@ -187,7 +187,7 @@ Stream_Module_HTMLParser_T<ACE_SYNCH_USE,
     result = htmlParseChunk (parserContext_.parserContext,
                              ACE_TEXT_ALWAYS_CHAR (""),
                              0,
-                             1);
+                             1); // terminate
     if (result)
     {
       //parse_errors = static_cast<xmlParserErrors> (result);

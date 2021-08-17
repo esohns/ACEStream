@@ -1,6 +1,7 @@
 *NOTE*: to disambiguate the ACEStream <--> ACENetwork interdependency:
-        1. temporarily comment: - src/modules/CMakeLists.txt:11
-                                - test_i/CMakeLists.txt:271-274
+        1. temporarily comment: - src/modules/CMakeLists.txt:6,11
+                                - test_i/CMakeLists.txt:290-293
+                                - test_u/CMakeLists.txt:324
         2. generate the ACEStream Makefiles
         3. generate the ACENetwork Makefiles
         4. uncomment 1.
