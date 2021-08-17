@@ -216,7 +216,7 @@ elseif (WIN32)
 
     if (GTKGLAREA_SUPPORT)
      target_link_libraries (${PROJECT_NAME}_Test_I $ENV{LIB_ROOT}/libepoxy/lib/epoxy.lib)
-     target_link_libraries (${PROJECT_NAME}_Test_I $ENV{LIB_ROOT}/gtkglarea/cmake/${CMAKE_BUILD_TYPE}/gtkglarea.lib)
+     target_link_libraries (${PROJECT_NAME}_Test_I $ENV{LIB_ROOT}/gtkglarea/${BUILD_PATH_SUFFIX}/${CMAKE_BUILD_TYPE}/gtkglarea.lib)
     endif (GTKGLAREA_SUPPORT)
 
 #    target_link_libraries (${PROJECT_NAME}_Test_I CommonOpenGL)

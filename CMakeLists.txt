@@ -181,22 +181,17 @@ if (CXX_COMPILER_ID_STRING_LOWER STREQUAL LLVM_COMPILER_ID_STRING_LOWER)
 endif ()
 
 ################################################################################
-
-list (APPEND CMAKE_MODULE_PATH "$ENV{LIB_ROOT}/cotire/CMake")
-#list (APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/scripts")
+if (DEFINED ENV{LIB_ROOT})
+ file (TO_CMAKE_PATH "$ENV{LIB_ROOT}/cotire/CMake" COTIRE_PATH)
+else ()
+  set (COTIRE_PATH "modules/cotire/CMake")
+endif (DEFINED ENV{LIB_ROOT})
+list (APPEND CMAKE_MODULE_PATH "${COTIRE_PATH}")
 cmake_policy (SET CMP0011 NEW)
 include (cotire)
 set_directory_properties (PROPERTIES COTIRE_ADD_UNITY_BUILD FALSE)
-list (APPEND CMAKE_MODULE_PATH "$ENV{LIB_ROOT}/cmake-precompiled-header")
-include (PrecompiledHeader)
-
-#if (WIN32)
-# set (CMAKE_GENERATOR_TOOLSET "LLVM-vs2014" CACHE STRING "Platform Toolset" FORCE)
-# set (CMAKE_VS_PLATFORM_TOOLSET "LLVM-vs2014" CACHE STRING "Platform Toolset" FORCE)
-# if (CMAKE_VS_PLATFORM_TOOLSET STREQUAL LLVM-vs2014)
-#  add_compile_options (-Wno-c++11-narrowing)
-# endif ()
-#endif ()
+#list (APPEND CMAKE_MODULE_PATH "$ENV{LIB_ROOT}/cmake-precompiled-header")
+#include (PrecompiledHeader)
 
 ################################################################################
 
@@ -266,16 +261,20 @@ install (FILES "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}_config.h"
          COMPONENT dev)
 
 ################################################################################
-
-list (APPEND CMAKE_MODULE_PATH "$ENV{LIB_ROOT}/cmake-modules")
-include (UseBackportedModules)
+if (DEFINED ENV{LIB_ROOT})
+ file (TO_CMAKE_PATH "$ENV{LIB_ROOT}/cmake-modules" CMAKE_MODULES_PATH)
+else ()
+  set (CMAKE_MODULES_PATH "modules/cmake-modules")
+endif (DEFINED ENV{LIB_ROOT})
+list (APPEND CMAKE_MODULE_PATH "${CMAKE_MODULES_PATH}")
+#include (UseBackportedModules)
 cmake_policy (SET CMP0026 OLD)
 cmake_policy (SET CMP0053 OLD)
 include (CreateLaunchers)
 
 # enable (unit/integration) tests
 #include (CTest)
-enable_testing ()
+#enable_testing ()
 
 ################################################################################
 
