@@ -65,7 +65,7 @@ ipch/
 build/
 
 # links (linux-specific)
-modules/ACE
+modules/ACE/
 
 # qtcreator (linux-specific)
 Makefile.am.user
