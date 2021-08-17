@@ -28,7 +28,16 @@ if (UNIX)
  endif (FFMPEG_SUPPORT)
  if (OPENGL_SUPPORT)
 #  pkg_check_modules (PKG_OPENGL_GLUT REQUIRED glut) # Fedora
-  pkg_check_modules (PKG_OPENGL_GLUT REQUIRED freeglut3) # Ubuntu
+# *NOTE*: (on Ubuntu,) freeglut3 does not come with pkg-config support
+#  pkg_check_modules (PKG_OPENGL_GLUT REQUIRED freeglut3) # Ubuntu
+  set (GLUT_LIB_FILE libglut.so)
+  find_library (GLUT_LIBRARY ${GLUT_LIB_FILE}
+                DOC "searching for \"${GLUT_LIB_FILE}\"")
+  if (NOT GLUT_LIBRARY)
+   message (FATAL_ERROR "could not find libglut (was: \"${GLUT_LIB_FILE}\"), aborting")
+  endif (NOT GLUT_LIBRARY)
+  set (PKG_OPENGL_GLUT_INCLUDE_DIRS "/usr/include")
+  set (PKG_OPENGL_GLUT_LIBRARIES ${GLUT_LIBRARY})
  endif (OPENGL_SUPPORT)
 
 # add_compile_options (-std=c++17)
@@ -47,14 +56,6 @@ elseif (WIN32)
   add_definitions (-DDEBUG) # activate DirectShow debug logging
  endif (WIN32 AND (CMAKE_BUILD_TYPE STREQUAL Debug))
 endif ()
-
-#set (LLVM_COMPILER_ID_STRING "Clang")
-#string (TOLOWER "${LLVM_COMPILER_ID_STRING}" LLVM_COMPILER_ID_STRING_LOWER)
-#string (TOLOWER "${CMAKE_CXX_COMPILER_ID}" CXX_COMPILER_ID_STRING_LOWER)
-#if (CXX_COMPILER_ID_STRING_LOWER STREQUAL LLVM_COMPILER_ID_STRING_LOWER)
-# add_compile_options (-std=c++11)
-# add_compile_options (-fPIC)
-#endif ()
 
 add_library (${PROJECT_NAME}_Visualization STATIC "")
 
@@ -78,14 +79,10 @@ if (UNIX)
                              $<BUILD_INTERFACE:${PKG_SOX_INCLUDE_DIRS}>)
  target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
                              $<BUILD_INTERFACE:${PKG_FFMPEG_INCLUDE_DIRS}>)
-# target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
-#                             $<BUILD_INTERFACE:${PKG_OPENGL_GLUT_INCLUDE_DIRS}>)
+ target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
+                             $<BUILD_INTERFACE:${PKG_OPENGL_GLUT_INCLUDE_DIRS}>)
  target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
                              "$<BUILD_INTERFACE:${ImageMagick_INCLUDE_DIRS}>")
-
- target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
-                             $<BUILD_INTERFACE:$ENV{LIB_ROOT}/ACE_TAO/ACE>)
-#                             $<BUILD_INTERFACE:/usr/local/src/ACE_wrappers>)
 
  target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../Common/src>)
@@ -136,14 +133,6 @@ elseif (WIN32)
   target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
                               $<BUILD_INTERFACE:$ENV{LIB_ROOT}/freeglut/include>)
  endif (OPENGL_SUPPORT)
-
- if (DEFINED ENV{ACE_ROOT})
-  target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
-                              $<BUILD_INTERFACE:$ENV{ACE_ROOT}>)
- else ()
-  target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
-                              $<BUILD_INTERFACE:$ENV{LIB_ROOT}/ACE_TAO/ACE>)
- endif (DEFINED ENV{ACE_ROOT})
 
  target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../Common/src>)
@@ -314,7 +303,6 @@ target_link_libraries (${PROJECT_NAME}_Visualization ${PKG_FFMPEG_LIBRARIES})
 target_link_libraries (${PROJECT_NAME}_Visualization ${ImageMagick_LIBRARIES})
 if (UNIX)
  target_link_libraries (${PROJECT_NAME}_Visualization ${PKG_OPENGL_GLUT_LIBRARIES})
-# target_link_libraries (${PROJECT_NAME}_Visualization /usr/lib/x86_64-linux-gnu/libglut.so.3)
 elseif (WIN32)
  target_link_libraries (${PROJECT_NAME}_Visualization $ENV{LIB_ROOT}/freeglut/lib/freeglut.lib)
 endif ()
