@@ -1,13 +1,52 @@
-diff --git "a/src/modules/html/CMakeLists.txt" "b/src/modules/html/CMakeLists.txt"
-index 2050892f..d4bef148 100644
---- "a/src/modules/html/CMakeLists.txt"
-+++ "b/src/modules/html/CMakeLists.txt"
-@@ -2,7 +2,7 @@
+diff --git a/src/modules/CMakeLists.txt b/src/modules/CMakeLists.txt
+index c9e80ac2..390b310f 100644
+--- a/src/modules/CMakeLists.txt
++++ b/src/modules/CMakeLists.txt
+@@ -3,11 +3,13 @@ add_subdirectory (dec)
+ add_subdirectory (dev)
+ add_subdirectory (doc)
+ add_subdirectory (file)
+-add_subdirectory (html)
++# *IMPORTANT NOTE*: comment temporarily to disambiguate ACEStream <-> ACENetwork
++#                   interdependencies
++#add_subdirectory (html)
+ add_subdirectory (lib)
+ add_subdirectory (misc)
+ # *IMPORTANT NOTE*: comment temporarily to disambiguate ACEStream <-> ACENetwork
+ #                   interdependencies
+-add_subdirectory (net)
++#add_subdirectory (net)
+ add_subdirectory (stat)
+ add_subdirectory (vis)
+diff --git a/test_i/CMakeLists.txt b/test_i/CMakeLists.txt
+index 4d9a8b23..058888f4 100644
+--- a/test_i/CMakeLists.txt
++++ b/test_i/CMakeLists.txt
+@@ -287,10 +287,10 @@ add_subdirectory (avsave)
+ add_subdirectory (camsave)
+ # *IMPORTANT NOTE*: comment temporarily to disambiguate ACEStream <-> ACENetwork
+ #                   interdependencies
+-add_subdirectory (camstream)
+-add_subdirectory (filestream)
+-add_subdirectory (http_get)
+-add_subdirectory (http_get_2)
++#add_subdirectory (camstream)
++#add_subdirectory (filestream)
++#add_subdirectory (http_get)
++#add_subdirectory (http_get_2)
+ add_subdirectory (imagesave)
+ add_subdirectory (mp3player)
  
- get_filename_component (BUILD_PATH ${CMAKE_CURRENT_BINARY_DIR}/../../.. REALPATH DIRECTORY)
- get_filename_component (BUILD_PATH_SUFFIX ${BUILD_PATH} NAME)
--message (STATUS "BUILD_PATH_SUFFIX: ${BUILD_PATH_SUFFIX}")
-+#message (STATUS "BUILD_PATH_SUFFIX: ${BUILD_PATH_SUFFIX}")
- find_package (ACENetwork ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_MICRO}
-               REQUIRED
-               CONFIG
+diff --git a/test_u/CMakeLists.txt b/test_u/CMakeLists.txt
+index ab391fce..ba045dcc 100644
+--- a/test_u/CMakeLists.txt
++++ b/test_u/CMakeLists.txt
+@@ -321,7 +321,7 @@ add_subdirectory (document)
+ add_subdirectory (filecopy)
+ # *IMPORTANT NOTE*: comment temporarily to disambiguate ACEStream <-> ACENetwork
+ #                   interdependencies
+-add_subdirectory (http_get)
++#add_subdirectory (http_get)
+ add_subdirectory (imagescreen)
+ add_subdirectory (parser)
+ add_subdirectory (riff_decoder)
