@@ -97,7 +97,11 @@
 
 #define STREAM_LIB_MEDIAFOUNDATION_BYTESTREAMHANDLER_DESCRIPTION "ACEStream Source ByteStreamHandler"
 #define STREAM_LIB_MEDIAFOUNDATION_BYTESTREAMHANDLER_ROOTKEY     "Software\\Microsoft\\Windows Media Foundation\\ByteStreamHandlers"
+#endif // ACE_WIN32 || ACE_WIN64
 
-#endif
+// general
+// *TODO*: move this to 'dev'
+#define STREAM_LIB_MIC_DEFAULT_CHANNELS                           2 // i.e. stereo
+#define STREAM_LIB_MIC_DEFAULT_SAMPLE_RATE                        44100 // Hz
 
 #endif

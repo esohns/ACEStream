@@ -50,10 +50,12 @@
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
-#include "stream_dev_defines.h"
+//#include "stream_dev_defines.h"
 
 #include "stream_lib_alsa_common.h"
+
 #include "stream_lib_v4l_common.h"
+#include "stream_lib_v4l_defines.h"
 #endif // ACE_WIN32 || ACE_WIN64
 #include "stream_lib_common.h"
 #include "stream_lib_defines.h"
@@ -97,7 +99,7 @@ struct Test_U_V4L2_MessageData
   Test_U_V4L2_MessageData ()
    : fileDescriptor (-1)
    , index (0)
-   , method (STREAM_DEV_CAM_V4L_DEFAULT_IO_METHOD)
+   , method (STREAM_LIB_V4L_DEFAULT_IO_METHOD)
    , release (false)
   {}
 

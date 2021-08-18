@@ -37,7 +37,7 @@ libacestream_vis_x11_error_handler_cb (Display* display_in,
   ACE_DEBUG ((LM_ERROR,
               ACE_TEXT ("X11 error (display was: %@): \"%s\", returning\n"),
               display_in,
-              ACE_TEXT (Stream_MediaFramework_Tools::toString (*display_in, event_in->error_code).c_str ())));
+              ACE_TEXT (Common_UI_Tools::toString (*display_in, event_in->error_code).c_str ())));
 
   return 0;
 }
@@ -50,7 +50,7 @@ libacestream_vis_x11_io_error_handler_cb (Display* display_in)
   ACE_DEBUG ((LM_ERROR,
               ACE_TEXT ("X11 I/O error (display was: %@): \"%s\", returning\n"),
               display_in,
-              ACE_TEXT (Stream_MediaFramework_Tools::toString (*display_in, ACE_OS::last_error ()).c_str ())));
+              ACE_TEXT (Common_UI_Tools::toString (*display_in, ACE_OS::last_error ()).c_str ())));
 
   return 0;
 }

@@ -503,7 +503,7 @@ struct Test_U_AudioEffect_ALSA_ModuleHandlerConfiguration
    , subscribers (NULL)
   {
     deviceIdentifier.identifier =
-        ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_MIC_ALSA_DEFAULT_DEVICE_NAME);
+        ACE_TEXT_ALWAYS_CHAR (STREAM_LIB_MIC_ALSA_DEFAULT_DEVICE_NAME);
   }
 
   // *NOTE*: current capturing is asynchronous (SIGIO), so asynchronous playback

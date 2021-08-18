@@ -79,6 +79,11 @@ extern "C"
 #include "stream_lib_directdraw_tools.h"
 #endif // ACE_WIN32 || ACE_WIN64
 #include "stream_lib_tools.h"
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#else
+#include "stream_lib_alsa_defines.h"
+#endif // ACE_WIN32 || ACE_WIN64
+
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
@@ -1004,7 +1009,7 @@ Stream_Device_Tools::getDeviceName (enum _snd_pcm_stream direction_in)
   void** hints_p = NULL;
   int result =
       snd_device_name_hint (-1,
-                            ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_ALSA_PCM_INTERFACE_NAME),
+                            ACE_TEXT_ALWAYS_CHAR (STREAM_LIB_ALSA_PCM_INTERFACE_NAME),
                             &hints_p);
   if (result < 0)
   {
@@ -1049,8 +1054,8 @@ continue_:
     if (position != std::string::npos)
       device_type = device_type.substr (0, position);
     if (ACE_OS::strcmp (device_type.c_str (),
-                        (direction_in == SND_PCM_STREAM_PLAYBACK) ? ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_ALSA_DEVICE_PLAYBACK_PREFIX)
-                                                                  : ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_ALSA_DEVICE_CAPTURE_PREFIX)))
+                        (direction_in == SND_PCM_STREAM_PLAYBACK) ? ACE_TEXT_ALWAYS_CHAR (STREAM_LIB_ALSA_DEVICE_PLAYBACK_PREFIX)
+                                                                  : ACE_TEXT_ALWAYS_CHAR (STREAM_LIB_ALSA_DEVICE_CAPTURE_PREFIX)))
       continue;
     result_string = hint_string;
 

@@ -487,11 +487,11 @@ struct Test_I_Source_V4L_ModuleHandlerConfiguration
 #if defined (GUI_SUPPORT)
    , area ()
 #endif // GUI_SUPPORT
-   , buffers (STREAM_DEV_CAM_V4L_DEFAULT_DEVICE_BUFFERS)
+   , buffers (STREAM_LIB_V4L_DEFAULT_DEVICE_BUFFERS)
    , connection (NULL)
    , connectionConfigurations (NULL)
    , connectionManager (NULL)
-   , method (STREAM_DEV_CAM_V4L_DEFAULT_IO_METHOD)
+   , method (STREAM_LIB_V4L_DEFAULT_IO_METHOD)
    , outputFormat ()
    //, sourceFormat ()
    , statisticCollectionInterval (ACE_Time_Value::zero)

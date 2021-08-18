@@ -311,7 +311,7 @@ Stream_Dev_Target_ALSA_T<ACE_SYNCH_USE,
 #if defined (_DEBUG)
   result =
       snd_output_stdio_open (&debugOutput_,
-                             ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_ALSA_DEFAULT_LOG_FILE),
+                             ACE_TEXT_ALWAYS_CHAR (STREAM_LIB_ALSA_DEFAULT_LOG_FILE),
                              ACE_TEXT_ALWAYS_CHAR ("w"));
   if (result < 0)
     ACE_DEBUG ((LM_ERROR,

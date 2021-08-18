@@ -31,8 +31,6 @@
 #include <strmif.h>
 #else
 #include "alsa/asoundlib.h"
-
-#include "sox.h"
 #endif // ACE_WIN32 || ACE_WIN64
 
 #include "ace/Basic_Types.h"
@@ -50,7 +48,9 @@
 #include "stream_lib_v4l_common.h"
 
 // forward declarations
-struct _XDisplay;
+typedef double sox_rate_t;
+struct sox_encodinginfo_t;
+struct sox_signalinfo_t;
 #endif // ACE_WIN32 || ACE_WIN64
 
 class Stream_MediaFramework_Tools
@@ -86,12 +86,6 @@ class Stream_MediaFramework_Tools
 #else
   static bool initialize ();
   static void finalize ();
-
-  // X11
-  static Common_Image_Resolution_t toResolution (const struct _XDisplay&, // display
-                                                 unsigned long);          // window
-  static std::string toString (const struct _XDisplay&, // display
-                               int);                    // error code
 
   // ALSA
   static void ALSAToSoX (enum _snd_pcm_format,       // format

@@ -94,7 +94,10 @@ extern "C"
 #include "stream_lib_directdraw_common.h"
 #include "stream_lib_directshow_tools.h"
 #else
+#include "stream_lib_alsa_defines.h"
+
 #include "stream_lib_ffmpeg_common.h"
+#include "stream_lib_v4l_defines.h"
 #endif // ACE_WIN32 || ACE_WIN64
 
 #include "stream_dev_common.h"
@@ -193,7 +196,7 @@ struct Stream_AVSave_MessageData
   Stream_AVSave_MessageData ()
    : device (-1)
    , index (0)
-   , method (STREAM_DEV_CAM_V4L_DEFAULT_IO_METHOD)
+   , method (STREAM_LIB_V4L_DEFAULT_IO_METHOD)
    , release (false)
   {}
 
@@ -626,10 +629,10 @@ struct Stream_AVSave_V4L_ModuleHandlerConfiguration
 #if defined (GUI_SUPPORT)
    , area ()
 #endif // GUI_SUPPORT
-   , buffers (STREAM_DEV_CAM_V4L_DEFAULT_DEVICE_BUFFERS)
+   , buffers (STREAM_LIB_V4L_DEFAULT_DEVICE_BUFFERS)
    , codecFormat (AV_PIX_FMT_NONE)
    , codecId (AV_CODEC_ID_NONE)
-   , method (STREAM_DEV_CAM_V4L_DEFAULT_IO_METHOD)
+   , method (STREAM_LIB_V4L_DEFAULT_IO_METHOD)
    , outboundStreamName ()
    , outputFormat ()
    , subscriber (NULL)
@@ -677,7 +680,7 @@ struct Stream_AVSave_ALSA_ModuleHandlerConfiguration
    , subscribers (NULL)
   {
     deviceIdentifier.identifier =
-        ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_MIC_ALSA_DEFAULT_DEVICE_NAME);
+        ACE_TEXT_ALWAYS_CHAR (STREAM_LIB_MIC_ALSA_DEFAULT_DEVICE_NAME);
 
     ACE_OS::memset (&outputFormat, 0, sizeof (struct Stream_MediaFramework_ALSA_MediaType));
   }

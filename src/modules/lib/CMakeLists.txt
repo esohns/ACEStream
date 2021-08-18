@@ -152,8 +152,10 @@ if (UNIX)
  set (source_files
       ${source_files}
       stream_lib_alsa_common.h
+      stream_lib_alsa_defines.h
       stream_lib_libcamera_common.h
-      stream_lib_v4l_common.h)
+      stream_lib_v4l_common.h
+      stream_lib_v4l_defines.h)
 elseif (WIN32)
  set (source_files
       ${source_files}
@@ -277,8 +279,10 @@ if (UNIX)
  set (source_files
       ${source_files}
       stream_lib_alsa_common.h
+      stream_lib_alsa_defines.h
       stream_lib_libcamera_common.h
-      stream_lib_v4l_common.h)
+      stream_lib_v4l_common.h
+      stream_lib_v4l_defines.h)
 elseif (WIN32)
  set (source_files
       ${source_files}

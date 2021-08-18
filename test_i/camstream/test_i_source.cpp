@@ -1646,7 +1646,7 @@ do_work (const std::string& deviceIdentifier_in,
 //      interfaceIdentifier_in;
   // *TODO*: turn these into an option
   (*modulehandler_iterator).second.second.buffers =
-      STREAM_DEV_CAM_V4L_DEFAULT_DEVICE_BUFFERS;
+      STREAM_LIB_V4L_DEFAULT_DEVICE_BUFFERS;
 #if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
   gtk_manager_p = COMMON_UI_GTK_MANAGER_SINGLETON::instance ();

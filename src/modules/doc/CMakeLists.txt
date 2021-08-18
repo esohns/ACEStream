@@ -75,31 +75,14 @@ set_property (TARGET ${PROJECT_NAME}_Document PROPERTY FOLDER "modules")
 add_dependencies (${PROJECT_NAME}_Document Common)
 add_dependencies (${PROJECT_NAME}_Document ${PROJECT_NAME})
 
-if (UNIX)
- if (LIBREOFFICE_SUPPORT)
-  target_link_libraries (${PROJECT_NAME}_Document ${PKG_LIBREOFFICE_LIBRARIES})
-#  target_link_libraries (${EXECUTABLE} ${OO_SDK_DIRECTORY}/lib/libuno_sal.so)
-#  target_link_libraries (${EXECUTABLE} ${OO_SDK_DIRECTORY}/../program/libgcc3_uno.so)
-#  target_link_libraries (${EXECUTABLE} ${OO_SDK_DIRECTORY}/lib/libuno_cppu.so)
+if (LIBREOFFICE_SUPPORT)
+ target_link_libraries (${PROJECT_NAME}_Document ${PKG_LIBREOFFICE_LIBRARIES})
+endif (LIBREOFFICE_SUPPORT)
 
-#  target_link_libraries (${EXECUTABLE} ${OO_SDK_DIRECTORY}/../program/libstorelo.so)
-#  target_link_libraries (${EXECUTABLE} ${OO_SDK_DIRECTORY}/../program/libreglo.so)
+target_link_libraries (${PROJECT_NAME}_Document ${ACE_LIBRARY})
 
-#  target_link_libraries (${EXECUTABLE} ${OO_SDK_DIRECTORY}/../program/libxmlreaderlo.so)
-#  target_link_libraries (${EXECUTABLE} ${OO_SDK_DIRECTORY}/../program/libunoidllo.so)
-#  target_link_libraries (${EXECUTABLE} ${OO_SDK_DIRECTORY}/lib/libuno_cppuhelpergcc3.so)
- endif (LIBREOFFICE_SUPPORT)
-elseif (WIN32)
- if (LIBREOFFICE_SUPPORT)
-  target_link_libraries (${PROJECT_NAME}_Document ${OO_SDK_DIRECTORY}/lib/isal.lib)
-
-  target_link_libraries (${PROJECT_NAME}_Document ${OO_SDK_DIRECTORY}/lib/icppu.lib)
-  target_link_libraries (${PROJECT_NAME}_Document ${OO_SDK_DIRECTORY}/lib/icppuhelper.lib)
- endif (LIBREOFFICE_SUPPORT)
-
- target_link_libraries (${PROJECT_NAME}_Document ${ACE_LIBRARY})
-endif ()
 target_link_libraries (${PROJECT_NAME}_Document Common)
+
 target_link_libraries (${PROJECT_NAME}_Document ${PROJECT_NAME})
 
 #set_target_properties (${PROJECT_NAME}_Document PROPERTIES DEFINE_SYMBOL STREAM_DOCUMENT_BUILD_DLL)

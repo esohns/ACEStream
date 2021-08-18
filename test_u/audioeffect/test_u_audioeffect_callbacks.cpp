@@ -393,7 +393,7 @@ error_2:
   void** hints_p = NULL;
   int result_2 =
       snd_device_name_hint (-1,
-                            ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_ALSA_PCM_INTERFACE_NAME),
+                            ACE_TEXT_ALWAYS_CHAR (STREAM_LIB_ALSA_PCM_INTERFACE_NAME),
                             &hints_p);
   if (result_2 < 0)
   {
@@ -5769,7 +5769,7 @@ togglebutton_record_toggled_cb (GtkToggleButton* toggleButton_in,
   } // end SWITCH
 #else
   ACE_NEW_NORETURN (thread_data_p,
-                    struct Test_U_AudioEffect_ThreadData ());
+                    struct Test_U_AudioEffect_ThreadData);
   if (thread_data_p)
     static_cast<struct Test_U_AudioEffect_ThreadData*> (thread_data_p)->CBData =
       ui_cb_data_p;
@@ -7694,7 +7694,7 @@ combobox_source_changed_cb (GtkWidget* widget_in,
     goto error;
   } // end IF
   ui_cb_data_p->configuration->streamConfiguration.configuration_->format.access =
-    STREAM_DEV_MIC_ALSA_DEFAULT_ACCESS;
+    STREAM_LIB_MIC_ALSA_DEFAULT_ACCESS;
 
   result_2 =
       load_formats (ui_cb_data_p->handle,
@@ -7990,7 +7990,7 @@ combobox_format_changed_cb (GtkWidget* widget_in,
   ACE_DEBUG ((LM_ERROR,
               ACE_TEXT ("format setting is currently broken, continuing\n")));
   ui_cb_data_p->configuration->streamConfiguration.configuration_->format.format =
-      STREAM_DEV_MIC_ALSA_DEFAULT_FORMAT;
+      STREAM_LIB_MIC_ALSA_DEFAULT_FORMAT;
 
   result_2 =
       load_sample_rates (ui_cb_data_p->handle,

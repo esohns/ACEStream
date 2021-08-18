@@ -51,9 +51,10 @@
 #include "stream_lib_common.h"
 #include "stream_lib_defines.h"
 #else
-#include "stream_dev_defines.h"
+//#include "stream_dev_defines.h"
 
 #include "stream_lib_v4l_common.h"
+#include "stream_lib_v4l_defines.h"
 #endif // ACE_WIN32 || ACE_WIN64
 
 // forward declarations
@@ -98,7 +99,7 @@ struct Test_I_V4L_MessageData
   Test_I_V4L_MessageData ()
    : device (-1)
    , index (0)
-   , method (STREAM_DEV_CAM_V4L_DEFAULT_IO_METHOD)
+   , method (STREAM_LIB_V4L_DEFAULT_IO_METHOD)
    , release (false)
   {}
 

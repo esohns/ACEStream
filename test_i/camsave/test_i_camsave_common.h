@@ -205,7 +205,7 @@ struct Stream_CamSave_V4L_MessageData
   Stream_CamSave_V4L_MessageData ()
    : device (-1)
    , index (0)
-   , method (STREAM_DEV_CAM_V4L_DEFAULT_IO_METHOD)
+   , method (STREAM_LIB_V4L_DEFAULT_IO_METHOD)
    , release (false)
   {}
 
@@ -665,10 +665,10 @@ struct Stream_CamSave_V4L_ModuleHandlerConfiguration
 #if defined (GUI_SUPPORT)
    , area ()
 #endif // GUI_SUPPORT
-   , buffers (STREAM_DEV_CAM_V4L_DEFAULT_DEVICE_BUFFERS)
+   , buffers (STREAM_LIB_V4L_DEFAULT_DEVICE_BUFFERS)
    , codecFormat (AV_PIX_FMT_NONE)
    , codecId (AV_CODEC_ID_NONE)
-   , method (STREAM_DEV_CAM_V4L_DEFAULT_IO_METHOD)
+   , method (STREAM_LIB_V4L_DEFAULT_IO_METHOD)
    , outputFormat ()
    , subscriber (NULL)
    , subscribers (NULL)

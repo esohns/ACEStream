@@ -43,6 +43,8 @@ if (UNIX)
   add_definitions (-DSAL_UNX) # libreoffice
   add_definitions (-DUNX)     # openoffice
   add_definitions (-DCPPU_ENV=gcc3)
+
+  set (PKG_LIBREOFFICE_LIBRARIES "${LIBREOFFICE_SAL_LIBRARY};${OO_SDK_DIRECTORY}/../program/libgcc3_uno.so;${OO_SDK_DIRECTORY}/lib/libuno_cppu.so;${OO_SDK_DIRECTORY}/../program/libstorelo.so;${OO_SDK_DIRECTORY}/../program/libreglo.so;${OO_SDK_DIRECTORY}/../program/libxmlreaderlo.so;${OO_SDK_DIRECTORY}/../program/libunoidllo.so;${OO_SDK_DIRECTORY}/lib/libuno_cppuhelpergcc3.so")
  endif (LIBREOFFICE_FOUND)
 elseif (WIN32)
  if (DEFINED ENV{OO_SDK_HOME})
@@ -78,6 +80,7 @@ elseif (WIN32)
   if (MSVC)
    add_definitions (-D_SNPRINTF_H)
   endif (MSVC)
+
+  set (PKG_LIBREOFFICE_LIBRARIES "${LIBREOFFICE_SAL_LIBRARY};${OO_SDK_DIRECTORY}/lib/icppu.lib;${OO_SDK_DIRECTORY}/lib/icppuhelper.lib")
  endif (LIBREOFFICE_FOUND)
 endif ()
-

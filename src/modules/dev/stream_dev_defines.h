@@ -45,44 +45,14 @@
 // ALSA
 #define STREAM_DEV_ALSA_TARGET_DEFAULT_NAME_STRING                "ALSATarget"
 
-//#define STREAM_DEV_ALSA_DEVICE_CAPTURE_PREFIX                     "dsnoop"
-//#define STREAM_DEV_ALSA_DEVICE_CAPTURE_PREFIX                     "hw"
-#define STREAM_DEV_ALSA_DEVICE_CAPTURE_PREFIX                     "sysdefault"
-//#define STREAM_DEV_ALSA_DEVICE_PLAYBACK_PREFIX                    "dmix"
-//#define STREAM_DEV_ALSA_DEVICE_PLAYBACK_PREFIX                    "plughw"
-#define STREAM_DEV_ALSA_DEVICE_PLAYBACK_PREFIX                    "default"
-#define STREAM_DEV_ALSA_PCM_INTERFACE_NAME                        "pcm"
-
-#define STREAM_DEV_ALSA_DEFAULT_LOG_FILE                          "alsa.log"
-
-#define STREAM_DEV_MIC_ALSA_DEFAULT_ACCESS                        SND_PCM_ACCESS_RW_INTERLEAVED
-#define STREAM_DEV_MIC_ALSA_DEFAULT_BUFFER_SIZE                   128 // frames
-#define STREAM_DEV_MIC_ALSA_DEFAULT_BUFFER_TIME                   999 // us
-//#define STREAM_DEV_MIC_ALSA_DEFAULT_DEVICE_NAME             "default"
-#define STREAM_DEV_MIC_ALSA_DEFAULT_DEVICE_NAME                   "hw:0,0"
-#define STREAM_DEV_MIC_ALSA_DEFAULT_FORMAT                        SND_PCM_FORMAT_S16
-#define STREAM_DEV_MIC_ALSA_DEFAULT_MODE                          SND_PCM_ASYNC
-// *TODO*: number of frames between each interrupt
-#define STREAM_DEV_MIC_ALSA_DEFAULT_PERIOD_SIZE                   32 // frames
-#define STREAM_DEV_MIC_ALSA_DEFAULT_PERIOD_TIME                   333 // us
-#define STREAM_DEV_MIC_ALSA_DEFAULT_PERIODS                       32
-
 // general
 #define STREAM_DEV_DEVICE_DIRECTORY                               "/dev"
 
 #define STREAM_DEV_DEFAULT_AUDIO_DEVICE                           "dsp"
 #define STREAM_DEV_DEFAULT_VIDEO_DEVICE                           "video0"
-
-// V4L
-// *NOTE*: (on Linux,) a Lenovo (TM) ThinkPad T410 integrated camera buffers 32
-//         frames
-#define STREAM_DEV_CAM_V4L_DEFAULT_DEVICE_BUFFERS                 32
-//#define STREAM_DEV_CAM_V4L_DEFAULT_IO_METHOD                      V4L2_MEMORY_USERPTR
-#define STREAM_DEV_CAM_V4L_DEFAULT_IO_METHOD                      V4L2_MEMORY_MMAP
-
-#define STREAM_DEV_CAM_V4L_DEFAULT_PIXELFORMAT                    V4L2_PIX_FMT_RGB24
 #endif // ACE_WIN32 || ACE_WIN64
 
+// general
 #define STREAM_DEV_CAM_DEFAULT_CAPTURE_SIZE_HEIGHT                480
 #define STREAM_DEV_CAM_DEFAULT_CAPTURE_SIZE_WIDTH                 640
 #define STREAM_DEV_CAM_DEFAULT_CAPTURE_RATE                       30 // fps

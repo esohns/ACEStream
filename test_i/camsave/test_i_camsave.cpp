@@ -1026,8 +1026,8 @@ do_initialize_v4l (const std::string& deviceIdentifier_in,
   //         (v4l2_poll()) for asynchronous operation
   // *TODO*: support O_NONBLOCK
   int open_mode =
-      ((STREAM_DEV_CAM_V4L_DEFAULT_IO_METHOD == V4L2_MEMORY_MMAP) ? O_RDWR
-                                                                  : O_RDONLY);
+      ((STREAM_LIB_V4L_DEFAULT_IO_METHOD == V4L2_MEMORY_MMAP) ? O_RDWR
+                                                              : O_RDONLY);
   int result = -1;
   deviceIdentifier_out.fileDescriptor =
       v4l2_open (deviceIdentifier_in.c_str (),
@@ -1325,7 +1325,7 @@ error:
   {
     v4l_modulehandler_configuration.allocatorConfiguration = &allocator_configuration;
     v4l_modulehandler_configuration.buffers =
-      STREAM_DEV_CAM_V4L_DEFAULT_DEVICE_BUFFERS;
+      STREAM_LIB_V4L_DEFAULT_DEVICE_BUFFERS;
     v4l_modulehandler_configuration.deviceIdentifier.identifier =
         captureinterfaceIdentifier_in;
     v4l_modulehandler_configuration.outputFormat =

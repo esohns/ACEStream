@@ -28,21 +28,22 @@ extern "C"
 #include "alsa/asoundlib.h"
 }
 
-#include "stream_dev_defines.h"
+#include "stream_lib_defines.h"
+#include "stream_lib_alsa_defines.h"
 
 struct Stream_MediaFramework_ALSA_MediaType
 {
   Stream_MediaFramework_ALSA_MediaType ()
-   : access (STREAM_DEV_MIC_ALSA_DEFAULT_ACCESS)
-   , bufferSize (STREAM_DEV_MIC_ALSA_DEFAULT_BUFFER_SIZE)
-   , bufferTime (STREAM_DEV_MIC_ALSA_DEFAULT_BUFFER_TIME)
-   , format (STREAM_DEV_MIC_ALSA_DEFAULT_FORMAT)
+   : access (STREAM_LIB_MIC_ALSA_DEFAULT_ACCESS)
+   , bufferSize (STREAM_LIB_MIC_ALSA_DEFAULT_BUFFER_SIZE)
+   , bufferTime (STREAM_LIB_MIC_ALSA_DEFAULT_BUFFER_TIME)
+   , format (STREAM_LIB_MIC_ALSA_DEFAULT_FORMAT)
    , subFormat (SND_PCM_SUBFORMAT_STD)
-   , channels (STREAM_DEV_MIC_DEFAULT_CHANNELS)
-   , periods (STREAM_DEV_MIC_ALSA_DEFAULT_PERIODS)
-   , periodSize (STREAM_DEV_MIC_ALSA_DEFAULT_PERIOD_SIZE)
-   , periodTime (STREAM_DEV_MIC_ALSA_DEFAULT_PERIOD_TIME)
-   , rate (STREAM_DEV_MIC_DEFAULT_SAMPLE_RATE)
+   , channels (STREAM_LIB_MIC_DEFAULT_CHANNELS)
+   , periods (STREAM_LIB_MIC_ALSA_DEFAULT_PERIODS)
+   , periodSize (STREAM_LIB_MIC_ALSA_DEFAULT_PERIOD_SIZE)
+   , periodTime (STREAM_LIB_MIC_ALSA_DEFAULT_PERIOD_TIME)
+   , rate (STREAM_LIB_MIC_DEFAULT_SAMPLE_RATE)
   {}
 
   enum _snd_pcm_access    access;

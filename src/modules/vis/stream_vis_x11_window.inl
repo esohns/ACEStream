@@ -42,8 +42,6 @@
 
 #include "stream_dec_tools.h"
 
-#include "stream_lib_tools.h"
-
 #include "stream_vis_defines.h"
 
 template <ACE_SYNCH_DECL,
@@ -176,9 +174,9 @@ Stream_Module_Vis_X11_Window_T<ACE_SYNCH_USE,
 //  struct Stream_MediaFramework_FFMPEG_VideoMediaType media_type_2;
 //  inherited2::getMediaType (media_type_r,
 //                            media_type_2);
-  Common_Image_Resolution_t resolution_s =
-      Stream_MediaFramework_Tools::toResolution (*display_,
-                                                 window_);
+  Common_UI_Resolution_t resolution_s =
+      Common_UI_Tools::toResolution (*display_,
+                                     window_);
 //  int row_size_i =
 //      av_image_get_linesize (media_type_2.format,
 //                             media_type_2.resolution.width,
@@ -333,9 +331,9 @@ Stream_Module_Vis_X11_Window_T<ACE_SYNCH_USE,
 //      struct Stream_MediaFramework_FFMPEG_VideoMediaType media_type_2;
 //      inherited2::getMediaType (media_type_r,
 //                                media_type_2);
-      Common_Image_Resolution_t resolution_s =
-          Stream_MediaFramework_Tools::toResolution (*display_,
-                                                     window_);
+      Common_UI_Resolution_t resolution_s =
+          Common_UI_Tools::toResolution (*display_,
+                                         window_);
 //      int row_size_i =
 //          av_image_get_linesize (media_type_2.format,
 //                                 media_type_2.resolution.width,
