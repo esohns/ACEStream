@@ -1,4 +1,7 @@
-﻿include (Threads)
+﻿# configure C/C++ exceptions
+include (SetCppExceptions)
+
+include (Threads)
 
 include (ACE)
 
@@ -26,9 +29,6 @@ if (UNIX)
 # target_include_directories (${PROJECT_NAME} PUBLIC
 #                             $<BUILD_INTERFACE:${PKG_FFMPEG_INCLUDE_DIRS}>)
 
- #target_include_directories (${PROJECT_NAME} PUBLIC
- #                            $<BUILD_INTERFACE:$ENV{LIB_ROOT}/ACE_TAO/ACE>)
-
 # target_include_directories (${PROJECT_NAME} PUBLIC
 #                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../Common/${BUILD_PATH_SUFFIX}>)
  target_include_directories (${PROJECT_NAME} PUBLIC
@@ -42,13 +42,6 @@ if (UNIX)
  target_include_directories (${PROJECT_NAME} PUBLIC
                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../Common/src/timer>)
 elseif (WIN32)
-# if (DEFINED ENV{ACE_ROOT})
-#  target_include_directories (${PROJECT_NAME} PUBLIC
-#                              $<BUILD_INTERFACE:$ENV{ACE_ROOT}>)
-# else ()
-#  target_include_directories (${PROJECT_NAME} PUBLIC
-#                              $<BUILD_INTERFACE:$ENV{LIB_ROOT}/ACE_TAO/ACE>)
-# endif (DEFINED ENV{ACE_ROOT})
 
 # target_include_directories (${PROJECT_NAME} PUBLIC
 #                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../Common/${BUILD_PATH_SUFFIX}>)

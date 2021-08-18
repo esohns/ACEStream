@@ -3,6 +3,7 @@
 set (CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_CURRENT_SOURCE_DIR}/../Common/scripts;${CMAKE_CURRENT_SOURCE_DIR}/scripts")
 include (Configuration)
 include (Macros)
+include (OS)
 
 include (PreToolChain)
 include (SetToolChain)
