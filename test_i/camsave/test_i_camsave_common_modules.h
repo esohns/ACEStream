@@ -38,7 +38,9 @@
 #include "stream_dec_libav_converter.h"
 #include "stream_dec_libav_decoder.h"
 
+#if defined (LIBCAMERA_SUPPORT)
 #include "stream_dev_cam_source_libcamera.h"
+#endif // LIBCAMERA_SUPPORT
 #include "stream_dev_cam_source_v4l.h"
 #endif // ACE_WIN32 || ACE_WIN64
 #include "stream_dec_avi_encoder.h"
@@ -104,6 +106,7 @@ typedef Stream_Dev_Cam_Source_MediaFoundation_T<ACE_MT_SYNCH,
                                                 Common_Timer_Manager_t,
                                                 struct Stream_UserData> Stream_CamSave_MediaFoundation_Source;
 #else
+#if defined (LIBCAMERA_SUPPORT)
 typedef Stream_Module_CamSource_LibCamera_T<ACE_MT_SYNCH,
                                             Stream_ControlMessage_t,
                                             Stream_CamSave_LibCamera_Message_t,
@@ -117,6 +120,7 @@ typedef Stream_Module_CamSource_LibCamera_T<ACE_MT_SYNCH,
                                             struct Stream_CamSave_StatisticData,
                                             Common_Timer_Manager_t,
                                             struct Stream_UserData> Stream_CamSave_LibCamera_Source;
+#endif // LIBCAMERA_SUPPORT
 
 typedef Stream_Module_CamSource_V4L_T<ACE_MT_SYNCH,
                                       Stream_ControlMessage_t,
@@ -132,6 +136,7 @@ typedef Stream_Module_CamSource_V4L_T<ACE_MT_SYNCH,
                                       Common_Timer_Manager_t,
                                       struct Stream_UserData> Stream_CamSave_V4L_Source;
 
+#if defined (LIBCAMERA_SUPPORT)
 typedef Stream_Decoder_LibAVDecoder_T<ACE_MT_SYNCH,
                                       Common_TimePolicy_t,
                                       struct Stream_CamSave_LibCamera_ModuleHandlerConfiguration,
@@ -165,6 +170,7 @@ typedef Stream_Visualization_LibAVResize_T<ACE_MT_SYNCH,
                                            Stream_CamSave_LibCamera_SessionMessage_t,
                                            Stream_CamSave_LibCamera_SessionData_t,
                                            struct Stream_MediaFramework_LibCamera_MediaType> Stream_CamSave_LibCamera_LibAVResize;
+#endif // LIBCAMERA_SUPPORT
 
 typedef Stream_Decoder_LibAVDecoder_T<ACE_MT_SYNCH,
                                       Common_TimePolicy_t,
@@ -315,6 +321,7 @@ typedef Stream_Decoder_AVIEncoder_WriterTask_T<ACE_MT_SYNCH,
                                                IMFMediaType*,
                                                struct Stream_UserData> Stream_CamSave_MediaFoundation_AVIEncoder_WriterTask_t;
 #else
+#if defined (LIBCAMERA_SUPPORT)
 typedef Stream_Decoder_AVIEncoder_ReaderTask_T<ACE_MT_SYNCH,
                                                Common_TimePolicy_t,
                                                struct Stream_CamSave_LibCamera_ModuleHandlerConfiguration,
@@ -335,6 +342,7 @@ typedef Stream_Decoder_AVIEncoder_WriterTask_T<ACE_MT_SYNCH,
                                                Stream_CamSave_LibCamera_SessionData,
                                                struct Stream_MediaFramework_LibCamera_MediaType,
                                                struct Stream_UserData> Stream_CamSave_LibCamera_AVIEncoder_WriterTask_t;
+#endif // LIBCAMERA_SUPPORT
 
 typedef Stream_Decoder_AVIEncoder_ReaderTask_T<ACE_MT_SYNCH,
                                                Common_TimePolicy_t,
@@ -460,6 +468,7 @@ typedef Stream_Vis_Target_MediaFoundation_2<ACE_MT_SYNCH,
 //                                      Stream_CamSave_V4L_SessionData,
 //                                      Stream_CamSave_V4L_SessionData_t,
 //                                      struct Stream_MediaFramework_V4L_MediaType> Stream_CamSave_Display;
+#if defined (LIBCAMERA_SUPPORT)
 typedef Stream_Module_Vis_GTK_Pixbuf_T<ACE_MT_SYNCH,
                                        Common_TimePolicy_t,
                                        struct Stream_CamSave_LibCamera_ModuleHandlerConfiguration,
@@ -468,6 +477,7 @@ typedef Stream_Module_Vis_GTK_Pixbuf_T<ACE_MT_SYNCH,
                                        Stream_CamSave_LibCamera_SessionMessage_t,
                                        Stream_CamSave_LibCamera_SessionData_t,
                                        struct Stream_MediaFramework_LibCamera_MediaType> Stream_CamSave_LibCamera_Display;
+#endif // LIBCAMERA_SUPPORT
 typedef Stream_Module_Vis_GTK_Pixbuf_T<ACE_MT_SYNCH,
                                        Common_TimePolicy_t,
                                        struct Stream_CamSave_V4L_ModuleHandlerConfiguration,
@@ -483,6 +493,7 @@ typedef Stream_Module_Vis_GTK_Pixbuf_T<ACE_MT_SYNCH,
 //                                       Stream_CamSave_Message_t,
 //                                       Stream_CamSave_V4L_SessionMessage_t,
 //                                       struct Stream_MediaFramework_V4L_MediaType> Stream_CamSave_Display_2;
+#if defined (LIBCAMERA_SUPPORT)
 typedef Stream_Module_Vis_X11_Window_T<ACE_MT_SYNCH,
                                        Common_TimePolicy_t,
                                        struct Stream_CamSave_LibCamera_ModuleHandlerConfiguration,
@@ -491,6 +502,7 @@ typedef Stream_Module_Vis_X11_Window_T<ACE_MT_SYNCH,
                                        Stream_CamSave_LibCamera_SessionMessage_t,
                                        Stream_CamSave_LibCamera_SessionData_t,
                                        struct Stream_MediaFramework_LibCamera_MediaType> Stream_CamSave_LibCamera_Display_2;
+#endif // LIBCAMERA_SUPPORT
 typedef Stream_Module_Vis_X11_Window_T<ACE_MT_SYNCH,
                                        Common_TimePolicy_t,
                                        struct Stream_CamSave_V4L_ModuleHandlerConfiguration,
@@ -522,11 +534,13 @@ typedef Stream_Module_FileWriter_T<ACE_MT_SYNCH,
 //                                   Stream_ControlMessage_t,
 //                                   Stream_CamSave_Message_t,
 //                                   Stream_CamSave_V4L_SessionMessage_t> Stream_CamSave_FileWriter;
+#if defined (LIBCAMERA_SUPPORT)
 typedef Stream_Module_FileWriter_2<Common_TimePolicy_t,
                                    struct Stream_CamSave_LibCamera_ModuleHandlerConfiguration,
                                    Stream_ControlMessage_t,
                                    Stream_CamSave_LibCamera_Message_t,
                                    Stream_CamSave_LibCamera_SessionMessage_t> Stream_CamSave_LibCamera_FileWriter;
+#endif // LIBCAMERA_SUPPORT
 typedef Stream_Module_FileWriter_2<Common_TimePolicy_t,
                                    struct Stream_CamSave_V4L_ModuleHandlerConfiguration,
                                    Stream_ControlMessage_t,
@@ -555,6 +569,7 @@ typedef Stream_Module_MessageHandler_T<ACE_MT_SYNCH,
                                        Stream_CamSave_MediaFoundation_SessionData,
                                        struct Stream_UserData> Stream_CamSave_MediaFoundation_MessageHandler;
 #else
+#if defined (LIBCAMERA_SUPPORT)
 typedef Stream_Module_MessageHandler_T<ACE_MT_SYNCH,
                                        Common_TimePolicy_t,
                                        struct Stream_CamSave_LibCamera_ModuleHandlerConfiguration,
@@ -564,6 +579,7 @@ typedef Stream_Module_MessageHandler_T<ACE_MT_SYNCH,
                                        Stream_SessionId_t,
                                        Stream_CamSave_LibCamera_SessionData,
                                        struct Stream_UserData> Stream_CamSave_LibCamera_MessageHandler;
+#endif // LIBCAMERA_SUPPORT
 typedef Stream_Module_MessageHandler_T<ACE_MT_SYNCH,
                                        Common_TimePolicy_t,
                                        struct Stream_CamSave_V4L_ModuleHandlerConfiguration,
@@ -592,12 +608,14 @@ DATASTREAM_MODULE_INPUT_ONLY (Stream_CamSave_MediaFoundation_SessionData,       
                               Stream_INotify_t,                                 // stream notification interface type
                               Stream_CamSave_MediaFoundation_Source);           // writer type
 #else
+#if defined (LIBCAMERA_SUPPORT)
 DATASTREAM_MODULE_INPUT_ONLY (Stream_CamSave_LibCamera_SessionData,             // session data type
                               enum Stream_SessionMessageType,                   // session event type
                               struct Stream_CamSave_LibCamera_ModuleHandlerConfiguration, // module handler configuration type
                               libacestream_default_dev_cam_source_libcamera_module_name_string,
                               Stream_INotify_t,                                 // stream notification interface type
                               Stream_CamSave_LibCamera_Source);                 // writer type
+#endif // LIBCAMERA_SUPPORT
 DATASTREAM_MODULE_INPUT_ONLY (Stream_CamSave_V4L_SessionData,                   // session data type
                               enum Stream_SessionMessageType,                   // session event type
                               struct Stream_CamSave_V4L_ModuleHandlerConfiguration, // module handler configuration type
@@ -605,6 +623,7 @@ DATASTREAM_MODULE_INPUT_ONLY (Stream_CamSave_V4L_SessionData,                   
                               Stream_INotify_t,                                 // stream notification interface type
                               Stream_CamSave_V4L_Source);                       // writer type
 
+#if defined (LIBCAMERA_SUPPORT)
 DATASTREAM_MODULE_INPUT_ONLY (Stream_CamSave_LibCamera_SessionData,             // session data type
                               enum Stream_SessionMessageType,                   // session event type
                               struct Stream_CamSave_LibCamera_ModuleHandlerConfiguration, // module handler configuration type
@@ -617,6 +636,7 @@ DATASTREAM_MODULE_INPUT_ONLY (Stream_CamSave_LibCamera_SessionData,             
                               libacestream_default_dec_libav_converter_module_name_string,
                               Stream_INotify_t,                                 // stream notification interface type
                               Stream_CamSave_LibCamera_LibAVConverter);         // writer type
+#endif // LIBCAMERA_SUPPORT
 DATASTREAM_MODULE_INPUT_ONLY (Stream_CamSave_V4L_SessionData,                   // session data type
                               enum Stream_SessionMessageType,                   // session event type
                               struct Stream_CamSave_V4L_ModuleHandlerConfiguration, // module handler configuration type
@@ -630,12 +650,14 @@ DATASTREAM_MODULE_INPUT_ONLY (Stream_CamSave_V4L_SessionData,                   
                               Stream_INotify_t,                                 // stream notification interface type
                               Stream_CamSave_V4L_LibAVConverter);               // writer type
 
+#if defined (LIBCAMERA_SUPPORT)
 DATASTREAM_MODULE_INPUT_ONLY (Stream_CamSave_LibCamera_SessionData,             // session data type
                               enum Stream_SessionMessageType,                   // session event type
                               struct Stream_CamSave_LibCamera_ModuleHandlerConfiguration, // module handler configuration type
                               libacestream_default_misc_distributor_module_name_string,
                               Stream_INotify_t,                                 // stream notification interface type
                               Stream_CamSave_LibCamera_Distributor);            // writer type
+#endif // LIBCAMERA_SUPPORT
 DATASTREAM_MODULE_INPUT_ONLY (Stream_CamSave_V4L_SessionData,                   // session data type
                               enum Stream_SessionMessageType,                   // session event type
                               struct Stream_CamSave_V4L_ModuleHandlerConfiguration, // module handler configuration type
@@ -643,12 +665,14 @@ DATASTREAM_MODULE_INPUT_ONLY (Stream_CamSave_V4L_SessionData,                   
                               Stream_INotify_t,                                 // stream notification interface type
                               Stream_CamSave_V4L_Distributor);                  // writer type
 
+#if defined (LIBCAMERA_SUPPORT)
 DATASTREAM_MODULE_INPUT_ONLY (Stream_CamSave_LibCamera_SessionData,             // session data type
                               enum Stream_SessionMessageType,                   // session event type
                               struct Stream_CamSave_LibCamera_ModuleHandlerConfiguration, // module handler configuration type
                               libacestream_default_vis_libav_resize_module_name_string,
                               Stream_INotify_t,                                 // stream notification interface type
                               Stream_CamSave_LibCamera_LibAVResize);            // writer type
+#endif // LIBCAMERA_SUPPORT
 DATASTREAM_MODULE_INPUT_ONLY (Stream_CamSave_V4L_SessionData,                   // session data type
                               enum Stream_SessionMessageType,                   // session event type
                               struct Stream_CamSave_V4L_ModuleHandlerConfiguration, // module handler configuration type
@@ -705,6 +729,7 @@ DATASTREAM_MODULE_DUPLEX (Stream_CamSave_MediaFoundation_SessionData,           
                           Stream_CamSave_MediaFoundation_AVIEncoder_WriterTask_t,           // writer type
                           Stream_CamSave_MediaFoundation_AVIEncoder);                       // name
 #else
+#if defined (LIBCAMERA_SUPPORT)
 DATASTREAM_MODULE_DUPLEX (Stream_CamSave_LibCamera_SessionData,             // session data type
                           enum Stream_SessionMessageType,                   // session event type
                           struct Stream_CamSave_LibCamera_ModuleHandlerConfiguration, // module handler configuration type
@@ -713,6 +738,7 @@ DATASTREAM_MODULE_DUPLEX (Stream_CamSave_LibCamera_SessionData,             // s
                           Stream_CamSave_LibCamera_AVIEncoder_ReaderTask_t, // reader type
                           Stream_CamSave_LibCamera_AVIEncoder_WriterTask_t, // writer type
                           Stream_CamSave_LibCamera_AVIEncoder);             // name
+#endif // LIBCAMERA_SUPPORT
 DATASTREAM_MODULE_DUPLEX (Stream_CamSave_V4L_SessionData,                   // session data type
                           enum Stream_SessionMessageType,                   // session event type
                           struct Stream_CamSave_V4L_ModuleHandlerConfiguration, // module handler configuration type
@@ -789,12 +815,14 @@ DATASTREAM_MODULE_INPUT_ONLY (Stream_CamSave_MediaFoundation_SessionData,       
 //                              libacestream_default_vis_gtk_window_module_name_string,
 //                              Stream_INotify_t,                                 // stream notification interface type
 //                              Stream_CamSave_Display_2);                        // writer type
+#if defined (LIBCAMERA_SUPPORT)
 DATASTREAM_MODULE_INPUT_ONLY (Stream_CamSave_LibCamera_SessionData,             // session data type
                               enum Stream_SessionMessageType,                   // session event type
                               struct Stream_CamSave_LibCamera_ModuleHandlerConfiguration, // module handler configuration type
                               libacestream_default_vis_x11_window_module_name_string,
                               Stream_INotify_t,                                 // stream notification interface type
                               Stream_CamSave_LibCamera_Display_2);              // writer type
+#endif // LIBCAMERA_SUPPORT
 DATASTREAM_MODULE_INPUT_ONLY (Stream_CamSave_V4L_SessionData,                   // session data type
                               enum Stream_SessionMessageType,                   // session event type
                               struct Stream_CamSave_V4L_ModuleHandlerConfiguration, // module handler configuration type
@@ -818,12 +846,14 @@ DATASTREAM_MODULE_INPUT_ONLY (Stream_CamSave_MediaFoundation_SessionData,       
                               Stream_INotify_t,                                 // stream notification interface type
                               Stream_CamSave_MediaFoundation_FileWriter);       // writer type
 #else
+#if defined (LIBCAMERA_SUPPORT)
 DATASTREAM_MODULE_INPUT_ONLY (Stream_CamSave_LibCamera_SessionData,             // session data type
                               enum Stream_SessionMessageType,                   // session event type
                               struct Stream_CamSave_LibCamera_ModuleHandlerConfiguration, // module handler configuration type
                               libacestream_default_file_sink_module_name_string,
                               Stream_INotify_t,                                 // stream notification interface type
                               Stream_CamSave_LibCamera_FileWriter);             // writer type
+#endif // LIBCAMERA_SUPPORT
 DATASTREAM_MODULE_INPUT_ONLY (Stream_CamSave_V4L_SessionData,                   // session data type
                               enum Stream_SessionMessageType,                   // session event type
                               struct Stream_CamSave_V4L_ModuleHandlerConfiguration, // module handler configuration type
@@ -847,12 +877,14 @@ DATASTREAM_MODULE_INPUT_ONLY (Stream_CamSave_MediaFoundation_SessionData,       
                               Stream_INotify_t,                                 // stream notification interface type
                               Stream_CamSave_MediaFoundation_MessageHandler);   // writer type
 #else
+#if defined (LIBCAMERA_SUPPORT)
 DATASTREAM_MODULE_INPUT_ONLY (Stream_CamSave_LibCamera_SessionData,                 // session data type
                               enum Stream_SessionMessageType,                       // session event type
                               struct Stream_CamSave_LibCamera_ModuleHandlerConfiguration, // module handler configuration type
                               libacestream_default_misc_messagehandler_module_name_string,
                               Stream_INotify_t,                                     // stream notification interface type
                               Stream_CamSave_LibCamera_MessageHandler);             // writer type
+#endif // LIBCAMERA_SUPPORT
 DATASTREAM_MODULE_INPUT_ONLY (Stream_CamSave_V4L_SessionData,                       // session data type
                               enum Stream_SessionMessageType,                       // session event type
                               struct Stream_CamSave_V4L_ModuleHandlerConfiguration, // module handler configuration type

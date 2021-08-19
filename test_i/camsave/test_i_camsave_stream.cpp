@@ -1199,6 +1199,7 @@ error:
   return false;
 }
 #else
+#if defined (LIBCAMERA_SUPPORT)
 Stream_CamSave_LibCamera_Stream::Stream_CamSave_LibCamera_Stream ()
  : inherited ()
  , source_ (this,
@@ -1422,6 +1423,7 @@ error:
 
   return false;
 }
+#endif // LIBCAMERA_SUPPORT
 
 Stream_CamSave_V4L_Stream::Stream_CamSave_V4L_Stream ()
  : inherited ()

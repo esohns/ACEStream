@@ -192,6 +192,7 @@ class Stream_CamSave_MediaFoundation_Stream
   ULONG                                                            referenceCount_;
 };
 #else
+#if defined (LIBCAMERA_SUPPORT)
 class Stream_CamSave_LibCamera_Stream
  : public Stream_Base_T<ACE_MT_SYNCH,
                         Common_TimePolicy_t,
@@ -261,6 +262,7 @@ class Stream_CamSave_LibCamera_Stream
   Stream_CamSave_LibCamera_AVIEncoder_Module     encoder_; // --> AVI
   Stream_CamSave_LibCamera_FileWriter_Module     fileWriter_;
 };
+#endif // LIBCAMERA_SUPPORT
 
 class Stream_CamSave_V4L_Stream
  : public Stream_Base_T<ACE_MT_SYNCH,

@@ -1,8 +1,6 @@
 ﻿if (UNIX)
  pkg_check_modules (PKG_FFMPEG REQUIRED libavutil)
 # pkg_check_modules (PKG_LIBCAMERA REQUIRED libcamera)
-
-# add_compile_options (-std=c++17)
 endif (UNIX)
 
 add_library (${PROJECT_NAME}_Miscellaneous STATIC "")
@@ -13,8 +11,8 @@ if (UNIX)
 
 # target_include_directories (${PROJECT_NAME}_MediaFramework PUBLIC
 #                             $<BUILD_INTERFACE:${PKG_LIBCAMERA_INCLUDE_DIRS}>)
- target_include_directories (${PROJECT_NAME}_Miscellaneous PUBLIC
-                             $<BUILD_INTERFACE:/usr/local/include/libcamera>)
+# target_include_directories (${PROJECT_NAME}_Miscellaneous PUBLIC
+#                             $<BUILD_INTERFACE:/usr/local/include/libcamera>)
 
  target_include_directories (${PROJECT_NAME}_Miscellaneous PUBLIC
                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../Common/src>)
@@ -40,14 +38,6 @@ elseif (WIN32)
 
  target_include_directories (${PROJECT_NAME}_Miscellaneous PUBLIC
                              $<BUILD_INTERFACE:$ENV{LIB_ROOT}/ffmpeg/include>)
-
- if (DEFINED ENV{ACE_ROOT})
-  target_include_directories (${PROJECT_NAME}_Miscellaneous PUBLIC
-                              $<BUILD_INTERFACE:$ENV{ACE_ROOT}>)
- else ()
-  target_include_directories (${PROJECT_NAME}_Miscellaneous PUBLIC
-                              $<BUILD_INTERFACE:$ENV{LIB_ROOT}/ACE_TAO/ACE>)
- endif (DEFINED ENV{ACE_ROOT})
 
  target_include_directories (${PROJECT_NAME}_Miscellaneous PUBLIC
                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../Common/src>)
@@ -149,8 +139,8 @@ endif (WIN32)
 target_link_libraries (${PROJECT_NAME}_Miscellaneous Common)
 target_link_libraries (${PROJECT_NAME}_Miscellaneous ${PROJECT_NAME})
 
-set_target_properties (${PROJECT_NAME}_Miscellaneous PROPERTIES DEFINE_SYMBOL STREAM_MISC_BUILD_DLL)
-set_target_properties (${PROJECT_NAME}_Miscellaneous PROPERTIES VERSION ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_MICRO} SOVERSION 1)
+#set_target_properties (${PROJECT_NAME}_Miscellaneous PROPERTIES DEFINE_SYMBOL STREAM_MISC_BUILD_DLL)
+#set_target_properties (${PROJECT_NAME}_Miscellaneous PROPERTIES VERSION ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_MICRO} SOVERSION 1)
 
 # add PCH
 set_target_properties (${PROJECT_NAME}_Miscellaneous PROPERTIES COTIRE_CXX_PREFIX_HEADER_INIT "stdafx.h")

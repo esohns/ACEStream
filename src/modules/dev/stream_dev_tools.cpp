@@ -51,7 +51,9 @@ extern "C"
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
+#if defined (LIBCAMERA_SUPPORT)
 #include "libcamera/libcamera.h"
+#endif // LIBCAMERA_SUPPORT
 #endif // ACE_WIN32 || ACE_WIN64
 
 #include "ace/Dirent_Selector.h"
@@ -248,6 +250,7 @@ Stream_Device_Tools::getDefaultVideoCaptureDevice (bool useLibCamera_in)
 
   if (useLibCamera_in)
   {
+#if defined (LIBCAMERA_SUPPORT)
     int result = -1;
     Stream_Device_List_t devices_a;
     libcamera::CameraManager* camera_manager_p = NULL;
@@ -276,6 +279,11 @@ Stream_Device_Tools::getDefaultVideoCaptureDevice (bool useLibCamera_in)
 error:
     camera_manager_p->stop ();
     delete camera_manager_p; camera_manager_p = NULL;
+#else
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("useLibCamera_in specified, but LIBCAMERA_SUPPORT not set, aborting\n")));
+    return return_value;
+#endif // LIBCAMERA_SUPPORT
   } // end IF
   else
   {
@@ -289,6 +297,7 @@ error:
   return return_value;
 }
 
+#if defined (LIBCAMERA_SUPPORT)
 Stream_Device_List_t
 Stream_Device_Tools::getVideoCaptureDevices (libcamera::CameraManager* manager_in)
 {
@@ -478,6 +487,7 @@ Stream_Device_Tools::convert (const struct Stream_MediaFramework_LibCamera_Media
 
   return result;
 }
+#endif // LIBCAMERA_SUPPORT
 
 bool
 Stream_Device_Tools::canOverlay (int fileDescriptor_in)
@@ -2527,6 +2537,7 @@ Stream_Device_Tools::v4l2FormatToffmpegFormat (__u32 format_in)
   return AV_PIX_FMT_NONE;
 }
 
+#if defined (LIBCAMERA_SUPPORT)
 libcamera::PixelFormat
 Stream_Device_Tools::ffmpegFormatToLibCameraFormat (enum AVPixelFormat format_in)
 {
@@ -2880,5 +2891,5 @@ Stream_Device_Tools::libCameraFormatToffmpegFormat (const libcamera::PixelFormat
 
   return AV_PIX_FMT_NONE;
 }
-
+#endif // LIBCAMERA_SUPPORT
 #endif // ACE_WIN32 || ACE_WIN64

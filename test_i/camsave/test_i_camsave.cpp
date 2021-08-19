@@ -936,6 +936,7 @@ do_finalize_mediafoundation (IMFMediaSession*& mediaSession_inout)
   CoUninitialize ();
 }
 #else
+#if defined (LIBCAMERA_SUPPORT)
 bool
 do_initialize_libcamera (struct Stream_Device_Identifier& deviceIdentifier_out,
                          struct Stream_MediaFramework_LibCamera_MediaType& captureFormat_out,
@@ -1006,6 +1007,7 @@ error:
 
   return (result == 0);
 }
+#endif // LIBCAMERA_SUPPORT
 
 bool
 do_initialize_v4l (const std::string& deviceIdentifier_in,
@@ -1290,6 +1292,7 @@ do_work (const std::string& captureinterfaceIdentifier_in,
 
   if (useLibCamera_in)
   {
+#if defined (LIBCAMERA_SUPPORT)
     libcamera_modulehandler_configuration.allocatorConfiguration =
         &allocator_configuration;
     libcamera_modulehandler_configuration.deviceIdentifier.identifier =
@@ -1320,6 +1323,11 @@ do_work (const std::string& captureinterfaceIdentifier_in,
 error:
     camera_manager_p->stop ();
     delete camera_manager_p; camera_manager_p = NULL;
+#else
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("useLibCamera_in specified, but LIBCAMERA_SUPPORT not set, aborting\n")));
+    return;
+#endif // LIBCAMERA_SUPPORT
   } // end IF
   else
   {
@@ -1442,30 +1450,36 @@ error:
     }
   } // end SWITCH
 #else
+#if defined (LIBCAMERA_SUPPORT)
   Stream_CamSave_LibCamera_MessageAllocator_t libcamera_message_allocator (TEST_I_MAX_MESSAGES, // maximum #buffers
                                                                            &heap_allocator,     // heap allocator handle
                                                                            true);               // block ?
+  Stream_CamSave_LibCamera_Stream libcamera_stream;
+  Stream_CamSave_LibCamera_MessageHandler_Module libcamera_message_handler (&libcamera_stream,
+                                                                            ACE_TEXT_ALWAYS_CHAR (STREAM_MISC_MESSAGEHANDLER_DEFAULT_NAME_STRING));
+#endif // LIBCAMERA_SUPPORT
   Stream_CamSave_V4L_MessageAllocator_t v4l_message_allocator (TEST_I_MAX_MESSAGES, // maximum #buffers
                                                                &heap_allocator,     // heap allocator handle
                                                                true);               // block ?
-  Stream_CamSave_LibCamera_Stream libcamera_stream;
   Stream_CamSave_V4L_Stream v4l_stream;
-  Stream_CamSave_LibCamera_MessageHandler_Module libcamera_message_handler (&libcamera_stream,
-                                                                            ACE_TEXT_ALWAYS_CHAR (STREAM_MISC_MESSAGEHANDLER_DEFAULT_NAME_STRING));
   Stream_CamSave_V4L_MessageHandler_Module v4l_message_handler (&v4l_stream,
                                                                 ACE_TEXT_ALWAYS_CHAR (STREAM_MISC_MESSAGEHANDLER_DEFAULT_NAME_STRING));
 
   //if (bufferSize_in)
   //  CBData_in.configuration->streamConfiguration.allocatorConfiguration_.defaultBufferSize =
   //      bufferSize_in;
+#if defined (LIBCAMERA_SUPPORT)
   libcamera_stream_configuration.allocatorConfiguration = &allocator_configuration;
   libcamera_stream_configuration.messageAllocator = &libcamera_message_allocator;
+#endif // LIBCAMERA_SUPPORT
   v4l_stream_configuration.allocatorConfiguration = &allocator_configuration;
   v4l_stream_configuration.messageAllocator = &v4l_message_allocator;
 #if defined (GUI_SUPPORT)
+#if defined (LIBCAMERA_SUPPORT)
   libcamera_stream_configuration.module =
       (!UIDefinitionFilename_in.empty () ? &libcamera_message_handler
                                          : NULL);
+#endif // LIBCAMERA_SUPPORT
   v4l_stream_configuration.module =
       (!UIDefinitionFilename_in.empty () ? &v4l_message_handler
                                          : NULL);
@@ -1559,6 +1573,7 @@ error:
 
   if (useLibCamera_in)
   {
+#if defined (LIBCAMERA_SUPPORT)
     if (!do_initialize_libcamera (libcamera_modulehandler_configuration.deviceIdentifier,
                                   configuration_in.libCamera_streamConfiguration.configuration_->format,
                                   libcamera_modulehandler_configuration.outputFormat))
@@ -1567,6 +1582,11 @@ error:
                   ACE_TEXT ("failed to ::do_initialize_libcamera(), returning\n")));
       return;
     } // end IF
+#else
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("useLibCamera_in specified, but LIBCAMERA_SUPPORT not set, aborting\n")));
+    return;
+#endif // LIBCAMERA_SUPPORT
   }
   else
     if (!do_initialize_v4l (captureinterfaceIdentifier_in,
@@ -1765,11 +1785,15 @@ error:
       }
     } // end SWITCH
 #else
+#if defined (LIBCAMERA_SUPPORT)
     libCamera_CBData_in.stream = &libcamera_stream;
+#endif // LIBCAMERA_SUPPORT
     v4l_CBData_in.stream = &v4l_stream;
 #if defined (GTK_USE)
+#if defined (LIBCAMERA_SUPPORT)
     libCamera_CBData_in.UIState = &state_r;
     libCamera_CBData_in.progressData.state = &state_r;
+#endif // LIBCAMERA_SUPPORT
     v4l_CBData_in.UIState = &state_r;
     v4l_CBData_in.progressData.state = &state_r;
 //    CBData_in.pixelBufferLock = &state_r.lock;
@@ -1878,12 +1902,14 @@ error:
 #endif // GTK_USE
 #endif // GUI_SUPPORT
 
+#if defined (LIBCAMERA_SUPPORT)
     if (!libcamera_stream.initialize (configuration_in.libCamera_streamConfiguration))
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to initialize stream, returning\n")));
       goto clean;
     } // end IF
+#endif // LIBCAMERA_SUPPORT
     if (!v4l_stream.initialize (configuration_in.v4l_streamConfiguration))
     {
       ACE_DEBUG ((LM_ERROR,
@@ -1891,7 +1917,10 @@ error:
       goto clean;
     } // end IF
     if (useLibCamera_in)
-      stream_p = &libcamera_stream;
+#if defined (LIBCAMERA_SUPPORT)
+      stream_p = &libcamera_stream
+#endif // LIBCAMERA_SUPPORT
+      ;
     else
       stream_p = &v4l_stream;
 #endif // ACE_WIN32 || ACE_WIN64

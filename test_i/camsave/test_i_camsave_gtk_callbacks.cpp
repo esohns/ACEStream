@@ -398,6 +398,7 @@ load_capture_devices (bool useLibCamera_in,
   GtkTreeIter iterator;
   if (useLibCamera_in)
   {
+#if defined (LIBCAMERA_SUPPORT)
     libcamera::CameraManager* camera_manager_p = NULL;
     ACE_NEW_NORETURN (camera_manager_p,
                       libcamera::CameraManager ());
@@ -413,6 +414,11 @@ load_capture_devices (bool useLibCamera_in,
     capture_devices_a = Stream_Device_Tools::getVideoCaptureDevices (camera_manager_p);
     camera_manager_p->stop ();
     delete camera_manager_p; camera_manager_p = NULL;
+#else
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("useLibCamera_in specified, but LIBCAMERA_SUPPORT not set, aborting\n")));
+    return false;
+#endif // LIBCAMERA_SUPPORT
   } // end IF
   else
   {
@@ -1191,6 +1197,7 @@ load_formats (bool useLibCamera_in,
 
   if (useLibCamera_in)
   {
+#if defined (LIBCAMERA_SUPPORT)
     int result = -1;
     libcamera::Camera* camera_p = NULL;
     libcamera::CameraManager* camera_manager_p = NULL;
@@ -1228,6 +1235,11 @@ error:
     if (camera_manager_p)
       camera_manager_p->stop ();
     delete camera_manager_p; camera_manager_p = NULL;
+#else
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("useLibCamera_in specified, but LIBCAMERA_SUPPORT not set, aborting\n")));
+    return false;
+#endif // LIBCAMERA_SUPPORT
   } // end IF
   else
   {
@@ -1321,6 +1333,7 @@ load_resolutions (bool useLibCamera_in,
 
   if (useLibCamera_in)
   {
+#if defined (LIBCAMERA_SUPPORT)
     int result = -1;
     libcamera::Camera* camera_p = NULL;
     libcamera::CameraManager* camera_manager_p = NULL;
@@ -1351,6 +1364,11 @@ error:
     if (camera_manager_p)
       camera_manager_p->stop ();
     delete camera_manager_p; camera_manager_p = NULL;
+#else
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("useLibCamera_in specified, but LIBCAMERA_SUPPORT not set, aborting\n")));
+    return false;
+#endif // LIBCAMERA_SUPPORT
   } // end IF
   else
   {
@@ -2052,6 +2070,7 @@ stream_processing_function (void* arg_in)
 
   if (ui_cb_data_base_p->useLibCamera)
   {
+#if defined (LIBCAMERA_SUPPORT)
     libcamera_cb_data_p =
       static_cast<struct Stream_CamSave_LibCamera_UI_CBData*> (thread_data_p->CBData);
     ACE_ASSERT (libcamera_cb_data_p->configuration);
@@ -2069,6 +2088,11 @@ stream_processing_function (void* arg_in)
     session_data_p = &session_data_container_p->getR ();
     thread_data_p->sessionId = session_data_p->sessionId;
     converter << session_data_p->sessionId;
+#else
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("useLibCamera specified, but LIBCAMERA_SUPPORT not set, aborting\n")));
+    goto error;
+#endif // LIBCAMERA_SUPPORT
   } // end IF
   else
   {
@@ -5374,6 +5398,7 @@ combobox_format_changed_cb (GtkWidget* widget_in,
 #else
   if (ui_cb_data_p->useLibCamera)
   {
+#if defined (LIBCAMERA_SUPPORT)
     ui_cb_data_p->configuration->libCamera_streamConfiguration.configuration_->format.format =
         libcamera::PixelFormat (format_i, 0);
     Stream_CamSave_LibCamera_StreamConfiguration_t::ITERATOR_T iterator_2 =
@@ -5381,6 +5406,11 @@ combobox_format_changed_cb (GtkWidget* widget_in,
     ACE_ASSERT (iterator_2 != ui_cb_data_p->configuration->libCamera_streamConfiguration.end ());
     (*iterator_2).second.second.codecId =
         Stream_Module_Decoder_Tools::AVPixelFormatToAVCodecId (Stream_Device_Tools::libCameraFormatToffmpegFormat (libcamera::PixelFormat (format_i, 0)));
+#else
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("useLibCamera specified, but LIBCAMERA_SUPPORT not set, aborting\n")));
+    return;
+#endif // LIBCAMERA_SUPPORT
   } // end IF
   else
   {

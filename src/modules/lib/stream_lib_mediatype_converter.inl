@@ -216,23 +216,6 @@ template <typename MediaType,
 void
 Stream_MediaFramework_MediaTypeConverter_T<MediaType,
                                            SessionDataType>::getMediaType (const struct Stream_MediaFramework_FFMPEG_VideoMediaType& mediaType_in,
-                                                                           struct Stream_MediaFramework_LibCamera_MediaType& mediaType_out)
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_MediaTypeConverter_T::getMediaType"));
-
-  mediaType_out.format =
-      Stream_Device_Tools::ffmpegFormatToLibCameraFormat (mediaType_in.format);
-  mediaType_out.resolution.width = mediaType_in.resolution.width;
-  mediaType_out.resolution.height = mediaType_in.resolution.height;
-  mediaType_out.frameRateNumerator = mediaType_in.frameRate.num;
-  mediaType_out.frameRateDenominator = mediaType_in.frameRate.den;
-}
-
-template <typename MediaType,
-          typename SessionDataType>
-void
-Stream_MediaFramework_MediaTypeConverter_T<MediaType,
-                                           SessionDataType>::getMediaType (const struct Stream_MediaFramework_FFMPEG_VideoMediaType& mediaType_in,
                                                                            struct Stream_MediaFramework_V4L_MediaType& mediaType_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_MediaTypeConverter_T::getMediaType"));
@@ -245,25 +228,6 @@ Stream_MediaFramework_MediaTypeConverter_T<MediaType,
   mediaType_out.format.height = mediaType_in.resolution.height;
   mediaType_out.frameRate.numerator = mediaType_in.frameRate.num;
   mediaType_out.frameRate.denominator = mediaType_in.frameRate.den;
-}
-
-template <typename MediaType,
-          typename SessionDataType>
-void
-Stream_MediaFramework_MediaTypeConverter_T<MediaType,
-                                           SessionDataType>::getMediaType (const struct Stream_MediaFramework_LibCamera_MediaType& mediaType_in,
-                                                                           struct Stream_MediaFramework_FFMPEG_VideoMediaType& mediaType_out)
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_MediaTypeConverter_T::getMediaType"));
-
-  ACE_OS::memset (&mediaType_out, 0, sizeof (struct Stream_MediaFramework_FFMPEG_VideoMediaType));
-
-  mediaType_out.format =
-      Stream_Device_Tools::libCameraFormatToffmpegFormat (mediaType_in.format);
-  mediaType_out.resolution.width = mediaType_in.resolution.width;
-  mediaType_out.resolution.height = mediaType_in.resolution.height;
-  mediaType_out.frameRate.num = mediaType_in.frameRateNumerator;
-  mediaType_out.frameRate.den = mediaType_in.frameRateDenominator;
 }
 
 template <typename MediaType,
@@ -284,5 +248,43 @@ Stream_MediaFramework_MediaTypeConverter_T<MediaType,
   mediaType_out.frameRate.den = mediaType_in.frameRate.denominator;
   mediaType_out.frameRate.num = mediaType_in.frameRate.numerator;
 }
+
+#if defined (LIBCAMERA_SUPPORT)
+template <typename MediaType,
+          typename SessionDataType>
+void
+Stream_MediaFramework_MediaTypeConverter_T<MediaType,
+                                           SessionDataType>::getMediaType (const struct Stream_MediaFramework_FFMPEG_VideoMediaType& mediaType_in,
+                                                                           struct Stream_MediaFramework_LibCamera_MediaType& mediaType_out)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_MediaTypeConverter_T::getMediaType"));
+
+  mediaType_out.format =
+      Stream_Device_Tools::ffmpegFormatToLibCameraFormat (mediaType_in.format);
+  mediaType_out.resolution.width = mediaType_in.resolution.width;
+  mediaType_out.resolution.height = mediaType_in.resolution.height;
+  mediaType_out.frameRateNumerator = mediaType_in.frameRate.num;
+  mediaType_out.frameRateDenominator = mediaType_in.frameRate.den;
+}
+
+template <typename MediaType,
+          typename SessionDataType>
+void
+Stream_MediaFramework_MediaTypeConverter_T<MediaType,
+                                           SessionDataType>::getMediaType (const struct Stream_MediaFramework_LibCamera_MediaType& mediaType_in,
+                                                                           struct Stream_MediaFramework_FFMPEG_VideoMediaType& mediaType_out)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_MediaTypeConverter_T::getMediaType"));
+
+  ACE_OS::memset (&mediaType_out, 0, sizeof (struct Stream_MediaFramework_FFMPEG_VideoMediaType));
+
+  mediaType_out.format =
+      Stream_Device_Tools::libCameraFormatToffmpegFormat (mediaType_in.format);
+  mediaType_out.resolution.width = mediaType_in.resolution.width;
+  mediaType_out.resolution.height = mediaType_in.resolution.height;
+  mediaType_out.frameRate.num = mediaType_in.frameRateNumerator;
+  mediaType_out.frameRate.den = mediaType_in.frameRateDenominator;
+}
+#endif // LIBCAMERA_SUPPORT
 
 #endif // ACE_WIN32 || ACE_WIN64

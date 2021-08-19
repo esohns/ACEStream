@@ -66,14 +66,18 @@ extern "C"
 
 #include "stream_lib_common.h"
 #include "stream_lib_alsa_common.h"
-#include "stream_lib_libcamera_common.h"
 #include "stream_lib_v4l_common.h"
+#if defined (LIBCAMERA_SUPPORT)
+#include "stream_lib_libcamera_common.h"
+#endif // LIBCAMERA_SUPPORT
 
 // forward declarations
+#if defined (LIBCAMERA_SUPPORT)
 namespace libcamera {
 class Camera;
 class CameraManager;
 };
+#endif // LIBCAMERA_SUPPORT
 class Stream_IAllocator;
 #endif // ACE_WIN32 || ACE_WIN64
 #include "stream_lib_ffmpeg_common.h"
@@ -103,18 +107,6 @@ class Stream_Device_Tools
 
   static void dump (struct _snd_pcm*); // device handle
 
-  // libcamera
-  static Stream_Device_List_t getVideoCaptureDevices (libcamera::CameraManager*);
-  static std::shared_ptr<libcamera::Camera> getCamera (libcamera::CameraManager*,
-                                                       const std::string&); // device identifier
-  static Stream_MediaFramework_LibCamera_CaptureFormats_t getCaptureFormats (libcamera::Camera*);
-  static Common_Image_Resolutions_t getCaptureResolutions (libcamera::Camera*,
-                                                           const libcamera::PixelFormat&);
-
-  static struct Stream_MediaFramework_LibCamera_MediaType defaultCaptureFormat (libcamera::Camera*);
-
-  static struct Stream_MediaFramework_FFMPEG_VideoMediaType convert (const struct Stream_MediaFramework_LibCamera_MediaType&);
-
   // v4l
   static Stream_Device_List_t getVideoCaptureDevices ();
   static struct v4l2_pix_format getVideoCaptureFormat (int,                              // file descriptor
@@ -131,6 +123,20 @@ class Stream_Device_Tools
   static struct Stream_MediaFramework_V4L_MediaType defaultCaptureFormat (const std::string&); // device identifier
 
   static struct Stream_MediaFramework_FFMPEG_VideoMediaType convert (const struct Stream_MediaFramework_V4L_MediaType&);
+
+#if defined (LIBCAMERA_SUPPORT)
+  // libcamera
+  static Stream_Device_List_t getVideoCaptureDevices (libcamera::CameraManager*);
+  static std::shared_ptr<libcamera::Camera> getCamera (libcamera::CameraManager*,
+                                                       const std::string&); // device identifier
+  static Stream_MediaFramework_LibCamera_CaptureFormats_t getCaptureFormats (libcamera::Camera*);
+  static Common_Image_Resolutions_t getCaptureResolutions (libcamera::Camera*,
+                                                           const libcamera::PixelFormat&);
+
+  static struct Stream_MediaFramework_LibCamera_MediaType defaultCaptureFormat (libcamera::Camera*);
+
+  static struct Stream_MediaFramework_FFMPEG_VideoMediaType convert (const struct Stream_MediaFramework_LibCamera_MediaType&);
+#endif // LIBCAMERA_SUPPORT
 
   static void dump (int); // file descriptor
 
@@ -177,8 +183,10 @@ class Stream_Device_Tools
   static __u32 ffmpegFormatToV4L2Format (enum AVPixelFormat); // format
   static enum AVPixelFormat v4l2FormatToffmpegFormat (__u32); // format (fourcc)
 
+#if defined (LIBCAMERA_SUPPORT)
   static enum AVPixelFormat libCameraFormatToffmpegFormat (const libcamera::PixelFormat&); // format
   static libcamera::PixelFormat ffmpegFormatToLibCameraFormat (enum AVPixelFormat); // format
+#endif // LIBCAMERA_SUPPORT
 #endif // ACE_WIN32 || ACE_WIN64
 
  private:

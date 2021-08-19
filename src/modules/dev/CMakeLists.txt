@@ -1,8 +1,19 @@
-﻿include (${CMAKE_CURRENT_SOURCE_DIR}/../../../../Common/src/ui/scripts/PreUIFramework.cmake)
-include (${CMAKE_CURRENT_SOURCE_DIR}/../../../../Common/src/ui//scripts/SetUIFramework.cmake)
-if (GTK_SUPPORT)
- include (${CMAKE_CURRENT_SOURCE_DIR}/../../../../Common/src/ui/scripts/SetGTKVersion.cmake)
-endif (GTK_SUPPORT)
+﻿if (UNIX)
+ option (LIBCAMERA_SUPPORT "support libcamera" OFF)
+ if (LIBCAMERA_SUPPORT)
+  add_definitions (-DLIBCAMERA_SUPPORT)
+ endif (LIBCAMERA_SUPPORT)
+endif (UNIX)
+
+#if (GUI_SUPPORT)
+# add_definitions (-DGUI_SUPPORT)
+# set (CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_CURRENT_SOURCE_DIR}/../../../../Common/src/ui/scripts")
+# include (PreUIFramework)
+# include (SetUIFramework)
+# if (GTK_SUPPORT)
+#  include (SetGTKVersion)
+# endif (GTK_SUPPORT)
+#endif (GUI_SUPPORT)
 
 include (FindPkgConfig)
 if (UNIX)
@@ -10,12 +21,10 @@ if (UNIX)
  pkg_check_modules (PKG_FFMPEG REQUIRED libavutil)
  # pkg_check_modules (PKG_LIBCAMERA REQUIRED libcamera)
  pkg_check_modules (PKG_LIBV4L2 REQUIRED libv4l2)
-
-# add_compile_options (-std=c++17)
 endif (UNIX)
 
 if (UNIX)
- add_definitions (-D_GLIBCXX_INCLUDE_NEXT_C_HEADERS)
+# add_definitions (-D_GLIBCXX_INCLUDE_NEXT_C_HEADERS)
 elseif (WIN32)
  if (CMAKE_BUILD_TYPE STREQUAL Debug)
   add_definitions (-DD3D_DEBUG_INFO)
@@ -24,17 +33,19 @@ endif ()
 
 add_library (${PROJECT_NAME}_Device STATIC "")
 
-target_include_directories (${PROJECT_NAME}_Device PUBLIC
-                            "$<BUILD_INTERFACE:${GTK_INCLUDE_DIRS}>")
+#target_include_directories (${PROJECT_NAME}_Device PUBLIC
+#                            "$<BUILD_INTERFACE:${GTK_INCLUDE_DIRS}>")
 
 if (UNIX)
  target_include_directories (${PROJECT_NAME}_Device PUBLIC
                              $<BUILD_INTERFACE:${PKG_FFMPEG_INCLUDE_DIRS}>)
 
-# target_include_directories (${PROJECT_NAME}_MediaFramework PUBLIC
-#                             $<BUILD_INTERFACE:${PKG_LIBCAMERA_INCLUDE_DIRS}>)
- target_include_directories (${PROJECT_NAME}_Device PUBLIC
-                             $<BUILD_INTERFACE:/usr/local/include/libcamera>)
+ if (LIBCAMERA_SUPPORT)
+#  target_include_directories (${PROJECT_NAME}_MediaFramework PUBLIC
+#                              $<BUILD_INTERFACE:${PKG_LIBCAMERA_INCLUDE_DIRS}>)
+  target_include_directories (${PROJECT_NAME}_Device PUBLIC
+                              $<BUILD_INTERFACE:/usr/local/include/libcamera>)
+ endif (LIBCAMERA_SUPPORT)
 
  target_include_directories (${PROJECT_NAME}_Device PUBLIC
                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../Common/src>)
@@ -71,14 +82,6 @@ elseif (WIN32)
 
  target_include_directories (${PROJECT_NAME}_Device PUBLIC
                              $<BUILD_INTERFACE:$ENV{LIB_ROOT}/ffmpeg/include>)
-
- if (DEFINED ENV{ACE_ROOT})
-  target_include_directories (${PROJECT_NAME}_Device PUBLIC
-                              $<BUILD_INTERFACE:$ENV{ACE_ROOT}>)
- else ()
-  target_include_directories (${PROJECT_NAME}_Device PUBLIC
-                              $<BUILD_INTERFACE:$ENV{LIB_ROOT}/ACE_TAO/ACE>)
- endif (DEFINED ENV{ACE_ROOT})
 
  target_include_directories (${PROJECT_NAME}_Device PUBLIC
                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../Common/src>)
@@ -140,9 +143,6 @@ if (WIN32)
 elseif (UNIX)
  set (source_files
       ${source_files}
-      stream_dev_cam_source_libcamera.cpp
-      stream_dev_cam_source_libcamera.h
-      stream_dev_cam_source_libcamera.inl
       stream_dev_cam_source_v4l.cpp
       stream_dev_cam_source_v4l.h
       stream_dev_cam_source_v4l.inl
@@ -152,6 +152,13 @@ elseif (UNIX)
       stream_dev_target_alsa.cpp
       stream_dev_target_alsa.h
       stream_dev_target_alsa.inl)
+ if (LIBCAMERA_SUPPORT)
+  set (source_files
+       ${source_files}
+       stream_dev_cam_source_libcamera.cpp
+       stream_dev_cam_source_libcamera.h
+       stream_dev_cam_source_libcamera.inl)
+ endif (LIBCAMERA_SUPPORT)
 endif ()
 
 # Include dir for installed targets
@@ -183,11 +190,12 @@ add_dependencies (${PROJECT_NAME}_Device ${PROJECT_NAME})
 if (UNIX)
  target_link_libraries (${PROJECT_NAME}_Device ${PKG_LIBALSA_LIBRARIES})
 
-# target_link_libraries (${PROJECT_NAME}_Device ${PKG_LIBCAMERA_LIBRARIES})
- link_directories (/usr/local/lib64)
- target_link_libraries (${PROJECT_NAME}_Device camera-base camera)
-
  target_link_libraries (${PROJECT_NAME}_Device ${PKG_LIBV4L2_LIBRARIES})
+ if (LIBCAMERA_SUPPORT)
+# target_link_libraries (${PROJECT_NAME}_Device ${PKG_LIBCAMERA_LIBRARIES})
+  link_directories (/usr/local/lib64)
+  target_link_libraries (${PROJECT_NAME}_Device camera-base camera)
+ endif (LIBCAMERA_SUPPORT)
 elseif (WIN32)
  target_link_libraries (${PROJECT_NAME}_Device d3d9.lib)
  target_link_libraries (${PROJECT_NAME}_Device dmoguids.lib)
@@ -233,8 +241,6 @@ if (UNIX)
           stream_dev_defines.h
           stream_dev_tools.h
           stream_dev_tools.inl
-          stream_dev_cam_source_libcamera.h
-          stream_dev_cam_source_libcamera.inl
           stream_dev_cam_source_v4l.h
           stream_dev_cam_source_v4l.inl
           stream_dev_mic_source_alsa.h
@@ -243,6 +249,13 @@ if (UNIX)
           stream_dev_target_alsa.inl
           DESTINATION "${INSTALL_INCLUDE_DIR}/${PROJECT_NAME}"
           COMPONENT mod_include)
+ if (LIBCAMERA_SUPPORT)
+  install (FILES
+           stream_dev_cam_source_libcamera.h
+           stream_dev_cam_source_libcamera.inl
+           DESTINATION "${INSTALL_INCLUDE_DIR}/${PROJECT_NAME}"
+           COMPONENT mod_include)
+ endif (LIBCAMERA_SUPPORT)
 elseif (WIN32)
  install (FILES
 #          stream_dev_exports.h
