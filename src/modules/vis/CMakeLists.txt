@@ -70,9 +70,9 @@ endif ()
 add_library (${PROJECT_NAME}_Visualization STATIC "")
 
 if (GTK_SUPPORT)
-# message (STATUS "VIS:: GTK_INCLUDE_DIRS: ${GTK_INCLUDE_DIRS}")
+ message (STATUS "VIS:: GTK_INCLUDE_DIRS: ${GTK_INCLUDE_DIRS}")
  target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
-                             "$<BUILD_INTERFACE:${GTK_INCLUDE_DIRS}>")
+                             $<BUILD_INTERFACE:${GTK_INCLUDE_DIRS}>)
  if (GTKGL_SUPPORT)
   if (GTKGLAREA_SUPPORT)
 # *NOTE*: check out the 'master' branch for gtk3-based applications
