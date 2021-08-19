@@ -61,7 +61,9 @@ jobs:
 
    - name: Generate LibreOffice headers
      run: |
-          sudo ./scripts/make_oo_headers.sh
+          cd scripts
+          chmod u+x make_oo_headers.sh
+          sudo ./make_oo_headers.sh
 
    - name: Configure CMake (Common)
      run: |
