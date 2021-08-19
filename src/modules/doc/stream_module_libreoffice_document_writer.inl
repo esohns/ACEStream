@@ -417,10 +417,12 @@ Stream_Module_LibreOffice_Document_Writer_T<SynchStrategyType,
   command_line_string += ACE_TEXT_ALWAYS_CHAR (COMMON_LOCATION_SCRIPTS_SUBDIRECTORY);
   command_line_string += ACE_DIRECTORY_SEPARATOR_STR;
   command_line_string += ACE_TEXT_ALWAYS_CHAR (STREAM_DOCUMENT_DEFAULT_LIBREOFFICE_START_SH);
-  ACE_ASSERT (Common_File_Tools::exists (command_line_string) &&
-              Common_File_Tools::isExecutable (command_line_string));
   int exit_status = 0;
   std::string stdout_string;
+  if (process_id)
+    goto continue_;
+  ACE_ASSERT (Common_File_Tools::exists (command_line_string) &&
+              Common_File_Tools::isExecutable (command_line_string));
   if (!Common_Process_Tools::command (command_line_string,
                                       exit_status,
                                       stdout_string))
@@ -439,6 +441,7 @@ Stream_Module_LibreOffice_Document_Writer_T<SynchStrategyType,
               inherited::mod_->name (),
               process_id));
 
+continue_:
   return inherited::initialize (configuration_in,
                                 allocator_in);
 }

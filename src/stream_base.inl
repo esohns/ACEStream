@@ -399,6 +399,11 @@ Stream_Base_T<ACE_SYNCH_USE,
   // sanity check(s)
   ACE_ASSERT (configuration_);
 
+  IMODULE_T* imodule_p = NULL;
+  TASK_T* task_p = NULL;
+  IMODULE_HANDLER_T* imodule_handler_p = NULL;
+  typename CONFIGURATION_T::ITERATOR_T iterator_2;
+
   // step1: allocate session data ?
   if (resetSessionData_in)
   {
@@ -415,7 +420,7 @@ Stream_Base_T<ACE_SYNCH_USE,
       ACE_DEBUG ((LM_CRITICAL,
                   ACE_TEXT ("%s: failed to allocate memory: \"%m\", returning\n"),
                   ACE_TEXT (StreamName)));
-      return;
+      goto error;
     } // end IF
     //ACE_DEBUG ((LM_DEBUG,
     //            ACE_TEXT ("%s: allocated %u byte(s) of session data: %@ (lock: %@)\n"),
@@ -442,15 +447,11 @@ Stream_Base_T<ACE_SYNCH_USE,
         state_.sessionData = NULL;
       } // end lock scope
       delete session_data_p; session_data_p = NULL;
-      return;
+      goto error;
     } // end IF
   } // end IF
 
   // step2: load/initialize modules
-  IMODULE_T* imodule_p = NULL;
-  TASK_T* task_p = NULL;
-  IMODULE_HANDLER_T* imodule_handler_p = NULL;
-  typename CONFIGURATION_T::ITERATOR_T iterator_2;
   { ACE_GUARD (ACE_SYNCH_RECURSIVE_MUTEX, aGuard, lock_);
     if (unlikely (!load (&layout_,
                          delete_)))
@@ -458,7 +459,7 @@ Stream_Base_T<ACE_SYNCH_USE,
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: failed to Stream_IStreamLayout_T::load(), returning\n"),
                   ACE_TEXT (StreamName)));
-      return;
+      goto error;
     } // end IF
 
     // *NOTE*: iff this is set, the module has already been clone()d as
@@ -513,7 +514,7 @@ Stream_Base_T<ACE_SYNCH_USE,
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s/%s: failed to Common_IInitialize_T::initialize(), returning\n"),
                     ACE_TEXT (StreamName), (*iterator)->name ()));
-        return;
+        goto error;
       } // end IF
 //#if defined (_DEBUG)
 //      ACE_DEBUG ((LM_DEBUG,
@@ -544,9 +545,12 @@ Stream_Base_T<ACE_SYNCH_USE,
       ACE_ASSERT (configuration_->configuration_);
       if (unlikely (!imodule_handler_p->initialize ((*iterator_2).second.second,
                                                     configuration_->configuration_->messageAllocator)))
+      {
         ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("%s/%s: failed to Stream_IModuleHandler_T::initialize(), continuing\n"),
+                    ACE_TEXT ("%s/%s: failed to Stream_IModuleHandler_T::initialize(), aborting\n"),
                     ACE_TEXT (StreamName), (*iterator)->name ()));
+        goto error;
+      } // end IF
     } // end FOR
   } // end lock scope
 
@@ -557,10 +561,14 @@ Stream_Base_T<ACE_SYNCH_USE,
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: failed to Stream_Base_T::setup(), returning\n"),
                   ACE_TEXT (StreamName)));
-      return;
+      goto error;
     } // end IF
 
   isInitialized_ = true;
+
+  return;
+error:
+  isInitialized_ = false;
 }
 
 template <ACE_SYNCH_DECL,
@@ -3015,7 +3023,7 @@ Stream_Base_T<ACE_SYNCH_USE,
   initialize (configuration_->configuration_->setupPipeline,
               configuration_->configuration_->resetSessionData);
 
-  return true;
+  return isInitialized_;
 }
 
 template <ACE_SYNCH_DECL,
