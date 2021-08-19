@@ -26,8 +26,10 @@
 #include <initguid.h> // *NOTE*: this exports DEFINE_GUIDs (see stream_misc_common.h)
 #include <mfapi.h>
 #else
-#include "libcamera/libcamera.h"
 #include "libv4l2.h"
+#if defined (LIBCAMERA_SUPPORT)
+#include "libcamera/libcamera.h"
+#endif // LIBCAMERA_SUPPORT
 #endif // ACE_WIN32 || ACE_WIN64
 
 #if defined (GUI_SUPPORT)
@@ -1134,8 +1136,10 @@ do_work (const std::string& captureinterfaceIdentifier_in,
          struct Stream_CamSave_DirectShow_UI_CBData& directShowCBData_in,
          struct Stream_CamSave_MediaFoundation_UI_CBData& mediaFoundationCBData_in,
 #else
-         struct Stream_CamSave_LibCamera_UI_CBData& libCamera_CBData_in,
          struct Stream_CamSave_V4L_UI_CBData& v4l_CBData_in,
+#if defined (LIBCAMERA_SUPPORT)
+         struct Stream_CamSave_LibCamera_UI_CBData& libCamera_CBData_in,
+#endif // LIBCAMERA_SUPPORT
 #endif // ACE_WIN32 || ACE_WIN64
 #if defined (WXWIDGETS_USE)
          Common_UI_wxWidgets_IApplicationBase_t* iapplication_in,
@@ -1177,6 +1181,8 @@ do_work (const std::string& captureinterfaceIdentifier_in,
                                                                        );
 #elif defined (WXWIDGETS_USE)
                                                                         ,iapplication_in);
+#else
+                                                                       );
 #endif
 #else
   Stream_CamSave_DirectShow_EventHandler_t directshow_ui_event_handler;
@@ -1189,14 +1195,14 @@ do_work (const std::string& captureinterfaceIdentifier_in,
                                                                                  );
 #elif defined (WXWIDGETS_USE)
                                                                                   ,iapplication_in);
+#else
+                                                                                 );
 #endif
 #else
   Stream_CamSave_MediaFoundation_EventHandler_t mediafoundation_ui_event_handler;
 #endif // GUI_SUPPORT
 #else
-  struct Stream_CamSave_LibCamera_ModuleHandlerConfiguration libcamera_modulehandler_configuration;
   struct Stream_CamSave_V4L_ModuleHandlerConfiguration v4l_modulehandler_configuration;
-  struct Stream_CamSave_LibCamera_StreamConfiguration libcamera_stream_configuration;
   struct Stream_CamSave_V4L_StreamConfiguration v4l_stream_configuration;
   Stream_CamSave_V4L_EventHandler_t v4l_ui_event_handler (
 #if defined (GUI_SUPPORT)
@@ -1206,7 +1212,10 @@ do_work (const std::string& captureinterfaceIdentifier_in,
                                                           ,iapplication_in
 #endif
 #endif // GUI_SUPPORT
-                                                         );
+                                                          );
+#if defined (LIBCAMERA_SUPPORT)
+  struct Stream_CamSave_LibCamera_ModuleHandlerConfiguration libcamera_modulehandler_configuration;
+  struct Stream_CamSave_LibCamera_StreamConfiguration libcamera_stream_configuration;
   Stream_CamSave_LibCamera_EventHandler_t libcamera_ui_event_handler (
 #if defined (GUI_SUPPORT)
                                                                       &libCamera_CBData_in
@@ -1216,6 +1225,7 @@ do_work (const std::string& captureinterfaceIdentifier_in,
 #endif
 #endif // GUI_SUPPORT
                                                                      );
+#endif // LIBCAMERA_SUPPORT
 #endif // ACE_WIN32 || ACE_WIN64
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -1564,12 +1574,14 @@ error:
     }
   } // end SWITCH
 #else
-  configuration_in.libCamera_streamConfiguration.initialize (module_configuration,
-                                                             libcamera_modulehandler_configuration,
-                                                             libcamera_stream_configuration);
   configuration_in.v4l_streamConfiguration.initialize (module_configuration,
                                                        v4l_modulehandler_configuration,
                                                        v4l_stream_configuration);
+#if defined (LIBCAMERA_SUPPORT)
+  configuration_in.libCamera_streamConfiguration.initialize (module_configuration,
+                                                             libcamera_modulehandler_configuration,
+                                                             libcamera_stream_configuration);
+#endif // LIBCAMERA_SUPPORT
 
   if (useLibCamera_in)
   {
@@ -1599,23 +1611,25 @@ error:
       return;
     } // end IF
 
-  libcamera_modulehandler_configuration.display = displayDevice_in;
   v4l_modulehandler_configuration.display = displayDevice_in;
-  configuration_in.libCamera_streamConfiguration.insert (std::make_pair (Stream_Visualization_Tools::rendererToModuleName (STREAM_VISUALIZATION_VIDEORENDERER_X11),
-                                                                         std::make_pair (module_configuration,
-                                                                                         libcamera_modulehandler_configuration)));
   configuration_in.v4l_streamConfiguration.insert (std::make_pair (Stream_Visualization_Tools::rendererToModuleName (STREAM_VISUALIZATION_VIDEORENDERER_X11),
                                                                    std::make_pair (module_configuration,
                                                                                   v4l_modulehandler_configuration)));
   // *NOTE*: apparently, Windows Media Player supports only RGB 5:5:5 16bpp AVI
   //         content (see also avienc.c:448)
   v4l_modulehandler_configuration.outputFormat.format = AV_PIX_FMT_BGR24;
-  configuration_in.libCamera_streamConfiguration.insert (std::make_pair (std::string (std::string (ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_LIBAV_CONVERTER_DEFAULT_NAME_STRING)) + ACE_TEXT_ALWAYS_CHAR ("_2")),
-                                                                         std::make_pair (module_configuration,
-                                                                                         libcamera_modulehandler_configuration)));
   configuration_in.v4l_streamConfiguration.insert (std::make_pair (std::string (std::string (ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_LIBAV_CONVERTER_DEFAULT_NAME_STRING)) + ACE_TEXT_ALWAYS_CHAR ("_2")),
                                                                    std::make_pair (module_configuration,
                                                                                    v4l_modulehandler_configuration)));
+#if defined (LIBCAMERA_SUPPORT)
+  libcamera_modulehandler_configuration.display = displayDevice_in;
+  configuration_in.libCamera_streamConfiguration.insert (std::make_pair (Stream_Visualization_Tools::rendererToModuleName (STREAM_VISUALIZATION_VIDEORENDERER_X11),
+                                                                         std::make_pair (module_configuration,
+                                                                                         libcamera_modulehandler_configuration)));
+  configuration_in.libCamera_streamConfiguration.insert (std::make_pair (std::string (std::string (ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_LIBAV_CONVERTER_DEFAULT_NAME_STRING)) + ACE_TEXT_ALWAYS_CHAR ("_2")),
+                                                                         std::make_pair (module_configuration,
+                                                                                         libcamera_modulehandler_configuration)));
+#endif // LIBCAMERA_SUPPORT
   v4l_stream_iterator =
     configuration_in.v4l_streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (v4l_stream_iterator != configuration_in.v4l_streamConfiguration.end ());
@@ -1894,8 +1908,13 @@ error:
 #if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
     if (useLibCamera_in)
+#if defined (LIBCAMERA_SUPPORT)
       Common_UI_GTK_Tools::initialize (libCamera_CBData_in.configuration->GTKConfiguration.argc,
                                        libCamera_CBData_in.configuration->GTKConfiguration.argv);
+#else
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("useLibCamera_in specified, but LIBCAMERA_SUPPORT not set, continuing\n")));
+#endif // LIBCAMERA_SUPPORT
     else
       Common_UI_GTK_Tools::initialize (v4l_CBData_in.configuration->GTKConfiguration.argc,
                                        v4l_CBData_in.configuration->GTKConfiguration.argv);
@@ -2459,12 +2478,19 @@ ACE_TMAIN (int argc_in,
   } // end SWITCH
 #else
   struct Stream_CamSave_Configuration configuration;
-  struct Stream_CamSave_LibCamera_UI_CBData libcamera_ui_cb_data;
   struct Stream_CamSave_V4L_UI_CBData v4l_ui_cb_data;
+#if defined (LIBCAMERA_SUPPORT)
+  struct Stream_CamSave_LibCamera_UI_CBData libcamera_ui_cb_data;
+#endif // LIBCAMERA_SUPPORT
   if (use_libcamera)
   {
+#if defined (LIBCAMERA_SUPPORT)
     libcamera_ui_cb_data.useLibCamera = true;
     libcamera_ui_cb_data.configuration = &configuration;
+#else
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("use_libcamera specified, but LIBCAMERA_SUPPORT not set, continuing\n")));
+#endif // LIBCAMERA_SUPPORT
   } // end IF
   else
     v4l_ui_cb_data.configuration = &configuration;
@@ -2473,6 +2499,7 @@ ACE_TMAIN (int argc_in,
 #if defined (GTK_USE)
   if (use_libcamera)
   {
+#if defined (LIBCAMERA_SUPPORT)
     libcamera_ui_cb_data.configuration->GTKConfiguration.argc = argc_in;
     libcamera_ui_cb_data.configuration->GTKConfiguration.argv = argv_in;
     libcamera_ui_cb_data.configuration->GTKConfiguration.CBData =
@@ -2482,6 +2509,10 @@ ACE_TMAIN (int argc_in,
     libcamera_ui_cb_data.configuration->GTKConfiguration.eventHooks.initHook =
         idle_initialize_UI_cb;
     libcamera_ui_cb_data.configuration->GTKConfiguration.definition = &gtk_ui_definition;
+#else
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("use_libcamera specified, but LIBCAMERA_SUPPORT not set, continuing\n")));
+#endif // LIBCAMERA_SUPPORT
   } // end IF
   else
   {
@@ -2785,8 +2816,13 @@ ACE_TMAIN (int argc_in,
 #else
 #if defined (GTK_USE)
   if (use_libcamera)
+#if defined (LIBCAMERA_SUPPORT)
     result_2 =
         gtk_manager_p->initialize (libcamera_ui_cb_data.configuration->GTKConfiguration);
+#else
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("use_libcamera specified, but LIBCAMERA_SUPPORT not set, continuing\n")));
+#endif // LIBCAMERA_SUPPORT
   else
     result_2 =
         gtk_manager_p->initialize (v4l_ui_cb_data.configuration->GTKConfiguration);
@@ -2844,8 +2880,10 @@ ACE_TMAIN (int argc_in,
            directshow_ui_cb_data,
            mediafoundation_ui_cb_data,
 #else
-           libcamera_ui_cb_data,
            v4l_ui_cb_data,
+#if defined (LIBCAMERA_SUPPORT)
+           libcamera_ui_cb_data,
+#endif // LIBCAMERA_SUPPORT
 #endif // ACE_WIN32 || ACE_WIN64
 #if defined (WXWIDGETS_USE)
            iapplication_p,

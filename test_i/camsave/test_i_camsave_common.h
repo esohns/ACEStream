@@ -39,7 +39,9 @@
 #else
 #include "linux/videodev2.h"
 
+#if defined (LIBCAMERA_SUPPORT)
 #include "libcamera/libcamera.h"
+#endif // LIBCAMERA_SUPPORT
 #ifdef __cplusplus
 extern "C"
 {
@@ -95,8 +97,10 @@ extern "C"
 #include "stream_lib_directshow_tools.h"
 #else
 #include "stream_lib_ffmpeg_common.h"
-#include "stream_lib_libcamera_common.h"
 #include "stream_lib_v4l_common.h"
+#if defined (LIBCAMERA_SUPPORT)
+#include "stream_lib_libcamera_common.h"
+#endif // LIBCAMERA_SUPPORT
 #endif // ACE_WIN32 || ACE_WIN64
 
 #include "stream_dev_common.h"
@@ -183,6 +187,22 @@ struct Stream_CamSave_MediaFoundation_MessageData
 };
 typedef Stream_DataBase_T<struct Stream_CamSave_MediaFoundation_MessageData> Stream_CamSave_MediaFoundation_MessageData_t;
 #else
+struct Stream_CamSave_V4L_MessageData
+{
+  Stream_CamSave_V4L_MessageData ()
+   : device (-1)
+   , index (0)
+   , method (STREAM_LIB_V4L_DEFAULT_IO_METHOD)
+   , release (false)
+  {}
+
+  int         device; // (capture) device file descriptor
+  __u32       index;  // 'index' field of v4l2_buffer
+  v4l2_memory method;
+  bool        release;
+};
+
+#if defined (LIBCAMERA_SUPPORT)
 struct Stream_CamSave_LibCamera_MessageData
 {
   Stream_CamSave_LibCamera_MessageData ()
@@ -199,21 +219,7 @@ struct Stream_CamSave_LibCamera_MessageData
   libcamera::Request*     request;
   libcamera::Stream*      stream;
 };
-
-struct Stream_CamSave_V4L_MessageData
-{
-  Stream_CamSave_V4L_MessageData ()
-   : device (-1)
-   , index (0)
-   , method (STREAM_LIB_V4L_DEFAULT_IO_METHOD)
-   , release (false)
-  {}
-
-  int         device; // (capture) device file descriptor
-  __u32       index;  // 'index' field of v4l2_buffer
-  v4l2_memory method;
-  bool        release;
-};
+#endif // LIBCAMERA_SUPPORT
 #endif // ACE_WIN32 || ACE_WIN64
 
 struct Stream_CamSave_StatisticData
@@ -353,29 +359,6 @@ class Stream_CamSave_MediaFoundation_SessionData
 };
 typedef Stream_SessionData_T<Stream_CamSave_MediaFoundation_SessionData> Stream_CamSave_MediaFoundation_SessionData_t;
 #else
-struct Stream_CamSave_LibCamera_StreamState;
-class Stream_CamSave_LibCamera_SessionData
- : public Stream_SessionDataMediaBase_T<struct Test_I_SessionData,
-                                        struct Stream_MediaFramework_LibCamera_MediaType,
-                                        struct Stream_CamSave_LibCamera_StreamState,
-                                        struct Stream_CamSave_StatisticData,
-                                        struct Stream_UserData>
-{
- public:
-  Stream_CamSave_LibCamera_SessionData ()
-   : Stream_SessionDataMediaBase_T<struct Test_I_SessionData,
-                                   struct Stream_MediaFramework_LibCamera_MediaType,
-                                   struct Stream_CamSave_LibCamera_StreamState,
-                                   struct Stream_CamSave_StatisticData,
-                                   struct Stream_UserData> ()
-  {}
-
- private:
-//  ACE_UNIMPLEMENTED_FUNC (Stream_CamSave_LibCamera_SessionData (const Stream_CamSave_LibCamera_SessionData&))
-  ACE_UNIMPLEMENTED_FUNC (Stream_CamSave_LibCamera_SessionData& operator= (const Stream_CamSave_LibCamera_SessionData&))
-};
-typedef Stream_SessionData_T<Stream_CamSave_LibCamera_SessionData> Stream_CamSave_LibCamera_SessionData_t;
-
 struct Stream_CamSave_V4L_StreamState;
 class Stream_CamSave_V4L_SessionData
  : public Stream_SessionDataMediaBase_T<struct Test_I_SessionData,
@@ -398,6 +381,31 @@ class Stream_CamSave_V4L_SessionData
   ACE_UNIMPLEMENTED_FUNC (Stream_CamSave_V4L_SessionData& operator= (const Stream_CamSave_V4L_SessionData&))
 };
 typedef Stream_SessionData_T<Stream_CamSave_V4L_SessionData> Stream_CamSave_V4L_SessionData_t;
+
+#if defined (LIBCAMERA_SUPPORT)
+struct Stream_CamSave_LibCamera_StreamState;
+class Stream_CamSave_LibCamera_SessionData
+ : public Stream_SessionDataMediaBase_T<struct Test_I_SessionData,
+                                        struct Stream_MediaFramework_LibCamera_MediaType,
+                                        struct Stream_CamSave_LibCamera_StreamState,
+                                        struct Stream_CamSave_StatisticData,
+                                        struct Stream_UserData>
+{
+ public:
+  Stream_CamSave_LibCamera_SessionData ()
+   : Stream_SessionDataMediaBase_T<struct Test_I_SessionData,
+                                   struct Stream_MediaFramework_LibCamera_MediaType,
+                                   struct Stream_CamSave_LibCamera_StreamState,
+                                   struct Stream_CamSave_StatisticData,
+                                   struct Stream_UserData> ()
+  {}
+
+ private:
+//  ACE_UNIMPLEMENTED_FUNC (Stream_CamSave_LibCamera_SessionData (const Stream_CamSave_LibCamera_SessionData&))
+  ACE_UNIMPLEMENTED_FUNC (Stream_CamSave_LibCamera_SessionData& operator= (const Stream_CamSave_LibCamera_SessionData&))
+};
+typedef Stream_SessionData_T<Stream_CamSave_LibCamera_SessionData> Stream_CamSave_LibCamera_SessionData_t;
+#endif // LIBCAMERA_SUPPORT
 #endif // ACE_WIN32 || ACE_WIN64
 
 struct Stream_CamSave_SignalHandlerConfiguration
@@ -447,22 +455,17 @@ typedef Stream_ISessionDataNotify_T<Stream_SessionId_t,
 typedef std::list<Stream_CamSave_MediaFoundation_ISessionNotify_t*> Stream_CamSave_MediaFoundation_Subscribers_t;
 typedef Stream_CamSave_MediaFoundation_Subscribers_t::iterator Stream_CamSave_MediaFoundation_SubscribersIterator_t;
 #else
-typedef Stream_CamSave_LibCamera_Message_T<struct Stream_CamSave_LibCamera_MessageData,
-                                           Stream_CamSave_LibCamera_SessionData_t> Stream_CamSave_LibCamera_Message_t;
-typedef Stream_CamSave_SessionMessage_T<Stream_CamSave_LibCamera_Message_t,
-                                        Stream_CamSave_LibCamera_SessionData_t> Stream_CamSave_LibCamera_SessionMessage_t;
 typedef Stream_CamSave_Message_T<struct Stream_CamSave_V4L_MessageData,
                                  Stream_CamSave_V4L_SessionData_t> Stream_CamSave_V4L_Message_t;
 typedef Stream_CamSave_SessionMessage_T<Stream_CamSave_V4L_Message_t,
                                         Stream_CamSave_V4L_SessionData_t> Stream_CamSave_V4L_SessionMessage_t;
+#if defined (LIBCAMERA_SUPPORT)
+typedef Stream_CamSave_LibCamera_Message_T<struct Stream_CamSave_LibCamera_MessageData,
+                                           Stream_CamSave_LibCamera_SessionData_t> Stream_CamSave_LibCamera_Message_t;
+typedef Stream_CamSave_SessionMessage_T<Stream_CamSave_LibCamera_Message_t,
+                                        Stream_CamSave_LibCamera_SessionData_t> Stream_CamSave_LibCamera_SessionMessage_t;
+#endif // LIBCAMERA_SUPPORT
 
-typedef Stream_ISessionDataNotify_T<Stream_SessionId_t,
-                                    Stream_CamSave_LibCamera_SessionData,
-                                    enum Stream_SessionMessageType,
-                                    Stream_CamSave_LibCamera_Message_t,
-                                    Stream_CamSave_LibCamera_SessionMessage_t> Stream_CamSave_LibCamera_ISessionNotify_t;
-typedef std::list<Stream_CamSave_LibCamera_ISessionNotify_t*> Stream_CamSave_LibCamera_Subscribers_t;
-typedef Stream_CamSave_LibCamera_Subscribers_t::iterator Stream_CamSave_LibCamera_SubscribersIterator_t;
 typedef Stream_ISessionDataNotify_T<Stream_SessionId_t,
                                     Stream_CamSave_V4L_SessionData,
                                     enum Stream_SessionMessageType,
@@ -470,6 +473,15 @@ typedef Stream_ISessionDataNotify_T<Stream_SessionId_t,
                                     Stream_CamSave_V4L_SessionMessage_t> Stream_CamSave_V4L_ISessionNotify_t;
 typedef std::list<Stream_CamSave_V4L_ISessionNotify_t*> Stream_CamSave_V4L_Subscribers_t;
 typedef Stream_CamSave_V4L_Subscribers_t::iterator Stream_CamSave_V4L_SubscribersIterator_t;
+#if defined (LIBCAMERA_SUPPORT)
+typedef Stream_ISessionDataNotify_T<Stream_SessionId_t,
+                                    Stream_CamSave_LibCamera_SessionData,
+                                    enum Stream_SessionMessageType,
+                                    Stream_CamSave_LibCamera_Message_t,
+                                    Stream_CamSave_LibCamera_SessionMessage_t> Stream_CamSave_LibCamera_ISessionNotify_t;
+typedef std::list<Stream_CamSave_LibCamera_ISessionNotify_t*> Stream_CamSave_LibCamera_Subscribers_t;
+typedef Stream_CamSave_LibCamera_Subscribers_t::iterator Stream_CamSave_LibCamera_SubscribersIterator_t;
+#endif // LIBCAMERA_SUPPORT
 #endif // ACE_WIN32 || ACE_WIN64
 struct Stream_CamSave_ModuleHandlerConfiguration
  : Test_I_ModuleHandlerConfiguration
@@ -626,32 +638,6 @@ struct Stream_CamSave_MediaFoundation_ModuleHandlerConfiguration
   IMFVideoDisplayControl*                              windowController;
 };
 #else
-struct Stream_CamSave_LibCamera_StreamConfiguration;
-struct Stream_CamSave_LibCamera_ModuleHandlerConfiguration;
-typedef Stream_Configuration_T<//stream_name_string_,
-                               struct Stream_CamSave_LibCamera_StreamConfiguration,
-                               struct Stream_CamSave_LibCamera_ModuleHandlerConfiguration> Stream_CamSave_LibCamera_StreamConfiguration_t;
-struct Stream_CamSave_LibCamera_ModuleHandlerConfiguration
- : Stream_CamSave_ModuleHandlerConfiguration
-{
-  Stream_CamSave_LibCamera_ModuleHandlerConfiguration ()
-   : Stream_CamSave_ModuleHandlerConfiguration ()
-   , codecFormat (AV_PIX_FMT_NONE)
-   , codecId (AV_CODEC_ID_NONE)
-   , outputFormat ()
-   , subscriber (NULL)
-   , subscribers (NULL)
-  {
-    ACE_OS::memset (&outputFormat, 0, sizeof (struct Stream_MediaFramework_FFMPEG_VideoMediaType));
-  }
-
-  enum AVPixelFormat                                 codecFormat; // preferred output-
-  enum AVCodecID                                     codecId;
-  struct Stream_MediaFramework_FFMPEG_VideoMediaType outputFormat;
-  Stream_CamSave_LibCamera_ISessionNotify_t*         subscriber;
-  Stream_CamSave_LibCamera_Subscribers_t*            subscribers;
-};
-
 struct Stream_CamSave_V4L_StreamConfiguration;
 struct Stream_CamSave_V4L_ModuleHandlerConfiguration;
 typedef Stream_Configuration_T<//stream_name_string_,
@@ -698,6 +684,33 @@ struct Stream_CamSave_V4L_ModuleHandlerConfiguration
   Stream_CamSave_V4L_ISessionNotify_t*          subscriber;
   Stream_CamSave_V4L_Subscribers_t*             subscribers;
 };
+#if defined (LIBCAMERA_SUPPORT)
+struct Stream_CamSave_LibCamera_StreamConfiguration;
+struct Stream_CamSave_LibCamera_ModuleHandlerConfiguration;
+typedef Stream_Configuration_T<//stream_name_string_,
+                               struct Stream_CamSave_LibCamera_StreamConfiguration,
+                               struct Stream_CamSave_LibCamera_ModuleHandlerConfiguration> Stream_CamSave_LibCamera_StreamConfiguration_t;
+struct Stream_CamSave_LibCamera_ModuleHandlerConfiguration
+ : Stream_CamSave_ModuleHandlerConfiguration
+{
+  Stream_CamSave_LibCamera_ModuleHandlerConfiguration ()
+   : Stream_CamSave_ModuleHandlerConfiguration ()
+   , codecFormat (AV_PIX_FMT_NONE)
+   , codecId (AV_CODEC_ID_NONE)
+   , outputFormat ()
+   , subscriber (NULL)
+   , subscribers (NULL)
+  {
+    ACE_OS::memset (&outputFormat, 0, sizeof (struct Stream_MediaFramework_FFMPEG_VideoMediaType));
+  }
+
+  enum AVPixelFormat                                 codecFormat; // preferred output-
+  enum AVCodecID                                     codecId;
+  struct Stream_MediaFramework_FFMPEG_VideoMediaType outputFormat;
+  Stream_CamSave_LibCamera_ISessionNotify_t*         subscriber;
+  Stream_CamSave_LibCamera_Subscribers_t*            subscribers;
+};
+#endif // LIBCAMERA_SUPPORT
 #endif // ACE_WIN32 || ACE_WIN64
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -729,17 +742,6 @@ struct Stream_CamSave_MediaFoundation_StreamState
   struct Stream_UserData*             userData;
 };
 #else
-struct Stream_CamSave_LibCamera_StreamState
- : Stream_State
-{
-  Stream_CamSave_LibCamera_StreamState ()
-   : Stream_State ()
-   , sessionData (NULL)
-  {}
-
-  Stream_CamSave_LibCamera_SessionData* sessionData;
-};
-
 struct Stream_CamSave_V4L_StreamState
  : Stream_State
 {
@@ -750,6 +752,18 @@ struct Stream_CamSave_V4L_StreamState
 
   Stream_CamSave_V4L_SessionData* sessionData;
 };
+#if defined (LIBCAMERA_SUPPORT)
+struct Stream_CamSave_LibCamera_StreamState
+ : Stream_State
+{
+  Stream_CamSave_LibCamera_StreamState ()
+   : Stream_State ()
+   , sessionData (NULL)
+  {}
+
+  Stream_CamSave_LibCamera_SessionData* sessionData;
+};
+#endif // LIBCAMERA_SUPPORT
 #endif // ACE_WIN32 || ACE_WIN64
 
 struct Stream_CamSave_StreamConfiguration
@@ -794,6 +808,7 @@ typedef Stream_IStreamControl_T<enum Stream_ControlType,
                                 enum Stream_StateMachine_ControlState,
                                 struct Stream_CamSave_MediaFoundation_StreamState> Stream_CamSave_MediaFoundation_IStreamControl_t;
 #else
+#if defined (LIBCAMERA_SUPPORT)
 struct Stream_CamSave_LibCamera_StreamConfiguration
  : Stream_CamSave_StreamConfiguration
 {
@@ -804,6 +819,12 @@ struct Stream_CamSave_LibCamera_StreamConfiguration
 
   struct Stream_MediaFramework_LibCamera_MediaType format;
 };
+
+typedef Stream_IStreamControl_T<enum Stream_ControlType,
+                                enum Stream_SessionMessageType,
+                                enum Stream_StateMachine_ControlState,
+                                struct Stream_CamSave_LibCamera_StreamState> Stream_CamSave_LibCamera_IStreamControl_t;
+#endif // LIBCAMERA_SUPPORT
 struct Stream_CamSave_V4L_StreamConfiguration
  : Stream_CamSave_StreamConfiguration
 {
@@ -815,10 +836,6 @@ struct Stream_CamSave_V4L_StreamConfiguration
   struct Stream_MediaFramework_V4L_MediaType format;
 };
 
-typedef Stream_IStreamControl_T<enum Stream_ControlType,
-                                enum Stream_SessionMessageType,
-                                enum Stream_StateMachine_ControlState,
-                                struct Stream_CamSave_LibCamera_StreamState> Stream_CamSave_LibCamera_IStreamControl_t;
 typedef Stream_IStreamControl_T<enum Stream_ControlType,
                                 enum Stream_SessionMessageType,
                                 enum Stream_StateMachine_ControlState,
@@ -912,15 +929,19 @@ struct Stream_CamSave_Configuration
    : Test_I_Configuration ()
 #endif // GUI_SUPPORT
    , signalHandlerConfiguration ()
-   , libCamera_streamConfiguration ()
    , v4l_streamConfiguration ()
+#if defined (LIBCAMERA_SUPPORT)
+   , libCamera_streamConfiguration ()
+#endif // LIBCAMERA_SUPPORT
   {}
 
   // **************************** signal data **********************************
   struct Stream_CamSave_SignalHandlerConfiguration signalHandlerConfiguration;
   // **************************** stream data **********************************
-  Stream_CamSave_LibCamera_StreamConfiguration_t   libCamera_streamConfiguration;
   Stream_CamSave_V4L_StreamConfiguration_t         v4l_streamConfiguration;
+#if defined (LIBCAMERA_SUPPORT)
+  Stream_CamSave_LibCamera_StreamConfiguration_t   libCamera_streamConfiguration;
+#endif // LIBCAMERA_SUPPORT
 };
 #endif // ACE_WIN32 || ACE_WIN64
 
@@ -943,13 +964,15 @@ typedef Stream_MessageAllocatorHeapBase_T<ACE_MT_SYNCH,
 typedef Stream_MessageAllocatorHeapBase_T<ACE_MT_SYNCH,
                                           struct Common_AllocatorConfiguration,
                                           Stream_ControlMessage_t,
-                                          Stream_CamSave_LibCamera_Message_t,
-                                          Stream_CamSave_LibCamera_SessionMessage_t> Stream_CamSave_LibCamera_MessageAllocator_t;
+                                          Stream_CamSave_V4L_Message_t,
+                                          Stream_CamSave_V4L_SessionMessage_t> Stream_CamSave_V4L_MessageAllocator_t;
+#if defined (LIBCAMERA_SUPPORT)
 typedef Stream_MessageAllocatorHeapBase_T<ACE_MT_SYNCH,
                                           struct Common_AllocatorConfiguration,
                                           Stream_ControlMessage_t,
-                                          Stream_CamSave_V4L_Message_t,
-                                          Stream_CamSave_V4L_SessionMessage_t> Stream_CamSave_V4L_MessageAllocator_t;
+                                          Stream_CamSave_LibCamera_Message_t,
+                                          Stream_CamSave_LibCamera_SessionMessage_t> Stream_CamSave_LibCamera_MessageAllocator_t;
+#endif // LIBCAMERA_SUPPORT
 #endif // ACE_WIN32 || ACE_WIN64
 
 #if defined (GUI_SUPPORT)
@@ -995,24 +1018,7 @@ typedef Stream_CamSave_EventHandler_T<Stream_CamSave_MediaFoundation_ISessionNot
 #endif // GUI_SUPPORT
                                       Stream_CamSave_MediaFoundation_SessionMessage_t> Stream_CamSave_MediaFoundation_EventHandler_t;
 #else
-typedef Common_ISubscribe_T<Stream_CamSave_LibCamera_ISessionNotify_t> Stream_CamSave_LibCamera_ISubscribe_t;
 typedef Common_ISubscribe_T<Stream_CamSave_V4L_ISessionNotify_t> Stream_CamSave_V4L_ISubscribe_t;
-
-typedef Stream_CamSave_EventHandler_T<Stream_CamSave_LibCamera_ISessionNotify_t,
-                                      Stream_CamSave_LibCamera_Message_t,
-#if defined (GUI_SUPPORT)
-#if defined (GTK_USE)
-                                      Common_UI_GTK_State_t,
-#elif defined (WXWIDGETS_USE)
-                                      struct Common_UI_wxWidgets_State,
-                                      Common_UI_wxWidgets_IApplicationBase_t,
-#elif defined (QT_USE)
-                                      struct Common_UI_Qt_State,
-#else
-                                      struct Common_UI_State,
-#endif
-#endif // GUI_SUPPORT
-                                      Stream_CamSave_LibCamera_SessionMessage_t> Stream_CamSave_LibCamera_EventHandler_t;
 typedef Stream_CamSave_EventHandler_T<Stream_CamSave_V4L_ISessionNotify_t,
                                       Stream_CamSave_V4L_Message_t,
 #if defined (GUI_SUPPORT)
@@ -1028,6 +1034,25 @@ typedef Stream_CamSave_EventHandler_T<Stream_CamSave_V4L_ISessionNotify_t,
 #endif
 #endif // GUI_SUPPORT
                                       Stream_CamSave_V4L_SessionMessage_t> Stream_CamSave_V4L_EventHandler_t;
+
+#if defined (LIBCAMERA_SUPPORT)
+typedef Common_ISubscribe_T<Stream_CamSave_LibCamera_ISessionNotify_t> Stream_CamSave_LibCamera_ISubscribe_t;
+typedef Stream_CamSave_EventHandler_T<Stream_CamSave_LibCamera_ISessionNotify_t,
+                                      Stream_CamSave_LibCamera_Message_t,
+#if defined (GUI_SUPPORT)
+#if defined (GTK_USE)
+                                      Common_UI_GTK_State_t,
+#elif defined (WXWIDGETS_USE)
+                                      struct Common_UI_wxWidgets_State,
+                                      Common_UI_wxWidgets_IApplicationBase_t,
+#elif defined (QT_USE)
+                                      struct Common_UI_Qt_State,
+#else
+                                      struct Common_UI_State,
+#endif
+#endif // GUI_SUPPORT
+                                      Stream_CamSave_LibCamera_SessionMessage_t> Stream_CamSave_LibCamera_EventHandler_t;
+#endif // LIBCAMERA_SUPPORT
 #endif // ACE_WIN32 || ACE_WIN64
 
 //////////////////////////////////////////
@@ -1133,37 +1158,6 @@ struct Stream_CamSave_MediaFoundation_UI_CBData
   Stream_CamSave_MediaFoundation_Subscribers_t         subscribers;
 };
 #else
-class Stream_CamSave_LibCamera_Stream;
-struct Stream_CamSave_LibCamera_UI_CBData
- : Stream_CamSave_UI_CBData
-{
-  Stream_CamSave_LibCamera_UI_CBData ()
-   : Stream_CamSave_UI_CBData ()
-   , configuration (NULL)
-#if defined (GTK_USE)
-//   , pixelBuffer (NULL)
-//   , pixelBufferLock (NULL)
-#endif // GTK_USE
-   , stream (NULL)
-   , subscribers ()
-  {
-#if defined (GTK_USE)
-//    pixelBufferLock = &UIState->lock;
-#endif // GTK_USE
-  }
-
-  struct Stream_CamSave_Configuration*   configuration;
-#if defined (GTK_USE)
-//#if GTK_CHECK_VERSION(3,0,0)
-//  cairo_surface_t*                     pixelBuffer;
-//#elif GTK_CHECK_VERSION(2,0,0)
-//  GdkPixbuf*                           pixelBuffer;
-//#endif // GTK_CHECK_VERSION
-//  ACE_SYNCH_MUTEX*                     pixelBufferLock;
-#endif // GTK_USE
-  Stream_CamSave_LibCamera_Stream*       stream;
-  Stream_CamSave_LibCamera_Subscribers_t subscribers;
-};
 class Stream_CamSave_V4L_Stream;
 struct Stream_CamSave_V4L_UI_CBData
  : Stream_CamSave_UI_CBData
@@ -1195,6 +1189,39 @@ struct Stream_CamSave_V4L_UI_CBData
   Stream_CamSave_V4L_Stream*           stream;
   Stream_CamSave_V4L_Subscribers_t     subscribers;
 };
+#if defined (LIBCAMERA_SUPPORT)
+class Stream_CamSave_LibCamera_Stream;
+struct Stream_CamSave_LibCamera_UI_CBData
+ : Stream_CamSave_UI_CBData
+{
+  Stream_CamSave_LibCamera_UI_CBData ()
+   : Stream_CamSave_UI_CBData ()
+   , configuration (NULL)
+#if defined (GTK_USE)
+//   , pixelBuffer (NULL)
+//   , pixelBufferLock (NULL)
+#endif // GTK_USE
+   , stream (NULL)
+   , subscribers ()
+  {
+#if defined (GTK_USE)
+//    pixelBufferLock = &UIState->lock;
+#endif // GTK_USE
+  }
+
+  struct Stream_CamSave_Configuration*   configuration;
+#if defined (GTK_USE)
+//#if GTK_CHECK_VERSION(3,0,0)
+//  cairo_surface_t*                     pixelBuffer;
+//#elif GTK_CHECK_VERSION(2,0,0)
+//  GdkPixbuf*                           pixelBuffer;
+//#endif // GTK_CHECK_VERSION
+//  ACE_SYNCH_MUTEX*                     pixelBufferLock;
+#endif // GTK_USE
+  Stream_CamSave_LibCamera_Stream*       stream;
+  Stream_CamSave_LibCamera_Subscribers_t subscribers;
+};
+#endif // LIBCAMERA_SUPPORT
 #endif // ACE_WIN32 || ACE_WIN64
 
 struct Stream_CamSave_UI_ThreadData

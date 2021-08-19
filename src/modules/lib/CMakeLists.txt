@@ -1,14 +1,4 @@
-﻿#if (GUI_SUPPORT)
-# add_definitions (-DGUI_SUPPORT)
-# set (CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_CURRENT_SOURCE_DIR}/../../../../Common/src/ui/scripts")
-# include (PreUIFramework)
-# include (SetUIFramework)
-# if (GTK_SUPPORT)
-#  include (SetGTKVersion)
-# endif (GTK_SUPPORT)
-#endif (GUI_SUPPORT)
-
-if (UNIX)
+﻿if (UNIX)
  pkg_check_modules (PKG_ALSA REQUIRED alsa)
  pkg_check_modules (PKG_FFMPEG REQUIRED libavutil)
 # pkg_check_modules (PKG_LIBCAMERA REQUIRED libcamera)
@@ -30,19 +20,18 @@ endif (WIN32)
 
 add_library (${PROJECT_NAME}_MediaFramework STATIC "")
 
-#target_include_directories (${PROJECT_NAME}_MediaFramework PUBLIC
-#                            "$<BUILD_INTERFACE:${GTK_INCLUDE_DIRS}>")
-
 if (UNIX)
  target_include_directories (${PROJECT_NAME}_MediaFramework PUBLIC
                              $<BUILD_INTERFACE:${PKG_FFMPEG_INCLUDE_DIRS}>)
 
  target_include_directories (${PROJECT_NAME}_MediaFramework PUBLIC
                              $<BUILD_INTERFACE:${PKG_ALSA_INCLUDE_DIRS}>)
+ if (LIBCAMERA_SUPPORT)
 # target_include_directories (${PROJECT_NAME}_MediaFramework PUBLIC
 #                             $<BUILD_INTERFACE:${PKG_LIBCAMERA_INCLUDE_DIRS}>)
- target_include_directories (${PROJECT_NAME}_MediaFramework PUBLIC
-                             $<BUILD_INTERFACE:/usr/local/include/libcamera>)
+  target_include_directories (${PROJECT_NAME}_MediaFramework PUBLIC
+                              $<BUILD_INTERFACE:/usr/local/include/libcamera>)
+ endif (LIBCAMERA_SUPPORT)
  target_include_directories (${PROJECT_NAME}_MediaFramework PUBLIC
                              $<BUILD_INTERFACE:${PKG_SOX_INCLUDE_DIRS}>)
 
@@ -61,8 +50,6 @@ if (UNIX)
                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../Common/src/task>)
  target_include_directories (${PROJECT_NAME}_MediaFramework PUBLIC
                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../Common/src/timer>)
-# target_include_directories (${PROJECT_NAME}_MediaFramework PUBLIC
-#                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../Common/src/ui>)
 
 elseif (WIN32)
  if (DEFINED ENV{DXSDK_DIR})
@@ -112,17 +99,11 @@ elseif (WIN32)
                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../Common/src/task>)
  target_include_directories (${PROJECT_NAME}_MediaFramework PUBLIC
                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../Common/src/timer>)
-# target_include_directories (${PROJECT_NAME}_MediaFramework PUBLIC
-#                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../Common/src/ui>)
 endif ()
 target_include_directories (${PROJECT_NAME}_MediaFramework PUBLIC
                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../include>)
 target_include_directories (${PROJECT_NAME}_MediaFramework PUBLIC
                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../..>)
-#target_include_directories (${PROJECT_NAME}_MediaFramework PUBLIC
-#                            $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../dec>)
-#target_include_directories (${PROJECT_NAME}_MediaFramework PUBLIC
-#                            $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../dev>)
 target_include_directories (${PROJECT_NAME}_MediaFramework PUBLIC
                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>)
 
@@ -144,9 +125,13 @@ if (UNIX)
       ${source_files}
       stream_lib_alsa_common.h
       stream_lib_alsa_defines.h
-      stream_lib_libcamera_common.h
       stream_lib_v4l_common.h
       stream_lib_v4l_defines.h)
+ if (LIBCAMERA_SUPPORT)
+  set (source_files
+       ${source_files}
+       stream_lib_libcamera_common.h)
+ endif (LIBCAMERA_SUPPORT)
 elseif (WIN32)
  set (source_files
       ${source_files}
@@ -244,8 +229,8 @@ elseif (WIN32)
  target_link_libraries (${PROJECT_NAME}_MediaFramework ${ACE_LIBRARY})
 endif ()
 
-set_target_properties (${PROJECT_NAME}_MediaFramework PROPERTIES DEFINE_SYMBOL STREAM_LIB_BUILD_DLL)
-set_target_properties (${PROJECT_NAME}_MediaFramework PROPERTIES VERSION ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_MICRO} SOVERSION 1)
+#set_target_properties (${PROJECT_NAME}_MediaFramework PROPERTIES DEFINE_SYMBOL STREAM_LIB_BUILD_DLL)
+#set_target_properties (${PROJECT_NAME}_MediaFramework PROPERTIES VERSION ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_MICRO} SOVERSION 1)
 
 # add PCH
 set_target_properties (${PROJECT_NAME}_MediaFramework PROPERTIES COTIRE_CXX_PREFIX_HEADER_INIT "stdafx.h")
@@ -271,9 +256,13 @@ if (UNIX)
       ${source_files}
       stream_lib_alsa_common.h
       stream_lib_alsa_defines.h
-      stream_lib_libcamera_common.h
       stream_lib_v4l_common.h
       stream_lib_v4l_defines.h)
+ if (LIBCAMERA_SUPPORT)
+  set (source_files
+       ${source_files}
+       stream_lib_libcamera_common.h)
+ endif (LIBCAMERA_SUPPORT)
 elseif (WIN32)
  set (source_files
       ${source_files}

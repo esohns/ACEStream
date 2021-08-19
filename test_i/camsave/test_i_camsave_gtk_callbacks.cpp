@@ -44,8 +44,9 @@
 #else
 #include "linux/videodev2.h"
 #include "libv4l2.h"
-
+#if defined (LIBCAMERA_SUPPORT)
 #include "libcamera/libcamera.h"
+#endif // LIBCAMERA_SUPPORT
 
 #include "gdk/gdkx.h"
 #endif // ACE_WIN32 || ACE_WIN64
@@ -2447,6 +2448,7 @@ idle_initialize_UI_cb (gpointer userData_in)
 
   if (ui_cb_data_base_p->useLibCamera)
   {
+#if defined (LIBCAMERA_SUPPORT)
     struct Stream_CamSave_LibCamera_UI_CBData* ui_cb_data_p =
       static_cast<struct Stream_CamSave_LibCamera_UI_CBData*> (ui_cb_data_base_p);
     ACE_ASSERT (ui_cb_data_p->configuration);
@@ -2479,6 +2481,11 @@ idle_initialize_UI_cb (gpointer userData_in)
   //      static_cast<__u32> (allocation.width);
     buffer_size_i =
       ui_cb_data_p->configuration->libCamera_streamConfiguration.configuration_->allocatorConfiguration->defaultBufferSize;
+#else
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("useLibCamera specified, but LIBCAMERA_SUPPORT not set, returning\n")));
+    return G_SOURCE_REMOVE;
+#endif // LIBCAMERA_SUPPORT
   } // end IF
   else
   {
@@ -3144,10 +3151,16 @@ idle_initialize_UI_cb (gpointer userData_in)
   converter.str (ACE_TEXT_ALWAYS_CHAR (""));
   if (ui_cb_data_base_p->useLibCamera)
   {
+#if defined (LIBCAMERA_SUPPORT)
     struct Stream_CamSave_LibCamera_UI_CBData* ui_cb_data_p =
       static_cast<struct Stream_CamSave_LibCamera_UI_CBData*> (ui_cb_data_base_p);
     ACE_ASSERT (ui_cb_data_p->configuration);
     converter << ui_cb_data_p->configuration->libCamera_streamConfiguration.configuration_->format.format.fourcc ();
+#else
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("useLibCamera_in specified, but LIBCAMERA_SUPPORT not set, returning\n")));
+    return G_SOURCE_REMOVE;
+#endif // LIBCAMERA_SUPPORT
   } // end IF
   else
   {
@@ -4170,16 +4183,24 @@ togglebutton_save_toggled_cb (GtkToggleButton* toggleButton_in,
     }
   } // end SWITCH
 #else
-  Stream_CamSave_LibCamera_StreamConfiguration_t::ITERATOR_T libcamera_iterator_2;
   Stream_CamSave_V4L_StreamConfiguration_t::ITERATOR_T v4l_iterator_2;
+#if defined (LIBCAMERA_SUPPORT)
+  Stream_CamSave_LibCamera_StreamConfiguration_t::ITERATOR_T libcamera_iterator_2;
+#endif // LIBCAMERA_SUPPORT
   if (ui_cb_data_base_p->useLibCamera)
   {
+#if defined (LIBCAMERA_SUPPORT)
     struct Stream_CamSave_LibCamera_UI_CBData* libcamera_cb_data_p =
       static_cast<struct Stream_CamSave_LibCamera_UI_CBData*> (ui_cb_data_base_p);
     ACE_ASSERT (libcamera_cb_data_p->configuration);
     libcamera_iterator_2 =
       libcamera_cb_data_p->configuration->libCamera_streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
     ACE_ASSERT (libcamera_iterator_2 != libcamera_cb_data_p->configuration->libCamera_streamConfiguration.end ());
+#else
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("useLibCamera_in specified, but LIBCAMERA_SUPPORT not set, returning\n")));
+    return;
+#endif // LIBCAMERA_SUPPORT
   } // end IF
   else
   {
@@ -4251,7 +4272,12 @@ togglebutton_save_toggled_cb (GtkToggleButton* toggleButton_in,
   } // end SWITCH
 #else
   if (ui_cb_data_base_p->useLibCamera)
+#if defined (LIBCAMERA_SUPPORT)
     (*libcamera_iterator_2).second.second.targetFileName = filename_string;
+#else
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("useLibCamera_in specified, but LIBCAMERA_SUPPORT not set, continuing\n")));
+#endif // LIBCAMERA_SUPPORT
   else
     (*v4l_iterator_2).second.second.targetFileName = filename_string;
 #endif // ACE_WIN32 || ACE_WIN64
@@ -4310,16 +4336,24 @@ togglebutton_display_toggled_cb (GtkToggleButton* toggleButton_in,
     }
   } // end SWITCH
 #else
-  Stream_CamSave_LibCamera_StreamConfiguration_t::ITERATOR_T libcamera_iterator_2;
   Stream_CamSave_V4L_StreamConfiguration_t::ITERATOR_T v4l_iterator_2;
+#if defined (LIBCAMERA_SUPPORT)
+  Stream_CamSave_LibCamera_StreamConfiguration_t::ITERATOR_T libcamera_iterator_2;
+#endif // LIBCAMERA_SUPPORT
   if (ui_cb_data_base_p->useLibCamera)
   {
+#if defined (LIBCAMERA_SUPPORT)
     struct Stream_CamSave_LibCamera_UI_CBData* cb_data_p =
       static_cast<struct Stream_CamSave_LibCamera_UI_CBData*> (ui_cb_data_base_p);
     ACE_ASSERT (cb_data_p->configuration);
     libcamera_iterator_2 =
       cb_data_p->configuration->libCamera_streamConfiguration.find (Stream_Visualization_Tools::rendererToModuleName (STREAM_VISUALIZATION_VIDEORENDERER_X11));
     ACE_ASSERT (libcamera_iterator_2 != cb_data_p->configuration->libCamera_streamConfiguration.end ());
+#else
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("useLibCamera specified, but LIBCAMERA_SUPPORT not set, returning\n")));
+    return;
+#endif // LIBCAMERA_SUPPORT
   } // end IF
   else
   {
@@ -4357,7 +4391,15 @@ togglebutton_display_toggled_cb (GtkToggleButton* toggleButton_in,
     } // end SWITCH
 #else
   if (ui_cb_data_base_p->useLibCamera)
+#if defined (LIBCAMERA_SUPPORT)
     (*libcamera_iterator_2).second.second.display.device.clear ();
+#else
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("useLibCamera specified, but LIBCAMERA_SUPPORT not set, returning\n")));
+    return;
+  } // end IF
+#endif // LIBCAMERA_SUPPORT
   else
     (*v4l_iterator_2).second.second.display.device.clear ();
 #endif
@@ -4412,7 +4454,12 @@ togglebutton_display_toggled_cb (GtkToggleButton* toggleButton_in,
   } // end SWITCH
 #else
   if (ui_cb_data_base_p->useLibCamera)
+#if defined (LIBCAMERA_SUPPORT)
     (*libcamera_iterator_2).second.second.display.device = g_value_get_string (&value);
+#else
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("useLibCamera specified, but LIBCAMERA_SUPPORT not set, continuing\n")));
+#endif // LIBCAMERA_SUPPORT
   else
     (*v4l_iterator_2).second.second.display.device = g_value_get_string (&value);
 #endif // ACE_WIN32 || ACE_WIN64
@@ -5741,6 +5788,7 @@ combobox_resolution_changed_cb (GtkWidget* widget_in,
 #else
   if (ui_cb_data_p->useLibCamera)
   {
+#if defined (LIBCAMERA_SUPPORT)
     ui_cb_data_p->configuration->libCamera_streamConfiguration.configuration_->format.resolution.height =
         height;
     ui_cb_data_p->configuration->libCamera_streamConfiguration.configuration_->format.resolution.width =
@@ -5750,6 +5798,11 @@ combobox_resolution_changed_cb (GtkWidget* widget_in,
     ACE_ASSERT (iterator_2 != ui_cb_data_p->configuration->libCamera_streamConfiguration.end ());
     (*iterator_2).second.second.outputFormat.resolution.height = height;
     (*iterator_2).second.second.outputFormat.resolution.width = width;
+#else
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("useLibCamera specified, but LIBCAMERA_SUPPORT not set, returning\n")));
+    return;
+#endif // LIBCAMERA_SUPPORT
   } // end IF
   else
   {

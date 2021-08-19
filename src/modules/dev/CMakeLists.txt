@@ -5,16 +5,6 @@
  endif (LIBCAMERA_SUPPORT)
 endif (UNIX)
 
-#if (GUI_SUPPORT)
-# add_definitions (-DGUI_SUPPORT)
-# set (CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_CURRENT_SOURCE_DIR}/../../../../Common/src/ui/scripts")
-# include (PreUIFramework)
-# include (SetUIFramework)
-# if (GTK_SUPPORT)
-#  include (SetGTKVersion)
-# endif (GTK_SUPPORT)
-#endif (GUI_SUPPORT)
-
 include (FindPkgConfig)
 if (UNIX)
  pkg_check_modules (PKG_LIBALSA REQUIRED alsa)
@@ -24,7 +14,6 @@ if (UNIX)
 endif (UNIX)
 
 if (UNIX)
-# add_definitions (-D_GLIBCXX_INCLUDE_NEXT_C_HEADERS)
 elseif (WIN32)
  if (CMAKE_BUILD_TYPE STREQUAL Debug)
   add_definitions (-DD3D_DEBUG_INFO)
@@ -32,9 +21,6 @@ elseif (WIN32)
 endif ()
 
 add_library (${PROJECT_NAME}_Device STATIC "")
-
-#target_include_directories (${PROJECT_NAME}_Device PUBLIC
-#                            "$<BUILD_INTERFACE:${GTK_INCLUDE_DIRS}>")
 
 if (UNIX)
  target_include_directories (${PROJECT_NAME}_Device PUBLIC

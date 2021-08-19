@@ -18,9 +18,9 @@ endif (OPENCV_SUPPORT)
 set (CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_CURRENT_SOURCE_DIR}/../../../../Common/src/ui/scripts")
 include (PreUIFramework)
 include (SetUIFramework)
-if (GTK_USE)
+if (GTK_SUPPORT) # *NOTE*: _SUPPORT, not _USE !
  include (SetGTKVersion)
-endif (GTK_USE)
+endif (GTK_SUPPORT)
 
 if (UNIX)
 # pkg_check_modules (PKG_SOX REQUIRED sox)
@@ -72,7 +72,7 @@ add_library (${PROJECT_NAME}_Visualization STATIC "")
 if (GTK_SUPPORT)
  message (STATUS "VIS:: GTK_INCLUDE_DIRS: ${GTK_INCLUDE_DIRS}")
  target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
-                             $<BUILD_INTERFACE:${GTK_INCLUDE_DIRS}>)
+                             "$<BUILD_INTERFACE:${GTK_INCLUDE_DIRS}>")
  if (GTKGL_SUPPORT)
   if (GTKGLAREA_SUPPORT)
 # *NOTE*: check out the 'master' branch for gtk3-based applications
@@ -115,8 +115,10 @@ if (UNIX)
                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../modules/Common/src/timer>)
  target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../modules/Common/src/ui>)
- target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
-                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../modules/Common/src/ui/gtk>)
+ if (GTK_SUPPORT)
+  target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
+                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../modules/Common/src/ui/gtk>)
+ endif (GTK_SUPPORT)
 elseif (WIN32)
  if (DEFINED ENV{DXSDK_DIR})
   target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
