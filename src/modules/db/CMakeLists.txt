@@ -29,32 +29,20 @@ if (UNIX)
                              $<BUILD_INTERFACE:${PKG_MYSQL_INCLUDE_DIRS}>)
 
  target_include_directories (${PROJECT_NAME}_Database PUBLIC
-                             $<BUILD_INTERFACE:$ENV{LIB_ROOT}/ACE_TAO/ACE>)
-#                             $<BUILD_INTERFACE:/usr/local/src/ACE_wrappers>)
-
- target_include_directories (${PROJECT_NAME}_Database PUBLIC
                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../Common/src>)
  target_include_directories (${PROJECT_NAME}_Database PUBLIC
                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../Common/src/error>)
  target_include_directories (${PROJECT_NAME}_Database PUBLIC
                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../Common/src/timer>)
 
- target_include_directories (${PROJECT_NAME}_Database PUBLIC
-                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../ACENetwork/src>)
+# target_include_directories (${PROJECT_NAME}_Database PUBLIC
+#                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../ACENetwork/src>)
 elseif (WIN32)
 # *TODO*: repair pkgconfig support
 # target_include_directories (${PROJECT_NAME}_Database PUBLIC
 #                             $<BUILD_INTERFACE:$ENV{LIB_ROOT}/libmysql/cmake/include>)
  target_include_directories (${PROJECT_NAME}_Database PUBLIC
                              $<BUILD_INTERFACE:$ENV{LIB_ROOT}/libmysql/include>)
-
- if (DEFINED ENV{ACE_ROOT})
-  target_include_directories (${PROJECT_NAME}_Database PUBLIC
-                              $<BUILD_INTERFACE:$ENV{ACE_ROOT}>)
- else ()
-  target_include_directories (${PROJECT_NAME}_Database PUBLIC
-                              $<BUILD_INTERFACE:$ENV{LIB_ROOT}/ACE_TAO/ACE>)
- endif (DEFINED ENV{ACE_ROOT})
 
  target_include_directories (${PROJECT_NAME}_Database PUBLIC
                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../Common/src>)
@@ -65,8 +53,8 @@ elseif (WIN32)
  target_include_directories (${PROJECT_NAME}_Database PUBLIC
                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../Common/src/timer>)
 
- target_include_directories (${PROJECT_NAME}_Database PUBLIC
-                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../ACENetwork/src>)
+# target_include_directories (${PROJECT_NAME}_Database PUBLIC
+#                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../ACENetwork/src>)
 endif ()
 target_include_directories (${PROJECT_NAME}_Database PUBLIC
                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../..>)

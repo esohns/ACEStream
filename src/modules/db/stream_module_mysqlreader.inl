@@ -28,7 +28,7 @@
 #include "stream_macros.h"
 #include "stream_session_message_base.h"
 
-#include "net_common_tools.h"
+//#include "net_common_tools.h"
 
 template <ACE_SYNCH_DECL,
           typename ControlMessageType,
@@ -304,16 +304,15 @@ Stream_Module_MySQLReader_T<ACE_SYNCH_USE,
       // sanity check(s)
       ACE_ASSERT (state_);
 
-      ACE_OS::memset (host_address, 0, sizeof (host_address));
+      ACE_OS::memset (host_address, 0, sizeof (ACE_TCHAR[BUFSIZ]));
       result =
           inherited::configuration_.peerAddress.get_host_address (host_address,
-                                                                  sizeof (host_address));
+                                                                  sizeof (ACE_TCHAR[BUFSIZ]));
       if (result == -1)
       {
         ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("%s: failed to ACE_INET_Addr::get_host_address(%s): \"%m\", aborting\n"),
-                    inherited::mod_->name (),
-                    ACE_TEXT (Net_Common_Tools::IPAddressToString (inherited::configuration_->peerAddress).c_str ())));
+                    ACE_TEXT ("%s: failed to ACE_INET_Addr::get_host_address(): \"%m\", aborting\n"),
+                    inherited::mod_->name ()));
         goto error;
       } // end IF
 
@@ -358,7 +357,7 @@ Stream_Module_MySQLReader_T<ACE_SYNCH_USE,
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: failed to mysql_real_connect(%s,\"%s\",\"%s\",\"%s\"): \"%s\", aborting\n"),
                     inherited::mod_->name (),
-                    ACE_TEXT (Net_Common_Tools::IPAddressToString (inherited::configuration_->peerAddress).c_str ()),
+                    host_address,
                     ACE_TEXT (inherited::configuration_.DBUser.c_str ()),
                     ACE_TEXT (inherited::configuration_.DBPassword.c_str ()),
                     ACE_TEXT (inherited::configuration_.DBDatabase.c_str ()),
@@ -379,7 +378,7 @@ Stream_Module_MySQLReader_T<ACE_SYNCH_USE,
       ACE_DEBUG ((LM_DEBUG,
                   ACE_TEXT ("%s: opened database connection to %s\n"),
                   inherited::mod_->name (),
-                  ACE_TEXT (Net_Common_Tools::IPAddressToString (inherited::configuration_->peerAddress).c_str ())));
+                  host_address));
 
 //      // enable debug messages ?
 //      if (configuration_.debug)

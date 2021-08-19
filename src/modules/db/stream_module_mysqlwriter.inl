@@ -28,8 +28,8 @@
 
 #include "stream_module_db_defines.h"
 
-#include "net_common_tools.h"
-#include "net_configuration.h"
+//#include "net_common_tools.h"
+//#include "net_configuration.h"
 
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,
@@ -157,40 +157,39 @@ Stream_Module_MySQLWriter_T<ACE_SYNCH_USE,
     {
       // sanity check(s)
       ACE_ASSERT (state_);
-      ACE_ASSERT (inherited::configuration_->connectionConfigurations);
-      ACE_ASSERT (!inherited::configuration_->connectionConfigurations->empty ());
+//      ACE_ASSERT (inherited::configuration_->connectionConfigurations);
+//      ACE_ASSERT (!inherited::configuration_->connectionConfigurations->empty ());
 
-      Net_ConnectionConfigurationsIterator_t iterator =
-        inherited::configuration_->connectionConfigurations->find (inherited::mod_->name ());
-      if (iterator == inherited::configuration_->connectionConfigurations->end ())
-        iterator =
-          inherited::configuration_->connectionConfigurations->find (ACE_TEXT_ALWAYS_CHAR (""));
-#if defined (_DEBUG)
-      else
-        ACE_DEBUG ((LM_DEBUG,
-                    ACE_TEXT ("%s: applying connection configuration\n"),
-                    inherited::mod_->name ()));
-#endif // _DEBUG
-      ACE_ASSERT (iterator != inherited::configuration_->connectionConfigurations->end ());
+//      Net_ConnectionConfigurationsIterator_t iterator =
+//        inherited::configuration_->connectionConfigurations->find (inherited::mod_->name ());
+//      if (iterator == inherited::configuration_->connectionConfigurations->end ())
+//        iterator =
+//          inherited::configuration_->connectionConfigurations->find (ACE_TEXT_ALWAYS_CHAR (""));
+//#if defined (_DEBUG)
+//      else
+//        ACE_DEBUG ((LM_DEBUG,
+//                    ACE_TEXT ("%s: applying connection configuration\n"),
+//                    inherited::mod_->name ()));
+//#endif // _DEBUG
+//      ACE_ASSERT (iterator != inherited::configuration_->connectionConfigurations->end ());
       // *TODO*: remove type inferences
-      ACE_INET_Addr host_address =
-          NET_CONFIGURATION_TCP_CAST ((*iterator).second)->socketConfiguration.address;
+//      ACE_INET_Addr host_address =
+//          NET_CONFIGURATION_TCP_CAST ((*iterator).second)->socketConfiguration.address;
       ACE_TCHAR host_address_string[BUFSIZ];
-      ACE_OS::memset (host_address_string, 0, sizeof (host_address_string));
+      ACE_OS::memset (host_address_string, 0, sizeof (ACE_TCHAR[BUFSIZ]));
       unsigned long client_flags = 0;
       const char* user_name_string_p = NULL;
       const char* password_string_p = NULL;
       const char* database_name_string_p = NULL;
       MYSQL* result_2 = NULL;
       const char* result_p =
-          host_address.get_host_addr (host_address_string,
-                                      sizeof (host_address_string));
+          inherited::configuration_->peerAddress.get_host_addr (host_address_string,
+                                                                sizeof (ACE_TCHAR[BUFSIZ]));
       if (unlikely (!result_p || (result_p != host_address_string)))
       {
         ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("%s: failed to ACE_INET_Addr::get_host_addr(%s): \"%m\", aborting\n"),
-                    inherited::mod_->name (),
-                    ACE_TEXT (Net_Common_Tools::IPAddressToString (host_address).c_str ())));
+                    ACE_TEXT ("%s: failed to ACE_INET_Addr::get_host_addr(): \"%m\", aborting\n"),
+                    inherited::mod_->name ()));
         goto error;
       } // end IF
 
@@ -231,20 +230,20 @@ Stream_Module_MySQLWriter_T<ACE_SYNCH_USE,
         (inherited::configuration_->loginOptions.database.empty () ? NULL // <-- default database : options file (?)
                                                                    : inherited::configuration_->loginOptions.database.c_str ());
       result_2 =
-        mysql_real_connect (state_,                          // state handle
-                            host_address_string,             // host name/address
-                            user_name_string_p,              // user
-                            password_string_p,               // password (non-encrypted)
-                            database_name_string_p,          // database
-                            host_address.get_port_number (), // port
-                            NULL,                            // (UNIX) socket/named pipe
-                            client_flags);                   // client flags
+        mysql_real_connect (state_,                                                    // state handle
+                            host_address_string,                                       // host name/address
+                            user_name_string_p,                                        // user
+                            password_string_p,                                         // password (non-encrypted)
+                            database_name_string_p,                                    // database
+                            inherited::configuration_->peerAddress.get_port_number (), // port
+                            NULL,                                                      // (UNIX) socket/named pipe
+                            client_flags);                                             // client flags
       if (unlikely (result_2 != state_))
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: failed to mysql_real_connect(%s,\"%s\",\"%s\",\"%s\"): \"%s\", aborting\n"),
                     inherited::mod_->name (),
-                    ACE_TEXT (Net_Common_Tools::IPAddressToString (host_address).c_str ()),
+                    host_address_string,
                     ACE_TEXT (user_name_string_p),
                     ACE_TEXT (password_string_p),
                     ACE_TEXT (database_name_string_p),
@@ -259,12 +258,10 @@ Stream_Module_MySQLWriter_T<ACE_SYNCH_USE,
 //                    ACE_TEXT (mysql_error (&mysql))));
 //        goto error;
 //      } // end IF
-#if defined (_DEBUG)
       ACE_DEBUG ((LM_DEBUG,
                   ACE_TEXT ("%s: opened database connection to %s\n"),
                   inherited::mod_->name (),
-                  ACE_TEXT (Net_Common_Tools::IPAddressToString (host_address).c_str ())));
-#endif // _DEBUG
+                  host_address_string));
 
 //      // enable debug messages ?
 //      if (configuration_.debug)

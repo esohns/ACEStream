@@ -28,6 +28,7 @@
 #include "libxml/tree.h"
 
 #include "ace/config-macros.h"
+#include "ace/INET_Addr.h"
 #include "ace/Synch_Traits.h"
 #include "ace/Time_Value.h"
 
@@ -231,6 +232,7 @@ struct Test_I_HTTPGet_ModuleHandlerConfiguration
    , inbound (true)
    , loginOptions ()
    , mode (STREAM_MODULE_HTMLPARSER_MODE_SAX)
+   , peerAddress ()
    , printProgressDot (false)
    , pushStatisticMessages (true)
    , streamConfiguration (NULL)
@@ -254,6 +256,7 @@ struct Test_I_HTTPGet_ModuleHandlerConfiguration
   bool                                       inbound; // net io module
   struct Stream_Module_DataBase_LoginOptions loginOptions; // db writer module
   enum Stream_Module_HTMLParser_Mode         mode; // html parser module
+  ACE_INET_Addr                              peerAddress; // db writer module
   bool                                       printProgressDot; // file writer module
   bool                                       pushStatisticMessages;
   Test_I_StreamConfiguration_t*              streamConfiguration; // net source module
