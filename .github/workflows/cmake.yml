@@ -59,6 +59,11 @@ jobs:
           sudo ln -s ACEStream/modules/Common Common
           cd ${{github.workspace}}
 
+   - name: Generate LibreOffice headers
+     run: |
+          cd scripts
+          sudo ./make_oo_headers.sh
+
    - name: Configure CMake (Common)
      run: |
           cd modules/Common
