@@ -61,6 +61,9 @@ endif ()
 
 add_library (${PROJECT_NAME}_Decoder STATIC "")
 
+get_filename_component (BUILD_PATH ${CMAKE_CURRENT_BINARY_DIR}/../../.. REALPATH DIRECTORY)
+get_filename_component (BUILD_PATH_SUFFIX ${BUILD_PATH} NAME)
+
 if (UNIX)
  if (FFMPEG_SUPPORT)
   target_include_directories (${PROJECT_NAME}_Decoder PUBLIC
@@ -88,7 +91,7 @@ if (UNIX)
  endif (SOX_SUPPORT)
 
  target_include_directories (${PROJECT_NAME}_Decoder PUBLIC
-                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../modules/Common/cmake>)
+                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../modules/Common/${BUILD_PATH_SUFFIX}>)
  target_include_directories (${PROJECT_NAME}_Decoder PUBLIC
                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../modules/Common/src>)
  target_include_directories (${PROJECT_NAME}_Decoder PUBLIC
