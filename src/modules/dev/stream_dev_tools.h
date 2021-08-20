@@ -179,14 +179,6 @@ class Stream_Device_Tools
   inline static std::string formatToString (__u32 format_in) { std::string result; result += ((char)(format_in & 0x000000FF)); result += ((char)((format_in >> 8) & 0x000000FF)); result += ((char)((format_in >> 16) & 0x000000FF)); result += ((char)((format_in >> 24) & 0x000000FF)); return result; }
   static std::string formatToString (int,    // file descriptor
                                      __u32); // format (fourcc)
-
-  static __u32 ffmpegFormatToV4L2Format (enum AVPixelFormat); // format
-  static enum AVPixelFormat v4l2FormatToffmpegFormat (__u32); // format (fourcc)
-
-#if defined (LIBCAMERA_SUPPORT)
-  static enum AVPixelFormat libCameraFormatToffmpegFormat (const libcamera::PixelFormat&); // format
-  static libcamera::PixelFormat ffmpegFormatToLibCameraFormat (enum AVPixelFormat); // format
-#endif // LIBCAMERA_SUPPORT
 #endif // ACE_WIN32 || ACE_WIN64
 
  private:

@@ -36,6 +36,8 @@ extern "C"
 
 #include "stream_headmoduletask_base.h"
 
+#include "stream_lib_tools.h"
+
 #include "stream_dev_common.h"
 #include "stream_dev_tools.h"
 
@@ -130,7 +132,7 @@ class Stream_Module_CamSource_V4L_T
 #else
   template <typename MediaType> struct Stream_MediaFramework_V4L_MediaType getMediaType (const MediaType& mediaType_in) { return getMediaType_impl (mediaType_in); }
   inline struct Stream_MediaFramework_V4L_MediaType getMediaType_impl (const struct Stream_MediaFramework_V4L_MediaType& mediaType_in) { return const_cast<struct Stream_MediaFramework_V4L_MediaType&> (mediaType_in); }
-  inline struct Stream_MediaFramework_V4L_MediaType getMediaType_impl (const enum AVPixelFormat& format_in) { struct Stream_MediaFramework_V4L_MediaType return_value; return_value.format.pixelformat = Stream_Device_Tools::ffmpegFormatToV4L2Format (format_in); return return_value; }
+  inline struct Stream_MediaFramework_V4L_MediaType getMediaType_impl (const enum AVPixelFormat& format_in) { struct Stream_MediaFramework_V4L_MediaType return_value; return_value.format.pixelformat = Stream_MediaFramework_Tools::ffmpegFormatToV4L2Format (format_in); return return_value; }
 //  inline struct Stream_MediaFramework_V4L_MediaType getMediaType_impl (const struct v4l2_format& format_in) { struct Stream_MediaFramework_V4L_MediaType return_value; return_value.format = format_in.fmt.pix; return return_value; }
 #endif // ACE_WIN32 || ACE_WIN64
 

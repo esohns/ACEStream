@@ -5467,7 +5467,7 @@ combobox_format_changed_cb (GtkWidget* widget_in,
       ui_cb_data_p->configuration->v4l_streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
     ACE_ASSERT (iterator_2 != ui_cb_data_p->configuration->v4l_streamConfiguration.end ());
     (*iterator_2).second.second.codecId =
-        Stream_Module_Decoder_Tools::AVPixelFormatToAVCodecId (Stream_Device_Tools::v4l2FormatToffmpegFormat (format_i));
+        Stream_Module_Decoder_Tools::AVPixelFormatToAVCodecId (Stream_MediaFramework_Tools::v4l2FormatToffmpegFormat (format_i));
   } // end ELSE
 #endif // ACE_WIN32 || ACE_WIN64
 

@@ -44,7 +44,6 @@
 #endif // ACE_WIN32 || ACE_WIN64
 
 #include "ace/Guard_T.h"
-//#include "ace/Synch.h"
 
 #include "common.h"
 #include "common_file_tools.h"
@@ -65,9 +64,7 @@
 
 #include "stream_file_defines.h"
 
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
 #include "stream_lib_tools.h"
-#endif // ACE_WIN32 || ACE_WIN64
 
 #include "net_connection_configuration.h"
 
@@ -7200,7 +7197,7 @@ combobox_format_changed_cb (GtkComboBox* comboBox_in,
 #else
   (*stream_iterator).second.configuration_->format.format.pixelformat = format_i;
   (*modulehandler_iterator).second.second.outputFormat.format =
-      Stream_Device_Tools::v4l2FormatToffmpegFormat (format_i);
+      Stream_MediaFramework_Tools::v4l2FormatToffmpegFormat (format_i);
 
   result =
     load_resolutions (V4L_ui_cb_data_p->fileDescriptor,

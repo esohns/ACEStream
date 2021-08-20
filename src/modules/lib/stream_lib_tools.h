@@ -31,6 +31,13 @@
 #include <strmif.h>
 #else
 #include "alsa/asoundlib.h"
+
+#ifdef __cplusplus
+extern "C"
+{
+#include "libavutil/pixfmt.h"
+}
+#endif // __cplusplus
 #endif // ACE_WIN32 || ACE_WIN64
 
 #include "ace/Basic_Types.h"
@@ -94,8 +101,18 @@ class Stream_MediaFramework_Tools
                          struct sox_encodinginfo_t&, // return value: format
                          struct sox_signalinfo_t&);  // return value: format
 
+  // ffmpeg
+  static __u32 ffmpegFormatToV4L2Format (enum AVPixelFormat); // format
+
   // v4l
+  static enum AVPixelFormat v4l2FormatToffmpegFormat (__u32); // format (fourcc)
   static unsigned int toFrameSize (const struct Stream_MediaFramework_V4L_MediaType&);
+
+#if defined (LIBCAMERA_SUPPORT)
+  // libCamera
+  static libcamera::PixelFormat ffmpegFormatToLibCameraFormat (enum AVPixelFormat); // format
+  static enum AVPixelFormat libCameraFormatToffmpegFormat (const libcamera::PixelFormat&); // format
+#endif // LIBCAMERA_SUPPORT
 #endif // ACE_WIN32 || ACE_WIN64
 
  private:
