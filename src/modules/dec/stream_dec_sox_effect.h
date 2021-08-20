@@ -36,7 +36,10 @@
 
 #include "stream_task_base_synch.h"
 
-//#include "stream_dev_common.h"
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#else
+#include "stream_lib_alsa_common.h"
+#endif // ACE_WIN32 || ACE_WIN64
 
 extern const char libacestream_default_dec_sox_effect_module_name_string[];
 

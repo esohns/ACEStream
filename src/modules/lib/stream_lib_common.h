@@ -46,6 +46,9 @@ enum Stream_MediaFramework_Type
 #else
   STREAM_MEDIAFRAMEWORK_ALSA = 0,
   STREAM_MEDIAFRAMEWORK_V4L,
+#if defined (LIBCAMERA_SUPPORT)
+  STREAM_MEDIAFRAMEWORK_LIBCAMERA,
+#endif // LIBCAMERA_SUPPORT
 #endif // ACE_WIN32 || ACE_WIN64
   ////////////////////////////////////////
   STREAM_MEDIAFRAMEWORK_MAX,
