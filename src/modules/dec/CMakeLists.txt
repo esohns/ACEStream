@@ -176,7 +176,7 @@ target_include_directories (${PROJECT_NAME}_Decoder PUBLIC
 target_include_directories (${PROJECT_NAME}_Decoder PUBLIC
                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../vis>)
 
-get_target_property (debug ${LIBRARY} INTERFACE_INCLUDE_DIRECTORIES)
+get_target_property (debug ${PROJECT_NAME}_Decoder INTERFACE_INCLUDE_DIRECTORIES)
 message (STATUS "INTERFACE_INCLUDE_DIRECTORIES: \"${debug}\"")
 
 ############## next target ################
