@@ -36,7 +36,7 @@
 
 #include "stream_task_base_synch.h"
 
-#include "stream_dev_common.h"
+//#include "stream_dev_common.h"
 
 extern const char libacestream_default_dec_sox_effect_module_name_string[];
 

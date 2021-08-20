@@ -338,7 +338,7 @@ Stream_Decoder_SoXEffect_T<ACE_SYNCH_USE,
   } while (true);
 //  ACE_ASSERT (output_buffer_p->tell_off <= inherited::configuration_->streamConfiguration->bufferSize);
   message_block_p->wr_ptr ((output_buffer_p->tell_off <= inherited::configuration_->streamConfiguration->configuration_->allocatorConfiguration->defaultBufferSize) ? output_buffer_p->tell_off
-                                                                                                                                                                   : inherited::configuration_->streamConfiguration->configuration_->allocatorConfiguration->defaultBufferSize);
+                                                                                                                                                                    : inherited::configuration_->streamConfiguration->configuration_->allocatorConfiguration->defaultBufferSize);
 
   result = inherited::put_next (buffer_, NULL);
   if (unlikely (result == -1))
