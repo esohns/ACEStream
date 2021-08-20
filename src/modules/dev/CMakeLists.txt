@@ -34,11 +34,11 @@ if (UNIX)
  endif (LIBCAMERA_SUPPORT)
 
  target_include_directories (${PROJECT_NAME}_Device PUBLIC
-                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../Common/src>)
+                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../modules/Common/src>)
  target_include_directories (${PROJECT_NAME}_Device PUBLIC
-                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../Common/src/image>)
+                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../modules/Common/src/image>)
  target_include_directories (${PROJECT_NAME}_Device PUBLIC
-                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../Common/src/timer>)
+                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../modules/Common/src/timer>)
 
  target_include_directories (${PROJECT_NAME}_Device PUBLIC
                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../vis>)
@@ -208,8 +208,8 @@ elseif (WIN32)
 endif ()
 target_link_libraries (${PROJECT_NAME}_Device ${PROJECT_NAME}_Decoder)
 
-set_target_properties (${PROJECT_NAME}_Device PROPERTIES DEFINE_SYMBOL STREAM_DEV_BUILD_DLL)
-set_target_properties (${PROJECT_NAME}_Device PROPERTIES VERSION ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_MICRO} SOVERSION 1)
+#set_target_properties (${PROJECT_NAME}_Device PROPERTIES DEFINE_SYMBOL STREAM_DEV_BUILD_DLL)
+#set_target_properties (${PROJECT_NAME}_Device PROPERTIES VERSION ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_MICRO} SOVERSION 1)
 
 # add PCH
 set_target_properties (${PROJECT_NAME}_Device PROPERTIES COTIRE_CXX_PREFIX_HEADER_INIT "stdafx.h")

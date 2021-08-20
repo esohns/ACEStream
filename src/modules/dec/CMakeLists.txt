@@ -46,12 +46,9 @@ if (UNIX)
  if (SOX_SUPPORT)
   pkg_check_modules (PKG_SOX REQUIRED sox)
  endif (SOX_SUPPORT)
-
-# add_compile_options (-std=c++17)
 endif (UNIX)
 
 if (UNIX)
- add_definitions (-D_GLIBCXX_INCLUDE_NEXT_C_HEADERS)
 elseif (WIN32)
  add_definitions (-D_USE_MATH_DEFINES)
  #add_definitions (-DWIN32)
@@ -59,14 +56,6 @@ elseif (WIN32)
 #         --> remove ASAP
  #add_definitions (-DCV_CXX11)
 endif ()
-
-#set (LLVM_COMPILER_ID_STRING "Clang")
-#string (TOLOWER "${LLVM_COMPILER_ID_STRING}" LLVM_COMPILER_ID_STRING_LOWER)
-#string (TOLOWER "${CMAKE_CXX_COMPILER_ID}" CXX_COMPILER_ID_STRING_LOWER)
-#if (CXX_COMPILER_ID_STRING_LOWER STREQUAL LLVM_COMPILER_ID_STRING_LOWER)
-# add_compile_options (-std=c++11)
-#add_compile_options (-fPIC)
-#endif ()
 
 add_library (${PROJECT_NAME}_Decoder STATIC "")
 
@@ -89,25 +78,21 @@ if (UNIX)
                              $<BUILD_INTERFACE:${PKG_MPG123_INCLUDE_DIRS}>)
 
  target_include_directories (${PROJECT_NAME}_Decoder PUBLIC
-                             $<BUILD_INTERFACE:$ENV{LIB_ROOT}/ACE_TAO/ACE>)
-#                             $<BUILD_INTERFACE:/usr/local/src/ACE_wrappers>)
-
+                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../modules/Common/cmake>)
  target_include_directories (${PROJECT_NAME}_Decoder PUBLIC
-                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../Common/cmake>)
+                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../modules/Common/src>)
  target_include_directories (${PROJECT_NAME}_Decoder PUBLIC
-                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../Common/src>)
+                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../modules/Common/src/error>)
  target_include_directories (${PROJECT_NAME}_Decoder PUBLIC
-                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../Common/src/error>)
+                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../modules/Common/src/image>)
  target_include_directories (${PROJECT_NAME}_Decoder PUBLIC
-                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../Common/src/image>)
+                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../modules/Common/src/log>)
  target_include_directories (${PROJECT_NAME}_Decoder PUBLIC
-                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../Common/src/log>)
+                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../modules/Common/src/parser>)
  target_include_directories (${PROJECT_NAME}_Decoder PUBLIC
-                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../Common/src/parser>)
- target_include_directories (${PROJECT_NAME}_Decoder PUBLIC
-                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../Common/src/timer>)
- target_include_directories (${PROJECT_NAME}_Decoder PUBLIC
-                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../Common/src/ui>)
+                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../modules/Common/src/timer>)
+# target_include_directories (${PROJECT_NAME}_Decoder PUBLIC
+#                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../modules/Common/src/ui>)
 elseif (WIN32)
  if (DEFINED ENV{DXSDK_DIR})
   target_include_directories (${PROJECT_NAME}_Decoder PUBLIC
@@ -151,14 +136,6 @@ elseif (WIN32)
  target_include_directories (${PROJECT_NAME}_Decoder PUBLIC
                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../3rd_party/msvc>)
 
- if (DEFINED ENV{ACE_ROOT})
-  target_include_directories (${PROJECT_NAME}_Decoder PUBLIC
-                              $<BUILD_INTERFACE:$ENV{ACE_ROOT}>)
- else ()
-  target_include_directories (${PROJECT_NAME}_Decoder PUBLIC
-                              $<BUILD_INTERFACE:$ENV{LIB_ROOT}/ACE_TAO/ACE>)
- endif (DEFINED ENV{ACE_ROOT})
-
  target_include_directories (${PROJECT_NAME}_Decoder PUBLIC
                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../Common/src>)
  target_include_directories (${PROJECT_NAME}_Decoder PUBLIC
@@ -169,8 +146,8 @@ elseif (WIN32)
                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../Common/src/log>)
  target_include_directories (${PROJECT_NAME}_Decoder PUBLIC
                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../Common/src/timer>)
- target_include_directories (${PROJECT_NAME}_Decoder PUBLIC
-                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../Common/src/ui>)
+# target_include_directories (${PROJECT_NAME}_Decoder PUBLIC
+#                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../Common/src/ui>)
 
  target_include_directories (${PROJECT_NAME}_Decoder PUBLIC
                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../3rd_party>)
@@ -308,11 +285,6 @@ if (UNIX)
 # target_link_libraries (${PROJECT_NAME}_Decoder ${PKG_AVCODEC_LIBRARIES})
  target_link_libraries (${PROJECT_NAME}_Decoder PUBLIC ${PKG_FFMPEG_LIBRARIES})
  target_link_libraries (${PROJECT_NAME}_Decoder PUBLIC ${ImageMagick_LIBRARIES})
-
-# target_link_libraries (${PROJECT_NAME}_Decoder ${CMAKE_CURRENT_SOURCE_DIR}/../../../../ffmpeg/libavcodec/libavcodec.a)
-# target_link_libraries (${PROJECT_NAME}_Decoder ${CMAKE_CURRENT_SOURCE_DIR}/../../../../ffmpeg/libavformat/libavformat.a)
-# target_link_libraries (${PROJECT_NAME}_Decoder ${CMAKE_CURRENT_SOURCE_DIR}/../../../../ffmpeg/libavutil/libavutil.a)
-# target_link_libraries (${PROJECT_NAME}_Decoder ${CMAKE_CURRENT_SOURCE_DIR}/../../../../ffmpeg/libswscale/libswscale.a)
 elseif (WIN32)
 # set (CMAKE_EXE_LINKER_FLAGS /NODEFAULTLIB:\"libcmt.lib\")
  set (DIRECTX_SDK_DIRECTORY
@@ -347,7 +319,7 @@ target_link_libraries (${PROJECT_NAME}_Decoder PUBLIC CommonImage)
 target_link_libraries (${PROJECT_NAME}_Decoder PUBLIC ${PROJECT_NAME})
 
 #set_target_properties (${PROJECT_NAME}_Decoder PROPERTIES DEFINE_SYMBOL STREAM_DEC_BUILD_DLL)
-set_target_properties (${PROJECT_NAME}_Decoder PROPERTIES VERSION ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_MICRO} SOVERSION 1)
+#set_target_properties (${PROJECT_NAME}_Decoder PROPERTIES VERSION ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_MICRO} SOVERSION 1)
 
 # add PCH
 set_target_properties (${PROJECT_NAME}_Decoder PROPERTIES COTIRE_CXX_PREFIX_HEADER_INIT "stdafx.h")
@@ -407,4 +379,3 @@ install (TARGETS ${PROJECT_NAME}_Decoder
          ARCHIVE DESTINATION "${INSTALL_LIB_DIR}" COMPONENT mod_lib
          LIBRARY DESTINATION "${INSTALL_LIB_DIR}" COMPONENT mod_lib
          RUNTIME DESTINATION "${INSTALL_BIN_DIR}" COMPONENT mod_lib)
-
