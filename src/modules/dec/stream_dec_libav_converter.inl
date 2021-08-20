@@ -32,8 +32,6 @@ extern "C"
 #include "common_file_tools.h"
 #include "common_tools.h"
 
-#include "common_ui_common.h"
-
 #include "stream_macros.h"
 
 #include "stream_dec_defines.h"
