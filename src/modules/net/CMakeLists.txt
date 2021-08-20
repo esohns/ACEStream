@@ -18,27 +18,15 @@ if (UNIX)
                              $<BUILD_INTERFACE:${PKG_FFMPEG_INCLUDE_DIRS}>)
 
  target_include_directories (${PROJECT_NAME}_Network PUBLIC
-                             $<BUILD_INTERFACE:$ENV{LIB_ROOT}/ACE_TAO/ACE>)
-#                             $<BUILD_INTERFACE:/usr/local/src/ACE_wrappers>)
+                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../modules/Common/src>)
+ target_include_directories (${PROJECT_NAME}_Network PUBLIC
+                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../modules/Common/src/timer>)
 
  target_include_directories (${PROJECT_NAME}_Network PUBLIC
-                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../Common/src>)
+                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../modules/ACENetwork/src>)
  target_include_directories (${PROJECT_NAME}_Network PUBLIC
-                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../Common/src/timer>)
-
- target_include_directories (${PROJECT_NAME}_Network PUBLIC
-                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../ACENetwork/src>)
- target_include_directories (${PROJECT_NAME}_Network PUBLIC
-                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../ACENetwork/src/client_server>)
+                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../modules/ACENetwork/src/client_server>)
 elseif (WIN32)
- if (DEFINED ENV{ACE_ROOT})
-  target_include_directories (${PROJECT_NAME}_Network PUBLIC
-                              $<BUILD_INTERFACE:$ENV{ACE_ROOT}>)
- else ()
-  target_include_directories (${PROJECT_NAME}_Network PUBLIC
-                              $<BUILD_INTERFACE:$ENV{LIB_ROOT}/ACE_TAO/ACE>)
- endif (DEFINED ENV{ACE_ROOT})
-
  target_include_directories (${PROJECT_NAME}_Network PUBLIC
                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../Common/src>)
  target_include_directories (${PROJECT_NAME}_Network PUBLIC
@@ -111,8 +99,8 @@ endif (WIN32)
 target_link_libraries (${PROJECT_NAME}_Network Common)
 target_link_libraries (${PROJECT_NAME}_Network ${PROJECT_NAME})
 
-set_target_properties (${PROJECT_NAME}_Network PROPERTIES DEFINE_SYMBOL STREAM_NET_BUILD_DLL)
-set_target_properties (${PROJECT_NAME}_Network PROPERTIES VERSION ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_MICRO} SOVERSION 1)
+#set_target_properties (${PROJECT_NAME}_Network PROPERTIES DEFINE_SYMBOL STREAM_NET_BUILD_DLL)
+#set_target_properties (${PROJECT_NAME}_Network PROPERTIES VERSION ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_MICRO} SOVERSION 1)
 
 # add PCH
 set_target_properties (${PROJECT_NAME}_Network PROPERTIES COTIRE_CXX_PREFIX_HEADER_INIT "stdafx.h")

@@ -20,16 +20,17 @@ if (UNIX)
                              $<BUILD_INTERFACE:${PKG_LIBXML2_INCLUDE_DIRS}>)
 
  target_include_directories (${PROJECT_NAME}_HTML PUBLIC
-                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../Common/src>)
+                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../modules/Common/src>)
  target_include_directories (${PROJECT_NAME}_HTML PUBLIC
-                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../Common/src/error>)
+                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../modules/Common/src/error>)
  target_include_directories (${PROJECT_NAME}_HTML PUBLIC
-                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../Common/src/timer>)
+                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../modules/Common/src/timer>)
 
+# *TODO*: remove ASAP
  target_include_directories (${PROJECT_NAME}_HTML PUBLIC
-                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../ACENetwork/src>)
+                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../modules/ACENetwork/src>)
  target_include_directories (${PROJECT_NAME}_HTML PUBLIC
-                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../ACENetwork/src/protocol/http>)
+                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../modules/ACENetwork/src/protocol/http>)
 elseif (WIN32)
 # *TODO*: repair pkgconfig support
  target_include_directories (${PROJECT_NAME}_HTML PUBLIC
@@ -44,6 +45,7 @@ elseif (WIN32)
  target_include_directories (${PROJECT_NAME}_HTML PUBLIC
                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../Common/src/timer>)
 
+# *TODO*: remove ASAP
  target_include_directories (${PROJECT_NAME}_HTML PUBLIC
                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../ACENetwork/src>)
  target_include_directories (${PROJECT_NAME}_HTML PUBLIC
@@ -105,8 +107,8 @@ endif (UNIX)
 target_link_libraries (${PROJECT_NAME}_HTML Common)
 target_link_libraries (${PROJECT_NAME}_HTML ${PROJECT_NAME})
 
-set_target_properties (${PROJECT_NAME}_HTML PROPERTIES DEFINE_SYMBOL STREAM_HTML_BUILD_DLL)
-set_target_properties (${PROJECT_NAME}_HTML PROPERTIES VERSION ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_MICRO} SOVERSION 1)
+#set_target_properties (${PROJECT_NAME}_HTML PROPERTIES DEFINE_SYMBOL STREAM_HTML_BUILD_DLL)
+#set_target_properties (${PROJECT_NAME}_HTML PROPERTIES VERSION ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_MICRO} SOVERSION 1)
 
 # add PCH
 set_target_properties (${PROJECT_NAME}_HTML PROPERTIES COTIRE_CXX_PREFIX_HEADER_INIT "stdafx.h")

@@ -36,21 +36,17 @@ if (UNIX)
                              $<BUILD_INTERFACE:${PKG_SOX_INCLUDE_DIRS}>)
 
  target_include_directories (${PROJECT_NAME}_MediaFramework PUBLIC
-                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../3rd_party/tree>)
-
+                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../modules/Common/src>)
  target_include_directories (${PROJECT_NAME}_MediaFramework PUBLIC
-                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../Common/src>)
+                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../modules/Common/src/error>)
  target_include_directories (${PROJECT_NAME}_MediaFramework PUBLIC
-                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../Common/src/error>)
+                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../modules/Common/src/image>)
  target_include_directories (${PROJECT_NAME}_MediaFramework PUBLIC
-                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../Common/src/image>)
+                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../modules/Common/src/log>)
  target_include_directories (${PROJECT_NAME}_MediaFramework PUBLIC
-                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../Common/src/log>)
+                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../modules/Common/src/task>)
  target_include_directories (${PROJECT_NAME}_MediaFramework PUBLIC
-                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../Common/src/task>)
- target_include_directories (${PROJECT_NAME}_MediaFramework PUBLIC
-                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../Common/src/timer>)
-
+                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../modules/Common/src/timer>)
 elseif (WIN32)
  if (DEFINED ENV{DXSDK_DIR})
   target_include_directories (${PROJECT_NAME}_MediaFramework PUBLIC
@@ -78,8 +74,6 @@ elseif (WIN32)
 
  target_include_directories (${PROJECT_NAME}_MediaFramework PUBLIC
                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../3rd_party/msvc>)
- target_include_directories (${PROJECT_NAME}_MediaFramework PUBLIC
-                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../3rd_party/tree>)
 
  target_include_directories (${PROJECT_NAME}_MediaFramework PUBLIC
                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../Common/src>)
@@ -101,11 +95,13 @@ elseif (WIN32)
                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../Common/src/timer>)
 endif ()
 target_include_directories (${PROJECT_NAME}_MediaFramework PUBLIC
+                            $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../3rd_party/tree>)
+target_include_directories (${PROJECT_NAME}_MediaFramework PUBLIC
                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../include>)
 target_include_directories (${PROJECT_NAME}_MediaFramework PUBLIC
                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../..>)
-target_include_directories (${PROJECT_NAME}_MediaFramework PUBLIC
-                            $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>)
+#target_include_directories (${PROJECT_NAME}_MediaFramework PUBLIC
+#                            $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>)
 
 ############## next target ################
 set (source_files

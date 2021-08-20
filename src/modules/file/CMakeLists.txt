@@ -8,13 +8,12 @@ if (IMAGEMAGICK_SUPPORT)
  add_definitions (-DIMAGEMAGICK_SUPPORT)
 endif (IMAGEMAGICK_SUPPORT)
 
-#if (UNIX)
-# add_compile_options (-std=c++17)
-#endif (UNIX)
-
 ##########################################
 
 add_library (${PROJECT_NAME}_File STATIC "")
+
+get_filename_component (BUILD_PATH ${CMAKE_CURRENT_BINARY_DIR}/../../.. REALPATH DIRECTORY)
+get_filename_component (BUILD_PATH_SUFFIX ${BUILD_PATH} NAME)
 
 if (UNIX)
  if (IMAGEMAGICK_SUPPORT)
@@ -23,32 +22,20 @@ if (UNIX)
  endif (IMAGEMAGICK_SUPPORT)
 
  target_include_directories (${PROJECT_NAME}_File PUBLIC
-                             $<BUILD_INTERFACE:$ENV{LIB_ROOT}/ACE_TAO/ACE>)
-#                             $<BUILD_INTERFACE:/usr/local/src/ACE_wrappers>)
-
+                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../modules/Common/${BUILD_PATH_SUFFIX}>)
  target_include_directories (${PROJECT_NAME}_File PUBLIC
-                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../Common/cmake>)
+                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../modules/Common/src>)
  target_include_directories (${PROJECT_NAME}_File PUBLIC
-                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../Common/src>)
+                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../modules/Common/src/error>)
  target_include_directories (${PROJECT_NAME}_File PUBLIC
-                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../Common/src/error>)
- target_include_directories (${PROJECT_NAME}_File PUBLIC
-                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../Common/src/timer>)
+                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../modules/Common/src/timer>)
 elseif (WIN32)
+ target_include_directories (${PROJECT_NAME}_File PUBLIC
+                             $<BUILD_INTERFACE:$ENV{LIB_ROOT}/ffmpeg/include>)
  if (IMAGEMAGICK_SUPPORT)
   target_include_directories (${PROJECT_NAME}_File PUBLIC
                               $<BUILD_INTERFACE:$ENV{LIB_ROOT}/ImageMagick/include>)
  endif (IMAGEMAGICK_SUPPORT)
- target_include_directories (${PROJECT_NAME}_File PUBLIC
-                             $<BUILD_INTERFACE:$ENV{LIB_ROOT}/ffmpeg/include>)
-
- if (DEFINED ENV{ACE_ROOT})
-  target_include_directories (${PROJECT_NAME}_File PUBLIC
-                              $<BUILD_INTERFACE:$ENV{ACE_ROOT}>)
- else ()
-  target_include_directories (${PROJECT_NAME}_File PUBLIC
-                              $<BUILD_INTERFACE:$ENV{LIB_ROOT}/ACE_TAO/ACE>)
- endif (DEFINED ENV{ACE_ROOT})
 
  target_include_directories (${PROJECT_NAME}_File PUBLIC
                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../Common/cmake>)
@@ -117,8 +104,8 @@ target_link_libraries (${PROJECT_NAME}_File Common)
 
 target_link_libraries (${PROJECT_NAME}_File ${PROJECT_NAME})
 
-set_target_properties (${PROJECT_NAME}_File PROPERTIES DEFINE_SYMBOL STREAM_FILE_BUILD_DLL)
-set_target_properties (${PROJECT_NAME}_File PROPERTIES VERSION ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_MICRO} SOVERSION 1)
+#set_target_properties (${PROJECT_NAME}_File PROPERTIES DEFINE_SYMBOL STREAM_FILE_BUILD_DLL)
+#set_target_properties (${PROJECT_NAME}_File PROPERTIES VERSION ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_MICRO} SOVERSION 1)
 
 # add PCH
 set_target_properties (${PROJECT_NAME}_File PROPERTIES COTIRE_CXX_PREFIX_HEADER_INIT "stdafx.h")
