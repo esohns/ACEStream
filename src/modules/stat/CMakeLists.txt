@@ -1,47 +1,28 @@
-﻿#if (UNIX)
-# add_compile_options (-std=c++17)
-#endif (UNIX)
-
-add_library (${PROJECT_NAME}_Statistic STATIC "")
+﻿add_library (${PROJECT_NAME}_Statistic STATIC "")
 
 if (UNIX)
  target_include_directories (${PROJECT_NAME}_Statistic PUBLIC
-                             $<BUILD_INTERFACE:${PKG_FFMPEG_INCLUDE_DIRS}>)
-
+                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../modules/Common/src>)
  target_include_directories (${PROJECT_NAME}_Statistic PUBLIC
-                             $<BUILD_INTERFACE:$ENV{LIB_ROOT}/ACE_TAO/ACE>)
-#                             $<BUILD_INTERFACE:/usr/local/src/ACE_wrappers>)
-
+                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../modules/Common/src/error>)
  target_include_directories (${PROJECT_NAME}_Statistic PUBLIC
-                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../Common/src>)
+                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../modules/Common/src/log>)
+# target_include_directories (${PROJECT_NAME}_Statistic PUBLIC
+#                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../modules/Common/src/math>)
  target_include_directories (${PROJECT_NAME}_Statistic PUBLIC
-                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../Common/src/error>)
- target_include_directories (${PROJECT_NAME}_Statistic PUBLIC
-                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../Common/src/log>)
- target_include_directories (${PROJECT_NAME}_Statistic PUBLIC
-                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../Common/src/math>)
- target_include_directories (${PROJECT_NAME}_Statistic PUBLIC
-                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../Common/src/timer>)
- target_include_directories (${PROJECT_NAME}_Statistic PUBLIC
-                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../Common/src/ui>)
+                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../modules/Common/src/timer>)
+# target_include_directories (${PROJECT_NAME}_Statistic PUBLIC
+#                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../modules/Common/src/ui>)
 elseif (WIN32)
- set (DIRECTSHOW_BASECLASSES_DIRECTORY
-      "$ENV{LIB_ROOT}/DShowBaseClasses")
+# set (DIRECTSHOW_BASECLASSES_DIRECTORY
+#      "$ENV{LIB_ROOT}/DShowBaseClasses")
 # message (STATUS "DirectShow baseclasses directory: \"${DIRECTSHOW_BASECLASSES_DIRECTORY}\"")
 
- target_include_directories (${PROJECT_NAME}_Statistic PUBLIC
-                             $<BUILD_INTERFACE:${DIRECTSHOW_BASECLASSES_DIRECTORY}/baseclasses>)
+# target_include_directories (${PROJECT_NAME}_Statistic PUBLIC
+#                             $<BUILD_INTERFACE:${DIRECTSHOW_BASECLASSES_DIRECTORY}/baseclasses>)
 
- target_include_directories (${PROJECT_NAME}_Statistic PUBLIC
-                             $<BUILD_INTERFACE:$ENV{LIB_ROOT}/ffmpeg/include>)
-
- if (DEFINED ENV{ACE_ROOT})
-  target_include_directories (${PROJECT_NAME}_Statistic PUBLIC
-                              $<BUILD_INTERFACE:$ENV{ACE_ROOT}>)
- else ()
-  target_include_directories (${PROJECT_NAME}_Statistic PUBLIC
-                              $<BUILD_INTERFACE:$ENV{LIB_ROOT}/ACE_TAO/ACE>)
- endif (DEFINED ENV{ACE_ROOT})
+# target_include_directories (${PROJECT_NAME}_Statistic PUBLIC
+#                             $<BUILD_INTERFACE:$ENV{LIB_ROOT}/ffmpeg/include>)
 
  target_include_directories (${PROJECT_NAME}_Statistic PUBLIC
                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../Common/src>)
@@ -55,8 +36,8 @@ elseif (WIN32)
                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../Common/src/math>)
  target_include_directories (${PROJECT_NAME}_Statistic PUBLIC
                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../Common/src/timer>)
- target_include_directories (${PROJECT_NAME}_Statistic PUBLIC
-                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../Common/src/ui>)
+# target_include_directories (${PROJECT_NAME}_Statistic PUBLIC
+#                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../Common/src/ui>)
 endif ()
 target_include_directories (${PROJECT_NAME}_Statistic PUBLIC
                             $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/../../..>)
@@ -101,14 +82,6 @@ target_sources (${PROJECT_NAME}_Statistic
                 PRIVATE stdafx.h
                 ${absolute_source_files})
 
-if (UNIX)
- add_definitions (-D_GLIBCXX_INCLUDE_NEXT_C_HEADERS)
-endif ()
-
-if (CMAKE_CXX_COMPILER_ID STREQUAL "CLang")
- add_compile_options (-fPIC)
-endif ()
-
 set_property (TARGET ${PROJECT_NAME}_Statistic PROPERTY FOLDER "modules")
 
 add_dependencies (${PROJECT_NAME}_Statistic Common)
@@ -120,8 +93,8 @@ endif (WIN32)
 target_link_libraries (${PROJECT_NAME}_Statistic Common)
 target_link_libraries (${PROJECT_NAME}_Statistic ${PROJECT_NAME})
 
-set_target_properties (${PROJECT_NAME}_Statistic PROPERTIES DEFINE_SYMBOL STREAM_STAT_BUILD_DLL)
-set_target_properties (${PROJECT_NAME}_Statistic PROPERTIES VERSION ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_MICRO} SOVERSION 1)
+#set_target_properties (${PROJECT_NAME}_Statistic PROPERTIES DEFINE_SYMBOL STREAM_STAT_BUILD_DLL)
+#set_target_properties (${PROJECT_NAME}_Statistic PROPERTIES VERSION ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_MICRO} SOVERSION 1)
 
 # add PCH
 set_target_properties (${PROJECT_NAME}_Statistic PROPERTIES COTIRE_CXX_PREFIX_HEADER_INIT "stdafx.h")
