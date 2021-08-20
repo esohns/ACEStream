@@ -1,4 +1,6 @@
-﻿option (FFMPEG_SUPPORT "support ffmpeg" ON)
+﻿include (OS)
+
+option (FFMPEG_SUPPORT "support ffmpeg" ON)
 if (FFMPEG_SUPPORT)
  add_definitions (-DFFMPEG_SUPPORT)
 endif (FFMPEG_SUPPORT)
@@ -60,22 +62,30 @@ endif ()
 add_library (${PROJECT_NAME}_Decoder STATIC "")
 
 if (UNIX)
- target_include_directories (${PROJECT_NAME}_Decoder PUBLIC
-                             $<BUILD_INTERFACE:${PKG_ALSA_INCLUDE_DIRS}>)
- target_include_directories (${PROJECT_NAME}_Decoder PUBLIC
-                             $<BUILD_INTERFACE:${PKG_SOX_INCLUDE_DIRS}>)
-# include_directories (${PKG_LIBSNDFILE_INCLUDE_DIRS})
+ if (FFMPEG_SUPPORT)
+  target_include_directories (${PROJECT_NAME}_Decoder PUBLIC
+                              $<BUILD_INTERFACE:${PKG_FFMPEG_INCLUDE_DIRS}>)
+ endif (FFMPEG_SUPPORT)
+ if (IMAGEMAGICK_SUPPORT)
+  target_include_directories (${PROJECT_NAME}_Decoder PUBLIC
+                              "$<BUILD_INTERFACE:${ImageMagick_INCLUDE_DIRS}>")
+ endif (IMAGEMAGICK_SUPPORT)
+ if (OPENCV_SUPPORT)
+  target_include_directories (${PROJECT_NAME}_Decoder PUBLIC
+                              $<BUILD_INTERFACE:${PKG_OPENCV_INCLUDE_DIRS}>)
+ endif (OPENCV_SUPPORT)
+ if (MPG123_SUPPORT)
+  target_include_directories (${PROJECT_NAME}_Decoder PUBLIC
+                              $<BUILD_INTERFACE:${PKG_MPG123_INCLUDE_DIRS}>)
+ endif (MPG123_SUPPORT)
 
  target_include_directories (${PROJECT_NAME}_Decoder PUBLIC
-                             $<BUILD_INTERFACE:${PKG_FFMPEG_INCLUDE_DIRS}>)
- target_include_directories (${PROJECT_NAME}_Decoder PUBLIC
-                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>)
- target_include_directories (${PROJECT_NAME}_Decoder PUBLIC
-                             "$<BUILD_INTERFACE:${ImageMagick_INCLUDE_DIRS}>")
- target_include_directories (${PROJECT_NAME}_Decoder PUBLIC
-                             $<BUILD_INTERFACE:${PKG_OPENCV_INCLUDE_DIRS}>)
- target_include_directories (${PROJECT_NAME}_Decoder PUBLIC
-                             $<BUILD_INTERFACE:${PKG_MPG123_INCLUDE_DIRS}>)
+                             $<BUILD_INTERFACE:${PKG_ALSA_INCLUDE_DIRS}>)
+ if (SOX_SUPPORT)
+  target_include_directories (${PROJECT_NAME}_Decoder PUBLIC
+                              $<BUILD_INTERFACE:${PKG_SOX_INCLUDE_DIRS}>)
+# include_directories (${PKG_LIBSNDFILE_INCLUDE_DIRS})
+ endif (SOX_SUPPORT)
 
  target_include_directories (${PROJECT_NAME}_Decoder PUBLIC
                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../modules/Common/cmake>)
@@ -166,8 +176,8 @@ target_include_directories (${PROJECT_NAME}_Decoder PUBLIC
 target_include_directories (${PROJECT_NAME}_Decoder PUBLIC
                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../vis>)
 
-#get_target_property (debug ${PROJECT_NAME}_Decoder INTERFACE_INCLUDE_DIRECTORIES)
-#message ("INTERFACE_INCLUDE_DIRECTORIES=${debug}")
+get_target_property (debug ${LIBRARY} INTERFACE_INCLUDE_DIRECTORIES)
+message (STATUS "INTERFACE_INCLUDE_DIRECTORIES: \"${debug}\"")
 
 ############## next target ################
 set (source_files
