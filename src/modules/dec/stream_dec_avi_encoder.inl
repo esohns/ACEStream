@@ -67,7 +67,7 @@ extern "C"
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #include "stream_lib_directshow_tools.h"
 #else
-#include "stream_dev_tools.h"
+//#include "stream_dev_tools.h"
 
 #include "stream_lib_tools.h"
 #endif // ACE_WIN32 || ACE_WIN64

@@ -43,8 +43,6 @@ extern "C"
 
 #include "stream_dec_common.h"
 
-//#include "stream_dev_tools.h"
-
 #include "stream_lib_mediatype_converter.h"
 
 // forward declaration(s)
