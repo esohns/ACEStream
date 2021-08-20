@@ -47,8 +47,8 @@ endif ()
 
 # project
 cmake_policy (SET CMP0048 NEW) # allow project VERSION
-cmake_policy (SET CMP0056 OLD) # honor per-config flags in try_compile()
-cmake_policy (SET CMP0066 OLD) # honor per-config flags in try_compile()
+#cmake_policy (SET CMP0056 OLD) # honor per-config flags in try_compile()
+#cmake_policy (SET CMP0066 OLD) # honor per-config flags in try_compile()
 project (${PROJECT_NAME}
          VERSION ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_MICRO}
          LANGUAGES CXX C)
@@ -66,7 +66,7 @@ set (INSTALL_INCLUDE_DIR include CACHE PATH "Installation directory for header f
 if (WIN32 AND NOT CYGWIN)
  set (DEF_INSTALL_CMAKE_DIR CMake)
 else ()
- set (DEF_INSTALL_CMAKE_DIR lib/CMake/lib${PROJECT_NAME})
+ set (DEF_INSTALL_CMAKE_DIR lib/CMake/${PROJECT_NAME})
 endif ()
 set (INSTALL_CMAKE_DIR ${DEF_INSTALL_CMAKE_DIR} CACHE PATH "Installation directory for CMake files")
 
@@ -120,12 +120,7 @@ if (MSVC)
  remove_definitions (/D_WIN32_WINNT)
 endif (MSVC)
 
-if (UNIX)
- include (FindPkgConfig)
- if (NOT PKG_CONFIG_FOUND)
-  message (FATAL_ERROR "pkg-config not found, aborting")
- endif (NOT PKG_CONFIG_FOUND)
-endif (UNIX)
+include (FindPkgConfig)
 
 option (TRACING "enable tracing" OFF)
 if (TRACING)
@@ -142,7 +137,6 @@ if (VALGRIND_SUPPORT)
  check_include_files (valgrind/valgrind.h HAVE_VALGRIND_H)
 #  include (CheckLibraryExists)
 #  check_library_exists (libvalgrind "" "" HAVE_LIB_VALGRIND)
- include (FindPkgConfig)
  pkg_check_modules (PKGVALGRIND REQUIRED valgrind)
  add_definitions (-DLIBACESTREAM_ENABLE_VALGRIND_SUPPORT)
 #  set_property (SOURCE PROPERTY COMPILE_DEFINITIONS LIBACESTREAM_ENABLE_VALGRIND_SUPPORT)
@@ -150,7 +144,6 @@ endif ()
 
 option (BUILD_MODULES "build (git) sub-modules" OFF)
 
-#message (STATUS "compiler id: ${CMAKE_CXX_COMPILER_ID} (${CMAKE_CXX_COMPILER})")
 if (CMAKE_COMPILER_IS_GNUCXX)
 # add_compile_options (-ansi)
 # add_compile_options (-std=c++11)
@@ -299,7 +292,7 @@ elseif (WIN32)
  endif (MSVC)
 endif ()
 
-#set (NSIS_PROJECT_FILE "lib${PROJECT_NAME}.nsi")
+#set (NSIS_PROJECT_FILE "${PROJECT_NAME}.nsi")
 #add_custom_command (TARGET ${PROJECT_NAME}
 #                    POST_BUILD
 #                    COMMAND make_installer.bat ${NSIS_PROJECT_FILE}
