@@ -27,10 +27,10 @@ if (UNIX)
                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../modules/Common/src/timer>)
 
 # *TODO*: remove ASAP
- target_include_directories (${PROJECT_NAME}_HTML PUBLIC
-                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../modules/ACENetwork/src>)
- target_include_directories (${PROJECT_NAME}_HTML PUBLIC
-                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../modules/ACENetwork/src/protocol/http>)
+# target_include_directories (${PROJECT_NAME}_HTML PUBLIC
+#                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../modules/ACENetwork/src>)
+# target_include_directories (${PROJECT_NAME}_HTML PUBLIC
+#                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../modules/ACENetwork/src/protocol/http>)
 elseif (WIN32)
 # *TODO*: repair pkgconfig support
  target_include_directories (${PROJECT_NAME}_HTML PUBLIC
@@ -46,10 +46,10 @@ elseif (WIN32)
                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../Common/src/timer>)
 
 # *TODO*: remove ASAP
- target_include_directories (${PROJECT_NAME}_HTML PUBLIC
-                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../ACENetwork/src>)
- target_include_directories (${PROJECT_NAME}_HTML PUBLIC
-                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../ACENetwork/src/protocol/http>)
+# target_include_directories (${PROJECT_NAME}_HTML PUBLIC
+#                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../ACENetwork/src>)
+# target_include_directories (${PROJECT_NAME}_HTML PUBLIC
+#                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../ACENetwork/src/protocol/http>)
 endif ()
 target_include_directories (${PROJECT_NAME}_HTML PUBLIC
                             $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/../../..>)

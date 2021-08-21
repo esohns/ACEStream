@@ -26,7 +26,6 @@
 #include <map>
 #include <string>
 
-//#include "ace/config-lite.h"
 #include "ace/Message_Block.h"
 #include "ace/Synch_Traits.h"
 #include "ace/Time_Value.h"
@@ -55,10 +54,6 @@ template <ACE_SYNCH_DECL, class TIME_POLICY>
 class ACE_Stream_Iterator;
 class ACE_Notification_Strategy;
 class Stream_IAllocator;
-//template <typename ControlType,
-//          typename MessageType,
-//          typename AllocatorConfigurationType>
-//class Stream_ControlMessage_T;
 template <ACE_SYNCH_DECL,
           typename TimePolicyType>
 class Stream_IStream_T;
@@ -171,7 +166,7 @@ enum Stream_SessionMessageType : int
   // *** control ***
   STREAM_SESSION_MESSAGE_BEGIN,
   STREAM_SESSION_MESSAGE_END,
-  STREAM_SESSION_MESSAGE_STEP, // i.e. processing next source file
+  STREAM_SESSION_MESSAGE_STEP, // i.e. next source file, data complete, ...
   // *** data ***
   STREAM_SESSION_MESSAGE_STATISTIC,
   ////////////////////////////////////////

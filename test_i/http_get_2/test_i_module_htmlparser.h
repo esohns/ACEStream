@@ -105,6 +105,7 @@ class Test_I_Stream_HTMLParser
   virtual bool initializeSAXParser ();
 
   Test_I_StockRecordsIterator_t iterator_;
+  Test_I_StockRecordsIterator_t iterator_2_;
 };
 
 // declare module

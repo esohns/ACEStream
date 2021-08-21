@@ -150,7 +150,7 @@ class Stream_Module_HTMLParser_T
  protected:
   inline virtual bool initializeSAXParser () { ACE_ASSERT (false); ACE_NOTSUP_RETURN (false); ACE_NOTREACHED (return false;) }
 
-  bool                               complete_;
+  DataMessageType*                   headFragment_;
   ParserContextType                  parserContext_;
   htmlSAXHandler                     SAXHandler_;
 
@@ -163,8 +163,6 @@ class Stream_Module_HTMLParser_T
   bool resetParser ();
 
   enum Stream_Module_HTMLParser_Mode mode_;
-  bool                               isFirst_;
-  unsigned int                       bytesMissing_;
 };
 
 // include template definition
