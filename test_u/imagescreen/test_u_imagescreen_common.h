@@ -39,6 +39,7 @@ extern "C"
 #include "stream_common.h"
 #include "stream_isessionnotify.h"
 #include "stream_istreamcontrol.h"
+#include "stream_messageallocatorheap_base.h"
 #include "stream_session_data.h"
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)

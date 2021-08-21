@@ -2,28 +2,13 @@
 # pkg_check_modules (PKG_FLEX_BISON REQUIRED flex bison)
 endif (UNIX)
 
-set (ACE_LIB_FILE libACE.so)
-if (DEFINED ENV{ACE_ROOT})
- find_library (ACE_LIBRARY ${ACE_LIB_FILE}
-               PATHS ENV ACE_ROOT
-               PATH_SUFFIXES ace build/linux/ace
-               DOC "searching for ${ACE_LIB_FILE}")
-else ()
- find_library (ACE_LIBRARY ${ACE_LIB_FILE}
-               DOC "searching for ${ACE_LIB_FILE} (system paths)")
-endif ()
-#if (NOT EXISTS ACE_LIBRARY)
-if (NOT ACE_LIBRARY)
- message (FATAL_ERROR "could not find ${ACE_LIB_FILE} (was: \"${ACE_LIBRARY}\"), aborting")
-endif ()
-
 get_filename_component (BUILD_PATH ${CMAKE_CURRENT_BINARY_DIR}/../.. REALPATH DIRECTORY)
 get_filename_component (BUILD_PATH_SUFFIX ${BUILD_PATH} NAME)
 find_package (Common ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_MICRO}
               REQUIRED COMPONENTS lib
               CONFIG
               PATHS ${CMAKE_CURRENT_SOURCE_DIR}/../modules ${CMAKE_CURRENT_SOURCE_DIR}/../..
-              PATH_SUFFIXES libCommon/${BUILD_PATH_SUFFIX}
+              PATH_SUFFIXES Common/${BUILD_PATH_SUFFIX}
               NO_DEFAULT_PATH)
 if (NOT EXISTS ${Common_DIR})
  message (FATAL_ERROR "could not find package \"Common\", aborting")
@@ -54,14 +39,14 @@ include_directories ($ENV{LIB_ROOT}/ACE_TAO/ACE)
 
 include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../Common/3rd_party/bison)
 if (WIN32)
- include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../Common/3rd_party)
+ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../Common/3rd_party/msvc)
 endif (WIN32)
 include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../Common/src)
 include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../Common/src/image)
 include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../Common/src/log)
 include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../Common/src/parser)
 include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../Common/src/timer)
-include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../Common/src/ui)
+#include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../Common/src/ui)
 
 #include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../3rd_party/bison)
 include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../3rd_party/tree)
@@ -116,7 +101,7 @@ target_link_libraries (${EXECUTABLE} ${ACE_LIBRARY})
 
 if (WIN32)
   # *WARNING*: linking Common requires "/FORCE:MULTIPLE"
- set_target_properties (${EXECUTABLE} PROPERTIES LINK_FLAGS /FORCE:MULTIPLE)
+# set_target_properties (${EXECUTABLE} PROPERTIES LINK_FLAGS /FORCE:MULTIPLE)
 endif (WIN32)
 target_link_libraries (${EXECUTABLE} Common)
 target_link_libraries (${EXECUTABLE} CommonLog)
@@ -143,7 +128,7 @@ create_target_launcher (${EXECUTABLE}
                         ARGS "-d -e -f test_1.txt -l -t"
 #                         FORWARD_ARGS
                         RUNTIME_LIBRARY_DIRS ${RUNTIME_LIBRARY_DIRS}
-                                             ${PROJECT_SOURCE_DIR}/cmake/src/Debug
+                                             ${PROJECT_SOURCE_DIR}/${BUILD_PATH_SUFFIX}/src/${CMAKE_BUILD_TYPE}
                         WORKING_DIRECTORY ${PROJECT_BINARY_DIR}/../test_u/parser
                         ENVIRONMENT foo=bar)
 

@@ -265,7 +265,7 @@ Test_I_Source_DirectShow_Stream_T<StreamStateType,
       goto error;
     } // end IF
     if (!Stream_MediaFramework_DirectShow_Tools::getBufferNegotiation ((*iterator).second.second.builder,
-                                                                       STREAM_DEV_CAM_DIRECTSHOW_FILTER_NAME_CAPTURE_VIDEO,
+                                                                       STREAM_LIB_DIRECTSHOW_FILTER_NAME_CAPTURE_VIDEO,
                                                                        buffer_negotiation_p))
     {
       ACE_DEBUG ((LM_ERROR,
@@ -425,7 +425,7 @@ continue_:
   //         --> reconnect the AVI decompressor to the (connected) sample
   //             grabber; this seems to work
   if (!Stream_MediaFramework_DirectShow_Tools::connected ((*iterator).second.second.builder,
-                                                          STREAM_DEV_CAM_DIRECTSHOW_FILTER_NAME_CAPTURE_VIDEO))
+                                                          STREAM_LIB_DIRECTSHOW_FILTER_NAME_CAPTURE_VIDEO))
   {
 #if defined (_DEBUG)
     ACE_DEBUG ((LM_DEBUG,
@@ -433,7 +433,7 @@ continue_:
                 ACE_TEXT (stream_name_string_)));
 #endif // _DEBUG
     if (!Stream_MediaFramework_DirectShow_Tools::connectFirst ((*iterator).second.second.builder,
-                                                               STREAM_DEV_CAM_DIRECTSHOW_FILTER_NAME_CAPTURE_VIDEO))
+                                                               STREAM_LIB_DIRECTSHOW_FILTER_NAME_CAPTURE_VIDEO))
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: failed to Stream_MediaFramework_DirectShow_Tools::connectFirst(), aborting\n"),
@@ -442,7 +442,7 @@ continue_:
     } // end IF
   } // end IF
   ACE_ASSERT (Stream_MediaFramework_DirectShow_Tools::connected ((*iterator).second.second.builder,
-                                                                 STREAM_DEV_CAM_DIRECTSHOW_FILTER_NAME_CAPTURE_VIDEO));
+                                                                 STREAM_LIB_DIRECTSHOW_FILTER_NAME_CAPTURE_VIDEO));
 
 #if defined (_DEBUG)
   ACE_OS::memset (&allocator_properties, 0, sizeof (allocator_properties));
@@ -453,7 +453,7 @@ continue_:
     ACE_DEBUG ((LM_WARNING,
                 ACE_TEXT ("%s/%s: failed to IAMBufferNegotiation::GetAllocatorProperties(): \"%s\", continuing\n"),
                 ACE_TEXT (stream_name_string_),
-                ACE_TEXT_WCHAR_TO_TCHAR (STREAM_DEV_CAM_DIRECTSHOW_FILTER_NAME_CAPTURE_VIDEO),
+                ACE_TEXT_WCHAR_TO_TCHAR (STREAM_LIB_DIRECTSHOW_FILTER_NAME_CAPTURE_VIDEO),
                 ACE_TEXT (Common_Error_Tools::errorToString (result_2, true).c_str ())));
     //goto error;
   } // end IF

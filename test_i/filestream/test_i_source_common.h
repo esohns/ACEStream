@@ -50,6 +50,7 @@
 #include "stream_control_message.h"
 #include "stream_base.h"
 #include "stream_isessionnotify.h"
+#include "stream_messageallocatorheap_base.h"
 
 #include "net_configuration.h"
 

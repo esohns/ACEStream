@@ -31,14 +31,15 @@
 #include <strmif.h>
 #else
 #include "alsa/asoundlib.h"
+#endif // ACE_WIN32 || ACE_WIN64
 
 #ifdef __cplusplus
 extern "C"
 {
+#include "libavutil/pixdesc.h"
 #include "libavutil/pixfmt.h"
 }
 #endif // __cplusplus
-#endif // ACE_WIN32 || ACE_WIN64
 
 #include "ace/Basic_Types.h"
 #include "ace/Global_Macros.h"
@@ -74,6 +75,15 @@ class Stream_MediaFramework_Tools
   static bool initialize (enum Stream_MediaFramework_Type = STREAM_LIB_DEFAULT_MEDIAFRAMEWORK);
   static void finalize (enum Stream_MediaFramework_Type = STREAM_LIB_DEFAULT_MEDIAFRAMEWORK);
 
+  static bool isCompressed (REFGUID,                                                              // media subtype
+                            REFGUID,                                                              // device category
+                            enum Stream_MediaFramework_Type = STREAM_LIB_DEFAULT_MEDIAFRAMEWORK);
+
+  static bool isCompressedAudio (REFGUID,                                                              // media subtype
+                                 enum Stream_MediaFramework_Type = STREAM_LIB_DEFAULT_MEDIAFRAMEWORK);
+  static bool isCompressedVideo (REFGUID,                                                              // media subtype
+                                 enum Stream_MediaFramework_Type = STREAM_LIB_DEFAULT_MEDIAFRAMEWORK);
+
   static bool isChromaLuminance (REFGUID,                          // media subtype
                                  enum Stream_MediaFramework_Type = STREAM_LIB_DEFAULT_MEDIAFRAMEWORK);
   static bool isRGB (REFGUID,                          // media subtype
@@ -90,6 +100,8 @@ class Stream_MediaFramework_Tools
 
   static unsigned int frameSize (const struct _AMMediaType&);
   static unsigned int frameSize (const IMFMediaType*);
+
+  static struct _GUID AVPixelFormatToMediaSubType (enum AVPixelFormat);
 #else
   static bool initialize ();
   static void finalize ();
@@ -114,6 +126,9 @@ class Stream_MediaFramework_Tools
   static enum AVPixelFormat libCameraFormatToffmpegFormat (const libcamera::PixelFormat&); // format
 #endif // LIBCAMERA_SUPPORT
 #endif // ACE_WIN32 || ACE_WIN64
+
+  // ffmpeg
+  inline static std::string pixelFormatToString (enum AVPixelFormat format_in) { std::string result = ((format_in == AV_PIX_FMT_NONE) ? ACE_TEXT_ALWAYS_CHAR ("") : av_get_pix_fmt_name (format_in)); return result; }
 
  private:
   ACE_UNIMPLEMENTED_FUNC (Stream_MediaFramework_Tools ())

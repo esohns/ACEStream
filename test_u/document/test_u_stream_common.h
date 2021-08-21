@@ -35,6 +35,7 @@
 #include "stream_control_message.h"
 #include "stream_data_base.h"
 #include "stream_isessionnotify.h"
+#include "stream_messageallocatorheap_base.h"
 #include "stream_session_data.h"
 
 #include "stream_document_defines.h"

@@ -189,10 +189,11 @@ Stream_SessionMessageBase_T<//AllocatorConfigurationType,
   if (likely (data_))
     return *data_;
 
+  static typename SessionDataType::DATA_T* data_p = NULL;
+  static SessionDataType dummy (data_p);
   ACE_ASSERT (false);
-  typename SessionDataType::DATA_T* data_p = NULL;
-  ACE_NOTSUP_RETURN (SessionDataType (data_p));
-  ACE_NOTREACHED (return SessionDataType (data_p);)
+  ACE_NOTSUP_RETURN (dummy);
+  ACE_NOTREACHED (return dummy;)
 }
 
 template <//typename AllocatorConfigurationType,

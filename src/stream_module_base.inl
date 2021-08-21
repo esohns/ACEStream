@@ -250,13 +250,14 @@ Stream_Module_Base_T<ACE_SYNCH_USE,
   if (unlikely (!iget_p))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: dynamic_cast<Common_IGet_T>(0x%@) failed, aborting\n"),
+                ACE_TEXT ("%s: dynamic_cast<Common_IGetR_T>(0x%@) failed, aborting\n"),
                 inherited::name (),
                 writer_));
-    return HandlerConfigurationType ();
+    static HandlerConfigurationType dummy;
+    return dummy;
   } // end IF
 
-  return iget_p->get ();
+  return iget_p->getR ();
 }
 
 template <ACE_SYNCH_DECL,

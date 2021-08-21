@@ -594,7 +594,7 @@ video:
                   ACE_TEXT ("%s: initialized codec %s; encoded pixel format: %s\n"),
                   inherited::mod_->name (),
                   ACE_TEXT (videoCodecContext_->codec->long_name),
-                  ACE_TEXT (Stream_Module_Decoder_Tools::pixelFormatToString (videoCodecContext_->pix_fmt).c_str ())));
+                  ACE_TEXT (Stream_MediaFramework_Tools::pixelFormatToString (videoCodecContext_->pix_fmt).c_str ())));
 
 //      videoStream_->codec = videoCodecContext_;
       avcodec_parameters_from_context (videoStream_->codecpar,

@@ -28,8 +28,8 @@
 
 #include "common_iinitialize.h"
 
-#include "stream_cachedmessageallocator.h"
-#include "stream_messageallocatorheap_base.h"
+//#include "stream_cachedmessageallocator.h"
+//#include "stream_messageallocatorheap_base.h"
 
 // forward declarations
 class ACE_Allocator;
@@ -101,5 +101,10 @@ class Stream_ControlMessage_T
 
 // include template definition
 #include "stream_control_message.inl"
+
+//////////////////////////////////////////
+
+typedef Stream_ControlMessage_T<enum Stream_ControlType,
+                                enum Stream_ControlMessageType> Stream_ControlMessage_t;
 
 #endif

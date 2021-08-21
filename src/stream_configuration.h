@@ -48,7 +48,6 @@
 #include "common_signal_common.h"
 
 #include "stream_common.h"
-#include "stream_control_message.h"
 #include "stream_defines.h"
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -307,8 +306,5 @@ class Stream_Configuration_T
 typedef Stream_Configuration_T<//empty_string_,
                                struct Stream_Configuration,
                                struct Stream_ModuleHandlerConfiguration> Stream_Configuration_t;
-
-typedef Stream_ControlMessage_T<enum Stream_ControlType,
-                                enum Stream_ControlMessageType> Stream_ControlMessage_t;
 
 #endif

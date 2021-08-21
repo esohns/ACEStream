@@ -21,6 +21,7 @@
 #include <limits>
 
 #include "ace/Log_Msg.h"
+#include "ace/OS.h"
 
 #include "common_macros.h"
 

@@ -2566,7 +2566,7 @@ Stream_Base_T<ACE_SYNCH_USE,
                   ACE_TEXT ("%: failed to dynamic_cast<Stream_ILock_T>(0x%@), aborting\n"),
                   (istream_p ? ACE_TEXT (istream_p->name ().c_str ()) : ACE_TEXT ("")),
                   upstream_));
-      ACE_SYNCH_RECURSIVE_MUTEX dummy;
+      static ACE_SYNCH_RECURSIVE_MUTEX dummy;
       return dummy;
     } // end IF
     try {

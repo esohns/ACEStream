@@ -25,6 +25,7 @@
 #include "ace/Synch_Traits.h"
 
 #include "stream_common.h"
+#include "stream_messageallocatorheap_base.h"
 #include "stream_session_message_base.h"
 
 #include "test_u_stream_common.h"
@@ -34,12 +35,12 @@ class ACE_Allocator;
 class ACE_Data_Block;
 class ACE_Message_Block;
 class Branch_Message;
-template <ACE_SYNCH_DECL,
-          typename AllocatorConfigurationType,
-          typename ControlMessageType,
-          typename DataMessageType,
-          typename SessionMessageType>
-class Stream_MessageAllocatorHeapBase_T;
+//template <ACE_SYNCH_DECL,
+//          typename AllocatorConfigurationType,
+//          typename ControlMessageType,
+//          typename DataMessageType,
+//          typename SessionMessageType>
+//class Stream_MessageAllocatorHeapBase_T;
 
 class Test_U_SessionMessage
  : public Stream_SessionMessageBase_T<//struct Common_AllocatorConfiguration,

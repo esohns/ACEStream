@@ -25,6 +25,7 @@
 
 #include "common_iget.h"
 
+#include "stream_control_message.h"
 #include "stream_data_message_base.h"
 
 #include "http_codes.h"

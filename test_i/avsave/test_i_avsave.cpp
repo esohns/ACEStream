@@ -594,7 +594,7 @@ do_initialize_directshow (const std::string& devicePath_in,
   // *NOTE*: the default save format is ARGB32
   ACE_ASSERT (InlineIsEqualGUID (outputFormat_inout.majortype, MEDIATYPE_Video));
   outputFormat_inout.subtype =
-    STREAM_DEC_DIRECTSHOW_FILTER_VIDEO_RENDERER_DEFAULT_FORMAT;
+    STREAM_LIB_DEFAULT_DIRECTSHOW_FILTER_VIDEO_RENDERER_FORMAT;
   outputFormat_inout.bFixedSizeSamples = TRUE;
   outputFormat_inout.bTemporalCompression = FALSE;
   if (InlineIsEqualGUID (outputFormat_inout.formattype, FORMAT_VideoInfo))

@@ -211,10 +211,10 @@ Stream_SessionData_T<DataType>::getR () const
   if (likely (data_))
     return *data_;
 
+  static DataType dummy;
   ACE_ASSERT (false);
-  ACE_NOTSUP_RETURN (DataType ());
-
-  ACE_NOTREACHED (return DataType ();)
+  ACE_NOTSUP_RETURN (dummy);
+  ACE_NOTREACHED (return dummy;)
 }
 template <typename DataType>
 void

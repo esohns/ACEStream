@@ -30,7 +30,7 @@
 #include "stream_defines.h"
 #include "stream_macros.h"
 
-#include "stream_dec_tools.h"
+//#include "stream_dec_tools.h"
 
 #include "stream_lib_defines.h"
 #include "stream_lib_directshow_tools.h"

@@ -25,6 +25,7 @@
 #include "ace/Global_Macros.h"
 
 #include "stream_message_base.h"
+#include "stream_messageallocatorheap_base.h"
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #include "stream_lib_directshow_message_base.h"
@@ -37,12 +38,12 @@
 class ACE_Allocator;
 class ACE_Data_Block;
 class ACE_Message_Block;
-template <ACE_SYNCH_DECL,
-          typename AllocatorConfigurationType,
-          typename ControlMessageType,
-          typename DataMessageType,
-          typename SessionMessageType>
-class Stream_MessageAllocatorHeapBase_T;
+//template <ACE_SYNCH_DECL,
+//          typename AllocatorConfigurationType,
+//          typename ControlMessageType,
+//          typename DataMessageType,
+//          typename SessionMessageType>
+//class Stream_MessageAllocatorHeapBase_T;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 class Test_I_Target_DirectShow_SessionMessage;
 class Test_I_Target_MediaFoundation_SessionMessage;
@@ -191,6 +192,6 @@ class Test_I_Target_Stream_Message
                                 bool = true);       // increment running message counter ?
   ACE_UNIMPLEMENTED_FUNC (Test_I_Target_Stream_Message& operator= (const Test_I_Target_Stream_Message&))
 };
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
 
 #endif

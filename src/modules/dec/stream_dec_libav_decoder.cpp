@@ -50,7 +50,7 @@ stream_decoder_libav_getformat_cb (struct AVCodecContext* context_in,
   ACE_DEBUG ((LM_WARNING,
               ACE_TEXT ("%s: preferred format (was: %s) not supported, falling back\n"),
               ACE_TEXT (avcodec_get_name (context_in->codec_id)),
-              ACE_TEXT (Stream_Module_Decoder_Tools::pixelFormatToString (*preferred_format_p).c_str ())));
+              ACE_TEXT (Stream_MediaFramework_Tools::pixelFormatToString (*preferred_format_p).c_str ())));
 
   // *TODO*: set context_in->hw_frames_ctx here as well
 

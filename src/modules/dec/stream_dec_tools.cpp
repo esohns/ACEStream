@@ -170,91 +170,6 @@ stream_decoder_libav_log_cb (void* AVClassStruct_in,
 //
 //}
 
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-bool
-Stream_Module_Decoder_Tools::isCompressed (REFGUID subType_in,
-                                           REFGUID deviceCategory_in,
-                                           enum Stream_MediaFramework_Type mediaFramework_in)
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_Module_Decoder_Tools::isCompressed"));
-
-  switch (mediaFramework_in)
-  {
-    case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
-    {
-      if (InlineIsEqualGUID (deviceCategory_in, CLSID_AudioInputDeviceCategory))
-        return Stream_Module_Decoder_Tools::isCompressedAudio (subType_in,
-                                                               STREAM_MEDIAFRAMEWORK_DIRECTSHOW);
-      if (InlineIsEqualGUID (deviceCategory_in, CLSID_VideoInputDeviceCategory))
-        return Stream_Module_Decoder_Tools::isCompressedVideo (subType_in,
-                                                               STREAM_MEDIAFRAMEWORK_DIRECTSHOW);
-
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("invalid/unknown device category (was: %s), aborting\n"),
-                  ACE_TEXT (Common_Tools::GUIDToString (deviceCategory_in).c_str ())));
-      break;
-    }
-    case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
-    {
-      // *TODO*
-      break;
-    }
-    default:
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("invalid/unknown media framework (was: %d), aborting\n"),
-                  mediaFramework_in));
-      break;
-    }
-  } // end SWITCH
-
-  ACE_ASSERT (false);
-  ACE_NOTSUP_RETURN (false);
-
-  ACE_NOTREACHED (return false;)
-}
-
-bool
-Stream_Module_Decoder_Tools::isCompressedAudio (REFGUID subType_in,
-                                                enum Stream_MediaFramework_Type mediaFramework_in)
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_Module_Decoder_Tools::isCompressedAudio"));
-
-  // *TODO*: this is probably incomplete
-  switch (mediaFramework_in)
-  {
-    case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
-      return (!InlineIsEqualGUID (subType_in, MEDIASUBTYPE_PCM) &&
-              !InlineIsEqualGUID (subType_in, MEDIASUBTYPE_IEEE_FLOAT));
-    case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
-      return (!InlineIsEqualGUID (subType_in, MFAudioFormat_PCM) &&
-              !InlineIsEqualGUID (subType_in, MFAudioFormat_Float));
-    default:
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("invalid/unknown media framework (was: %d), aborting\n"),
-                  mediaFramework_in));
-      break;
-    }
-  } // end SWITCH
-
-  return false;
-}
-
-bool
-Stream_Module_Decoder_Tools::isCompressedVideo (REFGUID subType_in,
-                                                enum Stream_MediaFramework_Type mediaFramework_in)
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_Module_Decoder_Tools::isCompressedVideo"));
-
-  // *TODO*: this is probably incomplete
-  return (!Stream_MediaFramework_Tools::isRGB (subType_in,
-                                               mediaFramework_in) &&
-          !Stream_MediaFramework_Tools::isChromaLuminance (subType_in,
-                                                           mediaFramework_in));
-}
-#endif
-
 bool
 Stream_Module_Decoder_Tools::isCompressedVideo (enum AVPixelFormat format_in)
 {
@@ -579,70 +494,7 @@ Stream_Module_Decoder_Tools::mediaSubTypeToAVPixelFormat (REFGUID mediaSubType_i
 
   return result;
 }
-
-struct _GUID
-Stream_Module_Decoder_Tools::AVPixelFormatToMediaSubType (enum AVPixelFormat pixelFormat_in)
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_Module_Decoder_Tools::AVPixelFormatToMediaSubType"));
-
-  struct _GUID result = GUID_NULL;
-
-  switch (pixelFormat_in)
-  {
-    case AV_PIX_FMT_NONE:
-      //return MEDIASUBTYPE_None;
-      return GUID_NULL;
-    case AV_PIX_FMT_MONOBLACK:
-      return MEDIASUBTYPE_RGB1;
-    case AV_PIX_FMT_RGB4:
-      return MEDIASUBTYPE_RGB4;
-    case AV_PIX_FMT_RGB8:
-      return MEDIASUBTYPE_RGB8;
-    case AV_PIX_FMT_RGB555:
-      return MEDIASUBTYPE_RGB555;
-    case AV_PIX_FMT_RGB565:
-      return MEDIASUBTYPE_RGB565;
-    case AV_PIX_FMT_RGB24:
-      return MEDIASUBTYPE_RGB24;
-    case AV_PIX_FMT_RGB32:
-      return MEDIASUBTYPE_RGB32;
-    //else if (IsEqualGUID (mediaSubType_in, MEDIASUBTYPE_ARGB1555))
-    case AV_PIX_FMT_ARGB:
-      return MEDIASUBTYPE_ARGB32;
-    //else if (InlineIsEqualGUID (mediaSubType_in, MEDIASUBTYPE_ARGB4444))
-    //else if (InlineIsEqualGUID (mediaSubType_in, MEDIASUBTYPE_A2R10G10B10))
-    //else if (InlineIsEqualGUID (mediaSubType_in, MEDIASUBTYPE_A2B10G10R10))
-    case AV_PIX_FMT_YUVA444P:
-      return MEDIASUBTYPE_AYUV;
-    case AV_PIX_FMT_YUYV422:
-      return MEDIASUBTYPE_YUY2;
-    case AV_PIX_FMT_UYVY422:
-      return MEDIASUBTYPE_UYVY;
-    case AV_PIX_FMT_P016:
-      return MEDIASUBTYPE_IMC1;
-    case AV_PIX_FMT_NV12:
-      return MEDIASUBTYPE_NV12;
-    //else if (InlineIsEqualGUID (mediaSubType_in, MEDIASUBTYPE_IMC3))
-    case AV_PIX_FMT_NV21:
-      return MEDIASUBTYPE_IMC4;
-    case AV_PIX_FMT_YUV420P:
-      return MEDIASUBTYPE_YV12;
-    case AV_PIX_FMT_UYYVYY411:
-      return MEDIASUBTYPE_Y411;
-    case AV_PIX_FMT_YVYU422:
-      return MEDIASUBTYPE_YVYU;
-    default:
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("invalid/unknown pixel format (was: %d \"%s\"), aborting\n"),
-                  pixelFormat_in, ACE_TEXT (Stream_Module_Decoder_Tools::pixelFormatToString (pixelFormat_in).c_str ())));
-      break;
-    }
-  } // end SWITCH
-
-  return result;
-}
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
 
 enum AVCodecID
 Stream_Module_Decoder_Tools::AVPixelFormatToAVCodecId (enum AVPixelFormat pixelFormat_in)
@@ -660,7 +512,7 @@ Stream_Module_Decoder_Tools::AVPixelFormatToAVCodecId (enum AVPixelFormat pixelF
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("invalid/unknown pixel format (was: %s), aborting\n"),
-                  ACE_TEXT (Stream_Module_Decoder_Tools::pixelFormatToString (pixelFormat_in).c_str ())));
+                  ACE_TEXT (Stream_MediaFramework_Tools::pixelFormatToString (pixelFormat_in).c_str ())));
       break;
     }
   } // end SWITCH
@@ -732,8 +584,8 @@ Stream_Module_Decoder_Tools::convert (struct SwsContext* context_in,
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("unsupported format conversion (was: %s --> %s), aborting\n"),
-                ACE_TEXT (Stream_Module_Decoder_Tools::pixelFormatToString (sourcePixelFormat_in).c_str ()),
-                ACE_TEXT (Stream_Module_Decoder_Tools::pixelFormatToString (targetPixelFormat_in).c_str ())));
+                ACE_TEXT (Stream_MediaFramework_Tools::pixelFormatToString (sourcePixelFormat_in).c_str ()),
+                ACE_TEXT (Stream_MediaFramework_Tools::pixelFormatToString (targetPixelFormat_in).c_str ())));
     return false;
   } // end IF
 //  ACE_ASSERT (sourcePixelFormat_in != targetPixelFormat_in);
@@ -1488,10 +1340,10 @@ Stream_Module_Decoder_Tools::loadVideoRendererGraph (REFGUID deviceCategory_in,
 
   if (InlineIsEqualGUID (deviceCategory_in, CLSID_AudioInputDeviceCategory))
     graph_entry.filterName =
-      STREAM_DEV_MIC_DIRECTSHOW_FILTER_NAME_CAPTURE_AUDIO;
+      STREAM_LIB_DIRECTSHOW_FILTER_NAME_CAPTURE_AUDIO;
   else if (InlineIsEqualGUID (deviceCategory_in, CLSID_VideoInputDeviceCategory))
     graph_entry.filterName =
-      STREAM_DEV_CAM_DIRECTSHOW_FILTER_NAME_CAPTURE_VIDEO;
+      STREAM_LIB_DIRECTSHOW_FILTER_NAME_CAPTURE_VIDEO;
   else
   {
     ACE_DEBUG ((LM_ERROR,
@@ -1521,7 +1373,7 @@ Stream_Module_Decoder_Tools::loadVideoRendererGraph (REFGUID deviceCategory_in,
 
   // step1: decompress ?
   if (InlineIsEqualGUID (outputFormat_in.subtype, captureFormat_in.subtype) ||
-      !Stream_Module_Decoder_Tools::isCompressedVideo (captureFormat_in.subtype,
+      !Stream_MediaFramework_Tools::isCompressedVideo (captureFormat_in.subtype,
                                                        STREAM_MEDIAFRAMEWORK_DIRECTSHOW))
   {
     graph_entry.mediaType =
@@ -2088,7 +1940,7 @@ continue_:
   graph_entry.mediaType = media_type_p;
   media_type_p = NULL;
 
-  if (!Stream_Module_Decoder_Tools::isCompressedVideo (graph_entry.mediaType->subtype,
+  if (!Stream_MediaFramework_Tools::isCompressedVideo (graph_entry.mediaType->subtype,
                                                        STREAM_MEDIAFRAMEWORK_DIRECTSHOW))
     goto decode;
 
@@ -2202,7 +2054,7 @@ decompress:
               ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::name (pin_p).c_str ()),
               ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::toString (*graph_entry.mediaType, true).c_str ())));
 
-  if (Stream_Module_Decoder_Tools::isCompressedVideo (graph_entry.mediaType->subtype,
+  if (Stream_MediaFramework_Tools::isCompressedVideo (graph_entry.mediaType->subtype,
                                                       STREAM_MEDIAFRAMEWORK_DIRECTSHOW))
     goto decompress;
 
@@ -2222,12 +2074,12 @@ decompress:
   pin_p->Release (); pin_p = NULL;
 
 decode:
-  if (InlineIsEqualGUID (graph_entry.mediaType->subtype, STREAM_DEC_DIRECTSHOW_FILTER_VIDEO_RENDERER_DEFAULT_FORMAT) ||
+  if (InlineIsEqualGUID (graph_entry.mediaType->subtype, STREAM_LIB_DEFAULT_DIRECTSHOW_FILTER_VIDEO_RENDERER_FORMAT) ||
       skip_decode)
     goto grab;
 
   preferred_subtype =
-    STREAM_DEC_DIRECTSHOW_FILTER_VIDEO_RENDERER_DEFAULT_FORMAT;
+    STREAM_LIB_DEFAULT_DIRECTSHOW_FILTER_VIDEO_RENDERER_FORMAT;
   // *NOTE*: the Color Space Converter filter has a seriously broken allocator
   //         --> use the DMO instead
   if (Stream_MediaFramework_Tools::isRGB (graph_entry.mediaType->subtype,
@@ -2918,7 +2770,7 @@ Stream_Module_Decoder_Tools::loadAudioRendererTopology (const std::string& devic
   //              ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
   //  goto error;
   //} // end IF
-  if (!Stream_Module_Decoder_Tools::isCompressedAudio (sub_type,
+  if (!Stream_MediaFramework_Tools::isCompressedAudio (sub_type,
                                                        STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION))
     goto continue_;
 
@@ -3084,7 +2936,7 @@ clean:
     result = media_type_p->GetGUID (MF_MT_SUBTYPE,
                                     &sub_type);
     ACE_ASSERT (SUCCEEDED (result));
-    if (!Stream_Module_Decoder_Tools::isCompressedAudio (sub_type,
+    if (!Stream_MediaFramework_Tools::isCompressedAudio (sub_type,
                                                          STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION))
       break; // done
   } // end WHILE
@@ -3499,7 +3351,7 @@ Stream_Module_Decoder_Tools::loadVideoRendererTopology (const std::string& devic
 
   // step2: add decoder nodes ?
   mft_register_type_info.guidMajorType = MFMediaType_Video;
-  if (!Stream_Module_Decoder_Tools::isCompressedVideo (sub_type,
+  if (!Stream_MediaFramework_Tools::isCompressedVideo (sub_type,
                                                        STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION))
     goto transform;
 
@@ -3666,7 +3518,7 @@ clean:
                 ACE_TEXT (Stream_MediaFramework_Tools::mediaSubTypeToString (sub_type, STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION).c_str ())));
 #endif // _DEBUG
 
-    if (!Stream_Module_Decoder_Tools::isCompressedVideo (sub_type,
+    if (!Stream_MediaFramework_Tools::isCompressedVideo (sub_type,
                                                          STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION))
       break; // done
   } // end WHILE
@@ -4865,7 +4717,7 @@ Stream_Module_Decoder_Tools::loadTargetRendererTopology (const std::string& URL_
     goto error;
   } // end IF
 
-  if (!Stream_Module_Decoder_Tools::isCompressedVideo (sub_type,
+  if (!Stream_MediaFramework_Tools::isCompressedVideo (sub_type,
                                                        STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION))
     goto continue_;
 
@@ -4994,7 +4846,7 @@ clean:
                   ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
       goto error;
     } // end IF
-    if (!Stream_Module_Decoder_Tools::isCompressedVideo (sub_type,
+    if (!Stream_MediaFramework_Tools::isCompressedVideo (sub_type,
                                                          STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION))
       break; // done
   } // end WHILE

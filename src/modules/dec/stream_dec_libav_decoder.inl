@@ -673,7 +673,7 @@ Stream_Decoder_LibAVDecoder_T<ACE_SYNCH_USE,
         ACE_DEBUG ((LM_WARNING,
                     ACE_TEXT ("%s: codec id not set, best-guessing based on the input pixel format (was: %s)\n"),
                     inherited::mod_->name (),
-                    ACE_TEXT (Stream_Module_Decoder_Tools::pixelFormatToString (media_type_s.format).c_str ())));
+                    ACE_TEXT (Stream_MediaFramework_Tools::pixelFormatToString (media_type_s.format).c_str ())));
         codecId_ =
             Stream_Module_Decoder_Tools::AVPixelFormatToAVCodecId (media_type_s.format);
       } // end IF
@@ -989,7 +989,7 @@ Stream_Decoder_LibAVDecoder_T<ACE_SYNCH_USE,
                   inherited::mod_->name (),
 //                  ACE_TEXT (context_->codec_name),
                   ACE_TEXT (codec_p->long_name),
-                  ACE_TEXT (Stream_Module_Decoder_Tools::pixelFormatToString (context_->pix_fmt).c_str ())));
+                  ACE_TEXT (Stream_MediaFramework_Tools::pixelFormatToString (context_->pix_fmt).c_str ())));
 
       // sanity check(s)
       ACE_ASSERT (frame_);
@@ -1012,8 +1012,8 @@ Stream_Decoder_LibAVDecoder_T<ACE_SYNCH_USE,
         ACE_DEBUG ((LM_DEBUG,
                     ACE_TEXT ("%s: converting decoded pixel format %s to %s\n"),
                     inherited::mod_->name (),
-                    ACE_TEXT (Stream_Module_Decoder_Tools::pixelFormatToString (context_->pix_fmt).c_str ()),
-                    ACE_TEXT (Stream_Module_Decoder_Tools::pixelFormatToString (outputFormat_).c_str ())));
+                    ACE_TEXT (Stream_MediaFramework_Tools::pixelFormatToString (context_->pix_fmt).c_str ()),
+                    ACE_TEXT (Stream_MediaFramework_Tools::pixelFormatToString (outputFormat_).c_str ())));
 
         flags = (//SWS_BILINEAR | SWS_FAST_BILINEAR | // interpolation
                  SWS_FAST_BILINEAR | SWS_ACCURATE_RND);

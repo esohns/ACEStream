@@ -26,6 +26,7 @@
 
 #include "stream_common.h"
 #include "stream_session_message_base.h"
+#include "stream_messageallocatorheap_base.h"
 
 #include "test_i_target_common.h"
 
@@ -36,11 +37,11 @@ class Test_I_Target_DirectShow_Stream_Message;
 class Test_I_Target_MediaFoundation_Stream_Message;
 #endif
 class Test_I_Target_Stream_Message;
-template <ACE_SYNCH_DECL,
-          typename AllocatorConfigurationType,
-          typename ControlMessageType,
-          typename DataMessageType,
-          typename SessionMessageType> class Stream_MessageAllocatorHeapBase_T;
+//template <ACE_SYNCH_DECL,
+//          typename AllocatorConfigurationType,
+//          typename ControlMessageType,
+//          typename DataMessageType,
+//          typename SessionMessageType> class Stream_MessageAllocatorHeapBase_T;
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 class Test_I_Target_DirectShow_SessionMessage
@@ -180,6 +181,6 @@ class Test_I_Target_SessionMessage
   ACE_UNIMPLEMENTED_FUNC (Test_I_Target_SessionMessage ())
   ACE_UNIMPLEMENTED_FUNC (Test_I_Target_SessionMessage& operator= (const Test_I_Target_SessionMessage&))
 };
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
 
 #endif

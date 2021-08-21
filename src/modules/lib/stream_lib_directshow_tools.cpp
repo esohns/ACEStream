@@ -59,7 +59,6 @@
 
 #include "ace/Log_Msg.h"
 #include "ace/OS.h"
-#include "ace/Synch.h"
 
 #include "common.h"
 #include "common_time_common.h"
@@ -69,10 +68,10 @@
 
 #include "stream_macros.h"
 
-#include "stream_dec_defines.h"
-#include "stream_dec_tools.h"
+//#include "stream_dec_defines.h"
+//#include "stream_dec_tools.h"
 
-#include "stream_dev_defines.h"
+//#include "stream_dev_defines.h"
 
 #include "stream_lib_tools.h"
 
@@ -2522,9 +2521,9 @@ Stream_MediaFramework_DirectShow_Tools::reset (IGraphBuilder* builder_in,
   HRESULT result = E_FAIL;
 
   if (InlineIsEqualGUID (deviceCategory_in, CLSID_AudioInputDeviceCategory))
-    filter_name = STREAM_DEV_MIC_DIRECTSHOW_FILTER_NAME_CAPTURE_AUDIO;
+    filter_name = STREAM_LIB_DIRECTSHOW_FILTER_NAME_CAPTURE_AUDIO;
   else if (InlineIsEqualGUID (deviceCategory_in, CLSID_VideoInputDeviceCategory))
-    filter_name = STREAM_DEV_CAM_DIRECTSHOW_FILTER_NAME_CAPTURE_VIDEO;
+    filter_name = STREAM_LIB_DIRECTSHOW_FILTER_NAME_CAPTURE_VIDEO;
   else if (InlineIsEqualGUID (deviceCategory_in, GUID_NULL))
   { // retrieve the first filter that has no input pin
     IEnumFilters* enumerator_p = NULL;
@@ -3037,7 +3036,7 @@ Stream_MediaFramework_DirectShow_Tools::toString_2 (const struct _AMMediaType& m
       converter.str (ACE_TEXT_ALWAYS_CHAR (""));
       converter.clear ();
       // *TODO*: the second argument may not be entirely accurate
-      if (Stream_Module_Decoder_Tools::isCompressedAudio (mediaType_in.subtype,
+      if (Stream_MediaFramework_Tools::isCompressedAudio (mediaType_in.subtype,
                                                           STREAM_MEDIAFRAMEWORK_DIRECTSHOW))
         converter << waveformatextensible_p->Samples.wSamplesPerBlock;
       else
@@ -3287,7 +3286,7 @@ Stream_MediaFramework_DirectShow_Tools::hasUncompressedFormat (REFGUID deviceCat
     // sanity check(s)
     ACE_ASSERT (media_types_a[0]);
 
-    if (!Stream_Module_Decoder_Tools::isCompressed (media_types_a[0]->subtype,
+    if (!Stream_MediaFramework_Tools::isCompressed (media_types_a[0]->subtype,
                                                     deviceCategory_in,
                                                     STREAM_MEDIAFRAMEWORK_DIRECTSHOW))
       break;
@@ -3607,7 +3606,7 @@ Stream_MediaFramework_DirectShow_Tools::setFormat (REFGUID mediaSubType_in,
       (struct tagVIDEOINFOHEADER*)mediaType_inout.pbFormat;
 
     video_info_header_p->bmiHeader.biCompression =
-      (Stream_Module_Decoder_Tools::isCompressedVideo (mediaType_inout.subtype,
+      (Stream_MediaFramework_Tools::isCompressedVideo (mediaType_inout.subtype,
                                                        STREAM_MEDIAFRAMEWORK_DIRECTSHOW) ? fourcc_map.GetFOURCC ()
                                                                                          : BI_RGB);
   } // end IF
@@ -3617,7 +3616,7 @@ Stream_MediaFramework_DirectShow_Tools::setFormat (REFGUID mediaSubType_in,
       (struct tagVIDEOINFOHEADER2*)mediaType_inout.pbFormat;
 
     video_info_header2_p->bmiHeader.biCompression =
-      (Stream_Module_Decoder_Tools::isCompressedVideo (mediaType_inout.subtype,
+      (Stream_MediaFramework_Tools::isCompressedVideo (mediaType_inout.subtype,
                                                        STREAM_MEDIAFRAMEWORK_DIRECTSHOW) ? fourcc_map.GetFOURCC ()
                                                                                          : BI_RGB);
   } // end ELSE IF
@@ -3737,8 +3736,8 @@ Stream_MediaFramework_DirectShow_Tools::toRGB (const struct _AMMediaType& mediaT
   HRESULT result_2 = E_FAIL;
   ACE_ASSERT (InlineIsEqualGUID (result_s.majortype, MEDIATYPE_Video));
   result_s.subtype =
-    (Stream_MediaFramework_Tools::isRGB (STREAM_DEC_DIRECTSHOW_FILTER_VIDEO_RENDERER_DEFAULT_FORMAT,
-                                         STREAM_MEDIAFRAMEWORK_DIRECTSHOW) ? STREAM_DEC_DIRECTSHOW_FILTER_VIDEO_RENDERER_DEFAULT_FORMAT
+    (Stream_MediaFramework_Tools::isRGB (STREAM_LIB_DEFAULT_DIRECTSHOW_FILTER_VIDEO_RENDERER_FORMAT,
+                                         STREAM_MEDIAFRAMEWORK_DIRECTSHOW) ? STREAM_LIB_DEFAULT_DIRECTSHOW_FILTER_VIDEO_RENDERER_FORMAT
                                                                            : MEDIASUBTYPE_RGB32);
   result_s.bFixedSizeSamples = TRUE;
   result_s.bTemporalCompression = FALSE;
@@ -4237,7 +4236,7 @@ Stream_MediaFramework_DirectShow_Tools::toString (const struct _AMMediaType& med
         (WAVEFORMATEXTENSIBLE*)mediaType_in.pbFormat;
 
       // *TODO*: the second argument may not be entirely accurate
-      if (Stream_Module_Decoder_Tools::isCompressedAudio (mediaType_in.subtype,
+      if (Stream_MediaFramework_Tools::isCompressedAudio (mediaType_in.subtype,
                                                           STREAM_MEDIAFRAMEWORK_DIRECTSHOW))
       {
         result += ACE_TEXT_ALWAYS_CHAR ("\nwSamplesPerBlock: ");
@@ -4426,7 +4425,7 @@ Stream_MediaFramework_DirectShow_Tools::to (const struct Stream_MediaFramework_F
   BOOL result_2 = FALSE;
   result_p->majortype = MEDIATYPE_Video;
   result_p->subtype =
-    Stream_Module_Decoder_Tools::AVPixelFormatToMediaSubType (mediaType_in.format);
+    Stream_MediaFramework_Tools::AVPixelFormatToMediaSubType (mediaType_in.format);
   result_p->bFixedSizeSamples = TRUE;
   result_p->bTemporalCompression = FALSE;
   result_p->formattype = FORMAT_VideoInfo;

@@ -19,7 +19,6 @@
  ***************************************************************************/
 #include "stdafx.h"
 
-//#include "ace/Synch.h"
 #include "stream_lib_directdraw_tools.h"
 
 // *NOTE*: uuids.h doesn't have double include protection

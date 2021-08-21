@@ -30,7 +30,7 @@
 //#include "gtk/gtk.h"
 //#endif // GTK_USE
 //#endif // GUI_SUPPORT
-#include "common_ui_common.h"
+//#include "common_ui_common.h"
 
 #include "stream_macros.h"
 
@@ -153,7 +153,7 @@ Parser_EventHandler::notify (Stream_SessionId_t sessionId_in,
 //#endif // GUI_SUPPORT
 
 //  int result = -1;
-  enum Common_UI_EventType event_e = COMMON_UI_EVENT_SESSION;
+  //enum Common_UI_EventType event_e = COMMON_UI_EVENT_SESSION;
 //#if defined (GUI_SUPPORT)
 //#if defined (GTK_USE)
 //  Common_UI_GTK_Manager_t* gtk_manager_p =
@@ -206,7 +206,7 @@ Parser_EventHandler::notify (Stream_SessionId_t sessionId_in,
 //#endif // GTK_USE
 //#endif // GUI_SUPPORT
 
-      event_e = COMMON_UI_EVENT_STATISTIC;
+      //event_e = COMMON_UI_EVENT_STATISTIC;
       break;
     }
     default:

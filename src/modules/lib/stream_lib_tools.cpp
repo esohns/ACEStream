@@ -504,6 +504,88 @@ Stream_MediaFramework_Tools::finalize (
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 bool
+Stream_MediaFramework_Tools::isCompressed (REFGUID subType_in,
+                                           REFGUID deviceCategory_in,
+                                           enum Stream_MediaFramework_Type mediaFramework_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_Tools::isCompressed"));
+
+  switch (mediaFramework_in)
+  {
+    case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
+    {
+      if (InlineIsEqualGUID (deviceCategory_in, CLSID_AudioInputDeviceCategory))
+        return Stream_MediaFramework_Tools::isCompressedAudio (subType_in,
+                                                               STREAM_MEDIAFRAMEWORK_DIRECTSHOW);
+      if (InlineIsEqualGUID (deviceCategory_in, CLSID_VideoInputDeviceCategory))
+        return Stream_MediaFramework_Tools::isCompressedVideo (subType_in,
+                                                               STREAM_MEDIAFRAMEWORK_DIRECTSHOW);
+
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("invalid/unknown device category (was: %s), aborting\n"),
+                  ACE_TEXT (Common_Tools::GUIDToString (deviceCategory_in).c_str ())));
+      break;
+    }
+    case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
+    {
+      // *TODO*
+      break;
+    }
+    default:
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("invalid/unknown media framework (was: %d), aborting\n"),
+                  mediaFramework_in));
+      break;
+    }
+  } // end SWITCH
+
+  ACE_ASSERT (false);
+  ACE_NOTSUP_RETURN (false);
+  ACE_NOTREACHED (return false;)
+}
+
+bool
+Stream_MediaFramework_Tools::isCompressedAudio (REFGUID subType_in,
+                                                enum Stream_MediaFramework_Type mediaFramework_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_Tools::isCompressedAudio"));
+
+  // *TODO*: this is probably incomplete
+  switch (mediaFramework_in)
+  {
+    case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
+      return (!InlineIsEqualGUID (subType_in, MEDIASUBTYPE_PCM) &&
+              !InlineIsEqualGUID (subType_in, MEDIASUBTYPE_IEEE_FLOAT));
+    case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
+      return (!InlineIsEqualGUID (subType_in, MFAudioFormat_PCM) &&
+              !InlineIsEqualGUID (subType_in, MFAudioFormat_Float));
+    default:
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("invalid/unknown media framework (was: %d), aborting\n"),
+                  mediaFramework_in));
+      break;
+    }
+  } // end SWITCH
+
+  return false;
+}
+
+bool
+Stream_MediaFramework_Tools::isCompressedVideo (REFGUID subType_in,
+                                                enum Stream_MediaFramework_Type mediaFramework_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_Tools::isCompressedVideo"));
+
+  // *TODO*: this is probably incomplete
+  return (!Stream_MediaFramework_Tools::isRGB (subType_in,
+                                               mediaFramework_in) &&
+          !Stream_MediaFramework_Tools::isChromaLuminance (subType_in,
+                                                           mediaFramework_in));
+}
+
+bool
 Stream_MediaFramework_Tools::isRGB (REFGUID subType_in,
                                     enum Stream_MediaFramework_Type mediaFramework_in)
 {
@@ -985,6 +1067,69 @@ video:
   result = image_size_i;
 
 continue_:
+  return result;
+}
+
+struct _GUID
+Stream_MediaFramework_Tools::AVPixelFormatToMediaSubType (enum AVPixelFormat pixelFormat_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_Tools::AVPixelFormatToMediaSubType"));
+
+  struct _GUID result = GUID_NULL;
+
+  switch (pixelFormat_in)
+  {
+    case AV_PIX_FMT_NONE:
+      //return MEDIASUBTYPE_None;
+      return GUID_NULL;
+    case AV_PIX_FMT_MONOBLACK:
+      return MEDIASUBTYPE_RGB1;
+    case AV_PIX_FMT_RGB4:
+      return MEDIASUBTYPE_RGB4;
+    case AV_PIX_FMT_RGB8:
+      return MEDIASUBTYPE_RGB8;
+    case AV_PIX_FMT_RGB555:
+      return MEDIASUBTYPE_RGB555;
+    case AV_PIX_FMT_RGB565:
+      return MEDIASUBTYPE_RGB565;
+    case AV_PIX_FMT_RGB24:
+      return MEDIASUBTYPE_RGB24;
+    case AV_PIX_FMT_RGB32:
+      return MEDIASUBTYPE_RGB32;
+    //else if (IsEqualGUID (mediaSubType_in, MEDIASUBTYPE_ARGB1555))
+    case AV_PIX_FMT_ARGB:
+      return MEDIASUBTYPE_ARGB32;
+    //else if (InlineIsEqualGUID (mediaSubType_in, MEDIASUBTYPE_ARGB4444))
+    //else if (InlineIsEqualGUID (mediaSubType_in, MEDIASUBTYPE_A2R10G10B10))
+    //else if (InlineIsEqualGUID (mediaSubType_in, MEDIASUBTYPE_A2B10G10R10))
+    case AV_PIX_FMT_YUVA444P:
+      return MEDIASUBTYPE_AYUV;
+    case AV_PIX_FMT_YUYV422:
+      return MEDIASUBTYPE_YUY2;
+    case AV_PIX_FMT_UYVY422:
+      return MEDIASUBTYPE_UYVY;
+    case AV_PIX_FMT_P016:
+      return MEDIASUBTYPE_IMC1;
+    case AV_PIX_FMT_NV12:
+      return MEDIASUBTYPE_NV12;
+    //else if (InlineIsEqualGUID (mediaSubType_in, MEDIASUBTYPE_IMC3))
+    case AV_PIX_FMT_NV21:
+      return MEDIASUBTYPE_IMC4;
+    case AV_PIX_FMT_YUV420P:
+      return MEDIASUBTYPE_YV12;
+    case AV_PIX_FMT_UYYVYY411:
+      return MEDIASUBTYPE_Y411;
+    case AV_PIX_FMT_YVYU422:
+      return MEDIASUBTYPE_YVYU;
+    default:
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("invalid/unknown pixel format (was: %d \"%s\"), aborting\n"),
+                  pixelFormat_in, ACE_TEXT (Stream_MediaFramework_Tools::pixelFormatToString (pixelFormat_in).c_str ())));
+      break;
+    }
+  } // end SWITCH
+
   return result;
 }
 #else

@@ -123,7 +123,7 @@ class Stream_Module_Base_T
   typedef Stream_IModuleHandler_T<ACE_SYNCH_USE,
                                   TimePolicyType,
                                   HandlerConfigurationType> IMODULE_HANDLER_T;
-  typedef Common_IGet_T<HandlerConfigurationType> IGET_T;
+  typedef Common_IGetR_T<HandlerConfigurationType> IGET_T;
 
   // implement (part of) Stream_IModule
   inline virtual void start (SessionIdType, const SessionDataType&) { ACE_ASSERT (false); ACE_NOTSUP; ACE_NOTREACHED (return;) }

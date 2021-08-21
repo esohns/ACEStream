@@ -141,7 +141,7 @@ class Stream_HeadModuleTaskBase_T
   //            --> make sure there are no session message 'loops'
   virtual void notify (SessionEventType, // notification type
                        bool = false);    // N/A
-  inline virtual const StreamStateType& state () const { ACE_ASSERT (false); ACE_NOTSUP_RETURN (StreamStateType ()); ACE_NOTREACHED (return StreamStateType ();) }
+  inline virtual const StreamStateType& state () const { static StreamStateType dummy;  ACE_ASSERT (false); ACE_NOTSUP_RETURN (dummy); ACE_NOTREACHED (return dummy;) }
   inline virtual enum Stream_StateMachine_ControlState status () const { enum Stream_StateMachine_ControlState result = inherited2::current (); return result; }
 
   // implement Stream_ILock_T
@@ -153,7 +153,7 @@ class Stream_HeadModuleTaskBase_T
                      bool = true); // N/A
   virtual int unlock (bool = false, // unblock ?
                       bool = true); // N/A
-  inline virtual ACE_SYNCH_RECURSIVE_MUTEX& getLock (bool = true) { ACE_ASSERT (false); ACE_SYNCH_RECURSIVE_MUTEX dummy; ACE_NOTSUP_RETURN (dummy); ACE_NOTREACHED (return dummy;) }
+  inline virtual ACE_SYNCH_RECURSIVE_MUTEX& getLock (bool = true) { static ACE_SYNCH_RECURSIVE_MUTEX dummy;  ACE_ASSERT (false); ACE_NOTSUP_RETURN (dummy); ACE_NOTREACHED (return dummy;) }
   // *TODO*: this isn't nearly accurate enough
   inline virtual bool hasLock (bool = true) { ACE_ASSERT (false); return !hasReentrantSynchronousSubDownstream_; }
 

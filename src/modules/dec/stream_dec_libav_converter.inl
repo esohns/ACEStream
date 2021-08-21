@@ -371,15 +371,11 @@ Stream_Decoder_LibAVConverter_T<ACE_SYNCH_USE,
 
       if (likely (!Stream_Module_Decoder_Tools::isCompressedVideo (inputFormat_) &&
                   (inputFormat_ != media_type_3.format)))
-#if defined (_DEBUG)
         ACE_DEBUG ((LM_DEBUG,
                     ACE_TEXT ("%s: converting pixel format %s to %s\n"),
                     inherited::mod_->name (),
-                    ACE_TEXT (Stream_Module_Decoder_Tools::pixelFormatToString (inputFormat_).c_str ()),
-                    ACE_TEXT (Stream_Module_Decoder_Tools::pixelFormatToString (media_type_3.format).c_str ())));
-#else
-        ;
-#endif // _DEBUG
+                    ACE_TEXT (Stream_MediaFramework_Tools::pixelFormatToString (inputFormat_).c_str ()),
+                    ACE_TEXT (Stream_MediaFramework_Tools::pixelFormatToString (media_type_3.format).c_str ())));
 
       // initialize frame buffer
       ACE_ASSERT (!frame_);
@@ -716,15 +712,11 @@ Stream_Decoder_LibAVConverter1_T<ACE_SYNCH_USE,
   } // end IF
 
   if (likely ((media_type_s.format != inherited::configuration_->outputFormat.format)))
-#if defined (_DEBUG)
     ACE_DEBUG ((LM_DEBUG,
                 ACE_TEXT ("%s: converting pixel format %s to %s\n"),
                 inherited::mod_->name (),
-                ACE_TEXT (Stream_Module_Decoder_Tools::pixelFormatToString (media_type_s.format).c_str ()),
-                ACE_TEXT (Stream_Module_Decoder_Tools::pixelFormatToString (inherited::configuration_->outputFormat.format).c_str ())));
-#else
-    ;
-#endif // _DEBUG
+                ACE_TEXT (Stream_MediaFramework_Tools::pixelFormatToString (media_type_s.format).c_str ()),
+                ACE_TEXT (Stream_MediaFramework_Tools::pixelFormatToString (inherited::configuration_->outputFormat.format).c_str ())));
 
   // initialize frame buffer
   frame_p = av_frame_alloc ();

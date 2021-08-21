@@ -58,14 +58,6 @@ Test_I_Stream::Test_I_Stream ()
 
 }
 
-Test_I_Stream::~Test_I_Stream ()
-{
-  STREAM_TRACE (ACE_TEXT ("Test_I_Stream::~Test_I_Stream"));
-
-  // *NOTE*: this implements an ordered shutdown on destruction...
-  inherited::shutdown ();
-}
-
 bool
 Test_I_Stream::load (Stream_ILayout* layout_in,
                      bool& delete_out)

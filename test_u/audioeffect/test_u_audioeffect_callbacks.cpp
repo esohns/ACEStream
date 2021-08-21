@@ -192,14 +192,14 @@ load_capture_devices (GtkListStore* listStore_in)
 
         VariantInit (&variant);
         result_2 =
-          properties_p->Read (STREAM_DEV_DIRECTSHOW_PROPERTIES_NAME_STRING,
+          properties_p->Read (STREAM_LIB_DIRECTSHOW_PROPERTIES_NAME_STRING,
                               &variant,
                               0);
         if (FAILED (result_2))
         {
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("failed to IPropertyBag::Read(%s): \"%s\", aborting\n"),
-                      ACE_TEXT_WCHAR_TO_TCHAR (STREAM_DEV_DIRECTSHOW_PROPERTIES_NAME_STRING),
+                      ACE_TEXT_WCHAR_TO_TCHAR (STREAM_LIB_DIRECTSHOW_PROPERTIES_NAME_STRING),
                       ACE_TEXT (Common_Error_Tools::errorToString (result_2, true).c_str ())));
           goto error;
         } // end IF
@@ -207,7 +207,7 @@ load_capture_devices (GtkListStore* listStore_in)
            ACE_TEXT_ALWAYS_CHAR (ACE_TEXT_WCHAR_TO_TCHAR (variant.bstrVal));
         VariantClear (&variant);
         result_2 =
-          properties_p->Read (STREAM_DEV_DIRECTSHOW_PROPERTIES_DESCRIPTION_STRING,
+          properties_p->Read (STREAM_LIB_DIRECTSHOW_PROPERTIES_DESCRIPTION_STRING,
                               &variant,
                               0);
         if (SUCCEEDED (result_2))
@@ -219,11 +219,11 @@ load_capture_devices (GtkListStore* listStore_in)
         else // 0x80070002 : ERROR_FILE_NOT_FOUND
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("failed to IPropertyBag::Read(%s): \"%s\", continuing\n"),
-                      ACE_TEXT_WCHAR_TO_TCHAR (STREAM_DEV_DIRECTSHOW_PROPERTIES_DESCRIPTION_STRING),
+                      ACE_TEXT_WCHAR_TO_TCHAR (STREAM_LIB_DIRECTSHOW_PROPERTIES_DESCRIPTION_STRING),
                       ACE_TEXT (Common_Error_Tools::errorToString (result_2, true).c_str ())));
 
         result_2 =
-          properties_p->Read (STREAM_DEV_DIRECTSHOW_PROPERTIES_PATH_STRING,
+          properties_p->Read (STREAM_LIB_DIRECTSHOW_PROPERTIES_PATH_STRING,
                               &variant,
                               0);
         if (SUCCEEDED (result_2))
@@ -235,11 +235,11 @@ load_capture_devices (GtkListStore* listStore_in)
         else
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("failed to IPropertyBag::Read(%s): \"%s\", continuing\n"),
-                      ACE_TEXT_WCHAR_TO_TCHAR (STREAM_DEV_DIRECTSHOW_PROPERTIES_PATH_STRING),
+                      ACE_TEXT_WCHAR_TO_TCHAR (STREAM_LIB_DIRECTSHOW_PROPERTIES_PATH_STRING),
                       ACE_TEXT (Common_Error_Tools::errorToString (result_2, true).c_str ())));
 
         result_2 =
-          properties_p->Read (STREAM_DEV_DIRECTSHOW_PROPERTIES_ID_STRING,
+          properties_p->Read (STREAM_LIB_DIRECTSHOW_PROPERTIES_ID_STRING,
                               &variant,
                               0);
         if (SUCCEEDED (result_2))
@@ -250,7 +250,7 @@ load_capture_devices (GtkListStore* listStore_in)
         else
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("failed to IPropertyBag::Read(%s): \"%s\", continuing\n"),
-                      ACE_TEXT_WCHAR_TO_TCHAR (STREAM_DEV_DIRECTSHOW_PROPERTIES_ID_STRING),
+                      ACE_TEXT_WCHAR_TO_TCHAR (STREAM_LIB_DIRECTSHOW_PROPERTIES_ID_STRING),
                       ACE_TEXT (Common_Error_Tools::errorToString (result_2, true).c_str ())));
 
         properties_p->Release (); properties_p = NULL;

@@ -31,7 +31,7 @@
 #include "common_idumpstate.h"
 
 #include "stream_common.h"
-#include "stream_configuration.h"
+//#include "stream_configuration.h"
 #include "stream_imessage.h"
 
 // forward declarations

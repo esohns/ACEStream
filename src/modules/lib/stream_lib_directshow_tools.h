@@ -40,8 +40,6 @@
 
 #include "ace/Global_Macros.h"
 
-#include "common_ui_common.h"
-
 #include "stream_lib_common.h"
 #include "stream_lib_directshow_common.h"
 

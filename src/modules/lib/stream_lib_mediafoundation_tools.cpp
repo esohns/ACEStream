@@ -35,7 +35,6 @@
 
 #include "ace/Log_Msg.h"
 #include "ace/OS.h"
-#include "ace/Synch.h"
 
 #include "common_time_common.h"
 #include "common_tools.h"

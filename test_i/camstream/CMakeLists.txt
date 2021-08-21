@@ -1,4 +1,5 @@
-﻿include (${CMAKE_CURRENT_SOURCE_DIR}/../../../ACENetwork/scripts/SSLConfig.cmake)
+﻿set (CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_CURRENT_SOURCE_DIR}/../../modules/ACENetwork/scripts;${CMAKE_CURRENT_SOURCE_DIR}/../../../ACENetwork/scripts")
+include (SSLConfig)
 
 if (WIN32)
  set (DIRECTSHOW_BASECLASSES_DIRECTORY
@@ -64,9 +65,6 @@ if (UNIX)
 
  include_directories (${PKG_V4L2_INCLUDE_DIRS})
 
-# include_directories (/usr/local/src/ACE_wrappers)
- include_directories ($ENV{LIB_ROOT}/ACE_TAO/ACE)
-
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../Common/src)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../Common/src/log)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../Common/src/signal)
@@ -82,12 +80,6 @@ elseif (WIN32)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../ffmpeg)
 
  include_directories (${SSL_INCLUDE_DIRS})
-
- if (DEFINED ENV{ACE_ROOT})
-  include_directories ($ENV{ACE_ROOT})
- else ()
-  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../ATCD/ACE)
- endif (DEFINED ENV{ACE_ROOT})
 
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../3rd_party/msvc)
 
@@ -168,10 +160,6 @@ if (GUI_SUPPORT)
  endif (GTK_USE)
 endif (GUI_SUPPORT)
 
-if (UNIX)
- add_definitions (-D_GLIBCXX_INCLUDE_NEXT_C_HEADERS)
-endif (UNIX)
-
 cmake_policy (SET CMP0065 OLD) # do not add flags to export symbols from executables without the ENABLE_EXPORTS target property
 add_executable (${EXECUTABLE_SOURCE}
                 EXCLUDE_FROM_ALL
@@ -233,7 +221,7 @@ target_link_libraries (${EXECUTABLE_SOURCE} CommonTimer)
 if (GUI_SUPPORT)
  if (WIN32)
   # *WARNING*: linking CommonUI requires "/FORCE:MULTIPLE"
-  set_target_properties (${EXECUTABLE_SOURCE} PROPERTIES LINK_FLAGS /FORCE:MULTIPLE)
+#  set_target_properties (${EXECUTABLE_SOURCE} PROPERTIES LINK_FLAGS /FORCE:MULTIPLE)
  endif (WIN32)
  target_link_libraries (${EXECUTABLE_SOURCE} CommonUI)
  if (GTK_USE)
@@ -259,8 +247,10 @@ target_link_libraries (${EXECUTABLE_SOURCE} ${PROJECT_NAME}_Test_I)
 
 # add PCH
 set_target_properties (${EXECUTABLE_SOURCE} PROPERTIES COTIRE_CXX_PREFIX_HEADER_INIT "stdafx.h")
-set_target_properties (${EXECUTABLE_SOURCE} PROPERTIES COTIRE_ENABLE_PRECOMPILED_HEADER FALSE)
-cotire (${EXECUTABLE_SOURCE})
+#set_target_properties (${EXECUTABLE_SOURCE} PROPERTIES COTIRE_ENABLE_PRECOMPILED_HEADER FALSE)
+if (UNIX)
+ cotire (${EXECUTABLE_SOURCE})
+endif (UNIX)
 
 set (RESOURCE_FILES
      etc/resources.rc
@@ -392,9 +382,9 @@ if (WIN32)
  set_target_properties (${LIBRARY_DS} PROPERTIES VERSION ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_MICRO} SOVERSION 1)
 
  # add PCH
- set_target_properties (${LIBRARY_DS} PROPERTIES COTIRE_CXX_PREFIX_HEADER_INIT "stdafx.h")
+# set_target_properties (${LIBRARY_DS} PROPERTIES COTIRE_CXX_PREFIX_HEADER_INIT "stdafx.h")
  set_target_properties (${LIBRARY_DS} PROPERTIES COTIRE_ENABLE_PRECOMPILED_HEADER FALSE)
- cotire (${LIBRARY_DS})
+# cotire (${LIBRARY_DS})
 
 # add all targets to the build-tree export set
  export (TARGETS ${LIBRARY_DS}
@@ -406,10 +396,14 @@ if (WIN32)
           LIBRARY DESTINATION "${INSTALL_BIN_DIR}" COMPONENT lib
           RUNTIME DESTINATION "${INSTALL_BIN_DIR}" COMPONENT lib)
 
+ file (TO_NATIVE_PATH "${PROJECT_BINARY_DIR}/test_i/camstream/${CMAKE_BUILD_TYPE}/${LIBRARY_DS}.dll" TARGET_PATH_NATIVE)
+ string (REPLACE "\\" "\\\\" TARGET_PATH_NATIVE ${TARGET_PATH_NATIVE})
+ file (TO_NATIVE_PATH "$ENV{LIB_ROOT}/ACE_TAO/ACE/lib" ACE_LIB_PATH_NATIVE)
+ string (REPLACE "\\" "\\\\" ACE_LIB_PATH_NATIVE ${ACE_LIB_PATH_NATIVE})
  create_target_launcher (regsvr32.exe
-                         ARGS "${PROJECT_BINARY_DIR}/test_i/camstream/${CMAKE_BUILD_TYPE}/${LIBRARY_DS}.dll"
+                         ARGS ${TARGET_PATH_NATIVE}
 #                         FORWARD_ARGS
-                         RUNTIME_LIBRARY_DIRS ${PROJECT_SOURCE_DIR}/../ATCD/ACE/lib
+                         RUNTIME_LIBRARY_DIRS ${ACE_LIB_PATH_NATIVE}
                          WORKING_DIRECTORY ${WORKING_DIRECTORY}
                          ENVIRONMENT ${ENVIRONMENT})
 
@@ -446,9 +440,9 @@ if (WIN32)
  set_target_properties (${LIBRARY_MF} PROPERTIES VERSION ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_MICRO} SOVERSION 1)
 
  # add PCH
- set_target_properties (${LIBRARY_MF} PROPERTIES COTIRE_CXX_PREFIX_HEADER_INIT "stdafx.h")
+# set_target_properties (${LIBRARY_MF} PROPERTIES COTIRE_CXX_PREFIX_HEADER_INIT "stdafx.h")
  set_target_properties (${LIBRARY_MF} PROPERTIES COTIRE_ENABLE_PRECOMPILED_HEADER FALSE)
- cotire (${LIBRARY_MF})
+# cotire (${LIBRARY_MF})
 
 # add all targets to the build-tree export set
  export (TARGETS ${LIBRARY_MF}
@@ -564,7 +558,7 @@ target_link_libraries (${EXECUTABLE_TARGET} CommonTimer)
 if (GUI_SUPPORT)
  if (WIN32)
   # *WARNING*: linking CommonUI requires "/FORCE:MULTIPLE"
-  set_target_properties (${EXECUTABLE_TARGET} PROPERTIES LINK_FLAGS /FORCE:MULTIPLE)
+#  set_target_properties (${EXECUTABLE_TARGET} PROPERTIES LINK_FLAGS /FORCE:MULTIPLE)
  endif (WIN32)
  target_link_libraries (${EXECUTABLE_TARGET} CommonUI)
  if (GTK_USE)
@@ -588,10 +582,9 @@ target_link_libraries (${EXECUTABLE_TARGET} ACENetwork)
 target_link_libraries (${EXECUTABLE_TARGET} ${PROJECT_NAME}_Test_I)
 
 # add PCH
-set_target_properties (${EXECUTABLE_TARGET} PROPERTIES COTIRE_CXX_PREFIX_HEADER_INIT "stdafx.h")
+#set_target_properties (${EXECUTABLE_TARGET} PROPERTIES COTIRE_CXX_PREFIX_HEADER_INIT "stdafx.h")
 set_target_properties (${EXECUTABLE_TARGET} PROPERTIES COTIRE_ENABLE_PRECOMPILED_HEADER FALSE)
-#cotire (${EXECUTABLE_SOURCE} ${LIBRARY_DS} ${LIBRARY_MF} ${EXECUTABLE_TARGET})
-cotire (${EXECUTABLE_TARGET})
+#cotire (${EXECUTABLE_TARGET})
 
 install (TARGETS ${EXECUTABLE_TARGET}
          EXPORT ${PROJECT_NAME}Targets

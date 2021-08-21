@@ -306,7 +306,6 @@ struct Test_U_ModuleHandlerConfiguration
    , fileIdentifier ()
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
    , manageCOM (false)
-   , mediaFramework (STREAM_LIB_DEFAULT_MEDIAFRAMEWORK)
 #endif // ACE_WIN32 || ACE_WIN64
    , printProgressDot (false)
    , pushStatisticMessages (true)
@@ -315,7 +314,6 @@ struct Test_U_ModuleHandlerConfiguration
   Common_File_Identifier          fileIdentifier;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   bool                            manageCOM;
-  enum Stream_MediaFramework_Type mediaFramework;        // display module
 #endif // ACE_WIN32 || ACE_WIN64
   bool                            printProgressDot;      // file writer module
   bool                            pushStatisticMessages; // statistic module

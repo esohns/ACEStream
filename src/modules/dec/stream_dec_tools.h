@@ -66,15 +66,6 @@ class Stream_Module_Decoder_Tools
  public:
   //static void initialize ();
 
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-  static bool isCompressed (REFGUID,                                                              // media subtype
-                            REFGUID,                                                              // device category
-                            enum Stream_MediaFramework_Type = STREAM_LIB_DEFAULT_MEDIAFRAMEWORK);
-  static bool isCompressedAudio (REFGUID,                                                              // media subtype
-                                 enum Stream_MediaFramework_Type = STREAM_LIB_DEFAULT_MEDIAFRAMEWORK);
-  static bool isCompressedVideo (REFGUID, // media subtype
-                                 enum Stream_MediaFramework_Type = STREAM_LIB_DEFAULT_MEDIAFRAMEWORK);
-#endif // ACE_WIN32 || ACE_WIN64
   static bool isCompressedVideo (enum AVPixelFormat); // pixel format
 
   static bool isChromaLuminance (enum AVPixelFormat); // pixel format
@@ -88,7 +79,6 @@ class Stream_Module_Decoder_Tools
   // *NOTE*: supports RGB and Chroma-Luminance types only
   static enum AVPixelFormat mediaSubTypeToAVPixelFormat (REFGUID,                                                              // media subtype
                                                          enum Stream_MediaFramework_Type = STREAM_LIB_DEFAULT_MEDIAFRAMEWORK);
-  static struct _GUID AVPixelFormatToMediaSubType (enum AVPixelFormat);
 
   // -------------------------------------
   // filter graphs / topologies
@@ -159,7 +149,6 @@ class Stream_Module_Decoder_Tools
   static std::string compressionFormatToString (enum Stream_Decoder_CompressionFormatType);
 
   static std::string audioFormatToString (enum AVSampleFormat);
-  inline static std::string pixelFormatToString (enum AVPixelFormat format_in) { std::string result = ((format_in == AV_PIX_FMT_NONE) ? ACE_TEXT_ALWAYS_CHAR ("") : av_get_pix_fmt_name (format_in)); return result; }
 
   static bool convert (struct SwsContext*, // context ? : use sws_getCachedContext()
                        unsigned int,       // source width

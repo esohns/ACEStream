@@ -29,6 +29,8 @@
 #include "stream_common.h"
 #include "stream_streammodule_base.h"
 
+#include "stream_lib_ffmpeg_common.h"
+
 #include "stream_dec_libav_decoder.h"
 
 #include "stream_file_source.h"

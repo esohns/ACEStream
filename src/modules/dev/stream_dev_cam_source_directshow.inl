@@ -392,7 +392,7 @@ Stream_Dev_Cam_Source_DirectShow_T<ACE_SYNCH_USE,
           goto error_3;
 
         result_2 =
-          inherited::configuration_->builder->FindFilterByName (STREAM_DEV_CAM_DIRECTSHOW_FILTER_NAME_CAPTURE_VIDEO,
+          inherited::configuration_->builder->FindFilterByName (STREAM_LIB_DIRECTSHOW_FILTER_NAME_CAPTURE_VIDEO,
                                                                 &filter_p);
         if (FAILED (result_2))
           goto error_2;
@@ -507,7 +507,7 @@ continue_:
       if (Stream_Device_DirectShow_Tools::isMediaTypeBottomUp (media_type_s))
       {
         result_2 =
-          inherited::configuration_->builder->FindFilterByName (STREAM_DEV_CAM_DIRECTSHOW_FILTER_NAME_CAPTURE_VIDEO,
+          inherited::configuration_->builder->FindFilterByName (STREAM_LIB_DIRECTSHOW_FILTER_NAME_CAPTURE_VIDEO,
                                                                 &filter_p);
         ACE_ASSERT (SUCCEEDED (result_2) && filter_p);
         IPin* pin_p =
@@ -1208,13 +1208,13 @@ continue_:
   } // end IF
 
   result =
-    graph_builder_p->FindFilterByName (STREAM_DEV_CAM_DIRECTSHOW_FILTER_NAME_CAPTURE_VIDEO,
+    graph_builder_p->FindFilterByName (STREAM_LIB_DIRECTSHOW_FILTER_NAME_CAPTURE_VIDEO,
                                        &filter_p);
   if (FAILED (result))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to IGraphBuilder::FindFilterByName(\"%s\"): \"%s\", aborting\n"),
-                ACE_TEXT_WCHAR_TO_TCHAR (STREAM_DEV_CAM_DIRECTSHOW_FILTER_NAME_CAPTURE_VIDEO),
+                ACE_TEXT_WCHAR_TO_TCHAR (STREAM_LIB_DIRECTSHOW_FILTER_NAME_CAPTURE_VIDEO),
                 ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
     goto error;
   } // end IF
@@ -1469,7 +1469,7 @@ continue_2:
   //              ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
   //  goto error_2;
   //} // end IF
-  graph_entry.filterName = STREAM_DEV_CAM_DIRECTSHOW_FILTER_NAME_CAPTURE_VIDEO;
+  graph_entry.filterName = STREAM_LIB_DIRECTSHOW_FILTER_NAME_CAPTURE_VIDEO;
   graph_configuration.push_back (graph_entry);
   graph_entry.filterName = decompressor_name;
   graph_configuration.push_back (graph_entry);
