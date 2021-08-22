@@ -56,12 +56,10 @@ template <ACE_SYNCH_DECL,
 class Stream_Miscellaneous_Distributor_T
  : public Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
                                  TimePolicyType,
-                                 Common_IRecursiveLock_T<ACE_SYNCH_USE>,
                                  ConfigurationType,
                                  ControlMessageType,
                                  DataMessageType,
                                  SessionMessageType,
-                                 Stream_SessionId_t,
                                  Stream_ControlType,
                                  enum Stream_SessionMessageType,
                                  struct Stream_UserData>
@@ -72,12 +70,10 @@ class Stream_Miscellaneous_Distributor_T
 {
   typedef Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
                                  TimePolicyType,
-                                 Common_IRecursiveLock_T<ACE_SYNCH_USE>,
                                  ConfigurationType,
                                  ControlMessageType,
                                  DataMessageType,
                                  SessionMessageType,
-                                 Stream_SessionId_t,
                                  Stream_ControlType,
                                  enum Stream_SessionMessageType,
                                  struct Stream_UserData> inherited;

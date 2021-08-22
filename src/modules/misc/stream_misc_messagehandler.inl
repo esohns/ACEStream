@@ -31,7 +31,6 @@ template <ACE_SYNCH_DECL,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType,
-          typename SessionIdType,
           typename SessionDataType,
           typename UserDataType>
 Stream_Module_MessageHandler_T<ACE_SYNCH_USE,
@@ -40,7 +39,6 @@ Stream_Module_MessageHandler_T<ACE_SYNCH_USE,
                                ControlMessageType,
                                DataMessageType,
                                SessionMessageType,
-                               SessionIdType,
                                SessionDataType,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
                                UserDataType>::Stream_Module_MessageHandler_T (ISTREAM_T* stream_in)
@@ -62,7 +60,6 @@ template <ACE_SYNCH_DECL,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType,
-          typename SessionIdType,
           typename SessionDataType,
           typename UserDataType>
 Stream_Module_MessageHandler_T<ACE_SYNCH_USE,
@@ -71,7 +68,6 @@ Stream_Module_MessageHandler_T<ACE_SYNCH_USE,
                                ControlMessageType,
                                DataMessageType,
                                SessionMessageType,
-                               SessionIdType,
                                SessionDataType,
                                UserDataType>::~Stream_Module_MessageHandler_T ()
 {
@@ -91,7 +87,6 @@ template <ACE_SYNCH_DECL,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType,
-          typename SessionIdType,
           typename SessionDataType,
           typename UserDataType>
 bool
@@ -101,7 +96,6 @@ Stream_Module_MessageHandler_T<ACE_SYNCH_USE,
                                ControlMessageType,
                                DataMessageType,
                                SessionMessageType,
-                               SessionIdType,
                                SessionDataType,
                                UserDataType>::initialize (const ConfigurationType& configuration_in,
                                                           Stream_IAllocator* allocator_in)
@@ -195,7 +189,6 @@ template <ACE_SYNCH_DECL,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType,
-          typename SessionIdType,
           typename SessionDataType,
           typename UserDataType>
 void
@@ -205,7 +198,6 @@ Stream_Module_MessageHandler_T<ACE_SYNCH_USE,
                                ControlMessageType,
                                DataMessageType,
                                SessionMessageType,
-                               SessionIdType,
                                SessionDataType,
                                UserDataType>::handleDataMessage (DataMessageType*& message_inout,
                                                                  bool& passMessageDownstream_out)
@@ -248,7 +240,6 @@ template <ACE_SYNCH_DECL,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType,
-          typename SessionIdType,
           typename SessionDataType,
           typename UserDataType>
 void
@@ -258,7 +249,6 @@ Stream_Module_MessageHandler_T<ACE_SYNCH_USE,
                                ControlMessageType,
                                DataMessageType,
                                SessionMessageType,
-                               SessionIdType,
                                SessionDataType,
                                UserDataType>::handleSessionMessage (SessionMessageType*& message_inout,
                                                                     bool& passMessageDownstream_out)
@@ -368,7 +358,6 @@ template <ACE_SYNCH_DECL,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType,
-          typename SessionIdType,
           typename SessionDataType,
           typename UserDataType>
 void
@@ -378,7 +367,6 @@ Stream_Module_MessageHandler_T<ACE_SYNCH_USE,
                                ControlMessageType,
                                DataMessageType,
                                SessionMessageType,
-                               SessionIdType,
                                SessionDataType,
                                UserDataType>::subscribe (INOTIFY_T* interfaceHandle_in)
 {
@@ -401,7 +389,6 @@ template <ACE_SYNCH_DECL,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType,
-          typename SessionIdType,
           typename SessionDataType,
           typename UserDataType>
 void
@@ -411,7 +398,6 @@ Stream_Module_MessageHandler_T<ACE_SYNCH_USE,
                                ControlMessageType,
                                DataMessageType,
                                SessionMessageType,
-                               SessionIdType,
                                SessionDataType,
                                UserDataType>::unsubscribe (INOTIFY_T* interfaceHandle_in)
 {
@@ -445,7 +431,6 @@ template <ACE_SYNCH_DECL,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType,
-          typename SessionIdType,
           typename SessionDataType,
           typename UserDataType>
 bool
@@ -455,7 +440,6 @@ Stream_Module_MessageHandler_T<ACE_SYNCH_USE,
                                ControlMessageType,
                                DataMessageType,
                                SessionMessageType,
-                               SessionIdType,
                                SessionDataType,
                                UserDataType>::postClone (ACE_Module<ACE_SYNCH_USE,
                                                                     TimePolicyType>* original_in,
@@ -502,7 +486,6 @@ template <ACE_SYNCH_DECL,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType,
-          typename SessionIdType,
           typename SessionDataType,
           typename UserDataType>
 Stream_Module_MessageHandlerA_T<ACE_SYNCH_USE,
@@ -511,7 +494,6 @@ Stream_Module_MessageHandlerA_T<ACE_SYNCH_USE,
                                 ControlMessageType,
                                 DataMessageType,
                                 SessionMessageType,
-                                SessionIdType,
                                 SessionDataType,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
                                 UserDataType>::Stream_Module_MessageHandlerA_T (ISTREAM_T* stream_in)
@@ -533,7 +515,6 @@ template <ACE_SYNCH_DECL,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType,
-          typename SessionIdType,
           typename SessionDataType,
           typename UserDataType>
 Stream_Module_MessageHandlerA_T<ACE_SYNCH_USE,
@@ -542,7 +523,6 @@ Stream_Module_MessageHandlerA_T<ACE_SYNCH_USE,
                                 ControlMessageType,
                                 DataMessageType,
                                 SessionMessageType,
-                                SessionIdType,
                                 SessionDataType,
                                 UserDataType>::~Stream_Module_MessageHandlerA_T ()
 {
@@ -562,7 +542,6 @@ template <ACE_SYNCH_DECL,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType,
-          typename SessionIdType,
           typename SessionDataType,
           typename UserDataType>
 bool
@@ -572,7 +551,6 @@ Stream_Module_MessageHandlerA_T<ACE_SYNCH_USE,
                                 ControlMessageType,
                                 DataMessageType,
                                 SessionMessageType,
-                                SessionIdType,
                                 SessionDataType,
                                 UserDataType>::initialize (const ConfigurationType& configuration_in,
                                                            Stream_IAllocator* allocator_in)
@@ -659,7 +637,6 @@ template <ACE_SYNCH_DECL,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType,
-          typename SessionIdType,
           typename SessionDataType,
           typename UserDataType>
 void
@@ -669,7 +646,6 @@ Stream_Module_MessageHandlerA_T<ACE_SYNCH_USE,
                                 ControlMessageType,
                                 DataMessageType,
                                 SessionMessageType,
-                                SessionIdType,
                                 SessionDataType,
                                 UserDataType>::handleDataMessage (DataMessageType*& message_inout,
                                                                   bool& passMessageDownstream_out)
@@ -713,7 +689,6 @@ template <ACE_SYNCH_DECL,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType,
-          typename SessionIdType,
           typename SessionDataType,
           typename UserDataType>
 void
@@ -723,7 +698,6 @@ Stream_Module_MessageHandlerA_T<ACE_SYNCH_USE,
                                 ControlMessageType,
                                 DataMessageType,
                                 SessionMessageType,
-                                SessionIdType,
                                 SessionDataType,
                                 UserDataType>::handleSessionMessage (SessionMessageType*& message_inout,
                                                                      bool& passMessageDownstream_out)
@@ -733,9 +707,9 @@ Stream_Module_MessageHandlerA_T<ACE_SYNCH_USE,
   // sanity check(s)
   ACE_ASSERT (subscribersLock_ && subscribers_);
 
-  const enum Stream_SessionMessageType message_type_e =
+  enum Stream_SessionMessageType message_type_e =
       message_inout->type ();
-  SessionIdType session_id = message_inout->sessionId ();
+  Stream_SessionId_t session_id = message_inout->sessionId ();
   // the base class release()s all messages --> create duplicates
   SessionMessageType* message_p =
     dynamic_cast<SessionMessageType*> (message_inout->duplicate ());
@@ -869,7 +843,6 @@ template <ACE_SYNCH_DECL,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType,
-          typename SessionIdType,
           typename SessionDataType,
           typename UserDataType>
 void
@@ -879,7 +852,6 @@ Stream_Module_MessageHandlerA_T<ACE_SYNCH_USE,
                                 ControlMessageType,
                                 DataMessageType,
                                 SessionMessageType,
-                                SessionIdType,
                                 SessionDataType,
                                 UserDataType>::subscribe (INOTIFY_T* interfaceHandle_in)
 {
@@ -902,7 +874,6 @@ template <ACE_SYNCH_DECL,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType,
-          typename SessionIdType,
           typename SessionDataType,
           typename UserDataType>
 void
@@ -912,7 +883,6 @@ Stream_Module_MessageHandlerA_T<ACE_SYNCH_USE,
                                 ControlMessageType,
                                 DataMessageType,
                                 SessionMessageType,
-                                SessionIdType,
                                 SessionDataType,
                                 UserDataType>::unsubscribe (INOTIFY_T* interfaceHandle_in)
 {
@@ -947,7 +917,6 @@ template <ACE_SYNCH_DECL,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType,
-          typename SessionIdType,
           typename SessionDataType,
           typename UserDataType>
 bool
@@ -957,7 +926,6 @@ Stream_Module_MessageHandlerA_T<ACE_SYNCH_USE,
                                 ControlMessageType,
                                 DataMessageType,
                                 SessionMessageType,
-                                SessionIdType,
                                 SessionDataType,
                                 UserDataType>::postClone (ACE_Module<ACE_SYNCH_USE,
                                                                      TimePolicyType>* original_in,

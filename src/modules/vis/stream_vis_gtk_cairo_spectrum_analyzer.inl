@@ -716,9 +716,8 @@ error:
       //                   --> join with the renderer thread
       if (inherited::thr_count_ > 0)
       {
-        inherited::stop (true,  // wait ?
-                         false, // high priority ?
-                         true); // locked access ?
+        inherited::stop (true,   // wait ?
+                         false); // high priority ?
 #if defined (_DEBUG)
         ACE_DEBUG ((LM_DEBUG,
                     ACE_TEXT ("%s: joined renderer thread\n"),

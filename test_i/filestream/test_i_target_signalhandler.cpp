@@ -176,7 +176,7 @@ Stream_Target_SignalHandler::handle (const struct Common_Signal& signal_in)
     } // end IF
 
     // step4: stop/abort(/wait) for connections
-    connection_manager_p->stop (false, true, true);
+    connection_manager_p->stop (false, true);
     connection_manager_p->abort ();
     connection_manager_p->wait ();
 

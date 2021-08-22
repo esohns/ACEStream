@@ -107,7 +107,6 @@ class HTTPGet_Stream_T
                                             SSLConnectorType> SSL_SOURCE_WRITER_T;
   typedef Stream_StreamModuleInputOnly_T<ACE_MT_SYNCH,                              // task synch type
                                          Common_TimePolicy_t,                       // time policy
-                                         Stream_SessionId_t,                        // session id type
                                          struct HTTPGet_SessionData,                // session data type
                                          enum Stream_SessionMessageType,            // session event type
                                          struct Stream_ModuleConfiguration,         // module configuration type
@@ -117,7 +116,6 @@ class HTTPGet_Stream_T
                                          TCP_SOURCE_WRITER_T> TCP_SOURCE_MODULE_T;  // writer type
  typedef Stream_StreamModuleInputOnly_T<ACE_MT_SYNCH,                              // task synch type
                                         Common_TimePolicy_t,                       // time policy
-                                        Stream_SessionId_t,                        // session id type
                                         struct HTTPGet_SessionData,                // session data type
                                         enum Stream_SessionMessageType,            // session event type
                                         struct Stream_ModuleConfiguration,         // module configuration type

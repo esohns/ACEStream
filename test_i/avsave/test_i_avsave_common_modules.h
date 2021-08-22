@@ -429,7 +429,6 @@ typedef Stream_Module_MessageHandlerA_T <ACE_MT_SYNCH,
                                          Stream_ControlMessage_t,
                                          Stream_AVSave_DirectShow_Message_t,
                                          Stream_AVSave_DirectShow_SessionMessage_t,
-                                         Stream_SessionId_t,
                                          Stream_AVSave_DirectShow_SessionData,
                                          struct Stream_UserData> Stream_AVSave_DirectShow_MessageHandler;
 
@@ -439,7 +438,6 @@ typedef Stream_Module_MessageHandlerA_T<ACE_MT_SYNCH,
                                         Stream_ControlMessage_t,
                                         Stream_AVSave_MediaFoundation_Message_t,
                                         Stream_AVSave_MediaFoundation_SessionMessage_t,
-                                        Stream_SessionId_t,
                                         Stream_AVSave_MediaFoundation_SessionData,
                                         struct Stream_UserData> Stream_AVSave_MediaFoundation_MessageHandler;
 #else
@@ -449,7 +447,6 @@ typedef Stream_Module_MessageHandlerA_T<ACE_MT_SYNCH,
                                         Stream_ControlMessage_t,
                                         Stream_AVSave_Message_t,
                                         Stream_AVSave_V4L_SessionMessage_t,
-                                        Stream_SessionId_t,
                                         Stream_AVSave_V4L_SessionData,
                                         struct Stream_UserData> Stream_AVSave_MessageHandler;
 #endif // ACE_WIN32 || ACE_WIN64

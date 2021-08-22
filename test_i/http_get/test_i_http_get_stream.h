@@ -106,7 +106,6 @@ class Test_I_HTTPGet_Stream_T
                                             ConnectorType> SOURCE_WRITER_T;
   typedef Stream_StreamModuleInputOnly_T<ACE_MT_SYNCH,                             // task synch type
                                          Common_TimePolicy_t,                      // time policy
-                                         Stream_SessionId_t,                       // session id type
                                          struct Test_I_Stream_SessionData,         // session data type
                                          enum Stream_SessionMessageType,           // session event type
                                          struct Stream_ModuleConfiguration,        // module configuration type

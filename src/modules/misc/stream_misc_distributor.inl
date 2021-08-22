@@ -83,7 +83,7 @@ Stream_Miscellaneous_Distributor_T<ACE_SYNCH_USE,
   int result = -1;
   ACE_Message_Block* message_block_p = NULL;
 
-  { ACE_GUARD (typename inherited::MUTEX_T, aGuard, inherited::lock_);
+  { ACE_GUARD (ACE_Thread_Mutex, aGuard, inherited::lock_);
     for (THREAD_TO_QUEUE_ITERATOR_T iterator = queues_.begin ();
          iterator != queues_.end ();
          ++iterator)
@@ -200,7 +200,7 @@ Stream_Miscellaneous_Distributor_T<ACE_SYNCH_USE,
       typename SessionMessageType::DATA_T::DATA_T* session_data_p = NULL;
 
       // *NOTE*: clone (!) the session data for each processing branch
-      { ACE_GUARD (typename inherited::MUTEX_T, aGuard, inherited::lock_);
+      { ACE_GUARD (ACE_Thread_Mutex, aGuard, inherited::lock_);
         for (BRANCH_TO_HEAD_CONST_ITERATOR_T iterator = heads_.begin ();
              iterator != heads_.end ();
              ++iterator)
@@ -246,11 +246,10 @@ error:
     {
       forward (message_inout, false);
 
-      stop (false, // wait ?
-            false, // high priority ?
-            true); // locked access ?
+      stop (false,  // wait ?
+            false); // high priority ?
 
-      { ACE_GUARD (typename inherited::MUTEX_T, aGuard, inherited::lock_);
+      { ACE_GUARD (ACE_Thread_Mutex, aGuard, inherited::lock_);
         for (HEAD_TO_SESSIONDATA_ITERATOR_T iterator = data_.begin ();
              iterator != data_.end ();
              ++iterator)
@@ -292,7 +291,7 @@ Stream_Miscellaneous_Distributor_T<ACE_SYNCH_USE,
   // sanity check(s)
   ACE_ASSERT (!branches_in.empty ());
 
-  { ACE_GUARD_RETURN (typename inherited::MUTEX_T, aGuard, inherited::lock_, false);
+  { ACE_GUARD_RETURN (ACE_Thread_Mutex, aGuard, inherited::lock_, false);
     // sanity check(s)
 //    ACE_ASSERT (branches_.empty ());
     branches_ = branches_in;
@@ -336,7 +335,7 @@ Stream_Miscellaneous_Distributor_T<ACE_SYNCH_USE,
   } // end IF
 
   inherited::start (NULL);
-  { ACE_GUARD_RETURN (typename inherited::MUTEX_T, aGuard, inherited::lock_, false);
+  { ACE_GUARD_RETURN (ACE_Thread_Mutex, aGuard, inherited::lock_, false);
     ACE_ASSERT (!inherited::threadIds_.empty ());
     queues_.insert (std::make_pair (inherited::threadIds_[0].id (), queue_p));
     modules_.insert (std::make_pair (queue_p, module_in));
@@ -374,7 +373,7 @@ Stream_Miscellaneous_Distributor_T<ACE_SYNCH_USE,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Miscellaneous_Distributor_T::pop"));
 
-  ACE_GUARD_RETURN (typename inherited::MUTEX_T, aGuard, inherited::lock_, false);
+  ACE_GUARD_RETURN (ACE_Thread_Mutex, aGuard, inherited::lock_, false);
 
   ACE_ASSERT (false); // *TODO*
   ACE_NOTSUP_RETURN (false);
@@ -400,7 +399,7 @@ Stream_Miscellaneous_Distributor_T<ACE_SYNCH_USE,
   STREAM_TRACE (ACE_TEXT ("Stream_Miscellaneous_Distributor_T::head"));
 
   BRANCH_TO_HEAD_CONST_ITERATOR_T iterator;
-  { ACE_GUARD_RETURN (typename inherited::MUTEX_T, aGuard, inherited::lock_, NULL);
+  { ACE_GUARD_RETURN (ACE_Thread_Mutex, aGuard, inherited::lock_, NULL);
     iterator = heads_.find (branchName_in);
     ACE_ASSERT (iterator != heads_.end ());
     return (*iterator).second;
@@ -432,7 +431,7 @@ Stream_Miscellaneous_Distributor_T<ACE_SYNCH_USE,
   ACE_ASSERT (headModule_in);
 
   BRANCH_TO_HEAD_CONST_ITERATOR_T iterator;
-  { ACE_GUARD_RETURN (typename inherited::MUTEX_T, aGuard, inherited::lock_, return_value);
+  { ACE_GUARD_RETURN (ACE_Thread_Mutex, aGuard, inherited::lock_, return_value);
     iterator =
         std::find_if (heads_.begin (), heads_.end (),
                       std::bind2nd (BRANCH_TO_HEAD_MAP_FIND_S (),
@@ -466,7 +465,7 @@ Stream_Miscellaneous_Distributor_T<ACE_SYNCH_USE,
   // initialize return value(s)
   index_out = 0;
 
-  ACE_GUARD_RETURN (typename inherited::MUTEX_T, aGuard, inherited::lock_, false);
+  ACE_GUARD_RETURN (ACE_Thread_Mutex, aGuard, inherited::lock_, false);
 
   Stream_BranchesIterator_t iterator =
       std::find (branches_.begin (), branches_.end (), branchName_in);
@@ -500,7 +499,7 @@ Stream_Miscellaneous_Distributor_T<ACE_SYNCH_USE,
   // initialize return value(s)
   Stream_ModuleList_t return_value;
 
-  { ACE_GUARD_RETURN (typename inherited::MUTEX_T, aGuard, inherited::lock_, return_value);
+  { ACE_GUARD_RETURN (ACE_Thread_Mutex, aGuard, inherited::lock_, return_value);
     for (BRANCH_TO_HEAD_CONST_ITERATOR_T iterator = heads_.begin ();
          iterator != heads_.end ();
          ++iterator)
@@ -627,7 +626,7 @@ Stream_Miscellaneous_Distributor_T<ACE_SYNCH_USE,
   ACE_Time_Value one_second (1, 0);
 
 retry:
-  { ACE_GUARD (typename inherited::MUTEX_T, aGuard, inherited::lock_);
+  { ACE_GUARD (ACE_Thread_Mutex, aGuard, inherited::lock_);
     for (THREAD_TO_QUEUE_ITERATOR_T iterator = queues_.begin ();
          iterator != queues_.end ();
          ++iterator)
@@ -679,7 +678,7 @@ Stream_Miscellaneous_Distributor_T<ACE_SYNCH_USE,
     this_p->idle ();
 
 retry:
-  { ACE_GUARD (typename inherited::MUTEX_T, aGuard, inherited::lock_);
+  { ACE_GUARD (ACE_Thread_Mutex, aGuard, inherited::lock_);
     if (!queues_.empty ())
       goto wait;
   } // end lock scope
@@ -734,7 +733,7 @@ Stream_Miscellaneous_Distributor_T<ACE_SYNCH_USE,
   THREAD_TO_QUEUE_ITERATOR_T iterator;
   QUEUE_TO_MODULE_ITERATOR_T iterator_2;
   BRANCH_TO_HEAD_ITERATOR_T iterator_3;
-  { ACE_GUARD_RETURN (typename inherited::MUTEX_T, aGuard, inherited::lock_, -1);
+  { ACE_GUARD_RETURN (ACE_Thread_Mutex, aGuard, inherited::lock_, -1);
     iterator = queues_.find (ACE_OS::thr_self ());
     ACE_ASSERT (iterator != queues_.end ());
     message_queue_p = (*iterator).second;
@@ -803,7 +802,7 @@ Stream_Miscellaneous_Distributor_T<ACE_SYNCH_USE,
   } while (true);
 
 done:
-  { ACE_GUARD_RETURN (typename inherited::MUTEX_T, aGuard, inherited::lock_, -1);
+  { ACE_GUARD_RETURN (ACE_Thread_Mutex, aGuard, inherited::lock_, -1);
     iterator = queues_.find (ACE_OS::thr_self ());
     ACE_ASSERT (iterator != queues_.end ());
     ACE_ASSERT ((*iterator).second);

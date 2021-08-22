@@ -279,8 +279,7 @@ struct Test_I_Target_DirectShow_FilterConfiguration
 #endif // ACE_WIN32 || ACE_WIN64
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-typedef Stream_ISessionDataNotify_T<Stream_SessionId_t,
-                                    Test_I_Target_DirectShow_SessionData,
+typedef Stream_ISessionDataNotify_T<Test_I_Target_DirectShow_SessionData,
                                     enum Stream_SessionMessageType,
                                     Test_I_Target_DirectShow_Stream_Message,
                                     Test_I_Target_DirectShow_SessionMessage> Test_I_Target_DirectShow_ISessionNotify_t;
@@ -356,8 +355,7 @@ struct Test_I_Target_DirectShow_ModuleHandlerConfiguration
 #endif // GUI_SUPPORT
 };
 
-typedef Stream_ISessionDataNotify_T<Stream_SessionId_t,
-                                    Test_I_Target_MediaFoundation_SessionData,
+typedef Stream_ISessionDataNotify_T<Test_I_Target_MediaFoundation_SessionData,
                                     enum Stream_SessionMessageType,
                                     Test_I_Target_MediaFoundation_Stream_Message,
                                     Test_I_Target_MediaFoundation_SessionMessage> Test_I_Target_MediaFoundation_ISessionNotify_t;
@@ -440,8 +438,7 @@ struct Test_I_Target_MediaFoundation_ModuleHandlerConfiguration
 #endif // GUI_SUPPORT
 };
 #else
-typedef Stream_ISessionDataNotify_T<Stream_SessionId_t,
-                                    Test_I_Target_SessionData,
+typedef Stream_ISessionDataNotify_T<Test_I_Target_SessionData,
                                     enum Stream_SessionMessageType,
                                     Test_I_Target_Stream_Message,
                                     Test_I_Target_SessionMessage> Test_I_Target_ISessionNotify_t;

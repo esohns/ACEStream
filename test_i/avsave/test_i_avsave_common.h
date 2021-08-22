@@ -416,16 +416,14 @@ typedef Stream_AVSave_Message_T<struct Stream_AVSave_MediaFoundation_MessageData
 typedef Stream_AVSave_SessionMessage_T<Stream_AVSave_MediaFoundation_Message_t,
                                        Stream_AVSave_MediaFoundation_SessionData_t> Stream_AVSave_MediaFoundation_SessionMessage_t;
 
-typedef Stream_ISessionDataNotify_T<Stream_SessionId_t,
-                                    Stream_AVSave_DirectShow_SessionData,
+typedef Stream_ISessionDataNotify_T<Stream_AVSave_DirectShow_SessionData,
                                     enum Stream_SessionMessageType,
                                     Stream_AVSave_DirectShow_Message_t,
                                     Stream_AVSave_DirectShow_SessionMessage_t> Stream_AVSave_DirectShow_ISessionNotify_t;
 typedef std::list<Stream_AVSave_DirectShow_ISessionNotify_t*> Stream_AVSave_DirectShow_Subscribers_t;
 typedef Stream_AVSave_DirectShow_Subscribers_t::iterator Stream_AVSave_DirectShow_SubscribersIterator_t;
 
-typedef Stream_ISessionDataNotify_T<Stream_SessionId_t,
-                                    Stream_AVSave_MediaFoundation_SessionData,
+typedef Stream_ISessionDataNotify_T<Stream_AVSave_MediaFoundation_SessionData,
                                     enum Stream_SessionMessageType,
                                     Stream_AVSave_MediaFoundation_Message_t,
                                     Stream_AVSave_MediaFoundation_SessionMessage_t> Stream_AVSave_MediaFoundation_ISessionNotify_t;
@@ -438,16 +436,14 @@ typedef Stream_AVSave_SessionMessage_T<Stream_AVSave_Message_t,
 typedef Stream_AVSave_SessionMessage_T<Stream_AVSave_Message_t,
                                        Stream_AVSave_V4L_SessionData_t> Stream_AVSave_V4L_SessionMessage_t;
 
-typedef Stream_ISessionDataNotify_T<Stream_SessionId_t,
-                                    Stream_AVSave_V4L_SessionData,
+typedef Stream_ISessionDataNotify_T<Stream_AVSave_V4L_SessionData,
                                     enum Stream_SessionMessageType,
                                     Stream_AVSave_Message_t,
                                     Stream_AVSave_V4L_SessionMessage_t> Stream_AVSave_V4L_ISessionNotify_t;
 typedef std::list<Stream_AVSave_V4L_ISessionNotify_t*> Stream_AVSave_V4L_Subscribers_t;
 typedef Stream_AVSave_V4L_Subscribers_t::iterator Stream_AVSave_V4L_SubscribersIterator_t;
 
-typedef Stream_ISessionDataNotify_T<Stream_SessionId_t,
-                                    Stream_AVSave_ALSA_SessionData,
+typedef Stream_ISessionDataNotify_T<Stream_AVSave_ALSA_SessionData,
                                     enum Stream_SessionMessageType,
                                     Stream_AVSave_Message_t,
                                     Stream_AVSave_ALSA_SessionMessage_t> Stream_AVSave_ALSA_ISessionNotify_t;

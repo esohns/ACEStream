@@ -132,8 +132,7 @@ class Stream_Base_T
                      TimePolicyType> MODULE_T;
   typedef ACE_Stream<ACE_SYNCH_USE,
                      TimePolicyType> STREAM_T;
-  typedef Stream_IModule_T<Stream_SessionId_t,
-                           SessionDataType,
+  typedef Stream_IModule_T<SessionDataType,
                            NotificationType,
                            ACE_SYNCH_USE,
                            TimePolicyType,
@@ -148,7 +147,6 @@ class Stream_Base_T
                                              SessionDataType> DISTRIBUTOR_TASK_T;
   typedef Stream_StreamModuleInputOnly_T<ACE_SYNCH_USE,
                                          TimePolicyType,
-                                         Stream_SessionId_t,
                                          SessionDataType,
                                          NotificationType,
                                          struct Stream_ModuleConfiguration,
@@ -182,8 +180,7 @@ class Stream_Base_T
   typedef ControlMessageType CONTROL_MESSAGE_T;
   typedef DataMessageType MESSAGE_T;
   typedef SessionMessageType SESSION_MESSAGE_T;
-  typedef Stream_ISessionDataNotify_T<Stream_SessionId_t,
-                                      SessionDataType,
+  typedef Stream_ISessionDataNotify_T<SessionDataType,
                                       NotificationType,
                                       DataMessageType,
                                       SessionMessageType> IDATA_NOTIFY_T;
@@ -297,7 +294,6 @@ class Stream_Base_T
                             ControlMessageType,
                             DataMessageType,
                             SessionMessageType,
-                            Stream_SessionId_t,
                             enum Stream_SessionMessageType> HEAD_T;
   typedef Stream_TailTask_T<ACE_SYNCH_USE,
                             TimePolicyType,
@@ -305,7 +301,6 @@ class Stream_Base_T
                             ControlMessageType,
                             DataMessageType,
                             SessionMessageType,
-                            Stream_SessionId_t,
                             enum Stream_SessionMessageType> TAIL_T;
   typedef Common_IGetR_T<SessionDataContainerType> ISESSION_DATA_T;
   typedef Stream_IModuleHandler_T<ACE_SYNCH_USE,

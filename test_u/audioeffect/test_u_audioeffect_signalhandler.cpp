@@ -155,8 +155,7 @@ Test_U_AudioEffect_SignalHandler::handle (const struct Common_Signal& signal_in)
 #if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
     COMMON_UI_GTK_MANAGER_SINGLETON::instance ()->stop (false, // wait ?
-                                                        true,  // high priority ?
-                                                        true); // locked access ?
+                                                        true); // high priority ?
 #endif // GTK_USE
 #endif // GUI_SUPPORT
   } // end IF

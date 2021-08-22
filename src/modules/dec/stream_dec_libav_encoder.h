@@ -31,8 +31,7 @@ extern "C"
 
 #include "ace/Global_Macros.h"
 
-#include "common_ilock.h"
-#include "common_time_common.h"
+//#include "common_time_common.h"
 
 #include "stream_task_base_asynch.h"
 
@@ -65,7 +64,6 @@ class Stream_Decoder_LibAVEncoder_T
                                   ControlMessageType,
                                   DataMessageType,
                                   SessionMessageType,
-                                  Stream_SessionId_t,
                                   enum Stream_ControlType,
                                   enum Stream_SessionMessageType,
                                   struct Stream_UserData>
@@ -82,7 +80,6 @@ class Stream_Decoder_LibAVEncoder_T
                                   ControlMessageType,
                                   DataMessageType,
                                   SessionMessageType,
-                                  Stream_SessionId_t,
                                   enum Stream_ControlType,
                                   enum Stream_SessionMessageType,
                                   struct Stream_UserData> inherited;

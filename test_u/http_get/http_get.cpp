@@ -856,7 +856,7 @@ do_work (unsigned int bufferSize_in,
 #endif // GUI_SUPPORT
 
   // step3: clean up
-  connection_manager_p->stop (false, true, true);
+  connection_manager_p->stop (false, true);
   //Common_Tools::finalizeEventDispatch (useReactor_in,
   //                                     !useReactor_in,
   //                                     group_id);
@@ -906,7 +906,7 @@ clean:
   if (!interfaceDefinitionFile_in.empty ())
 #if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
-    COMMON_UI_GTK_MANAGER_SINGLETON::instance ()->stop (true, true, true);
+    COMMON_UI_GTK_MANAGER_SINGLETON::instance ()->stop (true, true);
 #else
     ;
 #endif // GTK_USE

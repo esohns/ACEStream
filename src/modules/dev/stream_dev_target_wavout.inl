@@ -19,7 +19,6 @@
  ***************************************************************************/
 
 #include "ace/Log_Msg.h"
-//#include "ace/Message_Queue.h"
 
 #include "common_file_tools.h"
 #include "common_timer_manager_common.h"
@@ -85,7 +84,6 @@ template <ACE_SYNCH_DECL,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType,
-          typename SessionIdType,
           typename SessionDataType>
 Stream_Dev_Target_WavOut_T<ACE_SYNCH_USE,
                            TimePolicyType,
@@ -93,7 +91,6 @@ Stream_Dev_Target_WavOut_T<ACE_SYNCH_USE,
                            ControlMessageType,
                            DataMessageType,
                            SessionMessageType,
-                           SessionIdType,
                            SessionDataType>::Stream_Dev_Target_WavOut_T (ISTREAM_T* stream_in)
  : inherited (stream_in)
  , CBData_ ()
@@ -113,7 +110,6 @@ template <ACE_SYNCH_DECL,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType,
-          typename SessionIdType,
           typename SessionDataType>
 Stream_Dev_Target_WavOut_T<ACE_SYNCH_USE,
                          TimePolicyType,
@@ -121,7 +117,6 @@ Stream_Dev_Target_WavOut_T<ACE_SYNCH_USE,
                          ControlMessageType,
                          DataMessageType,
                          SessionMessageType,
-                         SessionIdType,
                          SessionDataType>::~Stream_Dev_Target_WavOut_T ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Dev_Target_WavOut_T::~Stream_Dev_Target_WavOut_T"));
@@ -134,7 +129,6 @@ template <ACE_SYNCH_DECL,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType,
-          typename SessionIdType,
           typename SessionDataType>
 bool
 Stream_Dev_Target_WavOut_T<ACE_SYNCH_USE,
@@ -143,7 +137,6 @@ Stream_Dev_Target_WavOut_T<ACE_SYNCH_USE,
                          ControlMessageType,
                          DataMessageType,
                          SessionMessageType,
-                         SessionIdType,
                          SessionDataType>::initialize (const ConfigurationType& configuration_in,
                                                        Stream_IAllocator* allocator_in)
 {
@@ -164,7 +157,6 @@ template <ACE_SYNCH_DECL,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType,
-          typename SessionIdType,
           typename SessionDataType>
 void
 Stream_Dev_Target_WavOut_T<ACE_SYNCH_USE,
@@ -173,7 +165,6 @@ Stream_Dev_Target_WavOut_T<ACE_SYNCH_USE,
                          ControlMessageType,
                          DataMessageType,
                          SessionMessageType,
-                         SessionIdType,
                          SessionDataType>::handleDataMessage (DataMessageType*& message_inout,
                                                               bool& passMessageDownstream_out)
 {
@@ -246,7 +237,6 @@ template <ACE_SYNCH_DECL,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType,
-          typename SessionIdType,
           typename SessionDataType>
 void
 Stream_Dev_Target_WavOut_T<ACE_SYNCH_USE,
@@ -255,7 +245,6 @@ Stream_Dev_Target_WavOut_T<ACE_SYNCH_USE,
                          ControlMessageType,
                          DataMessageType,
                          SessionMessageType,
-                         SessionIdType,
                          SessionDataType>::handleSessionMessage (SessionMessageType*& message_inout,
                                                                  bool& passMessageDownstream_out)
 {

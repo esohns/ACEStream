@@ -53,7 +53,6 @@ class Test_I_Stream_Module_EventHandler_T
                                          ControlMessageType,
                                          MessageType,
                                          SessionMessageType,
-                                         Stream_SessionId_t,
                                          SessionDataType,
                                          UserDataType>
 {
@@ -63,7 +62,6 @@ class Test_I_Stream_Module_EventHandler_T
                                          ControlMessageType,
                                          MessageType,
                                          SessionMessageType,
-                                         Stream_SessionId_t,
                                          SessionDataType,
                                          UserDataType> inherited;
 
@@ -92,7 +90,6 @@ class Test_I_Stream_Module_EventHandler_T
                                               UserDataType> OWN_TYPE_T;
   typedef Stream_StreamModuleInputOnly_T<ACE_MT_SYNCH,
                                          Common_TimePolicy_t,
-                                         Stream_SessionId_t,
                                          SessionDataType,
                                          Stream_SessionMessageType,
                                          ModuleConfigurationType,

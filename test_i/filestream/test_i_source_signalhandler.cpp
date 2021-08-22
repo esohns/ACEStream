@@ -19,7 +19,6 @@
  ***************************************************************************/
 #include "stdafx.h"
 
-//#include "ace/Synch.h"
 #include "test_i_source_signalhandler.h"
 
 #include "ace/Log_Msg.h"
@@ -149,16 +148,15 @@ Test_I_Source_SignalHandler::handle (const struct Common_Signal& signal_in)
     Test_I_Source_ITCPConnectionManager_t* connection_manager_p =
         TEST_I_SOURCE_TCP_CONNECTIONMANAGER_SINGLETON::instance ();
     ACE_ASSERT (connection_manager_p);
-    connection_manager_p->stop (false, true, true);
+    connection_manager_p->stop (false, true);
     connection_manager_p->abort ();
     connection_manager_p->wait ();
 
     // step3: stop UI event processing ?
 #if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
-      COMMON_UI_GTK_MANAGER_SINGLETON::instance ()->stop (false, // wait ?
-                                                          true,  // high priority ?
-                                                          true); // locked access ?
+    COMMON_UI_GTK_MANAGER_SINGLETON::instance ()->stop (false, // wait ?
+                                                        true); // high priority ?
 #endif // GTK_USE
 #endif // GUI_SUPPORT
 

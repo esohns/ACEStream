@@ -227,8 +227,7 @@ class Test_I_SessionMessage_T;
 typedef Test_I_SessionMessage_T<Test_I_Message,
                                 Test_I_ImageSave_SessionData_t> Test_I_SessionMessage_t;
 
-typedef Stream_ISessionDataNotify_T<Stream_SessionId_t,
-                                    Test_I_ImageSave_SessionData,
+typedef Stream_ISessionDataNotify_T<Test_I_ImageSave_SessionData,
                                     enum Stream_SessionMessageType,
                                     Test_I_Message,
                                     Test_I_SessionMessage_t> Test_I_ISessionNotify_t;

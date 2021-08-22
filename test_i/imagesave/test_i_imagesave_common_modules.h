@@ -182,7 +182,6 @@ typedef Stream_Module_MessageHandler_T<ACE_MT_SYNCH,
                                        Stream_ControlMessage_t,
                                        Test_I_Message,
                                        Test_I_SessionMessage_t,
-                                       Stream_SessionId_t,
                                        Test_I_ImageSave_SessionData,
                                        struct Stream_UserData> Test_I_MessageHandler;
 

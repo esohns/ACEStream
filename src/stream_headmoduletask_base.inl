@@ -73,6 +73,7 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
  , concurrency_ (concurrency_in)
  , finishOnDisconnect_ (false)
  , hasReentrantSynchronousSubDownstream_ (true)
+ //, lock_ ()
  , queue_ (STREAM_QUEUE_MAX_SLOTS, // max # slots
            NULL)                   // notification handle
  , sessionEndProcessed_ (false)
@@ -338,23 +339,6 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
     }
   } // end IF
 
-  // *NOTE*: when the head module is not a head module after all, spawn a worker
-  //         thread here
-  //if ((concurrency_ == STREAM_HEADMODULECONCURRENCY_ACTIVE) &&
-  //    !Stream_Tools::isFirstModule (getP ()->getR (),
-  //                                  *inherited::mod_))
-  //{
-  //  generateSessionMessages_ = false;
-  //  try {
-  //    start ();
-  //  } catch (...) {
-  //    ACE_DEBUG ((LM_ERROR,
-  //                ACE_TEXT ("%s: caught exception in Stream_IStreamControl_T::start(), aborting\n"),
-  //                inherited::mod_->name ()));
-  //    return -1;
-  //  }
-  //} // end IF
-
   return 0;
 }
 
@@ -402,19 +386,6 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
   {
     case 0:
     {
-//#if defined (_DEBUG)
-      //{ ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, inherited::lock_, result);
-      //  if ((concurrency_ == STREAM_HEADMODULECONCURRENCY_ACTIVE) ||
-      //      ACE_OS::thr_equal (ACE_OS::thr_self (),
-      //                         inherited::threads_[0].id ()))
-      //    ACE_DEBUG ((LM_DEBUG,
-      //                ACE_TEXT ("%s: %sthread (id was: %t) leaving\n"),
-      //                inherited::mod_->name (),
-      //                (concurrency_ == STREAM_HEADMODULECONCURRENCY_ACTIVE ? ACE_TEXT ("worker ")
-      //                                                                     : ACE_TEXT (""))));
-      //} // end lock scope
-//#endif
-
       // inherited::thr_count_ has already been decremented at this stage
       // --> there should not be a race condition
       if (inherited::thr_count_ == 0) // last thread ?
@@ -458,10 +429,9 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
 
       // *NOTE*: make sure there is a message queue
       if (likely (inherited::msg_queue_))
-      {
-        stop (false, // wait for completion ?
-              true,  // N/A
-              true); // N/A
+      { Common_ITask* itask_p = this;
+        itask_p->stop (false, // wait for completion ?
+                       true); // N/A
         result = 0;
       } // end IF
       else
@@ -537,9 +507,9 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
     ACE_DEBUG ((LM_WARNING,
                 ACE_TEXT ("%s: stream still active in Stream_HeadModuleTaskBase_T::module_closed(), continuing\n"),
                 inherited::mod_->name ()));
-    stop (true,  // wait ?
-          true,  // N/A
-          true); // N/A
+    Common_ITask* itask_p = this;
+    itask_p->stop (true,  // wait ?
+                   true); // N/A
   } // end IF
 
   return 0;
@@ -653,7 +623,7 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
           if (unlikely (result_2 == -1))
           {
             ACE_DEBUG ((LM_ERROR,
-                        ACE_TEXT ("%s: failed to ACE_Task::putq(): \"%m\", aborting\n"),
+                        ACE_TEXT ("%s: worker thread (id: %t) failed to ACE_Task::putq(): \"%m\", aborting\n"),
                         inherited::mod_->name ()));
             message_block_p->release (); message_block_p = NULL;
             break;
@@ -812,7 +782,7 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
                             SessionDataContainerType,
                             StatisticContainerType,
                             TimerManagerType,
-                            UserDataType>::isShuttingDown ()
+                            UserDataType>::isShuttingDown () const
 {
   STREAM_TRACE (ACE_TEXT ("Stream_HeadModuleTaskBase_T::isShuttingDown"));
 
@@ -851,6 +821,46 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
   } // end lock scope
 
   return result;
+}
+
+template <ACE_SYNCH_DECL,
+          typename TimePolicyType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
+          typename ConfigurationType,
+          typename SessionControlType,
+          typename SessionEventType,
+          typename StreamStateType,
+          typename SessionDataType,
+          typename SessionDataContainerType,
+          typename StatisticContainerType,
+          typename TimerManagerType,
+          typename UserDataType>
+void
+Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
+                            TimePolicyType,
+                            ControlMessageType,
+                            DataMessageType,
+                            SessionMessageType,
+                            ConfigurationType,
+                            SessionControlType,
+                            SessionEventType,
+                            StreamStateType,
+                            SessionDataType,
+                            SessionDataContainerType,
+                            StatisticContainerType,
+                            TimerManagerType,
+                            UserDataType>::stop (bool waitForCompletion_in,
+                                                 bool highPriority_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_HeadModuleTaskBase_T::stop"));
+
+  inherited::control (ACE_Message_Block::MB_STOP,
+                      highPriority_in);
+
+  if (waitForCompletion_in)
+    this->wait (true);
 }
 
 template <ACE_SYNCH_DECL,
@@ -968,7 +978,7 @@ error:
     case STREAM_SESSION_MESSAGE_END:
     {
       // *NOTE*: only process the first 'session end' message (see above: 2566)
-      { ACE_GUARD (typename inherited::MUTEX_T, aGuard, inherited::lock_);
+      { ACE_GUARD (ACE_Thread_Mutex, aGuard, inherited::lock_);
         if (unlikely (sessionEndProcessed_))
           break; // done
         sessionEndProcessed_ = true;
@@ -992,10 +1002,10 @@ error:
       } // end IF
 
       if (likely (concurrency_ != STREAM_HEADMODULECONCURRENCY_CONCURRENT))
-        this->stop (false, // wait for completion ?
-                    false, // high priority ?
-                    true); // locked access ?
-
+      { Common_ITask* itask_p = this;
+        itask_p->stop (false,  // wait for completion ?
+                       false); // high priority ?
+      } // end IF
       break;
     }
     default:
@@ -1693,7 +1703,7 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
 
   int result = -1;
   OWN_TYPE_T* this_p = const_cast<OWN_TYPE_T*> (this);
-  ACE_Reverse_Lock<LOCK_T> reverse_lock (inherited::lock_);
+  ACE_Reverse_Lock<ACE_Thread_Mutex> reverse_lock (inherited::lock_);
 
   // *NOTE*: be sure to release the (up-)stream lock to support 'concurrent'
   //         scenarios (e.g. scenarios where upstream delivers data)
@@ -1730,7 +1740,7 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
     return;
   } // end IF
 
-  ACE_GUARD (LOCK_T, aGuard, inherited::lock_);
+  ACE_GUARD (ACE_Thread_Mutex, aGuard, inherited::lock_);
 
   // *NOTE*: pthread_join() returns EDEADLK when the calling thread IS the
   //         thread to join
@@ -1745,7 +1755,7 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
   {
     case STREAM_HEADMODULECONCURRENCY_ACTIVE:
     {
-      { ACE_GUARD (ACE_Reverse_Lock<LOCK_T>, aGuard_2, reverse_lock);
+      { ACE_GUARD (ACE_Reverse_Lock<ACE_Thread_Mutex>, aGuard_2, reverse_lock);
         inherited::wait ();
       } // end lock scope
       break;
@@ -1758,7 +1768,7 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
       ACE_hthread_t handle = inherited::threadIds_[0].handle ();
       if (likely (handle != ACE_INVALID_HANDLE))
       {
-        { ACE_GUARD (ACE_Reverse_Lock<LOCK_T>, aGuard_2, reverse_lock);
+        { ACE_GUARD (ACE_Reverse_Lock<ACE_Thread_Mutex>, aGuard_2, reverse_lock);
           result = ACE_Thread::join (handle, &status);
         } // end lock scope
         if (unlikely (result == -1))
@@ -1778,7 +1788,7 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
 #else
       if (likely (static_cast<int> (thread_id) != -1))
       {
-        { ACE_GUARD (ACE_Reverse_Lock<LOCK_T>, aGuard_2, reverse_lock);
+        { ACE_GUARD (ACE_Reverse_Lock<ACE_Thread_Mutex>, aGuard_2, reverse_lock);
           result = ACE_Thread::join (thread_id, NULL, &status);
         } // end lock scope
         this_p->inherited::threadIds_[0].id (-1);
@@ -1941,7 +1951,7 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
   {
     case STREAM_STATE_INITIALIZED:
     {
-      { ACE_GUARD (typename inherited::MUTEX_T, aGuard, inherited::lock_);
+      { ACE_GUARD (ACE_Thread_Mutex, aGuard, inherited::lock_);
         sessionEndSent_ = false;
         sessionEndProcessed_ = false;
       
@@ -1949,7 +1959,8 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
         {
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
           ACE_hthread_t handle = inherited::threadIds_[0].handle ();
-          if (handle != ACE_INVALID_HANDLE)
+          if (unlikely (inherited::closeHandles_ &&
+                        (handle != ACE_INVALID_HANDLE)))
             if (!::CloseHandle (handle))
               ACE_DEBUG ((LM_ERROR,
                           ACE_TEXT ("%s: failed to CloseHandle(0x%@): \"%s\", continuing\n"),
@@ -1975,11 +1986,7 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
           {
             case STREAM_HEADMODULECONCURRENCY_ACTIVE:
             {
-              result = inherited::resume ();
-              if (result == -1)
-                ACE_DEBUG ((LM_ERROR,
-                            ACE_TEXT ("%s: failed to ACE_Task::resume(): \"%m\", continuing\n"),
-                            inherited::mod_->name ()));
+              inherited::resume ();
               break;
             } // end IF
             case STREAM_HEADMODULECONCURRENCY_PASSIVE:
@@ -1987,7 +1994,7 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
               // task object not active --> resume the borrowed thread
 
               ACE_hthread_t handle;
-              { ACE_GUARD (typename inherited::MUTEX_T, aGuard, inherited::lock_);
+              { ACE_GUARD (ACE_Thread_Mutex, aGuard, inherited::lock_);
                 handle = inherited::threadIds_[0].handle ();
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
                 ACE_ASSERT (handle != ACE_INVALID_HANDLE);
@@ -2087,21 +2094,14 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
             inherited2::state_ = STREAM_STATE_RUNNING;
           } // end lock scope
 
-          { ACE_GUARD (typename inherited::MUTEX_T, aGuard_2, inherited::lock_);
+          { ACE_GUARD (ACE_Thread_Mutex, aGuard_2, inherited::lock_);
             // sanity check(s)
             ACE_ASSERT (inherited::threadIds_.empty ());
 
             ACE_Thread_ID thread_id;
             thread_id.id (ACE_Thread::self ());
             ACE_hthread_t handle = ACE_INVALID_HANDLE;
-            result = ACE_Thread_Manager::instance ()->thr_self (handle);
-            if (unlikely (result == -1))
-            {
-              ACE_DEBUG ((LM_ERROR,
-                          ACE_TEXT ("%s: failed to ACE_Thread_Manager::thr_self(): \"%m\", returning\n"),
-                          inherited::mod_->name ()));
-              break;
-            } // end IF
+            ACE_Thread::self (handle);
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
             HANDLE process_handle = ::GetCurrentProcess ();
             if (unlikely (!::DuplicateHandle (process_handle,
@@ -2116,6 +2116,7 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
                           inherited::mod_->name (),
                           handle,
                           ACE_TEXT (Common_Error_Tools::errorToString (::GetLastError (), false).c_str ())));
+            inherited::closeHandles_ = true;
 #endif // ACE_WIN32 || ACE_WIN64
             thread_id.handle (handle);
             inherited::threadIds_.push_back (thread_id);
@@ -2211,7 +2212,7 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
           break;
         } // end IF
         case STREAM_HEADMODULECONCURRENCY_PASSIVE:
-        { ACE_GUARD (typename inherited::MUTEX_T, aGuard_2, inherited::lock_);
+        { ACE_GUARD (ACE_Thread_Mutex, aGuard_2, inherited::lock_);
           // task object not active --> suspend the borrowed thread
           ACE_hthread_t handle = inherited::threadIds_[0].handle ();
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -2246,15 +2247,11 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
             {
               case STREAM_HEADMODULECONCURRENCY_ACTIVE:
               {
-                result = inherited::resume ();
-                if (unlikely (result == -1))
-                  ACE_DEBUG ((LM_ERROR,
-                              ACE_TEXT ("%s: failed to ACE_Task::resume(): \"%m\", continuing\n"),
-                              inherited::mod_->name ()));
+                inherited::resume ();
                 break;
               } // end IF
               case STREAM_HEADMODULECONCURRENCY_PASSIVE:
-              { ACE_GUARD (typename inherited::MUTEX_T, aGuard_2, inherited::lock_);
+              { ACE_GUARD (ACE_Thread_Mutex, aGuard_2, inherited::lock_);
                 // task is not 'active' --> resume the calling thread (i.e. the
                 // thread that invoked start())
                 ACE_hthread_t handle = inherited::threadIds_[0].handle ();
@@ -2294,20 +2291,20 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
       switch (concurrency_)
       {
         case STREAM_HEADMODULECONCURRENCY_ACTIVE:
-        {
-          this->stop (false, // wait ?
-                      false, // high priority ?
-                      true); // locked access ?
+        { Common_ITask* itask_p = this;
+          itask_p->stop (false,  // wait ?
+                         false); // high priority ?
           break;
         }
         case STREAM_HEADMODULECONCURRENCY_PASSIVE:
-        { ACE_GUARD (typename inherited::MUTEX_T, aGuard_2, inherited::lock_);
+        { ACE_GUARD (ACE_Thread_Mutex, aGuard_2, inherited::lock_);
           ACE_ASSERT (!inherited::threadIds_.empty ());
           if (!ACE_OS::thr_equal (ACE_OS::thr_self (),
                                   inherited::threadIds_[0].id ()))
-            this->stop (false, // wait ?
-                        false, // high priority ?
-                        true); // locked access ?
+          { Common_ITask* itask_p = this;
+            itask_p->stop (false,  // wait ?
+                           false); // high priority ?
+          } // end IF
           break;
         }
         case STREAM_HEADMODULECONCURRENCY_CONCURRENT:
@@ -2426,7 +2423,7 @@ continue_:
       //                   --> ensure that only a single 'session end' message
       //                       is generated and processed per session
       bool send_end_message = false;
-      { ACE_GUARD (typename inherited::MUTEX_T, aGuard, inherited::lock_);
+      { ACE_GUARD (ACE_Thread_Mutex, aGuard, inherited::lock_);
         if (!sessionEndSent_ &&
             !sessionEndProcessed_) // already processed upstream 'session end' ?
         {

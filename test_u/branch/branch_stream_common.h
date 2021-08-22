@@ -69,8 +69,7 @@ struct Branch_SessionData
 };
 typedef Stream_SessionData_T<struct Branch_SessionData> Branch_SessionData_t;
 
-typedef Stream_ISessionDataNotify_T<Stream_SessionId_t,
-                                    struct Branch_SessionData,
+typedef Stream_ISessionDataNotify_T<struct Branch_SessionData,
                                     enum Stream_SessionMessageType,
                                     Branch_Message,
                                     Branch_SessionMessage> Branch_Notification_t;

@@ -26,10 +26,8 @@
 #include "libxml/HTMLparser.h"
 #include "libxml/tree.h"
 
-#include "common_ilock.h"
-#include "common_time_common.h"
+//#include "common_time_common.h"
 
-#include "stream_imodule.h"
 #include "stream_task_base_synch.h"
 
 extern const char libacestream_default_html_parser_module_name_string[];
@@ -107,24 +105,20 @@ template <ACE_SYNCH_DECL,
 class Stream_Module_HTMLParser_T
  : public Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
                                  TimePolicyType,
-                                 Common_ILock_T<ACE_SYNCH_USE>,
                                  ConfigurationType,
                                  ControlMessageType,
                                  DataMessageType,
                                  SessionMessageType,
-                                 Stream_SessionId_t,
                                  enum Stream_ControlType,
                                  enum Stream_SessionMessageType,
                                  struct Stream_UserData>
 {
   typedef Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
                                  TimePolicyType,
-                                 Common_ILock_T<ACE_SYNCH_USE>,
                                  ConfigurationType,
                                  ControlMessageType,
                                  DataMessageType,
                                  SessionMessageType,
-                                 Stream_SessionId_t,
                                  enum Stream_ControlType,
                                  enum Stream_SessionMessageType,
                                  struct Stream_UserData> inherited;

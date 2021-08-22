@@ -39,8 +39,7 @@ template <ACE_SYNCH_DECL, class TIME_POLICY>
 class ACE_Stream;
 class Stream_IAllocator;
 
-template <typename SessionIdType,
-          typename SessionDataType,
+template <typename SessionDataType,
           typename SessionEventType,
           ////////////////////////////////
           ACE_SYNCH_DECL,
@@ -50,8 +49,7 @@ template <typename SessionIdType,
           ////////////////////////////////
           typename HandlerConfigurationType>
 class Stream_IModule_T
- : public Stream_ISessionNotify_T<SessionIdType,
-                                  SessionDataType,
+ : public Stream_ISessionNotify_T<SessionDataType,
                                   SessionEventType>
  , public Stream_IModuleLinkCB
  , public Common_IClone_T<ACE_Module<ACE_SYNCH_USE,
@@ -72,8 +70,7 @@ class Stream_IModule_T
                      TimePolicyType> STREAM_T;
   typedef Common_IClone_T<TASK_T> ICLONE_TASK_T;
   typedef Common_IClone_T<MODULE_T> ICLONE_T;
-  typedef Stream_ISessionNotify_T<SessionIdType,
-                                  SessionDataType,
+  typedef Stream_ISessionNotify_T<SessionDataType,
                                   SessionEventType> INOTIFY_T;
 
   // *NOTE*: streams call this to reset writer/reader tasks and re-use

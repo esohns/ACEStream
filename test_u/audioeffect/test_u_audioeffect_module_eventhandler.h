@@ -45,7 +45,6 @@ class Test_U_AudioEffect_DirectShow_Module_EventHandler
                                          Stream_ControlMessage_t,
                                          Test_U_AudioEffect_DirectShow_Message,
                                          Test_U_AudioEffect_DirectShow_SessionMessage,
-                                         Stream_SessionId_t,
                                          Test_U_AudioEffect_DirectShow_SessionData,
                                          struct Test_U_UserData>
 {
@@ -55,7 +54,6 @@ class Test_U_AudioEffect_DirectShow_Module_EventHandler
                                          Stream_ControlMessage_t,
                                          Test_U_AudioEffect_DirectShow_Message,
                                          Test_U_AudioEffect_DirectShow_SessionMessage,
-                                         Stream_SessionId_t,
                                          Test_U_AudioEffect_DirectShow_SessionData,
                                          struct Test_U_UserData> inherited;
 
@@ -82,7 +80,6 @@ class Test_U_AudioEffect_MediaFoundation_Module_EventHandler
                                          Stream_ControlMessage_t,
                                          Test_U_AudioEffect_MediaFoundation_Message,
                                          Test_U_AudioEffect_MediaFoundation_SessionMessage,
-                                         Stream_SessionId_t,
                                          Test_U_AudioEffect_MediaFoundation_SessionData,
                                          struct Test_U_UserData>
 {
@@ -92,7 +89,6 @@ class Test_U_AudioEffect_MediaFoundation_Module_EventHandler
                                          Stream_ControlMessage_t,
                                          Test_U_AudioEffect_MediaFoundation_Message,
                                          Test_U_AudioEffect_MediaFoundation_SessionMessage,
-                                         Stream_SessionId_t,
                                          Test_U_AudioEffect_MediaFoundation_SessionData,
                                          struct Test_U_UserData> inherited;
 

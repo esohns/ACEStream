@@ -1783,7 +1783,7 @@ do_work (const std::string& captureinterfaceIdentifier_in,
 clean:
 #if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
-  gtk_manager_p->stop (true, true, true);
+  gtk_manager_p->stop (true, true);
 #endif // GTK_USE
 #endif // GUI_SUPPORT
   timer_manager_p->stop ();

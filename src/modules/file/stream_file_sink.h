@@ -25,8 +25,6 @@
 #include "ace/FILE_IO.h"
 #include "ace/Global_Macros.h"
 
-#include "common_ilock.h"
-
 #include "stream_common.h"
 #include "stream_headmoduletask_base.h"
 #include "stream_task_base_asynch.h"
@@ -52,7 +50,6 @@ class Stream_Module_FileWriter_T
                                   ControlMessageType,
                                   DataMessageType,
                                   SessionMessageType,
-                                  Stream_SessionId_t,
                                   enum Stream_ControlType,
                                   enum Stream_SessionMessageType,
                                   struct Stream_UserData>
@@ -63,7 +60,6 @@ class Stream_Module_FileWriter_T
                                   ControlMessageType,
                                   DataMessageType,
                                   SessionMessageType,
-                                  Stream_SessionId_t,
                                   enum Stream_ControlType,
                                   enum Stream_SessionMessageType,
                                   struct Stream_UserData> inherited;
@@ -113,24 +109,20 @@ template <typename TimePolicyType,
 class Stream_Module_FileWriter_2
  : public Stream_TaskBaseSynch_T</*ACE_NULL_SYNCH*/ACE_MT_SYNCH,
                                  TimePolicyType,
-                                 Common_ILock_T<ACE_MT_SYNCH>,
                                  ConfigurationType,
                                  ControlMessageType,
                                  DataMessageType,
                                  SessionMessageType,
-                                 Stream_SessionId_t,
                                  enum Stream_ControlType,
                                  enum Stream_SessionMessageType,
                                  struct Stream_UserData>
 {
   typedef Stream_TaskBaseSynch_T</*ACE_NULL_SYNCH*/ACE_MT_SYNCH,
                                  TimePolicyType,
-                                 Common_ILock_T<ACE_MT_SYNCH>,
                                  ConfigurationType,
                                  ControlMessageType,
                                  DataMessageType,
                                  SessionMessageType,
-                                 Stream_SessionId_t,
                                  enum Stream_ControlType,
                                  enum Stream_SessionMessageType,
                                  struct Stream_UserData> inherited;

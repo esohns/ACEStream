@@ -43,7 +43,6 @@ class Branch_Module_EventHandler
                                          Stream_ControlMessage_t,
                                          Branch_Message,
                                          Branch_SessionMessage,
-                                         Stream_SessionId_t,
                                          struct Branch_SessionData,
                                          struct Stream_UserData>
 {
@@ -53,7 +52,6 @@ class Branch_Module_EventHandler
                                          Stream_ControlMessage_t,
                                          Branch_Message,
                                          Branch_SessionMessage,
-                                         Stream_SessionId_t,
                                          struct Branch_SessionData,
                                          struct Stream_UserData> inherited;
 

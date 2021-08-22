@@ -110,8 +110,7 @@ typedef Stream_ImageScreen_Message_T<Stream_ImageScreen_SessionData_t> Stream_Im
 typedef Stream_ImageScreen_SessionMessage_T<Stream_ImageScreen_Message_t,
                                             Stream_ImageScreen_SessionData_t> Stream_ImageScreen_SessionMessage_t;
 
-typedef Stream_ISessionDataNotify_T<Stream_SessionId_t,
-                                    Stream_ImageScreen_SessionData,
+typedef Stream_ISessionDataNotify_T<Stream_ImageScreen_SessionData,
                                     enum Stream_SessionMessageType,
                                     Stream_ImageScreen_Message_t,
                                     Stream_ImageScreen_SessionMessage_t> Stream_ImageScreen_ISessionNotify_t;

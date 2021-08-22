@@ -24,23 +24,19 @@
 
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,
-          typename LockType,
           typename ConfigurationType,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType,
-          typename SessionIdType,
           typename SessionControlType,
           typename SessionEventType,
           typename UserDataType>
 Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
                        TimePolicyType,
-                       LockType,
                        ConfigurationType,
                        ControlMessageType,
                        DataMessageType,
                        SessionMessageType,
-                       SessionIdType,
                        SessionControlType,
                        SessionEventType,
                        UserDataType>::Stream_TaskBaseSynch_T (typename TASK_BASE_T::ISTREAM_T* stream_in)

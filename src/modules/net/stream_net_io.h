@@ -24,7 +24,6 @@
 #include "ace/Global_Macros.h"
 #include "ace/Synch_Traits.h"
 
-#include "common_ilock.h"
 #include "common_time_common.h"
 
 #include "stream_common.h"
@@ -77,24 +76,20 @@ template <ACE_SYNCH_DECL,
 class Stream_Module_Net_IOReader_T // --> input
  : public Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
                                  Common_TimePolicy_t,
-                                 Common_ILock_T<ACE_SYNCH_USE>,
                                  ConfigurationType,
                                  ControlMessageType,
                                  DataMessageType,
                                  SessionMessageType,
-                                 Stream_SessionId_t,
                                  enum Stream_ControlType,
                                  enum Stream_SessionMessageType,
                                  UserDataType>
 {
   typedef Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
                                  Common_TimePolicy_t,
-                                 Common_ILock_T<ACE_SYNCH_USE>,
                                  ConfigurationType,
                                  ControlMessageType,
                                  DataMessageType,
                                  SessionMessageType,
-                                 Stream_SessionId_t,
                                  enum Stream_ControlType,
                                  enum Stream_SessionMessageType,
                                  UserDataType> inherited;

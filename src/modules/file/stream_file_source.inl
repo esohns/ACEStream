@@ -871,8 +871,7 @@ Stream_Module_FileReader_Writer_T<ACE_SYNCH_USE,
         // *IMPORTANT NOTE*: message_block_p has already been released() !
 
         inherited::stop (false, // wait ?
-                         true,  // high priority ?
-                         true); // locked access ?
+                         true); // high priority ?
 
         // MB_STOP has been enqueued --> process
         continue;

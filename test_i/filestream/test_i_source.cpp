@@ -730,7 +730,7 @@ do_work (unsigned int bufferSize_in,
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to ::GetConsoleWindow(), returning\n")));
 #if defined (GTK_USE)
-      gtk_manager_p->stop (true, true, true);
+      gtk_manager_p->stop (true, true);
 #endif // GTK_USE
       timer_manager_p->stop ();
       delete CBData_in.stream; CBData_in.stream = NULL;
@@ -761,7 +761,7 @@ do_work (unsigned int bufferSize_in,
 #if defined (GUI_SUPPORT)
     if (!UIDefinitionFile_in.empty ())
 #if defined (GTK_USE)
-      gtk_manager_p->stop (true, true, true);
+      gtk_manager_p->stop (true, true);
 #else
       ;
 #endif // GTK_USE
@@ -822,7 +822,7 @@ loop:
     } // end IF
 
     // clean up
-    iconnection_manager_p->stop (false, true, true);
+    iconnection_manager_p->stop (false, true);
     iconnection_manager_p->abort ();
     iconnection_manager_p->wait ();
     Common_Tools::finalizeEventDispatch (event_dispatch_state_s.proactorGroupId,
@@ -839,7 +839,7 @@ loop:
 #if defined (GUI_SUPPORT)
   if (!UIDefinitionFile_in.empty ())
 #if defined (GTK_USE)
-    COMMON_UI_GTK_MANAGER_SINGLETON::instance ()->stop (true, true, true);
+    COMMON_UI_GTK_MANAGER_SINGLETON::instance ()->stop (true, true);
 #else
     ;
 #endif // GTK_USE

@@ -1453,8 +1453,7 @@ error:
 #if defined (GUI_SUPPORT)
   if (!UIDefinitionFile_in.empty () && itask_p)
     itask_p->stop (true,  // wait ?
-                   true,  // high priority ?
-                   true); // locked access ?
+                   true); // high priority ?
 #endif // GUI_SUPPORT
   timer_manager_p->stop ();
 }

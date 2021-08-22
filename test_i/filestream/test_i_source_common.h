@@ -109,8 +109,7 @@ struct Test_I_Source_StreamState
   struct Test_I_Source_SessionData* sessionData;
 };
 
-typedef Stream_ISessionDataNotify_T<Stream_SessionId_t,
-                                    struct Test_I_Source_SessionData,
+typedef Stream_ISessionDataNotify_T<struct Test_I_Source_SessionData,
                                     enum Stream_SessionMessageType,
                                     Test_I_Source_Message_t,
                                     Test_I_Source_SessionMessage> Test_I_Source_ISessionNotify_t;

@@ -30,8 +30,7 @@
 #include "ace/Global_Macros.h"
 #include "ace/Synch_Traits.h"
 
-#include "common_ilock.h"
-#include "common_time_common.h"
+//#include "common_time_common.h"
 
 #include "stream_task_base_asynch.h"
 
@@ -62,7 +61,7 @@ extern const char libacestream_default_vis_opengl_glut_module_name_string[];
 struct OpenGL_GLUT_WindowData
 {
   struct Stream_MediaFramework_FFMPEG_VideoMediaType mediaType;
-  ACE_Message_Queue_Base*                       queue;
+  ACE_Message_Queue_Base*                            queue;
 };
 
 template <ACE_SYNCH_DECL,
@@ -83,7 +82,6 @@ class Stream_Visualization_OpenGL_GLUT_T
                                   ControlMessageType,
                                   DataMessageType,
                                   SessionMessageType,
-                                  Stream_SessionId_t,
                                   enum Stream_ControlType,
                                   enum Stream_SessionMessageType,
                                   struct Stream_UserData>
@@ -100,7 +98,6 @@ class Stream_Visualization_OpenGL_GLUT_T
                                   ControlMessageType,
                                   DataMessageType,
                                   SessionMessageType,
-                                  Stream_SessionId_t,
                                   enum Stream_ControlType,
                                   enum Stream_SessionMessageType,
                                   struct Stream_UserData> inherited;

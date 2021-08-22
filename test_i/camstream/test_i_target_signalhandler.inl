@@ -161,8 +161,7 @@ Test_I_Target_SignalHandler_T<ConfigurationType,
 #if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
       COMMON_UI_GTK_MANAGER_SINGLETON::instance ()->stop (false, // wait ?
-                                                          true,  // high priority ?
-                                                          true); // locked access ?
+                                                          true); // high priority ?
 #endif // GTK_USE
 #endif // GUI_SUPPORT
 
@@ -200,7 +199,7 @@ Test_I_Target_SignalHandler_T<ConfigurationType,
     //connection_manager_p->stop ();
     //connection_manager_p->abort ();
 //    connection_manager_p->wait ();
-    inherited::configuration_->connectionManager->stop (false, true, true);
+    inherited::configuration_->connectionManager->stop (false, true);
     inherited::configuration_->connectionManager->abort ();
     inherited::configuration_->connectionManager->wait ();
 

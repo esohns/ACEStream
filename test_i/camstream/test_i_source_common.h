@@ -96,8 +96,7 @@ struct Test_I_Source_V4L_StreamConfiguration;
 #endif // ACE_WIN32 || ACE_WIN64
 template <typename ConfigurationType>
 class Test_I_Source_SignalHandler_T;
-template <typename SessionIdType,
-          typename SessionDataType,
+template <typename SessionDataType,
           typename SessionEventType,
           typename MessageType,
           typename SessionMessageType,
@@ -275,8 +274,7 @@ typedef Stream_Base_T<ACE_MT_SYNCH,
                       Test_I_Source_V4L_SessionMessage> Test_I_Source_V4L_StreamBase_t;
 #endif // ACE_WIN32 || ACE_WIN64
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-typedef Stream_ISessionDataNotify_T<Stream_SessionId_t,
-                                    Test_I_Source_DirectShow_SessionData,
+typedef Stream_ISessionDataNotify_T<Test_I_Source_DirectShow_SessionData,
                                     enum Stream_SessionMessageType,
                                     Test_I_Source_DirectShow_Stream_Message,
                                     Test_I_Source_DirectShow_SessionMessage> Test_I_Source_DirectShow_ISessionNotify_t;
@@ -416,8 +414,7 @@ struct Test_I_Source_DirectShow_ModuleHandlerConfiguration
 #endif // GUI_SUPPORT
 };
 
-typedef Stream_ISessionDataNotify_T<Stream_SessionId_t,
-                                    Test_I_Source_MediaFoundation_SessionData,
+typedef Stream_ISessionDataNotify_T<Test_I_Source_MediaFoundation_SessionData,
                                     enum Stream_SessionMessageType,
                                     Test_I_Source_MediaFoundation_Stream_Message,
                                     Test_I_Source_MediaFoundation_SessionMessage> Test_I_Source_MediaFoundation_ISessionNotify_t;
@@ -764,8 +761,7 @@ typedef Stream_MessageAllocatorHeapBase_T<ACE_MT_SYNCH,
                                           Test_I_Source_DirectShow_SessionMessage> Test_I_Source_DirectShow_MessageAllocator_t;
 
 struct Test_I_Source_DirectShow_UI_CBData;
-typedef Test_I_Source_EventHandler_T<Stream_SessionId_t,
-                                     Test_I_Source_DirectShow_SessionData,
+typedef Test_I_Source_EventHandler_T<Test_I_Source_DirectShow_SessionData,
                                      enum Stream_SessionMessageType,
                                      Test_I_Source_DirectShow_Stream_Message,
                                      Test_I_Source_DirectShow_SessionMessage,
@@ -780,8 +776,7 @@ typedef Stream_MessageAllocatorHeapBase_T<ACE_MT_SYNCH,
                                           Test_I_Source_MediaFoundation_SessionMessage> Test_I_Source_MediaFoundation_MessageAllocator_t;
 
 struct Test_I_Source_MediaFoundation_UI_CBData;
-typedef Test_I_Source_EventHandler_T<Stream_SessionId_t,
-                                     Test_I_Source_MediaFoundation_SessionData,
+typedef Test_I_Source_EventHandler_T<Test_I_Source_MediaFoundation_SessionData,
                                      enum Stream_SessionMessageType,
                                      Test_I_Source_MediaFoundation_Stream_Message,
                                      Test_I_Source_MediaFoundation_SessionMessage,
@@ -796,8 +791,7 @@ typedef Stream_MessageAllocatorHeapBase_T<ACE_MT_SYNCH,
                                           Test_I_Source_V4L_SessionMessage> Test_I_Source_V4L_MessageAllocator_t;
 
 struct Test_I_Source_V4L_UI_CBData;
-typedef Test_I_Source_EventHandler_T<Stream_SessionId_t,
-                                     Test_I_Source_V4L_SessionData,
+typedef Test_I_Source_EventHandler_T<Test_I_Source_V4L_SessionData,
                                      enum Stream_SessionMessageType,
                                      Test_I_Source_V4L_Stream_Message,
                                      Test_I_Source_V4L_SessionMessage,

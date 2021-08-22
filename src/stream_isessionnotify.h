@@ -21,7 +21,10 @@
 #ifndef STREAM_ISESSIONNOTIFY_H
 #define STREAM_ISESSIONNOTIFY_H
 
-#include "ace/Time_Value.h"
+#include "stream_common.h"
+
+// forward declarations
+class ACE_Time_Value;
 
 class Stream_ISessionCB
 {
@@ -40,41 +43,37 @@ class Stream_ISession
 
 //////////////////////////////////////////
 
-template <typename SessionIdType,
-          typename SessionDataType,
+template <typename SessionDataType,
           typename SessionEventType>
 class Stream_ISessionNotify_T
 {
  public:
-  virtual void start (SessionIdType,                 // session id
+  virtual void start (Stream_SessionId_t,            // session id
                       const SessionDataType&) = 0;   // session data
-  virtual void notify (SessionIdType,                // session id
+  virtual void notify (Stream_SessionId_t,           // session id
                        const SessionEventType&) = 0; // event (state/status change, ...)
-  virtual void end (SessionIdType) = 0;              // session id
+  virtual void end (Stream_SessionId_t) = 0;         // session id
 };
 
-template <typename SessionIdType,
-          typename SessionDataType,
+template <typename SessionDataType,
           typename SessionEventType,
           typename MessageType,
           typename SessionMessageType>
 class Stream_ISessionDataNotify_T
- : public Stream_ISessionNotify_T<SessionIdType,
-                                  SessionDataType,
+ : public Stream_ISessionNotify_T<SessionDataType,
                                   SessionEventType>
 {
-  typedef Stream_ISessionNotify_T<SessionIdType,
-                                  SessionDataType,
+  typedef Stream_ISessionNotify_T<SessionDataType,
                                   SessionEventType> inherited;
 
  public:
-  using inherited::start;
+  //using inherited::start;
   using inherited::notify;
-  using inherited::end;
+  //using inherited::end;
 
-  virtual void notify (SessionIdType,           // session id
-                       const MessageType&) = 0; // (protocol) data
-  virtual void notify (SessionIdType,                  // session id
+  virtual void notify (Stream_SessionId_t,      // session id
+                       const MessageType&) = 0; // data-
+  virtual void notify (Stream_SessionId_t,             // session id
                        const SessionMessageType&) = 0; // session message
 };
 

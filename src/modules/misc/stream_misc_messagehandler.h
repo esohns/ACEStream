@@ -28,8 +28,6 @@
 
 #include "common_isubscribe.h"
 #include "common_iclone.h"
-#include "common_ilock.h"
-#include "common_time_common.h"
 
 #include "stream_common.h"
 #include "stream_isessionnotify.h"
@@ -52,24 +50,20 @@ template <ACE_SYNCH_DECL,
           typename DataMessageType,
           typename SessionMessageType,
           ////////////////////////////////
-          typename SessionIdType,
           typename SessionDataType,
           ////////////////////////////////
           typename UserDataType>
 class Stream_Module_MessageHandler_T
  : public Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
                                  TimePolicyType,
-                                 Common_ILock_T<ACE_SYNCH_USE>,
                                  ConfigurationType,
                                  ControlMessageType,
                                  DataMessageType,
                                  SessionMessageType,
-                                 SessionIdType,
                                  enum Stream_ControlType,
                                  enum Stream_SessionMessageType,
                                  UserDataType>
- , public Common_ISubscribe_T<Stream_ISessionDataNotify_T<SessionIdType,
-                                                          SessionDataType,
+ , public Common_ISubscribe_T<Stream_ISessionDataNotify_T<SessionDataType,
                                                           enum Stream_SessionMessageType,
                                                           DataMessageType,
                                                           SessionMessageType> >
@@ -79,20 +73,17 @@ class Stream_Module_MessageHandler_T
 {
   typedef Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
                                  TimePolicyType,
-                                 Common_ILock_T<ACE_SYNCH_USE>,
                                  ConfigurationType,
                                  ControlMessageType,
                                  DataMessageType,
                                  SessionMessageType,
-                                 Stream_SessionId_t,
                                  enum Stream_ControlType,
                                  enum Stream_SessionMessageType,
                                  UserDataType> inherited;
 
  public:
   // convenient types
-  typedef Stream_ISessionDataNotify_T<SessionIdType,
-                                      SessionDataType,
+  typedef Stream_ISessionDataNotify_T<SessionDataType,
                                       enum Stream_SessionMessageType,
                                       DataMessageType,
                                       SessionMessageType> INOTIFY_T;
@@ -132,12 +123,10 @@ class Stream_Module_MessageHandler_T
   // convenient types
   typedef Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
                                  TimePolicyType,
-                                 Common_ILock_T<ACE_SYNCH_USE>,
                                  ConfigurationType,
                                  ControlMessageType,
                                  DataMessageType,
                                  SessionMessageType,
-                                 Stream_SessionId_t,
                                  enum Stream_ControlType,
                                  enum Stream_SessionMessageType,
                                  UserDataType> STREAM_TASK_T;
@@ -157,7 +146,6 @@ class Stream_Module_MessageHandler_T
                                          ControlMessageType,
                                          DataMessageType,
                                          SessionMessageType,
-                                         SessionIdType,
                                          SessionDataType,
                                          UserDataType> OWN_TYPE_T;
 
@@ -183,7 +171,6 @@ template <ACE_SYNCH_DECL,
           typename DataMessageType,
           typename SessionMessageType,
           ////////////////////////////////
-          typename SessionIdType,
           typename SessionDataType,
           ////////////////////////////////
           typename UserDataType>
@@ -194,10 +181,8 @@ class Stream_Module_MessageHandlerA_T
                                                 ControlMessageType,
                                                 DataMessageType,
                                                 SessionMessageType,
-                                                SessionIdType,
                                                 SessionDataType>
- , public Common_ISubscribe_T<Stream_ISessionDataNotify_T<SessionIdType,
-                                                          SessionDataType,
+ , public Common_ISubscribe_T<Stream_ISessionDataNotify_T<SessionDataType,
                                                           enum Stream_SessionMessageType,
                                                           DataMessageType,
                                                           SessionMessageType> >
@@ -211,15 +196,13 @@ class Stream_Module_MessageHandlerA_T
                                                 ControlMessageType,
                                                 DataMessageType,
                                                 SessionMessageType,
-                                                Stream_SessionId_t,
                                                 SessionDataType> inherited;
 
  public:
   // convenient types
   typedef ACE_Task<ACE_SYNCH_USE,
                    TimePolicyType> TASK_T;
-  typedef Stream_ISessionDataNotify_T<SessionIdType,
-                                      SessionDataType,
+  typedef Stream_ISessionDataNotify_T<SessionDataType,
                                       enum Stream_SessionMessageType,
                                       DataMessageType,
                                       SessionMessageType> INOTIFY_T;
@@ -230,7 +213,6 @@ class Stream_Module_MessageHandlerA_T
                                                  ControlMessageType,
                                                  DataMessageType,
                                                  SessionMessageType,
-                                                 Stream_SessionId_t,
                                                  SessionDataType> READER_T;
 
   // *TODO*: on MSVC 2015u3 the accurate declaration does not compile
@@ -285,7 +267,6 @@ class Stream_Module_MessageHandlerA_T
                                           ControlMessageType,
                                           DataMessageType,
                                           SessionMessageType,
-                                          SessionIdType,
                                           SessionDataType,
                                           UserDataType> OWN_TYPE_T;
 

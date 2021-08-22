@@ -648,7 +648,7 @@ continue_3:
       //                   - the session is being aborted by some module]
 
       // *NOTE*: only process the first 'session end' message (see above: 2566)
-      { ACE_GUARD (typename inherited::MUTEX_T, aGuard, inherited::lock_);
+      { ACE_GUARD (ACE_Thread_Mutex, aGuard, inherited::lock_);
         if (unlikely (inherited::sessionEndProcessed_))
           break; // done
         inherited::sessionEndProcessed_ = true;

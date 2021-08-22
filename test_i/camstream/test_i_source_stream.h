@@ -131,7 +131,6 @@ class Test_I_Source_DirectShow_Stream_T
                                      ConnectorType> WRITER_T;
   typedef Stream_StreamModuleInputOnly_T<ACE_MT_SYNCH,               // task synch type
                                          Common_TimePolicy_t,        // time policy
-                                         Stream_SessionId_t,         // session id type
                                          SessionDataType,            // session data type
                                          Stream_SessionMessageType,  // session event type
                                          Stream_ModuleConfiguration, // module configuration type
@@ -232,7 +231,6 @@ class Test_I_Source_MediaFoundation_Stream_T
                                      ConnectorType> WRITER_T;
   typedef Stream_StreamModuleInputOnly_T<ACE_MT_SYNCH,               // task synch type
                                          Common_TimePolicy_t,        // time policy
-                                         Stream_SessionId_t,         // session id type
                                          SessionDataType,            // session data type
                                          Stream_SessionMessageType,  // session event type
                                          Stream_ModuleConfiguration, // module configuration type
@@ -329,7 +327,6 @@ class Test_I_Source_V4L_Stream_T
                                      ConnectorType> WRITER_T;
   typedef Stream_StreamModuleInputOnly_T<ACE_MT_SYNCH,                      // task synch type
                                          Common_TimePolicy_t,               // time policy
-                                         Stream_SessionId_t,                // session id type
                                          SessionDataType,                   // session data type
                                          enum Stream_SessionMessageType,    // session event type
                                          struct Stream_ModuleConfiguration, // module configuration type

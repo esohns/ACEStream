@@ -146,7 +146,7 @@ Test_I_SignalHandler::handle (const struct Common_Signal& signal_in)
     Test_I_HTTPGet_IInetConnectionManager_t* connection_manager_p =
         TEST_I_HTTPGET_CONNECTIONMANAGER_SINGLETON::instance ();
     ACE_ASSERT (connection_manager_p);
-    connection_manager_p->stop (false, true, true);
+    connection_manager_p->stop (false, true);
     connection_manager_p->abort ();
     connection_manager_p->wait ();
 

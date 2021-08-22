@@ -34,7 +34,6 @@
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           ////////////////////////////////
-          typename SessionIdType,
           typename SessionDataType,
           typename SessionEventType,
           typename ConfigurationType,
@@ -47,8 +46,7 @@ template <ACE_SYNCH_DECL,
 class Stream_Module_Base_T
  : public ACE_Module<ACE_SYNCH_USE,
                      TimePolicyType>
- , public Stream_IModule_T<SessionIdType,
-                           SessionDataType,
+ , public Stream_IModule_T<SessionDataType,
                            SessionEventType,
                            ACE_SYNCH_USE,
                            TimePolicyType,
@@ -65,8 +63,7 @@ class Stream_Module_Base_T
   typedef ACE_Stream<ACE_SYNCH_USE,
                      TimePolicyType> STREAM_T;
   typedef ConfigurationType CONFIGURATION_T;
-  typedef Stream_IModule_T<SessionIdType,
-                           SessionDataType,
+  typedef Stream_IModule_T<SessionDataType,
                            SessionEventType,
                            ACE_SYNCH_USE,
                            TimePolicyType,
@@ -82,7 +79,7 @@ class Stream_Module_Base_T
   // implement (part of) Stream_IModule_T
   // *IMPORTANT NOTE*: the default implementation simply forwards all module
   //                   events to the processing stream instance
-  virtual void notify (SessionIdType,            // session id
+  virtual void notify (Stream_SessionId_t,       // session id
                        const SessionEventType&); // event (state/status change, ...)
   inline virtual const STREAM_T& getR () const { ACE_ASSERT (stream_); return *stream_; }
   virtual bool initialize (const ConfigurationType&);
@@ -111,7 +108,6 @@ class Stream_Module_Base_T
                         TimePolicyType> THRU_TASK_T;
   typedef Stream_Module_Base_T<ACE_SYNCH_USE,
                                TimePolicyType,
-                               SessionIdType,
                                SessionDataType,
                                SessionEventType,
                                ConfigurationType,
@@ -126,8 +122,8 @@ class Stream_Module_Base_T
   typedef Common_IGetR_T<HandlerConfigurationType> IGET_T;
 
   // implement (part of) Stream_IModule
-  inline virtual void start (SessionIdType, const SessionDataType&) { ACE_ASSERT (false); ACE_NOTSUP; ACE_NOTREACHED (return;) }
-  inline virtual void end (SessionIdType) { ACE_ASSERT (false); ACE_NOTSUP; ACE_NOTREACHED (return;) } // session id
+  inline virtual void start (Stream_SessionId_t, const SessionDataType&) { ACE_ASSERT (false); ACE_NOTSUP; ACE_NOTREACHED (return;) }
+  inline virtual void end (Stream_SessionId_t) { ACE_ASSERT (false); ACE_NOTSUP; ACE_NOTREACHED (return;) } // session id
   inline virtual void onLink (ACE_Module_Base*) {}
   inline virtual void onUnlink (ACE_Module_Base*) {}
   virtual MODULE_T* clone ();
@@ -146,7 +142,6 @@ class Stream_Module_Base_T
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           ////////////////////////////////
-          typename SessionIdType,
           typename SessionDataType,
           typename SessionEventType,
           typename ConfigurationType,
@@ -159,7 +154,6 @@ template <ACE_SYNCH_DECL,
 class Stream_Module_BaseA_T
  : public Stream_Module_Base_T<ACE_SYNCH_USE,
                                TimePolicyType,
-                               SessionIdType,
                                SessionDataType,
                                SessionEventType,
                                ConfigurationType,
@@ -171,7 +165,6 @@ class Stream_Module_BaseA_T
 {
   typedef Stream_Module_Base_T<ACE_SYNCH_USE,
                                TimePolicyType,
-                               SessionIdType,
                                SessionDataType,
                                SessionEventType,
                                ConfigurationType,

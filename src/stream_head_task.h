@@ -40,7 +40,6 @@ template <ACE_SYNCH_DECL,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType,
-          typename SessionIdType,
           typename SessionEventType>
 class Stream_HeadTask_T
 // *TODO*: figure out how to use ACE_NULL_SYNCH in this case
@@ -79,7 +78,6 @@ template <ACE_SYNCH_DECL,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType,
-          typename SessionIdType,
           typename SessionEventType>
 class Stream_TailTask_T
 // *TODO*: figure out how to use ACE_NULL_SYNCH in this case

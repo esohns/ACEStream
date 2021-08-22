@@ -151,8 +151,7 @@ typedef Stream_Configuration_T<//stream_name_string_,
 class Test_I_Target_SessionMessage;
 typedef Test_I_Message_T<enum Stream_MessageType,
                          Test_I_Target_SessionMessage> Test_I_Target_Message_t;
-typedef Stream_ISessionDataNotify_T<Stream_SessionId_t,
-                                    struct Test_I_Target_SessionData,
+typedef Stream_ISessionDataNotify_T<struct Test_I_Target_SessionData,
                                     enum Stream_SessionMessageType,
                                     Test_I_Target_Message_t,
                                     Test_I_Target_SessionMessage> Test_I_Target_ISessionNotify_t;

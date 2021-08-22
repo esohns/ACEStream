@@ -22,18 +22,18 @@
 #define STREAM_DEC_AVI_DECODER_H
 
 #include "ace/Global_Macros.h"
+#include "ace/Message_Block.h"
 
-#include "common_time_common.h"
+//#include "common_time_common.h"
 
 #include "stream_task_base_asynch.h"
 
 #include "stream_dec_avi_parser_driver.h"
-#include "stream_dec_common.h"
+//#include "stream_dec_common.h"
 
 extern const char libacestream_default_dec_avi_decoder_module_name_string[];
 
 // forward declaration(s)
-class ACE_Message_Block;
 class Stream_IAllocator;
 
 template <ACE_SYNCH_DECL,
@@ -53,7 +53,6 @@ class Stream_Decoder_AVIDecoder_T
                                   ControlMessageType,
                                   DataMessageType,
                                   SessionMessageType,
-                                  Stream_SessionId_t,
                                   enum Stream_ControlType,
                                   enum Stream_SessionMessageType,
                                   struct Stream_UserData>
@@ -64,7 +63,6 @@ class Stream_Decoder_AVIDecoder_T
                                   ControlMessageType,
                                   DataMessageType,
                                   SessionMessageType,
-                                  Stream_SessionId_t,
                                   enum Stream_ControlType,
                                   enum Stream_SessionMessageType,
                                   struct Stream_UserData> inherited;

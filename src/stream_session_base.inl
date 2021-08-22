@@ -23,13 +23,11 @@
 
 #include "stream_macros.h"
 
-template <typename SessionIdType,
-          typename SessionDataType,
+template <typename SessionDataType,
           typename SessionEventType,
           typename MessageType,
           typename SessionMessageType>
-Stream_SessionBase_T<SessionIdType,
-                     SessionDataType,
+Stream_SessionBase_T<SessionDataType,
                      SessionEventType,
                      MessageType,
                      SessionMessageType>::Stream_SessionBase_T (ACE_Thread_Mutex* lock_in)
@@ -44,14 +42,12 @@ Stream_SessionBase_T<SessionIdType,
   ACE_ASSERT (lock_in);
 }
 
-template <typename SessionIdType,
-          typename SessionDataType,
+template <typename SessionDataType,
           typename SessionEventType,
           typename MessageType,
           typename SessionMessageType>
 void
-Stream_SessionBase_T<SessionIdType,
-                     SessionDataType,
+Stream_SessionBase_T<SessionDataType,
                      SessionEventType,
                      MessageType,
                      SessionMessageType>::wait (bool waitForSessionEnd_in,
@@ -80,14 +76,12 @@ Stream_SessionBase_T<SessionIdType,
   } // end IF
 }
 
-template <typename SessionIdType,
-          typename SessionDataType,
+template <typename SessionDataType,
           typename SessionEventType,
           typename MessageType,
           typename SessionMessageType>
 void
-Stream_SessionBase_T<SessionIdType,
-                     SessionDataType,
+Stream_SessionBase_T<SessionDataType,
                      SessionEventType,
                      MessageType,
                      SessionMessageType>::startCB ()
@@ -102,14 +96,12 @@ Stream_SessionBase_T<SessionIdType,
                 ACE_TEXT ("failed to ACE_Condition::broadcast(): \"%m\", returning\n")));
 }
 
-template <typename SessionIdType,
-          typename SessionDataType,
+template <typename SessionDataType,
           typename SessionEventType,
           typename MessageType,
           typename SessionMessageType>
 void
-Stream_SessionBase_T<SessionIdType,
-                     SessionDataType,
+Stream_SessionBase_T<SessionDataType,
                      SessionEventType,
                      MessageType,
                      SessionMessageType>::endCB ()
@@ -124,17 +116,15 @@ Stream_SessionBase_T<SessionIdType,
                 ACE_TEXT ("failed to ACE_Condition::broadcast(): \"%m\", returning\n")));
 }
 
-template <typename SessionIdType,
-          typename SessionDataType,
+template <typename SessionDataType,
           typename SessionEventType,
           typename MessageType,
           typename SessionMessageType>
 void
-Stream_SessionBase_T<SessionIdType,
-                     SessionDataType,
+Stream_SessionBase_T<SessionDataType,
                      SessionEventType,
                      MessageType,
-                     SessionMessageType>::start (SessionIdType sessionId_in,
+                     SessionMessageType>::start (Stream_SessionId_t sessionId_in,
                                                  const SessionDataType& sessionData_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_SessionBase_T::start"));
@@ -157,17 +147,15 @@ Stream_SessionBase_T<SessionIdType,
   }
 }
 
-template <typename SessionIdType,
-          typename SessionDataType,
+template <typename SessionDataType,
           typename SessionEventType,
           typename MessageType,
           typename SessionMessageType>
 void
-Stream_SessionBase_T<SessionIdType,
-                     SessionDataType,
+Stream_SessionBase_T<SessionDataType,
                      SessionEventType,
                      MessageType,
-                     SessionMessageType>::end (SessionIdType sessionId_in)
+                     SessionMessageType>::end (Stream_SessionId_t sessionId_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_SessionBase_T::end"));
 

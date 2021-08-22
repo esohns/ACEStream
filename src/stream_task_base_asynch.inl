@@ -30,7 +30,6 @@ template <ACE_SYNCH_DECL,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType,
-          typename SessionIdType,
           typename SessionControlType,
           typename SessionEventType,
           typename UserDataType>
@@ -40,17 +39,14 @@ Stream_TaskBaseAsynch_T<ACE_SYNCH_USE,
                         ControlMessageType,
                         DataMessageType,
                         SessionMessageType,
-                        SessionIdType,
                         SessionControlType,
                         SessionEventType,
                         UserDataType>::Stream_TaskBaseAsynch_T (typename Stream_TaskBase_T<ACE_SYNCH_USE,
                                                                                            TimePolicyType,
-                                                                                           Common_IRecursiveLock_T<ACE_SYNCH_USE>,
                                                                                            ConfigurationType,
                                                                                            ControlMessageType,
                                                                                            DataMessageType,
                                                                                            SessionMessageType,
-                                                                                           SessionIdType,
                                                                                            SessionControlType,
                                                                                            SessionEventType,
                                                                                            UserDataType>::ISTREAM_T* stream_in)
@@ -77,7 +73,6 @@ template <ACE_SYNCH_DECL,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType,
-          typename SessionIdType,
           typename SessionControlType,
           typename SessionEventType,
           typename UserDataType>
@@ -87,7 +82,6 @@ Stream_TaskBaseAsynch_T<ACE_SYNCH_USE,
                         ControlMessageType,
                         DataMessageType,
                         SessionMessageType,
-                        SessionIdType,
                         SessionControlType,
                         SessionEventType,
                         UserDataType>::~Stream_TaskBaseAsynch_T ()
@@ -126,7 +120,6 @@ template <ACE_SYNCH_DECL,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType,
-          typename SessionIdType,
           typename SessionControlType,
           typename SessionEventType,
           typename UserDataType>
@@ -137,7 +130,6 @@ Stream_TaskBaseAsynch_T<ACE_SYNCH_USE,
                         ControlMessageType,
                         DataMessageType,
                         SessionMessageType,
-                        SessionIdType,
                         SessionControlType,
                         SessionEventType,
                         UserDataType>::initialize (const ConfigurationType& configuration_in,
@@ -174,7 +166,6 @@ template <ACE_SYNCH_DECL,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType,
-          typename SessionIdType,
           typename SessionControlType,
           typename SessionEventType,
           typename UserDataType>
@@ -185,7 +176,6 @@ Stream_TaskBaseAsynch_T<ACE_SYNCH_USE,
                         ControlMessageType,
                         DataMessageType,
                         SessionMessageType,
-                        SessionIdType,
                         SessionControlType,
                         SessionEventType,
                         UserDataType>::open (void* args_in)
@@ -265,7 +255,6 @@ template <ACE_SYNCH_DECL,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType,
-          typename SessionIdType,
           typename SessionControlType,
           typename SessionEventType,
           typename UserDataType>
@@ -276,7 +265,6 @@ Stream_TaskBaseAsynch_T<ACE_SYNCH_USE,
                         ControlMessageType,
                         DataMessageType,
                         SessionMessageType,
-                        SessionIdType,
                         SessionControlType,
                         SessionEventType,
                         UserDataType>::close (u_long arg_in)
@@ -348,7 +336,6 @@ template <ACE_SYNCH_DECL,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType,
-          typename SessionIdType,
           typename SessionControlType,
           typename SessionEventType,
           typename UserDataType>
@@ -359,7 +346,6 @@ Stream_TaskBaseAsynch_T<ACE_SYNCH_USE,
                         ControlMessageType,
                         DataMessageType,
                         SessionMessageType,
-                        SessionIdType,
                         SessionControlType,
                         SessionEventType,
                         UserDataType>::module_closed (void)
@@ -380,7 +366,6 @@ template <ACE_SYNCH_DECL,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType,
-          typename SessionIdType,
           typename SessionControlType,
           typename SessionEventType,
           typename UserDataType>
@@ -391,7 +376,6 @@ Stream_TaskBaseAsynch_T<ACE_SYNCH_USE,
                         ControlMessageType,
                         DataMessageType,
                         SessionMessageType,
-                        SessionIdType,
                         SessionControlType,
                         SessionEventType,
                         UserDataType>::put (ACE_Message_Block* messageBlock_in,
@@ -429,7 +413,6 @@ template <ACE_SYNCH_DECL,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType,
-          typename SessionIdType,
           typename SessionControlType,
           typename SessionEventType,
           typename UserDataType>
@@ -440,25 +423,14 @@ Stream_TaskBaseAsynch_T<ACE_SYNCH_USE,
                         ControlMessageType,
                         DataMessageType,
                         SessionMessageType,
-                        SessionIdType,
                         SessionControlType,
                         SessionEventType,
-                        UserDataType>::isShuttingDown ()
+                        UserDataType>::isShuttingDown () const
 {
   STREAM_TRACE (ACE_TEXT ("Stream_TaskBaseAsynch_T::isShuttingDown"));
 
   // sanity check(s)
-  if (unlikely (!inherited::msg_queue_))
-  {
-    if (inherited::mod_)
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("%s: task has no message queue, returning\n"),
-                  inherited::mod_->name ()));
-    else
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("task has no message queue, returning\n")));
-    return true;
-  } // end IF
+  ACE_ASSERT (inherited::msg_queue_);
 
   bool result = false;
   ACE_Message_Block* message_block_p = NULL;
@@ -485,7 +457,6 @@ template <ACE_SYNCH_DECL,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType,
-          typename SessionIdType,
           typename SessionControlType,
           typename SessionEventType,
           typename UserDataType>
@@ -496,16 +467,12 @@ Stream_TaskBaseAsynch_T<ACE_SYNCH_USE,
                         ControlMessageType,
                         DataMessageType,
                         SessionMessageType,
-                        SessionIdType,
                         SessionControlType,
                         SessionEventType,
                         UserDataType>::stop (bool waitForCompletion_in,
-                                             bool highPriority_in,
-                                             bool lockedAccess_in)
+                                             bool highPriority_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_TaskBaseAsynch_T::stop"));
-
-  ACE_UNUSED_ARG (lockedAccess_in);
 
   control (ACE_Message_Block::MB_STOP,
            highPriority_in);
@@ -520,7 +487,6 @@ template <ACE_SYNCH_DECL,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType,
-          typename SessionIdType,
           typename SessionControlType,
           typename SessionEventType,
           typename UserDataType>
@@ -531,7 +497,6 @@ Stream_TaskBaseAsynch_T<ACE_SYNCH_USE,
                         ControlMessageType,
                         DataMessageType,
                         SessionMessageType,
-                        SessionIdType,
                         SessionControlType,
                         SessionEventType,
                         UserDataType>::control (int messageType_in,
@@ -602,7 +567,6 @@ template <ACE_SYNCH_DECL,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType,
-          typename SessionIdType,
           typename SessionControlType,
           typename SessionEventType,
           typename UserDataType>
@@ -613,7 +577,6 @@ Stream_TaskBaseAsynch_T<ACE_SYNCH_USE,
                         ControlMessageType,
                         DataMessageType,
                         SessionMessageType,
-                        SessionIdType,
                         SessionControlType,
                         SessionEventType,
                         UserDataType>::svc (void)
@@ -675,8 +638,7 @@ Stream_TaskBaseAsynch_T<ACE_SYNCH_USE,
                               stop_processing);
     if (unlikely (stop_processing && inherited::thr_count_))
       this->stop (false, // wait ?
-                  true,  // high priority ?
-                  true); // locked access ?
+                  true); // high priority ?
 
     message_block_p = NULL;
   } while (true);

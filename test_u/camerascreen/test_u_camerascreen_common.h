@@ -336,16 +336,14 @@ typedef Stream_CameraScreen_Message_T<struct Stream_CameraScreen_MediaFoundation
 typedef Stream_CameraScreen_SessionMessage_T<Stream_CameraScreen_MediaFoundation_Message_t,
                                              Stream_CameraScreen_MediaFoundation_SessionData_t> Stream_CameraScreen_MediaFoundation_SessionMessage_t;
 
-typedef Stream_ISessionDataNotify_T<Stream_SessionId_t,
-                                    Stream_CameraScreen_DirectShow_SessionData,
+typedef Stream_ISessionDataNotify_T<Stream_CameraScreen_DirectShow_SessionData,
                                     enum Stream_SessionMessageType,
                                     Stream_CameraScreen_DirectShow_Message_t,
                                     Stream_CameraScreen_DirectShow_SessionMessage_t> Stream_CameraScreen_DirectShow_ISessionNotify_t;
 typedef std::list<Stream_CameraScreen_DirectShow_ISessionNotify_t*> Stream_CameraScreen_DirectShow_Subscribers_t;
 typedef Stream_CameraScreen_DirectShow_Subscribers_t::iterator Stream_CameraScreen_DirectShow_SubscribersIterator_t;
 
-typedef Stream_ISessionDataNotify_T<Stream_SessionId_t,
-                                    Stream_CameraScreen_MediaFoundation_SessionData,
+typedef Stream_ISessionDataNotify_T<Stream_CameraScreen_MediaFoundation_SessionData,
                                     enum Stream_SessionMessageType,
                                     Stream_CameraScreen_MediaFoundation_Message_t,
                                     Stream_CameraScreen_MediaFoundation_SessionMessage_t> Stream_CameraScreen_MediaFoundation_ISessionNotify_t;
@@ -357,8 +355,7 @@ typedef Stream_CameraScreen_Message_T<struct Stream_CameraScreen_MessageData,
 typedef Stream_CameraScreen_SessionMessage_T<Stream_CameraScreen_Message_t,
                                              Stream_CameraScreen_V4L_SessionData_t> Stream_CameraScreen_SessionMessage_t;
 
-typedef Stream_ISessionDataNotify_T<Stream_SessionId_t,
-                                    Stream_CameraScreen_V4L_SessionData,
+typedef Stream_ISessionDataNotify_T<Stream_CameraScreen_V4L_SessionData,
                                     enum Stream_SessionMessageType,
                                     Stream_CameraScreen_Message_t,
                                     Stream_CameraScreen_SessionMessage_t> Stream_CameraScreen_ISessionNotify_t;

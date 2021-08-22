@@ -43,7 +43,6 @@ class HTTPGet_Module_EventHandler
                                          Stream_ControlMessage_t,
                                          HTTPGet_Message,
                                          HTTPGet_SessionMessage,
-                                         Stream_SessionId_t,
                                          struct HTTPGet_SessionData,
                                          struct Stream_UserData>
 {
@@ -53,7 +52,6 @@ class HTTPGet_Module_EventHandler
                                          Stream_ControlMessage_t,
                                          HTTPGet_Message,
                                          HTTPGet_SessionMessage,
-                                         Stream_SessionId_t,
                                          struct HTTPGet_SessionData,
                                          struct Stream_UserData> inherited;
 

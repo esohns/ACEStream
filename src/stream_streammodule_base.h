@@ -35,7 +35,6 @@
 
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,
-          typename SessionIdType,
           typename SessionDataType,
           typename SessionEventType,
           typename ConfigurationType,
@@ -47,7 +46,6 @@ template <ACE_SYNCH_DECL,
 class Stream_StreamModule_T
  : public Stream_Module_Base_T<ACE_SYNCH_USE,
                                TimePolicyType,
-                               SessionIdType,
                                SessionDataType,
                                SessionEventType,
                                ConfigurationType,
@@ -59,7 +57,6 @@ class Stream_StreamModule_T
 {
   typedef Stream_Module_Base_T<ACE_SYNCH_USE,
                                TimePolicyType,
-                               SessionIdType,
                                SessionDataType,
                                SessionEventType,
                                ConfigurationType,
@@ -168,7 +165,6 @@ class Stream_StreamModule_T
 
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,
-          typename SessionIdType,
           typename SessionDataType,
           typename SessionEventType,
           typename ConfigurationType,
@@ -179,7 +175,6 @@ template <ACE_SYNCH_DECL,
 class Stream_StreamModuleInputOnly_T
  : public Stream_Module_Base_T<ACE_SYNCH_USE,
                                TimePolicyType,
-                               SessionIdType,
                                SessionDataType,
                                SessionEventType,
                                ConfigurationType,
@@ -192,7 +187,6 @@ class Stream_StreamModuleInputOnly_T
 {
   typedef Stream_Module_Base_T<ACE_SYNCH_USE,
                                TimePolicyType,
-                               SessionIdType,
                                SessionDataType,
                                SessionEventType,
                                ConfigurationType,
@@ -224,9 +218,9 @@ class Stream_StreamModuleInputOnly_T
                 TimePolicyType> reader_;
   TaskType                      writer_;
 };
+
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,
-          typename SessionIdType,
           typename SessionDataType,
           typename SessionEventType,
           typename ConfigurationType,
@@ -237,7 +231,6 @@ template <ACE_SYNCH_DECL,
 class Stream_StreamModuleOutputOnly_T
  : public Stream_Module_Base_T<ACE_SYNCH_USE,
                                TimePolicyType,
-                               SessionIdType,
                                SessionDataType,
                                SessionEventType,
                                ConfigurationType,
@@ -250,7 +243,6 @@ class Stream_StreamModuleOutputOnly_T
 {
   typedef Stream_Module_Base_T<ACE_SYNCH_USE,
                                TimePolicyType,
-                               SessionIdType,
                                SessionDataType,
                                SessionEventType,
                                ConfigurationType,
@@ -287,7 +279,6 @@ class Stream_StreamModuleOutputOnly_T
 
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,
-          typename SessionIdType,
           typename SessionDataType,
           typename SessionEventType,
           typename ConfigurationType,
@@ -299,7 +290,6 @@ template <ACE_SYNCH_DECL,
 class Stream_StreamModuleA_T
  : public Stream_Module_BaseA_T<ACE_SYNCH_USE,
                                 TimePolicyType,
-                                SessionIdType,
                                 SessionDataType,
                                 SessionEventType,
                                 ConfigurationType,
@@ -311,7 +301,6 @@ class Stream_StreamModuleA_T
 {
   typedef Stream_Module_BaseA_T<ACE_SYNCH_USE,
                                 TimePolicyType,
-                                SessionIdType,
                                 SessionDataType,
                                 SessionEventType,
                                 ConfigurationType,
@@ -343,7 +332,6 @@ class Stream_StreamModuleA_T
 
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,
-          typename SessionIdType,
           typename SessionDataType,
           typename SessionEventType,
           typename ConfigurationType,
@@ -354,7 +342,6 @@ template <ACE_SYNCH_DECL,
 class Stream_StreamModuleInputOnlyA_T
  : public Stream_Module_BaseA_T<ACE_SYNCH_USE,
                                 TimePolicyType,
-                                SessionIdType,
                                 SessionDataType,
                                 SessionEventType,
                                 ConfigurationType,
@@ -367,7 +354,6 @@ class Stream_StreamModuleInputOnlyA_T
 {
   typedef Stream_Module_BaseA_T<ACE_SYNCH_USE,
                                 TimePolicyType,
-                                SessionIdType,
                                 SessionDataType,
                                 SessionEventType,
                                 ConfigurationType,
@@ -419,7 +405,6 @@ class Stream_StreamModuleInputOnlyA_T
                                  WRITER_TYPE,\
                                  CLASS_NAME) typedef Stream_StreamModule_T<WRITER_TYPE::SYNCH_T,\
                                                                            Common_TimePolicy_t,\
-                                                                           Stream_SessionId_t,\
                                                                            SESSION_DATA_TYPE,\
                                                                            SESSION_EVENT_TYPE,\
                                                                            struct Stream_ModuleConfiguration,\
@@ -434,7 +419,6 @@ class Stream_StreamModuleInputOnlyA_T
 //                                     NOTIFICATION_TYPE,\
 //                                     TASK_TYPE) typedef Stream_StreamModule_T<TASK_TYPE::SYNCH_T,\
 //                                                                              Common_TimePolicy_t,\
-//                                                                              Stream_SessionId_t,\
 //                                                                              SESSION_DATA_TYPE,\
 //                                                                              SESSION_EVENT_TYPE,\
 //                                                                              struct Stream_ModuleConfiguration,\
@@ -448,7 +432,6 @@ class Stream_StreamModuleInputOnlyA_T
 //                                       TASK_TYPE,\
 //                                       NAME) typedef Stream_StreamModule_T<TASK_TYPE::SYNCH_T,\
 //                                                                           Common_TimePolicy_t,\
-//                                                                           Stream_SessionId_t,\
 //                                                                           SESSION_DATA_TYPE,\
 //                                                                           SESSION_EVENT_TYPE,\
 //                                                                           struct Stream_ModuleConfiguration,\
@@ -462,7 +445,6 @@ class Stream_StreamModuleInputOnlyA_T
                                      NOTIFICATION_TYPE,\
                                      TASK_TYPE) typedef Stream_StreamModuleInputOnly_T<typename TASK_TYPE::SYNCH_T,\
                                                                                        Common_TimePolicy_t,\
-                                                                                       Stream_SessionId_t,\
                                                                                        SESSION_DATA_TYPE,\
                                                                                        SESSION_EVENT_TYPE,\
                                                                                        struct Stream_ModuleConfiguration,\
@@ -478,7 +460,6 @@ class Stream_StreamModuleInputOnlyA_T
                                        TASK_TYPE,\
                                        CLASS_NAME) typedef Stream_StreamModuleInputOnly_T<TASK_TYPE::SYNCH_T,\
                                                                                           Common_TimePolicy_t,\
-                                                                                          Stream_SessionId_t,\
                                                                                           SESSION_DATA_TYPE,\
                                                                                           SESSION_EVENT_TYPE,\
                                                                                           struct Stream_ModuleConfiguration,\
@@ -494,7 +475,6 @@ class Stream_StreamModuleInputOnlyA_T
                                       NOTIFICATION_TYPE,\
                                       TASK_TYPE) typedef Stream_StreamModuleOutputOnly_T<TASK_TYPE::SYNCH_T,\
                                                                                          Common_TimePolicy_t,\
-                                                                                         Stream_SessionId_t,\
                                                                                          SESSION_DATA_TYPE,\
                                                                                          SESSION_EVENT_TYPE,\
                                                                                          struct Stream_ModuleConfiguration,\
@@ -514,7 +494,6 @@ class Stream_StreamModuleInputOnlyA_T
                                    WRITER_TYPE,\
                                    CLASS_NAME) typedef Stream_StreamModuleA_T<WRITER_TYPE::SYNCH_T,\
                                                                               Common_TimePolicy_t,\
-                                                                              Stream_SessionId_t,\
                                                                               SESSION_DATA_TYPE,\
                                                                               SESSION_EVENT_TYPE,\
                                                                               struct Stream_ModuleConfiguration,\
@@ -531,7 +510,6 @@ class Stream_StreamModuleInputOnlyA_T
                                        NOTIFICATION_TYPE,\
                                        TASK_TYPE) typedef Stream_StreamModuleInputOnlyA_T<TASK_TYPE::SYNCH_T,\
                                                                                           Common_TimePolicy_t,\
-                                                                                          Stream_SessionId_t,\
                                                                                           SESSION_DATA_TYPE,\
                                                                                           SESSION_EVENT_TYPE,\
                                                                                           struct Stream_ModuleConfiguration,\
@@ -547,7 +525,6 @@ class Stream_StreamModuleInputOnlyA_T
                                          TASK_TYPE,\
                                          CLASS_NAME) typedef Stream_StreamModuleInputOnlyA_T<TASK_TYPE::SYNCH_T,\
                                                                                              Common_TimePolicy_t,\
-                                                                                             Stream_SessionId_t,\
                                                                                              SESSION_DATA_TYPE,\
                                                                                              SESSION_EVENT_TYPE,\
                                                                                              struct Stream_ModuleConfiguration,\

@@ -22,12 +22,12 @@
 #define STREAM_MODULE_FILEREADER_H
 
 #include "ace/Dirent_Selector.h"
+#include "ace/FILE_Addr.h"
 #include "ace/FILE_IO.h"
 #include "ace/Global_Macros.h"
 #include "ace/Message_Block.h"
 #include "ace/Synch_Traits.h"
 
-#include "common_ilock.h"
 #include "common_time_common.h"
 
 #include "stream_common.h"
@@ -156,24 +156,20 @@ template <ACE_SYNCH_DECL,
 class Stream_Module_FileReader_Reader_T
  : public Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
                                  TimePolicyType,
-                                 Common_ILock_T<ACE_SYNCH_USE>,
                                  struct Stream_ModuleHandlerConfiguration,
                                  ControlMessageType,
                                  ACE_Message_Block,
                                  ACE_Message_Block,
-                                 Stream_SessionId_t,
                                  enum Stream_ControlType,
                                  enum Stream_SessionMessageType,
                                  UserDataType>
 {
   typedef Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
                                  TimePolicyType,
-                                 Common_ILock_T<ACE_SYNCH_USE>,
                                  struct Stream_ModuleHandlerConfiguration,
                                  ControlMessageType,
                                  ACE_Message_Block,
                                  ACE_Message_Block,
-                                 Stream_SessionId_t,
                                  enum Stream_ControlType,
                                  enum Stream_SessionMessageType,
                                  UserDataType> inherited;
@@ -216,7 +212,6 @@ class Stream_Module_FileReader_Writer_T
                                   ControlMessageType,
                                   DataMessageType,
                                   SessionMessageType,
-                                  Stream_SessionId_t,
                                   enum Stream_ControlType,
                                   enum Stream_SessionMessageType,
                                   UserDataType>
@@ -227,7 +222,6 @@ class Stream_Module_FileReader_Writer_T
                                   ControlMessageType,
                                   DataMessageType,
                                   SessionMessageType,
-                                  Stream_SessionId_t,
                                   enum Stream_ControlType,
                                   enum Stream_SessionMessageType,
                                   UserDataType> inherited;

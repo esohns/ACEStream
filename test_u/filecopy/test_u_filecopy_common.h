@@ -65,8 +65,7 @@ class Stream_Filecopy_Message;
 class Stream_Filecopy_SessionMessage;
 
 struct Stream_Filecopy_SessionData;
-typedef Stream_ISessionDataNotify_T<Stream_SessionId_t,
-                                    struct Stream_Filecopy_SessionData,
+typedef Stream_ISessionDataNotify_T<struct Stream_Filecopy_SessionData,
                                     enum Stream_SessionMessageType,
                                     Stream_Filecopy_Message,
                                     Stream_Filecopy_SessionMessage> Stream_Filecopy_ISessionNotify_t;

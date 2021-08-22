@@ -1752,7 +1752,7 @@ do_work (unsigned int bufferSize_in,
                   ACE_TEXT ("failed to ::GetConsoleWindow(), returning\n")));
       timer_manager_p->stop ();
 #if defined (GTK_USE)
-      gtk_manager_p->stop (true, true, true);
+      gtk_manager_p->stop (true, true);
 #endif // GTK_USE
       goto clean;
     } // end IF
@@ -1780,7 +1780,7 @@ do_work (unsigned int bufferSize_in,
 #if defined (GUI_SUPPORT)
     if (!UIDefinitionFilename_in.empty ())
 #if defined (GTK_USE)
-      gtk_manager_p->stop (true, true, true);
+      gtk_manager_p->stop (true, true);
 #else
       ;
 #endif // GTK_USE
@@ -1869,7 +1869,7 @@ do_work (unsigned int bufferSize_in,
 #if defined (GUI_SUPPORT)
         if (!UIDefinitionFilename_in.empty ())
 #if defined (GTK_USE)
-          gtk_manager_p->stop (true, true, true);
+          gtk_manager_p->stop (true, true);
 #else
           ;
 #endif // GTK_USE
@@ -1898,7 +1898,7 @@ do_work (unsigned int bufferSize_in,
 #if defined (GUI_SUPPORT)
         if (!UIDefinitionFilename_in.empty ())
 #if defined (GTK_USE)
-          gtk_manager_p->stop (true, true, true);
+          gtk_manager_p->stop (true, true);
 #else
           ;
 #endif // GTK_USE
@@ -2139,7 +2139,7 @@ do_work (unsigned int bufferSize_in,
 #if defined (GUI_SUPPORT)
         if (!UIDefinitionFilename_in.empty ())
 #if defined (GTK_USE)
-          gtk_manager_p->stop (true, true, true);
+          gtk_manager_p->stop (true, true);
 #else
           ;
 #endif // GTK_USE
@@ -2249,7 +2249,7 @@ do_work (unsigned int bufferSize_in,
 #if defined (GUI_SUPPORT)
         if (!UIDefinitionFilename_in.empty ())
 #if defined (GTK_USE)
-          gtk_manager_p->stop (true, true, true);
+          gtk_manager_p->stop (true, true);
 #else
           ;
 #endif // GTK_USE

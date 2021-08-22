@@ -28,7 +28,7 @@
 #include "ace/Synch_Traits.h"
 
 #include "common_iget.h"
-#include "common_ilock.h"
+//#include "common_ilock.h"
 #include "common_istatistic.h"
 #include "common_statistic_handler.h"
 
@@ -67,12 +67,10 @@ template <ACE_SYNCH_DECL, // state machine-/task
 class Stream_HeadModuleTaskBase_T
  : public Stream_TaskBase_T<ACE_SYNCH_USE,
                             TimePolicyType,
-                            Common_IRecursiveLock_T<ACE_SYNCH_USE>,
                             ConfigurationType,
                             ControlMessageType,
                             DataMessageType,
                             SessionMessageType,
-                            Stream_SessionId_t,
                             SessionControlType,
                             SessionEventType,
                             UserDataType>
@@ -88,12 +86,10 @@ class Stream_HeadModuleTaskBase_T
 {
   typedef Stream_TaskBase_T<ACE_SYNCH_USE,
                             TimePolicyType,
-                            Common_IRecursiveLock_T<ACE_SYNCH_USE>,
                             ConfigurationType,
                             ControlMessageType,
                             DataMessageType,
                             SessionMessageType,
-                            Stream_SessionId_t,
                             SessionControlType,
                             SessionEventType,
                             UserDataType> inherited;
@@ -119,8 +115,8 @@ class Stream_HeadModuleTaskBase_T
   //         happens in lockstep, which is both inefficient and yields
   //         unpredictable results
   //         --> use Common_MessageQueueIterator_T and lock the queue manually
-  virtual bool isShuttingDown ();
-  //using inherited::TASK_BASE_T::start;
+  virtual bool isShuttingDown () const;
+  // enqueue MB_STOP --> stop worker thread(s)
 
   // implement Stream_IModuleHandler_T
 //  virtual const ConfigurationType& get () const;
@@ -184,12 +180,10 @@ class Stream_HeadModuleTaskBase_T
                                 SessionMessageType> MESSAGE_QUEUE_T;
   typedef Stream_TaskBase_T<ACE_SYNCH_USE,
                             TimePolicyType,
-                            Common_IRecursiveLock_T<ACE_SYNCH_USE>,
                             ConfigurationType,
                             ControlMessageType,
                             DataMessageType,
                             SessionMessageType,
-                            Stream_SessionId_t,
                             SessionControlType,
                             SessionEventType,
                             UserDataType> TASK_BASE_T;
@@ -199,14 +193,14 @@ class Stream_HeadModuleTaskBase_T
                                   enum Stream_StateMachine_ControlState,
                                   StreamStateType> ISTREAM_CONTROL_T;
   typedef Stream_ILock_T<ACE_SYNCH_USE> ILOCK_T;
-  typedef typename Common_IRecursiveLock_T<ACE_SYNCH_USE>::MUTEX_T LOCK_T;
+  //typedef typename Common_IRecursiveLock_T<ACE_SYNCH_USE>::MUTEX_T LOCK_T;
 
   // *TODO*: on MSVC 2015u3 the accurate declaration does not compile
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   Stream_HeadModuleTaskBase_T (ISTREAM_T*,                                                               // stream handle
 #else
   Stream_HeadModuleTaskBase_T (typename inherited::ISTREAM_T*,                                           // stream handle
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
                                bool = false,                                                             // auto-start ? (active mode only)
                                enum Stream_HeadModuleConcurrency = STREAM_HEADMODULECONCURRENCY_PASSIVE, // concurrency mode
                                bool = true);                                                             // generate session messages ?
@@ -217,6 +211,10 @@ class Stream_HeadModuleTaskBase_T
   // implement state machine callback
   // *NOTE*: this method is threadsafe
   virtual void onChange (enum Stream_StateMachine_ControlState); // new state
+
+  // hide part of Common_ITask
+  virtual void stop (bool = true,  // wait for completion ?
+                     bool = true); // high priority ? (i.e. do not wait for queued messages)
 
   // implement/hide (part of) Stream_IStreamControl_T
   inline virtual void finished (bool = true) { inherited2::finished (); }
@@ -250,6 +248,7 @@ class Stream_HeadModuleTaskBase_T
   //         --> disable only if absolutely necessary
   bool                              hasReentrantSynchronousSubDownstream_;
 
+  //typename ACE_SYNCH_USE::RECURSIVE_MUTEX lock_;
   MESSAGE_QUEUE_T                   queue_;
 
   bool                              sessionEndProcessed_;

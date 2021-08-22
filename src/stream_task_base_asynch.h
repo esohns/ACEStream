@@ -24,8 +24,6 @@
 #include "ace/Global_Macros.h"
 #include "ace/Synch_Traits.h"
 
-#include "common_ilock.h"
-
 #include "stream_messagequeue.h"
 #include "stream_task_base.h"
 
@@ -44,7 +42,6 @@ template <ACE_SYNCH_DECL,
           typename DataMessageType,
           typename SessionMessageType,
           ////////////////////////////////
-          typename SessionIdType,
           typename SessionControlType,
           typename SessionEventType,
           ////////////////////////////////
@@ -52,24 +49,20 @@ template <ACE_SYNCH_DECL,
 class Stream_TaskBaseAsynch_T
  : public Stream_TaskBase_T<ACE_SYNCH_USE,
                             TimePolicyType,
-                            Common_IRecursiveLock_T<ACE_SYNCH_USE>,
                             ConfigurationType,
                             ControlMessageType,
                             DataMessageType,
                             SessionMessageType,
-                            SessionIdType,
                             SessionControlType,
                             SessionEventType,
                             UserDataType>
 {
   typedef Stream_TaskBase_T<ACE_SYNCH_USE,
                             TimePolicyType,
-                            Common_IRecursiveLock_T<ACE_SYNCH_USE>,
                             ConfigurationType,
                             ControlMessageType,
                             DataMessageType,
                             SessionMessageType,
-                            SessionIdType,
                             SessionControlType,
                             SessionEventType,
                             UserDataType> inherited;
@@ -92,11 +85,10 @@ class Stream_TaskBaseAsynch_T
   //         happens in lockstep, which is both inefficient and yields
   //         unpredictable results
   //         --> use Common_MessageQueueIterator_T and lock the queue manually
-  virtual bool isShuttingDown ();
+  virtual bool isShuttingDown () const;
   // enqueue MB_STOP --> stop worker thread(s)
   virtual void stop (bool = true,  // wait for completion ?
-                     bool = true,  // high priority ? (i.e. do not wait for queued messages)
-                     bool = true); // locked access ?
+                     bool = true); // high priority ? (i.e. do not wait for queued messages)
 
   // override (part of) Stream_ITask_T
   inline virtual void waitForIdleState () const { queue_.waitForIdleState (); }
@@ -109,12 +101,10 @@ class Stream_TaskBaseAsynch_T
   // convenient types
   typedef Stream_TaskBase_T<ACE_SYNCH_USE,
                             TimePolicyType,
-                            Common_IRecursiveLock_T<ACE_SYNCH_USE>,
                             ConfigurationType,
                             ControlMessageType,
                             DataMessageType,
                             SessionMessageType,
-                            SessionIdType,
                             SessionControlType,
                             SessionEventType,
                             UserDataType> TASK_BASE_T;

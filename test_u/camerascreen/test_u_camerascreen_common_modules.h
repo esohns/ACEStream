@@ -336,7 +336,6 @@ typedef Stream_Module_MessageHandler_T<ACE_MT_SYNCH,
                                        Stream_ControlMessage_t,
                                        Stream_CameraScreen_DirectShow_Message_t,
                                        Stream_CameraScreen_DirectShow_SessionMessage_t,
-                                       Stream_SessionId_t,
                                        Stream_CameraScreen_DirectShow_SessionData,
                                        struct Stream_UserData> Stream_CameraScreen_DirectShow_MessageHandler;
 
@@ -346,7 +345,6 @@ typedef Stream_Module_MessageHandler_T<ACE_MT_SYNCH,
                                        Stream_ControlMessage_t,
                                        Stream_CameraScreen_MediaFoundation_Message_t,
                                        Stream_CameraScreen_MediaFoundation_SessionMessage_t,
-                                       Stream_SessionId_t,
                                        Stream_CameraScreen_MediaFoundation_SessionData,
                                        struct Stream_UserData> Stream_CameraScreen_MediaFoundation_MessageHandler;
 #else
@@ -356,7 +354,6 @@ typedef Stream_Module_MessageHandler_T<ACE_MT_SYNCH,
                                        Stream_ControlMessage_t,
                                        Stream_CameraScreen_Message_t,
                                        Stream_CameraScreen_SessionMessage_t,
-                                       Stream_SessionId_t,
                                        Stream_CameraScreen_V4L_SessionData,
                                        struct Stream_UserData> Stream_CameraScreen_MessageHandler;
 #endif // ACE_WIN32 || ACE_WIN64

@@ -43,7 +43,6 @@ class Stream_Filecopy_Module_EventHandler
                                          ACE_Message_Block,
                                          Stream_Filecopy_Message,
                                          Stream_Filecopy_SessionMessage,
-                                         Stream_SessionId_t,
                                          struct Stream_Filecopy_SessionData,
                                          struct Stream_UserData>
 {
@@ -53,7 +52,6 @@ class Stream_Filecopy_Module_EventHandler
                                          ACE_Message_Block,
                                          Stream_Filecopy_Message,
                                          Stream_Filecopy_SessionMessage,
-                                         Stream_SessionId_t,
                                          struct Stream_Filecopy_SessionData,
                                          struct Stream_UserData> inherited;
 

@@ -29,7 +29,6 @@ template <ACE_SYNCH_DECL,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType,
-          typename SessionIdType,
           typename SessionDataType>
 Stream_Module_Aggregator_WriterTask_T<ACE_SYNCH_USE,
                                       TimePolicyType,
@@ -37,7 +36,6 @@ Stream_Module_Aggregator_WriterTask_T<ACE_SYNCH_USE,
                                       ControlMessageType,
                                       DataMessageType,
                                       SessionMessageType,
-                                      SessionIdType,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
                                       SessionDataType>::Stream_Module_Aggregator_WriterTask_T (ISTREAM_T* stream_in)
 #else
@@ -62,7 +60,6 @@ template <ACE_SYNCH_DECL,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType,
-          typename SessionIdType,
           typename SessionDataType>
 Stream_Module_Aggregator_WriterTask_T<ACE_SYNCH_USE,
                                       TimePolicyType,
@@ -70,7 +67,6 @@ Stream_Module_Aggregator_WriterTask_T<ACE_SYNCH_USE,
                                       ControlMessageType,
                                       DataMessageType,
                                       SessionMessageType,
-                                      SessionIdType,
                                       SessionDataType>::~Stream_Module_Aggregator_WriterTask_T ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Aggregator_WriterTask_T::~Stream_Module_Aggregator_WriterTask_T"));
@@ -89,7 +85,6 @@ template <ACE_SYNCH_DECL,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType,
-          typename SessionIdType,
           typename SessionDataType>
 int
 Stream_Module_Aggregator_WriterTask_T<ACE_SYNCH_USE,
@@ -98,7 +93,6 @@ Stream_Module_Aggregator_WriterTask_T<ACE_SYNCH_USE,
                                       ControlMessageType,
                                       DataMessageType,
                                       SessionMessageType,
-                                      SessionIdType,
                                       SessionDataType>::put (ACE_Message_Block* messageBlock_in,
                                                              ACE_Time_Value* timeValue_in)
 {
@@ -108,7 +102,7 @@ Stream_Module_Aggregator_WriterTask_T<ACE_SYNCH_USE,
   ACE_ASSERT (messageBlock_in);
 
   Stream_IMessage* imessage_p = NULL;
-  SessionIdType session_id = 0;
+  Stream_SessionId_t session_id = 0;
   SESSIONID_TO_STREAM_MAP_ITERATOR_T iterator;
   TASK_T* task_p = NULL;
   int result = 0;
@@ -193,7 +187,6 @@ template <ACE_SYNCH_DECL,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType,
-          typename SessionIdType,
           typename SessionDataType>
 ACE_Task<ACE_SYNCH_USE, TimePolicyType>*
 Stream_Module_Aggregator_WriterTask_T<ACE_SYNCH_USE,
@@ -202,7 +195,6 @@ Stream_Module_Aggregator_WriterTask_T<ACE_SYNCH_USE,
                                       ControlMessageType,
                                       DataMessageType,
                                       SessionMessageType,
-                                      SessionIdType,
                                       SessionDataType>::next (void)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Aggregator_WriterTask_T::next"));
@@ -229,7 +221,6 @@ template <ACE_SYNCH_DECL,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType,
-          typename SessionIdType,
           typename SessionDataType>
 bool
 Stream_Module_Aggregator_WriterTask_T<ACE_SYNCH_USE,
@@ -238,7 +229,6 @@ Stream_Module_Aggregator_WriterTask_T<ACE_SYNCH_USE,
                                       ControlMessageType,
                                       DataMessageType,
                                       SessionMessageType,
-                                      SessionIdType,
                                       SessionDataType>::initialize (const ConfigurationType& configuration_in,
                                                                     Stream_IAllocator* allocator_in)
 {
@@ -282,7 +272,6 @@ template <ACE_SYNCH_DECL,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType,
-          typename SessionIdType,
           typename SessionDataType>
 void
 Stream_Module_Aggregator_WriterTask_T<ACE_SYNCH_USE,
@@ -291,7 +280,6 @@ Stream_Module_Aggregator_WriterTask_T<ACE_SYNCH_USE,
                                       ControlMessageType,
                                       DataMessageType,
                                       SessionMessageType,
-                                      SessionIdType,
                                       SessionDataType>::handleMessage (ACE_Message_Block* messageBlock_in,
                                                                        bool& stopProcessing_out)
 {
@@ -438,7 +426,6 @@ template <ACE_SYNCH_DECL,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType,
-          typename SessionIdType,
           typename SessionDataType>
 void
 Stream_Module_Aggregator_WriterTask_T<ACE_SYNCH_USE,
@@ -447,7 +434,6 @@ Stream_Module_Aggregator_WriterTask_T<ACE_SYNCH_USE,
                                       ControlMessageType,
                                       DataMessageType,
                                       SessionMessageType,
-                                      SessionIdType,
                                       SessionDataType>::handleDataMessage (DataMessageType*& message_inout,
                                                                            bool& passMessageDownstream_out)
 {
@@ -467,7 +453,6 @@ template <ACE_SYNCH_DECL,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType,
-          typename SessionIdType,
           typename SessionDataType>
 void
 Stream_Module_Aggregator_WriterTask_T<ACE_SYNCH_USE,
@@ -476,7 +461,6 @@ Stream_Module_Aggregator_WriterTask_T<ACE_SYNCH_USE,
                                       ControlMessageType,
                                       DataMessageType,
                                       SessionMessageType,
-                                      SessionIdType,
                                       SessionDataType>::handleSessionMessage (SessionMessageType*& message_inout,
                                                                               bool& passMessageDownstream_out)
 {
@@ -486,7 +470,7 @@ Stream_Module_Aggregator_WriterTask_T<ACE_SYNCH_USE,
   ACE_ASSERT (message_inout);
 
   enum Stream_SessionMessageType message_type_e = message_inout->type ();
-  SessionIdType session_id = message_inout->sessionId ();
+  Stream_SessionId_t session_id = message_inout->sessionId ();
 
   switch (message_type_e)
   {
@@ -557,7 +541,6 @@ template <ACE_SYNCH_DECL,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType,
-          typename SessionIdType,
           typename SessionDataType>
 void
 Stream_Module_Aggregator_WriterTask_T<ACE_SYNCH_USE,
@@ -566,7 +549,6 @@ Stream_Module_Aggregator_WriterTask_T<ACE_SYNCH_USE,
                                       ControlMessageType,
                                       DataMessageType,
                                       SessionMessageType,
-                                      SessionIdType,
                                       SessionDataType>::onLink (ACE_Module_Base* module_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Aggregator_WriterTask_T::onLink"));
@@ -653,13 +635,13 @@ continue_:
   //            inherited::mod_->name (),
   //            module_p->name ()));
 }
+
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ConfigurationType,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType,
-          typename SessionIdType,
           typename SessionDataType>
 void
 Stream_Module_Aggregator_WriterTask_T<ACE_SYNCH_USE,
@@ -668,7 +650,6 @@ Stream_Module_Aggregator_WriterTask_T<ACE_SYNCH_USE,
                                       ControlMessageType,
                                       DataMessageType,
                                       SessionMessageType,
-                                      SessionIdType,
                                       SessionDataType>::onUnlink (ACE_Module_Base* module_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Aggregator_WriterTask_T::onUnlink"));
@@ -725,7 +706,6 @@ template <ACE_SYNCH_DECL,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType,
-          typename SessionIdType,
           typename SessionDataType>
 Stream_Module_Aggregator_ReaderTask_T<ACE_SYNCH_USE,
                                       TimePolicyType,
@@ -733,7 +713,6 @@ Stream_Module_Aggregator_ReaderTask_T<ACE_SYNCH_USE,
                                       ControlMessageType,
                                       DataMessageType,
                                       SessionMessageType,
-                                      SessionIdType,
                                       SessionDataType>::Stream_Module_Aggregator_ReaderTask_T (ISTREAM_T* stream_in)
  : inherited ()
 {
@@ -750,7 +729,6 @@ template <ACE_SYNCH_DECL,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType,
-          typename SessionIdType,
           typename SessionDataType>
 int
 Stream_Module_Aggregator_ReaderTask_T<ACE_SYNCH_USE,
@@ -759,7 +737,6 @@ Stream_Module_Aggregator_ReaderTask_T<ACE_SYNCH_USE,
                                       ControlMessageType,
                                       DataMessageType,
                                       SessionMessageType,
-                                      SessionIdType,
                                       SessionDataType>::put (ACE_Message_Block* messageBlock_in,
                                                              ACE_Time_Value* timeValue_in)
 {

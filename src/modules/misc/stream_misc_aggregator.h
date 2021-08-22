@@ -31,8 +31,6 @@
 #include "ace/Task_T.h"
 #include "ace/Stream.h"
 
-#include "common_ilock.h"
-
 #include "stream_common.h"
 #include "stream_ilink.h"
 #include "stream_task_base_synch.h"
@@ -44,7 +42,6 @@ template <ACE_SYNCH_DECL,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType,
-          typename SessionIdType,
           typename SessionDataType>
 class Stream_Module_Aggregator_WriterTask_T;
 
@@ -57,7 +54,6 @@ template <ACE_SYNCH_DECL,
           typename DataMessageType,
           typename SessionMessageType,
           ////////////////////////////////
-          typename SessionIdType,
           typename SessionDataType>
 class Stream_Module_Aggregator_ReaderTask_T
  : public ACE_Thru_Task<ACE_SYNCH_USE,
@@ -85,7 +81,6 @@ class Stream_Module_Aggregator_ReaderTask_T
                                                 ControlMessageType,
                                                 DataMessageType,
                                                 SessionMessageType,
-                                                SessionIdType,
                                                 SessionDataType> WRITER_TASK_T;
   typedef DataMessageType MESSAGE_T;
   typedef ACE_Task<ACE_SYNCH_USE,
@@ -105,17 +100,14 @@ template <ACE_SYNCH_DECL,
           typename DataMessageType,
           typename SessionMessageType,
           ////////////////////////////////
-          typename SessionIdType,
           typename SessionDataType>
 class Stream_Module_Aggregator_WriterTask_T
  : public Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
                                  TimePolicyType,
-                                 Common_ILock_T<ACE_SYNCH_USE>,
                                  ConfigurationType,
                                  ControlMessageType,
                                  DataMessageType,
                                  SessionMessageType,
-                                 SessionIdType,
                                  enum Stream_ControlType,
                                  enum Stream_SessionMessageType,
                                  struct Stream_UserData>
@@ -123,12 +115,10 @@ class Stream_Module_Aggregator_WriterTask_T
 {
   typedef Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
                                  TimePolicyType,
-                                 Common_ILock_T<ACE_SYNCH_USE>,
                                  ConfigurationType,
                                  ControlMessageType,
                                  DataMessageType,
                                  SessionMessageType,
-                                 SessionIdType,
                                  enum Stream_ControlType,
                                  enum Stream_SessionMessageType,
                                  struct Stream_UserData> inherited;
@@ -139,7 +129,6 @@ class Stream_Module_Aggregator_WriterTask_T
                                                      ControlMessageType,
                                                      DataMessageType,
                                                      SessionMessageType,
-                                                     SessionIdType,
                                                      SessionDataType>;
 
  public:
@@ -152,7 +141,6 @@ class Stream_Module_Aggregator_WriterTask_T
                                                 ControlMessageType,
                                                 DataMessageType,
                                                 SessionMessageType,
-                                                SessionIdType,
                                                 SessionDataType> READER_TASK_T;
 
   // *TODO*: on MSVC 2015u3 the accurate declaration does not compile
@@ -201,7 +189,7 @@ class Stream_Module_Aggregator_WriterTask_T
   {
     inline bool operator() (const SESSIONID_TO_STREAM_PAIR_T& entry_in, typename inherited::TASK_BASE_T::ISTREAM_T* stream_in) const { return !ACE_OS::strcmp (entry_in.second->name (), stream_in->name ()); }
   };
-  typedef std::map<SessionIdType,
+  typedef std::map<Stream_SessionId_t,
                    typename SessionMessageType::DATA_T*> SESSION_DATA_T;
   typedef typename SESSION_DATA_T::iterator SESSION_DATA_ITERATOR_T;
 

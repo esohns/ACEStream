@@ -298,24 +298,21 @@ typedef Stream_SessionData_T<Test_U_AudioEffect_MediaFoundation_SessionData> Tes
 #endif // ACE_WIN32 || ACE_WIN64
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-typedef Stream_ISessionDataNotify_T<Stream_SessionId_t,
-                                    Test_U_AudioEffect_DirectShow_SessionData,
+typedef Stream_ISessionDataNotify_T<Test_U_AudioEffect_DirectShow_SessionData,
                                     enum Stream_SessionMessageType,
                                     Test_U_AudioEffect_DirectShow_Message,
                                     Test_U_AudioEffect_DirectShow_SessionMessage> Test_U_AudioEffect_DirectShow_ISessionNotify_t;
 typedef std::list<Test_U_AudioEffect_DirectShow_ISessionNotify_t*> Test_U_AudioEffect_DirectShow_Subscribers_t;
 typedef Test_U_AudioEffect_DirectShow_Subscribers_t::iterator Test_U_AudioEffect_DirectShow_SubscribersIterator_t;
 
-typedef Stream_ISessionDataNotify_T<Stream_SessionId_t,
-                                    Test_U_AudioEffect_MediaFoundation_SessionData,
+typedef Stream_ISessionDataNotify_T<Test_U_AudioEffect_MediaFoundation_SessionData,
                                     enum Stream_SessionMessageType,
                                     Test_U_AudioEffect_MediaFoundation_Message,
                                     Test_U_AudioEffect_MediaFoundation_SessionMessage> Test_U_AudioEffect_MediaFoundation_ISessionNotify_t;
 typedef std::list<Test_U_AudioEffect_MediaFoundation_ISessionNotify_t*> Test_U_AudioEffect_MediaFoundation_Subscribers_t;
 typedef Test_U_AudioEffect_MediaFoundation_Subscribers_t::iterator Test_U_AudioEffect_MediaFoundation_SubscribersIterator_t;
 #else
-typedef Stream_ISessionDataNotify_T<Stream_SessionId_t,
-                                    Test_U_AudioEffect_SessionData,
+typedef Stream_ISessionDataNotify_T<Test_U_AudioEffect_SessionData,
                                     enum Stream_SessionMessageType,
                                     Test_U_AudioEffect_Message,
                                     Test_U_AudioEffect_SessionMessage> Test_U_AudioEffect_ISessionNotify_t;

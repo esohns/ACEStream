@@ -23,9 +23,6 @@
 
 #include <vector>
 
-#include "ace/Global_Macros.h"
-#include "ace/Stream_Modules.h"
-
 #ifdef __cplusplus
 extern "C"
 {
@@ -36,9 +33,9 @@ extern "C"
 }
 #endif /* __cplusplus */
 
-#include "common_ilock.h"
+#include "ace/Global_Macros.h"
+#include "ace/Stream_Modules.h"
 
-//#include "stream_istreamcontrol.h"
 #include "stream_task_base_synch.h"
 
 #include "stream_dec_common.h"
@@ -153,12 +150,10 @@ template <ACE_SYNCH_DECL,
 class Stream_Decoder_AVIEncoder_WriterTask_T
  : public Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
                                  TimePolicyType,
-                                 Common_ILock_T<ACE_SYNCH_USE>,
                                  ConfigurationType,
                                  ControlMessageType,
                                  DataMessageType,
                                  SessionMessageType,
-                                 Stream_SessionId_t,
                                  enum Stream_ControlType,
                                  enum Stream_SessionMessageType,
                                  UserDataType>
@@ -182,12 +177,10 @@ class Stream_Decoder_AVIEncoder_WriterTask_T
 
   typedef Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
                                  TimePolicyType,
-                                 Common_ILock_T<ACE_SYNCH_USE>,
                                  ConfigurationType,
                                  ControlMessageType,
                                  DataMessageType,
                                  SessionMessageType,
-                                 Stream_SessionId_t,
                                  enum Stream_ControlType,
                                  enum Stream_SessionMessageType,
                                  UserDataType> inherited;

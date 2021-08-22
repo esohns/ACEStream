@@ -439,16 +439,14 @@ typedef Stream_CamSave_Message_T<struct Stream_CamSave_MediaFoundation_MessageDa
 typedef Stream_CamSave_SessionMessage_T<Stream_CamSave_MediaFoundation_Message_t,
                                         Stream_CamSave_MediaFoundation_SessionData_t> Stream_CamSave_MediaFoundation_SessionMessage_t;
 
-typedef Stream_ISessionDataNotify_T<Stream_SessionId_t,
-                                    Stream_CamSave_DirectShow_SessionData,
+typedef Stream_ISessionDataNotify_T<Stream_CamSave_DirectShow_SessionData,
                                     enum Stream_SessionMessageType,
                                     Stream_CamSave_DirectShow_Message_t,
                                     Stream_CamSave_DirectShow_SessionMessage_t> Stream_CamSave_DirectShow_ISessionNotify_t;
 typedef std::list<Stream_CamSave_DirectShow_ISessionNotify_t*> Stream_CamSave_DirectShow_Subscribers_t;
 typedef Stream_CamSave_DirectShow_Subscribers_t::iterator Stream_CamSave_DirectShow_SubscribersIterator_t;
 
-typedef Stream_ISessionDataNotify_T<Stream_SessionId_t,
-                                    Stream_CamSave_MediaFoundation_SessionData,
+typedef Stream_ISessionDataNotify_T<Stream_CamSave_MediaFoundation_SessionData,
                                     enum Stream_SessionMessageType,
                                     Stream_CamSave_MediaFoundation_Message_t,
                                     Stream_CamSave_MediaFoundation_SessionMessage_t> Stream_CamSave_MediaFoundation_ISessionNotify_t;
@@ -466,16 +464,14 @@ typedef Stream_CamSave_SessionMessage_T<Stream_CamSave_LibCamera_Message_t,
                                         Stream_CamSave_LibCamera_SessionData_t> Stream_CamSave_LibCamera_SessionMessage_t;
 #endif // LIBCAMERA_SUPPORT
 
-typedef Stream_ISessionDataNotify_T<Stream_SessionId_t,
-                                    Stream_CamSave_V4L_SessionData,
+typedef Stream_ISessionDataNotify_T<Stream_CamSave_V4L_SessionData,
                                     enum Stream_SessionMessageType,
                                     Stream_CamSave_V4L_Message_t,
                                     Stream_CamSave_V4L_SessionMessage_t> Stream_CamSave_V4L_ISessionNotify_t;
 typedef std::list<Stream_CamSave_V4L_ISessionNotify_t*> Stream_CamSave_V4L_Subscribers_t;
 typedef Stream_CamSave_V4L_Subscribers_t::iterator Stream_CamSave_V4L_SubscribersIterator_t;
 #if defined (LIBCAMERA_SUPPORT)
-typedef Stream_ISessionDataNotify_T<Stream_SessionId_t,
-                                    Stream_CamSave_LibCamera_SessionData,
+typedef Stream_ISessionDataNotify_T<Stream_CamSave_LibCamera_SessionData,
                                     enum Stream_SessionMessageType,
                                     Stream_CamSave_LibCamera_Message_t,
                                     Stream_CamSave_LibCamera_SessionMessage_t> Stream_CamSave_LibCamera_ISessionNotify_t;

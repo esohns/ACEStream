@@ -32,7 +32,6 @@ template <ACE_SYNCH_DECL,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType,
-          typename SessionIdType,
           typename SessionEventType>
 Stream_HeadTask_T<ACE_SYNCH_USE,
                   TimePolicyType,
@@ -40,7 +39,6 @@ Stream_HeadTask_T<ACE_SYNCH_USE,
                   ControlMessageType,
                   DataMessageType,
                   SessionMessageType,
-                  SessionIdType,
                   SessionEventType>::Stream_HeadTask_T (Stream_IMessageQueue* messageQueue_in)
  : inherited ()
  , isLinked_ (false)
@@ -68,7 +66,6 @@ template <ACE_SYNCH_DECL,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType,
-          typename SessionIdType,
           typename SessionEventType>
 Stream_HeadTask_T<ACE_SYNCH_USE,
                   TimePolicyType,
@@ -76,7 +73,6 @@ Stream_HeadTask_T<ACE_SYNCH_USE,
                   ControlMessageType,
                   DataMessageType,
                   SessionMessageType,
-                  SessionIdType,
                   SessionEventType>::~Stream_HeadTask_T ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_HeadTask_T::~Stream_HeadTask_T"));
@@ -91,7 +87,6 @@ template <ACE_SYNCH_DECL,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType,
-          typename SessionIdType,
           typename SessionEventType>
 int
 Stream_HeadTask_T<ACE_SYNCH_USE,
@@ -100,7 +95,6 @@ Stream_HeadTask_T<ACE_SYNCH_USE,
                   ControlMessageType,
                   DataMessageType,
                   SessionMessageType,
-                  SessionIdType,
                   SessionEventType>::put (ACE_Message_Block* messageBlock_in,
                                           ACE_Time_Value* timeValue_in)
 {
@@ -210,7 +204,6 @@ template <ACE_SYNCH_DECL,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType,
-          typename SessionIdType,
           typename SessionEventType>
 Stream_TailTask_T<ACE_SYNCH_USE,
                   TimePolicyType,
@@ -218,7 +211,6 @@ Stream_TailTask_T<ACE_SYNCH_USE,
                   ControlMessageType,
                   DataMessageType,
                   SessionMessageType,
-                  SessionIdType,
                   SessionEventType>::Stream_TailTask_T (Stream_IAllocator* allocator_in)
  : inherited ()
  , allocator_ (allocator_in)
@@ -234,7 +226,6 @@ template <ACE_SYNCH_DECL,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType,
-          typename SessionIdType,
           typename SessionEventType>
 Stream_TailTask_T<ACE_SYNCH_USE,
                   TimePolicyType,
@@ -242,7 +233,6 @@ Stream_TailTask_T<ACE_SYNCH_USE,
                   ControlMessageType,
                   DataMessageType,
                   SessionMessageType,
-                  SessionIdType,
                   SessionEventType>::~Stream_TailTask_T ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_TailTask_T::~Stream_TailTask_T"));
@@ -257,7 +247,6 @@ template <ACE_SYNCH_DECL,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType,
-          typename SessionIdType,
           typename SessionEventType>
 int
 Stream_TailTask_T<ACE_SYNCH_USE,
@@ -266,7 +255,6 @@ Stream_TailTask_T<ACE_SYNCH_USE,
                   ControlMessageType,
                   DataMessageType,
                   SessionMessageType,
-                  SessionIdType,
                   SessionEventType>::put (ACE_Message_Block* messageBlock_in,
                                           ACE_Time_Value* timeValue_in)
 {
@@ -368,7 +356,6 @@ template <ACE_SYNCH_DECL,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType,
-          typename SessionIdType,
           typename SessionEventType>
 bool
 Stream_TailTask_T<ACE_SYNCH_USE,
@@ -377,7 +364,6 @@ Stream_TailTask_T<ACE_SYNCH_USE,
                   ControlMessageType,
                   DataMessageType,
                   SessionMessageType,
-                  SessionIdType,
                   SessionEventType>::putControlMessage (typename ControlMessageType::CONTROL_T controlType_in,
                                                         const typename SessionMessageType::DATA_T::DATA_T& sessionData_in)
 {

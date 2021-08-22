@@ -30,15 +30,13 @@
 
 #include "test_i_target_common.h"
 
-template <typename SessionIdType,
-          typename SessionDataType,
+template <typename SessionDataType,
           typename SessionEventType,
           typename MessageType,
           typename SessionMessageType,
           typename CallbackDataType>
 class Test_I_Target_EventHandler_T
- : public Stream_ISessionDataNotify_T<SessionIdType,
-                                      SessionDataType,
+ : public Stream_ISessionDataNotify_T<SessionDataType,
                                       SessionEventType,
                                       MessageType,
                                       SessionMessageType>
@@ -48,13 +46,13 @@ class Test_I_Target_EventHandler_T
   inline virtual ~Test_I_Target_EventHandler_T () {}
 
   // implement Stream_ISessionDataNotify_T
-  virtual void start (SessionIdType,           // session id
+  virtual void start (Stream_SessionId_t,      // session id
                       const SessionDataType&); // session data
-  inline virtual void notify (SessionIdType, const SessionEventType&) { ACE_ASSERT (false); ACE_NOTSUP; ACE_NOTREACHED (return;) }
-  virtual void end (SessionIdType); // session id
-  virtual void notify (SessionIdType,       // session id
+  inline virtual void notify (Stream_SessionId_t, const SessionEventType&) { ACE_ASSERT (false); ACE_NOTSUP; ACE_NOTREACHED (return;) }
+  virtual void end (Stream_SessionId_t); // session id
+  virtual void notify (Stream_SessionId_t,       // session id
                        const MessageType&); // (protocol) data
-  virtual void notify (SessionIdType,              // session id
+  virtual void notify (Stream_SessionId_t,              // session id
                        const SessionMessageType&); // session message
 
  private:
@@ -72,22 +70,19 @@ class Test_I_Target_EventHandler_T
 //////////////////////////////////////////
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-typedef Test_I_Target_EventHandler_T<Stream_SessionId_t,
-                                     Test_I_Target_DirectShow_SessionData,
+typedef Test_I_Target_EventHandler_T<Test_I_Target_DirectShow_SessionData,
                                      enum Stream_SessionMessageType,
                                      Test_I_Target_DirectShow_Stream_Message,
                                      Test_I_Target_DirectShow_SessionMessage,
                                      struct Test_I_Target_DirectShow_UI_CBData> Test_I_Target_DirectShow_EventHandler_t;
 
-typedef Test_I_Target_EventHandler_T<Stream_SessionId_t,
-                                     Test_I_Target_MediaFoundation_SessionData,
+typedef Test_I_Target_EventHandler_T<Test_I_Target_MediaFoundation_SessionData,
                                      enum Stream_SessionMessageType,
                                      Test_I_Target_MediaFoundation_Stream_Message,
                                      Test_I_Target_MediaFoundation_SessionMessage,
                                      struct Test_I_Target_MediaFoundation_UI_CBData> Test_I_Target_MediaFoundation_EventHandler_t;
 #else
-typedef Test_I_Target_EventHandler_T<Stream_SessionId_t,
-                                     Test_I_Target_SessionData,
+typedef Test_I_Target_EventHandler_T<Test_I_Target_SessionData,
                                      enum Stream_SessionMessageType,
                                      Test_I_Target_Stream_Message,
                                      Test_I_Target_SessionMessage,

@@ -23,19 +23,19 @@
 
 #include "ace/Condition_Thread_Mutex.h"
 #include "ace/Global_Macros.h"
-#include "ace/Thread_Mutex.h"
 
 #include "stream_isessionnotify.h"
 
-template <typename SessionIdType,
-          typename SessionDataType,
+// forward declarations
+class ACE_Thread_Mutex;
+
+template <typename SessionDataType,
           typename SessionEventType,
           typename MessageType,
           typename SessionMessageType>
 class Stream_SessionBase_T
  : public Stream_ISession
- , public Stream_ISessionDataNotify_T<SessionIdType,
-                                      SessionDataType,
+ , public Stream_ISessionDataNotify_T<SessionDataType,
                                       SessionEventType,
                                       MessageType,
                                       SessionMessageType>
@@ -44,8 +44,7 @@ class Stream_SessionBase_T
   inline virtual ~Stream_SessionBase_T () {}
 
   // convenient types
-  typedef Stream_ISessionNotify_T<SessionIdType,
-                                  SessionDataType,
+  typedef Stream_ISessionNotify_T<SessionDataType,
                                   SessionEventType> INOTIFY_T;
 
   // implement Stream_ISession
@@ -74,12 +73,15 @@ class Stream_SessionBase_T
   ACE_UNIMPLEMENTED_FUNC (Stream_SessionBase_T& operator= (const Stream_SessionBase_T&))
 
   // implement Stream_ISessionDataNotify_T
-  virtual void start (SessionIdType,           // session id
+  virtual void start (Stream_SessionId_t,      // session id
                       const SessionDataType&); // session data
-  inline virtual void notify (SessionIdType, const SessionEventType&) {}
-  virtual void end (SessionIdType); // session id
-  inline virtual void notify (SessionIdType, const MessageType&) {}
-  inline virtual void notify (SessionIdType, const SessionMessageType&) {}
+  inline virtual void notify (Stream_SessionId_t,
+                              const SessionEventType&) {}
+  virtual void end (Stream_SessionId_t); // session id
+  inline virtual void notify (Stream_SessionId_t,
+                              const MessageType&) {}
+  inline virtual void notify (Stream_SessionId_t,
+                              const SessionMessageType&) {}
 
   ACE_Condition_Thread_Mutex condition_;
 };

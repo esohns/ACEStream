@@ -88,8 +88,7 @@ struct Parser_SessionData
 };
 typedef Stream_SessionData_T<struct Parser_SessionData> Parser_SessionData_t;
 
-typedef Stream_ISessionDataNotify_T<Stream_SessionId_t,
-                                    struct Parser_SessionData,
+typedef Stream_ISessionDataNotify_T<struct Parser_SessionData,
                                     enum Stream_SessionMessageType,
                                     Parser_Message,
                                     Parser_SessionMessage> Parser_Notification_t;

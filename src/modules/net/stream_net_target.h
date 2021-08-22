@@ -21,16 +21,15 @@
 #ifndef STREAM_NET_TARGET_H
 #define STREAM_NET_TARGET_H
 
-#include <map>
-#include <string>
+//#include <map>
+//#include <string>
 
 #include "ace/Global_Macros.h"
 #include "ace/INET_Addr.h"
 #include "ace/Stream.h"
 #include "ace/Synch_Traits.h"
 
-#include "common_ilock.h"
-#include "common_time_common.h"
+//#include "common_time_common.h"
 
 #include "stream_task_base_synch.h"
 
@@ -52,24 +51,20 @@ template <ACE_SYNCH_DECL,
 class Stream_Module_Net_Target_T
  : public Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
                                  TimePolicyType,
-                                 Common_ILock_T<ACE_SYNCH_USE>,
                                  ConfigurationType,
                                  ControlMessageType,
                                  DataMessageType,
                                  SessionMessageType,
-                                 Stream_SessionId_t,
                                  enum Stream_ControlType,
                                  enum Stream_SessionMessageType,
                                  struct Stream_UserData>
 {
   typedef Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
                                  TimePolicyType,
-                                 Common_ILock_T<ACE_SYNCH_USE>,
                                  ConfigurationType,
                                  ControlMessageType,
                                  DataMessageType,
                                  SessionMessageType,
-                                 Stream_SessionId_t,
                                  enum Stream_ControlType,
                                  enum Stream_SessionMessageType,
                                  struct Stream_UserData> inherited;
@@ -120,7 +115,7 @@ class Stream_Module_Net_Target_T
   bool                                           isOpen_;
   bool                                           isPassive_;
   // *NOTE*: this lock prevents races during shutdown
-  ACE_SYNCH_MUTEX                                lock_;
+  //ACE_SYNCH_MUTEX                                lock_;
   bool                                           unlink_;
 };
 

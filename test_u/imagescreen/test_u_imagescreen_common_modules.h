@@ -164,7 +164,6 @@ typedef Stream_Module_MessageHandler_T<ACE_MT_SYNCH,
                                        Stream_ControlMessage_t,
                                        Stream_ImageScreen_Message_t,
                                        Stream_ImageScreen_SessionMessage_t,
-                                       Stream_SessionId_t,
                                        Stream_ImageScreen_SessionData,
                                        struct Stream_UserData> Stream_ImageScreen_MessageHandler;
 

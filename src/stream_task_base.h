@@ -45,7 +45,6 @@ class Stream_IAllocator;
 
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,
-          typename LockType, // implements Common_ILock_T/Common_IRecursiveLock_T
           ////////////////////////////////
           typename ConfigurationType,
           ////////////////////////////////
@@ -53,7 +52,6 @@ template <ACE_SYNCH_DECL,
           typename DataMessageType,
           typename SessionMessageType,
           ////////////////////////////////
-          typename SessionIdType,
           typename SessionControlType,
           typename SessionEventType,
           ////////////////////////////////
@@ -61,7 +59,6 @@ template <ACE_SYNCH_DECL,
 class Stream_TaskBase_T
  : public Common_TaskBase_T<ACE_SYNCH_USE,
                             TimePolicyType,
-                            LockType,
                             ACE_Message_Block,
                             ACE_Message_Queue<ACE_SYNCH_USE,
                                               TimePolicyType>,
@@ -79,7 +76,6 @@ class Stream_TaskBase_T
 {
   typedef Common_TaskBase_T<ACE_SYNCH_USE,
                             TimePolicyType,
-                            LockType,
                             ACE_Message_Block,
                             ACE_Message_Queue<ACE_SYNCH_USE,
                                               TimePolicyType>,
@@ -90,7 +86,6 @@ class Stream_TaskBase_T
   // convenient types
   typedef Common_TaskBase_T<ACE_SYNCH_USE,
                             TimePolicyType,
-                            LockType,
                             ACE_Message_Block,
                             ACE_Message_Queue<ACE_SYNCH_USE,
                                               TimePolicyType>,
@@ -176,17 +171,14 @@ class Stream_TaskBase_T
   // convenient types
   typedef Stream_TaskBase_T<ACE_SYNCH_USE,
                             TimePolicyType,
-                            LockType,
                             ConfigurationType,
                             ControlMessageType,
                             DataMessageType,
                             SessionMessageType,
-                            SessionIdType,
                             SessionControlType,
                             SessionEventType,
                             UserDataType> OWN_TYPE_T;
-  typedef Stream_ISessionNotify_T<SessionIdType,
-                                  typename SessionMessageType::DATA_T::DATA_T,
+  typedef Stream_ISessionNotify_T<typename SessionMessageType::DATA_T::DATA_T,
                                   SessionEventType> INOTIFY_T;
 
   ACE_UNIMPLEMENTED_FUNC (Stream_TaskBase_T ())

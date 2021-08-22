@@ -137,8 +137,7 @@ Test_I_Source_SignalHandler_T<ConfigurationType>::handle (const struct Common_Si
 #if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
     COMMON_UI_GTK_MANAGER_SINGLETON::instance ()->stop (false, // wait for completion ?
-                                                        true,  // high priority ?
-                                                        true); // locked access ?
+                                                        true); // high priority ?
 #endif // GTK_USE
 #endif // GUI_SUPPORT
 
@@ -153,7 +152,7 @@ Test_I_Source_SignalHandler_T<ConfigurationType>::handle (const struct Common_Si
     //ACE_ASSERT (connection_manager_p);
     //connection_manager_p->stop ();
     ACE_ASSERT (inherited::configuration_->connectionManager);
-    inherited::configuration_->connectionManager->stop (false, true, true);
+    inherited::configuration_->connectionManager->stop (false, true);
     inherited::configuration_->connectionManager->abort ();
     inherited::configuration_->connectionManager->wait ();
 

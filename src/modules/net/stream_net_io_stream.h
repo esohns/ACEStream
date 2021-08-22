@@ -202,7 +202,6 @@ class Stream_Module_Net_IO_Stream_T
                                        UserDataType> WRITER_T;
   typedef Stream_StreamModule_T<ACE_SYNCH_USE,                     // task synch type
                                 TimePolicyType,                    // time policy
-                                Stream_SessionId_t,                // session id type
                                 SessionDataType,                   // session data type
                                 enum Stream_SessionMessageType,    // session event type
                                 struct Stream_ModuleConfiguration, // module configuration type

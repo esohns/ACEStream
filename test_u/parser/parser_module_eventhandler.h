@@ -25,7 +25,7 @@
 #include "ace/Synch_Traits.h"
 #include "ace/Task_T.h"
 
-#include "common_time_common.h"
+//#include "common_time_common.h"
 
 #include "stream_common.h"
 #include "stream_streammodule_base.h"
@@ -43,7 +43,6 @@ class Parser_Module_EventHandler
                                          Stream_ControlMessage_t,
                                          Parser_Message,
                                          Parser_SessionMessage,
-                                         Stream_SessionId_t,
                                          struct Parser_SessionData,
                                          struct Stream_UserData>
 {
@@ -53,7 +52,6 @@ class Parser_Module_EventHandler
                                          Stream_ControlMessage_t,
                                          Parser_Message,
                                          Parser_SessionMessage,
-                                         Stream_SessionId_t,
                                          struct Parser_SessionData,
                                          struct Stream_UserData> inherited;
 

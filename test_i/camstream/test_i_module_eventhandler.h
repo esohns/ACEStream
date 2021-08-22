@@ -28,7 +28,6 @@
 #include "common_time_common.h"
 
 #include "stream_common.h"
-#include "stream_imodule.h"
 #include "stream_streammodule_base.h"
 
 #include "stream_misc_messagehandler.h"
@@ -48,7 +47,6 @@ class Test_I_Stream_Module_EventHandler_T
                                          ControlMessageType,
                                          MessageType,
                                          SessionMessageType,
-                                         Stream_SessionId_t,
                                          SessionDataType,
                                          UserDataType>
 {
@@ -58,7 +56,6 @@ class Test_I_Stream_Module_EventHandler_T
                                          ControlMessageType,
                                          MessageType,
                                          SessionMessageType,
-                                         Stream_SessionId_t,
                                          SessionDataType,
                                          UserDataType> inherited;
 
@@ -94,7 +91,6 @@ class Test_I_Stream_Module_EventHandler_T
                                               UserDataType> OWN_TYPE_T;
   typedef Stream_StreamModuleInputOnly_T<ACE_MT_SYNCH,
                                          Common_TimePolicy_t,
-                                         Stream_SessionId_t,
                                          SessionDataType,
                                          Stream_SessionMessageType,
                                          ModuleConfigurationType,

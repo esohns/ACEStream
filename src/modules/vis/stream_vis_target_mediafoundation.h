@@ -33,7 +33,8 @@
 #include "ace/Synch_Traits.h"
 
 #include "common_iinitialize.h"
-#include "common_time_common.h"
+
+//#include "common_time_common.h"
 
 #include "common_ui_ifullscreen.h"
 #include "common_ui_windowtype_converter.h"
@@ -62,12 +63,10 @@ template <ACE_SYNCH_DECL,
 class Stream_Vis_Target_MediaFoundation_T
  : public Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
                                  TimePolicyType,
-                                 Common_ILock_T<ACE_SYNCH_USE>,
                                  ConfigurationType,
                                  ControlMessageType,
                                  DataMessageType,
                                  SessionMessageType,
-                                 Stream_SessionId_t,
                                  enum Stream_ControlType,
                                  enum Stream_SessionMessageType,
                                  UserDataType>
@@ -82,12 +81,10 @@ class Stream_Vis_Target_MediaFoundation_T
 {
   typedef Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
                                  TimePolicyType,
-                                 Common_ILock_T<ACE_SYNCH_USE>,
                                  ConfigurationType,
                                  ControlMessageType,
                                  DataMessageType,
                                  SessionMessageType,
-                                 Stream_SessionId_t,
                                  enum Stream_ControlType,
                                  enum Stream_SessionMessageType,
                                  UserDataType> inherited;

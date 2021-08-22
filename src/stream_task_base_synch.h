@@ -24,8 +24,6 @@
 #include "ace/Global_Macros.h"
 #include "ace/Synch_Traits.h"
 
-#include "common_ilock.h"
-
 #include "stream_task_base.h"
 
 // forward declaration(s)
@@ -34,7 +32,6 @@ class ACE_Time_Value;
 
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,
-          typename LockType, // implements Common_ILock_T/Common_IRecursiveLock_T
           ////////////////////////////////
           typename ConfigurationType,
           ////////////////////////////////
@@ -42,7 +39,6 @@ template <ACE_SYNCH_DECL,
           typename DataMessageType,
           typename SessionMessageType,
           ////////////////////////////////
-          typename SessionIdType,
           typename SessionControlType,
           typename SessionEventType,
           ////////////////////////////////
@@ -53,24 +49,20 @@ class Stream_TaskBaseSynch_T
 //         ACE_Module/ACE_Stream classes currently use a single template parameter
  : public Stream_TaskBase_T<ACE_SYNCH_USE,
                             TimePolicyType,
-                            LockType,
                             ConfigurationType,
                             ControlMessageType,
                             DataMessageType,
                             SessionMessageType,
-                            SessionIdType,
                             SessionControlType,
                             SessionEventType,
                             UserDataType>
 {
   typedef Stream_TaskBase_T<ACE_SYNCH_USE,
                             TimePolicyType,
-                            LockType,
                             ConfigurationType,
                             ControlMessageType,
                             DataMessageType,
                             SessionMessageType,
-                            SessionIdType,
                             SessionControlType,
                             SessionEventType,
                             UserDataType> inherited;
@@ -88,10 +80,9 @@ class Stream_TaskBaseSynch_T
 
   inline virtual int put (ACE_Message_Block* messageBlock_in, ACE_Time_Value* timeout_in = NULL) { ACE_UNUSED_ARG (timeout_in); bool stop_processing = false; inherited::handleMessage (messageBlock_in, stop_processing); return 0; }
 
-  // implement Common_ITaskControl_T
-  inline virtual bool isShuttingDown () { return false; }
+  // implement Common_ITask
+  inline virtual bool isShuttingDown () const { return false; }
   inline virtual void stop (bool = true,    // N/A
-                            bool = true,    // N/A
                             bool = true) {} // N/A
 
   // implement Stream_ITask_T
@@ -101,12 +92,10 @@ class Stream_TaskBaseSynch_T
   // convenient types
   typedef Stream_TaskBase_T<ACE_SYNCH_USE,
                             TimePolicyType,
-                            LockType,
                             ConfigurationType,
                             ControlMessageType,
                             DataMessageType,
                             SessionMessageType,
-                            SessionIdType,
                             SessionControlType,
                             SessionEventType,
                             UserDataType> TASK_BASE_T;
