@@ -1745,9 +1745,7 @@ error:
   timer_manager_p = COMMON_TIMERMANAGER_SINGLETON::instance ();
   ACE_ASSERT (timer_manager_p);
   timer_manager_p->initialize (timer_configuration);
-  ACE_thread_t thread_id = 0;
-  timer_manager_p->start (thread_id);
-  ACE_UNUSED_ARG (thread_id);
+  timer_manager_p->start (NULL);
 
   // step0f: (initialize) processing stream
 
@@ -1835,9 +1833,7 @@ error:
 
 #if defined (GTK_USE)
     ACE_ASSERT (gtk_manager_p);
-    ACE_thread_t thread_id = 0;
-    gtk_manager_p->start (thread_id);
-    ACE_UNUSED_ARG (thread_id);
+    gtk_manager_p->start (NULL);
     ACE_Time_Value timeout (0,
                             COMMON_UI_GTK_TIMEOUT_DEFAULT_MANAGER_INITIALIZATION * 1000);
     result = ACE_OS::sleep (timeout);

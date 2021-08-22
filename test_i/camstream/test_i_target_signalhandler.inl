@@ -170,7 +170,7 @@ Test_I_Target_SignalHandler_T<ConfigurationType,
     if (inherited::configuration_->listener)
     {
       try {
-        inherited::configuration_->listener->stop (true, true, true);
+        inherited::configuration_->listener->stop ();
       } catch (...) {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("caught exception in Common_ITask::stop(), returning\n")));

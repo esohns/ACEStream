@@ -1281,7 +1281,7 @@ do_work (const std::string& deviceIdentifier_in,
   ACE_ASSERT (timer_manager_p);
   long timer_id = -1;
 //  int group_id = -1;
-  Net_IConnectionManagerBase_t* iconnection_manager_p = NULL;
+  Net_IConnectionManagerBase* iconnection_manager_p = NULL;
   Net_IStreamStatisticHandler_t* report_handler_p = NULL;
   //Test_I_Source_Stream_IStatistic_t stream_report_handler;
   Stream_IStreamControlBase* stream_p = NULL;
@@ -1672,8 +1672,7 @@ do_work (const std::string& deviceIdentifier_in,
 
   // step0d: initialize regular (global) statistic reporting
   timer_manager_p->initialize (timer_configuration);
-  timer_manager_p->start (thread_id);
-  ACE_UNUSED_ARG (thread_id);
+  timer_manager_p->start (NULL);
   if (statisticReportingInterval_in)
   {
     ACE_Time_Value interval (statisticReportingInterval_in, 0);
@@ -1781,9 +1780,7 @@ do_work (const std::string& deviceIdentifier_in,
       std::make_pair (UIDefinitionFilename_in, static_cast<GtkBuilder*> (NULL));
 
     ACE_ASSERT (gtk_manager_p);
-    ACE_thread_t thread_id = 0;
-    gtk_manager_p->start (thread_id);
-    ACE_UNUSED_ARG (thread_id);
+    gtk_manager_p->start (NULL);
     ACE_Time_Value timeout (0,
                             COMMON_UI_GTK_TIMEOUT_DEFAULT_MANAGER_INITIALIZATION);
     int result = ACE_OS::sleep (timeout);

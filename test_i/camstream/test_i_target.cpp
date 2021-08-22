@@ -1594,8 +1594,7 @@ do_work (unsigned int bufferSize_in,
 
   // step0d: initialize regular (global) statistic reporting
   timer_manager_p->initialize (timer_configuration);
-  timer_manager_p->start (thread_id);
-  ACE_UNUSED_ARG (thread_id);
+  timer_manager_p->start (NULL);
   if (statisticReportingInterval_in)
   {
     ACE_Time_Value interval (statisticReportingInterval_in, 0);
@@ -1728,9 +1727,7 @@ do_work (unsigned int bufferSize_in,
     state_r.builders[ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN)] =
       std::make_pair (UIDefinitionFilename_in, static_cast<GtkBuilder*> (NULL));
 
-    ACE_thread_t thread_id = 0;
-    gtk_manager_p->start (thread_id);
-    ACE_UNUSED_ARG (thread_id);
+    gtk_manager_p->start (NULL);
     ACE_Time_Value timeout (0,
                             COMMON_UI_GTK_TIMEOUT_DEFAULT_MANAGER_INITIALIZATION * 1000);
     result = ACE_OS::sleep (timeout);
@@ -2265,16 +2262,12 @@ do_work (unsigned int bufferSize_in,
       {
         case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
         {
-          directShowCBData_in.configuration->signalHandlerConfiguration.listener->start (thread_id);
-          result_2 =
-            directShowCBData_in.configuration->signalHandlerConfiguration.listener->isRunning ();
+          directShowCBData_in.configuration->signalHandlerConfiguration.listener->start (NULL);
           break;
         }
         case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
         {
-          mediaFoundationCBData_in.configuration->signalHandlerConfiguration.listener->start (thread_id);
-          result_2 =
-            mediaFoundationCBData_in.configuration->signalHandlerConfiguration.listener->isRunning ();
+          mediaFoundationCBData_in.configuration->signalHandlerConfiguration.listener->start (NULL);
           break;
         }
         default:
@@ -2287,40 +2280,38 @@ do_work (unsigned int bufferSize_in,
       } // end SWITCH
 #else
       //ACE_thread_t thread_id = 0;
-      CBData_in.configuration->signalHandlerConfiguration.listener->start (thread_id);
-      ACE_UNUSED_ARG (thread_id);
-      result_2 =
-        CBData_in.configuration->signalHandlerConfiguration.listener->isRunning ();
+      CBData_in.configuration->signalHandlerConfiguration.listener->start (NULL);
+      //result_2 =
+      //  CBData_in.configuration->signalHandlerConfiguration.listener->isRunning ();
 #endif // ACE_WIN32 || ACE_WIN64
-      if (!result_2)
-      {
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("failed to start listener (port: %u), returning\n"),
-                    listeningPortNumber_in));
-
-        Common_Tools::finalizeEventDispatch (event_dispatch_state_s.proactorGroupId,
-                                             event_dispatch_state_s.reactorGroupId,
-                                             true);
-        //		{ // synch access
-        //			ACE_Guard<ACE_Recursive_Thread_Mutex> aGuard(CBData_in.lock);
-
-        //			for (Net_GTK_EventSourceIDsIterator_t iterator = CBData_in.event_source_ids.begin();
-        //					 iterator != CBData_in.event_source_ids.end();
-        //					 iterator++)
-        //				g_source_remove(*iterator);
-        //		} // end lock scope
-#if defined (GUI_SUPPORT)
-        if (!UIDefinitionFilename_in.empty ())
-#if defined (GTK_USE)
-          gtk_manager_p->stop (true, true, true);
-#else
-          ;
-#endif // GTK_USE
-#endif // GUI_SUPPORT
-        timer_manager_p->stop ();
-        goto clean;
-      } // end IF
-      ACE_UNUSED_ARG (thread_id);
+//      if (!result_2)
+//      {
+//        ACE_DEBUG ((LM_ERROR,
+//                    ACE_TEXT ("failed to start listener (port: %u), returning\n"),
+//                    listeningPortNumber_in));
+//
+//        Common_Tools::finalizeEventDispatch (event_dispatch_state_s.proactorGroupId,
+//                                             event_dispatch_state_s.reactorGroupId,
+//                                             true);
+//        //		{ // synch access
+//        //			ACE_Guard<ACE_Recursive_Thread_Mutex> aGuard(CBData_in.lock);
+//
+//        //			for (Net_GTK_EventSourceIDsIterator_t iterator = CBData_in.event_source_ids.begin();
+//        //					 iterator != CBData_in.event_source_ids.end();
+//        //					 iterator++)
+//        //				g_source_remove(*iterator);
+//        //		} // end lock scope
+//#if defined (GUI_SUPPORT)
+//        if (!UIDefinitionFilename_in.empty ())
+//#if defined (GTK_USE)
+//          gtk_manager_p->stop (true, true, true);
+//#else
+//          ;
+//#endif // GTK_USE
+//#endif // GUI_SUPPORT
+//        timer_manager_p->stop ();
+//        goto clean;
+//      } // end IF
     } // end ELSE
   } // end IF
 

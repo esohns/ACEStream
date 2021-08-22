@@ -80,13 +80,11 @@ struct HTTPGet_Configuration;
 struct HTTPGet_ConnectionConfiguration;
 typedef Net_StreamConnectionConfiguration_T<HTTPGet_StreamConfiguration_t,
                                             NET_TRANSPORTLAYER_TCP> HTTPGet_ConnectionConfiguration_t;
-typedef Net_IConnectionManager_T<ACE_MT_SYNCH,
-                                 ACE_INET_Addr,
+typedef Net_IConnectionManager_T<ACE_INET_Addr,
                                  HTTPGet_ConnectionConfiguration_t,
                                  struct Net_StreamConnectionState,
                                  Net_StreamStatistic_t,
                                  struct Net_UserData> HTTPGet_IConnectionManager_t;
-//
 typedef Net_Connection_Manager_T<ACE_MT_SYNCH,
                                  ACE_INET_Addr,
                                  HTTPGet_ConnectionConfiguration_t,

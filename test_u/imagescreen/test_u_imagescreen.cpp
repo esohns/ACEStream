@@ -492,14 +492,11 @@ do_work (int argc_in,
       COMMON_TIMERMANAGER_SINGLETON::instance ();
   ACE_ASSERT (timer_manager_p);
   timer_manager_p->initialize (configuration.timerConfiguration);
-  ACE_thread_t thread_id = 0;
-  timer_manager_p->start (thread_id);
-  ACE_UNUSED_ARG (thread_id);
+  timer_manager_p->start (NULL);
 
   // start UI
 #if defined (GTK_USE)
-  gtk_manager_p->start (thread_id);
-  ACE_UNUSED_ARG (thread_id);
+  gtk_manager_p->start (NULL);
   ACE_Time_Value timeout (0,
                           COMMON_UI_GTK_TIMEOUT_DEFAULT_MANAGER_INITIALIZATION * 1000);
   int result_2 = ACE_OS::sleep (timeout);

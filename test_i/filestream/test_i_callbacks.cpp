@@ -2604,14 +2604,12 @@ action_listen_activate_cb (GtkAction* action_in,
         if (!ui_cb_data_p->configuration->signalHandlerConfiguration.listener->initialize (*static_cast<Test_I_Target_TCPConnectionConfiguration_t*>((*iterator_2).second)))
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("failed to initialize listener, continuing\n")));
-        ACE_thread_t thread_id = 0;
         try {
-          ui_cb_data_p->configuration->signalHandlerConfiguration.listener->start (thread_id);
+          ui_cb_data_p->configuration->signalHandlerConfiguration.listener->start (NULL);
         } catch (...) {
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("caught exception in Net_Server_IListener::start(): \"%m\", continuing\n")));
         } // end catch
-        ACE_UNUSED_ARG (thread_id);
 
         break;
       }
@@ -2623,15 +2621,7 @@ action_listen_activate_cb (GtkAction* action_in,
 
         // listening on TCP ? --> stop
         ACE_ASSERT (ui_cb_data_p->configuration->signalHandlerConfiguration.listener);
-        if (ui_cb_data_p->configuration->signalHandlerConfiguration.listener->isRunning ())
-        {
-          try {
-            ui_cb_data_p->configuration->signalHandlerConfiguration.listener->stop (true, true, true);
-          } catch (...) {
-            ACE_DEBUG ((LM_ERROR,
-                        ACE_TEXT ("caught exception in Net_Server_IListener::stop(): \"%m\", continuing\n")));
-          } // end catch
-        } // end IF
+        ui_cb_data_p->configuration->signalHandlerConfiguration.listener->stop ();
 
         if (ui_cb_data_p->configuration->handle != ACE_INVALID_HANDLE)
         {
@@ -2647,7 +2637,7 @@ action_listen_activate_cb (GtkAction* action_in,
           if (connection_p)
           {
             connection_p->close ();
-            connection_p->decrease ();
+            connection_p->decrease (); connection_p = NULL;
           } // end ELSE
           ui_cb_data_p->configuration->handle = ACE_INVALID_HANDLE;
         } // end IF
@@ -2709,7 +2699,7 @@ action_listen_activate_cb (GtkAction* action_in,
 #else
                   static_cast<ACE_HANDLE> (connection_p->id ());
 #endif // ACE_WIN32 || ACE_WIN64
-              connection_p->decrease ();
+              connection_p->decrease (); connection_p = NULL;
               break;
             } // end IF
           } while (COMMON_TIME_NOW < deadline);
@@ -2775,14 +2765,8 @@ action_listen_activate_cb (GtkAction* action_in,
     } // end lock scope
   } // end IF
   else
-  {
-    ACE_ASSERT (ui_cb_data_p->configuration->signalHandlerConfiguration.listener);
-    try {
-      ui_cb_data_p->configuration->signalHandlerConfiguration.listener->stop (true, true, true);
-    } catch (...) {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("caught exception in Net_Server_IListener::stop(): \"%m\", continuing\n")));
-    } // end catch
+  { ACE_ASSERT (ui_cb_data_p->configuration->signalHandlerConfiguration.listener);
+    ui_cb_data_p->configuration->signalHandlerConfiguration.listener->stop ();
 
     if (ui_cb_data_p->configuration->handle != ACE_INVALID_HANDLE)
     {

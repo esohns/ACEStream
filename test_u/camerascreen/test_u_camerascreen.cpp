@@ -1267,9 +1267,7 @@ do_work (const std::string& captureinterfaceIdentifier_in,
   timer_manager_p = COMMON_TIMERMANAGER_SINGLETON::instance ();
   ACE_ASSERT (timer_manager_p);
   timer_manager_p->initialize (timer_configuration);
-  ACE_thread_t thread_id = 0;
-  timer_manager_p->start (thread_id);
-  ACE_UNUSED_ARG (thread_id);
+  timer_manager_p->start (NULL);
 
   // step0f: (initialize) processing stream
 

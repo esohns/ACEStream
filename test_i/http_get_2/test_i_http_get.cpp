@@ -862,8 +862,7 @@ do_work (const std::string& bootstrapFileName_in,
   timer_manager_p = COMMON_TIMERMANAGER_SINGLETON::instance ();
   ACE_ASSERT (timer_manager_p);
   timer_manager_p->initialize (timer_configuration);
-  timer_manager_p->start (thread_id);
-  ACE_UNUSED_ARG (thread_id);
+  timer_manager_p->start (NULL);
   stop_timers = true;
   //Stream_StatisticHandler_Proactor_t statistics_handler_proactor (ACTION_REPORT,
   //                                                                connection_manager_p,

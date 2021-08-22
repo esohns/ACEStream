@@ -96,14 +96,12 @@ typedef Net_StreamConnectionConfiguration_T<Test_I_Source_StreamConfiguration_t,
 typedef Net_StreamConnectionConfiguration_T<Test_I_Source_StreamConfiguration_t,
                                             NET_TRANSPORTLAYER_UDP> Test_I_Source_UDPConnectionConfiguration_t;
 
-typedef Net_IConnectionManager_T<ACE_MT_SYNCH,
-                                 ACE_INET_Addr,
+typedef Net_IConnectionManager_T<ACE_INET_Addr,
                                  Test_I_Source_TCPConnectionConfiguration_t,
                                  struct Net_StreamConnectionState,
                                  Net_StreamStatistic_t,
                                  struct Net_UserData> Test_I_Source_ITCPConnectionManager_t;
-typedef Net_IConnectionManager_T<ACE_MT_SYNCH,
-                                 ACE_INET_Addr,
+typedef Net_IConnectionManager_T<ACE_INET_Addr,
                                  Test_I_Source_UDPConnectionConfiguration_t,
                                  struct Net_StreamConnectionState,
                                  Net_StreamStatistic_t,
@@ -134,14 +132,12 @@ typedef Net_StreamConnectionConfiguration_T<Test_I_Target_StreamConfiguration_t,
 typedef Net_StreamConnectionConfiguration_T<Test_I_Target_StreamConfiguration_t,
                                             NET_TRANSPORTLAYER_UDP> Test_I_Target_UDPConnectionConfiguration_t;
 
-typedef Net_IConnectionManager_T<ACE_MT_SYNCH,
-                                 ACE_INET_Addr,
+typedef Net_IConnectionManager_T<ACE_INET_Addr,
                                  Test_I_Target_TCPConnectionConfiguration_t,
                                  struct Net_StreamConnectionState,
                                  Net_StreamStatistic_t,
                                  struct Net_UserData> Test_I_Target_ITCPConnectionManager_t;
-typedef Net_IConnectionManager_T<ACE_MT_SYNCH,
-                                 ACE_INET_Addr,
+typedef Net_IConnectionManager_T<ACE_INET_Addr,
                                  Test_I_Target_UDPConnectionConfiguration_t,
                                  struct Net_StreamConnectionState,
                                  Net_StreamStatistic_t,

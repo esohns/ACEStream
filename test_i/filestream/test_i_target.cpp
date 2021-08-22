@@ -622,9 +622,7 @@ do_work (unsigned int bufferSize_in,
   ACE_ASSERT (timer_manager_p);
   struct Common_TimerConfiguration timer_configuration;
   timer_manager_p->initialize (timer_configuration);
-  ACE_thread_t thread_id = 0;
-  timer_manager_p->start (thread_id);
-  ACE_UNUSED_ARG (thread_id);
+  timer_manager_p->start (NULL);
   Net_StreamStatisticHandler_t statistic_handler (COMMON_STATISTIC_ACTION_REPORT,
                                                   connection_manager_p,
                                                   false);
@@ -701,9 +699,7 @@ do_work (unsigned int bufferSize_in,
     state_r.builders[ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN)] =
       std::make_pair (UIDefinitionFile_in, static_cast<GtkBuilder*> (NULL));
 
-    ACE_thread_t thread_id = 0;
-    gtk_manager_p->start (thread_id);
-    ACE_UNUSED_ARG (thread_id);
+    gtk_manager_p->start (NULL);
     ACE_Time_Value timeout (0,
                             COMMON_UI_GTK_TIMEOUT_DEFAULT_MANAGER_INITIALIZATION * 1000);
     result = ACE_OS::sleep (timeout);
@@ -924,35 +920,33 @@ do_work (unsigned int bufferSize_in,
         timer_manager_p->stop ();
         return;
       } // end IF
-      ACE_thread_t thread_id = 0;
-      CBData_in.configuration->signalHandlerConfiguration.listener->start (thread_id);
-      ACE_UNUSED_ARG (thread_id);
-      if (!CBData_in.configuration->signalHandlerConfiguration.listener->isRunning ())
-      {
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("failed to start listener (port: %u), returning\n"),
-                    listeningPortNumber_in));
-
-        Common_Tools::finalizeEventDispatch (event_dispatch_state_s.proactorGroupId,
-                                             event_dispatch_state_s.reactorGroupId,
-                                             true);
-        //		{ // synch access
-        //			ACE_Guard<ACE_Recursive_Thread_Mutex> aGuard(CBData_in.lock);
-
-        //			for (Net_GTK_EventSourceIDsIterator_t iterator = CBData_in.event_source_ids.begin();
-        //					 iterator != CBData_in.event_source_ids.end();
-        //					 iterator++)
-        //				g_source_remove(*iterator);
-        //		} // end lock scope
-#if defined (GUI_SUPPORT)
-        if (!UIDefinitionFile_in.empty ())
-#if defined (GTK_USE)
-          gtk_manager_p->stop (true, true, true);
-#endif // GTK_USE
-#endif // GUI_SUPPORT
-        timer_manager_p->stop ();
-        return;
-      } // end IF
+      CBData_in.configuration->signalHandlerConfiguration.listener->start (NULL);
+//      if (!CBData_in.configuration->signalHandlerConfiguration.listener->isRunning ())
+//      {
+//        ACE_DEBUG ((LM_ERROR,
+//                    ACE_TEXT ("failed to start listener (port: %u), returning\n"),
+//                    listeningPortNumber_in));
+//
+//        Common_Tools::finalizeEventDispatch (event_dispatch_state_s.proactorGroupId,
+//                                             event_dispatch_state_s.reactorGroupId,
+//                                             true);
+//        //		{ // synch access
+//        //			ACE_Guard<ACE_Recursive_Thread_Mutex> aGuard(CBData_in.lock);
+//
+//        //			for (Net_GTK_EventSourceIDsIterator_t iterator = CBData_in.event_source_ids.begin();
+//        //					 iterator != CBData_in.event_source_ids.end();
+//        //					 iterator++)
+//        //				g_source_remove(*iterator);
+//        //		} // end lock scope
+//#if defined (GUI_SUPPORT)
+//        if (!UIDefinitionFile_in.empty ())
+//#if defined (GTK_USE)
+//          gtk_manager_p->stop (true, true, true);
+//#endif // GTK_USE
+//#endif // GUI_SUPPORT
+//        timer_manager_p->stop ();
+//        return;
+//      } // end IF
     } // end ELSE
   } // end IF
 

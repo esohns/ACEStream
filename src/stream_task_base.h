@@ -25,7 +25,7 @@
 #include "ace/Synch_Traits.h"
 
 #include "common_iget.h"
-#include "common_ilock.h"
+#include "common_message_queue_iterator.h"
 
 #include "common_task_base.h"
 
@@ -126,6 +126,8 @@ class Stream_TaskBase_T
   typedef Stream_MessageQueue_T<ACE_SYNCH_USE,
                                 TimePolicyType,
                                 SessionMessageType> MESSAGE_QUEUE_T;
+  typedef Common_MessageQueueIterator_T<ACE_SYNCH_USE,
+                                        TimePolicyType> MESSAGE_QUEUE_ITERATOR_T;
 
   Stream_TaskBase_T (ISTREAM_T* = NULL,        // stream handle
                      MESSAGE_QUEUE_T* = NULL); // queue handle

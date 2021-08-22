@@ -844,7 +844,7 @@ do_work (unsigned int bufferSize_in,
   struct Common_AllocatorConfiguration* allocator_configuration_p = NULL;
   Common_TimerConfiguration timer_configuration;
   Common_Timer_Manager_t* timer_manager_p = NULL;
-  Common_ITaskControl_t* itask_control_p = NULL;
+  Common_IAsynchTask* itask_p = NULL;
   Stream_AllocatorHeap_T<ACE_MT_SYNCH,
                          struct Common_AllocatorConfiguration> heap_allocator;
   ACE_thread_t thread_id = 0;
@@ -1166,8 +1166,7 @@ do_work (unsigned int bufferSize_in,
   timer_manager_p = COMMON_TIMERMANAGER_SINGLETON::instance ();
   ACE_ASSERT (timer_manager_p);
   timer_manager_p->initialize (timer_configuration);
-  timer_manager_p->start (thread_id);
-  ACE_UNUSED_ARG (thread_id);
+  timer_manager_p->start (NULL);
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   // *NOTE*: in UI mode, COM has already been initialized for this thread
@@ -1346,11 +1345,9 @@ do_work (unsigned int bufferSize_in,
     //CBData_in.userData = &CBData_in;
 #endif // ACE_WIN32 || ACE_WIN64
 #if defined (GTK_USE)
-    itask_control_p = COMMON_UI_GTK_MANAGER_SINGLETON::instance ();
-    ACE_ASSERT (itask_control_p);
-    ACE_thread_t thread_id = 0;
-    itask_control_p->start (thread_id);
-    ACE_UNUSED_ARG (thread_id);
+    itask_p = COMMON_UI_GTK_MANAGER_SINGLETON::instance ();
+    ACE_ASSERT (itask_p);
+    itask_p->start (NULL);
     ACE_Time_Value timeout (0,
                             COMMON_UI_GTK_TIMEOUT_DEFAULT_MANAGER_INITIALIZATION * 1000);
     result_2 = ACE_OS::sleep (timeout);
@@ -1358,7 +1355,7 @@ do_work (unsigned int bufferSize_in,
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to ACE_OS::sleep(%#T): \"%m\", continuing\n"),
                   &timeout));
-    if (!itask_control_p->isRunning ())
+    if (!itask_p->isRunning ())
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to start GTK event dispatch, aborting\n")));
@@ -1379,7 +1376,7 @@ do_work (unsigned int bufferSize_in,
       was_visible_b = ShowWindow (window_p, SW_HIDE);
     ACE_UNUSED_ARG (was_visible_b);
 #endif // ACE_WIN32 || ACE_WIN64
-    itask_control_p->wait ();
+    itask_p->wait ();
   } // end IF
   else
   {
@@ -1454,10 +1451,10 @@ do_work (unsigned int bufferSize_in,
 
 error:
 #if defined (GUI_SUPPORT)
-  if (!UIDefinitionFile_in.empty () && itask_control_p)
-    itask_control_p->stop (true,  // wait ?
-                           true,  // high priority ?
-                           true); // locked access ?
+  if (!UIDefinitionFile_in.empty () && itask_p)
+    itask_p->stop (true,  // wait ?
+                   true,  // high priority ?
+                   true); // locked access ?
 #endif // GUI_SUPPORT
   timer_manager_p->stop ();
 }

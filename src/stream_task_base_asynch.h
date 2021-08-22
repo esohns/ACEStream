@@ -50,7 +50,6 @@ template <ACE_SYNCH_DECL,
           ////////////////////////////////
           typename UserDataType>
 class Stream_TaskBaseAsynch_T
-// *TODO*: figure out whether it is possible to use ACE_NULL_SYNCH in this case
  : public Stream_TaskBase_T<ACE_SYNCH_USE,
                             TimePolicyType,
                             Common_IRecursiveLock_T<ACE_SYNCH_USE>,
@@ -86,7 +85,14 @@ class Stream_TaskBaseAsynch_T
   virtual int put (ACE_Message_Block*,
                    ACE_Time_Value* = NULL);
 
-  // implement Common_ITaskControl_T
+  // implement Common_IAsynchTask
+  // *NOTE*: tests for MB_STOP anywhere in the queue. Note that this does not
+  //         block, or dequeue any message
+  // *NOTE*: ACE_Message_Queue_Iterator does its own locking, i.e. access
+  //         happens in lockstep, which is both inefficient and yields
+  //         unpredictable results
+  //         --> use Common_MessageQueueIterator_T and lock the queue manually
+  virtual bool isShuttingDown ();
   // enqueue MB_STOP --> stop worker thread(s)
   virtual void stop (bool = true,  // wait for completion ?
                      bool = true,  // high priority ? (i.e. do not wait for queued messages)
@@ -101,9 +107,6 @@ class Stream_TaskBaseAsynch_T
 
  protected:
   // convenient types
-//  typedef Stream_MessageQueue_T<ACE_SYNCH_USE,
-//                                TimePolicyType,
-//                                SessionMessageType> MESSAGE_QUEUE_T;
   typedef Stream_TaskBase_T<ACE_SYNCH_USE,
                             TimePolicyType,
                             Common_IRecursiveLock_T<ACE_SYNCH_USE>,

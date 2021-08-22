@@ -50,8 +50,7 @@ template <ACE_SYNCH_DECL,
 class Stream_TaskBaseSynch_T
 // *TODO*: figure out how to use ACE_NULL_SYNCH in this case; the problem starts
 //         when specifying different synchronization between modules, as the
-//         ACE_Stream class currently uses a single template parameter for all
-//         modules
+//         ACE_Module/ACE_Stream classes currently use a single template parameter
  : public Stream_TaskBase_T<ACE_SYNCH_USE,
                             TimePolicyType,
                             LockType,
@@ -90,9 +89,10 @@ class Stream_TaskBaseSynch_T
   inline virtual int put (ACE_Message_Block* messageBlock_in, ACE_Time_Value* timeout_in = NULL) { ACE_UNUSED_ARG (timeout_in); bool stop_processing = false; inherited::handleMessage (messageBlock_in, stop_processing); return 0; }
 
   // implement Common_ITaskControl_T
-  inline virtual void stop (bool = true,    // wait for completion ?
-                            bool = true,    // high priority ? (i.e. do not wait for queued messages)
-                            bool = true) {} // locked access ?
+  inline virtual bool isShuttingDown () { return false; }
+  inline virtual void stop (bool = true,    // N/A
+                            bool = true,    // N/A
+                            bool = true) {} // N/A
 
   // implement Stream_ITask_T
   inline virtual void waitForIdleState () const {}

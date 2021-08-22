@@ -208,7 +208,7 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
         //         STREAM_SESSION_END
         int error = ACE_OS::last_error ();
         if (error != ESHUTDOWN)
-          ACE_DEBUG ((LM_DEBUG,
+          ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("%s: failed to ACE_Task::putq(): \"%m\", aborting\n"),
                       inherited::mod_->name ()));
       } // end IF
@@ -578,17 +578,20 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
   STREAM_TRACE (ACE_TEXT ("Stream_HeadModuleTaskBase_T::svc"));
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
+#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0A00) // _WIN32_WINNT_WIN10
+  Common_Error_Tools::setThreadName (inherited::threadName_,
+                                     NULL);
+#else
   Common_Error_Tools::setThreadName (inherited::threadName_,
                                      0);
+#endif // _WIN32_WINNT_WIN10
 #endif // ACE_WIN32 || ACE_WIN64
-#if defined (_DEBUG)
   ACE_DEBUG ((LM_DEBUG,
               ACE_TEXT ("%s: %sthread (id: %t, group: %d) starting\n"),
               inherited::mod_->name (),
               (concurrency_ == STREAM_HEADMODULECONCURRENCY_ACTIVE ? ACE_TEXT ("worker ")
                                                                    : ACE_TEXT ("")),
               inherited::grp_id_));
-#endif // _DEBUG
 
   // sanity check(s)
   ACE_ASSERT (inherited::sessionData_);
@@ -772,13 +775,80 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
   result = -1;
 
 done:
-#if defined (_DEBUG)
   ACE_DEBUG ((LM_DEBUG,
               ACE_TEXT ("%s: %sthread (id: %t) leaving\n"),
               inherited::mod_->name (),
               (concurrency_ == STREAM_HEADMODULECONCURRENCY_ACTIVE ? ACE_TEXT ("worker ")
                                                                    : ACE_TEXT (""))));
-#endif // _DEBUG
+
+  return result;
+}
+
+template <ACE_SYNCH_DECL,
+          typename TimePolicyType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
+          typename ConfigurationType,
+          typename SessionControlType,
+          typename SessionEventType,
+          typename StreamStateType,
+          typename SessionDataType,
+          typename SessionDataContainerType,
+          typename StatisticContainerType,
+          typename TimerManagerType,
+          typename UserDataType>
+bool
+Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
+                            TimePolicyType,
+                            ControlMessageType,
+                            DataMessageType,
+                            SessionMessageType,
+                            ConfigurationType,
+                            SessionControlType,
+                            SessionEventType,
+                            StreamStateType,
+                            SessionDataType,
+                            SessionDataContainerType,
+                            StatisticContainerType,
+                            TimerManagerType,
+                            UserDataType>::isShuttingDown ()
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_HeadModuleTaskBase_T::isShuttingDown"));
+
+  // sanity check(s)
+  switch (concurrency_)
+  {
+    case STREAM_HEADMODULECONCURRENCY_ACTIVE:
+    break;
+    case STREAM_HEADMODULECONCURRENCY_PASSIVE:
+    case STREAM_HEADMODULECONCURRENCY_CONCURRENT:
+      return false;
+    default:
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("%s: invalid/unknown concurrency mode (was:%d), aborting\n"),
+                  concurrency_));
+      return false;
+    }
+  } // end SWITCH
+  ACE_ASSERT (inherited::msg_queue_);
+
+  bool result = false;
+  ACE_Message_Block* message_block_p = NULL;
+  { ACE_GUARD_RETURN (ACE_SYNCH_MUTEX_T, aGuard, inherited::msg_queue_->lock (), false);
+    for (MESSAGE_QUEUE_ITERATOR_T iterator (*inherited::msg_queue_);
+         iterator.next (message_block_p);
+         iterator.advance ())
+    { ACE_ASSERT (message_block_p);
+      if (unlikely (message_block_p->msg_type () == ACE_Message_Block::MB_STOP))
+      {
+        result = true;
+        break;
+      } // end IF
+      message_block_p = NULL;
+    } // end FOR
+  } // end lock scope
 
   return result;
 }
@@ -861,150 +931,25 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
                       &interval));
           goto error;
         } // end IF
-#if defined (_DEBUG)
         ACE_DEBUG ((LM_DEBUG,
                     ACE_TEXT ("%s: scheduled statistic collecting timer (id: %d) for interval %#T\n"),
                     inherited::mod_->name (),
                     timerId_,
                     &interval));
-#endif // _DEBUG
       } // end IF
 
+      // *TODO*: move this to onChange (RUNNING)
       if ((concurrency_ == STREAM_HEADMODULECONCURRENCY_ACTIVE) &&
           !inherited::thr_count_)
       {
-        // spawn a worker thread
-        // *TODO*: rewrite for thread counts > 1 (see also: wait() above)
-        ACE_ASSERT (inherited::threadCount_ >= 1);
-
-        ACE_thread_t* thread_ids_p = NULL;
-        ACE_NEW_NORETURN (thread_ids_p,
-                          ACE_thread_t[inherited::threadCount_]);
-        if (unlikely (!thread_ids_p))
-        {
-          ACE_DEBUG ((LM_CRITICAL,
-                      ACE_TEXT ("%s: failed to allocate memory (%u), aborting\n"),
-                      inherited::mod_->name (),
-                      (sizeof (ACE_thread_t) * inherited::threadCount_)));
-          goto error;
-        } // end IF
-        ACE_OS::memset (thread_ids_p, 0, sizeof (thread_ids_p));
-        ACE_hthread_t* thread_handles_p = NULL;
-        ACE_NEW_NORETURN (thread_handles_p,
-                          ACE_hthread_t[inherited::threadCount_]);
-        if (unlikely (!thread_handles_p))
-        {
-          ACE_DEBUG ((LM_CRITICAL,
-                      ACE_TEXT ("%s: failed to allocate memory (%u), aborting\n"),
-                      inherited::mod_->name (),
-                      (sizeof (ACE_hthread_t) * inherited::threadCount_)));
-          delete [] thread_ids_p; thread_ids_p = NULL;
-          goto error;
-        } // end IF
-        ACE_OS::memset (thread_handles_p, 0, sizeof (thread_handles_p));
-        const char** thread_names_p = NULL;
-        ACE_NEW_NORETURN (thread_names_p,
-                          const char*[inherited::threadCount_]);
-        if (unlikely (!thread_names_p))
-        {
-          ACE_DEBUG ((LM_CRITICAL,
-                      ACE_TEXT ("%s: failed to allocate memory (%u), aborting\n"),
-                      inherited::mod_->name (),
-                      (sizeof (const char*) * inherited::threadCount_)));
-          delete [] thread_ids_p; thread_ids_p = NULL;
-          delete [] thread_handles_p; thread_handles_p = NULL;
-          goto error;
-        } // end IF
-        ACE_OS::memset (thread_names_p, 0, sizeof (thread_names_p));
-        char* thread_name_p = NULL;
-        std::string buffer;
-        std::ostringstream converter;
-        for (unsigned int i = 0;
-             i < inherited::threadCount_;
-             ++i)
-        {
-          thread_name_p = NULL;
-          ACE_NEW_NORETURN (thread_name_p,
-                            char[BUFSIZ]);
-          if (unlikely (!thread_name_p))
-          {
-            ACE_DEBUG ((LM_CRITICAL,
-                        ACE_TEXT ("%s: failed to allocate memory (%u), aborting\n"),
-                        inherited::mod_->name (),
-                        (sizeof (char) * BUFSIZ)));
-            delete [] thread_ids_p; thread_ids_p = NULL;
-            delete [] thread_handles_p; thread_handles_p = NULL;
-            for (unsigned int j = 0; j < i; j++)
-              delete [] thread_names_p[j];
-            delete [] thread_names_p; thread_names_p = NULL;
-            goto error;
-          } // end IF
-          ACE_OS::memset (thread_name_p, 0, sizeof (thread_name_p));
-          converter.clear ();
-          converter.str (ACE_TEXT_ALWAYS_CHAR (""));
-          converter << (i + 1);
-          buffer = inherited::threadName_;
-          buffer += ACE_TEXT_ALWAYS_CHAR (" #");
-          buffer += converter.str ();
-          ACE_OS::strcpy (thread_name_p,
-                          buffer.c_str ());
-          thread_names_p[i] = thread_name_p;
-        } // end FOR
-        result =
-          ACE_Task_Base::activate ((THR_NEW_LWP      |
-                                    THR_JOINABLE     |
-                                    THR_INHERIT_SCHED),                         // flags
-                                    static_cast<int> (inherited::threadCount_), // # threads
-                                    0,                                           // force spawning
-                                    ACE_DEFAULT_THREAD_PRIORITY,                 // priority
-                                    inherited::grp_id (),                       // group id (see above)
-                                    NULL,                                        // corresp. task --> use 'this'
-                                    thread_handles_p,                            // thread handle(s)
-                                    NULL,                                        // thread stack(s)
-                                    NULL,                                        // thread stack size(s)
-                                    thread_ids_p,                                // thread id(s)
-                                    thread_names_p);                             // thread name(s)
+        result = inherited::open (NULL);
         if (unlikely (result == -1))
         {
           ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("%s: failed to ACE_Task_Base::activate(): \"%m\", continuing\n"),
+                      ACE_TEXT ("%s: failed to ACE_Task_Base::open(): \"%m\", aborting\n"),
                       inherited::mod_->name ()));
-          delete[] thread_ids_p; thread_ids_p = NULL;
-          delete[] thread_handles_p; thread_handles_p = NULL;
-          for (unsigned int i = 0; i < inherited::threadCount_; i++)
-            delete[] thread_names_p[i];
-          delete[] thread_names_p; thread_names_p = NULL;
           goto error;
         } // end IF
-
-        std::ostringstream string_stream;
-        ACE_Thread_ID thread_id;
-        { ACE_GUARD (typename inherited::ITASKCONTROL_T::MUTEX_T, aGuard, inherited::lock_);
-          for (unsigned int i = 0;
-               i < inherited::threadCount_;
-               ++i)
-          {
-            string_stream << ACE_TEXT_ALWAYS_CHAR ("#") << (i + 1)
-                          << ACE_TEXT_ALWAYS_CHAR (" ")
-                          << thread_ids_p[i]
-                          << ACE_TEXT_ALWAYS_CHAR ("\n");
-            delete [] thread_names_p[i];
-            thread_id.handle (thread_handles_p[i]);
-            thread_id.id (thread_ids_p[i]);
-            inherited::threadIds_.push_back (thread_id);
-          } // end FOR
-        } // end lock scope
-        std::string thread_ids_string = string_stream.str ();
-        ACE_DEBUG ((LM_DEBUG,
-                    ACE_TEXT ("%s/%s spawned %u worker thread(s) (group: %d):\n%s"),
-                    inherited::mod_->name (),
-                    ACE_TEXT (inherited::threadName_.c_str ()),
-                    inherited::threadCount_,
-                    inherited::grp_id (),
-                    ACE_TEXT (thread_ids_string.c_str ())));
-        delete [] thread_ids_p; thread_ids_p = NULL;
-        delete [] thread_handles_p; thread_handles_p = NULL;
-        delete [] thread_names_p; thread_names_p = NULL;
       } // end IF
 
       break;
@@ -1018,13 +963,12 @@ error:
     {
       if (finishOnDisconnect_)
         inherited2::change (STREAM_STATE_FINISHED);
-
       break;
     }
     case STREAM_SESSION_MESSAGE_END:
     {
       // *NOTE*: only process the first 'session end' message (see above: 2566)
-      { ACE_GUARD (typename inherited::ITASKCONTROL_T::MUTEX_T, aGuard, inherited::lock_);
+      { ACE_GUARD (typename inherited::MUTEX_T, aGuard, inherited::lock_);
         if (unlikely (sessionEndProcessed_))
           break; // done
         sessionEndProcessed_ = true;
@@ -1996,25 +1940,26 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
   switch (newState_in)
   {
     case STREAM_STATE_INITIALIZED:
-    { ACE_GUARD (typename inherited::ITASKCONTROL_T::MUTEX_T, aGuard, inherited::lock_);
-      sessionEndSent_ = false;
-      sessionEndProcessed_ = false;
-
-      // --> re-initialize ?
-      if (unlikely (!inherited::threadIds_.empty ()))
-      {
+    {
+      { ACE_GUARD (typename inherited::MUTEX_T, aGuard, inherited::lock_);
+        sessionEndSent_ = false;
+        sessionEndProcessed_ = false;
+      
+        if (unlikely (!inherited::threadIds_.empty ()))
+        {
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-        ACE_hthread_t handle = inherited::threadIds_[0].handle ();
-        if (handle != ACE_INVALID_HANDLE)
-          if (!::CloseHandle (handle))
-            ACE_DEBUG ((LM_ERROR,
-                        ACE_TEXT ("%s: failed to CloseHandle(0x%@): \"%s\", continuing\n"),
-                        inherited::mod_->name (),
-                        handle,
-                        ACE_TEXT (Common_Error_Tools::errorToString (::GetLastError ()).c_str ())));
+          ACE_hthread_t handle = inherited::threadIds_[0].handle ();
+          if (handle != ACE_INVALID_HANDLE)
+            if (!::CloseHandle (handle))
+              ACE_DEBUG ((LM_ERROR,
+                          ACE_TEXT ("%s: failed to CloseHandle(0x%@): \"%s\", continuing\n"),
+                          inherited::mod_->name (),
+                          handle,
+                          ACE_TEXT (Common_Error_Tools::errorToString (::GetLastError ()).c_str ())));
 #endif // ACE_WIN32 || ACE_WIN64
-        inherited::threadIds_.clear ();
-      } // end IF
+          inherited::threadIds_.clear ();
+        } // end IF
+      } // end lock scope
       break;
     }
     case STREAM_STATE_RUNNING:
@@ -2042,7 +1987,7 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
               // task object not active --> resume the borrowed thread
 
               ACE_hthread_t handle;
-              { ACE_GUARD (typename inherited::ITASKCONTROL_T::MUTEX_T, aGuard, inherited::lock_);
+              { ACE_GUARD (typename inherited::MUTEX_T, aGuard, inherited::lock_);
                 handle = inherited::threadIds_[0].handle ();
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
                 ACE_ASSERT (handle != ACE_INVALID_HANDLE);
@@ -2055,18 +2000,21 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
                 ACE_DEBUG ((LM_ERROR,
                             ACE_TEXT ("%s: failed to ACE_Thread::resume(): \"%m\", continuing\n"),
                             inherited::mod_->name ()));
-
               break;
             }
+            case STREAM_HEADMODULECONCURRENCY_CONCURRENT:
             default:
               break;
           } // end SWITCH
-
           break;
         } // end IF
       } // end lock scope
 
       // send initial session message downstream ?
+      // *TODO*: this is currently pushed by the calling thread; start any
+      //         thread(s) first and push it (to the queue) afterwards,
+      //         otherwise active/passive baseclass thread(s) will never see
+      //         this session message...
       if (likely (generateSessionMessages_))
       {
         // *NOTE*: in 'concurrent' (server-side-)scenarios there is a race
@@ -2121,138 +2069,11 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
       {
         case STREAM_HEADMODULECONCURRENCY_ACTIVE:
         {
-          // spawn a worker thread
-          // *TODO*: rewrite for thread counts > 1 (see also: wait() above)
-          ACE_ASSERT (inherited::threadCount_ >= 1);
-
-          ACE_thread_t* thread_ids_p = NULL;
-          ACE_NEW_NORETURN (thread_ids_p,
-                            ACE_thread_t[inherited::threadCount_]);
-          if (unlikely (!thread_ids_p))
-          {
-            ACE_DEBUG ((LM_CRITICAL,
-                        ACE_TEXT ("%s: failed to allocate memory (%u), aborting\n"),
-                        inherited::mod_->name (),
-                        (sizeof (ACE_thread_t) * inherited::threadCount_)));
-            return;
-          } // end IF
-          ACE_OS::memset (thread_ids_p, 0, sizeof (thread_ids_p));
-          ACE_hthread_t* thread_handles_p = NULL;
-          ACE_NEW_NORETURN (thread_handles_p,
-                            ACE_hthread_t[inherited::threadCount_]);
-          if (unlikely (!thread_handles_p))
-          {
-            ACE_DEBUG ((LM_CRITICAL,
-                        ACE_TEXT ("%s: failed to allocate memory (%u), aborting\n"),
-                        inherited::mod_->name (),
-                        (sizeof (ACE_hthread_t) * inherited::threadCount_)));
-            delete [] thread_ids_p; thread_ids_p = NULL;
-            return;
-          } // end IF
-          ACE_OS::memset (thread_handles_p, 0, sizeof (thread_handles_p));
-          const char** thread_names_p = NULL;
-          ACE_NEW_NORETURN (thread_names_p,
-                            const char*[inherited::threadCount_]);
-          if (unlikely (!thread_names_p))
-          {
-            ACE_DEBUG ((LM_CRITICAL,
-                        ACE_TEXT ("%s: failed to allocate memory (%u), aborting\n"),
-                        inherited::mod_->name (),
-                        (sizeof (const char*) * inherited::threadCount_)));
-            delete [] thread_ids_p; thread_ids_p = NULL;
-            delete [] thread_handles_p; thread_handles_p = NULL;
-            return;
-          } // end IF
-          ACE_OS::memset (thread_names_p, 0, sizeof (thread_names_p));
-          char* thread_name_p = NULL;
-          std::string buffer;
-          std::ostringstream converter;
-          for (unsigned int i = 0;
-               i < inherited::threadCount_;
-               ++i)
-          {
-            thread_name_p = NULL;
-            ACE_NEW_NORETURN (thread_name_p,
-                              char[BUFSIZ]);
-            if (unlikely (!thread_name_p))
-            {
-              ACE_DEBUG ((LM_CRITICAL,
-                          ACE_TEXT ("%s: failed to allocate memory (%u), aborting\n"),
-                          inherited::mod_->name (),
-                          (sizeof (char) * BUFSIZ)));
-              delete [] thread_ids_p; thread_ids_p = NULL;
-              delete [] thread_handles_p; thread_handles_p = NULL;
-              for (unsigned int j = 0; j < i; j++)
-                delete [] thread_names_p[j];
-              delete [] thread_names_p; thread_names_p = NULL;
-              return;
-            } // end IF
-            ACE_OS::memset (thread_name_p, 0, sizeof (thread_name_p));
-            converter.clear ();
-            converter.str (ACE_TEXT_ALWAYS_CHAR (""));
-            converter << (i + 1);
-            buffer = inherited::threadName_;
-            buffer += ACE_TEXT_ALWAYS_CHAR (" #");
-            buffer += converter.str ();
-            ACE_OS::strcpy (thread_name_p,
-                            buffer.c_str ());
-            thread_names_p[i] = thread_name_p;
-          } // end FOR
-          result =
-            ACE_Task_Base::activate ((THR_NEW_LWP      |
-                                      THR_JOINABLE     |
-                                      THR_INHERIT_SCHED),                         // flags
-                                      static_cast<int> (inherited::threadCount_), // # threads
-                                      0,                                           // force spawning
-                                      ACE_DEFAULT_THREAD_PRIORITY,                 // priority
-                                      inherited::grp_id (),                       // group id (see above)
-                                      NULL,                                        // corresp. task --> use 'this'
-                                      thread_handles_p,                            // thread handle(s)
-                                      NULL,                                        // thread stack(s)
-                                      NULL,                                        // thread stack size(s)
-                                      thread_ids_p,                                // thread id(s)
-                                      thread_names_p);                             // thread name(s)
+          result = inherited::open (NULL);
           if (unlikely (result == -1))
-          {
             ACE_DEBUG ((LM_ERROR,
-                        ACE_TEXT ("%s: failed to ACE_Task_Base::activate(): \"%m\", continuing\n"),
+                        ACE_TEXT ("%s: failed to ACE_Task_Base::open(): \"%m\", continuing\n"),
                         inherited::mod_->name ()));
-            delete[] thread_ids_p; thread_ids_p = NULL;
-            delete[] thread_handles_p; thread_handles_p = NULL;
-            for (unsigned int i = 0; i < inherited::threadCount_; i++)
-              delete[] thread_names_p[i];
-            delete[] thread_names_p; thread_names_p = NULL;
-            break;
-          } // end IF
-
-          std::ostringstream string_stream;
-          ACE_Thread_ID thread_id;
-          { ACE_GUARD (typename inherited::ITASKCONTROL_T::MUTEX_T, aGuard, inherited::lock_);
-            for (unsigned int i = 0;
-                 i < inherited::threadCount_;
-                 ++i)
-            {
-              string_stream << ACE_TEXT_ALWAYS_CHAR ("#") << (i + 1)
-                            << ACE_TEXT_ALWAYS_CHAR (" ")
-                            << thread_ids_p[i]
-                            << ACE_TEXT_ALWAYS_CHAR ("\n");
-              delete [] thread_names_p[i];
-              thread_id.handle (thread_handles_p[i]);
-              thread_id.id (thread_ids_p[i]);
-              inherited::threadIds_.push_back (thread_id);
-            } // end FOR
-          } // end lock scope
-          std::string thread_ids_string = string_stream.str ();
-          ACE_DEBUG ((LM_DEBUG,
-                      ACE_TEXT ("%s/%s spawned %u worker thread(s) (group: %d):\n%s"),
-                      inherited::mod_->name (),
-                      ACE_TEXT (inherited::threadName_.c_str ()),
-                      inherited::threadCount_,
-                      inherited::grp_id (),
-                      ACE_TEXT (thread_ids_string.c_str ())));
-          delete [] thread_ids_p; thread_ids_p = NULL;
-          delete [] thread_handles_p; thread_handles_p = NULL;
-          delete [] thread_names_p; thread_names_p = NULL;
           break;
         }
         case STREAM_HEADMODULECONCURRENCY_PASSIVE:
@@ -2266,14 +2087,21 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
             inherited2::state_ = STREAM_STATE_RUNNING;
           } // end lock scope
 
-          { ACE_GUARD (typename inherited::ITASKCONTROL_T::MUTEX_T, aGuard_2, inherited::lock_);
+          { ACE_GUARD (typename inherited::MUTEX_T, aGuard_2, inherited::lock_);
             // sanity check(s)
             ACE_ASSERT (inherited::threadIds_.empty ());
 
             ACE_Thread_ID thread_id;
             thread_id.id (ACE_Thread::self ());
             ACE_hthread_t handle = ACE_INVALID_HANDLE;
-            ACE_Thread::self (handle);
+            result = ACE_Thread_Manager::instance ()->thr_self (handle);
+            if (unlikely (result == -1))
+            {
+              ACE_DEBUG ((LM_ERROR,
+                          ACE_TEXT ("%s: failed to ACE_Thread_Manager::thr_self(): \"%m\", returning\n"),
+                          inherited::mod_->name ()));
+              break;
+            } // end IF
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
             HANDLE process_handle = ::GetCurrentProcess ();
             if (unlikely (!::DuplicateHandle (process_handle,
@@ -2303,14 +2131,13 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
             ACE_DEBUG ((LM_ERROR,
                         ACE_TEXT ("%s: failed to ACE_Task_Base::close(): \"%m\", continuing\n"),
                         inherited::mod_->name ()));
-
           break;
         }
         case STREAM_HEADMODULECONCURRENCY_CONCURRENT:
         {
           // *IMPORTANT NOTE*: this means that there is no worker thread
           //                   driving this module (neither in-line, nor
-          //                   dedicated, svc() is not used); data is processed
+          //                   dedicated: svc() is not used); data is processed
           //                   in-line in put() by dispatching threads
 
           // *NOTE*: if any of the modules failed to initialize, signal the
@@ -2347,7 +2174,6 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
             } // end lock scope
             if (unlikely (finish_b))
               inherited2::finished ();
-
             session_data_container_p->decrease ();
           } // end IF
 
@@ -2368,7 +2194,6 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
         default:
           break;
       } // end SWITCH
-
       break;
     }
     case STREAM_STATE_PAUSED:
@@ -2383,11 +2208,10 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
             ACE_DEBUG ((LM_ERROR,
                         ACE_TEXT ("%s: failed to ACE_Task::suspend(): \"%m\", continuing\n"),
                         inherited::mod_->name ()));
-
           break;
         } // end IF
         case STREAM_HEADMODULECONCURRENCY_PASSIVE:
-        { ACE_GUARD (typename inherited::ITASKCONTROL_T::MUTEX_T, aGuard_2, inherited::lock_);
+        { ACE_GUARD (typename inherited::MUTEX_T, aGuard_2, inherited::lock_);
           // task object not active --> suspend the borrowed thread
           ACE_hthread_t handle = inherited::threadIds_[0].handle ();
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -2400,7 +2224,6 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
             ACE_DEBUG ((LM_ERROR,
                         ACE_TEXT ("%s: failed to ACE_Thread::suspend(): \"%m\", continuing\n"),
                         inherited::mod_->name ()));
-
           break;
         }
         default:
@@ -2428,11 +2251,10 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
                   ACE_DEBUG ((LM_ERROR,
                               ACE_TEXT ("%s: failed to ACE_Task::resume(): \"%m\", continuing\n"),
                               inherited::mod_->name ()));
-
                 break;
               } // end IF
               case STREAM_HEADMODULECONCURRENCY_PASSIVE:
-              { ACE_GUARD (typename inherited::ITASKCONTROL_T::MUTEX_T, aGuard_2, inherited::lock_);
+              { ACE_GUARD (typename inherited::MUTEX_T, aGuard_2, inherited::lock_);
                 // task is not 'active' --> resume the calling thread (i.e. the
                 // thread that invoked start())
                 ACE_hthread_t handle = inherited::threadIds_[0].handle ();
@@ -2446,18 +2268,16 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
                   ACE_DEBUG ((LM_ERROR,
                               ACE_TEXT ("%s: failed to ACE_Thread::resume(): \"%m\", continuing\n"),
                               inherited::mod_->name ()));
-
                 break;
               }
               default:
                 break;
             } // end SWITCH
-
             break;
           }
           case STREAM_STATE_FINISHED:
           {
-            done = true;
+            done = true; // --> do not update the state
             break;
           }
           default:
@@ -2481,15 +2301,13 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
           break;
         }
         case STREAM_HEADMODULECONCURRENCY_PASSIVE:
-        { ACE_GUARD (typename inherited::ITASKCONTROL_T::MUTEX_T, aGuard_2, inherited::lock_);
+        { ACE_GUARD (typename inherited::MUTEX_T, aGuard_2, inherited::lock_);
           ACE_ASSERT (!inherited::threadIds_.empty ());
           if (!ACE_OS::thr_equal (ACE_OS::thr_self (),
                                   inherited::threadIds_[0].id ()))
             this->stop (false, // wait ?
                         false, // high priority ?
                         true); // locked access ?
-          //// signal the controller
-          //inherited2::finished ();
           break;
         }
         case STREAM_HEADMODULECONCURRENCY_CONCURRENT:
@@ -2501,7 +2319,6 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
         default:
           break;
       } // end SWITCH
-
       break;
     }
     case STREAM_STATE_FINISHED:
@@ -2589,7 +2406,7 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
         ACE_ASSERT (istream_control_p);
         try {
           istream_control_p->control (STREAM_CONTROL_END,
-                                      false);
+                                      false); // recurse upstream ?
         } catch (...) {
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("%s: caught exception in Stream_IStreamControl_T::control(STREAM_CONTROL_END), continuing\n"),
@@ -2609,7 +2426,7 @@ continue_:
       //                   --> ensure that only a single 'session end' message
       //                       is generated and processed per session
       bool send_end_message = false;
-      { ACE_GUARD (typename inherited::ITASKCONTROL_T::MUTEX_T, aGuard, inherited::lock_);
+      { ACE_GUARD (typename inherited::MUTEX_T, aGuard, inherited::lock_);
         if (!sessionEndSent_ &&
             !sessionEndProcessed_) // already processed upstream 'session end' ?
         {
@@ -2663,7 +2480,6 @@ continue_:
           }
         } // end IF
       } // end IF
-
       break;
     }
     default:

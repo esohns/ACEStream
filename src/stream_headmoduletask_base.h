@@ -112,7 +112,15 @@ class Stream_HeadModuleTaskBase_T
   virtual int module_closed (void);
   virtual int svc (void);
 
-  using inherited::TASK_BASE_T::start;
+  // implement Common_IAsynchTask
+  // *NOTE*: tests for MB_STOP anywhere in the queue. Note that this does not
+  //         block, or dequeue any message
+  // *NOTE*: ACE_Message_Queue_Iterator does its own locking, i.e. access
+  //         happens in lockstep, which is both inefficient and yields
+  //         unpredictable results
+  //         --> use Common_MessageQueueIterator_T and lock the queue manually
+  virtual bool isShuttingDown ();
+  //using inherited::TASK_BASE_T::start;
 
   // implement Stream_IModuleHandler_T
 //  virtual const ConfigurationType& get () const;

@@ -295,11 +295,9 @@ Stream_TaskBaseAsynch_T<ACE_SYNCH_USE,
     // called from ACE_Task_Base on clean-up
     case 0:
     {
-#if defined (_DEBUG)
       ACE_DEBUG ((LM_DEBUG,
                   ACE_TEXT ("%s: worker thread (id was: %t) stopping...\n"),
                   inherited::mod_->name ()));
-#endif // _DEBUG
 
       if (inherited::thr_count_ == 0) // last thread ?
       {
@@ -312,14 +310,12 @@ Stream_TaskBaseAsynch_T<ACE_SYNCH_USE,
         if (unlikely (result == -1))
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("failed to ACE_Message_Queue::flush(): \"%m\", continuing\n")));
-#if defined (_DEBUG)
         else
           if (result)
             ACE_DEBUG ((LM_DEBUG,
                         ACE_TEXT ("%s: flushed %d message(s)\n"),
                         inherited::mod_->name (),
                         result));
-#endif // _DEBUG
       } // end IF
 
       // don't (need to) do anything
@@ -412,14 +408,12 @@ Stream_TaskBaseAsynch_T<ACE_SYNCH_USE,
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: failed to ACE_Message_Queue_T::flush(): \"%m\", aborting\n"),
                   inherited::mod_->name ()));
-#if defined (_DEBUG)
     else
       if (result > 0)
         ACE_DEBUG ((LM_DEBUG,
                     ACE_TEXT ("%s: flushed %d messages\n"),
                     inherited::mod_->name (),
                     result));
-#endif // _DEBUG
     messageBlock_in->release ();
     return (result > 0 ? 0 : result);
   } // end IF
@@ -427,6 +421,62 @@ Stream_TaskBaseAsynch_T<ACE_SYNCH_USE,
   // drop the message into the queue
   return inherited::putq (messageBlock_in,
                           timeout_in);
+}
+
+template <ACE_SYNCH_DECL,
+          typename TimePolicyType,
+          typename ConfigurationType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
+          typename SessionIdType,
+          typename SessionControlType,
+          typename SessionEventType,
+          typename UserDataType>
+bool
+Stream_TaskBaseAsynch_T<ACE_SYNCH_USE,
+                        TimePolicyType,
+                        ConfigurationType,
+                        ControlMessageType,
+                        DataMessageType,
+                        SessionMessageType,
+                        SessionIdType,
+                        SessionControlType,
+                        SessionEventType,
+                        UserDataType>::isShuttingDown ()
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_TaskBaseAsynch_T::isShuttingDown"));
+
+  // sanity check(s)
+  if (unlikely (!inherited::msg_queue_))
+  {
+    if (inherited::mod_)
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("%s: task has no message queue, returning\n"),
+                  inherited::mod_->name ()));
+    else
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("task has no message queue, returning\n")));
+    return true;
+  } // end IF
+
+  bool result = false;
+  ACE_Message_Block* message_block_p = NULL;
+  { ACE_GUARD_RETURN (ACE_SYNCH_MUTEX_T, aGuard, inherited::msg_queue_->lock (), false);
+    for (MESSAGE_QUEUE_ITERATOR_T iterator (*inherited::msg_queue_);
+         iterator.next (message_block_p);
+         iterator.advance ())
+    { ACE_ASSERT (message_block_p);
+      if (unlikely (message_block_p->msg_type () == ACE_Message_Block::MB_STOP))
+      {
+        result = true;
+        break;
+      } // end IF
+      message_block_p = NULL;
+    } // end FOR
+  } // end lock scope
+
+  return result;
 }
 
 template <ACE_SYNCH_DECL,

@@ -568,7 +568,7 @@ struct Test_I_Target_DirectShow_SignalHandlerConfiguration
    , statisticReportingHandler (NULL)
   {}
 
-  Net_IConnectionManagerBase_t*         connectionManager;
+  Net_IConnectionManagerBase*           connectionManager;
   Test_I_Target_DirectShow_IListener_t* listener;
   Net_IStreamStatisticHandler_t*        statisticReportingHandler;
 };
@@ -585,7 +585,7 @@ struct Test_I_Target_MediaFoundation_SignalHandlerConfiguration
    , statisticReportingHandler (NULL)
   {}
 
-  Net_IConnectionManagerBase_t*              connectionManager;
+  Net_IConnectionManagerBase*                connectionManager;
   Test_I_Target_MediaFoundation_IListener_t* listener;
   Net_IStreamStatisticHandler_t*             statisticReportingHandler;
 };
