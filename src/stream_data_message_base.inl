@@ -520,8 +520,10 @@ Stream_DataMessageBase_2<DataType,
   // sanity check(s)
   if (!inherited::isInitialized_ || !data_)
   {
+    static DataType dummy;
     ACE_ASSERT (false);
-    ACE_NOTREACHED (return DataType ();)
+    ACE_NOTSUP_RETURN (dummy);
+    ACE_NOTREACHED (return dummy;)
   } // end IF
   ACE_ASSERT (data_);
 

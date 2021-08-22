@@ -391,13 +391,13 @@ typedef Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_MT_SYNCH,
                                                           Stream_ControlMessage_t,
                                                           Test_U_AudioEffect_Message,
                                                           Test_U_AudioEffect_SessionMessage,
-                                                          struct Test_U_AudioEffect_SessionData,
+                                                          Test_U_AudioEffect_SessionData,
                                                           Test_U_AudioEffect_SessionData_t,
                                                           Common_Timer_Manager_t,
                                                           struct Stream_MediaFramework_ALSA_MediaType> Test_U_AudioEffect_Vis_SpectrumAnalyzer;
-DATASTREAM_MODULE_INPUT_ONLY (struct Test_U_AudioEffect_SessionData,                         // session data type
+DATASTREAM_MODULE_INPUT_ONLY (Test_U_AudioEffect_SessionData,                                // session data type
                               enum Stream_SessionMessageType,                                // session event type
-                              struct Test_U_AudioEffect_ALSA_ModuleHandlerConfiguration,          // module handler configuration type
+                              struct Test_U_AudioEffect_ALSA_ModuleHandlerConfiguration,     // module handler configuration type
                               libacestream_default_vis_spectrum_analyzer_module_name_string,
                               Stream_INotify_t,                                              // stream notification interface type
                               Test_U_AudioEffect_Vis_SpectrumAnalyzer);                      // writer type

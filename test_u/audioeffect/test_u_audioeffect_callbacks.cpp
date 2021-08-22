@@ -2340,7 +2340,7 @@ stream_processing_function (void* arg_in)
     NULL;
 #else
   const Test_U_AudioEffect_SessionData_t* session_data_container_p = NULL;
-  struct Test_U_AudioEffect_SessionData* session_data_p = NULL;
+  Test_U_AudioEffect_SessionData* session_data_p = NULL;
 #endif // ACE_WIN32 || ACE_WIN64
 
 //  GtkProgressBar* progress_bar_p = NULL;
