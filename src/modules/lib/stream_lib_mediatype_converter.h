@@ -58,9 +58,7 @@ class Stream_MediaFramework_MediaTypeConverter_T
   inline virtual ~Stream_MediaFramework_MediaTypeConverter_T () {}
 
  protected:
-//  template <typename T> MediaType getMediaType (const T& mediaType_in) { MediaType result; getMediaType_impl (mediaType_in, result); return result; }
-//  template <typename T, typename U> T getMediaType_2 (const U& mediaType_in) { T result; getMediaType_impl (mediaType_in, result); return result; }
-//  template <typename T, typename U> T getMediaType_2 (const U&) { T result; ACE_ASSERT (false); ACE_NOTSUP_RETURN (result); ACE_NOTREACHED (return result;) }
+  // ffmpeg
   inline void getMediaType (const struct Stream_MediaFramework_FFMPEG_VideoMediaType& mediaType_in, struct Stream_MediaFramework_FFMPEG_VideoMediaType& mediaType_inout) { mediaType_inout = mediaType_in; }
 
   // helper methods
@@ -85,7 +83,6 @@ class Stream_MediaFramework_MediaTypeConverter_T
   inline void getMediaType (const struct Stream_MediaFramework_ALSA_MediaType&, struct Stream_MediaFramework_FFMPEG_VideoMediaType&) { ACE_ASSERT (false); ACE_NOTSUP; ACE_NOTREACHED (return;) }
 
   // ffmpeg
-  inline void getMediaType (const struct Stream_MediaFramework_FFMPEG_VideoMediaType& mediaType_in, struct Stream_MediaFramework_FFMPEG_VideoMediaType& mediaType_out) { mediaType_out = mediaType_in; }
   void getMediaType (const struct Stream_MediaFramework_FFMPEG_VideoMediaType&, struct Stream_MediaFramework_V4L_MediaType&);
 
   // V4L
@@ -108,40 +105,8 @@ class Stream_MediaFramework_MediaTypeConverter_T
 #endif // ACE_WIN32 || ACE_WIN64
 
  private:
-//  ACE_UNIMPLEMENTED_FUNC (Stream_MediaFramework_MediaTypeConverter_T ())
   ACE_UNIMPLEMENTED_FUNC (Stream_MediaFramework_MediaTypeConverter_T (const Stream_MediaFramework_MediaTypeConverter_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_MediaFramework_MediaTypeConverter_T& operator= (const Stream_MediaFramework_MediaTypeConverter_T&))
-
-//  inline void setFormat_impl (enum AVPixelFormat format_in, enum AVPixelFormat& mediaType_inout) { mediaType_inout = format_in; }
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-//  void setFormat_impl (enum AVPixelFormat, struct _AMMediaType*&);
-//  void setFormat_impl (enum AVPixelFormat, IMFMediaType*&);
-#else
-//  inline void setFormat_impl (enum AVPixelFormat format_in, struct Stream_MediaFramework_FFMPEG_VideoMediaType& mediaType_inout) { mediaType_inout.format = format_in; }
-//  inline void setFormat_impl (enum AVPixelFormat format_in, struct Stream_MediaFramework_V4L_MediaType& mediaType_inout) { mediaType_inout.format.pixelformat = Stream_Device_Tools::ffmpegFormatToV4L2Format (format_in); }
-
-//  inline void setResolution_impl (const Common_Image_Resolution_t& resolution_in, struct Stream_MediaFramework_FFMPEG_VideoMediaType& mediaType_inout) { mediaType_inout.resolution = resolution_in; }
-//  inline void setResolution_impl (const Common_Image_Resolution_t& resolution_in, struct Stream_MediaFramework_V4L_MediaType& mediaType_inout) { mediaType_inout.format.width = resolution_in.width; mediaType_inout.format.height = resolution_in.height; }
-#endif // ACE_WIN32 || ACE_WIN64
-
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-//  // *IMPORTANT NOTE*: return values need to be Stream_Module_Device_DirectShow_Tools::free'd !
-//  void getMediaType_impl (const struct _AMMediaType&, struct _AMMediaType&);
-//  void getMediaType_impl (const struct _AMMediaType&, struct Stream_MediaFramework_FFMPEG_VideoMediaType&);
-
-//  void getMediaType_impl (const IMFMediaType*&, struct _AMMediaType&);
-//  void getMediaType_impl (const IMFMediaType*&, struct Stream_MediaFramework_FFMPEG_VideoMediaType&);
-
-//  void getMediaType_impl (const struct Stream_MediaFramework_FFMPEG_VideoMediaType&, struct _AMMediaType&);
-//  void getMediaType_impl (const struct Stream_MediaFramework_FFMPEG_VideoMediaType&, IMFMediaType*&);
-#else
-//  inline void getMediaType_impl (const struct Stream_MediaFramework_V4L_MediaType& mediaType_in, struct Stream_MediaFramework_V4L_MediaType& mediaType_out) { mediaType_out = mediaType_in; }
-//  void getMediaType_impl (const struct Stream_MediaFramework_V4L_MediaType&, struct Stream_MediaFramework_FFMPEG_VideoMediaType&);
-
-//  inline void getMediaType_impl (const struct Stream_MediaFramework_ALSA_MediaType& mediaType_in, struct Stream_MediaFramework_ALSA_MediaType& mediaType_out) { mediaType_out = mediaType_in; }
-//  inline void getMediaType_impl (const struct Stream_MediaFramework_ALSA_MediaType&, struct Stream_MediaFramework_FFMPEG_VideoMediaType&) { ACE_ASSERT (false); ACE_NOTSUP; ACE_NOTREACHED (return;) }
-#endif // ACE_WIN32 || ACE_WIN64
-//  inline void getMediaType_impl (const struct Stream_MediaFramework_FFMPEG_VideoMediaType& mediaType_in, struct Stream_MediaFramework_FFMPEG_VideoMediaType& mediaType_out) { mediaType_out = mediaType_in; }
 };
 
 // include template definition

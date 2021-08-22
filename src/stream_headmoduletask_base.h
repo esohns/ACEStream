@@ -175,9 +175,6 @@ class Stream_HeadModuleTaskBase_T
   typedef ACE_Singleton<TimerManagerType,
                         ACE_SYNCH_MUTEX> TIMER_MANAGER_SINGLETON_T;
   typedef Common_StatisticHandler_T<StatisticContainerType> STATISTIC_HANDLER_T;
-  typedef Stream_MessageQueue_T<ACE_SYNCH_USE,
-                                TimePolicyType,
-                                SessionMessageType> MESSAGE_QUEUE_T;
   typedef Stream_TaskBase_T<ACE_SYNCH_USE,
                             TimePolicyType,
                             ConfigurationType,
@@ -232,8 +229,8 @@ class Stream_HeadModuleTaskBase_T
   //                     [Note that in this case, stream processing is already
   //                     finished once the thread returns from start(), i.e.
   //                     there is no point in calling waitForCompletion().]
-  enum Stream_HeadModuleConcurrency concurrency_;
-  bool                              finishOnDisconnect_;
+  enum Stream_HeadModuleConcurrency   concurrency_;
+  bool                                finishOnDisconnect_;
   // *NOTE*: applies to the concurrent/synchronous sub-downstream (i.e. the
   //         sub-stream until the next asynchronous module). If disabled, this
   //         enforces that all messages pass through the sub-stream strictly
@@ -246,20 +243,20 @@ class Stream_HeadModuleTaskBase_T
   //         message processing to support (down)stream synchronization.
   //         Note that this overhead is not negligible
   //         --> disable only if absolutely necessary
-  bool                              hasReentrantSynchronousSubDownstream_;
+  bool                                hasReentrantSynchronousSubDownstream_;
 
   //typename ACE_SYNCH_USE::RECURSIVE_MUTEX lock_;
-  MESSAGE_QUEUE_T                   queue_;
+  typename inherited::MESSAGE_QUEUE_T queue_;
 
-  bool                              sessionEndProcessed_;
-  bool                              sessionEndSent_;
-  ACE_SYNCH_MUTEX_T                 stateMachineLock_;
-  ILOCK_T*                          streamLock_;
-  StreamStateType*                  streamState_;
+  bool                                sessionEndProcessed_;
+  bool                                sessionEndSent_;
+  ACE_SYNCH_MUTEX_T                   stateMachineLock_;
+  ILOCK_T*                            streamLock_;
+  StreamStateType*                    streamState_;
 
   // timer
-  STATISTIC_HANDLER_T               statisticHandler_;
-  long                              timerId_;
+  STATISTIC_HANDLER_T                 statisticHandler_;
+  long                                timerId_;
 
  private:
   // convenient types
@@ -298,8 +295,8 @@ class Stream_HeadModuleTaskBase_T
   inline virtual void rewind () { ACE_ASSERT (false); ACE_NOTSUP; ACE_NOTREACHED (return;) }
 
   // *NOTE*: starts a worker thread in open (), i.e. when push()ed onto a stream
-  bool                              autoStart_;
-  bool                              generateSessionMessages_;
+  bool                                autoStart_;
+  bool                                generateSessionMessages_;
 };
 
 // include template definition

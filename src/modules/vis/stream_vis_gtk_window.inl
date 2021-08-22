@@ -234,9 +234,7 @@ Stream_Module_Vis_GTK_Window_T<ACE_SYNCH_USE,
 
       gdk_threads_leave ();
 
-      ACE_thread_t thread_id;
-      inherited::start (thread_id);
-      ACE_UNUSED_ARG (thread_id);
+      inherited::start (NULL);
 
       break;
 

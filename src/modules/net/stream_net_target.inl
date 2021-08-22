@@ -718,7 +718,7 @@ continue_:
       typename ConnectorType::ISTREAM_CONNECTION_T* istream_connection_p = NULL;
       typename ConnectorType::STREAM_T* stream_p = NULL;
 
-      ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, lock_);
+      ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, inherited::lock_);
 
       if (likely (connection_))
       {

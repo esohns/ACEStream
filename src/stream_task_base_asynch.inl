@@ -435,7 +435,7 @@ Stream_TaskBaseAsynch_T<ACE_SYNCH_USE,
   bool result = false;
   ACE_Message_Block* message_block_p = NULL;
   { ACE_GUARD_RETURN (ACE_SYNCH_MUTEX_T, aGuard, inherited::msg_queue_->lock (), false);
-    for (MESSAGE_QUEUE_ITERATOR_T iterator (*inherited::msg_queue_);
+    for (typename inherited::MESSAGE_QUEUE_ITERATOR_T iterator (*inherited::msg_queue_);
          iterator.next (message_block_p);
          iterator.advance ())
     { ACE_ASSERT (message_block_p);

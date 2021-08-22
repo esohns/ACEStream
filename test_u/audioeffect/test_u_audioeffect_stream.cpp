@@ -34,15 +34,18 @@
 #include "stream_macros.h"
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-#include "stream_dec_defines.h"
-
-#include "stream_dev_defines.h"
-#include "stream_dev_directshow_tools.h"
-#include "stream_dev_mediafoundation_tools.h"
-
 #include "stream_lib_defines.h"
 #include "stream_lib_directshow_tools.h"
 #include "stream_lib_mediafoundation_tools.h"
+#endif // ACE_WIN32 || ACE_WIN64
+
+#include "stream_dec_defines.h"
+
+#include "stream_dev_defines.h"
+
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#include "stream_dev_directshow_tools.h"
+#include "stream_dev_mediafoundation_tools.h"
 #endif // ACE_WIN32 || ACE_WIN64
 
 #include "test_u_audioeffect_common_modules.h"

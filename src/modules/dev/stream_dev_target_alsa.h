@@ -26,8 +26,6 @@
 #include "ace/Global_Macros.h"
 #include "ace/Synch_Traits.h"
 
-#include "common_time_common.h"
-
 #include "stream_common.h"
 #include "stream_task_base_asynch.h"
 
@@ -46,7 +44,6 @@ template <ACE_SYNCH_DECL,
           typename DataMessageType,
           typename SessionMessageType,
           ////////////////////////////////
-          typename SessionIdType,
           typename SessionDataType>
 class Stream_Dev_Target_ALSA_T
  : public Stream_TaskBaseAsynch_T<ACE_SYNCH_USE,
@@ -55,7 +52,6 @@ class Stream_Dev_Target_ALSA_T
                                   ControlMessageType,
                                   DataMessageType,
                                   SessionMessageType,
-                                  SessionIdType,
                                   enum Stream_ControlType,
                                   enum Stream_SessionMessageType,
                                   struct Stream_UserData>
@@ -66,7 +62,6 @@ class Stream_Dev_Target_ALSA_T
                                   ControlMessageType,
                                   DataMessageType,
                                   SessionMessageType,
-                                  SessionIdType,
                                   enum Stream_ControlType,
                                   enum Stream_SessionMessageType,
                                   struct Stream_UserData> inherited;

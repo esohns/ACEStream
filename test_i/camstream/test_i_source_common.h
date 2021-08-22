@@ -468,8 +468,7 @@ struct Test_I_Source_MediaFoundation_ModuleHandlerConfiguration
   IMFVideoDisplayControl*                                   windowController;
 };
 #else
-typedef Stream_ISessionDataNotify_T<Stream_SessionId_t,
-                                    Test_I_Source_V4L_SessionData,
+typedef Stream_ISessionDataNotify_T<Test_I_Source_V4L_SessionData,
                                     enum Stream_SessionMessageType,
                                     Test_I_Source_V4L_Stream_Message,
                                     Test_I_Source_V4L_SessionMessage> Test_I_Source_V4L_ISessionNotify_t;

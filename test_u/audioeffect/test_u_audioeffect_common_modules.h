@@ -376,7 +376,6 @@ typedef Stream_Dev_Target_ALSA_T<ACE_MT_SYNCH,
                                  Stream_ControlMessage_t,
                                  Test_U_AudioEffect_Message,
                                  Test_U_AudioEffect_SessionMessage,
-                                 Stream_SessionId_t,
                                  Test_U_AudioEffect_SessionData> Test_U_AudioEffect_Target_ALSA;
 DATASTREAM_MODULE_INPUT_ONLY (Test_U_AudioEffect_SessionData,                          // session data type
                               enum Stream_SessionMessageType,                          // session event type

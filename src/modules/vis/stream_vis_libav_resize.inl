@@ -287,7 +287,7 @@ Stream_Visualization_LibAVResize_T<ACE_SYNCH_USE,
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: input format (was: %d) is compressed; cannot resize, aborting\n"),
                     inherited::mod_->name (),
-                    ACE_TEXT (Stream_Module_Decoder_Tools::pixelFormatToString (inherited::inputFormat_).c_str ())));
+                    ACE_TEXT (Stream_MediaFramework_Tools::pixelFormatToString (inherited::inputFormat_).c_str ())));
         goto error;
       } // end IF
       // *TODO*: remove type inferences

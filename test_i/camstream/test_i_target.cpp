@@ -1216,7 +1216,6 @@ do_work (unsigned int bufferSize_in,
   int group_id = -1;
   Net_IStreamStatisticHandler_t* report_handler_p = NULL;
   bool result_2 = false;
-  ACE_thread_t thread_id = 0;
 #if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
   Common_UI_GTK_Manager_t* gtk_manager_p = NULL;

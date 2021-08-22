@@ -130,7 +130,6 @@ class Test_U_AudioEffect_Module_EventHandler
                                          Stream_ControlMessage_t,
                                          Test_U_AudioEffect_Message,
                                          Test_U_AudioEffect_SessionMessage,
-                                         Stream_SessionId_t,
                                          Test_U_AudioEffect_SessionData,
                                          struct Test_U_UserData>
 {
@@ -140,7 +139,6 @@ class Test_U_AudioEffect_Module_EventHandler
                                          Stream_ControlMessage_t,
                                          Test_U_AudioEffect_Message,
                                          Test_U_AudioEffect_SessionMessage,
-                                         Stream_SessionId_t,
                                          Test_U_AudioEffect_SessionData,
                                          struct Test_U_UserData> inherited;
 

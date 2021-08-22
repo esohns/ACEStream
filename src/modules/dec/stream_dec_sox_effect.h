@@ -31,9 +31,6 @@
 #include "ace/Global_Macros.h"
 #include "ace/Synch_Traits.h"
 
-#include "common_ilock.h"
-#include "common_time_common.h"
-
 #include "stream_task_base_synch.h"
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -44,7 +41,6 @@
 extern const char libacestream_default_dec_sox_effect_module_name_string[];
 
 // forward declarations
-struct v4l2_format;
 class ACE_Message_Block;
 class Stream_IAllocator;
 
@@ -62,24 +58,20 @@ template <ACE_SYNCH_DECL,
 class Stream_Decoder_SoXEffect_T
  : public Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
                                  TimePolicyType,
-                                 Common_ILock_T<ACE_SYNCH_USE>,
                                  ConfigurationType,
                                  ControlMessageType,
                                  DataMessageType,
                                  SessionMessageType,
-                                 Stream_SessionId_t,
                                  enum Stream_ControlType,
                                  enum Stream_SessionMessageType,
                                  struct Stream_UserData>
 {
   typedef Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
                                  TimePolicyType,
-                                 Common_ILock_T<ACE_SYNCH_USE>,
                                  ConfigurationType,
                                  ControlMessageType,
                                  DataMessageType,
                                  SessionMessageType,
-                                 Stream_SessionId_t,
                                  enum Stream_ControlType,
                                  enum Stream_SessionMessageType,
                                  struct Stream_UserData> inherited;

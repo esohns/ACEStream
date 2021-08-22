@@ -156,7 +156,7 @@ struct Test_I_Target_StreamConfiguration;
 struct Test_I_Target_StreamState;
 
 typedef Stream_SessionData_T<Test_I_Target_SessionData> Test_I_Target_SessionData_t;
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 typedef Common_StatisticHandler_T<Net_StreamStatistic_t> Test_I_Source_StatisticHandler_t;
@@ -222,14 +222,12 @@ typedef Net_StreamConnectionConfiguration_T<Test_I_Source_V4L_StreamConfiguratio
 typedef Net_StreamConnectionConfiguration_T<Test_I_Source_V4L_StreamConfiguration_t,
                                             NET_TRANSPORTLAYER_UDP> Test_I_Source_V4L_UDPConnectionConfiguration_t;
 
-typedef Net_IConnectionManager_T<ACE_MT_SYNCH,
-                                 ACE_INET_Addr,
+typedef Net_IConnectionManager_T<ACE_INET_Addr,
                                  Test_I_Source_V4L_TCPConnectionConfiguration_t,
                                  struct Net_StreamConnectionState,
                                  Net_StreamStatistic_t,
                                  struct Net_UserData> Test_I_Source_V4L_ITCPConnectionManager_t;
-typedef Net_IConnectionManager_T<ACE_MT_SYNCH,
-                                 ACE_INET_Addr,
+typedef Net_IConnectionManager_T<ACE_INET_Addr,
                                  Test_I_Source_V4L_UDPConnectionConfiguration_t,
                                  struct Net_StreamConnectionState,
                                  Net_StreamStatistic_t,
@@ -247,7 +245,7 @@ typedef Net_Connection_Manager_T<ACE_MT_SYNCH,
                                  struct Net_StreamConnectionState,
                                  Net_StreamStatistic_t,
                                  struct Net_UserData> Test_I_Source_V4L_UDPConnectionManager_t;
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 struct Test_I_Target_DirectShow_StreamConfiguration;
@@ -306,14 +304,12 @@ typedef Net_StreamConnectionConfiguration_T<Test_I_Target_StreamConfiguration_t,
 typedef Net_StreamConnectionConfiguration_T<Test_I_Target_StreamConfiguration_t,
                                             NET_TRANSPORTLAYER_UDP> Test_I_Target_UDPConnectionConfiguration_t;
 
-typedef Net_IConnectionManager_T<ACE_MT_SYNCH,
-                                 ACE_INET_Addr,
+typedef Net_IConnectionManager_T<ACE_INET_Addr,
                                  Test_I_Target_TCPConnectionConfiguration_t,
                                  struct Net_StreamConnectionState,
                                  Net_StreamStatistic_t,
                                  struct Net_UserData> Test_I_Target_ITCPConnectionManager_t;
-typedef Net_IConnectionManager_T<ACE_MT_SYNCH,
-                                 ACE_INET_Addr,
+typedef Net_IConnectionManager_T<ACE_INET_Addr,
                                  Test_I_Target_UDPConnectionConfiguration_t,
                                  struct Net_StreamConnectionState,
                                  Net_StreamStatistic_t,
@@ -331,7 +327,7 @@ typedef Net_Connection_Manager_T<ACE_MT_SYNCH,
                                  struct Net_StreamConnectionState,
                                  Net_StreamStatistic_t,
                                  struct Net_UserData> Test_I_Target_UDPConnectionManager_t;
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
 
 //////////////////////////////////////////
 
@@ -454,7 +450,7 @@ typedef Stream_Module_Net_IO_Stream_T<ACE_MT_SYNCH,
                                       ACE_INET_Addr,
                                       Test_I_Source_V4L_UDPConnectionManager_t,
                                       struct Stream_UserData> Test_I_Source_V4L_Net_UDPStream_t;
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
 
 //////////////////////////////////////////
 
@@ -512,7 +508,7 @@ typedef Stream_Module_Net_IO_Stream_T<ACE_MT_SYNCH,
 //                          //Test_I_Target_UDPConnectionConfiguration_t,
 //                          struct Net_StreamConnectionState,
 //                          Net_StreamStatistic_t> Test_I_Target_IUDPConnection_t;
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
 
 //////////////////////////////////////////
 
@@ -628,7 +624,7 @@ typedef Net_AsynchUDPConnectionBase_T<Net_AsynchUDPSocketHandler_t,
                                       Net_StreamStatistic_t,
                                       Test_I_Source_V4L_Net_UDPStream_t,
                                       struct Net_UserData> Test_I_Source_V4L_AsynchUDPConnection_t;
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
 
 //////////////////////////////////////////
 
@@ -793,7 +789,7 @@ typedef Net_Client_AsynchConnector_T<Test_I_Source_V4L_AsynchUDPConnection_t,
                                      Net_UDPSocketConfiguration_t,
                                      Test_I_Source_V4L_Net_UDPStream_t,
                                      struct Net_UserData> Test_I_Source_V4L_UDPAsynchConnector_t;
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
 
 //////////////////////////////////////////
 
@@ -909,7 +905,7 @@ typedef Net_AsynchUDPConnectionBase_T<Net_AsynchUDPSocketHandler_t,
                                       Net_StreamStatistic_t,
                                       Test_I_Target_UDPStream,
                                       struct Net_UserData> Test_I_Target_AsynchUDPConnection_t;
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
 
 //////////////////////////////////////////
 

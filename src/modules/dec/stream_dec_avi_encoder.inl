@@ -862,7 +862,7 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("%s: invalid/unknown AVI pixel format (was: %s), returning\n"),
                       inherited::mod_->name (),
-                      ACE_TEXT (Stream_Module_Decoder_Tools::pixelFormatToString (format_.format).c_str ())));
+                      ACE_TEXT (Stream_MediaFramework_Tools::pixelFormatToString (format_.format).c_str ())));
           goto error;
         }
       } // end SWITCH

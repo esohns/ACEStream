@@ -29,8 +29,6 @@
 #include "stream_macros.h"
 #include "stream_session_message_base.h"
 
-//#include "stream_dec_defines.h"
-
 #include "stream_dev_defines.h"
 #include "stream_dev_tools.h"
 
@@ -139,7 +137,6 @@ template <ACE_SYNCH_DECL,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType,
-          typename SessionIdType,
           typename SessionDataType>
 Stream_Dev_Target_ALSA_T<ACE_SYNCH_USE,
                          TimePolicyType,
@@ -147,7 +144,6 @@ Stream_Dev_Target_ALSA_T<ACE_SYNCH_USE,
                          ControlMessageType,
                          DataMessageType,
                          SessionMessageType,
-                         SessionIdType,
                          SessionDataType>::Stream_Dev_Target_ALSA_T (typename inherited::ISTREAM_T* stream_in)
  : inherited (stream_in)
  , asynchCBData_ ()
@@ -167,7 +163,6 @@ template <ACE_SYNCH_DECL,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType,
-          typename SessionIdType,
           typename SessionDataType>
 Stream_Dev_Target_ALSA_T<ACE_SYNCH_USE,
                          TimePolicyType,
@@ -175,7 +170,6 @@ Stream_Dev_Target_ALSA_T<ACE_SYNCH_USE,
                          ControlMessageType,
                          DataMessageType,
                          SessionMessageType,
-                         SessionIdType,
                          SessionDataType>::~Stream_Dev_Target_ALSA_T ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Dev_Target_ALSA_T::~Stream_Dev_Target_ALSA_T"));
@@ -225,7 +219,6 @@ template <ACE_SYNCH_DECL,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType,
-          typename SessionIdType,
           typename SessionDataType>
 bool
 Stream_Dev_Target_ALSA_T<ACE_SYNCH_USE,
@@ -234,7 +227,6 @@ Stream_Dev_Target_ALSA_T<ACE_SYNCH_USE,
                          ControlMessageType,
                          DataMessageType,
                          SessionMessageType,
-                         SessionIdType,
                          SessionDataType>::initialize (const ConfigurationType& configuration_in,
                                                        Stream_IAllocator* allocator_in)
 {
@@ -357,7 +349,6 @@ template <ACE_SYNCH_DECL,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType,
-          typename SessionIdType,
           typename SessionDataType>
 void
 Stream_Dev_Target_ALSA_T<ACE_SYNCH_USE,
@@ -366,7 +357,6 @@ Stream_Dev_Target_ALSA_T<ACE_SYNCH_USE,
                          ControlMessageType,
                          DataMessageType,
                          SessionMessageType,
-                         SessionIdType,
                          SessionDataType>::handleDataMessage (DataMessageType*& message_inout,
                                                               bool& passMessageDownstream_out)
 {
@@ -508,7 +498,6 @@ template <ACE_SYNCH_DECL,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType,
-          typename SessionIdType,
           typename SessionDataType>
 void
 Stream_Dev_Target_ALSA_T<ACE_SYNCH_USE,
@@ -517,7 +506,6 @@ Stream_Dev_Target_ALSA_T<ACE_SYNCH_USE,
                          ControlMessageType,
                          DataMessageType,
                          SessionMessageType,
-                         SessionIdType,
                          SessionDataType>::handleSessionMessage (SessionMessageType*& message_inout,
                                                                  bool& passMessageDownstream_out)
 {
@@ -838,9 +826,8 @@ error:
       else
       {
         if (inherited::thr_count_)
-          inherited::stop (false, // wait ?
-                           false, // high priority ?
-                           true); // locked access ?
+          inherited::stop (false,  // wait ?
+                           false); // high priority ?
       } // end IF
 
       break;

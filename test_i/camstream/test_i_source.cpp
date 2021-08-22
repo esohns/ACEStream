@@ -822,7 +822,6 @@ do_work (const std::string& deviceIdentifier_in,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   bool is_running = false;
 #endif
-  ACE_thread_t thread_id = 0;
 
   // step0a: initialize event dispatch
   struct Test_I_CamStream_Configuration* camstream_configuration_p = NULL;

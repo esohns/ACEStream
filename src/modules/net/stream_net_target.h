@@ -114,8 +114,6 @@ class Stream_Module_Net_Target_T
   typename ConnectorType::ADDRESS_T              address_;
   bool                                           isOpen_;
   bool                                           isPassive_;
-  // *NOTE*: this lock prevents races during shutdown
-  //ACE_SYNCH_MUTEX                                lock_;
   bool                                           unlink_;
 };
 
