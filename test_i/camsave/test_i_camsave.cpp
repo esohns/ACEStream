@@ -1847,7 +1847,7 @@ error:
                   ACE_TEXT ("failed to start GTK event dispatch, returning\n")));
       goto clean;
     } // end IF
-    gtk_manager_p->wait ();
+    gtk_manager_p->wait (false);
 #elif (WXWIDGETS_USE)
     if (unlikely (!iapplication_in->run ()))
     {
