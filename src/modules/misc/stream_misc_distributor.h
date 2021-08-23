@@ -88,7 +88,7 @@ class Stream_Miscellaneous_Distributor_T
   inline virtual ~Stream_Miscellaneous_Distributor_T () {}
 
   // override some ACE_Task_Base members
-  inline virtual int open (void* = NULL) { return 0; }
+//  inline virtual int open (void* = NULL) { return 0; }
 
   // override (part of) Common_ITask_T
   inline virtual void waitForIdleState () const { OWN_TYPE_T* this_p = const_cast<OWN_TYPE_T*> (this); this_p->idle (); }

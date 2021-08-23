@@ -100,6 +100,8 @@ Stream_CamSave_SignalHandler::handle (const struct Common_Signal& signal_in)
 
       break;
     }
+    case SIGCHLD:
+      break;
     default:
     {
       // *PORTABILITY*: tracing in a signal handler context is not portable

@@ -510,7 +510,7 @@ Stream_Module_Decoder_Tools::AVPixelFormatToAVCodecId (enum AVPixelFormat pixelF
       result = AV_CODEC_ID_MJPEG; break;
     default:
     {
-      ACE_DEBUG ((LM_ERROR,
+      ACE_DEBUG ((LM_DEBUG,
                   ACE_TEXT ("invalid/unknown pixel format (was: %s), aborting\n"),
                   ACE_TEXT (Stream_MediaFramework_Tools::pixelFormatToString (pixelFormat_in).c_str ())));
       break;

@@ -5976,8 +5976,8 @@ combobox_rate_changed_cb (GtkWidget* widget_in,
   GtkTreeIter iterator_3;
   if (!gtk_combo_box_get_active_iter (GTK_COMBO_BOX (widget_in),
                                       &iterator_3))
-  {
-    ACE_DEBUG ((LM_ERROR,
+  { // *NOTE*: might be updating (i.e. in load_rates())
+    ACE_DEBUG ((LM_DEBUG,
                 ACE_TEXT ("failed to gtk_combo_box_get_active_iter(), returning\n")));
     return;
   } // end IF

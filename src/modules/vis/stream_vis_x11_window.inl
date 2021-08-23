@@ -538,13 +538,11 @@ Stream_Module_Vis_X11_Window_T<ACE_SYNCH_USE,
                   display_name_p));
       return false;
     } // end IF
-#if defined (_DEBUG)
     ACE_DEBUG ((LM_DEBUG,
                 ACE_TEXT ("%s: opened X11 connection to \"%s\" (display: %@, default depth: %d)\n"),
                 inherited::mod_->name (),
                 display_name_p, display_,
                 DefaultDepth (display_, DefaultScreen (display_))));
-#endif // _DEBUG
     closeDisplay_ = true;
   } // end ELSE
   ACE_ASSERT (display_);
@@ -610,13 +608,11 @@ Stream_Module_Vis_X11_Window_T<ACE_SYNCH_USE,
                   display_));
       return false;
     } // end IF
-#if defined (_DEBUG)
     ACE_DEBUG ((LM_DEBUG,
                 ACE_TEXT ("%s: created X11 window (display: %@, id: %u)\n"),
                 inherited::mod_->name (),
                 display_,
                 window_));
-#endif // _DEBUG
     closeWindow_ = true;
 //    XSelectInput (display_,
 //                  window_,
@@ -658,14 +654,12 @@ Stream_Module_Vis_X11_Window_T<ACE_SYNCH_USE,
 //      return false;
 //    } // end IF
   } // end ELSE
-#if defined (_DEBUG)
-    ACE_DEBUG ((LM_DEBUG,
-                ACE_TEXT ("%s: display %@ (window: %d, depth: %d)\n"),
-                inherited::mod_->name (),
-                display_, window_,
+  ACE_DEBUG ((LM_DEBUG,
+              ACE_TEXT ("%s: display %@ (window: %d, depth: %d)\n"),
+              inherited::mod_->name (),
+              display_, window_,
 //                32));
-                DefaultDepth (display_, DefaultScreen (display_))));
-#endif // _DEBUG
+              DefaultDepth (display_, DefaultScreen (display_))));
 
   return inherited::initialize (configuration_in,
                                 allocator_in);

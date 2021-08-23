@@ -295,7 +295,6 @@ Stream_Miscellaneous_Distributor_T<ACE_SYNCH_USE,
     // sanity check(s)
 //    ACE_ASSERT (branches_.empty ());
     branches_ = branches_in;
-    inherited::threadCount_ = branches_.size ();
   } // end lock scope
 
   return true;
@@ -334,8 +333,23 @@ Stream_Miscellaneous_Distributor_T<ACE_SYNCH_USE,
     return false;
   } // end IF
 
-  inherited::start (NULL);
+  // *NOTE*: this prevents a race condition in svc()
   { ACE_GUARD_RETURN (ACE_Thread_Mutex, aGuard, inherited::lock_, false);
+    ACE_ASSERT (!branches_.empty ());
+    inherited::threadCount_ = 1;
+    bool lock_activate_was_b = inherited::TASK_BASE_T::TASK_BASE_T::lockActivate_;
+    inherited::lockActivate_ = false;
+    if (unlikely (!inherited::start (NULL)))
+    {
+      ACE_DEBUG ((LM_CRITICAL,
+                  ACE_TEXT ("%s: failed to Common_Task_Base_T::start(), aborting\n"),
+                  inherited::mod_->name ()));
+      inherited::lockActivate_ = lock_activate_was_b;
+      inherited::threadCount_ = 0;
+      return false;
+    } // end IF
+    inherited::lockActivate_ = lock_activate_was_b;
+    inherited::threadCount_ = 0;
     ACE_ASSERT (!inherited::threadIds_.empty ());
     queues_.insert (std::make_pair (inherited::threadIds_[0].id (), queue_p));
     modules_.insert (std::make_pair (queue_p, module_in));
@@ -752,13 +766,11 @@ Stream_Miscellaneous_Distributor_T<ACE_SYNCH_USE,
   ACE_ASSERT (module_p);
   task_p = module_p->writer ();
   ACE_ASSERT (task_p);
-#if defined (_DEBUG)
   ACE_DEBUG ((LM_DEBUG,
               ACE_TEXT ("%s: worker thread (id: %t, group: %d, branch: \"%s\") starting\n"),
               inherited::mod_->name (),
               inherited::grp_id_,
               ACE_TEXT (branch_string.c_str ())));
-#endif // _DEBUG
 
   do
   {
