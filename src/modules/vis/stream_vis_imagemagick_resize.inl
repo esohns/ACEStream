@@ -199,7 +199,7 @@ Stream_Visualization_ImageMagickResize_T<ACE_SYNCH_USE,
     const_cast<typename SessionMessageType::DATA_T::DATA_T&> (inherited::sessionData_->getR ());
   // *TODO*: remove type inference
   ACE_ASSERT (!session_data_r.formats.empty ());
-  const MediaType& media_type_r = session_data_r.formats.front ();
+  const MediaType& media_type_r = session_data_r.formats.back ();
 
   switch (message_inout->type ())
   {
@@ -272,7 +272,7 @@ Stream_Visualization_ImageMagickResize_T<ACE_SYNCH_USE,
                                 media_type_s);
       ACE_ASSERT (session_data_r.lock);
       { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, *session_data_r.lock);
-        session_data_r.formats.push_front (media_type_s);
+        session_data_r.formats.push_back (media_type_s);
       } // end lock scope
 
       break;
@@ -716,12 +716,12 @@ Stream_Visualization_ImageMagickResize1_T<ACE_SYNCH_USE,
     case STREAM_SESSION_MESSAGE_BEGIN:
     {
       ACE_ASSERT (!session_data_r.formats.empty ());
-      const MediaType& media_type_r = session_data_r.formats.front ();
+      const MediaType& media_type_r = session_data_r.formats.back ();
       MediaType media_type_s = media_type_r;
       inherited::setResolution (inherited::configuration_->outputFormat.resolution,
                                 media_type_s);
       //media_type_s.resolution.cx = -media_type_s.resolution.cx;
-      session_data_r.formats.push_front (media_type_s);
+      session_data_r.formats.push_back (media_type_s);
 
       break;
 

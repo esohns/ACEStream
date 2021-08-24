@@ -1078,7 +1078,7 @@ Test_I_Source_MediaFoundation_Stream_T<StreamStateType,
     goto error;
   } // end IF
   ACE_ASSERT (session_data_r.formats.empty ());
-  session_data_r.formats.push_front (media_type_p);
+  session_data_r.formats.push_back (media_type_p);
   media_type_p = NULL;
   if (!Stream_MediaFramework_MediaFoundation_Tools::getOutputFormat (topology_p,
                                                                      (*iterator).second.second.sampleGrabberNodeId,
@@ -1090,7 +1090,7 @@ Test_I_Source_MediaFoundation_Stream_T<StreamStateType,
     goto error;
   } // end IF
   ACE_ASSERT (media_type_p);
-  session_data_r.formats.push_front (media_type_p);
+  session_data_r.formats.push_back (media_type_p);
   media_type_p = NULL;
 
 #if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
@@ -1404,7 +1404,7 @@ Test_I_Source_V4L_Stream_T<StreamStateType,
       const_cast<ConfigurationType&> (configuration_in).find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (iterator != configuration_in.end ());
   ACE_ASSERT (session_data_r.formats.empty ());
-  session_data_r.formats.push_front (configuration_in.configuration_->format);
+  session_data_r.formats.push_back (configuration_in.configuration_->format);
 
   // ---------------------------------------------------------------------------
   // sanity check(s)

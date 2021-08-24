@@ -45,4 +45,6 @@ Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_TaskBaseSynch_T::Stream_TaskBaseSynch_T"));
 
+  // do not spawn a thread in open()
+  inherited::threadCount_ = 0;
 }

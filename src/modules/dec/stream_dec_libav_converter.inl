@@ -330,17 +330,20 @@ Stream_Decoder_LibAVConverter_T<ACE_SYNCH_USE,
       // *TODO*: remove type inference
       ACE_ASSERT (!session_data_r.formats.empty ());
       struct Stream_MediaFramework_FFMPEG_VideoMediaType media_type_s;
-      inherited2::getMediaType (session_data_r.formats.front (),
+      inherited2::getMediaType (session_data_r.formats.back (),
                                 media_type_s);
+      ACE_ASSERT (!Stream_Module_Decoder_Tools::isCompressedVideo (media_type_s.format));
       MediaType media_type_2;
-      inherited2::getMediaType (session_data_r.formats.front (),
+      inherited2::getMediaType (session_data_r.formats.back (),
                                 media_type_2);
       int flags = 0;
+      int result = -1;
       inputFormat_ = media_type_s.format;
       struct Stream_MediaFramework_FFMPEG_VideoMediaType media_type_3;
       inherited2::getMediaType (inherited::configuration_->outputFormat,
                                 media_type_3);
-      int result = -1;
+      if (unlikely (inputFormat_ == media_type_3.format))
+        goto continue_2; // nothing to do
 
       // initialize conversion context
       ACE_ASSERT (!context_);
@@ -368,9 +371,7 @@ Stream_Decoder_LibAVConverter_T<ACE_SYNCH_USE,
       // sanity check(s)
       if (unlikely (media_type_3.format == AV_PIX_FMT_NONE))
         goto continue_;
-
-      if (likely (!Stream_Module_Decoder_Tools::isCompressedVideo (inputFormat_) &&
-                  (inputFormat_ != media_type_3.format)))
+      if (likely (inputFormat_ != media_type_3.format))
         ACE_DEBUG ((LM_DEBUG,
                     ACE_TEXT ("%s: converting pixel format %s to %s\n"),
                     inherited::mod_->name (),
@@ -431,10 +432,11 @@ continue_:
         inherited2::setFormat (media_type_3.format,
                                media_type_2);
         { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, *session_data_r.lock);
-          session_data_r.formats.push_front (media_type_2);
+          session_data_r.formats.push_back (media_type_2);
         } // end lock scope
       } // end IF
 
+continue_2:
       break;
 
 error:

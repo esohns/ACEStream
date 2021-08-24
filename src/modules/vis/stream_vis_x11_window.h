@@ -112,11 +112,12 @@ class Stream_Module_Vis_X11_Window_T
 //  uint8_t*           buffer_;
   bool              closeDisplay_;
   bool              closeWindow_;
-//  GC                 context_;
+  GC                context_;
   struct _XDisplay* display_;
   bool              isFirst_;
-  unsigned long     pixmap_;
-  unsigned long     window_;
+  Pixmap            pixmap_;
+  Visual*           visual_;
+  Window            window_;
 };
 
 // include template definition

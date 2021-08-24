@@ -398,7 +398,7 @@ Stream_Dev_Target_ALSA_T<ACE_SYNCH_USE,
   SessionDataType& session_data_r =
       const_cast<SessionDataType&> (inherited::sessionData_->getR ());
   struct Stream_MediaFramework_ALSA_MediaType& media_type_r =
-      session_data_r.formats.front ();
+      session_data_r.formats.back ();
 
   snd_pcm_sframes_t available_frames, frames_written = 0;
   int result = -1;
@@ -530,7 +530,7 @@ Stream_Dev_Target_ALSA_T<ACE_SYNCH_USE,
       SessionDataType& session_data_r =
           const_cast<SessionDataType&> (inherited::sessionData_->getR ());
       struct Stream_MediaFramework_ALSA_MediaType& media_type_r =
-          session_data_r.formats.front ();
+          session_data_r.formats.back ();
 
       bool stop_device = false;
       size_t initial_buffer_size = 0;

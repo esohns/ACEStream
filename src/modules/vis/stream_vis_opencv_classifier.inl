@@ -211,7 +211,7 @@ Stream_Visualization_OpenCVClassifier_T<ACE_SYNCH_USE,
         inherited::sessionData_->getR ();
       ACE_ASSERT (!session_data_r.formats.empty ());
 
-      inherited2::getMediaType (session_data_r.formats.front (),
+      inherited2::getMediaType (session_data_r.formats.back (),
                                 mediaType_);
 
       cv::namedWindow (cv::String (ACE_TEXT_ALWAYS_CHAR ("frame")),

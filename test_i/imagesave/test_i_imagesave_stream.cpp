@@ -171,7 +171,7 @@ Test_I_Stream::initialize (const inherited::CONFIGURATION_T& configuration_in)
 
   // ---------------------------------------------------------------------------
   // step5: update session data
-  session_data_p->formats.push_front (configuration_in.configuration_->format);
+  session_data_p->formats.push_back (configuration_in.configuration_->format);
 
   // ---------------------------------------------------------------------------
   // step6: initialize head module

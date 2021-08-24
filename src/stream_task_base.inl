@@ -68,6 +68,7 @@ Stream_TaskBase_T<ACE_SYNCH_USE,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_TaskBase_T::Stream_TaskBase_T"));
 
+  // *TODO*
   ACE_UNUSED_ARG (stream_in);
 }
 

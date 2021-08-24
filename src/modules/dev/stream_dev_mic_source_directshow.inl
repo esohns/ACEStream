@@ -1018,7 +1018,7 @@ Stream_Dev_Mic_Source_DirectShow_T<ACE_SYNCH_USE,
       const_cast<SessionDataType&> (inherited::sessionData_->getR ());
     ACE_ASSERT (!session_data_r.formats.empty ());
     const struct _AMMediaType& media_type_r =
-      session_data_r.formats.front ();
+      session_data_r.formats.back ();
     ACE_ASSERT (InlineIsEqualGUID (media_type_r.formattype, FORMAT_WaveFormatEx));
     struct tWAVEFORMATEX* waveformatex_p =
       reinterpret_cast<struct tWAVEFORMATEX*> (media_type_r.pbFormat);

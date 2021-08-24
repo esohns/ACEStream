@@ -436,7 +436,7 @@ Stream_Decoder_SoXEffect_T<ACE_SYNCH_USE,
       SessionDataType& session_data_r =
           const_cast<SessionDataType&> (inherited::sessionData_->getR ());
       struct Stream_MediaFramework_ALSA_MediaType& media_type_r =
-          getMediaType (session_data_r.formats.front ());
+          getMediaType (session_data_r.formats.back ());
 
       Stream_MediaFramework_Tools::ALSAToSoX (media_type_r.format,
                                               media_type_r.rate,

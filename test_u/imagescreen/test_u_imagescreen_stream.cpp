@@ -164,7 +164,7 @@ Stream_ImageScreen_Stream::initialize (const typename inherited::CONFIGURATION_T
   media_type_s.resolution.width  = 640;
   media_type_s.resolution.height = 480;
 #endif // ACE_WIN32 || ACE_WIN64
-  session_data_p->formats.push_front (media_type_s);
+  session_data_p->formats.push_back (media_type_s);
   //  session_data_p->targetFileName = configuration_p->fileIdentifier.identifier;
 
   // ---------------------------------------------------------------------------

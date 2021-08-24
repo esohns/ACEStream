@@ -146,7 +146,7 @@ Stream_Visualization_OpenGL_GLUT_T<ACE_SYNCH_USE,
         inherited::sessionData_->getR ();
       ACE_ASSERT (!session_data_r.formats.empty ());
 
-      inherited2::getMediaType (session_data_r.formats.front (),
+      inherited2::getMediaType (session_data_r.formats.back (),
                                 CBData_.mediaType);
 
       window_ = glutCreateWindow ("Bounce");

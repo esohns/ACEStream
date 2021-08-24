@@ -23,6 +23,8 @@
 
 //#include "X11/Xlib.h"
 
+#include "common_ui_tools.h"
+
 #include "stream_vis_defines.h"
 
 const char libacestream_default_vis_x11_window_module_name_string[] =

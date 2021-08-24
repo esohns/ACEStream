@@ -446,7 +446,7 @@ continue_:
 
   // ---------------------------------------------------------------------------
   // step5: update session data
-  session_data_p->formats.push_front (configuration_in.configuration_->format);
+  session_data_p->formats.push_back (configuration_in.configuration_->format);
   ACE_OS::memset (&media_type_s, 0, sizeof (struct _AMMediaType));
   if (!Stream_MediaFramework_DirectShow_Tools::getOutputFormat ((*iterator).second.second.builder,
                                                                 STREAM_LIB_DIRECTSHOW_FILTER_NAME_GRAB,
@@ -458,7 +458,7 @@ continue_:
                 ACE_TEXT_WCHAR_TO_TCHAR (STREAM_LIB_DIRECTSHOW_FILTER_NAME_GRAB)));
     goto error;
   } // end IF
-  session_data_p->formats.push_front (media_type_s);
+  session_data_p->formats.push_back (media_type_s);
   //ACE_ASSERT (Stream_MediaFramework_DirectShow_Tools::matchMediaType (*session_data_p->sourceFormat, *(*iterator).second.second.sourceFormat));
 
   // ---------------------------------------------------------------------------
@@ -1096,7 +1096,7 @@ continue_:
                 ACE_TEXT (stream_name_string_)));
     goto error;
   } // end IF
-  session_data_p->formats.push_front (media_type_p);
+  session_data_p->formats.push_back (media_type_p);
   media_type_p = NULL;
 
   if (!Stream_MediaFramework_MediaFoundation_Tools::getOutputFormat (topology_p,
@@ -1109,7 +1109,7 @@ continue_:
     goto error;
   } // end IF
   ACE_ASSERT (media_type_p);
-  session_data_p->formats.push_front (media_type_p);
+  session_data_p->formats.push_back (media_type_p);
   media_type_p = NULL;
 
 #if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
@@ -1507,8 +1507,7 @@ Stream_CamSave_V4L_Stream::load (Stream_ILayout* layout_in,
     } // end IF
 
     if (display_b)
-    { // *WARNING*: display modules must support uncompressed 24-bit RGB (at
-      //            native endianness)
+    {
       layout_in->append (&converter_, branch_p, index_i); // output is uncompressed 24-bit RGB
       layout_in->append (&resizer_, branch_p, index_i); // output is window size/fullscreen
 #if defined (GUI_SUPPORT)

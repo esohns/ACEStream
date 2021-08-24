@@ -525,7 +525,7 @@ Stream_Vis_Target_Direct3D_T<ACE_SYNCH_USE,
 
       // sanity check(s)
       ACE_ASSERT (!session_data_r.formats.empty ());
-      inherited2::getMediaType (session_data_r.formats.front (),
+      inherited2::getMediaType (session_data_r.formats.back (),
                                 media_type_s);
       resolution_s =
         Stream_MediaFramework_DirectShow_Tools::toResolution (media_type_s);
@@ -786,7 +786,7 @@ Stream_Vis_Target_Direct3D_T<ACE_SYNCH_USE,
   ACE_ASSERT (direct3DConfiguration_->handle);
 
   struct _AMMediaType media_type_s;
-  inherited2::getMediaType (session_data_r.formats.front (),
+  inherited2::getMediaType (session_data_r.formats.back (),
                             media_type_s);
   Common_Image_Resolution_t resolution_s =
     Stream_MediaFramework_DirectShow_Tools::toResolution (media_type_s);
@@ -2479,7 +2479,7 @@ Stream_Vis_MediaFoundation_Target_Direct3D_T<ACE_SYNCH_USE,
       ACE_OS::memset (&media_type_s, 0, sizeof (MediaType));
       inherited::getMediaType (media_type_p,
                                media_type_s);
-      session_data_r.formats.push_front (media_type_s);
+      session_data_r.formats.push_back (media_type_s);
       struct _AMMediaType media_type_2;
       ACE_OS::memset (&media_type_2, 0, sizeof (struct _AMMediaType));
       inherited::getMediaType (media_type_s,

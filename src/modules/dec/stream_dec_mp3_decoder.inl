@@ -292,7 +292,7 @@ Stream_Decoder_MP3Decoder_T<ACE_SYNCH_USE,
 
   // sanity check(s)
   ACE_ASSERT (!session_data_r.formats.empty ());
-  inherited2::getMediaType (session_data_r.formats.front (),
+  inherited2::getMediaType (session_data_r.formats.back (),
                             media_type_s);
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   ACE_ASSERT (InlineIsEqualGUID (media_type_s.formattype, FORMAT_WaveFormatEx));

@@ -268,7 +268,7 @@ Stream_Dev_Target_WavOut_T<ACE_SYNCH_USE,
           const_cast<SessionDataType&> (inherited::sessionData_->getR ());
       ACE_ASSERT (!session_data_r.formats.empty ());
       struct _AMMediaType& media_type_r =
-          session_data_r.formats.front ();
+          session_data_r.formats.back ();
       ACE_ASSERT (InlineIsEqualGUID (media_type_r.formattype, FORMAT_WaveFormatEx));
       ACE_ASSERT (media_type_r.pbFormat);
       struct tWAVEFORMATEX* waveformatex_p =

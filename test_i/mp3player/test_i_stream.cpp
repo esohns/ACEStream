@@ -142,7 +142,7 @@ Test_I_Stream::initialize (const Test_I_StreamConfiguration_t& configuration_in)
   media_type_s.format = SND_PCM_FORMAT_S16;
   media_type_s.rate = 44100;
 #endif // ACE_WIN32 || ACE_WIN64
-  session_data_p->formats.push_front (media_type_s);
+  session_data_p->formats.push_back (media_type_s);
   session_data_p->targetFileName =
     configuration_in.configuration_->fileIdentifier.identifier;
 //  configuration_in.moduleConfiguration.streamState = &state_;

@@ -409,7 +409,7 @@ continue_:
           // sanity check(s)
           // *TODO*: remove type inference
           ACE_ASSERT (!session_data_r.formats.empty ());
-          MediaType media_type_2 = session_data_r.formats.front ();
+          MediaType media_type_2 = session_data_r.formats.back ();
           inherited2::getMediaType (media_type_2,
                                     media_type_4);
           videoFrame_->format = media_type_4.format;

@@ -1047,14 +1047,12 @@ do_initialize_v4l (const std::string& deviceIdentifier_in,
 
   captureFormat_out =
       Stream_Device_Tools::defaultCaptureFormat (deviceIdentifier_in);
-#if defined (_DEBUG)
   ACE_DEBUG ((LM_DEBUG,
               ACE_TEXT ("\"%s\" (%d): default capture format: \"%s\" (%d), resolution: %ux%u, framerate: %u/%u\n"),
               ACE_TEXT (deviceIdentifier_in.c_str ()), deviceIdentifier_out.fileDescriptor,
               ACE_TEXT (Stream_Device_Tools::formatToString (deviceIdentifier_out.fileDescriptor, captureFormat_out.format.pixelformat).c_str ()), captureFormat_out.format.pixelformat,
               captureFormat_out.format.width, captureFormat_out.format.height,
               captureFormat_out.frameRate.numerator, captureFormat_out.frameRate.denominator));
-#endif // _DEBUG
   // *NOTE*: Gtk 2 expects RGB24
   // *NOTE*: "...CAIRO_FORMAT_ARGB32: each pixel is a 32-bit quantity, with
   //         alpha in the upper 8 bits, then red, then green, then blue. The
@@ -1203,6 +1201,9 @@ do_work (const std::string& captureinterfaceIdentifier_in,
 #endif // GUI_SUPPORT
 #else
   struct Stream_CamSave_V4L_ModuleHandlerConfiguration v4l_modulehandler_configuration;
+  struct Stream_CamSave_V4L_ModuleHandlerConfiguration v4l_converter_2_modulehandler_configuration; // save to file
+  struct Stream_CamSave_V4L_ModuleHandlerConfiguration v4l_x11_modulehandler_configuration;
+
   struct Stream_CamSave_V4L_StreamConfiguration v4l_stream_configuration;
   Stream_CamSave_V4L_EventHandler_t v4l_ui_event_handler (
 #if defined (GUI_SUPPORT)
@@ -1215,6 +1216,9 @@ do_work (const std::string& captureinterfaceIdentifier_in,
                                                           );
 #if defined (LIBCAMERA_SUPPORT)
   struct Stream_CamSave_LibCamera_ModuleHandlerConfiguration libcamera_modulehandler_configuration;
+  struct Stream_CamSave_LibCamera_ModuleHandlerConfiguration libcamera_converter_2_modulehandler_configuration; // save to file
+  struct Stream_CamSave_LibCamera_ModuleHandlerConfiguration libcamera_x11_modulehandler_configuration;
+
   struct Stream_CamSave_LibCamera_StreamConfiguration libcamera_stream_configuration;
   Stream_CamSave_LibCamera_EventHandler_t libcamera_ui_event_handler (
 #if defined (GUI_SUPPORT)
@@ -1574,20 +1578,11 @@ error:
     }
   } // end SWITCH
 #else
-  configuration_in.v4l_streamConfiguration.initialize (module_configuration,
-                                                       v4l_modulehandler_configuration,
-                                                       v4l_stream_configuration);
-#if defined (LIBCAMERA_SUPPORT)
-  configuration_in.libCamera_streamConfiguration.initialize (module_configuration,
-                                                             libcamera_modulehandler_configuration,
-                                                             libcamera_stream_configuration);
-#endif // LIBCAMERA_SUPPORT
-
   if (useLibCamera_in)
   {
 #if defined (LIBCAMERA_SUPPORT)
     if (!do_initialize_libcamera (libcamera_modulehandler_configuration.deviceIdentifier,
-                                  configuration_in.libCamera_streamConfiguration.configuration_->format,
+                                  libcamera_stream_configuration.format,
                                   libcamera_modulehandler_configuration.outputFormat))
     {
       ACE_DEBUG ((LM_ERROR,
@@ -1603,32 +1598,53 @@ error:
   else
     if (!do_initialize_v4l (captureinterfaceIdentifier_in,
                             v4l_modulehandler_configuration.deviceIdentifier,
-                            configuration_in.v4l_streamConfiguration.configuration_->format,
+                            v4l_stream_configuration.format,
                             v4l_modulehandler_configuration.outputFormat))
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to ::do_initialize_v4l(), returning\n")));
       return;
     } // end IF
+#endif // ACE_WIN32 || ACE_WIN64
 
-  v4l_modulehandler_configuration.display = displayDevice_in;
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#else
+  // *TODO*: X11 window crashes for 24 bit depths...
+  v4l_modulehandler_configuration.outputFormat.format = AV_PIX_FMT_RGB32;
+  configuration_in.v4l_streamConfiguration.initialize (module_configuration,
+                                                       v4l_modulehandler_configuration,
+                                                       v4l_stream_configuration);
+#if defined (LIBCAMERA_SUPPORT)
+  configuration_in.libCamera_streamConfiguration.initialize (module_configuration,
+                                                             libcamera_modulehandler_configuration,
+                                                             libcamera_stream_configuration);
+#endif // LIBCAMERA_SUPPORT
+
+  v4l_x11_modulehandler_configuration = v4l_modulehandler_configuration;
+  v4l_x11_modulehandler_configuration.display = displayDevice_in;
+  v4l_x11_modulehandler_configuration.outputFormat.format = AV_PIX_FMT_RGB32;
   configuration_in.v4l_streamConfiguration.insert (std::make_pair (Stream_Visualization_Tools::rendererToModuleName (STREAM_VISUALIZATION_VIDEORENDERER_X11),
                                                                    std::make_pair (module_configuration,
-                                                                                  v4l_modulehandler_configuration)));
+                                                                                  v4l_x11_modulehandler_configuration)));
   // *NOTE*: apparently, Windows Media Player supports only RGB 5:5:5 16bpp AVI
   //         content (see also avienc.c:448)
-  v4l_modulehandler_configuration.outputFormat.format = AV_PIX_FMT_BGR24;
+  v4l_converter_2_modulehandler_configuration = v4l_modulehandler_configuration;
+  v4l_converter_2_modulehandler_configuration.outputFormat.format = AV_PIX_FMT_RGB555;
   configuration_in.v4l_streamConfiguration.insert (std::make_pair (std::string (std::string (ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_LIBAV_CONVERTER_DEFAULT_NAME_STRING)) + ACE_TEXT_ALWAYS_CHAR ("_2")),
                                                                    std::make_pair (module_configuration,
-                                                                                   v4l_modulehandler_configuration)));
+                                                                                   v4l_converter_2_modulehandler_configuration)));
 #if defined (LIBCAMERA_SUPPORT)
-  libcamera_modulehandler_configuration.display = displayDevice_in;
+  libcamera_x11_modulehandler_configuration = libcamera_modulehandler_configuration;
+  libcamera_x11_modulehandler_configuration.display = displayDevice_in;
   configuration_in.libCamera_streamConfiguration.insert (std::make_pair (Stream_Visualization_Tools::rendererToModuleName (STREAM_VISUALIZATION_VIDEORENDERER_X11),
                                                                          std::make_pair (module_configuration,
-                                                                                         libcamera_modulehandler_configuration)));
+                                                                                         libcamera_x11_modulehandler_configuration)));
+
+  libCamera_converter_2_modulehandler_configuration = libcamera_modulehandler_configuration;
+  libCamera_converter_2_modulehandler_configuration.outputFormat.format = AV_PIX_FMT_RGB555;
   configuration_in.libCamera_streamConfiguration.insert (std::make_pair (std::string (std::string (ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_LIBAV_CONVERTER_DEFAULT_NAME_STRING)) + ACE_TEXT_ALWAYS_CHAR ("_2")),
                                                                          std::make_pair (module_configuration,
-                                                                                         libcamera_modulehandler_configuration)));
+                                                                                         libCamera_converter_2_modulehandler_configuration)));
 #endif // LIBCAMERA_SUPPORT
   v4l_stream_iterator =
     configuration_in.v4l_streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));

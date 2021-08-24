@@ -1225,7 +1225,7 @@ Test_I_Target_TCPStream::initialize (const typename inherited::CONFIGURATION_T& 
   ACE_ASSERT (configuration_p);
 
   ACE_ASSERT (session_data_r.formats.empty ());
-  session_data_r.formats.push_front (configuration_in.configuration_->format);
+  session_data_r.formats.push_back (configuration_in.configuration_->format);
   //  session_data_r.sessionId = configuration_p->sessionId;
   session_data_r.targetFileName = configuration_p->targetFileName;
 
@@ -1368,7 +1368,7 @@ Test_I_Target_UDPStream::initialize (const typename inherited::CONFIGURATION_T& 
   ACE_ASSERT (configuration_p);
 
   ACE_ASSERT (session_data_r.formats.empty ());
-  session_data_r.formats.push_front (configuration_in.configuration_->format);
+  session_data_r.formats.push_back (configuration_in.configuration_->format);
   //  session_data_r.sessionId = configuration_p->sessionId;
   session_data_r.targetFileName = configuration_p->targetFileName;
 

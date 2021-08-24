@@ -507,12 +507,13 @@ Stream_Module_Decoder_Tools::AVPixelFormatToAVCodecId (enum AVPixelFormat pixelF
   { // *NOTE*: libav does not specify a pixel format for MJPEG, it is a
     //         'compressed' format) --> map this deprecated format
     case AV_PIX_FMT_YUVJ422P:
-      result = AV_CODEC_ID_MJPEG; break;
+      result = AV_CODEC_ID_MJPEG;
+      break;
     default:
     {
-      ACE_DEBUG ((LM_DEBUG,
-                  ACE_TEXT ("invalid/unknown pixel format (was: %s), aborting\n"),
-                  ACE_TEXT (Stream_MediaFramework_Tools::pixelFormatToString (pixelFormat_in).c_str ())));
+//      ACE_DEBUG ((LM_DEBUG,
+//                  ACE_TEXT ("invalid/unknown pixel format (was: %s), aborting\n"),
+//                  ACE_TEXT (Stream_MediaFramework_Tools::pixelFormatToString (pixelFormat_in).c_str ())));
       break;
     }
   } // end SWITCH

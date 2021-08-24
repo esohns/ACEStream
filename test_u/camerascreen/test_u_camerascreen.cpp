@@ -870,23 +870,19 @@ do_initialize_v4l (const std::string& deviceIdentifier_in,
 
   captureFormat_out =
       Stream_Device_Tools::defaultCaptureFormat (deviceIdentifier_in);
-#if defined (_DEBUG)
   ACE_DEBUG ((LM_DEBUG,
               ACE_TEXT ("\"%s\" (%d): default capture format: \"%s\" (%d), resolution: %ux%u, framerate: %u/%u\n"),
               ACE_TEXT (deviceIdentifier_in.c_str ()), deviceIdentifier_out.fileDescriptor,
               ACE_TEXT (Stream_Device_Tools::formatToString (deviceIdentifier_out.fileDescriptor, captureFormat_out.format.pixelformat).c_str ()), captureFormat_out.format.pixelformat,
               captureFormat_out.format.width, captureFormat_out.format.height,
               captureFormat_out.frameRate.numerator, captureFormat_out.frameRate.denominator));
-#endif // _DEBUG
   struct Stream_MediaFramework_FFMPEG_VideoMediaType media_type_s =
       Stream_Device_Tools::convert (captureFormat_out);
   if (!Stream_Module_Decoder_Tools::isRGB (media_type_s.format))
   {
-#if defined (_DEBUG)
-  ACE_DEBUG ((LM_DEBUG,
-              ACE_TEXT ("\"%s\" (%d): setting RGB24 capture format\n"),
-              ACE_TEXT (deviceIdentifier_in.c_str ()), deviceIdentifier_out.fileDescriptor));
-#endif // _DEBUG
+    ACE_DEBUG ((LM_DEBUG,
+                ACE_TEXT ("\"%s\" (%d): setting RGB24 capture format\n"),
+                ACE_TEXT (deviceIdentifier_in.c_str ()), deviceIdentifier_out.fileDescriptor));
     struct v4l2_pix_format format_s =
         Stream_Device_Tools::getVideoCaptureFormat (deviceIdentifier_out.fileDescriptor,
                                                     V4L2_PIX_FMT_RGB24,

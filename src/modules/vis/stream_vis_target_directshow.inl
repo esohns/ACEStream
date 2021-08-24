@@ -451,7 +451,7 @@ Stream_Vis_Target_DirectShow_T<ACE_SYNCH_USE,
       } // end ELSE
 
       ACE_ASSERT (!session_data_r.formats.empty ());
-      inherited::getMediaType (session_data_r.formats.front (),
+      inherited::getMediaType (session_data_r.formats.back (),
                                media_type_s);
       ACE_ASSERT (media_type_s.pbFormat);
       if (InlineIsEqualGUID (media_type_s.formattype, FORMAT_VideoInfo))
@@ -822,7 +822,7 @@ error:
       // update the source filter input media format and reconnect
       ACE_ASSERT (!session_data_r.formats.empty ());
       ACE_ASSERT (false); // *TODO*
-      //Stream_MediaFramework_DirectShow_Tools::resize (Stream_MediaFramework_DirectShow_Tools::toResolution (session_data_r.formats.front ()),
+      //Stream_MediaFramework_DirectShow_Tools::resize (Stream_MediaFramework_DirectShow_Tools::toResolution (session_data_r.formats.back ()),
       //                                                *filter_graph_configuration.front ().mediaType);
       if (unlikely (!Stream_MediaFramework_DirectShow_Tools::connect (inherited::IGraphBuilder_,
                                                                       filter_graph_configuration)))

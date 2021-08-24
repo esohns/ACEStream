@@ -274,7 +274,7 @@ Stream_Statistic_StatisticAnalysis_T<ACE_SYNCH_USE,
       int sample_byte_order = ACE_BYTE_ORDER;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
       struct _AMMediaType media_type_s;
-      inherited2::getMediaType (session_data_r.formats.front (),
+      inherited2::getMediaType (session_data_r.formats.back (),
                                 media_type_s);
       // sanity check(s)
       ACE_ASSERT (InlineIsEqualGUID (media_type_s.formattype, FORMAT_WaveFormatEx));
@@ -298,7 +298,7 @@ Stream_Statistic_StatisticAnalysis_T<ACE_SYNCH_USE,
       Stream_MediaFramework_DirectShow_Tools::free (media_type_s);
 #else
       MediaType media_type_s;
-      inherited2::getMediaType (session_data_r.formats.front (),
+      inherited2::getMediaType (session_data_r.formats.back (),
                                 media_type_s);
       sample_size =
         ((snd_pcm_format_width (media_type_s.format) / 8) *

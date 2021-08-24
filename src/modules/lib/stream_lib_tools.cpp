@@ -1136,7 +1136,7 @@ Stream_MediaFramework_Tools::AVPixelFormatToMediaSubType (enum AVPixelFormat pix
 void
 Stream_MediaFramework_Tools::ALSAToSoX (enum _snd_pcm_format format_in,
                                         sox_rate_t rate_in,
-                                        unsigned channels_in,
+                                        unsigned int channels_in,
                                         struct sox_encodinginfo_t& encoding_out,
                                         struct sox_signalinfo_t& format_out)
 {
@@ -1305,10 +1305,341 @@ Stream_MediaFramework_Tools::ALSAToSoX (enum _snd_pcm_format format_in,
 //      format_out.mult = NULL;
 }
 
+unsigned int
+Stream_MediaFramework_Tools::ffmpegFormatToBitDepth (enum AVPixelFormat format_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_Tools::ffmpegFormatToBitDepth"));
+
+  switch (format_in)
+  {
+    case AV_PIX_FMT_NONE:
+      return 0;
+    case AV_PIX_FMT_YUV420P:
+      return 12;
+    case AV_PIX_FMT_YUYV422:
+      return 16;
+    case AV_PIX_FMT_RGB24:
+    case AV_PIX_FMT_BGR24:
+      return 24;
+    case AV_PIX_FMT_YUV422P:
+      return 16;
+    case AV_PIX_FMT_YUV444P:
+      return 24;
+    case AV_PIX_FMT_YUV410P:
+      return 9;
+    case AV_PIX_FMT_YUV411P:
+      return 12;
+    case AV_PIX_FMT_GRAY8:
+      return 8;
+    case AV_PIX_FMT_MONOWHITE:
+    case AV_PIX_FMT_MONOBLACK:
+      return 1;
+    case AV_PIX_FMT_PAL8:
+      return 8;
+    case AV_PIX_FMT_YUVJ420P:
+      return 12;
+    case AV_PIX_FMT_YUVJ422P:
+      return 16;
+    case AV_PIX_FMT_YUVJ444P:
+      return 24;
+    case AV_PIX_FMT_UYVY422:
+      return 16;
+    case AV_PIX_FMT_UYYVYY411:
+      return 12;
+    case AV_PIX_FMT_BGR8:
+      return 8;
+    case AV_PIX_FMT_BGR4:
+      return 4;
+    case AV_PIX_FMT_BGR4_BYTE:
+    case AV_PIX_FMT_RGB8:
+      return 8;
+    case AV_PIX_FMT_RGB4:
+      return 4;
+    case AV_PIX_FMT_RGB4_BYTE:
+      return 8;
+    case AV_PIX_FMT_NV12:
+    case AV_PIX_FMT_NV21:
+      return 12;
+    case AV_PIX_FMT_ARGB:
+    case AV_PIX_FMT_RGBA:
+    case AV_PIX_FMT_ABGR:
+    case AV_PIX_FMT_BGRA:
+      return 32;
+    case AV_PIX_FMT_GRAY16BE:
+    case AV_PIX_FMT_GRAY16LE:
+      return 16;
+    case AV_PIX_FMT_YUV440P:
+    case AV_PIX_FMT_YUVJ440P:
+      return 0;
+    case AV_PIX_FMT_YUVA420P:
+      return 20;
+    case AV_PIX_FMT_RGB48BE:
+    case AV_PIX_FMT_RGB48LE:
+      return 48;
+    case AV_PIX_FMT_RGB565BE:
+    case AV_PIX_FMT_RGB565LE:
+    case AV_PIX_FMT_RGB555BE:
+    case AV_PIX_FMT_RGB555LE:
+    case AV_PIX_FMT_BGR565BE:
+    case AV_PIX_FMT_BGR565LE:
+    case AV_PIX_FMT_BGR555BE:
+    case AV_PIX_FMT_BGR555LE:
+      return 16;
+#if FF_API_VAAPI
+    case AV_PIX_FMT_VAAPI_MOCO:
+    case AV_PIX_FMT_VAAPI_IDCT:
+    case AV_PIX_FMT_VAAPI_VLD:
+#else
+    case AV_PIX_FMT_VAAPI:
+#endif
+      return 0;
+    case AV_PIX_FMT_YUV420P16LE:
+    case AV_PIX_FMT_YUV420P16BE:
+      return 24;
+    case AV_PIX_FMT_YUV422P16LE:
+    case AV_PIX_FMT_YUV422P16BE:
+      return 32;
+    case AV_PIX_FMT_YUV444P16LE:
+    case AV_PIX_FMT_YUV444P16BE:
+      return 48;
+    case AV_PIX_FMT_DXVA2_VLD:
+      return 0;
+    case AV_PIX_FMT_RGB444LE:
+    case AV_PIX_FMT_RGB444BE:
+    case AV_PIX_FMT_BGR444LE:
+    case AV_PIX_FMT_BGR444BE:
+      return 16;
+    case AV_PIX_FMT_YA8:
+//    case AV_PIX_FMT_Y400A:
+//    case AV_PIX_FMT_GRAY8A:
+      return 8;
+    case AV_PIX_FMT_BGR48BE:
+    case AV_PIX_FMT_BGR48LE:
+      return 48;
+    case AV_PIX_FMT_YUV420P9BE:
+    case AV_PIX_FMT_YUV420P9LE:
+      return 12;
+    case AV_PIX_FMT_YUV420P10BE:
+    case AV_PIX_FMT_YUV420P10LE:
+      return 15;
+    case AV_PIX_FMT_YUV422P10BE:
+    case AV_PIX_FMT_YUV422P10LE:
+      return 20;
+    case AV_PIX_FMT_YUV444P9BE:
+    case AV_PIX_FMT_YUV444P9LE:
+      return 27;
+    case AV_PIX_FMT_YUV444P10BE:
+    case AV_PIX_FMT_YUV444P10LE:
+      return 30;
+    case AV_PIX_FMT_YUV422P9BE:
+    case AV_PIX_FMT_YUV422P9LE:
+      return 18;
+    case AV_PIX_FMT_GBRP:
+//    case AV_PIX_FMT_GBR24P:
+      return 24;
+    case AV_PIX_FMT_GBRP9BE:
+    case AV_PIX_FMT_GBRP9LE:
+      return 27;
+    case AV_PIX_FMT_GBRP10BE:
+    case AV_PIX_FMT_GBRP10LE:
+      return 30;
+    case AV_PIX_FMT_GBRP16BE:
+    case AV_PIX_FMT_GBRP16LE:
+      return 48;
+    case AV_PIX_FMT_YUVA422P:
+      return 24;
+    case AV_PIX_FMT_YUVA444P:
+      return 32;
+    case AV_PIX_FMT_YUVA420P9BE:
+    case AV_PIX_FMT_YUVA420P9LE:
+      return 24;
+    case AV_PIX_FMT_YUVA422P9BE:
+    case AV_PIX_FMT_YUVA422P9LE:
+      return 27;
+    case AV_PIX_FMT_YUVA444P9BE:
+    case AV_PIX_FMT_YUVA444P9LE:
+      return 36;
+    case AV_PIX_FMT_YUVA420P10BE:
+    case AV_PIX_FMT_YUVA420P10LE:
+      return 25;
+    case AV_PIX_FMT_YUVA422P10BE:
+    case AV_PIX_FMT_YUVA422P10LE:
+      return 30;
+    case AV_PIX_FMT_YUVA444P10BE:
+    case AV_PIX_FMT_YUVA444P10LE:
+      return 40;
+    case AV_PIX_FMT_YUVA420P16BE:
+    case AV_PIX_FMT_YUVA420P16LE:
+      return 40;
+    case AV_PIX_FMT_YUVA422P16BE:
+    case AV_PIX_FMT_YUVA422P16LE:
+      return 48;
+    case AV_PIX_FMT_YUVA444P16BE:
+    case AV_PIX_FMT_YUVA444P16LE:
+      return 64;
+    case AV_PIX_FMT_VDPAU:
+      return 0;
+    case AV_PIX_FMT_XYZ12LE:
+    case AV_PIX_FMT_XYZ12BE:
+      return 36;
+    case AV_PIX_FMT_NV16:
+      return 16;
+    case AV_PIX_FMT_NV20LE:
+    case AV_PIX_FMT_NV20BE:
+      return 20;
+    case AV_PIX_FMT_RGBA64BE:
+    case AV_PIX_FMT_RGBA64LE:
+    case AV_PIX_FMT_BGRA64BE:
+    case AV_PIX_FMT_BGRA64LE:
+      return 64;
+    case AV_PIX_FMT_YVYU422:
+      return 16;
+    case AV_PIX_FMT_YA16BE:
+    case AV_PIX_FMT_YA16LE:
+      return 16;
+    case AV_PIX_FMT_GBRAP:
+      return 32;
+    case AV_PIX_FMT_GBRAP16BE:
+    case AV_PIX_FMT_GBRAP16LE:
+      return 64;
+    case AV_PIX_FMT_QSV:
+    case AV_PIX_FMT_MMAL:
+    case AV_PIX_FMT_D3D11VA_VLD:
+    case AV_PIX_FMT_CUDA:
+      return 0;
+    case AV_PIX_FMT_0RGB:
+    case AV_PIX_FMT_RGB0:
+    case AV_PIX_FMT_0BGR:
+    case AV_PIX_FMT_BGR0:
+      return 32;
+    case AV_PIX_FMT_YUV420P12BE:
+    case AV_PIX_FMT_YUV420P12LE:
+      return 18;
+    case AV_PIX_FMT_YUV420P14BE:
+    case AV_PIX_FMT_YUV420P14LE:
+      return 21;
+    case AV_PIX_FMT_YUV422P12BE:
+    case AV_PIX_FMT_YUV422P12LE:
+      return 24;
+    case AV_PIX_FMT_YUV422P14BE:
+    case AV_PIX_FMT_YUV422P14LE:
+      return 28;
+    case AV_PIX_FMT_YUV444P12BE:
+    case AV_PIX_FMT_YUV444P12LE:
+      return 36;
+    case AV_PIX_FMT_YUV444P14BE:
+    case AV_PIX_FMT_YUV444P14LE:
+      return 42;
+    case AV_PIX_FMT_GBRP12BE:
+    case AV_PIX_FMT_GBRP12LE:
+      return 36;
+    case AV_PIX_FMT_GBRP14BE:
+    case AV_PIX_FMT_GBRP14LE:
+      return 42;
+    case AV_PIX_FMT_YUVJ411P:
+      return 12;
+    case AV_PIX_FMT_BAYER_BGGR8:
+    case AV_PIX_FMT_BAYER_RGGB8:
+    case AV_PIX_FMT_BAYER_GBRG8:
+    case AV_PIX_FMT_BAYER_GRBG8:
+      return 32;
+    case AV_PIX_FMT_BAYER_BGGR16LE:
+    case AV_PIX_FMT_BAYER_BGGR16BE:
+    case AV_PIX_FMT_BAYER_RGGB16LE:
+    case AV_PIX_FMT_BAYER_RGGB16BE:
+    case AV_PIX_FMT_BAYER_GBRG16LE:
+    case AV_PIX_FMT_BAYER_GBRG16BE:
+    case AV_PIX_FMT_BAYER_GRBG16LE:
+    case AV_PIX_FMT_BAYER_GRBG16BE:
+      return 64;
+    case AV_PIX_FMT_XVMC:
+      return 0;
+    case AV_PIX_FMT_YUV440P10LE:
+    case AV_PIX_FMT_YUV440P10BE:
+      return 20;
+    case AV_PIX_FMT_YUV440P12LE:
+    case AV_PIX_FMT_YUV440P12BE:
+      return 24;
+    case AV_PIX_FMT_AYUV64LE:
+    case AV_PIX_FMT_AYUV64BE:
+      return 64;
+    case AV_PIX_FMT_VIDEOTOOLBOX:
+      return 0;
+    case AV_PIX_FMT_P010LE:
+    case AV_PIX_FMT_P010BE:
+      return 12;
+    case AV_PIX_FMT_GBRAP12BE:
+    case AV_PIX_FMT_GBRAP12LE:
+      return 48;
+    case AV_PIX_FMT_GBRAP10BE:
+    case AV_PIX_FMT_GBRAP10LE:
+      return 40;
+    case AV_PIX_FMT_MEDIACODEC:
+      return 0;
+    case AV_PIX_FMT_GRAY12BE:
+    case AV_PIX_FMT_GRAY12LE:
+      return 12;
+    case AV_PIX_FMT_GRAY10BE:
+    case AV_PIX_FMT_GRAY10LE:
+      return 10;
+    case AV_PIX_FMT_P016LE:
+    case AV_PIX_FMT_P016BE:
+      return 16;
+    case AV_PIX_FMT_D3D11:
+      return 0;
+    case AV_PIX_FMT_GRAY9BE:
+    case AV_PIX_FMT_GRAY9LE:
+      return 9;
+    case AV_PIX_FMT_GBRPF32BE:
+    case AV_PIX_FMT_GBRPF32LE:
+      return 96;
+    case AV_PIX_FMT_GBRAPF32BE:
+    case AV_PIX_FMT_GBRAPF32LE:
+      return 128;
+    case AV_PIX_FMT_DRM_PRIME:
+      return 0;
+    case AV_PIX_FMT_OPENCL:
+      return 0;
+    case AV_PIX_FMT_GRAY14BE:
+    case AV_PIX_FMT_GRAY14LE:
+      return 14;
+    case AV_PIX_FMT_GRAYF32BE:
+    case AV_PIX_FMT_GRAYF32LE:
+      return 32;
+    case AV_PIX_FMT_YUVA422P12BE:
+    case AV_PIX_FMT_YUVA422P12LE:
+      return 24;
+    case AV_PIX_FMT_YUVA444P12BE:
+    case AV_PIX_FMT_YUVA444P12LE:
+      return 36;
+    case AV_PIX_FMT_NV24:
+    case AV_PIX_FMT_NV42:
+      return 24;
+    case AV_PIX_FMT_VULKAN:
+      return 0;
+    case AV_PIX_FMT_Y210BE:
+    case AV_PIX_FMT_Y210LE:
+      return 20;
+    case AV_PIX_FMT_X2RGB10LE:
+    case AV_PIX_FMT_X2RGB10BE:
+      return 30;
+    case AV_PIX_FMT_NB:
+    default:
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("invalid/unknown ffmpeg pixel format (was: %d), aborting\n"),
+                  format_in));
+      break;
+    }
+  } // end SWITCH
+
+  return 0;
+}
+
 __u32
 Stream_MediaFramework_Tools::ffmpegFormatToV4L2Format (enum AVPixelFormat format_in)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_Tools::v4l2FormatToffmpegFormat"));
+  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_Tools::ffmpegFormatToV4L2Format"));
 
   switch (format_in)
   {
@@ -1744,24 +2075,73 @@ Stream_MediaFramework_Tools::v4l2FormatToffmpegFormat (__u32 format_in)
 }
 
 unsigned int
-Stream_MediaFramework_Tools::toFrameSize (const struct Stream_MediaFramework_V4L_MediaType& mediaType_in)
+Stream_MediaFramework_Tools::frameSize (const std::string& deviceIdentifier_in,
+                                        const struct Stream_MediaFramework_V4L_MediaType& mediaType_in)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_Tools::toFrameSize"));
+  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_Tools::frameSize"));
 
-  int result =
-      av_image_get_buffer_size (Stream_MediaFramework_Tools::v4l2FormatToffmpegFormat (mediaType_in.format.pixelformat),
-                                mediaType_in.format.width, mediaType_in.format.height,
-                                1); // *TODO*: linesize alignment
-  if (unlikely (result == -1))
+  int fd = -1;
+  int open_mode = O_RDONLY;
+  fd = v4l2_open (deviceIdentifier_in.c_str (),
+                  open_mode);
+  if (fd == -1)
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to av_image_get_buffer_size(%u,%u,%u), aborting\n"),
-                mediaType_in.format.pixelformat,
-                mediaType_in.format.width, mediaType_in.format.height));
+                ACE_TEXT ("failed to v4l2_open(\"%s\",%u): \"%m\", aborting\n"),
+                ACE_TEXT (deviceIdentifier_in.c_str ()), open_mode));
     return 0;
   } // end IF
 
-  return static_cast<unsigned int> (result);
+  struct v4l2_format format_s;
+  ACE_OS::memset (&format_s, 0, sizeof (struct v4l2_format));
+  format_s.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+  int result = v4l2_ioctl (fd,
+                           VIDIOC_G_FMT,
+                           &format_s);
+  if (result == -1)
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to v4l2_ioctl(%d,%s): \"%m\", aborting\n"),
+                fd, ACE_TEXT ("VIDIOC_G_FMT")));
+    goto error;
+  } // end IF
+  format_s.fmt.pix.pixelformat = mediaType_in.format.pixelformat;
+  format_s.fmt.pix.width = mediaType_in.format.width;
+  format_s.fmt.pix.height = mediaType_in.format.height;
+
+  format_s.fmt.pix.bytesperline = 0;
+//  format_s.fmt.pix.priv = 0;
+  format_s.fmt.pix.sizeimage = 0;
+  result = v4l2_ioctl (fd,
+                       VIDIOC_TRY_FMT,
+                       &format_s);
+  if (result == -1)
+  {// int error = ACE_OS::last_error (); ACE_UNUSED_ARG (error);
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to v4l2_ioctl(%d,%s): \"%m\", aborting\n"),
+                fd, ACE_TEXT ("VIDIOC_TRY_FMT")));
+    goto error;
+  } // end IF
+
+  result = v4l2_close (fd);
+  if (result == -1)
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to v4l2_close(%d): \"%m\", continuing\n"),
+                fd));
+
+  return static_cast<unsigned int> (format_s.fmt.pix.sizeimage);
+
+error:
+  if (fd != -1)
+  {
+    result = v4l2_close (fd);
+    if (result == -1)
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to v4l2_close(%d): \"%m\", continuing\n"),
+                  fd));
+  } // end IF
+
+  return 0;
 }
 
 #if defined (LIBCAMERA_SUPPORT)

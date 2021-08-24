@@ -547,7 +547,7 @@ continue_:
                       ACE_TEXT (Stream_Device_DirectShow_Tools::devicePathToString (ACE_TEXT_ALWAYS_CHAR (inherited::configuration_->deviceIdentifier.identifier._string)).c_str ())));
         pin_p->Release (); pin_p = NULL;
       } // end IF
-      session_data_r.formats.push_front (media_type_s);
+      session_data_r.formats.push_back (media_type_s);
       release_media_type = false;
 
 #if defined (_DEBUG)

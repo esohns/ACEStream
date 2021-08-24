@@ -547,7 +547,7 @@ Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
 //      unsigned int maximum_value = 0;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
       struct _AMMediaType media_type_s;
-      inherited2::getMediaType (session_data_r.formats.front (),
+      inherited2::getMediaType (session_data_r.formats.back (),
                                 media_type_s);
       ACE_ASSERT (InlineIsEqualGUID (media_type_s.formattype, FORMAT_WaveFormatEx));
       ACE_ASSERT (media_type_s.pbFormat);
@@ -569,7 +569,7 @@ Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
       Stream_MediaFramework_DirectShow_Tools::free (media_type_s);
 #else
       struct Stream_MediaFramework_ALSA_MediaType media_type_s;
-      inherited2::getMediaType (session_data_r.formats.front (),
+      inherited2::getMediaType (session_data_r.formats.back (),
                                 media_type_s);
       data_sample_size =
         ((snd_pcm_format_width (media_type_s.format) / 8) *
@@ -1200,7 +1200,7 @@ Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
   cairo_reset_clip (cairoContext_);
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  inherited2::getMediaType (session_data_r.formats.front (),
+  inherited2::getMediaType (session_data_r.formats.back (),
                             media_type_s);
   ACE_ASSERT (InlineIsEqualGUID (media_type_s.formattype, FORMAT_WaveFormatEx));
   ACE_ASSERT (media_type_s.pbFormat);
@@ -1213,7 +1213,7 @@ Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
 
   Stream_MediaFramework_DirectShow_Tools::free (media_type_s);
 #else
-  inherited2::getMediaType (session_data_r.formats.front (),
+  inherited2::getMediaType (session_data_r.formats.back (),
                             media_type_s);
   data_sample_size =
     ((snd_pcm_format_width (media_type_s.format) / 8) *

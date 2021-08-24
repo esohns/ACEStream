@@ -129,7 +129,7 @@ Stream_Module_Vis_Wayland_Window_T<ACE_SYNCH_USE,
   const typename SessionDataContainerType::DATA_T& session_data_r =
       inherited::sessionData_->getR ();
   ACE_ASSERT (!session_data_r.formats.empty ());
-  const MediaType& media_type_r = session_data_r.formats.front ();
+  const MediaType& media_type_r = session_data_r.formats.back ();
   struct Stream_MediaFramework_FFMPEG_VideoMediaType media_type_2;
   inherited2::getMediaType (media_type_r,
                             media_type_2);
@@ -202,7 +202,7 @@ Stream_Module_Vis_Wayland_Window_T<ACE_SYNCH_USE,
 //      const typename SessionDataContainerType::DATA_T& session_data_r =
 //          inherited::sessionData_->getR ();
 //      ACE_ASSERT (!session_data_r.formats.empty ());
-//      const MediaType& media_type_r = session_data_r.formats.front ();
+//      const MediaType& media_type_r = session_data_r.formats.back ();
 //      struct Stream_MediaFramework_FFMPEG_VideoMediaType media_type_2;
 //      inherited2::getMediaType (media_type_r,
 //                                media_type_2);

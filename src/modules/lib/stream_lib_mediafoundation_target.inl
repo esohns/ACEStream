@@ -864,7 +864,7 @@ Stream_MediaFramework_MediaFoundation_Target_T<ACE_SYNCH_USE,
 
       //WCHAR* symbolic_link_p = NULL;
       //UINT32 symbolic_link_size = 0;
-      if (!initialize_MediaFoundation (session_data_r.formats.front (),
+      if (!initialize_MediaFoundation (session_data_r.formats.back (),
                                        this,
                                        sampleGrabberSinkNodeId_,
                                        mediaSession_))

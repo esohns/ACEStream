@@ -792,7 +792,7 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
 
       MediaType media_type_s;
       ACE_OS::memset (&media_type_s, 0, sizeof (MediaType));
-      inherited2:: getMediaType (session_data_r.formats.front (),
+      inherited2:: getMediaType (session_data_r.formats.back (),
                                  media_type_s);
 //      unsigned int bits_per_sample = 24;
       int result = -1;
@@ -1168,7 +1168,7 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
   // *NOTE*: need to reclaim this memory (see below)
   struct _AMMediaType media_type_s;
   ACE_OS::memset (&media_type_s, 0, sizeof (struct _AMMediaType));
-  inherited2::getMediaType (session_data_r.formats.front (),
+  inherited2::getMediaType (session_data_r.formats.back (),
                             media_type_s);
   struct _riffchunk RIFF_chunk;
   struct _rifflist RIFF_list;

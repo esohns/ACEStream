@@ -441,7 +441,7 @@ continue_:
                 ACE_TEXT_WCHAR_TO_TCHAR (STREAM_LIB_DIRECTSHOW_FILTER_NAME_GRAB)));
     goto error;
   } // end IF
-  session_data_p->formats.push_front (media_type_s);
+  session_data_p->formats.push_back (media_type_s);
   //ACE_ASSERT (Stream_MediaFramework_DirectShow_Tools::matchMediaType (*session_data_p->sourceFormat, *(*iterator).second.second.sourceFormat));
 
   // ---------------------------------------------------------------------------

@@ -313,7 +313,7 @@ Stream_Decoder_LibAVDecoder_T<ACE_SYNCH_USE,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
     AV_INPUT_BUFFER_PADDING_SIZE;
 #else
-      AV_INPUT_BUFFER_PADDING_SIZE;
+    AV_INPUT_BUFFER_PADDING_SIZE;
 //    FF_INPUT_BUFFER_PADDING_SIZE;
 #endif // ACE_WIN32 || ACE_WIN64
   DataMessageType* message_p = NULL;
@@ -681,13 +681,11 @@ Stream_Decoder_LibAVDecoder_T<ACE_SYNCH_USE,
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: invalid codec id, continuing\n"),
                     inherited::mod_->name ()));
-#if defined (_DEBUG)
       else
         ACE_DEBUG ((LM_DEBUG,
                     ACE_TEXT ("%s: using codec \"%s\" (id: %d)\n"),
                     inherited::mod_->name (),
                     ACE_TEXT (avcodec_get_name (codecId_)), codecId_));
-#endif // _DEBUG
       //profile_ = configuration_in.codecProfile;
 
     //  frame_->format = configuration_in.outputFormat;
@@ -1064,7 +1062,7 @@ Stream_Decoder_LibAVDecoder_T<ACE_SYNCH_USE,
         inherited2::setFormat (outputFormat_,
                                media_type_2);
         { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, *session_data_r.lock);
-          session_data_r.formats.push_front (media_type_2);
+          session_data_r.formats.push_back (media_type_2);
         } // end lock scope
       } // end IF
 
@@ -1096,7 +1094,7 @@ continue_:
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
       ACE_ASSERT (!session_data_r.formats.empty ());
       //Common_Image_Resolution_t resolution_s =
-      //  Stream_MediaFramework_DirectShow_Tools::toResolution (session_data_r.formats.front ());
+      //  Stream_MediaFramework_DirectShow_Tools::toResolution (session_data_r.formats.back ());
       //formatHeight_ = static_cast<unsigned int> (::abs (resolution_s.cy));
       //width = static_cast<unsigned int> (resolution_s.cx);
       ACE_ASSERT (false); // *TODO*

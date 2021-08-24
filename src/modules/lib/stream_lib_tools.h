@@ -109,16 +109,21 @@ class Stream_MediaFramework_Tools
   // ALSA
   static void ALSAToSoX (enum _snd_pcm_format,       // format
                          sox_rate_t,                 // sample rate
-                         unsigned,                   // channels
+                         unsigned int,               // channels
                          struct sox_encodinginfo_t&, // return value: format
                          struct sox_signalinfo_t&);  // return value: format
 
+  // X11
+  static unsigned int ffmpegFormatToBitDepth (enum AVPixelFormat);
+
   // ffmpeg
+  inline static std::string pixelFormatToString (enum AVPixelFormat format_in) { std::string result = ((format_in == AV_PIX_FMT_NONE) ? ACE_TEXT_ALWAYS_CHAR ("") : av_get_pix_fmt_name (format_in)); return result; }
   static __u32 ffmpegFormatToV4L2Format (enum AVPixelFormat); // format
 
   // v4l
   static enum AVPixelFormat v4l2FormatToffmpegFormat (__u32); // format (fourcc)
-  static unsigned int toFrameSize (const struct Stream_MediaFramework_V4L_MediaType&);
+  static unsigned int frameSize (const std::string&,                                 // device identifier
+                                 const struct Stream_MediaFramework_V4L_MediaType&); // format
 
 #if defined (LIBCAMERA_SUPPORT)
   // libCamera
@@ -126,9 +131,6 @@ class Stream_MediaFramework_Tools
   static enum AVPixelFormat libCameraFormatToffmpegFormat (const libcamera::PixelFormat&); // format
 #endif // LIBCAMERA_SUPPORT
 #endif // ACE_WIN32 || ACE_WIN64
-
-  // ffmpeg
-  inline static std::string pixelFormatToString (enum AVPixelFormat format_in) { std::string result = ((format_in == AV_PIX_FMT_NONE) ? ACE_TEXT_ALWAYS_CHAR ("") : av_get_pix_fmt_name (format_in)); return result; }
 
  private:
   ACE_UNIMPLEMENTED_FUNC (Stream_MediaFramework_Tools ())

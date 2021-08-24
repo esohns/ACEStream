@@ -659,12 +659,10 @@ Stream_Module_CamSource_V4L_T<ACE_SYNCH_USE,
   ACE_ASSERT (inherited::configuration_);
   ACE_ASSERT (inherited::sessionData_);
 
-#if defined (_DEBUG)
   ACE_DEBUG ((LM_DEBUG,
               ACE_TEXT ("%s: worker thread (id: %t, group: %d) starting\n"),
               inherited::mod_->name (),
               inherited::grp_id_));
-#endif // _DEBUG
 
   int error = 0;
   bool has_finished = false;
@@ -788,12 +786,10 @@ continue_:
       if (session_data_r.aborted &&
           !has_finished)
       {
-#if defined (_DEBUG)
         ACE_DEBUG ((LM_DEBUG,
                     ACE_TEXT ("%s: session %u aborted\n"),
                     inherited::mod_->name (),
                     session_data_r.sessionId));
-#endif // _DEBUG
         has_finished = true;
         // enqueue(/process) STREAM_SESSION_END
         inherited::STATE_MACHINE_T::finished ();

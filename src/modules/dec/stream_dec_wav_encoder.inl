@@ -412,7 +412,7 @@ Stream_Decoder_WAVEncoder_T<ACE_SYNCH_USE,
       SessionDataType& session_data_r =
           const_cast<SessionDataType&> (inherited::sessionData_->getR ());
       struct Stream_MediaFramework_ALSA_MediaType& media_type_r =
-          session_data_r.formats.front ();
+          session_data_r.formats.back ();
 
 //      sox_comments_t comments = ;
       struct sox_oob_t oob_data;
@@ -503,7 +503,7 @@ continue_:
 
       // sanity check(s)
       ACE_ASSERT (!session_data_r.formats.empty ());
-      inherited::getMediaType (session_data_r.formats.front (),
+      inherited::getMediaType (session_data_r.formats.back (),
                                media_type_s);
       ACE_ASSERT (InlineIsEqualGUID (media_type_s.formattype, FORMAT_WaveFormatEx));
 
@@ -644,7 +644,7 @@ Stream_Decoder_WAVEncoder_T<ACE_SYNCH_USE,
   // sanity check(s)
   ACE_ASSERT (!session_data_r.formats.empty ());
   struct _AMMediaType media_type_s;
-  inherited::getMediaType (session_data_r.formats.front (),
+  inherited::getMediaType (session_data_r.formats.back (),
                            media_type_s);
   ACE_ASSERT (InlineIsEqualGUID (media_type_s.formattype, FORMAT_WaveFormatEx));
 #if defined (_DEBUG)
