@@ -3627,6 +3627,12 @@ idle_update_progress_cb (gpointer userData_in)
     //  data_p->cursorType = GDK_LAST_CURSOR;
     //} // end IF
 
+    // signal completion
+    result = data_p->state->condition.broadcast ();
+    if (result == -1)
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to ACE_Condition::broadcast(): \"%m\", continuing\n")));
+
     done = true;
   } // end IF
 
@@ -4848,6 +4854,15 @@ button_quit_clicked_cb (GtkWidget* widget_in,
   if ((status_e == STREAM_STATE_RUNNING) ||
       (status_e == STREAM_STATE_PAUSED))
     stream_p->stop (false, true, true);
+
+  // wait for processing thread(s)
+  { ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, ui_cb_data_base_p->UIState->lock, FALSE);
+    while (!ui_cb_data_base_p->progressData.pendingActions.empty ())
+      ui_cb_data_base_p->UIState->condition.wait (NULL);
+  } // end lock scope
+
+  COMMON_UI_GTK_MANAGER_SINGLETON::instance ()->stop (false, // wait ?
+                                                      true); // high priority ?
 
   // step2: initiate shutdown sequence
   int result = ACE_OS::raise (SIGINT);

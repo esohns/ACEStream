@@ -348,13 +348,11 @@ error:
                     ACE_TEXT ("%s: failed to v4l2_ioctl(%d,%s): \"%m\", continuing\n"),
                     inherited::mod_->name (),
                     captureFileDescriptor_, ACE_TEXT ("VIDIOC_REQBUFS")));
-#if defined (_DEBUG)
       else
         ACE_DEBUG ((LM_DEBUG,
                     ACE_TEXT ("%s: de-allocated %d device buffer slot(s)\n"),
                     inherited::mod_->name (),
                     inherited::configuration_->buffers));
-#endif // _DEBUG
 
 //      if (likely (captureFileDescriptor_ != -1))
 //      {
@@ -374,9 +372,8 @@ error:
 //      } // end IF
 
       if (likely (inherited::concurrency_ != STREAM_HEADMODULECONCURRENCY_CONCURRENT))
-        this->stop (false, // wait ?
-                    false, // high priority ?
-                    true); // locked access ?
+        this->inherited::TASK_BASE_T::control (ACE_Message_Block::MB_STOP,
+                                               false); // high priority ?
 
       break;
     }

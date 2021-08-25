@@ -182,9 +182,9 @@ Stream_Decoder_LibAVConverter_T<ACE_SYNCH_USE,
   STREAM_TRACE (ACE_TEXT ("Stream_Decoder_LibAVConverter_T::handleDataMessage"));
 
   // sanity check(s)
-  ACE_ASSERT (frame_);
-  if (unlikely (inputFormat_ == frame_->format))
+  if (unlikely (!context_))
     return; // nothing to do
+  ACE_ASSERT (frame_);
 
   // initialize return value(s)
   passMessageDownstream_out = false;
@@ -500,7 +500,7 @@ error:
       buffer_ = inherited::allocateMessage (frameSize_);
       if (!buffer_)
       {
-        ACE_DEBUG ((LM_ERROR,
+        ACE_DEBUG ((LM_CRITICAL,
                     ACE_TEXT ("%s: failed to Stream_Task_Base_T::allocateMessage(%u), returning\n"),
                     inherited::mod_->name (),
                     frameSize_));
@@ -517,12 +517,10 @@ error:
                                   reinterpret_cast<uint8_t*> (buffer_->wr_ptr ()),
                                   frame_->linesize);
       ACE_ASSERT (result >= 0);
-#if defined (_DEBUG)
       ACE_DEBUG ((LM_DEBUG,
                   ACE_TEXT ("%s: modified resolution to %ux%u\n"),
                   inherited::mod_->name (),
                   frame_->width, frame_->height));
-#endif // _DEBUG
       break;
     }
     case STREAM_SESSION_MESSAGE_END:

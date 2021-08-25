@@ -1765,7 +1765,8 @@ Stream_MediaFramework_Tools::ffmpegFormatToV4L2Format (enum AVPixelFormat format
 //    case AV_PIX_FMT_GBRP16BE:
 //    case AV_PIX_FMT_GBRP16LE:
 //    case AV_PIX_FMT_YUVA422P:
-//    case AV_PIX_FMT_YUVA444P:
+    case AV_PIX_FMT_YUVA444P:
+      return V4L2_PIX_FMT_AYUV32;
 //    case AV_PIX_FMT_YUVA420P9BE:
 //    case AV_PIX_FMT_YUVA420P9LE:
 //    case AV_PIX_FMT_YUVA422P9BE:
@@ -1899,46 +1900,75 @@ Stream_MediaFramework_Tools::v4l2FormatToffmpegFormat (__u32 format_in)
 //    case V4L2_PIX_FMT_RGB332:
     case V4L2_PIX_FMT_RGB444:
       return AV_PIX_FMT_RGB444;
+//    case V4L2_PIX_FMT_ARGB444:
+//    case V4L2_PIX_FMT_XRGB444:
+//    case V4L2_PIX_FMT_RGBA444:
+//    case V4L2_PIX_FMT_RGBX444:
+//    case V4L2_PIX_FMT_ABGR444:
+//    case V4L2_PIX_FMT_XBGR444:
+//    case V4L2_PIX_FMT_BGRA444:
+//    case V4L2_PIX_FMT_BGRX444:
     case V4L2_PIX_FMT_RGB555:
       return AV_PIX_FMT_RGB555;
+//    case V4L2_PIX_FMT_ARGB555:
+//    case V4L2_PIX_FMT_XRGB555:
+//    case V4L2_PIX_FMT_RGBA555:
+//    case V4L2_PIX_FMT_RGBX555:
+//    case V4L2_PIX_FMT_ABGR555:
+//    case V4L2_PIX_FMT_XBGR555:
+//    case V4L2_PIX_FMT_BGRA555:
+//    case V4L2_PIX_FMT_BGRX555:
     case V4L2_PIX_FMT_RGB565:
       return AV_PIX_FMT_RGB565;
     case V4L2_PIX_FMT_RGB555X:
       return AV_PIX_FMT_RGB555BE;
+//    case V4L2_PIX_FMT_ARGB555X:
+//    case V4L2_PIX_FMT_XRGB555X:
     case V4L2_PIX_FMT_RGB565X:
       return AV_PIX_FMT_RGB565BE;
+
     case V4L2_PIX_FMT_BGR666:
       return AV_PIX_FMT_BGR555; // *TODO*: this is wrong
     case V4L2_PIX_FMT_BGR24:
       return AV_PIX_FMT_BGR24;
     case V4L2_PIX_FMT_RGB24:
       return AV_PIX_FMT_RGB24;
-    case V4L2_PIX_FMT_ARGB32:
-    case V4L2_PIX_FMT_XRGB32:
-      return AV_PIX_FMT_ARGB;
+    case V4L2_PIX_FMT_BGR32:
+      return AV_PIX_FMT_BGRA;
     case V4L2_PIX_FMT_ABGR32:
     case V4L2_PIX_FMT_XBGR32:
       return AV_PIX_FMT_ABGR;
-    case V4L2_PIX_FMT_BGR32:
+    case V4L2_PIX_FMT_BGRA32:
+    case V4L2_PIX_FMT_BGRX32:
       return AV_PIX_FMT_BGRA;
     case V4L2_PIX_FMT_RGB32:
       return AV_PIX_FMT_RGBA;
+    case V4L2_PIX_FMT_RGBA32:
+    case V4L2_PIX_FMT_RGBX32:
+      return AV_PIX_FMT_RGBA;
+    case V4L2_PIX_FMT_ARGB32:
+    case V4L2_PIX_FMT_XRGB32:
+      return AV_PIX_FMT_ARGB;
+
     case V4L2_PIX_FMT_GREY:
       return AV_PIX_FMT_GRAY8;
 //    case V4L2_PIX_FMT_Y4:
 //    case V4L2_PIX_FMT_Y6:
 //    case V4L2_PIX_FMT_Y10:
 //    case V4L2_PIX_FMT_Y12:
+//    case V4L2_PIX_FMT_Y14:
     case V4L2_PIX_FMT_Y16:
+    case V4L2_PIX_FMT_Y16_BE:
       return AV_PIX_FMT_GRAY16;
+
 //    case V4L2_PIX_FMT_Y10BPACK:
+//    case V4L2_PIX_FMT_Y10P:
+
     case V4L2_PIX_FMT_PAL8:
       return AV_PIX_FMT_PAL8;
+
 //    case V4L2_PIX_FMT_UV8:
-    case V4L2_PIX_FMT_YVU410:
-      return AV_PIX_FMT_YUV410P; // *TODO*: this is wrong
-    case V4L2_PIX_FMT_YVU420:
-      return AV_PIX_FMT_YUV420P; // *TODO*: this is wrong
+
     case V4L2_PIX_FMT_YUYV:
       return AV_PIX_FMT_YUYV422;
 //    case V4L2_PIX_FMT_YYUV:
@@ -1947,24 +1977,21 @@ Stream_MediaFramework_Tools::v4l2FormatToffmpegFormat (__u32 format_in)
     case V4L2_PIX_FMT_UYVY:
       return AV_PIX_FMT_UYVY422;
 //    case V4L2_PIX_FMT_VYUY:
-    case V4L2_PIX_FMT_YUV422P:
-      return AV_PIX_FMT_YUV422P;
-    case V4L2_PIX_FMT_YUV411P:
-      return AV_PIX_FMT_YUV411P;
     case V4L2_PIX_FMT_Y41P:
       return AV_PIX_FMT_YUV411P;
     case V4L2_PIX_FMT_YUV444:
       return AV_PIX_FMT_YUV444P;
 //    case V4L2_PIX_FMT_YUV555:
 //    case V4L2_PIX_FMT_YUV565:
+//    case V4L2_PIX_FMT_YUV24:
 //    case V4L2_PIX_FMT_YUV32:
-    case V4L2_PIX_FMT_YUV410:
-      return AV_PIX_FMT_YUV410P;
-    case V4L2_PIX_FMT_YUV420:
-      return AV_PIX_FMT_YUV420P;
-//    case V4L2_PIX_FMT_HI240:
-//    case V4L2_PIX_FMT_HM12:
+    case V4L2_PIX_FMT_AYUV32:
+    case V4L2_PIX_FMT_XYUV32:
+      return AV_PIX_FMT_YUVA444P;
+//    case V4L2_PIX_FMT_VUYA32:
+//    case V4L2_PIX_FMT_VUYX32:
 //    case V4L2_PIX_FMT_M420:
+
     case V4L2_PIX_FMT_NV12:
       return AV_PIX_FMT_NV12;
     case V4L2_PIX_FMT_NV21:
@@ -1974,14 +2001,35 @@ Stream_MediaFramework_Tools::v4l2FormatToffmpegFormat (__u32 format_in)
 //    case V4L2_PIX_FMT_NV61:
 //    case V4L2_PIX_FMT_NV24:
 //    case V4L2_PIX_FMT_NV42:
+//    case V4L2_PIX_FMT_HM12:
+
 //    case V4L2_PIX_FMT_NV12M:
 //    case V4L2_PIX_FMT_NV21M:
 //    case V4L2_PIX_FMT_NV16M:
 //    case V4L2_PIX_FMT_NV61M:
 //    case V4L2_PIX_FMT_NV12MT:
 //    case V4L2_PIX_FMT_NV12MT_16X16:
+
+    case V4L2_PIX_FMT_YUV410:
+      return AV_PIX_FMT_YUV410P;
+    case V4L2_PIX_FMT_YVU410:
+      return AV_PIX_FMT_YUV410P; // *TODO*: this is wrong
+    case V4L2_PIX_FMT_YUV411P:
+      return AV_PIX_FMT_YUV411P;
+    case V4L2_PIX_FMT_YUV420:
+      return AV_PIX_FMT_YUV420P;
+    case V4L2_PIX_FMT_YVU420:
+      return AV_PIX_FMT_YUV420P; // *TODO*: this is wrong
+    case V4L2_PIX_FMT_YUV422P:
+      return AV_PIX_FMT_YUV422P;
+
 //    case V4L2_PIX_FMT_YUV420M:
 //    case V4L2_PIX_FMT_YVU420M:
+//    case V4L2_PIX_FMT_YUV422M:
+//    case V4L2_PIX_FMT_YVU422M:
+//    case V4L2_PIX_FMT_YUV444M:
+//    case V4L2_PIX_FMT_YVU444M:
+
     case V4L2_PIX_FMT_SBGGR8:
       return AV_PIX_FMT_BAYER_BGGR8;
     case V4L2_PIX_FMT_SGBRG8:
@@ -1994,20 +2042,48 @@ Stream_MediaFramework_Tools::v4l2FormatToffmpegFormat (__u32 format_in)
 //    case V4L2_PIX_FMT_SGBRG10:
 //    case V4L2_PIX_FMT_SGRBG10:
 //    case V4L2_PIX_FMT_SRGGB10:
-//    case V4L2_PIX_FMT_SBGGR12:
-//    case V4L2_PIX_FMT_SGBRG12:
-//    case V4L2_PIX_FMT_SGRBG12:
-//    case V4L2_PIX_FMT_SRGGB12:
+
+//    case V4L2_PIX_FMT_SBGGR10P:
+//    case V4L2_PIX_FMT_SGBRG10P:
+//    case V4L2_PIX_FMT_SGRBG10P:
+//    case V4L2_PIX_FMT_SRGGB10P:
+
 //    case V4L2_PIX_FMT_SBGGR10ALAW8:
 //    case V4L2_PIX_FMT_SGBRG10ALAW8:
 //    case V4L2_PIX_FMT_SGRBG10ALAW8:
 //    case V4L2_PIX_FMT_SRGGB10ALAW8:
+
 //    case V4L2_PIX_FMT_SBGGR10DPCM8:
 //    case V4L2_PIX_FMT_SGBRG10DPCM8:
 //    case V4L2_PIX_FMT_SGRBG10DPCM8:
 //    case V4L2_PIX_FMT_SRGGB10DPCM8:
+//    case V4L2_PIX_FMT_SBGGR12:
+//    case V4L2_PIX_FMT_SGBRG12:
+//    case V4L2_PIX_FMT_SGRBG12:
+//    case V4L2_PIX_FMT_SRGGB12:
+
+//    case V4L2_PIX_FMT_SBGGR12P:
+//    case V4L2_PIX_FMT_SGBRG12P:
+//    case V4L2_PIX_FMT_SGRBG12P:
+//    case V4L2_PIX_FMT_SRGGB12P:
+//    case V4L2_PIX_FMT_SBGGR14:
+//    case V4L2_PIX_FMT_SGBRG14:
+//    case V4L2_PIX_FMT_SGRBG14:
+//    case V4L2_PIX_FMT_SRGGB14:
+
+//    case V4L2_PIX_FMT_SBGGR14P:
+//    case V4L2_PIX_FMT_SGBRG14P:
+//    case V4L2_PIX_FMT_SGRBG14P:
+//    case V4L2_PIX_FMT_SRGGB14P:
     case V4L2_PIX_FMT_SBGGR16:
       return AV_PIX_FMT_BAYER_BGGR16;
+//    case V4L2_PIX_FMT_SGBRG16:
+//    case V4L2_PIX_FMT_SGRBG16:
+//    case V4L2_PIX_FMT_SRGGB16:
+
+//    case V4L2_PIX_FMT_HSV24:
+//    case V4L2_PIX_FMT_HSV32:
+
     case V4L2_PIX_FMT_MJPEG:
       // *NOTE*: "... MJPEG, or at least the MJPEG in AVIs having the MJPG
       //         fourcc, is restricted JPEG with a fixed -- and *omitted* --
@@ -2029,11 +2105,19 @@ Stream_MediaFramework_Tools::v4l2FormatToffmpegFormat (__u32 format_in)
 //    case V4L2_PIX_FMT_H263:
 //    case V4L2_PIX_FMT_MPEG1:
 //    case V4L2_PIX_FMT_MPEG2:
+//    case V4L2_PIX_FMT_MPEG2_SLICE:
 //    case V4L2_PIX_FMT_MPEG4:
 //    case V4L2_PIX_FMT_XVID:
 //    case V4L2_PIX_FMT_VC1_ANNEX_G:
 //    case V4L2_PIX_FMT_VC1_ANNEX_L:
 //    case V4L2_PIX_FMT_VP8:
+//    case V4L2_PIX_FMT_VP8_FRAME:
+//    case V4L2_PIX_FMT_VP9:
+//    case V4L2_PIX_FMT_HEVC:
+//    case V4L2_PIX_FMT_FWHT:
+//    case V4L2_PIX_FMT_FWHT_STATELESS:
+//    case V4L2_PIX_FMT_H264_SLICE:
+
 //    case V4L2_PIX_FMT_CPIA1:
 //    case V4L2_PIX_FMT_WNVA:
 //    case V4L2_PIX_FMT_SN9C10X:
@@ -2060,8 +2144,19 @@ Stream_MediaFramework_Tools::v4l2FormatToffmpegFormat (__u32 format_in)
 //    case V4L2_PIX_FMT_JPGL:
 //    case V4L2_PIX_FMT_SE401:
 //    case V4L2_PIX_FMT_S5C_UYVY_JPG:
-//    case V4L2_SDR_FMT_CU8:
-//    case V4L2_SDR_FMT_CU16LE:
+//    case V4L2_PIX_FMT_Y8I:
+//    case V4L2_PIX_FMT_Y12I:
+//    case V4L2_PIX_FMT_Z16:
+//    case V4L2_PIX_FMT_MT21C:
+//    case V4L2_PIX_FMT_INZI:
+//    case V4L2_PIX_FMT_SUNXI_TILED_NV12:
+//    case V4L2_PIX_FMT_CNF4:
+//    case V4L2_PIX_FMT_HI240:
+
+//    case V4L2_PIX_FMT_IPU3_SBGGR10:
+//    case V4L2_PIX_FMT_IPU3_SGBRG10:
+//    case V4L2_PIX_FMT_IPU3_SGRBG10:
+//    case V4L2_PIX_FMT_IPU3_SRGGB10:
     default:
     {
       ACE_DEBUG ((LM_ERROR,

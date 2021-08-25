@@ -838,10 +838,8 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
         // luminance-chrominance formats
         case AV_PIX_FMT_YUV420P: // 'YU12'
         case AV_PIX_FMT_YUYV422:
-//        case V4L2_PIX_FMT_YUV420: // 'YU12'
-//        case V4L2_PIX_FMT_YVU420: // 'YV12'
-//        case V4L2_PIX_FMT_YUYV:
-          codec_id = AV_CODEC_ID_CYUV; // AV_CODEC_ID_YUV4 ?
+        case AV_PIX_FMT_YUVA444P:
+          codec_id = AV_CODEC_ID_AYUV;
           break;
         // compressed formats
         // *NOTE*: "... MJPEG, or at least the MJPEG in AVIs having the MJPG
@@ -872,9 +870,9 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
       if (unlikely (!codec_p))
       {
         ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("%s: avcodec_find_encoder(%d) failed: \"%m\", returning\n"),
+                    ACE_TEXT ("%s: avcodec_find_encoder(%d) (codec: \"%s\") failed: \"%m\", returning\n"),
                     inherited::mod_->name (),
-                    codec_id));
+                    codec_id, ACE_TEXT (Common_Image_Tools::codecIdToString (codec_id).c_str ())));
         goto error;
       } // end IF
       ACE_ASSERT (!codec_context_p);

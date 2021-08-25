@@ -1468,16 +1468,16 @@ error:
   Stream_CamSave_LibCamera_MessageAllocator_t libcamera_message_allocator (TEST_I_MAX_MESSAGES, // maximum #buffers
                                                                            &heap_allocator,     // heap allocator handle
                                                                            true);               // block ?
-  Stream_CamSave_LibCamera_Stream libcamera_stream;
-  Stream_CamSave_LibCamera_MessageHandler_Module libcamera_message_handler (&libcamera_stream,
+  Stream_CamSave_LibCamera_MessageHandler_Module libcamera_message_handler (NULL,
                                                                             ACE_TEXT_ALWAYS_CHAR (STREAM_MISC_MESSAGEHANDLER_DEFAULT_NAME_STRING));
+  Stream_CamSave_LibCamera_Stream libcamera_stream;
 #endif // LIBCAMERA_SUPPORT
   Stream_CamSave_V4L_MessageAllocator_t v4l_message_allocator (TEST_I_MAX_MESSAGES, // maximum #buffers
                                                                &heap_allocator,     // heap allocator handle
                                                                true);               // block ?
-  Stream_CamSave_V4L_Stream v4l_stream;
-  Stream_CamSave_V4L_MessageHandler_Module v4l_message_handler (&v4l_stream,
+  Stream_CamSave_V4L_MessageHandler_Module v4l_message_handler (NULL,
                                                                 ACE_TEXT_ALWAYS_CHAR (STREAM_MISC_MESSAGEHANDLER_DEFAULT_NAME_STRING));
+  Stream_CamSave_V4L_Stream v4l_stream;
 
   //if (bufferSize_in)
   //  CBData_in.configuration->streamConfiguration.allocatorConfiguration_.defaultBufferSize =
@@ -1629,7 +1629,7 @@ error:
   // *NOTE*: apparently, Windows Media Player supports only RGB 5:5:5 16bpp AVI
   //         content (see also avienc.c:448)
   v4l_converter_2_modulehandler_configuration = v4l_modulehandler_configuration;
-  v4l_converter_2_modulehandler_configuration.outputFormat.format = AV_PIX_FMT_RGB555;
+  v4l_converter_2_modulehandler_configuration.outputFormat.format = AV_PIX_FMT_YUVA444P;
   configuration_in.v4l_streamConfiguration.insert (std::make_pair (std::string (std::string (ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_LIBAV_CONVERTER_DEFAULT_NAME_STRING)) + ACE_TEXT_ALWAYS_CHAR ("_2")),
                                                                    std::make_pair (module_configuration,
                                                                                    v4l_converter_2_modulehandler_configuration)));
@@ -1872,6 +1872,39 @@ error:
       goto clean;
     } // end IF
 #endif // GTK_USE || WXWIDGETS_USE
+
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+    switch (mediaFramework_in)
+    {
+      case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
+      {
+        directShowCBData_in.stream->wait ();
+        break;
+      }
+      case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
+      {
+        mediaFoundationCBData_in.stream->wait ();
+        break;
+      }
+      default:
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("invalid/unknown media framework (was: %d), returning\n"),
+                    mediaFramework_in));
+        return;
+      }
+    } // end SWITCH
+#else
+    if (useLibCamera_in)
+#if defined (LIBCAMERA_SUPPORT)
+      libcamera_stream.wait ();
+#else
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("useLibCamera_in specified, but LIBCAMERA_SUPPORT not set, continuing\n")));
+#endif // LIBCAMERA_SUPPORT
+    else
+      v4l_stream.wait ();
+#endif // ACE_WIN32 || ACE_WIN64
   } // end IF
   else
   {

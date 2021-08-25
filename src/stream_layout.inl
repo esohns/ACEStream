@@ -268,12 +268,9 @@ Stream_Layout_T<ACE_SYNCH_USE,
        ++iterator)
   {
     if (unlikely (inherited::number_of_children (iterator)))
-    {
       prev (*(iterator.node),
             name_in,
             return_value);
-      continue;
-    } // end IF
 
     if (unlikely (!ACE_OS::strcmp ((*iterator)->name (),
                                    ACE_TEXT (name_in.c_str ())) &&
@@ -663,12 +660,9 @@ Stream_Layout_T<ACE_SYNCH_USE,
        ++iterator)
   {
     if (unlikely (inherited::number_of_children (iterator)))
-    {
       prev (*(iterator.node),
             name_in,
             list_inout);
-      continue;
-    } // end IF
 
     if (unlikely (!ACE_OS::strcmp ((*iterator)->name (),
                                    ACE_TEXT (name_in.c_str ())) &&

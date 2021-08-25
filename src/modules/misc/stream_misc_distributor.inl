@@ -351,7 +351,8 @@ Stream_Miscellaneous_Distributor_T<ACE_SYNCH_USE,
     inherited::lockActivate_ = lock_activate_was_b;
     inherited::threadCount_ = 0;
     ACE_ASSERT (!inherited::threadIds_.empty ());
-    queues_.insert (std::make_pair (inherited::threadIds_[0].id (), queue_p));
+    queues_.insert (std::make_pair (inherited::threadIds_.back ().id (),
+                                    queue_p));
     modules_.insert (std::make_pair (queue_p, module_in));
     ACE_ASSERT (!branches_.empty ());
     std::pair<BRANCH_TO_HEAD_ITERATOR_T, bool> result_s =
@@ -830,11 +831,9 @@ done:
     queues_.erase (iterator);
   } // end lock scope
 
-#if defined (_DEBUG)
   ACE_DEBUG ((LM_DEBUG,
               ACE_TEXT ("%s: worker thread (id: %t) leaving\n"),
               inherited::mod_->name ()));
-#endif // _DEBUG
 
   return result;
 }
