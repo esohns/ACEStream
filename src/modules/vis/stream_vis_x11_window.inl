@@ -229,10 +229,10 @@ Stream_Module_Vis_X11_Window_T<ACE_SYNCH_USE,
 //  XLockDisplay (display_);
 //  release_lock = true;
 
-//#if defined (_DEBUG)
+#if defined (_DEBUG)
 //  Common_UI_Tools::dump (*display_, window_);
 //  Common_UI_Tools::dump (*display_, pixmap_);
-//#endif // _DEBUG
+#endif // _DEBUG
 
   // *TODO*: currently XPutImage returns 0 in all cases...no error handling :-(
   result_2 = XPutImage (display_,

@@ -19,7 +19,6 @@
  ***************************************************************************/
 #include "stdafx.h"
 
-//#include "ace/Synch.h"
 #include "stream_vis_gtk_cairo_spectrum_analyzer.h"
 
 #include "stream_vis_defines.h"

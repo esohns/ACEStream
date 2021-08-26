@@ -348,7 +348,7 @@ Stream_Decoder_LibAVConverter_T<ACE_SYNCH_USE,
       // initialize conversion context
       ACE_ASSERT (!context_);
       flags = (//SWS_BILINEAR | SWS_FAST_BILINEAR | // interpolation
-               SWS_FAST_BILINEAR);
+               SWS_BICUBIC);
       context_ =
           sws_getCachedContext (NULL,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)

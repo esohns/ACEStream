@@ -3745,7 +3745,7 @@ togglebutton_record_toggled_cb (GtkToggleButton* toggleButton_in,
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("invalid/unknown media framework (was: %d), returning\n"),
                   ui_cb_data_base_p->mediaFramework));
-      return;
+      goto error;
     }
   } // end SWITCH
 #else
@@ -3756,7 +3756,7 @@ togglebutton_record_toggled_cb (GtkToggleButton* toggleButton_in,
   Stream_CamSave_V4L_StreamConfiguration_t::ITERATOR_T iterator_2 =
     ui_cb_data_p->configuration->v4l_streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (iterator_2 != ui_cb_data_p->configuration->v4l_streamConfiguration.end ());
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
   ACE_ASSERT (stream_p);
   ACE_ASSERT (iterator != ui_cb_data_base_p->UIState->builders.end ());
 
@@ -3782,7 +3782,7 @@ togglebutton_record_toggled_cb (GtkToggleButton* toggleButton_in,
   ACE_thread_t thread_id = std::numeric_limits<unsigned long>::max ();
 #else
   ACE_thread_t thread_id = -1;
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
   ACE_hthread_t thread_handle = ACE_INVALID_HANDLE;
   const char* thread_name_2 = NULL;
   ACE_Thread_Manager* thread_manager_p = NULL;
@@ -3874,12 +3874,12 @@ continue_:
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("invalid/unknown media framework (was: %d), returning\n"),
                   ui_cb_data_base_p->mediaFramework));
-      return;
+      goto error;
     }
   } // end SWITCH
 #else
   (*iterator_2).second.second.targetFileName = filename_string;
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
 
 //  spin_button_p =
 //    GTK_SPIN_BUTTON (gtk_builder_get_object ((*iterator).second.second,
@@ -3903,7 +3903,7 @@ continue_:
   //    ACE_DEBUG ((LM_ERROR,
   //                ACE_TEXT ("invalid/unknown media framework (was: %d), returning\n"),
   //                ui_cb_data_base_p->mediaFramework));
-  //    return;
+  //    goto error;
   //  }
   //} // end SWITCH
 #else
@@ -3936,7 +3936,8 @@ continue_:
         //  ACE_DEBUG ((LM_ERROR,
         //              ACE_TEXT ("failed to IMFMediaSession::Shutdown(): \"%s\", continuing\n"),
         //              ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
-        (*mediafoundation_stream_iterator).second.second.session->Release (); (*mediafoundation_stream_iterator).second.second.session = NULL;
+        (*mediafoundation_stream_iterator).second.second.session->Release (); (*mediafoundation_stream_iterator).second.second.session =
+            NULL;
       } // end IF
 
       ////if (!Stream_Module_Device_Tools::setCaptureFormat (data_p->configuration->moduleHandlerConfiguration.builder,
@@ -3957,25 +3958,25 @@ continue_:
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("invalid/unknown media framework (was: %d), returning\n"),
                   ui_cb_data_base_p->mediaFramework));
-      return;
+      goto error;
     }
   } // end SWITCH
 #else
-//  if (!Stream_Device_Tools::setFormat ((*iterator_2).second.second.deviceIdentifier.fileDescriptor,
-//                                       ui_cb_data_p->configuration->v4l_streamConfiguration.configuration->format.format))
-//  {
-//    ACE_DEBUG ((LM_ERROR,
-//                ACE_TEXT ("failed to Stream_Device_Tools::setFormat(), aborting\n")));
-//    goto error;
-//  } // end IF
-//  if (!Stream_Device_Tools::setFrameRate ((*iterator_2).second.second.deviceIdentifier.fileDescriptor,
-//                                          ui_cb_data_p->configuration->v4l_streamConfiguration.configuration->format.frameRate))
-//  {
-//    ACE_DEBUG ((LM_ERROR,
-//                ACE_TEXT ("failed to Stream_Device_Tools::setFrameRate(), aborting\n")));
-//    goto error;
-//  } // end IF
-#endif
+  if (!Stream_Device_Tools::setFormat ((*iterator_2).second.second.deviceIdentifier.fileDescriptor,
+                                       ui_cb_data_p->configuration->v4l_streamConfiguration.configuration_->format.format))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to Stream_Device_Tools::setFormat(), aborting\n")));
+    goto error;
+  } // end IF
+  if (!Stream_Device_Tools::setFrameRate ((*iterator_2).second.second.deviceIdentifier.fileDescriptor,
+                                          ui_cb_data_p->configuration->v4l_streamConfiguration.configuration_->format.frameRate))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to Stream_Device_Tools::setFrameRate(), aborting\n")));
+    goto error;
+  } // end IF
+#endif // ACE_WIN32 || ACE_WIN64
 
   // step3: start processing thread
   ACE_NEW_NORETURN (thread_data_p,
@@ -3997,7 +3998,7 @@ continue_:
 //    ACE_DEBUG ((LM_CRITICAL,
 //                ACE_TEXT ("failed to allocate memory: \"%m\", returning\n")));
 //    delete thread_data_p; thread_data_p = NULL;
-//    return;
+//    goto error;
 //  } // end IF
 //  ACE_OS::memset (thread_name_p, 0, sizeof (thread_name_p));
 //  ACE_OS::strcpy (thread_name_p,

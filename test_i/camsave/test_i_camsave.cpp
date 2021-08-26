@@ -1201,8 +1201,9 @@ do_work (const std::string& captureinterfaceIdentifier_in,
 #endif // GUI_SUPPORT
 #else
   struct Stream_CamSave_V4L_ModuleHandlerConfiguration v4l_modulehandler_configuration;
+  struct Stream_CamSave_V4L_ModuleHandlerConfiguration v4l_resize_modulehandler_configuration;
+  struct Stream_CamSave_V4L_ModuleHandlerConfiguration v4l_renderer_modulehandler_configuration;
   struct Stream_CamSave_V4L_ModuleHandlerConfiguration v4l_converter_2_modulehandler_configuration; // save to file
-  struct Stream_CamSave_V4L_ModuleHandlerConfiguration v4l_x11_modulehandler_configuration;
 
   struct Stream_CamSave_V4L_StreamConfiguration v4l_stream_configuration;
   Stream_CamSave_V4L_EventHandler_t v4l_ui_event_handler (
@@ -1620,12 +1621,18 @@ error:
                                                              libcamera_stream_configuration);
 #endif // LIBCAMERA_SUPPORT
 
-  v4l_x11_modulehandler_configuration = v4l_modulehandler_configuration;
-  v4l_x11_modulehandler_configuration.display = displayDevice_in;
-  v4l_x11_modulehandler_configuration.outputFormat.format = AV_PIX_FMT_RGB32;
+  v4l_resize_modulehandler_configuration = v4l_modulehandler_configuration;
+  configuration_in.v4l_streamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_LIBAV_RESIZE_DEFAULT_NAME_STRING),
+                                                                   std::make_pair (module_configuration,
+                                                                                   v4l_resize_modulehandler_configuration)));
+
+  v4l_renderer_modulehandler_configuration = v4l_modulehandler_configuration;
+  v4l_renderer_modulehandler_configuration.display = displayDevice_in;
+  v4l_renderer_modulehandler_configuration.outputFormat.format = AV_PIX_FMT_RGB32;
   configuration_in.v4l_streamConfiguration.insert (std::make_pair (Stream_Visualization_Tools::rendererToModuleName (STREAM_VISUALIZATION_VIDEORENDERER_X11),
                                                                    std::make_pair (module_configuration,
-                                                                                  v4l_x11_modulehandler_configuration)));
+                                                                                   v4l_renderer_modulehandler_configuration)));
+
   // *NOTE*: apparently, Windows Media Player supports only RGB 5:5:5 16bpp AVI
   //         content (see also avienc.c:448)
   v4l_converter_2_modulehandler_configuration = v4l_modulehandler_configuration;

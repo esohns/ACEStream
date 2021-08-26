@@ -2018,7 +2018,7 @@ Stream_MediaFramework_Tools::v4l2FormatToffmpegFormat (__u32 format_in)
       return AV_PIX_FMT_YUV411P;
     case V4L2_PIX_FMT_YUV420:
       return AV_PIX_FMT_YUV420P;
-    case V4L2_PIX_FMT_YVU420:
+    case V4L2_PIX_FMT_YVU420: // 'YV12'
       return AV_PIX_FMT_YUV420P; // *TODO*: this is wrong
     case V4L2_PIX_FMT_YUV422P:
       return AV_PIX_FMT_YUV422P;
