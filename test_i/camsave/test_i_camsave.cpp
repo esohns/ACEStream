@@ -1610,7 +1610,7 @@ error:
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
-  // *TODO*: X11 window crashes for 24 bit depths...
+  // *TODO*: X11 window crashes for 24 bit depths... (BadIDChoice)
   v4l_modulehandler_configuration.outputFormat.format = AV_PIX_FMT_RGB32;
   configuration_in.v4l_streamConfiguration.initialize (module_configuration,
                                                        v4l_modulehandler_configuration,
@@ -1628,6 +1628,7 @@ error:
 
   v4l_renderer_modulehandler_configuration = v4l_modulehandler_configuration;
   v4l_renderer_modulehandler_configuration.display = displayDevice_in;
+  // *TODO*: X11 window crashes for 24 bit depths... (BadIDChoice)
   v4l_renderer_modulehandler_configuration.outputFormat.format = AV_PIX_FMT_RGB32;
   configuration_in.v4l_streamConfiguration.insert (std::make_pair (Stream_Visualization_Tools::rendererToModuleName (STREAM_VISUALIZATION_VIDEORENDERER_X11),
                                                                    std::make_pair (module_configuration,
@@ -2047,6 +2048,11 @@ clean:
       return;
     }
   } // end SWITCH
+#else
+  if (useLibCamera_in) ;
+//    do_libcamera_finalize ();
+  else
+    do_finalize_v4l (v4l_modulehandler_configuration.deviceIdentifier);
 #endif // ACE_WIN32 || ACE_WIN64
 
   ACE_DEBUG ((LM_DEBUG,

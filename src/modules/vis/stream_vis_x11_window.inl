@@ -61,7 +61,6 @@ Stream_Module_Vis_X11_Window_T<ACE_SYNCH_USE,
                                SessionDataContainerType,
                                MediaType>::Stream_Module_Vis_X11_Window_T (typename inherited::ISTREAM_T* stream_in)
  : inherited (stream_in)
-// , buffer_ (NULL)
  , closeDisplay_ (false)
  , closeWindow_ (false)
  , context_ (NULL)
@@ -96,25 +95,23 @@ Stream_Module_Vis_X11_Window_T<ACE_SYNCH_USE,
 
   int result = -1;
 
-//  if (buffer_)
-//    delete [] buffer_;
-//  if (context_)
-//  { ACE_ASSERT (display_);
-//    result = XFreeGC (display_,
-//                      context_);
-//    if (unlikely (result))
-//      ACE_DEBUG ((LM_ERROR,
-//                  ACE_TEXT ("%s: failed to XFreeGC(0x%@,%u): \"%m\", continuing\n"),
-//                  inherited::mod_->name (),
-//                  display_));
-//  } // end IF
+  if (context_)
+  { ACE_ASSERT (display_);
+    result = XFreeGC (display_,
+                      context_);
+    if (unlikely (result))
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("%s: failed to XFreeGC(%@,%@): \"%m\", continuing\n"),
+                  inherited::mod_->name (),
+                  display_));
+  } // end IF
   if (pixmap_)
   { ACE_ASSERT (display_);
     result = XFreePixmap (display_,
                           pixmap_);
     if (unlikely (!result))
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("%s: failed to XFreePixmap(0x%@,%u): \"%m\", continuing\n"),
+                  ACE_TEXT ("%s: failed to XFreePixmap(%@,%u): \"%m\", continuing\n"),
                   inherited::mod_->name (),
                   display_, pixmap_));
   } // end IF
@@ -123,7 +120,7 @@ Stream_Module_Vis_X11_Window_T<ACE_SYNCH_USE,
     result = XDestroyWindow (display_, window_);
     if (unlikely (!result))
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("%s: failed to XDestroyWindow(0x%@,%u): \"%m\", continuing\n"),
+                  ACE_TEXT ("%s: failed to XDestroyWindow(%@,%u): \"%m\", continuing\n"),
                   inherited::mod_->name (),
                   display_, window_));
   } // end IF
@@ -132,7 +129,7 @@ Stream_Module_Vis_X11_Window_T<ACE_SYNCH_USE,
     result = XCloseDisplay (display_);
     if (unlikely (result))
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("%s: failed to XCloseDisplay(0x%@): \"%m\", continuing\n"),
+                  ACE_TEXT ("%s: failed to XCloseDisplay(%@): \"%m\", continuing\n"),
                   inherited::mod_->name (),
                   display_));
   } // end IF
@@ -165,6 +162,7 @@ Stream_Module_Vis_X11_Window_T<ACE_SYNCH_USE,
   ACE_ASSERT (inherited::sessionData_);
   ACE_ASSERT (display_);
   ACE_ASSERT (pixmap_);
+  ACE_ASSERT (context_);
   ACE_ASSERT (visual_);
   ACE_ASSERT (window_);
 
@@ -253,9 +251,14 @@ Stream_Module_Vis_X11_Window_T<ACE_SYNCH_USE,
 //    goto unlock;
 //  } // end IF
 
-  result_2 = XSetWindowBackgroundPixmap (display_,
-                                         window_,
-                                         pixmap_);
+  result_2 = XCopyArea (display_,
+                        pixmap_, window_,
+                        context_,
+                        0, 0, resolution_s.width, resolution_s.height,
+                        0, 0);
+//  result_2 = XSetWindowBackgroundPixmap (display_,
+//                                         window_,
+//                                         pixmap_);
   if (unlikely (result_2 != True))
   {
     ACE_DEBUG ((LM_ERROR,
@@ -276,16 +279,16 @@ unlock:
     return;
 
   // repaint window immediately
-  result_2 = XClearWindow (display_,
-                           window_);
-  if (unlikely (result_2 != True))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: failed to XClearWindow(0x%@,%u): \"%m\", returning\n"),
-                inherited::mod_->name (),
-                display_, window_));
-    return;
-  } // end IF
+//  result_2 = XClearWindow (display_,
+//                           window_);
+//  if (unlikely (result_2 != True))
+//  {
+//    ACE_DEBUG ((LM_ERROR,
+//                ACE_TEXT ("%s: failed to XClearWindow(0x%@,%u): \"%m\", returning\n"),
+//                inherited::mod_->name (),
+//                display_, window_));
+//    return;
+//  } // end IF
   result_2 = XFlush (display_);
   if (unlikely (result_2 != True))
   {
@@ -383,22 +386,35 @@ error:
       ACE_ASSERT (display_);
 
       int result = -1;
+      if (context_)
+      {
+        result = XFreeGC (display_,
+                          context_);
+        if (unlikely (result))
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("%s: failed to XFreeGC(%@,%@): \"%m\", continuing\n"),
+                      inherited::mod_->name (),
+                      display_));
+        context_ = NULL;
+      } // end IF
       if (pixmap_)
       {
-        result = XFreePixmap (display_, pixmap_);
+        result = XFreePixmap (display_,
+                              pixmap_);
         if (unlikely (!result))
           ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("%s: failed to XFreePixmap(0x%@,%u): \"%m\", aborting\n"),
+                      ACE_TEXT ("%s: failed to XFreePixmap(%@,%u): \"%m\", aborting\n"),
                       inherited::mod_->name (),
                       display_, pixmap_));
         pixmap_ = None;
       } // end IF
       if (closeWindow_)
       { ACE_ASSERT (display_ && window_);
-        result = XDestroyWindow (display_, window_);
+        result = XDestroyWindow (display_,
+                                 window_);
         if (unlikely (!result))
           ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("%s: failed to XDestroyWindow(0x%@,%u): \"%m\", continuing\n"),
+                      ACE_TEXT ("%s: failed to XDestroyWindow(%@,%u): \"%m\", continuing\n"),
                       inherited::mod_->name (),
                       display_, window_));
         window_ = None;
@@ -409,7 +425,7 @@ error:
         result = XCloseDisplay (display_);
         if (unlikely (result))
           ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("%s: failed to XCloseDisplay(0x%@): \"%m\", continuing\n"),
+                      ACE_TEXT ("%s: failed to XCloseDisplay(%@): \"%m\", continuing\n"),
                       inherited::mod_->name (),
                       display_));
         display_ = NULL;
@@ -650,11 +666,11 @@ Stream_Module_Vis_X11_Window_T<ACE_SYNCH_USE,
       return false;
     } // end IF
     ACE_DEBUG ((LM_DEBUG,
-                ACE_TEXT ("%s: created X11 window (display: %@, id: %u, depth: %d)\n"),
+                ACE_TEXT ("%s: created X11 window (display: %@, id: %u, width: %u, height: %u, depth: %d)\n"),
                 inherited::mod_->name (),
                 display_,
                 window_,
-                depth_i));
+                width_i, height_i, depth_i));
     closeWindow_ = true;
 //    XSelectInput (display_,
 //                  window_,

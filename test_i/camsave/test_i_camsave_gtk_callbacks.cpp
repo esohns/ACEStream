@@ -2706,6 +2706,13 @@ idle_initialize_UI_cb (gpointer userData_in)
   gtk_cell_layout_set_attributes (GTK_CELL_LAYOUT (combo_box_p), cell_renderer_p,
                                   "text", 0,
                                   NULL);
+  gint n_rows =
+    gtk_tree_model_iter_n_children (GTK_TREE_MODEL (list_store_p), NULL);
+  if (n_rows)
+  { // *TODO*
+    gtk_widget_set_sensitive (GTK_WIDGET (combo_box_p), TRUE);
+    gtk_combo_box_set_active (combo_box_p, static_cast<gint> (0));
+  } // end IF
 
   list_store_p =
     GTK_LIST_STORE (gtk_builder_get_object ((*iterator).second.second,
@@ -3036,7 +3043,7 @@ idle_initialize_UI_cb (gpointer userData_in)
     GTK_LIST_STORE (gtk_builder_get_object ((*iterator).second.second,
                                             ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_LISTSTORE_SOURCE_NAME)));
   ACE_ASSERT (list_store_p);
-  gint n_rows =
+  n_rows =
     gtk_tree_model_iter_n_children (GTK_TREE_MODEL (list_store_p), NULL);
   if (n_rows)
   {
@@ -4500,7 +4507,7 @@ togglebutton_fullscreen_toggled_cb (GtkToggleButton* toggleButton_in,
     cb_data_p->configuration->v4l_streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (iterator_2 != cb_data_p->configuration->v4l_streamConfiguration.end ());
   (*iterator_2).second.second.fullScreen = is_active_b;
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
   ACE_ASSERT (stream_base_p);
   if (!stream_base_p->isRunning ())
     return;
@@ -4549,7 +4556,7 @@ togglebutton_fullscreen_toggled_cb (GtkToggleButton* toggleButton_in,
 #else
   module_p =
       stream_p->find (ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_GTK_CAIRO_DEFAULT_NAME_STRING));
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
   if (!module_p)
   {
     ACE_DEBUG ((LM_ERROR,
