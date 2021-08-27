@@ -190,8 +190,11 @@ target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
 
 ############## next target ################
 set (source_files
+     stream_vis_base.cpp
+     stream_vis_base.h
      stream_vis_common.h
      stream_vis_defines.h
+     stream_vis_iresize.h
      stream_vis_tools.cpp
      stream_vis_tools.h)
 if (GTK_SUPPORT)
@@ -357,8 +360,10 @@ export (TARGETS ${PROJECT_NAME}_Visualization
 
 ############### install files ################
 set (header_files
+     stream_vis_base.h
      stream_vis_common.h
      stream_vis_defines.h
+     stream_vis_iresize.h
      stream_vis_tools.h)
 if (GTK_SUPPORT)
  set (header_files

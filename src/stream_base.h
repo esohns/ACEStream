@@ -41,10 +41,11 @@
 #include "stream_ilock.h"
 #include "stream_isessionnotify.h"
 #include "stream_istreamcontrol.h"
+#include "stream_itask.h"
+#include "stream_layout.h"
 #include "stream_messagequeue.h"
 #include "stream_statemachine_control.h"
 #include "stream_streammodule_base.h"
-#include "stream_itask.h"
 
 #include "stream_misc_distributor.h"
 

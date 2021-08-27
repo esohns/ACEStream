@@ -129,6 +129,10 @@ Stream_Module_Vis_GTK_Pixbuf_T<ACE_SYNCH_USE,
   gdk_threads_enter ();
   leave_gdk = true;
 
+  // resizing ? --> discard frame
+  if (unlikely (inherited2::resizing_))
+    goto continue_;
+
   ACE_OS::memcpy (gdk_pixbuf_get_pixels (buffer_),
                   message_inout->rd_ptr (),
                   message_inout->length ());
@@ -155,6 +159,7 @@ Stream_Module_Vis_GTK_Pixbuf_T<ACE_SYNCH_USE,
                    GDK_RGB_DITHER_NONE, 0, 0);
 #endif // GTK_CHECK_VERSION (3,0,0)
 
+continue_:
   if (likely (leave_gdk))
   {
     gdk_threads_leave ();
@@ -231,7 +236,7 @@ Stream_Module_Vis_GTK_Pixbuf_T<ACE_SYNCH_USE,
       ACE_ASSERT (GDK_IS_PIXBUF (buffer_));
       ACE_ASSERT (gdk_pixbuf_get_colorspace (buffer_) == GDK_COLORSPACE_RGB);
       ACE_ASSERT (gdk_pixbuf_get_bits_per_sample (buffer_) == 8);
-//      ACE_ASSERT (gdk_pixbuf_get_n_channels (buffer_) == 3);
+      ACE_ASSERT (gdk_pixbuf_get_n_channels (buffer_) == 3);
 //      ACE_ASSERT (gdk_pixbuf_get_n_channels (buffer_) == 4);
 //      ACE_ASSERT (gdk_pixbuf_get_has_alpha (buffer_));
 
@@ -254,18 +259,15 @@ error:
     case STREAM_SESSION_MESSAGE_RESIZE:
     {
       // sanity check(s)
-      ACE_ASSERT (false); // *TODO*
       // *TODO*: remove type inferences
       ACE_ASSERT (inherited::configuration_->window);
+      ACE_ASSERT (buffer_);
 
       gint width_i = 0, height_i = 0;
 
-//      if (buffer_)
-//      {
-//        g_object_unref (buffer_); buffer_ = NULL;
-//      } // end IF
-
       gdk_threads_enter ();
+
+      g_object_unref (buffer_); buffer_ = NULL;
 
 #if GTK_CHECK_VERSION (3,0,0)
       width_i = gdk_window_get_width (inherited::configuration_->window);
@@ -274,31 +276,34 @@ error:
       gdk_drawable_get_size (GDK_DRAWABLE (inherited::configuration_->window),
                              &width_i, &height_i);
 #endif // GTK_CHECK_VERSION (3,0,0)
-//      buffer_ =
-//#if GTK_CHECK_VERSION (3,0,0)
-//          gdk_pixbuf_get_from_window (inherited::configuration_->window,
-//                                      0, 0,
-//                                      width_i, height_i);
-//#else
-//          gdk_pixbuf_get_from_drawable (NULL,
-//                                        GDK_DRAWABLE (inherited::configuration_->window),
-//                                        NULL,
-//                                        0, 0,
-//                                        0, 0, width_i, height_i);
-//#endif // GTK_CHECK_VERSION (3,0,0)
-//      if (!buffer_)
-//      { // *NOTE*: most probable reason: window is not mapped
-//        ACE_DEBUG ((LM_ERROR,
-//                    ACE_TEXT ("%s: failed to gdk_pixbuf_get_from_window(), aborting\n"),
-//                    inherited::mod_->name ()));
-//        gdk_threads_leave ();
-//        goto error_2;
-//      } // end IF
+      buffer_ =
+#if GTK_CHECK_VERSION (3,0,0)
+          gdk_pixbuf_get_from_window (inherited::configuration_->window,
+                                      0, 0,
+                                      width_i, height_i);
+#else
+          gdk_pixbuf_get_from_drawable (NULL,
+                                        GDK_DRAWABLE (inherited::configuration_->window),
+                                        NULL,
+                                        0, 0,
+                                        0, 0, width_i, height_i);
+#endif // GTK_CHECK_VERSION (3,0,0)
+      if (!buffer_)
+      { // *NOTE*: most probable reason: window is not mapped
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("%s: failed to gdk_pixbuf_get_from_window(), aborting\n"),
+                    inherited::mod_->name ()));
+        gdk_threads_leave ();
+        goto error_2;
+      } // end IF
+
+      inherited2::resizing_ = false;
+
       gdk_threads_leave ();
 
       break;
 
-//error_2:
+error_2:
       this->notify (STREAM_SESSION_MESSAGE_ABORT);
 
       break;

@@ -323,12 +323,10 @@ Stream_TaskBase_T<ACE_SYNCH_USE,
         sessionDataLock_ = session_data_2->lock; // retain handle to originals
         const_cast<typename SessionMessageType::DATA_T::DATA_T*> (session_data_2)->lock =
           session_data_p->lock;
-#if defined (_DEBUG)
         ACE_DEBUG ((LM_DEBUG,
                     ACE_TEXT ("%s: stream has been linked, using downstream session data lock (is: %@)\n"),
                     inherited::mod_->name (),
                     session_data_p->lock));
-#endif // _DEBUG
 
         // *NOTE*: the idea here is to 'merge' the two datasets
         *session_data_2 += *session_data_p;
@@ -362,6 +360,8 @@ continue_:
 
       break;
     }
+    case STREAM_SESSION_MESSAGE_RESIZE:
+      break;
     case STREAM_SESSION_MESSAGE_UNLINK:
     {
       // sanity check(s)
@@ -484,11 +484,8 @@ error:
 
       break;
     }
-    case STREAM_SESSION_MESSAGE_STEP:
-      break;
     case STREAM_SESSION_MESSAGE_END:
     {
-#if defined (_DEBUG)
       try {
         this->dump_state ();
       } catch (...) {
@@ -496,7 +493,6 @@ error:
                     ACE_TEXT ("%s: caught exception in Comon_IDumpState::dump_state(), continuing\n"),
                     inherited::mod_->name ()));
       }
-#endif // _DEBUG
 
       if (!linked_ &&
           sessionData_)
@@ -509,6 +505,8 @@ error:
 
       break;
     }
+    case STREAM_SESSION_MESSAGE_STEP:
+      break;
     case STREAM_SESSION_MESSAGE_STATISTIC:
       break;
     default:

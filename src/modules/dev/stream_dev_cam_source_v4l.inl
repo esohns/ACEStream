@@ -292,6 +292,11 @@ error:
 
       return;
     }
+    case STREAM_SESSION_MESSAGE_RESIZE:
+    {
+//      ACE_ASSERT (false); // *TODO*
+      break;
+    }
     case STREAM_SESSION_MESSAGE_END:
     {
       int toggle = 0;

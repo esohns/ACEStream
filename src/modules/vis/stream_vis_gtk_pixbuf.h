@@ -26,11 +26,11 @@
 #include "ace/Global_Macros.h"
 #include "ace/Synch_Traits.h"
 
-#include "common_ui_ifullscreen.h"
-
 #include "stream_task_base_synch.h"
 
 #include "stream_lib_mediatype_converter.h"
+
+#include "stream_vis_base.h"
 
 extern const char libacestream_default_vis_gtk_pixbuf_module_name_string[];
 
@@ -56,13 +56,13 @@ class Stream_Module_Vis_GTK_Pixbuf_T
                                  enum Stream_ControlType,
                                  enum Stream_SessionMessageType,
                                  struct Stream_UserData>
+ , public Stream_Visualization_Base
  , public Stream_MediaFramework_MediaTypeConverter_T<MediaType
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
                                                     >
 #else
                                                      ,typename SessionDataContainerType::DATA_T>
 #endif // ACE_WIN32 || ACE_WIN64
- , public Common_UI_IFullscreen
 {
   typedef Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
                                  TimePolicyType,
@@ -73,11 +73,12 @@ class Stream_Module_Vis_GTK_Pixbuf_T
                                  enum Stream_ControlType,
                                  enum Stream_SessionMessageType,
                                  struct Stream_UserData> inherited;
+  typedef Stream_Visualization_Base inherited2;
   typedef Stream_MediaFramework_MediaTypeConverter_T<MediaType
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-                                                    > inherited2;
+                                                    > inherited3;
 #else
-                                                     ,typename SessionDataContainerType::DATA_T> inherited2;
+                                                     ,typename SessionDataContainerType::DATA_T> inherited3;
 #endif // ACE_WIN32 || ACE_WIN64
 
  public:

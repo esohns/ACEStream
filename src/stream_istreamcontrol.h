@@ -33,9 +33,9 @@
 #include "common_iget.h"
 
 #include "stream_common.h"
+#include "stream_ilayout.h"
 #include "stream_ilock.h"
 #include "stream_inotify.h"
-#include "stream_layout.h"
 
 class Stream_IStreamControlBase
 {
@@ -73,22 +73,30 @@ class Stream_IStreamControlBase
 };
 
 template <typename ControlType,
-          typename NotificationType,
-          typename StatusType,
-          typename StateType>
-class Stream_IStreamControl_T
+          typename StatusType>
+class Stream_IStreamControlBase_T
  : public Stream_IStreamControlBase
- , public Stream_INotify_T<NotificationType>
-// , public Common_IGet_T<StateType>
 {
  public:
   // *NOTE*: enqeues a control message
   virtual void control (ControlType,       // control type
                         bool = false) = 0; // recurse upstream (if any) ?
 
-  virtual const StateType& state () const = 0;
-
   virtual StatusType status () const = 0;
+};
+
+template <typename ControlType,
+          typename NotificationType,
+          typename StatusType,
+          typename StateType>
+class Stream_IStreamControl_T
+ : public Stream_IStreamControlBase_T<ControlType,
+                                      StatusType>
+ , public Stream_INotify_T<NotificationType>
+// , public Common_IGet_T<StateType>
+{
+ public:
+  virtual const StateType& state () const = 0;
 };
 
 template <ACE_SYNCH_DECL,

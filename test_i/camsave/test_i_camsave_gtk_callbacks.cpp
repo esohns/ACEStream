@@ -61,11 +61,13 @@
 #include "common_timer_manager.h"
 
 #include "common_ui_ifullscreen.h"
+#include "common_ui_tools.h"
 
 #include "common_ui_gtk_common.h"
 #include "common_ui_gtk_defines.h"
 #include "common_ui_gtk_tools.h"
 
+#include "stream_common.h"
 #include "stream_macros.h"
 
 #include "stream_dec_tools.h"
@@ -2452,6 +2454,13 @@ idle_initialize_UI_cb (gpointer userData_in)
     }
   } // end SWITCH
 #else
+#if defined (LIBCAMERA_SUPPORT)
+  Stream_CamSave_LibCamera_StreamConfiguration_t::ITERATOR_T libcamera_iterator_2;
+  Stream_CamSave_LibCamera_StreamConfiguration_t::ITERATOR_T libcamera_iterator_3;
+#endif // LIBCAMERA_SUPPORT
+  Stream_CamSave_V4L_StreamConfiguration_t::ITERATOR_T iterator_2; // default
+  Stream_CamSave_V4L_StreamConfiguration_t::ITERATOR_T iterator_3; // renderer
+  Stream_CamSave_V4L_StreamConfiguration_t::ITERATOR_T iterator_4; // resize
   if (ui_cb_data_base_p->useLibCamera)
   {
 #if defined (LIBCAMERA_SUPPORT)
@@ -2466,22 +2475,22 @@ idle_initialize_UI_cb (gpointer userData_in)
     framerate_i =
       ui_cb_data_p->configuration->libCamera_streamConfiguration.configuration_->format.frameRateNumerator;
     ACE_ASSERT (ui_cb_data_p->configuration->libCamera_streamConfiguration.configuration_->format.frameRateDenominator == 1);
-    Stream_CamSave_LibCamera_StreamConfiguration_t::ITERATOR_T iterator_2 =
+    libcamera_iterator_2 =
       ui_cb_data_p->configuration->libCamera_streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
-    ACE_ASSERT (iterator_2 != ui_cb_data_p->configuration->libCamera_streamConfiguration.end ());
+    ACE_ASSERT (libcamera_iterator_2 != ui_cb_data_p->configuration->libCamera_streamConfiguration.end ());
     device_identifier_string = (*iterator_2).second.second.deviceIdentifier.identifier;
-    filename_string = (*iterator_2).second.second.targetFileName;
-    Stream_CamSave_LibCamera_StreamConfiguration_t::ITERATOR_T iterator_3 =
+    filename_string = (*libcamera_iterator_2).second.second.targetFileName;
+    libcamera_iterator_3 =
       ui_cb_data_p->configuration->libCamera_streamConfiguration.find (Stream_Visualization_Tools::rendererToModuleName (STREAM_VISUALIZATION_VIDEORENDERER_X11));
-    ACE_ASSERT (iterator_3 != ui_cb_data_p->configuration->libCamera_streamConfiguration.end ());
-    display_device_string = (*iterator_3).second.second.display.device;
+    ACE_ASSERT (libcamera_iterator_3 != ui_cb_data_p->configuration->libCamera_streamConfiguration.end ());
+    display_device_string = (*libcamera_iterator_3).second.second.display.device;
     is_display_b =
-        !(*iterator_3).second.second.deviceIdentifier.identifier.empty ();
-    is_fullscreen_b = (*iterator_3).second.second.fullScreen;
+        !(*libcamera_iterator_3).second.second.deviceIdentifier.identifier.empty ();
+    is_fullscreen_b = (*libcamera_iterator_3).second.second.fullScreen;
 
-    (*iterator_3).second.second.outputFormat.resolution.height =
+    (*libcamera_iterator_3).second.second.outputFormat.resolution.height =
       resolution_s.height;
-    (*iterator_3).second.second.outputFormat.resolution.width =
+    (*libcamera_iterator_3).second.second.outputFormat.resolution.width =
       resolution_s.width;
 //    buffer_size_i =
 //      ui_cb_data_p->configuration->libCamera_streamConfiguration.configuration_->allocatorConfiguration->defaultBufferSize;
@@ -2504,14 +2513,17 @@ idle_initialize_UI_cb (gpointer userData_in)
     framerate_i =
       ui_cb_data_p->configuration->v4l_streamConfiguration.configuration_->format.frameRate.numerator;
     ACE_ASSERT (ui_cb_data_p->configuration->v4l_streamConfiguration.configuration_->format.frameRate.denominator == 1);
-    Stream_CamSave_V4L_StreamConfiguration_t::ITERATOR_T iterator_2 =
+    iterator_2 =
       ui_cb_data_p->configuration->v4l_streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
     ACE_ASSERT (iterator_2 != ui_cb_data_p->configuration->v4l_streamConfiguration.end ());
     device_identifier_string = (*iterator_2).second.second.deviceIdentifier.identifier;
     filename_string = (*iterator_2).second.second.targetFileName;
-    Stream_CamSave_V4L_StreamConfiguration_t::ITERATOR_T iterator_3 =
-      ui_cb_data_p->configuration->v4l_streamConfiguration.find (Stream_Visualization_Tools::rendererToModuleName (STREAM_VISUALIZATION_VIDEORENDERER_X11));
+    iterator_3 =
+      ui_cb_data_p->configuration->v4l_streamConfiguration.find (Stream_Visualization_Tools::rendererToModuleName (STREAM_VISUALIZATION_VIDEORENDERER_GTK_PIXBUF));
     ACE_ASSERT (iterator_3 != ui_cb_data_p->configuration->v4l_streamConfiguration.end ());
+    iterator_4 =
+      ui_cb_data_p->configuration->v4l_streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_LIBAV_RESIZE_DEFAULT_NAME_STRING));
+    ACE_ASSERT (iterator_4 != ui_cb_data_p->configuration->v4l_streamConfiguration.end ());
     display_device_string = (*iterator_3).second.second.display.device;
     is_display_b =
         !(*iterator_3).second.second.deviceIdentifier.identifier.empty ();
@@ -2862,8 +2874,14 @@ idle_initialize_UI_cb (gpointer userData_in)
   //  g_signal_connect (file_chooser_dialog_p,
   //                    ACE_TEXT_ALWAYS_CHAR ("file-activated"),
   //                    G_CALLBACK (filechooserdialog_cb),
-  //                    NULL);
+  //                    userData_in);
   //ACE_ASSERT (result_2);
+  result_2 =
+    g_signal_connect (drawing_area_p,
+                      ACE_TEXT_ALWAYS_CHAR ("size-allocate"),
+                      G_CALLBACK (drawingarea_size_allocate_cb),
+                      userData_in);
+  ACE_ASSERT (result_2);
 
   // set defaults
   //file_chooser_button_p =
@@ -3012,16 +3030,19 @@ idle_initialize_UI_cb (gpointer userData_in)
 //  g_object_unref (pixbuf_p); pixbuf_p = NULL;
 //#endif // GTK_CHECK_VERSION
 
-//  ACE_ASSERT (GDK_IS_WINDOW (window_p));
+  ACE_ASSERT (GDK_IS_WINDOW (window_p));
 //  (*iterator_2).second.second.X11Display = GDK_WINDOW_XDISPLAY (window_p);
 //  (*iterator_3).second.second.X11Display = GDK_WINDOW_XDISPLAY (window_p);
 //  (*iterator_2).second.second.window = GDK_WINDOW_XID (window_p);
 //  (*iterator_3).second.second.window = GDK_WINDOW_XID (window_p);
 //  (*iterator_2).second.second.window = window_p;
-//  (*iterator_3).second.second.window = window_p;
+  (*iterator_3).second.second.window = window_p;
 //  ACE_ASSERT ((*iterator_2).second.second.window);
-//  ACE_ASSERT ((*iterator_3).second.second.window);
+  ACE_ASSERT ((*iterator_3).second.second.window);
 
+  (*iterator_4).second.second.outputFormat.resolution.height =
+      allocation.height;
+  (*iterator_4).second.second.outputFormat.resolution.width = allocation.width;
 //  (*iterator_2).second.second.area =
 //      (*iterator_3).second.second.area;
 
@@ -6376,22 +6397,11 @@ unlock:
 //    allocation;
 //#endif
 //} // drawingarea_configure_event_cb
-void
-drawingarea_size_allocate_cb (GtkWidget* widget_in,
-                              GdkRectangle* allocation_in,
-                              gpointer userData_in)
+
+gboolean
+drawing_area_resize_end (gpointer userData_in)
 {
-  STREAM_TRACE (ACE_TEXT ("::drawingarea_size_allocate_cb"));
-
-  // sanity check(s)
-  ACE_ASSERT (widget_in);
-
-  GdkWindow* window_p = gtk_widget_get_window (widget_in);
-
-  // sanity check(s)
-  ACE_ASSERT (allocation_in);
-  ACE_ASSERT (userData_in);
-  ACE_ASSERT (window_p);
+  STREAM_TRACE (ACE_TEXT ("::drawing_area_resize_end"));
 
   struct Stream_CamSave_UI_CBData* ui_cb_data_base_p =
     static_cast<struct Stream_CamSave_UI_CBData*> (userData_in);
@@ -6404,6 +6414,16 @@ drawingarea_size_allocate_cb (GtkWidget* widget_in,
   // sanity check(s)
   ACE_ASSERT (iterator != ui_cb_data_base_p->UIState->builders.end ());
 
+  GtkDrawingArea* drawing_area_p =
+    GTK_DRAWING_AREA (gtk_builder_get_object ((*iterator).second.second,
+                                              ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_DRAWINGAREA_NAME)));
+  ACE_ASSERT (drawing_area_p);
+  GtkAllocation allocation_s;
+  gtk_widget_get_allocation (GTK_WIDGET (drawing_area_p),
+                             &allocation_s);
+
+  Stream_IStreamControlBase_t* stream_base_p = NULL;
+  Stream_IStream_t* stream_p = NULL;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   struct Stream_CamSave_DirectShow_UI_CBData* directshow_cb_data_p = NULL;
   Stream_CamSave_DirectShow_StreamConfiguration_t::ITERATOR_T directshow_stream_iterator;
@@ -6417,6 +6437,8 @@ drawingarea_size_allocate_cb (GtkWidget* widget_in,
       directshow_cb_data_p =
         static_cast<struct Stream_CamSave_DirectShow_UI_CBData*> (ui_cb_data_base_p);
       ACE_ASSERT (directshow_cb_data_p->configuration);
+      stream_base_p = directshow_cb_data_p->stream;
+      stream_p = directshow_cb_data_p->stream;
       directshow_stream_iterator =
         directshow_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_DIRECT3D_DEFAULT_NAME_STRING));
       ACE_ASSERT (directshow_stream_iterator != directshow_cb_data_p->configuration->streamConfiguration.end ());
@@ -6426,6 +6448,8 @@ drawingarea_size_allocate_cb (GtkWidget* widget_in,
     {
       mediafoundation_cb_data_p =
         static_cast<struct Stream_CamSave_MediaFoundation_UI_CBData*> (ui_cb_data_base_p);
+      stream_base_p = mediafoundation_cb_data_p->stream;
+      stream_p = mediafoundation_cb_data_p->stream;
       ACE_ASSERT (mediafoundation_cb_data_p->configuration);
       mediafoundation_stream_iterator =
         mediafoundation_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_MEDIAFOUNDATION_DEFAULT_NAME_STRING));
@@ -6435,35 +6459,126 @@ drawingarea_size_allocate_cb (GtkWidget* widget_in,
     default:
     {
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("invalid/unknown media framework (was: %d), returning\n"),
+                  ACE_TEXT ("invalid/unknown media framework (was: %d), aborting\n"),
                   ui_cb_data_base_p->mediaFramework));
-      return;
+      return FALSE;
     }
   } // end SWITCH
 #else
   struct Stream_CamSave_V4L_UI_CBData* ui_cb_data_p =
     static_cast<struct Stream_CamSave_V4L_UI_CBData*> (ui_cb_data_base_p);
+  stream_base_p = ui_cb_data_p->stream;
+  stream_p = ui_cb_data_p->stream;
   ACE_ASSERT (ui_cb_data_p->configuration);
   Stream_CamSave_V4L_StreamConfiguration_t::ITERATOR_T iterator_2 =
     ui_cb_data_p->configuration->v4l_streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (iterator_2 != ui_cb_data_p->configuration->v4l_streamConfiguration.end ());
   Stream_CamSave_V4L_StreamConfiguration_t::ITERATOR_T iterator_3 =
-    ui_cb_data_p->configuration->v4l_streamConfiguration.find (Stream_Visualization_Tools::rendererToModuleName (STREAM_VISUALIZATION_VIDEORENDERER_X11));
+    ui_cb_data_p->configuration->v4l_streamConfiguration.find (Stream_Visualization_Tools::rendererToModuleName (STREAM_VISUALIZATION_VIDEORENDERER_GTK_PIXBUF));
   ACE_ASSERT (iterator_3 != ui_cb_data_p->configuration->v4l_streamConfiguration.end ());
+  Stream_CamSave_V4L_StreamConfiguration_t::ITERATOR_T iterator_4 =
+    ui_cb_data_p->configuration->v4l_streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_LIBAV_RESIZE_DEFAULT_NAME_STRING));
+  ACE_ASSERT (iterator_4 != ui_cb_data_p->configuration->v4l_streamConfiguration.end ());
 #endif // ACE_WIN32 || ACE_WIN64
-  ACE_ASSERT (iterator != ui_cb_data_base_p->UIState->builders.end ());
 
 //  (*iterator_2).second.second.outputFormat.resolution.height =
 //      allocation_in->height;
 //  (*iterator_2).second.second.outputFormat.resolution.width =
 //      allocation_in->width;
-//  (*iterator_3).second.second.outputFormat.resolution.height =
-//      allocation_in->height;
-//  (*iterator_3).second.second.outputFormat.resolution.width =
-//      allocation_in->width;
+  (*iterator_4).second.second.outputFormat.resolution.height =
+      allocation_s.height;
+  (*iterator_4).second.second.outputFormat.resolution.width =
+      allocation_s.width;
   ACE_DEBUG ((LM_DEBUG,
               ACE_TEXT ("window resized to %dx%d\n"),
-              allocation_in->width, allocation_in->height));
+              allocation_s.width, allocation_s.height));
+
+  ACE_ASSERT (stream_base_p);
+  if (!stream_base_p->isRunning ())
+    return FALSE;
+
+  // *NOTE*: two things need doing:
+  //         - drop inbound frames until the 'resize' session message is through
+  //         - enqueue a 'resize' session message
+
+  // step1:
+  const Stream_Module_t* module_p = NULL;
+  std::string module_name;
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  switch (ui_cb_data_base_p->mediaFramework)
+  {
+    case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
+      module_name =
+          ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_DIRECTSHOW_DEFAULT_NAME_STRING);
+      break;
+    case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
+      module_name =
+          ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_MEDIAFOUNDATION_DEFAULT_NAME_STRING);
+      break;
+    default:
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("%s: invalid/unkown media framework (was: %d), aborting\n"),
+                  ACE_TEXT (stream_p->name ().c_str ()),
+                  ui_cb_data_base_p->mediaFramework));
+      return FALSE;
+    }
+  } // end SWITCH
+#else
+  module_name =
+      ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_GTK_PIXBUF_DEFAULT_NAME_STRING);
+#endif // ACE_WIN32 || ACE_WIN64
+  module_p = stream_p->find (module_name);
+  if (!module_p)
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s: failed to Stream_IStream::find(\"%s\"), aborting\n"),
+                ACE_TEXT (stream_p->name ().c_str ()),
+                ACE_TEXT (module_name.c_str ())));
+    return FALSE;
+  } // end IF
+  Stream_Visualization_IResize* iresize_p =
+    dynamic_cast<Stream_Visualization_IResize*> (const_cast<Stream_Module_t*> (module_p)->writer ());
+  if (!iresize_p)
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s:%s: failed to dynamic_cast<Stream_Visualization_IResize*>(%@), returning\n"),
+                ACE_TEXT (stream_p->name ().c_str ()),
+                ACE_TEXT (module_name.c_str ()),
+                const_cast<Stream_Module_t*> (module_p)->writer ()));
+    return FALSE;
+  } // end IF
+  try {
+    iresize_p->resizing ();
+  } catch (...) {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("caught exception in Stream_Visualization_IResize::resizing(), aborting\n")));
+    return FALSE;
+  }
+
+  // step2
+  stream_base_p->control (STREAM_CONTROL_RESIZE, false);
+
+  return FALSE;
+}
+void
+drawingarea_size_allocate_cb (GtkWidget* widget_in,
+                              GdkRectangle* allocation_in,
+                              gpointer userData_in)
+{
+  STREAM_TRACE (ACE_TEXT ("::drawingarea_size_allocate_cb"));
+
+  ACE_UNUSED_ARG (widget_in);
+  ACE_UNUSED_ARG (allocation_in);
+
+  static gint timer_id = 0;
+  if (timer_id == 0)
+  {
+    timer_id = g_timeout_add (300, drawing_area_resize_end, userData_in);
+    return;
+  } // end IF
+  g_source_remove (timer_id);
+  timer_id = g_timeout_add (300, drawing_area_resize_end, userData_in);
 } // drawingarea_size_allocate_cb
 
 void

@@ -313,25 +313,25 @@ class Stream_CamSave_V4L_Stream
   ACE_UNIMPLEMENTED_FUNC (Stream_CamSave_V4L_Stream& operator= (const Stream_CamSave_V4L_Stream&))
 
   // modules
-  Stream_CamSave_V4L_Source_Module      source_;
+  Stream_CamSave_V4L_Source_Module           source_;
 //  Stream_CamSave_StatisticReport_Module statisticReport_;
-  Stream_CamSave_V4L_LibAVDecoder_Module    decoder_; // --> RGB
-  Stream_CamSave_V4L_Distributor_Module     distributor_; // (sub-)branch ?
+  Stream_CamSave_V4L_LibAVDecoder_Module     decoder_; // --> RGB
+  Stream_CamSave_V4L_Distributor_Module      distributor_; // (sub-)branch ?
   ////////////////////////////////////////
-  Stream_CamSave_V4L_LibAVConverter_Module  converter_; // --> 24-bit RGB (display format)
-  Stream_CamSave_V4L_LibAVResize_Module     resizer_; // --> window size/fullscreen
+  Stream_CamSave_V4L_LibAVConverter_Module   converter_; // --> 24-bit RGB (display format)
+  Stream_CamSave_V4L_LibAVResize_Module      resizer_; // --> window size/fullscreen
 #if defined (GUI_SUPPORT)
-#if defined (GTK_USE)
-//  Stream_CamSave_GTKCairoDisplay_Module GTKCairoDisplay_;
-//  Stream_CamSave_Display_Module         display_;
-//  Stream_CamSave_Display_2_Module       display_2_;
-#endif // GTK_USE
-  Stream_CamSave_V4L_Display_2_Module       display_2_;
+#if defined (GTK_SUPPORT)
+  Stream_CamSave_V4L_GTKCairoDisplay_Module  GTKCairoDisplay_;
+  Stream_CamSave_V4L_GTKPixbufDisplay_Module GTKPixbufDisplay_;
+//  Stream_CamSave_GTKWindowDisplay_Module   GTKWindowDisplay_;
+#endif // GTK_SUPPORT
+//  Stream_CamSave_V4L_X11Display_Module       X11Display_;
 #endif // GUI_SUPPORT
   ////////////////////////////////////////
-  Stream_CamSave_V4L_LibAVConverter_Module  converter_2; // --> 32-bit RGB (AVI format)
-  Stream_CamSave_V4L_AVIEncoder_Module      encoder_; // --> AVI
-  Stream_CamSave_V4L_FileWriter_Module      fileWriter_;
+  Stream_CamSave_V4L_LibAVConverter_Module   converter_2; // --> 32-bit RGB (AVI format)
+  Stream_CamSave_V4L_AVIEncoder_Module       encoder_; // --> AVI
+  Stream_CamSave_V4L_FileWriter_Module       fileWriter_;
 };
 #endif // ACE_WIN32 || ACE_WIN64
 

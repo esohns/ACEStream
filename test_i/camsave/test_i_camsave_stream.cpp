@@ -1440,16 +1440,16 @@ Stream_CamSave_V4L_Stream::Stream_CamSave_V4L_Stream ()
  , resizer_ (this,
              ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_LIBAV_RESIZE_DEFAULT_NAME_STRING))
 #if defined (GUI_SUPPORT)
-#if defined (GTK_USE)
-// , GTKCairoDisplay_ (this,
-//                     ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_GTK_CAIRO_DEFAULT_NAME_STRING))
-// , display_ (this,
-//             ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_GTK_PIXBUF_DEFAULT_NAME_STRING))
-// , display_2_ (this,
-//               ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_GTK_WINDOW_DEFAULT_NAME_STRING))
-#endif // GTK_USE
- , display_2_ (this,
-               ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_X11_WINDOW_DEFAULT_NAME_STRING))
+#if defined (GTK_SUPPORT)
+ , GTKCairoDisplay_ (this,
+                     ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_GTK_CAIRO_DEFAULT_NAME_STRING))
+ , GTKPixbufDisplay_ (this,
+                      ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_GTK_PIXBUF_DEFAULT_NAME_STRING))
+// , GTKWindowDisplay_ (this,
+//                      ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_GTK_WINDOW_DEFAULT_NAME_STRING))
+#endif // GTK_SUPPORT
+// , X11Display_ (this,
+//                ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_X11_WINDOW_DEFAULT_NAME_STRING))
 #endif // GUI_SUPPORT
  , converter_2 (this,
                 ACE_TEXT_ALWAYS_CHAR ("LibAV_Converter_2"))
@@ -1478,7 +1478,7 @@ Stream_CamSave_V4L_Stream::load (Stream_ILayout* layout_in,
       configuration_->find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (iterator != configuration_->end ());
   typename inherited::CONFIGURATION_T::ITERATOR_T iterator_2 =
-      configuration_->find (Stream_Visualization_Tools::rendererToModuleName (STREAM_VISUALIZATION_VIDEORENDERER_X11));
+      configuration_->find (Stream_Visualization_Tools::rendererToModuleName (STREAM_VISUALIZATION_VIDEORENDERER_GTK_PIXBUF));
   ACE_ASSERT (iterator_2 != configuration_->end ());
   bool display_b = !(*iterator_2).second.second.display.device.empty ();
   bool save_to_file_b = !(*iterator).second.second.targetFileName.empty ();
@@ -1515,7 +1515,7 @@ Stream_CamSave_V4L_Stream::load (Stream_ILayout* layout_in,
 //      if (configuration_->configuration->renderer != STREAM_VISUALIZATION_VIDEORENDERER_GTK_WINDOW)
 //        layout_in->append (&display_, branch_p, 0);
 //      else
-        layout_in->append (&display_2_, branch_p, index_i);
+        layout_in->append (&GTKPixbufDisplay_, branch_p, index_i);
 //      layout_in->append (&GTKCairoDisplay_, branch_p, 0);
 #elif defined (WXWIDGETS_USE)
       layout_in->append (&display_, branch_p, index_i);

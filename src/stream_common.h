@@ -38,6 +38,7 @@
 #include "stream_defines.h"
 #include "stream_ilock.h"
 #include "stream_inotify.h"
+//#include "stream_istreamcontrol.h"
 #include "stream_statemachine_common.h"
 #include "stream_statistic.h"
 
@@ -54,6 +55,9 @@ template <ACE_SYNCH_DECL, class TIME_POLICY>
 class ACE_Stream_Iterator;
 class ACE_Notification_Strategy;
 class Stream_IAllocator;
+template <typename ControlType,
+          typename StatusType>
+class Stream_IStreamControlBase_T;
 template <ACE_SYNCH_DECL,
           typename TimePolicyType>
 class Stream_IStream_T;
@@ -161,7 +165,7 @@ enum Stream_SessionMessageType : int
   STREAM_SESSION_MESSAGE_CONNECT,
   STREAM_SESSION_MESSAGE_DISCONNECT,
   STREAM_SESSION_MESSAGE_LINK,
-  STREAM_SESSION_MESSAGE_RESIZE,
+  STREAM_SESSION_MESSAGE_RESIZE, // *TODO*: disambiguate between updated session data (i.e. input data) and  updated configuration data
   STREAM_SESSION_MESSAGE_UNLINK,
   // *** control ***
   STREAM_SESSION_MESSAGE_BEGIN,
@@ -265,6 +269,9 @@ typedef Stream_ModuleList_t::const_iterator Stream_ModuleListIterator_t;
 typedef Stream_ModuleList_t::reverse_iterator Stream_ModuleListReverseIterator_t;
 typedef std::deque<std::string> Stream_Branches_t;
 typedef Stream_Branches_t::const_iterator Stream_BranchesIterator_t;
+
+typedef Stream_IStreamControlBase_T<enum Stream_ControlType,
+                                    enum Stream_StateMachine_ControlState> Stream_IStreamControlBase_t;
 
 typedef Stream_IStream_T<ACE_MT_SYNCH,
                          Common_TimePolicy_t> Stream_IStream_t;

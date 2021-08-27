@@ -490,8 +490,11 @@ struct Stream_CamSave_ModuleHandlerConfiguration
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
    , window (NULL)
 #else
-   , window (0)
-   , X11Display (NULL)
+#if defined (GTK_SUPPORT)
+   , window (NULL)
+#endif // GTK_SUPPORT
+//   , X11Window (0)
+//   , X11Display (NULL)
 #endif // ACE_WIN32 || ACE_WIN64
    , targetFileName ()
   {
@@ -509,8 +512,11 @@ struct Stream_CamSave_ModuleHandlerConfiguration
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   HWND                            window;
 #else
-  unsigned long                   window;
-  struct _XDisplay*               X11Display;
+#if defined (GTK_SUPPORT)
+  GdkWindow*                      window;
+#endif // GTK_SUPPORT
+//  Window                          X11Window;
+//  struct _XDisplay*               X11Display;
 #endif // ACE_WIN32 || ACE_WIN64
   std::string                     targetFileName;
 };

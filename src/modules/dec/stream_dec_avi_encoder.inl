@@ -1067,7 +1067,7 @@ continue_:
     }
     case STREAM_SESSION_MESSAGE_RESIZE:
     {
-      ACE_ASSERT (false); // *TODO*
+//      ACE_ASSERT (false); // *TODO*
       break;
     }
     case STREAM_SESSION_MESSAGE_END:

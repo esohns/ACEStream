@@ -446,27 +446,30 @@ error:
     }
     case STREAM_SESSION_MESSAGE_RESIZE:
     {
-      // *TODO*: remove type inference
-      ACE_ASSERT (!session_data_r.formats.empty ());
-
       int result = -1;
-      struct Stream_MediaFramework_FFMPEG_VideoMediaType media_type_s;
-      inherited2::getMediaType (session_data_r.formats.back (),
-                                media_type_s);
+
+      // sanity check(s)
+      // update configuration
+      ACE_ASSERT (inherited::configuration_);
+      inherited2::getMediaType (inherited::configuration_->outputFormat,
+                                outputFormat_);
+      ACE_ASSERT (frame_);
+      if ((static_cast<unsigned int> (frame_->height) == outputFormat_.resolution.height) &&
+          (static_cast<unsigned int> (frame_->width) == outputFormat_.resolution.width))
+        break; // does not concern 'this'
 
       if (buffer_)
       {
         buffer_->release (); buffer_ = NULL;
       } // end IF
 
-      ACE_ASSERT (frame_);
       //  frame_->format = session_data_r.format;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-      frame_->height = media_type_s.resolution.cy;
-      frame_->width = media_type_s.resolution.cx;
+      frame_->height = outputFormat_.resolution.cy;
+      frame_->width = outputFormat_.resolution.cx;
 #else
-      frame_->height = media_type_s.resolution.height;
-      frame_->width = media_type_s.resolution.width;
+      frame_->height = outputFormat_.resolution.height;
+      frame_->width = outputFormat_.resolution.width;
 #endif // ACE_WIN32 || ACE_WIN64
 
       frameSize_ =
@@ -480,7 +483,7 @@ error:
       } // end IF
 
       int flags = (//SWS_BILINEAR | SWS_FAST_BILINEAR | // interpolation
-                   SWS_FAST_BILINEAR);
+                   SWS_BICUBIC);
       context_ =
           sws_getCachedContext (NULL,
                                 frame_->width, frame_->height, inputFormat_,
