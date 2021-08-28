@@ -410,15 +410,15 @@ Stream_Module_Decoder_Tools::mediaSubTypeToAVPixelFormat (REFGUID mediaSubType_i
       else if (InlineIsEqualGUID (mediaSubType_in, MEDIASUBTYPE_RGB8))
         result = AV_PIX_FMT_RGB8;
       else if (InlineIsEqualGUID (mediaSubType_in, MEDIASUBTYPE_RGB555))
-        result = AV_PIX_FMT_RGB555;
+        result = AV_PIX_FMT_RGB555LE;
       else if (InlineIsEqualGUID (mediaSubType_in, MEDIASUBTYPE_RGB565))
-        result = AV_PIX_FMT_RGB565;
+        result = AV_PIX_FMT_RGB565LE;
       // *IMPORTANT NOTE*: MEDIASUBTYPE_RGB24 actually has a 'BGR24' memory layout
       //                   see also: https://msdn.microsoft.com/en-us/library/windows/desktop/dd407253(v=vs.85).aspx
       else if (InlineIsEqualGUID (mediaSubType_in, MEDIASUBTYPE_RGB24))
         result = AV_PIX_FMT_BGR24;
       else if (InlineIsEqualGUID (mediaSubType_in, MEDIASUBTYPE_RGB32))
-        result = AV_PIX_FMT_RGB32;
+        result = AV_PIX_FMT_BGRA;
       //else if (IsEqualGUID (mediaSubType_in, MEDIASUBTYPE_ARGB1555))
       else if (InlineIsEqualGUID (mediaSubType_in, MEDIASUBTYPE_ARGB32))
         result = AV_PIX_FMT_ARGB;
@@ -426,14 +426,14 @@ Stream_Module_Decoder_Tools::mediaSubTypeToAVPixelFormat (REFGUID mediaSubType_i
       //else if (InlineIsEqualGUID (mediaSubType_in, MEDIASUBTYPE_A2R10G10B10))
       //else if (InlineIsEqualGUID (mediaSubType_in, MEDIASUBTYPE_A2B10G10R10))
       else if (InlineIsEqualGUID (mediaSubType_in, MEDIASUBTYPE_RGB32_D3D_DX7_RT))
-        result = AV_PIX_FMT_RGB32;
+        result = AV_PIX_FMT_BGRA;
       //else if (InlineIsEqualGUID (mediaSubType_in, MEDIASUBTYPE_RGB16_D3D_DX7_RT))
       else if (InlineIsEqualGUID (mediaSubType_in, MEDIASUBTYPE_ARGB32_D3D_DX7_RT))
         result = AV_PIX_FMT_ARGB;
       //else if (InlineIsEqualGUID (mediaSubType_in, MEDIASUBTYPE_ARGB4444_D3D_DX7_RT))
       //else if (InlineIsEqualGUID (mediaSubType_in, MEDIASUBTYPE_ARGB1555_D3D_DX7_RT))
       else if (InlineIsEqualGUID (mediaSubType_in, MEDIASUBTYPE_RGB32_D3D_DX9_RT))
-        result = AV_PIX_FMT_RGB32;
+        result = AV_PIX_FMT_BGRA;
       //else if (InlineIsEqualGUID (mediaSubType_in, MEDIASUBTYPE_RGB16_D3D_DX9_RT))
       else if (InlineIsEqualGUID (mediaSubType_in, MEDIASUBTYPE_ARGB32_D3D_DX9_RT))
         result = AV_PIX_FMT_ARGB;
@@ -446,7 +446,7 @@ Stream_Module_Decoder_Tools::mediaSubTypeToAVPixelFormat (REFGUID mediaSubType_i
       else if (InlineIsEqualGUID (mediaSubType_in, MEDIASUBTYPE_UYVY))
         result = AV_PIX_FMT_UYVY422;
       else if (InlineIsEqualGUID (mediaSubType_in, MEDIASUBTYPE_IMC1))
-        result = AV_PIX_FMT_P016;
+        result = AV_PIX_FMT_P016LE;
       else if (InlineIsEqualGUID (mediaSubType_in, MEDIASUBTYPE_IMC2))
         result = AV_PIX_FMT_NV12;
       //else if (InlineIsEqualGUID (mediaSubType_in, MEDIASUBTYPE_IMC3))

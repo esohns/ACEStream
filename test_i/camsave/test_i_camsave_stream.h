@@ -103,9 +103,20 @@ class Stream_CamSave_DirectShow_Stream
   // modules
   Stream_CamSave_DirectShow_Source_Module            source_;
   Stream_CamSave_DirectShow_StatisticReport_Module   statisticReport_;
+  //Stream_CamSave_DirectShow_LibAVDecoder_Module      decoder_; // --> RGB
+  Stream_CamSave_DirectShow_Distributor_Module       distributor_; // (sub-)branch ?
+  ////////////////////////////////////////
+  Stream_CamSave_DirectShow_LibAVConverter_Module    converter_; // --> 24-bit RGB (display format)
+  Stream_CamSave_DirectShow_LibAVResize_Module       resizer_; // --> window size/fullscreen
+#if defined (GUI_SUPPORT)
   Stream_CamSave_DirectShow_Direct3DDisplay_Module   direct3DDisplay_;
-  //Stream_CamSave_DirectShow_DirectShowDisplay_Module directShowDisplay_;
-  //Stream_CamSave_DirectShow_GTKCairoDisplay_Module   GTKCairoDisplay_;
+  Stream_CamSave_DirectShow_DirectShowDisplay_Module directShowDisplay_;
+#if (GTK_SUPPORT)
+  Stream_CamSave_DirectShow_GTKPixbufDisplay_Module  GTKPixbufDisplay_;
+  Stream_CamSave_DirectShow_GTKCairoDisplay_Module   GTKCairoDisplay_;
+#endif // GTK_SUPPORT
+#endif // GUI_SUPPORT
+  Stream_CamSave_DirectShow_LibAVConverter_Module    converter_2;
   Stream_CamSave_DirectShow_AVIEncoder_Module        encoder_;
   Stream_CamSave_DirectShow_FileWriter_Module        fileWriter_;
 };

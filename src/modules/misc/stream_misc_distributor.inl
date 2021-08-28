@@ -114,8 +114,11 @@ Stream_Miscellaneous_Distributor_T<ACE_SYNCH_USE,
           ACE_ASSERT ((*iterator_2).second);
           HEAD_TO_SESSIONDATA_ITERATOR_T iterator_3 =
               data_.find ((*iterator_2).second);
-          ACE_ASSERT (iterator_3 != data_.end ());
-          ACE_ASSERT ((*iterator_3).second);
+          // *NOTE*: if some upstream initialization failed an the filter sends
+          //         'abort', 'this' has not been initialized yet
+          if (likely (iterator_3 != data_.end ()))
+          { ACE_ASSERT ((*iterator_3).second);
+          } // end IF
 
           // *NOTE*: currently, all of these are 'session' messages
           SessionMessageType* session_message_p =
@@ -129,8 +132,18 @@ Stream_Miscellaneous_Distributor_T<ACE_SYNCH_USE,
                         messageBlock_in->msg_type ()));
             goto continue_;
           } // end IF
-          (*iterator_3).second->increase ();
-          session_message_p->setP ((*iterator_3).second);
+          if (likely (iterator_3 != data_.end ()))
+          {
+            (*iterator_3).second->increase ();
+            session_message_p->setP ((*iterator_3).second);
+          } // end IF
+          else
+          {
+            typename SessionMessageType::DATA_T& session_data_container_r =
+              const_cast<typename SessionMessageType::DATA_T&> (session_message_p->getR ());
+            session_data_container_r.increase ();
+          } // end ELSE
+
           break;
         }
         case STREAM_MESSAGE_CONTROL:

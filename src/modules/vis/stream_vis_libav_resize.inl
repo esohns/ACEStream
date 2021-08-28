@@ -425,8 +425,13 @@ error:
 //                               media_type_2);
       inherited::getMediaType (inherited::configuration_->outputFormat,
                                inherited::outputFormat_);
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+      if ((sourceResolution_.cy == inherited::outputFormat_.resolution.cy) &&
+          (sourceResolution_.cx == inherited::outputFormat_.resolution.cx))
+#else
       if ((sourceResolution_.height == inherited::outputFormat_.resolution.height) &&
           (sourceResolution_.width == inherited::outputFormat_.resolution.width))
+#endif // ACE_WIN32 || ACE_WIN64
       {
         ACE_DEBUG ((LM_DEBUG,
                     ACE_TEXT ("%s: output size is input size, nothing to do\n"),
@@ -553,100 +558,21 @@ template <ACE_SYNCH_DECL,
           typename SessionMessageType,
           typename MediaType>
 Stream_Visualization_LibAVResize1_T<ACE_SYNCH_USE,
-                                   TimePolicyType,
-                                   ConfigurationType,
-                                   ControlMessageType,
-                                   DataMessageType,
-                                   SessionMessageType,
+                                    TimePolicyType,
+                                    ConfigurationType,
+                                    ControlMessageType,
+                                    DataMessageType,
+                                    SessionMessageType,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-                                   MediaType>::Stream_Visualization_LibAVResize1_T (ISTREAM_T* stream_in)
+                                    MediaType>::Stream_Visualization_LibAVResize1_T (ISTREAM_T* stream_in)
 #else
-                                   MediaType>::Stream_Visualization_LibAVResize1_T (typename inherited::ISTREAM_T* stream_in)
+                                    MediaType>::Stream_Visualization_LibAVResize1_T (typename inherited::ISTREAM_T* stream_in)
 #endif // ACE_WIN32 || ACE_WIN64
  : inherited (stream_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Visualization_LibAVResize1_T::Stream_Visualization_LibAVResize1_T"));
 
 }
-
-//template <ACE_SYNCH_DECL,
-//          typename TimePolicyType,
-//          typename ConfigurationType,
-//          typename ControlMessageType,
-//          typename DataMessageType,
-//          typename SessionMessageType,
-//          typename MediaType>
-//bool
-//Stream_Visualization_LibAVResize1_T<ACE_SYNCH_USE,
-//                                   TimePolicyType,
-//                                   ConfigurationType,
-//                                   ControlMessageType,
-//                                   DataMessageType,
-//                                   SessionMessageType,
-//                                   MediaType>::initialize (const ConfigurationType& configuration_in,
-//                                                           Stream_IAllocator* allocator_in)
-//{
-//  STREAM_TRACE (ACE_TEXT ("Stream_Visualization_LibAVResize1_T::initialize"));
-
-//  int result = -1;
-
-//  if (!inherited::initialize (configuration_in,
-//                              allocator_in))
-//  {
-//    ACE_DEBUG ((LM_ERROR,
-//                ACE_TEXT ("%s: failed to Stream_Decoder_LibAVConverter_T::initialize, aborting\n"),
-//                inherited::mod_->name ()));
-//    return false;
-//  } // end IF
-
-//  // sanity check(s)
-//  ACE_ASSERT (inherited::frame_);
-//  ACE_ASSERT (inherited::buffer_);
-
-//  inherited::frame_->format =
-//      inherited::configuration_->outputFormat.format;
-//#if defined (ACE_WIN32) || defined (ACE_WIN64)
-//  inherited::frame_->width =
-//      inherited::configuration_->outputFormat.resolution.cx;
-//  inherited::frame_->height =
-//      inherited::configuration_->outputFormat.resolution.cy;
-//#else
-//  inherited::frame_->width =
-//      inherited::configuration_->outputFormat.resolution.width;
-//  inherited::frame_->height =
-//      inherited::configuration_->outputFormat.resolution.height;
-//#endif // ACE_WIN32 || ACE_WIN64
-//  inherited::frameSize_ =
-//      av_image_get_buffer_size (static_cast<enum AVPixelFormat> (inherited::frame_->format),
-//                                inherited::frame_->width, inherited::frame_->height,
-//                                1); // *TODO*: linesize alignment
-//  ACE_ASSERT (inherited::frameSize_ >= 0);
-//  inherited::buffer_->release (); inherited::buffer_ = NULL;
-//  inherited::buffer_ = inherited::allocateMessage (inherited::frameSize_);
-//  if (unlikely (!inherited::buffer_))
-//  {
-//    ACE_DEBUG ((LM_ERROR,
-//                ACE_TEXT ("%s: failed to Stream_Task_Base_T::allocateMessage(%u), aborting\n"),
-//                inherited::mod_->name (),
-//                inherited::frameSize_));
-//    return false;
-//  } // end IF
-//  ACE_ASSERT (inherited::buffer_->capacity () >= inherited::frameSize_);
-//  result =
-//      av_image_fill_linesizes (inherited::frame_->linesize,
-//                               static_cast<enum AVPixelFormat> (inherited::frame_->format),
-//                               static_cast<int> (inherited::frame_->width));
-//  ACE_ASSERT (result >= 0);
-//  result =
-//      av_image_fill_pointers (inherited::frame_->data,
-//                              static_cast<enum AVPixelFormat> (inherited::frame_->format),
-//                              static_cast<int> (inherited::frame_->height),
-//                              reinterpret_cast<uint8_t*> (inherited::buffer_->wr_ptr ()),
-//                              inherited::frame_->linesize);
-//  ACE_ASSERT (result >= 0);
-
-//  return true;
-//}
 
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,
@@ -657,13 +583,13 @@ template <ACE_SYNCH_DECL,
           typename MediaType>
 void
 Stream_Visualization_LibAVResize1_T<ACE_SYNCH_USE,
-                                   TimePolicyType,
-                                   ConfigurationType,
-                                   ControlMessageType,
-                                   DataMessageType,
-                                   SessionMessageType,
-                                   MediaType>::handleDataMessage (DataMessageType*& message_inout,
-                                                                  bool& passMessageDownstream_out)
+                                    TimePolicyType,
+                                    ConfigurationType,
+                                    ControlMessageType,
+                                    DataMessageType,
+                                    SessionMessageType,
+                                    MediaType>::handleDataMessage (DataMessageType*& message_inout,
+                                                                   bool& passMessageDownstream_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Visualization_LibAVResize1_T::handleDataMessage"));
 
@@ -692,6 +618,9 @@ Stream_Visualization_LibAVResize1_T<ACE_SYNCH_USE,
       message_inout->getR ();
   typename DataMessageType::DATA_T& message_data_2 =
       const_cast<typename DataMessageType::DATA_T&> (inherited::buffer_->getR ());
+  struct Stream_MediaFramework_FFMPEG_VideoMediaType media_type_s;
+  inherited::getMediaType (message_data_2.format,
+                           media_type_s);
 
   try {
     message_inout->defragment ();
@@ -703,34 +632,49 @@ Stream_Visualization_LibAVResize1_T<ACE_SYNCH_USE,
   }
   ACE_ASSERT (!message_inout->cont ());
 
-#if defined (_DEBUG)
+  // sanity check(s)
+  ACE_ASSERT (media_type_s.format == inherited::configuration_->outputFormat.format);
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  if ((media_type_s.resolution.cx == inherited::configuration_->outputFormat.resolution.cx) &&
+      (media_type_s.resolution.cy == inherited::configuration_->outputFormat.resolution.cy))
+#else
+  if ((media_type_s.resolution.width == inherited::configuration_->outputFormat.resolution.width) &&
+      (media_type_s.resolution.height == inherited::configuration_->outputFormat.resolution.height))
+#endif // ACE_WIN32 || ACE_WIN64
+  {
+    ACE_DEBUG ((LM_DEBUG,
+                ACE_TEXT ("%s: output size is input size, nothing to do\n"),
+                inherited::mod_->name ()));
+    passMessageDownstream_out = true;
+    return;
+  } // end IF
+
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   ACE_DEBUG ((LM_DEBUG,
               ACE_TEXT ("%s: resizing %ux%u to %ux%u\n"),
               inherited::mod_->name (),
-              message_data_r.format.resolution.cx, message_data_r.format.resolution.cy,
+              media_type_s.resolution.cx, media_type_s.resolution.cy,
               inherited::configuration_->outputFormat.resolution.cx, inherited::configuration_->outputFormat.resolution.cy));
 #else
   ACE_DEBUG ((LM_DEBUG,
               ACE_TEXT ("%s: resizing %ux%u to %ux%u\n"),
               inherited::mod_->name (),
-              message_data_r.format.resolution.width, message_data_r.format.resolution.height,
+              media_type_s.resolution.width, media_type_s.resolution.height,
               inherited::configuration_->outputFormat.resolution.width, inherited::configuration_->outputFormat.resolution.height));
 #endif // ACE_WIN32 || ACE_WIN64
-#endif // _DEBUG
 
   // initialize conversion context
   flags_i =
       (//SWS_BILINEAR | SWS_FAST_BILINEAR | // interpolation
-       SWS_FAST_BILINEAR);
+       SWS_BICUBIC);
   inherited::context_ =
       sws_getCachedContext (NULL,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-                            message_data_r.format.resolution.cx, message_data_r.format.resolution.cy, message_data_r.format.format,
-                            inherited::configuration_->outputFormat.resolution.cx, inherited::configuration_->outputFormat.resolution.cy, message_data_r.format.format,
+                            media_type_s.resolution.cx, media_type_s.resolution.cy, media_type_s.format,
+                            inherited::configuration_->outputFormat.resolution.cx, inherited::configuration_->outputFormat.resolution.cy, media_type_s.format,
 #else
-                            message_data_r.format.resolution.width, message_data_r.format.resolution.height, message_data_r.format.format,
-                            inherited::configuration_->outputFormat.resolution.width, inherited::configuration_->outputFormat.resolution.height, message_data_r.format.format,
+                            media_type_s.resolution.width, media_type_s.resolution.height, media_type_s.format,
+                            inherited::configuration_->outputFormat.resolution.width, inherited::configuration_->outputFormat.resolution.height, media_type_s.format,
 #endif // ACE_WIN32 || ACE_WIN64
                             flags_i,                      // flags
                             NULL, NULL,
@@ -745,33 +689,33 @@ Stream_Visualization_LibAVResize1_T<ACE_SYNCH_USE,
 
   result =
       av_image_fill_linesizes (line_sizes_a,
-                               message_data_r.format.format,
+                               media_type_s.format,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-                               static_cast<int> (message_data_r.format.resolution.cx));
+                               static_cast<int> (media_type_s.resolution.cx));
 #else
-                               static_cast<int> (message_data_r.format.resolution.width));
+                               static_cast<int> (media_type_s.resolution.width));
 #endif // ACE_WIN32 || ACE_WIN64
   ACE_ASSERT (result >= 0);
   result =
       av_image_fill_pointers (data_a,
-                              message_data_r.format.format,
+                              media_type_s.format,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-                              static_cast<int> (message_data_r.format.resolution.cy),
+                              static_cast<int> (media_type_s.resolution.cy),
 #else
-                              static_cast<int> (message_data_r.format.resolution.height),
+                              static_cast<int> (media_type_s.resolution.height),
 #endif // ACE_WIN32 || ACE_WIN64
                               reinterpret_cast<uint8_t*> (message_inout->rd_ptr ()),
                               line_sizes_a);
   ACE_ASSERT (result >= 0);
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   if (unlikely (!Stream_Module_Decoder_Tools::scale (inherited::context_,
-                                                     message_data_r.format.resolution.cx, message_data_r.format.resolution.cy, message_data_r.format.format,
+                                                     media_type_s.resolution.cx, media_type_s.resolution.cy, media_type_s.format,
                                                      data_a,
                                                      inherited::configuration_->outputFormat.resolution.cx, inherited::configuration_->outputFormat.resolution.cy,
                                                      inherited::frame_->data)))
 #else
   if (unlikely (!Stream_Module_Decoder_Tools::scale (inherited::context_,
-                                                     message_data_r.format.resolution.width, message_data_r.format.resolution.height, message_data_r.format.format,
+                                                     media_type_s.resolution.width, media_type_s.resolution.height, media_type_s.format,
                                                      data_a,
                                                      inherited::configuration_->outputFormat.resolution.width, inherited::configuration_->outputFormat.resolution.height,
                                                      inherited::frame_->data)))
@@ -794,18 +738,16 @@ Stream_Visualization_LibAVResize1_T<ACE_SYNCH_USE,
   inherited::buffer_->set (message_inout->type ());
   message_inout->release (); message_inout = NULL;
 
-#if defined (_DEBUG)
-    filename_string = ACE_TEXT_ALWAYS_CHAR ("output.rgb");
-    if (!Common_File_Tools::store (filename_string,
-                                   inherited::frame_->data[0],
-                                   inherited::frameSize_))
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to Common_File_Tools::store(\"%s\"), returning\n"),
-                  ACE_TEXT (filename_string.c_str ())));
-      goto error;
-    } // end IF
-#endif // _DEBUG
+    //filename_string = ACE_TEXT_ALWAYS_CHAR ("output.rgb");
+    //if (!Common_File_Tools::store (filename_string,
+    //                               inherited::frame_->data[0],
+    //                               inherited::frameSize_))
+    //{
+    //  ACE_DEBUG ((LM_ERROR,
+    //              ACE_TEXT ("failed to Common_File_Tools::store(\"%s\"), returning\n"),
+    //              ACE_TEXT (filename_string.c_str ())));
+    //  goto error;
+    //} // end IF
 
   // forward the converted frame
   result = inherited::put_next (inherited::buffer_, NULL);
@@ -950,10 +892,6 @@ error:
     }
     case STREAM_SESSION_MESSAGE_RESIZE:
     {
-      // sanity check(s)
-      if (!inherited::context_)
-        break; // nothing to do
-
       int result = -1;
       int flags_i = 0;
       struct Stream_MediaFramework_FFMPEG_VideoMediaType media_type_2;
@@ -965,9 +903,19 @@ error:
       inherited::getMediaType (media_type_r,
                                media_type_2);
       ACE_ASSERT (inherited::frame_);
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+      if ((static_cast<unsigned int> (inherited::frame_->height) == inherited::outputFormat_.resolution.cy) &&
+          (static_cast<unsigned int> (inherited::frame_->width) == inherited::outputFormat_.resolution.cx))
+#else
       if ((static_cast<unsigned int> (inherited::frame_->height) == inherited::outputFormat_.resolution.height) &&
           (static_cast<unsigned int> (inherited::frame_->width) == inherited::outputFormat_.resolution.width))
+#endif // ACE_WIN32 || ACE_WIN64
+      {
+        ACE_DEBUG ((LM_DEBUG,
+                    ACE_TEXT ("%s: output size is input size, nothing to do\n"),
+                    inherited::mod_->name ()));
         break; // does not concern 'this'
+      } // end IF
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
       ACE_DEBUG ((LM_DEBUG,
@@ -988,7 +936,7 @@ error:
       sws_freeContext (inherited::context_); inherited::context_ = NULL;
       flags_i =
           (//SWS_BILINEAR | SWS_FAST_BILINEAR | // interpolation
-           SWS_FAST_BILINEAR);
+           SWS_BICUBIC);
       inherited::context_ =
           sws_getCachedContext (NULL,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -1017,11 +965,11 @@ error:
       ACE_ASSERT (inherited::frame_);
       //  frame_->format = session_data_r.format;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-      inherited::frame_->height = media_type_2.resolution.cy;
-      inherited::frame_->width = media_type_2.resolution.cx;
+      inherited::frame_->height = inherited::configuration_->outputFormat.resolution.cy;
+      inherited::frame_->width = inherited::configuration_->outputFormat.resolution.cx;
 #else
-      inherited::frame_->height = media_type_2.resolution.height;
-      inherited::frame_->width = media_type_2.resolution.width;
+      inherited::frame_->height = inherited::configuration_->outputFormat.resolution.height;
+      inherited::frame_->width = inherited::configuration_->outputFormat.resolution.width;
 #endif // ACE_WIN32 || ACE_WIN64
       inherited::frameSize_ =
         av_image_get_buffer_size (inherited::inputFormat_,

@@ -343,7 +343,12 @@ Stream_Decoder_LibAVConverter_T<ACE_SYNCH_USE,
       inherited2::getMediaType (inherited::configuration_->outputFormat,
                                 media_type_3);
       if (unlikely (inputFormat_ == media_type_3.format))
+      {
+        ACE_DEBUG ((LM_DEBUG,
+                    ACE_TEXT ("%s: output format is input format, nothing to do\n"),
+                    inherited::mod_->name ()));
         goto continue_2; // nothing to do
+      } // end iF
 
       // initialize conversion context
       ACE_ASSERT (!context_);
@@ -371,12 +376,12 @@ Stream_Decoder_LibAVConverter_T<ACE_SYNCH_USE,
       // sanity check(s)
       if (unlikely (media_type_3.format == AV_PIX_FMT_NONE))
         goto continue_;
-      if (likely (inputFormat_ != media_type_3.format))
-        ACE_DEBUG ((LM_DEBUG,
-                    ACE_TEXT ("%s: converting pixel format %s to %s\n"),
-                    inherited::mod_->name (),
-                    ACE_TEXT (Stream_MediaFramework_Tools::pixelFormatToString (inputFormat_).c_str ()),
-                    ACE_TEXT (Stream_MediaFramework_Tools::pixelFormatToString (media_type_3.format).c_str ())));
+      ACE_ASSERT (inputFormat_ != media_type_3.format);
+      ACE_DEBUG ((LM_DEBUG,
+                  ACE_TEXT ("%s: converting pixel format %s to %s\n"),
+                  inherited::mod_->name (),
+                  ACE_TEXT (Stream_MediaFramework_Tools::pixelFormatToString (inputFormat_).c_str ()),
+                  ACE_TEXT (Stream_MediaFramework_Tools::pixelFormatToString (media_type_3.format).c_str ())));
 
       // initialize frame buffer
       ACE_ASSERT (!frame_);
@@ -453,9 +458,14 @@ error:
       ACE_ASSERT (inherited::configuration_);
       inherited2::getMediaType (inherited::configuration_->outputFormat,
                                 outputFormat_);
-      ACE_ASSERT (frame_);
-      if ((static_cast<unsigned int> (frame_->height) == outputFormat_.resolution.height) &&
-          (static_cast<unsigned int> (frame_->width) == outputFormat_.resolution.width))
+      if (!frame_ ||
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+          ((static_cast<unsigned int> (frame_->height) == outputFormat_.resolution.cy) &&
+           (static_cast<unsigned int> (frame_->width) == outputFormat_.resolution.cx)))
+#else
+          ((static_cast<unsigned int> (frame_->height) == outputFormat_.resolution.height) &&
+           (static_cast<unsigned int> (frame_->width) == outputFormat_.resolution.width)))
+#endif // ACE_WIN32 || ACE_WIN64
         break; // does not concern 'this'
 
       if (buffer_)

@@ -485,17 +485,17 @@ struct Stream_CamSave_ModuleHandlerConfiguration
   Stream_CamSave_ModuleHandlerConfiguration ()
    : Test_I_ModuleHandlerConfiguration ()
    , deviceIdentifier ()
-   , display ()
    , fullScreen (false)
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-   , window (NULL)
+#if defined (GUI_SUPPORT)
+#if defined (GTK_SUPPORT) && defined (GTK_USE)
 #else
-#if defined (GTK_SUPPORT)
-   , window (NULL)
-#endif // GTK_SUPPORT
-//   , X11Window (0)
-//   , X11Display (NULL)
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#else
+   , display (NULL)
 #endif // ACE_WIN32 || ACE_WIN64
+#endif // GTK_SUPPORT && GTK_USE
+   , window (NULL)
+#endif // GUI_SUPPORT
    , targetFileName ()
   {
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -506,18 +506,20 @@ struct Stream_CamSave_ModuleHandlerConfiguration
     hasHeader = true;
   }
 
-  struct Stream_Device_Identifier deviceIdentifier; // source module
-  struct Common_UI_DisplayDevice  display; // display module
+  struct Stream_Device_Identifier deviceIdentifier; // source/renderer module
   bool                            fullScreen;
+#if defined (GUI_SUPPORT)
+#if defined (GTK_SUPPORT) && defined (GTK_USE)
+  GdkWindow*                      window;
+#else
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   HWND                            window;
 #else
-#if defined (GTK_SUPPORT)
-  GdkWindow*                      window;
-#endif // GTK_SUPPORT
-//  Window                          X11Window;
-//  struct _XDisplay*               X11Display;
+  struct _XDisplay*               display;
+  Window                          window;
 #endif // ACE_WIN32 || ACE_WIN64
+#endif // GTK_SUPPORT && GTK_USE
+#endif // GUI_SUPPORT
   std::string                     targetFileName;
 };
 //extern const char stream_name_string_[];

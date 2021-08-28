@@ -1082,45 +1082,290 @@ Stream_MediaFramework_Tools::AVPixelFormatToMediaSubType (enum AVPixelFormat pix
     case AV_PIX_FMT_NONE:
       //return MEDIASUBTYPE_None;
       return GUID_NULL;
-    case AV_PIX_FMT_MONOBLACK:
-      return MEDIASUBTYPE_RGB1;
-    case AV_PIX_FMT_RGB4:
-      return MEDIASUBTYPE_RGB4;
-    case AV_PIX_FMT_RGB8:
-      return MEDIASUBTYPE_RGB8;
-    case AV_PIX_FMT_RGB555:
-      return MEDIASUBTYPE_RGB555;
-    case AV_PIX_FMT_RGB565:
-      return MEDIASUBTYPE_RGB565;
-    case AV_PIX_FMT_RGB24:
-      return MEDIASUBTYPE_RGB24;
-    case AV_PIX_FMT_RGB32:
-      return MEDIASUBTYPE_RGB32;
-    //else if (IsEqualGUID (mediaSubType_in, MEDIASUBTYPE_ARGB1555))
-    case AV_PIX_FMT_ARGB:
-      return MEDIASUBTYPE_ARGB32;
-    //else if (InlineIsEqualGUID (mediaSubType_in, MEDIASUBTYPE_ARGB4444))
-    //else if (InlineIsEqualGUID (mediaSubType_in, MEDIASUBTYPE_A2R10G10B10))
-    //else if (InlineIsEqualGUID (mediaSubType_in, MEDIASUBTYPE_A2B10G10R10))
-    case AV_PIX_FMT_YUVA444P:
-      return MEDIASUBTYPE_AYUV;
-    case AV_PIX_FMT_YUYV422:
-      return MEDIASUBTYPE_YUY2;
-    case AV_PIX_FMT_UYVY422:
-      return MEDIASUBTYPE_UYVY;
-    case AV_PIX_FMT_P016:
-      return MEDIASUBTYPE_IMC1;
-    case AV_PIX_FMT_NV12:
-      return MEDIASUBTYPE_NV12;
-    //else if (InlineIsEqualGUID (mediaSubType_in, MEDIASUBTYPE_IMC3))
-    case AV_PIX_FMT_NV21:
-      return MEDIASUBTYPE_IMC4;
     case AV_PIX_FMT_YUV420P:
       return MEDIASUBTYPE_YV12;
+    case AV_PIX_FMT_YUYV422:
+      return MEDIASUBTYPE_YUY2;
+    case AV_PIX_FMT_RGB24:
+    case AV_PIX_FMT_BGR24:
+      return MEDIASUBTYPE_RGB24;
+    case AV_PIX_FMT_YUV422P:
+    case AV_PIX_FMT_YUV444P:
+    case AV_PIX_FMT_YUV410P:
+      return GUID_NULL;
+    case AV_PIX_FMT_YUV411P:
+      return MEDIASUBTYPE_Y411;
+    case AV_PIX_FMT_GRAY8:
+      return GUID_NULL;
+    case AV_PIX_FMT_MONOWHITE:
+    case AV_PIX_FMT_MONOBLACK:
+      return MEDIASUBTYPE_RGB1;
+    case AV_PIX_FMT_PAL8:
+    case AV_PIX_FMT_YUVJ420P:
+    case AV_PIX_FMT_YUVJ422P:
+    case AV_PIX_FMT_YUVJ444P:
+      return GUID_NULL;
+    case AV_PIX_FMT_UYVY422:
+      return MEDIASUBTYPE_UYVY;
     case AV_PIX_FMT_UYYVYY411:
       return MEDIASUBTYPE_Y411;
+    //case AV_PIX_FMT_BGR8:
+    //case AV_PIX_FMT_BGR4:
+    //case AV_PIX_FMT_BGR4_BYTE:
+    case AV_PIX_FMT_BGR8:
+    case AV_PIX_FMT_RGB8:
+      return MEDIASUBTYPE_RGB8;
+    case AV_PIX_FMT_BGR4:
+    case AV_PIX_FMT_BGR4_BYTE:
+    case AV_PIX_FMT_RGB4:
+    case AV_PIX_FMT_RGB4_BYTE:
+      return MEDIASUBTYPE_RGB4;
+    case AV_PIX_FMT_NV12:
+      return MEDIASUBTYPE_NV12;
+    case AV_PIX_FMT_NV21:
+      return MEDIASUBTYPE_IMC4;
+
+    case AV_PIX_FMT_ARGB:
+    case AV_PIX_FMT_RGBA:
+    case AV_PIX_FMT_ABGR:
+    case AV_PIX_FMT_BGRA:
+      return MEDIASUBTYPE_ARGB32;
+
+    case AV_PIX_FMT_GRAY16BE:
+    case AV_PIX_FMT_GRAY16LE:
+    case AV_PIX_FMT_YUV440P:
+    case AV_PIX_FMT_YUVJ440P:
+    case AV_PIX_FMT_YUVA420P:
+    case AV_PIX_FMT_RGB48BE:
+    case AV_PIX_FMT_RGB48LE:
+      return GUID_NULL;
+
+    case AV_PIX_FMT_RGB565BE:
+    case AV_PIX_FMT_RGB565LE:
+      return MEDIASUBTYPE_RGB565;
+    case AV_PIX_FMT_RGB555BE:
+    case AV_PIX_FMT_RGB555LE:
+      return MEDIASUBTYPE_RGB555;
+
+    case AV_PIX_FMT_BGR565BE:
+    case AV_PIX_FMT_BGR565LE:
+      return MEDIASUBTYPE_RGB565;
+    case AV_PIX_FMT_BGR555BE:
+    case AV_PIX_FMT_BGR555LE:
+      return MEDIASUBTYPE_RGB555;
+
+    case AV_PIX_FMT_VAAPI_MOCO:
+    case AV_PIX_FMT_VAAPI_IDCT:
+    case AV_PIX_FMT_VAAPI_VLD:
+      return GUID_NULL;
+
+    case AV_PIX_FMT_YUV420P16LE:
+    case AV_PIX_FMT_YUV420P16BE:
+    case AV_PIX_FMT_YUV422P16LE:
+    case AV_PIX_FMT_YUV422P16BE:
+    case AV_PIX_FMT_YUV444P16LE:
+    case AV_PIX_FMT_YUV444P16BE:
+    case AV_PIX_FMT_DXVA2_VLD:
+      return GUID_NULL;
+
+    case AV_PIX_FMT_RGB444LE:
+    case AV_PIX_FMT_RGB444BE:
+    case AV_PIX_FMT_BGR444LE:
+    case AV_PIX_FMT_BGR444BE:
+    case AV_PIX_FMT_YA8:
+      return GUID_NULL;
+
+    case AV_PIX_FMT_BGR48BE:
+    case AV_PIX_FMT_BGR48LE:
+      return GUID_NULL;
+
+    case AV_PIX_FMT_YUV420P9BE:
+    case AV_PIX_FMT_YUV420P9LE:
+    case AV_PIX_FMT_YUV420P10BE:
+    case AV_PIX_FMT_YUV420P10LE:
+    case AV_PIX_FMT_YUV422P10BE:
+    case AV_PIX_FMT_YUV422P10LE:
+    case AV_PIX_FMT_YUV444P9BE:
+    case AV_PIX_FMT_YUV444P9LE:
+    case AV_PIX_FMT_YUV444P10BE:
+    case AV_PIX_FMT_YUV444P10LE:
+    case AV_PIX_FMT_YUV422P9BE:
+    case AV_PIX_FMT_YUV422P9LE:
+    case AV_PIX_FMT_GBRP:
+    case AV_PIX_FMT_GBRP9BE:
+    case AV_PIX_FMT_GBRP9LE:
+    case AV_PIX_FMT_GBRP10BE:
+    case AV_PIX_FMT_GBRP10LE:
+    case AV_PIX_FMT_GBRP16BE:
+    case AV_PIX_FMT_GBRP16LE:
+    case AV_PIX_FMT_YUVA422P:
+      return GUID_NULL;
+    case AV_PIX_FMT_YUVA444P:
+      return MEDIASUBTYPE_AYUV;
+    case AV_PIX_FMT_YUVA420P9BE:
+    case AV_PIX_FMT_YUVA420P9LE:
+    case AV_PIX_FMT_YUVA422P9BE:
+    case AV_PIX_FMT_YUVA422P9LE:
+    case AV_PIX_FMT_YUVA444P9BE:
+    case AV_PIX_FMT_YUVA444P9LE:
+    case AV_PIX_FMT_YUVA420P10BE:
+    case AV_PIX_FMT_YUVA420P10LE:
+    case AV_PIX_FMT_YUVA422P10BE:
+    case AV_PIX_FMT_YUVA422P10LE:
+    case AV_PIX_FMT_YUVA444P10BE:
+    case AV_PIX_FMT_YUVA444P10LE:
+    case AV_PIX_FMT_YUVA420P16BE:
+    case AV_PIX_FMT_YUVA420P16LE:
+    case AV_PIX_FMT_YUVA422P16BE:
+    case AV_PIX_FMT_YUVA422P16LE:
+    case AV_PIX_FMT_YUVA444P16BE:
+    case AV_PIX_FMT_YUVA444P16LE:
+      return GUID_NULL;
+
+    case AV_PIX_FMT_VDPAU:
+      return GUID_NULL;
+
+    case AV_PIX_FMT_XYZ12LE:
+    case AV_PIX_FMT_XYZ12BE:
+    case AV_PIX_FMT_NV16:
+    case AV_PIX_FMT_NV20LE:
+    case AV_PIX_FMT_NV20BE:
+      return GUID_NULL;
+
+    case AV_PIX_FMT_RGBA64BE:
+    case AV_PIX_FMT_RGBA64LE:
+    case AV_PIX_FMT_BGRA64BE:
+    case AV_PIX_FMT_BGRA64LE:
+      return GUID_NULL;
+
     case AV_PIX_FMT_YVYU422:
       return MEDIASUBTYPE_YVYU;
+
+    case AV_PIX_FMT_YA16BE:
+    case AV_PIX_FMT_YA16LE:
+      return GUID_NULL;
+
+    case AV_PIX_FMT_GBRAP:
+    case AV_PIX_FMT_GBRAP16BE:
+    case AV_PIX_FMT_GBRAP16LE:
+      return GUID_NULL;
+
+    case AV_PIX_FMT_QSV:
+      return GUID_NULL;
+
+    case AV_PIX_FMT_MMAL:
+      return GUID_NULL;
+
+    case AV_PIX_FMT_D3D11VA_VLD:
+      return GUID_NULL;
+
+    case AV_PIX_FMT_CUDA:
+      return GUID_NULL;
+
+    case AV_PIX_FMT_0RGB:
+    case AV_PIX_FMT_RGB0:
+    case AV_PIX_FMT_0BGR:
+    case AV_PIX_FMT_BGR0:
+      return GUID_NULL;
+
+    case AV_PIX_FMT_YUV420P12BE:
+    case AV_PIX_FMT_YUV420P12LE:
+    case AV_PIX_FMT_YUV420P14BE:
+    case AV_PIX_FMT_YUV420P14LE:
+    case AV_PIX_FMT_YUV422P12BE:
+    case AV_PIX_FMT_YUV422P12LE:
+    case AV_PIX_FMT_YUV422P14BE:
+    case AV_PIX_FMT_YUV422P14LE:
+    case AV_PIX_FMT_YUV444P12BE:
+    case AV_PIX_FMT_YUV444P12LE:
+    case AV_PIX_FMT_YUV444P14BE:
+    case AV_PIX_FMT_YUV444P14LE:
+    case AV_PIX_FMT_GBRP12BE:
+    case AV_PIX_FMT_GBRP12LE:
+    case AV_PIX_FMT_GBRP14BE:
+    case AV_PIX_FMT_GBRP14LE:
+    case AV_PIX_FMT_YUVJ411P:
+      return GUID_NULL;
+
+    case AV_PIX_FMT_BAYER_BGGR8:
+    case AV_PIX_FMT_BAYER_RGGB8:
+    case AV_PIX_FMT_BAYER_GBRG8:
+    case AV_PIX_FMT_BAYER_GRBG8:
+    case AV_PIX_FMT_BAYER_BGGR16LE:
+    case AV_PIX_FMT_BAYER_BGGR16BE:
+    case AV_PIX_FMT_BAYER_RGGB16LE:
+    case AV_PIX_FMT_BAYER_RGGB16BE:
+    case AV_PIX_FMT_BAYER_GBRG16LE:
+    case AV_PIX_FMT_BAYER_GBRG16BE:
+    case AV_PIX_FMT_BAYER_GRBG16LE:
+    case AV_PIX_FMT_BAYER_GRBG16BE:
+      return GUID_NULL;
+
+    case AV_PIX_FMT_XVMC:
+      return GUID_NULL;
+
+    case AV_PIX_FMT_YUV440P10LE:
+    case AV_PIX_FMT_YUV440P10BE:
+    case AV_PIX_FMT_YUV440P12LE:
+    case AV_PIX_FMT_YUV440P12BE:
+    case AV_PIX_FMT_AYUV64LE:
+    case AV_PIX_FMT_AYUV64BE:
+      return GUID_NULL;
+
+    case AV_PIX_FMT_VIDEOTOOLBOX:
+      return GUID_NULL;
+
+    case AV_PIX_FMT_P010LE:
+    case AV_PIX_FMT_P010BE:
+      return GUID_NULL;
+
+    case AV_PIX_FMT_GBRAP12BE:
+    case AV_PIX_FMT_GBRAP12LE:
+      return GUID_NULL;
+
+    case AV_PIX_FMT_GBRAP10BE:
+    case AV_PIX_FMT_GBRAP10LE:
+      return GUID_NULL;
+
+    case AV_PIX_FMT_MEDIACODEC:
+      return GUID_NULL;
+
+    case AV_PIX_FMT_GRAY12BE:
+    case AV_PIX_FMT_GRAY12LE:
+    case AV_PIX_FMT_GRAY10BE:
+    case AV_PIX_FMT_GRAY10LE:
+      return GUID_NULL;
+
+    case AV_PIX_FMT_P016LE:
+    case AV_PIX_FMT_P016BE:
+      return MEDIASUBTYPE_IMC1;
+
+    case AV_PIX_FMT_D3D11:
+      return GUID_NULL;
+
+    case AV_PIX_FMT_GRAY9BE:
+    case AV_PIX_FMT_GRAY9LE:
+      return GUID_NULL;
+
+    case AV_PIX_FMT_GBRPF32BE:
+    case AV_PIX_FMT_GBRPF32LE:
+    case AV_PIX_FMT_GBRAPF32BE:
+    case AV_PIX_FMT_GBRAPF32LE:
+      return GUID_NULL;
+
+    case AV_PIX_FMT_DRM_PRIME:
+      return GUID_NULL;
+
+    case AV_PIX_FMT_OPENCL:
+      return GUID_NULL;
+
+    case AV_PIX_FMT_GRAY14BE:
+    case AV_PIX_FMT_GRAY14LE:
+      return GUID_NULL;
+
+    case AV_PIX_FMT_GRAYF32BE:
+    case AV_PIX_FMT_GRAYF32LE:
+      return GUID_NULL;
     default:
     {
       ACE_DEBUG ((LM_ERROR,

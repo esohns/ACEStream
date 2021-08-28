@@ -370,6 +370,7 @@ Stream_Dev_Cam_Source_DirectShow_T<ACE_SYNCH_USE,
       struct _AMMediaType media_type_s;
       ACE_OS::memset (&media_type_s, 0, sizeof (struct _AMMediaType));
       bool release_media_type = false;
+      bool set_capture_format_b = true;
       if (inherited::configuration_->builder)
       {
         reference_count = inherited::configuration_->builder->AddRef ();
@@ -419,6 +420,8 @@ Stream_Dev_Cam_Source_DirectShow_T<ACE_SYNCH_USE,
           goto error_2;
         ACE_ASSERT (sample_grabber_p);
         filter_p->Release (); filter_p = NULL;
+
+        set_capture_format_b = false;
 
         goto continue_;
 error_3:
@@ -481,17 +484,17 @@ continue_:
       ACE_ASSERT (sample_grabber_p);
       ACE_ASSERT (IMediaControl_);
       ACE_ASSERT (IMediaEventEx_);
-      ACE_ASSERT (!session_data_r.formats.empty ());
 
-      if (!Stream_Device_DirectShow_Tools::setCaptureFormat (builder_p,
-                                                             CLSID_VideoInputDeviceCategory,
-                                                             session_data_r.formats.back ()))
-      {
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("%s: failed to Stream_Device_DirectShow_Tools::setCaptureFormat(), continuing\n"),
-                    inherited::mod_->name ()));
-        //goto error;
-      } // end IF
+      if (set_capture_format_b)
+        if (!Stream_Device_DirectShow_Tools::setCaptureFormat (builder_p,
+                                                               CLSID_VideoInputDeviceCategory,
+                                                               inherited::configuration_->outputFormat))
+        {
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("%s: failed to Stream_Device_DirectShow_Tools::setCaptureFormat(), aborting\n"),
+                      inherited::mod_->name ()));
+          goto error;
+        } // end IF
 
       if (!Stream_MediaFramework_DirectShow_Tools::getOutputFormat (builder_p,
                                                                     STREAM_LIB_DIRECTSHOW_FILTER_NAME_GRAB,
@@ -547,15 +550,18 @@ continue_:
                       ACE_TEXT (Stream_Device_DirectShow_Tools::devicePathToString (ACE_TEXT_ALWAYS_CHAR (inherited::configuration_->deviceIdentifier.identifier._string)).c_str ())));
         pin_p->Release (); pin_p = NULL;
       } // end IF
-      session_data_r.formats.push_back (media_type_s);
-      release_media_type = false;
+      if (set_capture_format_b)
+      {
+        session_data_r.formats.push_back (media_type_s);
+        release_media_type = false;
+      } // end IF
+
+      //ACE_DEBUG ((LM_DEBUG,
+      //            ACE_TEXT ("%s: frame grabber filter output format: \"%s\"\n"),
+      //            inherited::mod_->name (),
+      //            ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::toString (media_type_s, true).c_str ())));
 
 #if defined (_DEBUG)
-      ACE_DEBUG ((LM_DEBUG,
-                  ACE_TEXT ("%s: output format: \"%s\"\n"),
-                  inherited::mod_->name (),
-                  ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::toString (media_type_s, true).c_str ())));
-
       log_file_name =
         Common_Log_Tools::getLogDirectory (ACE_TEXT_ALWAYS_CHAR (""),
                                            0);
@@ -568,24 +574,27 @@ continue_:
                   ACE_TEXT (log_file_name.c_str ())));
 #endif // _DEBUG
 
-      // set up sample grabber
-      result_2 = sample_grabber_p->SetBufferSamples (false);
-      if (FAILED (result_2))
+      // set up sample grabber ?
+      if (set_capture_format_b)
       {
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("%s: failed to ISampleGrabber::SetBufferSamples(): \"%s\", aborting\n"),
-                    inherited::mod_->name (),
-                    ACE_TEXT (Common_Error_Tools::errorToString (result_2, false).c_str ())));
-        goto error;
-      } // end IF
-      result_2 = sample_grabber_p->SetCallback (this, 0);
-      if (FAILED (result_2))
-      {
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("%s: failed to ISampleGrabber::SetCallback(): \"%s\", aborting\n"),
-                    inherited::mod_->name (),
-                    ACE_TEXT (Common_Error_Tools::errorToString (result_2, false).c_str ())));
-        goto error;
+        result_2 = sample_grabber_p->SetBufferSamples (false);
+        if (FAILED (result_2))
+        {
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("%s: failed to ISampleGrabber::SetBufferSamples(): \"%s\", aborting\n"),
+                      inherited::mod_->name (),
+                      ACE_TEXT (Common_Error_Tools::errorToString (result_2, false).c_str ())));
+          goto error;
+        } // end IF
+        result_2 = sample_grabber_p->SetCallback (this, 0);
+        if (FAILED (result_2))
+        {
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("%s: failed to ISampleGrabber::SetCallback(): \"%s\", aborting\n"),
+                      inherited::mod_->name (),
+                      ACE_TEXT (Common_Error_Tools::errorToString (result_2, false).c_str ())));
+          goto error;
+        } // end IF
       } // end IF
       sample_grabber_p->Release (); sample_grabber_p = NULL;
 

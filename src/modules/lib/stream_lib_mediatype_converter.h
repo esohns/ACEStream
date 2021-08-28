@@ -76,7 +76,12 @@ class Stream_MediaFramework_MediaTypeConverter_T
   void getMediaType (const IMFMediaType*, struct Stream_MediaFramework_FFMPEG_VideoMediaType&);
 
   void getMediaType (const struct Stream_MediaFramework_FFMPEG_VideoMediaType&, struct _AMMediaType&);
-//  void getMediaType_impl (const struct Stream_MediaFramework_FFMPEG_VideoMediaType&, IMFMediaType*&);
+//  void getMediaType (const struct Stream_MediaFramework_FFMPEG_VideoMediaType&, IMFMediaType*&);
+
+  // ffmpeg
+  inline void setFormat (enum AVPixelFormat format_in, struct _AMMediaType& mediaType_inout) { Stream_MediaFramework_DirectShow_Tools::setFormat (Stream_MediaFramework_Tools::AVPixelFormatToMediaSubType (format_in), mediaType_inout); }
+
+  inline void setResolution (const Common_Image_Resolution_t resolution_in, struct _AMMediaType& mediaType_inout) { Stream_MediaFramework_DirectShow_Tools::setResolution (resolution_in, mediaType_inout); }
 #else
   // ALSA
   inline void getMediaType (const struct Stream_MediaFramework_ALSA_MediaType& mediaType_in, struct Stream_MediaFramework_ALSA_MediaType& mediaType_out) { mediaType_out = mediaType_in; }

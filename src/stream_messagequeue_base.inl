@@ -19,6 +19,8 @@
  ***************************************************************************/
 
 #include "ace/Log_Msg.h"
+#include "ace/OS.h"
+#include "ace/Time_Value.h"
 
 #include "stream_macros.h"
 
@@ -74,11 +76,9 @@ Stream_MessageQueueBase_T<ACE_SYNCH_USE,
     number_of_messages = this_p->message_count ();
     if (unlikely (number_of_messages > 0))
     {
-#if defined (_DEBUG)
       ACE_DEBUG ((LM_DEBUG,
                   ACE_TEXT ("waiting (count: %u message(s))...\n"),
                   number_of_messages));
-#endif // _DEBUG
 
       result = ACE_OS::sleep (one_second);
       if (unlikely (result == -1))

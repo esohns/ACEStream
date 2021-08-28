@@ -97,7 +97,7 @@ struct Stream_Device_Identifier
   union identifierType
   {
     struct _GUID _guid;
-    char         _string[255];
+    char         _string[BUFSIZ];
 
     identifierType ()
      : _guid (GUID_NULL)
@@ -122,7 +122,7 @@ struct Stream_Device_Identifier
       }
       case STRING:
       {
-        ACE_OS::memset (identifier._string, 0, sizeof (char[255]));
+        ACE_OS::memset (identifier._string, 0, sizeof (char[BUFSIZ]));
         break;
       }
       default:

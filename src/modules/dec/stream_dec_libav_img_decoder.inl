@@ -175,12 +175,10 @@ Stream_Decoder_LibAV_ImageDecoder_T<ACE_SYNCH_USE,
 
   // *TODO*: remove type inferences
   codecId_ = configuration_in.codecId;
-#if defined (_DEBUG)
   ACE_DEBUG ((LM_DEBUG,
               ACE_TEXT ("%s: using codec \"%s\" (id: %d)\n"),
               inherited::mod_->name (),
               ACE_TEXT (avcodec_get_name (codecId_)), codecId_));
-#endif // _DEBUG
   //profile_ = configuration_in.codecProfile;
 
   struct Stream_MediaFramework_FFMPEG_VideoMediaType media_type_s;

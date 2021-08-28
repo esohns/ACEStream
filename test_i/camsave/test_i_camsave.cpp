@@ -582,12 +582,10 @@ do_initialize_directshow (const std::string& devicePath_in,
                 ACE_TEXT ("failed to Stream_Device_DirectShow_Tools::getCaptureFormat(CLSID_VideoInputDeviceCategory), aborting\n")));
     goto error;
   } // end IF
-#if defined (_DEBUG)
   ACE_DEBUG ((LM_DEBUG,
               ACE_TEXT ("\"%s\": default capture format: %s\n"),
               ACE_TEXT (Stream_Device_DirectShow_Tools::devicePathToString (devicePath_in).c_str ()),
               ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::toString (captureFormat_inout, true).c_str ())));
-#endif // _DEBUG
   media_type_p =
     Stream_MediaFramework_DirectShow_Tools::copy (captureFormat_inout);
   if (!media_type_p)
@@ -602,8 +600,7 @@ do_initialize_directshow (const std::string& devicePath_in,
 
   // *NOTE*: the default save format is ARGB32
   ACE_ASSERT (InlineIsEqualGUID (outputFormat_inout.majortype, MEDIATYPE_Video));
-  outputFormat_inout.subtype =
-    STREAM_LIB_DEFAULT_DIRECTSHOW_FILTER_VIDEO_RENDERER_FORMAT;
+  outputFormat_inout.subtype = MEDIASUBTYPE_RGB32;
   outputFormat_inout.bFixedSizeSamples = TRUE;
   outputFormat_inout.bTemporalCompression = FALSE;
   if (InlineIsEqualGUID (outputFormat_inout.formattype, FORMAT_VideoInfo))
@@ -1171,7 +1168,10 @@ do_work (const std::string& captureinterfaceIdentifier_in,
 
   struct Stream_ModuleConfiguration module_configuration;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  struct Stream_CamSave_DirectShow_ModuleHandlerConfiguration directshow_modulehandler_configuration;
+  struct Stream_CamSave_DirectShow_ModuleHandlerConfiguration directshow_modulehandler_configuration;   // source
+  struct Stream_CamSave_DirectShow_ModuleHandlerConfiguration directshow_modulehandler_configuration_2; // resize
+  struct Stream_CamSave_DirectShow_ModuleHandlerConfiguration directshow_modulehandler_configuration_3; // renderer
+  struct Stream_CamSave_DirectShow_ModuleHandlerConfiguration directshow_modulehandler_configuration_4; // converter_2
   struct Stream_CamSave_DirectShow_StreamConfiguration directshow_stream_configuration;
 #if defined (GUI_SUPPORT)
   Stream_CamSave_DirectShow_EventHandler_t directshow_ui_event_handler (&directShowCBData_in
@@ -1235,7 +1235,9 @@ do_work (const std::string& captureinterfaceIdentifier_in,
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   Stream_CamSave_DirectShow_StreamConfiguration_t::ITERATOR_T directshow_stream_iterator;
-  Stream_CamSave_DirectShow_StreamConfiguration_t::ITERATOR_T directshow_stream_iterator_2;
+  Stream_CamSave_DirectShow_StreamConfiguration_t::ITERATOR_T directshow_stream_iterator_2; // resize
+  Stream_CamSave_DirectShow_StreamConfiguration_t::ITERATOR_T directshow_stream_iterator_3; // renderer
+  Stream_CamSave_DirectShow_StreamConfiguration_t::ITERATOR_T directshow_stream_iterator_4; // converter_2
   Stream_CamSave_MediaFoundation_StreamConfiguration_t::ITERATOR_T mediafoundation_stream_iterator;
   Stream_CamSave_MediaFoundation_StreamConfiguration_t::ITERATOR_T mediafoundation_stream_iterator_2;
   switch (mediaFramework_in)
@@ -1381,16 +1383,16 @@ error:
   Stream_CamSave_DirectShow_MessageAllocator_t directshow_message_allocator (TEST_I_MAX_MESSAGES, // maximum #buffers
                                                                              &heap_allocator,     // heap allocator handle
                                                                              true);               // block ?
-  Stream_CamSave_DirectShow_Stream directshow_stream;
-  Stream_CamSave_DirectShow_MessageHandler_Module directshow_message_handler (&directshow_stream,
+  Stream_CamSave_DirectShow_MessageHandler_Module directshow_message_handler (NULL,
                                                                               ACE_TEXT_ALWAYS_CHAR (STREAM_MISC_MESSAGEHANDLER_DEFAULT_NAME_STRING));
+  Stream_CamSave_DirectShow_Stream directshow_stream;
 
   Stream_CamSave_MediaFoundation_MessageAllocator_t mediafoundation_message_allocator (TEST_I_MAX_MESSAGES, // maximum #buffers
                                                                                        &heap_allocator,     // heap allocator handle
                                                                                        true);               // block ?
-  Stream_CamSave_MediaFoundation_Stream mediafoundation_stream;
-  Stream_CamSave_MediaFoundation_MessageHandler_Module mediafoundation_message_handler (&mediafoundation_stream,
+  Stream_CamSave_MediaFoundation_MessageHandler_Module mediafoundation_message_handler (NULL,
                                                                                         ACE_TEXT_ALWAYS_CHAR (STREAM_MISC_MESSAGEHANDLER_DEFAULT_NAME_STRING));
+  Stream_CamSave_MediaFoundation_Stream mediafoundation_stream;
   switch (mediaFramework_in)
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
@@ -1405,26 +1407,42 @@ error:
       //directShowConfiguration_in.streamConfiguration.configuration_.renderer =
       //  renderer_in;
 
-      directshow_modulehandler_configuration.display = displayDevice_in;
-
       directshow_stream_configuration.allocatorConfiguration = &allocator_configuration;
 
       directShowConfiguration_in.streamConfiguration.initialize (module_configuration,
                                                                  directshow_modulehandler_configuration,
                                                                  directshow_stream_configuration);
-      //directshow_modulehandler_configuration.deviceIdentifier.identifierDiscriminator =
-      //  Stream_Device_Identifier::STRING;
-      //ACE_OS::strcpy (directshow_modulehandler_configuration.deviceIdentifier.identifier._string,
-      //                displayDevice_in.device.c_str ());
-      directShowConfiguration_in.streamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_DIRECT3D_DEFAULT_NAME_STRING),
-                                                                             std::make_pair (module_configuration,
-                                                                                             directshow_modulehandler_configuration)));
       directshow_stream_iterator =
         directShowConfiguration_in.streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
       ACE_ASSERT (directshow_stream_iterator != directShowConfiguration_in.streamConfiguration.end ());
+
+      directshow_modulehandler_configuration_2 = directshow_modulehandler_configuration;
+      directShowConfiguration_in.streamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_LIBAV_RESIZE_DEFAULT_NAME_STRING),
+                                                                             std::make_pair (module_configuration,
+                                                                                             directshow_modulehandler_configuration_2)));
       directshow_stream_iterator_2 =
-        directShowConfiguration_in.streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_DIRECT3D_DEFAULT_NAME_STRING));
+        directShowConfiguration_in.streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_LIBAV_RESIZE_DEFAULT_NAME_STRING));
       ACE_ASSERT (directshow_stream_iterator_2 != directShowConfiguration_in.streamConfiguration.end ());
+
+      directshow_modulehandler_configuration_3 = directshow_modulehandler_configuration;
+      directshow_modulehandler_configuration_3.deviceIdentifier.identifierDiscriminator =
+        Stream_Device_Identifier::STRING;
+      ACE_OS::strcpy (directshow_modulehandler_configuration_3.deviceIdentifier.identifier._string,
+                      displayDevice_in.device.c_str ());
+      directShowConfiguration_in.streamConfiguration.insert (std::make_pair (Stream_Visualization_Tools::rendererToModuleName (STREAM_VISUALIZATION_VIDEORENDERER_GTK_PIXBUF),
+                                                                             std::make_pair (module_configuration,
+                                                                                             directshow_modulehandler_configuration_3)));
+      directshow_stream_iterator_3 =
+        directShowConfiguration_in.streamConfiguration.find (Stream_Visualization_Tools::rendererToModuleName (STREAM_VISUALIZATION_VIDEORENDERER_GTK_PIXBUF));
+      ACE_ASSERT (directshow_stream_iterator_3 != directShowConfiguration_in.streamConfiguration.end ());
+
+      directshow_modulehandler_configuration_4 = directshow_modulehandler_configuration;
+      directShowConfiguration_in.streamConfiguration.insert (std::make_pair (std::string (std::string (ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_LIBAV_CONVERTER_DEFAULT_NAME_STRING)) + ACE_TEXT_ALWAYS_CHAR ("_2")),
+                                                                             std::make_pair (module_configuration,
+                                                                                             directshow_modulehandler_configuration_4)));
+      directshow_stream_iterator_4 =
+        directShowConfiguration_in.streamConfiguration.find (std::string (std::string (ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_LIBAV_CONVERTER_DEFAULT_NAME_STRING)) + ACE_TEXT_ALWAYS_CHAR ("_2")));
+      ACE_ASSERT (directshow_stream_iterator_4 != directShowConfiguration_in.streamConfiguration.end ());
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
@@ -1530,10 +1548,10 @@ error:
       if (!do_initialize_directshow (captureinterfaceIdentifier_in,
                                      UIDefinitionFilename_in.empty (),  // initialize COM ?
                                      !UIDefinitionFilename_in.empty (), // has UI ?
-                                     (*directshow_stream_iterator).second.second.builder,
+                                     directshow_modulehandler_configuration.builder,
                                      stream_config_p,
                                      directshow_stream_configuration.format,
-                                     (*directshow_stream_iterator).second.second.outputFormat))
+                                     (*directshow_stream_iterator_4).second.second.outputFormat)) // --> converter_2
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("failed to ::do_initialize_directshow(), returning\n")));
@@ -1544,10 +1562,28 @@ error:
         directShowCBData_in.streamConfiguration = stream_config_p;
       } // end IF
       media_type_p =
+        Stream_MediaFramework_DirectShow_Tools::copy ((*directshow_stream_iterator_4).second.second.outputFormat);
+      ACE_ASSERT (media_type_p);
+      // *NOTE*: Gtk 2 expects RGB24
+      // *NOTE*: "...CAIRO_FORMAT_ARGB32: each pixel is a 32-bit quantity, with
+      //         alpha in the upper 8 bits, then red, then green, then blue. The
+      //         32-bit quantities are stored native-endian. ..."
+      // *TODO*: determine color depth of selected (default) screen (i.e.'Display'
+      //         ":0")
+#if defined (GUI_SUPPORT)
+#if defined (GTK_USE)
+#if defined (GTK2_USE)
+      Stream_MediaFramework_DirectShow_Tools::setFormat (MEDIASUBTYPE_RGB24,
+                                                         *media_type_p);
+#endif // GTK2_USE
+#endif // GTK_USE
+#endif // GUI_SUPPORT
+      (*directshow_stream_iterator).second.second.outputFormat = *media_type_p;
+      CoTaskMemFree (media_type_p); media_type_p = NULL;
+      media_type_p =
         Stream_MediaFramework_DirectShow_Tools::copy ((*directshow_stream_iterator).second.second.outputFormat);
       ACE_ASSERT (media_type_p);
-      (*directshow_stream_iterator_2).second.second.outputFormat =
-        *media_type_p;
+      (*directshow_stream_iterator_2).second.second.outputFormat = *media_type_p;
       CoTaskMemFree (media_type_p); media_type_p = NULL;
       break;
     }

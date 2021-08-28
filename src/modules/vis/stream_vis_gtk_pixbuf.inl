@@ -260,7 +260,8 @@ error:
     {
       // sanity check(s)
       // *TODO*: remove type inferences
-      ACE_ASSERT (inherited::configuration_->window);
+      if (!inherited::configuration_->window)
+        break;
       ACE_ASSERT (buffer_);
 
       gint width_i = 0, height_i = 0;
