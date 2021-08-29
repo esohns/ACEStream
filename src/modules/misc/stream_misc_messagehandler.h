@@ -50,7 +50,7 @@ template <ACE_SYNCH_DECL,
           typename DataMessageType,
           typename SessionMessageType,
           ////////////////////////////////
-          typename SessionDataType,
+          typename SessionDataType, // not (!) reference-counted
           ////////////////////////////////
           typename UserDataType>
 class Stream_Module_MessageHandler_T

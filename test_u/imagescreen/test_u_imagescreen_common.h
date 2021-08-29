@@ -145,7 +145,6 @@ struct Stream_ImageScreen_ModuleHandlerConfiguration
 #endif // ACE_WIN32 || ACE_WIN64
   {
     concurrency = STREAM_HEADMODULECONCURRENCY_ACTIVE;
-    hasHeader = true;
   }
 
   enum AVPixelFormat                            codecFormat; // preferred output-

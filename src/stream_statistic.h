@@ -28,6 +28,7 @@ struct Stream_StatisticBase
   Stream_StatisticBase ()
    : bytes (0.0F)
    , dataMessages (0)
+   , sessionMessages (0)
    , bytesPerSecond (0.0F)
    , messagesPerSecond (0.0F)
    , timeStamp (ACE_Time_Value::zero)
@@ -37,6 +38,7 @@ struct Stream_StatisticBase
   {
     bytes = 0.0F;
     dataMessages = 0;
+    sessionMessages = 0;
     bytesPerSecond = 0.0F;
     messagesPerSecond = 0.0F;
     timeStamp = ACE_Time_Value::zero;
@@ -47,12 +49,14 @@ struct Stream_StatisticBase
   {
     bytes += rhs_in.bytes;
     dataMessages += rhs_in.dataMessages;
+    sessionMessages += rhs_in.sessionMessages;
 
     return *this;
   }
 
-  float          bytes;          // amount of processed data
-  unsigned int   dataMessages;   // (protocol) messages
+  float          bytes;           // amount of processed data
+  unsigned int   dataMessages;    // data messages
+  unsigned int   sessionMessages; // session messages
 
   // (current) runtime performance
   float          bytesPerSecond;

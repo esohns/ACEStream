@@ -28,7 +28,6 @@
 #include "ace/Synch_Traits.h"
 
 #include "common_iget.h"
-//#include "common_ilock.h"
 #include "common_istatistic.h"
 #include "common_statistic_handler.h"
 

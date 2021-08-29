@@ -503,7 +503,6 @@ struct Stream_CamSave_ModuleHandlerConfiguration
 #else
     concurrency = STREAM_HEADMODULECONCURRENCY_ACTIVE;
 #endif // ACE_WIN32 || ACE_WIN64
-    hasHeader = true;
   }
 
   struct Stream_Device_Identifier deviceIdentifier; // source/renderer module

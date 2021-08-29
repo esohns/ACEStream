@@ -103,7 +103,6 @@ struct Stream_ModuleHandlerConfiguration
 #endif // _DEBUG
    , demultiplex (false)
    , finishOnDisconnect (false)
-   , hasHeader (false)
    , hasReentrantSynchronousSubDownstream (true)
    , inbound (true)
    , lock (NULL)
@@ -134,7 +133,6 @@ struct Stream_ModuleHandlerConfiguration
 #endif // _DEBUG
   bool                                  demultiplex;                          // message handler module
   bool                                  finishOnDisconnect;                   // header module(s)
-  bool                                  hasHeader;
   // *WARNING*: when false, this 'locks down' the pipeline head module; i.e. it
   //            will hold the 'stream lock' during all message processing to
   //            support (down)stream synchronization. This really only makes

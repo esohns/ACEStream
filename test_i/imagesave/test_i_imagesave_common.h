@@ -255,7 +255,6 @@ struct Test_I_ImageSave_ModuleHandlerConfiguration
    , targetFileName ()
   {
     concurrency = STREAM_HEADMODULECONCURRENCY_ACTIVE;
-    hasHeader = true;
   }
 
   enum AVCodecID                                     codecId;

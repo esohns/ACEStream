@@ -19,30 +19,28 @@
  ***************************************************************************/
 #include "stdafx.h"
 
-#include "test_i_http_get_signalhandler.h"
+#include "test_i_smtp_send_signalhandler.h"
 
 #include "ace/Log_Msg.h"
 
-#include "common_tools.h"
-
 #include "stream_macros.h"
 
-#include "test_i_connection_manager_common.h"
+#include "test_i_smtp_send_network.h"
 
-Stream_Source_SignalHandler::Stream_Source_SignalHandler (enum Common_SignalDispatchType dispatchMode_in,
-                                                          ACE_SYNCH_RECURSIVE_MUTEX* lock_in)
- : inherited (dispatchMode_in,
-              lock_in,
-              this) // event handler handle
+Stream_SMTPSend_SignalHandler::Stream_SMTPSend_SignalHandler (enum Common_SignalDispatchType dispatchMode_in,
+                                                              ACE_SYNCH_RECURSIVE_MUTEX* lock_in)
+: inherited (dispatchMode_in,
+             lock_in,
+             this) // event handler handle
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_Source_SignalHandler::Stream_Source_SignalHandler"));
+  STREAM_TRACE (ACE_TEXT ("Stream_SMTPSend_SignalHandler::Stream_SMTPSend_SignalHandler"));
 
 }
 
 void
-Stream_Source_SignalHandler::handle (const struct Common_Signal& signal_in)
+Stream_SMTPSend_SignalHandler::handle (const struct Common_Signal& signal_in)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_Source_SignalHandler::handle"));
+  STREAM_TRACE (ACE_TEXT ("Stream_SMTPSend_SignalHandler::handle"));
 
 //  int result = -1;
 
@@ -52,9 +50,10 @@ Stream_Source_SignalHandler::handle (const struct Common_Signal& signal_in)
   {
     case SIGINT:
 // *PORTABILITY*: on Windows SIGQUIT is not defined
-#if !defined (ACE_WIN32) && !defined (ACE_WIN64)
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#else
     case SIGQUIT:
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
     {
 //       // *PORTABILITY*: tracing in a signal handler context is not portable
 //       // *TODO*
@@ -67,21 +66,22 @@ Stream_Source_SignalHandler::handle (const struct Common_Signal& signal_in)
     }
 // *PORTABILITY*: on Windows SIGUSRx are not defined
 // --> use SIGBREAK (21) and SIGTERM (15) instead...
-#if !defined (ACE_WIN32) && !defined (ACE_WIN64)
-    case SIGUSR1:
-#else
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
     case SIGBREAK:
-#endif
+#else
+    case SIGUSR1:
+#endif // ACE_WIN32 || ACE_WIN64
     {
       // print statistic
       statistic = true;
 
       break;
     }
-#if !defined (ACE_WIN32) && !defined (ACE_WIN64)
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#else
     case SIGHUP:
     case SIGUSR2:
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
     case SIGTERM:
     {
       // print statistic
@@ -89,13 +89,19 @@ Stream_Source_SignalHandler::handle (const struct Common_Signal& signal_in)
 
       break;
     }
+    case SIGCHLD:
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#else
+    case SIGIO:
+#endif // ACE_WIN32 || ACE_WIN64
+      break;
     default:
     {
       // *PORTABILITY*: tracing in a signal handler context is not portable
       // *TODO*
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("received invalid/unknown signal: \"%S\", returning\n"),
-                  signal_in));
+                  ACE_TEXT ("received invalid/unknown signal: [%d] \"%S\", returning\n"),
+                  signal_in.signal, signal_in.signal));
       return;
     }
   } // end SWITCH
@@ -142,8 +148,8 @@ Stream_Source_SignalHandler::handle (const struct Common_Signal& signal_in)
     //} // end IF
 
     // step2: stop/abort(/wait) for connections
-    Test_I_Stream_IInetConnectionManager_t* connection_manager_p =
-        TEST_I_STREAM_CONNECTIONMANAGER_SINGLETON::instance ();
+    SMTP_IConnection_Manager_t* connection_manager_p =
+      SMTP_CONNECTIONMANAGER_SINGLETON::instance ();
     ACE_ASSERT (connection_manager_p);
     connection_manager_p->stop (false, true);
     connection_manager_p->abort ();

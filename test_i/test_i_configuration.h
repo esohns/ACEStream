@@ -45,7 +45,7 @@
 #include "test_i_defines.h"
 
 struct Test_I_ModuleHandlerConfiguration
- : Stream_ModuleHandlerConfiguration
+ : virtual Stream_ModuleHandlerConfiguration
 {
   Test_I_ModuleHandlerConfiguration ()
    : Stream_ModuleHandlerConfiguration ()
