@@ -105,8 +105,8 @@ struct Test_U_RIFFDecoder_Configuration
    , streamConfiguration ()
   {}
 
-  struct Common_ParserConfiguration        parserConfiguration;
-  Test_U_RIFFDecoder_StreamConfiguration_t streamConfiguration;
+  struct Common_FlexBisonParserConfiguration parserConfiguration;
+  Test_U_RIFFDecoder_StreamConfiguration_t   streamConfiguration;
 };
 
 //template <typename AllocatorConfigurationType,

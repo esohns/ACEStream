@@ -35,6 +35,7 @@
 #include "stream_common.h"
 #include "stream_messagequeue_base.h"
 #include "stream_task_base_synch.h"
+#include "stream_headmoduletask_base.h"
 
 extern const char libacestream_default_misc_parser_module_name_string[];
 
@@ -249,6 +250,96 @@ class Stream_Module_Parser_T
 
   // override some ACE_Task_T methods
   virtual int svc (void);
+
+  // *NOTE*: this enqueues the STOP message at the tail end...
+  void stop ();
+};
+
+//////////////////////////////////////////
+
+template <ACE_SYNCH_DECL, // state machine-/task
+          typename TimePolicyType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
+          ////////////////////////////////
+          typename ConfigurationType,
+          ////////////////////////////////
+          typename SessionControlType,
+          typename SessionEventType,
+          typename StreamStateType,
+          ////////////////////////////////
+          typename SessionDataType,          // session data
+          typename SessionDataContainerType, // session message payload (reference counted)
+          ////////////////////////////////
+          typename StatisticContainerType,
+          typename TimerManagerType, // implements Common_ITimer
+          ////////////////////////////////
+          typename UserDataType,
+          ////////////////////////////////
+          typename ParserDriverType>
+class Stream_Module_ParserH_T
+ : public Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
+                                      TimePolicyType,
+                                      ControlMessageType,
+                                      DataMessageType,
+                                      SessionMessageType,
+                                      ConfigurationType,
+                                      SessionControlType,
+                                      SessionEventType,
+                                      StreamStateType,
+                                      SessionDataType,
+                                      SessionDataContainerType,
+                                      StatisticContainerType,
+                                      TimerManagerType,
+                                      UserDataType>
+ , public ParserDriverType
+{
+  typedef Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
+                                      TimePolicyType,
+                                      ControlMessageType,
+                                      DataMessageType,
+                                      SessionMessageType,
+                                      ConfigurationType,
+                                      SessionControlType,
+                                      SessionEventType,
+                                      StreamStateType,
+                                      SessionDataType,
+                                      SessionDataContainerType,
+                                      StatisticContainerType,
+                                      TimerManagerType,
+                                      UserDataType> inherited;
+  typedef ParserDriverType inherited2;
+
+ public:
+  // *TODO*: on MSVC 2015u3 the accurate declaration does not compile
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  Stream_Module_ParserH_T (ISTREAM_T*); // stream handle
+#else
+  Stream_Module_ParserH_T (typename inherited::ISTREAM_T*); // stream handle
+#endif
+  virtual ~Stream_Module_ParserH_T ();
+
+  virtual bool initialize (const ConfigurationType&,
+                           Stream_IAllocator* = NULL);
+
+  // implement (part of) Stream_ITaskBase_T
+  virtual void handleDataMessage (DataMessageType*&,
+                                  bool&);
+  virtual void handleSessionMessage (SessionMessageType*&, // session message handle
+                                     bool&);               // return value: pass message downstream ?
+
+ protected:
+  // convenient types
+  typedef Stream_MessageQueueBase_T<ACE_MT_SYNCH,
+                                    Common_TimePolicy_t> MESSAGE_QUEUE_T;
+
+  DataMessageType* headFragment_;
+
+ private:
+  ACE_UNIMPLEMENTED_FUNC (Stream_Module_ParserH_T ())
+  ACE_UNIMPLEMENTED_FUNC (Stream_Module_ParserH_T (const Stream_Module_ParserH_T&))
+  ACE_UNIMPLEMENTED_FUNC (Stream_Module_ParserH_T& operator= (const Stream_Module_ParserH_T&))
 
   // *NOTE*: this enqueues the STOP message at the tail end...
   void stop ();

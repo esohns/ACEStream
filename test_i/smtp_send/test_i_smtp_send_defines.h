@@ -18,71 +18,53 @@
 *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
 ***************************************************************************/
 
-#ifndef TEST_I_AVSAVE_DEFINES_H
-#define TEST_I_AVSAVE_DEFINES_H
-
-#include "gtk/gtk.h"
-
-#define TEST_I_DEFAULT_OUTPUT_FILE             "output.avi"
+#ifndef TEST_I_SMTPSEND_DEFINES_H
+#define TEST_I_SMTPSEND_DEFINES_H
 
 #if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
 #if defined (GTK3_USE)
-#define TEST_I_UI_DEFINITION_FILE              "avsave.gtk3"
+#define TEST_I_UI_DEFINITION_FILE              "test_i.gtk3"
 #elif defined (GTK2_USE)
-#define TEST_I_UI_DEFINITION_FILE              "avsave.gtk2"
+#define TEST_I_UI_DEFINITION_FILE              "test_i.gtk2"
 #endif
 #elif defined (QT_USE)
 #define TEST_I_UI_DEFINITION_FILE              "mainwindow.ui"
 #elif defined (WXWIDGETS_USE)
-#define TEST_I_UI_DEFINITION_FILE              "avsave.xrc"
+#define TEST_I_UI_DEFINITION_FILE              "test_i.xrc"
 #else
 #define TEST_I_UI_DEFINITION_FILE              ""
 #endif // WXWIDGETS_USE
-#define TEST_I_UI_CSS_FILE                     "avsave.css"
+#define TEST_I_UI_CSS_FILE                     "test_i.css"
 
 //---------------------------------------
 #if defined (GTK_USE)
-#define TEST_I_UI_GTK_ADJUSTMENT_NAME                  "scrolledwindow_vadjustment"
+#define TEST_I_UI_GTK_ACTION_SEND_NAME                 "action_send"
+#define TEST_I_UI_GTK_SCROLLEDWINDOW_ADJUSTMENT_V_NAME "adjustment_sw_v"
 #define TEST_I_UI_GTK_BUTTON_ABOUT_NAME                "about"
-#define TEST_I_UI_GTK_BUTTON_CLEAR_NAME                "clear"
-#define TEST_I_UI_GTK_BUTTON_CUT_NAME                  "button_cut"
-#define TEST_I_UI_GTK_BUTTON_REPORT_NAME               "button_report"
-#define TEST_I_UI_GTK_BUTTON_SNAPSHOT_NAME             "button_snapshot"
+#define TEST_I_UI_GTK_BUTTON_SEND_NAME                 "button_send"
 #define TEST_I_UI_GTK_BUTTON_QUIT_NAME                 "quit"
-#define TEST_I_UI_GTK_COMBOBOX_ADAPTER_NAME            "combobox_adapter"
-#define TEST_I_UI_GTK_COMBOBOX_DISPLAY_NAME            "combobox_display"
-#define TEST_I_UI_GTK_COMBOBOX_FORMAT_NAME             "combobox_format"
-#define TEST_I_UI_GTK_COMBOBOX_RATE_NAME               "combobox_rate"
-#define TEST_I_UI_GTK_COMBOBOX_RESOLUTION_NAME         "combobox_resolution"
-#define TEST_I_UI_GTK_COMBOBOX_SOURCE_NAME             "combobox_source"
 #define TEST_I_UI_GTK_DIALOG_ABOUT_NAME                "dialog_about"
 #define TEST_I_UI_GTK_DIALOG_MAIN_NAME                 "dialog_main"
-#define TEST_I_UI_GTK_DRAWINGAREA_NAME                 "drawingarea"
-#define TEST_I_UI_GTK_ENTRY_SAVE_NAME                  "entry_save"
-#define TEST_I_UI_GTK_FILECHOOSERBUTTON_SAVE_NAME      "filechooserbutton_save"
-//#define TEST_I_UI_GTK_FILECHOOSERDIALOG_SAVE_NAME     "filechooserdialog_save"
-#define TEST_I_UI_GTK_FILEFILTER_AVI_NAME              "filefilter_avi"
-#define TEST_I_UI_GTK_FRAME_DISPLAY_NAME               "frame_display"
-#define TEST_I_UI_GTK_FRAME_SAVE_NAME                  "frame_save"
-#define TEST_I_UI_GTK_FRAME_SOURCE_NAME                "frame_source"
-#define TEST_I_UI_GTK_LISTSTORE_ADAPTER_NAME           "liststore_adapter"
-#define TEST_I_UI_GTK_LISTSTORE_DISPLAY_NAME           "liststore_display"
-#define TEST_I_UI_GTK_LISTSTORE_FORMAT_NAME            "liststore_format"
-#define TEST_I_UI_GTK_LISTSTORE_RATE_NAME              "liststore_rate"
-#define TEST_I_UI_GTK_LISTSTORE_RESOLUTION_NAME        "liststore_resolution"
-#define TEST_I_UI_GTK_LISTSTORE_SOURCE_NAME            "liststore_source"
+#define TEST_I_UI_GTK_ENTRY_FROM_NAME                  "entry_from"
+#define TEST_I_UI_GTK_ENTRY_SERVER_NAME                "entry_server"
+#define TEST_I_UI_GTK_ENTRY_TO_NAME                    "entry_to"
+#define TEST_I_UI_GTK_ENTRY_USERNAME_NAME              "entry_username"
+#define TEST_I_UI_GTK_ENTRY_PASSWORD_NAME              "entry_password"
+//#define TEST_I_UI_GTK_FRAME_CONFIGURATION_NAME         "frame_configuration"
+#define TEST_I_UI_GTK_PANGO_LOG_FONT_DESCRIPTION       "Monospace 8"
+#define TEST_I_UI_GTK_PANGO_LOG_COLOR_BASE             "#FFFFFF" // white
+#define TEST_I_UI_GTK_PANGO_LOG_COLOR_TEXT             "#000000" // black
 #define TEST_I_UI_GTK_PROGRESSBAR_NAME                 "progressbar"
-#define TEST_I_UI_GTK_SPINBUTTON_BUFFERSIZE_NAME       "spinbutton_buffersize"
 #define TEST_I_UI_GTK_SPINBUTTON_DATA_NAME             "spinbutton_data"
 #define TEST_I_UI_GTK_SPINBUTTON_DATAMESSAGES_NAME     "spinbutton_data_messages"
+#define TEST_I_UI_GTK_SPINBUTTON_PORT_NAME             "spinbutton_port"
 #define TEST_I_UI_GTK_SPINBUTTON_SESSIONMESSAGES_NAME  "spinbutton_session_messages"
+#define TEST_I_UI_GTK_SCROLLEDWINDOW_NAME              "scrolledwindow"
+#define TEST_I_UI_GTK_SCROLLMARK_NAME                  "insert"
 #define TEST_I_UI_GTK_STATUSBAR_NAME                   "statusbar"
-#define TEST_I_UI_GTK_TOGGLEBUTTON_DISPLAY_NAME        "togglebutton_display"
-#define TEST_I_UI_GTK_TOGGLEBUTTON_FULLSCREEN_NAME     "togglebutton_fullscreen"
-#define TEST_I_UI_GTK_TOGGLEBUTTON_RECORD_NAME         "togglebutton_record"
-#define TEST_I_UI_GTK_TOGGLEBUTTON_SAVE_NAME           "togglebutton_save"
-#define TEST_I_UI_GTK_WINDOW_FULLSCREEN                "window_fullscreen"
+#define TEST_I_UI_GTK_TEXTBUFFER_NAME                  "textbuffer"
+#define TEST_I_UI_GTK_TEXTVIEW_NAME                    "textview"
 #elif defined (WXWIDGETS_USE)
 #define TEST_I_UI_WXWIDGETS_TOPLEVEL_WIDGET_NAME       "dialog_main"
 #define TEST_I_UI_WXWIDGETS_TOPLEVEL_WIDGET_CLASS_NAME "wxDialog"

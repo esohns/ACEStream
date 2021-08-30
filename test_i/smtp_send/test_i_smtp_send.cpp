@@ -407,8 +407,7 @@ do_initializeSignals (ACE_Sig_Set& signals_out,
 }
 
 void
-do_work (const std::string& destinationAddress_out,
-         const std::string& sourceAddress_out,
+do_work (
 #if defined (GUI_SUPPORT)
          const std::string& UIDefinitionFilename_in,
          struct Stream_SMTPSend_UI_CBData& CBData_in,
@@ -416,11 +415,7 @@ do_work (const std::string& destinationAddress_out,
          Common_UI_wxWidgets_IApplicationBase_t* iapplication_in,
 #endif // WXWIDGETS_USE
 #endif // GUI_SUPPORT
-         const ACE_INET_Addr& address_in,
-         const std::string& message_in,
-         const std::string& password_in,
          unsigned int statisticReportingInterval_in,
-         const std::string& userName_in,
          struct Stream_SMTPSend_Configuration& configuration_in,
          const ACE_Sig_Set& signalSet_in,
          const ACE_Sig_Set& ignoredSignalSet_in,
@@ -672,8 +667,7 @@ ACE_TMAIN (int argc_in,
 #endif // GUI_SUPPORT
 
   // step1a set defaults
-  std::string destination_address;
-  std::string source_address;
+  struct Stream_SMTPSend_Configuration configuration;
   std::string path = configuration_path;
   path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
   path += ACE_TEXT_ALWAYS_CHAR (COMMON_LOCATION_CONFIGURATION_SUBDIRECTORY);
@@ -683,16 +677,10 @@ ACE_TMAIN (int argc_in,
   UI_definition_filename +=
     ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_DEFINITION_FILE);
 #endif // GUI_SUPPORT
-  ACE_INET_Addr address (static_cast<u_short> (0),
-                         ACE_TEXT_ALWAYS_CHAR (ACE_LOCALHOST),
-                         AF_INET);
   bool log_to_file = false;
-  std::string message;
-  std::string password;
   unsigned int statistic_reporting_interval =
     STREAM_DEFAULT_STATISTIC_REPORTING_INTERVAL;
   bool trace_information = false;
-  std::string username;
   enum Stream_SMTPSend_ProgramMode program_mode_e =
       STREAM_SMTPSEND_PROGRAMMODE_NORMAL;
 #if defined (GUI_SUPPORT)
@@ -704,18 +692,18 @@ ACE_TMAIN (int argc_in,
   // step1b: parse/process/validate configuration
   if (!do_processArguments (argc_in,
                             argv_in,
-                            destination_address,
-                            source_address,
+                            configuration.to,
+                            configuration.from,
 #if defined (GUI_SUPPORT)
                             UI_definition_filename,
 #endif // GUI_SUPPORT
-                            address,
+                            configuration.address,
                             log_to_file,
-                            message,
-                            password,
+                            configuration.message,
+                            configuration.password,
                             statistic_reporting_interval,
                             trace_information,
-                            username,
+                            configuration.username,
                             program_mode_e))
   {
     do_printUsage (ACE::basename (argv_in[0]));
@@ -737,14 +725,14 @@ ACE_TMAIN (int argc_in,
   if (TEST_I_MAX_MESSAGES)
     ACE_DEBUG ((LM_WARNING,
                 ACE_TEXT ("limiting the number of message buffers could (!) lead to a deadlock --> ensure the streaming elements are sufficiently efficient in this regard\n")));
-  if (destination_address.empty () ||
-      source_address.empty () ||
+  if (configuration.to.empty () ||
+      configuration.from.empty () ||
 #if defined (GUI_SUPPORT)
       (!UI_definition_filename.empty () &&
        !Common_File_Tools::isReadable (UI_definition_filename)) ||
 #endif // GUI_SUPPORT
-      password.empty () ||
-      username.empty ()
+      configuration.password.empty () ||
+      configuration.username.empty ()
      )
   {
     ACE_DEBUG ((LM_ERROR,
@@ -853,7 +841,6 @@ ACE_TMAIN (int argc_in,
     }
   } // end SWITCH
 
-  struct Stream_SMTPSend_Configuration configuration;
 #if defined (GUI_SUPPORT)
   struct Stream_SMTPSend_UI_CBData* ui_cb_data_p = NULL;
   struct Stream_SMTPSend_UI_CBData ui_cb_data;
@@ -1079,8 +1066,7 @@ ACE_TMAIN (int argc_in,
   ACE_High_Res_Timer timer;
   timer.start ();
   // step2: do actual work
-  do_work (destination_address,
-           source_address,
+  do_work (
 #if defined (GUI_SUPPORT)
            UI_definition_filename,
            ui_cb_data,
@@ -1088,11 +1074,7 @@ ACE_TMAIN (int argc_in,
            iapplication_p,
 #endif // WXWIDGETS_USE
 #endif // GUI_SUPPORT
-           address,
-           message,
-           password,
            statistic_reporting_interval,
-           username,
            configuration,
            signal_set,
            ignored_signal_set,

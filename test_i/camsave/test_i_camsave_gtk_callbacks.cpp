@@ -19,7 +19,6 @@
  ***************************************************************************/
 #include "stdafx.h"
 
-#include "ace/Synch.h"
 #include "test_i_camsave_gtk_callbacks.h"
 
 #include <math.h>

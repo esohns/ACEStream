@@ -152,7 +152,7 @@ struct Stream_ModuleHandlerConfiguration
 #endif // ACE_WIN32 || ACE_WIN64
   Stream_IAllocator*                    messageAllocator;
   Stream_IOutboundDataNotify*           outboundNotificationHandle;           // IO module(s)
-  struct Common_ParserConfiguration*    parserConfiguration;                  // parser module(s)
+  struct Common_FlexBisonParserConfiguration* parserConfiguration;                  // parser module(s)
   bool                                  passive;                              // network/device/... module(s)
   bool                                  printFinalReport;                     // statistic module(s)
   unsigned int                          reportingInterval;                    // (statistic) reporting interval (second(s)) [0: off]

@@ -325,14 +325,12 @@ elseif (WIN32)
  else ()
   set (ARGS "-g ${ARGS}")
  endif (GUI_SUPPORT)
-# file (TO_CMAKE_PATH $ENV{LIB_ROOT}/libpng/${BUILD_PATH_SUFFIX}/${CMAKE_BUILD_TYPE} LIBPNG_PATH)
+ file (TO_CMAKE_PATH $ENV{LIB_ROOT}/openssl OPENSSL_PATH)
  #file (TO_CMAKE_PATH $ENV{LIB_ROOT}/ffmpeg/bin FFMPEG_PATH)
  #file (TO_CMAKE_PATH $ENV{LIB_ROOT}/ImageMagick IMAGEMAGICK_PATH)
  file (TO_CMAKE_PATH $ENV{LIB_ROOT}/ACE_TAO/ACE/lib ACE_PATH)
  set (RUNTIME_LIBRARY_DIRS ${RUNTIME_LIBRARY_DIRS}
- #                          ${LIBPNG_PATH}
- #                          ${FFMPEG_PATH}
- #                          ${IMAGEMAGICK_PATH}
+                           ${OPENSSL_PATH}
                            ${ACE_PATH})
 endif ()
 create_target_launcher (${EXECUTABLE}

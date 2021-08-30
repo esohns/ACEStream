@@ -32,7 +32,7 @@ class ACE_Allocator;
 class ACE_Data_Block;
 class ACE_Message_Block;
 
-template <typename DataType, // reference-counted
+template <typename DataType,
           ////////////////////////////////
           //typename AllocatorConfigurationType = struct Stream_AllocatorConfiguration,
           typename MessageType = enum Stream_MessageType,

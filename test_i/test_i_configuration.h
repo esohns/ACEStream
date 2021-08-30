@@ -121,16 +121,16 @@ struct Test_I_Configuration
   {}
 
 //  struct Test_I_AllocatorConfiguration     allocatorConfiguration;
-  struct Common_EventDispatchConfiguration dispatchConfiguration;
+  struct Common_EventDispatchConfiguration   dispatchConfiguration;
   // **************************** signal data **********************************
-  struct Test_I_SignalHandlerConfiguration signalHandlerConfiguration;
+  struct Test_I_SignalHandlerConfiguration   signalHandlerConfiguration;
   // **************************** stream data **********************************
-  struct Common_ParserConfiguration        parserConfiguration;
+  struct Common_FlexBisonParserConfiguration parserConfiguration;
   //struct Stream_Configuration              streamConfiguration;
 
   ////////////////////////////////////////
 
-  struct Stream_UserData                   userData;
+  struct Stream_UserData                     userData;
 };
 
 #endif

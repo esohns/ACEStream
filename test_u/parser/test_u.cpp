@@ -181,7 +181,7 @@ do_work (int argc_in,
   unsigned int file_size_i = Common_File_Tools::size (sourceFilePath_in);
   uint8_t* data_p = NULL, *data_2 = NULL;
   Parser_Message* message_p = NULL, *message_2 = NULL;
-  struct Common_ParserConfiguration parser_configuration;
+  struct Common_FlexBisonParserConfiguration parser_configuration;
   struct Parser_ModuleHandlerConfiguration modulehandler_configuration;
   struct Common_Parser_FlexAllocatorConfiguration allocator_configuration;
   struct Stream_ModuleConfiguration module_configuration;

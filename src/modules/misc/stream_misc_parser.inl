@@ -1182,3 +1182,402 @@ Stream_Module_Parser_T<ACE_SYNCH_USE,
     message_block_p->release (); message_block_p = NULL;
   } // end IF
 }
+
+//////////////////////////////////////////
+
+template <ACE_SYNCH_DECL,
+          typename TimePolicyType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
+          typename ConfigurationType,
+          typename SessionControlType,
+          typename SessionEventType,
+          typename StreamStateType,
+          typename SessionDataType,
+          typename SessionDataContainerType,
+          typename StatisticContainerType,
+          typename TimerManagerType,
+          typename UserDataType,
+          typename ParserDriverType>
+Stream_Module_ParserH_T<ACE_SYNCH_USE,
+                        TimePolicyType,
+                        ControlMessageType,
+                        DataMessageType,
+                        SessionMessageType,
+                        ConfigurationType,
+                        SessionControlType,
+                        SessionEventType,
+                        StreamStateType,
+                        SessionDataType,
+                        SessionDataContainerType,
+                        StatisticContainerType,
+                        TimerManagerType,
+                        UserDataType,
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+                        ParserDriverType>::Stream_Module_ParserH_T (ISTREAM_T* stream_in)
+#else
+                        ParserDriverType>::Stream_Module_ParserH_T (typename inherited::ISTREAM_T* stream_in)
+#endif
+ : inherited (stream_in,                               // stream handle
+              false,                                   // auto-start ? (active mode only)
+              STREAM_HEADMODULECONCURRENCY_CONCURRENT, // concurrency mode
+              true)
+ , headFragment_ (NULL)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Module_ParserH_T::Stream_Module_ParserH_T"));
+
+}
+
+template <ACE_SYNCH_DECL,
+          typename TimePolicyType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
+          typename ConfigurationType,
+          typename SessionControlType,
+          typename SessionEventType,
+          typename StreamStateType,
+          typename SessionDataType,
+          typename SessionDataContainerType,
+          typename StatisticContainerType,
+          typename TimerManagerType,
+          typename UserDataType,
+          typename ParserDriverType>
+Stream_Module_ParserH_T<ACE_SYNCH_USE,
+                        TimePolicyType,
+                        ControlMessageType,
+                        DataMessageType,
+                        SessionMessageType,
+                        ConfigurationType,
+                        SessionControlType,
+                        SessionEventType,
+                        StreamStateType,
+                        SessionDataType,
+                        SessionDataContainerType,
+                        StatisticContainerType,
+                        TimerManagerType,
+                        UserDataType,
+                        ParserDriverType>::~Stream_Module_ParserH_T ()
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Module_ParserH_T::~Stream_Module_ParserH_T"));
+
+  if (headFragment_)
+    headFragment_->release ();
+}
+
+template <ACE_SYNCH_DECL,
+          typename TimePolicyType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
+          typename ConfigurationType,
+          typename SessionControlType,
+          typename SessionEventType,
+          typename StreamStateType,
+          typename SessionDataType,
+          typename SessionDataContainerType,
+          typename StatisticContainerType,
+          typename TimerManagerType,
+          typename UserDataType,
+          typename ParserDriverType>
+bool
+Stream_Module_ParserH_T<ACE_SYNCH_USE,
+                        TimePolicyType,
+                        ControlMessageType,
+                        DataMessageType,
+                        SessionMessageType,
+                        ConfigurationType,
+                        SessionControlType,
+                        SessionEventType,
+                        StreamStateType,
+                        SessionDataType,
+                        SessionDataContainerType,
+                        StatisticContainerType,
+                        TimerManagerType,
+                        UserDataType,
+                        ParserDriverType>::initialize (const ConfigurationType& configuration_in,
+                                                       Stream_IAllocator* allocator_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Module_ParserH_T::initialize"));
+
+  if (inherited::isInitialized_)
+  {
+  } // end IF
+
+  // sanity check(s)
+  ACE_ASSERT (configuration_in.parserConfiguration);
+  ACE_ASSERT (!configuration_in.parserConfiguration->messageQueue);
+
+  const_cast<ConfigurationType&> (configuration_in).parserConfiguration->messageQueue =
+    &(inherited::queue_);
+
+  if (!inherited2::initialize (*configuration_in.parserConfiguration))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s: failed to initialize parser: \"%m\", aborting\n"),
+                inherited::mod_->name ()));
+    return false;
+  } // end IF
+
+  return inherited::initialize (configuration_in,
+                                allocator_in);
+}
+
+template <ACE_SYNCH_DECL,
+          typename TimePolicyType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
+          typename ConfigurationType,
+          typename SessionControlType,
+          typename SessionEventType,
+          typename StreamStateType,
+          typename SessionDataType,
+          typename SessionDataContainerType,
+          typename StatisticContainerType,
+          typename TimerManagerType,
+          typename UserDataType,
+          typename ParserDriverType>
+void
+Stream_Module_ParserH_T<ACE_SYNCH_USE,
+                        TimePolicyType,
+                        ControlMessageType,
+                        DataMessageType,
+                        SessionMessageType,
+                        ConfigurationType,
+                        SessionControlType,
+                        SessionEventType,
+                        StreamStateType,
+                        SessionDataType,
+                        SessionDataContainerType,
+                        StatisticContainerType,
+                        TimerManagerType,
+                        UserDataType,
+                        ParserDriverType>::handleDataMessage (DataMessageType*& message_inout,
+                                                              bool& passMessageDownstream_out)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Module_ParserH_T::handleDataMessage"));
+
+  DataMessageType* message_p = NULL;
+  int result = -1;
+  bool release_inbound_message = true; // message_inout
+
+  // initialize return value(s)
+  passMessageDownstream_out = false;
+
+  // append the "\0\0"-sequence, as required by flex
+  ACE_ASSERT ((message_inout->capacity () - message_inout->length ()) >= COMMON_PARSER_FLEX_BUFFER_BOUNDARY_SIZE);
+  *(message_inout->wr_ptr ()) = YY_END_OF_BUFFER_CHAR;
+  *(message_inout->wr_ptr () + 1) = YY_END_OF_BUFFER_CHAR;
+  // *NOTE*: DO NOT adjust the write pointer --> length() must stay as it was
+
+  {//ACE_Guard<ACE_SYNCH_MUTEX> aGuard (lock_);
+    if (!headFragment_)
+      headFragment_ = message_inout;
+    else
+    {
+      for (message_p = headFragment_;
+        message_p->cont ();
+        message_p = dynamic_cast<DataMessageType*> (message_p->cont ()));
+      message_p->cont (message_inout);
+
+      //// just signal the parser (see below for an explanation)
+      //result = condition_.broadcast ();
+      //if (result == -1)
+      //  ACE_DEBUG ((LM_ERROR,
+      //              ACE_TEXT ("%s: failed to ACE_SYNCH_CONDITION::broadcast(): \"%s\", continuing\n"),
+      //              inherited::mod_->name ()));
+    } // end ELSE
+
+    message_p = headFragment_;
+  } // end lock scope
+  ACE_ASSERT (message_p);
+  message_inout = NULL;
+  release_inbound_message = false;
+
+  { // *NOTE*: protect scanner/parser state
+    //ACE_Guard<ACE_SYNCH_MUTEX> aGuard (lock_);
+
+    // OK: parse the message (fragment)
+
+    //  ACE_DEBUG ((LM_DEBUG,
+    //              ACE_TEXT ("parsing message (ID:%u,%u byte(s))...\n"),
+    //              message_p->id (),
+    //              message_p->length ()));
+
+    if (!inherited2::parse (message_p))
+    { // *NOTE*: most probable reason: connection
+      //         has been closed --> session end
+      ACE_DEBUG ((LM_DEBUG,
+                  ACE_TEXT ("%s: failed to ParserDriverType::parse() (message id was: %d), returning\n"),
+                  inherited::mod_->name (),
+                  message_p->id ()));
+      goto error;
+    } // end IF
+    // the message fragment has been parsed successfully
+
+    if (!inherited2::hasFinished ())
+      goto continue_; // --> wait for more data to arrive
+  } // end lock scope
+
+  // *NOTE*: the message has been parsed successfully
+  //         --> pass the data (chain) downstream
+  {//ACE_Guard<ACE_SYNCH_MUTEX> aGuard (lock_);
+    //// *NOTE*: new data fragments may have arrived by now
+    ////         --> set the next head fragment ?
+    //message_2 = dynamic_cast<DataMessageType*> (message_p->cont ());
+    //if (message_2)
+    //  message_p->cont (NULL);
+
+    result = inherited::put_next (headFragment_, NULL);
+    if (result == -1)
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("%s: failed to ACE_Task_T::put_next(): \"%m\", returning\n"),
+                  inherited::mod_->name ()));
+      headFragment_->release (); headFragment_ = NULL;
+      goto error;
+    } // end IF
+    headFragment_ = NULL;
+  } // end lock scope
+
+continue_:
+error:
+  if (release_inbound_message)
+  { ACE_ASSERT (message_inout);
+    message_inout->release (); message_inout = NULL;
+  } // end IF
+}
+
+template <ACE_SYNCH_DECL,
+          typename TimePolicyType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
+          typename ConfigurationType,
+          typename SessionControlType,
+          typename SessionEventType,
+          typename StreamStateType,
+          typename SessionDataType,
+          typename SessionDataContainerType,
+          typename StatisticContainerType,
+          typename TimerManagerType,
+          typename UserDataType,
+          typename ParserDriverType>
+void
+Stream_Module_ParserH_T<ACE_SYNCH_USE,
+                        TimePolicyType,
+                        ControlMessageType,
+                        DataMessageType,
+                        SessionMessageType,
+                        ConfigurationType,
+                        SessionControlType,
+                        SessionEventType,
+                        StreamStateType,
+                        SessionDataType,
+                        SessionDataContainerType,
+                        StatisticContainerType,
+                        TimerManagerType,
+                        UserDataType,
+                        ParserDriverType>::handleSessionMessage (SessionMessageType*& message_inout,
+                                                                 bool& passMessageDownstream_out)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Module_ParserH_T::handleSessionMessage"));
+
+  int result = -1;
+
+  // don't care (implies yes per default, if part of a stream)
+  ACE_UNUSED_ARG (passMessageDownstream_out);
+
+  // sanity check(s)
+  ACE_ASSERT (inherited::isInitialized_);
+
+  switch (message_inout->type ())
+  {
+    case STREAM_SESSION_MESSAGE_BEGIN:
+    {
+      goto continue_;
+
+error:
+      this->notify (STREAM_SESSION_MESSAGE_ABORT);
+
+      break;
+
+continue_:
+      break;
+    }
+    case STREAM_SESSION_MESSAGE_END:
+    {
+      stop ();
+      break;
+    }
+    default:
+      break;
+  } // end SWITCH
+}
+
+template <ACE_SYNCH_DECL,
+          typename TimePolicyType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
+          typename ConfigurationType,
+          typename SessionControlType,
+          typename SessionEventType,
+          typename StreamStateType,
+          typename SessionDataType,
+          typename SessionDataContainerType,
+          typename StatisticContainerType,
+          typename TimerManagerType,
+          typename UserDataType,
+          typename ParserDriverType>
+void
+Stream_Module_ParserH_T<ACE_SYNCH_USE,
+                        TimePolicyType,
+                        ControlMessageType,
+                        DataMessageType,
+                        SessionMessageType,
+                        ConfigurationType,
+                        SessionControlType,
+                        SessionEventType,
+                        StreamStateType,
+                        SessionDataType,
+                        SessionDataContainerType,
+                        StatisticContainerType,
+                        TimerManagerType,
+                        UserDataType,
+                        ParserDriverType>::stop ()
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Module_ParserH_T::stop"));
+
+  ACE_Message_Block* message_block_p = NULL;
+  ACE_NEW_NORETURN (message_block_p,
+                    ACE_Message_Block (0,                                  // size
+                                       ACE_Message_Block::MB_STOP,         // type
+                                       NULL,                               // continuation
+                                       NULL,                               // data
+                                       NULL,                               // buffer allocator
+                                       NULL,                               // locking strategy
+                                       ACE_DEFAULT_MESSAGE_BLOCK_PRIORITY, // priority
+                                       ACE_Time_Value::zero,               // execution time
+                                       ACE_Time_Value::max_time,           // deadline time
+                                       NULL,                               // data block allocator
+                                       NULL));                             // message allocator
+  if (unlikely (!message_block_p))
+  {
+    ACE_DEBUG ((LM_CRITICAL,
+                ACE_TEXT ("%s: failed to allocate ACE_Message_Block: \"%m\", returning\n"),
+                inherited::mod_->name ()));
+    return;
+  } // end IF
+
+  int result = queue_.enqueue (message_block_p, NULL);
+  if (unlikely (result == -1))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s: failed to ACE_Message_Queue::enqueue(): \"%m\", continuing\n"),
+                inherited::mod_->name ()));
+    message_block_p->release (); message_block_p = NULL;
+  } // end IF
+}

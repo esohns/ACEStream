@@ -109,12 +109,12 @@ struct HTTPGet_Configuration
 
   struct Common_Parser_FlexAllocatorConfiguration allocatorConfiguration;
   // **************************** signal data **********************************
-  struct HTTPGet_SignalHandlerConfiguration      signalHandlerConfiguration;
+  struct HTTPGet_SignalHandlerConfiguration       signalHandlerConfiguration;
   // **************************** socket data **********************************
-  Net_ConnectionConfigurations_t                 connectionConfigurations;
+  Net_ConnectionConfigurations_t                  connectionConfigurations;
   // **************************** stream data **********************************
-  struct Common_ParserConfiguration              parserConfiguration;
-  HTTPGet_StreamConfiguration_t                  streamConfiguration;
+  struct Common_FlexBisonParserConfiguration      parserConfiguration;
+  HTTPGet_StreamConfiguration_t                   streamConfiguration;
 };
 
 //////////////////////////////////////////

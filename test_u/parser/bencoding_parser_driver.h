@@ -40,12 +40,12 @@ typedef void* yyscan_t;
 struct yy_buffer_state;
 
 class Bencoding_ParserDriver
- : public Common_ParserBase_T<struct Common_ParserConfiguration,
+ : public Common_ParserBase_T<struct Common_FlexBisonParserConfiguration,
                               yy::parser,
                               Bencoding_IParser_t,
                               std::string>
 {
-  typedef Common_ParserBase_T<struct Common_ParserConfiguration,
+  typedef Common_ParserBase_T<struct Common_FlexBisonParserConfiguration,
                               yy::parser,
                               Bencoding_IParser_t,
                               std::string> inherited;
@@ -55,7 +55,7 @@ class Bencoding_ParserDriver
   inline virtual ~Bencoding_ParserDriver () {}
 
   // convenient types
-  typedef Common_ParserBase_T<struct Common_ParserConfiguration,
+  typedef Common_ParserBase_T<struct Common_FlexBisonParserConfiguration,
                               yy::parser,
                               Bencoding_IParser_t,
                               std::string> PARSER_BASE_T;
@@ -100,8 +100,8 @@ class Bencoding_ParserDriver
   inline virtual const Bencoding_IParser_t* const getP_2 () const { return this; }
   //inline virtual void setP (Bencoding_IParser_t*) { ACE_ASSERT (false); ACE_NOTSUP; ACE_NOTREACHED (return;) }
   inline virtual void debug (yyscan_t state_in, bool toggle_in) { Bencoding_set_debug ((toggle_in ? 1 : 0), state_in); }
-  inline virtual void reset () { Bencoding_set_lineno (1, inherited::scannerState_.lexState); Bencoding_set_column (1, inherited::scannerState_.lexState); }
-  inline virtual bool initialize (yyscan_t& state_inout, struct Common_ScannerState* scannerState_in) { ACE_UNUSED_ARG (scannerState_in); return (Bencoding_lex_init_extra (this, &state_inout) == 0); }
+  inline virtual void reset () { Bencoding_set_lineno (1, inherited::scannerState_.context); Bencoding_set_column (1, inherited::scannerState_.context); }
+  inline virtual bool initialize (yyscan_t& state_inout, void* extra_in) { return (Bencoding_lex_init_extra (extra_in, &state_inout) == 0); }
   inline virtual void finalize (yyscan_t& state_inout) { int result = Bencoding_lex_destroy (state_inout); ACE_UNUSED_ARG (result); state_inout = NULL; }
   virtual struct yy_buffer_state* create (yyscan_t, // state handle
                                           char*,    // buffer handle

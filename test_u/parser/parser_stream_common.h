@@ -133,7 +133,7 @@ struct Parser_ModuleHandlerConfiguration
     //passive = false;
   };
 
-  struct Common_ParserConfiguration* parserConfiguration;
+  struct Common_FlexBisonParserConfiguration* parserConfiguration;
   //bool                            inbound;                  // net io module
   //bool                            printProgressDot;         // file writer module
   bool                               pushStatisticMessages;

@@ -32,19 +32,19 @@
 #include "common_parser_common.h"
 
 class Bencoding_IParser
- : public Common_IYaccRecordParser_T<struct Common_ParserConfiguration,
+ : public Common_IYaccRecordParser_T<struct Common_FlexBisonParserConfiguration,
                                      Bencoding_Dictionary_t>
- , virtual public Common_ILexScanner_T<struct Common_ScannerState,
-                                       Bencoding_IParser>
+ , virtual public Common_ILexScanner_T<struct Common_FlexScannerState,
+                                       void>
 // , public Common_IGet_T<Bencoding_Dictionary_t>
 // , public Common_IGet_T<Bencoding_List_t>
 {
  public:
   // convenient types
-  typedef Common_IYaccRecordParser_T<struct Common_ParserConfiguration,
+  typedef Common_IYaccRecordParser_T<struct Common_FlexBisonParserConfiguration,
                                      Bencoding_Dictionary_t> IPARSER_T;
-  typedef Common_ILexScanner_T<struct Common_ScannerState,
-                               Bencoding_IParser> ISCANNER_T;
+  typedef Common_ILexScanner_T<struct Common_FlexScannerState,
+                               void> ISCANNER_T;
 
   using IPARSER_T::error;
 //  using Common_IScanner::error;
@@ -65,7 +65,7 @@ class Bencoding_IParser
 ////////////////////////////////////////////
 
 typedef Bencoding_IParser Bencoding_IParser_t;
-typedef Common_ILexScanner_T<struct Common_ScannerState,
-                             Bencoding_IParser_t> Bencoding_IScanner_t;
+typedef Common_ILexScanner_T<struct Common_FlexScannerState,
+                             void> Bencoding_IScanner_t;
 
 #endif

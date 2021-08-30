@@ -169,6 +169,14 @@ struct Stream_SMTPSend_Configuration
    , signalHandlerConfiguration ()
    , streamConfiguration ()
    , timerConfiguration ()
+   , address (static_cast<u_short> (0),
+              ACE_TEXT_ALWAYS_CHAR (ACE_LOCALHOST),
+              AF_INET)
+   , username ()
+   , password ()
+   , from ()
+   , to ()
+   , message ()
   {}
 
   struct SMTP_AllocatorConfiguration                allocatorConfiguration;
@@ -180,6 +188,13 @@ struct Stream_SMTPSend_Configuration
   Stream_SMTPSend_StreamConfiguration_t             streamConfiguration;
   // **************************** timer data ***********************************
   struct Common_TimerConfiguration                  timerConfiguration;
+
+  ACE_INET_Addr                                     address;
+  std::string                                       username;
+  std::string                                       password;
+  std::string                                       from;
+  std::string                                       to;
+  std::string                                       message;
 };
 
 typedef SMTP_Message_T<enum Stream_MessageType> SMTP_Message_t;
