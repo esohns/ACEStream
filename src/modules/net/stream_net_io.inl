@@ -620,7 +620,7 @@ continue_3:
                     ACE_TEXT ("%s: failed to retrieve connection (id was: %d), returning\n"),
                     inherited::mod_->name (),
                     handle_h));
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
         return;
       } // end IF
       // *NOTE*: if this connection was initiated by a stream (e.g. the net

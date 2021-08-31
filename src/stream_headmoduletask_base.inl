@@ -1002,10 +1002,11 @@ error:
       } // end IF
 
       if (likely (concurrency_ != STREAM_HEADMODULECONCURRENCY_CONCURRENT))
-      { Common_ITask* itask_p = this;
+      { Common_ITask* itask_p = this; // *TODO*: is the no other way ?
         itask_p->stop (false,  // wait for completion ?
                        false); // high priority ?
       } // end IF
+
       break;
     }
     default:

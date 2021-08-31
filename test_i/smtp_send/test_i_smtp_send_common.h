@@ -22,7 +22,6 @@
 #define TEST_I_SMTP_SEND_COMMON_H
 
 #include <list>
-//#include <string>
 
 #if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
@@ -32,9 +31,6 @@
 #include "wx/window.h"
 #endif
 #endif // GUI_SUPPORT
-
-//#include "ace/Singleton.h"
-//#include "ace/Synch_Traits.h"
 
 #include "common_isubscribe.h"
 #include "common_tools.h"
@@ -60,6 +56,8 @@
 #include "stream_istreamcontrol.h"
 #include "stream_messageallocatorheap_base.h"
 #include "stream_session_data.h"
+
+#include "net_connection_configuration.h"
 
 #include "smtp_common.h"
 #include "smtp_configuration.h"
@@ -133,14 +131,16 @@ struct Stream_SMTPSend_ModuleHandlerConfiguration
   Stream_SMTPSend_ModuleHandlerConfiguration ()
    : Test_I_ModuleHandlerConfiguration ()
    , SMTP_ModuleHandlerConfiguration ()
+   , connectionConfigurations (NULL)
    , subscriber (NULL)
    , subscribers (NULL)
   {
     concurrency = STREAM_HEADMODULECONCURRENCY_ACTIVE;
   }
 
-  SMTP_ISessionNotify_t*         subscriber;
-  Stream_SMTPSend_Subscribers_t* subscribers;
+  Net_ConnectionConfigurations_t* connectionConfigurations;
+  SMTP_ISessionNotify_t*          subscriber;
+  Stream_SMTPSend_Subscribers_t*  subscribers;
 };
 
 struct Stream_SMTPSend_Configuration

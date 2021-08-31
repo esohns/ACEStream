@@ -5,6 +5,9 @@ if (UNIX)
  find_package (Threads)
 endif ()
 
+set (CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_CURRENT_SOURCE_DIR}/../../modules/ACENetwork/scripts;${CMAKE_CURRENT_SOURCE_DIR}/../../../ACENetwork/scripts")
+include (SSLConfig)
+
 get_filename_component (BUILD_PATH ${CMAKE_CURRENT_BINARY_DIR}/../.. REALPATH DIRECTORY)
 get_filename_component (BUILD_PATH_SUFFIX ${BUILD_PATH} NAME)
 find_package (Common ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_MICRO}
@@ -31,7 +34,6 @@ endif ()
 if (UNIX)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../modules/Common/include)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../modules/Common/src)
-# include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../modules/Common/src/image)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../modules/Common/src/log)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../modules/Common/src/signal)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../modules/Common/src/timer)
@@ -48,7 +50,6 @@ elseif (WIN32)
 
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../Common/include)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../Common/src)
-# include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../Common/src/image)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../Common/src/log)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../Common/src/signal)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../Common/src/timer)
@@ -60,13 +61,9 @@ endif ()
 include_directories (${CMAKE_CURRENT_BINARY_DIR}/../..)
 
 include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../src)
-#include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../src/modules/dec)
-#include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../src/modules/dev)
-#include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../src/modules/file)
-#include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../src/modules/lib)
 include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../src/modules/misc)
+include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../src/modules/net)
 include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../src/modules/stat)
-#include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../src/modules/vis)
 
 include_directories (${CMAKE_CURRENT_SOURCE_DIR}/..)
 
@@ -86,6 +83,8 @@ set (${EXECUTABLE}_EXE_SRCS
      test_i_smtp_send_eventhandler.inl
      test_i_smtp_send_signalhandler.cpp
      test_i_smtp_send_signalhandler.h
+     test_i_smtp_send_stream.cpp
+     test_i_smtp_send_stream.h
      test_i_smtp_send_stream_common.h
      test_i_smtp_send_network.h)
 if (GUI_SUPPORT)
@@ -147,55 +146,19 @@ endif (WIN32 AND NOT BUILD_TEST_I)
 add_dependencies (${EXECUTABLE} Common)
 
 add_dependencies (${EXECUTABLE} ${PROJECT_NAME})
-#add_dependencies (${EXECUTABLE} ${PROJECT_NAME}_Decoder)
-#add_dependencies (${EXECUTABLE} ${PROJECT_NAME}_Device)
 add_dependencies (${EXECUTABLE} ${PROJECT_NAME}_Miscellaneous)
-#add_dependencies (${EXECUTABLE} ${PROJECT_NAME}_Visualization)
+add_dependencies (${EXECUTABLE} ${PROJECT_NAME}_Network)
 
 add_dependencies (${EXECUTABLE} ${PROJECT_NAME}_Test_I)
 
 target_link_libraries (${EXECUTABLE} ${CMAKE_THREAD_LIBS_INIT})
-if (UNIX)
-# target_link_libraries (${EXECUTABLE} libgobject-2.0.so libglib-2.0.so libgdk-3.so libgtk-3.so)
-# target_link_libraries (${EXECUTABLE} ${PKG_V4L2_LIBRARIES})
-# target_link_libraries (${EXECUTABLE} ${PKG_FFMPEG_LIBRARIES})
-
-# target_link_libraries (${EXECUTABLE} ${ACE_XML_LIBRARY})
-elseif (WIN32)
- if (MSVC)
-#  set (CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /NODEFAULTLIB:\"libcmt.lib\"")
-#  set (CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /NODEFAULTLIB:\"libcpmt.lib\"")
- endif (MSVC)
-# target_link_libraries (${EXECUTABLE} dxguid.lib)
-# target_link_libraries (${EXECUTABLE} mfplat.lib)
-
- if (CMAKE_BUILD_TYPE STREQUAL Debug)
-#  target_link_libraries (${EXECUTABLE} ${DIRECTSHOW_BASECLASSES_DIRECTORY}/cmake/baseclasses/Debug/strmbasd.lib)
- else ()
-#  target_link_libraries (${EXECUTABLE} ${DIRECTSHOW_BASECLASSES_DIRECTORY}/cmake/baseclasses/Release/strmbase.lib)
- endif (CMAKE_BUILD_TYPE STREQUAL Debug)
-
-# *TODO*: repair WIN32 pkgconfig support
-# target_link_options (${EXECUTABLE} PUBLIC "$<$<CXX_COMPILER_ID:MSVC>:-SAFESEH:NO>")
-# target_link_libraries (${EXECUTABLE} $ENV{LIB_ROOT}/ffmpeg/lib/avformat.lib)
-# target_link_libraries (${EXECUTABLE} $ENV{LIB_ROOT}/ffmpeg/lib/avcodec.lib)
-endif ()
 target_link_libraries (${EXECUTABLE} ${ACE_LIBRARY})
 
-if (WIN32)
- # *WARNING*: linking Common requires "/FORCE:MULTIPLE"
-# target_link_options (${EXECUTABLE} PUBLIC "$<$<CXX_COMPILER_ID:MSVC>:-FORCE:MULTIPLE>")
-endif (WIN32)
 target_link_libraries (${EXECUTABLE} Common)
-#target_link_libraries (${EXECUTABLE} CommonImage)
 target_link_libraries (${EXECUTABLE} CommonLog)
 target_link_libraries (${EXECUTABLE} CommonSignal)
 target_link_libraries (${EXECUTABLE} CommonTimer)
 if (GUI_SUPPORT)
- if (WIN32)
-  # *WARNING*: linking CommonUI requires "/FORCE:MULTIPLE"
-  target_link_options (${EXECUTABLE} PUBLIC "$<$<CXX_COMPILER_ID:MSVC>:-FORCE:MULTIPLE>")
- endif (WIN32)
  target_link_libraries (${EXECUTABLE} CommonUI)
  if (GTK_USE)
   target_link_libraries (${EXECUTABLE} CommonUI_GTK)
@@ -203,24 +166,16 @@ if (GUI_SUPPORT)
   target_link_libraries (${EXECUTABLE} CommonUI_wxWidgets)
  endif ()
 endif (GUI_SUPPORT)
-if (UNIX)
-# target_link_libraries (${EXECUTABLE} CommonXML)
-endif (UNIX)
 target_link_libraries (${EXECUTABLE} ACENetwork_Protocol_SMTP)
 
 target_link_libraries (${EXECUTABLE} ${PROJECT_NAME})
-#target_link_libraries (${EXECUTABLE} ${PROJECT_NAME}_Decoder)
-#target_link_libraries (${EXECUTABLE} ${PROJECT_NAME}_Device)
-#target_link_libraries (${EXECUTABLE} ${PROJECT_NAME}_File)
-#target_link_libraries (${EXECUTABLE} ${PROJECT_NAME}_MediaFramework)
 target_link_libraries (${EXECUTABLE} ${PROJECT_NAME}_Miscellaneous)
+target_link_libraries (${EXECUTABLE} ${PROJECT_NAME}_Network)
 target_link_libraries (${EXECUTABLE} ${PROJECT_NAME}_Statistic)
-#target_link_libraries (${EXECUTABLE} ${PROJECT_NAME}_Visualization)
 
 target_link_libraries (${EXECUTABLE} ${PROJECT_NAME}_Test_I)
 
 if (UNIX)
-# target_link_libraries (${EXECUTABLE} ${PKG_CAP_LIBRARIES})
  if (GUI_SUPPORT)
   if (WXWIDGETS_USE)
    target_link_libraries (${EXECUTABLE} ${wxWidgets_LIBRARIES})

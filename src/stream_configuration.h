@@ -102,6 +102,7 @@ struct Stream_ModuleHandlerConfiguration
    , debug (false)
 #endif // _DEBUG
    , demultiplex (false)
+   , dispatchConfiguration (NULL)
    , finishOnDisconnect (false)
    , hasReentrantSynchronousSubDownstream (true)
    , inbound (true)
@@ -132,6 +133,7 @@ struct Stream_ModuleHandlerConfiguration
   bool                                  debug;
 #endif // _DEBUG
   bool                                  demultiplex;                          // message handler module
+  struct Common_EventDispatchConfiguration* dispatchConfiguration;
   bool                                  finishOnDisconnect;                   // header module(s)
   // *WARNING*: when false, this 'locks down' the pipeline head module; i.e. it
   //            will hold the 'stream lock' during all message processing to
@@ -220,6 +222,7 @@ struct Stream_Configuration
    : allocatorConfiguration (NULL)
    , branches ()
    , cloneModule (false) // *NOTE*: cloneModule ==> delete module
+   , dispatchConfiguration (NULL)
    , finishOnDisconnect (false)
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
    , mediaFramework (STREAM_LIB_DEFAULT_MEDIAFRAMEWORK)
@@ -239,6 +242,7 @@ struct Stream_Configuration
   struct Common_AllocatorConfiguration* allocatorConfiguration;
   Stream_Branches_t                     branches; // distributor(s) *TODO*
   bool                                  cloneModule; // final-
+  struct Common_EventDispatchConfiguration* dispatchConfiguration;
   bool                                  finishOnDisconnect; // (network) i/o streams
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   enum Stream_MediaFramework_Type       mediaFramework;

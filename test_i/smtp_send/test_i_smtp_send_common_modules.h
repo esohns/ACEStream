@@ -32,13 +32,72 @@
 #include "stream_misc_defines.h"
 #include "stream_misc_messagehandler.h"
 
+#include "stream_net_source.h"
+
 #include "smtp_common.h"
-#include "smtp_message.h"
-#include "smtp_sessionmessage.h"
+//#include "smtp_message.h"
+//#include "smtp_sessionmessage.h"
+#include "smtp_stream_common.h"
 
 #include "test_i_smtp_send_common.h"
+#include "test_i_smtp_send_network.h"
 
-// declare module(s)
+typedef Stream_Module_Net_Source_Reader_T<ACE_MT_SYNCH,
+                                          Common_TimePolicy_t,
+                                          struct Stream_SMTPSend_ModuleHandlerConfiguration,
+                                          Stream_ControlMessage_t,
+                                          SMTP_Message_t,
+                                          SMTP_SessionMessage_t,
+                                          Test_I_SMTPSend_Connection_Manager_t> Stream_SMTPSend_NetSourceReader;
+
+typedef Stream_Module_Net_SourceH_T<ACE_MT_SYNCH,
+                                    Stream_ControlMessage_t,
+                                    SMTP_Message_t,
+                                    SMTP_SessionMessage_t,
+                                    struct Stream_SMTPSend_ModuleHandlerConfiguration,
+                                    enum Stream_ControlType,
+                                    enum Stream_SessionMessageType,
+                                    struct SMTP_StreamState,
+                                    struct SMTP_Stream_SessionData,
+                                    SMTP_Stream_SessionData_t,
+                                    SMTP_Statistic_t,
+                                    Common_Timer_Manager_t,
+                                    Test_I_SMTPSend_Connection_Manager_t,
+                                    Test_I_SMTPSend_Connector_t,
+                                    struct Stream_UserData> Stream_SMTPSend_NetSource;
+typedef Stream_Module_Net_SourceH_T<ACE_MT_SYNCH,
+                                    Stream_ControlMessage_t,
+                                    SMTP_Message_t,
+                                    SMTP_SessionMessage_t,
+                                    struct Stream_SMTPSend_ModuleHandlerConfiguration,
+                                    enum Stream_ControlType,
+                                    enum Stream_SessionMessageType,
+                                    struct SMTP_StreamState,
+                                    struct SMTP_Stream_SessionData,
+                                    SMTP_Stream_SessionData_t,
+                                    SMTP_Statistic_t,
+                                    Common_Timer_Manager_t,
+                                    Test_I_SMTPSend_Connection_Manager_t,
+                                    Test_I_SMTPSend_AsynchConnector_t,
+                                    struct Stream_UserData> Stream_SMTPSend_AsynchNetSource;
+#if defined (SSL_SUPPORT)
+typedef Stream_Module_Net_SourceH_T<ACE_MT_SYNCH,
+                                    Stream_ControlMessage_t,
+                                    SMTP_Message_t,
+                                    SMTP_SessionMessage_t,
+                                    struct Stream_SMTPSend_ModuleHandlerConfiguration,
+                                    enum Stream_ControlType,
+                                    enum Stream_SessionMessageType,
+                                    struct SMTP_StreamState,
+                                    struct SMTP_Stream_SessionData,
+                                    SMTP_Stream_SessionData_t,
+                                    SMTP_Statistic_t,
+                                    Common_Timer_Manager_t,
+                                    Test_I_SMTPSend_Connection_Manager_t,
+                                    Test_I_SMTPSend_SSLConnector_t,
+                                    struct Stream_UserData> Stream_SMTPSend_SSLNetSource;
+#endif // SSL_SUPPORT
+
 typedef Stream_Module_MessageHandler_T<ACE_MT_SYNCH,
                                        Common_TimePolicy_t,
                                        struct Stream_SMTPSend_ModuleHandlerConfiguration,
@@ -49,6 +108,33 @@ typedef Stream_Module_MessageHandler_T<ACE_MT_SYNCH,
                                        struct Stream_UserData> Stream_SMTPSend_MessageHandler;
 
 //////////////////////////////////////////
+// declare module(s)
+DATASTREAM_MODULE_DUPLEX (struct SMTP_Stream_SessionData,                    // session data type
+                          enum Stream_SessionMessageType,                    // session event type
+                          struct Stream_SMTPSend_ModuleHandlerConfiguration, // module handler configuration type
+                          libacestream_default_net_source_module_name_string,
+                          Stream_INotify_t,                                 // stream notification interface type
+                          Stream_SMTPSend_NetSourceReader,                  // reader type
+                          Stream_SMTPSend_NetSource,                        // writer type
+                          Stream_SMTPSend_NetSource);                       // name
+DATASTREAM_MODULE_DUPLEX (struct SMTP_Stream_SessionData,                    // session data type
+                          enum Stream_SessionMessageType,                    // session event type
+                          struct Stream_SMTPSend_ModuleHandlerConfiguration, // module handler configuration type
+                          libacestream_default_net_source_module_name_string,
+                          Stream_INotify_t,                                 // stream notification interface type
+                          Stream_SMTPSend_NetSourceReader,                  // reader type
+                          Stream_SMTPSend_AsynchNetSource,                  // writer type
+                          Stream_SMTPSend_AsynchNetSource);                 // name
+#if defined (SSL_SUPPORT)
+DATASTREAM_MODULE_DUPLEX (struct SMTP_Stream_SessionData,                    // session data type
+                          enum Stream_SessionMessageType,                    // session event type
+                          struct Stream_SMTPSend_ModuleHandlerConfiguration, // module handler configuration type
+                          libacestream_default_net_source_module_name_string,
+                          Stream_INotify_t,                                 // stream notification interface type
+                          Stream_SMTPSend_NetSourceReader,                  // reader type
+                          Stream_SMTPSend_SSLNetSource,                     // writer type
+                          Stream_SMTPSend_SSLNetSource);                    // name
+#endif // SSL_SUPPORT
 
 DATASTREAM_MODULE_INPUT_ONLY (struct SMTP_Stream_SessionData,                       // session data type
                               enum Stream_SessionMessageType,                       // session event type

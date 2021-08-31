@@ -30,23 +30,6 @@
 #include "smtp_sessionmessage.h"
 #include "smtp_stream.h"
 
-//#include "test_i_smtp_send_common.h"
-
-//struct Stream_SMTPSend_StreamConfiguration
-// : SMTP_StreamConfiguration
-//{
-//  Stream_SMTPSend_StreamConfiguration ()
-//   : SMTP_StreamConfiguration ()
-//  {
-//    printFinalReport = true;
-//  }
-//};
-
-//typedef Stream_IStreamControl_T<enum Stream_ControlType,
-//                                enum Stream_SessionMessageType,
-//                                enum Stream_StateMachine_ControlState,
-//                                struct SMTP_StreamState> Stream_SMTPSend_IStreamControl_t;
-
 //extern const char stream_name_string_[];
 typedef Stream_Configuration_T<//stream_name_string_,
                                struct SMTP_StreamConfiguration,

@@ -122,9 +122,7 @@ Stream_DataBase_T<DataType>::setR (const DataType& data_in)
   // clean up ?
   if (data_ && delete_)
   {
-    delete data_;
-    data_ = NULL;
-
+    delete data_; data_ = NULL;
     delete_ = false;
   } // end IF
 
@@ -148,8 +146,7 @@ Stream_DataBase_T<DataType>::setPR (DataType*& data_inout)
   // clean up ?
   if (data_ && delete_)
   {
-    delete data_;
-    data_ = NULL;
+    delete data_; data_ = NULL;
   } // end IF
 
   data_ = data_inout;

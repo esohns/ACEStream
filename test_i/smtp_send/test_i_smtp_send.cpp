@@ -150,6 +150,10 @@ do_printUsage (const std::string& programName_in)
             << std::endl;
   std::cout << ACE_TEXT_ALWAYS_CHAR ("-p [STRING] : password")
             << std::endl;
+  std::cout << ACE_TEXT_ALWAYS_CHAR ("-r          : use reactor [")
+            << (COMMON_EVENT_DEFAULT_DISPATCH == COMMON_EVENT_DISPATCH_REACTOR)
+            << ACE_TEXT_ALWAYS_CHAR ("]")
+            << std::endl;
   std::cout << ACE_TEXT_ALWAYS_CHAR ("-s [VALUE]  : statistic reporting interval (second(s)) [")
             << STREAM_DEFAULT_STATISTIC_REPORTING_INTERVAL
             << ACE_TEXT_ALWAYS_CHAR ("] [0: off])")
@@ -178,6 +182,7 @@ do_processArguments (int argc_in,
                      bool& logToFile_out,
                      std::string& message_out,
                      std::string& password_out,
+                     bool& useReactor_out,
                      unsigned int& statisticReportingInterval_out,
                      bool& traceInformation_out,
                      std::string& userName_out,
@@ -206,6 +211,8 @@ do_processArguments (int argc_in,
   logToFile_out = false;
   message_out.clear ();
   password_out.clear ();
+  useReactor_out =
+    (COMMON_EVENT_DEFAULT_DISPATCH == COMMON_EVENT_DISPATCH_REACTOR);
   statisticReportingInterval_out = STREAM_DEFAULT_STATISTIC_REPORTING_INTERVAL;
   traceInformation_out = false;
   userName_out.clear ();
@@ -214,9 +221,9 @@ do_processArguments (int argc_in,
   ACE_Get_Opt argumentParser (argc_in,
                               argv_in,
 #if defined (GUI_SUPPORT)
-                              ACE_TEXT ("d:f:g::h:lm:p:s:tu:v"),
+                              ACE_TEXT ("d:f:g::h:lm:p:rs:tu:v"),
 #else
-                              ACE_TEXT ("d:f:h:lm:p:s:tu:v"),
+                              ACE_TEXT ("d:f:h:lm:p:rs:tu:v"),
 #endif // GUI_SUPPORT
                               1,                          // skip command name
                               1,                          // report parsing errors
@@ -281,6 +288,11 @@ do_processArguments (int argc_in,
       {
         password_out =
           ACE_TEXT_ALWAYS_CHAR (argumentParser.opt_arg ());
+        break;
+      }
+      case 'r':
+      {
+        useReactor_out = true;
         break;
       }
       case 's':
@@ -415,6 +427,7 @@ do_work (
          Common_UI_wxWidgets_IApplicationBase_t* iapplication_in,
 #endif // WXWIDGETS_USE
 #endif // GUI_SUPPORT
+         bool useReactor_in,
          unsigned int statisticReportingInterval_in,
          struct Stream_SMTPSend_Configuration& configuration_in,
          const ACE_Sig_Set& signalSet_in,
@@ -463,10 +476,17 @@ do_work (
   Stream_SMTPSend_MessageAllocator_t message_allocator (TEST_I_MAX_MESSAGES, // maximum #buffers
                                                         &heap_allocator,     // heap allocator handle
                                                         true);               // block ?
+  Test_I_SMTPSend_ConnectionConfiguration_t connection_configuration;
+  connection_configuration.socketConfiguration.address =
+    configuration_in.address;
+  Net_ConnectionConfigurations_t connection_configurations;
+  connection_configurations.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (""),
+                                                    &connection_configuration));
 
-  Stream_SMTPSend_StreamConfiguration_t::ITERATOR_T stream_iterator;
   modulehandler_configuration.allocatorConfiguration =
     &configuration_in.allocatorConfiguration;
+  modulehandler_configuration.connectionConfigurations =
+    &connection_configurations;
   modulehandler_configuration.messageAllocator = &message_allocator;
   if (statisticReportingInterval_in)
     modulehandler_configuration.statisticCollectionInterval.set (0,
@@ -514,11 +534,37 @@ do_work (
   timer_manager_p->initialize (configuration_in.timerConfiguration);
   timer_manager_p->start (NULL);
 
-  // step0f: (initialize) processing stream
+  struct Net_UserData user_data_s;
+  Test_I_SMTPSend_Connection_Manager_t* connection_manager_p =
+    TEST_I_SMTPSEND_CONNECTIONMANAGER_SINGLETON::instance ();
+  struct Common_EventDispatchState dispatch_state;
 
-  // event loop(s):
-  // - catch SIGINT/SIGQUIT/SIGTERM/... signals (connect / perform orderly shutdown)
-  // [- signal timer expiration to perform server queries] (see above)
+  // initialize event dispatch
+  configuration_in.dispatchConfiguration.numberOfProactorThreads =
+          (!useReactor_in ? TEST_I_DEFAULT_NUMBER_OF_DISPATCHING_THREADS : 0);
+  configuration_in.dispatchConfiguration.numberOfReactorThreads =
+          (useReactor_in ? TEST_I_DEFAULT_NUMBER_OF_DISPATCHING_THREADS : 0);
+  if (!Common_Tools::initializeEventDispatch (configuration_in.dispatchConfiguration))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to Common_Tools::initializeEventDispatch(), returning\n")));
+    goto clean;
+    return;
+  } // end IF
+
+  // initialize connection manager
+  connection_manager_p->initialize (std::numeric_limits<unsigned int>::max (),
+                                    ACE_Time_Value (0, NET_STATISTIC_DEFAULT_VISIT_INTERVAL_MS * 1000));
+  connection_manager_p->set (connection_configuration,
+                             &user_data_s);
+
+  // start event loop(s)
+  if (!Common_Tools::startEventDispatch (dispatch_state))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to start event dispatch, returning\n")));
+    goto clean;
+  } // end IF
 
 #if defined (GUI_SUPPORT)
   CBData_in.configuration = &configuration_in;
@@ -593,6 +639,14 @@ clean:
   gtk_manager_p->stop (true, true);
 #endif // GTK_USE
 #endif // GUI_SUPPORT
+  connection_manager_p->stop (false, true);
+  connection_manager_p->abort ();
+  connection_manager_p->wait ();
+
+  Common_Tools::finalizeEventDispatch (dispatch_state.proactorGroupId,
+                                       dispatch_state.reactorGroupId,
+                                       true);
+
   timer_manager_p->stop ();
 
   ACE_DEBUG ((LM_DEBUG,
@@ -678,6 +732,8 @@ ACE_TMAIN (int argc_in,
     ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_DEFINITION_FILE);
 #endif // GUI_SUPPORT
   bool log_to_file = false;
+  bool use_reactor =
+    (COMMON_EVENT_DEFAULT_DISPATCH == COMMON_EVENT_DISPATCH_REACTOR);
   unsigned int statistic_reporting_interval =
     STREAM_DEFAULT_STATISTIC_REPORTING_INTERVAL;
   bool trace_information = false;
@@ -701,6 +757,7 @@ ACE_TMAIN (int argc_in,
                             log_to_file,
                             configuration.message,
                             configuration.password,
+                            use_reactor,
                             statistic_reporting_interval,
                             trace_information,
                             configuration.username,
@@ -1074,6 +1131,7 @@ ACE_TMAIN (int argc_in,
            iapplication_p,
 #endif // WXWIDGETS_USE
 #endif // GUI_SUPPORT
+           use_reactor,
            statistic_reporting_interval,
            configuration,
            signal_set,

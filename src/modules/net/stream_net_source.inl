@@ -42,13 +42,21 @@ template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ConfigurationType,
           typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
           typename ConnectionManagerType>
 Stream_Module_Net_Source_Reader_T<ACE_SYNCH_USE,
                                   TimePolicyType,
                                   ConfigurationType,
                                   ControlMessageType,
-                                  ConnectionManagerType>::Stream_Module_Net_Source_Reader_T ()
- : inherited (NULL)
+                                  DataMessageType,
+                                  SessionMessageType,
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+                                  ConnectionManagerType>::Stream_Module_Net_Source_Reader_T (ISTREAM_T* stream_in)
+#else
+                                  ConnectionManagerType>::Stream_Module_Net_Source_Reader_T (typename inherited::ISTREAM_T* stream_in)
+#endif // ACE_WIN32 || ACE_WIN64
+ : inherited (stream_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Net_Source_Reader_T::Stream_Module_Net_Source_Reader_T"));
 
@@ -58,17 +66,21 @@ template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ConfigurationType,
           typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
           typename ConnectionManagerType>
 void
 Stream_Module_Net_Source_Reader_T<ACE_SYNCH_USE,
                                   TimePolicyType,
                                   ConfigurationType,
                                   ControlMessageType,
-                                  ConnectionManagerType>::handleControlMessage (ACE_Message_Block& messageBlock_in)
+                                  DataMessageType,
+                                  SessionMessageType,
+                                  ConnectionManagerType>::handleControlMessage (ControlMessageType& message_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Net_Source_Reader_T::handleControlMessage"));
 
-  switch (messageBlock_in.msg_type ())
+  switch (message_in.msg_type ())
   {
     case STREAM_CONTROL_MESSAGE_DISCONNECT:
     {
@@ -81,7 +93,7 @@ Stream_Module_Net_Source_Reader_T<ACE_SYNCH_USE,
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: unknown/invalid control message type (was: %d), returning\n"),
                   inherited::mod_->name (),
-                  messageBlock_in.msg_type ()));
+                  message_in.msg_type ()));
       return;
     }
   } // end SWITCH
@@ -263,12 +275,10 @@ Stream_Module_Net_Source_Writer_T<ACE_SYNCH_USE,
   if (iterator == configuration_in.connectionConfigurations->end ())
     iterator =
       configuration_in.connectionConfigurations->find (ACE_TEXT_ALWAYS_CHAR (""));
-#if defined (_DEBUG)
   else
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: applying dedicated connection configuration\n"),
                 inherited::mod_->name ()));
-#endif // _DEBUG
   ACE_ASSERT (iterator != configuration_in.connectionConfigurations->end ());
 
   typename ConnectorType::ISTREAM_CONNECTION_T::CONFIGURATION_T* configuration_p =
@@ -1100,7 +1110,7 @@ close:
     case NET_TRANSPORTLAYER_TCP:
     {
       Net_TCPSocketConfiguration_t* socket_configuration_p =
-          &configuration_p->socketConfiguration;
+        (Net_TCPSocketConfiguration_t*)&configuration_p->socketConfiguration;
       ACE_ASSERT (socket_configuration_p);
       address_ = socket_configuration_p->address;
       break;
@@ -1108,7 +1118,7 @@ close:
     case NET_TRANSPORTLAYER_UDP:
     {
       Net_UDPSocketConfiguration_t* socket_configuration_p =
-          &configuration_p->socketConfiguration;
+        (Net_UDPSocketConfiguration_t*)&configuration_p->socketConfiguration;
       ACE_ASSERT (socket_configuration_p);
       address_ = socket_configuration_p->listenAddress;
       break;
@@ -1299,15 +1309,13 @@ Stream_Module_Net_SourceH_T<ACE_SYNCH_USE,
       if (iterator_2 == inherited::configuration_->connectionConfigurations->end ())
         iterator_2 =
           inherited::configuration_->connectionConfigurations->find (ACE_TEXT_ALWAYS_CHAR (""));
-#if defined (_DEBUG)
       else
         ACE_DEBUG ((LM_DEBUG,
                     ACE_TEXT ("%s: applying connection configuration\n"),
                     inherited::mod_->name ()));
-#endif // _DEBUG
       ACE_ASSERT (iterator_2 != inherited::configuration_->connectionConfigurations->end ());
       configuration_p =
-          dynamic_cast<typename ConnectorType::CONFIGURATION_T*> ((*iterator_2).second);
+          static_cast<typename ConnectorType::CONFIGURATION_T*> ((*iterator_2).second);
       ACE_ASSERT (configuration_p);
 
 //      // *NOTE*: the stream configuration may contain a module handle that is
@@ -1634,7 +1642,7 @@ continue_:
       //         itself is finished() (see below), it sends its own session end
       //         message. Handle both scenarios (and race conditions) here, i.e.
       //         never process consecutive 'session end' messages
-      { ACE_GUARD (typename inherited::ITASKCONTROL_T::MUTEX_T, aGuard, inherited::lock_);
+      { ACE_GUARD (ACE_Thread_Mutex, aGuard, inherited::lock_);
         if (inherited::sessionEndProcessed_)
           break; // done
         inherited::sessionEndProcessed_ = true;
@@ -1648,7 +1656,7 @@ continue_:
 
       if (inherited::isRunning ())
       {
-        { ACE_GUARD (typename inherited::ITASKCONTROL_T::MUTEX_T, aGuard, inherited::lock_);
+        { ACE_GUARD (ACE_Thread_Mutex, aGuard, inherited::lock_);
           inherited::sessionEndSent_ = true;
         } // end lock scope
       } // end IF
@@ -1741,9 +1749,10 @@ continue_2:
       } // end IF
 
       if (inherited::concurrency_ != STREAM_HEADMODULECONCURRENCY_CONCURRENT)
-        inherited::TASK_BASE_T::stop (false, // wait ?
-                                      false, // high priority ?
-                                      true); // locked access ?
+      { Common_ITask* itask_p = this; // *TODO*: is the no other way ?
+        itask_p->stop (false,  // wait for completion ?
+                       false); // high priority ?
+      } // end IF
 
       break;
     }

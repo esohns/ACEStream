@@ -41,6 +41,8 @@ template <ACE_SYNCH_DECL,
           typename ConfigurationType,
           ////////////////////////////////
           typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
           ////////////////////////////////
           typename ConnectionManagerType>
 class Stream_Module_Net_Source_Reader_T
@@ -48,8 +50,8 @@ class Stream_Module_Net_Source_Reader_T
                                  TimePolicyType,
                                  ConfigurationType,
                                  ControlMessageType,
-                                 ACE_Message_Block,
-                                 ACE_Message_Block,
+                                 DataMessageType,
+                                 SessionMessageType,
                                  enum Stream_ControlType,
                                  enum Stream_SessionMessageType,
                                  struct Stream_UserData>
@@ -58,8 +60,8 @@ class Stream_Module_Net_Source_Reader_T
                                  TimePolicyType,
                                  ConfigurationType,
                                  ControlMessageType,
-                                 ACE_Message_Block,
-                                 ACE_Message_Block,
+                                 DataMessageType,
+                                 SessionMessageType,
                                  enum Stream_ControlType,
                                  enum Stream_SessionMessageType,
                                  struct Stream_UserData> inherited;
@@ -68,13 +70,19 @@ class Stream_Module_Net_Source_Reader_T
   // *NOTE*: this module has two modes of operation:
   //         active:  establish and manage a connection
   //         passive: use an existing connection (handle passed in initialize())
-  Stream_Module_Net_Source_Reader_T ();
+  // *TODO*: on MSVC 2015u3 the accurate declaration does not compile
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  Stream_Module_Net_Source_Reader_T (ISTREAM_T*); // stream handle
+#else
+  Stream_Module_Net_Source_Reader_T (typename inherited::ISTREAM_T*); // stream handle
+#endif // ACE_WIN32 || ACE_WIN64
   inline virtual ~Stream_Module_Net_Source_Reader_T () {}
 
   // implement (part of) Stream_ITaskBase
-  virtual void handleControlMessage (ACE_Message_Block&);
+  virtual void handleControlMessage (ControlMessageType&);
 
  private:
+  ACE_UNIMPLEMENTED_FUNC (Stream_Module_Net_Source_Reader_T ())
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_Net_Source_Reader_T (const Stream_Module_Net_Source_Reader_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_Net_Source_Reader_T& operator= (const Stream_Module_Net_Source_Reader_T&))
 
@@ -124,7 +132,7 @@ class Stream_Module_Net_Source_Writer_T
    Stream_Module_Net_Source_Writer_T (ISTREAM_T*); // stream handle
 #else
    Stream_Module_Net_Source_Writer_T (typename inherited::ISTREAM_T*); // stream handle
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
   virtual ~Stream_Module_Net_Source_Writer_T ();
 
   // override (part of) Stream_IModuleHandler_T

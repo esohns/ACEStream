@@ -26,6 +26,10 @@
 #include "ace/Synch_Traits.h"
 #include "ace/Time_Value.h"
 
+#include "common_timer_manager_common.h"
+
+#include "stream_net_io_stream.h"
+
 #include "net_asynch_tcpsockethandler.h"
 #include "net_common.h"
 #include "net_connection_configuration.h"
@@ -48,67 +52,115 @@
 
 #include "test_i_smtp_send_stream_common.h"
 
+const char stream_net_name_string_[] = ACE_TEXT_ALWAYS_CHAR (STREAM_NET_DEFAULT_NAME_STRING);
+
+/////////////////////////////////////////
+
+typedef Net_StreamConnectionConfiguration_T<Stream_SMTPSend_StreamConfiguration_t,
+                                            NET_TRANSPORTLAYER_TCP> Test_I_SMTPSend_ConnectionConfiguration_t;
+
+/////////////////////////////////////////
+
+typedef Net_IConnectionManager_T<ACE_INET_Addr,
+                                 Test_I_SMTPSend_ConnectionConfiguration_t,
+                                 struct SMTP_ConnectionState,
+                                 struct Net_StreamStatistic,
+                                 struct Net_UserData> Test_I_SMTPSend_IConnection_Manager_t;
+typedef Net_Connection_Manager_T<ACE_MT_SYNCH,
+                                 ACE_INET_Addr,
+                                 Test_I_SMTPSend_ConnectionConfiguration_t,
+                                 struct SMTP_ConnectionState,
+                                 struct Net_StreamStatistic,
+                                 struct Net_UserData> Test_I_SMTPSend_Connection_Manager_t;
+
+/////////////////////////////////////////
+
+typedef ACE_Singleton<Test_I_SMTPSend_Connection_Manager_t,
+                      ACE_SYNCH_MUTEX> TEST_I_SMTPSEND_CONNECTIONMANAGER_SINGLETON;
+
+/////////////////////////////////////////
+
+typedef Stream_Module_Net_IO_Stream_T<ACE_MT_SYNCH,
+                                      Common_TimePolicy_t,
+                                      stream_net_name_string_,
+                                      enum Stream_ControlType,
+                                      enum Stream_SessionMessageType,
+                                      enum Stream_StateMachine_ControlState,
+                                      struct SMTP_StreamState,
+                                      struct SMTP_StreamConfiguration,
+                                      SMTP_Statistic_t,
+                                      Common_Timer_Manager_t,
+                                      struct Stream_SMTPSend_ModuleHandlerConfiguration,
+                                      struct SMTP_Stream_SessionData,
+                                      SMTP_Stream_SessionData_t,
+                                      Stream_ControlMessage_t,
+                                      SMTP_Message_t,
+                                      SMTP_SessionMessage_t,
+                                      ACE_INET_Addr,
+                                      Test_I_SMTPSend_Connection_Manager_t,
+                                      struct Stream_UserData> Test_I_SMTPSend_ConnectionStream_t;
+
 typedef Net_IStreamConnection_T<ACE_INET_Addr,
-                                SMTP_ConnectionConfiguration,
+                                Test_I_SMTPSend_ConnectionConfiguration_t,
                                 struct SMTP_ConnectionState,
                                 struct Net_StreamStatistic,
                                 Net_TCPSocketConfiguration_t,
-                                Test_I_SMTPSend_Stream_t,
+                                Test_I_SMTPSend_ConnectionStream_t,
                                 enum Stream_StateMachine_ControlState> Test_I_SMTPSend_IStreamConnection_t;
 
 typedef Net_TCPConnectionBase_T<ACE_MT_SYNCH,
                                 Net_TCPSocketHandler_t,
-                                SMTP_ConnectionConfiguration,
+                                Test_I_SMTPSend_ConnectionConfiguration_t,
                                 struct SMTP_ConnectionState,
                                 struct Net_StreamStatistic,
-                                Test_I_SMTPSend_Stream_t,
+                                Test_I_SMTPSend_ConnectionStream_t,
                                 struct Net_UserData> Test_I_SMTPSend_Connection_t;
 #if defined (SSL_SUPPORT)
 typedef Net_TCPConnectionBase_T<ACE_MT_SYNCH,
                                 Net_SSLSocketHandler_t,
-                                SMTP_ConnectionConfiguration,
+                                Test_I_SMTPSend_ConnectionConfiguration_t,
                                 struct SMTP_ConnectionState,
                                 struct Net_StreamStatistic,
-                                Test_I_SMTPSend_Stream_t,
+                                Test_I_SMTPSend_ConnectionStream_t,
                                 struct Net_UserData> Test_I_SMTPSend_SSLConnection_t;
 #endif // SSL_SUPPORT
 
 typedef Net_AsynchTCPConnectionBase_T<Net_AsynchTCPSocketHandler_t,
-                                      SMTP_ConnectionConfiguration,
+                                      Test_I_SMTPSend_ConnectionConfiguration_t,
                                       struct SMTP_ConnectionState,
                                       struct Net_StreamStatistic,
-                                      Test_I_SMTPSend_Stream_t,
+                                      Test_I_SMTPSend_ConnectionStream_t,
                                       struct Net_UserData> Test_I_SMTPSend_AsynchConnection_t;
 
 /////////////////////////////////////////
 
 typedef Net_Client_Connector_T<ACE_MT_SYNCH,
-                               SMTP_Connection_t,
+                               Test_I_SMTPSend_Connection_t,
                                Net_SOCK_Connector,
                                ACE_INET_Addr,
-                               SMTP_ConnectionConfiguration,
+                               Test_I_SMTPSend_ConnectionConfiguration_t,
                                struct SMTP_ConnectionState,
                                struct Net_StreamStatistic,
                                Net_TCPSocketConfiguration_t,
-                               Test_I_SMTPSend_Stream_t,
+                               Test_I_SMTPSend_ConnectionStream_t,
                                struct Net_UserData> Test_I_SMTPSend_Connector_t;
 #if defined (SSL_SUPPORT)
-typedef Net_Client_SSL_Connector_T<SMTP_SSLConnection_t,
+typedef Net_Client_SSL_Connector_T<Test_I_SMTPSend_SSLConnection_t,
                                    ACE_SSL_SOCK_Connector,
-                                   SMTP_ConnectionConfiguration,
+                                   Test_I_SMTPSend_ConnectionConfiguration_t,
                                    struct SMTP_ConnectionState,
                                    struct Net_StreamStatistic,
-                                   Test_I_SMTPSend_Stream_t,
+                                   Test_I_SMTPSend_ConnectionStream_t,
                                    struct Net_UserData> Test_I_SMTPSend_SSLConnector_t;
 #endif // SSL_SUPPORT
 
-typedef Net_Client_AsynchConnector_T<SMTP_AsynchConnection_t,
+typedef Net_Client_AsynchConnector_T<Test_I_SMTPSend_AsynchConnection_t,
                                      ACE_INET_Addr,
-                                     SMTP_ConnectionConfiguration,
+                                     Test_I_SMTPSend_ConnectionConfiguration_t,
                                      struct SMTP_ConnectionState,
                                      struct Net_StreamStatistic,
                                      Net_TCPSocketConfiguration_t,
-                                     Test_I_SMTPSend_Stream_t,
+                                     Test_I_SMTPSend_ConnectionStream_t,
                                      struct Net_UserData> Test_I_SMTPSend_AsynchConnector_t;
 
 /////////////////////////////////////////
