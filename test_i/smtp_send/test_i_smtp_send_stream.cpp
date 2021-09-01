@@ -29,6 +29,10 @@
 
 #include "stream_net_defines.h"
 
+#include "stream_stat_defines.h"
+
+#include "smtp_defines.h"
+
 Test_I_SMTPSend_Stream::Test_I_SMTPSend_Stream ()
  : inherited ()
  , source_ (this,
@@ -45,7 +49,9 @@ Test_I_SMTPSend_Stream::Test_I_SMTPSend_Stream ()
  //           NULL,
  //           false)
  , statistic_ (this,
-               ACE_TEXT_ALWAYS_CHAR ("StatisticReport"))
+               ACE_TEXT_ALWAYS_CHAR (MODULE_STAT_REPORT_DEFAULT_NAME_STRING))
+ , protocolHandler_ (this,
+                     ACE_TEXT_ALWAYS_CHAR (SMTP_DEFAULT_MODULE_SEND_NAME_STRING))
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_SMTPSend_Stream::Test_I_SMTPSend_Stream"));
 
@@ -71,7 +77,16 @@ Test_I_SMTPSend_Stream::load (Stream_ILayout* layout_inout,
     (*iterator).second.second.connectionConfigurations->find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (iterator_2 != (*iterator).second.second.connectionConfigurations->end ());
   bool use_SSL_b =
-    (NET_CONFIGURATION_TCP_CAST ((*iterator_2).second)->socketConfiguration.address.get_port_number () != SMTP_DEFAULT_SERVER_PORT);
+    (NET_CONFIGURATION_TCP_CAST ((*iterator_2).second)->socketConfiguration.address.get_port_number () == SMTP_DEFAULT_TLS_SERVER_PORT);
+  if (!use_SSL_b &&
+      ((NET_CONFIGURATION_TCP_CAST ((*iterator_2).second)->socketConfiguration.address.get_port_number () != SMTP_DEFAULT_SERVER_PORT) &&
+       (NET_CONFIGURATION_TCP_CAST ((*iterator_2).second)->socketConfiguration.address.get_port_number () != SMTP_DEFAULT_SERVER_PORT_2)))
+  {
+    ACE_DEBUG ((LM_WARNING,
+                ACE_TEXT ("non-standard server port (was: %u), trying SSL connection\n"),
+                NET_CONFIGURATION_TCP_CAST ((*iterator_2).second)->socketConfiguration.address.get_port_number ()));
+    use_SSL_b = true;
+  } // end IF
   if (inherited::configuration_->configuration_->dispatchConfiguration->dispatch == COMMON_EVENT_DISPATCH_REACTOR)
   {
     if (use_SSL_b)
@@ -90,6 +105,7 @@ Test_I_SMTPSend_Stream::load (Stream_ILayout* layout_inout,
   } // end ELSE
   layout_inout->append (&marshal_, NULL, 0);
   layout_inout->append (&statistic_, NULL, 0);
+  layout_inout->append (&protocolHandler_, NULL, 0);
 
   return true;
 }

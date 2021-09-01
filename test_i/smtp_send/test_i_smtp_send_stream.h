@@ -183,6 +183,7 @@ class Test_I_SMTPSend_Stream
   //MODULE_PARSER_T    parser_;
   MODULE_MARSHAL_T                       marshal_;
   MODULE_STATISTIC_T                     statistic_;
+  Stream_SMTPSend_ProtocolHandler_Module protocolHandler_;
 };
 
 #endif

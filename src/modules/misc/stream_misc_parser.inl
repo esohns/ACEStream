@@ -748,8 +748,9 @@ Stream_Module_Parser_T<ACE_SYNCH_USE,
                        UserDataType>::Stream_Module_Parser_T (ISTREAM_T* stream_in)
 #else
                        UserDataType>::Stream_Module_Parser_T (typename inherited::ISTREAM_T* stream_in)
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
  : inherited (stream_in)
+ , inherited2 ()
  , headFragment_ (NULL)
  , parserQueue_ (STREAM_QUEUE_MAX_SLOTS, NULL)
 {
@@ -820,10 +821,10 @@ Stream_Module_Parser_T<ACE_SYNCH_USE,
 
   // sanity check(s)
   ACE_ASSERT (configuration_in.parserConfiguration);
-  bool reset_queue = false;
+  //bool reset_queue = false;
   if (!configuration_in.parserConfiguration->messageQueue)
   {
-    reset_queue = true;
+    //reset_queue = true;
     const_cast<ConfigurationType&> (configuration_in).parserConfiguration->messageQueue =
       &parserQueue_;
     ACE_DEBUG ((LM_DEBUG,
@@ -841,9 +842,9 @@ Stream_Module_Parser_T<ACE_SYNCH_USE,
                 inherited::mod_->name ()));
     return false;
   } // end IF
-  if (reset_queue)
-    const_cast<ConfigurationType&> (configuration_in).parserConfiguration->messageQueue =
-      NULL;
+  //if (reset_queue)
+  //  const_cast<ConfigurationType&> (configuration_in).parserConfiguration->messageQueue =
+  //    NULL;
 
   return inherited::initialize (configuration_in,
                                 allocator_in);
@@ -879,9 +880,9 @@ Stream_Module_Parser_T<ACE_SYNCH_USE,
   passMessageDownstream_out = false;
 
   // append the "\0\0"-sequence, as required by flex
-  //ACE_ASSERT (message_inout->capacity () - message_inout->length () >= STREAM_MISC_PARSER_FLEX_BUFFER_BOUNDARY_SIZE);
-  //*(message_inout->wr_ptr ()) = YY_END_OF_BUFFER_CHAR;
-  //*(message_inout->wr_ptr () + 1) = YY_END_OF_BUFFER_CHAR;
+  ACE_ASSERT (message_inout->capacity () - message_inout->length () >= COMMON_PARSER_FLEX_BUFFER_BOUNDARY_SIZE);
+  *(message_inout->wr_ptr ()) = YY_END_OF_BUFFER_CHAR;
+  *(message_inout->wr_ptr () + 1) = YY_END_OF_BUFFER_CHAR;
   // *NOTE*: DO NOT adjust the write pointer --> length() must stay as it was
 
   //message_inout->finalize (); // reset any data it might already have
@@ -1051,37 +1052,36 @@ Stream_Module_Parser_T<ACE_SYNCH_USE,
       default:
       {
         // initialize message ?
-        message_p = dynamic_cast<DataMessageType*> (message_block_p);
-        ACE_ASSERT (message_p);
-        if (message_p->isInitialized ())
-          goto continue_;
+        message_p = static_cast<DataMessageType*> (message_block_p);
+        //if (message_p->isInitialized ())
+        //  goto continue_;
 
-        // sanity check(s)
-        ACE_ASSERT (inherited::sessionData_);
-        session_data_p = &inherited::sessionData_->getR ();
-        ACE_NEW_NORETURN (message_data_p,
-                          typename DataMessageType::DATA_T::DATA_T ());
-        if (!message_data_p)
-        {
-          ACE_DEBUG ((LM_CRITICAL,
-                      ACE_TEXT ("%s: failed to allocate memory: \"%m\", returning\n"),
-                      inherited::mod_->name ()));
-          goto error;
-        } // end IF
-        ACE_NEW_NORETURN (message_data_container_p,
-                          typename DataMessageType::DATA_T (message_data_p));
-        if (!message_data_container_p)
-        {
-          ACE_DEBUG ((LM_CRITICAL,
-                      ACE_TEXT ("%s: failed to allocate memory: \"%m\", returning\n"),
-                      inherited::mod_->name ()));
-          goto error;
-        } // end IF
-        message_data_p = NULL;
-        message_p->initialize (message_data_container_p,
-                               session_data_p->sessionId,
-                               NULL);
-        message_data_container_p = NULL;
+        //// sanity check(s)
+        //ACE_ASSERT (inherited::sessionData_);
+        //session_data_p = &inherited::sessionData_->getR ();
+        //ACE_NEW_NORETURN (message_data_p,
+        //                  typename DataMessageType::DATA_T::DATA_T ());
+        //if (!message_data_p)
+        //{
+        //  ACE_DEBUG ((LM_CRITICAL,
+        //              ACE_TEXT ("%s: failed to allocate memory: \"%m\", returning\n"),
+        //              inherited::mod_->name ()));
+        //  goto error;
+        //} // end IF
+        //ACE_NEW_NORETURN (message_data_container_p,
+        //                  typename DataMessageType::DATA_T (message_data_p));
+        //if (!message_data_container_p)
+        //{
+        //  ACE_DEBUG ((LM_CRITICAL,
+        //              ACE_TEXT ("%s: failed to allocate memory: \"%m\", returning\n"),
+        //              inherited::mod_->name ()));
+        //  goto error;
+        //} // end IF
+        //message_data_p = NULL;
+        //message_p->initialize (message_data_container_p,
+        //                       session_data_p->sessionId,
+        //                       NULL);
+        //message_data_container_p = NULL;
 
 continue_:
         // parse incoming data fragment(s)
@@ -1223,6 +1223,7 @@ Stream_Module_ParserH_T<ACE_SYNCH_USE,
               false,                                   // auto-start ? (active mode only)
               STREAM_HEADMODULECONCURRENCY_CONCURRENT, // concurrency mode
               true)
+ , inherited2 ()
  , headFragment_ (NULL)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_ParserH_T::Stream_Module_ParserH_T"));

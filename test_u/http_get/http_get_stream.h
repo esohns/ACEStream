@@ -95,7 +95,6 @@ class HTTPGet_Stream_T
                                             Stream_ControlMessage_t,
                                             HTTPGet_Message,
                                             HTTPGet_SessionMessage,
-                                            HTTPGet_ConnectionManager_t,
                                             TCPConnectorType> TCP_SOURCE_WRITER_T;
   typedef Stream_Module_Net_Source_Writer_T<ACE_MT_SYNCH,
                                             Common_TimePolicy_t,
@@ -103,7 +102,6 @@ class HTTPGet_Stream_T
                                             Stream_ControlMessage_t,
                                             HTTPGet_Message,
                                             HTTPGet_SessionMessage,
-                                            HTTPGet_ConnectionManager_t,
                                             SSLConnectorType> SSL_SOURCE_WRITER_T;
   typedef Stream_StreamModuleInputOnly_T<ACE_MT_SYNCH,                              // task synch type
                                          Common_TimePolicy_t,                       // time policy

@@ -40,7 +40,7 @@ gboolean idle_update_progress_cb (gpointer);
 extern "C"
 {
 #endif /* __cplusplus */
-G_MODULE_EXPORT void send_action_activate_cb (GtkAction*, gpointer);
+G_MODULE_EXPORT void action_send_activate_cb (GtkAction*, gpointer);
 
 //G_MODULE_EXPORT gint button_clear_clicked_cb (GtkWidget*, gpointer);
 G_MODULE_EXPORT gint button_about_clicked_cb (GtkWidget*, gpointer);

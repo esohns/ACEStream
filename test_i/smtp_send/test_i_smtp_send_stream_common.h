@@ -28,22 +28,22 @@
 #include "smtp_configuration.h"
 #include "smtp_message.h"
 #include "smtp_sessionmessage.h"
-#include "smtp_stream.h"
+//#include "smtp_stream.h"
 
 //extern const char stream_name_string_[];
 typedef Stream_Configuration_T<//stream_name_string_,
                                struct SMTP_StreamConfiguration,
                                struct Stream_SMTPSend_ModuleHandlerConfiguration> Stream_SMTPSend_StreamConfiguration_t;
 
-typedef SMTP_Stream_T<struct SMTP_StreamState,
-                      struct SMTP_StreamConfiguration,
-                      SMTP_Statistic_t,
-                      SMTP_StatisticHandler_t,
-                      struct Stream_SMTPSend_ModuleHandlerConfiguration,
-                      struct SMTP_Stream_SessionData,
-                      SMTP_Stream_SessionData_t,
-                      Stream_ControlMessage_t,
-                      SMTP_Message_t,
-                      SMTP_SessionMessage_t> Test_I_SMTPSend_Stream_t;
+//typedef SMTP_Stream_T<struct SMTP_StreamState,
+//                      struct SMTP_StreamConfiguration,
+//                      SMTP_Statistic_t,
+//                      SMTP_StatisticHandler_t,
+//                      struct Stream_SMTPSend_ModuleHandlerConfiguration,
+//                      struct SMTP_Stream_SessionData,
+//                      SMTP_Stream_SessionData_t,
+//                      Stream_ControlMessage_t,
+//                      SMTP_Message_t,
+//                      SMTP_SessionMessage_t> Test_I_SMTPSend_Stream_t;
 
 #endif

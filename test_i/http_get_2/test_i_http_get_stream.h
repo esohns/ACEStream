@@ -110,7 +110,6 @@ class Test_I_HTTPGet_Stream_T
                                             Stream_ControlMessage_t,
                                             Test_I_Stream_Message,
                                             Test_I_Stream_SessionMessage,
-                                            Test_I_HTTPGet_InetConnectionManager_t,
                                             ConnectorType> SOURCE_WRITER_T;
   typedef Stream_StreamModuleInputOnly_T<ACE_MT_SYNCH,                                     // task synch type
                                          Common_TimePolicy_t,                              // time policy

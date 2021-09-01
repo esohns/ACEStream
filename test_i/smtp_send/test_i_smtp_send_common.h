@@ -131,6 +131,7 @@ struct Stream_SMTPSend_ModuleHandlerConfiguration
   Stream_SMTPSend_ModuleHandlerConfiguration ()
    : Test_I_ModuleHandlerConfiguration ()
    , SMTP_ModuleHandlerConfiguration ()
+   , connection (NULL)
    , connectionConfigurations (NULL)
    , subscriber (NULL)
    , subscribers (NULL)
@@ -138,6 +139,7 @@ struct Stream_SMTPSend_ModuleHandlerConfiguration
     concurrency = STREAM_HEADMODULECONCURRENCY_ACTIVE;
   }
 
+  SMTP_IConnection_t*             connection;
   Net_ConnectionConfigurations_t* connectionConfigurations;
   SMTP_ISessionNotify_t*          subscriber;
   Stream_SMTPSend_Subscribers_t*  subscribers;
@@ -172,6 +174,9 @@ struct Stream_SMTPSend_Configuration
    , address (static_cast<u_short> (0),
               ACE_TEXT_ALWAYS_CHAR (ACE_LOCALHOST),
               AF_INET)
+   , domain (static_cast<u_short> (0),
+             ACE_TEXT_ALWAYS_CHAR (ACE_LOCALHOST),
+             AF_INET)
    , username ()
    , password ()
    , from ()
@@ -189,7 +194,8 @@ struct Stream_SMTPSend_Configuration
   // **************************** timer data ***********************************
   struct Common_TimerConfiguration                  timerConfiguration;
 
-  ACE_INET_Addr                                     address;
+  ACE_INET_Addr                                     address; // server-
+  ACE_INET_Addr                                     domain; // i.e. external address
   std::string                                       username;
   std::string                                       password;
   std::string                                       from;
@@ -261,6 +267,7 @@ struct Stream_SMTPSend_ProgressData
   SMTP_Statistic_t statistic;
 };
 
+class Test_I_SMTPSend_Stream;
 struct Stream_SMTPSend_UI_CBData
 #if defined (GTK_USE)
  : Test_I_GTK_CBData
@@ -292,7 +299,7 @@ struct Stream_SMTPSend_UI_CBData
 
   struct Stream_SMTPSend_Configuration* configuration;
   struct Stream_SMTPSend_ProgressData   progressData;
-  Test_I_SMTPSend_Stream_t*             stream;
+  Test_I_SMTPSend_Stream*               stream;
   Stream_SMTPSend_Subscribers_t         subscribers;
 };
 

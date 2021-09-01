@@ -94,6 +94,7 @@
 #endif // GUI_SUPPORT
 #include "test_i_smtp_send_common_modules.h"
 #include "test_i_smtp_send_signalhandler.h"
+#include "test_i_smtp_send_stream.h"
 #include "test_i_smtp_send_stream_common.h"
 
 const char stream_name_string_[] = ACE_TEXT_ALWAYS_CHAR ("SMTPSend_Stream");
@@ -142,6 +143,8 @@ do_printUsage (const std::string& programName_in)
 #endif // GUI_SUPPORT
   std::cout << ACE_TEXT_ALWAYS_CHAR ("-h [STRING] : server host")
             << std::endl;
+  std::cout << ACE_TEXT_ALWAYS_CHAR ("-i [VALUE]  : server port")
+            << std::endl;
   std::cout << ACE_TEXT_ALWAYS_CHAR ("-l          : log to a file [")
             << false
             << ACE_TEXT_ALWAYS_CHAR ("]")
@@ -154,20 +157,22 @@ do_printUsage (const std::string& programName_in)
             << (COMMON_EVENT_DEFAULT_DISPATCH == COMMON_EVENT_DISPATCH_REACTOR)
             << ACE_TEXT_ALWAYS_CHAR ("]")
             << std::endl;
-  std::cout << ACE_TEXT_ALWAYS_CHAR ("-s [VALUE]  : statistic reporting interval (second(s)) [")
-            << STREAM_DEFAULT_STATISTIC_REPORTING_INTERVAL
-            << ACE_TEXT_ALWAYS_CHAR ("] [0: off])")
-            << std::endl;
+#if defined (_DEBUG)
   std::cout << ACE_TEXT_ALWAYS_CHAR ("-t          : trace information [")
             << false
             << ACE_TEXT_ALWAYS_CHAR ("]")
             << std::endl;
+#endif // _DEBUG
   std::cout << ACE_TEXT_ALWAYS_CHAR ("-u [STRING] : user name")
             << std::endl;
   std::cout << ACE_TEXT_ALWAYS_CHAR ("-v          : print version information and exit [")
             << false
             << ACE_TEXT_ALWAYS_CHAR ("]")
             << std::endl;
+#if defined (_DEBUG)
+  std::cout << ACE_TEXT_ALWAYS_CHAR ("-z          : debug parser")
+            << std::endl;
+#endif // _DEBUG
 }
 
 bool
@@ -183,10 +188,15 @@ do_processArguments (int argc_in,
                      std::string& message_out,
                      std::string& password_out,
                      bool& useReactor_out,
-                     unsigned int& statisticReportingInterval_out,
+#if defined (_DEBUG)
                      bool& traceInformation_out,
+#endif // _DEBUG
                      std::string& userName_out,
-                     enum Stream_SMTPSend_ProgramMode& mode_out)
+                     enum Stream_SMTPSend_ProgramMode& mode_out
+#if defined (_DEBUG)
+                     ,bool& debugParser_out
+#endif // _DEBUG
+                     )
 {
   STREAM_TRACE (ACE_TEXT ("::do_processArguments"));
 
@@ -213,18 +223,25 @@ do_processArguments (int argc_in,
   password_out.clear ();
   useReactor_out =
     (COMMON_EVENT_DEFAULT_DISPATCH == COMMON_EVENT_DISPATCH_REACTOR);
-  statisticReportingInterval_out = STREAM_DEFAULT_STATISTIC_REPORTING_INTERVAL;
+#if defined (_DEBUG)
   traceInformation_out = false;
+#endif // _DEBUG
   userName_out.clear ();
   mode_out = STREAM_SMTPSEND_PROGRAMMODE_NORMAL;
+#if defined (_DEBUG)
+  debugParser_out = false;
+#endif // _DEBUG
 
+  std::string option_string = ACE_TEXT_ALWAYS_CHAR ("d:f:h:i:lm:p:rs:u:v");
+#if defined (GUI_SUPPORT)
+  option_string += ACE_TEXT_ALWAYS_CHAR ("g::");
+#endif // GUI_SUPPORT
+#if defined (_DEBUG)
+  option_string += ACE_TEXT_ALWAYS_CHAR ("tz");
+#endif // _DEBUG
   ACE_Get_Opt argumentParser (argc_in,
                               argv_in,
-#if defined (GUI_SUPPORT)
-                              ACE_TEXT ("d:f:g::h:lm:p:rs:tu:v"),
-#else
-                              ACE_TEXT ("d:f:h:lm:p:rs:tu:v"),
-#endif // GUI_SUPPORT
+                              ACE_TEXT (option_string.c_str ()),
                               1,                          // skip command name
                               1,                          // report parsing errors
                               ACE_Get_Opt::PERMUTE_ARGS,  // ordering
@@ -273,6 +290,16 @@ do_processArguments (int argc_in,
         } // end IF
         break;
       }
+      case 'i':
+      {
+        ACE_UINT16 port_i = 0;
+        converter.clear ();
+        converter.str (ACE_TEXT_ALWAYS_CHAR (""));
+        converter << argumentParser.opt_arg ();
+        converter >> port_i;
+        address_out.set_port_number (port_i, 1);
+        break;
+      }
       case 'l':
       {
         logToFile_out = true;
@@ -295,19 +322,13 @@ do_processArguments (int argc_in,
         useReactor_out = true;
         break;
       }
-      case 's':
-      {
-        converter.clear ();
-        converter.str (ACE_TEXT_ALWAYS_CHAR (""));
-        converter << argumentParser.opt_arg ();
-        converter >> statisticReportingInterval_out;
-        break;
-      }
+#if defined (_DEBUG)
       case 't':
       {
         traceInformation_out = true;
         break;
       }
+#endif // _DEBUG
       case 'u':
       {
         userName_out =
@@ -319,6 +340,13 @@ do_processArguments (int argc_in,
         mode_out = STREAM_SMTPSEND_PROGRAMMODE_PRINT_VERSION;
         break;
       }
+#if defined (_DEBUG)
+      case 'z':
+      {
+        debugParser_out = true;
+        break;
+      }
+#endif // _DEBUG
       // error handling
       case ':':
       {
@@ -461,6 +489,7 @@ do_work (
     return;
   } // end IF
 
+  struct SMTP_Request request_s;
   struct Stream_ModuleConfiguration module_configuration;
   struct Stream_SMTPSend_ModuleHandlerConfiguration modulehandler_configuration;
   Stream_SMTPSend_EventHandler_t ui_event_handler (
@@ -476,18 +505,30 @@ do_work (
   Stream_SMTPSend_MessageAllocator_t message_allocator (TEST_I_MAX_MESSAGES, // maximum #buffers
                                                         &heap_allocator,     // heap allocator handle
                                                         true);               // block ?
+  Stream_SMTPSend_StreamConfiguration_t stream_configuration_connection;
   Test_I_SMTPSend_ConnectionConfiguration_t connection_configuration;
+  connection_configuration.allocatorConfiguration =
+    &configuration_in.allocatorConfiguration;
   connection_configuration.socketConfiguration.address =
     configuration_in.address;
+  connection_configuration.streamConfiguration =
+    &stream_configuration_connection;
   Net_ConnectionConfigurations_t connection_configurations;
   connection_configurations.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (""),
                                                     &connection_configuration));
 
   modulehandler_configuration.allocatorConfiguration =
     &configuration_in.allocatorConfiguration;
+  modulehandler_configuration.concurrency =
+    STREAM_HEADMODULECONCURRENCY_CONCURRENT;
   modulehandler_configuration.connectionConfigurations =
     &connection_configurations;
   modulehandler_configuration.messageAllocator = &message_allocator;
+  modulehandler_configuration.parserConfiguration =
+    &configuration_in.parserConfiguration;
+  modulehandler_configuration.protocolConfiguration =
+    &configuration_in.protocolConfiguration;
+  modulehandler_configuration.request = &request_s;
   if (statisticReportingInterval_in)
     modulehandler_configuration.statisticCollectionInterval.set (0,
                                                                  STREAM_DEFAULT_STATISTIC_COLLECTION_INTERVAL * 1000);
@@ -497,16 +538,23 @@ do_work (
 
   Stream_SMTPSend_MessageHandler_Module message_handler (NULL,
                                                          ACE_TEXT_ALWAYS_CHAR (STREAM_MISC_MESSAGEHANDLER_DEFAULT_NAME_STRING));
-  Test_I_SMTPSend_Stream_t stream;
-
+  Test_I_SMTPSend_Stream stream;
   struct SMTP_StreamConfiguration stream_configuration;
+  struct SMTP_StreamConfiguration stream_configuration_2; // connection stream-
   stream_configuration.allocatorConfiguration =
     &configuration_in.allocatorConfiguration;
+  stream_configuration.dispatchConfiguration =
+    &configuration_in.dispatchConfiguration;
   stream_configuration.messageAllocator = &message_allocator;
   stream_configuration.module = &message_handler;
   configuration_in.streamConfiguration.initialize (module_configuration,
                                                    modulehandler_configuration,
                                                    stream_configuration);
+  stream_configuration_2 = stream_configuration;
+  stream_configuration_2.module = NULL;
+  stream_configuration_connection.initialize (module_configuration,
+                                              modulehandler_configuration,
+                                              stream_configuration_2);
 
 #if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
@@ -514,7 +562,56 @@ do_work (
 #endif // GTK_USE
 #endif // GUI_SUPPORT
 
-  // step0e: initialize signal handling
+  // retrieve external address
+  ACE_INET_Addr interface_address, gateway_address;
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
+  struct _GUID interface_identifier =
+    Net_Common_Tools::getDefaultInterface_2 (NET_LINKLAYER_802_3 | NET_LINKLAYER_802_11 | NET_LINKLAYER_PPP);
+#else
+  std::string interface_identifier =
+    Net_Common_Tools::getDefaultInterface (NET_LINKLAYER_802_3 | NET_LINKLAYER_802_11 | NET_LINKLAYER_PPP);;
+#endif // _WIN32_WINNT_VISTA
+#else
+  std::string interface_identifier =
+    Net_Common_Tools::getDefaultInterface (NET_LINKLAYER_802_3 | NET_LINKLAYER_802_11 | NET_LINKLAYER_PPP);;
+#endif // ACE_WIN32 || ACE_WIN64
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
+  if (InlineIsEqualGUID (interface_identifier, GUID_NULL))
+#else
+  if (interface_identifier.empty ())
+#endif // _WIN32_WINNT_VISTA
+#else
+  if (interface_identifier.empty ())
+#endif // ACE_WIN32 || ACE_WIN64
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to Net_Common_Tools::getDefaultInterface(), aborting\n")));
+    return;
+  } // end IF
+  if (!Net_Common_Tools::interfaceToExternalIPAddress (interface_identifier,
+                                                       configuration_in.domain))
+  {
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to Net_Common_Tools::interfaceToExternalIPAddress(\"%s\"), returning\n"),
+                ACE_TEXT (Net_Common_Tools::interfaceToString (interface_identifier).c_str ())));
+#else
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to Net_Common_Tools::interfaceToExternalIPAddress(\"%s\"), returning\n"),
+                ACE_TEXT (interface_identifier.c_str ())));
+#endif // _WIN32_WINNT_VISTA
+#else
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to Net_Common_Tools::interfaceToExternalIPAddress(\"%s\"), returning\n"),
+                ACE_TEXT (interface_identifier.c_str ())));
+#endif // ACE_WIN32 || ACE_WIN64
+    return;
+  } // end IF
+
+  // initialize signal handling
   signalHandler_in.initialize (configuration_in.signalHandlerConfiguration);
   if (!Common_Signal_Tools::initialize (COMMON_SIGNAL_DISPATCH_SIGNAL,
                                         signalSet_in,
@@ -538,8 +635,12 @@ do_work (
   Test_I_SMTPSend_Connection_Manager_t* connection_manager_p =
     TEST_I_SMTPSEND_CONNECTIONMANAGER_SINGLETON::instance ();
   struct Common_EventDispatchState dispatch_state;
+  dispatch_state.configuration =
+    &configuration_in.dispatchConfiguration;
 
   // initialize event dispatch
+  configuration_in.dispatchConfiguration.dispatch =
+    (useReactor_in ? COMMON_EVENT_DISPATCH_REACTOR : COMMON_EVENT_DEFAULT_DISPATCH);
   configuration_in.dispatchConfiguration.numberOfProactorThreads =
           (!useReactor_in ? TEST_I_DEFAULT_NUMBER_OF_DISPATCHING_THREADS : 0);
   configuration_in.dispatchConfiguration.numberOfReactorThreads =
@@ -598,7 +699,7 @@ do_work (
                   ACE_TEXT ("failed to start GTK event dispatch, returning\n")));
       goto clean;
     } // end IF
-    gtk_manager_p->wait ();
+    gtk_manager_p->wait (false);
 #elif (WXWIDGETS_USE)
     if (unlikely (!iapplication_in->run ()))
     {
@@ -736,9 +837,12 @@ ACE_TMAIN (int argc_in,
     (COMMON_EVENT_DEFAULT_DISPATCH == COMMON_EVENT_DISPATCH_REACTOR);
   unsigned int statistic_reporting_interval =
     STREAM_DEFAULT_STATISTIC_REPORTING_INTERVAL;
+#if defined (_DEBUG)
   bool trace_information = false;
+#endif // _DEBUG
   enum Stream_SMTPSend_ProgramMode program_mode_e =
       STREAM_SMTPSEND_PROGRAMMODE_NORMAL;
+
 #if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
   bool result_2 = false;
@@ -758,10 +862,15 @@ ACE_TMAIN (int argc_in,
                             configuration.message,
                             configuration.password,
                             use_reactor,
-                            statistic_reporting_interval,
+#if defined (_DEBUG)
                             trace_information,
+#endif // _DEBUG
                             configuration.username,
-                            program_mode_e))
+                            program_mode_e
+#if defined (_DEBUG)
+                            ,configuration.parserConfiguration.debugParser
+#endif // _DEBUG
+                           ))
   {
     do_printUsage (ACE::basename (argv_in[0]));
     // *PORTABILITY*: on Windows, finalize ACE...
@@ -773,6 +882,10 @@ ACE_TMAIN (int argc_in,
 #endif // ACE_WIN32 || ACE_WIN64
     return EXIT_FAILURE;
   } // end IF
+#if defined (_DEBUG)
+  if (configuration.parserConfiguration.debugParser)
+    configuration.parserConfiguration.debugScanner = true;
+#endif // _DEBUG
 
   // step1c: validate arguments
   // *IMPORTANT NOTE*: iff the number of message buffers is limited, the
@@ -782,15 +895,17 @@ ACE_TMAIN (int argc_in,
   if (TEST_I_MAX_MESSAGES)
     ACE_DEBUG ((LM_WARNING,
                 ACE_TEXT ("limiting the number of message buffers could (!) lead to a deadlock --> ensure the streaming elements are sufficiently efficient in this regard\n")));
-  if (configuration.to.empty () ||
-      configuration.from.empty () ||
+  if (
 #if defined (GUI_SUPPORT)
       (!UI_definition_filename.empty () &&
        !Common_File_Tools::isReadable (UI_definition_filename)) ||
-#endif // GUI_SUPPORT
+#else
+      configuration.to.empty () ||
+      configuration.from.empty () ||
       configuration.password.empty () ||
-      configuration.username.empty ()
-     )
+      configuration.username.empty () ||
+#endif // GUI_SUPPORT
+     false)
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("invalid arguments, aborting\n")));
@@ -833,7 +948,11 @@ ACE_TMAIN (int argc_in,
                                             log_file_name,                                // log file name
                                             false,                                        // log to syslog ?
                                             false,                                        // trace messages ?
+#if defined (_DEBUG)
                                             trace_information,                            // debug messages ?
+#else
+                                            false,                                        // debug messages ?
+#endif // _DEBUG
 #if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
                                             (UI_definition_filename.empty () ? NULL

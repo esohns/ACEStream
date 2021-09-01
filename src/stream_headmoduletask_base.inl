@@ -324,11 +324,9 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
   // --> don't do anything, unless auto-starting
   if (unlikely (autoStart_))
   {
-#if defined (_DEBUG)
     ACE_DEBUG ((LM_DEBUG,
                 ACE_TEXT ("%s: auto-starting\n"),
                 inherited::mod_->name ()));
-#endif // _DEBUG
     try {
       start ();
     } catch (...) {

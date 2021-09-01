@@ -21,6 +21,8 @@
 #ifndef STREAM_NET_SOURCE_H
 #define STREAM_NET_SOURCE_H
 
+#include <vector>
+
 #include "ace/Global_Macros.h"
 #include "ace/Message_Block.h"
 #include "ace/Synch_Traits.h"
@@ -42,9 +44,7 @@ template <ACE_SYNCH_DECL,
           ////////////////////////////////
           typename ControlMessageType,
           typename DataMessageType,
-          typename SessionMessageType,
-          ////////////////////////////////
-          typename ConnectionManagerType>
+          typename SessionMessageType>
 class Stream_Module_Net_Source_Reader_T
  : public Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
                                  TimePolicyType,
@@ -87,7 +87,7 @@ class Stream_Module_Net_Source_Reader_T
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_Net_Source_Reader_T& operator= (const Stream_Module_Net_Source_Reader_T&))
 
   // convenient types
-  typedef Common_IGetP_T<typename ConnectionManagerType::CONNECTION_T> SIBLING_T;
+  //typedef Common_IGetP_T<typename ConnectionManagerType::CONNECTION_T> SIBLING_T;
 };
 
 template <ACE_SYNCH_DECL,
@@ -99,8 +99,7 @@ template <ACE_SYNCH_DECL,
           typename DataMessageType,
           typename SessionMessageType,
           ////////////////////////////////
-          typename ConnectionManagerType,
-          typename ConnectorType>
+          typename ConnectorType> // implements Net_IConnector
 class Stream_Module_Net_Source_Writer_T
  : public Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
                                  TimePolicyType,
@@ -111,7 +110,7 @@ class Stream_Module_Net_Source_Writer_T
                                  enum Stream_ControlType,
                                  enum Stream_SessionMessageType,
                                  struct Stream_UserData>
- //, public Common_IGetP_T<typename ConnectionManagerType::CONNECTION_T>
+//, public Common_IGetP_T<typename ConnectorType::CONNECTION_T>
 {
   typedef Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
                                  TimePolicyType,
@@ -145,23 +144,20 @@ class Stream_Module_Net_Source_Writer_T
   virtual void handleSessionMessage (SessionMessageType*&, // session message handle
                                      bool&);               // return value: pass message downstream ?
 
-  //// implement Common_IGetP_T
-  //inline virtual const typename ConnectionManagerType::CONNECTION_T* const get () const { return connection_; };
-
  private:
-//  // convenient types
-//  typedef ACE_Singleton<ConnectionManagerType,
-//                        ACE_SYNCH_MUTEX> CONNECTION_MANAGER_SINGLETON_T;
+  // convenient types
+  typedef std::vector<ACE_HANDLE> HANDLES_T;
+  typedef HANDLES_T::iterator HANDLESITERATOR_T;
 
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_Net_Source_Writer_T (const Stream_Module_Net_Source_Writer_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_Net_Source_Writer_T& operator= (const Stream_Module_Net_Source_Writer_T&))
 
-  typename ConnectorType::ADDRESS_T             address_;
-  ConnectorType                                 connector_;
-  typename ConnectionManagerType::CONNECTION_T* connection_;
-  bool                                          isOpen_;
-  bool                                          isPassive_;
-  bool                                          unlink_;
+  ConnectorType                          connector_;
+  typename ConnectorType::ICONNECTION_T* connection_;
+  HANDLES_T                              handles_;
+  bool                                   isOpen_;
+  bool                                   isPassive_;
+  bool                                   unlink_;
 };
 
 //////////////////////////////////////////
@@ -178,14 +174,10 @@ template <ACE_SYNCH_DECL,
           typename StreamNotificationType,
           typename StreamStateType,
           ////////////////////////////////
-          typename SessionDataType,          // session data
-          typename SessionDataContainerType, // session message payload (reference counted)
-          ////////////////////////////////
           typename StatisticContainerType,
           typename TimerManagerType, // implements Common_ITimer
           ////////////////////////////////
-          typename ConnectionManagerType, // implements Net_IConnectionManager_T
-          typename ConnectorType,
+          typename ConnectorType, // implements Net_IConnector
           ////////////////////////////////
           typename UserDataType>
 class Stream_Module_Net_SourceH_T
@@ -198,8 +190,8 @@ class Stream_Module_Net_SourceH_T
                                       StreamControlType,
                                       StreamNotificationType,
                                       StreamStateType,
-                                      SessionDataType,
-                                      SessionDataContainerType,
+                                      typename SessionMessageType::DATA_T::DATA_T,
+                                      typename SessionMessageType::DATA_T,
                                       StatisticContainerType,
                                       TimerManagerType,
                                       UserDataType>
@@ -213,8 +205,8 @@ class Stream_Module_Net_SourceH_T
                                       StreamControlType,
                                       StreamNotificationType,
                                       StreamStateType,
-                                      SessionDataType,
-                                      SessionDataContainerType,
+                                      typename SessionMessageType::DATA_T::DATA_T,
+                                      typename SessionMessageType::DATA_T,
                                       StatisticContainerType,
                                       TimerManagerType,
                                       UserDataType> inherited;
@@ -232,21 +224,8 @@ class Stream_Module_Net_SourceH_T
 #if defined (__GNUG__) || defined (_MSC_VER)
   // *PORTABILITY*: for some reason, this base class member is not exposed
   //                (MSVC/gcc)
-  using Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
-                                    Common_TimePolicy_t,
-                                    ControlMessageType,
-                                    DataMessageType,
-                                    SessionMessageType,
-                                    ConfigurationType,
-                                    StreamControlType,
-                                    StreamNotificationType,
-                                    StreamStateType,
-                                    SessionDataType,
-                                    SessionDataContainerType,
-                                    StatisticContainerType,
-                                    TimerManagerType,
-                                    UserDataType>::initialize;
-#endif
+  using inherited::initialize;
+#endif // ACE_WIN32 || ACE_WIN64
 
   // override (part of) Stream_IModuleHandler_T
   virtual bool initialize (const ConfigurationType&,
@@ -263,19 +242,19 @@ class Stream_Module_Net_SourceH_T
   //virtual void report () const;
 
  private:
-//  // convenient types
-//  typedef ACE_Singleton<ConnectionManagerType,
-//                        ACE_SYNCH_MUTEX> CONNECTION_MANAGER_SINGLETON_T;
+  // convenient types
+  typedef std::vector<ACE_HANDLE> HANDLES_T;
+  typedef HANDLES_T::iterator HANDLESITERATOR_T;
 
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_Net_SourceH_T (const Stream_Module_Net_SourceH_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_Net_SourceH_T& operator= (const Stream_Module_Net_SourceH_T&))
 
-  typename ConnectorType::ADDRESS_T             address_;
-  ConnectorType                                 connector_;
-  typename ConnectionManagerType::CONNECTION_T* connection_;
-  bool                                          isOpen_;
-  bool                                          isPassive_;
-  bool                                          unlink_;
+  ConnectorType                          connector_;
+  typename ConnectorType::ICONNECTION_T* connection_;
+  HANDLES_T                              handles_;
+  bool                                   isOpen_;
+  bool                                   isPassive_;
+  bool                                   unlink_;
 };
 
 // include template definition

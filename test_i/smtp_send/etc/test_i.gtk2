@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <interface>
-  <!-- interface-requires gtk+ 3.0 -->
-  <!-- interface-naming-policy toplevel-contextual -->
+  <requires lib="gtk+" version="2.16"/>
+  <!-- interface-naming-policy project-wide -->
   <object class="GtkAdjustment" id="adjustment_data">
     <property name="upper">100</property>
     <property name="step_increment">1</property>
@@ -43,7 +43,7 @@
   </object>
   <object class="GtkDialog" id="dialog_main">
     <property name="visible">True</property>
-    <property name="title" translatable="yes">avsave</property>
+    <property name="title" translatable="yes">SMTP send</property>
     <property name="icon">ACEStream_icon_16x16.png</property>
     <property name="type_hint">dialog</property>
     <child internal-child="vbox">
@@ -69,8 +69,8 @@
                             <property name="receives_default">False</property>
                             <property name="tooltip_markup">send eMail</property>
                             <property name="tooltip_text" translatable="yes">send eMail</property>
-                            <property name="related_action">action_send</property>
                             <property name="use_action_appearance">True</property>
+                            <property name="related_action">action_send</property>
                             <property name="relief">half</property>
                             <property name="use_stock">True</property>
                             <property name="focus_on_click">False</property>
@@ -99,7 +99,9 @@
                             <property name="can_focus">True</property>
                             <property name="tooltip_markup">data messages</property>
                             <property name="tooltip_text" translatable="yes">data messages</property>
+                            <property name="has_frame">False</property>
                             <property name="invisible_char">&#x25CF;</property>
+                            <property name="shadow_type">etched-in</property>
                             <property name="adjustment">adjustment_data_messages</property>
                             <property name="climb_rate">1</property>
                             <property name="numeric">True</property>
@@ -116,7 +118,9 @@
                             <property name="can_focus">True</property>
                             <property name="tooltip_markup">session messages</property>
                             <property name="tooltip_text" translatable="yes">session messages</property>
+                            <property name="has_frame">False</property>
                             <property name="invisible_char">&#x25CF;</property>
+                            <property name="shadow_type">etched-in</property>
                             <property name="adjustment">adjustment_session_messages</property>
                             <property name="climb_rate">1</property>
                             <property name="numeric">True</property>
@@ -134,7 +138,9 @@
                             <property name="can_focus">True</property>
                             <property name="tooltip_markup">data bytes</property>
                             <property name="tooltip_text" translatable="yes">data bytes</property>
+                            <property name="has_frame">False</property>
                             <property name="invisible_char">&#x25CF;</property>
+                            <property name="shadow_type">etched-in</property>
                             <property name="adjustment">adjustment_data</property>
                             <property name="climb_rate">1</property>
                             <property name="numeric">True</property>
@@ -185,6 +191,7 @@
                                         <property name="has_frame">False</property>
                                         <property name="invisible_char">&#x25CF;</property>
                                         <property name="text" translatable="yes">posteo.de</property>
+                                        <property name="shadow_type">etched-in</property>
                                         <property name="caps_lock_warning">False</property>
                                         <property name="primary_icon_stock">gtk-network</property>
                                       </object>
@@ -198,8 +205,11 @@
                                         <property name="can_focus">True</property>
                                         <property name="tooltip_markup">port</property>
                                         <property name="tooltip_text" translatable="yes">port</property>
+                                        <property name="max_length">5</property>
                                         <property name="has_frame">False</property>
                                         <property name="invisible_char">&#x25CF;</property>
+                                        <property name="width_chars">5</property>
+                                        <property name="shadow_type">etched-in</property>
                                         <property name="caps_lock_warning">False</property>
                                         <property name="primary_icon_stock">gtk-connect</property>
                                         <property name="adjustment">adjustment_port</property>
@@ -236,6 +246,7 @@
                                     <property name="can_focus">True</property>
                                     <property name="tooltip_markup">password</property>
                                     <property name="tooltip_text" translatable="yes">password</property>
+                                    <property name="visibility">False</property>
                                     <property name="has_frame">False</property>
                                     <property name="invisible_char">&#x25CF;</property>
                                     <property name="shadow_type">etched-in</property>
@@ -350,6 +361,7 @@
               <object class="GtkProgressBar" id="progressbar">
                 <property name="visible">True</property>
                 <property name="sensitive">False</property>
+                <property name="activity_mode">True</property>
                 <property name="pulse_step">0.10000000149</property>
               </object>
               <packing>

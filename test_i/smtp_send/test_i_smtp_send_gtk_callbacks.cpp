@@ -45,6 +45,7 @@
 
 #include "test_i_smtp_send_common.h"
 #include "test_i_smtp_send_defines.h"
+#include "test_i_smtp_send_stream.h"
 
 // global variables
 bool un_toggling_stream = false;
@@ -216,8 +217,13 @@ idle_initialize_UI_cb (gpointer userData_in)
     GTK_ENTRY (gtk_builder_get_object ((*iterator).second.second,
                                        ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_ENTRY_SERVER_NAME)));
   ACE_ASSERT (entry_p);
+  std::string hostname_string =
+    Net_Common_Tools::IPAddressToString (ui_cb_data_p->configuration->address, true, true);
+  if (hostname_string.empty ()) // failed to resolve --> use dotted-decimal
+    hostname_string =
+      Net_Common_Tools::IPAddressToString (ui_cb_data_p->configuration->address, true, false);
   gtk_entry_set_text (entry_p,
-                      Net_Common_Tools::IPAddressToString (ui_cb_data_p->configuration->address, true, true).c_str ());
+                      hostname_string.c_str ());
   spin_button_p =
       GTK_SPIN_BUTTON (gtk_builder_get_object ((*iterator).second.second,
                                                ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_SPINBUTTON_PORT_NAME)));
@@ -634,10 +640,10 @@ extern "C"
 {
 #endif /* __cplusplus */
 void
-action_send_activated_cb (GtkAction* action_in,
-                          gpointer userData_in)
+action_send_activate_cb (GtkAction* action_in,
+                         gpointer userData_in)
 {
-  STREAM_TRACE (ACE_TEXT ("::action_send_activated_cb"));
+  STREAM_TRACE (ACE_TEXT ("::action_send_activate_cb"));
 
   // sanity check(s)
   struct Stream_SMTPSend_UI_CBData* ui_cb_data_p =
@@ -653,6 +659,9 @@ action_send_activated_cb (GtkAction* action_in,
   Stream_SMTPSend_StreamConfiguration_t::ITERATOR_T iterator_2 =
     ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (iterator_2 != ui_cb_data_p->configuration->streamConfiguration.end ());
+  ACE_ASSERT ((*iterator_2).second.second.protocolConfiguration);
+  ACE_ASSERT ((*iterator_2).second.second.request);
+  Net_ConnectionConfigurationsIterator_t iterator_3;
 
   int result = -1;
   GtkTextIter start, end;
@@ -709,6 +718,11 @@ action_send_activated_cb (GtkAction* action_in,
                 ACE_TEXT (gtk_entry_get_text (entry_p))));
     goto error;
   } // end IF
+  iterator_3 =
+    (*iterator_2).second.second.connectionConfigurations->find (ACE_TEXT_ALWAYS_CHAR (""));
+  ACE_ASSERT (iterator_3 != (*iterator_2).second.second.connectionConfigurations->end ());
+  NET_CONFIGURATION_TCP_CAST ((*iterator_3).second)->socketConfiguration.address =
+    ui_cb_data_p->configuration->address;
   entry_p =
     GTK_ENTRY (gtk_builder_get_object ((*iterator).second.second,
                                        ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_ENTRY_USERNAME_NAME)));
@@ -743,6 +757,14 @@ action_send_activated_cb (GtkAction* action_in,
     ACE_TEXT_ALWAYS_CHAR (gtk_text_buffer_get_text (text_buffer_p,
                                                     &start, &end,
                                                     TRUE));
+
+  (*iterator_2).second.second.protocolConfiguration->username =
+    ui_cb_data_p->configuration->username;
+  (*iterator_2).second.second.protocolConfiguration->password =
+    ui_cb_data_p->configuration->password;
+  (*iterator_2).second.second.request->from = ui_cb_data_p->configuration->from;
+  (*iterator_2).second.second.request->to.push_back (ui_cb_data_p->configuration->to);
+  (*iterator_2).second.second.request->data = ui_cb_data_p->configuration->message;
 
   // step4: start processing thread
   ACE_NEW_NORETURN (thread_data_p,
@@ -941,8 +963,13 @@ button_quit_clicked_cb (GtkWidget* widget_in,
 
   // wait for processing thread(s)
   { ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, ui_cb_data_p->UIState->lock, FALSE);
-    while (!ui_cb_data_p->progressData.pendingActions.empty ())
-      ui_cb_data_p->UIState->condition.wait (NULL);
+    if (!ui_cb_data_p->progressData.pendingActions.empty ())
+    {
+      // *IMPORTANT NOTE*: cannot wait on the UI condition here, as it is
+      //                   signal()ed by the current thread !
+      //                   --> emit a signal to come back
+      gtk_signal_emit_by_name (GTK_OBJECT (widget_in), "clicked");
+    } // end IF
   } // end lock scope
 
   COMMON_UI_GTK_MANAGER_SINGLETON::instance ()->stop (false, // wait ?
