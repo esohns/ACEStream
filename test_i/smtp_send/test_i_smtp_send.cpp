@@ -509,6 +509,7 @@ do_work (
   Test_I_SMTPSend_ConnectionConfiguration_t connection_configuration;
   connection_configuration.allocatorConfiguration =
     &configuration_in.allocatorConfiguration;
+  connection_configuration.delayRead = true;
   connection_configuration.socketConfiguration.address =
     configuration_in.address;
   connection_configuration.streamConfiguration =

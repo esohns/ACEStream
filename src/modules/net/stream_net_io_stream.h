@@ -211,8 +211,8 @@ class Stream_Module_Net_IO_Stream_T
                                 READER_T,                          // reader type
                                 WRITER_T> IO_MODULE_T;             // writer type
 
- ACE_HANDLE  handle_; // socket-
- std::string name_;
+  ACE_HANDLE  handle_; // socket-
+  std::string name_;
 
  private:
   // convenient types

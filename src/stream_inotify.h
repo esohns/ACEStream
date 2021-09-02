@@ -27,6 +27,15 @@
 
 //#include "common_iget.h"
 
+template <typename NotificationType>
+class Stream_INotify_T
+{
+ public:
+  // *NOTE*: notify (module) (status) events, may enqeue session message(s)
+  virtual void notify (NotificationType,  // session message type
+                       bool = false) = 0; // forward upstream ?
+};
+
 class Stream_IOutboundDataNotify
  //: public Common_IGetP_T<ACE_Notification_Strategy>
 {
@@ -36,15 +45,6 @@ class Stream_IOutboundDataNotify
   // (most upstream) head modules' ('reader'-)task queue
   virtual bool initialize_2 (ACE_Notification_Strategy*,                                         // strategy handle
                              const std::string& = ACE_TEXT_ALWAYS_CHAR ("ACE_Stream_Head")) = 0; // module name
-};
-
-template <typename NotificationType>
-class Stream_INotify_T
-{
- public:
-  // *NOTE*: notify (module) (status) events, may enqeue session message(s)
-  virtual void notify (NotificationType,  // session message type
-                       bool = false) = 0; // forward upstream ?
 };
 
 #endif

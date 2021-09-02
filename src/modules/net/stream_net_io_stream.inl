@@ -440,13 +440,14 @@ Stream_Module_Net_IO_Stream_T<ACE_SYNCH_USE,
   //                   could thus invalidate the i/o modules' callstack state,
   //                   corrupting the heap
   //                   --> maintain a temporary reference to prevent this
-  typename ConnectionManagerType::CONNECTION_T* connection_p = NULL;
+  typename ConnectionManagerType::ICONNECTION_T* connection_p = NULL;
   if (likely (handle_ != ACE_INVALID_HANDLE))
   {
     ConnectionManagerType* connection_manager_p =
       ConnectionManagerType::SINGLETON_T::instance ();
     ACE_ASSERT (connection_manager_p);
     connection_p = connection_manager_p->get (handle_);
+    ACE_ASSERT (connection_p);
   } // end IF
 
   inherited::stop (wait_in,
@@ -506,7 +507,7 @@ Stream_Module_Net_IO_Stream_T<ACE_SYNCH_USE,
   //                   could thus invalidate the i/o modules' callstack state,
   //                   corrupting the heap
   //                   --> maintain a temporary reference to prevent this
-  typename ConnectionManagerType::CONNECTION_T* connection_p = NULL;
+  typename ConnectionManagerType::ICONNECTION_T* connection_p = NULL;
   ConnectionManagerType* connection_manager_p =
     ConnectionManagerType::SINGLETON_T::instance ();
 
@@ -873,5 +874,33 @@ Stream_Module_Net_IO_Stream_T<ACE_SYNCH_USE,
                   ACE_TEXT ("%s: reset finish-on-disconnect\n"),
                   ACE_TEXT (name_.c_str ())));
     } // end ELSE
+
+    // initiate read ?
+    // sanity check(s)
+    ACE_ASSERT (handle_ != ACE_INVALID_HANDLE);
+    ConnectionManagerType* connection_manager_p =
+      ConnectionManagerType::SINGLETON_T::instance ();
+    ACE_ASSERT (connection_manager_p);
+    typename ConnectionManagerType::ICONNECTION_T* connection_p =
+      connection_manager_p->get (handle_);
+    ACE_ASSERT (connection_p);
+    //const typename ConnectionManagerType::CONFIGURATION_T& configuration_r =
+      //connection_p->getR (); // *TODO*: cannot get configuration from
+                               //         Net_IConnection_T anymore ! :-(
+    // *WORKAROUND*: there may be a race condition here in some scenarios !
+    typename ConnectionManagerType::CONFIGURATION_T* configuration_p = NULL;
+    typename ConnectionManagerType::USERDATA_T* user_data_p = NULL;
+    connection_manager_p->get (configuration_p, user_data_p);
+    ACE_ASSERT (configuration_p);
+    //if (unlikely (configuration_r.delayRead))
+    if (unlikely (configuration_p->delayRead))
+      if (!connection_p->initiate_read ())
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("%s: failed to Net_ISocketHandler::initiate_read(), aborting\n"),
+                    ACE_TEXT (name_.c_str ())));
+        connection_p->close ();
+      } // end IF
+    connection_p->decrease ();
   } // end IF
 }

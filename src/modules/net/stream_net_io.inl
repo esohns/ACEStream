@@ -107,7 +107,7 @@ Stream_Module_Net_IOReader_T<ACE_SYNCH_USE,
 
   ConnectionManagerType* connection_manager_p =
       ConnectionManagerType::SINGLETON_T::instance ();
-  typename ConnectionManagerType::CONNECTION_T* connection_p = NULL;
+  typename ConnectionManagerType::ICONNECTION_T* connection_p = NULL;
   WRITER_T* sibling_task_p = dynamic_cast<WRITER_T*> (inherited::sibling ());
   if (unlikely (!sibling_task_p))
   {
@@ -597,7 +597,7 @@ continue_3:
         const_cast<SessionDataType&> (inherited::sessionData_->getR ());
       ConnectionManagerType* connection_manager_p =
         ConnectionManagerType::SINGLETON_T::instance ();
-      typename ConnectionManagerType::CONNECTION_T* connection_p = NULL;
+      typename ConnectionManagerType::ICONNECTION_T* connection_p = NULL;
       ACE_HANDLE handle_h = ACE_INVALID_HANDLE;
       ACE_ASSERT (connection_manager_p);
       ACE_ASSERT (session_data_r.lock);
