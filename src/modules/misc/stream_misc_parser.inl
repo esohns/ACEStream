@@ -1573,7 +1573,7 @@ Stream_Module_ParserH_T<ACE_SYNCH_USE,
     return;
   } // end IF
 
-  int result = queue_.enqueue (message_block_p, NULL);
+  int result = inherited::queue_.enqueue (message_block_p, NULL);
   if (unlikely (result == -1))
   {
     ACE_DEBUG ((LM_ERROR,

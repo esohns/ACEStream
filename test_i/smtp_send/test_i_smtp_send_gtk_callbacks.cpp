@@ -676,6 +676,7 @@ action_send_activate_cb (GtkAction* action_in,
   ACE_hthread_t thread_handle = ACE_INVALID_HANDLE;
   ACE_Thread_Manager* thread_manager_p = NULL;
   bool join_b = false;
+  GtkTextBuffer* text_buffer_p = NULL;
 
   // step1: deactivate some widgets
   gtk_action_set_sensitive (action_in, FALSE);
@@ -747,7 +748,7 @@ action_send_activate_cb (GtkAction* action_in,
   ACE_ASSERT (entry_p);
   ui_cb_data_p->configuration->to =
     ACE_TEXT_ALWAYS_CHAR (gtk_entry_get_text (entry_p));
-  GtkTextBuffer* text_buffer_p =
+  text_buffer_p =
     GTK_TEXT_BUFFER (gtk_builder_get_object ((*iterator).second.second,
                                              ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_TEXTBUFFER_NAME)));
   ACE_ASSERT (text_buffer_p);
