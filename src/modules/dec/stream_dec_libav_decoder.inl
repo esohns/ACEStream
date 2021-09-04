@@ -241,7 +241,7 @@ Stream_Decoder_LibAVDecoder_T<ACE_SYNCH_USE,
   // *NOTE*: this level logs all messages
   //av_log_set_level (std::numeric_limits<int>::max ());
 #endif // _DEBUG^^^
-  av_register_all ();
+//  av_register_all ();
 //  avcodec_register_all ();
 
   // *TODO*: remove type inferences
@@ -1084,14 +1084,13 @@ continue_:
     }
     case STREAM_SESSION_MESSAGE_RESIZE:
     {
+      unsigned int width = 0;
+      unsigned int buffer_size = frameSize_;
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
       const SessionDataContainerType& session_data_container_r =
         message_inout->getR ();
       typename SessionDataContainerType::DATA_T& session_data_r =
         const_cast<typename SessionDataContainerType::DATA_T&> (session_data_container_r.getR ());
-
-      unsigned int width = 0;
-      unsigned int buffer_size = frameSize_;
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
       ACE_ASSERT (!session_data_r.formats.empty ());
       //Common_Image_Resolution_t resolution_s =
       //  Stream_MediaFramework_DirectShow_Tools::toResolution (session_data_r.formats.back ());

@@ -170,7 +170,7 @@ Stream_Decoder_LibAV_ImageDecoder_T<ACE_SYNCH_USE,
     av_log_set_level (std::numeric_limits<int>::max ());
   } // end IF
 #endif // _DEBUG
-  av_register_all ();
+//  av_register_all ();
 //  avcodec_register_all ();
 
   // *TODO*: remove type inferences

@@ -540,7 +540,7 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
-  av_register_all ();
+//  av_register_all ();
 //  avcodec_register_all ();
 
   struct AVOutputFormat* output_format_p =
