@@ -1663,7 +1663,8 @@ error:
                                                                                    v4l_resize_modulehandler_configuration)));
 
   v4l_renderer_modulehandler_configuration = v4l_modulehandler_configuration;
-  v4l_renderer_modulehandler_configuration.display = displayDevice_in;
+  v4l_renderer_modulehandler_configuration.deviceIdentifier.identifier =
+      displayDevice_in.device;
   // *TODO*: X11 window crashes for 24 bit depths... (BadIDChoice)
 //  v4l_renderer_modulehandler_configuration.outputFormat.format = AV_PIX_FMT_RGB32;
   configuration_in.v4l_streamConfiguration.insert (std::make_pair (Stream_Visualization_Tools::rendererToModuleName (STREAM_VISUALIZATION_VIDEORENDERER_GTK_PIXBUF),

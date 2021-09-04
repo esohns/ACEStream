@@ -1552,7 +1552,8 @@ Stream_CamSave_V4L_Stream::load (Stream_ILayout* layout_in,
   typename inherited::CONFIGURATION_T::ITERATOR_T iterator_2 =
       configuration_->find (Stream_Visualization_Tools::rendererToModuleName (STREAM_VISUALIZATION_VIDEORENDERER_GTK_PIXBUF));
   ACE_ASSERT (iterator_2 != configuration_->end ());
-  bool display_b = !(*iterator_2).second.second.display.device.empty ();
+  bool display_b =
+      !(*iterator_2).second.second.deviceIdentifier.identifier.empty ();
   bool save_to_file_b = !(*iterator).second.second.targetFileName.empty ();
 
   // *NOTE*: this processing stream may have branches, depending on:

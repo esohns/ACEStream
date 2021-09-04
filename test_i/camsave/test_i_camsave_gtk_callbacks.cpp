@@ -2528,7 +2528,9 @@ idle_initialize_UI_cb (gpointer userData_in)
     iterator_4 =
       ui_cb_data_p->configuration->v4l_streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_LIBAV_RESIZE_DEFAULT_NAME_STRING));
     ACE_ASSERT (iterator_4 != ui_cb_data_p->configuration->v4l_streamConfiguration.end ());
-    display_device_string = (*iterator_3).second.second.display.device;
+    struct Common_UI_DisplayDevice display_device_s =
+        Common_UI_Tools::getDisplay ((*iterator_3).second.second.deviceIdentifier.identifier);
+    display_device_string = display_device_s.device;
     is_display_b =
         !(*iterator_3).second.second.deviceIdentifier.identifier.empty ();
     is_fullscreen_b = (*iterator_3).second.second.fullScreen;
@@ -4398,7 +4400,7 @@ togglebutton_display_toggled_cb (GtkToggleButton* toggleButton_in,
   } // end IF
 #endif // LIBCAMERA_SUPPORT
   else
-    (*v4l_iterator_2).second.second.display.device.clear ();
+    (*v4l_iterator_2).second.second.deviceIdentifier.identifier.clear ();
 #endif
     return;
   } // end IF
@@ -4458,7 +4460,8 @@ togglebutton_display_toggled_cb (GtkToggleButton* toggleButton_in,
                 ACE_TEXT ("useLibCamera specified, but LIBCAMERA_SUPPORT not set, continuing\n")));
 #endif // LIBCAMERA_SUPPORT
   else
-    (*v4l_iterator_2).second.second.display.device = g_value_get_string (&value);
+    (*v4l_iterator_2).second.second.deviceIdentifier.identifier =
+      g_value_get_string (&value);
 #endif // ACE_WIN32 || ACE_WIN64
   g_value_unset (&value);
 }
@@ -6213,7 +6216,8 @@ combobox_display_changed_cb (GtkWidget* widget_in,
     }
   } // end SWITCH
 #else
-  (*iterator_3).second.second.display.device = g_value_get_string (&value);
+  (*iterator_3).second.second.deviceIdentifier.identifier =
+      g_value_get_string (&value);
 #endif // ACE_WIN32 || ACE_WIN64
   g_value_unset (&value);
 
@@ -6252,8 +6256,10 @@ combobox_display_changed_cb (GtkWidget* widget_in,
     }
   } // end SWITCH
 #else
+  struct Common_UI_DisplayDevice display_device_s =
+      Common_UI_Tools::getDisplay ((*iterator_3).second.second.deviceIdentifier.identifier);
   display_adapter_s =
-    Common_UI_Tools::getAdapter ((*iterator_3).second.second.display);
+    Common_UI_Tools::getAdapter (display_device_s);
 #endif // ACE_WIN32 || ACE_WIN64
   g_value_init (&value, G_TYPE_STRING);
   g_value_set_string (&value,

@@ -1860,14 +1860,14 @@ Stream_MediaFramework_Tools::ffmpegFormatToBitDepth (enum AVPixelFormat format_i
     case AV_PIX_FMT_NV24:
     case AV_PIX_FMT_NV42:
       return 24;
-    case AV_PIX_FMT_VULKAN:
-      return 0;
-    case AV_PIX_FMT_Y210BE:
-    case AV_PIX_FMT_Y210LE:
-      return 20;
-    case AV_PIX_FMT_X2RGB10LE:
-    case AV_PIX_FMT_X2RGB10BE:
-      return 30;
+//    case AV_PIX_FMT_VULKAN:
+//      return 0;
+//    case AV_PIX_FMT_Y210BE:
+//    case AV_PIX_FMT_Y210LE:
+//      return 20;
+//    case AV_PIX_FMT_X2RGB10LE:
+//    case AV_PIX_FMT_X2RGB10BE:
+//      return 30;
     case AV_PIX_FMT_NB:
     default:
     {
