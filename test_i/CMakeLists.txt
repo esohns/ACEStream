@@ -294,13 +294,13 @@ add_subdirectory (avsave)
 add_subdirectory (camsave)
 # *IMPORTANT NOTE*: comment temporarily to disambiguate ACEStream <-> ACENetwork
 #                   interdependencies
-#add_subdirectory (camstream)
-#add_subdirectory (filestream)
-#add_subdirectory (http_get)
-#add_subdirectory (http_get_2)
+add_subdirectory (camstream)
+add_subdirectory (filestream)
+add_subdirectory (http_get)
+add_subdirectory (http_get_2)
 add_subdirectory (imagesave)
 add_subdirectory (mp3player)
-#add_subdirectory (smtp_send)
+add_subdirectory (smtp_send)
 
 add_custom_target (test_i ALL
                    COMMENT "building test_i...")
