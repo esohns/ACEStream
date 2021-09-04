@@ -1,4 +1,4 @@
-﻿if (UNIX)
+if (UNIX)
  option (LIBCAMERA_SUPPORT "support libcamera" OFF)
  if (LIBCAMERA_SUPPORT)
   add_definitions (-DLIBCAMERA_SUPPORT)

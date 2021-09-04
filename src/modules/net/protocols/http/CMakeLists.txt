@@ -1,4 +1,4 @@
-﻿if (UNIX)
+if (UNIX)
 # add_definitions (-D_GLIBCXX_INCLUDE_NEXT_C_HEADERS)
 endif ()
 

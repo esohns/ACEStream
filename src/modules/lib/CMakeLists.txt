@@ -1,4 +1,4 @@
-﻿if (UNIX)
+if (UNIX)
  pkg_check_modules (PKG_ALSA REQUIRED alsa)
  pkg_check_modules (PKG_FFMPEG REQUIRED libavutil)
 # pkg_check_modules (PKG_LIBCAMERA REQUIRED libcamera)

@@ -1,4 +1,4 @@
-﻿#if defined (ACE_WIN64) || defined (ACE_WIN32)
+#if defined (ACE_WIN64) || defined (ACE_WIN32)
 #include <OleCtl.h>
 // *NOTE*: uuids.h doesn't have double include protection
 #if defined (UUIDS_H)

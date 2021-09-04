@@ -1,4 +1,4 @@
-﻿set (ACE_LIB_FILE libACE.so)
+set (ACE_LIB_FILE libACE.so)
 if (DEFINED ENV{ACE_ROOT})
  find_library (ACE_LIBRARY ${ACE_LIB_FILE}
                PATHS ENV ACE_ROOT

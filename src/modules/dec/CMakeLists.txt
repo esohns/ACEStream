@@ -1,4 +1,4 @@
-﻿include (OS)
+include (OS)
 
 option (FFMPEG_SUPPORT "support ffmpeg" ON)
 if (FFMPEG_SUPPORT)

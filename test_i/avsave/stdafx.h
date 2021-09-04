@@ -1,4 +1,4 @@
-﻿#ifndef __STDAFX__
+#ifndef __STDAFX__
 #define __STDAFX__
 
 // stdafx.h : include file for standard system include files,

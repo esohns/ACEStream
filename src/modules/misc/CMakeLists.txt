@@ -1,4 +1,4 @@
-﻿if (UNIX)
+if (UNIX)
  pkg_check_modules (PKG_FFMPEG REQUIRED libavutil)
 endif (UNIX)
 

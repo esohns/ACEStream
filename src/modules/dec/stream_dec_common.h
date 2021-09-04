@@ -1,4 +1,4 @@
-﻿#ifndef STREAM_DECODER_COMMON_H
+#ifndef STREAM_DECODER_COMMON_H
 #define STREAM_DECODER_COMMON_H
 
 #include <cstdint>

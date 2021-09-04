@@ -1,4 +1,4 @@
-﻿if (GUI_SUPPORT)
+if (GUI_SUPPORT)
  if (GTK_USE AND GTKGL_SUPPORT)
   option (GTKGL_USE "enable GTK OpenGL" ON)
   if(GTKGL_USE)

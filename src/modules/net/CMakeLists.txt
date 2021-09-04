@@ -1,4 +1,4 @@
-﻿add_library (${PROJECT_NAME}_Network STATIC "")
+add_library (${PROJECT_NAME}_Network STATIC "")
 
 get_filename_component (BUILD_PATH ${CMAKE_CURRENT_BINARY_DIR}/../../.. REALPATH DIRECTORY)
 get_filename_component (BUILD_PATH_SUFFIX ${BUILD_PATH} NAME)

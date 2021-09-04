@@ -1,4 +1,4 @@
-﻿set (MYSQL_LIB_FILE libmysqlclient.so)
+set (MYSQL_LIB_FILE libmysqlclient.so)
 if (UNIX)
 # pkg_check_modules (PKG_MYSQL REQUIRED libmysqlclient-dev)
  pkg_check_modules (PKG_MYSQL REQUIRED mysqlclient) # Fedora 29

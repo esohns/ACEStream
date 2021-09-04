@@ -1,4 +1,4 @@
-﻿add_library (${PROJECT_NAME}_Statistic STATIC "")
+add_library (${PROJECT_NAME}_Statistic STATIC "")
 
 if (UNIX)
  target_include_directories (${PROJECT_NAME}_Statistic PUBLIC

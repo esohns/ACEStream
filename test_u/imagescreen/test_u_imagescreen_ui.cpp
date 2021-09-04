@@ -1,4 +1,4 @@
-﻿#include "ace/Synch.h"
+#include "ace/Synch.h"
 #include "test_u_imagescreen_ui.h"
 
 #include "test_u_imagescreen_common.h"

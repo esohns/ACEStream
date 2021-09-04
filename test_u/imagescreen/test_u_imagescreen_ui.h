@@ -1,4 +1,4 @@
-﻿#ifndef TEST_U_IMAGESCREEN_UI_H
+#ifndef TEST_U_IMAGESCREEN_UI_H
 #define TEST_U_IMAGESCREEN_UI_H
 
 #include "wx/wx.h"
