@@ -1,21 +1,70 @@
 diff --git a/scripts/github_repo_build.patch b/scripts/github_repo_build.patch
-index 567aa6b4..e69de29b 100644
+index c1d82456..e69de29b 100644
 --- a/scripts/github_repo_build.patch
 +++ b/scripts/github_repo_build.patch
-@@ -1,52 +0,0 @@
+@@ -1,105 +0,0 @@
+-diff --git a/scripts/github_repo_build.patch b/scripts/github_repo_build.patch
+-index 567aa6b4..e69de29b 100644
+---- a/scripts/github_repo_build.patch
+-+++ b/scripts/github_repo_build.patch
+-@@ -1,52 +0,0 @@
+--diff --git a/src/modules/CMakeLists.txt b/src/modules/CMakeLists.txt
+--index c9e80ac2..390b310f 100644
+----- a/src/modules/CMakeLists.txt
+--+++ b/src/modules/CMakeLists.txt
+--@@ -3,11 +3,13 @@ add_subdirectory (dec)
+-- add_subdirectory (dev)
+-- add_subdirectory (doc)
+-- add_subdirectory (file)
+---add_subdirectory (html)
+--+# *IMPORTANT NOTE*: comment temporarily to disambiguate ACEStream <-> ACENetwork
+--+#                   interdependencies
+--+#add_subdirectory (html)
+-- add_subdirectory (lib)
+-- add_subdirectory (misc)
+-- # *IMPORTANT NOTE*: comment temporarily to disambiguate ACEStream <-> ACENetwork
+-- #                   interdependencies
+---add_subdirectory (net)
+--+#add_subdirectory (net)
+-- add_subdirectory (stat)
+-- add_subdirectory (vis)
+--diff --git a/test_i/CMakeLists.txt b/test_i/CMakeLists.txt
+--index 4d9a8b23..058888f4 100644
+----- a/test_i/CMakeLists.txt
+--+++ b/test_i/CMakeLists.txt
+--@@ -287,10 +287,10 @@ add_subdirectory (avsave)
+-- add_subdirectory (camsave)
+-- # *IMPORTANT NOTE*: comment temporarily to disambiguate ACEStream <-> ACENetwork
+-- #                   interdependencies
+---add_subdirectory (camstream)
+---add_subdirectory (filestream)
+---add_subdirectory (http_get)
+---add_subdirectory (http_get_2)
+--+#add_subdirectory (camstream)
+--+#add_subdirectory (filestream)
+--+#add_subdirectory (http_get)
+--+#add_subdirectory (http_get_2)
+-- add_subdirectory (imagesave)
+-- add_subdirectory (mp3player)
+-- 
+--diff --git a/test_u/CMakeLists.txt b/test_u/CMakeLists.txt
+--index ab391fce..ba045dcc 100644
+----- a/test_u/CMakeLists.txt
+--+++ b/test_u/CMakeLists.txt
+--@@ -321,7 +321,7 @@ add_subdirectory (document)
+-- add_subdirectory (filecopy)
+-- # *IMPORTANT NOTE*: comment temporarily to disambiguate ACEStream <-> ACENetwork
+-- #                   interdependencies
+---add_subdirectory (http_get)
+--+#add_subdirectory (http_get)
+-- add_subdirectory (imagescreen)
+-- add_subdirectory (parser)
+-- add_subdirectory (riff_decoder)
 -diff --git a/src/modules/CMakeLists.txt b/src/modules/CMakeLists.txt
--index c9e80ac2..390b310f 100644
+-index d6f44ec2..c016b824 100644
 ---- a/src/modules/CMakeLists.txt
 -+++ b/src/modules/CMakeLists.txt
--@@ -3,11 +3,13 @@ add_subdirectory (dec)
-- add_subdirectory (dev)
-- add_subdirectory (doc)
-- add_subdirectory (file)
---add_subdirectory (html)
--+# *IMPORTANT NOTE*: comment temporarily to disambiguate ACEStream <-> ACENetwork
--+#                   interdependencies
--+#add_subdirectory (html)
-- add_subdirectory (lib)
+-@@ -8,6 +8,6 @@ add_subdirectory (lib)
 - add_subdirectory (misc)
 - # *IMPORTANT NOTE*: comment temporarily to disambiguate ACEStream <-> ACENetwork
 - #                   interdependencies
@@ -24,10 +73,10 @@ index 567aa6b4..e69de29b 100644
 - add_subdirectory (stat)
 - add_subdirectory (vis)
 -diff --git a/test_i/CMakeLists.txt b/test_i/CMakeLists.txt
--index 4d9a8b23..058888f4 100644
+-index 316b2f2f..6e05a2df 100644
 ---- a/test_i/CMakeLists.txt
 -+++ b/test_i/CMakeLists.txt
--@@ -287,10 +287,10 @@ add_subdirectory (avsave)
+-@@ -294,13 +294,13 @@ add_subdirectory (avsave)
 - add_subdirectory (camsave)
 - # *IMPORTANT NOTE*: comment temporarily to disambiguate ACEStream <-> ACENetwork
 - #                   interdependencies
@@ -41,12 +90,16 @@ index 567aa6b4..e69de29b 100644
 -+#add_subdirectory (http_get_2)
 - add_subdirectory (imagesave)
 - add_subdirectory (mp3player)
+--add_subdirectory (smtp_send)
+-+#add_subdirectory (smtp_send)
 - 
+- add_custom_target (test_i ALL
+-                    COMMENT "building test_i...")
 -diff --git a/test_u/CMakeLists.txt b/test_u/CMakeLists.txt
--index ab391fce..ba045dcc 100644
+-index 94e8ab98..921925b8 100644
 ---- a/test_u/CMakeLists.txt
 -+++ b/test_u/CMakeLists.txt
--@@ -321,7 +321,7 @@ add_subdirectory (document)
+-@@ -318,7 +318,7 @@ add_subdirectory (document)
 - add_subdirectory (filecopy)
 - # *IMPORTANT NOTE*: comment temporarily to disambiguate ACEStream <-> ACENetwork
 - #                   interdependencies

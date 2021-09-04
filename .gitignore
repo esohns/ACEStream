@@ -30,6 +30,9 @@
 # Backup files
 *.bak
 
+# Patches
+*.patch
+
 # Automake
 Makefile.in
 aclocal.m4
