@@ -26,7 +26,6 @@
 #include "ace/Global_Macros.h"
 #include "ace/Synch_Traits.h"
 
-#include "common_ilock.h"
 #include "common_time_common.h"
 
 #include "stream_task_base_synch.h"
@@ -54,12 +53,10 @@ template <ACE_SYNCH_DECL,
 class Stream_Visualization_OpenCVClassifier_T
  : public Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
                                  TimePolicyType,
-                                 Common_ILock_T<ACE_SYNCH_USE>,
                                  ConfigurationType,
                                  ControlMessageType,
                                  DataMessageType,
                                  SessionMessageType,
-                                 Stream_SessionId_t,
                                  enum Stream_ControlType,
                                  enum Stream_SessionMessageType,
                                  struct Stream_UserData>
@@ -72,12 +69,10 @@ class Stream_Visualization_OpenCVClassifier_T
 {
   typedef Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
                                  TimePolicyType,
-                                 Common_ILock_T<ACE_SYNCH_USE>,
                                  ConfigurationType,
                                  ControlMessageType,
                                  DataMessageType,
                                  SessionMessageType,
-                                 Stream_SessionId_t,
                                  enum Stream_ControlType,
                                  enum Stream_SessionMessageType,
                                  struct Stream_UserData> inherited;
@@ -112,7 +107,7 @@ class Stream_Visualization_OpenCVClassifier_T
   ACE_UNIMPLEMENTED_FUNC (Stream_Visualization_OpenCVClassifier_T (const Stream_Visualization_OpenCVClassifier_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Visualization_OpenCVClassifier_T& operator= (const Stream_Visualization_OpenCVClassifier_T&))
 
-  cv::CascadeClassifier                         cascadeClassifier_;
+  cv::CascadeClassifier                              cascadeClassifier_;
   struct Stream_MediaFramework_FFMPEG_VideoMediaType mediaType_;
 };
 

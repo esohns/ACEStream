@@ -18,29 +18,29 @@ if (NOT MPG123_LIBRARY)
 endif (NOT MPG123_LIBRARY)
 #add_dependencies (${PROJECT_NAME}_Database libmysqlpp.so)
 
-get_filename_component (BUILD_PATH ${CMAKE_CURRENT_BINARY_DIR}/../.. REALPATH DIRECTORY)
+get_filename_component (BUILD_PATH ${CMAKE_CURRENT_BINARY_DIR}/../.. REALPATH)
 get_filename_component (BUILD_PATH_SUFFIX ${BUILD_PATH} NAME)
-find_package (Common ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_MICRO}
-              REQUIRED
-              CONFIG
-              PATHS ${CMAKE_CURRENT_SOURCE_DIR}/../../modules ${CMAKE_CURRENT_SOURCE_DIR}/../../..
-              PATH_SUFFIXES Common/${BUILD_PATH_SUFFIX}
-              NO_DEFAULT_PATH)
-if (NOT EXISTS ${Common_DIR})
- message (FATAL_ERROR "could not find package \"Common\", aborting")
-endif ()
-add_definitions (-DCOMMON_HAS_DLL)
+#find_package (Common ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_MICRO}
+#              REQUIRED
+#              CONFIG
+#              PATHS ${CMAKE_CURRENT_SOURCE_DIR}/../../modules ${CMAKE_CURRENT_SOURCE_DIR}/../../..
+#              PATH_SUFFIXES Common/${BUILD_PATH_SUFFIX}
+#              NO_DEFAULT_PATH)
+#if (NOT EXISTS ${Common_DIR})
+# message (FATAL_ERROR "could not find package \"Common\", aborting")
+#endif ()
+#add_definitions (-DCOMMON_HAS_DLL)
 
-find_package (${PROJECT_NAME} ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_MICRO}
-              REQUIRED
-              CONFIG
-              PATHS ${CMAKE_CURRENT_SOURCE_DIR}/../..
-              PATH_SUFFIXES ${BUILD_PATH_SUFFIX}
-              NO_DEFAULT_PATH)
-if (NOT EXISTS ${ACEStream_DIR})
- message (FATAL_ERROR "could not find package \"ACEStream\", aborting")
-endif ()
-add_definitions (-DSTREAM_DB_HAS_DLL)
+#find_package (${PROJECT_NAME} ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_MICRO}
+#              REQUIRED
+#              CONFIG
+#              PATHS ${CMAKE_CURRENT_SOURCE_DIR}/../..
+#              PATH_SUFFIXES ${BUILD_PATH_SUFFIX}
+#              NO_DEFAULT_PATH)
+#if (NOT EXISTS ${ACEStream_DIR})
+# message (FATAL_ERROR "could not find package \"ACEStream\", aborting")
+#endif ()
+#add_definitions (-DSTREAM_DB_HAS_DLL)
 
 #string (TOLOWER "${CMAKE_BUILD_TYPE}" BUILD_TYPE)
 #find_package (ACENetwork ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_MICRO}
@@ -68,7 +68,7 @@ if (UNIX)
  endif (SSL_SUPPORT)
 
 # include_directories (/usr/local/src/ACE_wrappers)
- include_directories ($ENV{LIB_ROOT}/ACE_TAO/ACE)
+# include_directories ($ENV{LIB_ROOT}/ACE_TAO/ACE)
 
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../Common/src)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../Common/src/log)
@@ -97,11 +97,11 @@ elseif (WIN32)
 
  #include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../openssl/include)
 
- if (DEFINED ENV{ACE_ROOT})
-  include_directories ($ENV{ACE_ROOT})
- else ()
-  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../ATCD/ACE)
- endif (DEFINED ENV{ACE_ROOT})
+# if (DEFINED ENV{ACE_ROOT})
+#  include_directories ($ENV{ACE_ROOT})
+# else ()
+#  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../ATCD/ACE)
+# endif (DEFINED ENV{ACE_ROOT})
 
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../3rd_party)
  #include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../3rd_party/flex)
@@ -147,13 +147,13 @@ set (${EXECUTABLE}_EXE_SRCS
      test_i_stream.h
      test_i_stream_common.h)
 
-if (UNIX)
- add_definitions (-D_GLIBCXX_INCLUDE_NEXT_C_HEADERS)
-endif ()
+#if (UNIX)
+# add_definitions (-D_GLIBCXX_INCLUDE_NEXT_C_HEADERS)
+#endif ()
 
 if (UNIX)
 # message (STATUS "PKG_MYSQL_LIBRARY_DIRS: ${PKG_MYSQL_LIBRARY_DIRS}")
- link_directories (${PKG_MYSQL_LIBRARY_DIRS})
+# link_directories (${PKG_MYSQL_LIBRARY_DIRS})
 endif (UNIX)
 
 cmake_policy (SET CMP0060 OLD) # link libraries by full path even in implicit directories
@@ -176,7 +176,7 @@ if (UNIX)
 elseif (WIN32)
  # *WARNING*: linking CommonUI requires "/FORCE:MULTIPLE"
  target_link_options (${EXECUTABLE} PUBLIC "$<$<CXX_COMPILER_ID:MSVC>:-SAFESEH:NO>")
- set_target_properties (${EXECUTABLE} PROPERTIES LINK_FLAGS /FORCE:MULTIPLE)
+# set_target_properties (${EXECUTABLE} PROPERTIES LINK_FLAGS /FORCE:MULTIPLE)
 # set_target_properties (${EXECUTABLE} PROPERTIES LINK_FLAGS /SAFESEH:NO)
 endif ()
 target_link_libraries (${EXECUTABLE} ${MPG123_LIBRARY})
@@ -198,7 +198,7 @@ endif ()
 
 if (WIN32)
  # *WARNING*: linking Common requires "/FORCE:MULTIPLE"
- set_target_properties (${EXECUTABLE} PROPERTIES LINK_FLAGS /FORCE:MULTIPLE)
+# set_target_properties (${EXECUTABLE} PROPERTIES LINK_FLAGS /FORCE:MULTIPLE)
 endif (WIN32)
 target_link_libraries (${EXECUTABLE} Common)
 target_link_libraries (${EXECUTABLE} CommonLog)

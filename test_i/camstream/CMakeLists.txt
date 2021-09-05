@@ -21,25 +21,25 @@ endif (FFMPEG_SUPPORT)
 
 get_filename_component (BUILD_PATH ${CMAKE_CURRENT_BINARY_DIR}/../.. REALPATH DIRECTORY)
 get_filename_component (BUILD_PATH_SUFFIX ${BUILD_PATH} NAME)
-find_package (Common ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_MICRO}
-              REQUIRED
-              CONFIG
-              PATHS ${CMAKE_CURRENT_SOURCE_DIR}/../modules ${CMAKE_CURRENT_SOURCE_DIR}/../..
-              PATH_SUFFIXES Common/${BUILD_PATH_SUFFIX}
-              NO_DEFAULT_PATH)
-if (NOT EXISTS ${Common_DIR})
- message (FATAL_ERROR "could not find package \"Common\", aborting")
-endif ()
+#find_package (Common ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_MICRO}
+#              REQUIRED
+#              CONFIG
+#              PATHS ${CMAKE_CURRENT_SOURCE_DIR}/../modules ${CMAKE_CURRENT_SOURCE_DIR}/../..
+#              PATH_SUFFIXES Common/${BUILD_PATH_SUFFIX}
+#              NO_DEFAULT_PATH)
+#if (NOT EXISTS ${Common_DIR})
+# message (FATAL_ERROR "could not find package \"Common\", aborting")
+#endif ()
 
-find_package (${PROJECT_NAME} ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_MICRO}
-              REQUIRED
-              CONFIG
-              PATHS ${CMAKE_CURRENT_SOURCE_DIR}/../..
-              PATH_SUFFIXES ${BUILD_PATH_SUFFIX}
-              NO_DEFAULT_PATH)
-if (NOT EXISTS ${ACEStream_DIR})
- message (FATAL_ERROR "could not find package \"${PROJECT_NAME}\", aborting")
-endif ()
+#find_package (${PROJECT_NAME} ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_MICRO}
+#              REQUIRED
+#              CONFIG
+#              PATHS ${CMAKE_CURRENT_SOURCE_DIR}/../..
+#              PATH_SUFFIXES ${BUILD_PATH_SUFFIX}
+#              NO_DEFAULT_PATH)
+#if (NOT EXISTS ${ACEStream_DIR})
+# message (FATAL_ERROR "could not find package \"${PROJECT_NAME}\", aborting")
+#endif ()
 
 find_package (ACENetwork ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_MICRO}
               REQUIRED
@@ -49,7 +49,10 @@ find_package (ACENetwork ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_MICRO}
               NO_DEFAULT_PATH)
 if (NOT EXISTS ${ACENetwork_DIR})
  message (FATAL_ERROR "could not find package \"ACENetwork\", aborting")
+else ()
+ message (STATUS "found package \"ACENetwork\": \"${ACENetwork_DIR}\"")
 endif ()
+add_definitions (-DACENETWORK_HAS_DLL)
 
 if (WIN32 AND (CMAKE_BUILD_TYPE STREQUAL Debug))
  # *NOTE*: DirectShow uses 'DEBUG'
@@ -70,7 +73,7 @@ if (UNIX)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../Common/src/signal)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../Common/src/timer)
 
- include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../ACENetwork/cmake)
+ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../ACENetwork/${BUILD_PATH_SUFFIX})
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../ACENetwork/src)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../ACENetwork/src/client_server)
 elseif (WIN32)
@@ -90,7 +93,7 @@ elseif (WIN32)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../Common/src/timer)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../Common/src/ui)
 
- include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../ACENetwork/cmake)
+ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../ACENetwork/${BUILD_PATH_SUFFIX})
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../ACENetwork/src)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../ACENetwork/src/client_server)
 endif ()

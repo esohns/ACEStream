@@ -19,7 +19,6 @@
  ***************************************************************************/
 #include "stdafx.h"
 
-#include "ace/Synch.h"
 #include "stream_vis_target_mediafoundation.h"
 
 #include "stream_vis_defines.h"

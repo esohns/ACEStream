@@ -18,12 +18,12 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#ifdef __cplusplus
-extern "C"
-{
-#include "libswscale/swscale.h"
-}
-#endif /* __cplusplus */
+//#ifdef __cplusplus
+//extern "C"
+//{
+//#include "libswscale/swscale.h"
+//}
+//#endif /* __cplusplus */
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #include "MagickWand/MagickWand.h"
@@ -235,14 +235,11 @@ Stream_Visualization_ImageMagickResize_T<ACE_SYNCH_USE,
                     (!inherited::configuration_->outputFormat.resolution.width ||
                      !inherited::configuration_->outputFormat.resolution.height)))
       {
-#if defined (_DEBUG)
         ACE_DEBUG ((LM_DEBUG,
                     ACE_TEXT ("%s: output size and/or -window not set, continuing\n"),
                     inherited::mod_->name ()));
-#endif // _DEBUG
         break;
       } // end IF
-#if defined (_DEBUG)
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
         ACE_DEBUG ((LM_DEBUG,
                     ACE_TEXT ("%s: resizing %ux%u to %ux%u\n"),
@@ -256,7 +253,6 @@ Stream_Visualization_ImageMagickResize_T<ACE_SYNCH_USE,
                     sourceResolution_.width, sourceResolution_.height,
                     inherited::configuration_->outputFormat.resolution.width, inherited::configuration_->outputFormat.resolution.height));
 #endif // ACE_WIN32 || ACE_WIN64
-#endif // _DEBUG
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
       resolution_s.cx = inherited::configuration_->outputFormat.resolution.cx;
@@ -294,7 +290,6 @@ error:
       inherited::getMediaType (media_type_r,
                                media_type_2);
 
-#if defined (_DEBUG)
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
       ACE_DEBUG ((LM_DEBUG,
                   ACE_TEXT ("%s: resizing %ux%u to %ux%u\n"),
@@ -308,7 +303,6 @@ error:
                   media_type_2.resolution.width, media_type_2.resolution.height,
                   inherited::configuration_->outputFormat.resolution.width, inherited::configuration_->outputFormat.resolution.height));
 #endif // ACE_WIN32 || ACE_WIN64
-#endif // _DEBUG
 
       // initialize conversion context
       ACE_ASSERT (inherited::context_);
@@ -554,7 +548,6 @@ Stream_Visualization_ImageMagickResize1_T<ACE_SYNCH_USE,
 //  message_data_p =
 //      const_cast<typename DataMessageType::DATA_T&> (message_p->getR ());
 
-#if defined (_DEBUG)
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   ACE_DEBUG ((LM_DEBUG,
               ACE_TEXT ("%s: resizing %ux%u to %ux%u\n"),
@@ -568,7 +561,6 @@ Stream_Visualization_ImageMagickResize1_T<ACE_SYNCH_USE,
               message_data_r.format.resolution.width, message_data_r.format.resolution.height,
               inherited::configuration_->outputFormat.resolution.width, inherited::configuration_->outputFormat.resolution.height));
 #endif // ACE_WIN32 || ACE_WIN64
-#endif // _DEBUG
 
   ACE_ASSERT (message_data_r.format.codec == AV_CODEC_ID_NONE);
   ACE_ASSERT (Stream_Module_Decoder_Tools::isRGB32 (message_data_r.format.format));

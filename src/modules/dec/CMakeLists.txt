@@ -11,17 +11,17 @@ if (IMAGEMAGICK_SUPPORT)
  add_definitions (-DIMAGEMAGICK_SUPPORT)
 endif (IMAGEMAGICK_SUPPORT)
 
-set (OPENCV_DEFAULT OFF)
-option (OPENCV_SUPPORT "support OpenCV" ${OPENCV_DEFAULT})
-if (OPENCV_SUPPORT)
- add_definitions (-DOPENCV_SUPPORT)
-endif (OPENCV_SUPPORT)
-
 set (MPG123_DEFAULT ON)
 option (MPG123_SUPPORT "support mpg123" ${MPG123_DEFAULT})
 if (MPG123_SUPPORT)
  add_definitions (-DMPG123_SUPPORT)
 endif (MPG123_SUPPORT)
+
+set (OPENCV_DEFAULT OFF)
+option (OPENCV_SUPPORT "support OpenCV" ${OPENCV_DEFAULT})
+if (OPENCV_SUPPORT)
+ add_definitions (-DOPENCV_SUPPORT)
+endif (OPENCV_SUPPORT)
 
 set (SOX_DEFAULT ON)
 option (SOX_SUPPORT "support SoX" ${SOX_DEFAULT})
@@ -61,7 +61,7 @@ endif ()
 
 add_library (${PROJECT_NAME}_Decoder STATIC "")
 
-get_filename_component (BUILD_PATH ${CMAKE_CURRENT_BINARY_DIR}/../../.. REALPATH DIRECTORY)
+get_filename_component (BUILD_PATH ${CMAKE_CURRENT_BINARY_DIR}/../../.. REALPATH)
 get_filename_component (BUILD_PATH_SUFFIX ${BUILD_PATH} NAME)
 
 if (UNIX)
@@ -104,8 +104,6 @@ if (UNIX)
                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../modules/Common/src/parser>)
  target_include_directories (${PROJECT_NAME}_Decoder PUBLIC
                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../modules/Common/src/timer>)
-# target_include_directories (${PROJECT_NAME}_Decoder PUBLIC
-#                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../modules/Common/src/ui>)
 elseif (WIN32)
  if (DEFINED ENV{DXSDK_DIR})
   target_include_directories (${PROJECT_NAME}_Decoder PUBLIC
@@ -136,9 +134,26 @@ elseif (WIN32)
  target_include_directories (${PROJECT_NAME}_Decoder PUBLIC
                              $<BUILD_INTERFACE:$ENV{LIB_ROOT}/ffmpeg/include>)
 
+ if (OPENCV_SUPPORT)
+  target_include_directories (${PROJECT_NAME}_Decoder PUBLIC
+                              $<BUILD_INTERFACE:$ENV{LIB_ROOT}/opencv/include>)
+  target_include_directories (${PROJECT_NAME}_Decoder PUBLIC
+                              $<BUILD_INTERFACE:$ENV{LIB_ROOT}/opencv/modules/core/include>)
+  target_include_directories (${PROJECT_NAME}_Decoder PUBLIC
+                              $<BUILD_INTERFACE:$ENV{LIB_ROOT}/opencv/modules/highgui/include>)
+  target_include_directories (${PROJECT_NAME}_Decoder PUBLIC
+                              $<BUILD_INTERFACE:$ENV{LIB_ROOT}/opencv/modules/imgcodecs/include>)
+  target_include_directories (${PROJECT_NAME}_Decoder PUBLIC
+                              $<BUILD_INTERFACE:$ENV{LIB_ROOT}/opencv/modules/imgproc/include>)
+  target_include_directories (${PROJECT_NAME}_Decoder PUBLIC
+                              $<BUILD_INTERFACE:$ENV{LIB_ROOT}/opencv/modules/videoio/include>)
+  target_include_directories (${PROJECT_NAME}_Decoder PUBLIC
+                              $<BUILD_INTERFACE:$ENV{LIB_ROOT}/opencv/${BUILD_PATH_SUFFIX}>)
+ endif (OPENCV_SUPPORT)
+
  if (MPG123_SUPPORT)
- target_include_directories (${PROJECT_NAME}_Decoder PUBLIC
-                             $<BUILD_INTERFACE:$ENV{LIB_ROOT}/mpg123>)
+  target_include_directories (${PROJECT_NAME}_Decoder PUBLIC
+                              $<BUILD_INTERFACE:$ENV{LIB_ROOT}/mpg123>)
  endif (MPG123_SUPPORT)
 
  target_include_directories (${PROJECT_NAME}_Decoder PUBLIC
@@ -177,8 +192,8 @@ target_include_directories (${PROJECT_NAME}_Decoder PUBLIC
 target_include_directories (${PROJECT_NAME}_Decoder PUBLIC
                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../vis>)
 
-get_target_property (debug ${PROJECT_NAME}_Decoder INTERFACE_INCLUDE_DIRECTORIES)
-message (STATUS "INTERFACE_INCLUDE_DIRECTORIES: \"${debug}\"")
+#get_target_property (debug ${PROJECT_NAME}_Decoder INTERFACE_INCLUDE_DIRECTORIES)
+#message (STATUS "INTERFACE_INCLUDE_DIRECTORIES: \"${debug}\"")
 
 ############## next target ################
 set (source_files

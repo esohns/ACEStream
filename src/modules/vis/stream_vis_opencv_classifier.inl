@@ -105,12 +105,10 @@ Stream_Visualization_OpenCVClassifier_T<ACE_SYNCH_USE,
     return false;
   } // end IF
 
-#if defined (_DEBUG)
   ACE_DEBUG ((LM_DEBUG,
               ACE_TEXT ("%s: loaded cascade file \"%s\"\n"),
               inherited::mod_->name (),
               ACE_TEXT (Common_File_Tools::basename (configuration_in.cascadeFile, false).c_str ())));
-#endif // _DEBUG
 
   return inherited::initialize (configuration_in,
                                 allocator_in);
