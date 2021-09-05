@@ -29,25 +29,21 @@ add_definitions (-DHAVE_CONFIG_H)
 add_library (${PROJECT_NAME} STATIC "")
 
 if (UNIX)
-# target_include_directories (${PROJECT_NAME} PUBLIC
-#                             $<BUILD_INTERFACE:${PKG_FFMPEG_INCLUDE_DIRS}>)
-
-# target_include_directories (${PROJECT_NAME} PUBLIC
-#                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../Common/${BUILD_PATH_SUFFIX}>)
  target_include_directories (${PROJECT_NAME} PUBLIC
-                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../Common/src>)
+                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../modules/Common/${BUILD_PATH_SUFFIX}>)
  target_include_directories (${PROJECT_NAME} PUBLIC
-                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../Common/src/parser>)
+                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../modules/Common/src>)
  target_include_directories (${PROJECT_NAME} PUBLIC
-                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../Common/src/signal>)
+                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../modules/Common/src/parser>)
  target_include_directories (${PROJECT_NAME} PUBLIC
-                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../Common/src/task>)
+                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../modules/Common/src/signal>)
  target_include_directories (${PROJECT_NAME} PUBLIC
-                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../Common/src/timer>)
+                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../modules/Common/src/task>)
+ target_include_directories (${PROJECT_NAME} PUBLIC
+                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../modules/Common/src/timer>)
 elseif (WIN32)
-
-# target_include_directories (${PROJECT_NAME} PUBLIC
-#                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../Common/${BUILD_PATH_SUFFIX}>)
+ target_include_directories (${PROJECT_NAME} PUBLIC
+                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../Common/${BUILD_PATH_SUFFIX}>)
  target_include_directories (${PROJECT_NAME} PUBLIC
                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../Common/src>)
  target_include_directories (${PROJECT_NAME} PUBLIC
@@ -65,8 +61,6 @@ target_include_directories (${PROJECT_NAME} PUBLIC
                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../include>)
 target_include_directories (${PROJECT_NAME} PUBLIC
                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../3rd_party/tree>)
-target_include_directories (${PROJECT_NAME} PUBLIC
-                            $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>)
 target_include_directories (${PROJECT_NAME} PUBLIC
                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/modules/lib>)
 target_include_directories (${PROJECT_NAME} PUBLIC
@@ -214,8 +208,8 @@ endif (UNIX)
 #add_dependencies (${ACESTREAM_TARGET_NAME} ACE)
 add_dependencies (${PROJECT_NAME} Common)
 
-set_target_properties (${PROJECT_NAME} PROPERTIES DEFINE_SYMBOL STREAM_BUILD_DLL)
-set_target_properties (${PROJECT_NAME} PROPERTIES VERSION ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_MICRO} SOVERSION 1)
+#set_target_properties (${PROJECT_NAME} PROPERTIES DEFINE_SYMBOL STREAM_BUILD_DLL)
+#set_target_properties (${PROJECT_NAME} PROPERTIES VERSION ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_MICRO} SOVERSION 1)
 
 if (WIN32)
  if (MSVC)
