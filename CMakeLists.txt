@@ -1,6 +1,6 @@
 include (${CMAKE_CURRENT_SOURCE_DIR}/scripts/VersionConfig.cmake)
 
-set (CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_CURRENT_SOURCE_DIR}/../Common/scripts;${CMAKE_CURRENT_SOURCE_DIR}/scripts")
+set (CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_CURRENT_SOURCE_DIR}/modules/Common/scripts;${CMAKE_CURRENT_SOURCE_DIR}/../Common/scripts;${CMAKE_CURRENT_SOURCE_DIR}/scripts")
 include (Configuration)
 include (Macros)
 include (OS)

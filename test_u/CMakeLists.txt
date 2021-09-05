@@ -8,7 +8,7 @@ option (BUILD_TEST_U "build test_u" OFF)
 option (GUI_SUPPORT "enable graphical user interface support" ON)
 if (GUI_SUPPORT)
  add_definitions (-DGUI_SUPPORT)
- set (CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_CURRENT_SOURCE_DIR}/../../Common/src/ui/scripts")
+ set (CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_CURRENT_SOURCE_DIR}/../modules/Common/src/ui/scripts;${CMAKE_CURRENT_SOURCE_DIR}/../../Common/src/ui/scripts")
  include (PreUIFramework)
  include (SetUIFramework)
 
