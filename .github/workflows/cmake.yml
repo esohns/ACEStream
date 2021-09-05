@@ -67,11 +67,11 @@ jobs:
      uses: actions/checkout@v2
      with:
       repository: esohns/Common
-      path: ../Common
+      path: Common
    - name: Add Common link
      run: |
           cd modules
-          sudo ln -s ../../Common Common
+          sudo ln -s ../Common Common
           cd ${{github.workspace}}
 
    - name: Configure CMake (Common)
