@@ -61,17 +61,25 @@ jobs:
      with:
       os: ${{matrix.os}}
 
-   - name: Remove Common link
+   - name: Remove Common link [UNIX]
+     if: ${{ matrix.os=='ubuntu-latest' }}
      run: sudo rm -f modules/Common
+
+   - name: Remove Common link [Win32]
+     if: ${{ matrix.os=='windows-latest' }}
+     run: del /F /Q modules/Common
+
    - name: Checkout (Common)
      uses: actions/checkout@v2
      with:
       repository: esohns/Common
-      path: Common
-   - name: Add Common link
+      path: modules/Common
+
+   - name: Add Common link [Win32]
+     if: ${{ matrix.os=='windows-latest' }}
      run: |
-          cd modules
-          sudo ln -s ../Common Common
+          cd ..
+          mklink /D Common ACEStream/modules/Common
           cd ${{github.workspace}}
 
    - name: Configure CMake (Common)
@@ -81,11 +89,19 @@ jobs:
           cmake -B ${{github.workspace}}/modules/Common/build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
           cd ${{github.workspace}}
 
-   - name: Generate LibreOffice headers
+   - name: Generate LibreOffice headers [UNIX]
+     if: ${{ matrix.os=='ubuntu-latest' }}
      run: |
           cd scripts
           chmod u+x make_oo_headers.sh
           sudo ./make_oo_headers.sh
+          cd ${{github.workspace}}
+
+   - name: Generate LibreOffice headers [Win32]
+     if: ${{ matrix.os=='windows-latest' }}
+     run: |
+          cd scripts
+          .\\make_oo_headers.bat
           cd ${{github.workspace}}
 
    - name: Apply Patch To (Temporarily) Remove Dependency on ACENetwork
@@ -100,4 +116,3 @@ jobs:
    - name: Test
      working-directory: ${{github.workspace}}/build
      run: ctest -C ${{env.BUILD_TYPE}}
-
