@@ -57,6 +57,7 @@ cmake/
 # MSVC
 Debug/
 Release/
+.vs/
 Debug_obj/
 Release_obj/
 ipch/
@@ -69,6 +70,8 @@ build/
 
 # links (linux-specific)
 modules/ACE
+modules/Common
+modules/ACENetwork
 
 # qtcreator (linux-specific)
 Makefile.am.user
