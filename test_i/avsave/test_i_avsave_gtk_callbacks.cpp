@@ -2193,7 +2193,7 @@ idle_initialize_UI_cb (gpointer userData_in)
   unsigned int framerate_i = 0;
   std::string filename_string;
   bool is_display_b = false, is_fullscreen_b = false;
-  unsigned int buffer_size_i = 0;
+//  unsigned int buffer_size_i = 0;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   struct _GUID format_s = GUID_NULL;
   struct Stream_AVSave_DirectShow_UI_CBData* directshow_cb_data_p = NULL;
@@ -2518,8 +2518,8 @@ idle_initialize_UI_cb (gpointer userData_in)
   ACE_ASSERT (ui_cb_data_p);
   ACE_ASSERT (ui_cb_data_p->configuration);
 
-  buffer_size_i =
-    ui_cb_data_p->configuration->videoStreamConfiguration.configuration_->allocatorConfiguration->defaultBufferSize;
+//  buffer_size_i =
+//    ui_cb_data_p->configuration->videoStreamConfiguration.configuration_->allocatorConfiguration->defaultBufferSize;
 #endif // ACE_WIN32 || ACE_WIN64
 
   GtkProgressBar* progress_bar_p =

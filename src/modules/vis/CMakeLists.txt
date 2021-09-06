@@ -12,6 +12,7 @@ endif (IMAGEMAGICK_SUPPORT)
 set (OPENCV_DEFAULT OFF)
 option (OPENCV_SUPPORT "support OpenCV" ${OPENCV_DEFAULT})
 if (OPENCV_SUPPORT)
+ pkg_check_modules (PKG_OPENCV REQUIRED opencv)
  add_definitions (-DOPENCV_SUPPORT)
 endif (OPENCV_SUPPORT)
 
@@ -103,6 +104,10 @@ if (UNIX)
   target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
                               "$<BUILD_INTERFACE:${ImageMagick_INCLUDE_DIRS}>")
  endif (IMAGEMAGICK_SUPPORT)
+ if (OPENCV_SUPPORT)
+  target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
+                              $<BUILD_INTERFACE:${PKG_OPENCV_INCLUDE_DIRS}>)
+ endif (OPENCV_SUPPORT)
 
  target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../modules/Common/src>)

@@ -390,7 +390,9 @@ load_capture_devices (bool useLibCamera_in,
 {
   STREAM_TRACE (ACE_TEXT ("::load_capture_devices"));
 
+#if defined (LIBCAMERA_SUPPORT)
   bool result = false;
+#endif // LIBCAMERA_SUPPORT
 
   // initialize result
   gtk_list_store_clear (listStore_in);
@@ -405,7 +407,7 @@ load_capture_devices (bool useLibCamera_in,
     ACE_NEW_NORETURN (camera_manager_p,
                       libcamera::CameraManager ());
     ACE_ASSERT (camera_manager_p);
-    result = camera_manager_p->start();
+    result = camera_manager_p->start ();
     if (result)
     {
       ACE_DEBUG ((LM_ERROR,
@@ -2075,7 +2077,9 @@ stream_processing_function (void* arg_in)
 #else
   struct Stream_CamSave_UI_CBData* ui_cb_data_base_p =
       static_cast<struct Stream_CamSave_UI_CBData*> (thread_data_p->CBData);
+#if defined (LIBCAMERA_SUPPORT)
   struct Stream_CamSave_LibCamera_UI_CBData* libcamera_cb_data_p = NULL;
+#endif // LIBCAMERA_SUPPORT
   struct Stream_CamSave_V4L_UI_CBData* v4l_cb_data_p = NULL;
 
   if (ui_cb_data_base_p->useLibCamera)

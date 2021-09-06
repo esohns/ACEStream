@@ -324,10 +324,10 @@ idle_initialize_UI_cb (gpointer userData_in)
   //GFile* file_p = NULL;
   //gchar* filename_p = NULL;
   Common_Image_Resolution_t resolution_s;
-  unsigned int framerate_i = 0;
+//  unsigned int framerate_i = 0;
   std::string filename_string;
   //bool is_display_b = false, is_fullscreen_b = false;
-  unsigned int buffer_size_i = 0;
+//  unsigned int buffer_size_i = 0;
   Test_I_StreamConfiguration_t::ITERATOR_T stream_iterator;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   Test_I_StreamConfiguration_t::ITERATOR_T stream_iterator_2;
@@ -441,8 +441,8 @@ idle_initialize_UI_cb (gpointer userData_in)
 
   ACE_ASSERT (cb_data_p);
   ACE_ASSERT (cb_data_p->configuration);
-  buffer_size_i =
-    cb_data_p->configuration->streamConfiguration.configuration_->allocatorConfiguration->defaultBufferSize;
+//  buffer_size_i =
+//    cb_data_p->configuration->streamConfiguration.configuration_->allocatorConfiguration->defaultBufferSize;
 
   GtkProgressBar* progress_bar_p =
     GTK_PROGRESS_BAR (gtk_builder_get_object ((*iterator).second.second,
@@ -1678,15 +1678,15 @@ combobox_resolution_changed_cb (GtkWidget* widget_in,
   g_value_unset (&value);
   unsigned int height = g_value_get_uint (&value_2);
   g_value_unset (&value_2);
-  Common_Image_Resolution_t resolution_s;
+//  Common_Image_Resolution_t resolution_s;
 
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-  resolution_s.cx = width;
-  resolution_s.cy = height;
-#else
-  resolution_s.width = width;
-  resolution_s.height = height;
-#endif // ACE_WIN32 || ACE_WIN64
+//#if defined (ACE_WIN32) || defined (ACE_WIN64)
+//  resolution_s.cx = width;
+//  resolution_s.cy = height;
+//#else
+//  resolution_s.width = width;
+//  resolution_s.height = height;
+//#endif // ACE_WIN32 || ACE_WIN64
 } // combobox_resolution_changed_cb
 
 void

@@ -666,6 +666,7 @@ Stream_Decoder_LibAVDecoder_T<ACE_SYNCH_USE,
       decode_height = formatHeight_;
       decode_width = media_type_s.resolution.width;
 #endif // ACE_WIN32 || ACE_WIN64
+      ACE_UNUSED_ARG (decode_height);
 
       if ((codecId_ == AV_CODEC_ID_NONE) &&
           Stream_Module_Decoder_Tools::isCompressedVideo (media_type_s.format))

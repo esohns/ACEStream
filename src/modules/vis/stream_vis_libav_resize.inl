@@ -614,8 +614,8 @@ Stream_Visualization_LibAVResize1_T<ACE_SYNCH_USE,
 //  ACE_ASSERT (inherited::buffer_->capacity () >= inherited::frameSize_);
   ACE_ASSERT (inherited::frame_);
 
-  const typename DataMessageType::DATA_T& message_data_r =
-      message_inout->getR ();
+//  const typename DataMessageType::DATA_T& message_data_r =
+//      message_inout->getR ();
   typename DataMessageType::DATA_T& message_data_2 =
       const_cast<typename DataMessageType::DATA_T&> (inherited::buffer_->getR ());
   struct Stream_MediaFramework_FFMPEG_VideoMediaType media_type_s;

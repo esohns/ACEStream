@@ -70,7 +70,7 @@ libacestream_vis_wayland_global_registry_remover (void* data_in,
 
   struct libacestream_vis_wayland_cb_data* data_p =
       static_cast<struct libacestream_vis_wayland_cb_data*> (data_in);
-  ACE_ASSERT (data_p);
+  ACE_ASSERT (data_p); ACE_UNUSED_ARG (data_p);
 
   printf ("Got a registry losing event for %d\n", id_in);
 }
@@ -90,7 +90,7 @@ libacestream_vis_wayland_buffer_release (void *data_in,
 
   struct libacestream_vis_wayland_cb_data* data_p =
       static_cast<struct libacestream_vis_wayland_cb_data*> (data_in);
-  ACE_ASSERT (data_p);
+  ACE_ASSERT (data_p); ACE_UNUSED_ARG (data_p);
 
 //  data_p->buffer_busy = false;
 }

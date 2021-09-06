@@ -29,7 +29,7 @@ test_i:   zlib-devel openssl-devel libreoffice-sdk
 
 * Ubuntu 19.10 ('sudo apt install')
 src/db:  libmysqlclient-dev
-src/dec: libsox-dev libmpg123-dev
+src/dec: libsox-dev libmpg123-dev opencv-dev
 src/dev: libasound2-dev libv4l-dev
 src/doc: libreoffice-dev
 src/misc: libfl-dev

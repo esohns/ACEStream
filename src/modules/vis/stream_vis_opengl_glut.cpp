@@ -111,9 +111,9 @@ libacestream_glut_reshape (int width_in, int height_in)
 void
 libacestream_glut_key (unsigned char k, int x, int y)
 {
-  struct OpenGL_GLUT_WindowData* cb_data_p = 
-    static_cast<struct OpenGL_GLUT_WindowData*> (glutGetWindowData ());
-  ACE_ASSERT (cb_data_p);
+  //struct OpenGL_GLUT_WindowData* cb_data_p = 
+  //  static_cast<struct OpenGL_GLUT_WindowData*> (glutGetWindowData ());
+  //ACE_ASSERT (cb_data_p);
 
   switch (k) {
   case 27:  /* Escape */

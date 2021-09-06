@@ -68,6 +68,7 @@ jobs:
    - name: Remove Common link [Win32]
      if: ${{ matrix.os=='windows-latest' }}
      run: del /F /Q modules/Common
+     shell: cmd
 
    - name: Checkout (Common)
      uses: actions/checkout@v2
@@ -81,6 +82,7 @@ jobs:
           cd ..
           mklink /D Common ACEStream/modules/Common
           cd ${{github.workspace}}
+     shell: cmd
 
    - name: Configure CMake (Common)
      run: |

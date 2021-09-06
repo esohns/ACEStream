@@ -1017,7 +1017,7 @@ Stream_Module_Parser_T<ACE_SYNCH_USE,
   typename DataMessageType::DATA_T* message_data_container_p = NULL;
   typename DataMessageType::DATA_T::DATA_T* message_data_p = NULL;
 //  bool do_scan_end = false;
-  const typename SessionMessageType::DATA_T::DATA_T* session_data_p = NULL;
+//  const typename SessionMessageType::DATA_T::DATA_T* session_data_p = NULL;
   bool result_2 = false;
 
   do
@@ -1083,7 +1083,7 @@ Stream_Module_Parser_T<ACE_SYNCH_USE,
         //                       NULL);
         //message_data_container_p = NULL;
 
-continue_:
+//continue_:
         // parse incoming data fragment(s)
         ACE_ASSERT (!headFragment_);
         headFragment_ = message_p;
