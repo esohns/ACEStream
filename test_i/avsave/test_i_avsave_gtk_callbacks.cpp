@@ -2495,15 +2495,15 @@ idle_initialize_UI_cb (gpointer userData_in)
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
     { ACE_ASSERT (directshow_cb_data_p);
       ACE_ASSERT (directshow_cb_data_p->configuration);
-      buffer_size_i =
-        directshow_cb_data_p->configuration->videoStreamConfiguration.configuration_->allocatorConfiguration->defaultBufferSize;
+      //buffer_size_i =
+      //  directshow_cb_data_p->configuration->videoStreamConfiguration.configuration_->allocatorConfiguration->defaultBufferSize;
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
     { ACE_ASSERT (mediafoundation_cb_data_p);
       ACE_ASSERT (mediafoundation_cb_data_p->configuration);
-      buffer_size_i =
-        mediafoundation_cb_data_p->configuration->videoStreamConfiguration.configuration_->allocatorConfiguration->defaultBufferSize;
+      //buffer_size_i =
+      //  mediafoundation_cb_data_p->configuration->videoStreamConfiguration.configuration_->allocatorConfiguration->defaultBufferSize;
       break;
     }
     default:

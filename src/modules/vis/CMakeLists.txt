@@ -12,7 +12,6 @@ endif (IMAGEMAGICK_SUPPORT)
 set (OPENCV_DEFAULT OFF)
 option (OPENCV_SUPPORT "support OpenCV" ${OPENCV_DEFAULT})
 if (OPENCV_SUPPORT)
- pkg_check_modules (PKG_OPENCV REQUIRED opencv)
  add_definitions (-DOPENCV_SUPPORT)
 endif (OPENCV_SUPPORT)
 
@@ -31,6 +30,10 @@ if (UNIX)
  if (FFMPEG_SUPPORT)
   pkg_check_modules (PKG_FFMPEG REQUIRED libswscale libavcodec libavutil)
  endif (FFMPEG_SUPPORT)
+ if (OPENCV_SUPPORT)
+  pkg_check_modules (PKG_OPENCV REQUIRED opencv)
+ endif (OPENCV_SUPPORT)
+
  if (OPENGL_SUPPORT)
 #  pkg_check_modules (PKG_OPENGL_GLUT REQUIRED glut) # Fedora
 # *NOTE*: (on Ubuntu,) freeglut3 does not come with pkg-config support
