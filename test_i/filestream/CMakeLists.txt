@@ -1,24 +1,3 @@
-#find_package (Common ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_MICRO}
-#              REQUIRED
-#              CONFIG
-#              PATHS ${CMAKE_CURRENT_SOURCE_DIR}/../../modules ${CMAKE_CURRENT_SOURCE_DIR}/../../..
-#              PATH_SUFFIXES Common/${BUILD_PATH_SUFFIX}
-#              NO_DEFAULT_PATH)
-#if (NOT EXISTS ${Common_DIR})
-# message (FATAL_ERROR "could not find package \"Common\", aborting")
-#endif (NOT EXISTS ${Common_DIR})
-#add_definitions (-DCOMMON_HAS_DLL)
-#add_definitions (-DCOMMON_UI_HAS_DLL)
-
-#find_package (${PROJECT_NAME} ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_MICRO}
-#              REQUIRED
-#              CONFIG
-#              PATHS ${CMAKE_CURRENT_SOURCE_DIR}/../..
-#              PATH_SUFFIXES ${BUILD_PATH_SUFFIX}
-#              NO_DEFAULT_PATH)
-#if (NOT EXISTS ${${PROJECT_NAME}_DIR})
-# message (FATAL_ERROR "could not find package \"${PROJECT_NAME}\", aborting")
-#endif (NOT EXISTS ${${PROJECT_NAME}_DIR})
 
 find_package (ACENetwork ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_MICRO}
               REQUIRED
@@ -37,7 +16,7 @@ if (UNIX)
 # include_directories (${PKG_CAP_INCLUDE_DIRS})
 
 # include_directories (/usr/local/src/ACE_wrappers)
- include_directories ($ENV{LIB_ROOT}/ACE_TAO/ACE)
+# include_directories ($ENV{LIB_ROOT}/ACE_TAO/ACE)
 
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../Common/src)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../Common/src/log)
@@ -50,11 +29,11 @@ elseif (WIN32)
 # *TODO*: repair pkgconfig support
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../openssl/include)
 
- if (DEFINED ENV{ACE_ROOT})
-  include_directories ($ENV{ACE_ROOT})
- else ()
-  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../ATCD/ACE)
- endif (DEFINED ENV{ACE_ROOT})
+# if (DEFINED ENV{ACE_ROOT})
+#  include_directories ($ENV{ACE_ROOT})
+# else ()
+#  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../ATCD/ACE)
+# endif (DEFINED ENV{ACE_ROOT})
 
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../Common/src)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../Common/src/error)
@@ -125,7 +104,7 @@ endif (GUI_SUPPORT)
 set_source_files_properties (etc/resources.rc PROPERTIES HEADER_FILE_ONLY TRUE)
 
 if (UNIX)
- add_definitions (-D_GLIBCXX_INCLUDE_NEXT_C_HEADERS)
+# add_definitions (-D_GLIBCXX_INCLUDE_NEXT_C_HEADERS)
 endif (UNIX)
 
 cmake_policy (SET CMP0065 OLD) # do not add flags to export symbols from executables without the ENABLE_EXPORTS target property
@@ -162,7 +141,7 @@ target_link_libraries (${EXECUTABLE_SOURCE} CommonSignal)
 target_link_libraries (${EXECUTABLE_SOURCE} CommonTimer)
 if (WIN32)
  # *WARNING*: linking CommonUI requires "/FORCE:MULTIPLE""
- set_target_properties (${EXECUTABLE_SOURCE} PROPERTIES LINK_FLAGS /FORCE:MULTIPLE)
+# set_target_properties (${EXECUTABLE_SOURCE} PROPERTIES LINK_FLAGS /FORCE:MULTIPLE)
 endif (WIN32)
 
 target_link_libraries (${EXECUTABLE_SOURCE} ${PROJECT_NAME})
@@ -211,11 +190,11 @@ if (UNIX)
                          RUNTIME_LIBRARY_DIRS ${PROJECT_SOURCE_DIR}/modules/ATCD/ACE/lib
 #                                              ${PROJECT_SOURCE_DIR}/../gtk3/bin
 #                                              ${PROJECT_SOURCE_DIR}/../libxml2-2.9.1/.libs
-                                              ${PROJECT_SOURCE_DIR}/../Common/cmake/src/Debug
-                                              ${PROJECT_SOURCE_DIR}/../Common/cmake/src/ui/Debug
-                                              ${PROJECT_SOURCE_DIR}/cmake/src/Debug
-                                              ${PROJECT_SOURCE_DIR}/cmake/src/modules/dev/Debug
-                                              ${PROJECT_SOURCE_DIR}/../libACENetwork/cmake/src/Debug
+                                              ${PROJECT_SOURCE_DIR}/../Common/${BUILD_PATH_SUFFIX}/src/${CMAKE_BUILD_TYPE}
+                                              ${PROJECT_SOURCE_DIR}/../Common/${BUILD_PATH_SUFFIX}/src/ui/${CMAKE_BUILD_TYPE}
+                                              ${PROJECT_SOURCE_DIR}/${BUILD_PATH_SUFFIX}/src/${CMAKE_BUILD_TYPE}
+                                              ${PROJECT_SOURCE_DIR}/${BUILD_PATH_SUFFIX}/src/modules/dev/${CMAKE_BUILD_TYPE}
+                                              ${PROJECT_SOURCE_DIR}/../ACENetwork/${BUILD_PATH_SUFFIX}/src/${CMAKE_BUILD_TYPE}
                          WORKING_DIRECTORY ${PROJECT_BINARY_DIR}/../test_i/filestream
                          ENVIRONMENT foo=bar)
 elseif (WIN32)
@@ -230,12 +209,12 @@ elseif (WIN32)
                                               ${ACE_PATH}
                                               ${PROJECT_SOURCE_DIR}/../libxml2-2.9.1/.libs
                                               G:/software/Development/dll
-                                              ${PROJECT_SOURCE_DIR}/../Common/cmake/src/Debug
-                                              ${PROJECT_SOURCE_DIR}/../Common/cmake/src/err/Debug
-                                              ${PROJECT_SOURCE_DIR}/../Common/cmake/src/ui/Debug
-                                              ${PROJECT_SOURCE_DIR}/cmake/src/Debug
-                                              ${PROJECT_SOURCE_DIR}/cmake/src/modules/dev/Debug
-                                              ${PROJECT_SOURCE_DIR}/../libACENetwork/cmake/src/Debug
+                                              ${PROJECT_SOURCE_DIR}/../Common/${BUILD_PATH_SUFFIX}/src/${CMAKE_BUILD_TYPE}
+                                              ${PROJECT_SOURCE_DIR}/../Common/${BUILD_PATH_SUFFIX}/src/err/${CMAKE_BUILD_TYPE}
+                                              ${PROJECT_SOURCE_DIR}/../Common/${BUILD_PATH_SUFFIX}/src/ui/${CMAKE_BUILD_TYPE}
+                                              ${PROJECT_SOURCE_DIR}/${BUILD_PATH_SUFFIX}/src/${CMAKE_BUILD_TYPE}
+                                              ${PROJECT_SOURCE_DIR}/${BUILD_PATH_SUFFIX}/src/modules/dev/${CMAKE_BUILD_TYPE}
+                                              ${PROJECT_SOURCE_DIR}/../ACENetwork/${BUILD_PATH_SUFFIX}/src/${CMAKE_BUILD_TYPE}
                          WORKING_DIRECTORY ${PROJECT_BINARY_DIR}/../test_i/filestream
                          ENVIRONMENT foo=bar)
 endif ()
@@ -314,8 +293,8 @@ target_link_libraries (${EXECUTABLE_TARGET} CommonSignal)
 target_link_libraries (${EXECUTABLE_TARGET} CommonTimer)
 if (WIN32)
  # *WARNING*: linking CommonUI requires "/FORCE:MULTIPLE"
- set_target_properties (${EXECUTABLE_TARGET} PROPERTIES
-                        LINK_FLAGS /FORCE:MULTIPLE)
+# set_target_properties (${EXECUTABLE_TARGET} PROPERTIES
+#                        LINK_FLAGS /FORCE:MULTIPLE)
 endif (WIN32)
 target_link_libraries (${EXECUTABLE_TARGET} ${PROJECT_NAME})
 target_link_libraries (${EXECUTABLE_TARGET} ${PROJECT_NAME}_File)
@@ -361,11 +340,11 @@ if (UNIX)
                          RUNTIME_LIBRARY_DIRS ${PROJECT_SOURCE_DIR}/modules/ATCD/ACE/lib
 #                                              ${PROJECT_SOURCE_DIR}/../gtk/gtk/Win32/debug/bin
 #                                              ${PROJECT_SOURCE_DIR}/../libxml2-2.9.1/.libs
-                                              ${PROJECT_SOURCE_DIR}/../Common/cmake/src/Debug
-                                              ${PROJECT_SOURCE_DIR}/../Common/cmake/src/ui/Debug
-                                              ${PROJECT_SOURCE_DIR}/cmake/src/Debug
-                                              ${PROJECT_SOURCE_DIR}/cmake/src/modules/dev/Debug
-                                              ${PROJECT_SOURCE_DIR}/../libACENetwork/cmake/src/Debug
+                                              ${PROJECT_SOURCE_DIR}/../Common/${BUILD_PATH_SUFFIX}/src/${CMAKE_BUILD_TYPE}
+                                              ${PROJECT_SOURCE_DIR}/../Common/${BUILD_PATH_SUFFIX}/src/ui/${CMAKE_BUILD_TYPE}
+                                              ${PROJECT_SOURCE_DIR}/${BUILD_PATH_SUFFIX}/src/${CMAKE_BUILD_TYPE}
+                                              ${PROJECT_SOURCE_DIR}/${BUILD_PATH_SUFFIX}/src/modules/dev/${CMAKE_BUILD_TYPE}
+                                              ${PROJECT_SOURCE_DIR}/../ACENetwork/${BUILD_PATH_SUFFIX}/src/${CMAKE_BUILD_TYPE}
                          WORKING_DIRECTORY ${PROJECT_BINARY_DIR}/../test_i/filestream
                          ENVIRONMENT foo=bar)
 elseif (WIN32)
@@ -380,12 +359,12 @@ elseif (WIN32)
                                               ${ACE_PATH}
                                               ${PROJECT_SOURCE_DIR}/../libxml2-2.9.1/.libs
                                               G:/software/Development/dll
-                                              ${PROJECT_SOURCE_DIR}/../Common/cmake/src/Debug
-                                              ${PROJECT_SOURCE_DIR}/../Common/cmake/src/err/Debug
-                                              ${PROJECT_SOURCE_DIR}/../Common/cmake/src/ui/Debug
-                                              ${PROJECT_SOURCE_DIR}/cmake/src/Debug
-                                              ${PROJECT_SOURCE_DIR}/cmake/src/modules/dev/Debug
-                                              ${PROJECT_SOURCE_DIR}/../libACENetwork/cmake/src/Debug
+                                              ${PROJECT_SOURCE_DIR}/../Common/${BUILD_PATH_SUFFIX}/src/${CMAKE_BUILD_TYPE}
+                                              ${PROJECT_SOURCE_DIR}/../Common/${BUILD_PATH_SUFFIX}/src/err/${CMAKE_BUILD_TYPE}
+                                              ${PROJECT_SOURCE_DIR}/../Common/${BUILD_PATH_SUFFIX}/src/ui/${CMAKE_BUILD_TYPE}
+                                              ${PROJECT_SOURCE_DIR}/${BUILD_PATH_SUFFIX}/src/${CMAKE_BUILD_TYPE}
+                                              ${PROJECT_SOURCE_DIR}/${BUILD_PATH_SUFFIX}/src/modules/dev/${CMAKE_BUILD_TYPE}
+                                              ${PROJECT_SOURCE_DIR}/../ACENetwork/${BUILD_PATH_SUFFIX}/src/${CMAKE_BUILD_TYPE}
                          WORKING_DIRECTORY ${PROJECT_BINARY_DIR}/../test_i/filestream
                          ENVIRONMENT foo=bar)
 endif ()
