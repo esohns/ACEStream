@@ -2042,6 +2042,7 @@ do_printVersion (const std::string& programName_in)
             << std::endl;
 }
 
+#undef main
 int
 ACE_TMAIN (int argc_in,
            ACE_TCHAR* argv_in[])
@@ -2316,8 +2317,8 @@ ACE_TMAIN (int argc_in,
   if (log_to_file)
     log_file_name =
       Common_Log_Tools::getLogFilename (ACE_TEXT_ALWAYS_CHAR (ACEStream_PACKAGE_NAME),
-                                        ACE::basename (argv_in[0]));
-  if (!Common_Log_Tools::initializeLogging (ACE::basename (argv_in[0]),               // program name
+                                        ACE::basename (argv_in[0], ACE_DIRECTORY_SEPARATOR_CHAR));
+  if (!Common_Log_Tools::initializeLogging (ACE::basename (argv_in[0], ACE_DIRECTORY_SEPARATOR_CHAR), // program name
                                             log_file_name,                            // log file name
                                             false,                                    // log to syslog ?
                                             false,                                    // trace messages ?

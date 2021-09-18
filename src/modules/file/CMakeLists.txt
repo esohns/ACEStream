@@ -1,12 +1,4 @@
-set (IMAGEMAGICK_DEFAULT ON)
-option (IMAGEMAGICK_SUPPORT "support ImageMagick" ${IMAGEMAGICK_DEFAULT})
-if (IMAGEMAGICK_SUPPORT)
- if (UNIX)
-  find_package (ImageMagick COMPONENTS MagickCore MagickWand)
- endif (UNIX)
-
- add_definitions (-DIMAGEMAGICK_SUPPORT)
-endif (IMAGEMAGICK_SUPPORT)
+include (ImageMagick)
 
 ##########################################
 

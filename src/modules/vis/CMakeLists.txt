@@ -3,11 +3,7 @@ if (FFMPEG_SUPPORT)
  add_definitions (-DFFMPEG_SUPPORT)
 endif (FFMPEG_SUPPORT)
 
-set (IMAGEMAGICK_DEFAULT ON)
-option (IMAGEMAGICK_SUPPORT "support ImageMagick" ${IMAGEMAGICK_DEFAULT})
-if (IMAGEMAGICK_SUPPORT)
- add_definitions (-DIMAGEMAGICK_SUPPORT)
-endif (IMAGEMAGICK_SUPPORT)
+include (ImageMagick)
 
 set (OPENCV_DEFAULT OFF)
 option (OPENCV_SUPPORT "support OpenCV" ${OPENCV_DEFAULT})

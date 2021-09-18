@@ -1,23 +1,22 @@
-set (CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_CURRENT_SOURCE_DIR}/../../modules/ACENetwork/scripts;${CMAKE_CURRENT_SOURCE_DIR}/../../../ACENetwork/scripts")
-include (SSLConfig)
-
-if (WIN32)
- set (DIRECTSHOW_BASECLASSES_DIRECTORY
-      "$ENV{LIB_ROOT}/DShowBaseClasses")
-#      "$ENV{PROGRAMFILES(X86)}/Microsoft SDKs/Windows/v7.0/Samples/multimedia/directshow")
-endif (WIN32)
-
 if (UNIX)
  #pkg_check_modules (PKG_ACE REQUIRED ACE)
 # *NOTE*: Common requires libcap
 # pkg_check_modules (PKG_CAP REQUIRED libcap)
  pkg_check_modules (PKG_V4L2 REQUIRED libv4l2)
  pkg_check_modules (PKG_FFMPEG REQUIRED libswscale libavutil libavcodec)
-endif (UNIX)
+elseif (WIN32)
+ set (DIRECTSHOW_BASECLASSES_DIRECTORY
+      "$ENV{LIB_ROOT}/DShowBaseClasses")
+#      "$ENV{PROGRAMFILES(X86)}/Microsoft SDKs/Windows/v7.0/Samples/multimedia/directshow")
+endif ()
 
 if (FFMPEG_SUPPORT)
  add_definitions (-DFFMPEG_SUPPORT)
 endif (FFMPEG_SUPPORT)
+include (ImageMagick)
+
+set (CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_CURRENT_SOURCE_DIR}/../../modules/ACENetwork/scripts;${CMAKE_CURRENT_SOURCE_DIR}/../../../ACENetwork/scripts")
+include (SSLConfig)
 
 get_filename_component (BUILD_PATH ${CMAKE_CURRENT_BINARY_DIR}/../.. REALPATH)
 get_filename_component (BUILD_PATH_SUFFIX ${BUILD_PATH} NAME)
@@ -258,6 +257,7 @@ endif ()
 
 #guess_runtime_library_dirs (<outputvarname> [<extralibrary> ...])
 #cmake_policy (SET CMP0053 OLD)
+set (COMMAND "$<TARGET_FILE:${EXECUTABLE_SOURCE}>")
 set (ENVIRONMENT "")
 if (UNIX)
  if (GTK_SUPPORT)
@@ -268,36 +268,34 @@ if (UNIX)
  set (RUNTIME_LIBRARY_DIRS ${PROJECT_SOURCE_DIR}/modules/ATCD/ACE/lib)
  file (TO_NATIVE_PATH ${PROJECT_BINARY_DIR}/../test_i/camstream WORKING_DIRECTORY)
 elseif (WIN32)
+# file (TO_NATIVE_PATH "${COMMAND}" COMMAND)
+ file (TO_NATIVE_PATH "${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_BUILD_TYPE}/${EXECUTABLE_SOURCE}.exe" COMMAND)
+ string (REPLACE "\\" "\\\\" COMMAND ${COMMAND})
  if (GTK_SUPPORT)
   set (ARGS "-g.\\\\etc\\\\source.glade -l -t")
  else ()
   set (ARGS "-c -g -l -t")
  endif (GTK_SUPPORT)
- file (TO_CMAKE_PATH $ENV{LIB_ROOT}/ffmpeg/bin FFMPEG_PATH)
- file (TO_CMAKE_PATH $ENV{LIB_ROOT}/ImageMagick IMAGEMAGICK_PATH)
- file (TO_CMAKE_PATH $ENV{LIB_ROOT}/gtk2/bin GTK_PATH)
- file (TO_CMAKE_PATH $ENV{LIB_ROOT}/openssl SSL_PATH)
- file (TO_CMAKE_PATH $ENV{LIB_ROOT}/ACE_TAO/ACE/lib ACE_PATH)
+ if (FFMPEG_SUPPORT)
+  file (TO_CMAKE_PATH "$ENV{LIB_ROOT}/ffmpeg/bin" FFMPEG_PATH)
+ endif (FFMPEG_SUPPORT)
+ if (IMAGEMAGICK_SUPPORT)
+  file (TO_CMAKE_PATH "${ImageMagick_LIB_DIR}" IMAGEMAGICK_PATH)
+#  message (STATUS "IMAGEMAGICK_PATH: \"${IMAGEMAGICK_PATH}\"")
+ endif (IMAGEMAGICK_SUPPORT)
+ file (TO_CMAKE_PATH "${GTK_LIB_DIRS}" GTK_PATH)
+ file (TO_CMAKE_PATH "${SSL_LIB_DIR}" SSL_PATH)
+ file (TO_CMAKE_PATH "${ACE_LIB_DIR}" ACE_PATH)
  set (RUNTIME_LIBRARY_DIRS ${FFMPEG_PATH}
                            ${IMAGEMAGICK_PATH}
                            ${GTK_PATH}
                            ${SSL_PATH}
                            G:/software/Development/dll
-                          # ${PROJECT_SOURCE_DIR}/../libxml2/bin
                            ${ACE_PATH})
- if (GTK_SUPPORT)
-  if (GTK3_SUPPORT)
-   set (RUNTIME_LIBRARY_DIRS ${RUNTIME_LIBRARY_DIRS}
-                             ${PROJECT_SOURCE_DIR}/../gtk3/bin)
-  else ()
-   set (RUNTIME_LIBRARY_DIRS ${RUNTIME_LIBRARY_DIRS}
-                             ${PROJECT_SOURCE_DIR}/../gtk2/bin)
-  endif (GTK3_SUPPORT)
- endif (GTK_SUPPORT)
  string (REPLACE "/" "\\\\" WORKING_DIRECTORY ${PROJECT_BINARY_DIR}/../test_i/camstream) 
-#message (STATUS "WORKING_DIRECTORY: ${WORKING_DIRECTORY}")
 endif ()
 create_target_launcher (${EXECUTABLE_SOURCE}
+                        COMMAND ${COMMAND}
                         ARGS ${ARGS}
 #                         FORWARD_ARGS
                         RUNTIME_LIBRARY_DIRS ${RUNTIME_LIBRARY_DIRS}

@@ -5,11 +5,7 @@ if (FFMPEG_SUPPORT)
  add_definitions (-DFFMPEG_SUPPORT)
 endif (FFMPEG_SUPPORT)
 
-set (IMAGEMAGICK_DEFAULT OFF)
-option (IMAGEMAGICK_SUPPORT "support ImageMagick" ${IMAGEMAGICK_DEFAULT})
-if (IMAGEMAGICK_SUPPORT)
- add_definitions (-DIMAGEMAGICK_SUPPORT)
-endif (IMAGEMAGICK_SUPPORT)
+include (ImageMagick)
 
 set (MPG123_DEFAULT ON)
 option (MPG123_SUPPORT "support mpg123" ${MPG123_DEFAULT})
