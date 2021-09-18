@@ -19,27 +19,8 @@ if (FFMPEG_SUPPORT)
  add_definitions (-DFFMPEG_SUPPORT)
 endif (FFMPEG_SUPPORT)
 
-get_filename_component (BUILD_PATH ${CMAKE_CURRENT_BINARY_DIR}/../.. REALPATH DIRECTORY)
+get_filename_component (BUILD_PATH ${CMAKE_CURRENT_BINARY_DIR}/../.. REALPATH)
 get_filename_component (BUILD_PATH_SUFFIX ${BUILD_PATH} NAME)
-#find_package (Common ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_MICRO}
-#              REQUIRED
-#              CONFIG
-#              PATHS ${CMAKE_CURRENT_SOURCE_DIR}/../modules ${CMAKE_CURRENT_SOURCE_DIR}/../..
-#              PATH_SUFFIXES Common/${BUILD_PATH_SUFFIX}
-#              NO_DEFAULT_PATH)
-#if (NOT EXISTS ${Common_DIR})
-# message (FATAL_ERROR "could not find package \"Common\", aborting")
-#endif ()
-
-#find_package (${PROJECT_NAME} ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_MICRO}
-#              REQUIRED
-#              CONFIG
-#              PATHS ${CMAKE_CURRENT_SOURCE_DIR}/../..
-#              PATH_SUFFIXES ${BUILD_PATH_SUFFIX}
-#              NO_DEFAULT_PATH)
-#if (NOT EXISTS ${ACEStream_DIR})
-# message (FATAL_ERROR "could not find package \"${PROJECT_NAME}\", aborting")
-#endif ()
 
 find_package (ACENetwork ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_MICRO}
               REQUIRED
@@ -174,10 +155,10 @@ if (WIN32)
  cmake_policy (SET CMP0012 NEW)
  if (NOT BUILD_TEST_I)
   set_target_properties (${EXECUTABLE_SOURCE} PROPERTIES EXCLUDE_FROM_DEFAULT_BUILD TRUE)
- endif ()
+ endif (NOT BUILD_TEST_I)
  if (CMAKE_BUILD_TYPE STREQUAL Debug)
   set_target_properties (${EXECUTABLE_SOURCE} PROPERTIES COMPILE_FLAGS "/wd4503")
- endif ()
+ endif (CMAKE_BUILD_TYPE STREQUAL Debug)
 endif (WIN32)
 
 #add_dependencies (${EXECUTABLE_SOURCE} ACE)
@@ -356,7 +337,7 @@ if (WIN32)
  add_dependencies (${LIBRARY_DS} ${PROJECT_NAME})
 
  set (CMAKE_MODULE_LINKER_FLAGS /NODEFAULTLIB:\"libcmt.lib\")
- set_target_properties (${LIBRARY_DS} PROPERTIES LINK_FLAGS /FORCE:MULTIPLE)
+# set_target_properties (${LIBRARY_DS} PROPERTIES LINK_FLAGS /FORCE:MULTIPLE)
  set_target_properties (${LIBRARY_DS} PROPERTIES LINK_FLAGS /SAFESEH:NO)
  
  target_link_libraries (${LIBRARY_DS} strmiids.lib)
@@ -368,7 +349,7 @@ if (WIN32)
  else ()
 #  link_directories (${DIRECTSHOW_BASECLASSES_DIRECTORY}/Release)
   target_link_libraries (${LIBRARY_DS} ${DIRECTSHOW_BASECLASSES_DIRECTORY}/cmake/baseclasses/Release/BaseClasses.lib)
- endif ()
+ endif (CMAKE_BUILD_TYPE STREQUAL Debug)
  target_link_libraries (${LIBRARY_DS} ${ACE_LIBRARY})
 
  target_link_libraries (${LIBRARY_DS} Common)
@@ -386,7 +367,7 @@ if (WIN32)
 
  # add PCH
 # set_target_properties (${LIBRARY_DS} PROPERTIES COTIRE_CXX_PREFIX_HEADER_INIT "stdafx.h")
- set_target_properties (${LIBRARY_DS} PROPERTIES COTIRE_ENABLE_PRECOMPILED_HEADER FALSE)
+# set_target_properties (${LIBRARY_DS} PROPERTIES COTIRE_ENABLE_PRECOMPILED_HEADER FALSE)
 # cotire (${LIBRARY_DS})
 
 # add all targets to the build-tree export set
@@ -401,14 +382,13 @@ if (WIN32)
 
  file (TO_NATIVE_PATH "${PROJECT_BINARY_DIR}/test_i/camstream/${CMAKE_BUILD_TYPE}/${LIBRARY_DS}.dll" TARGET_PATH_NATIVE)
  string (REPLACE "\\" "\\\\" TARGET_PATH_NATIVE ${TARGET_PATH_NATIVE})
- file (TO_NATIVE_PATH "$ENV{LIB_ROOT}/ACE_TAO/ACE/lib" ACE_LIB_PATH_NATIVE)
+ file (TO_NATIVE_PATH "${ACE_LIB_DIR}" ACE_LIB_PATH_NATIVE)
  string (REPLACE "\\" "\\\\" ACE_LIB_PATH_NATIVE ${ACE_LIB_PATH_NATIVE})
- create_target_launcher (regsvr32.exe
-                         ARGS ${TARGET_PATH_NATIVE}
-#                         FORWARD_ARGS
-                         RUNTIME_LIBRARY_DIRS ${ACE_LIB_PATH_NATIVE}
-                         WORKING_DIRECTORY ${WORKING_DIRECTORY}
-                         ENVIRONMENT ${ENVIRONMENT})
+ create_generic_launcher (regsvr32_directshow
+                          COMMAND regsvr32.exe ${TARGET_PATH_NATIVE}
+                          RUNTIME_LIBRARY_DIRS ${ACE_LIB_PATH_NATIVE}
+                          WORKING_DIRECTORY ${WORKING_DIRECTORY}
+                          ENVIRONMENT ${ENVIRONMENT})
 
 #-----------------------------------------
 
@@ -456,6 +436,14 @@ if (WIN32)
 #          ARCHIVE DESTINATION "${INSTALL_LIB_DIR}" COMPONENT lib
           LIBRARY DESTINATION "${INSTALL_BIN_DIR}" COMPONENT lib
           RUNTIME DESTINATION "${INSTALL_BIN_DIR}" COMPONENT lib)
+
+ file (TO_NATIVE_PATH "${PROJECT_BINARY_DIR}/test_i/camstream/${CMAKE_BUILD_TYPE}/${LIBRARY_MF}.dll" TARGET_PATH_NATIVE)
+ string (REPLACE "\\" "\\\\" TARGET_PATH_NATIVE ${TARGET_PATH_NATIVE})
+ create_generic_launcher (regsvr32_mediafoundation
+                          COMMAND regsvr32.exe ${TARGET_PATH_NATIVE}
+                          RUNTIME_LIBRARY_DIRS ${ACE_LIB_PATH_NATIVE}
+                          WORKING_DIRECTORY ${WORKING_DIRECTORY}
+                          ENVIRONMENT ${ENVIRONMENT})
 endif (WIN32)
 
 ############## next target ################
