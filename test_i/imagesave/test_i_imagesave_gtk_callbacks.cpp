@@ -346,7 +346,12 @@ idle_initialize_UI_cb (gpointer userData_in)
 
   //format_s =
   //  cb_data_p->configuration->streamConfiguration.configuration->format.format;
-  resolution_s = cb_data_p->configuration->streamConfiguration.configuration_->format.resolution;
+  resolution_s =
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+    Stream_MediaFramework_DirectShow_Tools::toResolution (cb_data_p->configuration->streamConfiguration.configuration_->format);
+#else
+    cb_data_p->configuration->streamConfiguration.configuration_->format.resolution;
+#endif // ACE_WIN32 || ACE_WIN64
   filename_string = (*stream_iterator).second.second.targetFileName;
   gtk_entry_set_text (entry_p,
                       (filename_string.empty () ? ACE_TEXT_ALWAYS_CHAR ("")

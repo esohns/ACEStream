@@ -22,24 +22,15 @@
 
 #include "stream_macros.h"
 
-template <typename MediaType
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-         >
-#else
-          ,typename SessionDataType>
-#endif // ACE_WIN32 || ACE_WIN64
-Stream_MediaFramework_MediaTypeConverter_T<MediaType
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-                                          >::Stream_MediaFramework_MediaTypeConverter_T ()
-#else
-                                          ,SessionDataType>::Stream_MediaFramework_MediaTypeConverter_T ()
-#endif // ACE_WIN32 || ACE_WIN64
+template <typename MediaType>
+Stream_MediaFramework_MediaTypeConverter_T<MediaType>::Stream_MediaFramework_MediaTypeConverter_T ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_MediaTypeConverter_T::Stream_MediaFramework_MediaTypeConverter_T"));
 
 }
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
+#if defined (FFMPEG_SUPPORT)
 template <typename MediaType>
 void
 Stream_MediaFramework_MediaTypeConverter_T<MediaType>::getMediaType (const struct _AMMediaType& mediaType_in,
@@ -57,6 +48,7 @@ Stream_MediaFramework_MediaTypeConverter_T<MediaType>::getMediaType (const struc
   mediaType_out.resolution =
       Stream_MediaFramework_DirectShow_Tools::toResolution (mediaType_in);
 }
+#endif // FFMPEG_SUPPORT
 
 template <typename MediaType>
 void
@@ -150,6 +142,7 @@ Stream_MediaFramework_MediaTypeConverter_T<MediaType>::getMediaType (const IMFMe
   CoTaskMemFree (media_type_p); media_type_p = NULL;
 }
 
+#if defined (FFMPEG_SUPPORT)
 template <typename MediaType>
 void
 Stream_MediaFramework_MediaTypeConverter_T<MediaType>::getMediaType (const IMFMediaType* mediaType_in,
@@ -186,13 +179,12 @@ Stream_MediaFramework_MediaTypeConverter_T<MediaType>::getMediaType (const struc
   ACE_ASSERT (media_type_p);
   mediaType_out = *media_type_p;
 }
+#endif // FFMPEG_SUPPORT
 #else
-//template <typename MediaType,
-//          typename SessionDataType>
+//template <typename MediaType>
 //void
-//Stream_MediaFramework_MediaTypeConverter_T<MediaType,
-//                                           SessionDataType>::getMediaType_impl (const struct Stream_MediaFramework_V4L_MediaType& mediaType_in,
-//                                                                                struct Stream_MediaFramework_FFMPEG_VideoMediaType& mediaType_out)
+//Stream_MediaFramework_MediaTypeConverter_T<MediaType>::getMediaType_impl (const struct Stream_MediaFramework_V4L_MediaType& mediaType_in,
+//                                                                          struct Stream_MediaFramework_FFMPEG_VideoMediaType& mediaType_out)
 //{
 //  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_MediaTypeConverter_T::getMediaType_impl"));
 
@@ -206,12 +198,11 @@ Stream_MediaFramework_MediaTypeConverter_T<MediaType>::getMediaType (const struc
 //  mediaType_out.frameRate.num = mediaType_in.frameRate.numerator;
 //}
 
-template <typename MediaType,
-          typename SessionDataType>
+#if defined (FFMPEG_SUPPORT)
+template <typename MediaType>
 void
-Stream_MediaFramework_MediaTypeConverter_T<MediaType,
-                                           SessionDataType>::getMediaType (const struct Stream_MediaFramework_FFMPEG_VideoMediaType& mediaType_in,
-                                                                           struct Stream_MediaFramework_V4L_MediaType& mediaType_out)
+Stream_MediaFramework_MediaTypeConverter_T<MediaType>::getMediaType (const struct Stream_MediaFramework_FFMPEG_VideoMediaType& mediaType_in,
+                                                                     struct Stream_MediaFramework_V4L_MediaType& mediaType_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_MediaTypeConverter_T::getMediaType"));
 
@@ -225,12 +216,10 @@ Stream_MediaFramework_MediaTypeConverter_T<MediaType,
   mediaType_out.frameRate.denominator = mediaType_in.frameRate.den;
 }
 
-template <typename MediaType,
-          typename SessionDataType>
+template <typename MediaType>
 void
-Stream_MediaFramework_MediaTypeConverter_T<MediaType,
-                                           SessionDataType>::getMediaType (const struct Stream_MediaFramework_V4L_MediaType& mediaType_in,
-                                                                           struct Stream_MediaFramework_FFMPEG_VideoMediaType& mediaType_out)
+Stream_MediaFramework_MediaTypeConverter_T<MediaType>::getMediaType (const struct Stream_MediaFramework_V4L_MediaType& mediaType_in,
+                                                                     struct Stream_MediaFramework_FFMPEG_VideoMediaType& mediaType_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_MediaTypeConverter_T::getMediaType"));
 
@@ -243,14 +232,14 @@ Stream_MediaFramework_MediaTypeConverter_T<MediaType,
   mediaType_out.frameRate.den = mediaType_in.frameRate.denominator;
   mediaType_out.frameRate.num = mediaType_in.frameRate.numerator;
 }
+#endif // FFMPEG_SUPPORT
 
 #if defined (LIBCAMERA_SUPPORT)
-template <typename MediaType,
-          typename SessionDataType>
+#if defined (FFMPEG_SUPPORT)
+template <typename MediaType>
 void
-Stream_MediaFramework_MediaTypeConverter_T<MediaType,
-                                           SessionDataType>::getMediaType (const struct Stream_MediaFramework_FFMPEG_VideoMediaType& mediaType_in,
-                                                                           struct Stream_MediaFramework_LibCamera_MediaType& mediaType_out)
+Stream_MediaFramework_MediaTypeConverter_T<MediaType>::getMediaType (const struct Stream_MediaFramework_FFMPEG_VideoMediaType& mediaType_in,
+                                                                     struct Stream_MediaFramework_LibCamera_MediaType& mediaType_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_MediaTypeConverter_T::getMediaType"));
 
@@ -262,12 +251,10 @@ Stream_MediaFramework_MediaTypeConverter_T<MediaType,
   mediaType_out.frameRateDenominator = mediaType_in.frameRate.den;
 }
 
-template <typename MediaType,
-          typename SessionDataType>
+template <typename MediaType>
 void
-Stream_MediaFramework_MediaTypeConverter_T<MediaType,
-                                           SessionDataType>::getMediaType (const struct Stream_MediaFramework_LibCamera_MediaType& mediaType_in,
-                                                                           struct Stream_MediaFramework_FFMPEG_VideoMediaType& mediaType_out)
+Stream_MediaFramework_MediaTypeConverter_T<MediaType>::getMediaType (const struct Stream_MediaFramework_LibCamera_MediaType& mediaType_in,
+                                                                     struct Stream_MediaFramework_FFMPEG_VideoMediaType& mediaType_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_MediaTypeConverter_T::getMediaType"));
 
@@ -280,6 +267,6 @@ Stream_MediaFramework_MediaTypeConverter_T<MediaType,
   mediaType_out.frameRate.num = mediaType_in.frameRateNumerator;
   mediaType_out.frameRate.den = mediaType_in.frameRateDenominator;
 }
+#endif // FFMPEG_SUPPORT
 #endif // LIBCAMERA_SUPPORT
-
 #endif // ACE_WIN32 || ACE_WIN64

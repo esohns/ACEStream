@@ -19,7 +19,6 @@
  ***************************************************************************/
 #include "stdafx.h"
 
-//#include "ace/Synch.h"
 #include "test_i_camsave_stream.h"
 
 #include "ace/Log_Msg.h"
@@ -54,10 +53,12 @@ Stream_CamSave_DirectShow_Stream::Stream_CamSave_DirectShow_Stream ()
                      ACE_TEXT_ALWAYS_CHAR (MODULE_STAT_REPORT_DEFAULT_NAME_STRING))
  , distributor_ (this,
                  ACE_TEXT_ALWAYS_CHAR (STREAM_MISC_DISTRIBUTOR_DEFAULT_NAME_STRING))
+#if defined (FFMPEG_SUPPORT)
  , converter_ (this,
                ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_LIBAV_CONVERTER_DEFAULT_NAME_STRING))
  , resizer_ (this,
              ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_LIBAV_RESIZE_DEFAULT_NAME_STRING))
+#endif // FFMPEG_SUPPORT
  , direct3DDisplay_ (this,
                      ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_DIRECT3D_DEFAULT_NAME_STRING))
  , directShowDisplay_ (this,
@@ -68,8 +69,10 @@ Stream_CamSave_DirectShow_Stream::Stream_CamSave_DirectShow_Stream ()
  , GTKCairoDisplay_ (this,
                      ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_GTK_CAIRO_DEFAULT_NAME_STRING))
 #endif // GTK_SUPPORT
+#if defined (FFMPEG_SUPPORT)
  , converter_2 (this,
                 ACE_TEXT_ALWAYS_CHAR ("LibAV_Converter_2"))
+#endif // FFMPEG_SUPPORT
  , encoder_ (this,
              ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_ENCODER_AVI_DEFAULT_NAME_STRING))
  , fileWriter_ (this,
@@ -136,8 +139,10 @@ Stream_CamSave_DirectShow_Stream::load (Stream_ILayout* layout_in,
 
     if (display_b)
     {
+#if defined (FFMPEG_SUPPORT)
       layout_in->append (&converter_, branch_p, index_i); // output is uncompressed 24-bit RGB
       layout_in->append (&resizer_, branch_p, index_i); // output is window size/fullscreen
+#endif // FFMPEG_SUPPORT
 #if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
 //      if (configuration_->configuration->renderer != STREAM_VISUALIZATION_VIDEORENDERER_GTK_WINDOW)
@@ -160,7 +165,9 @@ Stream_CamSave_DirectShow_Stream::load (Stream_ILayout* layout_in,
     } // end IF
     if (save_to_file_b)
     {
+#if defined (FFMPEG_SUPPORT)
       layout_in->append (&converter_2, branch_p, index_i);
+#endif // FFMPEG_SUPPORT
       layout_in->append (&encoder_, branch_p, index_i); // output is AVI
       layout_in->append (&fileWriter_, branch_p, index_i);
     } // end IF

@@ -21,20 +21,17 @@
 #ifndef STREAM_VIS_OPENGL_GLUT_T_H
 #define STREAM_VIS_OPENGL_GLUT_T_H
 
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-#include "gl/GL.h"
-#else
-#include "GL/gl.h"
-#endif // ACE_WIN32 || ACE_WIN64
-
 #include "ace/Global_Macros.h"
 #include "ace/Synch_Traits.h"
 
-//#include "common_time_common.h"
-
 #include "stream_task_base_asynch.h"
 
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#else
+#if defined (FFMPEG_SUPPORT)
 #include "stream_lib_ffmpeg_common.h"
+#endif // FFMPEG_SUPPORT
+#endif // ACE_WIN32 || ACE_WIN64
 #include "stream_lib_mediatype_converter.h"
 
 // forward declaration(s)
@@ -60,7 +57,13 @@ extern const char libacestream_default_vis_opengl_glut_module_name_string[];
 
 struct OpenGL_GLUT_WindowData
 {
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  struct _AMMediaType                                mediaType;
+#else
+#if defined (FFMPEG_SUPPORT)
   struct Stream_MediaFramework_FFMPEG_VideoMediaType mediaType;
+#endif // FFMPEG_SUPPORT
+#endif // ACE_WIN32 || ACE_WIN64
   ACE_Message_Queue_Base*                            queue;
 };
 
@@ -85,12 +88,7 @@ class Stream_Visualization_OpenGL_GLUT_T
                                   enum Stream_ControlType,
                                   enum Stream_SessionMessageType,
                                   struct Stream_UserData>
- , public Stream_MediaFramework_MediaTypeConverter_T<MediaType
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-                                                    >
-#else
-                                                    ,typename SessionDataContainerType::DATA_T>
-#endif // ACE_WIN32 || ACE_WIN64
+ , public Stream_MediaFramework_MediaTypeConverter_T<MediaType>
 {
   typedef Stream_TaskBaseAsynch_T<ACE_SYNCH_USE,
                                   TimePolicyType,
@@ -101,12 +99,7 @@ class Stream_Visualization_OpenGL_GLUT_T
                                   enum Stream_ControlType,
                                   enum Stream_SessionMessageType,
                                   struct Stream_UserData> inherited;
-  typedef Stream_MediaFramework_MediaTypeConverter_T<MediaType
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-                                                    > inherited2;
-#else
-                                                    ,typename SessionDataContainerType::DATA_T> inherited2;
-#endif // ACE_WIN32 || ACE_WIN64
+  typedef Stream_MediaFramework_MediaTypeConverter_T<MediaType> inherited2;
 
  public:
   // *TODO*: on MSVC 2015u3 the accurate declaration does not compile

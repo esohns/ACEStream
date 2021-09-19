@@ -20,12 +20,17 @@
 
 #include <limits>
 
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#else
+#if defined (FFMPEG_SUPPORT)
 #ifdef __cplusplus
 extern "C"
 {
 #include "libavutil/imgutils.h"
 }
 #endif /* __cplusplus */
+#endif // FFMPEG_SUPPORT
+#endif // ACE_WIN32 || ACE_WIN64
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #include "MagickWand/MagickWand.h"
@@ -134,14 +139,29 @@ Stream_Decoder_ImageMagick_Decoder_T<ACE_SYNCH_USE,
 
   inherited2::getMediaType (configuration_in.outputFormat,
                             outputFormat_);
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  struct _AMMediaType media_type_s;
+  inherited2::getMediaType (outputFormat_,
+                            media_type_s);
+  if (unlikely (InlineIsEqualGUID (media_type_s.subtype, GUID_NULL)))
+#else
+#if defined (FFMPEG_SUPPORT)
   if (unlikely (outputFormat_.format == AV_PIX_FMT_NONE))
+#endif // FFMPEG_SUPPORT
+#endif // ACE_WIN32 || ACE_WIN64
   {
     ACE_DEBUG ((LM_WARNING,
                 ACE_TEXT ("%s: no output format specified, using default\n"),
                 inherited::mod_->name ()));
-    outputFormat_.format = AV_PIX_FMT_RGB24;
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+    inherited2::setFormat (MEDIASUBTYPE_RGB24,
+#else
+#if defined (FFMPEG_SUPPORT)
+    inherited2::setFormat (AV_PIX_FMT_RGB24,
+#endif // FFMPEG_SUPPORT
+#endif // ACE_WIN32 || ACE_WIN64
+                           outputFormat_);
   } // end IF
-//  ACE_ASSERT (outputFormat_.format == AV_PIX_FMT_RGB24);
 
   return inherited::initialize (configuration_in,
                                 allocator_in);
@@ -177,19 +197,26 @@ Stream_Decoder_ImageMagick_Decoder_T<ACE_SYNCH_USE,
 
   const typename DataMessageType::DATA_T& message_data_r =
       message_inout->getR ();
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  struct _AMMediaType media_type_s;
+#else
+#if defined (FFMPEG_SUPPORT)
   struct Stream_MediaFramework_FFMPEG_VideoMediaType media_type_s;
+#endif // FFMPEG_SUPPORT
+#endif // ACE_WIN32 || ACE_WIN64
   inherited2::getMediaType (message_data_r.format,
                             media_type_s);
   size_i =
-      static_cast<unsigned int> (av_image_get_buffer_size (outputFormat_.format,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-                                                           media_type_s.resolution.cx,
-                                                           media_type_s.resolution.cy,
+    Stream_MediaFramework_DirectShow_Tools::toFramesize (media_type_s);
 #else
-                                                           media_type_s.resolution.width,
-                                                           media_type_s.resolution.height,
+#if defined (FFMPEG_SUPPORT)
+    static_cast<unsigned int> (av_image_get_buffer_size (outputFormat_.format,
+                                                         media_type_s.resolution.width,
+                                                         media_type_s.resolution.height,
+                                                         1));
+#endif // FFMPEG_SUPPORT
 #endif // ACE_WIN32 || ACE_WIN64
-                                                           1));
   ACE_ASSERT (size_i);
 
   message_block_p = inherited::allocateMessage (size_i);
@@ -202,17 +229,23 @@ Stream_Decoder_ImageMagick_Decoder_T<ACE_SYNCH_USE,
     message_inout->release (); message_inout = NULL;
     return;
   } // end IF
-  message_p = dynamic_cast<DataMessageType*> (message_block_p);
+  message_p = static_cast<DataMessageType*> (message_block_p);
   ACE_ASSERT (message_p);
   message_data_2.format = outputFormat_;
 
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  Common_Image_Resolution_t resolution_s =
+    Stream_MediaFramework_DirectShow_Tools::toResolution (media_type_s);
+#else
+#if defined (FFMPEG_SUPPORT)
   ACE_ASSERT (media_type_s.codec == AV_CODEC_ID_NONE);
+#endif // FFMPEG_SUPPORT
+#endif // ACE_WIN32 || ACE_WIN64
   MagickBooleanType result = MagickSetFormat (context_, "RGB");
   ACE_ASSERT (result == MagickTrue);
   result = MagickSetSize (context_,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-                          media_type_s.resolution.cx,
-                          media_type_s.resolution.cy);
+                          resolution_s.cx, resolution_s.cy);
 #else
                           media_type_s.resolution.width,
                           media_type_s.resolution.height);
@@ -257,27 +290,26 @@ Stream_Decoder_ImageMagick_Decoder_T<ACE_SYNCH_USE,
   // *TODO*: crashes in release()...(needs MagickRelinquishMemory())
   message_p->base (reinterpret_cast<char*> (data_p),
                    size_2,
-                   ACE_Message_Block::DONT_DELETE); // own image datas
+                   ACE_Message_Block::DONT_DELETE); // own image data, but relinquish() in dtor
   message_p->wr_ptr (size_2);
   message_data_2.relinquishMemory = data_p;
   message_p->initialize (message_data_2,
                          message_p->sessionId (),
                          NULL);
 
-
-#if defined (_DEBUG)
-  std::string filename_string = ACE_TEXT_ALWAYS_CHAR ("output.rgb");
-  if (!Common_File_Tools::store (filename_string,
-                                 data_p,
-                                 size_2))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to Common_File_Tools::store(\"%s\"), returning\n"),
-                ACE_TEXT (filename_string.c_str ())));
-    message_block_p->release (); message_block_p = NULL;
-    return;
-  } // end IF
-#endif
+//#if defined (_DEBUG)
+//  std::string filename_string = ACE_TEXT_ALWAYS_CHAR ("output.rgb");
+//  if (!Common_File_Tools::store (filename_string,
+//                                 data_p,
+//                                 size_2))
+//  {
+//    ACE_DEBUG ((LM_ERROR,
+//                ACE_TEXT ("failed to Common_File_Tools::store(\"%s\"), returning\n"),
+//                ACE_TEXT (filename_string.c_str ())));
+//    message_block_p->release (); message_block_p = NULL;
+//    return;
+//  } // end IF
+//#endif // _DEBUG
 
   int result_2 = inherited::put_next (message_block_p, NULL);
   if (unlikely (result_2 == -1))

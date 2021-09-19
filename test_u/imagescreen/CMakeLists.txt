@@ -1,53 +1,30 @@
-option (FFMPEG_SUPPORT "support ffmpeg" ON)
-if (FFMPEG_SUPPORT)
- add_definitions (-DFFMPEG_SUPPORT)
-endif (FFMPEG_SUPPORT)
+include (FindPkgConfig)
+include (ffmpeg)
 include (ImageMagick)
 
-include (FindPkgConfig)
 if (UNIX)
 # *NOTE*: Common requires libcap
  pkg_check_modules (PKG_CAP REQUIRED libcap)
 # pkg_check_modules (PKG_V4L2 REQUIRED libv4l2)
- pkg_check_modules (PKG_FFMPEG REQUIRED libswscale libavutil libavformat libavcodec)
+# pkg_check_modules (PKG_FFMPEG REQUIRED libswscale libavutil libavformat libavcodec)
 endif (UNIX)
 # *TODO*: repair WIN32 pkgconfig support
 
-get_filename_component (BUILD_PATH ${CMAKE_CURRENT_BINARY_DIR}/../.. REALPATH DIRECTORY)
+get_filename_component (BUILD_PATH ${CMAKE_CURRENT_BINARY_DIR}/../.. REALPATH)
 get_filename_component (BUILD_PATH_SUFFIX ${BUILD_PATH} NAME)
-#find_package (Common ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_MICRO}
-#              REQUIRED
-#              CONFIG
-#              PATHS ${CMAKE_CURRENT_SOURCE_DIR}/../modules ${CMAKE_CURRENT_SOURCE_DIR}/../..
-#              PATH_SUFFIXES Common/${BUILD_PATH_SUFFIX}
-#              NO_DEFAULT_PATH)
-#if (NOT EXISTS ${Common_DIR})
-# message (FATAL_ERROR "could not find package \"Common\", aborting")
-#endif ()
-#add_definitions (-DCOMMON_HAS_DLL)
-
-#find_package (${PROJECT_NAME} ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_MICRO}
-#              REQUIRED
-#              CONFIG
-#              PATHS ${CMAKE_CURRENT_SOURCE_DIR}/../..
-#              PATH_SUFFIXES ${BUILD_PATH_SUFFIX}
-#              NO_DEFAULT_PATH)
-#if (NOT EXISTS ${${PROJECT_NAME}_DIR})
-# message (FATAL_ERROR "could not find package \"${PROJECT_NAME}\", aborting")
-#endif ()
-#add_definitions (-DSTREAM_HAS_DLL)
-#add_definitions (-DSTREAM_DEC_HAS_DLL)
 
 add_definitions (-DHAVE_CONFIG_H)
 #set_property (SOURCE PROPERTY COMPILE_DEFINITIONS HAVE_CONFIG_H)
 
+if (FFMPEG_SUPPORT)
+ include_directories (${ffmpeg_INCLUDE_DIRS})
+endif (FFMPEG_SUPPORT)
+if (IMAGEMAGICK_SUPPORT)
+ include_directories (${ImageMagick_INCLUDE_DIRS})
+endif (IMAGEMAGICK_SUPPORT)
 if (UNIX)
  include_directories (${PKG_CAP_INCLUDE_DIRS})
  include_directories (${PKG_V4L2_INCLUDE_DIRS})
- include_directories (${PKG_FFMPEG_INCLUDE_DIRS})
-
-# include_directories (/usr/local/src/ACE_wrappers)
- include_directories ($ENV{LIB_ROOT}/ACE_TAO/ACE)
 
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../Common/include)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../Common/src)
@@ -58,17 +35,6 @@ if (UNIX)
 
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../Common/test_u)
 elseif (WIN32)
- include_directories ($ENV{LIB_ROOT}/ImageMagick/include)
-
-# libav
- include_directories ($ENV{LIB_ROOT}/ffmpeg/include)
-
-# if (DEFINED ENV{ACE_ROOT})
-#  include_directories ($ENV{ACE_ROOT})
-# else ()
-#  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../ATCD/ACE)
-# endif (DEFINED ENV{ACE_ROOT})
-
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../3rd_party/msvc)
 
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../Common/include)
@@ -138,14 +104,6 @@ if (GUI_SUPPORT)
 endif (GUI_SUPPORT)
 
 if (UNIX)
- add_definitions (-D_GLIBCXX_INCLUDE_NEXT_C_HEADERS)
- if (GUI_SUPPORT)
-  if (GTK_USE)
-   if (CMAKE_BUILD_TYPE STREQUAL Debug)
-    add_definitions (-DG_ERRORCHECK_MUTEXES)
-   endif ()
-  endif (GTK_USE)
- endif (GUI_SUPPORT)
 elseif (WIN32)
  if (WIN32 AND (CMAKE_BUILD_TYPE STREQUAL Debug))
   add_definitions (-DD3D_DEBUG_INFO)
@@ -192,28 +150,34 @@ add_dependencies (${EXECUTABLE} ${PROJECT_NAME}_Visualization)
 
 add_dependencies (${EXECUTABLE} ${PROJECT_NAME}_Test_U)
 
-if (WIN32)
- if (MSVC)
-  set_target_properties (${EXECUTABLE} PROPERTIES LINK_FLAGS /SAFESEH:NO)
-#  set (CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /NODEFAULTLIB:\"libcmt.lib\"")
-#  set (CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /NODEFAULTLIB:\"libcpmt.lib\"")
- endif (MSVC)
-endif (WIN32)
-
 target_link_libraries (${EXECUTABLE} ${CMAKE_THREAD_LIBS_INIT})
+if (FFMPEG_SUPPORT)
+ if (WIN32)
+  if (MSVC)
+   set_target_properties (${EXECUTABLE} PROPERTIES LINK_FLAGS /SAFESEH:NO)
+  endif (MSVC)
+ endif (WIN32)
+ target_link_libraries (${EXECUTABLE} ${ffmpeg_LIBRARIES})
+endif (FFMPEG_SUPPORT)
+if (IMAGEMAGICK_SUPPORT)
+ target_link_libraries (${EXECUTABLE} ${ImageMagick_LIBRARIES})
+endif (IMAGEMAGICK_SUPPORT)
 if (UNIX)
-# target_link_libraries (${EXECUTABLE} libgobject-2.0.so libglib-2.0.so libgdk-3.so libgtk-3.so)
+# target_link_libraries (${EXECUTABLE} ${PKG_CAP_LIBRARIES})
 # target_link_libraries (${EXECUTABLE} ${PKG_V4L2_LIBRARIES})
- target_link_libraries (${EXECUTABLE} ${PKG_FFMPEG_LIBRARIES})
+
+# if (GUI_SUPPORT)
+#  if (WXWIDGETS_USE)
+#   target_link_libraries (${EXECUTABLE} ${wxWidgets_LIBRARIES})
+#  endif (WXWIDGETS_USE)
+# endif (GUI_SUPPORT)
 
 # target_link_libraries (${EXECUTABLE} ${ACE_XML_LIBRARY})
 elseif (WIN32)
- if (MSVC)
+# if (MSVC)
 #  target_link_libraries (${EXECUTABLE} PUBLIC "$<$<CXX_COMPILER_ID:MSVC>:-SAFESEH:NO>")
-  set_target_properties (${EXECUTABLE} PROPERTIES LINK_FLAGS /SAFESEH:NO) 
-#  set (CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /NODEFAULTLIB:\"libcmt.lib\"")
-#  set (CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /NODEFAULTLIB:\"libcpmt.lib\"")
- endif (MSVC)
+##  set_target_properties (${EXECUTABLE} PROPERTIES LINK_FLAGS /SAFESEH:NO) 
+# endif (MSVC)
 
 # target_link_libraries (${EXECUTABLE} dxguid.lib)
  target_link_libraries (${EXECUTABLE} mfplat.lib)
@@ -223,16 +187,6 @@ elseif (WIN32)
  else ()
 #  target_link_libraries (${EXECUTABLE} ${DIRECTSHOW_BASECLASSES_DIRECTORY}/cmake/baseclasses/Release/strmbase.lib)
  endif (CMAKE_BUILD_TYPE STREQUAL Debug)
-
-# *TODO*: repair WIN32 pkgconfig support
-# target_link_libraries (${EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/../../../ffmpeg/libavformat/avformat.lib)
- target_link_libraries (${EXECUTABLE} $ENV{LIB_ROOT}/ffmpeg/lib/avformat.lib)
-# target_link_libraries (${EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/../../../ffmpeg/libavcodec/avcodec.lib)
- target_link_libraries (${EXECUTABLE} $ENV{LIB_ROOT}/ffmpeg/lib/avcodec.lib)
-
-# target_link_libraries (${EXECUTABLE} $ENV{LIB_ROOT}/ImageMagick/lib/CORE_RL_Magick++_.lib)
- target_link_libraries (${EXECUTABLE} $ENV{LIB_ROOT}/ImageMagick/lib/CORE_RL_MagickCore_.lib)
- target_link_libraries (${EXECUTABLE} $ENV{LIB_ROOT}/ImageMagick/lib/CORE_RL_MagickWand_.lib)
 endif ()
 target_link_libraries (${EXECUTABLE} ${ACE_LIBRARY})
 
@@ -242,10 +196,6 @@ target_link_libraries (${EXECUTABLE} CommonLog)
 target_link_libraries (${EXECUTABLE} CommonSignal)
 target_link_libraries (${EXECUTABLE} CommonTimer)
 if (GUI_SUPPORT)
- if (WIN32)
-  # *WARNING*: linking CommonUI requires "/FORCE:MULTIPLE"
-#  target_link_options (${EXECUTABLE} PUBLIC "$<$<CXX_COMPILER_ID:MSVC>:-FORCE:MULTIPLE>")
- endif (WIN32)
  target_link_libraries (${EXECUTABLE} CommonUI)
  if (GTK_USE)
   target_link_libraries (${EXECUTABLE} CommonUI_GTK)
@@ -269,20 +219,11 @@ target_link_libraries (${EXECUTABLE} ${PROJECT_NAME}_Visualization)
 
 target_link_libraries (${EXECUTABLE} ${PROJECT_NAME}_Test_U)
 
-if (UNIX)
-# target_link_libraries (${EXECUTABLE} ${PKG_CAP_LIBRARIES})
- if (GUI_SUPPORT)
-  if (WXWIDGETS_USE)
-   target_link_libraries (${EXECUTABLE} ${wxWidgets_LIBRARIES})
-  endif (WXWIDGETS_USE)
- endif (GUI_SUPPORT)
-endif (UNIX)
-
-if (WIN32)
- if (MSVC)
-  target_link_options (${EXECUTABLE} PUBLIC "$<$<CXX_COMPILER_ID:MSVC>:-SAFESEH:NO>")
- endif (MSVC)
-endif (WIN32)
+#if (WIN32)
+# if (MSVC)
+#  target_link_options (${EXECUTABLE} PUBLIC "$<$<CXX_COMPILER_ID:MSVC>:-SAFESEH:NO>")
+# endif (MSVC)
+#endif (WIN32)
 
 # add PCH
 set_target_properties (${EXECUTABLE} PROPERTIES COTIRE_CXX_PREFIX_HEADER_INIT "stdafx.h")
@@ -359,7 +300,7 @@ if (UNIX)
   set (ARGS "-g ${ARGS}")
  endif (GUI_SUPPORT)
 
- set (RUNTIME_LIBRARY_DIRS ${PROJECT_SOURCE_DIR}/modules/ATCD/ACE/lib)
+ set (RUNTIME_LIBRARY_DIRS ${PROJECT_SOURCE_DIR}/modules/ACE/lib)
  set (ENVIRONMENT "GDK_BACKEND=x11")
 elseif (WIN32)
  if (GUI_SUPPORT)

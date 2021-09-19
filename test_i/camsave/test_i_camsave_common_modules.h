@@ -30,13 +30,18 @@
 #include "stream_streammodule_base.h"
 
 #if defined (GUI_SUPPORT)
+#if defined (FFMPEG_SUPPORT)
 #include "stream_dec_libav_converter.h"
+#endif // FFMPEG_SUPPORT
 #endif // GUI_SUPPORT
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-#else
-#include "stream_dec_libav_decoder.h"
-#endif // ACE_WIN32 || ACE_WIN64
 #include "stream_dec_avi_encoder.h"
+#else
+#if defined (FFMPEG_SUPPORT)
+#include "stream_dec_avi_encoder.h"
+#include "stream_dec_libav_decoder.h"
+#endif // FFMPEG_SUPPORT
+#endif // ACE_WIN32 || ACE_WIN64
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 // *NOTE*: wxWidgets may have #defined __WXDEBUG__
@@ -75,7 +80,9 @@
 #else
 //#include "stream_vis_x11_window.h"
 #endif // ACE_WIN32 || ACE_WIN64
+#if defined (FFMPEG_SUPPORT)
 #include "stream_vis_libav_resize.h"
+#endif // FFMPEG_SUPPORT
 #endif // GUI_SUPPORT
 
 #include "test_i_camsave_common.h"
@@ -120,6 +127,7 @@ typedef Stream_Miscellaneous_Distributor_T<ACE_MT_SYNCH,
                                            Stream_CamSave_DirectShow_SessionMessage_t,
                                            Stream_CamSave_DirectShow_SessionData> Stream_CamSave_DirectShow_Distributor;
 
+#if defined (FFMPEG_SUPPORT)
 typedef Stream_Decoder_LibAVConverter_T<ACE_MT_SYNCH,
                                         Common_TimePolicy_t,
                                         struct Stream_CamSave_DirectShow_ModuleHandlerConfiguration,
@@ -136,6 +144,7 @@ typedef Stream_Visualization_LibAVResize_T<ACE_MT_SYNCH,
                                            Stream_CamSave_DirectShow_SessionMessage_t,
                                            Stream_CamSave_DirectShow_SessionData_t,
                                            struct _AMMediaType> Stream_CamSave_DirectShow_LibAVResize;
+#endif // FFMPEG_SUPPORT
 #else
 #if defined (LIBCAMERA_SUPPORT)
 typedef Stream_Module_CamSource_LibCamera_T<ACE_MT_SYNCH,
@@ -168,6 +177,7 @@ typedef Stream_Module_CamSource_V4L_T<ACE_MT_SYNCH,
                                       struct Stream_UserData> Stream_CamSave_V4L_Source;
 
 #if defined (LIBCAMERA_SUPPORT)
+#if defined (FFMPEG_SUPPORT)
 typedef Stream_Decoder_LibAVDecoder_T<ACE_MT_SYNCH,
                                       Common_TimePolicy_t,
                                       struct Stream_CamSave_LibCamera_ModuleHandlerConfiguration,
@@ -176,6 +186,7 @@ typedef Stream_Decoder_LibAVDecoder_T<ACE_MT_SYNCH,
                                       Stream_CamSave_LibCamera_SessionMessage_t,
                                       Stream_CamSave_LibCamera_SessionData_t,
                                       struct Stream_MediaFramework_LibCamera_MediaType> Stream_CamSave_LibCamera_LibAVDecoder;
+#endif // FFMPEG_SUPPORT
 
 typedef Stream_Miscellaneous_Distributor_T<ACE_MT_SYNCH,
                                            Common_TimePolicy_t,
@@ -185,6 +196,7 @@ typedef Stream_Miscellaneous_Distributor_T<ACE_MT_SYNCH,
                                            Stream_CamSave_LibCamera_SessionMessage_t,
                                            Stream_CamSave_LibCamera_SessionData> Stream_CamSave_LibCamera_Distributor;
 
+#if defined (FFMPEG_SUPPORT)
 typedef Stream_Decoder_LibAVConverter_T<ACE_MT_SYNCH,
                                         Common_TimePolicy_t,
                                         struct Stream_CamSave_LibCamera_ModuleHandlerConfiguration,
@@ -201,8 +213,10 @@ typedef Stream_Visualization_LibAVResize_T<ACE_MT_SYNCH,
                                            Stream_CamSave_LibCamera_SessionMessage_t,
                                            Stream_CamSave_LibCamera_SessionData_t,
                                            struct Stream_MediaFramework_LibCamera_MediaType> Stream_CamSave_LibCamera_LibAVResize;
+#endif // FFMPEG_SUPPORT
 #endif // LIBCAMERA_SUPPORT
 
+#if defined (FFMPEG_SUPPORT)
 typedef Stream_Decoder_LibAVDecoder_T<ACE_MT_SYNCH,
                                       Common_TimePolicy_t,
                                       struct Stream_CamSave_V4L_ModuleHandlerConfiguration,
@@ -211,6 +225,7 @@ typedef Stream_Decoder_LibAVDecoder_T<ACE_MT_SYNCH,
                                       Stream_CamSave_V4L_SessionMessage_t,
                                       Stream_CamSave_V4L_SessionData_t,
                                       struct Stream_MediaFramework_V4L_MediaType> Stream_CamSave_V4L_LibAVDecoder;
+#endif // FFMPEG_SUPPORT
 
 typedef Stream_Miscellaneous_Distributor_T<ACE_MT_SYNCH,
                                            Common_TimePolicy_t,
@@ -220,6 +235,7 @@ typedef Stream_Miscellaneous_Distributor_T<ACE_MT_SYNCH,
                                            Stream_CamSave_V4L_SessionMessage_t,
                                            Stream_CamSave_V4L_SessionData> Stream_CamSave_V4L_Distributor;
 
+#if defined (FFMPEG_SUPPORT)
 typedef Stream_Decoder_LibAVConverter_T<ACE_MT_SYNCH,
                                         Common_TimePolicy_t,
                                         struct Stream_CamSave_V4L_ModuleHandlerConfiguration,
@@ -236,6 +252,7 @@ typedef Stream_Visualization_LibAVResize_T<ACE_MT_SYNCH,
                                            Stream_CamSave_V4L_SessionMessage_t,
                                            Stream_CamSave_V4L_SessionData_t,
                                            struct Stream_MediaFramework_V4L_MediaType> Stream_CamSave_V4L_LibAVResize;
+#endif // FFMPEG_SUPPORT
 #endif // ACE_WIN32 || ACE_WIN64
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -353,6 +370,7 @@ typedef Stream_Decoder_AVIEncoder_WriterTask_T<ACE_MT_SYNCH,
                                                struct Stream_UserData> Stream_CamSave_MediaFoundation_AVIEncoder_WriterTask_t;
 #else
 #if defined (LIBCAMERA_SUPPORT)
+#if defined (FFMPEG_SUPPORT)
 typedef Stream_Decoder_AVIEncoder_ReaderTask_T<ACE_MT_SYNCH,
                                                Common_TimePolicy_t,
                                                struct Stream_CamSave_LibCamera_ModuleHandlerConfiguration,
@@ -373,8 +391,10 @@ typedef Stream_Decoder_AVIEncoder_WriterTask_T<ACE_MT_SYNCH,
                                                Stream_CamSave_LibCamera_SessionData,
                                                struct Stream_MediaFramework_LibCamera_MediaType,
                                                struct Stream_UserData> Stream_CamSave_LibCamera_AVIEncoder_WriterTask_t;
+#endif // FFMPEG_SUPPORT
 #endif // LIBCAMERA_SUPPORT
 
+#if defined (FFMPEG_SUPPORT)
 typedef Stream_Decoder_AVIEncoder_ReaderTask_T<ACE_MT_SYNCH,
                                                Common_TimePolicy_t,
                                                struct Stream_CamSave_V4L_ModuleHandlerConfiguration,
@@ -395,6 +415,7 @@ typedef Stream_Decoder_AVIEncoder_WriterTask_T<ACE_MT_SYNCH,
                                                Stream_CamSave_V4L_SessionData,
                                                struct Stream_MediaFramework_V4L_MediaType,
                                                struct Stream_UserData> Stream_CamSave_V4L_AVIEncoder_WriterTask_t;
+#endif // FFMPEG_SUPPORT
 #endif // ACE_WIN32 || ACE_WIN64
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -655,6 +676,7 @@ DATASTREAM_MODULE_INPUT_ONLY (Stream_CamSave_DirectShow_SessionData,            
                               Stream_INotify_t,                                 // stream notification interface type
                               Stream_CamSave_DirectShow_Distributor);           // writer type
 
+#if defined (FFMPEG_SUPPORT)
 DATASTREAM_MODULE_INPUT_ONLY (Stream_CamSave_DirectShow_SessionData,            // session data type
                               enum Stream_SessionMessageType,                   // session event type
                               struct Stream_CamSave_DirectShow_ModuleHandlerConfiguration, // module handler configuration type
@@ -667,6 +689,7 @@ DATASTREAM_MODULE_INPUT_ONLY (Stream_CamSave_DirectShow_SessionData,            
                               libacestream_default_vis_libav_resize_module_name_string,
                               Stream_INotify_t,                                 // stream notification interface type
                               Stream_CamSave_DirectShow_LibAVResize);           // writer type
+#endif // FFMPEG_SUPPORT
 #else
 #if defined (LIBCAMERA_SUPPORT)
 DATASTREAM_MODULE_INPUT_ONLY (Stream_CamSave_LibCamera_SessionData,             // session data type
@@ -684,19 +707,23 @@ DATASTREAM_MODULE_INPUT_ONLY (Stream_CamSave_V4L_SessionData,                   
                               Stream_CamSave_V4L_Source);                       // writer type
 
 #if defined (LIBCAMERA_SUPPORT)
+#if defined (FFMPEG_SUPPORT)
 DATASTREAM_MODULE_INPUT_ONLY (Stream_CamSave_LibCamera_SessionData,             // session data type
                               enum Stream_SessionMessageType,                   // session event type
                               struct Stream_CamSave_LibCamera_ModuleHandlerConfiguration, // module handler configuration type
                               libacestream_default_dec_libav_decoder_module_name_string,
                               Stream_INotify_t,                                 // stream notification interface type
                               Stream_CamSave_LibCamera_LibAVDecoder);           // writer type
+#endif // FFMPEG_SUPPORT
 #endif // LIBCAMERA_SUPPORT
+#if defined (FFMPEG_SUPPORT)
 DATASTREAM_MODULE_INPUT_ONLY (Stream_CamSave_V4L_SessionData,                   // session data type
                               enum Stream_SessionMessageType,                   // session event type
                               struct Stream_CamSave_V4L_ModuleHandlerConfiguration, // module handler configuration type
                               libacestream_default_dec_libav_decoder_module_name_string,
                               Stream_INotify_t,                                 // stream notification interface type
                               Stream_CamSave_V4L_LibAVDecoder);                 // writer type
+#endif // FFMPEG_SUPPORT
 
 #if defined (LIBCAMERA_SUPPORT)
 DATASTREAM_MODULE_INPUT_ONLY (Stream_CamSave_LibCamera_SessionData,             // session data type
@@ -706,6 +733,7 @@ DATASTREAM_MODULE_INPUT_ONLY (Stream_CamSave_LibCamera_SessionData,             
                               Stream_INotify_t,                                 // stream notification interface type
                               Stream_CamSave_LibCamera_Distributor);            // writer type
 
+#if defined (FFMPEG_SUPPORT)
 DATASTREAM_MODULE_INPUT_ONLY (Stream_CamSave_LibCamera_SessionData,             // session data type
                               enum Stream_SessionMessageType,                   // session event type
                               struct Stream_CamSave_LibCamera_ModuleHandlerConfiguration, // module handler configuration type
@@ -718,6 +746,7 @@ DATASTREAM_MODULE_INPUT_ONLY (Stream_CamSave_LibCamera_SessionData,             
                               libacestream_default_vis_libav_resize_module_name_string,
                               Stream_INotify_t,                                 // stream notification interface type
                               Stream_CamSave_LibCamera_LibAVResize);            // writer type
+#endif // FFMPEG_SUPPORT
 #endif // LIBCAMERA_SUPPORT
 DATASTREAM_MODULE_INPUT_ONLY (Stream_CamSave_V4L_SessionData,                   // session data type
                               enum Stream_SessionMessageType,                   // session event type
@@ -726,6 +755,7 @@ DATASTREAM_MODULE_INPUT_ONLY (Stream_CamSave_V4L_SessionData,                   
                               Stream_INotify_t,                                 // stream notification interface type
                               Stream_CamSave_V4L_Distributor);                  // writer type
 
+#if defined (FFMPEG_SUPPORT)
 DATASTREAM_MODULE_INPUT_ONLY (Stream_CamSave_V4L_SessionData,                   // session data type
                               enum Stream_SessionMessageType,                   // session event type
                               struct Stream_CamSave_V4L_ModuleHandlerConfiguration, // module handler configuration type
@@ -738,6 +768,7 @@ DATASTREAM_MODULE_INPUT_ONLY (Stream_CamSave_V4L_SessionData,                   
                               libacestream_default_vis_libav_resize_module_name_string,
                               Stream_INotify_t,                                 // stream notification interface type
                               Stream_CamSave_V4L_LibAVResize);                  // writer type
+#endif // FFMPEG_SUPPORT
 #endif // ACE_WIN32 || ACE_WIN64
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -789,6 +820,7 @@ DATASTREAM_MODULE_DUPLEX (Stream_CamSave_MediaFoundation_SessionData,           
                           Stream_CamSave_MediaFoundation_AVIEncoder);                       // name
 #else
 #if defined (LIBCAMERA_SUPPORT)
+#if defined (FFMPEG_SUPPORT)
 DATASTREAM_MODULE_DUPLEX (Stream_CamSave_LibCamera_SessionData,             // session data type
                           enum Stream_SessionMessageType,                   // session event type
                           struct Stream_CamSave_LibCamera_ModuleHandlerConfiguration, // module handler configuration type
@@ -797,7 +829,9 @@ DATASTREAM_MODULE_DUPLEX (Stream_CamSave_LibCamera_SessionData,             // s
                           Stream_CamSave_LibCamera_AVIEncoder_ReaderTask_t, // reader type
                           Stream_CamSave_LibCamera_AVIEncoder_WriterTask_t, // writer type
                           Stream_CamSave_LibCamera_AVIEncoder);             // name
+#endif // FFMPEG_SUPPORT
 #endif // LIBCAMERA_SUPPORT
+#if defined (FFMPEG_SUPPORT)
 DATASTREAM_MODULE_DUPLEX (Stream_CamSave_V4L_SessionData,                   // session data type
                           enum Stream_SessionMessageType,                   // session event type
                           struct Stream_CamSave_V4L_ModuleHandlerConfiguration, // module handler configuration type
@@ -806,6 +840,7 @@ DATASTREAM_MODULE_DUPLEX (Stream_CamSave_V4L_SessionData,                   // s
                           Stream_CamSave_V4L_AVIEncoder_ReaderTask_t,       // reader type
                           Stream_CamSave_V4L_AVIEncoder_WriterTask_t,       // writer type
                           Stream_CamSave_V4L_AVIEncoder);                   // name
+#endif // FFMPEG_SUPPORT
 #endif // ACE_WIN32 || ACE_WIN64
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)

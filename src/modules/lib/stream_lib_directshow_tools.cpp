@@ -3547,48 +3547,6 @@ continue_:
 }
 
 void
-Stream_MediaFramework_DirectShow_Tools::resize (const Common_Image_Resolution_t& size_in,
-                                                struct _AMMediaType& mediaType_inout)
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_DirectShow_Tools::resize"));
-
-  if (InlineIsEqualGUID (mediaType_inout.formattype, FORMAT_VideoInfo))
-  {
-    struct tagVIDEOINFOHEADER* video_info_header_p =
-      (struct tagVIDEOINFOHEADER*)mediaType_inout.pbFormat;
-
-    video_info_header_p->bmiHeader.biWidth = size_in.cx;
-    video_info_header_p->bmiHeader.biHeight = size_in.cy;
-    video_info_header_p->bmiHeader.biSizeImage =
-      DIBSIZE (video_info_header_p->bmiHeader);
-
-    video_info_header_p->dwBitRate =
-      (video_info_header_p->bmiHeader.biSizeImage * 8) *                      // bits / frame
-      (10000000 / static_cast<DWORD> (video_info_header_p->AvgTimePerFrame)); // fps
-  } // end IF
-  else if (InlineIsEqualGUID (mediaType_inout.formattype, FORMAT_VideoInfo2))
-  {
-    struct tagVIDEOINFOHEADER2* video_info_header2_p =
-      (struct tagVIDEOINFOHEADER2*)mediaType_inout.pbFormat;
-
-    video_info_header2_p->bmiHeader.biWidth = size_in.cx;
-    video_info_header2_p->bmiHeader.biHeight = size_in.cy;
-    video_info_header2_p->bmiHeader.biSizeImage =
-      DIBSIZE (video_info_header2_p->bmiHeader);
-
-    video_info_header2_p->dwBitRate =
-      (video_info_header2_p->bmiHeader.biSizeImage * 8) *                      // bits / frame
-      (10000000 / static_cast<DWORD> (video_info_header2_p->AvgTimePerFrame)); // fps
-  } // end ELSE IF
-  else
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("invalid/unknown media formattype (was: \"%s\"), returning\n"),
-                ACE_TEXT (Common_Tools::GUIDToString (mediaType_inout.formattype).c_str ())));
-  } // end ELSE
-}
-
-void
 Stream_MediaFramework_DirectShow_Tools::setFormat (REFGUID mediaSubType_in,
                                                    struct _AMMediaType& mediaType_inout)
 {
@@ -3604,7 +3562,6 @@ Stream_MediaFramework_DirectShow_Tools::setFormat (REFGUID mediaSubType_in,
   {
     struct tagVIDEOINFOHEADER* video_info_header_p =
       (struct tagVIDEOINFOHEADER*)mediaType_inout.pbFormat;
-
     video_info_header_p->bmiHeader.biCompression =
       (Stream_MediaFramework_Tools::isCompressedVideo (mediaType_inout.subtype,
                                                        STREAM_MEDIAFRAMEWORK_DIRECTSHOW) ? fourcc_map.GetFOURCC ()
@@ -3614,7 +3571,6 @@ Stream_MediaFramework_DirectShow_Tools::setFormat (REFGUID mediaSubType_in,
   {
     struct tagVIDEOINFOHEADER2* video_info_header2_p =
       (struct tagVIDEOINFOHEADER2*)mediaType_inout.pbFormat;
-
     video_info_header2_p->bmiHeader.biCompression =
       (Stream_MediaFramework_Tools::isCompressedVideo (mediaType_inout.subtype,
                                                        STREAM_MEDIAFRAMEWORK_DIRECTSHOW) ? fourcc_map.GetFOURCC ()
@@ -4320,6 +4276,38 @@ Stream_MediaFramework_DirectShow_Tools::toResolution (const struct _AMMediaType&
 }
 
 unsigned int
+Stream_MediaFramework_DirectShow_Tools::toRowStride (const struct _AMMediaType& mediaType_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_DirectShow_Tools::toRowStride"));
+
+  unsigned int result = 0;
+
+  if (InlineIsEqualGUID (mediaType_in.formattype, FORMAT_VideoInfo))
+  {
+    struct tagVIDEOINFOHEADER* video_info_header_p =
+      (struct tagVIDEOINFOHEADER*)mediaType_in.pbFormat;
+    result =
+      (video_info_header_p->bmiHeader.biWidth * (video_info_header_p->bmiHeader.biBitCount / 8));
+  } // end IF
+  else if (InlineIsEqualGUID (mediaType_in.formattype, FORMAT_VideoInfo2))
+  {
+    struct tagVIDEOINFOHEADER2* video_info_header2_p =
+      (struct tagVIDEOINFOHEADER2*)mediaType_in.pbFormat;
+    result =
+      (video_info_header2_p->bmiHeader.biWidth * (video_info_header2_p->bmiHeader.biBitCount / 8));
+  } // end ELSE IF
+  else
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("invalid/unknown media format type (was: \"%s\"), returning\n"),
+                ACE_TEXT (Stream_MediaFramework_Tools::mediaFormatTypeToString (mediaType_in.formattype).c_str ())));
+    return result;
+  } // end ELSE
+
+  return result;
+}
+
+unsigned int
 Stream_MediaFramework_DirectShow_Tools::toFramerate (const struct _AMMediaType& mediaType_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_DirectShow_Tools::toFramerate"));
@@ -4411,6 +4399,7 @@ Stream_MediaFramework_DirectShow_Tools::toBitrate (const struct _AMMediaType& me
   return result;
 }
 
+#if defined (FFMPEG_SUPPORT)
 struct _AMMediaType*
 Stream_MediaFramework_DirectShow_Tools::to (const struct Stream_MediaFramework_FFMPEG_VideoMediaType& mediaType_in)
 {
@@ -4474,3 +4463,4 @@ Stream_MediaFramework_DirectShow_Tools::to (const struct Stream_MediaFramework_F
 
   return result_p;
 }
+#endif // FFMPEG_SUPPORT

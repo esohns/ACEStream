@@ -45,29 +45,8 @@ elseif (WIN32)
  endif ()
 endif ()
 
-get_filename_component (BUILD_PATH ${CMAKE_CURRENT_BINARY_DIR}/../.. REALPATH DIRECTORY)
+get_filename_component (BUILD_PATH ${CMAKE_CURRENT_BINARY_DIR}/../.. REALPATH)
 get_filename_component (BUILD_PATH_SUFFIX ${BUILD_PATH} NAME)
-#find_package (Common ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_MICRO}
-#              REQUIRED
-#              CONFIG
-#              PATHS ${CMAKE_CURRENT_SOURCE_DIR}/../../modules ${CMAKE_CURRENT_SOURCE_DIR}/../../..
-#              PATH_SUFFIXES Common/${BUILD_PATH_SUFFIX}
-#              NO_DEFAULT_PATH)
-#if (NOT EXISTS ${Common_DIR})
-# message (FATAL_ERROR "could not find package \"Common\", aborting")
-#endif ()
-#add_definitions (-DCOMMON_HAS_DLL)
-
-#find_package (${PROJECT_NAME} ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_MICRO}
-#              REQUIRED
-#              CONFIG
-#              PATHS ${CMAKE_CURRENT_SOURCE_DIR}/../..
-#              PATH_SUFFIXES ${BUILD_PATH_SUFFIX}
-#              NO_DEFAULT_PATH)
-#if (NOT EXISTS ${ACEStream_DIR})
-# message (FATAL_ERROR "could not find package \"ACEStream\", aborting")
-#endif ()
-#add_definitions (-DSTREAM_DB_HAS_DLL)
 
 #string (TOLOWER "${CMAKE_BUILD_TYPE}" BUILD_TYPE)
 find_package (ACENetwork ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_MICRO}
@@ -88,7 +67,7 @@ if (UNIX)
 # include_directories (${PKG_CAP_INCLUDE_DIRS})
  include_directories (${PKG_LIBXML2_INCLUDE_DIRS})
  include_directories (${PKG_MYSQL_INCLUDE_DIRS})
- include_directories (${PKG_FFMPEG_INCLUDE_DIRS})
+# include_directories (${PKG_FFMPEG_INCLUDE_DIRS})
 
  if (SSL_SUPPORT)
   include_directories (${PKG_SSL_INCLUDE_DIRS})
@@ -116,8 +95,6 @@ elseif (WIN32)
 # include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../libmysql_2/include)
 # include_directories (C:/lib/libmysql_2/cmake/include)
 # include_directories (C:/lib/libmysql_2/include)
-
- include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../ffmpeg)
 
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../openssl/include)
 
@@ -184,10 +161,6 @@ set (${EXECUTABLE}_EXE_SRCS
      test_i_http_get_stream_common.h)
 #  test_i_template_instantiations.cpp
 
-#if (UNIX)
-# add_definitions (-D_GLIBCXX_INCLUDE_NEXT_C_HEADERS)
-#endif ()
-
 if (UNIX)
 # message (STATUS "PKG_MYSQL_LIBRARY_DIRS: ${PKG_MYSQL_LIBRARY_DIRS}")
  link_directories (${PKG_MYSQL_LIBRARY_DIRS})
@@ -211,8 +184,6 @@ endif ()
 target_link_libraries (${EXECUTABLE} ${CMAKE_THREAD_LIBS_INIT})
 if (UNIX)
 elseif (WIN32)
- # *WARNING*: linking CommonUI requires "/FORCE:MULTIPLE"
-# set_target_properties (${EXECUTABLE} PROPERTIES LINK_FLAGS /FORCE:MULTIPLE)
  set_target_properties (${EXECUTABLE} PROPERTIES LINK_FLAGS /SAFESEH:NO)
 
  if (SSL_SUPPORT)
@@ -239,9 +210,7 @@ elseif (WIN32)
 endif ()
 
 if (WIN32)
- # *WARNING*: linking Common requires "/FORCE:MULTIPLE""
-# target_link_options (${EXECUTABLE} PUBLIC "$<$<CXX_COMPILER_ID:MSVC>:-FORCE:MULTIPLE>")
- target_link_options (${EXECUTABLE} PUBLIC "$<$<CXX_COMPILER_ID:MSVC>:-SAFESEH:NO>")
+# target_link_options (${EXECUTABLE} PUBLIC "$<$<CXX_COMPILER_ID:MSVC>:-SAFESEH:NO>")
 endif (WIN32)
 target_link_libraries (${EXECUTABLE} Common)
 target_link_libraries (${EXECUTABLE} CommonImage)
@@ -267,7 +236,9 @@ target_link_libraries (${EXECUTABLE} ACENetwork_Protocol_HTTP)
 
 if (UNIX)
 # target_link_libraries (${EXECUTABLE} ${PKG_CAP_LIBRARIES})
- target_link_libraries (${EXECUTABLE} ${SSL_LIBRARIES})
+ if (OPENSSL_SUPPORT)
+  target_link_libraries (${EXECUTABLE} ${SSL_LIBRARIES})
+ endif (OPENSSL_SUPPORT)
  target_link_libraries (${EXECUTABLE} ${PKG_LIBXML_LIBRARIES})
 endif (UNIX)
 
@@ -283,27 +254,27 @@ install (TARGETS ${EXECUTABLE}
 
 if (UNIX)
  create_target_launcher (${EXECUTABLE}
-                         ARGS "-c.\\\\..\\\\..\\\\..\\\\test_i\\\\http_get\\\\etc\\\\options.cnf -d news -e articles -f output.txt -l -p 80 -t -u http://www.heise.de/newsticker.html"
+                         ARGS "-c./etc/options.cnf -d news -e articles -f output.txt -l -p 80 -t -u http://www.heise.de/newsticker.html"
 #                         FORWARD_ARGS
-                         RUNTIME_LIBRARY_DIRS ${PROJECT_SOURCE_DIR}/modules/ATCD/ACE/lib
+                         RUNTIME_LIBRARY_DIRS ${PROJECT_SOURCE_DIR}/modules/ACE/lib
                                               ${PROJECT_SOURCE_DIR}/../libxml2-2.9.4/.libs
-                                              ${PROJECT_SOURCE_DIR}/../Common/cmake/src/Debug
-                                              ${PROJECT_SOURCE_DIR}/cmake/src/Debug
-                                              ${PROJECT_SOURCE_DIR}/cmake/src/modules/db/Debug
-                                              ${PROJECT_SOURCE_DIR}/cmake/src/modules/html/Debug
-                                              ${PROJECT_SOURCE_DIR}/cmake/src/modules/net/protocols/http/Debug
-                                              ${PROJECT_SOURCE_DIR}/../ACENetwork/cmake/src/Debug
-                                              ${PROJECT_SOURCE_DIR}/../ACENetwork/cmake/src/protocol/http/Debug
+                                              ${PROJECT_SOURCE_DIR}/../Common/${BUILD_PATH_SUFFIX}/src/${CMAKE_BUILD_TYPE}
+                                              ${PROJECT_SOURCE_DIR}/${BUILD_PATH_SUFFIX}/src/${CMAKE_BUILD_TYPE}
+                                              ${PROJECT_SOURCE_DIR}/${BUILD_PATH_SUFFIX}/src/modules/db/${CMAKE_BUILD_TYPE}
+                                              ${PROJECT_SOURCE_DIR}/${BUILD_PATH_SUFFIX}/src/modules/html/${CMAKE_BUILD_TYPE}
+                                              ${PROJECT_SOURCE_DIR}/${BUILD_PATH_SUFFIX}/src/modules/net/protocols/http/${CMAKE_BUILD_TYPE}
+                                              ${PROJECT_SOURCE_DIR}/../ACENetwork/${BUILD_PATH_SUFFIX}/src/${CMAKE_BUILD_TYPE}
+                                              ${PROJECT_SOURCE_DIR}/../ACENetwork/${BUILD_PATH_SUFFIX}/src/protocol/http/${CMAKE_BUILD_TYPE}
                          WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/test_i/http_get
                          ENVIRONMENT foo=bar)
 elseif (WIN32)
- file (TO_CMAKE_PATH $ENV{LIB_ROOT}/ffmpeg/bin FFMPEG_LIBRARY_PATH)
+# file (TO_CMAKE_PATH $ENV{LIB_ROOT}/ffmpeg/bin FFMPEG_LIBRARY_PATH)
  file (TO_CMAKE_PATH $ENV{LIB_ROOT}/libiconv/bin ICONV_LIBRARY_PATH)
  file (TO_CMAKE_PATH $ENV{LIB_ROOT}/libmysql/lib LIBMYSQL_LIBRARY_PATH)
  file (TO_CMAKE_PATH $ENV{LIB_ROOT}/libxml2/bin LIBXML_LIBRARY_PATH)
  file (TO_CMAKE_PATH $ENV{LIB_ROOT}/ACE_TAO/ACE/lib ACE_LIBRARY_PATH)
  file (TO_CMAKE_PATH $ENV{LIB_ROOT}/openssl SSL_LIBRARY_PATH)
- file (TO_CMAKE_PATH $ENV{LIB_ROOT}/zlib/cmake/Release ZLIB_LIBRARY_PATH)
+ file (TO_CMAKE_PATH $ENV{LIB_ROOT}/zlib/${BUILD_PATH_SUFFIX}/${CMAKE_BUILD_TYPE} ZLIB_LIBRARY_PATH)
  set (RUNTIME_LIBRARY_DIRS ${ACE_LIBRARY_PATH}
                            ${FFMPEG_LIBRARY_PATH}
                            ${ICONV_LIBRARY_PATH}
@@ -316,15 +287,15 @@ elseif (WIN32)
 #                        FORWARD_ARGS
                          RUNTIME_LIBRARY_DIRS ${RUNTIME_LIBRARY_DIRS}
 #                                              ${PROJECT_SOURCE_DIR}/../libiconv-1.9.2/bin
-                                              ${PROJECT_SOURCE_DIR}/../Common/cmake/src/Debug
-                                              ${PROJECT_SOURCE_DIR}/../Common/cmake/src/err/Debug
-                                              ${PROJECT_SOURCE_DIR}/cmake/src/Debug
-                                              ${PROJECT_SOURCE_DIR}/cmake/src/modules/db/Debug
-                                              ${PROJECT_SOURCE_DIR}/cmake/src/modules/dec/Debug
-                                              ${PROJECT_SOURCE_DIR}/cmake/src/modules/html/Debug
-                                              ${PROJECT_SOURCE_DIR}/cmake/src/modules/net/protocols/http/Debug
-                                              ${PROJECT_SOURCE_DIR}/../ACENetwork/cmake/src/Debug
-                                              ${PROJECT_SOURCE_DIR}/../ACENetwork/cmake/src/protocol/http/Debug
+                                              ${PROJECT_SOURCE_DIR}/../Common/${BUILD_PATH_SUFFIX}/src/${CMAKE_BUILD_TYPE}
+                                              ${PROJECT_SOURCE_DIR}/../Common/${BUILD_PATH_SUFFIX}/src/err/${CMAKE_BUILD_TYPE}
+                                              ${PROJECT_SOURCE_DIR}/${BUILD_PATH_SUFFIX}/src/${CMAKE_BUILD_TYPE}
+                                              ${PROJECT_SOURCE_DIR}/${BUILD_PATH_SUFFIX}/src/modules/db/${CMAKE_BUILD_TYPE}
+                                              ${PROJECT_SOURCE_DIR}/${BUILD_PATH_SUFFIX}/src/modules/dec/${CMAKE_BUILD_TYPE}
+                                              ${PROJECT_SOURCE_DIR}/${BUILD_PATH_SUFFIX}/src/modules/html/${CMAKE_BUILD_TYPE}
+                                              ${PROJECT_SOURCE_DIR}/${BUILD_PATH_SUFFIX}/src/modules/net/protocols/http/${CMAKE_BUILD_TYPE}
+                                              ${PROJECT_SOURCE_DIR}/../ACENetwork/${BUILD_PATH_SUFFIX}/src/${CMAKE_BUILD_TYPE}
+                                              ${PROJECT_SOURCE_DIR}/../ACENetwork/${BUILD_PATH_SUFFIX}/src/protocol/http/${CMAKE_BUILD_TYPE}
                          WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/test_i/http_get
                          ENVIRONMENT foo=bar)
 endif ()

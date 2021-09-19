@@ -18,15 +18,6 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#ifdef __cplusplus
-extern "C"
-{
-#include "libavutil/imgutils.h"
-}
-#endif /* __cplusplus */
-
-#include "gtk/gtk.h"
-
 #include "ace/Log_Msg.h"
 
 #include "stream_macros.h"
@@ -268,30 +259,34 @@ Stream_Module_Vis_GTK_Cairo_T<ACE_SYNCH_USE,
       // sanity check(s)
       ACE_ASSERT (inherited::sessionData_);
       const SessionDataType& session_data_r = inherited::sessionData_->getR ();
-      const MediaType& media_type_r = session_data_r.formats.back ();
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+      struct _AMMediaType media_type_s;
+      Common_Image_Resolution_t resolution_s;
+#else
       struct Stream_MediaFramework_FFMPEG_VideoMediaType media_type_s;
-      inherited2::getMediaType (media_type_r,
+#endif // ACE_WIN32 || ACE_WIN64
+      inherited2::getMediaType (session_data_r.formats.back (),
                                 media_type_s);
       unsigned int frame_size_i =
-          av_image_get_buffer_size (media_type_s.format,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-                                    media_type_s.resolution.cx,
-                                    media_type_s.resolution.cy,
+        Stream_MediaFramework_DirectShow_Tools::toFramesize (media_type_s);
+      resolution_s =
+        Stream_MediaFramework_DirectShow_Tools::toResolution (media_type_s);
 #else
-                                    media_type_s.resolution.width,
-                                    media_type_s.resolution.height,
+        av_image_get_buffer_size (media_type_s.format,
+                                  media_type_s.resolution.width,
+                                  media_type_s.resolution.height,
+                                  1); // *TODO*: linesize alignment
 #endif // ACE_WIN32 || ACE_WIN64
-                                    1); // *TODO*: linesize alignment
       ACE_UNUSED_ARG (frame_size_i);
       unsigned int row_stride_i =
-          av_image_get_linesize (media_type_s.format,
-    #if defined (ACE_WIN32) || defined (ACE_WIN64)
-                                 media_type_s.resolution.cx,
-    #else
-                                 media_type_s.resolution.width,
-    #endif // ACE_WIN32 || ACE_WIN64
-                                 0);
-//      ACE_UNUSED_ARG (row_stride_i);
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+        Stream_MediaFramework_DirectShow_Tools::toRowStride (media_type_s);
+#else
+        av_image_get_linesize (media_type_s.format,
+                               media_type_s.resolution.width,
+                               0);
+#endif // ACE_WIN32 || ACE_WIN64
       ACE_ASSERT (buffer_);
 #if GTK_CHECK_VERSION(3,10,0)
       ACE_ASSERT (cairo_surface_status (buffer_) == CAIRO_STATUS_SUCCESS);
@@ -313,7 +308,7 @@ Stream_Module_Vis_GTK_Cairo_T<ACE_SYNCH_USE,
                     NULL);
 #endif // GTK_CHECK_VERSION
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-      ACE_ASSERT ((media_type_s.resolution.cx == static_cast<unsigned int> (width_2)) && (media_type_s.resolution.cy == static_cast<unsigned int> (height_2)));
+      ACE_ASSERT ((resolution_s.cx == static_cast<unsigned int> (width_2)) && (resolution_s.cy == static_cast<unsigned int> (height_2)));
 #else
       ACE_ASSERT ((media_type_s.resolution.width == static_cast<unsigned int> (width_2)) && (media_type_s.resolution.height == static_cast<unsigned int> (height_2)));
 #endif // ACE_WIN32 || ACE_WIN64
@@ -326,10 +321,17 @@ Stream_Module_Vis_GTK_Cairo_T<ACE_SYNCH_USE,
 //      ACE_ASSERT (n_channels_i == 4);
 //      ACE_ASSERT (!gdk_pixbuf_get_has_alpha (buffer_));
 #endif // GTK_CHECK_VERSION
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+      if (n_channels_i == 3)
+        ACE_ASSERT (Stream_MediaFramework_Tools::toBitCount (media_type_s.subtype, STREAM_MEDIAFRAMEWORK_DIRECTSHOW) == 24); // CAIRO_FORMAT_RGB24
+      else
+        ACE_ASSERT (Stream_MediaFramework_Tools::toBitCount (media_type_s.subtype, STREAM_MEDIAFRAMEWORK_DIRECTSHOW) == 32); // CAIRO_FORMAT_RGB32
+#else
       if (n_channels_i == 3)
         ACE_ASSERT (media_type_s.format == AV_PIX_FMT_RGB24); // CAIRO_FORMAT_RGB24
       else
         ACE_ASSERT (media_type_s.format == AV_PIX_FMT_RGB32); // CAIRO_FORMAT_ARGB32
+#endif // ACE_WIN32 || ACE_WIN64
 
       break;
 

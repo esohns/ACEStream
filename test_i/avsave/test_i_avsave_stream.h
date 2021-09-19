@@ -23,14 +23,14 @@
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #if COMMON_OS_WIN32_TARGET_PLATFORM(0x0602) // _WIN32_WINNT_WIN8
-#include <minwindef.h>
+#include "minwindef.h"
 #else
-#include <windef.h>
+#include "windef.h"
 #endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0602)
-#include <winnt.h>
-#include <guiddef.h>
-#include <mfidl.h>
-#include <mfobjects.h>
+#include "winnt.h"
+#include "guiddef.h"
+#include "mfidl.h"
+#include "mfobjects.h"
 #endif // ACE_WIN32 || ACE_WIN64
 
 #include "ace/Global_Macros.h"
@@ -297,11 +297,15 @@ class Stream_AVSave_V4L_Stream
   // modules
   Stream_AVSave_V4L_Source_Module      source_;
   //  Stream_AVSave_StatisticReport_Module statisticReport_;
+#if defined (FFMPEG_SUPPORT)
   Stream_AVSave_LibAVDecoder_Module    decoder_; // --> RGB
+#endif // FFMPEG_SUPPORT
 //  Stream_AVSave_Distributor_Module     distributor_; // (sub-)branch ?
   ////////////////////////////////////////
+#if defined (FFMPEG_SUPPORT)
   Stream_AVSave_LibAVConverter_Module  converter_; // --> 24-bit RGB (display format)
 //  Stream_AVSave_LibAVResize_Module     resizer_; // --> window size/fullscreen
+#endif // FFMPEG_SUPPORT
 #if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
 //  Stream_AVSave_GTKCairoDisplay_Module GTKCairoDisplay_;
@@ -310,7 +314,9 @@ class Stream_AVSave_V4L_Stream
 //  Stream_AVSave_Display_2_Module       display_2_;
 #endif // GUI_SUPPORT
   ////////////////////////////////////////
+#if defined (FFMPEG_SUPPORT)
   Stream_AVSave_LibAVConverter_Module  converter_2; // --> 32-bit RGB (AVI format)
+#endif // FFMPEG_SUPPORT
   Stream_AVSave_V4L_Tagger_Module      tagger_;
   Stream_AVSave_Display_Module         display_;
 //  Stream_AVSave_V4L_AVIEncoder_Module  encoder_; // --> AVI

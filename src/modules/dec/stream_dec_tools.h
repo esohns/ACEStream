@@ -37,6 +37,7 @@
 #include <windef.h>
 #endif // ACE_WIN32 || ACE_WIN64
 
+#if defined (FFMPEG_SUPPORT)
 #ifdef __cplusplus
 extern "C"
 {
@@ -47,6 +48,7 @@ extern "C"
 #include "libswscale/swscale.h"
 }
 #endif /* __cplusplus */
+#endif // FFMPEG_SUPPORT
 
 #include "ace/Basic_Types.h"
 #include "ace/Global_Macros.h"
@@ -59,26 +61,32 @@ extern "C"
 
 #include "stream_dec_common.h"
 
+#if defined (FFMPEG_SUPPORT)
 void stream_decoder_libav_log_cb (void*, int, const char*, va_list);
+#endif // FFMPEG_SUPPORT
 
 class Stream_Module_Decoder_Tools
 {
  public:
   //static void initialize ();
 
-  static bool isCompressedVideo (enum AVPixelFormat); // pixel format
+#if defined (FFMPEG_SUPPORT)
+  inline static bool isCompressedVideo (enum AVPixelFormat format_in) { return (!Stream_Module_Decoder_Tools::isRGB (format_in) && !Stream_Module_Decoder_Tools::isChromaLuminance (format_in)); }
 
   static bool isChromaLuminance (enum AVPixelFormat); // pixel format
   static bool isRGB (enum AVPixelFormat); // pixel format
   static bool isRGB32 (enum AVPixelFormat); // pixel format
+#endif // FFMPEG_SUPPORT
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
+#if defined (FFMPEG_SUPPORT)
   // *NOTE*: supports non-RGB AND non-Chroma-Luminance types only
   static enum AVCodecID mediaSubTypeToAVCodecId (REFGUID,                                                              // media subtype
                                                  enum Stream_MediaFramework_Type = STREAM_LIB_DEFAULT_MEDIAFRAMEWORK);
   // *NOTE*: supports RGB and Chroma-Luminance types only
   static enum AVPixelFormat mediaSubTypeToAVPixelFormat (REFGUID,                                                              // media subtype
                                                          enum Stream_MediaFramework_Type = STREAM_LIB_DEFAULT_MEDIAFRAMEWORK);
+#endif // FFMPEG_SUPPORT
 
   // -------------------------------------
   // filter graphs / topologies
@@ -143,10 +151,12 @@ class Stream_Module_Decoder_Tools
                                           TOPOID&,             // return value: EVR sink node id
                                           IMFTopology*&);      // input/return value: topology handle
 #endif // ACE_WIN32 || ACE_WIN64
-  static enum AVCodecID AVPixelFormatToAVCodecId (enum AVPixelFormat); // pixel format
-  static enum AVCodecID filenameExtensionToAVCodecId (const std::string&); // filename extension
 
   static std::string compressionFormatToString (enum Stream_Decoder_CompressionFormatType);
+
+#if defined (FFMPEG_SUPPORT)
+  static enum AVCodecID AVPixelFormatToAVCodecId (enum AVPixelFormat); // pixel format
+  static enum AVCodecID filenameExtensionToAVCodecId (const std::string&); // filename extension
 
   static std::string audioFormatToString (enum AVSampleFormat);
 
@@ -167,6 +177,7 @@ class Stream_Module_Decoder_Tools
                      unsigned int,       // target width
                      unsigned int,       // target height
                      uint8_t*[]);        // target buffer(s)
+#endif // FFMPEG_SUPPORT
 
   // *NOTE*: write a sinus waveform into the target buffer in the specified
   //         audio format
@@ -181,9 +192,9 @@ class Stream_Module_Decoder_Tools
                      unsigned int, // #'data' samples to write
                      double&);     // in/out: current phase
 
-#if defined (OPENCV_SUPPORT)
+#if defined (FFMPEG_SUPPORT) && defined (OPENCV_SUPPORT)
   static int pixelFormatToOpenCVFormat (enum AVPixelFormat);
-#endif // OPENCV_SUPPORT
+#endif // FFMPEG_SUPPORT && OPENCV_SUPPORT
 
  private:
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_Decoder_Tools ())

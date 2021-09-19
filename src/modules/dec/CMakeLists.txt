@@ -1,10 +1,6 @@
 include (OS)
 
-option (FFMPEG_SUPPORT "support ffmpeg" ON)
-if (FFMPEG_SUPPORT)
- add_definitions (-DFFMPEG_SUPPORT)
-endif (FFMPEG_SUPPORT)
-
+include (ffmpeg)
 include (ImageMagick)
 
 set (MPG123_DEFAULT ON)
@@ -19,28 +15,24 @@ if (OPENCV_SUPPORT)
  add_definitions (-DOPENCV_SUPPORT)
 endif (OPENCV_SUPPORT)
 
-set (SOX_DEFAULT ON)
-option (SOX_SUPPORT "support SoX" ${SOX_DEFAULT})
-if (SOX_SUPPORT)
- add_definitions (-DSOX_SUPPORT)
-endif (SOX_SUPPORT)
+if (UNIX)
+ set (SOX_DEFAULT ON)
+ option (SOX_SUPPORT "support SoX" ${SOX_DEFAULT})
+ if (SOX_SUPPORT)
+  add_definitions (-DSOX_SUPPORT)
+ endif (SOX_SUPPORT)
+endif (UNIX)
 
 ##########################################
 
 if (UNIX)
  pkg_check_modules (PKG_ALSA REQUIRED alsa)
- if (FFMPEG_SUPPORT)
-  pkg_check_modules (PKG_FFMPEG REQUIRED libavcodec libavutil libavformat libswscale)
- endif (FFMPEG_SUPPORT)
- if (IMAGEMAGICK_SUPPORT)
-  find_package (ImageMagick COMPONENTS MagickCore MagickWand)
- endif (IMAGEMAGICK_SUPPORT)
- if (OPENCV_SUPPORT)
-  pkg_check_modules (PKG_OPENCV REQUIRED opencv)
- endif (OPENCV_SUPPORT)
  if (MPG123_SUPPORT)
   pkg_check_modules (PKG_MPEG REQUIRED libmpg123)
  endif (MPG123_SUPPORT)
+ if (OPENCV_SUPPORT)
+  pkg_check_modules (PKG_OPENCV REQUIRED opencv)
+ endif (OPENCV_SUPPORT)
  if (SOX_SUPPORT)
   pkg_check_modules (PKG_SOX REQUIRED sox)
  endif (SOX_SUPPORT)
@@ -60,15 +52,17 @@ add_library (${PROJECT_NAME}_Decoder STATIC "")
 get_filename_component (BUILD_PATH ${CMAKE_CURRENT_BINARY_DIR}/../../.. REALPATH)
 get_filename_component (BUILD_PATH_SUFFIX ${BUILD_PATH} NAME)
 
+if (FFMPEG_SUPPORT)
+ target_include_directories (${PROJECT_NAME}_Decoder PUBLIC
+                             $<BUILD_INTERFACE:${ffmpeg_INCLUDE_DIRS}>)
+endif (FFMPEG_SUPPORT)
+if (IMAGEMAGICK_SUPPORT)
+ target_include_directories (${PROJECT_NAME}_Decoder PUBLIC
+                             "$<BUILD_INTERFACE:${ImageMagick_INCLUDE_DIRS}>")
+endif (IMAGEMAGICK_SUPPORT)
 if (UNIX)
- if (FFMPEG_SUPPORT)
-  target_include_directories (${PROJECT_NAME}_Decoder PUBLIC
-                              $<BUILD_INTERFACE:${PKG_FFMPEG_INCLUDE_DIRS}>)
- endif (FFMPEG_SUPPORT)
- if (IMAGEMAGICK_SUPPORT)
-  target_include_directories (${PROJECT_NAME}_Decoder PUBLIC
-                              "$<BUILD_INTERFACE:${ImageMagick_INCLUDE_DIRS}>")
- endif (IMAGEMAGICK_SUPPORT)
+ target_include_directories (${PROJECT_NAME}_Decoder PUBLIC
+                             $<BUILD_INTERFACE:${PKG_ALSA_INCLUDE_DIRS}>)
  if (OPENCV_SUPPORT)
   target_include_directories (${PROJECT_NAME}_Decoder PUBLIC
                               $<BUILD_INTERFACE:${PKG_OPENCV_INCLUDE_DIRS}>)
@@ -77,9 +71,6 @@ if (UNIX)
   target_include_directories (${PROJECT_NAME}_Decoder PUBLIC
                               $<BUILD_INTERFACE:${PKG_MPG123_INCLUDE_DIRS}>)
  endif (MPG123_SUPPORT)
-
- target_include_directories (${PROJECT_NAME}_Decoder PUBLIC
-                             $<BUILD_INTERFACE:${PKG_ALSA_INCLUDE_DIRS}>)
  if (SOX_SUPPORT)
   target_include_directories (${PROJECT_NAME}_Decoder PUBLIC
                               $<BUILD_INTERFACE:${PKG_SOX_INCLUDE_DIRS}>)
@@ -121,14 +112,6 @@ elseif (WIN32)
 # message (STATUS "DirectShow baseclasses directory: \"${DIRECTSHOW_BASECLASSES_DIRECTORY}\"")
  target_include_directories (${PROJECT_NAME}_Decoder PUBLIC
                              $<BUILD_INTERFACE:${DIRECTSHOW_BASECLASSES_DIRECTORY}/baseclasses>)
-
- if (IMAGEMAGICK_SUPPORT)
-  target_include_directories (${PROJECT_NAME}_Decoder PUBLIC
-                              $<BUILD_INTERFACE:$ENV{LIB_ROOT}/ImageMagick/include>)
- endif (IMAGEMAGICK_SUPPORT)
-
- target_include_directories (${PROJECT_NAME}_Decoder PUBLIC
-                             $<BUILD_INTERFACE:$ENV{LIB_ROOT}/ffmpeg/include>)
 
  if (OPENCV_SUPPORT)
   target_include_directories (${PROJECT_NAME}_Decoder PUBLIC
@@ -196,9 +179,6 @@ set (source_files
      stream_dec_avi_decoder.cpp
      stream_dec_avi_decoder.h
      stream_dec_avi_decoder.inl
-     stream_dec_avi_encoder.cpp
-     stream_dec_avi_encoder.h
-     stream_dec_avi_encoder.inl
      stream_dec_avi_parser.cpp
      stream_dec_avi_parser.h
      stream_dec_avi_parser_driver.cpp
@@ -210,18 +190,6 @@ set (source_files
      stream_dec_h264_nal_decoder.cpp
      stream_dec_h264_nal_decoder.h
      stream_dec_h264_nal_decoder.inl
-     stream_dec_libav_converter.cpp
-     stream_dec_libav_converter.h
-     stream_dec_libav_converter.inl
-     stream_dec_libav_decoder.cpp
-     stream_dec_libav_decoder.h
-     stream_dec_libav_decoder.inl
-     stream_dec_libav_encoder.cpp
-     stream_dec_libav_encoder.h
-     stream_dec_libav_encoder.inl
-     stream_dec_libav_img_decoder.cpp
-     stream_dec_libav_img_decoder.h
-     stream_dec_libav_img_decoder.inl
      stream_dec_mp3_decoder.cpp
      stream_dec_mp3_decoder.h
      stream_dec_mp3_decoder.inl
@@ -238,6 +206,36 @@ set (source_files
      stream_dec_zip_decoder.cpp
      stream_dec_zip_decoder.h
      stream_dec_zip_decoder.inl)
+if (WIN32)
+ set (source_files
+      ${source_files}
+      stream_dec_avi_encoder.cpp
+      stream_dec_avi_encoder.h
+      stream_dec_avi_encoder.inl)
+endif (WIN32)
+if (FFMPEG_SUPPORT)
+ set (source_files
+      ${source_files}
+      stream_dec_libav_converter.cpp
+      stream_dec_libav_converter.h
+      stream_dec_libav_converter.inl
+      stream_dec_libav_decoder.cpp
+      stream_dec_libav_decoder.h
+      stream_dec_libav_decoder.inl
+      stream_dec_libav_encoder.cpp
+      stream_dec_libav_encoder.h
+      stream_dec_libav_encoder.inl
+      stream_dec_libav_img_decoder.cpp
+      stream_dec_libav_img_decoder.h
+      stream_dec_libav_img_decoder.inl)
+ if (UNIX)
+  set (source_files
+       ${source_files}
+       stream_dec_avi_encoder.cpp
+       stream_dec_avi_encoder.h
+       stream_dec_avi_encoder.inl)
+ endif (UNIX)
+endif (FFMPEG_SUPPORT)
 if (IMAGEMAGICK_SUPPORT)
  set (source_files
       ${source_files}
@@ -252,13 +250,14 @@ if (OPENCV_SUPPORT)
       stream_dec_opencv_decoder.h
       stream_dec_opencv_decoder.inl)
 endif (OPENCV_SUPPORT)
-
 if (UNIX)
- set (source_files
-      ${source_files}
-      stream_dec_sox_effect.cpp
-      stream_dec_sox_effect.h
-      stream_dec_sox_effect.inl)
+ if (SOX_SUPPORT)
+  set (source_files
+       ${source_files}
+       stream_dec_sox_effect.cpp
+       stream_dec_sox_effect.h
+       stream_dec_sox_effect.inl)
+ endif (SOX_SUPPORT)
 endif (UNIX)
 
 set (script_files
@@ -303,10 +302,21 @@ add_dependencies (${PROJECT_NAME}_Decoder ${PROJECT_NAME})
 
 if (UNIX)
  target_link_libraries (${PROJECT_NAME}_Decoder PUBLIC ${PKG_ALSA_LIBRARIES})
- target_link_libraries (${PROJECT_NAME}_Decoder PUBLIC ${PKG_SOX_LIBRARIES})
-# target_link_libraries (${PROJECT_NAME}_Decoder ${PKG_AVCODEC_LIBRARIES})
- target_link_libraries (${PROJECT_NAME}_Decoder PUBLIC ${PKG_FFMPEG_LIBRARIES})
- target_link_libraries (${PROJECT_NAME}_Decoder PUBLIC ${ImageMagick_LIBRARIES})
+ if (FFMPEG_SUPPORT)
+  target_link_libraries (${PROJECT_NAME}_Decoder PUBLIC ${PKG_FFMPEG_LIBRARIES})
+ endif (FFMPEG_SUPPORT)
+ if (IMAGEMAGICK_SUPPORT)
+  target_link_libraries (${PROJECT_NAME}_Decoder PUBLIC ${ImageMagick_LIBRARIES})
+ endif (IMAGEMAGICK_SUPPORT)
+ if (OPENCV_SUPPORT)
+  target_link_libraries (${PROJECT_NAME}_Decoder PUBLIC ${PKG_OPENCV_LIBRARIES})
+ endif (OPENCV_SUPPORT)
+ if (MPG123_SUPPORT)
+  target_link_libraries (${PROJECT_NAME}_Decoder PUBLIC ${PKG_MPG123_LIBRARIES})
+ endif (MPG123_SUPPORT)
+ if (SOX_SUPPORT)
+  target_link_libraries (${PROJECT_NAME}_Decoder PUBLIC ${PKG_SOX_LIBRARIES})
+ endif (SOX_SUPPORT)
 elseif (WIN32)
 # set (CMAKE_EXE_LINKER_FLAGS /NODEFAULTLIB:\"libcmt.lib\")
  set (DIRECTX_SDK_DIRECTORY
@@ -325,14 +335,24 @@ elseif (WIN32)
   endif ()
  endif (MSVC)
 
-# ffmpeg
- target_link_libraries (${PROJECT_NAME}_Decoder PUBLIC "$<$<CXX_COMPILER_ID:MSVC>:-SAFESEH:NO>")
- target_link_libraries (${PROJECT_NAME}_Decoder PUBLIC $ENV{LIB_ROOT}/ffmpeg/lib/avcodec.lib)
- target_link_libraries (${PROJECT_NAME}_Decoder PUBLIC $ENV{LIB_ROOT}/ffmpeg/lib/avformat.lib)
- target_link_libraries (${PROJECT_NAME}_Decoder PUBLIC $ENV{LIB_ROOT}/ffmpeg/lib/avutil.lib)
- target_link_libraries (${PROJECT_NAME}_Decoder PUBLIC $ENV{LIB_ROOT}/ffmpeg/lib/swscale.lib)
+ if (FFMPEG_SUPPORT)
+  target_link_libraries (${PROJECT_NAME}_Decoder PUBLIC "$<$<CXX_COMPILER_ID:MSVC>:-SAFESEH:NO>")
+  target_link_libraries (${PROJECT_NAME}_Decoder PUBLIC ${ffmpeg_LIBRARIES})
+ endif (FFMPEG_SUPPORT)
+ if (IMAGEMAGICK_SUPPORT)
+  target_link_libraries (${PROJECT_NAME}_Decoder PUBLIC ${ImageMagick_LIBRARIES})
+ endif (IMAGEMAGICK_SUPPORT)
+ if (OPENCV_SUPPORT)
+  target_link_libraries (${PROJECT_NAME}_Decoder PUBLIC $ENV{LIB_ROOT}/opencv/${BUILD_PATH_SUFFIX}/lib/${CMAKE_BUILD_TYPE}/opencv_core453${LIB_FILE_SUFFIX}.lib)
+  target_link_libraries (${PROJECT_NAME}_Decoder PUBLIC $ENV{LIB_ROOT}/opencv/${BUILD_PATH_SUFFIX}/lib/${CMAKE_BUILD_TYPE}/opencv_highgui453${LIB_FILE_SUFFIX}.lib)
+  target_link_libraries (${PROJECT_NAME}_Decoder PUBLIC $ENV{LIB_ROOT}/opencv/${BUILD_PATH_SUFFIX}/lib/${CMAKE_BUILD_TYPE}/opencv_imgcodecs453${LIB_FILE_SUFFIX}.lib)
+  target_link_libraries (${PROJECT_NAME}_Decoder PUBLIC $ENV{LIB_ROOT}/opencv/${BUILD_PATH_SUFFIX}/lib/${CMAKE_BUILD_TYPE}/opencv_imgproc453${LIB_FILE_SUFFIX}.lib)
+  target_link_libraries (${PROJECT_NAME}_Decoder PUBLIC $ENV{LIB_ROOT}/opencv/${BUILD_PATH_SUFFIX}/lib/${CMAKE_BUILD_TYPE}/opencv_videoio453${LIB_FILE_SUFFIX}.lib)
+ endif (OPENCV_SUPPORT)
+ if (MPG123_SUPPORT)
+  target_link_libraries (${PROJECT_NAME}_Decoder PUBLIC $ENV{LIB_ROOT}/mpg123/libmpg123-0.lib)
+ endif (MPG123_SUPPORT)
 
-# message (STATUS "ACE_LIBRARY: ${ACE_LIBRARY}")
  target_link_libraries (${PROJECT_NAME}_Decoder PUBLIC ${ACE_LIBRARY})
 endif ()
 target_link_libraries (${PROJECT_NAME}_Decoder PUBLIC Common)
@@ -355,8 +375,6 @@ export (TARGETS ${PROJECT_NAME}_Decoder
 set (${PROJECT_NAME}_Decoder_LIB_HDRS
      stream_dec_avi_decoder.h
      stream_dec_avi_decoder.inl
-     stream_dec_avi_encoder.h
-     stream_dec_avi_encoder.inl
      stream_dec_avi_parser.h
      stream_dec_avi_parser_driver.h
      stream_dec_common.h
@@ -364,16 +382,6 @@ set (${PROJECT_NAME}_Decoder_LIB_HDRS
      stream_dec_h264_nal_bisector.h
      stream_dec_h264_nal_decoder.h
      stream_dec_h264_nal_decoder.inl
-     stream_dec_imagemagick_decoder.h
-     stream_dec_imagemagick_decoder.inl
-     stream_dec_libav_converter.h
-     stream_dec_libav_converter.inl
-     stream_dec_libav_decoder.h
-     stream_dec_libav_decoder.inl
-     stream_dec_libav_encoder.h
-     stream_dec_libav_encoder.inl
-     stream_dec_libav_img_decoder.h
-     stream_dec_libav_img_decoder.inl
      stream_dec_mp3_decoder.h
      stream_dec_mp3_decoder.inl
      stream_dec_mpeg_ts_decoder.h
@@ -386,10 +394,48 @@ set (${PROJECT_NAME}_Decoder_LIB_HDRS
      stream_dec_wav_encoder.inl
      stream_dec_zip_decoder.h
      stream_dec_zip_decoder.inl)
+if (WIN32)
+ set (${PROJECT_NAME}_Decoder_LIB_HDRS
+      ${${PROJECT_NAME}_Decoder_LIB_HDRS}
+      stream_dec_avi_encoder.h
+      stream_dec_avi_encoder.inl)
+endif (WIN32)
+if (FFMPEG_SUPPORT)
+ set (${PROJECT_NAME}_Decoder_LIB_HDRS
+      ${${PROJECT_NAME}_Decoder_LIB_HDRS}
+     stream_dec_libav_converter.h
+     stream_dec_libav_converter.inl
+     stream_dec_libav_decoder.h
+     stream_dec_libav_decoder.inl
+     stream_dec_libav_encoder.h
+     stream_dec_libav_encoder.inl
+     stream_dec_libav_img_decoder.h
+     stream_dec_libav_img_decoder.inl)
+ if (UNIX)
+  set (${PROJECT_NAME}_Decoder_LIB_HDRS
+       ${${PROJECT_NAME}_Decoder_LIB_HDRS}
+       stream_dec_avi_encoder.h
+       stream_dec_avi_encoder.inl)
+ endif (UNIX)
+endif (FFMPEG_SUPPORT)
+if (IMAGEMAGICK_SUPPORT)
+ set (${PROJECT_NAME}_Decoder_LIB_HDRS
+      ${${PROJECT_NAME}_Decoder_LIB_HDRS}
+      stream_dec_imagemagick_decoder.h
+      stream_dec_imagemagick_decoder.inl)
+endif (IMAGEMAGICK_SUPPORT)
+if (OPENCV_SUPPORT)
+ set (${PROJECT_NAME}_Decoder_LIB_HDRS
+      ${${PROJECT_NAME}_Decoder_LIB_HDRS}
+      stream_dec_opencv_decoder.h
+      stream_dec_opencv_decoder.inl)
+endif (OPENCV_SUPPORT)
 if (UNIX)
- set (${PROJECT_NAME}_Decoder_LIB_HDRS ${ACEStream_Decoder_LIB_HDRS}
-      stream_dec_sox_effect.h
-      stream_dec_sox_effect.inl)
+ if (SOX_SUPPORT)
+  set (${PROJECT_NAME}_Decoder_LIB_HDRS ${${PROJECT_NAME}_Decoder_LIB_HDRS}
+       stream_dec_sox_effect.h
+       stream_dec_sox_effect.inl)
+ endif (SOX_SUPPORT)
 endif (UNIX)
 
 install (FILES

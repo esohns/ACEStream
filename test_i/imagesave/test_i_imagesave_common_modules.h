@@ -29,9 +29,11 @@
 #include "stream_common.h"
 #include "stream_streammodule_base.h"
 
+#if defined (FFMPEG_SUPPORT)
 #include "stream_lib_ffmpeg_common.h"
 
 #include "stream_dec_libav_decoder.h"
+#endif // FFMPEG_SUPPORT
 
 #include "stream_file_source.h"
 
@@ -45,7 +47,9 @@
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #include "stream_vis_target_direct3d.h"
 #else
+#if defined (FFMPEG_SUPPORT)
 #include "stream_vis_libav_resize.h"
+#endif // FFMPEG_SUPPORT
 
 //#include "stream_vis_gtk_pixbuf.h"
 #include "stream_vis_x11_window.h"
@@ -71,6 +75,7 @@ typedef Stream_Module_FileReaderH_T<ACE_MT_SYNCH,
                                     Common_Timer_Manager_t,
                                     struct Stream_UserData> Test_I_Source;
 
+#if defined (FFMPEG_SUPPORT)
 typedef Stream_Decoder_LibAVDecoder_T<ACE_MT_SYNCH,
                                       Common_TimePolicy_t,
                                       struct Test_I_ImageSave_ModuleHandlerConfiguration,
@@ -79,6 +84,7 @@ typedef Stream_Decoder_LibAVDecoder_T<ACE_MT_SYNCH,
                                       Test_I_SessionMessage_t,
                                       Test_I_ImageSave_SessionData_t,
                                       struct Stream_MediaFramework_FFMPEG_VideoMediaType> Test_I_LibAVDecoder;
+#endif // FFMPEG_SUPPORT
 
 //typedef Stream_Statistic_StatisticReport_ReaderTask_T<ACE_MT_SYNCH,
 //                                                      Common_TimePolicy_t,
@@ -113,6 +119,7 @@ typedef Stream_Miscellaneous_Distributor_T<ACE_MT_SYNCH,
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
+#if defined (FFMPEG_SUPPORT)
 //typedef Stream_Decoder_LibAVConverter_T<ACE_MT_SYNCH,
 //                                        Common_TimePolicy_t,
 //                                        struct Test_I_ImageSave_ModuleHandlerConfiguration,
@@ -129,6 +136,7 @@ typedef Stream_Visualization_LibAVResize_T<ACE_MT_SYNCH,
                                            Test_I_SessionMessage_t,
                                            Test_I_ImageSave_SessionData_t,
                                            struct Stream_MediaFramework_FFMPEG_VideoMediaType> Test_I_LibAVResize;
+#endif // FFMPEG_SUPPORT
 #endif // ACE_WIN32 || ACE_WIN64
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -194,12 +202,14 @@ DATASTREAM_MODULE_INPUT_ONLY (Test_I_ImageSave_SessionData,                     
                               Stream_INotify_t,                                    // stream notification interface type
                               Test_I_Source);                                      // writer type
 
+#if defined (FFMPEG_SUPPORT)
 DATASTREAM_MODULE_INPUT_ONLY (Test_I_ImageSave_SessionData,                              // session data type
                               enum Stream_SessionMessageType,                            // session event type
                               struct Test_I_ImageSave_ModuleHandlerConfiguration,        // module handler configuration type
                               libacestream_default_dec_libav_decoder_module_name_string,
                               Stream_INotify_t,                                          // stream notification interface type
                               Test_I_LibAVDecoder);                                      // writer type
+#endif // FFMPEG_SUPPORT
 
 DATASTREAM_MODULE_INPUT_ONLY (Test_I_ImageSave_SessionData,                             // session data type
                               enum Stream_SessionMessageType,                           // session event type
@@ -210,6 +220,7 @@ DATASTREAM_MODULE_INPUT_ONLY (Test_I_ImageSave_SessionData,                     
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
+#if defined (FFMPEG_SUPPORT)
 //DATASTREAM_MODULE_INPUT_ONLY (Test_I_ImageSave_SessionData,                   // session data type
 //                              enum Stream_SessionMessageType,                   // session event type
 //                              struct Test_I_ImageSave_ModuleHandlerConfiguration, // module handler configuration type
@@ -223,6 +234,7 @@ DATASTREAM_MODULE_INPUT_ONLY (Test_I_ImageSave_SessionData,                   //
                               libacestream_default_vis_libav_resize_module_name_string,
                               Stream_INotify_t,                                 // stream notification interface type
                               Test_I_LibAVResize);                      // writer type
+#endif // FFMPEG_SUPPORT
 #endif // ACE_WIN32 || ACE_WIN64
 
 //DATASTREAM_MODULE_DUPLEX (Test_I_DirectShow_SessionData,                // session data type

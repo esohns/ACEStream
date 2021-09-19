@@ -37,13 +37,15 @@
 
 #include "stream_dev_mic_source_wavein.h"
 #else
+#if defined (FFMPEG_SUPPORT)
 #include "stream_dec_libav_converter.h"
 #include "stream_dec_libav_decoder.h"
+#include "stream_dec_libav_encoder.h"
+#endif // FFMPEG_SUPPORT
 
 #include "stream_dev_cam_source_v4l.h"
 #include "stream_dev_mic_source_alsa.h"
 #endif // ACE_WIN32 || ACE_WIN64
-#include "stream_dec_libav_encoder.h"
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #include "stream_lib_directshow_asynch_source_filter.h"
@@ -59,15 +61,22 @@
 
 #if defined (GUI_SUPPORT)
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-#include "stream_vis_gtk_cairo.h"
-
 #include "stream_vis_target_direct3d.h"
 #include "stream_vis_target_directshow.h"
 #include "stream_vis_target_mediafoundation.h"
+
+#if defined (GTK_SUPPORT)
+#include "stream_vis_gtk_cairo.h"
+#endif // GTK_SUPPORT
 #else
+#if defined (FFMPEG_SUPPORT)
 #include "stream_vis_libav_resize.h"
-#include "stream_vis_gtk_pixbuf.h"
+#endif // FFMPEG_SUPPORT
+
 #include "stream_vis_x11_window.h"
+#if defined (GTK_SUPPORT)
+#include "stream_vis_gtk_pixbuf.h"
+#endif // GTK_SUPPORT
 #endif // ACE_WIN32 || ACE_WIN64
 #endif // GUI_SUPPORT
 
@@ -143,6 +152,7 @@ typedef Stream_Module_CamSource_V4L_T<ACE_MT_SYNCH,
                                       Common_Timer_Manager_t,
                                       struct Stream_UserData> Stream_AVSave_V4L_Source;
 
+#if defined (FFMPEG_SUPPORT)
 typedef Stream_Decoder_LibAVDecoder_T<ACE_MT_SYNCH,
                                       Common_TimePolicy_t,
                                       struct Stream_AVSave_V4L_ModuleHandlerConfiguration,
@@ -168,6 +178,7 @@ typedef Stream_Decoder_LibAVConverter_T<ACE_MT_SYNCH,
 //                                           Stream_AVSave_V4L_SessionMessage_t,
 //                                           Stream_AVSave_V4L_SessionData_t,
 //                                           struct Stream_MediaFramework_V4L_MediaType> Stream_AVSave_LibAVResize;
+#endif // FFMPEG_SUPPORT
 #endif // ACE_WIN32 || ACE_WIN64
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -259,6 +270,7 @@ typedef Stream_Module_Tagger_T<ACE_MT_SYNCH,
                                STREAM_MEDIATYPE_VIDEO,
                                struct _AMMediaType> Stream_AVSave_DirectShow_Video_Tagger;
 
+#if defined (FFMPEG_SUPPORT)
 typedef Stream_Decoder_LibAVEncoder_T<ACE_MT_SYNCH,
                                       Common_TimePolicy_t,
                                       struct Stream_AVSave_DirectShow_ModuleHandlerConfiguration,
@@ -267,6 +279,7 @@ typedef Stream_Decoder_LibAVEncoder_T<ACE_MT_SYNCH,
                                       Stream_AVSave_DirectShow_SessionMessage_t,
                                       Stream_AVSave_DirectShow_SessionData_t,
                                       struct _AMMediaType> Stream_AVSave_DirectShow_Encoder;
+#endif // FFMPEG_SUPPORT
 #else
 typedef Stream_Module_Tagger_T<ACE_MT_SYNCH,
                                Common_TimePolicy_t,
@@ -285,6 +298,7 @@ typedef Stream_Module_Tagger_T<ACE_MT_SYNCH,
                                STREAM_MEDIATYPE_VIDEO,
                                struct Stream_MediaFramework_V4L_MediaType> Stream_AVSave_V4L_Tagger;
 
+#if defined (FFMPEG_SUPPORT)
 typedef Stream_Decoder_LibAVEncoder_T<ACE_MT_SYNCH,
                                       Common_TimePolicy_t,
                                       struct Stream_AVSave_V4L_ModuleHandlerConfiguration,
@@ -293,6 +307,7 @@ typedef Stream_Decoder_LibAVEncoder_T<ACE_MT_SYNCH,
                                       Stream_AVSave_V4L_SessionMessage_t,
                                       Stream_AVSave_V4L_SessionData_t,
                                       struct Stream_MediaFramework_V4L_MediaType> Stream_AVSave_V4L_Encoder;
+#endif // FFMPEG_SUPPORT
 #endif // ACE_WIN32 || ACE_WIN64
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -486,6 +501,7 @@ DATASTREAM_MODULE_INPUT_ONLY (Stream_AVSave_V4L_SessionData,                   /
                               Stream_INotify_t,                                 // stream notification interface type
                               Stream_AVSave_V4L_Source);                       // writer type
 
+#if defined (FFMPEG_SUPPORT)
 DATASTREAM_MODULE_INPUT_ONLY (Stream_AVSave_V4L_SessionData,                   // session data type
                               enum Stream_SessionMessageType,                   // session event type
                               struct Stream_AVSave_V4L_ModuleHandlerConfiguration, // module handler configuration type
@@ -505,6 +521,7 @@ DATASTREAM_MODULE_INPUT_ONLY (Stream_AVSave_V4L_SessionData,                   /
 //                              libacestream_default_vis_libav_resize_module_name_string,
 //                              Stream_INotify_t,                                 // stream notification interface type
 //                              Stream_AVSave_LibAVResize);                      // writer type
+#endif // FFMPEG_SUPPORT
 #endif // ACE_WIN32 || ACE_WIN64
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -550,12 +567,14 @@ DATASTREAM_MODULE_INPUT_ONLY (Stream_AVSave_DirectShow_SessionData,             
                               Stream_INotify_t,                                 // stream notification interface type
                               Stream_AVSave_DirectShow_Video_Tagger);           // writer type
 
+#if defined (FFMPEG_SUPPORT)
 DATASTREAM_MODULE_INPUT_ONLY (Stream_AVSave_DirectShow_SessionData,                   // session data type
                               enum Stream_SessionMessageType,                   // session event type
                               struct Stream_AVSave_DirectShow_ModuleHandlerConfiguration, // module handler configuration type
                               libacestream_default_dec_libav_encoder_module_name_string,
                               Stream_INotify_t,                                 // stream notification interface type
                               Stream_AVSave_DirectShow_Encoder);                // writer type
+#endif // FFMPEG_SUPPORT
 #else
 DATASTREAM_MODULE_INPUT_ONLY (Stream_AVSave_ALSA_SessionData,                   // session data type
                               enum Stream_SessionMessageType,                   // session event type
@@ -570,12 +589,14 @@ DATASTREAM_MODULE_INPUT_ONLY (Stream_AVSave_V4L_SessionData,                   /
                               Stream_INotify_t,                                 // stream notification interface type
                               Stream_AVSave_V4L_Tagger);                        // writer type
 
+#if defined (FFMPEG_SUPPORT)
 DATASTREAM_MODULE_INPUT_ONLY (Stream_AVSave_V4L_SessionData,                   // session data type
                               enum Stream_SessionMessageType,                   // session event type
                               struct Stream_AVSave_V4L_ModuleHandlerConfiguration, // module handler configuration type
                               libacestream_default_dec_libav_encoder_module_name_string,
                               Stream_INotify_t,                                 // stream notification interface type
                               Stream_AVSave_V4L_Encoder);                       // writer type
+#endif // FFMPEG_SUPPORT
 #endif // ACE_WIN32 || ACE_WIN64
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)

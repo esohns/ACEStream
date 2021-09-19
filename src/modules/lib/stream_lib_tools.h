@@ -33,6 +33,7 @@
 #include "alsa/asoundlib.h"
 #endif // ACE_WIN32 || ACE_WIN64
 
+#if defined (FFMPEG_SUPPORT)
 #ifdef __cplusplus
 extern "C"
 {
@@ -40,6 +41,7 @@ extern "C"
 #include "libavutil/pixfmt.h"
 }
 #endif // __cplusplus
+#endif // FFMPEG_SUPPORT
 
 #include "ace/Basic_Types.h"
 #include "ace/Global_Macros.h"
@@ -56,9 +58,11 @@ extern "C"
 #include "stream_lib_v4l_common.h"
 
 // forward declarations
+#if defined (SOX_SUPPORT)
 typedef double sox_rate_t;
 struct sox_encodinginfo_t;
 struct sox_signalinfo_t;
+#endif // SOX_SUPPORT
 #endif // ACE_WIN32 || ACE_WIN64
 
 class Stream_MediaFramework_Tools
@@ -84,10 +88,13 @@ class Stream_MediaFramework_Tools
   static bool isCompressedVideo (REFGUID,                                                              // media subtype
                                  enum Stream_MediaFramework_Type = STREAM_LIB_DEFAULT_MEDIAFRAMEWORK);
 
-  static bool isChromaLuminance (REFGUID,                          // media subtype
-                                 enum Stream_MediaFramework_Type = STREAM_LIB_DEFAULT_MEDIAFRAMEWORK);
   static bool isRGB (REFGUID,                          // media subtype
                      enum Stream_MediaFramework_Type = STREAM_LIB_DEFAULT_MEDIAFRAMEWORK);
+  static bool isRGB32 (REFGUID,                          // media subtype
+                       enum Stream_MediaFramework_Type = STREAM_LIB_DEFAULT_MEDIAFRAMEWORK);
+  static bool isChromaLuminance (REFGUID,                          // media subtype
+                                 enum Stream_MediaFramework_Type = STREAM_LIB_DEFAULT_MEDIAFRAMEWORK);
+
   // *NOTE*: as used in struct tagBITMAPINFOHEADER.biBitCount
   static WORD toBitCount (REFGUID,                          // media subtype
                           enum Stream_MediaFramework_Type = STREAM_LIB_DEFAULT_MEDIAFRAMEWORK);
@@ -101,38 +108,48 @@ class Stream_MediaFramework_Tools
   static unsigned int frameSize (const struct _AMMediaType&);
   static unsigned int frameSize (const IMFMediaType*);
 
+#if defined (FFMPEG_SUPPORT)
   static struct _GUID AVPixelFormatToMediaSubType (enum AVPixelFormat);
+#endif // FFMPEG_SUPPORT
 #else
   static bool initialize ();
   static void finalize ();
 
   // ALSA
+#if defined (SOX_SUPPORT)
   static void ALSAToSoX (enum _snd_pcm_format,       // format
                          sox_rate_t,                 // sample rate
                          unsigned int,               // channels
                          struct sox_encodinginfo_t&, // return value: format
                          struct sox_signalinfo_t&);  // return value: format
+#endif // SOX_SUPPORT
 
   // X11
+#if defined (FFMPEG_SUPPORT)
   static unsigned int ffmpegFormatToBitDepth (enum AVPixelFormat);
-
-  // ffmpeg
-  static __u32 ffmpegFormatToV4L2Format (enum AVPixelFormat); // format
+#endif // FFMPEG_SUPPORT
 
   // v4l
+#if defined (FFMPEG_SUPPORT)
+  static __u32 ffmpegFormatToV4L2Format (enum AVPixelFormat); // format
   static enum AVPixelFormat v4l2FormatToffmpegFormat (__u32); // format (fourcc)
+#endif // FFMPEG_SUPPORT
   static unsigned int frameSize (const std::string&,                                 // device identifier
                                  const struct Stream_MediaFramework_V4L_MediaType&); // format
 
 #if defined (LIBCAMERA_SUPPORT)
   // libCamera
+#if defined (FFMPEG_SUPPORT)
   static libcamera::PixelFormat ffmpegFormatToLibCameraFormat (enum AVPixelFormat); // format
   static enum AVPixelFormat libCameraFormatToffmpegFormat (const libcamera::PixelFormat&); // format
+#endif // FFMPEG_SUPPORT
 #endif // LIBCAMERA_SUPPORT
 #endif // ACE_WIN32 || ACE_WIN64
 
+#if defined (FFMPEG_SUPPORT)
   // ffmpeg
   inline static std::string pixelFormatToString (enum AVPixelFormat format_in) { std::string result = ((format_in == AV_PIX_FMT_NONE) ? ACE_TEXT_ALWAYS_CHAR ("") : av_get_pix_fmt_name (format_in)); return result; }
+#endif // FFMPEG_SUPPORT
 
  private:
   ACE_UNIMPLEMENTED_FUNC (Stream_MediaFramework_Tools ())

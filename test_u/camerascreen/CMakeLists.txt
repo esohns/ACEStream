@@ -1,46 +1,21 @@
-add_definitions (-DFFMPEG_SUPPORT)
+include (FindPkgConfig)
+include (ffmpeg)
 
 if (UNIX)
 # include (CheckLibraryExists)
 # check_library_exists (pthread pthread_create "" HAVE_LIB_PTHREAD)
  set (CMAKE_THREAD_PREFER_PTHREAD ON)
  find_package (Threads)
-endif ()
 
-include (FindPkgConfig)
-if (UNIX)
 # *NOTE*: Common requires libcap
  pkg_check_modules (PKG_CAP REQUIRED libcap)
  pkg_check_modules (PKG_V4L2 REQUIRED libv4l2)
- pkg_check_modules (PKG_FFMPEG REQUIRED libswscale libavutil libavformat libavcodec)
+# pkg_check_modules (PKG_FFMPEG REQUIRED libswscale libavutil libavformat libavcodec)
 # pkg_check_modules (PKG_WAYLAND REQUIRED wayland-client)
 endif (UNIX)
-# *TODO*: repair WIN32 pkgconfig support
 
 get_filename_component (BUILD_PATH ${CMAKE_CURRENT_BINARY_DIR}/../.. REALPATH)
 get_filename_component (BUILD_PATH_SUFFIX ${BUILD_PATH} NAME)
-#find_package (Common ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_MICRO}
-#              REQUIRED
-#              CONFIG
-#              PATHS ${CMAKE_CURRENT_SOURCE_DIR}/../modules ${CMAKE_CURRENT_SOURCE_DIR}/../..
-#              PATH_SUFFIXES Common/${BUILD_PATH_SUFFIX}
-#              NO_DEFAULT_PATH)
-#if (NOT EXISTS ${Common_DIR})
-# message (FATAL_ERROR "could not find package \"Common\", aborting")
-#endif ()
-#add_definitions (-DCOMMON_HAS_DLL)
-
-#find_package (${PROJECT_NAME} ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_MICRO}
-#              REQUIRED
-#              CONFIG
-#              PATHS ${CMAKE_CURRENT_SOURCE_DIR}/../..
-#              PATH_SUFFIXES ${BUILD_PATH_SUFFIX}
-#              NO_DEFAULT_PATH)
-#if (NOT EXISTS ${${PROJECT_NAME}_DIR})
-# message (FATAL_ERROR "could not find package \"${PROJECT_NAME}\", aborting")
-#endif ()
-#add_definitions (-DSTREAM_HAS_DLL)
-#add_definitions (-DSTREAM_DEC_HAS_DLL)
 
 add_definitions (-DHAVE_CONFIG_H)
 #set_property (SOURCE PROPERTY COMPILE_DEFINITIONS HAVE_CONFIG_H)
@@ -48,10 +23,9 @@ add_definitions (-DHAVE_CONFIG_H)
 if (UNIX)
  include_directories (${PKG_CAP_INCLUDE_DIRS})
  include_directories (${PKG_V4L2_INCLUDE_DIRS})
- include_directories (${PKG_FFMPEG_INCLUDE_DIRS})
-
-# include_directories (/usr/local/src/ACE_wrappers)
-# include_directories ($ENV{LIB_ROOT}/ACE_TAO/ACE)
+ if (FFMPEG_SUPPORT)
+  include_directories (${ffmpeg_INCLUDE_DIRS})
+ endif (FFMPEG_SUPPORT)
 
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../Common/include)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../Common/src)
@@ -70,14 +44,10 @@ elseif (WIN32)
 
 # *TODO*: repair pkgconfig support
  include_directories ("${DIRECTSHOW_BASECLASSES_DIRECTORY}/baseclasses")
-# libav
- include_directories ($ENV{LIB_ROOT}/ffmpeg/include)
 
-# if (DEFINED ENV{ACE_ROOT})
-#  include_directories ($ENV{ACE_ROOT})
-# else ()
-#  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../ATCD/ACE)
-# endif (DEFINED ENV{ACE_ROOT})
+ if (FFMPEG_SUPPORT)
+  include_directories (${ffmpeg_INCLUDE_DIRS})
+ endif (FFMPEG_SUPPORT)
 
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../3rd_party/msvc)
 
@@ -128,14 +98,6 @@ set (${EXECUTABLE}_EXE_SRCS
      test_u_camerascreen_stream.h)
 
 if (UNIX)
-# add_definitions (-D_GLIBCXX_INCLUDE_NEXT_C_HEADERS)
- if (GUI_SUPPORT)
-  if (GTK_USE)
-   if (CMAKE_BUILD_TYPE STREQUAL Debug)
-    add_definitions (-DG_ERRORCHECK_MUTEXES)
-   endif ()
-  endif (GTK_USE)
- endif (GUI_SUPPORT)
 elseif (WIN32)
  if (WIN32 AND (CMAKE_BUILD_TYPE STREQUAL Debug))
   add_definitions (-DD3D_DEBUG_INFO)
@@ -145,7 +107,6 @@ elseif (WIN32)
 endif ()
 
 cmake_policy (SET CMP0065 OLD) # do not add flags to export symbols from executables without the ENABLE_EXPORTS target property
-
 add_executable (${EXECUTABLE}
                 EXCLUDE_FROM_ALL
                 ${${EXECUTABLE}_EXE_SRCS})
@@ -180,8 +141,10 @@ if (UNIX)
  target_link_libraries (${EXECUTABLE} ${PKG_V4L2_LIBRARIES})
  link_directories (/usr/local/lib64)
  target_link_libraries (${EXECUTABLE} camera-base camera)
- target_link_libraries (${EXECUTABLE} ${PKG_FFMPEG_LIBRARIES})
- target_link_libraries (${EXECUTABLE} ${PKG_WAYLAND_LIBRARIES})
+ if (FFMPEG_SUPPORT)
+  target_link_libraries (${EXECUTABLE} ${ffmpeg_LIBRARIES})
+ endif (FFMPEG_SUPPORT)
+#target_link_libraries (${EXECUTABLE} ${PKG_WAYLAND_LIBRARIES})
 
 # target_link_libraries (${EXECUTABLE} ${ACE_XML_LIBRARY})
 elseif (WIN32)
@@ -194,12 +157,11 @@ elseif (WIN32)
 #  target_link_libraries (${EXECUTABLE} ${DIRECTSHOW_BASECLASSES_DIRECTORY}/cmake/baseclasses/Release/strmbase.lib)
  endif (CMAKE_BUILD_TYPE STREQUAL Debug)
 
- # *WARNING*: linking Common requires "/FORCE:MULTIPLE""
-# target_link_options (${EXECUTABLE} PUBLIC "$<$<CXX_COMPILER_ID:MSVC>:-FORCE:MULTIPLE>")
- target_link_options (${EXECUTABLE} PUBLIC "$<$<CXX_COMPILER_ID:MSVC>:-SAFESEH:NO>")
-
- target_link_libraries (${EXECUTABLE} $ENV{LIB_ROOT}/ffmpeg//lib/avformat.lib)
- target_link_libraries (${EXECUTABLE} $ENV{LIB_ROOT}/ffmpeg//lib/avcodec.lib)
+ # *TODO*: repair WIN32 pkgconfig support
+ if (FFMPEG_SUPPORT)
+  target_link_options (${EXECUTABLE} PUBLIC "$<$<CXX_COMPILER_ID:MSVC>:-SAFESEH:NO>")
+  target_link_libraries (${EXECUTABLE} ${ffmpeg_LIBRARIES})
+ endif (FFMPEG_SUPPORT)
 endif ()
 target_link_libraries (${EXECUTABLE} ${ACE_LIBRARY})
 
@@ -209,10 +171,6 @@ target_link_libraries (${EXECUTABLE} CommonLog)
 target_link_libraries (${EXECUTABLE} CommonSignal)
 target_link_libraries (${EXECUTABLE} CommonTimer)
 if (GUI_SUPPORT)
- if (WIN32)
-  # *WARNING*: linking CommonUI requires "/FORCE:MULTIPLE"
- # set_target_properties (${EXECUTABLE} PROPERTIES LINK_FLAGS /FORCE:MULTIPLE)
- endif (WIN32)
  target_link_libraries (${EXECUTABLE} CommonUI)
  if (GTK_USE)
   target_link_libraries (${EXECUTABLE} CommonUI_GTK)
@@ -223,6 +181,7 @@ endif (GUI_SUPPORT)
 if (UNIX)
  target_link_libraries (${EXECUTABLE} CommonXML)
 endif (UNIX)
+
 target_link_libraries (${EXECUTABLE} ${PROJECT_NAME})
 target_link_libraries (${EXECUTABLE} ${PROJECT_NAME}_Decoder)
 target_link_libraries (${EXECUTABLE} ${PROJECT_NAME}_Device)
@@ -234,10 +193,10 @@ target_link_libraries (${EXECUTABLE} ${PROJECT_NAME}_Visualization)
 
 target_link_libraries (${EXECUTABLE} ${PROJECT_NAME}_Test_U)
 
-if (UNIX)
- link_directories (/usr/local/lib64)
- target_link_libraries (${EXECUTABLE} camera-base camera)
-endif (UNIX)
+#if (UNIX)
+# link_directories (/usr/local/lib64)
+# target_link_libraries (${EXECUTABLE} camera-base camera)
+#endif (UNIX)
 
 # add PCH
 set_target_properties (${EXECUTABLE} PROPERTIES COTIRE_CXX_PREFIX_HEADER_INIT "stdafx.h")

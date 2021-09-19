@@ -1,7 +1,9 @@
+#include (OpenGL)
+
 if (GUI_SUPPORT)
  if (GTK_USE AND GTKGL_SUPPORT)
   option (GTKGL_USE "enable GTK OpenGL" ON)
-  if(GTKGL_USE)
+  if (GTKGL_USE)
    add_definitions (-DGTKGL_USE)
   endif (GTKGL_USE)
  endif (GTK_USE AND GTKGL_SUPPORT)
@@ -12,8 +14,8 @@ if (UNIX)
 # pkg_check_modules (PKG_CAP REQUIRED libcap)
  pkg_check_modules (PKG_LIBALSA REQUIRED alsa)
  pkg_check_modules (PKG_SOX REQUIRED sox)
- pkg_check_modules (PKG_FFMPEG REQUIRED libavcodec libavutil libavformat libswscale)
-endif ()
+# pkg_check_modules (PKG_FFMPEG REQUIRED libavcodec libavutil libavformat libswscale)
+endif (UNIX)
 
 if (GUI_SUPPORT)
  if (GTK_USE)
@@ -52,52 +54,18 @@ endif (GUI_SUPPORT)
 
 #add_definitions (-DHAVE_CONFIG_H)
 #set_property (SOURCE PROPERTY COMPILE_DEFINITIONS HAVE_CONFIG_H)
-add_definitions (-DFFMPEG_SUPPORT)
 
-get_filename_component (BUILD_PATH ${CMAKE_CURRENT_BINARY_DIR}/../.. REALPATH DIRECTORY)
+get_filename_component (BUILD_PATH ${CMAKE_CURRENT_BINARY_DIR}/../.. REALPATH)
 get_filename_component (BUILD_PATH_SUFFIX ${BUILD_PATH} NAME)
-#find_package (Common ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_MICRO}
-#              REQUIRED
-#              CONFIG
-#              PATHS ${CMAKE_CURRENT_SOURCE_DIR}/../modules ${CMAKE_CURRENT_SOURCE_DIR}/../..
-#              PATH_SUFFIXES Common/${BUILD_PATH_SUFFIX}
-#              NO_DEFAULT_PATH)
-#if (NOT EXISTS ${Common_DIR})
-# message (FATAL_ERROR "could not find package \"Common\", aborting")
-#endif ()
-#add_definitions (-DCOMMON_HAS_DLL)
-if (GUI_SUPPORT)
- add_definitions (-DCOMMON_UI_HAS_DLL)
- if (GTK_SUPPORT)
-  add_definitions (-DCOMMON_UI_GTK_HAS_DLL)
-  if (GTKGL_SUPPORT)
-   add_definitions (-DCOMMON_GL_HAS_DLL)
-  endif (GTKGL_SUPPORT)
- endif (GTK_SUPPORT)
-endif (GUI_SUPPORT)
-
-#find_package (ACEStream ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_MICRO}
-#              REQUIRED
-#              CONFIG
-#              PATHS ${CMAKE_CURRENT_SOURCE_DIR}/../..
-#              PATH_SUFFIXES ${BUILD_PATH_SUFFIX}
-#              NO_DEFAULT_PATH)
-#if (NOT EXISTS ${ACEStream_DIR})
-# message (FATAL_ERROR "could not find package \"ACEStream\", aborting")
-#endif ()
-#add_definitions (-DSTREAM_HAS_DLL)
 
 if (UNIX)
 # include_directories (${PKG_CAP_INCLUDE_DIRS})
 
  include_directories (${PKG_ALSA_INCLUDE_DIRS})
 
- include_directories (${PKG_FFMPEG_INCLUDE_DIRS})
+# include_directories (${PKG_FFMPEG_INCLUDE_DIRS})
 
 # include_directories (${PKG_LIBPNG_INCLUDE_DIRS})
-
-# include_directories (/usr/local/src/ACE_wrappers)
- include_directories ($ENV{LIB_ROOT}/ACE_TAO/ACE)
 
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../Common/src)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../Common/src/log)
@@ -137,13 +105,7 @@ elseif (WIN32)
  #include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../assimp/include)
 
 # libav
- include_directories ($ENV{LIB_ROOT}/ffmpeg/include)
-
-# if (DEFINED ENV{ACE_ROOT})
-#  include_directories ($ENV{ACE_ROOT})
-# else ()
-#  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../ATCD/ACE)
-# endif (DEFINED ENV{ACE_ROOT})
+# include_directories ($ENV{LIB_ROOT}/ffmpeg/include)
 
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../3rd_party/msvc)
 
@@ -206,9 +168,13 @@ if (GUI_SUPPORT)
   set (${EXECUTABLE}_EXE_SRCS
        ${${EXECUTABLE}_EXE_SRCS}
        test_u_audioeffect_callbacks.cpp
-       test_u_audioeffect_callbacks.h
-       test_u_audioeffect_gl_callbacks.cpp
-       test_u_audioeffect_gl_callbacks.h)
+       test_u_audioeffect_callbacks.h)
+  if (GTKGL_SUPPORT)
+   set (${EXECUTABLE}_EXE_SRCS
+        ${${EXECUTABLE}_EXE_SRCS}
+        test_u_audioeffect_gl_callbacks.cpp
+        test_u_audioeffect_gl_callbacks.h)
+  endif (GTKGL_SUPPORT)
  elseif (WXWIDGETS_USE)
 #  set (${EXECUTABLE}_EXE_SRCS
 #       ${${EXECUTABLE}_EXE_SRCS}
@@ -220,9 +186,9 @@ if (GUI_SUPPORT)
  endif ()
 endif (GUI_SUPPORT)
 
-if (UNIX)
- add_definitions (-D_GLIBCXX_INCLUDE_NEXT_C_HEADERS)
-endif (UNIX)
+#if (UNIX)
+# add_definitions (-D_GLIBCXX_INCLUDE_NEXT_C_HEADERS)
+#endif (UNIX)
 
 cmake_policy (SET CMP0065 OLD) # do not add flags to export symbols from executables without the ENABLE_EXPORTS target property
 add_executable (${EXECUTABLE}
@@ -263,34 +229,38 @@ if (UNIX)
  target_link_libraries (${EXECUTABLE} PUBLIC rt)
  target_link_libraries (${EXECUTABLE} PUBLIC ${PKG_CAP_LIBRARIES})
 # target_link_libraries (${EXECUTABLE} ${PKG_LIBALSA_LIBRARIES})
- target_link_libraries (${EXECUTABLE} PUBLIC ${PKG_LIBAV_LIBRARIES})
- target_link_libraries (${EXECUTABLE} PUBLIC ${PKG_LIBPNG_LIBRARIES})
+# target_link_libraries (${EXECUTABLE} PUBLIC ${PKG_LIBAV_LIBRARIES})
+# target_link_libraries (${EXECUTABLE} PUBLIC ${PKG_LIBPNG_LIBRARIES})
  target_link_libraries (${EXECUTABLE} PUBLIC ${PKG_SOX_LIBRARIES})
 elseif (WIN32)
  if (MSVC)
- # *WARNING*: linking Common requires "/FORCE:MULTIPLE""
-#  target_link_options (${EXECUTABLE} PUBLIC "$<$<CXX_COMPILER_ID:MSVC>:-FORCE:MULTIPLE>")
-  target_link_options (${EXECUTABLE} PUBLIC "$<$<CXX_COMPILER_ID:MSVC>:-SAFESEH:NO>")
+#  target_link_options (${EXECUTABLE} PUBLIC "$<$<CXX_COMPILER_ID:MSVC>:-SAFESEH:NO>")
 #  set (CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /NODEFAULTLIB:\"libcmt.lib\"")
 #  set (CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /NODEFAULTLIB:\"libcpmt.lib\"")
  endif (MSVC)
  set (DIRECTX_SDK_DIRECTORY
       $ENV{DXSDK_DIR})
-# message (STATUS "DirectX SDK directory: \"${DIRECTX_SDK_DIRECTORY}\"")
- #link_directories ("${DIRECTX_SDK_DIRECTORY}/Lib/x86")
- target_link_libraries (${EXECUTABLE} PUBLIC "$ENV{LIB_ROOT}/DXSDK/Lib/x86/dxguid.lib")
+
  target_link_libraries (${EXECUTABLE} PUBLIC mfplat.lib)
  target_link_libraries (${EXECUTABLE} PUBLIC mfuuid.lib)
  target_link_libraries (${EXECUTABLE} PUBLIC Dmoguids.lib)
  target_link_libraries (${EXECUTABLE} PUBLIC Msdmo.lib)
  target_link_libraries (${EXECUTABLE} PUBLIC strmiids.lib)
-# OpenGL
- target_link_libraries (${EXECUTABLE} PUBLIC OpenGL32.lib)
- target_link_libraries (${EXECUTABLE} PUBLIC GlU32.lib)
 
- target_link_libraries (${EXECUTABLE} PUBLIC $ENV{LIB_ROOT}/assimp/cmake/code/${CMAKE_BUILD_TYPE}/assimp-vc140-mt.lib)
+# message (STATUS "DirectX SDK directory: \"${DIRECTX_SDK_DIRECTORY}\"")
+ #link_directories ("${DIRECTX_SDK_DIRECTORY}/Lib/x86")
+ target_link_libraries (${EXECUTABLE} PUBLIC "$ENV{LIB_ROOT}/DXSDK/Lib/x86/dxguid.lib")
+
+ if (GTKGL_SUPPORT)
+  target_link_libraries (${EXECUTABLE} PUBLIC OpenGL32.lib)
+  target_link_libraries (${EXECUTABLE} PUBLIC GlU32.lib)
+
+  target_link_libraries (${EXECUTABLE} PUBLIC $ENV{LIB_ROOT}/assimp/cmake/code/${CMAKE_BUILD_TYPE}/assimp-vc140-mt.lib)
+ endif (GTKGL_SUPPORT)
 endif ()
-target_link_libraries (${EXECUTABLE} PUBLIC ${GLUT_LIBRARY})
+if (GTKGL_SUPPORT)
+ target_link_libraries (${EXECUTABLE} PUBLIC ${GLUT_LIBRARY})
+endif (GTKGL_SUPPORT)
 
 target_link_libraries (${EXECUTABLE} PUBLIC ${ACE_LIBRARY})
 
@@ -318,11 +288,6 @@ target_link_libraries (${EXECUTABLE} PUBLIC ${PROJECT_NAME}_Statistic)
 target_link_libraries (${EXECUTABLE} PUBLIC ${PROJECT_NAME}_Visualization)
 
 target_link_libraries (${EXECUTABLE} PUBLIC ${PROJECT_NAME}_Test_U)
-
-#if (UNIX)
-# target_link_libraries (${EXECUTABLE} ${PKG_CAP_LIBRARIES})
-# target_link_libraries (${EXECUTABLE} ${PKG_LIBPNG_LIBRARIES})
-#endif (UNIX)
 
 # add PCH
 set_target_properties (${EXECUTABLE} PROPERTIES COTIRE_CXX_PREFIX_HEADER_INIT "stdafx.h")

@@ -241,8 +241,12 @@ Stream_File_ImageMagick_Source_T<ACE_SYNCH_USE,
   size_t file_size_i = 0;
   MagickBooleanType result_3 = MagickTrue;
   unsigned char* data_p = NULL;
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  struct _AMMediaType media_type_s;
+#else
   struct Stream_MediaFramework_FFMPEG_VideoMediaType media_type_s;
   media_type_s.format = AV_PIX_FMT_BGRA;
+#endif // ACE_WIN32 || ACE_WIN64
   MediaType media_type_2;
 
   // sanity check(s)
@@ -263,13 +267,11 @@ next:
   } // end IF
   else if (!Common_File_Tools::isValidFilename (inherited::configuration_->fileIdentifier.identifier)) // empty directory ?
     goto continue_;
-#if defined (_DEBUG)
   ACE_DEBUG ((LM_DEBUG,
               ACE_TEXT ("%s: processing file \"%s\" (%u byte(s))\n"),
               inherited::mod_->name (),
               ACE_TEXT (file_path_string.c_str ()),
               Common_File_Tools::size (file_path_string)));
-#endif // _DEBUG
 
   do
   {
@@ -387,8 +389,11 @@ done:
 //    media_type_s.codec =
 //        Common_Image_Tools::stringToCodecId (MagickGetImageFormat (context_));
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-    media_type_s.resolution.cx = MagickGetImageWidth (context_);
-    media_type_s.resolution.cy = MagickGetImageHeight (context_);
+    Common_Image_Resolution_t resolution_s;
+    resolution_s.cx = MagickGetImageWidth (context_);
+    resolution_s.cy = MagickGetImageHeight (context_);
+    Stream_MediaFramework_DirectShow_Tools::setResolution (resolution_s,
+                                                           media_type_s);
 #else
     media_type_s.resolution.width = MagickGetImageWidth (context_);
     media_type_s.resolution.height = MagickGetImageHeight (context_);
@@ -430,7 +435,10 @@ done:
     message_p->wr_ptr (file_size_i);
     inherited2::getMediaType (media_type_s,
                               media_type_2);
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#else
     media_type_2.codec = AV_CODEC_ID_NONE;
+#endif // ACE_WIN32 || ACE_WIN64
     message_data_s.format = media_type_2;
     message_data_s.relinquishMemory = data_p;
     message_p->initialize (message_data_s,

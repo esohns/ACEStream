@@ -89,7 +89,9 @@ class Test_I_Stream
 
   // modules
   Test_I_Source_Module          source_;
+#if defined (FFMPEG_SUPPORT)
   Test_I_LibAVDecoder_Module    decoder_;
+#endif // FFMPEG_SUPPORT
   //Test_I_StatisticReport_Module report_;
   Test_I_Display_Module         display_;
 };

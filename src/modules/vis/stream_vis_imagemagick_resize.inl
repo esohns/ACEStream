@@ -549,26 +549,35 @@ Stream_Visualization_ImageMagickResize1_T<ACE_SYNCH_USE,
 //      const_cast<typename DataMessageType::DATA_T&> (message_p->getR ());
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
+  struct _AMMediaType media_type_s;
+  inherited::getMediaType (message_data_r.format,
+                           media_type_s);
+  Common_Image_Resolution_t resolution_s =
+    Stream_MediaFramework_DirectShow_Tools::toResolution (media_type_s);
+  Common_Image_Resolution_t resolution_2 =
+    Stream_MediaFramework_DirectShow_Tools::toResolution (inherited::configuration_->outputFormat);
   ACE_DEBUG ((LM_DEBUG,
               ACE_TEXT ("%s: resizing %ux%u to %ux%u\n"),
               inherited::mod_->name (),
-              message_data_r.format.resolution.cx, message_data_r.format.resolution.cy,
-              inherited::configuration_->outputFormat.resolution.cx, inherited::configuration_->outputFormat.resolution.cy));
+              resolution_s.cx, resolution_s.cy,
+              resolution_2.cx, resolution_2.cy));
+
+  ACE_ASSERT (Stream_MediaFramework_Tools::isRGB32 (media_type_s.subtype, STREAM_MEDIAFRAMEWORK_DIRECTSHOW));
 #else
   ACE_DEBUG ((LM_DEBUG,
               ACE_TEXT ("%s: resizing %ux%u to %ux%u\n"),
               inherited::mod_->name (),
               message_data_r.format.resolution.width, message_data_r.format.resolution.height,
               inherited::configuration_->outputFormat.resolution.width, inherited::configuration_->outputFormat.resolution.height));
-#endif // ACE_WIN32 || ACE_WIN64
 
   ACE_ASSERT (message_data_r.format.codec == AV_CODEC_ID_NONE);
   ACE_ASSERT (Stream_Module_Decoder_Tools::isRGB32 (message_data_r.format.format));
+#endif // ACE_WIN32 || ACE_WIN64
 
   result =
     MagickNewImage (inherited::context_,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-                    message_data_r.format.resolution.cx, message_data_r.format.resolution.cy,
+                    resolution_s.cx, resolution_s.cy,
 #else
                     message_data_r.format.resolution.width, message_data_r.format.resolution.height,
 #endif // ACE_WIN32 || ACE_WIN64
@@ -579,7 +588,7 @@ Stream_Visualization_ImageMagickResize1_T<ACE_SYNCH_USE,
     MagickImportImagePixels (inherited::context_,
                              0, 0,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-                             message_data_r.format.resolution.cx, message_data_r.format.resolution.cy,
+                             resolution_s.cx, resolution_s.cy,
 #else
                              message_data_r.format.resolution.width, message_data_r.format.resolution.height,
 #endif // ACE_WIN32 || ACE_WIN64
@@ -606,8 +615,7 @@ Stream_Visualization_ImageMagickResize1_T<ACE_SYNCH_USE,
   result =
     MagickResizeImage (inherited::context_,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-                       inherited::configuration_->outputFormat.resolution.cx,
-                       inherited::configuration_->outputFormat.resolution.cy,
+                       resolution_2.cx, resolution_2.cy,
                        LanczosFilter);
 #else
                        inherited::configuration_->outputFormat.resolution.width,
@@ -620,7 +628,10 @@ Stream_Visualization_ImageMagickResize1_T<ACE_SYNCH_USE,
 //  // Set the compression quality to 95 (high quality = low compression)
 //  result = MagickSetImageCompressionQuality (context_,100);
 //  ACE_ASSERT (result == MagickTrue);
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#else
   ACE_ASSERT (Common_Image_Tools::stringToCodecId (MagickGetImageFormat (inherited::context_)) == AV_CODEC_ID_NONE);
+#endif // ACE_WIN32 || ACE_WIN64
 
   data_p = MagickGetImageBlob (inherited::context_,
                                &size_i);
@@ -635,11 +646,16 @@ Stream_Visualization_ImageMagickResize1_T<ACE_SYNCH_USE,
   // *TODO*: crashes in release()...(needs MagickRelinquishMemory())
   message_p->base (reinterpret_cast<char*> (data_p),
                    size_i,
-                   ACE_Message_Block::DONT_DELETE); // own image datas
+                   ACE_Message_Block::DONT_DELETE); // own image data, but relinquish() in dtor
   message_p->wr_ptr (size_i);
 
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  Stream_MediaFramework_DirectShow_Tools::setResolution (resolution_2,
+                                                         message_data_2.format);
+#else
   message_data_2.format.resolution =
     inherited::configuration_->outputFormat.resolution;
+#endif // ACE_WIN32 || ACE_WIN64
   //message_data_2.format.resolution.cx = -message_data_2.format.resolution.cx;
   message_data_2.relinquishMemory = data_p;
   message_p->initialize (message_data_2,
@@ -710,7 +726,13 @@ Stream_Visualization_ImageMagickResize1_T<ACE_SYNCH_USE,
       ACE_ASSERT (!session_data_r.formats.empty ());
       const MediaType& media_type_r = session_data_r.formats.back ();
       MediaType media_type_s = media_type_r;
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+      Common_Image_Resolution_t resolution_s =
+        Stream_MediaFramework_DirectShow_Tools::toResolution (inherited::configuration_->outputFormat);
+      inherited::setResolution (resolution_s,
+#else
       inherited::setResolution (inherited::configuration_->outputFormat.resolution,
+#endif // ACE_WIN32 || ACE_WIN64
                                 media_type_s);
       //media_type_s.resolution.cx = -media_type_s.resolution.cx;
       session_data_r.formats.push_back (media_type_s);

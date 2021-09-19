@@ -100,7 +100,7 @@ class Stream_ImageScreen_Stream
   ACE_UNIMPLEMENTED_FUNC (Stream_ImageScreen_Stream& operator= (const Stream_ImageScreen_Stream&))
 
   // modules
-  Stream_ImageScreen_FFMPEG_Source_Module       ffmpeg_source_;
+  Stream_ImageScreen_Source_Module              source_;
 #if defined (FFMPEG_SUPPORT)
   Stream_ImageScreen_FFMPEG_Decode_Module       ffmpeg_decode_;
   Stream_ImageScreen_FFMPEG_Resize_Module       ffmpeg_resize_; // --> window size/fullscreen

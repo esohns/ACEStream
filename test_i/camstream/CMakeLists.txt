@@ -1,22 +1,20 @@
+include (FindPkgConfig)
+include (ffmpeg)
+include (ImageMagick)
+set (CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_CURRENT_SOURCE_DIR}/../../modules/ACENetwork/scripts;${CMAKE_CURRENT_SOURCE_DIR}/../../../ACENetwork/scripts")
+include (SSLConfig)
+
 if (UNIX)
  #pkg_check_modules (PKG_ACE REQUIRED ACE)
 # *NOTE*: Common requires libcap
 # pkg_check_modules (PKG_CAP REQUIRED libcap)
  pkg_check_modules (PKG_V4L2 REQUIRED libv4l2)
- pkg_check_modules (PKG_FFMPEG REQUIRED libswscale libavutil libavcodec)
+# pkg_check_modules (PKG_FFMPEG REQUIRED libswscale libavutil libavcodec)
 elseif (WIN32)
  set (DIRECTSHOW_BASECLASSES_DIRECTORY
       "$ENV{LIB_ROOT}/DShowBaseClasses")
 #      "$ENV{PROGRAMFILES(X86)}/Microsoft SDKs/Windows/v7.0/Samples/multimedia/directshow")
 endif ()
-
-if (FFMPEG_SUPPORT)
- add_definitions (-DFFMPEG_SUPPORT)
-endif (FFMPEG_SUPPORT)
-include (ImageMagick)
-
-set (CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_CURRENT_SOURCE_DIR}/../../modules/ACENetwork/scripts;${CMAKE_CURRENT_SOURCE_DIR}/../../../ACENetwork/scripts")
-include (SSLConfig)
 
 get_filename_component (BUILD_PATH ${CMAKE_CURRENT_BINARY_DIR}/../.. REALPATH)
 get_filename_component (BUILD_PATH_SUFFIX ${BUILD_PATH} NAME)
@@ -42,10 +40,11 @@ endif (WIN32 AND (CMAKE_BUILD_TYPE STREQUAL Debug))
 add_definitions (-DHAVE_CONFIG_H)
 #set_property (SOURCE PROPERTY COMPILE_DEFINITIONS HAVE_CONFIG_H)
 
+if (FFMPEG_SUPPORT)
+ include_directories (${ffmpeg_INCLUDE_DIRS})
+endif (FFMPEG_SUPPORT)
 if (UNIX)
 # include_directories (${PKG_CAP_INCLUDE_DIRS})
- include_directories (${PKG_FFMPEG_INCLUDE_DIRS})
-
  include_directories (${PKG_V4L2_INCLUDE_DIRS})
 
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../Common/src)
@@ -57,12 +56,9 @@ if (UNIX)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../ACENetwork/src)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../ACENetwork/src/client_server)
 elseif (WIN32)
-# *TODO*: repair pkgconfig support
-# include_directories (${PKG_GTK_GLADE_INCLUDE_DIRS})
-# libav
- include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../ffmpeg)
-
- include_directories (${SSL_INCLUDE_DIRS})
+ if (OPENSSL_SUPPORT)
+  include_directories (${SSL_INCLUDE_DIRS})
+ endif (OPENSSL_SUPPORT)
 
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../3rd_party/msvc)
 
@@ -93,7 +89,6 @@ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../src/modules/vis)
 include_directories (${CMAKE_CURRENT_BINARY_DIR}/../..)
 
 include_directories (${CMAKE_CURRENT_SOURCE_DIR}/..)
-
 
 ############## next target ################
 set (EXECUTABLE_SOURCE camsource)
@@ -177,11 +172,12 @@ add_dependencies (${EXECUTABLE_SOURCE} ${PROJECT_NAME}_Visualization)
 add_dependencies (${EXECUTABLE_SOURCE} ACENetwork)
 
 target_link_libraries (${EXECUTABLE_SOURCE} ${CMAKE_THREAD_LIBS_INIT})
-target_link_libraries (${EXECUTABLE_SOURCE} ${ACE_LIBRARY})
+if (FFMPEG_SUPPORT)
+ target_link_libraries (${EXECUTABLE_SOURCE} ${ffmpeg_LIBRARIES})
+endif (FFMPEG_SUPPORT)
 if (UNIX)
 # target_link_libraries (${EXECUTABLE_SOURCE} rt)
 # target_link_libraries (${EXECUTABLE_SOURCE} ${PKG_CAP_LIBRARIES})
- target_link_libraries (${EXECUTABLE_SOURCE} ${PKG_FFMPEG_LIBRARIES})
 
  target_link_libraries (${EXECUTABLE_SOURCE} ${PKG_V4L2_LIBRARIES})
 elseif (WIN32)
@@ -192,20 +188,15 @@ elseif (WIN32)
  target_link_libraries (${EXECUTABLE_SOURCE} mfuuid.lib)
  target_link_libraries (${EXECUTABLE_SOURCE} strmiids.lib)
  target_link_libraries (${EXECUTABLE_SOURCE} winmm.lib)
-
-# target_link_libraries (${EXECUTABLE_SOURCE} ${CMAKE_CURRENT_SOURCE_DIR}/../../../ffmpeg/libavcodec/avcodec.lib)
-# target_link_libraries (${EXECUTABLE_SOURCE} ${CMAKE_CURRENT_SOURCE_DIR}/../../../ffmpeg/libavcodec/libavcodec.lib)
 endif ()
+target_link_libraries (${EXECUTABLE_SOURCE} ${ACE_LIBRARY})
+
 target_link_libraries (${EXECUTABLE_SOURCE} Common)
 target_link_libraries (${EXECUTABLE_SOURCE} CommonImage)
 target_link_libraries (${EXECUTABLE_SOURCE} CommonLog)
 target_link_libraries (${EXECUTABLE_SOURCE} CommonSignal)
 target_link_libraries (${EXECUTABLE_SOURCE} CommonTimer)
 if (GUI_SUPPORT)
- if (WIN32)
-  # *WARNING*: linking CommonUI requires "/FORCE:MULTIPLE"
-#  set_target_properties (${EXECUTABLE_SOURCE} PROPERTIES LINK_FLAGS /FORCE:MULTIPLE)
- endif (WIN32)
  target_link_libraries (${EXECUTABLE_SOURCE} CommonUI)
  if (GTK_USE)
   target_link_libraries (${EXECUTABLE_SOURCE} CommonUI_GTK)
@@ -265,7 +256,7 @@ if (UNIX)
  else ()
   set (ARGS "-g -l -t")
  endif (GTK_SUPPORT)
- set (RUNTIME_LIBRARY_DIRS ${PROJECT_SOURCE_DIR}/modules/ATCD/ACE/lib)
+ set (RUNTIME_LIBRARY_DIRS ${PROJECT_SOURCE_DIR}/modules/ACE/lib)
  file (TO_NATIVE_PATH ${PROJECT_BINARY_DIR}/../test_i/camstream WORKING_DIRECTORY)
 elseif (WIN32)
 # file (TO_NATIVE_PATH "${COMMAND}" COMMAND)
@@ -281,7 +272,6 @@ elseif (WIN32)
  endif (FFMPEG_SUPPORT)
  if (IMAGEMAGICK_SUPPORT)
   file (TO_CMAKE_PATH "${ImageMagick_LIB_DIR}" IMAGEMAGICK_PATH)
-#  message (STATUS "IMAGEMAGICK_PATH: \"${IMAGEMAGICK_PATH}\"")
  endif (IMAGEMAGICK_SUPPORT)
  file (TO_CMAKE_PATH "${GTK_LIB_DIRS}" GTK_PATH)
  file (TO_CMAKE_PATH "${SSL_LIB_DIR}" SSL_PATH)
@@ -313,8 +303,6 @@ set_tests_properties (${EXECUTABLE_SOURCE}_test
 ############## next target ################
 
 if (WIN32)
- include_directories (${DIRECTSHOW_BASECLASSES_DIRECTORY}/baseclasses)
-
  set (LIBRARY_DS camtarget_source)
  set (${LIBRARY_DS}_LIB_SRCS
       stdafx.cpp
@@ -329,13 +317,14 @@ if (WIN32)
               etc/${LIBRARY_DS}.def)
  set_property (TARGET ${LIBRARY_DS} PROPERTY FOLDER "test_i")
 
+ target_include_directories (${LIBRARY_DS} PUBLIC "${DIRECTSHOW_BASECLASSES_DIRECTORY}/baseclasses")
+
  add_dependencies (${LIBRARY_DS} Common)
  add_dependencies (${LIBRARY_DS} CommonLog)
 
  add_dependencies (${LIBRARY_DS} ${PROJECT_NAME})
 
  set (CMAKE_MODULE_LINKER_FLAGS /NODEFAULTLIB:\"libcmt.lib\")
-# set_target_properties (${LIBRARY_DS} PROPERTIES LINK_FLAGS /FORCE:MULTIPLE)
  set_target_properties (${LIBRARY_DS} PROPERTIES LINK_FLAGS /SAFESEH:NO)
  
  target_link_libraries (${LIBRARY_DS} strmiids.lib)
@@ -401,6 +390,8 @@ if (WIN32)
               ${${LIBRARY_MF}_LIB_SRCS}
               etc/${LIBRARY_MF}.def)
  set_property (TARGET ${LIBRARY_MF} PROPERTY FOLDER "test_i")
+
+ target_include_directories (${LIBRARY_MF} PUBLIC "${DIRECTSHOW_BASECLASSES_DIRECTORY}/baseclasses")
 
  add_dependencies (${LIBRARY_MF} Common)
  add_dependencies (${LIBRARY_MF} ${PROJECT_NAME})
@@ -501,11 +492,11 @@ if (WIN32)
  endif ()
 endif ()
 
-if (WIN32)
- if (MSVC)
-  target_link_options (${EXECUTABLE_TARGET} PUBLIC "$<$<CXX_COMPILER_ID:MSVC>:-SAFESEH:NO>")
- endif (MSVC)
-endif (WIN32)
+#if (WIN32)
+# if (MSVC)
+#  target_link_options (${EXECUTABLE_TARGET} PUBLIC "$<$<CXX_COMPILER_ID:MSVC>:-SAFESEH:NO>")
+# endif (MSVC)
+#endif (WIN32)
 
 #add_dependencies (${EXECUTABLE_TARGET} ACE)
 add_dependencies (${EXECUTABLE_TARGET} Common)
@@ -523,21 +514,19 @@ add_dependencies (${EXECUTABLE_TARGET} ${PROJECT_NAME}_Visualization)
 add_dependencies (${EXECUTABLE_TARGET} ACENetwork)
 
 target_link_libraries (${EXECUTABLE_TARGET} ${CMAKE_THREAD_LIBS_INIT})
-target_link_libraries (${EXECUTABLE_TARGET} ${ACE_LIBRARY})
+if (FFMPEG_SUPPORT)
+ target_link_libraries (${EXECUTABLE_TARGET} ${ffmpeg_LIBRARIES})
+endif (FFMPEG_SUPPORT)
 if (UNIX)
  target_link_libraries (${EXECUTABLE_TARGET} ${PKG_V4L2_LIBRARIES})
-
- target_link_libraries (${EXECUTABLE_TARGET} ${PKG_FFMPEG_LIBRARIES})
 
  target_link_libraries (${EXECUTABLE_TARGET} X11)
 elseif (WIN32)
  target_link_libraries (${EXECUTABLE_TARGET} evr.lib)
  target_link_libraries (${EXECUTABLE_TARGET} strmiids.lib)
  target_link_libraries (${EXECUTABLE_TARGET} winmm.lib)
-
-# target_link_libraries (${EXECUTABLE_TARGET} ${CMAKE_CURRENT_SOURCE_DIR}/../../../ffmpeg/libavcodec/avcodec.lib)
-# target_link_libraries (${EXECUTABLE_TARGET} ${CMAKE_CURRENT_SOURCE_DIR}/../../../ffmpeg/libavcodec/libavcodec.a)
 endif ()
+target_link_libraries (${EXECUTABLE_TARGET} ${ACE_LIBRARY})
 
 target_link_libraries (${EXECUTABLE_TARGET} Common)
 target_link_libraries (${EXECUTABLE_TARGET} CommonImage)
@@ -545,10 +534,10 @@ target_link_libraries (${EXECUTABLE_TARGET} CommonLog)
 target_link_libraries (${EXECUTABLE_TARGET} CommonSignal)
 target_link_libraries (${EXECUTABLE_TARGET} CommonTimer)
 if (GUI_SUPPORT)
- if (WIN32)
+# if (WIN32)
   # *WARNING*: linking CommonUI requires "/FORCE:MULTIPLE"
 #  set_target_properties (${EXECUTABLE_TARGET} PROPERTIES LINK_FLAGS /FORCE:MULTIPLE)
- endif (WIN32)
+# endif (WIN32)
  target_link_libraries (${EXECUTABLE_TARGET} CommonUI)
  if (GTK_USE)
   target_link_libraries (${EXECUTABLE_TARGET} CommonUI_GTK)
@@ -588,54 +577,23 @@ elseif (WIN32)
 endif ()
 
 #cmake_policy (SET CMP0053 OLD)
+set (COMMAND "$<TARGET_FILE:${EXECUTABLE_TARGET}>")
 set (ENVIRONMENT "")
 if (UNIX)
  set (ARGS "-g./etc/target.glade -l -o -t")
- set (RUNTIME_LIBRARY_DIRS ${PROJECT_SOURCE_DIR}/modules/ATCD/ACE/lib
-                           ${PROJECT_SOURCE_DIR}/../gtk/gtk/Win32/debug/bin
-                           ${PROJECT_SOURCE_DIR}/../libxml2-2.9.1/.libs
-                           ${PROJECT_SOURCE_DIR}/../Common/cmake/src/${CMAKE_BUILD_TYPE}
-                           ${PROJECT_SOURCE_DIR}/../Common/cmake/src/ui/${CMAKE_BUILD_TYPE}
-                           ${PROJECT_SOURCE_DIR}/cmake/src/${CMAKE_BUILD_TYPE}
-                           ${PROJECT_SOURCE_DIR}/cmake/src/modules/dev/${CMAKE_BUILD_TYPE}
-                           ${PROJECT_SOURCE_DIR}/cmake/src/modules/vis/${CMAKE_BUILD_TYPE}
-                           ${PROJECT_SOURCE_DIR}/../ACENetwork/cmake/src/${CMAKE_BUILD_TYPE})
+ set (RUNTIME_LIBRARY_DIRS ${PROJECT_SOURCE_DIR}/modules/ACE/lib)
  file (TO_NATIVE_PATH ${PROJECT_BINARY_DIR}/../test_i/camstream WORKING_DIRECTORY)
 elseif (WIN32)
- file (TO_CMAKE_PATH $ENV{LIB_ROOT}/ffmpeg/bin FFMPEG_PATH)
- file (TO_CMAKE_PATH $ENV{LIB_ROOT}/ImageMagick IMAGEMAGICK_PATH)
- file (TO_CMAKE_PATH $ENV{LIB_ROOT}/gtk2/bin GTK_PATH)
- file (TO_CMAKE_PATH $ENV{LIB_ROOT}/openssl SSL_PATH)
- file (TO_CMAKE_PATH $ENV{LIB_ROOT}/ACE_TAO/ACE/lib ACE_PATH)
- set (RUNTIME_LIBRARY_DIRS ${PROJECT_SOURCE_DIR}/../libpng-1.6.25/cmake/${CMAKE_BUILD_TYPE}
-                           ${FFMPEG_PATH}
-#                           ${PROJECT_SOURCE_DIR}/../assimp/cmake/code/${CMAKE_BUILD_TYPE}
-                           ${GTK_PATH}
-                           ${SSL_PATH}
-                           ${ACE_PATH}
-                           ${PROJECT_SOURCE_DIR}/../Common/cmake/src/${CMAKE_BUILD_TYPE}
-                           ${PROJECT_SOURCE_DIR}/../Common/cmake/src/err/${CMAKE_BUILD_TYPE}
-                           ${PROJECT_SOURCE_DIR}/../Common/cmake/src/ui/${CMAKE_BUILD_TYPE}
-                           ${PROJECT_SOURCE_DIR}/cmake/src/${CMAKE_BUILD_TYPE}
-                           ${PROJECT_SOURCE_DIR}/cmake/src/modules/dec/${CMAKE_BUILD_TYPE}
-                           ${PROJECT_SOURCE_DIR}/cmake/src/modules/dev/${CMAKE_BUILD_TYPE}
-                           ${PROJECT_SOURCE_DIR}/cmake/src/modules/vis/${CMAKE_BUILD_TYPE}
-                           ${PROJECT_SOURCE_DIR}/../ACENetwork/cmake/src/${CMAKE_BUILD_TYPE})
- if (GTK3_USE)
+ file (TO_NATIVE_PATH "${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_BUILD_TYPE}/${EXECUTABLE_TARGET}.exe" COMMAND)
+ string (REPLACE "\\" "\\\\" COMMAND ${COMMAND})
+ if (GTK_SUPPORT)
   set (ARGS "-g.\\\\etc\\\\target.glade -l -o -t")
-  set (RUNTIME_LIBRARY_DIRS ${RUNTIME_LIBRARY_DIRS}
-#                            G:/software/Development/dll
-                            ${PROJECT_SOURCE_DIR}/../gtk3/bin)
  else ()
-  set (ARGS "-g.\\\\etc\\\\target.glade -l -o -t")
-  set (RUNTIME_LIBRARY_DIRS ${RUNTIME_LIBRARY_DIRS}
-#                            G:/software/Development/dll
-                            ${PROJECT_SOURCE_DIR}/../gtk2/bin)
- endif (GTK3_USE)
- string (REPLACE "/" "\\\\" WORKING_DIRECTORY ${PROJECT_BINARY_DIR}/../test_i/camstream) 
-#message (STATUS "WORKING_DIRECTORY: ${WORKING_DIRECTORY}")
+  set (ARGS "-c -g -l -o -t")
+ endif (GTK_SUPPORT)
 endif ()
 create_target_launcher (${EXECUTABLE_TARGET}
+                        COMMAND ${COMMAND}
                         ARGS ${ARGS}
 #                        FORWARD_ARGS
                         RUNTIME_LIBRARY_DIRS ${RUNTIME_LIBRARY_DIRS}

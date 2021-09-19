@@ -109,9 +109,9 @@ Test_I_Source_SignalHandler_T<ConfigurationType>::handle (const struct Common_Si
     }
   } // end SWITCH
 
-    // ------------------------------------
+  // ------------------------------------
 
-    // print statistic ?
+  // print statistic ?
   if (statistic)
   {
     try {
@@ -124,22 +124,13 @@ Test_I_Source_SignalHandler_T<ConfigurationType>::handle (const struct Common_Si
     }
   } // end IF
 
-    //check_shutdown:
-    // ...shutdown ?
+  //check_shutdown:
+  // ...shutdown ?
   if (shutdown)
   {
     // stop everything, i.e.
     // - stop processing stream
-    // - leave event loop(s) handling signals, sockets, (maintenance) timers,
-    //   exception handlers, ...
     // - activation timers (connection attempts, ...)
-    // [- UI dispatch]
-#if defined (GUI_SUPPORT)
-#if defined (GTK_USE)
-    COMMON_UI_GTK_MANAGER_SINGLETON::instance ()->stop (false, // wait for completion ?
-                                                        true); // high priority ?
-#endif // GTK_USE
-#endif // GUI_SUPPORT
 
     // step1: stop processing stream
     ACE_ASSERT (inherited::configuration_->stream);
@@ -154,11 +145,6 @@ Test_I_Source_SignalHandler_T<ConfigurationType>::handle (const struct Common_Si
     ACE_ASSERT (inherited::configuration_->connectionManager);
     inherited::configuration_->connectionManager->stop (false, true);
     inherited::configuration_->connectionManager->abort ();
-    inherited::configuration_->connectionManager->wait ();
-
-    //    // step3: stop reactor (&& proactor, if applicable)
-    //    Common_Tools::finalizeEventDispatch (inherited::configuration_->useReactor,  // stop reactor ?
-    //                                         !inherited::configuration_->useReactor, // stop proactor ?
-    //                                         -1);                                    // group ID (--> don't block)
+    //inherited::configuration_->connectionManager->wait ();
   } // end IF
 }

@@ -19,7 +19,6 @@
  ***************************************************************************/
 #include "stdafx.h"
 
-//#include "ace/Synch.h"
 #include "test_u_imagescreen_stream.h"
 
 #include "ace/Log_Msg.h"
@@ -37,8 +36,8 @@
 
 Stream_ImageScreen_Stream::Stream_ImageScreen_Stream ()
  : inherited ()
- , ffmpeg_source_ (this,
-                   ACE_TEXT_ALWAYS_CHAR (STREAM_FILE_SOURCE_DEFAULT_NAME_STRING))
+ , source_ (this,
+            ACE_TEXT_ALWAYS_CHAR (STREAM_FILE_SOURCE_DEFAULT_NAME_STRING))
 #if defined (FFMPEG_SUPPORT)
  , ffmpeg_decode_ (this,
                    ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_LIBAV_DECODER_DEFAULT_NAME_STRING))
@@ -94,10 +93,12 @@ Stream_ImageScreen_Stream::load (Stream_ILayout* layout_in,
   layout_in->append (&imagemagick_source_, NULL, 0);
   layout_in->append (&imagemagick_resize_, NULL, 0); // output is window size/fullscreen
 #else
-  layout_in->append (&ffmpeg_source_, NULL, 0);
+  layout_in->append (&source_, NULL, 0);
+#if defined (FFMPEG_SUPPORT)
   layout_in->append (&ffmpeg_decode_, NULL, 0); // output is uncompressed RGBA
   layout_in->append (&ffmpeg_resize_, NULL, 0); // output is window size/fullscreen
   layout_in->append (&ffmpeg_convert_, NULL, 0); // output is uncompressed BGRA
+#endif // FFMPEG_SUPPORT
 #endif // IMAGEMAGICK_SUPPORT
   layout_in->append (&delay_, NULL, 0);
   layout_in->append (&display_, NULL, 0);
@@ -121,9 +122,15 @@ Stream_ImageScreen_Stream::initialize (const typename inherited::CONFIGURATION_T
 #if defined (IMAGEMAGICK_SUPPORT)
   Stream_ImageScreen_ImageMagick_Source* source_impl_p = NULL;
 #else
-  Stream_ImageScreen_FFMPEG_Source* source_impl_p = NULL;
+  Stream_ImageScreen_Source* source_impl_p = NULL;
 #endif // IMAGEMAGICK_SUPPORT
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  struct _AMMediaType media_type_s;
+#else
+#if defined (FFMPEG_SUPPORT)
   struct Stream_MediaFramework_FFMPEG_VideoMediaType media_type_s;
+#endif // FFMPEG_SUPPORT
+#endif // ACE_WIN32 || ACE_WIN64
 
   // allocate a new session state, reset stream
   const_cast<typename inherited::CONFIGURATION_T&> (configuration_in).configuration_->setupPipeline =
@@ -156,11 +163,16 @@ Stream_ImageScreen_Stream::initialize (const typename inherited::CONFIGURATION_T
       dynamic_cast<struct Stream_ImageScreen_ModuleHandlerConfiguration*> (&(*iterator).second.second);
   ACE_ASSERT (configuration_p);
 
-  media_type_s.format = AV_PIX_FMT_RGB32;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  media_type_s.resolution.cx = 640;
-  media_type_s.resolution.cy = 480;
+  Stream_MediaFramework_DirectShow_Tools::setFormat (MEDIASUBTYPE_RGB32,
+                                                     media_type_s);
+  Common_Image_Resolution_t resolution_s;
+  resolution_s.cx = 640;
+  resolution_s.cy = 480;
+  Stream_MediaFramework_DirectShow_Tools::setResolution (resolution_s,
+                                                         media_type_s);
 #else
+  media_type_s.format = AV_PIX_FMT_RGB32;
   media_type_s.resolution.width  = 640;
   media_type_s.resolution.height = 480;
 #endif // ACE_WIN32 || ACE_WIN64
@@ -172,9 +184,9 @@ Stream_ImageScreen_Stream::initialize (const typename inherited::CONFIGURATION_T
   // ******************* Camera Source ************************
   source_impl_p =
 #if defined (IMAGEMAGICK_SUPPORT)
-    dynamic_cast<Stream_ImageScreen_ImageMagick_Source*> (imagemagick_source_.writer ());
+    static_cast<Stream_ImageScreen_ImageMagick_Source*> (imagemagick_source_.writer ());
 #else
-    dynamic_cast<Stream_ImageScreen_FFMPEG_Source*> (ffmpeg_source_.writer ());
+    static_cast<Stream_ImageScreen_Source*> (ffmpeg_source_.writer ());
 #endif // IMAGEMAGICK_SUPPORT
   ACE_ASSERT (source_impl_p);
   source_impl_p->setP (&(inherited::state_));
@@ -185,7 +197,7 @@ Stream_ImageScreen_Stream::initialize (const typename inherited::CONFIGURATION_T
 #if defined (IMAGEMAGICK_SUPPORT)
   imagemagick_source_.arg (inherited::sessionData_);
 #else
-  ffmpeg_source_.arg (inherited::sessionData_);
+  source_.arg (inherited::sessionData_);
 #endif // IMAGEMAGICK_SUPPORT
 
   if (configuration_in.configuration_->setupPipeline)

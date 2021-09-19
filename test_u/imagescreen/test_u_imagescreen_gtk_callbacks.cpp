@@ -270,19 +270,15 @@ idle_initialize_UI_cb (gpointer userData_in)
 //  gtk_widget_get_allocation (GTK_WIDGET (drawing_area_p),
 //                             &allocation_s);
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  (*stream_configuration_iterator).second.second.outputFormat.resolution.cx =
+  Common_Image_Resolution_t resolution_s;
+  resolution_s.cx = 640;
+  resolution_s.cy = 480;
+  Stream_MediaFramework_DirectShow_Tools::setResolution (resolution_s,
+                                                         (*stream_configuration_iterator).second.second.outputFormat);
 #else
-  (*stream_configuration_iterator).second.second.outputFormat.resolution.width =
+  (*stream_configuration_iterator).second.second.outputFormat.resolution.width = 640;
+  (*stream_configuration_iterator).second.second.outputFormat.resolution.height = 480;
 #endif // ACE_WIN32 || ACE_WIN64
-//    allocation_s.width;
-      640;
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-  (*stream_configuration_iterator).second.second.outputFormat.resolution.cy =
-#else
-  (*stream_configuration_iterator).second.second.outputFormat.resolution.height =
-#endif // ACE_WIN32 || ACE_WIN64
-//      allocation_s.height;
-      480;
 //  ACE_DEBUG ((LM_DEBUG,
 //              ACE_TEXT ("initial window size: %ux%u\n"),
 //              allocation_s.width, allocation_s.height));
@@ -640,20 +636,20 @@ togglebutton_start_toggled_cb (GtkToggleButton* toggleButton_in,
   if ((*stream_configuration_iterator).second.second.fullScreen)
   {
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-    (*stream_configuration_iterator).second.second.outputFormat.resolution.cx =
-		((*stream_configuration_iterator).second.second.display.clippingArea.right -
-		 (*stream_configuration_iterator).second.second.display.clippingArea.left);
+    Common_Image_Resolution_t resolution_s;
+    resolution_s.cx =
+      ((*stream_configuration_iterator).second.second.display.clippingArea.right -
+       (*stream_configuration_iterator).second.second.display.clippingArea.left);
+    resolution_s.cy =
+      ((*stream_configuration_iterator).second.second.display.clippingArea.bottom -
+       (*stream_configuration_iterator).second.second.display.clippingArea.top);
+    Stream_MediaFramework_DirectShow_Tools::setResolution (resolution_s,
+                                                           (*stream_configuration_iterator).second.second.outputFormat);
 #else
     (*stream_configuration_iterator).second.second.outputFormat.resolution.width =
-		(*stream_configuration_iterator).second.second.display.clippingArea.width;
-#endif // ACE_WIN32 || ACE_WIN64
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-    (*stream_configuration_iterator).second.second.outputFormat.resolution.cy =
-		((*stream_configuration_iterator).second.second.display.clippingArea.bottom -
-		 (*stream_configuration_iterator).second.second.display.clippingArea.top);
-#else
+      (*stream_configuration_iterator).second.second.display.clippingArea.width;
     (*stream_configuration_iterator).second.second.outputFormat.resolution.height =
-		(*stream_configuration_iterator).second.second.display.clippingArea.height;
+      (*stream_configuration_iterator).second.second.display.clippingArea.height;
 #endif // ACE_WIN32 || ACE_WIN64
   } // end IF
   else
@@ -667,19 +663,15 @@ togglebutton_start_toggled_cb (GtkToggleButton* toggleButton_in,
 //    gtk_widget_get_allocation (GTK_WIDGET (drawing_area_p),
 //                               &allocation_s);
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-    (*stream_configuration_iterator).second.second.outputFormat.resolution.cx =
+    Common_Image_Resolution_t resolution_s;
+    resolution_s.cx = 640;
+    resolution_s.cy = 480;
+    Stream_MediaFramework_DirectShow_Tools::setResolution (resolution_s,
+                                                           (*stream_configuration_iterator).second.second.outputFormat);
 #else
-    (*stream_configuration_iterator).second.second.outputFormat.resolution.width =
+    (*stream_configuration_iterator).second.second.outputFormat.resolution.width = 640;
+    (*stream_configuration_iterator).second.second.outputFormat.resolution.height = 480;
 #endif // ACE_WIN32 || ACE_WIN64
-//        allocation_s.width;
-        640;
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-    (*stream_configuration_iterator).second.second.outputFormat.resolution.cy =
-#else
-    (*stream_configuration_iterator).second.second.outputFormat.resolution.height =
-#endif // ACE_WIN32 || ACE_WIN64
-//        allocation_s.height;
-        480;
   } // end ELSE
 
   // step3: start progress reporting

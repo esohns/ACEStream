@@ -21,6 +21,9 @@
 #ifndef TEST_U_IMAGESCREEN_COMMON_H
 #define TEST_U_IMAGESCREEN_COMMON_H
 
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#else
+#if defined (FFMPEG_SUPPORT)
 #ifdef __cplusplus
 extern "C"
 {
@@ -28,6 +31,8 @@ extern "C"
 #include "libavutil/pixfmt.h"
 }
 #endif // __cplusplus
+#endif // FFMPEG_SUPPORT
+#endif // ACE_WIN32 || ACE_WIN64
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
@@ -44,8 +49,11 @@ extern "C"
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #include "stream_lib_directdraw_common.h"
-#endif // ACE_WIN32 || ACE_WIN64
+#else
+#if defined (FFMPEG_SUPPORT)
 #include "stream_lib_ffmpeg_common.h"
+#endif // FFMPEG_SUPPORT
+#endif // ACE_WIN32 || ACE_WIN64
 
 #include "stream_vis_common.h"
 #include "stream_vis_defines.h"
@@ -69,7 +77,13 @@ class Stream_ImageScreen_EventHandler_T;
 
 class Stream_ImageScreen_SessionData
  : public Stream_SessionDataMediaBase_T<struct Test_U_SessionData,
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+                                        struct _AMMediaType,
+#else
+#if defined (FFMPEG_SUPPORT)
                                         struct Stream_MediaFramework_FFMPEG_VideoMediaType,
+#endif // FFMPEG_SUPPORT
+#endif // ACE_WIN32 || ACE_WIN64
                                         struct Stream_State,
                                         struct Stream_Statistic,
                                         struct Stream_UserData>
@@ -77,7 +91,13 @@ class Stream_ImageScreen_SessionData
  public:
   Stream_ImageScreen_SessionData ()
    : Stream_SessionDataMediaBase_T<struct Test_U_SessionData,
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+                                   struct _AMMediaType,
+#else
+#if defined (FFMPEG_SUPPORT)
                                    struct Stream_MediaFramework_FFMPEG_VideoMediaType,
+#endif // FFMPEG_SUPPORT
+#endif // ACE_WIN32 || ACE_WIN64
                                    struct Stream_State,
                                    struct Stream_Statistic,
                                    struct Stream_UserData> ()
@@ -121,8 +141,13 @@ struct Stream_ImageScreen_ModuleHandlerConfiguration
 {
   Stream_ImageScreen_ModuleHandlerConfiguration ()
    : Test_U_ModuleHandlerConfiguration ()
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#else
+#if defined (FFMPEG_SUPPORT)
    , codecFormat (AV_PIX_FMT_NONE)
    , codecId (AV_CODEC_ID_NONE)
+#endif // FFMPEG_SUPPORT
+#endif // ACE_WIN32 || ACE_WIN64
    , delay (5, 0)
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
    , direct3DConfiguration (NULL)
@@ -147,8 +172,13 @@ struct Stream_ImageScreen_ModuleHandlerConfiguration
     concurrency = STREAM_HEADMODULECONCURRENCY_ACTIVE;
   }
 
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#else
+#if defined (FFMPEG_SUPPORT)
   enum AVPixelFormat                            codecFormat; // preferred output-
   enum AVCodecID                                codecId;
+#endif // FFMPEG_SUPPORT
+#endif // ACE_WIN32 || ACE_WIN64
   ACE_Time_Value                                delay;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   struct Stream_MediaFramework_Direct3D_Configuration* direct3DConfiguration;
@@ -158,7 +188,13 @@ struct Stream_ImageScreen_ModuleHandlerConfiguration
   // *NOTE*: treat each image separately (different sizes)
   bool                                          fullScreen;
   bool                                          individualFormat;
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  struct _AMMediaType                           outputFormat;
+#else
+#if defined (FFMPEG_SUPPORT)
   struct Stream_MediaFramework_FFMPEG_VideoMediaType outputFormat;
+#endif // FFMPEG_SUPPORT
+#endif // ACE_WIN32 || ACE_WIN64
   Stream_ImageScreen_ISessionNotify_t*          subscriber;
   Stream_ImageScreen_Subscribers_t*             subscribers;
 #if defined (GTK_USE)

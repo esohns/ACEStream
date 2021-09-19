@@ -30,7 +30,12 @@
 #include "stream_configuration.h"
 #include "stream_data_message_base.h"
 
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#else
+#if defined (FFMPEG_SUPPORT)
 #include "stream_lib_ffmpeg_common.h"
+#endif // FFMPEG_SUPPORT
+#endif // ACE_WIN32 || ACE_WIN64
 
 // forward declaration(s)
 template <ACE_SYNCH_DECL,
@@ -52,7 +57,13 @@ struct Stream_ImageScreen_MessageData
 #endif // IMAGEMAGICK_SUPPORT
   {}
 
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  struct _AMMediaType                                format;
+#else
+#if defined (FFMPEG_SUPPORT)
   struct Stream_MediaFramework_FFMPEG_VideoMediaType format;
+#endif // FFMPEG_SUPPORT
+#endif // ACE_WIN32 || ACE_WIN64
 #if defined (IMAGEMAGICK_SUPPORT)
   // free memory with MagickRelinquishMemory() ?
   void*                                              relinquishMemory;

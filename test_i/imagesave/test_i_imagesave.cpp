@@ -474,7 +474,12 @@ do_work (
   modulehandler_configuration.allocatorConfiguration =
     &allocator_configuration;
   modulehandler_configuration.concurrency = STREAM_HEADMODULECONCURRENCY_ACTIVE;
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#else
+#if defined (FFMPEG_SUPPORT)
   modulehandler_configuration.codecId = AV_CODEC_ID_H264;
+#endif // FFMPEG_SUPPORT
+#endif // ACE_WIN32 || ACE_WIN64
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   modulehandler_configuration.direct3DConfiguration =
     &configuration_in.direct3DConfiguration;
@@ -542,23 +547,34 @@ do_work (
   //    //gdk_win32_drawable_get_handle (GDK_DRAWABLE (configuration.moduleHandlerConfiguration.window));
   //    static_cast<HWND> (GDK_WINDOW_HWND ((*iterator).second.second.window));
   //} // end IF
-  (*stream_iterator).second.second.outputFormat.format = AV_PIX_FMT_RGB32;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  (*stream_iterator).second.second.outputFormat.resolution.cx = 1920;
-  (*stream_iterator).second.second.outputFormat.resolution.cy = 1080;
+  Common_Image_Resolution_t resolution_s;
+  resolution_s.cx = 1920;
+  resolution_s.cy = 1080;
+  Stream_MediaFramework_DirectShow_Tools::setResolution (resolution_s,
+                                                         (*stream_iterator).second.second.outputFormat);
 #else
+#if defined (FFMPEG_SUPPORT)
+  (*stream_iterator).second.second.outputFormat.format = AV_PIX_FMT_RGB32;
   (*stream_iterator).second.second.outputFormat.resolution.width = 1920;
   (*stream_iterator).second.second.outputFormat.resolution.height = 1080;
+#endif // FFMPEG_SUPPORT
 #endif // ACE_WIN32 || ACE_WIN64
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  (*stream_iterator_2).second.second.outputFormat = (*stream_iterator).second.second.outputFormat;
+  (*stream_iterator_2).second.second.outputFormat =
+    (*stream_iterator).second.second.outputFormat;
 #endif // ACE_WIN32 || ACE_WIN64
   configuration_in.streamConfiguration.configuration_->format =
     (*stream_iterator).second.second.outputFormat;
 
 #if defined (GUI_SUPPORT)
-  Common_Image_Resolution_t resolution_s;
-  resolution_s = (*stream_iterator).second.second.outputFormat.resolution;
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  resolution_s =
+    Stream_MediaFramework_DirectShow_Tools::toResolution ((*stream_iterator).second.second.outputFormat);
+#else
+  Common_Image_Resolution_t resolution_s =
+    (*stream_iterator).second.second.outputFormat.resolution;
+#endif // ACE_WIN32 || ACE_WIN64
   //struct _D3DDISPLAYMODE display_mode_s =
   //  Stream_MediaFramework_DirectDraw_Tools::getDisplayMode (directShowConfiguration_in.direct3DConfiguration.adapter,
   //                                                          STREAM_LIB_DIRECTDRAW_3D_DEFAULT_FORMAT,

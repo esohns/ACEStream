@@ -380,7 +380,12 @@ do_work (int argc_in,
 //  Stream_ImageScreen_StreamConfiguration_t::ITERATOR_T stream_configuration_iterator;
   modulehandler_configuration.allocatorConfiguration =
     &allocator_configuration;
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#else
+#if defined (FFMPEG_SUPPORT)
   modulehandler_configuration.codecId = AV_CODEC_ID_MJPEG;
+#endif // FFMPEG_SUPPORT
+#endif // ACE_WIN32 || ACE_WIN64
   modulehandler_configuration.display = Common_UI_Tools::getDefaultDisplay ();
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   modulehandler_configuration.direct3DConfiguration = &configuration.direct3DConfiguration;
@@ -392,7 +397,14 @@ do_work (int argc_in,
       dirent_selector_cb;
   modulehandler_configuration.fullScreen = fullscreen_in;
   // X11 requires RGB32
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  Stream_MediaFramework_DirectShow_Tools::setFormat (MEDIASUBTYPE_RGB32,
+                                                     modulehandler_configuration.outputFormat);
+#else
+#if defined (FFMPEG_SUPPORT)
   modulehandler_configuration.outputFormat.format = AV_PIX_FMT_RGBA;
+#endif // FFMPEG_SUPPORT
+#endif // ACE_WIN32 || ACE_WIN64
   modulehandler_configuration.slurpFiles = true;
 
   Stream_ImageScreen_EventHandler_t ui_event_handler (

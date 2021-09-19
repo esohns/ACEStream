@@ -1247,8 +1247,10 @@ do_work (const std::string& captureinterfaceIdentifier_in,
                                                                              ACE_TEXT_ALWAYS_CHAR (STREAM_MISC_MESSAGEHANDLER_DEFAULT_NAME_STRING));
   Stream_AVSave_MediaFoundation_MessageHandler_Module mediafoundation_message_handler (NULL,
                                                                                        ACE_TEXT_ALWAYS_CHAR (STREAM_MISC_MESSAGEHANDLER_DEFAULT_NAME_STRING));
+#if defined (FFMPEG_SUPPORT)
   Stream_AVSave_DirectShow_Encoder_Module encoder (NULL,
                                                    ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_LIBAV_ENCODER_DEFAULT_NAME_STRING));
+#endif // FFMPEG_SUPPORT
   Stream_AVSave_WaveIn_Stream wavein_stream;
   Stream_AVSave_DirectShow_Stream directshow_stream;
   Stream_AVSave_MediaFoundation_Stream mediafoundation_stream;
@@ -1277,8 +1279,9 @@ do_work (const std::string& captureinterfaceIdentifier_in,
       directshow_modulehandler_configuration.messageAllocator = &directshow_message_allocator;
 
       directshow_stream_configuration.allocatorConfiguration = &allocator_configuration;
+#if defined (FFMPEG_SUPPORT)
       directshow_stream_configuration.module_2 = &encoder;
-
+#endif // FFMPEG_SUPPORT
       directShowConfiguration_in.audioStreamConfiguration.initialize (module_configuration,
                                                                       directshow_modulehandler_configuration,
                                                                       directshow_stream_configuration);

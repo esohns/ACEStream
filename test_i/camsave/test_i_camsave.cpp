@@ -1416,6 +1416,7 @@ error:
         directShowConfiguration_in.streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
       ACE_ASSERT (directshow_stream_iterator != directShowConfiguration_in.streamConfiguration.end ());
 
+#if defined (FFMPEG_SUPPORT)
       directshow_modulehandler_configuration_2 = directshow_modulehandler_configuration;
       directShowConfiguration_in.streamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_LIBAV_RESIZE_DEFAULT_NAME_STRING),
                                                                              std::make_pair (module_configuration,
@@ -1423,6 +1424,7 @@ error:
       directshow_stream_iterator_2 =
         directShowConfiguration_in.streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_LIBAV_RESIZE_DEFAULT_NAME_STRING));
       ACE_ASSERT (directshow_stream_iterator_2 != directShowConfiguration_in.streamConfiguration.end ());
+#endif // FFMPEG_SUPPORT
 
       directshow_modulehandler_configuration_3 = directshow_modulehandler_configuration;
       directshow_modulehandler_configuration_3.deviceIdentifier.identifierDiscriminator =
@@ -1436,6 +1438,7 @@ error:
         directShowConfiguration_in.streamConfiguration.find (Stream_Visualization_Tools::rendererToModuleName (STREAM_VISUALIZATION_VIDEORENDERER_GTK_PIXBUF));
       ACE_ASSERT (directshow_stream_iterator_3 != directShowConfiguration_in.streamConfiguration.end ());
 
+#if defined (FFMPEG_SUPPORT)
       directshow_modulehandler_configuration_4 = directshow_modulehandler_configuration;
       directShowConfiguration_in.streamConfiguration.insert (std::make_pair (std::string (std::string (ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_LIBAV_CONVERTER_DEFAULT_NAME_STRING)) + ACE_TEXT_ALWAYS_CHAR ("_2")),
                                                                              std::make_pair (module_configuration,
@@ -1443,6 +1446,7 @@ error:
       directshow_stream_iterator_4 =
         directShowConfiguration_in.streamConfiguration.find (std::string (std::string (ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_LIBAV_CONVERTER_DEFAULT_NAME_STRING)) + ACE_TEXT_ALWAYS_CHAR ("_2")));
       ACE_ASSERT (directshow_stream_iterator_4 != directShowConfiguration_in.streamConfiguration.end ());
+#endif // FFMPEG_SUPPORT
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:

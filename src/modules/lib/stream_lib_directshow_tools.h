@@ -24,26 +24,29 @@
 #include <map>
 #include <string>
 
-#include <sdkddkver.h>
 #if COMMON_OS_WIN32_TARGET_PLATFORM(0x0602) // _WIN32_WINNT_WIN8
-#include <minwindef.h>
+#include "minwindef.h"
 #else
-#include <windef.h>
+#include "windef.h"
 #endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0602)
 //#include <winnt.h>
-#include <Ks.h>
-#include <Guiddef.h>
-#include <evr.h>
-#include <mtype.h>
-#include <strmif.h>
-#include <mediaobj.h>
+#include "Ks.h"
+#include "Guiddef.h"
+#include "evr.h"
+#include "mtype.h"
+#include "strmif.h"
+#include "mediaobj.h"
 
 #include "ace/Global_Macros.h"
+
+#include "common_image_common.h"
 
 #include "stream_lib_common.h"
 #include "stream_lib_directshow_common.h"
 
+#if defined (FFMPEG_SUPPORT)
 #include "stream_lib_ffmpeg_common.h"
+#endif // FFMPEG_SUPPORT
 
 class Stream_MediaFramework_DirectShow_Tools
 {
@@ -180,8 +183,6 @@ class Stream_MediaFramework_DirectShow_Tools
   static void free (Stream_MediaFramework_DirectShow_Formats_t&);
   static bool match (const struct _AMMediaType&,  // media type
                      const struct _AMMediaType&); // media type
-  static void resize (const Common_Image_Resolution_t&, // new size
-                      struct _AMMediaType&);            // in/out: media type
   static void setFormat (REFGUID,               // media type
                          struct _AMMediaType&); // in/out: media type
   static void setResolution (const Common_Image_Resolution_t&, // resolution
@@ -194,13 +195,16 @@ class Stream_MediaFramework_DirectShow_Tools
   static unsigned int toFramerate (const struct _AMMediaType&); // media type
   static unsigned int toFramesize (const struct _AMMediaType&); // media type
   static Common_Image_Resolution_t toResolution (const struct _AMMediaType&); // media type
+  static unsigned int toRowStride (const struct _AMMediaType&); // media type
   // *IMPORTANT NOTE*: callers must 'free' return values
   static struct _AMMediaType toRGB (const struct _AMMediaType&); // media type
   static std::string toString (const struct _AMMediaType&, // media type
                                bool = false);              // condensed version ?
 
+#if defined (FFMPEG_SUPPORT)
   // *IMPORTANT NOTE*: callers must 'delete_' return values
   static struct _AMMediaType* to (const struct Stream_MediaFramework_FFMPEG_VideoMediaType&); // media type
+#endif // FFMPEG_SUPPORT
 
  private:
   ACE_UNIMPLEMENTED_FUNC (Stream_MediaFramework_DirectShow_Tools ())

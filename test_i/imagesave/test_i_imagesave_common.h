@@ -37,10 +37,11 @@
 #include <mfidl.h>
 #include <strmif.h>
 #else
-#include "linux/videodev2.h"
+//#include "linux/videodev2.h"
 
 //#include "X11/Xlib.h"
 
+#if defined (FFMPEG_SUPPORT)
 #ifdef __cplusplus
 extern "C"
 {
@@ -48,6 +49,7 @@ extern "C"
 #include "libavutil/pixfmt.h"
 }
 #endif // __cplusplus
+#endif // FFMPEG_SUPPORT
 #endif // ACE_WIN32 || ACE_WIN64
 
 #if defined (GUI_SUPPORT)
@@ -95,7 +97,9 @@ extern "C"
 #include "stream_lib_directdraw_common.h"
 #include "stream_lib_directshow_tools.h"
 #else
+#if defined (FFMPEG_SUPPORT)
 #include "stream_lib_ffmpeg_common.h"
+#endif // FFMPEG_SUPPORT
 #endif // ACE_WIN32 || ACE_WIN64
 
 #include "stream_dev_common.h"
@@ -173,7 +177,13 @@ typedef Common_StatisticHandler_T<struct Test_I_StatisticData> Test_I_ImageSave_
 struct Test_I_ImageSave_StreamState;
 class Test_I_ImageSave_SessionData
  : public Stream_SessionDataMediaBase_T<struct Test_I_SessionData,
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+                                        struct _AMMediaType,
+#else
+#if defined (FFMPEG_SUPPORT)
                                         struct Stream_MediaFramework_FFMPEG_VideoMediaType,
+#endif // FFMPEG_SUPPORT
+#endif // ACE_WIN32 || ACE_WIN64
                                         struct Test_I_ImageSave_StreamState,
                                         struct Test_I_StatisticData,
                                         struct Stream_UserData>
@@ -181,7 +191,13 @@ class Test_I_ImageSave_SessionData
  public:
   Test_I_ImageSave_SessionData ()
    : Stream_SessionDataMediaBase_T<struct Test_I_SessionData,
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+                                   struct _AMMediaType,
+#else
+#if defined (FFMPEG_SUPPORT)
                                    struct Stream_MediaFramework_FFMPEG_VideoMediaType,
+#endif // FFMPEG_SUPPORT
+#endif // ACE_WIN32 || ACE_WIN64
                                    struct Test_I_ImageSave_StreamState,
                                    struct Test_I_StatisticData,
                                    struct Stream_UserData> ()
@@ -191,11 +207,16 @@ class Test_I_ImageSave_SessionData
   {
     // *NOTE*: the idea is to 'merge' the data
     Stream_SessionDataMediaBase_T<struct Test_I_SessionData,
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+                                  struct _AMMediaType,
+#else
+#if defined (FFMPEG_SUPPORT)
                                   struct Stream_MediaFramework_FFMPEG_VideoMediaType,
+#endif // FFMPEG_SUPPORT
+#endif // ACE_WIN32 || ACE_WIN64
                                   struct Test_I_ImageSave_StreamState,
                                   struct Test_I_StatisticData,
                                   struct Stream_UserData>::operator+= (rhs_in);
-
     return *this;
   }
 
@@ -239,7 +260,12 @@ struct Test_I_ImageSave_ModuleHandlerConfiguration
 {
   Test_I_ImageSave_ModuleHandlerConfiguration ()
    : Test_I_ModuleHandlerConfiguration ()
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#else
+#if defined (FFMPEG_SUPPORT)
    , codecId (AV_CODEC_ID_NONE)
+#endif // FFMPEG_SUPPORT
+#endif // ACE_WIN32 || ACE_WIN64
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
    , direct3DConfiguration (NULL)
 //   , window (NULL)
@@ -257,7 +283,12 @@ struct Test_I_ImageSave_ModuleHandlerConfiguration
     concurrency = STREAM_HEADMODULECONCURRENCY_ACTIVE;
   }
 
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#else
+#if defined (FFMPEG_SUPPORT)
   enum AVCodecID                                     codecId;
+#endif // FFMPEG_SUPPORT
+#endif // ACE_WIN32 || ACE_WIN64
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   struct Stream_MediaFramework_Direct3D_Configuration* direct3DConfiguration;
 //  HWND                                               window;
@@ -267,7 +298,13 @@ struct Test_I_ImageSave_ModuleHandlerConfiguration
   unsigned long                                      window;
   struct _XDisplay*                                  X11Display;
 #endif // ACE_WIN32 || ACE_WIN64
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  struct _AMMediaType                                outputFormat;
+#else
+#if defined (FFMPEG_SUPPORT)
   struct Stream_MediaFramework_FFMPEG_VideoMediaType outputFormat;
+#endif // FFMPEG_SUPPORT
+#endif // ACE_WIN32 || ACE_WIN64
   Test_I_ISessionNotify_t*                           subscriber;
   Test_I_Subscribers_t*                              subscribers;
   std::string                                        targetFileName;
@@ -297,7 +334,13 @@ struct Test_I_ImageSave_StreamConfiguration
     printFinalReport = true;
   }
 
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  struct _AMMediaType                                format;
+#else
+#if defined (FFMPEG_SUPPORT)
   struct Stream_MediaFramework_FFMPEG_VideoMediaType format;
+#endif // FFMPEG_SUPPORT
+#endif // ACE_WIN32 || ACE_WIN64
 };
 //extern const char stream_name_string_[];
 typedef Stream_Configuration_T<//stream_name_string_,

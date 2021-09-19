@@ -21,6 +21,12 @@
 
 #include "stream_vis_opengl_glut.h"
 
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#include "gl/GL.h"
+#else
+#include "GL/gl.h"
+#endif // ACE_WIN32 || ACE_WIN64
+
 #include "common_gl_tools.h"
 
 #include "stream_vis_defines.h"
@@ -138,7 +144,10 @@ libacestream_glut_draw (void)
     static_cast<struct OpenGL_GLUT_WindowData*> (glutGetWindowData ());
   ACE_ASSERT (cb_data_p);
   ACE_ASSERT (cb_data_p->queue);
-
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  Common_Image_Resolution_t resolution_s =
+    Stream_MediaFramework_DirectShow_Tools::toResolution (cb_data_p->mediaType);
+#endif // ACE_WIN32 || ACE_WIN64
   ACE_Message_Block* message_block_p = NULL;
 
   GLuint tex_index;
@@ -150,8 +159,8 @@ libacestream_glut_draw (void)
   tex_index =
     Common_GL_Tools::loadTexture (reinterpret_cast<uint8_t*> (message_block_p->rd_ptr ()),
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-                                  cb_data_p->mediaType.resolution.cx,
-                                  cb_data_p->mediaType.resolution.cy);
+                                  resolution_s.cx,
+                                  resolution_s.cy);
 #else
                                   cb_data_p->mediaType.resolution.width,
                                   cb_data_p->mediaType.resolution.height);
@@ -211,7 +220,7 @@ libacestream_glut_draw (void)
 
   glEnd ();
 
-  cube_rotation -= 1.0f;					// Decrease The Rotation Variable For The Cube
+  cube_rotation -= 1.0f; // Decrease The Rotation Variable For The Cube
 
   glPopMatrix ();
 

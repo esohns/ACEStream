@@ -30,6 +30,7 @@
 #include "net_configuration.h"
 #include "net_iconnector.h"
 
+#include "net_client_common_tools.h"
 #include "net_client_defines.h"
 
 #include "stream_net_common.h"
@@ -313,24 +314,18 @@ Stream_Module_Net_Target_T<ACE_SYNCH_USE,
 
       typename SessionDataContainerType::DATA_T& session_data_r =
           const_cast<typename SessionDataContainerType::DATA_T&> (inherited::sessionData_->getR ());
-      typename ConnectorType::ICONNECTOR_T* iconnector_p = &connector_;
       // *TODO*: remove type inferences
       typename ConnectionManagerType::INTERFACE_T* iconnection_manager_p =
         ConnectionManagerType::SINGLETON_T::instance ();
       typename ConnectorType::ISTREAM_CONNECTION_T* istream_connection_p = NULL;
       typename ConnectorType::STREAM_T* stream_p = NULL;
-      typename ConnectorType::CONFIGURATION_T* connection_configuration_p;
+      typename ConnectorType::CONFIGURATION_T* configuration_p;
+      typename ConnectorType::USERDATA_T user_data_s;
       bool notify_connect = false;
       Net_ConnectionConfigurationsIterator_t iterator_2;
-      // *NOTE*: (currently,) this could be a TCP (--> test peer address),
-      //         or a UDP (--> test local address) connection
-      bool is_peer_address =
-          (iconnector_p->transportLayer () == NET_TRANSPORTLAYER_TCP);
       typename inherited::TASK_BASE_T::STREAM_T* stream_2 = NULL;
-      bool is_error = false;
       ACE_HANDLE handle_h = ACE_INVALID_HANDLE;
       typename ConnectorType::ADDRESS_T local_SAP, peer_SAP;
-//      bool result_2 = false;
 
       if (unlikely (isPassive_))
       {
@@ -362,7 +357,7 @@ Stream_Module_Net_Target_T<ACE_SYNCH_USE,
                       ACE_TEXT ("%s: failed to retrieve connection (handle was: %d), aborting\n"),
                       inherited::mod_->name (),
                       (*session_data_r.connectionStates.begin ()).first));
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
           goto error;
         } // end IF
 
@@ -381,146 +376,67 @@ Stream_Module_Net_Target_T<ACE_SYNCH_USE,
       if (likely (iterator_2 == inherited::configuration_->connectionConfigurations->end ()))
         iterator_2 =
           inherited::configuration_->connectionConfigurations->find (ACE_TEXT_ALWAYS_CHAR (""));
-#if defined (_DEBUG)
       else
         ACE_DEBUG ((LM_DEBUG,
                     ACE_TEXT ("%s: applying connection configuration\n"),
                     inherited::mod_->name ()));
-#endif // _DEBUG
       ACE_ASSERT (iterator_2 != inherited::configuration_->connectionConfigurations->end ());
-
-      connection_configuration_p =
+      configuration_p =
           static_cast<typename ConnectorType::CONFIGURATION_T*> ((*iterator_2).second);
-      ACE_ASSERT (connection_configuration_p);
-      if (unlikely (!iconnector_p->initialize (*connection_configuration_p)))
+      ACE_ASSERT (configuration_p);
+
+      switch (connector_.transportLayer ())
       {
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("%s: failed to initialize connector: \"%m\", aborting\n"),
-                    inherited::mod_->name ()));
-        is_error = true;
-        goto reset;
-      } // end IF
-
-      // step3: connect
-      ACE_ASSERT (!connection_);
-      // *TODO*: support single-thread operation (e.g. by scheduling a signal
-      //         and manually running the dispatch loop for a limited period)
-      try {
-        handle_h = iconnector_p->connect (address_);
-      } catch (...) {
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("%s: caught exception in Net_IConnector::connect(%s), aborting\n"),
-                    inherited::mod_->name (),
-                    ACE_TEXT (Net_Common_Tools::IPAddressToString (address_).c_str ())));
-        is_error = true;
-        goto reset;
-      }
-      if (unlikely (handle_h == ACE_INVALID_HANDLE))
-      {
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("%s: failed to connect to %s, aborting\n"),
-                    inherited::mod_->name (),
-                    ACE_TEXT (Net_Common_Tools::IPAddressToString (address_).c_str ())));
-        is_error = true;
-        goto reset;
-      } // end IF
-      if (iconnector_p->useReactor ())
-        connection_ = iconnection_manager_p->get (handle_h);
-      else
-      {
-        enum Net_Connection_Status status = NET_CONNECTION_STATUS_INVALID;
-        ACE_Time_Value timeout (NET_CONNECTION_ASYNCH_DEFAULT_ESTABLISHMENT_TIMEOUT_S,
-                                0);
-        ACE_Time_Value deadline = COMMON_TIME_NOW + timeout;
-
-        // step0a: wait for the connection attempt to complete
-        typename ConnectorType::IASYNCH_CONNECTOR_T* iasynch_connector_p =
-          dynamic_cast<typename ConnectorType::IASYNCH_CONNECTOR_T*> (&connector_);
-        ACE_ASSERT (iasynch_connector_p);
-        result = iasynch_connector_p->wait (handle_h,
-                                            timeout);
-        if (unlikely (result))
+        case NET_TRANSPORTLAYER_TCP:
         {
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-          ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("%s: failed to Net_IConnector::connect(%s): \"%s\" aborting\n"),
-                      inherited::mod_->name (),
-                      ACE_TEXT (Net_Common_Tools::IPAddressToString (address_).c_str ()),
-                      ACE::sock_error (result)));
-#else
-          ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("%s: failed to Net_IConnector::connect(%s): \"%s\" aborting\n"),
-                      inherited::mod_->name (),
-                      ACE_TEXT (Net_Common_Tools::IPAddressToString (address_).c_str ()),
-                      ACE_TEXT (ACE_OS::strerror (result))));
-#endif
-          is_error = true;
-          goto reset;
-        } // end IF
-
-        // step0b: wait for the connection to register with the manager
-        // *TODO*: this may not be accurate/applicable for/to all protocols
-        do
+          Net_TCPSocketConfiguration_t* socket_configuration_p =
+              (Net_TCPSocketConfiguration_t*)&configuration_p->socketConfiguration;
+          ACE_ASSERT (socket_configuration_p);
+          peer_SAP = socket_configuration_p->address;
+          break;
+        }
+        case NET_TRANSPORTLAYER_UDP:
         {
-          // *TODO*: avoid this tight loop
-          connection_ = iconnection_manager_p->get (address_,
-                                                    is_peer_address);
-          if (connection_)
-            break;
-        } while (COMMON_TIME_NOW < deadline);
-        if (unlikely (!connection_))
-        { ACE_ASSERT (COMMON_TIME_NOW >= deadline);
-          ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("%s: failed to connect to %s (timeout: %#T), aborting\n"),
-                      inherited::mod_->name (),
-                      ACE_TEXT (Net_Common_Tools::IPAddressToString (address_).c_str ()),
-                      &timeout));
-          is_error = true;
-          goto reset;
-        } // end IF
-
-        // step0c: wait for the connection to finish initializing
-        // *TODO*: avoid these tight loops
-        do
-        {
-          status = connection_->status ();
-          // *TODO*: break early upon failure too
-          if (status == NET_CONNECTION_STATUS_OK)
-            break;
-        } while (COMMON_TIME_NOW < deadline);
-        if (unlikely (status != NET_CONNECTION_STATUS_OK))
+          Net_UDPSocketConfiguration_t* socket_configuration_p =
+            (Net_UDPSocketConfiguration_t*)&configuration_p->socketConfiguration;
+          ACE_ASSERT (socket_configuration_p);
+          peer_SAP = socket_configuration_p->peerAddress;
+          break;
+        }
+        default:
         {
           ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("%s: failed to connect to %s, aborting\n"),
+                      ACE_TEXT ("%s: invalid/unknown transport layer type (was: %d), aborting\n"),
                       inherited::mod_->name (),
-                      ACE_TEXT (Net_Common_Tools::IPAddressToString (address_).c_str ())));
-          is_error = true;
-          goto reset;
-        } // end IF
+                      connector_.transportLayer ()));
+          goto error;
+        }
+      } // end SWITCH
 
-        // step0d: wait for the connection stream to finish initializing
-        istream_connection_p =
-            dynamic_cast<typename ConnectorType::ISTREAM_CONNECTION_T*> (connection_);
-        if (unlikely (!istream_connection_p))
-        { // *TODO*: handle case where it's not a 'stream' connection !
-          ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("%s: failed to dynamic_cast<Net_IStreamConnection_T>(0x%@), aborting\n"),
-                      inherited::mod_->name (),
-                      connection_));
-          is_error = true;
-          goto reset;
-        } // end IF
-        istream_connection_p->wait (STREAM_STATE_RUNNING,
-                                    NULL); // <-- block
-      } // end ELSE
-      if (unlikely (!connection_))
+      // step2: connect
+      handle_h =
+        Net_Client_Common_Tools::connect<ConnectorType> (connector_,
+                                                         *configuration_p,
+                                                         user_data_s,
+                                                         peer_SAP,
+                                                         true, // wait ?
+                                                         true);
+      if (handle_h == ACE_INVALID_HANDLE)
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: failed to connect to %s, aborting\n"),
                     inherited::mod_->name (),
-                    ACE_TEXT (Net_Common_Tools::IPAddressToString (address_).c_str ())));
-        is_error = true;
-        goto reset;
+                    ACE_TEXT (Net_Common_Tools::IPAddressToString (peer_SAP).c_str ())));
+        goto error;
+      } // end IF
+      connection_ = iconnection_manager_p->get (handle_h);
+      if (!connection_)
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("%s: failed to connect to %s, aborting\n"),
+                    inherited::mod_->name (),
+                    ACE_TEXT (Net_Common_Tools::IPAddressToString (peer_SAP).c_str ())));
+        goto error;
       } // end IF
       isOpen_ = true;
       //ACE_DEBUG ((LM_DEBUG,
@@ -529,20 +445,6 @@ Stream_Module_Net_Target_T<ACE_SYNCH_USE,
       //            ACE_TEXT (Net_Common_Tools::IPAddressToString (address_).c_str ()),
       //            connection_->id ()));
       notify_connect = true;
-
-reset:
-//      inherited::configuration_->streamConfiguration->configuration_.cloneModule =
-//          clone_module;
-//      inherited::configuration_->streamConfiguration->configuration_.deleteModule =
-//          delete_module;
-//      inherited::configuration_->streamConfiguration->configuration_.module =
-//          module_p;
-
-//      if (likely (module_configuration_p))
-//        module_configuration_p->inbound = is_inbound;
-
-      if (unlikely (is_error))
-        goto error;
 
       // *NOTE*: forward the session begin message early; if at all possible, it
       //         should always be the first session message seen by downstream
@@ -590,30 +492,6 @@ link:
       } // end IF
       unlink_ = true;
 
-//      // set up reactor/proactor notification
-//      task_p = inherited::mod_->reader ();
-//      ACE_ASSERT (task_p);
-//      //while (task_p->module () != module_p)
-//      while (ACE_OS::strcmp (task_p->module ()->name (),
-//                             ACE_TEXT ("ACE_Stream_Head")) &&
-//             ACE_OS::strcmp (task_p->module ()->name (),
-//                             ACE_TEXT (STREAM_MODULE_HEAD_NAME)))
-//      {
-//        task_p = task_p->next ();
-//        if (!task_p)
-//          break;
-//        ACE_ASSERT (task_p->module ());
-//      } // end WHILE
-//      if (unlikely (!task_p))
-//      {
-//        ACE_DEBUG ((LM_ERROR,
-//                    ACE_TEXT ("%s: no upstream head module reader task found, aborting\n"),
-//                    inherited::mod_->name ()));
-//        goto error;
-//      } // end IF
-//      ACE_ASSERT (task_p->msg_queue_);
-//      task_p->msg_queue_->notification_strategy (connection_->notification ());
-
       goto continue_;
 
 error:
@@ -651,8 +529,7 @@ error:
 
       if (connection_)
       {
-        connection_->decrease ();
-        connection_ = NULL;
+        connection_->decrease (); connection_ = NULL;
       } // end IF
 
       inherited::notify (STREAM_SESSION_MESSAGE_ABORT);

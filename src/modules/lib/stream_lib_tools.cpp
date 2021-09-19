@@ -636,6 +636,39 @@ Stream_MediaFramework_Tools::isRGB (REFGUID subType_in,
 
   return false;
 }
+
+bool
+Stream_MediaFramework_Tools::isRGB32 (REFGUID subType_in,
+                                      enum Stream_MediaFramework_Type mediaFramework_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_Tools::isRGB32"));
+
+  switch (mediaFramework_in)
+  {
+    case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
+      return (// uncompressed RGB (no alpha)
+              InlineIsEqualGUID (subType_in, MEDIASUBTYPE_RGB32)               ||
+              // uncompressed RGB (alpha)
+              InlineIsEqualGUID (subType_in, MEDIASUBTYPE_ARGB32)              ||
+              // video mixing renderer (VMR-7)
+              InlineIsEqualGUID (subType_in, MEDIASUBTYPE_RGB32_D3D_DX7_RT)    ||
+              InlineIsEqualGUID (subType_in, MEDIASUBTYPE_ARGB32_D3D_DX7_RT)   ||
+              // video mixing renderer (VMR-9)
+              InlineIsEqualGUID (subType_in, MEDIASUBTYPE_RGB32_D3D_DX9_RT)    ||
+              InlineIsEqualGUID (subType_in, MEDIASUBTYPE_ARGB32_D3D_DX9_RT));
+    case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
+      return (InlineIsEqualGUID (subType_in, MFVideoFormat_RGB32) ||
+              InlineIsEqualGUID (subType_in, MFVideoFormat_ARGB32));
+    default:
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("invalid/unknown media framework (was: %d), aborting\n"),
+                  mediaFramework_in));
+      break;
+  } // end SWITCH
+
+  return false;
+}
+
 bool
 Stream_MediaFramework_Tools::isChromaLuminance (REFGUID subType_in,
                                                 enum Stream_MediaFramework_Type mediaFramework_in)
@@ -1070,6 +1103,7 @@ continue_:
   return result;
 }
 
+#if defined (FFMPEG_SUPPORT)
 struct _GUID
 Stream_MediaFramework_Tools::AVPixelFormatToMediaSubType (enum AVPixelFormat pixelFormat_in)
 {
@@ -1377,7 +1411,9 @@ Stream_MediaFramework_Tools::AVPixelFormatToMediaSubType (enum AVPixelFormat pix
 
   return result;
 }
+#endif // FFMPEG_SUPPORT
 #else
+#if defined (SOX_SUPPORT)
 void
 Stream_MediaFramework_Tools::ALSAToSoX (enum _snd_pcm_format format_in,
                                         sox_rate_t rate_in,
@@ -1549,7 +1585,9 @@ Stream_MediaFramework_Tools::ALSAToSoX (enum _snd_pcm_format format_in,
 //      format_out.length = 0;
 //      format_out.mult = NULL;
 }
+#endif // SOX_SUPPORT
 
+#if defined (FFMPEG_SUPPORT)
 unsigned int
 Stream_MediaFramework_Tools::ffmpegFormatToBitDepth (enum AVPixelFormat format_in)
 {
@@ -1880,7 +1918,9 @@ Stream_MediaFramework_Tools::ffmpegFormatToBitDepth (enum AVPixelFormat format_i
 
   return 0;
 }
+#endif // FFMPEG_SUPPORT
 
+#if defined (FFMPEG_SUPPORT)
 __u32
 Stream_MediaFramework_Tools::ffmpegFormatToV4L2Format (enum AVPixelFormat format_in)
 {
@@ -2413,6 +2453,7 @@ Stream_MediaFramework_Tools::v4l2FormatToffmpegFormat (__u32 format_in)
 
   return AV_PIX_FMT_NONE;
 }
+#endif // FFMPEG_SUPPORT
 
 unsigned int
 Stream_MediaFramework_Tools::frameSize (const std::string& deviceIdentifier_in,
@@ -2485,6 +2526,7 @@ error:
 }
 
 #if defined (LIBCAMERA_SUPPORT)
+#if defined (FFMPEG_SUPPORT)
 libcamera::PixelFormat
 Stream_MediaFramework_Tools::ffmpegFormatToLibCameraFormat (enum AVPixelFormat format_in)
 {
@@ -2838,5 +2880,6 @@ Stream_MediaFramework_Tools::libCameraFormatToffmpegFormat (const libcamera::Pix
 
   return AV_PIX_FMT_NONE;
 }
+#endif // FFMPEG_SUPPORT
 #endif // LIBCAMERA_SUPPORT
 #endif // ACE_WIN32 || ACE_WIN64

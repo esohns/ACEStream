@@ -1915,7 +1915,7 @@ do_work (const std::string& deviceIdentifier_in,
 #if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
   else
-    gtk_manager_p->wait ();
+    gtk_manager_p->wait (false);
 #endif // GTK_USE
 #endif // GUI_SUPPORT
 
@@ -2193,7 +2193,7 @@ ACE_TMAIN (int argc_in,
 #if defined (GUI_SUPPORT)
   struct Common_UI_CBData* ui_cb_data_p = NULL;
 #if defined (GTK_USE)
-  Common_UI_GTK_Configuration* gtk_configuration_p = NULL;
+  Common_UI_GTK_Configuration_t* gtk_configuration_p = NULL;
   Common_UI_GtkBuilderDefinition_t gtk_ui_definition;
   bool result_2 = false;
   Common_UI_GTK_Manager_t* gtk_manager_p =
@@ -2219,24 +2219,23 @@ ACE_TMAIN (int argc_in,
       directshow_ui_cb_data.mediaFramework = media_framework_e;
       //directshow_ui_cb_data.progressData.state =
       //  &directshow_ui_cb_data;
-#if defined (GTK_USE)
       ui_cb_data_p = &directshow_ui_cb_data;
-#endif // GTK_USE
       directshow_ui_cb_data.configuration = &directshow_configuration;
-      directshow_ui_cb_data.configuration->GTKConfiguration.argc = argc_in;
-      directshow_ui_cb_data.configuration->GTKConfiguration.argv = argv_in;
-      directshow_ui_cb_data.configuration->GTKConfiguration.CBData = &directshow_ui_cb_data;
-      directshow_ui_cb_data.configuration->GTKConfiguration.eventHooks.finiHook =
+#if defined (GTK_USE)
+      directshow_ui_cb_data.UIState = &state_r;
+      directshow_configuration.GTKConfiguration.argc = argc_in;
+      directshow_configuration.GTKConfiguration.argv = argv_in;
+      directshow_configuration.GTKConfiguration.CBData = &directshow_ui_cb_data;
+      directshow_configuration.GTKConfiguration.eventHooks.finiHook =
         idle_finalize_source_UI_cb;
-      directshow_ui_cb_data.configuration->GTKConfiguration.eventHooks.initHook =
+      directshow_configuration.GTKConfiguration.eventHooks.initHook =
         idle_initialize_source_UI_cb;
-      directshow_ui_cb_data.configuration->GTKConfiguration.definition =
+      directshow_configuration.GTKConfiguration.definition =
         &gtk_ui_definition;
       if (!gtk_rc_filename.empty ())
-        directshow_ui_cb_data.configuration->GTKConfiguration.RCFiles.push_back (gtk_rc_filename);
-
-      gtk_configuration_p = &directshow_ui_cb_data.configuration->GTKConfiguration;
-
+        directshow_configuration.GTKConfiguration.RCFiles.push_back (gtk_rc_filename);
+      gtk_configuration_p = &directshow_configuration.GTKConfiguration;
+#endif // GTK_USE
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
@@ -2246,24 +2245,23 @@ ACE_TMAIN (int argc_in,
       mediafoundation_ui_cb_data.mediaFramework = media_framework_e;
       //mediafoundation_ui_cb_data.progressData.state =
       //  &mediafoundation_ui_cb_data;
-#if defined (GTK_USE)
       ui_cb_data_p = &mediafoundation_ui_cb_data;
-#endif // GTK_USE
       mediafoundation_ui_cb_data.configuration = &mediafoundation_configuration;
-      mediafoundation_ui_cb_data.configuration->GTKConfiguration.argc = argc_in;
-      mediafoundation_ui_cb_data.configuration->GTKConfiguration.argv = argv_in;
-      mediafoundation_ui_cb_data.configuration->GTKConfiguration.CBData = &mediafoundation_ui_cb_data;
-      mediafoundation_ui_cb_data.configuration->GTKConfiguration.eventHooks.finiHook =
+#if defined (GTK_USE)
+      mediafoundation_ui_cb_data.UIState = &state_r;
+      mediafoundation_configuration.GTKConfiguration.argc = argc_in;
+      mediafoundation_configuration.GTKConfiguration.argv = argv_in;
+      mediafoundation_configuration.GTKConfiguration.CBData = &mediafoundation_ui_cb_data;
+      mediafoundation_configuration.GTKConfiguration.eventHooks.finiHook =
         idle_finalize_source_UI_cb;
-      mediafoundation_ui_cb_data.configuration->GTKConfiguration.eventHooks.initHook =
+      mediafoundation_configuration.GTKConfiguration.eventHooks.initHook =
         idle_initialize_source_UI_cb;
-      mediafoundation_ui_cb_data.configuration->GTKConfiguration.definition =
+      mediafoundation_configuration.GTKConfiguration.definition =
         &gtk_ui_definition;
       if (!gtk_rc_filename.empty ())
-        mediafoundation_ui_cb_data.configuration->GTKConfiguration.RCFiles.push_back (gtk_rc_filename);
-
-      gtk_configuration_p = &mediafoundation_ui_cb_data.configuration->GTKConfiguration;
-
+        mediafoundation_configuration.GTKConfiguration.RCFiles.push_back (gtk_rc_filename);
+      gtk_configuration_p = &mediafoundation_configuration.GTKConfiguration;
+#endif // GTK_USE
       break;
     }
     default:
@@ -2286,26 +2284,22 @@ ACE_TMAIN (int argc_in,
 #else
   struct Test_I_Source_V4L_UI_CBData ui_cb_data;
   struct Test_I_Source_V4L_Configuration V4L_configuration;
-#if defined (GUI_SUPPORT)
-#if defined (GTK_USE)
   ui_cb_data.configuration = &V4L_configuration;
-  ui_cb_data.configuration->GTKConfiguration.argc = argc_in;
-  ui_cb_data.configuration->GTKConfiguration.argv = argv_in;
-  ui_cb_data.configuration->GTKConfiguration.CBData = &ui_cb_data;
-  ui_cb_data.configuration->GTKConfiguration.eventHooks.finiHook =
+#if defined (GTK_USE)
+  ui_cb_data.UIState = &state_r;
+  V4L_configuration.GTKConfiguration.argc = argc_in;
+  V4L_configuration.GTKConfiguration.argv = argv_in;
+  V4L_configuration.GTKConfiguration.CBData = &ui_cb_data;
+  V4L_configuration.GTKConfiguration.eventHooks.finiHook =
       idle_finalize_source_UI_cb;
-  ui_cb_data.configuration->GTKConfiguration.eventHooks.initHook =
+  V4L_configuration.GTKConfiguration.eventHooks.initHook =
       idle_initialize_source_UI_cb;
-  ui_cb_data.configuration->GTKConfiguration.definition = &gtk_ui_definition;
+  V4L_configuration.GTKConfiguration.definition = &gtk_ui_definition;
   if (!gtk_rc_filename.empty ())
-    ui_cb_data.configuration->GTKConfiguration.RCFiles.push_back (gtk_rc_filename);
-
-  gtk_configuration_p = &ui_cb_data.configuration->GTKConfiguration;
+    V4L_configuration.GTKConfiguration.RCFiles.push_back (gtk_rc_filename);
+  gtk_configuration_p = &V4L_configuration.GTKConfiguration;
 #endif // GTK_USE
-#endif // GUI_SUPPORT
-#if defined (GUI_SUPPORT)
   ui_cb_data_p = &ui_cb_data;
-#endif // GUI_SUPPORT
 #endif // ACE_WIN32 || ACE_WIN64
   ACE_ASSERT (ui_cb_data_p);
 #endif // GUI_SUPPORT

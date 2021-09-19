@@ -2335,7 +2335,7 @@ clean:
   if (!UIDefinitionFilename_in.empty ())
   {
 #if defined (GTK_USE)
-    gtk_manager_p->wait ();
+    gtk_manager_p->wait (false);
 #endif // GTK_USE
 #endif // GUI_SUPPORT
 //    connection_manager_p->abort ();
@@ -2630,7 +2630,9 @@ ACE_TMAIN (int argc_in,
   struct Test_I_Target_MediaFoundation_UI_CBData mediafoundation_ui_cb_data;
   struct Test_I_Target_DirectShow_Configuration directshow_configuration;
   struct Test_I_Target_MediaFoundation_Configuration mediafoundation_configuration;
+#if defined (GTK_USE)
   Common_UI_GtkBuilderDefinition_t gtk_ui_definition;
+#endif // GTK_USE
   switch (media_framework_e)
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
@@ -2638,6 +2640,8 @@ ACE_TMAIN (int argc_in,
       //directshow_ui_cb_data.progressData.state = &directshow_ui_cb_data;
       ui_cb_data_p = &directshow_ui_cb_data;
       directshow_ui_cb_data.configuration = &directshow_configuration;
+#if defined (GTK_USE)
+      directshow_ui_cb_data.UIState = &state_r;
       directshow_configuration.GTKConfiguration.argc = argc_in;
       directshow_configuration.GTKConfiguration.argv = argv_in;
       directshow_configuration.GTKConfiguration.CBData = ui_cb_data_p;
@@ -2647,6 +2651,7 @@ ACE_TMAIN (int argc_in,
         idle_initialize_target_UI_cb;
       directshow_configuration.GTKConfiguration.definition = &gtk_ui_definition;
       directshow_configuration.GTKConfiguration.RCFiles.push_back (gtk_rc_file);
+#endif // GTK_USE
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
@@ -2655,6 +2660,8 @@ ACE_TMAIN (int argc_in,
       //  &mediafoundation_ui_cb_data;
       ui_cb_data_p = &mediafoundation_ui_cb_data;
       mediafoundation_ui_cb_data.configuration = &mediafoundation_configuration;
+#if defined (GTK_USE)
+      mediafoundation_ui_cb_data.UIState = &state_r;
       mediafoundation_configuration.GTKConfiguration.argc = argc_in;
       mediafoundation_configuration.GTKConfiguration.argv = argv_in;
       mediafoundation_configuration.GTKConfiguration.CBData = ui_cb_data_p;
@@ -2664,6 +2671,7 @@ ACE_TMAIN (int argc_in,
         idle_initialize_target_UI_cb;
       mediafoundation_configuration.GTKConfiguration.definition = &gtk_ui_definition;
       mediafoundation_configuration.GTKConfiguration.RCFiles.push_back (gtk_rc_file);
+#endif // GTK_USE
       break;
     }
     default:
@@ -2687,6 +2695,7 @@ ACE_TMAIN (int argc_in,
   ui_cb_data.configuration = &configuration;
   ui_cb_data_p = &ui_cb_data;
 #if defined (GTK_USE)
+  ui_cb_data.UIState = &state_r;
   Common_UI_GtkBuilderDefinition_t gtk_ui_definition;
   ui_cb_data.configuration->GTKConfiguration.argc = argc_in;
   ui_cb_data.configuration->GTKConfiguration.argv = argv_in;

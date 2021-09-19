@@ -41,16 +41,13 @@
 #include "stream_lib_libcamera_common.h"
 #endif // LIBCAMERA_SUPPORT
 #endif // ACE_WIN32 || ACE_WIN64
+#if defined (FFMPEG_SUPPORT)
 #include "stream_lib_ffmpeg_common.h"
+#endif // FFMPEG_SUPPORT
 
 #include "stream_lib_tools.h"
 
-template <typename MediaType
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-         >
-#else
-          ,typename SessionDataType>
-#endif // ACE_WIN32 || ACE_WIN64
+template <typename MediaType>
 class Stream_MediaFramework_MediaTypeConverter_T
 {
  public:
@@ -58,54 +55,73 @@ class Stream_MediaFramework_MediaTypeConverter_T
   inline virtual ~Stream_MediaFramework_MediaTypeConverter_T () {}
 
  protected:
-  // ffmpeg
+#if defined (FFMPEG_SUPPORT)
+   // ffmpeg
   inline void getMediaType (const struct Stream_MediaFramework_FFMPEG_VideoMediaType& mediaType_in, struct Stream_MediaFramework_FFMPEG_VideoMediaType& mediaType_inout) { mediaType_inout = mediaType_in; }
 
   // helper methods
   inline void setFormat (enum AVPixelFormat format_in, struct Stream_MediaFramework_FFMPEG_VideoMediaType& mediaType_inout) { mediaType_inout.format = format_in; }
   inline void setResolution (const Common_Image_Resolution_t& resolution_in, struct Stream_MediaFramework_FFMPEG_VideoMediaType& mediaType_inout) { mediaType_inout.resolution = resolution_in; }
+#endif // FFMPEG_SUPPORT
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   // *IMPORTANT NOTE*: struct _AMMediaType return values need to be Stream_Module_Device_DirectShow_Tools::free'd !
   inline void getMediaType (const struct _AMMediaType& mediaType_in, struct _AMMediaType& mediaType_out) { struct _AMMediaType* media_type_p = Stream_MediaFramework_DirectShow_Tools::copy (mediaType_in); ACE_ASSERT (media_type_p); mediaType_out = *media_type_p; CoTaskMemFree (media_type_p); }
   void getMediaType (const struct _AMMediaType&, IMFMediaType*&);
+#if defined (FFMPEG_SUPPORT)
   void getMediaType (const struct _AMMediaType&, struct Stream_MediaFramework_FFMPEG_VideoMediaType&);
+#endif // FFMPEG_SUPPORT
 
   void getMediaType (const IMFMediaType*, IMFMediaType*&);
   void getMediaType (const IMFMediaType*, struct _AMMediaType&);
+#if defined (FFMPEG_SUPPORT)
   void getMediaType (const IMFMediaType*, struct Stream_MediaFramework_FFMPEG_VideoMediaType&);
 
   void getMediaType (const struct Stream_MediaFramework_FFMPEG_VideoMediaType&, struct _AMMediaType&);
 //  void getMediaType (const struct Stream_MediaFramework_FFMPEG_VideoMediaType&, IMFMediaType*&);
+#endif // FFMPEG_SUPPORT
 
+  inline void setFormat (REFGUID format_in, struct _AMMediaType& mediaType_inout) { Stream_MediaFramework_DirectShow_Tools::setFormat (format_in, mediaType_inout); }
+  inline void setResolution (const Common_Image_Resolution_t resolution_in, struct _AMMediaType& mediaType_inout) { Stream_MediaFramework_DirectShow_Tools::setResolution (resolution_in, mediaType_inout); }
+
+#if defined (FFMPEG_SUPPORT)
   // ffmpeg
   inline void setFormat (enum AVPixelFormat format_in, struct _AMMediaType& mediaType_inout) { Stream_MediaFramework_DirectShow_Tools::setFormat (Stream_MediaFramework_Tools::AVPixelFormatToMediaSubType (format_in), mediaType_inout); }
-
-  inline void setResolution (const Common_Image_Resolution_t resolution_in, struct _AMMediaType& mediaType_inout) { Stream_MediaFramework_DirectShow_Tools::setResolution (resolution_in, mediaType_inout); }
+#endif // FFMPEG_SUPPORT
 #else
   // ALSA
   inline void getMediaType (const struct Stream_MediaFramework_ALSA_MediaType& mediaType_in, struct Stream_MediaFramework_ALSA_MediaType& mediaType_out) { mediaType_out = mediaType_in; }
   inline void getMediaType (const struct Stream_MediaFramework_ALSA_MediaType&, struct Stream_MediaFramework_FFMPEG_VideoMediaType&) { ACE_ASSERT (false); ACE_NOTSUP; ACE_NOTREACHED (return;) }
 
+#if defined (FFMPEG_SUPPORT)
   // ffmpeg
   void getMediaType (const struct Stream_MediaFramework_FFMPEG_VideoMediaType&, struct Stream_MediaFramework_V4L_MediaType&);
+#endif // FFMPEG_SUPPORT
 
   // V4L
+#if defined (FFMPEG_SUPPORT)
   inline void setFormat (enum AVPixelFormat format_in, struct Stream_MediaFramework_V4L_MediaType& mediaType_inout) { mediaType_inout.format.pixelformat = Stream_MediaFramework_Tools::ffmpegFormatToV4L2Format (format_in); }
+#endif // FFMPEG_SUPPORT
   inline void setResolution (const Common_Image_Resolution_t& resolution_in, struct Stream_MediaFramework_V4L_MediaType& mediaType_inout) { mediaType_inout.format.width = resolution_in.width; mediaType_inout.format.height = resolution_in.height; }
 
   inline void getMediaType (const struct Stream_MediaFramework_V4L_MediaType& mediaType_in, struct Stream_MediaFramework_V4L_MediaType& mediaType_out) { mediaType_out = mediaType_in; }
+#if defined (FFMPEG_SUPPORT)
   void getMediaType (const struct Stream_MediaFramework_V4L_MediaType&, struct Stream_MediaFramework_FFMPEG_VideoMediaType&);
+#endif // FFMPEG_SUPPORT
 
 #if defined (LIBCAMERA_SUPPORT)
   // libCamera
+#if defined (FFMPEG_SUPPORT)
   inline void setFormat (enum AVPixelFormat format_in, struct Stream_MediaFramework_LibCamera_MediaType& mediaType_inout) { mediaType_inout.format = Stream_MediaFramework_Tools::ffmpegFormatToLibCameraFormat (format_in); }
+#endif // FFMPEG_SUPPORT
   inline void setResolution (const Common_Image_Resolution_t& resolution_in, struct Stream_MediaFramework_LibCamera_MediaType& mediaType_inout) { mediaType_inout.resolution.width = resolution_in.width; mediaType_inout.resolution.height = resolution_in.height; }
 
   inline void getMediaType (const struct Stream_MediaFramework_LibCamera_MediaType& mediaType_in, struct Stream_MediaFramework_LibCamera_MediaType& mediaType_out) { mediaType_out = mediaType_in; }
+#if defined (FFMPEG_SUPPORT)
   void getMediaType (const struct Stream_MediaFramework_LibCamera_MediaType&, struct Stream_MediaFramework_FFMPEG_VideoMediaType&);
 
   void getMediaType (const struct Stream_MediaFramework_FFMPEG_VideoMediaType&, struct Stream_MediaFramework_LibCamera_MediaType&);
+#endif // FFMPEG_SUPPORT
 #endif // LIBCAMERA_SUPPORT
 #endif // ACE_WIN32 || ACE_WIN64
 

@@ -2399,7 +2399,9 @@ idle_initialize_UI_cb (gpointer userData_in)
   struct Stream_CamSave_DirectShow_UI_CBData* directshow_cb_data_p = NULL;
   Stream_CamSave_DirectShow_StreamConfiguration_t::ITERATOR_T directshow_stream_iterator;
   Stream_CamSave_DirectShow_StreamConfiguration_t::ITERATOR_T directshow_stream_iterator_2; // renderer
+#if defined (FFMPEG_SUPPORT)
   Stream_CamSave_DirectShow_StreamConfiguration_t::ITERATOR_T directshow_stream_iterator_3; // resize
+#endif // FFMPEG_SUPPORT
   struct Stream_CamSave_MediaFoundation_UI_CBData* mediafoundation_cb_data_p =
     NULL;
   Stream_CamSave_MediaFoundation_StreamConfiguration_t::ITERATOR_T mediafoundation_stream_iterator;
@@ -2417,9 +2419,11 @@ idle_initialize_UI_cb (gpointer userData_in)
       directshow_stream_iterator_2 =
         directshow_cb_data_p->configuration->streamConfiguration.find (Stream_Visualization_Tools::rendererToModuleName (STREAM_VISUALIZATION_VIDEORENDERER_GTK_PIXBUF));
       ACE_ASSERT (directshow_stream_iterator_2 != directshow_cb_data_p->configuration->streamConfiguration.end ());
+#if defined (FFMPEG_SUPPORT)
       directshow_stream_iterator_3 =
         directshow_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_LIBAV_RESIZE_DEFAULT_NAME_STRING));
       ACE_ASSERT (directshow_stream_iterator_3 != directshow_cb_data_p->configuration->streamConfiguration.end ());
+#endif // FFMPEG_SUPPORT
 
       format_s =
         directshow_cb_data_p->configuration->streamConfiguration.configuration_->format.subtype;
@@ -6449,7 +6453,9 @@ drawing_area_resize_end (gpointer userData_in)
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   struct Stream_CamSave_DirectShow_UI_CBData* directshow_cb_data_p = NULL;
   Stream_CamSave_DirectShow_StreamConfiguration_t::ITERATOR_T directshow_stream_iterator;
-  Stream_CamSave_DirectShow_StreamConfiguration_t::ITERATOR_T iterator_4;
+#if defined (FFMPEG_SUPPORT)
+  Stream_CamSave_DirectShow_StreamConfiguration_t::ITERATOR_T iterator_4; // resize
+#endif // FFMPEG_SUPPORT
   struct Stream_CamSave_MediaFoundation_UI_CBData* mediafoundation_cb_data_p =
     NULL;
   Stream_CamSave_MediaFoundation_StreamConfiguration_t::ITERATOR_T mediafoundation_stream_iterator;
@@ -6468,11 +6474,13 @@ drawing_area_resize_end (gpointer userData_in)
       directshow_stream_iterator =
         directshow_cb_data_p->configuration->streamConfiguration.find (Stream_Visualization_Tools::rendererToModuleName (STREAM_VISUALIZATION_VIDEORENDERER_GTK_PIXBUF));
       ACE_ASSERT (directshow_stream_iterator != directshow_cb_data_p->configuration->streamConfiguration.end ());
+#if defined (FFMPEG_SUPPORT)
       iterator_4 =
         directshow_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_LIBAV_RESIZE_DEFAULT_NAME_STRING));
       ACE_ASSERT (iterator_4 != directshow_cb_data_p->configuration->streamConfiguration.end ());
       Stream_MediaFramework_DirectShow_Tools::setResolution (resolution_s,
                                                              (*iterator_4).second.second.outputFormat);
+#endif // FFMPEG_SUPPORT
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:

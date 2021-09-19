@@ -1,8 +1,13 @@
+include (ffmpeg)
+
 if (UNIX)
  pkg_check_modules (PKG_ALSA REQUIRED alsa)
- pkg_check_modules (PKG_FFMPEG REQUIRED libavutil)
-# pkg_check_modules (PKG_LIBCAMERA REQUIRED libcamera)
- pkg_check_modules (PKG_SOX REQUIRED sox)
+ if (SOX_SUPPORT)
+  pkg_check_modules (PKG_SOX REQUIRED sox)
+ endif (SOX_SUPPORT)
+ if (LIBCAMERA_SUPPORT)
+  pkg_check_modules (PKG_LIBCAMERA REQUIRED libcamera)
+ endif (LIBCAMERA_SUPPORT)
 endif (UNIX)
 
 if (WIN32)
@@ -20,20 +25,23 @@ endif (WIN32)
 
 add_library (${PROJECT_NAME}_MediaFramework STATIC "")
 
+if (FFMPEG_SUPPORT)
+ target_include_directories (${PROJECT_NAME}_MediaFramework PUBLIC
+                             $<BUILD_INTERFACE:${ffmpeg_INCLUDE_DIRS}>)
+endif (FFMPEG_SUPPORT)
 if (UNIX)
  target_include_directories (${PROJECT_NAME}_MediaFramework PUBLIC
-                             $<BUILD_INTERFACE:${PKG_FFMPEG_INCLUDE_DIRS}>)
-
- target_include_directories (${PROJECT_NAME}_MediaFramework PUBLIC
                              $<BUILD_INTERFACE:${PKG_ALSA_INCLUDE_DIRS}>)
+ if (SOX_SUPPORT)
+  target_include_directories (${PROJECT_NAME}_MediaFramework PUBLIC
+                              $<BUILD_INTERFACE:${PKG_SOX_INCLUDE_DIRS}>)
+ endif (SOX_SUPPORT)
  if (LIBCAMERA_SUPPORT)
 # target_include_directories (${PROJECT_NAME}_MediaFramework PUBLIC
 #                             $<BUILD_INTERFACE:${PKG_LIBCAMERA_INCLUDE_DIRS}>)
   target_include_directories (${PROJECT_NAME}_MediaFramework PUBLIC
                               $<BUILD_INTERFACE:/usr/local/include/libcamera>)
  endif (LIBCAMERA_SUPPORT)
- target_include_directories (${PROJECT_NAME}_MediaFramework PUBLIC
-                             $<BUILD_INTERFACE:${PKG_SOX_INCLUDE_DIRS}>)
 
  target_include_directories (${PROJECT_NAME}_MediaFramework PUBLIC
                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../modules/Common/src>)
@@ -70,9 +78,6 @@ elseif (WIN32)
                              $<BUILD_INTERFACE:${DIRECTSHOW_BASECLASSES_DIRECTORY}/baseclasses>)
 
  target_include_directories (${PROJECT_NAME}_MediaFramework PUBLIC
-                             $<BUILD_INTERFACE:$ENV{LIB_ROOT}/ffmpeg/include>)
-
- target_include_directories (${PROJECT_NAME}_MediaFramework PUBLIC
                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../3rd_party/msvc>)
 
  target_include_directories (${PROJECT_NAME}_MediaFramework PUBLIC
@@ -83,12 +88,6 @@ elseif (WIN32)
                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../Common/src/image>)
  target_include_directories (${PROJECT_NAME}_MediaFramework PUBLIC
                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../Common/src/log>)
-# target_include_directories (${PROJECT_NAME}_MediaFramework PUBLIC
-#                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../Common/src/math>)
-# target_include_directories (${PROJECT_NAME}_MediaFramework PUBLIC
-#                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../Common/src/parser>)
-# target_include_directories (${PROJECT_NAME}_MediaFramework PUBLIC
-#                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../Common/src/signal>)
  target_include_directories (${PROJECT_NAME}_MediaFramework PUBLIC
                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../Common/src/task>)
  target_include_directories (${PROJECT_NAME}_MediaFramework PUBLIC
@@ -102,14 +101,11 @@ target_include_directories (${PROJECT_NAME}_MediaFramework PUBLIC
                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../include>)
 target_include_directories (${PROJECT_NAME}_MediaFramework PUBLIC
                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../..>)
-#target_include_directories (${PROJECT_NAME}_MediaFramework PUBLIC
-#                            $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>)
 
 ############## next target ################
 set (source_files
      stream_lib_common.h
      stream_lib_defines.h
-     stream_lib_ffmpeg_common.h
      stream_lib_mediatype_converter.cpp
      stream_lib_mediatype_converter.h
      stream_lib_mediatype_converter.inl
@@ -118,6 +114,11 @@ set (source_files
      stream_lib_tagger.inl
      stream_lib_tools.cpp
      stream_lib_tools.h)
+if (FFMPEG_SUPPORT)
+ set (source_files
+      ${source_files}
+      stream_lib_ffmpeg_common.h)
+endif (FFMPEG_SUPPORT)
 if (UNIX)
  set (source_files
       ${source_files}
@@ -209,7 +210,7 @@ add_dependencies (${PROJECT_NAME}_MediaFramework ${PROJECT_NAME})
 if (UNIX)
  target_link_libraries (${PROJECT_NAME}_MediaFramework X11)
 
- target_link_libraries (${PROJECT_NAME}_MediaFramework ${PROJECT_NAME}_Device)
+# target_link_libraries (${PROJECT_NAME}_MediaFramework ${PROJECT_NAME}_Device)
 elseif (WIN32)
  if (DEFINED ENV{DXSDK_DIR})
   target_link_libraries (${PROJECT_NAME}_MediaFramework $ENV{DXSDK_DIR}/Lib/x86/D3dx9.lib)
@@ -243,12 +244,16 @@ unset (source_files)
 set (source_files
      stream_lib_common.h
      stream_lib_defines.h
-     stream_lib_ffmpeg_common.h
      stream_lib_mediatype_converter.h
      stream_lib_mediatype_converter.inl
      stream_lib_tagger.h
      stream_lib_tagger.inl
      stream_lib_tools.h)
+if (FFMPEG_SUPPORT)
+ set (source_files
+      ${source_files}
+      stream_lib_ffmpeg_common.h)
+endif (FFMPEG_SUPPORT)
 if (UNIX)
  set (source_files
       ${source_files}

@@ -25,7 +25,6 @@
 
 #include "stream_task_base_synch.h"
 
-#include "stream_lib_ffmpeg_common.h"
 #include "stream_lib_mediatype_converter.h"
 
 // forward declaration(s)
@@ -55,12 +54,7 @@ class Stream_Decoder_ImageMagick_Decoder_T
                                  enum Stream_ControlType,
                                  enum Stream_SessionMessageType,
                                  struct Stream_UserData>
- , public Stream_MediaFramework_MediaTypeConverter_T<MediaType
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-                                                    >
-#else
-                                                     ,typename SessionMessageType::DATA_T::DATA_T>
-#endif // ACE_WIN32 || ACE_WIN64
+ , public Stream_MediaFramework_MediaTypeConverter_T<MediaType>
 {
   typedef Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
                                  TimePolicyType,
@@ -71,12 +65,7 @@ class Stream_Decoder_ImageMagick_Decoder_T
                                  enum Stream_ControlType,
                                  enum Stream_SessionMessageType,
                                  struct Stream_UserData> inherited;
-  typedef Stream_MediaFramework_MediaTypeConverter_T<MediaType
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-                                                    > inherited2;
-#else
-                                                     ,typename SessionMessageType::DATA_T::DATA_T> inherited2;
-#endif // ACE_WIN32 || ACE_WIN64
+  typedef Stream_MediaFramework_MediaTypeConverter_T<MediaType> inherited2;
 
  public:
   // *TODO*: on MSVC 2015u3 the accurate declaration does not compile
@@ -98,8 +87,8 @@ class Stream_Decoder_ImageMagick_Decoder_T
                                      bool&);               // return value: pass message downstream ?
 
  protected:
-  struct _MagickWand*                           context_;
-  struct Stream_MediaFramework_FFMPEG_VideoMediaType outputFormat_;
+  struct _MagickWand* context_;
+  MediaType           outputFormat_;
 
  private:
   // convenient types

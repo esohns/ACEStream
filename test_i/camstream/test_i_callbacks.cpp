@@ -4391,8 +4391,6 @@ idle_update_log_display_cb (gpointer userData_in)
   Common_UI_GTK_State_t& state_r =
     const_cast<Common_UI_GTK_State_t&> (gtk_manager_p->getR ());
 
-  ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, state_r.logStackLock, G_SOURCE_REMOVE);
-
   Common_UI_GTK_BuildersConstIterator_t iterator =
     state_r.builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN));
   // sanity check(s)
@@ -4410,35 +4408,31 @@ idle_update_log_display_cb (gpointer userData_in)
                                 &text_iterator);
 
   gchar* string_p = NULL;
-  // sanity check
-  if (state_r.logStack.empty ())
-    return G_SOURCE_CONTINUE;
-
-  // step1: convert text
-  while (!state_r.logStack.empty ())
-  {
-    string_p = Common_UI_GTK_Tools::localeToUTF8 (state_r.logStack.front ());
-    if (!string_p)
+  { ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, state_r.logStackLock, G_SOURCE_REMOVE);
+    while (!state_r.logStack.empty ())
     {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to Common_UI_GTK_Tools::localeToUTF8(\"%s\"), aborting\n"),
-                  ACE_TEXT (state_r.logStack.front ().c_str ())));
-      return G_SOURCE_REMOVE;
-    } // end IF
+      // step1: convert text
+      string_p = Common_UI_GTK_Tools::localeToUTF8 (state_r.logStack.front ());
+      if (!string_p)
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("failed to Common_UI_GTK_Tools::localeToUTF8(\"%s\"), aborting\n"),
+                    ACE_TEXT (state_r.logStack.front ().c_str ())));
+        return G_SOURCE_REMOVE;
+      } // end IF
 
-    // step2: display text
-    gtk_text_buffer_insert (buffer_p,
-                            &text_iterator,
-                            string_p,
-                            -1);
+      // step2: display text
+      gtk_text_buffer_insert (buffer_p,
+                              &text_iterator,
+                              string_p,
+                              -1);
 
-    // clean up
-    g_free (string_p); string_p = NULL;
+      // clean up
+      g_free (string_p); string_p = NULL;
 
-    state_r.logStack.pop_front ();
-  } // end WHILE
-
-  state_r.logStack.clear ();
+      state_r.logStack.pop_front ();
+    } // end WHILE
+  } // end lock scope
 
   // step3: scroll the view accordingly
 //  // move the iterator to the beginning of line, so it doesn't scroll
@@ -6501,25 +6495,23 @@ button_quit_clicked_cb (GtkWidget* widget_in,
   int result = -1;
 
   ACE_UNUSED_ARG (widget_in);
-  ACE_UNUSED_ARG (userData_in);
-  //struct Test_I_GTK_CBData* ui_cb_data_p =
-  //  static_cast<struct Test_I_GTK_CBData*> (userData_in);
-  //// sanity check(s)
-  //ACE_ASSERT (ui_cb_data_p);
+  // sanity check(s)
+  struct Test_I_GTK_CBData* ui_cb_data_p =
+    static_cast<struct Test_I_GTK_CBData*> (userData_in);
+  ACE_ASSERT (ui_cb_data_p);
+  ACE_ASSERT (ui_cb_data_p->UIState);
 
-  //// step1: remove event sources
-  //{
-  //  ACE_Guard<ACE_Thread_Mutex> aGuard (ui_cb_data_p->UIState.lock);
-
-  //  for (Common_UI_GTKeventSourceIdsIterator_t iterator = ui_cb_data_p->UIState.eventSourceIds.begin ();
-  //       iterator != ui_cb_data_p->UIState.eventSourceIds.end ();
-  //       iterator++)
-  //    if (!g_source_remove (*iterator))
-  //      ACE_DEBUG ((LM_ERROR,
-  //                  ACE_TEXT ("failed to g_source_remove(%u), continuing\n"),
-  //                  *iterator));
-  //  ui_cb_data_p->UIState.eventSourceIds.clear ();
-  //} // end lock scope
+  // step1: remove event sources
+  { ACE_Guard<ACE_Thread_Mutex> aGuard (ui_cb_data_p->UIState->lock);
+    for (Common_UI_GTK_EventSourceIdsIterator_t iterator = ui_cb_data_p->UIState->eventSourceIds.begin ();
+         iterator != ui_cb_data_p->UIState->eventSourceIds.end ();
+         iterator++)
+      if (!g_source_remove (*iterator))
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("failed to g_source_remove(%u), continuing\n"),
+                    *iterator));
+    ui_cb_data_p->UIState->eventSourceIds.clear ();
+  } // end lock scope
 
   // step2: initiate shutdown sequence
 #if defined (ACE_WIN32) || defined (ACE_WIN64)

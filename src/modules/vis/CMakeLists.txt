@@ -1,8 +1,6 @@
-option (FFMPEG_SUPPORT "support ffmpeg" ON)
-if (FFMPEG_SUPPORT)
- add_definitions (-DFFMPEG_SUPPORT)
-endif (FFMPEG_SUPPORT)
+include (OpenGL)
 
+include (ffmpeg)
 include (ImageMagick)
 
 set (OPENCV_DEFAULT OFF)
@@ -22,14 +20,6 @@ if (GTK_SUPPORT) # *NOTE*: _SUPPORT, not _USE !
 endif (GTK_SUPPORT)
 
 if (UNIX)
-# pkg_check_modules (PKG_SOX REQUIRED sox)
- if (FFMPEG_SUPPORT)
-  pkg_check_modules (PKG_FFMPEG REQUIRED libswscale libavcodec libavutil)
- endif (FFMPEG_SUPPORT)
- if (OPENCV_SUPPORT)
-  pkg_check_modules (PKG_OPENCV REQUIRED opencv)
- endif (OPENCV_SUPPORT)
-
  if (OPENGL_SUPPORT)
 #  pkg_check_modules (PKG_OPENGL_GLUT REQUIRED glut) # Fedora
 # *NOTE*: (on Ubuntu,) freeglut3 does not come with pkg-config support
@@ -55,10 +45,11 @@ if (UNIX)
  endif (NOT WAYLAND_LIBRARY)
  set (PKG_WAYLAND_INCLUDE_DIRS "/usr/include")
  set (PKG_WAYLAND_LIBRARIES ${WAYLAND_LIBRARY})
+
+ if (OPENCV_SUPPORT)
+  pkg_check_modules (PKG_OPENCV REQUIRED opencv)
+ endif (OPENCV_SUPPORT)
 endif (UNIX)
-if (IMAGEMAGICK_SUPPORT)
- find_package (ImageMagick COMPONENTS MagickCore MagickWand)
-endif (IMAGEMAGICK_SUPPORT)
 
 if (UNIX)
 elseif (WIN32)
@@ -88,17 +79,16 @@ if (GTK_SUPPORT)
 endif (GTK_SUPPORT)
 
 if (UNIX)
- if (FFMPEG_SUPPORT)
-  target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
-                              $<BUILD_INTERFACE:${PKG_FFMPEG_INCLUDE_DIRS}>)
- endif (FFMPEG_SUPPORT)
  if (OPENGL_SUPPORT)
   target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
                               $<BUILD_INTERFACE:${PKG_OPENGL_GLUT_INCLUDE_DIRS}>)
  endif (OPENGL_SUPPORT)
-
  target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
                              $<BUILD_INTERFACE:${PKG_WAYLAND_INCLUDE_DIRS}>)
+ if (FFMPEG_SUPPORT)
+  target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
+                              $<BUILD_INTERFACE:${ffmpeg_INCLUDE_DIRS}>)
+ endif (FFMPEG_SUPPORT)
  if (IMAGEMAGICK_SUPPORT)
   target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
                               "$<BUILD_INTERFACE:${ImageMagick_INCLUDE_DIRS}>")
@@ -144,11 +134,21 @@ elseif (WIN32)
  target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
                              $<BUILD_INTERFACE:${DIRECTSHOW_BASECLASSES_DIRECTORY}/baseclasses>)
 
+ if (OPENGL_SUPPORT)
+  target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
+                              $<BUILD_INTERFACE:$ENV{LIB_ROOT}/glm>)
+  target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
+                              $<BUILD_INTERFACE:$ENV{LIB_ROOT}/freeglut/include>)
+ endif (OPENGL_SUPPORT)
+
+ if (FFMPEG_SUPPORT)
+  target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
+                              $<BUILD_INTERFACE:${ffmpeg_INCLUDE_DIRS}>)
+ endif (FFMPEG_SUPPORT)
  if (IMAGEMAGICK_SUPPORT)
   target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
-                              $<BUILD_INTERFACE:$ENV{LIB_ROOT}/ImageMagick/include>)
+                              $<BUILD_INTERFACE:${ImageMagick_INCLUDE_DIRS}>)
  endif (IMAGEMAGICK_SUPPORT)
-
  if (OPENCV_SUPPORT)
   target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
                               $<BUILD_INTERFACE:$ENV{LIB_ROOT}/opencv/include>)
@@ -167,17 +167,6 @@ elseif (WIN32)
   target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
                               $<BUILD_INTERFACE:$ENV{LIB_ROOT}/opencv/${BUILD_PATH_SUFFIX}>)
  endif (OPENCV_SUPPORT)
-
-# libavformat
- target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
-                             $<BUILD_INTERFACE:$ENV{LIB_ROOT}/ffmpeg/include>)
-
- if (OPENGL_SUPPORT)
-  target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
-                              $<BUILD_INTERFACE:$ENV{LIB_ROOT}/glm>)
-  target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
-                              $<BUILD_INTERFACE:$ENV{LIB_ROOT}/freeglut/include>)
- endif (OPENGL_SUPPORT)
 
  target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../Common/src>)
@@ -223,6 +212,13 @@ set (source_files
      stream_vis_iresize.h
      stream_vis_tools.cpp
      stream_vis_tools.h)
+if (OPENGL_SUPPORT)
+ set (source_files
+      ${source_files}
+      stream_vis_opengl_glut.cpp
+      stream_vis_opengl_glut.h
+      stream_vis_opengl_glut.inl)
+endif (OPENGL_SUPPORT)
 if (GTK_SUPPORT)
  set (source_files
       ${source_files}
@@ -264,14 +260,6 @@ if (OPENCV_SUPPORT)
       stream_vis_opencv_classifier.h
       stream_vis_opencv_classifier.inl)
 endif (OPENCV_SUPPORT)
-if (OPENGL_SUPPORT)
- set (source_files
-      ${source_files}
-      stream_vis_opengl_glut.cpp
-      stream_vis_opengl_glut.h
-      stream_vis_opengl_glut.inl)
-endif (OPENGL_SUPPORT)
-
 if (UNIX)
  set (source_files
       ${source_files}
@@ -330,13 +318,13 @@ add_dependencies (${PROJECT_NAME}_Visualization CommonMath)
 add_dependencies (${PROJECT_NAME}_Visualization ${PROJECT_NAME})
 
 if (UNIX)
- if (FFMPEG_SUPPORT)
-  target_link_libraries (${PROJECT_NAME}_Visualization ${PKG_FFMPEG_LIBRARIES})
- endif (FFMPEG_SUPPORT)
  if (OPENGL_SUPPORT)
   target_link_libraries (${PROJECT_NAME}_Visualization ${GLUT_LIBRARY})
  endif (OPENGL_SUPPORT)
  target_link_libraries (${PROJECT_NAME}_Visualization ${PKG_WAYLAND_LIBRARIES})
+ if (FFMPEG_SUPPORT)
+  target_link_libraries (${PROJECT_NAME}_Visualization ${ffmpeg_LIBRARIES})
+ endif (FFMPEG_SUPPORT)
 elseif (WIN32)
  target_link_libraries (${PROJECT_NAME}_Visualization Advapi32.lib)
  target_link_libraries (${PROJECT_NAME}_Visualization Evr.lib)
@@ -355,8 +343,9 @@ endif ()
 if (GTK_SUPPORT)
  target_link_libraries (${PROJECT_NAME}_Visualization ${GTK_LIBRARIES})
 endif (GTK_SUPPORT)
-#target_link_libraries (${PROJECT_NAME}_Visualization ${PKG_SOX_LIBRARIES})
-#target_link_libraries (${PROJECT_NAME}_Visualization ${PKG_FFMPEG_LIBRARIES})
+if (FFMPEG_SUPPORT)
+ target_link_libraries (${PROJECT_NAME}_Visualization ${ffmpeg_LIBRARIES})
+endif (FFMPEG_SUPPORT)
 if (IMAGEMAGICK_SUPPORT)
  target_link_libraries (${PROJECT_NAME}_Visualization ${ImageMagick_LIBRARIES})
 endif (IMAGEMAGICK_SUPPORT)
@@ -370,7 +359,7 @@ endif (OPENGL_SUPPORT)
 
 target_link_libraries (${PROJECT_NAME}_Visualization ${PROJECT_NAME})
 
-get_target_property (debug ${PROJECT_NAME}_Visualization INTERFACE_INCLUDE_DIRECTORIES)
+#get_target_property (debug ${PROJECT_NAME}_Visualization INTERFACE_INCLUDE_DIRECTORIES)
 #message (STATUS "INTERFACE_INCLUDE_DIRECTORIES: \"${debug}\"")
 
 #set_target_properties (${PROJECT_NAME}_Visualization PROPERTIES DEFINE_SYMBOL STREAM_VIS_BUILD_DLL)

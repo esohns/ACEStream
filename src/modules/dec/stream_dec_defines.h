@@ -22,22 +22,36 @@
 #define STREAM_DEC_DEFINES_H
 
 #define STREAM_DEC_DECODER_AVI_DEFAULT_NAME_STRING                   "AVI_Decoder"
+#if defined (IMAGEMAGICK_SUPPORT)
 #define STREAM_DEC_DECODER_IMAGEMAGICK_DECODER_DEFAULT_NAME_STRING   "ImageMagick_ImageDecoder"
+#endif // IMAGEMAGICK_SUPPORT
+#if defined (FFMPEG_SUPPORT)
 #define STREAM_DEC_DECODER_LIBAV_CONVERTER_DEFAULT_NAME_STRING       "LibAV_Converter"
 #define STREAM_DEC_DECODER_LIBAV_DECODER_DEFAULT_NAME_STRING         "LibAV_Decoder"
 #define STREAM_DEC_DECODER_LIBAV_ENCODER_DEFAULT_NAME_STRING         "LibAV_Encoder"
 #define STREAM_DEC_DECODER_LIBAV_IMG_DECODER_DEFAULT_NAME_STRING     "LibAV_ImageDecoder"
+#endif // FFMPEG_SUPPORT
 #define STREAM_DEC_DECODER_MPEG_TS_DEFAULT_NAME_STRING               "MPEG_TSDecoder"
 #define STREAM_DEC_DECODER_MPEG_1LAYER3_DEFAULT_NAME_STRING          "MP3_Decoder"
 #define STREAM_DEC_DECODER_M3U_DEFAULT_NAME_STRING                   "M3U_Decoder"
+#if defined (OPENCV_SUPPORT)
 #define STREAM_DEC_DECODER_OPENCV_DECODER_DEFAULT_NAME_STRING        "OpenCV_Decoder"
+#endif // OPENCV_SUPPORT
 #define STREAM_DEC_DECODER_ZIP_DEFAULT_NAME_STRING                   "ZIP_Decoder"
 
+#include "ace/config-lite.h"
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
 #define STREAM_DEC_ENCODER_AVI_DEFAULT_NAME_STRING                   "AVI_Encoder"
+#else
+#if defined (FFMPEG_SUPPORT)
+#define STREAM_DEC_ENCODER_AVI_DEFAULT_NAME_STRING                   "AVI_Encoder"
+#endif // FFMPEG_SUPPORT
+#if defined (SOX_SUPPORT)
 #define STREAM_DEC_ENCODER_SOX_EFFECT_DEFAULT_NAME_STRING            "SoX_Effect"
+#endif // SOX_SUPPORT
+#endif // ACE_WIN32 || ACE_WIN64
 #define STREAM_DEC_ENCODER_WAV_DEFAULT_NAME_STRING                   "WAV_Encoder"
 
-#include "ace/config-lite.h"
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #define STREAM_DEC_DIRECTSHOW_FILTER_NAME_CONVERT_PCM                L"WAV Converter"
 #define STREAM_DEC_DIRECTSHOW_FILTER_NAME_CONVERT_RGB                L"Color Space Converter"
@@ -96,16 +110,23 @@
 
 // ---------------------------------------
 
+#if defined (FFMPEG_SUPPORT)
 // libav/ffmpeg
 #define STREAM_DEC_DEFAULT_LIBAV_OUTPUT_PIXEL_FORMAT                 AV_PIX_FMT_RGB24
+#endif // FFMPEG_SUPPORT
 
 // ---------------------------------------
 
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#else
+#if defined (SOX_SUPPORT)
 // SoX
 #define STREAM_DEC_SOX_BUFFER_SIZE                                   32768 // bytes (default: 8192)
 #define STREAM_DEC_SOX_FORMAT_RAW_STRING                             "raw"
 #define STREAM_DEC_SOX_FORMAT_WAV_STRING                             "waveaudio"
 #define STREAM_DEC_SOX_SAMPLE_BUFFERS                                8192
+#endif // SOX_SUPPORT
+#endif // ACE_WIN32 || ACE_WIN64
 
 // ---------------------------------------
 

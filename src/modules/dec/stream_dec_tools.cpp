@@ -19,7 +19,6 @@
  ***************************************************************************/
 #include "stdafx.h"
 
-//#include "ace/Synch.h"
 #include "stream_dec_tools.h"
 
 #include "ace/config-lite.h"
@@ -66,6 +65,7 @@
 
 #include <cmath>
 
+#if defined (FFMPEG_SUPPORT)
 #ifdef __cplusplus
 extern "C"
 {
@@ -78,6 +78,7 @@ extern "C"
 #include "libswscale/swscale.h"
 }
 #endif // __cplusplus
+#endif // FFMPEG_SUPPORT
 
 #if defined (OPENCV_SUPPORT)
 #include "opencv2/core/hal/interface.h"
@@ -110,6 +111,7 @@ extern "C"
 
 #include "stream_dec_defines.h"
 
+#if defined (FFMPEG_SUPPORT)
 void
 stream_decoder_libav_log_cb (void* AVClassStruct_in,
                              int level_in,
@@ -162,6 +164,7 @@ stream_decoder_libav_log_cb (void* AVClassStruct_in,
               ACE_TEXT ("%s"),
               ACE_TEXT (buffer_a)));
 }
+#endif // FFMPEG_SUPPORT
 
 //void
 //Stream_Module_Decoder_Tools::initialize ()
@@ -170,15 +173,7 @@ stream_decoder_libav_log_cb (void* AVClassStruct_in,
 //
 //}
 
-bool
-Stream_Module_Decoder_Tools::isCompressedVideo (enum AVPixelFormat format_in)
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_Module_Decoder_Tools::isCompressedVideo"));
-
-  return (!Stream_Module_Decoder_Tools::isRGB (format_in) &&
-          !Stream_Module_Decoder_Tools::isChromaLuminance (format_in));
-}
-
+#if defined (FFMPEG_SUPPORT)
 bool
 Stream_Module_Decoder_Tools::isChromaLuminance (enum AVPixelFormat format_in)
 {
@@ -270,13 +265,14 @@ Stream_Module_Decoder_Tools::isChromaLuminance (enum AVPixelFormat format_in)
     case AV_PIX_FMT_P010BE: ///< like NV12, with 10bpp per component, data in the high bits, zeros in the low bits, big-endian
     case AV_PIX_FMT_P016LE: ///< like NV12, with 16bpp per component, little-endian
     case AV_PIX_FMT_P016BE: ///< like NV12, with 16bpp per component, big-endian
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
       return true;
     default: break;
   } // end SWITCH
 
   return false;
 }
+
 bool
 Stream_Module_Decoder_Tools::isRGB (enum AVPixelFormat format_in)
 {
@@ -312,14 +308,14 @@ Stream_Module_Decoder_Tools::isRGB (enum AVPixelFormat format_in)
     case AV_PIX_FMT_BGR444BE:  ///< packed BGR 4:4:4, 16bpp, (msb)4X 4B 4G 4R(lsb), big-endian,    X=unused/undefined
     case AV_PIX_FMT_BGR48BE:   ///< packed RGB 16:16:16, 48bpp, 16B, 16G, 16R, the 2-byte value for each R/G/B component is stored as big-endian
     case AV_PIX_FMT_BGR48LE:   ///< packed RGB 16:16:16, 48bpp, 16B, 16G, 16R, the 2-byte value for each R/G/B component is stored as little-endian
-    case AV_PIX_FMT_RGBA64BE:     ///< packed RGBA 16:16:16:16, 64bpp, 16R, 16G, 16B, 16A, the 2-byte value for each R/G/B/A component is stored as big-endian
-    case AV_PIX_FMT_RGBA64LE:     ///< packed RGBA 16:16:16:16, 64bpp, 16R, 16G, 16B, 16A, the 2-byte value for each R/G/B/A component is stored as little-endian
-    case AV_PIX_FMT_BGRA64BE:     ///< packed RGBA 16:16:16:16, 64bpp, 16B, 16G, 16R, 16A, the 2-byte value for each R/G/B/A component is stored as big-endian
-    case AV_PIX_FMT_BGRA64LE:     ///< packed RGBA 16:16:16:16, 64bpp, 16B, 16G, 16R, 16A, the 2-byte value for each R/G/B/A component is stored as little-endian
-    case AV_PIX_FMT_0RGB:        ///< packed RGB 8:8:8, 32bpp, XRGBXRGB...   X=unused/undefined
-    case AV_PIX_FMT_RGB0:        ///< packed RGB 8:8:8, 32bpp, RGBXRGBX...   X=unused/undefined
-    case AV_PIX_FMT_0BGR:        ///< packed BGR 8:8:8, 32bpp, XBGRXBGR...   X=unused/undefined
-    case AV_PIX_FMT_BGR0:        ///< packed BGR 8:8:8, 32bpp, BGRXBGRX...   X=unused/undefined
+    case AV_PIX_FMT_RGBA64BE:  ///< packed RGBA 16:16:16:16, 64bpp, 16R, 16G, 16B, 16A, the 2-byte value for each R/G/B/A component is stored as big-endian
+    case AV_PIX_FMT_RGBA64LE:  ///< packed RGBA 16:16:16:16, 64bpp, 16R, 16G, 16B, 16A, the 2-byte value for each R/G/B/A component is stored as little-endian
+    case AV_PIX_FMT_BGRA64BE:  ///< packed RGBA 16:16:16:16, 64bpp, 16B, 16G, 16R, 16A, the 2-byte value for each R/G/B/A component is stored as big-endian
+    case AV_PIX_FMT_BGRA64LE:  ///< packed RGBA 16:16:16:16, 64bpp, 16B, 16G, 16R, 16A, the 2-byte value for each R/G/B/A component is stored as little-endian
+    case AV_PIX_FMT_0RGB:      ///< packed RGB 8:8:8, 32bpp, XRGBXRGB...   X=unused/undefined
+    case AV_PIX_FMT_RGB0:      ///< packed RGB 8:8:8, 32bpp, RGBXRGBX...   X=unused/undefined
+    case AV_PIX_FMT_0BGR:      ///< packed BGR 8:8:8, 32bpp, XBGRXBGR...   X=unused/undefined
+    case AV_PIX_FMT_BGR0:      ///< packed BGR 8:8:8, 32bpp, BGRXBGRX...   X=unused/undefined
       return true;
     default:
       break;
@@ -327,6 +323,7 @@ Stream_Module_Decoder_Tools::isRGB (enum AVPixelFormat format_in)
 
   return false;
 }
+
 bool
 Stream_Module_Decoder_Tools::isRGB32 (enum AVPixelFormat format_in)
 {
@@ -334,10 +331,10 @@ Stream_Module_Decoder_Tools::isRGB32 (enum AVPixelFormat format_in)
 
   switch (format_in)
   {
-    case AV_PIX_FMT_ARGB:      ///< packed ARGB 8:8:8:8, 32bpp, ARGBARGB...
-    case AV_PIX_FMT_RGBA:      ///< packed RGBA 8:8:8:8, 32bpp, RGBARGBA...
-    case AV_PIX_FMT_ABGR:      ///< packed ABGR 8:8:8:8, 32bpp, ABGRABGR...
-    case AV_PIX_FMT_BGRA:      ///< packed BGRA 8:8:8:8, 32bpp, BGRABGRA...
+    case AV_PIX_FMT_ARGB: ///< packed ARGB 8:8:8:8, 32bpp, ARGBARGB...
+    case AV_PIX_FMT_RGBA: ///< packed RGBA 8:8:8:8, 32bpp, RGBARGBA...
+    case AV_PIX_FMT_ABGR: ///< packed ABGR 8:8:8:8, 32bpp, ABGRABGR...
+    case AV_PIX_FMT_BGRA: ///< packed BGRA 8:8:8:8, 32bpp, BGRABGRA...
       return true;
     default:
       break;
@@ -345,8 +342,10 @@ Stream_Module_Decoder_Tools::isRGB32 (enum AVPixelFormat format_in)
 
   return false;
 }
+#endif // FFMPEG_SUPPORT
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
+#if defined (FFMPEG_SUPPORT)
 enum AVCodecID
 Stream_Module_Decoder_Tools::mediaSubTypeToAVCodecId (REFGUID mediaSubType_in,
                                                       enum Stream_MediaFramework_Type mediaFramework_in)
@@ -494,8 +493,37 @@ Stream_Module_Decoder_Tools::mediaSubTypeToAVPixelFormat (REFGUID mediaSubType_i
 
   return result;
 }
+#endif // FFMPEG_SUPPORT
 #endif // ACE_WIN32 || ACE_WIN64
 
+std::string
+Stream_Module_Decoder_Tools::compressionFormatToString (enum Stream_Decoder_CompressionFormatType format_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Module_Decoder_Tools::compressionFormatToString"));
+
+  std::string result = ACE_TEXT_ALWAYS_CHAR ("Invalid");
+
+  switch (format_in)
+  {
+    case STREAM_COMPRESSION_FORMAT_NONE:
+      result = ACE_TEXT_ALWAYS_CHAR ("none"); break;
+    case STREAM_COMPRESSION_FORMAT_GZIP:
+      result = ACE_TEXT_ALWAYS_CHAR ("gzip"); break;
+    case STREAM_COMPRESSION_FORMAT_ZLIB:
+      result = ACE_TEXT_ALWAYS_CHAR ("zlib"); break;
+    default:
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("invalid/unknown format (was: %d), aborting\n"),
+                  format_in));
+      break;
+    }
+  } // end SWITCH
+
+  return result;
+}
+
+#if defined (FFMPEG_SUPPORT)
 enum AVCodecID
 Stream_Module_Decoder_Tools::AVPixelFormatToAVCodecId (enum AVPixelFormat pixelFormat_in)
 {
@@ -540,28 +568,17 @@ Stream_Module_Decoder_Tools::filenameExtensionToAVCodecId (const std::string& fi
 }
 
 std::string
-Stream_Module_Decoder_Tools::compressionFormatToString (enum Stream_Decoder_CompressionFormatType format_in)
+Stream_Module_Decoder_Tools::audioFormatToString (enum AVSampleFormat format_in)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_Module_Decoder_Tools::compressionFormatToString"));
+  std::string result;
 
-  std::string result = ACE_TEXT_ALWAYS_CHAR ("Invalid");
+  if (format_in == AV_SAMPLE_FMT_NONE)
+    return result;
 
-  switch (format_in)
-  {
-    case STREAM_COMPRESSION_FORMAT_NONE:
-      result = ACE_TEXT_ALWAYS_CHAR ("none"); break;
-    case STREAM_COMPRESSION_FORMAT_GZIP:
-      result = ACE_TEXT_ALWAYS_CHAR ("gzip"); break;
-    case STREAM_COMPRESSION_FORMAT_ZLIB:
-      result = ACE_TEXT_ALWAYS_CHAR ("zlib"); break;
-    default:
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("invalid/unknown format (was: %d), aborting\n"),
-                  format_in));
-      break;
-    }
-  } // end SWITCH
+  char buffer_a[BUFSIZ];
+  ACE_OS::memset (buffer_a, 0, sizeof (char[BUFSIZ]));
+  av_get_sample_fmt_string (buffer_a, sizeof (char[BUFSIZ]), format_in);
+  result = buffer_a;
 
   return result;
 }
@@ -733,6 +750,7 @@ clean:
 
   return result;
 }
+#endif // FFMPEG_SUPPORT
 
 void
 Stream_Module_Decoder_Tools::sinus (double frequency_in,
@@ -775,7 +793,7 @@ Stream_Module_Decoder_Tools::sinus (double frequency_in,
   phase_inout = phase_d;
 }
 
-#if defined (OPENCV_SUPPORT)
+#if defined (FFMPEG_SUPPORT) && defined (OPENCV_SUPPORT)
 int
 Stream_Module_Decoder_Tools::pixelFormatToOpenCVFormat (enum AVPixelFormat format_in)
 {
@@ -822,7 +840,7 @@ Stream_Module_Decoder_Tools::pixelFormatToOpenCVFormat (enum AVPixelFormat forma
 
   return -1;
 }
-#endif // OPENCV_SUPPORT
+#endif // FFMPEG_SUPPORT && OPENCV_SUPPORT
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 bool
@@ -4944,19 +4962,3 @@ error:
   return false;
 }
 #endif
-
-std::string
-Stream_Module_Decoder_Tools::audioFormatToString (enum AVSampleFormat format_in)
-{
-  std::string result;
-
-  if (format_in == AV_SAMPLE_FMT_NONE)
-    return result;
-
-  char buffer_a[BUFSIZ];
-  ACE_OS::memset (buffer_a, 0, sizeof (char[BUFSIZ]));
-  av_get_sample_fmt_string (buffer_a, sizeof (char[BUFSIZ]), format_in);
-  result = buffer_a;
-
-  return result;
-}

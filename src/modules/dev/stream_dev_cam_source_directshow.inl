@@ -27,12 +27,12 @@
 #endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
 #endif // NUMELMS
 
-#include <strmif.h>
-//#include <strsafe.h>
-#include <vfwmsgs.h>
+#include "strmif.h"
+//#include "strsafe.h"
+#include "vfwmsgs.h"
 //// *NOTE*: wxWidgets may have #defined __WXDEBUG__
 //#undef __WXDEBUG__
-#include <wxdebug.h>
+#include "wxdebug.h"
 
 #include "ace/Log_Msg.h"
 
@@ -780,10 +780,11 @@ error:
         CoUninitialize ();
 
       inherited::sessionEndProcessed_ = true;
-      if (inherited::concurrency_ != STREAM_HEADMODULECONCURRENCY_CONCURRENT)
-        inherited::stop (false, // wait ?
-                         false, // high priority ?
-                         true); // locked access ?
+      if (likely (inherited::concurrency_ != STREAM_HEADMODULECONCURRENCY_CONCURRENT))
+      { Common_ITask* itask_p = this; // *TODO*: is the no other way ?
+        itask_p->stop (false,  // wait for completion ?
+                       false); // high priority ?
+      } // end IF
 
       break;
     }

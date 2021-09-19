@@ -23,6 +23,8 @@
 
 #include <vector>
 
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#else
 #ifdef __cplusplus
 extern "C"
 {
@@ -32,18 +34,22 @@ extern "C"
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */
+#endif // ACE_WIN32 || ACE_WIN64
 
 #include "ace/Global_Macros.h"
 #include "ace/Stream_Modules.h"
 
 #include "stream_task_base_synch.h"
 
-#include "stream_dec_common.h"
-
 #include "stream_lib_mediatype_converter.h"
 
+#include "stream_dec_common.h"
+
 // forward declaration(s)
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#else
 struct AVFormatContext;
+#endif // ACE_WIN32 || ACE_WIN64
 class ACE_Message_Block;
 class ACE_Time_Value;
 class Stream_IAllocator;
@@ -157,12 +163,7 @@ class Stream_Decoder_AVIEncoder_WriterTask_T
                                  enum Stream_ControlType,
                                  enum Stream_SessionMessageType,
                                  UserDataType>
- , public Stream_MediaFramework_MediaTypeConverter_T<MediaType
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-                                                    >
-#else
-                                                     ,typename SessionMessageType::DATA_T::DATA_T>
-#endif // ACE_WIN32 || ACE_WIN64
+ , public Stream_MediaFramework_MediaTypeConverter_T<MediaType>
 {
   friend class Stream_Decoder_AVIEncoder_ReaderTask_T<ACE_SYNCH_USE,
                                                       TimePolicyType,
@@ -184,12 +185,7 @@ class Stream_Decoder_AVIEncoder_WriterTask_T
                                  enum Stream_ControlType,
                                  enum Stream_SessionMessageType,
                                  UserDataType> inherited;
-  typedef Stream_MediaFramework_MediaTypeConverter_T<MediaType
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-                                                    > inherited2;
-#else
-                                                     ,typename SessionMessageType::DATA_T::DATA_T> inherited2;
-#endif // ACE_WIN32 || ACE_WIN64
+  typedef Stream_MediaFramework_MediaTypeConverter_T<MediaType> inherited2;
 
  public:
   // *TODO*: on MSVC 2015u3 the accurate declaration does not compile
@@ -211,7 +207,7 @@ class Stream_Decoder_AVIEncoder_WriterTask_T
                                      bool&);               // return value: pass message downstream ?
 
  protected:
-  bool                                          isActive_;
+  bool                    isActive_;
   // *NOTE*: the RIFF-AVI (storage) format specifies a header that contains size
   //         fields with information about the length of the consecutive,
   //         linearly structured bulk data.
@@ -228,21 +224,21 @@ class Stream_Decoder_AVIEncoder_WriterTask_T
   //         information upon reception of completion event messages sent
   //         upstream by trailing modules of the processing stream (i.e. reader-
   //         side processing)
-  bool                                          isFirst_;
+  bool                    isFirst_;
 
-  struct Stream_MediaFramework_FFMPEG_VideoMediaType format_;
+  MediaType               format_;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
-  struct AVFormatContext*                       formatContext_;
+  struct AVFormatContext* formatContext_;
 #endif // ACE_WIN32 || ACE_WIN64
-  unsigned int                                  frameSize_; // output-
+  unsigned int            frameSize_; // output-
 
   typedef std::vector<unsigned int> FRAMEOFFSETS_T;
   typedef FRAMEOFFSETS_T::const_iterator FRAMEOFFSETSITERATOR_T;
-  unsigned int                                  currentFrameOffset_;
-  FRAMEOFFSETS_T                                frameOffsets_;
-  bool                                          writeAVI1Index_; // AVI 1.0 "idx1" at end of file
-  bool                                          writeAVI2Index_; // AVI 2.0 "inx1" + super-index
+  unsigned int            currentFrameOffset_;
+  FRAMEOFFSETS_T          frameOffsets_;
+  bool                    writeAVI1Index_; // AVI 1.0 "idx1" at end of file
+  bool                    writeAVI2Index_; // AVI 2.0 "inx1" + super-index
 
   // helper methods
   virtual bool generateHeader (ACE_Message_Block*); // message buffer handle
