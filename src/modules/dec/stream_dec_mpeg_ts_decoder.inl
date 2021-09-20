@@ -18,20 +18,12 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#ifdef __cplusplus
-extern "C"
-{
-#include "libavcodec/avcodec.h"
-#include "libavutil/pixfmt.h"
-}
-#endif /* __cplusplus */
-
 #include "ace/Log_Msg.h"
 
 #include "stream_macros.h"
 
+#include "stream_dec_common.h"
 #include "stream_dec_defines.h"
-#include "stream_dec_tools.h"
 
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,
@@ -111,8 +103,7 @@ Stream_Decoder_MPEG_TS_Decoder_T<ACE_SYNCH_USE,
   {
     if (buffer_)
     {
-      buffer_->release ();
-      buffer_ = NULL;
+      buffer_->release (); buffer_ = NULL;
     } // end IF
     missingPESBytes_ = 0;
     isParsingPSI_ = false;
@@ -205,9 +196,8 @@ Stream_Decoder_MPEG_TS_Decoder_T<ACE_SYNCH_USE,
                 inherited::mod_->name ()));
 
     // clean up
-    message_inout->release ();
-    message_inout = NULL;
-    buffer_->release ();
+    message_inout->release (); message_inout = NULL;
+    buffer_->release (); buffer_ = NULL;
 
     return;
   } // end IF
@@ -271,7 +261,7 @@ Stream_Decoder_MPEG_TS_Decoder_T<ACE_SYNCH_USE,
       // *NOTE*: MPEG TS video-stream PES packets may not have a defined packet
       //         length and are encapsulated in TS packets
       missingPESBytes_ = pes_header_p->pes_packet_length;
-      if (ACE_LITTLE_ENDIAN)
+      if (ACE_BYTE_ORDER == ACE_LITTLE_ENDIAN)
         missingPESBytes_ = ACE_SWAP_WORD (missingPESBytes_);
 
       if ((pes_header_p->stream_id != STREAM_DEC_MPEG_TS_STREAM_TYPE_PADDING) &&
@@ -374,8 +364,7 @@ continue_:
     {
       if (buffer_)
       {
-        buffer_->release ();
-        buffer_ = NULL;
+        buffer_->release (); buffer_ = NULL;
       } // end IF
 
       break;
@@ -479,8 +468,8 @@ Stream_Decoder_MPEG_TS_Decoder_T<ACE_SYNCH_USE,
     unsigned short elementary_stream_pid = 0;
     do
     {
-      if ((offset - table_syntax_section_offset) >=
-          section_length) break;
+      if ((offset - table_syntax_section_offset) >= section_length)
+        break;
 
       ES_data_p =
         reinterpret_cast<struct Stream_Decoder_MPEG_TS_ProgramSpecificInformation_ElementaryStreamSpecificData*> (messageBlock_in->rd_ptr () + offset);

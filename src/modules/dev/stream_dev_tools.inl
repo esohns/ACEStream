@@ -98,15 +98,7 @@ Stream_Device_Tools::initializeBuffers (int fd_in,
                       ACE_TEXT ("failed to allocate memory, aborting\n")));
           goto error;
         } // end IF
-        message_p = dynamic_cast<MessageType*> (message_block_p);
-        if (!message_p)
-        {
-          ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("failed to dynamic_cast<MessageType*>(0x%@), aborting\n"),
-                      message_block_p));
-          message_block_p->release (); message_block_p = NULL;
-          goto error;
-        } // end IF
+        message_p = static_cast<MessageType*> (message_block_p);
         message_p->wr_ptr (format.fmt.pix.sizeimage);
         // *TODO*: remove type inference
         typename MessageType::DATA_T& data_r =
@@ -143,12 +135,10 @@ Stream_Device_Tools::initializeBuffers (int fd_in,
         ACE_ASSERT ((buffer.flags & V4L2_BUF_FLAG_QUEUED) && !(buffer.flags & V4L2_BUF_FLAG_MAPPED) && !(buffer.flags & V4L2_BUF_FLAG_DONE));
         bufferMap_out.insert (std::make_pair (buffer.index, message_block_p));
       } // end FOR
-#if defined (_DEBUG)
       ACE_DEBUG ((LM_DEBUG,
                   ACE_TEXT ("allocated %d (user-pointer) device buffer(s) (%u byte(s))\n"),
                   numberOfBuffers_in,
                   numberOfBuffers_in * format.fmt.pix.sizeimage));
-#endif // _DEBUG
       break;
     }
     case V4L2_MEMORY_MMAP:
@@ -194,15 +184,7 @@ Stream_Device_Tools::initializeBuffers (int fd_in,
                       ACE_TEXT ("failed to allocate memory, aborting\n")));
           goto error;
         } // end IF
-        message_p = dynamic_cast<MessageType*> (message_block_p);
-        if (!message_p)
-        {
-          ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("failed to dynamic_cast<MessageType>(0x%@), aborting\n"),
-                      message_block_p));
-          message_block_p->release (); message_block_p = NULL;
-          goto error;
-        } // end IF
+        message_p = static_cast<MessageType*> (message_block_p);
         // *TODO*: remove type inference
         typename MessageType::DATA_T& data_r =
             const_cast<typename MessageType::DATA_T&> (message_p->getR ());
@@ -254,12 +236,10 @@ Stream_Device_Tools::initializeBuffers (int fd_in,
         ACE_ASSERT ((buffer.flags & V4L2_BUF_FLAG_QUEUED) && (buffer.flags & V4L2_BUF_FLAG_MAPPED) && !(buffer.flags & V4L2_BUF_FLAG_DONE));
         bufferMap_out.insert (std::make_pair (buffer.index, message_block_p));
       } // end FOR
-#if defined (_DEBUG)
       ACE_DEBUG ((LM_DEBUG,
                   ACE_TEXT ("allocated %d (memory-mapped) device buffer(s) (%u byte(s))\n"),
                   numberOfBuffers_in,
                   numberOfBuffers_in * buffer.length));
-#endif // _DEBUG
       break;
     }
     default:
@@ -326,15 +306,7 @@ Stream_Device_Tools::finalizeBuffers (int fd_in,
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("failed to v4l2_munmap(): \"%m\", continuing\n")));
     } // end IF
-    message_p = dynamic_cast<MessageType*> (message_block_p);
-    if (!message_p)
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to dynamic_cast<MessageType*>(0x%@), returning\n"),
-                  message_block_p));
-      message_block_p->release (); message_block_p = NULL;
-      return;
-    } // end IF
+    message_p = static_cast<MessageType*> (message_block_p);
     // *TODO*: remove type inference
     typename MessageType::DATA_T& data_r =
         const_cast<typename MessageType::DATA_T&> (message_p->getR ());
@@ -349,10 +321,8 @@ Stream_Device_Tools::finalizeBuffers (int fd_in,
       break; // done
   } while (true);
   bufferMap_inout.clear ();
-#if defined (_DEBUG)
   ACE_DEBUG ((LM_DEBUG,
               ACE_TEXT ("de-allocated %d device buffer(s)\n"),
               counter));
-#endif // _DEBUG
 }
 #endif // ACE_WIN32 || ACE_WIN64

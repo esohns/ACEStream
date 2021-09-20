@@ -12,16 +12,6 @@ if (UNIX)
  target_include_directories (${PROJECT_NAME}_Statistic PUBLIC
                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../modules/Common/src/timer>)
 elseif (WIN32)
-# set (DIRECTSHOW_BASECLASSES_DIRECTORY
-#      "$ENV{LIB_ROOT}/DShowBaseClasses")
-# message (STATUS "DirectShow baseclasses directory: \"${DIRECTSHOW_BASECLASSES_DIRECTORY}\"")
-
-# target_include_directories (${PROJECT_NAME}_Statistic PUBLIC
-#                             $<BUILD_INTERFACE:${DIRECTSHOW_BASECLASSES_DIRECTORY}/baseclasses>)
-
-# target_include_directories (${PROJECT_NAME}_Statistic PUBLIC
-#                             $<BUILD_INTERFACE:$ENV{LIB_ROOT}/ffmpeg/include>)
-
  target_include_directories (${PROJECT_NAME}_Statistic PUBLIC
                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../Common/src>)
  target_include_directories (${PROJECT_NAME}_Statistic PUBLIC
@@ -83,11 +73,11 @@ set_property (TARGET ${PROJECT_NAME}_Statistic PROPERTY FOLDER "modules")
 add_dependencies (${PROJECT_NAME}_Statistic Common)
 add_dependencies (${PROJECT_NAME}_Statistic ${PROJECT_NAME})
 
-if (WIN32)
- target_link_libraries (${PROJECT_NAME}_Statistic ${ACE_LIBRARY})
-endif (WIN32)
-target_link_libraries (${PROJECT_NAME}_Statistic Common)
-target_link_libraries (${PROJECT_NAME}_Statistic ${PROJECT_NAME})
+target_link_libraries (${PROJECT_NAME}_Statistic PUBLIC ${ACE_LIBRARY})
+
+target_link_libraries (${PROJECT_NAME}_Statistic PUBLIC Common)
+
+target_link_libraries (${PROJECT_NAME}_Statistic PUBLIC ${PROJECT_NAME})
 
 #set_target_properties (${PROJECT_NAME}_Statistic PROPERTIES DEFINE_SYMBOL STREAM_STAT_BUILD_DLL)
 #set_target_properties (${PROJECT_NAME}_Statistic PROPERTIES VERSION ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_MICRO} SOVERSION 1)

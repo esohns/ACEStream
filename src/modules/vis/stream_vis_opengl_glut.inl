@@ -55,7 +55,13 @@ Stream_Visualization_OpenGL_GLUT_T<ACE_SYNCH_USE,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Visualization_OpenGL_GLUT_T::Stream_Visualization_OpenGL_GLUT_T"));
 
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  ACE_OS::memset (&CBData_.mediaType, 0, sizeof (struct _AMMediaType));
+#else
+#if defined (FFMPEG_SUPPORT)
   ACE_OS::memset (&CBData_.mediaType, 0, sizeof (struct Stream_MediaFramework_FFMPEG_VideoMediaType));
+#endif // FFMPEG_SUPPORT
+#endif // ACE_WIN32 || ACE_WIN64
   CBData_.queue = inherited::msg_queue_;
 }
 
@@ -82,7 +88,13 @@ Stream_Visualization_OpenGL_GLUT_T<ACE_SYNCH_USE,
 
   if (inherited::isInitialized_)
   {
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+    Stream_MediaFramework_DirectShow_Tools::free (CBData_.mediaType);
+#else
+#if defined (FFMPEG_SUPPORT)
     ACE_OS::memset (&CBData_.mediaType, 0, sizeof (struct Stream_MediaFramework_FFMPEG_VideoMediaType));
+#endif // FFMPEG_SUPPORT
+#endif // ACE_WIN32 || ACE_WIN64
   } // end IF
 
   return inherited::initialize (configuration_in,

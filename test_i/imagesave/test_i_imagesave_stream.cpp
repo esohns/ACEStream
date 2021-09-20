@@ -107,7 +107,6 @@ Test_I_Stream::initialize (const inherited::CONFIGURATION_T& configuration_in)
   inherited::CONFIGURATION_T::ITERATOR_T iterator, iterator_2;
   Test_I_Source* source_impl_p = NULL;
   std::string log_file_name;
-  struct Stream_MediaFramework_FFMPEG_VideoMediaType media_type_s;
 
   iterator =
     const_cast<inherited::CONFIGURATION_T&> (configuration_in).find (ACE_TEXT_ALWAYS_CHAR (""));

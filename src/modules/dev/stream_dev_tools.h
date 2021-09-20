@@ -44,16 +44,6 @@
 #include "linux/videodev2.h"
 #endif // ACE_WIN32 || ACE_WIN64
 
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-#else
-#ifdef __cplusplus
-extern "C"
-{
-#include "libavutil/pixfmt.h"
-}
-#endif // __cplusplus
-#endif // ACE_WIN32 || ACE_WIN64
-
 #include "ace/Global_Macros.h"
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -66,6 +56,9 @@ extern "C"
 
 #include "stream_lib_common.h"
 #include "stream_lib_alsa_common.h"
+#if defined (FFMPEG_SUPPORT)
+#include "stream_lib_ffmpeg_common.h"
+#endif // FFMPEG_SUPPORT
 #include "stream_lib_v4l_common.h"
 #if defined (LIBCAMERA_SUPPORT)
 #include "stream_lib_libcamera_common.h"
@@ -80,7 +73,6 @@ class CameraManager;
 #endif // LIBCAMERA_SUPPORT
 class Stream_IAllocator;
 #endif // ACE_WIN32 || ACE_WIN64
-#include "stream_lib_ffmpeg_common.h"
 
 class Stream_Device_Tools
 {
@@ -122,8 +114,9 @@ class Stream_Device_Tools
 
   static struct Stream_MediaFramework_V4L_MediaType defaultCaptureFormat (const std::string&); // device identifier
 
+#if defined (FFMPEG_SUPPORT)
   static struct Stream_MediaFramework_FFMPEG_VideoMediaType convert (const struct Stream_MediaFramework_V4L_MediaType&);
-
+#endif // FFMPEG_SUPPORT
 #if defined (LIBCAMERA_SUPPORT)
   // libcamera
   static Stream_Device_List_t getVideoCaptureDevices (libcamera::CameraManager*);
@@ -135,7 +128,9 @@ class Stream_Device_Tools
 
   static struct Stream_MediaFramework_LibCamera_MediaType defaultCaptureFormat (libcamera::Camera*);
 
+#if defined (FFMPEG_SUPPORT)
   static struct Stream_MediaFramework_FFMPEG_VideoMediaType convert (const struct Stream_MediaFramework_LibCamera_MediaType&);
+#endif // FFMPEG_SUPPORT
 #endif // LIBCAMERA_SUPPORT
 
   static void dump (int); // file descriptor

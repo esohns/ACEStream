@@ -33,10 +33,9 @@ extern "C"
 #endif // ACE_WIN32 || ACE_WIN64
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-#include "MagickWand/MagickWand.h"
-#else
-#include "wand/magick_wand.h"
+#include "magick/api.h"
 #endif // ACE_WIN32 || ACE_WIN64
+#include "wand/magick_wand.h"
 
 #include "ace/Log_Msg.h"
 
@@ -74,7 +73,7 @@ Stream_Decoder_ImageMagick_Decoder_T<ACE_SYNCH_USE,
   STREAM_TRACE (ACE_TEXT ("Stream_Decoder_ImageMagick_Decoder_T::Stream_Decoder_ImageMagick_Decoder_T"));
 
 //  InitializeMagick (NULL);
-  MagickWandGenesis ();
+  //MagickWandGenesis ();
 }
 
 template <ACE_SYNCH_DECL,
@@ -94,7 +93,7 @@ Stream_Decoder_ImageMagick_Decoder_T<ACE_SYNCH_USE,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Decoder_ImageMagick_Decoder_T::~Stream_Decoder_ImageMagick_Decoder_T"));
 
-  MagickWandTerminus ();
+  //MagickWandTerminus ();
 }
 
 template <ACE_SYNCH_DECL,
@@ -241,7 +240,7 @@ Stream_Decoder_ImageMagick_Decoder_T<ACE_SYNCH_USE,
   ACE_ASSERT (media_type_s.codec == AV_CODEC_ID_NONE);
 #endif // FFMPEG_SUPPORT
 #endif // ACE_WIN32 || ACE_WIN64
-  MagickBooleanType result = MagickSetFormat (context_, "RGB");
+  unsigned int result = MagickSetFormat (context_, "RGB");
   ACE_ASSERT (result == MagickTrue);
   result = MagickSetSize (context_,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -252,17 +251,11 @@ Stream_Decoder_ImageMagick_Decoder_T<ACE_SYNCH_USE,
 #endif // ACE_WIN32 || ACE_WIN64
   ACE_ASSERT (result == MagickTrue);
 
-  result = MagickReadImageBlob (context_,
-                                message_inout->rd_ptr (),
-                                message_inout->length ());
-  if (unlikely (result != MagickTrue))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: failed to MagickReadImageBlob(): \"%s\", returning\n"),
-                inherited::mod_->name (),
-                ACE_TEXT (Common_Image_Tools::errorToString (context_).c_str ())));
-    return;
-  } // end IF
+  result =
+    MagickReadImageBlob (context_,
+                         reinterpret_cast<unsigned char*> (message_inout->rd_ptr ()),
+                         message_inout->length ());
+  ACE_ASSERT (result == MagickTrue);
   message_inout->release (); message_inout = NULL;
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -276,15 +269,15 @@ Stream_Decoder_ImageMagick_Decoder_T<ACE_SYNCH_USE,
   ACE_ASSERT (result == MagickTrue);
   result = MagickSetImageFormat (context_, "RGBA");
   ACE_ASSERT (result == MagickTrue);
-  result = MagickSetImageAlphaChannel (context_,
-                                       OpaqueAlphaChannel);
-  ACE_ASSERT (result == MagickTrue);
+//result = MagickSetImageAlphaChannel (context_,
+//                                     OpaqueAlphaChannel);
+//ACE_ASSERT (result == MagickTrue);
 //  result = MagickSetImageAlphaChannel (context_,
 //                                       ActivateAlphaChannel);
 //  ACE_ASSERT (result == MagickTrue);
 
-  data_p = MagickGetImageBlob (context_,
-                               &size_2);
+  data_p = MagickWriteImageBlob (context_,
+                                 &size_2);
   ACE_ASSERT (data_p);
   ACE_ASSERT (size_i == size_2);
   // *TODO*: crashes in release()...(needs MagickRelinquishMemory())

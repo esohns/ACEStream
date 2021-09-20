@@ -71,11 +71,11 @@ class Stream_Decoder_H264_NAL_Decoder_T
                                      bool&);               // return value: pass message downstream ?
 
   // implement Common_IScannerBase
-  inline virtual ACE_Message_Block* buffer () { return buffer_; };
-//  inline virtual bool debugScanner () const { return Stream_Decoder_H264_NAL_Bisector_get_debug (scannerState_); };
+  inline virtual ACE_Message_Block* buffer () { return buffer_; }
+//  inline virtual bool debugScanner () const { return Stream_Decoder_H264_NAL_Bisector_get_debug (scannerState_); }
   inline virtual bool isBlocking () const { return true; };
-  inline virtual void offset (unsigned int offset_in) { Stream_Decoder_H264_NAL_Bisector_set_column (offset_in, scannerState_); };
-  inline virtual unsigned int offset () const { return Stream_Decoder_H264_NAL_Bisector_get_column (scannerState_); };
+  inline virtual void offset (unsigned int offset_in) { Stream_Decoder_H264_NAL_Bisector_set_column (offset_in, scannerState_); }
+  inline virtual unsigned int offset () const { return Stream_Decoder_H264_NAL_Bisector_get_column (scannerState_); }
   // *IMPORTANT NOTE*: when the parser detects a frame end, it inserts a new
   //                   buffer to the continuation and passes 'true'
   //                   --> separate the current frame from the next

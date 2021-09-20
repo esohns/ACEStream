@@ -1,4 +1,6 @@
-include (${CMAKE_CURRENT_SOURCE_DIR}/../../../ACENetwork/scripts/SSLConfig.cmake)
+include (Office)
+set (CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_CURRENT_SOURCE_DIR}/../../modules/ACENetwork/scripts;${CMAKE_CURRENT_SOURCE_DIR}/../../../ACENetwork/scripts")
+include (SSLConfig)
 
 if (UNIX)
  find_package (ZLIB)
@@ -8,8 +10,7 @@ if (UNIX)
 # pkg_check_modules (PKG_Z REQUIRED zlib)
 
 # pkg_check_modules (PKG_XML2 REQUIRED libxml-2.0)
-# pkg_check_modules (PKG_FFMPEG REQUIRED libswscale libavutil libavformat libavcodec)
-#elseif (WIN32)
+elseif (WIN32)
 # *TODO*: repair pkgconfig support
 # find_library (LIBXML2_LIBRARY libxml2.dll.a
 #               PATHS ${CMAKE_CURRENT_SOURCE_DIR}/../../../libxml2-2.9.1
@@ -19,61 +20,15 @@ if (UNIX)
 # if (NOT LIBXML2_LIBRARY)
 #  message (FATAL_ERROR "could not find libxml2 (was: \"libxml2.dll.a\"), aborting")
 # endif ()
-endif (UNIX)
+endif ()
 
-if (UNIX)
- if (DEFINED ENV{OO_SDK_HOME})
-  set (OO_SDK_DIRECTORY $ENV{OO_SDK_HOME})
- elseif (DEFINED ENV{UNO_PATH})
-   message (WARNING "OO_SDK_HOME not set, falling back to UNO_PATH (was: \"${UNO_PATH}\")")
-   set (OO_SDK_DIRECTORY $ENV{UNO_PATH}/../sdk)
- else ()
-  set (OO_SDK_DIRECTORY /usr/lib64/libreoffice/sdk)
-  #set (OO_SDK_DIRECTORY /usr/lib/libreoffice/sdk)
-  message (WARNING "OO_SDK_HOME|UNO_PATH not set, falling back to /usr/lib64/libreoffice/sdk")
- endif ()
- if (NOT EXISTS ${OO_SDK_DIRECTORY})
-  message (FATAL_ERROR "OpenOffice SDK directory not found (was: \"${OO_SDK_DIRECTORY}\"), aborting")
- endif (NOT EXISTS ${OO_SDK_DIRECTORY})
-
- add_definitions (-DSAL_UNX)
-
+if (LIBREOFFICE_SUPPORT)
 # include_directories (${OO_SDK_DIRECTORY}/include)
- include_directories (/usr/include/libreoffice)
+ include_directories (${PKG_LIBREOFFICE_INCLUDE_DIRS})
+endif (LIBREOFFICE_SUPPORT)
+if (UNIX)
 elseif (WIN32)
- include_directories (${LIB_ROOT}/zlib-1.2.8)
-
- if (DEFINED ENV{OO_SDK_HOME})
-  set (OO_SDK_DIRECTORY $ENV{OO_SDK_HOME})
- elseif (DEFINED ENV{UNO_PATH})
-   set (OO_SDK_DIRECTORY $ENV{UNO_PATH}/../sdk)
- else ()
-  message (WARNING "%OO_SDK_HOME%/%UNO_PATH% not set, falling back")
-  set (OO_SDK_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/../../../openoffice/sdk)
- endif ()
-# *NOTE*: workaround
-# set(_PF86 "ProgramFiles(x86)")
-# set (OO_SDK_DIRECTORY
-#      "$ENV{PROGRAMFILES}/Microsoft SDKs/Windows/v7.0/Samples/multimedia/directshow/baseclasses")
-#      "$ENV{${_PF86}}/LibreOffice_5.1_SDK/sdk"
-#       "C:/LibreOffice_5.1_SDK_installer/sdk")
-#message (STATUS "Apache OpenOffice SDK directory: \"${OO_SDK_DIRECTORY}\"")
- include_directories (${OO_SDK_DIRECTORY}/include)
-
- if (DEFINED ENV{UNO_PATH})
-  string (REGEX REPLACE "\\\\" "/" OO_APP_DIRECTORY $ENV{UNO_PATH})
-#  set (OO_APP_DIRECTORY $ENV{UNO_PATH})
- else ()
-  message (WARNING "%UNO_PATH% not set, falling back")
-  string (REGEX REPLACE "\\\\" "/" OO_APP_DIRECTORY ${OO_SDK_DIRECTORY}/program)
- endif ()
-# message (STATUS "Apache OpenOffice UNO directory: \"${OO_APP_DIRECTORY}\"")
-# *NOTE*: the OpenOffice SDK provides its own snprintf; however MSVC complains
-#         about mutliple definitions (and inconsistent linkage)
-#         --> disable that header and use the native function
- if (MSVC)
-  add_definitions (-D_SNPRINTF_H)
- endif ()
+ include_directories ($ENV{LIB_ROOT}/zlib-1.2.8)
 endif ()
 #if (SSL_SUPPORT)
 # add_definitions (-DSSL_SUPPORT)
@@ -82,26 +37,6 @@ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../)
 
 get_filename_component (BUILD_PATH ${CMAKE_CURRENT_BINARY_DIR}/../.. REALPATH)
 get_filename_component (BUILD_PATH_SUFFIX ${BUILD_PATH} NAME)
-#find_package (Common ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_MICRO}
-#              REQUIRED
-#              CONFIG
-#              PATHS ${CMAKE_CURRENT_SOURCE_DIR}/../modules ${CMAKE_CURRENT_SOURCE_DIR}/../..
-#              PATH_SUFFIXES Common/${BUILD_PATH_SUFFIX}
-#              NO_DEFAULT_PATH)
-#if (NOT EXISTS ${Common_DIR})
-# message (FATAL_ERROR "could not find package \"Common\", aborting")
-#endif ()
-
-#find_package (ACEStream ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_MICRO}
-#              REQUIRED
-#              CONFIG
-#              PATHS ${CMAKE_CURRENT_SOURCE_DIR}/../..
-#              PATH_SUFFIXES ${BUILD_PATH_SUFFIX}
-#              NO_DEFAULT_PATH)
-#if (NOT EXISTS ${ACEStream_DIR})
-# message (FATAL_ERROR "could not find package \"ACEStream\", aborting")
-#endif ()
-#add_definitions (-DSTREAM_DB_HAS_DLL)
 
 #string (TOLOWER "${CMAKE_BUILD_TYPE}" BUILD_TYPE)
 find_package (ACENetwork ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_MICRO}
@@ -112,75 +47,56 @@ find_package (ACENetwork ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_MICRO}
               NO_DEFAULT_PATH)
 if (NOT EXISTS ${ACENetwork_DIR})
  message (FATAL_ERROR "could not find package \"ACENetwork\", aborting")
-endif ()
+endif (NOT EXISTS ${ACENetwork_DIR})
 
 add_definitions (-DHAVE_CONFIG_H)
 #set_property (SOURCE PROPERTY COMPILE_DEFINITIONS HAVE_CONFIG_H)
 
 if (UNIX)
- add_definitions (-DSAL_UNX) # libreoffice
- add_definitions (-DUNX)     # openoffice
- add_definitions (-DCPPU_ENV=gcc3)
+# include_directories (${PKG_XML2_INCLUDE_DIRS})
 
- include_directories (${PKG_XML2_INCLUDE_DIRS})
-# include_directories (${PKG_FFMPEG_INCLUDE_DIRS})
+ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../modules/Common/src)
+ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../modules/Common/src/log)
+ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../modules/Common/src/signal)
+ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../modules/Common/src/timer)
 
-# include_directories (/usr/local/src/ACE_wrappers)
-# include_directories ($ENV{LIB_ROOT}/ACE_TAO/ACE)
-
- include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../Common/src)
- include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../Common/src/log)
- include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../Common/src/signal)
- include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../Common/src/timer)
-
- include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../ACENetwork/src)
- include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../ACENetwork/src/protocol/http)
- include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../ACENetwork/src/client_server)
- include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../ACENetwork/include)
- include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../ACENetwork/cmake)
+ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../modules/ACENetwork/src)
+ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../modules/ACENetwork/src/protocol/http)
+ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../modules/ACENetwork/src/client_server)
+ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../modules/ACENetwork/include)
+# include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../modules/ACENetwork/cmake)
 elseif (WIN32)
 # include_directories (${PKG_LIBXML2_INCLUDE_DIRS})
 # *TODO*: repair pkgconfig support
  include_directories ($ENV{LIB_ROOT}/libiconv-1.9.2-1/include)
 # include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../libxml2-2.9.4/include)
-# include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../ffmpeg)
-
- include_directories (${OO_SDK_DIRECTORY}/include)
-# include_directories (${OO_SDK_DIRECTORY}/cli)
-
- add_definitions (-DCPPU_ENV=msci)
- add_definitions (-DWNT)
 
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../3rd_party)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../3rd_party/flex)
-
- include_directories ($ENV{ACE_ROOT})
 
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../Common/src)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../Common/src/log)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../Common/src/signal)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../Common/src/timer)
-# include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../Common/src/ui)
 
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../ACENetwork/src)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../ACENetwork/src/protocol/http)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../ACENetwork/src/client_server)
- #include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../ACENetwork/cmake)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../ACENetwork/include)
 endif ()
 include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../3rd_party/bison)
 
 include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../src/modules/dec)
-include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../src/modules/dev)
+#include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../src/modules/dev)
 include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../src/modules/doc)
 include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../src/modules/file)
 include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../src/modules/html)
-include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../src/modules/lib)
+#include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../src/modules/lib)
 include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../src/modules/misc)
 include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../src/modules/net)
 include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../src/modules/net/protocols/http)
 include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../src/modules/stat)
-include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../src/modules/vis)
+#include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../src/modules/vis)
 
 include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../src)
 include_directories (${CMAKE_CURRENT_SOURCE_DIR}/..)
@@ -225,10 +141,6 @@ set (${EXECUTABLE}_EXE_SCRIPTS
      etc/symbols.ini
      etc/template.ods)
 
-#if (UNIX)
-# add_definitions (-D_GLIBCXX_INCLUDE_NEXT_C_HEADERS)
-#endif (UNIX)
-
 cmake_policy (SET CMP0065 OLD) # do not add flags to export symbols from executables without the ENABLE_EXPORTS target property
 add_executable (${EXECUTABLE}
                 EXCLUDE_FROM_ALL
@@ -242,39 +154,23 @@ endif ()
 if (UNIX)
  target_link_libraries (${EXECUTABLE} ${CMAKE_THREAD_LIBS_INIT})
 elseif (WIN32)
- # *WARNING*: linking Common requires "/FORCE:MULTIPLE""
-# target_link_options (${EXECUTABLE} PUBLIC "$<$<CXX_COMPILER_ID:MSVC>:-FORCE:MULTIPLE>")
- target_link_options (${EXECUTABLE} PUBLIC "$<$<CXX_COMPILER_ID:MSVC>:-SAFESEH:NO>")
+# target_link_options (${EXECUTABLE} PUBLIC "$<$<CXX_COMPILER_ID:MSVC>:-SAFESEH:NO>")
 
- if (SSL_SUPPORT)
-  target_link_libraries (${EXECUTABLE} ${SSL_LIBRARIES})
- endif (SSL_SUPPORT)
+# if (SSL_SUPPORT)
+#  target_link_libraries (${EXECUTABLE} PUBLIC ${SSL_LIBRARIES})
+# endif (SSL_SUPPORT)
 endif ()
-target_link_libraries (${EXECUTABLE} ${ACE_LIBRARY})
+if (LIBREOFFICE_SUPPORT)
+ target_link_libraries (${EXECUTABLE} PUBLIC ${PKG_LIBREOFFICE_LIBRARIES})
+endif (LIBREOFFICE_SUPPORT)
+target_link_libraries (${EXECUTABLE} PUBLIC ${ACE_LIBRARY})
 if (SSL_SUPPORT)
- target_link_libraries (${EXECUTABLE} ${ACE_SSL_LIBRARY})
+ target_link_libraries (${EXECUTABLE} PUBLIC ${ACE_SSL_LIBRARY})
 endif (SSL_SUPPORT)
 if (UNIX)
- target_link_libraries (${EXECUTABLE} ${ZLIB_LIBRARIES})
+ target_link_libraries (${EXECUTABLE} PUBLIC ${ZLIB_LIBRARIES})
 # target_link_libraries (${EXECUTABLE} ${PKG_Z_LIBRARIES})
-# if (SSL_SUPPORT)
-#  target_link_libraries (${EXECUTABLE} ${PKG_SSL_LIBRARIES})
-# endif (SSL_SUPPORT)
-# target_link_libraries (${EXECUTABLE} ${PKG_FFMPEG_LIBRARIES})
- target_link_libraries (${EXECUTABLE} ${PKG_XML2_LIBRARIES})
-
- target_link_libraries (${EXECUTABLE} ${OO_SDK_DIRECTORY}/lib/libuno_sal.so)
-
- target_link_libraries (${EXECUTABLE} ${OO_SDK_DIRECTORY}/../program/libgcc3_uno.so)
- target_link_libraries (${EXECUTABLE} ${OO_SDK_DIRECTORY}/lib/libuno_cppu.so)
-
- target_link_libraries (${EXECUTABLE} ${OO_SDK_DIRECTORY}/../program/libstorelo.so)
- target_link_libraries (${EXECUTABLE} ${OO_SDK_DIRECTORY}/../program/libreglo.so)
-
- target_link_libraries (${EXECUTABLE} ${OO_SDK_DIRECTORY}/../program/libxmlreaderlo.so)
- target_link_libraries (${EXECUTABLE} ${OO_SDK_DIRECTORY}/../program/libunoidllo.so)
- target_link_libraries (${EXECUTABLE} ${OO_SDK_DIRECTORY}/lib/libuno_cppuhelpergcc3.so)
- #target_link_libraries (${EXECUTABLE} ${OO_SDK_DIRECTORY}/lib/libuno_salhelpergcc3.so)
+# target_link_libraries (${EXECUTABLE} PUBLIC ${PKG_XML2_LIBRARIES})
 elseif (WIN32)
  set (CMAKE_EXE_LINKER_FLAGS /NODEFAULTLIB:\"libcmt.lib\")
 # target_link_libraries (${EXECUTABLE} ntdll.lib)
@@ -290,35 +186,28 @@ elseif (WIN32)
 
 # *TODO*: repair pkgconfig support
  #target_link_libraries (http_get ${LIBXML2_LIBRARY})
- target_link_libraries (${EXECUTABLE} $ENV{LIB_ROOT}/libxml2/lib/libxml2.lib)
-
- target_link_libraries (${EXECUTABLE} ${OO_SDK_DIRECTORY}/lib/isal.lib)
-
- target_link_libraries (${EXECUTABLE} ${OO_SDK_DIRECTORY}/lib/icppu.lib)
- target_link_libraries (${EXECUTABLE} ${OO_SDK_DIRECTORY}/lib/icppuhelper.lib)
+# target_link_libraries (${EXECUTABLE} $ENV{LIB_ROOT}/libxml2/lib/libxml2.lib)
 endif ()
 #target_link_libraries (${EXECUTABLE} ${MYSQL_LIBRARY})
 
-if (WIN32)
-  # *WARNING*: linking Common requires "/FORCE:MULTIPLE"
-# set_target_properties (${EXECUTABLE} PROPERTIES LINK_FLAGS /FORCE:MULTIPLE)
-endif (WIN32)
 target_link_libraries (${EXECUTABLE} Common)
-target_link_libraries (${EXECUTABLE} CommonImage)
+#target_link_libraries (${EXECUTABLE} CommonImage)
 target_link_libraries (${EXECUTABLE} CommonLog)
 target_link_libraries (${EXECUTABLE} CommonSignal)
 target_link_libraries (${EXECUTABLE} CommonTimer)
 
 target_link_libraries (${EXECUTABLE} ACEStream)
 target_link_libraries (${EXECUTABLE} ACEStream_Decoder)
-target_link_libraries (${EXECUTABLE} ACEStream_Device)
+#target_link_libraries (${EXECUTABLE} ACEStream_Device)
 target_link_libraries (${EXECUTABLE} ACEStream_Document)
 target_link_libraries (${EXECUTABLE} ACEStream_HTML)
-target_link_libraries (${EXECUTABLE} ACEStream_MediaFramework)
+#target_link_libraries (${EXECUTABLE} ACEStream_MediaFramework)
 target_link_libraries (${EXECUTABLE} ACEStream_Miscellaneous)
 target_link_libraries (${EXECUTABLE} ACEStream_Network)
 target_link_libraries (${EXECUTABLE} ACEStream_Network_Protocol_HTTPGet)
 target_link_libraries (${EXECUTABLE} ACEStream_Statistic)
+
+target_link_libraries (${EXECUTABLE} ${PROJECT_NAME}_Test_I)
 
 target_link_libraries (${EXECUTABLE} ACENetwork)
 target_link_libraries (${EXECUTABLE} ACENetwork_Protocol_HTTP)
@@ -336,9 +225,7 @@ if (UNIX)
  create_target_launcher (${EXECUTABLE}
                          ARGS "-c./etc/soffice.ini -f./etc/symbols.ini -h localhost -l -o ./output.ods -p 2083 -r -t -u https://www.tagesschau.de/wirtschaft/boersenkurse/suche/"
 #                         FORWARD_ARGS
-                         RUNTIME_LIBRARY_DIRS ${PROJECT_SOURCE_DIR}/modules/ATCD/ACE/lib
-                                              ${PROJECT_SOURCE_DIR}/../gtk/bin
-                                              ${PROJECT_SOURCE_DIR}/../libxml2-2.9.1/.libs
+                         RUNTIME_LIBRARY_DIRS ${PROJECT_SOURCE_DIR}/modules/ACE/lib
                                               ${PROJECT_SOURCE_DIR}/../Common/cmake/src/Debug
                                               ${PROJECT_SOURCE_DIR}/../Common/cmake/src/ui/Debug
                                               ${PROJECT_SOURCE_DIR}/cmake/src/Debug
@@ -348,7 +235,7 @@ if (UNIX)
                          WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/test_i/http_get_2
                          ENVIRONMENT foo=bar)
 elseif (WIN32)
- file (TO_CMAKE_PATH $ENV{LIB_ROOT}/ffmpeg/bin FFMPEG_LIBRARY_PATH)
+# file (TO_CMAKE_PATH $ENV{LIB_ROOT}/ffmpeg/bin FFMPEG_LIBRARY_PATH)
 # file (TO_CMAKE_PATH $ENV{LIB_ROOT}/libiconv/bin ICONV_LIBRARY_PATH)
 # file (TO_CMAKE_PATH $ENV{LIB_ROOT}/libmysql/lib LIBMYSQL_LIBRARY_PATH)
 # file (TO_CMAKE_PATH $ENV{LIB_ROOT}/libxml2/bin LIBXML_LIBRARY_PATH)
@@ -356,7 +243,7 @@ elseif (WIN32)
  file (TO_CMAKE_PATH $ENV{LIB_ROOT}/openssl SSL_LIBRARY_PATH)
  file (TO_CMAKE_PATH $ENV{LIB_ROOT}/zlib/cmake/Debug ZLIB_LIBRARY_PATH)
  set (RUNTIME_LIBRARY_DIRS ${ACE_LIBRARY_PATH}
-                           ${FFMPEG_LIBRARY_PATH}
+#                           ${FFMPEG_LIBRARY_PATH}
 #                           ${ICONV_LIBRARY_PATH}
  #                          ${LIBXML_LIBRARY_PATH}
   #                         ${LIBMYSQL_LIBRARY_PATH}

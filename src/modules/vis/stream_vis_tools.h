@@ -24,17 +24,6 @@
 #include <string>
 
 #include "ace/config-lite.h"
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-#include <guiddef.h>
-
-#if defined (__cplusplus)
-extern "C"
-{
-#include "libavformat/avformat.h"
-}
-#endif /* __cplusplus */
-#endif // ACE_WIN32 || ACE_WIN64
-
 #include "ace/Global_Macros.h"
 
 #include "stream_vis_common.h"
@@ -55,9 +44,6 @@ class Stream_Visualization_Tools
   static std::string rendererToModuleName (enum Stream_Visualization_AudioRenderer);
   static std::string rendererToModuleName (enum Stream_Visualization_VideoRenderer);
 
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-  static enum AVPixelFormat mediaSubTypeToAVPixelFormat (REFGUID); // media foundation subtype
-#endif // ACE_WIN32 || ACE_WIN64
  private:
   ACE_UNIMPLEMENTED_FUNC (Stream_Visualization_Tools ())
   ACE_UNIMPLEMENTED_FUNC (Stream_Visualization_Tools (const Stream_Visualization_Tools&))

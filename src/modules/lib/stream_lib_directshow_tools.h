@@ -33,7 +33,6 @@
 #include "Ks.h"
 #include "Guiddef.h"
 #include "evr.h"
-#include "mtype.h"
 #include "strmif.h"
 #include "mediaobj.h"
 
@@ -178,8 +177,8 @@ class Stream_MediaFramework_DirectShow_Tools
   static void dump (const struct _AMMediaType&); // media type
   // *IMPORTANT NOTE*: callers must 'delete_' any return values
   static struct _AMMediaType* copy (const struct _AMMediaType&);
-  inline static void delete_ (struct _AMMediaType*& mediaType_inout) { DeleteMediaType (mediaType_inout); mediaType_inout = NULL; }
-  inline static void free (struct _AMMediaType& mediaType_in) { FreeMediaType (mediaType_in); }
+  static void delete_ (struct _AMMediaType*&); // media type
+  static void free (struct _AMMediaType&); // media type
   static void free (Stream_MediaFramework_DirectShow_Formats_t&);
   static bool match (const struct _AMMediaType&,  // media type
                      const struct _AMMediaType&); // media type
@@ -204,6 +203,7 @@ class Stream_MediaFramework_DirectShow_Tools
 #if defined (FFMPEG_SUPPORT)
   // *IMPORTANT NOTE*: callers must 'delete_' return values
   static struct _AMMediaType* to (const struct Stream_MediaFramework_FFMPEG_VideoMediaType&); // media type
+  static enum AVPixelFormat mediaSubTypeToAVPixelFormat (REFGUID); // media foundation subtype
 #endif // FFMPEG_SUPPORT
 
  private:

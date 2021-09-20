@@ -1,12 +1,12 @@
-if (UNIX)
- pkg_check_modules (PKG_FFMPEG REQUIRED libavutil)
-endif (UNIX)
+#if (UNIX)
+# pkg_check_modules (PKG_FFMPEG REQUIRED libavutil)
+#endif (UNIX)
 
 add_library (${PROJECT_NAME}_Miscellaneous STATIC "")
 
 if (UNIX)
- target_include_directories (${PROJECT_NAME}_Miscellaneous PUBLIC
-                             $<BUILD_INTERFACE:${PKG_FFMPEG_INCLUDE_DIRS}>)
+# target_include_directories (${PROJECT_NAME}_Miscellaneous PUBLIC
+#                             $<BUILD_INTERFACE:${PKG_FFMPEG_INCLUDE_DIRS}>)
 
  target_include_directories (${PROJECT_NAME}_Miscellaneous PUBLIC
                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../modules/Common/src>)
@@ -20,18 +20,16 @@ if (UNIX)
                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../modules/Common/src/parser>)
  target_include_directories (${PROJECT_NAME}_Miscellaneous PUBLIC
                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../modules/Common/src/timer>)
-# target_include_directories (${PROJECT_NAME}_Miscellaneous PUBLIC
-#                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../modules/Common/src/ui>)
 elseif (WIN32)
- set (DIRECTSHOW_BASECLASSES_DIRECTORY
-      "$ENV{LIB_ROOT}/DShowBaseClasses")
+# set (DIRECTSHOW_BASECLASSES_DIRECTORY
+#      "$ENV{LIB_ROOT}/DShowBaseClasses")
 # message (STATUS "DirectShow baseclasses directory: \"${DIRECTSHOW_BASECLASSES_DIRECTORY}\"")
 
- target_include_directories (${PROJECT_NAME}_Miscellaneous PUBLIC
-                             $<BUILD_INTERFACE:${DIRECTSHOW_BASECLASSES_DIRECTORY}/baseclasses>)
+# target_include_directories (${PROJECT_NAME}_Miscellaneous PUBLIC
+#                             $<BUILD_INTERFACE:${DIRECTSHOW_BASECLASSES_DIRECTORY}/baseclasses>)
 
- target_include_directories (${PROJECT_NAME}_Miscellaneous PUBLIC
-                             $<BUILD_INTERFACE:$ENV{LIB_ROOT}/ffmpeg/include>)
+# target_include_directories (${PROJECT_NAME}_Miscellaneous PUBLIC
+#                             $<BUILD_INTERFACE:$ENV{LIB_ROOT}/ffmpeg/include>)
 
  target_include_directories (${PROJECT_NAME}_Miscellaneous PUBLIC
                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../Common/src>)
@@ -47,8 +45,6 @@ elseif (WIN32)
                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../Common/src/parser>)
  target_include_directories (${PROJECT_NAME}_Miscellaneous PUBLIC
                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../Common/src/timer>)
-# target_include_directories (${PROJECT_NAME}_Miscellaneous PUBLIC
-#                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../Common/src/ui>)
 endif ()
 target_include_directories (${PROJECT_NAME}_Miscellaneous PUBLIC
                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../3rd_party/bison>)
@@ -119,19 +115,11 @@ set_property (TARGET ${PROJECT_NAME}_Miscellaneous PROPERTY FOLDER "modules")
 add_dependencies (${PROJECT_NAME}_Miscellaneous Common)
 add_dependencies (${PROJECT_NAME}_Miscellaneous ${PROJECT_NAME})
 
-if (WIN32)
- if (CMAKE_BUILD_TYPE STREQUAL Debug)
-#  link_directories (${DIRECTSHOW_BASECLASSES_DIRECTORY}/Debug)
-#  target_link_libraries (${PROJECT_NAME}_Miscellaneous ${DIRECTSHOW_BASECLASSES_DIRECTORY}/Debug/strmbasd.lib)
- else ()
-#  link_directories (${DIRECTSHOW_BASECLASSES_DIRECTORY}/Release)
-#  target_link_libraries (${PROJECT_NAME}_Miscellaneous strmbase.lib)
- endif ()
-# target_link_libraries (${PROJECT_NAME}_Miscellaneous winmm.lib)
- target_link_libraries (${PROJECT_NAME}_Miscellaneous ${ACE_LIBRARY})
-endif (WIN32)
-target_link_libraries (${PROJECT_NAME}_Miscellaneous Common)
-target_link_libraries (${PROJECT_NAME}_Miscellaneous ${PROJECT_NAME})
+target_link_libraries (${PROJECT_NAME}_Miscellaneous PUBLIC ${ACE_LIBRARY})
+
+target_link_libraries (${PROJECT_NAME}_Miscellaneous PUBLIC Common)
+
+target_link_libraries (${PROJECT_NAME}_Miscellaneous PUBLIC ${PROJECT_NAME})
 
 #set_target_properties (${PROJECT_NAME}_Miscellaneous PROPERTIES DEFINE_SYMBOL STREAM_MISC_BUILD_DLL)
 #set_target_properties (${PROJECT_NAME}_Miscellaneous PROPERTIES VERSION ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_MICRO} SOVERSION 1)

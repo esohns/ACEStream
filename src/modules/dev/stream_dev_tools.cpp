@@ -41,6 +41,9 @@
 #include <WinUser.h>
 #endif // ACE_WIN32 || ACE_WIN64
 
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#else
+#if defined (FFMPEG_SUPPORT)
 #ifdef __cplusplus
 extern "C"
 {
@@ -48,6 +51,8 @@ extern "C"
 #include "libavutil/pixfmt.h"
 }
 #endif /* __cplusplus */
+#endif // FFMPEG_SUPPORT
+#endif // ACE_WIN32 || ACE_WIN64
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
@@ -311,22 +316,18 @@ Stream_Device_Tools::getVideoCaptureDevices (libcamera::CameraManager* manager_i
 
   std::vector<std::shared_ptr<libcamera::Camera> > cameras_a =
     manager_in->cameras ();
-#if defined (_DEBUG)
   if (unlikely (cameras_a.empty ()))
     ACE_DEBUG ((LM_DEBUG,
                 ACE_TEXT ("no video capture devices found, continuing\n")));
-#endif // _DEBUG
 
   struct Stream_Device_Identifier device_identifier_s;
   for (std::vector<std::shared_ptr<libcamera::Camera> >::iterator iterator = cameras_a.begin ();
        iterator != cameras_a.end ();
        ++iterator)
   {
-#if defined (_DEBUG)
     ACE_DEBUG ((LM_DEBUG,
                 ACE_TEXT ("found video capture device \"%s\"\n"),
                 ACE_TEXT ((*iterator)->id ().c_str ())));
-#endif // _DEBUG
     const libcamera::ControlList& properties_r = (*iterator)->properties ();
     ACE_ASSERT (properties_r.contains(libcamera::properties::Model));
 
@@ -471,6 +472,7 @@ Stream_Device_Tools::defaultCaptureFormat (libcamera::Camera* camera_in)
   return return_value;
 }
 
+#if defined (FFMPEG_SUPPORT)
 struct Stream_MediaFramework_FFMPEG_VideoMediaType
 Stream_Device_Tools::convert (const struct Stream_MediaFramework_LibCamera_MediaType& format_in)
 {
@@ -487,6 +489,7 @@ Stream_Device_Tools::convert (const struct Stream_MediaFramework_LibCamera_Media
 
   return result;
 }
+#endif // FFMPEG_SUPPORT
 #endif // LIBCAMERA_SUPPORT
 
 bool
@@ -573,11 +576,9 @@ Stream_Device_Tools::getVideoCaptureDevices ()
                 ACE_TEXT (directory_string.c_str ())));
     return return_value;
   } // end IF
-#if defined (_DEBUG)
   if (unlikely (!entries.length ()))
     ACE_DEBUG ((LM_DEBUG,
                 ACE_TEXT ("no video capture devices found, continuing\n")));
-#endif // _DEBUG
 
   struct Stream_Device_Identifier device_identifier_s;
   struct v4l2_capability device_capabilities;
@@ -620,14 +621,12 @@ Stream_Device_Tools::getVideoCaptureDevices ()
                   file_descriptor, ACE_TEXT ("VIDIOC_QUERYCAP")));
       goto close;
     } // end IF
-#if defined (_DEBUG)
     ACE_DEBUG ((LM_DEBUG,
                 ACE_TEXT ("%s: found video capture device \"%s\" (driver: \"%s\") on bus \"%s\"\n"),
                 ACE_TEXT (device_file_path.c_str ()),
                 ACE_TEXT (reinterpret_cast<char*> (device_capabilities.card)),
                 ACE_TEXT (reinterpret_cast<char*> (device_capabilities.driver)),
                 ACE_TEXT (reinterpret_cast<char*> (device_capabilities.bus_info))));
-#endif // _DEBUG
 
     device_identifier_s.description =
         ACE_TEXT_ALWAYS_CHAR (reinterpret_cast<char*> (device_capabilities.card));
@@ -771,13 +770,11 @@ Stream_Device_Tools::getCaptureSubFormats (int fileDescriptor_in)
                   ACE_TEXT ("failed to v4l2_ioctl(%d,%s): \"%m\", continuing\n"),
                   fileDescriptor_in, ACE_TEXT ("VIDIOC_ENUM_FMT")));
     } // end IF
-#if defined (_DEBUG)
     ACE_DEBUG ((LM_DEBUG,
                 ACE_TEXT ("video capture device (fd: %d) has format \"%s\" [%d]\n"),
                 fileDescriptor_in,
                 ACE_TEXT (reinterpret_cast<char*> (fmtdesc_s.description)),
                 fmtdesc_s.pixelformat));
-#endif // _DEBUG
 
     return_value.push_back (std::make_pair (fmtdesc_s.pixelformat,
                                             reinterpret_cast<char*> (fmtdesc_s.description)));
@@ -821,13 +818,11 @@ Stream_Device_Tools::getCaptureResolutions (int fileDescriptor_in,
     } // end IF
     ACE_ASSERT (frmsizeenum_s.pixel_format == pixelFormat_in);
     ACE_ASSERT (frmsizeenum_s.type == V4L2_FRMSIZE_TYPE_DISCRETE);
-#if defined (_DEBUG)
     ACE_DEBUG ((LM_DEBUG,
                 ACE_TEXT ("video capture device (fd: %d, format: \"%s\") has resolution %dx%d\n"),
                 fileDescriptor_in,
                 ACE_TEXT (Stream_Device_Tools::formatToString (fileDescriptor_in, pixelFormat_in).c_str ()),
                 frmsizeenum_s.discrete.width, frmsizeenum_s.discrete.height));
-#endif // _DEBUG
     resolution_s.width = frmsizeenum_s.discrete.width;
     resolution_s.height = frmsizeenum_s.discrete.height;
     return_value.push_back (resolution_s);
@@ -876,15 +871,12 @@ Stream_Device_Tools::getCaptureFramerates (int fileDescriptor_in,
     ACE_ASSERT (frmivalenum_s.width == resolution_in.width);
     ACE_ASSERT (frmivalenum_s.height == resolution_in.height);
     ACE_ASSERT (frmivalenum_s.type == V4L2_FRMIVAL_TYPE_DISCRETE);
-#if defined (_DEBUG)
     ACE_DEBUG ((LM_DEBUG,
                 ACE_TEXT ("video capture device (fd: %d, format: \"%s\", resolution: %dx%d) has framerate %d/%d\n"),
                 fileDescriptor_in,
                 ACE_TEXT (Stream_Device_Tools::formatToString (fileDescriptor_in, pixelFormat_in).c_str ()),
                 resolution_in.width, resolution_in.height,
                 frmivalenum_s.discrete.denominator, frmivalenum_s.discrete.numerator));
-#endif // _DEBUG
-
     return_value.push_back (frmivalenum_s.discrete.denominator);
   } // end FOR
 
@@ -950,6 +942,7 @@ close:
   return return_value;
 }
 
+#if defined (FFMPEG_SUPPORT)
 struct Stream_MediaFramework_FFMPEG_VideoMediaType
 Stream_Device_Tools::convert (const struct Stream_MediaFramework_V4L_MediaType& format_in)
 {
@@ -966,6 +959,7 @@ Stream_Device_Tools::convert (const struct Stream_MediaFramework_V4L_MediaType& 
 
   return result;
 }
+#endif // FFMPEG_SUPPORT
 
 void
 Stream_Device_Tools::dump (int fileDescriptor_in)
@@ -1127,12 +1121,10 @@ Stream_Device_Tools::initializeCapture (int fileDescriptor_in,
     goto no_support;
   } // end IF
   numberOfBuffers_inout = request_buffers.count;
-#if defined (_DEBUG)
   ACE_DEBUG ((LM_DEBUG,
               ACE_TEXT ("allocated %d device (fd: %d) buffer slots\n"),
               numberOfBuffers_inout,
               fileDescriptor_in));
-#endif // _DEBUG
   return true;
 
 no_support:
@@ -1142,6 +1134,7 @@ no_support:
 
   return false;
 }
+
 bool
 Stream_Device_Tools::initializeOverlay (int fileDescriptor_in,
                                         const struct v4l2_window& window_in)
@@ -1434,6 +1427,7 @@ error:
 
   return false;
 }
+
 bool
 Stream_Device_Tools::getFormat (struct _snd_pcm* deviceHandle_in,
                                 struct Stream_MediaFramework_ALSA_MediaType& mediaType_out)
@@ -1655,6 +1649,7 @@ Stream_Device_Tools::setFormat (int fileDescriptor_in,
 
   return true;
 }
+
 bool
 Stream_Device_Tools::getFormat (int fileDescriptor_in,
                                 struct v4l2_format& format_out)
@@ -1681,6 +1676,7 @@ Stream_Device_Tools::getFormat (int fileDescriptor_in,
 
   return true;
 }
+
 bool
 Stream_Device_Tools::getFrameRate (int fileDescriptor_in,
                                    struct v4l2_fract& frameRate_out)
@@ -1722,6 +1718,7 @@ Stream_Device_Tools::getFrameRate (int fileDescriptor_in,
 
   return true;
 }
+
 bool
 Stream_Device_Tools::setFrameRate (int fileDescriptor_in,
                                    const struct v4l2_fract& frameRate_in)

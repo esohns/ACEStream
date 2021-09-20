@@ -18,18 +18,10 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-//#ifdef __cplusplus
-//extern "C"
-//{
-//#include "libswscale/swscale.h"
-//}
-//#endif /* __cplusplus */
-
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-#include "MagickWand/MagickWand.h"
-#else
-#include "wand/magick_wand.h"
+#include "magick/api.h"
 #endif // ACE_WIN32 || ACE_WIN64
+#include "wand/magick_wand.h"
 
 #include "ace/Log_Msg.h"
 
@@ -508,7 +500,7 @@ Stream_Visualization_ImageMagickResize1_T<ACE_SYNCH_USE,
   // initialize return value(s)
   passMessageDownstream_out = false;
 
-  MagickBooleanType result = MagickTrue;
+  unsigned int result = MagickTrue;
   unsigned char* data_p = NULL;
   size_t size_i = 0;
 #if defined (_DEBUG)
@@ -574,38 +566,42 @@ Stream_Visualization_ImageMagickResize1_T<ACE_SYNCH_USE,
   ACE_ASSERT (Stream_Module_Decoder_Tools::isRGB32 (message_data_r.format.format));
 #endif // ACE_WIN32 || ACE_WIN64
 
-  result =
-    MagickNewImage (inherited::context_,
+  result = MagickSetSize (inherited::context_,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-                    resolution_s.cx, resolution_s.cy,
+                          resolution_s.cx, resolution_s.cy);
 #else
-                    message_data_r.format.resolution.width, message_data_r.format.resolution.height,
+                          message_data_r.format.resolution.width, message_data_r.format.resolution.height);
 #endif // ACE_WIN32 || ACE_WIN64
-                    pixelContext_);
   ACE_ASSERT (result == MagickTrue);
+  result = MagickReadImage (inherited::context_,
+                            ACE_TEXT_ALWAYS_CHAR ("xc:black"));
+  ACE_ASSERT (result == MagickTrue);
+//  result =
+//    MagickNewImage (inherited::context_,
+//#if defined (ACE_WIN32) || defined (ACE_WIN64)
+//                    resolution_s.cx, resolution_s.cy,
+//#else
+//                    message_data_r.format.resolution.width, message_data_r.format.resolution.height,
+//#endif // ACE_WIN32 || ACE_WIN64
+//                    pixelContext_);
+//  ACE_ASSERT (result == MagickTrue);
 
   result =
-    MagickImportImagePixels (inherited::context_,
-                             0, 0,
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-                             resolution_s.cx, resolution_s.cy,
-#else
-                             message_data_r.format.resolution.width, message_data_r.format.resolution.height,
-#endif // ACE_WIN32 || ACE_WIN64
-                             ACE_TEXT_ALWAYS_CHAR ("RGBA"),
-                             CharPixel,
-                             message_inout->rd_ptr ());
-//  result = MagickReadImageBlob (inherited::context_,
-//                                 message_inout->rd_ptr (),
-//                                  message_inout->length ());
+    MagickReadImageBlob (inherited::context_,
+                         reinterpret_cast<unsigned char*> (message_inout->rd_ptr ()),
+                         message_inout->length ());
   ACE_ASSERT (result == MagickTrue);
-  //if (message_data_r.relinquishMemory)
-  //{
-  //  MagickRelinquishMemory (message_inout->rd_ptr ());
-  //  message_inout->base (NULL,
-  //                       0,
-  //                       0);
-  //} // end IF
+//  result =
+//    MagickImportImagePixels (inherited::context_,
+//                             0, 0,
+//#if defined (ACE_WIN32) || defined (ACE_WIN64)
+//                             resolution_s.cx, resolution_s.cy,
+//#else
+//                             message_data_r.format.resolution.width, message_data_r.format.resolution.height,
+//#endif // ACE_WIN32 || ACE_WIN64
+//                             ACE_TEXT_ALWAYS_CHAR ("RGBA"),
+//                             CharPixel,
+//                             message_inout->rd_ptr ());
   message_inout->release (); message_inout = NULL;
 
   result = MagickSetImageFormat (inherited::context_,
@@ -616,13 +612,12 @@ Stream_Visualization_ImageMagickResize1_T<ACE_SYNCH_USE,
     MagickResizeImage (inherited::context_,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
                        resolution_2.cx, resolution_2.cy,
-                       LanczosFilter);
 #else
                        inherited::configuration_->outputFormat.resolution.width,
                        inherited::configuration_->outputFormat.resolution.height,
-                       LanczosFilter,
-                       1);
 #endif // ACE_WIN32 || ACE_WIN64
+                       LanczosFilter,
+                       1.0);
   ACE_ASSERT (result == MagickTrue);
 
 //  // Set the compression quality to 95 (high quality = low compression)
@@ -633,8 +628,8 @@ Stream_Visualization_ImageMagickResize1_T<ACE_SYNCH_USE,
   ACE_ASSERT (Common_Image_Tools::stringToCodecId (MagickGetImageFormat (inherited::context_)) == AV_CODEC_ID_NONE);
 #endif // ACE_WIN32 || ACE_WIN64
 
-  data_p = MagickGetImageBlob (inherited::context_,
-                               &size_i);
+  data_p = MagickWriteImageBlob (inherited::context_,
+                                 &size_i);
   if (!data_p)
   {
     ACE_DEBUG ((LM_ERROR,

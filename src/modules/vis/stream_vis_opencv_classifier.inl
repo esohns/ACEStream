@@ -30,7 +30,7 @@
 
 #include "stream_macros.h"
 
-#include "stream_dec_tools.h"
+//#include "stream_dec_tools.h"
 
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,
@@ -83,7 +83,7 @@ Stream_Visualization_OpenCVClassifier_T<ACE_SYNCH_USE,
 
   if (inherited::isInitialized_)
   {
-    ACE_OS::memset (&mediaType_, 0, sizeof (struct Stream_MediaFramework_FFMPEG_VideoMediaType));
+    ACE_OS::memset (&mediaType_, 0, sizeof (MediaType));
   } // end IF
 
   bool result = false;
@@ -104,7 +104,6 @@ Stream_Visualization_OpenCVClassifier_T<ACE_SYNCH_USE,
                 ACE_TEXT (configuration_in.cascadeFile.c_str ())));
     return false;
   } // end IF
-
   ACE_DEBUG ((LM_DEBUG,
               ACE_TEXT ("%s: loaded cascade file \"%s\"\n"),
               inherited::mod_->name (),
@@ -135,9 +134,23 @@ Stream_Visualization_OpenCVClassifier_T<ACE_SYNCH_USE,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Visualization_OpenCVClassifier_T::handleDataMessage"));
 
+  // step0: convert image frame to matrix
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  struct _AMMediaType media_type_s;
+  inherited2::getMediaType (mediaType_,
+                            media_type_s);
+  Common_Image_Resolution_t resolution_s =
+    Stream_MediaFramework_DirectShow_Tools::toResolution (media_type_s);
+  cv::Mat frame_mat (resolution_s.cy,
+                     resolution_s.cx,
+                     Stream_Module_Decoder_Tools::mediaSubTypeToOpenCVFormat (media_type_s.subtype),
+#else
+#if defined (FFMPEG_SUPPORT)
   cv::Mat frame_mat (mediaType_.resolution.height,
                      mediaType_.resolution.width,
-                     Stream_Module_Decoder_Tools::pixelFormatToOpenCVFormat (mediaType_.format),
+                     Stream_Module_Decoder_Tools::AVPixelFormatToOpenCVFormat (mediaType_.format),
+#endif // FFMPEG_SUPPORT
+#endif // ACE_WIN32 || ACE_WIN64
                      message_inout->rd_ptr (),
                      cv::Mat::AUTO_STEP);
 

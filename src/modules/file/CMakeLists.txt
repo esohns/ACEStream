@@ -7,12 +7,11 @@ add_library (${PROJECT_NAME}_File STATIC "")
 get_filename_component (BUILD_PATH ${CMAKE_CURRENT_BINARY_DIR}/../../.. REALPATH)
 get_filename_component (BUILD_PATH_SUFFIX ${BUILD_PATH} NAME)
 
+if (IMAGEMAGICK_SUPPORT)
+ target_include_directories (${PROJECT_NAME}_File PUBLIC
+                             $<BUILD_INTERFACE:${ImageMagick_INCLUDE_DIRS}>)
+endif (IMAGEMAGICK_SUPPORT)
 if (UNIX)
- if (IMAGEMAGICK_SUPPORT)
-  target_include_directories (${PROJECT_NAME}_File PUBLIC
-                              "$<BUILD_INTERFACE:${ImageMagick_INCLUDE_DIRS}>")
- endif (IMAGEMAGICK_SUPPORT)
-
  target_include_directories (${PROJECT_NAME}_File PUBLIC
                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../modules/Common/${BUILD_PATH_SUFFIX}>)
  target_include_directories (${PROJECT_NAME}_File PUBLIC
@@ -22,13 +21,6 @@ if (UNIX)
  target_include_directories (${PROJECT_NAME}_File PUBLIC
                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../modules/Common/src/timer>)
 elseif (WIN32)
- target_include_directories (${PROJECT_NAME}_File PUBLIC
-                             $<BUILD_INTERFACE:$ENV{LIB_ROOT}/ffmpeg/include>)
- if (IMAGEMAGICK_SUPPORT)
-  target_include_directories (${PROJECT_NAME}_File PUBLIC
-                              $<BUILD_INTERFACE:$ENV{LIB_ROOT}/ImageMagick/include>)
- endif (IMAGEMAGICK_SUPPORT)
-
  target_include_directories (${PROJECT_NAME}_File PUBLIC
                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../Common/${BUILD_PATH_SUFFIX}>)
  target_include_directories (${PROJECT_NAME}_File PUBLIC
@@ -87,14 +79,14 @@ endif ()
 add_dependencies (${PROJECT_NAME}_File ${PROJECT_NAME})
 
 if (IMAGEMAGICK_SUPPORT)
- target_link_libraries (${PROJECT_NAME}_File ${ImageMagick_LIBRARIES})
+ target_link_libraries (${PROJECT_NAME}_File PUBLIC ${ImageMagick_LIBRARIES})
 endif (IMAGEMAGICK_SUPPORT)
 
-target_link_libraries (${PROJECT_NAME}_File ${ACE_LIBRARY})
+target_link_libraries (${PROJECT_NAME}_File PUBLIC ${ACE_LIBRARY})
 
-target_link_libraries (${PROJECT_NAME}_File Common)
+target_link_libraries (${PROJECT_NAME}_File PUBLIC Common)
 
-target_link_libraries (${PROJECT_NAME}_File ${PROJECT_NAME})
+target_link_libraries (${PROJECT_NAME}_File PUBLIC ${PROJECT_NAME})
 
 #set_target_properties (${PROJECT_NAME}_File PROPERTIES DEFINE_SYMBOL STREAM_FILE_BUILD_DLL)
 #set_target_properties (${PROJECT_NAME}_File PROPERTIES VERSION ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_MICRO} SOVERSION 1)

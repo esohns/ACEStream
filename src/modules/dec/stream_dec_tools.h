@@ -192,9 +192,14 @@ class Stream_Module_Decoder_Tools
                      unsigned int, // #'data' samples to write
                      double&);     // in/out: current phase
 
-#if defined (FFMPEG_SUPPORT) && defined (OPENCV_SUPPORT)
-  static int pixelFormatToOpenCVFormat (enum AVPixelFormat);
-#endif // FFMPEG_SUPPORT && OPENCV_SUPPORT
+#if defined (OPENCV_SUPPORT)
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  static int mediaSubTypeToOpenCVFormat (REFGUID);
+#endif // ACE_WIN32 || ACE_WIN64
+#if defined (FFMPEG_SUPPORT)
+  static int AVPixelFormatToOpenCVFormat (enum AVPixelFormat);
+#endif // FFMPEG_SUPPORT
+#endif // OPENCV_SUPPORT
 
  private:
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_Decoder_Tools ())

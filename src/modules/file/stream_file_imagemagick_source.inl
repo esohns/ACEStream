@@ -19,7 +19,7 @@
  ***************************************************************************/
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-#include "MagickWand/MagickWand.h"
+#include "magick/api.h"
 #else
 #include "wand/magick_wand.h"
 #endif // ACE_WIN32 || ACE_WIN64
@@ -76,7 +76,7 @@ Stream_File_ImageMagick_Source_T<ACE_SYNCH_USE,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_File_ImageMagick_Source_T::Stream_File_ImageMagick_Source_T"));
 
-  MagickWandGenesis ();
+  //MagickWandGenesis ();
 }
 
 template <ACE_SYNCH_DECL,
@@ -112,7 +112,7 @@ Stream_File_ImageMagick_Source_T<ACE_SYNCH_USE,
                 ACE_TEXT ("%s: failed to ACE_Dirent_Selector::close(): \"%m\", continuing\n"),
                 inherited::mod_->name ()));
 
-  MagickWandTerminus ();
+  //MagickWandTerminus ();
 }
 
 template <ACE_SYNCH_DECL,
@@ -239,7 +239,7 @@ Stream_File_ImageMagick_Source_T<ACE_SYNCH_USE,
   int file_index_i = 0;
   std::string file_path_string;
   size_t file_size_i = 0;
-  MagickBooleanType result_3 = MagickTrue;
+  unsigned int result_3 = MagickTrue;
   unsigned char* data_p = NULL;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   struct _AMMediaType media_type_s;
@@ -402,8 +402,8 @@ done:
     result_3 = MagickSetImageFormat (context_, "RGBA");
     ACE_ASSERT (result_3 == MagickTrue);
 
-    data_p = MagickGetImageBlob (context_,
-                                 &file_size_i);
+    data_p = MagickWriteImageBlob (context_,
+                                   &file_size_i);
     ACE_ASSERT (data_p);
 
 //#if defined (_DEBUG)

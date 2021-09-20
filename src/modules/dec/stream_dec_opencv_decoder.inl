@@ -26,6 +26,7 @@
 //#include "opencv2/ml.hpp"
 
 #include "ace/Log_Msg.h"
+#include "ace/OS.h"
 
 #include "stream_macros.h"
 
@@ -81,7 +82,7 @@ Stream_Decoder_OpenCVDecoder_T<ACE_SYNCH_USE,
 
   if (inherited::isInitialized_)
   {
-    ACE_OS::memset (&mediaType_, 0, sizeof (struct Stream_MediaFramework_FFMPEG_VideoMediaType));
+    ACE_OS::memset (&mediaType_, 0, sizeof (MediaType));
   } // end IF
 
   return inherited::initialize (configuration_in,
@@ -109,9 +110,22 @@ Stream_Decoder_OpenCVDecoder_T<ACE_SYNCH_USE,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Decoder_OpenCVDecoder_T::handleDataMessage"));
 
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  struct _AMMediaType media_type_s;
+  inherited2::getMediaType (mediaType_,
+                            media_type_s);
+  Common_Image_Resolution_t resolution_s =
+    Stream_MediaFramework_DirectShow_Tools::toResolution (media_type_s);
+  cv::Mat frame_mat (resolution_s.cy,
+                     resolution_s.cx,
+                     Stream_Module_Decoder_Tools::mediaSubTypeToOpenCVFormat (media_type_s.subtype),
+#else
+#if defined (FFMPEG_SUPPORT)
   cv::Mat frame_mat (mediaType_.resolution.height,
                      mediaType_.resolution.width,
-                     Stream_Module_Decoder_Tools::pixelFormatToOpenCVFormat (mediaType_.format),
+                     Stream_Module_Decoder_Tools::AVPixelFormatToOpenCVFormat (mediaType_.format),
+#endif // FFMPEG_SUPPORT
+#endif // ACE_WIN32 || ACE_WIN64
                      message_inout->rd_ptr (),
                      cv::Mat::AUTO_STEP);
 //  cv::Mat image_BGR;

@@ -18,21 +18,13 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#ifdef __cplusplus
-extern "C"
-{
-#include "libavcodec/avcodec.h"
-#include "libavutil/pixfmt.h"
-}
-#endif /* __cplusplus */
-
 #include "ace/Log_Msg.h"
 
 #include "common_parser_defines.h"
 
 #include "stream_macros.h"
 
-#include "stream_dec_tools.h"
+//#include "stream_dec_tools.h"
 
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,
@@ -503,8 +495,7 @@ continue_:
     {
       if (buffer_)
       {
-        buffer_->release ();
-        buffer_ = NULL;
+        buffer_->release (); buffer_ = NULL;
       } // end IF
 
       break;

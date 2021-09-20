@@ -34,8 +34,6 @@
 
 #include "common_iinitialize.h"
 
-//#include "common_time_common.h"
-
 #include "common_ui_ifullscreen.h"
 #include "common_ui_windowtype_converter.h"
 

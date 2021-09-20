@@ -20,32 +20,19 @@ if (UNIX)
   message (WARNING "OO_SDK_HOME|UNO_PATH not set, falling back to ${OO_SDK_DIRECTORY}")
  endif ()
  if (NOT EXISTS ${OO_SDK_DIRECTORY})
-  message (FATAL_ERROR "OpenOffice SDK directory not found (was: \"${OO_SDK_DIRECTORY}\"), aborting")
+  message (WARNING "OpenOffice SDK directory not found (was: \"${OO_SDK_DIRECTORY}\"), continuing")
  endif (NOT EXISTS ${OO_SDK_DIRECTORY})
  set (LIBREOFFICE_SAL_LIB_FILE libuno_sal.so)
  find_library (LIBREOFFICE_SAL_LIBRARY ${LIBREOFFICE_SAL_LIB_FILE}
                PATHS ${OO_SDK_DIRECTORY}
                PATH_SUFFIXES lib
                DOC "searching for \"${LIBREOFFICE_SAL_LIB_FILE}\"")
- if (NOT LIBREOFFICE_SAL_LIBRARY)
-  set (LIBREOFFICE_FOUND FALSE)
- else ()
+ if (LIBREOFFICE_SAL_LIBRARY)
   set (LIBREOFFICE_FOUND TRUE)
- endif ()
+ endif (LIBREOFFICE_SAL_LIBRARY)
 # if (PKG_LIBREOFFICE_FOUND)
 #  set (LIBREOFFICE_FOUND TRUE)
 # endif (PKG_LIBREOFFICE_FOUND)
- 
- if (LIBREOFFICE_FOUND)
-  add_definitions (-DLIBREOFFICE_SUPPORT)
-  option (LIBREOFFICE_SUPPORT "enable libreoffice support" ON)
-
-  add_definitions (-DSAL_UNX) # libreoffice
-  add_definitions (-DUNX)     # openoffice
-  add_definitions (-DCPPU_ENV=gcc3)
-
-  set (PKG_LIBREOFFICE_LIBRARIES "${LIBREOFFICE_SAL_LIBRARY};${OO_SDK_DIRECTORY}/../program/libgcc3_uno.so;${OO_SDK_DIRECTORY}/lib/libuno_cppu.so;${OO_SDK_DIRECTORY}/../program/libstorelo.so;${OO_SDK_DIRECTORY}/../program/libreglo.so;${OO_SDK_DIRECTORY}/../program/libxmlreaderlo.so;${OO_SDK_DIRECTORY}/../program/libunoidllo.so;${OO_SDK_DIRECTORY}/lib/libuno_cppuhelpergcc3.so")
- endif (LIBREOFFICE_FOUND)
 elseif (WIN32)
  if (DEFINED ENV{OO_SDK_HOME})
   set (OO_SDK_DIRECTORY $ENV{OO_SDK_HOME})
@@ -62,25 +49,31 @@ elseif (WIN32)
                PATHS ${OO_SDK_DIRECTORY}
                PATH_SUFFIXES lib
                DOC "searching for \"${LIBREOFFICE_SAL_LIB_FILE}\"")
- if (NOT LIBREOFFICE_SAL_LIBRARY)
-  set (LIBREOFFICE_FOUND FALSE)
- else ()
+ if (LIBREOFFICE_SAL_LIBRARY)
   set (LIBREOFFICE_FOUND TRUE)
- endif ()
-
- if (LIBREOFFICE_FOUND)
+ endif (LIBREOFFICE_SAL_LIBRARY)
+endif ()
+if (LIBREOFFICE_FOUND)
+ option (LIBREOFFICE_SUPPORT "enable libreoffice support" ON)
+ if (LIBREOFFICE_SUPPORT)
   add_definitions (-DLIBREOFFICE_SUPPORT)
-  option (LIBREOFFICE_SUPPORT "enable libreoffice support" ON)
-
-  add_definitions (-DCPPU_ENV=msci)
-  add_definitions (-DWNT)
+  if (UNIX)
+   add_definitions (-DSAL_UNX) # libreoffice
+   add_definitions (-DUNX)     # openoffice
+   add_definitions (-DCPPU_ENV=gcc3)
+   set (PKG_LIBREOFFICE_INCLUDE_DIRS "/usr/include/libreoffice")
+   set (PKG_LIBREOFFICE_LIBRARIES "${LIBREOFFICE_SAL_LIBRARY};${OO_SDK_DIRECTORY}/../program/libgcc3_uno.so;${OO_SDK_DIRECTORY}/lib/libuno_cppu.so;${OO_SDK_DIRECTORY}/../program/libstorelo.so;${OO_SDK_DIRECTORY}/../program/libreglo.so;${OO_SDK_DIRECTORY}/../program/libxmlreaderlo.so;${OO_SDK_DIRECTORY}/../program/libunoidllo.so;${OO_SDK_DIRECTORY}/lib/libuno_cppuhelpergcc3.so")
+  elseif (WIN32)
+   add_definitions (-DCPPU_ENV=msci)
+   add_definitions (-DWNT)
 # *NOTE*: the OpenOffice SDK provides its own snprintf; however MSVC complains
 #         about mutliple definitions (and inconsistent linkage)
 #         --> disable that header and use the native function
-  if (MSVC)
-   add_definitions (-D_SNPRINTF_H)
-  endif (MSVC)
-
-  set (PKG_LIBREOFFICE_LIBRARIES "${LIBREOFFICE_SAL_LIBRARY};${OO_SDK_DIRECTORY}/lib/icppu.lib;${OO_SDK_DIRECTORY}/lib/icppuhelper.lib")
- endif (LIBREOFFICE_FOUND)
-endif ()
+   if (MSVC)
+    add_definitions (-D_SNPRINTF_H)
+   endif (MSVC)
+   set (PKG_LIBREOFFICE_INCLUDE_DIRS "${OO_SDK_DIRECTORY}/include")
+   set (PKG_LIBREOFFICE_LIBRARIES "${LIBREOFFICE_SAL_LIBRARY};${OO_SDK_DIRECTORY}/lib/icppu.lib;${OO_SDK_DIRECTORY}/lib/icppuhelper.lib")
+  endif ()
+ endif (LIBREOFFICE_SUPPORT)
+endif (LIBREOFFICE_FOUND)
