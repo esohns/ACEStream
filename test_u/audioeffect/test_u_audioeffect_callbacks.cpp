@@ -19,7 +19,6 @@
  ***************************************************************************/
 #include "stdafx.h"
 
-//#include "ace/Synch.h"
 #include "test_u_audioeffect_callbacks.h"
 
 #include <limits>
@@ -3294,7 +3293,7 @@ idle_initialize_UI_cb (gpointer userData_in)
                                                ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_TOGGLEBUTTON_3D_NAME)));
   ACE_ASSERT (toggle_button_p);
   gtk_toggle_button_set_active (toggle_button_p,
-    (mode_3d < STREAM_VISUALIZATION_SPECTRUMANALYZER_3DMODE_MAX));
+                                (mode_3d < STREAM_VISUALIZATION_SPECTRUMANALYZER_3DMODE_MAX));
 
   //GtkProgressBar* progress_bar_p =
   //  GTK_PROGRESS_BAR (gtk_builder_get_object ((*iterator).second.second,
