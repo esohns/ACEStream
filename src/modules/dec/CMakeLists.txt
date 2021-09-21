@@ -327,6 +327,7 @@ elseif (WIN32)
 # target_link_libraries (${PROJECT_NAME}_Decoder dxva2.lib)
  target_link_libraries (${PROJECT_NAME}_Decoder PUBLIC mfuuid.lib)
  target_link_libraries (${PROJECT_NAME}_Decoder PUBLIC strmiids.lib)
+ target_link_libraries (${PROJECT_NAME}_Decoder PUBLIC wmcodecdspuuid.lib)
  if (MSVC)
 #  message (STATUS "MSVC_VERSION: ${MSVC_VERSION}")
   if (MSVC_VERSION GREATER 1600)
@@ -355,6 +356,10 @@ target_link_libraries (${PROJECT_NAME}_Decoder PUBLIC Common)
 target_link_libraries (${PROJECT_NAME}_Decoder PUBLIC CommonImage)
 
 target_link_libraries (${PROJECT_NAME}_Decoder PUBLIC ${PROJECT_NAME})
+
+target_link_libraries (${PROJECT_NAME}_Decoder PUBLIC ${PROJECT_NAME}_Device)
+target_link_libraries (${PROJECT_NAME}_Decoder PUBLIC ${PROJECT_NAME}_HTML)
+target_link_libraries (${PROJECT_NAME}_Decoder PUBLIC ${PROJECT_NAME}_MediaFramework)
 
 #set_target_properties (${PROJECT_NAME}_Decoder PROPERTIES DEFINE_SYMBOL STREAM_DEC_BUILD_DLL)
 #set_target_properties (${PROJECT_NAME}_Decoder PROPERTIES VERSION ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_MICRO} SOVERSION 1)

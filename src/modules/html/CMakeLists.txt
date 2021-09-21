@@ -1,6 +1,6 @@
 add_library (${PROJECT_NAME}_HTML STATIC "")
 
-#get_filename_component (BUILD_PATH ${CMAKE_CURRENT_BINARY_DIR}/../../.. REALPATH DIRECTORY)
+#get_filename_component (BUILD_PATH ${CMAKE_CURRENT_BINARY_DIR}/../../.. REALPATH)
 #get_filename_component (BUILD_PATH_SUFFIX ${BUILD_PATH} NAME)
 
 include (FindPkgConfig)
@@ -79,10 +79,14 @@ add_dependencies (${PROJECT_NAME}_HTML Common)
 add_dependencies (${PROJECT_NAME}_HTML ${PROJECT_NAME})
 
 if (UNIX)
- target_link_libraries (${PROJECT_NAME}_HTML ${PKG_LIBXML2_LIBRARIES})
-endif (UNIX)
-target_link_libraries (${PROJECT_NAME}_HTML Common)
-target_link_libraries (${PROJECT_NAME}_HTML ${PROJECT_NAME})
+ target_link_libraries (${PROJECT_NAME}_HTML PUBLIC ${PKG_LIBXML2_LIBRARIES})
+elseif (WIN32)
+ target_link_libraries (${PROJECT_NAME}_HTML PUBLIC $ENV{LIB_ROOT}/libxml2/lib/libxml2.lib)
+endif ()
+
+target_link_libraries (${PROJECT_NAME}_HTML PUBLIC Common)
+
+target_link_libraries (${PROJECT_NAME}_HTML PUBLIC ${PROJECT_NAME})
 
 #set_target_properties (${PROJECT_NAME}_HTML PROPERTIES DEFINE_SYMBOL STREAM_HTML_BUILD_DLL)
 #set_target_properties (${PROJECT_NAME}_HTML PROPERTIES VERSION ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_MICRO} SOVERSION 1)
