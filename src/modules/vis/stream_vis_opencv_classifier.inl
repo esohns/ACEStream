@@ -30,7 +30,7 @@
 
 #include "stream_macros.h"
 
-//#include "stream_dec_tools.h"
+#include "stream_dec_tools.h"
 
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,

@@ -171,7 +171,6 @@ class Stream_Device_Tools
   static bool setFrameRate (int,                       // file descriptor
                             const struct v4l2_fract&); // frame rate (in time-per-frame (s))
 
-  inline static std::string formatToString (__u32 format_in) { std::string result; result += ((char)(format_in & 0x000000FF)); result += ((char)((format_in >> 8) & 0x000000FF)); result += ((char)((format_in >> 16) & 0x000000FF)); result += ((char)((format_in >> 24) & 0x000000FF)); return result; }
   static std::string formatToString (int,    // file descriptor
                                      __u32); // format (fourcc)
 #endif // ACE_WIN32 || ACE_WIN64

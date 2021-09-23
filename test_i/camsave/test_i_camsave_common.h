@@ -655,8 +655,10 @@ struct Stream_CamSave_V4L_ModuleHandlerConfiguration
    , area ()
 #endif // GUI_SUPPORT
    , buffers (STREAM_LIB_V4L_DEFAULT_DEVICE_BUFFERS)
+#if defined (FFMPEG_SUPPORT)
    , codecFormat (AV_PIX_FMT_NONE)
    , codecId (AV_CODEC_ID_NONE)
+#endif // FFMPEG_SUPPORT
    , method (STREAM_LIB_V4L_DEFAULT_IO_METHOD)
    , outputFormat ()
    , subscriber (NULL)
@@ -673,19 +675,21 @@ struct Stream_CamSave_V4L_ModuleHandlerConfiguration
     deviceIdentifier.identifier +=
       ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_DEFAULT_VIDEO_DEVICE);
 
-    ACE_OS::memset (&outputFormat, 0, sizeof (struct Stream_MediaFramework_FFMPEG_VideoMediaType));
+    ACE_OS::memset (&outputFormat, 0, sizeof (struct Stream_MediaFramework_V4L_MediaType));
   }
 
 #if defined (GUI_SUPPORT)
-  struct v4l2_rect                              area;
+  struct v4l2_rect                           area;
 #endif // GUI_SUPPORT
-  __u32                                         buffers; // v4l device buffers
-  enum AVPixelFormat                            codecFormat; // preferred output-
-  enum AVCodecID                                codecId;
-  enum v4l2_memory                              method; // v4l camera source
-  struct Stream_MediaFramework_FFMPEG_VideoMediaType outputFormat;
-  Stream_CamSave_V4L_ISessionNotify_t*          subscriber;
-  Stream_CamSave_V4L_Subscribers_t*             subscribers;
+  __u32                                      buffers; // v4l device buffers
+#if defined (FFMPEG_SUPPORT)
+  enum AVPixelFormat                         codecFormat; // preferred output-
+  enum AVCodecID                             codecId;
+#endif // FFMPEG_SUPPORT
+  enum v4l2_memory                           method; // v4l camera source
+  struct Stream_MediaFramework_V4L_MediaType outputFormat;
+  Stream_CamSave_V4L_ISessionNotify_t*       subscriber;
+  Stream_CamSave_V4L_Subscribers_t*          subscribers;
 };
 #if defined (LIBCAMERA_SUPPORT)
 struct Stream_CamSave_LibCamera_StreamConfiguration;
@@ -698,20 +702,24 @@ struct Stream_CamSave_LibCamera_ModuleHandlerConfiguration
 {
   Stream_CamSave_LibCamera_ModuleHandlerConfiguration ()
    : Stream_CamSave_ModuleHandlerConfiguration ()
+#if defined (FFMPEG_SUPPORT)
    , codecFormat (AV_PIX_FMT_NONE)
    , codecId (AV_CODEC_ID_NONE)
+#endif // FFMPEG_SUPPORT
    , outputFormat ()
    , subscriber (NULL)
    , subscribers (NULL)
   {
-    ACE_OS::memset (&outputFormat, 0, sizeof (struct Stream_MediaFramework_FFMPEG_VideoMediaType));
+    ACE_OS::memset (&outputFormat, 0, sizeof (struct Stream_MediaFramework_LibCamera_MediaType));
   }
 
-  enum AVPixelFormat                                 codecFormat; // preferred output-
-  enum AVCodecID                                     codecId;
-  struct Stream_MediaFramework_FFMPEG_VideoMediaType outputFormat;
-  Stream_CamSave_LibCamera_ISessionNotify_t*         subscriber;
-  Stream_CamSave_LibCamera_Subscribers_t*            subscribers;
+#if defined (FFMPEG_SUPPORT)
+  enum AVPixelFormat                               codecFormat; // preferred output-
+  enum AVCodecID                                   codecId;
+#endif // FFMPEG_SUPPORT
+  struct Stream_MediaFramework_LibCamera_MediaType outputFormat;
+  Stream_CamSave_LibCamera_ISessionNotify_t*       subscriber;
+  Stream_CamSave_LibCamera_Subscribers_t*          subscribers;
 };
 #endif // LIBCAMERA_SUPPORT
 #endif // ACE_WIN32 || ACE_WIN64

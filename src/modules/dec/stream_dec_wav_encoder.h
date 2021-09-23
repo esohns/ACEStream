@@ -27,7 +27,9 @@
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
 //#include <sndfile.h>
+#if defined (SOX_SUPPORT)
 #include "sox.h"
+#endif // SOX_SUPPORT
 #endif // ACE_WIN32 || ACE_WIN64
 
 #include "stream_dec_avi_encoder.h"
@@ -118,10 +120,12 @@ class Stream_Decoder_WAVEncoder_T
   //         modules of the processing stream (i.e. reader-side processing)
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
+#if defined (SOX_SUPPORT)
   struct sox_encodinginfo_t encodingInfo_;
   struct sox_signalinfo_t   signalInfo_;
 
   struct sox_format_t*      outputFile_;
+#endif // SOX_SUPPORT
 #endif // ACE_WIN32 || ACE_WIN64
 };
 

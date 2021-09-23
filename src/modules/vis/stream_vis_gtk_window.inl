@@ -203,18 +203,16 @@ Stream_Module_Vis_GTK_Window_T<ACE_SYNCH_USE,
       // *TODO*: remove type inference
       ACE_ASSERT (inherited::configuration_);
       ACE_ASSERT (!window_ && !mainLoop_);
-//      ACE_ASSERT (Common_UI_GTK_Tools::GTKInitialized);
+      Common_Image_Resolution_t resolution_s =
+        inherited2::getResolution (inherited::configuration_->outputFormat);
 
       gdk_threads_enter ();
 
       GdkWindowAttr attributes_a;
       gint attributes_mask;
-
       attributes_a.window_type = GDK_WINDOW_TOPLEVEL;
-      attributes_a.width =
-          inherited::configuration_->outputFormat.resolution.width;
-      attributes_a.height =
-          inherited::configuration_->outputFormat.resolution.height;
+      attributes_a.width = resolution_s.width;
+      attributes_a.height = resolution_s.height;
       attributes_a.wclass = GDK_INPUT_OUTPUT;
 #if GTK_CHECK_VERSION (3,0,0)
 #else

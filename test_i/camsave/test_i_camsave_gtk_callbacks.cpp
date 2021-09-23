@@ -2543,9 +2543,9 @@ idle_initialize_UI_cb (gpointer userData_in)
         !(*iterator_3).second.second.deviceIdentifier.identifier.empty ();
     is_fullscreen_b = (*iterator_3).second.second.fullScreen;
 
-    (*iterator_3).second.second.outputFormat.resolution.height =
+    (*iterator_3).second.second.outputFormat.format.height =
       resolution_s.height;
-    (*iterator_3).second.second.outputFormat.resolution.width =
+    (*iterator_3).second.second.outputFormat.format.width =
       resolution_s.width;
 //    buffer_size_i =
 //      ui_cb_data_p->configuration->v4l_streamConfiguration.configuration_->allocatorConfiguration->defaultBufferSize;
@@ -3053,9 +3053,8 @@ idle_initialize_UI_cb (gpointer userData_in)
 //  ACE_ASSERT ((*iterator_2).second.second.window);
   ACE_ASSERT ((*iterator_3).second.second.window);
 
-  (*iterator_4).second.second.outputFormat.resolution.height =
-      allocation.height;
-  (*iterator_4).second.second.outputFormat.resolution.width = allocation.width;
+  (*iterator_4).second.second.outputFormat.format.height = allocation.height;
+  (*iterator_4).second.second.outputFormat.format.width = allocation.width;
 //  (*iterator_2).second.second.area =
 //      (*iterator_3).second.second.area;
 
@@ -5837,8 +5836,8 @@ combobox_resolution_changed_cb (GtkWidget* widget_in,
     Stream_CamSave_V4L_StreamConfiguration_t::ITERATOR_T iterator_2 =
       ui_cb_data_p->configuration->v4l_streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
     ACE_ASSERT (iterator_2 != ui_cb_data_p->configuration->v4l_streamConfiguration.end ());
-    (*iterator_2).second.second.outputFormat.resolution.height = height;
-    (*iterator_2).second.second.outputFormat.resolution.width = width;
+    (*iterator_2).second.second.outputFormat.format.height = height;
+    (*iterator_2).second.second.outputFormat.format.width = width;
   } // end ELSE
 #endif // ACE_WIN32 || ACE_WIN64
 
@@ -6518,10 +6517,8 @@ drawing_area_resize_end (gpointer userData_in)
   Stream_CamSave_V4L_StreamConfiguration_t::ITERATOR_T iterator_4 =
     ui_cb_data_p->configuration->v4l_streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_LIBAV_RESIZE_DEFAULT_NAME_STRING));
   ACE_ASSERT (iterator_4 != ui_cb_data_p->configuration->v4l_streamConfiguration.end ());
-  (*iterator_4).second.second.outputFormat.resolution.height =
-    allocation_s.height;
-  (*iterator_4).second.second.outputFormat.resolution.width =
-    allocation_s.width;
+  (*iterator_4).second.second.outputFormat.format.height = allocation_s.height;
+  (*iterator_4).second.second.outputFormat.format.width = allocation_s.width;
 #endif // ACE_WIN32 || ACE_WIN64
 
   ACE_DEBUG ((LM_DEBUG,

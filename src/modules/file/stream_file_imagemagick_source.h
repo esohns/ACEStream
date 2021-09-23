@@ -68,12 +68,7 @@ class Stream_File_ImageMagick_Source_T
                                       StatisticContainerType,
                                       TimerManagerType,
                                       UserDataType>
- , public Stream_MediaFramework_MediaTypeConverter_T<MediaType
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-                                                    >
-#else
-                                                     ,typename SessionMessageType::DATA_T::DATA_T>
-#endif // ACE_WIN32 || ACE_WIN64
+ , public Stream_MediaFramework_MediaTypeConverter_T<MediaType>
 {
   typedef Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
                                       Common_TimePolicy_t,
@@ -89,12 +84,7 @@ class Stream_File_ImageMagick_Source_T
                                       StatisticContainerType,
                                       TimerManagerType,
                                       UserDataType> inherited;
-  typedef Stream_MediaFramework_MediaTypeConverter_T<MediaType
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-                                                    > inherited2;
-#else
-                                                     ,typename SessionMessageType::DATA_T::DATA_T> inherited2;
-#endif // ACE_WIN32 || ACE_WIN64
+  typedef Stream_MediaFramework_MediaTypeConverter_T<MediaType> inherited2;
 
  public:
   // *TODO*: on MSVC 2015u3 the accurate declaration does not compile

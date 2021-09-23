@@ -244,8 +244,10 @@ Stream_File_ImageMagick_Source_T<ACE_SYNCH_USE,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   struct _AMMediaType media_type_s;
 #else
+#if defined (FFMPEG_SUPPORT)
   struct Stream_MediaFramework_FFMPEG_VideoMediaType media_type_s;
   media_type_s.format = AV_PIX_FMT_BGRA;
+#endif // FFMPEG_SUPPORT
 #endif // ACE_WIN32 || ACE_WIN64
   MediaType media_type_2;
 
@@ -395,8 +397,10 @@ done:
     Stream_MediaFramework_DirectShow_Tools::setResolution (resolution_s,
                                                            media_type_s);
 #else
+#if defined (FFMPEG_SUPPORT)
     media_type_s.resolution.width = MagickGetImageWidth (context_);
     media_type_s.resolution.height = MagickGetImageHeight (context_);
+#endif // FFMPEG_SUPPORT
 #endif // ACE_WIN32 || ACE_WIN64
 
     result_3 = MagickSetImageFormat (context_, "RGBA");
@@ -433,11 +437,15 @@ done:
                      file_size_i,
                      ACE_Message_Block::DONT_DELETE); // own image datas
     message_p->wr_ptr (file_size_i);
+#if defined (FFMPEG_SUPPORT)
     inherited2::getMediaType (media_type_s,
                               media_type_2);
+#endif // FFMPEG_SUPPORT
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
+#if defined (FFMPEG_SUPPORT)
     media_type_2.codec = AV_CODEC_ID_NONE;
+#endif // FFMPEG_SUPPORT
 #endif // ACE_WIN32 || ACE_WIN64
     message_data_s.format = media_type_2;
     message_data_s.relinquishMemory = data_p;

@@ -506,12 +506,14 @@ Stream_Module_Vis_Wayland_Window_T<ACE_SYNCH_USE,
 //  int y =
 //      (inherited::configuration_->fullScreen ? inherited::configuration_->display.clippingArea.y
 //                                             : 0);
+  Common_Image_Resolution_t resolution_s =
+      inherited2::getResolution (configuration_in.outputFormat);
   unsigned int width_i =
       (configuration_in.fullScreen ? configuration_in.display.clippingArea.width
-                                   : configuration_in.outputFormat.resolution.width);
+                                   : resolution_s.width);
   unsigned int height_i =
       (configuration_in.fullScreen ? configuration_in.display.clippingArea.height
-                                   : configuration_in.outputFormat.resolution.height);
+                                   : resolution_s.height);
 
   struct wl_shm_pool* pool_p = NULL;
   int fd, size, stride;

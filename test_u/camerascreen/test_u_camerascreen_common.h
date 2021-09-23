@@ -41,6 +41,7 @@
 
 #include "X11/Xlib.h"
 
+#if defined (FFMPEG_SUPPORT)
 #ifdef __cplusplus
 extern "C"
 {
@@ -48,6 +49,7 @@ extern "C"
 #include "libavutil/pixfmt.h"
 }
 #endif // __cplusplus
+#endif // FFMPEG_SUPPORT
 #endif // ACE_WIN32 || ACE_WIN64
 
 #include "ace/Singleton.h"
@@ -72,7 +74,7 @@ extern "C"
 #include "stream_lib_directdraw_common.h"
 #include "stream_lib_directshow_tools.h"
 #else
-#include "stream_lib_ffmpeg_common.h"
+#include "stream_lib_v4l_common.h"
 #endif // ACE_WIN32 || ACE_WIN64
 
 #include "stream_dev_common.h"
@@ -527,8 +529,10 @@ struct Stream_CameraScreen_V4L_ModuleHandlerConfiguration
   Stream_CameraScreen_V4L_ModuleHandlerConfiguration ()
    : Stream_CameraScreen_ModuleHandlerConfiguration ()
    , buffers (STREAM_LIB_V4L_DEFAULT_DEVICE_BUFFERS)
+#if defined (FFMPEG_SUPPORT)
    , codecFormat (AV_PIX_FMT_NONE)
    , codecId (AV_CODEC_ID_NONE)
+#endif // FFMPEG_SUPPORT
    , method (STREAM_LIB_V4L_DEFAULT_IO_METHOD)
    , outputFormat ()
    , subscriber (NULL)
@@ -543,15 +547,17 @@ struct Stream_CameraScreen_V4L_ModuleHandlerConfiguration
     ACE_OS::memset (&outputFormat, 0, sizeof (struct Stream_MediaFramework_V4L_MediaType));
   }
 
-  __u32                                              buffers; // v4l device buffers
-  enum AVPixelFormat                                 codecFormat; // preferred output-
-  enum AVCodecID                                     codecId;
-  enum v4l2_memory                                   method; // v4l camera source
-  struct Stream_MediaFramework_FFMPEG_VideoMediaType outputFormat;
-  Stream_CameraScreen_ISessionNotify_t*              subscriber;
-  Stream_CameraScreen_Subscribers_t*                 subscribers;
-  struct wl_shell_surface*                           surface;
-  struct wl_display*                                 waylandDisplay;
+  __u32                                      buffers; // v4l device buffers
+#if defined (FFMPEG_SUPPORT)
+  enum AVPixelFormat                         codecFormat; // preferred output-
+  enum AVCodecID                             codecId;
+#endif // FFMPEG_SUPPORT
+  enum v4l2_memory                           method; // v4l camera source
+  struct Stream_MediaFramework_V4L_MediaType outputFormat;
+  Stream_CameraScreen_ISessionNotify_t*      subscriber;
+  Stream_CameraScreen_Subscribers_t*         subscribers;
+  struct wl_shell_surface*                   surface;
+  struct wl_display*                         waylandDisplay;
 };
 #endif // ACE_WIN32 || ACE_WIN64
 

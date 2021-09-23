@@ -37,21 +37,22 @@
 #include "uuids.h"
 #endif // UUIDS_H
 #else
+#if defined (FFMPEG_SUPPORT)
+#ifdef __cplusplus
 extern "C"
 {
+#endif // __cplusplus
 #include "libavformat/avformat.h"
 #include "libavformat/avio.h"
 //#include "libavformat/raw.h"
 //#include "libavformat/riff.h"
+#include "libavutil/pixfmt.h"
+#include "libavutil/rational.h"
+#ifdef __cplusplus
 }
+#endif // __cplusplus
+#endif // FFMPEG_SUPPORT
 #endif // ACE_WIN32 || ACE_WIN64
-//extern "C"
-//{
-//#include "libavcodec/avcodec.h"
-//#include "libavutil/frame.h"
-//#include "libavutil/imgutils.h"
-//#include "libavutil/rational.h"
-//}
 
 #include "ace/Log_Msg.h"
 
@@ -67,6 +68,9 @@ extern "C"
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #include "stream_lib_directshow_tools.h"
 #else
+#if defined (FFMPEG_SUPPORT)
+#include "stream_lib_ffmpeg_common.h"
+#endif // FFMPEG_SUPPORT
 #include "stream_lib_tools.h"
 #endif // ACE_WIN32 || ACE_WIN64
 
@@ -454,6 +458,7 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
+#if defined (FFMPEG_SUPPORT)
   int result = -1;
 
   if (formatContext_)
@@ -470,6 +475,7 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
       } // end IF
     avformat_free_context (formatContext_); formatContext_ = NULL;
   } // end IF
+#endif // FFMPEG_SUPPORT
 #endif // ACE_WIN32 || ACE_WIN64
 }
 
@@ -502,13 +508,10 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
   {
     isActive_ = true;
     isFirst_ = true;
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
     ACE_OS::memset (&format_, 0, sizeof (MediaType));
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
-    format_.format = AV_PIX_FMT_NONE;
-    format_.resolution.width = 0;
-    format_.resolution.height = 0;
-
+#if defined (FFMPEG_SUPPORT)
     int result = -1;
     if (formatContext_)
     {
@@ -525,6 +528,7 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
 
       avformat_free_context (formatContext_); formatContext_ = NULL;
     } // end IF
+#endif // FFMPEG_SUPPORT
 #endif // ACE_WIN32 || ACE_WIN64
     frameSize_ = 0;
     currentFrameOffset_ = 0;
@@ -538,9 +542,7 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
-//  av_register_all ();
-//  avcodec_register_all ();
-
+#if defined (FFMPEG_SUPPORT)
   struct AVOutputFormat* output_format_p =
       av_guess_format (ACE_TEXT_ALWAYS_CHAR ("avi"), // short name
                        NULL,                         // file name
@@ -577,6 +579,7 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
 //    return false;
 //  } // end IF
   ACE_ASSERT (formatContext_->oformat);
+#endif // FFMPEG_SUPPORT
 #endif // ACE_WIN32 || ACE_WIN64
 
   return inherited::initialize (configuration_in,
@@ -787,7 +790,9 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
       struct _AMMediaType media_type_s;
       ACE_OS::memset (&media_type_s, 0, sizeof (struct _AMMediaType));
 #else
+#if defined (FFMPEG_SUPPORT)
       struct Stream_MediaFramework_FFMPEG_VideoMediaType media_type_s;
+#endif // FFMPEG_SUPPORT
 #endif // ACE_WIN32 || ACE_WIN64
       inherited2:: getMediaType (session_data_r.formats.back (),
                                  media_type_s);
@@ -797,17 +802,22 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
         Stream_MediaFramework_DirectShow_Tools::toFramesize (media_type_s);
 #else
+#if defined (FFMPEG_SUPPORT)
         av_image_get_buffer_size (media_type_s.format,
-                                  media_type_s.resolution.width, format_.resolution.height,
+                                  media_type_s.resolution.width, media_type_s.resolution.height,
                                   1); // *TODO*: linesize alignment
+#else
+        0; ACE_ASSERT (false); ACE_NOTSUP; // *TODO*
+#endif // FFMPEG_SUPPORT
 #endif // ACE_WIN32 || ACE_WIN64
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
-      //enum AVCodecID codec_id = AV_CODEC_ID_RAWVIDEO; // RGB
-      //struct AVCodec* codec_p = NULL;
-      //struct AVCodecContext* codec_context_p = NULL;
-      //struct AVStream* stream_p = NULL;
+#if defined (FFMPEG_SUPPORT)
+      enum AVCodecID codec_id = AV_CODEC_ID_RAWVIDEO; // RGB
+      struct AVCodec* codec_p = NULL;
+      struct AVCodecContext* codec_context_p = NULL;
+      struct AVStream* stream_p = NULL;
 //      int flags = (SWS_FAST_BILINEAR | SWS_ACCURATE_RND);
       //                 SWS_LANCZOS | SWS_ACCURATE_RND);
 //      unsigned int bits_per_sample = 24;
@@ -818,7 +828,7 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
       ACE_ASSERT (formatContext_->oformat);
 
       formatContext_->oformat->audio_codec = AV_CODEC_ID_NONE;
-      switch (format_.format)
+      switch (media_type_s.format)
       {
         // RGB formats
         case AV_PIX_FMT_RGB24:
@@ -857,7 +867,7 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("%s: invalid/unknown AVI pixel format (was: %s), returning\n"),
                       inherited::mod_->name (),
-                      ACE_TEXT (Stream_MediaFramework_Tools::pixelFormatToString (format_.format).c_str ())));
+                      ACE_TEXT (Stream_MediaFramework_Tools::pixelFormatToString (media_type_s.format).c_str ())));
           goto error;
         }
       } // end SWITCH
@@ -901,14 +911,14 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
 //      codec_context_p->flags = 0;
 //      codec_context_p->flags2 = 0;
       codec_context_p->time_base.num =
-          (format_.frameRate.den ? format_.frameRate.den : 1);
+          (media_type_s.frameRate.den ? media_type_s.frameRate.den : 1);
       codec_context_p->time_base.den =
-          (format_.frameRate.num ? format_.frameRate.num : 1);
+          (media_type_s.frameRate.num ? media_type_s.frameRate.num : 1);
 //      codec_context_p->ticks_per_frame = 1;
-      codec_context_p->width = format_.resolution.width;
-      codec_context_p->height = format_.resolution.height;
+      codec_context_p->width = media_type_s.resolution.width;
+      codec_context_p->height = media_type_s.resolution.height;
 //      codec_context_p->gop_size = 0;
-      codec_context_p->pix_fmt = format_.format;
+      codec_context_p->pix_fmt = media_type_s.format;
 //      codec_context_p->me_method = 1;
 //      codec_context_p->max_b_frames = 0;
 //      codec_context_p->b_quant_factor = -1.0F;
@@ -1026,22 +1036,23 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
 
 //      stream_p->id = 0;
       // *TODO*: why does this need to be reset ?
-      stream_p->codec->bit_rate = frameSize_ * format_.frameRate.num * 8;
+      stream_p->codec->bit_rate = frameSize_ * media_type_s.frameRate.num * 8;
       stream_p->codec->codec_id = codec_id;
 //      stream_p->codec->codec_tag = MKTAG ('B', 'G', 'R', 'A');
     //  stream_p->codec->codec_type = codec_->type;
 
-      stream_p->codec->pix_fmt = format_.format;
-      stream_p->codec->width = format_.resolution.width;
-      stream_p->codec->height = format_.resolution.height;
-      stream_p->time_base.num = format_.frameRate.den;
-      stream_p->time_base.den = (format_.frameRate.num ? format_.frameRate.num : 30);
+      stream_p->codec->pix_fmt = media_type_s.format;
+      stream_p->codec->width = media_type_s.resolution.width;
+      stream_p->codec->height = media_type_s.resolution.height;
+      stream_p->time_base.num = media_type_s.frameRate.den;
+      stream_p->time_base.den = (media_type_s.frameRate.num ? media_type_s.frameRate.num : 30);
 //      stream_p->sample_aspect_ratio = 0;
-      stream_p->avg_frame_rate.num = format_.frameRate.num;
-      stream_p->avg_frame_rate.den = format_.frameRate.den;
+      stream_p->avg_frame_rate.num = media_type_s.frameRate.num;
+      stream_p->avg_frame_rate.den = media_type_s.frameRate.den;
 //      stream_p->side_data = NULL;
 //      stream_p->nb_side_data = 0;
 //      stream_p->event_flags = AVSTREAM_EVENT_FLAG_METADATA_UPDATED;
+#endif // FFMPEG_SUPPORT
 #endif // ACE_WIN32 || ACE_WIN64
 
       goto continue_;
@@ -1049,10 +1060,12 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
 error:
+#if defined (FFMPEG_SUPPORT)
       if (codec_context_p)
       {
         avcodec_free_context (&codec_context_p); codec_context_p = NULL;
       } // end IF
+#endif // FFMPEG_SUPPORT
 #endif // ACE_WIN32 || ACE_WIN64
 
       this->notify (STREAM_SESSION_MESSAGE_ABORT);
@@ -1551,6 +1564,7 @@ error:
 
 continue_2:
 #else
+#if defined (FFMPEG_SUPPORT)
   ACE_ASSERT (!formatContext_->pb);
   formatContext_->pb =
     avio_alloc_context (reinterpret_cast<unsigned char*> (messageBlock_inout->wr_ptr ()), // buffer handle
@@ -1585,6 +1599,7 @@ continue_2:
     return false;
   } // end IF
   avio_flush (formatContext_->pb);
+#endif // FFMPEG_SUPPORT
 #endif // ACE_WIN32 || ACE_WIN64
 
   return true;
@@ -1721,12 +1736,14 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
   ACE_UNUSED_ARG (indexType_in);
   ACE_ASSERT (formatContext_);
 
+#if defined (FFMPEG_SUPPORT)
   result = av_write_trailer (formatContext_);
   if (unlikely (result == -1))
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: av_write_trailer() failed: \"%s\", continuing\n"),
                 inherited::mod_->name (),
                 ACE_TEXT (Common_Image_Tools::errorToString (result).c_str ())));
+#endif // FFMPEG_SUPPORT
 #endif // ACE_WIN32 || ACE_WIN64
 
   return true;

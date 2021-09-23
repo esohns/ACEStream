@@ -20,12 +20,14 @@
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
+#if defined (FFMPEG_SUPPORT)
 #if defined (__cplusplus)
 extern "C"
 {
 #include "libavutil/imgutils.h"
 }
 #endif // __cplusplus
+#endif // FFMPEG_SUPPORT
 #endif // ACE_WIN32 || ACE_WIN64
 
 #include "ace/Log_Msg.h"
@@ -240,9 +242,16 @@ Stream_Module_Splitter1_T<ACE_SYNCH_USE,
 
   Stream_MediaFramework_DirectShow_Tools::free (media_type_s);
 #else
+#if defined (FFMPEG_SUPPORT)
   struct Stream_MediaFramework_FFMPEG_VideoMediaType media_type_s;
   inherited2::getMediaType (configuration_in.outputFormat,
                             media_type_s);
+  PDUSize_ =
+      av_image_get_buffer_size (media_type_s.format,
+                                media_type_s.resolution.width,
+                                media_type_s.resolution.height,
+                                1); // *TODO*: linesize alignment
+#endif // FFMPEG_SUPPORT
 #endif // ACE_WIN32 || ACE_WIN64
 
   return inherited::initialize (configuration_in,
@@ -466,6 +475,7 @@ Stream_Module_Splitter_T<ACE_SYNCH_USE,
 
   Stream_MediaFramework_DirectShow_Tools::free (media_type_s);
 #else
+#if defined (FFMPEG_SUPPORT)
   struct Stream_MediaFramework_FFMPEG_VideoMediaType media_type_s;
   inherited2::getMediaType (configuration_in.outputFormat,
                             media_type_s);
@@ -474,6 +484,7 @@ Stream_Module_Splitter_T<ACE_SYNCH_USE,
                                 media_type_s.resolution.width,
                                 media_type_s.resolution.height,
                                 1); // *TODO*: linesize alignment
+#endif // FFMPEG_SUPPORT
 #endif // ACE_WIN32 || ACE_WIN64
 
   return inherited::initialize (configuration_in,
@@ -791,7 +802,7 @@ Stream_Module_SplitterH_T<ACE_SYNCH_USE,
   Stream_Module_Device_DirectShow_Tools::delete_ (media_type_p);
 #else
   PDUSize_ = configuration_in.format.fmt.pix.sizeimage;
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
 
   return inherited::initialize (configuration_in,
                                 allocator_in);

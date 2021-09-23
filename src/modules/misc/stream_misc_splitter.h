@@ -23,8 +23,8 @@
 
 #include "ace/config-lite.h"
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-#include <mfobjects.h>
-#include <strmif.h>
+#include "mfobjects.h"
+#include "strmif.h"
 #endif // ACE_WIN32 || ACE_WIN64
 
 #include "ace/Global_Macros.h"
@@ -65,12 +65,7 @@ class Stream_Module_Splitter1_T
                                  enum Stream_ControlType,
                                  enum Stream_SessionMessageType,
                                  struct Stream_UserData>
- , public Stream_MediaFramework_MediaTypeConverter_T<MediaType
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-                                                    >
-#else
-                                                    ,typename SessionMessageType::DATA_T::DATA_T>
-#endif // ACE_WIN32 || ACE_WIN64
+ , public Stream_MediaFramework_MediaTypeConverter_T<MediaType>
 {
   typedef Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
                                  TimePolicyType,
@@ -81,12 +76,7 @@ class Stream_Module_Splitter1_T
                                  enum Stream_ControlType,
                                  enum Stream_SessionMessageType,
                                  struct Stream_UserData> inherited;
-  typedef Stream_MediaFramework_MediaTypeConverter_T<MediaType
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-                                                    > inherited2;
-#else
-                                                     ,typename SessionMessageType::DATA_T::DATA_T> inherited2;
-#endif // ACE_WIN32 || ACE_WIN64
+  typedef Stream_MediaFramework_MediaTypeConverter_T<MediaType> inherited2;
 
  public:
   // *TODO*: on MSVC 2015u3 the accurate declaration does not compile
@@ -142,12 +132,7 @@ class Stream_Module_Splitter_T
                                  enum Stream_ControlType,
                                  enum Stream_SessionMessageType,
                                  struct Stream_UserData>
- , public Stream_MediaFramework_MediaTypeConverter_T<MediaType
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-                                                    >
-#else
-                                                    ,typename SessionMessageType::DATA_T::DATA_T>
-#endif // ACE_WIN32 || ACE_WIN64
+ , public Stream_MediaFramework_MediaTypeConverter_T<MediaType>
 {
   typedef Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
                                  TimePolicyType,
@@ -158,12 +143,7 @@ class Stream_Module_Splitter_T
                                  enum Stream_ControlType,
                                  enum Stream_SessionMessageType,
                                  struct Stream_UserData> inherited;
-  typedef Stream_MediaFramework_MediaTypeConverter_T<MediaType
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-                                                    > inherited2;
-#else
-                                                     ,typename SessionMessageType::DATA_T::DATA_T> inherited2;
-#endif // ACE_WIN32 || ACE_WIN64
+  typedef Stream_MediaFramework_MediaTypeConverter_T<MediaType> inherited2;
 
  public:
   // *TODO*: on MSVC 2015u3 the accurate declaration does not compile
@@ -231,12 +211,7 @@ class Stream_Module_SplitterH_T
                                       StatisticContainerType,
                                       StatisticHandlerType,
                                       struct Stream_UserData>
- , public Stream_MediaFramework_MediaTypeConverter_T<MediaType
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-                                                    >
-#else
-                                                     ,typename SessionDataContainerType::DATA_T>
-#endif // ACE_WIN32 || ACE_WIN64
+ , public Stream_MediaFramework_MediaTypeConverter_T<MediaType>
 {
   typedef Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
                                       Common_TimePolicy_t,
@@ -252,12 +227,7 @@ class Stream_Module_SplitterH_T
                                       StatisticContainerType,
                                       StatisticHandlerType,
                                       struct Stream_UserData> inherited;
-  typedef Stream_MediaFramework_MediaTypeConverter_T<MediaType
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-                                                    > inherited2;
-#else
-                                                     ,typename SessionDataContainerType::DATA_T> inherited2;
-#endif // ACE_WIN32 || ACE_WIN64
+  typedef Stream_MediaFramework_MediaTypeConverter_T<MediaType> inherited2;
 
  public:
   // *TODO*: on MSVC 2015u3 the accurate declaration does not compile
@@ -310,9 +280,9 @@ class Stream_Module_SplitterH_T
   //bool putStatisticMessage (const StatisticContainerType&) const; // statistics info
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   // *NOTE*: callers must free the return value !
-  template <typename FormatType> AM_MEDIA_TYPE* getFormat (const FormatType format_in) { return getFormat_impl (format_in); }
-  AM_MEDIA_TYPE* getFormat_impl (const struct _AMMediaType*); // return value: media type handle
-  AM_MEDIA_TYPE* getFormat_impl (const IMFMediaType*); // return value: media type handle
+  template <typename FormatType> struct _AMMediaType* getFormat (const FormatType format_in) { return getFormat_impl (format_in); }
+  struct _AMMediaType* getFormat_impl (const struct _AMMediaType*); // return value: media type handle
+  struct _AMMediaType* getFormat_impl (const IMFMediaType*); // return value: media type handle
 #else
   template <typename FormatType> struct v4l2_format* getFormat (const FormatType format_in) { return getFormat_impl (format_in); }
   struct v4l2_format* getFormat_impl (const struct Stream_Module_Device_ALSAConfiguration&); // return value: media type handle

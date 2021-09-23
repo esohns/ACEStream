@@ -31,6 +31,8 @@
 #include <strmif.h>
 #else
 #include "alsa/asoundlib.h"
+
+#include "linux/videodev2.h"
 #endif // ACE_WIN32 || ACE_WIN64
 
 #if defined (FFMPEG_SUPPORT)
@@ -130,12 +132,14 @@ class Stream_MediaFramework_Tools
 #endif // FFMPEG_SUPPORT
 
   // v4l
+  static bool isRGB (__u32); // format (fourcc)
 #if defined (FFMPEG_SUPPORT)
   static __u32 ffmpegFormatToV4L2Format (enum AVPixelFormat); // format
   static enum AVPixelFormat v4l2FormatToffmpegFormat (__u32); // format (fourcc)
 #endif // FFMPEG_SUPPORT
   static unsigned int frameSize (const std::string&,                                 // device identifier
                                  const struct Stream_MediaFramework_V4L_MediaType&); // format
+  inline static std::string v4l2FormatToString (__u32 format_in) { std::string result; result += ((char)(format_in & 0x000000FF)); result += ((char)((format_in >> 8) & 0x000000FF)); result += ((char)((format_in >> 16) & 0x000000FF)); result += ((char)((format_in >> 24) & 0x000000FF)); return result; }
 
 #if defined (LIBCAMERA_SUPPORT)
   // libCamera

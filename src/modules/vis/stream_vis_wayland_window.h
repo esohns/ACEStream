@@ -87,12 +87,7 @@ class Stream_Module_Vis_Wayland_Window_T
                                  enum Stream_ControlType,
                                  enum Stream_SessionMessageType,
                                  struct Stream_UserData>
- , public Stream_MediaFramework_MediaTypeConverter_T<MediaType
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-                                                    >
-#else
-                                                     ,typename SessionMessageType::DATA_T::DATA_T>
-#endif // ACE_WIN32 || ACE_WIN64
+ , public Stream_MediaFramework_MediaTypeConverter_T<MediaType>
  , public Common_UI_IFullscreen
 {
   typedef Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
@@ -104,12 +99,7 @@ class Stream_Module_Vis_Wayland_Window_T
                                  enum Stream_ControlType,
                                  enum Stream_SessionMessageType,
                                  struct Stream_UserData> inherited;
-  typedef Stream_MediaFramework_MediaTypeConverter_T<MediaType
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-                                                    > inherited2;
-#else
-                                                     ,typename SessionMessageType::DATA_T::DATA_T> inherited2;
-#endif // ACE_WIN32 || ACE_WIN64
+  typedef Stream_MediaFramework_MediaTypeConverter_T<MediaType> inherited2;
 
  public:
   Stream_Module_Vis_Wayland_Window_T (typename inherited::ISTREAM_T*); // stream handle

@@ -37,13 +37,17 @@
 #include <mfapi.h>
 #include <wmcodecdsp.h>
 #else
+#if defined (FFMPEG_SUPPORT)
 #ifdef __cplusplus
 extern "C"
 {
 #include "libavutil/imgutils.h"
 }
 #endif /* __cplusplus */
+#endif // FFMPEG_SUPPORT
+#if defined (SOX_SUPPORT)
 #include "sox.h"
+#endif // SOX_SUPPORT
 #endif // ACE_WIN32 || ACE_WIN64
 
 #include "ace/Log_Msg.h"
@@ -58,8 +62,6 @@ extern "C"
 #include "stream_lib_directshow_tools.h"
 #include "stream_lib_mediafoundation_tools.h"
 #else
-#include "stream_dev_tools.h"
-
 #include "X11/Xlib.h"
 #endif // ACE_WIN32 || ACE_WIN64
 
@@ -1920,6 +1922,58 @@ Stream_MediaFramework_Tools::ffmpegFormatToBitDepth (enum AVPixelFormat format_i
 }
 #endif // FFMPEG_SUPPORT
 
+bool
+Stream_MediaFramework_Tools::isRGB (__u32 format_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_Tools::isRGB"));
+
+  switch (format_in)
+  {
+    case V4L2_PIX_FMT_RGB332:
+    case V4L2_PIX_FMT_RGB444:
+    case V4L2_PIX_FMT_ARGB444:
+    case V4L2_PIX_FMT_XRGB444:
+    case V4L2_PIX_FMT_RGBA444:
+    case V4L2_PIX_FMT_RGBX444:
+    case V4L2_PIX_FMT_ABGR444:
+    case V4L2_PIX_FMT_XBGR444:
+    case V4L2_PIX_FMT_BGRA444:
+    case V4L2_PIX_FMT_BGRX444:
+    case V4L2_PIX_FMT_RGB555:
+    case V4L2_PIX_FMT_ARGB555:
+    case V4L2_PIX_FMT_XRGB555:
+    case V4L2_PIX_FMT_RGBA555:
+    case V4L2_PIX_FMT_RGBX555:
+    case V4L2_PIX_FMT_ABGR555:
+    case V4L2_PIX_FMT_XBGR555:
+    case V4L2_PIX_FMT_BGRA555:
+    case V4L2_PIX_FMT_BGRX555:
+    case V4L2_PIX_FMT_RGB565:
+    case V4L2_PIX_FMT_RGB555X:
+    case V4L2_PIX_FMT_ARGB555X:
+    case V4L2_PIX_FMT_XRGB555X:
+    case V4L2_PIX_FMT_RGB565X:
+    case V4L2_PIX_FMT_BGR666:
+    case V4L2_PIX_FMT_BGR24:
+    case V4L2_PIX_FMT_RGB24:
+    case V4L2_PIX_FMT_BGR32:
+    case V4L2_PIX_FMT_ABGR32:
+    case V4L2_PIX_FMT_XBGR32:
+    case V4L2_PIX_FMT_BGRA32:
+    case V4L2_PIX_FMT_BGRX32:
+    case V4L2_PIX_FMT_RGB32:
+    case V4L2_PIX_FMT_RGBA32:
+    case V4L2_PIX_FMT_RGBX32:
+    case V4L2_PIX_FMT_ARGB32:
+    case V4L2_PIX_FMT_XRGB32:
+      return true;
+    default:
+      break;
+  } // end SWITCH
+
+  return false;
+}
+
 #if defined (FFMPEG_SUPPORT)
 __u32
 Stream_MediaFramework_Tools::ffmpegFormatToV4L2Format (enum AVPixelFormat format_in)
@@ -2446,7 +2500,7 @@ Stream_MediaFramework_Tools::v4l2FormatToffmpegFormat (__u32 format_in)
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("invalid/unknown v4l2 pixel format (was: \"%s\" [%d]), aborting\n"),
-                  ACE_TEXT (Stream_Device_Tools::formatToString (format_in).c_str ()), format_in));
+                  ACE_TEXT (Stream_MediaFramework_Tools::v4l2FormatToString (format_in).c_str ()), format_in));
       break;
     }
   } // end SWITCH
@@ -2463,12 +2517,12 @@ Stream_MediaFramework_Tools::frameSize (const std::string& deviceIdentifier_in,
 
   int fd = -1;
   int open_mode = O_RDONLY;
-  fd = v4l2_open (deviceIdentifier_in.c_str (),
-                  open_mode);
+  fd = ACE_OS::open (deviceIdentifier_in.c_str (),
+                     open_mode);
   if (fd == -1)
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to v4l2_open(\"%s\",%u): \"%m\", aborting\n"),
+                ACE_TEXT ("failed to ACE_OS::open(\"%s\",%u): \"%m\", aborting\n"),
                 ACE_TEXT (deviceIdentifier_in.c_str ()), open_mode));
     return 0;
   } // end IF
@@ -2476,13 +2530,13 @@ Stream_MediaFramework_Tools::frameSize (const std::string& deviceIdentifier_in,
   struct v4l2_format format_s;
   ACE_OS::memset (&format_s, 0, sizeof (struct v4l2_format));
   format_s.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-  int result = v4l2_ioctl (fd,
-                           VIDIOC_G_FMT,
-                           &format_s);
+  int result = ACE_OS::ioctl (fd,
+                              VIDIOC_G_FMT,
+                              &format_s);
   if (result == -1)
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to v4l2_ioctl(%d,%s): \"%m\", aborting\n"),
+                ACE_TEXT ("failed to ACE_OS::ioctl(%d,%s): \"%m\", aborting\n"),
                 fd, ACE_TEXT ("VIDIOC_G_FMT")));
     goto error;
   } // end IF
@@ -2493,21 +2547,21 @@ Stream_MediaFramework_Tools::frameSize (const std::string& deviceIdentifier_in,
   format_s.fmt.pix.bytesperline = 0;
 //  format_s.fmt.pix.priv = 0;
   format_s.fmt.pix.sizeimage = 0;
-  result = v4l2_ioctl (fd,
+  result = ACE_OS::ioctl (fd,
                        VIDIOC_TRY_FMT,
                        &format_s);
   if (result == -1)
   {// int error = ACE_OS::last_error (); ACE_UNUSED_ARG (error);
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to v4l2_ioctl(%d,%s): \"%m\", aborting\n"),
+                ACE_TEXT ("failed to ACE_OS::ioctl(%d,%s): \"%m\", aborting\n"),
                 fd, ACE_TEXT ("VIDIOC_TRY_FMT")));
     goto error;
   } // end IF
 
-  result = v4l2_close (fd);
+  result = ACE_OS::close (fd);
   if (result == -1)
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to v4l2_close(%d): \"%m\", continuing\n"),
+                ACE_TEXT ("failed to ACE_OS::close(%d): \"%m\", continuing\n"),
                 fd));
 
   return static_cast<unsigned int> (format_s.fmt.pix.sizeimage);
@@ -2515,10 +2569,10 @@ Stream_MediaFramework_Tools::frameSize (const std::string& deviceIdentifier_in,
 error:
   if (fd != -1)
   {
-    result = v4l2_close (fd);
+    result = ACE_OS::close (fd);
     if (result == -1)
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to v4l2_close(%d): \"%m\", continuing\n"),
+                  ACE_TEXT ("failed to ACE_OS::close(%d): \"%m\", continuing\n"),
                   fd));
   } // end IF
 

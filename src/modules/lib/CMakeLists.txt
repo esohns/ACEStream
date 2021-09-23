@@ -1,13 +1,15 @@
 include (ffmpeg)
 
+set (CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_CURRENT_SOURCE_DIR}/../dev/scripts")
+include (libcamera)
+
+set (CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_CURRENT_SOURCE_DIR}/scripts")
+include (sox)
+
 if (UNIX)
+ include (FindPkgConfig)
  pkg_check_modules (PKG_ALSA REQUIRED alsa)
- if (SOX_SUPPORT)
-  pkg_check_modules (PKG_SOX REQUIRED sox)
- endif (SOX_SUPPORT)
- if (LIBCAMERA_SUPPORT)
-  pkg_check_modules (PKG_LIBCAMERA REQUIRED libcamera)
- endif (LIBCAMERA_SUPPORT)
+ pkg_check_modules (PKG_V4L REQUIRED libv4l2)
 endif (UNIX)
 
 if (WIN32)
@@ -29,19 +31,19 @@ if (FFMPEG_SUPPORT)
  target_include_directories (${PROJECT_NAME}_MediaFramework PUBLIC
                              $<BUILD_INTERFACE:${ffmpeg_INCLUDE_DIRS}>)
 endif (FFMPEG_SUPPORT)
+if (LIBCAMERA_SUPPORT)
+ target_include_directories (${PROJECT_NAME}_MediaFramework PUBLIC
+                             $<BUILD_INTERFACE:${LIBCAMERA_INCLUDE_DIRS}>)
+endif (LIBCAMERA_SUPPORT)
+if (SOX_SUPPORT)
+ target_include_directories (${PROJECT_NAME}_MediaFramework PUBLIC
+                             $<BUILD_INTERFACE:${SOX_INCLUDE_DIRS}>)
+endif (SOX_SUPPORT)
 if (UNIX)
  target_include_directories (${PROJECT_NAME}_MediaFramework PUBLIC
                              $<BUILD_INTERFACE:${PKG_ALSA_INCLUDE_DIRS}>)
- if (SOX_SUPPORT)
-  target_include_directories (${PROJECT_NAME}_MediaFramework PUBLIC
-                              $<BUILD_INTERFACE:${PKG_SOX_INCLUDE_DIRS}>)
- endif (SOX_SUPPORT)
- if (LIBCAMERA_SUPPORT)
-# target_include_directories (${PROJECT_NAME}_MediaFramework PUBLIC
-#                             $<BUILD_INTERFACE:${PKG_LIBCAMERA_INCLUDE_DIRS}>)
-  target_include_directories (${PROJECT_NAME}_MediaFramework PUBLIC
-                              $<BUILD_INTERFACE:/usr/local/include/libcamera>)
- endif (LIBCAMERA_SUPPORT)
+ target_include_directories (${PROJECT_NAME}_MediaFramework PUBLIC
+                             $<BUILD_INTERFACE:${PKG_V4L_INCLUDE_DIRS}>)
 
  target_include_directories (${PROJECT_NAME}_MediaFramework PUBLIC
                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../modules/Common/src>)
@@ -119,6 +121,11 @@ if (FFMPEG_SUPPORT)
       ${source_files}
       stream_lib_ffmpeg_common.h)
 endif (FFMPEG_SUPPORT)
+if (LIBCAMERA_SUPPORT)
+ set (source_files
+      ${source_files}
+      stream_lib_libcamera_common.h)
+endif (LIBCAMERA_SUPPORT)
 if (UNIX)
  set (source_files
       ${source_files}
@@ -126,11 +133,6 @@ if (UNIX)
       stream_lib_alsa_defines.h
       stream_lib_v4l_common.h
       stream_lib_v4l_defines.h)
- if (LIBCAMERA_SUPPORT)
-  set (source_files
-       ${source_files}
-       stream_lib_libcamera_common.h)
- endif (LIBCAMERA_SUPPORT)
 elseif (WIN32)
  set (source_files
       ${source_files}
@@ -208,24 +210,24 @@ add_dependencies (${PROJECT_NAME}_MediaFramework Common)
 add_dependencies (${PROJECT_NAME}_MediaFramework ${PROJECT_NAME})
 
 if (UNIX)
- target_link_libraries (${PROJECT_NAME}_MediaFramework X11)
+ target_link_libraries (${PROJECT_NAME}_MediaFramework PUBLIC X11)
 
-# target_link_libraries (${PROJECT_NAME}_MediaFramework ${PROJECT_NAME}_Device)
+# target_link_libraries (${PROJECT_NAME}_MediaFramework PUBLIC ${PROJECT_NAME}_Device)
 elseif (WIN32)
  if (DEFINED ENV{DXSDK_DIR})
-  target_link_libraries (${PROJECT_NAME}_MediaFramework $ENV{DXSDK_DIR}/Lib/x86/D3dx9.lib)
+  target_link_libraries (${PROJECT_NAME}_MediaFramework PUBLIC $ENV{DXSDK_DIR}/Lib/x86/D3dx9.lib)
  else ()
-  target_link_libraries (${PROJECT_NAME}_MediaFramework $ENV{LIB_ROOT}/DXSDK/Lib/x86/D3dx9.lib)
+  target_link_libraries (${PROJECT_NAME}_MediaFramework PUBLIC $ENV{LIB_ROOT}/DXSDK/Lib/x86/D3dx9.lib)
  endif (DEFINED ENV{DXSDK_DIR})
 
  if (CMAKE_BUILD_TYPE STREQUAL Debug)
-  target_link_libraries (${PROJECT_NAME}_MediaFramework ${DIRECTSHOW_BASECLASSES_DIRECTORY}/cmake/baseclasses/Debug/BaseClassesd.lib)
+  target_link_libraries (${PROJECT_NAME}_MediaFramework PUBLIC ${DIRECTSHOW_BASECLASSES_DIRECTORY}/cmake/baseclasses/Debug/BaseClassesd.lib)
  else ()
-  target_link_libraries (${PROJECT_NAME}_MediaFramework ${DIRECTSHOW_BASECLASSES_DIRECTORY}/cmake/baseclasses/Release/BaseClasses.lib)
+  target_link_libraries (${PROJECT_NAME}_MediaFramework PUBLIC ${DIRECTSHOW_BASECLASSES_DIRECTORY}/cmake/baseclasses/Release/BaseClasses.lib)
  endif (CMAKE_BUILD_TYPE STREQUAL Debug)
-# target_link_libraries (${PROJECT_NAME}_MediaFramework winmm.lib)
+# target_link_libraries (${PROJECT_NAME}_MediaFramework PUBLIC winmm.lib)
 
- target_link_libraries (${PROJECT_NAME}_MediaFramework ${ACE_LIBRARY})
+ target_link_libraries (${PROJECT_NAME}_MediaFramework PUBLIC ${ACE_LIBRARY})
 endif ()
 
 #set_target_properties (${PROJECT_NAME}_MediaFramework PROPERTIES DEFINE_SYMBOL STREAM_LIB_BUILD_DLL)
@@ -254,6 +256,11 @@ if (FFMPEG_SUPPORT)
       ${source_files}
       stream_lib_ffmpeg_common.h)
 endif (FFMPEG_SUPPORT)
+if (LIBCAMERA_SUPPORT)
+ set (source_files
+      ${source_files}
+      stream_lib_libcamera_common.h)
+endif (LIBCAMERA_SUPPORT)
 if (UNIX)
  set (source_files
       ${source_files}
@@ -261,11 +268,6 @@ if (UNIX)
       stream_lib_alsa_defines.h
       stream_lib_v4l_common.h
       stream_lib_v4l_defines.h)
- if (LIBCAMERA_SUPPORT)
-  set (source_files
-       ${source_files}
-       stream_lib_libcamera_common.h)
- endif (LIBCAMERA_SUPPORT)
 elseif (WIN32)
  set (source_files
       ${source_files}

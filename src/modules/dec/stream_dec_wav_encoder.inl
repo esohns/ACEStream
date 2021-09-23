@@ -43,21 +43,12 @@
 
 #include "stream_macros.h"
 
-//#include "stream_dec_defines.h"
-//#include "stream_dec_tools.h"
-
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-//#include "stream_lib_directshow_tools.h"
-#else
-//#include "stream_dev_tools.h"
-
-//#include "stream_lib_tools.h"
-#endif // ACE_WIN32 || ACE_WIN64
-
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
+#if defined (SOX_SUPPORT)
 inline static sox_bool
-sox_overwrite_permitted (char const* filename_in) { return sox_true; }
+sox_overwrite_permitted (char const* filename_in) { ACE_UNUSED_ARG (filename_in); return sox_true; }
+#endif // SOX_SUPPORT
 #endif // ACE_WIN32 || ACE_WIN64
 
 template <ACE_SYNCH_DECL,
@@ -87,17 +78,21 @@ Stream_Decoder_WAVEncoder_T<ACE_SYNCH_USE,
  : inherited (stream_in)
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
+#if defined (SOX_SUPPORT)
  , encodingInfo_ ()
  , signalInfo_ ()
  , outputFile_ (NULL)
+#endif // SOX_SUPPORT
 #endif // ACE_WIN32 || ACE_WIN64
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Decoder_WAVEncoder_T::Stream_Decoder_WAVEncoder_T"));
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
+#if defined (SOX_SUPPORT)
   ACE_OS::memset (&encodingInfo_, 0, sizeof (struct sox_encodinginfo_t));
   ACE_OS::memset (&signalInfo_, 0, sizeof (struct sox_signalinfo_t));
+#endif // SOX_SUPPORT
 #endif // ACE_WIN32 || ACE_WIN64
 }
 
@@ -126,6 +121,7 @@ Stream_Decoder_WAVEncoder_T<ACE_SYNCH_USE,
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
+#if defined (SOX_SUPPORT)
   int result = -1;
   if (outputFile_)
   {
@@ -143,6 +139,7 @@ Stream_Decoder_WAVEncoder_T<ACE_SYNCH_USE,
                 ACE_TEXT ("%s: failed to sox_quit(): \"%s\", continuing\n"),
                 inherited::mod_->name (),
                 ACE_TEXT (sox_strerror (result))));
+#endif // SOX_SUPPORT
 #endif // ACE_WIN32 || ACE_WIN64
 }
 
@@ -177,6 +174,7 @@ Stream_Decoder_WAVEncoder_T<ACE_SYNCH_USE,
   {
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
+#if defined (SOX_SUPPORT)
     result = sox_quit ();
     if (unlikely (result != SOX_SUCCESS))
     {
@@ -186,11 +184,13 @@ Stream_Decoder_WAVEncoder_T<ACE_SYNCH_USE,
                   ACE_TEXT (sox_strerror (result))));
       return false;
     } // end IF
+#endif // SOX_SUPPORT
 #endif // ACE_WIN32 || ACE_WIN64
   } // end IF
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
+#if defined (SOX_SUPPORT)
   result = sox_init ();
   if (unlikely (result != SOX_SUCCESS))
   {
@@ -200,6 +200,7 @@ Stream_Decoder_WAVEncoder_T<ACE_SYNCH_USE,
                 ACE_TEXT (sox_strerror (result))));
     return false;
   } // end IF
+#endif // SOX_SUPPORT
 #endif // ACE_WIN32 || ACE_WIN64
 
   return inherited::initialize (configuration_in,
@@ -236,8 +237,10 @@ Stream_Decoder_WAVEncoder_T<ACE_SYNCH_USE,
   if (unlikely (!inherited::isActive_))
     return;
 #else
+#if defined (SOX_SUPPORT)
   if (unlikely (!outputFile_))
     return; // nothing to do
+#endif // SOX_SUPPORT
 #endif // ACE_WIN32 || ACE_WIN64
 
   // initialize return value(s)
@@ -305,6 +308,7 @@ error:
 #else
   passMessageDownstream_out = true;
 
+#if defined (SOX_SUPPORT)
   // *IMPORTANT NOTE*: sox_write() expects signed 32-bit samples
   //                   --> convert the data in memory first
   size_t samples_read, samples_written = 0;
@@ -353,8 +357,7 @@ error:
                   inherited::mod_->name (),
                   ACE_TEXT (sox_strerror (result))));
   } // end IF
-
-  return;
+#endif // SOX_SUPPORT
 #endif // ACE_WIN32 || ACE_WIN64
 }
 
@@ -414,6 +417,7 @@ Stream_Decoder_WAVEncoder_T<ACE_SYNCH_USE,
       struct Stream_MediaFramework_ALSA_MediaType& media_type_r =
           session_data_r.formats.back ();
 
+#if defined (SOX_SUPPORT)
 //      sox_comments_t comments = ;
       struct sox_oob_t oob_data;
       ACE_OS::memset (&oob_data, 0, sizeof (struct sox_oob_t));
@@ -442,15 +446,15 @@ Stream_Decoder_WAVEncoder_T<ACE_SYNCH_USE,
                     ACE_TEXT (inherited::configuration_->targetFileName.c_str ())));
         goto error;
       } // end IF
-#if defined (_DEBUG)
       ACE_DEBUG ((LM_DEBUG,
                   ACE_TEXT ("%s: opened file stream \"%s\"\n"),
                   inherited::mod_->name (),
                   ACE_TEXT (inherited::configuration_->targetFileName.c_str ())));
-#endif // _DEBUG
+#endif // SOX_SUPPORT
       goto continue_;
 
 error:
+#if defined (SOX_SUPPORT)
       if (outputFile_)
       {
         result = sox_close (outputFile_);
@@ -461,6 +465,7 @@ error:
                       ACE_TEXT (sox_strerror (result))));
         outputFile_ = NULL;
       } // end IF
+#endif // SOX_SUPPORT
 
       this->notify (STREAM_SESSION_MESSAGE_ABORT);
 
@@ -583,6 +588,7 @@ error_2:
 
 continue_2:
 #else
+#if defined (SOX_SUPPORT)
       if (outputFile_)
       {
         sox_uint64_t bytes_written = outputFile_->tell_off;
@@ -593,14 +599,13 @@ continue_2:
                       inherited::mod_->name (),
                       ACE_TEXT (sox_strerror (result))));
         outputFile_ = NULL;
-#if defined (_DEBUG)
         ACE_DEBUG ((LM_DEBUG,
                     ACE_TEXT ("%s: closed file stream \"%s\" (wrote: %Q byte(s))\n"),
                     inherited::mod_->name (),
                     ACE_TEXT (inherited::configuration_->targetFileName.c_str ()),
                     bytes_written));
-#endif // _DEBUG
       } // end IF
+#endif // SOX_SUPPORT
 #endif // ACE_WIN32 || ACE_WIN64
 
       break;

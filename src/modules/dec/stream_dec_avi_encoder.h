@@ -21,20 +21,8 @@
 #ifndef STREAM_DEC_AVI_ENCODER_H
 #define STREAM_DEC_AVI_ENCODER_H
 
+#include <string>
 #include <vector>
-
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-#else
-#ifdef __cplusplus
-extern "C"
-{
-#endif
-#include "libavutil/pixfmt.h"
-#include "libavutil/rational.h"
-#ifdef __cplusplus
-}
-#endif /* __cplusplus */
-#endif // ACE_WIN32 || ACE_WIN64
 
 #include "ace/Global_Macros.h"
 #include "ace/Stream_Modules.h"

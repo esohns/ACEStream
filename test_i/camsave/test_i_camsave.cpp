@@ -1012,7 +1012,7 @@ bool
 do_initialize_v4l (const std::string& deviceIdentifier_in,
                    struct Stream_Device_Identifier& deviceIdentifier_out,
                    struct Stream_MediaFramework_V4L_MediaType& captureFormat_out,
-                   struct Stream_MediaFramework_FFMPEG_VideoMediaType& outputFormat_out)
+                   struct Stream_MediaFramework_V4L_MediaType& outputFormat_out)
 {
   STREAM_TRACE (ACE_TEXT ("::do_initialize_v4l"));
 
@@ -1050,26 +1050,21 @@ do_initialize_v4l (const std::string& deviceIdentifier_in,
               ACE_TEXT (Stream_Device_Tools::formatToString (deviceIdentifier_out.fileDescriptor, captureFormat_out.format.pixelformat).c_str ()), captureFormat_out.format.pixelformat,
               captureFormat_out.format.width, captureFormat_out.format.height,
               captureFormat_out.frameRate.numerator, captureFormat_out.frameRate.denominator));
+  outputFormat_out = captureFormat_out;
   // *NOTE*: Gtk 2 expects RGB24
   // *NOTE*: "...CAIRO_FORMAT_ARGB32: each pixel is a 32-bit quantity, with
   //         alpha in the upper 8 bits, then red, then green, then blue. The
   //         32-bit quantities are stored native-endian. ..."
   // *TODO*: determine color depth of selected (default) screen (i.e.'Display'
   //         ":0")
-  outputFormat_out.format = AV_PIX_FMT_RGB32;
+  outputFormat_out.format.pixelformat = V4L2_PIX_FMT_RGB32;
 #if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
 #if defined (GTK2_USE)
-  outputFormat_out.format = AV_PIX_FMT_RGB24;
+  outputFormat_out.format.pixelformat = V4L2_PIX_FMT_RGB24;
 #endif // GTK2_USE
 #endif // GTK_USE
 #endif // GUI_SUPPORT
-  outputFormat_out.frameRate.num =
-      static_cast<int> (captureFormat_out.frameRate.numerator);
-  outputFormat_out.frameRate.den =
-      static_cast<int> (captureFormat_out.frameRate.denominator);
-  outputFormat_out.resolution.height = captureFormat_out.format.height;
-  outputFormat_out.resolution.width = captureFormat_out.format.width;
 
   return true;
 
@@ -1348,14 +1343,16 @@ error:
   } // end IF
   else
   {
-    v4l_modulehandler_configuration.allocatorConfiguration = &allocator_configuration;
+    v4l_modulehandler_configuration.allocatorConfiguration =
+        &allocator_configuration;
     v4l_modulehandler_configuration.buffers =
       STREAM_LIB_V4L_DEFAULT_DEVICE_BUFFERS;
     v4l_modulehandler_configuration.deviceIdentifier.identifier =
         captureinterfaceIdentifier_in;
     v4l_modulehandler_configuration.outputFormat =
-        Stream_Device_Tools::convert (Stream_Device_Tools::defaultCaptureFormat (captureinterfaceIdentifier_in));
-    v4l_modulehandler_configuration.outputFormat.format = AV_PIX_FMT_RGB32;
+        Stream_Device_Tools::defaultCaptureFormat (captureinterfaceIdentifier_in);
+    v4l_modulehandler_configuration.outputFormat.format.pixelformat =
+        V4L2_PIX_FMT_RGB32;
     if (statisticReportingInterval_in)
     {
       v4l_modulehandler_configuration.statisticCollectionInterval.set (0,
@@ -1678,7 +1675,8 @@ error:
   // *NOTE*: apparently, Windows Media Player supports only RGB 5:5:5 16bpp AVI
   //         content (see also avienc.c:448)
   v4l_converter_2_modulehandler_configuration = v4l_modulehandler_configuration;
-  v4l_converter_2_modulehandler_configuration.outputFormat.format = AV_PIX_FMT_YUVA444P;
+  v4l_converter_2_modulehandler_configuration.outputFormat.format.pixelformat =
+      V4L2_PIX_FMT_AYUV32;
   configuration_in.v4l_streamConfiguration.insert (std::make_pair (std::string (std::string (ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_LIBAV_CONVERTER_DEFAULT_NAME_STRING)) + ACE_TEXT_ALWAYS_CHAR ("_2")),
                                                                    std::make_pair (module_configuration,
                                                                                    v4l_converter_2_modulehandler_configuration)));
@@ -1689,8 +1687,10 @@ error:
                                                                          std::make_pair (module_configuration,
                                                                                          libcamera_x11_modulehandler_configuration)));
 
-  libCamera_converter_2_modulehandler_configuration = libcamera_modulehandler_configuration;
-  libCamera_converter_2_modulehandler_configuration.outputFormat.format = AV_PIX_FMT_RGB555;
+  libCamera_converter_2_modulehandler_configuration =
+      libcamera_modulehandler_configuration;
+  libCamera_converter_2_modulehandler_configuration.outputFormat.format =
+      AV_PIX_FMT_RGB555;
   configuration_in.libCamera_streamConfiguration.insert (std::make_pair (std::string (std::string (ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_LIBAV_CONVERTER_DEFAULT_NAME_STRING)) + ACE_TEXT_ALWAYS_CHAR ("_2")),
                                                                          std::make_pair (module_configuration,
                                                                                          libCamera_converter_2_modulehandler_configuration)));

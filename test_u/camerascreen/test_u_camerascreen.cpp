@@ -838,7 +838,7 @@ bool
 do_initialize_v4l (const std::string& deviceIdentifier_in,
                    struct Stream_Device_Identifier& deviceIdentifier_out,
                    struct Stream_MediaFramework_V4L_MediaType& captureFormat_out,
-                   struct Stream_MediaFramework_FFMPEG_VideoMediaType& outputFormat_out)
+                   struct Stream_MediaFramework_V4L_MediaType& outputFormat_out)
 {
   STREAM_TRACE (ACE_TEXT ("::do_initialize_v4l"));
 
@@ -876,17 +876,18 @@ do_initialize_v4l (const std::string& deviceIdentifier_in,
               ACE_TEXT (Stream_Device_Tools::formatToString (deviceIdentifier_out.fileDescriptor, captureFormat_out.format.pixelformat).c_str ()), captureFormat_out.format.pixelformat,
               captureFormat_out.format.width, captureFormat_out.format.height,
               captureFormat_out.frameRate.numerator, captureFormat_out.frameRate.denominator));
-  struct Stream_MediaFramework_FFMPEG_VideoMediaType media_type_s =
-      Stream_Device_Tools::convert (captureFormat_out);
-  if (!Stream_Module_Decoder_Tools::isRGB (media_type_s.format))
+  if (!Stream_MediaFramework_Tools::isRGB (captureFormat_out.format.pixelformat))
   {
     ACE_DEBUG ((LM_DEBUG,
                 ACE_TEXT ("\"%s\" (%d): setting RGB24 capture format\n"),
                 ACE_TEXT (deviceIdentifier_in.c_str ()), deviceIdentifier_out.fileDescriptor));
+    Common_Image_Resolution_t resolution_s;
+    resolution_s.height = captureFormat_out.format.height;
+    resolution_s.width = captureFormat_out.format.width;
     struct v4l2_pix_format format_s =
         Stream_Device_Tools::getVideoCaptureFormat (deviceIdentifier_out.fileDescriptor,
                                                     V4L2_PIX_FMT_RGB24,
-                                                    media_type_s.resolution,
+                                                    resolution_s,
                                                     captureFormat_out.frameRate);
     ACE_ASSERT (format_s.pixelformat == V4L2_PIX_FMT_RGB24);
     if (!Stream_Device_Tools::setFormat (deviceIdentifier_out.fileDescriptor,
@@ -897,7 +898,6 @@ do_initialize_v4l (const std::string& deviceIdentifier_in,
       return false;
     } // end IF
     captureFormat_out.format = format_s;
-    media_type_s.format = AV_PIX_FMT_RGB24;
   } // end IF
 
   // *NOTE*: Gtk 2 expects RGB24
@@ -906,7 +906,7 @@ do_initialize_v4l (const std::string& deviceIdentifier_in,
   //         32-bit quantities are stored native-endian. ..."
   // *TODO*: auto-determine color depth of selected (default) screen (i.e.
   //         'Display' ":0")
-  outputFormat_out = media_type_s;
+  outputFormat_out = captureFormat_out;
 
   return true;
 
@@ -1049,7 +1049,7 @@ do_work (const std::string& captureinterfaceIdentifier_in,
 //  // *TODO*: turn these into an option
 //  modulehandler_configuration.method = STREAM_DEV_CAM_V4L_DEFAULT_IO_METHOD;
   modulehandler_configuration.outputFormat =
-      Stream_Device_Tools::convert (Stream_Device_Tools::defaultCaptureFormat (captureinterfaceIdentifier_in));
+      Stream_Device_Tools::defaultCaptureFormat (captureinterfaceIdentifier_in);
   modulehandler_configuration.subscriber = &ui_event_handler;
 
   struct Stream_CameraScreen_V4L_StreamConfiguration stream_configuration;
@@ -1243,11 +1243,12 @@ do_work (const std::string& captureinterfaceIdentifier_in,
                                                    stream_configuration);
   //  modulehandler_configuration.display = displayDevice_in;
 
-  // *IMPORTANT NOTE*: i have not found a way to feed RGB24 data to Xlib;
-  //                   XCreateImage() only 'likes' 32-bit data, regardless of
-  //                   what 'depth' values are set (in fact, it requires BGRA on
-  //                   little-endian platforms) --> convert
-  modulehandler_configuration.outputFormat.format = AV_PIX_FMT_RGB32;
+  // *IMPORTANT NOTE*: there does not seem to be a way to feed RGB24 data to
+  //                   Xlib; XCreateImage() only 'likes' 32-bit data, regardless
+  //                   of what 'depth' values are set (in fact, it requires BGRA
+  //                   on little-endian platforms) --> convert
+  modulehandler_configuration.outputFormat.format.pixelformat =
+      V4L2_PIX_FMT_RGB32;
   configuration_in.streamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_LIBAV_CONVERTER_DEFAULT_NAME_STRING),
                                                                std::make_pair (module_configuration,
                                                                                modulehandler_configuration)));

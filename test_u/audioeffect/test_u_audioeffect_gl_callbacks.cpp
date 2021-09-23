@@ -411,7 +411,7 @@ glarea_create_context_cb (GtkGLArea* GLArea_in,
   //  glEnable (GL_DITHER);
   //  glHint (GL_PERSPECTIVE_CORRECTION_HINT, GL_FASTEST);
   //  glHint (GL_POLYGON_SMOOTH_HINT, GL_FASTEST);
-  COMMON_GL_ASSERT;
+  //COMMON_GL_ASSERT;
   //glColorMaterial (GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE);
   //COMMON_GL_ASSERT;
   //glEnable (GL_COLOR_MATERIAL);

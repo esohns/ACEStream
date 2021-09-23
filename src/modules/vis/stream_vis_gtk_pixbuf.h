@@ -57,12 +57,7 @@ class Stream_Module_Vis_GTK_Pixbuf_T
                                  enum Stream_SessionMessageType,
                                  struct Stream_UserData>
  , public Stream_Visualization_Base
- , public Stream_MediaFramework_MediaTypeConverter_T<MediaType
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-                                                    >
-#else
-                                                     ,typename SessionDataContainerType::DATA_T>
-#endif // ACE_WIN32 || ACE_WIN64
+ , public Stream_MediaFramework_MediaTypeConverter_T<MediaType>
 {
   typedef Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
                                  TimePolicyType,
@@ -74,12 +69,7 @@ class Stream_Module_Vis_GTK_Pixbuf_T
                                  enum Stream_SessionMessageType,
                                  struct Stream_UserData> inherited;
   typedef Stream_Visualization_Base inherited2;
-  typedef Stream_MediaFramework_MediaTypeConverter_T<MediaType
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-                                                    > inherited3;
-#else
-                                                     ,typename SessionDataContainerType::DATA_T> inherited3;
-#endif // ACE_WIN32 || ACE_WIN64
+  typedef Stream_MediaFramework_MediaTypeConverter_T<MediaType> inherited3;
 
  public:
   // *TODO*: on MSVC 2015u3 the accurate declaration does not compile

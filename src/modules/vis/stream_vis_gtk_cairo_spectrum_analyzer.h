@@ -86,12 +86,7 @@ class Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T
                                  enum Stream_ControlType,
                                  enum Stream_SessionMessageType,
                                  struct Stream_UserData>
- , public Stream_MediaFramework_MediaTypeConverter_T<MediaType
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-                                                    >
-#else
-                                                    ,SessionDataType>
-#endif // ACE_WIN32 || ACE_WIN64
+ , public Stream_MediaFramework_MediaTypeConverter_T<MediaType>
  , public Common_Math_FFT
  , public Common_ICounter
  , public Common_IDispatch_T<enum Stream_Statistic_AnalysisEventType>
@@ -110,12 +105,7 @@ class Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T
                                  enum Stream_ControlType,
                                  enum Stream_SessionMessageType,
                                  struct Stream_UserData> inherited;
-  typedef Stream_MediaFramework_MediaTypeConverter_T<MediaType
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-                                                    > inherited2;
-#else
-                                                     ,SessionDataType> inherited2;
-#endif // ACE_WIN32 || ACE_WIN64
+  typedef Stream_MediaFramework_MediaTypeConverter_T<MediaType> inherited2;
   typedef Common_Math_FFT inherited3;
 
  public:
