@@ -136,8 +136,10 @@ class Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T
   ACE_UNIMPLEMENTED_FUNC (Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T& operator= (const Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T&))
 
   // override ACE_Task_Base members
-  inline virtual int put (ACE_Message_Block* messageBlock_in, ACE_Time_Value* timeout_in) { ACE_ASSERT (inherited::thr_count_); return inherited::putq (messageBlock_in, timeout_in); }
   virtual int svc (void);
+  // override Stream_TaskBaseSynch_T members
+  virtual void stop (bool = true,  // wait for completion ?
+                     bool = true); // high priority ? (i.e. do not wait for queued messages)
 
   bool initialize_Cairo (GdkWindow*,
                          cairo_t*&,

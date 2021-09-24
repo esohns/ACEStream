@@ -1377,7 +1377,7 @@ do_work (unsigned int bufferSize_in,
       was_visible_b = ShowWindow (window_p, SW_HIDE);
     ACE_UNUSED_ARG (was_visible_b);
 #endif // ACE_WIN32 || ACE_WIN64
-    itask_p->wait ();
+    itask_p->wait (false);
   } // end IF
   else
   {
@@ -1786,6 +1786,7 @@ ACE_TMAIN (int argc_in,
   ACE_SYNCH_MUTEX* lock_p = NULL;
 #if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
+  cb_data_base_p->UIState = &state_r;
   logstack_p = &state_r.logStack;
   lock_p = &state_r.logStackLock;
 #endif // GTK_USE

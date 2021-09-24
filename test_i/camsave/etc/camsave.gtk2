@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <interface>
-  <!-- interface-requires gtk+ 3.0 -->
+  <!-- interface-requires gtk+ 2.24 -->
   <!-- interface-naming-policy toplevel-contextual -->
   <object class="GtkAdjustment" id="adjustment1">
     <property name="upper">100</property>
@@ -687,7 +687,7 @@
               <object class="GtkProgressBar" id="progressbar">
                 <property name="visible">True</property>
                 <property name="sensitive">False</property>
-                <property name="pulse_step">0.10000000149</property>
+                <property name="pulse_step">0.10000000000</property>
               </object>
               <packing>
                 <property name="expand">False</property>

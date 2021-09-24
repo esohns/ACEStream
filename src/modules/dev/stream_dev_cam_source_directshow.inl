@@ -339,13 +339,11 @@ Stream_Dev_Cam_Source_DirectShow_T<ACE_SYNCH_USE,
                       inherited::mod_->name ()));
           goto error;
         } // end IF
-#if defined (_DEBUG)
         ACE_DEBUG ((LM_DEBUG,
                     ACE_TEXT ("%s: scheduled statistic collecting timer (id: %d) for interval %#T\n"),
                     inherited::mod_->name (),
                     inherited::timerId_,
                     &inherited::configuration_->statisticCollectionInterval));
-#endif // _DEBUG
       } // end IF
 
       bool COM_initialized = false;

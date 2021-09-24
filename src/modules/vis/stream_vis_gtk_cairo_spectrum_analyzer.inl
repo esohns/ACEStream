@@ -645,14 +645,14 @@ Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
                       &refresh_interval));
           goto error;
         } // end IF
-#if defined (_DEBUG)
         ACE_DEBUG ((LM_DEBUG,
                     ACE_TEXT ("%s: scheduled renderer dispatch (timer id: %d)\n"),
                     inherited::mod_->name (),
                     renderHandlerTimerId_));
-#endif // _DEBUG
 
+        inherited::threadCount_ = 1;
         inherited::start (NULL);
+        inherited::threadCount_ = 0;
         shutdown = true;
       } // end IF
 
@@ -702,13 +702,11 @@ error:
                       ACE_TEXT ("%s: failed to Common_ITimer::cancel_timer(%d): \"%m\", continuing\n"),
                       inherited::mod_->name (),
                       renderHandlerTimerId_));
-#if defined (_DEBUG)
         else
           ACE_DEBUG ((LM_DEBUG,
                       ACE_TEXT ("%s: cancelled renderer dispatch (timer id: %d)\n"),
                       inherited::mod_->name (),
                       renderHandlerTimerId_));
-#endif // _DEBUG
         renderHandlerTimerId_ = -1;
       } // end IF
 
@@ -716,13 +714,12 @@ error:
       //                   --> join with the renderer thread
       if (inherited::thr_count_ > 0)
       {
-        inherited::stop (true,   // wait ?
-                         false); // high priority ?
-#if defined (_DEBUG)
+        Common_ITask* itask_p = this;
+        itask_p->stop (true,   // wait ?
+                       false); // high priority ?
         ACE_DEBUG ((LM_DEBUG,
                     ACE_TEXT ("%s: joined renderer thread\n"),
                     inherited::mod_->name ()));
-#endif // _DEBUG
       } // end IF
 
 #if GTK_CHECK_VERSION(3,10,0)
@@ -829,6 +826,74 @@ Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
 
 done:
   return result;
+}
+
+template <ACE_SYNCH_DECL,
+          typename TimePolicyType,
+          typename ConfigurationType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
+          typename SessionDataType,
+          typename SessionDataContainerType,
+          typename TimerManagerType,
+          typename MediaType>
+void
+Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
+                                                  TimePolicyType,
+                                                  ConfigurationType,
+                                                  ControlMessageType,
+                                                  DataMessageType,
+                                                  SessionMessageType,
+                                                  SessionDataType,
+                                                  SessionDataContainerType,
+                                                  TimerManagerType,
+                                                  MediaType>::stop (bool waitForCompletion_in,
+                                                                    bool highPriority_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T::stop"));
+
+  ACE_UNUSED_ARG (waitForCompletion_in);
+  ACE_UNUSED_ARG (highPriority_in);
+
+  int result = -1;
+  ACE_Message_Block* message_block_p = NULL;
+  ACE_NEW_NORETURN (message_block_p,
+                    ACE_Message_Block (0,                                  // size
+                                       ACE_Message_Block::MB_STOP,         // type
+                                       NULL,                               // continuation
+                                       NULL,                               // data
+                                       NULL,                               // buffer allocator
+                                       NULL,                               // locking strategy
+                                       ACE_DEFAULT_MESSAGE_BLOCK_PRIORITY, // priority
+                                       ACE_Time_Value::zero,               // execution time
+                                       ACE_Time_Value::max_time,           // deadline time
+                                       NULL,                               // data block allocator
+                                       NULL));                             // message allocator
+  if (unlikely (!message_block_p))
+  {
+    if (inherited::mod_)
+      ACE_DEBUG ((LM_CRITICAL,
+                  ACE_TEXT ("%s: failed to allocate ACE_Message_Block: \"%m\", returning\n"),
+                  inherited::mod_->name ()));
+    else
+      ACE_DEBUG ((LM_CRITICAL,
+                  ACE_TEXT ("failed to allocate ACE_Message_Block: \"%m\", returning\n")));
+    return;
+  } // end IF
+
+  result = this->putq (message_block_p, NULL);
+  if (unlikely (result == -1))
+  {
+    if (inherited::mod_)
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("%s: failed to ACE_Task_Base::putq(): \"%m\", continuing\n"),
+                  inherited::mod_->name ()));
+    else
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to ACE_Task_Base::putq(): \"%m\", continuing\n")));
+    message_block_p->release (); message_block_p = NULL;
+  } // end IF
 }
 
 template <ACE_SYNCH_DECL,
@@ -1087,7 +1152,44 @@ Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
   // *TODO*: depending on the platform (and the timer dispatch 'mode'), this may
   //         be unnecessary (i.e. if the timer mechanism is signal-handler
   //         based (, or the timer dispatch uses a thread pool itself))
-  inherited::control (ACE_Message_Block::MB_EVENT);
+  int result = -1;
+  ACE_Message_Block* message_block_p = NULL;
+  ACE_NEW_NORETURN (message_block_p,
+                    ACE_Message_Block (0,                                  // size
+                                       ACE_Message_Block::MB_EVENT,        // type
+                                       NULL,                               // continuation
+                                       NULL,                               // data
+                                       NULL,                               // buffer allocator
+                                       NULL,                               // locking strategy
+                                       ACE_DEFAULT_MESSAGE_BLOCK_PRIORITY, // priority
+                                       ACE_Time_Value::zero,               // execution time
+                                       ACE_Time_Value::max_time,           // deadline time
+                                       NULL,                               // data block allocator
+                                       NULL));                             // message allocator
+  if (unlikely (!message_block_p))
+  {
+    if (inherited::mod_)
+      ACE_DEBUG ((LM_CRITICAL,
+                  ACE_TEXT ("%s: failed to allocate ACE_Message_Block: \"%m\", returning\n"),
+                  inherited::mod_->name ()));
+    else
+      ACE_DEBUG ((LM_CRITICAL,
+                  ACE_TEXT ("failed to allocate ACE_Message_Block: \"%m\", returning\n")));
+    return;
+  } // end IF
+
+  result = this->putq (message_block_p, NULL);
+  if (unlikely (result == -1))
+  {
+    if (inherited::mod_)
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("%s: failed to ACE_Task_Base::putq(): \"%m\", continuing\n"),
+                  inherited::mod_->name ()));
+    else
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to ACE_Task_Base::putq(): \"%m\", continuing\n")));
+    message_block_p->release (); message_block_p = NULL;
+  } // end IF
 }
 
 template <ACE_SYNCH_DECL,
@@ -1121,7 +1223,8 @@ Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
   // sanity check(s)
   ACE_ASSERT (inherited::configuration_);
   ACE_ASSERT (inherited::configuration_->window);
-  ACE_ASSERT (inherited::sessionData_);
+  if (!inherited::sessionData_)
+    return;
 #if GTK_CHECK_VERSION(3,10,0)
   ACE_ASSERT (surface_in);
 #else

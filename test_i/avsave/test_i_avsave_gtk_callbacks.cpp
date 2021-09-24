@@ -3408,7 +3408,7 @@ idle_update_progress_cb (gpointer userData_in)
                   ACE_TEXT ("thread %u has joined (status was: 0x%@)\n"),
                   thread_id,
                   exit_status));
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
     } // end ELSE
 
     data_p->state->eventSourceIds.erase (*iterator_3);

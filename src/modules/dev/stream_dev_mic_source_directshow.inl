@@ -532,11 +532,9 @@ continue_2:
         goto error;
       } // end IF
       is_running = true;
-#if defined (_DEBUG)
       ACE_DEBUG ((LM_DEBUG,
                   ACE_TEXT ("%s: started DirectShow graph\n"),
                   inherited::mod_->name ()));
-#endif // _DEBUG
 
       // register graph in the ROT (graphedt.exe)
       if (unlikely (!Stream_MediaFramework_DirectShow_Tools::addToROT (IGraphBuilder_,
@@ -675,11 +673,9 @@ error:
                       ACE_TEXT ("%s: failed to IMediaControl::StopWhenReady(): \"%s\", continuing\n"),
                       inherited::mod_->name (),
                       ACE_TEXT (Common_Error_Tools::errorToString (result_2).c_str ())));
-#if defined (_DEBUG)
         ACE_DEBUG ((LM_DEBUG,
                     ACE_TEXT ("%s: stopped DirectShow graph\n"),
                     inherited::mod_->name ()));
-#endif // _DEBUG
         IMediaControl_->Release (); IMediaControl_ = NULL;
       } // end IF
 

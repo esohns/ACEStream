@@ -107,7 +107,7 @@
 //#define TEST_U_STREAM_UI_GTK_PANGO_LOG_FONT_DESCRIPTION      "Monospace 8"
 //#define TEST_U_STREAM_UI_GTK_PANGO_LOG_COLOR_BASE            "#FFFFFF" // white
 //#define TEST_U_STREAM_UI_GTK_PANGO_LOG_COLOR_TEXT            "#000000" // green
-//#define TEST_U_STREAM_UI_GTK_PROGRESSBAR_NAME                "progressbar"
+#define TEST_U_STREAM_UI_GTK_PROGRESSBAR_NAME                "progressbar"
 #define TEST_U_STREAM_UI_GTK_SCALE_SINUS_FREQUENCY_NAME      "scale_sinus_frequency"
 //#define TEST_U_STREAM_UI_GTK_SCROLLEDWINDOW_NAME             "scrolledwindow"
 //#define TEST_U_STREAM_UI_GTK_SCROLLMARK_NAME                 "insert"

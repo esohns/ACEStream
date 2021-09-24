@@ -19,16 +19,9 @@
  ***************************************************************************/
 #include "stdafx.h"
 
-//#include "ace/Synch.h"
 #include "test_u_audioeffect_signalhandler.h"
 
 #include "ace/Log_Msg.h"
-
-#if defined (GUI_SUPPORT)
-#if defined (GTK_USE)
-#include "common_ui_gtk_manager_common.h"
-#endif // GTK_USE
-#endif // GUI_SUPPORT
 
 #include "stream_macros.h"
 
@@ -150,13 +143,5 @@ Test_U_AudioEffect_SignalHandler::handle (const struct Common_Signal& signal_in)
     //                configuration_.actionTimerId));
     //  configuration_.actionTimerId = -1;
     //} // end IF
-
-    // step2: stop UI event processing ?
-#if defined (GUI_SUPPORT)
-#if defined (GTK_USE)
-    COMMON_UI_GTK_MANAGER_SINGLETON::instance ()->stop (false, // wait ?
-                                                        true); // high priority ?
-#endif // GTK_USE
-#endif // GUI_SUPPORT
   } // end IF
 }

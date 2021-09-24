@@ -257,8 +257,8 @@ Stream_Dev_Mic_Source_WaveIn_T<ACE_SYNCH_USE,
       } // end IF
 
       WAVEINCAPS   capabilities_s;
-      WAVEFORMATEX wave_format_ex_s;
-      ACE_OS::memset (&wave_format_ex_s, 0, sizeof (WAVEFORMATEX));
+      struct tWAVEFORMATEX wave_format_ex_s;
+      ACE_OS::memset (&wave_format_ex_s, 0, sizeof (struct tWAVEFORMATEX));
       MMRESULT     result;
       UINT         num_devices_i = waveInGetNumDevs ();
 
@@ -311,12 +311,10 @@ Stream_Dev_Mic_Source_WaveIn_T<ACE_SYNCH_USE,
                     ACE_TEXT (error_msg_a)));
         goto error;
       } // end IF
-#if defined (_DEBUG)
       ACE_DEBUG ((LM_DEBUG,
                   ACE_TEXT ("%s: opened capture device (handle: %@)\n"),
                   inherited::mod_->name (),
                   &context_));
-#endif // _DEBUG
 
       // prepare buffer blocks and add to input queue
       if (!allocateBuffers (inherited::configuration_->messageAllocator,
@@ -374,21 +372,17 @@ Stream_Dev_Mic_Source_WaveIn_T<ACE_SYNCH_USE,
                     ACE_TEXT (error_msg_a)));
         goto error;
       } // end IF
-#if defined (_DEBUG)
       ACE_DEBUG ((LM_DEBUG,
                   ACE_TEXT ("%s: started audio capture (handle: %@, %u buffer(s))\n"),
                   inherited::mod_->name (),
                   &context_,
                   STREAM_DEV_MIC_WAVEIN_DEFAULT_DEVICE_BUFFERS));
-#endif // _DEBUG
 
       ACE_ASSERT (!session_data_r.formats.empty ());
-#if defined (_DEBUG)
       ACE_DEBUG ((LM_DEBUG,
                   ACE_TEXT ("%s: capture format: \"%s\"\n"),
                   inherited::mod_->name (),
                   ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::toString (session_data_r.formats.back ()).c_str ())));
-#endif // _DEBUG
 
       break;
 
@@ -420,13 +414,12 @@ error:
                     inherited::mod_->name (),
                     ACE_TEXT (error_msg_a)));
       } // end IF
-#if defined (_DEBUG)
       ACE_DEBUG ((LM_DEBUG,
                   ACE_TEXT ("%s: stopped audio capture (handle: %@)\n"),
                   inherited::mod_->name (),
                   &context_));
-#endif // _DEBUG
 
+      DataMessageType* message_p = NULL;
       for (unsigned int i = 0;
            i < STREAM_DEV_MIC_WAVEIN_DEFAULT_DEVICE_BUFFERS;
            ++i)
@@ -445,9 +438,21 @@ error:
 
         if (likely (CBData_.buffers[i]))
         {
-          CBData_.buffers[i]->release (); CBData_.buffers[i] = NULL;
+          message_p = static_cast<DataMessageType*> (CBData_.buffers[i]);
+          ACE_ASSERT (message_p);
+          typename DataMessageType::DATA_T& data_r =
+            const_cast<typename DataMessageType::DATA_T&> (message_p->getR ());
+          data_r.task = NULL;
+          CBData_.buffers[i] = NULL;
         } // end IF
       } // end FOR
+
+      inherited::sessionEndProcessed_ = true;
+      if (likely (inherited::concurrency_ != STREAM_HEADMODULECONCURRENCY_CONCURRENT))
+      { Common_ITask* itask_p = this; // *TODO*: is the no other way ?
+        itask_p->stop (false,  // wait for completion ?
+                       false); // high priority ?
+      } // end IF
 
       break;
     }
@@ -628,7 +633,7 @@ Stream_Dev_Mic_Source_WaveIn_T<ACE_SYNCH_USE,
 
     bufferHeaders_[i].dwUser = i;
 
-    message_p = dynamic_cast<DataMessageType*> (CBData_.buffers[i]);
+    message_p = static_cast<DataMessageType*> (CBData_.buffers[i]);
     ACE_ASSERT (message_p);
     typename DataMessageType::DATA_T& data_r =
       const_cast<typename DataMessageType::DATA_T&> (message_p->getR ());

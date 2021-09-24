@@ -2613,15 +2613,16 @@ error:
 
   { // synch access
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
+    ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, state_r.lock, std::numeric_limits<ACE_THR_FUNC_RETURN>::max ());
     switch (data_base_p->mediaFramework)
     {
       case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
-      { ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, state_r.lock, -1);
+      {
         directshow_ui_cb_data_p->CBData->progressData.completedActions.insert (directshow_ui_cb_data_p->eventSourceId);
         break;
       }
       case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
-      { ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, state_r.lock, -1);
+      {
         mediafoundation_ui_cb_data_p->CBData->progressData.completedActions.insert (mediafoundation_ui_cb_data_p->eventSourceId);
         break;
       }
@@ -2634,7 +2635,7 @@ error:
       }
     } // end SWITCH
 #else
-    ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, state_r.lock, std::numeric_limits<void*>::max ());
+    ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, state_r.lock, arg_in);
     data_p->CBData->progressData.completedActions.insert (data_p->eventSourceId);
 #endif // ACE_WIN32 || ACE_WIN64
   } // end lock scope
@@ -4683,105 +4684,109 @@ idle_update_info_display_cb (gpointer userData_in)
   return G_SOURCE_CONTINUE;
 }
 
-//gboolean
-//idle_update_progress_cb (gpointer userData_in)
-//{
-//  STREAM_TRACE (ACE_TEXT ("::idle_update_progress_cb"));
-//
-//  struct Test_U_AudioEffect_GTK_ProgressData* data_p =
-//      static_cast<struct Test_U_AudioEffect_GTK_ProgressData*> (userData_in);
-//
-//  // sanity check(s)
-//  ACE_ASSERT (data_p);
-//  ACE_ASSERT (data_p->GTKState);
-//
-//  // synch access
-//  ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, data_p->GTKState->lock, G_SOURCE_REMOVE);
-//
-//  int result = -1;
-//  Common_UI_GTK_BuildersConstIterator_t iterator =
-//    data_p->GTKState->builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN));
-//  // sanity check(s)
-//  ACE_ASSERT (iterator != data_p->GTKState->builders.end ());
-//
-//  GtkProgressBar* progress_bar_p =
-//    GTK_PROGRESS_BAR (gtk_builder_get_object ((*iterator).second.second,
-//                                              ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_PROGRESSBAR_NAME)));
-//  ACE_ASSERT (progress_bar_p);
-//
-//  ACE_THR_FUNC_RETURN exit_status;
-//  ACE_Thread_Manager* thread_manager_p = ACE_Thread_Manager::instance ();
-//  ACE_ASSERT (thread_manager_p);
-//  Test_U_AudioEffect_PendingActionsIterator_t iterator_2;
-//  for (Test_U_AudioEffect_CompletedActionsIterator_t iterator_3 = data_p->completedActions.begin ();
-//       iterator_3 != data_p->completedActions.end ();
-//       ++iterator_3)
-//  {
-//    iterator_2 = data_p->pendingActions.find (*iterator_3);
-//    ACE_ASSERT (iterator_2 != data_p->pendingActions.end ());
-//    result = thread_manager_p->join ((*iterator_2).first, &exit_status);
-//    if (result == -1)
-//      ACE_DEBUG ((LM_ERROR,
-//                  ACE_TEXT ("failed to ACE_Thread_Manager::join(%u): \"%m\", continuing\n"),
-//                  (*iterator_2).first));
-//    else
-//    {
-//#if defined (ACE_WIN32) || defined (ACE_WIN64)
-//      ACE_DEBUG ((LM_DEBUG,
-//                  ACE_TEXT ("thread %u has joined (status was: %u)...\n"),
-//                  (*iterator_2).first,
-//                  exit_status));
-//#else
-//      ACE_DEBUG ((LM_DEBUG,
-//                  ACE_TEXT ("thread %u has joined (status was: %@)...\n"),
-//                  (*iterator_2).first,
-//                  exit_status));
-//#endif
-//    } // end ELSE
-//
-//    data_p->GTKState->eventSourceIds.erase (*iterator_3);
-//    data_p->pendingActions.erase (iterator_2);
-//  } // end FOR
-//  data_p->completedActions.clear ();
-//
-//  bool done = false;
-//  if (data_p->pendingActions.empty ())
-//  {
-//    //if (data_p->cursorType != GDK_LAST_CURSOR)
-//    //{
-//    //  GdkCursor* cursor_p = gdk_cursor_new (data_p->cursorType);
-//    //  if (!cursor_p)
-//    //  {
-//    //    ACE_DEBUG ((LM_ERROR,
-//    //                ACE_TEXT ("failed to gdk_cursor_new(%d): \"%m\", continuing\n"),
-//    //                data_p->cursorType));
-//    //    return G_SOURCE_REMOVE;
-//    //  } // end IF
-//    //  GtkWindow* window_p =
-//    //    GTK_WINDOW (gtk_builder_get_object ((*iterator).second.second,
-//    //                                        ACE_TEXT_ALWAYS_CHAR (IRC_CLIENT_GUI_GTK_WINDOW_MAIN)));
-//    //  ACE_ASSERT (window_p);
-//    //  GdkWindow* window_2 = gtk_widget_get_window (GTK_WIDGET (window_p));
-//    //  ACE_ASSERT (window_2);
-//    //  gdk_window_set_cursor (window_2, cursor_p);
-//    //  data_p->cursorType = GDK_LAST_CURSOR;
-//    //} // end IF
-//
-//    done = true;
-//  } // end IF
-//
-//  // synch access
-//  std::ostringstream converter;
-//  converter << data_p->statistic.messagesPerSecond;
-//  converter << ACE_TEXT_ALWAYS_CHAR (" fps");
-//  gtk_progress_bar_set_text (progress_bar_p,
-//                             (done ? ACE_TEXT_ALWAYS_CHAR ("")
-//                                   : converter.str ().c_str ()));
-//  gtk_progress_bar_pulse (progress_bar_p);
-//
-//  // reschedule ?
-//  return (done ? G_SOURCE_REMOVE : G_SOURCE_CONTINUE);
-//}
+gboolean
+idle_update_progress_cb (gpointer userData_in)
+{
+  STREAM_TRACE (ACE_TEXT ("::idle_update_progress_cb"));
+
+  struct Test_U_AudioEffect_ProgressData* data_p =
+      static_cast<struct Test_U_AudioEffect_ProgressData*> (userData_in);
+
+  // sanity check(s)
+  ACE_ASSERT (data_p);
+  ACE_ASSERT (data_p->state);
+
+  // synch access
+  ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, data_p->state->lock, G_SOURCE_REMOVE);
+
+  int result = -1;
+  Common_UI_GTK_BuildersConstIterator_t iterator =
+    data_p->state->builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN));
+  // sanity check(s)
+  ACE_ASSERT (iterator != data_p->state->builders.end ());
+
+  GtkProgressBar* progress_bar_p =
+    GTK_PROGRESS_BAR (gtk_builder_get_object ((*iterator).second.second,
+                                              ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_PROGRESSBAR_NAME)));
+  ACE_ASSERT (progress_bar_p);
+
+  ACE_THR_FUNC_RETURN exit_status;
+  ACE_Thread_Manager* thread_manager_p = ACE_Thread_Manager::instance ();
+  ACE_ASSERT (thread_manager_p);
+  Common_UI_GTK_PendingActionsIterator_t iterator_2;
+  for (Common_UI_GTK_CompletedActionsIterator_t iterator_3 = data_p->completedActions.begin ();
+       iterator_3 != data_p->completedActions.end ();
+       ++iterator_3)
+  {
+    iterator_2 = data_p->pendingActions.find (*iterator_3);
+    ACE_ASSERT (iterator_2 != data_p->pendingActions.end ());
+    result = thread_manager_p->join ((*iterator_2).first, &exit_status);
+    if (result == -1)
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to ACE_Thread_Manager::join(%u): \"%m\", continuing\n"),
+                  (*iterator_2).first));
+    else
+    {
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+      ACE_DEBUG ((LM_DEBUG,
+                  ACE_TEXT ("thread %u has joined (status was: %u)...\n"),
+                  (*iterator_2).first,
+                  exit_status));
+#else
+      ACE_DEBUG ((LM_DEBUG,
+                  ACE_TEXT ("thread %u has joined (status was: %@)...\n"),
+                  (*iterator_2).first,
+                  exit_status));
+#endif // ACE_WIN32 || ACE_WIN64
+    } // end ELSE
+
+    data_p->state->eventSourceIds.erase (*iterator_3);
+    data_p->pendingActions.erase (iterator_2);
+  } // end FOR
+  data_p->completedActions.clear ();
+
+  bool done = false;
+  if (data_p->pendingActions.empty ())
+  {
+    //if (data_p->cursorType != GDK_LAST_CURSOR)
+    //{
+    //  GdkCursor* cursor_p = gdk_cursor_new (data_p->cursorType);
+    //  if (!cursor_p)
+    //  {
+    //    ACE_DEBUG ((LM_ERROR,
+    //                ACE_TEXT ("failed to gdk_cursor_new(%d): \"%m\", continuing\n"),
+    //                data_p->cursorType));
+    //    return G_SOURCE_REMOVE;
+    //  } // end IF
+    //  GtkWindow* window_p =
+    //    GTK_WINDOW (gtk_builder_get_object ((*iterator).second.second,
+    //                                        ACE_TEXT_ALWAYS_CHAR (IRC_CLIENT_GUI_GTK_WINDOW_MAIN)));
+    //  ACE_ASSERT (window_p);
+    //  GdkWindow* window_2 = gtk_widget_get_window (GTK_WIDGET (window_p));
+    //  ACE_ASSERT (window_2);
+    //  gdk_window_set_cursor (window_2, cursor_p);
+    //  data_p->cursorType = GDK_LAST_CURSOR;
+    //} // end IF
+
+    done = true;
+
+    result = data_p->state->condition.broadcast ();
+    if (result == -1)
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to ACE_Condition::broadcast(): \"%m\", continuing\n")));
+  } // end IF
+
+  std::ostringstream converter;
+  converter << data_p->statistic.messagesPerSecond;
+  converter << ACE_TEXT_ALWAYS_CHAR (" fps");
+  gtk_progress_bar_set_text (progress_bar_p,
+                             (done ? ACE_TEXT_ALWAYS_CHAR ("")
+                                   : converter.str ().c_str ()));
+  gtk_progress_bar_pulse (progress_bar_p);
+
+  // reschedule ?
+  return (done ? G_SOURCE_REMOVE : G_SOURCE_CONTINUE);
+}
 
 gboolean
 idle_update_display_cb (gpointer userData_in)
@@ -5822,37 +5827,35 @@ togglebutton_record_toggled_cb (GtkToggleButton* toggleButton_in,
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to ACE_Thread_Manager::spawn(): \"%m\", returning\n")));
-//    delete thread_name_p;
       delete thread_data_p; thread_data_p = NULL;
       return;
     } // end IF
 
     // step3: start progress reporting
     //ACE_ASSERT (!data_p->progressEventSourceId);
-    ui_cb_data_base_p->progressData.eventSourceId = 0;
+    ui_cb_data_base_p->progressData.eventSourceId =
     //  //g_idle_add_full (G_PRIORITY_DEFAULT_IDLE, // _LOW doesn't work (on Win32)
     //  //                 idle_update_progress_cb,
     //  //                 &data_p->progressData,
     //  //                 NULL);
-    //  g_timeout_add_full (G_PRIORITY_DEFAULT_IDLE,                          // _LOW doesn't work (on Win32)
-    //                      TEST_U_STREAM_UI_GTK_PROGRESSBAR_UPDATE_INTERVAL, // ms (?)
-    //                      idle_update_progress_cb,
-    //                      &data_p->progressData,
-    //                      NULL);
-    //if (!data_p->progressEventSourceID)
-    //{
-    //  ACE_DEBUG ((LM_ERROR,
-    //              ACE_TEXT ("failed to g_timeout_add_full(idle_update_progress_cb): \"%m\", returning\n")));
+      g_timeout_add_full (G_PRIORITY_DEFAULT_IDLE,            // _LOW doesn't work (on Win32)
+                          COMMON_UI_REFRESH_DEFAULT_PROGRESS, // ms (?)
+                          idle_update_progress_cb,
+                          &ui_cb_data_base_p->progressData,
+                          NULL);
+    if (!ui_cb_data_base_p->progressData.eventSourceId)
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to g_timeout_add_full(idle_update_progress_cb): \"%m\", returning\n")));
 
-    //  // clean up
-    //  ACE_THR_FUNC_RETURN exit_status;
-    //  result = thread_manager_p->join (thread_id, &exit_status);
-    //  if (result == -1)
-    //    ACE_DEBUG ((LM_ERROR,
-    //                ACE_TEXT ("failed to ACE_Thread_Manager::join(): \"%m\", continuing\n")));
-
-    //  goto error;
-    //} // end IF
+      // clean up
+      ACE_THR_FUNC_RETURN exit_status;
+      result = thread_manager_p->join (thread_id, &exit_status);
+      if (result == -1)
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("failed to ACE_Thread_Manager::join(): \"%m\", continuing\n")));
+      return;
+    } // end IF
     thread_data_p->eventSourceId =
       ui_cb_data_base_p->progressData.eventSourceId;
     ui_cb_data_base_p->progressData.pendingActions[ui_cb_data_base_p->progressData.eventSourceId] =
@@ -6998,23 +7001,32 @@ button_quit_clicked_cb (GtkButton* button_in,
 #endif
   ACE_ASSERT (stream_p);
 
-  //// step1: remove event sources
-  //{ ACE_Guard<ACE_Thread_Mutex> aGuard (data_p->lock);
-  //  for (Common_UI_GTKEventSourceIdsIterator_t iterator = data_p->eventSourceIds.begin ();
-  //       iterator != data_p->eventSourceIds.end ();
-  //       iterator++)
-  //    if (!g_source_remove (*iterator))
-  //      ACE_DEBUG ((LM_ERROR,
-  //                  ACE_TEXT ("failed to g_source_remove(%u), continuing\n"),
-  //                  *iterator));
-  //  data_p->eventSourceIds.clear ();
-  //} // end lock scope
-
   if ((status_e == STREAM_STATE_RUNNING) ||
       (status_e == STREAM_STATE_PAUSED))
-    stream_p->stop (false, true);
+    stream_p->stop (false, true, true);
+
+  // wait for processing thread(s)
+  { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, ui_cb_data_base_p->UIState->lock);
+    while (!ui_cb_data_base_p->progressData.pendingActions.empty ())
+      ui_cb_data_base_p->UIState->condition.wait (NULL);
+  } // end lock scope
+
+  // step1: remove event sources
+  { ACE_GUARD (ACE_Thread_Mutex, aGuard, ui_cb_data_base_p->UIState->lock);
+    for (Common_UI_GTK_EventSourceIdsIterator_t iterator = ui_cb_data_base_p->UIState->eventSourceIds.begin ();
+         iterator != ui_cb_data_base_p->UIState->eventSourceIds.end ();
+         iterator++)
+      if (!g_source_remove (*iterator))
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("failed to g_source_remove(%u), continuing\n"),
+                    *iterator));
+    ui_cb_data_base_p->UIState->eventSourceIds.clear ();
+  } // end lock scope
 
   // step2: initiate shutdown sequence
+  COMMON_UI_GTK_MANAGER_SINGLETON::instance ()->stop (false, // wait ?
+                                                      true); // high priority ?
+
   int result = ACE_OS::raise (SIGINT);
   if (result == -1)
     ACE_DEBUG ((LM_ERROR,

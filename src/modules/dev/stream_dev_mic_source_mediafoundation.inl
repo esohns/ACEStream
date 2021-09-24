@@ -669,10 +669,12 @@ continue_:
       if (COM_initialized)
         CoUninitialize ();
 
-      if (inherited::concurrency_ != STREAM_HEADMODULECONCURRENCY_CONCURRENT)
-        inherited::stop (false, // wait ?
-                         false, // high priority ?
-                         true); // locked access ?
+      inherited::sessionEndProcessed_ = true;
+      if (likely (inherited::concurrency_ != STREAM_HEADMODULECONCURRENCY_CONCURRENT))
+      { Common_ITask* itask_p = this; // *TODO*: is the no other way ?
+        itask_p->stop (false,  // wait for completion ?
+                       false); // high priority ?
+      } // end IF
 
       break;
     }
