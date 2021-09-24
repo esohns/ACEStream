@@ -1,15 +1,16 @@
+set (CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_CURRENT_SOURCE_DIR}/../../../modules/Common/src/xml/scripts;${CMAKE_CURRENT_SOURCE_DIR}/../../../../Common/src/xml/scripts")
+include (PreXMLImplementation)
+
 add_library (${PROJECT_NAME}_HTML STATIC "")
 
 #get_filename_component (BUILD_PATH ${CMAKE_CURRENT_BINARY_DIR}/../../.. REALPATH)
 #get_filename_component (BUILD_PATH_SUFFIX ${BUILD_PATH} NAME)
 
-include (FindPkgConfig)
-if (UNIX)
- pkg_check_modules (PKG_LIBXML2 REQUIRED libxml-2.0)
-
+if (LIBXML2_SUPPORT)
  target_include_directories (${PROJECT_NAME}_HTML PUBLIC
-                             $<BUILD_INTERFACE:${PKG_LIBXML2_INCLUDE_DIRS}>)
-
+                             "$<BUILD_INTERFACE:${LIBXML2_INCLUDE_DIRS}>")
+endif (LIBXML2_SUPPORT)
+if (UNIX)
  target_include_directories (${PROJECT_NAME}_HTML PUBLIC
                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../modules/Common/src>)
  target_include_directories (${PROJECT_NAME}_HTML PUBLIC
@@ -17,12 +18,6 @@ if (UNIX)
  target_include_directories (${PROJECT_NAME}_HTML PUBLIC
                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../modules/Common/src/timer>)
 elseif (WIN32)
-# *TODO*: repair pkgconfig support
- target_include_directories (${PROJECT_NAME}_HTML PUBLIC
-                             $<BUILD_INTERFACE:$ENV{LIB_ROOT}/libiconv/include>)
- target_include_directories (${PROJECT_NAME}_HTML PUBLIC
-                             $<BUILD_INTERFACE:$ENV{LIB_ROOT}/libxml2/include>)
-
  target_include_directories (${PROJECT_NAME}_HTML PUBLIC
                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../Common/src>)
  target_include_directories (${PROJECT_NAME}_HTML PUBLIC
@@ -54,7 +49,7 @@ set (source_files
      stream_html_tools.h)
 
 # Include dir for installed targets
-set (INCLUDE_DIR include/${PROJECT_NAME}-${upstream_version})
+#set (INCLUDE_DIR include/${PROJECT_NAME}-${upstream_version})
 
 unset (absolute_source_files)
 foreach (source_file ${source_files})
@@ -69,20 +64,18 @@ target_sources (${PROJECT_NAME}_HTML
                 PRIVATE stdafx.h
                 ${absolute_source_files})
 
-if (CMAKE_CXX_COMPILER_ID STREQUAL "CLang")
- add_compile_options (-fPIC)
-endif ()
+#if (CMAKE_CXX_COMPILER_ID STREQUAL "CLang")
+# add_compile_options (-fPIC)
+#endif ()
 
 set_property (TARGET ${PROJECT_NAME}_HTML PROPERTY FOLDER "modules")
 
 add_dependencies (${PROJECT_NAME}_HTML Common)
 add_dependencies (${PROJECT_NAME}_HTML ${PROJECT_NAME})
 
-if (UNIX)
- target_link_libraries (${PROJECT_NAME}_HTML PUBLIC ${PKG_LIBXML2_LIBRARIES})
-elseif (WIN32)
- target_link_libraries (${PROJECT_NAME}_HTML PUBLIC $ENV{LIB_ROOT}/libxml2/lib/libxml2.lib)
-endif ()
+if (LIBXML2_SUPPORT)
+ target_link_libraries (${PROJECT_NAME}_HTML PUBLIC ${LIBXML2_LIBRARIES})
+endif (LIBXML2_SUPPORT)
 
 target_link_libraries (${PROJECT_NAME}_HTML PUBLIC Common)
 

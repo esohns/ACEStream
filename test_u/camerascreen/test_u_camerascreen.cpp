@@ -23,8 +23,14 @@
 #include <string>
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-#include <initguid.h> // *NOTE*: this exports DEFINE_GUIDs (see stream_misc_common.h)
-#include <mfapi.h>
+#include "initguid.h" // *NOTE*: this exports DEFINE_GUIDs (see stream_misc_common.h)
+// *NOTE*: uuids.h doesn't have double include protection
+#if defined (UUIDS_H)
+#else
+#define UUIDS_H
+#include "uuids.h"
+#endif // UUIDS_H
+#include "mfapi.h"
 #endif // ACE_WIN32 || ACE_WIN64
 
 #include "ace/Get_Opt.h"

@@ -26,8 +26,6 @@
 #include "ace/Global_Macros.h"
 #include "ace/Synch_Traits.h"
 
-//#include "common_time_common.h"
-
 #include "stream_task_base_synch.h"
 
 extern const char libacestream_default_html_writer_module_name_string[];

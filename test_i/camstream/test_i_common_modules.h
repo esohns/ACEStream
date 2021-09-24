@@ -22,7 +22,7 @@
 #define TEST_I_COMMON_MODULES_H
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-#include <strmif.h>
+#include "strmif.h"
 #endif // ACE_WIN32 || ACE_WIN64
 
 #include "ace/INET_Addr.h"
@@ -55,6 +55,9 @@
 #else
 #include "stream_dev_cam_source_v4l.h"
 
+#if defined (FFMPEG_SUPPORT)
+#include "stream_lib_ffmpeg_common.h"
+#endif // FFMPEG_SUPPORT
 #include "stream_lib_v4l_common.h"
 
 #if defined (GUI_SUPPORT)
@@ -64,8 +67,6 @@
 #endif // GTK_USE
 #endif // GUI_SUPPORT
 #endif // ACE_WIN32 || ACE_WIN64
-
-#include "stream_lib_ffmpeg_common.h"
 
 #include "stream_misc_splitter.h"
 
@@ -495,6 +496,7 @@ typedef Stream_Miscellaneous_Distributor_T<ACE_MT_SYNCH,
                                            Test_I_Source_V4L_Stream_Message,
                                            Test_I_Source_V4L_SessionMessage,
                                            Test_I_Source_V4L_SessionData_t> Test_I_Source_V4L_Distributor;
+#if defined (FFMPEG_SUPPORT)
 typedef Stream_Visualization_LibAVResize_T<ACE_MT_SYNCH,
                                            Common_TimePolicy_t,
                                            struct Test_I_Source_V4L_ModuleHandlerConfiguration,
@@ -503,6 +505,7 @@ typedef Stream_Visualization_LibAVResize_T<ACE_MT_SYNCH,
                                            Test_I_Source_V4L_SessionMessage,
                                            Test_I_Source_V4L_SessionData_t,
                                            struct Stream_MediaFramework_V4L_MediaType> Test_I_Source_V4L_Resize;
+#endif // FFMPEG_SUPPORT
 typedef Stream_Module_Vis_GTK_Pixbuf_T<ACE_MT_SYNCH,
                                        Common_TimePolicy_t,
                                        struct Test_I_Source_V4L_ModuleHandlerConfiguration,
@@ -670,6 +673,7 @@ typedef Stream_Vis_Target_MediaFoundation_T<ACE_MT_SYNCH,
 #else
 #if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
+#if defined (FFMPEG_SUPPORT)
 typedef Stream_Visualization_LibAVResize_T<ACE_MT_SYNCH,
                                            Common_TimePolicy_t,
                                            struct Test_I_Target_ModuleHandlerConfiguration,
@@ -678,6 +682,7 @@ typedef Stream_Visualization_LibAVResize_T<ACE_MT_SYNCH,
                                            Test_I_Target_SessionMessage,
                                            Test_I_Target_SessionData_t,
                                            struct Stream_MediaFramework_FFMPEG_VideoMediaType> Test_I_Target_Resize;
+#endif // FFMPEG_SUPPORT
 typedef Stream_Module_Vis_GTK_Pixbuf_T<ACE_MT_SYNCH,
                                        Common_TimePolicy_t,
                                        struct Test_I_Target_ModuleHandlerConfiguration,
@@ -868,12 +873,14 @@ DATASTREAM_MODULE_INPUT_ONLY (Test_I_Source_V4L_SessionData,                  //
                               libacestream_default_misc_distributor_module_name_string,
                               Stream_INotify_t,                                       // stream notification interface type
                               Test_I_Source_V4L_Distributor);                 // writer type
+#if defined (FFMPEG_SUPPORT)
 DATASTREAM_MODULE_INPUT_ONLY (Test_I_Source_V4L_SessionData,                  // session data type
                               enum Stream_SessionMessageType,                         // session event type
                               struct Test_I_Source_V4L_ModuleHandlerConfiguration,   // module handler configuration type
                               libacestream_default_vis_libav_resize_module_name_string,
                               Stream_INotify_t,                                       // stream notification interface type
                               Test_I_Source_V4L_Resize);                            // writer type
+#endif // FFMPEG_SUPPORT
 DATASTREAM_MODULE_INPUT_ONLY (Test_I_Source_V4L_SessionData,                  // session data type
                               enum Stream_SessionMessageType,                         // session event type
                               struct Test_I_Source_V4L_ModuleHandlerConfiguration,   // module handler configuration type
@@ -956,12 +963,14 @@ DATASTREAM_MODULE_INPUT_ONLY (Test_I_Target_MediaFoundation_SessionData,        
 #else
 #if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
+#if defined (FFMPEG_SUPPORT)
 DATASTREAM_MODULE_INPUT_ONLY (Test_I_Target_SessionData,                  // session data type
                               enum Stream_SessionMessageType,                         // session event type
                               struct Test_I_Target_ModuleHandlerConfiguration,   // module handler configuration type
                               libacestream_default_vis_libav_resize_module_name_string,
                               Stream_INotify_t,                                       // stream notification interface type
                               Test_I_Target_Resize);                             // writer type
+#endif // FFMPEG_SUPPORT
 DATASTREAM_MODULE_INPUT_ONLY (Test_I_Target_SessionData,                       // session data type
                               enum Stream_SessionMessageType,                         // session event type
                               struct Test_I_Target_ModuleHandlerConfiguration,        // module handler configuration type

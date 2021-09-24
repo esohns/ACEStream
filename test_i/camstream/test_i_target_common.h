@@ -27,14 +27,14 @@
 #include <string>
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-#include <BaseTyps.h>
-#include <OAIdl.h>
-#include <control.h>
-#include <d3d9.h>
-#include <evr.h>
-#include <mfapi.h>
-#include <mfobjects.h>
-#include <strmif.h>
+#include "BaseTyps.h"
+#include "OAIdl.h"
+#include "control.h"
+#include "d3d9.h"
+#include "evr.h"
+#include "mfapi.h"
+#include "mfobjects.h"
+#include "strmif.h"
 #endif // ACE_WIN32 || ACE_WIN64
 
 #if defined (GUI_SUPPORT)
@@ -69,10 +69,13 @@
 
 #include "stream_lib_common.h"
 #include "stream_lib_defines.h"
-#include "stream_lib_ffmpeg_common.h"
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #include "stream_lib_guids.h"
 #include "stream_lib_mediafoundation_mediasource.h"
+#else
+#if defined (FFMPEG_SUPPORT)
+#include "stream_lib_ffmpeg_common.h"
+#endif // FFMPEG_SUPPORT
 #endif // ACE_WIN32 || ACE_WIN64
 
 #include "net_defines.h"

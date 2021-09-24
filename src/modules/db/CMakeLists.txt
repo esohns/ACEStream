@@ -1,3 +1,5 @@
+include (FindPkgConfig)
+
 set (MYSQL_LIB_FILE libmysqlclient.so)
 if (UNIX)
 # pkg_check_modules (PKG_MYSQL REQUIRED libmysqlclient-dev)
