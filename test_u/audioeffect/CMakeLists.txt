@@ -308,7 +308,6 @@ elseif (WIN32)
                            ${ZLIB_PATH}
                            ${IMAGEMAGICK_PATH}
                            ${ACE_LIBRARY_PATH})
-# message (STATUS "RUNTIME_LIBRARY_DIRS: ${RUNTIME_LIBRARY_DIRS}")
 endif ()
 create_target_launcher (${EXECUTABLE}
                         COMMAND ${COMMAND}

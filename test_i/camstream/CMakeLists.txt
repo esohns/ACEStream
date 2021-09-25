@@ -1,11 +1,11 @@
-include (FindPkgConfig)
 include (ffmpeg)
 include (ImageMagick)
+
 set (CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_CURRENT_SOURCE_DIR}/../../modules/ACENetwork/scripts;${CMAKE_CURRENT_SOURCE_DIR}/../../../ACENetwork/scripts")
 include (SSLConfig)
 
 if (UNIX)
- #pkg_check_modules (PKG_ACE REQUIRED ACE)
+ include (FindPkgConfig)
 # *NOTE*: Common requires libcap
 # pkg_check_modules (PKG_CAP REQUIRED libcap)
  pkg_check_modules (PKG_V4L2 REQUIRED libv4l2)

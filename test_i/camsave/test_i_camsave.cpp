@@ -1546,13 +1546,19 @@ error:
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
     {
       struct _AMMediaType* media_type_p = NULL;
+      struct _AMMediaType& media_type_r =
+#if defined (FFMPEG_SUPPORT)
+        (*directshow_stream_iterator_4).second.second.outputFormat;
+#else
+        (*directshow_stream_iterator).second.second.outputFormat;
+#endif // FFMPEG_SUPPORT
       if (!do_initialize_directshow (captureinterfaceIdentifier_in,
                                      UIDefinitionFilename_in.empty (),  // initialize COM ?
                                      !UIDefinitionFilename_in.empty (), // has UI ?
                                      directshow_modulehandler_configuration.builder,
                                      stream_config_p,
                                      directshow_stream_configuration.format,
-                                     (*directshow_stream_iterator_4).second.second.outputFormat)) // --> converter_2
+                                     media_type_r)) // --> converter_2
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("failed to ::do_initialize_directshow(), returning\n")));
@@ -1563,7 +1569,7 @@ error:
         directShowCBData_in.streamConfiguration = stream_config_p;
       } // end IF
       media_type_p =
-        Stream_MediaFramework_DirectShow_Tools::copy ((*directshow_stream_iterator_4).second.second.outputFormat);
+        Stream_MediaFramework_DirectShow_Tools::copy (media_type_r);
       ACE_ASSERT (media_type_p);
       // *NOTE*: Gtk 2 expects RGB24
       // *NOTE*: "...CAIRO_FORMAT_ARGB32: each pixel is a 32-bit quantity, with
@@ -1584,7 +1590,9 @@ error:
       media_type_p =
         Stream_MediaFramework_DirectShow_Tools::copy ((*directshow_stream_iterator).second.second.outputFormat);
       ACE_ASSERT (media_type_p);
+#if defined (FFMPEG_SUPPORT)
       (*directshow_stream_iterator_2).second.second.outputFormat = *media_type_p;
+#endif // FFMPEG_SUPPORT
       CoTaskMemFree (media_type_p); media_type_p = NULL;
       break;
     }

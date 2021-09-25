@@ -21,8 +21,6 @@
 #ifndef TEST_U_IMAGESCREEN_COMMON_H
 #define TEST_U_IMAGESCREEN_COMMON_H
 
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-#else
 #if defined (FFMPEG_SUPPORT)
 #ifdef __cplusplus
 extern "C"
@@ -32,7 +30,6 @@ extern "C"
 }
 #endif // __cplusplus
 #endif // FFMPEG_SUPPORT
-#endif // ACE_WIN32 || ACE_WIN64
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
@@ -141,11 +138,13 @@ struct Stream_ImageScreen_ModuleHandlerConfiguration
 {
   Stream_ImageScreen_ModuleHandlerConfiguration ()
    : Test_U_ModuleHandlerConfiguration ()
+#if defined (FFMPEG_SUPPORT)
+   , codecId (AV_CODEC_ID_NONE)
+#endif // FFMPEG_SUPPORT
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
 #if defined (FFMPEG_SUPPORT)
    , codecFormat (AV_PIX_FMT_NONE)
-   , codecId (AV_CODEC_ID_NONE)
 #endif // FFMPEG_SUPPORT
 #endif // ACE_WIN32 || ACE_WIN64
    , delay (5, 0)
@@ -172,11 +171,13 @@ struct Stream_ImageScreen_ModuleHandlerConfiguration
     concurrency = STREAM_HEADMODULECONCURRENCY_ACTIVE;
   }
 
+#if defined (FFMPEG_SUPPORT)
+  enum AVCodecID                                codecId;
+#endif // FFMPEG_SUPPORT
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
 #if defined (FFMPEG_SUPPORT)
   enum AVPixelFormat                            codecFormat; // preferred output-
-  enum AVCodecID                                codecId;
 #endif // FFMPEG_SUPPORT
 #endif // ACE_WIN32 || ACE_WIN64
   ACE_Time_Value                                delay;

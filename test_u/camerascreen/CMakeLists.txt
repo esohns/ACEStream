@@ -1,5 +1,10 @@
-include (FindPkgConfig)
+include (OpenGL)
 include (ffmpeg)
+include (ImageMagick)
+
+set (CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_CURRENT_SOURCE_DIR}/../../modules/Common/src/gl/scripts;;${CMAKE_CURRENT_SOURCE_DIR}/../../../Common/src/gl/scripts")
+include (assimp)
+include (png)
 
 set (CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_CURRENT_SOURCE_DIR}/../../src/modules/dev/scripts")
 include (libcamera)
@@ -10,6 +15,7 @@ if (UNIX)
  set (CMAKE_THREAD_PREFER_PTHREAD ON)
  find_package (Threads)
 
+ include (FindPkgConfig)
  pkg_check_modules (PKG_V4L REQUIRED libv4l2)
 endif (UNIX)
 
@@ -226,35 +232,34 @@ if (CMAKE_BUILD_TYPE STREQUAL Debug)
  set (ARGS "${ARGS} -t")
 endif (CMAKE_BUILD_TYPE STREQUAL Debug)
 if (UNIX)
-# set (RUNTIME_LIBRARY_DIRS ${PROJECT_SOURCE_DIR}/modules/ATCD/ACE/lib)
+ file (TO_NATIVE_PATH "${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_BUILD_TYPE}/${EXECUTABLE}" COMMAND)
+ set (RUNTIME_LIBRARY_DIRS ${PROJECT_SOURCE_DIR}/modules/ACE/lib)
 # set (ENVIRONMENT "GDK_BACKEND=x11")
 elseif (WIN32)
- file (TO_CMAKE_PATH $ENV{LIB_ROOT}/ffmpeg/bin FFMPEG_PATH)
- file (TO_CMAKE_PATH $ENV{LIB_ROOT}/ImageMagick IMAGEMAGICK_PATH)
- file (TO_CMAKE_PATH $ENV{LIB_ROOT}/freeglut/bin GLUT_PATH)
- file (TO_CMAKE_PATH $ENV{LIB_ROOT}/assimp/cmake/code/${CMAKE_BUILD_TYPE} ASSIMP_PATH)
- file (TO_CMAKE_PATH $ENV{LIB_ROOT}/gtk2/bin GTK_LIB_PATH)
- file (TO_CMAKE_PATH $ENV{LIB_ROOT}/ACE_TAO/ACE/lib ACE_LIBRARY_PATH)
+ file (TO_NATIVE_PATH "${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_BUILD_TYPE}/${EXECUTABLE}.exe" COMMAND)
+ string (REPLACE "\\" "\\\\" COMMAND ${COMMAND})
+ file (TO_CMAKE_PATH "${OPENGL_LIB_DIR}" OPENGL_PATH)
+ file (TO_CMAKE_PATH "${ASSIMP_LIB_DIR}" ASSIMP_PATH)
+ file (TO_CMAKE_PATH "${PNG_LIB_DIR}" LIBPNG_PATH)
+ file (TO_CMAKE_PATH "${ffmpeg_LIB_DIR}" FFMPEG_PATH)
+ file (TO_CMAKE_PATH "${ImageMagick_LIB_DIR}" IMAGEMAGICK_PATH)
+# file (TO_CMAKE_PATH "${GTK_LIB_DIRS}" GTK_PATH)
+ file (TO_CMAKE_PATH "${ACE_LIB_DIR}" ACE_LIBRARY_PATH)
  set (RUNTIME_LIBRARY_DIRS ${RUNTIME_LIBRARY_DIRS}
+                           ${OPENGL_PATH}
                            ${FFMPEG_PATH}
                            ${IMAGEMAGICK_PATH}
-                           ${GLUT_PATH}
                            ${ASSIMP_PATH}
-                           ${GTK_LIB_PATH}
+                           ${LIBPNG_PATH}
+#                           ${GTK_PATH}
                            ${ACE_LIBRARY_PATH})
- set (RUNTIME_LIBRARY_DIRS ${RUNTIME_LIBRARY_DIRS}
-                           ${PROJECT_SOURCE_DIR}/../libpng/cmake/${CMAKE_BUILD_TYPE}
- #                          ${PROJECT_SOURCE_DIR}/../ffmpeg/bin
-#                           ${PROJECT_SOURCE_DIR}/../ffmpeg/libavutil
-#                           ${PROJECT_SOURCE_DIR}/../ffmpeg/libswresample
-#                           ${PROJECT_SOURCE_DIR}/../ffmpeg/libswscale
-                           ${PROJECT_SOURCE_DIR}/../assimp/cmake/code/${CMAKE_BUILD_TYPE})
 endif ()
 create_target_launcher (${EXECUTABLE}
+                        COMMAND ${COMMAND}
                         ARGS ${ARGS}
 #                        FORWARD_ARGS
                         RUNTIME_LIBRARY_DIRS ${RUNTIME_LIBRARY_DIRS}
-                        WORKING_DIRECTORY ${PROJECT_BINARY_DIR}/../test_u/camerascreen
+                        WORKING_DIRECTORY ${PROJECT_BINARY_DIR}/../test_u/${EXECUTABLE}
                         ENVIRONMENT ${ENVIRONMENT})
 
 ##########################################

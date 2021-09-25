@@ -30,8 +30,6 @@
 #include "stream_streammodule_base.h"
 
 #if defined (FFMPEG_SUPPORT)
-#include "stream_lib_ffmpeg_common.h"
-
 #include "stream_dec_libav_decoder.h"
 #endif // FFMPEG_SUPPORT
 
@@ -42,6 +40,13 @@
 #include "stream_misc_messagehandler.h"
 
 //#include "stream_stat_statistic_report.h"
+
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#else
+#if defined (FFMPEG_SUPPORT)
+#include "stream_lib_ffmpeg_common.h"
+#endif // FFMPEG_SUPPORT
+#endif // ACE_WIN32 || ACE_WIN64
 
 #if defined (GUI_SUPPORT)
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -83,7 +88,11 @@ typedef Stream_Decoder_LibAVDecoder_T<ACE_MT_SYNCH,
                                       Test_I_Message,
                                       Test_I_SessionMessage_t,
                                       Test_I_ImageSave_SessionData_t,
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+                                      struct _AMMediaType> Test_I_LibAVDecoder;
+#else
                                       struct Stream_MediaFramework_FFMPEG_VideoMediaType> Test_I_LibAVDecoder;
+#endif // ACE_WIN32 || ACE_WIN64
 #endif // FFMPEG_SUPPORT
 
 //typedef Stream_Statistic_StatisticReport_ReaderTask_T<ACE_MT_SYNCH,

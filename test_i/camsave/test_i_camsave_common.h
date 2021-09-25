@@ -38,10 +38,11 @@
 #include <strmif.h>
 #else
 #include "linux/videodev2.h"
-
 #if defined (LIBCAMERA_SUPPORT)
 #include "libcamera/libcamera.h"
 #endif // LIBCAMERA_SUPPORT
+
+#if defined (FFMPEG_SUPPORT)
 #ifdef __cplusplus
 extern "C"
 {
@@ -49,6 +50,7 @@ extern "C"
 #include "libavutil/pixfmt.h"
 }
 #endif // __cplusplus
+#endif // FFMPEG_SUPPORT
 #endif // ACE_WIN32 || ACE_WIN64
 
 #if defined (GUI_SUPPORT)

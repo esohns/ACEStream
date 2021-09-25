@@ -40,12 +40,15 @@
 #if defined (FFMPEG_SUPPORT)
 #include "stream_dec_libav_converter.h"
 #include "stream_dec_libav_decoder.h"
-#include "stream_dec_libav_encoder.h"
 #endif // FFMPEG_SUPPORT
 
 #include "stream_dev_cam_source_v4l.h"
 #include "stream_dev_mic_source_alsa.h"
 #endif // ACE_WIN32 || ACE_WIN64
+#if defined (FFMPEG_SUPPORT)
+#include "stream_dec_libav_encoder.h"
+#endif // FFMPEG_SUPPORT
+
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #include "stream_lib_directshow_asynch_source_filter.h"

@@ -42,6 +42,7 @@
 #include "Dmodshow.h"
 #include "dvdmedia.h"
 //#include "ksuuids.h"
+#include "mfapi.h"
 #include "mmreg.h"
 #include "mtype.h"
 #include "oleauto.h"
@@ -4488,7 +4489,7 @@ Stream_MediaFramework_DirectShow_Tools::mediaSubTypeToAVPixelFormat (REFGUID med
   /////////////////////////////////////// AUDIO
   // uncompressed audio
   if (mediaSubType_in == MEDIASUBTYPE_IEEE_FLOAT);
-  else if (mediaSubType_in == MEDIASUBTYPE_PCM);
+  //MEDIASUBTYPE_PCM
   // MPEG-4 and AAC
   //MEDIASUBTYPE_MPEG_ADTS_AAC
   //MEDIASUBTYPE_MPEG_HEAAC
@@ -4613,52 +4614,77 @@ Stream_MediaFramework_DirectShow_Tools::mediaSubTypeToAVPixelFormat (REFGUID med
 
   // uncompressed RGB (no alpha)
   //MEDIASUBTYPE_RGB1
-  //MEDIASUBTYPE_RGB4
-  //MEDIASUBTYPE_RGB8
-  //MEDIASUBTYPE_RGB555
-  //MEDIASUBTYPE_RGB565
-  //MEDIASUBTYPE_RGB24
-  //MEDIASUBTYPE_RGB32
+  else if (mediaSubType_in == MEDIASUBTYPE_RGB4)
+    return AV_PIX_FMT_RGB4;
+  else if (mediaSubType_in == MEDIASUBTYPE_RGB8)
+    return AV_PIX_FMT_RGB8;
+  else if (mediaSubType_in == MEDIASUBTYPE_RGB555)
+   return AV_PIX_FMT_RGB555;
+  else if (mediaSubType_in == MEDIASUBTYPE_RGB565)
+    return AV_PIX_FMT_RGB565;
+  else if (mediaSubType_in == MEDIASUBTYPE_RGB24)
+    return AV_PIX_FMT_RGB24;
+  else if (mediaSubType_in == MEDIASUBTYPE_RGB32)
+    return AV_PIX_FMT_RGB32;
   // uncompressed RGB (alpha)
   //MEDIASUBTYPE_ARGB1555
-  //MEDIASUBTYPE_ARGB32
+  else if (mediaSubType_in == MEDIASUBTYPE_ARGB32)
+    return AV_PIX_FMT_ARGB;
   //MEDIASUBTYPE_ARGB4444
   //MEDIASUBTYPE_A2R10G10B10
   //MEDIASUBTYPE_A2B10G10R10
 
   // video mixing renderer (VMR-7)
-  //MEDIASUBTYPE_RGB32_D3D_DX7_RT
-  //MEDIASUBTYPE_RGB16_D3D_DX7_RT
-  //MEDIASUBTYPE_ARGB32_D3D_DX7_RT
-  //MEDIASUBTYPE_ARGB4444_D3D_DX7_RT
+  else if (mediaSubType_in == MEDIASUBTYPE_RGB32_D3D_DX7_RT)
+    return AV_PIX_FMT_RGB32;
+  else if (mediaSubType_in == MEDIASUBTYPE_RGB16_D3D_DX7_RT)
+    return AV_PIX_FMT_RGB565;
+  else if (mediaSubType_in == MEDIASUBTYPE_ARGB32_D3D_DX7_RT)
+    return AV_PIX_FMT_ARGB;
+  else if (mediaSubType_in == MEDIASUBTYPE_ARGB4444_D3D_DX7_RT)
+    return AV_PIX_FMT_RGB444;
   //MEDIASUBTYPE_ARGB1555_D3D_DX7_RT
   // video mixing renderer (VMR-9)
-  //MEDIASUBTYPE_RGB32_D3D_DX9_RT
-  //MEDIASUBTYPE_RGB16_D3D_DX9_RT
-  //MEDIASUBTYPE_ARGB32_D3D_DX9_RT
-  //MEDIASUBTYPE_ARGB4444_D3D_DX9_RT
+  else if (mediaSubType_in == MEDIASUBTYPE_RGB32_D3D_DX9_RT)
+    return AV_PIX_FMT_RGB32;
+  else if (mediaSubType_in == MEDIASUBTYPE_RGB16_D3D_DX9_RT)
+    return AV_PIX_FMT_RGB565;
+  else if (mediaSubType_in == MEDIASUBTYPE_ARGB32_D3D_DX9_RT)
+    return AV_PIX_FMT_ARGB;
+  else if (mediaSubType_in == MEDIASUBTYPE_ARGB4444_D3D_DX9_RT)
+    return AV_PIX_FMT_RGB444;
   //MEDIASUBTYPE_ARGB1555_D3D_DX9_RT
 
   // YUV video
-  //MEDIASUBTYPE_AYUV
-  //MEDIASUBTYPE_YUY2
-  //MEDIASUBTYPE_UYVY
-  //MEDIASUBTYPE_IMC1
+  else if (mediaSubType_in == MEDIASUBTYPE_AYUV)
+    return AV_PIX_FMT_AYUV64;
+  else if (mediaSubType_in == MEDIASUBTYPE_YUY2)
+    return AV_PIX_FMT_YUYV422;
+  else if (mediaSubType_in == MEDIASUBTYPE_UYVY)
+    return AV_PIX_FMT_UYVY422;
+  else if (mediaSubType_in == MEDIASUBTYPE_IMC1)
+    return AV_PIX_FMT_YUV420P;
   //MEDIASUBTYPE_IMC2
   //MEDIASUBTYPE_IMC3
   //MEDIASUBTYPE_IMC4
   //MEDIASUBTYPE_YV12
-  //MEDIASUBTYPE_NV12
+  else if (mediaSubType_in == MEDIASUBTYPE_NV12)
+    return AV_PIX_FMT_NV12;
   // other YUV
   //MEDIASUBTYPE_I420
   //MEDIASUBTYPE_IF09
   //MEDIASUBTYPE_IYUV
   //MEDIASUBTYPE_Y211
-  //MEDIASUBTYPE_Y411
-  //MEDIASUBTYPE_Y41P
-  //MEDIASUBTYPE_YVU9
-  //MEDIASUBTYPE_YVYU
-  //MEDIASUBTYPE_YUYV
+  else if (mediaSubType_in == MEDIASUBTYPE_Y411)
+    return AV_PIX_FMT_YUV411P;
+  else if (mediaSubType_in == MEDIASUBTYPE_Y41P)
+    return AV_PIX_FMT_YUV411P;
+  else if (mediaSubType_in == MEDIASUBTYPE_YVU9)
+    return AV_PIX_FMT_YUV420P9;
+  else if (mediaSubType_in == MEDIASUBTYPE_YVYU)
+    return AV_PIX_FMT_YVYU422;
+  else if (mediaSubType_in == MEDIASUBTYPE_YUYV)
+    return AV_PIX_FMT_YUYV422;
 
   // miscellaneous
   //MEDIASUBTYPE_CFCC
@@ -4667,7 +4693,8 @@ Stream_MediaFramework_DirectShow_Tools::mediaSubTypeToAVPixelFormat (REFGUID med
   //MEDIASUBTYPE_CLPL
   //MEDIASUBTYPE_IJPG
   //MEDIASUBTYPE_MDVF
-  //MEDIASUBTYPE_MJPG
+  else if (mediaSubType_in == MEDIASUBTYPE_MJPG)
+    return AV_PIX_FMT_YUVJ422P;
   //MEDIASUBTYPE_Overlay
   //MEDIASUBTYPE_Plum
   //MEDIASUBTYPE_QTJpeg
@@ -4686,31 +4713,40 @@ Stream_MediaFramework_DirectShow_Tools::mediaSubTypeToAVPixelFormat (REFGUID med
   //MEDIASUBTYPE_DVSD
 
   // Media Foundation
-  //MFVideoFormat_RGB32
-  //MFVideoFormat_ARGB32
+  else if (mediaSubType_in == MFVideoFormat_RGB32)
+    return AV_PIX_FMT_RGB32;
+  else if (mediaSubType_in == MFVideoFormat_ARGB32)
+    return AV_PIX_FMT_ARGB;
   else if (mediaSubType_in == MFVideoFormat_RGB24)
     return AV_PIX_FMT_RGB24;
-    //return AV_PIX_FMT_RGB24;
-  //MFVideoFormat_RGB555
-  //MFVideoFormat_RGB565
-  //MFVideoFormat_RGB8
-  //MFVideoFormat_AI44
-  //MFVideoFormat_AYUV
+  else if (mediaSubType_in == MFVideoFormat_RGB555)
+    return AV_PIX_FMT_RGB555;
+  else if (mediaSubType_in == MFVideoFormat_RGB565)
+    return AV_PIX_FMT_RGB565;
+  else if (mediaSubType_in == MFVideoFormat_RGB8)
+    return AV_PIX_FMT_RGB8;
+  else if (mediaSubType_in == MFVideoFormat_AI44)
+    return AV_PIX_FMT_YUV444P;
+  else if (mediaSubType_in == MFVideoFormat_AYUV)
+    return AV_PIX_FMT_AYUV64;
   else if (mediaSubType_in == MFVideoFormat_YUY2)
     return AV_PIX_FMT_YUYV422;
-  //MFVideoFormat_YVYU
-  //MFVideoFormat_YVU9
-  //MFVideoFormat_UYVY
+  else if (mediaSubType_in == MFVideoFormat_YVYU)
+    return AV_PIX_FMT_YVYU422;
+  else if (mediaSubType_in == MFVideoFormat_YVU9)
+    return AV_PIX_FMT_YUV420P9;
+  else if (mediaSubType_in == MFVideoFormat_UYVY)
+    return AV_PIX_FMT_UYVY422;
   //MFVideoFormat_NV11
-  //MFVideoFormat_NV12
+  else if (mediaSubType_in == MFVideoFormat_NV12)
+    return AV_PIX_FMT_NV12;
   // *TODO*: this is wrong...
   else if (mediaSubType_in == MFVideoFormat_YV12)
     return AV_PIX_FMT_NV21;
   //MFVideoFormat_I420
   // *TODO*: endianness of the bytestream may not be that of the host
   else if (mediaSubType_in == MFVideoFormat_IYUV)
-    return ((ACE_BYTE_ORDER == ACE_LITTLE_ENDIAN) ? AV_PIX_FMT_YUV420P16LE
-                                                  : AV_PIX_FMT_YUV420P16BE);
+    return AV_PIX_FMT_YUV420P16;
   //MFVideoFormat_Y210
   //MFVideoFormat_Y216
   //MFVideoFormat_Y410

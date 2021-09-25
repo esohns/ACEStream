@@ -231,7 +231,7 @@ Stream_Decoder_LibAV_ImageDecoder_T<ACE_SYNCH_USE,
 //#endif // ACE_WIN32 || ACE_WIN64
   DataMessageType* message_p = NULL;
   ACE_Message_Block* message_block_p = NULL;
-  uint8_t* data_a[4] = { reinterpret_cast<uint8_t*> (message_inout->rd_ptr ()), 0, 0, 0 }, * data_2[4] = { 0, 0, 0, 0 };
+  uint8_t* data_a[4] = { reinterpret_cast<uint8_t*> (message_inout->rd_ptr ()), NULL, NULL, NULL }, * data_2[4] = { NULL, NULL, NULL, NULL };
   unsigned int length_i = 0;
 
 //  // step2: (re-)pad [see above] the buffer chain
@@ -252,8 +252,7 @@ Stream_Decoder_LibAV_ImageDecoder_T<ACE_SYNCH_USE,
                 1));
     return;
   } // end IF
-  message_p = dynamic_cast<DataMessageType*> (message_block_p);
-  ACE_ASSERT (message_p);
+  message_p = static_cast<DataMessageType*> (message_block_p);
 
   if (unlikely (!Common_Image_Tools::load (data_a,
                                            message_inout->length (),
@@ -288,7 +287,14 @@ Stream_Decoder_LibAV_ImageDecoder_T<ACE_SYNCH_USE,
                    0); // --> delete[] the data in dtor
   message_p->wr_ptr (length_i);
   typename DataMessageType::DATA_T data_s;
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  struct _AMMediaType media_type_s;
+  inherited2::getMediaType (outputFormat_,
+                            media_type_s);
+  data_s.format = media_type_s;
+#else
   data_s.format = outputFormat_;
+#endif // ACE_WIN32 || ACE_WIN64
   message_p->initialize (data_s,
                          message_p->sessionId (),
                          NULL);

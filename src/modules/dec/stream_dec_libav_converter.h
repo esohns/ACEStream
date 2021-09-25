@@ -31,10 +31,6 @@ extern "C"
 #include "ace/Global_Macros.h"
 #include "ace/Synch_Traits.h"
 
-//#include "common_time_common.h"
-
-//#include "common_image_common.h"
-
 #include "stream_common.h"
 #include "stream_task_base_synch.h"
 

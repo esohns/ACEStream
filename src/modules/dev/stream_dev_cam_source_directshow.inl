@@ -548,11 +548,8 @@ continue_:
                       ACE_TEXT (Stream_Device_DirectShow_Tools::devicePathToString (ACE_TEXT_ALWAYS_CHAR (inherited::configuration_->deviceIdentifier.identifier._string)).c_str ())));
         pin_p->Release (); pin_p = NULL;
       } // end IF
-      if (set_capture_format_b)
-      {
-        session_data_r.formats.push_back (media_type_s);
-        release_media_type = false;
-      } // end IF
+      session_data_r.formats.push_back (media_type_s);
+      release_media_type = false;
 
       //ACE_DEBUG ((LM_DEBUG,
       //            ACE_TEXT ("%s: frame grabber filter output format: \"%s\"\n"),
@@ -572,27 +569,24 @@ continue_:
                   ACE_TEXT (log_file_name.c_str ())));
 #endif // _DEBUG
 
-      // set up sample grabber ?
-      if (set_capture_format_b)
+      // set up sample grabber
+      result_2 = sample_grabber_p->SetBufferSamples (false);
+      if (FAILED (result_2))
       {
-        result_2 = sample_grabber_p->SetBufferSamples (false);
-        if (FAILED (result_2))
-        {
-          ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("%s: failed to ISampleGrabber::SetBufferSamples(): \"%s\", aborting\n"),
-                      inherited::mod_->name (),
-                      ACE_TEXT (Common_Error_Tools::errorToString (result_2, false).c_str ())));
-          goto error;
-        } // end IF
-        result_2 = sample_grabber_p->SetCallback (this, 0);
-        if (FAILED (result_2))
-        {
-          ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("%s: failed to ISampleGrabber::SetCallback(): \"%s\", aborting\n"),
-                      inherited::mod_->name (),
-                      ACE_TEXT (Common_Error_Tools::errorToString (result_2, false).c_str ())));
-          goto error;
-        } // end IF
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("%s: failed to ISampleGrabber::SetBufferSamples(): \"%s\", aborting\n"),
+                    inherited::mod_->name (),
+                    ACE_TEXT (Common_Error_Tools::errorToString (result_2, false).c_str ())));
+        goto error;
+      } // end IF
+      result_2 = sample_grabber_p->SetCallback (this, 0);
+      if (FAILED (result_2))
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("%s: failed to ISampleGrabber::SetCallback(): \"%s\", aborting\n"),
+                    inherited::mod_->name (),
+                    ACE_TEXT (Common_Error_Tools::errorToString (result_2, false).c_str ())));
+        goto error;
       } // end IF
       sample_grabber_p->Release (); sample_grabber_p = NULL;
 

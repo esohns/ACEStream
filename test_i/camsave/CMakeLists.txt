@@ -1,5 +1,5 @@
-include (FindPkgConfig)
 include (ffmpeg)
+include (ImageMagick)
 
 set (CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_CURRENT_SOURCE_DIR}/../../src/modules/dev/scripts")
 include (libcamera)
@@ -10,6 +10,7 @@ if (UNIX)
  set (CMAKE_THREAD_PREFER_PTHREAD ON)
  find_package (Threads)
 
+ include (FindPkgConfig)
  pkg_check_modules (PKG_V4L REQUIRED libv4l2)
 endif (UNIX)
 
@@ -22,6 +23,9 @@ get_filename_component (BUILD_PATH_SUFFIX ${BUILD_PATH} NAME)
 if (FFMPEG_SUPPORT)
  include_directories (${ffmpeg_INCLUDE_DIRS})
 endif (FFMPEG_SUPPORT)
+if (IMAGEMAGICK_SUPPORT)
+ include_directories (${ImageMagick_INCLUDE_DIRS})
+endif (IMAGEMAGICK_SUPPORT)
 if (UNIX)
  include_directories (${PKG_V4L_INCLUDE_DIRS})
 
@@ -37,8 +41,6 @@ if (UNIX)
    include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../modules/Common/src/ui/qt)
   endif (QT_USE)
  endif (GUI_SUPPORT)
-
-# include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../modules/Common/test_i)
 elseif (WIN32)
  set (DIRECTSHOW_BASECLASSES_DIRECTORY
       "D:/projects/DShowBaseClasses")
@@ -57,8 +59,6 @@ elseif (WIN32)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../Common/src/signal)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../Common/src/timer)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../Common/src/ui)
-
- include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../Common/test_i)
 endif ()
 include_directories (${CMAKE_CURRENT_BINARY_DIR}/../..)
 
@@ -165,6 +165,9 @@ add_dependencies (${EXECUTABLE} ${PROJECT_NAME}_Test_I)
 if (FFMPEG_SUPPORT)
  target_link_libraries (${EXECUTABLE} PUBLIC ${ffmpeg_LIBRARIES})
 endif (FFMPEG_SUPPORT)
+if (IMAGEMAGICK_SUPPORT)
+ target_link_libraries (${EXECUTABLE} PUBLIC ${ImageMagick_LIBRARIES})
+endif (IMAGEMAGICK_SUPPORT)
 if (UNIX)
  target_link_libraries (${EXECUTABLE} PUBLIC ${CMAKE_THREAD_LIBS_INIT})
  target_link_libraries (${EXECUTABLE} PUBLIC ${PKG_V4L_LIBRARIES})
@@ -253,10 +256,10 @@ elseif (WIN32)
                 G:/software/Development/dll/libgcc_s_dw2-1.dll
                 G:/software/Development/dll/libexpat-1.dll
                 G:/software/Development/dll/libiconv-2.dll
-                ${Common_DIR}/src/Debug/Common.dll
-                ${Common_DIR}/src/ui/Debug/CommonUI.dll
-                ${ACENetwork_DIR}/src/Debug/ACENetwork.dll
-                ${ACENetwork_DIR}/src/protocol/http/Debug/ACENetwork_Protocol_HTTP.dll
+                ${Common_DIR}/src/${BUILD_PATH_SUFFIX}/Common.dll
+                ${Common_DIR}/src/ui/${BUILD_PATH_SUFFIX}/CommonUI.dll
+                ${ACENetwork_DIR}/src/${BUILD_PATH_SUFFIX}/ACENetwork.dll
+                ${ACENetwork_DIR}/src/protocol/http/${BUILD_PATH_SUFFIX}/ACENetwork_Protocol_HTTP.dll
                 ${CMAKE_CURRENT_SOURCE_DIR}/../../../libmysql_2/cmake/libmysql/Debug/libmysql.dll
           DESTINATION ${INSTALL_BIN_DIR} COMPONENT test_i)
  install (FILES ${ui_definition_file} ${EXECUTABLE}.fbp
@@ -271,6 +274,7 @@ if (CMAKE_BUILD_TYPE STREQUAL Debug)
  set (ARGS "${ARGS} -t")
 endif (CMAKE_BUILD_TYPE STREQUAL Debug)
 if (UNIX)
+ file (TO_NATIVE_PATH "${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_BUILD_TYPE}/${EXECUTABLE}" COMMAND)
  if (GUI_SUPPORT)
   if (GTK_USE)
    set (ARGS "-g./${ui_definition_file} ${ARGS}")
@@ -281,9 +285,11 @@ if (UNIX)
   set (ARGS "-g ${ARGS}")
  endif (GUI_SUPPORT)
 
- set (RUNTIME_LIBRARY_DIRS ${PROJECT_SOURCE_DIR}/modules/ATCD/ACE/lib)
- set (ENVIRONMENT "GDK_BACKEND=x11")
+ set (RUNTIME_LIBRARY_DIRS ${PROJECT_SOURCE_DIR}/modules/ACE/lib)
+# set (ENVIRONMENT "GDK_BACKEND=x11")
 elseif (WIN32)
+ file (TO_NATIVE_PATH "${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_BUILD_TYPE}/${EXECUTABLE}.exe" COMMAND)
+ string (REPLACE "\\" "\\\\" COMMAND ${COMMAND})
  if (GUI_SUPPORT)
   file (TO_NATIVE_PATH "${ui_definition_file}" ui_definition_file)
 #  message (STATUS "ui_definition_file: ${ui_definition_file}")
@@ -292,17 +298,10 @@ elseif (WIN32)
   set (ARGS "-g.\\\\${ui_definition_file} ${ARGS}")
 
   if (GTK_USE)
-   if (GTK3_USE)
-    file (TO_CMAKE_PATH $ENV{LIB_ROOT}/gtk3/bin GTK_LIB_PATH)
-    set (RUNTIME_LIBRARY_DIRS ${RUNTIME_LIBRARY_DIRS}
-                              G:/software/Development/dll
-                              ${GTK_LIB_PATH})
-   elseif (GTK2_USE)
-    file (TO_CMAKE_PATH $ENV{LIB_ROOT}/gtk2/bin GTK_LIB_PATH)
-    set (RUNTIME_LIBRARY_DIRS ${RUNTIME_LIBRARY_DIRS}
-                              G:/software/Development/dll
-                              ${GTK_LIB_PATH})
-   endif ()
+   file (TO_CMAKE_PATH "${GTK_LIB_DIRS}" GTK_PATH)
+   set (RUNTIME_LIBRARY_DIRS ${RUNTIME_LIBRARY_DIRS}
+                             G:/software/Development/dll
+                             ${GTK_PATH})
   elseif (WXWIDGETS_USE)
    set (RUNTIME_LIBRARY_DIRS ${RUNTIME_LIBRARY_DIRS}
                              ${wxWidgets_LIB_DIR})
@@ -310,10 +309,10 @@ elseif (WIN32)
  else ()
   set (ARGS "-g ${ARGS}")
  endif (GUI_SUPPORT)
- file (TO_CMAKE_PATH $ENV{LIB_ROOT}/libpng/cmake/${CMAKE_BUILD_TYPE} LIBPNG_PATH)
- file (TO_CMAKE_PATH $ENV{LIB_ROOT}/ffmpeg/bin FFMPEG_PATH)
- file (TO_CMAKE_PATH $ENV{LIB_ROOT}/ImageMagick IMAGEMAGICK_PATH)
- file (TO_CMAKE_PATH $ENV{LIB_ROOT}/ACE_TAO/ACE/lib ACE_PATH)
+ file (TO_CMAKE_PATH "${PNG_LIB_DIR}" LIBPNG_PATH)
+ file (TO_CMAKE_PATH "${ffmpeg_LIB_DIR}" FFMPEG_PATH)
+ file (TO_CMAKE_PATH "${ImageMagick_LIB_DIR}" IMAGEMAGICK_PATH)
+ file (TO_CMAKE_PATH "${ACE_LIB_DIR}" ACE_PATH)
  set (RUNTIME_LIBRARY_DIRS ${RUNTIME_LIBRARY_DIRS}
                            ${LIBPNG_PATH}
                            ${FFMPEG_PATH}
@@ -321,6 +320,7 @@ elseif (WIN32)
                            ${ACE_PATH})
 endif ()
 create_target_launcher (${EXECUTABLE}
+                        COMMAND ${COMMAND}
                         ARGS ${ARGS}
 #                        FORWARD_ARGS
                         RUNTIME_LIBRARY_DIRS ${RUNTIME_LIBRARY_DIRS}

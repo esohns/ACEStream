@@ -84,14 +84,22 @@ typedef Stream_Decoder_LibAV_ImageDecoder_T<ACE_MT_SYNCH,
                                             Stream_ImageScreen_Message_t,
                                             Stream_ImageScreen_SessionMessage_t,
                                             Stream_ImageScreen_SessionData_t,
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+                                            struct _AMMediaType> Stream_ImageScreen_FFMPEG_Decode;
+#else
                                             struct Stream_MediaFramework_FFMPEG_VideoMediaType> Stream_ImageScreen_FFMPEG_Decode;
+#endif // ACE_WIN32 || ACE_WIN64
 typedef Stream_Visualization_LibAVResize1_T<ACE_MT_SYNCH,
                                             Common_TimePolicy_t,
                                             struct Stream_ImageScreen_ModuleHandlerConfiguration,
                                             Stream_ControlMessage_t,
                                             Stream_ImageScreen_Message_t,
                                             Stream_ImageScreen_SessionMessage_t,
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+                                            struct _AMMediaType> Stream_ImageScreen_FFMPEG_Resize;
+#else
                                             struct Stream_MediaFramework_FFMPEG_VideoMediaType> Stream_ImageScreen_FFMPEG_Resize;
+#endif // ACE_WIN32 || ACE_WIN64
 typedef Stream_Decoder_LibAVConverter1_T<ACE_MT_SYNCH,
                                          Common_TimePolicy_t,
                                          struct Stream_ImageScreen_ModuleHandlerConfiguration,
@@ -99,7 +107,11 @@ typedef Stream_Decoder_LibAVConverter1_T<ACE_MT_SYNCH,
                                          Stream_ImageScreen_Message_t,
                                          Stream_ImageScreen_SessionMessage_t,
                                          Stream_ImageScreen_SessionData_t,
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+                                         struct _AMMediaType> Stream_ImageScreen_FFMPEG_Convert;
+#else
                                          struct Stream_MediaFramework_FFMPEG_VideoMediaType> Stream_ImageScreen_FFMPEG_Convert;
+#endif // ACE_WIN32 || ACE_WIN64
 #endif // FFMPEG_SUPPORT
 #if defined (IMAGEMAGICK_SUPPORT)
 #if defined (ACE_WIN32) || defined (ACE_WIN64)

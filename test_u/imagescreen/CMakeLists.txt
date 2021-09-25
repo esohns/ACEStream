@@ -1,19 +1,21 @@
-include (FindPkgConfig)
 include (ffmpeg)
 include (ImageMagick)
 
+set (CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_CURRENT_SOURCE_DIR}/../../modules/Common/src/gl/scripts;;${CMAKE_CURRENT_SOURCE_DIR}/../../../Common/src/gl/scripts")
+include (assimp)
+include (png)
+
 if (UNIX)
 # *NOTE*: Common requires libcap
- pkg_check_modules (PKG_CAP REQUIRED libcap)
+# include (FindPkgConfig)
+# pkg_check_modules (PKG_CAP REQUIRED libcap)
 # pkg_check_modules (PKG_V4L2 REQUIRED libv4l2)
-# pkg_check_modules (PKG_FFMPEG REQUIRED libswscale libavutil libavformat libavcodec)
 endif (UNIX)
-# *TODO*: repair WIN32 pkgconfig support
 
 get_filename_component (BUILD_PATH ${CMAKE_CURRENT_BINARY_DIR}/../.. REALPATH)
 get_filename_component (BUILD_PATH_SUFFIX ${BUILD_PATH} NAME)
 
-add_definitions (-DHAVE_CONFIG_H)
+#add_definitions (-DHAVE_CONFIG_H)
 #set_property (SOURCE PROPERTY COMPILE_DEFINITIONS HAVE_CONFIG_H)
 
 if (FFMPEG_SUPPORT)
@@ -23,7 +25,7 @@ if (IMAGEMAGICK_SUPPORT)
  include_directories (${ImageMagick_INCLUDE_DIRS})
 endif (IMAGEMAGICK_SUPPORT)
 if (UNIX)
- include_directories (${PKG_CAP_INCLUDE_DIRS})
+# include_directories (${PKG_CAP_INCLUDE_DIRS})
  include_directories (${PKG_V4L2_INCLUDE_DIRS})
 
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../Common/include)
@@ -33,7 +35,7 @@ if (UNIX)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../Common/src/signal)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../Common/src/timer)
 
- include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../Common/test_u)
+# include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../Common/test_u)
 elseif (WIN32)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../3rd_party/msvc)
 
@@ -45,7 +47,7 @@ elseif (WIN32)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../Common/src/timer)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../Common/src/ui)
 
- include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../Common/test_u)
+# include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../Common/test_u)
 endif ()
 include_directories (${CMAKE_CURRENT_BINARY_DIR}/../..)
 
@@ -150,80 +152,61 @@ add_dependencies (${EXECUTABLE} ${PROJECT_NAME}_Visualization)
 
 add_dependencies (${EXECUTABLE} ${PROJECT_NAME}_Test_U)
 
-target_link_libraries (${EXECUTABLE} ${CMAKE_THREAD_LIBS_INIT})
 if (FFMPEG_SUPPORT)
- if (WIN32)
-  if (MSVC)
-   set_target_properties (${EXECUTABLE} PROPERTIES LINK_FLAGS /SAFESEH:NO)
-  endif (MSVC)
- endif (WIN32)
- target_link_libraries (${EXECUTABLE} ${ffmpeg_LIBRARIES})
+ target_link_libraries (${EXECUTABLE} PUBLIC ${ffmpeg_LIBRARIES})
 endif (FFMPEG_SUPPORT)
 if (IMAGEMAGICK_SUPPORT)
- target_link_libraries (${EXECUTABLE} ${ImageMagick_LIBRARIES})
+ target_link_libraries (${EXECUTABLE} PUBLIC ${ImageMagick_LIBRARIES})
 endif (IMAGEMAGICK_SUPPORT)
 if (UNIX)
-# target_link_libraries (${EXECUTABLE} ${PKG_CAP_LIBRARIES})
-# target_link_libraries (${EXECUTABLE} ${PKG_V4L2_LIBRARIES})
+ target_link_libraries (${EXECUTABLE} PUBLIC ${CMAKE_THREAD_LIBS_INIT})
+# target_link_libraries (${EXECUTABLE} PUBLIC ${PKG_CAP_LIBRARIES})
+# target_link_libraries (${EXECUTABLE} PUBLIC ${PKG_V4L2_LIBRARIES})
 
 # if (GUI_SUPPORT)
 #  if (WXWIDGETS_USE)
-#   target_link_libraries (${EXECUTABLE} ${wxWidgets_LIBRARIES})
+#   target_link_libraries (${EXECUTABLE} PUBLIC ${wxWidgets_LIBRARIES})
 #  endif (WXWIDGETS_USE)
 # endif (GUI_SUPPORT)
-
-# target_link_libraries (${EXECUTABLE} ${ACE_XML_LIBRARY})
 elseif (WIN32)
-# if (MSVC)
-#  target_link_libraries (${EXECUTABLE} PUBLIC "$<$<CXX_COMPILER_ID:MSVC>:-SAFESEH:NO>")
-##  set_target_properties (${EXECUTABLE} PROPERTIES LINK_FLAGS /SAFESEH:NO) 
-# endif (MSVC)
-
-# target_link_libraries (${EXECUTABLE} dxguid.lib)
- target_link_libraries (${EXECUTABLE} mfplat.lib)
+# target_link_libraries (${EXECUTABLE} PUBLIC dxguid.lib)
+ target_link_libraries (${EXECUTABLE} PUBLIC mfplat.lib)
 
  if (CMAKE_BUILD_TYPE STREQUAL Debug)
-#  target_link_libraries (${EXECUTABLE} ${DIRECTSHOW_BASECLASSES_DIRECTORY}/cmake/baseclasses/Debug/strmbasd.lib)
+#  target_link_libraries (${EXECUTABLE} PUBLIC ${DIRECTSHOW_BASECLASSES_DIRECTORY}/cmake/baseclasses/Debug/strmbasd.lib)
  else ()
-#  target_link_libraries (${EXECUTABLE} ${DIRECTSHOW_BASECLASSES_DIRECTORY}/cmake/baseclasses/Release/strmbase.lib)
+#  target_link_libraries (${EXECUTABLE} PUBLIC ${DIRECTSHOW_BASECLASSES_DIRECTORY}/cmake/baseclasses/Release/strmbase.lib)
  endif (CMAKE_BUILD_TYPE STREQUAL Debug)
 endif ()
-target_link_libraries (${EXECUTABLE} ${ACE_LIBRARY})
+target_link_libraries (${EXECUTABLE} PUBLIC ${ACE_LIBRARY})
 
-target_link_libraries (${EXECUTABLE} Common)
-target_link_libraries (${EXECUTABLE} CommonImage)
-target_link_libraries (${EXECUTABLE} CommonLog)
-target_link_libraries (${EXECUTABLE} CommonSignal)
-target_link_libraries (${EXECUTABLE} CommonTimer)
+target_link_libraries (${EXECUTABLE} PUBLIC Common)
+target_link_libraries (${EXECUTABLE} PUBLIC CommonImage)
+target_link_libraries (${EXECUTABLE} PUBLIC CommonLog)
+target_link_libraries (${EXECUTABLE} PUBLIC CommonSignal)
+target_link_libraries (${EXECUTABLE} PUBLIC CommonTimer)
 if (GUI_SUPPORT)
- target_link_libraries (${EXECUTABLE} CommonUI)
+ target_link_libraries (${EXECUTABLE} PUBLIC CommonUI)
  if (GTK_USE)
-  target_link_libraries (${EXECUTABLE} CommonUI_GTK)
+  target_link_libraries (${EXECUTABLE} PUBLIC CommonUI_GTK)
  elseif (WXWIDGETS_USE)
-  target_link_libraries (${EXECUTABLE} CommonUI_wxWidgets)
+  target_link_libraries (${EXECUTABLE} PUBLIC CommonUI_wxWidgets)
  endif ()
 endif (GUI_SUPPORT)
 if (UNIX)
- target_link_libraries (${EXECUTABLE} CommonXML)
+ target_link_libraries (${EXECUTABLE} PUBLIC CommonXML)
 endif (UNIX)
-#target_link_libraries (${EXECUTABLE} Common_Test_U)
 
-target_link_libraries (${EXECUTABLE} ${PROJECT_NAME})
-target_link_libraries (${EXECUTABLE} ${PROJECT_NAME}_Decoder)
-target_link_libraries (${EXECUTABLE} ${PROJECT_NAME}_File)
-target_link_libraries (${EXECUTABLE} ${PROJECT_NAME}_MediaFramework)
-target_link_libraries (${EXECUTABLE} ${PROJECT_NAME}_Device)
-target_link_libraries (${EXECUTABLE} ${PROJECT_NAME}_Miscellaneous)
-target_link_libraries (${EXECUTABLE} ${PROJECT_NAME}_Statistic)
-target_link_libraries (${EXECUTABLE} ${PROJECT_NAME}_Visualization)
+target_link_libraries (${EXECUTABLE} PUBLIC ${PROJECT_NAME})
+target_link_libraries (${EXECUTABLE} PUBLIC ${PROJECT_NAME}_Decoder)
+target_link_libraries (${EXECUTABLE} PUBLIC ${PROJECT_NAME}_File)
+target_link_libraries (${EXECUTABLE} PUBLIC ${PROJECT_NAME}_MediaFramework)
+target_link_libraries (${EXECUTABLE} PUBLIC ${PROJECT_NAME}_Device)
+target_link_libraries (${EXECUTABLE} PUBLIC ${PROJECT_NAME}_Miscellaneous)
+target_link_libraries (${EXECUTABLE} PUBLIC ${PROJECT_NAME}_Statistic)
+target_link_libraries (${EXECUTABLE} PUBLIC ${PROJECT_NAME}_Visualization)
 
-target_link_libraries (${EXECUTABLE} ${PROJECT_NAME}_Test_U)
-
-#if (WIN32)
-# if (MSVC)
-#  target_link_options (${EXECUTABLE} PUBLIC "$<$<CXX_COMPILER_ID:MSVC>:-SAFESEH:NO>")
-# endif (MSVC)
-#endif (WIN32)
+target_link_libraries (${EXECUTABLE} PUBLIC ${PROJECT_NAME}_Test_U)
 
 # add PCH
 set_target_properties (${EXECUTABLE} PROPERTIES COTIRE_CXX_PREFIX_HEADER_INIT "stdafx.h")
@@ -290,6 +273,7 @@ if (CMAKE_BUILD_TYPE STREQUAL Debug)
  set (ARGS "${ARGS} -t")
 endif (CMAKE_BUILD_TYPE STREQUAL Debug)
 if (UNIX)
+ file (TO_NATIVE_PATH "${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_BUILD_TYPE}/${EXECUTABLE}" COMMAND)
  if (GUI_SUPPORT)
   if (GTK_USE)
    set (ARGS "-g./etc/${ui_definition_file} ${ARGS}")
@@ -301,23 +285,18 @@ if (UNIX)
  endif (GUI_SUPPORT)
 
  set (RUNTIME_LIBRARY_DIRS ${PROJECT_SOURCE_DIR}/modules/ACE/lib)
- set (ENVIRONMENT "GDK_BACKEND=x11")
+# set (ENVIRONMENT "GDK_BACKEND=x11")
 elseif (WIN32)
+ file (TO_NATIVE_PATH "${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_BUILD_TYPE}/${EXECUTABLE}.exe" COMMAND)
+ string (REPLACE "\\" "\\\\" COMMAND ${COMMAND})
  if (GUI_SUPPORT)
   set (ARGS "-g.\\\\etc\\\\${ui_definition_file} ${ARGS}")
 
   if (GTK_USE)
-   if (GTK3_USE)
-    file (TO_CMAKE_PATH $ENV{LIB_ROOT}/gtk3/bin GTK_LIB_PATH)
-    set (RUNTIME_LIBRARY_DIRS ${RUNTIME_LIBRARY_DIRS}
-                              G:/software/Development/dll
-                              ${GTK_LIB_PATH})
-   elseif (GTK2_USE)
-    file (TO_CMAKE_PATH $ENV{LIB_ROOT}/gtk2/bin GTK_LIB_PATH)
-    set (RUNTIME_LIBRARY_DIRS ${RUNTIME_LIBRARY_DIRS}
-                              G:/software/Development/dll
-                              ${GTK_LIB_PATH})
-   endif ()
+   file (TO_CMAKE_PATH "${GTK_LIB_DIRS}" GTK_PATH)
+   set (RUNTIME_LIBRARY_DIRS ${RUNTIME_LIBRARY_DIRS}
+                             G:/software/Development/dll
+                             ${GTK_PATH})
   elseif (WXWIDGETS_USE)
    set (RUNTIME_LIBRARY_DIRS ${RUNTIME_LIBRARY_DIRS}
                              ${wxWidgets_LIB_DIR})
@@ -325,23 +304,25 @@ elseif (WIN32)
  else ()
   set (ARGS "-g ${ARGS}")
  endif (GUI_SUPPORT)
- file (TO_CMAKE_PATH "${ffmpeg_LIB_DIR}" FFMPEG_LIB_PATH)
- file (TO_CMAKE_PATH "${ImageMagick_LIB_DIR}" IMAGEMAGICK_LIB_PATH)
- file (TO_CMAKE_PATH "${ACE_LIB_DIR}" ACE_LIB_PATH)
+ file (TO_CMAKE_PATH "${PNG_LIB_DIR}" LIBPNG_PATH)
+ file (TO_CMAKE_PATH "${ASSIMP_LIB_DIR}" ASSIMP_PATH)
+ file (TO_CMAKE_PATH "${ffmpeg_LIB_DIR}" FFMPEG_PATH)
+ file (TO_CMAKE_PATH "${ImageMagick_LIB_DIR}" IMAGEMAGICK_PATH)
+ file (TO_CMAKE_PATH "${ACE_LIB_DIR}" ACE_PATH)
  set (RUNTIME_LIBRARY_DIRS ${RUNTIME_LIBRARY_DIRS}
-                           ${FFMPEG_LIB_PATH}
-                           ${IMAGEMAGICK_LIB_PATH}
-                           ${ACE_LIB_PATH})
- set (RUNTIME_LIBRARY_DIRS ${RUNTIME_LIBRARY_DIRS}
-                           ${PROJECT_SOURCE_DIR}/../libpng-1.6.25/cmake/${CMAKE_BUILD_TYPE}
-                           ${PROJECT_SOURCE_DIR}/../assimp/cmake/code/${CMAKE_BUILD_TYPE})
+                           ${LIBPNG_PATH}
+                           ${ASSIMP_PATH}
+                           ${FFMPEG_PATH}
+                           ${IMAGEMAGICK_PATH}
+                           ${ACE_PATH})
  set (ENVIRONMENT "MAGICK_CODER_MODULE_PATH=${IMAGEMAGICK_LIB_PATH}\\\\modules\\\\coders")
 endif ()
 create_target_launcher (${EXECUTABLE}
+                        COMMAND ${COMMAND}
                         ARGS ${ARGS}
 #                        FORWARD_ARGS
                         RUNTIME_LIBRARY_DIRS ${RUNTIME_LIBRARY_DIRS}
-                        WORKING_DIRECTORY ${PROJECT_BINARY_DIR}/../test_u/imagescreen
+                        WORKING_DIRECTORY ${PROJECT_BINARY_DIR}/../test_u/${EXECUTABLE}
                         ENVIRONMENT ${ENVIRONMENT})
 
 ##########################################

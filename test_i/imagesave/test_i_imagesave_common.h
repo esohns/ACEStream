@@ -40,6 +40,7 @@
 //#include "linux/videodev2.h"
 
 //#include "X11/Xlib.h"
+#endif // ACE_WIN32 || ACE_WIN64
 
 #if defined (FFMPEG_SUPPORT)
 #ifdef __cplusplus
@@ -50,7 +51,6 @@ extern "C"
 }
 #endif // __cplusplus
 #endif // FFMPEG_SUPPORT
-#endif // ACE_WIN32 || ACE_WIN64
 
 #if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
@@ -96,11 +96,10 @@ extern "C"
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #include "stream_lib_directdraw_common.h"
 #include "stream_lib_directshow_tools.h"
-#else
+#endif // ACE_WIN32 || ACE_WIN64
 #if defined (FFMPEG_SUPPORT)
 #include "stream_lib_ffmpeg_common.h"
 #endif // FFMPEG_SUPPORT
-#endif // ACE_WIN32 || ACE_WIN64
 
 #include "stream_dev_common.h"
 #include "stream_dev_defines.h"
@@ -260,12 +259,9 @@ struct Test_I_ImageSave_ModuleHandlerConfiguration
 {
   Test_I_ImageSave_ModuleHandlerConfiguration ()
    : Test_I_ModuleHandlerConfiguration ()
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-#else
 #if defined (FFMPEG_SUPPORT)
    , codecId (AV_CODEC_ID_NONE)
 #endif // FFMPEG_SUPPORT
-#endif // ACE_WIN32 || ACE_WIN64
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
    , direct3DConfiguration (NULL)
 //   , window (NULL)
@@ -283,12 +279,9 @@ struct Test_I_ImageSave_ModuleHandlerConfiguration
     concurrency = STREAM_HEADMODULECONCURRENCY_ACTIVE;
   }
 
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-#else
 #if defined (FFMPEG_SUPPORT)
   enum AVCodecID                                     codecId;
 #endif // FFMPEG_SUPPORT
-#endif // ACE_WIN32 || ACE_WIN64
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   struct Stream_MediaFramework_Direct3D_Configuration* direct3DConfiguration;
 //  HWND                                               window;

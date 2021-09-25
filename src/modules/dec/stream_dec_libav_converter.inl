@@ -316,23 +316,23 @@ Stream_Decoder_LibAVConverter_T<ACE_SYNCH_USE,
 
   // sanity check(s)
   ACE_ASSERT (inherited::configuration_);
-
   const SessionDataContainerType& session_data_container_r =
     message_inout->getR ();
   typename SessionDataContainerType::DATA_T& session_data_r =
     const_cast<typename SessionDataContainerType::DATA_T&> (session_data_container_r.getR ());
+  // *TODO*: remove type inference
+  ACE_ASSERT (!session_data_r.formats.empty ());
 
   switch (message_inout->type ())
   {
     case STREAM_SESSION_MESSAGE_BEGIN:
     {
       // sanity check(s)
-      // *TODO*: remove type inference
-      ACE_ASSERT (!session_data_r.formats.empty ());
       struct Stream_MediaFramework_FFMPEG_VideoMediaType media_type_s;
       inherited2::getMediaType (session_data_r.formats.back (),
                                 media_type_s);
       ACE_ASSERT (!Stream_Module_Decoder_Tools::isCompressedVideo (media_type_s.format));
+
       MediaType media_type_2;
       inherited2::getMediaType (session_data_r.formats.back (),
                                 media_type_2);
@@ -653,7 +653,7 @@ Stream_Decoder_LibAVConverter1_T<ACE_SYNCH_USE,
   AVFrame* frame_p = NULL;
   typename DataMessageType::DATA_T& message_data_r =
       const_cast<typename DataMessageType::DATA_T&> (message_inout->getR ());
-  struct Stream_MediaFramework_FFMPEG_VideoMediaType media_type_s;
+  struct Stream_MediaFramework_FFMPEG_VideoMediaType media_type_s, media_type_2;
   typename DataMessageType::DATA_T message_data_2;
   int line_sizes[AV_NUM_DATA_POINTERS];
   uint8_t* data[AV_NUM_DATA_POINTERS];
@@ -673,9 +673,11 @@ Stream_Decoder_LibAVConverter1_T<ACE_SYNCH_USE,
 
   inherited2::getMediaType (message_data_r.format,
                             media_type_s);
+  inherited2::getMediaType (inherited::configuration_->outputFormat,
+                            media_type_2);
   ACE_ASSERT (inherited::configuration_);
   size_i =
-      static_cast<unsigned int> (av_image_get_buffer_size (inherited::configuration_->outputFormat.format,
+      static_cast<unsigned int> (av_image_get_buffer_size (media_type_2.format,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
                                                            media_type_s.resolution.cx,
                                                            media_type_s.resolution.cy,
@@ -695,8 +697,7 @@ Stream_Decoder_LibAVConverter1_T<ACE_SYNCH_USE,
                 size_i));
     goto error;
   } // end IF
-  message_p = dynamic_cast<DataMessageType*> (message_block_p);
-  ACE_ASSERT (message_p);
+  message_p = static_cast<DataMessageType*> (message_block_p);
   message_data_2.format = inherited::configuration_->outputFormat;
   message_p->initialize (message_data_2,
                          message_p->sessionId (),
@@ -709,7 +710,7 @@ Stream_Decoder_LibAVConverter1_T<ACE_SYNCH_USE,
       sws_getCachedContext (NULL,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
                             media_type_s.resolution.cx, media_type_s.resolution.cy, media_type_s.format,
-                            media_type_s.resolution.cx, media_type_s.resolution.cy, inherited::configuration_->outputFormat.format,
+                            media_type_s.resolution.cx, media_type_s.resolution.cy, media_type_2.format,
 #else
                             media_type_s.resolution.width, media_type_s.resolution.height, media_type_s.format,
                             media_type_s.resolution.width, media_type_s.resolution.height, inherited::configuration_->outputFormat.format,
@@ -724,12 +725,12 @@ Stream_Decoder_LibAVConverter1_T<ACE_SYNCH_USE,
     goto error;
   } // end IF
 
-  if (likely ((media_type_s.format != inherited::configuration_->outputFormat.format)))
+  if (likely ((media_type_s.format != media_type_2.format)))
     ACE_DEBUG ((LM_DEBUG,
                 ACE_TEXT ("%s: converting pixel format %s to %s\n"),
                 inherited::mod_->name (),
                 ACE_TEXT (Stream_MediaFramework_Tools::pixelFormatToString (media_type_s.format).c_str ()),
-                ACE_TEXT (Stream_MediaFramework_Tools::pixelFormatToString (inherited::configuration_->outputFormat.format).c_str ())));
+                ACE_TEXT (Stream_MediaFramework_Tools::pixelFormatToString (media_type_2.format).c_str ())));
 
   // initialize frame buffer
   frame_p = av_frame_alloc ();
@@ -740,7 +741,7 @@ Stream_Decoder_LibAVConverter1_T<ACE_SYNCH_USE,
                 inherited::mod_->name ()));
     goto error;
   } // end IF
-  frame_p->format = inherited::configuration_->outputFormat.format;
+  frame_p->format = media_type_2.format;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   frame_p->height = media_type_s.resolution.cy;
   frame_p->width = media_type_s.resolution.cx;
