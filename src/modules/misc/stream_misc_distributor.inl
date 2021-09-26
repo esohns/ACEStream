@@ -122,16 +122,16 @@ Stream_Miscellaneous_Distributor_T<ACE_SYNCH_USE,
 
           // *NOTE*: currently, all of these are 'session' messages
           SessionMessageType* session_message_p =
-            dynamic_cast<SessionMessageType*> (messageBlock_in);
-          if (unlikely (!session_message_p))
-          {
-            ACE_DEBUG ((LM_ERROR,
-                        ACE_TEXT ("%s: dynamic_cast<Stream_SessionMessageBase_T>(0x%@) failed (type was: %d), returning\n"),
-                        inherited::mod_->name (),
-                        messageBlock_in,
-                        messageBlock_in->msg_type ()));
-            goto continue_;
-          } // end IF
+            static_cast<SessionMessageType*> (messageBlock_in);
+          //if (unlikely (!session_message_p))
+          //{
+          //  ACE_DEBUG ((LM_ERROR,
+          //              ACE_TEXT ("%s: dynamic_cast<Stream_SessionMessageBase_T>(0x%@) failed (type was: %d), returning\n"),
+          //              inherited::mod_->name (),
+          //              messageBlock_in,
+          //              messageBlock_in->msg_type ()));
+          //  goto continue_;
+          //} // end IF
           if (likely (iterator_3 != data_.end ()))
           {
             (*iterator_3).second->increase ();
@@ -219,7 +219,7 @@ Stream_Miscellaneous_Distributor_T<ACE_SYNCH_USE,
              ++iterator)
         {
           ACE_NEW_NORETURN (session_data_p,
-                            typename SessionMessageType::DATA_T::DATA_T (session_data_r));
+                            typename SessionMessageType::DATA_T::DATA_T ());
           if (unlikely (!session_data_p))
           {
             ACE_DEBUG ((LM_CRITICAL,
@@ -227,6 +227,7 @@ Stream_Miscellaneous_Distributor_T<ACE_SYNCH_USE,
                         inherited::mod_->name ()));
             goto error;
           } // end IF
+          *session_data_p = session_data_r;
           ACE_NEW_NORETURN (session_data_container_p,
                             typename SessionMessageType::DATA_T (session_data_p));
           if (unlikely (!session_data_container_p))

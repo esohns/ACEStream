@@ -177,6 +177,9 @@ class Stream_MediaFramework_DirectShow_Tools
   static void dump (const struct _AMMediaType&); // media type
   // *IMPORTANT NOTE*: callers must 'delete_' any return values
   static struct _AMMediaType* copy (const struct _AMMediaType&);
+  // *IMPORTANT NOTE*: callers must 'free' the second argument
+  static bool copy (const struct _AMMediaType&, // media type
+                    struct _AMMediaType&); // return value: media type
   static void delete_ (struct _AMMediaType*&); // media type
   static void free (struct _AMMediaType&); // media type
   static void free (Stream_MediaFramework_DirectShow_Formats_t&);

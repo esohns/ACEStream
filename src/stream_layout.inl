@@ -572,16 +572,40 @@ Stream_Layout_T<ACE_SYNCH_USE,
   ACE_ASSERT (is_distributor (node_in.data));
   ACE_ASSERT (istream_in);
   ACE_ASSERT (tail_in);
+
   Stream_IDistributorModule* idistributor_p =
       dynamic_cast<Stream_IDistributorModule*> (node_in.data->writer ());
   ACE_ASSERT (idistributor_p);
 
+  int result = -1;
+  TASK_T* task_p = NULL;
   MODULE_T* prev_p = NULL;
   std::vector<typename inherited::iterator_base> sub_distributors_a;
   for (typename inherited::sibling_iterator iterator = inherited::begin (&node_in);
        iterator != inherited::end (&node_in);
        ++iterator)
   {
+    task_p = (*iterator)->reader ();
+    ACE_ASSERT (task_p);
+    result = task_p->open ((*iterator)->arg ());
+    if (unlikely (result == -1))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("%s: failed to ACE_Task_Base::open (): \"%m\", aborting\n"),
+                  (*iterator)->name ()));
+      return false;
+    } // end IF
+    task_p = (*iterator)->writer ();
+    ACE_ASSERT (task_p);
+    result = task_p->open ((*iterator)->arg ());
+    if (unlikely (result == -1))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("%s: failed to ACE_Task_Base::open (): \"%m\", aborting\n"),
+                  (*iterator)->name ()));
+      return false;
+    } // end IF
+
     // associate all direct children to the distributor
     idistributor_p->push (*iterator);
 
@@ -590,7 +614,29 @@ Stream_Layout_T<ACE_SYNCH_USE,
     for (typename inherited::sibling_iterator iterator_2 = inherited::begin (iterator);
          iterator_2 != inherited::end (iterator);
          ++iterator_2)
-    { ACE_ASSERT (prev_p);
+    { 
+      task_p = (*iterator_2)->reader ();
+      ACE_ASSERT (task_p);
+      result = task_p->open ((*iterator_2)->arg ());
+      if (unlikely (result == -1))
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("%s: failed to ACE_Task_Base::open (): \"%m\", aborting\n"),
+                    (*iterator_2)->name ()));
+        return false;
+      } // end IF
+      task_p = (*iterator_2)->writer ();
+      ACE_ASSERT (task_p);
+      result = task_p->open ((*iterator_2)->arg ());
+      if (unlikely (result == -1))
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("%s: failed to ACE_Task_Base::open (): \"%m\", aborting\n"),
+                    (*iterator_2)->name ()));
+        return false;
+      } // end IF
+      
+      ACE_ASSERT (prev_p);
       prev_p->link (*iterator_2);
       prev_p = *iterator_2;
 

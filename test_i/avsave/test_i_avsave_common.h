@@ -40,6 +40,8 @@
 #include "linux/videodev2.h"
 
 #include "X11/Xlib.h"
+
+#if defined (FFMPEG_SUPPORT)
 #ifdef __cplusplus
 extern "C"
 {
@@ -47,6 +49,7 @@ extern "C"
 #include "libavutil/pixfmt.h"
 }
 #endif // __cplusplus
+#endif // FFMPEG_SUPPORT
 #endif // ACE_WIN32 || ACE_WIN64
 
 #if defined (GUI_SUPPORT)
@@ -235,55 +238,11 @@ typedef Common_StatisticHandler_T<struct Stream_AVSave_StatisticData> Test_I_AVS
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 struct Stream_AVSave_DirectShow_StreamState;
-class Stream_AVSave_DirectShow_SessionData
- : public Stream_SessionDataMediaBase_T<struct Test_I_SessionData,
-                                        struct _AMMediaType,
-                                        struct Stream_AVSave_DirectShow_StreamState,
-                                        struct Stream_AVSave_StatisticData,
-                                        struct Stream_UserData>
-{
- public:
-  Stream_AVSave_DirectShow_SessionData ()
-   : Stream_SessionDataMediaBase_T<struct Test_I_SessionData,
-                                   struct _AMMediaType,
-                                   struct Stream_AVSave_DirectShow_StreamState,
-                                   struct Stream_AVSave_StatisticData,
-                                   struct Stream_UserData> ()
-   //, direct3DDevice (NULL)
-   //, direct3DManagerResetToken (0)
-   //, resetToken (0)
-  {}
-
-  Stream_AVSave_DirectShow_SessionData& operator+= (const Stream_AVSave_DirectShow_SessionData& rhs_in)
-  {
-    // *NOTE*: the idea is to 'merge' the data
-    Stream_SessionDataMediaBase_T<struct Test_I_SessionData,
-                                  struct _AMMediaType,
-                                  struct Stream_AVSave_DirectShow_StreamState,
-                                  struct Stream_AVSave_StatisticData,
-                                  struct Stream_UserData>::operator+= (rhs_in);
-
-    //direct3DDevice = (direct3DDevice ? direct3DDevice : rhs_in.direct3DDevice);
-    //direct3DManagerResetToken =
-    //  (direct3DManagerResetToken ? direct3DManagerResetToken
-    //                             : rhs_in.direct3DManagerResetToken);
-    //resetToken = (resetToken ? resetToken : rhs_in.resetToken);
-
-    return *this;
-  }
-
-//#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
-//  IDirect3DDevice9Ex* direct3DDevice;
-//#else
-//  IDirect3DDevice9*   direct3DDevice;
-//#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
-//  UINT                direct3DManagerResetToken;
-//  UINT                resetToken;
-
- private:
-  //ACE_UNIMPLEMENTED_FUNC (Stream_AVSave_DirectShow_SessionData (const Stream_AVSave_DirectShow_SessionData&))
-  ACE_UNIMPLEMENTED_FUNC (Stream_AVSave_DirectShow_SessionData& operator= (const Stream_AVSave_DirectShow_SessionData&))
-};
+typedef Stream_SessionDataMediaBase_T<struct Test_I_SessionData,
+                                      struct _AMMediaType,
+                                      struct Stream_AVSave_DirectShow_StreamState,
+                                      struct Stream_AVSave_StatisticData,
+                                      struct Stream_UserData> Stream_AVSave_DirectShow_SessionData;
 typedef Stream_SessionData_T<Stream_AVSave_DirectShow_SessionData> Stream_AVSave_DirectShow_SessionData_t;
 
 struct Stream_AVSave_MediaFoundation_StreamState;
@@ -308,6 +267,25 @@ class Stream_AVSave_MediaFoundation_SessionData
    , session (NULL)
   {}
 
+  Stream_AVSave_MediaFoundation_SessionData& operator= (const Stream_AVSave_MediaFoundation_SessionData& rhs_in)
+  {
+    // *NOTE*: the idea is to 'merge' the data
+    Stream_SessionDataMediaBase_T<struct Test_I_SessionData,
+                                  IMFMediaType*,
+                                  struct Stream_AVSave_MediaFoundation_StreamState,
+                                  struct Stream_AVSave_StatisticData,
+                                  struct Stream_UserData>::operator= (rhs_in);
+
+    direct3DDevice = (direct3DDevice ? direct3DDevice : rhs_in.direct3DDevice);
+    direct3DManagerResetToken =
+      (direct3DManagerResetToken ? direct3DManagerResetToken
+                                 : rhs_in.direct3DManagerResetToken);
+    rendererNodeId = (rendererNodeId ? rendererNodeId : rhs_in.rendererNodeId);
+    resetToken = (resetToken ? resetToken : rhs_in.resetToken);
+    session = (session ? session : rhs_in.session);
+
+    return *this;
+  }
   Stream_AVSave_MediaFoundation_SessionData& operator+= (const Stream_AVSave_MediaFoundation_SessionData& rhs_in)
   {
     // *NOTE*: the idea is to 'merge' the data
@@ -339,8 +317,7 @@ class Stream_AVSave_MediaFoundation_SessionData
   IMFMediaSession*                    session;
 
  private:
-  //ACE_UNIMPLEMENTED_FUNC (Stream_AVSave_MediaFoundation_SessionData (const Stream_AVSave_MediaFoundation_SessionData&))
-  ACE_UNIMPLEMENTED_FUNC (Stream_AVSave_MediaFoundation_SessionData& operator= (const Stream_AVSave_MediaFoundation_SessionData&))
+  ACE_UNIMPLEMENTED_FUNC (Stream_AVSave_MediaFoundation_SessionData (const Stream_AVSave_MediaFoundation_SessionData&))
 };
 typedef Stream_SessionData_T<Stream_AVSave_MediaFoundation_SessionData> Stream_AVSave_MediaFoundation_SessionData_t;
 #else

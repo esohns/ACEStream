@@ -22,6 +22,7 @@
 extern "C"
 {
 #include "libavformat/avformat.h"
+#include "libavutil/channel_layout.h"
 #include "libavutil/frame.h"
 #include "libavutil/imgutils.h"
 #include "libswscale/swscale.h"
@@ -362,7 +363,7 @@ Stream_Decoder_LibAVEncoder_T<ACE_SYNCH_USE,
       int result = -1;
 //      struct Stream_MediaFramework_FFMPEG_AudioMediaType media_type_3;
       struct Stream_MediaFramework_FFMPEG_VideoMediaType media_type_4;
-      AVOutputFormat* output_format_p = NULL;
+      const struct AVOutputFormat* output_format_p = NULL;
 
       if (formatContext_)
         goto continue_;
@@ -370,8 +371,10 @@ Stream_Decoder_LibAVEncoder_T<ACE_SYNCH_USE,
       output_format_p =
           av_guess_format (ACE_TEXT_ALWAYS_CHAR ("avi"), NULL, NULL);
       ACE_ASSERT (output_format_p);
-      output_format_p->audio_codec = AV_CODEC_ID_PCM_S16LE;
-      output_format_p->video_codec = AV_CODEC_ID_RAWVIDEO;
+      const_cast<struct AVOutputFormat*> (output_format_p)->audio_codec =
+        AV_CODEC_ID_PCM_S16LE;
+      const_cast<struct AVOutputFormat*> (output_format_p)->video_codec =
+        AV_CODEC_ID_RAWVIDEO;
       result =
           avformat_alloc_output_context2 (&formatContext_,
                                           output_format_p,

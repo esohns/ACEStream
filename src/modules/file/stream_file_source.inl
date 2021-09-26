@@ -283,13 +283,11 @@ next:
     goto continue_;
   } // end IF
   isOpen_ = true;
-#if defined (_DEBUG)
   ACE_DEBUG ((LM_DEBUG,
               ACE_TEXT ("%s: processing file \"%s\" (%u byte(s))\n"),
               inherited::mod_->name (),
               ACE_TEXT (file_path_string.c_str ()),
               Common_File_Tools::size (file_path_string)));
-#endif // _DEBUG
 
   do
   {
@@ -304,8 +302,7 @@ next:
         case ACE_Message_Block::MB_STOP:
         {
           // clean up
-          message_block_p->release ();
-          message_block_p = NULL;
+          message_block_p->release (); message_block_p = NULL;
 
           // *NOTE*: when close()d manually (i.e. user abort), 'finished' will not
           //         have been set at this stage

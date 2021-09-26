@@ -1190,9 +1190,13 @@ Stream_MediaFramework_Tools::AVPixelFormatToMediaSubType (enum AVPixelFormat pix
     case AV_PIX_FMT_BGR555LE:
       return MEDIASUBTYPE_RGB555;
 
+#if FF_API_VAAPI
     case AV_PIX_FMT_VAAPI_MOCO:
     case AV_PIX_FMT_VAAPI_IDCT:
     case AV_PIX_FMT_VAAPI_VLD:
+#else
+    case AV_PIX_FMT_VAAPI:
+#endif
       return GUID_NULL;
 
     case AV_PIX_FMT_YUV420P16LE:

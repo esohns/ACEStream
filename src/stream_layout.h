@@ -110,6 +110,8 @@ class Stream_Layout_T
                      TimePolicyType> STREAM_T;
   typedef ACE_Module<ACE_SYNCH_USE,
                      TimePolicyType> MODULE_T;
+  typedef ACE_Task<ACE_SYNCH_USE,
+                   TimePolicyType> TASK_T;
   typedef tree_node_<MODULE_T*> NODE_T;
   typedef typename inherited::iterator ITERATOR_T;
 

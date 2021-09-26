@@ -476,13 +476,11 @@ Stream_Base_T<ACE_SYNCH_USE,
                     ACE_TEXT (configuration_->configuration_->moduleBranch.c_str ())));
         return;
       } // end IF
-//#if defined (_DEBUG)
 //      ACE_DEBUG ((LM_DEBUG,
 //                  ACE_TEXT ("%s: appended \"%s\" to \"%s\" branch\n"),
 //                  ACE_TEXT (StreamName),
 //                  configuration_->configuration->module->name (),
 //                  (configuration_->configuration->moduleBranch.empty () ? ACE_TEXT ("main") : ACE_TEXT (configuration_->configuration->moduleBranch.c_str ()))));
-//#endif // _DEBUG
     } // end IF
     for (LAYOUT_ITERATOR_T iterator = layout_.begin ();
          iterator != layout_.end ();
@@ -502,12 +500,10 @@ Stream_Base_T<ACE_SYNCH_USE,
       iterator_2 = configuration_->find ((*iterator)->name ());
       if (iterator_2 == configuration_->end ())
         iterator_2 = configuration_->find (ACE_TEXT_ALWAYS_CHAR (""));
-#if defined (_DEBUG)
       else
         ACE_DEBUG ((LM_DEBUG,
                     ACE_TEXT ("%s/%s: applying dedicated configuration\n"),
                     ACE_TEXT (StreamName), (*iterator)->name ()));
-#endif // _DEBUG
       ACE_ASSERT (iterator_2 != configuration_->end ());
       if (unlikely (!imodule_p->initialize ((*iterator_2).second.first)))
       {
@@ -516,11 +512,9 @@ Stream_Base_T<ACE_SYNCH_USE,
                     ACE_TEXT (StreamName), (*iterator)->name ()));
         goto error;
       } // end IF
-//#if defined (_DEBUG)
 //      ACE_DEBUG ((LM_DEBUG,
 //                  ACE_TEXT ("%s/%s: initialized\n"),
 //                  ACE_TEXT (StreamName), (*iterator)->name ()));
-//#endif // _DEBUG
 
       task_p = (*iterator)->writer ();
       ACE_ASSERT (task_p);
@@ -567,7 +561,13 @@ Stream_Base_T<ACE_SYNCH_USE,
   isInitialized_ = true;
 
   return;
+
 error:
+  if (resetSessionData_in && sessionData_)
+  {
+    sessionData_->decrease (); sessionData_ = NULL;
+  } // end IF
+
   isInitialized_ = false;
 }
 
@@ -1310,12 +1310,10 @@ Stream_Base_T<ACE_SYNCH_USE,
     } // end IF
     else if (likely (result_2))
     {
-#if defined (_DEBUG)
       ACE_DEBUG ((LM_DEBUG,
                   ACE_TEXT ("%s/%s writer: flushed %d message(s)\n"),
                   ACE_TEXT (StreamName), (*iterator)->name (),
                   result_2));
-#endif // _DEBUG
       result += result_2;
     } // end ELSE IF
   } // end FOR
@@ -1350,12 +1348,10 @@ continue_:
     } // end IF
     else if (likely (result))
     {
-#if defined (_DEBUG)
       ACE_DEBUG ((LM_DEBUG,
                   ACE_TEXT ("%s/%s reader: flushed %d message(s)\n"),
                   ACE_TEXT (StreamName), (*iterator)->name (),
                   result_2));
-#endif // _DEBUG
       result += result_2;
     } // end ELSE IF
   } // end FOR
@@ -1848,12 +1844,10 @@ Stream_Base_T<ACE_SYNCH_USE,
       message_count = task_p->msg_queue_->message_count ();
       if (likely (!message_count))
         break;
-#if defined (_DEBUG)
       ACE_DEBUG ((LM_DEBUG,
                   ACE_TEXT ("%s/%s writer: waiting to process %d byte(s) in %u message(s)...\n"),
                   ACE_TEXT (StreamName), (*iterator_2)->name (),
                   task_p->msg_queue_->message_bytes (), message_count));
-#endif // _DEBUG
 
       { //ACE_GUARD (ACE_Reverse_Lock<ACE_SYNCH_RECURSIVE_MUTEX>, aGuard2, reverse_lock);
         result = ACE_OS::sleep (one_second);
@@ -1876,7 +1870,7 @@ Stream_Base_T<ACE_SYNCH_USE,
         ACE_UNUSED_ARG (error);
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
         if (error != ENXIO) // *NOTE*: see also: common_task_base.inl:350
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("%s/%s writer: failed to ACE_Task_Base::wait(): \"%m\", continuing\n"),
                       ACE_TEXT (StreamName), (*iterator_2)->name ()));
@@ -1904,12 +1898,10 @@ Stream_Base_T<ACE_SYNCH_USE,
       message_count = task_p->msg_queue_->message_count ();
       if (!message_count)
         break;
-#if defined (_DEBUG)
       ACE_DEBUG ((LM_DEBUG,
                   ACE_TEXT ("%s/%s reader: waiting to process %d byte(s) in %u message(s)...\n"),
                   ACE_TEXT (StreamName), (*iterator_2)->name (),
                   task_p->msg_queue_->message_bytes (), message_count));
-#endif // _DEBUG
 
       { //ACE_GUARD (ACE_Reverse_Lock<ACE_SYNCH_RECURSIVE_MUTEX>, aGuard2, reverse_lock);
         result = ACE_OS::sleep (one_second);
@@ -3022,6 +3014,12 @@ Stream_Base_T<ACE_SYNCH_USE,
   // *TODO*: initialize the module handler configuration here as well
   initialize (configuration_->configuration_->setupPipeline,
               configuration_->configuration_->resetSessionData);
+  if (unlikely (!isInitialized_))
+  {
+    if (state_.module && state_.moduleIsClone)
+      delete state_.module;
+    state_.module = NULL;
+  } // end IF
 
   return isInitialized_;
 }

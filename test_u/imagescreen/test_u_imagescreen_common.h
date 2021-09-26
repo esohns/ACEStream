@@ -72,50 +72,17 @@ template <typename NotificationType,
           typename SessionMessageType>
 class Stream_ImageScreen_EventHandler_T;
 
-class Stream_ImageScreen_SessionData
- : public Stream_SessionDataMediaBase_T<struct Test_U_SessionData,
+typedef Stream_SessionDataMediaBase_T<struct Test_U_SessionData,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-                                        struct _AMMediaType,
+                                      struct _AMMediaType,
 #else
 #if defined (FFMPEG_SUPPORT)
-                                        struct Stream_MediaFramework_FFMPEG_VideoMediaType,
+                                      struct Stream_MediaFramework_FFMPEG_VideoMediaType,
 #endif // FFMPEG_SUPPORT
 #endif // ACE_WIN32 || ACE_WIN64
-                                        struct Stream_State,
-                                        struct Stream_Statistic,
-                                        struct Stream_UserData>
-{
- public:
-  Stream_ImageScreen_SessionData ()
-   : Stream_SessionDataMediaBase_T<struct Test_U_SessionData,
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-                                   struct _AMMediaType,
-#else
-#if defined (FFMPEG_SUPPORT)
-                                   struct Stream_MediaFramework_FFMPEG_VideoMediaType,
-#endif // FFMPEG_SUPPORT
-#endif // ACE_WIN32 || ACE_WIN64
-                                   struct Stream_State,
-                                   struct Stream_Statistic,
-                                   struct Stream_UserData> ()
-  {}
-
-//  Stream_ImageScreen_SessionData& operator+= (const Stream_ImageScreen_SessionData& rhs_in)
-//  {
-//    // *NOTE*: the idea is to 'merge' the data
-//    Stream_SessionDataMediaBase_T<struct Test_U_SessionData,
-//                                  struct Stream_MediaFramework_FFMPEG_VideoMediaType,
-//                                  struct Stream_State,
-//                                  struct Stream_Statistic,
-//                                  struct Stream_UserData>::operator+= (rhs_in);
-
-//    return *this;
-//  }
-
- private:
-//  ACE_UNIMPLEMENTED_FUNC (Stream_ImageScreen_SessionData (const Stream_ImageScreen_SessionData&))
-  ACE_UNIMPLEMENTED_FUNC (Stream_ImageScreen_SessionData& operator= (const Stream_ImageScreen_SessionData&))
-};
+                                      struct Stream_State,
+                                      struct Stream_Statistic,
+                                      struct Stream_UserData> Stream_ImageScreen_SessionData;
 typedef Stream_SessionData_T<Stream_ImageScreen_SessionData> Stream_ImageScreen_SessionData_t;
 
 template <typename SessionDataType>

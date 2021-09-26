@@ -271,6 +271,22 @@ class Stream_CamSave_DirectShow_SessionData
    , resetToken (0)
   {}
 
+  Stream_CamSave_DirectShow_SessionData& operator= (const Stream_CamSave_DirectShow_SessionData& rhs_in)
+  {
+    Stream_SessionDataMediaBase_T<struct Test_I_SessionData,
+                                  struct _AMMediaType,
+                                  struct Stream_CamSave_DirectShow_StreamState,
+                                  struct Stream_CamSave_StatisticData,
+                                  struct Stream_UserData>::operator= (rhs_in);
+
+    direct3DDevice = (direct3DDevice ? direct3DDevice : rhs_in.direct3DDevice);
+    direct3DManagerResetToken =
+      (direct3DManagerResetToken ? direct3DManagerResetToken
+                                 : rhs_in.direct3DManagerResetToken);
+    resetToken = (resetToken ? resetToken : rhs_in.resetToken);
+
+    return *this;
+  }
   Stream_CamSave_DirectShow_SessionData& operator+= (const Stream_CamSave_DirectShow_SessionData& rhs_in)
   {
     // *NOTE*: the idea is to 'merge' the data
@@ -298,8 +314,7 @@ class Stream_CamSave_DirectShow_SessionData
   UINT                resetToken;
 
  private:
-  //ACE_UNIMPLEMENTED_FUNC (Stream_CamSave_DirectShow_SessionData (const Stream_CamSave_DirectShow_SessionData&))
-  ACE_UNIMPLEMENTED_FUNC (Stream_CamSave_DirectShow_SessionData& operator= (const Stream_CamSave_DirectShow_SessionData&))
+  ACE_UNIMPLEMENTED_FUNC (Stream_CamSave_DirectShow_SessionData (const Stream_CamSave_DirectShow_SessionData&))
 };
 typedef Stream_SessionData_T<Stream_CamSave_DirectShow_SessionData> Stream_CamSave_DirectShow_SessionData_t;
 
@@ -325,6 +340,24 @@ class Stream_CamSave_MediaFoundation_SessionData
    , session (NULL)
   {}
 
+  Stream_CamSave_MediaFoundation_SessionData& operator= (const Stream_CamSave_MediaFoundation_SessionData& rhs_in)
+  {
+    Stream_SessionDataMediaBase_T<struct Test_I_SessionData,
+                                  IMFMediaType*,
+                                  struct Stream_CamSave_MediaFoundation_StreamState,
+                                  struct Stream_CamSave_StatisticData,
+                                  struct Stream_UserData>::operator= (rhs_in);
+
+    direct3DDevice = (direct3DDevice ? direct3DDevice : rhs_in.direct3DDevice);
+    direct3DManagerResetToken =
+      (direct3DManagerResetToken ? direct3DManagerResetToken
+                                 : rhs_in.direct3DManagerResetToken);
+    rendererNodeId = (rendererNodeId ? rendererNodeId : rhs_in.rendererNodeId);
+    resetToken = (resetToken ? resetToken : rhs_in.resetToken);
+    session = (session ? session : rhs_in.session);
+
+    return *this;
+  }
   Stream_CamSave_MediaFoundation_SessionData& operator+= (const Stream_CamSave_MediaFoundation_SessionData& rhs_in)
   {
     // *NOTE*: the idea is to 'merge' the data
@@ -356,56 +389,25 @@ class Stream_CamSave_MediaFoundation_SessionData
   IMFMediaSession*                    session;
 
  private:
-  //ACE_UNIMPLEMENTED_FUNC (Stream_CamSave_MediaFoundation_SessionData (const Stream_CamSave_MediaFoundation_SessionData&))
-  ACE_UNIMPLEMENTED_FUNC (Stream_CamSave_MediaFoundation_SessionData& operator= (const Stream_CamSave_MediaFoundation_SessionData&))
+  ACE_UNIMPLEMENTED_FUNC (Stream_CamSave_MediaFoundation_SessionData (const Stream_CamSave_MediaFoundation_SessionData&))
 };
 typedef Stream_SessionData_T<Stream_CamSave_MediaFoundation_SessionData> Stream_CamSave_MediaFoundation_SessionData_t;
 #else
 struct Stream_CamSave_V4L_StreamState;
-class Stream_CamSave_V4L_SessionData
- : public Stream_SessionDataMediaBase_T<struct Test_I_SessionData,
-                                        struct Stream_MediaFramework_V4L_MediaType,
-                                        struct Stream_CamSave_V4L_StreamState,
-                                        struct Stream_CamSave_StatisticData,
-                                        struct Stream_UserData>
-{
- public:
-  Stream_CamSave_V4L_SessionData ()
-   : Stream_SessionDataMediaBase_T<struct Test_I_SessionData,
-                                   struct Stream_MediaFramework_V4L_MediaType,
-                                   struct Stream_CamSave_V4L_StreamState,
-                                   struct Stream_CamSave_StatisticData,
-                                   struct Stream_UserData> ()
-  {}
-
- private:
-//  ACE_UNIMPLEMENTED_FUNC (Stream_CamSave_V4L_SessionData (const Stream_CamSave_V4L_SessionData&))
-  ACE_UNIMPLEMENTED_FUNC (Stream_CamSave_V4L_SessionData& operator= (const Stream_CamSave_V4L_SessionData&))
-};
+typedef Stream_SessionDataMediaBase_T<struct Test_I_SessionData,
+                                      struct Stream_MediaFramework_V4L_MediaType,
+                                      struct Stream_CamSave_V4L_StreamState,
+                                      struct Stream_CamSave_StatisticData,
+                                      struct Stream_UserData> Stream_CamSave_V4L_SessionData;
 typedef Stream_SessionData_T<Stream_CamSave_V4L_SessionData> Stream_CamSave_V4L_SessionData_t;
 
 #if defined (LIBCAMERA_SUPPORT)
 struct Stream_CamSave_LibCamera_StreamState;
-class Stream_CamSave_LibCamera_SessionData
- : public Stream_SessionDataMediaBase_T<struct Test_I_SessionData,
-                                        struct Stream_MediaFramework_LibCamera_MediaType,
-                                        struct Stream_CamSave_LibCamera_StreamState,
-                                        struct Stream_CamSave_StatisticData,
-                                        struct Stream_UserData>
-{
- public:
-  Stream_CamSave_LibCamera_SessionData ()
-   : Stream_SessionDataMediaBase_T<struct Test_I_SessionData,
-                                   struct Stream_MediaFramework_LibCamera_MediaType,
-                                   struct Stream_CamSave_LibCamera_StreamState,
-                                   struct Stream_CamSave_StatisticData,
-                                   struct Stream_UserData> ()
-  {}
-
- private:
-//  ACE_UNIMPLEMENTED_FUNC (Stream_CamSave_LibCamera_SessionData (const Stream_CamSave_LibCamera_SessionData&))
-  ACE_UNIMPLEMENTED_FUNC (Stream_CamSave_LibCamera_SessionData& operator= (const Stream_CamSave_LibCamera_SessionData&))
-};
+typedef Stream_SessionDataMediaBase_T<struct Test_I_SessionData,
+                                      struct Stream_MediaFramework_LibCamera_MediaType,
+                                      struct Stream_CamSave_LibCamera_StreamState,
+                                      struct Stream_CamSave_StatisticData,
+                                      struct Stream_UserData> Stream_CamSave_LibCamera_SessionData;
 typedef Stream_SessionData_T<Stream_CamSave_LibCamera_SessionData> Stream_CamSave_LibCamera_SessionData_t;
 #endif // LIBCAMERA_SUPPORT
 #endif // ACE_WIN32 || ACE_WIN64

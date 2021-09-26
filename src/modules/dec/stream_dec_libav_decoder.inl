@@ -240,7 +240,7 @@ Stream_Decoder_LibAVDecoder_T<ACE_SYNCH_USE,
   //av_log_set_callback (Stream_Decoder_LibAVDecoder_LoggingCB);
   // *NOTE*: this level logs all messages
   //av_log_set_level (std::numeric_limits<int>::max ());
-#endif // _DEBUG^^^
+#endif // _DEBUG
 //  av_register_all ();
 //  avcodec_register_all ();
 
@@ -360,8 +360,7 @@ Stream_Decoder_LibAVDecoder_T<ACE_SYNCH_USE,
   //                   entails estimating the maximum NAL unit size
   //                   --> defragment the buffer chain
 
-  message_p = dynamic_cast<DataMessageType*> (message_block_p);
-  ACE_ASSERT (message_p);
+  message_p = static_cast<DataMessageType*> (message_block_p);
   try {
     message_p->defragment ();
   } catch (...) {
@@ -489,16 +488,7 @@ Stream_Decoder_LibAVDecoder_T<ACE_SYNCH_USE,
         goto error;
       } // end IF
       DataMessageType* message_2 =
-          dynamic_cast<DataMessageType*> (message_block_3);
-      if (unlikely (!message_2))
-      {
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("%s: failed to dynamic_cast<DataMessageType*>(0x%@): \"%m\", returning\n"),
-                    inherited::mod_->name (),
-                    message_block_3));
-        goto error;
-      } // end IF
-
+          static_cast<DataMessageType*> (message_block_3);
       ACE_OS::memset (&line_sizes, 0, sizeof (int[AV_NUM_DATA_POINTERS]));
       result =
           av_image_fill_linesizes (line_sizes,
@@ -652,16 +642,21 @@ Stream_Decoder_LibAVDecoder_T<ACE_SYNCH_USE,
       // sanity check(s)
       // *TODO*: remove type inference
       ACE_ASSERT (!session_data_r.formats.empty ());
-      MediaType media_type_2 = session_data_r.formats.back ();
       struct Stream_MediaFramework_FFMPEG_VideoMediaType media_type_s;
-      inherited2::getMediaType (media_type_2,
+      inherited2::getMediaType (session_data_r.formats.back (),
                                 media_type_s);
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
+      struct _AMMediaType media_type_2;
+      ACE_OS::memset (&media_type_2, 0, sizeof (struct _AMMediaType));
+      inherited2::getMediaType (session_data_r.formats.back (),
+                                media_type_2);
       formatHeight_ =
           static_cast<unsigned int> (std::abs (media_type_s.resolution.cy));
       decode_height = formatHeight_;
       decode_width = static_cast<unsigned int> (media_type_s.resolution.cx);
 #else
+      struct Stream_MediaFramework_FFMPEG_VideoMediaType media_type_2 =
+        media_type_s;
       formatHeight_ = media_type_s.resolution.height;
       decode_height = formatHeight_;
       decode_width = media_type_s.resolution.width;
@@ -700,7 +695,7 @@ Stream_Decoder_LibAVDecoder_T<ACE_SYNCH_USE,
                                   1); // *TODO*: linesize alignment
 
       int result = -1;
-      struct AVCodec* codec_p = NULL;
+      const struct AVCodec* codec_p = NULL;
       struct AVDictionary* dictionary_p = NULL;
       int flags, flags2;
       unsigned int buffer_size = 0;

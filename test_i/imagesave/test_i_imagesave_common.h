@@ -174,55 +174,17 @@ struct Test_I_StatisticData
 typedef Common_StatisticHandler_T<struct Test_I_StatisticData> Test_I_ImageSave_StatisticHandler_t;
 
 struct Test_I_ImageSave_StreamState;
-class Test_I_ImageSave_SessionData
- : public Stream_SessionDataMediaBase_T<struct Test_I_SessionData,
+typedef Stream_SessionDataMediaBase_T<struct Test_I_SessionData,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-                                        struct _AMMediaType,
+                                      struct _AMMediaType,
 #else
 #if defined (FFMPEG_SUPPORT)
-                                        struct Stream_MediaFramework_FFMPEG_VideoMediaType,
+                                      struct Stream_MediaFramework_FFMPEG_VideoMediaType,
 #endif // FFMPEG_SUPPORT
 #endif // ACE_WIN32 || ACE_WIN64
-                                        struct Test_I_ImageSave_StreamState,
-                                        struct Test_I_StatisticData,
-                                        struct Stream_UserData>
-{
- public:
-  Test_I_ImageSave_SessionData ()
-   : Stream_SessionDataMediaBase_T<struct Test_I_SessionData,
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-                                   struct _AMMediaType,
-#else
-#if defined (FFMPEG_SUPPORT)
-                                   struct Stream_MediaFramework_FFMPEG_VideoMediaType,
-#endif // FFMPEG_SUPPORT
-#endif // ACE_WIN32 || ACE_WIN64
-                                   struct Test_I_ImageSave_StreamState,
-                                   struct Test_I_StatisticData,
-                                   struct Stream_UserData> ()
-  {}
-
-  Test_I_ImageSave_SessionData& operator+= (const Test_I_ImageSave_SessionData& rhs_in)
-  {
-    // *NOTE*: the idea is to 'merge' the data
-    Stream_SessionDataMediaBase_T<struct Test_I_SessionData,
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-                                  struct _AMMediaType,
-#else
-#if defined (FFMPEG_SUPPORT)
-                                  struct Stream_MediaFramework_FFMPEG_VideoMediaType,
-#endif // FFMPEG_SUPPORT
-#endif // ACE_WIN32 || ACE_WIN64
-                                  struct Test_I_ImageSave_StreamState,
-                                  struct Test_I_StatisticData,
-                                  struct Stream_UserData>::operator+= (rhs_in);
-    return *this;
-  }
-
- private:
-  //ACE_UNIMPLEMENTED_FUNC (Test_I_ImageSave_SessionData (const Test_I_ImageSave_SessionData&))
-  ACE_UNIMPLEMENTED_FUNC (Test_I_ImageSave_SessionData& operator= (const Test_I_ImageSave_SessionData&))
-};
+                                      struct Test_I_ImageSave_StreamState,
+                                      struct Test_I_StatisticData,
+                                      struct Stream_UserData> Test_I_ImageSave_SessionData;
 typedef Stream_SessionData_T<Test_I_ImageSave_SessionData> Test_I_ImageSave_SessionData_t;
 
 struct Test_I_ImageSave_SignalHandlerConfiguration

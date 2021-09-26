@@ -66,7 +66,7 @@ class Stream_MediaFramework_MediaTypeConverter_T
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   // *IMPORTANT NOTE*: struct _AMMediaType return values need to be Stream_Module_Device_DirectShow_Tools::free'd !
-  inline void getMediaType (const struct _AMMediaType& mediaType_in, struct _AMMediaType& mediaType_out) { struct _AMMediaType* media_type_p = Stream_MediaFramework_DirectShow_Tools::copy (mediaType_in); ACE_ASSERT (media_type_p); mediaType_out = *media_type_p; CoTaskMemFree (media_type_p); }
+  inline void getMediaType (const struct _AMMediaType& mediaType_in, struct _AMMediaType& mediaType_out) { bool result = Stream_MediaFramework_DirectShow_Tools::copy (mediaType_in, mediaType_out); ACE_ASSERT (result); }
   void getMediaType (const struct _AMMediaType&, IMFMediaType*&);
 #if defined (FFMPEG_SUPPORT)
   void getMediaType (const struct _AMMediaType&, struct Stream_MediaFramework_FFMPEG_VideoMediaType&);

@@ -196,6 +196,22 @@ class Stream_CameraScreen_DirectShow_SessionData
    , resetToken (0)
   {}
 
+  Stream_CameraScreen_DirectShow_SessionData& operator= (const Stream_CameraScreen_DirectShow_SessionData& rhs_in)
+  {
+    Stream_SessionDataMediaBase_T<struct Test_U_SessionData,
+                                  struct _AMMediaType,
+                                  struct Stream_CameraScreen_DirectShow_StreamState,
+                                  struct Stream_CameraScreen_StatisticData,
+                                  struct Stream_UserData>::operator= (rhs_in);
+
+    direct3DDevice = (direct3DDevice ? direct3DDevice : rhs_in.direct3DDevice);
+    direct3DManagerResetToken =
+      (direct3DManagerResetToken ? direct3DManagerResetToken
+                                 : rhs_in.direct3DManagerResetToken);
+    resetToken = (resetToken ? resetToken : rhs_in.resetToken);
+
+    return *this;
+  }
   Stream_CameraScreen_DirectShow_SessionData& operator+= (const Stream_CameraScreen_DirectShow_SessionData& rhs_in)
   {
     // *NOTE*: the idea is to 'merge' the data
@@ -223,8 +239,7 @@ class Stream_CameraScreen_DirectShow_SessionData
   UINT                resetToken;
 
  private:
-  //ACE_UNIMPLEMENTED_FUNC (Stream_CameraScreen_DirectShow_SessionData (const Stream_CameraScreen_DirectShow_SessionData&))
-  ACE_UNIMPLEMENTED_FUNC (Stream_CameraScreen_DirectShow_SessionData& operator= (const Stream_CameraScreen_DirectShow_SessionData&))
+  ACE_UNIMPLEMENTED_FUNC (Stream_CameraScreen_DirectShow_SessionData (const Stream_CameraScreen_DirectShow_SessionData&))
 };
 typedef Stream_SessionData_T<Stream_CameraScreen_DirectShow_SessionData> Stream_CameraScreen_DirectShow_SessionData_t;
 
@@ -250,6 +265,24 @@ class Stream_CameraScreen_MediaFoundation_SessionData
    , session (NULL)
   {}
 
+  Stream_CameraScreen_MediaFoundation_SessionData& operator= (const Stream_CameraScreen_MediaFoundation_SessionData& rhs_in)
+  {
+    Stream_SessionDataMediaBase_T<struct Test_U_SessionData,
+                                  IMFMediaType*,
+                                  struct Stream_CameraScreen_MediaFoundation_StreamState,
+                                  struct Stream_CameraScreen_StatisticData,
+                                  struct Stream_UserData>::operator= (rhs_in);
+
+    direct3DDevice = (direct3DDevice ? direct3DDevice : rhs_in.direct3DDevice);
+    direct3DManagerResetToken =
+      (direct3DManagerResetToken ? direct3DManagerResetToken
+                                 : rhs_in.direct3DManagerResetToken);
+    rendererNodeId = (rendererNodeId ? rendererNodeId : rhs_in.rendererNodeId);
+    resetToken = (resetToken ? resetToken : rhs_in.resetToken);
+    session = (session ? session : rhs_in.session);
+
+    return *this;
+  }
   Stream_CameraScreen_MediaFoundation_SessionData& operator+= (const Stream_CameraScreen_MediaFoundation_SessionData& rhs_in)
   {
     // *NOTE*: the idea is to 'merge' the data
@@ -281,44 +314,16 @@ class Stream_CameraScreen_MediaFoundation_SessionData
   IMFMediaSession*                    session;
 
  private:
-  //ACE_UNIMPLEMENTED_FUNC (Stream_CameraScreen_MediaFoundation_SessionData (const Stream_CameraScreen_MediaFoundation_SessionData&))
-  ACE_UNIMPLEMENTED_FUNC (Stream_CameraScreen_MediaFoundation_SessionData& operator= (const Stream_CameraScreen_MediaFoundation_SessionData&))
+  ACE_UNIMPLEMENTED_FUNC (Stream_CameraScreen_MediaFoundation_SessionData (const Stream_CameraScreen_MediaFoundation_SessionData&))
 };
 typedef Stream_SessionData_T<Stream_CameraScreen_MediaFoundation_SessionData> Stream_CameraScreen_MediaFoundation_SessionData_t;
 #else
 struct Stream_CameraScreen_StreamState;
-class Stream_CameraScreen_V4L_SessionData
- : public Stream_SessionDataMediaBase_T<struct Test_U_SessionData,
-                                        struct Stream_MediaFramework_V4L_MediaType,
-                                        struct Stream_CameraScreen_StreamState,
-                                        struct Stream_CameraScreen_StatisticData,
-                                        struct Stream_UserData>
-{
- public:
-  Stream_CameraScreen_V4L_SessionData ()
-   : Stream_SessionDataMediaBase_T<struct Test_U_SessionData,
-                                   struct Stream_MediaFramework_V4L_MediaType,
-                                   struct Stream_CameraScreen_StreamState,
-                                   struct Stream_CameraScreen_StatisticData,
-                                   struct Stream_UserData> ()
-  {}
-
-//  Stream_CameraScreen_V4L_SessionData& operator+= (const Stream_CameraScreen_V4L_SessionData& rhs_in)
-//  {
-//    // *NOTE*: the idea is to 'merge' the data
-//    Stream_SessionDataMediaBase_T<struct Test_U_SessionData,
-//                                  struct Stream_MediaFramework_V4L_MediaType,
-//                                  struct Stream_CameraScreen_V4L_StreamState,
-//                                  struct Stream_CameraScreen_StatisticData,
-//                                  struct Stream_UserData>::operator+= (rhs_in);
-
-//    return *this;
-//  }
-
- private:
-//  ACE_UNIMPLEMENTED_FUNC (Stream_CameraScreen_V4L_SessionData (const Stream_CameraScreen_V4L_SessionData&))
-  ACE_UNIMPLEMENTED_FUNC (Stream_CameraScreen_V4L_SessionData& operator= (const Stream_CameraScreen_V4L_SessionData&))
-};
+typedef Stream_SessionDataMediaBase_T<struct Test_U_SessionData,
+                                      struct Stream_MediaFramework_V4L_MediaType,
+                                      struct Stream_CameraScreen_StreamState,
+                                      struct Stream_CameraScreen_StatisticData,
+                                      struct Stream_UserData> Stream_CameraScreen_V4L_SessionData;
 typedef Stream_SessionData_T<Stream_CameraScreen_V4L_SessionData> Stream_CameraScreen_V4L_SessionData_t;
 #endif // ACE_WIN32 || ACE_WIN64
 

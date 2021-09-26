@@ -47,7 +47,6 @@
 #include "ace/Profile_Timer.h"
 #include "ace/Sig_Handler.h"
 #include "ace/Signal.h"
-//#include "ace/Synch.h"
 #include "ace/Version.h"
 
 #if defined (HAVE_CONFIG_H)
@@ -437,12 +436,12 @@ do_work (
   Common_UI_GTK_Manager_t* gtk_manager_p =
       COMMON_UI_GTK_MANAGER_SINGLETON::instance ();
   ACE_ASSERT (gtk_manager_p);
-    Common_UI_GTK_State_t& state_r =
-        const_cast<Common_UI_GTK_State_t&> (gtk_manager_p->getR ());
-    //CBData_in.UIState->gladeXML[ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN)] =
-    //  std::make_pair (UIDefinitionFile_in, static_cast<GladeXML*> (NULL));
-    state_r.builders[ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN)] =
-      std::make_pair (UIDefinitionFilename_in, static_cast<GtkBuilder*> (NULL));
+  Common_UI_GTK_State_t& state_r =
+      const_cast<Common_UI_GTK_State_t&> (gtk_manager_p->getR ());
+  //CBData_in.UIState->gladeXML[ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN)] =
+  //  std::make_pair (UIDefinitionFile_in, static_cast<GladeXML*> (NULL));
+  state_r.builders[ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN)] =
+    std::make_pair (UIDefinitionFilename_in, static_cast<GtkBuilder*> (NULL));
 #endif // GTK_USE
 #endif // GUI_SUPPORT
 
@@ -453,6 +452,9 @@ do_work (
 
   struct Stream_ModuleConfiguration module_configuration;
   struct Test_I_ImageSave_ModuleHandlerConfiguration modulehandler_configuration;
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  struct Test_I_ImageSave_ModuleHandlerConfiguration modulehandler_configuration_2;
+#endif // ACE_WIN32 || ACE_WIN64
   struct Test_I_ImageSave_StreamConfiguration stream_configuration;
 #if defined (GUI_SUPPORT)
   Test_I_EventHandler_t ui_event_handler (&CBData_in
@@ -470,16 +472,18 @@ do_work (
 #endif // GUI_SUPPORT
 
   Test_I_StreamConfiguration_t::ITERATOR_T stream_iterator;
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
   Test_I_StreamConfiguration_t::ITERATOR_T stream_iterator_2;
+#endif // ACE_WIN32 || ACE_WIN64
   modulehandler_configuration.allocatorConfiguration =
     &allocator_configuration;
   modulehandler_configuration.concurrency = STREAM_HEADMODULECONCURRENCY_ACTIVE;
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-#else
 #if defined (FFMPEG_SUPPORT)
   modulehandler_configuration.codecId = AV_CODEC_ID_H264;
 #endif // FFMPEG_SUPPORT
-#endif // ACE_WIN32 || ACE_WIN64
+#if defined (_DEBUG)
+  modulehandler_configuration.debug = true;
+#endif // _DEBUG
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   modulehandler_configuration.direct3DConfiguration =
     &configuration_in.direct3DConfiguration;
@@ -523,9 +527,10 @@ do_work (
                                                    modulehandler_configuration,
                                                    stream_configuration);
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
+  modulehandler_configuration_2 = modulehandler_configuration;
   configuration_in.streamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_DIRECT3D_DEFAULT_NAME_STRING),
                                                                std::make_pair (module_configuration,
-                                                                               modulehandler_configuration)));
+                                                                               modulehandler_configuration_2)));
 #endif // ACE_WIN32 || ACE_WIN64
   stream_iterator =
     configuration_in.streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
@@ -548,11 +553,44 @@ do_work (
   //    static_cast<HWND> (GDK_WINDOW_HWND ((*iterator).second.second.window));
   //} // end IF
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  Common_Image_Resolution_t resolution_s;
-  resolution_s.cx = 1920;
-  resolution_s.cy = 1080;
-  Stream_MediaFramework_DirectShow_Tools::setResolution (resolution_s,
-                                                         (*stream_iterator).second.second.outputFormat);
+  (*stream_iterator).second.second.outputFormat.majortype = MEDIATYPE_Video;
+  (*stream_iterator).second.second.outputFormat.subtype = MEDIASUBTYPE_RGB32;
+  (*stream_iterator).second.second.outputFormat.bFixedSizeSamples = TRUE;
+  (*stream_iterator).second.second.outputFormat.bTemporalCompression = FALSE;
+  (*stream_iterator).second.second.outputFormat.formattype = FORMAT_VideoInfo;
+  (*stream_iterator).second.second.outputFormat.pbFormat =
+    static_cast<BYTE*> (CoTaskMemAlloc (sizeof (struct tagVIDEOINFOHEADER)));
+  ACE_ASSERT ((*stream_iterator).second.second.outputFormat.pbFormat);
+  (*stream_iterator).second.second.outputFormat.cbFormat =
+    sizeof (struct tagVIDEOINFOHEADER);
+  struct tagVIDEOINFOHEADER* video_info_header_p =
+    reinterpret_cast<struct tagVIDEOINFOHEADER*> ((*stream_iterator).second.second.outputFormat.pbFormat);
+  // *NOTE*: empty --> use entire video
+  BOOL result_2 = SetRectEmpty (&video_info_header_p->rcSource);
+  ACE_ASSERT (SUCCEEDED (result_2));
+  result_2 = SetRectEmpty (&video_info_header_p->rcTarget);
+  // *NOTE*: empty --> fill entire buffer
+  ACE_ASSERT (SUCCEEDED (result_2));
+  //video_info_header_p->dwBitErrorRate;
+  video_info_header_p->bmiHeader.biSize = sizeof (struct tagBITMAPINFOHEADER);
+  video_info_header_p->bmiHeader.biWidth = 1920;
+  video_info_header_p->bmiHeader.biHeight = 1080;
+  video_info_header_p->bmiHeader.biPlanes = 1;
+  video_info_header_p->bmiHeader.biBitCount = 32;
+  video_info_header_p->bmiHeader.biCompression = BI_RGB;
+  video_info_header_p->bmiHeader.biSizeImage =
+    DIBSIZE (video_info_header_p->bmiHeader);
+  ////video_info_header_p->bmiHeader.biXPelsPerMeter;
+  ////video_info_header_p->bmiHeader.biYPelsPerMeter;
+  ////video_info_header_p->bmiHeader.biClrUsed;
+  ////video_info_header_p->bmiHeader.biClrImportant;
+  video_info_header_p->AvgTimePerFrame =
+    MILLISECONDS_TO_100NS_UNITS (1000 / 30); // --> 30 fps
+  video_info_header_p->dwBitRate =
+    (video_info_header_p->bmiHeader.biSizeImage * 8) *                         // bits / frame
+    (NANOSECONDS / static_cast<DWORD> (video_info_header_p->AvgTimePerFrame)); // fps
+  (*stream_iterator).second.second.outputFormat.lSampleSize =
+    video_info_header_p->bmiHeader.biSizeImage;
 #else
 #if defined (FFMPEG_SUPPORT)
   (*stream_iterator).second.second.outputFormat.format = AV_PIX_FMT_RGB32;
@@ -569,7 +607,7 @@ do_work (
 
 #if defined (GUI_SUPPORT)
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  resolution_s =
+  Common_Image_Resolution_t resolution_s =
     Stream_MediaFramework_DirectShow_Tools::toResolution ((*stream_iterator).second.second.outputFormat);
 #else
   Common_Image_Resolution_t resolution_s =
@@ -687,7 +725,7 @@ do_work (
                   ACE_TEXT ("failed to start GTK event dispatch, returning\n")));
       goto clean;
     } // end IF
-    gtk_manager_p->wait ();
+    gtk_manager_p->wait (false);
 #elif (WXWIDGETS_USE)
     if (unlikely (!iapplication_in->run ()))
     {

@@ -3340,7 +3340,7 @@ Stream_MediaFramework_DirectShow_Tools::countFormats (IPin* pin_in,
     ++result;
 #if defined (_DEBUG)
     Stream_MediaFramework_DirectShow_Tools::dump (*media_types_a[0]);
-#endif
+#endif // _DEBUG
 
 continue_:
     Stream_MediaFramework_DirectShow_Tools::delete_ (media_types_a[0]);
@@ -3356,8 +3356,9 @@ Stream_MediaFramework_DirectShow_Tools::copy (const struct _AMMediaType& mediaTy
   STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_DirectShow_Tools::copy"));
 
   // initialize return value(s)
-  struct _AMMediaType* result_p =
-    static_cast<struct _AMMediaType*> (CoTaskMemAlloc (sizeof (struct _AMMediaType)));
+  struct _AMMediaType* result_p = NULL;
+  ACE_NEW_NORETURN (result_p,
+                    struct _AMMediaType ());
   if (!result_p)
   {
     ACE_DEBUG ((LM_CRITICAL,
@@ -3373,11 +3374,34 @@ Stream_MediaFramework_DirectShow_Tools::copy (const struct _AMMediaType& mediaTy
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to CopyMediaType(): \"%s\", aborting\n"),
                 ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ())));
-    CoTaskMemFree (result_p); result_p = NULL;
+    delete result_p; result_p = NULL;
     return NULL;
   } // end IF
 
   return result_p;
+}
+
+bool
+Stream_MediaFramework_DirectShow_Tools::copy (const struct _AMMediaType& mediaType_in,
+                                              struct _AMMediaType& mediaType_out)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_DirectShow_Tools::copy"));
+
+  // initialize return value(s)
+  Stream_MediaFramework_DirectShow_Tools::free (mediaType_out);
+  ACE_OS::memset (&mediaType_out, 0, sizeof (struct _AMMediaType));
+
+  HRESULT result = CopyMediaType (&mediaType_out,
+                                  &mediaType_in);
+  if (FAILED (result))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to CopyMediaType(): \"%s\", aborting\n"),
+                ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ())));
+    return false;
+  } // end IF
+
+  return true;
 }
 
 void
@@ -3385,7 +3409,11 @@ Stream_MediaFramework_DirectShow_Tools::delete_ (struct _AMMediaType*& mediaType
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_DirectShow_Tools::delete_"));
 
-  DeleteMediaType (mediaType_inout); mediaType_inout = NULL;
+  // sanity check(s)
+  ACE_ASSERT (mediaType_inout);
+
+  FreeMediaType (*mediaType_inout);
+  delete mediaType_inout; mediaType_inout = NULL;
 }
 
 void
@@ -3690,16 +3718,14 @@ Stream_MediaFramework_DirectShow_Tools::toRGB (const struct _AMMediaType& mediaT
   struct _AMMediaType result_s;
   ACE_OS::memset (&result_s, 0, sizeof (struct _AMMediaType));
 
-  struct _AMMediaType* media_type_p =
-    Stream_MediaFramework_DirectShow_Tools::copy (mediaType_in);
-  if (!media_type_p)
+  if (unlikely (!Stream_MediaFramework_DirectShow_Tools::copy (mediaType_in,
+                                                               result_s)))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Stream_MediaFramework_DirectShow_Tools::copy(), aborting\n")));
+    ACE_OS::memset (&result_s, 0, sizeof (struct _AMMediaType));
     return result_s;
   } // end IF
-  result_s = *media_type_p;
-  CoTaskMemFree (media_type_p); media_type_p = NULL;
 
   if (Stream_MediaFramework_Tools::isRGB (result_s.subtype,
                                           STREAM_MEDIAFRAMEWORK_DIRECTSHOW))
@@ -4422,10 +4448,15 @@ Stream_MediaFramework_DirectShow_Tools::to (const struct Stream_MediaFramework_F
   STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_DirectShow_Tools::to"));
 
   // initialize return value(s)
-  struct _AMMediaType dummy_s;
-  ACE_OS::memset (&dummy_s, 0, sizeof (struct _AMMediaType));
-  struct _AMMediaType* result_p = CreateMediaType (&dummy_s);
-  ACE_ASSERT (result_p);
+  struct _AMMediaType* result_p = NULL;
+  ACE_NEW_NORETURN (result_p,
+                    struct _AMMediaType ());
+  if (unlikely (!result_p))
+  {
+    ACE_DEBUG ((LM_CRITICAL,
+                ACE_TEXT ("failed to allocate memory: \"%m\", aborting\n")));
+    return NULL;
+  } // end IF
 
   BOOL result_2 = FALSE;
   result_p->majortype = MEDIATYPE_Video;
@@ -4437,7 +4468,13 @@ Stream_MediaFramework_DirectShow_Tools::to (const struct Stream_MediaFramework_F
   result_p->cbFormat = sizeof (struct tagVIDEOINFOHEADER);
   result_p->pbFormat =
     reinterpret_cast<BYTE*> (CoTaskMemAlloc (sizeof (struct tagVIDEOINFOHEADER)));
-  ACE_ASSERT (result_p->pbFormat);
+  if (unlikely (!result_p->pbFormat))
+  {
+    ACE_DEBUG ((LM_CRITICAL,
+                ACE_TEXT ("failed to allocate memory: \"%m\", aborting\n")));
+    delete result_p; result_p = NULL;
+    return NULL;
+  } // end IF
   ACE_OS::memset (result_p->pbFormat, 0, sizeof (struct tagVIDEOINFOHEADER));
   struct tagVIDEOINFOHEADER* video_info_header_p =
     reinterpret_cast<struct tagVIDEOINFOHEADER*> (result_p->pbFormat);
