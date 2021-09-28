@@ -18,16 +18,17 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#ifndef STREAM_DEC_MPEG_TS_DECODER_T_H
-#define STREAM_DEC_MPEG_TS_DECODER_T_H
+#ifndef STREAM_DEC_MPEG_4_DECODER_T_H
+#define STREAM_DEC_MPEG_4_DECODER_T_H
 
-#include <map>
+#include <utility>
+#include <vector>
 
 #include "ace/Global_Macros.h"
 
 #include "stream_task_base_synch.h"
 
-extern const char libacestream_default_dec_mpeg_ts_module_name_string[];
+extern const char libacestream_default_dec_mpeg_4_module_name_string[];
 
 // forward declaration(s)
 class ACE_Message_Block;
@@ -43,7 +44,7 @@ template <ACE_SYNCH_DECL,
           typename SessionMessageType,
           ////////////////////////////////
           typename SessionDataContainerType>
-class Stream_Decoder_MPEG_TS_Decoder_T
+class Stream_Decoder_MPEG_4_Decoder_T
  : public Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
                                  TimePolicyType,
                                  ConfigurationType,
@@ -67,11 +68,11 @@ class Stream_Decoder_MPEG_TS_Decoder_T
  public:
   // *TODO*: on MSVC 2015u3 the accurate declaration does not compile
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  Stream_Decoder_MPEG_TS_Decoder_T (ISTREAM_T*); // stream handle
+  Stream_Decoder_MPEG_4_Decoder_T (ISTREAM_T*); // stream handle
 #else
-  Stream_Decoder_MPEG_TS_Decoder_T (typename inherited::ISTREAM_T*); // stream handle
+  Stream_Decoder_MPEG_4_Decoder_T (typename inherited::ISTREAM_T*); // stream handle
 #endif // ACE_WIN32 || ACE_WIN64
-  virtual ~Stream_Decoder_MPEG_TS_Decoder_T ();
+  virtual ~Stream_Decoder_MPEG_4_Decoder_T ();
 
   // override (part of) Stream_IModuleHandler_T
   virtual bool initialize (const ConfigurationType&,
@@ -84,32 +85,27 @@ class Stream_Decoder_MPEG_TS_Decoder_T
                                      bool&);               // return value: pass message downstream ?
 
  private:
-  ACE_UNIMPLEMENTED_FUNC (Stream_Decoder_MPEG_TS_Decoder_T ())
-  ACE_UNIMPLEMENTED_FUNC (Stream_Decoder_MPEG_TS_Decoder_T (const Stream_Decoder_MPEG_TS_Decoder_T&))
-  ACE_UNIMPLEMENTED_FUNC (Stream_Decoder_MPEG_TS_Decoder_T& operator= (const Stream_Decoder_MPEG_TS_Decoder_T&))
+  ACE_UNIMPLEMENTED_FUNC (Stream_Decoder_MPEG_4_Decoder_T ())
+  ACE_UNIMPLEMENTED_FUNC (Stream_Decoder_MPEG_4_Decoder_T (const Stream_Decoder_MPEG_4_Decoder_T&))
+  ACE_UNIMPLEMENTED_FUNC (Stream_Decoder_MPEG_4_Decoder_T& operator= (const Stream_Decoder_MPEG_4_Decoder_T&))
 
-  // helper methods
-  void parsePSI (ACE_Message_Block*); // data pointer
+  // helper method(s)
+  bool processBox (const struct Stream_Decoder_MPEG_4_BoxHeader&, // header
+                   ACE_UINT64);                                   // size
 
-  // helper types
-  typedef std::map<unsigned short, unsigned short> PROGRAMNUM_TO_PMTPACKETID_T;
-  typedef PROGRAMNUM_TO_PMTPACKETID_T::const_iterator PROGRAMNUM_TO_PMTPACKETID_ITERATOR_T;
-  typedef std::map<unsigned short, unsigned short> STREAMTYPE_TO_PACKETID_T;
-  typedef STREAMTYPE_TO_PACKETID_T::const_iterator STREAMTYPE_TO_PACKETID_ITERATOR_T;
+  typedef std::vector<std::pair<ACE_UINT32, ACE_UINT64> > BOXES_T;
+  typedef BOXES_T::const_iterator BOXESITERATOR_T;
+  typedef std::vector<std::pair<ACE_UINT32, void*> > NALUNITS_T;
+  typedef NALUNITS_T::const_iterator NALUNITSITERATOR_T;
 
-  ACE_Message_Block*          buffer_;
-  unsigned int                missingPESBytes_;
-  bool                        isParsingPSI_; // program-specific information
-  unsigned int                missingPSIBytes_;
-  unsigned int                programPMTPacketId_;
-  unsigned int                program_;
-  PROGRAMNUM_TO_PMTPACKETID_T programs_;
-  unsigned int                streamType_;
-  STREAMTYPE_TO_PACKETID_T    streams_;
-  unsigned int                streamPacketId_;
+  BOXES_T            boxes_;
+  ACE_Message_Block* buffer_;
+  ACE_UINT64         needBytes_;
+  NALUNITS_T         PPSNalUnits_;
+  NALUNITS_T         SPSNalUnits_;
 };
 
 // include template definition
-#include "stream_dec_mpeg_ts_decoder.inl"
+#include "stream_dec_mpeg_4_decoder.inl"
 
 #endif

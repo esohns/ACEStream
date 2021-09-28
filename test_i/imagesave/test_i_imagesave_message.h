@@ -53,7 +53,11 @@ class Test_I_Message
 
   // grant access to specific private ctors
   friend class Stream_MessageAllocatorHeapBase_T<ACE_MT_SYNCH,
-                                                 struct Common_AllocatorConfiguration,
+#if defined (FFMPEG_SUPPORT)
+                                                 struct Stream_MediaFramework_FFMPEG_AllocatorConfiguration,
+#else
+                                                 struct Stream_AllocatorConfiguration,
+#endif // FFMPEG_SUPPORT
                                                  Stream_ControlMessage_t,
                                                  Test_I_Message,
                                                  Test_I_SessionMessage_T<Test_I_Message,

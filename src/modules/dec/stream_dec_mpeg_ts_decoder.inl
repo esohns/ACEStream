@@ -42,7 +42,7 @@ Stream_Decoder_MPEG_TS_Decoder_T<ACE_SYNCH_USE,
                                  SessionDataContainerType>::Stream_Decoder_MPEG_TS_Decoder_T (ISTREAM_T* stream_in)
 #else
                                  SessionDataContainerType>::Stream_Decoder_MPEG_TS_Decoder_T (typename inherited::ISTREAM_T* stream_in)
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
  : inherited (stream_in)
  , buffer_ (NULL)
  , missingPESBytes_ (0)
@@ -202,7 +202,7 @@ Stream_Decoder_MPEG_TS_Decoder_T<ACE_SYNCH_USE,
     return;
   } // end IF
 
-  struct Stream_Decoder_MPEG_TS_AdapatationFieldControlHeader* adaptation_field_control_p =
+  struct Stream_Decoder_MPEG_TS_AdaptationFieldControlHeader* adaptation_field_control_p =
     NULL;
   unsigned short packet_identifier = 0;
   unsigned int skipped_bytes = 0;
@@ -225,7 +225,7 @@ Stream_Decoder_MPEG_TS_Decoder_T<ACE_SYNCH_USE,
     if (packet_header_p->adaptation_field_control & 2)
     {
       adaptation_field_control_p =
-        reinterpret_cast<struct Stream_Decoder_MPEG_TS_AdapatationFieldControlHeader*> (buffer_->rd_ptr ());
+        reinterpret_cast<struct Stream_Decoder_MPEG_TS_AdaptationFieldControlHeader*> (buffer_->rd_ptr ());
       buffer_->rd_ptr (adaptation_field_control_p->adaptation_field_length + 1);
       skipped_bytes += (adaptation_field_control_p->adaptation_field_length + 1);
     } // end IF

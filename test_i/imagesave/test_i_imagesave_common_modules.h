@@ -29,6 +29,7 @@
 #include "stream_common.h"
 #include "stream_streammodule_base.h"
 
+#include "stream_dec_mpeg_4_decoder.h"
 #if defined (FFMPEG_SUPPORT)
 #include "stream_dec_libav_decoder.h"
 #endif // FFMPEG_SUPPORT
@@ -79,6 +80,14 @@ typedef Stream_Module_FileReaderH_T<ACE_MT_SYNCH,
                                     struct Test_I_StatisticData,
                                     Common_Timer_Manager_t,
                                     struct Stream_UserData> Test_I_Source;
+
+typedef Stream_Decoder_MPEG_4_Decoder_T<ACE_MT_SYNCH,
+                                        Common_TimePolicy_t,
+                                        struct Test_I_ImageSave_ModuleHandlerConfiguration,
+                                        Stream_ControlMessage_t,
+                                        Test_I_Message,
+                                        Test_I_SessionMessage_t,
+                                        Test_I_ImageSave_SessionData_t> Test_I_MP4Decoder;
 
 #if defined (FFMPEG_SUPPORT)
 typedef Stream_Decoder_LibAVDecoder_T<ACE_MT_SYNCH,
@@ -210,6 +219,13 @@ DATASTREAM_MODULE_INPUT_ONLY (Test_I_ImageSave_SessionData,                     
                               libacestream_default_file_source_module_name_string,
                               Stream_INotify_t,                                    // stream notification interface type
                               Test_I_Source);                                      // writer type
+
+DATASTREAM_MODULE_INPUT_ONLY (Test_I_ImageSave_SessionData,                        // session data type
+                              enum Stream_SessionMessageType,                      // session event type
+                              struct Test_I_ImageSave_ModuleHandlerConfiguration,  // module handler configuration type
+                              libacestream_default_file_source_module_name_string,
+                              Stream_INotify_t,                                    // stream notification interface type
+                              Test_I_MP4Decoder);                                  // writer type
 
 #if defined (FFMPEG_SUPPORT)
 DATASTREAM_MODULE_INPUT_ONLY (Test_I_ImageSave_SessionData,                              // session data type

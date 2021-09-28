@@ -283,8 +283,9 @@ Stream_Decoder_LibAVEncoder_T<ACE_SYNCH_USE,
       struct AVPacket packet_s = { 0 };
       result = avcodec_receive_packet (codec_context_p, &packet_s);
       if (result == AVERROR (EAGAIN) || result == AVERROR_EOF)
-          break;
-      else if (result < 0) {
+        break;
+      if (result < 0)
+      {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: failed to avcodec_receive_packet(): \"%s\", returning\n"),
                     inherited::mod_->name (),

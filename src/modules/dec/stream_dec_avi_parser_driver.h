@@ -31,9 +31,9 @@
 #include "stream_common.h"
 #include "stream_imessage.h"
 
-#include "stream_dec_common.h"
 #include "stream_dec_defines.h"
-//#include "stream_dec_riff_scanner.h"
+#include "stream_dec_riff_common.h"
+ //#include "stream_dec_riff_scanner.h"
 
 // forward declaration(s)
 class ACE_Message_Queue_Base;

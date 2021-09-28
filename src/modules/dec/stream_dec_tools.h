@@ -28,13 +28,13 @@
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
  // *WORKAROUND*: mfobjects.h includes cguid.h, which requires this
 #define __CGUID_H__
-#include <ks.h>
-#include <guiddef.h>
-#include <mfidl.h>
-#include <mfobjects.h>
-#include <strmif.h>
-#include <vadefs.h>
-#include <windef.h>
+#include "ks.h"
+#include "guiddef.h"
+#include "mfidl.h"
+#include "mfobjects.h"
+#include "strmif.h"
+#include "vadefs.h"
+#include "windef.h"
 #endif // ACE_WIN32 || ACE_WIN64
 
 #if defined (FFMPEG_SUPPORT)
@@ -51,6 +51,7 @@ extern "C"
 #endif // FFMPEG_SUPPORT
 
 #include "ace/Basic_Types.h"
+#include "ace/Date_Time.h"
 #include "ace/Global_Macros.h"
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -68,7 +69,9 @@ void stream_decoder_libav_log_cb (void*, int, const char*, va_list);
 class Stream_Module_Decoder_Tools
 {
  public:
-  //static void initialize ();
+  // MPEG4
+  // *IMPORTANT NOTE*: return value is localtime
+  static ACE_Date_Time mpeg4ToDateTime (ACE_UINT64); // seconds since UTC 1904-01-01 zero
 
 #if defined (FFMPEG_SUPPORT)
   inline static bool isCompressedVideo (enum AVPixelFormat format_in) { return (!Stream_Module_Decoder_Tools::isRGB (format_in) && !Stream_Module_Decoder_Tools::isChromaLuminance (format_in)); }

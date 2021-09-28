@@ -41,7 +41,7 @@
 #include "common_idumpstate.h"
 #include "common_iinitialize.h"
 
-#include "common_parser_common.h"
+//#include "common_parser_common.h"
 
 #include "common_timer_common.h"
 
@@ -49,6 +49,7 @@
 
 #include "stream_common.h"
 #include "stream_defines.h"
+#include "stream_inotify.h"
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #include "stream_lib_common.h"
@@ -90,7 +91,7 @@ struct Stream_AllocatorConfiguration
   }
 };
 
-class Stream_IOutboundDataNotify;
+struct Common_FlexBisonParserConfiguration;
 struct Stream_ModuleHandlerConfiguration
 {
   Stream_ModuleHandlerConfiguration ()
@@ -123,18 +124,18 @@ struct Stream_ModuleHandlerConfiguration
    , timerManager (NULL)
   {}
 
-  struct Common_AllocatorConfiguration* allocatorConfiguration;
-  bool                                  computeThroughput;                    // statistic/... module(s)
-  enum Stream_HeadModuleConcurrency     concurrency;                          // head module(s)
+  struct Common_AllocatorConfiguration*       allocatorConfiguration;
+  bool                                        computeThroughput;                    // statistic/... module(s)
+  enum Stream_HeadModuleConcurrency           concurrency;                          // head module(s)
   // *NOTE*: this option may be useful for (downstream) modules that only work
   //         on CONTIGUOUS buffers (i.e. cannot parse chained message blocks)
-  bool                                  crunchMessages;
+  bool                                        crunchMessages;
 #if defined (_DEBUG)
-  bool                                  debug;
+  bool                                        debug;
 #endif // _DEBUG
-  bool                                  demultiplex;                          // message handler module
-  struct Common_EventDispatchConfiguration* dispatchConfiguration;
-  bool                                  finishOnDisconnect;                   // header module(s)
+  bool                                        demultiplex;                          // message handler module
+  struct Common_EventDispatchConfiguration*   dispatchConfiguration;
+  bool                                        finishOnDisconnect;                   // header module(s)
   // *WARNING*: when false, this 'locks down' the pipeline head module; i.e. it
   //            will hold the 'stream lock' during all message processing to
   //            support (down)stream synchronization. This really only makes
@@ -142,27 +143,27 @@ struct Stream_ModuleHandlerConfiguration
   //            'concurrent' scenarios, with non-reentrant modules. Note that
   //            this overhead is not negligible
   //            --> disable only if absolutely necessary
-  bool                                  hasReentrantSynchronousSubDownstream; // head module(s)
+  bool                                        hasReentrantSynchronousSubDownstream; // head module(s)
   //// *NOTE*: if this is an 'outbound' (i.e. data travels in two directions;
   ////         e.g. network connection-) stream, any 'inbound' (i.e. writer-
   ////         side) data [!] may (!) 'turn around' and travel back upstream for
   ////         dispatch --> account for it only once
-  bool                                  inbound;                              // statistic[/IO] module(s)
-  ACE_SYNCH_RECURSIVE_MUTEX*            lock;                                 // display/message handler module(s)
+  bool                                        inbound;                              // statistic[/IO] module(s)
+  ACE_SYNCH_RECURSIVE_MUTEX*                  lock;                                 // display/message handler module(s)
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  enum Stream_MediaFramework_Type       mediaFramework;
+  enum Stream_MediaFramework_Type             mediaFramework;
 #endif // ACE_WIN32 || ACE_WIN64
-  Stream_IAllocator*                    messageAllocator;
-  Stream_IOutboundDataNotify*           outboundNotificationHandle;           // IO module(s)
+  Stream_IAllocator*                          messageAllocator;
+  Stream_IOutboundDataNotify*                 outboundNotificationHandle;           // IO module(s)
   struct Common_FlexBisonParserConfiguration* parserConfiguration;                  // parser module(s)
-  bool                                  passive;                              // network/device/... module(s)
-  bool                                  printFinalReport;                     // statistic module(s)
-  unsigned int                          reportingInterval;                    // (statistic) reporting interval (second(s)) [0: off]
-  bool                                  slurpFiles;                           // file source module(s)
-  ACE_HANDLE                            socketHandle;                         // network module(s)
-  ACE_Time_Value                        statisticCollectionInterval;          // source/statistic/... module(s)
-  ACE_Time_Value                        statisticReportingInterval;           // [ACE_Time_Value::zero: off]
-  Common_ITimerCB_t*                    timerManager;
+  bool                                        passive;                              // network/device/... module(s)
+  bool                                        printFinalReport;                     // statistic module(s)
+  unsigned int                                reportingInterval;                    // (statistic) reporting interval (second(s)) [0: off]
+  bool                                        slurpFiles;                           // file source module(s)
+  ACE_HANDLE                                  socketHandle;                         // network module(s)
+  ACE_Time_Value                              statisticCollectionInterval;          // source/statistic/... module(s)
+  ACE_Time_Value                              statisticReportingInterval;           // [ACE_Time_Value::zero: off]
+  Common_ITimerCB_t*                          timerManager;
 };
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 struct Stream_DirectShow_ModuleHandlerConfiguration
@@ -239,29 +240,29 @@ struct Stream_Configuration
    , userData (NULL)
   {}
 
-  struct Common_AllocatorConfiguration* allocatorConfiguration;
-  Stream_Branches_t                     branches; // distributor(s) *TODO*
-  bool                                  cloneModule; // final-
+  struct Common_AllocatorConfiguration*     allocatorConfiguration;
+  Stream_Branches_t                         branches; // distributor(s) *TODO*
+  bool                                      cloneModule; // final-
   struct Common_EventDispatchConfiguration* dispatchConfiguration;
-  bool                                  finishOnDisconnect; // (network) i/o streams
+  bool                                      finishOnDisconnect; // (network) i/o streams
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  enum Stream_MediaFramework_Type       mediaFramework;
+  enum Stream_MediaFramework_Type           mediaFramework;
 #endif // ACE_WIN32 || ACE_WIN64
-  Stream_IAllocator*                    messageAllocator;
-  Stream_Module_t*                      module; // final-
-  std::string                           moduleBranch; // final- {"": main branch}
-  ACE_Notification_Strategy*            notificationStrategy;
-  bool                                  printFinalReport;
-  bool                                  resetSessionData;
+  Stream_IAllocator*                        messageAllocator;
+  Stream_Module_t*                          module; // final-
+  std::string                               moduleBranch; // final- {"": main branch}
+  ACE_Notification_Strategy*                notificationStrategy;
+  bool                                      printFinalReport;
+  bool                                      resetSessionData;
   // *IMPORTANT NOTE*: in a multi-threaded environment, threads MAY be
   //                   dispatching the reactor notification queue concurrently
   //                   (most notably, ACE_TP_Reactor)
   //                   --> enforce proper serialization
-  bool                                  serializeOutput;
-  Stream_SessionId_t                    sessionId;
-  bool                                  setupPipeline;
+  bool                                      serializeOutput;
+  Stream_SessionId_t                        sessionId;
+  bool                                      setupPipeline;
 
-  struct Stream_UserData*               userData;
+  struct Stream_UserData*                   userData;
 };
 
 template <//const char* StreamName,

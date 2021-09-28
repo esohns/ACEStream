@@ -32,6 +32,22 @@ extern "C" {
 
 #include "common_image_common.h"
 
+#include "stream_configuration.h"
+
+//////////////////////////////////////////
+
+struct Stream_MediaFramework_FFMPEG_AllocatorConfiguration
+ : Stream_AllocatorConfiguration
+{
+  Stream_MediaFramework_FFMPEG_AllocatorConfiguration ()
+   : Stream_AllocatorConfiguration ()
+  {
+    paddingBytes = AV_INPUT_BUFFER_PADDING_SIZE;
+  }
+};
+
+//////////////////////////////////////////
+
 struct Stream_MediaFramework_FFMPEG_VideoMediaType
 {
   Stream_MediaFramework_FFMPEG_VideoMediaType ()

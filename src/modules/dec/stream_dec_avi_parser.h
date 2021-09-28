@@ -50,7 +50,7 @@
 #include <mmsyscom.h>
 #endif // ACE_WIN32 || ACE_WIN64
 
-#include "stream_dec_common.h"
+#include "stream_dec_riff_common.h"
 //#include "stream_dec_exports.h"
 
 // forward declarations

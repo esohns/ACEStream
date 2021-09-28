@@ -55,7 +55,7 @@
 //#ifndef STREAM_DEC_AVI_PARSER_H
 //#define STREAM_DEC_AVI_PARSER_H
 
-#include "stream_dec_common.h"
+#include "stream_dec_riff_common.h"
 //#include "stream_dec_exports.h"
 
 // forward declarations
@@ -68,8 +68,8 @@ class Stream_Decoder_AVIParserDriver;
 //#undef YYSTYPE
 struct YYSTYPE
 {
-  RIFF_chunk_meta chunk_meta;
-  unsigned int    size;
+  struct RIFF_chunk_meta chunk_meta;
+  unsigned int                 size;
 };
 
 typedef void* yyscan_t;

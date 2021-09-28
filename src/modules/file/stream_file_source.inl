@@ -247,7 +247,6 @@ Stream_Module_FileReaderH_T<ACE_SYNCH_USE,
   bool stop_processing = false;
   int file_index_i = 0;
   std::string file_path_string;
-  unsigned int file_size_i = 0;
 
   // sanity check(s)
   ACE_ASSERT (inherited::configuration_);
@@ -256,6 +255,7 @@ Stream_Module_FileReaderH_T<ACE_SYNCH_USE,
   ACE_ASSERT (!isOpen_);
   const SessionDataType& session_data_r = inherited::sessionData_->getR ();
 //  ACE_ASSERT (session_data_r.lock);
+  size_t pdu_size_i = 0;
 
 next:
   file_path_string = inherited::configuration_->fileIdentifier.identifier;
@@ -265,8 +265,10 @@ next:
     file_path_string += ACE_DIRECTORY_SEPARATOR_STR;
     file_path_string += directory_[file_index_i++]->d_name;
   } // end IF
-  file_size_i = Common_File_Tools::size (file_path_string);
-
+  pdu_size_i =
+    (inherited::configuration_->slurpFiles ? Common_File_Tools::size (file_path_string)
+                                           : inherited::configuration_->allocatorConfiguration->defaultBufferSize) +
+    inherited::configuration_->allocatorConfiguration->paddingBytes;
   if (!Common_File_Tools::open (file_path_string,
                                 (O_RDONLY |
                                  O_BINARY), // flags --> open,
@@ -381,16 +383,13 @@ done:
       continue;
     } // end IF
 
-    // *TODO*: remove type inference
-    message_p =
-        inherited::allocateMessage (inherited::configuration_->slurpFiles ? file_size_i
-                                                                          : inherited::configuration_->allocatorConfiguration->defaultBufferSize);
+    message_p = inherited::allocateMessage (pdu_size_i);
     if (!message_p)
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: failed to Stream_TaskBase_T::allocateMessage(%u), aborting\n"),
                   inherited::mod_->name (),
-                  inherited::configuration_->allocatorConfiguration->defaultBufferSize));
+                  pdu_size_i));
 
       finished = true;
       // *NOTE*: (if active,) this enqueues STREAM_SESSION_END
@@ -399,6 +398,7 @@ done:
 
       continue;
     } // end IF
+    message_p->size (pdu_size_i - inherited::configuration_->allocatorConfiguration->paddingBytes);
 
     bytes_read = stream_.recv (message_p->wr_ptr (),
                                message_p->size ());

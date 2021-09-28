@@ -23,6 +23,7 @@
 
 #include <string>
 
+#include "common_parser_common.h"
 #include "common_parser_defines.h"
 
 #include "stream_common.h"

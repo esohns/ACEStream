@@ -167,12 +167,33 @@ stream_decoder_libav_log_cb (void* AVClassStruct_in,
 }
 #endif // FFMPEG_SUPPORT
 
-//void
-//Stream_Module_Decoder_Tools::initialize ()
-//{
-//  STREAM_TRACE (ACE_TEXT ("Stream_Module_Decoder_Tools::initialize"));
-//
-//}
+ACE_Date_Time
+Stream_Module_Decoder_Tools::mpeg4ToDateTime (ACE_UINT64 secondsSince_MPEG4Epoch_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Module_Decoder_Tools::mpeg4ToDateTime"));
+
+  struct tm tm_s, tm_2, *tm_p = NULL;
+  ACE_OS::memset (&tm_s, 0, sizeof (struct tm));
+  tm_s.tm_mday = 1;
+  tm_s.tm_year = 4;
+  time_t time_i = ACE_OS::mktime (&tm_s);
+  tm_p = ACE_OS::gmtime_r (&time_i, &tm_2);
+  ACE_ASSERT (tm_p);
+  time_i = ACE_OS::mktime (&tm_2) + secondsSince_MPEG4Epoch_in;
+  tm_p = ACE_OS::localtime_r (&time_i, &tm_2);
+  ACE_ASSERT (tm_p);
+
+  ACE_Date_Time result (tm_2.tm_mday,
+                        tm_2.tm_mon + 1,
+                        tm_2.tm_year + 1900,
+                        tm_2.tm_hour,
+                        tm_2.tm_min,
+                        tm_2.tm_sec,
+                        0,
+                        tm_2.tm_wday);
+
+  return result;
+}
 
 #if defined (FFMPEG_SUPPORT)
 bool

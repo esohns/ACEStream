@@ -446,7 +446,7 @@ do_work (
 #endif // GUI_SUPPORT
 
   // ********************** module configuration data **************************
-  struct Stream_AllocatorConfiguration allocator_configuration;
+  struct Stream_MediaFramework_FFMPEG_AllocatorConfiguration allocator_configuration;
   //if (bufferSize_in)
   allocator_configuration.defaultBufferSize = 524288;
 
@@ -499,7 +499,11 @@ do_work (
   modulehandler_configuration.targetFileName = targetFilename_in;
 
   Stream_AllocatorHeap_T<ACE_MT_SYNCH,
-                         struct Common_AllocatorConfiguration> heap_allocator;
+#if defined (FFMPEG_SUPPORT)
+                         struct Stream_MediaFramework_FFMPEG_AllocatorConfiguration> heap_allocator;
+#else
+                         struct Stream_AllocatorConfiguration> heap_allocator;
+#endif // FFMPEG_SUPPORT
   if (!heap_allocator.initialize (allocator_configuration))
   {
     ACE_DEBUG ((LM_ERROR,

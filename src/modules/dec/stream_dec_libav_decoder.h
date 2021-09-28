@@ -31,14 +31,11 @@ extern "C"
 
 #include "ace/Global_Macros.h"
 
-//#include "common_time_common.h"
-
 #include "stream_task_base_synch.h"
 
 #include "stream_lib_mediatype_converter.h"
 
 // forward declaration(s)
-struct AVFrame;
 struct SwsContext;
 class ACE_Message_Block;
 class Stream_IAllocator;
@@ -116,26 +113,22 @@ class Stream_Decoder_LibAVDecoder_T
   ACE_UNIMPLEMENTED_FUNC (Stream_Decoder_LibAVDecoder_T (const Stream_Decoder_LibAVDecoder_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Decoder_LibAVDecoder_T& operator= (const Stream_Decoder_LibAVDecoder_T&))
 
-  DataMessageType*       buffer_;
-//  struct AVBuffer        buffer_;
-//  struct AVBufferRef     bufferRef_;
-  enum AVCodecID         codecId_;
-  struct AVCodecContext* context_;
-  enum AVPixelFormat     format_; // codec output-
-  unsigned int           formatHeight_; // codec output-
-  struct AVFrame*        frame_;
-  unsigned int           frameSize_; // codec output-
-  enum AVPixelFormat     outputFormat_; // output-
-  unsigned int           outputFrameSize_; // output-
-  int                    profile_; // codec-
-  struct SwsContext*     transformContext_;
+  // helper methods
+  bool decodePacket (struct AVPacket&,   // data packet
+                     DataMessageType*&); // return value: decoded frame
 
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-  static char            paddingBuffer[AV_INPUT_BUFFER_PADDING_SIZE];
-#else
-  static char            paddingBuffer[AV_INPUT_BUFFER_PADDING_SIZE];
-//  static char            paddingBuffer[FF_INPUT_BUFFER_PADDING_SIZE];
-#endif // ACE_WIN32 || ACE_WIN64
+  enum AVCodecID               codecId_;
+  struct AVCodecContext*       context_;
+  enum AVPixelFormat           format_; // codec output-
+  unsigned int                 formatHeight_; // codec output-
+  struct AVFrame*              frame_;
+  unsigned int                 frameSize_; // codec output-
+  enum AVPixelFormat           outputFormat_; // output-
+  unsigned int                 outputFrameSize_; // output-
+  struct AVCodecParserContext* parserContext_;
+  int64_t                      parserPosition_;
+  int                          profile_; // codec-
+  struct SwsContext*           transformContext_;
 };
 
 // include template definition

@@ -19,9 +19,9 @@
  ***************************************************************************/
 #include "stdafx.h"
 
-#include "stream_dec_mpeg_ts_decoder.h"
+#include "stream_dec_mpeg_4_decoder.h"
 
 #include "stream_dec_defines.h"
 
-const char libacestream_default_dec_mpeg_ts_module_name_string[] =
+const char libacestream_default_dec_mpeg_4_module_name_string[] =
   ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_MPEG_TS_DEFAULT_NAME_STRING);

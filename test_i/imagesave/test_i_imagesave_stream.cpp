@@ -42,9 +42,11 @@ Test_I_Stream::Test_I_Stream ()
  : inherited ()
  , source_ (this,
             ACE_TEXT_ALWAYS_CHAR (STREAM_FILE_SOURCE_DEFAULT_NAME_STRING))
-#if defined (FFMPEG_SUPPORT)
  , decoder_ (this,
-             ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_LIBAV_DECODER_DEFAULT_NAME_STRING))
+             ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_MPEG_4_DEFAULT_NAME_STRING))
+#if defined (FFMPEG_SUPPORT)
+ , decoder2_ (this,
+              ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_LIBAV_DECODER_DEFAULT_NAME_STRING))
 #endif // FFMPEG_SUPPORT
   //, report_ (this,
  //           ACE_TEXT_ALWAYS_CHAR (MODULE_STAT_REPORT_DEFAULT_NAME_STRING))
@@ -84,8 +86,9 @@ Test_I_Stream::load (Stream_ILayout* layout_in,
   //         close()d
 
   layout_in->append (&source_, NULL, 0);
-#if defined (FFMPEG_SUPPORT)
   layout_in->append (&decoder_, NULL, 0);
+#if defined (FFMPEG_SUPPORT)
+  layout_in->append (&decoder2_, NULL, 0);
 #endif // FFMPEG_SUPPORT
   //layout_in->append (&report_, NULL, 0);
   layout_in->append (&display_, NULL, 0);

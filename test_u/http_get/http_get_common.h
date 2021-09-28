@@ -21,16 +21,18 @@
 #ifndef HTTP_GET_COMMON_H
 #define HTTP_GET_COMMON_H
 
-#include "ace/Synch_Traits.h"
-
 #if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
 #include "gtk/gtk.h"
 #endif // GTK_USE
 #endif // GUI_SUPPORT
 
+#include "ace/Synch_Traits.h"
+
 #include "common.h"
 #include "common_istatistic.h"
+
+#include "common_parser_common.h"
 
 #if defined (GUI_SUPPORT)
 #if defined (GTK_USE)

@@ -262,25 +262,26 @@ elseif (WIN32)
 endif ()
 
 #cmake_policy (SET CMP0053 OLD)
+unset (ARGS)
 set (ENVIRONMENT "")
 if (UNIX)
  file (TO_NATIVE_PATH "${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_BUILD_TYPE}/${EXECUTABLE}" COMMAND)
  if (GUI_SUPPORT)
-  if (GTK_SUPPORT)
-   if (GTK3_SUPPORT)
+  if (GTK_USE)
+   if (GTK3_USE OR GTK4_USE)
     set (ARGS "-g./etc/audioeffect.gtk3 -l -t")
-   elseif (GTK2_SUPPORT)
+   elseif (GTK2_USE)
     set (ARGS "-g./etc/audioeffect.gtk2 -l -t")
    endif ()
-  endif (GTK_SUPPORT)
+  endif (GTK_USE)
  endif (GUI_SUPPORT)
- set (RUNTIME_LIBRARY_DIRS ${PROJECT_SOURCE_DIR}/modules/ACE/lib)
- set (ENVIRONMENT "GDK_BACKEND=x11")
+ set (RUNTIME_LIBRARY_DIR ${PROJECT_SOURCE_DIR}/modules/ACE/lib)
+# set (ENVIRONMENT "GDK_BACKEND=x11")
 elseif (WIN32)
  file (TO_NATIVE_PATH "${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_BUILD_TYPE}/${EXECUTABLE}.exe" COMMAND)
  string (REPLACE "\\" "\\\\" COMMAND ${COMMAND})
  if (GUI_SUPPORT)
-  if (GTK_SUPPORT)
+  if (GTK_USE)
    if (GTK3_USE OR GTK4_USE)
     set (ARGS "-g.\\\\etc\\\\audioeffect.gtk3 -l -t")
     set (RUNTIME_LIBRARY_DIRS ${RUNTIME_LIBRARY_DIRS}
@@ -292,7 +293,7 @@ elseif (WIN32)
                               G:/software/Development/dll)
     file (TO_CMAKE_PATH "${GTK_LIB_DIRS}" GTK_PATH)
    endif ()
-  endif (GTK_SUPPORT)
+  endif (GTK_USE)
  endif (GUI_SUPPORT)
  file (TO_CMAKE_PATH "${ffmpeg_LIB_DIR}" FFMPEG_PATH)
  file (TO_CMAKE_PATH "${ImageMagick_LIB_DIR}" IMAGEMAGICK_PATH)
@@ -300,21 +301,22 @@ elseif (WIN32)
  file (TO_CMAKE_PATH "${PNG_LIB_DIR}" LIBPNG_PATH)
  file (TO_CMAKE_PATH "$ENV{LIB_ROOT}/zlib/cmake/${CMAKE_BUILD_TYPE}" ZLIB_PATH)
  file (TO_CMAKE_PATH "${ACE_LIB_DIR}" ACE_LIBRARY_PATH)
- set (RUNTIME_LIBRARY_DIRS ${RUNTIME_LIBRARY_DIRS}
-                           ${ASSIMP_PATH}
-                           ${FFMPEG_PATH}
-                           ${GTK_PATH}
-                           ${LIBPNG_PATH}
-                           ${ZLIB_PATH}
-                           ${IMAGEMAGICK_PATH}
-                           ${ACE_LIBRARY_PATH})
+ set (RUNTIME_LIBRARY_DIR ${ASSIMP_PATH}
+                          ${FFMPEG_PATH}
+                          ${GTK_PATH}
+                          ${LIBPNG_PATH}
+                          ${ZLIB_PATH}
+                          ${IMAGEMAGICK_PATH}
+                          ${ACE_LIBRARY_PATH})
+# message (STATUS "RUNTIME_LIBRARY_DIR: ${RUNTIME_LIBRARY_DIR}")
+ message (STATUS "ARGS: ${ARGS}")
 endif ()
 create_target_launcher (${EXECUTABLE}
                         COMMAND ${COMMAND}
                         ARGS ${ARGS}
 #                        FORWARD_ARGS
-                        RUNTIME_LIBRARY_DIRS ${RUNTIME_LIBRARY_DIRS}
-                        WORKING_DIRECTORY ${PROJECT_BINARY_DIR}/../test_u/audioeffect
+                        RUNTIME_LIBRARY_DIRS ${RUNTIME_LIBRARY_DIR}
+                        WORKING_DIRECTORY ${PROJECT_BINARY_DIR}/../test_u/${EXECUTABLE}
                         ENVIRONMENT ${ENVIRONMENT})
 
 add_test (NAME ${EXECUTABLE}_test

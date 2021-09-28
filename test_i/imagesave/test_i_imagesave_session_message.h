@@ -60,14 +60,18 @@ class Test_I_SessionMessage_T
   // grant access to specific private ctors
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   //friend class Stream_AllocatorBase_T<ACE_MT_SYNCH,
-  //                                    struct Stream_AllocatorConfiguration,
+  //                                    struct Stream_MediaFramework_FFMPEG_AllocatorConfiguration,
   //                                    Stream_ControlMessage_t,
   //                                    DataMessageType,
   //                                    Test_I_SessionMessage_T<DataMessageType,
   //                                                                    SessionDataType> >;
 #endif // ACE_WIN32 || ACE_WIN64
   friend class Stream_MessageAllocatorHeapBase_T<ACE_MT_SYNCH,
-                                                 struct Common_AllocatorConfiguration,
+#if defined (FFMPEG_SUPPORT)
+                                                 struct Stream_MediaFramework_FFMPEG_AllocatorConfiguration,
+#else
+                                                 struct Stream_AllocatorConfiguration,
+#endif // FFMPEG_SUPPORT
                                                  Stream_ControlMessage_t,
                                                  DataMessageType,
                                                  Test_I_SessionMessage_T<DataMessageType,
