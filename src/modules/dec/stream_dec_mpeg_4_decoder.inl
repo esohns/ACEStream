@@ -248,7 +248,7 @@ Stream_Decoder_MPEG_4_Decoder_T<ACE_SYNCH_USE,
     {
       bytes_to_skip_i =
         std::min (static_cast<ACE_UINT64> (message_block_p->length ()), total_bytes_to_skip_i);
-      message_block_p->rd_ptr (bytes_to_skip_i);
+      message_block_p->rd_ptr (static_cast<size_t> (bytes_to_skip_i));
       if (!message_block_p->length ())
         message_block_p = message_block_p->cont ();
       total_bytes_to_skip_i -= bytes_to_skip_i;
@@ -275,6 +275,8 @@ Stream_Decoder_MPEG_4_Decoder_T<ACE_SYNCH_USE,
   return;
 
 error:
+  if (buffer_ == message_inout)
+    buffer_ = NULL;
   if (message_inout)
     message_inout->release ();
 
@@ -372,7 +374,7 @@ Stream_Decoder_MPEG_4_Decoder_T<ACE_SYNCH_USE,
   switch (header_type_i)
   {
     case 0x66747970: // ftyp
-    { ASSERT_CONTIGUOUS_BYTES (boxSize_);
+    { ASSERT_CONTIGUOUS_BYTES (sizeof (struct Stream_Decoder_MPEG_4_FileTypeBox));
       struct Stream_Decoder_MPEG_4_FileTypeBox* box_p =
         reinterpret_cast<struct Stream_Decoder_MPEG_4_FileTypeBox*> (buffer_->rd_ptr ());
       ACE_DEBUG ((LM_DEBUG,
@@ -392,12 +394,13 @@ Stream_Decoder_MPEG_4_Decoder_T<ACE_SYNCH_USE,
                   ACE_TEXT ("%s: ftyp minor_version: %u\n"),
                   inherited::mod_->name (),
                   minor_version));
-      ACE_UINT32 num_compatible_brands_i = ((boxSize_ - 8) / 4);
+      int num_compatible_brands_i =
+        static_cast<int> ((boxSize_ - sizeof (struct Stream_Decoder_MPEG_4_FileTypeBox)) / 4);
       ACE_ASSERT (sizeof (struct Stream_Decoder_MPEG_4_FileTypeBox) + (num_compatible_brands_i * 4) == boxSize_);
       for (int i = 0;
            i < num_compatible_brands_i;
            ++i)
-      {
+      { ASSERT_CONTIGUOUS_BYTES (sizeof (struct Stream_Decoder_MPEG_4_FileTypeBox) + ((i + 1) * 4));
         value_string.assign (reinterpret_cast<char*> (&box_p->compatible_brands[i]),
                              4);
         ACE_DEBUG ((LM_DEBUG,
@@ -718,7 +721,7 @@ Stream_Decoder_MPEG_4_Decoder_T<ACE_SYNCH_USE,
       result = sizeof (struct Stream_Decoder_MPEG_4_BoxHeader);
       break;
     }
-    case 0x65637374: // elst
+    case 0x656C7374: // elst
     { ASSERT_CONTIGUOUS_BYTES (sizeof (struct Stream_Decoder_MPEG_4_FullBoxHeader));
       struct Stream_Decoder_MPEG_4_FullBoxHeader* box_header_p =
         reinterpret_cast<struct Stream_Decoder_MPEG_4_FullBoxHeader*> (buffer_->rd_ptr ());
@@ -739,33 +742,33 @@ Stream_Decoder_MPEG_4_Decoder_T<ACE_SYNCH_USE,
                       ACE_TEXT ("%s: elst: entry_count: %u\n"),
                       inherited::mod_->name (),
                       value_i));
-          for (int i = 0;
+          for (ACE_UINT32 i = 0;
                i < value_i;
                ++i)
-          { ACE_ASSERT (buffer_->length () >= (sizeof (struct Stream_Decoder_MPEG_4_EditListBox0) + sizeof (ACE_UINT32) + (i * sizeof (struct Stream_Decoder_MPEG_4_EditListEntry0))));
+          { ACE_ASSERT (buffer_->length () >= (sizeof (struct Stream_Decoder_MPEG_4_EditListBox0) + 4 + ((i + 1) * sizeof (struct Stream_Decoder_MPEG_4_EditListEntry0))));
             struct Stream_Decoder_MPEG_4_EditListEntry0* box_entry_p =
-              reinterpret_cast<struct Stream_Decoder_MPEG_4_EditListEntry0*> (buffer_->rd_ptr () + sizeof (ACE_UINT32) + (i * sizeof (struct Stream_Decoder_MPEG_4_EditListEntry0)));
-            value_i =
+              reinterpret_cast<struct Stream_Decoder_MPEG_4_EditListEntry0*> (buffer_->rd_ptr () + 4 + (i * sizeof (struct Stream_Decoder_MPEG_4_EditListEntry0)));
+            ACE_UINT32 value_2 =
               ((ACE_BYTE_ORDER == ACE_LITTLE_ENDIAN) ? ACE_SWAP_LONG (box_entry_p->segment_duration)
                                                      : box_entry_p->segment_duration);
             ACE_DEBUG ((LM_DEBUG,
-                        ACE_TEXT ("%s: elst: segment_duration: %u\n"),
+                        ACE_TEXT ("%s: elst [%u]: segment_duration: %u\n"),
                         inherited::mod_->name (),
-                        value_i));
-            value_i =
+                        i, value_2));
+            value_2 =
               ((ACE_BYTE_ORDER == ACE_LITTLE_ENDIAN) ? ACE_SWAP_LONG (box_entry_p->media_time)
                                                      : box_entry_p->media_time);
             ACE_DEBUG ((LM_DEBUG,
-                        ACE_TEXT ("%s: elst: media_time: %u\n"),
+                        ACE_TEXT ("%s: elst [%u]: media_time: %u\n"),
                         inherited::mod_->name (),
-                        value_i));
-            value_i =
-              ((ACE_BYTE_ORDER == ACE_LITTLE_ENDIAN) ? ACE_SWAP_LONG (box_entry_p->media_rate_integer)
+                        i, value_2));
+            ACE_UINT16 value_3 =
+              ((ACE_BYTE_ORDER == ACE_LITTLE_ENDIAN) ? ACE_SWAP_WORD (box_entry_p->media_rate_integer)
                                                      : box_entry_p->media_rate_integer);
             ACE_DEBUG ((LM_DEBUG,
-                        ACE_TEXT ("%s: elst: media_rate_integer: %u\n"),
+                        ACE_TEXT ("%s: elst [%u]: media_rate_integer: %u\n"),
                         inherited::mod_->name (),
-                        value_i));
+                        i, value_3));
             //value_i =
             //  ((ACE_BYTE_ORDER == ACE_LITTLE_ENDIAN) ? ACE_SWAP_LONG (box_entry_p->media_rate_fraction)
             //                                         : box_entry_p->media_rate_fraction);
@@ -788,33 +791,33 @@ Stream_Decoder_MPEG_4_Decoder_T<ACE_SYNCH_USE,
                       inherited::mod_->name (),
                       value_i));
           ACE_UINT64 value_2 = 0;
-          for (int i = 0;
+          for (ACE_UINT32 i = 0;
                i < value_i;
                ++i)
-          { ACE_ASSERT (buffer_->length () >= (sizeof (struct Stream_Decoder_MPEG_4_EditListBox1) + sizeof (ACE_UINT32) + (i * sizeof (struct Stream_Decoder_MPEG_4_EditListEntry1))));
+          { ASSERT_CONTIGUOUS_BYTES (sizeof (struct Stream_Decoder_MPEG_4_EditListBox1) + 4 + ((i + 1) * sizeof (struct Stream_Decoder_MPEG_4_EditListEntry1)));
             struct Stream_Decoder_MPEG_4_EditListEntry1* box_entry_p =
-              reinterpret_cast<struct Stream_Decoder_MPEG_4_EditListEntry1*> (buffer_->rd_ptr () + sizeof (ACE_UINT32) + (i * sizeof (struct Stream_Decoder_MPEG_4_EditListEntry1)));
+              reinterpret_cast<struct Stream_Decoder_MPEG_4_EditListEntry1*> (buffer_->rd_ptr () + 4 + (i * sizeof (struct Stream_Decoder_MPEG_4_EditListEntry1)));
             value_2 =
               ((ACE_BYTE_ORDER == ACE_LITTLE_ENDIAN) ? ACE_SWAP_LONG_LONG (box_entry_p->segment_duration)
                                                      : box_entry_p->segment_duration);
             ACE_DEBUG ((LM_DEBUG,
-                        ACE_TEXT ("%s: elst: segment_duration: %Q\n"),
+                        ACE_TEXT ("%s: elst [%u]: segment_duration: %Q\n"),
                         inherited::mod_->name (),
-                        value_2));
+                        i, value_2));
             value_2 =
               ((ACE_BYTE_ORDER == ACE_LITTLE_ENDIAN) ? ACE_SWAP_LONG_LONG (box_entry_p->media_time)
                                                      : box_entry_p->media_time);
             ACE_DEBUG ((LM_DEBUG,
-                        ACE_TEXT ("%s: elst: media_time: %Q\n"),
+                        ACE_TEXT ("%s: elst [%u]: media_time: %Q\n"),
                         inherited::mod_->name (),
-                        value_2));
-            value_i =
-              ((ACE_BYTE_ORDER == ACE_LITTLE_ENDIAN) ? ACE_SWAP_LONG (box_entry_p->media_rate_integer)
+                        i, value_2));
+            ACE_UINT16 value_3 =
+              ((ACE_BYTE_ORDER == ACE_LITTLE_ENDIAN) ? ACE_SWAP_WORD (box_entry_p->media_rate_integer)
                                                      : box_entry_p->media_rate_integer);
             ACE_DEBUG ((LM_DEBUG,
-                        ACE_TEXT ("%s: elst: media_rate_integer: %u\n"),
+                        ACE_TEXT ("%s: elst [%u]: media_rate_integer: %u\n"),
                         inherited::mod_->name (),
-                        value_i));
+                        i, value_3));
             //value_i =
             //  ((ACE_BYTE_ORDER == ACE_LITTLE_ENDIAN) ? ACE_SWAP_LONG (box_entry_p->media_rate_fraction)
             //                                         : box_entry_p->media_rate_fraction);
@@ -1035,13 +1038,16 @@ Stream_Decoder_MPEG_4_Decoder_T<ACE_SYNCH_USE,
                   value_i));
       char* data_p = reinterpret_cast<char*> (&box_p->entries[0]);
       ACE_UINT32 entries_size_i = 0;
-      for (int i = 0;
+      for (ACE_UINT32 i = 0;
            i < value_i;
            ++i)
       { ASSERT_CONTIGUOUS_BYTES (sizeof (struct Stream_Decoder_MPEG_4_DataReferenceBox) + 4 + entries_size_i + sizeof (struct Stream_Decoder_MPEG_4_FullBoxHeader));
         struct Stream_Decoder_MPEG_4_FullBoxHeader* box_header_p =
           reinterpret_cast<struct Stream_Decoder_MPEG_4_FullBoxHeader*> (data_p);
-        switch (box_header_p->type)
+        header_type_i =
+            ((ACE_BYTE_ORDER == ACE_LITTLE_ENDIAN) ? ACE_SWAP_LONG (box_header_p->type)
+                                                   : box_header_p->type);
+        switch (header_type_i)
         {
           case 0x75726C20: // url
           { ASSERT_CONTIGUOUS_BYTES (sizeof (struct Stream_Decoder_MPEG_4_DataReferenceBox) + 4 + entries_size_i + sizeof (struct Stream_Decoder_MPEG_4_DataReferenceEntryUrlBox));
@@ -1060,10 +1066,10 @@ Stream_Decoder_MPEG_4_Decoder_T<ACE_SYNCH_USE,
               break; // --> there is no url
             value_string = reinterpret_cast<char*> (&box_p->location[0]);
             ACE_DEBUG ((LM_DEBUG,
-                        ACE_TEXT ("%s: dref [#%d] location: \"%s\"\n"),
+                        ACE_TEXT ("%s: dref [#%u] location: \"%s\"\n"),
                         inherited::mod_->name (),
                         i, ACE_TEXT (value_string.c_str ())));
-            entries_size_i += value_2;
+            entries_size_i += static_cast<ACE_UINT32> (value_2);
             data_p += value_2;
             break;
           }
@@ -1072,7 +1078,7 @@ Stream_Decoder_MPEG_4_Decoder_T<ACE_SYNCH_USE,
             value_string.assign (reinterpret_cast<char*> (&box_header_p->type),
                                  4);
             ACE_DEBUG ((LM_ERROR,
-                        ACE_TEXT ("%s: invalid/unknown dref type (was: %u), aborting\n"),
+                        ACE_TEXT ("%s: invalid/unknown dref type (was: \"%s\"), aborting\n"),
                         inherited::mod_->name (),
                         ACE_TEXT (value_string.c_str ())));
             return -1;
@@ -1108,13 +1114,16 @@ Stream_Decoder_MPEG_4_Decoder_T<ACE_SYNCH_USE,
                   value_i));
       char* data_p = reinterpret_cast<char*> (&box_p->entries[0]);
       ACE_UINT32 entries_size_i = 0;
-      for (int i = 0;
+      for (ACE_UINT32 i = 0;
            i < value_i;
            ++i)
       { ASSERT_CONTIGUOUS_BYTES (sizeof (struct Stream_Decoder_MPEG_4_SampleDescriptionBox) + 4 + entries_size_i + sizeof (struct Stream_Decoder_MPEG_4_BoxHeader));
         struct Stream_Decoder_MPEG_4_BoxHeader* box_header_p =
           reinterpret_cast<struct Stream_Decoder_MPEG_4_BoxHeader*> (data_p);
-        switch (box_header_p->type)
+        header_type_i =
+            ((ACE_BYTE_ORDER == ACE_LITTLE_ENDIAN) ? ACE_SWAP_LONG (box_header_p->type)
+                                                   : box_header_p->type);
+        switch (header_type_i)
         {
           case 0x61766331: // avc1
           { ASSERT_CONTIGUOUS_BYTES (sizeof (struct Stream_Decoder_MPEG_4_SampleDescriptionBox) + 4 + entries_size_i + sizeof (struct Stream_Decoder_MPEG_4_SampleDescriptionEntryAVCBox));
@@ -1190,15 +1199,18 @@ Stream_Decoder_MPEG_4_Decoder_T<ACE_SYNCH_USE,
                         value_3));
             // parse additional extension boxes
             ACE_UINT32 remaining_bytes_i =
-              (value_2 -
-               sizeof (struct Stream_Decoder_MPEG_4_SampleDescriptionEntryAVCBox));
+              static_cast<ACE_UINT32> (value_2 -
+                                       sizeof (struct Stream_Decoder_MPEG_4_SampleDescriptionEntryAVCBox));
             ACE_UINT32 entries_size_2 = 0;
             char* data_2 = data_p + sizeof (struct Stream_Decoder_MPEG_4_SampleDescriptionEntryAVCBox);
             while (remaining_bytes_i)
             { ASSERT_CONTIGUOUS_BYTES (sizeof (struct Stream_Decoder_MPEG_4_SampleDescriptionBox) + 4 + entries_size_i + sizeof (struct Stream_Decoder_MPEG_4_SampleDescriptionEntryAVCBox) + entries_size_2 + sizeof (struct Stream_Decoder_MPEG_4_BoxHeader));
               struct Stream_Decoder_MPEG_4_BoxHeader* box_header_2 =
                 reinterpret_cast<struct Stream_Decoder_MPEG_4_BoxHeader*> (data_2);
-              switch (box_header_2->type)
+              header_type_i =
+                  ((ACE_BYTE_ORDER == ACE_LITTLE_ENDIAN) ? ACE_SWAP_LONG (box_header_2->type)
+                                                         : box_header_2->type);
+              switch (header_type_i)
               {
                 case 0x61766343: // avcC
                 { ASSERT_CONTIGUOUS_BYTES (sizeof (struct Stream_Decoder_MPEG_4_SampleDescriptionBox) + 4 + entries_size_i + sizeof (struct Stream_Decoder_MPEG_4_SampleDescriptionEntryAVCBox) + entries_size_2 + sizeof (struct Stream_Decoder_MPEG_4_AVCCBox_Part1));
@@ -1291,7 +1303,10 @@ Stream_Decoder_MPEG_4_Decoder_T<ACE_SYNCH_USE,
                               ACE_TEXT ("%s: colr: %Q bytes\n"),
                               inherited::mod_->name (),
                               value_5));
-                  switch (box_3->colour_type)
+                  header_type_i =
+                      ((ACE_BYTE_ORDER == ACE_LITTLE_ENDIAN) ? ACE_SWAP_LONG (box_3->colour_type)
+                                                             : box_3->colour_type);
+                  switch (header_type_i)
                   {
                     case 0x6E636C78: // nclx
                     { ASSERT_CONTIGUOUS_BYTES (sizeof (struct Stream_Decoder_MPEG_4_SampleDescriptionBox) + 4 + entries_size_i + sizeof (struct Stream_Decoder_MPEG_4_SampleDescriptionEntryAVCBox) + entries_size_2 + sizeof (struct Stream_Decoder_MPEG_4_ColorInformationBoxNCLX));
@@ -1329,7 +1344,7 @@ Stream_Decoder_MPEG_4_Decoder_T<ACE_SYNCH_USE,
                       value_string.assign (reinterpret_cast<char*> (&box_3->colour_type),
                                            4);
                       ACE_DEBUG ((LM_ERROR,
-                                  ACE_TEXT ("%s: invalid/unknown colr colour_type (was: %u), aborting\n"),
+                                  ACE_TEXT ("%s: invalid/unknown colr colour_type (was: \"%s\"), aborting\n"),
                                   inherited::mod_->name (),
                                   ACE_TEXT (value_string.c_str ())));
                       return -1;
@@ -1369,7 +1384,7 @@ Stream_Decoder_MPEG_4_Decoder_T<ACE_SYNCH_USE,
                   value_string.assign (reinterpret_cast<char*> (&box_header_2->type),
                                        4);
                   ACE_DEBUG ((LM_ERROR,
-                              ACE_TEXT ("%s: invalid/unknown avc1 type (was: %u), aborting\n"),
+                              ACE_TEXT ("%s: invalid/unknown avc1 type (was: \"%s\"), aborting\n"),
                               inherited::mod_->name (),
                               ACE_TEXT (value_string.c_str ())));
                   return -1;
@@ -1378,10 +1393,10 @@ Stream_Decoder_MPEG_4_Decoder_T<ACE_SYNCH_USE,
               ACE_UINT64 value_5 =
                 ((ACE_BYTE_ORDER == ACE_LITTLE_ENDIAN) ? ACE_SWAP_LONG (box_header_2->length)
                                                        : box_header_2->length);
-              remaining_bytes_i -= value_5;
+              remaining_bytes_i -= static_cast<ACE_UINT32> (value_5);
               data_2 += value_5;
             } // end WHILE
-            entries_size_i += value_2;
+            entries_size_i += static_cast<ACE_UINT32> (value_2);
             data_p += value_2;
             break;
           }
@@ -1426,15 +1441,18 @@ Stream_Decoder_MPEG_4_Decoder_T<ACE_SYNCH_USE,
                         value_4));
             // parse additional extension boxes
             ACE_UINT32 remaining_bytes_i =
-              (value_2 -
-               sizeof (struct Stream_Decoder_MPEG_4_SampleDescriptionEntryAACBox));
+              static_cast<ACE_UINT32> (value_2 -
+                                       sizeof (struct Stream_Decoder_MPEG_4_SampleDescriptionEntryAACBox));
             ACE_UINT32 entries_size_2 = 0;
             char* data_2 = data_p + sizeof (struct Stream_Decoder_MPEG_4_SampleDescriptionEntryAACBox);
             while (remaining_bytes_i)
             { ASSERT_CONTIGUOUS_BYTES (sizeof (struct Stream_Decoder_MPEG_4_SampleDescriptionBox) + 4 + entries_size_i + sizeof (struct Stream_Decoder_MPEG_4_SampleDescriptionEntryAACBox) + entries_size_2 + sizeof (struct Stream_Decoder_MPEG_4_BoxHeader));
               struct Stream_Decoder_MPEG_4_BoxHeader* box_header_2 =
                 reinterpret_cast<struct Stream_Decoder_MPEG_4_BoxHeader*> (data_2);
-              switch (box_header_2->type)
+              header_type_i =
+                  ((ACE_BYTE_ORDER == ACE_LITTLE_ENDIAN) ? ACE_SWAP_LONG (box_header_2->type)
+                                                         : box_header_2->type);
+              switch (header_type_i)
               {
                 case 0x65736473: // esds
                 { ASSERT_CONTIGUOUS_BYTES (sizeof (struct Stream_Decoder_MPEG_4_SampleDescriptionBox) + 4 + entries_size_i + sizeof (struct Stream_Decoder_MPEG_4_SampleDescriptionEntryAACBox) + entries_size_2 + sizeof (struct Stream_Decoder_MPEG_4_ElementarySampleDescriptionBox));
@@ -1459,6 +1477,8 @@ Stream_Decoder_MPEG_4_Decoder_T<ACE_SYNCH_USE,
                       ((es_descriptor_size << 7) | (box_3->es_descriptor.size_of_instance[j] & 0x7F));
                     ++j;
                   } // end WHILE
+                  es_descriptor_size =
+                    ((es_descriptor_size << 7) | (box_3->es_descriptor.size_of_instance[j] & 0x7F));
                   ACE_DEBUG ((LM_DEBUG,
                               ACE_TEXT ("%s: esds: size_of_instance: %u\n"),
                               inherited::mod_->name (),
@@ -1502,6 +1522,8 @@ Stream_Decoder_MPEG_4_Decoder_T<ACE_SYNCH_USE,
                       ((decoder_configuration_descriptor_size << 7) | (box_3->es_descriptor.decoder_configuration_descriptor.size_of_instance[j] & 0x7F));
                     ++j;
                   } // end WHILE
+                  decoder_configuration_descriptor_size =
+                    ((decoder_configuration_descriptor_size << 7) | (box_3->es_descriptor.decoder_configuration_descriptor.size_of_instance[j] & 0x7F));
                   ACE_DEBUG ((LM_DEBUG,
                               ACE_TEXT ("%s: esds: size_of_instance2: %u\n"),
                               inherited::mod_->name (),
@@ -1544,9 +1566,9 @@ Stream_Decoder_MPEG_4_Decoder_T<ACE_SYNCH_USE,
                               value_7));
                   // parse decoder-specific-information descriptor(s)
                   ACE_UINT32 remaining_bytes_2 =
-                    decoder_configuration_descriptor_size -
-                    (sizeof (struct Stream_Decoder_MPEG_4_DecoderConfigurationDescriptor) +
-                     sizeof (struct Stream_Decoder_MPEG_4_BaseDescriptor));
+                    (decoder_configuration_descriptor_size -
+                     (sizeof (struct Stream_Decoder_MPEG_4_DecoderConfigurationDescriptor) -
+                      sizeof (struct Stream_Decoder_MPEG_4_BaseDescriptor)));
                   ACE_UINT32 entries_size_3 = 0;
                   char* data_3 =
                     reinterpret_cast<char*> (&box_3->es_descriptor.decoder_configuration_descriptor.decoder_specific_information[0]);
@@ -1564,13 +1586,15 @@ Stream_Decoder_MPEG_4_Decoder_T<ACE_SYNCH_USE,
                     while (descriptor_p->size_of_instance[k] & 0x80)
                     {
                       value_7 =
-                        ((value_i << 7) | (descriptor_p->size_of_instance[k] & 0x7F));
+                        ((value_7 << 7) | (descriptor_p->size_of_instance[k] & 0x7F));
                       ++k;
                     } // end WHILE
+                    value_7 =
+                      ((value_7 << 7) | (descriptor_p->size_of_instance[k] & 0x7F));
                     ACE_DEBUG ((LM_DEBUG,
                                 ACE_TEXT ("%s: esds: size_of_instance[%d]: %u\n"),
                                 inherited::mod_->name (),
-                                value_7));
+                                j, value_7));
                     entries_size_3 +=
                       (value_7 + sizeof (struct Stream_Decoder_MPEG_4_DecoderSpecificInformationDescriptorBase));
                     data_3 +=
@@ -1582,7 +1606,11 @@ Stream_Decoder_MPEG_4_Decoder_T<ACE_SYNCH_USE,
                   // parse remaining descriptor(s)
                   remaining_bytes_2 =
                     es_descriptor_size -
-                    (decoder_configuration_descriptor_size + sizeof (struct Stream_Decoder_MPEG_4_BaseDescriptor));
+                    (decoder_configuration_descriptor_size +
+                     sizeof (struct Stream_Decoder_MPEG_4_BaseDescriptor) +
+                     (sizeof (struct Stream_Decoder_MPEG_4_ElementaryStreamDescriptor) -
+                      sizeof (struct Stream_Decoder_MPEG_4_BaseDescriptor) -
+                      sizeof (struct Stream_Decoder_MPEG_4_DecoderConfigurationDescriptor)));
                   j = 0;
                   while (remaining_bytes_2)
                   { ASSERT_CONTIGUOUS_BYTES (sizeof (struct Stream_Decoder_MPEG_4_SampleDescriptionBox) + 4 + entries_size_i + sizeof (struct Stream_Decoder_MPEG_4_SampleDescriptionEntryAACBox) + entries_size_2 + sizeof (struct Stream_Decoder_MPEG_4_ElementarySampleDescriptionBox) + entries_size_3 + sizeof (struct Stream_Decoder_MPEG_4_BaseDescriptor));
@@ -1600,6 +1628,8 @@ Stream_Decoder_MPEG_4_Decoder_T<ACE_SYNCH_USE,
                         ((value_7 << 7) | (descriptor_p->size_of_instance[k] & 0x7F));
                       ++k;
                     } // end WHILE
+                    value_7 =
+                      ((value_7 << 7) | (descriptor_p->size_of_instance[k] & 0x7F));
                     ACE_DEBUG ((LM_DEBUG,
                                 ACE_TEXT ("%s: esds: size_of_instance2[%d]: %u\n"),
                                 inherited::mod_->name (),
@@ -1619,7 +1649,7 @@ Stream_Decoder_MPEG_4_Decoder_T<ACE_SYNCH_USE,
                   value_string.assign (reinterpret_cast<char*> (&box_header_2->type),
                                        4);
                   ACE_DEBUG ((LM_ERROR,
-                              ACE_TEXT ("%s: invalid/unknown mp4a type (was: %u), aborting\n"),
+                              ACE_TEXT ("%s: invalid/unknown mp4a type (was: \"%s\"), aborting\n"),
                               inherited::mod_->name (),
                               ACE_TEXT (value_string.c_str ())));
                   return -1;
@@ -1631,7 +1661,7 @@ Stream_Decoder_MPEG_4_Decoder_T<ACE_SYNCH_USE,
               remaining_bytes_i -= value_5;
               data_2 += value_5;
             } // end WHILE
-            entries_size_i += value_2;
+            entries_size_i += static_cast<ACE_UINT32> (value_2);
             data_p += value_2;
             break;
           }
@@ -1667,7 +1697,7 @@ Stream_Decoder_MPEG_4_Decoder_T<ACE_SYNCH_USE,
                         ACE_TEXT ("%s: btrt: avgBitrate: %u\n"),
                         inherited::mod_->name (),
                         value_3));
-            entries_size_i += value_2;
+            entries_size_i += static_cast<ACE_UINT32> (value_2);
             data_p += value_2;
             break;
           }
@@ -1676,7 +1706,7 @@ Stream_Decoder_MPEG_4_Decoder_T<ACE_SYNCH_USE,
             value_string.assign (reinterpret_cast<char*> (&box_header_p->type),
                                  4);
             ACE_DEBUG ((LM_ERROR,
-                        ACE_TEXT ("%s: invalid/unknown stsd type (was: %u), aborting\n"),
+                        ACE_TEXT ("%s: invalid/unknown stsd type (was: \"%s\"), aborting\n"),
                         inherited::mod_->name (),
                         ACE_TEXT (value_string.c_str ())));
             return -1;
@@ -1705,26 +1735,26 @@ Stream_Decoder_MPEG_4_Decoder_T<ACE_SYNCH_USE,
                   inherited::mod_->name (),
                   value_2));
       char* data_p = reinterpret_cast<char*> (&box_p->entries[0]);
-      for (int i = 0;
+      for (ACE_UINT32 i = 0;
            i < value_2;
            ++i)
-      { ASSERT_CONTIGUOUS_BYTES (sizeof (struct Stream_Decoder_MPEG_4_TimeToSampleBox) + 4 + (i * sizeof (struct Stream_Decoder_MPEG_4_TimeToSampleBoxEntry)));
+      { ASSERT_CONTIGUOUS_BYTES (sizeof (struct Stream_Decoder_MPEG_4_TimeToSampleBox) + 4 + ((i + 1) * sizeof (struct Stream_Decoder_MPEG_4_TimeToSampleBoxEntry)));
         struct Stream_Decoder_MPEG_4_TimeToSampleBoxEntry* entry_p =
           reinterpret_cast<struct Stream_Decoder_MPEG_4_TimeToSampleBoxEntry*> (data_p);
         ACE_UINT32 value_3 =
           ((ACE_BYTE_ORDER == ACE_LITTLE_ENDIAN) ? ACE_SWAP_LONG (entry_p->sample_count)
                                                  : entry_p->sample_count);
         ACE_DEBUG ((LM_DEBUG,
-                    ACE_TEXT ("%s: stts [#%d]: sample_count: %u\n"),
+                    ACE_TEXT ("%s: stts [#%u]: sample_count: %u\n"),
                     inherited::mod_->name (),
-                    value_3));
+                    i, value_3));
         value_3 =
           ((ACE_BYTE_ORDER == ACE_LITTLE_ENDIAN) ? ACE_SWAP_LONG (entry_p->sample_delta)
                                                  : entry_p->sample_delta);
         ACE_DEBUG ((LM_DEBUG,
-                    ACE_TEXT ("%s: stts [#%d]: sample_delta: %u\n"),
+                    ACE_TEXT ("%s: stts [#%u]: sample_delta: %u\n"),
                     inherited::mod_->name (),
-                    value_3));
+                    i, value_3));
         data_p += sizeof (struct Stream_Decoder_MPEG_4_TimeToSampleBoxEntry);
       } // end FOR
       result = boxSize_;
@@ -1756,24 +1786,24 @@ Stream_Decoder_MPEG_4_Decoder_T<ACE_SYNCH_USE,
                       value_2));
           struct Stream_Decoder_MPEG_4_CompositionOffsetBoxEntry0* entry_p = NULL;
           char* data_p = reinterpret_cast<char*> (&box_p->entries[0]);
-          for (int i = 0;
+          for (ACE_UINT32 i = 0;
                i < value_2;
                ++i)
-          { ASSERT_CONTIGUOUS_BYTES (sizeof (struct Stream_Decoder_MPEG_4_CompositionOffsetBox0) + (i * sizeof (struct Stream_Decoder_MPEG_4_CompositionOffsetBoxEntry0)));
+          { ASSERT_CONTIGUOUS_BYTES (sizeof (struct Stream_Decoder_MPEG_4_CompositionOffsetBox0) + ((i + 1) * sizeof (struct Stream_Decoder_MPEG_4_CompositionOffsetBoxEntry0)));
             entry_p =
               reinterpret_cast<struct Stream_Decoder_MPEG_4_CompositionOffsetBoxEntry0*> (data_p);
             ACE_UINT32 value_3 =
               ((ACE_BYTE_ORDER == ACE_LITTLE_ENDIAN) ? ACE_SWAP_LONG (entry_p->sample_count)
                                                      : entry_p->sample_count);
             ACE_DEBUG ((LM_DEBUG,
-                        ACE_TEXT ("%s: ctts [#%d]: sample_count: %u\n"),
+                        ACE_TEXT ("%s: ctts [#%u]: sample_count: %u\n"),
                         inherited::mod_->name (),
                         i, value_3));
             value_3 =
               ((ACE_BYTE_ORDER == ACE_LITTLE_ENDIAN) ? ACE_SWAP_LONG (entry_p->sample_offset)
                                                      : entry_p->sample_offset);
             ACE_DEBUG ((LM_DEBUG,
-                        ACE_TEXT ("%s: ctts [#%d]: sample_offset: %u\n"),
+                        ACE_TEXT ("%s: ctts [#%u]: sample_offset: %u\n"),
                         inherited::mod_->name (),
                         i, value_3));
             data_p += sizeof (struct Stream_Decoder_MPEG_4_CompositionOffsetBoxEntry0);
@@ -1793,24 +1823,24 @@ Stream_Decoder_MPEG_4_Decoder_T<ACE_SYNCH_USE,
                       value_2));
           struct Stream_Decoder_MPEG_4_CompositionOffsetBoxEntry1* entry_p = NULL;
           char* data_p = reinterpret_cast<char*> (&box_p->entries[0]);
-          for (int i = 0;
+          for (ACE_UINT32 i = 0;
                i < value_2;
                ++i)
-          { ASSERT_CONTIGUOUS_BYTES (sizeof (struct Stream_Decoder_MPEG_4_CompositionOffsetBox1) + (i * sizeof (struct Stream_Decoder_MPEG_4_CompositionOffsetBoxEntry1)));
+          { ASSERT_CONTIGUOUS_BYTES (sizeof (struct Stream_Decoder_MPEG_4_CompositionOffsetBox1) + ((i + 1) * sizeof (struct Stream_Decoder_MPEG_4_CompositionOffsetBoxEntry1)));
             entry_p =
               reinterpret_cast<struct Stream_Decoder_MPEG_4_CompositionOffsetBoxEntry1*> (data_p);
             ACE_UINT32 value_3 =
               ((ACE_BYTE_ORDER == ACE_LITTLE_ENDIAN) ? ACE_SWAP_LONG (entry_p->sample_count)
                                                      : entry_p->sample_count);
             ACE_DEBUG ((LM_DEBUG,
-                        ACE_TEXT ("%s: ctts [#%d]: sample_count: %u\n"),
+                        ACE_TEXT ("%s: ctts [#%u]: sample_count: %u\n"),
                         inherited::mod_->name (),
                         i, value_3));
             ACE_INT32 value_4 =
               ((ACE_BYTE_ORDER == ACE_LITTLE_ENDIAN) ? ACE_SWAP_LONG (entry_p->sample_offset)
                                                      : entry_p->sample_offset);
             ACE_DEBUG ((LM_DEBUG,
-                        ACE_TEXT ("%s: ctts [#%d]: sample_offset: %d\n"),
+                        ACE_TEXT ("%s: ctts [#%u]: sample_offset: %d\n"),
                         inherited::mod_->name (),
                         i, value_4));
             data_p += sizeof (struct Stream_Decoder_MPEG_4_CompositionOffsetBoxEntry1);
@@ -1847,15 +1877,15 @@ Stream_Decoder_MPEG_4_Decoder_T<ACE_SYNCH_USE,
                   ACE_TEXT ("%s: stss: entry_count: %u\n"),
                   inherited::mod_->name (),
                   value_2));
-      for (int i = 0;
+      for (ACE_UINT32 i = 0;
             i < value_2;
             ++i)
-      { ASSERT_CONTIGUOUS_BYTES (sizeof (struct Stream_Decoder_MPEG_4_SyncSampleBox) + (i * sizeof (uint32_t)));
+      { ASSERT_CONTIGUOUS_BYTES (sizeof (struct Stream_Decoder_MPEG_4_SyncSampleBox) + ((i + 1) * sizeof (uint32_t)));
         ACE_UINT32 value_3 =
           ((ACE_BYTE_ORDER == ACE_LITTLE_ENDIAN) ? ACE_SWAP_LONG (box_p->entries[i])
-                                                  : box_p->entries[i]);
+                                                 : box_p->entries[i]);
         ACE_DEBUG ((LM_DEBUG,
-                    ACE_TEXT ("%s: stss [#%d]: sample#: %u\n"),
+                    ACE_TEXT ("%s: stss [#%u]: sample#: %u\n"),
                     inherited::mod_->name (),
                     i, value_3));
       } // end FOR
@@ -1874,18 +1904,18 @@ Stream_Decoder_MPEG_4_Decoder_T<ACE_SYNCH_USE,
                   inherited::mod_->name (),
                   value_i));
       ACE_UINT32 value_2 =
-        value_i - sizeof (struct Stream_Decoder_MPEG_4_SampleDependencyTypeBox);
+        static_cast<ACE_UINT32> (value_i - sizeof (struct Stream_Decoder_MPEG_4_SampleDependencyTypeBox));
       ACE_DEBUG ((LM_DEBUG,
                   ACE_TEXT ("%s: sdtp: entry_count: %u\n"),
                   inherited::mod_->name (),
                   value_2));
-      for (int i = 0;
+      for (ACE_UINT32 i = 0;
             i < value_2;
             ++i)
-      { ASSERT_CONTIGUOUS_BYTES (sizeof (struct Stream_Decoder_MPEG_4_SampleDependencyTypeBox) + (i * sizeof (struct Stream_Decoder_MPEG_4_SampleDependencyType)));
+      { ASSERT_CONTIGUOUS_BYTES (sizeof (struct Stream_Decoder_MPEG_4_SampleDependencyTypeBox) + ((i + 1) * sizeof (struct Stream_Decoder_MPEG_4_SampleDependencyType)));
         ACE_UINT8 value_3 = *(ACE_UINT8*)&box_p->entries[i];
         ACE_DEBUG ((LM_DEBUG,
-                    ACE_TEXT ("%s: sdtp [#%d]: 0x%x\n"),
+                    ACE_TEXT ("%s: sdtp [#%u]: 0x%x\n"),
                     inherited::mod_->name (),
                     i, value_3));
       } // end FOR
@@ -1910,29 +1940,29 @@ Stream_Decoder_MPEG_4_Decoder_T<ACE_SYNCH_USE,
                   ACE_TEXT ("%s: stsc: entry_count: %u\n"),
                   inherited::mod_->name (),
                   value_2));
-      for (int i = 0;
-            i < value_i;
-            ++i)
-      { ASSERT_CONTIGUOUS_BYTES (sizeof (struct Stream_Decoder_MPEG_4_SampleToChunkBox) + (i * sizeof (struct Stream_Decoder_MPEG_4_SampleToChunkBoxEntry)));
+      for (ACE_UINT32 i = 0;
+           i < value_2;
+           ++i)
+      { ASSERT_CONTIGUOUS_BYTES (sizeof (struct Stream_Decoder_MPEG_4_SampleToChunkBox) + ((i + 1) * sizeof (struct Stream_Decoder_MPEG_4_SampleToChunkBoxEntry)));
         ACE_UINT32 value_3 =
           ((ACE_BYTE_ORDER == ACE_LITTLE_ENDIAN) ? ACE_SWAP_LONG (box_p->entries[i].first_chunk)
                                                  : box_p->entries[i].first_chunk);
         ACE_DEBUG ((LM_DEBUG,
-                    ACE_TEXT ("%s: stsc [#%d]: first_chunk: %u\n"),
+                    ACE_TEXT ("%s: stsc [#%u]: first_chunk: %u\n"),
                     inherited::mod_->name (),
                     i, value_3));
         value_3 =
           ((ACE_BYTE_ORDER == ACE_LITTLE_ENDIAN) ? ACE_SWAP_LONG (box_p->entries[i].samples_per_chunk)
                                                  : box_p->entries[i].samples_per_chunk);
         ACE_DEBUG ((LM_DEBUG,
-                    ACE_TEXT ("%s: stsc [#%d]: samples_per_chunk: %u\n"),
+                    ACE_TEXT ("%s: stsc [#%u]: samples_per_chunk: %u\n"),
                     inherited::mod_->name (),
                     i, value_3));
         value_3 =
           ((ACE_BYTE_ORDER == ACE_LITTLE_ENDIAN) ? ACE_SWAP_LONG (box_p->entries[i].samples_description_index)
                                                  : box_p->entries[i].samples_description_index);
         ACE_DEBUG ((LM_DEBUG,
-                    ACE_TEXT ("%s: stsc [#%d]: samples_description_index: %u\n"),
+                    ACE_TEXT ("%s: stsc [#%u]: samples_description_index: %u\n"),
                     inherited::mod_->name (),
                     i, value_3));
       } // end FOR
@@ -1949,7 +1979,7 @@ Stream_Decoder_MPEG_4_Decoder_T<ACE_SYNCH_USE,
                   boxSize_));
       ACE_UINT32 value_i =
         ((ACE_BYTE_ORDER == ACE_LITTLE_ENDIAN) ? ACE_SWAP_LONG (box_p->sample_size)
-                                                : box_p->sample_size);
+                                               : box_p->sample_size);
       ACE_DEBUG ((LM_DEBUG,
                   ACE_TEXT ("%s: stsz: sample_size: %u\n"),
                   inherited::mod_->name (),
@@ -1963,17 +1993,17 @@ Stream_Decoder_MPEG_4_Decoder_T<ACE_SYNCH_USE,
                   value_i));
       if (box_p->sample_size)
         break; // --> samples are all the same size
-      for (int i = 0;
-            i < value_i;
-            ++i)
-      { ASSERT_CONTIGUOUS_BYTES (sizeof (struct Stream_Decoder_MPEG_4_SampleSizeBox) + (i * sizeof (uint32_t)));
-        value_i =
+      for (ACE_UINT32 i = 0;
+           i < value_i;
+           ++i)
+      { ASSERT_CONTIGUOUS_BYTES (sizeof (struct Stream_Decoder_MPEG_4_SampleSizeBox) + ((i + 1) * sizeof (uint32_t)));
+        ACE_UINT32 value_2 =
           ((ACE_BYTE_ORDER == ACE_LITTLE_ENDIAN) ? ACE_SWAP_LONG (box_p->entry_size[i])
                                                  : box_p->entry_size[i]);
         ACE_DEBUG ((LM_DEBUG,
-                    ACE_TEXT ("%s: stsc [#%d]: entry_size: %u\n"),
+                    ACE_TEXT ("%s: stsz [#%u]: entry_size: %u\n"),
                     inherited::mod_->name (),
-                    i, value_i));
+                    i, value_2));
       } // end FOR
       result = boxSize_;
       break;
@@ -1993,17 +2023,17 @@ Stream_Decoder_MPEG_4_Decoder_T<ACE_SYNCH_USE,
                   ACE_TEXT ("%s: stco: entry_count: %u\n"),
                   inherited::mod_->name (),
                   value_i));
-      for (int i = 0;
-            i < value_i;
-            ++i)
-      { ASSERT_CONTIGUOUS_BYTES (sizeof (struct Stream_Decoder_MPEG_4_ChunkOffsetBox) + (i * sizeof (uint32_t)));
-        value_i =
+      for (ACE_UINT32 i = 0;
+           i < value_i;
+           ++i)
+      { ASSERT_CONTIGUOUS_BYTES (sizeof (struct Stream_Decoder_MPEG_4_ChunkOffsetBox) + ((i + 1) * sizeof (uint32_t)));
+        ACE_UINT32 value_2 =
           ((ACE_BYTE_ORDER == ACE_LITTLE_ENDIAN) ? ACE_SWAP_LONG (box_p->chunk_offset[i])
                                                  : box_p->chunk_offset[i]);
         ACE_DEBUG ((LM_DEBUG,
-                    ACE_TEXT ("%s: stco [#%d]: chunk_offset: %u\n"),
+                    ACE_TEXT ("%s: stco [#%u]: chunk_offset: %u\n"),
                     inherited::mod_->name (),
-                    i, value_i));
+                    i, value_2));
       } // end FOR
       result = boxSize_;
       break;
@@ -2055,7 +2085,7 @@ Stream_Decoder_MPEG_4_Decoder_T<ACE_SYNCH_USE,
           struct Stream_Decoder_MPEG_4_SampleGroupDescriptionBoxEntry10* entry_p = NULL;
           char* data_p = reinterpret_cast<char*> (&box_p->entries[0]);
           ACE_UINT32 entries_size_i = 0;
-          for (int i = 0;
+          for (ACE_UINT32 i = 0;
                i < value_2;
                ++i)
           { ASSERT_CONTIGUOUS_BYTES (sizeof (struct Stream_Decoder_MPEG_4_SampleGroupDescriptionBox10) + entries_size_i + sizeof (struct Stream_Decoder_MPEG_4_SampleGroupDescriptionBoxEntry10));
@@ -2065,7 +2095,7 @@ Stream_Decoder_MPEG_4_Decoder_T<ACE_SYNCH_USE,
               ((ACE_BYTE_ORDER == ACE_LITTLE_ENDIAN) ? ACE_SWAP_LONG (entry_p->description_length)
                                                      : entry_p->description_length);
             ACE_DEBUG ((LM_DEBUG,
-                        ACE_TEXT ("%s: sgpd [#%d]: description_length: %u\n"),
+                        ACE_TEXT ("%s: sgpd [#%u]: description_length: %u\n"),
                         inherited::mod_->name (),
                         i, value_i));
             struct Stream_Decoder_MPEG_4_SampleGroupDescriptionBoxEntryBase* entry_2 =
@@ -2109,10 +2139,10 @@ version_geq_2:
           struct Stream_Decoder_MPEG_4_SampleGroupDescriptionBoxEntryBase* entry_p = NULL;
           char* data_p = reinterpret_cast<char*> (&box_p->entries[0]);
           // *TODO*: this is incomplete !
-          for (int i = 0;
+          for (ACE_UINT32 i = 0;
                i < value_2;
                ++i)
-          { ASSERT_CONTIGUOUS_BYTES (sizeof (struct Stream_Decoder_MPEG_4_SampleGroupDescriptionBox) + (i * sizeof (struct Stream_Decoder_MPEG_4_SampleGroupDescriptionBoxEntryBase)));
+          { ASSERT_CONTIGUOUS_BYTES (sizeof (struct Stream_Decoder_MPEG_4_SampleGroupDescriptionBox) + ((i + 1) * sizeof (struct Stream_Decoder_MPEG_4_SampleGroupDescriptionBoxEntryBase)));
             entry_p =
               reinterpret_cast<struct Stream_Decoder_MPEG_4_SampleGroupDescriptionBoxEntryBase*> (data_p);
             data_p += sizeof (struct Stream_Decoder_MPEG_4_SampleGroupDescriptionBoxEntryBase);
@@ -2157,22 +2187,22 @@ version_geq_2:
                       ACE_TEXT ("%s: sbgp: entry_count: %u\n"),
                       inherited::mod_->name (),
                       value_i));
-          for (int i = 0;
+          for (ACE_UINT32 i = 0;
                i < value_i;
                ++i)
-          { ASSERT_CONTIGUOUS_BYTES (sizeof (struct Stream_Decoder_MPEG_4_SampleToGroupBox1) + (i * sizeof (struct Stream_Decoder_MPEG_4_SampleToGroupBoxEntry)));
+          { ASSERT_CONTIGUOUS_BYTES (sizeof (struct Stream_Decoder_MPEG_4_SampleToGroupBox1) + ((i + 1) * sizeof (struct Stream_Decoder_MPEG_4_SampleToGroupBoxEntry)));
             ACE_UINT32 value_2 =
               ((ACE_BYTE_ORDER == ACE_LITTLE_ENDIAN) ? ACE_SWAP_LONG (box_p->entries[i].sample_count)
                                                      : box_p->entries[i].sample_count);
             ACE_DEBUG ((LM_DEBUG,
-                        ACE_TEXT ("%s: sbgp [#%d]: sample_count: %u\n"),
+                        ACE_TEXT ("%s: sbgp [#%u]: sample_count: %u\n"),
                         inherited::mod_->name (),
                         i, value_2));
             value_2 =
               ((ACE_BYTE_ORDER == ACE_LITTLE_ENDIAN) ? ACE_SWAP_LONG (box_p->entries[i].group_description_index)
                                                      : box_p->entries[i].group_description_index);
             ACE_DEBUG ((LM_DEBUG,
-                        ACE_TEXT ("%s: sbgp [#%d]: group_description_index: %u\n"),
+                        ACE_TEXT ("%s: sbgp [#%u]: group_description_index: %u\n"),
                         inherited::mod_->name (),
                         i, value_2));
           } // end FOR
@@ -2195,22 +2225,22 @@ version_geq_2:
                       ACE_TEXT ("%s: sbgp: entry_count: %u\n"),
                       inherited::mod_->name (),
                       value_i));
-          for (int i = 0;
+          for (ACE_UINT32 i = 0;
                i < value_i;
                ++i)
-          { ASSERT_CONTIGUOUS_BYTES (sizeof (struct Stream_Decoder_MPEG_4_SampleToGroupBox) + (i * sizeof (struct Stream_Decoder_MPEG_4_SampleToGroupBoxEntry)));
+          { ASSERT_CONTIGUOUS_BYTES (sizeof (struct Stream_Decoder_MPEG_4_SampleToGroupBox) + ((i + 1) * sizeof (struct Stream_Decoder_MPEG_4_SampleToGroupBoxEntry)));
             ACE_UINT32 value_2 =
               ((ACE_BYTE_ORDER == ACE_LITTLE_ENDIAN) ? ACE_SWAP_LONG (box_p->entries[i].sample_count)
                                                      : box_p->entries[i].sample_count);
             ACE_DEBUG ((LM_DEBUG,
-                        ACE_TEXT ("%s: sbgp [#%d]: sample_count: %u\n"),
+                        ACE_TEXT ("%s: sbgp [#%u]: sample_count: %u\n"),
                         inherited::mod_->name (),
                         i, value_2));
             value_2 =
               ((ACE_BYTE_ORDER == ACE_LITTLE_ENDIAN) ? ACE_SWAP_LONG (box_p->entries[i].group_description_index)
                                                      : box_p->entries[i].group_description_index);
             ACE_DEBUG ((LM_DEBUG,
-                        ACE_TEXT ("%s: sbgp [#%d]: group_description_index: %u\n"),
+                        ACE_TEXT ("%s: sbgp [#%u]: group_description_index: %u\n"),
                         inherited::mod_->name (),
                         i, value_2));
           } // end FOR
