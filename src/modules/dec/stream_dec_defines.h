@@ -129,14 +129,4 @@
 #endif // SOX_SUPPORT
 #endif // ACE_WIN32 || ACE_WIN64
 
-// ---------------------------------------
-
-// useful macros
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-#else
-#include <cstdint>
-
-#define MAKEFOURCC(a,b,c,d) ((uint32_t)(a << 24)|(uint32_t)(b << 16)|(uint32_t)(c << 8)|(uint32_t)(d))
-#endif // ACE_WIN32 || ACE_WIN64
-
 #endif

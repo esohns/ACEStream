@@ -21,7 +21,7 @@
 #ifndef STREAM_LIB_GUIDS_H
 #define STREAM_LIB_GUIDS_H
 
-#include <Guiddef.h>
+#include "guiddef.h"
 
 // {F9F62434-535B-4934-A695-BE8D10A4C699}
 DEFINE_GUID (CLSID_ACEStream_MediaFramework_Source_Filter,

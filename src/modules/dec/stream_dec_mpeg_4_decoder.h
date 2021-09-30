@@ -90,8 +90,8 @@ class Stream_Decoder_MPEG_4_Decoder_T
   ACE_UNIMPLEMENTED_FUNC (Stream_Decoder_MPEG_4_Decoder_T& operator= (const Stream_Decoder_MPEG_4_Decoder_T&))
 
   // helper method(s)
-  bool processBox (const struct Stream_Decoder_MPEG_4_BoxHeader&, // header
-                   ACE_UINT64);                                   // size
+  ACE_UINT64 processBox (const struct Stream_Decoder_MPEG_4_BoxHeader&, // header
+                         bool&);                                        // return value: need more data ?
 
   typedef std::vector<std::pair<ACE_UINT32, ACE_UINT64> > BOXES_T;
   typedef BOXES_T::const_iterator BOXESITERATOR_T;
@@ -99,8 +99,10 @@ class Stream_Decoder_MPEG_4_Decoder_T
   typedef NALUNITS_T::const_iterator NALUNITSITERATOR_T;
 
   BOXES_T            boxes_;
+  ACE_UINT64         boxSize_; // current-
   ACE_Message_Block* buffer_;
-  ACE_UINT64         needBytes_;
+  ACE_UINT64         missingBoxBytes_;
+  ACE_UINT64         offset_;
   NALUNITS_T         PPSNalUnits_;
   NALUNITS_T         SPSNalUnits_;
 };
