@@ -261,6 +261,7 @@ Stream_Decoder_LibAVDecoder_T<ACE_SYNCH_USE,
   ACE_Message_Block* message_block_p = NULL;
   uint8_t* data_p = NULL;
   size_t   data_size_i = 0;
+  bool abort_session_on_error = true;
 
   // *NOTE*: apparently (the implementation is of the finest "spaghetti" and
   //         needs careful analysis) ffmpeg processes data in 'chunks' and
@@ -271,33 +272,6 @@ Stream_Decoder_LibAVDecoder_T<ACE_SYNCH_USE,
   // *TODO*: find/implement a suitably balanced tradeoff that suits most
   //         scenarios
 
-  // step1: make a 'deep' copy that implements memory alignment and supports
-  //        padding
-  // *TODO*: reduce overhead by making this optional (i.e. implement data
-  //         messages that acquire these features on allocation)
-  //message_block_p = message_inout->clone ();
-  //if (unlikely (!message_block_p))
-  //{
-  //  ACE_DEBUG ((LM_ERROR,
-  //              ACE_TEXT ("%s: failed to DataMessageType::clone(): \"%m\", aborting\n"),
-  //              inherited::mod_->name ()));
-  //  goto error;
-  //} // end IF
-  //message_inout->release (); message_inout = NULL;
-
-  // *NOTE*: the new buffer chain is already 'crunch'ed, i.e. aligned to base
-
-  // *NOTE*: for the sake of efficiency and performance, reduce the number of
-  //         loops (see below) by defragment()ing (before (re-)padding [see
-  //         above]) the (chain of-) buffer(s)
-
-  // *IMPORTANT NOTE*: apparently, some codecs (e.g. H264) do not support
-  //                   chunked input very well (i.e. cannot handle consecutive
-  //                   NAL unit fragments). Note how, unfortunately, this
-  //                   entails estimating the maximum NAL unit size
-  //                   --> defragment the buffer chain
-
-  //message_p = static_cast<DataMessageType*> (message_block_p);
   try {
     message_inout->defragment ();
   } catch (...) {
@@ -351,6 +325,7 @@ Stream_Decoder_LibAVDecoder_T<ACE_SYNCH_USE,
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: failed to Stream_Decoder_LibAVDecoder_T::decodePacket(), aborting\n"),
                     inherited::mod_->name ()));
+        abort_session_on_error = false; // do not abort the whole session; retry
         goto error;
       } // end IF
       if (!message_p)
@@ -387,7 +362,8 @@ error:
   if (message_p)
     message_p->release ();
 
-  this->notify (STREAM_SESSION_MESSAGE_ABORT);
+  if (abort_session_on_error)
+    this->notify (STREAM_SESSION_MESSAGE_ABORT);
 }
 
 template <ACE_SYNCH_DECL,
@@ -580,7 +556,7 @@ Stream_Decoder_LibAVDecoder_T<ACE_SYNCH_USE,
       //codec_parameters_p->extradata = NULL;
       //codec_parameters_p->extradata_size = 0;
       codec_parameters_p->format = AV_PIX_FMT_YUV420P;
-      codec_parameters_p->bit_rate = 200000;
+      //codec_parameters_p->bit_rate = 200000;
       //codec_parameters_p->bits_per_coded_sample = 0;
       //codec_parameters_p->bits_per_raw_sample = 0;
       //codec_parameters_p->profile = FF_PROFILE_H264_HIGH;
@@ -686,8 +662,23 @@ Stream_Decoder_LibAVDecoder_T<ACE_SYNCH_USE,
       //context_->bit_rate = bit_rate;
       context_->flags = flags;
       context_->flags2 = flags2;
-      //context_->extradata = NULL;
-      //context_->extradata_size = 0;
+      if (session_data_r.codecConfigurationDataSize)
+      { ACE_ASSERT (session_data_r.codecConfigurationData);
+        ACE_ASSERT (!context_->extradata);
+        context_->extradata =
+          static_cast<uint8_t*> (av_malloc (session_data_r.codecConfigurationDataSize + AV_INPUT_BUFFER_PADDING_SIZE));
+        if (!context_->extradata)
+        {
+          ACE_DEBUG ((LM_CRITICAL,
+                      ACE_TEXT ("%s: failed to allocate memory: \"%m\", aborting\n"),
+                      inherited::mod_->name ()));
+          goto error;
+        } // end IF
+        ACE_OS::memcpy (context_->extradata,
+                        session_data_r.codecConfigurationData,
+                        session_data_r.codecConfigurationDataSize);
+        context_->extradata_size = session_data_r.codecConfigurationDataSize;
+      } // end IF
       context_->time_base = { 1, 30 };
       context_->ticks_per_frame =
         (((codecId_ == AV_CODEC_ID_H264) ||

@@ -177,7 +177,7 @@ struct Stream_Decoder_MPEG_4_TrackHeaderBox1 // tkhd version == 1
 struct Stream_Decoder_MPEG_4_EditListEntry0
 {
   /*12*/ uint32_t segment_duration;
-  /*16*/ uint32_t media_time;
+  /*16*/ int32_t media_time;
   /*20*/ uint16_t media_rate_integer;
   /*22*/ uint16_t media_rate_fraction;
 #ifdef __GNUC__
@@ -231,12 +231,12 @@ struct Stream_Decoder_MPEG_4_MediaHeaderBox0 // mdhd version == 0
   /*28*/ uint8_t  language2_hi:2,
                   language1:5,
                   pad:1;
-  /*29*/ uint8_t  language2_lo:3,
-                  language3:5;
+  /*29*/ uint8_t  language3:5,
+                  language2_lo:3;
 #else
   /*28*/ uint16_t pad:1,
                   language1:5,
-                  language2:5;
+                  language2:5,
                   language3:5;
 #endif // ACE_LITTLE_ENDIAN
   /*30*/ uint16_t pre_defined;
@@ -257,12 +257,12 @@ struct Stream_Decoder_MPEG_4_MediaHeaderBox1 // mdhd version == 1
   /*40*/ uint8_t  language2_hi:2,
                   language1:5,
                   pad:1;
-  /*41*/ uint8_t  language2_lo:3,
-                  language3:5;
+  /*41*/ uint8_t  language3:5,
+                  language2_lo:3;
 #else
   /*40*/ uint16_t pad:1,
                   language1:5,
-                  language2:5;
+                  language2:5,
                   language3:5;
 #endif // ACE_LITTLE_ENDIAN
   /*42*/ uint16_t pre_defined;
@@ -403,10 +403,20 @@ struct Stream_Decoder_MPEG_4_AVCCBox_Part1 // avcC
   /*87*/ uint8_t avc_profile_indication;
   /*88*/ uint8_t profile_compatibility;
   /*89*/ uint8_t avc_level_indication;
+#if defined (ACE_LITTLE_ENDIAN)
+  /*90*/ uint8_t length_size_minus_one:2,
+                 reserved:6;
+#else
   /*90*/ uint8_t reserved:6,
                  length_size_minus_one:2;
+#endif // ACE_LITTLE_ENDIAN
+#if defined (ACE_LITTLE_ENDIAN)
+  /*91*/ uint8_t num_of_sequence_parameter_sets:5,
+                 reserved2:3;
+#else
   /*91*/ uint8_t reserved2:3,
                  num_of_sequence_parameter_sets:5;
+#endif // ACE_LITTLE_ENDIAN
   /*92*/ uint8_t entries[]; // struct Stream_Decoder_MPEG_4_AVCCBoxSequenceParameterSetEntry
 #ifdef __GNUC__
 } __attribute__ ((__packed__));
@@ -450,8 +460,13 @@ struct Stream_Decoder_MPEG_4_ColorInformationBoxNCLX // nclx
   /*12*/ uint16_t colour_primaries;
   /*16*/ uint16_t transfer_characteristics;
   /*20*/ uint16_t matrix_coefficients;
+#if defined (ACE_LITTLE_ENDIAN)
+  /*22*/ uint8_t  reserved:7,
+                  full_range_flag:1;
+#else
   /*22*/ uint8_t  full_range_flag:1,
                   reserved:7;
+#endif // ACE_LITTLE_ENDIAN
 #ifdef __GNUC__
 } __attribute__ ((__packed__));
 #else
@@ -491,9 +506,15 @@ struct Stream_Decoder_MPEG_4_DecoderConfigurationDescriptor
  : Stream_Decoder_MPEG_4_BaseDescriptor
 {
   /*01*/ uint8_t object_type_indication;
+#if defined (ACE_LITTLE_ENDIAN)
+  /*02*/ uint8_t reserved:1,
+                 up_stream:1,
+                 stream_type:6;
+#else
   /*02*/ uint8_t stream_type:6,
                  up_stream:1,
                  reserved:1;
+#endif // ACE_LITTLE_ENDIAN
   /*03*/ uint8_t buffer_size_db[3];
   /*06*/ uint32_t max_bitrate;
   /*10*/ uint32_t avg_bitrate;
@@ -508,10 +529,17 @@ struct Stream_Decoder_MPEG_4_ElementaryStreamDescriptor
  : Stream_Decoder_MPEG_4_BaseDescriptor
 {
   /*01*/ uint16_t es_id;
+#if defined (ACE_LITTLE_ENDIAN)
+  /*03*/ uint8_t  stream_priority:5,
+                  ocr_stream_flag:1,
+                  url_flag:1,
+                  stream_dependence_flag:1;
+#else
   /*03*/ uint8_t  stream_dependence_flag:1,
                   url_flag:1,
                   ocr_stream_flag:1,
                   stream_priority:5;
+#endif // ACE_LITTLE_ENDIAN
   ///*04*/ uint16_t depends_on_es_id; // ? stream_dependence_flag
   ///*06*/ uint8_t url_length; // ? url_flag
   ///*07*/ uint8_t url_string[]; // ? url_flag
@@ -641,10 +669,17 @@ struct Stream_Decoder_MPEG_4_SyncSampleBox // stss
 
 struct Stream_Decoder_MPEG_4_SampleDependencyType
 {
+#if defined (ACE_LITTLE_ENDIAN)
+  /*xx*/ uint8_t sample_has_redundancy:2,
+                 sample_is_depended_on:2,
+                 sample_depends_on:2,
+                 is_leading:2;
+#else
   /*xx*/ uint8_t is_leading:2,
                  sample_depends_on:2,
                  sample_is_depended_on:2,
                  sample_has_redundancy:2;
+#endif // ACE_LITTLE_ENDIAN
 #ifdef __GNUC__
 } __attribute__ ((__packed__));
 #else

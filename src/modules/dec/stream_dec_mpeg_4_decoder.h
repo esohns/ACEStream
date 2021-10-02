@@ -92,19 +92,33 @@ class Stream_Decoder_MPEG_4_Decoder_T
   // helper method(s)
   ACE_UINT64 processBox (const struct Stream_Decoder_MPEG_4_BoxHeader&, // header
                          bool&);                                        // return value: need more data ?
+  ACE_UINT64 processFrame (bool&); // return value: need more data ?
+  ACE_UINT32 frameToChunk (ACE_UINT32,   // frame#
+                           ACE_UINT32&); // return value: first frame num in same chunk
+  void dispatchQueuedSessionMessages ();
 
   typedef std::vector<std::pair<ACE_UINT32, ACE_UINT64> > BOXES_T;
   typedef BOXES_T::const_iterator BOXESITERATOR_T;
-  typedef std::vector<std::pair<ACE_UINT32, void*> > NALUNITS_T;
-  typedef NALUNITS_T::const_iterator NALUNITSITERATOR_T;
+  typedef std::vector<std::pair<ACE_UINT32, ACE_UINT32> > FRAMETOCHUNK_T; // [first, last]
+  typedef FRAMETOCHUNK_T::const_iterator FRAMETOCHUNKITERATOR_T;
+  typedef std::vector<ACE_UINT64> CHUNKOFFSETS_T;
+  typedef CHUNKOFFSETS_T::const_iterator CHUNKOFFSETSITERATOR_T;
+  typedef std::vector<ACE_UINT32> FRAMESIZES_T;
+  typedef FRAMESIZES_T::const_iterator FRAMESIZESITERATOR_T;
 
-  BOXES_T            boxes_;
-  ACE_UINT64         boxSize_; // current-
-  ACE_Message_Block* buffer_;
-  ACE_UINT64         missingBoxBytes_;
-  ACE_UINT64         offset_;
-  NALUNITS_T         PPSNalUnits_;
-  NALUNITS_T         SPSNalUnits_;
+  BOXES_T                  boxes_;
+  ACE_UINT64               boxSize_; // current-
+  DataMessageType*         buffer_;
+  CHUNKOFFSETS_T           chunkOffsets_; // stco/co64
+  FRAMESIZES_T             frameSizes_; // stsz
+  FRAMETOCHUNK_T           frameToChunk_; // stsc
+  ACE_UINT64               missingBytes_;
+  ACE_UINT64               offset_;
+  bool                     processingFrames_;
+  bool                     queueSessionMessages_;
+  bool                     trackIsVideo_; // current-
+  ACE_UINT32               videoFrame_; // current-
+  ACE_UINT32               videoFrames_;
 };
 
 // include template definition

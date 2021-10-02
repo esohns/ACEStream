@@ -23,13 +23,6 @@
 
 #include "ace/Malloc_Base.h"
 
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
- //#include <DShow.h>
-#else
-#include "libv4l2.h"
-#include "linux/videodev2.h"
-#endif
-
 #include "stream_control_message.h"
 #include "stream_macros.h"
 
@@ -40,12 +33,12 @@ Test_I_Message::Test_I_Message (unsigned int size_in)
 
 }
 
-//Test_I_Message::Test_I_Message (const Test_I_Message& message_in)
-// : inherited (message_in)
-//{
-//  STREAM_TRACE (ACE_TEXT ("Test_I_Message::Test_I_Message"));
-//
-//}
+Test_I_Message::Test_I_Message (const Test_I_Message& message_in)
+ : inherited (message_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Test_I_Message::Test_I_Message"));
+
+}
 
 Test_I_Message::Test_I_Message (Stream_SessionId_t sessionId_in,
                                 ACE_Data_Block* dataBlock_in,
@@ -194,35 +187,51 @@ Test_I_Message::duplicate (void) const
 
   Test_I_Message* message_p = NULL;
 
+  // create a new Stream_MessageBase that contains unique copies of
+  // the message block fields, but a (reference counted) shallow duplicate of
+  // the ACE_Data_Block
+
   // if there is no allocator, use the standard new and delete calls.
-  ACE_NEW_NORETURN (message_p,
-                    Test_I_Message (this->length ()));
-  if (unlikely (!message_p))
+  if (inherited::message_block_allocator_ == NULL)
+    ACE_NEW_NORETURN (message_p,
+                      Test_I_Message (*this));
+  else // otherwise, use the existing message_block_allocator
   {
-    ACE_DEBUG ((LM_CRITICAL,
-                ACE_TEXT ("failed to allocate Test_I_Message: \"%m\", aborting\n")));
+    // *NOTE*: the argument to malloc SHOULDN'T really matter, as this will be
+    //         a "shallow" copy which just references the same data block
+    ACE_NEW_MALLOC_NORETURN (message_p,
+                             static_cast<Test_I_Message*> (inherited::message_block_allocator_->calloc (inherited::capacity (),
+                                                                                                        '\0')),
+                             Test_I_Message (*this));
+  } // end ELSE
+  if (!message_p)
+  {
+    Stream_IAllocator* allocator_p =
+      dynamic_cast<Stream_IAllocator*> (inherited::message_block_allocator_);
+    ACE_ASSERT (allocator_p);
+    if (allocator_p->block ())
+      ACE_DEBUG ((LM_CRITICAL,
+                  ACE_TEXT ("failed to allocate Stream_MessageBase_T: \"%m\", aborting\n")));
     return NULL;
   } // end IF
-  int result = message_p->copy (this->rd_ptr (),
-                                this->length ());
-  ACE_ASSERT (result == 0);
 
-  // increment the reference counts of any continuation messages
+    // increment the reference counts of any continuation messages
   if (inherited::cont_)
   {
-    message_p->cont (inherited::cont_->duplicate ());
-    if (unlikely (!message_p->cont ()))
+    message_p->cont_ = inherited::cont_->duplicate ();
+    if (!message_p->cont_)
     {
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to Test_I_Message::duplicate(): \"%m\", aborting\n")));
-      message_p->release (); message_p = NULL;
+                  ACE_TEXT ("failed to Stream_MessageBase_T::duplicate(): \"%m\", aborting\n")));
+
+      // clean up
+      message_p->release ();
+
       return NULL;
     } // end IF
   } // end IF
 
-  // *NOTE*: if "this" is initialized, so is the "clone" (and vice-versa)...
+  // *NOTE*: if "this" is initialized, so is the "clone" (and vice-versa)
 
-  // *NOTE*: duplicates may reuse the device buffer memory, but only the
-  //         original message will requeue it (see release() below)
   return message_p;
 }

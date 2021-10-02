@@ -92,7 +92,7 @@ class Test_I_Message
                   bool = true);    // increment running message counter ?
   Test_I_Message (Stream_SessionId_t,
                   ACE_Allocator*); // message allocator
-  ACE_UNIMPLEMENTED_FUNC (Test_I_Message (const Test_I_Message&))
+  Test_I_Message (const Test_I_Message&);
   ACE_UNIMPLEMENTED_FUNC (Test_I_Message& operator= (const Test_I_Message&))
 };
 
