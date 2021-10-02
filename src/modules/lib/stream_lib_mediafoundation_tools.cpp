@@ -3459,37 +3459,37 @@ Stream_MediaFramework_MediaFoundation_Tools::toString (const IMFMediaType* media
                                                                 &value_v);
     ACE_ASSERT (SUCCEEDED (result_2));
     if (InlineIsEqualGUID (guid_s, MF_MT_ALL_SAMPLES_INDEPENDENT))
-    { ACE_ASSERT (SUCCEEDED (value_v.vt == VT_UINT));
+    { ACE_ASSERT (value_v.vt == VT_UINT);
       result += ACE_TEXT_ALWAYS_CHAR ("\nindependent samples: ");
       result +=
         (value_v.uintVal ? ACE_TEXT_ALWAYS_CHAR ("true")
                          : ACE_TEXT_ALWAYS_CHAR ("false"));
     } // end IF
     else if (InlineIsEqualGUID (guid_s, MF_MT_AM_FORMAT_TYPE))
-    { ACE_ASSERT (SUCCEEDED (value_v.vt == VT_CLSID));
+    { ACE_ASSERT (value_v.vt == VT_CLSID);
       result += ACE_TEXT_ALWAYS_CHAR ("\nformat type: ");
       result +=
         Stream_MediaFramework_Tools::mediaFormatTypeToString (*value_v.puuid);
     } // end ELSE IF
     else if (InlineIsEqualGUID (guid_s, MF_MT_COMPRESSED))
-    { ACE_ASSERT (SUCCEEDED (value_v.vt == VT_UINT));
+    { ACE_ASSERT (value_v.vt == VT_UINT);
       result += ACE_TEXT_ALWAYS_CHAR ("\nmedia data is compressed: ");
       result +=
         (value_v.uintVal ? ACE_TEXT_ALWAYS_CHAR ("true")
                          : ACE_TEXT_ALWAYS_CHAR ("false"));
     } // end ELSE IF
     else if (InlineIsEqualGUID (guid_s, MF_MT_FIXED_SIZE_SAMPLES))
-    { ACE_ASSERT (SUCCEEDED (value_v.vt == VT_UINT));
+    { ACE_ASSERT (value_v.vt == VT_UINT);
       result += ACE_TEXT_ALWAYS_CHAR ("\nfixed size samples: ");
       result +=
         (value_v.uintVal ? ACE_TEXT_ALWAYS_CHAR ("true")
                          : ACE_TEXT_ALWAYS_CHAR ("false"));
     } // end ELSE IF
     else if (InlineIsEqualGUID (guid_s, MF_MT_MAJOR_TYPE))
-    { ACE_ASSERT (SUCCEEDED (value_v.vt == VT_CLSID));
+    { ACE_ASSERT (value_v.vt == VT_CLSID);
     } // end ELSE IF
     else if (InlineIsEqualGUID (guid_s, MF_MT_SAMPLE_SIZE))
-    { ACE_ASSERT (SUCCEEDED (value_v.vt == VT_UINT));
+    { ACE_ASSERT (value_v.vt == VT_UINT);
       result += ACE_TEXT_ALWAYS_CHAR ("\nsample size: ");
       converter.str (ACE_TEXT_ALWAYS_CHAR (""));
       converter.clear ();
@@ -3498,14 +3498,14 @@ Stream_MediaFramework_MediaFoundation_Tools::toString (const IMFMediaType* media
       result += ACE_TEXT_ALWAYS_CHAR (" byte(s)");
     } // end ELSE IF
     else if (InlineIsEqualGUID (guid_s, MF_MT_SUBTYPE))
-    { ACE_ASSERT (SUCCEEDED (value_v.vt == VT_CLSID));
+    { ACE_ASSERT (value_v.vt == VT_CLSID);
       result += ACE_TEXT_ALWAYS_CHAR ("\nsubtype: ");
       result +=
         Stream_MediaFramework_Tools::mediaSubTypeToString (*value_v.puuid,
                                                            STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION);
     } // end IF
     else if (InlineIsEqualGUID (guid_s, MF_MT_USER_DATA))
-    { ACE_ASSERT (SUCCEEDED (value_v.vt == VT_BLOB));
+    { ACE_ASSERT (value_v.vt == VT_BLOB);
       result += ACE_TEXT_ALWAYS_CHAR ("\nuser data: ");
       converter.str (ACE_TEXT_ALWAYS_CHAR (""));
       converter.clear ();
@@ -3514,7 +3514,7 @@ Stream_MediaFramework_MediaFoundation_Tools::toString (const IMFMediaType* media
       result += ACE_TEXT_ALWAYS_CHAR (" byte(s)");
     } // end IF
     else if (InlineIsEqualGUID (guid_s, MF_MT_WRAPPED_TYPE))
-    { ACE_ASSERT (SUCCEEDED (value_v.vt == VT_BLOB));
+    { ACE_ASSERT (value_v.vt == VT_BLOB);
       result += ACE_TEXT_ALWAYS_CHAR ("\nwrapped media type: ");
       converter.str (ACE_TEXT_ALWAYS_CHAR (""));
       converter.clear ();
@@ -3523,10 +3523,10 @@ Stream_MediaFramework_MediaFoundation_Tools::toString (const IMFMediaType* media
       result += ACE_TEXT_ALWAYS_CHAR (" byte(s)");
     } // end ELSE IF
     else if (InlineIsEqualGUID (guid_s, MF_MT_FRAME_SIZE))
-    { ACE_ASSERT (SUCCEEDED (value_v.vt == VT_UINT));
+    { ACE_ASSERT (value_v.vt == VT_UINT);
     } // end ELSE IF
     else if (InlineIsEqualGUID (guid_s, MF_MT_AVG_BITRATE))
-    { ACE_ASSERT (SUCCEEDED (value_v.vt == VT_UINT));
+    { ACE_ASSERT (value_v.vt == VT_UINT);
       result += ACE_TEXT_ALWAYS_CHAR ("\naverage bitrate (1/s): ");
       converter.str (ACE_TEXT_ALWAYS_CHAR (""));
       converter.clear ();
@@ -3534,13 +3534,13 @@ Stream_MediaFramework_MediaFoundation_Tools::toString (const IMFMediaType* media
       result += converter.str ();
     } // end ELSE IF
     else if (InlineIsEqualGUID (guid_s, MF_MT_FRAME_RATE))
-    { ACE_ASSERT (SUCCEEDED (value_v.vt == VT_UINT));
+    { ACE_ASSERT (value_v.vt == VT_UINT);
     } // end ELSE IF
     else if (InlineIsEqualGUID (guid_s, MF_MT_PIXEL_ASPECT_RATIO))
-    { ACE_ASSERT (SUCCEEDED (value_v.vt == VT_UINT));
+    { ACE_ASSERT (value_v.vt == VT_UINT);
     } // end ELSE IF
     else if (InlineIsEqualGUID (guid_s, MF_MT_INTERLACE_MODE))
-    { ACE_ASSERT (SUCCEEDED (value_v.vt == VT_UINT));
+    { ACE_ASSERT (value_v.vt == VT_UINT);
       result += ACE_TEXT_ALWAYS_CHAR ("\ninterlace mode: ");
       switch (static_cast<enum _MFVideoInterlaceMode> (value_v.uintVal))
       {

@@ -248,7 +248,7 @@ bencoding:        "dictionary" {
                     YYACCEPT; }
                   | "integer" {
                     try {
-                      iparser->record_4 ($1);
+                      iparser->record_4 (static_cast<unsigned int> ($1));
                     } catch (...) {
                       ACE_DEBUG ((LM_ERROR,
                                   ACE_TEXT ("caught exception in Bencoding_IParser::record_4(), continuing\n")));

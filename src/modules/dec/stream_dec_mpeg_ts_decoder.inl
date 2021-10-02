@@ -25,6 +25,8 @@
 #include "stream_dec_common.h"
 #include "stream_dec_defines.h"
 
+#include "stream_dec_mpeg_ts_common.h"
+
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ConfigurationType,
