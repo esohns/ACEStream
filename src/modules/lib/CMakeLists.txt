@@ -107,6 +107,9 @@ target_include_directories (${PROJECT_NAME}_MediaFramework PUBLIC
                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../include>)
 target_include_directories (${PROJECT_NAME}_MediaFramework PUBLIC
                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../..>)
+if (UNIX)
+ set (CMAKE_INCLUDE_CURRENT_DIR ON)
+endif (UNIX)
 
 ############## next target ################
 set (source_files

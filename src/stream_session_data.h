@@ -59,12 +59,14 @@ class Stream_SessionDataMediaBase_T
   Stream_SessionDataMediaBase_T ();
   // *NOTE*: the idea is to 'copy' the data
   Stream_SessionDataMediaBase_T (const OWN_TYPE_T&);
-  inline virtual ~Stream_SessionDataMediaBase_T () {}
+  virtual ~Stream_SessionDataMediaBase_T ();
 
   // *NOTE*: the idea is to 'merge' the data
   //         --> this ought (!) to be overriden by derived classes
   OWN_TYPE_T& operator+= (const OWN_TYPE_T&);
 
+  ACE_UINT8*                      codecConfigurationData;
+  ACE_UINT32                      codecConfigurationDataSize;
   MEDIAFORMATS_T                  formats;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   enum Stream_MediaFramework_Type mediaFramework;

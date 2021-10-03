@@ -30,15 +30,15 @@
 #include "ace/Profile_Timer.h"
 #include "ace/Sig_Handler.h"
 #include "ace/Signal.h"
-//#include "ace/Synch.h"
 #include "ace/Version.h"
 
 #if defined (HAVE_CONFIG_H)
 #include "Common_config.h"
 #endif // HAVE_CONFIG_H
 
-//#include "common_file_tools.h"
 #include "common_tools.h"
+
+#include "common_image_defines.h"
 
 #include "common_log_tools.h"
 #include "common_logger.h"
@@ -293,8 +293,8 @@ do_work (bool debug_in,
   {
     char_p = reinterpret_cast<const char*> (&(*iterator).identifier);
     char_2 = reinterpret_cast<const char*> (&(*iterator).riff_list_identifier);
-    if (((*iterator).identifier == MAKEFOURCC ('R', 'I', 'F', 'F')) ||
-        ((*iterator).identifier == MAKEFOURCC ('L', 'I', 'S', 'T')))
+    if (((*iterator).identifier == FOURCC ('R', 'I', 'F', 'F')) ||
+        ((*iterator).identifier == FOURCC ('L', 'I', 'S', 'T')))
       ACE_DEBUG ((LM_INFO,
                   ACE_TEXT ("@%u: fourCC: \"%c%c%c%c\"/\"%c%c%c%c\"; size: %u byte(s)\n"),
                   (*iterator).offset,

@@ -133,6 +133,8 @@ using namespace std;
 #include "ace/Log_Msg.h"
 #include "ace/OS.h"
 
+#include "common_image_defines.h"
+
 #include "stream_macros.h"
 
 #include "stream_dec_avi_parser_driver.h"
@@ -228,7 +230,7 @@ chunk:          "fourcc" "size" "data"   { //$$ = $$;
                                                        char_p[3], char_p[2], char_p[1], char_p[0],
                                                        $$.size));
 
-                                           if ($$.identifier == MAKEFOURCC ('s', 't', 'r', 'f'))
+                                           if ($$.identifier == FOURCC ('s', 't', 'r', 'f'))
                                            {
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
                                              ACE_ASSERT (false);

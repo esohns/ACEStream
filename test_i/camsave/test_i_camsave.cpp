@@ -60,6 +60,8 @@
 
 #include "common_tools.h"
 
+#include "common_image_defines.h"
+
 #include "common_log_tools.h"
 #include "common_logger.h"
 
@@ -939,7 +941,7 @@ do_finalize_mediafoundation (IMFMediaSession*& mediaSession_inout)
 bool
 do_initialize_libcamera (struct Stream_Device_Identifier& deviceIdentifier_out,
                          struct Stream_MediaFramework_LibCamera_MediaType& captureFormat_out,
-                         struct Stream_MediaFramework_FFMPEG_VideoMediaType& outputFormat_out)
+                         struct Stream_MediaFramework_LibCamera_MediaType& outputFormat_out)
 {
   STREAM_TRACE (ACE_TEXT ("::do_initialize_libcamera"));
 
@@ -973,32 +975,31 @@ do_initialize_libcamera (struct Stream_Device_Identifier& deviceIdentifier_out,
   ACE_ASSERT (camera_p);
   captureFormat_out =
       Stream_Device_Tools::defaultCaptureFormat (camera_p);
-#if defined (_DEBUG)
   ACE_DEBUG ((LM_DEBUG,
               ACE_TEXT ("\"%s\": default capture format: \"%s\", resolution: %ux%u, framerate: %u/%u\n"),
               ACE_TEXT (devices_a.front ().identifier.c_str ()),
               ACE_TEXT (captureFormat_out.format.toString ().c_str ()),
               captureFormat_out.resolution.width, captureFormat_out.resolution.height,
               captureFormat_out.frameRateNumerator, captureFormat_out.frameRateDenominator));
-#endif // _DEBUG
   // *NOTE*: Gtk 2 expects RGB24
   // *NOTE*: "...CAIRO_FORMAT_ARGB32: each pixel is a 32-bit quantity, with
   //         alpha in the upper 8 bits, then red, then green, then blue. The
   //         32-bit quantities are stored native-endian. ..."
   // *TODO*: determine color depth of selected (default) screen (i.e.'Display'
   //         ":0")
-  outputFormat_out.format = AV_PIX_FMT_RGB32;
+  outputFormat_out.format =
+    libcamera::PixelFormat (FOURCC ('R', 'G', 'B', 'A'), 0);
 #if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
 #if defined (GTK2_USE)
-  outputFormat_out.format = AV_PIX_FMT_RGB24;
+  outputFormat_out.format =
+    libcamera::PixelFormat (FOURCC ('r', 'a', 'w', ' '), 0);
 #endif // GTK2_USE
 #endif // GTK_USE
 #endif // GUI_SUPPORT
-  outputFormat_out.frameRate.num = 30;
-  outputFormat_out.frameRate.den = 1;
-  outputFormat_out.resolution.height = captureFormat_out.resolution.height;
-  outputFormat_out.resolution.width = captureFormat_out.resolution.width;
+  outputFormat_out.frameRateNumerator = 30;
+  outputFormat_out.frameRateDenominator = 1;
+  outputFormat_out.resolution = captureFormat_out.resolution;
 
 error:
   camera_manager_p->stop ();
@@ -1213,7 +1214,7 @@ do_work (const std::string& captureinterfaceIdentifier_in,
 #if defined (LIBCAMERA_SUPPORT)
   struct Stream_CamSave_LibCamera_ModuleHandlerConfiguration libcamera_modulehandler_configuration;
   struct Stream_CamSave_LibCamera_ModuleHandlerConfiguration libcamera_converter_2_modulehandler_configuration; // save to file
-  struct Stream_CamSave_LibCamera_ModuleHandlerConfiguration libcamera_x11_modulehandler_configuration;
+  struct Stream_CamSave_LibCamera_ModuleHandlerConfiguration libcamera_display_modulehandler_configuration;
 
   struct Stream_CamSave_LibCamera_StreamConfiguration libcamera_stream_configuration;
   Stream_CamSave_LibCamera_EventHandler_t libcamera_ui_event_handler (
@@ -1326,8 +1327,9 @@ do_work (const std::string& captureinterfaceIdentifier_in,
                                         captureinterfaceIdentifier_in).get ();
     ACE_ASSERT (camera_p);
     libcamera_modulehandler_configuration.outputFormat =
-        Stream_Device_Tools::convert (Stream_Device_Tools::defaultCaptureFormat (camera_p));
-    libcamera_modulehandler_configuration.outputFormat.format = AV_PIX_FMT_RGB32;
+        Stream_Device_Tools::defaultCaptureFormat (camera_p);
+    libcamera_modulehandler_configuration.outputFormat.format =
+        libcamera::PixelFormat (FOURCC ('R', 'G', 'B', 'A'));
 #if defined (GUI_SUPPORT)
   libcamera_modulehandler_configuration.subscriber = &libcamera_ui_event_handler;
 #endif // GUI_SUPPORT
@@ -1689,19 +1691,19 @@ error:
                                                                    std::make_pair (module_configuration,
                                                                                    v4l_converter_2_modulehandler_configuration)));
 #if defined (LIBCAMERA_SUPPORT)
-  libcamera_x11_modulehandler_configuration = libcamera_modulehandler_configuration;
-  libcamera_x11_modulehandler_configuration.display = displayDevice_in;
+  libcamera_display_modulehandler_configuration = libcamera_modulehandler_configuration;
+  libcamera_display_modulehandler_configuration.display = displayDevice_in;
   configuration_in.libCamera_streamConfiguration.insert (std::make_pair (Stream_Visualization_Tools::rendererToModuleName (STREAM_VISUALIZATION_VIDEORENDERER_X11),
                                                                          std::make_pair (module_configuration,
-                                                                                         libcamera_x11_modulehandler_configuration)));
+                                                                                         libcamera_display_modulehandler_configuration)));
 
-  libCamera_converter_2_modulehandler_configuration =
+  libcamera_converter_2_modulehandler_configuration =
       libcamera_modulehandler_configuration;
-  libCamera_converter_2_modulehandler_configuration.outputFormat.format =
-      AV_PIX_FMT_RGB555;
+  libcamera_converter_2_modulehandler_configuration.outputFormat.format =
+      libcamera::PixelFormat (FOURCC ('R','G', 'B', '5'), 0);
   configuration_in.libCamera_streamConfiguration.insert (std::make_pair (std::string (std::string (ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_LIBAV_CONVERTER_DEFAULT_NAME_STRING)) + ACE_TEXT_ALWAYS_CHAR ("_2")),
                                                                          std::make_pair (module_configuration,
-                                                                                         libCamera_converter_2_modulehandler_configuration)));
+                                                                                         libcamera_converter_2_modulehandler_configuration)));
 #endif // LIBCAMERA_SUPPORT
   v4l_stream_iterator =
     configuration_in.v4l_streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));

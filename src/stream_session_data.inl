@@ -40,6 +40,8 @@ Stream_SessionDataMediaBase_T<BaseType,
                               StatisticType,
                               UserDataType>::Stream_SessionDataMediaBase_T ()
  : inherited ()
+ , codecConfigurationData (NULL)
+ , codecConfigurationDataSize (0)
  , formats ()
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
  , mediaFramework (STREAM_LIB_DEFAULT_MEDIAFRAMEWORK)
@@ -63,6 +65,8 @@ Stream_SessionDataMediaBase_T<BaseType,
                               StatisticType,
                               UserDataType>::Stream_SessionDataMediaBase_T (const OWN_TYPE_T& data_in)
  : inherited (data_in)
+ , codecConfigurationData (NULL)
+ , codecConfigurationDataSize (0)
  , formats (data_in.formats)
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
  , mediaFramework (data_in.mediaFramework)
@@ -73,6 +77,23 @@ Stream_SessionDataMediaBase_T<BaseType,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_SessionDataMediaBase_T::Stream_SessionDataMediaBase_T"));
 
+}
+
+template <typename BaseType,
+          typename MediaFormatType,
+          typename StreamStateType,
+          typename StatisticType,
+          typename UserDataType>
+Stream_SessionDataMediaBase_T<BaseType,
+                              MediaFormatType,
+                              StreamStateType,
+                              StatisticType,
+                              UserDataType>::~Stream_SessionDataMediaBase_T ()
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_SessionDataMediaBase_T::~Stream_SessionDataMediaBase_T"));
+
+  if (codecConfigurationData)
+    delete [] codecConfigurationData;
 }
 
 template <typename BaseType,

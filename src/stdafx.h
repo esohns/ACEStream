@@ -2,8 +2,8 @@
 //  or project specific include files that are used frequently, but
 //      are changed infrequently
 //
-#if defined _MSC_VER
-#define WIN32_LEAN_AND_MEAN		// Exclude rarely-used stuff from Windows headers
+#if defined (_MSC_VER)
+#define WIN32_LEAN_AND_MEAN // Exclude rarely-used stuff from Windows headers
 
 // *NOTE*: MSVC2013 conflicts std::min/std::max in minwindef.h To
 //         work around that, define NOMINMAX
@@ -12,10 +12,10 @@
 #include "targetver.h"
 
 // Windows Header Files
-#include <windows.h>
+#include "windows.h"
 
-#include <Guiddef.h>
-#endif
+#include "Guiddef.h"
+#endif // _MSC_VER
 
 // C RunTime Header Files
 //#include <sstream>

@@ -328,7 +328,7 @@ Stream_TaskBaseAsynch_T<ACE_SYNCH_USE,
       else
       {
         { ACE_GUARD_RETURN (ACE_Thread_Mutex, aGuard, inherited::lock_, -1);
-          for (THREAD_IDS_ITERATOR_T iterator = inherited::threadIds_.begin ();
+          for (typename inherited::THREAD_IDS_ITERATOR_T iterator = inherited::threadIds_.begin ();
                iterator != inherited::threadIds_.end ();
                ++iterator)
             if ((*iterator).id () == handle)

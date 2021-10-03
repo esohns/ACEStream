@@ -357,7 +357,7 @@ error:
     }
     case STREAM_SESSION_MESSAGE_END:
     {
-      { ACE_GUARD (typename inherited::ITASKCONTROL_T::MUTEX_T, aGuard, inherited::lock_);
+      { ACE_GUARD (ACE_Thread_Mutex, aGuard, inherited::lock_);
         if (inherited::sessionEndProcessed_)
           break; // done
         inherited::sessionEndProcessed_ = true;

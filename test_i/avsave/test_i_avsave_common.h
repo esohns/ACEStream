@@ -26,16 +26,16 @@
 #include <string>
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-#include <BaseTyps.h>
-#include <OAIdl.h>
-#include <control.h>
-#include <CGuid.h>
-#include <Guiddef.h>
-#include <d3d9.h>
-#include <evr.h>
-#include <mfapi.h>
-#include <mfidl.h>
-#include <strmif.h>
+#include "BaseTyps.h"
+#include "OAIdl.h"
+#include "control.h"
+#include "CGuid.h"
+#include "Guiddef.h"
+#include "d3d9.h"
+#include "evr.h"
+#include "mfapi.h"
+#include "mfidl.h"
+#include "strmif.h"
 #else
 #include "linux/videodev2.h"
 
@@ -99,8 +99,10 @@ extern "C"
 #else
 #include "stream_lib_alsa_defines.h"
 
-#include "stream_lib_ffmpeg_common.h"
 #include "stream_lib_v4l_defines.h"
+#if defined (FFMPEG_SUPPORT)
+#include "stream_lib_ffmpeg_common.h"
+#endif // FFMPEG_SUPPORT
 #endif // ACE_WIN32 || ACE_WIN64
 
 #include "stream_dev_common.h"
@@ -458,7 +460,7 @@ struct Stream_AVSave_ModuleHandlerConfiguration
   HWND                            window;
 #else
   Window                          window;
-  Display*                        X11Display;
+  struct _XDisplay*               X11Display;
 #endif // ACE_WIN32 || ACE_WIN64
   std::string                     targetFileName;
 };

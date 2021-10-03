@@ -25,12 +25,14 @@
 #include <list>
 #include <vector>
 
+#if defined (FFMPEG_SUPPORT)
 #ifdef __cplusplus
 extern "C"
 {
 #include "libavutil/pixfmt.h"
 } // extern "C"
 #endif // __cplusplus
+#endif // FFMPEG_SUPPORT
 
 #include "libcamera/libcamera.h"
 
@@ -42,8 +44,7 @@ extern "C"
 #include "stream_headmoduletask_base.h"
 
 #include "stream_lib_libcamera_common.h"
-
-#include "stream_dev_tools.h"
+#include "stream_lib_tools.h"
 
 extern const char libacestream_default_dev_cam_source_libcamera_module_name_string[];
 
@@ -67,20 +68,20 @@ template <ACE_SYNCH_DECL,
           ////////////////////////////////
           typename UserDataType>
 class Stream_Module_CamSource_LibCamera_T
-    : public Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
-                                         Common_TimePolicy_t,
-                                         ControlMessageType,
-                                         DataMessageType,
-                                         SessionMessageType,
-                                         ConfigurationType,
-                                         StreamControlType,
-                                         StreamNotificationType,
-                                         StreamStateType,
-                                         SessionDataType,
-                                         SessionDataContainerType,
-                                         StatisticContainerType,
-                                         StatisticHandlerType,
-                                         UserDataType>
+ : public Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
+                                      Common_TimePolicy_t,
+                                      ControlMessageType,
+                                      DataMessageType,
+                                      SessionMessageType,
+                                      ConfigurationType,
+                                      StreamControlType,
+                                      StreamNotificationType,
+                                      StreamStateType,
+                                      SessionDataType,
+                                      SessionDataContainerType,
+                                      StatisticContainerType,
+                                      StatisticHandlerType,
+                                      UserDataType>
 {
   typedef Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
                                       Common_TimePolicy_t,
@@ -144,7 +145,9 @@ class Stream_Module_CamSource_LibCamera_T
   bool putStatisticMessage (const StatisticContainerType&) const; // statistic
   template <typename MediaType> struct Stream_MediaFramework_LibCamera_MediaType getMediaType (const MediaType& mediaType_in) { return getMediaType_impl (mediaType_in); }
   inline struct Stream_MediaFramework_LibCamera_MediaType getMediaType_impl (const struct Stream_MediaFramework_LibCamera_MediaType& mediaType_in) { return const_cast<struct Stream_MediaFramework_LibCamera_MediaType&> (mediaType_in); }
-  inline struct Stream_MediaFramework_LibCamera_MediaType getMediaType_impl (const enum AVPixelFormat& format_in) { struct Stream_MediaFramework_LibCamera_MediaType return_value; return_value.format = Stream_Device_Tools::ffmpegFormatToLibCameraFormat (format_in); return return_value; }
+#if defined (FFMPEG_SUPPORT)
+  inline struct Stream_MediaFramework_LibCamera_MediaType getMediaType_impl (const enum AVPixelFormat& format_in) { struct Stream_MediaFramework_LibCamera_MediaType return_value; return_value.format = Stream_MediaFramework_Tools::ffmpegFormatToLibCameraFormat (format_in); return return_value; }
+#endif // FFMPEG_SUPPORT
 //  inline struct Stream_MediaFramework_V4L_MediaType getMediaType_impl (const struct v4l2_format& format_in) { struct Stream_MediaFramework_V4L_MediaType return_value; return_value.format = format_in.fmt.pix; return return_value; }
 
   // callbacks

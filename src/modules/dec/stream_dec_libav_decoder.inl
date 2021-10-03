@@ -412,19 +412,16 @@ Stream_Decoder_LibAVDecoder_T<ACE_SYNCH_USE,
       inherited2::getMediaType (session_data_r.formats.back (),
                                 media_type_s);
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-      struct _AMMediaType media_type_2;
-      ACE_OS::memset (&media_type_2, 0, sizeof (struct _AMMediaType));
-      inherited2::getMediaType (session_data_r.formats.back (),
-                                media_type_2);
       formatHeight_ =
           static_cast<unsigned int> (std::abs (media_type_s.resolution.cy));
       decode_width = static_cast<unsigned int> (media_type_s.resolution.cx);
 #else
-      struct Stream_MediaFramework_FFMPEG_VideoMediaType media_type_2 =
-        media_type_s;
       formatHeight_ = media_type_s.resolution.height;
       decode_width = media_type_s.resolution.width;
 #endif // ACE_WIN32 || ACE_WIN64
+      MediaType media_type_2;
+      inherited2::getMediaType (media_type_s,
+                                media_type_2);
 
       if ((codecId_ == AV_CODEC_ID_NONE) &&
           Stream_Module_Decoder_Tools::isCompressedVideo (media_type_s.format))
@@ -461,7 +458,7 @@ Stream_Decoder_LibAVDecoder_T<ACE_SYNCH_USE,
       const struct AVCodec* codec_p = NULL;
       struct AVDictionary* dictionary_p = NULL;
       int flags, flags2;
-      unsigned int buffer_size = 0;
+//      unsigned int buffer_size = 0;
 
       codec_p = avcodec_find_decoder (codecId_);
       if (unlikely (!codec_p))
@@ -863,17 +860,17 @@ continue_:
       inherited2::getMediaType (session_data_r.formats.back (),
                                 media_type_s);
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-      struct _AMMediaType media_type_2;
-      ACE_OS::memset (&media_type_2, 0, sizeof (struct _AMMediaType));
-      inherited2::getMediaType (session_data_r.formats.back (),
-                                media_type_2);
+//      struct _AMMediaType media_type_2;
+//      ACE_OS::memset (&media_type_2, 0, sizeof (struct _AMMediaType));
+//      inherited2::getMediaType (session_data_r.formats.back (),
+//                                media_type_2);
       formatHeight_ =
           static_cast<unsigned int> (std::abs (media_type_s.resolution.cy));
       decode_width = static_cast<unsigned int> (media_type_s.resolution.cx);
-      Stream_MediaFramework_DirectShow_Tools::free (media_type_2);
+//      Stream_MediaFramework_DirectShow_Tools::free (media_type_2);
 #else
-      struct Stream_MediaFramework_FFMPEG_VideoMediaType media_type_2 =
-        media_type_s;
+//      struct Stream_MediaFramework_FFMPEG_VideoMediaType media_type_2 =
+//        media_type_s;
       formatHeight_ = media_type_s.resolution.height;
       decode_width = media_type_s.resolution.width;
 #endif // ACE_WIN32 || ACE_WIN64

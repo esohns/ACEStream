@@ -75,8 +75,8 @@ Stream_Decoder_LibAVEncoder_T<ACE_SYNCH_USE,
  , audioFrame_ (NULL)
  , audioFrameSize_ (0)
  , audioStream_ (NULL)
- , headerWritten_ (false)
  , formatContext_ (NULL)
+ , headerWritten_ (false)
  , videoCodecContext_ (NULL)
  , videoFrame_ (NULL)
  , videoFrameSize_ (0)
@@ -378,7 +378,7 @@ Stream_Decoder_LibAVEncoder_T<ACE_SYNCH_USE,
         AV_CODEC_ID_RAWVIDEO;
       result =
           avformat_alloc_output_context2 (&formatContext_,
-                                          output_format_p,
+                                          const_cast<struct AVOutputFormat*> (output_format_p),
                                           NULL,
                                           NULL);
       if (unlikely ((result < 0) || !formatContext_))

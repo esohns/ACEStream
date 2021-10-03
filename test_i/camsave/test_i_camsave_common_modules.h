@@ -49,10 +49,10 @@
 #include "stream_dev_cam_source_directshow.h"
 #include "stream_dev_cam_source_mediafoundation.h"
 #else
+#include "stream_dev_cam_source_v4l.h"
 #if defined (LIBCAMERA_SUPPORT)
 #include "stream_dev_cam_source_libcamera.h"
 #endif // LIBCAMERA_SUPPORT
-#include "stream_dev_cam_source_v4l.h"
 #endif // ACE_WIN32 || ACE_WIN64
 
 #include "stream_file_sink.h"
@@ -919,14 +919,14 @@ DATASTREAM_MODULE_INPUT_ONLY (Stream_CamSave_V4L_SessionData,                   
 //                              Stream_INotify_t,                                 // stream notification interface type
 //                              Stream_CamSave_Display_V4L_GTKWindowDisplay);     // writer type
 #endif // GTK_SUPPORT
-//#if defined (LIBCAMERA_SUPPORT)
-//DATASTREAM_MODULE_INPUT_ONLY (Stream_CamSave_LibCamera_SessionData,             // session data type
-//                              enum Stream_SessionMessageType,                   // session event type
-//                              struct Stream_CamSave_LibCamera_ModuleHandlerConfiguration, // module handler configuration type
-//                              libacestream_default_vis_x11_window_module_name_string,
-//                              Stream_INotify_t,                                 // stream notification interface type
-//                              Stream_CamSave_LibCamera_X11Display);             // writer type
-//#endif // LIBCAMERA_SUPPORT
+#if defined (LIBCAMERA_SUPPORT)
+DATASTREAM_MODULE_INPUT_ONLY (Stream_CamSave_LibCamera_SessionData,             // session data type
+                              enum Stream_SessionMessageType,                   // session event type
+                              struct Stream_CamSave_LibCamera_ModuleHandlerConfiguration, // module handler configuration type
+                              libacestream_default_vis_gtk_pixbuf_module_name_string,
+                              Stream_INotify_t,                                 // stream notification interface type
+                              Stream_CamSave_LibCamera_GTKPixbufDisplay);       // writer type
+#endif // LIBCAMERA_SUPPORT
 //DATASTREAM_MODULE_INPUT_ONLY (Stream_CamSave_V4L_SessionData,                   // session data type
 //                              enum Stream_SessionMessageType,                   // session event type
 //                              struct Stream_CamSave_V4L_ModuleHandlerConfiguration, // module handler configuration type

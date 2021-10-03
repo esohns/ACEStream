@@ -112,9 +112,10 @@ using namespace std;
 #include "ace/Log_Msg.h"
 #include "ace/OS.h"
 
+#include "common_image_defines.h"
+
 #include "stream_macros.h"
 
-#include "ace/Synch.h"
 #include "stream_dec_avi_parser_driver.h"
 #include "stream_dec_defines.h"
 #include "stream_dec_riff_scanner.h"
@@ -1068,7 +1069,7 @@ yyuserAction (yyRuleNum yyn, size_t yyrhslen, yyGLRStackItem* yyvsp,
                                                        char_p[3], char_p[2], char_p[1], char_p[0],
                                                        ((*yyvalp).chunk_meta).size));
 
-                                           if (((*yyvalp).chunk_meta).identifier == MAKEFOURCC ('s', 't', 'r', 'f'))
+                                           if (((*yyvalp).chunk_meta).identifier == FOURCC ('s', 't', 'r', 'f'))
                                            {
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
                                              ACE_ASSERT (false);

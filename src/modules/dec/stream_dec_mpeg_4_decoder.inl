@@ -160,15 +160,14 @@ Stream_Decoder_MPEG_4_Decoder_T<ACE_SYNCH_USE,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Decoder_MPEG_4_Decoder_T::handleDataMessage"));
 
-  int result = -1;
   struct Stream_Decoder_MPEG_4_BoxHeader* box_header_p = NULL;
   ACE_Message_Block* message_block_p = NULL;
-  ACE_Message_Block* message_block_2 = NULL;
   ACE_UINT64 skipped_bytes = 0;
-  bool large_box_b = false;
+//  bool large_box_b = false;
   bool need_more_data_b = false;
   ACE_UINT64 processed_bytes_i = 0;
   ACE_UINT64 total_bytes_to_skip_i = 0, total_bytes_to_skip_2 = 0, bytes_to_skip_i = 0;
+  ACE_UINT64 total_length_i = 0;
 
   // initialize return value(s)
   // *NOTE*: the default behavior is to pass all messages along
@@ -198,7 +197,7 @@ Stream_Decoder_MPEG_4_Decoder_T<ACE_SYNCH_USE,
     goto error;
   } // end IF
 
-  ACE_UINT64 total_length_i = buffer_->total_length ();
+  total_length_i = buffer_->total_length ();
   if (processingFrames_)
     goto process_next_frame;
 
@@ -215,7 +214,7 @@ process_boxes:
                                              : box_header_p->length);
     if (boxSize_ == 1) // 'large' box ?
     {
-      large_box_b = true;
+//      large_box_b = true;
       if (buffer_->length () < sizeof (struct Stream_Decoder_MPEG_4_LargeBoxHeader))
         break; // --> need more data
       struct Stream_Decoder_MPEG_4_LargeBoxHeader* box_header_2 =
@@ -228,10 +227,11 @@ process_boxes:
       ((total_length_i < boxSize_) ? boxSize_ - total_length_i : 0);
 
     // step2: process box data
-    boxes_.push_back (std::make_pair (box_header_p->type, offset_));
+    ACE_UINT32 type_i = box_header_p->type;
+    boxes_.push_back (std::make_pair (type_i, offset_));
     processed_bytes_i = processBox (*box_header_p,
                                     need_more_data_b);
-    if (unlikely (processed_bytes_i == -1))
+    if (unlikely (processed_bytes_i == static_cast<ACE_UINT64> (-1)))
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: failed to Stream_Decoder_MPEG_4_Decoder_T::processBox(), aborting\n"),
@@ -321,7 +321,7 @@ process_next_frame:
 
   // step1: (try to) send next frame downstream
   processed_bytes_i = processFrame (need_more_data_b);
-  if (unlikely (processed_bytes_i == -1))
+  if (unlikely (processed_bytes_i == static_cast<ACE_UINT64> (-1)))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to Stream_Decoder_MPEG_4_Decoder_T::processFrame(), aborting\n"),
@@ -657,8 +657,8 @@ Stream_Decoder_MPEG_4_Decoder_T<ACE_SYNCH_USE,
     }
     case 0x696F6473: // iods
     { ASSERT_CONTIGUOUS_BYTES (sizeof (struct Stream_Decoder_MPEG_4_InitialObjectDescriptorBox));
-      struct Stream_Decoder_MPEG_4_InitialObjectDescriptorBox* box_p =
-        reinterpret_cast<struct Stream_Decoder_MPEG_4_InitialObjectDescriptorBox*> (buffer_->rd_ptr ());
+//      struct Stream_Decoder_MPEG_4_InitialObjectDescriptorBox* box_p =
+//        reinterpret_cast<struct Stream_Decoder_MPEG_4_InitialObjectDescriptorBox*> (buffer_->rd_ptr ());
       ACE_DEBUG ((LM_DEBUG,
                   ACE_TEXT ("%s: iods: %Q bytes\n"),
                   inherited::mod_->name (),
@@ -1104,8 +1104,8 @@ Stream_Decoder_MPEG_4_Decoder_T<ACE_SYNCH_USE,
     }
     case 0x766D6864: // vmhd
     { ASSERT_CONTIGUOUS_BYTES (sizeof (struct Stream_Decoder_MPEG_4_VideoMediaHeaderBox));
-      struct Stream_Decoder_MPEG_4_VideoMediaHeaderBox* box_p =
-        reinterpret_cast<struct Stream_Decoder_MPEG_4_VideoMediaHeaderBox*> (buffer_->rd_ptr ());
+//      struct Stream_Decoder_MPEG_4_VideoMediaHeaderBox* box_p =
+//        reinterpret_cast<struct Stream_Decoder_MPEG_4_VideoMediaHeaderBox*> (buffer_->rd_ptr ());
       ACE_DEBUG ((LM_DEBUG,
                   ACE_TEXT ("%s: vmhd: %Q bytes\n"),
                   inherited::mod_->name (),
@@ -1115,8 +1115,8 @@ Stream_Decoder_MPEG_4_Decoder_T<ACE_SYNCH_USE,
     }
     case 0x736D6864: // smhd
     { ASSERT_CONTIGUOUS_BYTES (sizeof (struct Stream_Decoder_MPEG_4_SoundMediaHeaderBox));
-      struct Stream_Decoder_MPEG_4_SoundMediaHeaderBox* box_p =
-        reinterpret_cast<struct Stream_Decoder_MPEG_4_SoundMediaHeaderBox*> (buffer_->rd_ptr ());
+//      struct Stream_Decoder_MPEG_4_SoundMediaHeaderBox* box_p =
+//        reinterpret_cast<struct Stream_Decoder_MPEG_4_SoundMediaHeaderBox*> (buffer_->rd_ptr ());
       ACE_DEBUG ((LM_DEBUG,
                   ACE_TEXT ("%s: smhd: %Q bytes\n"),
                   inherited::mod_->name (),
@@ -1938,7 +1938,7 @@ Stream_Decoder_MPEG_4_Decoder_T<ACE_SYNCH_USE,
                       ACE_TEXT ("%s: ctts: entry_count: %u\n"),
                       inherited::mod_->name (),
                       value_2));
-          struct Stream_Decoder_MPEG_4_CompositionOffsetBoxEntry0* entry_p = NULL;
+//          struct Stream_Decoder_MPEG_4_CompositionOffsetBoxEntry0* entry_p = NULL;
           char* data_p = reinterpret_cast<char*> (&box_p->entries[0]);
           for (ACE_UINT32 i = 0;
                i < value_2;
@@ -1975,7 +1975,7 @@ Stream_Decoder_MPEG_4_Decoder_T<ACE_SYNCH_USE,
                       ACE_TEXT ("%s: ctts: entry_count: %u\n"),
                       inherited::mod_->name (),
                       value_2));
-          struct Stream_Decoder_MPEG_4_CompositionOffsetBoxEntry1* entry_p = NULL;
+//          struct Stream_Decoder_MPEG_4_CompositionOffsetBoxEntry1* entry_p = NULL;
           char* data_p = reinterpret_cast<char*> (&box_p->entries[0]);
           for (ACE_UINT32 i = 0;
                i < value_2;
@@ -2296,8 +2296,8 @@ Stream_Decoder_MPEG_4_Decoder_T<ACE_SYNCH_USE,
                         ACE_TEXT ("%s: sgpd [#%u]: description_length: %u\n"),
                         inherited::mod_->name (),
                         i, value_i));
-            struct Stream_Decoder_MPEG_4_SampleGroupDescriptionBoxEntryBase* entry_2 =
-              &entry_p->sample_group_entry;
+//            struct Stream_Decoder_MPEG_4_SampleGroupDescriptionBoxEntryBase* entry_2 =
+//              &entry_p->sample_group_entry;
             entries_size_i +=
               (box_p->default_length_or_sample_description_index ? box_p->default_length_or_sample_description_index
                                                                  : value_i);
@@ -2334,15 +2334,15 @@ version_geq_2:
                       ACE_TEXT ("%s: sgpd: entry_count: %u\n"),
                       inherited::mod_->name (),
                       value_2));
-          struct Stream_Decoder_MPEG_4_SampleGroupDescriptionBoxEntryBase* entry_p = NULL;
+//          struct Stream_Decoder_MPEG_4_SampleGroupDescriptionBoxEntryBase* entry_p = NULL;
           char* data_p = reinterpret_cast<char*> (&box_p->entries[0]);
           // *TODO*: this is incomplete !
           for (ACE_UINT32 i = 0;
                i < value_2;
                ++i)
           { ASSERT_CONTIGUOUS_BYTES (sizeof (struct Stream_Decoder_MPEG_4_SampleGroupDescriptionBox) + ((i + 1) * sizeof (struct Stream_Decoder_MPEG_4_SampleGroupDescriptionBoxEntryBase)));
-            entry_p =
-              reinterpret_cast<struct Stream_Decoder_MPEG_4_SampleGroupDescriptionBoxEntryBase*> (data_p);
+//            entry_p =
+//              reinterpret_cast<struct Stream_Decoder_MPEG_4_SampleGroupDescriptionBoxEntryBase*> (data_p);
             data_p += sizeof (struct Stream_Decoder_MPEG_4_SampleGroupDescriptionBoxEntryBase);
           } // end FOR
           break;
@@ -2450,8 +2450,8 @@ version_geq_2:
     }
     case 0x66726565: // free
     { ASSERT_CONTIGUOUS_BYTES (sizeof (struct Stream_Decoder_MPEG_4_FreeSpaceBox));
-      struct Stream_Decoder_MPEG_4_FreeSpaceBox* box_p =
-        reinterpret_cast<struct Stream_Decoder_MPEG_4_FreeSpaceBox*> (buffer_->rd_ptr ());
+//      struct Stream_Decoder_MPEG_4_FreeSpaceBox* box_p =
+//        reinterpret_cast<struct Stream_Decoder_MPEG_4_FreeSpaceBox*> (buffer_->rd_ptr ());
       ACE_DEBUG ((LM_DEBUG,
                   ACE_TEXT ("%s: free: %Q bytes\n"),
                   inherited::mod_->name (),
@@ -2461,8 +2461,8 @@ version_geq_2:
     }
     case 0x6D646174: // mdat
     { ASSERT_CONTIGUOUS_BYTES (sizeof (struct Stream_Decoder_MPEG_4_MediaDataBox));
-      struct Stream_Decoder_MPEG_4_MediaDataBox* box_p =
-        reinterpret_cast<struct Stream_Decoder_MPEG_4_MediaDataBox*> (buffer_->rd_ptr ());
+//      struct Stream_Decoder_MPEG_4_MediaDataBox* box_p =
+//        reinterpret_cast<struct Stream_Decoder_MPEG_4_MediaDataBox*> (buffer_->rd_ptr ());
       ACE_DEBUG ((LM_DEBUG,
                   ACE_TEXT ("%s: mdat: %Q bytes\n"),
                   inherited::mod_->name (),
@@ -2511,7 +2511,7 @@ Stream_Decoder_MPEG_4_Decoder_T<ACE_SYNCH_USE,
   ACE_UINT32 first_frame_num_in_same_chunk_i = 0;
   ACE_UINT32 chunk_number_i = frameToChunk (videoFrame_,
                                             first_frame_num_in_same_chunk_i);
-  ACE_ASSERT (chunk_number_i != -1);
+  ACE_ASSERT (chunk_number_i != static_cast<ACE_UINT32> (-1));
   ACE_UINT64 offset_i = offset_;
   ACE_UINT64 total_bytes_to_skip_i = 0, total_bytes_to_skip_2 = 0, bytes_to_skip_i = 0;
   ACE_Message_Block* message_block_p = buffer_, *message_block_2 = NULL;

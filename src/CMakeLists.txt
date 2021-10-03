@@ -7,7 +7,6 @@ include (ACE)
 
 get_filename_component (BUILD_PATH ${CMAKE_CURRENT_BINARY_DIR}/.. REALPATH)
 get_filename_component (BUILD_PATH_SUFFIX ${BUILD_PATH} NAME)
-#message (STATUS "BUILD_PATH_SUFFIX: \"${BUILD_PATH_SUFFIX}\"")
 find_package (Common ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_MICRO}
               REQUIRED
               CONFIG
@@ -20,9 +19,6 @@ else ()
  message (STATUS "found package \"Common\": \"${Common_DIR}\"")
 endif ()
 add_definitions (-DCOMMON_HAS_DLL)
-
-add_definitions (-DHAVE_CONFIG_H)
-#set_property (SOURCE PROPERTY COMPILE_DEFINITIONS HAVE_CONFIG_H)
 
 # ........................................
 

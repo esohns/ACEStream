@@ -2039,9 +2039,10 @@ static yyconst flex_int32_t yy_rule_linenum[10] =
 #include <ace/Message_Block.h>
 #include <ace/OS_Memory.h>
 
+#include "common_image_defines.h"
+
 #include "stream_macros.h"
 
-#include "ace/Synch.h"
 #include "stream_dec_avi_parser_driver.h"
 
 /* *NOTE*: instead of the default (int), this RIFF_Scanner_lex returns token_type.
@@ -2627,7 +2628,7 @@ YY_RULE_SETUP
                              driver->fragmentOffset_ += 4;
                              driver->offset_ += 4;
                              yylval->chunk_meta.identifier =
-                               MAKEFOURCC (yytext[0], yytext[1], yytext[2], yytext[3]);
+                               FOURCC (yytext[0], yytext[1], yytext[2], yytext[3]);
                              BEGIN (RIFF_LIST_header);
                              return yytokentype::RIFF; }
   YY_BREAK
@@ -2657,7 +2658,7 @@ YY_RULE_SETUP
                              driver->fragmentOffset_ += 4;
                              driver->offset_ += 4;
                              yylval->chunk_meta.riff_list_identifier =
-                                 MAKEFOURCC (yytext[0], yytext[1], yytext[2], yytext[3]);
+                                 FOURCC (yytext[0], yytext[1], yytext[2], yytext[3]);
                              BEGIN (chunks);
                              return yytokentype::_FOURCC; }
   YY_BREAK
@@ -2672,7 +2673,7 @@ YY_RULE_SETUP
                              driver->fragmentOffset_ += 4;
                              driver->offset_ += 4;
                              yylval->chunk_meta.identifier =
-                                 MAKEFOURCC (yytext[0], yytext[1], yytext[2], yytext[3]);
+                                 FOURCC (yytext[0], yytext[1], yytext[2], yytext[3]);
                              BEGIN (RIFF_LIST_header);
                              return yytokentype::LIST; }
   YY_BREAK
@@ -2685,7 +2686,7 @@ YY_RULE_SETUP
                              driver->fragmentOffset_ += 4;
                              driver->offset_ += 4;
                              yylval->chunk_meta.identifier =
-                                 MAKEFOURCC (yytext[0], yytext[1], yytext[2], yytext[3]);
+                                 FOURCC (yytext[0], yytext[1], yytext[2], yytext[3]);
                              BEGIN (chunk_size);
                              return yytokentype::_FOURCC; }
   YY_BREAK

@@ -46,6 +46,7 @@
 #include "Common_config.h"
 #endif // HAVE_CONFIG_H
 
+#include "common_file_tools.h"
 #include "common_tools.h"
 
 #include "common_log_tools.h"

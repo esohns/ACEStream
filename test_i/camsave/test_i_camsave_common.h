@@ -26,21 +26,24 @@
 #include <string>
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-#include <BaseTyps.h>
-#include <OAIdl.h>
-#include <control.h>
-#include <CGuid.h>
-#include <Guiddef.h>
-#include <d3d9.h>
-#include <evr.h>
-#include <mfapi.h>
-#include <mfidl.h>
-#include <strmif.h>
+#include "BaseTyps.h"
+#include "OAIdl.h"
+#include "control.h"
+#include "CGuid.h"
+#include "Guiddef.h"
+#include "d3d9.h"
+#include "evr.h"
+#include "mfapi.h"
+#include "mfidl.h"
+#include "strmif.h"
 #else
 #include "linux/videodev2.h"
+
 #if defined (LIBCAMERA_SUPPORT)
 #include "libcamera/libcamera.h"
 #endif // LIBCAMERA_SUPPORT
+
+#include "X11/X.h"
 
 #if defined (FFMPEG_SUPPORT)
 #ifdef __cplusplus
@@ -489,15 +492,9 @@ struct Stream_CamSave_ModuleHandlerConfiguration
   Stream_CamSave_ModuleHandlerConfiguration ()
    : Test_I_ModuleHandlerConfiguration ()
    , deviceIdentifier ()
+   , display ()
    , fullScreen (false)
 #if defined (GUI_SUPPORT)
-#if defined (GTK_SUPPORT) && defined (GTK_USE)
-#else
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-#else
-   , display (NULL)
-#endif // ACE_WIN32 || ACE_WIN64
-#endif // GTK_SUPPORT && GTK_USE
    , window (NULL)
 #endif // GUI_SUPPORT
    , targetFileName ()
@@ -510,6 +507,7 @@ struct Stream_CamSave_ModuleHandlerConfiguration
   }
 
   struct Stream_Device_Identifier deviceIdentifier; // source/renderer module
+  struct Common_UI_DisplayDevice  display;
   bool                            fullScreen;
 #if defined (GUI_SUPPORT)
 #if defined (GTK_SUPPORT) && defined (GTK_USE)
@@ -518,7 +516,6 @@ struct Stream_CamSave_ModuleHandlerConfiguration
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   HWND                            window;
 #else
-  struct _XDisplay*               display;
   Window                          window;
 #endif // ACE_WIN32 || ACE_WIN64
 #endif // GTK_SUPPORT && GTK_USE

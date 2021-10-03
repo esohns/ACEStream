@@ -614,8 +614,8 @@ do_work (
   Common_Image_Resolution_t resolution_s =
     Stream_MediaFramework_DirectShow_Tools::toResolution ((*stream_iterator).second.second.outputFormat);
 #else
-  Common_Image_Resolution_t resolution_s =
-    (*stream_iterator).second.second.outputFormat.resolution;
+//  Common_Image_Resolution_t resolution_s =
+//    (*stream_iterator).second.second.outputFormat.resolution;
 #endif // ACE_WIN32 || ACE_WIN64
   //struct _D3DDISPLAYMODE display_mode_s =
   //  Stream_MediaFramework_DirectDraw_Tools::getDisplayMode (directShowConfiguration_in.direct3DConfiguration.adapter,

@@ -26,20 +26,16 @@
 #include <string>
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-#include <BaseTyps.h>
-#include <OAIdl.h>
-#include <control.h>
-#include <CGuid.h>
-#include <Guiddef.h>
-#include <d3d9.h>
-#include <evr.h>
-#include <mfapi.h>
-#include <mfidl.h>
-#include <strmif.h>
-#else
-//#include "linux/videodev2.h"
-
-//#include "X11/Xlib.h"
+#include "BaseTyps.h"
+#include "OAIdl.h"
+#include "control.h"
+#include "CGuid.h"
+#include "Guiddef.h"
+#include "d3d9.h"
+#include "evr.h"
+#include "mfapi.h"
+#include "mfidl.h"
+#include "strmif.h"
 #endif // ACE_WIN32 || ACE_WIN64
 
 #if defined (FFMPEG_SUPPORT)
@@ -203,17 +199,8 @@ class Test_I_ImageSave_SessionData
  public:
   Test_I_ImageSave_SessionData ()
    : inherited ()
-   , codecConfigurationData (NULL)
-   , codecConfigurationDataSize (0)
   {}
-  virtual ~Test_I_ImageSave_SessionData ()
-  {
-    if (codecConfigurationData)
-      delete [] codecConfigurationData;
-  }
-
-  void*      codecConfigurationData;
-  ACE_UINT32 codecConfigurationDataSize;
+  inline virtual ~Test_I_ImageSave_SessionData () {}
 };
 typedef Stream_SessionData_T<Test_I_ImageSave_SessionData> Test_I_ImageSave_SessionData_t;
 

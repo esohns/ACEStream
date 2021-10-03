@@ -365,7 +365,9 @@ Test_I_EventHandler_T<NotificationType,
 #endif // GUI_SUPPORT
 
   int result = -1;
+#if defined (GUI_SUPPORT)
   enum Common_UI_EventType event_e = COMMON_UI_EVENT_INVALID;
+#endif // GUI_SUPPORT
   switch (sessionMessage_in.type ())
   {
     case STREAM_SESSION_MESSAGE_STATISTIC:
@@ -407,7 +409,9 @@ Test_I_EventHandler_T<NotificationType,
 #endif // GUI_SUPPORT
 
 continue_:
+#if defined (GUI_SUPPORT)
       event_e = COMMON_UI_EVENT_STATISTIC;
+#endif // GUI_SUPPORT
       break;
     }
     default:
@@ -419,6 +423,8 @@ continue_:
   { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, state_r.lock);
     state_r.eventStack.push (event_e);
   } // end lock scope
+#else
+  ACE_UNUSED_ARG (event_e);
 #endif // GTK_USE || WXWIDGETS_USE
 #endif // GUI_SUPPORT
 }

@@ -170,16 +170,9 @@ add_dependencies (${EXECUTABLE} ${PROJECT_NAME}_Visualization)
 
 add_dependencies (${EXECUTABLE} ${PROJECT_NAME}_Test_I)
 
-target_link_libraries (${EXECUTABLE} ${CMAKE_THREAD_LIBS_INIT})
-
-#if (UNIX)
-# target_link_libraries (${EXECUTABLE} ${PKG_CAP_LIBRARIES})
-# if (GUI_SUPPORT)
-#  if (WXWIDGETS_USE)
-#   target_link_libraries (${EXECUTABLE} ${wxWidgets_LIBRARIES})
-#  endif (WXWIDGETS_USE)
-# endif (GUI_SUPPORT)
-#endif (UNIX)
+if (UNIX)
+ target_link_libraries (${EXECUTABLE} PUBLIC ${CMAKE_THREAD_LIBS_INIT})
+endif (UNIX)
 
 if (FFMPEG_SUPPORT)
  target_link_libraries (${EXECUTABLE} PUBLIC ${ffmpeg_LIBRARIES})

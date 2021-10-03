@@ -1303,7 +1303,7 @@ Stream_CamSave_LibCamera_Stream::Stream_CamSave_LibCamera_Stream ()
 //               ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_GTK_WINDOW_DEFAULT_NAME_STRING))
 #endif // GTK_USE
  , display_2_ (this,
-               ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_X11_WINDOW_DEFAULT_NAME_STRING))
+               ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_GTK_PIXBUF_DEFAULT_NAME_STRING))
 #endif // GUI_SUPPORT
  , converter_2 (this,
                 ACE_TEXT_ALWAYS_CHAR ("LibAV_Converter_2"))
@@ -1519,14 +1519,14 @@ Stream_CamSave_V4L_Stream::Stream_CamSave_V4L_Stream ()
  , resizer_ (this,
              ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_LIBAV_RESIZE_DEFAULT_NAME_STRING))
 #if defined (GUI_SUPPORT)
-#if defined (GTK_SUPPORT)
+#if defined (GTK_SUPPORT) && defined (GTK_USE)
  , GTKCairoDisplay_ (this,
                      ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_GTK_CAIRO_DEFAULT_NAME_STRING))
  , GTKPixbufDisplay_ (this,
                       ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_GTK_PIXBUF_DEFAULT_NAME_STRING))
 // , GTKWindowDisplay_ (this,
 //                      ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_GTK_WINDOW_DEFAULT_NAME_STRING))
-#endif // GTK_SUPPORT
+#endif // GTK_SUPPORT && defined (GTK_USE)
 // , X11Display_ (this,
 //                ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_X11_WINDOW_DEFAULT_NAME_STRING))
 #endif // GUI_SUPPORT

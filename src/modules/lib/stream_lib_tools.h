@@ -35,6 +35,10 @@
 #include "linux/videodev2.h"
 #endif // ACE_WIN32 || ACE_WIN64
 
+#if defined (LIBCAMERA_SUPPORT)
+#include "libcamera/libcamera.h"
+#endif // LIBCAMERA_SUPPORT
+
 #if defined (FFMPEG_SUPPORT)
 #ifdef __cplusplus
 extern "C"
