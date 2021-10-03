@@ -7,11 +7,12 @@ if (UNIX)
   set (MYSQL_FOUND TRUE)
   set (MYSQL_INCLUDE_DIRS "${PKG_MYSQL_INCLUDE_DIRS}")
   set (MYSQL_LIBRARIES "${PKG_MYSQL_LIBRARIES}")
+  set (MYSQL_LINK_DIRS "${PKG_MYSQL_LIBRARY_DIRS}")
  else ()
   set (MYSQL_LIB_FILE libmysqlclient.so)
   find_library (MYSQL_LIBRARY ${MYSQL_LIB_FILE}
-                PATHS /usr/local
-                PATH_SUFFIXES lib64
+                PATHS /usr/lib64
+                PATH_SUFFIXES mysql
                 DOC "searching for ${MYSQL_LIB_FILE}")
   if (MYSQL_LIBRARY)
    set (MYSQL_FOUND TRUE)

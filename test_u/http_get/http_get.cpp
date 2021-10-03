@@ -556,15 +556,13 @@ do_work (unsigned int bufferSize_in,
          Common_SignalActions_t& previousSignalActions_inout,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
          bool showConsole_in,
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
          HTTPGet_SignalHandler& signalHandler_in)
 {
   STREAM_TRACE (ACE_TEXT ("::do_work"));
 
   // sanity check(s)
   ACE_ASSERT (CBData_in.configuration);
-
-  ACE_thread_t thread_id = 0;
 
   // step0a: initialize configuration and stream
   Stream_IStreamControlBase* istream_base_p = NULL;
@@ -849,7 +847,7 @@ do_work (unsigned int bufferSize_in,
   else
 #if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
-    gtk_manager_p->wait ();
+    gtk_manager_p->wait (false);
 #else
     ;
 #endif // GTK_USE

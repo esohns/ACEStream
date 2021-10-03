@@ -1,49 +1,9 @@
+set (CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_CURRENT_SOURCE_DIR}/../../modules/Common/src/xml/scripts;${CMAKE_CURRENT_SOURCE_DIR}/../../../Common/src/xml/scripts")
+include (PreXMLImplementation)
+set (CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_CURRENT_SOURCE_DIR}/../../src/modules/db/scripts")
+include (mysql)
 set (CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_CURRENT_SOURCE_DIR}/../../modules/ACENetwork/scripts;${CMAKE_CURRENT_SOURCE_DIR}/../../../ACENetwork/scripts")
 include (SSLConfig)
-
-if (UNIX)
- pkg_check_modules (PKG_LIBXML2 REQUIRED libxml-2.0)
-# pkg_check_modules (PKG_FFMPEG REQUIRED libavcodec libavutil libswscale)
-endif (UNIX)
-
-#set (MYSQL_LIB_FILE libmysqlclient.so)
-if (UNIX)
-# pkg_check_modules (PKG_MYSQL REQUIRED libmysqlclient-dev)
- pkg_check_modules (PKG_MYSQL REQUIRED mysqlclient) # Fedora 29
-# find_library (MYSQL_LIBRARY ${MYSQL_LIB_FILE}
-#               PATHS /usr/lib
-#               PATH_SUFFIXES x86_64-linux-gnu
-#               DOC "searching for \"${MYSQL_LIB_FILE}\"")
-elseif (WIN32)
- unset (MYSQL_LIB_FILE)
- set (MYSQL_LIB_FILE libmysql.lib)
- find_library (MYSQL_LIBRARY ${MYSQL_LIB_FILE}
-#               PATHS ${CMAKE_CURRENT_SOURCE_DIR}/../../../../libmysql
-#               PATH_SUFFIXES lib
-               PATHS C:/lib/libmysql_2
-               PATHS ${CMAKE_CURRENT_SOURCE_DIR}/../../../../libmysql_2
-               PATH_SUFFIXES cmake/libmysql/Debug
-               DOC "searching for \"${MYSQL_LIB_FILE}\"")
- if (NOT MYSQL_LIBRARY)
-  message (FATAL_ERROR "could not find libmysql (was: \"${MYSQL_LIB_FILE}\"), aborting")
- endif (NOT MYSQL_LIBRARY)
-endif ()
-#add_dependencies (${PROJECT_NAME}_Database libmysqlpp.so)
-
-if (UNIX)
-elseif (WIN32)
-# *TODO*: repair pkgconfig support
- unset (LIBXML2_LIB_FILE)
- set (LIBXML2_LIB_FILE libxml2.lib)
- find_library (LIBXML2_LIBRARY ${LIBXML2_LIB_FILE}
-               PATHS $ENV{LIB_ROOT}/libxml2
-               PATH_SUFFIXES lib
-               DOC "searching for \"${LIBXML2_LIB_FILE}\""
-               NO_DEFAULT_PATH)
- if (NOT LIBXML2_LIBRARY)
-  message (FATAL_ERROR "could not find libxml2 (was: \"${LIBXML2_LIB_FILE}\"), aborting")
- endif ()
-endif ()
 
 get_filename_component (BUILD_PATH ${CMAKE_CURRENT_BINARY_DIR}/../.. REALPATH)
 get_filename_component (BUILD_PATH_SUFFIX ${BUILD_PATH} NAME)
@@ -58,21 +18,17 @@ find_package (ACENetwork ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_MICRO}
 if (NOT EXISTS ${ACENetwork_DIR})
  message (FATAL_ERROR "could not find package \"ACENetwork\", aborting")
 endif ()
-add_definitions (-DHTTP_HAS_DLL)
 
-add_definitions (-DHAVE_CONFIG_H)
-#set_property (SOURCE PROPERTY COMPILE_DEFINITIONS HAVE_CONFIG_H)
-
+if (LIBXML2_SUPPORT)
+ include_directories (${LIBXML2_INCLUDE_DIRS})
+endif (LIBXML2_SUPPORT)
+if (MYSQL_SUPPORT)
+ include_directories (${MYSQL_INCLUDE_DIRS})
+endif (MYSQL_SUPPORT)
+if (SSL_SUPPORT)
+ include_directories (${SSL_INCLUDE_DIRS})
+endif (SSL_SUPPORT)
 if (UNIX)
-# include_directories (${PKG_CAP_INCLUDE_DIRS})
- include_directories (${PKG_LIBXML2_INCLUDE_DIRS})
- include_directories (${PKG_MYSQL_INCLUDE_DIRS})
-# include_directories (${PKG_FFMPEG_INCLUDE_DIRS})
-
- if (SSL_SUPPORT)
-  include_directories (${PKG_SSL_INCLUDE_DIRS})
- endif (SSL_SUPPORT)
-
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../Common/src)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../Common/src/log)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../Common/src/signal)
@@ -84,20 +40,6 @@ if (UNIX)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../ACENetwork/src/protocol/http)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../ACENetwork/src/client_server)
 elseif (WIN32)
-# include_directories (${PKG_LIBXML2_INCLUDE_DIRS})
-# *TODO*: repair pkgconfig support
-# include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../libiconv-1.9.2-1/include)
-# include_directories (C:/lib/libiconv-1.9.2-1/include)
-# include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../libxml2-2.9.4/include)
-
-# *TODO*: repair pkgconfig support
-# include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../libmysql_2/cmake/include)
-# include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../libmysql_2/include)
-# include_directories (C:/lib/libmysql_2/cmake/include)
-# include_directories (C:/lib/libmysql_2/include)
-
- include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../openssl/include)
-
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../3rd_party)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../3rd_party/flex)
 
@@ -161,11 +103,6 @@ set (${EXECUTABLE}_EXE_SRCS
      test_i_http_get_stream_common.h)
 #  test_i_template_instantiations.cpp
 
-if (UNIX)
-# message (STATUS "PKG_MYSQL_LIBRARY_DIRS: ${PKG_MYSQL_LIBRARY_DIRS}")
- link_directories (${PKG_MYSQL_LIBRARY_DIRS})
-endif (UNIX)
-
 cmake_policy (SET CMP0060 OLD) # link libraries by full path even in implicit directories
 cmake_policy (SET CMP0065 OLD) # do not add flags to export symbols from executables without the ENABLE_EXPORTS target property
 add_executable (${EXECUTABLE}
@@ -181,66 +118,53 @@ if (WIN32)
  endif ()
 endif ()
 
-target_link_libraries (${EXECUTABLE} ${CMAKE_THREAD_LIBS_INIT})
-if (UNIX)
-elseif (WIN32)
- set_target_properties (${EXECUTABLE} PROPERTIES LINK_FLAGS /SAFESEH:NO)
-
- if (SSL_SUPPORT)
-  target_link_libraries (${EXECUTABLE} ${SSL_LIBRARIES})
- endif (SSL_SUPPORT)
-endif ()
-target_link_libraries (${EXECUTABLE} ${ACE_LIBRARY})
+if (LIBXML2_SUPPORT)
+ target_link_libraries (${EXECUTABLE} PUBLIC ${LIBXML2_LIBRARIES})
+endif (LIBXML2_SUPPORT)
+if (MYSQL_SUPPORT)
+ target_link_directories (${EXECUTABLE} PUBLIC ${MYSQL_LINK_DIRS})
+ target_link_libraries (${EXECUTABLE} PUBLIC ${MYSQL_LIBRARIES})
+endif (MYSQL_SUPPORT)
 if (SSL_SUPPORT)
- target_link_libraries (${EXECUTABLE} ${ACE_SSL_LIBRARY})
+ target_link_libraries (${EXECUTABLE} PUBLIC ${SSL_LIBRARIES})
 endif (SSL_SUPPORT)
+
 if (UNIX)
- target_link_libraries (${EXECUTABLE} ${PKG_MYSQL_LIBRARIES})
- target_link_libraries (${EXECUTABLE} ${PKG_LIBXML2_LIBRARIES})
- #target_link_libraries (${EXECUTABLE} ${PKG_FFMPEG_LIBRARIES})
+ target_link_libraries (${EXECUTABLE} PUBLIC ${CMAKE_THREAD_LIBS_INIT})
+elseif (WIN32)
+endif ()
+target_link_libraries (${EXECUTABLE} PUBLIC ${ACE_LIBRARY})
+#if (SSL_SUPPORT)
+# target_link_libraries (${EXECUTABLE} PUBLIC ${ACE_SSL_LIBRARY})
+#endif (SSL_SUPPORT)
+if (UNIX)
 elseif (WIN32)
  set (CMAKE_EXE_LINKER_FLAGS /NODEFAULTLIB:\"libcmt.lib\")
 
- target_link_libraries (${EXECUTABLE} mf.lib)
- target_link_libraries (${EXECUTABLE} mfplat.lib)
-# *TODO*: repair pkgconfig support
- target_link_libraries (${EXECUTABLE} ${LIBXML2_LIBRARY})
-
- target_link_libraries (${EXECUTABLE} ${MYSQL_LIBRARY})
+ target_link_libraries (${EXECUTABLE} PUBLIC mf.lib)
+ target_link_libraries (${EXECUTABLE} PUBLIC mfplat.lib)
 endif ()
+target_link_libraries (${EXECUTABLE} PUBLIC Common)
+target_link_libraries (${EXECUTABLE} PUBLIC CommonImage)
+target_link_libraries (${EXECUTABLE} PUBLIC CommonLog)
+target_link_libraries (${EXECUTABLE} PUBLIC CommonSignal)
+target_link_libraries (${EXECUTABLE} PUBLIC CommonTimer)
 
-if (WIN32)
-# target_link_options (${EXECUTABLE} PUBLIC "$<$<CXX_COMPILER_ID:MSVC>:-SAFESEH:NO>")
-endif (WIN32)
-target_link_libraries (${EXECUTABLE} Common)
-target_link_libraries (${EXECUTABLE} CommonImage)
-target_link_libraries (${EXECUTABLE} CommonLog)
-target_link_libraries (${EXECUTABLE} CommonSignal)
-target_link_libraries (${EXECUTABLE} CommonTimer)
+target_link_libraries (${EXECUTABLE} PUBLIC ${PROJECT_NAME})
+target_link_libraries (${EXECUTABLE} PUBLIC ${PROJECT_NAME}_Database)
+target_link_libraries (${EXECUTABLE} PUBLIC ${PROJECT_NAME}_Decoder)
+target_link_libraries (${EXECUTABLE} PUBLIC ${PROJECT_NAME}_Device)
+target_link_libraries (${EXECUTABLE} PUBLIC ${PROJECT_NAME}_File)
+target_link_libraries (${EXECUTABLE} PUBLIC ${PROJECT_NAME}_HTML)
+target_link_libraries (${EXECUTABLE} PUBLIC ${PROJECT_NAME}_MediaFramework)
+target_link_libraries (${EXECUTABLE} PUBLIC ${PROJECT_NAME}_Miscellaneous)
+target_link_libraries (${EXECUTABLE} PUBLIC ${PROJECT_NAME}_Network)
+target_link_libraries (${EXECUTABLE} PUBLIC ${PROJECT_NAME}_Statistic)
 
-target_link_libraries (${EXECUTABLE} ${PROJECT_NAME})
-target_link_libraries (${EXECUTABLE} ${PROJECT_NAME}_Database)
-target_link_libraries (${EXECUTABLE} ${PROJECT_NAME}_Decoder)
-target_link_libraries (${EXECUTABLE} ${PROJECT_NAME}_Device)
-target_link_libraries (${EXECUTABLE} ${PROJECT_NAME}_File)
-target_link_libraries (${EXECUTABLE} ${PROJECT_NAME}_HTML)
-target_link_libraries (${EXECUTABLE} ${PROJECT_NAME}_MediaFramework)
-target_link_libraries (${EXECUTABLE} ${PROJECT_NAME}_Miscellaneous)
-target_link_libraries (${EXECUTABLE} ${PROJECT_NAME}_Network)
-target_link_libraries (${EXECUTABLE} ${PROJECT_NAME}_Statistic)
+target_link_libraries (${EXECUTABLE} PUBLIC ACENetwork)
+target_link_libraries (${EXECUTABLE} PUBLIC ACENetwork_Protocol_HTTP)
 
-target_link_libraries (${EXECUTABLE} ${PROJECT_NAME}_Test_I)
-
-target_link_libraries (${EXECUTABLE} ACENetwork)
-target_link_libraries (${EXECUTABLE} ACENetwork_Protocol_HTTP)
-
-if (UNIX)
-# target_link_libraries (${EXECUTABLE} ${PKG_CAP_LIBRARIES})
- if (OPENSSL_SUPPORT)
-  target_link_libraries (${EXECUTABLE} ${SSL_LIBRARIES})
- endif (OPENSSL_SUPPORT)
- target_link_libraries (${EXECUTABLE} ${PKG_LIBXML_LIBRARIES})
-endif (UNIX)
+target_link_libraries (${EXECUTABLE} PUBLIC ${PROJECT_NAME}_Test_I)
 
 # add PCH
 set_target_properties (${EXECUTABLE} PROPERTIES COTIRE_CXX_PREFIX_HEADER_INIT "stdafx.h")

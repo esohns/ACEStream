@@ -44,7 +44,7 @@ add_library (${PROJECT_NAME}_Visualization STATIC "")
 
 if (OPENGL_SUPPORT)
  target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
-                             $<BUILD_INTERFACE:${OPENGL_INCLUDE_DIR}>)
+                             "$<BUILD_INTERFACE:${OPENGL_INCLUDE_DIR}>")
 endif (OPENGL_SUPPORT)
 if (FFMPEG_SUPPORT)
  target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
@@ -246,9 +246,6 @@ target_sources (${PROJECT_NAME}_Visualization
                 PRIVATE stdafx.h
                 ${absolute_source_files})
 
-get_target_property (debug ${PROJECT_NAME}_Visualization INTERFACE_INCLUDE_DIRECTORIES)
-#message (STATUS "INTERFACE_INCLUDE_DIRECTORIES: \"${debug}\"")
-
 set_property (TARGET ${PROJECT_NAME}_Visualization PROPERTY FOLDER "modules")
 
 add_dependencies (${PROJECT_NAME}_Visualization Common)
@@ -293,9 +290,6 @@ if (OPENGL_SUPPORT)
 endif (OPENGL_SUPPORT)
 
 target_link_libraries (${PROJECT_NAME}_Visualization PUBLIC ${PROJECT_NAME})
-
-#get_target_property (debug ${PROJECT_NAME}_Visualization INTERFACE_INCLUDE_DIRECTORIES)
-#message (STATUS "INTERFACE_INCLUDE_DIRECTORIES: \"${debug}\"")
 
 #set_target_properties (${PROJECT_NAME}_Visualization PROPERTIES DEFINE_SYMBOL STREAM_VIS_BUILD_DLL)
 #set_target_properties (${PROJECT_NAME}_Visualization PROPERTIES VERSION ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_MICRO} SOVERSION 1)

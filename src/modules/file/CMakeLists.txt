@@ -68,9 +68,6 @@ target_sources (${PROJECT_NAME}_File
                 PRIVATE stdafx.h
                 ${absolute_source_files})
 
-#get_target_property (debug ${PROJECT_NAME}_File INTERFACE_INCLUDE_DIRECTORIES)
-#message (STATUS "INTERFACE_INCLUDE_DIRECTORIES: \"${debug}\"")
-
 set_property (TARGET ${PROJECT_NAME}_File PROPERTY FOLDER "modules")
 
 add_dependencies (${PROJECT_NAME}_File Common)
