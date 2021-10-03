@@ -25,6 +25,7 @@
 
 #include "stream_macros.h"
 
+#if defined (LIBXML2_SUPPORT)
 ACE_Log_Priority
 Stream_HTML_Tools::errorLevelToLogPriority (xmlErrorLevel errorLevel_in)
 {
@@ -51,3 +52,4 @@ Stream_HTML_Tools::errorLevelToLogPriority (xmlErrorLevel errorLevel_in)
 
   return LM_ERROR;
 }
+#endif // LIBXML2_SUPPORT

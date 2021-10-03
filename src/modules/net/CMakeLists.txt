@@ -1,8 +1,7 @@
 add_library (${PROJECT_NAME}_Network STATIC "")
 
-get_filename_component (BUILD_PATH ${CMAKE_CURRENT_BINARY_DIR}/../../.. REALPATH DIRECTORY)
+get_filename_component (BUILD_PATH ${CMAKE_CURRENT_BINARY_DIR}/../../.. REALPATH)
 get_filename_component (BUILD_PATH_SUFFIX ${BUILD_PATH} NAME)
-#message (STATUS "BUILD_PATH_SUFFIX: ${BUILD_PATH_SUFFIX}")
 find_package (ACENetwork ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_MICRO}
               REQUIRED
               CONFIG
@@ -14,9 +13,6 @@ if (NOT EXISTS ${ACENetwork_DIR})
 endif (NOT EXISTS ${ACENetwork_DIR})
 
 if (UNIX)
- target_include_directories (${PROJECT_NAME}_Network PUBLIC
-                             $<BUILD_INTERFACE:${PKG_FFMPEG_INCLUDE_DIRS}>)
-
  target_include_directories (${PROJECT_NAME}_Network PUBLIC
                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../modules/Common/src>)
  target_include_directories (${PROJECT_NAME}_Network PUBLIC
@@ -69,8 +65,6 @@ set (source_files
 # Include dir for installed targets
 set (INCLUDE_DIR include/${PROJECT_NAME}-${upstream_version})
 
-#set_target_properties (${PROJECT_NAME} PROPERTIES LINKER_LANGUAGE CXX)
-
 unset (absolute_source_files)
 foreach (source_file ${source_files})
  get_filename_component (abs_source_file ${source_file} ABSOLUTE)
@@ -94,10 +88,10 @@ add_dependencies (${PROJECT_NAME}_Network Common)
 add_dependencies (${PROJECT_NAME}_Network ${PROJECT_NAME})
 
 if (WIN32)
- target_link_libraries (${PROJECT_NAME}_Network ${ACE_LIBRARY})
+ target_link_libraries (${PROJECT_NAME}_Network PUBLIC ${ACE_LIBRARY})
 endif (WIN32)
-target_link_libraries (${PROJECT_NAME}_Network Common)
-target_link_libraries (${PROJECT_NAME}_Network ${PROJECT_NAME})
+target_link_libraries (${PROJECT_NAME}_Network PUBLIC Common)
+target_link_libraries (${PROJECT_NAME}_Network PUBLIC ${PROJECT_NAME})
 
 #set_target_properties (${PROJECT_NAME}_Network PROPERTIES DEFINE_SYMBOL STREAM_NET_BUILD_DLL)
 #set_target_properties (${PROJECT_NAME}_Network PROPERTIES VERSION ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_MICRO} SOVERSION 1)

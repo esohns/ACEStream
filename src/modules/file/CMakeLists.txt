@@ -9,7 +9,7 @@ get_filename_component (BUILD_PATH_SUFFIX ${BUILD_PATH} NAME)
 
 if (IMAGEMAGICK_SUPPORT)
  target_include_directories (${PROJECT_NAME}_File PUBLIC
-                             $<BUILD_INTERFACE:${ImageMagick_INCLUDE_DIRS}>)
+                             "$<BUILD_INTERFACE:${ImageMagick_INCLUDE_DIRS}>")
 endif (IMAGEMAGICK_SUPPORT)
 if (UNIX)
  target_include_directories (${PROJECT_NAME}_File PUBLIC
@@ -55,8 +55,6 @@ endif (IMAGEMAGICK_SUPPORT)
 # Include dir for installed targets
 set (INCLUDE_DIR include/${PROJECT_NAME}-${upstream_version})
 
-#set_target_properties (${PROJECT_NAME} PROPERTIES LINKER_LANGUAGE CXX)
-
 unset (absolute_source_files)
 foreach (source_file ${source_files})
  get_filename_component (abs_source_file ${source_file} ABSOLUTE)
@@ -69,6 +67,9 @@ target_sources (${PROJECT_NAME}_File
                 PRIVATE stdafx.cpp
                 PRIVATE stdafx.h
                 ${absolute_source_files})
+
+#get_target_property (debug ${PROJECT_NAME}_File INTERFACE_INCLUDE_DIRECTORIES)
+#message (STATUS "INTERFACE_INCLUDE_DIRECTORIES: \"${debug}\"")
 
 set_property (TARGET ${PROJECT_NAME}_File PROPERTY FOLDER "modules")
 

@@ -33,8 +33,6 @@
 #include "com/sun/star/uno/Reference.h"
 #include "com/sun/star/uno/XComponentContext.hpp"
 
-//#include "common_time_common.h"
-
 #include "stream_task_base_synch.h"
 
 extern const char libacestream_default_doc_libreoffice_writer_module_name_string[];

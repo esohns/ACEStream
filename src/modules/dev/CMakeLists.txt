@@ -61,9 +61,6 @@ elseif (WIN32)
  target_include_directories (${PROJECT_NAME}_Device PUBLIC
                              $<BUILD_INTERFACE:${DIRECTSHOW_BASECLASSES_DIRECTORY}/baseclasses>)
 
-# target_include_directories (${PROJECT_NAME}_Device PUBLIC
-#                             $<BUILD_INTERFACE:$ENV{LIB_ROOT}/ffmpeg/include>)
-
  target_include_directories (${PROJECT_NAME}_Device PUBLIC
                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../Common/src>)
  target_include_directories (${PROJECT_NAME}_Device PUBLIC
@@ -145,8 +142,6 @@ endif ()
 # Include dir for installed targets
 set (INCLUDE_DIR include/${PROJECT_NAME}-${upstream_version})
 
-#set_target_properties (${PROJECT_NAME} PROPERTIES LINKER_LANGUAGE CXX)
-
 unset (absolute_source_files)
 foreach (source_file ${source_files})
  get_filename_component (abs_source_file ${source_file} ABSOLUTE)
@@ -173,9 +168,8 @@ if (UNIX)
 
  target_link_libraries (${PROJECT_NAME}_Device PUBLIC ${PKG_LIBV4L2_LIBRARIES})
  if (LIBCAMERA_SUPPORT)
-# target_link_libraries (${PROJECT_NAME}_Device ${PKG_LIBCAMERA_LIBRARIES})
   link_directories (/usr/local/lib64)
-  target_link_libraries (${PROJECT_NAME}_Device PUBLIC camera-base camera)
+  target_link_libraries (${PROJECT_NAME}_Device PUBLIC ${LIBCAMERA_LIBRARIES})
  endif (LIBCAMERA_SUPPORT)
 elseif (WIN32)
  target_link_libraries (${PROJECT_NAME}_Device PUBLIC d3d9.lib)
@@ -187,15 +181,10 @@ elseif (WIN32)
  target_link_libraries (${PROJECT_NAME}_Device PUBLIC mfuuid.lib)
  target_link_libraries (${PROJECT_NAME}_Device PUBLIC shlwapi.lib)
  target_link_libraries (${PROJECT_NAME}_Device PUBLIC strmiids.lib)
- target_link_libraries (${PROJECT_NAME}_Device PUBLIC Wmcodecdspuuid.lib)
- if (CMAKE_BUILD_TYPE STREQUAL Debug)
-#  link_directories (${DIRECTSHOW_BASECLASSES_DIRECTORY}/Debug)
-  target_link_libraries (${PROJECT_NAME}_Device PUBLIC ${DIRECTSHOW_BASECLASSES_DIRECTORY}/cmake/baseclasses/Debug/BaseClassesd.lib)
- else ()
-#  link_directories (${DIRECTSHOW_BASECLASSES_DIRECTORY}/Release)
-  target_link_libraries (${PROJECT_NAME}_Device PUBLIC ${DIRECTSHOW_BASECLASSES_DIRECTORY}/cmake/baseclasses/Release/BaseClasses.lib)
- endif ()
  target_link_libraries (${PROJECT_NAME}_Device PUBLIC winmm.lib)
+ target_link_libraries (${PROJECT_NAME}_Device PUBLIC Wmcodecdspuuid.lib)
+
+ target_link_libraries (${PROJECT_NAME}_Device PUBLIC ${DIRECTSHOW_BASECLASSES_DIRECTORY}/cmake/baseclasses/${CMAKE_BUILD_TYPE}/BaseClasses${LIB_FILE_SUFFIX}.lib)
 
  target_link_libraries (${PROJECT_NAME}_Device PUBLIC ${ACE_LIBRARY})
 

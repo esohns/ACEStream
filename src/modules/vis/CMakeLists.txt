@@ -3,14 +3,8 @@ include (OpenGL)
 include (ffmpeg)
 include (ImageMagick)
 
-set (OPENCV_DEFAULT OFF)
-option (OPENCV_SUPPORT "support OpenCV" ${OPENCV_DEFAULT})
-if (OPENCV_SUPPORT)
- add_definitions (-DOPENCV_SUPPORT)
-endif (OPENCV_SUPPORT)
-
-get_filename_component (BUILD_PATH ${CMAKE_CURRENT_BINARY_DIR}/../../.. REALPATH)
-get_filename_component (BUILD_PATH_SUFFIX ${BUILD_PATH} NAME)
+set (CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_CURRENT_SOURCE_DIR}/../dec/scripts")
+include (opencv)
 
 set (CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_CURRENT_SOURCE_DIR}/../../../modules/Common/src/ui/scripts;${CMAKE_CURRENT_SOURCE_DIR}/../../../../Common/src/ui/scripts")
 include (PreUIFramework)
@@ -19,21 +13,10 @@ if (GTK_SUPPORT) # *NOTE*: _SUPPORT, not _USE !
  include (SetGTKVersion)
 endif (GTK_SUPPORT)
 
-if (UNIX)
- if (OPENGL_SUPPORT)
-#  pkg_check_modules (PKG_OPENGL_GLUT REQUIRED glut) # Fedora
-# *NOTE*: (on Ubuntu,) freeglut3 does not come with pkg-config support
-#  pkg_check_modules (PKG_OPENGL_GLUT REQUIRED freeglut3) # Ubuntu
-  set (GLUT_LIB_FILE libglut.so)
-  find_library (GLUT_LIBRARY ${GLUT_LIB_FILE}
-                DOC "searching for \"${GLUT_LIB_FILE}\"")
-  if (NOT GLUT_LIBRARY)
-   message (FATAL_ERROR "could not find libglut (was: \"${GLUT_LIB_FILE}\"), aborting")
-  endif (NOT GLUT_LIBRARY)
-  set (PKG_OPENGL_GLUT_INCLUDE_DIRS "/usr/include")
-  set (PKG_OPENGL_GLUT_LIBRARIES ${GLUT_LIBRARY})
- endif (OPENGL_SUPPORT)
+get_filename_component (BUILD_PATH ${CMAKE_CURRENT_BINARY_DIR}/../../.. REALPATH)
+get_filename_component (BUILD_PATH_SUFFIX ${BUILD_PATH} NAME)
 
+if (UNIX)
 # pkg_check_modules (PKG_WAYLAND REQUIRED wayland-client) # Fedora
 # *NOTE*: (on Ubuntu,) libwayland does not come with pkg-config support
 # pkg_check_modules (PKG_WAYLAND REQUIRED libwayland-dev) # Ubuntu
@@ -45,24 +28,36 @@ if (UNIX)
  endif (NOT WAYLAND_LIBRARY)
  set (PKG_WAYLAND_INCLUDE_DIRS "/usr/include")
  set (PKG_WAYLAND_LIBRARIES ${WAYLAND_LIBRARY})
-
- if (OPENCV_SUPPORT)
-  pkg_check_modules (PKG_OPENCV REQUIRED opencv)
- endif (OPENCV_SUPPORT)
 endif (UNIX)
 
 if (UNIX)
 elseif (WIN32)
  add_definitions (-D__STDC_CONSTANT_MACROS)
 
- if (WIN32 AND (CMAKE_BUILD_TYPE STREQUAL Debug))
+ if (CMAKE_BUILD_TYPE STREQUAL Debug)
  # *NOTE*: DirectShow uses 'DEBUG'
   add_definitions (-DDEBUG) # activate DirectShow debug logging
- endif (WIN32 AND (CMAKE_BUILD_TYPE STREQUAL Debug))
+ endif (CMAKE_BUILD_TYPE STREQUAL Debug)
 endif ()
 
 add_library (${PROJECT_NAME}_Visualization STATIC "")
 
+if (OPENGL_SUPPORT)
+ target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
+                             $<BUILD_INTERFACE:${OPENGL_INCLUDE_DIR}>)
+endif (OPENGL_SUPPORT)
+if (FFMPEG_SUPPORT)
+ target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
+                             $<BUILD_INTERFACE:${ffmpeg_INCLUDE_DIRS}>)
+endif (FFMPEG_SUPPORT)
+if (IMAGEMAGICK_SUPPORT)
+ target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
+                             "$<BUILD_INTERFACE:${ImageMagick_INCLUDE_DIRS}>")
+endif (IMAGEMAGICK_SUPPORT)
+if (OPENCV_SUPPORT)
+ target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
+                             $<BUILD_INTERFACE:${OPENCV_INCLUDE_DIRS}>)
+endif (OPENCV_SUPPORT)
 if (GTK_SUPPORT)
 # message (STATUS "VIS:: GTK_INCLUDE_DIRS: ${GTK_INCLUDE_DIRS}")
  target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
@@ -77,26 +72,9 @@ if (GTK_SUPPORT)
   endif (GTKGLAREA_SUPPORT)
  endif (GTKGL_SUPPORT)
 endif (GTK_SUPPORT)
-
 if (UNIX)
- if (OPENGL_SUPPORT)
-  target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
-                              $<BUILD_INTERFACE:${PKG_OPENGL_GLUT_INCLUDE_DIRS}>)
- endif (OPENGL_SUPPORT)
  target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
                              $<BUILD_INTERFACE:${PKG_WAYLAND_INCLUDE_DIRS}>)
- if (FFMPEG_SUPPORT)
-  target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
-                              $<BUILD_INTERFACE:${ffmpeg_INCLUDE_DIRS}>)
- endif (FFMPEG_SUPPORT)
- if (IMAGEMAGICK_SUPPORT)
-  target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
-                              "$<BUILD_INTERFACE:${ImageMagick_INCLUDE_DIRS}>")
- endif (IMAGEMAGICK_SUPPORT)
- if (OPENCV_SUPPORT)
-  target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
-                              $<BUILD_INTERFACE:${PKG_OPENCV_INCLUDE_DIRS}>)
- endif (OPENCV_SUPPORT)
 
  target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../modules/Common/src>)
@@ -133,40 +111,6 @@ elseif (WIN32)
 # message (STATUS "DirectShow baseclasses directory: \"${DIRECTSHOW_BASECLASSES_DIRECTORY}\"")
  target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
                              $<BUILD_INTERFACE:${DIRECTSHOW_BASECLASSES_DIRECTORY}/baseclasses>)
-
- if (OPENGL_SUPPORT)
-  target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
-                              $<BUILD_INTERFACE:$ENV{LIB_ROOT}/glm>)
-  target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
-                              $<BUILD_INTERFACE:$ENV{LIB_ROOT}/freeglut/include>)
- endif (OPENGL_SUPPORT)
-
- if (FFMPEG_SUPPORT)
-  target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
-                              $<BUILD_INTERFACE:${ffmpeg_INCLUDE_DIRS}>)
- endif (FFMPEG_SUPPORT)
- if (IMAGEMAGICK_SUPPORT)
-  target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
-                              $<BUILD_INTERFACE:${ImageMagick_INCLUDE_DIRS}>)
- endif (IMAGEMAGICK_SUPPORT)
- if (OPENCV_SUPPORT)
-  target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
-                              $<BUILD_INTERFACE:$ENV{LIB_ROOT}/opencv/include>)
-  target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
-                              $<BUILD_INTERFACE:$ENV{LIB_ROOT}/opencv/modules/core/include>)
-  target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
-                              $<BUILD_INTERFACE:$ENV{LIB_ROOT}/opencv/modules/highgui/include>)
-  target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
-                              $<BUILD_INTERFACE:$ENV{LIB_ROOT}/opencv/modules/imgcodecs/include>)
-  target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
-                              $<BUILD_INTERFACE:$ENV{LIB_ROOT}/opencv/modules/imgproc/include>)
-  target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
-                              $<BUILD_INTERFACE:$ENV{LIB_ROOT}/opencv/modules/objdetect/include>)
-  target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
-                              $<BUILD_INTERFACE:$ENV{LIB_ROOT}/opencv/modules/videoio/include>)
-  target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
-                              $<BUILD_INTERFACE:$ENV{LIB_ROOT}/opencv/${BUILD_PATH_SUFFIX}>)
- endif (OPENCV_SUPPORT)
 
  target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../Common/src>)
@@ -212,30 +156,13 @@ set (source_files
      stream_vis_iresize.h
      stream_vis_tools.cpp
      stream_vis_tools.h)
-if (OPENGL_SUPPORT)
+if (GLUT_SUPPORT)
  set (source_files
       ${source_files}
       stream_vis_opengl_glut.cpp
       stream_vis_opengl_glut.h
       stream_vis_opengl_glut.inl)
-endif (OPENGL_SUPPORT)
-if (GTK_SUPPORT)
- set (source_files
-      ${source_files}
-      stream_vis_gtk_cairo.cpp
-      stream_vis_gtk_cairo.h
-      stream_vis_gtk_cairo.inl
-      stream_vis_gtk_cairo_spectrum_analyzer.cpp
-      stream_vis_gtk_cairo_spectrum_analyzer.h
-      stream_vis_gtk_cairo_spectrum_analyzer.inl
-      stream_vis_gtk_common.h
-      stream_vis_gtk_pixbuf.cpp
-      stream_vis_gtk_pixbuf.h
-      stream_vis_gtk_pixbuf.inl
-      stream_vis_gtk_window.cpp
-      stream_vis_gtk_window.h
-      stream_vis_gtk_window.inl)
-endif (GTK_SUPPORT)
+endif (GLUT_SUPPORT)
 if (FFMPEG_SUPPORT)
  set (source_files
       ${source_files}
@@ -260,6 +187,23 @@ if (OPENCV_SUPPORT)
       stream_vis_opencv_classifier.h
       stream_vis_opencv_classifier.inl)
 endif (OPENCV_SUPPORT)
+if (GTK_SUPPORT)
+ set (source_files
+      ${source_files}
+      stream_vis_gtk_cairo.cpp
+      stream_vis_gtk_cairo.h
+      stream_vis_gtk_cairo.inl
+      stream_vis_gtk_cairo_spectrum_analyzer.cpp
+      stream_vis_gtk_cairo_spectrum_analyzer.h
+      stream_vis_gtk_cairo_spectrum_analyzer.inl
+      stream_vis_gtk_common.h
+      stream_vis_gtk_pixbuf.cpp
+      stream_vis_gtk_pixbuf.h
+      stream_vis_gtk_pixbuf.inl
+      stream_vis_gtk_window.cpp
+      stream_vis_gtk_window.h
+      stream_vis_gtk_window.inl)
+endif (GTK_SUPPORT)
 if (UNIX)
  set (source_files
       ${source_files}
@@ -289,8 +233,6 @@ endif ()
 # Include dir for installed targets
 set (INCLUDE_DIR include/${PROJECT_NAME}-${upstream_version})
 
-#set_target_properties (${PROJECT_NAME} PROPERTIES LINKER_LANGUAGE CXX)
-
 unset (absolute_source_files)
 foreach (source_file ${source_files})
  get_filename_component (abs_source_file ${source_file} ABSOLUTE)
@@ -317,47 +259,40 @@ add_dependencies (${PROJECT_NAME}_Visualization CommonMath)
 
 add_dependencies (${PROJECT_NAME}_Visualization ${PROJECT_NAME})
 
-if (UNIX)
- if (OPENGL_SUPPORT)
-  target_link_libraries (${PROJECT_NAME}_Visualization ${GLUT_LIBRARY})
- endif (OPENGL_SUPPORT)
- target_link_libraries (${PROJECT_NAME}_Visualization ${PKG_WAYLAND_LIBRARIES})
- if (FFMPEG_SUPPORT)
-  target_link_libraries (${PROJECT_NAME}_Visualization ${ffmpeg_LIBRARIES})
- endif (FFMPEG_SUPPORT)
-elseif (WIN32)
- target_link_libraries (${PROJECT_NAME}_Visualization Advapi32.lib)
- target_link_libraries (${PROJECT_NAME}_Visualization Evr.lib)
- target_link_libraries (${PROJECT_NAME}_Visualization Ole32.lib)
- target_link_libraries (${PROJECT_NAME}_Visualization mfplat.lib)
- target_link_libraries (${PROJECT_NAME}_Visualization mfuuid.lib)
- target_link_libraries (${PROJECT_NAME}_Visualization strmiids.lib)
-# target_link_libraries (${PROJECT_NAME}_Visualization ucrt${LIB_FILE_SUFFIX}.lib)
-# target_link_libraries (${PROJECT_NAME}_Visualization uuids.lib)
- target_link_libraries (${PROJECT_NAME}_Visualization User32.lib)
-
- if (OPENGL_SUPPORT)
-  target_link_libraries (${PROJECT_NAME}_Visualization $ENV{LIB_ROOT}/freeglut/lib/freeglut.lib)
- endif (OPENGL_SUPPORT)
-endif ()
-if (GTK_SUPPORT)
- target_link_libraries (${PROJECT_NAME}_Visualization ${GTK_LIBRARIES})
-endif (GTK_SUPPORT)
+if (OPENGL_SUPPORT)
+ target_link_libraries (${PROJECT_NAME}_Visualization PUBLIC ${OPENGL_LIBRARIES})
+endif (OPENGL_SUPPORT)
 if (FFMPEG_SUPPORT)
- target_link_libraries (${PROJECT_NAME}_Visualization ${ffmpeg_LIBRARIES})
+ target_link_libraries (${PROJECT_NAME}_Visualization PUBLIC ${ffmpeg_LIBRARIES})
 endif (FFMPEG_SUPPORT)
 if (IMAGEMAGICK_SUPPORT)
- target_link_libraries (${PROJECT_NAME}_Visualization ${ImageMagick_LIBRARIES})
+ target_link_libraries (${PROJECT_NAME}_Visualization PUBLIC ${ImageMagick_LIBRARIES})
 endif (IMAGEMAGICK_SUPPORT)
+if (GTK_SUPPORT)
+ target_link_libraries (${PROJECT_NAME}_Visualization PUBLIC ${GTK_LIBRARIES})
+endif (GTK_SUPPORT)
+if (UNIX)
+ target_link_libraries (${PROJECT_NAME}_Visualization PUBLIC ${PKG_WAYLAND_LIBRARIES})
+elseif (WIN32)
+ target_link_libraries (${PROJECT_NAME}_Visualization PUBLIC Advapi32.lib)
+ target_link_libraries (${PROJECT_NAME}_Visualization PUBLIC Evr.lib)
+ target_link_libraries (${PROJECT_NAME}_Visualization PUBLIC Ole32.lib)
+ target_link_libraries (${PROJECT_NAME}_Visualization PUBLIC mfplat.lib)
+ target_link_libraries (${PROJECT_NAME}_Visualization PUBLIC mfuuid.lib)
+ target_link_libraries (${PROJECT_NAME}_Visualization PUBLIC strmiids.lib)
+# target_link_libraries (${PROJECT_NAME}_Visualization PUBLIC ucrt${LIB_FILE_SUFFIX}.lib)
+# target_link_libraries (${PROJECT_NAME}_Visualization PUBLIC uuids.lib)
+ target_link_libraries (${PROJECT_NAME}_Visualization PUBLIC User32.lib)
+endif ()
 
-target_link_libraries (${PROJECT_NAME}_Visualization ${ACE_LIBRARY})
+target_link_libraries (${PROJECT_NAME}_Visualization PUBLIC ${ACE_LIBRARY})
 
-target_link_libraries (${PROJECT_NAME}_Visualization Common)
+target_link_libraries (${PROJECT_NAME}_Visualization PUBLIC Common)
 if (OPENGL_SUPPORT)
- target_link_libraries (${PROJECT_NAME}_Visualization CommonOpenGL)
+ target_link_libraries (${PROJECT_NAME}_Visualization PUBLIC CommonOpenGL)
 endif (OPENGL_SUPPORT)
 
-target_link_libraries (${PROJECT_NAME}_Visualization ${PROJECT_NAME})
+target_link_libraries (${PROJECT_NAME}_Visualization PUBLIC ${PROJECT_NAME})
 
 #get_target_property (debug ${PROJECT_NAME}_Visualization INTERFACE_INCLUDE_DIRECTORIES)
 #message (STATUS "INTERFACE_INCLUDE_DIRECTORIES: \"${debug}\"")
@@ -380,19 +315,12 @@ set (header_files
      stream_vis_defines.h
      stream_vis_iresize.h
      stream_vis_tools.h)
-if (GTK_SUPPORT)
+if (GLUT_SUPPORT)
  set (header_files
       ${header_files}
-      stream_vis_gtk_cairo.h
-      stream_vis_gtk_cairo.inl
-      stream_vis_gtk_cairo_spectrum_analyzer.h
-      stream_vis_gtk_cairo_spectrum_analyzer.inl
-      stream_vis_gtk_common.h
-      stream_vis_gtk_pixbuf.h
-      stream_vis_gtk_pixbuf.inl
-      stream_vis_gtk_window.h
-      stream_vis_gtk_window.inl)
-endif (GTK_SUPPORT)
+      stream_vis_opengl_glut.h
+      stream_vis_opengl_glut.inl)
+endif (GLUT_SUPPORT)
 if (FFMPEG_SUPPORT)
  set (header_files
       ${header_files}
@@ -413,12 +341,19 @@ if (OPENCV_SUPPORT)
       stream_vis_opencv_classifier.h
       stream_vis_opencv_classifier.inl)
 endif (OPENCV_SUPPORT)
-if (OPENGL_SUPPORT)
+if (GTK_SUPPORT)
  set (header_files
       ${header_files}
-      stream_vis_opengl_glut.h
-      stream_vis_opengl_glut.inl)
-endif (OPENGL_SUPPORT)
+      stream_vis_gtk_cairo.h
+      stream_vis_gtk_cairo.inl
+      stream_vis_gtk_cairo_spectrum_analyzer.h
+      stream_vis_gtk_cairo_spectrum_analyzer.inl
+      stream_vis_gtk_common.h
+      stream_vis_gtk_pixbuf.h
+      stream_vis_gtk_pixbuf.inl
+      stream_vis_gtk_window.h
+      stream_vis_gtk_window.inl)
+endif (GTK_SUPPORT)
 if (UNIX)
  set (header_files
       ${header_files}

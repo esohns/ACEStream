@@ -3,37 +3,19 @@ include (ImageMagick)
 
 set (CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_CURRENT_SOURCE_DIR}/../lib/scripts")
 include (sox)
-
-set (MPG123_DEFAULT ON)
-option (MPG123_SUPPORT "support mpg123" ${MPG123_DEFAULT})
-if (MPG123_SUPPORT)
- add_definitions (-DMPG123_SUPPORT)
-endif (MPG123_SUPPORT)
-
-set (OPENCV_DEFAULT OFF)
-option (OPENCV_SUPPORT "support OpenCV" ${OPENCV_DEFAULT})
-if (OPENCV_SUPPORT)
- add_definitions (-DOPENCV_SUPPORT)
-endif (OPENCV_SUPPORT)
+set (CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_CURRENT_SOURCE_DIR}/scripts")
+include (mpg123)
+include (opencv)
+include (zlib)
 
 ##########################################
 
 if (UNIX)
  pkg_check_modules (PKG_ALSA REQUIRED alsa)
- if (MPG123_SUPPORT)
-  pkg_check_modules (PKG_MPEG REQUIRED libmpg123)
- endif (MPG123_SUPPORT)
- if (OPENCV_SUPPORT)
-  pkg_check_modules (PKG_OPENCV REQUIRED opencv)
- endif (OPENCV_SUPPORT)
 endif (UNIX)
 
 if (WIN32)
  add_definitions (-D_USE_MATH_DEFINES)
- #add_definitions (-DWIN32)
-# *TODO*: this is a work-around for opencv support with vs2010 (requires __cplusplus >= 201103L)
-#         --> remove ASAP
- #add_definitions (-DCV_CXX11)
 endif (WIN32)
 
 add_library (${PROJECT_NAME}_Decoder STATIC "")
@@ -53,17 +35,21 @@ if (SOX_SUPPORT)
  target_include_directories (${PROJECT_NAME}_Decoder PUBLIC
                              $<BUILD_INTERFACE:${SOX_INCLUDE_DIRS}>)
 endif (SOX_SUPPORT)
+if (MPG123_SUPPORT)
+ target_include_directories (${PROJECT_NAME}_Decoder PUBLIC
+                             $<BUILD_INTERFACE:${MPG123_INCLUDE_DIRS}>)
+endif (MPG123_SUPPORT)
+if (OPENCV_SUPPORT)
+ target_include_directories (${PROJECT_NAME}_Decoder PUBLIC
+                             $<BUILD_INTERFACE:${OPENCV_INCLUDE_DIRS}>)
+endif (OPENCV_SUPPORT)
+if (ZLIB_SUPPORT)
+ target_include_directories (${PROJECT_NAME}_Decoder PUBLIC
+                             $<BUILD_INTERFACE:${ZLIB_INCLUDE_DIRS}>)
+endif (ZLIB_SUPPORT)
 if (UNIX)
  target_include_directories (${PROJECT_NAME}_Decoder PUBLIC
                              $<BUILD_INTERFACE:${PKG_ALSA_INCLUDE_DIRS}>)
- if (OPENCV_SUPPORT)
-  target_include_directories (${PROJECT_NAME}_Decoder PUBLIC
-                              $<BUILD_INTERFACE:${PKG_OPENCV_INCLUDE_DIRS}>)
- endif (OPENCV_SUPPORT)
- if (MPG123_SUPPORT)
-  target_include_directories (${PROJECT_NAME}_Decoder PUBLIC
-                              $<BUILD_INTERFACE:${PKG_MPG123_INCLUDE_DIRS}>)
- endif (MPG123_SUPPORT)
 # include_directories (${PKG_LIBSNDFILE_INCLUDE_DIRS})
 
  target_include_directories (${PROJECT_NAME}_Decoder PUBLIC
@@ -101,33 +87,6 @@ elseif (WIN32)
 # message (STATUS "DirectShow baseclasses directory: \"${DIRECTSHOW_BASECLASSES_DIRECTORY}\"")
  target_include_directories (${PROJECT_NAME}_Decoder PUBLIC
                              $<BUILD_INTERFACE:${DIRECTSHOW_BASECLASSES_DIRECTORY}/baseclasses>)
-
- if (OPENCV_SUPPORT)
-  target_include_directories (${PROJECT_NAME}_Decoder PUBLIC
-                              $<BUILD_INTERFACE:$ENV{LIB_ROOT}/opencv/include>)
-  target_include_directories (${PROJECT_NAME}_Decoder PUBLIC
-                              $<BUILD_INTERFACE:$ENV{LIB_ROOT}/opencv/modules/core/include>)
-  target_include_directories (${PROJECT_NAME}_Decoder PUBLIC
-                              $<BUILD_INTERFACE:$ENV{LIB_ROOT}/opencv/modules/highgui/include>)
-  target_include_directories (${PROJECT_NAME}_Decoder PUBLIC
-                              $<BUILD_INTERFACE:$ENV{LIB_ROOT}/opencv/modules/imgcodecs/include>)
-  target_include_directories (${PROJECT_NAME}_Decoder PUBLIC
-                              $<BUILD_INTERFACE:$ENV{LIB_ROOT}/opencv/modules/imgproc/include>)
-  target_include_directories (${PROJECT_NAME}_Decoder PUBLIC
-                              $<BUILD_INTERFACE:$ENV{LIB_ROOT}/opencv/modules/videoio/include>)
-  target_include_directories (${PROJECT_NAME}_Decoder PUBLIC
-                              $<BUILD_INTERFACE:$ENV{LIB_ROOT}/opencv/${BUILD_PATH_SUFFIX}>)
- endif (OPENCV_SUPPORT)
-
- if (MPG123_SUPPORT)
-  target_include_directories (${PROJECT_NAME}_Decoder PUBLIC
-                              $<BUILD_INTERFACE:$ENV{LIB_ROOT}/mpg123>)
- endif (MPG123_SUPPORT)
-
- target_include_directories (${PROJECT_NAME}_Decoder PUBLIC
-                             $<BUILD_INTERFACE:$ENV{LIB_ROOT}/zlib>)
- target_include_directories (${PROJECT_NAME}_Decoder PUBLIC
-                             $<BUILD_INTERFACE:$ENV{LIB_ROOT}/zlib/cmake>)
 
  target_include_directories (${PROJECT_NAME}_Decoder PUBLIC
                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../Common/3rd_party/msvc>)
@@ -179,9 +138,6 @@ set (source_files
      stream_dec_h264_nal_decoder.cpp
      stream_dec_h264_nal_decoder.h
      stream_dec_h264_nal_decoder.inl
-     stream_dec_mp3_decoder.cpp
-     stream_dec_mp3_decoder.h
-     stream_dec_mp3_decoder.inl
      stream_dec_mpeg_4_common.h
      stream_dec_mpeg_4_decoder.cpp
      stream_dec_mpeg_4_decoder.h
@@ -197,10 +153,7 @@ set (source_files
      stream_dec_tools.h
      stream_dec_wav_encoder.cpp
      stream_dec_wav_encoder.h
-     stream_dec_wav_encoder.inl
-     stream_dec_zip_decoder.cpp
-     stream_dec_zip_decoder.h
-     stream_dec_zip_decoder.inl)
+     stream_dec_wav_encoder.inl)
 if (WIN32)
  set (source_files
       ${source_files}
@@ -245,6 +198,13 @@ if (SOX_SUPPORT)
       stream_dec_sox_effect.h
       stream_dec_sox_effect.inl)
 endif (SOX_SUPPORT)
+if (MPG123_SUPPORT)
+ set (source_files
+      ${source_files}
+      stream_dec_mp3_decoder.cpp
+      stream_dec_mp3_decoder.h
+      stream_dec_mp3_decoder.inl)
+endif (MPG123_SUPPORT)
 if (OPENCV_SUPPORT)
  set (source_files
       ${source_files}
@@ -252,6 +212,13 @@ if (OPENCV_SUPPORT)
       stream_dec_opencv_decoder.h
       stream_dec_opencv_decoder.inl)
 endif (OPENCV_SUPPORT)
+if (ZLIB_SUPPORT)
+ set (source_files
+      ${source_files}
+      stream_dec_zip_decoder.cpp
+      stream_dec_zip_decoder.h
+      stream_dec_zip_decoder.inl)
+endif (ZLIB_SUPPORT)
 
 set (script_files
      scripts/avi_scanner.l
@@ -302,14 +269,17 @@ endif (IMAGEMAGICK_SUPPORT)
 if (SOX_SUPPORT)
  target_link_libraries (${PROJECT_NAME}_Decoder PUBLIC ${SOX_LIBRARIES})
 endif (SOX_SUPPORT)
+if (OPENCV_SUPPORT)
+ target_link_libraries (${PROJECT_NAME}_Decoder PUBLIC ${OPENCV_LIBRARIES})
+endif (OPENCV_SUPPORT)
+if (MPG123_SUPPORT)
+ target_link_libraries (${PROJECT_NAME}_Decoder PUBLIC ${MPG123_LIBRARIES})
+endif (MPG123_SUPPORT)
+if (ZLIB_SUPPORT)
+ target_link_libraries (${PROJECT_NAME}_Decoder PUBLIC ${ZLIB_LIBRARIES})
+endif (ZLIB_SUPPORT)
 if (UNIX)
  target_link_libraries (${PROJECT_NAME}_Decoder PUBLIC ${PKG_ALSA_LIBRARIES})
- if (OPENCV_SUPPORT)
-  target_link_libraries (${PROJECT_NAME}_Decoder PUBLIC ${PKG_OPENCV_LIBRARIES})
- endif (OPENCV_SUPPORT)
- if (MPG123_SUPPORT)
-  target_link_libraries (${PROJECT_NAME}_Decoder PUBLIC ${PKG_MPG123_LIBRARIES})
- endif (MPG123_SUPPORT)
 elseif (WIN32)
 # set (CMAKE_EXE_LINKER_FLAGS /NODEFAULTLIB:\"libcmt.lib\")
  set (DIRECTX_SDK_DIRECTORY
@@ -328,21 +298,6 @@ elseif (WIN32)
    target_link_libraries (${PROJECT_NAME}_Decoder PUBLIC vcruntime${LIB_FILE_SUFFIX}.lib ucrt${LIB_FILE_SUFFIX}.lib)
   endif ()
  endif (MSVC)
-
-# if (FFMPEG_SUPPORT)
-#  target_link_libraries (${PROJECT_NAME}_Decoder PUBLIC "$<$<CXX_COMPILER_ID:MSVC>:-SAFESEH:NO>")
-# endif (FFMPEG_SUPPORT)
- if (OPENCV_SUPPORT)
-  target_link_libraries (${PROJECT_NAME}_Decoder PUBLIC $ENV{LIB_ROOT}/opencv/${BUILD_PATH_SUFFIX}/lib/${CMAKE_BUILD_TYPE}/opencv_core453${LIB_FILE_SUFFIX}.lib)
-  target_link_libraries (${PROJECT_NAME}_Decoder PUBLIC $ENV{LIB_ROOT}/opencv/${BUILD_PATH_SUFFIX}/lib/${CMAKE_BUILD_TYPE}/opencv_highgui453${LIB_FILE_SUFFIX}.lib)
-  target_link_libraries (${PROJECT_NAME}_Decoder PUBLIC $ENV{LIB_ROOT}/opencv/${BUILD_PATH_SUFFIX}/lib/${CMAKE_BUILD_TYPE}/opencv_imgcodecs453${LIB_FILE_SUFFIX}.lib)
-  target_link_libraries (${PROJECT_NAME}_Decoder PUBLIC $ENV{LIB_ROOT}/opencv/${BUILD_PATH_SUFFIX}/lib/${CMAKE_BUILD_TYPE}/opencv_imgproc453${LIB_FILE_SUFFIX}.lib)
-  target_link_libraries (${PROJECT_NAME}_Decoder PUBLIC $ENV{LIB_ROOT}/opencv/${BUILD_PATH_SUFFIX}/lib/${CMAKE_BUILD_TYPE}/opencv_videoio453${LIB_FILE_SUFFIX}.lib)
- endif (OPENCV_SUPPORT)
- if (MPG123_SUPPORT)
-  target_link_libraries (${PROJECT_NAME}_Decoder PUBLIC $ENV{LIB_ROOT}/mpg123/libmpg123-0.lib)
- endif (MPG123_SUPPORT)
-
  target_link_libraries (${PROJECT_NAME}_Decoder PUBLIC ${ACE_LIBRARY})
 endif ()
 target_link_libraries (${PROJECT_NAME}_Decoder PUBLIC Common)
@@ -376,8 +331,6 @@ set (${PROJECT_NAME}_Decoder_LIB_HDRS
      stream_dec_h264_nal_bisector.h
      stream_dec_h264_nal_decoder.h
      stream_dec_h264_nal_decoder.inl
-     stream_dec_mp3_decoder.h
-     stream_dec_mp3_decoder.inl
      stream_dec_mpeg_4_common.h
      stream_dec_mpeg_4_decoder.h
      stream_dec_mpeg_4_decoder.inl
@@ -388,9 +341,7 @@ set (${PROJECT_NAME}_Decoder_LIB_HDRS
      stream_dec_riff_scanner.h
      stream_dec_tools.h
      stream_dec_wav_encoder.h
-     stream_dec_wav_encoder.inl
-     stream_dec_zip_decoder.h
-     stream_dec_zip_decoder.inl)
+     stream_dec_wav_encoder.inl)
 if (WIN32)
  set (${PROJECT_NAME}_Decoder_LIB_HDRS
       ${${PROJECT_NAME}_Decoder_LIB_HDRS}
@@ -421,6 +372,12 @@ if (IMAGEMAGICK_SUPPORT)
       stream_dec_imagemagick_decoder.h
       stream_dec_imagemagick_decoder.inl)
 endif (IMAGEMAGICK_SUPPORT)
+if (MPG123_SUPPORT)
+ set (${PROJECT_NAME}_Decoder_LIB_HDRS
+      ${${PROJECT_NAME}_Decoder_LIB_HDRS}
+      stream_dec_mp3_decoder.h
+      stream_dec_mp3_decoder.inl)
+endif (MPG123_SUPPORT)
 if (OPENCV_SUPPORT)
  set (${PROJECT_NAME}_Decoder_LIB_HDRS
       ${${PROJECT_NAME}_Decoder_LIB_HDRS}
@@ -432,6 +389,12 @@ if (SOX_SUPPORT)
       stream_dec_sox_effect.h
       stream_dec_sox_effect.inl)
 endif (SOX_SUPPORT)
+if (ZLIB_SUPPORT)
+ set (${PROJECT_NAME}_Decoder_LIB_HDRS
+      ${${PROJECT_NAME}_Decoder_LIB_HDRS}
+      stream_dec_zip_decoder.h
+      stream_dec_zip_decoder.inl)
+endif (ZLIB_SUPPORT)
 
 install (FILES
          ${${PROJECT_NAME}_Decoder_LIB_HDRS}

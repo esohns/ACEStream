@@ -1,21 +1,6 @@
-if (UNIX)
-# add_definitions (-D_GLIBCXX_INCLUDE_NEXT_C_HEADERS)
-endif ()
-
-#set (LLVM_COMPILER_ID_STRING "Clang")
-#string (TOLOWER "${LLVM_COMPILER_ID_STRING}" LLVM_COMPILER_ID_STRING_LOWER)
-#string (TOLOWER "${CMAKE_CXX_COMPILER_ID}" CXX_COMPILER_ID_STRING_LOWER)
-#if (CXX_COMPILER_ID_STRING_LOWER STREQUAL LLVM_COMPILER_ID_STRING_LOWER)
-# add_compile_options (-std=c++11)
- #add_compile_options (-fPIC)
-#endif ()
-
 add_library (${PROJECT_NAME}_Network_Protocol_HTTPGet STATIC "")
 
 if (UNIX)
- target_include_directories (${PROJECT_NAME}_Network_Protocol_HTTPGet PUBLIC
-                             $<BUILD_INTERFACE:$ENV{LIB_ROOT}/ACE_TAO/ACE>)
-
  target_include_directories (${PROJECT_NAME}_Network_Protocol_HTTPGet PUBLIC
                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../../../Common/src>)
  target_include_directories (${PROJECT_NAME}_Network_Protocol_HTTPGet PUBLIC
@@ -28,14 +13,6 @@ if (UNIX)
  target_include_directories (${PROJECT_NAME}_Network_Protocol_HTTPGet PUBLIC
                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../../../ACENetwork/src/protocol/http>)
 elseif (WIN32)
- if (DEFINED ENV{ACE_ROOT})
-  target_include_directories (${PROJECT_NAME}_Network_Protocol_HTTPGet PUBLIC
-                              $<BUILD_INTERFACE:$ENV{ACE_ROOT}>)
- else ()
-  target_include_directories (${PROJECT_NAME}_Network_Protocol_HTTPGet PUBLIC
-                              $<BUILD_INTERFACE:$ENV{LIB_ROOT}/ACE_TAO/ACE>)
- endif (DEFINED ENV{ACE_ROOT})
-
  target_include_directories (${PROJECT_NAME}_Network_Protocol_HTTPGet PUBLIC
                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../../../Common/src>)
  target_include_directories (${PROJECT_NAME}_Network_Protocol_HTTPGet PUBLIC
@@ -72,8 +49,6 @@ set (source_files
 # Include dir for installed targets
 set (INCLUDE_DIR include/${PROJECT_NAME}-${upstream_version})
 
-#set_target_properties (${PROJECT_NAME} PROPERTIES LINKER_LANGUAGE CXX)
-
 unset (absolute_source_files)
 foreach (source_file ${source_files})
  get_filename_component (abs_source_file ${source_file} ABSOLUTE)
@@ -94,14 +69,14 @@ add_dependencies (${PROJECT_NAME}_Network_Protocol_HTTPGet ${PROJECT_NAME})
 add_dependencies (${PROJECT_NAME}_Network_Protocol_HTTPGet ${PROJECT_NAME}_Network)
 
 if (WIN32)
- target_link_libraries (${PROJECT_NAME}_Network_Protocol_HTTPGet ${ACE_LIBRARY})
+ target_link_libraries (${PROJECT_NAME}_Network_Protocol_HTTPGet PUBLIC ${ACE_LIBRARY})
 endif (WIN32)
-target_link_libraries (${PROJECT_NAME}_Network_Protocol_HTTPGet Common)
-target_link_libraries (${PROJECT_NAME}_Network_Protocol_HTTPGet ${PROJECT_NAME})
-target_link_libraries (${PROJECT_NAME}_Network_Protocol_HTTPGet ${PROJECT_NAME}_Network)
+target_link_libraries (${PROJECT_NAME}_Network_Protocol_HTTPGet PUBLIC Common)
+target_link_libraries (${PROJECT_NAME}_Network_Protocol_HTTPGet PUBLIC ${PROJECT_NAME})
+target_link_libraries (${PROJECT_NAME}_Network_Protocol_HTTPGet PUBLIC ${PROJECT_NAME}_Network)
 
-set_target_properties (${PROJECT_NAME}_Network_Protocol_HTTPGet PROPERTIES DEFINE_SYMBOL STREAM_NET_HTTP_BUILD_DLL)
-set_target_properties (${PROJECT_NAME}_Network_Protocol_HTTPGet PROPERTIES VERSION ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_MICRO} SOVERSION 1)
+#set_target_properties (${PROJECT_NAME}_Network_Protocol_HTTPGet PROPERTIES DEFINE_SYMBOL STREAM_NET_HTTP_BUILD_DLL)
+#set_target_properties (${PROJECT_NAME}_Network_Protocol_HTTPGet PROPERTIES VERSION ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_MICRO} SOVERSION 1)
 
 # add PCH
 set_target_properties (${PROJECT_NAME}_Network_Protocol_HTTPGet PROPERTIES COTIRE_CXX_PREFIX_HEADER_INIT "stdafx.h")

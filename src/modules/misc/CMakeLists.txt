@@ -1,13 +1,6 @@
-#if (UNIX)
-# pkg_check_modules (PKG_FFMPEG REQUIRED libavutil)
-#endif (UNIX)
-
 add_library (${PROJECT_NAME}_Miscellaneous STATIC "")
 
 if (UNIX)
-# target_include_directories (${PROJECT_NAME}_Miscellaneous PUBLIC
-#                             $<BUILD_INTERFACE:${PKG_FFMPEG_INCLUDE_DIRS}>)
-
  target_include_directories (${PROJECT_NAME}_Miscellaneous PUBLIC
                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../modules/Common/src>)
  target_include_directories (${PROJECT_NAME}_Miscellaneous PUBLIC
@@ -21,16 +14,6 @@ if (UNIX)
  target_include_directories (${PROJECT_NAME}_Miscellaneous PUBLIC
                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../modules/Common/src/timer>)
 elseif (WIN32)
-# set (DIRECTSHOW_BASECLASSES_DIRECTORY
-#      "$ENV{LIB_ROOT}/DShowBaseClasses")
-# message (STATUS "DirectShow baseclasses directory: \"${DIRECTSHOW_BASECLASSES_DIRECTORY}\"")
-
-# target_include_directories (${PROJECT_NAME}_Miscellaneous PUBLIC
-#                             $<BUILD_INTERFACE:${DIRECTSHOW_BASECLASSES_DIRECTORY}/baseclasses>)
-
-# target_include_directories (${PROJECT_NAME}_Miscellaneous PUBLIC
-#                             $<BUILD_INTERFACE:$ENV{LIB_ROOT}/ffmpeg/include>)
-
  target_include_directories (${PROJECT_NAME}_Miscellaneous PUBLIC
                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../Common/src>)
  target_include_directories (${PROJECT_NAME}_Miscellaneous PUBLIC
@@ -94,8 +77,6 @@ set (source_files
 
 # Include dir for installed targets
 set (INCLUDE_DIR include/${PROJECT_NAME}-${upstream_version})
-
-#set_target_properties (${PROJECT_NAME} PROPERTIES LINKER_LANGUAGE CXX)
 
 unset (absolute_source_files)
 foreach (source_file ${source_files})

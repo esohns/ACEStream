@@ -35,18 +35,22 @@ target_include_directories (${PROJECT_NAME}_HTML PUBLIC
 
 ############## next target ################
 set (source_files
-     stream_module_htmlparser.cpp
-     stream_module_htmlparser.h
-     stream_module_htmlparser.inl
-     stream_module_htmlwriter.cpp
-     stream_module_htmlwriter.h
-     stream_module_htmlwriter.inl
-     stream_module_xpathquery.cpp
-     stream_module_xpathquery.h
-     stream_module_xpathquery.inl
 #     stream_html_exports.h
      stream_html_tools.cpp
      stream_html_tools.h)
+if (LIBXML2_SUPPORT)
+ set (source_files
+      ${source_files}
+      stream_module_htmlparser.cpp
+      stream_module_htmlparser.h
+      stream_module_htmlparser.inl
+      stream_module_htmlwriter.cpp
+      stream_module_htmlwriter.h
+      stream_module_htmlwriter.inl
+      stream_module_xpathquery.cpp
+      stream_module_xpathquery.h
+      stream_module_xpathquery.inl)
+endif (LIBXML2_SUPPORT)
 
 # Include dir for installed targets
 #set (INCLUDE_DIR include/${PROJECT_NAME}-${upstream_version})
@@ -93,15 +97,21 @@ export (TARGETS ${PROJECT_NAME}_HTML
         APPEND FILE "${PROJECT_BINARY_DIR}/${PROJECT_NAME}Targets.cmake")
 
 ############### install files ################
+set (source_files
+#     stream_html_exports.h
+     stream_html_tools.h)
+if (LIBXML2_SUPPORT)
+ set (source_files
+      ${source_files}
+      stream_module_htmlparser.h
+      stream_module_htmlparser.inl
+      stream_module_htmlwriter.h
+      stream_module_htmlwriter.inl
+      stream_module_xpathquery.h
+      stream_module_xpathquery.inl)
+endif (LIBXML2_SUPPORT)
 install (FILES
-         stream_module_htmlparser.h
-         stream_module_htmlparser.inl
-         stream_module_htmlwriter.h
-         stream_module_htmlwriter.inl
-         stream_module_xpathquery.h
-         stream_module_xpathquery.inl
-#         stream_html_exports.h
-         stream_html_tools.h
+         ${source_files}
          DESTINATION "${INSTALL_INCLUDE_DIR}/${PROJECT_NAME}"
          COMPONENT mod_include)
 install (TARGETS ${PROJECT_NAME}_HTML

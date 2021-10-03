@@ -6,9 +6,8 @@ add_library (${PROJECT_NAME}_Document STATIC "")
 
 if (LIBREOFFICE_SUPPORT)
  target_include_directories (${PROJECT_NAME}_Document PUBLIC
-                             $<BUILD_INTERFACE:${OO_SDK_DIRECTORY}/include>)
+                             $<BUILD_INTERFACE:${LIBREOFFICE_INCLUDE_DIRS}>)
 endif (LIBREOFFICE_SUPPORT)
-
 if (UNIX)
  target_include_directories (${PROJECT_NAME}_Document PUBLIC
                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../Common/src>)
@@ -16,9 +15,6 @@ if (UNIX)
                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../Common/src/error>)
  target_include_directories (${PROJECT_NAME}_Document PUBLIC
                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../Common/src/timer>)
-
-# target_include_directories (${PROJECT_NAME}_Document PUBLIC
-#                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../ACENetwork/src>)
 elseif (WIN32)
  target_include_directories (${PROJECT_NAME}_Document PUBLIC
                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../Common/src>)
@@ -28,9 +24,6 @@ elseif (WIN32)
                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../Common/src/parser>)
  target_include_directories (${PROJECT_NAME}_Document PUBLIC
                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../Common/src/timer>)
-
-# target_include_directories (${PROJECT_NAME}_Document PUBLIC
-#                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../ACENetwork/src>)
 endif ()
 target_include_directories (${PROJECT_NAME}_Document PUBLIC
                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../..>)
@@ -55,8 +48,6 @@ endif (LIBREOFFICE_SUPPORT)
 # Include dir for installed targets
 set (INCLUDE_DIR include/${PROJECT_NAME}-${upstream_version})
 
-#set_target_properties (${PROJECT_NAME} PROPERTIES LINKER_LANGUAGE CXX)
-
 unset (absolute_source_files)
 foreach (source_file ${source_files})
  get_filename_component (abs_source_file ${source_file} ABSOLUTE)
@@ -76,14 +67,14 @@ add_dependencies (${PROJECT_NAME}_Document Common)
 add_dependencies (${PROJECT_NAME}_Document ${PROJECT_NAME})
 
 if (LIBREOFFICE_SUPPORT)
- target_link_libraries (${PROJECT_NAME}_Document ${PKG_LIBREOFFICE_LIBRARIES})
+ target_link_libraries (${PROJECT_NAME}_Document PUBLIC ${LIBREOFFICE_LIBRARIES})
 endif (LIBREOFFICE_SUPPORT)
 
-target_link_libraries (${PROJECT_NAME}_Document ${ACE_LIBRARY})
+target_link_libraries (${PROJECT_NAME}_Document PUBLIC ${ACE_LIBRARY})
 
-target_link_libraries (${PROJECT_NAME}_Document Common)
+target_link_libraries (${PROJECT_NAME}_Document PUBLIC Common)
 
-target_link_libraries (${PROJECT_NAME}_Document ${PROJECT_NAME})
+target_link_libraries (${PROJECT_NAME}_Document PUBLIC ${PROJECT_NAME})
 
 #set_target_properties (${PROJECT_NAME}_Document PROPERTIES DEFINE_SYMBOL STREAM_DOCUMENT_BUILD_DLL)
 #set_target_properties (${PROJECT_NAME}_Document PROPERTIES VERSION ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_MICRO} SOVERSION 1)

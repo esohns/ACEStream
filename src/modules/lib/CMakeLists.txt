@@ -218,8 +218,6 @@ add_dependencies (${PROJECT_NAME}_MediaFramework ${PROJECT_NAME})
 
 if (UNIX)
  target_link_libraries (${PROJECT_NAME}_MediaFramework PUBLIC X11)
-
-# target_link_libraries (${PROJECT_NAME}_MediaFramework PUBLIC ${PROJECT_NAME}_Device)
 elseif (WIN32)
  if (DEFINED ENV{DXSDK_DIR})
   target_link_libraries (${PROJECT_NAME}_MediaFramework PUBLIC $ENV{DXSDK_DIR}/Lib/x86/D3dx9.lib)
@@ -227,12 +225,7 @@ elseif (WIN32)
   target_link_libraries (${PROJECT_NAME}_MediaFramework PUBLIC $ENV{LIB_ROOT}/DXSDK/Lib/x86/D3dx9.lib)
  endif (DEFINED ENV{DXSDK_DIR})
 
- if (CMAKE_BUILD_TYPE STREQUAL Debug)
-  target_link_libraries (${PROJECT_NAME}_MediaFramework PUBLIC ${DIRECTSHOW_BASECLASSES_DIRECTORY}/cmake/baseclasses/Debug/BaseClassesd.lib)
- else ()
-  target_link_libraries (${PROJECT_NAME}_MediaFramework PUBLIC ${DIRECTSHOW_BASECLASSES_DIRECTORY}/cmake/baseclasses/Release/BaseClasses.lib)
- endif (CMAKE_BUILD_TYPE STREQUAL Debug)
-# target_link_libraries (${PROJECT_NAME}_MediaFramework PUBLIC winmm.lib)
+ target_link_libraries (${PROJECT_NAME}_MediaFramework PUBLIC ${DIRECTSHOW_BASECLASSES_DIRECTORY}/cmake/baseclasses/${CMAKE_BUILD_TYPE}/BaseClasses${LIB_FILE_SUFFIX}.lib)
 
  target_link_libraries (${PROJECT_NAME}_MediaFramework PUBLIC ${ACE_LIBRARY})
 endif ()

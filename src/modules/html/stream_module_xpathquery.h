@@ -23,8 +23,6 @@
 
 #include "ace/Global_Macros.h"
 
-//#include "common_time_common.h"
-
 #include "stream_common.h"
 #include "stream_task_base_synch.h"
 
