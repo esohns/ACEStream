@@ -5471,7 +5471,7 @@ combobox_format_changed_cb (GtkWidget* widget_in,
       ui_cb_data_p->configuration->libCamera_streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
     ACE_ASSERT (iterator_2 != ui_cb_data_p->configuration->libCamera_streamConfiguration.end ());
     (*iterator_2).second.second.codecId =
-        Stream_Module_Decoder_Tools::AVPixelFormatToAVCodecId (Stream_Device_Tools::libCameraFormatToffmpegFormat (libcamera::PixelFormat (format_i, 0)));
+        Stream_Module_Decoder_Tools::AVPixelFormatToAVCodecId (Stream_MediaFramework_Tools::libCameraFormatToffmpegFormat (libcamera::PixelFormat (format_i, 0)));
 #else
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("useLibCamera specified, but LIBCAMERA_SUPPORT not set, aborting\n")));
@@ -5486,7 +5486,7 @@ combobox_format_changed_cb (GtkWidget* widget_in,
       ui_cb_data_p->configuration->v4l_streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
     ACE_ASSERT (iterator_2 != ui_cb_data_p->configuration->v4l_streamConfiguration.end ());
     (*iterator_2).second.second.codecId =
-        Stream_Module_Decoder_Tools::AVPixelFormatToAVCodecId (Stream_MediaFramework_Tools::v4l2FormatToffmpegFormat (format_i));
+        Stream_Module_Decoder_Tools::AVPixelFormatToAVCodecId (Stream_MediaFramework_Tools::v4lFormatToffmpegFormat (format_i));
   } // end ELSE
 #endif // ACE_WIN32 || ACE_WIN64
 

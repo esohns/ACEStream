@@ -99,7 +99,6 @@ class Stream_Module_Vis_X11_Window_T
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_Vis_X11_Window_T (const Stream_Module_Vis_X11_Window_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_Vis_X11_Window_T& operator= (const Stream_Module_Vis_X11_Window_T&))
 
-//  uint8_t*           buffer_;
   bool              closeDisplay_;
   bool              closeWindow_;
   GC                context_;

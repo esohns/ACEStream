@@ -39,7 +39,7 @@
 #else
 #include "linux/videodev2.h"
 
-#include "X11/Xlib.h"
+#include "X11/X.h"
 
 #if defined (FFMPEG_SUPPORT)
 #ifdef __cplusplus
@@ -442,7 +442,6 @@ struct Stream_AVSave_ModuleHandlerConfiguration
    , window (NULL)
 #else
    , window (None)
-   , X11Display (NULL)
 #endif // ACE_WIN32 || ACE_WIN64
    , targetFileName ()
   {
@@ -454,13 +453,16 @@ struct Stream_AVSave_ModuleHandlerConfiguration
   }
 
   struct Stream_Device_Identifier deviceIdentifier; // source module
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
   struct Common_UI_DisplayDevice  display; // display module
+#else
+  struct Common_UI_Display        display; // display module
+#endif // ACE_WIN32 || ACE_WIN64
   bool                            fullScreen;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   HWND                            window;
 #else
   Window                          window;
-  struct _XDisplay*               X11Display;
 #endif // ACE_WIN32 || ACE_WIN64
   std::string                     targetFileName;
 };

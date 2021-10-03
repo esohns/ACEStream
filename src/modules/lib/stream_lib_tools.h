@@ -26,9 +26,9 @@
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #include <map>
 
-#include <guiddef.h>
-#include <mfobjects.h>
-#include <strmif.h>
+#include "guiddef.h"
+#include "mfobjects.h"
+#include "strmif.h"
 #else
 #include "alsa/asoundlib.h"
 
@@ -115,7 +115,7 @@ class Stream_MediaFramework_Tools
   static unsigned int frameSize (const IMFMediaType*);
 
 #if defined (FFMPEG_SUPPORT)
-  static struct _GUID AVPixelFormatToMediaSubType (enum AVPixelFormat);
+  static struct _GUID AVPixelFormatToMediaSubType (enum AVPixelFormat); // format
 #endif // FFMPEG_SUPPORT
 #else
   static bool initialize ();
@@ -131,19 +131,20 @@ class Stream_MediaFramework_Tools
 #endif // SOX_SUPPORT
 
   // X11
+  static unsigned int v4lFormatToBitDepth (__u32); // format (fourcc)
 #if defined (FFMPEG_SUPPORT)
-  static unsigned int ffmpegFormatToBitDepth (enum AVPixelFormat);
+  static unsigned int ffmpegFormatToBitDepth (enum AVPixelFormat); // format
 #endif // FFMPEG_SUPPORT
 
   // v4l
   static bool isRGB (__u32); // format (fourcc)
 #if defined (FFMPEG_SUPPORT)
-  static __u32 ffmpegFormatToV4L2Format (enum AVPixelFormat); // format
-  static enum AVPixelFormat v4l2FormatToffmpegFormat (__u32); // format (fourcc)
+  static __u32 ffmpegFormatToV4lFormat (enum AVPixelFormat); // format
+  static enum AVPixelFormat v4lFormatToffmpegFormat (__u32); // format (fourcc)
 #endif // FFMPEG_SUPPORT
   static unsigned int frameSize (const std::string&,                                 // device identifier
                                  const struct Stream_MediaFramework_V4L_MediaType&); // format
-  inline static std::string v4l2FormatToString (__u32 format_in) { std::string result; result += ((char)(format_in & 0x000000FF)); result += ((char)((format_in >> 8) & 0x000000FF)); result += ((char)((format_in >> 16) & 0x000000FF)); result += ((char)((format_in >> 24) & 0x000000FF)); return result; }
+  inline static std::string v4lFormatToString (__u32 format_in) { std::string result; result += ((char)(format_in & 0x000000FF)); result += ((char)((format_in >> 8) & 0x000000FF)); result += ((char)((format_in >> 16) & 0x000000FF)); result += ((char)((format_in >> 24) & 0x000000FF)); return result; }
 
 #if defined (LIBCAMERA_SUPPORT)
   // libCamera

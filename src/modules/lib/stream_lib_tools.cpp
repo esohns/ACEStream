@@ -1926,6 +1926,276 @@ Stream_MediaFramework_Tools::ffmpegFormatToBitDepth (enum AVPixelFormat format_i
 }
 #endif // FFMPEG_SUPPORT
 
+unsigned int
+Stream_MediaFramework_Tools::v4lFormatToBitDepth (__u32 format_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_Tools::v4lFormatToBitDepth"));
+
+  switch (format_in)
+  {
+    case V4L2_PIX_FMT_RGB332:
+      return 8;
+    case V4L2_PIX_FMT_RGB444:
+      return 12;
+    case V4L2_PIX_FMT_ARGB444:
+    case V4L2_PIX_FMT_XRGB444:
+    case V4L2_PIX_FMT_RGBA444:
+    case V4L2_PIX_FMT_RGBX444:
+    case V4L2_PIX_FMT_ABGR444:
+    case V4L2_PIX_FMT_XBGR444:
+    case V4L2_PIX_FMT_BGRA444:
+    case V4L2_PIX_FMT_BGRX444:
+      return 12;
+    case V4L2_PIX_FMT_RGB555:
+      return 15;
+    case V4L2_PIX_FMT_ARGB555:
+    case V4L2_PIX_FMT_XRGB555:
+    case V4L2_PIX_FMT_RGBA555:
+    case V4L2_PIX_FMT_RGBX555:
+    case V4L2_PIX_FMT_ABGR555:
+    case V4L2_PIX_FMT_XBGR555:
+    case V4L2_PIX_FMT_BGRA555:
+    case V4L2_PIX_FMT_BGRX555:
+      return 15;
+    case V4L2_PIX_FMT_RGB565:
+      return 16;
+    case V4L2_PIX_FMT_RGB555X:
+    case V4L2_PIX_FMT_ARGB555X:
+    case V4L2_PIX_FMT_XRGB555X:
+      return 15;
+    case V4L2_PIX_FMT_RGB565X:
+      return 16;
+    case V4L2_PIX_FMT_BGR666:
+      return 18;
+    case V4L2_PIX_FMT_BGR24:
+    case V4L2_PIX_FMT_RGB24:
+      return 24;
+    case V4L2_PIX_FMT_BGR32:
+    case V4L2_PIX_FMT_ABGR32:
+    case V4L2_PIX_FMT_XBGR32:
+    case V4L2_PIX_FMT_BGRA32:
+    case V4L2_PIX_FMT_BGRX32:
+    case V4L2_PIX_FMT_RGB32:
+    case V4L2_PIX_FMT_RGBA32:
+    case V4L2_PIX_FMT_RGBX32:
+    case V4L2_PIX_FMT_ARGB32:
+    case V4L2_PIX_FMT_XRGB32:
+      return 32;
+    case V4L2_PIX_FMT_GREY:
+      return 8;
+    case V4L2_PIX_FMT_Y4:
+      return 4;
+    case V4L2_PIX_FMT_Y6:
+      return 6;
+    case V4L2_PIX_FMT_Y10:
+      return 10;
+    case V4L2_PIX_FMT_Y12:
+      return 12;
+    case V4L2_PIX_FMT_Y14:
+      return 14;
+    case V4L2_PIX_FMT_Y16:
+    case V4L2_PIX_FMT_Y16_BE:
+      return 16;
+    case V4L2_PIX_FMT_Y10BPACK:
+    case V4L2_PIX_FMT_Y10P:
+      return 10;
+    case V4L2_PIX_FMT_PAL8:
+      return 8;
+    case V4L2_PIX_FMT_UV8:
+      return 8;
+    case V4L2_PIX_FMT_YUYV:
+    case V4L2_PIX_FMT_YYUV:
+    case V4L2_PIX_FMT_YVYU:
+    case V4L2_PIX_FMT_UYVY:
+    case V4L2_PIX_FMT_VYUY:
+      return 16;
+    case V4L2_PIX_FMT_Y41P:
+      return 12;
+    case V4L2_PIX_FMT_YUV444:
+    case V4L2_PIX_FMT_YUV555:
+    case V4L2_PIX_FMT_YUV565:
+      return 16;
+    case V4L2_PIX_FMT_YUV24:
+      return 24;
+    case V4L2_PIX_FMT_YUV32:
+      return 32;
+    case V4L2_PIX_FMT_AYUV32:
+    case V4L2_PIX_FMT_XYUV32:
+    case V4L2_PIX_FMT_VUYA32:
+    case V4L2_PIX_FMT_VUYX32:
+      return 32;
+    case V4L2_PIX_FMT_M420:
+      return 12;
+    case V4L2_PIX_FMT_NV12:
+    case V4L2_PIX_FMT_NV21:
+      return 12;
+    case V4L2_PIX_FMT_NV16:
+    case V4L2_PIX_FMT_NV61:
+      return 16;
+    case V4L2_PIX_FMT_NV24:
+    case V4L2_PIX_FMT_NV42:
+      return 24;
+    case V4L2_PIX_FMT_HM12:
+      return 12;
+    case V4L2_PIX_FMT_NV12M:
+    case V4L2_PIX_FMT_NV21M:
+      return 12;
+    case V4L2_PIX_FMT_NV16M:
+    case V4L2_PIX_FMT_NV61M:
+      return 16;
+    case V4L2_PIX_FMT_NV12MT:
+    case V4L2_PIX_FMT_NV12MT_16X16:
+      return 12;
+    case V4L2_PIX_FMT_YUV410:
+    case V4L2_PIX_FMT_YVU410:
+      return 9;
+    case V4L2_PIX_FMT_YUV411P:
+      return 12;
+    case V4L2_PIX_FMT_YUV420:
+    case V4L2_PIX_FMT_YVU420: // 'YV12'
+      return 12;
+    case V4L2_PIX_FMT_YUV422P:
+      return 16;
+    case V4L2_PIX_FMT_YUV420M:
+    case V4L2_PIX_FMT_YVU420M:
+      return 12;
+    case V4L2_PIX_FMT_YUV422M:
+    case V4L2_PIX_FMT_YVU422M:
+      return 16;
+    case V4L2_PIX_FMT_YUV444M:
+    case V4L2_PIX_FMT_YVU444M:
+      return 16;
+    case V4L2_PIX_FMT_SBGGR8:
+    case V4L2_PIX_FMT_SGBRG8:
+    case V4L2_PIX_FMT_SGRBG8:
+    case V4L2_PIX_FMT_SRGGB8:
+      return 32;
+    case V4L2_PIX_FMT_SBGGR10:
+    case V4L2_PIX_FMT_SGBRG10:
+    case V4L2_PIX_FMT_SGRBG10:
+    case V4L2_PIX_FMT_SRGGB10:
+      return 40;
+    case V4L2_PIX_FMT_SBGGR10P:
+    case V4L2_PIX_FMT_SGBRG10P:
+    case V4L2_PIX_FMT_SGRBG10P:
+    case V4L2_PIX_FMT_SRGGB10P:
+      return 40;
+    case V4L2_PIX_FMT_SBGGR10ALAW8:
+    case V4L2_PIX_FMT_SGBRG10ALAW8:
+    case V4L2_PIX_FMT_SGRBG10ALAW8:
+    case V4L2_PIX_FMT_SRGGB10ALAW8:
+      return 40;
+    case V4L2_PIX_FMT_SBGGR10DPCM8:
+    case V4L2_PIX_FMT_SGBRG10DPCM8:
+    case V4L2_PIX_FMT_SGRBG10DPCM8:
+    case V4L2_PIX_FMT_SRGGB10DPCM8:
+      return 40;
+    case V4L2_PIX_FMT_SBGGR12:
+    case V4L2_PIX_FMT_SGBRG12:
+    case V4L2_PIX_FMT_SGRBG12:
+    case V4L2_PIX_FMT_SRGGB12:
+      return 48;
+    case V4L2_PIX_FMT_SBGGR12P:
+    case V4L2_PIX_FMT_SGBRG12P:
+    case V4L2_PIX_FMT_SGRBG12P:
+    case V4L2_PIX_FMT_SRGGB12P:
+      return 48;
+    case V4L2_PIX_FMT_SBGGR14:
+    case V4L2_PIX_FMT_SGBRG14:
+    case V4L2_PIX_FMT_SGRBG14:
+    case V4L2_PIX_FMT_SRGGB14:
+      return 56;
+    case V4L2_PIX_FMT_SBGGR14P:
+    case V4L2_PIX_FMT_SGBRG14P:
+    case V4L2_PIX_FMT_SGRBG14P:
+    case V4L2_PIX_FMT_SRGGB14P:
+      return 56;
+    case V4L2_PIX_FMT_SBGGR16:
+    case V4L2_PIX_FMT_SGBRG16:
+    case V4L2_PIX_FMT_SGRBG16:
+    case V4L2_PIX_FMT_SRGGB16:
+      return 64;
+    case V4L2_PIX_FMT_HSV24:
+      return 24;
+    case V4L2_PIX_FMT_HSV32:
+      return 32;
+    case V4L2_PIX_FMT_MJPEG:
+      return 16;
+    case V4L2_PIX_FMT_JPEG:
+      return 16;
+    case V4L2_PIX_FMT_DV:
+    case V4L2_PIX_FMT_MPEG:
+    case V4L2_PIX_FMT_H264:
+    case V4L2_PIX_FMT_H264_NO_SC:
+    case V4L2_PIX_FMT_H264_MVC:
+    case V4L2_PIX_FMT_H263:
+    case V4L2_PIX_FMT_MPEG1:
+    case V4L2_PIX_FMT_MPEG2:
+    case V4L2_PIX_FMT_MPEG2_SLICE:
+    case V4L2_PIX_FMT_MPEG4:
+    case V4L2_PIX_FMT_XVID:
+    case V4L2_PIX_FMT_VC1_ANNEX_G:
+    case V4L2_PIX_FMT_VC1_ANNEX_L:
+    case V4L2_PIX_FMT_VP8:
+    case V4L2_PIX_FMT_VP8_FRAME:
+    case V4L2_PIX_FMT_VP9:
+    case V4L2_PIX_FMT_HEVC:
+    case V4L2_PIX_FMT_FWHT:
+    case V4L2_PIX_FMT_FWHT_STATELESS:
+    case V4L2_PIX_FMT_H264_SLICE:
+      return 0;
+    case V4L2_PIX_FMT_CPIA1:
+    case V4L2_PIX_FMT_WNVA:
+    case V4L2_PIX_FMT_SN9C10X:
+    case V4L2_PIX_FMT_SN9C20X_I420:
+    case V4L2_PIX_FMT_PWC1:
+    case V4L2_PIX_FMT_PWC2:
+    case V4L2_PIX_FMT_ET61X251:
+    case V4L2_PIX_FMT_SPCA501:
+    case V4L2_PIX_FMT_SPCA505:
+    case V4L2_PIX_FMT_SPCA508:
+    case V4L2_PIX_FMT_SPCA561:
+    case V4L2_PIX_FMT_PAC207:
+    case V4L2_PIX_FMT_MR97310A:
+    case V4L2_PIX_FMT_JL2005BCD:
+    case V4L2_PIX_FMT_SN9C2028:
+    case V4L2_PIX_FMT_SQ905C:
+    case V4L2_PIX_FMT_PJPG:
+    case V4L2_PIX_FMT_OV511:
+    case V4L2_PIX_FMT_OV518:
+    case V4L2_PIX_FMT_STV0680:
+    case V4L2_PIX_FMT_TM6000:
+    case V4L2_PIX_FMT_CIT_YYVYUY:
+    case V4L2_PIX_FMT_KONICA420:
+    case V4L2_PIX_FMT_JPGL:
+    case V4L2_PIX_FMT_SE401:
+    case V4L2_PIX_FMT_S5C_UYVY_JPG:
+    case V4L2_PIX_FMT_Y8I:
+    case V4L2_PIX_FMT_Y12I:
+    case V4L2_PIX_FMT_Z16:
+    case V4L2_PIX_FMT_MT21C:
+    case V4L2_PIX_FMT_INZI:
+    case V4L2_PIX_FMT_SUNXI_TILED_NV12:
+    case V4L2_PIX_FMT_CNF4:
+    case V4L2_PIX_FMT_HI240:
+      return 0;
+    case V4L2_PIX_FMT_IPU3_SBGGR10:
+    case V4L2_PIX_FMT_IPU3_SGBRG10:
+    case V4L2_PIX_FMT_IPU3_SGRBG10:
+    case V4L2_PIX_FMT_IPU3_SRGGB10:
+      return 40;
+    default:
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("invalid/unknown v4l2 pixel format (was: \"%s\" [%d]), aborting\n"),
+                  ACE_TEXT (Stream_MediaFramework_Tools::v4lFormatToString (format_in).c_str ()), format_in));
+      break;
+    }
+  } // end SWITCH
+
+  return 0;
+}
+
 bool
 Stream_MediaFramework_Tools::isRGB (__u32 format_in)
 {
@@ -1980,9 +2250,9 @@ Stream_MediaFramework_Tools::isRGB (__u32 format_in)
 
 #if defined (FFMPEG_SUPPORT)
 __u32
-Stream_MediaFramework_Tools::ffmpegFormatToV4L2Format (enum AVPixelFormat format_in)
+Stream_MediaFramework_Tools::ffmpegFormatToV4lFormat (enum AVPixelFormat format_in)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_Tools::ffmpegFormatToV4L2Format"));
+  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_Tools::ffmpegFormatToV4lFormat"));
 
   switch (format_in)
   {
@@ -2234,9 +2504,9 @@ Stream_MediaFramework_Tools::ffmpegFormatToV4L2Format (enum AVPixelFormat format
 }
 
 enum AVPixelFormat
-Stream_MediaFramework_Tools::v4l2FormatToffmpegFormat (__u32 format_in)
+Stream_MediaFramework_Tools::v4lFormatToffmpegFormat (__u32 format_in)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_Tools::v4l2FormatToffmpegFormat"));
+  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_Tools::v4lFormatToffmpegFormat"));
 
   switch (format_in)
   {
@@ -2504,7 +2774,7 @@ Stream_MediaFramework_Tools::v4l2FormatToffmpegFormat (__u32 format_in)
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("invalid/unknown v4l2 pixel format (was: \"%s\" [%d]), aborting\n"),
-                  ACE_TEXT (Stream_MediaFramework_Tools::v4l2FormatToString (format_in).c_str ()), format_in));
+                  ACE_TEXT (Stream_MediaFramework_Tools::v4lFormatToString (format_in).c_str ()), format_in));
       break;
     }
   } // end SWITCH

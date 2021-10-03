@@ -251,7 +251,7 @@ class Stream_CameraScreen_Stream
   Stream_CameraScreen_LibAVConvert_Module    convert_; // --> BGRA (Xlib)
   Stream_CameraScreen_LibAVResize_Module     resize_; // --> window size/fullscreen
   Stream_CameraScreen_GTK_Display_Module     GTKDisplay_;
-  Stream_CameraScreen_Wayland_Display_Module WaylandDisplay_;
+//  Stream_CameraScreen_Wayland_Display_Module WaylandDisplay_;
   Stream_CameraScreen_X11_Display_Module     X11Display_;
   Stream_CameraScreen_OpenGL_Display_Module  OpenGLDisplay_;
 };

@@ -132,7 +132,6 @@ struct Stream_ImageScreen_ModuleHandlerConfiguration
    , window (NULL)
 #else
    , window (None)
-   , X11Display (NULL)
 #endif // ACE_WIN32 || ACE_WIN64
   {
     concurrency = STREAM_HEADMODULECONCURRENCY_ACTIVE;
@@ -151,7 +150,11 @@ struct Stream_ImageScreen_ModuleHandlerConfiguration
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   struct Stream_MediaFramework_Direct3D_Configuration* direct3DConfiguration;
 #endif // ACE_WIN32 || ACE_WIN64
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
   struct Common_UI_DisplayDevice                display; // display module
+#else
+  struct Common_UI_Display                      display; // display module
+#endif // ACE_WIN32 || ACE_WIN64
   Common_File_Identifier                        fileIdentifier; // source module
   // *NOTE*: treat each image separately (different sizes)
   bool                                          fullScreen;
@@ -172,7 +175,6 @@ struct Stream_ImageScreen_ModuleHandlerConfiguration
   HWND                                          window;
 #else
   Window                                        window;
-  Display*                                      X11Display;
 #endif // ACE_WIN32 || ACE_WIN64
 };
 //extern const char stream_name_string_[];

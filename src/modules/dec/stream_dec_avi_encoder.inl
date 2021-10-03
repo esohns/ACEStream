@@ -459,20 +459,21 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
 #if defined (FFMPEG_SUPPORT)
-  int result = -1;
+//  int result = -1;
 
   if (formatContext_)
   {
-    if (formatContext_->streams)
-      if (formatContext_->streams[0]->codec)
-      {
-        result = avcodec_close (formatContext_->streams[0]->codec);
-        if (unlikely (result == -1))
-          ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("%s: avcodec_close() failed: \"%s\", continuing\n"),
-                      inherited::mod_->name (),
-                      ACE_TEXT (Common_Image_Tools::errorToString (result).c_str ())));
-      } // end IF
+//    if (formatContext_->streams)
+//      if (formatContext_->streams[0]->codec)
+//      {
+//        result = avcodec_close (formatContext_->streams[0]->codec);
+//        if (unlikely (result == -1))
+//          ACE_DEBUG ((LM_ERROR,
+//                      ACE_TEXT ("%s: avcodec_close() failed: \"%s\", continuing\n"),
+//                      inherited::mod_->name (),
+//                      ACE_TEXT (Common_Image_Tools::errorToString (result).c_str ())));
+//      } // end IF
+
     avformat_free_context (formatContext_); formatContext_ = NULL;
   } // end IF
 #endif // FFMPEG_SUPPORT
@@ -512,19 +513,19 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
 #if defined (FFMPEG_SUPPORT)
-    int result = -1;
+//    int result = -1;
     if (formatContext_)
     {
-      if (formatContext_->streams)
-        if (formatContext_->streams[0]->codec)
-        {
-          result = avcodec_close (formatContext_->streams[0]->codec);
-          if (unlikely (result == -1))
-            ACE_DEBUG ((LM_ERROR,
-                        ACE_TEXT ("%s: avcodec_close() failed: \"%s\", continuing\n"),
-                        inherited::mod_->name (),
-                        ACE_TEXT (Common_Image_Tools::errorToString (result).c_str ())));
-        } // end IF
+//      if (formatContext_->streams)
+//        if (formatContext_->streams[0]->codec)
+//        {
+//          result = avcodec_close (formatContext_->streams[0]->codec);
+//          if (unlikely (result == -1))
+//            ACE_DEBUG ((LM_ERROR,
+//                        ACE_TEXT ("%s: avcodec_close() failed: \"%s\", continuing\n"),
+//                        inherited::mod_->name (),
+//                        ACE_TEXT (Common_Image_Tools::errorToString (result).c_str ())));
+//        } // end IF
 
       avformat_free_context (formatContext_); formatContext_ = NULL;
     } // end IF
@@ -1031,21 +1032,25 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
                     inherited::mod_->name ()));
         goto error;
       } // end IF
-      ACE_ASSERT (stream_p->codec);
+      ACE_ASSERT (stream_p->codecpar);
       formatContext_->streams[0] = stream_p;
 
 //      stream_p->id = 0;
       // *TODO*: why does this need to be reset ?
-      stream_p->codec->bit_rate = frameSize_ * media_type_s.frameRate.num * 8;
-      stream_p->codec->codec_id = codec_id;
-//      stream_p->codec->codec_tag = MKTAG ('B', 'G', 'R', 'A');
-    //  stream_p->codec->codec_type = codec_->type;
-
-      stream_p->codec->pix_fmt = media_type_s.format;
-      stream_p->codec->width = media_type_s.resolution.width;
-      stream_p->codec->height = media_type_s.resolution.height;
+      stream_p->codecpar->bit_rate = frameSize_ * media_type_s.frameRate.num * 8;
+      stream_p->codecpar->codec_id = codec_id;
+//      stream_p->codecpar->codec_tag = MKTAG ('B', 'G', 'R', 'A');
+    //  stream_p->codecpar->codec_type = codec_->type;
+      stream_p->codecpar->format = media_type_s.format;
+      stream_p->codecpar->width = media_type_s.resolution.width;
+      stream_p->codecpar->height = media_type_s.resolution.height;
+      result = avcodec_parameters_to_context (codec_context_p,
+                                              stream_p->codecpar);
+      ACE_ASSERT (result >= 0);
       stream_p->time_base.num = media_type_s.frameRate.den;
       stream_p->time_base.den = (media_type_s.frameRate.num ? media_type_s.frameRate.num : 30);
+      codec_context_p->time_base = stream_p->time_base;
+//      av_codec_set_pkt_timebase (codec_context_p, stream_p->time_base);
 //      stream_p->sample_aspect_ratio = 0;
       stream_p->avg_frame_rate.num = media_type_s.frameRate.num;
       stream_p->avg_frame_rate.den = media_type_s.frameRate.den;

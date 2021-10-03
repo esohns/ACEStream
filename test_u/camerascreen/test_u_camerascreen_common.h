@@ -376,13 +376,11 @@ struct Stream_CameraScreen_ModuleHandlerConfiguration
    : Test_U_ModuleHandlerConfiguration ()
    , deviceIdentifier ()
    , display ()
-   , display_2 ()
    , fullScreen (false)
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
    , window (NULL)
 #else
    , window (0)
-   , X11Display (NULL)
 #endif // ACE_WIN32 || ACE_WIN64
   {
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -393,14 +391,16 @@ struct Stream_CameraScreen_ModuleHandlerConfiguration
   }
 
   struct Stream_Device_Identifier deviceIdentifier; // source module
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
   struct Common_UI_DisplayDevice  display; // display module
-  struct Common_UI_Display        display_2; // display module
+#else
+  struct Common_UI_Display        display; // display module
+#endif // ACE_WIN32 || ACE_WIN64
   bool                            fullScreen;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   HWND                            window;
 #else
   Window                          window;
-  struct _XDisplay*               X11Display;
 #endif // ACE_WIN32 || ACE_WIN64
 };
 //extern const char stream_name_string_[];

@@ -680,8 +680,8 @@ Stream_Decoder_LibAVDecoder_T<ACE_SYNCH_USE,
       context_->ticks_per_frame =
         (((codecId_ == AV_CODEC_ID_H264) ||
           (codecId_ == AV_CODEC_ID_MPEG2VIDEO)) ? 2 : 1);
-      //context_->width = width;
-      //context_->height = height;
+      context_->width = decode_width;
+      context_->height = formatHeight_;
       //context_->coded_width = width;
       //context_->coded_height = height;
 //      context_->pix_fmt = AV_PIX_FMT_NONE;
@@ -1023,7 +1023,7 @@ Stream_Decoder_LibAVDecoder_T<ACE_SYNCH_USE,
     if (unlikely (!Stream_Module_Decoder_Tools::convert (transformContext_,
                                                          context_->width, context_->height, context_->pix_fmt,
                                                          static_cast<uint8_t**> (frame_->data),
-                                                         frame_->width, frame_->height, outputFormat_,
+                                                         context_->width, context_->height, outputFormat_,
                                                          data_a)))
     {
       ACE_DEBUG ((LM_ERROR,

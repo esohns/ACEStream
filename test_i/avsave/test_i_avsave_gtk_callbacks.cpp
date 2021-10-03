@@ -19,7 +19,6 @@
  ***************************************************************************/
 #include "stdafx.h"
 
-#include "ace/Synch.h"
 #include "test_i_avsave_gtk_callbacks.h"
 
 #include <math.h>
@@ -31,21 +30,21 @@
 
 #include "ace/config-lite.h"
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-#include <strmif.h>
-#include <reftime.h>
-#include <dvdmedia.h>
-#include <mferror.h>
-#include <mfidl.h>
-#include <mfreadwrite.h>
-#include <uuids.h>
-#include <wmcodecdsp.h>
+#include "strmif.h"
+#include "reftime.h"
+#include "dvdmedia.h"
+#include "mferror.h"
+#include "mfidl.h"
+#include "mfreadwrite.h"
+#include "uuids.h"
+#include "wmcodecdsp.h"
 
 #include "gdk/gdkwin32.h"
 #else
 #include "linux/videodev2.h"
 #include "libv4l2.h"
 
-#include "gdk/gdkx.h"
+//#include "gdk/gdkx.h"
 
 #include "ace/Dirent_Selector.h"
 #endif // ACE_WIN32 || ACE_WIN64
@@ -5994,19 +5993,19 @@ drawingarea_draw_cb (GtkWidget* widget_in,
 //                         GDK_WINDOW_XID (window_p));
   if (unlikely (result != True))
   {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to XClearWindow(0x%@,%u): \"%m\", returning\n"),
-                GDK_WINDOW_XDISPLAY (window_p),
-                GDK_WINDOW_XID (window_p)));
+//    ACE_DEBUG ((LM_ERROR,
+//                ACE_TEXT ("failed to XClearWindow(0x%@,%u): \"%m\", returning\n"),
+//                GDK_WINDOW_XDISPLAY (window_p),
+//                GDK_WINDOW_XID (window_p)));
     goto unlock;
   } // end IF
 //  result = XFlush (GDK_WINDOW_XDISPLAY (window_p));
   if (unlikely (result != True))
   {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to XFlush(0x%@,%u): \"%m\", returning\n"),
-                GDK_WINDOW_XDISPLAY (window_p),
-                GDK_WINDOW_XID (window_p)));
+//    ACE_DEBUG ((LM_ERROR,
+//                ACE_TEXT ("failed to XFlush(0x%@,%u): \"%m\", returning\n"),
+//                GDK_WINDOW_XDISPLAY (window_p),
+//                GDK_WINDOW_XID (window_p)));
     goto unlock;
   } // end IF
 

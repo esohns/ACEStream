@@ -7185,7 +7185,7 @@ combobox_format_changed_cb (GtkComboBox* comboBox_in,
 #else
   (*stream_iterator).second.configuration_->format.format.pixelformat = format_i;
   (*modulehandler_iterator).second.second.outputFormat.format =
-      Stream_MediaFramework_Tools::v4l2FormatToffmpegFormat (format_i);
+      Stream_MediaFramework_Tools::v4lFormatToffmpegFormat (format_i);
 
   result =
     load_resolutions (V4L_ui_cb_data_p->fileDescriptor,

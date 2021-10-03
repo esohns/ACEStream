@@ -386,7 +386,12 @@ do_work (int argc_in,
   modulehandler_configuration.codecId = AV_CODEC_ID_MJPEG;
 #endif // FFMPEG_SUPPORT
 #endif // ACE_WIN32 || ACE_WIN64
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
   modulehandler_configuration.display = Common_UI_Tools::getDefaultDisplay ();
+#else
+  modulehandler_configuration.display =
+      Common_UI_Tools::getLogicalDisplay (ACE_TEXT_ALWAYS_CHAR (""));
+#endif // ACE_WIN32 || ACE_WIN64
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   modulehandler_configuration.direct3DConfiguration = &configuration.direct3DConfiguration;
 #endif // ACE_WIN32 || ACE_WIN64

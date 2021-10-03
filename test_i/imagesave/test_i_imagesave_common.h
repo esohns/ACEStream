@@ -248,7 +248,6 @@ struct Test_I_ImageSave_ModuleHandlerConfiguration
    , display ()
    , fullScreen (false)
    , window (0)
-   , X11Display (NULL)
 #endif // ACE_WIN32 || ACE_WIN64
    , outputFormat ()
    , subscriber (NULL)
@@ -265,10 +264,9 @@ struct Test_I_ImageSave_ModuleHandlerConfiguration
   struct Stream_MediaFramework_Direct3D_Configuration* direct3DConfiguration;
 //  HWND                                               window;
 #else
-  struct Common_UI_DisplayDevice                     display;
+  struct Common_UI_Display                           display;
   bool                                               fullScreen;
   unsigned long                                      window;
-  struct _XDisplay*                                  X11Display;
 #endif // ACE_WIN32 || ACE_WIN64
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   struct _AMMediaType                                outputFormat;

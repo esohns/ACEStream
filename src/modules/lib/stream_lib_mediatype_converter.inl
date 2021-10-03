@@ -192,7 +192,7 @@ Stream_MediaFramework_MediaTypeConverter_T<MediaType>::getMediaType (const struc
   ACE_OS::memset (&mediaType_out, 0, sizeof (struct Stream_MediaFramework_V4L_MediaType));
 
   mediaType_out.format.pixelformat =
-      Stream_MediaFramework_Tools::ffmpegFormatToV4L2Format (mediaType_in.format);
+      Stream_MediaFramework_Tools::ffmpegFormatToV4lFormat (mediaType_in.format);
   mediaType_out.format.width = mediaType_in.resolution.width;
   mediaType_out.format.height = mediaType_in.resolution.height;
   mediaType_out.frameRate.numerator = mediaType_in.frameRate.num;
@@ -209,7 +209,7 @@ Stream_MediaFramework_MediaTypeConverter_T<MediaType>::getMediaType (const struc
   ACE_OS::memset (&mediaType_out, 0, sizeof (struct Stream_MediaFramework_FFMPEG_VideoMediaType));
 
   mediaType_out.format =
-      Stream_MediaFramework_Tools::v4l2FormatToffmpegFormat (mediaType_in.format.pixelformat);
+      Stream_MediaFramework_Tools::v4lFormatToffmpegFormat (mediaType_in.format.pixelformat);
   mediaType_out.resolution.width = mediaType_in.format.width;
   mediaType_out.resolution.height = mediaType_in.format.height;
   mediaType_out.frameRate.den = mediaType_in.frameRate.denominator;

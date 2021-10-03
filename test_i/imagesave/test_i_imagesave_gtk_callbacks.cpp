@@ -678,10 +678,10 @@ idle_finalize_UI_cb (gpointer userData_in)
 {
   STREAM_TRACE (ACE_TEXT ("::idle_finalize_UI_cb"));
 
+  ACE_UNUSED_ARG (userData_in);
+//  // sanity check(s)
 //  struct Test_I_ImageSave_UI_CBData* cb_data_p =
 //    static_cast<struct Test_I_ImageSave_UI_CBData*> (userData_in);
-
-//  // sanity check(s)
 //  ACE_ASSERT (cb_data_p);
 
   // leave GTK
@@ -1679,9 +1679,9 @@ combobox_resolution_changed_cb (GtkWidget* widget_in,
                             &iterator_3,
                             2, &value_2);
   ACE_ASSERT (G_VALUE_TYPE (&value_2) == G_TYPE_UINT);
-  unsigned int width = g_value_get_uint (&value);
+//  unsigned int width = g_value_get_uint (&value);
   g_value_unset (&value);
-  unsigned int height = g_value_get_uint (&value_2);
+//  unsigned int height = g_value_get_uint (&value_2);
   g_value_unset (&value_2);
 //  Common_Image_Resolution_t resolution_s;
 
@@ -1841,8 +1841,9 @@ scalebutton_frame_value_changed_cb (GtkScaleButton* button_in,
 {
   STREAM_TRACE (ACE_TEXT ("::scalebutton_frame_value_changed_cb"));
 
+  ACE_UNUSED_ARG (button_in);
+  ACE_UNUSED_ARG (value_in);
   ACE_UNUSED_ARG (userData_in);
-
 } // scalebutton_frame_value_changed_cb
 
 gboolean

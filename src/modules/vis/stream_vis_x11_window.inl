@@ -99,11 +99,11 @@ Stream_Module_Vis_X11_Window_T<ACE_SYNCH_USE,
   { ACE_ASSERT (display_);
     result = XFreeGC (display_,
                       context_);
-    if (unlikely (result))
+    if (unlikely (!result))
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: failed to XFreeGC(%@,%@): \"%m\", continuing\n"),
                   inherited::mod_->name (),
-                  display_));
+                  display_, context_));
   } // end IF
   if (pixmap_)
   { ACE_ASSERT (display_);
@@ -390,11 +390,11 @@ error:
       {
         result = XFreeGC (display_,
                           context_);
-        if (unlikely (result))
+        if (unlikely (!result))
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("%s: failed to XFreeGC(%@,%@): \"%m\", continuing\n"),
                       inherited::mod_->name (),
-                      display_));
+                      display_, context_));
         context_ = NULL;
       } // end IF
       if (pixmap_)
@@ -522,23 +522,21 @@ Stream_Module_Vis_X11_Window_T<ACE_SYNCH_USE,
 
   ACE_ASSERT (!display_);
   // *TODO*: remove type inferences
-  if (configuration_in.X11Display)
+  if (configuration_in.display.display)
   {
-    display_ = configuration_in.X11Display;
-#if defined (_DEBUG)
+    display_ = configuration_in.display.display;
     ACE_DEBUG ((LM_DEBUG,
                 ACE_TEXT ("%s: passive mode (display: %@, default depth: %d)\n"),
                 inherited::mod_->name (),
                 display_, DefaultDepth (display_, DefaultScreen (display_))));
-#endif // _DEBUG
   } // end IF
   else
   {
     std::string x11_display_name =
         Common_UI_Tools::getX11DisplayName (configuration_in.display.device);
     if (unlikely (x11_display_name.empty ()))
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("%s: failed to Common_UI_Tools::getX11DisplayName(\"%s\"), aborting\n"),
+      ACE_DEBUG ((LM_WARNING,
+                  ACE_TEXT ("%s: failed to Common_UI_Tools::getX11DisplayName(\"%s\"): using default, continuing\n"),
                   inherited::mod_->name (),
                   ACE_TEXT (configuration_in.display.device.c_str ())));
     const char* display_name_p =
@@ -589,7 +587,7 @@ Stream_Module_Vis_X11_Window_T<ACE_SYNCH_USE,
                                                            window_);
     depth_i = attributes_s.depth;
 
-    if (!XMatchVisualInfo (display_, XDefaultScreen (display_),
+    if (!XMatchVisualInfo (display_, DefaultScreen (display_),
                            depth_i, TrueColor,
                            &visual_info_s))
     {
@@ -602,25 +600,23 @@ Stream_Module_Vis_X11_Window_T<ACE_SYNCH_USE,
   } // end IF
   else
   {
-    struct Stream_MediaFramework_FFMPEG_VideoMediaType media_type_s;
+    struct Stream_MediaFramework_V4L_MediaType media_type_s;
     inherited2::getMediaType (configuration_in.outputFormat,
                               media_type_s);
-    int x =
-        (configuration_in.fullScreen ? configuration_in.display.clippingArea.x
-                                     : 0);
-    int y =
-        (configuration_in.fullScreen ? configuration_in.display.clippingArea.y
-                                     : 0);
     unsigned int width_i =
-        (configuration_in.fullScreen ? configuration_in.display.clippingArea.width
-                                     : media_type_s.resolution.width);
+        (configuration_in.fullScreen ? WidthOfScreen (DefaultScreenOfDisplay (display_))
+                                     : media_type_s.format.width);
     unsigned int height_i =
-        (configuration_in.fullScreen ? configuration_in.display.clippingArea.height
-                                     : media_type_s.resolution.height);
+        (configuration_in.fullScreen ? HeightOfScreen (DefaultScreenOfDisplay (display_))
+                                     : media_type_s.format.height);
+    int x =
+        (WidthOfScreen (DefaultScreenOfDisplay (display_)) - width_i) / 2;
+    int y =
+        (HeightOfScreen (DefaultScreenOfDisplay (display_)) - height_i) / 2;
     depth_i =
-        static_cast<int> (Stream_MediaFramework_Tools::ffmpegFormatToBitDepth (media_type_s.format));
+        static_cast<int> (Stream_MediaFramework_Tools::v4lFormatToBitDepth (media_type_s.format.pixelformat));
 
-    if (!XMatchVisualInfo (display_, XDefaultScreen (display_),
+    if (!XMatchVisualInfo (display_, DefaultScreen (display_),
                            depth_i, TrueColor,
                            &visual_info_s))
     {
@@ -639,9 +635,9 @@ Stream_Module_Vis_X11_Window_T<ACE_SYNCH_USE,
     XSetWindowAttributes attributes_a;
     ACE_OS::memset (&attributes_a, 0, sizeof (XSetWindowAttributes));
     attributes_a.background_pixel  =
-        XBlackPixel (display_, DefaultScreen (display_));
+        BlackPixel (display_, DefaultScreen (display_));
     attributes_a.border_pixel =
-        XBlackPixel (display_, DefaultScreen (display_));
+        BlackPixel (display_, DefaultScreen (display_));
     attributes_a.colormap =
         XCreateColormap (display_, XDefaultRootWindow (display_),
                          visual_info_s.visual, AllocNone);
