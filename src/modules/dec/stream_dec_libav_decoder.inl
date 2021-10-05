@@ -256,41 +256,47 @@ Stream_Decoder_LibAVDecoder_T<ACE_SYNCH_USE,
   passMessageDownstream_out = false;
 
   int result = -1;
-  DataMessageType* message_p = NULL;
+  DataMessageType* message_p = NULL, *message_2 = NULL;
   struct AVPacket packet_s;
   ACE_Message_Block* message_block_p = NULL;
   uint8_t* data_p = NULL;
   size_t   data_size_i = 0;
   bool abort_session_on_error = true;
 
-  // *NOTE*: apparently (the implementation is of the finest "spaghetti" and
-  //         needs careful analysis) ffmpeg processes data in 'chunks' and
-  //         therefore supports/requires memory alignment, as well as 'padding'
-  //         bytes. Note that as the data may arrive in fragmented pieces, the
-  //         required preprocessing overhead may defeat the whole benefit of
-  //         these features
-  // *TODO*: find/implement a suitably balanced tradeoff that suits most
-  //         scenarios
+  // *NOTE*: ffmpeg processes data in 'chunks' and supports/requires memory
+  //         alignment, as well as 'padding' bytes.
+  //         Note that as the data may arrive in fragmented pieces (e.g. over a
+  //         network), the required preprocessing overhead may defeat the whole
+  //         benefit of these features.
+  // *IMPORTANT NOTE*: defragment()ing the incoming buffers may not be allowed,
+  //                   as that memory may (!) belong to previous frame(s) !
+  // *IMPORTANT NOTE*: padding the data beyond wr_ptr() may not be allowed, as
+  //                   that memory may (!) belong to the next frame(s) !
+  // --> copy the data first
+  // *TODO*: avoid this copy at all costs !
 
-  try {
-    message_inout->defragment ();
-  } catch (...) {
+  message_2 = static_cast<DataMessageType*> (message_inout->clone ());
+  if (unlikely (!message_2))
+  {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: caught exception in Stream_IDataMessage_T::defragment(), aborting\n"),
+                ACE_TEXT ("%s: failed to DataMessageType::clone(), aborting\n"),
                 inherited::mod_->name ()));
+    message_inout->release (); message_inout = NULL;
     goto error;
-  }
+  } // end IF
+  message_inout->release (); message_inout = NULL;
+  message_2->defragment ();
 
   // step2: (re-)pad [see above] the buffer chain
   // *IMPORTANT NOTE*: the message length does not change
-  for (message_block_p = message_inout;
+  for (message_block_p = message_2;
        message_block_p;
        message_block_p = message_block_p->cont ())
   { ACE_ASSERT ((message_block_p->capacity () - message_block_p->size ()) >= AV_INPUT_BUFFER_PADDING_SIZE);
     ACE_OS::memset (message_block_p->wr_ptr (), 0, AV_INPUT_BUFFER_PADDING_SIZE);
   } // end FOR
 
-  message_block_p = message_inout;
+  message_block_p = message_2;
   do
   {
     /* use the parser to split the data into frames */
@@ -332,9 +338,9 @@ Stream_Decoder_LibAVDecoder_T<ACE_SYNCH_USE,
         continue;
 
       // forward the decoded frame
-      message_p->initialize (message_inout->sessionId (),
+      message_p->initialize (message_2->sessionId (),
                              NULL);
-      message_p->set (message_inout->type ());
+      message_p->set (message_2->type ());
       result = inherited::put_next (message_p, NULL);
       if (unlikely (result == -1))
       {
@@ -350,15 +356,13 @@ Stream_Decoder_LibAVDecoder_T<ACE_SYNCH_USE,
     if (!message_block_p)
       break;
   } while (true);
-  message_inout->release (); message_inout = NULL;
+  message_2->release (); message_2 = NULL;
 
   return;
 
 error:
-  if (message_inout)
-  {
-    message_inout->release (); message_inout = NULL;
-  } // end IF
+  if (message_2)
+    message_2->release ();
   if (message_p)
     message_p->release ();
 
@@ -411,15 +415,16 @@ Stream_Decoder_LibAVDecoder_T<ACE_SYNCH_USE,
       struct Stream_MediaFramework_FFMPEG_VideoMediaType media_type_s;
       inherited2::getMediaType (session_data_r.formats.back (),
                                 media_type_s);
+      MediaType media_type_2;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
       formatHeight_ =
           static_cast<unsigned int> (std::abs (media_type_s.resolution.cy));
       decode_width = static_cast<unsigned int> (media_type_s.resolution.cx);
+      ACE_OS::memset (&media_type_2, 0, sizeof (MediaType));
 #else
       formatHeight_ = media_type_s.resolution.height;
       decode_width = media_type_s.resolution.width;
 #endif // ACE_WIN32 || ACE_WIN64
-      MediaType media_type_2;
       inherited2::getMediaType (media_type_s,
                                 media_type_2);
 

@@ -168,6 +168,8 @@ Stream_Decoder_MPEG_4_Decoder_T<ACE_SYNCH_USE,
   ACE_UINT64 processed_bytes_i = 0;
   ACE_UINT64 total_bytes_to_skip_i = 0, total_bytes_to_skip_2 = 0, bytes_to_skip_i = 0;
   ACE_UINT64 total_length_i = 0;
+  ACE_UINT64 incoming_data_bytes_i =
+    static_cast<ACE_UINT64> (message_inout->total_length ());
 
   // initialize return value(s)
   // *NOTE*: the default behavior is to pass all messages along
@@ -280,7 +282,7 @@ process_boxes:
 process_next_frame:
   if (missingBytes_)
   {
-    missingBytes_ -= std::min (missingBytes_, total_length_i);
+    missingBytes_ -= std::min (missingBytes_, incoming_data_bytes_i);
     if (missingBytes_)
       return; // need more data
   } // end IF

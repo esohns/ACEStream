@@ -21,14 +21,16 @@
 
 #include "stream_dec_tools.h"
 
+#include <cmath>
+
 #include "ace/config-lite.h"
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-#include <winnt.h>
-#include <guiddef.h>
-#include <amvideo.h>
-//#include <combaseapi.h>
-#include <dmodshow.h>
-#include <dmoreg.h>
+#include "winnt.h"
+#include "guiddef.h"
+#include "amvideo.h"
+//#include "combaseapi.h"
+#include "dmodshow.h"
+#include "dmoreg.h"
 // *WARNING*: "...Note Header files ksproxy.h and dsound.h define similar but
 //            incompatible versions of the IKsPropertySet interface.
 //            Applications that require the KS proxy module should use the
@@ -38,33 +40,31 @@
 //            If an application must include both ksproxy.h and dsound.h,
 //            whichever header file the compiler scans first is the one whose
 //            definition of IKsPropertySet is used by the compiler. ..."
-//#include <MMReg.h>
-#include <WinNT.h>
-#include <Guiddef.h>
-#include <Ks.h>
-#include <KsProxy.h>
-#include <MMSystem.h>
+//#include "MMReg.h"
+#include "WinNT.h"
+#include "Guiddef.h"
+#include "Ks.h"
+#include "KsProxy.h"
+#include "MMSystem.h"
 #define INITGUID
-#include <dsound.h>
-#include <dvdmedia.h>
-#include <fourcc.h>
-#include <mediaobj.h>
-#include <mfapi.h>
-#include <mfidl.h>
-#include <mtype.h>
-#include <qedit.h>
-#include <strmif.h>
+#include "dsound.h"
+#include "dvdmedia.h"
+#include "fourcc.h"
+#include "mediaobj.h"
+#include "mfapi.h"
+#include "mfidl.h"
+#include "mtype.h"
+#include "qedit.h"
+#include "strmif.h"
 // *NOTE*: uuids.h doesn't have double include protection
 #if defined (UUIDS_H)
 #else
 #define UUIDS_H
-#include <uuids.h>
+#include "uuids.h"
 #endif // UUIDS_H
-#include <vfwmsgs.h>
-#include <wmcodecdsp.h>
+#include "vfwmsgs.h"
+#include "wmcodecdsp.h"
 #endif // ACE_WIN32 || ACE_WIN64
-
-#include <cmath>
 
 #if defined (FFMPEG_SUPPORT)
 #ifdef __cplusplus
@@ -172,25 +172,22 @@ Stream_Module_Decoder_Tools::mpeg4ToDateTime (ACE_UINT64 secondsSince_MPEG4Epoch
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Decoder_Tools::mpeg4ToDateTime"));
 
-  struct tm tm_s, tm_2, *tm_p = NULL;
+  struct tm tm_s, *tm_p = NULL;
   ACE_OS::memset (&tm_s, 0, sizeof (struct tm));
   tm_s.tm_mday = 1;
   tm_s.tm_year = 4;
-  time_t time_i = ACE_OS::mktime (&tm_s);
-  tm_p = ACE_OS::gmtime_r (&time_i, &tm_2);
-  ACE_ASSERT (tm_p);
-  time_i = ACE_OS::mktime (&tm_2) + secondsSince_MPEG4Epoch_in;
-  tm_p = ACE_OS::localtime_r (&time_i, &tm_2);
+  time_t time_i = ACE_OS::mktime (&tm_s) + secondsSince_MPEG4Epoch_in;
+  tm_p = ACE_OS::localtime_r (&time_i, &tm_s);
   ACE_ASSERT (tm_p);
 
-  ACE_Date_Time result (tm_2.tm_mday,
-                        tm_2.tm_mon + 1,
-                        tm_2.tm_year + 1900,
-                        tm_2.tm_hour,
-                        tm_2.tm_min,
-                        tm_2.tm_sec,
+  ACE_Date_Time result (tm_s.tm_mday,
+                        tm_s.tm_mon + 1,
+                        tm_s.tm_year + 1900,
+                        tm_s.tm_hour,
+                        tm_s.tm_min,
+                        tm_s.tm_sec,
                         0,
-                        tm_2.tm_wday);
+                        tm_s.tm_wday);
 
   return result;
 }

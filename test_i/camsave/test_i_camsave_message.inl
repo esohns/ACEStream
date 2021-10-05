@@ -137,15 +137,15 @@ Stream_CamSave_Message_T<DataType,
     return NULL;
   } // end IF
 
-  // allocate a new ARDrone_LiveVideoMessage that contains unique copies of the message
-  // block fields, and "deep" copie(s) of the data block(s)
+  // allocate a new Stream_CamSave_Message_T that contains unique copies of the message
+  // block fields, and "deep" copy(s) of the data block(s)
 
   // *NOTE*: if there is no allocator, use the standard new/delete calls
 
   if (inherited::message_block_allocator_)
   {
     // *NOTE*: the argument to calloc() doesn't matter (as long as it is not 0),
-    //         the returned memory is always sizeof(ARDrone_LiveVideoMessage)
+    //         the returned memory is always sizeof(Stream_CamSave_Message_T)
     ACE_NEW_MALLOC_NORETURN (result_p,
                              static_cast<OWN_TYPE_T*> (inherited::message_block_allocator_->calloc (sizeof (OWN_TYPE_T),
                                                                                                     '\0')),
@@ -164,12 +164,9 @@ Stream_CamSave_Message_T<DataType,
   {
     Stream_IAllocator* allocator_p =
         dynamic_cast<Stream_IAllocator*> (inherited::message_block_allocator_);
-    ACE_ASSERT (allocator_p);
-    if (allocator_p->block ())
+    if (allocator_p && allocator_p->block ())
       ACE_DEBUG ((LM_CRITICAL,
-                  ACE_TEXT ("failed to allocate ARDrone_LiveVideoMessage: \"%m\", aborting\n")));
-
-    // clean up
+                  ACE_TEXT ("failed to allocate Stream_CamSave_Message_T: \"%m\", aborting\n")));
     data_block_p->release (NULL);
 
     return NULL;

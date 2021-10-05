@@ -70,7 +70,6 @@ Test_I_Message::clone (ACE_Message_Block::Message_Flags flags_in) const
   ACE_UNUSED_ARG (flags_in);
 
   int result = -1;
-  size_t current_size = 0;
 
   // sanity check(s)
   ACE_ASSERT (inherited::data_block_);
@@ -78,7 +77,6 @@ Test_I_Message::clone (ACE_Message_Block::Message_Flags flags_in) const
   // step1: "deep"-copy the fragment chain
   Test_I_Message* result_p = NULL;
 
-  current_size = inherited::data_block_->size ();
   // *NOTE*: ACE_Data_Block::clone() does not retain the value of 'cur_size_'
   //         --> reset it
   // *TODO*: resolve ACE bugzilla issue #4219
@@ -89,25 +87,25 @@ Test_I_Message::clone (ACE_Message_Block::Message_Flags flags_in) const
                 ACE_TEXT ("failed to ACE_Data_Block::clone(0): \"%m\", aborting\n")));
     return NULL;
   } // end IF
-  result = data_block_p->size (current_size);
+  result = data_block_p->size (inherited::data_block_->size ());
   if (result == -1)
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to ACE_Data_Block::size(%u): \"%m\", aborting\n"),
-                current_size));
+                inherited::data_block_->size ()));
     data_block_p->release (); data_block_p = NULL;
     return NULL;
   } // end IF
 
-  // allocate a new ARDrone_LiveVideoMessage that contains unique copies of the message
-  // block fields, and "deep" copie(s) of the data block(s)
+  // allocate a new Test_I_Message that contains unique copies of the message
+  // block fields, and "deep" copy(s) of the data block(s)
 
   // *NOTE*: if there is no allocator, use the standard new/delete calls
 
   if (inherited::message_block_allocator_)
   {
     // *NOTE*: the argument to calloc() doesn't matter (as long as it is not 0),
-    //         the returned memory is always sizeof(ARDrone_LiveVideoMessage)
+    //         the returned memory is always sizeof(Test_I_Message)
     ACE_NEW_MALLOC_NORETURN (result_p,
                              static_cast<Test_I_Message*> (inherited::message_block_allocator_->calloc (sizeof (OWN_TYPE_T),
                                                                                                         '\0')),
@@ -126,11 +124,10 @@ Test_I_Message::clone (ACE_Message_Block::Message_Flags flags_in) const
   {
     Stream_IAllocator* allocator_p =
         dynamic_cast<Stream_IAllocator*> (inherited::message_block_allocator_);
-    ACE_ASSERT (allocator_p);
-    if (allocator_p->block ())
+    if (allocator_p && allocator_p->block ())
       ACE_DEBUG ((LM_CRITICAL,
-                  ACE_TEXT ("failed to allocate ARDrone_LiveVideoMessage: \"%m\", aborting\n")));
-    data_block_p->release (NULL); data_block_p = NULL;
+                  ACE_TEXT ("failed to allocate Test_I_Message: \"%m\", aborting\n")));
+    data_block_p->release (NULL);
     return NULL;
   } // end IF
   // set read-/write pointers
