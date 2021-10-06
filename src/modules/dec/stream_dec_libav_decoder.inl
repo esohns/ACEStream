@@ -926,6 +926,8 @@ continue_:
     }
     case STREAM_SESSION_MESSAGE_END:
     {
+      drainBuffers (message_inout->sessionId ());
+
       if (context_)
       {
         avcodec_free_context (&context_); context_ = NULL;
@@ -1091,4 +1093,178 @@ Stream_Decoder_LibAVDecoder_T<ACE_SYNCH_USE,
   av_frame_unref (frame_);
 
   return true;
+}
+
+template <ACE_SYNCH_DECL,
+          typename TimePolicyType,
+          typename ConfigurationType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
+          typename SessionDataContainerType,
+          typename MediaType>
+void
+Stream_Decoder_LibAVDecoder_T<ACE_SYNCH_USE,
+                              TimePolicyType,
+                              ConfigurationType,
+                              ControlMessageType,
+                              DataMessageType,
+                              SessionMessageType,
+                              SessionDataContainerType,
+                              MediaType>::drainBuffers (Stream_SessionId_t sessionId_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Decoder_LibAVDecoder_T::drainBuffers"));
+
+  // sanity check(s)
+  ACE_ASSERT (context_);
+  ACE_ASSERT (frame_);
+
+  struct AVPacket packet_s;
+  ACE_OS::memset (&packet_s, 0, sizeof (struct AVPacket));
+  DataMessageType* message_p = NULL;
+  int result = -1;
+  ACE_Message_Block* message_block_p = NULL;
+
+  av_init_packet (&packet_s);
+
+  result = avcodec_send_packet (context_,
+                                &packet_s);
+  if (result)
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s: failed to avcodec_send_packet(): \"%s\", returning\n"),
+                inherited::mod_->name (),
+                ACE_TEXT (Common_Image_Tools::errorToString (result).c_str ())));
+    return;
+  } // end IF
+
+  do
+  {
+    result = avcodec_receive_frame (context_,
+                                    frame_);
+    if (result < 0)
+    {
+      if (result == AVERROR_EOF)
+        return;
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("%s: failed to avcodec_receive_frame(): \"%s\", returning\n"),
+                  inherited::mod_->name (),
+                  ACE_TEXT (Common_Image_Tools::errorToString (result).c_str ())));
+      return;
+    } // end IF
+    ACE_ASSERT (frame_->data);
+
+    // --> successfully decoded a frame
+
+    // convert pixel format of the decoded frame ?
+    if (transformContext_)
+    { ACE_ASSERT (outputFormat_ != AV_PIX_FMT_NONE);
+      int line_sizes_a[AV_NUM_DATA_POINTERS];
+      ACE_OS::memset (&line_sizes_a, 0, sizeof (int[AV_NUM_DATA_POINTERS]));
+      uint8_t* data_a[AV_NUM_DATA_POINTERS];
+      ACE_OS::memset (&data_a, 0, sizeof (uint8_t* [AV_NUM_DATA_POINTERS]));
+
+      message_block_p = inherited::allocateMessage (outputFrameSize_);
+      if (unlikely (!message_block_p))
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("%s: failed to Stream_Task_Base_T::allocateMessage(%u), returning\n"),
+                    inherited::mod_->name (),
+                    outputFrameSize_));
+        av_frame_unref (frame_);
+        return;
+      } // end IF
+
+      result =
+          av_image_fill_linesizes (line_sizes_a,
+                                   outputFormat_,
+                                   static_cast<int> (frame_->width));
+      ACE_ASSERT (result >= 0);
+      result =
+          av_image_fill_pointers (data_a,
+                                  outputFormat_,
+                                  static_cast<int> (frame_->height),
+                                  reinterpret_cast<uint8_t*> (message_block_p->wr_ptr ()),
+                                  line_sizes_a);
+      ACE_ASSERT (result >= 0);
+      if (unlikely (!Stream_Module_Decoder_Tools::convert (transformContext_,
+                                                           context_->width, context_->height, context_->pix_fmt,
+                                                           static_cast<uint8_t**> (frame_->data),
+                                                           context_->width, context_->height, outputFormat_,
+                                                           data_a)))
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("%s: failed to Stream_Module_Decoder_Tools::convert(), returning\n"),
+                    inherited::mod_->name ()));
+        av_frame_unref (frame_);
+        message_block_p->release ();
+        return;
+      } // end IF
+      message_block_p->wr_ptr (outputFrameSize_);
+
+  //#if defined (_DEBUG)
+  //    std::string filename_string = ACE_TEXT_ALWAYS_CHAR ("output.rgb");
+  //    if (!Common_File_Tools::store (filename_string,
+  //                                   data[0],
+  //                                   frameSize_))
+  //    {
+  //      ACE_DEBUG ((LM_ERROR,
+  //                  ACE_TEXT ("failed to Common_File_Tools::store(\"%s\"), returning\n"),
+  //                  ACE_TEXT (filename_string.c_str ())));
+  //      goto error;
+  //    } // end IF
+  //#endif // _DEBUG
+    } // end IF
+    else
+    {
+      message_block_p = inherited::allocateMessage (frameSize_);
+      if (unlikely (!message_block_p))
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("%s: failed to Stream_Task_Base_T::allocateMessage(%u), returning\n"),
+                    inherited::mod_->name (),
+                    frameSize_));
+        av_frame_unref (frame_);
+        return;
+      } // end IF
+      message_block_p->base (reinterpret_cast<char*> (frame_->data),
+                             frameSize_,
+                             0); // own image data
+      message_block_p->wr_ptr (frameSize_);
+
+  //#if defined (_DEBUG)
+  //    std::string filename_string = ACE_TEXT_ALWAYS_CHAR ("output.yuv");
+  //    if (!Common_Image_Tools::storeToFile (context_->width, context_->height, context_->pix_fmt,
+  //                                          static_cast<uint8_t**> (frame_->data),
+  //                                          filename_string))
+  //    {
+  //      ACE_DEBUG ((LM_ERROR,
+  //                  ACE_TEXT ("failed to Common_Image_Tools::storeToFile(\"%s\"), returning\n"),
+  //                  ACE_TEXT (filename_string.c_str ())));
+  //      goto error;
+  //    } // end IF
+  //#endif // _DEBUG
+    } // end ELSE
+    ACE_ASSERT (message_block_p);
+    message_p = static_cast<DataMessageType*> (message_block_p);
+
+    // clean up
+    ACE_OS::memset (frame_->data, 0, sizeof (uint8_t * [8]));
+    av_frame_unref (frame_);
+
+    // forward the decoded frame
+    message_p->initialize (sessionId_in,
+                           NULL);
+    //message_p->set (message_2->type ());
+    result = inherited::put_next (message_p, NULL);
+    if (unlikely (result == -1))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("%s: failed to ACE_Task::put_next(): \"%m\", returning\n"),
+                  inherited::mod_->name ()));
+      message_p->release ();
+      return;
+    } // end IF
+    message_p = NULL;
+  } while (true);
 }

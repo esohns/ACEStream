@@ -116,6 +116,7 @@ class Stream_Decoder_LibAVDecoder_T
   // helper methods
   bool decodePacket (struct AVPacket&,   // data packet
                      DataMessageType*&); // return value: decoded frame
+  void drainBuffers (Stream_SessionId_t); // session id
 
   enum AVCodecID               codecId_;
   struct AVCodecContext*       context_;
