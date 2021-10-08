@@ -746,8 +746,7 @@ clean:
   connection_manager_p->abort ();
   connection_manager_p->wait ();
 
-  Common_Tools::finalizeEventDispatch (dispatch_state.proactorGroupId,
-                                       dispatch_state.reactorGroupId,
+  Common_Tools::finalizeEventDispatch (dispatch_state,
                                        true);
 
   timer_manager_p->stop ();

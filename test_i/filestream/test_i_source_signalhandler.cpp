@@ -161,9 +161,8 @@ Test_I_Source_SignalHandler::handle (const struct Common_Signal& signal_in)
 #endif // GUI_SUPPORT
 
     // step4: stop reactor (&& proactor, if applicable)
-    Common_Tools::finalizeEventDispatch (inherited::configuration_->dispatchState->reactorGroupId,  // stop reactor ?
-                                         inherited::configuration_->dispatchState->proactorGroupId, // stop proactor ?
-                                         false);                                                    // wait ?
+    Common_Tools::finalizeEventDispatch (*inherited::configuration_->dispatchState,
+                                         false);                                    // wait ?
 
     // *IMPORTANT NOTE*: there is no reason to wait here
   } // end IF

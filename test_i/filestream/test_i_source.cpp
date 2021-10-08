@@ -787,8 +787,7 @@ loop:
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to initialize stream, returning\n")));
-      Common_Tools::finalizeEventDispatch (event_dispatch_state_s.proactorGroupId,
-                                           event_dispatch_state_s.reactorGroupId,
+      Common_Tools::finalizeEventDispatch (event_dispatch_state_s,
                                            true);
       timer_manager_p->stop ();
       delete CBData_in.stream; CBData_in.stream = NULL;
@@ -825,14 +824,12 @@ loop:
     iconnection_manager_p->stop (false, true);
     iconnection_manager_p->abort ();
     iconnection_manager_p->wait ();
-    Common_Tools::finalizeEventDispatch (event_dispatch_state_s.proactorGroupId,
-                                         event_dispatch_state_s.reactorGroupId,
+    Common_Tools::finalizeEventDispatch (event_dispatch_state_s,
                                          true);
 #if defined (GUI_SUPPORT)
   } // end IF
   else
-    Common_Tools::dispatchEvents (false,
-                                  group_id);
+    Common_Tools::dispatchEvents (event_dispatch_state_s);
 #endif // GUI_SUPPORT
 
   // step3: clean up

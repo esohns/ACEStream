@@ -181,9 +181,8 @@ Stream_Target_SignalHandler::handle (const struct Common_Signal& signal_in)
     connection_manager_p->wait ();
 
     // step5: stop reactor (&& proactor, if applicable)
-    Common_Tools::finalizeEventDispatch (inherited::configuration_->dispatchState->reactorGroupId,  // stop reactor ?
-                                         inherited::configuration_->dispatchState->proactorGroupId, // stop proactor ?
-                                         false);                                                    // wait ?
+    Common_Tools::finalizeEventDispatch (*inherited::configuration_->dispatchState,
+                                         false);                                    // wait ?
 
     // *IMPORTANT NOTE*: there is no real reason to wait here
   } // end IF

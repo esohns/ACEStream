@@ -779,8 +779,7 @@ do_work (unsigned int bufferSize_in,
         ACE_DEBUG ((LM_CRITICAL,
                     ACE_TEXT ("failed to allocate memory, returning\n")));
 
-        Common_Tools::finalizeEventDispatch (event_dispatch_state_s.proactorGroupId,
-                                             event_dispatch_state_s.reactorGroupId,
+        Common_Tools::finalizeEventDispatch (event_dispatch_state_s,
                                              true);
         //		{ // synch access
         //			ACE_Guard<ACE_Recursive_Thread_Mutex> aGuard(CBData_in.lock);
@@ -805,8 +804,7 @@ do_work (unsigned int bufferSize_in,
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("failed to initialize connector: \"%m\", returning\n")));
 
-        Common_Tools::finalizeEventDispatch (event_dispatch_state_s.proactorGroupId,
-                                             event_dispatch_state_s.reactorGroupId,
+        Common_Tools::finalizeEventDispatch (event_dispatch_state_s,
                                              true);
         //		{ // synch access
         //			ACE_Guard<ACE_Recursive_Thread_Mutex> aGuard(CBData_in.lock);
@@ -866,8 +864,7 @@ do_work (unsigned int bufferSize_in,
                                                                    false,
                                                                    false).c_str ())));
 
-        Common_Tools::finalizeEventDispatch (event_dispatch_state_s.proactorGroupId,
-                                             event_dispatch_state_s.reactorGroupId,
+        Common_Tools::finalizeEventDispatch (event_dispatch_state_s,
                                              true);
         //		{ // synch access
         //			ACE_Guard<ACE_Recursive_Thread_Mutex> aGuard(CBData_in.lock);
@@ -900,8 +897,7 @@ do_work (unsigned int bufferSize_in,
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("failed to initialize listener, returning\n")));
 
-        Common_Tools::finalizeEventDispatch (event_dispatch_state_s.proactorGroupId,
-                                             event_dispatch_state_s.reactorGroupId,
+        Common_Tools::finalizeEventDispatch (event_dispatch_state_s,
                                              true);
         //		{ // synch access
         //			ACE_Guard<ACE_Recursive_Thread_Mutex> aGuard(CBData_in.lock);
@@ -952,8 +948,7 @@ do_work (unsigned int bufferSize_in,
 
   // *NOTE*: from this point on, clean up any remote connections !
 
-  Common_Tools::dispatchEvents (false,
-                                group_id);
+  Common_Tools::dispatchEvents (event_dispatch_state_s);
 
   // clean up
   // *NOTE*: listener has stopped, interval timer has been cancelled,

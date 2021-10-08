@@ -1887,8 +1887,7 @@ do_work (const std::string& deviceIdentifier_in,
                   ACE_TEXT ("failed to initialize stream, aborting\n")));
 
       // clean up
-      Common_Tools::finalizeEventDispatch (event_dispatch_state_s.proactorGroupId,
-                                           event_dispatch_state_s.reactorGroupId,
+      Common_Tools::finalizeEventDispatch (event_dispatch_state_s,
                                            true);
 
       goto clean;
@@ -1921,8 +1920,7 @@ do_work (const std::string& deviceIdentifier_in,
 
 //    connection_manager_p->abort ();
   iconnection_manager_p->wait ();
-  Common_Tools::finalizeEventDispatch (event_dispatch_state_s.proactorGroupId,
-                                       event_dispatch_state_s.reactorGroupId,
+  Common_Tools::finalizeEventDispatch (event_dispatch_state_s,
                                        true);
 
   // step3: clean up

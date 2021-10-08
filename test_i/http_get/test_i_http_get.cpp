@@ -783,8 +783,7 @@ do_work (unsigned int bufferSize_in,
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to initialize stream, returning\n")));
-    Common_Tools::finalizeEventDispatch (dispatch_state_s.proactorGroupId,
-                                         dispatch_state_s.reactorGroupId,
+    Common_Tools::finalizeEventDispatch (dispatch_state_s,
                                          true);
     timer_manager_p->stop ();
     delete stream_p; stream_p = NULL;
@@ -812,8 +811,7 @@ do_work (unsigned int bufferSize_in,
   connection_manager_p->stop (false, true);
   connection_manager_p->abort ();
   connection_manager_p->wait ();
-  Common_Tools::finalizeEventDispatch (dispatch_state_s.proactorGroupId,
-                                       dispatch_state_s.reactorGroupId,
+  Common_Tools::finalizeEventDispatch (dispatch_state_s,
                                        true);
 
   // step3: clean up

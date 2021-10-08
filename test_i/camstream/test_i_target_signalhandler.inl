@@ -204,8 +204,7 @@ Test_I_Target_SignalHandler_T<ConfigurationType,
     inherited::configuration_->connectionManager->wait ();
 
     // step5: stop reactor (&& proactor, if applicable)
-    Common_Tools::finalizeEventDispatch (inherited::configuration_->dispatchState->proactorGroupId,
-                                         inherited::configuration_->dispatchState->reactorGroupId,
-                                         false);                                                     // don't block
+    Common_Tools::finalizeEventDispatch (*inherited::configuration_->dispatchState,
+                                         false);                                    // don't block
   } // end IF
 }

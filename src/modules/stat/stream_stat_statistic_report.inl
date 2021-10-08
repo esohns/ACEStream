@@ -986,7 +986,7 @@ Stream_Statistic_StatisticReport_ReaderTask_T<ACE_SYNCH_USE,
     case ACE_Message_Block::MB_PROTO:
     {
       DataMessageType* message_p =
-        dynamic_cast<DataMessageType*> (messageBlock_in);
+        static_cast<DataMessageType*> (messageBlock_in);
       if (unlikely (!message_p))
       {
         ACE_DEBUG ((LM_ERROR,

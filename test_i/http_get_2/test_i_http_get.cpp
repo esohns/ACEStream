@@ -969,8 +969,7 @@ do_work (const std::string& bootstrapFileName_in,
   connection_manager_p->stop (false, true);
   connection_manager_p->abort ();
   connection_manager_p->wait ();
-  Common_Tools::finalizeEventDispatch (event_dispatch_state_s.proactorGroupId,
-                                       event_dispatch_state_s.reactorGroupId,
+  Common_Tools::finalizeEventDispatch (event_dispatch_state_s,
                                        true);
   timer_manager_p->stop ();
 
@@ -1007,9 +1006,8 @@ do_work (const std::string& bootstrapFileName_in,
 
 error:
   if (finalize_event_dispatch)
-    Common_Tools::finalizeEventDispatch (useReactor_in,
-                                         !useReactor_in,
-                                         group_id);
+    Common_Tools::finalizeEventDispatch (event_dispatch_state_s,
+                                         true);
   if (stop_timers)
     timer_manager_p->stop ();
   if (stream_p)

@@ -157,9 +157,8 @@ HTTPGet_SignalHandler::handle (const struct Common_Signal& signal_in)
     connection_manager_p->wait ();
 
     // step3: stop reactor (&& proactor, if applicable)
-    Common_Tools::finalizeEventDispatch (inherited::configuration_->dispatchState->reactorGroupId,  // stop reactor ?
-                                         inherited::configuration_->dispatchState->proactorGroupId, // stop proactor ?
-                                         false);                                                    // wait ?
+    Common_Tools::finalizeEventDispatch (*inherited::configuration_->dispatchState,
+                                         false);                                    // wait ?
 
     ACE_ASSERT (inherited::configuration_);
 #if defined (GUI_SUPPORT)

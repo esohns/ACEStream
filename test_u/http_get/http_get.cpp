@@ -897,9 +897,8 @@ do_work (unsigned int bufferSize_in,
   return;
 
 clean:
-  Common_Tools::finalizeEventDispatch (useReactor_in,
-                                       !useReactor_in,
-                                       group_id);
+  Common_Tools::finalizeEventDispatch (CBData_in.dispatchState,
+                                       true);
   timer_manager_p->stop ();
   if (!interfaceDefinitionFile_in.empty ())
 #if defined (GUI_SUPPORT)
