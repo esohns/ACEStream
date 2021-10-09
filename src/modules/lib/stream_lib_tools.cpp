@@ -1991,8 +1991,8 @@ Stream_MediaFramework_Tools::v4lFormatToBitDepth (__u32 format_in)
       return 10;
     case V4L2_PIX_FMT_Y12:
       return 12;
-    case V4L2_PIX_FMT_Y14:
-      return 14;
+    //case V4L2_PIX_FMT_Y14:
+    //  return 14;
     case V4L2_PIX_FMT_Y16:
     case V4L2_PIX_FMT_Y16_BE:
       return 16;
@@ -2015,8 +2015,8 @@ Stream_MediaFramework_Tools::v4lFormatToBitDepth (__u32 format_in)
     case V4L2_PIX_FMT_YUV555:
     case V4L2_PIX_FMT_YUV565:
       return 16;
-    case V4L2_PIX_FMT_YUV24:
-      return 24;
+    //case V4L2_PIX_FMT_YUV24:
+    //  return 24;
     case V4L2_PIX_FMT_YUV32:
       return 32;
     case V4L2_PIX_FMT_AYUV32:
@@ -2100,11 +2100,11 @@ Stream_MediaFramework_Tools::v4lFormatToBitDepth (__u32 format_in)
     case V4L2_PIX_FMT_SGRBG12P:
     case V4L2_PIX_FMT_SRGGB12P:
       return 48;
-    case V4L2_PIX_FMT_SBGGR14:
-    case V4L2_PIX_FMT_SGBRG14:
-    case V4L2_PIX_FMT_SGRBG14:
-    case V4L2_PIX_FMT_SRGGB14:
-      return 56;
+    //case V4L2_PIX_FMT_SBGGR14:
+    //case V4L2_PIX_FMT_SGBRG14:
+    //case V4L2_PIX_FMT_SGRBG14:
+    //case V4L2_PIX_FMT_SRGGB14:
+    //  return 56;
     case V4L2_PIX_FMT_SBGGR14P:
     case V4L2_PIX_FMT_SGBRG14P:
     case V4L2_PIX_FMT_SGRBG14P:
@@ -2137,12 +2137,12 @@ Stream_MediaFramework_Tools::v4lFormatToBitDepth (__u32 format_in)
     case V4L2_PIX_FMT_VC1_ANNEX_G:
     case V4L2_PIX_FMT_VC1_ANNEX_L:
     case V4L2_PIX_FMT_VP8:
-    case V4L2_PIX_FMT_VP8_FRAME:
+    //case V4L2_PIX_FMT_VP8_FRAME:
     case V4L2_PIX_FMT_VP9:
     case V4L2_PIX_FMT_HEVC:
     case V4L2_PIX_FMT_FWHT:
     case V4L2_PIX_FMT_FWHT_STATELESS:
-    case V4L2_PIX_FMT_H264_SLICE:
+    //case V4L2_PIX_FMT_H264_SLICE:
       return 0;
     case V4L2_PIX_FMT_CPIA1:
     case V4L2_PIX_FMT_WNVA:
