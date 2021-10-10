@@ -37,10 +37,10 @@ struct Test_U_Qt_ProgressData
    : Common_UI_Qt_ProgressData ()
    , statistic ()
   {
-    ACE_OS::memset (&statistic, 0, sizeof (Test_U_Statistic_t));
+    ACE_OS::memset (&statistic, 0, sizeof (struct Stream_Statistic));
   }
 
-  Test_U_Statistic_t statistic;
+  struct Stream_Statistic statistic;
 };
 
 struct Test_U_Qt_CBData

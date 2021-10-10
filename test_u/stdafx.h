@@ -11,7 +11,7 @@
 #include "targetver.h"
 
 // Windows Header Files
-#include <windows.h>
+#include "windows.h"
 #endif // _MSC_VER
 
 // C RunTime Header Files
@@ -45,9 +45,16 @@
 
 #include "test_u_common.h"
 #if defined (GUI_SUPPORT)
-#if defined (GTK_USE)
+#if defined (CURSES_SUPPORT)
+#include "test_u_curses_common.h"
+#endif // CURSES_SUPPORT
+#if defined (GTK_SUPPORT)
 #include "test_u_gtk_common.h"
-#elif defined (WXWIDGETS_USE)
+#endif // GTK_SUPPORT
+#if defined (QT_SUPPORT)
+#include "test_u_qt_common.h"
+#endif // QT_SUPPORT
+#if defined (WXWIDGETS_SUPPORT)
 #include "test_u_wxwidgets_common.h"
-#endif
+#endif // WXWIDGETS_SUPPORT
 #endif // GUI_SUPPORT

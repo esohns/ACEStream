@@ -1213,7 +1213,7 @@ do_work (unsigned int bufferSize_in,
         COMMON_TIMERMANAGER_SINGLETON::instance ();
   ACE_ASSERT (timer_manager_p);
   long timer_id = -1;
-  int group_id = -1;
+//  int group_id = -1;
   Net_IStreamStatisticHandler_t* report_handler_p = NULL;
   bool result_2 = false;
 #if defined (GUI_SUPPORT)

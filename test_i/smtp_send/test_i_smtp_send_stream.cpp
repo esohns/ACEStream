@@ -133,8 +133,8 @@ Test_I_SMTPSend_Stream::initialize (const typename inherited::CONFIGURATION_T& c
   } // end IF
   ACE_ASSERT (inherited::sessionData_);
 
-  struct SMTP_Stream_SessionData& session_data_r =
-      const_cast<struct SMTP_Stream_SessionData&> (inherited::sessionData_->getR ());
+//  struct SMTP_Stream_SessionData& session_data_r =
+//      const_cast<struct SMTP_Stream_SessionData&> (inherited::sessionData_->getR ());
 
   // ******************* Source ************************
   Stream_SMTPSend_NetSource* source_impl_p =

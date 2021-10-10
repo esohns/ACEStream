@@ -672,7 +672,7 @@ do_work (const std::string& bootstrapFileName_in,
 
   bool finalize_event_dispatch = false;
   bool stop_timers = false;
-  int group_id = -1;
+//  int group_id = -1;
   int result = -1;
   Common_IInitialize_T<Test_I_HTTPGet_StreamConfiguration_t>* iinitialize_p =
     NULL;
@@ -689,7 +689,7 @@ do_work (const std::string& bootstrapFileName_in,
   Common_Timer_Manager_t* timer_manager_p = NULL;
   struct Common_TimerConfiguration timer_configuration;
   struct Common_EventDispatchConfiguration event_dispatch_configuration_s;
-  ACE_thread_t thread_id = 0;
+//  ACE_thread_t thread_id = 0;
   struct Common_Parser_FlexAllocatorConfiguration allocator_configuration;
 
   Stream_AllocatorHeap_T<ACE_MT_SYNCH,
@@ -1107,6 +1107,7 @@ ACE_TMAIN (int argc_in,
   use_reactor =
           (COMMON_EVENT_DEFAULT_DISPATCH == COMMON_EVENT_DISPATCH_REACTOR);
   trace_information = false;
+  use_thread_pool = false;
   URL = ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_URL);
   print_version_and_exit = false;
   number_of_dispatch_threads =
@@ -1155,8 +1156,8 @@ ACE_TMAIN (int argc_in,
     ACE_DEBUG ((LM_WARNING,
                 ACE_TEXT ("limiting the number of message buffers could (!) lead to deadlocks --> make sure you know what you are doing...\n")));
   if (use_reactor                      &&
-      (number_of_dispatch_threads > 1)/* &&
-      !use_thread_pool*/)
+      (number_of_dispatch_threads > 1) &&
+      !use_thread_pool)
   { // *NOTE*: see also: man (2) select
     // *TODO*: verify this for MS Windows based systems
     ACE_DEBUG ((LM_WARNING,

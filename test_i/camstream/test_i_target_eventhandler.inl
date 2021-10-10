@@ -22,16 +22,16 @@
 #include "ace/Synch_Traits.h"
 
 #if defined (GUI_SUPPORT)
-#if defined (GTK_USE)
+#if defined (GTK_SUPPORT)
 #include "gtk/gtk.h"
-#endif // GTK_USE
+#endif // GTK_SUPPORT
 #endif // GUI_SUPPORT
 
 #include "stream_macros.h"
 
-#if defined (GTK_USE)
+#if defined (GTK_SUPPORT)
 #include "test_i_callbacks.h"
-#endif // GTK_USE
+#endif // GTK_SUPPORT
 
 template <typename SessionDataType,
           typename SessionEventType,
@@ -78,19 +78,19 @@ Test_I_Target_EventHandler_T<SessionDataType,
   ACE_ASSERT (!sessionData_);
 
 #if defined (GUI_SUPPORT)
-#if defined (GTK_USE)
+#if defined (GTK_SUPPORT)
   Common_UI_GTK_Manager_t* gtk_manager_p =
     COMMON_UI_GTK_MANAGER_SINGLETON::instance ();
   ACE_ASSERT (gtk_manager_p);
   Common_UI_GTK_State_t& state_r =
     const_cast<Common_UI_GTK_State_t&> (gtk_manager_p->getR ());
-#endif // GTK_USE
+#endif // GTK_SUPPORT
 #endif // GUI_SUPPORT
 
   sessionData_ = &const_cast<SessionDataType&> (sessionData_in);
 
 #if defined (GUI_SUPPORT)
-#if defined (GTK_USE)
+#if defined (GTK_SUPPORT)
   guint event_source_id = 0;
   { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, state_r.lock);
     CBData_->progressData.transferred = 0;
@@ -103,7 +103,7 @@ Test_I_Target_EventHandler_T<SessionDataType,
       state_r.eventSourceIds.insert (event_source_id);
     state_r.eventStack.push (COMMON_UI_EVENT_STARTED);
   } // end lock scope
-#endif // GTK_USE
+#endif // GTK_SUPPORT
 #endif // GUI_SUPPORT
 }
 
@@ -129,17 +129,17 @@ Test_I_Target_EventHandler_T<SessionDataType,
 #endif // GUI_SUPPORT
 
 #if defined (GUI_SUPPORT)
-#if defined (GTK_USE)
+#if defined (GTK_SUPPORT)
   Common_UI_GTK_Manager_t* gtk_manager_p =
     COMMON_UI_GTK_MANAGER_SINGLETON::instance ();
   ACE_ASSERT (gtk_manager_p);
   Common_UI_GTK_State_t& state_r =
     const_cast<Common_UI_GTK_State_t&> (gtk_manager_p->getR ());
-#endif // GTK_USE
+#endif // GTK_SUPPORT
 #endif // GUI_SUPPORT
 
 #if defined (GUI_SUPPORT)
-#if defined (GTK_USE)
+#if defined (GTK_SUPPORT)
   guint event_source_id = 0;
   { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, state_r.lock);
     event_source_id = g_idle_add (idle_end_target_UI_cb,
@@ -151,7 +151,7 @@ Test_I_Target_EventHandler_T<SessionDataType,
       state_r.eventSourceIds.insert (event_source_id);
     state_r.eventStack.push (COMMON_UI_EVENT_STOPPED);
   } // end lock scope
-#endif // GTK_USE
+#endif // GTK_SUPPORT
 #endif // GUI_SUPPORT
 
   if (sessionData_)
@@ -181,17 +181,17 @@ Test_I_Target_EventHandler_T<SessionDataType,
 #endif // GUI_SUPPORT
 
 #if defined (GUI_SUPPORT)
-#if defined (GTK_USE)
+#if defined (GTK_SUPPORT)
   Common_UI_GTK_Manager_t* gtk_manager_p =
     COMMON_UI_GTK_MANAGER_SINGLETON::instance ();
   ACE_ASSERT (gtk_manager_p);
   Common_UI_GTK_State_t& state_r =
     const_cast<Common_UI_GTK_State_t&> (gtk_manager_p->getR ());
-#endif // GTK_USE
+#endif // GTK_SUPPORT
 #endif // GUI_SUPPORT
 
 #if defined (GUI_SUPPORT)
-#if defined (GTK_USE)
+#if defined (GTK_SUPPORT)
   guint event_source_id = 0;
   { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, state_r.lock);
     CBData_->progressData.transferred += message_in.total_length ();
@@ -204,7 +204,7 @@ Test_I_Target_EventHandler_T<SessionDataType,
     //  CBData_->UIState.eventSourceIds.insert (event_source_id);
     state_r.eventStack.push (COMMON_UI_EVENT_DATA);
   } // end lock scope
-#endif // GTK_USE
+#endif // GTK_SUPPORT
 #endif // GUI_SUPPORT
 }
 
@@ -231,17 +231,19 @@ Test_I_Target_EventHandler_T<SessionDataType,
 #endif // GUI_SUPPORT
 
 #if defined (GUI_SUPPORT)
-#if defined (GTK_USE)
+#if defined (GTK_SUPPORT)
   Common_UI_GTK_Manager_t* gtk_manager_p =
     COMMON_UI_GTK_MANAGER_SINGLETON::instance ();
   ACE_ASSERT (gtk_manager_p);
   Common_UI_GTK_State_t& state_r =
     const_cast<Common_UI_GTK_State_t&> (gtk_manager_p->getR ());
-#endif // GTK_USE
+#endif // GTK_SUPPORT
 #endif // GUI_SUPPORT
 
   int result = -1;
+#if defined (GUI_SUPPORT)
   enum Common_UI_EventType event_e = COMMON_UI_EVENT_SESSION;
+#endif // GUI_SUPPORT
   switch (sessionMessage_in.type ())
   {
     case STREAM_SESSION_MESSAGE_ABORT:
@@ -262,11 +264,11 @@ Test_I_Target_EventHandler_T<SessionDataType,
       } // end IF
 
 #if defined (GUI_SUPPORT)
-#if defined (GTK_USE)
+#if defined (GTK_SUPPORT)
       { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, state_r.lock);
 #endif // GTK_USE
         CBData_->progressData.statistic = sessionData_->statistic;
-#if defined (GTK_USE)
+#if defined (GTK_SUPPORT)
       } // end lock scope
 #endif // GTK_USE
 #endif // GUI_SUPPORT
@@ -280,7 +282,9 @@ Test_I_Target_EventHandler_T<SessionDataType,
       } // end IF
 
 continue_:
+#if defined (GUI_SUPPORT)
       event_e = COMMON_UI_EVENT_STATISTIC;
+#endif // GUI_SUPPORT
       break;
     }
     default:
@@ -293,10 +297,10 @@ continue_:
   } // end SWITCH
 
 #if defined (GUI_SUPPORT)
-#if defined (GTK_USE)
+#if defined (GTK_SUPPORT)
   { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, state_r.lock);
     state_r.eventStack.push (event_e);
   } // end lock scope
-#endif // GTK_USE
+#endif // GTK_SUPPORT
 #endif // GUI_SUPPORT
 }
