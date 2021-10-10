@@ -115,7 +115,7 @@ do_printUsage (const std::string& programName_in)
   std::cout << ACE_TEXT_ALWAYS_CHAR ("currently available options:")
             << std::endl;
   std::cout << ACE_TEXT_ALWAYS_CHAR ("-b [VALUE]  : buffer size (byte(s)) [")
-            << NET_STREAM_MESSAGE_DATA_BUFFER_SIZE
+            << NET_STREAM_DEFAULT_MESSAGE_DATA_BUFFER_SIZE
             << ACE_TEXT_ALWAYS_CHAR ("])")
             << std::endl;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -207,7 +207,7 @@ do_processArguments (int argc_in,
     ACE_TEXT_ALWAYS_CHAR (COMMON_LOCATION_CONFIGURATION_SUBDIRECTORY);
 
   // initialize results
-  bufferSize_out = NET_STREAM_MESSAGE_DATA_BUFFER_SIZE;
+  bufferSize_out = NET_STREAM_DEFAULT_MESSAGE_DATA_BUFFER_SIZE;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   showConsole_out = false;
 #endif
@@ -1013,7 +1013,7 @@ ACE_TMAIN (int argc_in,
     ACE_TEXT_ALWAYS_CHAR (COMMON_LOCATION_CONFIGURATION_SUBDIRECTORY);
 
   // step1a: set defaults
-  buffer_size = NET_STREAM_MESSAGE_DATA_BUFFER_SIZE;
+  buffer_size = NET_STREAM_DEFAULT_MESSAGE_DATA_BUFFER_SIZE;
   debug_parser = COMMON_PARSER_DEFAULT_YACC_TRACE;
   output_file_path = temp_directory;
   output_file_path += ACE_DIRECTORY_SEPARATOR_STR_A;
