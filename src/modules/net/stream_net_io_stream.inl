@@ -202,7 +202,7 @@ Stream_Module_Net_IO_Stream_T<ACE_SYNCH_USE,
 #else
   for (typename inherited::CONFIGURATION_T::ITERATOR_T iterator = const_cast<typename inherited::CONFIGURATION_T&> (configuration_in).begin ();
        iterator != const_cast<typename inherited::CONFIGURATION_T&> (configuration_in).end ();
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
        ++iterator)
   { //ACE_ASSERT ((*iterator).second.second.finishOnDisconnect);
     //ACE_ASSERT ((*iterator).second.second.socketHandle == ACE_INVALID_HANDLE);
@@ -254,7 +254,7 @@ Stream_Module_Net_IO_Stream_T<ACE_SYNCH_USE,
                               UserDataType>::initialize (const CONFIGURATION_T& configuration_in)
 #else
                               UserDataType>::initialize (const typename inherited::CONFIGURATION_T& configuration_in)
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Net_IO_Stream_T::initialize"));
 
@@ -447,7 +447,7 @@ Stream_Module_Net_IO_Stream_T<ACE_SYNCH_USE,
       ConnectionManagerType::SINGLETON_T::instance ();
     ACE_ASSERT (connection_manager_p);
     connection_p = connection_manager_p->get (handle_);
-    ACE_ASSERT (connection_p);
+    handle_ = ACE_INVALID_HANDLE;
   } // end IF
 
   inherited::stop (wait_in,

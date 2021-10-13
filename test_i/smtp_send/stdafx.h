@@ -14,14 +14,14 @@
 #include "targetver.h"
 
 // Windows Header Files
-#include <windows.h>
+#include "windows.h"
 
 #if defined (DEBUG)
 //// *NOTE*: wxWidgets may have #defined __WXDEBUG__
 //#if defined (__WXDEBUG__)
 //#undef __WXDEBUG__
 //#endif // __WXDEBUG__
-#include <wxdebug.h>
+#include "wxdebug.h"
 #endif // DEBUG
 #endif // _MSC_VER
 
