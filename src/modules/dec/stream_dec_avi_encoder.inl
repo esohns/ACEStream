@@ -905,7 +905,7 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
 
       codec_context_p->codec_id = codec_id;
 //      codec_context_p->codec_tag = MKTAG ('B', 'G', 'R', '8');
-//      codec_context_p->bit_rate = frameSize_; //* format_.frameRate.num * 8;
+      codec_context_p->bit_rate = frameSize_ * media_type_s.frameRate.num * 8;
 //      codec_context_p->bit_rate_tolerance = 5000000;
 //      codec_context_p->global_quality = 0;
 //      codec_context_p->compression_level = FF_COMPRESSION_DEFAULT;
@@ -1024,7 +1024,7 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
 
       ACE_ASSERT (!formatContext_->streams);
       stream_p = avformat_new_stream (formatContext_,
-                                      codec_p);
+                                      codec_context_p->codec);
       if (unlikely (!stream_p))
       {
         ACE_DEBUG ((LM_ERROR,
@@ -1040,13 +1040,13 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
       stream_p->codecpar->bit_rate = frameSize_ * media_type_s.frameRate.num * 8;
       stream_p->codecpar->codec_id = codec_id;
 //      stream_p->codecpar->codec_tag = MKTAG ('B', 'G', 'R', 'A');
-    //  stream_p->codecpar->codec_type = codec_->type;
+      stream_p->codecpar->codec_type = codec_p->type;
       stream_p->codecpar->format = media_type_s.format;
       stream_p->codecpar->width = media_type_s.resolution.width;
       stream_p->codecpar->height = media_type_s.resolution.height;
-      result = avcodec_parameters_to_context (codec_context_p,
-                                              stream_p->codecpar);
-      ACE_ASSERT (result >= 0);
+//      result = avcodec_parameters_to_context (codec_context_p,
+//                                              stream_p->codecpar);
+//      ACE_ASSERT (result >= 0);
       stream_p->time_base.num = media_type_s.frameRate.den;
       stream_p->time_base.den = (media_type_s.frameRate.num ? media_type_s.frameRate.num : 30);
       codec_context_p->time_base = stream_p->time_base;
