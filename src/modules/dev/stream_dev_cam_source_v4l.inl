@@ -246,7 +246,8 @@ next:
                                                                                 inherited::configuration_->method,
                                                                                 inherited::configuration_->buffers,
                                                                                 bufferMap_,
-                                                                                inherited::allocator_)))
+                                                                                inherited::allocator_,
+                                                                                inherited::configuration_->allocatorConfiguration)))
         {
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("%s: failed to Stream_Device_Tools::initializeBuffers(%d): \"%m\", aborting\n"),
@@ -523,9 +524,7 @@ Stream_Module_CamSource_V4L_T<ACE_SYNCH_USE,
       overlayFileDescriptor_ = -1;
     } // end IF
 
-#if defined (_DEBUG)
     debug_ = false;
-#endif // _DEBUG
     isPassive_ = false;
   } // end IF
 
@@ -541,13 +540,11 @@ Stream_Module_CamSource_V4L_T<ACE_SYNCH_USE,
   if (unlikely (captureFileDescriptor_ != -1))
   {
     isPassive_ = true;
-#if defined (_DEBUG)
     ACE_DEBUG ((LM_DEBUG,
                 ACE_TEXT ("%s: passive mode: using v4l2 device \"%s\" (fd: %d)\n"),
                 inherited::mod_->name (),
                 ACE_TEXT (configuration_in.deviceIdentifier.identifier.c_str ()),
                 captureFileDescriptor_));
-#endif // _DEBUG
   } // end IF
   else
   {
@@ -564,13 +561,11 @@ Stream_Module_CamSource_V4L_T<ACE_SYNCH_USE,
                   open_mode_i));
       return false;
     } // end IF
-#if defined (_DEBUG)
     ACE_DEBUG ((LM_DEBUG,
                 ACE_TEXT ("%s: opened v4l2 device \"%s\" (fd: %d)\n"),
                 inherited::mod_->name (),
                 ACE_TEXT (configuration_in.deviceIdentifier.identifier.c_str ()),
                 captureFileDescriptor_));
-#endif // _DEBUG
   } // end ELSE
   ACE_ASSERT (captureFileDescriptor_ != -1);
 
@@ -798,7 +793,6 @@ continue_:
       } // end IF
     } // end lock scope
 
-#if defined (_DEBUG)
     // log device status to kernel log ?
     if (unlikely (debug_))
     {
@@ -810,7 +804,6 @@ continue_:
                     inherited::mod_->name (),
                     captureFileDescriptor_, ACE_TEXT ("VIDIOC_LOG_STATUS")));
     } // end IF
-#endif // _DEBUG
 
 //    // dequeue pending events
 //    result = v4l2_ioctl (captureFileDescriptor_,

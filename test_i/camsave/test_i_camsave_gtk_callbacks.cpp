@@ -1281,7 +1281,9 @@ error:
         break;
       } // end IF
       ++format_description.index;
-
+      // *NOTE*: for some unknown reason, cannot set emulated formats anymore
+      if (format_description.flags & V4L2_FMT_FLAG_EMULATED)
+        continue;
       formats.insert (std::make_pair (format_description.pixelformat,
                                       reinterpret_cast<char*> (format_description.description)));
     } while (true);
@@ -3921,38 +3923,6 @@ continue_:
   (*iterator_2).second.second.targetFileName = filename_string;
 #endif // ACE_WIN32 || ACE_WIN64
 
-//  spin_button_p =
-//    GTK_SPIN_BUTTON (gtk_builder_get_object ((*iterator).second.second,
-//                                             ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_SPINBUTTON_BUFFERSIZE_NAME)));
-//  ACE_ASSERT (spin_button_p);
-//  value_d = gtk_spin_button_get_value (spin_button_p);
-//  ACE_ASSERT (value_d);
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-  //switch (ui_cb_data_base_p->mediaFramework)
-  //{
-  //  case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
-  //    directshow_cb_data_p->configuration->streamConfiguration.allocatorconfiguration->defaultBufferSize =
-  //      static_cast<unsigned int> (value_d);
-  //    break;
-  //  case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
-  //    mediafoundation_cb_data_p->configuration->streamConfiguration.allocatorconfiguration->defaultBufferSize =
-  //      static_cast<unsigned int> (value_d);
-  //    break;
-  //  default:
-  //  {
-  //    ACE_DEBUG ((LM_ERROR,
-  //                ACE_TEXT ("invalid/unknown media framework (was: %d), returning\n"),
-  //                ui_cb_data_base_p->mediaFramework));
-  //    goto error;
-  //  }
-  //} // end SWITCH
-#else
-//  ui_cb_data_p->configuration->libCamera_streamConfiguration.configuration->allocatorConfiguration->defaultBufferSize =
-//    ui_cb_data_p->configuration->libCamera_streamConfiguration.configuration->format.format.sizeimage;
-  ui_cb_data_p->configuration->v4l_streamConfiguration.configuration_->allocatorConfiguration->defaultBufferSize =
-    ui_cb_data_p->configuration->v4l_streamConfiguration.configuration_->format.format.sizeimage;
-#endif // ACE_WIN32 || ACE_WIN64
-
   // sanity check(s)
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   switch (ui_cb_data_base_p->mediaFramework)
@@ -4881,7 +4851,7 @@ button_quit_clicked_cb (GtkWidget* widget_in,
     static_cast<struct Stream_CamSave_V4L_UI_CBData*> (ui_cb_data_base_p);
   status_e = cb_data_p->stream->status ();
   stream_p = cb_data_p->stream;
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
   ACE_ASSERT (stream_p);
 
   //// step1: remove event sources

@@ -844,8 +844,10 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
         case AV_PIX_FMT_RGB565LE:
           break;
         // luminance-chrominance formats
+        case AV_PIX_FMT_UYVY422: // 'YUY2'
         case AV_PIX_FMT_YUV420P: // 'YU12'
         case AV_PIX_FMT_YUYV422:
+          break;
         case AV_PIX_FMT_YUVA444P:
           codec_id = AV_CODEC_ID_AYUV;
           break;
@@ -1037,23 +1039,18 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
 
 //      stream_p->id = 0;
       // *TODO*: why does this need to be reset ?
-      stream_p->codecpar->bit_rate = frameSize_ * media_type_s.frameRate.num * 8;
+//      stream_p->codecpar->bit_rate = frameSize_ * media_type_s.frameRate.num * 8;
       stream_p->codecpar->codec_id = codec_id;
 //      stream_p->codecpar->codec_tag = MKTAG ('B', 'G', 'R', 'A');
       stream_p->codecpar->codec_type = codec_p->type;
       stream_p->codecpar->format = media_type_s.format;
       stream_p->codecpar->width = media_type_s.resolution.width;
       stream_p->codecpar->height = media_type_s.resolution.height;
-//      result = avcodec_parameters_to_context (codec_context_p,
-//                                              stream_p->codecpar);
-//      ACE_ASSERT (result >= 0);
-      stream_p->time_base.num = media_type_s.frameRate.den;
-      stream_p->time_base.den = (media_type_s.frameRate.num ? media_type_s.frameRate.num : 30);
-      codec_context_p->time_base = stream_p->time_base;
+      stream_p->time_base = codec_context_p->time_base;
 //      av_codec_set_pkt_timebase (codec_context_p, stream_p->time_base);
 //      stream_p->sample_aspect_ratio = 0;
-      stream_p->avg_frame_rate.num = media_type_s.frameRate.num;
-      stream_p->avg_frame_rate.den = media_type_s.frameRate.den;
+//      stream_p->avg_frame_rate.num = media_type_s.frameRate.num;
+//      stream_p->avg_frame_rate.den = media_type_s.frameRate.den;
 //      stream_p->side_data = NULL;
 //      stream_p->nb_side_data = 0;
 //      stream_p->event_flags = AVSTREAM_EVENT_FLAG_METADATA_UPDATED;

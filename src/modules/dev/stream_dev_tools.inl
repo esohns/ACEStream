@@ -27,6 +27,8 @@
 #include "ace/Log_Msg.h"
 #include "ace/Message_Block.h"
 
+#include "common_configuration.h"
+
 #include "stream_iallocator.h"
 #include "stream_macros.h"
 
@@ -36,7 +38,8 @@ Stream_Device_Tools::initializeBuffers (int fd_in,
                                         v4l2_memory method_in,
                                         __u32 numberOfBuffers_in,
                                         Stream_Device_BufferMap_t& bufferMap_out,
-                                        Stream_IAllocator* allocator_in)
+                                        Stream_IAllocator* allocator_in,
+                                        struct Common_AllocatorConfiguration* allocatorConfiguration_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Device_Tools::initializeBuffers"));
 
@@ -65,6 +68,8 @@ Stream_Device_Tools::initializeBuffers (int fd_in,
     return false;
   } // end IF
   ACE_ASSERT (format.type == V4L2_BUF_TYPE_VIDEO_CAPTURE);
+  unsigned int buffer_size_i =
+      format.fmt.pix.sizeimage + allocatorConfiguration_in->paddingBytes;
 
   switch (method_in)
   {
@@ -81,11 +86,11 @@ Stream_Device_Tools::initializeBuffers (int fd_in,
         {
           try {
             message_block_p =
-                static_cast<ACE_Message_Block*> (allocator_in->malloc (format.fmt.pix.sizeimage));
+                static_cast<ACE_Message_Block*> (allocator_in->malloc (buffer_size_i));
           } catch (...) {
             ACE_DEBUG ((LM_ERROR,
                         ACE_TEXT ("caught exception in Stream_IAllocator::malloc(%u), continuing\n"),
-                        format.fmt.pix.sizeimage));
+                        buffer_size_i));
             message_block_p = NULL;
           }
         } // end IF
@@ -98,6 +103,7 @@ Stream_Device_Tools::initializeBuffers (int fd_in,
                       ACE_TEXT ("failed to allocate memory, aborting\n")));
           goto error;
         } // end IF
+        message_block_p->size (format.fmt.pix.sizeimage);
         message_p = static_cast<MessageType*> (message_block_p);
         message_p->wr_ptr (format.fmt.pix.sizeimage);
         // *TODO*: remove type inference
@@ -167,23 +173,24 @@ Stream_Device_Tools::initializeBuffers (int fd_in,
         {
           try {
             message_block_p =
-                static_cast<ACE_Message_Block*> (allocator_in->malloc (format.fmt.pix.sizeimage));
+                static_cast<ACE_Message_Block*> (allocator_in->malloc (buffer_size_i));
           } catch (...) {
             ACE_DEBUG ((LM_ERROR,
                         ACE_TEXT ("caught exception in Stream_IAllocator::malloc(%u), continuing\n"),
-                        format.fmt.pix.sizeimage));
+                        buffer_size_i));
             message_block_p = NULL;
           }
         } // end IF
         else
           ACE_NEW_NORETURN (message_block_p,
-                            MessageType (format.fmt.pix.sizeimage));
+                            MessageType (buffer_size_i));
         if (!message_block_p)
         {
           ACE_DEBUG ((LM_CRITICAL,
                       ACE_TEXT ("failed to allocate memory, aborting\n")));
           goto error;
         } // end IF
+        message_block_p->size (format.fmt.pix.sizeimage);
         message_p = static_cast<MessageType*> (message_block_p);
         // *TODO*: remove type inference
         typename MessageType::DATA_T& data_r =

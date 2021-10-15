@@ -189,14 +189,12 @@ Stream_Decoder_LibAVDecoder_T<ACE_SYNCH_USE,
     } // end IF
   } // end IF
 
-#if defined (_DEBUG)
   if (configuration_in.debug)
   {
     av_log_set_callback (stream_decoder_libav_log_cb);
     // *NOTE*: this level logs all messages
     av_log_set_level (std::numeric_limits<int>::max ());
   } // end IF
-#endif // _DEBUG
 //  av_register_all ();
 //  avcodec_register_all ();
 
@@ -292,8 +290,8 @@ Stream_Decoder_LibAVDecoder_T<ACE_SYNCH_USE,
   for (message_block_p = message_2;
        message_block_p;
        message_block_p = message_block_p->cont ())
-  { ACE_ASSERT ((message_block_p->capacity () - message_block_p->size ()) >= AV_INPUT_BUFFER_PADDING_SIZE);
-    ACE_OS::memset (message_block_p->wr_ptr (), 0, AV_INPUT_BUFFER_PADDING_SIZE);
+  { if (((message_block_p->capacity () - message_block_p->size ()) >= AV_INPUT_BUFFER_PADDING_SIZE))
+      ACE_OS::memset (message_block_p->wr_ptr (), 0, AV_INPUT_BUFFER_PADDING_SIZE);
   } // end FOR
 
   message_block_p = message_2;
@@ -306,21 +304,29 @@ Stream_Decoder_LibAVDecoder_T<ACE_SYNCH_USE,
     {
       av_init_packet (&packet_s);
 
-      result =
-        av_parser_parse2 (parserContext_, context_, &packet_s.data, &packet_s.size,
-                          data_p, data_size_i, AV_NOPTS_VALUE, AV_NOPTS_VALUE, parserPosition_);
-      if (result < 0)
+      if (likely (parserContext_))
       {
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("%s: failed to av_parser_parse2(): \"%s\", aborting\n"),
-                    inherited::mod_->name (),
-                    ACE_TEXT (Common_Image_Tools::errorToString (result).c_str ())));
-        goto error;
+        result =
+          av_parser_parse2 (parserContext_, context_, &packet_s.data, &packet_s.size,
+                            data_p, data_size_i, AV_NOPTS_VALUE, AV_NOPTS_VALUE, parserPosition_);
+        if (result < 0)
+        {
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("%s: failed to av_parser_parse2(): \"%s\", aborting\n"),
+                      inherited::mod_->name (),
+                      ACE_TEXT (Common_Image_Tools::errorToString (result).c_str ())));
+          goto error;
+        } // end IF
+        parserPosition_ += result;
+        data_p      += result;
+        data_size_i -= result;
       } // end IF
-      parserPosition_ += result;
-      data_p      += result;
-      data_size_i -= result;
-   
+      else
+      {
+        packet_s.data = data_p;
+        packet_s.size = data_size_i;
+        data_size_i = 0;
+      } // end ELSE
       if (!packet_s.size)
         continue;
 
@@ -396,8 +402,6 @@ Stream_Decoder_LibAVDecoder_T<ACE_SYNCH_USE,
 
   // sanity check(s)
   ACE_ASSERT (message_inout);
-  if (unlikely (codecId_ == AV_CODEC_ID_NONE))
-    return; // nothing to do
 
   switch (message_inout->type ())
   {
@@ -428,36 +432,31 @@ Stream_Decoder_LibAVDecoder_T<ACE_SYNCH_USE,
       inherited2::getMediaType (media_type_s,
                                 media_type_2);
 
-      if ((codecId_ == AV_CODEC_ID_NONE) &&
-          Stream_Module_Decoder_Tools::isCompressedVideo (media_type_s.format))
-      {
-        ACE_DEBUG ((LM_WARNING,
-                    ACE_TEXT ("%s: codec id not set, best-guessing based on the input pixel format (was: %s)\n"),
-                    inherited::mod_->name (),
-                    ACE_TEXT (Stream_MediaFramework_Tools::pixelFormatToString (media_type_s.format).c_str ())));
-        codecId_ =
-            Stream_Module_Decoder_Tools::AVPixelFormatToAVCodecId (media_type_s.format);
-      } // end IF
-      if (codecId_ == AV_CODEC_ID_NONE)
-      {
-        ACE_DEBUG ((LM_WARNING,
-                    ACE_TEXT ("%s: could not determine codec id, continuing\n"),
-                    inherited::mod_->name ()));
-      } // end IF
-      else
-      {
-        ACE_DEBUG ((LM_DEBUG,
-                    ACE_TEXT ("%s: using codec \"%s\" (id: %d)\n"),
-                    inherited::mod_->name (),
-                    ACE_TEXT (avcodec_get_name (codecId_)), codecId_));
-      } // end IF
-      //profile_ = configuration_in.codecProfile;
-
       outputFrameSize_ =
         av_image_get_buffer_size (outputFormat_,
                                   static_cast<int> (decode_width),
                                   static_cast<int> (formatHeight_),
                                   1); // *TODO*: linesize alignment
+
+      if (codecId_ == AV_CODEC_ID_NONE)
+      {
+        ACE_DEBUG ((LM_WARNING,
+                    ACE_TEXT ("%s: codec id not set, best-guessing based on the input pixel format (was: %s)\n"),
+                    inherited::mod_->name (),
+                    ACE_TEXT (Stream_MediaFramework_Tools::pixelFormatToString (media_type_s.format).c_str ())));
+        if (Stream_Module_Decoder_Tools::isCompressedVideo (media_type_s.format))
+          codecId_ =
+            Stream_Module_Decoder_Tools::AVPixelFormatToAVCodecId (media_type_s.format);
+//        else
+//          codecId_ = AV_CODEC_ID_RAWVIDEO;
+      } // end IF
+      if (codecId_ == AV_CODEC_ID_NONE)
+        break;
+      ACE_DEBUG ((LM_DEBUG,
+                  ACE_TEXT ("%s: using codec \"%s\" (id: %d)\n"),
+                  inherited::mod_->name (),
+                  ACE_TEXT (avcodec_get_name (codecId_)), codecId_));
+      //profile_ = configuration_in.codecProfile;
 
       int result = -1;
       const struct AVCodec* codec_p = NULL;
@@ -479,14 +478,16 @@ Stream_Decoder_LibAVDecoder_T<ACE_SYNCH_USE,
       parserContext_ = av_parser_init (codecId_);
       if (!parserContext_)
       {
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("%s: av_parser_init(%d) failed: \"%m\", aborting\n"),
+        ACE_DEBUG ((LM_WARNING,
+                    ACE_TEXT ("%s: av_parser_init(\"%s\"[%d]) failed: \"%m\", continuing\n"),
                     inherited::mod_->name (),
-                    codecId_));
-        goto error;
+                    ACE_TEXT (avcodec_get_name (codecId_)), codecId_));
       } // end IF
-      parserContext_->flags |= PARSER_FLAG_FETCHED_OFFSET;
-      parserContext_->flags |= PARSER_FLAG_USE_CODEC_TS;
+      else
+      {
+        parserContext_->flags |= PARSER_FLAG_FETCHED_OFFSET;
+        parserContext_->flags |= PARSER_FLAG_USE_CODEC_TS;
+      } // end ELSE
 
       context_ = avcodec_alloc_context3 (codec_p);
       if (unlikely (!context_))
@@ -497,50 +498,6 @@ Stream_Decoder_LibAVDecoder_T<ACE_SYNCH_USE,
         goto error;
       } // end IF
       ACE_ASSERT (context_);
-//      result = avcodec_get_context_defaults3 (context_,
-//                                              codec_p);
-//      if (result < 0)
-//      {
-//        ACE_DEBUG ((LM_ERROR,
-//                    ACE_TEXT ("avcodec_get_context_defaults3() failed: \"%s\", aborting\n"),
-//                    ACE_TEXT (Common_Image_Tools::errorToString (result).c_str ())));
-//        goto error;
-//      } // end IF
-
-//#if defined (ACE_WIN32) || defined (ACE_WIN64)
-//      // sanity check(s)
-//      ACE_ASSERT (inherited::configuration_);
-//      ACE_ASSERT (inherited::configuration_->format);
-//
-//      struct tagVIDEOINFOHEADER* video_info_header_p = NULL;
-//      struct tagVIDEOINFOHEADER2* video_info_header2_p = NULL;
-//      LONG width, height;
-//
-//      if (inherited::configuration_->format->formattype == FORMAT_VideoInfo)
-//      { ACE_ASSERT (inherited::configuration_->format->pbFormat);
-//        video_info_header_p =
-//          reinterpret_cast<struct tagVIDEOINFOHEADER*> (inherited::configuration_->format->pbFormat);
-//        ACE_ASSERT (video_info_header_p);
-//        width = video_info_header_p->bmiHeader.biWidth;
-//        height = video_info_header_p->bmiHeader.biHeight;
-//      } // end IF
-//      else if (inherited::configuration_->format->formattype == FORMAT_VideoInfo2)
-//      { ACE_ASSERT (inherited::configuration_->format->pbFormat);
-//        video_info_header2_p =
-//          reinterpret_cast<struct tagVIDEOINFOHEADER2*> (inherited::configuration_->format->pbFormat);
-//        ACE_ASSERT (video_info_header2_p);
-//        width = video_info_header2_p->bmiHeader.biWidth;
-//        height = video_info_header2_p->bmiHeader.biHeight;
-//      } // end ELSE IF
-//      else
-//      {
-//        ACE_DEBUG ((LM_ERROR,
-//                    ACE_TEXT ("%s: invalid/unknown media type format type (was: \"%s\"), aborting\n"),
-//                    ACE_TEXT (Stream_Module_Device_Tools::mediaFormatTypeToString (inherited::configuration_->format->formattype).c_str ()),
-//                    inherited::mod_->name ()));
-//        goto error;
-//      } // end ELSE
-//#endif
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
       struct AVCodecParameters* codec_parameters_p =
@@ -690,7 +647,7 @@ Stream_Decoder_LibAVDecoder_T<ACE_SYNCH_USE,
       //context_->coded_width = width;
       //context_->coded_height = height;
 //      context_->pix_fmt = AV_PIX_FMT_NONE;
-      context_->pix_fmt = AV_PIX_FMT_YUV420P;
+      context_->pix_fmt = outputFormat_;
       //context_->draw_horiz_band = NULL;
 //      context_->get_format = stream_decoder_libav_getformat_cb;
 //      context_->slice_count = 0;
@@ -705,10 +662,8 @@ Stream_Decoder_LibAVDecoder_T<ACE_SYNCH_USE,
 //      context_->workaround_bugs = FF_BUG_AUTODETECT;
 //      context_->strict_std_compliance = FF_COMPLIANCE_NORMAL;
 //      context_->error_concealment = 3;
-#if defined (_DEBUG)
       context_->debug = (inherited::configuration_->debug ? 1 : 0);
 //      context_->debug_mv = (inherited::configuration_->debug ? 1 : 0);
-#endif // _DEBUG
 //      context_->err_recognition = 0;
       context_->reordered_opaque = 0;
 //      context_->hwaccel_context = NULL;
@@ -776,8 +731,7 @@ Stream_Decoder_LibAVDecoder_T<ACE_SYNCH_USE,
       ACE_DEBUG ((LM_DEBUG,
                   ACE_TEXT ("%s: initialized codec %s; decoded pixel format: %s\n"),
                   inherited::mod_->name (),
-//                  ACE_TEXT (context_->codec_name),
-                  ACE_TEXT (codec_p->long_name),
+                  ACE_TEXT (avcodec_get_name (codecId_)),
                   ACE_TEXT (Stream_MediaFramework_Tools::pixelFormatToString (context_->pix_fmt).c_str ())));
 
       frameSize_ =
@@ -926,10 +880,9 @@ continue_:
     }
     case STREAM_SESSION_MESSAGE_END:
     {
-      drainBuffers (message_inout->sessionId ());
-
       if (context_)
       {
+        drainBuffers (message_inout->sessionId ());
         avcodec_free_context (&context_); context_ = NULL;
       } // end IF
 

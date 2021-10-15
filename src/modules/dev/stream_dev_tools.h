@@ -145,13 +145,14 @@ class Stream_Device_Tools
   // *IMPORTANT NOTE*: invoke this AFTER VIDIOC_S_FMT, and BEFORE
   //                   VIDIOC_STREAMON
   template <typename MessageType>
-  static bool initializeBuffers (int,                        // file descriptor
-                                 v4l2_memory,                // I/O streaming method
-                                 __u32,                      // number of buffers
+  static bool initializeBuffers (int,                                    // file descriptor
+                                 v4l2_memory,                            // I/O streaming method
+                                 __u32,                                  // number of buffers
                                  /////////
-                                 Stream_Device_BufferMap_t&, // return value: buffer map
+                                 Stream_Device_BufferMap_t&,             // return value: buffer map
                                  /////////
-                                 Stream_IAllocator* = NULL); // allocator
+                                 Stream_IAllocator*,                     // allocator
+                                 struct Common_AllocatorConfiguration*); // allocator configuration
   template <typename MessageType>
   static void finalizeBuffers (int,                         // file descriptor
                                v4l2_memory,                 // I/O streaming method

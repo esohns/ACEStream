@@ -1158,7 +1158,7 @@ do_work (const std::string& captureinterfaceIdentifier_in,
 #endif // GUI_SUPPORT
 
   // ********************** module configuration data **************************
-  struct Stream_AllocatorConfiguration allocator_configuration;
+  struct Stream_MediaFramework_FFMPEG_AllocatorConfiguration allocator_configuration;
   //if (bufferSize_in)
   //  allocator_configuration.defaultBufferSize = bufferSize_in;
 
@@ -1686,7 +1686,7 @@ error:
   //         content (see also avienc.c:448)
   v4l_converter_2_modulehandler_configuration = v4l_modulehandler_configuration;
   v4l_converter_2_modulehandler_configuration.outputFormat.format.pixelformat =
-      V4L2_PIX_FMT_AYUV32;
+      V4L2_PIX_FMT_BGR24;
   configuration_in.v4l_streamConfiguration.insert (std::make_pair (std::string (std::string (ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_LIBAV_CONVERTER_DEFAULT_NAME_STRING)) + ACE_TEXT_ALWAYS_CHAR ("_2")),
                                                                    std::make_pair (module_configuration,
                                                                                    v4l_converter_2_modulehandler_configuration)));

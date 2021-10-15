@@ -1629,13 +1629,16 @@ Stream_Device_Tools::setFormat (int fileDescriptor_in,
                 fileDescriptor_in, ACE_TEXT ("VIDIOC_G_FMT")));
     return false;
   } // end IF
-  format_s.fmt.pix.pixelformat = format_in.pixelformat;
-  format_s.fmt.pix.width = format_in.width;
-  format_s.fmt.pix.height = format_in.height;
-
   format_s.fmt.pix.bytesperline = 0;
-//  format_s.fmt.pix.priv = 0;
+  format_s.fmt.pix.colorspace = 0;
+  format_s.fmt.pix.field = 0;
+  format_s.fmt.pix.height = format_in.height;
+  format_s.fmt.pix.pixelformat = format_in.pixelformat;
+  format_s.fmt.pix.priv = 0;
+  format_s.fmt.pix.quantization = 0;
   format_s.fmt.pix.sizeimage = 0;
+  format_s.fmt.pix.width = format_in.width;
+  format_s.fmt.pix.xfer_func = 0;
   result = ACE_OS::ioctl (fileDescriptor_in,
                           VIDIOC_S_FMT,
                           &format_s);
