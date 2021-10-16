@@ -511,14 +511,12 @@ Stream_Module_Vis_X11_Window_T<ACE_SYNCH_USE,
     window_ = 0;
   } // end IF
 
-#if defined (_DEBUG)
   XErrorHandler error_handler_p =
       XSetErrorHandler (libacestream_vis_x11_error_handler_cb);
   ACE_UNUSED_ARG (error_handler_p);
   XIOErrorHandler io_error_handler_p =
       XSetIOErrorHandler (libacestream_vis_x11_io_error_handler_cb);
   ACE_UNUSED_ARG (io_error_handler_p);
-#endif // _DEBUG
 
   ACE_ASSERT (!display_);
   // *TODO*: remove type inferences
@@ -559,9 +557,8 @@ Stream_Module_Vis_X11_Window_T<ACE_SYNCH_USE,
     closeDisplay_ = true;
   } // end ELSE
   ACE_ASSERT (display_);
-#if defined (_DEBUG)
-  XSync (display_, True);
-#endif // _DEBUG
+  if (configuration_in.debug)
+    XSync (display_, True);
 
   int count_i = 0;
   int* depths_p = XListDepths (display_, DefaultScreen (display_),
@@ -569,10 +566,12 @@ Stream_Module_Vis_X11_Window_T<ACE_SYNCH_USE,
   for (unsigned int i = 0;
        i < static_cast<unsigned int> (count_i);
        ++i)
+  {
     ACE_DEBUG ((LM_DEBUG,
                 ACE_TEXT ("%s: available depth #%u: %d\n"),
                 inherited::mod_->name (), i,
                 depths_p[i]));
+  } // end IF
 
   int depth_i = 0;
   XVisualInfo visual_info_s;

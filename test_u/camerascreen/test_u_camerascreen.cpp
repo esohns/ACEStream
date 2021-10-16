@@ -31,6 +31,8 @@
 #include "uuids.h"
 #endif // UUIDS_H
 #include "mfapi.h"
+#else
+#include "linux/videodev2.h"
 #endif // ACE_WIN32 || ACE_WIN64
 
 #include "ace/Get_Opt.h"
@@ -882,37 +884,40 @@ do_initialize_v4l (const std::string& deviceIdentifier_in,
               ACE_TEXT (Stream_Device_Tools::formatToString (deviceIdentifier_out.fileDescriptor, captureFormat_out.format.pixelformat).c_str ()), captureFormat_out.format.pixelformat,
               captureFormat_out.format.width, captureFormat_out.format.height,
               captureFormat_out.frameRate.numerator, captureFormat_out.frameRate.denominator));
-  if (!Stream_MediaFramework_Tools::isRGB (captureFormat_out.format.pixelformat))
-  {
-    ACE_DEBUG ((LM_DEBUG,
-                ACE_TEXT ("\"%s\" (%d): setting RGB24 capture format\n"),
-                ACE_TEXT (deviceIdentifier_in.c_str ()), deviceIdentifier_out.fileDescriptor));
-    Common_Image_Resolution_t resolution_s;
-    resolution_s.height = captureFormat_out.format.height;
-    resolution_s.width = captureFormat_out.format.width;
-    struct v4l2_pix_format format_s =
-        Stream_Device_Tools::getVideoCaptureFormat (deviceIdentifier_out.fileDescriptor,
-                                                    V4L2_PIX_FMT_RGB24,
-                                                    resolution_s,
-                                                    captureFormat_out.frameRate);
-    ACE_ASSERT (format_s.pixelformat == V4L2_PIX_FMT_RGB24);
-    if (!Stream_Device_Tools::setFormat (deviceIdentifier_out.fileDescriptor,
-                                         format_s))
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to Stream_Device_Tools::setFormat(), aborting\n")));
-      return false;
-    } // end IF
-    captureFormat_out.format = format_s;
-  } // end IF
+//  if (!Stream_MediaFramework_Tools::isRGB (captureFormat_out.format.pixelformat))
+//  {
+//    ACE_DEBUG ((LM_DEBUG,
+//                ACE_TEXT ("\"%s\" (%d): setting RGB24 capture format\n"),
+//                ACE_TEXT (deviceIdentifier_in.c_str ()), deviceIdentifier_out.fileDescriptor));
+//    Common_Image_Resolution_t resolution_s;
+//    resolution_s.height = captureFormat_out.format.height;
+//    resolution_s.width = captureFormat_out.format.width;
+//    struct v4l2_pix_format format_s =
+//        Stream_Device_Tools::getVideoCaptureFormat (deviceIdentifier_out.fileDescriptor,
+//                                                    V4L2_PIX_FMT_RGB24,
+//                                                    resolution_s,
+//                                                    captureFormat_out.frameRate);
+//    ACE_ASSERT (format_s.pixelformat == V4L2_PIX_FMT_RGB24);
+//    if (!Stream_Device_Tools::setFormat (deviceIdentifier_out.fileDescriptor,
+//                                         format_s))
+//    {
+//      ACE_DEBUG ((LM_ERROR,
+//                  ACE_TEXT ("failed to Stream_Device_Tools::setFormat(), aborting\n")));
+//      return false;
+//    } // end IF
+//    captureFormat_out.format = format_s;
+//  } // end IF
 
   // *NOTE*: Gtk 2 expects RGB24
   // *NOTE*: "...CAIRO_FORMAT_ARGB32: each pixel is a 32-bit quantity, with
   //         alpha in the upper 8 bits, then red, then green, then blue. The
   //         32-bit quantities are stored native-endian. ..."
+  // *NOTE*: X11 expects RGB32
   // *TODO*: auto-determine color depth of selected (default) screen (i.e.
   //         'Display' ":0")
   outputFormat_out = captureFormat_out;
+  if (!Stream_MediaFramework_Tools::isRGB (captureFormat_out.format.pixelformat))
+    outputFormat_out.format.pixelformat = V4L2_PIX_FMT_RGB32;
 
   return true;
 
@@ -1254,7 +1259,7 @@ do_work (const std::string& captureinterfaceIdentifier_in,
   //                   of what 'depth' values are set (in fact, it requires BGRA
   //                   on little-endian platforms) --> convert
   modulehandler_configuration.outputFormat.format.pixelformat =
-      V4L2_PIX_FMT_RGB32;
+      V4L2_PIX_FMT_BGRA32;
   configuration_in.streamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_LIBAV_CONVERTER_DEFAULT_NAME_STRING),
                                                                std::make_pair (module_configuration,
                                                                                modulehandler_configuration)));
