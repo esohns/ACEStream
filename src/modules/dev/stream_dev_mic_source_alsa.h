@@ -144,6 +144,7 @@ class Stream_Dev_Mic_Source_ALSA_T
   struct _snd_output*                            debugOutput_;
   struct _snd_pcm*                               deviceHandle_;
   bool                                           isPassive_;
+  typename inherited::MESSAGE_QUEUE_T            queue_;
 };
 
 // include template definition

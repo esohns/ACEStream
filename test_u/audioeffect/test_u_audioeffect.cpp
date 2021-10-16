@@ -1152,9 +1152,6 @@ do_work (unsigned int bufferSize_in,
     }
   } // end SWITCH
 #else
-  if (bufferSize_in)
-    allocator_configuration_p->defaultBufferSize = bufferSize_in;
-
   stream_configuration.messageAllocator = &message_allocator;
   stream_configuration.module =
       (!UIDefinitionFile_in.empty () ? &event_handler

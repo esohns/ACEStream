@@ -1825,7 +1825,8 @@ Stream_Device_Tools::formatToString (int fileDescriptor_in,
 }
 
 std::string
-Stream_Device_Tools::formatToString (const struct _snd_pcm_hw_params* format_in)
+Stream_Device_Tools::formatToString (const struct _snd_pcm* deviceHandle_in,
+                                     const struct _snd_pcm_hw_params* format_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Device_Tools::formatToString"));
 
@@ -1843,10 +1844,11 @@ Stream_Device_Tools::formatToString (const struct _snd_pcm_hw_params* format_in)
   int subunit_direction = 0;
   unsigned int period_time;
   snd_pcm_uframes_t period_size;
-  unsigned int periods;
+//  unsigned int periods;
+  unsigned int period_min, period_max;
   unsigned int buffer_time;
   snd_pcm_uframes_t buffer_size;
-//  unsigned int rate_resample;
+  unsigned int rate_resample;
 
   int result_2 = snd_pcm_hw_params_get_access (format_in,
                                                &access);
@@ -1922,19 +1924,21 @@ Stream_Device_Tools::formatToString (const struct _snd_pcm_hw_params* format_in)
   converter << sample_rate_denominator;
   result += converter.str ();
   result += ACE_TEXT_ALWAYS_CHAR ("\n");
-//  result_2 = snd_pcm_hw_params_get_rate_resample (deviceHandle_in, format_in,
-//                                                  &rate_resample);
-//  if (result_2 < 0)
-//  {
-//    ACE_DEBUG ((LM_ERROR,
-//                ACE_TEXT ("failed to snd_pcm_hw_params_get_rate_resample(): \"%s\", aborting\n"),
-//                ACE_TEXT (snd_strerror (result_2))));
-//    goto error;
-//  } // end IF
-//  result += ACE_TEXT_ALWAYS_CHAR ("rate resample: ");
-//  result += (rate_resample ? ACE_TEXT_ALWAYS_CHAR ("yes")
-//                           : ACE_TEXT_ALWAYS_CHAR ("no"));
-//  result += ACE_TEXT_ALWAYS_CHAR ("\n");
+  result_2 =
+      snd_pcm_hw_params_get_rate_resample (const_cast<struct _snd_pcm*> (deviceHandle_in),
+                                           const_cast<struct _snd_pcm_hw_params*> (format_in),
+                                           &rate_resample);
+  if (result_2 < 0)
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to snd_pcm_hw_params_get_rate_resample(): \"%s\", aborting\n"),
+                ACE_TEXT (snd_strerror (result_2))));
+    return result;
+  } // end IF
+  result += ACE_TEXT_ALWAYS_CHAR ("rate resample: ");
+  result += (rate_resample ? ACE_TEXT_ALWAYS_CHAR ("yes")
+                           : ACE_TEXT_ALWAYS_CHAR ("no"));
+  result += ACE_TEXT_ALWAYS_CHAR ("\n");
 
   result_2 = snd_pcm_hw_params_get_period_time (format_in,
                                                 &period_time,
@@ -1952,6 +1956,7 @@ Stream_Device_Tools::formatToString (const struct _snd_pcm_hw_params* format_in)
   converter << period_time;
   result += converter.str ();
   result += ACE_TEXT_ALWAYS_CHAR ("\n");
+  subunit_direction = 0;
   result_2 = snd_pcm_hw_params_get_period_size (format_in,
                                                 &period_size,
                                                 &subunit_direction);
@@ -1968,20 +1973,41 @@ Stream_Device_Tools::formatToString (const struct _snd_pcm_hw_params* format_in)
   converter << period_size;
   result += converter.str ();
   result += ACE_TEXT_ALWAYS_CHAR ("\n");
-  result_2 = snd_pcm_hw_params_get_periods (format_in,
-                                            &periods,
-                                            &subunit_direction);
+  subunit_direction = 0;
+//  result_2 = snd_pcm_hw_params_get_periods (format_in,
+//                                            &periods,
+//                                            &subunit_direction);
+  result_2 = snd_pcm_hw_params_get_period_time_min (format_in,
+                                                    &period_min,
+                                                    &subunit_direction);
   if (result_2 < 0)
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to snd_pcm_hw_params_get_periods(): \"%s\", aborting\n"),
+                ACE_TEXT ("failed to snd_pcm_hw_params_get_period_time_min(): \"%s\", aborting\n"),
                 ACE_TEXT (snd_strerror (result_2))));
     return result;
   } // end IF
-  result += ACE_TEXT_ALWAYS_CHAR ("periods: ");
+  result_2 = snd_pcm_hw_params_get_period_time_max (format_in,
+                                                    &period_max,
+                                                    &subunit_direction);
+  if (result_2 < 0)
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to snd_pcm_hw_params_get_period_time_max(): \"%s\", aborting\n"),
+                ACE_TEXT (snd_strerror (result_2))));
+    return result;
+  } // end IF
+//  result += ACE_TEXT_ALWAYS_CHAR ("periods: ");
+  result += ACE_TEXT_ALWAYS_CHAR ("period time (min/max): ");
   converter.str (ACE_TEXT_ALWAYS_CHAR (""));
   converter.clear ();
-  converter << periods;
+//  converter << periods;
+  converter << period_min;
+  result += converter.str ();
+  result += ACE_TEXT_ALWAYS_CHAR ("/");
+  converter.str (ACE_TEXT_ALWAYS_CHAR (""));
+  converter.clear ();
+  converter << period_max;
   result += converter.str ();
   result += ACE_TEXT_ALWAYS_CHAR ("\n");
 

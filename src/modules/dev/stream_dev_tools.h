@@ -95,7 +95,8 @@ class Stream_Device_Tools
                          struct Stream_MediaFramework_ALSA_MediaType&); // return value: media type
 
   static std::string getDeviceName (enum _snd_pcm_stream); // direction
-  static std::string formatToString (const struct _snd_pcm_hw_params*); // format
+  static std::string formatToString (const struct _snd_pcm*,            // device handle
+                                     const struct _snd_pcm_hw_params*); // format
 
   static void dump (struct _snd_pcm*); // device handle
 

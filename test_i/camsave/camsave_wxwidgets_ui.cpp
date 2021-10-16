@@ -8,11 +8,14 @@
 // Example for compiling a multi file project under Linux using g++:
 //  g++ main.cpp $(wx-config --libs) $(wx-config --cxxflags) -o MyApp Dialog1.cpp Frame1.cpp
 //
+#include "stdafx.h"
 
 #include "camsave_wxwidgets_ui.h"
 
 // begin wxGlade: ::extracode
 // end wxGlade
+#undef DrawText
+#include <wx/tglbtn.h>
 
 
 

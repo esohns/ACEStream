@@ -98,12 +98,13 @@ set (${EXECUTABLE}_EXE_SRCS
      test_i_camsave_stream.cpp
      test_i_camsave_stream.h)
 if (GUI_SUPPORT)
- if (GTK_USE)
+ if (GTK_SUPPORT)
   set (${EXECUTABLE}_EXE_SRCS
        ${${EXECUTABLE}_EXE_SRCS}
        test_i_camsave_gtk_callbacks.cpp
        test_i_camsave_gtk_callbacks.h)
- elseif (WXWIDGETS_USE)
+ endif (GTK_SUPPORT)
+ if (WXWIDGETS_SUPPORT)
   set (${EXECUTABLE}_EXE_SRCS
        ${${EXECUTABLE}_EXE_SRCS}
        test_i_camsave_ui.cpp
@@ -113,7 +114,7 @@ if (GUI_SUPPORT)
        camsave_wxwidgets_ui.h)
 #       test_i_camsave_ui_base.cpp
 #       test_i_camsave_ui_base.h)
- endif ()
+ endif (WXWIDGETS_SUPPORT)
 endif (GUI_SUPPORT)
 
 if (UNIX)

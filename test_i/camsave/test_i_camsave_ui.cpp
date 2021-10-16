@@ -1,12 +1,13 @@
-#include "ace/Synch.h"
-#include "test_u_camsave_ui.h"
+#include "stdafx.h"
 
-#include "test_u_camsave_common.h"
+#include "test_i_camsave_ui.h"
+
+#include "test_i_camsave_common.h"
 
 //////////////////////////////////////////
 
 void
-process_stream_events (struct Stream_CamSave_UI_CBData* CBData_in,
+process_stream_events (struct Test_I_wxWidgets_CBData* CBData_in,
                        bool& finished_out)
 {
   STREAM_TRACE (ACE_TEXT ("::process_stream_events"));
@@ -31,10 +32,9 @@ process_stream_events (struct Stream_CamSave_UI_CBData* CBData_in,
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
     {
       directshow_cb_data_p =
-        static_cast<struct Stream_CamSave_DirectShow_UI_CBData*> (CBData_in);
+        (struct Stream_CamSave_DirectShow_UI_CBData*)CBData_in;
       ACE_ASSERT (directshow_cb_data_p->configuration);
-      renderer_e =
-        directshow_cb_data_p->configuration->streamConfiguration.configuration_.renderer;
+      renderer_e = STREAM_VISUALIZATION_VIDEORENDERER_DIRECTDRAW_3D;
       direct3DConfiguration_p =
         &directshow_cb_data_p->configuration->direct3DConfiguration;
       break;
@@ -42,10 +42,9 @@ process_stream_events (struct Stream_CamSave_UI_CBData* CBData_in,
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
     {
       mediafoundation_cb_data_p =
-        static_cast<struct Stream_CamSave_MediaFoundation_UI_CBData*> (CBData_in);
+        (struct Stream_CamSave_MediaFoundation_UI_CBData*)CBData_in;
       ACE_ASSERT (mediafoundation_cb_data_p->configuration);
-      renderer_e =
-        mediafoundation_cb_data_p->configuration->streamConfiguration.configuration_.renderer;
+      renderer_e = STREAM_VISUALIZATION_VIDEORENDERER_DIRECTDRAW_3D;
       direct3DConfiguration_p =
         &mediafoundation_cb_data_p->configuration->direct3DConfiguration;
       break;
@@ -292,8 +291,8 @@ process_stream_events (struct Stream_CamSave_UI_CBData* CBData_in,
             {
               ACE_ASSERT (directshow_cb_data_p);
               ACE_ASSERT (directshow_cb_data_p->configuration);
-              renderer_e =
-                directshow_cb_data_p->configuration->streamConfiguration.configuration_.renderer;
+              //renderer_e =
+              //  directshow_cb_data_p->configuration->streamConfiguration.configuration_.renderer;
               direct3DConfiguration_p =
                 &directshow_cb_data_p->configuration->direct3DConfiguration;
               break;
@@ -302,8 +301,8 @@ process_stream_events (struct Stream_CamSave_UI_CBData* CBData_in,
             {
               ACE_ASSERT (mediafoundation_cb_data_p);
               ACE_ASSERT (mediafoundation_cb_data_p->configuration);
-              renderer_e =
-                mediafoundation_cb_data_p->configuration->streamConfiguration.configuration_.renderer;
+              //renderer_e =
+              //  mediafoundation_cb_data_p->configuration->streamConfiguration.configuration_.renderer;
               break;
             }
             default:
@@ -499,7 +498,7 @@ stream_processing_thread (void* arg_in)
       } // end IF
       stream_p = directshow_cb_data_p->stream;
       directshow_session_data_container_p =
-        &directshow_cb_data_p->stream->getR ();
+        &directshow_cb_data_p->stream->getR_2 ();
       ACE_ASSERT (directshow_session_data_container_p);
       directshow_session_data_p = &directshow_session_data_container_p->getR ();
       ACE_ASSERT (directshow_session_data_p);
@@ -516,7 +515,7 @@ stream_processing_thread (void* arg_in)
       } // end IF
       stream_p = mediafoundation_cb_data_p->stream;
       mediafoundation_session_data_container_p =
-        &mediafoundation_cb_data_p->stream->getR ();
+        &mediafoundation_cb_data_p->stream->getR_2 ();
       ACE_ASSERT (mediafoundation_session_data_container_p);
       mediafoundation_session_data_p =
         &mediafoundation_session_data_container_p->getR ();
@@ -579,11 +578,12 @@ error:
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 //wxIMPLEMENT_DYNAMIC_CLASS (Stream_CamSave_DirectShow_WxWidgetsDialog_t, dialog_main)
 wxClassInfo
-Stream_CamSave_DirectShow_WxWidgetsDialog_t::ms_classInfo (L"Stream_CamSave_DirectShow_WxWidgetsDialog_t",
-                                                           &dialog_main::ms_classInfo,
+Stream_CamSave_DirectShow_WxWidgetsDialog_t::ms_classInfo (ACE_TEXT_ALWAYS_CHAR ("Stream_CamSave_DirectShow_WxWidgetsDialog_t"),
+                                                           &wxDialog_main::ms_classInfo,
                                                            NULL,
                                                            (int) sizeof (Stream_CamSave_DirectShow_WxWidgetsDialog_t),
                                                            Stream_CamSave_DirectShow_WxWidgetsDialog_t::wxCreateObject);
+
 wxClassInfo*
 Stream_CamSave_DirectShow_WxWidgetsDialog_t::GetClassInfo () const
 {
@@ -598,11 +598,12 @@ Stream_CamSave_DirectShow_WxWidgetsDialog_t::wxCreateObject ()
 
 //wxIMPLEMENT_DYNAMIC_CLASS (Stream_CamSave_MediaFoundation_WxWidgetsDialog_t, dialog_main)
 wxClassInfo
-Stream_CamSave_MediaFoundation_WxWidgetsDialog_t::ms_classInfo (L"Stream_CamSave_MediaFoundation_WxWidgetsDialog_t",
-                                                                &dialog_main::ms_classInfo,
+Stream_CamSave_MediaFoundation_WxWidgetsDialog_t::ms_classInfo (ACE_TEXT_ALWAYS_CHAR ("Stream_CamSave_MediaFoundation_WxWidgetsDialog_t"),
+                                                                &wxDialog_main::ms_classInfo,
                                                                 NULL,
                                                                 (int) sizeof (Stream_CamSave_MediaFoundation_WxWidgetsDialog_t),
                                                                 Stream_CamSave_MediaFoundation_WxWidgetsDialog_t::wxCreateObject);
+
 wxClassInfo*
 Stream_CamSave_MediaFoundation_WxWidgetsDialog_t::GetClassInfo () const
 {
@@ -615,58 +616,58 @@ Stream_CamSave_MediaFoundation_WxWidgetsDialog_t::wxCreateObject ()
   return new Stream_CamSave_MediaFoundation_WxWidgetsDialog_t;
 }
 
-wxBEGIN_EVENT_TABLE (Stream_CamSave_DirectShow_WxWidgetsDialog_t, dialog_main)
+wxBEGIN_EVENT_TABLE (Stream_CamSave_DirectShow_WxWidgetsDialog_t, wxDialog_main)
+ EVT_IDLE (Stream_CamSave_DirectShow_WxWidgetsDialog_t::dialog_main_idle_cb)
+ EVT_CHAR_HOOK (Stream_CamSave_DirectShow_WxWidgetsDialog_t::dialog_main_keydown_cb)
  EVT_TOGGLEBUTTON (XRCID ("togglebutton_record"), Stream_CamSave_DirectShow_WxWidgetsDialog_t::togglebutton_record_toggled_cb)
  EVT_BUTTON (XRCID ("button_snapshot"), Stream_CamSave_DirectShow_WxWidgetsDialog_t::button_snapshot_clicked_cb)
  EVT_BUTTON (XRCID ("button_cut"), Stream_CamSave_DirectShow_WxWidgetsDialog_t::button_cut_clicked_cb)
 #if defined (_DEBUG)
  EVT_BUTTON (XRCID ("button_report"), Stream_CamSave_DirectShow_WxWidgetsDialog_t::button_report_clicked_cb)
 #endif // _DEBUG
+ EVT_BUTTON (XRCID ("button_reset_camera"), Stream_CamSave_DirectShow_WxWidgetsDialog_t::button_reset_camera_clicked_cb)
  EVT_CHOICE (XRCID ("choice_source"), Stream_CamSave_DirectShow_WxWidgetsDialog_t::choice_source_changed_cb)
  EVT_BUTTON (XRCID ("button_camera_properties"), Stream_CamSave_DirectShow_WxWidgetsDialog_t::button_camera_properties_clicked_cb)
  EVT_CHOICE (XRCID ("choice_format"), Stream_CamSave_DirectShow_WxWidgetsDialog_t::choice_format_changed_cb)
  EVT_CHOICE (XRCID ("choice_resolution"), Stream_CamSave_DirectShow_WxWidgetsDialog_t::choice_resolution_changed_cb)
  EVT_CHOICE (XRCID ("choice_framerate"), Stream_CamSave_DirectShow_WxWidgetsDialog_t::choice_framerate_changed_cb)
- EVT_BUTTON (XRCID ("button_reset"), Stream_CamSave_DirectShow_WxWidgetsDialog_t::button_reset_clicked_cb)
- EVT_TOGGLEBUTTON (XRCID ("togglebutton_save"), Stream_CamSave_DirectShow_WxWidgetsDialog_t::togglebutton_save_toggled_cb)
- EVT_DIRPICKER_CHANGED (XRCID ("directorypicker_save"), Stream_CamSave_DirectShow_WxWidgetsDialog_t::picker_directory_save_changed_cb)
  EVT_TOGGLEBUTTON (XRCID ("togglebutton_display"), Stream_CamSave_DirectShow_WxWidgetsDialog_t::togglebutton_display_toggled_cb)
  EVT_TOGGLEBUTTON (XRCID ("togglebutton_fullscreen"), Stream_CamSave_DirectShow_WxWidgetsDialog_t::togglebutton_fullscreen_toggled_cb)
  EVT_CHOICE (XRCID ("choice_displayadapter"), Stream_CamSave_DirectShow_WxWidgetsDialog_t::choice_displayadapter_changed_cb)
  EVT_CHOICE (XRCID ("choice_screen"), Stream_CamSave_DirectShow_WxWidgetsDialog_t::choice_screen_changed_cb)
- EVT_BUTTON (XRCID ("button_display_settings"), Stream_CamSave_DirectShow_WxWidgetsDialog_t::button_display_settings_clicked_cb)
+ //EVT_BUTTON (XRCID ("button_display_settings"), Stream_CamSave_DirectShow_WxWidgetsDialog_t::button_display_settings_clicked_cb)
  EVT_CHOICE (XRCID ("choice_resolution_2"), Stream_CamSave_DirectShow_WxWidgetsDialog_t::choice_resolution_2_changed_cb)
+ EVT_TOGGLEBUTTON (XRCID ("togglebutton_save"), Stream_CamSave_DirectShow_WxWidgetsDialog_t::togglebutton_save_toggled_cb)
+ //EVT_DIRPICKER_CHANGED (XRCID ("directorypicker_save"), Stream_CamSave_DirectShow_WxWidgetsDialog_t::picker_directory_save_changed_cb)
  EVT_BUTTON (XRCID ("button_about"), Stream_CamSave_DirectShow_WxWidgetsDialog_t::button_about_clicked_cb)
  EVT_BUTTON (XRCID ("button_quit"), Stream_CamSave_DirectShow_WxWidgetsDialog_t::button_quit_clicked_cb)
- EVT_IDLE (Stream_CamSave_DirectShow_WxWidgetsDialog_t::dialog_main_idle_cb)
- EVT_CHAR_HOOK (Stream_CamSave_DirectShow_WxWidgetsDialog_t::dialog_main_keydown_cb)
 wxEND_EVENT_TABLE ()
 
-wxBEGIN_EVENT_TABLE (Stream_CamSave_MediaFoundation_WxWidgetsDialog_t, dialog_main)
+wxBEGIN_EVENT_TABLE (Stream_CamSave_MediaFoundation_WxWidgetsDialog_t, wxDialog_main)
+ EVT_IDLE (Stream_CamSave_MediaFoundation_WxWidgetsDialog_t::dialog_main_idle_cb)
+ EVT_CHAR_HOOK (Stream_CamSave_MediaFoundation_WxWidgetsDialog_t::dialog_main_keydown_cb)
  EVT_TOGGLEBUTTON (XRCID ("togglebutton_record"), Stream_CamSave_MediaFoundation_WxWidgetsDialog_t::togglebutton_record_toggled_cb)
  EVT_BUTTON (XRCID ("button_snapshot"), Stream_CamSave_MediaFoundation_WxWidgetsDialog_t::button_snapshot_clicked_cb)
  EVT_BUTTON (XRCID ("button_cut"), Stream_CamSave_MediaFoundation_WxWidgetsDialog_t::button_cut_clicked_cb)
 #if defined (_DEBUG)
  EVT_BUTTON (XRCID ("button_report"), Stream_CamSave_MediaFoundation_WxWidgetsDialog_t::button_report_clicked_cb)
 #endif // _DEBUG
+ EVT_BUTTON (XRCID ("button_reset_camera"), Stream_CamSave_MediaFoundation_WxWidgetsDialog_t::button_reset_camera_clicked_cb)
  EVT_CHOICE (XRCID ("choice_source"), Stream_CamSave_MediaFoundation_WxWidgetsDialog_t::choice_source_changed_cb)
  EVT_BUTTON (XRCID ("button_camera_properties"), Stream_CamSave_MediaFoundation_WxWidgetsDialog_t::button_camera_properties_clicked_cb)
  EVT_CHOICE (XRCID ("choice_format"), Stream_CamSave_MediaFoundation_WxWidgetsDialog_t::choice_format_changed_cb)
  EVT_CHOICE (XRCID ("choice_resolution"), Stream_CamSave_MediaFoundation_WxWidgetsDialog_t::choice_resolution_changed_cb)
  EVT_CHOICE (XRCID ("choice_framerate"), Stream_CamSave_MediaFoundation_WxWidgetsDialog_t::choice_framerate_changed_cb)
- EVT_BUTTON (XRCID ("button_reset"), Stream_CamSave_MediaFoundation_WxWidgetsDialog_t::button_reset_clicked_cb)
- EVT_TOGGLEBUTTON (XRCID ("togglebutton_save"), Stream_CamSave_MediaFoundation_WxWidgetsDialog_t::togglebutton_save_toggled_cb)
- EVT_DIRPICKER_CHANGED (XRCID ("directorypicker_save"), Stream_CamSave_MediaFoundation_WxWidgetsDialog_t::picker_directory_save_changed_cb)
  EVT_TOGGLEBUTTON (XRCID ("togglebutton_display"), Stream_CamSave_MediaFoundation_WxWidgetsDialog_t::togglebutton_display_toggled_cb)
  EVT_TOGGLEBUTTON (XRCID ("togglebutton_fullscreen"), Stream_CamSave_MediaFoundation_WxWidgetsDialog_t::togglebutton_fullscreen_toggled_cb)
  EVT_CHOICE (XRCID ("choice_displayadapter"), Stream_CamSave_MediaFoundation_WxWidgetsDialog_t::choice_displayadapter_changed_cb)
  EVT_CHOICE (XRCID ("choice_screen"), Stream_CamSave_MediaFoundation_WxWidgetsDialog_t::choice_screen_changed_cb)
- EVT_BUTTON (XRCID ("button_display_settings"), Stream_CamSave_MediaFoundation_WxWidgetsDialog_t::button_display_settings_clicked_cb)
+ //EVT_BUTTON (XRCID ("button_display_settings"), Stream_CamSave_MediaFoundation_WxWidgetsDialog_t::button_display_settings_clicked_cb)
  EVT_CHOICE (XRCID ("choice_resolution_2"), Stream_CamSave_MediaFoundation_WxWidgetsDialog_t::choice_resolution_2_changed_cb)
+ EVT_TOGGLEBUTTON (XRCID ("togglebutton_save"), Stream_CamSave_MediaFoundation_WxWidgetsDialog_t::togglebutton_save_toggled_cb)
+ //EVT_DIRPICKER_CHANGED (XRCID ("directorypicker_save"), Stream_CamSave_MediaFoundation_WxWidgetsDialog_t::picker_directory_save_changed_cb)
  EVT_BUTTON (XRCID ("button_about"), Stream_CamSave_MediaFoundation_WxWidgetsDialog_t::button_about_clicked_cb)
  EVT_BUTTON (XRCID ("button_quit"), Stream_CamSave_MediaFoundation_WxWidgetsDialog_t::button_quit_clicked_cb)
- EVT_IDLE (Stream_CamSave_MediaFoundation_WxWidgetsDialog_t::dialog_main_idle_cb)
- EVT_CHAR_HOOK (Stream_CamSave_MediaFoundation_WxWidgetsDialog_t::dialog_main_keydown_cb)
 wxEND_EVENT_TABLE ()
 #else
 //wxIMPLEMENT_DYNAMIC_CLASS (Stream_CamSave_V4L_WxWidgetsDialog_t, wxDialog_main)

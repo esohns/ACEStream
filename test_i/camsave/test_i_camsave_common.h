@@ -57,12 +57,13 @@ extern "C"
 #endif // ACE_WIN32 || ACE_WIN64
 
 #if defined (GUI_SUPPORT)
-#if defined (GTK_USE)
+#if defined (GTK_SUPPORT)
 #include "gtk/gtk.h"
-#elif defined (WXWIDGETS_USE)
+#endif // GTK_SUPPORT
+#if defined (WXWIDGETS_SUPPORT)
 #include "wx/apptrait.h"
 #include "wx/window.h"
-#endif
+#endif // WXWIDGETS_SUPPORT
 #endif // GUI_SUPPORT
 
 #include "ace/Singleton.h"
@@ -73,16 +74,17 @@ extern "C"
 
 #if defined (GUI_SUPPORT)
 #include "common_ui_common.h"
-#if defined (GTK_USE)
+#if defined (GTK_SUPPORT)
 #include "common_ui_gtk_builder_definition.h"
 #include "common_ui_gtk_common.h"
 #include "common_ui_gtk_manager.h"
 #include "common_ui_gtk_manager_common.h"
-#elif defined (WXWIDGETS_USE)
+#endif // GTK_SUPPORT
+#if defined (WXWIDGETS_SUPPORT)
 #include "common_ui_wxwidgets_application.h"
 #include "common_ui_wxwidgets_common.h"
 #include "common_ui_wxwidgets_xrc_definition.h"
-#endif
+#endif // WXWIDGETS_SUPPORT
 #endif // GUI_SUPPORT
 
 #include "stream_common.h"
@@ -117,15 +119,17 @@ extern "C"
 #include "test_i_common.h"
 #include "test_i_configuration.h"
 #if defined (GUI_SUPPORT)
-#if defined (GTK_USE)
+#if defined (GTK_SUPPORT)
 #include "test_i_gtk_common.h"
-#elif defined (QT_USE)
+#endif // GTK_SUPPORT
+#if defined (QT_SUPPORT)
 #include "test_i_qt_common.h"
-#elif defined (WXWIDGETS_USE)
+#endif // QT_SUPPORT
+#if defined (WXWIDGETS_SUPPORT)
 #include "test_i_wxwidgets_common.h"
 
 #include "camsave_wxwidgets_ui.h"
-#endif
+#endif // WXWIDGETS_SUPPORT
 #endif // GUI_SUPPORT
 
 // forward declarations
@@ -149,12 +153,12 @@ template <typename NotificationType,
           typename SessionMessageType>
 class Stream_CamSave_EventHandler_T;
 #if defined (GUI_SUPPORT)
-#if defined (WXWIDGETS_USE)
+#if defined (WXWIDGETS_SUPPORT)
 template <typename WidgetBaseClassType,
           typename InterfaceType,
           typename StreamType>
 class Stream_CamSave_WxWidgetsDialog_T;
-#endif // WXWIDGETS_USE
+#endif // WXWIDGETS_SUPPORT
 #endif // GUI_SUPPORT
 
 enum Stream_Camsave_ProgramMode
@@ -988,7 +992,7 @@ typedef Stream_MessageAllocatorHeapBase_T<ACE_MT_SYNCH,
 #endif // ACE_WIN32 || ACE_WIN64
 
 #if defined (GUI_SUPPORT)
-#if defined (WXWIDGETS_USE)
+#if defined (WXWIDGETS_SUPPORT)
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 struct Stream_CamSave_DirectShow_UI_CBData;
 typedef Common_UI_wxWidgets_IApplication_T<struct Common_UI_wxWidgets_State,
@@ -996,12 +1000,21 @@ typedef Common_UI_wxWidgets_IApplication_T<struct Common_UI_wxWidgets_State,
 struct Stream_CamSave_MediaFoundation_UI_CBData;
 typedef Common_UI_wxWidgets_IApplication_T<struct Common_UI_wxWidgets_State,
                                            struct Stream_CamSave_MediaFoundation_UI_CBData> Stream_CamSave_MediaFoundation_WxWidgetsIApplication_t;
+
+class Stream_CamSave_DirectShow_Stream;
+typedef Stream_CamSave_WxWidgetsDialog_T<wxDialog_main,
+                                         Stream_CamSave_DirectShow_WxWidgetsIApplication_t,
+                                         Stream_CamSave_DirectShow_Stream> Stream_CamSave_DirectShow_WxWidgetsDialog_t;
+class Stream_CamSave_MediaFoundation_Stream;
+typedef Stream_CamSave_WxWidgetsDialog_T<wxDialog_main,
+                                         Stream_CamSave_MediaFoundation_WxWidgetsIApplication_t,
+                                         Stream_CamSave_MediaFoundation_Stream> Stream_CamSave_MediaFoundation_WxWidgetsDialog_t;
 #else
 struct Stream_CamSave_V4L_UI_CBData;
 typedef Common_UI_wxWidgets_IApplication_T<struct Common_UI_wxWidgets_State,
                                            struct Stream_CamSave_V4L_UI_CBData> Stream_CamSave_V4L_WxWidgetsIApplication_t;
 #endif // ACE_WIN32 || ACE_WIN64
-#endif // WXWIDGETS_USE
+#endif // WXWIDGETS_SUPPORT
 #endif // GUI_SUPPORT
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 typedef Common_ISubscribe_T<Stream_CamSave_DirectShow_ISessionNotify_t> Stream_CamSave_DirectShow_ISubscribe_t;
@@ -1015,7 +1028,7 @@ typedef Stream_CamSave_EventHandler_T<Stream_CamSave_DirectShow_ISessionNotify_t
 #elif defined (WXWIDGETS_USE)
                                       struct Common_UI_wxWidgets_State,
                                       Common_UI_wxWidgets_IApplicationBase_t,
-#endif
+#endif // GTK_USE || WXWIDGETS_USE
 #endif // GUI_SUPPORT
                                       Stream_CamSave_DirectShow_SessionMessage_t> Stream_CamSave_DirectShow_EventHandler_t;
 typedef Stream_CamSave_EventHandler_T<Stream_CamSave_MediaFoundation_ISessionNotify_t,
@@ -1026,7 +1039,7 @@ typedef Stream_CamSave_EventHandler_T<Stream_CamSave_MediaFoundation_ISessionNot
 #elif defined (WXWIDGETS_USE)
                                       struct Common_UI_wxWidgets_State,
                                       Common_UI_wxWidgets_IApplicationBase_t,
-#endif
+#endif // GTK_USE || WXWIDGETS_USE
 #endif // GUI_SUPPORT
                                       Stream_CamSave_MediaFoundation_SessionMessage_t> Stream_CamSave_MediaFoundation_EventHandler_t;
 #else
@@ -1036,14 +1049,14 @@ typedef Stream_CamSave_EventHandler_T<Stream_CamSave_V4L_ISessionNotify_t,
 #if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
                                       Common_UI_GTK_State_t,
+#elif defined (QT_USE)
+                                      struct Common_UI_Qt_State,
 #elif defined (WXWIDGETS_USE)
                                       struct Common_UI_wxWidgets_State,
                                       Common_UI_wxWidgets_IApplicationBase_t,
-#elif defined (QT_USE)
-                                      struct Common_UI_Qt_State,
 #else
                                       struct Common_UI_State,
-#endif
+#endif // GTK_USE || QT_USE || WXWIDGETS_USE
 #endif // GUI_SUPPORT
                                       Stream_CamSave_V4L_SessionMessage_t> Stream_CamSave_V4L_EventHandler_t;
 
@@ -1054,14 +1067,14 @@ typedef Stream_CamSave_EventHandler_T<Stream_CamSave_LibCamera_ISessionNotify_t,
 #if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
                                       Common_UI_GTK_State_t,
+#elif defined (QT_USE)
+                                      struct Common_UI_Qt_State,
 #elif defined (WXWIDGETS_USE)
                                       struct Common_UI_wxWidgets_State,
                                       Common_UI_wxWidgets_IApplicationBase_t,
-#elif defined (QT_USE)
-                                      struct Common_UI_Qt_State,
 #else
                                       struct Common_UI_State,
-#endif
+#endif // GTK_USE || QT_USE || WXWIDGETS_USE
 #endif // GUI_SUPPORT
                                       Stream_CamSave_LibCamera_SessionMessage_t> Stream_CamSave_LibCamera_EventHandler_t;
 #endif // LIBCAMERA_SUPPORT
@@ -1106,7 +1119,7 @@ struct Stream_CamSave_UI_CBData
  : Test_I_wxWidgets_CBData
 #else
  : Test_I_UI_CBData
-#endif
+#endif // GTK_USE || QT_USE || WXWIDGETS_USE
 {
   Stream_CamSave_UI_CBData ()
 #if defined (GTK_USE)
@@ -1117,7 +1130,7 @@ struct Stream_CamSave_UI_CBData
    : Test_I_wxWidgets_CBData ()
 #else
    : Test_I_UI_CBData ()
-#endif
+#endif // GTK_USE || QT_USE || WXWIDGETS_USE
    , isFirst (true)
    , progressData ()
 #if defined (ACE_WIN32) || defined (ACE_WIN64)

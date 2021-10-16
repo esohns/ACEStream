@@ -41,10 +41,11 @@ if (GUI_SUPPORT)
 endif (GUI_SUPPORT)
 
 if (GUI_SUPPORT)
- if (CURSES_USE)
+ if (CURSES_SUPPORT)
   target_include_directories (${PROJECT_NAME}_Test_U PUBLIC
                               $<BUILD_INTERFACE:${CURSES_INCLUDE_DIRS}>)
- elseif (GTK_USE)
+ endif (CURSES_SUPPORT)
+ if (GTK_SUPPORT)
   target_include_directories (${PROJECT_NAME}_Test_U PUBLIC
                               "$<BUILD_INTERFACE:${GTK_INCLUDE_DIRS}>")
 
@@ -60,13 +61,15 @@ if (GUI_SUPPORT)
    target_include_directories (${PROJECT_NAME}_Test_U PUBLIC
                                $<BUILD_INTERFACE:${GTKGLAREA_INCLUDES}>)
   endif (GTKGLAREA_SUPPORT)
- elseif (QT_USE)
+ endif (GTK_SUPPORT)
+ if (QT_SUPPORT)
   target_include_directories (${PROJECT_NAME}_Test_U PUBLIC
                               $<BUILD_INTERFACE:${QT_INCLUDE_DIRS}>)
- elseif (WXWIDGETS_USE)
+ endif (QT_SUPPORT)
+ if (WXWIDGETS_SUPPORT)
   target_include_directories (${PROJECT_NAME}_Test_U PUBLIC
                               $<BUILD_INTERFACE:${wxWidgets_INCLUDE_DIRS}>)
- endif ()
+ endif (WXWIDGETS_SUPPORT)
 endif (GUI_SUPPORT)
 
 if (UNIX)
@@ -147,31 +150,33 @@ target_include_directories (${PROJECT_NAME}_Test_U PUBLIC
                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../src/modules/lib>)
 
 if (GUI_SUPPORT)
- if (GTK_USE)
+ if (GTK_SUPPORT)
   target_link_libraries (${PROJECT_NAME}_Test_U PUBLIC ${GTK_LIBRARIES})
   if (GTKGL_SUPPORT)
    if (GTKGLAREA_SUPPORT)
     target_link_libraries (${PROJECT_NAME}_Test_U PUBLIC ${GTKGLAREA_LIBRARY})
    endif (GTKGLAREA_SUPPORT)
   endif (GTKGL_SUPPORT)
- elseif (QT_USE)
+ endif (GTK_SUPPORT)
+ if (QT_SUPPORT)
   target_link_libraries (${PROJECT_NAME}_Test_U PUBLIC ${Qt_LIBRARIES})
- elseif (WXWIDGETS_USE)
+ endif (QT_SUPPORT)
+ if (WXWIDGETS_SUPPORT)
   target_link_libraries (${PROJECT_NAME}_Test_U PUBLIC ${wxWidgets_LIBRARIES})
- endif ()
+ endif (WXWIDGETS_SUPPORT)
 endif (GUI_SUPPORT)
 
 if (GUI_SUPPORT)
  if (UNIX)
   target_link_libraries (${PROJECT_NAME}_Test_U PUBLIC X11)
 
-  if (GTK_USE)
+  if (GTK_SUPPORT)
    if (GTKGL_SUPPORT)
     target_link_libraries (${PROJECT_NAME}_Test_U PUBLIC GL)
    endif (GTKGL_SUPPORT)
-  endif (GTK_USE)
+  endif (GTK_SUPPORT)
  elseif (WIN32)
-  if (GTK_USE)
+  if (GTK_SUPPORT)
    if (GTKGL_SUPPORT)
     target_link_libraries (${PROJECT_NAME}_Test_U PUBLIC OpenGL32.lib)
 
@@ -179,20 +184,22 @@ if (GUI_SUPPORT)
      target_link_libraries (${PROJECT_NAME}_Test_U PUBLIC $ENV{LIB_ROOT}/libepoxy/lib/epoxy.lib)
     endif (GTKGLAREA_SUPPORT)
    endif (GTKGL_SUPPORT)
-  endif (GTK_USE)
+  endif (GTK_SUPPORT)
  endif ()
 endif (GUI_SUPPORT)
 
 if (GUI_SUPPORT)
  target_link_libraries (${PROJECT_NAME}_Test_U PUBLIC CommonUI)
 
- if (GTK_USE)
+ if (GTK_SUPPORT)
   target_link_libraries (${PROJECT_NAME}_Test_U PUBLIC CommonUI_GTK)
- elseif (QT_USE)
+ endif (GTK_SUPPORT)
+ if (QT_SUPPORT)
   target_link_libraries (${PROJECT_NAME}_Test_U PUBLIC CommonUI_Qt)
- elseif (WXWIDGETS_USE)
+ endif (QT_SUPPORT)
+ if (WXWIDGETS_SUPPORT)
   target_link_libraries (${PROJECT_NAME}_Test_U PUBLIC CommonUI_wxWidgets)
- endif ()
+ endif (WXWIDGETS_SUPPORT)
 endif (GUI_SUPPORT)
 
 target_link_libraries (${PROJECT_NAME}_Test_U PUBLIC Common)
@@ -225,22 +232,29 @@ set (source_files
      test_u_tools.h
      test_u_tools.inl)
 if (GUI_SUPPORT)
- if (GTK_USE)
+ if (CURSES_SUPPORT)
+  set (source_files
+       ${source_files}
+       test_u_curses_common.h)
+ endif (CURSES_SUPPORT)
+ if (GTK_SUPPORT)
   set (source_files
        ${source_files}
        test_u_gtk_common.h
        test_u_gtk_eventhandler.cpp
        test_u_gtk_eventhandler.h
        test_u_gtk_eventhandler.inl)
- elseif (QT_USE)
+ endif (GTK_SUPPORT)
+ if (QT_SUPPORT)
   set (source_files
        ${source_files}
        test_u_qt_common.h)
- elseif (WXWIDGETS_USE)
+ endif (QT_SUPPORT)
+ if (WXWIDGETS_SUPPORT)
   set (source_files
        ${source_files}
        test_u_wxwidgets_common.h)
- endif ()
+ endif (WXWIDGETS_SUPPORT)
 endif (GUI_SUPPORT)
 #install (FILES
 #         ${PROJECT_NAME}_Test_U_SRCS

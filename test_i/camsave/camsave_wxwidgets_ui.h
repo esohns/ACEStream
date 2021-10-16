@@ -12,6 +12,7 @@
 #ifndef CAMSAVE_WXWIDGETS_UI_H
 #define CAMSAVE_WXWIDGETS_UI_H
 
+#undef DrawText
 #include <wx/wx.h>
 #include <wx/image.h>
 

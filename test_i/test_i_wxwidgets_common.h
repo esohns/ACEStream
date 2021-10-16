@@ -37,10 +37,10 @@ struct Test_I_wxWidgets_ProgressData
    : Common_UI_wxWidgets_ProgressData ()
    , statistic ()
   {
-    ACE_OS::memset (&statistic, 0, sizeof (Test_I_Statistic_t));
+    ACE_OS::memset (&statistic, 0, sizeof (struct Stream_Statistic));
   }
 
-  Test_I_Statistic_t statistic;
+  struct Stream_Statistic statistic;
 };
 
 struct Test_I_wxWidgets_CBData

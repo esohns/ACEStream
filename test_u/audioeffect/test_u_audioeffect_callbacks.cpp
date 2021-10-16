@@ -2147,6 +2147,7 @@ get_buffer_size (gpointer userData_in)
   ACE_ASSERT (G_VALUE_TYPE (&value) == G_TYPE_STRING);
   std::string format_string = g_value_get_string (&value);
 #else
+  g_value_init (&value, G_TYPE_INT);
   gtk_tree_model_get_value (GTK_TREE_MODEL (list_store_p),
                             &iterator_2,
                             2, &value);
@@ -2220,9 +2221,11 @@ get_buffer_size (gpointer userData_in)
   return (sample_rate * (bits_per_sample / 8) * channels) / 8; // <-- arbitrary factor
 #else
   ACE_UNUSED_ARG (bits_per_sample);
-  return (sample_rate * snd_pcm_format_size (format_e, 1) * channels);
+  return ui_cb_data_p->configuration->streamConfiguration.configuration_->allocatorConfiguration->defaultBufferSize;
+//  return (sample_rate * snd_pcm_format_size (format_e, 1) * channels);
 #endif // ACE_WIN32 || ACE_WIN64
 }
+
 void
 update_buffer_size (gpointer userData_in)
 {
@@ -3329,7 +3332,7 @@ idle_initialize_UI_cb (gpointer userData_in)
 #endif // GTK_CHECK_VERSION (3,0,0)
 
 //  GtkBox* box_p = NULL;
-#if defined (GTKGL_SUPPORT) && defined (GTKGL_USE)
+#if defined (GTKGL_SUPPORT)
   Common_UI_GTK_GLContextsIterator_t opengl_contexts_iterator;
 #if GTK_CHECK_VERSION(3,0,0)
 #if GTK_CHECK_VERSION(3,16,0)
@@ -3551,7 +3554,7 @@ idle_initialize_UI_cb (gpointer userData_in)
 //                             ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_GLAREA_3D_NAME),
 //                             G_OBJECT ((*opengl_contexts_iterator).first));
 #endif /* GTK_CHECK_VERSION (3,8,0) */
-#endif /* GTKGL_SUPPORT && GTKGL_USE */
+#endif /* GTKGL_SUPPORT */
 
   // step5: (auto-)connect signals/slots
   gtk_builder_connect_signals ((*iterator).second.second,
@@ -3575,7 +3578,7 @@ idle_initialize_UI_cb (gpointer userData_in)
 
   //--------------------------------------
 
-#if defined (GTKGL_SUPPORT) && defined (GTKGL_USE)
+#if defined (GTKGL_SUPPORT)
 //  result_2 =
 //    g_signal_connect (G_OBJECT ((*opengl_contexts_iterator).first),
 //                      ACE_TEXT_ALWAYS_CHAR ("realize"),
@@ -3657,7 +3660,7 @@ idle_initialize_UI_cb (gpointer userData_in)
                       userData_in);
 #endif // GTKGLAREA_SUPPORT
 #endif // GTK_CHECK_VERSION(3,0,0)
-#endif // GTKGL_SUPPORT && GTKGL_USE
+#endif // GTKGL_SUPPORT
   ACE_ASSERT (result_2);
 
   //--------------------------------------
@@ -3682,7 +3685,6 @@ idle_initialize_UI_cb (gpointer userData_in)
   gtk_widget_show_all (GTK_WIDGET (dialog_p));
 
   // debug info
-#if defined (_DEBUG)
 #if defined (GTKGL_SUPPORT)
   ACE_ASSERT ((*opengl_contexts_iterator).first);
 #if GTK_CHECK_VERSION(3,0,0)
@@ -3718,7 +3720,6 @@ idle_initialize_UI_cb (gpointer userData_in)
 #endif // GTKGLAREA_SUPPORT
 #endif // GTK_CHECK_VERSION(3,0,0)
 #endif // GTKGL_SUPPORT
-#endif // _DEBUG
 
 #if defined (GTKGL_SUPPORT)
 #if GTK_CHECK_VERSION(3,16,0)
@@ -4240,6 +4241,7 @@ continue_:
       return G_SOURCE_REMOVE;
     } // end ELSE
 
+#if defined (GTKGL_SUPPORT)
     event_source_id =
       g_timeout_add (COMMON_UI_GTK_REFRESH_DEFAULT_OPENGL,
                      idle_update_display_cb,
@@ -4252,6 +4254,7 @@ continue_:
                   ACE_TEXT ("failed to g_timeout_add(): \"%m\", aborting\n")));
       return G_SOURCE_REMOVE;
     } // end ELSE
+#endif // GTKGL_SUPPORT
   } // end lock scope
 
   return G_SOURCE_REMOVE;
@@ -4855,7 +4858,7 @@ idle_update_display_cb (gpointer userData_in)
   Test_U_AudioEffect_ALSA_StreamConfiguration_t::ITERATOR_T modulehandler_configuration_iterator =
     ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (modulehandler_configuration_iterator != ui_cb_data_p->configuration->streamConfiguration.end ());
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
 
   Common_UI_GTK_BuildersConstIterator_t iterator =
     state_r.builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN));
@@ -4876,9 +4879,9 @@ idle_update_display_cb (gpointer userData_in)
                               false);
 
 continue_:
+#if defined (GTKGL_SUPPORT)
   // step2: trigger refresh of the 3D OpenGL area
   Common_UI_GTK_GLContextsIterator_t iterator_2;
-#if defined (GTKGL_SUPPORT)
 #if GTK_CHECK_VERSION(3,0,0)
 #if GTK_CHECK_VERSION(3,16,0)
   GtkGLArea* gl_area_p =
@@ -5103,7 +5106,7 @@ togglebutton_record_toggled_cb (GtkToggleButton* toggleButton_in,
   Test_U_AudioEffect_ALSA_StreamConfiguration_t::ITERATOR_T modulehandler_configuration_iterator =
     ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (modulehandler_configuration_iterator != ui_cb_data_p->configuration->streamConfiguration.end ());
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
   ACE_ASSERT (stream_p);
 
   iterator =
@@ -5134,7 +5137,7 @@ togglebutton_record_toggled_cb (GtkToggleButton* toggleButton_in,
   ACE_thread_t thread_id = std::numeric_limits<unsigned long>::max ();
 #else
   ACE_thread_t thread_id = -1;
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
   ACE_hthread_t thread_handle = ACE_INVALID_HANDLE;
   const char* thread_name_2 = NULL;
   ACE_Thread_Manager* thread_manager_p = NULL;
@@ -7691,10 +7694,10 @@ combobox_source_changed_cb (GtkWidget* widget_in,
                 ACE_TEXT (snd_strerror (result))));
     goto error;
   } // end IF
-  ACE_DEBUG ((LM_ERROR,
+  ACE_DEBUG ((LM_DEBUG,
               ACE_TEXT ("%s: default format:\n%s"),
               ACE_TEXT (snd_pcm_name (ui_cb_data_p->handle)),
-              ACE_TEXT (Stream_Device_Tools::formatToString (format_p).c_str ())));
+              ACE_TEXT (Stream_Device_Tools::formatToString (ui_cb_data_p->handle, format_p).c_str ())));
   snd_pcm_hw_params_free (format_p); format_p = NULL;
 
   if (!Stream_Device_Tools::getFormat (ui_cb_data_p->handle,

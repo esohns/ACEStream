@@ -18,23 +18,23 @@
 *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
 ***************************************************************************/
 
-#ifndef TEST_U_WXWIDGETS_COMMON_H
-#define TEST_U_WXWIDGETS_COMMON_H
+#ifndef TEST_U_CURSES_COMMON_H
+#define TEST_U_CURSES_COMMON_H
 
 #include "ace/OS.h"
 
-#include "common_ui_wxwidgets_common.h"
+#include "common_ui_curses_common.h"
 
 #include "test_u_common.h"
 
 // forward declarations
 struct Test_U_Configuration;
 
-struct Test_U_wxWidgets_ProgressData
- : Common_UI_wxWidgets_ProgressData
+struct Test_U_Curses_ProgressData
+ : Common_UI_Curses_ProgressData
 {
-  Test_U_wxWidgets_ProgressData ()
-   : Common_UI_wxWidgets_ProgressData ()
+  Test_U_Curses_ProgressData ()
+   : Common_UI_Curses_ProgressData ()
    , statistic ()
   {
     ACE_OS::memset (&statistic, 0, sizeof (struct Stream_Statistic));
@@ -43,10 +43,10 @@ struct Test_U_wxWidgets_ProgressData
   struct Stream_Statistic statistic;
 };
 
-struct Test_U_wxWidgets_CBData
+struct Test_U_Curses_CBData
  : Test_U_UI_CBData
 {
-  Test_U_wxWidgets_CBData ()
+  Test_U_Curses_CBData ()
    : Test_U_UI_CBData ()
    , progressData ()
    , UIState (NULL)
@@ -54,19 +54,19 @@ struct Test_U_wxWidgets_CBData
     progressData.state = UIState;
   }
 
-  struct Test_U_wxWidgets_ProgressData progressData;
-  struct Common_UI_wxWidgets_State*    UIState;
+  struct Test_U_Curses_ProgressData progressData;
+  struct Common_UI_Curses_State*    UIState;
 };
 
-struct Test_U_wxWidgets_ThreadData
+struct Test_U_Curses_ThreadData
  : Test_U_UI_ThreadData
 {
-  Test_U_wxWidgets_ThreadData ()
+  Test_U_Curses_ThreadData ()
    : Test_U_UI_ThreadData ()
    , CBData (NULL)
   {}
 
-  struct Test_U_wxWidgets_CBData* CBData;
+  struct Test_U_Curses_CBData* CBData;
 };
 
 #endif

@@ -1223,19 +1223,16 @@ Test_U_AudioEffect_ALSA_Stream::load (Stream_ILayout* layout_in,
 {
   STREAM_TRACE (ACE_TEXT ("Test_U_AudioEffect_ALSA_Stream::load"));
 
+  // initialize return value(s)
+  delete_out = false;
+
+  // sanity check(s)
   typename inherited::CONFIGURATION_T::ITERATOR_T iterator =
       inherited::configuration_->find (ACE_TEXT_ALWAYS_CHAR (""));
-  // sanity check(s)
   ACE_ASSERT (iterator != inherited::configuration_->end ());
-
   struct Test_U_AudioEffect_ALSA_ModuleHandlerConfiguration* configuration_p =
-      dynamic_cast<struct Test_U_AudioEffect_ALSA_ModuleHandlerConfiguration*> (&((*iterator).second.second));
-  // sanity check(s)
+      static_cast<struct Test_U_AudioEffect_ALSA_ModuleHandlerConfiguration*> (&((*iterator).second.second));
   ACE_ASSERT (configuration_p);
-
-  //// initialize return value(s)
-  //modules_out.clear ();
-  //delete_out = false;
 
   Stream_Module_t* module_p = NULL;
   ACE_NEW_RETURN (module_p,
@@ -1244,12 +1241,12 @@ Test_U_AudioEffect_ALSA_Stream::load (Stream_ILayout* layout_in,
                   false);
   layout_in->append (module_p, NULL, 0);
   module_p = NULL;
-  ACE_NEW_RETURN (module_p,
-                  Test_U_AudioEffect_StatisticReport_Module (this,
-                                                             ACE_TEXT_ALWAYS_CHAR (MODULE_STAT_REPORT_DEFAULT_NAME_STRING)),
-                  false);
-  layout_in->append (module_p, NULL, 0);
-  module_p = NULL;
+//  ACE_NEW_RETURN (module_p,
+//                  Test_U_AudioEffect_StatisticReport_Module (this,
+//                                                             ACE_TEXT_ALWAYS_CHAR (MODULE_STAT_REPORT_DEFAULT_NAME_STRING)),
+//                  false);
+//  layout_in->append (module_p, NULL, 0);
+//  module_p = NULL;
   ACE_NEW_RETURN (module_p,
                   Test_U_AudioEffect_StatisticAnalysis_Module (this,
                                                                ACE_TEXT_ALWAYS_CHAR (MODULE_STAT_ANALYSIS_DEFAULT_NAME_STRING)),

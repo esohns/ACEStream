@@ -45,20 +45,17 @@ extern "C"
 static void
 stream_dev_mic_source_alsa_async_callback (snd_async_handler_t* handler_in)
 {
+  // never wait for the queue
+  static ACE_Time_Value no_wait = ACE_OS::gettimeofday ();
+
   // sanity check(s)
   ACE_ASSERT (handler_in);
-
-  // never ever wait for the queue
-  static ACE_Time_Value no_wait = COMMON_TIME_NOW;
-
   struct Stream_Device_ALSA_Capture_AsynchCBData* data_p =
       reinterpret_cast<struct Stream_Device_ALSA_Capture_AsynchCBData*> (snd_async_handler_get_callback_private (handler_in));
-  snd_pcm_t* handle_p = snd_async_handler_get_pcm (handler_in);
-
-  // sanity check(s)
   ACE_ASSERT (data_p);
   ACE_ASSERT (data_p->queue);
   ACE_ASSERT (data_p->statistic);
+  snd_pcm_t* handle_p = snd_async_handler_get_pcm (handler_in);
   ACE_ASSERT (handle_p);
 
   snd_pcm_sframes_t available_frames, frames_read = 0;
@@ -74,7 +71,6 @@ stream_dev_mic_source_alsa_async_callback (snd_async_handler_t* handler_in)
       // overrun ? --> recover
       if (available_frames == -EPIPE)
         goto recover;
-
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to snd_pcm_avail_update(): \"%s\", returning\n"),
                   ACE_TEXT (snd_strerror (result))));
@@ -108,28 +104,6 @@ stream_dev_mic_source_alsa_async_callback (snd_async_handler_t* handler_in)
       } // end IF
     } // end IF
 
-    frames_to_read = message_block_p->size () / data_p->sampleSize;
-    frames_to_read =
-        (frames_to_read > static_cast<snd_pcm_uframes_t> (available_frames) ? available_frames
-                                                                            : frames_to_read);
-    frames_read = snd_pcm_readi (handle_p,
-                                 message_block_p->wr_ptr (),
-                                 frames_to_read);
-    if (unlikely (frames_read < 0))
-    {
-      // overrun ? --> recover
-      if (frames_read == -EPIPE)
-        goto recover;
-
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("%s: failed to snd_pcm_readi(): \"%s\", returning\n"),
-                  ACE_TEXT (snd_pcm_name (handle_p)),
-                  ACE_TEXT (snd_strerror (frames_read))));
-      goto error;
-    } // end IF
-    message_block_p->wr_ptr (static_cast<unsigned int> (frames_read) * data_p->sampleSize);
-    data_p->statistic->capturedFrames += frames_read;
-
     // generate sinus ?
     if (unlikely (data_p->sinus))
       Stream_Module_Decoder_Tools::sinus (*data_p->frequency,
@@ -139,13 +113,36 @@ stream_dev_mic_source_alsa_async_callback (snd_async_handler_t* handler_in)
                                           reinterpret_cast<uint8_t*> (message_block_p->rd_ptr ()),
                                           static_cast<unsigned int> (frames_read),
                                           data_p->phase);
+    else
+    {
+      frames_to_read = message_block_p->size () / data_p->sampleSize;
+      frames_to_read =
+          (frames_to_read > static_cast<snd_pcm_uframes_t> (available_frames) ? available_frames
+                                                                              : frames_to_read);
+      frames_read = snd_pcm_readi (handle_p,
+                                   message_block_p->wr_ptr (),
+                                   frames_to_read);
+      if (unlikely (frames_read < 0))
+      {
+        // overrun ? --> recover
+        if (frames_read == -EPIPE)
+          goto recover;
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("%s: failed to snd_pcm_readi(): \"%s\", returning\n"),
+                    ACE_TEXT (snd_pcm_name (handle_p)),
+                    ACE_TEXT (snd_strerror (frames_read))));
+        goto error;
+      } // end IF
+    } // end ELSE
+    message_block_p->wr_ptr (static_cast<unsigned int> (frames_read) * data_p->sampleSize);
+    data_p->statistic->capturedFrames += frames_read;
 
     result = data_p->queue->enqueue_tail (message_block_p,
                                           &no_wait);
     if (unlikely (result < 0))
     {
-//      ACE_DEBUG ((LM_ERROR,
-//                  ACE_TEXT ("failed to ACE_Message_Queue_Base::enqueue_tail(): \"%m\", returning\n")));
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to ACE_Message_Queue_Base::enqueue_tail(): \"%m\", returning\n")));
       goto error;
     } // end IF
     message_block_p = NULL;
@@ -153,10 +150,8 @@ stream_dev_mic_source_alsa_async_callback (snd_async_handler_t* handler_in)
     continue;
 
 recover:
-#if defined (_DEBUG)
     ACE_DEBUG ((LM_WARNING,
                 ACE_TEXT ("buffer overrun, recovering\n")));
-#endif // _DEBUG
 
     //        result = snd_pcm_prepare (handle_p);
     result = snd_pcm_recover (handle_p,
@@ -211,9 +206,12 @@ Stream_Dev_Mic_Source_ALSA_T<ACE_SYNCH_USE,
  , debugOutput_ (NULL)
  , deviceHandle_ (NULL)
  , isPassive_ (false)
+ , queue_ (STREAM_QUEUE_MAX_SLOTS, // max # slots
+           NULL)                   // notification handle
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Dev_Mic_Source_ALSA_T::Stream_Dev_Mic_Source_ALSA_T"));
 
+  inherited::msg_queue (&queue_);
 }
 
 template <ACE_SYNCH_DECL,
@@ -326,16 +324,17 @@ Stream_Dev_Mic_Source_ALSA_T<ACE_SYNCH_USE,
     isPassive_ = false;
   } // end IF
 
-#if defined (_DEBUG)
-  result =
-      snd_output_stdio_open (&debugOutput_,
-                             ACE_TEXT_ALWAYS_CHAR (STREAM_LIB_ALSA_DEFAULT_LOG_FILE),
-                             ACE_TEXT_ALWAYS_CHAR ("w"));
-  if (result < 0)
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to snd_output_stdio_open(): \"%s\", continuing\n"),
-                ACE_TEXT (snd_strerror (result))));
-#endif
+  if (configuration_in.debug)
+  {
+    result =
+        snd_output_stdio_open (&debugOutput_,
+                               ACE_TEXT_ALWAYS_CHAR (STREAM_LIB_ALSA_DEFAULT_LOG_FILE),
+                               ACE_TEXT_ALWAYS_CHAR ("w"));
+    if (result < 0)
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to snd_output_stdio_open(): \"%s\", continuing\n"),
+                  ACE_TEXT (snd_strerror (result))));
+  } // end IF
 
 //  if (!Stream_Module_Device_Tools::initializeCapture (deviceHandle_,
 //                                                      configuration_in.method,
@@ -462,44 +461,45 @@ Stream_Dev_Mic_Source_ALSA_T<ACE_SYNCH_USE,
       } // end ELSE
       ACE_ASSERT (deviceHandle_);
 
-#if defined (_DEBUG)
-      ACE_ASSERT (debugOutput_);
-      result = snd_pcm_dump (deviceHandle_,
-                             debugOutput_);
-      if (result < 0)
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("%s: failed to snd_pcm_dump(\"%s\"): \"%s\", continuing\n"),
-                    inherited::mod_->name (),
-                    ACE_TEXT (inherited::configuration_->deviceIdentifier.identifier.c_str ()),
-                    ACE_TEXT (snd_strerror (result))));
-      result = snd_pcm_dump_setup (deviceHandle_,
-                                   debugOutput_);
-      if (result < 0)
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("%s: failed to snd_pcm_dump_setup(\"%s\"): \"%s\", continuing\n"),
-                    inherited::mod_->name (),
-                    ACE_TEXT (inherited::configuration_->deviceIdentifier.identifier.c_str ()),
-                    ACE_TEXT (snd_strerror (result))));
-//      result = snd_pcm_dump_hw_setup (deviceHandle_,
-//                                      debugOutput_);
-//      if (result < 0)
-//        ACE_DEBUG ((LM_ERROR,
-//                    ACE_TEXT ("failed to snd_pcm_dump_hw_setup(\"%s\"): \"%s\", continuing\n"),
-//                    ACE_TEXT (inherited::configuration_->deviceIdentifier.c_str ()),
-//                    ACE_TEXT (snd_strerror (result))));
-//      result = snd_pcm_dump_sw_setup (deviceHandle_,
-//                                      debugOutput_);
-//      if (result < 0)
-//        ACE_DEBUG ((LM_ERROR,
-//                    ACE_TEXT ("failed to snd_pcm_dump_sw_setup(\"%s\"): \"%s\", continuing\n"),
-//                    ACE_TEXT (inherited::configuration_->deviceIdentifier.c_str ()),
-//                    ACE_TEXT (snd_strerror (result))));
-#endif
+      if (debugOutput_)
+      {
+        result = snd_pcm_dump (deviceHandle_,
+                               debugOutput_);
+        if (result < 0)
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("%s: failed to snd_pcm_dump(\"%s\"): \"%s\", continuing\n"),
+                      inherited::mod_->name (),
+                      ACE_TEXT (inherited::configuration_->deviceIdentifier.identifier.c_str ()),
+                      ACE_TEXT (snd_strerror (result))));
+        result = snd_pcm_dump_setup (deviceHandle_,
+                                     debugOutput_);
+        if (result < 0)
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("%s: failed to snd_pcm_dump_setup(\"%s\"): \"%s\", continuing\n"),
+                      inherited::mod_->name (),
+                      ACE_TEXT (inherited::configuration_->deviceIdentifier.identifier.c_str ()),
+                      ACE_TEXT (snd_strerror (result))));
+  //      result = snd_pcm_dump_hw_setup (deviceHandle_,
+  //                                      debugOutput_);
+  //      if (result < 0)
+  //        ACE_DEBUG ((LM_ERROR,
+  //                    ACE_TEXT ("failed to snd_pcm_dump_hw_setup(\"%s\"): \"%s\", continuing\n"),
+  //                    ACE_TEXT (inherited::configuration_->deviceIdentifier.c_str ()),
+  //                    ACE_TEXT (snd_strerror (result))));
+  //      result = snd_pcm_dump_sw_setup (deviceHandle_,
+  //                                      debugOutput_);
+  //      if (result < 0)
+  //        ACE_DEBUG ((LM_ERROR,
+  //                    ACE_TEXT ("failed to snd_pcm_dump_sw_setup(\"%s\"): \"%s\", continuing\n"),
+  //                    ACE_TEXT (inherited::configuration_->deviceIdentifier.c_str ()),
+  //                    ACE_TEXT (snd_strerror (result))));
+      } // end IF
 
+      ACE_ASSERT (inherited::configuration_->messageAllocator);
       asynchCBData_.allocator = inherited::configuration_->messageAllocator;
-      ACE_ASSERT (asynchCBData_.allocator);
       asynchCBData_.statistic = &session_data_r.statistic;
       //  asynchCBData_.areas = areas;
+      ACE_ASSERT (inherited::configuration_->allocatorConfiguration);
       asynchCBData_.bufferSize =
           inherited::configuration_->allocatorConfiguration->defaultBufferSize;
       asynchCBData_.channels = media_type_r.channels;

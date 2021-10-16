@@ -343,7 +343,6 @@ continue_:
 #if defined (GTKGL_SUPPORT)
 //continue_2:
 #endif /* GTKGL_SUPPORT */
-#if defined (_DEBUG)
 #if defined (GTKGL_SUPPORT)
   if (unlikely (!mode2D_ && !mode3D_))
 #else
@@ -352,7 +351,6 @@ continue_:
     ACE_DEBUG ((LM_DEBUG,
                 ACE_TEXT ("%s: no graphics output\n"),
                 inherited::mod_->name ()));
-#endif // _DEBUG
 
   if (unlikely (!inherited::initialize (configuration_in,
                                         allocator_in)))
