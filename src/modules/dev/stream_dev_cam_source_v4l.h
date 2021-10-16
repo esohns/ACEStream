@@ -142,9 +142,6 @@ class Stream_Module_CamSource_V4L_T
   int                       overlayFileDescriptor_; // preview
 
   Stream_Device_BufferMap_t bufferMap_;
-#if defined (_DEBUG)
-  bool                      debug_; // log device status (to kernel log)
-#endif // _DEBUG
   bool                      isPassive_; // foreign device descriptor(s) ?
 };
 

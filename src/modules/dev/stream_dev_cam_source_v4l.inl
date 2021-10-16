@@ -72,9 +72,6 @@ Stream_Module_CamSource_V4L_T<ACE_SYNCH_USE,
  , captureFileDescriptor_ (-1)
  , overlayFileDescriptor_ (-1)
  , bufferMap_ ()
-#if defined (_DEBUG)
- , debug_ (false)
-#endif // _DEBUG
  , isPassive_ (false)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_CamSource_V4L_T::Stream_Module_CamSource_V4L_T"));
@@ -523,8 +520,6 @@ Stream_Module_CamSource_V4L_T<ACE_SYNCH_USE,
                     overlayFileDescriptor_));
       overlayFileDescriptor_ = -1;
     } // end IF
-
-    debug_ = false;
     isPassive_ = false;
   } // end IF
 
@@ -584,13 +579,11 @@ Stream_Module_CamSource_V4L_T<ACE_SYNCH_USE,
                   open_mode_i));
       goto error;
     } // end IF
-#if defined (_DEBUG)
     ACE_DEBUG ((LM_DEBUG,
                 ACE_TEXT ("%s: opened v4l2 device \"%s\" (fd: %d)\n"),
                 inherited::mod_->name (),
                 ACE_TEXT (configuration_in.deviceIdentifier.identifier.c_str ()),
                 overlayFileDescriptor_));
-#endif // _DEBUG
   } // end IF
 
   return inherited::initialize (configuration_in,
@@ -794,7 +787,7 @@ continue_:
     } // end lock scope
 
     // log device status to kernel log ?
-    if (unlikely (debug_))
+    if (unlikely (inherited::configuration_->debug))
     {
       result = v4l2_ioctl (captureFileDescriptor_,
                            VIDIOC_LOG_STATUS);
