@@ -26,6 +26,8 @@
 #define STREAM_LIB_TAGGER_DEFAULT_NAME_STRING                    "Tagger"
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
+#define STREAM_LIB_DIRECTSHOW_DEFAULT_NAME_STRING                "DirectShow"
+
 #define STREAM_LIB_DEFAULT_MEDIAFRAMEWORK                        STREAM_MEDIAFRAMEWORK_DIRECTSHOW
 
 // DirectDraw
@@ -43,6 +45,10 @@
 //         (inbound) frame data
 // *NOTE*: the 'pull' strategy is implemented via IAsynchReader (Request/
 //         WaitForNext)
+// *IMPORTANT NOTE*: 'asynchronous' filters implement IAsyncReader (downstream
+//                   filters 'pull' media samples), 'synchronous' filters
+//                   implement IMemInputPin and 'push' media samples to
+//                   downstream filters
 #define STREAM_LIB_DIRECTSHOW_FILTER_SOURCE_DEFAULT_PUSH         false
 
 #define STREAM_LIB_DIRECTSHOW_ALLOCATOR_NAME                     "Allocator"
@@ -94,7 +100,7 @@
 #define STREAM_LIB_DIRECTSHOW_LOGFILE_NAME                       "ACEStream_DirectShow.log"
 
 // user-defined message to notify applications of filtergraph events
-#define STREAM_LIB_DIRECTSHOW_WM_GRAPHNOTIFY_EVENT               WM_APP + 1
+#define STREAM_LIB_DIRECTSHOW_WM_GRAPHNOTIFY_EVENT               WM_USER + 1
 
 // MediaFoundation
 // *NOTE*: IMFMediaSession::SetTopology() is asynchronous; subsequent calls

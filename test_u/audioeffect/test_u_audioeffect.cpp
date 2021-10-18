@@ -62,10 +62,10 @@
 
 #if defined (GUI_SUPPORT)
 #include "common_ui_tools.h"
-#if defined (GTK_USE)
+#if defined (GTK_SUPPORT)
 #include "common_ui_gtk_builder_definition.h"
 #include "common_ui_gtk_manager_common.h"
-#endif // GTK_USE
+#endif // GTK_SUPPORT
 #endif // GUI_SUPPORT
 
 #if defined (HAVE_CONFIG_H)
@@ -82,6 +82,7 @@
 #include "stream_dev_tools.h"
 
 #include "stream_lib_directshow_tools.h"
+#include "stream_lib_guids.h"
 #include "stream_lib_tools.h"
 #endif // ACE_WIN32 || ACE_WIN64
 
@@ -91,11 +92,12 @@
 #include "test_u_defines.h"
 
 #if defined (GUI_SUPPORT)
-#if defined (GTK_USE)
+#if defined (GTK_SUPPORT)
 #include "test_u_audioeffect_callbacks.h"
-#endif // GTK_USE
+#endif // GTK_SUPPORT
 #endif // GUI_SUPPORT
 #include "test_u_audioeffect_common.h"
+#include "test_u_audioeffect_common_modules.h"
 #include "test_u_audioeffect_defines.h"
 #include "test_u_audioeffect_eventhandler.h"
 #include "test_u_audioeffect_module_eventhandler.h"
@@ -234,8 +236,8 @@ do_processArguments (int argc_in,
                      enum Stream_MediaFramework_Type& mediaFramework_out,
 #endif
                      unsigned int& statisticReportingInterval_out,
-                     bool& mute_out,
                      bool& traceInformation_out,
+                     bool& mute_out,
                      bool& printVersionAndExit_out)
                      //bool& runStressTest_out)
 {
@@ -557,10 +559,13 @@ do_initializeSignals (bool allowUserRuntimeConnect_in,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 bool
 do_initialize_directshow (const std::string& deviceIdentifier_in,
+                          const struct Test_U_AudioEffect_DirectShow_Configuration& configuration_in,
                           IGraphBuilder*& IGraphBuilder_out,
                           IAMStreamConfig*& IAMStreamConfig_out,
                           struct _AMMediaType& outputMediaType_out,
-                          bool coInitialize_in)
+                          bool coInitialize_in,
+                          bool useDirectShowSource_in,
+                          bool mute_in)
 {
   STREAM_TRACE (ACE_TEXT ("::do_initialize_directshow"));
 
@@ -570,6 +575,9 @@ do_initialize_directshow (const std::string& deviceIdentifier_in,
   Stream_MediaFramework_DirectShow_Graph_t graph_layout;
   Stream_MediaFramework_DirectShow_GraphConfiguration_t graph_configuration;
   IMediaFilter* media_filter_p = NULL;
+  Test_U_AudioEffect_DirectShowFilter_t* filter_p = NULL;
+  IBaseFilter* filter_2 = NULL;
+  std::wstring filter_name = STREAM_LIB_DIRECTSHOW_FILTER_NAME_SOURCE_L;
 
   // sanity check(s)
   ACE_ASSERT (!IGraphBuilder_out);
@@ -599,6 +607,9 @@ continue_:
   // initialize return value(s)
   Stream_MediaFramework_DirectShow_Tools::free (outputMediaType_out);
 
+  if (!useDirectShowSource_in)
+    goto continue_2;
+
   if (!Stream_Device_DirectShow_Tools::loadDeviceGraph (deviceIdentifier_in,
                                                         CLSID_AudioInputDeviceCategory,
                                                         IGraphBuilder_out,
@@ -617,6 +628,62 @@ continue_:
 
   buffer_negotiation_p->Release (); buffer_negotiation_p = NULL;
 
+  goto continue_3;
+
+continue_2:
+  result = CoCreateInstance (CLSID_FilterGraph, NULL,
+                             CLSCTX_INPROC_SERVER,
+                             IID_PPV_ARGS (&IGraphBuilder_out));
+  if (FAILED (result))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to CoCreateInstance(CLSID_FilterGraph): \"%s\", aborting\n"),
+                ACE_TEXT (Common_Error_Tools::errorToString (result, false).c_str ())));
+    goto error;
+  } // end IF
+  ACE_ASSERT (IGraphBuilder_out);
+  ACE_NEW_NORETURN (filter_p,
+                    Test_U_AudioEffect_DirectShowFilter_t ());
+  if (!filter_p)
+  {
+    ACE_DEBUG ((LM_CRITICAL,
+                ACE_TEXT ("failed to allocate memory, aborting\n")));
+    goto error;
+  } // end IF
+  if (!filter_p->initialize (configuration_in.filterConfiguration))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to Stream_MediaFramework_DirectShow_Source_Filter_T::initialize(), aborting\n")));
+    delete filter_p; filter_p = NULL;
+    goto error;
+  } // end IF
+  result =
+    filter_p->NonDelegatingQueryInterface (IID_IBaseFilter,
+                                           reinterpret_cast<void**> (&filter_2));
+  if (FAILED (result))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to NonDelegatingQueryInterface(IID_IBaseFilter): \"%s\", aborting\n"),
+                ACE_TEXT (Common_Error_Tools::errorToString (result, false).c_str ())));
+    delete filter_p; filter_p = NULL;
+    goto error;
+  } // end IF
+  // *WARNING*: invokes IBaseFilter::GetBuffer
+  result = IGraphBuilder_out->AddFilter (filter_2,
+                                         filter_name.c_str ());
+  if (FAILED (result))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to IGraphBuilder::AddFilter(): \"%s\", aborting\n"),
+                ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ())));
+    filter_2->Release (); filter_2 = NULL;
+    delete filter_p; filter_p = NULL;
+    goto error;
+  } // end IF
+  filter_2->Release (); filter_2 = NULL;
+  graph_layout.push_back (filter_name);
+
+continue_3:
   struct tWAVEFORMATEX waveformatex_s;
   ACE_OS::memset (&waveformatex_s, 0, sizeof (struct tWAVEFORMATEX));
   waveformatex_p = &waveformatex_s;
@@ -643,6 +710,8 @@ continue_:
   ////////////////////////////////////////
 
   //mediaType_out->lSampleSize = waveformatex_p->nAvgBytesPerSec;
+  if (!useDirectShowSource_in)
+    goto continue_4;
 
   if (!Stream_Device_DirectShow_Tools::setCaptureFormat (IGraphBuilder_out,
                                                          CLSID_AudioInputDeviceCategory,
@@ -653,9 +722,11 @@ continue_:
     goto error;
   } // end IF
 
+continue_4:
   union Stream_MediaFramework_DirectShow_AudioEffectOptions effect_options;
-  if (!Stream_Module_Decoder_Tools::loadAudioRendererGraph (outputMediaType_out,
-                                                            0,
+  if (!Stream_Module_Decoder_Tools::loadAudioRendererGraph ((useDirectShowSource_in ? CLSID_AudioInputDeviceCategory : GUID_NULL),
+                                                            outputMediaType_out,
+                                                            (mute_in ? 0 : 1),
                                                             IGraphBuilder_out,
                                                             GUID_NULL,
                                                             effect_options,
@@ -963,8 +1034,37 @@ do_work (unsigned int bufferSize_in,
     { ACE_ASSERT (directShowCBData_in.configuration);
       directshow_modulehandler_configuration.allocatorConfiguration =
         allocator_configuration_p;
+      directshow_modulehandler_configuration.filterConfiguration =
+        &directShowCBData_in.configuration->filterConfiguration;
       directshow_modulehandler_configuration.messageAllocator =
         &directshow_message_allocator;
+      directshow_modulehandler_configuration.mute = mute_in;
+
+      directshow_modulehandler_configuration.audioOutput = 1;
+#if defined (GUI_SUPPORT)
+#if defined (GTK_USE)
+      directshow_modulehandler_configuration.surfaceLock =
+        &directShowCBData_in.surfaceLock;
+
+#if defined (GTKGL_SUPPORT)
+      directshow_modulehandler_configuration.OpenGLInstructions =
+        &directShowCBData_in.OpenGLInstructions;
+      directshow_modulehandler_configuration.OpenGLInstructionsLock =
+        &state_r.lock;
+#endif // GTKGL_SUPPORT
+#endif // GTK_USE
+#endif // GUI_SUPPORT
+
+      directshow_modulehandler_configuration.printProgressDot =
+        UIDefinitionFile_in.empty ();
+      directshow_modulehandler_configuration.statisticReportingInterval =
+        ACE_Time_Value (statisticReportingInterval_in, 0);
+      directshow_modulehandler_configuration.subscriber =
+        &directshow_ui_event_handler;
+      directshow_modulehandler_configuration.targetFileName =
+          (targetFilename_in.empty () ? Common_File_Tools::getTempDirectory ()
+                                      : targetFilename_in);
+
       directShowCBData_in.configuration->streamConfiguration.initialize (module_configuration,
                                                                          directshow_modulehandler_configuration,
                                                                          directshow_stream_configuration);
@@ -973,95 +1073,46 @@ do_work (unsigned int bufferSize_in,
         directShowConfiguration_in.streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
       ACE_ASSERT (directshow_modulehandler_iterator != directShowConfiguration_in.streamConfiguration.end ());
 
-      (*directshow_modulehandler_iterator).second.second.audioOutput = 1;
-#if defined (GUI_SUPPORT)
-#if defined (GTK_USE)
-      (*directshow_modulehandler_iterator).second.second.surfaceLock =
-        &directShowCBData_in.surfaceLock;
-#endif // GTK_USE
-#endif // GUI_SUPPORT
-      //directshow_configuration.moduleHandlerConfiguration.format =
-      //  (struct _AMMediaType*)CoTaskMemAlloc (sizeof (struct _AMMediaType));
-      //ACE_ASSERT (directshow_configuration.moduleHandlerConfiguration.format);
-      //struct tWAVEFORMATEX waveformatex_s;
-      //ACE_OS::memset (&waveformatex_s, 0, sizeof (struct tWAVEFORMATEX));
-      //waveformatex_s.cbSize = sizeof (struct tWAVEFORMATEX);
-      ////waveformatex_s.nAvgBytesPerSec = ;
-      ////waveformatex_s.nBlockAlign = ;
-      ////waveformatex_s.nChannels = 1;
-      ////waveformatex_s.nSamplesPerSec = 44100;
-      ////waveformatex_s.wBitsPerSample = 16;
-      //waveformatex_s.wFormatTag = WAVE_FORMAT_EXTENSIBLE;
-      //HRESULT result =
-      //  CreateAudioMediaType (&waveformatex_s,
-      //                        directshow_configuration.moduleHandlerConfiguration.format,
-      //                        TRUE);
-      //ACE_ASSERT (SUCCEEDED (result));
-
-#if defined (GUI_SUPPORT)
-#if defined (GTK_USE)
-#if defined (GTKGL_SUPPORT)
-      (*directshow_modulehandler_iterator).second.second.OpenGLInstructions =
-        &directShowCBData_in.OpenGLInstructions;
-      (*directshow_modulehandler_iterator).second.second.OpenGLInstructionsLock =
-        &state_r.lock;
-#endif // GTKGL_SUPPORT
-#endif // GTK_USE
-#endif // GUI_SUPPORT
-
-      (*directshow_modulehandler_iterator).second.second.printProgressDot =
-        UIDefinitionFile_in.empty ();
-      (*directshow_modulehandler_iterator).second.second.statisticReportingInterval =
-        ACE_Time_Value (statisticReportingInterval_in, 0);
-      (*directshow_modulehandler_iterator).second.second.subscriber =
-        &directshow_ui_event_handler;
-      (*directshow_modulehandler_iterator).second.second.targetFileName =
-          (targetFilename_in.empty () ? Common_File_Tools::getTempDirectory ()
-                                      : targetFilename_in);
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
     { ACE_ASSERT (mediaFoundationCBData_in.configuration);
       mediafoundation_modulehandler_configuration.allocatorConfiguration =
         allocator_configuration_p;
-      mediaFoundationCBData_in.configuration->streamConfiguration.initialize (module_configuration,
-                                                                              mediafoundation_modulehandler_configuration,
-                                                                              mediafoundation_stream_configuration);
+      mediafoundation_modulehandler_configuration.mute = mute_in;
 
-      mediafoundation_modulehandler_iterator =
-        mediaFoundationConfiguration_in.streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
-      ACE_ASSERT (mediafoundation_modulehandler_iterator != mediaFoundationConfiguration_in.streamConfiguration.end ());
-
-      (*mediafoundation_modulehandler_iterator).second.second.audioOutput = 1;
+      mediafoundation_modulehandler_configuration.audioOutput = 1;
 #if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
-#if defined (GTKGL_SUPPORT)
-      (*mediafoundation_modulehandler_iterator).second.second.surfaceLock =
+      mediafoundation_modulehandler_configuration.surfaceLock =
         &mediaFoundationCBData_in.surfaceLock;
-#endif // GTKGL_SUPPORT
-#endif // GTK_USE
-#endif // GUI_SUPPORT
 
-#if defined (GUI_SUPPORT)
-#if defined (GTK_USE)
 #if defined (GTKGL_SUPPORT)
-      (*mediafoundation_modulehandler_iterator).second.second.OpenGLInstructions =
+      mediafoundation_modulehandler_configuration.OpenGLInstructions =
         &mediaFoundationCBData_in.OpenGLInstructions;
-      (*mediafoundation_modulehandler_iterator).second.second.OpenGLInstructionsLock =
+      mediafoundation_modulehandler_configuration.OpenGLInstructionsLock =
         &state_r.lock;
 #endif // GTKGL_SUPPORT
 #endif // GTK_USE
 #endif // GUI_SUPPORT
 
-      (*mediafoundation_modulehandler_iterator).second.second.printProgressDot =
+      mediafoundation_modulehandler_configuration.printProgressDot =
         UIDefinitionFile_in.empty ();
-      (*mediafoundation_modulehandler_iterator).second.second.statisticReportingInterval =
+      mediafoundation_modulehandler_configuration.statisticReportingInterval =
         ACE_Time_Value (statisticReportingInterval_in, 0);
-      (*mediafoundation_modulehandler_iterator).second.second.subscriber =
+      mediafoundation_modulehandler_configuration.subscriber =
         &mediafoundation_ui_event_handler;
-      (*mediafoundation_modulehandler_iterator).second.second.targetFileName =
+      mediafoundation_modulehandler_configuration.targetFileName =
           (targetFilename_in.empty () ? Common_File_Tools::getTempDirectory ()
                                       : targetFilename_in);
+
+      mediaFoundationCBData_in.configuration->streamConfiguration.initialize (module_configuration,
+                                                                              mediafoundation_modulehandler_configuration,
+                                                                              mediafoundation_stream_configuration);
+      mediafoundation_modulehandler_iterator =
+        mediaFoundationConfiguration_in.streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
+      ACE_ASSERT (mediafoundation_modulehandler_iterator != mediaFoundationConfiguration_in.streamConfiguration.end ());
+
       break;
     }
     default:
@@ -1175,14 +1226,26 @@ do_work (unsigned int bufferSize_in,
     {
       result =
         do_initialize_directshow ((*directshow_modulehandler_iterator).second.second.deviceIdentifier.identifier._string,
+                                  *directShowCBData_in.configuration,
                                   (*directshow_modulehandler_iterator).second.second.builder,
                                   directShowCBData_in.streamConfiguration,
                                   directshow_stream_configuration.format,
-                                  true); // initialize COM ?
+                                  true,  // initialize COM ?
+                                  false, // use DirectShow source ? : WaveIn
+                                  mute_in);
+      if (!result)
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("failed to do_initialize_directshow(), returning\n")));
+        return;
+      } // end IF
       ACE_ASSERT ((*directshow_modulehandler_iterator).second.second.builder);
-      ACE_ASSERT (directShowCBData_in.streamConfiguration);
-      (*directshow_modulehandler_iterator).second.second.outputFormat =
-        directshow_stream_configuration.format;
+      if (false) // use DirectShow source ?
+      {
+        ACE_ASSERT (directShowCBData_in.streamConfiguration);
+      } // end IF
+      Stream_MediaFramework_DirectShow_Tools::copy (directshow_stream_configuration.format,
+                                                    (*directshow_modulehandler_iterator).second.second.outputFormat);
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
@@ -1248,41 +1311,6 @@ do_work (unsigned int bufferSize_in,
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Common_Signal_Tools::initialize(), aborting\n")));
-    goto error;
-  } // end IF
-
-  // pre-initialize processing stream
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-  bool success_b = false;
-  switch (mediaFramework_in)
-  {
-    case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
-    {
-      success_b =
-        directshow_stream.initialize (directShowConfiguration_in.streamConfiguration);
-      break;
-    }
-    case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
-    {
-      success_b =
-        mediafoundation_stream.initialize (mediaFoundationConfiguration_in.streamConfiguration);
-      break;
-    }
-    default:
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("invalid/unknown media framework (was: %d), returning\n"),
-                  mediaFramework_in));
-      return;
-    }
-  } // end SWITCH
-  if (!success_b)
-#else
-  if (!stream.initialize (configuration_in.streamConfiguration))
-#endif // ACE_WIN32 || ACE_WIN64
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to initialize processing stream, aborting\n")));
     goto error;
   } // end IF
 
@@ -1379,6 +1407,41 @@ do_work (unsigned int bufferSize_in,
   else
   {
 #endif // GUI_SUPPORT
+    // pre-initialize processing stream
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+    bool success_b = false;
+    switch (mediaFramework_in)
+    {
+      case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
+      {
+        success_b =
+          directshow_stream.initialize (directShowConfiguration_in.streamConfiguration);
+        break;
+      }
+      case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
+      {
+        success_b =
+          mediafoundation_stream.initialize (mediaFoundationConfiguration_in.streamConfiguration);
+        break;
+      }
+      default:
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("invalid/unknown media framework (was: %d), returning\n"),
+                    mediaFramework_in));
+        return;
+      }
+    } // end SWITCH
+    if (!success_b)
+#else
+    if (!stream.initialize (configuration_in.streamConfiguration))
+#endif // ACE_WIN32 || ACE_WIN64
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to initialize processing stream, aborting\n")));
+      goto error;
+    } // end IF
+
     ACE_ASSERT (istream_control_p);
     istream_control_p->start ();
 //    if (!istream_control_p->isRunning ())
@@ -1682,6 +1745,8 @@ ACE_TMAIN (int argc_in,
   struct Test_U_AudioEffect_UI_CBDataBase* cb_data_base_p = NULL;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   struct Test_U_AudioEffect_DirectShow_Configuration directshow_configuration;
+  directshow_configuration.filterConfiguration.pinConfiguration =
+    &directshow_configuration.pinConfiguration;
   struct Test_U_AudioEffect_DirectShow_UI_CBData directshow_ui_cb_data;
   struct Test_U_AudioEffect_MediaFoundation_Configuration mediafoundation_configuration;
   struct Test_U_AudioEffect_MediaFoundation_UI_CBData mediafoundation_ui_cb_data;

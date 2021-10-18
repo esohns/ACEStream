@@ -172,6 +172,12 @@ Stream_Dev_Mic_Source_WaveIn_T<ACE_SYNCH_USE,
   //  printf ("%d\n", capabilities_s.wChannels);
   //};
 
+  CBData_.task = this;
+  CBData_.frequency =
+    &const_cast<ConfigurationType&> (configuration_in).sinusFrequency;
+  CBData_.sinus = configuration_in.sinus;
+  CBData_.phase = 0.0;
+
   return inherited::initialize (configuration_in,
                                 allocator_in);
 }
@@ -316,6 +322,11 @@ Stream_Dev_Mic_Source_WaveIn_T<ACE_SYNCH_USE,
                   inherited::mod_->name (),
                   &context_));
 
+      CBData_.channels = wave_format_ex_s.nChannels;
+      CBData_.sampleRate = wave_format_ex_s.nSamplesPerSec;
+      CBData_.sampleSize =
+        CBData_.channels * (wave_format_ex_s.wBitsPerSample / 8);
+
       // prepare buffer blocks and add to input queue
       if (!allocateBuffers (inherited::configuration_->messageAllocator,
                             16384))
@@ -327,7 +338,6 @@ Stream_Dev_Mic_Source_WaveIn_T<ACE_SYNCH_USE,
                     ACE_TEXT (error_msg_a)));
         goto error;
       } // end IF
-      CBData_.task = this;
 
       for (unsigned int i = 0;
            i < STREAM_DEV_MIC_WAVEIN_DEFAULT_DEVICE_BUFFERS;

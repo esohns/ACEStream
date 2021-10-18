@@ -19,37 +19,16 @@
 ***************************************************************************/
 #include "stdafx.h"
 
-//#include <sdkddkver.h>
-//#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0602) // _WIN32_WINNT_WIN8
-//#include <minwindef.h>
-//#else
-//#include <windef.h>
-//#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0602)
-#include <WinNT.h>
-//#include <Guiddef.h>
-#include <initguid.h> // *NOTE*: this exports DEFINE_GUIDs
+#include "initguid.h" // *NOTE*: this exports DEFINE_GUIDs
                       //         (see: stream_lib_common.h)
-#if _MSC_VER>=1100
-#define AM_NOVTABLE __declspec(novtable)
-#else
-#define AM_NOVTABLE
-#endif
-#include <strmif.h>
-#include <Unknwn.h>
-// *NOTE*: wxWidgets may have #defined __WXDEBUG__
-//#undef __WXDEBUG__
-#include <wxdebug.h>
-#include <combase.h>
-#include <dllsetup.h>
-#include <strsafe.h>
-// *NOTE*: uuids.h doesn't have double include protection
-#if defined (UUIDS_H)
-#else
-#define UUIDS_H
-#include <uuids.h>
-#endif // UUIDS_H
+#include "Unknwn.h"
+
+#include "streams.h"
+
+#include "strsafe.h"
+
 #if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
-#include <WinReg.h>
+#include "WinReg.h"
 #else
 #include "ace/Synch.h"
 

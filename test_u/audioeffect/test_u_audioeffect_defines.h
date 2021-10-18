@@ -80,7 +80,7 @@
 #define TEST_U_STREAM_UI_GTK_DIALOG_MAIN_NAME                "dialog_main"
 #define TEST_U_STREAM_UI_GTK_DRAWINGAREA_NAME                "drawingarea_2d"
 #if defined (GTKGL_SUPPORT)
-#define TEST_U_STREAM_UI_GTK_GLAREA_NAME                     "glarea_3d"
+#define TEST_U_STREAM_UI_GTK_DRAWINGAREA_3D_NAME             "drawingarea_3d"
 #endif // GTKGL_SUPPORT
 #define TEST_U_STREAM_UI_GTK_FILECHOOSERBUTTON_SAVE_NAME     "filechooserbutton_destination"
 #define TEST_U_STREAM_UI_GTK_FILECHOOSERDIALOG_SAVE_NAME     "filechooserdialog_destination"

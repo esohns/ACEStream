@@ -517,8 +517,7 @@ Stream_Vis_Target_DirectShow_T<ACE_SYNCH_USE,
       ACE_ASSERT (inherited::IGraphBuilder_);
 #if defined (_DEBUG)
       log_file_name =
-        Common_Log_Tools::getLogDirectory (ACE_TEXT_ALWAYS_CHAR (""),
-                                           0);
+        Common_Log_Tools::getLogDirectory (ACE_TEXT_ALWAYS_CHAR (ACEStream_PACKAGE_NAME), 0);
       log_file_name += ACE_DIRECTORY_SEPARATOR_STR;
       log_file_name += STREAM_LIB_DIRECTSHOW_LOGFILE_NAME;
       Stream_MediaFramework_DirectShow_Tools::debug (inherited::IGraphBuilder_,
@@ -750,8 +749,8 @@ error:
       } // end IF
 
       Stream_MediaFramework_DirectShow_Tools::get (inherited::IGraphBuilder_,
-                                                   (inherited::push_ ? STREAM_LIB_DIRECTSHOW_FILTER_NAME_SOURCE_L
-                                                                     : STREAM_LIB_DIRECTSHOW_FILTER_NAME_ASYNCH_SOURCE_L),
+                                                   (inherited::configuration_->push ? STREAM_LIB_DIRECTSHOW_FILTER_NAME_SOURCE_L
+                                                                                    : STREAM_LIB_DIRECTSHOW_FILTER_NAME_ASYNCH_SOURCE_L),
                                                    filter_graph_layout);
       for (Stream_MediaFramework_DirectShow_GraphConstIterator_t iterator = filter_graph_layout.begin ();
            iterator != filter_graph_layout.end ();
@@ -761,16 +760,16 @@ error:
         filter_graph_configuration.push_back (graph_entry);
       } // end FOR
       result_2 =
-        inherited::IGraphBuilder_->FindFilterByName ((inherited::push_ ? STREAM_LIB_DIRECTSHOW_FILTER_NAME_SOURCE_L
-                                                                       : STREAM_LIB_DIRECTSHOW_FILTER_NAME_ASYNCH_SOURCE_L),
+        inherited::IGraphBuilder_->FindFilterByName ((inherited::configuration_->push ? STREAM_LIB_DIRECTSHOW_FILTER_NAME_SOURCE_L
+                                                                                      : STREAM_LIB_DIRECTSHOW_FILTER_NAME_ASYNCH_SOURCE_L),
                                                      &filter_p);
       if (unlikely (FAILED (result_2)))
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: failed to IGraphBuilder::FindFilterByName(\"%s\"): \"%s\", aborting\n"),
                     inherited::mod_->name (),
-                    (inherited::push_ ? ACE_TEXT_WCHAR_TO_TCHAR (STREAM_LIB_DIRECTSHOW_FILTER_NAME_SOURCE_L)
-                                      : ACE_TEXT_WCHAR_TO_TCHAR (STREAM_LIB_DIRECTSHOW_FILTER_NAME_ASYNCH_SOURCE_L)),
+                    (inherited::configuration_->push ? ACE_TEXT_WCHAR_TO_TCHAR (STREAM_LIB_DIRECTSHOW_FILTER_NAME_SOURCE_L)
+                                                     : ACE_TEXT_WCHAR_TO_TCHAR (STREAM_LIB_DIRECTSHOW_FILTER_NAME_ASYNCH_SOURCE_L)),
                     ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
         goto error_2;
       } // end IF
@@ -781,8 +780,8 @@ error:
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: failed to Stream_MediaFramework_DirectShow_Tools::pin(\"%s\",PINDIR_OUTPUT): \"%s\", aborting\n"),
                     inherited::mod_->name (),
-                    (inherited::push_ ? ACE_TEXT_WCHAR_TO_TCHAR (STREAM_LIB_DIRECTSHOW_FILTER_NAME_SOURCE_L)
-                                      : ACE_TEXT_WCHAR_TO_TCHAR (STREAM_LIB_DIRECTSHOW_FILTER_NAME_ASYNCH_SOURCE_L)),
+                    (inherited::configuration_->push ? ACE_TEXT_WCHAR_TO_TCHAR (STREAM_LIB_DIRECTSHOW_FILTER_NAME_SOURCE_L)
+                                                     : ACE_TEXT_WCHAR_TO_TCHAR (STREAM_LIB_DIRECTSHOW_FILTER_NAME_ASYNCH_SOURCE_L)),
                     ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
         filter_p->Release (); filter_p = NULL;
         goto error_2;
@@ -795,8 +794,8 @@ error:
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: failed to IPin::ConnectionMediaType(\"%s\"/\"%s\"): \"%s\", aborting\n"),
                     inherited::mod_->name (),
-                    (inherited::push_ ? ACE_TEXT_WCHAR_TO_TCHAR (STREAM_LIB_DIRECTSHOW_FILTER_NAME_SOURCE_L)
-                                      : ACE_TEXT_WCHAR_TO_TCHAR (STREAM_LIB_DIRECTSHOW_FILTER_NAME_ASYNCH_SOURCE_L)),
+                    (inherited::configuration_->push ? ACE_TEXT_WCHAR_TO_TCHAR (STREAM_LIB_DIRECTSHOW_FILTER_NAME_SOURCE_L)
+                                                     : ACE_TEXT_WCHAR_TO_TCHAR (STREAM_LIB_DIRECTSHOW_FILTER_NAME_ASYNCH_SOURCE_L)),
                     ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::name (pin_p).c_str ()),
                     ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
         pin_p->Release (); pin_p = NULL;
@@ -940,7 +939,7 @@ error_2:
       if (inherited::IMediaControl_)
       {
         // stop DirectShow streaming thread ?
-        if (inherited::push_)
+        if (inherited::configuration_->push)
           inherited::stop (true,   // wait ?
                            false); // high priority ?
 
@@ -1161,10 +1160,10 @@ Stream_Vis_Target_DirectShow_T<ACE_SYNCH_USE,
   windowHandle_inout =
     CreateWindowEx (window_style_ex,                                  // dwExStyle
 #if defined (UNICODE)
-                    ACE_TEXT_ALWAYS_WCHAR ("EDIT"),                   // lpClassName
+                    ACE_TEXT_ALWAYS_WCHAR (inherited::mod_->name ()), // lpClassName
                     ACE_TEXT_ALWAYS_WCHAR (inherited::mod_->name ()), // lpWindowName
 #else
-                    ACE_TEXT_ALWAYS_CHAR ("EDIT"),                    // lpClassName
+                    ACE_TEXT_ALWAYS_CHAR (inherited::mod_->name ()),  // lpClassName
                     ACE_TEXT_ALWAYS_CHAR (inherited::mod_->name ()),  // lpWindowName
 #endif // UNICODE
                     window_style,                                     // dwStyle

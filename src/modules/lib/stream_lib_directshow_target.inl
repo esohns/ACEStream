@@ -30,8 +30,6 @@
 #include "stream_defines.h"
 #include "stream_macros.h"
 
-//#include "stream_dec_tools.h"
-
 #include "stream_lib_defines.h"
 #include "stream_lib_directshow_tools.h"
 
@@ -59,16 +57,20 @@ Stream_MediaFramework_DirectShow_Target_T<ACE_SYNCH_USE,
                                           FilterType>::Stream_MediaFramework_DirectShow_Target_T (ISTREAM_T* stream_in)
  : inherited (stream_in)
  , inherited2 ()
- , push_ (STREAM_LIB_DIRECTSHOW_FILTER_SOURCE_DEFAULT_PUSH)
+ , inherited3 ()
+ //, inherited4 ()
  , IGraphBuilder_ (NULL)
 //, IMemAllocator_ (NULL)
 //, IMemInputPin_ (NULL)
  , IMediaControl_ (NULL)
  , IMediaEventEx_ (NULL)
  , ROTID_ (0)
+ , queue_ (STREAM_QUEUE_MAX_SLOTS, // max # slots
+           NULL)                   // notification handle
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_DirectShow_Target_T::Stream_MediaFramework_DirectShow_Target_T"));
 
+  inherited::msg_queue (&queue_);
 }
 
 template <ACE_SYNCH_DECL,
@@ -248,22 +250,13 @@ Stream_MediaFramework_DirectShow_Target_T<ACE_SYNCH_USE,
     ULONG reference_count = configuration_in.builder->AddRef ();
     IGraphBuilder_ = configuration_in.builder;
   } // end IF
-  // *TODO*: remove type inference
-  push_ = configuration_in.push;
 
+  // *TODO*: remove type inference
   if (configuration_in.filterConfiguration)
   { ACE_ASSERT (configuration_in.filterConfiguration->pinConfiguration);
     configuration_in.filterConfiguration->module = inherited::mod_;
     configuration_in.filterConfiguration->pinConfiguration->queue =
       inherited::msg_queue_;
-
-    if (!inherited4::initialize (*configuration_in.filterConfiguration))
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("%s: failed to FilterType::initialize(), aborting\n"),
-                  inherited::mod_->name ()));
-      goto error;
-    } // end IF
   } // end IF
 
   return inherited::initialize (configuration_in,
@@ -448,8 +441,7 @@ Stream_MediaFramework_DirectShow_Target_T<ACE_SYNCH_USE,
       ACE_ASSERT (IGraphBuilder_);
 #if defined (_DEBUG)
       log_file_name =
-        Common_Log_Tools::getLogDirectory (std::string (),
-                                           0);
+        Common_Log_Tools::getLogDirectory (ACE_TEXT_ALWAYS_CHAR (ACEStream_PACKAGE_NAME), 0);
       log_file_name += ACE_DIRECTORY_SEPARATOR_STR;
       log_file_name += STREAM_LIB_DIRECTSHOW_LOGFILE_NAME;
       Stream_MediaFramework_DirectShow_Tools::debug (IGraphBuilder_,
@@ -471,15 +463,19 @@ Stream_MediaFramework_DirectShow_Target_T<ACE_SYNCH_USE,
       ACE_ASSERT (IMediaEventEx_);
 
       // set the window handle used to process graph events
-      result =
-        IMediaEventEx_->SetNotifyWindow (reinterpret_cast<OAHWND> (inherited::configuration_->window),
+      ACE_ASSERT (inherited::configuration_->window);
+      HWND window_p = NULL;
+      inherited3::getWindowType (inherited::configuration_->window,
+                                 window_p);
+      result_2 =
+        IMediaEventEx_->SetNotifyWindow (reinterpret_cast<OAHWND> (window_p),
                                          STREAM_LIB_DIRECTSHOW_WM_GRAPHNOTIFY_EVENT, 0);
-      if (FAILED (result))
+      if (FAILED (result_2))
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: failed to IMediaEventEx::SetNotifyWindow(): \"%s\", aborting\n"),
                     inherited::mod_->name (),
-                    ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
+                    ACE_TEXT (Common_Error_Tools::errorToString (result_2).c_str ())));
         goto error;
       } // end IF
 
@@ -694,10 +690,16 @@ Stream_MediaFramework_DirectShow_Target_T<ACE_SYNCH_USE,
                   ACE_TEXT ("%s: failed to CUnknown::NonDelegatingQueryInterface(IID_IBaseFilter): \"%s\", aborting\n"),
                   inherited::mod_->name (),
                   ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
-
-      // clean up
       unknown_p->NonDelegatingRelease ();
-
+      return false;
+    } // end IF
+    FilterType* filter_2 = static_cast<FilterType*> (unknown_p);
+    if (!filter_2->initialize (*inherited::configuration_->filterConfiguration))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("%s: failed to FilterType::initialize(), aborting\n"),
+                  inherited::mod_->name ()));
+      unknown_p->NonDelegatingRelease ();
       return false;
     } // end IF
     unknown_p->NonDelegatingRelease ();
@@ -723,8 +725,8 @@ Stream_MediaFramework_DirectShow_Target_T<ACE_SYNCH_USE,
   } // end IF
 
   if (!Stream_Module_Decoder_Tools::loadTargetRendererGraph (filter_p,
-                                                             (push_ ? STREAM_LIB_DIRECTSHOW_FILTER_NAME_SOURCE_L
-                                                                    : STREAM_LIB_DIRECTSHOW_FILTER_NAME_ASYNCH_SOURCE_L),
+                                                             (inherited::configuration_->push ? STREAM_LIB_DIRECTSHOW_FILTER_NAME_SOURCE_L
+                                                                                              : STREAM_LIB_DIRECTSHOW_FILTER_NAME_ASYNCH_SOURCE_L),
                                                              mediaType_in,
                                                              windowHandle_in,
                                                              IGraphBuilder_out,
@@ -742,8 +744,9 @@ Stream_MediaFramework_DirectShow_Target_T<ACE_SYNCH_USE,
   ACE_ASSERT (buffer_negotiation_p);
 
   // *TODO*: remove type inference
+  ACE_ASSERT (filterConfiguration_in.allocatorProperties);
   result =
-      buffer_negotiation_p->SuggestAllocatorProperties (&filterConfiguration_in.allocatorProperties);
+      buffer_negotiation_p->SuggestAllocatorProperties (filterConfiguration_in.allocatorProperties);
   if (FAILED (result))
   {
     ACE_DEBUG ((LM_ERROR,

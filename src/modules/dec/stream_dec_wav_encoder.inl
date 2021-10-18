@@ -508,6 +508,7 @@ continue_:
 
       // sanity check(s)
       ACE_ASSERT (!session_data_r.formats.empty ());
+      ACE_OS::memset (&media_type_s, 0, sizeof (struct _AMMediaType));
       inherited::getMediaType (session_data_r.formats.back (),
                                media_type_s);
       ACE_ASSERT (InlineIsEqualGUID (media_type_s.formattype, FORMAT_WaveFormatEx));
@@ -649,15 +650,14 @@ Stream_Decoder_WAVEncoder_T<ACE_SYNCH_USE,
   // sanity check(s)
   ACE_ASSERT (!session_data_r.formats.empty ());
   struct _AMMediaType media_type_s;
+  ACE_OS::memset (&media_type_s, 0, sizeof (struct _AMMediaType));
   inherited::getMediaType (session_data_r.formats.back (),
                            media_type_s);
   ACE_ASSERT (InlineIsEqualGUID (media_type_s.formattype, FORMAT_WaveFormatEx));
-#if defined (_DEBUG)
-  ACE_ASSERT (media_type_s.pbFormat);
-  struct tWAVEFORMATEX* waveformatex_p =
-    reinterpret_cast<struct tWAVEFORMATEX*> (media_type_s.pbFormat);
-  ACE_ASSERT (waveformatex_p);
-#endif // _DEBUG
+  //ACE_ASSERT (media_type_s.pbFormat);
+  //struct tWAVEFORMATEX* waveformatex_p =
+  //  reinterpret_cast<struct tWAVEFORMATEX*> (media_type_s.pbFormat);
+  //ACE_ASSERT (waveformatex_p);
 
   struct _rifflist* RIFF_wave_p =
     reinterpret_cast<struct _rifflist*> (messageBlock_inout->wr_ptr ());

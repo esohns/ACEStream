@@ -21,16 +21,15 @@
 #ifndef STREAM_LIB_DIRECTSHOW_TARGET_H
 #define STREAM_LIB_DIRECTSHOW_TARGET_H
 
-#include <BaseTyps.h>
-#include <OAIdl.h>
-#include <control.h>
-#include <guiddef.h>
-#include <strmif.h>
-#include <sdkddkver.h>
+#include "BaseTyps.h"
+#include "OAIdl.h"
+#include "control.h"
+#include "guiddef.h"
+#include "strmif.h"
 #if COMMON_OS_WIN32_TARGET_PLATFORM(0x0602) // _WIN32_WINNT_WIN8
-#include <minwindef.h>
+#include "minwindef.h"
 #else
-#include <windef.h>
+#include "windef.h"
 #endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0602)
 
 #include "ace/Global_Macros.h"
@@ -47,6 +46,8 @@
 
 // forward declarations
 class Stream_IAllocator;
+
+extern const char libacestream_default_lib_directshow_module_name_string[];
 
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,
@@ -75,7 +76,7 @@ class Stream_MediaFramework_DirectShow_Target_T
                                  struct Stream_UserData>
  , public Stream_MediaFramework_MediaTypeConverter_T<MediaType>
  , public Common_UI_WindowTypeConverter_T<HWND>
- , public FilterType
+ //, public FilterType
 {
   typedef Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
                                  TimePolicyType,
@@ -88,7 +89,7 @@ class Stream_MediaFramework_DirectShow_Target_T
                                  struct Stream_UserData> inherited;
   typedef Stream_MediaFramework_MediaTypeConverter_T<MediaType> inherited2;
   typedef Common_UI_WindowTypeConverter_T<HWND> inherited3;
-  typedef FilterType inherited4;
+  //typedef FilterType inherited4;
 
  public:
   Stream_MediaFramework_DirectShow_Target_T (ISTREAM_T*); // stream handle
@@ -114,19 +115,13 @@ class Stream_MediaFramework_DirectShow_Target_T
                   HWND,                           // (target) window handle {NULL: NullRenderer}
                   IGraphBuilder*&);               // return value: graph builder handle
 
-  // *IMPORTANT NOTE*: 'asynchronous' filters implement IAsyncReader (downstream
-  //                   filters 'pull' media samples), 'synchronous' filters
-  //                   implement IMemInputPin and 'push' media samples to
-  //                   downstream filters
-  bool           push_; // push/pull strategy
-
-  IGraphBuilder* IGraphBuilder_;
+  IGraphBuilder*                      IGraphBuilder_;
   //IMemAllocator*     IMemAllocator_;
   //IMemInputPin*      IMemInputPin_; // 'push' handle
 
-  IMediaControl* IMediaControl_;
-  IMediaEventEx* IMediaEventEx_;
-  DWORD          ROTID_;
+  IMediaControl*                      IMediaControl_;
+  IMediaEventEx*                      IMediaEventEx_;
+  DWORD                               ROTID_;
 
  private:
   ACE_UNIMPLEMENTED_FUNC (Stream_MediaFramework_DirectShow_Target_T ())
@@ -135,6 +130,8 @@ class Stream_MediaFramework_DirectShow_Target_T
 
   // convenient types
   typedef Common_IInitialize_T<FilterConfigurationType> IINITIALIZE_FILTER_T;
+
+  typename inherited::MESSAGE_QUEUE_T queue_;
 };
 
 // include template definition

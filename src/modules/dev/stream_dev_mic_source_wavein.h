@@ -21,7 +21,7 @@
 #ifndef STREAM_DEV_MIC_SOURCE_WAVEIN_H
 #define STREAM_DEV_MIC_SOURCE_WAVEIN_H
 
-#include <mmeapi.h>
+#include "mmeapi.h"
 
 #include <string>
 
@@ -49,6 +49,14 @@ struct libacestream_wave_in_cbdata
 {
   ACE_Message_Block* buffers[STREAM_DEV_MIC_WAVEIN_DEFAULT_DEVICE_BUFFERS];
   Stream_Task_t*     task;
+
+  unsigned int       channels;
+  unsigned int       sampleRate;
+  unsigned int       sampleSize;
+
+  double*            frequency;
+  bool               sinus;
+  double             phase;
 };
 
 template <ACE_SYNCH_DECL,

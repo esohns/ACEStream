@@ -69,6 +69,15 @@ libacestream_wave_in_data_cb (HWAVEIN   hwi,
   ACE_ASSERT (wavehdr_p);
   ACE_ASSERT (wavehdr_p->dwUser < STREAM_DEV_MIC_WAVEIN_DEFAULT_DEVICE_BUFFERS);
   //cb_data_p->buffers[wavehdr_p->dwUser]->reset ();
+  // generate sinus ?
+  if (unlikely (cb_data_p->sinus))
+    Stream_Module_Decoder_Tools::sinus (*cb_data_p->frequency,
+                                        cb_data_p->sampleRate,
+                                        cb_data_p->sampleSize,
+                                        cb_data_p->channels,
+                                        reinterpret_cast<uint8_t*> (cb_data_p->buffers[wavehdr_p->dwUser]->rd_ptr ()),
+                                        (wavehdr_p->dwBytesRecorded / cb_data_p->sampleSize),
+                                        cb_data_p->phase);
   cb_data_p->buffers[wavehdr_p->dwUser]->wr_ptr (wavehdr_p->dwBytesRecorded);
   ACE_ASSERT (cb_data_p->task);
   int result = cb_data_p->task->put_next (cb_data_p->buffers[wavehdr_p->dwUser], NULL);

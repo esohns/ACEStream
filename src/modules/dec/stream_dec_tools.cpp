@@ -1174,7 +1174,8 @@ Stream_Module_Decoder_Tools::AVPixelFormatToOpenCVFormat (enum AVPixelFormat for
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 bool
-Stream_Module_Decoder_Tools::loadAudioRendererGraph (const struct _AMMediaType& mediaType_in,
+Stream_Module_Decoder_Tools::loadAudioRendererGraph (REFGUID deviceCategory_in,
+                                                     const struct _AMMediaType& mediaType_in,
                                                      const int audioOutput_in,
                                                      IGraphBuilder* IGraphBuilder_in,
                                                      REFGUID effect_in,
@@ -1195,7 +1196,7 @@ Stream_Module_Decoder_Tools::loadAudioRendererGraph (const struct _AMMediaType& 
 
   // *TODO*: add source filter name
   if (!Stream_MediaFramework_DirectShow_Tools::reset (IGraphBuilder_in,
-                                                      CLSID_AudioInputDeviceCategory))
+                                                      deviceCategory_in))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Stream_MediaFramework_DirectShow_Tools::reset(), aborting\n")));

@@ -21,12 +21,12 @@
 #ifndef STREAM_MODULE_VIS_TARGET_DIRECTSHOW_H
 #define STREAM_MODULE_VIS_TARGET_DIRECTSHOW_H
 
-#include <evr.h>
-#include <strmif.h>
+#include "evr.h"
+#include "strmif.h"
 #if COMMON_OS_WIN32_TARGET_PLATFORM(0x0602) // _WIN32_WINNT_WIN8
-#include <minwindef.h>
+#include "minwindef.h"
 #else
-#include <windef.h>
+#include "windef.h"
 #endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0602)
 
 #include "ace/Global_Macros.h"
@@ -99,7 +99,7 @@ class Stream_Vis_Target_DirectShow_T
 
   virtual bool initialize (const ConfigurationType&,
                            Stream_IAllocator* = NULL);
-  using FilterType::initialize;
+  //using FilterType::initialize;
 
   // implement (part of) Stream_ITaskBase_T
   virtual void handleDataMessage (DataMessageType*&, // data message handle

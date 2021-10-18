@@ -19,12 +19,11 @@
  ***************************************************************************/
 #include "stdafx.h"
 
-//#include "ace/Synch.h"
 #include "test_u_audioeffect_stream.h"
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-//#include <dshow.h>
-#include <Mferror.h>
+//#include "dshow.h"
+#include "Mferror.h"
 #endif // ACE_WIN32 || ACE_WIN64
 
 #include "ace/Log_Msg.h"
@@ -76,9 +75,17 @@ Test_U_AudioEffect_DirectShow_Stream::load (Stream_ILayout* layout_in,
 {
   STREAM_TRACE (ACE_TEXT ("Test_U_AudioEffect_DirectShow_Stream::load"));
 
+  // initialize return value(s)
+  delete_out = false;
+
   // sanity check(s)
-  //ACE_ASSERT (inherited::configuration_);
-  //ACE_ASSERT (inherited::configuration_->moduleHandlerConfiguration);
+  ACE_ASSERT (inherited::configuration_);
+  typename inherited::CONFIGURATION_T::ITERATOR_T iterator =
+    inherited::configuration_->find (ACE_TEXT_ALWAYS_CHAR (""));
+  ACE_ASSERT (iterator != inherited::configuration_->end ());
+  struct Test_U_AudioEffect_DirectShow_ModuleHandlerConfiguration* configuration_p =
+    static_cast<struct Test_U_AudioEffect_DirectShow_ModuleHandlerConfiguration*> (&((*iterator).second.second));
+  ACE_ASSERT (configuration_p);
 
   Stream_Module_t* module_p = NULL;
   ACE_NEW_RETURN (module_p,
@@ -98,9 +105,19 @@ Test_U_AudioEffect_DirectShow_Stream::load (Stream_ILayout* layout_in,
                   false);
   layout_in->append (module_p, NULL, 0);
   module_p = NULL;
+  if (!configuration_p->mute)
+  {
+    ACE_NEW_RETURN (module_p,
+                    //Test_U_AudioEffect_DirectShow_WavOut_Module (this,
+                    //                                             ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_TARGET_WAVOUT_DEFAULT_NAME_STRING)),
+                    Test_U_AudioEffect_DirectShow_Target_Module (this,
+                                                                 ACE_TEXT_ALWAYS_CHAR (STREAM_LIB_DIRECTSHOW_DEFAULT_NAME_STRING)),
+                    false);
+    layout_in->append (module_p, NULL, 0);
+    module_p = NULL;
+  } // end IF
 #if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
-  module_p = NULL;
   ACE_NEW_RETURN (module_p,
                   Test_U_AudioEffect_DirectShow_Vis_SpectrumAnalyzer_Module (this,
                                                                              ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_GTK_SPECTRUM_ANALYZER_DEFAULT_NAME_STRING)),
@@ -1227,6 +1244,7 @@ Test_U_AudioEffect_ALSA_Stream::load (Stream_ILayout* layout_in,
   delete_out = false;
 
   // sanity check(s)
+  ACE_ASSERT (inherited::configuration_);
   typename inherited::CONFIGURATION_T::ITERATOR_T iterator =
       inherited::configuration_->find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (iterator != inherited::configuration_->end ());

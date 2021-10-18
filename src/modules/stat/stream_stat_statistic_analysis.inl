@@ -274,6 +274,7 @@ Stream_Statistic_StatisticAnalysis_T<ACE_SYNCH_USE,
       int sample_byte_order = ACE_BYTE_ORDER;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
       struct _AMMediaType media_type_s;
+      ACE_OS::memset (&media_type_s, 0, sizeof (struct _AMMediaType));
       inherited2::getMediaType (session_data_r.formats.back (),
                                 media_type_s);
       // sanity check(s)
@@ -551,11 +552,9 @@ Stream_Statistic_StatisticAnalysis_T<ACE_SYNCH_USE,
       was_in_peak = in_peak;
       in_peak =
           (std::abs (difference) > (MODULE_STAT_ANALYSIS_ACTIVITY_DETECTION_DEVIATION_RANGE * sqrt (amplitudeVariance_)));
-#if defined (_DEBUG)
 //      if (in_peak && !was_in_peak)
 //        ACE_DEBUG ((LM_DEBUG,
 //                    ACE_TEXT ("detected peak...\n")));
-#endif // _DEBUG
 
       // step2: 'sustain' detection
       static bool in_streak = false;
@@ -566,20 +565,15 @@ Stream_Statistic_StatisticAnalysis_T<ACE_SYNCH_USE,
       {
         if (in_streak)
         {
-#if defined (_DEBUG)
           ACE_DEBUG ((LM_DEBUG,
                       ACE_TEXT ("detected streak end\n")));
-#endif // _DEBUG
           ++streakCount_;
         } // end IF
         streak_ = 0;
         in_streak = false;
-
-#if defined (_DEBUG)
 //        if (in_volume)
 //          ACE_DEBUG ((LM_DEBUG,
 //                      ACE_TEXT ("detected volume end\n")));
-#endif // _DEBUG
         volume_ = 0;
         in_volume = false;
 
@@ -603,10 +597,8 @@ Stream_Statistic_StatisticAnalysis_T<ACE_SYNCH_USE,
       {
         if (!was_in_streak)
         {
-#if defined (_DEBUG)
           ACE_DEBUG ((LM_DEBUG,
                       ACE_TEXT ("detected noise (streak)\n")));
-#endif // _DEBUG
           //        goto continue_2;
         } // end IF
 
@@ -614,10 +606,8 @@ Stream_Statistic_StatisticAnalysis_T<ACE_SYNCH_USE,
       } // end IF
       if (unlikely (was_in_streak))
       {
-#if defined (_DEBUG)
         ACE_DEBUG ((LM_DEBUG,
                     ACE_TEXT ("detected streak end\n")));
-#endif // _DEBUG
         streak_ = 0;
         ++streakCount_;
         was_in_streak = false;
@@ -647,10 +637,8 @@ Stream_Statistic_StatisticAnalysis_T<ACE_SYNCH_USE,
       {
         if (!was_in_volume)
         {
-#if defined (_DEBUG)
 //          ACE_DEBUG ((LM_DEBUG,
 //                      ACE_TEXT ("detected noise (volume)\n")));
-#endif // _DEBUG
           //        goto continue_2;
         } // end IF
 
@@ -658,10 +646,8 @@ Stream_Statistic_StatisticAnalysis_T<ACE_SYNCH_USE,
       } // end IF
       if (unlikely (was_in_volume))
       {
-#if defined (_DEBUG)
 //        ACE_DEBUG ((LM_DEBUG,
 //                    ACE_TEXT ("detected volume end...\n")));
-#endif
         volume_ = 0;
         in_volume = false;
         was_in_volume = false;

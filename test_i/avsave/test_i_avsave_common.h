@@ -53,12 +53,14 @@ extern "C"
 #endif // ACE_WIN32 || ACE_WIN64
 
 #if defined (GUI_SUPPORT)
-#if defined (GTK_USE)
+#if defined (GTK_SUPPORT)
 #include "gtk/gtk.h"
-#elif defined (WXWIDGETS_USE)
+#endif // GTK_SUPPORT
+#if defined (WXWIDGETS_SUPPORT)
+#undef DrawText
 #include "wx/apptrait.h"
 #include "wx/window.h"
-#endif
+#endif // WXWIDGETS_SUPPORT
 #endif // GUI_SUPPORT
 
 #include "ace/Singleton.h"
@@ -114,15 +116,17 @@ extern "C"
 #include "test_i_common.h"
 #include "test_i_configuration.h"
 #if defined (GUI_SUPPORT)
-#if defined (GTK_USE)
+#if defined (GTK_SUPPORT)
 #include "test_i_gtk_common.h"
-#elif defined (QT_USE)
+#endif // GTK_SUPPORT
+#if defined (QT_SUPPORT)
 #include "test_i_qt_common.h"
-#elif defined (WXWIDGETS_USE)
+#endif // QT_SUPPORT
+#if defined (WXWIDGETS_SUPPORT)
 #include "test_i_wxwidgets_common.h"
 
 #include "avsave_wxwidgets_ui.h"
-#endif
+#endif // WXWIDGETS_SUPPORT
 #endif // GUI_SUPPORT
 
 // forward declarations
@@ -141,12 +145,12 @@ template <typename NotificationType,
           typename SessionMessageType>
 class Stream_AVSave_EventHandler_T;
 #if defined (GUI_SUPPORT)
-#if defined (WXWIDGETS_USE)
+#if defined (WXWIDGETS_SUPPORT)
 template <typename WidgetBaseClassType,
           typename InterfaceType,
           typename StreamType>
 class Stream_AVSave_WxWidgetsDialog_T;
-#endif // WXWIDGETS_USE
+#endif // WXWIDGETS_SUPPORT
 #endif // GUI_SUPPORT
 
 enum Stream_AVSave_ProgramMode
@@ -188,8 +192,8 @@ struct Stream_AVSave_MediaFoundation_MessageData
   {}
 
   // video
-  IMFSample* sample;
-  LONGLONG   sampleTime;
+  IMFSample*                   sample;
+  LONGLONG                     sampleTime;
   // audio
   Common_ISet_T<unsigned int>* task;
   unsigned int                 index;
@@ -438,6 +442,8 @@ struct Stream_AVSave_ModuleHandlerConfiguration
    , deviceIdentifier ()
    , display ()
    , fullScreen (false)
+   , sinus (false) // N/A
+   , sinusFrequency (0.0) // N/A
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
    , window (NULL)
 #else
@@ -459,6 +465,8 @@ struct Stream_AVSave_ModuleHandlerConfiguration
   struct Common_UI_Display        display; // display module
 #endif // ACE_WIN32 || ACE_WIN64
   bool                            fullScreen;
+  bool                            sinus; // N/A
+  double                          sinusFrequency; // N/A
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   HWND                            window;
 #else

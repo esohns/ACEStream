@@ -139,10 +139,6 @@ target_link_libraries (${EXECUTABLE_SOURCE} Common)
 target_link_libraries (${EXECUTABLE_SOURCE} CommonLog)
 target_link_libraries (${EXECUTABLE_SOURCE} CommonSignal)
 target_link_libraries (${EXECUTABLE_SOURCE} CommonTimer)
-if (WIN32)
- # *WARNING*: linking CommonUI requires "/FORCE:MULTIPLE""
-# set_target_properties (${EXECUTABLE_SOURCE} PROPERTIES LINK_FLAGS /FORCE:MULTIPLE)
-endif (WIN32)
 
 target_link_libraries (${EXECUTABLE_SOURCE} ${PROJECT_NAME})
 target_link_libraries (${EXECUTABLE_SOURCE} ${PROJECT_NAME}_File)
@@ -291,11 +287,7 @@ target_link_libraries (${EXECUTABLE_TARGET} Common)
 target_link_libraries (${EXECUTABLE_TARGET} CommonLog)
 target_link_libraries (${EXECUTABLE_TARGET} CommonSignal)
 target_link_libraries (${EXECUTABLE_TARGET} CommonTimer)
-if (WIN32)
- # *WARNING*: linking CommonUI requires "/FORCE:MULTIPLE"
-# set_target_properties (${EXECUTABLE_TARGET} PROPERTIES
-#                        LINK_FLAGS /FORCE:MULTIPLE)
-endif (WIN32)
+
 target_link_libraries (${EXECUTABLE_TARGET} ${PROJECT_NAME})
 target_link_libraries (${EXECUTABLE_TARGET} ${PROJECT_NAME}_File)
 target_link_libraries (${EXECUTABLE_TARGET} ${PROJECT_NAME}_Miscellaneous)

@@ -21,15 +21,14 @@
 #ifndef TEST_U_AUDIOEFFECT_GL_CALLBACKS_H
 #define TEST_U_AUDIOEFFECT_GL_CALLBACKS_H
 
-#include "ace/config-lite.h"
-
 #include "gtk/gtk.h"
+
+void processInstructions (struct Test_U_AudioEffect_UI_CBDataBase*);
 
 #ifdef __cplusplus
 extern "C"
 {
 #endif /* __cplusplus */
-#if defined (GTKGL_SUPPORT) && defined (GTKGL_USE)
   G_MODULE_EXPORT void glarea_realize_cb (GtkWidget*, gpointer);
 #if GTK_CHECK_VERSION(3,0,0)
 #if GTK_CHECK_VERSION(3,16,0)
@@ -54,7 +53,6 @@ extern "C"
   G_MODULE_EXPORT gboolean glarea_expose_event_cb (GtkWidget*, GdkEvent*, gpointer);
 #endif /* GTKGLAREA_SUPPORT */
 #endif /* GTK_CHECK_VERSION (3,0,0) */
-#endif /* GTKGL_SUPPORT && GTKGL_USE */
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */

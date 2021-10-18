@@ -24,28 +24,34 @@
 #include <functional>
 #include <random>
 
-#include "ace/config-lite.h"
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-#include <mfapi.h>
-#include <mfobjects.h>
-#endif // ACE_WIN32 || ACE_WIN64
-
 #include "ace/Global_Macros.h"
 #include "ace/Singleton.h"
 #include "ace/Synch_Traits.h"
 
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-#include <gl/GL.h>
-#else
-#include "GL/gl.h"
-#endif // ACE_WIN32 || ACE_WIN64
+//#if defined (ACE_WIN32) || defined (ACE_WIN64)
+//#include "gl/GL.h"
+//#else
+//#include "GL/gl.h"
+//#endif // ACE_WIN32 || ACE_WIN64
 #include "gtk/gtk.h"
+#if GTK_CHECK_VERSION(3,16,0)
+#else
+#if defined (GTKGL_SUPPORT)
+//#if defined (ACE_WIN32) || defined (ACE_WIN64)
+//#include "gl/GL.h"
+//#include "gl/GLU.h"
+//#else
+//#include "GL/gl.h"
+//#endif // ACE_WIN32 || ACE_WIN64
+#if defined (GTKGLAREA_SUPPORT)
+#include "gtkgl/gtkglarea.h"
+#endif // GTKGLAREA_SUPPORT
+#endif // GTKGL_SUPPORT
+#endif // GTK_CHECK_VERSION (3,16,0)
 
 #include "common_icounter.h"
 #include "common_iget.h"
 #include "common_inotify.h"
-
-//#include "common_time_common.h"
 
 #include "common_math_fft.h"
 
@@ -183,8 +189,6 @@ class Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T
 //#else
 //#if defined (GTKGLAREA_SUPPORT)
 //  GglaArea*                                          OpenGLWindow_;
-//#else
-//  GdkWindow*                                         OpenGLWindow_;
 //#endif // GTKGLAREA_SUPPORT
 //#endif /* GTK_CHECK_VERSION (3,16,0) */
 //#else /* GTK_CHECK_VERSION (3,0,0) */
@@ -203,9 +207,9 @@ class Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T
   int                                                width_;
 
   enum Stream_Visualization_SpectrumAnalyzer_2DMode* mode2D_;
-#if defined (GTKGL_SUPPORT)
-  enum Stream_Visualization_SpectrumAnalyzer_3DMode* mode3D_;
-#endif // GTKGL_SUPPORT
+//#if defined (GTKGL_SUPPORT)
+//  enum Stream_Visualization_SpectrumAnalyzer_3DMode* mode3D_;
+//#endif // GTKGL_SUPPORT
 
   Common_Timer_ResetCounterHandler                   renderHandler_;
   long                                               renderHandlerTimerId_;

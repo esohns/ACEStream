@@ -23,14 +23,14 @@
 
 #include <string>
 
-#include <BaseTyps.h>
-#include <OAIdl.h>
-#include <control.h>
-#include <qedit.h>
+#include "BaseTyps.h"
+#include "OAIdl.h"
+#include "control.h"
+#include "qedit.h"
 #if COMMON_OS_WIN32_TARGET_PLATFORM(0x0602) // _WIN32_WINNT_WIN8
-#include <minwindef.h>
+#include "minwindef.h"
 #else
-#include <windef.h>
+#include "windef.h"
 #endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0602)
 
 #include "ace/Global_Macros.h"
@@ -174,7 +174,7 @@ class Stream_Dev_Mic_Source_DirectShow_T
                               ISampleGrabber*&);       // return value: sample grabber handle
 
   bool                   isFirst_;
-  ACE_SYNCH_MUTEX        lock_;
+  //ACE_SYNCH_MUTEX        lock_;
 
   //HANDLE                 eventHandle_;
   IAMDroppedFrames*      IAMDroppedFrames_;

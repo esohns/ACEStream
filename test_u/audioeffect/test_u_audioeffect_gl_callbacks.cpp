@@ -22,8 +22,8 @@
 #include "test_u_audioeffect_gl_callbacks.h"
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-#include <gl/GL.h>
-#include <gl/GLU.h>
+#include "gl/GL.h"
+#include "gl/GLU.h"
 #else
 #include "GL/gl.h"
 #include "GL/glu.h"
@@ -37,11 +37,60 @@
 #include "common_gl_tools.h"
 
 #include "stream_macros.h"
+
+void
+processInstructions (struct Test_U_AudioEffect_UI_CBDataBase* CBDataBase_in)
+{
+  STREAM_TRACE (ACE_TEXT ("::processInstructions"));
+
+  // sanity check(s)
+  ACE_ASSERT (CBDataBase_in);
+  ACE_ASSERT (CBDataBase_in->UIState);
+
+  struct Stream_Visualization_OpenGL_Instruction* instruction_p = NULL;
+
+  { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, CBDataBase_in->UIState->lock);
+    if (CBDataBase_in->OpenGLInstructions.empty ())
+      return;
+
+    do
+    {
+      instruction_p = &CBDataBase_in->OpenGLInstructions.front ();
+      switch (instruction_p->type)
+      {
+        case STREAM_VISUALIZATION_OPENGL_INSTRUCTION_SET_COLOR_BG:
+        {
+          glClearColor (static_cast<GLclampf> (instruction_p->color.red),
+                        static_cast<GLclampf> (instruction_p->color.green),
+                        static_cast<GLclampf> (instruction_p->color.blue),
+                        1.0F);
+          break;
+        }
+        case STREAM_VISUALIZATION_OPENGL_INSTRUCTION_SET_COLOR_FG:
+        {
+          glColor4f (static_cast<GLclampf> (instruction_p->color.red),
+                     static_cast<GLclampf> (instruction_p->color.green),
+                     static_cast<GLclampf> (instruction_p->color.blue),
+                     1.0F);
+          break;
+        }
+        default:
+        {
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("invalid/unknown OpenGL effect (was: %d), continuing\n"),
+                      ACE_TEXT (instruction_p->type)));
+          break;
+        }
+      } // end SWITCH
+      CBDataBase_in->OpenGLInstructions.pop_front ();
+    } while (!CBDataBase_in->OpenGLInstructions.empty ());
+  } // end lock scope
+}
+
 #ifdef __cplusplus
 extern "C"
 {
 #endif /* __cplusplus */
-#if defined (GTKGL_SUPPORT) && defined (GTKGL_USE)
 void
 glarea_realize_cb (GtkWidget* widget_in,
                    gpointer   userData_in)
@@ -57,15 +106,15 @@ glarea_realize_cb (GtkWidget* widget_in,
 
   GLuint* texture_id_p = NULL;
   GtkAllocation allocation;
-  // set up light colors (ambient, diffuse, specular)
-  GLfloat light_ambient[] = {1.0F, 1.0F, 1.0F, 1.0F};
-  GLfloat light_diffuse[] = {0.3F, 0.3F, 0.3F, 1.0F};
-  GLfloat light_specular[] = {1.0F, 1.0F, 1.0F, 1.0F};
-  // position the light in eye space
-  GLfloat light0_position[] = {0.0F,
-                               5.0F * 2,
-                               5.0F * 2,
-                               0.0F}; // --> directional light
+  //// set up light colors (ambient, diffuse, specular)
+  //GLfloat light_ambient[] = {1.0F, 1.0F, 1.0F, 1.0F};
+  //GLfloat light_diffuse[] = {0.3F, 0.3F, 0.3F, 1.0F};
+  //GLfloat light_specular[] = {1.0F, 1.0F, 1.0F, 1.0F};
+  //// position the light in eye space
+  //GLfloat light0_position[] = {0.0F,
+  //                             5.0F * 2,
+  //                             5.0F * 2,
+  //                             0.0F}; // --> directional light
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   struct Test_U_AudioEffect_DirectShow_UI_CBData* directshow_ui_cb_data_p =
@@ -162,35 +211,6 @@ glarea_realize_cb (GtkWidget* widget_in,
 
 #if GTK_CHECK_VERSION(3,0,0)
 #if GTK_CHECK_VERSION(3,16,0)
-#else
-#if defined (GTKGLAREA_SUPPORT)
-  if (!ggla_area_make_current (GGLA_AREA (widget_in)))
-#endif // GTKGLAREA_SUPPORT
-#endif // GTK_CHECK_VERSION(3,16,0)
-#else
-#if defined (GTKGLAREA_SUPPORT)
-  if (!gtk_gl_area_make_current (GTK_GL_AREA (widget_in)))
-#else
-  bool result = gdk_gl_drawable_make_current (drawable_p,
-                                              context_p);
-  if (!result)
-#endif // GTKGLAREA_SUPPORT
-    return;
-#endif // GTK_CHECK_VERSION(3,0,0)
-
-#if GTK_CHECK_VERSION(3,0,0)
-#else
-#if defined (GTKGLAREA_SUPPORT)
-#else
-  result = gdk_gl_drawable_gl_begin (drawable_p,
-                                     context_p);
-  if (!result)
-    return;
-#endif // GTKGLAREA_SUPPORT
-#endif // GTK_CHECK_VERSION(3,0,0)
-
-#if GTK_CHECK_VERSION(3,0,0)
-#if GTK_CHECK_VERSION(3,16,0)
   GtkGLArea* gl_area_p = GTK_GL_AREA (widget_in);
   ACE_ASSERT (gl_area_p);
   // NOTE*: the OpenGL context has been created at this point
@@ -211,21 +231,14 @@ glarea_realize_cb (GtkWidget* widget_in,
   ACE_ASSERT (gtk_gl_area_get_has_depth_buffer (gl_area_p));
 #else
 #if defined (GTKGLAREA_SUPPORT)
-  GglaArea* gl_area_p = GGLA_AREA (widget_in);
-  ACE_ASSERT (gl_area_p);
-
-  ggla_area_make_current (gl_area_p);
+  if (!ggla_area_make_current (GGLA_AREA (widget_in)))
 #endif // GTKGLAREA_SUPPORT
 #endif // GTK_CHECK_VERSION(3,16,0)
 #else
 #if defined (GTKGLAREA_SUPPORT)
-  GtkGLArea* gl_area_p = GTK_GL_AREA (widget_in);
-  ACE_ASSERT (gl_area_p);
-
-  gint result_2 = gtk_gl_area_make_current (gl_area_p);
-  ACE_UNUSED_ARG (result_2);
+  if (!gtk_gl_area_make_current (GTK_GL_AREA (widget_in)))
 #else
-  GdkGLContext* context_p = gtk_gl_area_get_context (gl_area_p);
+  GdkGLContext* context_p = gtk_gl_area_get_context (GTK_GL_AREA (widget_in));
   if (!context_p)
   {
     ACE_DEBUG ((LM_ERROR,
@@ -234,12 +247,23 @@ glarea_realize_cb (GtkWidget* widget_in,
     goto error;
   } // end IF
 
-  result_2 = gdk_gl_drawable_make_current (drawable_p,
-                                           context_p);
-  ACE_UNUSED_ARG (result_2);
+  bool result = gdk_gl_drawable_make_current (drawable_p,
+                                              context_p);
+  if (!result)
+#endif // GTKGLAREA_SUPPORT
+    return;
+#endif // GTK_CHECK_VERSION(3,0,0)
+
+#if GTK_CHECK_VERSION(3,0,0)
+#else
+#if defined (GTKGLAREA_SUPPORT)
+#else
+  result = gdk_gl_drawable_gl_begin (drawable_p,
+                                     context_p);
+  if (!result)
+    return;
 #endif // GTKGLAREA_SUPPORT
 #endif // GTK_CHECK_VERSION(3,0,0)
-  //ACE_ASSERT (gl_area_p);
 
   // load texture
   if (*texture_id_p > 0)
@@ -265,11 +289,9 @@ glarea_realize_cb (GtkWidget* widget_in,
                   ACE_TEXT (filename.c_str ())));
       goto error;
     } // end IF
-#if defined (_DEBUG)
     ACE_DEBUG ((LM_DEBUG,
                 ACE_TEXT ("OpenGL texture id: %u\n"),
                 *texture_id_p));
-#endif // _DEBUG
   } // end IF
 
   // initialize perspective
@@ -284,25 +306,21 @@ glarea_realize_cb (GtkWidget* widget_in,
   glLoadIdentity (); // Reset The Projection Matrix
   COMMON_GL_ASSERT;
 
+#if defined (GLU_SUPPORT)
   gluPerspective (45.0,
-                  static_cast<GLdouble> (allocation.width) / static_cast<GLdouble> (allocation.height),
-                  0.1, 100.0);
+                  allocation.width / (GLdouble)allocation.height,
+                  0.1,
+                  100.0); // Calculate The Aspect Ratio Of The Window
+#else
+  GLdouble fW, fH;
+
+  //fH = tan( (fovY / 2) / 180 * pi ) * zNear;
+  fH = tan (45.0 / 360 * M_PI) * 0.1;
+  fW = fH * (allocation.width / (GLdouble)allocation.height);
+
+  glFrustum (-fW, fW, -fH, fH, 0.1, 100.0);
+#endif // GLU_SUPPORT
   COMMON_GL_ASSERT;
-  //  GLdouble fW, fH;
-//  fH =
-//   ::tan (60.0 / 360.0 * M_PI) *
-//   -1.0;
-//  fW = fH * (allocation.width / allocation.height);
-//  glFrustum (-fW, fW,
-//             -fH, fH,
-//             -1.0,
-//             100.0);
-//  gluLookAt (-10.0, 0.0, 0.0, // eye position (*NOTE*: relative to standard
-//             //                       "right-hand" coordinate
-//             //                       system [RHCS])
-//             0.0, 0.0, 0.0,   // looking-at position (RHCS notation)
-//             0.0, 0.0, -1.0); // up direction (RHCS notation, relative to eye
-  // position and looking-at direction)
 
   glMatrixMode (GL_MODELVIEW);
   COMMON_GL_ASSERT;
@@ -323,16 +341,36 @@ glarea_realize_cb (GtkWidget* widget_in,
 //  glEnable (GL_LIGHTING);
 
   // set up light colors (ambient, diffuse, specular)
-  glLightfv (GL_LIGHT0, GL_AMBIENT, light_ambient);
+  //glLightfv (GL_LIGHT0, GL_AMBIENT, light_ambient);
+  //COMMON_GL_ASSERT;
+  //glLightfv (GL_LIGHT0, GL_DIFFUSE, light_diffuse);
+  //COMMON_GL_ASSERT;
+  //glLightfv (GL_LIGHT0, GL_SPECULAR, light_specular);
+  //COMMON_GL_ASSERT;
+  //glLightfv (GL_LIGHT0, GL_POSITION, light0_position);
+  //COMMON_GL_ASSERT;
+  //glEnable (GL_LIGHT0);
+  //COMMON_GL_ASSERT;
+
+  //glHint (GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST); // Really Nice Perspective
+  //COMMON_GL_ASSERT;
+  glEnable (GL_TEXTURE_2D);                           // Enable Texture Mapping
   COMMON_GL_ASSERT;
-  glLightfv (GL_LIGHT0, GL_DIFFUSE, light_diffuse);
+  //glShadeModel (GL_SMOOTH);                           // Enable Smooth Shading
+  //COMMON_GL_ASSERT;
+  //glHint (GL_POLYGON_SMOOTH_HINT, GL_NICEST);
+  //COMMON_GL_ASSERT;
+
+  glEnable (GL_BLEND);                                // Enable Semi-Transparency
   COMMON_GL_ASSERT;
-  glLightfv (GL_LIGHT0, GL_SPECULAR, light_specular);
+  glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
   COMMON_GL_ASSERT;
-  glLightfv (GL_LIGHT0, GL_POSITION, light0_position);
-  COMMON_GL_ASSERT;
-  glEnable (GL_LIGHT0);
-  COMMON_GL_ASSERT;
+  //glEnable (GL_DEPTH_TEST);                           // Enables Depth Testing
+  //COMMON_GL_ASSERT;
+  //glDepthFunc (GL_LESS);                              // The Type Of Depth Testing To Do
+  //COMMON_GL_ASSERT;
+  //glDepthMask (GL_TRUE);
+  //COMMON_GL_ASSERT;
 
 #if GTK_CHECK_VERSION(3,0,0)
 #else
@@ -587,11 +625,9 @@ glarea_render_cb (GtkGLArea* GLArea_in,
                   ACE_TEXT (filename.c_str ())));
       return FALSE;
     } // end IF
-#if defined (_DEBUG)
     ACE_DEBUG ((LM_DEBUG,
                 ACE_TEXT ("OpenGL texture id: %u\n"),
                 *texture_id_p));
-#endif // _DEBUG
   } // end IF
 
   glClear (GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -656,41 +692,7 @@ glarea_render_cb (GtkGLArea* GLArea_in,
 
   cube_rotation -= 1.0f;					// Decrease The Rotation Variable For The Cube
 
-  { ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, ui_cb_data_base_p->UIState->lock, FALSE);
-    if (ui_cb_data_base_p->OpenGLInstructions.empty ())
-      goto continue_;
-    do
-    {
-      instruction_p = &ui_cb_data_base_p->OpenGLInstructions.front ();
-      switch (instruction_p->type)
-      {
-        case STREAM_VISUALIZATION_OPENGL_INSTRUCTION_SET_COLOR_BG:
-        {
-          glClearColor (static_cast<GLclampf> (instruction_p->color.red),
-                        static_cast<GLclampf> (instruction_p->color.green),
-                        static_cast<GLclampf> (instruction_p->color.blue),
-                        1.0F);
-          break;
-        }
-        case STREAM_VISUALIZATION_OPENGL_INSTRUCTION_SET_COLOR_FG:
-        {
-          glColor4f (static_cast<GLclampf> (instruction_p->color.red),
-                     static_cast<GLclampf> (instruction_p->color.green),
-                     static_cast<GLclampf> (instruction_p->color.blue),
-                     1.0F);
-          break;
-        }
-        default:
-        {
-          ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("invalid/unknown OpenGL effect (was: %d), continuing\n"),
-                      ACE_TEXT (instruction_p->type)));
-          break;
-        }
-      } // end SWITCH
-      ui_cb_data_base_p->OpenGLInstructions.pop_front ();
-    } while (!ui_cb_data_base_p->OpenGLInstructions.empty ());
-  } // end lock scope
+  processInstructions (ui_cb_data_base_p);
 
 continue_:
   //rot_x += 0.3f;
@@ -872,7 +874,7 @@ glarea_configure_event_cb (GtkWidget* widget_in,
   Test_U_AudioEffect_ALSA_StreamConfiguration_t::ITERATOR_T modulehandler_configuration_iterator =
     data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (modulehandler_configuration_iterator != data_p->configuration->streamConfiguration.end ());
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
 
   // sanity check(s)
   ACE_ASSERT (widget_in);
@@ -980,7 +982,7 @@ glarea_expose_event_cb (GtkWidget* widget_in,
 
   texture_id_p =
     &(*modulehandler_configuration_iterator).second.second.OpenGLTextureId;
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
   ACE_ASSERT (texture_id_p);
 
   if (!ggla_area_make_current (GGLA_AREA (widget_in)))
@@ -1355,7 +1357,7 @@ glarea_configure_event_cb (GtkWidget* widget_in,
   Test_U_AudioEffect_ALSA_StreamConfiguration_t::ITERATOR_T modulehandler_configuration_iterator =
     data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (modulehandler_configuration_iterator != data_p->configuration->streamConfiguration.end ());
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
   // sanity check(s)
   ACE_ASSERT (widget_in);
 
@@ -1371,14 +1373,24 @@ glarea_configure_event_cb (GtkWidget* widget_in,
   glLoadIdentity (); // Reset The Projection Matrix
   ACE_ASSERT (glGetError () == GL_NO_ERROR);
 
+#if defined (GLU_SUPPORT)
   gluPerspective (45.0,
                   event_in->configure.width / (GLdouble)event_in->configure.height,
                   0.1,
                   100.0); // Calculate The Aspect Ratio Of The Window
-  ACE_ASSERT (glGetError () == GL_NO_ERROR);
+#else
+  GLdouble fW, fH;
+
+  //fH = tan( (fovY / 2) / 180 * pi ) * zNear;
+  fH = tan (45.0 / 360 * M_PI) * 0.1;
+  fW = fH * (event_in->configure.width / (GLdouble)event_in->configure.height);
+
+  glFrustum (-fW, fW, -fH, fH, 0.1, 100.0);
+#endif // GLU_SUPPORT
+  COMMON_GL_ASSERT;
 
   glMatrixMode (GL_MODELVIEW);
-  ACE_ASSERT (glGetError () == GL_NO_ERROR);
+  COMMON_GL_ASSERT;
 }
 
 gboolean
@@ -1463,7 +1475,7 @@ glarea_expose_event_cb (GtkWidget* widget_in,
 
   texture_id_p =
     &(*modulehandler_configuration_iterator).second.second.OpenGLTextureId;
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
   ACE_ASSERT (texture_id_p);
 
   // sanity check(s)
@@ -1473,14 +1485,14 @@ glarea_expose_event_cb (GtkWidget* widget_in,
     return FALSE;
 
   glClear (GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-  ACE_ASSERT (glGetError () == GL_NO_ERROR);
+  COMMON_GL_ASSERT;
   glLoadIdentity (); // Reset the transformation matrix.
-  ACE_ASSERT (glGetError () == GL_NO_ERROR);
+  COMMON_GL_ASSERT;
   glTranslatef (0.0F, 0.0F, -5.0F); // Move back into the screen 5 units
-  ACE_ASSERT (glGetError () == GL_NO_ERROR);
+  COMMON_GL_ASSERT;
 
   glBindTexture (GL_TEXTURE_2D, *texture_id_p);
-  ACE_ASSERT (glGetError () == GL_NO_ERROR);
+  COMMON_GL_ASSERT;
 
 //  static GLfloat rot_x = 0.0f;
 //  static GLfloat rot_y = 0.0f;
@@ -1490,7 +1502,7 @@ glarea_expose_event_cb (GtkWidget* widget_in,
 //  glRotatef (rot_z, 0.0f, 0.0f, 1.0f); // Rotate On The Z Axis
   static GLfloat rotation = 0.0F;
   glRotatef (rotation, 1.0F, 1.0F, 1.0F); // Rotate On The X,Y,Z Axis
-  ACE_ASSERT (glGetError () == GL_NO_ERROR);
+  COMMON_GL_ASSERT;
 
 //  glBegin (GL_QUADS);
 
@@ -1514,11 +1526,11 @@ glarea_expose_event_cb (GtkWidget* widget_in,
     8,9,10,11, 12,13,14,15};
 
   glTexCoordPointer (2, GL_FLOAT, 0, texture_coordinates);
-  ACE_ASSERT (glGetError () == GL_NO_ERROR);
+  COMMON_GL_ASSERT;
   glVertexPointer (3, GL_FLOAT, 0, vertices);
-  ACE_ASSERT (glGetError () == GL_NO_ERROR);
+  COMMON_GL_ASSERT;
   glDrawElements (GL_QUADS, 24, GL_UNSIGNED_BYTE, cube_indices);
-  ACE_ASSERT (glGetError () == GL_NO_ERROR);
+  COMMON_GL_ASSERT;
 
 //  rot_x += 0.3f;
 //  rot_y += 0.20f;
@@ -1554,7 +1566,12 @@ glarea_expose_event_cb (GtkWidget* widget_in,
   //glViewport (0, 0,
   //            data_p->area3D.width, data_p->area3D.height);
 
+  processInstructions (ui_cb_data_base_p);
+
   gtk_gl_area_swap_buffers (GTK_GL_AREA (widget_in));
+
+  //// auto-redraw
+  //gtk_widget_queue_draw (widget_in);
 
   return TRUE;
 }
@@ -1616,7 +1633,7 @@ glarea_configure_event_cb (GtkWidget* widget_in,
   Test_U_AudioEffect_ALSA_StreamConfiguration_t::ITERATOR_T modulehandler_configuration_iterator =
     data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (modulehandler_configuration_iterator != data_p->configuration->streamConfiguration.end ());
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
 
   //// sanity check(s)
   //ACE_ASSERT (widget_in);
@@ -1713,7 +1730,7 @@ glarea_expose_event_cb (GtkWidget* widget_in,
   Test_U_AudioEffect_ALSA_StreamConfiguration_t::ITERATOR_T modulehandler_configuration_iterator =
     data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (modulehandler_configuration_iterator != data_p->configuration->streamConfiguration.end ());
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
 
   GLuint texture_id = 0;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -1742,7 +1759,7 @@ glarea_expose_event_cb (GtkWidget* widget_in,
 #else
   texture_id =
     (*modulehandler_configuration_iterator).second.OpenGLTextureId;
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
   // sanity check(s)
   if (texture_id == 0)
     return FALSE; // --> still waiting for the first frame
@@ -1765,8 +1782,6 @@ glarea_expose_event_cb (GtkWidget* widget_in,
 } // glarea_draw_cb
 #endif // GTKGLAREA_SUPPORT
 #endif /* GTK_CHECK_VERSION (3,0,0) */
-#endif /* GTKGL_SUPPORT */
-
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */

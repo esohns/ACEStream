@@ -18,8 +18,8 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#include <mferror.h>
-#include <Shlwapi.h>
+#include "mferror.h"
+#include "Shlwapi.h"
 
 #include "ace/Log_Msg.h"
 #include "ace/OS.h"
@@ -32,7 +32,9 @@
 #include "stream_session_message_base.h"
 
 #include "stream_dev_defines.h"
-#include "stream_dev_tools.h"
+#include "stream_dev_mediafoundation_tools.h"
+
+#include "stream_lib_mediafoundation_tools.h"
 
 template <ACE_SYNCH_DECL,
           typename ControlMessageType,
@@ -462,12 +464,10 @@ Stream_Dev_Mic_Source_MediaFoundation_T<ACE_SYNCH_USE,
           topology_p->Release (); topology_p = NULL;
           goto error;
         } // end IF
-#if defined (_DEBUG)
         ACE_DEBUG ((LM_DEBUG,
                     ACE_TEXT ("%s: capture format: \"%s\"\n"),
                     inherited::mod_->name (),
                     ACE_TEXT (Stream_MediaFramework_MediaFoundation_Tools::toString (media_type_p).c_str ())));
-#endif // _DEBUG
 
         IMFAttributes* attributes_p = NULL;
         result_2 = MFCreateAttributes (&attributes_p, 4);

@@ -20,3 +20,8 @@
 #include "stdafx.h"
 
 #include "stream_lib_directshow_target.h"
+
+#include "stream_lib_defines.h"
+
+const char libacestream_default_lib_directshow_module_name_string[] =
+ACE_TEXT_ALWAYS_CHAR (STREAM_LIB_DIRECTSHOW_DEFAULT_NAME_STRING);

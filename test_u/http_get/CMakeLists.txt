@@ -187,8 +187,6 @@ elseif (WIN32)
 # target_link_libraries (${EXECUTABLE} mfplat.lib)
 # *TODO*: repair WIN32 pkgconfig support
 # gtk
- # *WARNING*: linking CommonUI requires "/FORCE:MULTIPLE"
-# set_target_properties (${EXECUTABLE} PROPERTIES LINK_FLAGS /FORCE:MULTIPLE)
  set_target_properties (${EXECUTABLE} PROPERTIES LINK_FLAGS /SAFESEH:NO)
 
  if (SSL_SUPPORT)
@@ -208,10 +206,6 @@ if (SSL_SUPPORT)
  target_link_libraries (${EXECUTABLE} ${ACE_SSL_LIBRARY})
 endif (SSL_SUPPORT)
 
-if (WIN32)
-  # *WARNING*: linking Common requires "/FORCE:MULTIPLE"
-# target_link_options (${EXECUTABLE} PUBLIC "$<$<CXX_COMPILER_ID:MSVC>:-FORCE:MULTIPLE>")
-endif (WIN32)
 target_link_libraries (${EXECUTABLE} Common)
 target_link_libraries (${EXECUTABLE} CommonImage)
 target_link_libraries (${EXECUTABLE} CommonLog)
@@ -219,9 +213,9 @@ target_link_libraries (${EXECUTABLE} CommonSignal)
 target_link_libraries (${EXECUTABLE} CommonTimer)
 if (GUI_SUPPORT)
  target_link_libraries (${EXECUTABLE} CommonUI)
- if (GTK_USE)
+ if (GTK_SUPPORT)
   target_link_libraries (${EXECUTABLE} CommonUI_GTK)
- endif (GTK_USE)
+ endif (GTK_SUPPORT)
 endif (GUI_SUPPORT)
 
 target_link_libraries (${EXECUTABLE} ${PROJECT_NAME})

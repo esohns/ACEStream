@@ -21,23 +21,10 @@
 #ifndef STREAM_LIB_DIRECTSHOW_ALLOCATOR_H
 #define STREAM_LIB_DIRECTSHOW_ALLOCATOR_H
 
-#if _MSC_VER>=1100
-#define AM_NOVTABLE __declspec(novtable)
-#else
-#define AM_NOVTABLE
-#endif
-#include <strmif.h>
-// *NOTE*: wxWidgets may have #defined __WXDEBUG__
-//#undef __WXDEBUG__
-#include <wxdebug.h>
-#include <combase.h>
-#include <MMReg.h>
-#include <mtype.h>
-#include <reftime.h>
-#include <MMSystem.h>
-#include <wxutil.h>
-#include <wxlist.h>
-#include <amfilter.h>
+#include "mmreg.h"
+#include "mmsystem.h"
+
+#include "streams.h"
 
 #include "ace/Global_Macros.h"
 #include "ace/Malloc_Base.h"

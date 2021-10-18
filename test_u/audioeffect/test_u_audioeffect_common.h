@@ -28,34 +28,36 @@
 
 #include "ace/config-lite.h"
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-#include <mfapi.h>
-#include <mfidl.h>
-#include <strmif.h>
+#include "mfapi.h"
+#include "mfidl.h"
+#include "strmif.h"
 #else
 #include "alsa/asoundlib.h"
 
+#if defined (FFMPEG_SUPPORT)
 #if defined (__cplusplus)
 extern "C"
 {
 #include "libavutil/rational.h"
 }
 #endif /* __cplusplus */
+#endif // FFMPEG_SUPPORT
 #endif // ACE_WIN32 || ACE_WIN64
 
 #if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
 #if defined (GTKGL_SUPPORT)
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-#include <gl/GL.h>
+#include "gl/GL.h"
 #else
-#include <GL/gl.h>
+#include "GL/gl.h"
 #endif // ACE_WIN32 || ACE_WIN64
 #endif // GTKGL_SUPPORT
 #endif // GTK_USE
 #endif // GUI_SUPPORT
 
 #if defined (GUI_SUPPORT)
-#if defined (GTK_USE)
+#if defined (GTK_SUPPORT)
 #include "gtk/gtk.h"
 #if defined (GTKGL_SUPPORT)
 #if GTK_CHECK_VERSION(3,0,0)
@@ -73,7 +75,7 @@ extern "C"
 #endif // GTKGLAREA_SUPPORT
 #endif // GTK_CHECK_VERSION(3,0,0)
 #endif // GTKGL_SUPPORT
-#endif // GTK_USE
+#endif // GTK_SUPPORT
 #endif // GUI_SUPPORT
 
 #include "ace/Singleton.h"
@@ -89,12 +91,11 @@ extern "C"
 #endif // ACE_WIN32 || ACE_WIN64
 
 #if defined (GUI_SUPPORT)
-#if defined (GTK_USE)
+#if defined (GTK_SUPPORT)
 #include "common_ui_gtk_builder_definition.h"
 #include "common_ui_gtk_gl_common.h"
-//#include "common_ui_gtk_manager.h"
 #include "common_ui_gtk_manager_common.h"
-#endif // GTK_USE
+#endif // GTK_SUPPORT
 #endif // GUI_SUPPORT
 
 #include "stream_common.h"
@@ -122,17 +123,17 @@ extern "C"
 #include "stream_vis_common.h"
 #include "stream_vis_defines.h"
 #if defined (GUI_SUPPORT)
-#if defined (GTK_USE)
+#if defined (GTK_SUPPORT)
 #include "stream_vis_gtk_cairo_spectrum_analyzer.h"
-#endif // GTK_USE
+#endif // GTK_SUPPORT
 #endif // GUI_SUPPORT
 
 #include "test_u_common.h"
 #include "test_u_defines.h"
 #if defined (GUI_SUPPORT)
-#if defined (GTK_USE)
+#if defined (GTK_SUPPORT)
 #include "test_u_gtk_common.h"
-#endif // GTK_USE
+#endif // GTK_SUPPORT
 #endif // GUI_SUPPORT
 
 #include "test_u_audioeffect_defines.h"
@@ -156,16 +157,18 @@ class Test_U_AudioEffect_Stream;
 struct Test_U_AudioEffect_DirectShow_MessageData
 {
   Test_U_AudioEffect_DirectShow_MessageData ()
-   //: sample (NULL)
-   //, sampleTime (0)
-    : task (NULL)
-    , index (-1)
+   : sample (NULL)
+   , sampleTime (0)
+   , index (-1)
+   , task (NULL)
   {}
 
-  //IMediaSample* sample;
-  //double        sampleTime;
-  Common_ISet_T<unsigned int>* task;
+  // DirectShow
+  IMediaSample*                sample;
+  double                       sampleTime;
+  // WaveIn
   unsigned int                 index;
+  Common_ISet_T<unsigned int>* task;
 };
 struct Test_U_AudioEffect_MediaFoundation_MessageData
 {
@@ -216,7 +219,7 @@ typedef Common_StatisticHandler_T<struct Test_U_AudioEffect_Statistic> Test_U_Au
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 struct Test_U_AudioEffect_SessionData
-  : Test_U_SessionData
+ : Test_U_SessionData
 #else
 class Test_U_AudioEffect_SessionData
  : public Test_U_ALSA_SessionData
@@ -326,12 +329,12 @@ struct Test_U_AudioEffect_ModuleHandlerConfiguration
   Test_U_AudioEffect_ModuleHandlerConfiguration ()
    : Test_U_ModuleHandlerConfiguration ()
 #if defined (GUI_SUPPORT)
-#if defined (GTK_USE)
+#if defined (GTK_SUPPORT)
    , area2D ()
-#if defined (GTKGL_SUPPORT)
-   , area3D ()
-#endif /* GTKGL_SUPPORT */
-#endif // GTK_USE
+//#if defined (GTKGL_SUPPORT)
+//   , area3D ()
+//#endif /* GTKGL_SUPPORT */
+#endif // GTK_SUPPORT
 #endif // GUI_SUPPORT
    , audioInput (0)
    , audioOutput (0)
@@ -340,40 +343,40 @@ struct Test_U_AudioEffect_ModuleHandlerConfiguration
    , fps (STREAM_VIS_SPECTRUMANALYZER_DEFAULT_FRAME_RATE)
    , mute (false)
 #if defined (GUI_SUPPORT)
-#if defined (GTK_USE)
+#if defined (GTK_SUPPORT)
    , surfaceLock (NULL)
-#if GTK_CHECK_VERSION(3,11,0)
-   , cairoSurface2D (NULL)
-#else
-   , pixelBuffer2D (NULL)
-#endif /* GTK_CHECK_VERSION(3,11,0) */
+//#if GTK_CHECK_VERSION(3,11,0)
+//   , cairoSurface2D (NULL)
+//#else
+//   , pixelBuffer2D (NULL)
+//#endif /* GTK_CHECK_VERSION(3,11,0) */
 #if defined (GTKGL_SUPPORT)
    , OpenGLInstructions (NULL)
    , OpenGLInstructionsLock (NULL)
    , OpenGLTextureId (0)
 #endif /* GTKGL_SUPPORT */
-#endif // GTK_USE
    , spectrumAnalyzer2DMode (STREAM_VIS_SPECTRUMANALYZER_DEFAULT_2DMODE)
    , spectrumAnalyzer3DMode (STREAM_VIS_SPECTRUMANALYZER_DEFAULT_3DMODE)
-#endif // GUI_SUPPORT
    , spectrumAnalyzerResolution (STREAM_VIS_SPECTRUMANALYZER_DEFAULT_BUFFER_SIZE)
+#endif // GTK_SUPPORT
+#endif // GUI_SUPPORT
    , sinus (TEST_U_STREAM_AUDIOEFFECT_DEFAULT_SINUS)
    , sinusFrequency (TEST_U_STREAM_AUDIOEFFECT_DEFAULT_SINUS_FREQUENCY)
    , targetFileName ()
 #if defined (GUI_SUPPORT)
-#if defined (GTK_USE)
+#if defined (GTK_SUPPORT)
    , window (NULL)
-#endif // GTK_USE
+#endif // GTK_SUPPORT
 #endif // GUI_SUPPORT
   {}
 
 #if defined (GUI_SUPPORT)
-#if defined (GTK_USE)
+#if defined (GTK_SUPPORT)
   GdkRectangle                                      area2D;
-#if defined (GTKGL_SUPPORT)
-  GdkRectangle                                      area3D;
-#endif /* GTKGL_SUPPORT */
-#endif // GTK_USE
+//#if defined (GTKGL_SUPPORT)
+//  GdkRectangle                                      area3D;
+//#endif /* GTKGL_SUPPORT */
+#endif // GTK_SUPPORT
 #endif // GUI_SUPPORT
   int                                               audioInput; // waveIn
   int                                               audioOutput;
@@ -384,30 +387,30 @@ struct Test_U_AudioEffect_ModuleHandlerConfiguration
   unsigned int                                      fps;
   bool                                              mute;
 #if defined (GUI_SUPPORT)
-#if defined (GTK_USE)
+#if defined (GTK_SUPPORT)
   ACE_SYNCH_MUTEX*                                  surfaceLock;
-#if GTK_CHECK_VERSION(3,11,0)
-  cairo_surface_t*                                  cairoSurface2D;
-#else
-  GdkPixbuf*                                        pixelBuffer2D;
-#endif /* GTK_CHECK_VERSION(3,11,0) */
+//#if GTK_CHECK_VERSION(3,11,0)
+//  cairo_surface_t*                                  cairoSurface2D;
+//#else
+//  GdkPixbuf*                                        pixelBuffer2D;
+//#endif /* GTK_CHECK_VERSION(3,11,0) */
 #if defined (GTKGL_SUPPORT)
   Stream_Visualization_OpenGL_Instructions_t*       OpenGLInstructions;
   ACE_SYNCH_MUTEX*                                  OpenGLInstructionsLock;
   GLuint                                            OpenGLTextureId;
 #endif /* GTKGL_SUPPORT */
-#endif // GTK_USE
   enum Stream_Visualization_SpectrumAnalyzer_2DMode spectrumAnalyzer2DMode;
   enum Stream_Visualization_SpectrumAnalyzer_3DMode spectrumAnalyzer3DMode;
-#endif // GUI_SUPPORT
   unsigned int                                      spectrumAnalyzerResolution;
+#endif // GTK_SUPPORT
+#endif // GUI_SUPPORT
   bool                                              sinus;
   double                                            sinusFrequency;
   std::string                                       targetFileName;
 #if defined (GUI_SUPPORT)
-#if defined (GTK_USE)
+#if defined (GTK_SUPPORT)
   GdkWindow*                                        window;
-#endif // GTK_USE
+#endif // GTK_SUPPORT
 #endif // GUI_SUPPORT
 };
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -425,7 +428,10 @@ struct Test_U_AudioEffect_DirectShow_ModuleHandlerConfiguration
    , builder (NULL)
    , effect (GUID_NULL)
    , effectOptions ()
+   , filterConfiguration (NULL)
+   , filterCLSID (GUID_NULL)
    , outputFormat ()
+   , push (STREAM_LIB_DIRECTSHOW_FILTER_SOURCE_DEFAULT_PUSH)
    , streamConfiguration (NULL)
    , subscriber (NULL)
    , subscribers (NULL)
@@ -434,7 +440,14 @@ struct Test_U_AudioEffect_DirectShow_ModuleHandlerConfiguration
   IGraphBuilder*                                            builder;
   CLSID                                                     effect;
   union Stream_MediaFramework_DirectShow_AudioEffectOptions effectOptions;
+  struct Test_U_AudioEffect_DirectShow_FilterConfiguration* filterConfiguration;
+  CLSID                                                     filterCLSID;
   struct _AMMediaType                                       outputFormat;
+  // *IMPORTANT NOTE*: 'asynchronous' filters implement IAsyncReader (downstream
+  //                   filters 'pull' media samples), 'synchronous' filters
+  //                   implement IMemInputPin and 'push' media samples to
+  //                   downstream filters
+  bool                                                      push;
   Test_U_AudioEffect_DirectShow_StreamConfiguration_t*      streamConfiguration;
   Test_U_AudioEffect_DirectShow_ISessionNotify_t*           subscriber;
   Test_U_AudioEffect_DirectShow_Subscribers_t*              subscribers;
@@ -648,15 +661,50 @@ struct Test_U_AudioEffect_Configuration
   struct Test_U_AudioEffect_SignalHandlerConfiguration signalHandlerConfiguration;
 };
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
+struct Test_U_AudioEffect_DirectShow_FilterConfiguration
+ : Stream_MediaFramework_DirectShow_FilterConfiguration
+{
+  Test_U_AudioEffect_DirectShow_FilterConfiguration ()
+   : Stream_MediaFramework_DirectShow_FilterConfiguration ()
+   , module (NULL)
+  {}
+
+  Stream_Module_t* module; // handle
+};
+
 struct Test_U_AudioEffect_DirectShow_Configuration
  : Test_U_AudioEffect_Configuration
 {
   Test_U_AudioEffect_DirectShow_Configuration ()
    : Test_U_AudioEffect_Configuration ()
+   , allocatorProperties ()
+   , filterConfiguration ()
+   , pinConfiguration ()
    , streamConfiguration ()
-  {}
+  {
+    ACE_OS::memset (&allocatorProperties, 0, sizeof (struct _AllocatorProperties));
+    // *TODO*: IMemAllocator::SetProperties returns VFW_E_BADALIGN (0x8004020e)
+    //         if this is -1/0 (why ?)
+    //allocatorProperties_.cbAlign = -1;  // <-- use default
+    allocatorProperties.cbAlign = 1;
+    allocatorProperties.cbBuffer = -1; // <-- use default
+    // *TODO*: IMemAllocator::SetProperties returns E_INVALIDARG (0x80070057)
+    //         if this is -1/0 (why ?)
+    //allocatorProperties.cbPrefix = -1; // <-- use default
+    allocatorProperties.cbPrefix = 0;
+    allocatorProperties.cBuffers =
+      STREAM_LIB_DIRECTSHOW_FILTER_SOURCE_BUFFERS;
+    //allocatorProperties_.cBuffers = -1; // <-- use default
 
-  Test_U_AudioEffect_DirectShow_StreamConfiguration_t streamConfiguration;
+    filterConfiguration.allocatorProperties = &allocatorProperties;
+    filterConfiguration.pinConfiguration = &pinConfiguration;
+    pinConfiguration.allocatorProperties = &allocatorProperties;
+  }
+
+  struct _AllocatorProperties                                    allocatorProperties; // IMediaSample-
+  struct Test_U_AudioEffect_DirectShow_FilterConfiguration       filterConfiguration;
+  struct Stream_MediaFramework_DirectShow_FilterPinConfiguration pinConfiguration;
+  Test_U_AudioEffect_DirectShow_StreamConfiguration_t            streamConfiguration;
 };
 struct Test_U_AudioEffect_MediaFoundation_Configuration
  : Test_U_AudioEffect_Configuration

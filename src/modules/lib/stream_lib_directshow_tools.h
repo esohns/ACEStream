@@ -180,7 +180,10 @@ class Stream_MediaFramework_DirectShow_Tools
   // *IMPORTANT NOTE*: callers must 'free' the second argument
   static bool copy (const struct _AMMediaType&, // media type
                     struct _AMMediaType&); // return value: media type
-  static void delete_ (struct _AMMediaType*&); // media type
+  // *IMPORTANT NOTE*: if the media type was allocated with CoTaskMemAlloc(),
+  //                   it needs to be freed with CoTaskMemFree() !
+  static void delete_ (struct _AMMediaType*&, // media type
+                       bool = true);          // use DeleteMediaType() ? : delete
   static void free (struct _AMMediaType&); // media type
   static void free (Stream_MediaFramework_DirectShow_Formats_t&);
   static bool match (const struct _AMMediaType&,  // media type

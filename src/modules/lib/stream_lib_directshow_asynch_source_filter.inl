@@ -18,9 +18,9 @@
 *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
 ***************************************************************************/
 
-#include <Guiddef.h>
-#include <dvdmedia.h>
-#include <vfwmsgs.h>
+#include "Guiddef.h"
+#include "dvdmedia.h"
+#include "vfwmsgs.h"
 
 #include "ace/Log_Msg.h"
 #include "ace/Message_Block.h"

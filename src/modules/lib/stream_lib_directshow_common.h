@@ -34,15 +34,15 @@
 //            If an application must include both ksproxy.h and dsound.h,
 //            whichever header file the compiler scans first is the one whose
 //            definition of IKsPropertySet is used by the compiler. ..."
-//#include <MMReg.h>
-#include <WinNT.h>
-#include <Guiddef.h>
-#include <Ks.h>
-#include <KsProxy.h>
-#include <MMSystem.h>
+//#include "MMReg.h"
+#include "WinNT.h"
+#include "Guiddef.h"
+#include "Ks.h"
+#include "KsProxy.h"
+#include "MMSystem.h"
 #define INITGUID
-#include <dsound.h>
-#include <strmif.h>
+#include "dsound.h"
+#include "strmif.h"
 
 #include "ace/OS.h"
 
@@ -58,43 +58,51 @@ typedef Stream_MediaFramework_DirectShow_Formats_t::iterator Stream_MediaFramewo
 struct Stream_MediaFramework_DirectShow_FilterPinConfiguration
 {
   Stream_MediaFramework_DirectShow_FilterPinConfiguration ()
-   : format ()
+   : allocatorProperties (NULL)
+   , format ()
    , hasMediaSampleBuffers (false)
    , isTopToBottom (false)
    , queue (NULL)
   {}
 
-  struct _AMMediaType     format; // (preferred) media type handle
-  bool                    hasMediaSampleBuffers;
-  bool                    isTopToBottom; // frame memory layout
-  ACE_Message_Queue_Base* queue;  // (inbound) buffer queue handle
+  struct _AllocatorProperties* allocatorProperties;
+  struct _AMMediaType          format; // (preferred) media type handle
+  bool                         hasMediaSampleBuffers;
+  // *NOTE*: some image formats have a bottom-to-top memory layout; in
+  //         DirectShow, this is reflected by a positive biHeight; see also:
+  //         https://msdn.microsoft.com/en-us/library/windows/desktop/dd407212(v=vs.85).aspx
+  //         --> set this if the sample data is top-to-bottom
+  bool                         isTopToBottom; // frame memory layout
+  ACE_Message_Queue_Base*      queue;  // (inbound) buffer queue handle
 };
 
 struct Stream_MediaFramework_DirectShow_FilterConfiguration
 {
   Stream_MediaFramework_DirectShow_FilterConfiguration ()
    : allocator (NULL)
-   , allocatorProperties ()
+   , allocatorProperties (NULL)
+   , pinConfiguration (NULL)
   {
-    ACE_OS::memset (&allocatorProperties,
-                    0,
-                    sizeof (struct _AllocatorProperties));
-    // *TODO*: IMemAllocator::SetProperties returns VFW_E_BADALIGN (0x8004020e)
-    //         if this is -1/0 (why ?)
-    //allocatorProperties_.cbAlign = -1;  // <-- use default
-    allocatorProperties.cbAlign = 1;
-    allocatorProperties.cbBuffer = -1; // <-- use default
-    // *TODO*: IMemAllocator::SetProperties returns E_INVALIDARG (0x80070057)
-    //         if this is -1/0 (why ?)
-    //allocatorProperties.cbPrefix = -1; // <-- use default
-    allocatorProperties.cbPrefix = 0;
-    allocatorProperties.cBuffers =
-      STREAM_LIB_DIRECTSHOW_FILTER_SOURCE_BUFFERS;
-    //allocatorProperties_.cBuffers = -1; // <-- use default
+    //ACE_OS::memset (&allocatorProperties,
+    //                0,
+    //                sizeof (struct _AllocatorProperties));
+    //// *TODO*: IMemAllocator::SetProperties returns VFW_E_BADALIGN (0x8004020e)
+    ////         if this is -1/0 (why ?)
+    ////allocatorProperties_.cbAlign = -1;  // <-- use default
+    //allocatorProperties.cbAlign = 1;
+    //allocatorProperties.cbBuffer = -1; // <-- use default
+    //// *TODO*: IMemAllocator::SetProperties returns E_INVALIDARG (0x80070057)
+    ////         if this is -1/0 (why ?)
+    ////allocatorProperties.cbPrefix = -1; // <-- use default
+    //allocatorProperties.cbPrefix = 0;
+    //allocatorProperties.cBuffers =
+    //  STREAM_LIB_DIRECTSHOW_FILTER_SOURCE_BUFFERS;
+    ////allocatorProperties_.cBuffers = -1; // <-- use default
   }
 
-  Stream_IAllocator*          allocator;
-  struct _AllocatorProperties allocatorProperties;
+  Stream_IAllocator*                                              allocator; // message-
+  struct _AllocatorProperties*                                    allocatorProperties; // IMediaSample-
+  struct Stream_MediaFramework_DirectShow_FilterPinConfiguration* pinConfiguration;
 };
 
 typedef std::vector<std::wstring> Stream_MediaFramework_DirectShow_Graph_t;

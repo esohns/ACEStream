@@ -85,7 +85,7 @@ class Stream_Statistic_StatisticAnalysis_T
   Stream_Statistic_StatisticAnalysis_T (ISTREAM_T*);                     // stream handle
 #else
   Stream_Statistic_StatisticAnalysis_T (typename inherited::ISTREAM_T*); // stream handle
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
   inline virtual ~Stream_Statistic_StatisticAnalysis_T () {}
 
   // override (part of) Stream_IModuleHandler_T

@@ -24,12 +24,12 @@
 #include <list>
 #include <string>
 
-#include <d3d9.h>
-#include <dxva2api.h>
-#include <mfapi.h>
-#include <mfidl.h>
-#include <mfreadwrite.h>
-#include <strmif.h>
+#include "d3d9.h"
+#include "dxva2api.h"
+#include "mfapi.h"
+#include "mfidl.h"
+#include "mfreadwrite.h"
+#include "strmif.h"
 
 #include "ace/Global_Macros.h"
 

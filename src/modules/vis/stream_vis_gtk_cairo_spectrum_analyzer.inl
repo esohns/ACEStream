@@ -81,14 +81,16 @@ Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
  //, OpenGLTextureId_ (0)
  , backgroundColor_ ()
  , foregroundColor_ ()
- //, OpenGLWindow_ (NULL)
-#if GTK_CHECK_VERSION(3,0,0)
-#else /* GTK_CHECK_VERSION (3,0,0) */
-#if defined (GTKGLAREA_SUPPORT)
-#else
- //, OpenGLContext_ (NULL)
-#endif /* GTKGLAREA_SUPPORT */
-#endif /* GTK_CHECK_VERSION (3,0,0) */
+//#if GTK_CHECK_VERSION(3,0,0)
+// , OpenGLWindow_ (NULL)
+//#else /* GTK_CHECK_VERSION (3,0,0) */
+//#if defined (GTKGLAREA_SUPPORT)
+// , OpenGLWindow_ (NULL)
+//#else
+// , OpenGLContext_ (NULL)
+// , OpenGLWindow_ (NULL)
+//#endif /* GTKGLAREA_SUPPORT */
+//#endif /* GTK_CHECK_VERSION (3,0,0) */
 #endif /* GTKGL_SUPPORT */
  , channelFactor_ (0.0)
  , scaleFactorX_ (0.0)
@@ -96,9 +98,9 @@ Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
  , height_ (0)
  , width_ (0)
  , mode2D_ (NULL)
-#if defined (GTKGL_SUPPORT)
- , mode3D_ (NULL)
-#endif // GTKGL_SUPPORT
+//#if defined (GTKGL_SUPPORT)
+// , mode3D_ (NULL)
+//#endif // GTKGL_SUPPORT
  , renderHandler_ (this)
  , renderHandlerTimerId_ (-1)
  , sampleIterator_ (NULL)
@@ -232,12 +234,14 @@ Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
     foregroundColor_.pixel = 0;
     foregroundColor_.red = 65535; foregroundColor_.green = 65535; foregroundColor_.blue = 65535; // opaque white
 #endif /* GTK_CHECK_VERSION (3,0,0) */
-    //OpenGLWindow_ = NULL;
 //#if GTK_CHECK_VERSION(3,0,0)
+//    OpenGLWindow_ = NULL;
 //#else
 //#if defined (GTKGLAREA_SUPPORT)
+//    OpenGLWindow_ = NULL;
 //#else
 //    OpenGLContext_ = NULL;
+//    OpenGLWindow_ = NULL;
 //#endif /* GTKGLAREA_SUPPORT */
 //#endif /* GTK_CHECK_VERSION (3,0,0) */
 #endif /* GTKGL_SUPPORT */
@@ -245,9 +249,9 @@ Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
     height_ = width_ = 0;
 
     mode2D_ = NULL;
-#if defined (GTKGL_SUPPORT)
-    mode3D_ = NULL;
-#endif // GTKGL_SUPPORT
+//#if defined (GTKGL_SUPPORT)
+//    mode3D_ = NULL;
+//#endif // GTKGL_SUPPORT
   } // end IF
 
   mode2D_ =
@@ -258,17 +262,17 @@ Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
     goto continue_;
 
   surfaceLock_ = configuration_in.surfaceLock;
-#if GTK_CHECK_VERSION(3,10,0)
-  if (configuration_in.cairoSurface2D)
-    cairoSurface_ =
-      cairo_surface_reference (configuration_in.cairoSurface2D);
-#else
-  if (configuration_in.pixelBuffer2D)
-  {
-    g_object_ref (configuration_in.pixelBuffer2D);
-    pixelBuffer_ = configuration_in.pixelBuffer2D;
-  } // end IF
-#endif // GTK_CHECK_VERSION(3,10,0)
+//#if GTK_CHECK_VERSION(3,10,0)
+//  if (configuration_in.cairoSurface2D)
+//    cairoSurface_ =
+//      cairo_surface_reference (configuration_in.cairoSurface2D);
+//#else
+//  if (configuration_in.pixelBuffer2D)
+//  {
+//    g_object_ref (configuration_in.pixelBuffer2D);
+//    pixelBuffer_ = configuration_in.pixelBuffer2D;
+//  } // end IF
+//#endif // GTK_CHECK_VERSION(3,10,0)
 
   // *TODO*: remove type inferences
 #if GTK_CHECK_VERSION(3,10,0)
@@ -300,30 +304,28 @@ Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
   ACE_ASSERT (height_); ACE_ASSERT (width_);
 
 continue_:
-#if defined (GTKGL_SUPPORT)
-  mode3D_ =
-    &const_cast<ConfigurationType&> (configuration_in).spectrumAnalyzer3DMode;
-#endif // GTKGL_SUPPORT
+//#if defined (GTKGL_SUPPORT)
+//  mode3D_ =
+//    &const_cast<ConfigurationType&> (configuration_in).spectrumAnalyzer3DMode;
+//#endif // GTKGL_SUPPORT
 
 #if defined (GTKGL_SUPPORT)
-  // initialize OpenGL ?
-  //if (!configuration_in.OpenGLWindow)
-  //  goto continue_2;
-
   OpenGLInstructions_ = configuration_in.OpenGLInstructions;
   OpenGLInstructionsLock_ = configuration_in.OpenGLInstructionsLock;
   //OpenGLTextureId_ = configuration_in.OpenGLTextureId;
-//  OpenGLWindow_ = configuration_in.OpenGLWindow;
 //#if GTK_CHECK_VERSION(3,0,0)
+//  OpenGLWindow_ = configuration_in.OpenGLWindow;
 //#else /* GTK_CHECK_VERSION (3,0,0) */
 //#if defined (GTKGLAREA_SUPPORT)
+//  OpenGLWindow_ = configuration_in.OpenGLWindow;
 //#else
 //  OpenGLContext_ = configuration_in.OpenGLContext;
+//  OpenGLWindow_ = configuration_in.OpenGLWindow;
 //#endif /* GTKGLAREA_SUPPORT */
 //#endif /* GTK_CHECK_VERSION (3,0,0) */
 #endif /* GTKGL_SUPPORT */
 
-#if defined (GTKGL_SUPPORT)
+//#if defined (GTKGL_SUPPORT)
   //if (OpenGLWindow_)
   //{
   //  //ACE_ASSERT (OpenGLTextureId_ > 0);
@@ -338,19 +340,18 @@ continue_:
 //  } // end IF
 //#endif /* GTKGLAREA_SUPPORT */
 //#endif /* GTK_CHECK_VERSION (3,0,0) */
-#endif /* GTKGL_SUPPORT */
+//#endif /* GTKGL_SUPPORT */
 
-#if defined (GTKGL_SUPPORT)
-//continue_2:
-#endif /* GTKGL_SUPPORT */
-#if defined (GTKGL_SUPPORT)
-  if (unlikely (!mode2D_ && !mode3D_))
-#else
+//#if defined (GTKGL_SUPPORT)
+//  if (unlikely (!mode2D_ && !mode3D_))
+//#else
   if (unlikely (!mode2D_))
-#endif // GTKGL_SUPPORT
-    ACE_DEBUG ((LM_DEBUG,
+//#endif // GTKGL_SUPPORT
+  {
+    ACE_DEBUG ((LM_WARNING,
                 ACE_TEXT ("%s: no graphics output\n"),
                 inherited::mod_->name ()));
+  } // end IF
 
   if (unlikely (!inherited::initialize (configuration_in,
                                         allocator_in)))
@@ -365,6 +366,7 @@ continue_:
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   // sanity check(s)
   struct _AMMediaType media_type_s;
+  ACE_OS::memset (&media_type_s, 0, sizeof (struct _AMMediaType));
   inherited2::getMediaType (configuration_in.outputFormat,
                             media_type_s);
   ACE_ASSERT (InlineIsEqualGUID (media_type_s.formattype, FORMAT_WaveFormatEx));
@@ -373,7 +375,6 @@ continue_:
     reinterpret_cast<struct tWAVEFORMATEX*> (media_type_s.pbFormat);
 #endif // ACE_WIN32 || ACE_WIN64
 
-  bool result_2 = false;
   unsigned int channels, sample_rate;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   ACE_ASSERT (waveformatex_p);
@@ -388,12 +389,9 @@ continue_:
   channels = media_type_s.channels;
   sample_rate = media_type_s.rate;
 #endif // ACE_WIN32 || ACE_WIN64
-  result_2 =
-    inherited3::Initialize (channels,
-                            configuration_in.spectrumAnalyzerResolution,
-                            sample_rate);
-
-  return result_2;
+  return inherited3::Initialize (channels,
+                                 configuration_in.spectrumAnalyzerResolution,
+                                 sample_rate);
 }
 
 template <ACE_SYNCH_DECL,
@@ -545,6 +543,7 @@ Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
 //      unsigned int maximum_value = 0;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
       struct _AMMediaType media_type_s;
+      ACE_OS::memset (&media_type_s, 0, sizeof (struct _AMMediaType));
       inherited2::getMediaType (session_data_r.formats.back (),
                                 media_type_s);
       ACE_ASSERT (InlineIsEqualGUID (media_type_s.formattype, FORMAT_WaveFormatEx));
@@ -1027,7 +1026,7 @@ Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
   } // end IF
 #endif // GTK_CHECK_VERSION(3,10,0)
   ACE_ASSERT (cairoContext_out);
-  ACE_ASSERT (cairo_status (cairoContext_out) == CAIRO_STATUS_SUCCESS);
+  //ACE_ASSERT (cairo_status (cairoContext_out) == CAIRO_STATUS_SUCCESS);
 
 #if GTK_CHECK_VERSION(3,10,0)
   cairo_set_source_surface (cairoContext_out,
@@ -1071,11 +1070,13 @@ Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T::dispatch"));
 
+#if defined (GTKGL_SUPPORT)
+  struct Stream_Visualization_OpenGL_Instruction opengl_instruction;
+
   switch (event_in)
   {
     case STREAM_STATISTIC_ANALYSIS_EVENT_ACTIVITY:
     {
-#if defined (GTKGL_SUPPORT)
 #if GTK_CHECK_VERSION(3,0,0)
       foregroundColor_.red   = randomGenerator_ () / 255.0;
       foregroundColor_.green = randomGenerator_ () / 255.0;
@@ -1087,12 +1088,13 @@ Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
       foregroundColor_.blue  = randomGenerator_ ();
       //foregroundColor_.alpha = ;
 #endif // GTK_CHECK_VERSION(3,0,0)
-#endif // GTKGL_SUPPORT
+      opengl_instruction.color = foregroundColor_;
+      opengl_instruction.type =
+        STREAM_VISUALIZATION_OPENGL_INSTRUCTION_SET_COLOR_FG;
       break;
     }
     case STREAM_STATISTIC_ANALYSIS_EVENT_PEAK:
     {
-#if defined (GTKGL_SUPPORT)
 #if GTK_CHECK_VERSION(3,0,0)
       backgroundColor_.red   = randomGenerator_ () / 255.0;
       backgroundColor_.green = randomGenerator_ () / 255.0;
@@ -1104,7 +1106,9 @@ Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
       backgroundColor_.blue  = randomGenerator_ ();
       //backgroundColor_.alpha = ;
 #endif // GTK_CHECK_VERSION(3,0,0)
-#endif // GTKGL_SUPPORT
+      opengl_instruction.color = backgroundColor_;
+      opengl_instruction.type =
+        STREAM_VISUALIZATION_OPENGL_INSTRUCTION_SET_COLOR_BG;
       break;
     }
     default:
@@ -1116,6 +1120,11 @@ Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
       return;
     }
   } // end SWITCH
+
+  { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, *OpenGLInstructionsLock_);
+    OpenGLInstructions_->push_back (opengl_instruction);
+  } // end lock scope
+#endif // GTKGL_SUPPORT
 }
 
 template <ACE_SYNCH_DECL,
@@ -1255,13 +1264,14 @@ Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
 #if GTK_CHECK_VERSION (3,10,0)
   if (cairoSurface_)
     cairo_surface_destroy (cairoSurface_);
-  cairoSurface_ = cairo_surface_reference (surface_in);
+  //cairoSurface_ = cairo_surface_reference (surface_in);
+  cairoSurface_ = surface_in;
 #else
   if (pixelBuffer_)
   {
     g_object_unref (pixelBuffer_); pixelBuffer_ = NULL;
   } // end IF
-  g_object_ref (pixelBuffer_in);
+  //g_object_ref (pixelBuffer_in);
   pixelBuffer_ = pixelBuffer_in;
 #endif // GTK_CHECK_VERSION (3,10,0)
 
@@ -1371,9 +1381,9 @@ Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
 
   // sanity check(s)
   ACE_ASSERT (mode2D_);
-#if defined (GTKGL_SUPPORT)
-  ACE_ASSERT (mode3D_);
-#endif // GTKGL_SUPPORT
+//#if defined (GTKGL_SUPPORT)
+//  ACE_ASSERT (mode3D_);
+//#endif // GTKGL_SUPPORT
 
   int result = -1;
   bool release_lock = false;
@@ -1464,107 +1474,91 @@ unlock:
                   inherited::mod_->name ()));
   } // end IF
 
-#if defined (GTKGL_SUPPORT)
-  struct Stream_Visualization_OpenGL_Instruction opengl_instruction;
-
+//#if defined (GTKGL_SUPPORT)
+//  struct Stream_Visualization_OpenGL_Instruction opengl_instruction;
+//
+//  // step2b: draw OpenGL graphics
+//  switch (*mode3D_)
+//  {
+//    case STREAM_VISUALIZATION_SPECTRUMANALYZER_3DMODE_DEFAULT:
+//    {
+//      //gdk_threads_enter ();
 //#if GTK_CHECK_VERSION(3,0,0)
-//  if (!OpenGLWindow_)// ||
-//      //(OpenGLTextureId_ == 0))
-//#else
+//#if GTK_CHECK_VERSION(3,16,0)
+//      // *TODO*: (for reasons yet unkown,) gtk_gl_area_make_current() crashes.
+//      //         Most probably, it needs to be called from a (the) gtk context
+//      //         --> move everything OpenGL into a callback function that can be
+//      //             scheduled with g_idle_add()
+//      gtk_gl_area_make_current (OpenGLWindow_);
+//      //gdk_gl_context_make_current (OpenGLContext_);
+//#else /* GTK_CHECK_VERSION (3,16,0) */
 //#if defined (GTKGLAREA_SUPPORT)
-//  if (!OpenGLWindow_)// ||
-//      //(OpenGLTextureId_ == 0))
+//      ggla_area_make_current (OpenGLWindow_);
 //#else
-//  if (!OpenGLContext_ ||
-//      !OpenGLWindow_)//  ||
-//      //(OpenGLTextureId_ == 0))
+//#endif /* GTKGLAREA_SUPPORT */
+//#endif /* GTK_CHECK_VERSION (3,16,0) */
+//#else /* GTK_CHECK_VERSION (3,0,0) */
+//#if defined (GTKGLAREA_SUPPORT)
+////      gdk_gl_make_current (OpenGLWindow_,
+////                           OpenGLContext_);
+////      ggla_area_make_current (OpenGLWindow_);
+//      gtk_gl_area_make_current (OpenGLWindow_);
+//#else
+//      gdk_gl_drawable_make_current (OpenGLWindow_,
+//                                    OpenGLContext_);
 //#endif /* GTKGLAREA_SUPPORT */
 //#endif /* GTK_CHECK_VERSION (3,0,0) */
-//    goto continue_;
-
-  // step2b: draw OpenGL graphics
-  switch (*mode3D_)
-  {
-    case STREAM_VISUALIZATION_SPECTRUMANALYZER_3DMODE_DEFAULT:
-    {
-      //gdk_threads_enter ();
-#if GTK_CHECK_VERSION(3,0,0)
-#if GTK_CHECK_VERSION(3,16,0)
-      // *TODO*: (for reasons yet unkown,) gtk_gl_area_make_current() crashes.
-      //         Most probably, it needs to be called from a (the) gtk context
-      //         --> move everything OpenGL into a callback function that can be
-      //             scheduled with g_idle_add()
-      //gtk_gl_area_make_current (OpenGLWindow_);
-      //gdk_gl_context_make_current (OpenGLContext_);
-#else /* GTK_CHECK_VERSION (3,16,0) */
-#if defined (GTKGLAREA_SUPPORT)
-      //ggla_area_make_current (OpenGLWindow_);
-#else
-#endif /* GTKGLAREA_SUPPORT */
-#endif /* GTK_CHECK_VERSION (3,16,0) */
-#else /* GTK_CHECK_VERSION (3,0,0) */
-#if defined (GTKGLAREA_SUPPORT)
-//      gdk_gl_make_current (OpenGLWindow_,
-//                           OpenGLContext_);
-//      ggla_area_make_current (OpenGLWindow_);
-      //gtk_gl_area_make_current (OpenGLWindow_);
-#else
-      //gdk_gl_drawable_make_current (OpenGLWindow_,
-      //                              OpenGLContext_);
-#endif /* GTKGLAREA_SUPPORT */
-#endif /* GTK_CHECK_VERSION (3,0,0) */
-
-      ACE_ASSERT (OpenGLInstructions_);
-      ACE_ASSERT (OpenGLInstructionsLock_);
-#if GTK_CHECK_VERSION(3,0,0)
-#if GTK_CHECK_VERSION(3,16,0)
-      { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, *OpenGLInstructionsLock_);
-        opengl_instruction.color = backgroundColor_;
-        opengl_instruction.type =
-          STREAM_VISUALIZATION_OPENGL_INSTRUCTION_SET_COLOR_BG;
-        OpenGLInstructions_->push_back (opengl_instruction);
-        opengl_instruction.color = foregroundColor_;
-        opengl_instruction.type =
-          STREAM_VISUALIZATION_OPENGL_INSTRUCTION_SET_COLOR_FG;
-        OpenGLInstructions_->push_back (opengl_instruction);
-      } // end lock scope
-#else
-      glClearColor (static_cast<GLclampf> (backgroundColor_.red)   / 65535.0F,
-                    static_cast<GLclampf> (backgroundColor_.green) / 65535.0F,
-                    static_cast<GLclampf> (backgroundColor_.blue)  / 65535.0F,
-                    1.0F);
-      glColor4f (static_cast<GLfloat> (foregroundColor_.red)   / 65535.0F,
-                 static_cast<GLfloat> (foregroundColor_.green) / 65535.0F,
-                 static_cast<GLfloat> (foregroundColor_.blue)  / 65535.0F,
-                 1.0F);
-#endif /* GTK_CHECK_VERSION (3,16,0) */
-#endif /* GTK_CHECK_VERSION (3,0,0) */
-      //gdk_threads_leave ();
-
-#if GTK_CHECK_VERSION(3,0,0)
-#if GTK_CHECK_VERSION(3,16,0)
-#else /* GTK_CHECK_VERSION (3,16,0) */
-      //ggla_area_swap_buffers (OpenGLWindow_);
-#endif /* GTK_CHECK_VERSION (3,16,0) */
-#endif /* GTK_CHECK_VERSION (3,0,0) */
-      break;
-    }
-    case STREAM_VISUALIZATION_SPECTRUMANALYZER_3DMODE_INVALID:
-      break;
-    default:
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("%s: invalid OpenGL mode (was: %d), continuing\n"),
-                  inherited::mod_->name (),
-                  mode3D_));
-      goto continue_;
-    }
-  } // end SWITCH
-#endif /* GTKGL_SUPPORT */
-
-#if defined (GTKGL_SUPPORT)
-continue_:
-#endif /* GTKGL_SUPPORT */
-
-  return;
+//
+//      ACE_ASSERT (OpenGLInstructions_);
+//      ACE_ASSERT (OpenGLInstructionsLock_);
+//#if GTK_CHECK_VERSION(3,0,0)
+//#if GTK_CHECK_VERSION(3,16,0)
+//      { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, *OpenGLInstructionsLock_);
+//        opengl_instruction.color = backgroundColor_;
+//        opengl_instruction.type =
+//          STREAM_VISUALIZATION_OPENGL_INSTRUCTION_SET_COLOR_BG;
+//        OpenGLInstructions_->push_back (opengl_instruction);
+//        opengl_instruction.color = foregroundColor_;
+//        opengl_instruction.type =
+//          STREAM_VISUALIZATION_OPENGL_INSTRUCTION_SET_COLOR_FG;
+//        OpenGLInstructions_->push_back (opengl_instruction);
+//      } // end lock scope
+//#else
+//      glClearColor (static_cast<GLclampf> (backgroundColor_.red)   / 65535.0F,
+//                    static_cast<GLclampf> (backgroundColor_.green) / 65535.0F,
+//                    static_cast<GLclampf> (backgroundColor_.blue)  / 65535.0F,
+//                    1.0F);
+//      glColor4f (static_cast<GLfloat> (foregroundColor_.red)   / 65535.0F,
+//                 static_cast<GLfloat> (foregroundColor_.green) / 65535.0F,
+//                 static_cast<GLfloat> (foregroundColor_.blue)  / 65535.0F,
+//                 1.0F);
+//#endif /* GTK_CHECK_VERSION (3,16,0) */
+//#endif /* GTK_CHECK_VERSION (3,0,0) */
+//
+//#if GTK_CHECK_VERSION(3,0,0)
+//#if GTK_CHECK_VERSION(3,16,0)
+//#else /* GTK_CHECK_VERSION (3,16,0) */
+//      //ggla_area_swap_buffers (OpenGLWindow_);
+//#endif /* GTK_CHECK_VERSION (3,16,0) */
+//#endif /* GTK_CHECK_VERSION (3,0,0) */
+//      break;
+//    }
+//    case STREAM_VISUALIZATION_SPECTRUMANALYZER_3DMODE_INVALID:
+//      break;
+//    default:
+//    {
+//      ACE_DEBUG ((LM_ERROR,
+//                  ACE_TEXT ("%s: invalid OpenGL mode (was: %d), continuing\n"),
+//                  inherited::mod_->name (),
+//                  mode3D_));
+//      goto continue_;
+//    }
+//  } // end SWITCH
+//#endif /* GTKGL_SUPPORT */
+//
+//#if defined (GTKGL_SUPPORT)
+//continue_:
+//#endif /* GTKGL_SUPPORT */
+//
+//  return;
 }

@@ -2247,11 +2247,9 @@ Stream_MediaFramework_DirectShow_Tools::clear (IGraphBuilder* builder_in)
       return false;
     } // end IF
     filter_p->Release (); filter_p = NULL;
-#if defined (_DEBUG)
     ACE_DEBUG ((LM_DEBUG,
                 ACE_TEXT ("removed \"%s\"...\n"),
                 ACE_TEXT_WCHAR_TO_TCHAR (filter_info.achName)));
-#endif // _DEBUG
 
     result = enumerator_p->Reset ();
     if (FAILED (result))
@@ -2635,11 +2633,9 @@ continue_:
     return false;
   } // end IF
   filter_p->Release ();
-#if defined (_DEBUG)
   ACE_DEBUG ((LM_DEBUG,
               ACE_TEXT ("added \"%s\"\n"),
               ACE_TEXT_WCHAR_TO_TCHAR (filter_name.c_str ())));
-#endif // _DEBUG
 
 continue_2:
   return true;
@@ -3405,15 +3401,23 @@ Stream_MediaFramework_DirectShow_Tools::copy (const struct _AMMediaType& mediaTy
 }
 
 void
-Stream_MediaFramework_DirectShow_Tools::delete_ (struct _AMMediaType*& mediaType_inout)
+Stream_MediaFramework_DirectShow_Tools::delete_ (struct _AMMediaType*& mediaType_inout,
+                                                 bool useDeleteMediaType_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_DirectShow_Tools::delete_"));
 
   // sanity check(s)
   ACE_ASSERT (mediaType_inout);
 
-  FreeMediaType (*mediaType_inout);
-  delete mediaType_inout; mediaType_inout = NULL;
+  if (useDeleteMediaType_in)
+  {
+    DeleteMediaType (mediaType_inout); mediaType_inout = NULL;
+  } // end IF
+  else
+  {
+    FreeMediaType (*mediaType_inout);
+    delete mediaType_inout; mediaType_inout = NULL;
+  } // end ELSE
 }
 
 void

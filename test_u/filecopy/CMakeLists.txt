@@ -153,10 +153,6 @@ elseif (WIN32)
 # *TODO*: repair WIN32 pkgconfig support
 endif ()
 target_link_libraries (${EXECUTABLE} Common)
-if (WIN32)
- # *WARNING*: linking CommonUI requires "/FORCE:MULTIPLE""
-# set_target_properties (${EXECUTABLE} PROPERTIES LINK_FLAGS /FORCE:MULTIPLE)
-endif ()
 target_link_libraries (${EXECUTABLE} CommonLog)
 target_link_libraries (${EXECUTABLE} CommonSignal)
 target_link_libraries (${EXECUTABLE} CommonTimer)

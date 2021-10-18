@@ -238,12 +238,9 @@ struct Stream_CameraScreen_DirectShow_FilterConfiguration
   Stream_Module_t*                                                module; // handle
   struct Stream_MediaFramework_DirectShow_FilterPinConfiguration* pinConfiguration; // handle
 };
-typedef Stream_MediaFramework_DirectShow_Source_Filter_T<Common_TimePolicy_t,
-                                                         Stream_CameraScreen_DirectShow_SessionMessage_t,
-                                                         Stream_CameraScreen_DirectShow_Message_t,
+typedef Stream_MediaFramework_DirectShow_Source_Filter_T<Stream_CameraScreen_DirectShow_Message_t,
                                                          struct Stream_CameraScreen_DirectShow_FilterConfiguration,
-                                                         struct Stream_MediaFramework_DirectShow_FilterPinConfiguration,
-                                                         struct _AMMediaType> Stream_CameraScreen_DirectShowFilter_t;
+                                                         struct Stream_MediaFramework_DirectShow_FilterPinConfiguration> Stream_CameraScreen_DirectShowFilter_t;
 typedef Stream_MediaFramework_DirectShow_Asynch_Source_Filter_T<Common_TimePolicy_t,
                                                                 Stream_CameraScreen_DirectShow_SessionMessage_t,
                                                                 Stream_CameraScreen_DirectShow_Message_t,

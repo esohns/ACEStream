@@ -23,33 +23,11 @@
 
 #include <queue>
 
-#include <sdkddkver.h>
-#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0602) // _WIN32_WINNT_WIN8
-#include <minwindef.h>
-#else
-#include <windef.h>
-#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0602)
-#include <WinNT.h>
-#include <Guiddef.h>
-#if _MSC_VER>=1100
-#define AM_NOVTABLE __declspec(novtable)
-#else
-#define AM_NOVTABLE
-#endif
-#include <strmif.h>
-// *NOTE*: wxWidgets may have #defined __WXDEBUG__
-//#undef __WXDEBUG__
-#include <wxdebug.h>
-#include <combase.h>
-#include <Unknwn.h>
-#include <mmsystem.h>
-// *TODO*: currently, this compiles only as long as stdafx includes streams.h
-#include <reftime.h>
-#include <wxutil.h>
-#include <mtype.h>
-#include <wxlist.h>
-#include <amfilter.h>
-#include <source.h>
+#include "mmsystem.h"
+#include "Unknwn.h"
+
+#undef NANOSECONDS
+#include "streams.h"
 
 #include "ace/Global_Macros.h"
 #include "ace/Message_Queue.h"

@@ -31,17 +31,22 @@
 
 #include "stream_dec_wav_encoder.h"
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-//#include "stream_dev_mic_source_directshow.h"
+#include "stream_dev_mic_source_directshow.h"
 #include "stream_dev_mic_source_mediafoundation.h"
 #include "stream_dev_mic_source_wavein.h"
+#include "stream_dev_target_wavout.h"
+
+#include "stream_lib_directshow_asynch_source_filter.h"
+#include "stream_lib_directshow_source_filter.h"
+#include "stream_lib_directshow_target.h"
 #else
 #include "stream_dec_sox_effect.h"
 #include "stream_dev_mic_source_alsa.h"
 #include "stream_dev_target_alsa.h"
 #if defined (GUI_SUPPORT)
-#if defined (GTK_USE)
+#if defined (GTK_SUPPORT)
 #include "stream_vis_gtk_cairo.h"
-#endif // GTK_USE
+#endif // GTK_SUPPORT
 #endif // GUI_SUPPORT
 #endif // ACE_WIN32 || ACE_WIN64
 #include "stream_file_sink.h"
@@ -50,9 +55,9 @@
 #include "stream_stat_statistic_report.h"
 
 #if defined (GUI_SUPPORT)
-#if defined (GTK_USE)
+#if defined (GTK_SUPPORT)
 #include "stream_vis_gtk_cairo_spectrum_analyzer.h"
-#endif // GTK_USE
+#endif // GTK_SUPPORT
 #endif // GUI_SUPPORT
 
 #include "test_u_audioeffect_common.h"
@@ -61,24 +66,24 @@
 
 // declare module(s)
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-//typedef Stream_Dev_Mic_Source_DirectShow_T<ACE_MT_SYNCH,
-//                                           Stream_ControlMessage_t,
-//                                           Test_U_AudioEffect_DirectShow_Message,
-//                                           Test_U_AudioEffect_DirectShow_SessionMessage,
-//                                           struct Test_U_AudioEffect_DirectShow_ModuleHandlerConfiguration,
-//                                           enum Stream_ControlType,
-//                                           enum Stream_SessionMessageType,
-//                                           struct Test_U_AudioEffect_DirectShow_StreamState,
-//                                           Test_U_AudioEffect_DirectShow_SessionData,
-//                                           Test_U_AudioEffect_DirectShow_SessionData_t,
-//                                           struct Test_U_AudioEffect_Statistic,
-//                                           Common_Timer_Manager_t> Test_U_Dev_Mic_Source_DirectShow;
-//DATASTREAM_MODULE_INPUT_ONLY (Test_U_AudioEffect_DirectShow_SessionData,                // session data type
-//                              enum Stream_SessionMessageType,                                  // session event type
-//                              struct Test_U_AudioEffect_DirectShow_ModuleHandlerConfiguration, // module handler configuration type
-//                              libacestream_default_dev_mic_source_directshow_module_name_string,
-//                              Stream_INotify_t,                                                // stream notification interface type
-//                              Test_U_Dev_Mic_Source_DirectShow);                               // writer type
+typedef Stream_Dev_Mic_Source_DirectShow_T<ACE_MT_SYNCH,
+                                           Stream_ControlMessage_t,
+                                           Test_U_AudioEffect_DirectShow_Message,
+                                           Test_U_AudioEffect_DirectShow_SessionMessage,
+                                           struct Test_U_AudioEffect_DirectShow_ModuleHandlerConfiguration,
+                                           enum Stream_ControlType,
+                                           enum Stream_SessionMessageType,
+                                           struct Test_U_AudioEffect_DirectShow_StreamState,
+                                           Test_U_AudioEffect_DirectShow_SessionData,
+                                           Test_U_AudioEffect_DirectShow_SessionData_t,
+                                           struct Test_U_AudioEffect_Statistic,
+                                           Common_Timer_Manager_t> Test_U_Dev_Mic_Source_DirectShow;
+DATASTREAM_MODULE_INPUT_ONLY (Test_U_AudioEffect_DirectShow_SessionData,                // session data type
+                              enum Stream_SessionMessageType,                                  // session event type
+                              struct Test_U_AudioEffect_DirectShow_ModuleHandlerConfiguration, // module handler configuration type
+                              libacestream_default_dev_mic_source_directshow_module_name_string,
+                              Stream_INotify_t,                                                // stream notification interface type
+                              Test_U_Dev_Mic_Source_DirectShow);                               // writer type
 typedef Stream_Dev_Mic_Source_MediaFoundation_T<ACE_MT_SYNCH,
                                                 Stream_ControlMessage_t,
                                                 Test_U_AudioEffect_MediaFoundation_Message,
@@ -287,7 +292,7 @@ DATASTREAM_MODULE_DUPLEX (Test_U_AudioEffect_SessionData,                       
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #if defined (GUI_SUPPORT)
-#if defined (GTK_USE)
+#if defined (GTK_SUPPORT)
 typedef Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_MT_SYNCH,
                                                           Common_TimePolicy_t,
                                                           struct Test_U_AudioEffect_DirectShow_ModuleHandlerConfiguration,
@@ -320,7 +325,7 @@ DATASTREAM_MODULE_INPUT_ONLY (Test_U_AudioEffect_MediaFoundation_SessionData,   
                               libacestream_default_vis_spectrum_analyzer_module_name_string,
                               Stream_INotify_t,                                                     // stream notification interface type
                               Test_U_AudioEffect_MediaFoundation_Vis_SpectrumAnalyzer);             // writer type
-#endif // GTK_USE
+#endif // GTK_SUPPORT
 #endif // GUI_SUPPORT
 typedef Stream_Decoder_WAVEncoder_T<ACE_MT_SYNCH,
                                     Common_TimePolicy_t,
@@ -384,7 +389,7 @@ DATASTREAM_MODULE_INPUT_ONLY (Test_U_AudioEffect_SessionData,                   
                               Stream_INotify_t,                                        // stream notification interface type
                               Test_U_AudioEffect_Target_ALSA);                         // writer type
 #if defined (GUI_SUPPORT)
-#if defined (GTK_USE)
+#if defined (GTK_SUPPORT)
 typedef Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_MT_SYNCH,
                                                           Common_TimePolicy_t,
                                                           struct Test_U_AudioEffect_ALSA_ModuleHandlerConfiguration,
@@ -401,7 +406,7 @@ DATASTREAM_MODULE_INPUT_ONLY (Test_U_AudioEffect_SessionData,                   
                               libacestream_default_vis_spectrum_analyzer_module_name_string,
                               Stream_INotify_t,                                              // stream notification interface type
                               Test_U_AudioEffect_Vis_SpectrumAnalyzer);                      // writer type
-#endif // GTK_USE
+#endif // GTK_SUPPORT
 #endif // GUI_SUPPORT
 typedef Stream_Decoder_WAVEncoder_T<ACE_MT_SYNCH,
                                     Common_TimePolicy_t,
@@ -422,6 +427,45 @@ DATASTREAM_MODULE_INPUT_ONLY (Test_U_AudioEffect_SessionData,                   
 #endif // ACE_WIN32 || ACE_WIN64
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
+typedef Stream_MediaFramework_DirectShow_Source_Filter_T<Test_U_AudioEffect_DirectShow_Message,
+                                                         struct Test_U_AudioEffect_DirectShow_FilterConfiguration,
+                                                         struct Stream_MediaFramework_DirectShow_FilterPinConfiguration> Test_U_AudioEffect_DirectShowFilter_t;
+typedef Stream_MediaFramework_DirectShow_Asynch_Source_Filter_T<Common_TimePolicy_t,
+                                                                Test_U_AudioEffect_DirectShow_SessionMessage,
+                                                                Test_U_AudioEffect_DirectShow_Message,
+                                                                struct Test_U_AudioEffect_DirectShow_FilterConfiguration,
+                                                                struct Stream_MediaFramework_DirectShow_FilterPinConfiguration,
+                                                                struct _AMMediaType> Test_U_AudioEffect_AsynchDirectShowFilter_t;
+typedef Stream_MediaFramework_DirectShow_Target_T<ACE_MT_SYNCH,
+                                                  Common_TimePolicy_t,
+                                                  struct Test_U_AudioEffect_DirectShow_ModuleHandlerConfiguration,
+                                                  Stream_ControlMessage_t,
+                                                  Test_U_AudioEffect_DirectShow_Message,
+                                                  Test_U_AudioEffect_DirectShow_SessionMessage,
+                                                  Test_U_AudioEffect_DirectShow_SessionData,
+                                                  struct Test_U_AudioEffect_DirectShow_FilterConfiguration,
+                                                  struct Stream_MediaFramework_DirectShow_FilterPinConfiguration,
+                                                  struct _AMMediaType,
+                                                  Test_U_AudioEffect_DirectShowFilter_t> Test_U_AudioEffect_DirectShow_Target;
+DATASTREAM_MODULE_INPUT_ONLY (Test_U_AudioEffect_DirectShow_SessionData,                       // session data type
+                              enum Stream_SessionMessageType,                                  // session event type
+                              struct Test_U_AudioEffect_DirectShow_ModuleHandlerConfiguration, // module handler configuration type
+                              libacestream_default_lib_directshow_module_name_string,
+                              Stream_INotify_t,                                                // stream notification interface type
+                              Test_U_AudioEffect_DirectShow_Target);                           // writer type
+typedef Stream_Dev_Target_WavOut_T<ACE_MT_SYNCH,
+                                   Common_TimePolicy_t,
+                                   struct Test_U_AudioEffect_DirectShow_ModuleHandlerConfiguration,
+                                   Stream_ControlMessage_t,
+                                   Test_U_AudioEffect_DirectShow_Message,
+                                   Test_U_AudioEffect_DirectShow_SessionMessage,
+                                   Test_U_AudioEffect_DirectShow_SessionData> Test_U_AudioEffect_DirectShow_WavOut;
+DATASTREAM_MODULE_INPUT_ONLY (Test_U_AudioEffect_DirectShow_SessionData,                       // session data type
+                              enum Stream_SessionMessageType,                                  // session event type
+                              struct Test_U_AudioEffect_DirectShow_ModuleHandlerConfiguration, // module handler configuration type
+                              libacestream_default_dev_target_wavout_module_name_string,
+                              Stream_INotify_t,                                                // stream notification interface type
+                              Test_U_AudioEffect_DirectShow_WavOut);                           // writer type
 typedef Stream_Module_FileWriter_T<ACE_MT_SYNCH,
                                    Common_TimePolicy_t,
                                    struct Test_U_AudioEffect_DirectShow_ModuleHandlerConfiguration,
@@ -447,18 +491,18 @@ DATASTREAM_MODULE_INPUT_ONLY (Test_U_AudioEffect_MediaFoundation_SessionData,   
                               Stream_INotify_t,                                                     // stream notification interface type
                               Test_U_AudioEffect_MediaFoundation_FileWriter);                       // writer type
 #else
-typedef Stream_Module_FileWriter_T<ACE_MT_SYNCH,
-                                   Common_TimePolicy_t,
-                                   struct Test_U_AudioEffect_ALSA_ModuleHandlerConfiguration,
-                                   Stream_ControlMessage_t,
-                                   Test_U_AudioEffect_Message,
-                                   Test_U_AudioEffect_SessionMessage> Test_U_AudioEffect_Module_FileWriter;
-DATASTREAM_MODULE_INPUT_ONLY (Test_U_AudioEffect_SessionData,                       // session data type
-                              enum Stream_SessionMessageType,                       // session event type
-                              struct Test_U_AudioEffect_ALSA_ModuleHandlerConfiguration, // module handler configuration type
-                              libacestream_default_file_sink_module_name_string,
-                              Stream_INotify_t,                                     // stream notification interface type
-                              Test_U_AudioEffect_Module_FileWriter);                // writer type
+//typedef Stream_Module_FileWriter_T<ACE_MT_SYNCH,
+//                                   Common_TimePolicy_t,
+//                                   struct Test_U_AudioEffect_ALSA_ModuleHandlerConfiguration,
+//                                   Stream_ControlMessage_t,
+//                                   Test_U_AudioEffect_Message,
+//                                   Test_U_AudioEffect_SessionMessage> Test_U_AudioEffect_Module_FileWriter;
+//DATASTREAM_MODULE_INPUT_ONLY (Test_U_AudioEffect_SessionData,                       // session data type
+//                              enum Stream_SessionMessageType,                       // session event type
+//                              struct Test_U_AudioEffect_ALSA_ModuleHandlerConfiguration, // module handler configuration type
+//                              libacestream_default_file_sink_module_name_string,
+//                              Stream_INotify_t,                                     // stream notification interface type
+//                              Test_U_AudioEffect_Module_FileWriter);                // writer type
 #endif // ACE_WIN32 || ACE_WIN64
 
 #endif

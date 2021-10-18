@@ -18,9 +18,9 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#include <evcode.h>
-#include <strsafe.h>
-#include <vfwmsgs.h>
+#include "evcode.h"
+#include "strsafe.h"
+#include "vfwmsgs.h"
 
 #include "ace/Log_Msg.h"
 
@@ -66,7 +66,7 @@ Stream_Dev_Mic_Source_DirectShow_T<ACE_SYNCH_USE,
               STREAM_HEADMODULECONCURRENCY_PASSIVE, // concurrency
               true)                                 // generate session messages ?
  , isFirst_ (true)
- , lock_ ()
+ //, lock_ ()
  //, eventHandle_ (ACE_INVALID_HANDLE)
  , IAMDroppedFrames_ (NULL)
  , ICaptureGraphBuilder2_ (NULL)
@@ -382,7 +382,7 @@ Stream_Dev_Mic_Source_DirectShow_T<ACE_SYNCH_USE,
 
         IBaseFilter* filter_p = NULL;
         result_2 =
-          IGraphBuilder_->FindFilterByName (STREAM_DEV_MIC_DIRECTSHOW_FILTER_NAME_CAPTURE_AUDIO,
+          IGraphBuilder_->FindFilterByName (STREAM_LIB_DIRECTSHOW_FILTER_NAME_CAPTURE_AUDIO,
                                             &filter_p);
         if (FAILED (result_2))
           goto error_3;
@@ -547,9 +547,7 @@ continue_2:
       } // end IF
 
       // process DirectShow filter graph events
-      ACE_thread_t thread_id;
-      inherited::TASK_BASE_T::start (thread_id);
-      ACE_UNUSED_ARG (thread_id);
+      inherited::TASK_BASE_T::start (NULL);
       is_active = inherited::TASK_BASE_T::isRunning ();
       ACE_ASSERT (is_active);
 
@@ -595,7 +593,7 @@ error:
     case STREAM_SESSION_MESSAGE_END:
     {
       // *NOTE*: only process the first 'session end' message
-      { ACE_GUARD (typename inherited::LOCK_T, aGuard, inherited::lock_);
+      { ACE_GUARD (ACE_Thread_Mutex, aGuard, inherited::lock_);
         if (sessionEndProcessed_)
           break; // done
         sessionEndProcessed_ = true;
@@ -1397,14 +1395,14 @@ continue_:
 
   IBaseFilter* filter_p = NULL;
   result =
-    graph_builder_p->FindFilterByName (STREAM_DEV_MIC_DIRECTSHOW_FILTER_NAME_CAPTURE_AUDIO,
+    graph_builder_p->FindFilterByName (STREAM_LIB_DIRECTSHOW_FILTER_NAME_CAPTURE_AUDIO,
                                        &filter_p);
   if (FAILED (result))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to IGraphBuilder::FindFilterByName(\"%s\"): \"%s\", aborting\n"),
                 inherited::mod_->name (),
-                ACE_TEXT_WCHAR_TO_TCHAR (STREAM_DEV_MIC_DIRECTSHOW_FILTER_NAME_CAPTURE_AUDIO),
+                ACE_TEXT_WCHAR_TO_TCHAR (STREAM_LIB_DIRECTSHOW_FILTER_NAME_CAPTURE_AUDIO),
                 ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
     goto error;
   } // end IF
@@ -1691,7 +1689,7 @@ continue_:
   //              ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
   //  goto error_2;
   //} // end IF
-  graph_entry.filterName = STREAM_DEV_MIC_DIRECTSHOW_FILTER_NAME_CAPTURE_AUDIO;
+  graph_entry.filterName = STREAM_LIB_DIRECTSHOW_FILTER_NAME_CAPTURE_AUDIO;
   graph_configuration.push_back (graph_entry);
   //filter_pipeline.push_back (converter_name);
   graph_entry.filterName = STREAM_LIB_DIRECTSHOW_FILTER_NAME_GRAB;

@@ -23,9 +23,9 @@
 
 #include <string>
 
-#include <guiddef.h>
-#include <mfidl.h>
-#include <mfobjects.h>
+#include "guiddef.h"
+#include "mfidl.h"
+#include "mfobjects.h"
 
 #include "ace/Global_Macros.h"
 

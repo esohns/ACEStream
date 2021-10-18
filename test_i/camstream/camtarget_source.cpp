@@ -19,34 +19,11 @@
 ***************************************************************************/
 #include "stdafx.h"
 
-//#include <sdkddkver.h>
-//#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0602) // _WIN32_WINNT_WIN8
-//#include <minwindef.h>
-//#else
-//#include <windef.h>
-//#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0602)
-#include <WinNT.h>
-//#include <Guiddef.h>
-#include <initguid.h> // *NOTE*: this exports DEFINE_GUIDs
+#include "initguid.h" // *NOTE*: this exports DEFINE_GUIDs
                       //         (see: stream_lib_common.h)
-#if _MSC_VER>=1100
-#define AM_NOVTABLE __declspec(novtable)
-#else
-#define AM_NOVTABLE
-#endif
-#include <strmif.h>
-#include <Unknwn.h>
-// *NOTE*: wxWidgets may have #defined __WXDEBUG__
-//#undef __WXDEBUG__
-#include <wxdebug.h>
-#include <combase.h>
-#include <dllsetup.h>
-// *NOTE*: uuids.h doesn't have double include protection
-#if defined (UUIDS_H)
-#else
-#define UUIDS_H
-#include <uuids.h>
-#endif // UUIDS_H
+#include "Unknwn.h"
+
+#include "streams.h"
 
 #include "ace/Log_Msg.h"
 #include "ace/Synch.h"
@@ -170,12 +147,9 @@ const struct _AMOVIESETUP_FILTER sudFilterRegAM2 =
 // -----------------------------------------------------------------------------
 
 // *TODO*: these type definitions are useless; this filter is monolythic
-typedef Stream_MediaFramework_DirectShow_Source_Filter_T<Common_TimePolicy_t,
-                                                         Test_I_Target_DirectShow_SessionMessage,
-                                                         Test_I_Target_DirectShow_Stream_Message,
+typedef Stream_MediaFramework_DirectShow_Source_Filter_T<Test_I_Target_DirectShow_Stream_Message,
                                                          struct Test_I_Target_DirectShow_FilterConfiguration,
-                                                         struct Stream_MediaFramework_DirectShow_FilterPinConfiguration,
-                                                         struct _AMMediaType> Stream_MediaFramework_DirectShow_Source_Filter_t;
+                                                         struct Stream_MediaFramework_DirectShow_FilterPinConfiguration> Stream_MediaFramework_DirectShow_Source_Filter_t;
 typedef Stream_MediaFramework_DirectShow_Asynch_Source_Filter_T<Common_TimePolicy_t,
                                                                 Test_I_Target_DirectShow_SessionMessage,
                                                                 Test_I_Target_DirectShow_Stream_Message,
@@ -350,12 +324,10 @@ DllRegisterServer ()
                 ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
     goto clean;
   } // end IF
-#if defined (_DEBUG)
   ACE_DEBUG ((LM_DEBUG,
               ACE_TEXT ("%s: registered DirectShow source filter \"%s\"\n"),
               ACE_TEXT (ACEStream_PACKAGE_NAME),
               ACE_TEXT_WCHAR_TO_TCHAR (STREAM_LIB_DIRECTSHOW_FILTER_NAME_SOURCE_L)));
-#endif // _DEBUG
   result =
     ifilter_mapper_p->RegisterFilter (CLSID_ACEStream_MediaFramework_Asynch_Source_Filter, // filter CLSID
                                       STREAM_LIB_DIRECTSHOW_FILTER_NAME_ASYNCH_SOURCE_L,   // filter name
@@ -370,12 +342,10 @@ DllRegisterServer ()
                 ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
     goto clean;
   } // end IF
-#if defined (_DEBUG)
   ACE_DEBUG ((LM_DEBUG,
-              ACE_TEXT ("%s: registered DirectShow source filter \"%s\"\n"),
+              ACE_TEXT ("%s: registered DirectShow asynch source filter \"%s\"\n"),
               ACE_TEXT (ACEStream_PACKAGE_NAME),
               ACE_TEXT_WCHAR_TO_TCHAR (STREAM_LIB_DIRECTSHOW_FILTER_NAME_ASYNCH_SOURCE_L)));
-#endif // _DEBUG
 
 clean:
   if (ifilter_mapper_p)
@@ -426,12 +396,10 @@ DllUnregisterServer ()
                 ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
     goto clean;
   } // end IF
-#if defined (_DEBUG)
   ACE_DEBUG ((LM_DEBUG,
               ACE_TEXT ("%s: deregistered DirectShow source filter \"%s\"\n"),
               ACE_TEXT (ACEStream_PACKAGE_NAME),
               ACE_TEXT_WCHAR_TO_TCHAR (STREAM_LIB_DIRECTSHOW_FILTER_NAME_SOURCE_L)));
-#endif // _DEBUG
   result =
     ifilter_mapper_p->UnregisterFilter (&CLSID_VideoInputDeviceCategory,
                                         STREAM_LIB_DIRECTSHOW_FILTER_NAME_ASYNCH_SOURCE_L,
@@ -443,12 +411,10 @@ DllUnregisterServer ()
                 ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
     goto clean;
   } // end IF
-#if defined (_DEBUG)
   ACE_DEBUG ((LM_DEBUG,
-              ACE_TEXT ("%s: deregistered DirectShow source filter \"%s\"\n"),
+              ACE_TEXT ("%s: deregistered DirectShow asynch source filter \"%s\"\n"),
               ACE_TEXT (ACEStream_PACKAGE_NAME),
               ACE_TEXT_WCHAR_TO_TCHAR (STREAM_LIB_DIRECTSHOW_FILTER_NAME_ASYNCH_SOURCE_L)));
-#endif // _DEBUG
 
 clean:
   if (ifilter_mapper_p)
