@@ -262,11 +262,11 @@ Stream_Dev_Mic_Source_WaveIn_T<ACE_SYNCH_USE,
 //                    &inherited::configuration_->statisticCollectionInterval));
       } // end IF
 
-      WAVEINCAPS   capabilities_s;
+      WAVEINCAPS capabilities_s;
       struct tWAVEFORMATEX wave_format_ex_s;
       ACE_OS::memset (&wave_format_ex_s, 0, sizeof (struct tWAVEFORMATEX));
       MMRESULT     result;
-      UINT         num_devices_i = waveInGetNumDevs ();
+      //UINT         num_devices_i = waveInGetNumDevs ();
 
       result = waveInGetDevCaps (configuration_->audioInput,
                                  &capabilities_s,

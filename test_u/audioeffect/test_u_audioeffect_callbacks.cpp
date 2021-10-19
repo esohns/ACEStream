@@ -117,7 +117,8 @@ bool un_toggling_stream = false;
 bool
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 load_capture_devices (GtkListStore* listStore_in,
-                      enum Stream_MediaFramework_Type mediaFramework_in)
+                      enum Stream_MediaFramework_Type mediaFramework_in,
+                      bool useFrameworkSource_in)
 #else
 load_capture_devices (GtkListStore* listStore_in)
 #endif // ACE_WIN32 || ACE_WIN64
@@ -131,6 +132,49 @@ load_capture_devices (GtkListStore* listStore_in)
 
   GtkTreeIter iterator;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
+  if (!useFrameworkSource_in)
+  {
+    MMRESULT result_2 = MMSYSERR_NOERROR;
+    WAVEINCAPS capabilities_s;
+    std::ostringstream converter;
+    UINT num_devices_i = waveInGetNumDevs ();
+    for (UINT i = 0;
+         i < num_devices_i;
+         ++i)
+    {
+      result_2 = waveInGetDevCaps (i,
+                                   &capabilities_s,
+                                   sizeof (WAVEINCAPS));
+      if (unlikely (result_2 != MMSYSERR_NOERROR))
+      { char error_msg_a[BUFSIZ];
+        waveInGetErrorText (result_2, error_msg_a, BUFSIZ - 1);
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("failed to waveInGetDevCaps(%d): \"%s\", aborting\n"),
+                    i, ACE_TEXT (error_msg_a)));
+        return false;
+      } // end IF
+
+      ACE_DEBUG ((LM_DEBUG,
+                  ACE_TEXT ("found device \"%s\": [manufacturer id,product id]: %d/%d; [driver version]: %d.%d\n"),
+                  ACE_TEXT (capabilities_s.szPname),
+                  capabilities_s.wMid, capabilities_s.wPid,
+                  (capabilities_s.vDriverVersion & 0xFFFF0000) >> 16, (capabilities_s.vDriverVersion & 0xFFFF)));
+
+      converter.clear ();
+      converter.str (ACE_TEXT_ALWAYS_CHAR (""));
+      converter << i;
+      gtk_list_store_append (listStore_in, &iterator);
+      gtk_list_store_set (listStore_in, &iterator,
+                          0, ACE_TEXT_ALWAYS_CHAR (capabilities_s.szPname),
+                          1, converter.str ().c_str (),
+                          -1);
+    } // end FOR
+
+    result = true;
+
+    goto continue_;
+  } // end IF
+
   HRESULT result_2 = E_FAIL;
   switch (mediaFramework_in)
   {
@@ -264,6 +308,7 @@ load_capture_devices (GtkListStore* listStore_in)
         gtk_list_store_append (listStore_in, &iterator);
         gtk_list_store_set (listStore_in, &iterator,
                             0, friendly_name_string.c_str (),
+                            1, ACE_TEXT_ALWAYS_CHAR (""),
                             -1);
       } // end WHILE
       enum_moniker_p->Release (); enum_moniker_p = NULL;
@@ -357,6 +402,7 @@ error:
         gtk_list_store_append (listStore_in, &iterator);
         gtk_list_store_set (listStore_in, &iterator,
                             0, ACE_TEXT_ALWAYS_CHAR (ACE_TEXT_WCHAR_TO_TCHAR (buffer_a)),
+                            1, ACE_TEXT_ALWAYS_CHAR (""),
                             -1);
       } // end FOR
 
@@ -459,8 +505,8 @@ continue_:
 
     gtk_list_store_append (listStore_in, &iterator);
     gtk_list_store_set (listStore_in, &iterator,
-                        0, ACE_TEXT (string_p),
-                        1, ACE_TEXT (device_name_string.c_str ()),
+                        0, ACE_TEXT_ALWAYS_CHAR (string_p),
+                        1, ACE_TEXT_ALWAYS_CHAR (device_name_string.c_str ()),
                         -1);
 
     free (string_p); string_p = NULL;
@@ -497,6 +543,44 @@ struct less_guid
   }
 };
 
+bool
+load_formats (int deviceId_in,
+              GtkListStore* listStore_in)
+{
+  STREAM_TRACE (ACE_TEXT ("::load_formats"));
+
+  // initialize result
+  gtk_list_store_clear (listStore_in);
+
+  MMRESULT result_2 = MMSYSERR_NOERROR;
+  WAVEINCAPS capabilities_s;
+  GtkTreeIter iterator;
+
+  result_2 = waveInGetDevCaps (deviceId_in,
+                               &capabilities_s,
+                               sizeof (WAVEINCAPS));
+  if (unlikely (result_2 != MMSYSERR_NOERROR))
+  { char error_msg_a[BUFSIZ];
+    waveInGetErrorText (result_2, error_msg_a, BUFSIZ - 1);
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to waveInGetDevCaps(%d): \"%s\", aborting\n"),
+                deviceId_in, ACE_TEXT (error_msg_a)));
+    return false;
+  } // end IF
+
+  ACE_DEBUG ((LM_DEBUG,
+              ACE_TEXT ("found device \"%s\" formats: 0x%x\n"),
+              ACE_TEXT (capabilities_s.szPname),
+              capabilities_s.dwFormats));
+  if (unlikely (!capabilities_s.dwFormats))
+    return false;
+  gtk_list_store_append (listStore_in, &iterator);
+  gtk_list_store_set (listStore_in, &iterator,
+                      0, ACE_TEXT_ALWAYS_CHAR ("PCM"),
+                      1, ACE_TEXT_ALWAYS_CHAR (""),
+                      -1);
+  return true;
+}
 bool
 load_formats (IAMStreamConfig* IAMStreamConfig_in,
               GtkListStore* listStore_in)
@@ -559,8 +643,8 @@ load_formats (IAMStreamConfig* IAMStreamConfig_in,
   {
     gtk_list_store_append (listStore_in, &iterator);
     gtk_list_store_set (listStore_in, &iterator,
-                        0, ACE_TEXT (Stream_MediaFramework_Tools::mediaSubTypeToString (*iterator_2, STREAM_MEDIAFRAMEWORK_DIRECTSHOW).c_str ()),
-                        1, ACE_TEXT (Common_Tools::GUIDToString (*iterator_2).c_str ()),
+                        0, ACE_TEXT_ALWAYS_CHAR (Stream_MediaFramework_Tools::mediaSubTypeToString (*iterator_2, STREAM_MEDIAFRAMEWORK_DIRECTSHOW).c_str ()),
+                        1, ACE_TEXT_ALWAYS_CHAR (Common_Tools::GUIDToString (*iterator_2).c_str ()),
                         -1);
   } // end FOR
 
@@ -670,14 +754,118 @@ load_formats (IMFMediaSource* IMFMediaSource_in,
   {
     gtk_list_store_append (listStore_in, &iterator);
     gtk_list_store_set (listStore_in, &iterator,
-                        0, ACE_TEXT (Stream_MediaFramework_Tools::mediaSubTypeToString (*iterator_2, STREAM_MEDIAFRAMEWORK_DIRECTSHOW).c_str ()),
-                        1, ACE_TEXT (Common_Tools::GUIDToString (*iterator_2).c_str ()),
+                        0, ACE_TEXT_ALWAYS_CHAR (Stream_MediaFramework_Tools::mediaSubTypeToString (*iterator_2, STREAM_MEDIAFRAMEWORK_DIRECTSHOW).c_str ()),
+                        1, ACE_TEXT_ALWAYS_CHAR (Common_Tools::GUIDToString (*iterator_2).c_str ()),
                         -1);
   } // end FOR
 
   return true;
 }
 
+bool
+load_sample_rates (int deviceId_in,
+                   GtkListStore* listStore_in)
+{
+  STREAM_TRACE (ACE_TEXT ("::load_sample_rates"));
+
+  // initialize result
+  gtk_list_store_clear (listStore_in);
+
+  MMRESULT result_2 = MMSYSERR_NOERROR;
+  WAVEINCAPS capabilities_s;
+  GtkTreeIter iterator;
+
+  result_2 = waveInGetDevCaps (deviceId_in,
+                               &capabilities_s,
+                               sizeof (WAVEINCAPS));
+  if (unlikely (result_2 != MMSYSERR_NOERROR))
+  { char error_msg_a[BUFSIZ];
+    waveInGetErrorText (result_2, error_msg_a, BUFSIZ - 1);
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to waveInGetDevCaps(%d): \"%s\", aborting\n"),
+                deviceId_in, ACE_TEXT (error_msg_a)));
+    return false;
+  } // end IF
+
+  std::ostringstream converter;
+  unsigned int sample_rate = 11025;
+  if (capabilities_s.dwFormats & 0x0000000F)
+  {
+    ACE_DEBUG ((LM_DEBUG,
+                ACE_TEXT ("found device \"%s\" sample rate: %ukHz\n"),
+                ACE_TEXT (capabilities_s.szPname), sample_rate));
+    converter.clear ();
+    converter.str (ACE_TEXT_ALWAYS_CHAR (""));
+    converter << sample_rate;
+    gtk_list_store_append (listStore_in, &iterator);
+    gtk_list_store_set (listStore_in, &iterator,
+                        0, converter.str ().c_str (),
+                        1, sample_rate,
+                        -1);
+  } // end IF
+  sample_rate = 22050;
+  if (capabilities_s.dwFormats & 0x000000F0)
+  {
+    ACE_DEBUG ((LM_DEBUG,
+                ACE_TEXT ("found device \"%s\" sample rate: %ukHz\n"),
+                ACE_TEXT (capabilities_s.szPname), sample_rate));
+    converter.clear ();
+    converter.str (ACE_TEXT_ALWAYS_CHAR (""));
+    converter << sample_rate;
+    gtk_list_store_append (listStore_in, &iterator);
+    gtk_list_store_set (listStore_in, &iterator,
+                        0, converter.str ().c_str (),
+                        1, sample_rate,
+                        -1);
+  } // end IF
+  sample_rate = 44100;
+  if (capabilities_s.dwFormats & 0x00000F00)
+  {
+    ACE_DEBUG ((LM_DEBUG,
+                ACE_TEXT ("found device \"%s\" sample rate: %ukHz\n"),
+                ACE_TEXT (capabilities_s.szPname), sample_rate));
+    converter.clear ();
+    converter.str (ACE_TEXT_ALWAYS_CHAR (""));
+    converter << sample_rate;
+    gtk_list_store_append (listStore_in, &iterator);
+    gtk_list_store_set (listStore_in, &iterator,
+                        0, converter.str ().c_str (),
+                        1, sample_rate,
+                        -1);
+  } // end IF
+  sample_rate = 48000;
+  if (capabilities_s.dwFormats & 0x0000F000)
+  {
+    ACE_DEBUG ((LM_DEBUG,
+                ACE_TEXT ("found device \"%s\" sample rate: %ukHz\n"),
+                ACE_TEXT (capabilities_s.szPname), sample_rate));
+    converter.clear ();
+    converter.str (ACE_TEXT_ALWAYS_CHAR (""));
+    converter << sample_rate;
+    gtk_list_store_append (listStore_in, &iterator);
+    gtk_list_store_set (listStore_in, &iterator,
+                        0, converter.str ().c_str (),
+                        1, sample_rate,
+                        -1);
+  } // end IF
+  sample_rate = 96000;
+  if (capabilities_s.dwFormats & 0x000F0000)
+  {
+    ACE_DEBUG ((LM_DEBUG,
+                ACE_TEXT ("found device \"%s\" sample rate: %ukHz\n"),
+                ACE_TEXT (capabilities_s.szPname), sample_rate));
+    converter.clear ();
+    converter.str (ACE_TEXT_ALWAYS_CHAR (""));
+    converter << sample_rate;
+    gtk_list_store_append (listStore_in, &iterator);
+    gtk_list_store_set (listStore_in, &iterator,
+                        0, converter.str ().c_str (),
+                        1, sample_rate,
+                        -1);
+  } // end IF
+
+  return true;
+}
 bool
 load_sample_rates (IAMStreamConfig* IAMStreamConfig_in,
                    REFGUID mediaSubType_in,
@@ -747,7 +935,7 @@ load_sample_rates (IAMStreamConfig* IAMStreamConfig_in,
     converter << *iterator_2;
     gtk_list_store_append (listStore_in, &iterator);
     gtk_list_store_set (listStore_in, &iterator,
-                        0, ACE_TEXT (converter.str ().c_str ()),
+                        0, converter.str ().c_str (),
                         1, *iterator_2,
                         -1);
   } // end FOR
@@ -888,12 +1076,222 @@ load_sample_rates (IMFMediaSource* IMFMediaSource_in,
 }
 
 bool
+load_sample_resolutions (int deviceId_in,
+                         unsigned int sampleRate_in,
+                         GtkListStore* listStore_in)
+{
+  STREAM_TRACE (ACE_TEXT ("::load_sample_rates"));
+
+  // initialize result
+  gtk_list_store_clear (listStore_in);
+
+  MMRESULT result_2 = MMSYSERR_NOERROR;
+  WAVEINCAPS capabilities_s;
+  GtkTreeIter iterator;
+
+  result_2 = waveInGetDevCaps (deviceId_in,
+                               &capabilities_s,
+                               sizeof (WAVEINCAPS));
+  if (unlikely (result_2 != MMSYSERR_NOERROR))
+  { char error_msg_a[BUFSIZ];
+    waveInGetErrorText (result_2, error_msg_a, BUFSIZ - 1);
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to waveInGetDevCaps(%d): \"%s\", aborting\n"),
+                deviceId_in, ACE_TEXT (error_msg_a)));
+    return false;
+  } // end IF
+
+  std::ostringstream converter;
+  switch (sampleRate_in)
+  {
+    case 11025:
+    {
+      if ((capabilities_s.dwFormats & WAVE_FORMAT_1M08) ||
+          (capabilities_s.dwFormats & WAVE_FORMAT_1S08))
+      {
+        ACE_DEBUG ((LM_DEBUG,
+                    ACE_TEXT ("found device \"%s\" sample rate: %ukHz, resolution: %u bits\n"),
+                    ACE_TEXT (capabilities_s.szPname), sampleRate_in, 8));
+        converter.clear ();
+        converter.str (ACE_TEXT_ALWAYS_CHAR (""));
+        converter << 8;
+        gtk_list_store_append (listStore_in, &iterator);
+        gtk_list_store_set (listStore_in, &iterator,
+                            0, converter.str ().c_str (),
+                            1, 8,
+                            -1);
+      } // end IF
+      if ((capabilities_s.dwFormats & WAVE_FORMAT_1M16) ||
+          (capabilities_s.dwFormats & WAVE_FORMAT_1S16))
+      {
+        ACE_DEBUG ((LM_DEBUG,
+                    ACE_TEXT ("found device \"%s\" sample rate: %ukHz, resolution: %u bits\n"),
+                    ACE_TEXT (capabilities_s.szPname), sampleRate_in, 16));
+        converter.clear ();
+        converter.str (ACE_TEXT_ALWAYS_CHAR (""));
+        converter << 16;
+        gtk_list_store_append (listStore_in, &iterator);
+        gtk_list_store_set (listStore_in, &iterator,
+                            0, converter.str ().c_str (),
+                            1, 16,
+                            -1);
+      } // end IF
+      break;
+    }
+    case 22050:
+    {
+      if ((capabilities_s.dwFormats & WAVE_FORMAT_2M08) ||
+          (capabilities_s.dwFormats & WAVE_FORMAT_2S08))
+      {
+        ACE_DEBUG ((LM_DEBUG,
+                    ACE_TEXT ("found device \"%s\" sample rate: %ukHz, resolution: %u bits\n"),
+                    ACE_TEXT (capabilities_s.szPname), sampleRate_in, 8));
+        converter.clear ();
+        converter.str (ACE_TEXT_ALWAYS_CHAR (""));
+        converter << 8;
+        gtk_list_store_append (listStore_in, &iterator);
+        gtk_list_store_set (listStore_in, &iterator,
+                            0, converter.str ().c_str (),
+                            1, 8,
+                            -1);
+      } // end IF
+      if ((capabilities_s.dwFormats & WAVE_FORMAT_2M16) ||
+          (capabilities_s.dwFormats & WAVE_FORMAT_2S16))
+      {
+        ACE_DEBUG ((LM_DEBUG,
+                    ACE_TEXT ("found device \"%s\" sample rate: %ukHz, resolution: %u bits\n"),
+                    ACE_TEXT (capabilities_s.szPname), sampleRate_in, 16));
+        converter.clear ();
+        converter.str (ACE_TEXT_ALWAYS_CHAR (""));
+        converter << 16;
+        gtk_list_store_append (listStore_in, &iterator);
+        gtk_list_store_set (listStore_in, &iterator,
+                            0, converter.str ().c_str (),
+                            1, 16,
+                            -1);
+      } // end IF
+      break;
+    }
+    case 44100:
+    {
+      if ((capabilities_s.dwFormats & WAVE_FORMAT_4M08) ||
+          (capabilities_s.dwFormats & WAVE_FORMAT_4S08))
+      {
+        ACE_DEBUG ((LM_DEBUG,
+                    ACE_TEXT ("found device \"%s\" sample rate: %ukHz, resolution: %u bits\n"),
+                    ACE_TEXT (capabilities_s.szPname), sampleRate_in, 8));
+        converter.clear ();
+        converter.str (ACE_TEXT_ALWAYS_CHAR (""));
+        converter << 8;
+        gtk_list_store_append (listStore_in, &iterator);
+        gtk_list_store_set (listStore_in, &iterator,
+                            0, converter.str ().c_str (),
+                            1, 8,
+                            -1);
+      } // end IF
+      if ((capabilities_s.dwFormats & WAVE_FORMAT_4M16) ||
+          (capabilities_s.dwFormats & WAVE_FORMAT_4S16))
+      {
+        ACE_DEBUG ((LM_DEBUG,
+                    ACE_TEXT ("found device \"%s\" sample rate: %ukHz, resolution: %u bits\n"),
+                    ACE_TEXT (capabilities_s.szPname), sampleRate_in, 16));
+        converter.clear ();
+        converter.str (ACE_TEXT_ALWAYS_CHAR (""));
+        converter << 16;
+        gtk_list_store_append (listStore_in, &iterator);
+        gtk_list_store_set (listStore_in, &iterator,
+                            0, converter.str ().c_str (),
+                            1, 16,
+                            -1);
+      } // end IF
+      break;
+    }
+    case 48000:
+    {
+      if ((capabilities_s.dwFormats & WAVE_FORMAT_48M08) ||
+          (capabilities_s.dwFormats & WAVE_FORMAT_48S08))
+      {
+        ACE_DEBUG ((LM_DEBUG,
+                    ACE_TEXT ("found device \"%s\" sample rate: %ukHz, resolution: %u bits\n"),
+                    ACE_TEXT (capabilities_s.szPname), sampleRate_in, 8));
+        converter.clear ();
+        converter.str (ACE_TEXT_ALWAYS_CHAR (""));
+        converter << 8;
+        gtk_list_store_append (listStore_in, &iterator);
+        gtk_list_store_set (listStore_in, &iterator,
+                            0, converter.str ().c_str (),
+                            1, 8,
+                            -1);
+      } // end IF
+      if ((capabilities_s.dwFormats & WAVE_FORMAT_48M16) ||
+          (capabilities_s.dwFormats & WAVE_FORMAT_48S16))
+      {
+        ACE_DEBUG ((LM_DEBUG,
+                    ACE_TEXT ("found device \"%s\" sample rate: %ukHz, resolution: %u bits\n"),
+                    ACE_TEXT (capabilities_s.szPname), sampleRate_in, 16));
+        converter.clear ();
+        converter.str (ACE_TEXT_ALWAYS_CHAR (""));
+        converter << 16;
+        gtk_list_store_append (listStore_in, &iterator);
+        gtk_list_store_set (listStore_in, &iterator,
+                            0, converter.str ().c_str (),
+                            1, 16,
+                            -1);
+      } // end IF
+      break;
+    }
+    case 96000:
+    {
+      if ((capabilities_s.dwFormats & WAVE_FORMAT_96M08) ||
+          (capabilities_s.dwFormats & WAVE_FORMAT_96S08))
+      {
+        ACE_DEBUG ((LM_DEBUG,
+                    ACE_TEXT ("found device \"%s\" sample rate: %ukHz, resolution: %u bits\n"),
+                    ACE_TEXT (capabilities_s.szPname), sampleRate_in, 8));
+        converter.clear ();
+        converter.str (ACE_TEXT_ALWAYS_CHAR (""));
+        converter << 8;
+        gtk_list_store_append (listStore_in, &iterator);
+        gtk_list_store_set (listStore_in, &iterator,
+                            0, converter.str ().c_str (),
+                            1, 8,
+                            -1);
+      } // end IF
+      if ((capabilities_s.dwFormats & WAVE_FORMAT_96M16) ||
+          (capabilities_s.dwFormats & WAVE_FORMAT_96S16))
+      {
+        ACE_DEBUG ((LM_DEBUG,
+                    ACE_TEXT ("found device \"%s\" sample rate: %ukHz, resolution: %u bits\n"),
+                    ACE_TEXT (capabilities_s.szPname), sampleRate_in, 16));
+        converter.clear ();
+        converter.str (ACE_TEXT_ALWAYS_CHAR (""));
+        converter << 16;
+        gtk_list_store_append (listStore_in, &iterator);
+        gtk_list_store_set (listStore_in, &iterator,
+                            0, converter.str ().c_str (),
+                            1, 16,
+                            -1);
+      } // end IF
+      break;
+    }
+    default:
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("invalid/unknown sample rate (was: %ukHz), aborting\n"),
+                  sampleRate_in));
+      return false;
+    }
+  } // end SWITCH
+
+  return true;
+}
+bool
 load_sample_resolutions (IAMStreamConfig* IAMStreamConfig_in,
                          const struct _GUID& mediaSubType_in,
                          unsigned int sampleRate_in,
                          GtkListStore* listStore_in)
 {
-  STREAM_TRACE (ACE_TEXT ("::load_sample_rates"));
+  STREAM_TRACE (ACE_TEXT ("::load_sample_resolutions"));
 
   // sanity check(s)
   ACE_ASSERT (IAMStreamConfig_in);
@@ -1114,13 +1512,444 @@ load_sample_resolutions (IMFMediaSource* IMFMediaSource_in,
 }
 
 bool
+load_channels (int deviceId_in,
+               unsigned int sampleRate_in,
+               unsigned int bitsPerSample_in,
+               GtkListStore* listStore_in)
+{
+  STREAM_TRACE (ACE_TEXT ("::load_channels"));
+
+  // initialize result
+  gtk_list_store_clear (listStore_in);
+
+  MMRESULT result_2 = MMSYSERR_NOERROR;
+  WAVEINCAPS capabilities_s;
+  GtkTreeIter iterator;
+
+  result_2 = waveInGetDevCaps (deviceId_in,
+                               &capabilities_s,
+                               sizeof (WAVEINCAPS));
+  if (unlikely (result_2 != MMSYSERR_NOERROR))
+  { char error_msg_a[BUFSIZ];
+    waveInGetErrorText (result_2, error_msg_a, BUFSIZ - 1);
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to waveInGetDevCaps(%d): \"%s\", aborting\n"),
+                deviceId_in, ACE_TEXT (error_msg_a)));
+    return false;
+  } // end IF
+
+  std::ostringstream converter;
+  switch (sampleRate_in)
+  {
+    case 11025:
+    {
+      switch (bitsPerSample_in)
+      {
+        case 8:
+        {
+          if (capabilities_s.dwFormats & WAVE_FORMAT_1M08)
+          {
+            ACE_DEBUG ((LM_DEBUG,
+                        ACE_TEXT ("found device \"%s\" sample rate: %ukHz, resolution: %u bits, channel(s): %u\n"),
+                        ACE_TEXT (capabilities_s.szPname), sampleRate_in, bitsPerSample_in, 1));
+            converter.clear ();
+            converter.str (ACE_TEXT_ALWAYS_CHAR (""));
+            converter << 1;
+            gtk_list_store_append (listStore_in, &iterator);
+            gtk_list_store_set (listStore_in, &iterator,
+                                0, converter.str ().c_str (),
+                                1, 1,
+                                -1);
+          } // end IF
+          if (capabilities_s.dwFormats & WAVE_FORMAT_1S08)
+          {
+            ACE_DEBUG ((LM_DEBUG,
+                        ACE_TEXT ("found device \"%s\" sample rate: %ukHz, resolution: %u bits, channel(s): %u\n"),
+                        ACE_TEXT (capabilities_s.szPname), sampleRate_in, bitsPerSample_in, 2));
+            converter.clear ();
+            converter.str (ACE_TEXT_ALWAYS_CHAR (""));
+            converter << 2;
+            gtk_list_store_append (listStore_in, &iterator);
+            gtk_list_store_set (listStore_in, &iterator,
+                                0, converter.str ().c_str (),
+                                1, 2,
+                                -1);
+          } // end IF
+          break;
+        }
+        case 16:
+        {
+          if (capabilities_s.dwFormats & WAVE_FORMAT_1M16)
+          {
+            ACE_DEBUG ((LM_DEBUG,
+                        ACE_TEXT ("found device \"%s\" sample rate: %ukHz, resolution: %u bits, channel(s): %u\n"),
+                        ACE_TEXT (capabilities_s.szPname), sampleRate_in, bitsPerSample_in, 1));
+            converter.clear ();
+            converter.str (ACE_TEXT_ALWAYS_CHAR (""));
+            converter << 1;
+            gtk_list_store_append (listStore_in, &iterator);
+            gtk_list_store_set (listStore_in, &iterator,
+                                0, converter.str ().c_str (),
+                                1, 1,
+                                -1);
+          } // end IF
+          if (capabilities_s.dwFormats & WAVE_FORMAT_1S16)
+          {
+            ACE_DEBUG ((LM_DEBUG,
+                        ACE_TEXT ("found device \"%s\" sample rate: %ukHz, resolution: %u bits, channel(s): %u\n"),
+                        ACE_TEXT (capabilities_s.szPname), sampleRate_in, bitsPerSample_in, 2));
+            converter.clear ();
+            converter.str (ACE_TEXT_ALWAYS_CHAR (""));
+            converter << 2;
+            gtk_list_store_append (listStore_in, &iterator);
+            gtk_list_store_set (listStore_in, &iterator,
+                                0, converter.str ().c_str (),
+                                1, 2,
+                                -1);
+          } // end IF
+          break;
+        }
+        default:
+        {
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("invalid/unknown bits/sample (was: %u), aborting\n"),
+                      bitsPerSample_in));
+          return false;
+        }
+      } // end SWITCH
+      break;
+    }
+    case 22050:
+    {
+      switch (bitsPerSample_in)
+      {
+        case 8:
+        {
+          if (capabilities_s.dwFormats & WAVE_FORMAT_2M08)
+          {
+            ACE_DEBUG ((LM_DEBUG,
+                        ACE_TEXT ("found device \"%s\" sample rate: %ukHz, resolution: %u bits, channel(s): %u\n"),
+                        ACE_TEXT (capabilities_s.szPname), sampleRate_in, bitsPerSample_in, 1));
+            converter.clear ();
+            converter.str (ACE_TEXT_ALWAYS_CHAR (""));
+            converter << 1;
+            gtk_list_store_append (listStore_in, &iterator);
+            gtk_list_store_set (listStore_in, &iterator,
+                                0, converter.str ().c_str (),
+                                1, 1,
+                                -1);
+          } // end IF
+          if (capabilities_s.dwFormats & WAVE_FORMAT_2S08)
+          {
+            ACE_DEBUG ((LM_DEBUG,
+                        ACE_TEXT ("found device \"%s\" sample rate: %ukHz, resolution: %u bits, channel(s): %u\n"),
+                        ACE_TEXT (capabilities_s.szPname), sampleRate_in, bitsPerSample_in, 2));
+            converter.clear ();
+            converter.str (ACE_TEXT_ALWAYS_CHAR (""));
+            converter << 2;
+            gtk_list_store_append (listStore_in, &iterator);
+            gtk_list_store_set (listStore_in, &iterator,
+                                0, converter.str ().c_str (),
+                                1, 2,
+                                -1);
+          } // end IF
+          break;
+        }
+        case 16:
+        {
+          if (capabilities_s.dwFormats & WAVE_FORMAT_2M16)
+          {
+            ACE_DEBUG ((LM_DEBUG,
+                        ACE_TEXT ("found device \"%s\" sample rate: %ukHz, resolution: %u bits, channel(s): %u\n"),
+                        ACE_TEXT (capabilities_s.szPname), sampleRate_in, bitsPerSample_in, 1));
+            converter.clear ();
+            converter.str (ACE_TEXT_ALWAYS_CHAR (""));
+            converter << 1;
+            gtk_list_store_append (listStore_in, &iterator);
+            gtk_list_store_set (listStore_in, &iterator,
+                                0, converter.str ().c_str (),
+                                1, 1,
+                                -1);
+          } // end IF
+          if (capabilities_s.dwFormats & WAVE_FORMAT_2S16)
+          {
+            ACE_DEBUG ((LM_DEBUG,
+                        ACE_TEXT ("found device \"%s\" sample rate: %ukHz, resolution: %u bits, channel(s): %u\n"),
+                        ACE_TEXT (capabilities_s.szPname), sampleRate_in, bitsPerSample_in, 2));
+            converter.clear ();
+            converter.str (ACE_TEXT_ALWAYS_CHAR (""));
+            converter << 2;
+            gtk_list_store_append (listStore_in, &iterator);
+            gtk_list_store_set (listStore_in, &iterator,
+                                0, converter.str ().c_str (),
+                                1, 2,
+                                -1);
+          } // end IF
+          break;
+        }
+        default:
+        {
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("invalid/unknown bits/sample (was: %u), aborting\n"),
+                      bitsPerSample_in));
+          return false;
+        }
+      } // end SWITCH
+      break;
+    }
+    case 44100:
+    {
+      switch (bitsPerSample_in)
+      {
+        case 8:
+        {
+          if (capabilities_s.dwFormats & WAVE_FORMAT_4M08)
+          {
+            ACE_DEBUG ((LM_DEBUG,
+                        ACE_TEXT ("found device \"%s\" sample rate: %ukHz, resolution: %u bits, channel(s): %u\n"),
+                        ACE_TEXT (capabilities_s.szPname), sampleRate_in, bitsPerSample_in, 1));
+            converter.clear ();
+            converter.str (ACE_TEXT_ALWAYS_CHAR (""));
+            converter << 1;
+            gtk_list_store_append (listStore_in, &iterator);
+            gtk_list_store_set (listStore_in, &iterator,
+                                0, converter.str ().c_str (),
+                                1, 1,
+                                -1);
+          } // end IF
+          if (capabilities_s.dwFormats & WAVE_FORMAT_4S08)
+          {
+            ACE_DEBUG ((LM_DEBUG,
+                        ACE_TEXT ("found device \"%s\" sample rate: %ukHz, resolution: %u bits, channel(s): %u\n"),
+                        ACE_TEXT (capabilities_s.szPname), sampleRate_in, bitsPerSample_in, 2));
+            converter.clear ();
+            converter.str (ACE_TEXT_ALWAYS_CHAR (""));
+            converter << 2;
+            gtk_list_store_append (listStore_in, &iterator);
+            gtk_list_store_set (listStore_in, &iterator,
+                                0, converter.str ().c_str (),
+                                1, 2,
+                                -1);
+          } // end IF
+          break;
+        }
+        case 16:
+        {
+          if (capabilities_s.dwFormats & WAVE_FORMAT_4M16)
+          {
+            ACE_DEBUG ((LM_DEBUG,
+                        ACE_TEXT ("found device \"%s\" sample rate: %ukHz, resolution: %u bits, channel(s): %u\n"),
+                        ACE_TEXT (capabilities_s.szPname), sampleRate_in, bitsPerSample_in, 1));
+            converter.clear ();
+            converter.str (ACE_TEXT_ALWAYS_CHAR (""));
+            converter << 1;
+            gtk_list_store_append (listStore_in, &iterator);
+            gtk_list_store_set (listStore_in, &iterator,
+                                0, converter.str ().c_str (),
+                                1, 1,
+                                -1);
+          } // end IF
+          if (capabilities_s.dwFormats & WAVE_FORMAT_4S16)
+          {
+            ACE_DEBUG ((LM_DEBUG,
+                        ACE_TEXT ("found device \"%s\" sample rate: %ukHz, resolution: %u bits, channel(s): %u\n"),
+                        ACE_TEXT (capabilities_s.szPname), sampleRate_in, bitsPerSample_in, 2));
+            converter.clear ();
+            converter.str (ACE_TEXT_ALWAYS_CHAR (""));
+            converter << 2;
+            gtk_list_store_append (listStore_in, &iterator);
+            gtk_list_store_set (listStore_in, &iterator,
+                                0, converter.str ().c_str (),
+                                1, 2,
+                                -1);
+          } // end IF
+          break;
+        }
+        default:
+        {
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("invalid/unknown bits/sample (was: %u), aborting\n"),
+                      bitsPerSample_in));
+          return false;
+        }
+      } // end SWITCH
+      break;
+    }
+    case 48000:
+    {
+      switch (bitsPerSample_in)
+      {
+        case 8:
+        {
+          if (capabilities_s.dwFormats & WAVE_FORMAT_48M08)
+          {
+            ACE_DEBUG ((LM_DEBUG,
+                        ACE_TEXT ("found device \"%s\" sample rate: %ukHz, resolution: %u bits, channel(s): %u\n"),
+                        ACE_TEXT (capabilities_s.szPname), sampleRate_in, bitsPerSample_in, 1));
+            converter.clear ();
+            converter.str (ACE_TEXT_ALWAYS_CHAR (""));
+            converter << 1;
+            gtk_list_store_append (listStore_in, &iterator);
+            gtk_list_store_set (listStore_in, &iterator,
+                                0, converter.str ().c_str (),
+                                1, 1,
+                                -1);
+          } // end IF
+          if (capabilities_s.dwFormats & WAVE_FORMAT_48S08)
+          {
+            ACE_DEBUG ((LM_DEBUG,
+                        ACE_TEXT ("found device \"%s\" sample rate: %ukHz, resolution: %u bits, channel(s): %u\n"),
+                        ACE_TEXT (capabilities_s.szPname), sampleRate_in, bitsPerSample_in, 2));
+            converter.clear ();
+            converter.str (ACE_TEXT_ALWAYS_CHAR (""));
+            converter << 2;
+            gtk_list_store_append (listStore_in, &iterator);
+            gtk_list_store_set (listStore_in, &iterator,
+                                0, converter.str ().c_str (),
+                                1, 2,
+                                -1);
+          } // end IF
+          break;
+        }
+        case 16:
+        {
+          if (capabilities_s.dwFormats & WAVE_FORMAT_48M16)
+          {
+            ACE_DEBUG ((LM_DEBUG,
+                        ACE_TEXT ("found device \"%s\" sample rate: %ukHz, resolution: %u bits, channel(s): %u\n"),
+                        ACE_TEXT (capabilities_s.szPname), sampleRate_in, bitsPerSample_in, 1));
+            converter.clear ();
+            converter.str (ACE_TEXT_ALWAYS_CHAR (""));
+            converter << 1;
+            gtk_list_store_append (listStore_in, &iterator);
+            gtk_list_store_set (listStore_in, &iterator,
+                                0, converter.str ().c_str (),
+                                1, 1,
+                                -1);
+          } // end IF
+          if (capabilities_s.dwFormats & WAVE_FORMAT_48S16)
+          {
+            ACE_DEBUG ((LM_DEBUG,
+                        ACE_TEXT ("found device \"%s\" sample rate: %ukHz, resolution: %u bits, channel(s): %u\n"),
+                        ACE_TEXT (capabilities_s.szPname), sampleRate_in, bitsPerSample_in, 2));
+            converter.clear ();
+            converter.str (ACE_TEXT_ALWAYS_CHAR (""));
+            converter << 2;
+            gtk_list_store_append (listStore_in, &iterator);
+            gtk_list_store_set (listStore_in, &iterator,
+                                0, converter.str ().c_str (),
+                                1, 2,
+                                -1);
+          } // end IF
+          break;
+        }
+        default:
+        {
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("invalid/unknown bits/sample (was: %u), aborting\n"),
+                      bitsPerSample_in));
+          return false;
+        }
+      } // end SWITCH
+      break;
+    }
+    case 96000:
+    {
+      switch (bitsPerSample_in)
+      {
+        case 8:
+        {
+          if (capabilities_s.dwFormats & WAVE_FORMAT_96M08)
+          {
+            ACE_DEBUG ((LM_DEBUG,
+                        ACE_TEXT ("found device \"%s\" sample rate: %ukHz, resolution: %u bits, channel(s): %u\n"),
+                        ACE_TEXT (capabilities_s.szPname), sampleRate_in, bitsPerSample_in, 1));
+            converter.clear ();
+            converter.str (ACE_TEXT_ALWAYS_CHAR (""));
+            converter << 1;
+            gtk_list_store_append (listStore_in, &iterator);
+            gtk_list_store_set (listStore_in, &iterator,
+                                0, converter.str ().c_str (),
+                                1, 1,
+                                -1);
+          } // end IF
+          if (capabilities_s.dwFormats & WAVE_FORMAT_96S08)
+          {
+            ACE_DEBUG ((LM_DEBUG,
+                        ACE_TEXT ("found device \"%s\" sample rate: %ukHz, resolution: %u bits, channel(s): %u\n"),
+                        ACE_TEXT (capabilities_s.szPname), sampleRate_in, bitsPerSample_in, 2));
+            converter.clear ();
+            converter.str (ACE_TEXT_ALWAYS_CHAR (""));
+            converter << 2;
+            gtk_list_store_append (listStore_in, &iterator);
+            gtk_list_store_set (listStore_in, &iterator,
+                                0, converter.str ().c_str (),
+                                1, 2,
+                                -1);
+          } // end IF
+          break;
+        }
+        case 16:
+        {
+          if (capabilities_s.dwFormats & WAVE_FORMAT_96M16)
+          {
+            ACE_DEBUG ((LM_DEBUG,
+                        ACE_TEXT ("found device \"%s\" sample rate: %ukHz, resolution: %u bits, channel(s): %u\n"),
+                        ACE_TEXT (capabilities_s.szPname), sampleRate_in, bitsPerSample_in, 1));
+            converter.clear ();
+            converter.str (ACE_TEXT_ALWAYS_CHAR (""));
+            converter << 1;
+            gtk_list_store_append (listStore_in, &iterator);
+            gtk_list_store_set (listStore_in, &iterator,
+                                0, converter.str ().c_str (),
+                                1, 1,
+                                -1);
+          } // end IF
+          if (capabilities_s.dwFormats & WAVE_FORMAT_96S16)
+          {
+            ACE_DEBUG ((LM_DEBUG,
+                        ACE_TEXT ("found device \"%s\" sample rate: %ukHz, resolution: %u bits, channel(s): %u\n"),
+                        ACE_TEXT (capabilities_s.szPname), sampleRate_in, bitsPerSample_in, 2));
+            converter.clear ();
+            converter.str (ACE_TEXT_ALWAYS_CHAR (""));
+            converter << 2;
+            gtk_list_store_append (listStore_in, &iterator);
+            gtk_list_store_set (listStore_in, &iterator,
+                                0, converter.str ().c_str (),
+                                1, 2,
+                                -1);
+          } // end IF
+          break;
+        }
+        default:
+        {
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("invalid/unknown bits/sample (was: %u), aborting\n"),
+                      bitsPerSample_in));
+          return false;
+        }
+      } // end SWITCH
+      break;
+    }
+    default:
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("invalid/unknown sample rate (was: %ukHz), aborting\n"),
+                  sampleRate_in));
+      return false;
+    }
+  } // end SWITCH
+
+  return true;
+}
+bool
 load_channels (IAMStreamConfig* IAMStreamConfig_in,
                const struct _GUID& mediaSubType_in,
                unsigned int sampleRate_in,
-               unsigned int bitePerSample_in,
+               unsigned int bitsPerSample_in,
                GtkListStore* listStore_in)
 {
-  STREAM_TRACE (ACE_TEXT ("::load_sample_rates"));
+  STREAM_TRACE (ACE_TEXT ("::load_channels"));
 
   // sanity check(s)
   ACE_ASSERT (IAMStreamConfig_in);
@@ -2079,6 +2908,7 @@ get_buffer_size (gpointer userData_in)
     NULL;
   struct Test_U_AudioEffect_MediaFoundation_UI_CBData* mediafoundation_ui_cb_data_p =
     NULL;
+  bool use_framework_source_b = false;
   switch (ui_cb_data_base_p->mediaFramework)
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
@@ -2088,6 +2918,8 @@ get_buffer_size (gpointer userData_in)
       // sanity check(s)
       ACE_ASSERT (directshow_ui_cb_data_p);
       ACE_ASSERT (directshow_ui_cb_data_p->configuration);
+      use_framework_source_b =
+        directshow_ui_cb_data_p->configuration->useFrameworkSource;
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
@@ -2097,6 +2929,8 @@ get_buffer_size (gpointer userData_in)
       // sanity check(s)
       ACE_ASSERT (mediafoundation_ui_cb_data_p);
       ACE_ASSERT (mediafoundation_ui_cb_data_p->configuration);
+      use_framework_source_b =
+        mediafoundation_ui_cb_data_p->configuration->useFrameworkSource;
       break;
     }
     default:
@@ -2157,7 +2991,18 @@ get_buffer_size (gpointer userData_in)
 #endif // ACE_WIN32 || ACE_WIN64
   g_value_unset (&value);
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  struct _GUID GUID_s = Common_Tools::StringToGUID (format_string);
+  struct _GUID GUID_s = GUID_NULL;
+  if (use_framework_source_b)
+  {
+    GUID_s = Common_Tools::StringToGUID (format_string);
+    if (InlineIsEqualGUID (GUID_s, GUID_NULL))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to Common_Tools::StringToGUID(\"%s\"), aborting\n"),
+                  ACE_TEXT (format_string.c_str ())));
+      return 0;
+    } // end IF
+  } // end IF
 #else
 //  snd_pcm_format_t format_i = snd_pcm_format_value (format_string.c_str ());
 #endif // ACE_WIN32 || ACE_WIN64
@@ -2800,18 +3645,23 @@ idle_initialize_UI_cb (gpointer userData_in)
 
   gdouble buffer_size = 0.0;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
+  bool use_framework_source_b = false;
   switch (ui_cb_data_base_p->mediaFramework)
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
     {
       buffer_size =
         directshow_ui_cb_data_p->configuration->streamConfiguration.configuration_->allocatorConfiguration->defaultBufferSize;
+      use_framework_source_b =
+        directshow_ui_cb_data_p->configuration->useFrameworkSource;
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
     {
       buffer_size =
         mediafoundation_ui_cb_data_p->configuration->streamConfiguration.configuration_->allocatorConfiguration->defaultBufferSize;
+      use_framework_source_b =
+        mediafoundation_ui_cb_data_p->configuration->useFrameworkSource;
       break;
     }
     default:
@@ -2843,7 +3693,8 @@ idle_initialize_UI_cb (gpointer userData_in)
                                         1, GTK_SORT_DESCENDING);
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   if (!load_capture_devices (list_store_p,
-                             ui_cb_data_base_p->mediaFramework))
+                             ui_cb_data_base_p->mediaFramework,
+                             use_framework_source_b))
 #else
   if (!load_capture_devices (list_store_p))
 #endif // ACE_WIN32 || ACE_WIN64
@@ -3010,6 +3861,8 @@ idle_initialize_UI_cb (gpointer userData_in)
 
       filename =
         (*directshow_modulehandler_configuration_iterator).second.second.targetFileName;
+      if (Common_File_Tools::isDirectory (filename))
+        (*directshow_modulehandler_configuration_iterator).second.second.targetFileName.clear ();
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
@@ -3020,6 +3873,8 @@ idle_initialize_UI_cb (gpointer userData_in)
 
       filename =
         (*mediafoundation_modulehandler_configuration_iterator).second.second.targetFileName;
+      if (Common_File_Tools::isDirectory (filename))
+        (*mediafoundation_modulehandler_configuration_iterator).second.second.targetFileName.clear ();
       break;
     }
     default:
@@ -3037,6 +3892,8 @@ idle_initialize_UI_cb (gpointer userData_in)
 
   filename =
     (*modulehandler_configuration_iterator).second.second.targetFileName;
+  if (Common_File_Tools::isDirectory (filename))
+    (*modulehandler_configuration_iterator).second.second.targetFileName.clear ();
 #endif // ACE_WIN32 || ACE_WIN64
 
   //GtkFileChooserDialog* file_chooser_dialog_p =
@@ -3064,85 +3921,69 @@ idle_initialize_UI_cb (gpointer userData_in)
     GTK_FILE_CHOOSER_BUTTON (gtk_builder_get_object ((*iterator).second.second,
                                                      ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_FILECHOOSERBUTTON_SAVE_NAME)));
   ACE_ASSERT (file_chooser_button_p);
-  //GError* error_p = NULL;
-  //GFile* file_p = NULL;
+  gboolean result = FALSE;
   gchar* filename_p = NULL;
   if (!filename.empty ())
   {
-    // *NOTE*: gtk does not complain if the file doesn't exist, but the button
-    //         will display "(None)" --> create empty file
-    if (!Common_File_Tools::isReadable (filename))
-      if (!Common_File_Tools::create (filename))
-      {
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("failed to Common_File_Tools::create(\"%s\"): \"%m\", aborting\n"),
-                    ACE_TEXT (filename.c_str ())));
-        return G_SOURCE_REMOVE;
-      } // end IF
-    //file_p =
-    //  g_file_new_for_path (data_p->configuration->moduleHandlerConfiguration.targetFileName.c_str ());
-    //ACE_ASSERT (file_p);
-    //ACE_ASSERT (g_file_query_exists (file_p, NULL));
-
-    //std::string file_uri =
-    //  ACE_TEXT_ALWAYS_CHAR ("file://") +
-    //  data_p->configuration->moduleHandlerConfiguration.targetFileName;
-    //if (!gtk_file_chooser_set_current_folder_uri (GTK_FILE_CHOOSER (file_chooser_button_p),
-    //                                              file_uri.c_str ()))
-    if (!gtk_file_chooser_set_filename (GTK_FILE_CHOOSER (file_chooser_button_p),
-                                        filename.c_str ()))
+    if (!Common_File_Tools::isDirectory (filename))
     {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to gtk_file_chooser_set_filename(\"%s\"): \"%s\", aborting\n"),
-                  ACE_TEXT (filename.c_str ())));
-      return G_SOURCE_REMOVE;
+      // *NOTE*: gtk does not complain if the file doesn't exist, but the button
+      //         will display "(None)" --> create empty file
+      if (!Common_File_Tools::isReadable (filename))
+        if (!Common_File_Tools::create (filename))
+        {
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("failed to Common_File_Tools::create(\"%s\"): \"%m\", aborting\n"),
+                      ACE_TEXT (filename.c_str ())));
+          return G_SOURCE_REMOVE;
+        } // end IF
+      result =
+        gtk_file_chooser_set_filename (GTK_FILE_CHOOSER (file_chooser_button_p),
+                                       filename.c_str ());
     } // end IF
-
-    //if (!gtk_file_chooser_select_file (GTK_FILE_CHOOSER (file_chooser_dialog_p),
-    //                                   file_p,
-    //                                   &error_p))
-    //{
-    //  ACE_DEBUG ((LM_ERROR,
-    //              ACE_TEXT ("failed to gtk_file_chooser_select_file(\"%s\"): \"%s\", aborting\n"),
-    //              ACE_TEXT (data_p->configuration->moduleHandlerConfiguration.targetFileName.c_str ()),
-    //              ACE_TEXT (error_p->message)));
-    //  g_error_free (error_p);
-    //  g_object_unref (file_p);
-    //  return G_SOURCE_REMOVE;
-    //} // end IF
-    //g_object_unref (file_p);
+    else
+    {
+      result =
+        gtk_file_chooser_set_current_folder (GTK_FILE_CHOOSER (file_chooser_button_p),
+                                             filename.c_str ());
+      filename.clear ();
+    } // end ELSE
   } // end IF
   else
-  {
-    //file_p =
-    //  g_file_new_for_path (Common_File_Tools::getTempDirectory ().c_str ());
-    //ACE_ASSERT (file_p);
-
-    if (!gtk_file_chooser_set_filename (GTK_FILE_CHOOSER (file_chooser_button_p),
-                                        Common_File_Tools::getTempDirectory ().c_str ()))
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to gtk_file_chooser_set_filename(\"%s\"): \"%s\", aborting\n"),
-                  ACE_TEXT (Common_File_Tools::getTempDirectory ().c_str ())));
-      return G_SOURCE_REMOVE;
-    } // end IF
-    //g_object_unref (file_p);
-  } // end ELSE
-
-  std::string default_folder_uri = ACE_TEXT_ALWAYS_CHAR ("file://");
-  default_folder_uri += filename;
-  filename_p = Common_UI_GTK_Tools::localeToUTF8 (default_folder_uri);
-  ACE_ASSERT (filename_p);
-  if (!gtk_file_chooser_set_current_folder_uri (GTK_FILE_CHOOSER (file_chooser_button_p),
-                                                filename_p))
+    result =
+      gtk_file_chooser_set_current_folder (GTK_FILE_CHOOSER (file_chooser_button_p),
+                                           Common_File_Tools::getTempDirectory ().c_str ());
+  if (!result)
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to gtk_file_chooser_set_current_folder_uri(\"%s\"): \"%m\", aborting\n"),
-                ACE_TEXT (filename_p)));
-    g_free (filename_p);
+                ACE_TEXT ("failed to gtk_file_chooser_set_filename(\"%s\"): \"%s\", aborting\n"),
+                ACE_TEXT (filename.c_str ())));
     return G_SOURCE_REMOVE;
   } // end IF
-  g_free (filename_p); filename_p = NULL;
+  //std::string default_folder_uri = ACE_TEXT_ALWAYS_CHAR ("file://");
+  //default_folder_uri += filename;
+  //filename_p = Common_UI_GTK_Tools::localeToUTF8 (default_folder_uri);
+  //ACE_ASSERT (filename_p);
+  //if (!gtk_file_chooser_set_current_folder_uri (GTK_FILE_CHOOSER (file_chooser_button_p),
+  //                                              filename_p))
+  //{
+  //  ACE_DEBUG ((LM_ERROR,
+  //              ACE_TEXT ("failed to gtk_file_chooser_set_current_folder_uri(\"%s\"): \"%m\", aborting\n"),
+  //              ACE_TEXT (filename_p)));
+  //  g_free (filename_p);
+  //  return G_SOURCE_REMOVE;
+  //} // end IF
+  //g_free (filename_p); filename_p = NULL;
+  if (filename.empty ())
+  {
+    GtkCheckButton* check_button_p =
+      GTK_CHECK_BUTTON (gtk_builder_get_object ((*iterator).second.second,
+                                                ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_CHECKBUTTON_SAVE_NAME)));
+    ACE_ASSERT (check_button_p);
+    g_signal_emit_by_name (G_OBJECT (check_button_p),
+                           ACE_TEXT_ALWAYS_CHAR ("toggled"),
+                           userData_in);
+  } // end IF
 
   GtkScale* scale_p =
     GTK_SCALE (gtk_builder_get_object ((*iterator).second.second,
@@ -3154,7 +3995,7 @@ idle_initialize_UI_cb (gpointer userData_in)
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
     {
       gtk_range_set_value (GTK_RANGE (scale_p),
-        (*directshow_modulehandler_configuration_iterator).second.second.sinusFrequency);
+                           (*directshow_modulehandler_configuration_iterator).second.second.sinusFrequency);
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
@@ -4847,6 +5688,7 @@ togglebutton_record_toggled_cb (GtkToggleButton* toggleButton_in,
     NULL;
   Test_U_AudioEffect_MediaFoundation_StreamConfiguration_t::ITERATOR_T mediafoundation_modulehandler_configuration_iterator;
   Test_U_AudioEffect_DirectShow_StreamConfiguration_t::ITERATOR_T directshow_modulehandler_configuration_iterator;
+  bool use_framework_source_b = false;
   switch (ui_cb_data_base_p->mediaFramework)
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
@@ -4858,6 +5700,8 @@ togglebutton_record_toggled_cb (GtkToggleButton* toggleButton_in,
       ACE_ASSERT (directshow_ui_cb_data_p->configuration);
       ACE_ASSERT (directshow_ui_cb_data_p->stream);
       stream_p = directshow_ui_cb_data_p->stream;
+      use_framework_source_b =
+        directshow_ui_cb_data_p->configuration->useFrameworkSource;
 
       directshow_modulehandler_configuration_iterator =
         directshow_ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
@@ -4873,6 +5717,8 @@ togglebutton_record_toggled_cb (GtkToggleButton* toggleButton_in,
       ACE_ASSERT (mediafoundation_ui_cb_data_p->configuration);
       ACE_ASSERT (mediafoundation_ui_cb_data_p->stream);
       stream_p = mediafoundation_ui_cb_data_p->stream;
+      use_framework_source_b =
+        mediafoundation_ui_cb_data_p->configuration->useFrameworkSource;
 
       mediafoundation_modulehandler_configuration_iterator =
         mediafoundation_ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
@@ -5110,7 +5956,17 @@ togglebutton_record_toggled_cb (GtkToggleButton* toggleButton_in,
   ACE_ASSERT (G_VALUE_TYPE (&value) == G_TYPE_INT);
 #endif // ACE_WIN32 || ACE_WIN64
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  GUID_s = Common_Tools::StringToGUID (g_value_get_string (&value));
+  if (use_framework_source_b)
+  {
+    GUID_s = Common_Tools::StringToGUID (g_value_get_string (&value));
+    if (InlineIsEqualGUID (GUID_s, GUID_NULL))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to Common_Tools::StringToGUID(\"%s\"), returning\n"),
+                  ACE_TEXT (g_value_get_string (&value))));
+      return;
+    } // end IF
+  } // end IF
   HRESULT result = E_FAIL;
   switch (ui_cb_data_base_p->mediaFramework)
   {
@@ -5171,7 +6027,7 @@ togglebutton_record_toggled_cb (GtkToggleButton* toggleButton_in,
       ACE_ASSERT (directshow_ui_cb_data_p->configuration->streamConfiguration.configuration_->format.pbFormat);
       struct tWAVEFORMATEX* waveformatex_p =
         reinterpret_cast<struct tWAVEFORMATEX*> (directshow_ui_cb_data_p->configuration->streamConfiguration.configuration_->format.pbFormat);
-      //waveformatex_p->nSamplesPerSec = g_value_get_uint (&value);
+      waveformatex_p->nSamplesPerSec = g_value_get_uint (&value);
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
@@ -5320,11 +6176,12 @@ togglebutton_record_toggled_cb (GtkToggleButton* toggleButton_in,
     GTK_FILE_CHOOSER_BUTTON (gtk_builder_get_object ((*iterator).second.second,
                                                      ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_FILECHOOSERBUTTON_SAVE_NAME)));
   ACE_ASSERT (file_chooser_button_p);
+  char* filename_p = NULL;
   file_p =
     gtk_file_chooser_get_file (GTK_FILE_CHOOSER (file_chooser_button_p));
   if (file_p)
   {
-    char* filename_p = g_file_get_path (file_p);
+    filename_p = g_file_get_path (file_p);
     if (!filename_p)
     {
       ACE_DEBUG ((LM_ERROR,
@@ -5333,44 +6190,44 @@ togglebutton_record_toggled_cb (GtkToggleButton* toggleButton_in,
       return;
     } // end IF
     g_object_unref (file_p); file_p = NULL;
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-    switch (ui_cb_data_base_p->mediaFramework)
-    {
-      case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
-      {
-        if (save_to_file)
-          (*directshow_modulehandler_configuration_iterator).second.second.targetFileName =
-            Common_UI_GTK_Tools::UTF8ToLocale (filename_p, -1);
-        else
-          (*directshow_modulehandler_configuration_iterator).second.second.targetFileName.clear ();
-        break;
-      }
-      case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
-      {
-        if (save_to_file)
-          (*mediafoundation_modulehandler_configuration_iterator).second.second.targetFileName =
-            Common_UI_GTK_Tools::UTF8ToLocale (filename_p, -1);
-        else
-          (*mediafoundation_modulehandler_configuration_iterator).second.second.targetFileName.clear ();
-        break;
-      }
-      default:
-      {
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("invalid/unknown media framework (was: %d), returning\n"),
-                    ui_cb_data_base_p->mediaFramework));
-        return;
-      }
-    } // end SWITCH
-#else
-    if (save_to_file)
-      (*modulehandler_configuration_iterator).second.second.targetFileName =
-        Common_UI_GTK_Tools::UTF8ToLocale (filename_p, -1);
-    else
-      (*modulehandler_configuration_iterator).second.second.targetFileName.clear ();
-#endif // ACE_WIN32 || ACE_WIN64
-    g_free (filename_p);
   } // end IF
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  switch (ui_cb_data_base_p->mediaFramework)
+  {
+    case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
+    {
+      if (save_to_file)
+        (*directshow_modulehandler_configuration_iterator).second.second.targetFileName =
+          Common_UI_GTK_Tools::UTF8ToLocale (filename_p, -1);
+      else
+        (*directshow_modulehandler_configuration_iterator).second.second.targetFileName.clear ();
+      break;
+    }
+    case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
+    {
+      if (save_to_file)
+        (*mediafoundation_modulehandler_configuration_iterator).second.second.targetFileName =
+          Common_UI_GTK_Tools::UTF8ToLocale (filename_p, -1);
+      else
+        (*mediafoundation_modulehandler_configuration_iterator).second.second.targetFileName.clear ();
+      break;
+    }
+    default:
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("invalid/unknown media framework (was: %d), returning\n"),
+                  ui_cb_data_base_p->mediaFramework));
+      return;
+    }
+  } // end SWITCH
+#else
+  if (save_to_file)
+    (*modulehandler_configuration_iterator).second.second.targetFileName =
+      Common_UI_GTK_Tools::UTF8ToLocale (filename_p, -1);
+  else
+    (*modulehandler_configuration_iterator).second.second.targetFileName.clear ();
+#endif // ACE_WIN32 || ACE_WIN64
+  g_free (filename_p);
 
   toggle_button_p =
       GTK_TOGGLE_BUTTON (gtk_builder_get_object ((*iterator).second.second,
@@ -7088,6 +7945,7 @@ combobox_source_changed_cb (GtkWidget* widget_in,
   struct Test_U_AudioEffect_MediaFoundation_UI_CBData* mediafoundation_ui_cb_data_p = NULL;
   Test_U_AudioEffect_MediaFoundation_StreamConfiguration_t::ITERATOR_T mediafoundation_modulehandler_configuration_iterator;
   Test_U_AudioEffect_DirectShow_StreamConfiguration_t::ITERATOR_T directshow_modulehandler_configuration_iterator;
+  bool use_framework_source_b = false;
   switch (ui_cb_data_base_p->mediaFramework)
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
@@ -7104,6 +7962,8 @@ combobox_source_changed_cb (GtkWidget* widget_in,
       ACE_ASSERT (directshow_modulehandler_configuration_iterator != directshow_ui_cb_data_p->configuration->streamConfiguration.end ());
 
       stream_p = directshow_ui_cb_data_p->stream;
+      use_framework_source_b =
+        directshow_ui_cb_data_p->configuration->useFrameworkSource;
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
@@ -7120,6 +7980,8 @@ combobox_source_changed_cb (GtkWidget* widget_in,
       ACE_ASSERT (mediafoundation_modulehandler_configuration_iterator != mediafoundation_ui_cb_data_p->configuration->streamConfiguration.end ());
 
       stream_p = mediafoundation_ui_cb_data_p->stream;
+      use_framework_source_b =
+        mediafoundation_ui_cb_data_p->configuration->useFrameworkSource;
       break;
     }
     default:
@@ -7143,7 +8005,7 @@ combobox_source_changed_cb (GtkWidget* widget_in,
   Test_U_AudioEffect_ALSA_StreamConfiguration_t::ITERATOR_T modulehandler_configuration_iterator =
     ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (modulehandler_configuration_iterator != ui_cb_data_p->configuration->streamConfiguration.end ());
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
   ACE_ASSERT (stream_p);
 
   Common_UI_GTK_BuildersConstIterator_t iterator =
@@ -7166,8 +8028,6 @@ combobox_source_changed_cb (GtkWidget* widget_in,
   ACE_OS::memset (&value, 0, sizeof (struct _GValue));
   g_value_init (&value, G_TYPE_STRING);
 #endif // GTK_CHECK_VERSION (2,30,0)
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-#else
 #if GTK_CHECK_VERSION(2,30,0)
   GValue value_2 = G_VALUE_INIT;
 #else
@@ -7175,7 +8035,6 @@ combobox_source_changed_cb (GtkWidget* widget_in,
   ACE_OS::memset (&value_2, 0, sizeof (struct _GValue));
   g_value_init (&value_2, G_TYPE_STRING);
 #endif // GTK_CHECK_VERSION (2,30,0)
-#endif
   gtk_tree_model_get_value (GTK_TREE_MODEL (list_store_p),
                             &iterator_2,
                             0, &value);
@@ -7190,15 +8049,14 @@ combobox_source_changed_cb (GtkWidget* widget_in,
   ACE_ASSERT (G_VALUE_TYPE (&value_2) == G_TYPE_STRING);
   device_string = g_value_get_string (&value_2);
   g_value_unset (&value_2);
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
 
   gint n_rows = 0;
   GtkToggleButton* toggle_button_p = NULL;
-
-  list_store_p =
+  GtkListStore* list_store_2 =
       GTK_LIST_STORE (gtk_builder_get_object ((*iterator).second.second,
                                               ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_LISTSTORE_FORMAT_NAME)));
-  ACE_ASSERT (list_store_p);
+  ACE_ASSERT (list_store_2);
 
 //  bool result = false;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -7206,7 +8064,7 @@ combobox_source_changed_cb (GtkWidget* widget_in,
   IMFMediaSourceEx* media_source_p = NULL;
 #else
   IMFMediaSource* media_source_p = NULL;
-#endif // _WIN32_WINNT) && (_WIN32_WINNT >= 0x0602)
+#endif // _WIN32_WINNT && (_WIN32_WINNT >= 0x0602)
   switch (ui_cb_data_base_p->mediaFramework)
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
@@ -7232,8 +8090,8 @@ combobox_source_changed_cb (GtkWidget* widget_in,
 
 #if COMMON_OS_WIN32_TARGET_PLATFORM(0x0601) // _WIN32_WINNT_WIN7
       if (!Stream_Device_MediaFoundation_Tools::getMediaSource (device_string,
-                                                                       MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE_AUDCAP_GUID,
-                                                                       media_source_p))
+                                                                MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE_AUDCAP_GUID,
+                                                                media_source_p))
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("failed to Stream_Device_MediaFoundation_Tools::getMediaSource(\"%s\"), returning\n"),
@@ -7256,7 +8114,7 @@ combobox_source_changed_cb (GtkWidget* widget_in,
       return;
     }
   } // end SWITCH
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
 
   Stream_IStream_t* istream_p = dynamic_cast<Stream_IStream_t*> (stream_p);
   ACE_ASSERT (istream_p);
@@ -7294,7 +8152,7 @@ combobox_source_changed_cb (GtkWidget* widget_in,
     ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_MIC_SOURCE_ALSA_DEFAULT_NAME_STRING);
   module_p =
     const_cast<Stream_Module_t*> (istream_p->find (module_name));
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
   if (!module_p)
   {
     //ACE_DEBUG ((LM_WARNING,
@@ -7308,6 +8166,22 @@ combobox_source_changed_cb (GtkWidget* widget_in,
   Test_U_Dev_Mic_Source_WaveIn* directshow_source_impl_p = NULL;
   Test_U_Dev_Mic_Source_MediaFoundation* mediafoundation_source_impl_p = NULL;
   IMFTopology* topology_p = NULL;
+
+  if (!use_framework_source_b)
+  {
+    gtk_tree_model_get_value (GTK_TREE_MODEL (list_store_p),
+                              &iterator_2,
+                              1, &value_2);
+    ACE_ASSERT (G_VALUE_TYPE (&value_2) == G_TYPE_STRING);
+    std::istringstream converter;
+    converter.str (g_value_get_string (&value_2));
+    g_value_unset (&value_2);
+    converter >> (*directshow_modulehandler_configuration_iterator).second.second.audioInput;
+    result_2 = load_formats ((*directshow_modulehandler_configuration_iterator).second.second.audioInput,
+                             list_store_2);
+    goto continue_;
+  } // end IF
+
   switch (ui_cb_data_base_p->mediaFramework)
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
@@ -7320,6 +8194,7 @@ combobox_source_changed_cb (GtkWidget* widget_in,
       {
         (*directshow_modulehandler_configuration_iterator).second.second.builder->Release (); (*directshow_modulehandler_configuration_iterator).second.second.builder = NULL;
       } // end IF
+      directshow_ui_cb_data_p->configuration->streamConfiguration.configuration_->filterGraphConfiguration.clear ();
 
       IAMBufferNegotiation* buffer_negotiation_p = NULL;
       if (!Stream_Device_DirectShow_Tools::loadDeviceGraph (device_string,
@@ -7342,7 +8217,7 @@ combobox_source_changed_cb (GtkWidget* widget_in,
 
       result_2 =
         load_formats (directshow_ui_cb_data_p->streamConfiguration,
-                      list_store_p);
+                      list_store_2);
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
@@ -7409,7 +8284,7 @@ combobox_source_changed_cb (GtkWidget* widget_in,
 
       //if (!load_formats (data_p->configuration->moduleHandlerConfiguration.sourceReader,
       result_2 = load_formats (media_source_p,
-                               list_store_p);
+                               list_store_2);
       break;
     }
     default:
@@ -7420,6 +8295,7 @@ combobox_source_changed_cb (GtkWidget* widget_in,
       return;
     }
   } // end SWITCH
+continue_:
 #else
   int result = -1;
   struct _snd_pcm_hw_params* format_p = NULL;
@@ -7505,7 +8381,7 @@ combobox_source_changed_cb (GtkWidget* widget_in,
   result_2 =
       load_formats (ui_cb_data_p->handle,
                     ui_cb_data_p->configuration->streamConfiguration.configuration_->format,
-                    list_store_p);
+                    list_store_2);
 #endif // ACE_WIN32 || ACE_WIN64
   if (!result_2)
   {
@@ -7514,7 +8390,7 @@ combobox_source_changed_cb (GtkWidget* widget_in,
     goto error;
   } // end IF
   n_rows =
-    gtk_tree_model_iter_n_children (GTK_TREE_MODEL (list_store_p), NULL);
+    gtk_tree_model_iter_n_children (GTK_TREE_MODEL (list_store_2), NULL);
   if (n_rows)
   {
     GtkComboBox* combo_box_p =
@@ -7618,6 +8494,7 @@ combobox_format_changed_cb (GtkWidget* widget_in,
     NULL;
   Test_U_AudioEffect_MediaFoundation_StreamConfiguration_t::ITERATOR_T mediafoundation_modulehandler_configuration_iterator;
   Test_U_AudioEffect_DirectShow_StreamConfiguration_t::ITERATOR_T directshow_modulehandler_configuration_iterator;
+  bool use_framework_source_b = false;
   switch (ui_cb_data_base_p->mediaFramework)
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
@@ -7631,6 +8508,8 @@ combobox_format_changed_cb (GtkWidget* widget_in,
       directshow_modulehandler_configuration_iterator =
         directshow_ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
       ACE_ASSERT (directshow_modulehandler_configuration_iterator != directshow_ui_cb_data_p->configuration->streamConfiguration.end ());
+      use_framework_source_b =
+        directshow_ui_cb_data_p->configuration->useFrameworkSource;
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
@@ -7644,6 +8523,8 @@ combobox_format_changed_cb (GtkWidget* widget_in,
       mediafoundation_modulehandler_configuration_iterator =
         mediafoundation_ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
       ACE_ASSERT (mediafoundation_modulehandler_configuration_iterator != mediafoundation_ui_cb_data_p->configuration->streamConfiguration.end ());
+      use_framework_source_b =
+        mediafoundation_ui_cb_data_p->configuration->useFrameworkSource;
       break;
     }
     default:
@@ -7708,13 +8589,17 @@ combobox_format_changed_cb (GtkWidget* widget_in,
 #endif // ACE_WIN32 || ACE_WIN64
   g_value_unset (&value);
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  struct _GUID GUID_s = Common_Tools::StringToGUID (format_string);
-  if (InlineIsEqualGUID (GUID_s, GUID_NULL))
+  struct _GUID GUID_s = GUID_NULL;
+  if (use_framework_source_b)
   {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to Common_Tools::StringToGUID(\"%s\"), returning\n"),
-                ACE_TEXT (format_string.c_str ())));
-    return;
+    GUID_s = Common_Tools::StringToGUID (format_string);
+    if (InlineIsEqualGUID (GUID_s, GUID_NULL))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to Common_Tools::StringToGUID(\"%s\"), returning\n"),
+                  ACE_TEXT (format_string.c_str ())));
+      return;
+    } // end IF
   } // end IF
 #else
 //  snd_pcm_format_t format_i = snd_pcm_format_value (format_string.c_str ());
@@ -7731,13 +8616,52 @@ combobox_format_changed_cb (GtkWidget* widget_in,
 #else
   IMFMediaSource* media_source_p = NULL;
 #endif // _WIN32_WINNT) && (_WIN32_WINNT >= 0x0602)
+
+  if (!use_framework_source_b)
+  {
+    GtkComboBox* combo_box_p =
+      GTK_COMBO_BOX (gtk_builder_get_object ((*iterator).second.second,
+                                             ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_COMBOBOX_SOURCE_NAME)));
+    ACE_ASSERT (combo_box_p);
+    GtkListStore* list_store_2 =
+      GTK_LIST_STORE (gtk_builder_get_object ((*iterator).second.second,
+                                              ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_LISTSTORE_SOURCE_NAME)));
+    ACE_ASSERT (list_store_2);
+    if (!gtk_combo_box_get_active_iter (combo_box_p,
+                                        &iterator_2))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to gtk_combo_box_get_active_iter(), returning\n")));
+      return;
+    } // end IF
+#if GTK_CHECK_VERSION(2,30,0)
+    GValue value_2 = G_VALUE_INIT;
+#else
+    GValue value_2;
+    ACE_OS::memset (&value_2, 0, sizeof (struct _GValue));
+    g_value_init (&value_2, G_TYPE_STRING);
+#endif // GTK_CHECK_VERSION (2,30,0)
+    gtk_tree_model_get_value (GTK_TREE_MODEL (list_store_2),
+                              &iterator_2,
+                              1, &value_2);
+    ACE_ASSERT (G_VALUE_TYPE (&value_2) == G_TYPE_STRING);
+    std::istringstream converter;
+    converter.str (g_value_get_string (&value_2));
+    g_value_unset (&value_2);
+    unsigned int index_i = 0;
+    converter >> index_i;
+    result_2 = load_sample_rates (index_i,
+                                  list_store_p);
+  } // end IF
+
   switch (ui_cb_data_base_p->mediaFramework)
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
     { ACE_ASSERT (directshow_ui_cb_data_p->configuration);
       directshow_ui_cb_data_p->configuration->streamConfiguration.configuration_->format.subtype =
         GUID_s;
-
+      if (!use_framework_source_b)
+        break;
       result_2 =
         load_sample_rates (directshow_ui_cb_data_p->streamConfiguration,
                            GUID_s,
@@ -7759,6 +8683,8 @@ combobox_format_changed_cb (GtkWidget* widget_in,
                     ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
         return;
       } // end IF
+      if (!use_framework_source_b)
+        break;
 
 #if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
       if (!Stream_MediaFramework_MediaFoundation_Tools::getMediaSource ((*mediafoundation_modulehandler_configuration_iterator).second.second.session,
@@ -7895,6 +8821,7 @@ combobox_frequency_changed_cb (GtkWidget* widget_in,
     NULL;
   Test_U_AudioEffect_MediaFoundation_StreamConfiguration_t::ITERATOR_T mediafoundation_modulehandler_configuration_iterator;
   Test_U_AudioEffect_DirectShow_StreamConfiguration_t::ITERATOR_T directshow_modulehandler_configuration_iterator;
+  bool use_framework_source_b = false;
   switch (ui_cb_data_base_p->mediaFramework)
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
@@ -7908,6 +8835,8 @@ combobox_frequency_changed_cb (GtkWidget* widget_in,
       directshow_modulehandler_configuration_iterator =
         directshow_ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
       ACE_ASSERT (directshow_modulehandler_configuration_iterator != directshow_ui_cb_data_p->configuration->streamConfiguration.end ());
+      use_framework_source_b =
+        directshow_ui_cb_data_p->configuration->useFrameworkSource;
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
@@ -7921,6 +8850,8 @@ combobox_frequency_changed_cb (GtkWidget* widget_in,
       mediafoundation_modulehandler_configuration_iterator =
         mediafoundation_ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
       ACE_ASSERT (mediafoundation_modulehandler_configuration_iterator != mediafoundation_ui_cb_data_p->configuration->streamConfiguration.end ());
+      use_framework_source_b =
+        mediafoundation_ui_cb_data_p->configuration->useFrameworkSource;
       break;
     }
     default:
@@ -7988,13 +8919,17 @@ combobox_frequency_changed_cb (GtkWidget* widget_in,
 #endif // ACE_WIN32 || ACE_WIN64
   g_value_unset (&value);
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  struct _GUID GUID_s = Common_Tools::StringToGUID (format_string);
-  if (InlineIsEqualGUID (GUID_s, GUID_NULL))
+  struct _GUID GUID_s = GUID_NULL;
+  if (use_framework_source_b)
   {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to Common_Tools::StringToGUID(\"%s\"), returning\n"),
-                ACE_TEXT (format_string.c_str ())));
-    return;
+    GUID_s = Common_Tools::StringToGUID (format_string);
+    if (InlineIsEqualGUID (GUID_s, GUID_NULL))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to Common_Tools::StringToGUID(\"%s\"), returning\n"),
+                  ACE_TEXT (format_string.c_str ())));
+      return;
+    } // end IF
   } // end IF
 #else
 //  snd_pcm_format_t format_i = snd_pcm_format_value (format_string.c_str ());
@@ -8029,6 +8964,45 @@ combobox_frequency_changed_cb (GtkWidget* widget_in,
 #else
   IMFMediaSource* media_source_p = NULL;
 #endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0602)
+
+  if (!use_framework_source_b)
+  {
+    GtkComboBox* combo_box_2 =
+      GTK_COMBO_BOX (gtk_builder_get_object ((*iterator).second.second,
+                                             ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_COMBOBOX_SOURCE_NAME)));
+    ACE_ASSERT (combo_box_2);
+    GtkListStore* list_store_2 =
+      GTK_LIST_STORE (gtk_builder_get_object ((*iterator).second.second,
+                                              ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_LISTSTORE_SOURCE_NAME)));
+    ACE_ASSERT (list_store_2);
+    if (!gtk_combo_box_get_active_iter (combo_box_2,
+                                        &iterator_2))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to gtk_combo_box_get_active_iter(), returning\n")));
+      return;
+    } // end IF
+#if GTK_CHECK_VERSION(2,30,0)
+    GValue value_2 = G_VALUE_INIT;
+#else
+    GValue value_2;
+    ACE_OS::memset (&value_2, 0, sizeof (struct _GValue));
+    g_value_init (&value_2, G_TYPE_STRING);
+#endif // GTK_CHECK_VERSION (2,30,0)
+    gtk_tree_model_get_value (GTK_TREE_MODEL (list_store_2),
+                              &iterator_2,
+                              1, &value_2);
+    ACE_ASSERT (G_VALUE_TYPE (&value_2) == G_TYPE_STRING);
+    std::istringstream converter;
+    converter.str (g_value_get_string (&value_2));
+    g_value_unset (&value_2);
+    unsigned int index_i = 0;
+    converter >> index_i;
+    result_2 = load_sample_resolutions (index_i,
+                                        sample_rate,
+                                        list_store_p);
+  } // end IF
+
   switch (ui_cb_data_base_p->mediaFramework)
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
@@ -8036,7 +9010,9 @@ combobox_frequency_changed_cb (GtkWidget* widget_in,
       ACE_ASSERT (InlineIsEqualGUID (directshow_ui_cb_data_p->configuration->streamConfiguration.configuration_->format.formattype, FORMAT_WaveFormatEx));
       struct tWAVEFORMATEX* audio_info_header_p =
         reinterpret_cast<struct tWAVEFORMATEX*> (directshow_ui_cb_data_p->configuration->streamConfiguration.configuration_->format.pbFormat);
-      //audio_info_header_p->nSamplesPerSec = sample_rate;
+      audio_info_header_p->nSamplesPerSec = sample_rate;
+      if (!use_framework_source_b)
+        break;
 
       result_2 = load_sample_resolutions (directshow_ui_cb_data_p->streamConfiguration,
                                           GUID_s,
@@ -8062,6 +9038,8 @@ combobox_frequency_changed_cb (GtkWidget* widget_in,
                     ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
         return;
       } // end IF
+      if (!use_framework_source_b)
+        break;
 
 #if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
       if (!Stream_MediaFramework_MediaFoundation_Tools::getMediaSource ((*mediafoundation_modulehandler_configuration_iterator).second.second.session,
@@ -8197,6 +9175,7 @@ combobox_resolution_changed_cb (GtkWidget* widget_in,
     NULL;
   Test_U_AudioEffect_MediaFoundation_StreamConfiguration_t::ITERATOR_T mediafoundation_modulehandler_configuration_iterator;
   Test_U_AudioEffect_DirectShow_StreamConfiguration_t::ITERATOR_T directshow_modulehandler_configuration_iterator;
+  bool use_framework_source_b = false;
   switch (ui_cb_data_base_p->mediaFramework)
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
@@ -8210,6 +9189,8 @@ combobox_resolution_changed_cb (GtkWidget* widget_in,
       directshow_modulehandler_configuration_iterator =
         directshow_ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
       ACE_ASSERT (directshow_modulehandler_configuration_iterator != directshow_ui_cb_data_p->configuration->streamConfiguration.end ());
+      use_framework_source_b =
+        directshow_ui_cb_data_p->configuration->useFrameworkSource;
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
@@ -8223,6 +9204,8 @@ combobox_resolution_changed_cb (GtkWidget* widget_in,
       mediafoundation_modulehandler_configuration_iterator =
         mediafoundation_ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
       ACE_ASSERT (mediafoundation_modulehandler_configuration_iterator != mediafoundation_ui_cb_data_p->configuration->streamConfiguration.end ());
+      use_framework_source_b =
+        mediafoundation_ui_cb_data_p->configuration->useFrameworkSource;
       break;
     }
     default:
@@ -8290,13 +9273,17 @@ combobox_resolution_changed_cb (GtkWidget* widget_in,
 #endif // ACE_WIN32 || ACE_WIN64
   g_value_unset (&value);
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  struct _GUID GUID_s = Common_Tools::StringToGUID (format_string);
-  if (InlineIsEqualGUID (GUID_s, GUID_NULL))
+  struct _GUID GUID_s = GUID_NULL;
+  if (use_framework_source_b)
   {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to Common_Tools::StringToGUID(\"%s\"), returning\n"),
-                ACE_TEXT (format_string.c_str ())));
-    return;
+    GUID_s = Common_Tools::StringToGUID (format_string);
+    if (InlineIsEqualGUID (GUID_s, GUID_NULL))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to Common_Tools::StringToGUID(\"%s\"), returning\n"),
+                  ACE_TEXT (format_string.c_str ())));
+      return;
+    } // end IF
   } // end IF
 #else
 //  snd_pcm_format_t format_i = snd_pcm_format_value (format_string.c_str ());
@@ -8355,6 +9342,46 @@ combobox_resolution_changed_cb (GtkWidget* widget_in,
 #else
   IMFMediaSource* media_source_p = NULL;
 #endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0602)
+
+  if (!use_framework_source_b)
+  {
+    GtkComboBox* combo_box_2 =
+      GTK_COMBO_BOX (gtk_builder_get_object ((*iterator).second.second,
+                                             ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_COMBOBOX_SOURCE_NAME)));
+    ACE_ASSERT (combo_box_2);
+    GtkListStore* list_store_2 =
+      GTK_LIST_STORE (gtk_builder_get_object ((*iterator).second.second,
+                                              ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_LISTSTORE_SOURCE_NAME)));
+    ACE_ASSERT (list_store_2);
+    if (!gtk_combo_box_get_active_iter (combo_box_2,
+                                        &iterator_2))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to gtk_combo_box_get_active_iter(), returning\n")));
+      return;
+    } // end IF
+#if GTK_CHECK_VERSION(2,30,0)
+    GValue value_2 = G_VALUE_INIT;
+#else
+    GValue value_2;
+    ACE_OS::memset (&value_2, 0, sizeof (struct _GValue));
+    g_value_init (&value_2, G_TYPE_STRING);
+#endif // GTK_CHECK_VERSION (2,30,0)
+    gtk_tree_model_get_value (GTK_TREE_MODEL (list_store_2),
+                              &iterator_2,
+                              1, &value_2);
+    ACE_ASSERT (G_VALUE_TYPE (&value_2) == G_TYPE_STRING);
+    std::istringstream converter;
+    converter.str (g_value_get_string (&value_2));
+    g_value_unset (&value_2);
+    unsigned int index_i = 0;
+    converter >> index_i;
+    result_2 = load_channels (index_i,
+                              sample_rate,
+                              bits_per_sample,
+                              list_store_p);
+  } // end IF
+
   switch (ui_cb_data_base_p->mediaFramework)
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
@@ -8364,6 +9391,8 @@ combobox_resolution_changed_cb (GtkWidget* widget_in,
       struct tWAVEFORMATEX* audio_info_header_p =
         reinterpret_cast<struct tWAVEFORMATEX*> (directshow_ui_cb_data_p->configuration->streamConfiguration.configuration_->format.pbFormat);
       audio_info_header_p->wBitsPerSample = bits_per_sample;
+      if (!use_framework_source_b)
+        break;
 
       result_2 = load_channels (directshow_ui_cb_data_p->streamConfiguration,
                                 GUID_s,
@@ -8390,6 +9419,8 @@ combobox_resolution_changed_cb (GtkWidget* widget_in,
                     ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
         return;
       } // end IF
+      if (!use_framework_source_b)
+        break;
 
 #if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
       if (!Stream_MediaFramework_MediaFoundation_Tools::getMediaSource ((*mediafoundation_modulehandler_configuration_iterator).second.second.session,
@@ -8526,6 +9557,7 @@ combobox_channels_changed_cb (GtkWidget* widget_in,
     NULL;
   Test_U_AudioEffect_MediaFoundation_StreamConfiguration_t::ITERATOR_T mediafoundation_modulehandler_configuration_iterator;
   Test_U_AudioEffect_DirectShow_StreamConfiguration_t::ITERATOR_T directshow_modulehandler_configuration_iterator;
+  bool use_framework_source_b = false;
   switch (ui_cb_data_base_p->mediaFramework)
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
@@ -8539,6 +9571,8 @@ combobox_channels_changed_cb (GtkWidget* widget_in,
       directshow_modulehandler_configuration_iterator =
         directshow_ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
       ACE_ASSERT (directshow_modulehandler_configuration_iterator != directshow_ui_cb_data_p->configuration->streamConfiguration.end ());
+      use_framework_source_b =
+        directshow_ui_cb_data_p->configuration->useFrameworkSource;
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
@@ -8552,6 +9586,8 @@ combobox_channels_changed_cb (GtkWidget* widget_in,
       mediafoundation_modulehandler_configuration_iterator =
         mediafoundation_ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
       ACE_ASSERT (mediafoundation_modulehandler_configuration_iterator != mediafoundation_ui_cb_data_p->configuration->streamConfiguration.end ());
+      use_framework_source_b =
+        mediafoundation_ui_cb_data_p->configuration->useFrameworkSource;
       break;
     }
     default:
@@ -8619,13 +9655,17 @@ combobox_channels_changed_cb (GtkWidget* widget_in,
 #endif // ACE_WIN32 || ACE_WIN64
   g_value_unset (&value);
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  struct _GUID GUID_s = Common_Tools::StringToGUID (format_string);
-  if (InlineIsEqualGUID (GUID_s, GUID_NULL))
+  struct _GUID GUID_s = GUID_NULL;
+  if (use_framework_source_b)
   {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to Common_Tools::StringToGUID(\"%s\"), returning\n"),
-                ACE_TEXT (format_string.c_str ())));
-    return;
+    GUID_s = Common_Tools::StringToGUID (format_string);
+    if (InlineIsEqualGUID (GUID_s, GUID_NULL))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to Common_Tools::StringToGUID(\"%s\"), returning\n"),
+                  ACE_TEXT (format_string.c_str ())));
+      return;
+    } // end IF
   } // end IF
 #else
 //  snd_pcm_format_t format_i = snd_pcm_format_value (format_string.c_str ());
@@ -8649,8 +9689,8 @@ combobox_channels_changed_cb (GtkWidget* widget_in,
                             &iterator_2,
                             1, &value);
   ACE_ASSERT (G_VALUE_TYPE (&value) == G_TYPE_UINT);
-  unsigned int frequency = g_value_get_uint (&value);
-  ACE_UNUSED_ARG (frequency);
+  unsigned int sample_rate = g_value_get_uint (&value);
+  ACE_UNUSED_ARG (sample_rate);
   g_value_unset (&value);
 
   combo_box_p =
@@ -9127,15 +10167,15 @@ drawingarea_size_allocate_cb (GtkWidget* widget_in,
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
     {
       lock_p = &directshow_ui_cb_data_p->surfaceLock;
-      (*directshow_modulehandler_configuration_iterator).second.second.area2D =
-        *allocation_in;
+      //(*directshow_modulehandler_configuration_iterator).second.second.area2D =
+      //  *allocation_in;
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
     {
       lock_p = &mediafoundation_ui_cb_data_p->surfaceLock;
-      (*mediafoundation_modulehandler_configuration_iterator).second.second.area2D =
-        *allocation_in;
+      //(*mediafoundation_modulehandler_configuration_iterator).second.second.area2D =
+      //  *allocation_in;
       break;
     }
     default:
@@ -9264,12 +10304,6 @@ drawingarea_size_allocate_cb (GtkWidget* widget_in,
     //ACE_ASSERT (ui_cb_data_p->pixelBuffer2D);
 #endif // GTK_CHECK_VERSION(3,10,0)
 #endif // ACE_WIN32 || ACE_WIN64
-//#if GTK_CHECK_VERSION(3,10,0)
-//    cairo_surface_destroy (surface_p); surface_p = NULL;
-//#else
-//    g_object_unref (pixel_buffer_p); pixel_buffer_p = NULL;
-//#endif // GTK_CHECK_VERSION(3,10,0)
-  //} // end lock scope
 
   Test_U_Common_ISet_t* notification_p = NULL;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -9290,6 +10324,11 @@ drawingarea_size_allocate_cb (GtkWidget* widget_in,
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("invalid/unknown media framework (was: %d), returning\n"),
                   ui_cb_data_base_p->mediaFramework));
+#if GTK_CHECK_VERSION(3,10,0)
+      cairo_surface_destroy (surface_p); surface_p = NULL;
+#else
+      g_object_unref (pixel_buffer_p); pixel_buffer_p = NULL;
+#endif // GTK_CHECK_VERSION(3,10,0)
       return;
     }
   } // end SWITCH

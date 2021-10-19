@@ -116,8 +116,6 @@ class Stream_MediaFramework_DirectShow_Target_T
                   IGraphBuilder*&);               // return value: graph builder handle
 
   IGraphBuilder*                      IGraphBuilder_;
-  //IMemAllocator*     IMemAllocator_;
-  //IMemInputPin*      IMemInputPin_; // 'push' handle
 
   IMediaControl*                      IMediaControl_;
   IMediaEventEx*                      IMediaEventEx_;

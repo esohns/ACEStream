@@ -192,19 +192,7 @@ Stream_MediaFramework_DirectShow_Target_T<ACE_SYNCH_USE,
   int result_2 = -1;
   if (inherited::isInitialized_)
   {
-    // clean up ?
-    //if (IMemAllocator_)
-    //{
-    //  IMemAllocator_->Release (); IMemAllocator_ = NULL;
-    //} // end IF
-    //if (IMemInputPin_)
-    //{
-    //  IMemInputPin_->Release (); IMemInputPin_ = NULL;
-    //} // end IF
-    //if (!push_)
-    //{
-      inherited::idle ();
-    //} // end IF
+    inherited::idle ();
 
     if (ROTID_)
     {
@@ -216,7 +204,6 @@ Stream_MediaFramework_DirectShow_Target_T<ACE_SYNCH_USE,
       ROTID_ = 0;
     } // end IF
 
-//continue_:
     if (IMediaEventEx_)
     {
       IMediaEventEx_->SetNotifyWindow (NULL, 0, 0);
@@ -253,8 +240,10 @@ Stream_MediaFramework_DirectShow_Target_T<ACE_SYNCH_USE,
 
   // *TODO*: remove type inference
   if (configuration_in.filterConfiguration)
-  { ACE_ASSERT (configuration_in.filterConfiguration->pinConfiguration);
+  { ACE_ASSERT (!configuration_in.filterConfiguration->module);
     configuration_in.filterConfiguration->module = inherited::mod_;
+    ACE_ASSERT (configuration_in.filterConfiguration->pinConfiguration);
+    ACE_ASSERT (!configuration_in.filterConfiguration->pinConfiguration->queue);
     configuration_in.filterConfiguration->pinConfiguration->queue =
       inherited::msg_queue_;
   } // end IF

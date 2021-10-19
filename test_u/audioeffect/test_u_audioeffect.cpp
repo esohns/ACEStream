@@ -123,10 +123,6 @@ do_printUsage (const std::string& programName_in)
             << std::endl;
   std::cout << ACE_TEXT_ALWAYS_CHAR ("currently available options:")
             << std::endl;
-  std::cout << ACE_TEXT_ALWAYS_CHAR ("-b [VALUE]  : buffer size (byte(s)) [")
-            << TEST_U_STREAM_AUDIOEFFECT_DEFAULT_BUFFER_SIZE
-            << ACE_TEXT ("])")
-            << std::endl;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   std::cout << ACE_TEXT_ALWAYS_CHAR ("-c          : show console [")
             << false
@@ -137,17 +133,17 @@ do_printUsage (const std::string& programName_in)
             << ACE_TEXT_ALWAYS_CHAR (STREAM_LIB_MIC_ALSA_DEFAULT_DEVICE_NAME)
             << ACE_TEXT_ALWAYS_CHAR ("\"]")
             << std::endl;
-  std::cout << ACE_TEXT_ALWAYS_CHAR ("-e [STRING] : effect [\"")
+  std::cout << ACE_TEXT_ALWAYS_CHAR ("-e[[STRING]]: effect [\"")
             << ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_AUDIOEFFECT_SOX_DEFAULT_EFFECT_NAME)
-            << ACE_TEXT_ALWAYS_CHAR ("\"]")
+            << ACE_TEXT_ALWAYS_CHAR ("\"] {\"\" --> default}")
             << std::endl;
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
   std::string path = Common_File_Tools::getTempDirectory ();
   path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
   path += ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_AUDIOEFFECT_DEFAULT_OUTPUT_FILE);
   std::cout << ACE_TEXT_ALWAYS_CHAR ("-f[[STRING]]: target filename [")
             << path
-            << ACE_TEXT_ALWAYS_CHAR ("]")
+            << ACE_TEXT_ALWAYS_CHAR ("] {\"\" --> default}")
             << std::endl;
   path = configuration_path;
   path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
@@ -156,7 +152,7 @@ do_printUsage (const std::string& programName_in)
   std::string UI_file = path;
   UI_file += ACE_DIRECTORY_SEPARATOR_CHAR_A;
 #if defined (GTK_USE)
-#if GTK_CHECK_VERSION (3,0,0)
+#if GTK_CHECK_VERSION(3,0,0)
   UI_file +=
       ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_AUDIOEFFECT_GTK3_GLADE_FILE);
 #else
@@ -166,7 +162,7 @@ do_printUsage (const std::string& programName_in)
 #elif defined (WXWIDGETS_USE)
   UI_file +=
       ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_AUDIOEFFECT_WXWIDGETS_XRC_FILE);
-#endif
+#endif // GTK_USE || WXWIDGETS_USE
   std::cout << ACE_TEXT_ALWAYS_CHAR ("-g[[STRING]]: UI file [\"")
             << UI_file
             << ACE_TEXT_ALWAYS_CHAR ("\"] {\"\" --> no GUI}")
@@ -178,7 +174,7 @@ do_printUsage (const std::string& programName_in)
     ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_DEFAULT_GTK_CSS_FILE);
   std::cout << ACE_TEXT_ALWAYS_CHAR ("-i[[STRING]]: UI CSS file [\"")
             << UI_style_file
-            << ACE_TEXT_ALWAYS_CHAR ("\"]")
+            << ACE_TEXT_ALWAYS_CHAR ("\"] {\"\" --> default}")
             << std::endl;
 #endif // GTK_USE
 #endif // GUI_SUPPORT
@@ -191,7 +187,7 @@ do_printUsage (const std::string& programName_in)
             << (STREAM_LIB_DEFAULT_MEDIAFRAMEWORK == STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION)
             << ACE_TEXT_ALWAYS_CHAR ("]")
             << std::endl;
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
   std::cout << ACE_TEXT_ALWAYS_CHAR ("-s [VALUE]  : statistic reporting interval (second(s)) [")
             << STREAM_DEFAULT_STATISTIC_REPORTING_INTERVAL
             << ACE_TEXT_ALWAYS_CHAR ("] [0: off])")
@@ -208,10 +204,12 @@ do_printUsage (const std::string& programName_in)
             << false
             << ACE_TEXT_ALWAYS_CHAR ("]")
             << std::endl;
-  //std::cout << ACE_TEXT_ALWAYS_CHAR ("-y          : run stress-test [")
-  //  << false
-  //  << ACE_TEXT_ALWAYS_CHAR ("]")
-  //  << std::endl;
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  std::cout << ACE_TEXT_ALWAYS_CHAR ("-x          : use framework source [") // ? (directshow/mediafoundation) source : wavein
+            << false
+            << ACE_TEXT_ALWAYS_CHAR ("]")
+            << std::endl;
+#endif // ACE_WIN32 || ACE_WIN64
 }
 
 bool
@@ -223,7 +221,7 @@ do_processArguments (int argc_in,
 #else
                      std::string& deviceFilename_out,
                      std::string& effect_out,
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
                      std::string& targetFileName_out,
 #if defined (GUI_SUPPORT)
                      std::string& UIFile_out,
@@ -234,12 +232,16 @@ do_processArguments (int argc_in,
                      bool& logToFile_out,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
                      enum Stream_MediaFramework_Type& mediaFramework_out,
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
                      unsigned int& statisticReportingInterval_out,
                      bool& traceInformation_out,
                      bool& mute_out,
-                     bool& printVersionAndExit_out)
-                     //bool& runStressTest_out)
+                     bool& printVersionAndExit_out
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+                     ,bool& useFrameworkSource_out)
+#else
+                     )
+#endif // ACE_WIN32 || ACE_WIN64
 {
   STREAM_TRACE (ACE_TEXT ("::do_processArguments"));
 
@@ -259,12 +261,9 @@ do_processArguments (int argc_in,
   deviceFilename_out =
       ACE_TEXT_ALWAYS_CHAR (STREAM_LIB_MIC_ALSA_DEFAULT_DEVICE_NAME);
   effect_out.clear ();
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
   path = Common_File_Tools::getTempDirectory ();
-  targetFileName_out = path;
-  targetFileName_out += ACE_DIRECTORY_SEPARATOR_CHAR_A;
-  targetFileName_out +=
-    ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_AUDIOEFFECT_DEFAULT_OUTPUT_FILE);
+  targetFileName_out.clear ();
 #if defined (GUI_SUPPORT)
   UIFile_out = configuration_path;
   UIFile_out += ACE_DIRECTORY_SEPARATOR_CHAR_A;
@@ -279,62 +278,52 @@ do_processArguments (int argc_in,
 #endif
 #elif defined (WXWIDGETS_USE)
       ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_AUDIOEFFECT_WXWIDGETS_XRC_FILE);
-#endif
+#endif // GTK_USE || WXWIDGETS_USE
 #if defined (GTK_USE)
-  UICSSFile_out = configuration_path;
-  UICSSFile_out += ACE_DIRECTORY_SEPARATOR_CHAR_A;
-  UICSSFile_out += ACE_TEXT_ALWAYS_CHAR (COMMON_LOCATION_CONFIGURATION_SUBDIRECTORY);
-  UICSSFile_out += ACE_DIRECTORY_SEPARATOR_CHAR_A;
-  UICSSFile_out +=
-      ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_DEFAULT_GTK_CSS_FILE);
+  UICSSFile_out.clear ();
 #endif // GTK_USE
 #endif // GUI_SUPPORT
   logToFile_out = false;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   mediaFramework_out = STREAM_LIB_DEFAULT_MEDIAFRAMEWORK;
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
   statisticReportingInterval_out = STREAM_DEFAULT_STATISTIC_REPORTING_INTERVAL;
   traceInformation_out = false;
   mute_out = false;
   printVersionAndExit_out = false;
-  //runStressTest_out = false;
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  useFrameworkSource_out = false;
+#endif // ACE_WIN32 || ACE_WIN64
 
+  std::string options_string = ACE_TEXT_ALWAYS_CHAR ("f::ls:tuv");
+#if defined (GUI_SUPPORT)
+#if defined (GTK_USE)
+  options_string += ACE_TEXT_ALWAYS_CHAR ("g::i::");
+#elif defined (WXWIDGETS_USE)
+  options_string += ACE_TEXT_ALWAYS_CHAR ("g::");
+#endif // GTK_USE || WXWIDGETS_USE
+#endif // GUI_SUPPORT
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  options_string += ACE_TEXT_ALWAYS_CHAR ("cmx");
+#else
+  options_string += ACE_TEXT_ALWAYS_CHAR ("d:e::");
+#endif // ACE_WIN32 || ACE_WIN64
   ACE_Get_Opt argument_parser (argc_in,
                                argv_in,
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-#if defined (GUI_SUPPORT)
-#if defined (GTK_USE)
-                               ACE_TEXT ("b:cf::g::i:lms:tuvx"),
-#else
-                               ACE_TEXT ("b:cf::g::lms:tuvx"),
-#endif // GTK_USE
-#else
-                               ACE_TEXT ("b:cf::lms:tuvx"),
-#endif // GUI_SUPPORT
-#else
-#if defined (GUI_SUPPORT)
-#if defined (GTK_USE)
-                               ACE_TEXT ("b:d:e::f::g::i:ls:tuvx"),
-#else
-                               ACE_TEXT ("b:d:e::f::g::ls:tuvx"),
-#endif // GTK_USE
-#else
-                               ACE_TEXT ("b:d:e::f::ls:tuvx"),
-#endif // GUI_SUPPORT
-#endif
+                               ACE_TEXT_CHAR_TO_TCHAR (options_string.c_str ()),
                                1,                          // skip command name
                                1,                          // report parsing errors
                                ACE_Get_Opt::PERMUTE_ARGS,  // ordering
                                0);                         // for now, don't use long options
-  int result = argument_parser.long_option (ACE_TEXT ("sync"),
-                                            'x',
-                                            ACE_Get_Opt::NO_ARG);
-  if (result == -1)
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to ACE_Get_Opt::long_option(): \"%m\", aborting\n")));
-    return false;
-  } // end IF
+  //int result = argument_parser.long_option (ACE_TEXT ("sync"),
+  //                                          'x',
+  //                                          ACE_Get_Opt::NO_ARG);
+  //if (result == -1)
+  //{
+  //  ACE_DEBUG ((LM_ERROR,
+  //              ACE_TEXT ("failed to ACE_Get_Opt::long_option(): \"%m\", aborting\n")));
+  //  return false;
+  //} // end IF
 
   int option = 0;
   std::stringstream converter;
@@ -342,14 +331,6 @@ do_processArguments (int argc_in,
   {
     switch (option)
     {
-      case 'b':
-      {
-        converter.clear ();
-        converter.str (ACE_TEXT_ALWAYS_CHAR (""));
-        converter << argument_parser.opt_arg ();
-        converter >> bufferSize_out;
-        break;
-      }
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
       case 'c':
       {
@@ -369,8 +350,7 @@ do_processArguments (int argc_in,
           effect_out = ACE_TEXT_ALWAYS_CHAR (argument_parser.opt_arg ());
         else
           effect_out =
-              ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_AUDIOEFFECT_SOX_DEFAULT_EFFECT_NAME);
-
+            ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_AUDIOEFFECT_SOX_DEFAULT_EFFECT_NAME);
         break;
       }
 #endif // ACE_WIN32 || ACE_WIN64
@@ -380,7 +360,12 @@ do_processArguments (int argc_in,
         if (opt_arg)
           targetFileName_out = ACE_TEXT_ALWAYS_CHAR (opt_arg);
         else
-          targetFileName_out.clear ();
+        {
+          targetFileName_out = path;
+          targetFileName_out += ACE_DIRECTORY_SEPARATOR_CHAR_A;
+          targetFileName_out +=
+            ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_AUDIOEFFECT_DEFAULT_OUTPUT_FILE);
+        } // end ELSE
         break;
       }
 #if defined (GUI_SUPPORT)
@@ -400,7 +385,14 @@ do_processArguments (int argc_in,
         if (opt_arg)
           UICSSFile_out = ACE_TEXT_ALWAYS_CHAR (opt_arg);
         else
-          UICSSFile_out.clear ();
+        {
+          UICSSFile_out = configuration_path;
+          UICSSFile_out += ACE_DIRECTORY_SEPARATOR_CHAR_A;
+          UICSSFile_out += ACE_TEXT_ALWAYS_CHAR (COMMON_LOCATION_CONFIGURATION_SUBDIRECTORY);
+          UICSSFile_out += ACE_DIRECTORY_SEPARATOR_CHAR_A;
+          UICSSFile_out +=
+            ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_DEFAULT_GTK_CSS_FILE);
+        } // end ELSE
         break;
       }
 #endif // GTK_USE
@@ -440,13 +432,13 @@ do_processArguments (int argc_in,
         printVersionAndExit_out = true;
         break;
       }
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
       case 'x':
+      {
+        useFrameworkSource_out = true;
         break;
-      //case 'y':
-      //{
-      //  runStressTest_out = true;
-      //  break;
-      //}
+      }
+#endif // ACE_WIN32 || ACE_WIN64
       // error handling
       case ':':
       {
@@ -658,13 +650,12 @@ continue_2:
     goto error;
   } // end IF
   result =
-    filter_p->NonDelegatingQueryInterface (IID_IBaseFilter,
-                                           reinterpret_cast<void**> (&filter_2));
+    filter_p->NonDelegatingQueryInterface (IID_PPV_ARGS (&filter_2));
   if (FAILED (result))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to NonDelegatingQueryInterface(IID_IBaseFilter): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Error_Tools::errorToString (result, false).c_str ())));
+                ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ())));
     delete filter_p; filter_p = NULL;
     goto error;
   } // end IF
@@ -890,6 +881,9 @@ do_work (unsigned int bufferSize_in,
 #endif // ACE_WIN32 || ACE_WIN64
          unsigned int statisticReportingInterval_in,
          bool mute_in,
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+         bool useFrameworkSource_in,
+#endif // ACE_WIN32 || ACE_WIN64
 #if defined (GUI_SUPPORT)
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
          struct Test_U_AudioEffect_DirectShow_UI_CBData& directShowCBData_in,
@@ -919,9 +913,11 @@ do_work (unsigned int bufferSize_in,
   Stream_AllocatorHeap_T<ACE_MT_SYNCH,
                          struct Common_AllocatorConfiguration> heap_allocator;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
+  directShowConfiguration_in.useFrameworkSource = useFrameworkSource_in;
   Test_U_AudioEffect_DirectShow_MessageAllocator_t directshow_message_allocator (TEST_U_MAX_MESSAGES, // maximum #buffers
                                                                                  &heap_allocator,     // heap allocator handle
                                                                                  true);               // block ?
+  mediaFoundationConfiguration_in.useFrameworkSource = useFrameworkSource_in;
   Test_U_AudioEffect_MediaFoundation_MessageAllocator_t mediafoundation_message_allocator (TEST_U_MAX_MESSAGES, // maximum #buffers
                                                                                            &heap_allocator,     // heap allocator handle
                                                                                            true);               // block ?
@@ -969,7 +965,7 @@ do_work (unsigned int bufferSize_in,
 #endif // ACE_WIN32 || ACE_WIN64
   ACE_Time_Value one_second (1, 0);
 #if defined (GUI_SUPPORT)
-#if defined (GTK_USE)
+#if defined (GTK_SUPPORT)
   Common_UI_GTK_Manager_t* gtk_manager_p =
       COMMON_UI_GTK_MANAGER_SINGLETON::instance ();
   ACE_ASSERT (gtk_manager_p);
@@ -978,7 +974,7 @@ do_work (unsigned int bufferSize_in,
     const_cast<Common_UI_GTK_State_t&> (gtk_manager_p->getR ());
 #endif // GTKGL_SUPPORT
   int result_2 = -1;
-#endif // GTK_USE
+#endif // GTK_SUPPORT
 #endif // GUI_SUPPORT
 //  const Stream_Module_t* module_p = NULL;
 //  Test_U_AudioEffect_IDispatch_t* idispatch_p = NULL;
@@ -1042,7 +1038,7 @@ do_work (unsigned int bufferSize_in,
 
       directshow_modulehandler_configuration.audioOutput = 1;
 #if defined (GUI_SUPPORT)
-#if defined (GTK_USE)
+#if defined (GTK_SUPPORT)
       directshow_modulehandler_configuration.surfaceLock =
         &directShowCBData_in.surfaceLock;
 
@@ -1052,7 +1048,7 @@ do_work (unsigned int bufferSize_in,
       directshow_modulehandler_configuration.OpenGLInstructionsLock =
         &state_r.lock;
 #endif // GTKGL_SUPPORT
-#endif // GTK_USE
+#endif // GTK_SUPPORT
 #endif // GUI_SUPPORT
 
       directshow_modulehandler_configuration.printProgressDot =
@@ -1083,7 +1079,7 @@ do_work (unsigned int bufferSize_in,
 
       mediafoundation_modulehandler_configuration.audioOutput = 1;
 #if defined (GUI_SUPPORT)
-#if defined (GTK_USE)
+#if defined (GTK_SUPPORT)
       mediafoundation_modulehandler_configuration.surfaceLock =
         &mediaFoundationCBData_in.surfaceLock;
 
@@ -1093,7 +1089,7 @@ do_work (unsigned int bufferSize_in,
       mediafoundation_modulehandler_configuration.OpenGLInstructionsLock =
         &state_r.lock;
 #endif // GTKGL_SUPPORT
-#endif // GTK_USE
+#endif // GTK_SUPPORT
 #endif // GUI_SUPPORT
 
       mediafoundation_modulehandler_configuration.printProgressDot =
@@ -1140,19 +1136,19 @@ do_work (unsigned int bufferSize_in,
   (*modulehandler_iterator).second.second.messageAllocator = &message_allocator;
   (*modulehandler_iterator).second.second.mute = mute_in;
 #if defined (GUI_SUPPORT)
-#if defined (GTK_USE)
+#if defined (GTK_SUPPORT)
   (*modulehandler_iterator).second.second.surfaceLock = &CBData_in.surfaceLock;
-#endif // GTK_USE
+#endif // GTK_SUPPORT
 #endif // GUI_SUPPORT
 #if defined (GUI_SUPPORT)
-#if defined (GTK_USE)
+#if defined (GTK_SUPPORT)
 #if defined (GTKGL_SUPPORT)
   (*modulehandler_iterator).second.second.OpenGLInstructions =
       &CBData_in.OpenGLInstructions;
   (*modulehandler_iterator).second.second.OpenGLInstructionsLock =
       &state_r.lock;
 #endif // GTKGL_SUPPORT
-#endif // GTK_USE
+#endif // GTK_SUPPORT
 #endif // GUI_SUPPORT
   (*modulehandler_iterator).second.second.printProgressDot =
       UIDefinitionFile_in.empty ();
@@ -1231,7 +1227,7 @@ do_work (unsigned int bufferSize_in,
                                   directShowCBData_in.streamConfiguration,
                                   directshow_stream_configuration.format,
                                   true,  // initialize COM ?
-                                  false, // use DirectShow source ? : WaveIn
+                                  useFrameworkSource_in, // use DirectShow source ? : WaveIn
                                   mute_in);
       if (!result)
       {
@@ -1607,13 +1603,11 @@ ACE_TMAIN (int argc_in,
   std::string effect_name;
 #endif // ACE_WIN32 || ACE_WIN64
   std::string path = Common_File_Tools::getTempDirectory ();
-  std::string target_filename = path;
-  target_filename += ACE_DIRECTORY_SEPARATOR_CHAR_A;
-  target_filename += ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_AUDIOEFFECT_DEFAULT_OUTPUT_FILE);
+  std::string target_filename;
+#if defined (GUI_SUPPORT)
   path = configuration_path;
   path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
   path += ACE_TEXT_ALWAYS_CHAR (COMMON_LOCATION_CONFIGURATION_SUBDIRECTORY);
-#if defined (GUI_SUPPORT)
   std::string UI_definition_file = path;
   UI_definition_file += ACE_DIRECTORY_SEPARATOR_CHAR_A;
   UI_definition_file +=
@@ -1630,15 +1624,9 @@ ACE_TMAIN (int argc_in,
 #elif defined (WXWIDGETS_USE)
   UI_definition_file +=
       ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_AUDIOEFFECT_WXWIDGETS_XRC_FILE);
-#endif
+#endif // GTK_USE || WXWIDGETS_USE
 #if defined (GTK_USE)
-  std::string UI_CSS_file = path;
-  UI_CSS_file += ACE_DIRECTORY_SEPARATOR_CHAR_A;
-  UI_CSS_file +=
-    ACE_TEXT_ALWAYS_CHAR (COMMON_LOCATION_CONFIGURATION_SUBDIRECTORY);
-  UI_CSS_file += ACE_DIRECTORY_SEPARATOR_CHAR_A;
-  UI_CSS_file +=
-    ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_DEFAULT_GTK_CSS_FILE);
+  std::string UI_CSS_file;
 #endif // GTK_USE
 #endif // GUI_SUPPORT
   bool log_to_file = false;
@@ -1651,7 +1639,9 @@ ACE_TMAIN (int argc_in,
   bool trace_information = false;
   bool mute = false;
   bool print_version_and_exit = false;
-  //bool run_stress_test = false;
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  bool use_framework_source = false;
+#endif // ACE_WIN32 || ACE_WIN64
 
   // step1b: parse/process/validate configuration
   if (!do_processArguments (argc_in,
@@ -1677,8 +1667,12 @@ ACE_TMAIN (int argc_in,
                             statistic_reporting_interval,
                             trace_information,
                             mute,
-                            print_version_and_exit))//,
-                            //run_stress_test))
+                            print_version_and_exit
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+                            ,use_framework_source))
+#else
+                            ))
+#endif // ACE_WIN32 || ACE_WIN64
   {
     do_printUsage (ACE::basename (argv_in[0]));
 
@@ -1729,19 +1723,19 @@ ACE_TMAIN (int argc_in,
 
 #if defined (GUI_SUPPORT)
   Common_UI_Tools::initialize ();
-#if defined (GTK_USE)
+#if defined (GTK_SUPPORT)
   Common_UI_GtkBuilderDefinition_t gtk_ui_definition;
-#if defined (GTKGL_SUPPORT) && defined (GTKGL_USE)
+#if defined (GTKGL_SUPPORT)
   struct Common_UI_GTK_GLConfiguration* gtk_configuration_p = NULL;
 #else
   struct Common_UI_GTK_Configuration* gtk_configuration_p = NULL;
-#endif // GTKGL_SUPPORT && GTKGL_USE
+#endif // GTKGL_SUPPORT
   Common_UI_GTK_Manager_t* gtk_manager_p =
     COMMON_UI_GTK_MANAGER_SINGLETON::instance ();
   ACE_ASSERT (gtk_manager_p);
   Common_UI_GTK_State_t& state_r =
     const_cast<Common_UI_GTK_State_t&> (gtk_manager_p->getR ());
-#endif // GTK_USE
+#endif // GTK_SUPPORT
   struct Test_U_AudioEffect_UI_CBDataBase* cb_data_base_p = NULL;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   struct Test_U_AudioEffect_DirectShow_Configuration directshow_configuration;
@@ -1755,7 +1749,7 @@ ACE_TMAIN (int argc_in,
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
     {
       directshow_ui_cb_data.configuration = &directshow_configuration;
-#if defined (GTK_USE)
+#if defined (GTK_SUPPORT)
       directshow_ui_cb_data.progressData.state = &state_r;
       directshow_configuration.GTKConfiguration.argc = argc_in;
       directshow_configuration.GTKConfiguration.argv = argv_in;
@@ -1767,10 +1761,11 @@ ACE_TMAIN (int argc_in,
       directshow_configuration.GTKConfiguration.definition = &gtk_ui_definition;
 #if GTK_CHECK_VERSION(3,0,0)
       if (!UI_CSS_file.empty ())
-        directshow_ui_cb_data.configuration->GTKConfiguration.CSSProviders[UI_CSS_file] = NULL;
+        directshow_ui_cb_data.configuration->GTKConfiguration.CSSProviders[UI_CSS_file] =
+          NULL;
 #endif // GTK_CHECK_VERSION(3,0,0)
       gtk_configuration_p = &directshow_configuration.GTKConfiguration;
-#endif // GTK_USE
+#endif // GTK_SUPPORT
       cb_data_base_p = &directshow_ui_cb_data;
       cb_data_base_p->mediaFramework = STREAM_MEDIAFRAMEWORK_DIRECTSHOW;
 
@@ -1778,7 +1773,7 @@ ACE_TMAIN (int argc_in,
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
     {
-#if defined (GTK_USE)
+#if defined (GTK_SUPPORT)
       mediafoundation_ui_cb_data.progressData.state = &state_r;
 
       mediafoundation_ui_cb_data.configuration->GTKConfiguration.argc = argc_in;
@@ -1791,10 +1786,11 @@ ACE_TMAIN (int argc_in,
       mediafoundation_ui_cb_data.configuration->GTKConfiguration.definition = &gtk_ui_definition;
 #if GTK_CHECK_VERSION(3,0,0)
       if (!UI_CSS_file.empty ())
-        mediafoundation_ui_cb_data.configuration->GTKConfiguration.CSSProviders[UI_CSS_file] = NULL;
+        mediafoundation_ui_cb_data.configuration->GTKConfiguration.CSSProviders[UI_CSS_file] =
+          NULL;
 #endif // GTK_CHECK_VERSION(3,0,0)
       gtk_configuration_p = &mediafoundation_ui_cb_data.configuration->GTKConfiguration;
-#endif // GTK_USE
+#endif // GTK_SUPPORT
       cb_data_base_p = &mediafoundation_ui_cb_data;
       cb_data_base_p->mediaFramework = STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION;
       mediafoundation_ui_cb_data.configuration = &mediafoundation_configuration;
@@ -1822,7 +1818,7 @@ ACE_TMAIN (int argc_in,
   struct Test_U_AudioEffect_UI_CBData ui_cb_data;
   ui_cb_data.configuration = &configuration;
 
-#if defined (GTK_USE)
+#if defined (GTK_SUPPORT)
   ui_cb_data.progressData.state = &state_r;
 
   ui_cb_data.configuration->GTKConfiguration.argc = argc_in;
@@ -1838,7 +1834,7 @@ ACE_TMAIN (int argc_in,
     ui_cb_data.configuration->GTKConfiguration.CSSProviders[UI_CSS_file] = NULL;
 #endif // GTK_CHECK_VERSION(3,0,0)
   gtk_configuration_p = &ui_cb_data.configuration->GTKConfiguration;
-#endif // GTK_USE
+#endif // GTK_SUPPORT
   cb_data_base_p = &ui_cb_data;
 #endif // ACE_WIN32 || ACE_WIN64
   ACE_ASSERT (cb_data_base_p);
@@ -1847,11 +1843,11 @@ ACE_TMAIN (int argc_in,
   Common_MessageStack_t* logstack_p = NULL;
   ACE_SYNCH_MUTEX* lock_p = NULL;
 #if defined (GUI_SUPPORT)
-#if defined (GTK_USE)
+#if defined (GTK_SUPPORT)
   cb_data_base_p->UIState = &state_r;
   logstack_p = &state_r.logStack;
   lock_p = &state_r.logStackLock;
-#endif // GTK_USE
+#endif // GTK_SUPPORT
 #endif // GUI_SUPPORT
 
   // step1d: initialize logging and/or tracing
@@ -1926,16 +1922,16 @@ ACE_TMAIN (int argc_in,
   } // end IF
   ACE_SYNCH_RECURSIVE_MUTEX* lock_2 = NULL;
 #if defined (GUI_SUPPORT)
-#if defined (GTK_USE)
+#if defined (GTK_SUPPORT)
   lock_2 = &state_r.subscribersLock;
-#endif // GTK_USE
+#endif // GTK_SUPPORT
 #endif // GUI_SUPPORT
   Test_U_AudioEffect_SignalHandler signal_handler (lock_2);
 
   // step1f: handle specific program modes
   if (print_version_and_exit)
   {
-    do_printVersion (ACE::basename (argv_in[0]));
+    do_printVersion (ACE_TEXT_ALWAYS_CHAR (ACE::basename (argv_in[0])));
 
     Common_Signal_Tools::finalize (COMMON_SIGNAL_DEFAULT_DISPATCH_MODE,
                                    signal_set,
@@ -1978,11 +1974,11 @@ ACE_TMAIN (int argc_in,
 
 #if defined (GUI_SUPPORT)
   // step1h: initialize GLIB / G(D|T)K[+] / GNOME ?
-#if defined (GTK_USE)
+#if defined (GTK_SUPPORT)
   ACE_ASSERT (gtk_configuration_p);
   if (!UI_definition_file.empty ())
     COMMON_UI_GTK_MANAGER_SINGLETON::instance ()->initialize (*gtk_configuration_p);
-#endif // GTK_USE
+#endif // GTK_SUPPORT
 #endif // GUI_SUPPORT
 
   ACE_High_Res_Timer timer;
@@ -2004,6 +2000,9 @@ ACE_TMAIN (int argc_in,
 #endif // ACE_WIN32 || ACE_WIN64
            statistic_reporting_interval,
            mute,
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+           use_framework_source,
+#endif // ACE_WIN32 || ACE_WIN64
 #if defined (GUI_SUPPORT)
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
            directshow_ui_cb_data,

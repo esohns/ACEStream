@@ -23,10 +23,10 @@
 
 #include <string>
 
-#include <winnt.h>
-#include <Guiddef.h>
-#include <Ks.h>
-#include <strmif.h>
+#include "winnt.h"
+#include "Guiddef.h"
+#include "Ks.h"
+#include "strmif.h"
 
 #include "ace/Global_Macros.h"
 

@@ -328,14 +328,14 @@ struct Test_U_AudioEffect_ModuleHandlerConfiguration
 {
   Test_U_AudioEffect_ModuleHandlerConfiguration ()
    : Test_U_ModuleHandlerConfiguration ()
-#if defined (GUI_SUPPORT)
-#if defined (GTK_SUPPORT)
-   , area2D ()
-//#if defined (GTKGL_SUPPORT)
-//   , area3D ()
-//#endif /* GTKGL_SUPPORT */
-#endif // GTK_SUPPORT
-#endif // GUI_SUPPORT
+//#if defined (GUI_SUPPORT)
+//#if defined (GTK_SUPPORT)
+//   , area2D ()
+////#if defined (GTKGL_SUPPORT)
+////   , area3D ()
+////#endif /* GTKGL_SUPPORT */
+//#endif // GTK_SUPPORT
+//#endif // GUI_SUPPORT
    , audioInput (0)
    , audioOutput (0)
    , deviceIdentifier ()
@@ -370,14 +370,14 @@ struct Test_U_AudioEffect_ModuleHandlerConfiguration
 #endif // GUI_SUPPORT
   {}
 
-#if defined (GUI_SUPPORT)
-#if defined (GTK_SUPPORT)
-  GdkRectangle                                      area2D;
-//#if defined (GTKGL_SUPPORT)
-//  GdkRectangle                                      area3D;
-//#endif /* GTKGL_SUPPORT */
-#endif // GTK_SUPPORT
-#endif // GUI_SUPPORT
+//#if defined (GUI_SUPPORT)
+//#if defined (GTK_SUPPORT)
+//  GdkRectangle                                      area2D;
+////#if defined (GTKGL_SUPPORT)
+////  GdkRectangle                                      area3D;
+////#endif /* GTKGL_SUPPORT */
+//#endif // GTK_SUPPORT
+//#endif // GUI_SUPPORT
   int                                               audioInput; // waveIn
   int                                               audioOutput;
   // *PORTABILITY*: Win32: (usb) device path
@@ -640,6 +640,7 @@ struct Test_U_AudioEffect_Configuration
    : Test_U_Configuration ()
 #endif // GUI_SUPPORT
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
+   , useFrameworkSource (false)
 #else
    , ALSAConfiguration ()
 #endif // ACE_WIN32 || ACE_WIN64
@@ -651,6 +652,7 @@ struct Test_U_AudioEffect_Configuration
   {}
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
+  bool                                                 useFrameworkSource;
 #else
   struct Stream_Device_ALSAConfiguration               ALSAConfiguration;
 #endif // ACE_WIN32 || ACE_WIN64

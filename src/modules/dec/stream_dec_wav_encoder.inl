@@ -482,18 +482,20 @@ continue_:
       bool close_file = false;
       ACE_FILE_IO file_IO;
       struct _AMMediaType media_type_s;
+      ACE_OS::memset (&media_type_s, 0, sizeof (struct _AMMediaType));
       unsigned char* wave_header_p = NULL;
       unsigned int wave_header_size = 0;
       ssize_t result_2 = -1;
       struct _rifflist* RIFF_wave_p = NULL;
       struct _riffchunk* RIFF_chunk_fmt_p = NULL;
       struct _riffchunk* RIFF_chunk_data_p = NULL;
-      unsigned int file_size =
-        Common_File_Tools::size (session_data_r.targetFileName);
+      unsigned int file_size = 0;
 
-      if (unlikely (session_data_r.targetFileName.empty ()))
+      if (session_data_r.targetFileName.empty ())
         goto continue_2;
 
+      file_size =
+        Common_File_Tools::size (session_data_r.targetFileName);
       if (unlikely (!Common_File_Tools::open (session_data_r.targetFileName, // FQ file name
                                               O_RDWR | O_BINARY,             // flags
                                               file_IO)))                     // return value: stream
@@ -508,7 +510,6 @@ continue_:
 
       // sanity check(s)
       ACE_ASSERT (!session_data_r.formats.empty ());
-      ACE_OS::memset (&media_type_s, 0, sizeof (struct _AMMediaType));
       inherited::getMediaType (session_data_r.formats.back (),
                                media_type_s);
       ACE_ASSERT (InlineIsEqualGUID (media_type_s.formattype, FORMAT_WaveFormatEx));
