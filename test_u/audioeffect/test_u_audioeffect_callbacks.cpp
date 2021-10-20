@@ -434,6 +434,7 @@ error_2:
       return false;
     }
   } // end SWITCH
+continue_:
 #else
   void** hints_p = NULL;
   int result_2 =
@@ -523,9 +524,6 @@ clean:
                   ACE_TEXT (snd_strerror (result_2))));
   } // end IF
 #endif // ACE_WIN32 || ACE_WIN64
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-continue_:
-#endif // ACE_WIN32 || ACE_WIN64
 
   return result;
 }
@@ -575,9 +573,10 @@ load_formats (int deviceId_in,
   if (unlikely (!capabilities_s.dwFormats))
     return false;
   gtk_list_store_append (listStore_in, &iterator);
+
   gtk_list_store_set (listStore_in, &iterator,
                       0, ACE_TEXT_ALWAYS_CHAR ("PCM"),
-                      1, ACE_TEXT_ALWAYS_CHAR (""),
+                      1, ACE_TEXT_ALWAYS_CHAR (Common_Tools::GUIDToString (MEDIASUBTYPE_PCM).c_str ()),
                       -1);
   return true;
 }
@@ -2919,7 +2918,7 @@ get_buffer_size (gpointer userData_in)
       ACE_ASSERT (directshow_ui_cb_data_p);
       ACE_ASSERT (directshow_ui_cb_data_p->configuration);
       use_framework_source_b =
-        directshow_ui_cb_data_p->configuration->useFrameworkSource;
+        directshow_ui_cb_data_p->configuration->streamConfiguration.configuration_->useFrameworkSource;
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
@@ -2930,7 +2929,7 @@ get_buffer_size (gpointer userData_in)
       ACE_ASSERT (mediafoundation_ui_cb_data_p);
       ACE_ASSERT (mediafoundation_ui_cb_data_p->configuration);
       use_framework_source_b =
-        mediafoundation_ui_cb_data_p->configuration->useFrameworkSource;
+        mediafoundation_ui_cb_data_p->configuration->streamConfiguration.configuration_->useFrameworkSource;
       break;
     }
     default:
@@ -2991,17 +2990,13 @@ get_buffer_size (gpointer userData_in)
 #endif // ACE_WIN32 || ACE_WIN64
   g_value_unset (&value);
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  struct _GUID GUID_s = GUID_NULL;
-  if (use_framework_source_b)
+  struct _GUID GUID_s = Common_Tools::StringToGUID (format_string);
+  if (InlineIsEqualGUID (GUID_s, GUID_NULL))
   {
-    GUID_s = Common_Tools::StringToGUID (format_string);
-    if (InlineIsEqualGUID (GUID_s, GUID_NULL))
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to Common_Tools::StringToGUID(\"%s\"), aborting\n"),
-                  ACE_TEXT (format_string.c_str ())));
-      return 0;
-    } // end IF
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to Common_Tools::StringToGUID(\"%s\"), aborting\n"),
+                ACE_TEXT (format_string.c_str ())));
+    return 0;
   } // end IF
 #else
 //  snd_pcm_format_t format_i = snd_pcm_format_value (format_string.c_str ());
@@ -3653,7 +3648,7 @@ idle_initialize_UI_cb (gpointer userData_in)
       buffer_size =
         directshow_ui_cb_data_p->configuration->streamConfiguration.configuration_->allocatorConfiguration->defaultBufferSize;
       use_framework_source_b =
-        directshow_ui_cb_data_p->configuration->useFrameworkSource;
+        directshow_ui_cb_data_p->configuration->streamConfiguration.configuration_->useFrameworkSource;
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
@@ -3661,7 +3656,7 @@ idle_initialize_UI_cb (gpointer userData_in)
       buffer_size =
         mediafoundation_ui_cb_data_p->configuration->streamConfiguration.configuration_->allocatorConfiguration->defaultBufferSize;
       use_framework_source_b =
-        mediafoundation_ui_cb_data_p->configuration->useFrameworkSource;
+        mediafoundation_ui_cb_data_p->configuration->streamConfiguration.configuration_->useFrameworkSource;
       break;
     }
     default:
@@ -5466,22 +5461,22 @@ idle_update_progress_cb (gpointer userData_in)
   {
     iterator_2 = data_p->pendingActions.find (*iterator_3);
     ACE_ASSERT (iterator_2 != data_p->pendingActions.end ());
-    result = thread_manager_p->join ((*iterator_2).first, &exit_status);
+    result = thread_manager_p->join ((*iterator_2).second.id (), &exit_status);
     if (result == -1)
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to ACE_Thread_Manager::join(%u): \"%m\", continuing\n"),
-                  (*iterator_2).first));
+                  (*iterator_2).second.id ()));
     else
     {
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
       ACE_DEBUG ((LM_DEBUG,
                   ACE_TEXT ("thread %u has joined (status was: %u)...\n"),
-                  (*iterator_2).first,
+                  (*iterator_2).second.id (),
                   exit_status));
 #else
       ACE_DEBUG ((LM_DEBUG,
                   ACE_TEXT ("thread %u has joined (status was: %@)...\n"),
-                  (*iterator_2).first,
+                  (*iterator_2).second.id (),
                   exit_status));
 #endif // ACE_WIN32 || ACE_WIN64
     } // end ELSE
@@ -5701,7 +5696,7 @@ togglebutton_record_toggled_cb (GtkToggleButton* toggleButton_in,
       ACE_ASSERT (directshow_ui_cb_data_p->stream);
       stream_p = directshow_ui_cb_data_p->stream;
       use_framework_source_b =
-        directshow_ui_cb_data_p->configuration->useFrameworkSource;
+        directshow_ui_cb_data_p->configuration->streamConfiguration.configuration_->useFrameworkSource;
 
       directshow_modulehandler_configuration_iterator =
         directshow_ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
@@ -5718,7 +5713,7 @@ togglebutton_record_toggled_cb (GtkToggleButton* toggleButton_in,
       ACE_ASSERT (mediafoundation_ui_cb_data_p->stream);
       stream_p = mediafoundation_ui_cb_data_p->stream;
       use_framework_source_b =
-        mediafoundation_ui_cb_data_p->configuration->useFrameworkSource;
+        mediafoundation_ui_cb_data_p->configuration->streamConfiguration.configuration_->useFrameworkSource;
 
       mediafoundation_modulehandler_configuration_iterator =
         mediafoundation_ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
@@ -5956,16 +5951,13 @@ togglebutton_record_toggled_cb (GtkToggleButton* toggleButton_in,
   ACE_ASSERT (G_VALUE_TYPE (&value) == G_TYPE_INT);
 #endif // ACE_WIN32 || ACE_WIN64
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  if (use_framework_source_b)
+  GUID_s = Common_Tools::StringToGUID (g_value_get_string (&value));
+  if (InlineIsEqualGUID (GUID_s, GUID_NULL))
   {
-    GUID_s = Common_Tools::StringToGUID (g_value_get_string (&value));
-    if (InlineIsEqualGUID (GUID_s, GUID_NULL))
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to Common_Tools::StringToGUID(\"%s\"), returning\n"),
-                  ACE_TEXT (g_value_get_string (&value))));
-      return;
-    } // end IF
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to Common_Tools::StringToGUID(\"%s\"), returning\n"),
+                ACE_TEXT (g_value_get_string (&value))));
+    return;
   } // end IF
   HRESULT result = E_FAIL;
   switch (ui_cb_data_base_p->mediaFramework)
@@ -7963,7 +7955,7 @@ combobox_source_changed_cb (GtkWidget* widget_in,
 
       stream_p = directshow_ui_cb_data_p->stream;
       use_framework_source_b =
-        directshow_ui_cb_data_p->configuration->useFrameworkSource;
+        directshow_ui_cb_data_p->configuration->streamConfiguration.configuration_->useFrameworkSource;
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
@@ -7981,7 +7973,7 @@ combobox_source_changed_cb (GtkWidget* widget_in,
 
       stream_p = mediafoundation_ui_cb_data_p->stream;
       use_framework_source_b =
-        mediafoundation_ui_cb_data_p->configuration->useFrameworkSource;
+        mediafoundation_ui_cb_data_p->configuration->streamConfiguration.configuration_->useFrameworkSource;
       break;
     }
     default:
@@ -8509,7 +8501,7 @@ combobox_format_changed_cb (GtkWidget* widget_in,
         directshow_ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
       ACE_ASSERT (directshow_modulehandler_configuration_iterator != directshow_ui_cb_data_p->configuration->streamConfiguration.end ());
       use_framework_source_b =
-        directshow_ui_cb_data_p->configuration->useFrameworkSource;
+        directshow_ui_cb_data_p->configuration->streamConfiguration.configuration_->useFrameworkSource;
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
@@ -8524,7 +8516,7 @@ combobox_format_changed_cb (GtkWidget* widget_in,
         mediafoundation_ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
       ACE_ASSERT (mediafoundation_modulehandler_configuration_iterator != mediafoundation_ui_cb_data_p->configuration->streamConfiguration.end ());
       use_framework_source_b =
-        mediafoundation_ui_cb_data_p->configuration->useFrameworkSource;
+        mediafoundation_ui_cb_data_p->configuration->streamConfiguration.configuration_->useFrameworkSource;
       break;
     }
     default:
@@ -8589,17 +8581,13 @@ combobox_format_changed_cb (GtkWidget* widget_in,
 #endif // ACE_WIN32 || ACE_WIN64
   g_value_unset (&value);
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  struct _GUID GUID_s = GUID_NULL;
-  if (use_framework_source_b)
+  struct _GUID GUID_s = Common_Tools::StringToGUID (format_string);
+  if (InlineIsEqualGUID (GUID_s, GUID_NULL))
   {
-    GUID_s = Common_Tools::StringToGUID (format_string);
-    if (InlineIsEqualGUID (GUID_s, GUID_NULL))
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to Common_Tools::StringToGUID(\"%s\"), returning\n"),
-                  ACE_TEXT (format_string.c_str ())));
-      return;
-    } // end IF
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to Common_Tools::StringToGUID(\"%s\"), returning\n"),
+                ACE_TEXT (format_string.c_str ())));
+    return;
   } // end IF
 #else
 //  snd_pcm_format_t format_i = snd_pcm_format_value (format_string.c_str ());
@@ -8836,7 +8824,7 @@ combobox_frequency_changed_cb (GtkWidget* widget_in,
         directshow_ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
       ACE_ASSERT (directshow_modulehandler_configuration_iterator != directshow_ui_cb_data_p->configuration->streamConfiguration.end ());
       use_framework_source_b =
-        directshow_ui_cb_data_p->configuration->useFrameworkSource;
+        directshow_ui_cb_data_p->configuration->streamConfiguration.configuration_->useFrameworkSource;
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
@@ -8851,7 +8839,7 @@ combobox_frequency_changed_cb (GtkWidget* widget_in,
         mediafoundation_ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
       ACE_ASSERT (mediafoundation_modulehandler_configuration_iterator != mediafoundation_ui_cb_data_p->configuration->streamConfiguration.end ());
       use_framework_source_b =
-        mediafoundation_ui_cb_data_p->configuration->useFrameworkSource;
+        mediafoundation_ui_cb_data_p->configuration->streamConfiguration.configuration_->useFrameworkSource;
       break;
     }
     default:
@@ -8919,17 +8907,13 @@ combobox_frequency_changed_cb (GtkWidget* widget_in,
 #endif // ACE_WIN32 || ACE_WIN64
   g_value_unset (&value);
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  struct _GUID GUID_s = GUID_NULL;
-  if (use_framework_source_b)
+  struct _GUID GUID_s = Common_Tools::StringToGUID (format_string);
+  if (InlineIsEqualGUID (GUID_s, GUID_NULL))
   {
-    GUID_s = Common_Tools::StringToGUID (format_string);
-    if (InlineIsEqualGUID (GUID_s, GUID_NULL))
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to Common_Tools::StringToGUID(\"%s\"), returning\n"),
-                  ACE_TEXT (format_string.c_str ())));
-      return;
-    } // end IF
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to Common_Tools::StringToGUID(\"%s\"), returning\n"),
+                ACE_TEXT (format_string.c_str ())));
+    return;
   } // end IF
 #else
 //  snd_pcm_format_t format_i = snd_pcm_format_value (format_string.c_str ());
@@ -9190,7 +9174,7 @@ combobox_resolution_changed_cb (GtkWidget* widget_in,
         directshow_ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
       ACE_ASSERT (directshow_modulehandler_configuration_iterator != directshow_ui_cb_data_p->configuration->streamConfiguration.end ());
       use_framework_source_b =
-        directshow_ui_cb_data_p->configuration->useFrameworkSource;
+        directshow_ui_cb_data_p->configuration->streamConfiguration.configuration_->useFrameworkSource;
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
@@ -9205,7 +9189,7 @@ combobox_resolution_changed_cb (GtkWidget* widget_in,
         mediafoundation_ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
       ACE_ASSERT (mediafoundation_modulehandler_configuration_iterator != mediafoundation_ui_cb_data_p->configuration->streamConfiguration.end ());
       use_framework_source_b =
-        mediafoundation_ui_cb_data_p->configuration->useFrameworkSource;
+        mediafoundation_ui_cb_data_p->configuration->streamConfiguration.configuration_->useFrameworkSource;
       break;
     }
     default:
@@ -9273,17 +9257,13 @@ combobox_resolution_changed_cb (GtkWidget* widget_in,
 #endif // ACE_WIN32 || ACE_WIN64
   g_value_unset (&value);
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  struct _GUID GUID_s = GUID_NULL;
-  if (use_framework_source_b)
+  struct _GUID GUID_s = Common_Tools::StringToGUID (format_string);
+  if (InlineIsEqualGUID (GUID_s, GUID_NULL))
   {
-    GUID_s = Common_Tools::StringToGUID (format_string);
-    if (InlineIsEqualGUID (GUID_s, GUID_NULL))
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to Common_Tools::StringToGUID(\"%s\"), returning\n"),
-                  ACE_TEXT (format_string.c_str ())));
-      return;
-    } // end IF
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to Common_Tools::StringToGUID(\"%s\"), returning\n"),
+                ACE_TEXT (format_string.c_str ())));
+    return;
   } // end IF
 #else
 //  snd_pcm_format_t format_i = snd_pcm_format_value (format_string.c_str ());
@@ -9572,7 +9552,7 @@ combobox_channels_changed_cb (GtkWidget* widget_in,
         directshow_ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
       ACE_ASSERT (directshow_modulehandler_configuration_iterator != directshow_ui_cb_data_p->configuration->streamConfiguration.end ());
       use_framework_source_b =
-        directshow_ui_cb_data_p->configuration->useFrameworkSource;
+        directshow_ui_cb_data_p->configuration->streamConfiguration.configuration_->useFrameworkSource;
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
@@ -9587,7 +9567,7 @@ combobox_channels_changed_cb (GtkWidget* widget_in,
         mediafoundation_ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
       ACE_ASSERT (mediafoundation_modulehandler_configuration_iterator != mediafoundation_ui_cb_data_p->configuration->streamConfiguration.end ());
       use_framework_source_b =
-        mediafoundation_ui_cb_data_p->configuration->useFrameworkSource;
+        mediafoundation_ui_cb_data_p->configuration->streamConfiguration.configuration_->useFrameworkSource;
       break;
     }
     default:
@@ -9655,17 +9635,13 @@ combobox_channels_changed_cb (GtkWidget* widget_in,
 #endif // ACE_WIN32 || ACE_WIN64
   g_value_unset (&value);
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  struct _GUID GUID_s = GUID_NULL;
-  if (use_framework_source_b)
+  struct _GUID GUID_s = Common_Tools::StringToGUID (format_string);
+  if (InlineIsEqualGUID (GUID_s, GUID_NULL))
   {
-    GUID_s = Common_Tools::StringToGUID (format_string);
-    if (InlineIsEqualGUID (GUID_s, GUID_NULL))
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to Common_Tools::StringToGUID(\"%s\"), returning\n"),
-                  ACE_TEXT (format_string.c_str ())));
-      return;
-    } // end IF
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to Common_Tools::StringToGUID(\"%s\"), returning\n"),
+                ACE_TEXT (format_string.c_str ())));
+    return;
   } // end IF
 #else
 //  snd_pcm_format_t format_i = snd_pcm_format_value (format_string.c_str ());

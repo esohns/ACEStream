@@ -1043,8 +1043,8 @@ Stream_MediaFramework_DirectShow_Source_Filter_OutputPin_T<ConfigurationType>::Q
                 ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ())));
     return E_FAIL;
   } // end IF
-  if (Stream_MediaFramework_DirectShow_Tools::match (*mediaType_in,
-                                                     media_type_s))
+  if (Stream_MediaFramework_DirectShow_Tools::match (media_type_s,
+                                                     *mediaType_in))
     return S_OK;
 
   ACE_DEBUG ((LM_WARNING,
@@ -1250,8 +1250,8 @@ error:
 // DecideBufferSize
 //
 // This will always be called after the format has been sucessfully
-// negotiated. So we have a look at m_mt to see what size image we agreed.
-// Then we can ask for buffers of the correct size to contain them.
+// negotiated. So we have a look at m_mt to see what size image/sample was agreed.
+// Then ask for buffers of the correct size to contain them.
 //
 template <typename ConfigurationType>
 HRESULT
@@ -1275,7 +1275,6 @@ Stream_MediaFramework_DirectShow_Source_Filter_OutputPin_T<ConfigurationType>::D
   HRESULT result = GetAllocatorProperties (&allocator_properties_s);
   ACE_ASSERT (SUCCEEDED (result));
 
-  //result = copy (&media_type, &(inherited::m_mt));
   result = inherited::ConnectionMediaType (&media_type);
   if (FAILED (result))
   {
@@ -1286,29 +1285,61 @@ Stream_MediaFramework_DirectShow_Source_Filter_OutputPin_T<ConfigurationType>::D
                 ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ())));
     return result;
   } // end IF
-  ACE_ASSERT (InlineIsEqualGUID (media_type.formattype, FORMAT_VideoInfo) &&
-              (media_type.cbFormat == sizeof (struct tagVIDEOINFOHEADER)));
-  struct tagVIDEOINFOHEADER* video_info_p =
-    reinterpret_cast<struct tagVIDEOINFOHEADER*> (media_type.pbFormat);
-  ACE_ASSERT (video_info_p);
 
   // *TODO*: IMemAllocator::SetProperties returns VFW_E_BADALIGN (0x8004020e)
   //         if this is -1/0 (why ?)
   if (properties_inout->cbAlign <= 0)
     properties_inout->cbAlign = 1;
-  // *NOTE*: the buffers must be large enough to support the 32-bit RGB (!) data
-  //         format
-  //video_info_p->bmiHeader.biBitCount = 32;
-  //video_info_p->bmiHeader.biSizeImage = DIBSIZE (video_info_p->bmiHeader);
-  //GetBitmapSize (&video_info_p->bmiHeader);
-  properties_inout->cbBuffer =
-    std::max (static_cast<long> (video_info_p->bmiHeader.biSizeImage),
-              allocator_properties_s.cbBuffer);
+
+  if (InlineIsEqualGUID (media_type.formattype, FORMAT_VideoInfo) &&
+      (media_type.cbFormat == sizeof (struct tagVIDEOINFOHEADER)))
+  {
+    struct tagVIDEOINFOHEADER* video_info_p =
+      reinterpret_cast<struct tagVIDEOINFOHEADER*> (media_type.pbFormat);
+    ACE_ASSERT (video_info_p);
+    properties_inout->cbBuffer =
+      std::max (static_cast<long> (video_info_p->bmiHeader.biSizeImage),
+                allocator_properties_s.cbBuffer);
+  } // end IF
+  else if (InlineIsEqualGUID (media_type.formattype, FORMAT_VideoInfo2) &&
+           (media_type.cbFormat == sizeof (struct tagVIDEOINFOHEADER2)))
+  {
+    struct tagVIDEOINFOHEADER2* video_info_p =
+      reinterpret_cast<struct tagVIDEOINFOHEADER2*> (media_type.pbFormat);
+    ACE_ASSERT (video_info_p);
+    properties_inout->cbBuffer =
+      std::max (static_cast<long> (video_info_p->bmiHeader.biSizeImage),
+                allocator_properties_s.cbBuffer);
+  } // end ELSE IF
+  else if (InlineIsEqualGUID (media_type.formattype, FORMAT_WaveFormatEx) &&
+           (media_type.cbFormat == sizeof (struct tWAVEFORMATEX)))
+  {
+    struct tWAVEFORMATEX* audio_info_p =
+      reinterpret_cast<struct tWAVEFORMATEX*> (media_type.pbFormat);
+    ACE_ASSERT (audio_info_p);
+    // *IMPORTANT NOTE*: with DirectShow, lower buffer sizes result in lower
+    //                   latency
+    properties_inout->cbBuffer =
+      std::max (static_cast<long> ((audio_info_p->nSamplesPerSec * (audio_info_p->wBitsPerSample / 8) * audio_info_p->nChannels) / 8), // <-- arbitrary factor
+                allocator_properties_s.cbBuffer);
+  } // end ELSE IF
+  else
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s/%s: invalid/unknown media type format (was: \"%s\"), aborting\n"),
+                ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::name (inherited::m_pFilter).c_str ()),
+                ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::name (this).c_str ()),
+                ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::toString (media_type).c_str ())));
+    FreeMediaType (media_type);
+    return VFW_E_INVALIDMEDIATYPE;
+  } // end ELSE
   ACE_ASSERT (properties_inout->cbBuffer);
   //properties_inout->cbPrefix = 0;
   // *NOTE*: IMemAllocator::SetProperties returns E_INVALIDARG (0x80070057)
   //         if this is set (why ?)
-  properties_inout->cBuffers = STREAM_LIB_DIRECTSHOW_FILTER_SOURCE_BUFFERS;
+  properties_inout->cBuffers =
+    std::max (static_cast<long> (STREAM_LIB_DIRECTSHOW_FILTER_SOURCE_BUFFERS),
+              allocator_properties_s.cBuffers);
 
   FreeMediaType (media_type);
 
@@ -1396,8 +1427,7 @@ Stream_MediaFramework_DirectShow_Source_Filter_OutputPin_T<ConfigurationType>::F
     return S_FALSE; // --> stop
   } // end IF
   ACE_ASSERT (data_p);
-  long data_length_l = 0;
-  data_length_l = mediaSample_in->GetSize ();
+  long data_length_l = mediaSample_in->GetSize ();
   ACE_ASSERT (data_length_l);
 
   ACE_Message_Block* message_block_p = NULL;
@@ -1443,9 +1473,7 @@ Stream_MediaFramework_DirectShow_Source_Filter_OutputPin_T<ConfigurationType>::F
   //         the allocator handle passed into IMemInputPin::NotifyAllocator() is
   //         ignored; this requires investigation). Until further notice,
   //         memcpy() seems to be unavoidable to forward the data)
-  ACE_OS::memcpy (data_p,
-                  message_block_p->rd_ptr (),
-                  data_length_2);
+  ACE_OS::memcpy (data_p, message_block_p->rd_ptr (), data_length_2);
   message_block_p->release ();
   result = mediaSample_in->SetActualDataLength (data_length_2);
   if (unlikely (FAILED (result)))
@@ -1523,7 +1551,7 @@ Stream_MediaFramework_DirectShow_Source_Filter_OutputPin_T<ConfigurationType>::O
               ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::name (this).c_str ())));
 
   // { CAutoLock cAutoLockShared (&lock_);
-  // we need to also reset the repeat time in case the system
+  // need to also reset the repeat time in case the system
   // clock is turned off after m_iRepeatTime gets very big
   //frameInterval_ = defaultFrameInterval_; } // end lock scope
 
@@ -2017,7 +2045,7 @@ Stream_MediaFramework_DirectShow_Source_Filter_OutputPin_T<ConfigurationType>::S
   if (pmt_in == mediaType_)
     goto continue_;
   if (mediaType_)
-    Stream_MediaFramework_DirectShow_Tools::delete_ (mediaType_);
+    Stream_MediaFramework_DirectShow_Tools::delete_ (mediaType_, false);
   mediaType_ =
     Stream_MediaFramework_DirectShow_Tools::copy (*pmt_in);
   if (!mediaType_)
@@ -2050,6 +2078,7 @@ continue_:
 
   return S_OK;
 }
+
 template <typename ConfigurationType>
 STDMETHODIMP
 Stream_MediaFramework_DirectShow_Source_Filter_OutputPin_T<ConfigurationType>::GetFormat (struct _AMMediaType** ppmt_inout)

@@ -114,6 +114,9 @@ class Stream_MediaFramework_DirectShow_Target_T
                   const struct _AMMediaType&,     // 'preferred' media type
                   HWND,                           // (target) window handle {NULL: NullRenderer}
                   IGraphBuilder*&);               // return value: graph builder handle
+  // enqueue MB_STOP --> stop worker thread(s)
+  virtual void stop (bool = true,  // wait for completion ?
+                     bool = true); // high priority ? (i.e. do not wait for queued messages)
 
   IGraphBuilder*                      IGraphBuilder_;
 

@@ -1187,6 +1187,8 @@ Stream_Module_Decoder_Tools::loadAudioRendererGraph (REFGUID deviceCategory_in,
   HRESULT result = E_FAIL;
   struct _GUID GUID_s = GUID_NULL;
   struct Stream_MediaFramework_DirectShow_GraphConfigurationEntry graph_entry;
+  IBaseFilter* filter_p = NULL;
+  IDMOWrapperFilter* wrapper_filter_p = NULL;
 
   // initialize return value(s)
   graphConfiguration_out.clear ();
@@ -1203,78 +1205,13 @@ Stream_Module_Decoder_Tools::loadAudioRendererGraph (REFGUID deviceCategory_in,
     return false;
   } // end IF
 
-  IBaseFilter* filter_p = NULL, *filter_2 = NULL;
-  IBaseFilter* filter_3 = NULL, *filter_4 = NULL;
-  IDMOWrapperFilter* wrapper_filter_p = NULL;
-
-  //// encode PCM --> WAV ?
-  //struct _GUID converter_CLSID = WAV_Colour;
-  //std::wstring converter_name = STREAM_DEV_CAM_DIRECTSHOW_FILTER_NAME_CONVERT_PCM;
-  //if (mediaType_in.subtype == MEDIASUBTYPE_WAVE)
-  //{
-  //  converter_CLSID = CLSID_MjpegDec;
-  //  converter_name = STREAM_DEC_DIRECTSHOW_FILTER_NAME_DECOMPRESS_MJPG;
-  //} // end IF
-  //else if (mediaType_in.subtype == MEDIASUBTYPE_PCM)
-  //{
-  //  // *NOTE*: the AVI Decompressor supports decoding YUV-formats to RGB
-  //  converter_CLSID = CLSID_AVIDec;
-  //  converter_name = STREAM_DEC_DIRECTSHOW_FILTER_NAME_DECOMPRESS_AVI;
-  //} // end IF
-  //else
-  //{
-  //  ACE_DEBUG ((LM_ERROR,
-  //              ACE_TEXT ("invalid/unknown media subtype (was: \"%s\"), aborting\n"),
-  //              ACE_TEXT (Stream_Module_Decoder_Tools::mediaSubTypeToString (mediaType_in.subtype).c_str ())));
-  //  return false;
-  //} // end IF
-
-  //result = IGraphBuilder_in->AddFilter (filter_p,
-  //                                      converter_name.c_str ());
-  //if (FAILED (result))
-  //{
-  //  ACE_DEBUG ((LM_ERROR,
-  //              ACE_TEXT ("failed to IGraphBuilder::AddFilter(): \"%s\", aborting\n"),
-  //              ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ())));
-  //  goto error;
-  //} // end IF
-  //ACE_DEBUG ((LM_DEBUG,
-  //            ACE_TEXT ("added \"%s\"\n"),
-  //            ACE_TEXT_WCHAR_TO_TCHAR (converter_name.c_str ())));
-
-  result = CoCreateInstance (CLSID_SampleGrabber, NULL,
-                             CLSCTX_INPROC_SERVER,
-                             IID_PPV_ARGS (&filter_2));
-  if (FAILED (result))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to CoCreateInstance(\"%s\"): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::GUIDToString (CLSID_SampleGrabber).c_str ()),
-                ACE_TEXT (Common_Error_Tools::errorToString (result, false).c_str ())));
-    goto error;
-  } // end IF
-  ACE_ASSERT (filter_2);
-  result =
-    IGraphBuilder_in->AddFilter (filter_2,
-                                 STREAM_LIB_DIRECTSHOW_FILTER_NAME_GRAB);
-  if (FAILED (result))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to IGraphBuilder::AddFilter(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ())));
-    goto error;
-  } // end IF
-  graph_entry.filterName = STREAM_LIB_DIRECTSHOW_FILTER_NAME_GRAB;
-  graphConfiguration_out.push_back (graph_entry);
-
-  // add effect DMO ?
-//add_effect:
+  // step1: add effect DMO ?
   if (InlineIsEqualGUID (effect_in, GUID_NULL))
     goto continue_;
 
   result = CoCreateInstance (CLSID_DMOWrapperFilter, NULL,
                              CLSCTX_INPROC_SERVER,
-                             IID_PPV_ARGS (&filter_3));
+                             IID_PPV_ARGS (&filter_p));
   if (FAILED (result))
   {
     ACE_DEBUG ((LM_ERROR,
@@ -1283,8 +1220,8 @@ Stream_Module_Decoder_Tools::loadAudioRendererGraph (REFGUID deviceCategory_in,
                 ACE_TEXT (Common_Error_Tools::errorToString (result, false).c_str ())));
     goto error;
   } // end IF
-  ACE_ASSERT (filter_3);
-  result = filter_3->QueryInterface (IID_PPV_ARGS (&wrapper_filter_p));
+  ACE_ASSERT (filter_p);
+  result = filter_p->QueryInterface (IID_PPV_ARGS (&wrapper_filter_p));
   if (FAILED (result))
   {
     ACE_DEBUG ((LM_ERROR,
@@ -1310,7 +1247,7 @@ Stream_Module_Decoder_Tools::loadAudioRendererGraph (REFGUID deviceCategory_in,
     if (FAILED (result))
     {
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to IDMOWrapperFilter::QueryInterface(IID_IDirectSoundCaptureFXAec): \"%s\", returning\n"),
+                  ACE_TEXT ("failed to IDMOWrapperFilter::QueryInterface(IID_IDirectSoundCaptureFXAec): \"%s\", aborting\n"),
                   ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ())));
       goto error;
     } // end IF
@@ -1318,14 +1255,12 @@ Stream_Module_Decoder_Tools::loadAudioRendererGraph (REFGUID deviceCategory_in,
     if (FAILED (result))
     {
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to IDirectSoundCaptureFXAec::SetAllParameters(): \"%s\", returning\n"),
+                  ACE_TEXT ("failed to IDirectSoundCaptureFXAec::SetAllParameters(): \"%s\", aborting\n"),
                   ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ())));
-
-      effect_p->Release ();
-
+      effect_p->Release (); effect_p = NULL;
       goto error;
     } // end IF
-    effect_p->Release ();
+    effect_p->Release (); effect_p = NULL;
   } // end IF
   //////////////////////////////////////
   else if (InlineIsEqualGUID (effect_in, GUID_DSFX_STANDARD_CHORUS))
@@ -1336,7 +1271,7 @@ Stream_Module_Decoder_Tools::loadAudioRendererGraph (REFGUID deviceCategory_in,
     if (FAILED (result))
     {
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to IDMOWrapperFilter::QueryInterface(IID_IDirectSoundFXChorus): \"%s\", returning\n"),
+                  ACE_TEXT ("failed to IDMOWrapperFilter::QueryInterface(IID_IDirectSoundFXChorus): \"%s\", aborting\n"),
                   ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ())));
       goto error;
     } // end IF
@@ -1344,14 +1279,12 @@ Stream_Module_Decoder_Tools::loadAudioRendererGraph (REFGUID deviceCategory_in,
     if (FAILED (result))
     {
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to IDirectSoundFXChorus::SetAllParameters(): \"%s\", returning\n"),
+                  ACE_TEXT ("failed to IDirectSoundFXChorus::SetAllParameters(): \"%s\", aborting\n"),
                   ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ())));
-
-      effect_p->Release ();
-
+      effect_p->Release (); effect_p = NULL;
       goto error;
     } // end IF
-    effect_p->Release ();
+    effect_p->Release (); effect_p = NULL;
   } // end ELSE IF
   else if (InlineIsEqualGUID (effect_in, GUID_DSFX_STANDARD_COMPRESSOR))
   {
@@ -1361,7 +1294,7 @@ Stream_Module_Decoder_Tools::loadAudioRendererGraph (REFGUID deviceCategory_in,
     if (FAILED (result))
     {
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to IDMOWrapperFilter::QueryInterface(IID_IDirectSoundFXCompressor): \"%s\", returning\n"),
+                  ACE_TEXT ("failed to IDMOWrapperFilter::QueryInterface(IID_IDirectSoundFXCompressor): \"%s\", aborting\n"),
                   ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ())));
       goto error;
     } // end IF
@@ -1369,14 +1302,12 @@ Stream_Module_Decoder_Tools::loadAudioRendererGraph (REFGUID deviceCategory_in,
     if (FAILED (result))
     {
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to IDirectSoundFXCompressor::SetAllParameters(): \"%s\", returning\n"),
+                  ACE_TEXT ("failed to IDirectSoundFXCompressor::SetAllParameters(): \"%s\", aborting\n"),
                   ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ())));
-
-      effect_p->Release ();
-
+      effect_p->Release (); effect_p = NULL;
       goto error;
     } // end IF
-    effect_p->Release ();
+    effect_p->Release (); effect_p = NULL;
   } // end ELSE IF
   else if (InlineIsEqualGUID (effect_in, GUID_DSFX_STANDARD_DISTORTION))
   {
@@ -1386,7 +1317,7 @@ Stream_Module_Decoder_Tools::loadAudioRendererGraph (REFGUID deviceCategory_in,
     if (FAILED (result))
     {
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to IDMOWrapperFilter::QueryInterface(IID_IDirectSoundFXDistortion): \"%s\", returning\n"),
+                  ACE_TEXT ("failed to IDMOWrapperFilter::QueryInterface(IID_IDirectSoundFXDistortion): \"%s\", aborting\n"),
                   ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ())));
       goto error;
     } // end IF
@@ -1394,14 +1325,12 @@ Stream_Module_Decoder_Tools::loadAudioRendererGraph (REFGUID deviceCategory_in,
     if (FAILED (result))
     {
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to IDirectSoundFXDistortion::SetAllParameters(): \"%s\", returning\n"),
+                  ACE_TEXT ("failed to IDirectSoundFXDistortion::SetAllParameters(): \"%s\", aborting\n"),
                   ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ())));
-
-      effect_p->Release ();
-
+      effect_p->Release (); effect_p = NULL;
       goto error;
     } // end IF
-    effect_p->Release ();
+    effect_p->Release (); effect_p = NULL;
   } // end ELSE IF
   else if (InlineIsEqualGUID (effect_in, GUID_DSFX_STANDARD_ECHO))
   {
@@ -1411,7 +1340,7 @@ Stream_Module_Decoder_Tools::loadAudioRendererGraph (REFGUID deviceCategory_in,
     if (FAILED (result))
     {
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to IDMOWrapperFilter::QueryInterface(IID_IDirectSoundFXEcho): \"%s\", returning\n"),
+                  ACE_TEXT ("failed to IDMOWrapperFilter::QueryInterface(IID_IDirectSoundFXEcho): \"%s\", aborting\n"),
                   ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ())));
       goto error;
     } // end IF
@@ -1419,14 +1348,12 @@ Stream_Module_Decoder_Tools::loadAudioRendererGraph (REFGUID deviceCategory_in,
     if (FAILED (result))
     {
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to IDirectSoundFXEcho::SetAllParameters(): \"%s\", returning\n"),
+                  ACE_TEXT ("failed to IDirectSoundFXEcho::SetAllParameters(): \"%s\", aborting\n"),
                   ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ())));
-
-      effect_p->Release ();
-
+      effect_p->Release (); effect_p = NULL;
       goto error;
     } // end IF
-    effect_p->Release ();
+    effect_p->Release (); effect_p = NULL;
   } // end ELSE IF
   else if (InlineIsEqualGUID (effect_in, GUID_DSFX_STANDARD_PARAMEQ))
   {
@@ -1436,7 +1363,7 @@ Stream_Module_Decoder_Tools::loadAudioRendererGraph (REFGUID deviceCategory_in,
     if (FAILED (result))
     {
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to IDMOWrapperFilter::QueryInterface(IID_IDirectSoundFXParamEq): \"%s\", returning\n"),
+                  ACE_TEXT ("failed to IDMOWrapperFilter::QueryInterface(IID_IDirectSoundFXParamEq): \"%s\", aborting\n"),
                   ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ())));
       goto error;
     } // end IF
@@ -1444,14 +1371,12 @@ Stream_Module_Decoder_Tools::loadAudioRendererGraph (REFGUID deviceCategory_in,
     if (FAILED (result))
     {
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to IDirectSoundFXParamEq::SetAllParameters(): \"%s\", returning\n"),
+                  ACE_TEXT ("failed to IDirectSoundFXParamEq::SetAllParameters(): \"%s\", aborting\n"),
                   ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ())));
-
-      effect_p->Release ();
-
+      effect_p->Release (); effect_p = NULL;
       goto error;
     } // end IF
-    effect_p->Release ();
+    effect_p->Release (); effect_p = NULL;
   } // end ELSE IF
   else if (InlineIsEqualGUID (effect_in, GUID_DSFX_STANDARD_FLANGER))
   {
@@ -1461,7 +1386,7 @@ Stream_Module_Decoder_Tools::loadAudioRendererGraph (REFGUID deviceCategory_in,
     if (FAILED (result))
     {
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to IDMOWrapperFilter::QueryInterface(IID_IDirectSoundFXFlanger): \"%s\", returning\n"),
+                  ACE_TEXT ("failed to IDMOWrapperFilter::QueryInterface(IID_IDirectSoundFXFlanger): \"%s\", aborting\n"),
                   ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ())));
       goto error;
     } // end IF
@@ -1469,14 +1394,12 @@ Stream_Module_Decoder_Tools::loadAudioRendererGraph (REFGUID deviceCategory_in,
     if (FAILED (result))
     {
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to IDirectSoundFXFlanger::SetAllParameters(): \"%s\", returning\n"),
+                  ACE_TEXT ("failed to IDirectSoundFXFlanger::SetAllParameters(): \"%s\", aborting\n"),
                   ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ())));
-
-      effect_p->Release ();
-
+      effect_p->Release (); effect_p = NULL;
       goto error;
     } // end IF
-    effect_p->Release ();
+    effect_p->Release (); effect_p = NULL;
   } // end ELSE IF
   else if (InlineIsEqualGUID (effect_in, GUID_DSFX_STANDARD_GARGLE))
   {
@@ -1486,7 +1409,7 @@ Stream_Module_Decoder_Tools::loadAudioRendererGraph (REFGUID deviceCategory_in,
     if (FAILED (result))
     {
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to IDMOWrapperFilter::QueryInterface(IID_IDirectSoundFXGargle): \"%s\", returning\n"),
+                  ACE_TEXT ("failed to IDMOWrapperFilter::QueryInterface(IID_IDirectSoundFXGargle): \"%s\", aborting\n"),
                   ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ())));
       goto error;
     } // end IF
@@ -1494,14 +1417,12 @@ Stream_Module_Decoder_Tools::loadAudioRendererGraph (REFGUID deviceCategory_in,
     if (FAILED (result))
     {
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to IDirectSoundFXGargle::SetAllParameters(): \"%s\", returning\n"),
+                  ACE_TEXT ("failed to IDirectSoundFXGargle::SetAllParameters(): \"%s\", aborting\n"),
                   ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ())));
-
-      effect_p->Release ();
-
+      effect_p->Release (); effect_p = NULL;
       goto error;
     } // end IF
-    effect_p->Release ();
+    effect_p->Release (); effect_p = NULL;
   } // end ELSE IF
   else if (InlineIsEqualGUID (effect_in, GUID_DSFX_STANDARD_I3DL2REVERB))
   {
@@ -1511,7 +1432,7 @@ Stream_Module_Decoder_Tools::loadAudioRendererGraph (REFGUID deviceCategory_in,
     if (FAILED (result))
     {
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to IDMOWrapperFilter::QueryInterface(IID_IDirectSoundFXI3DL2Reverb): \"%s\", returning\n"),
+                  ACE_TEXT ("failed to IDMOWrapperFilter::QueryInterface(IID_IDirectSoundFXI3DL2Reverb): \"%s\", aborting\n"),
                   ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ())));
       goto error;
     } // end IF
@@ -1519,14 +1440,12 @@ Stream_Module_Decoder_Tools::loadAudioRendererGraph (REFGUID deviceCategory_in,
     if (FAILED (result))
     {
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to IDirectSoundFXI3DL2Reverb::SetAllParameters(): \"%s\", returning\n"),
+                  ACE_TEXT ("failed to IDirectSoundFXI3DL2Reverb::SetAllParameters(): \"%s\", aborting\n"),
                   ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ())));
-
-      effect_p->Release ();
-
+      effect_p->Release (); effect_p = NULL;
       goto error;
     } // end IF
-    effect_p->Release ();
+    effect_p->Release (); effect_p = NULL;
   } // end ELSE IF
   else if (InlineIsEqualGUID (effect_in, GUID_DSFX_WAVES_REVERB))
   {
@@ -1536,7 +1455,7 @@ Stream_Module_Decoder_Tools::loadAudioRendererGraph (REFGUID deviceCategory_in,
     if (FAILED (result))
     {
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to IDMOWrapperFilter::QueryInterface(IID_IDirectSoundFXWavesReverb): \"%s\", returning\n"),
+                  ACE_TEXT ("failed to IDMOWrapperFilter::QueryInterface(IID_IDirectSoundFXWavesReverb): \"%s\", aborting\n"),
                   ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ())));
       goto error;
     } // end IF
@@ -1544,24 +1463,21 @@ Stream_Module_Decoder_Tools::loadAudioRendererGraph (REFGUID deviceCategory_in,
     if (FAILED (result))
     {
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to IDirectSoundFXWavesReverb::SetAllParameters(): \"%s\", returning\n"),
+                  ACE_TEXT ("failed to IDirectSoundFXWavesReverb::SetAllParameters(): \"%s\", aborting\n"),
                   ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ())));
-
-      effect_p->Release ();
-
+      effect_p->Release (); effect_p = NULL;
       goto error;
     } // end IF
-    effect_p->Release ();
+    effect_p->Release (); effect_p = NULL;
   } // end ELSE IF
   //////////////////////////////////////
   else
-    ACE_DEBUG ((LM_ERROR,
+    ACE_DEBUG ((LM_WARNING,
                 ACE_TEXT ("invalid/unknown effect (was: \"%s\"), continuing\n"),
                 ACE_TEXT (Common_Tools::GUIDToString (effect_in).c_str ())));
-  wrapper_filter_p->Release ();
-  wrapper_filter_p = NULL;
+  wrapper_filter_p->Release (); wrapper_filter_p = NULL;
   result =
-    IGraphBuilder_in->AddFilter (filter_3,
+    IGraphBuilder_in->AddFilter (filter_p,
                                  STREAM_DEC_DIRECTSHOW_FILTER_NAME_EFFECT_AUDIO);
   if (FAILED (result))
   {
@@ -1572,8 +1488,35 @@ Stream_Module_Decoder_Tools::loadAudioRendererGraph (REFGUID deviceCategory_in,
   } // end IF
   graph_entry.filterName = STREAM_DEC_DIRECTSHOW_FILTER_NAME_EFFECT_AUDIO;
   graphConfiguration_out.push_back (graph_entry);
+  filter_p->Release (); filter_p = NULL;
 
 continue_:
+  result = CoCreateInstance (CLSID_SampleGrabber, NULL,
+                             CLSCTX_INPROC_SERVER,
+                             IID_PPV_ARGS (&filter_p));
+  if (FAILED (result))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to CoCreateInstance(\"%s\"): \"%s\", aborting\n"),
+                ACE_TEXT (Common_Tools::GUIDToString (CLSID_SampleGrabber).c_str ()),
+                ACE_TEXT (Common_Error_Tools::errorToString (result, false).c_str ())));
+    goto error;
+  } // end IF
+  ACE_ASSERT (filter_p);
+  result =
+    IGraphBuilder_in->AddFilter (filter_p,
+                                 STREAM_LIB_DIRECTSHOW_FILTER_NAME_GRAB);
+  if (FAILED (result))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to IGraphBuilder::AddFilter(): \"%s\", aborting\n"),
+                ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ())));
+    goto error;
+  } // end IF
+  graph_entry.filterName = STREAM_LIB_DIRECTSHOW_FILTER_NAME_GRAB;
+  graphConfiguration_out.push_back (graph_entry);
+  filter_p->Release (); filter_p = NULL;
+
   // send to an output (waveOut) ?
   if (audioOutput_in > 0)
   {
@@ -1587,7 +1530,7 @@ continue_:
   } // end ELSE
   result = CoCreateInstance (GUID_s, NULL,
                              CLSCTX_INPROC_SERVER,
-                             IID_PPV_ARGS (&filter_4));
+                             IID_PPV_ARGS (&filter_p));
   if (FAILED (result))
   {
     ACE_DEBUG ((LM_ERROR,
@@ -1596,9 +1539,9 @@ continue_:
                 ACE_TEXT (Common_Error_Tools::errorToString (result, false).c_str ())));
     goto error;
   } // end IF
-  ACE_ASSERT (filter_4);
+  ACE_ASSERT (filter_p);
   result =
-    IGraphBuilder_in->AddFilter (filter_4,
+    IGraphBuilder_in->AddFilter (filter_p,
                                  graph_entry.filterName.c_str ());
   if (FAILED (result))
   {
@@ -1608,6 +1551,7 @@ continue_:
     goto error;
   } // end IF
   graphConfiguration_out.push_back (graph_entry);
+  filter_p->Release (); filter_p = NULL;
 
   //result =
   //  ICaptureGraphBuilder2_in->RenderStream (//&PIN_CATEGORY_PREVIEW, &MEDIATYPE_Video,
@@ -1624,29 +1568,11 @@ continue_:
   //  return false;
   //} // end IF
 
-  // clean up
-  if (filter_p)
-    filter_p->Release ();
-  if (filter_2)
-    filter_2->Release ();
-  if (filter_3)
-    filter_3->Release ();
-  if (filter_4)
-    filter_4->Release ();
-  if (wrapper_filter_p)
-    wrapper_filter_p->Release ();
-
   return true;
 
 error:
   if (filter_p)
     filter_p->Release ();
-  if (filter_2)
-    filter_2->Release ();
-  if (filter_3)
-    filter_3->Release ();
-  if (filter_4)
-    filter_4->Release ();
   if (wrapper_filter_p)
     wrapper_filter_p->Release ();
 

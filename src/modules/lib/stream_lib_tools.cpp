@@ -884,11 +884,22 @@ Stream_MediaFramework_Tools::mediaSubTypeToString (REFGUID mediaSubType_in,
        (mediaSubType_in.Data4[6] == 0x9B) &&
        (mediaSubType_in.Data4[7] == 0x71)))
   {
+    // handle exceptions
+    if ((mediaSubType_in == MEDIASUBTYPE_PCM)               ||
+        (mediaSubType_in == MEDIASUBTYPE_IEEE_FLOAT)        ||
+        (mediaSubType_in == MEDIASUBTYPE_DRM_Audio)         ||
+        (mediaSubType_in == MEDIASUBTYPE_MPEG1AudioPayload) ||
+        (mediaSubType_in == MEDIASUBTYPE_DOLBY_AC3_SPDIF)   ||
+        (mediaSubType_in == MEDIASUBTYPE_RAW_SPORT)         ||
+        (mediaSubType_in == MEDIASUBTYPE_SPDIF_TAG_241h))
+      goto continue_;
+
     FOURCCMap fourcc_map (&mediaSubType_in);
 
     return Stream_MediaFramework_Tools::FOURCCToString (fourcc_map.GetFOURCC ());
   } // end IF
 
+continue_:
   Stream_MediaFramework_GUIDToStringMapConstIterator_t iterator;
   switch (mediaFramework_in)
   {

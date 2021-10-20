@@ -555,7 +555,10 @@ continue_2:
 
 error:
       if (is_active)
-        inherited::TASK_BASE_T::stop ();
+      {
+        Common_ITask* itask_p = this;
+        itask_p->stop (true, true);
+      } // end IF
       if (is_running)
       {
         result_2 = IMediaControl_->Stop ();
@@ -1707,7 +1710,6 @@ continue_:
     goto error;
   } // end IF
 
-#if defined (_DEBUG)
   ACE_OS::memset (&allocator_properties, 0, sizeof (allocator_properties));
   result = buffer_negotiation_p->GetAllocatorProperties (&allocator_properties);
   if (FAILED (result))
@@ -1725,7 +1727,6 @@ continue_:
               allocator_properties.cbBuffer,
               allocator_properties.cbAlign,
               allocator_properties.cbPrefix));
-#endif // _DEBUG
 
   // clean up
   if (filter_p)

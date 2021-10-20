@@ -574,10 +574,12 @@ struct Test_U_AudioEffect_DirectShow_StreamConfiguration
    : Stream_Configuration ()
    , filterGraphConfiguration ()
    , format ()
+   , useFrameworkSource (false)
   {}
 
   Stream_MediaFramework_DirectShow_Graph_t filterGraphConfiguration;
   struct _AMMediaType                      format;
+  bool                                     useFrameworkSource;
 };
 
 struct Test_U_AudioEffect_MediaFoundation_StreamConfiguration
@@ -586,9 +588,11 @@ struct Test_U_AudioEffect_MediaFoundation_StreamConfiguration
   Test_U_AudioEffect_MediaFoundation_StreamConfiguration ()
    : Stream_Configuration ()
    , format (NULL)
+   , useFrameworkSource (false)
   {}
 
   IMFMediaType* format;
+  bool          useFrameworkSource;
 };
 #else
 struct Test_U_AudioEffect_ALSA_StreamConfiguration
@@ -640,7 +644,6 @@ struct Test_U_AudioEffect_Configuration
    : Test_U_Configuration ()
 #endif // GUI_SUPPORT
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-   , useFrameworkSource (false)
 #else
    , ALSAConfiguration ()
 #endif // ACE_WIN32 || ACE_WIN64
@@ -652,7 +655,6 @@ struct Test_U_AudioEffect_Configuration
   {}
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  bool                                                 useFrameworkSource;
 #else
   struct Stream_Device_ALSAConfiguration               ALSAConfiguration;
 #endif // ACE_WIN32 || ACE_WIN64

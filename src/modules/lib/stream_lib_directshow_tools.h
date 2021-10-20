@@ -159,9 +159,9 @@ class Stream_MediaFramework_DirectShow_Tools
                                IGraphBuilder*&,        // return value: (capture) graph handle
                                IAMBufferNegotiation*&, // return value: source filter output pin buffer allocator configuration handle
                                IAMStreamConfig*&);     // return value: format configuration handle
-  // *NOTE*: disconnects the graph and removes all but a specific source filter
+  // *NOTE*: disconnects the graph and removes all (but a specific source-) filters
   static bool reset (IGraphBuilder*, // filter graph handle
-                     REFGUID);       // retain (device) category (GUID_NULL: retain first filter w/o input pins)
+                     REFGUID);       // retain (device) category source (GUID_NULL: retain first filter w/o input pins)
 
   // -------------------------------------
 

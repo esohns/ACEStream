@@ -218,6 +218,7 @@ Stream_Dev_Mic_Source_WaveIn_T<ACE_SYNCH_USE,
 
   // sanity check(s)
   ACE_ASSERT (inherited::configuration_);
+  ACE_ASSERT (inherited::configuration_->allocatorConfiguration);
   ACE_ASSERT (inherited::isInitialized_);
   ACE_ASSERT (inherited::sessionData_);
 
@@ -262,48 +263,51 @@ Stream_Dev_Mic_Source_WaveIn_T<ACE_SYNCH_USE,
 //                    &inherited::configuration_->statisticCollectionInterval));
       } // end IF
 
-      WAVEINCAPS capabilities_s;
-      struct tWAVEFORMATEX wave_format_ex_s;
-      ACE_OS::memset (&wave_format_ex_s, 0, sizeof (struct tWAVEFORMATEX));
-      MMRESULT     result;
-      //UINT         num_devices_i = waveInGetNumDevs ();
+      //WAVEINCAPS capabilities_s;
+      //struct tWAVEFORMATEX wave_format_ex_s;
+      //ACE_OS::memset (&wave_format_ex_s, 0, sizeof (struct tWAVEFORMATEX));
+      //MMRESULT result = waveInGetDevCaps (configuration_->audioInput,
+      //                                    &capabilities_s,
+      //                                    sizeof (WAVEINCAPS));
+      //if (unlikely (result != MMSYSERR_NOERROR))
+      //{
+      //  waveInGetErrorText (result, error_msg_a, BUFSIZ - 1);
+      //  ACE_DEBUG ((LM_ERROR,
+      //              ACE_TEXT ("%s: failed to waveInGetDevCaps(%d): \"%s\", aborting\n"),
+      //              inherited::mod_->name (),
+      //              configuration_->audioInput,
+      //              ACE_TEXT (error_msg_a)));
+      //  goto error;
+      //} // end IF
 
-      result = waveInGetDevCaps (configuration_->audioInput,
-                                 &capabilities_s,
-                                 sizeof (WAVEINCAPS));
-      if (unlikely (result != MMSYSERR_NOERROR))
-      {
-        waveInGetErrorText (result, error_msg_a, BUFSIZ - 1);
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("%s: failed to waveInGetDevCaps(%d): \"%s\", aborting\n"),
-                    inherited::mod_->name (),
-                    configuration_->audioInput,
-                    ACE_TEXT (error_msg_a)));
-        goto error;
-      } // end IF
-
-      // attempt 44.1 kHz stereo if device is capable
-      if (capabilities_s.dwFormats & WAVE_FORMAT_4S16)
-      {
-        wave_format_ex_s.nChannels = 2;          // stereo
-        wave_format_ex_s.nSamplesPerSec = 44100; // 44.1 kHz (44.1 * 1000)
-      } // end IF
-      else
-      {
-        wave_format_ex_s.nChannels = capabilities_s.wChannels; // use DevCaps # channels
-        wave_format_ex_s.nSamplesPerSec = 22050;               // 22.05 kHz (22.05 * 1000)
-      } // end ELSE
-      wave_format_ex_s.wFormatTag = WAVE_FORMAT_PCM;
-      wave_format_ex_s.wBitsPerSample = 16;
-      wave_format_ex_s.nBlockAlign =
-        wave_format_ex_s.nChannels * wave_format_ex_s.wBitsPerSample / 8;
-      wave_format_ex_s.nAvgBytesPerSec =
-        wave_format_ex_s.nSamplesPerSec * wave_format_ex_s.nBlockAlign;
-      wave_format_ex_s.cbSize = 0;
-
+      //// attempt 44.1 kHz stereo if device is capable
+      //if (capabilities_s.dwFormats & WAVE_FORMAT_4S16)
+      //{
+      //  wave_format_ex_s.nChannels = 2;          // stereo
+      //  wave_format_ex_s.nSamplesPerSec = 44100; // 44.1 kHz (44.1 * 1000)
+      //} // end IF
+      //else
+      //{
+      //  wave_format_ex_s.nChannels = capabilities_s.wChannels; // use DevCaps # channels
+      //  wave_format_ex_s.nSamplesPerSec = 22050;               // 22.05 kHz (22.05 * 1000)
+      //} // end ELSE
+      //wave_format_ex_s.wFormatTag = WAVE_FORMAT_PCM;
+      //wave_format_ex_s.wBitsPerSample = 16;
+      //wave_format_ex_s.nBlockAlign =
+      //  wave_format_ex_s.nChannels * wave_format_ex_s.wBitsPerSample / 8;
+      //wave_format_ex_s.nAvgBytesPerSec =
+      //  wave_format_ex_s.nSamplesPerSec * wave_format_ex_s.nBlockAlign;
+      //wave_format_ex_s.cbSize = 0;
+      ACE_ASSERT (!session_data_r.formats.empty ());
+      struct _AMMediaType& media_type_r = session_data_r.formats.back ();
+      ACE_ASSERT (media_type_r.majortype == MEDIATYPE_Audio);
+      ACE_ASSERT (media_type_r.subtype == MEDIASUBTYPE_PCM);
+      ACE_ASSERT (media_type_r.formattype == FORMAT_WaveFormatEx);
+      struct tWAVEFORMATEX* audio_info_p =
+        reinterpret_cast<struct tWAVEFORMATEX*> (media_type_r.pbFormat);
       result = waveInOpen (&context_,
                            configuration_->audioInput,
-                           &wave_format_ex_s,
+                           audio_info_p,
                            (DWORD)(VOID*)libacestream_wave_in_data_cb,
                            (DWORD)&CBData_,
                            CALLBACK_FUNCTION);
@@ -322,14 +326,14 @@ Stream_Dev_Mic_Source_WaveIn_T<ACE_SYNCH_USE,
                   inherited::mod_->name (),
                   &context_));
 
-      CBData_.channels = wave_format_ex_s.nChannels;
-      CBData_.sampleRate = wave_format_ex_s.nSamplesPerSec;
+      CBData_.channels = audio_info_p->nChannels;
+      CBData_.sampleRate = audio_info_p->nSamplesPerSec;
       CBData_.sampleSize =
-        CBData_.channels * (wave_format_ex_s.wBitsPerSample / 8);
+        (CBData_.channels * (audio_info_p->wBitsPerSample / 8));
 
       // prepare buffer blocks and add to input queue
       if (!allocateBuffers (inherited::configuration_->messageAllocator,
-                            16384))
+                            inherited::configuration_->allocatorConfiguration->defaultBufferSize))
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: failed to allocate buffers (%d), aborting\n"),

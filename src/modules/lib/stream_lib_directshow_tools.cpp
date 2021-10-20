@@ -1425,19 +1425,21 @@ Stream_MediaFramework_DirectShow_Tools::connect (IGraphBuilder* builder_in,
     filter_p->Release (); filter_p = NULL;
     return false;
   } // end IF
-  filter_p->Release (); filter_p = NULL;
 
   IAMStreamConfig* stream_config_p = NULL;
   result = pin_p->QueryInterface (IID_PPV_ARGS (&stream_config_p));
   if (FAILED (result))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: failed to IPin::QueryInterface(IAMStreamConfig): \"%s\", aborting\n"),
+                ACE_TEXT ("%s/%s: failed to IPin::QueryInterface(IAMStreamConfig): \"%s\", aborting\n"),
+                ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::name (filter_p).c_str ()),
                 ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::name (pin_p).c_str ()),
                 ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ())));
+    filter_p->Release (); filter_p = NULL;
     pin_p->Release (); pin_p = NULL;
     return false;
   } // end IF
+  filter_p->Release (); filter_p = NULL;
   ACE_ASSERT (stream_config_p);
   result =
     stream_config_p->SetFormat ((*iterator).mediaType); // *NOTE*: 'NULL' should reset the pin
@@ -1563,7 +1565,6 @@ Stream_MediaFramework_DirectShow_Tools::connect (IGraphBuilder* builder_in,
       return false;
     } // end IF
 continue_:
-#if defined (_DEBUG)
     struct _AMMediaType media_type_s =
       Stream_MediaFramework_DirectShow_Tools::toFormat (pin_p);
     ACE_DEBUG ((LM_DEBUG,
@@ -1573,7 +1574,6 @@ continue_:
                 ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::toString (media_type_s, true).c_str ())));
     Stream_MediaFramework_DirectShow_Tools::free (media_type_s);
     ACE_OS::memset (&media_type_s, 0, sizeof (struct _AMMediaType));
-#endif // _DEBUG
 //continue_2:
     pin_2->Release (); pin_2 = NULL;
     pin_p->Release (); pin_p = NULL;
@@ -2632,7 +2632,7 @@ continue_:
 
     return false;
   } // end IF
-  filter_p->Release ();
+  filter_p->Release (); filter_p = NULL;
   ACE_DEBUG ((LM_DEBUG,
               ACE_TEXT ("added \"%s\"\n"),
               ACE_TEXT_WCHAR_TO_TCHAR (filter_name.c_str ())));
@@ -3589,6 +3589,11 @@ fallback:
         ACE_OS::memcmp (mediaType_in.pbFormat, mediaType2_in.pbFormat, mediaType_in.cbFormat))
       return false;
   } // end IF
+  else
+  {
+    if (mediaType_in.lSampleSize != mediaType2_in.lSampleSize)
+      return false;
+  } // end ELSE
 continue_:
 
   return true;

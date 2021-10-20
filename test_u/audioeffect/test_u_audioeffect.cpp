@@ -717,7 +717,7 @@ continue_4:
   union Stream_MediaFramework_DirectShow_AudioEffectOptions effect_options;
   if (!Stream_Module_Decoder_Tools::loadAudioRendererGraph ((useDirectShowSource_in ? CLSID_AudioInputDeviceCategory : GUID_NULL),
                                                             outputMediaType_out,
-                                                            (mute_in ? 0 : 1),
+                                                            (mute_in ? -1 : 0),
                                                             IGraphBuilder_out,
                                                             GUID_NULL,
                                                             effect_options,
@@ -913,11 +913,9 @@ do_work (unsigned int bufferSize_in,
   Stream_AllocatorHeap_T<ACE_MT_SYNCH,
                          struct Common_AllocatorConfiguration> heap_allocator;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  directShowConfiguration_in.useFrameworkSource = useFrameworkSource_in;
   Test_U_AudioEffect_DirectShow_MessageAllocator_t directshow_message_allocator (TEST_U_MAX_MESSAGES, // maximum #buffers
                                                                                  &heap_allocator,     // heap allocator handle
                                                                                  true);               // block ?
-  mediaFoundationConfiguration_in.useFrameworkSource = useFrameworkSource_in;
   Test_U_AudioEffect_MediaFoundation_MessageAllocator_t mediafoundation_message_allocator (TEST_U_MAX_MESSAGES, // maximum #buffers
                                                                                            &heap_allocator,     // heap allocator handle
                                                                                            true);               // block ?
@@ -942,12 +940,16 @@ do_work (unsigned int bufferSize_in,
     {
       istream_p = &directshow_stream;
       istream_control_p = &directshow_stream;
+      directshow_stream_configuration.useFrameworkSource =
+        useFrameworkSource_in;
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
     {
       istream_p = &mediafoundation_stream;
       istream_control_p = &mediafoundation_stream;
+      mediafoundation_stream_configuration.useFrameworkSource =
+        useFrameworkSource_in;
       break;
     }
     default:

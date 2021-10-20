@@ -38,9 +38,9 @@
 #include "stream_lib_mediafoundation_tools.h"
 #endif // ACE_WIN32 || ACE_WIN64
 
-#include "stream_dec_defines.h"
+//#include "stream_dec_defines.h"
 
-#include "stream_dev_defines.h"
+//#include "stream_dev_defines.h"
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #include "stream_dev_directshow_tools.h"
@@ -88,10 +88,17 @@ Test_U_AudioEffect_DirectShow_Stream::load (Stream_ILayout* layout_in,
   ACE_ASSERT (configuration_p);
 
   Stream_Module_t* module_p = NULL;
-  ACE_NEW_RETURN (module_p,
-                  Test_U_Dev_Mic_Source_WaveIn_Module (this,
-                                                       ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_MIC_SOURCE_WAVEIN_DEFAULT_NAME_STRING)),
-                  false);
+  if (inherited::configuration_->configuration_->useFrameworkSource)
+    ACE_NEW_RETURN (module_p,
+                    Test_U_Dev_Mic_Source_DirectShow_Module (this,
+                                                             ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_MIC_SOURCE_DIRECTSHOW_DEFAULT_NAME_STRING)),
+                    false);
+  else
+    ACE_NEW_RETURN (module_p,
+                    Test_U_Dev_Mic_Source_WaveIn_Module (this,
+                                                         ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_MIC_SOURCE_WAVEIN_DEFAULT_NAME_STRING)),
+                    false);
+  ACE_ASSERT (module_p);
   layout_in->append (module_p, NULL, 0);
   module_p = NULL;
   //ACE_NEW_RETURN (module_p,
@@ -103,6 +110,7 @@ Test_U_AudioEffect_DirectShow_Stream::load (Stream_ILayout* layout_in,
                   Test_U_AudioEffect_DirectShow_StatisticAnalysis_Module (this,
                                                                           ACE_TEXT_ALWAYS_CHAR (MODULE_STAT_ANALYSIS_DEFAULT_NAME_STRING)),
                   false);
+  ACE_ASSERT (module_p);
   layout_in->append (module_p, NULL, 0);
   module_p = NULL;
   if (!configuration_p->mute)
@@ -113,6 +121,7 @@ Test_U_AudioEffect_DirectShow_Stream::load (Stream_ILayout* layout_in,
                     Test_U_AudioEffect_DirectShow_Target_Module (this,
                                                                  ACE_TEXT_ALWAYS_CHAR (STREAM_LIB_DIRECTSHOW_DEFAULT_NAME_STRING)),
                     false);
+    ACE_ASSERT (module_p);
     layout_in->append (module_p, NULL, 0);
     module_p = NULL;
   } // end IF
@@ -122,6 +131,7 @@ Test_U_AudioEffect_DirectShow_Stream::load (Stream_ILayout* layout_in,
                   Test_U_AudioEffect_DirectShow_Vis_SpectrumAnalyzer_Module (this,
                                                                              ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_GTK_SPECTRUM_ANALYZER_DEFAULT_NAME_STRING)),
                   false);
+  ACE_ASSERT (module_p);
   layout_in->append (module_p, NULL, 0);
 #endif // GTK_USE
 #endif // GUI_SUPPORT
@@ -130,12 +140,14 @@ Test_U_AudioEffect_DirectShow_Stream::load (Stream_ILayout* layout_in,
                   Test_U_AudioEffect_DirectShow_WAVEncoder_Module (this,
                                                                    ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_ENCODER_WAV_DEFAULT_NAME_STRING)),
                   false);
+  ACE_ASSERT (module_p);
   layout_in->append (module_p, NULL, 0);
   module_p = NULL;
   ACE_NEW_RETURN (module_p,
                   Test_U_AudioEffect_DirectShow_FileWriter_Module (this,
                                                                    ACE_TEXT_ALWAYS_CHAR (STREAM_FILE_SINK_DEFAULT_NAME_STRING)),
                   false);
+  ACE_ASSERT (module_p);
   layout_in->append (module_p, NULL, 0);
 
   delete_out = true;
@@ -174,13 +186,10 @@ Test_U_AudioEffect_DirectShow_Stream::initialize (const inherited::CONFIGURATION
 
   // sanity check(s)
   ACE_ASSERT (inherited::sessionData_);
-
   Test_U_AudioEffect_DirectShow_SessionData& session_data_r =
     const_cast<Test_U_AudioEffect_DirectShow_SessionData&> (inherited::sessionData_->getR ());
   inherited::CONFIGURATION_T::ITERATOR_T iterator =
     const_cast<inherited::CONFIGURATION_T&> (configuration_in).find (ACE_TEXT_ALWAYS_CHAR (""));
-
-  // sanity check(s)
   ACE_ASSERT (iterator != configuration_in.end ());
 
   // *TODO*: remove type inference
@@ -189,18 +198,15 @@ Test_U_AudioEffect_DirectShow_Stream::initialize (const inherited::CONFIGURATION
   // ---------------------------------------------------------------------------
 
   // ******************* Mic Source ************************
+  std::string head_module_name_string =
+    (configuration_in.configuration_->useFrameworkSource ? ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_MIC_SOURCE_DIRECTSHOW_DEFAULT_NAME_STRING)
+                                                         : ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_MIC_SOURCE_WAVEIN_DEFAULT_NAME_STRING));
   Stream_Module_t* module_p =
-    const_cast<Stream_Module_t*> (inherited::find (ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_MIC_SOURCE_WAVEIN_DEFAULT_NAME_STRING)));
+    const_cast<Stream_Module_t*> (inherited::find (head_module_name_string));
   ACE_ASSERT (module_p);
-  Test_U_Dev_Mic_Source_WaveIn* source_impl_p =
-    dynamic_cast<Test_U_Dev_Mic_Source_WaveIn*> (module_p->writer ());
-  if (!source_impl_p)
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: dynamic_cast<Test_U_Dev_Mic_Source_WaveIn> failed, aborting\n"),
-                ACE_TEXT (stream_name_string_)));
-    return false;
-  } // end IF
+  Common_ISetP_T<struct Test_U_AudioEffect_DirectShow_StreamState>* iset_p =
+    dynamic_cast<Common_ISetP_T<struct Test_U_AudioEffect_DirectShow_StreamState>*> (module_p->writer ());
+  ACE_ASSERT (iset_p);
 
   // ---------------------------------------------------------------------------
 
@@ -232,64 +238,11 @@ Test_U_AudioEffect_DirectShow_Stream::initialize (const inherited::CONFIGURATION
   //} // end IF
   //COM_initialized = true;
 
-  if ((*iterator).second.second.builder)
-  {
-    reference_count = (*iterator).second.second.builder->AddRef ();
-    //graphBuilder_ = (*iterator).second.second.builder;
+  ACE_ASSERT ((*iterator).second.second.builder);
 
-    // *NOTE*: Stream_Device_Tools::loadRendererGraph() resets the graph
-    //         (see below)
-    //if (!Stream_MediaFramework_DirectShow_Tools::reset (graphBuilder_,
-    //                                                    CLSID_AudioInputDeviceCategory))
-    //{
-    //  ACE_DEBUG ((LM_ERROR,
-    //              ACE_TEXT ("%s: failed to Stream_MediaFramework_DirectShow_Tools::reset(): \"%s\", aborting\n"),
-    //              ACE_TEXT (stream_name_string_)));
-    //  goto error;
-    //} // end IF
-
-    //if (!Stream_MediaFramework_DirectShow_Tools::getBufferNegotiation (graphBuilder_,
-    //                                                                   STREAM_DEV_MIC_DIRECTSHOW_FILTER_NAME_CAPTURE_AUDIO,
-    //                                                                   buffer_negotiation_p))
-    //{
-    //  ACE_DEBUG ((LM_ERROR,
-    //              ACE_TEXT ("%s: failed to Stream_MediaFramework_DirectShow_Tools::getBufferNegotiation(), aborting\n"),
-    //              ACE_TEXT (stream_name_string_)));
-    //  goto error;
-    //} // end IF
-    //ACE_ASSERT (buffer_negotiation_p);
-
-    goto continue_;
-  } // end IF
-
-  //if (!Stream_Device_DirectShow_Tools::loadDeviceGraph ((*iterator).second.second.deviceIdentifier.identifier._string,
-  //                                                      CLSID_AudioInputDeviceCategory,
-  //                                                      graphBuilder_,
-  //                                                      buffer_negotiation_p,
-  //                                                      stream_config_p,
-  //                                                      const_cast<inherited::CONFIGURATION_T&> (configuration_in).configuration->filterGraphConfiguration))
-  //{
-  //  ACE_DEBUG ((LM_ERROR,
-  //              ACE_TEXT ("%s: failed to Stream_Device_DirectShow_Tools::loadDeviceGraph(\"%s\"), aborting\n"),
-  //              ACE_TEXT (stream_name_string_),
-  //              ACE_TEXT ((*iterator).second.second.deviceIdentifier.identifier._string)));
-  //  goto error;
-  //} // end IF
-  //ACE_ASSERT (stream_config_p);
-
-  // clean up
-  //stream_config_p->Release (); stream_config_p = NULL;
-
-  //reference_count = graphBuilder_->AddRef ();
-  //(*iterator).second.second.builder = graphBuilder_;
-  //release_builder = true;
-  //ACE_ASSERT (graphBuilder_);
-  //ACE_ASSERT (buffer_negotiation_p);
-
-continue_:
   //if (!Stream_Device_Tools::setCaptureFormat (graphBuilder_,
-  //                                                   CLSID_AudioInputDeviceCategory,
-  //                                                   *configuration_in.moduleHandlerConfiguration->format))
+  //                                            CLSID_AudioInputDeviceCategory,
+  //                                            *configuration_in.moduleHandlerConfiguration->format))
   //{
   //  ACE_DEBUG ((LM_ERROR,
   //              ACE_TEXT ("failed to Stream_Device_Tools::setCaptureFormat(), aborting\n")));
@@ -305,31 +258,35 @@ continue_:
 //                                                 log_file_name);
 //#endif // _DEBUG
 
-  //if (!Stream_Module_Decoder_Tools::loadAudioRendererGraph (configuration_in.configuration->format,
-  //                                                          ((*iterator).second.second.mute ? -1
-  //                                                                                          : (*iterator).second.second.audioOutput),
-  //                                                          graphBuilder_,
-  //                                                          (*iterator).second.second.effect,
-  //                                                          (*iterator).second.second.effectOptions,
-  //                                                          graph_configuration))
-  //{
-  //  ACE_DEBUG ((LM_ERROR,
-  //              ACE_TEXT ("%s: failed to Stream_Module_Decoder_Tools::loadAudioRendererGraph(), aborting\n"),
-  //              ACE_TEXT (stream_name_string_)));
-  //  goto error;
-  //} // end IF
+  if (!Stream_Module_Decoder_Tools::loadAudioRendererGraph ((configuration_in.configuration_->useFrameworkSource ? CLSID_AudioInputDeviceCategory
+                                                                                                                 : GUID_NULL),
+                                                            configuration_in.configuration_->format,
+                                                            ((*iterator).second.second.mute ? -1
+                                                                                            : (*iterator).second.second.audioOutput),
+                                                            (*iterator).second.second.builder,
+                                                            (*iterator).second.second.effect,
+                                                            (*iterator).second.second.effectOptions,
+                                                            graph_configuration))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s: failed to Stream_Module_Decoder_Tools::loadAudioRendererGraph(), aborting\n"),
+                ACE_TEXT (stream_name_string_)));
+    goto error;
+  } // end IF
 
-//  graph_entry.filterName = STREAM_DEV_MIC_DIRECTSHOW_FILTER_NAME_CAPTURE_AUDIO;
-//  graph_entry.mediaType =
-//    Stream_MediaFramework_DirectShow_Tools::copy (configuration_in.configuration->format);
-//  if (!graph_entry.mediaType)
-//  {
-//    ACE_DEBUG ((LM_ERROR,
-//                ACE_TEXT ("%s: failed to Stream_MediaFramework_DirectShow_Tools::copy(), aborting\n"),
-//                ACE_TEXT (stream_name_string_)));
-//    goto error;
-//  } // end IF
-//  graph_configuration.push_front (graph_entry);
+  graph_entry.filterName =
+    (configuration_in.configuration_->useFrameworkSource ? STREAM_LIB_DIRECTSHOW_FILTER_NAME_CAPTURE_AUDIO
+                                                         : STREAM_LIB_DIRECTSHOW_FILTER_NAME_SOURCE_L);
+  graph_entry.mediaType =
+    Stream_MediaFramework_DirectShow_Tools::copy (configuration_in.configuration_->format);
+  if (!graph_entry.mediaType)
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s: failed to Stream_MediaFramework_DirectShow_Tools::copy(), aborting\n"),
+                ACE_TEXT (stream_name_string_)));
+    goto error;
+  } // end IF
+  graph_configuration.push_front (graph_entry);
 //  result_2 =
 //    (*iterator).second.second.builder->FindFilterByName (STREAM_LIB_DIRECTSHOW_FILTER_NAME_GRAB,
 //                                                         &filter_p);
@@ -398,14 +355,14 @@ continue_:
 //    goto error;
 //  } // end IF
 //
-//  if (!Stream_MediaFramework_DirectShow_Tools::connect (graphBuilder_,
-//                                                        graph_configuration))
-//  {
-//    ACE_DEBUG ((LM_ERROR,
-//                ACE_TEXT ("%s: failed to Stream_MediaFramework_DirectShow_Tools::connect(), aborting\n"),
-//                ACE_TEXT (stream_name_string_)));
-//    goto error;
-//  } // end IF
+  if (!Stream_MediaFramework_DirectShow_Tools::connect ((*iterator).second.second.builder,
+                                                        graph_configuration))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s: failed to Stream_MediaFramework_DirectShow_Tools::connect(), aborting\n"),
+                ACE_TEXT (stream_name_string_)));
+    goto error;
+  } // end IF
 //  // *NOTE*: for some (unknown) reason, connect()ing the sample grabber to the
 //  //         null renderer 'breaks' the connection between the AVI decompressor
 //  //         and the sample grabber (go ahead, try it in with graphedit.exe)
@@ -522,7 +479,7 @@ continue_:
 
   // ---------------------------------------------------------------------------
 
-  source_impl_p->setP (&(inherited::state_));
+  iset_p->setP (&(inherited::state_));
 
   // *NOTE*: push()ing the module will open() it
   //         --> set the argument that is passed along (head module expects a
@@ -546,7 +503,7 @@ continue_:
 
   return true;
 
-//error:
+error:
   if (reset_setup_pipeline)
     const_cast<inherited::CONFIGURATION_T&> (configuration_in).configuration_->setupPipeline =
       setup_pipeline;
@@ -567,10 +524,6 @@ continue_:
   {
     (*iterator).second.second.builder->Release (); (*iterator).second.second.builder = NULL;
   } // end IF
-  //if (graphBuilder_)
-  //{
-  //  graphBuilder_->Release (); graphBuilder_ = NULL;
-  //} // end IF
 
   //if (COM_initialized)
   //  CoUninitialize ();
