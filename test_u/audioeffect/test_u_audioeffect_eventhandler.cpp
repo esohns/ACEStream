@@ -23,9 +23,9 @@
 #include "test_u_audioeffect_eventhandler.h"
 
 #if defined (GUI_SUPPORT)
-#if defined (GTK_USE)
+#if defined (GTK_SUPPORT)
 #include "gtk/gtk.h"
-#endif // GTK_USE
+#endif // GTK_SUPPORT
 #endif // GUI_SUPPORT
 
 #include "ace/Guard_T.h"
@@ -34,23 +34,23 @@
 #if defined (GUI_SUPPORT)
 #include "common_ui_defines.h"
 
-#if defined (GTK_USE)
+#if defined (GTK_SUPPORT)
 #include "common_ui_gtk_manager_common.h"
-#endif // GTK_USE
+#endif // GTK_SUPPORT
 #endif // GUI_SUPPORT
 
 #include "stream_macros.h"
 
 #if defined (GUI_SUPPORT)
-#if defined (GTK_USE)
+#if defined (GTK_SUPPORT)
 #include "test_u_gtk_common.h"
-#endif // GTK_USE
+#endif // GTK_SUPPORT
 #endif // GUI_SUPPORT
 
 #if defined (GUI_SUPPORT)
-#if defined (GTK_USE)
+#if defined (GTK_SUPPORT)
 #include "test_u_audioeffect_callbacks.h"
-#endif // GTK_USE
+#endif // GTK_SUPPORT
 #endif // GUI_SUPPORT
 #include "test_u_audioeffect_common.h"
 #include "test_u_audioeffect_defines.h"
@@ -88,11 +88,13 @@ Test_U_AudioEffect_DirectShow_EventHandler::start (Stream_SessionId_t sessionId_
     &const_cast<Test_U_AudioEffect_DirectShow_SessionData&> (sessionData_in);
 
 #if defined (GUI_SUPPORT)
+#if defined (GTK_USE)
+  Common_UI_GTK_State_t& state_r =
+    const_cast<Common_UI_GTK_State_t&> (COMMON_UI_GTK_MANAGER_SINGLETON::instance ()->getR ());
+#endif // GTK_USE
   if (CBData_)
   {
 #if defined (GTK_USE)
-    Common_UI_GTK_State_t& state_r =
-      const_cast<Common_UI_GTK_State_t&> (COMMON_UI_GTK_MANAGER_SINGLETON::instance ()->getR ());
     { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, state_r.lock);
       state_r.eventStack.push (COMMON_UI_EVENT_STARTED);
     } // end lock scope
@@ -110,13 +112,13 @@ Test_U_AudioEffect_DirectShow_EventHandler::end (Stream_SessionId_t sessionId_in
 
 #if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
+  Common_UI_GTK_State_t& state_r =
+    const_cast<Common_UI_GTK_State_t&> (COMMON_UI_GTK_MANAGER_SINGLETON::instance ()->getR ());
   guint event_source_id = 0;
 #endif // GTK_USE
   if (CBData_)
   {
 #if defined (GTK_USE)
-    Common_UI_GTK_State_t& state_r =
-      const_cast<Common_UI_GTK_State_t&> (COMMON_UI_GTK_MANAGER_SINGLETON::instance ()->getR ());
     { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, state_r.lock);
       event_source_id = g_idle_add (idle_session_end_cb,
                                     CBData_);
@@ -154,23 +156,16 @@ Test_U_AudioEffect_DirectShow_EventHandler::notify (Stream_SessionId_t sessionId
   ACE_ASSERT (sessionData_);
 
 #if defined (GUI_SUPPORT)
+#if defined (GTK_USE)
+  Common_UI_GTK_State_t& state_r =
+    const_cast<Common_UI_GTK_State_t&> (COMMON_UI_GTK_MANAGER_SINGLETON::instance ()->getR ());
+#endif // GTK_USE
   if (CBData_)
   {
 #if defined (GTK_USE)
-    Common_UI_GTK_State_t& state_r =
-      const_cast<Common_UI_GTK_State_t&> (COMMON_UI_GTK_MANAGER_SINGLETON::instance ()->getR ());
     { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, state_r.lock);
       CBData_->progressData.statistic.bytes += message_in.total_length ();
       state_r.eventStack.push (COMMON_UI_EVENT_DATA);
-  //guint event_source_id = g_idle_add (idle_update_display_cb,
-  //                                    CBData_);
-  //if (event_source_id == 0)
-  //{
-  //  ACE_DEBUG ((LM_ERROR,
-  //              ACE_TEXT ("failed to g_idle_add(idle_update_display_cb): \"%m\", returning\n")));
-  //  return;
-  //} // end IF
-//  CBData_->eventSourceIds.insert (event_source_id);
     } // end lock scope
 #endif // GTK_USE
   } // end IF
@@ -188,11 +183,13 @@ Test_U_AudioEffect_DirectShow_EventHandler::notify (Stream_SessionId_t sessionId
     ((sessionMessage_in.type () == STREAM_SESSION_MESSAGE_STATISTIC) ? COMMON_UI_EVENT_STATISTIC
                                                                      : COMMON_UI_EVENT_INVALID);
 #if defined (GUI_SUPPORT)
+#if defined (GTK_USE)
+  Common_UI_GTK_State_t& state_r =
+    const_cast<Common_UI_GTK_State_t&> (COMMON_UI_GTK_MANAGER_SINGLETON::instance ()->getR ());
+#endif // GTK_USE
   if (CBData_)
   {
 #if defined (GTK_USE)
-    Common_UI_GTK_State_t& state_r =
-      const_cast<Common_UI_GTK_State_t&> (COMMON_UI_GTK_MANAGER_SINGLETON::instance ()->getR ());
     { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, state_r.lock);
       state_r.eventStack.push (event_e);
     } // end lock scope

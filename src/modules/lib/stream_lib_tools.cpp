@@ -912,7 +912,7 @@ continue_:
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("invalid/unknown media subtype (was: \"%s\"), aborting\n"),
                     ACE_TEXT (Common_Tools::GUIDToString (mediaSubType_in).c_str ())));
-        return result;
+        return Common_Tools::GUIDToString (mediaSubType_in);
       } // end IF
       break;
     }
@@ -925,7 +925,7 @@ continue_:
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("invalid/unknown media subtype (was: \"%s\"), aborting\n"),
                     ACE_TEXT (Common_Tools::GUIDToString (mediaSubType_in).c_str ())));
-        return result;
+        return Common_Tools::GUIDToString (mediaSubType_in);
       } // end IF
       break;
     }

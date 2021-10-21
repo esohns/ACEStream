@@ -240,10 +240,10 @@ Stream_MediaFramework_DirectShow_Target_T<ACE_SYNCH_USE,
 
   // *TODO*: remove type inference
   if (configuration_in.filterConfiguration)
-  { ACE_ASSERT (!configuration_in.filterConfiguration->module);
+  { //ACE_ASSERT (!configuration_in.filterConfiguration->module);
     configuration_in.filterConfiguration->module = inherited::mod_;
     ACE_ASSERT (configuration_in.filterConfiguration->pinConfiguration);
-    ACE_ASSERT (!configuration_in.filterConfiguration->pinConfiguration->queue);
+    //ACE_ASSERT (!configuration_in.filterConfiguration->pinConfiguration->queue);
     configuration_in.filterConfiguration->pinConfiguration->queue =
       inherited::msg_queue_;
   } // end IF

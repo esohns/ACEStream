@@ -827,12 +827,12 @@ Stream_MediaFramework_DirectShow_Source_Filter_OutputPin_T<ConfigurationType>::C
   ACE_ASSERT (SUCCEEDED (result));
   if (!media_type.MatchesPartial (mediaType_in))
   {
-    //ACE_DEBUG ((LM_DEBUG,
-    //            ACE_TEXT ("%s/%s: incompatible media types (\"%s\"\n\"%s\")\n"),
-    //            ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::name (inherited::m_pFilter).c_str ()),
-    //            ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::name (this).c_str ())));
-    //            ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::toString (*configuration_->format).c_str ()),
-    //            ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::toString (*mediaType_in).c_str ())));
+    ACE_DEBUG ((LM_DEBUG,
+                ACE_TEXT ("%s/%s: incompatible media types (\"%s\"\n\"%s\")\n"),
+                ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::name (inherited::m_pFilter).c_str ()),
+                ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::name (this).c_str ()),
+                ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::toString (*mediaType_).c_str ()),
+                ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::toString (*mediaType_in).c_str ())));
     return S_FALSE;
   } // end IF
 
@@ -986,10 +986,19 @@ Stream_MediaFramework_DirectShow_Source_Filter_OutputPin_T<ConfigurationType>::S
     frameInterval_ = avg_time_per_frame / 10000; // 100ns --> ms
   } // end IF
   else if (InlineIsEqualGUID (inherited::m_mt.majortype, MEDIATYPE_Audio))
-  { ACE_ASSERT (inherited::m_mt.cbFormat == sizeof (struct tWAVEFORMATEX));
-    struct tWAVEFORMATEX* waveformatex_p =
-      reinterpret_cast<struct tWAVEFORMATEX*> (inherited::m_mt.pbFormat);
-    frameInterval_ = waveformatex_p->nSamplesPerSec / 1000;
+  { 
+    if (inherited::m_mt.cbFormat)
+    {
+      ACE_ASSERT (inherited::m_mt.cbFormat == sizeof (struct tWAVEFORMATEX));
+      struct tWAVEFORMATEX* waveformatex_p =
+        reinterpret_cast<struct tWAVEFORMATEX*> (inherited::m_mt.pbFormat);
+      frameInterval_ = waveformatex_p->nSamplesPerSec / 1000;
+    } // end ELSE
+    else
+      ACE_DEBUG ((LM_WARNING,
+                  ACE_TEXT ("%s/%s: passed media type has no format identifier, cannot set frame interval, continuing\n"),
+                  ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::name (inherited::m_pFilter).c_str ()),
+                  ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::name (this).c_str ())));
   } // end ELSE IF
   else
   {

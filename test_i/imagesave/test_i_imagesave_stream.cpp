@@ -148,18 +148,18 @@ Test_I_Stream::initialize (const inherited::CONFIGURATION_T& configuration_in)
 
   // sanity check(s)
   ACE_ASSERT (inherited::sessionData_);
-  //ACE_ASSERT ((*iterator).second.second.direct3DConfiguration);
+  //ACE_ASSERT ((*iterator).second.second->direct3DConfiguration);
 
   session_data_p =
     &const_cast<Test_I_ImageSave_SessionData&> (inherited::sessionData_->getR ());
   // *TODO*: remove type inferences
-  //if ((*iterator).second.second.direct3DConfiguration->handle)
+  //if ((*iterator).second.second->direct3DConfiguration->handle)
   //{
-  //  (*iterator).second.second.direct3DConfiguration->handle->AddRef ();
+  //  (*iterator).second.second->direct3DConfiguration->handle->AddRef ();
   //  session_data_p->direct3DDevice =
-  //    (*iterator).second.second.direct3DConfiguration->handle;
+  //    (*iterator).second.second->direct3DConfiguration->handle;
   //} // end IF
-  session_data_p->targetFileName = (*iterator).second.second.targetFileName;
+  session_data_p->targetFileName = (*iterator).second.second->targetFileName;
 
   // ---------------------------------------------------------------------------
   // step4: initialize module(s)

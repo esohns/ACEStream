@@ -74,8 +74,8 @@ Test_I_SMTPSend_Stream::load (Stream_ILayout* layout_inout,
     inherited::configuration_->find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (iterator != inherited::configuration_->end ());
   Net_ConnectionConfigurationsIterator_t iterator_2 =
-    (*iterator).second.second.connectionConfigurations->find (ACE_TEXT_ALWAYS_CHAR (""));
-  ACE_ASSERT (iterator_2 != (*iterator).second.second.connectionConfigurations->end ());
+    (*iterator).second.second->connectionConfigurations->find (ACE_TEXT_ALWAYS_CHAR (""));
+  ACE_ASSERT (iterator_2 != (*iterator).second.second->connectionConfigurations->end ());
   bool use_SSL_b =
     (NET_CONFIGURATION_TCP_CAST ((*iterator_2).second)->socketConfiguration.address.get_port_number () == SMTP_DEFAULT_TLS_SERVER_PORT);
   if (!use_SSL_b &&

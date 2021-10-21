@@ -52,8 +52,8 @@ Stream_Configuration_T<//StreamName,
   ACE_ASSERT (!isInitialized_);
 
   inherited::insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (""),
-                                     std::make_pair (moduleConfiguration_in,
-                                                     moduleHandlerConfiguration_in)));
+                                     std::make_pair (&const_cast<struct Stream_ModuleConfiguration&> (moduleConfiguration_in),
+                                                     &const_cast<ModuleHandlerConfigurationType&> (moduleHandlerConfiguration_in))));
   configuration_ = &const_cast<ConfigurationType&> (configuration_in);
   isInitialized_ = true;
 

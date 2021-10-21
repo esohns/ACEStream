@@ -1205,9 +1205,53 @@ Stream_Module_Decoder_Tools::loadAudioRendererGraph (REFGUID deviceCategory_in,
     return false;
   } // end IF
 
-  // step1: add effect DMO ?
-  if (InlineIsEqualGUID (effect_in, GUID_NULL))
+  // step0: add resampler ?
+  ACE_ASSERT (InlineIsEqualGUID (mediaType_in.majortype, MEDIATYPE_Audio));
+  ACE_ASSERT (InlineIsEqualGUID (mediaType_in.subtype, MEDIASUBTYPE_PCM));
+  ACE_ASSERT (mediaType_in.cbFormat == sizeof (struct tWAVEFORMATEX));
+  struct tWAVEFORMATEX* waveformatex_p =
+    reinterpret_cast<struct tWAVEFORMATEX*> (mediaType_in.pbFormat);
+  if ((waveformatex_p->nSamplesPerSec == 44100) ||
+      InlineIsEqualGUID (effect_in, GUID_NULL))
     goto continue_;
+
+  result = CoCreateInstance (CLSID_ACMWrapper, NULL,
+                             CLSCTX_INPROC_SERVER,
+                             IID_PPV_ARGS (&filter_p));
+  if (FAILED (result))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to CoCreateInstance(\"%s\"): \"%s\", aborting\n"),
+                ACE_TEXT (Common_Tools::GUIDToString (CLSID_ACMWrapper).c_str ()),
+                ACE_TEXT (Common_Error_Tools::errorToString (result, false).c_str ())));
+    goto error;
+  } // end IF
+  ACE_ASSERT (filter_p);
+  result =
+    IGraphBuilder_in->AddFilter (filter_p,
+                                 STREAM_LIB_DIRECTSHOW_FILTER_NAME_RESAMPLER);
+  if (FAILED (result))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to IGraphBuilder::AddFilter(): \"%s\", aborting\n"),
+                ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ())));
+    goto error;
+  } // end IF
+  graph_entry.filterName = STREAM_LIB_DIRECTSHOW_FILTER_NAME_RESAMPLER;
+  graph_entry.mediaType = Stream_MediaFramework_DirectShow_Tools::copy (mediaType_in);
+  waveformatex_p =
+    reinterpret_cast<struct tWAVEFORMATEX*> (graph_entry.mediaType->pbFormat);
+  waveformatex_p->nSamplesPerSec = 44100;
+  graphConfiguration_out.push_back (graph_entry);
+  filter_p->Release (); filter_p = NULL;
+  ACE_DEBUG ((LM_DEBUG,
+              ACE_TEXT ("added \"%s\"\n"),
+              ACE_TEXT_WCHAR_TO_TCHAR (graph_entry.filterName.c_str ())));
+
+  // step1: add effect DMO ?
+continue_:
+   if (InlineIsEqualGUID (effect_in, GUID_NULL))
+    goto continue_2;
 
   result = CoCreateInstance (CLSID_DMOWrapperFilter, NULL,
                              CLSCTX_INPROC_SERVER,
@@ -1489,8 +1533,11 @@ Stream_Module_Decoder_Tools::loadAudioRendererGraph (REFGUID deviceCategory_in,
   graph_entry.filterName = STREAM_DEC_DIRECTSHOW_FILTER_NAME_EFFECT_AUDIO;
   graphConfiguration_out.push_back (graph_entry);
   filter_p->Release (); filter_p = NULL;
+  ACE_DEBUG ((LM_DEBUG,
+              ACE_TEXT ("added \"%s\"\n"),
+              ACE_TEXT_WCHAR_TO_TCHAR (graph_entry.filterName.c_str ())));
 
-continue_:
+continue_2:
   result = CoCreateInstance (CLSID_SampleGrabber, NULL,
                              CLSCTX_INPROC_SERVER,
                              IID_PPV_ARGS (&filter_p));
@@ -1516,12 +1563,15 @@ continue_:
   graph_entry.filterName = STREAM_LIB_DIRECTSHOW_FILTER_NAME_GRAB;
   graphConfiguration_out.push_back (graph_entry);
   filter_p->Release (); filter_p = NULL;
+  ACE_DEBUG ((LM_DEBUG,
+              ACE_TEXT ("added \"%s\"\n"),
+              ACE_TEXT_WCHAR_TO_TCHAR (graph_entry.filterName.c_str ())));
 
   // send to an output (waveOut) ?
   if (audioOutput_in > 0)
   {
     GUID_s = CLSID_AudioRender;
-    graph_entry.filterName = STREAM_DEC_DIRECTSHOW_FILTER_NAME_RENDER_AUDIO;
+    graph_entry.filterName = STREAM_LIB_DIRECTSHOW_FILTER_NAME_RENDER_AUDIO;
   } // end IF
   else
   {
@@ -1552,6 +1602,9 @@ continue_:
   } // end IF
   graphConfiguration_out.push_back (graph_entry);
   filter_p->Release (); filter_p = NULL;
+  ACE_DEBUG ((LM_DEBUG,
+              ACE_TEXT ("added \"%s\"\n"),
+              ACE_TEXT_WCHAR_TO_TCHAR (graph_entry.filterName.c_str ())));
 
   //result =
   //  ICaptureGraphBuilder2_in->RenderStream (//&PIN_CATEGORY_PREVIEW, &MEDIATYPE_Video,

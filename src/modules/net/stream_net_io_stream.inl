@@ -204,9 +204,9 @@ Stream_Module_Net_IO_Stream_T<ACE_SYNCH_USE,
        iterator != const_cast<typename inherited::CONFIGURATION_T&> (configuration_in).end ();
 #endif // ACE_WIN32 || ACE_WIN64
        ++iterator)
-  { //ACE_ASSERT ((*iterator).second.second.finishOnDisconnect);
-    //ACE_ASSERT ((*iterator).second.second.socketHandle == ACE_INVALID_HANDLE);
-    (*iterator).second.second.socketHandle = handle_in;
+  { //ACE_ASSERT ((*iterator).second.second->finishOnDisconnect);
+    //ACE_ASSERT ((*iterator).second.second->socketHandle == ACE_INVALID_HANDLE);
+    (*iterator).second.second->socketHandle = handle_in;
   } // end FOR
 
   return initialize (configuration_in);

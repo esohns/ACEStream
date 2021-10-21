@@ -228,7 +228,7 @@ idle_initialize_UI_cb (gpointer userData_in)
                                                ACE_TEXT_ALWAYS_CHAR (TEST_U_UI_GTK_TOGGLEBUTTON_FULLSCREEN_NAME)));
   ACE_ASSERT (toggle_button_p);
   gtk_toggle_button_set_active (toggle_button_p,
-                                (*stream_configuration_iterator).second.second.fullScreen);
+                                (*stream_configuration_iterator).second.second->fullScreen);
 
   GtkFileChooserButton* file_chooser_button_p =
     GTK_FILE_CHOOSER_BUTTON (gtk_builder_get_object ((*iterator).second.second,
@@ -236,15 +236,15 @@ idle_initialize_UI_cb (gpointer userData_in)
   ACE_ASSERT (file_chooser_button_p);
 //  std::string default_folder_uri = ACE_TEXT_ALWAYS_CHAR ("file://");
 //  default_folder_uri +=
-//      (*stream_configuration_iterator).second.second.fileIdentifier.identifier;
+//      (*stream_configuration_iterator).second.second->fileIdentifier.identifier;
   gboolean result =
     gtk_file_chooser_set_current_folder (GTK_FILE_CHOOSER (file_chooser_button_p),
-                                         ACE_TEXT_ALWAYS_CHAR ((*stream_configuration_iterator).second.second.fileIdentifier.identifier.c_str ()));
+                                         ACE_TEXT_ALWAYS_CHAR ((*stream_configuration_iterator).second.second->fileIdentifier.identifier.c_str ()));
   if (!result)
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to gtk_file_chooser_set_current_folder(\"%s\"): \"%m\", aborting\n"),
-                ACE_TEXT ((*stream_configuration_iterator).second.second.fileIdentifier.identifier.c_str ())));
+                ACE_TEXT ((*stream_configuration_iterator).second.second->fileIdentifier.identifier.c_str ())));
     return G_SOURCE_REMOVE;
   } // end IF
 
@@ -263,9 +263,9 @@ idle_initialize_UI_cb (gpointer userData_in)
   gtk_widget_show_all (dialog_p);
 
   // step10: retrieve window handle
-//  (*stream_configuration_iterator).second.second.window =
+//  (*stream_configuration_iterator).second.second->window =
 //      gtk_widget_get_window (GTK_WIDGET (drawing_area_p));
-//  ACE_ASSERT ((*stream_configuration_iterator).second.second.window);
+//  ACE_ASSERT ((*stream_configuration_iterator).second.second->window);
 //  GtkAllocation allocation_s;
 //  gtk_widget_get_allocation (GTK_WIDGET (drawing_area_p),
 //                             &allocation_s);
@@ -274,10 +274,10 @@ idle_initialize_UI_cb (gpointer userData_in)
   resolution_s.cx = 640;
   resolution_s.cy = 480;
   Stream_MediaFramework_DirectShow_Tools::setResolution (resolution_s,
-                                                         (*stream_configuration_iterator).second.second.outputFormat);
+                                                         (*stream_configuration_iterator).second.second->outputFormat);
 #else
-  (*stream_configuration_iterator).second.second.outputFormat.resolution.width = 640;
-  (*stream_configuration_iterator).second.second.outputFormat.resolution.height = 480;
+  (*stream_configuration_iterator).second.second->outputFormat.resolution.width = 640;
+  (*stream_configuration_iterator).second.second->outputFormat.resolution.height = 480;
 #endif // ACE_WIN32 || ACE_WIN64
 //  ACE_DEBUG ((LM_DEBUG,
 //              ACE_TEXT ("initial window size: %ux%u\n"),
@@ -296,9 +296,9 @@ idle_initialize_UI_cb (gpointer userData_in)
   g_value_init (&value, G_TYPE_STRING);
   g_value_set_string (&value,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-                      (*stream_configuration_iterator).second.second.display.device.c_str ());
+                      (*stream_configuration_iterator).second.second->display.device.c_str ());
 #else
-                      DisplayString ((*stream_configuration_iterator).second.second.display.display));
+                      DisplayString ((*stream_configuration_iterator).second.second->display.display));
 #endif // ACE_WIN32 || ACE_WIN64
   Common_UI_GTK_Tools::selectValue (combo_box_p,
                                     value,
@@ -594,14 +594,14 @@ togglebutton_start_toggled_cb (GtkToggleButton* toggleButton_in,
     GTK_TOGGLE_BUTTON (gtk_builder_get_object ((*iterator).second.second,
                                                ACE_TEXT_ALWAYS_CHAR (TEST_U_UI_GTK_TOGGLEBUTTON_FULLSCREEN_NAME)));
   ACE_ASSERT (toggle_button_p);
-  (*stream_configuration_iterator).second.second.fullScreen =
+  (*stream_configuration_iterator).second.second->fullScreen =
       gtk_toggle_button_get_active (toggle_button_p);
 
   GtkFileChooserButton* file_chooser_button_p =
     GTK_FILE_CHOOSER_BUTTON (gtk_builder_get_object ((*iterator).second.second,
                                                      ACE_TEXT_ALWAYS_CHAR (TEST_U_UI_GTK_FILECHOOSERBUTTON_DIRECTORY_NAME)));
   ACE_ASSERT (file_chooser_button_p);
-  (*stream_configuration_iterator).second.second.fileIdentifier.identifier =
+  (*stream_configuration_iterator).second.second->fileIdentifier.identifier =
     gtk_file_chooser_get_current_folder (GTK_FILE_CHOOSER (file_chooser_button_p));
 
   GtkComboBox* combo_box_p =
@@ -627,7 +627,7 @@ togglebutton_start_toggled_cb (GtkToggleButton* toggleButton_in,
                             &iterator_4,
                             1, &value);
   ACE_ASSERT (G_VALUE_TYPE (&value) == G_TYPE_STRING);
-  (*stream_configuration_iterator).second.second.display =
+  (*stream_configuration_iterator).second.second->display =
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
       Common_UI_Tools::getDisplay (g_value_get_string (&value));
 #else
@@ -640,25 +640,25 @@ togglebutton_start_toggled_cb (GtkToggleButton* toggleButton_in,
     return;
   } // end IF
 
-  if ((*stream_configuration_iterator).second.second.fullScreen)
+  if ((*stream_configuration_iterator).second.second->fullScreen)
   {
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
     Common_Image_Resolution_t resolution_s;
     resolution_s.cx =
-      ((*stream_configuration_iterator).second.second.display.clippingArea.right -
-       (*stream_configuration_iterator).second.second.display.clippingArea.left);
+      ((*stream_configuration_iterator).second.second->display.clippingArea.right -
+       (*stream_configuration_iterator).second.second->display.clippingArea.left);
     resolution_s.cy =
-      ((*stream_configuration_iterator).second.second.display.clippingArea.bottom -
-       (*stream_configuration_iterator).second.second.display.clippingArea.top);
+      ((*stream_configuration_iterator).second.second->display.clippingArea.bottom -
+       (*stream_configuration_iterator).second.second->display.clippingArea.top);
     Stream_MediaFramework_DirectShow_Tools::setResolution (resolution_s,
-                                                           (*stream_configuration_iterator).second.second.outputFormat);
+                                                           (*stream_configuration_iterator).second.second->outputFormat);
 #else
-    (*stream_configuration_iterator).second.second.outputFormat.resolution.width =
-      WidthOfScreen (DefaultScreenOfDisplay ((*stream_configuration_iterator).second.second.display.display));
-//      (*stream_configuration_iterator).second.second.display.clippingArea.width;
-    (*stream_configuration_iterator).second.second.outputFormat.resolution.height =
-      HeightOfScreen (DefaultScreenOfDisplay ((*stream_configuration_iterator).second.second.display.display));
-//      (*stream_configuration_iterator).second.second.display.clippingArea.height;
+    (*stream_configuration_iterator).second.second->outputFormat.resolution.width =
+      WidthOfScreen (DefaultScreenOfDisplay ((*stream_configuration_iterator).second.second->display.display));
+//      (*stream_configuration_iterator).second.second->display.clippingArea.width;
+    (*stream_configuration_iterator).second.second->outputFormat.resolution.height =
+      HeightOfScreen (DefaultScreenOfDisplay ((*stream_configuration_iterator).second.second->display.display));
+//      (*stream_configuration_iterator).second.second->display.clippingArea.height;
 #endif // ACE_WIN32 || ACE_WIN64
   } // end IF
   else
@@ -676,10 +676,10 @@ togglebutton_start_toggled_cb (GtkToggleButton* toggleButton_in,
     resolution_s.cx = 640;
     resolution_s.cy = 480;
     Stream_MediaFramework_DirectShow_Tools::setResolution (resolution_s,
-                                                           (*stream_configuration_iterator).second.second.outputFormat);
+                                                           (*stream_configuration_iterator).second.second->outputFormat);
 #else
-    (*stream_configuration_iterator).second.second.outputFormat.resolution.width = 640;
-    (*stream_configuration_iterator).second.second.outputFormat.resolution.height = 480;
+    (*stream_configuration_iterator).second.second->outputFormat.resolution.width = 640;
+    (*stream_configuration_iterator).second.second->outputFormat.resolution.height = 480;
 #endif // ACE_WIN32 || ACE_WIN64
   } // end ELSE
 
@@ -752,7 +752,7 @@ togglebutton_start_toggled_cb (GtkToggleButton* toggleButton_in,
 //      directshow_stream_iterator =
 //        directshow_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
 //      ACE_ASSERT (directshow_stream_iterator != directshow_cb_data_p->configuration->streamConfiguration.end ());
-//      (*directshow_stream_iterator).second.second.fullScreen = is_active;
+//      (*directshow_stream_iterator).second.second->fullScreen = is_active;
 //      break;
 //    }
 //    case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
@@ -765,7 +765,7 @@ togglebutton_start_toggled_cb (GtkToggleButton* toggleButton_in,
 //      mediafoundation_stream_iterator =
 //        mediafoundation_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
 //      ACE_ASSERT (mediafoundation_stream_iterator != mediafoundation_cb_data_p->configuration->streamConfiguration.end ());
-//      (*mediafoundation_stream_iterator).second.second.fullScreen = is_active;
+//      (*mediafoundation_stream_iterator).second.second->fullScreen = is_active;
 //      break;
 //    }
 //    default:
@@ -785,7 +785,7 @@ togglebutton_start_toggled_cb (GtkToggleButton* toggleButton_in,
 //  Stream_CamSave_V4L_StreamConfiguration_t::ITERATOR_T iterator_2 =
 //    cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
 //  ACE_ASSERT (iterator_2 != cb_data_p->configuration->streamConfiguration.end ());
-//  (*iterator_2).second.second.fullScreen = is_active_b;
+//  (*iterator_2).second.second->fullScreen = is_active_b;
 //#endif
 //  ACE_ASSERT (stream_base_p);
 //  if (!stream_base_p->isRunning ())
@@ -906,7 +906,7 @@ combobox_display_changed_cb (GtkWidget* widget_in,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   ACE_ASSERT (false); // *TODO*
 #else
-  (*iterator_3).second.second.display.device = g_value_get_string (&value);
+  (*iterator_3).second.second->display.device = g_value_get_string (&value);
 #endif // ACE_WIN32 || ACE_WIN64
   g_value_unset (&value);
 
@@ -920,7 +920,7 @@ combobox_display_changed_cb (GtkWidget* widget_in,
   ACE_ASSERT (false); // *TODO*
 #else
 //  display_adapter_s =
-//      Common_UI_Tools::getAdapter ((*iterator_3).second.second.display);
+//      Common_UI_Tools::getAdapter ((*iterator_3).second.second->display);
 #endif // ACE_WIN32 || ACE_WIN64
   g_value_init (&value, G_TYPE_STRING);
   g_value_set_string (&value,
@@ -1008,11 +1008,11 @@ filechooserbutton_current_folder_changed_cb (GtkFileChooser* fileChooser_in,
       ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (stream_configuration_iterator != ui_cb_data_p->configuration->streamConfiguration.end ());
 
-  (*stream_configuration_iterator).second.second.fileIdentifier.identifier =
+  (*stream_configuration_iterator).second.second->fileIdentifier.identifier =
       ACE_TEXT_ALWAYS_CHAR (gtk_file_chooser_get_current_folder (fileChooser_in));
   ACE_DEBUG ((LM_DEBUG,
               ACE_TEXT ("changed directory to \"%s\"\n"),
-              ACE_TEXT ((*stream_configuration_iterator).second.second.fileIdentifier.identifier.c_str ())));
+              ACE_TEXT ((*stream_configuration_iterator).second.second->fileIdentifier.identifier.c_str ())));
 } // filechooserbutton_current_folder_changed_cb
 
 //void

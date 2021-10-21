@@ -152,7 +152,7 @@ typedef Stream_Statistic_StatisticAnalysis_T<ACE_MT_SYNCH,
                                              Test_U_AudioEffect_DirectShow_SessionData,
                                              Test_U_AudioEffect_DirectShow_SessionData_t,
                                              struct _AMMediaType,
-                                             double, 1> Test_U_AudioEffect_DirectShow_StatisticAnalysis;
+                                             double> Test_U_AudioEffect_DirectShow_StatisticAnalysis;
 DATASTREAM_MODULE_INPUT_ONLY (Test_U_AudioEffect_DirectShow_SessionData,                // session data type
                               enum Stream_SessionMessageType,                                  // session event type
                               struct Test_U_AudioEffect_DirectShow_ModuleHandlerConfiguration, // module handler configuration type
@@ -170,7 +170,7 @@ typedef Stream_Statistic_StatisticAnalysis_T<ACE_MT_SYNCH,
                                              Test_U_AudioEffect_MediaFoundation_SessionData,
                                              Test_U_AudioEffect_MediaFoundation_SessionData_t,
                                              IMFMediaType*,
-                                             double, 1> Test_U_AudioEffect_MediaFoundation_StatisticAnalysis;
+                                             double> Test_U_AudioEffect_MediaFoundation_StatisticAnalysis;
 DATASTREAM_MODULE_INPUT_ONLY (Test_U_AudioEffect_MediaFoundation_SessionData,                // session data type
                               enum Stream_SessionMessageType,                                       // session event type
                               struct Test_U_AudioEffect_MediaFoundation_ModuleHandlerConfiguration, // module handler configuration type

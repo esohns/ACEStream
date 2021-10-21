@@ -156,9 +156,9 @@ stream_processing_function (void* arg_in)
 
   // *NOTE*: let the display output module handle the Direct3D device
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  if ((*iterator_2).second.second.direct3DConfiguration->handle)
+  if ((*iterator_2).second.second->direct3DConfiguration->handle)
   {
-    (*iterator_2).second.second.direct3DConfiguration->handle->Release (); (*iterator_2).second.second.direct3DConfiguration->handle = NULL;
+    (*iterator_2).second.second->direct3DConfiguration->handle->Release (); (*iterator_2).second.second->direct3DConfiguration->handle = NULL;
   } // end IF
 #endif // ACE_WIN32 || ACE_WIN64
 
@@ -352,7 +352,7 @@ idle_initialize_UI_cb (gpointer userData_in)
 #else
     cb_data_p->configuration->streamConfiguration.configuration_->format.resolution;
 #endif // ACE_WIN32 || ACE_WIN64
-  filename_string = (*stream_iterator).second.second.targetFileName;
+  filename_string = (*stream_iterator).second.second->targetFileName;
   gtk_entry_set_text (entry_p,
                       (filename_string.empty () ? ACE_TEXT_ALWAYS_CHAR ("")
                                                 : ACE_TEXT_ALWAYS_CHAR (ACE::basename (filename_string.c_str (), ACE_DIRECTORY_SEPARATOR_CHAR))));
@@ -561,12 +561,12 @@ idle_initialize_UI_cb (gpointer userData_in)
                              &allocation);
   GdkWindow* window_p = gtk_widget_get_window (GTK_WIDGET (drawing_area_p));
   ACE_ASSERT (window_p);
-  //ACE_ASSERT (!(*stream_iterator).second.second.window);
+  //ACE_ASSERT (!(*stream_iterator).second.second->window);
   //ACE_ASSERT (!cb_data_p->configuration->direct3DConfiguration.presentationParameters.hDeviceWindow);
   //ACE_ASSERT (!cb_data_p->configuration->direct3DConfiguration.focusWindow);
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   ACE_ASSERT (gdk_win32_window_is_win32 (window_p));
-  //(*stream_iterator).second.second.window =
+  //(*stream_iterator).second.second->window =
   //  gdk_win32_window_get_impl_hwnd (window_p);
   cb_data_p->configuration->direct3DConfiguration.focusWindow =
     NULL;
@@ -574,14 +574,14 @@ idle_initialize_UI_cb (gpointer userData_in)
     gdk_win32_window_get_impl_hwnd (window_p);
 #endif // ACE_WIN32 || ACE_WIN64
 
-  //(*stream_iterator).second.second.area.bottom =
+  //(*stream_iterator).second.second->area.bottom =
   //  allocation.y + allocation.height;
-  //(*stream_iterator).second.second.area.left = allocation.x;
-  //(*stream_iterator).second.second.area.right =
+  //(*stream_iterator).second.second->area.left = allocation.x;
+  //(*stream_iterator).second.second->area.right =
   //  allocation.x + allocation.width;
-  //(*stream_iterator).second.second.area.top = allocation.y;
+  //(*stream_iterator).second.second->area.top = allocation.y;
 
-  //(*stream_iterator).second.second.pixelBuffer =
+  //(*stream_iterator).second.second->pixelBuffer =
   //  cb_data_p->pixelBuffer;
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -665,7 +665,7 @@ idle_initialize_UI_cb (gpointer userData_in)
   //g_value_unset (&value);
   //g_value_init (&value, G_TYPE_STRING);
   //g_value_set_string (&value,
-  //                    (*stream_iterator).second.second.display.device.c_str ());
+  //                    (*stream_iterator).second.second->display.device.c_str ());
   //Common_UI_GTK_Tools::selectValue (combo_box_p,
   //                                  value,
   //                                  1);
@@ -1216,7 +1216,7 @@ togglebutton_process_toggled_cb (GtkToggleButton* toggleButton_in,
   filename_string += ACE_DIRECTORY_SEPARATOR_STR;
   filename_string += ACE_TEXT_ALWAYS_CHAR (gtk_entry_get_text (entry_p));
   ACE_ASSERT (Common_File_Tools::isValidPath (filename_string));
-  (*stream_iterator).second.second.targetFileName =
+  (*stream_iterator).second.second->targetFileName =
     filename_string;
 
 //  spin_button_p =
@@ -1404,7 +1404,7 @@ error:
 //    g_object_unref (G_OBJECT (file_p)); file_p = NULL;
 //  } // end ELSE
 //
-//  (*stream_iterator).second.second.fileIdentifier.identifier =
+//  (*stream_iterator).second.second->fileIdentifier.identifier =
 //    filename_string;
 //} // toggleaction_save_toggled_cb
 
@@ -1754,7 +1754,7 @@ filechooserbutton_source_cb (GtkFileChooserButton* fileChooserButton_in,
   filename_string += ACE_DIRECTORY_SEPARATOR_STR;
   filename_string += Common_UI_GTK_Tools::UTF8ToLocale (string_2, -1);
 
-  (*stream_iterator).second.second.fileIdentifier.identifier =
+  (*stream_iterator).second.second->fileIdentifier.identifier =
     filename_string;
 } // filechooserbutton_source_cb
 
@@ -1818,7 +1818,7 @@ filechooserbutton_target_cb (GtkFileChooserButton* fileChooserButton_in,
   filename_string += ACE_DIRECTORY_SEPARATOR_STR;
   filename_string += Common_UI_GTK_Tools::UTF8ToLocale (string_2, -1);
 
-  (*stream_iterator).second.second.targetFileName =
+  (*stream_iterator).second.second->targetFileName =
     filename_string;
 } // filechooserbutton_target_cb
 

@@ -50,8 +50,7 @@ template <ACE_SYNCH_DECL,
           typename SessionDataContainerType,
           ////////////////////////////////
           typename MediaType,
-          typename ValueType,
-          unsigned int Aggregation>
+          typename ValueType>
 class Stream_Statistic_StatisticAnalysis_T
  : public Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
                                  TimePolicyType,
@@ -63,8 +62,7 @@ class Stream_Statistic_StatisticAnalysis_T
                                  enum Stream_SessionMessageType,
                                  struct Stream_UserData>
  , public Stream_MediaFramework_MediaTypeConverter_T<MediaType>
- , public Common_Math_Sample_T<ValueType,
-                               Aggregation>
+ , public Common_Math_Sample_T<ValueType>
 {
   typedef Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
                                  TimePolicyType,
@@ -76,8 +74,7 @@ class Stream_Statistic_StatisticAnalysis_T
                                  Stream_SessionMessageType,
                                  Stream_UserData> inherited;
   typedef Stream_MediaFramework_MediaTypeConverter_T<MediaType> inherited2;
-  typedef Common_Math_Sample_T<ValueType,
-                               Aggregation> inherited3;
+  typedef Common_Math_Sample_T<ValueType> inherited3;
 
  public:
   // *TODO*: on MSVC 2015u3 the accurate declaration does not compile
@@ -106,7 +103,8 @@ class Stream_Statistic_StatisticAnalysis_T
   ACE_UNIMPLEMENTED_FUNC (Stream_Statistic_StatisticAnalysis_T (const Stream_Statistic_StatisticAnalysis_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Statistic_StatisticAnalysis_T& operator= (const Stream_Statistic_StatisticAnalysis_T&))
 
-  virtual void Process (unsigned int,  // starting slot index
+  virtual void Process (unsigned int,  // channel#
+                        unsigned int,  // starting slot index
                         unsigned int); // ending slot index
   inline virtual ValueType Value (unsigned int slot_in, unsigned int subSlot_in) const { ACE_UNUSED_ARG (slot_in); ACE_UNUSED_ARG (subSlot_in); ACE_ASSERT (false); ACE_NOTSUP_RETURN (0); ACE_NOTREACHED (return 0;) }
 
@@ -130,6 +128,7 @@ class Stream_Statistic_StatisticAnalysis_T
   INOTIFY_T*                      eventDispatcher_;
   typename inherited3::ITERATOR_T iterator_;
   unsigned int                    sampleCount_;
+  bool                            sampleIsSigned_;
 };
 
 // include template definition

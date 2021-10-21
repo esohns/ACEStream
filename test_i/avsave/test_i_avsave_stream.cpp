@@ -161,11 +161,11 @@ Stream_AVSave_DirectShow_Stream::initialize (const inherited::CONFIGURATION_T& c
   } // end IF
   COM_initialized = true;
 
-  if ((*iterator).second.second.builder)
+  if ((*iterator).second.second->builder)
   {
     // *NOTE*: Stream_Device_Tools::loadRendererGraph() resets the graph
     //         (see below)
-    if (!Stream_MediaFramework_DirectShow_Tools::reset ((*iterator).second.second.builder,
+    if (!Stream_MediaFramework_DirectShow_Tools::reset ((*iterator).second.second->builder,
                                                         CLSID_VideoInputDeviceCategory))
     {
       ACE_DEBUG ((LM_ERROR,
@@ -174,7 +174,7 @@ Stream_AVSave_DirectShow_Stream::initialize (const inherited::CONFIGURATION_T& c
       goto error;
     } // end IF
 
-    if (!Stream_MediaFramework_DirectShow_Tools::getBufferNegotiation ((*iterator).second.second.builder,
+    if (!Stream_MediaFramework_DirectShow_Tools::getBufferNegotiation ((*iterator).second.second->builder,
                                                                        STREAM_LIB_DIRECTSHOW_FILTER_NAME_CAPTURE_VIDEO,
                                                                        buffer_negotiation_p))
     {
@@ -188,10 +188,10 @@ Stream_AVSave_DirectShow_Stream::initialize (const inherited::CONFIGURATION_T& c
     goto continue_;
   } // end IF
 
-  ACE_ASSERT ((*iterator).second.second.deviceIdentifier.identifierDiscriminator == Stream_Device_Identifier::STRING);
-  if (!Stream_Device_DirectShow_Tools::loadDeviceGraph (ACE_TEXT_ALWAYS_CHAR ((*iterator).second.second.deviceIdentifier.identifier._string),
+  ACE_ASSERT ((*iterator).second.second->deviceIdentifier.identifierDiscriminator == Stream_Device_Identifier::STRING);
+  if (!Stream_Device_DirectShow_Tools::loadDeviceGraph (ACE_TEXT_ALWAYS_CHAR ((*iterator).second.second->deviceIdentifier.identifier._string),
                                                         CLSID_VideoInputDeviceCategory,
-                                                        (*iterator).second.second.builder,
+                                                        (*iterator).second.second->builder,
                                                         buffer_negotiation_p,
                                                         stream_config_p,
                                                         graph_layout))
@@ -199,16 +199,16 @@ Stream_AVSave_DirectShow_Stream::initialize (const inherited::CONFIGURATION_T& c
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to Stream_Device_DirectShow_Tools::loadDeviceGraph(\"%s\"), aborting\n"),
                 ACE_TEXT (stream_name_string_),
-                ACE_TEXT ((*iterator).second.second.deviceIdentifier.identifier._string)));
+                ACE_TEXT ((*iterator).second.second->deviceIdentifier.identifier._string)));
     goto error;
   } // end IF
-  ACE_ASSERT ((*iterator).second.second.builder);
+  ACE_ASSERT ((*iterator).second.second->builder);
   ACE_ASSERT (buffer_negotiation_p);
   ACE_ASSERT (stream_config_p);
   stream_config_p->Release (); stream_config_p = NULL;
 
 continue_:
-  if (!Stream_Device_DirectShow_Tools::setCaptureFormat ((*iterator).second.second.builder,
+  if (!Stream_Device_DirectShow_Tools::setCaptureFormat ((*iterator).second.second->builder,
                                                          CLSID_VideoInputDeviceCategory,
                                                          configuration_in.configuration_->format))
   {
@@ -219,9 +219,9 @@ continue_:
   } // end IF
 
   //// sanity check(s)
-  //ACE_ASSERT ((*iterator).second.second.direct3DConfiguration);
+  //ACE_ASSERT ((*iterator).second.second->direct3DConfiguration);
 
-  //if (!Stream_Device_Tools::getDirect3DDevice (*(*iterator).second.second.direct3DConfiguration,
+  //if (!Stream_Device_Tools::getDirect3DDevice (*(*iterator).second.second->direct3DConfiguration,
   //                                                    direct3D_manager_p,
   //                                                    reset_token))
   //{
@@ -230,18 +230,18 @@ continue_:
   //              ACE_TEXT (stream_name_string_)));
   //  goto error;
   //} // end IF
-  //ACE_ASSERT ((*iterator).second.second.direct3DConfiguration->handle);
-  //ACE_ASSERT ((*iterator).second.second.direct3DConfiguration->handle);
+  //ACE_ASSERT ((*iterator).second.second->direct3DConfiguration->handle);
+  //ACE_ASSERT ((*iterator).second.second->direct3DConfiguration->handle);
   //ACE_ASSERT (direct3D_manager_p);
   //ACE_ASSERT (reset_token);
   //direct3D_manager_p->Release (); direct3D_manager_p = NULL;
 
   if (!Stream_Module_Decoder_Tools::loadVideoRendererGraph (CLSID_VideoInputDeviceCategory,
                                                             configuration_in.configuration_->format,
-                                                            (*iterator).second.second.outputFormat,
-                                                            //(*iterator).second.second.direct3DConfiguration->presentationParameters.hDeviceWindow
+                                                            (*iterator).second.second->outputFormat,
+                                                            //(*iterator).second.second->direct3DConfiguration->presentationParameters.hDeviceWindow
                                                             NULL,
-                                                            (*iterator).second.second.builder,
+                                                            (*iterator).second.second->builder,
                                                             graph_configuration))
   {
     ACE_DEBUG ((LM_ERROR,
@@ -251,7 +251,7 @@ continue_:
   } // end IF
 
   result_2 =
-    (*iterator).second.second.builder->FindFilterByName (STREAM_LIB_DIRECTSHOW_FILTER_NAME_GRAB,
+    (*iterator).second.second->builder->FindFilterByName (STREAM_LIB_DIRECTSHOW_FILTER_NAME_GRAB,
                                                          &filter_p);
   if (FAILED (result_2))
   {
@@ -317,7 +317,7 @@ continue_:
     goto error;
   } // end IF
 
-  if (!Stream_MediaFramework_DirectShow_Tools::connect ((*iterator).second.second.builder,
+  if (!Stream_MediaFramework_DirectShow_Tools::connect ((*iterator).second.second->builder,
                                                         graph_configuration))
   {
     ACE_DEBUG ((LM_ERROR,
@@ -330,14 +330,14 @@ continue_:
   //         and the sample grabber (go ahead, try it in with graphedit.exe)
   //         --> reconnect the AVI decompressor to the (connected) sample
   //             grabber; this seems to work
-  if (!Stream_MediaFramework_DirectShow_Tools::connected ((*iterator).second.second.builder,
+  if (!Stream_MediaFramework_DirectShow_Tools::connected ((*iterator).second.second->builder,
                                                           STREAM_LIB_DIRECTSHOW_FILTER_NAME_CAPTURE_VIDEO))
   {
     ACE_DEBUG ((LM_DEBUG,
                 ACE_TEXT ("%s: reconnecting...\n"),
                 ACE_TEXT (stream_name_string_)));
 
-    if (!Stream_MediaFramework_DirectShow_Tools::connectFirst ((*iterator).second.second.builder,
+    if (!Stream_MediaFramework_DirectShow_Tools::connectFirst ((*iterator).second.second->builder,
                                                                STREAM_LIB_DIRECTSHOW_FILTER_NAME_CAPTURE_VIDEO))
     {
       ACE_DEBUG ((LM_ERROR,
@@ -346,7 +346,7 @@ continue_:
       goto error;
     } // end IF
   } // end IF
-  ACE_ASSERT (Stream_MediaFramework_DirectShow_Tools::connected ((*iterator).second.second.builder,
+  ACE_ASSERT (Stream_MediaFramework_DirectShow_Tools::connected ((*iterator).second.second->builder,
                                                                  STREAM_LIB_DIRECTSHOW_FILTER_NAME_CAPTURE_VIDEO));
 
 #if defined (_DEBUG)
@@ -374,7 +374,7 @@ continue_:
   buffer_negotiation_p->Release (); buffer_negotiation_p = NULL;
 
   result_2 =
-    (*iterator).second.second.builder->QueryInterface (IID_PPV_ARGS (&media_filter_p));
+    (*iterator).second.second->builder->QueryInterface (IID_PPV_ARGS (&media_filter_p));
   if (FAILED (result_2))
   {
     ACE_DEBUG ((LM_ERROR,
@@ -398,7 +398,7 @@ continue_:
   // ---------------------------------------------------------------------------
   // step2: update stream module configuration(s)
   (*iterator_2).second.second = (*iterator).second.second;
-  (*iterator_2).second.second.deviceIdentifier.clear ();
+  (*iterator_2).second.second->deviceIdentifier.clear ();
 
   // ---------------------------------------------------------------------------
   // step3: allocate a new session state, reset stream
@@ -418,18 +418,18 @@ continue_:
 
   // sanity check(s)
   ACE_ASSERT (inherited::sessionData_);
-  //ACE_ASSERT ((*iterator).second.second.direct3DConfiguration);
+  //ACE_ASSERT ((*iterator).second.second->direct3DConfiguration);
 
   session_data_p =
     &const_cast<Stream_AVSave_DirectShow_SessionData&> (inherited::sessionData_->getR ());
   // *TODO*: remove type inferences
-  //if ((*iterator).second.second.direct3DConfiguration->handle)
+  //if ((*iterator).second.second->direct3DConfiguration->handle)
   //{
-  //  (*iterator).second.second.direct3DConfiguration->handle->AddRef ();
+  //  (*iterator).second.second->direct3DConfiguration->handle->AddRef ();
   //  session_data_p->direct3DDevice =
-  //    (*iterator).second.second.direct3DConfiguration->handle;
+  //    (*iterator).second.second->direct3DConfiguration->handle;
   //} // end IF
-  session_data_p->targetFileName = (*iterator).second.second.targetFileName;
+  session_data_p->targetFileName = (*iterator).second.second->targetFileName;
 
   // ---------------------------------------------------------------------------
   // step4: initialize module(s)
@@ -449,7 +449,7 @@ continue_:
   // step5: update session data
   session_data_p->formats.push_back (configuration_in.configuration_->format);
   ACE_OS::memset (&media_type_s, 0, sizeof (struct _AMMediaType));
-  if (!Stream_MediaFramework_DirectShow_Tools::getOutputFormat ((*iterator).second.second.builder,
+  if (!Stream_MediaFramework_DirectShow_Tools::getOutputFormat ((*iterator).second.second->builder,
                                                                 STREAM_LIB_DIRECTSHOW_FILTER_NAME_GRAB,
                                                                 media_type_s))
   {
@@ -460,7 +460,7 @@ continue_:
     goto error;
   } // end IF
   session_data_p->formats.push_back (media_type_s);
-  //ACE_ASSERT (Stream_MediaFramework_DirectShow_Tools::matchMediaType (*session_data_p->sourceFormat, *(*iterator).second.second.sourceFormat));
+  //ACE_ASSERT (Stream_MediaFramework_DirectShow_Tools::matchMediaType (*session_data_p->sourceFormat, *(*iterator).second.second->sourceFormat));
 
   // ---------------------------------------------------------------------------
   // step6: initialize head module
@@ -495,9 +495,9 @@ continue_:
   return true;
 
 error:
-  if ((*iterator).second.second.builder)
+  if ((*iterator).second.second->builder)
   {
-    (*iterator).second.second.builder->Release (); (*iterator).second.second.builder = NULL;
+    (*iterator).second.second->builder->Release (); (*iterator).second.second->builder = NULL;
   } // end IF
   if (session_data_p)
   {
@@ -919,8 +919,6 @@ Stream_AVSave_MediaFoundation_Stream::initialize (const inherited::CONFIGURATION
   bool reset_setup_pipeline = false;
   Stream_AVSave_MediaFoundation_SessionData* session_data_p = NULL;
   inherited::CONFIGURATION_T::ITERATOR_T iterator;
-  struct Stream_AVSave_MediaFoundation_ModuleHandlerConfiguration* configuration_p =
-    NULL;
   Stream_AVSave_MediaFoundation_Source* source_impl_p = NULL;
 
   // allocate a new session state, reset stream
@@ -948,15 +946,8 @@ Stream_AVSave_MediaFoundation_Stream::initialize (const inherited::CONFIGURATION
 
   // sanity check(s)
   ACE_ASSERT (iterator != configuration_in.end ());
-
-  configuration_p =
-      dynamic_cast<struct Stream_AVSave_MediaFoundation_ModuleHandlerConfiguration*> (&(*iterator).second.second);
-
-  // sanity check(s)
-  ACE_ASSERT (configuration_p);
-
   // *TODO*: remove type inferences
-  session_data_p->targetFileName = configuration_p->targetFileName;
+  session_data_p->targetFileName = (*iterator).second.second->targetFileName;
 
   // ---------------------------------------------------------------------------
 
@@ -995,10 +986,10 @@ Stream_AVSave_MediaFoundation_Stream::initialize (const inherited::CONFIGURATION
     COM_initialized = true;
 
 #if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
-  if (configuration_p->session)
+  if ((*iterator).second.second->session)
   {
-    ULONG reference_count = configuration_p->session->AddRef ();
-    mediaSession_ = configuration_p->session;
+    ULONG reference_count = (*iterator).second.second->session->AddRef ();
+    mediaSession_ = (*iterator).second.second->session;
 
     if (!Stream_MediaFramework_MediaFoundation_Tools::clear (mediaSession_))
     {
@@ -1030,37 +1021,37 @@ Stream_AVSave_MediaFoundation_Stream::initialize (const inherited::CONFIGURATION
 #endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
     ACE_ASSERT (topology_p);
 
-    if (configuration_p->sampleGrabberNodeId)
+    if ((*iterator).second.second->sampleGrabberNodeId)
       goto continue_;
     if (!Stream_MediaFramework_MediaFoundation_Tools::getSampleGrabberNodeId (topology_p,
-                                                                              configuration_p->sampleGrabberNodeId))
+                                                                              (*iterator).second.second->sampleGrabberNodeId))
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: failed to Stream_MediaFramework_MediaFoundation_Tools::getSampleGrabberNodeId(), aborting\n"),
                   ACE_TEXT (stream_name_string_)));
       goto error;
     } // end IF
-    ACE_ASSERT (configuration_p->sampleGrabberNodeId);
+    ACE_ASSERT ((*iterator).second.second->sampleGrabberNodeId);
 
 #if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
     goto continue_;
   } // end IF
 #endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
 
-  ACE_ASSERT (configuration_p->deviceIdentifier.identifierDiscriminator == Stream_Device_Identifier::STRING);
-  if (!Stream_Module_Decoder_Tools::loadVideoRendererTopology (ACE_TEXT_ALWAYS_CHAR (configuration_p->deviceIdentifier.identifier._string),
+  ACE_ASSERT ((*iterator).second.second->deviceIdentifier.identifierDiscriminator == Stream_Device_Identifier::STRING);
+  if (!Stream_Module_Decoder_Tools::loadVideoRendererTopology (ACE_TEXT_ALWAYS_CHAR ((*iterator).second.second->deviceIdentifier.identifier._string),
                                                                configuration_in.configuration_->format,
                                                                source_impl_p,
                                                                NULL,
-                                                               //configuration_p->window,
-                                                               configuration_p->sampleGrabberNodeId,
-                                                               configuration_p->rendererNodeId,
+                                                               //(*iterator).second.second->window,
+                                                               (*iterator).second.second->sampleGrabberNodeId,
+                                                               (*iterator).second.second->rendererNodeId,
                                                                topology_p))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to Stream_Module_Decoder_Tools::loadVideoRendererTopology(\"%s\"), aborting\n"),
                 ACE_TEXT (stream_name_string_),
-                ACE_TEXT (configuration_p->deviceIdentifier.identifier._string)));
+                ACE_TEXT ((*iterator).second.second->deviceIdentifier.identifier._string)));
     goto error;
   } // end IF
   ACE_ASSERT (topology_p);
@@ -1099,7 +1090,7 @@ continue_:
   media_type_p = NULL;
 
   if (!Stream_MediaFramework_MediaFoundation_Tools::getOutputFormat (topology_p,
-                                                                     configuration_p->sampleGrabberNodeId,
+                                                                     (*iterator).second.second->sampleGrabberNodeId,
                                                                      media_type_p))
   {
     ACE_DEBUG ((LM_ERROR,
@@ -1138,10 +1129,10 @@ continue_:
   topology_p->Release (); topology_p = NULL;
 
 #if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
-  if (!configuration_p->session)
+  if (!(*iterator).second.second->session)
   {
     ULONG reference_count = mediaSession_->AddRef ();
-    configuration_p->session = mediaSession_;
+    (*iterator).second.second->session = mediaSession_;
   } // end IF
 #endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
 
@@ -1234,7 +1225,7 @@ Stream_AVSave_WaveIn_Stream::load (Stream_ILayout* layout_in,
   //typename inherited::CONFIGURATION_T::ITERATOR_T iterator =
   //    configuration_->find (ACE_TEXT_ALWAYS_CHAR (""));
   //ACE_ASSERT (iterator != configuration_->end ());
-//  bool save_to_file_b = !(*iterator).second.second.targetFileName.empty ();
+//  bool save_to_file_b = !(*iterator).second.second->targetFileName.empty ();
 
   layout_in->append (&source_, NULL, 0);
   layout_in->append (&tagger_, NULL, 0);
@@ -1256,7 +1247,6 @@ Stream_AVSave_WaveIn_Stream::initialize (const typename inherited::CONFIGURATION
   bool reset_setup_pipeline = false;
   Stream_AVSave_DirectShow_SessionData* session_data_p = NULL;
   typename inherited::CONFIGURATION_T::ITERATOR_T iterator;
-  struct Stream_AVSave_DirectShow_ModuleHandlerConfiguration* configuration_p = NULL;
   Stream_AVSave_WaveIn_Source* source_impl_p = NULL;
 
   // allocate a new session state, reset stream
@@ -1284,17 +1274,10 @@ Stream_AVSave_WaveIn_Stream::initialize (const typename inherited::CONFIGURATION
 
   // sanity check(s)
   ACE_ASSERT (iterator != configuration_in.end ());
-
-  configuration_p =
-      dynamic_cast<struct Stream_AVSave_DirectShow_ModuleHandlerConfiguration*> (&(*iterator).second.second);
-
-  // sanity check(s)
-  ACE_ASSERT (configuration_p);
-
   // *TODO*: remove type inferences
   ACE_ASSERT (session_data_p->formats.empty ());
   session_data_p->formats.push_back (configuration_in.configuration_->format);
-  session_data_p->targetFileName = configuration_p->targetFileName;
+  session_data_p->targetFileName = (*iterator).second.second->targetFileName;
 
   // ---------------------------------------------------------------------------
 
@@ -1390,11 +1373,11 @@ Stream_AVSave_V4L_Stream::load (Stream_ILayout* layout_in,
   typename inherited::CONFIGURATION_T::ITERATOR_T iterator =
       inherited::configuration_->find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (iterator != configuration_->end ());
-//  bool save_to_file_b = !(*iterator).second.second.targetFileName.empty ();
+//  bool save_to_file_b = !(*iterator).second.second->targetFileName.empty ();
 //  typename inherited::CONFIGURATION_T::ITERATOR_T iterator_2 =
 //      configuration_->find (Stream_Visualization_Tools::rendererToModuleName (STREAM_VISUALIZATION_VIDEORENDERER_X11));
 //  ACE_ASSERT (iterator_2 != configuration_->end ());
-//  bool display_b = !(*iterator_2).second.second.display.device.empty ();
+//  bool display_b = !(*iterator_2).second.second->display.device.empty ();
 
   // *NOTE*: this processing stream may have branches, depending on:
   //         - whether the output is displayed on a screen
@@ -1435,7 +1418,7 @@ Stream_AVSave_V4L_Stream::load (Stream_ILayout* layout_in,
 //      layout_in->append (&display_, branch_p, index_i);
 //#endif
 //#else
-//      ACE_ASSERT ((*iterator).second.second.fullScreen && !(*iterator).second.second.display.identifier.empty ());
+//      ACE_ASSERT ((*iterator).second.second->fullScreen && !(*iterator).second.second->display.identifier.empty ());
 //      ACE_ASSERT (false); // *TODO*
 //#endif // GUI_SUPPORT
 //      ++index_i;
@@ -1591,7 +1574,7 @@ Stream_AVSave_ALSA_Stream::load (Stream_ILayout* layout_in,
   typename inherited::CONFIGURATION_T::ITERATOR_T iterator =
       configuration_->find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (iterator != configuration_->end ());
-//  bool save_to_file_b = !(*iterator).second.second.targetFileName.empty ();
+//  bool save_to_file_b = !(*iterator).second.second->targetFileName.empty ();
 
   layout_in->append (&source_, NULL, 0);
   layout_in->append (&tagger_, NULL, 0);

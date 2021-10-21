@@ -118,7 +118,6 @@ Stream_ImageScreen_Stream::initialize (const typename inherited::CONFIGURATION_T
   bool reset_setup_pipeline = false;
   Stream_ImageScreen_SessionData* session_data_p = NULL;
   typename inherited::CONFIGURATION_T::ITERATOR_T iterator;
-  struct Stream_ImageScreen_ModuleHandlerConfiguration* configuration_p = NULL;
 #if defined (IMAGEMAGICK_SUPPORT)
   Stream_ImageScreen_ImageMagick_Source* source_impl_p = NULL;
 #else
@@ -159,10 +158,6 @@ Stream_ImageScreen_Stream::initialize (const typename inherited::CONFIGURATION_T
   iterator =
       const_cast<typename inherited::CONFIGURATION_T&> (configuration_in).find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (iterator != configuration_in.end ());
-  configuration_p =
-      dynamic_cast<struct Stream_ImageScreen_ModuleHandlerConfiguration*> (&(*iterator).second.second);
-  ACE_ASSERT (configuration_p);
-
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   Stream_MediaFramework_DirectShow_Tools::setFormat (MEDIASUBTYPE_RGB32,
                                                      media_type_s);
@@ -177,7 +172,7 @@ Stream_ImageScreen_Stream::initialize (const typename inherited::CONFIGURATION_T
   media_type_s.resolution.height = 480;
 #endif // ACE_WIN32 || ACE_WIN64
   session_data_p->formats.push_back (media_type_s);
-  //  session_data_p->targetFileName = configuration_p->fileIdentifier.identifier;
+  //  session_data_p->targetFileName = (*iterator).second.second->fileIdentifier.identifier;
 
   // ---------------------------------------------------------------------------
 

@@ -783,9 +783,9 @@ do_finalize_directshow (struct Test_I_Target_DirectShow_UI_CBData& CBData_in)
     CBData_in.configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (iterator != CBData_in.configuration->streamConfiguration.end ());
 
-  if ((*iterator).second.second.builder)
+  if ((*iterator).second.second->builder)
   {
-    (*iterator).second.second.builder->Release (); (*iterator).second.second.builder = NULL;
+    (*iterator).second.second->builder->Release (); (*iterator).second.second->builder = NULL;
   } // end IF
 
   CoUninitialize ();
@@ -799,17 +799,17 @@ do_finalize_mediafoundation (struct Test_I_Target_MediaFoundation_UI_CBData& CBD
     CBData_in.configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (iterator != CBData_in.configuration->streamConfiguration.end ());
 
-  if ((*iterator).second.second.mediaSource)
+  if ((*iterator).second.second->mediaSource)
   {
-    (*iterator).second.second.mediaSource->Release (); (*iterator).second.second.mediaSource = NULL;
+    (*iterator).second.second->mediaSource->Release (); (*iterator).second.second->mediaSource = NULL;
   } // end IF
   //if ((*iterator).second.sourceReader)
   //{
   //  (*iterator).second.sourceReader->Release (); (*iterator).second.sourceReader = NULL;
   //} // end IF
-  if ((*iterator).second.second.session)
+  if ((*iterator).second.second->session)
   {
-    (*iterator).second.second.session->Release (); (*iterator).second.second.session = NULL;
+    (*iterator).second.second->session->Release (); (*iterator).second.second->session = NULL;
   } // end IF
 
   HRESULT result = MFShutdown ();
@@ -1107,8 +1107,8 @@ do_work (unsigned int bufferSize_in,
         directShowCBData_in.configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
       ACE_ASSERT (directshow_modulehandler_iterator != directShowCBData_in.configuration->streamConfiguration.end ());
       result =
-        do_initialize_directshow ((*directshow_modulehandler_iterator).second.second.sourceFormat,
-                                  (*directshow_modulehandler_iterator).second.second.outputFormat,
+        do_initialize_directshow ((*directshow_modulehandler_iterator).second.second->sourceFormat,
+                                  (*directshow_modulehandler_iterator).second.second->outputFormat,
                                   UIDefinitionFilename_in.empty ()); // initialize COM ?
       break;
     }
@@ -1117,14 +1117,14 @@ do_work (unsigned int bufferSize_in,
       mediafoundation_modulehandler_iterator =
         mediaFoundationCBData_in.configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
       ACE_ASSERT (mediafoundation_modulehandler_iterator != mediaFoundationCBData_in.configuration->streamConfiguration.end ());
-      ACE_ASSERT (!(*mediafoundation_modulehandler_iterator).second.second.sourceFormat);
-      //ACE_ASSERT (!(*mediafoundation_modulehandler_iterator).second.second.outputFormat);
+      ACE_ASSERT (!(*mediafoundation_modulehandler_iterator).second.second->sourceFormat);
+      //ACE_ASSERT (!(*mediafoundation_modulehandler_iterator).second.second->outputFormat);
       result =
-        do_initialize_mediafoundation ((*mediafoundation_modulehandler_iterator).second.second.sourceFormat,
-                                       (*mediafoundation_modulehandler_iterator).second.second.outputFormat,
+        do_initialize_mediafoundation ((*mediafoundation_modulehandler_iterator).second.second->sourceFormat,
+                                       (*mediafoundation_modulehandler_iterator).second.second->outputFormat,
                                        UIDefinitionFilename_in.empty ()); // initialize COM ?
-      ACE_ASSERT ((*mediafoundation_modulehandler_iterator).second.second.sourceFormat);
-      ACE_ASSERT ((*mediafoundation_modulehandler_iterator).second.second.outputFormat);
+      ACE_ASSERT ((*mediafoundation_modulehandler_iterator).second.second->sourceFormat);
+      ACE_ASSERT ((*mediafoundation_modulehandler_iterator).second.second->outputFormat);
       break;
     } // end IF
     default:
@@ -1257,7 +1257,7 @@ do_work (unsigned int bufferSize_in,
       directshow_udp_connection_manager_p->initialize (maximumNumberOfConnections_in ? maximumNumberOfConnections_in
                                                                                      : std::numeric_limits<unsigned int>::max (),
                                                        ACE_Time_Value (0, NET_STATISTIC_DEFAULT_VISIT_INTERVAL_MS * 1000));
-      (*directshow_modulehandler_iterator).second.second.connectionManager =
+      (*directshow_modulehandler_iterator).second.second->connectionManager =
         directshow_tcp_connection_manager_p;
       report_handler_p = directshow_tcp_connection_manager_p;
       break;
@@ -1280,7 +1280,7 @@ do_work (unsigned int bufferSize_in,
       mediafoundation_udp_connection_manager_p->initialize (maximumNumberOfConnections_in ? maximumNumberOfConnections_in
                                                                                           : std::numeric_limits<unsigned int>::max (),
                                                             ACE_Time_Value (0, NET_STATISTIC_DEFAULT_VISIT_INTERVAL_MS * 1000));
-      (*mediafoundation_modulehandler_iterator).second.second.connectionManager =
+      (*mediafoundation_modulehandler_iterator).second.second->connectionManager =
         mediafoundation_tcp_connection_manager_p;
       report_handler_p = mediafoundation_tcp_connection_manager_p;
       break;
@@ -1306,7 +1306,7 @@ do_work (unsigned int bufferSize_in,
                                                                        : std::numeric_limits<unsigned int>::max ()),
                                         ACE_Time_Value (0, NET_STATISTIC_DEFAULT_VISIT_INTERVAL_MS * 1000));
   report_handler_p = tcp_connection_manager_p;
-  (*iterator).second.second.connectionManager = tcp_connection_manager_p;
+  (*iterator).second.second->connectionManager = tcp_connection_manager_p;
 #endif // ACE_WIN32 || ACE_WIN64
   ACE_ASSERT (report_handler_p);
   Net_StreamStatisticHandler_t statistic_handler (COMMON_STATISTIC_ACTION_REPORT,
@@ -1473,7 +1473,7 @@ do_work (unsigned int bufferSize_in,
     {
       //directshow_configuration.pinConfiguration.bufferSize = bufferSize_in;
       struct _AMMediaType* media_type_p =
-        Stream_MediaFramework_DirectShow_Tools::copy ((*directshow_modulehandler_iterator).second.second.sourceFormat);
+        Stream_MediaFramework_DirectShow_Tools::copy ((*directshow_modulehandler_iterator).second.second->sourceFormat);
       ACE_ASSERT (media_type_p);
       directshow_configuration.pinConfiguration.format = *media_type_p;
       CoTaskMemFree (media_type_p); media_type_p = NULL;
@@ -1507,7 +1507,7 @@ do_work (unsigned int bufferSize_in,
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
     {
       allocator_configuration.defaultBufferSize =
-        (*directshow_modulehandler_iterator).second.second.sourceFormat.lSampleSize;
+        (*directshow_modulehandler_iterator).second.second->sourceFormat.lSampleSize;
       directshow_stream_configuration.cloneModule = true;
       directshow_stream_configuration.messageAllocator = allocator_p;
       if (!UIDefinitionFilename_in.empty ())

@@ -505,7 +505,7 @@ Stream_Base_T<ACE_SYNCH_USE,
                     ACE_TEXT ("%s/%s: applying dedicated configuration\n"),
                     ACE_TEXT (StreamName), (*iterator)->name ()));
       ACE_ASSERT (iterator_2 != configuration_->end ());
-      if (unlikely (!imodule_p->initialize ((*iterator_2).second.first)))
+      if (unlikely (!imodule_p->initialize (*(*iterator_2).second.first)))
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s/%s: failed to Common_IInitialize_T::initialize(), returning\n"),
@@ -537,7 +537,7 @@ Stream_Base_T<ACE_SYNCH_USE,
         } // end IF
       } // end IF
       ACE_ASSERT (configuration_->configuration_);
-      if (unlikely (!imodule_handler_p->initialize ((*iterator_2).second.second,
+      if (unlikely (!imodule_handler_p->initialize (*(*iterator_2).second.second,
                                                     configuration_->configuration_->messageAllocator)))
       {
         ACE_DEBUG ((LM_ERROR,
@@ -3002,8 +3002,8 @@ Stream_Base_T<ACE_SYNCH_USE,
        iterator != configuration_->end ();
        iterator++)
   {
-    (*iterator).second.first.notify = this;
-    (*iterator).second.first.stream = this;
+    (*iterator).second.first->notify = this;
+    (*iterator).second.first->stream = this;
     //(*iterator).second.second->stateMachineLock = state_.stateMachineLock;
   } // end FOR
 

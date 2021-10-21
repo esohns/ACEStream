@@ -3082,7 +3082,7 @@ Stream_MediaFramework_DirectShow_Tools::toFormat (IPin* pin_in)
   ACE_ASSERT (pin_in);
 
   HRESULT result = pin_in->ConnectionMediaType (&result_s);
-  if (FAILED (result))
+  if (FAILED (result)) // 0x80040209: VFW_E_NOT_CONNECTED
   {
     IBaseFilter* filter_p =
       Stream_MediaFramework_DirectShow_Tools::toFilter (pin_in);

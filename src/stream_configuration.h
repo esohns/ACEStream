@@ -270,20 +270,20 @@ template <//const char* StreamName,
           typename ConfigurationType,
           typename ModuleHandlerConfigurationType>
 class Stream_Configuration_T
- : public std::map<std::string,                                // key:   module name
-                   std::pair<struct Stream_ModuleConfiguration,
-                             ModuleHandlerConfigurationType> > // value: (pair of) module/handler configuration
+ : public std::map<std::string,                                  // key:   module name
+                   std::pair<struct Stream_ModuleConfiguration*,
+                             ModuleHandlerConfigurationType*> >  // value: (pair of) module/handler configuration
  , public Common_IDumpState
 {
   typedef std::map<std::string,
-                   std::pair<struct Stream_ModuleConfiguration,
-                             ModuleHandlerConfigurationType> > inherited;
+                   std::pair<struct Stream_ModuleConfiguration*,
+                             ModuleHandlerConfigurationType*> > inherited;
 
  public:
   // convenient types
   typedef std::map<std::string,
-                   std::pair<struct Stream_ModuleConfiguration,
-                             ModuleHandlerConfigurationType> > MAP_T;
+                   std::pair<struct Stream_ModuleConfiguration*,
+                             ModuleHandlerConfigurationType*> > MAP_T;
   typedef typename MAP_T::iterator ITERATOR_T;
   typedef typename MAP_T::const_iterator CONST_ITERATOR_T;
 

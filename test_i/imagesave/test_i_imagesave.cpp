@@ -533,8 +533,8 @@ do_work (
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   modulehandler_configuration_2 = modulehandler_configuration;
   configuration_in.streamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_DIRECT3D_DEFAULT_NAME_STRING),
-                                                               std::make_pair (module_configuration,
-                                                                               modulehandler_configuration_2)));
+                                                               std::make_pair (&module_configuration,
+                                                                               &modulehandler_configuration_2)));
 #endif // ACE_WIN32 || ACE_WIN64
   stream_iterator =
     configuration_in.streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
@@ -548,27 +548,27 @@ do_work (
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   HWND window_handle = NULL;
 #endif // ACE_WIN32 || ACE_WIN64
-  //if ((*iterator).second.second.window)
+  //if ((*iterator).second.second->window)
   //{
-  //  ACE_ASSERT (gdk_win32_window_is_win32 ((*iterator).second.second.window));
+  //  ACE_ASSERT (gdk_win32_window_is_win32 ((*iterator).second.second->window));
   //  window_handle =
   //    //gdk_win32_window_get_impl_hwnd (configuration.moduleHandlerConfiguration.window);
   //    //gdk_win32_drawable_get_handle (GDK_DRAWABLE (configuration.moduleHandlerConfiguration.window));
-  //    static_cast<HWND> (GDK_WINDOW_HWND ((*iterator).second.second.window));
+  //    static_cast<HWND> (GDK_WINDOW_HWND ((*iterator).second.second->window));
   //} // end IF
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  (*stream_iterator).second.second.outputFormat.majortype = MEDIATYPE_Video;
-  (*stream_iterator).second.second.outputFormat.subtype = MEDIASUBTYPE_RGB32;
-  (*stream_iterator).second.second.outputFormat.bFixedSizeSamples = TRUE;
-  (*stream_iterator).second.second.outputFormat.bTemporalCompression = FALSE;
-  (*stream_iterator).second.second.outputFormat.formattype = FORMAT_VideoInfo;
-  (*stream_iterator).second.second.outputFormat.pbFormat =
+  (*stream_iterator).second.second->outputFormat.majortype = MEDIATYPE_Video;
+  (*stream_iterator).second.second->outputFormat.subtype = MEDIASUBTYPE_RGB32;
+  (*stream_iterator).second.second->outputFormat.bFixedSizeSamples = TRUE;
+  (*stream_iterator).second.second->outputFormat.bTemporalCompression = FALSE;
+  (*stream_iterator).second.second->outputFormat.formattype = FORMAT_VideoInfo;
+  (*stream_iterator).second.second->outputFormat.pbFormat =
     static_cast<BYTE*> (CoTaskMemAlloc (sizeof (struct tagVIDEOINFOHEADER)));
-  ACE_ASSERT ((*stream_iterator).second.second.outputFormat.pbFormat);
-  (*stream_iterator).second.second.outputFormat.cbFormat =
+  ACE_ASSERT ((*stream_iterator).second.second->outputFormat.pbFormat);
+  (*stream_iterator).second.second->outputFormat.cbFormat =
     sizeof (struct tagVIDEOINFOHEADER);
   struct tagVIDEOINFOHEADER* video_info_header_p =
-    reinterpret_cast<struct tagVIDEOINFOHEADER*> ((*stream_iterator).second.second.outputFormat.pbFormat);
+    reinterpret_cast<struct tagVIDEOINFOHEADER*> ((*stream_iterator).second.second->outputFormat.pbFormat);
   // *NOTE*: empty --> use entire video
   BOOL result_2 = SetRectEmpty (&video_info_header_p->rcSource);
   ACE_ASSERT (SUCCEEDED (result_2));
@@ -593,29 +593,29 @@ do_work (
   video_info_header_p->dwBitRate =
     (video_info_header_p->bmiHeader.biSizeImage * 8) *                         // bits / frame
     (NANOSECONDS / static_cast<DWORD> (video_info_header_p->AvgTimePerFrame)); // fps
-  (*stream_iterator).second.second.outputFormat.lSampleSize =
+  (*stream_iterator).second.second->outputFormat.lSampleSize =
     video_info_header_p->bmiHeader.biSizeImage;
 #else
 #if defined (FFMPEG_SUPPORT)
-  (*stream_iterator).second.second.outputFormat.format = AV_PIX_FMT_RGB32;
-  (*stream_iterator).second.second.outputFormat.resolution.width = 1920;
-  (*stream_iterator).second.second.outputFormat.resolution.height = 1080;
+  (*stream_iterator).second.second->outputFormat.format = AV_PIX_FMT_RGB32;
+  (*stream_iterator).second.second->outputFormat.resolution.width = 1920;
+  (*stream_iterator).second.second->outputFormat.resolution.height = 1080;
 #endif // FFMPEG_SUPPORT
 #endif // ACE_WIN32 || ACE_WIN64
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  (*stream_iterator_2).second.second.outputFormat =
-    (*stream_iterator).second.second.outputFormat;
+  (*stream_iterator_2).second.second->outputFormat =
+    (*stream_iterator).second.second->outputFormat;
 #endif // ACE_WIN32 || ACE_WIN64
   configuration_in.streamConfiguration.configuration_->format =
-    (*stream_iterator).second.second.outputFormat;
+    (*stream_iterator).second.second->outputFormat;
 
 #if defined (GUI_SUPPORT)
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   Common_Image_Resolution_t resolution_s =
-    Stream_MediaFramework_DirectShow_Tools::toResolution ((*stream_iterator).second.second.outputFormat);
+    Stream_MediaFramework_DirectShow_Tools::toResolution ((*stream_iterator).second.second->outputFormat);
 #else
 //  Common_Image_Resolution_t resolution_s =
-//    (*stream_iterator).second.second.outputFormat.resolution;
+//    (*stream_iterator).second.second->outputFormat.resolution;
 #endif // ACE_WIN32 || ACE_WIN64
   //struct _D3DDISPLAYMODE display_mode_s =
   //  Stream_MediaFramework_DirectDraw_Tools::getDisplayMode (directShowConfiguration_in.direct3DConfiguration.adapter,

@@ -1111,8 +1111,8 @@ do_work (const std::string& captureinterfaceIdentifier_in,
       ACE_OS::strcpy (directshow_modulehandler_configuration.deviceIdentifier.identifier._string,
                       displayDevice_in.device.c_str ());
       directShowConfiguration_in.streamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_DIRECTSHOW_DEFAULT_NAME_STRING),
-                                                                             std::make_pair (module_configuration,
-                                                                                             directshow_modulehandler_configuration)));
+                                                                             std::make_pair (&module_configuration,
+                                                                                             &directshow_modulehandler_configuration)));
       directshow_stream_iterator =
         directShowConfiguration_in.streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
       ACE_ASSERT (directshow_stream_iterator != directShowConfiguration_in.streamConfiguration.end ());
@@ -1188,27 +1188,27 @@ do_work (const std::string& captureinterfaceIdentifier_in,
       if (!do_initialize_directshow (captureinterfaceIdentifier_in,
                                      initialize_COM,                    // initialize COM ?
                                      false,                             // has UI ?
-                                     (*directshow_stream_iterator).second.second.builder,
+                                     (*directshow_stream_iterator).second.second->builder,
                                      stream_config_p,
                                      directshow_stream_configuration.format,
-                                     (*directshow_stream_iterator).second.second.outputFormat,
-                                     (*directshow_stream_iterator).second.second.window))
+                                     (*directshow_stream_iterator).second.second->outputFormat,
+                                     (*directshow_stream_iterator).second.second->window))
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("failed to ::do_initialize_directshow(), returning\n")));
         return;
       } // end IF
       //ACE_ASSERT (stream_config_p);
-      ACE_ASSERT ((*directshow_stream_iterator).second.second.window);
+      ACE_ASSERT ((*directshow_stream_iterator).second.second->window);
       //directShowCBData_in.streamConfiguration = stream_config_p;
       media_type_p =
-        Stream_MediaFramework_DirectShow_Tools::copy ((*directshow_stream_iterator).second.second.outputFormat);
+        Stream_MediaFramework_DirectShow_Tools::copy ((*directshow_stream_iterator).second.second->outputFormat);
       ACE_ASSERT (media_type_p);
-      (*directshow_stream_iterator_2).second.second.outputFormat =
+      (*directshow_stream_iterator_2).second.second->outputFormat =
         *media_type_p;
       CoTaskMemFree (media_type_p); media_type_p = NULL;
       //directShowConfiguration_in.direct3DConfiguration.presentationParameters.hDeviceWindow =
-      //  (*directshow_stream_iterator).second.second.window;
+      //  (*directshow_stream_iterator).second.second->window;
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
@@ -1216,7 +1216,7 @@ do_work (const std::string& captureinterfaceIdentifier_in,
       if (!do_initialize_mediafoundation (captureinterfaceIdentifier_in,
                                           window_handle,
 #if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
-                                          (*mediafoundation_stream_iterator).second.second.session,
+                                          (*mediafoundation_stream_iterator).second.second->session,
 #endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
                                           load_device,     // load device ?
                                           initialize_COM)) // initialize COM ?
@@ -1226,7 +1226,7 @@ do_work (const std::string& captureinterfaceIdentifier_in,
         return;
       } // end IF
 #if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
-      ACE_ASSERT ((*mediafoundation_stream_iterator).second.second.session);
+      ACE_ASSERT ((*mediafoundation_stream_iterator).second.second->session);
 #endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
       break;
     }
@@ -1357,7 +1357,7 @@ clean:
       Stream_CameraScreen_MediaFoundation_StreamConfiguration_t::ITERATOR_T iterator =
       mediaFoundationConfiguration_in.streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
       ACE_ASSERT (iterator != mediaFoundationConfiguration_in.streamConfiguration.end ());
-      do_finalize_mediafoundation ((*iterator).second.second.session);
+      do_finalize_mediafoundation ((*iterator).second.second->session);
       break;
     }
     default:

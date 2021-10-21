@@ -40,8 +40,7 @@ template <ACE_SYNCH_DECL,
           typename SessionDataType,
           typename SessionDataContainerType,
           typename MediaType,
-          typename ValueType,
-          unsigned int Aggregation>
+          typename ValueType>
 Stream_Statistic_StatisticAnalysis_T<ACE_SYNCH_USE,
                                      TimePolicyType,
                                      ConfigurationType,
@@ -52,31 +51,29 @@ Stream_Statistic_StatisticAnalysis_T<ACE_SYNCH_USE,
                                      SessionDataType,
                                      SessionDataContainerType,
                                      MediaType,
-                                     ValueType,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-                                     Aggregation>::Stream_Statistic_StatisticAnalysis_T (ISTREAM_T* stream_in)
+                                     ValueType>::Stream_Statistic_StatisticAnalysis_T (ISTREAM_T* stream_in)
 #else
-                                     Aggregation>::Stream_Statistic_StatisticAnalysis_T (typename inherited::ISTREAM_T* stream_in)
-#endif
+                                     ValueType>::Stream_Statistic_StatisticAnalysis_T (typename inherited::ISTREAM_T* stream_in)
+#endif // ACE_WIN32 || ACE_WIN64
  : inherited (stream_in)
  , inherited2 ()
- , inherited3 (MODULE_STAT_ANALYSIS_DEFAULT_BUFFER_SIZE,
-               MODULE_STAT_SPECTRUMANALYSIS_DEFAULT_SAMPLE_RATE)
+ , inherited3 ()
  , amplitudeSum_ (0)
  , amplitudeSumSqr_ (0)
- , amplitudeVariance_ (0.0)
+ , amplitudeVariance_ (0)
  , streak_ (0)
  , streakCount_ (0)
- , streakSum_ (0.0)
- , streakSumSqr_ (0.0)
- , streakVariance_ (0.0)
+ , streakSum_ (0)
+ , streakSumSqr_ (0)
+ , streakVariance_ (0)
  , volume_ (0)
- , volumeSum_ (0.0)
- , volumeSumSqr_ (0.0)
- , volumeVariance_ (0.0)
- , eventDispatcher_ (NULL)
+ , volumeSum_ (0)
+ , volumeSumSqr_ (0)
+ , volumeVariance_ (0)
  , iterator_ (NULL)
  , sampleCount_ (0)
+ , sampleIsSigned_ (false)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Statistic_StatisticAnalysis_T::Stream_Statistic_StatisticAnalysis_T"));
 
@@ -92,8 +89,7 @@ template <ACE_SYNCH_DECL,
           typename SessionDataType,
           typename SessionDataContainerType,
           typename MediaType,
-          typename ValueType,
-          unsigned int Aggregation>
+          typename ValueType>
 bool
 Stream_Statistic_StatisticAnalysis_T<ACE_SYNCH_USE,
                                      TimePolicyType,
@@ -105,9 +101,8 @@ Stream_Statistic_StatisticAnalysis_T<ACE_SYNCH_USE,
                                      SessionDataType,
                                      SessionDataContainerType,
                                      MediaType,
-                                     ValueType,
-                                     Aggregation>::initialize (const ConfigurationType& configuration_in,
-                                                               Stream_IAllocator* allocator_in)
+                                     ValueType>::initialize (const ConfigurationType& configuration_in,
+                                                             Stream_IAllocator* allocator_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Statistic_StatisticAnalysis_T::initialize"));
 
@@ -120,24 +115,23 @@ Stream_Statistic_StatisticAnalysis_T<ACE_SYNCH_USE,
 
     amplitudeSum_ = 0;
     amplitudeSumSqr_ = 0;
-    amplitudeVariance_ = 0.0;
+    amplitudeVariance_ = 0;
 
     streak_ = 0;
     streakCount_ = 0;
-    streakSum_ = 0.0;
-    streakSumSqr_ = 0.0;
-    streakVariance_ = 0.0;
+    streakSum_ = 0;
+    streakSumSqr_ = 0;
+    streakVariance_ = 0;
     volume_ = 0;
-    volumeSum_ = 0.0;
-    volumeSumSqr_ = 0.0;
-    volumeVariance_ = 0.0;
+    volumeSum_ = 0;
+    volumeSumSqr_ = 0;
+    volumeVariance_ = 0;
 
     eventDispatcher_ = NULL;
     iterator_.buffer_ = NULL;
+    sampleCount_ = 0;
+    sampleIsSigned_ = false;
   } // end IF
-
-  // *TODO*: remove type inference
-  eventDispatcher_ = configuration_in.dispatch;
 
   return inherited::initialize (configuration_in,
                                 allocator_in);
@@ -153,8 +147,7 @@ template <ACE_SYNCH_DECL,
           typename SessionDataType,
           typename SessionDataContainerType,
           typename MediaType,
-          typename ValueType,
-          unsigned int Aggregation>
+          typename ValueType>
 void
 Stream_Statistic_StatisticAnalysis_T<ACE_SYNCH_USE,
                                      TimePolicyType,
@@ -166,9 +159,8 @@ Stream_Statistic_StatisticAnalysis_T<ACE_SYNCH_USE,
                                      SessionDataType,
                                      SessionDataContainerType,
                                      MediaType,
-                                     ValueType,
-                                     Aggregation>::handleDataMessage (DataMessageType*& message_inout,
-                                                                      bool& passMessageDownstream_out)
+                                     ValueType>::handleDataMessage (DataMessageType*& message_inout,
+                                                                    bool& passMessageDownstream_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Statistic_StatisticAnalysis_T::handleDataMessage"));
 
@@ -187,11 +179,8 @@ Stream_Statistic_StatisticAnalysis_T<ACE_SYNCH_USE,
 
   do
   {
-    samples_to_write =
-      (number_of_samples > inherited3::slots_ ? inherited3::slots_
-                                              : number_of_samples);
     iterator_.buffer_ = message_inout->rd_ptr () + offset;
-    for (unsigned int i = 0; i < Aggregation; ++i)
+    for (unsigned int i = 0; i < inherited3::channels_; ++i)
     {
       samples_to_write =
           (number_of_samples > inherited3::slots_ ? inherited3::slots_
@@ -211,7 +200,7 @@ Stream_Statistic_StatisticAnalysis_T<ACE_SYNCH_USE,
       offset += (iterator_.subSampleSize_ * samples_to_write);
 
       // analyze sample data
-      Process (tail_slot, tail_slot + samples_to_write - 1);
+      Process (i, tail_slot, tail_slot + samples_to_write - 1);
     } // end FOR
 
     number_of_samples -= samples_to_write;
@@ -230,8 +219,7 @@ template <ACE_SYNCH_DECL,
           typename SessionDataType,
           typename SessionDataContainerType,
           typename MediaType,
-          typename ValueType,
-          unsigned int Aggregation>
+          typename ValueType>
 void
 Stream_Statistic_StatisticAnalysis_T<ACE_SYNCH_USE,
                                      TimePolicyType,
@@ -243,9 +231,8 @@ Stream_Statistic_StatisticAnalysis_T<ACE_SYNCH_USE,
                                      SessionDataType,
                                      SessionDataContainerType,
                                      MediaType,
-                                     ValueType,
-                                     Aggregation>::handleSessionMessage (SessionMessageType*& message_inout,
-                                                                         bool& passMessageDownstream_out)
+                                     ValueType>::handleSessionMessage (SessionMessageType*& message_inout,
+                                                                       bool& passMessageDownstream_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Statistic_StatisticAnalysis_T::handleSessionMessage"));
 
@@ -253,8 +240,6 @@ Stream_Statistic_StatisticAnalysis_T<ACE_SYNCH_USE,
 
   // sanity check(s)
   ACE_ASSERT (inherited::configuration_);
-
-//  int result = -1;
 
   switch (message_inout->type ())
   {
@@ -268,6 +253,7 @@ Stream_Statistic_StatisticAnalysis_T<ACE_SYNCH_USE,
 
       bool result_2 = false;
 
+      unsigned int num_channels = 0;
       unsigned int sample_size = 0;
       unsigned int sub_sample_size = 0;
       unsigned int sample_rate;
@@ -285,36 +271,41 @@ Stream_Statistic_StatisticAnalysis_T<ACE_SYNCH_USE,
       struct tWAVEFORMATEX* waveformatex_p =
         reinterpret_cast<struct tWAVEFORMATEX*> (media_type_s.pbFormat);
       ACE_ASSERT (waveformatex_p->wFormatTag == WAVE_FORMAT_PCM);
+      num_channels = waveformatex_p->nChannels;
       //sample_size = waveformatex_p->nBlockAlign;
       sample_size =
-        (waveformatex_p->nChannels * waveformatex_p->wBitsPerSample) / 8;
-      sub_sample_size = (sample_size * 8) /
-                         waveformatex_p->wBitsPerSample;
+        (waveformatex_p->nChannels * (waveformatex_p->wBitsPerSample / 8));
+      sub_sample_size = (sample_size / waveformatex_p->nChannels);
+      sample_rate = waveformatex_p->nSamplesPerSec;
       // *NOTE*: apparently, all Win32 sound data is little endian only
       sample_byte_order = ACE_LITTLE_ENDIAN;
 
-//      channels = waveformatex_p->nChannels;
-      sample_rate = waveformatex_p->nSamplesPerSec;
+      // *NOTE*: "...If the audio contains 8 bits per sample, the audio samples
+      //         are unsigned values. (Each audio sample has the range 0–255.)
+      //         If the audio contains 16 bits per sample or higher, the audio
+      //         samples are signed values. ..."
+      sampleIsSigned_ = !(sub_sample_size == 1);
 
       Stream_MediaFramework_DirectShow_Tools::free (media_type_s);
 #else
       MediaType media_type_s;
       inherited2::getMediaType (session_data_r.formats.back (),
                                 media_type_s);
+      num_channels = media_type_s.channels;
       sample_size =
         ((snd_pcm_format_width (media_type_s.format) / 8) *
          media_type_s.channels);
       sub_sample_size = sample_size / media_type_s.channels;
+      sample_rate = media_type_s.rate;
       sample_byte_order =
           ((snd_pcm_format_little_endian (media_type_s.format) == 1) ? ACE_LITTLE_ENDIAN
                                                                      : -1);
 
-//      channels = session_data_r.inputFormat.channels;
-      sample_rate = media_type_s.rate;
-#endif
+      sampleIsSigned_ = ACE_ASSERT (false); // *TODO*
+#endif // ACE_WIN32 || ACE_WIN64
       result_2 = iterator_.initialize (sample_size,
                                        sub_sample_size,
-                                       true,
+                                       sampleIsSigned_,
                                        sample_byte_order);
       if (unlikely (!result_2))
       {
@@ -325,7 +316,8 @@ Stream_Statistic_StatisticAnalysis_T<ACE_SYNCH_USE,
       } // end IF
 
       result_2 =
-        inherited3::Initialize (inherited::configuration_->spectrumAnalyzerResolution,
+        inherited3::Initialize (num_channels,
+                                inherited::configuration_->spectrumAnalyzerResolution,
                                 sample_rate);
       if (unlikely (!result_2))
       {
@@ -497,8 +489,7 @@ template <ACE_SYNCH_DECL,
           typename SessionDataType,
           typename SessionDataContainerType,
           typename MediaType,
-          typename ValueType,
-          unsigned int Aggregation>
+          typename ValueType>
 void
 Stream_Statistic_StatisticAnalysis_T<ACE_SYNCH_USE,
                                      TimePolicyType,
@@ -510,175 +501,165 @@ Stream_Statistic_StatisticAnalysis_T<ACE_SYNCH_USE,
                                      SessionDataType,
                                      SessionDataContainerType,
                                      MediaType,
-                                     ValueType,
-                                     Aggregation>::Process (unsigned int startIndex_in,
-                                                            unsigned int endIndex_in)
+                                     ValueType>::Process (unsigned int channel_in,
+                                                          unsigned int startIndex_in,
+                                                          unsigned int endIndex_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Statistic_StatisticAnalysis_T::Process"));
 
   // sanity check(s)
+  ACE_ASSERT (inherited::configuration_);
   ACE_ASSERT (endIndex_in < inherited3::slots_);
 
-//  int result = -1;
+  ValueType difference = 0, abs_value = 0;
+  for (unsigned int j = 0; j < (endIndex_in - startIndex_in + 1); ++j, ++sampleCount_)
+  {
+    // step1: 'attack' detection
+    static bool in_peak = false;
+    static bool was_in_peak = false;
 
-//  if (lock_)
-//  {
-//    result = lock_->acquire ();
-//    if (result == -1)
-//      ACE_DEBUG ((LM_ERROR,
-//                  ACE_TEXT ("failed to ACE_SYNCH_MUTEX::acquire(): \"%m\", continuing\n")));
-//    else
-//      release_lock = true;
-//  } // end IF
+    abs_value =
+      (sampleIsSigned_ ? std::abs (inherited3::buffer_[channel_in][startIndex_in + j]) + static_cast<ValueType> ((1 << ((8 * iterator_.subSampleSize_) - 1)) - 1)
+                       : inherited3::buffer_[channel_in][startIndex_in + j]);
+    amplitudeSum_ += abs_value;
+    amplitudeSumSqr_ += (abs_value * abs_value);
+    amplitudeVariance_ =
+        ((sampleCount_ > 1) ? (amplitudeSumSqr_ - ((amplitudeSum_ * amplitudeSum_) / (double)sampleCount_)) / (double)(sampleCount_ - 1)
+                            : 0);
+    difference =
+      (sampleCount_ ? abs_value - (amplitudeSum_ / (double)sampleCount_)
+                    : 0);
 
-  ValueType difference = 0;
-  for (unsigned int i = 0; i < Aggregation; ++i)
-    for (unsigned int j = 0; j < (endIndex_in - startIndex_in + 1); ++j, ++sampleCount_)
+    was_in_peak = in_peak;
+    in_peak =
+        (std::abs (difference) > (MODULE_STAT_ANALYSIS_ACTIVITY_DETECTION_DEVIATION_RANGE * std::sqrt (amplitudeVariance_)));
+    //if (in_peak && !was_in_peak)
+    //  ACE_DEBUG ((LM_DEBUG,
+    //              ACE_TEXT ("detected peak...\n")));
+
+    // step2: 'sustain' detection
+    static bool in_streak = false;
+    static bool was_in_streak = false;
+    static bool in_volume = false;
+    static bool was_in_volume = false;
+    if (difference <= 0)
     {
-      // step1: 'attack' detection
-      static bool in_peak = false;
-      static bool was_in_peak = false;
-
-      amplitudeSum_ += inherited3::buffer_[i][startIndex_in + j];
-      amplitudeSumSqr_ +=
-          (inherited3::buffer_[i][startIndex_in + j] * inherited3::buffer_[i][startIndex_in + j]);
-      amplitudeVariance_ =
-          ((sampleCount_ > 1) ? (amplitudeSumSqr_ - ((amplitudeSum_ * amplitudeSum_) / (double)sampleCount_)) / (double)(sampleCount_ - 1)
-                              : 0.0);
-      difference =
-          (sampleCount_ ? inherited3::buffer_[i][startIndex_in + j] - (amplitudeSum_ / (double)sampleCount_)
-                        : 0.0);
-
-      was_in_peak = in_peak;
-      in_peak =
-          (std::abs (difference) > (MODULE_STAT_ANALYSIS_ACTIVITY_DETECTION_DEVIATION_RANGE * sqrt (amplitudeVariance_)));
-//      if (in_peak && !was_in_peak)
-//        ACE_DEBUG ((LM_DEBUG,
-//                    ACE_TEXT ("detected peak...\n")));
-
-      // step2: 'sustain' detection
-      static bool in_streak = false;
-      static bool was_in_streak = false;
-      static bool in_volume = false;
-      static bool was_in_volume = false;
-      if (unlikely (difference <= 0))
-      {
-        if (in_streak)
-        {
-          ACE_DEBUG ((LM_DEBUG,
-                      ACE_TEXT ("detected streak end\n")));
-          ++streakCount_;
-        } // end IF
-        streak_ = 0;
-        in_streak = false;
-//        if (in_volume)
-//          ACE_DEBUG ((LM_DEBUG,
-//                      ACE_TEXT ("detected volume end\n")));
-        volume_ = 0;
-        in_volume = false;
-
-        goto continue_;
-      } // end IF
-
-      // step2a: 'sustain' detection (streak)
-      ++streak_;
-      streakSum_ += streak_;
-      streakSumSqr_ += (streak_ * streak_);
-      streakVariance_ =
-          ((sampleCount_ > 1) ? (streakSumSqr_ - ((streakSum_ * streakSum_) / (double)sampleCount_)) / (double)(sampleCount_ - 1)
-                              : 0.0);
-      difference = (sampleCount_ ? streak_ - (streakSum_ / (double)sampleCount_)
-                                 : 0.0);
-
-      was_in_streak = in_streak;
-      in_streak =
-          (std::abs (difference) >= (MODULE_STAT_ANALYSIS_ACTIVITY_DETECTION_DEVIATION_RANGE * std::sqrt (streakVariance_)));
-      if (unlikely (in_streak))
-      {
-        if (!was_in_streak)
-        {
-          ACE_DEBUG ((LM_DEBUG,
-                      ACE_TEXT ("detected noise (streak)\n")));
-          //        goto continue_2;
-        } // end IF
-
-        goto continue_2;
-      } // end IF
-      if (unlikely (was_in_streak))
+      if (in_streak)
       {
         ACE_DEBUG ((LM_DEBUG,
                     ACE_TEXT ("detected streak end\n")));
-        streak_ = 0;
         ++streakCount_;
-        was_in_streak = false;
+      } // end IF
+      streak_ = 0;
+      in_streak = false;
+//        if (in_volume)
+//          ACE_DEBUG ((LM_DEBUG,
+//                      ACE_TEXT ("detected volume end\n")));
+      volume_ = 0;
+      in_volume = false;
 
-        volume_ = 0;
-        in_volume = false;
-        was_in_volume = false;
+      goto continue_;
+    } // end IF
+
+    // step2a: 'sustain' detection (streak)
+    ++streak_;
+    streakSum_ += streak_;
+    streakSumSqr_ += (streak_ * streak_);
+    streakVariance_ =
+        ((sampleCount_ > 1) ? (streakSumSqr_ - ((streakSum_ * streakSum_) / (double)sampleCount_)) / (double)(sampleCount_ - 1)
+                            : 0.0);
+    difference = (sampleCount_ ? streak_ - (streakSum_ / (double)sampleCount_)
+                                : 0.0);
+
+    was_in_streak = in_streak;
+    in_streak =
+        (std::abs (difference) >= (MODULE_STAT_ANALYSIS_ACTIVITY_DETECTION_DEVIATION_RANGE * std::sqrt (streakVariance_)));
+    if (unlikely (in_streak))
+    {
+      if (!was_in_streak)
+      {
+        ACE_DEBUG ((LM_DEBUG,
+                    ACE_TEXT ("detected noise (streak)\n")));
+        //        goto continue_2;
       } // end IF
 
-      continue;
+      goto continue_2;
+    } // end IF
+    if (unlikely (was_in_streak))
+    {
+      ACE_DEBUG ((LM_DEBUG,
+                  ACE_TEXT ("detected streak end\n")));
+      streak_ = 0;
+      ++streakCount_;
+      was_in_streak = false;
 
-      // step2b: 'sustain' detection (volume)
-      volume_ += inherited3::buffer_[i][startIndex_in + j];
-      volumeSum_ += inherited3::buffer_[i][startIndex_in + j];
-      volumeSumSqr_ +=
-          (inherited3::buffer_[i][startIndex_in + j] * inherited3::buffer_[i][startIndex_in + j]);
-      volumeVariance_ =
-          ((sampleCount_ > 1) ? (volumeSumSqr_ - ((volumeSum_ * volumeSum_) / (double)sampleCount_)) / (double)(sampleCount_ - 1)
-                              : 0.0);
-      difference = (sampleCount_ ? volume_ - (volumeSum_ / (double)sampleCount_)
-                                 : 0.0);
+      volume_ = 0;
+      in_volume = false;
+      was_in_volume = false;
+    } // end IF
 
-      was_in_volume = in_volume;
-      in_volume =
-          (std::abs (difference) > (MODULE_STAT_ANALYSIS_ACTIVITY_DETECTION_DEVIATION_RANGE * std::sqrt (volumeVariance_)));
-      if (unlikely (in_volume))
+    continue;
+
+    // *TODO*
+    // step2b: 'sustain' detection (volume)
+    volume_ += abs_value;
+    volumeSum_ += abs_value;
+    volumeSumSqr_ += (abs_value * abs_value);
+    volumeVariance_ =
+        ((sampleCount_ > 1) ? (volumeSumSqr_ - ((volumeSum_ * volumeSum_) / (double)sampleCount_)) / (double)(sampleCount_ - 1)
+                            : 0.0);
+    difference = (sampleCount_ ? volume_ - (volumeSum_ / (double)sampleCount_)
+                               : 0.0);
+
+    was_in_volume = in_volume;
+    in_volume =
+        (std::abs (difference) > (MODULE_STAT_ANALYSIS_ACTIVITY_DETECTION_DEVIATION_RANGE * std::sqrt (volumeVariance_)));
+    if (unlikely (in_volume))
+    {
+      if (!was_in_volume)
       {
-        if (!was_in_volume)
-        {
 //          ACE_DEBUG ((LM_DEBUG,
 //                      ACE_TEXT ("detected noise (volume)\n")));
-          //        goto continue_2;
-        } // end IF
-
-        goto continue_2;
+        //        goto continue_2;
       } // end IF
-      if (unlikely (was_in_volume))
-      {
+
+      goto continue_2;
+    } // end IF
+    if (unlikely (was_in_volume))
+    {
 //        ACE_DEBUG ((LM_DEBUG,
 //                    ACE_TEXT ("detected volume end...\n")));
-        volume_ = 0;
-        in_volume = false;
-        was_in_volume = false;
-      } // end IF
+      volume_ = 0;
+      in_volume = false;
+      was_in_volume = false;
+    } // end IF
 
 continue_2:
-      if (unlikely ((in_streak || in_volume) &&  // <-- 'activity' ?
-                    eventDispatcher_))
-      {
-        try {
-          eventDispatcher_->dispatch (STREAM_STATISTIC_ANALYSIS_EVENT_ACTIVITY);
-        } catch (...) {
-          ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("%s: caught exception in Common_IDispatch_T::dispatch(), continuing\n"),
-                      inherited::mod_->name ()));
-        }
-      } // end IF
+    if (unlikely ((in_streak || in_volume) &&  // <-- 'activity' ?
+                  inherited::configuration_->dispatch))
+    {
+      try {
+        inherited::configuration_->dispatch->dispatch (STREAM_STATISTIC_ANALYSIS_EVENT_ACTIVITY);
+      } catch (...) {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("%s: caught exception in Common_IDispatch_T::dispatch(), continuing\n"),
+                    inherited::mod_->name ()));
+      }
+    } // end IF
 
 continue_:
-      if (unlikely ((in_peak && !was_in_peak) && // <-- 'peak' ?
-                    eventDispatcher_))
-      {
-        try {
-          eventDispatcher_->dispatch (STREAM_STATISTIC_ANALYSIS_EVENT_PEAK);
-        } catch (...) {
-          ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("%s: caught exception in Common_IDispatch_T::dispatch(), continuing\n"),
-                      inherited::mod_->name ()));
-        }
-      } // end IF
-    } // end FOR
+    if (unlikely ((in_peak && !was_in_peak) && // <-- 'peak' ?
+                  inherited::configuration_->dispatch))
+    {
+      try {
+        inherited::configuration_->dispatch->dispatch (STREAM_STATISTIC_ANALYSIS_EVENT_PEAK);
+      } catch (...) {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("%s: caught exception in Common_IDispatch_T::dispatch(), continuing\n"),
+                    inherited::mod_->name ()));
+      }
+    } // end IF
+  } // end FOR
 
 //unlock:
 //  if (release_lock)

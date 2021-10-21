@@ -840,9 +840,9 @@ do_finalize_directshow (struct Test_U_AudioEffect_DirectShow_UI_CBData& CBData_i
     CBData_in.configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (iterator != CBData_in.configuration->streamConfiguration.end ());
 
-  if ((*iterator).second.second.builder)
+  if ((*iterator).second.second->builder)
   {
-    (*iterator).second.second.builder->Release (); (*iterator).second.second.builder = NULL;
+    (*iterator).second.second->builder->Release (); (*iterator).second.second->builder = NULL;
   } // end IF
 
   CoUninitialize ();
@@ -1134,33 +1134,33 @@ do_work (unsigned int bufferSize_in,
   ACE_ASSERT (modulehandler_iterator != configuration_in.streamConfiguration.end ());
 
 //  (*modulehandler_iterator).second.device = device_in;
-  (*modulehandler_iterator).second.second.effect = effectName_in;
-  (*modulehandler_iterator).second.second.messageAllocator = &message_allocator;
-  (*modulehandler_iterator).second.second.mute = mute_in;
+  (*modulehandler_iterator).second.second->effect = effectName_in;
+  (*modulehandler_iterator).second.second->messageAllocator = &message_allocator;
+  (*modulehandler_iterator).second.second->mute = mute_in;
 #if defined (GUI_SUPPORT)
 #if defined (GTK_SUPPORT)
-  (*modulehandler_iterator).second.second.surfaceLock = &CBData_in.surfaceLock;
+  (*modulehandler_iterator).second.second->surfaceLock = &CBData_in.surfaceLock;
 #endif // GTK_SUPPORT
 #endif // GUI_SUPPORT
 #if defined (GUI_SUPPORT)
 #if defined (GTK_SUPPORT)
 #if defined (GTKGL_SUPPORT)
-  (*modulehandler_iterator).second.second.OpenGLInstructions =
+  (*modulehandler_iterator).second.second->OpenGLInstructions =
       &CBData_in.OpenGLInstructions;
-  (*modulehandler_iterator).second.second.OpenGLInstructionsLock =
+  (*modulehandler_iterator).second.second->OpenGLInstructionsLock =
       &state_r.lock;
 #endif // GTKGL_SUPPORT
 #endif // GTK_SUPPORT
 #endif // GUI_SUPPORT
-  (*modulehandler_iterator).second.second.printProgressDot =
+  (*modulehandler_iterator).second.second->printProgressDot =
       UIDefinitionFile_in.empty ();
-  (*modulehandler_iterator).second.second.statisticReportingInterval =
+  (*modulehandler_iterator).second.second->statisticReportingInterval =
       ACE_Time_Value (statisticReportingInterval_in, 0);
-  (*modulehandler_iterator).second.second.streamConfiguration =
+  (*modulehandler_iterator).second.second->streamConfiguration =
       &CBData_in.configuration->streamConfiguration;
-  (*modulehandler_iterator).second.second.subscriber =
+  (*modulehandler_iterator).second.second->subscriber =
       &ui_event_handler;
-  (*modulehandler_iterator).second.second.targetFileName =
+  (*modulehandler_iterator).second.second->targetFileName =
       (targetFilename_in.empty () ? Common_File_Tools::getTempDirectory ()
                                   : targetFilename_in);
 #endif // ACE_WIN32 || ACE_WIN64
@@ -1223,9 +1223,9 @@ do_work (unsigned int bufferSize_in,
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
     {
       result =
-        do_initialize_directshow ((*directshow_modulehandler_iterator).second.second.deviceIdentifier.identifier._string,
+        do_initialize_directshow ((*directshow_modulehandler_iterator).second.second->deviceIdentifier.identifier._string,
                                   *directShowCBData_in.configuration,
-                                  (*directshow_modulehandler_iterator).second.second.builder,
+                                  (*directshow_modulehandler_iterator).second.second->builder,
                                   directShowCBData_in.streamConfiguration,
                                   directshow_stream_configuration.format,
                                   true,  // initialize COM ?
@@ -1237,13 +1237,13 @@ do_work (unsigned int bufferSize_in,
                     ACE_TEXT ("failed to do_initialize_directshow(), returning\n")));
         return;
       } // end IF
-      ACE_ASSERT ((*directshow_modulehandler_iterator).second.second.builder);
+      ACE_ASSERT ((*directshow_modulehandler_iterator).second.second->builder);
       if (false) // use DirectShow source ?
       {
         ACE_ASSERT (directShowCBData_in.streamConfiguration);
       } // end IF
       Stream_MediaFramework_DirectShow_Tools::copy (directshow_stream_configuration.format,
-                                                    (*directshow_modulehandler_iterator).second.second.outputFormat);
+                                                    (*directshow_modulehandler_iterator).second.second->outputFormat);
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:

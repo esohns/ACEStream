@@ -758,9 +758,9 @@ do_finalize_directshow (struct Test_I_Source_DirectShow_UI_CBData& CBData_in)
   Test_I_Source_DirectShow_StreamConfiguration_t::ITERATOR_T iterator_2 =
     (*iterator).second.find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (iterator_2 != (*iterator).second.end ());
-  if ((*iterator_2).second.second.builder)
+  if ((*iterator_2).second.second->builder)
   {
-    (*iterator_2).second.second.builder->Release (); (*iterator_2).second.second.builder = NULL;
+    (*iterator_2).second.second->builder->Release (); (*iterator_2).second.second->builder = NULL;
   } // end IF
 
   Stream_Device_DirectShow_Tools::finalize (true);
@@ -965,8 +965,8 @@ do_work (const std::string& deviceIdentifier_in,
                                                   directshow_stream_configuration_2);
       directshow_modulehandler_configuration.deviceIdentifier.clear ();
       directshow_stream_configuration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_DIRECTSHOW_DEFAULT_NAME_STRING),
-                                                              std::make_pair (module_configuration,
-                                                                              directshow_modulehandler_configuration)));
+                                                              std::make_pair (&module_configuration,
+                                                                              &directshow_modulehandler_configuration)));
 
       directShowCBData_in.configuration->streamConfigurations.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (""),
                                                                                       directshow_stream_configuration));
@@ -1000,7 +1000,7 @@ do_work (const std::string& deviceIdentifier_in,
         &mediaFoundationCBData_in.configuration->connectionConfigurations;
       mediafoundation_modulehandler_configuration.statisticReportingInterval =
         ACE_Time_Value (statisticReportingInterval_in, 0);
-      //(*mediafoundation_modulehandler_iterator).second.second.stream =
+      //(*mediafoundation_modulehandler_iterator).second.second->stream =
       //  ((mediafoundation_configuration.protocol == NET_TRANSPORTLAYER_TCP) ? mediaFoundationCBData_in.stream
       //                                                                      : mediaFoundationCBData_in.UDPStream);
 
@@ -1026,8 +1026,8 @@ do_work (const std::string& deviceIdentifier_in,
         &mediaFoundationCBData_in.configuration->direct3DConfiguration;
 
       mediafoundation_stream_configuration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_MEDIAFOUNDATION_DEFAULT_NAME_STRING),
-                                                                   std::make_pair (module_configuration,
-                                                                                   mediafoundation_modulehandler_configuration)));
+                                                                   std::make_pair (&module_configuration,
+                                                                                   &mediafoundation_modulehandler_configuration)));
 
       mediaFoundationCBData_in.configuration->streamConfigurations.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (""),
                                                                                            mediafoundation_stream_configuration));
@@ -1228,10 +1228,10 @@ do_work (const std::string& deviceIdentifier_in,
         do_initialize_directshow (deviceIdentifier_in,
                                   UIDefinitionFilename_in.empty (), // initialize COM ?
                                   !UIDefinitionFilename_in.empty (), // has UI ?
-                                  (*directshow_modulehandler_iterator).second.second.builder,
+                                  (*directshow_modulehandler_iterator).second.second->builder,
                                   directShowCBData_in.streamConfiguration,
                                   (*directshow_stream_iterator).second.configuration_->format,
-                                  (*directshow_modulehandler_iterator).second.second.outputFormat);
+                                  (*directshow_modulehandler_iterator).second.second->outputFormat);
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
@@ -1380,7 +1380,7 @@ do_work (const std::string& deviceIdentifier_in,
                                                        ACE_Time_Value (0, NET_STATISTIC_DEFAULT_VISIT_INTERVAL_MS * 1000));
       directshow_tcp_connection_manager_p->set (*static_cast<Test_I_Source_DirectShow_TCPConnectionConfiguration_t*> ((*connection_iterator).second),
                                                 &user_data_s);
-      (*directshow_modulehandler_iterator).second.second.connectionManager =
+      (*directshow_modulehandler_iterator).second.second->connectionManager =
         directshow_tcp_connection_manager_p;
       iconnection_manager_p = directshow_tcp_connection_manager_p;
       report_handler_p = directshow_tcp_connection_manager_p;
@@ -1404,7 +1404,7 @@ do_work (const std::string& deviceIdentifier_in,
         (*mediafoundation_stream_iterator).second.find (ACE_TEXT_ALWAYS_CHAR (""));
       ACE_ASSERT (mediafoundation_modulehandler_iterator != (*mediafoundation_stream_iterator).second.end ());
 
-      (*mediafoundation_modulehandler_iterator).second.second.connectionManager =
+      (*mediafoundation_modulehandler_iterator).second.second->connectionManager =
         mediafoundation_tcp_connection_manager_p;
       iconnection_manager_p = mediafoundation_tcp_connection_manager_p;
       report_handler_p = mediafoundation_tcp_connection_manager_p;
@@ -1429,7 +1429,7 @@ do_work (const std::string& deviceIdentifier_in,
                                     ACE_Time_Value (0, NET_STATISTIC_DEFAULT_VISIT_INTERVAL_MS * 1000));
   connection_manager_p->set (*static_cast<Test_I_Source_V4L_TCPConnectionConfiguration_t*> ((*connection_iterator).second),
                              &user_data_s);
-  (*modulehandler_iterator).second.second.connectionManager =
+  (*modulehandler_iterator).second.second->connectionManager =
     connection_manager_p;
   iconnection_manager_p = connection_manager_p;
   report_handler_p = connection_manager_p;
@@ -1586,20 +1586,20 @@ do_work (const std::string& deviceIdentifier_in,
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
     {
-      (*directshow_modulehandler_iterator).second.second.allocatorConfiguration =
+      (*directshow_modulehandler_iterator).second.second->allocatorConfiguration =
         allocator_configuration_p;
-      (*directshow_modulehandler_iterator).second.second.configuration =
+      (*directshow_modulehandler_iterator).second.second->configuration =
         directShowCBData_in.configuration;
-      (*directshow_modulehandler_iterator).second.second.connectionConfigurations =
+      (*directshow_modulehandler_iterator).second.second->connectionConfigurations =
         &directShowCBData_in.configuration->connectionConfigurations;
-      (*directshow_modulehandler_iterator).second.second.direct3DConfiguration =
+      (*directshow_modulehandler_iterator).second.second->direct3DConfiguration =
         &directShowCBData_in.configuration->direct3DConfiguration;
-      (*directshow_modulehandler_iterator).second.second.statisticReportingInterval =
+      (*directshow_modulehandler_iterator).second.second->statisticReportingInterval =
         ACE_Time_Value (statisticReportingInterval_in, 0);
-      //(*directshow_modulehandler_iterator).second.second.stream =
+      //(*directshow_modulehandler_iterator).second.second->stream =
       //  ((directshow_configuration.protocol == NET_TRANSPORTLAYER_TCP) ? directShowCBData_in.stream
       //                                                                 : directShowCBData_in.UDPStream);
-      (*directshow_modulehandler_iterator).second.second.subscriber =
+      (*directshow_modulehandler_iterator).second.second->subscriber =
         &directshow_ui_event_handler;
       break;
     }
@@ -1609,9 +1609,9 @@ do_work (const std::string& deviceIdentifier_in,
         (*mediafoundation_stream_iterator).second.find (ACE_TEXT_ALWAYS_CHAR (""));
       ACE_ASSERT (mediafoundation_modulehandler_iterator != (*mediafoundation_stream_iterator).second.end ());
 
-      //(*mediafoundation_modulehandler_iterator).second.second.direct3DConfiguration =
+      //(*mediafoundation_modulehandler_iterator).second.second->direct3DConfiguration =
       //  &mediaFoundationCBData_in.configuration->direct3DConfiguration;
-      (*mediafoundation_modulehandler_iterator).second.second.subscriber =
+      (*mediafoundation_modulehandler_iterator).second.second->subscriber =
         &mediafoundation_ui_event_handler;
 
       break;
@@ -1629,43 +1629,43 @@ do_work (const std::string& deviceIdentifier_in,
     (*stream_iterator).second.find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (modulehandler_iterator != (*stream_iterator).second.end ());
 
-  (*modulehandler_iterator).second.second.connectionManager =
+  (*modulehandler_iterator).second.second->connectionManager =
     connection_manager_p;
-  (*modulehandler_iterator).second.second.configuration = v4l2CBData_in.configuration;
-  (*modulehandler_iterator).second.second.connectionConfigurations =
+  (*modulehandler_iterator).second.second->configuration = v4l2CBData_in.configuration;
+  (*modulehandler_iterator).second.second->connectionConfigurations =
       &v4l2CBData_in.configuration->connectionConfigurations;
-  (*modulehandler_iterator).second.second.statisticReportingInterval =
+  (*modulehandler_iterator).second.second->statisticReportingInterval =
     ACE_Time_Value (statisticReportingInterval_in, 0);
-  //(*modulehandler_iterator).second.second.stream =
+  //(*modulehandler_iterator).second.second->stream =
   //    ((V4L_configuration.protocol == NET_TRANSPORTLAYER_TCP) ? v4l2CBData_in.stream
   //                                                             : v4l2CBData_in.UDPStream);
 //  (*modulehandler_iterator).second.subscriber = &ui_event_handler;
 
-//  (*modulehandler_iterator).second.second.deviceIdentifier.identifier =
+//  (*modulehandler_iterator).second.second->deviceIdentifier.identifier =
 //      interfaceIdentifier_in;
   // *TODO*: turn these into an option
-  (*modulehandler_iterator).second.second.buffers =
+  (*modulehandler_iterator).second.second->buffers =
       STREAM_LIB_V4L_DEFAULT_DEVICE_BUFFERS;
 #if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
   gtk_manager_p = COMMON_UI_GTK_MANAGER_SINGLETON::instance ();
   ACE_ASSERT (gtk_manager_p);
   ui_state_p = &const_cast<Common_UI_GTK_State_t&> (gtk_manager_p->getR ());
-  (*modulehandler_iterator).second.second.pixelBufferLock =
+  (*modulehandler_iterator).second.second->pixelBufferLock =
       &ui_state_p->lock;
   v4l2CBData_in.UIState = ui_state_p;
 #endif // GTK_USE
 #endif // GUI_SUPPORT
-  (*modulehandler_iterator).second.second.outputFormat.format =
+  (*modulehandler_iterator).second.second->outputFormat.format =
       STREAM_DEC_DEFAULT_LIBAV_OUTPUT_PIXEL_FORMAT;
-  (*modulehandler_iterator).second.second.outputFormat.resolution.width =
+  (*modulehandler_iterator).second.second->outputFormat.resolution.width =
       STREAM_DEV_CAM_DEFAULT_CAPTURE_SIZE_WIDTH;
-  (*modulehandler_iterator).second.second.outputFormat.resolution.height =
+  (*modulehandler_iterator).second.second->outputFormat.resolution.height =
       STREAM_DEV_CAM_DEFAULT_CAPTURE_SIZE_HEIGHT;
 
-  //  (*modulehandler_iterator).second.second.method =
+  //  (*modulehandler_iterator).second.second->method =
 //      STREAM_DEV_CAM_V4L_DEFAULT_IO_METHOD;
-  (*modulehandler_iterator).second.second.streamConfiguration =
+  (*modulehandler_iterator).second.second->streamConfiguration =
       &(*stream_iterator).second;
 #endif // ACE_WIN32 || ACE_WIN64
 

@@ -138,7 +138,7 @@ glarea_realize_cb (GtkWidget* widget_in,
       ACE_ASSERT (directshow_modulehandler_configuration_iterator != directshow_ui_cb_data_p->configuration->streamConfiguration.end ());
 
       texture_id_p =
-        &(*directshow_modulehandler_configuration_iterator).second.second.OpenGLTextureId;
+        &(*directshow_modulehandler_configuration_iterator).second.second->OpenGLTextureId;
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
@@ -154,7 +154,7 @@ glarea_realize_cb (GtkWidget* widget_in,
       ACE_ASSERT (mediafoundation_modulehandler_configuration_iterator != mediafoundation_ui_cb_data_p->configuration->streamConfiguration.end ());
 
       texture_id_p =
-        &(*mediafoundation_modulehandler_configuration_iterator).second.second.OpenGLTextureId;
+        &(*mediafoundation_modulehandler_configuration_iterator).second.second->OpenGLTextureId;
       break;
     }
     default:
@@ -178,7 +178,7 @@ glarea_realize_cb (GtkWidget* widget_in,
   ACE_ASSERT (modulehandler_configuration_iterator != data_p->configuration->streamConfiguration.end ());
 
   texture_id_p =
-    &(*modulehandler_configuration_iterator).second.second.OpenGLTextureId;
+    &(*modulehandler_configuration_iterator).second.second->OpenGLTextureId;
 
 #if GTK_CHECK_VERSION(3,0,0)
 #if GTK_CHECK_VERSION(3,16,0)
@@ -521,7 +521,7 @@ glarea_render_cb (GtkGLArea* GLArea_in,
       ACE_ASSERT (directshow_modulehandler_configuration_iterator != directshow_ui_cb_data_p->configuration->streamConfiguration.end ());
 
       texture_id_p =
-        &(*directshow_modulehandler_configuration_iterator).second.second.OpenGLTextureId;
+        &(*directshow_modulehandler_configuration_iterator).second.second->OpenGLTextureId;
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
@@ -537,7 +537,7 @@ glarea_render_cb (GtkGLArea* GLArea_in,
       ACE_ASSERT (mediafoundation_modulehandler_configuration_iterator != mediafoundation_ui_cb_data_p->configuration->streamConfiguration.end ());
 
       texture_id_p =
-        &(*mediafoundation_modulehandler_configuration_iterator).second.second.OpenGLTextureId;
+        &(*mediafoundation_modulehandler_configuration_iterator).second.second->OpenGLTextureId;
       break;
     }
     default:
@@ -557,10 +557,10 @@ glarea_render_cb (GtkGLArea* GLArea_in,
   Test_U_AudioEffect_ALSA_StreamConfiguration_t::ITERATOR_T modulehandler_configuration_iterator =
     data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (modulehandler_configuration_iterator != data_p->configuration->streamConfiguration.end ());
-//  ACE_ASSERT ((*modulehandler_configuration_iterator).second.second.OpenGLTextureId);
+//  ACE_ASSERT ((*modulehandler_configuration_iterator).second.second->OpenGLTextureId);
 
   texture_id_p =
-    &(*modulehandler_configuration_iterator).second.second.OpenGLTextureId;
+    &(*modulehandler_configuration_iterator).second.second->OpenGLTextureId;
 #endif
   ACE_ASSERT (texture_id_p);
 
@@ -941,7 +941,7 @@ glarea_expose_event_cb (GtkWidget* widget_in,
       ACE_ASSERT (directshow_modulehandler_configuration_iterator != directshow_ui_cb_data_p->configuration->streamConfiguration.end ());
 
       texture_id_p =
-        &(*directshow_modulehandler_configuration_iterator).second.second.OpenGLTextureId;
+        &(*directshow_modulehandler_configuration_iterator).second.second->OpenGLTextureId;
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
@@ -957,7 +957,7 @@ glarea_expose_event_cb (GtkWidget* widget_in,
       ACE_ASSERT (mediafoundation_modulehandler_configuration_iterator != mediafoundation_ui_cb_data_p->configuration->streamConfiguration.end ());
 
       texture_id_p =
-        &(*mediafoundation_modulehandler_configuration_iterator).second.second.OpenGLTextureId;
+        &(*mediafoundation_modulehandler_configuration_iterator).second.second->OpenGLTextureId;
       break;
     }
     default:
@@ -981,7 +981,7 @@ glarea_expose_event_cb (GtkWidget* widget_in,
   ACE_ASSERT (modulehandler_configuration_iterator != data_p->configuration->streamConfiguration.end ());
 
   texture_id_p =
-    &(*modulehandler_configuration_iterator).second.second.OpenGLTextureId;
+    &(*modulehandler_configuration_iterator).second.second->OpenGLTextureId;
 #endif // ACE_WIN32 || ACE_WIN64
   ACE_ASSERT (texture_id_p);
 
@@ -1186,7 +1186,7 @@ glarea_draw_cb (GtkWidget* widget_in,
       ACE_ASSERT (directshow_modulehandler_configuration_iterator != directshow_ui_cb_data_p->configuration->streamConfiguration.end ());
 
       texture_id_p =
-        &(*directshow_modulehandler_configuration_iterator).second.second.OpenGLTextureId;
+        &(*directshow_modulehandler_configuration_iterator).second.second->OpenGLTextureId;
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
@@ -1202,7 +1202,7 @@ glarea_draw_cb (GtkWidget* widget_in,
       ACE_ASSERT (mediafoundation_modulehandler_configuration_iterator != mediafoundation_ui_cb_data_p->configuration->streamConfiguration.end ());
 
       texture_id_p =
-        &(*mediafoundation_modulehandler_configuration_iterator).second.second.OpenGLTextureId;
+        &(*mediafoundation_modulehandler_configuration_iterator).second.second->OpenGLTextureId;
       break;
     }
     default:
@@ -1226,7 +1226,7 @@ glarea_draw_cb (GtkWidget* widget_in,
   ACE_ASSERT (modulehandler_configuration_iterator != data_p->configuration->streamConfiguration.end ());
 
   texture_id_p =
-    &(*modulehandler_configuration_iterator).second.second.OpenGLTextureId;
+    &(*modulehandler_configuration_iterator).second.second->OpenGLTextureId;
 #endif // ACE_WIN32 || ACE_WIN64
   ACE_ASSERT (texture_id_p);
 
@@ -1434,7 +1434,7 @@ glarea_expose_event_cb (GtkWidget* widget_in,
       ACE_ASSERT (directshow_modulehandler_configuration_iterator != directshow_ui_cb_data_p->configuration->streamConfiguration.end ());
 
       texture_id_p =
-        &(*directshow_modulehandler_configuration_iterator).second.second.OpenGLTextureId;
+        &(*directshow_modulehandler_configuration_iterator).second.second->OpenGLTextureId;
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
@@ -1450,7 +1450,7 @@ glarea_expose_event_cb (GtkWidget* widget_in,
       ACE_ASSERT (mediafoundation_modulehandler_configuration_iterator != mediafoundation_ui_cb_data_p->configuration->streamConfiguration.end ());
 
       texture_id_p =
-        &(*mediafoundation_modulehandler_configuration_iterator).second.second.OpenGLTextureId;
+        &(*mediafoundation_modulehandler_configuration_iterator).second.second->OpenGLTextureId;
       break;
     }
     default:
@@ -1474,7 +1474,7 @@ glarea_expose_event_cb (GtkWidget* widget_in,
   ACE_ASSERT (modulehandler_configuration_iterator != data_p->configuration->streamConfiguration.end ());
 
   texture_id_p =
-    &(*modulehandler_configuration_iterator).second.second.OpenGLTextureId;
+    &(*modulehandler_configuration_iterator).second.second->OpenGLTextureId;
 #endif // ACE_WIN32 || ACE_WIN64
   ACE_ASSERT (texture_id_p);
 

@@ -1418,8 +1418,8 @@ error:
 #if defined (FFMPEG_SUPPORT)
       directshow_modulehandler_configuration_2 = directshow_modulehandler_configuration;
       directShowConfiguration_in.streamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_LIBAV_RESIZE_DEFAULT_NAME_STRING),
-                                                                             std::make_pair (module_configuration,
-                                                                                             directshow_modulehandler_configuration_2)));
+                                                                             std::make_pair (&module_configuration,
+                                                                                             &directshow_modulehandler_configuration_2)));
       directshow_stream_iterator_2 =
         directShowConfiguration_in.streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_LIBAV_RESIZE_DEFAULT_NAME_STRING));
       ACE_ASSERT (directshow_stream_iterator_2 != directShowConfiguration_in.streamConfiguration.end ());
@@ -1431,8 +1431,8 @@ error:
       ACE_OS::strcpy (directshow_modulehandler_configuration_3.deviceIdentifier.identifier._string,
                       displayDevice_in.device.c_str ());
       directShowConfiguration_in.streamConfiguration.insert (std::make_pair (Stream_Visualization_Tools::rendererToModuleName (STREAM_VISUALIZATION_VIDEORENDERER_GTK_PIXBUF),
-                                                                             std::make_pair (module_configuration,
-                                                                                             directshow_modulehandler_configuration_3)));
+                                                                             std::make_pair (&module_configuration,
+                                                                                             &directshow_modulehandler_configuration_3)));
       directshow_stream_iterator_3 =
         directShowConfiguration_in.streamConfiguration.find (Stream_Visualization_Tools::rendererToModuleName (STREAM_VISUALIZATION_VIDEORENDERER_GTK_PIXBUF));
       ACE_ASSERT (directshow_stream_iterator_3 != directShowConfiguration_in.streamConfiguration.end ());
@@ -1440,8 +1440,8 @@ error:
 #if defined (FFMPEG_SUPPORT)
       directshow_modulehandler_configuration_4 = directshow_modulehandler_configuration;
       directShowConfiguration_in.streamConfiguration.insert (std::make_pair (std::string (std::string (ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_LIBAV_CONVERTER_DEFAULT_NAME_STRING)) + ACE_TEXT_ALWAYS_CHAR ("_2")),
-                                                                             std::make_pair (module_configuration,
-                                                                                             directshow_modulehandler_configuration_4)));
+                                                                             std::make_pair (&module_configuration,
+                                                                                             &directshow_modulehandler_configuration_4)));
       directshow_stream_iterator_4 =
         directShowConfiguration_in.streamConfiguration.find (std::string (std::string (ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_LIBAV_CONVERTER_DEFAULT_NAME_STRING)) + ACE_TEXT_ALWAYS_CHAR ("_2")));
       ACE_ASSERT (directshow_stream_iterator_4 != directShowConfiguration_in.streamConfiguration.end ());
@@ -1469,8 +1469,8 @@ error:
       ACE_ASSERT (mediafoundation_stream_iterator != mediaFoundationConfiguration_in.streamConfiguration.end ());
 
       mediaFoundationConfiguration_in.streamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_MEDIAFOUNDATION_DEFAULT_NAME_STRING),
-                                                                                  std::make_pair (module_configuration,
-                                                                                                  mediafoundation_modulehandler_configuration)));
+                                                                                  std::make_pair (&module_configuration,
+                                                                                                  &mediafoundation_modulehandler_configuration)));
 
       mediafoundation_stream_iterator_2 =
         mediaFoundationConfiguration_in.streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_MEDIAFOUNDATION_DEFAULT_NAME_STRING));
@@ -1531,13 +1531,13 @@ error:
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   HWND window_handle = NULL;
-  //if ((*iterator).second.second.window)
+  //if ((*iterator).second.second->window)
   //{
-  //  ACE_ASSERT (gdk_win32_window_is_win32 ((*iterator).second.second.window));
+  //  ACE_ASSERT (gdk_win32_window_is_win32 ((*iterator).second.second->window));
   //  window_handle =
   //    //gdk_win32_window_get_impl_hwnd (configuration.moduleHandlerConfiguration.window);
   //    //gdk_win32_drawable_get_handle (GDK_DRAWABLE (configuration.moduleHandlerConfiguration.window));
-  //    static_cast<HWND> (GDK_WINDOW_HWND ((*iterator).second.second.window));
+  //    static_cast<HWND> (GDK_WINDOW_HWND ((*iterator).second.second->window));
   //} // end IF
   //IAMBufferNegotiation* buffer_negotiation_p = NULL;
   IAMStreamConfig* stream_config_p = NULL;
@@ -1550,9 +1550,9 @@ error:
       struct _AMMediaType* media_type_p = NULL;
       struct _AMMediaType& media_type_r =
 #if defined (FFMPEG_SUPPORT)
-        (*directshow_stream_iterator_4).second.second.outputFormat;
+        (*directshow_stream_iterator_4).second.second->outputFormat;
 #else
-        (*directshow_stream_iterator).second.second.outputFormat;
+        (*directshow_stream_iterator).second.second->outputFormat;
 #endif // FFMPEG_SUPPORT
       if (!do_initialize_directshow (captureinterfaceIdentifier_in,
                                      UIDefinitionFilename_in.empty (),  // initialize COM ?
@@ -1587,13 +1587,13 @@ error:
 #endif // GTK2_USE
 #endif // GTK_USE
 #endif // GUI_SUPPORT
-      (*directshow_stream_iterator).second.second.outputFormat = *media_type_p;
+      (*directshow_stream_iterator).second.second->outputFormat = *media_type_p;
       CoTaskMemFree (media_type_p); media_type_p = NULL;
       media_type_p =
-        Stream_MediaFramework_DirectShow_Tools::copy ((*directshow_stream_iterator).second.second.outputFormat);
+        Stream_MediaFramework_DirectShow_Tools::copy ((*directshow_stream_iterator).second.second->outputFormat);
       ACE_ASSERT (media_type_p);
 #if defined (FFMPEG_SUPPORT)
-      (*directshow_stream_iterator_2).second.second.outputFormat = *media_type_p;
+      (*directshow_stream_iterator_2).second.second->outputFormat = *media_type_p;
 #endif // FFMPEG_SUPPORT
       CoTaskMemFree (media_type_p); media_type_p = NULL;
       break;
@@ -1604,7 +1604,7 @@ error:
                                           window_handle,
                                           mediafoundation_stream_configuration.format,
 #if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
-                                          (*mediafoundation_stream_iterator).second.second.session,
+                                          (*mediafoundation_stream_iterator).second.second->session,
 #endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
                                           initialize_COM)) // initialize COM ?
       {
@@ -1613,7 +1613,7 @@ error:
         return;
       } // end IF
 #if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
-      ACE_ASSERT ((*mediafoundation_stream_iterator).second.second.session);
+      ACE_ASSERT ((*mediafoundation_stream_iterator).second.second->session);
 #endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
       break;
     }
@@ -2088,7 +2088,7 @@ clean:
       Stream_CamSave_MediaFoundation_StreamConfiguration_t::ITERATOR_T iterator =
       mediaFoundationConfiguration_in.streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
       ACE_ASSERT (iterator != mediaFoundationConfiguration_in.streamConfiguration.end ());
-      do_finalize_mediafoundation ((*iterator).second.second.session);
+      do_finalize_mediafoundation ((*iterator).second.second->session);
       break;
     }
     default:

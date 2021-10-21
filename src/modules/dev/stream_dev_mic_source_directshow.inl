@@ -1558,7 +1558,7 @@ continue_:
 //continue_2:
   IBaseFilter* filter_4 = NULL;
   result =
-    graph_builder_p->FindFilterByName ((audioOutput_in ? STREAM_DEC_DIRECTSHOW_FILTER_NAME_RENDER_AUDIO
+    graph_builder_p->FindFilterByName ((audioOutput_in ? STREAM_LIB_DIRECTSHOW_FILTER_NAME_RENDER_AUDIO
                                                        : STREAM_LIB_DIRECTSHOW_FILTER_NAME_RENDER_NULL),
                                        &filter_4);
   if (FAILED (result))
@@ -1568,7 +1568,7 @@ continue_:
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: failed to IGraphBuilder::FindFilterByName(\"%s\"): \"%s\", aborting\n"),
                   inherited::mod_->name (),
-                  ACE_TEXT_WCHAR_TO_TCHAR ((audioOutput_in ? STREAM_DEC_DIRECTSHOW_FILTER_NAME_RENDER_AUDIO
+                  ACE_TEXT_WCHAR_TO_TCHAR ((audioOutput_in ? STREAM_LIB_DIRECTSHOW_FILTER_NAME_RENDER_AUDIO
                                                            : STREAM_LIB_DIRECTSHOW_FILTER_NAME_RENDER_NULL)),
                   ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
       goto error;
@@ -1591,7 +1591,7 @@ continue_:
     ACE_ASSERT (filter_4);
     result =
       graph_builder_p->AddFilter (filter_4,
-                                  (audioOutput_in ? STREAM_DEC_DIRECTSHOW_FILTER_NAME_RENDER_AUDIO
+                                  (audioOutput_in ? STREAM_LIB_DIRECTSHOW_FILTER_NAME_RENDER_AUDIO
                                                   : STREAM_LIB_DIRECTSHOW_FILTER_NAME_RENDER_NULL));
     if (FAILED (result))
     {
@@ -1698,7 +1698,7 @@ continue_:
   graph_entry.filterName = STREAM_LIB_DIRECTSHOW_FILTER_NAME_GRAB;
   graph_configuration.push_back (graph_entry);
   graph_entry.filterName =
-    (audioOutput_in ? STREAM_DEC_DIRECTSHOW_FILTER_NAME_RENDER_AUDIO
+    (audioOutput_in ? STREAM_LIB_DIRECTSHOW_FILTER_NAME_RENDER_AUDIO
                     : STREAM_LIB_DIRECTSHOW_FILTER_NAME_RENDER_NULL);
   graph_configuration.push_back (graph_entry);
   if (!Stream_MediaFramework_DirectShow_Tools::connect (graph_builder_p,

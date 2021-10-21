@@ -62,8 +62,10 @@
 #define STREAM_LIB_DIRECTSHOW_FILTER_NAME_CAPTURE_AUDIO          L"Capture Audio"
 #define STREAM_LIB_DIRECTSHOW_FILTER_NAME_CAPTURE_VIDEO          L"Capture Video"
 #define STREAM_LIB_DIRECTSHOW_FILTER_NAME_GRAB                   L"Sample Grabber"
+#define STREAM_LIB_DIRECTSHOW_FILTER_NAME_RENDER_AUDIO           L"Audio Renderer"
 #define STREAM_LIB_DIRECTSHOW_FILTER_NAME_RENDER_NULL            L"Null Renderer"
 #define STREAM_LIB_DIRECTSHOW_FILTER_NAME_RENDER_VIDEO           L"Video Renderer"
+#define STREAM_LIB_DIRECTSHOW_FILTER_NAME_RESAMPLER              L"Resampler"
 
 // *IMPORTANT NOTE*: "...When the Video Renderer draws to a DirectDraw overlay
 //                   surface, it allocates a single buffer for its input pin. If

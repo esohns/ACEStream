@@ -119,9 +119,8 @@ Branch_Stream::initialize (const typename inherited::CONFIGURATION_T& configurat
   // sanity check(s)
   ACE_ASSERT (!this->isRunning ());
 
-  Branch_StreamConfiguration_t::ITERATOR_T iterator;
+  typename inherited::CONFIGURATION_T::ITERATOR_T iterator;
 //  struct Branch_SessionData* session_data_p = NULL;
-  struct Branch_ModuleHandlerConfiguration* configuration_p = NULL;
   Stream_Module_t* module_p = NULL;
   Branch_Source* source_impl_p = NULL;
 
@@ -150,10 +149,7 @@ Branch_Stream::initialize (const typename inherited::CONFIGURATION_T& configurat
   iterator =
     const_cast<inherited::CONFIGURATION_T&> (configuration_in).find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (iterator != configuration_in.end ());
-  configuration_p =
-    dynamic_cast<struct Branch_ModuleHandlerConfiguration*> (&(*iterator).second.second);
-  ACE_ASSERT (configuration_p);
-  //session_data_p->targetFileName = configuration_p->targetFileName;
+  //session_data_p->targetFileName = (*iterator).second.second->targetFileName;
 
   // ---------------------------------------------------------------------------
 

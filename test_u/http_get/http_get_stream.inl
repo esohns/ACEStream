@@ -114,9 +114,8 @@ HTTPGet_Stream_T<TCPConnectorType,
   // sanity check(s)
   ACE_ASSERT (!this->isRunning ());
 
-  HTTPGet_StreamConfiguration_t::ITERATOR_T iterator;
+  typename inherited::CONFIGURATION_T::ITERATOR_T iterator;
   struct HTTPGet_SessionData* session_data_p = NULL;
-  struct HTTPGet_ModuleHandlerConfiguration* configuration_p = NULL;
   Stream_Module_t* module_p = NULL;
   HTTPGet_HTTPParser* HTTPParser_impl_p = NULL;
 
@@ -145,10 +144,7 @@ HTTPGet_Stream_T<TCPConnectorType,
   iterator =
     const_cast<inherited::CONFIGURATION_T&> (configuration_in).find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (iterator != configuration_in.end ());
-  configuration_p =
-    dynamic_cast<struct HTTPGet_ModuleHandlerConfiguration*> (&(*iterator).second.second);
-  ACE_ASSERT (configuration_p);
-  session_data_p->targetFileName = configuration_p->targetFileName;
+  session_data_p->targetFileName = (*iterator).second.second->targetFileName;
 
   // ---------------------------------------------------------------------------
 
@@ -193,7 +189,7 @@ HTTPGet_Stream_T<TCPConnectorType,
 
   // -------------------------------------------------------------
 
-  if (HTTP_Tools::URLRequiresSSL (configuration_p->URL))
+  if (HTTP_Tools::URLRequiresSSL ((*iterator).second.second->URL))
   {
     ACE_NEW_RETURN (module_p,
                     SSL_SOURCE_MODULE_T (this,
@@ -203,7 +199,7 @@ HTTPGet_Stream_T<TCPConnectorType,
     SSL_SOURCE_MODULE_T* module_2 =
         dynamic_cast<SSL_SOURCE_MODULE_T*> (module_p);
     ACE_ASSERT (module_2);
-    module_2->initialize ((*iterator).second.first);
+    module_2->initialize (*(*iterator).second.first);
     module_2->reset ();
     SSL_SOURCE_WRITER_T* task_p =
         dynamic_cast<SSL_SOURCE_WRITER_T*> (module_2->writer ());
@@ -211,8 +207,8 @@ HTTPGet_Stream_T<TCPConnectorType,
 //    Common_IInitialize_T<struct HTTPGet_ModuleHandlerConfiguration>* iinitialize_p =
 //        dynamic_cast<Common_IInitialize_T<struct HTTPGet_ModuleHandlerConfiguration>*> (module_p->writer ());
 //    ACE_ASSERT (iinitialize_p);
-//    if (!iinitialize_p->initialize (*configuration_p))
-    if (!task_p->initialize (*configuration_p))
+//    if (!iinitialize_p->initialize (*(*iterator).second.second))
+    if (!task_p->initialize (*(*iterator).second.second))
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: failed to ACE_Stream::replace(\"%s\"): \"%m\", aborting\n"),
@@ -233,12 +229,10 @@ HTTPGet_Stream_T<TCPConnectorType,
       delete module_p; module_p = NULL;
       goto failed;
     } // end IF
-#if defined (_DEBUG)
     ACE_DEBUG ((LM_DEBUG,
                 ACE_TEXT ("%s: HTTPS URL; replaced module \"%s\", continuing\n"),
                 ACE_TEXT (stream_name_string_),
                 ACE_TEXT (MODULE_NET_SOURCE_DEFAULT_NAME_STRING)));
-#endif // _DEBUG
   } // end IF
 
   inherited::isInitialized_ = true;

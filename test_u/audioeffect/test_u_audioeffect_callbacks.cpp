@@ -3141,6 +3141,7 @@ stream_processing_function (void* arg_in)
       ACE_ASSERT (directshow_ui_cb_data_p->CBData);
       ACE_ASSERT (directshow_ui_cb_data_p->CBData->configuration);
       ACE_ASSERT (directshow_ui_cb_data_p->CBData->stream);
+      data_base_p->CBData = directshow_ui_cb_data_p->CBData;
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
@@ -3152,6 +3153,7 @@ stream_processing_function (void* arg_in)
       ACE_ASSERT (mediafoundation_ui_cb_data_p->CBData);
       ACE_ASSERT (mediafoundation_ui_cb_data_p->CBData->configuration);
       ACE_ASSERT (mediafoundation_ui_cb_data_p->CBData->stream);
+      data_base_p->CBData = mediafoundation_ui_cb_data_p->CBData;
       break;
     }
     default:
@@ -3169,6 +3171,7 @@ stream_processing_function (void* arg_in)
   ACE_ASSERT (data_p->CBData);
   ACE_ASSERT (data_p->CBData->configuration);
   ACE_ASSERT (data_p->CBData->stream);
+  data_base_p->CBData = data_p->CBData;
 #endif // ACE_WIN32 || ACE_WIN64
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -3446,13 +3449,13 @@ stream_processing_function (void* arg_in)
 #endif // ACE_WIN32 || ACE_WIN64
 
 error:
-  //guint event_source_id = g_idle_add (idle_session_end_cb,
-  //                                    data_base_p->CBData);
-  //if (event_source_id == 0)
-  //  ACE_DEBUG ((LM_ERROR,
-  //              ACE_TEXT ("failed to g_idle_add(idle_session_end_cb): \"%m\", continuing\n")));
-  //else
-  //  data_base_p->CBData->eventSourceIds.insert (event_source_id);
+  guint event_source_id = g_idle_add (idle_session_end_cb,
+                                      data_base_p->CBData);
+  if (event_source_id == 0)
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to g_idle_add(idle_session_end_cb): \"%m\", continuing\n")));
+  else
+    state_r.eventSourceIds.insert (event_source_id);
 
   { // synch access
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -3855,9 +3858,9 @@ idle_initialize_UI_cb (gpointer userData_in)
       ACE_ASSERT (directshow_modulehandler_configuration_iterator != directshow_ui_cb_data_p->configuration->streamConfiguration.end ());
 
       filename =
-        (*directshow_modulehandler_configuration_iterator).second.second.targetFileName;
+        (*directshow_modulehandler_configuration_iterator).second.second->targetFileName;
       if (Common_File_Tools::isDirectory (filename))
-        (*directshow_modulehandler_configuration_iterator).second.second.targetFileName.clear ();
+        (*directshow_modulehandler_configuration_iterator).second.second->targetFileName.clear ();
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
@@ -3867,9 +3870,9 @@ idle_initialize_UI_cb (gpointer userData_in)
       ACE_ASSERT (mediafoundation_modulehandler_configuration_iterator != mediafoundation_ui_cb_data_p->configuration->streamConfiguration.end ());
 
       filename =
-        (*mediafoundation_modulehandler_configuration_iterator).second.second.targetFileName;
+        (*mediafoundation_modulehandler_configuration_iterator).second.second->targetFileName;
       if (Common_File_Tools::isDirectory (filename))
-        (*mediafoundation_modulehandler_configuration_iterator).second.second.targetFileName.clear ();
+        (*mediafoundation_modulehandler_configuration_iterator).second.second->targetFileName.clear ();
       break;
     }
     default:
@@ -3886,9 +3889,9 @@ idle_initialize_UI_cb (gpointer userData_in)
   ACE_ASSERT (modulehandler_configuration_iterator != data_p->configuration->streamConfiguration.end ());
 
   filename =
-    (*modulehandler_configuration_iterator).second.second.targetFileName;
+    (*modulehandler_configuration_iterator).second.second->targetFileName;
   if (Common_File_Tools::isDirectory (filename))
-    (*modulehandler_configuration_iterator).second.second.targetFileName.clear ();
+    (*modulehandler_configuration_iterator).second.second->targetFileName.clear ();
 #endif // ACE_WIN32 || ACE_WIN64
 
   //GtkFileChooserDialog* file_chooser_dialog_p =
@@ -3990,13 +3993,13 @@ idle_initialize_UI_cb (gpointer userData_in)
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
     {
       gtk_range_set_value (GTK_RANGE (scale_p),
-                           (*directshow_modulehandler_configuration_iterator).second.second.sinusFrequency);
+                           (*directshow_modulehandler_configuration_iterator).second.second->sinusFrequency);
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
     {
       gtk_range_set_value (GTK_RANGE (scale_p),
-                           (*mediafoundation_modulehandler_configuration_iterator).second.second.sinusFrequency);
+                           (*mediafoundation_modulehandler_configuration_iterator).second.second->sinusFrequency);
       break;
     }
     default:
@@ -4009,7 +4012,7 @@ idle_initialize_UI_cb (gpointer userData_in)
   } // end SWITCH
 #else
   gtk_range_set_value (GTK_RANGE (scale_p),
-                       (*modulehandler_configuration_iterator).second.second.sinusFrequency);
+                       (*modulehandler_configuration_iterator).second.second->sinusFrequency);
 #endif // ACE_WIN32 || ACE_WIN64
   gtk_scale_add_mark (scale_p,
                       gtk_range_get_value (GTK_RANGE (scale_p)),
@@ -4064,13 +4067,13 @@ idle_initialize_UI_cb (gpointer userData_in)
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
     {
       is_mute =
-        (*directshow_modulehandler_configuration_iterator).second.second.mute;
+        (*directshow_modulehandler_configuration_iterator).second.second->mute;
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
     {
       is_mute =
-        (*mediafoundation_modulehandler_configuration_iterator).second.second.mute;
+        (*mediafoundation_modulehandler_configuration_iterator).second.second->mute;
       break;
     }
     default:
@@ -4082,7 +4085,7 @@ idle_initialize_UI_cb (gpointer userData_in)
     }
   } // end SWITCH
 #else
-  is_mute = (*modulehandler_configuration_iterator).second.second.mute;
+  is_mute = (*modulehandler_configuration_iterator).second.second->mute;
 #endif // ACE_WIN32 || ACE_WIN64
   GtkToggleButton* toggle_button_p =
     GTK_TOGGLE_BUTTON (gtk_builder_get_object ((*iterator).second.second,
@@ -4101,17 +4104,17 @@ idle_initialize_UI_cb (gpointer userData_in)
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
     {
       mode_2d =
-        (*directshow_modulehandler_configuration_iterator).second.second.spectrumAnalyzer2DMode;
+        (*directshow_modulehandler_configuration_iterator).second.second->spectrumAnalyzer2DMode;
       mode_3d =
-        (*directshow_modulehandler_configuration_iterator).second.second.spectrumAnalyzer3DMode;
+        (*directshow_modulehandler_configuration_iterator).second.second->spectrumAnalyzer3DMode;
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
     {
       mode_2d =
-        (*mediafoundation_modulehandler_configuration_iterator).second.second.spectrumAnalyzer2DMode;
+        (*mediafoundation_modulehandler_configuration_iterator).second.second->spectrumAnalyzer2DMode;
       mode_3d =
-        (*mediafoundation_modulehandler_configuration_iterator).second.second.spectrumAnalyzer3DMode;
+        (*mediafoundation_modulehandler_configuration_iterator).second.second->spectrumAnalyzer3DMode;
       break;
     }
     default:
@@ -4124,9 +4127,9 @@ idle_initialize_UI_cb (gpointer userData_in)
   } // end SWITCH
 #else
   mode_2d =
-    (*modulehandler_configuration_iterator).second.second.spectrumAnalyzer2DMode;
+    (*modulehandler_configuration_iterator).second.second->spectrumAnalyzer2DMode;
   mode_3d =
-    (*modulehandler_configuration_iterator).second.second.spectrumAnalyzer3DMode;
+    (*modulehandler_configuration_iterator).second.second->spectrumAnalyzer3DMode;
 #endif // ACE_WIN32 || ACE_WIN64
   toggle_button_p =
     GTK_TOGGLE_BUTTON (gtk_builder_get_object ((*iterator).second.second,
@@ -4311,13 +4314,13 @@ idle_initialize_UI_cb (gpointer userData_in)
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
     {
-      //(*directshow_modulehandler_configuration_iterator).second.second.OpenGLWindow =
+      //(*directshow_modulehandler_configuration_iterator).second.second->OpenGLWindow =
       //  (*opengl_contexts_iterator).first;
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
     {
-      //(*mediafoundation_modulehandler_configuration_iterator).second.second.OpenGLWindow =
+      //(*mediafoundation_modulehandler_configuration_iterator).second.second->OpenGLWindow =
       //  (*opengl_contexts_iterator).first;
       break;
     }
@@ -4330,7 +4333,7 @@ idle_initialize_UI_cb (gpointer userData_in)
     }
   } // end SWITCH
 #else
-  //(*modulehandler_configuration_iterator).second.second.OpenGLWindow =
+  //(*modulehandler_configuration_iterator).second.second->OpenGLWindow =
   //  (*opengl_contexts_iterator).first;
 #endif // ACE_WIN32 || ACE_WIN64
 
@@ -4581,7 +4584,7 @@ continue_:
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
   data_p->handle =
-    (*modulehandler_configuration_iterator).second.second.captureDeviceHandle;
+    (*modulehandler_configuration_iterator).second.second->captureDeviceHandle;
 #endif // ACE_WIN32 || ACE_WIN64
 
 #if defined (GTKGL_SUPPORT)
@@ -4615,34 +4618,34 @@ continue_:
     }
   } // end SWITCH
 #else
-//  ACE_ASSERT (!(*modulehandler_configuration_iterator).second.second.OpenGLWindow);
-  (*modulehandler_configuration_iterator).second.second.window =
+//  ACE_ASSERT (!(*modulehandler_configuration_iterator).second.second->OpenGLWindow);
+  (*modulehandler_configuration_iterator).second.second->window =
 #if GTK_CHECK_VERSION (3,0,0)
 #if GTK_CHECK_VERSION (3,16,0)
       gtk_widget_get_window (GTK_WIDGET ((*opengl_contexts_iterator).first));
 #else
       gtk_widget_get_window (GTK_WIDGET ((*opengl_contexts_iterator).first));
-  ACE_ASSERT (!(*modulehandler_configuration_iterator).second.second.GdkWindow3D);
-  (*modulehandler_configuration_iterator).second.second.GdkWindow3D =
+  ACE_ASSERT (!(*modulehandler_configuration_iterator).second.second->GdkWindow3D);
+  (*modulehandler_configuration_iterator).second.second->GdkWindow3D =
     gtk_widget_get_window (GTK_WIDGET (&(*opengl_contexts_iterator).first->darea));
-  ACE_ASSERT ((*modulehandler_configuration_iterator).second.second.GdkWindow3D);
+  ACE_ASSERT ((*modulehandler_configuration_iterator).second.second->GdkWindow3D);
 #endif // GTK_CHECK_VERSION (3,16,0)
 #else
 #if defined (GTKGLAREA_SUPPORT)
     (*opengl_contexts_iterator).first->glcontext;
-  ACE_ASSERT (!(*modulehandler_configuration_iterator).second.second.GdkWindow3D);
-  (*modulehandler_configuration_iterator).second.second.GdkWindow3D =
+  ACE_ASSERT (!(*modulehandler_configuration_iterator).second.second->GdkWindow3D);
+  (*modulehandler_configuration_iterator).second.second->GdkWindow3D =
     gtk_widget_get_window (GTK_WIDGET (&(*opengl_contexts_iterator).first->darea));
-  ACE_ASSERT ((*modulehandler_configuration_iterator).second.second.GdkWindow3D);
+  ACE_ASSERT ((*modulehandler_configuration_iterator).second.second->GdkWindow3D);
 #else
     gl_context_p;
-  ACE_ASSERT (!(*modulehandler_configuration_iterator).second.second.GdkWindow3D);
-  (*modulehandler_configuration_iterator).second.second.GdkWindow3D =
+  ACE_ASSERT (!(*modulehandler_configuration_iterator).second.second->GdkWindow3D);
+  (*modulehandler_configuration_iterator).second.second->GdkWindow3D =
     gtk_widget_get_gl_drawable (GTK_WIDGET (drawing_area_2));
-  ACE_ASSERT ((*modulehandler_configuration_iterator).second.second.GdkWindow3D);
+  ACE_ASSERT ((*modulehandler_configuration_iterator).second.second->GdkWindow3D);
 #endif // GTKGLAREA_SUPPORT
 #endif // GTK_CHECK_VERSION (3,0,0)
-  ACE_ASSERT ((*modulehandler_configuration_iterator).second.second.window);
+  ACE_ASSERT ((*modulehandler_configuration_iterator).second.second->window);
 #endif // ACE_WIN32 || ACE_WIN64
 #endif /* GTK_CHECK_VERSION (3,16,0) */
 #endif /* GTK_CHECK_VERSION (3,0,0) */
@@ -4699,13 +4702,13 @@ continue_:
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
     {
       is_active =
-        (*directshow_modulehandler_configuration_iterator).second.second.sinus;
+        (*directshow_modulehandler_configuration_iterator).second.second->sinus;
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
     {
       is_active =
-        (*mediafoundation_modulehandler_configuration_iterator).second.second.sinus;
+        (*mediafoundation_modulehandler_configuration_iterator).second.second->sinus;
       break;
     }
     default:
@@ -4717,7 +4720,7 @@ continue_:
     }
   } // end SWITCH
 #else
-  is_active = (*modulehandler_configuration_iterator).second.second.sinus;
+  is_active = (*modulehandler_configuration_iterator).second.second->sinus;
 #endif // ACE_WIN32 || ACE_WIN64
   if (is_active)
   {
@@ -4742,13 +4745,13 @@ continue_:
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
     {
       effect_id =
-        (*directshow_modulehandler_configuration_iterator).second.second.effect;
+        (*directshow_modulehandler_configuration_iterator).second.second->effect;
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
     {
       effect_id =
-        (*mediafoundation_modulehandler_configuration_iterator).second.second.effect;
+        (*mediafoundation_modulehandler_configuration_iterator).second.second->effect;
       break;
     }
     default:
@@ -4762,7 +4765,7 @@ continue_:
   is_active = !InlineIsEqualGUID (effect_id, GUID_NULL);
 #else
   is_active =
-    (!(*modulehandler_configuration_iterator).second.second.effect.empty () || is_mute);
+    (!(*modulehandler_configuration_iterator).second.second->effect.empty () || is_mute);
 #endif // ACE_WIN32 || ACE_WIN64
   if (is_active)
   {
@@ -4820,7 +4823,7 @@ continue_:
       } // end IF
       if (InlineIsEqualGUID (effect_id, effect_id_2))
 #else
-      if ((*modulehandler_configuration_iterator).second.second.effect == effect_string_2)
+      if ((*modulehandler_configuration_iterator).second.second->effect == effect_string_2)
 #endif // ACE_WIN32 || ACE_WIN64
         break;
     } while (gtk_tree_model_iter_next (GTK_TREE_MODEL (list_store_p),
@@ -4851,14 +4854,14 @@ continue_:
     {
       is_active =
         ((mode_2d < STREAM_VISUALIZATION_SPECTRUMANALYZER_2DMODE_MAX) ||
-         ((*directshow_modulehandler_configuration_iterator).second.second.spectrumAnalyzer3DMode < STREAM_VISUALIZATION_SPECTRUMANALYZER_3DMODE_MAX));
+         ((*directshow_modulehandler_configuration_iterator).second.second->spectrumAnalyzer3DMode < STREAM_VISUALIZATION_SPECTRUMANALYZER_3DMODE_MAX));
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
     {
       is_active =
         ((mode_2d < STREAM_VISUALIZATION_SPECTRUMANALYZER_2DMODE_MAX) ||
-         ((*mediafoundation_modulehandler_configuration_iterator).second.second.spectrumAnalyzer3DMode < STREAM_VISUALIZATION_SPECTRUMANALYZER_3DMODE_MAX));
+         ((*mediafoundation_modulehandler_configuration_iterator).second.second->spectrumAnalyzer3DMode < STREAM_VISUALIZATION_SPECTRUMANALYZER_3DMODE_MAX));
       break;
     }
     default:
@@ -4871,9 +4874,9 @@ continue_:
   } // end SWITCH
 #else
   is_active =
-      (((*modulehandler_configuration_iterator).second.second.spectrumAnalyzer2DMode <
+      (((*modulehandler_configuration_iterator).second.second->spectrumAnalyzer2DMode <
         STREAM_VISUALIZATION_SPECTRUMANALYZER_2DMODE_MAX) ||
-       ((*modulehandler_configuration_iterator).second.second.spectrumAnalyzer3DMode <
+       ((*modulehandler_configuration_iterator).second.second->spectrumAnalyzer3DMode <
         STREAM_VISUALIZATION_SPECTRUMANALYZER_3DMODE_MAX));
 #endif // ACE_WIN32 || ACE_WIN64
   if (is_active)
@@ -4918,21 +4921,21 @@ continue_:
   switch (ui_cb_data_base_p->mediaFramework)
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
-    { ACE_ASSERT (!(*directshow_modulehandler_configuration_iterator).second.second.window);
-      (*directshow_modulehandler_configuration_iterator).second.second.window =
+    { ACE_ASSERT (!(*directshow_modulehandler_configuration_iterator).second.second->window);
+      (*directshow_modulehandler_configuration_iterator).second.second->window =
         gtk_widget_get_window (GTK_WIDGET (drawing_area_p));
-      ACE_ASSERT ((*directshow_modulehandler_configuration_iterator).second.second.window);
+      ACE_ASSERT ((*directshow_modulehandler_configuration_iterator).second.second->window);
       window_p =
-        (*directshow_modulehandler_configuration_iterator).second.second.window;
+        (*directshow_modulehandler_configuration_iterator).second.second->window;
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
-    { ACE_ASSERT (!(*mediafoundation_modulehandler_configuration_iterator).second.second.window);
-      (*mediafoundation_modulehandler_configuration_iterator).second.second.window =
+    { ACE_ASSERT (!(*mediafoundation_modulehandler_configuration_iterator).second.second->window);
+      (*mediafoundation_modulehandler_configuration_iterator).second.second->window =
         gtk_widget_get_window (GTK_WIDGET (drawing_area_p));
-      ACE_ASSERT ((*mediafoundation_modulehandler_configuration_iterator).second.second.window);
+      ACE_ASSERT ((*mediafoundation_modulehandler_configuration_iterator).second.second->window);
       window_p =
-        (*mediafoundation_modulehandler_configuration_iterator).second.second.window;
+        (*mediafoundation_modulehandler_configuration_iterator).second.second->window;
       break;
     }
     default:
@@ -4944,11 +4947,11 @@ continue_:
     }
   } // end SWITCH
 #else
-//  ACE_ASSERT (!(*modulehandler_configuration_iterator).second.second.window);
-  (*modulehandler_configuration_iterator).second.second.window =
+//  ACE_ASSERT (!(*modulehandler_configuration_iterator).second.second->window);
+  (*modulehandler_configuration_iterator).second.second->window =
     gtk_widget_get_window (GTK_WIDGET (drawing_area_p));
-  ACE_ASSERT ((*modulehandler_configuration_iterator).second.second.window);
-  window_p = (*modulehandler_configuration_iterator).second.second.window;
+  ACE_ASSERT ((*modulehandler_configuration_iterator).second.second->window);
+  window_p = (*modulehandler_configuration_iterator).second.second->window;
 #endif // ACE_WIN32 || ACE_WIN64
   ACE_ASSERT (window_p);
 
@@ -5004,10 +5007,10 @@ continue_:
 //    {
 //#if GTK_CHECK_VERSION(3,10,0)
 //      surface_p =
-//        (*directshow_modulehandler_configuration_iterator).second.second.cairoSurface2D;
+//        (*directshow_modulehandler_configuration_iterator).second.second->cairoSurface2D;
 //#else
 //      pixel_buffer_p =
-//        (*directshow_modulehandler_configuration_iterator).second.second.pixelBuffer2D;
+//        (*directshow_modulehandler_configuration_iterator).second.second->pixelBuffer2D;
 //#endif // GTK_CHECK_VERSION(3,10,0)
 //      area_s = ui_cb_data_base_p->area2D;
 //      break;
@@ -5016,10 +5019,10 @@ continue_:
 //    {
 //#if GTK_CHECK_VERSION(3,10,0)
 //      surface_p =
-//        (*mediafoundation_modulehandler_configuration_iterator).second.second.cairoSurface2D;
+//        (*mediafoundation_modulehandler_configuration_iterator).second.second->cairoSurface2D;
 //#else
 //      pixel_buffer_p =
-//        (*mediafoundation_modulehandler_configuration_iterator).second.second.pixelBuffer2D;
+//        (*mediafoundation_modulehandler_configuration_iterator).second.second->pixelBuffer2D;
 //#endif // GTK_CHECK_VERSION(3,10,0)
 //      area_s = ui_cb_data_base_p->area2D;
 //      break;
@@ -5035,10 +5038,10 @@ continue_:
 //#else
 //#if GTK_CHECK_VERSION(3,10,0)
 //  surface_p =
-//    (*modulehandler_configuration_iterator).second.second.cairoSurface2D;
+//    (*modulehandler_configuration_iterator).second.second->cairoSurface2D;
 //#else
 //  pixel_buffer_p =
-//    (*modulehandler_configuration_iterator).second.second.pixelBuffer2D;
+//    (*modulehandler_configuration_iterator).second.second->pixelBuffer2D;
 //#endif // GTK_CHECK_VERSION(3,10,0)
 //  area_s = ui_cb_data_base_p->area2D;
 //#endif // ACE_WIN32 || ACE_WIN64
@@ -5251,8 +5254,7 @@ idle_session_end_cb (gpointer userData_in)
   if (gtk_toggle_button_get_active (toggle_button_p))
   {
     un_toggling_stream = true;
-    gtk_toggle_button_set_active (toggle_button_p,
-                                  TRUE);
+    gtk_signal_emit_by_name (GTK_OBJECT (toggle_button_p), "toggled");
   } // end IF
   gtk_widget_set_sensitive (GTK_WIDGET (toggle_button_p),
                             TRUE);
@@ -5889,13 +5891,13 @@ togglebutton_record_toggled_cb (GtkToggleButton* toggleButton_in,
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
     {
-      ACE_OS::strcpy ((*directshow_modulehandler_configuration_iterator).second.second.deviceIdentifier.identifier._string,
+      ACE_OS::strcpy ((*directshow_modulehandler_configuration_iterator).second.second->deviceIdentifier.identifier._string,
                       ACE_TEXT_ALWAYS_CHAR (g_value_get_string (&value)));
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
     {
-      ACE_OS::strcpy ((*mediafoundation_modulehandler_configuration_iterator).second.second.deviceIdentifier.identifier._string,
+      ACE_OS::strcpy ((*mediafoundation_modulehandler_configuration_iterator).second.second->deviceIdentifier.identifier._string,
                       ACE_TEXT_ALWAYS_CHAR (g_value_get_string (&value)));
       break;
     }
@@ -5908,7 +5910,7 @@ togglebutton_record_toggled_cb (GtkToggleButton* toggleButton_in,
     }
   } // end SWITCH
 #else
-  (*modulehandler_configuration_iterator).second.second.deviceIdentifier.identifier =
+  (*modulehandler_configuration_iterator).second.second->deviceIdentifier.identifier =
     g_value_get_string (&value);
 #endif // ACE_WIN32 || ACE_WIN64
   g_value_unset (&value);
@@ -5921,7 +5923,7 @@ togglebutton_record_toggled_cb (GtkToggleButton* toggleButton_in,
                 ACE_TEXT ("failed to Stream_Device_Tools::setFormat(): \"%m\", returning\n")));
     return;
   } // end IF
-  (*modulehandler_configuration_iterator).second.second.captureDeviceHandle =
+  (*modulehandler_configuration_iterator).second.second->captureDeviceHandle =
       ui_cb_data_p->handle;
 #endif // ACE_WIN32 || ACE_WIN64
 
@@ -6189,19 +6191,19 @@ togglebutton_record_toggled_cb (GtkToggleButton* toggleButton_in,
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
     {
       if (save_to_file)
-        (*directshow_modulehandler_configuration_iterator).second.second.targetFileName =
+        (*directshow_modulehandler_configuration_iterator).second.second->targetFileName =
           Common_UI_GTK_Tools::UTF8ToLocale (filename_p, -1);
       else
-        (*directshow_modulehandler_configuration_iterator).second.second.targetFileName.clear ();
+        (*directshow_modulehandler_configuration_iterator).second.second->targetFileName.clear ();
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
     {
       if (save_to_file)
-        (*mediafoundation_modulehandler_configuration_iterator).second.second.targetFileName =
+        (*mediafoundation_modulehandler_configuration_iterator).second.second->targetFileName =
           Common_UI_GTK_Tools::UTF8ToLocale (filename_p, -1);
       else
-        (*mediafoundation_modulehandler_configuration_iterator).second.second.targetFileName.clear ();
+        (*mediafoundation_modulehandler_configuration_iterator).second.second->targetFileName.clear ();
       break;
     }
     default:
@@ -6214,10 +6216,10 @@ togglebutton_record_toggled_cb (GtkToggleButton* toggleButton_in,
   } // end SWITCH
 #else
   if (save_to_file)
-    (*modulehandler_configuration_iterator).second.second.targetFileName =
+    (*modulehandler_configuration_iterator).second.second->targetFileName =
       Common_UI_GTK_Tools::UTF8ToLocale (filename_p, -1);
   else
-    (*modulehandler_configuration_iterator).second.second.targetFileName.clear ();
+    (*modulehandler_configuration_iterator).second.second->targetFileName.clear ();
 #endif // ACE_WIN32 || ACE_WIN64
   g_free (filename_p);
 
@@ -6230,13 +6232,13 @@ togglebutton_record_toggled_cb (GtkToggleButton* toggleButton_in,
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
     {
-      (*directshow_modulehandler_configuration_iterator).second.second.mute =
+      (*directshow_modulehandler_configuration_iterator).second.second->mute =
         gtk_toggle_button_get_active (toggle_button_p);
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
     {
-      (*mediafoundation_modulehandler_configuration_iterator).second.second.mute =
+      (*mediafoundation_modulehandler_configuration_iterator).second.second->mute =
         gtk_toggle_button_get_active (toggle_button_p);
       break;
     }
@@ -6249,7 +6251,7 @@ togglebutton_record_toggled_cb (GtkToggleButton* toggleButton_in,
     }
   } // end SWITCH
 #else
-  (*modulehandler_configuration_iterator).second.second.mute =
+  (*modulehandler_configuration_iterator).second.second->mute =
     gtk_toggle_button_get_active (toggle_button_p);
 #endif // ACE_WIN32 || ACE_WIN64
 
@@ -6263,7 +6265,7 @@ togglebutton_record_toggled_cb (GtkToggleButton* toggleButton_in,
       break;
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
     {
-      if ((*mediafoundation_modulehandler_configuration_iterator).second.second.session)
+      if ((*mediafoundation_modulehandler_configuration_iterator).second.second->session)
       {
         //HRESULT result = E_FAIL;
         // *TODO*: this crashes in CTopoNode::UnlinkInput ()...
@@ -6273,31 +6275,31 @@ togglebutton_record_toggled_cb (GtkToggleButton* toggleButton_in,
         //  ACE_DEBUG ((LM_ERROR,
         //              ACE_TEXT ("failed to IMFMediaSession::Shutdown(): \"%s\", continuing\n"),
         //              ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
-        (*mediafoundation_modulehandler_configuration_iterator).second.second.session->Release ();
-        (*mediafoundation_modulehandler_configuration_iterator).second.second.session =
+        (*mediafoundation_modulehandler_configuration_iterator).second.second->session->Release ();
+        (*mediafoundation_modulehandler_configuration_iterator).second.second->session =
           NULL;
       } // end IF
 
       // set missing format properties
       UINT32 number_of_channels, bits_per_sample, sample_rate;
       HRESULT result =
-        (*mediafoundation_modulehandler_configuration_iterator).second.second.outputFormat->GetUINT32 (MF_MT_AUDIO_SAMPLES_PER_SECOND,
+        (*mediafoundation_modulehandler_configuration_iterator).second.second->outputFormat->GetUINT32 (MF_MT_AUDIO_SAMPLES_PER_SECOND,
                                                                                                        &sample_rate);
       ACE_ASSERT (SUCCEEDED (result));
       result =
-        (*mediafoundation_modulehandler_configuration_iterator).second.second.outputFormat->GetUINT32 (MF_MT_AUDIO_BITS_PER_SAMPLE,
+        (*mediafoundation_modulehandler_configuration_iterator).second.second->outputFormat->GetUINT32 (MF_MT_AUDIO_BITS_PER_SAMPLE,
                                                                                                        &bits_per_sample);
       ACE_ASSERT (SUCCEEDED (result));
       result =
-        (*mediafoundation_modulehandler_configuration_iterator).second.second.outputFormat->GetUINT32 (MF_MT_AUDIO_NUM_CHANNELS,
+        (*mediafoundation_modulehandler_configuration_iterator).second.second->outputFormat->GetUINT32 (MF_MT_AUDIO_NUM_CHANNELS,
                                                                                                        &number_of_channels);
       ACE_ASSERT (SUCCEEDED (result));
       result =
-        (*mediafoundation_modulehandler_configuration_iterator).second.second.outputFormat->SetUINT32 (MF_MT_AUDIO_BLOCK_ALIGNMENT,
+        (*mediafoundation_modulehandler_configuration_iterator).second.second->outputFormat->SetUINT32 (MF_MT_AUDIO_BLOCK_ALIGNMENT,
                                                                                                        (bits_per_sample * number_of_channels) / 8);
       ACE_ASSERT (SUCCEEDED (result));
       result =
-        (*mediafoundation_modulehandler_configuration_iterator).second.second.outputFormat->SetUINT32 (MF_MT_AUDIO_AVG_BYTES_PER_SECOND,
+        (*mediafoundation_modulehandler_configuration_iterator).second.second->outputFormat->SetUINT32 (MF_MT_AUDIO_AVG_BYTES_PER_SECOND,
                                                                                                        sample_rate * (bits_per_sample * number_of_channels / 8));
       ACE_ASSERT (SUCCEEDED (result));
       break;
@@ -6312,7 +6314,7 @@ togglebutton_record_toggled_cb (GtkToggleButton* toggleButton_in,
   } // end SWITCH
 #else
   // sanity check(s)
-  ACE_ASSERT ((*modulehandler_configuration_iterator).second.second.captureDeviceHandle);
+  ACE_ASSERT ((*modulehandler_configuration_iterator).second.second->captureDeviceHandle);
 
 //  if (!Stream_Device_Tools::setCaptureFormat (data_p->configuration->moduleHandlerConfiguration.deviceHandle,
 //                                                     *data_p->configuration->moduleHandlerConfiguration.format))
@@ -6757,7 +6759,7 @@ togglebutton_sinus_toggled_cb (GtkToggleButton* toggleButton_in,
         directshow_ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
       ACE_ASSERT (directshow_modulehandler_configuration_iterator != directshow_ui_cb_data_p->configuration->streamConfiguration.end ());
 
-      (*directshow_modulehandler_configuration_iterator).second.second.sinus =
+      (*directshow_modulehandler_configuration_iterator).second.second->sinus =
         is_active;
       break;
     }
@@ -6773,7 +6775,7 @@ togglebutton_sinus_toggled_cb (GtkToggleButton* toggleButton_in,
         mediafoundation_ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
       ACE_ASSERT (mediafoundation_modulehandler_configuration_iterator != mediafoundation_ui_cb_data_p->configuration->streamConfiguration.end ());
 
-      (*mediafoundation_modulehandler_configuration_iterator).second.second.sinus =
+      (*mediafoundation_modulehandler_configuration_iterator).second.second->sinus =
         is_active;
       break;
     }
@@ -6797,7 +6799,7 @@ togglebutton_sinus_toggled_cb (GtkToggleButton* toggleButton_in,
     data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (modulehandler_configuration_iterator != data_p->configuration->streamConfiguration.end ());
 
-  (*modulehandler_configuration_iterator).second.second.sinus =
+  (*modulehandler_configuration_iterator).second.second->sinus =
     is_active;
 #endif
 
@@ -6851,7 +6853,7 @@ scale_sinus_frequency_value_changed_cb (GtkRange* range_in,
         directshow_ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
       ACE_ASSERT (directshow_modulehandler_configuration_iterator != directshow_ui_cb_data_p->configuration->streamConfiguration.end ());
 
-      (*directshow_modulehandler_configuration_iterator).second.second.sinusFrequency =
+      (*directshow_modulehandler_configuration_iterator).second.second->sinusFrequency =
         gtk_range_get_value (range_in);
       break;
     }
@@ -6867,7 +6869,7 @@ scale_sinus_frequency_value_changed_cb (GtkRange* range_in,
         mediafoundation_ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
       ACE_ASSERT (mediafoundation_modulehandler_configuration_iterator != mediafoundation_ui_cb_data_p->configuration->streamConfiguration.end ());
 
-      (*mediafoundation_modulehandler_configuration_iterator).second.second.sinusFrequency =
+      (*mediafoundation_modulehandler_configuration_iterator).second.second->sinusFrequency =
         gtk_range_get_value (range_in);
       break;
     }
@@ -6891,7 +6893,7 @@ scale_sinus_frequency_value_changed_cb (GtkRange* range_in,
     data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (modulehandler_configuration_iterator != data_p->configuration->streamConfiguration.end ());
 
-  (*modulehandler_configuration_iterator).second.second.sinusFrequency =
+  (*modulehandler_configuration_iterator).second.second->sinusFrequency =
     gtk_range_get_value (range_in);
 #endif
 } // scale_sinus_frequency_value_changed_cb
@@ -7031,13 +7033,13 @@ togglebutton_effect_toggled_cb (GtkToggleButton* toggleButton_in,
       {
         case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
         {
-          (*directshow_modulehandler_configuration_iterator).second.second.effect =
+          (*directshow_modulehandler_configuration_iterator).second.second->effect =
             GUID_s;
           break;
         }
         case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
         {
-          (*mediafoundation_modulehandler_configuration_iterator).second.second.effect =
+          (*mediafoundation_modulehandler_configuration_iterator).second.second->effect =
             GUID_s;
           break;
         }
@@ -7050,7 +7052,7 @@ togglebutton_effect_toggled_cb (GtkToggleButton* toggleButton_in,
         }
       } // end SWITCH
 #else
-      (*modulehandler_configuration_iterator).second.second.effect =
+      (*modulehandler_configuration_iterator).second.second->effect =
         effect_string;
 #endif // ACE_WIN32 || ACE_WIN64
     } // end IF
@@ -7062,13 +7064,13 @@ togglebutton_effect_toggled_cb (GtkToggleButton* toggleButton_in,
     {
       case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
       {
-        (*directshow_modulehandler_configuration_iterator).second.second.effect =
+        (*directshow_modulehandler_configuration_iterator).second.second->effect =
           GUID_NULL;
         break;
       }
       case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
       {
-        (*mediafoundation_modulehandler_configuration_iterator).second.second.effect =
+        (*mediafoundation_modulehandler_configuration_iterator).second.second->effect =
           GUID_NULL;
         break;
       }
@@ -7081,7 +7083,7 @@ togglebutton_effect_toggled_cb (GtkToggleButton* toggleButton_in,
       }
     } // end SWITCH
 #else
-    (*modulehandler_configuration_iterator).second.second.effect.clear ();
+    (*modulehandler_configuration_iterator).second.second->effect.clear ();
 #endif // ACE_WIN32 || ACE_WIN64
   } // end IF
 } // togglebutton_effect_toggled_cb
@@ -7125,7 +7127,7 @@ togglebutton_mute_toggled_cb (GtkToggleButton* toggleButton_in,
         directshow_ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
       ACE_ASSERT (directshow_modulehandler_configuration_iterator != directshow_ui_cb_data_p->configuration->streamConfiguration.end ());
 
-      (*directshow_modulehandler_configuration_iterator).second.second.mute =
+      (*directshow_modulehandler_configuration_iterator).second.second->mute =
         is_active;
       break;
     }
@@ -7141,7 +7143,7 @@ togglebutton_mute_toggled_cb (GtkToggleButton* toggleButton_in,
         mediafoundation_ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
       ACE_ASSERT (mediafoundation_modulehandler_configuration_iterator != mediafoundation_ui_cb_data_p->configuration->streamConfiguration.end ());
 
-      (*mediafoundation_modulehandler_configuration_iterator).second.second.mute =
+      (*mediafoundation_modulehandler_configuration_iterator).second.second->mute =
         is_active;
       break;
     }
@@ -7163,7 +7165,7 @@ togglebutton_mute_toggled_cb (GtkToggleButton* toggleButton_in,
     data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (modulehandler_configuration_iterator != data_p->configuration->streamConfiguration.end ());
 
-  (*modulehandler_configuration_iterator).second.second.mute =
+  (*modulehandler_configuration_iterator).second.second->mute =
     is_active;
 #endif
 } // togglebutton_mute_toggled_cb
@@ -7290,14 +7292,14 @@ radiobutton_2d_toggled_cb (GtkToggleButton* toggleButton_in,
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
     {
-      (*directshow_modulehandler_configuration_iterator).second.second.spectrumAnalyzer2DMode =
+      (*directshow_modulehandler_configuration_iterator).second.second->spectrumAnalyzer2DMode =
           (radio_button_p == GTK_RADIO_BUTTON (toggleButton_in) ? STREAM_VISUALIZATION_SPECTRUMANALYZER_2DMODE_OSCILLOSCOPE
                                                                 : STREAM_VISUALIZATION_SPECTRUMANALYZER_2DMODE_SPECTRUM);
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
     {
-      (*mediafoundation_modulehandler_configuration_iterator).second.second.spectrumAnalyzer2DMode =
+      (*mediafoundation_modulehandler_configuration_iterator).second.second->spectrumAnalyzer2DMode =
           (radio_button_p == GTK_RADIO_BUTTON (toggleButton_in) ? STREAM_VISUALIZATION_SPECTRUMANALYZER_2DMODE_OSCILLOSCOPE
                                                                 : STREAM_VISUALIZATION_SPECTRUMANALYZER_2DMODE_SPECTRUM);
       break;
@@ -7311,7 +7313,7 @@ radiobutton_2d_toggled_cb (GtkToggleButton* toggleButton_in,
     }
   } // end SWITCH
 #else
-  (*modulehandler_configuration_iterator).second.second.spectrumAnalyzer2DMode =
+  (*modulehandler_configuration_iterator).second.second->spectrumAnalyzer2DMode =
       (radio_button_p == GTK_RADIO_BUTTON (toggleButton_in) ? STREAM_VISUALIZATION_SPECTRUMANALYZER_2DMODE_OSCILLOSCOPE
                                                             : STREAM_VISUALIZATION_SPECTRUMANALYZER_2DMODE_SPECTRUM);
 #endif
@@ -7405,14 +7407,14 @@ togglebutton_3d_toggled_cb (GtkToggleButton* toggleButton_in,
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
     {
-      (*directshow_modulehandler_configuration_iterator).second.second.spectrumAnalyzer3DMode =
+      (*directshow_modulehandler_configuration_iterator).second.second->spectrumAnalyzer3DMode =
         (is_active ? STREAM_VISUALIZATION_SPECTRUMANALYZER_3DMODE_DEFAULT
                    : STREAM_VISUALIZATION_SPECTRUMANALYZER_3DMODE_INVALID);
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
     {
-      (*mediafoundation_modulehandler_configuration_iterator).second.second.spectrumAnalyzer3DMode =
+      (*mediafoundation_modulehandler_configuration_iterator).second.second->spectrumAnalyzer3DMode =
         (is_active ? STREAM_VISUALIZATION_SPECTRUMANALYZER_3DMODE_DEFAULT
                    : STREAM_VISUALIZATION_SPECTRUMANALYZER_3DMODE_INVALID);
       break;
@@ -7426,7 +7428,7 @@ togglebutton_3d_toggled_cb (GtkToggleButton* toggleButton_in,
     }
   } // end SWITCH
 #else
-  (*modulehandler_configuration_iterator).second.second.spectrumAnalyzer3DMode =
+  (*modulehandler_configuration_iterator).second.second->spectrumAnalyzer3DMode =
       (is_active ? STREAM_VISUALIZATION_SPECTRUMANALYZER_3DMODE_DEFAULT
                  : STREAM_VISUALIZATION_SPECTRUMANALYZER_3DMODE_INVALID);
 #endif
@@ -7800,7 +7802,7 @@ combobox_effect_changed_cb (GtkWidget* widget_in,
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
     {
-      (*directshow_modulehandler_configuration_iterator).second.second.effect =
+      (*directshow_modulehandler_configuration_iterator).second.second->effect =
         effect_GUID;
       if (InlineIsEqualGUID (effect_GUID, GUID_DSCFX_CLASS_AEC))
       {
@@ -7827,7 +7829,7 @@ combobox_effect_changed_cb (GtkWidget* widget_in,
         effect_options.fRightDelay = 10.0F;
         effect_options.fWetDryMix = 50.0F;
         effect_options.lPanDelay = 0;
-        (*directshow_modulehandler_configuration_iterator).second.second.effectOptions.echoOptions =
+        (*directshow_modulehandler_configuration_iterator).second.second->effectOptions.echoOptions =
           effect_options;
       } // end ELSE IF
       else if (InlineIsEqualGUID (effect_GUID, GUID_DSFX_STANDARD_PARAMEQ))
@@ -7862,7 +7864,7 @@ combobox_effect_changed_cb (GtkWidget* widget_in,
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
     {
-      (*mediafoundation_modulehandler_configuration_iterator).second.second.effect =
+      (*mediafoundation_modulehandler_configuration_iterator).second.second->effect =
         effect_GUID;
       if (InlineIsEqualGUID (effect_GUID, GUID_NULL))
       {
@@ -7879,35 +7881,35 @@ combobox_effect_changed_cb (GtkWidget* widget_in,
     }
   } // end SWITCH
 #else
-  (*modulehandler_configuration_iterator).second.second.effectOptions.clear ();
+  (*modulehandler_configuration_iterator).second.second->effectOptions.clear ();
   if (effect_string == ACE_TEXT_ALWAYS_CHAR ("chorus"))
   {
-    (*modulehandler_configuration_iterator).second.second.effectOptions.push_back (ACE_TEXT_ALWAYS_CHAR ("0.5"));  // gain in
-    (*modulehandler_configuration_iterator).second.second.effectOptions.push_back (ACE_TEXT_ALWAYS_CHAR ("0.9"));  // gain out
-    (*modulehandler_configuration_iterator).second.second.effectOptions.push_back (ACE_TEXT_ALWAYS_CHAR ("50"));   // delay (ms)
-    (*modulehandler_configuration_iterator).second.second.effectOptions.push_back (ACE_TEXT_ALWAYS_CHAR ("0.4"));  // decay (% gain in)
-    (*modulehandler_configuration_iterator).second.second.effectOptions.push_back (ACE_TEXT_ALWAYS_CHAR ("0.25")); // speed (Hz)
-    (*modulehandler_configuration_iterator).second.second.effectOptions.push_back (ACE_TEXT_ALWAYS_CHAR ("2"));    // depth (ms)
-    (*modulehandler_configuration_iterator).second.second.effectOptions.push_back (ACE_TEXT_ALWAYS_CHAR ("-t"));   // modulation
-    (*modulehandler_configuration_iterator).second.second.effectOptions.push_back (ACE_TEXT_ALWAYS_CHAR ("60"));   // delay (ms)
-    (*modulehandler_configuration_iterator).second.second.effectOptions.push_back (ACE_TEXT_ALWAYS_CHAR ("0.32")); // decay (% gain in)
-    (*modulehandler_configuration_iterator).second.second.effectOptions.push_back (ACE_TEXT_ALWAYS_CHAR ("0.4"));  // speed (Hz)
-    (*modulehandler_configuration_iterator).second.second.effectOptions.push_back (ACE_TEXT_ALWAYS_CHAR ("2.3"));  // depth (ms)
-    (*modulehandler_configuration_iterator).second.second.effectOptions.push_back (ACE_TEXT_ALWAYS_CHAR ("-t"));   // modulation
-    (*modulehandler_configuration_iterator).second.second.effectOptions.push_back (ACE_TEXT_ALWAYS_CHAR ("40"));   // delay (ms)
-    (*modulehandler_configuration_iterator).second.second.effectOptions.push_back (ACE_TEXT_ALWAYS_CHAR ("0.3"));  // decay (% gain in)
-    (*modulehandler_configuration_iterator).second.second.effectOptions.push_back (ACE_TEXT_ALWAYS_CHAR ("0.3"));  // speed (Hz)
-    (*modulehandler_configuration_iterator).second.second.effectOptions.push_back (ACE_TEXT_ALWAYS_CHAR ("1.3"));  // depth (ms)
-    (*modulehandler_configuration_iterator).second.second.effectOptions.push_back (ACE_TEXT_ALWAYS_CHAR ("-s"));   // modulation
+    (*modulehandler_configuration_iterator).second.second->effectOptions.push_back (ACE_TEXT_ALWAYS_CHAR ("0.5"));  // gain in
+    (*modulehandler_configuration_iterator).second.second->effectOptions.push_back (ACE_TEXT_ALWAYS_CHAR ("0.9"));  // gain out
+    (*modulehandler_configuration_iterator).second.second->effectOptions.push_back (ACE_TEXT_ALWAYS_CHAR ("50"));   // delay (ms)
+    (*modulehandler_configuration_iterator).second.second->effectOptions.push_back (ACE_TEXT_ALWAYS_CHAR ("0.4"));  // decay (% gain in)
+    (*modulehandler_configuration_iterator).second.second->effectOptions.push_back (ACE_TEXT_ALWAYS_CHAR ("0.25")); // speed (Hz)
+    (*modulehandler_configuration_iterator).second.second->effectOptions.push_back (ACE_TEXT_ALWAYS_CHAR ("2"));    // depth (ms)
+    (*modulehandler_configuration_iterator).second.second->effectOptions.push_back (ACE_TEXT_ALWAYS_CHAR ("-t"));   // modulation
+    (*modulehandler_configuration_iterator).second.second->effectOptions.push_back (ACE_TEXT_ALWAYS_CHAR ("60"));   // delay (ms)
+    (*modulehandler_configuration_iterator).second.second->effectOptions.push_back (ACE_TEXT_ALWAYS_CHAR ("0.32")); // decay (% gain in)
+    (*modulehandler_configuration_iterator).second.second->effectOptions.push_back (ACE_TEXT_ALWAYS_CHAR ("0.4"));  // speed (Hz)
+    (*modulehandler_configuration_iterator).second.second->effectOptions.push_back (ACE_TEXT_ALWAYS_CHAR ("2.3"));  // depth (ms)
+    (*modulehandler_configuration_iterator).second.second->effectOptions.push_back (ACE_TEXT_ALWAYS_CHAR ("-t"));   // modulation
+    (*modulehandler_configuration_iterator).second.second->effectOptions.push_back (ACE_TEXT_ALWAYS_CHAR ("40"));   // delay (ms)
+    (*modulehandler_configuration_iterator).second.second->effectOptions.push_back (ACE_TEXT_ALWAYS_CHAR ("0.3"));  // decay (% gain in)
+    (*modulehandler_configuration_iterator).second.second->effectOptions.push_back (ACE_TEXT_ALWAYS_CHAR ("0.3"));  // speed (Hz)
+    (*modulehandler_configuration_iterator).second.second->effectOptions.push_back (ACE_TEXT_ALWAYS_CHAR ("1.3"));  // depth (ms)
+    (*modulehandler_configuration_iterator).second.second->effectOptions.push_back (ACE_TEXT_ALWAYS_CHAR ("-s"));   // modulation
   } // end IF
   else if (effect_string == ACE_TEXT_ALWAYS_CHAR ("echo"))
   {
-    (*modulehandler_configuration_iterator).second.second.effectOptions.push_back (ACE_TEXT_ALWAYS_CHAR ("0.8"));  // gain in
-    (*modulehandler_configuration_iterator).second.second.effectOptions.push_back (ACE_TEXT_ALWAYS_CHAR ("0.9"));  // gain out
-    (*modulehandler_configuration_iterator).second.second.effectOptions.push_back (ACE_TEXT_ALWAYS_CHAR ("100"));  // delay (ms)
-    (*modulehandler_configuration_iterator).second.second.effectOptions.push_back (ACE_TEXT_ALWAYS_CHAR ("0.3"));  // decay (% gain in)
-    (*modulehandler_configuration_iterator).second.second.effectOptions.push_back (ACE_TEXT_ALWAYS_CHAR ("200"));  // delay (ms)
-    (*modulehandler_configuration_iterator).second.second.effectOptions.push_back (ACE_TEXT_ALWAYS_CHAR ("0.25")); // decay (% gain in)
+    (*modulehandler_configuration_iterator).second.second->effectOptions.push_back (ACE_TEXT_ALWAYS_CHAR ("0.8"));  // gain in
+    (*modulehandler_configuration_iterator).second.second->effectOptions.push_back (ACE_TEXT_ALWAYS_CHAR ("0.9"));  // gain out
+    (*modulehandler_configuration_iterator).second.second->effectOptions.push_back (ACE_TEXT_ALWAYS_CHAR ("100"));  // delay (ms)
+    (*modulehandler_configuration_iterator).second.second->effectOptions.push_back (ACE_TEXT_ALWAYS_CHAR ("0.3"));  // decay (% gain in)
+    (*modulehandler_configuration_iterator).second.second->effectOptions.push_back (ACE_TEXT_ALWAYS_CHAR ("200"));  // delay (ms)
+    (*modulehandler_configuration_iterator).second.second->effectOptions.push_back (ACE_TEXT_ALWAYS_CHAR ("0.25")); // decay (% gain in)
   } // end ELSE IF
   else
     ACE_DEBUG ((LM_DEBUG,
@@ -8075,9 +8077,9 @@ combobox_source_changed_cb (GtkWidget* widget_in,
       //  mediafoundation_ui_cb_data_p->configuration->moduleHandlerConfiguration.mediaSource =
       //    NULL;
       //} // end IF
-      if ((*mediafoundation_modulehandler_configuration_iterator).second.second.session)
+      if ((*mediafoundation_modulehandler_configuration_iterator).second.second->session)
       {
-        (*mediafoundation_modulehandler_configuration_iterator).second.second.session->Release (); (*mediafoundation_modulehandler_configuration_iterator).second.second.session = NULL;
+        (*mediafoundation_modulehandler_configuration_iterator).second.second->session->Release (); (*mediafoundation_modulehandler_configuration_iterator).second.second->session = NULL;
       } // end IF
 
 #if COMMON_OS_WIN32_TARGET_PLATFORM(0x0601) // _WIN32_WINNT_WIN7
@@ -8168,8 +8170,8 @@ combobox_source_changed_cb (GtkWidget* widget_in,
     std::istringstream converter;
     converter.str (g_value_get_string (&value_2));
     g_value_unset (&value_2);
-    converter >> (*directshow_modulehandler_configuration_iterator).second.second.audioInput;
-    result_2 = load_formats ((*directshow_modulehandler_configuration_iterator).second.second.audioInput,
+    converter >> (*directshow_modulehandler_configuration_iterator).second.second->audioInput;
+    result_2 = load_formats ((*directshow_modulehandler_configuration_iterator).second.second->audioInput,
                              list_store_2);
     goto continue_;
   } // end IF
@@ -8182,16 +8184,16 @@ combobox_source_changed_cb (GtkWidget* widget_in,
       {
         directshow_ui_cb_data_p->streamConfiguration->Release (); directshow_ui_cb_data_p->streamConfiguration = NULL;
       } // end IF
-      if ((*directshow_modulehandler_configuration_iterator).second.second.builder)
+      if ((*directshow_modulehandler_configuration_iterator).second.second->builder)
       {
-        (*directshow_modulehandler_configuration_iterator).second.second.builder->Release (); (*directshow_modulehandler_configuration_iterator).second.second.builder = NULL;
+        (*directshow_modulehandler_configuration_iterator).second.second->builder->Release (); (*directshow_modulehandler_configuration_iterator).second.second->builder = NULL;
       } // end IF
       directshow_ui_cb_data_p->configuration->streamConfiguration.configuration_->filterGraphConfiguration.clear ();
 
       IAMBufferNegotiation* buffer_negotiation_p = NULL;
       if (!Stream_Device_DirectShow_Tools::loadDeviceGraph (device_string,
                                                             CLSID_AudioInputDeviceCategory,
-                                                            (*directshow_modulehandler_configuration_iterator).second.second.builder,
+                                                            (*directshow_modulehandler_configuration_iterator).second.second->builder,
                                                             buffer_negotiation_p,
                                                             directshow_ui_cb_data_p->streamConfiguration,
                                                             directshow_ui_cb_data_p->configuration->streamConfiguration.configuration_->filterGraphConfiguration))
@@ -8201,7 +8203,7 @@ combobox_source_changed_cb (GtkWidget* widget_in,
                     ACE_TEXT (device_string.c_str ())));
         return;
       } // end IF
-      ACE_ASSERT ((*directshow_modulehandler_configuration_iterator).second.second.builder);
+      ACE_ASSERT ((*directshow_modulehandler_configuration_iterator).second.second->builder);
       ACE_ASSERT (buffer_negotiation_p);
       ACE_ASSERT (directshow_ui_cb_data_p->streamConfiguration);
 
@@ -8239,9 +8241,9 @@ combobox_source_changed_cb (GtkWidget* widget_in,
 
       // sanity check(s)
 #if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
-      ACE_ASSERT (!(*mediafoundation_modulehandler_configuration_iterator).second.second.session);
+      ACE_ASSERT (!(*mediafoundation_modulehandler_configuration_iterator).second.second->session);
       if (!Stream_MediaFramework_MediaFoundation_Tools::setTopology (topology_p,
-                                                                     (*mediafoundation_modulehandler_configuration_iterator).second.second.session,
+                                                                     (*mediafoundation_modulehandler_configuration_iterator).second.second->session,
                                                                      true))
       {
         ACE_DEBUG ((LM_ERROR,
@@ -8251,12 +8253,12 @@ combobox_source_changed_cb (GtkWidget* widget_in,
 #endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
       topology_p->Release (); topology_p = NULL;
 
-      if ((*mediafoundation_modulehandler_configuration_iterator).second.second.outputFormat)
+      if ((*mediafoundation_modulehandler_configuration_iterator).second.second->outputFormat)
       {
-        (*mediafoundation_modulehandler_configuration_iterator).second.second.outputFormat->Release (); (*mediafoundation_modulehandler_configuration_iterator).second.second.outputFormat = NULL;
+        (*mediafoundation_modulehandler_configuration_iterator).second.second->outputFormat->Release (); (*mediafoundation_modulehandler_configuration_iterator).second.second->outputFormat = NULL;
       } // end IF
       HRESULT result =
-        MFCreateMediaType (&(*mediafoundation_modulehandler_configuration_iterator).second.second.outputFormat);
+        MFCreateMediaType (&(*mediafoundation_modulehandler_configuration_iterator).second.second->outputFormat);
       if (FAILED (result))
       {
         ACE_DEBUG ((LM_ERROR,
@@ -8264,13 +8266,13 @@ combobox_source_changed_cb (GtkWidget* widget_in,
                     ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
         goto error;
       } // end IF
-      ACE_ASSERT ((*mediafoundation_modulehandler_configuration_iterator).second.second.outputFormat);
+      ACE_ASSERT ((*mediafoundation_modulehandler_configuration_iterator).second.second->outputFormat);
       result =
-        (*mediafoundation_modulehandler_configuration_iterator).second.second.outputFormat->SetGUID (MF_MT_MAJOR_TYPE,
+        (*mediafoundation_modulehandler_configuration_iterator).second.second->outputFormat->SetGUID (MF_MT_MAJOR_TYPE,
                                                                                                      MFMediaType_Audio);
       ACE_ASSERT (SUCCEEDED (result));
       result =
-        (*mediafoundation_modulehandler_configuration_iterator).second.second.outputFormat->SetUINT32 (MF_MT_ALL_SAMPLES_INDEPENDENT,
+        (*mediafoundation_modulehandler_configuration_iterator).second.second->outputFormat->SetUINT32 (MF_MT_ALL_SAMPLES_INDEPENDENT,
                                                                                                        TRUE);
       ACE_ASSERT (SUCCEEDED (result));
 
@@ -8301,9 +8303,9 @@ continue_:
                   ACE_TEXT (snd_strerror (result))));
     ACE_DEBUG ((LM_DEBUG,
                 ACE_TEXT ("closed ALSA device\n")));
-    ACE_ASSERT (ui_cb_data_p->handle == (*modulehandler_configuration_iterator).second.second.captureDeviceHandle);
+    ACE_ASSERT (ui_cb_data_p->handle == (*modulehandler_configuration_iterator).second.second->captureDeviceHandle);
     ui_cb_data_p->handle = NULL;
-    (*modulehandler_configuration_iterator).second.second.captureDeviceHandle =
+    (*modulehandler_configuration_iterator).second.second->captureDeviceHandle =
         NULL;
   } // end IF
   ACE_ASSERT (!ui_cb_data_p->handle);
@@ -8321,7 +8323,7 @@ continue_:
                 ACE_TEXT (snd_strerror (result))));
     goto error;
   } // end IF
-  (*modulehandler_configuration_iterator).second.second.captureDeviceHandle =
+  (*modulehandler_configuration_iterator).second.second->captureDeviceHandle =
     ui_cb_data_p->handle;
   ACE_ASSERT (ui_cb_data_p->handle);
   ACE_DEBUG ((LM_DEBUG,
@@ -8659,7 +8661,7 @@ combobox_format_changed_cb (GtkWidget* widget_in,
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
     { ACE_ASSERT (mediafoundation_ui_cb_data_p->configuration);
       ACE_ASSERT (mediafoundation_ui_cb_data_p->configuration->streamConfiguration.configuration_->format);
-      ACE_ASSERT ((*mediafoundation_modulehandler_configuration_iterator).second.second.session);
+      ACE_ASSERT ((*mediafoundation_modulehandler_configuration_iterator).second.second->session);
 
       HRESULT result =
         mediafoundation_ui_cb_data_p->configuration->streamConfiguration.configuration_->format->SetGUID (MF_MT_SUBTYPE,
@@ -8675,7 +8677,7 @@ combobox_format_changed_cb (GtkWidget* widget_in,
         break;
 
 #if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
-      if (!Stream_MediaFramework_MediaFoundation_Tools::getMediaSource ((*mediafoundation_modulehandler_configuration_iterator).second.second.session,
+      if (!Stream_MediaFramework_MediaFoundation_Tools::getMediaSource ((*mediafoundation_modulehandler_configuration_iterator).second.second->session,
                                                                         media_source_p))
       {
         ACE_DEBUG ((LM_ERROR,
@@ -9008,7 +9010,7 @@ combobox_frequency_changed_cb (GtkWidget* widget_in,
     { ACE_ASSERT (mediafoundation_ui_cb_data_p->configuration);
       ACE_ASSERT (mediafoundation_ui_cb_data_p->configuration->streamConfiguration.configuration_->format);
 #if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
-      ACE_ASSERT ((*mediafoundation_modulehandler_configuration_iterator).second.second.session);
+      ACE_ASSERT ((*mediafoundation_modulehandler_configuration_iterator).second.second->session);
 #endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
 
       HRESULT result =
@@ -9026,7 +9028,7 @@ combobox_frequency_changed_cb (GtkWidget* widget_in,
         break;
 
 #if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
-      if (!Stream_MediaFramework_MediaFoundation_Tools::getMediaSource ((*mediafoundation_modulehandler_configuration_iterator).second.second.session,
+      if (!Stream_MediaFramework_MediaFoundation_Tools::getMediaSource ((*mediafoundation_modulehandler_configuration_iterator).second.second->session,
                                                                         media_source_p))
       {
         ACE_DEBUG ((LM_ERROR,
@@ -9385,7 +9387,7 @@ combobox_resolution_changed_cb (GtkWidget* widget_in,
     { ACE_ASSERT (mediafoundation_ui_cb_data_p->configuration);
       ACE_ASSERT (mediafoundation_ui_cb_data_p->configuration->streamConfiguration.configuration_->format);
 #if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
-      ACE_ASSERT ((*mediafoundation_modulehandler_configuration_iterator).second.second.session);
+      ACE_ASSERT ((*mediafoundation_modulehandler_configuration_iterator).second.second->session);
 #endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
 
       HRESULT result =
@@ -9403,7 +9405,7 @@ combobox_resolution_changed_cb (GtkWidget* widget_in,
         break;
 
 #if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
-      if (!Stream_MediaFramework_MediaFoundation_Tools::getMediaSource ((*mediafoundation_modulehandler_configuration_iterator).second.second.session,
+      if (!Stream_MediaFramework_MediaFoundation_Tools::getMediaSource ((*mediafoundation_modulehandler_configuration_iterator).second.second->session,
                                                                         media_source_p))
       {
         ACE_DEBUG ((LM_ERROR,
@@ -9726,7 +9728,7 @@ combobox_channels_changed_cb (GtkWidget* widget_in,
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
     { ACE_ASSERT (mediafoundation_ui_cb_data_p->configuration);
       ACE_ASSERT (mediafoundation_ui_cb_data_p->configuration->streamConfiguration.configuration_->format);
-      //ACE_ASSERT ((*mediafoundation_modulehandler_configuration_iterator).second.second.session);
+      //ACE_ASSERT ((*mediafoundation_modulehandler_configuration_iterator).second.second->session);
 
       HRESULT result =
         mediafoundation_ui_cb_data_p->configuration->streamConfiguration.configuration_->format->SetUINT32 (MF_MT_AUDIO_NUM_CHANNELS,
@@ -9811,10 +9813,10 @@ drawingarea_query_tooltip_cb (GtkWidget*  widget_in,
 
       istream_p = dynamic_cast<Stream_IStream_t*> (directshow_ui_cb_data_p->stream);
       mode =
-        (*directshow_modulehandler_configuration_iterator).second.second.spectrumAnalyzer2DMode;
-      ACE_ASSERT ((*directshow_modulehandler_configuration_iterator).second.second.outputFormat.cbFormat == sizeof (struct tWAVEFORMATEX));
+        (*directshow_modulehandler_configuration_iterator).second.second->spectrumAnalyzer2DMode;
+      ACE_ASSERT ((*directshow_modulehandler_configuration_iterator).second.second->outputFormat.cbFormat == sizeof (struct tWAVEFORMATEX));
       struct tWAVEFORMATEX* waveformatex_p =
-        reinterpret_cast<struct tWAVEFORMATEX*> ((*directshow_modulehandler_configuration_iterator).second.second.outputFormat.pbFormat);
+        reinterpret_cast<struct tWAVEFORMATEX*> ((*directshow_modulehandler_configuration_iterator).second.second->outputFormat.pbFormat);
       ACE_ASSERT (waveformatex_p);
       sample_size = waveformatex_p->wBitsPerSample / 8;
       // *NOTE*: Microsoft(TM) uses signed little endian
@@ -9836,9 +9838,9 @@ drawingarea_query_tooltip_cb (GtkWidget*  widget_in,
 
       istream_p = dynamic_cast<Stream_IStream_t*> (mediafoundation_ui_cb_data_p->stream);
       mode =
-        (*mediafoundation_modulehandler_configuration_iterator).second.second.spectrumAnalyzer2DMode;
+        (*mediafoundation_modulehandler_configuration_iterator).second.second->spectrumAnalyzer2DMode;
       result =
-        (*mediafoundation_modulehandler_configuration_iterator).second.second.outputFormat->GetUINT32 (MF_MT_SAMPLE_SIZE,
+        (*mediafoundation_modulehandler_configuration_iterator).second.second->outputFormat->GetUINT32 (MF_MT_SAMPLE_SIZE,
                                                                                                        &sample_size);
       if (FAILED (result))
       {
@@ -9850,7 +9852,7 @@ drawingarea_query_tooltip_cb (GtkWidget*  widget_in,
       // *NOTE*: Microsoft(TM) uses signed little endian
       is_signed_format = true;
       result =
-        (*mediafoundation_modulehandler_configuration_iterator).second.second.outputFormat->GetUINT32 (MF_MT_AUDIO_NUM_CHANNELS,
+        (*mediafoundation_modulehandler_configuration_iterator).second.second->outputFormat->GetUINT32 (MF_MT_AUDIO_NUM_CHANNELS,
                                                                                                        &channels);
       if (FAILED (result))
       {
@@ -9881,7 +9883,7 @@ drawingarea_query_tooltip_cb (GtkWidget*  widget_in,
 
   istream_p = dynamic_cast<Stream_IStream_t*> (ui_cb_data_p->stream);
   mode =
-    (*modulehandler_configuration_iterator).second.second.spectrumAnalyzer2DMode;
+    (*modulehandler_configuration_iterator).second.second->spectrumAnalyzer2DMode;
   is_signed_format =
       snd_pcm_format_signed (ui_cb_data_p->configuration->streamConfiguration.configuration_->format.format);
   sample_size =
@@ -10143,14 +10145,14 @@ drawingarea_size_allocate_cb (GtkWidget* widget_in,
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
     {
       lock_p = &directshow_ui_cb_data_p->surfaceLock;
-      //(*directshow_modulehandler_configuration_iterator).second.second.area2D =
+      //(*directshow_modulehandler_configuration_iterator).second.second->area2D =
       //  *allocation_in;
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
     {
       lock_p = &mediafoundation_ui_cb_data_p->surfaceLock;
-      //(*mediafoundation_modulehandler_configuration_iterator).second.second.area2D =
+      //(*mediafoundation_modulehandler_configuration_iterator).second.second->area2D =
       //  *allocation_in;
       break;
     }
@@ -10164,7 +10166,7 @@ drawingarea_size_allocate_cb (GtkWidget* widget_in,
   } // end SWITCH
 #else
   lock_p = &ui_cb_data_p->surfaceLock;
-  (*streamconfiguration_iterator).second.second.area2D = *allocation_in;
+  (*streamconfiguration_iterator).second.second->area2D = *allocation_in;
 #endif // ACE_WIN32 || ACE_WIN64
 
   GdkWindow* window_p = gtk_widget_get_window (widget_in);
@@ -10219,7 +10221,7 @@ drawingarea_size_allocate_cb (GtkWidget* widget_in,
         //if (directshow_ui_cb_data_p->cairoSurface2D)
         //  cairo_surface_destroy (directshow_ui_cb_data_p->cairoSurface2D);
         //directshow_ui_cb_data_p->cairoSurface2D = surface_p;
-        //(*directshow_modulehandler_configuration_iterator).second.second.cairoSurface2D =
+        //(*directshow_modulehandler_configuration_iterator).second.second->cairoSurface2D =
         //  surface_p;
         //ACE_ASSERT (directshow_ui_cb_data_p->cairoSurface2D);
 #else
@@ -10228,7 +10230,7 @@ drawingarea_size_allocate_cb (GtkWidget* widget_in,
         //if (directshow_ui_cb_data_p->pixelBuffer2D)
         //  g_object_unref (directshow_ui_cb_data_p->pixelBuffer2D);
         //directshow_ui_cb_data_p->pixelBuffer2D = pixel_buffer_p;
-        //(*directshow_modulehandler_configuration_iterator).second.second.pixelBuffer2D =
+        //(*directshow_modulehandler_configuration_iterator).second.second->pixelBuffer2D =
         //  pixel_buffer_p;
         //ACE_ASSERT (directshow_ui_cb_data_p->pixelBuffer2D);
 #endif // GTK_CHECK_VERSION(3,10,0)
@@ -10240,7 +10242,7 @@ drawingarea_size_allocate_cb (GtkWidget* widget_in,
         //if (mediafoundation_ui_cb_data_p->cairoSurface2D)
         //  cairo_surface_destroy (mediafoundation_ui_cb_data_p->cairoSurface2D);
         //mediafoundation_ui_cb_data_p->cairoSurface2D = surface_p;
-        //(*mediafoundation_modulehandler_configuration_iterator).second.second.cairoSurface2D =
+        //(*mediafoundation_modulehandler_configuration_iterator).second.second->cairoSurface2D =
         //    surface_p;
         //ACE_ASSERT (mediafoundation_ui_cb_data_p->cairoSurface2D);
 #else
@@ -10249,7 +10251,7 @@ drawingarea_size_allocate_cb (GtkWidget* widget_in,
         //if (mediafoundation_ui_cb_data_p->pixelBuffer2D)
         //  g_object_unref (mediafoundation_ui_cb_data_p->pixelBuffer2D);
         //mediafoundation_ui_cb_data_p->pixelBuffer2D = pixel_buffer_p;
-        //(*mediafoundation_modulehandler_configuration_iterator).second.second.pixelBuffer2D =
+        //(*mediafoundation_modulehandler_configuration_iterator).second.second->pixelBuffer2D =
         //    pixel_buffer_p;
         //ACE_ASSERT (mediafoundation_ui_cb_data_p->pixelBuffer2D);
 #endif // GTK_CHECK_VERSION(3,10,0)
@@ -10268,14 +10270,14 @@ drawingarea_size_allocate_cb (GtkWidget* widget_in,
     //if (ui_cb_data_p->cairoSurface2D)
     //  cairo_surface_destroy (ui_cb_data_p->cairoSurface2D);
     //ui_cb_data_p->cairoSurface2D = surface_p;
-    //(*streamconfiguration_iterator).second.second.cairoSurface2D =
+    //(*streamconfiguration_iterator).second.second->cairoSurface2D =
     //  surface_p;
     //ACE_ASSERT (ui_cb_data_p->cairoSurface2D);
 #else
     //if (ui_cb_data_p->pixelBuffer2D)
     //  g_object_unref (ui_cb_data_p->pixelBuffer2D);
     //ui_cb_data_p->pixelBuffer2D = pixel_buffer_p;
-    //(*streamconfiguration_iterator).second.second.pixelBuffer2D =
+    //(*streamconfiguration_iterator).second.second->pixelBuffer2D =
     //  pixel_buffer_p;
     //ACE_ASSERT (ui_cb_data_p->pixelBuffer2D);
 #endif // GTK_CHECK_VERSION(3,10,0)
@@ -10470,11 +10472,11 @@ drawingarea_configure_event_cb (GtkWidget* widget_in,
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
     {
       if (widget_in == GTK_WIDGET (drawing_area_p))
-        (*directshow_modulehandler_configuration_iterator).second.second.area2D =
+        (*directshow_modulehandler_configuration_iterator).second.second->area2D =
           *area_p;
 #if defined (GTKGL_SUPPORT)
       else
-        (*directshow_modulehandler_configuration_iterator).second.second.area3D =
+        (*directshow_modulehandler_configuration_iterator).second.second->area3D =
           *area_p;
 #endif /* GTKGL_SUPPORT */
       break;
@@ -10482,11 +10484,11 @@ drawingarea_configure_event_cb (GtkWidget* widget_in,
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
     {
       if (widget_in == GTK_WIDGET (drawing_area_p))
-        (*mediafoundation_modulehandler_configuration_iterator).second.second.area2D =
+        (*mediafoundation_modulehandler_configuration_iterator).second.second->area2D =
           *area_p;
 #if defined (GTKGL_SUPPORT)
       else
-        (*mediafoundation_modulehandler_configuration_iterator).second.second.area3D =
+        (*mediafoundation_modulehandler_configuration_iterator).second.second->area3D =
           *area_p;
 #endif /* GTKGL_SUPPORT */
       break;
@@ -10501,10 +10503,10 @@ drawingarea_configure_event_cb (GtkWidget* widget_in,
   } // end SWITCH
 #else
   if (widget_in == GTK_WIDGET (drawing_area_p))
-    (*modulehandler_configuration_iterator).second.second.area2D = *area_p;
+    (*modulehandler_configuration_iterator).second.second->area2D = *area_p;
 #if defined (GTKGL_SUPPORT)
   else
-    (*modulehandler_configuration_iterator).second.second.area3D = *area_p;
+    (*modulehandler_configuration_iterator).second.second->area3D = *area_p;
 #endif /* GTKGL_SUPPORT */
 #endif // ACE_WIN32 || ACE_WIN64
 
@@ -10561,7 +10563,7 @@ drawingarea_configure_event_cb (GtkWidget* widget_in,
         if (directshow_ui_cb_data_p->cairoSurface2D)
           cairo_surface_destroy (directshow_ui_cb_data_p->cairoSurface2D);
         directshow_ui_cb_data_p->cairoSurface2D = surface_p;
-        (*directshow_modulehandler_configuration_iterator).second.second.cairoSurface2D =
+        (*directshow_modulehandler_configuration_iterator).second.second->cairoSurface2D =
           surface_p;
         ACE_ASSERT (directshow_ui_cb_data_p->cairoSurface2D);
 #else
@@ -10570,7 +10572,7 @@ drawingarea_configure_event_cb (GtkWidget* widget_in,
         if (directshow_ui_cb_data_p->pixelBuffer2D)
           g_object_unref (directshow_ui_cb_data_p->pixelBuffer2D);
         directshow_ui_cb_data_p->pixelBuffer2D = pixel_buffer_p;
-        (*directshow_modulehandler_configuration_iterator).second.second.pixelBuffer2D =
+        (*directshow_modulehandler_configuration_iterator).second.second->pixelBuffer2D =
           pixel_buffer_p;
         ACE_ASSERT (directshow_ui_cb_data_p->pixelBuffer2D);
 #endif // GTK_CHECK_VERSION(3,10,0)
@@ -10582,7 +10584,7 @@ drawingarea_configure_event_cb (GtkWidget* widget_in,
         if (mediafoundation_ui_cb_data_p->cairoSurface2D)
           cairo_surface_destroy (mediafoundation_ui_cb_data_p->cairoSurface2D);
         mediafoundation_ui_cb_data_p->cairoSurface2D = surface_p;
-        (*mediafoundation_modulehandler_configuration_iterator).second.second.cairoSurface2D =
+        (*mediafoundation_modulehandler_configuration_iterator).second.second->cairoSurface2D =
           surface_p;
         ACE_ASSERT (mediafoundation_ui_cb_data_p->cairoSurface2D);
 #else
@@ -10591,7 +10593,7 @@ drawingarea_configure_event_cb (GtkWidget* widget_in,
         if (mediafoundation_ui_cb_data_p->pixelBuffer2D)
           g_object_unref (mediafoundation_ui_cb_data_p->pixelBuffer2D);
         mediafoundation_ui_cb_data_p->pixelBuffer2D = pixel_buffer_p;
-        (*mediafoundation_modulehandler_configuration_iterator).second.second.pixelBuffer2D =
+        (*mediafoundation_modulehandler_configuration_iterator).second.second->pixelBuffer2D =
           pixel_buffer_p;
         ACE_ASSERT (mediafoundation_ui_cb_data_p->pixelBuffer2D);
 #endif // GTK_CHECK_VERSION(3,10,0)
@@ -10610,14 +10612,14 @@ drawingarea_configure_event_cb (GtkWidget* widget_in,
     if (data_p->cairoSurface2D)
       cairo_surface_destroy (data_p->cairoSurface2D);
     data_p->cairoSurface2D = surface_p;
-    (*modulehandler_configuration_iterator).second.second.cairoSurface2D =
+    (*modulehandler_configuration_iterator).second.second->cairoSurface2D =
       surface_p;
     ACE_ASSERT (data_p->cairoSurface2D);
 #else
     if (data_p->pixelBuffer2D)
       g_object_unref (data_p->pixelBuffer2D);
     data_p->pixelBuffer2D = pixel_buffer_p;
-    (*modulehandler_configuration_iterator).second.second.pixelBuffer2D =
+    (*modulehandler_configuration_iterator).second.second->pixelBuffer2D =
       pixel_buffer_p;
     ACE_ASSERT (data_p->pixelBuffer2D);
 #endif // GTK_CHECK_VERSION(3,10,0)

@@ -83,9 +83,6 @@ Test_U_AudioEffect_DirectShow_Stream::load (Stream_ILayout* layout_in,
   typename inherited::CONFIGURATION_T::ITERATOR_T iterator =
     inherited::configuration_->find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (iterator != inherited::configuration_->end ());
-  struct Test_U_AudioEffect_DirectShow_ModuleHandlerConfiguration* configuration_p =
-    static_cast<struct Test_U_AudioEffect_DirectShow_ModuleHandlerConfiguration*> (&((*iterator).second.second));
-  ACE_ASSERT (configuration_p);
 
   Stream_Module_t* module_p = NULL;
   if (inherited::configuration_->configuration_->useFrameworkSource)
@@ -113,7 +110,7 @@ Test_U_AudioEffect_DirectShow_Stream::load (Stream_ILayout* layout_in,
   ACE_ASSERT (module_p);
   layout_in->append (module_p, NULL, 0);
   module_p = NULL;
-  if (!configuration_p->mute)
+  if (!(*iterator).second.second->mute)
   {
     ACE_NEW_RETURN (module_p,
                     //Test_U_AudioEffect_DirectShow_WavOut_Module (this,
@@ -193,7 +190,7 @@ Test_U_AudioEffect_DirectShow_Stream::initialize (const inherited::CONFIGURATION
   ACE_ASSERT (iterator != configuration_in.end ());
 
   // *TODO*: remove type inference
-  session_data_r.targetFileName = (*iterator).second.second.targetFileName;
+  session_data_r.targetFileName = (*iterator).second.second->targetFileName;
 
   // ---------------------------------------------------------------------------
 
@@ -209,6 +206,18 @@ Test_U_AudioEffect_DirectShow_Stream::initialize (const inherited::CONFIGURATION
   ACE_ASSERT (iset_p);
 
   // ---------------------------------------------------------------------------
+
+  // ********************** Spectrum Analyzer *****************
+#if defined (GUI_SUPPORT)
+#if defined (GTK_SUPPORT)
+  Stream_Module_t* module_2 =
+      const_cast<Stream_Module_t*> (inherited::find (ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_GTK_SPECTRUM_ANALYZER_DEFAULT_NAME_STRING)));
+  ACE_ASSERT (module_2);
+  Test_U_AudioEffect_IDispatch_t* idispatch_p = dynamic_cast<Test_U_AudioEffect_IDispatch_t*> (module_2->writer ());
+  ACE_ASSERT (idispatch_p);
+  (*iterator).second.second->dispatch = idispatch_p;
+#endif // GTK_SUPPORT
+#endif // GUI_SUPPORT
 
   //struct _AllocatorProperties allocator_properties;
   IAMBufferNegotiation* buffer_negotiation_p = NULL;
@@ -238,7 +247,7 @@ Test_U_AudioEffect_DirectShow_Stream::initialize (const inherited::CONFIGURATION
   //} // end IF
   //COM_initialized = true;
 
-  ACE_ASSERT ((*iterator).second.second.builder);
+  ACE_ASSERT ((*iterator).second.second->builder);
 
   //if (!Stream_Device_Tools::setCaptureFormat (graphBuilder_,
   //                                            CLSID_AudioInputDeviceCategory,
@@ -261,11 +270,11 @@ Test_U_AudioEffect_DirectShow_Stream::initialize (const inherited::CONFIGURATION
   if (!Stream_Module_Decoder_Tools::loadAudioRendererGraph ((configuration_in.configuration_->useFrameworkSource ? CLSID_AudioInputDeviceCategory
                                                                                                                  : GUID_NULL),
                                                             configuration_in.configuration_->format,
-                                                            ((*iterator).second.second.mute ? -1
-                                                                                            : (*iterator).second.second.audioOutput),
-                                                            (*iterator).second.second.builder,
-                                                            (*iterator).second.second.effect,
-                                                            (*iterator).second.second.effectOptions,
+                                                            ((*iterator).second.second->mute ? -1
+                                                                                            : (*iterator).second.second->audioOutput),
+                                                            (*iterator).second.second->builder,
+                                                            (*iterator).second.second->effect,
+                                                            (*iterator).second.second->effectOptions,
                                                             graph_configuration))
   {
     ACE_DEBUG ((LM_ERROR,
@@ -288,7 +297,7 @@ Test_U_AudioEffect_DirectShow_Stream::initialize (const inherited::CONFIGURATION
   } // end IF
   graph_configuration.push_front (graph_entry);
 //  result_2 =
-//    (*iterator).second.second.builder->FindFilterByName (STREAM_LIB_DIRECTSHOW_FILTER_NAME_GRAB,
+//    (*iterator).second.second->builder->FindFilterByName (STREAM_LIB_DIRECTSHOW_FILTER_NAME_GRAB,
 //                                                         &filter_p);
 //  if (FAILED (result_2))
 //  {
@@ -355,7 +364,7 @@ Test_U_AudioEffect_DirectShow_Stream::initialize (const inherited::CONFIGURATION
 //    goto error;
 //  } // end IF
 //
-  if (!Stream_MediaFramework_DirectShow_Tools::connect ((*iterator).second.second.builder,
+  if (!Stream_MediaFramework_DirectShow_Tools::connect ((*iterator).second.second->builder,
                                                         graph_configuration))
   {
     ACE_DEBUG ((LM_ERROR,
@@ -522,7 +531,7 @@ error:
 
   if (release_builder)
   {
-    (*iterator).second.second.builder->Release (); (*iterator).second.second.builder = NULL;
+    (*iterator).second.second->builder->Release (); (*iterator).second.second->builder = NULL;
   } // end IF
 
   //if (COM_initialized)
@@ -731,7 +740,7 @@ Test_U_AudioEffect_MediaFoundation_Stream::initialize (const inherited::CONFIGUR
   ACE_ASSERT (iterator != configuration_in.end ());
 
   // *TODO*: remove type inference
-  session_data_r.targetFileName = (*iterator).second.second.targetFileName;
+  session_data_r.targetFileName = (*iterator).second.second->targetFileName;
 
   // ---------------------------------------------------------------------------
 
@@ -774,10 +783,10 @@ Test_U_AudioEffect_MediaFoundation_Stream::initialize (const inherited::CONFIGUR
     mediaSession_->Release (); mediaSession_ = NULL;
   } // end IF
 
-  if ((*iterator).second.second.session)
+  if ((*iterator).second.second->session)
   {
-    reference_count = (*iterator).second.second.session->AddRef ();
-    mediaSession_ = (*iterator).second.second.session;
+    reference_count = (*iterator).second.second->session->AddRef ();
+    mediaSession_ = (*iterator).second.second->session;
 
     if (!Stream_MediaFramework_MediaFoundation_Tools::clear (mediaSession_))
     {
@@ -808,36 +817,36 @@ Test_U_AudioEffect_MediaFoundation_Stream::initialize (const inherited::CONFIGUR
     } // end IF
     ACE_ASSERT (topology_p);
 
-    if ((*iterator).second.second.sampleGrabberNodeId)
+    if ((*iterator).second.second->sampleGrabberNodeId)
       goto continue_;
     if (!Stream_MediaFramework_MediaFoundation_Tools::getSampleGrabberNodeId (topology_p,
-                                                                              (*iterator).second.second.sampleGrabberNodeId))
+                                                                              (*iterator).second.second->sampleGrabberNodeId))
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: failed to Stream_MediaFramework_MediaFoundation_Tools::clear(), aborting\n"),
                   ACE_TEXT (stream_name_string_)));
       goto error;
     } // end IF
-    ACE_ASSERT ((*iterator).second.second.sampleGrabberNodeId);
+    ACE_ASSERT ((*iterator).second.second->sampleGrabberNodeId);
 
     goto continue_;
   } // end IF
 #endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
 
   TOPOID renderer_node_id = 0;
-  if (!Stream_Module_Decoder_Tools::loadAudioRendererTopology ((*iterator).second.second.deviceIdentifier.identifier._string,
+  if (!Stream_Module_Decoder_Tools::loadAudioRendererTopology ((*iterator).second.second->deviceIdentifier.identifier._string,
                                                                configuration_in.configuration_->format,
                                                                source_impl_p,
-                                                               ((*iterator).second.second.mute ? -1
-                                                                                               : (*iterator).second.second.audioOutput),
-                                                               (*iterator).second.second.sampleGrabberNodeId,
+                                                               ((*iterator).second.second->mute ? -1
+                                                                                               : (*iterator).second.second->audioOutput),
+                                                               (*iterator).second.second->sampleGrabberNodeId,
                                                                renderer_node_id,
                                                                topology_p))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to Stream_Module_Decoder_Tools::loadAudioRendererTopology(\"%s\"), aborting\n"),
                 ACE_TEXT (stream_name_string_),
-                ACE_TEXT ((*iterator).second.second.deviceIdentifier.identifier._string)));
+                ACE_TEXT ((*iterator).second.second->deviceIdentifier.identifier._string)));
     goto error;
   } // end IF
   ACE_ASSERT (topology_p);
@@ -860,7 +869,7 @@ Test_U_AudioEffect_MediaFoundation_Stream::initialize (const inherited::CONFIGUR
   ACE_ASSERT (mediaSession_);
 
   reference_count = mediaSession_->AddRef ();
-  (*iterator).second.second.session = mediaSession_;
+  (*iterator).second.second->session = mediaSession_;
 continue_:
 #endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
   ACE_ASSERT (topology_p);
@@ -891,7 +900,7 @@ continue_:
   //session_data_r.formats.push_back (media_type_p);
 
   if (!Stream_MediaFramework_MediaFoundation_Tools::getOutputFormat (topology_p,
-                                                                     (*iterator).second.second.sampleGrabberNodeId,
+                                                                     (*iterator).second.second->sampleGrabberNodeId,
                                                                      media_type_p))
   {
     ACE_DEBUG ((LM_ERROR,

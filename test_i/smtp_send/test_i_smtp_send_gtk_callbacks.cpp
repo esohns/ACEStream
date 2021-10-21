@@ -659,8 +659,8 @@ action_send_activate_cb (GtkAction* action_in,
   Stream_SMTPSend_StreamConfiguration_t::ITERATOR_T iterator_2 =
     ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (iterator_2 != ui_cb_data_p->configuration->streamConfiguration.end ());
-  ACE_ASSERT ((*iterator_2).second.second.protocolConfiguration);
-  ACE_ASSERT ((*iterator_2).second.second.request);
+  ACE_ASSERT ((*iterator_2).second.second->protocolConfiguration);
+  ACE_ASSERT ((*iterator_2).second.second->request);
   Net_ConnectionConfigurationsIterator_t iterator_3;
 
   int result = -1;
@@ -720,8 +720,8 @@ action_send_activate_cb (GtkAction* action_in,
     goto error;
   } // end IF
   iterator_3 =
-    (*iterator_2).second.second.connectionConfigurations->find (ACE_TEXT_ALWAYS_CHAR (""));
-  ACE_ASSERT (iterator_3 != (*iterator_2).second.second.connectionConfigurations->end ());
+    (*iterator_2).second.second->connectionConfigurations->find (ACE_TEXT_ALWAYS_CHAR (""));
+  ACE_ASSERT (iterator_3 != (*iterator_2).second.second->connectionConfigurations->end ());
   NET_CONFIGURATION_TCP_CAST ((*iterator_3).second)->socketConfiguration.address =
     ui_cb_data_p->configuration->address;
   entry_p =
@@ -759,13 +759,13 @@ action_send_activate_cb (GtkAction* action_in,
                                                     &start, &end,
                                                     TRUE));
 
-  (*iterator_2).second.second.protocolConfiguration->username =
+  (*iterator_2).second.second->protocolConfiguration->username =
     ui_cb_data_p->configuration->username;
-  (*iterator_2).second.second.protocolConfiguration->password =
+  (*iterator_2).second.second->protocolConfiguration->password =
     ui_cb_data_p->configuration->password;
-  (*iterator_2).second.second.request->from = ui_cb_data_p->configuration->from;
-  (*iterator_2).second.second.request->to.push_back (ui_cb_data_p->configuration->to);
-  (*iterator_2).second.second.request->data = ui_cb_data_p->configuration->message;
+  (*iterator_2).second.second->request->from = ui_cb_data_p->configuration->from;
+  (*iterator_2).second.second->request->to.push_back (ui_cb_data_p->configuration->to);
+  (*iterator_2).second.second->request->data = ui_cb_data_p->configuration->message;
 
   // step4: start processing thread
   ACE_NEW_NORETURN (thread_data_p,

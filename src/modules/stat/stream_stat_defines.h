@@ -24,19 +24,19 @@
 #define MODULE_STAT_ANALYSIS_DEFAULT_NAME_STRING                "StatisticAnalysis"
 #define MODULE_STAT_REPORT_DEFAULT_NAME_STRING                  "StatisticReport"
 
-#define MODULE_STAT_ANALYSIS_DEFAULT_BUFFER_SIZE                1024
+#define MODULE_STAT_ANALYSIS_DEFAULT_BUFFER_SIZE                1024 // #slots
 
 // *NOTE*: (in a normal distribution,) values in the range of +/- 5.0 * sigma
 //         (i.e. five standard deviations) account for 99.99994% of all sample
 //         data (which is assumed to be static)
 //         --> values outside of this range are potential 'activity' candidates
-#define MODULE_STAT_ANALYSIS_ACTIVITY_DETECTION_DEVIATION_RANGE 5.0
+#define MODULE_STAT_ANALYSIS_ACTIVITY_DETECTION_DEVIATION_RANGE 5.0 // sigma
 // *NOTE*: (in a normal distribution,) values in the range of +/- 6.0 * sigma
 //         (i.e. six standard deviations) account for 99.999996% of all sample
 //         data (which is assumed to be static)
 //         --> values outside of this range are 'outliers' and hence potential
 //             'peak' candidates
-#define MODULE_STAT_ANALYSIS_PEAK_DETECTION_DEVIATION_RANGE     6.0
+#define MODULE_STAT_ANALYSIS_PEAK_DETECTION_DEVIATION_RANGE     6.0 // sigma
 
 #define MODULE_STAT_SPECTRUMANALYSIS_DEFAULT_SAMPLE_RATE        44100
 

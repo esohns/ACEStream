@@ -67,7 +67,6 @@
 #define STREAM_DEC_DIRECTSHOW_FILTER_NAME_SPLIT_AVI                  L"AVI Splitter"
 
 #define STREAM_DEC_DIRECTSHOW_FILTER_NAME_EFFECT_AUDIO               L"Audio Effect"
-#define STREAM_DEC_DIRECTSHOW_FILTER_NAME_RENDER_AUDIO               L"Audio Renderer"
 #endif // ACE_WIN32 || ACE_WIN64
 
 // zlib

@@ -1614,11 +1614,11 @@ set_capture_format (struct Stream_AVSave_UI_CBData* CBData_in)
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
     {
       // sanity check(s)
-      ACE_ASSERT ((*directshow_stream_iterator).second.second.builder);
+      ACE_ASSERT ((*directshow_stream_iterator).second.second->builder);
 
       // step1: set capture format
       Stream_MediaFramework_DirectShow_Tools::free (directshow_cb_data_p->configuration->videoStreamConfiguration.configuration_->format);
-      if (!Stream_Device_DirectShow_Tools::getVideoCaptureFormat ((*directshow_stream_iterator).second.second.builder,
+      if (!Stream_Device_DirectShow_Tools::getVideoCaptureFormat ((*directshow_stream_iterator).second.second->builder,
                                                                   media_subtype,
                                                                   resolution_s.cx, resolution_s.cy,
                                                                   framerate_numerator_i / framerate_denominator_i,
@@ -1631,7 +1631,7 @@ set_capture_format (struct Stream_AVSave_UI_CBData* CBData_in)
                     framerate_numerator_i / framerate_denominator_i));
         return;
       } // end IF
-      if (!Stream_Device_DirectShow_Tools::setCaptureFormat ((*directshow_stream_iterator).second.second.builder,
+      if (!Stream_Device_DirectShow_Tools::setCaptureFormat ((*directshow_stream_iterator).second.second->builder,
                                                              CLSID_VideoInputDeviceCategory,
                                                              directshow_cb_data_p->configuration->videoStreamConfiguration.configuration_->format))
       {
@@ -1695,9 +1695,9 @@ set_capture_format (struct Stream_AVSave_UI_CBData* CBData_in)
     }
   } // end SWITCH
 #else
-  Stream_Device_Tools::setFormat ((*iterator_2).second.second.deviceIdentifier.fileDescriptor,
+  Stream_Device_Tools::setFormat ((*iterator_2).second.second->deviceIdentifier.fileDescriptor,
                                   pixel_format_s);
-  Stream_Device_Tools::setFrameRate ((*iterator_2).second.second.deviceIdentifier.fileDescriptor,
+  Stream_Device_Tools::setFrameRate ((*iterator_2).second.second->deviceIdentifier.fileDescriptor,
                                      framerate_s);
 #endif // ACE_WIN32 || ACE_WIN64
 }
@@ -1772,7 +1772,7 @@ update_buffer_size (struct Stream_AVSave_UI_CBData* CBData_in)
     {
       frame_size_i = 
         Stream_MediaFramework_Tools::frameSize (directshow_cb_data_p->configuration->videoStreamConfiguration.configuration_->format);
-      (*directshow_stream_iterator).second.second.allocatorConfiguration->defaultBufferSize =
+      (*directshow_stream_iterator).second.second->allocatorConfiguration->defaultBufferSize =
         frame_size_i;
       directshow_cb_data_p->configuration->videoStreamConfiguration.configuration_->allocatorConfiguration->defaultBufferSize =
         frame_size_i;
@@ -1804,7 +1804,7 @@ update_buffer_size (struct Stream_AVSave_UI_CBData* CBData_in)
                     ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
         return;
       } // end IF
-      (*mediafoundation_stream_iterator).second.second.allocatorConfiguration->defaultBufferSize =
+      (*mediafoundation_stream_iterator).second.second->allocatorConfiguration->defaultBufferSize =
         frame_size_i;
       break;
     }
@@ -1819,7 +1819,7 @@ update_buffer_size (struct Stream_AVSave_UI_CBData* CBData_in)
 #else
   frame_size_i =
       ui_cb_data_p->configuration->videoStreamConfiguration.configuration_->format.format.sizeimage;
-  (*iterator_2).second.second.allocatorConfiguration->defaultBufferSize = frame_size_i;
+  (*iterator_2).second.second->allocatorConfiguration->defaultBufferSize = frame_size_i;
 #endif // ACE_WIN32 || ACE_WIN64
   //gtk_spin_button_set_value (spin_button_p,
   //                           static_cast<gdouble> (frame_size_i));
@@ -2223,7 +2223,7 @@ idle_initialize_UI_cb (gpointer userData_in)
       framerate_i =
         Stream_MediaFramework_DirectShow_Tools::toFramerate (directshow_cb_data_p->configuration->videoStreamConfiguration.configuration_->format);
       filename_string =
-        (*directshow_stream_iterator).second.second.targetFileName;
+        (*directshow_stream_iterator).second.second->targetFileName;
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
@@ -2245,7 +2245,7 @@ idle_initialize_UI_cb (gpointer userData_in)
       framerate_i =
         Stream_MediaFramework_MediaFoundation_Tools::toFramerate (mediafoundation_cb_data_p->configuration->videoStreamConfiguration.configuration_->format);
       filename_string =
-        (*mediafoundation_stream_iterator).second.second.targetFileName;
+        (*mediafoundation_stream_iterator).second.second->targetFileName;
       break;
     }
     default:
@@ -2273,7 +2273,7 @@ idle_initialize_UI_cb (gpointer userData_in)
   framerate_i =
     ui_cb_data_p->configuration->videoStreamConfiguration.configuration_->format.frameRate.numerator;
   ACE_ASSERT (ui_cb_data_p->configuration->videoStreamConfiguration.configuration_->format.frameRate.denominator == 1);
-  filename_string = (*iterator_2).second.second.targetFileName;
+  filename_string = (*iterator_2).second.second->targetFileName;
 #endif // ACE_WIN32 || ACE_WIN64
   gtk_entry_set_text (entry_p,
                       (filename_string.empty () ? ACE_TEXT_ALWAYS_CHAR ("")
@@ -2386,13 +2386,13 @@ idle_initialize_UI_cb (gpointer userData_in)
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
     {
-      is_fullscreen_b = (*directshow_stream_iterator).second.second.fullScreen;
+      is_fullscreen_b = (*directshow_stream_iterator).second.second->fullScreen;
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
     {
       is_fullscreen_b =
-        (*mediafoundation_stream_iterator).second.second.fullScreen;
+        (*mediafoundation_stream_iterator).second.second->fullScreen;
       break;
     }
     default:
@@ -2405,8 +2405,8 @@ idle_initialize_UI_cb (gpointer userData_in)
   } // end SWITCH
 #else
 //  is_display_b =
-//      !(*iterator_3).second.second.deviceIdentifier.identifier.empty ();
-//  is_fullscreen_b = (*iterator_2).second.second.fullScreen;
+//      !(*iterator_3).second.second->deviceIdentifier.identifier.empty ();
+//  is_fullscreen_b = (*iterator_2).second.second->fullScreen;
 #endif // ACE_WIN32 || ACE_WIN64
   toggle_button_p =
     GTK_TOGGLE_BUTTON (gtk_builder_get_object ((*iterator).second.second,
@@ -2696,49 +2696,49 @@ idle_initialize_UI_cb (gpointer userData_in)
   switch (ui_cb_data_base_p->mediaFramework)
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
-    { ACE_ASSERT (!(*directshow_stream_iterator).second.second.window);
+    { ACE_ASSERT (!(*directshow_stream_iterator).second.second->window);
       //ACE_ASSERT (!directshow_cb_data_p->configuration->direct3DConfiguration.presentationParameters.hDeviceWindow);
       //ACE_ASSERT (!directshow_cb_data_p->configuration->direct3DConfiguration.focusWindow);
       ACE_ASSERT (gdk_win32_window_is_win32 (window_p));
-      (*directshow_stream_iterator).second.second.window =
+      (*directshow_stream_iterator).second.second->window =
         gdk_win32_window_get_impl_hwnd (window_p);
       //directshow_cb_data_p->configuration->direct3DConfiguration.focusWindow =
       //  NULL;
       //directshow_cb_data_p->configuration->direct3DConfiguration.presentationParameters.hDeviceWindow =
       //  gdk_win32_window_get_impl_hwnd (window_p);
 
-      (*directshow_stream_iterator).second.second.area.bottom =
+      (*directshow_stream_iterator).second.second->area.bottom =
         allocation.y + allocation.height;
-      (*directshow_stream_iterator).second.second.area.left = allocation.x;
-      (*directshow_stream_iterator).second.second.area.right =
+      (*directshow_stream_iterator).second.second->area.left = allocation.x;
+      (*directshow_stream_iterator).second.second->area.right =
         allocation.x + allocation.width;
-      (*directshow_stream_iterator).second.second.area.top = allocation.y;
+      (*directshow_stream_iterator).second.second->area.top = allocation.y;
 
-      //(*directshow_stream_iterator).second.second.pixelBuffer =
+      //(*directshow_stream_iterator).second.second->pixelBuffer =
       //  ui_cb_data_base_p->pixelBuffer;
 
       //ACE_ASSERT (IsWindow (directshow_cb_data_p->configuration->direct3DConfiguration.presentationParameters.hDeviceWindow));
 #if defined (_DEBUG)
       ACE_DEBUG ((LM_DEBUG,
                   ACE_TEXT ("drawing area window handle: 0x%@; size: %dx%d\n"),
-                  (*directshow_stream_iterator).second.second.window,
+                  (*directshow_stream_iterator).second.second->window,
                   allocation.width, allocation.height));
 #endif // _DEBUG
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
-    { ACE_ASSERT (!(*mediafoundation_stream_iterator).second.second.window);
+    { ACE_ASSERT (!(*mediafoundation_stream_iterator).second.second->window);
       ACE_ASSERT (gdk_win32_window_is_win32 (window_p));
-      (*mediafoundation_stream_iterator).second.second.window =
+      (*mediafoundation_stream_iterator).second.second->window =
         gdk_win32_window_get_impl_hwnd (window_p);
-      (*mediafoundation_stream_iterator).second.second.area.bottom =
+      (*mediafoundation_stream_iterator).second.second->area.bottom =
         allocation.y + allocation.height;
-      (*mediafoundation_stream_iterator).second.second.area.left = allocation.x;
-      (*mediafoundation_stream_iterator).second.second.area.right =
+      (*mediafoundation_stream_iterator).second.second->area.left = allocation.x;
+      (*mediafoundation_stream_iterator).second.second->area.right =
         allocation.x + allocation.width;
-      (*mediafoundation_stream_iterator).second.second.area.top = allocation.y;
+      (*mediafoundation_stream_iterator).second.second->area.top = allocation.y;
 
-      //(*mediafoundation_stream_iterator).second.second.pixelBuffer =
+      //(*mediafoundation_stream_iterator).second.second->pixelBuffer =
       //  ui_cb_data_base_p->pixelBuffer;
       break;
     }
@@ -2806,25 +2806,25 @@ idle_initialize_UI_cb (gpointer userData_in)
 //#endif // GTK_CHECK_VERSION
 
 //  ACE_ASSERT (GDK_IS_WINDOW (window_p));
-//  (*iterator_2).second.second.X11Display = GDK_WINDOW_XDISPLAY (window_p);
-//  (*iterator_3).second.second.X11Display = GDK_WINDOW_XDISPLAY (window_p);
-//  (*iterator_2).second.second.window = GDK_WINDOW_XID (window_p);
-//  (*iterator_3).second.second.window = GDK_WINDOW_XID (window_p);
-//  (*iterator_2).second.second.window = window_p;
-//  (*iterator_3).second.second.window = window_p;
-//  ACE_ASSERT ((*iterator_2).second.second.window);
-//  ACE_ASSERT ((*iterator_3).second.second.window);
+//  (*iterator_2).second.second->X11Display = GDK_WINDOW_XDISPLAY (window_p);
+//  (*iterator_3).second.second->X11Display = GDK_WINDOW_XDISPLAY (window_p);
+//  (*iterator_2).second.second->window = GDK_WINDOW_XID (window_p);
+//  (*iterator_3).second.second->window = GDK_WINDOW_XID (window_p);
+//  (*iterator_2).second.second->window = window_p;
+//  (*iterator_3).second.second->window = window_p;
+//  ACE_ASSERT ((*iterator_2).second.second->window);
+//  ACE_ASSERT ((*iterator_3).second.second->window);
 
-  (*iterator_2).second.second.outputFormat.format.height =
+  (*iterator_2).second.second->outputFormat.format.height =
 //      static_cast<__u32> (allocation.height);
       480;
-  (*iterator_2).second.second.outputFormat.format.width =
+  (*iterator_2).second.second->outputFormat.format.width =
       640;
 //      static_cast<__u32> (allocation.width);
-//  (*iterator_2).second.second.area =
-//      (*iterator_3).second.second.area;
+//  (*iterator_2).second.second->area =
+//      (*iterator_3).second.second->area;
 
-//  (*iterator_3).second.second.pixelBuffer = ui_cb_data_p->pixelBuffer;
+//  (*iterator_3).second.second->pixelBuffer = ui_cb_data_p->pixelBuffer;
 #endif // ACE_WIN32 || ACE_WIN64
 
 #if GTK_CHECK_VERSION(2,30,0)
@@ -2862,15 +2862,15 @@ idle_initialize_UI_cb (gpointer userData_in)
   switch (ui_cb_data_base_p->mediaFramework)
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
-    { ACE_ASSERT ((*directshow_stream_iterator).second.second.deviceIdentifier.identifierDiscriminator == Stream_Device_Identifier::STRING);
+    { ACE_ASSERT ((*directshow_stream_iterator).second.second->deviceIdentifier.identifierDiscriminator == Stream_Device_Identifier::STRING);
       g_value_set_string (&value,
-                          (*directshow_stream_iterator).second.second.deviceIdentifier.identifier._string);
+                          (*directshow_stream_iterator).second.second->deviceIdentifier.identifier._string);
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
-    { ACE_ASSERT ((*mediafoundation_stream_iterator).second.second.deviceIdentifier.identifierDiscriminator == Stream_Device_Identifier::STRING);
+    { ACE_ASSERT ((*mediafoundation_stream_iterator).second.second->deviceIdentifier.identifierDiscriminator == Stream_Device_Identifier::STRING);
       g_value_set_string (&value,
-                          (*mediafoundation_stream_iterator).second.second.deviceIdentifier.identifier._string);
+                          (*mediafoundation_stream_iterator).second.second->deviceIdentifier.identifier._string);
       break;
     }
     default:
@@ -2883,7 +2883,7 @@ idle_initialize_UI_cb (gpointer userData_in)
   } // end SWITCH
 #else
     g_value_set_string (&value,
-                        (*iterator_2).second.second.deviceIdentifier.identifier.c_str ());
+                        (*iterator_2).second.second->deviceIdentifier.identifier.c_str ());
 #endif // ACE_WIN32 || ACE_WIN64
     index_i =
         Common_UI_GTK_Tools::valueToIndex (GTK_TREE_MODEL (list_store_p),
@@ -2987,13 +2987,13 @@ idle_initialize_UI_cb (gpointer userData_in)
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
     {
       g_value_set_string (&value,
-                          (*directshow_stream_iterator).second.second.display.device.c_str ());
+                          (*directshow_stream_iterator).second.second->display.device.c_str ());
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
     {
       g_value_set_string (&value,
-                          (*mediafoundation_stream_iterator).second.second.display.device.c_str ());
+                          (*mediafoundation_stream_iterator).second.second->display.device.c_str ());
       break;
     }
     default:
@@ -3006,7 +3006,7 @@ idle_initialize_UI_cb (gpointer userData_in)
   } // end SWITCH
 #else
   g_value_set_string (&value,
-//                      (*iterator_2).second.second.display.device.c_str ());
+//                      (*iterator_2).second.second->display.device.c_str ());
                       ACE_TEXT_ALWAYS_CHAR (""));
 #endif // ACE_WIN32 || ACE_WIN64
   Common_UI_GTK_Tools::selectValue (combo_box_p,
@@ -3038,14 +3038,14 @@ idle_finalize_UI_cb (gpointer userData_in)
 
   // clean up
   int result = -1;
-  if ((*iterator_2).second.second.deviceIdentifier.fileDescriptor != -1)
+  if ((*iterator_2).second.second->deviceIdentifier.fileDescriptor != -1)
   {
-    result = v4l2_close ((*iterator_2).second.second.deviceIdentifier.fileDescriptor);
+    result = v4l2_close ((*iterator_2).second.second->deviceIdentifier.fileDescriptor);
     if (result == -1)
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to v4l2_close(%d): \"%m\", continuing\n"),
-                  (*iterator_2).second.second.deviceIdentifier.fileDescriptor));
-    (*iterator_2).second.second.deviceIdentifier.fileDescriptor = -1;
+                  (*iterator_2).second.second->deviceIdentifier.fileDescriptor));
+    (*iterator_2).second.second->deviceIdentifier.fileDescriptor = -1;
   } // end IF
 #endif // ACE_WIN32 || ACE_WIN64
 
@@ -3675,11 +3675,11 @@ continue_:
   switch (ui_cb_data_base_p->mediaFramework)
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
-      (*directshow_stream_iterator).second.second.targetFileName =
+      (*directshow_stream_iterator).second.second->targetFileName =
         filename_string;
       break;
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
-      (*mediafoundation_stream_iterator).second.second.targetFileName =
+      (*mediafoundation_stream_iterator).second.second->targetFileName =
         filename_string;
       break;
     default:
@@ -3691,7 +3691,7 @@ continue_:
     }
   } // end SWITCH
 #else
-  (*iterator_2).second.second.targetFileName = filename_string;
+  (*iterator_2).second.second->targetFileName = filename_string;
 #endif // ACE_WIN32 || ACE_WIN64
 
 //  spin_button_p =
@@ -3737,7 +3737,7 @@ continue_:
 
       // *NOTE*: reusing a media session doesn't work reliably at the moment
       //         --> recreate a new session every time
-      if ((*mediafoundation_stream_iterator).second.second.session)
+      if ((*mediafoundation_stream_iterator).second.second->session)
       {
         //HRESULT result = E_FAIL;
         // *TODO*: this crashes in CTopoNode::UnlinkInput ()...
@@ -3747,7 +3747,7 @@ continue_:
         //  ACE_DEBUG ((LM_ERROR,
         //              ACE_TEXT ("failed to IMFMediaSession::Shutdown(): \"%s\", continuing\n"),
         //              ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
-        (*mediafoundation_stream_iterator).second.second.session->Release (); (*mediafoundation_stream_iterator).second.second.session = NULL;
+        (*mediafoundation_stream_iterator).second.second->session->Release (); (*mediafoundation_stream_iterator).second.second->session = NULL;
       } // end IF
 
       ////if (!Stream_Module_Device_Tools::setCaptureFormat (data_p->configuration->moduleHandlerConfiguration.builder,
@@ -3772,14 +3772,14 @@ continue_:
     }
   } // end SWITCH
 #else
-//  if (!Stream_Device_Tools::setFormat ((*iterator_2).second.second.deviceIdentifier.fileDescriptor,
+//  if (!Stream_Device_Tools::setFormat ((*iterator_2).second.second->deviceIdentifier.fileDescriptor,
 //                                       ui_cb_data_p->configuration->videoStreamConfiguration.configuration->format.format))
 //  {
 //    ACE_DEBUG ((LM_ERROR,
 //                ACE_TEXT ("failed to Stream_Device_Tools::setFormat(), aborting\n")));
 //    goto error;
 //  } // end IF
-//  if (!Stream_Device_Tools::setFrameRate ((*iterator_2).second.second.deviceIdentifier.fileDescriptor,
+//  if (!Stream_Device_Tools::setFrameRate ((*iterator_2).second.second->deviceIdentifier.fileDescriptor,
 //                                          ui_cb_data_p->configuration->videoStreamConfiguration.configuration->format.frameRate))
 //  {
 //    ACE_DEBUG ((LM_ERROR,
@@ -4005,11 +4005,11 @@ togglebutton_save_toggled_cb (GtkToggleButton* toggleButton_in,
   switch (ui_cb_data_base_p->mediaFramework)
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
-      (*directshow_stream_iterator).second.second.targetFileName =
+      (*directshow_stream_iterator).second.second->targetFileName =
         filename_string;
       break;
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
-      (*mediafoundation_stream_iterator).second.second.targetFileName =
+      (*mediafoundation_stream_iterator).second.second->targetFileName =
         filename_string;
       break;
     default:
@@ -4021,7 +4021,7 @@ togglebutton_save_toggled_cb (GtkToggleButton* toggleButton_in,
     }
   } // end SWITCH
 #else
-  (*iterator_2).second.second.targetFileName = filename_string;
+  (*iterator_2).second.second->targetFileName = filename_string;
 #endif
 } // toggleaction_save_toggled_cb
 
@@ -4093,12 +4093,12 @@ togglebutton_display_toggled_cb (GtkToggleButton* toggleButton_in,
     {
       case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
       {
-        (*directshow_stream_iterator).second.second.display.device.clear ();
+        (*directshow_stream_iterator).second.second->display.device.clear ();
         break;
       }
       case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
       {
-        (*mediafoundation_stream_iterator).second.second.display.device.clear ();
+        (*mediafoundation_stream_iterator).second.second->display.device.clear ();
         break;
       }
       default:
@@ -4110,7 +4110,7 @@ togglebutton_display_toggled_cb (GtkToggleButton* toggleButton_in,
       }
     } // end SWITCH
 #else
-//    (*iterator_2).second.second.display.device.clear ();
+//    (*iterator_2).second.second->display.device.clear ();
 #endif
     return;
   } // end IF
@@ -4143,13 +4143,13 @@ togglebutton_display_toggled_cb (GtkToggleButton* toggleButton_in,
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
     {
-      (*directshow_stream_iterator).second.second.display.device =
+      (*directshow_stream_iterator).second.second->display.device =
         g_value_get_string (&value);
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
     {
-      (*mediafoundation_stream_iterator).second.second.display.device =
+      (*mediafoundation_stream_iterator).second.second->display.device =
         g_value_get_string (&value);
       break;
     }
@@ -4162,7 +4162,7 @@ togglebutton_display_toggled_cb (GtkToggleButton* toggleButton_in,
     }
   } // end SWITCH
 #else
-//  (*iterator_2).second.second.display.device = g_value_get_string (&value);
+//  (*iterator_2).second.second->display.device = g_value_get_string (&value);
 #endif
   g_value_unset (&value);
 }
@@ -4205,7 +4205,7 @@ togglebutton_fullscreen_toggled_cb (GtkToggleButton* toggleButton_in,
       directshow_stream_iterator =
         directshow_cb_data_p->configuration->videoStreamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
       ACE_ASSERT (directshow_stream_iterator != directshow_cb_data_p->configuration->videoStreamConfiguration.end ());
-      (*directshow_stream_iterator).second.second.fullScreen = is_active_b;
+      (*directshow_stream_iterator).second.second->fullScreen = is_active_b;
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
@@ -4218,7 +4218,7 @@ togglebutton_fullscreen_toggled_cb (GtkToggleButton* toggleButton_in,
       mediafoundation_stream_iterator =
         mediafoundation_cb_data_p->configuration->videoStreamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
       ACE_ASSERT (mediafoundation_stream_iterator != mediafoundation_cb_data_p->configuration->videoStreamConfiguration.end ());
-      (*mediafoundation_stream_iterator).second.second.fullScreen = is_active_b;
+      (*mediafoundation_stream_iterator).second.second->fullScreen = is_active_b;
       break;
     }
     default:
@@ -4238,7 +4238,7 @@ togglebutton_fullscreen_toggled_cb (GtkToggleButton* toggleButton_in,
   Stream_AVSave_V4L_StreamConfiguration_t::ITERATOR_T iterator_2 =
     cb_data_p->configuration->videoStreamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (iterator_2 != cb_data_p->configuration->videoStreamConfiguration.end ());
-//  (*iterator_2).second.second.fullScreen = is_active_b;
+//  (*iterator_2).second.second->fullScreen = is_active_b;
 #endif
   ACE_ASSERT (stream_base_p);
   if (!stream_base_p->isRunning ())
@@ -4718,9 +4718,9 @@ combobox_source_changed_cb (GtkWidget* widget_in,
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
     {
-      if ((*directshow_stream_iterator).second.second.builder)
+      if ((*directshow_stream_iterator).second.second->builder)
       {
-        (*directshow_stream_iterator).second.second.builder->Release (); (*directshow_stream_iterator).second.second.builder = NULL;
+        (*directshow_stream_iterator).second.second->builder->Release (); (*directshow_stream_iterator).second.second->builder = NULL;
       } // end IF
       IAMBufferNegotiation* buffer_negotiation_p = NULL;
       if (directshow_cb_data_p->streamConfiguration)
@@ -4730,7 +4730,7 @@ combobox_source_changed_cb (GtkWidget* widget_in,
       Stream_MediaFramework_DirectShow_Graph_t graph_layout;
       if (!Stream_Device_DirectShow_Tools::loadDeviceGraph (device_identifier_string,
                                                             CLSID_VideoInputDeviceCategory,
-                                                            (*directshow_stream_iterator).second.second.builder,
+                                                            (*directshow_stream_iterator).second.second->builder,
                                                             buffer_negotiation_p,
                                                             directshow_cb_data_p->streamConfiguration,
                                                             graph_layout))
@@ -4740,7 +4740,7 @@ combobox_source_changed_cb (GtkWidget* widget_in,
                     ACE_TEXT (device_identifier_string.c_str ())));
         return;
       } // end IF
-      ACE_ASSERT ((*directshow_stream_iterator).second.second.builder);
+      ACE_ASSERT ((*directshow_stream_iterator).second.second->builder);
       ACE_ASSERT (buffer_negotiation_p);
       ACE_ASSERT (directshow_cb_data_p->streamConfiguration);
 
@@ -4783,9 +4783,9 @@ combobox_source_changed_cb (GtkWidget* widget_in,
       ACE_ASSERT (media_source_p);
 #endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0601)
 
-      if ((*mediafoundation_stream_iterator).second.second.session)
+      if ((*mediafoundation_stream_iterator).second.second->session)
       {
-        (*mediafoundation_stream_iterator).second.second.session->Release (); (*mediafoundation_stream_iterator).second.second.session = NULL;
+        (*mediafoundation_stream_iterator).second.second->session->Release (); (*mediafoundation_stream_iterator).second.second->session = NULL;
       } // end IF
       if (!mediafoundation_cb_data_p->videoStream->initialize (mediafoundation_cb_data_p->configuration->videoStreamConfiguration))
       {
@@ -4838,14 +4838,14 @@ combobox_source_changed_cb (GtkWidget* widget_in,
       //media_source_p->Release (); media_source_p = NULL;
 
       // sanity check(s)
-      if ((*mediafoundation_stream_iterator).second.second.session)
+      if ((*mediafoundation_stream_iterator).second.second->session)
       {
-        (*mediafoundation_stream_iterator).second.second.session->Release (); (*mediafoundation_stream_iterator).second.second.session = NULL;
+        (*mediafoundation_stream_iterator).second.second->session->Release (); (*mediafoundation_stream_iterator).second.second->session = NULL;
       } // end IF
-      ACE_ASSERT (!(*mediafoundation_stream_iterator).second.second.session);
+      ACE_ASSERT (!(*mediafoundation_stream_iterator).second.second->session);
 #if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
       if (!Stream_MediaFramework_MediaFoundation_Tools::setTopology (topology_p,
-                                                                     (*mediafoundation_stream_iterator).second.second.session,
+                                                                     (*mediafoundation_stream_iterator).second.second->session,
                                                                      true,
                                                                      true))
       {
@@ -4921,7 +4921,7 @@ combobox_source_changed_cb (GtkWidget* widget_in,
     {
 #if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
       if (!media_source_p)
-        if (!Stream_MediaFramework_MediaFoundation_Tools::getMediaSource ((*mediafoundation_stream_iterator).second.second.session,
+        if (!Stream_MediaFramework_MediaFoundation_Tools::getMediaSource ((*mediafoundation_stream_iterator).second.second->session,
                                                                           media_source_p))
         {
           ACE_DEBUG ((LM_ERROR,
@@ -4947,28 +4947,28 @@ combobox_source_changed_cb (GtkWidget* widget_in,
   } // end SWITCH
 #else
   int result_2 = -1;
-  if ((*iterator_2).second.second.deviceIdentifier.fileDescriptor != -1)
+  if ((*iterator_2).second.second->deviceIdentifier.fileDescriptor != -1)
   {
-    result_2 = v4l2_close ((*iterator_2).second.second.deviceIdentifier.fileDescriptor);
+    result_2 = v4l2_close ((*iterator_2).second.second->deviceIdentifier.fileDescriptor);
     if (result_2 == -1)
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to v4l2_close(%d): \"%m\", continuing\n"),
-                  (*iterator_2).second.second.deviceIdentifier.fileDescriptor));
+                  (*iterator_2).second.second->deviceIdentifier.fileDescriptor));
 #if defined (_DEBUG)
     ACE_DEBUG ((LM_DEBUG,
                 ACE_TEXT ("closed v4l2 device (fd was: %d)\n"),
-                (*iterator_2).second.second.deviceIdentifier.fileDescriptor));
+                (*iterator_2).second.second->deviceIdentifier.fileDescriptor));
 #endif // _DEBUG
-    (*iterator_2).second.second.deviceIdentifier.fileDescriptor = -1;
+    (*iterator_2).second.second->deviceIdentifier.fileDescriptor = -1;
   } // end IF
-  ACE_ASSERT ((*iterator_2).second.second.deviceIdentifier.fileDescriptor == -1);
+  ACE_ASSERT ((*iterator_2).second.second->deviceIdentifier.fileDescriptor == -1);
   int open_mode =
-      (((*iterator_2).second.second.method == V4L2_MEMORY_MMAP) ? O_RDWR
+      (((*iterator_2).second.second->method == V4L2_MEMORY_MMAP) ? O_RDWR
                                                                 : O_RDONLY);
-  (*iterator_2).second.second.deviceIdentifier.fileDescriptor =
+  (*iterator_2).second.second->deviceIdentifier.fileDescriptor =
       v4l2_open (device_identifier_string.c_str (),
                  open_mode);
-  if ((*iterator_2).second.second.deviceIdentifier.fileDescriptor == -1)
+  if ((*iterator_2).second.second->deviceIdentifier.fileDescriptor == -1)
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to v4l2_open(\"%s\",%u): \"%m\", returning\n"),
@@ -4979,9 +4979,9 @@ combobox_source_changed_cb (GtkWidget* widget_in,
   ACE_DEBUG ((LM_DEBUG,
               ACE_TEXT ("opened v4l2 device \"%s\" (fd: %d)\n"),
               ACE_TEXT (device_identifier_string.c_str ()),
-              (*iterator_2).second.second.deviceIdentifier.fileDescriptor));
+              (*iterator_2).second.second->deviceIdentifier.fileDescriptor));
 #endif // _DEBUG
-  result = load_formats ((*iterator_2).second.second.deviceIdentifier.fileDescriptor,
+  result = load_formats ((*iterator_2).second.second->deviceIdentifier.fileDescriptor,
                          list_store_p);
 #endif // ACE_WIN32 || ACE_WIN64
   if (!result)
@@ -5217,7 +5217,7 @@ combobox_format_changed_cb (GtkWidget* widget_in,
       } // end IF
       ACE_ASSERT (media_source_p);
 #endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0601)
-      //if (!Stream_MediaFramework_MediaFoundation_Tools::getMediaSource ((*mediafoundation_stream_iterator).second.second.session,
+      //if (!Stream_MediaFramework_MediaFoundation_Tools::getMediaSource ((*mediafoundation_stream_iterator).second.second->session,
       //                                                                  media_source_p))
       //{
       //  ACE_DEBUG ((LM_ERROR,
@@ -5243,7 +5243,7 @@ combobox_format_changed_cb (GtkWidget* widget_in,
   } // end SWITCH
 #else
   result =
-      load_resolutions ((*iterator_2).second.second.deviceIdentifier.fileDescriptor,
+      load_resolutions ((*iterator_2).second.second->deviceIdentifier.fileDescriptor,
                         format_i,
                         list_store_p);
 #endif
@@ -5256,7 +5256,7 @@ combobox_format_changed_cb (GtkWidget* widget_in,
 #else
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to ::load_resolutions(%d,%u), returning\n"),
-                (*iterator_2).second.second.deviceIdentifier.fileDescriptor,
+                (*iterator_2).second.second->deviceIdentifier.fileDescriptor,
                 format_i));
 #endif
     return;
@@ -5509,8 +5509,8 @@ combobox_resolution_changed_cb (GtkWidget* widget_in,
       height;
   ui_cb_data_p->configuration->videoStreamConfiguration.configuration_->format.format.width =
       width;
-  (*iterator_2).second.second.outputFormat.format.height = height;
-  (*iterator_2).second.second.outputFormat.format.width = width;
+  (*iterator_2).second.second->outputFormat.format.height = height;
+  (*iterator_2).second.second->outputFormat.format.width = width;
 #endif // ACE_WIN32 || ACE_WIN64
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -5543,7 +5543,7 @@ combobox_resolution_changed_cb (GtkWidget* widget_in,
       } // end IF
       ACE_ASSERT (media_source_p);
 #endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0601)
-//      if (!Stream_MediaFramework_MediaFoundation_Tools::getMediaSource ((*mediafoundation_stream_iterator).second.second.session,
+//      if (!Stream_MediaFramework_MediaFoundation_Tools::getMediaSource ((*mediafoundation_stream_iterator).second.second->session,
 //                                                                        media_source_p))
 //      {
 //        ACE_DEBUG ((LM_ERROR,
@@ -5570,7 +5570,7 @@ combobox_resolution_changed_cb (GtkWidget* widget_in,
   } // end SWITCH
 #else
   result =
-      load_rates ((*iterator_2).second.second.deviceIdentifier.fileDescriptor,
+      load_rates ((*iterator_2).second.second->deviceIdentifier.fileDescriptor,
                   format_i,
                   width, height,
                   list_store_p);
@@ -5585,7 +5585,7 @@ combobox_resolution_changed_cb (GtkWidget* widget_in,
 #else
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to ::load_rates(%d,%u,%u,%u), returning\n"),
-                (*iterator_2).second.second.deviceIdentifier.fileDescriptor,
+                (*iterator_2).second.second->deviceIdentifier.fileDescriptor,
                 format_i,
                 width, height));
 #endif // ACE_WIN32 || ACE_WIN64
@@ -5871,13 +5871,13 @@ combobox_display_changed_cb (GtkWidget* widget_in,
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
     {
-      (*directshow_stream_iterator).second.second.display.device =
+      (*directshow_stream_iterator).second.second->display.device =
         g_value_get_string (&value);
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
     {
-      (*mediafoundation_stream_iterator).second.second.display.device =
+      (*mediafoundation_stream_iterator).second.second->display.device =
         g_value_get_string (&value);
       break;
     }
@@ -5890,7 +5890,7 @@ combobox_display_changed_cb (GtkWidget* widget_in,
     }
   } // end SWITCH
 #else
-//  (*iterator_3).second.second.display.device = g_value_get_string (&value);
+//  (*iterator_3).second.second->display.device = g_value_get_string (&value);
 #endif // ACE_WIN32 || ACE_WIN64
   g_value_unset (&value);
 
@@ -5906,13 +5906,13 @@ combobox_display_changed_cb (GtkWidget* widget_in,
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
     {
       display_adapter_s =
-        Common_UI_Tools::getAdapter ((*directshow_stream_iterator).second.second.display);
+        Common_UI_Tools::getAdapter ((*directshow_stream_iterator).second.second->display);
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
     {
       display_adapter_s =
-        Common_UI_Tools::getAdapter ((*mediafoundation_stream_iterator).second.second.display);
+        Common_UI_Tools::getAdapter ((*mediafoundation_stream_iterator).second.second->display);
       break;
     }
     default:
@@ -5925,7 +5925,7 @@ combobox_display_changed_cb (GtkWidget* widget_in,
   } // end SWITCH
 #else
 //  display_adapter_s =
-//    Common_UI_Tools::getAdapter ((*iterator_3).second.second.display);
+//    Common_UI_Tools::getAdapter ((*iterator_3).second.second->display);
 #endif // ACE_WIN32 || ACE_WIN64
   g_value_init (&value, G_TYPE_STRING);
   g_value_set_string (&value,
@@ -6158,13 +6158,13 @@ drawingarea_size_allocate_cb (GtkWidget* widget_in,
 #endif // ACE_WIN32 || ACE_WIN64
   ACE_ASSERT (iterator != ui_cb_data_base_p->UIState->builders.end ());
 
-//  (*iterator_2).second.second.outputFormat.resolution.height =
+//  (*iterator_2).second.second->outputFormat.resolution.height =
 //      allocation_in->height;
-//  (*iterator_2).second.second.outputFormat.resolution.width =
+//  (*iterator_2).second.second->outputFormat.resolution.width =
 //      allocation_in->width;
-//  (*iterator_3).second.second.outputFormat.resolution.height =
+//  (*iterator_3).second.second->outputFormat.resolution.height =
 //      allocation_in->height;
-//  (*iterator_3).second.second.outputFormat.resolution.width =
+//  (*iterator_3).second.second->outputFormat.resolution.width =
 //      allocation_in->width;
   ACE_DEBUG ((LM_DEBUG,
               ACE_TEXT ("window resized to %dx%d\n"),
@@ -6275,11 +6275,11 @@ filechooserbutton_cb (GtkFileChooserButton* fileChooserButton_in,
   switch (ui_cb_data_base_p->mediaFramework)
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
-      (*directshow_stream_iterator).second.second.targetFileName =
+      (*directshow_stream_iterator).second.second->targetFileName =
         filename_string;
       break;
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
-      (*mediafoundation_stream_iterator).second.second.targetFileName =
+      (*mediafoundation_stream_iterator).second.second->targetFileName =
         filename_string;
       break;
     default:
@@ -6291,7 +6291,7 @@ filechooserbutton_cb (GtkFileChooserButton* fileChooserButton_in,
     }
   } // end SWITCH
 #else
-  (*iterator_2).second.second.targetFileName = filename_string;
+  (*iterator_2).second.second->targetFileName = filename_string;
 #endif
 } // filechooserbutton_cb
 

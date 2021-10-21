@@ -1292,8 +1292,8 @@ do_work (const std::string& captureinterfaceIdentifier_in,
       //ACE_OS::strcpy (directshow_modulehandler_configuration.deviceIdentifier.identifier._string,
       //                displayDevice_in.device.c_str ());
       directShowConfiguration_in.videoStreamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_DIRECT3D_DEFAULT_NAME_STRING),
-                                                                                  std::make_pair (module_configuration,
-                                                                                                  directshow_modulehandler_configuration)));
+                                                                                  std::make_pair (&module_configuration,
+                                                                                                  &directshow_modulehandler_configuration)));
       directshow_stream_iterator =
         directShowConfiguration_in.videoStreamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
       ACE_ASSERT (directshow_stream_iterator != directShowConfiguration_in.videoStreamConfiguration.end ());
@@ -1323,8 +1323,8 @@ do_work (const std::string& captureinterfaceIdentifier_in,
       ACE_ASSERT (mediafoundation_stream_iterator != mediaFoundationConfiguration_in.videoStreamConfiguration.end ());
 
       mediaFoundationConfiguration_in.videoStreamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_MEDIAFOUNDATION_DEFAULT_NAME_STRING),
-                                                                                       std::make_pair (module_configuration,
-                                                                                                       mediafoundation_modulehandler_configuration)));
+                                                                                       std::make_pair (&module_configuration,
+                                                                                                       &mediafoundation_modulehandler_configuration)));
 
       mediafoundation_stream_iterator_2 =
         mediaFoundationConfiguration_in.videoStreamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_MEDIAFOUNDATION_DEFAULT_NAME_STRING));
@@ -1378,13 +1378,13 @@ do_work (const std::string& captureinterfaceIdentifier_in,
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   HWND window_handle = NULL;
-  //if ((*iterator).second.second.window)
+  //if ((*iterator).second.second->window)
   //{
-  //  ACE_ASSERT (gdk_win32_window_is_win32 ((*iterator).second.second.window));
+  //  ACE_ASSERT (gdk_win32_window_is_win32 ((*iterator).second.second->window));
   //  window_handle =
   //    //gdk_win32_window_get_impl_hwnd (configuration.moduleHandlerConfiguration.window);
   //    //gdk_win32_drawable_get_handle (GDK_DRAWABLE (configuration.moduleHandlerConfiguration.window));
-  //    static_cast<HWND> (GDK_WINDOW_HWND ((*iterator).second.second.window));
+  //    static_cast<HWND> (GDK_WINDOW_HWND ((*iterator).second.second->window));
   //} // end IF
   //IAMBufferNegotiation* buffer_negotiation_p = NULL;
   IAMStreamConfig* stream_config_p = NULL;
@@ -1398,10 +1398,10 @@ do_work (const std::string& captureinterfaceIdentifier_in,
       if (!do_initialize_directshow (captureinterfaceIdentifier_in,
                                      UIDefinitionFilename_in.empty (),  // initialize COM ?
                                      !UIDefinitionFilename_in.empty (), // has UI ?
-                                     (*directshow_stream_iterator).second.second.builder,
+                                     (*directshow_stream_iterator).second.second->builder,
                                      stream_config_p,
                                      directshow_stream_configuration.format,
-                                     (*directshow_stream_iterator).second.second.outputFormat))
+                                     (*directshow_stream_iterator).second.second->outputFormat))
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("failed to ::do_initialize_directshow(), returning\n")));
@@ -1412,9 +1412,9 @@ do_work (const std::string& captureinterfaceIdentifier_in,
         directShowCBData_in.streamConfiguration = stream_config_p;
       } // end IF
       media_type_p =
-        Stream_MediaFramework_DirectShow_Tools::copy ((*directshow_stream_iterator).second.second.outputFormat);
+        Stream_MediaFramework_DirectShow_Tools::copy ((*directshow_stream_iterator).second.second->outputFormat);
       ACE_ASSERT (media_type_p);
-      (*directshow_stream_iterator_2).second.second.outputFormat =
+      (*directshow_stream_iterator_2).second.second->outputFormat =
         *media_type_p;
       CoTaskMemFree (media_type_p); media_type_p = NULL;
       break;
@@ -1425,7 +1425,7 @@ do_work (const std::string& captureinterfaceIdentifier_in,
                                           window_handle,
                                           mediafoundation_stream_configuration.format,
 #if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
-                                          (*mediafoundation_stream_iterator).second.second.session,
+                                          (*mediafoundation_stream_iterator).second.second->session,
 #endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
                                           initialize_COM)) // initialize COM ?
       {
@@ -1434,7 +1434,7 @@ do_work (const std::string& captureinterfaceIdentifier_in,
         return;
       } // end IF
 #if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
-      ACE_ASSERT ((*mediafoundation_stream_iterator).second.second.session);
+      ACE_ASSERT ((*mediafoundation_stream_iterator).second.second->session);
 #endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
       break;
     }
@@ -1807,7 +1807,7 @@ clean:
       Stream_AVSave_MediaFoundation_StreamConfiguration_t::ITERATOR_T iterator =
       mediaFoundationConfiguration_in.videoStreamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
       ACE_ASSERT (iterator != mediaFoundationConfiguration_in.videoStreamConfiguration.end ());
-      do_finalize_mediafoundation ((*iterator).second.second.session);
+      do_finalize_mediafoundation ((*iterator).second.second->session);
       break;
     }
     default:

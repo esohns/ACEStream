@@ -328,14 +328,6 @@ struct Test_U_AudioEffect_ModuleHandlerConfiguration
 {
   Test_U_AudioEffect_ModuleHandlerConfiguration ()
    : Test_U_ModuleHandlerConfiguration ()
-//#if defined (GUI_SUPPORT)
-//#if defined (GTK_SUPPORT)
-//   , area2D ()
-////#if defined (GTKGL_SUPPORT)
-////   , area3D ()
-////#endif /* GTKGL_SUPPORT */
-//#endif // GTK_SUPPORT
-//#endif // GUI_SUPPORT
    , audioInput (0)
    , audioOutput (0)
    , deviceIdentifier ()
@@ -355,6 +347,7 @@ struct Test_U_AudioEffect_ModuleHandlerConfiguration
    , OpenGLInstructionsLock (NULL)
    , OpenGLTextureId (0)
 #endif /* GTKGL_SUPPORT */
+   //, sampleIsSignedQuantity (true)
    , spectrumAnalyzer2DMode (STREAM_VIS_SPECTRUMANALYZER_DEFAULT_2DMODE)
    , spectrumAnalyzer3DMode (STREAM_VIS_SPECTRUMANALYZER_DEFAULT_3DMODE)
    , spectrumAnalyzerResolution (STREAM_VIS_SPECTRUMANALYZER_DEFAULT_BUFFER_SIZE)
@@ -370,14 +363,6 @@ struct Test_U_AudioEffect_ModuleHandlerConfiguration
 #endif // GUI_SUPPORT
   {}
 
-//#if defined (GUI_SUPPORT)
-//#if defined (GTK_SUPPORT)
-//  GdkRectangle                                      area2D;
-////#if defined (GTKGL_SUPPORT)
-////  GdkRectangle                                      area3D;
-////#endif /* GTKGL_SUPPORT */
-//#endif // GTK_SUPPORT
-//#endif // GUI_SUPPORT
   int                                               audioInput; // waveIn
   int                                               audioOutput;
   // *PORTABILITY*: Win32: (usb) device path
@@ -399,6 +384,7 @@ struct Test_U_AudioEffect_ModuleHandlerConfiguration
   ACE_SYNCH_MUTEX*                                  OpenGLInstructionsLock;
   GLuint                                            OpenGLTextureId;
 #endif /* GTKGL_SUPPORT */
+  //bool                                              sampleIsSignedQuantity;
   enum Stream_Visualization_SpectrumAnalyzer_2DMode spectrumAnalyzer2DMode;
   enum Stream_Visualization_SpectrumAnalyzer_3DMode spectrumAnalyzer3DMode;
   unsigned int                                      spectrumAnalyzerResolution;
