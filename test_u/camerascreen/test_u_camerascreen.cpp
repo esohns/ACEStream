@@ -1261,8 +1261,8 @@ do_work (const std::string& captureinterfaceIdentifier_in,
   modulehandler_configuration.outputFormat.format.pixelformat =
       V4L2_PIX_FMT_BGRA32;
   configuration_in.streamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_LIBAV_CONVERTER_DEFAULT_NAME_STRING),
-                                                               std::make_pair (module_configuration,
-                                                                               modulehandler_configuration)));
+                                                               std::make_pair (&module_configuration,
+                                                                               &modulehandler_configuration)));
   v4l_stream_iterator =
     configuration_in.streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (v4l_stream_iterator != configuration_in.streamConfiguration.end ());

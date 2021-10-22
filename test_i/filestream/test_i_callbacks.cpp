@@ -118,7 +118,7 @@ stream_processing_function (void* arg_in)
       {
         istream_p = thread_data_p->CBData->stream;
         istream_control_p = thread_data_p->CBData->stream;
-        //(*iterator_2).second.second.stream = istream_p;
+        //(*iterator_2).second.second->stream = istream_p;
         iinitialize_p = thread_data_p->CBData->stream;
         iget_p = thread_data_p->CBData->stream;
         break;
@@ -127,7 +127,7 @@ stream_processing_function (void* arg_in)
       {
         istream_p = thread_data_p->CBData->UDPStream;
         istream_control_p = thread_data_p->CBData->UDPStream;
-        //(*iterator_2).second.second.stream = istream_p;
+        //(*iterator_2).second.second->stream = istream_p;
         iinitialize_p = thread_data_p->CBData->UDPStream;
         iget_p = thread_data_p->CBData->UDPStream;
         break;
@@ -329,8 +329,8 @@ idle_initialize_source_UI_cb (gpointer userData_in)
     ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (iterator_2 != ui_cb_data_p->configuration->streamConfiguration.end ());
   std::string path =
-      ((*iterator_2).second.second.fileIdentifier.identifier.empty () ? Common_File_Tools::getHomeDirectory (ACE_TEXT_ALWAYS_CHAR (""))
-                                                                      : (*iterator_2).second.second.fileIdentifier.identifier);
+      ((*iterator_2).second.second->fileIdentifier.identifier.empty () ? Common_File_Tools::getHomeDirectory (ACE_TEXT_ALWAYS_CHAR (""))
+                                                                       : (*iterator_2).second.second->fileIdentifier.identifier);
   GFile* file_p = g_file_new_for_path (path.c_str ());
   ACE_ASSERT (file_p);
   GError* error_p = NULL;
@@ -508,7 +508,7 @@ idle_initialize_source_UI_cb (gpointer userData_in)
                                         ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_ACTION_START_NAME)));
   ACE_ASSERT (action_p);
   gtk_action_set_sensitive (action_p,
-                            Common_File_Tools::isReadable ((*iterator_2).second.second.fileIdentifier.identifier));
+                            Common_File_Tools::isReadable ((*iterator_2).second.second->fileIdentifier.identifier));
   action_p =
     //GTK_BUTTON (glade_xml_get_widget ((*iterator).second.second,
     //                                  ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_BUTTON_CLOSEALL_NAME)));
@@ -654,7 +654,7 @@ idle_initialize_source_UI_cb (gpointer userData_in)
   //                                                   ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_FILECHOOSERBUTTON_SAVE_NAME)));
   ACE_ASSERT (file_chooser_button_p);
   std::string default_folder_uri = ACE_TEXT_ALWAYS_CHAR ("file://");
-  default_folder_uri += (*iterator_2).second.second.fileIdentifier.identifier;
+  default_folder_uri += (*iterator_2).second.second->fileIdentifier.identifier;
   gboolean result =
     gtk_file_chooser_set_current_folder_uri (GTK_FILE_CHOOSER (file_chooser_button_p),
                                              default_folder_uri.c_str ());
@@ -959,8 +959,8 @@ idle_initialize_target_UI_cb (gpointer userData_in)
   Test_I_Target_StreamConfiguration_t::ITERATOR_T iterator_2 =
     ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (iterator_2 != ui_cb_data_p->configuration->streamConfiguration.end ());
-  directory = (*iterator_2).second.second.fileIdentifier.identifier;
-  file_name = (*iterator_2).second.second.fileIdentifier.identifier;
+  directory = (*iterator_2).second.second->fileIdentifier.identifier;
+  file_name = (*iterator_2).second.second->fileIdentifier.identifier;
   // sanity check(s)
   if (!Common_File_Tools::isDirectory (directory))
   {
@@ -1356,7 +1356,7 @@ idle_initialize_target_UI_cb (gpointer userData_in)
   //                                                   ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_FILECHOOSERBUTTON_SAVE_NAME)));
   ACE_ASSERT (file_chooser_button_p);
   std::string default_folder_uri = ACE_TEXT_ALWAYS_CHAR ("file://");
-  default_folder_uri += (*iterator_2).second.second.fileIdentifier.identifier;
+  default_folder_uri += (*iterator_2).second.second->fileIdentifier.identifier;
   gboolean result =
     gtk_file_chooser_set_current_folder_uri (GTK_FILE_CHOOSER (file_chooser_button_p),
                                              default_folder_uri.c_str ());
@@ -2415,9 +2415,9 @@ filechooserbutton_source_cb (GtkFileChooserButton* button_in,
   Test_I_Source_StreamConfiguration_t::ITERATOR_T iterator_2 =
     ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (iterator_2 != ui_cb_data_p->configuration->streamConfiguration.end ());
-  (*iterator_2).second.second.fileIdentifier.identifier =
+  (*iterator_2).second.second->fileIdentifier.identifier =
       Common_UI_GTK_Tools::UTF8ToLocale (string_p, -1);
-  if ((*iterator_2).second.second.fileIdentifier.identifier.empty ())
+  if ((*iterator_2).second.second->fileIdentifier.identifier.empty ())
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Common_UI_GTK_Tools::UTF8ToLocale(\"%s\"): \"%m\", returning\n"),
@@ -2441,7 +2441,7 @@ filechooserbutton_source_cb (GtkFileChooserButton* button_in,
     ui_cb_data_p->configuration->connectionConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (iterator_3 != ui_cb_data_p->configuration->connectionConfigurations.end ());
   bool activate =
-      (!(*iterator_2).second.second.fileIdentifier.identifier.empty () &&
+      (!(*iterator_2).second.second->fileIdentifier.identifier.empty () &&
        !NET_CONFIGURATION_TCP_CAST ((*iterator_3).second)->socketConfiguration.address.is_any ());
   gtk_action_set_sensitive (action_p, activate);
 } // filechooserbutton_source_cb
@@ -2843,9 +2843,9 @@ filechooserbutton_target_cb (GtkFileChooserButton* button_in,
   } // end IF
   g_object_unref (file_p);
 
-  (*iterator).second.second.fileIdentifier.identifier =
+  (*iterator).second.second->fileIdentifier.identifier =
     Common_UI_GTK_Tools::UTF8ToLocale (string_p, -1);
-  if ((*iterator).second.second.fileIdentifier.identifier.empty ())
+  if ((*iterator).second.second->fileIdentifier.identifier.empty ())
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Common_UI_GTK_Tools::UTF8ToLocale(\"%s\"): \"%m\", returning\n"),
@@ -2890,9 +2890,9 @@ filechooser_target_cb (GtkFileChooser* fileChooser_in,
   } // end IF
   g_object_unref (file_p);
 
-  (*iterator).second.second.fileIdentifier.identifier =
+  (*iterator).second.second->fileIdentifier.identifier =
     Common_UI_GTK_Tools::UTF8ToLocale (string_p, -1);
-  if ((*iterator).second.second.fileIdentifier.identifier.empty ())
+  if ((*iterator).second.second->fileIdentifier.identifier.empty ())
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Common_UI_GTK_Tools::UTF8ToLocale(\"%s\"): \"%m\", returning\n"),

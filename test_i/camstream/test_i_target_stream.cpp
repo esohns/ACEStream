@@ -1219,14 +1219,10 @@ Test_I_Target_TCPStream::initialize (const typename inherited::CONFIGURATION_T& 
   typename inherited::CONFIGURATION_T::ITERATOR_T iterator =
       const_cast<typename inherited::CONFIGURATION_T&> (configuration_in).find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (iterator != configuration_in.end ());
-  struct Test_I_Target_ModuleHandlerConfiguration* configuration_p =
-      dynamic_cast<struct Test_I_Target_ModuleHandlerConfiguration*> (&((*iterator).second.second));
-  ACE_ASSERT (configuration_p);
-
   ACE_ASSERT (session_data_r.formats.empty ());
   session_data_r.formats.push_back (configuration_in.configuration_->format);
-  //  session_data_r.sessionId = configuration_p->sessionId;
-  session_data_r.targetFileName = configuration_p->targetFileName;
+  //  session_data_r.sessionId = (*iterator).second.second->sessionId;
+  session_data_r.targetFileName = (*iterator).second.second->targetFileName;
 
   //  configuration_in.moduleConfiguration.streamState = &state_;
 //  configuration_p->stateMachineLock = &inherited::state_.stateMachineLock;
@@ -1362,14 +1358,10 @@ Test_I_Target_UDPStream::initialize (const typename inherited::CONFIGURATION_T& 
   typename inherited::CONFIGURATION_T::ITERATOR_T iterator =
       const_cast<typename inherited::CONFIGURATION_T&> (configuration_in).find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (iterator != configuration_in.end ());
-  struct Test_I_Target_ModuleHandlerConfiguration* configuration_p =
-      dynamic_cast<struct Test_I_Target_ModuleHandlerConfiguration*> (&((*iterator).second.second));
-  ACE_ASSERT (configuration_p);
-
   ACE_ASSERT (session_data_r.formats.empty ());
   session_data_r.formats.push_back (configuration_in.configuration_->format);
-  //  session_data_r.sessionId = configuration_p->sessionId;
-  session_data_r.targetFileName = configuration_p->targetFileName;
+  //  session_data_r.sessionId = (*iterator).second.second->sessionId;
+  session_data_r.targetFileName = (*iterator).second.second->targetFileName;
 
   //  configuration_in.moduleConfiguration.streamState = &state_;
 //  configuration_p->stateMachineLock = &inherited::state_.stateMachineLock;

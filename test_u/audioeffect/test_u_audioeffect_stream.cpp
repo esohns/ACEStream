@@ -1210,9 +1210,6 @@ Test_U_AudioEffect_ALSA_Stream::load (Stream_ILayout* layout_in,
   typename inherited::CONFIGURATION_T::ITERATOR_T iterator =
       inherited::configuration_->find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (iterator != inherited::configuration_->end ());
-  struct Test_U_AudioEffect_ALSA_ModuleHandlerConfiguration* configuration_p =
-      static_cast<struct Test_U_AudioEffect_ALSA_ModuleHandlerConfiguration*> (&((*iterator).second.second));
-  ACE_ASSERT (configuration_p);
 
   Stream_Module_t* module_p = NULL;
   ACE_NEW_RETURN (module_p,
@@ -1233,7 +1230,7 @@ Test_U_AudioEffect_ALSA_Stream::load (Stream_ILayout* layout_in,
                   false);
   layout_in->append (module_p, NULL, 0);
   module_p = NULL;
-  if (!configuration_p->effect.empty ())
+  if (!(*iterator).second.second->effect.empty ())
   {
     ACE_NEW_RETURN (module_p,
                     Test_U_AudioEffect_SoXEffect_Module (this,
@@ -1242,7 +1239,7 @@ Test_U_AudioEffect_ALSA_Stream::load (Stream_ILayout* layout_in,
     layout_in->append (module_p, NULL, 0);
     module_p = NULL;
   } // end IF
-  if (!configuration_p->mute)
+  if (!(*iterator).second.second->mute)
   {
     ACE_NEW_RETURN (module_p,
                     Test_U_AudioEffect_Target_ALSA_Module (this,
@@ -1347,34 +1344,23 @@ Test_U_AudioEffect_ALSA_Stream::initialize (const typename inherited::CONFIGURAT
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   if (configuration_in.useMediaFoundation)
   {
-    mediafoundation_configuration_p =
-        dynamic_cast<struct Test_U_AudioEffect_MediaFoundation_ModuleHandlerConfiguration*> (&((*iterator).second.second));
-    ACE_ASSERT (mediafoundation_configuration_p);
+    mediafoundation_configuration_p = (*iterator).second.second;
+    session_data_p->targetFileName =
+        mediafoundation_configuration_p->fileIdentifier.identifier;
   } // end IF
   else
   {
-    directshow_configuration_p =
-        dynamic_cast<struct Test_U_AudioEffect_DirectShow_ModuleHandlerConfiguration*> (&((*iterator).second.second));
-    ACE_ASSERT (directshow_configuration_p);
-  } // end ELSE
-#else
-  configuration_p =
-      dynamic_cast<struct Test_U_AudioEffect_ModuleHandlerConfiguration*> (&((*iterator).second.second));
-  ACE_ASSERT (configuration_p);
-#endif // ACE_WIN32 || ACE_WIN64
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-  if (configuration_in.useMediaFoundation)
-    session_data_p->targetFileName =
-        mediafoundation_configuration_p->fileIdentifier.identifier;
-  else
+    directshow_configuration_p = (*iterator).second.second;
     session_data_p->targetFileName =
         directshow_configuration_p->fileIdentifier.identifier;
+  } // end ELSE
 #else
+  configuration_p = (*iterator).second.second;
   session_data_p->targetFileName = configuration_p->fileIdentifier.identifier;
-  session_data_p->formats.push_back (configuration_in.configuration_->format);
 #endif // ACE_WIN32 || ACE_WIN64
   //session_data_r.size =
   //  Common_File_Tools::size (configuration_in.moduleHandlerConfiguration->fileName);
+  session_data_p->formats.push_back (configuration_in.configuration_->format);
 
   // ---------------------------------------------------------------------------
 

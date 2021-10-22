@@ -1670,8 +1670,8 @@ error:
 
   v4l_resize_modulehandler_configuration = v4l_modulehandler_configuration;
   configuration_in.v4l_streamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_LIBAV_RESIZE_DEFAULT_NAME_STRING),
-                                                                   std::make_pair (module_configuration,
-                                                                                   v4l_resize_modulehandler_configuration)));
+                                                                   std::make_pair (&module_configuration,
+                                                                                   &v4l_resize_modulehandler_configuration)));
 
   v4l_renderer_modulehandler_configuration = v4l_modulehandler_configuration;
   v4l_renderer_modulehandler_configuration.deviceIdentifier.identifier =
@@ -1679,8 +1679,8 @@ error:
   // *TODO*: X11 window crashes for 24 bit depths... (BadIDChoice)
 //  v4l_renderer_modulehandler_configuration.outputFormat.format = AV_PIX_FMT_RGB32;
   configuration_in.v4l_streamConfiguration.insert (std::make_pair (Stream_Visualization_Tools::rendererToModuleName (STREAM_VISUALIZATION_VIDEORENDERER_GTK_PIXBUF),
-                                                                   std::make_pair (module_configuration,
-                                                                                   v4l_renderer_modulehandler_configuration)));
+                                                                   std::make_pair (&module_configuration,
+                                                                                   &v4l_renderer_modulehandler_configuration)));
 
   // *NOTE*: apparently, Windows Media Player supports only RGB 5:5:5 16bpp AVI
   //         content (see also avienc.c:448)
@@ -1688,22 +1688,22 @@ error:
   v4l_converter_2_modulehandler_configuration.outputFormat.format.pixelformat =
       V4L2_PIX_FMT_BGR24;
   configuration_in.v4l_streamConfiguration.insert (std::make_pair (std::string (std::string (ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_LIBAV_CONVERTER_DEFAULT_NAME_STRING)) + ACE_TEXT_ALWAYS_CHAR ("_2")),
-                                                                   std::make_pair (module_configuration,
-                                                                                   v4l_converter_2_modulehandler_configuration)));
+                                                                   std::make_pair (&module_configuration,
+                                                                                   &v4l_converter_2_modulehandler_configuration)));
 #if defined (LIBCAMERA_SUPPORT)
   libcamera_display_modulehandler_configuration = libcamera_modulehandler_configuration;
   libcamera_display_modulehandler_configuration.display = displayDevice_in;
   configuration_in.libCamera_streamConfiguration.insert (std::make_pair (Stream_Visualization_Tools::rendererToModuleName (STREAM_VISUALIZATION_VIDEORENDERER_X11),
-                                                                         std::make_pair (module_configuration,
-                                                                                         libcamera_display_modulehandler_configuration)));
+                                                                         std::make_pair (&module_configuration,
+                                                                                         &libcamera_display_modulehandler_configuration)));
 
   libcamera_converter_2_modulehandler_configuration =
       libcamera_modulehandler_configuration;
   libcamera_converter_2_modulehandler_configuration.outputFormat.format =
       libcamera::PixelFormat (FOURCC ('R','G', 'B', '5'), 0);
   configuration_in.libCamera_streamConfiguration.insert (std::make_pair (std::string (std::string (ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_LIBAV_CONVERTER_DEFAULT_NAME_STRING)) + ACE_TEXT_ALWAYS_CHAR ("_2")),
-                                                                         std::make_pair (module_configuration,
-                                                                                         libcamera_converter_2_modulehandler_configuration)));
+                                                                         std::make_pair (&module_configuration,
+                                                                                         &libcamera_converter_2_modulehandler_configuration)));
 #endif // LIBCAMERA_SUPPORT
   v4l_stream_iterator =
     configuration_in.v4l_streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));

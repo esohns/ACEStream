@@ -3060,7 +3060,10 @@ get_buffer_size (gpointer userData_in)
   //                   latency
   return (sample_rate * (bits_per_sample / 8) * channels) / 8; // <-- arbitrary factor
 #else
+  ACE_UNUSED_ARG (format_e);
+  ACE_UNUSED_ARG (sample_rate);
   ACE_UNUSED_ARG (bits_per_sample);
+  ACE_UNUSED_ARG (channels);
   return ui_cb_data_p->configuration->streamConfiguration.configuration_->allocatorConfiguration->defaultBufferSize;
 //  return (sample_rate * snd_pcm_format_size (format_e, 1) * channels);
 #endif // ACE_WIN32 || ACE_WIN64
@@ -3920,7 +3923,7 @@ idle_initialize_UI_cb (gpointer userData_in)
                                                      ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_FILECHOOSERBUTTON_SAVE_NAME)));
   ACE_ASSERT (file_chooser_button_p);
   gboolean result = FALSE;
-  gchar* filename_p = NULL;
+//  gchar* filename_p = NULL;
   if (!filename.empty ())
   {
     if (!Common_File_Tools::isDirectory (filename))
@@ -3970,7 +3973,7 @@ idle_initialize_UI_cb (gpointer userData_in)
   //              ACE_TEXT (filename_p)));
   //  g_free (filename_p);
   //  return G_SOURCE_REMOVE;
-  //} // end IF
+  //} // end IF^
   //g_free (filename_p); filename_p = NULL;
   if (filename.empty ())
   {
@@ -10166,7 +10169,7 @@ drawingarea_size_allocate_cb (GtkWidget* widget_in,
   } // end SWITCH
 #else
   lock_p = &ui_cb_data_p->surfaceLock;
-  (*streamconfiguration_iterator).second.second->area2D = *allocation_in;
+//  (*streamconfiguration_iterator).second.second->area2D = *allocation_in;
 #endif // ACE_WIN32 || ACE_WIN64
 
   GdkWindow* window_p = gtk_widget_get_window (widget_in);

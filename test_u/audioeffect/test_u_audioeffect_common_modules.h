@@ -250,7 +250,7 @@ typedef Stream_Statistic_StatisticAnalysis_T<ACE_MT_SYNCH,
                                              Test_U_AudioEffect_SessionData,
                                              Test_U_AudioEffect_SessionData_t,
                                              struct Stream_MediaFramework_ALSA_MediaType,
-                                             double, 1> Test_U_AudioEffect_StatisticAnalysis;
+                                             double> Test_U_AudioEffect_StatisticAnalysis;
 DATASTREAM_MODULE_INPUT_ONLY (Test_U_AudioEffect_SessionData,                       // session data type
                               enum Stream_SessionMessageType,                       // session event type
                               struct Test_U_AudioEffect_ALSA_ModuleHandlerConfiguration, // module handler configuration type

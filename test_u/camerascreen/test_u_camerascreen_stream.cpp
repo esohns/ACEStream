@@ -1229,7 +1229,6 @@ Stream_CameraScreen_Stream::initialize (const typename inherited::CONFIGURATION_
   bool reset_setup_pipeline = false;
   Stream_CameraScreen_V4L_SessionData* session_data_p = NULL;
   typename inherited::CONFIGURATION_T::ITERATOR_T iterator;
-  struct Stream_CameraScreen_V4L_ModuleHandlerConfiguration* configuration_p = NULL;
   Stream_CameraScreen_V4L_Source* source_impl_p = NULL;
 
   // allocate a new session state, reset stream
@@ -1257,13 +1256,6 @@ Stream_CameraScreen_Stream::initialize (const typename inherited::CONFIGURATION_
 
   // sanity check(s)
   ACE_ASSERT (iterator != configuration_in.end ());
-
-  configuration_p =
-      dynamic_cast<struct Stream_CameraScreen_V4L_ModuleHandlerConfiguration*> (&(*iterator).second.second);
-
-  // sanity check(s)
-  ACE_ASSERT (configuration_p);
-
   // *TODO*: remove type inferences
   ACE_ASSERT (session_data_p->formats.empty ());
   session_data_p->formats.push_back (configuration_in.configuration_->format);

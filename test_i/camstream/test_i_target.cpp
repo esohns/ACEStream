@@ -1092,8 +1092,8 @@ do_work (unsigned int bufferSize_in,
       configuration.streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (iterator != configuration.streamConfiguration.end ());
   configuration.streamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (STREAM_MISC_SPLITTER_DEFAULT_NAME_STRING),
-                                                            std::make_pair (module_configuration,
-                                                                            modulehandler_configuration)));
+                                                            std::make_pair (&module_configuration,
+                                                                            &modulehandler_configuration)));
 #endif // ACE_WIN32 || ACE_WIN64
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)

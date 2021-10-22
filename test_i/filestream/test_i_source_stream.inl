@@ -185,9 +185,9 @@ Test_I_Source_Stream_T<ConnectionManagerType,
   iterator = configuration_in.find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (iterator != configuration_in.end ());
   session_data_p->fileName =
-      (*iterator).second.second.fileIdentifier.identifier;
+      (*iterator).second.second->fileIdentifier.identifier;
   session_data_p->size =
-    Common_File_Tools::size ((*iterator).second.second.fileIdentifier.identifier);
+    Common_File_Tools::size ((*iterator).second.second->fileIdentifier.identifier);
 
   inherited::isInitialized_ = true;
   //inherited::dump_state ();

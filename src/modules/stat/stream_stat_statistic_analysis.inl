@@ -281,7 +281,7 @@ Stream_Statistic_StatisticAnalysis_T<ACE_SYNCH_USE,
       sample_byte_order = ACE_LITTLE_ENDIAN;
 
       // *NOTE*: "...If the audio contains 8 bits per sample, the audio samples
-      //         are unsigned values. (Each audio sample has the range 0–255.)
+      //         are unsigned values. (Each audio sample has the range 0â€“255.)
       //         If the audio contains 16 bits per sample or higher, the audio
       //         samples are signed values. ..."
       sampleIsSigned_ = !(sub_sample_size == 1);
@@ -301,7 +301,8 @@ Stream_Statistic_StatisticAnalysis_T<ACE_SYNCH_USE,
           ((snd_pcm_format_little_endian (media_type_s.format) == 1) ? ACE_LITTLE_ENDIAN
                                                                      : -1);
 
-      sampleIsSigned_ = ACE_ASSERT (false); // *TODO*
+      sampleIsSigned_ =
+          (snd_pcm_format_signed (media_type_s.format) == 1);
 #endif // ACE_WIN32 || ACE_WIN64
       result_2 = iterator_.initialize (sample_size,
                                        sub_sample_size,
