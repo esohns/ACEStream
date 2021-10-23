@@ -51,7 +51,6 @@ Stream_Decoder_SoXEffect_T<ACE_SYNCH_USE,
  , chain_ (NULL)
  , encodingInfo_ ()
  , input_ (NULL)
- , manageSoX_ (true)
  , output_ (NULL)
  , signalInfo_ ()
 {
@@ -88,7 +87,8 @@ Stream_Decoder_SoXEffect_T<ACE_SYNCH_USE,
   if (chain_)
     sox_delete_effects_chain (chain_);
 
-  if (manageSoX_)
+  if (inherited::configuration_ &&
+      inherited::configuration_->manageSoX)
   {
     result = sox_quit ();
     if (unlikely (result != SOX_SUCCESS))
@@ -132,10 +132,10 @@ Stream_Decoder_SoXEffect_T<ACE_SYNCH_USE,
     {
       sox_delete_effects_chain (chain_); chain_ = NULL;
     } // end IF
-    input_ = NULL;
-    output_ = NULL;
+    input_ = NULL; output_ = NULL;
 
-    if (manageSoX_)
+    ACE_ASSERT (inherited::configuration_);
+    if (inherited::configuration_->manageSoX)
     {
       result = sox_quit ();
       if (unlikely (result != SOX_SUCCESS))
@@ -146,11 +146,9 @@ Stream_Decoder_SoXEffect_T<ACE_SYNCH_USE,
         return false;
       } // end IF
     } // end IF
-    manageSoX_ = true;
   } // end IF
 
-  manageSoX_ = configuration_in.manageSoX;
-  if (manageSoX_)
+  if (configuration_in.manageSoX)
   {
     result = sox_init ();
     if (unlikely (result != SOX_SUCCESS))
@@ -196,6 +194,8 @@ Stream_Decoder_SoXEffect_T<ACE_SYNCH_USE,
   // sanity check(s)
   ACE_ASSERT (inherited::configuration_);
   ACE_ASSERT (inherited::configuration_->streamConfiguration);
+  if (inherited::configuration_->effect.empty ())
+    return;
 
   // initialize return value(s)
   passMessageDownstream_out = false;
@@ -288,7 +288,7 @@ Stream_Decoder_SoXEffect_T<ACE_SYNCH_USE,
     // output buffer is full --> (dispatch and- ?) allocate another one
 //    ACE_ASSERT (output_buffer_p->tell_off <= inherited::configuration_->streamConfiguration->bufferSize);
     message_block_p->wr_ptr ((output_buffer_p->tell_off <= inherited::configuration_->streamConfiguration->configuration_->allocatorConfiguration->defaultBufferSize) ? output_buffer_p->tell_off
-                                                                                                                                                                     : inherited::configuration_->streamConfiguration->configuration_->allocatorConfiguration->defaultBufferSize);
+                                                                                                                                                                      : inherited::configuration_->streamConfiguration->configuration_->allocatorConfiguration->defaultBufferSize);
 
     message_block_2 = NULL;
     message_block_2 =
@@ -432,6 +432,8 @@ Stream_Decoder_SoXEffect_T<ACE_SYNCH_USE,
     {
       // sanity check(s)
       ACE_ASSERT (inherited::sessionData_);
+      if (inherited::configuration_->effect.empty ())
+        break;
 
       SessionDataType& session_data_r =
           const_cast<SessionDataType&> (inherited::sessionData_->getR ());
@@ -549,13 +551,11 @@ Stream_Decoder_SoXEffect_T<ACE_SYNCH_USE,
                     ACE_TEXT (sox_strerror (result))));
         goto error;
       } // end IF
-#if defined (_DEBUG)
       ACE_DEBUG ((LM_DEBUG,
                   ACE_TEXT ("%s: added SoX effect \"%s\" (options: \"%s\")\n"),
                   inherited::mod_->name (),
                   ACE_TEXT (inherited::configuration_->effect.c_str ()),
                   ACE_TEXT (effect_options_string.c_str ())));
-#endif // _DEBUG
       effect_handler_p =
           sox_find_effect (ACE_TEXT_ALWAYS_CHAR ("output"));
       if (unlikely (!effect_handler_p))
@@ -610,6 +610,7 @@ continue_:
       {
         sox_delete_effects_chain (chain_); chain_ = NULL;
       } // end IF
+      input_ = NULL; output_ = NULL;
 
       break;
     }

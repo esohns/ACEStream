@@ -572,17 +572,18 @@ Stream_Dev_Target_ALSA_T<ACE_SYNCH_USE,
                     ACE_TEXT ("%s: opened ALSA device (playback) \"%s\"...\n"),
                     inherited::mod_->name (),
                     ACE_TEXT (device_name_string.c_str ())));
+
+        // *TODO*: remove type inference
+        if (!Stream_Device_Tools::setFormat (deviceHandle_,
+                                             media_type_r))
+        {
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("%s: failed to Stream_Device_Tools::setFormat(): \"%m\", aborting\n"),
+                      inherited::mod_->name ()));
+          goto error;
+        } // end IF
       } // end ELSE
       ACE_ASSERT (deviceHandle_);
-
-      // *TODO*: remove type inference
-      if (!Stream_Device_Tools::setFormat (deviceHandle_,
-                                           media_type_r))
-      {
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("failed to Stream_Device_Tools::setFormat(): \"%m\", aborting\n")));
-        goto error;
-      } // end IF
 
 #if defined (_DEBUG)
       ACE_ASSERT (debugOutput_);
@@ -591,7 +592,8 @@ Stream_Dev_Target_ALSA_T<ACE_SYNCH_USE,
       if (result < 0)
       {
         ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("failed to snd_pcm_dump(\"%s\"): \"%s\", aborting\n"),
+                    ACE_TEXT ("%s: failed to snd_pcm_dump(\"%s\"): \"%s\", aborting\n"),
+                    ACE_TEXT (inherited::mod_->name ()),
                     ACE_TEXT (inherited::configuration_->deviceIdentifier.identifier.c_str ()),
                     ACE_TEXT (snd_strerror (result))));
         goto error;
@@ -603,8 +605,7 @@ Stream_Dev_Target_ALSA_T<ACE_SYNCH_USE,
         //  asynchCBData_.areas = areas;
         asynchCBData_.queue = inherited::msg_queue ();
         asynchCBData_.sampleSize =
-            (snd_pcm_format_width (media_type_r.format) / 8) *
-            media_type_r.channels;
+            (snd_pcm_format_width (media_type_r.format) / 8) * media_type_r.channels;
         result =
             snd_async_add_pcm_handler (&asynchHandler_,
                                        deviceHandle_,
@@ -613,7 +614,8 @@ Stream_Dev_Target_ALSA_T<ACE_SYNCH_USE,
         if (result < 0)
         {
           ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("failed to snd_async_add_pcm_handler(): \"%s\", aborting\n"),
+                      ACE_TEXT ("%s: failed to snd_async_add_pcm_handler(): \"%s\", aborting\n"),
+                      ACE_TEXT (inherited::mod_->name ()),
                       ACE_TEXT (snd_strerror (result))));
           goto error;
         } // end IF
@@ -621,49 +623,11 @@ Stream_Dev_Target_ALSA_T<ACE_SYNCH_USE,
                     ACE_TEXT ("%s: \"%s\": registered asynch PCM handler...\n"),
                     ACE_TEXT (inherited::mod_->name ()),
                     ACE_TEXT (snd_pcm_name (deviceHandle_))));
-      } // end IF
 
-//      if (inherited::configuration_->statisticCollectionInterval != ACE_Time_Value::zero)
-//      {
-//        // schedule regular statistic collection
-//        ACE_ASSERT (inherited::timerID_ == -1);
-//        ACE_Event_Handler* handler_p = &(inherited::statisticCollectionHandler_);
-//        inherited::timerID_ =
-//            COMMON_TIMERMANAGER_SINGLETON::instance ()->schedule_timer (handler_p,                                                                // event handler
-//                                                                        NULL,                                                                     // argument
-//                                                                        COMMON_TIME_NOW + inherited::configuration_->statisticCollectionInterval, // first wakeup time
-//                                                                        inherited::configuration_->statisticCollectionInterval);                  // interval
-//        if (inherited::timerID_ == -1)
-//        {
-//          ACE_DEBUG ((LM_ERROR,
-//                      ACE_TEXT ("failed to Common_Timer_Manager::schedule_timer(): \"%m\", aborting\n")));
-//          goto error;
-//        } // end IF
-//        ACE_DEBUG ((LM_DEBUG,
-//                    ACE_TEXT ("scheduled statistic collecting timer (ID: %d) for interval %#T...\n"),
-//                    inherited::timerID_,
-//                    &inherited::configuration_->statisticCollectionInterval));
-//      } // end IF
-
-//      if (!Stream_Module_Device_Tools::initializeBuffers<DataMessageType> (deviceHandle_,
-//                                                                           inherited::configuration_->method,
-//                                                                           inherited::configuration_->buffers,
-//                                                                           bufferMap_,
-//                                                                           inherited::configuration_->streamConfiguration->messageAllocator))
-//      {
-//        ACE_DEBUG ((LM_ERROR,
-//                    ACE_TEXT ("failed to Stream_Module_Device_Tools::initializeBuffers(%d): \"%m\", aborting\n"),
-//                    captureFileDescriptor_));
-//        goto error;
-//      } // end IF
-
-      if (useALSAAsynch_)
-      {
         // *NOTE*: apparently, ALSA needs some initial data
         //         --> write one periods' worth of silence
         initial_buffer_size =
-            media_type_r.periodSize *
-            asynchCBData_.sampleSize;
+            media_type_r.periodSize * asynchCBData_.sampleSize;
         buffer_p = malloc (initial_buffer_size);
         ACE_ASSERT (buffer_p);
         result =
@@ -697,7 +661,8 @@ Stream_Dev_Target_ALSA_T<ACE_SYNCH_USE,
             if (result < 0)
             {
               ACE_DEBUG ((LM_ERROR,
-                          ACE_TEXT ("failed to snd_pcm_recover(): \"%s\", aborting\n"),
+                          ACE_TEXT ("%s: failed to snd_pcm_recover(): \"%s\", aborting\n"),
+                          ACE_TEXT (inherited::mod_->name ()),
                           ACE_TEXT (snd_strerror (result))));
               goto error;
             } // end IF
@@ -705,17 +670,18 @@ Stream_Dev_Target_ALSA_T<ACE_SYNCH_USE,
           else
           {
             ACE_DEBUG ((LM_ERROR,
-                        ACE_TEXT ("failed to snd_pcm_start(): \"%s\", aborting\n"),
+                        ACE_TEXT ("%s: failed to snd_pcm_start(): \"%s\", aborting\n"),
+                        ACE_TEXT (inherited::mod_->name ()),
                         ACE_TEXT (snd_strerror (result))));
             goto error;
           } // end IF
         } // end IF
-        ACE_DEBUG ((LM_ERROR,
+        ACE_DEBUG ((LM_DEBUG,
                     ACE_TEXT ("%s: \"%s\": started playback device...\n"),
                     inherited::mod_->name (),
                     ACE_TEXT (snd_pcm_name (deviceHandle_))));
+        stop_device = true;
       } // end IF
-      stop_device = true;
 
 //continue_:
       break;
@@ -726,7 +692,8 @@ error:
         result =  snd_pcm_drop (deviceHandle_);
         if (result < 0)
           ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("failed to snd_pcm_drop(): \"%s\", continuing\n"),
+                      ACE_TEXT ("%s: failed to snd_pcm_drop(): \"%s\", continuing\n"),
+                      ACE_TEXT (inherited::mod_->name ()),
                       ACE_TEXT (snd_strerror (result))));
       } // end IF
 
@@ -736,37 +703,19 @@ error:
     }
     case STREAM_SESSION_MESSAGE_END:
     {
-//      if (inherited::timerID_ != -1)
-//      {
-//        const void* act_p = NULL;
-//        result =
-//            COMMON_TIMERMANAGER_SINGLETON::instance ()->cancel_timer (inherited::timerID_,
-//                                                                      &act_p);
-//        if (result == -1)
-//          ACE_DEBUG ((LM_ERROR,
-//                      ACE_TEXT ("failed to cancel timer (ID: %d): \"%m\", continuing\n"),
-//                      inherited::timerID_));
-//        inherited::timerID_ = -1;
-//      } // end IF
-
-      if (deviceHandle_)
+      if (deviceHandle_ && !useALSAAsynch_)
       {
         result = snd_pcm_drop (deviceHandle_);
         if (result < 0)
           ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("failed to snd_pcm_drop(): \"%s\", continuing\n"),
+                      ACE_TEXT ("%s: failed to snd_pcm_drop(): \"%s\", continuing\n"),
+                      ACE_TEXT (inherited::mod_->name ()),
                       ACE_TEXT (snd_strerror (result))));
         else
-          ACE_DEBUG ((LM_ERROR,
+          ACE_DEBUG ((LM_DEBUG,
                       ACE_TEXT ("%s: \"%s\": stopped playback device...\n"),
                       ACE_TEXT (inherited::mod_->name ()),
                       ACE_TEXT (snd_pcm_name (deviceHandle_))));
-
-        result = snd_pcm_hw_free (deviceHandle_);
-        if (result < 0)
-          ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("failed to snd_pcm_hw_free(): \"%s\", continuing\n"),
-                      ACE_TEXT (snd_strerror (result))));
       } // end IF
 
       if (useALSAAsynch_)
@@ -778,14 +727,20 @@ error:
                       ACE_TEXT (snd_strerror (result))));
         else
           ACE_DEBUG ((LM_DEBUG,
-                      ACE_TEXT ("%s: \"%s\": deregistered asynch PCM handler...\n"),
-                      ACE_TEXT (inherited::mod_->name ()),
-                      ACE_TEXT (snd_pcm_name (deviceHandle_))));
+                      ACE_TEXT ("%s: deregistered asynch PCM handler...\n"),
+                      ACE_TEXT (inherited::mod_->name ())));
       } // end IF
 
-      if (!isPassive_)
-        if (deviceHandle_)
+      if (deviceHandle_)
+      {
+        if (!isPassive_)
         {
+          result = snd_pcm_hw_free (deviceHandle_);
+          if (result < 0)
+            ACE_DEBUG ((LM_ERROR,
+                        ACE_TEXT ("failed to snd_pcm_hw_free(): \"%s\", continuing\n"),
+                        ACE_TEXT (snd_strerror (result))));
+
           result = snd_pcm_close (deviceHandle_);
           if (result < 0)
             ACE_DEBUG ((LM_ERROR,
@@ -795,8 +750,9 @@ error:
             ACE_DEBUG ((LM_DEBUG,
                         ACE_TEXT ("%s: closed ALSA device...\n"),
                         ACE_TEXT (inherited::mod_->name ())));
-          deviceHandle_ = NULL;
         } // end IF
+        deviceHandle_ = NULL;
+      } // end IF
 
       if (debugOutput_)
       {

@@ -1440,75 +1440,56 @@ Stream_MediaFramework_Tools::ALSAToSoX (enum _snd_pcm_format format_in,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_Tools::ALSAToSoX"));
 
-//  int result = -1;
-
   // initialize return value(s)
   ACE_OS::memset (&encoding_out, 0, sizeof (struct sox_encodinginfo_t));
   ACE_OS::memset (&format_out, 0, sizeof (struct sox_signalinfo_t));
 
-  encoding_out.encoding = SOX_ENCODING_SIGN2;
-//  enum _snd_pcm_format ALSA_format = SND_PCM_FORMAT_UNKNOWN;
-//  unsigned int channels = 0;
-//  unsigned int sample_rate = 0;
-//  int subunit_direction = 0;
-
-//  result = snd_pcm_hw_params_get_format (format_in,
-//                                         &ALSA_format);
-//  if (result < 0)
-//  {
-//    ACE_DEBUG ((LM_ERROR,
-//                ACE_TEXT ("failed to snd_pcm_hw_params_get_format(): \"%s\", returning\n"),
-//                ACE_TEXT (snd_strerror (result))));
-//    return;
-//  } // end IF
-//  switch (ALSA_format)
+  encoding_out.encoding = SOX_ENCODING_UNKNOWN;
   switch (format_in)
   {
-    // PCM 'formats'
     case SND_PCM_FORMAT_S8:
-      break;
-    case SND_PCM_FORMAT_U8:
-      encoding_out.encoding = SOX_ENCODING_UNSIGNED;
-      break;
-    case SND_PCM_FORMAT_S16_LE:
     case SND_PCM_FORMAT_S16_BE:
-      break;
-    case SND_PCM_FORMAT_U16_LE:
-      encoding_out.encoding = SOX_ENCODING_UNSIGNED;
-      break;
-    case SND_PCM_FORMAT_U16_BE:
-      encoding_out.encoding = SOX_ENCODING_UNSIGNED;
-      break;
-    case SND_PCM_FORMAT_S24_LE:
-      break;
+    case SND_PCM_FORMAT_S16_LE:
+    case SND_PCM_FORMAT_S18_3BE:
+    case SND_PCM_FORMAT_S18_3LE:
+    case SND_PCM_FORMAT_S20_3BE:
+    case SND_PCM_FORMAT_S20_3LE:
+    case SND_PCM_FORMAT_S20_BE:
+    case SND_PCM_FORMAT_S20_LE:
     case SND_PCM_FORMAT_S24_BE:
-      break;
-    case SND_PCM_FORMAT_U24_LE:
-      encoding_out.encoding = SOX_ENCODING_UNSIGNED;
-      break;
-    case SND_PCM_FORMAT_U24_BE:
-      encoding_out.encoding = SOX_ENCODING_UNSIGNED;
-      break;
-    case SND_PCM_FORMAT_S32_LE:
-      break;
+    case SND_PCM_FORMAT_S24_LE:
+    case SND_PCM_FORMAT_S24_3BE:
+    case SND_PCM_FORMAT_S24_3LE:
     case SND_PCM_FORMAT_S32_BE:
+    case SND_PCM_FORMAT_S32_LE:
+      encoding_out.encoding = SOX_ENCODING_SIGN2;
       break;
+    case SND_PCM_FORMAT_DSD_U8:
+    case SND_PCM_FORMAT_DSD_U16_BE:
+    case SND_PCM_FORMAT_DSD_U16_LE:
+    case SND_PCM_FORMAT_DSD_U32_BE:
+    case SND_PCM_FORMAT_DSD_U32_LE:
+    case SND_PCM_FORMAT_U8:
+    case SND_PCM_FORMAT_U16_BE:
+    case SND_PCM_FORMAT_U16_LE:
+    case SND_PCM_FORMAT_U18_3BE:
+    case SND_PCM_FORMAT_U18_3LE:
+    case SND_PCM_FORMAT_U20_3BE:
+    case SND_PCM_FORMAT_U20_3LE:
+    case SND_PCM_FORMAT_U20_BE:
+    case SND_PCM_FORMAT_U20_LE:
+    case SND_PCM_FORMAT_U24_3BE:
+    case SND_PCM_FORMAT_U24_3LE:
+    case SND_PCM_FORMAT_U24_BE:
+    case SND_PCM_FORMAT_U24_LE:
+    case SND_PCM_FORMAT_U32_BE:
     case SND_PCM_FORMAT_U32_LE:
       encoding_out.encoding = SOX_ENCODING_UNSIGNED;
       break;
-    case SND_PCM_FORMAT_U32_BE:
-      encoding_out.encoding = SOX_ENCODING_UNSIGNED;
-      break;
-    case SND_PCM_FORMAT_FLOAT_LE:
-      encoding_out.encoding = SOX_ENCODING_FLOAT;
-      break;
     case SND_PCM_FORMAT_FLOAT_BE:
-      encoding_out.encoding = SOX_ENCODING_FLOAT;
-      break;
-    case SND_PCM_FORMAT_FLOAT64_LE:
-      encoding_out.encoding = SOX_ENCODING_FLOAT;
-      break;
+    case SND_PCM_FORMAT_FLOAT_LE:
     case SND_PCM_FORMAT_FLOAT64_BE:
+    case SND_PCM_FORMAT_FLOAT64_LE:
       encoding_out.encoding = SOX_ENCODING_FLOAT;
       break;
     case SND_PCM_FORMAT_MU_LAW:
@@ -1532,75 +1513,91 @@ Stream_MediaFramework_Tools::ALSAToSoX (enum _snd_pcm_format format_in,
     case SND_PCM_FORMAT_IEC958_SUBFRAME_LE:
     case SND_PCM_FORMAT_IEC958_SUBFRAME_BE:
     case SND_PCM_FORMAT_MPEG:
-    case SND_PCM_FORMAT_S20_LE:
-    case SND_PCM_FORMAT_S20_BE:
-    case SND_PCM_FORMAT_U20_LE:
-    case SND_PCM_FORMAT_U20_BE:
     case SND_PCM_FORMAT_SPECIAL:
-    case SND_PCM_FORMAT_S24_3LE:
-    case SND_PCM_FORMAT_S24_3BE:
-    case SND_PCM_FORMAT_U24_3LE:
-    case SND_PCM_FORMAT_U24_3BE:
-    case SND_PCM_FORMAT_S20_3LE:
-    case SND_PCM_FORMAT_S20_3BE:
-    case SND_PCM_FORMAT_U20_3LE:
-    case SND_PCM_FORMAT_U20_3BE:
-    case SND_PCM_FORMAT_S18_3LE:
-    case SND_PCM_FORMAT_S18_3BE:
-    case SND_PCM_FORMAT_U18_3LE:
-    case SND_PCM_FORMAT_U18_3BE:
-    case SND_PCM_FORMAT_DSD_U8:
-    case SND_PCM_FORMAT_DSD_U16_LE:
-    case SND_PCM_FORMAT_DSD_U32_LE:
-    case SND_PCM_FORMAT_DSD_U16_BE:
-    case SND_PCM_FORMAT_DSD_U32_BE:
     default:
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("invalid/unknown ALSA audio frame format (was: %d), continuing\n"),
-//                  ALSA_format));
                   format_in));
-//      ACE_ASSERT (false);
-      encoding_out.encoding = SOX_ENCODING_UNKNOWN;
       break;
     }
   } // end SWITCH
-
-//  result = snd_pcm_hw_params_get_channels (format_in,
-//                                           &channels);
-//  if (result < 0)
-//  {
-//    ACE_DEBUG ((LM_ERROR,
-//                ACE_TEXT ("failed to snd_pcm_hw_params_get_channels(): \"%s\", returning\n"),
-//                ACE_TEXT (snd_strerror (result))));
-//    return;
-//  } // end IF
-//  result = snd_pcm_hw_params_get_rate (format_in,
-//                                       &sample_rate, &subunit_direction);
-//  if (result < 0)
-//  {
-//    ACE_DEBUG ((LM_ERROR,
-//                ACE_TEXT ("failed to snd_pcm_hw_params_get_rate(): \"%s\", returning\n"),
-//                ACE_TEXT (snd_strerror (result))));
-//    return;
-//  } // end IF
-
-//      encoding_out.compression = 0.0;
-//  encoding_out.bits_per_sample = snd_pcm_format_width (ALSA_format);
   encoding_out.bits_per_sample = snd_pcm_format_width (format_in);
   encoding_out.reverse_bytes = sox_option_default;
   encoding_out.reverse_nibbles = sox_option_default;
   encoding_out.reverse_bits = sox_option_default;
   encoding_out.opposite_endian = sox_false;
+  switch (format_in)
+  {
+    case SND_PCM_FORMAT_DSD_U16_BE:
+    case SND_PCM_FORMAT_DSD_U32_BE:
+    case SND_PCM_FORMAT_S16_BE:
+    case SND_PCM_FORMAT_S18_3BE:
+    case SND_PCM_FORMAT_S20_3BE:
+    case SND_PCM_FORMAT_S20_BE:
+    case SND_PCM_FORMAT_S24_BE:
+    case SND_PCM_FORMAT_S24_3BE:
+    case SND_PCM_FORMAT_S32_BE:
+    case SND_PCM_FORMAT_U16_BE:
+    case SND_PCM_FORMAT_U18_3BE:
+    case SND_PCM_FORMAT_U20_3BE:
+    case SND_PCM_FORMAT_U20_BE:
+    case SND_PCM_FORMAT_U24_3BE:
+    case SND_PCM_FORMAT_U24_BE:
+    case SND_PCM_FORMAT_U32_BE:
+#if defined (ACE_LITTLE_ENDIAN)
+      encoding_out.opposite_endian = sox_true;
+#endif // ACE_LITTLE_ENDIAN
+      break;
+    case SND_PCM_FORMAT_S16_LE:
+    case SND_PCM_FORMAT_S18_3LE:
+    case SND_PCM_FORMAT_S20_3LE:
+    case SND_PCM_FORMAT_S20_LE:
+    case SND_PCM_FORMAT_S24_LE:
+    case SND_PCM_FORMAT_S24_3LE:
+    case SND_PCM_FORMAT_S32_LE:
+    case SND_PCM_FORMAT_DSD_U16_LE:
+    case SND_PCM_FORMAT_DSD_U32_LE:
+    case SND_PCM_FORMAT_U16_LE:
+    case SND_PCM_FORMAT_U18_3LE:
+    case SND_PCM_FORMAT_U20_3LE:
+    case SND_PCM_FORMAT_U20_LE:
+    case SND_PCM_FORMAT_U24_3LE:
+    case SND_PCM_FORMAT_U24_LE:
+    case SND_PCM_FORMAT_U32_LE:
+#if defined (ACE_BIG_ENDIAN)
+      encoding_out.opposite_endian = sox_true;
+#endif // ACE_LITTLE_ENDIAN
+      break;
+    case SND_PCM_FORMAT_FLOAT_BE:
+    case SND_PCM_FORMAT_FLOAT_LE:
+    case SND_PCM_FORMAT_FLOAT64_BE:
+    case SND_PCM_FORMAT_FLOAT64_LE:
+    case SND_PCM_FORMAT_MU_LAW:
+    case SND_PCM_FORMAT_A_LAW:
+    case SND_PCM_FORMAT_IMA_ADPCM:
+    case SND_PCM_FORMAT_GSM:
+    case SND_PCM_FORMAT_G723_24:
+    case SND_PCM_FORMAT_G723_24_1B:
+    case SND_PCM_FORMAT_G723_40:
+    case SND_PCM_FORMAT_G723_40_1B:
+    case SND_PCM_FORMAT_IEC958_SUBFRAME_LE:
+    case SND_PCM_FORMAT_IEC958_SUBFRAME_BE:
+    case SND_PCM_FORMAT_MPEG:
+    case SND_PCM_FORMAT_SPECIAL:
+      break;
+    default:
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("invalid/unknown ALSA audio frame format (was: %d), continuing\n"),
+                  format_in));
+      break;
+    }
+  } // end SWITCH
 
-//  format_out.rate = sample_rate;
-//  format_out.channels = channels;
-//  format_out.precision = snd_pcm_format_width (ALSA_format);
-    format_out.rate = rate_in;
-    format_out.channels = channels_in;
-    format_out.precision = snd_pcm_format_width (format_in);
-//      format_out.length = 0;
-//      format_out.mult = NULL;
+  format_out.rate = rate_in;
+  format_out.channels = channels_in;
+  format_out.precision = snd_pcm_format_width (format_in);
 }
 #endif // SOX_SUPPORT
 

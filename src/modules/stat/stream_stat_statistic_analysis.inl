@@ -547,8 +547,8 @@ Stream_Statistic_StatisticAnalysis_T<ACE_SYNCH_USE,
     {
       if (in_streak)
       {
-        ACE_DEBUG ((LM_DEBUG,
-                    ACE_TEXT ("detected streak end\n")));
+//        ACE_DEBUG ((LM_DEBUG,
+//                    ACE_TEXT ("detected streak end\n")));
         ++streakCount_;
       } // end IF
       streak_ = 0;
@@ -579,8 +579,8 @@ Stream_Statistic_StatisticAnalysis_T<ACE_SYNCH_USE,
     {
       if (!was_in_streak)
       {
-        ACE_DEBUG ((LM_DEBUG,
-                    ACE_TEXT ("detected noise (streak)\n")));
+//        ACE_DEBUG ((LM_DEBUG,
+//                    ACE_TEXT ("detected noise (streak)\n")));
         //        goto continue_2;
       } // end IF
 
@@ -588,8 +588,8 @@ Stream_Statistic_StatisticAnalysis_T<ACE_SYNCH_USE,
     } // end IF
     if (unlikely (was_in_streak))
     {
-      ACE_DEBUG ((LM_DEBUG,
-                  ACE_TEXT ("detected streak end\n")));
+//      ACE_DEBUG ((LM_DEBUG,
+//                  ACE_TEXT ("detected streak end\n")));
       streak_ = 0;
       ++streakCount_;
       was_in_streak = false;

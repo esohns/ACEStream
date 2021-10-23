@@ -56,7 +56,8 @@ class ACE_Stream_Iterator;
 class ACE_Notification_Strategy;
 class Stream_IAllocator;
 template <typename ControlType,
-          typename StatusType>
+          typename StatusType,
+          typename StateType>
 class Stream_IStreamControlBase_T;
 template <ACE_SYNCH_DECL,
           typename TimePolicyType>
@@ -270,9 +271,6 @@ typedef Stream_ModuleList_t::reverse_iterator Stream_ModuleListReverseIterator_t
 typedef std::deque<std::string> Stream_Branches_t;
 typedef Stream_Branches_t::const_iterator Stream_BranchesIterator_t;
 
-typedef Stream_IStreamControlBase_T<enum Stream_ControlType,
-                                    enum Stream_StateMachine_ControlState> Stream_IStreamControlBase_t;
-
 typedef Stream_IStream_T<ACE_MT_SYNCH,
                          Common_TimePolicy_t> Stream_IStream_t;
 typedef Stream_INotify_T<enum Stream_SessionMessageType> Stream_INotify_t;
@@ -310,6 +308,10 @@ struct Stream_State
 
   struct Stream_UserData*    userData;
 };
+
+typedef Stream_IStreamControlBase_T<enum Stream_ControlType,
+                                    enum Stream_StateMachine_ControlState,
+                                    struct Stream_State> Stream_IStreamControlBase_t;
 
 struct Stream_UserData
 {

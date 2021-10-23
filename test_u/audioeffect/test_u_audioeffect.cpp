@@ -219,7 +219,7 @@ do_processArguments (int argc_in,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
                      bool& showConsole_out,
 #else
-                     std::string& deviceFilename_out,
+                     std::string& deviceIdentifier_out,
                      std::string& effect_out,
 #endif // ACE_WIN32 || ACE_WIN64
                      std::string& targetFileName_out,
@@ -256,9 +256,9 @@ do_processArguments (int argc_in,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   showConsole_out = false;
 #else
-//  deviceFilename_out = ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_DEVICE_DIRECTORY);
-//  deviceFilename_out += ACE_DIRECTORY_SEPARATOR_CHAR_A;
-  deviceFilename_out =
+//  deviceIdentifier_out = ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_DEVICE_DIRECTORY);
+//  deviceIdentifier_out += ACE_DIRECTORY_SEPARATOR_CHAR_A;
+  deviceIdentifier_out =
       ACE_TEXT_ALWAYS_CHAR (STREAM_LIB_MIC_ALSA_DEFAULT_DEVICE_NAME);
   effect_out.clear ();
 #endif // ACE_WIN32 || ACE_WIN64
@@ -340,7 +340,8 @@ do_processArguments (int argc_in,
 #else
       case 'd':
       {
-        deviceFilename_out = ACE_TEXT_ALWAYS_CHAR (argument_parser.opt_arg ());
+        deviceIdentifier_out =
+            ACE_TEXT_ALWAYS_CHAR (argument_parser.opt_arg ());
         break;
       }
       case 'e':
@@ -869,7 +870,7 @@ do_work (unsigned int bufferSize_in,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
          bool showConsole_in,
 #else
-         const std::string& deviceFilename_in,
+         const std::string& deviceIdentifier_in,
          const std::string& effectName_in,
 #endif // ACE_WIN32 || ACE_WIN64
          const std::string& targetFilename_in,
@@ -1133,9 +1134,11 @@ do_work (unsigned int bufferSize_in,
       configuration_in.streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (modulehandler_iterator != configuration_in.streamConfiguration.end ());
 
-//  (*modulehandler_iterator).second.device = device_in;
+  (*modulehandler_iterator).second.second->deviceIdentifier.identifier =
+      deviceIdentifier_in;
   (*modulehandler_iterator).second.second->effect = effectName_in;
-  (*modulehandler_iterator).second.second->messageAllocator = &message_allocator;
+  (*modulehandler_iterator).second.second->messageAllocator =
+      &message_allocator;
   (*modulehandler_iterator).second.second->mute = mute_in;
 #if defined (GUI_SUPPORT)
 #if defined (GTK_SUPPORT)
@@ -1597,10 +1600,10 @@ ACE_TMAIN (int argc_in,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   bool show_console = false;
 #else
-  std::string device_filename =
+  std::string device_identifier_string =
 //    ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_DEVICE_DIRECTORY);
-//  device_filename += ACE_DIRECTORY_SEPARATOR_CHAR_A;
-//  device_filename +=
+//  device_identifier_string += ACE_DIRECTORY_SEPARATOR_CHAR_A;
+//  device_identifier_string +=
       ACE_TEXT_ALWAYS_CHAR (STREAM_LIB_MIC_ALSA_DEFAULT_DEVICE_NAME);
   std::string effect_name;
 #endif // ACE_WIN32 || ACE_WIN64
@@ -1652,7 +1655,7 @@ ACE_TMAIN (int argc_in,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
                             show_console,
 #else
-                            device_filename,
+                            device_identifier_string,
                             effect_name,
 #endif // ACE_WIN32 || ACE_WIN64
                             target_filename,
@@ -1990,7 +1993,7 @@ ACE_TMAIN (int argc_in,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
            show_console,
 #else
-           device_filename,
+           device_identifier_string,
            effect_name,
 #endif // ACE_WIN32 || ACE_WIN64
            target_filename,

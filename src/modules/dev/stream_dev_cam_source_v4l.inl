@@ -374,9 +374,11 @@ error:
 //                      overlayFileDescriptor_));
 //      } // end IF
 
-      if (likely (inherited::concurrency_ != STREAM_HEADMODULECONCURRENCY_CONCURRENT))
-        this->inherited::TASK_BASE_T::control (ACE_Message_Block::MB_STOP,
-                                               false); // high priority ?
+      if (likely (inherited::configuration_->concurrency != STREAM_HEADMODULECONCURRENCY_CONCURRENT))
+      { Common_ITask* itask_p = this;
+        itask_p->stop (false,  // wait ?
+                       false); // high priority ?
+      } // end IF
 
       break;
     }
@@ -739,7 +741,7 @@ Stream_Module_CamSource_V4L_T<ACE_SYNCH_USE,
         ACE_ASSERT (stream_p);
 
         // grab lock if processing is 'non-concurrent'
-        if (!inherited::hasReentrantSynchronousSubDownstream_)
+        if (!inherited::configuration_->hasReentrantSynchronousSubDownstream)
           release_lock = stream_p->lock (true);
 
         inherited::handleMessage (message_block_p,

@@ -1268,8 +1268,6 @@ Stream_Device_Tools::setFormat (struct _snd_pcm* deviceHandle_in,
   ACE_ASSERT (deviceHandle_in);
 
   struct _snd_pcm_hw_params* snd_pcm_hw_params_p = NULL;
-//  struct Stream_MediaFramework_ALSA_MediaType& media_type_s =
-//      const_cast<struct Stream_MediaFramework_ALSA_MediaType&> (mediaType_in);
   int subunit_direction = 0;
 
   snd_pcm_hw_params_malloc (&snd_pcm_hw_params_p);
@@ -1358,6 +1356,7 @@ Stream_Device_Tools::setFormat (struct _snd_pcm* deviceHandle_in,
                 ACE_TEXT (snd_strerror (result))));
     goto error;
   } // end IF
+  subunit_direction = 0;
   result =
       snd_pcm_hw_params_set_period_size_near (deviceHandle_in, snd_pcm_hw_params_p,
                                               &const_cast<struct Stream_MediaFramework_ALSA_MediaType&> (mediaType_in).periodSize,
@@ -1395,6 +1394,7 @@ Stream_Device_Tools::setFormat (struct _snd_pcm* deviceHandle_in,
                 ACE_TEXT (snd_strerror (result))));
     goto error;
   } // end IF
+  subunit_direction = 0;
   result =
       snd_pcm_hw_params_set_buffer_size_near (deviceHandle_in, snd_pcm_hw_params_p,
                                               &const_cast<struct Stream_MediaFramework_ALSA_MediaType&> (mediaType_in).bufferSize);

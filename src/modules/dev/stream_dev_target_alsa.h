@@ -21,7 +21,11 @@
 #ifndef STREAM_DEV_TARGET_ALSA_H
 #define STREAM_DEV_TARGET_ALSA_H
 
+#define ALSA_PCM_NEW_HW_PARAMS_API
+extern "C"
+{
 #include "alsa/asoundlib.h"
+}
 
 #include "ace/Global_Macros.h"
 #include "ace/Synch_Traits.h"

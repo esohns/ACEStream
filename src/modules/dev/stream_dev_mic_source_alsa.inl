@@ -355,17 +355,17 @@ Stream_Dev_Mic_Source_ALSA_T<ACE_SYNCH_USE,
   return result_2;
 
 //error:
-  if (debugOutput_)
-  {
-    result = snd_output_close (debugOutput_);
-    if (result < 0)
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to snd_output_close(): \"%s\", continuing\n"),
-                  ACE_TEXT (snd_strerror (result))));
-    debugOutput_ = NULL;
-  } // end IF
+//  if (debugOutput_)
+//  {
+//    result = snd_output_close (debugOutput_);
+//    if (result < 0)
+//      ACE_DEBUG ((LM_ERROR,
+//                  ACE_TEXT ("failed to snd_output_close(): \"%s\", continuing\n"),
+//                  ACE_TEXT (snd_strerror (result))));
+//    debugOutput_ = NULL;
+//  } // end IF
 
-  return false;
+//  return false;
 }
 
 template <ACE_SYNCH_DECL,
@@ -533,19 +533,17 @@ Stream_Dev_Mic_Source_ALSA_T<ACE_SYNCH_USE,
                   signal,
                   signal));
 
-      if (deviceHandle_)
+      ACE_ASSERT (deviceHandle_);
+      result =  snd_pcm_start (deviceHandle_);
+      if (result < 0)
       {
-        result =  snd_pcm_start (deviceHandle_);
-        if (result < 0)
-        {
-          ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("%s: failed to snd_pcm_start(): \"%s\", aborting\n"),
-                      inherited::mod_->name (),
-                      ACE_TEXT (snd_strerror (result))));
-          goto error;
-        } // end IF
-        stop_device = true;
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("%s: failed to snd_pcm_start(): \"%s\", aborting\n"),
+                    inherited::mod_->name (),
+                    ACE_TEXT (snd_strerror (result))));
+        goto error;
       } // end IF
+      stop_device = true;
       ACE_DEBUG ((LM_DEBUG,
                   ACE_TEXT ("%s: \"%s\": started capture device...\n"),
                   inherited::mod_->name (),
@@ -591,12 +589,15 @@ error:
                       inherited::mod_->name (),
                       ACE_TEXT (snd_pcm_name (deviceHandle_))));
 
-        result = snd_pcm_hw_free (deviceHandle_);
-        if (result < 0)
-          ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("%s: failed to snd_pcm_hw_free(): \"%s\", continuing\n"),
-                      inherited::mod_->name (),
-                      ACE_TEXT (snd_strerror (result))));
+        if (!isPassive_)
+        {
+          result = snd_pcm_hw_free (deviceHandle_);
+          if (result < 0)
+            ACE_DEBUG ((LM_ERROR,
+                        ACE_TEXT ("%s: failed to snd_pcm_hw_free(): \"%s\", continuing\n"),
+                        inherited::mod_->name (),
+                        ACE_TEXT (snd_strerror (result))));
+        } // end IF
       } // end IF
 
       result = snd_async_del_handler (asynchHandler_);
@@ -607,12 +608,12 @@ error:
                     ACE_TEXT (snd_strerror (result))));
       else
         ACE_DEBUG ((LM_DEBUG,
-                    ACE_TEXT ("%s: \"%s\": deregistered asynch PCM handler...\n"),
-                    inherited::mod_->name (),
-                    ACE_TEXT (snd_pcm_name (deviceHandle_))));
+                    ACE_TEXT ("%s: deregistered asynch PCM handler...\n"),
+                    inherited::mod_->name ()));
 
-      if (!isPassive_)
-        if (deviceHandle_)
+      if (deviceHandle_)
+      {
+        if (!isPassive_)
         {
           result = snd_pcm_close (deviceHandle_);
           if (result < 0)
@@ -620,8 +621,9 @@ error:
                         ACE_TEXT ("%s: failed to snd_pcm_close(): \"%s\", continuing\n"),
                         inherited::mod_->name (),
                         ACE_TEXT (snd_strerror (result))));
-          deviceHandle_ = NULL;
         } // end IF
+        deviceHandle_ = NULL;
+      } // end IF
 
       if (debugOutput_)
       {
@@ -634,10 +636,11 @@ error:
         debugOutput_ = NULL;
       } // end IF
 
-      if (inherited::concurrency_ != STREAM_HEADMODULECONCURRENCY_CONCURRENT)
-        this->stop (false, // wait ?
-                    false, // high priority ?
-                    true); // locked access ?
+      if (inherited::configuration_->concurrency != STREAM_HEADMODULECONCURRENCY_CONCURRENT)
+      { Common_ITask* itask_p = this;
+        itask_p->stop (false,  // wait ?
+                       false); // high priority ?
+      } // end IF
 
       break;
     }

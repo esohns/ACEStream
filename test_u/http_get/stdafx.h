@@ -3,8 +3,8 @@
 //  or project specific include files that are used frequently, but
 //      are changed infrequently
 //
-#if defined _MSC_VER
-#define WIN32_LEAN_AND_MEAN		// Exclude rarely-used stuff from Windows headers
+#if defined (_MSC_VER)
+#define WIN32_LEAN_AND_MEAN // Exclude rarely-used stuff from Windows headers
 
 // *NOTE*: work around quirky MSVC...
 #define NOMINMAX
@@ -12,11 +12,10 @@
 #include "targetver.h"
 
 // Windows Header Files
-#include <windows.h>
-#endif
+#include "windows.h"
+#endif // _MSC_VER
 
 // C RunTime Header Files
-//#include <sstream>
 #include <string>
 
 // System Library Header Files
@@ -44,11 +43,12 @@
 
 #include "test_u_common.h"
 #if defined (GUI_SUPPORT)
-#if defined (GTK_USE)
+#if defined (GTK_SUPPORT)
 #include "test_u_gtk_common.h"
-//#elif defined (WXWIDGETS_USE)
-//#include "test_u_wxwidgets_common.h"
-#endif
+#endif // GTK_SUPPORT
+#if defined (WXWIDGETS_SUPPORT)
+#include "test_u_wxwidgets_common.h"
+#endif // WXWIDGETS_SUPPORT
 #endif // GUI_SUPPORT
 
 #if defined (HAVE_CONFIG_H)

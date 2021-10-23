@@ -126,6 +126,14 @@ struct Stream_ModuleHandlerConfiguration
 
   struct Common_AllocatorConfiguration*       allocatorConfiguration;
   bool                                        computeThroughput;                    // statistic/... module(s)
+  // *NOTE*: valid operating modes (see also: put()):
+  //         active    : dedicated worker thread(s) running svc()
+  //         concurrent: in-line processing (i.e. concurrent put(), no workers)
+  //                     [Data is supplied externally, e.g. event dispatch]
+  //         passive   : in-line (invokes svc() on start())
+  //                     [Note that in this case, stream processing is already
+  //                     finished once the thread returns from start(), i.e.
+  //                     there is no point in calling wait().]
   enum Stream_HeadModuleConcurrency           concurrency;                          // head module(s)
   // *NOTE*: this option may be useful for (downstream) modules that only work
   //         on CONTIGUOUS buffers (i.e. cannot parse chained message blocks)
@@ -143,6 +151,18 @@ struct Stream_ModuleHandlerConfiguration
   //            'concurrent' scenarios, with non-reentrant modules. Note that
   //            this overhead is not negligible
   //            --> disable only if absolutely necessary
+  // *NOTE*: applies to the concurrent/synchronous sub-downstream (i.e. the
+  //         sub-stream until the next asynchronous module). If disabled, this
+  //         enforces that all messages pass through the sub-stream strictly
+  //         sequentially. This may be necessary in asynchronously-supplied
+  //         (i.e. 'concurrent') usage scenarios with non-reentrant modules
+  //         (i.e. most 'synchronous' modules that maintain some kind of
+  //         internal state, such as e.g. push-parsers), or streams that react
+  //         to asynchronous events (such as connection resets, user aborts,
+  //         signals, etc). Threads will then hold the 'stream lock' during
+  //         message processing to support (down)stream synchronization.
+  //         Note that this overhead is not negligible
+  //         --> disable only if absolutely necessary
   bool                                        hasReentrantSynchronousSubDownstream; // head module(s)
   //// *NOTE*: if this is an 'outbound' (i.e. data travels in two directions;
   ////         e.g. network connection-) stream, any 'inbound' (i.e. writer-

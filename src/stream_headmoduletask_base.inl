@@ -68,12 +68,10 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
                                                                         bool autoStart_in,
                                                                         enum Stream_HeadModuleConcurrency concurrency_in,
                                                                         bool generateSessionMessages_in)
- : inherited (stream_in)
+ : inherited (stream_in,
+              // *TODO*: this looks dodgy, but seems to work nonetheless...
+              &queue_) // queue handle
  , inherited2 (NULL)
- , concurrency_ (concurrency_in)
- , finishOnDisconnect_ (false)
- , hasReentrantSynchronousSubDownstream_ (true)
- //, lock_ ()
  , queue_ (STREAM_QUEUE_MAX_SLOTS, // max # slots
            NULL)                   // notification handle
  , sessionEndProcessed_ (false)
@@ -101,6 +99,12 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
                 inherited::mod_->name ()));
     return;
   } // end IF
+
+  ACE_ASSERT (stream_in);
+  ISTREAM_CONTROL_T* istream_control_p =
+      dynamic_cast<ISTREAM_CONTROL_T*> (stream_in);
+  ACE_ASSERT (istream_control_p);
+  streamState_ = &const_cast<StreamStateType&> (istream_control_p->state ());
 }
 
 template <ACE_SYNCH_DECL,
@@ -196,8 +200,11 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
 
   int result = -1;
 
+  // sanity check(s)
+  ACE_ASSERT (inherited::configuration_);
+
   // use the queue, if necessary
-  switch (concurrency_)
+  switch (inherited::configuration_->concurrency)
   {
     case STREAM_HEADMODULECONCURRENCY_ACTIVE:
     case STREAM_HEADMODULECONCURRENCY_PASSIVE:
@@ -223,7 +230,7 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
   // --> process 'in-line'
 
   bool release_lock = false;
-  if (unlikely (!hasReentrantSynchronousSubDownstream_))
+  if (unlikely (!inherited::configuration_->hasReentrantSynchronousSubDownstream))
   { ACE_ASSERT (streamLock_);
     try {
       release_lock = streamLock_->lock (true,  // block ?
@@ -545,21 +552,28 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_HeadModuleTaskBase_T::svc"));
 
+  // sanity check(s)
+  ACE_ASSERT (inherited::configuration_);
+
+  if (inherited::configuration_->concurrency == STREAM_HEADMODULECONCURRENCY_ACTIVE)
+  {
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #if COMMON_OS_WIN32_TARGET_PLATFORM(0x0A00) // _WIN32_WINNT_WIN10
-  Common_Error_Tools::setThreadName (inherited::threadName_,
-                                     NULL);
+    Common_Error_Tools::setThreadName (inherited::threadName_,
+                                       NULL);
 #else
-  Common_Error_Tools::setThreadName (inherited::threadName_,
-                                     0);
+    Common_Error_Tools::setThreadName (inherited::threadName_,
+                                       0);
 #endif // _WIN32_WINNT_WIN10
 #endif // ACE_WIN32 || ACE_WIN64
+  } // end IF
   ACE_DEBUG ((LM_DEBUG,
               ACE_TEXT ("%s: %sthread (id: %t, group: %d) starting\n"),
               inherited::mod_->name (),
-              (concurrency_ == STREAM_HEADMODULECONCURRENCY_ACTIVE ? ACE_TEXT ("worker ")
-                                                                   : ACE_TEXT ("")),
-              inherited::grp_id_));
+              (inherited::configuration_->concurrency == STREAM_HEADMODULECONCURRENCY_ACTIVE ? ACE_TEXT ("worker ")
+                                                                                             : ACE_TEXT ("")),
+              (inherited::configuration_->concurrency == STREAM_HEADMODULECONCURRENCY_ACTIVE ? inherited::grp_id_
+                                                                                             : -1)));
 
   // sanity check(s)
   ACE_ASSERT (inherited::sessionData_);
@@ -645,7 +659,7 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
       default:
       {
         // grab stream lock if processing is 'concurrent'
-        if (unlikely (!hasReentrantSynchronousSubDownstream_))
+        if (unlikely (!inherited::configuration_->hasReentrantSynchronousSubDownstream))
         { ACE_ASSERT (streamLock_);
           try {
             release_lock = streamLock_->lock (true,  // block ?
@@ -746,8 +760,8 @@ done:
   ACE_DEBUG ((LM_DEBUG,
               ACE_TEXT ("%s: %sthread (id: %t) leaving\n"),
               inherited::mod_->name (),
-              (concurrency_ == STREAM_HEADMODULECONCURRENCY_ACTIVE ? ACE_TEXT ("worker ")
-                                                                   : ACE_TEXT (""))));
+              (inherited::configuration_->concurrency == STREAM_HEADMODULECONCURRENCY_ACTIVE ? ACE_TEXT ("worker ")
+                                                                                             : ACE_TEXT (""))));
 
   return result;
 }
@@ -784,19 +798,21 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_HeadModuleTaskBase_T::isShuttingDown"));
 
+
   // sanity check(s)
-  switch (concurrency_)
+  ACE_ASSERT (inherited::configuration_);
+  switch (inherited::configuration_->concurrency)
   {
     case STREAM_HEADMODULECONCURRENCY_ACTIVE:
-    break;
+      break;
     case STREAM_HEADMODULECONCURRENCY_PASSIVE:
     case STREAM_HEADMODULECONCURRENCY_CONCURRENT:
       return false;
     default:
     {
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("%s: invalid/unknown concurrency mode (was:%d), aborting\n"),
-                  concurrency_));
+                  ACE_TEXT ("%s: invalid/unknown concurrency mode (was: %d), aborting\n"),
+                  inherited::configuration_->concurrency));
       return false;
     }
   } // end SWITCH
@@ -947,7 +963,7 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
       } // end IF
 
       // *TODO*: move this to onChange (RUNNING)
-      if ((concurrency_ == STREAM_HEADMODULECONCURRENCY_ACTIVE) &&
+      if ((inherited::configuration_->concurrency == STREAM_HEADMODULECONCURRENCY_ACTIVE) &&
           !inherited::thr_count_)
       {
         result = inherited::open (NULL);
@@ -969,7 +985,7 @@ error:
     }
     case STREAM_SESSION_MESSAGE_DISCONNECT:
     {
-      if (finishOnDisconnect_)
+      if (inherited::configuration_->finishOnDisconnect)
         inherited2::change (STREAM_STATE_FINISHED);
       break;
     }
@@ -999,7 +1015,7 @@ error:
         timerId_ = -1;
       } // end IF
 
-      if (likely (concurrency_ != STREAM_HEADMODULECONCURRENCY_CONCURRENT))
+      if (likely (inherited::configuration_->concurrency != STREAM_HEADMODULECONCURRENCY_CONCURRENT))
       { Common_ITask* itask_p = this; // *TODO*: is the no other way ?
         itask_p->stop (false,  // wait for completion ?
                        false); // high priority ?
@@ -1049,11 +1065,10 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
 
   if (unlikely (inherited::isInitialized_))
   {
-    finishOnDisconnect_ = false;
     sessionEndProcessed_ = false;
     sessionEndSent_ = false;
 //    streamLock_ =  NULL;
-    streamState_ = NULL;
+//    streamState_ = NULL;
 
     if (timerId_ != -1)
     { ACE_ASSERT (inherited::configuration_);
@@ -1072,12 +1087,6 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
       timerId_ = -1;
     } // end IF
   } // end IF
-
-  // *TODO*: remove type inferences
-  concurrency_ = configuration_in.concurrency;
-  finishOnDisconnect_ = configuration_in.finishOnDisconnect;
-  hasReentrantSynchronousSubDownstream_ =
-      configuration_in.hasReentrantSynchronousSubDownstream;
 
   // *NOTE*: deactivate the queue so it does not accept new data
   result = inherited::msg_queue_->activate ();
@@ -1133,8 +1142,10 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_HeadModuleTaskBase_T::control"));
 
-  SessionEventType message_type_e = STREAM_SESSION_MESSAGE_INVALID;
+  // sanity check(s)
+  ACE_ASSERT (inherited::configuration_);
 
+  SessionEventType message_type_e = STREAM_SESSION_MESSAGE_INVALID;
   switch (control_in)
   {
     // control
@@ -1183,7 +1194,7 @@ send_session_message:
   //         condition when the connection is close()d asynchronously
   //         --> see below: line 2015
   bool release_lock = false;
-  if (unlikely (!hasReentrantSynchronousSubDownstream_))
+  if (unlikely (!inherited::configuration_->hasReentrantSynchronousSubDownstream))
   { ACE_ASSERT (streamLock_);
     // *NOTE*: prevent potential deadlocks here; in 'busy' scenarios (i.e. high
     //         contention for message buffers/queue slots), a thread may be
@@ -1224,6 +1235,7 @@ send_session_message:
     }
   } // end IF
 }
+
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ControlMessageType,
@@ -1259,6 +1271,9 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
 
   ACE_UNUSED_ARG (forwardUpStream_in);
 
+  // sanity check(s)
+  ACE_ASSERT (inherited::configuration_);
+
   switch (notification_in)
   {
     case STREAM_SESSION_MESSAGE_ABORT:
@@ -1267,7 +1282,7 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
       //         condition when the connection is close()d asynchronously
       //         --> see below: line 2015
       bool release_lock = false;
-      if (unlikely (!hasReentrantSynchronousSubDownstream_))
+      if (unlikely (!inherited::configuration_->hasReentrantSynchronousSubDownstream))
       { ACE_ASSERT (streamLock_);
         try {
           release_lock = streamLock_->lock (true,  // block ?
@@ -1312,7 +1327,7 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
       //         condition when the connection is close()d asynchronously
       //         --> see below: line 2015
       bool release_lock = false;
-      if (unlikely (!hasReentrantSynchronousSubDownstream_))
+      if (unlikely (!inherited::configuration_->hasReentrantSynchronousSubDownstream))
       { ACE_ASSERT (streamLock_);
         try {
             release_lock = streamLock_->lock (true,  // block ?
@@ -1690,6 +1705,9 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
 
   ACE_UNUSED_ARG (waitForDownStream_in);
 
+  // sanity check(s)
+  ACE_ASSERT (inherited::configuration_);
+
   // *IMPORTANT NOTE*: when a connection is close()d, a race condition may
   //                   arise here between any of the following actors:
   // - the application (main) thread waiting in Stream_Base_T::waitForCompletion
@@ -1750,7 +1768,7 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
                                    inherited::threadIds_[0].id ())))
     goto continue_;
 
-  switch (concurrency_)
+  switch (inherited::configuration_->concurrency)
   {
     case STREAM_HEADMODULECONCURRENCY_ACTIVE:
     {
@@ -1847,11 +1865,14 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
 
   bool result = false;
 
+  // sanity check(s)
+  ACE_ASSERT (inherited::configuration_);
+
   // *NOTE*: in 'concurrent' (server-side-)scenarios there is a race
   //         condition when the connection is close()d asynchronously
   //         --> see below: line 2015
   bool release_lock = false;
-  if (unlikely (!hasReentrantSynchronousSubDownstream_))
+  if (unlikely (!inherited::configuration_->hasReentrantSynchronousSubDownstream))
   { ACE_ASSERT (streamLock_);
     try {
       release_lock = streamLock_->lock (true,  // block ?
@@ -1941,6 +1962,7 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
   STREAM_TRACE (ACE_TEXT ("Stream_HeadModuleTaskBase_T::onChange"));
 
   // sanity check(s)
+  ACE_ASSERT (inherited::configuration_);
   ACE_ASSERT (inherited2::stateLock_);
 
   int result = -1;
@@ -1981,7 +2003,7 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
         if (unlikely (inherited2::state_ == STREAM_STATE_PAUSED))
         {
           // resume worker ?
-          switch (concurrency_)
+          switch (inherited::configuration_->concurrency)
           {
             case STREAM_HEADMODULECONCURRENCY_ACTIVE:
             {
@@ -2027,7 +2049,7 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
         //         condition when the connection is close()d asynchronously
         //         --> see below: line 2015
         bool release_lock = false;
-        if (unlikely (!hasReentrantSynchronousSubDownstream_))
+        if (unlikely (!inherited::configuration_->hasReentrantSynchronousSubDownstream))
         { ACE_ASSERT (streamLock_);
           try {
             release_lock = streamLock_->lock (true,  // block ?
@@ -2071,7 +2093,7 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
         } // end IF
       } // end IF
 
-      switch (concurrency_)
+      switch (inherited::configuration_->concurrency)
       {
         case STREAM_HEADMODULECONCURRENCY_ACTIVE:
         {
@@ -2199,7 +2221,7 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
     case STREAM_STATE_PAUSED:
     {
       // suspend the worker(s) ?
-      switch (concurrency_)
+      switch (inherited::configuration_->concurrency)
       {
         case STREAM_HEADMODULECONCURRENCY_ACTIVE:
         {
@@ -2242,7 +2264,7 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
           case STREAM_STATE_PAUSED:
           {
             // resume worker ?
-            switch (concurrency_)
+            switch (inherited::configuration_->concurrency)
             {
               case STREAM_HEADMODULECONCURRENCY_ACTIVE:
               {
@@ -2287,7 +2309,7 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
         inherited2::state_ = STREAM_STATE_STOPPED;
       } // end lock scope
 
-      switch (concurrency_)
+      switch (inherited::configuration_->concurrency)
       {
         case STREAM_HEADMODULECONCURRENCY_ACTIVE:
         { Common_ITask* itask_p = this;
@@ -2360,7 +2382,7 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
         // *NOTE*: in 'concurrent' (server-side-)scenarios there is a race
         //         condition when the connection is close()d asynchronously
         //         --> see above: line 2015
-        if (unlikely (!hasReentrantSynchronousSubDownstream_))
+        if (unlikely (!inherited::configuration_->hasReentrantSynchronousSubDownstream))
         { ACE_ASSERT (streamLock_);
           try {
             release_lock = streamLock_->lock (true,  // block ?
@@ -2442,7 +2464,7 @@ continue_:
                       inherited::mod_->name ()));
 
         release_lock = false;
-        if (unlikely (!hasReentrantSynchronousSubDownstream_))
+        if (unlikely (!inherited::configuration_->hasReentrantSynchronousSubDownstream))
         { ACE_ASSERT (streamLock_);
           try {
             release_lock =

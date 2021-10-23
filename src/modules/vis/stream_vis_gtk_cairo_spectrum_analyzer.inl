@@ -20,7 +20,11 @@
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
+#define ALSA_PCM_NEW_HW_PARAMS_API
+extern "C"
+{
 #include "alsa/asoundlib.h"
+}
 #endif // ACE_WIN32 || ACE_WIN64
 
 #include "ace/Log_Msg.h"

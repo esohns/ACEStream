@@ -1015,22 +1015,22 @@ Stream_TaskBase_T<ACE_SYNCH_USE,
       SessionMessageType* session_message_p =
 //        dynamic_cast<SessionMessageType*> (messageBlock_in); // *TODO*: enable this (why ? it's safe(r))
         static_cast<SessionMessageType*> (messageBlock_in);
-      if (unlikely (!session_message_p))
-      {
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("%s: dynamic_cast<Stream_SessionMessageBase_T>(0x%@) failed (type was: %d), aborting\n"),
-                    inherited::mod_->name (),
-                    messageBlock_in,
-                    messageBlock_in->msg_type ()));
-        passMessageDownstream_out = false;
-        messageBlock_in->release ();
-        break;
-      } // end IF
+//      if (unlikely (!session_message_p))
+//      {
+//        ACE_DEBUG ((LM_ERROR,
+//                    ACE_TEXT ("%s: dynamic_cast<Stream_SessionMessageBase_T>(0x%@) failed (type was: %d), aborting\n"),
+//                    inherited::mod_->name (),
+//                    messageBlock_in,
+//                    messageBlock_in->msg_type ()));
+//        passMessageDownstream_out = false;
+//        messageBlock_in->release ();
+//        break;
+//      } // end IF
 
       // OK: process session message
       enum Stream_SessionMessageType session_message_type =
         session_message_p->type ();
-      // retain/update session data ?
+      // pre-process UNLINK/END messages
       if ((session_message_type != STREAM_SESSION_MESSAGE_UNLINK) &&
           (session_message_type != STREAM_SESSION_MESSAGE_END))
         OWN_TYPE_T::handleSessionMessage (session_message_p,
@@ -1043,7 +1043,7 @@ Stream_TaskBase_T<ACE_SYNCH_USE,
                     ACE_TEXT ("%s: caught an exception in handleSessionMessage(), continuing\n"),
                     inherited::mod_->name ()));
       }
-
+      // post-process !UNLINK/!END messages
       if (unlikely ((session_message_type == STREAM_SESSION_MESSAGE_UNLINK) ||
                     (session_message_type == STREAM_SESSION_MESSAGE_END)))
       {

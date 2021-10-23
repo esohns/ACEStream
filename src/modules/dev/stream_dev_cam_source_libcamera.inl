@@ -402,10 +402,11 @@ error:
         delete cameraManager_; cameraManager_ = NULL;
       } // end IF
 
-      if (likely (inherited::concurrency_ != STREAM_HEADMODULECONCURRENCY_CONCURRENT))
-        this->stop (false, // wait ?
-                    false, // high priority ?
-                    true); // locked access ?
+      if (likely (inherited::configuration_->concurrency != STREAM_HEADMODULECONCURRENCY_CONCURRENT))
+      { Common_ITask* itask_p = this;
+        itask_p->stop (false,  // wait ?
+                       false); // high priority ?
+      } // end IF
 
       break;
     }
@@ -624,12 +625,10 @@ Stream_Module_CamSource_LibCamera_T<ACE_SYNCH_USE,
   ACE_ASSERT (inherited::configuration_);
   ACE_ASSERT (inherited::sessionData_);
 
-#if defined (_DEBUG)
   ACE_DEBUG ((LM_DEBUG,
               ACE_TEXT ("%s: worker thread (id: %t, group: %d) starting\n"),
               inherited::mod_->name (),
               inherited::grp_id_));
-#endif // _DEBUG
 
   int error = 0;
   bool has_finished = false;
@@ -703,7 +702,7 @@ Stream_Module_CamSource_LibCamera_T<ACE_SYNCH_USE,
         ACE_ASSERT (stream_p);
 
         // grab lock if processing is 'non-concurrent'
-        if (!inherited::hasReentrantSynchronousSubDownstream_)
+        if (!inherited::configuration_->hasReentrantSynchronousSubDownstream)
           release_lock = stream_p->lock (true);
 
         inherited::handleMessage (message_block_p,

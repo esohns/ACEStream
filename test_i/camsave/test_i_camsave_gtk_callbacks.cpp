@@ -6416,8 +6416,10 @@ drawing_area_resize_end (gpointer userData_in)
   GtkAllocation allocation_s;
   gtk_widget_get_allocation (GTK_WIDGET (drawing_area_p),
                              &allocation_s);
+  ACE_DEBUG ((LM_DEBUG,
+              ACE_TEXT ("window resized to %dx%d\n"),
+              allocation_s.width, allocation_s.height));
 
-  Stream_IStreamControlBase_t* stream_base_p = NULL;
   Stream_IStream_t* stream_p = NULL;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   struct Stream_CamSave_DirectShow_UI_CBData* directshow_cb_data_p = NULL;
@@ -6438,7 +6440,6 @@ drawing_area_resize_end (gpointer userData_in)
       directshow_cb_data_p =
         static_cast<struct Stream_CamSave_DirectShow_UI_CBData*> (ui_cb_data_base_p);
       ACE_ASSERT (directshow_cb_data_p->configuration);
-      stream_base_p = directshow_cb_data_p->stream;
       stream_p = directshow_cb_data_p->stream;
       directshow_stream_iterator =
         directshow_cb_data_p->configuration->streamConfiguration.find (Stream_Visualization_Tools::rendererToModuleName (STREAM_VISUALIZATION_VIDEORENDERER_GTK_PIXBUF));
@@ -6450,18 +6451,23 @@ drawing_area_resize_end (gpointer userData_in)
       Stream_MediaFramework_DirectShow_Tools::setResolution (resolution_s,
                                                              (*iterator_4).second.second->outputFormat);
 #endif // FFMPEG_SUPPORT
+
+      if (!directshow_cb_data_p->stream->isRunning ())
+        return FALSE;
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
     {
       mediafoundation_cb_data_p =
         static_cast<struct Stream_CamSave_MediaFoundation_UI_CBData*> (ui_cb_data_base_p);
-      stream_base_p = mediafoundation_cb_data_p->stream;
       stream_p = mediafoundation_cb_data_p->stream;
       ACE_ASSERT (mediafoundation_cb_data_p->configuration);
       mediafoundation_stream_iterator =
         mediafoundation_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_MEDIAFOUNDATION_DEFAULT_NAME_STRING));
       ACE_ASSERT (mediafoundation_stream_iterator != mediafoundation_cb_data_p->configuration->streamConfiguration.end ());
+
+      if (!mediafoundation_cb_data_p->stream->isRunning ())
+        return FALSE;
       break;
     }
     default:
@@ -6475,7 +6481,6 @@ drawing_area_resize_end (gpointer userData_in)
 #else
   struct Stream_CamSave_V4L_UI_CBData* ui_cb_data_p =
     static_cast<struct Stream_CamSave_V4L_UI_CBData*> (ui_cb_data_base_p);
-  stream_base_p = ui_cb_data_p->stream;
   stream_p = ui_cb_data_p->stream;
   ACE_ASSERT (ui_cb_data_p->configuration);
   Stream_CamSave_V4L_StreamConfiguration_t::ITERATOR_T iterator_2 =
@@ -6489,15 +6494,11 @@ drawing_area_resize_end (gpointer userData_in)
   ACE_ASSERT (iterator_4 != ui_cb_data_p->configuration->v4l_streamConfiguration.end ());
   (*iterator_4).second.second->outputFormat.format.height = allocation_s.height;
   (*iterator_4).second.second->outputFormat.format.width = allocation_s.width;
-#endif // ACE_WIN32 || ACE_WIN64
 
-  ACE_DEBUG ((LM_DEBUG,
-              ACE_TEXT ("window resized to %dx%d\n"),
-              allocation_s.width, allocation_s.height));
-
-  ACE_ASSERT (stream_base_p);
-  if (!stream_base_p->isRunning ())
+  if (!ui_cb_data_p->stream->isRunning ())
     return FALSE;
+#endif // ACE_WIN32 || ACE_WIN64
+  ACE_ASSERT (stream_p);
 
   // *NOTE*: two things need doing:
   //         - drop inbound frames until the 'resize' session message is through
@@ -6559,7 +6560,27 @@ drawing_area_resize_end (gpointer userData_in)
   }
 
   // step2
-  stream_base_p->control (STREAM_CONTROL_RESIZE, false);
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  switch (ui_cb_data_base_p->mediaFramework)
+  {
+    case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
+      directshow_cb_data_p->stream->control (STREAM_CONTROL_RESIZE, false);
+      break;
+    case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
+      mediafoundation_cb_data_p->stream->control (STREAM_CONTROL_RESIZE, false);
+      break;
+    default:
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("%s: invalid/unkown media framework (was: %d), aborting\n"),
+                  ACE_TEXT (stream_p->name ().c_str ()),
+                  ui_cb_data_base_p->mediaFramework));
+      return FALSE;
+    }
+  } // end SWITCH
+#else
+  ui_cb_data_p->stream->control (STREAM_CONTROL_RESIZE, false);
+#endif // ACE_WIN32 || ACE_WIN64
 
   return FALSE;
 }

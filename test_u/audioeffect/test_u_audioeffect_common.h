@@ -32,7 +32,11 @@
 #include "mfidl.h"
 #include "strmif.h"
 #else
+#define ALSA_PCM_NEW_HW_PARAMS_API
+extern "C"
+{
 #include "alsa/asoundlib.h"
+}
 
 #if defined (FFMPEG_SUPPORT)
 #if defined (__cplusplus)
@@ -363,10 +367,10 @@ struct Test_U_AudioEffect_ModuleHandlerConfiguration
 #endif // GUI_SUPPORT
   {}
 
-  int                                               audioInput; // waveIn
-  int                                               audioOutput;
+  int                                               audioInput; // win32: waveIn- UNIX: ALSA card id
+  int                                               audioOutput; // win32: waveOut-
   // *PORTABILITY*: Win32: (usb) device path
-  //                UNIX : (ALSA/OSS/...) device file path (e.g. "/dev/snd/pcmC0D0c", "/dev/dsp" (Linux))
+  //                UNIX : (ALSA/OSS/...) device name/device file path (e.g. "hw:0,0"/"/dev/snd/pcmC0D0c", "/dev/dsp" (Linux))
   struct Stream_Device_Identifier                   deviceIdentifier;
   Test_U_AudioEffect_IDispatch_t*                   dispatch;
   unsigned int                                      fps;

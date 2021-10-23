@@ -38,8 +38,11 @@
 #else
 #include <memory>
 
+#define ALSA_PCM_NEW_HW_PARAMS_API
+extern "C"
+{
 #include "alsa/asoundlib.h"
-
+}
 #include "linux/videodev2.h"
 #endif // ACE_WIN32 || ACE_WIN64
 

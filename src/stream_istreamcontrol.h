@@ -73,16 +73,18 @@ class Stream_IStreamControlBase
 };
 
 template <typename ControlType,
-          typename StatusType>
+          typename StatusType,
+          typename StateType>
 class Stream_IStreamControlBase_T
  : public Stream_IStreamControlBase
+// , public Common_IGet_T<StateType>
 {
  public:
   // *NOTE*: enqeues a control message
   virtual void control (ControlType,       // control type
                         bool = false) = 0; // recurse upstream (if any) ?
-
   virtual StatusType status () const = 0;
+  virtual const StateType& state () const = 0;
 };
 
 template <typename ControlType,
@@ -91,13 +93,10 @@ template <typename ControlType,
           typename StateType>
 class Stream_IStreamControl_T
  : public Stream_IStreamControlBase_T<ControlType,
-                                      StatusType>
+                                      StatusType,
+                                      StateType>
  , public Stream_INotify_T<NotificationType>
-// , public Common_IGet_T<StateType>
-{
- public:
-  virtual const StateType& state () const = 0;
-};
+{};
 
 template <ACE_SYNCH_DECL,
           typename TimePolicyType>

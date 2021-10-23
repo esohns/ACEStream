@@ -138,7 +138,7 @@
     <columns>
       <!-- column-name text -->
       <column type="gchararray"/>
-      <!-- column-name GUID -->
+      <!-- column-name GUID_format -->
       <column type="gchararray"/>
       <!-- column-name format -->
       <column type="gint"/>
@@ -164,8 +164,10 @@
     <columns>
       <!-- column-name text -->
       <column type="gchararray"/>
-      <!-- column-name device -->
+      <!-- column-name device identifier -->
       <column type="gchararray"/>
+      <!-- column-name card -->
+      <column type="guint"/>
     </columns>
   </object>
   <object class="GtkDialog" id="dialog_main">

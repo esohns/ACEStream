@@ -158,10 +158,10 @@ class Stream_HeadModuleTaskBase_T
                       bool = true); // N/A
   inline virtual ACE_SYNCH_RECURSIVE_MUTEX& getLock (bool = true) { static ACE_SYNCH_RECURSIVE_MUTEX dummy;  ACE_ASSERT (false); ACE_NOTSUP_RETURN (dummy); ACE_NOTREACHED (return dummy;) }
   // *TODO*: this isn't nearly accurate enough
-  inline virtual bool hasLock (bool = true) { ACE_ASSERT (false); return !hasReentrantSynchronousSubDownstream_; }
+  inline virtual bool hasLock (bool = true) { ACE_ASSERT (false); ACE_ASSERT (inherited::configuration_); return !inherited::configuration_->hasReentrantSynchronousSubDownstream; }
 
   // implement Common_ISet_T
-  inline virtual void setP (StreamStateType* streamState_in) { /*ACE_ASSERT (!streamState_);*/ streamState_ = streamState_in; }
+  inline virtual void setP (StreamStateType* streamState_in) { streamState_ = streamState_in; }
 
   // implement Common_IStatistic
   // *NOTE*: implements regular (timer-based) statistic collection
@@ -219,30 +219,6 @@ class Stream_HeadModuleTaskBase_T
   //using inherited2::finished;
   // disambiguate Stream_TaskBase_T and Common_StateMachine_Base_T
   using inherited::isInitialized_;
-
-  // *NOTE*: valid operating modes (see also: put()):
-  //         active    : dedicated worker thread(s) running svc()
-  //         concurrent: in-line processing (i.e. concurrent put(), no workers)
-  //                     [Data is supplied externally, e.g. event dispatch]
-  //         passive   : in-line (invokes svc() on start())
-  //                     [Note that in this case, stream processing is already
-  //                     finished once the thread returns from start(), i.e.
-  //                     there is no point in calling waitForCompletion().]
-  enum Stream_HeadModuleConcurrency   concurrency_;
-  bool                                finishOnDisconnect_;
-  // *NOTE*: applies to the concurrent/synchronous sub-downstream (i.e. the
-  //         sub-stream until the next asynchronous module). If disabled, this
-  //         enforces that all messages pass through the sub-stream strictly
-  //         sequentially. This may be necessary in asynchronously-supplied
-  //         (i.e. 'concurrent') usage scenarios with non-reentrant modules
-  //         (i.e. most 'synchronous' modules that maintain some kind of
-  //         internal state, such as e.g. push-parsers), or streams that react
-  //         to asynchronous events (such as connection resets, user aborts,
-  //         signals, etc). Threads will then hold the 'stream lock' during
-  //         message processing to support (down)stream synchronization.
-  //         Note that this overhead is not negligible
-  //         --> disable only if absolutely necessary
-  bool                                hasReentrantSynchronousSubDownstream_;
 
   //typename ACE_SYNCH_USE::RECURSIVE_MUTEX lock_;
   typename inherited::MESSAGE_QUEUE_T queue_;
