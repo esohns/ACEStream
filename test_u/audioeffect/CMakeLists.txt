@@ -12,14 +12,14 @@ if (UNIX)
  endif (NOT FFMPEG_SUPPORT)
 endif (UNIX)
 
-if (GUI_SUPPORT)
- if (GTK_USE AND GTKGL_SUPPORT)
-  option (GTKGL_USE "enable GTK OpenGL" ON)
-  if (GTKGL_USE)
-   add_definitions (-DGTKGL_USE)
-  endif (GTKGL_USE)
- endif (GTK_USE AND GTKGL_SUPPORT)
-endif (GUI_SUPPORT)
+#if (GUI_SUPPORT)
+# if (GTK_USE AND GTKGL_SUPPORT)
+#  option (GTKGL_USE "enable GTK OpenGL" ON)
+#  if (GTKGL_USE)
+#   add_definitions (-DGTKGL_USE)
+#  endif (GTKGL_USE)
+# endif (GTK_USE AND GTKGL_SUPPORT)
+#endif (GUI_SUPPORT)
 
 if (UNIX)
  pkg_check_modules (PKG_ALSA REQUIRED alsa)
@@ -49,12 +49,12 @@ if (UNIX)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../modules/Common/src/timer)
  if (GUI_SUPPORT)
   include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../modules/Common/src/ui)
-  if (GTK_USE)
+  if (GTK_SUPPORT)
    include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../modules/Common/src/ui/gtk)
    if (GTKGL_SUPPORT)
     include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../modules/Common/src/gl)
    endif (GTKGL_SUPPORT)
-  endif (GTK_USE)
+  endif (GTK_SUPPORT)
  endif (GUI_SUPPORT)
 elseif (WIN32)
 # glm
@@ -133,7 +133,7 @@ set (${EXECUTABLE}_EXE_SRCS
      test_u_audioeffect_stream.cpp
      test_u_audioeffect_stream.h)
 if (GUI_SUPPORT)
- if (GTK_USE)
+ if (GTK_SUPPORT)
   set (${EXECUTABLE}_EXE_SRCS
        ${${EXECUTABLE}_EXE_SRCS}
        test_u_audioeffect_callbacks.cpp
@@ -144,7 +144,8 @@ if (GUI_SUPPORT)
         test_u_audioeffect_gl_callbacks.cpp
         test_u_audioeffect_gl_callbacks.h)
   endif (GTKGL_SUPPORT)
- elseif (WXWIDGETS_USE)
+ endif (GTK_SUPPORT)
+ if (WXWIDGETS_SUPPORT)
 #  set (${EXECUTABLE}_EXE_SRCS
 #       ${${EXECUTABLE}_EXE_SRCS}
 #       test_u_audioeffect_ui.cpp
@@ -152,7 +153,7 @@ if (GUI_SUPPORT)
 #       test_u_audioeffect_ui.inl
 #       test_u_audioeffect_ui_base.cpp
 #       test_u_audioeffect_ui_base.h)
- endif ()
+ endif (WXWIDGETS_SUPPORT)
 endif (GUI_SUPPORT)
 
 cmake_policy (SET CMP0065 OLD) # do not add flags to export symbols from executables without the ENABLE_EXPORTS target property
@@ -177,9 +178,9 @@ add_dependencies (${EXECUTABLE} CommonMath)
 add_dependencies (${EXECUTABLE} CommonTimer)
 if (GUI_SUPPORT)
  add_dependencies (${EXECUTABLE} CommonUI)
- if (GTK_USE)
+ if (GTK_SUPPORT)
   add_dependencies (${EXECUTABLE} CommonUI_GTK)
- endif (GTK_USE)
+ endif (GTK_SUPPORT)
 endif (GUI_SUPPORT)
 
 add_dependencies (${EXECUTABLE} ${PROJECT_NAME})
@@ -272,13 +273,13 @@ set (ENVIRONMENT "")
 if (UNIX)
  file (TO_NATIVE_PATH "${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_BUILD_TYPE}/${EXECUTABLE}" COMMAND)
  if (GUI_SUPPORT)
-  if (GTK_USE)
+  if (GTK_SUPPORT)
    if (GTK3_USE OR GTK4_USE)
     set (ARGS "-g./etc/audioeffect.gtk3 -l -t")
    elseif (GTK2_USE)
     set (ARGS "-g./etc/audioeffect.gtk2 -l -t")
    endif ()
-  endif (GTK_USE)
+  endif (GTK_SUPPORT)
  endif (GUI_SUPPORT)
  set (RUNTIME_LIBRARY_DIR ${PROJECT_SOURCE_DIR}/modules/ACE/lib)
 # set (ENVIRONMENT "GDK_BACKEND=x11")
@@ -286,19 +287,22 @@ elseif (WIN32)
  file (TO_NATIVE_PATH "${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_BUILD_TYPE}/${EXECUTABLE}.exe" COMMAND)
  string (REPLACE "\\" "\\\\" COMMAND ${COMMAND})
  if (GUI_SUPPORT)
-  if (GTK_USE)
+  if (GTK_SUPPORT)
    if (GTK3_USE OR GTK4_USE)
     set (ARGS "-g.\\\\etc\\\\audioeffect.gtk3 -l -t")
-    set (RUNTIME_LIBRARY_DIRS ${RUNTIME_LIBRARY_DIRS}
-                              G:/software/Development/dll)
-    file (TO_CMAKE_PATH "${GTK_LIB_DIRS}" GTK_PATH)
+#    set (RUNTIME_LIBRARY_DIRS ${RUNTIME_LIBRARY_DIRS}
+#                              G:/software/Development/dll)
    elseif (GTK2_USE)
     set (ARGS "-g.\\\\etc\\\\audioeffect.gtk2 -l -t")
-    set (RUNTIME_LIBRARY_DIRS ${RUNTIME_LIBRARY_DIRS}
-                              G:/software/Development/dll)
-    file (TO_CMAKE_PATH "${GTK_LIB_DIRS}" GTK_PATH)
+#    set (RUNTIME_LIBRARY_DIRS ${RUNTIME_LIBRARY_DIRS}
+#                              G:/software/Development/dll)
    endif ()
-  endif (GTK_USE)
+   file (TO_CMAKE_PATH "${GTK_LIB_DIRS}" GTK_PATH)
+  endif (GTK_SUPPORT)
+  if (WXWIDGETS_SUPPORT)
+   file (TO_CMAKE_PATH "${wxWidgets_LIB_DIR}" WXWIDGETS_PATH)
+   message (STATUS "wxWidgets_LIB_DIR: ${wxWidgets_LIB_DIR}")
+  endif (WXWIDGETS_SUPPORT)
  endif (GUI_SUPPORT)
  file (TO_CMAKE_PATH "${ffmpeg_LIB_DIR}" FFMPEG_PATH)
  file (TO_CMAKE_PATH "${ImageMagick_LIB_DIR}" IMAGEMAGICK_PATH)
@@ -308,13 +312,22 @@ elseif (WIN32)
  file (TO_CMAKE_PATH "${ACE_LIB_DIR}" ACE_LIBRARY_PATH)
  set (RUNTIME_LIBRARY_DIR ${ASSIMP_PATH}
                           ${FFMPEG_PATH}
-                          ${GTK_PATH}
                           ${LIBPNG_PATH}
                           ${ZLIB_PATH}
                           ${IMAGEMAGICK_PATH}
                           ${ACE_LIBRARY_PATH})
+ if (GUI_SUPPORT)
+  if (GTK_SUPPORT)
+   set (RUNTIME_LIBRARY_DIR ${RUNTIME_LIBRARY_DIR}
+                            ${GTK_PATH})
+  endif (GTK_SUPPORT)
+  if (WXWIDGETS_SUPPORT)
+   set (RUNTIME_LIBRARY_DIR ${RUNTIME_LIBRARY_DIR}
+                            ${WXWIDGETS_PATH})
+  endif (WXWIDGETS_SUPPORT)
+ endif (GUI_SUPPORT)
 # message (STATUS "RUNTIME_LIBRARY_DIR: ${RUNTIME_LIBRARY_DIR}")
- message (STATUS "ARGS: ${ARGS}")
+# message (STATUS "ARGS: ${ARGS}")
 endif ()
 create_target_launcher (${EXECUTABLE}
                         COMMAND ${COMMAND}

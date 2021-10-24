@@ -306,7 +306,7 @@ Stream_Decoder_MP3Decoder_T<ACE_SYNCH_USE,
   ACE_ASSERT (encoding_i == MPG123_ENC_SIGNED_16);
   waveformatex_p->wBitsPerSample = 16;
   waveformatex_p->nBlockAlign =
-    (waveformatex_p->nChannels * waveformatex_p->wBitsPerSample) / 8;
+    (waveformatex_p->nChannels * (waveformatex_p->wBitsPerSample / 8));
   waveformatex_p->nAvgBytesPerSec =
     (waveformatex_p->nSamplesPerSec * waveformatex_p->nBlockAlign);
 #else

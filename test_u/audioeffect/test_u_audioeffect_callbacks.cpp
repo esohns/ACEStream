@@ -30,6 +30,7 @@
 #include "Dmo.h"
 #include "mfapi.h"
 #include "mferror.h"
+#undef GetObject
 #include "mfidl.h"
 #include "mfreadwrite.h"
 #include "OleAuto.h"
@@ -39,6 +40,7 @@
 #define UUIDS_H
 #include "uuids.h"
 #endif // UUIDS_H
+#include "wmcodecdsp.h"
 #else
 #define ALSA_PCM_NEW_HW_PARAMS_API
 extern "C"
@@ -2685,7 +2687,7 @@ load_audio_effects (GtkListStore* listStore_in,
                     enum Stream_MediaFramework_Type mediaFramework_in)
 #else
 load_audio_effects (GtkListStore* listStore_in)
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
 {
   STREAM_TRACE (ACE_TEXT ("::load_audio_effects"));
 
@@ -2722,9 +2724,7 @@ load_audio_effects (GtkListStore* listStore_in)
       ACE_ASSERT (enum_DMO_p);
 
       while (S_OK == enum_DMO_p->Next (1, &class_id, &string_p, NULL))
-      {
-        ACE_ASSERT (string_p);
-
+      { ACE_ASSERT (string_p);
         friendly_name_string =
            ACE_TEXT_ALWAYS_CHAR (ACE_TEXT_WCHAR_TO_TCHAR (string_p));
         CoTaskMemFree (string_p); string_p = NULL;
@@ -6330,14 +6330,24 @@ togglebutton_record_toggled_cb (GtkToggleButton* toggleButton_in,
 
   // sanity check(s)
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  // *NOTE*: reusing a media session doesn't work reliably at the moment
-  //         --> recreate a new session on every run
   switch (ui_cb_data_base_p->mediaFramework)
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
+    { ACE_ASSERT (directshow_ui_cb_data_p->configuration->streamConfiguration.configuration_->format.cbFormat == sizeof (struct tWAVEFORMATEX));
+      ACE_ASSERT (directshow_ui_cb_data_p->configuration->streamConfiguration.configuration_->format.pbFormat);
+      struct tWAVEFORMATEX* waveformatex_p =
+        reinterpret_cast<struct tWAVEFORMATEX*> (directshow_ui_cb_data_p->configuration->streamConfiguration.configuration_->format.pbFormat);
+      // set missing format properties
+      waveformatex_p->nBlockAlign =
+        (waveformatex_p->nChannels * (waveformatex_p->wBitsPerSample / 8));
+      waveformatex_p->nAvgBytesPerSec =
+        (waveformatex_p->nSamplesPerSec * waveformatex_p->nBlockAlign);
       break;
+    }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
     {
+      // *NOTE*: reusing a media session doesn't work reliably at the moment
+      //         --> recreate a new session on every run
       if ((*mediafoundation_modulehandler_configuration_iterator).second.second->session)
       {
         //HRESULT result = E_FAIL;
@@ -6367,13 +6377,14 @@ togglebutton_record_toggled_cb (GtkToggleButton* toggleButton_in,
         (*mediafoundation_modulehandler_configuration_iterator).second.second->outputFormat->GetUINT32 (MF_MT_AUDIO_NUM_CHANNELS,
                                                                                                        &number_of_channels);
       ACE_ASSERT (SUCCEEDED (result));
+      unsigned int block_alignment_i = number_of_channels * (bits_per_sample / 8);
       result =
         (*mediafoundation_modulehandler_configuration_iterator).second.second->outputFormat->SetUINT32 (MF_MT_AUDIO_BLOCK_ALIGNMENT,
-                                                                                                       (bits_per_sample * number_of_channels) / 8);
+                                                                                                        block_alignment_i);
       ACE_ASSERT (SUCCEEDED (result));
       result =
         (*mediafoundation_modulehandler_configuration_iterator).second.second->outputFormat->SetUINT32 (MF_MT_AUDIO_AVG_BYTES_PER_SECOND,
-                                                                                                       sample_rate * (bits_per_sample * number_of_channels / 8));
+                                                                                                        sample_rate * block_alignment_i);
       ACE_ASSERT (SUCCEEDED (result));
       break;
     }
@@ -7846,22 +7857,51 @@ combobox_effect_changed_cb (GtkWidget* widget_in,
     {
       (*directshow_modulehandler_configuration_iterator).second.second->effect =
         effect_GUID;
-      if (InlineIsEqualGUID (effect_GUID, GUID_DSCFX_CLASS_AEC))
+      if (InlineIsEqualGUID (effect_GUID, CLSID_CWMAudioAEC))
       {
-
+        struct _DSCFXAec effect_options;
+        effect_options.fEnable = TRUE;
+        effect_options.fNoiseFill = FALSE;
+        effect_options.dwMode = DSCFX_AEC_MODE_FULL_DUPLEX;
+        (*directshow_modulehandler_configuration_iterator).second.second->effectOptions.AECOptions =
+          effect_options;
       } // end IF
       //////////////////////////////////////
       else if (InlineIsEqualGUID (effect_GUID, GUID_DSFX_STANDARD_CHORUS))
       {
-
+        struct _DSFXChorus effect_options;
+        effect_options.fDelay = 16.0F;
+        effect_options.fDepth = 10.0F;
+        effect_options.fFeedback = 25.0F;
+        effect_options.fFrequency = 1.1F;
+        effect_options.fWetDryMix = 50.0F;
+        effect_options.lPhase = DSFXCHORUS_PHASE_90;
+        effect_options.lWaveform = DSFXCHORUS_WAVE_SIN;
+        (*directshow_modulehandler_configuration_iterator).second.second->effectOptions.chorusOptions =
+          effect_options;
       } // end ELSE IF
       else if (InlineIsEqualGUID (effect_GUID, GUID_DSFX_STANDARD_COMPRESSOR))
       {
-
+        struct _DSFXCompressor effect_options;
+        effect_options.fAttack = 10.0F;
+        effect_options.fGain = 0.0F;
+        effect_options.fPredelay = 4.0F;
+        effect_options.fRatio = 3.0F;
+        effect_options.fRelease = 200.0F;
+        effect_options.fThreshold = -20.0F;
+        (*directshow_modulehandler_configuration_iterator).second.second->effectOptions.compressorOptions =
+          effect_options;
       } // end ELSE IF
       else if (InlineIsEqualGUID (effect_GUID, GUID_DSFX_STANDARD_DISTORTION))
       {
-
+        struct _DSFXDistortion effect_options;
+        effect_options.fEdge = 15.0F;
+        effect_options.fGain = -18.0F;
+        effect_options.fPostEQBandwidth = 2400.0F;
+        effect_options.fPostEQCenterFrequency = 2400.0F;
+        effect_options.fPreLowpassCutoff = 8000.0F;
+        (*directshow_modulehandler_configuration_iterator).second.second->effectOptions.distortionOptions =
+          effect_options;
       } // end ELSE IF
       else if (InlineIsEqualGUID (effect_GUID, GUID_DSFX_STANDARD_ECHO))
       {
@@ -7876,23 +7916,61 @@ combobox_effect_changed_cb (GtkWidget* widget_in,
       } // end ELSE IF
       else if (InlineIsEqualGUID (effect_GUID, GUID_DSFX_STANDARD_PARAMEQ))
       {
-
+        struct _DSFXParamEq effect_options;
+        effect_options.fBandwidth = 12.0F;
+        effect_options.fCenter = 8000.0F;
+        effect_options.fGain = 0.0F;
+        (*directshow_modulehandler_configuration_iterator).second.second->effectOptions.equalizerOptions =
+          effect_options;
       } // end ELSE IF
       else if (InlineIsEqualGUID (effect_GUID, GUID_DSFX_STANDARD_FLANGER))
       {
-
+        struct _DSFXFlanger effect_options;
+        effect_options.fDelay = 2.0F;
+        effect_options.fDepth = 100.0F;
+        effect_options.fFeedback = -50.0F;
+        effect_options.fFrequency = 0.25F;
+        effect_options.fWetDryMix = 50.0F;
+        effect_options.lPhase = DSFXFLANGER_PHASE_ZERO;
+        effect_options.lWaveform = DSFXFLANGER_WAVE_SIN;
+        (*directshow_modulehandler_configuration_iterator).second.second->effectOptions.flangerOptions =
+          effect_options;
       } // end ELSE IF
       else if (InlineIsEqualGUID (effect_GUID, GUID_DSFX_STANDARD_GARGLE))
       {
-
+        struct _DSFXGargle effect_options;
+        effect_options.dwRateHz = 20;
+        effect_options.dwWaveShape = DSFXGARGLE_WAVE_TRIANGLE;
+        (*directshow_modulehandler_configuration_iterator).second.second->effectOptions.gargleOptions =
+          effect_options;
       } // end ELSE IF
       else if (InlineIsEqualGUID (effect_GUID, GUID_DSFX_STANDARD_I3DL2REVERB))
       {
-
+        struct _DSFXI3DL2Reverb effect_options;
+        effect_options.flDecayHFRatio = DSFX_I3DL2REVERB_DECAYHFRATIO_DEFAULT;
+        effect_options.flDecayTime = DSFX_I3DL2REVERB_DECAYTIME_DEFAULT;
+        effect_options.flDensity = DSFX_I3DL2REVERB_DENSITY_DEFAULT;
+        effect_options.flDiffusion = DSFX_I3DL2REVERB_DIFFUSION_DEFAULT;
+        effect_options.flHFReference = DSFX_I3DL2REVERB_HFREFERENCE_DEFAULT;
+        effect_options.flReflectionsDelay = DSFX_I3DL2REVERB_REFLECTIONSDELAY_DEFAULT;
+        effect_options.flReverbDelay = DSFX_I3DL2REVERB_REVERBDELAY_DEFAULT;
+        effect_options.flRoomRolloffFactor = DSFX_I3DL2REVERB_ROOMROLLOFFFACTOR_DEFAULT;
+        effect_options.lReflections = DSFX_I3DL2REVERB_REFLECTIONS_DEFAULT;
+        effect_options.lReverb = DSFX_I3DL2REVERB_REVERB_DEFAULT;
+        effect_options.lRoom = DSFX_I3DL2REVERB_ROOM_DEFAULT;
+        effect_options.lRoomHF = DSFX_I3DL2REVERB_ROOMHF_DEFAULT;
+        (*directshow_modulehandler_configuration_iterator).second.second->effectOptions.reverbOptions =
+          effect_options;
       } // end ELSE IF
       else if (InlineIsEqualGUID (effect_GUID, GUID_DSFX_WAVES_REVERB))
       {
-
+        struct _DSFXWavesReverb effect_options;
+        effect_options.fHighFreqRTRatio = DSFX_WAVESREVERB_HIGHFREQRTRATIO_DEFAULT;
+        effect_options.fInGain = DSFX_WAVESREVERB_INGAIN_DEFAULT;
+        effect_options.fReverbMix = DSFX_WAVESREVERB_REVERBMIX_DEFAULT;
+        effect_options.fReverbTime = DSFX_WAVESREVERB_REVERBTIME_DEFAULT;
+        (*directshow_modulehandler_configuration_iterator).second.second->effectOptions.wavesReverbOptions =
+          effect_options;
       } // end ELSE IF
       //////////////////////////////////////
       else

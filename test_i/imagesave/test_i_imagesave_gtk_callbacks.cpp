@@ -19,10 +19,9 @@
  ***************************************************************************/
 #include "stdafx.h"
 
-//#include "ace/Synch.h"
 #include "test_i_imagesave_gtk_callbacks.h"
 
-#include <math.h>
+//#include <math.h>
 
 #include <limits>
 #include <map>
@@ -31,14 +30,21 @@
 
 #include "ace/config-lite.h"
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-#include <strmif.h>
-#include <reftime.h>
-#include <dvdmedia.h>
-#include <mferror.h>
-#include <mfidl.h>
-#include <mfreadwrite.h>
-#include <uuids.h>
-#include <wmcodecdsp.h>
+#include "strmif.h"
+#undef NANOSECONDS
+#include "reftime.h"
+#include "dvdmedia.h"
+#include "mferror.h"
+#undef GetObject
+#include "mfidl.h"
+#include "mfreadwrite.h"
+// *NOTE*: uuids.h doesn't have double include protection
+#if defined (UUIDS_H)
+#else
+#define UUIDS_H
+#include "uuids.h"
+#endif // UUIDS_H
+#include "wmcodecdsp.h"
 
 #include "gdk/gdkwin32.h"
 #else
@@ -1255,7 +1261,7 @@ togglebutton_process_toggled_cb (GtkToggleButton* toggleButton_in,
 //                  ACE_TEXT (TEST_I_CamSave_THREAD_NAME));
 //  const char* thread_name_2 = thread_name_p;
   ACE_OS::strcpy (thread_name,
-                  ACE_TEXT (TEST_I_THREAD_NAME));
+                  ACE_TEXT (TEST_I_STREAM_THREAD_NAME));
   thread_name_2 = thread_name;
   thread_manager_p = ACE_Thread_Manager::instance ();
   ACE_ASSERT (thread_manager_p);

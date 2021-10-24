@@ -779,7 +779,7 @@ action_send_activate_cb (GtkAction* action_in,
   thread_data_p->CBData = ui_cb_data_p;
   ACE_OS::memset (thread_name, 0, sizeof (thread_name));
   ACE_OS::strcpy (thread_name,
-                  ACE_TEXT (TEST_I_THREAD_NAME));
+                  ACE_TEXT (TEST_I_STREAM_THREAD_NAME));
   thread_name_2 = static_cast<char*> (thread_name);
   thread_manager_p = ACE_Thread_Manager::instance ();
   ACE_ASSERT (thread_manager_p);

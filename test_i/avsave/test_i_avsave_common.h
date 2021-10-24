@@ -32,8 +32,10 @@
 #include "CGuid.h"
 #include "Guiddef.h"
 #include "d3d9.h"
+#undef GetObject
 #include "evr.h"
 #include "mfapi.h"
+#undef GetObject
 #include "mfidl.h"
 #include "strmif.h"
 #else
@@ -750,11 +752,7 @@ struct Stream_AVSave_DirectShow_StreamConfiguration
   Stream_AVSave_DirectShow_StreamConfiguration ()
    : Stream_AVSave_StreamConfiguration ()
    , format ()
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
    , renderer (STREAM_VISUALIZATION_VIDEORENDERER_DIRECTDRAW_3D)
-#else
-   , renderer (STREAM_VISUALIZATION_VIDEORENDERER_X11)
-#endif // ACE_WIN32 || ACE_WIN64
   {}
 
   struct _AMMediaType                     format;
@@ -772,9 +770,11 @@ struct Stream_AVSave_MediaFoundation_StreamConfiguration
   Stream_AVSave_MediaFoundation_StreamConfiguration ()
    : Stream_AVSave_StreamConfiguration ()
    , format (NULL)
+   , renderer (STREAM_VISUALIZATION_VIDEORENDERER_DIRECTDRAW_3D)
   {}
 
-  IMFMediaType* format;
+  IMFMediaType*                           format;
+  enum Stream_Visualization_VideoRenderer renderer;
 };
 
 typedef Stream_IStreamControl_T<enum Stream_ControlType,
@@ -867,6 +867,7 @@ struct Stream_AVSave_MediaFoundation_Configuration
 #endif // GTK_USE
 #endif // GUI_SUPPORT
    , signalHandlerConfiguration ()
+   , direct3DConfiguration ()
    , audioStreamConfiguration ()
    , videoStreamConfiguration ()
    , userData ()
@@ -875,8 +876,8 @@ struct Stream_AVSave_MediaFoundation_Configuration
   // **************************** signal data **********************************
   struct Stream_AVSave_SignalHandlerConfiguration     signalHandlerConfiguration;
   // **************************** stream data **********************************
+  struct Stream_MediaFramework_Direct3D_Configuration direct3DConfiguration;
   Stream_AVSave_MediaFoundation_StreamConfiguration_t audioStreamConfiguration;
-  //struct Stream_MediaFramework_Direct3D_Configuration  direct3DConfiguration;
   Stream_AVSave_MediaFoundation_StreamConfiguration_t videoStreamConfiguration;
 
   struct Stream_UserData                       userData;

@@ -1169,7 +1169,7 @@ continue_2:
   ACE_Thread_ID thread_id_2;
   bool result =
     Test_I_Tools::spawn<struct Stream_CamSave_UI_ThreadData,
-                        Stream_CamSave_DirectShow_WxWidgetsIApplication_t::CBDATA_T> (ACE_TEXT_ALWAYS_CHAR (TEST_I_THREAD_NAME),
+                        Stream_CamSave_DirectShow_WxWidgetsIApplication_t::CBDATA_T> (ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_THREAD_NAME),
                                                                                       ::stream_processing_thread,
                                                                                       COMMON_EVENT_REACTOR_THREAD_GROUP_ID + 1,
                                                                                       cb_data_r,

@@ -5060,7 +5060,7 @@ toggleaction_stream_toggled_cb (GtkToggleAction* toggleAction_in,
   //                  ACE_TEXT (TEST_I_STREAM_FILECOPY_THREAD_NAME));
   //  const char* thread_name_2 = thread_name_p;
   ACE_OS::strcpy (thread_name,
-                  ACE_TEXT (TEST_I_THREAD_NAME));
+                  ACE_TEXT (TEST_I_STREAM_THREAD_NAME));
   thread_name_2 = thread_name;
   thread_manager_p = ACE_Thread_Manager::instance ();
   ACE_ASSERT (thread_manager_p);

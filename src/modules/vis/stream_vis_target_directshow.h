@@ -21,6 +21,7 @@
 #ifndef STREAM_MODULE_VIS_TARGET_DIRECTSHOW_H
 #define STREAM_MODULE_VIS_TARGET_DIRECTSHOW_H
 
+#undef GetObject
 #include "evr.h"
 #include "strmif.h"
 #if COMMON_OS_WIN32_TARGET_PLATFORM(0x0602) // _WIN32_WINNT_WIN8

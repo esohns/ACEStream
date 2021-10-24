@@ -35,9 +35,15 @@
 #include "reftime.h"
 #include "dvdmedia.h"
 #include "mferror.h"
+#undef GetObject
 #include "mfidl.h"
 #include "mfreadwrite.h"
+// *NOTE*: uuids.h doesn't have double include protection
+#if defined (UUIDS_H)
+#else
+#define UUIDS_H
 #include "uuids.h"
+#endif // UUIDS_H
 #include "wmcodecdsp.h"
 
 #include "gdk/gdkwin32.h"
@@ -1933,9 +1939,9 @@ stream_processing_function (void* arg_in)
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
     {
-      Stream_AVSave_DirectShow_StreamConfiguration_t::ITERATOR_T iterator =
-        const_cast<Stream_AVSave_DirectShow_StreamConfiguration_t::ITERATOR_T&> (directshow_cb_data_p->configuration->videoStreamConfiguration.find (ACE_TEXT_ALWAYS_CHAR ("")));
-      ACE_ASSERT (iterator != directshow_cb_data_p->configuration->videoStreamConfiguration.end ());
+      //Stream_AVSave_DirectShow_StreamConfiguration_t::ITERATOR_T iterator =
+      //  directshow_cb_data_p->configuration->videoStreamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
+      //ACE_ASSERT (iterator != directshow_cb_data_p->configuration->videoStreamConfiguration.end ());
 
       if (!directshow_cb_data_p->audioStream->initialize (directshow_cb_data_p->configuration->audioStreamConfiguration))
       {
@@ -3816,7 +3822,7 @@ continue_:
 //                  ACE_TEXT (TEST_I_CamSave_THREAD_NAME));
 //  const char* thread_name_2 = thread_name_p;
   ACE_OS::strcpy (thread_name,
-                  ACE_TEXT (TEST_I_THREAD_NAME));
+                  ACE_TEXT (TEST_I_STREAM_THREAD_NAME));
   thread_name_2 = thread_name;
   thread_manager_p = ACE_Thread_Manager::instance ();
   ACE_ASSERT (thread_manager_p);

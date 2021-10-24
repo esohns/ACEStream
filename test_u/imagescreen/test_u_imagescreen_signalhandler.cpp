@@ -19,21 +19,20 @@
  ***************************************************************************/
 #include "stdafx.h"
 
-//#include "ace/Synch.h"
 #include "test_u_imagescreen_signalhandler.h"
 
 #if defined (GUI_SUPPORT)
-#if defined (WXWIDGETS_USE)
+#if defined (WXWIDGETS_SUPPORT)
 #include "wx/wx.h"
-#endif // WXWIDGETS_USE
+#endif // WXWIDGETS_SUPPORT
 #endif // GUI_SUPPORT
 
 #include "ace/Log_Msg.h"
 
 #if defined (GUI_SUPPORT)
-#if defined (GTK_USE)
+#if defined (GTK_SUPPORT)
 #include "common_ui_gtk_manager_common.h"
-#endif // GTK_USE
+#endif // GTK_SUPPORT
 #endif // GUI_SUPPORT
 
 #include "stream_macros.h"

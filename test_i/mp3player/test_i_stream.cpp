@@ -126,7 +126,7 @@ Test_I_Stream::initialize (const Test_I_StreamConfiguration_t& configuration_in)
   format_s.nChannels = 2;
   format_s.nSamplesPerSec = 44100;
   format_s.wBitsPerSample = 16;
-  format_s.nBlockAlign = (format_s.nChannels * format_s.wBitsPerSample) / 8;
+  format_s.nBlockAlign = (format_s.nChannels * (format_s.wBitsPerSample / 8));
   format_s.nAvgBytesPerSec = (format_s.nSamplesPerSec * format_s.nBlockAlign);
   format_s.cbSize = 0;
   HRESULT result = CreateAudioMediaType (&format_s, &media_type_s, TRUE);

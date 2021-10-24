@@ -32,8 +32,10 @@
 #include "CGuid.h"
 #include "Guiddef.h"
 #include "d3d9.h"
+#undef GetObject
 #include "evr.h"
 #include "mfapi.h"
+#undef GetObject
 #include "mfidl.h"
 #include "strmif.h"
 #endif // ACE_WIN32 || ACE_WIN64

@@ -295,7 +295,13 @@ Test_U_AudioEffect_DirectShow_Stream::initialize (const inherited::CONFIGURATION
                 ACE_TEXT (stream_name_string_)));
     goto error;
   } // end IF
+  if (!InlineIsEqualGUID ((*iterator).second.second->effect, GUID_NULL))
+  {
+    // *NOTE*: this seems to require lSampleSize of 1 to connect successfully....
+    graph_entry.mediaType->lSampleSize = 1;
+  } // end IF
   graph_configuration.push_front (graph_entry);
+
 //  result_2 =
 //    (*iterator).second.second->builder->FindFilterByName (STREAM_LIB_DIRECTSHOW_FILTER_NAME_GRAB,
 //                                                         &filter_p);

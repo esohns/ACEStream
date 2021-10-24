@@ -39,6 +39,6 @@
 //                   blocked in sigwaitinfo (see man pages) will not awaken when
 //                   the dispatch set is changed (*TODO*: to be verified)
 #define TEST_U_DEFAULT_NUMBER_OF_DISPATCHING_THREADS 2
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
 
 #endif

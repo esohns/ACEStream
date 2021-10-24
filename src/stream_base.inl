@@ -910,12 +910,15 @@ Stream_Base_T<ACE_SYNCH_USE,
   STREAM_TRACE (ACE_TEXT ("Stream_Base_T::isRunning"));
 
   int result = -1;
+  OWN_TYPE_T* this_p = const_cast<OWN_TYPE_T*> (this);
 
-  // delegate to the head module
+  // sanity check(s)
+  if (unlikely (!this_p->head ()))
+    return false;
+  // delegate to the head module (if any)
   MODULE_T* module_p = NULL;
-  result = const_cast<OWN_TYPE_T*> (this)->top (module_p);
-  if (unlikely ((result == -1) ||
-                !module_p))
+  result = this_p->top (module_p);
+  if (unlikely ((result == -1) || !module_p))
   {
     //ACE_DEBUG ((LM_ERROR,
     //            ACE_TEXT ("no head module found: \"%m\", aborting\n")));
@@ -926,10 +929,10 @@ Stream_Base_T<ACE_SYNCH_USE,
     dynamic_cast<ISTREAM_CONTROL_T*> (module_p->writer ());
   if (unlikely (!istreamcontrol_p))
   {
-    // *NOTE*: perhaps not all modules have been enqueued yet ?
-//    ACE_DEBUG ((LM_ERROR,
-//                ACE_TEXT ("%s: dynamic_cast<Stream_IStreamControl_T> failed, aborting\n"),
-//                module_p->name ()));
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s/%s: dynamic_cast<Stream_IStreamControl_T> failed, aborting\n"),
+                ACE_TEXT (StreamName),
+                module_p->name ()));
     return false;
   } // end IF
 

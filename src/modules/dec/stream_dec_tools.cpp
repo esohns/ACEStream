@@ -52,6 +52,7 @@
 #include "fourcc.h"
 #include "mediaobj.h"
 #include "mfapi.h"
+#undef GetObject
 #include "mfidl.h"
 #include "mtype.h"
 #include "qedit.h"
@@ -1211,7 +1212,7 @@ Stream_Module_Decoder_Tools::loadAudioRendererGraph (REFGUID deviceCategory_in,
   ACE_ASSERT (mediaType_in.cbFormat == sizeof (struct tWAVEFORMATEX));
   struct tWAVEFORMATEX* waveformatex_p =
     reinterpret_cast<struct tWAVEFORMATEX*> (mediaType_in.pbFormat);
-  if ((waveformatex_p->nSamplesPerSec == 44100) ||
+  if ((waveformatex_p->nSamplesPerSec == 44100) || // effects require 44100 sample rate
       InlineIsEqualGUID (effect_in, GUID_NULL))
     goto continue_;
 
@@ -1237,12 +1238,19 @@ Stream_Module_Decoder_Tools::loadAudioRendererGraph (REFGUID deviceCategory_in,
                 ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ())));
     goto error;
   } // end IF
+  graph_entry.connectDirect = true;
   graph_entry.filterName = STREAM_LIB_DIRECTSHOW_FILTER_NAME_RESAMPLER;
   graph_entry.mediaType = Stream_MediaFramework_DirectShow_Tools::copy (mediaType_in);
+  //// *NOTE*: this effects seems to require lSampleSize of 1 to connect
+  //graph_entry.mediaType->lSampleSize = 1;
   waveformatex_p =
     reinterpret_cast<struct tWAVEFORMATEX*> (graph_entry.mediaType->pbFormat);
   waveformatex_p->nSamplesPerSec = 44100;
+  waveformatex_p->nAvgBytesPerSec =
+    (waveformatex_p->nSamplesPerSec * waveformatex_p->nBlockAlign);
   graphConfiguration_out.push_back (graph_entry);
+  graph_entry.connectDirect = false;
+  graph_entry.mediaType = NULL;
   filter_p->Release (); filter_p = NULL;
   ACE_DEBUG ((LM_DEBUG,
               ACE_TEXT ("added \"%s\"\n"),
@@ -1273,6 +1281,7 @@ continue_:
                 ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ())));
     goto error;
   } // end IF
+  ACE_ASSERT (wrapper_filter_p);
   result = wrapper_filter_p->Init (effect_in,
                                    DMOCATEGORY_AUDIO_EFFECT);
   if (FAILED (result))
@@ -1283,28 +1292,110 @@ continue_:
     goto error;
   } // end IF
   // set effect options
-  if (InlineIsEqualGUID (effect_in, GUID_DSCFX_CLASS_AEC))
+  if (InlineIsEqualGUID (effect_in, CLSID_CWMAudioAEC))
   {
-    IDirectSoundCaptureFXAec* effect_p = NULL;
-    result = wrapper_filter_p->QueryInterface (IID_IDirectSoundCaptureFXAec,
-                                               (void**)&effect_p);
+    //IDirectSoundCaptureFXAec* effect_p = NULL;
+    //result = wrapper_filter_p->QueryInterface (IID_IDirectSoundCaptureFXAec,
+    //                                           (void**)&effect_p);
+    //if (FAILED (result))
+    //{
+    //  ACE_DEBUG ((LM_ERROR,
+    //              ACE_TEXT ("failed to IDMOWrapperFilter::QueryInterface(IID_IDirectSoundCaptureFXAec): \"%s\", aborting\n"),
+    //              ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ())));
+    //  goto error;
+    //} // end IF
+    //result = effect_p->SetAllParameters (&effectOptions_in.AECOptions);
+    //if (FAILED (result))
+    //{
+    //  ACE_DEBUG ((LM_ERROR,
+    //              ACE_TEXT ("failed to IDirectSoundCaptureFXAec::SetAllParameters(): \"%s\", aborting\n"),
+    //              ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ())));
+    //  effect_p->Release (); effect_p = NULL;
+    //  goto error;
+    //} // end IF
+    //effect_p->Release (); effect_p = NULL;
+    IPropertyStore* property_store_p = NULL;
+    result = wrapper_filter_p->QueryInterface (IID_PPV_ARGS (&property_store_p));
     if (FAILED (result))
     {
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to IDMOWrapperFilter::QueryInterface(IID_IDirectSoundCaptureFXAec): \"%s\", aborting\n"),
+                  ACE_TEXT ("failed to IDMOWrapperFilter::QueryInterface(IID_IPropertyStore): \"%s\", aborting\n"),
                   ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ())));
       goto error;
     } // end IF
-    result = effect_p->SetAllParameters (&effectOptions_in.AECOptions);
+    struct tagPROPVARIANT property_s;
+    PropVariantInit (&property_s);
+    property_s.vt = VT_I4;
+    property_s.intVal = SINGLE_CHANNEL_AEC; // *TODO*: SINGLE_CHANNEL_NSAGC ?
+    result = property_store_p->SetValue (MFPKEY_WMAAECMA_SYSTEM_MODE, property_s);
     if (FAILED (result))
     {
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to IDirectSoundCaptureFXAec::SetAllParameters(): \"%s\", aborting\n"),
+                  ACE_TEXT ("failed to IPropertyStore::SetValue(MFPKEY_WMAAECMA_SYSTEM_MODE): \"%s\", aborting\n"),
                   ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ())));
-      effect_p->Release (); effect_p = NULL;
+      property_store_p->Release (); property_store_p = NULL;
       goto error;
     } // end IF
-    effect_p->Release (); effect_p = NULL;
+    PropVariantClear (&property_s);
+    property_s.vt = VT_BOOL;
+    property_s.boolVal = VARIANT_FALSE;
+    result = property_store_p->SetValue (MFPKEY_WMAAECMA_DMO_SOURCE_MODE, property_s);
+    if (FAILED (result))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to IPropertyStore::SetValue(MFPKEY_WMAAECMA_DMO_SOURCE_MODE): \"%s\", aborting\n"),
+                  ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ())));
+      property_store_p->Release (); property_store_p = NULL;
+      goto error;
+    } // end IF
+    property_s.boolVal = VARIANT_TRUE;
+    result = property_store_p->SetValue (MFPKEY_WMAAECMA_FEATURE_MODE, property_s);
+    if (FAILED (result))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to IPropertyStore::SetValue(MFPKEY_WMAAECMA_FEATURE_MODE): \"%s\", aborting\n"),
+                  ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ())));
+      property_store_p->Release (); property_store_p = NULL;
+      goto error;
+    } // end IF
+    //MFPKEY_WMAAECMA_DEVICEPAIR_GUID
+    PropVariantClear (&property_s);
+    property_s.vt = VT_I4;
+    property_s.intVal = 1;
+    result = property_store_p->SetValue (MFPKEY_WMAAECMA_FEATR_AES, property_s);
+    if (FAILED (result))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to IPropertyStore::SetValue(MFPKEY_WMAAECMA_FEATR_AES): \"%s\", aborting\n"),
+                  ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ())));
+      property_store_p->Release (); property_store_p = NULL;
+      goto error;
+    } // end IF
+    //MFPKEY_WMAAECMA_FEATR_AGC // VT_BOOL
+    //MFPKEY_WMAAECMA_FEATR_CENTER_CLIP // VT_BOOL
+    //MFPKEY_WMAAECMA_FEATR_ECHO_LENGTH // VT_I4
+    //MFPKEY_WMAAECMA_FEATR_FRAME_SIZE // VT_I4
+    //MFPKEY_WMAAECMA_FEATR_MICARR_MODE // VT_I4
+    //MFPKEY_WMAAECMA_FEATR_MICARR_BEAM // VT_I4
+    //MFPKEY_WMAAECMA_FEATR_MICARR_PREPROC // VT_BOOL
+    //MFPKEY_WMAAECMA_FEATR_NOISE_FILL // VT_BOOL
+    //MFPKEY_WMAAECMA_FEATR_NS // VT_I4
+    property_s.intVal = AEC_VAD_NORMAL;
+    result = property_store_p->SetValue (MFPKEY_WMAAECMA_FEATR_VAD, property_s);
+    if (FAILED (result))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to IPropertyStore::SetValue(MFPKEY_WMAAECMA_FEATR_VAD): \"%s\", aborting\n"),
+                  ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ())));
+      property_store_p->Release (); property_store_p = NULL;
+      goto error;
+    } // end IF
+    //MFPKEY_WMAAECMA_MIC_GAIN_BOUNDER // VT_BOOL
+    //MFPKEY_WMAAECMA_MICARRAY_DESCPTR // VT_BLOB
+    //MFPKEY_WMAAECMA_QUALITY_METRICS // VT_BLOB
+    //MFPKEY_WMAAECMA_RETRIEVE_TS_STATS // VT_BOOL
+    PropVariantClear (&property_s);
+    property_store_p->Release (); property_store_p = NULL;
   } // end IF
   //////////////////////////////////////
   else if (InlineIsEqualGUID (effect_in, GUID_DSFX_STANDARD_CHORUS))

@@ -23,20 +23,21 @@
 #include <string>
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-#include <initguid.h> // *NOTE*: this exports DEFINE_GUIDs (see stream_misc_common.h)
-#include <mfapi.h>
+#include "initguid.h" // *NOTE*: this exports DEFINE_GUIDs (see stream_misc_common.h)
+#include "mfapi.h"
+#undef NANOSECONDS
+#include "reftime.h"
 #endif // ACE_WIN32 || ACE_WIN64
 
 #if defined (GUI_SUPPORT)
-#if defined (GTK_USE)
+#if defined (GTK_SUPPORT)
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #include "gdk/gdkwin32.h"
+#else
+#include "gdk/gdk.h"
 #endif // ACE_WIN32 || ACE_WIN64
 #include "gtk/gtk.h"
-#elif defined (WXWIDGETS_USE)
-#include "gdk/gdk.h"
-#include "gtk/gtk.h"
-#endif
+#endif // GTK_SUPPORT
 #endif // GUI_SUPPORT
 
 #include "ace/Get_Opt.h"

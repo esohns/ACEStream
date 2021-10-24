@@ -23,8 +23,10 @@
 
 #include "ace/config-lite.h"
 
-// stream
+#define TEST_I_STREAM_THREAD_NAME                    "stream processor"
+
 #define TEST_I_DEFAULT_BUFFER_SIZE                   65536 // bytes
+#define TEST_I_MAX_MESSAGES                          0 // 0 --> no limits
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #define TEST_I_DEFAULT_NUMBER_OF_DISPATCHING_THREADS 1
@@ -35,8 +37,5 @@
 //                   the dispatch set is changed (*TODO*: to be verified)
 #define TEST_I_DEFAULT_NUMBER_OF_DISPATCHING_THREADS 2
 #endif // ACE_WIN32 || ACE_WIN64
-
-#define TEST_I_MAX_MESSAGES                          0 // 0 --> no limits
-#define TEST_I_THREAD_NAME                           "stream processor"
 
 #endif

@@ -19,34 +19,33 @@
  ***************************************************************************/
 #include "stdafx.h"
 
-#include "ace/Synch.h"
 #include "stream_dev_directshow_tools.h"
 
 #include <sstream>
 
-#include <amvideo.h>
-#include <d3d9types.h>
-#include <dmoreg.h>
-//#include <dshow.h>
-#include <dvdmedia.h>
-#include <Dmodshow.h>
-#include <evr.h>
-//#include <Ks.h>
-//#include <ksmedia.h>
-#include <KsProxy.h>
-#include <mediaobj.h>
-#include <qedit.h>
-#include <mfapi.h>
-#include <mferror.h>
-#include <OleAuto.h>
-#include <strmif.h>
+#include "amvideo.h"
+#include "d3d9types.h"
+#include "dmoreg.h"
+//#include "dshow.h"
+#include "dvdmedia.h"
+#include "Dmodshow.h"
+#include "evr.h"
+//#include "Ks.h"
+//#include "ksmedia.h"
+#include "KsProxy.h"
+#include "mediaobj.h"
+#include "qedit.h"
+#include "mfapi.h"
+#include "mferror.h"
+#include "OleAuto.h"
+#include "strmif.h"
 // *NOTE*: uuids.h doesn't have double include protection
 #if defined (UUIDS_H)
 #else
 #define UUIDS_H
-#include <uuids.h>
+#include "uuids.h"
 #endif // UUIDS_H
-#include <wmcodecdsp.h>
+#include "wmcodecdsp.h"
 
 #include "ace/Log_Msg.h"
 #include "ace/OS.h"

@@ -29,6 +29,7 @@
 #endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0602)
 #include "winnt.h"
 #include "guiddef.h"
+#undef GetObject
 #include "mfidl.h"
 #include "mfobjects.h"
 #endif // ACE_WIN32 || ACE_WIN64

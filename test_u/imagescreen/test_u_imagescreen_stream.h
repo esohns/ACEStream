@@ -31,8 +31,8 @@
 
 #include "test_u_imagescreen_common.h"
 #include "test_u_imagescreen_common_modules.h"
-#include "test_u_imagescreen_message.h"
-#include "test_u_imagescreen_session_message.h"
+//#include "test_u_imagescreen_message.h"
+//#include "test_u_imagescreen_session_message.h"
 
 // forward declarations
 class Stream_IAllocator;

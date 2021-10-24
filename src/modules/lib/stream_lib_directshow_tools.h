@@ -32,6 +32,7 @@
 //#include <winnt.h>
 #include "Ks.h"
 #include "Guiddef.h"
+#undef GetObject
 #include "evr.h"
 #include "strmif.h"
 #include "mediaobj.h"
@@ -144,8 +145,11 @@ class Stream_MediaFramework_DirectShow_Tools
   //         graph..."
   static std::string name (IBaseFilter*); // filter handle
   // *NOTE*: return value (if any) has an outstanding reference --> Release()
-  static IPin* pin (IBaseFilter*,        // filter handle
-                    enum _PinDirection); // direction
+  static IPin* pin (IBaseFilter*,       // filter handle
+                    enum _PinDirection, // direction
+                    unsigned int = 0);  // index
+  static unsigned int pins (IBaseFilter*,        // filter handle
+                            enum _PinDirection); // direction
   static IPin* capturePin (IBaseFilter*); // filter handle
   // *IMPORTANT NOTE*: caller must deleteMediaType() the return value !
   static struct _AMMediaType* defaultCaptureFormat (IBaseFilter*); // filter handle

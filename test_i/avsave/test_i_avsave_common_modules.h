@@ -49,7 +49,6 @@
 #include "stream_dec_libav_encoder.h"
 #endif // FFMPEG_SUPPORT
 
-
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #include "stream_lib_directshow_asynch_source_filter.h"
 #include "stream_lib_directshow_source_filter.h"
@@ -333,59 +332,56 @@ typedef Stream_Decoder_LibAVEncoder_T<ACE_MT_SYNCH,
 //                                     Stream_AVSave_MediaFoundation_SessionData_t,
 //                                     IMFMediaType*> Stream_AVSave_MediaFoundation_Direct3DDisplay;
 //
-//struct Stream_AVSave_DirectShow_FilterConfiguration
-// : Stream_MediaFramework_DirectShow_FilterConfiguration
-//{
-//  Stream_AVSave_DirectShow_FilterConfiguration ()
-//   : Stream_MediaFramework_DirectShow_FilterConfiguration ()
-//   , module (NULL)
-//   , pinConfiguration (NULL)
-//  {}
-//
-//  Stream_Module_t*                                                module; // handle
-//  struct Stream_MediaFramework_DirectShow_FilterPinConfiguration* pinConfiguration; // handle
-//};
-//typedef Stream_MediaFramework_DirectShow_Source_Filter_T<Common_TimePolicy_t,
-//                                                         Stream_AVSave_DirectShow_SessionMessage_t,
-//                                                         Stream_AVSave_DirectShow_Message_t,
-//                                                         struct Stream_AVSave_DirectShow_FilterConfiguration,
-//                                                         struct Stream_MediaFramework_DirectShow_FilterPinConfiguration,
-//                                                         struct _AMMediaType> Stream_AVSave_DirectShowFilter_t;
-//typedef Stream_MediaFramework_DirectShow_Asynch_Source_Filter_T<Common_TimePolicy_t,
-//                                                                Stream_AVSave_DirectShow_SessionMessage_t,
-//                                                                Stream_AVSave_DirectShow_Message_t,
-//                                                                struct Stream_AVSave_DirectShow_FilterConfiguration,
-//                                                                struct Stream_MediaFramework_DirectShow_FilterPinConfiguration,
-//                                                                struct _AMMediaType> Stream_AVSave_AsynchDirectShowFilter_t;
-//typedef Stream_Vis_Target_DirectShow_T<ACE_MT_SYNCH,
-//                                       Common_TimePolicy_t,
-//                                       struct Stream_AVSave_DirectShow_ModuleHandlerConfiguration,
-//                                       Stream_ControlMessage_t,
-//                                       Stream_AVSave_DirectShow_Message_t,
-//                                       Stream_AVSave_DirectShow_SessionMessage_t,
-//                                       Stream_AVSave_DirectShow_SessionData_t,
-//                                       Stream_AVSave_DirectShow_SessionData,
-//                                       struct Stream_AVSave_DirectShow_FilterConfiguration,
-//                                       struct Stream_AVSave_DirectShow_PinConfiguration,
-//                                       Stream_AVSave_DirectShowFilter_t> Stream_AVSave_DirectShow_DirectShowDisplay;
-//
-//typedef Stream_Vis_Target_MediaFoundation_T<ACE_MT_SYNCH,
-//                                            Common_TimePolicy_t,
-//                                            struct Stream_AVSave_MediaFoundation_ModuleHandlerConfiguration,
-//                                            Stream_ControlMessage_t,
-//                                            Stream_AVSave_MediaFoundation_Message_t,
-//                                            Stream_AVSave_MediaFoundation_SessionMessage_t,
-//                                            Stream_AVSave_MediaFoundation_SessionData,
-//                                            Stream_AVSave_MediaFoundation_SessionData_t,
-//                                            struct Stream_UserData> Stream_AVSave_MediaFoundation_MediaFoundationDisplay;
-//typedef Stream_Vis_Target_MediaFoundation_2<ACE_MT_SYNCH,
-//                                            Common_TimePolicy_t,
-//                                            struct Stream_AVSave_MediaFoundation_ModuleHandlerConfiguration,
-//                                            Stream_ControlMessage_t,
-//                                            Stream_AVSave_MediaFoundation_Message_t,
-//                                            Stream_AVSave_MediaFoundation_SessionMessage_t,
-//                                            Stream_AVSave_MediaFoundation_SessionData,
-//                                            Stream_AVSave_MediaFoundation_SessionData_t> Stream_AVSave_MediaFoundation_MediaFoundationDisplayNull;
+struct Stream_AVSave_DirectShow_FilterConfiguration
+ : Stream_MediaFramework_DirectShow_FilterConfiguration
+{
+  Stream_AVSave_DirectShow_FilterConfiguration ()
+   : Stream_MediaFramework_DirectShow_FilterConfiguration ()
+   , module (NULL)
+   , pinConfiguration (NULL)
+  {}
+
+  Stream_Module_t*                                                module; // handle
+  struct Stream_MediaFramework_DirectShow_FilterPinConfiguration* pinConfiguration; // handle
+};
+typedef Stream_MediaFramework_DirectShow_Source_Filter_T<Stream_AVSave_DirectShow_Message_t,
+                                                         struct Stream_AVSave_DirectShow_FilterConfiguration,
+                                                         struct Stream_MediaFramework_DirectShow_FilterPinConfiguration> Stream_AVSave_DirectShowFilter_t;
+typedef Stream_MediaFramework_DirectShow_Asynch_Source_Filter_T<Common_TimePolicy_t,
+                                                                Stream_AVSave_DirectShow_SessionMessage_t,
+                                                                Stream_AVSave_DirectShow_Message_t,
+                                                                struct Stream_AVSave_DirectShow_FilterConfiguration,
+                                                                struct Stream_MediaFramework_DirectShow_FilterPinConfiguration,
+                                                                struct _AMMediaType> Stream_AVSave_AsynchDirectShowFilter_t;
+typedef Stream_Vis_Target_DirectShow_T<ACE_MT_SYNCH,
+                                       Common_TimePolicy_t,
+                                       struct Stream_AVSave_DirectShow_ModuleHandlerConfiguration,
+                                       Stream_ControlMessage_t,
+                                       Stream_AVSave_DirectShow_Message_t,
+                                       Stream_AVSave_DirectShow_SessionMessage_t,
+                                       Stream_AVSave_DirectShow_SessionData_t,
+                                       Stream_AVSave_DirectShow_SessionData,
+                                       struct Stream_AVSave_DirectShow_FilterConfiguration,
+                                       struct Stream_AVSave_DirectShow_PinConfiguration,
+                                       Stream_AVSave_DirectShowFilter_t> Stream_AVSave_DirectShow_DirectShowDisplay;
+
+typedef Stream_Vis_Target_MediaFoundation_T<ACE_MT_SYNCH,
+                                            Common_TimePolicy_t,
+                                            struct Stream_AVSave_MediaFoundation_ModuleHandlerConfiguration,
+                                            Stream_ControlMessage_t,
+                                            Stream_AVSave_MediaFoundation_Message_t,
+                                            Stream_AVSave_MediaFoundation_SessionMessage_t,
+                                            Stream_AVSave_MediaFoundation_SessionData,
+                                            Stream_AVSave_MediaFoundation_SessionData_t,
+                                            struct Stream_UserData> Stream_AVSave_MediaFoundation_MediaFoundationDisplay;
+typedef Stream_Vis_Target_MediaFoundation_2<ACE_MT_SYNCH,
+                                            Common_TimePolicy_t,
+                                            struct Stream_AVSave_MediaFoundation_ModuleHandlerConfiguration,
+                                            Stream_ControlMessage_t,
+                                            Stream_AVSave_MediaFoundation_Message_t,
+                                            Stream_AVSave_MediaFoundation_SessionMessage_t,
+                                            Stream_AVSave_MediaFoundation_SessionData,
+                                            Stream_AVSave_MediaFoundation_SessionData_t> Stream_AVSave_MediaFoundation_MediaFoundationDisplayNull;
 
 //typedef Stream_Module_Vis_GTK_Cairo_T<ACE_MT_SYNCH,
 //                                      Common_TimePolicy_t,
@@ -616,26 +612,26 @@ DATASTREAM_MODULE_INPUT_ONLY (Stream_AVSave_V4L_SessionData,                   /
 //                              libacestream_default_vis_mediafoundation_module_name_string,
 //                              Stream_INotify_t,                                 // stream notification interface type
 //                              Stream_AVSave_MediaFoundation_Direct3DDisplay);  // writer type
-//
-//DATASTREAM_MODULE_INPUT_ONLY (Stream_AVSave_DirectShow_SessionData,                // session data type
-//                              enum Stream_SessionMessageType,                   // session event type
-//                              struct Stream_AVSave_DirectShow_ModuleHandlerConfiguration, // module handler configuration type
-//                              libacestream_default_vis_directshow_module_name_string,
-//                              Stream_INotify_t,                                 // stream notification interface type
-//                              Stream_AVSave_DirectShow_DirectShowDisplay);     // writer type
-//
-//DATASTREAM_MODULE_INPUT_ONLY (Stream_AVSave_MediaFoundation_SessionData,                      // session data type
-//                              enum Stream_SessionMessageType,                         // session event type
-//                              struct Stream_AVSave_MediaFoundation_ModuleHandlerConfiguration, // module handler configuration type
-//                              libacestream_default_vis_mediafoundation_module_name_string,
-//                              Stream_INotify_t,                                       // stream notification interface type
-//                              Stream_AVSave_MediaFoundation_MediaFoundationDisplay); // writer type
-//DATASTREAM_MODULE_INPUT_ONLY (Stream_AVSave_MediaFoundation_SessionData,                          // session data type
-//                              enum Stream_SessionMessageType,                             // session event type
-//                              struct Stream_AVSave_MediaFoundation_ModuleHandlerConfiguration, // module handler configuration type
-//                              libacestream_default_vis_mediafoundation_module_name_string,
-//                              Stream_INotify_t,                                           // stream notification interface type
-//                              Stream_AVSave_MediaFoundation_MediaFoundationDisplayNull); // writer type
+
+DATASTREAM_MODULE_INPUT_ONLY (Stream_AVSave_DirectShow_SessionData,                // session data type
+                              enum Stream_SessionMessageType,                   // session event type
+                              struct Stream_AVSave_DirectShow_ModuleHandlerConfiguration, // module handler configuration type
+                              libacestream_default_vis_directshow_module_name_string,
+                              Stream_INotify_t,                                 // stream notification interface type
+                              Stream_AVSave_DirectShow_DirectShowDisplay);     // writer type
+
+DATASTREAM_MODULE_INPUT_ONLY (Stream_AVSave_MediaFoundation_SessionData,                      // session data type
+                              enum Stream_SessionMessageType,                         // session event type
+                              struct Stream_AVSave_MediaFoundation_ModuleHandlerConfiguration, // module handler configuration type
+                              libacestream_default_vis_mediafoundation_module_name_string,
+                              Stream_INotify_t,                                       // stream notification interface type
+                              Stream_AVSave_MediaFoundation_MediaFoundationDisplay); // writer type
+DATASTREAM_MODULE_INPUT_ONLY (Stream_AVSave_MediaFoundation_SessionData,                          // session data type
+                              enum Stream_SessionMessageType,                             // session event type
+                              struct Stream_AVSave_MediaFoundation_ModuleHandlerConfiguration, // module handler configuration type
+                              libacestream_default_vis_mediafoundation_module_name_string,
+                              Stream_INotify_t,                                           // stream notification interface type
+                              Stream_AVSave_MediaFoundation_MediaFoundationDisplayNull); // writer type
 
 //DATASTREAM_MODULE_INPUT_ONLY (Stream_AVSave_DirectShow_SessionData,                // session data type
 //                              enum Stream_SessionMessageType,                   // session event type

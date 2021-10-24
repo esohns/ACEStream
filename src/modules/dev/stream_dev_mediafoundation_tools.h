@@ -24,6 +24,7 @@
 #include <string>
 
 #include "guiddef.h"
+#undef GetObject
 #include "mfidl.h"
 #include "mfobjects.h"
 

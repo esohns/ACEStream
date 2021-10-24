@@ -861,7 +861,8 @@ Stream_MediaFramework_DirectShow_Tools::name (IPin* pin_in)
 
 IPin*
 Stream_MediaFramework_DirectShow_Tools::pin (IBaseFilter* filter_in,
-                                             enum _PinDirection direction_in)
+                                             enum _PinDirection direction_in,
+                                             unsigned int index_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_DirectShow_Tools::pin"));
 
@@ -881,75 +882,92 @@ Stream_MediaFramework_DirectShow_Tools::pin (IBaseFilter* filter_in,
   } // end IF
   ACE_ASSERT (enumerator_p);
 
-  //IKsPropertySet* property_set_p = NULL;
-  //struct _GUID GUID_s = GUID_NULL;
   enum _PinDirection pin_direction;
+  unsigned int index_i = 0;
   while (S_OK == enumerator_p->Next (1, &result, NULL))
-  {
-    ACE_ASSERT (result);
-
+  { ACE_ASSERT (result);
     result_2 = result->QueryDirection (&pin_direction);
     if (FAILED (result_2))
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to IPin::QueryDirection(): \"%s\", aborting\n"),
                   ACE_TEXT (Common_Error_Tools::errorToString (result_2, true).c_str ())));
-
-      // clean up
       result->Release ();
       enumerator_p->Release ();
-
       return NULL;
     } // end IF
-    if (pin_direction == direction_in)
-      break;
-
-    result->Release ();
-    result = NULL;
-
-    //property_set_p = NULL;
-    //result = pin_p->QueryInterface (IID_PPV_ARGS (&property_set_p));
-    //if (FAILED (result))
-    //{
-    //  ACE_DEBUG ((LM_ERROR,
-    //    ACE_TEXT ("failed to IPin::QueryInterface(IKsPropertySet): \"%s\", aborting\n"),
-    //    ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ())));
-    //  pin_p->Release ();
-    //  enumerator_p->Release ();
-    //  goto error;
-    //} // end IF
-    //ACE_ASSERT (property_set_p);
-    //result = property_set_p->Get (AMPROPSETID_Pin, AMPROPERTY_PIN_CATEGORY,
-    //  NULL, 0,
-    //  &GUID_s, sizeof (struct _GUID), &returned_size);
-    //if (FAILED (result))
-    //{
-    //  ACE_DEBUG ((LM_ERROR,
-    //    ACE_TEXT ("failed to IKsPropertySet::Get(AMPROPERTY_PIN_CATEGORY): \"%s\", aborting\n"),
-    //    ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ())));
-    //  property_set_p->Release ();
-    //  pin_p->Release ();
-    //  enumerator_p->Release ();
-    //  goto error;
-    //} // end IF
-    //ACE_ASSERT (returned_size == sizeof (struct _GUID));
-    //if (GUID_s == PIN_CATEGORY_CAPTURE)
-    //  break;
-    //property_set_p->Release ();
-    //pin_p->Release ();
-    //pin_p = NULL;
+    if (pin_direction != direction_in)
+    {
+      result->Release (); result = NULL;
+      continue;
+    } // end IF
+    if (index_i != index_in)
+    {
+      result->Release (); result = NULL;
+      ++index_i;
+      continue;
+    } // end IF
+    break;
   } // end WHILE
   enumerator_p->Release ();
 
   if (!result)
   {
-    //ACE_DEBUG ((LM_DEBUG,
+    //ACE_DEBUG ((LM_ERROR,
     //            ACE_TEXT ("0x%@ [\"%s\"]: no %s pin found, aborting\n"),
     //            filter_in,
     //            ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::name (filter_in).c_str ()),
     //            ((direction_in == PINDIR_INPUT) ? ACE_TEXT ("input") : ACE_TEXT ("output"))));
-    return NULL;
   } // end IF
+
+  return result;
+}
+
+unsigned int
+Stream_MediaFramework_DirectShow_Tools::pins (IBaseFilter* filter_in,
+                                              enum _PinDirection direction_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_DirectShow_Tools::pin"));
+
+  unsigned int result = 0;
+
+  // sanity check(s)
+  ACE_ASSERT (filter_in);
+
+  IEnumPins* enumerator_p = NULL;
+  HRESULT result_2 = filter_in->EnumPins (&enumerator_p);
+  if (FAILED (result_2))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to IBaseFilter::EnumPins(): \"%s\", aborting\n"),
+                ACE_TEXT (Common_Error_Tools::errorToString (result_2, true).c_str ())));
+    return 0;
+  } // end IF
+  ACE_ASSERT (enumerator_p);
+
+  IPin* pin_p = NULL;
+  enum _PinDirection pin_direction;
+  while (S_OK == enumerator_p->Next (1, &pin_p, NULL))
+  { ACE_ASSERT (pin_p);
+    result_2 = pin_p->QueryDirection (&pin_direction);
+    if (FAILED (result_2))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to IPin::QueryDirection(): \"%s\", aborting\n"),
+                  ACE_TEXT (Common_Error_Tools::errorToString (result_2, true).c_str ())));
+      pin_p->Release ();
+      enumerator_p->Release ();
+      return 0;
+    } // end IF
+    if (pin_direction != direction_in)
+    {
+      pin_p->Release (); pin_p = NULL;
+      continue;
+    } // end IF
+    pin_p->Release (); pin_p = NULL;
+    ++result;
+  } // end WHILE
+  enumerator_p->Release ();
 
   return result;
 }
@@ -1400,197 +1418,225 @@ Stream_MediaFramework_DirectShow_Tools::connect (IGraphBuilder* builder_in,
   ACE_ASSERT (builder_in);
   ACE_ASSERT (!graphConfiguration_in.empty ());
 
-  IBaseFilter* filter_p = NULL;
-  Stream_MediaFramework_DirectShow_GraphConfigurationConstIterator_t iterator =
-    graphConfiguration_in.begin ();
-  HRESULT result =
-    builder_in->FindFilterByName ((*iterator).filterName.c_str (),
-                                  &filter_p);
-  if (FAILED (result))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to IGraphBuilder::FindFilterByName(\"%s\"): \"%s\", aborting\n"),
-                ACE_TEXT_WCHAR_TO_TCHAR ((*iterator).filterName.c_str ()),
-                ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ())));
-    return false;
-  } // end IF
-  ACE_ASSERT (filter_p);
-  IPin* pin_p = Stream_MediaFramework_DirectShow_Tools::pin (filter_p,
-                                                             PINDIR_OUTPUT);
-  if (!pin_p)
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: has no output pin, aborting\n"),
-                ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::name (filter_p).c_str ())));
-    filter_p->Release (); filter_p = NULL;
-    return false;
-  } // end IF
-
+  IBaseFilter* filter_p = NULL, *filter_2 = NULL;
+  HRESULT result = E_FAIL;
+  unsigned int number_of_output_pins_i = 0, number_of_input_pins_i = 0;
+  IPin* pin_p = NULL, *pin_2 = NULL;
+  Stream_MediaFramework_DirectShow_GraphConfigurationConstIterator_t iterator_2;
   IAMStreamConfig* stream_config_p = NULL;
-  result = pin_p->QueryInterface (IID_PPV_ARGS (&stream_config_p));
-  if (FAILED (result))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s/%s: failed to IPin::QueryInterface(IAMStreamConfig): \"%s\", aborting\n"),
-                ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::name (filter_p).c_str ()),
-                ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::name (pin_p).c_str ()),
-                ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ())));
-    filter_p->Release (); filter_p = NULL;
-    pin_p->Release (); pin_p = NULL;
-    return false;
-  } // end IF
-  filter_p->Release (); filter_p = NULL;
-  ACE_ASSERT (stream_config_p);
-  result =
-    stream_config_p->SetFormat ((*iterator).mediaType); // *NOTE*: 'NULL' should reset the pin
-  if (FAILED (result))
-  {
-    if ((*iterator).mediaType)
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("%s: failed to IAMStreamConfig::SetFormat(): \"%s\" (media type was: %s), continuing\n"),
-                  ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::name (pin_p).c_str ()),
-                  ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ()),
-                  ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::toString (*(*iterator).mediaType, true).c_str ())));
-    else
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("%s: failed to IAMStreamConfig::SetFormat(NULL): \"%s\", continuing\n"),
-                  ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::name (pin_p).c_str ()),
-                  ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ())));
-  } // end IF
-  stream_config_p->Release (); stream_config_p = NULL;
-
-  IPin* pin_2 = NULL, *pin_3 = NULL;
-  Stream_MediaFramework_DirectShow_GraphConfigurationConstIterator_t iterator_2 =
-    iterator;
-  for (++iterator;
+  for (Stream_MediaFramework_DirectShow_GraphConfigurationConstIterator_t iterator = graphConfiguration_in.begin ();
        iterator != graphConfiguration_in.end ();
-       ++iterator_2)
-  { ACE_ASSERT (pin_p); ACE_ASSERT (!filter_p);
-    result = builder_in->FindFilterByName ((*iterator).filterName.c_str (),
-                                           &filter_p);
+       ++iterator)
+  { 
+    iterator_2 = iterator; std::advance (iterator_2, 1);
+    if (iterator_2 == graphConfiguration_in.end ())
+      break; // done
+    result =
+      builder_in->FindFilterByName ((*iterator).filterName.c_str (),
+                                    &filter_p);
     if (FAILED (result))
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to IGraphBuilder::FindFilterByName(\"%s\"): \"%s\", aborting\n"),
                   ACE_TEXT_WCHAR_TO_TCHAR ((*iterator).filterName.c_str ()),
                   ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ())));
-      pin_p->Release (); pin_p = NULL;
       return false;
     } // end IF
     ACE_ASSERT (filter_p);
-    pin_2 = Stream_MediaFramework_DirectShow_Tools::pin (filter_p,
-                                                         PINDIR_INPUT);
-    if (!pin_2)
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("%s: has no input pin, aborting\n"),
-                  ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::name (filter_p).c_str ())));
-      filter_p->Release (); filter_p = NULL;
-      return false;
-    } // end IF
+    //result = filter_p->QueryInterface (IID_PPV_ARGS (&stream_config_p));
+    //if (FAILED (result))
+    //{
+    //  ACE_DEBUG ((LM_DEBUG,
+    //              ACE_TEXT ("%s: failed to IBaseFilter::QueryInterface(IAMStreamConfig): \"%s\", continuing\n"),
+    //              ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::name (filter_p).c_str ()),
+    //              ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ())));
+    //} // end IF
+    //else
+    //{ ACE_ASSERT (stream_config_p);
+    //  result =
+    //    stream_config_p->SetFormat ((*iterator).mediaType); // *NOTE*: 'NULL' should reset the filter
+    //  if (FAILED (result))
+    //  {
+    //    ACE_DEBUG ((LM_ERROR,
+    //                ACE_TEXT ("%s/%s: failed to IAMStreamConfig::SetFormat(): \"%s\" (media type was: %s), aborting\n"),
+    //                ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::name (filter_p).c_str ()),
+    //                ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::name (pin_p).c_str ()),
+    //                ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ()),
+    //                ((*iterator).mediaType ? ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::toString (*(*iterator).mediaType, true).c_str ())
+    //                                       : ACE_TEXT ("NULL"))));
+    //    stream_config_p->Release (); stream_config_p = NULL;
+    //    filter_p->Release (); filter_p = NULL;
+    //    return false;
+    //  } // end IF
+    //  stream_config_p->Release (); stream_config_p = NULL;
+    //} // end ELSE
+    number_of_output_pins_i =
+      Stream_MediaFramework_DirectShow_Tools::pins (filter_p,
+                                                    PINDIR_OUTPUT);
+    for (unsigned int i = 0;
+         i < number_of_output_pins_i;
+         ++i)
+    { ACE_ASSERT (!pin_p); ACE_ASSERT (filter_p); ACE_ASSERT (!filter_2);
+      pin_p = Stream_MediaFramework_DirectShow_Tools::pin (filter_p,
+                                                           PINDIR_OUTPUT,
+                                                           i);
+      ACE_ASSERT (pin_p);
+      if ((*iterator).mediaType)
+      {
+        result = pin_p->QueryInterface (IID_PPV_ARGS (&stream_config_p));
+        if (FAILED (result))
+        {
+          ACE_DEBUG ((LM_DEBUG,
+                      ACE_TEXT ("%s: failed to IPin::QueryInterface(IAMStreamConfig): \"%s\", continuing\n"),
+                      ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::name (filter_p).c_str ()),
+                      ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ())));
+        } // end IF
+        else
+        { ACE_ASSERT (stream_config_p);
+          result =
+            stream_config_p->SetFormat ((*iterator).mediaType); // *NOTE*: 'NULL' should reset the filter
+          if (FAILED (result))
+          {
+            ACE_DEBUG ((LM_ERROR,
+                        ACE_TEXT ("%s/%s: failed to IAMStreamConfig::SetFormat(): \"%s\" (media type was: %s), continuing\n"),
+                        ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::name (filter_p).c_str ()),
+                        ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::name (pin_p).c_str ()),
+                        ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ()),
+                        ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::toString (*(*iterator).mediaType, true).c_str ())));
+          } // end IF
+          stream_config_p->Release (); stream_config_p = NULL;
+        } // end ELSE
+      } // end IF
 
-    result =
-      ((*iterator).connectDirect ? builder_in->ConnectDirect (pin_p,
-                                                              pin_2,
-                                                              (*iterator).mediaType)
-                                 : pin_p->Connect (pin_2,
-                                                   (*iterator).mediaType));
-    if (FAILED (result)) // 0x80040200: VFW_E_INVALIDMEDIATYPE
-                         // 0x80040207: VFW_E_NO_ACCEPTABLE_TYPES
-                         // 0x80040217: VFW_E_CANNOT_CONNECT
-                         // 0x8004022A: VFW_E_TYPE_NOT_ACCEPTED
-                         // 0x80040255: VFW_E_NO_DECOMPRESSOR
-                         // 0x80070057: 
-    {
-      // *TODO*: evidently, some filters do not expose their preferred media
-      //         types (e.g. AVI Splitter) [until the filter is connected], so
-      //         the straight-forward, 'direct' pin connection algorithm will
-      //         not always work. Note how (such as in this example), this
-      //         actually makes some sense, as 'container'- or other 'meta-'
-      //         filters sometimes actually do not know (or care) about what
-      //         kind of data they contain
-      // *NOTE*: 'fixing' this requires some in-depth knowledge about
-      //         _AMMediaType (in-)compatibilities, and other inner workings of
-      //         DirectShow (such as what the algorithm is that IGraphBuilder
-      //         uses to intelligently retrieve 'pin'-compatible media types)...
-#if defined (_DEBUG)
-      if ((result == VFW_E_INVALIDMEDIATYPE)    ||
-          (result == VFW_E_NO_ACCEPTABLE_TYPES) ||
-          (result == VFW_E_TYPE_NOT_ACCEPTED))
+      result = builder_in->FindFilterByName ((*iterator_2).filterName.c_str (),
+                                             &filter_2);
+      if (FAILED (result))
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("failed to IGraphBuilder::FindFilterByName(\"%s\"): \"%s\", aborting\n"),
+                    ACE_TEXT_WCHAR_TO_TCHAR ((*iterator_2).filterName.c_str ()),
+                    ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ())));
+        pin_p->Release (); pin_p = NULL;
+        filter_p->Release (); filter_p = NULL;
+        return false;
+      } // end IF
+      ACE_ASSERT (filter_2);
+      number_of_input_pins_i =
+        Stream_MediaFramework_DirectShow_Tools::pins (filter_2,
+                                                      PINDIR_INPUT);
+      for (unsigned int j = 0;
+           j < number_of_input_pins_i;
+           ++j)
+      { ACE_ASSERT (!pin_2);
+        pin_2 = Stream_MediaFramework_DirectShow_Tools::pin (filter_2,
+                                                             PINDIR_INPUT,
+                                                             j);
+        ACE_ASSERT (pin_2);
+        result =
+          ((*iterator).connectDirect ? builder_in->ConnectDirect (pin_p,
+                                                                  pin_2,
+                                                                  (*iterator).mediaType)
+                                     : pin_p->Connect (pin_2,
+                                                       (*iterator).mediaType));
+        if (FAILED (result)) // 0x80040200: VFW_E_INVALIDMEDIATYPE
+                             // 0x80040207: VFW_E_NO_ACCEPTABLE_TYPES
+                             // 0x80040217: VFW_E_CANNOT_CONNECT
+                             // 0x8004022A: VFW_E_TYPE_NOT_ACCEPTED
+                             // 0x80040255: VFW_E_NO_DECOMPRESSOR
+                             // 0x80070057: 
+        {
+          ACE_DEBUG ((LM_DEBUG,
+                      ACE_TEXT ("%spin connection %s/%s[%u] <--> [%u]%s/%s failed (media type was: %s): \"%s\" (0x%x), retrying...\n"),
+                      ((*iterator).connectDirect ? ACE_TEXT ("'direct' ") : ACE_TEXT ("")),
+                      ACE_TEXT_WCHAR_TO_TCHAR ((*iterator).filterName.c_str ()),
+                      ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::name (pin_p).c_str ()), i,
+                      j, ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::name (pin_2).c_str ()),
+                      ACE_TEXT_WCHAR_TO_TCHAR ((*iterator_2).filterName.c_str ()),
+                      ((*iterator).mediaType ? ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::toString (*(*iterator).mediaType, true).c_str ())
+                                             : ACE_TEXT ("NULL")),
+                      ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ()), result));
+
+          result = builder_in->Connect (pin_p, pin_2);
+          if (FAILED (result)) // 0x80040207: VFW_E_NO_ACCEPTABLE_TYPES
+                               // 0x80040217: VFW_E_CANNOT_CONNECT
+          {
+            ACE_DEBUG ((LM_DEBUG,
+                        ACE_TEXT ("'intelligent' pin connection %s/%s[%u] <--> [%u]%s/%s also failed: \"%s\" (0x%x), continuing\n"),
+                        ACE_TEXT_WCHAR_TO_TCHAR ((*iterator).filterName.c_str ()),
+                        ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::name (pin_p).c_str ()), i,
+                        j, ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::name (pin_2).c_str ()),
+                        ACE_TEXT_WCHAR_TO_TCHAR ((*iterator_2).filterName.c_str ()),
+                        ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ()),
+                        result));
+            pin_2->Release (); pin_2 = NULL;
+            continue;
+          } // end IF
+          pin_2->Release (); pin_2 = NULL;
+          break; // success
+        } // end IF
+        pin_2->Release (); pin_2 = NULL;
+        break; // success
+      } // end FOR
+      if (FAILED (result))
       {
         ACE_DEBUG ((LM_DEBUG,
-                    ACE_TEXT ("failed to connect \"%s\" to \"%s\": \"%s\" (0x%x), dumping pins\n"),
+                    ACE_TEXT ("failed to connect \"%s\"[%u] to \"%s\": \"%s\" (0x%x), continuing\n"),
+                    ACE_TEXT_WCHAR_TO_TCHAR ((*iterator).filterName.c_str ()), i,
                     ACE_TEXT_WCHAR_TO_TCHAR ((*iterator_2).filterName.c_str ()),
-                    ACE_TEXT_WCHAR_TO_TCHAR ((*iterator).filterName.c_str ()),
                     ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ()), result));
-        Stream_MediaFramework_DirectShow_Tools::dump (pin_p);
-        Stream_MediaFramework_DirectShow_Tools::dump (pin_2);
+        filter_2->Release (); filter_2 = NULL;
+        pin_p->Release (); pin_p = NULL;
+        continue;
       } // end IF
-#endif // _DEBUG
-      //else
-      //{
-        ACE_DEBUG ((LM_WARNING,
-                    ACE_TEXT ("'direct' pin connection %s/%s <--> %s/%s failed (media type was: %s): \"%s\" (0x%x), retrying...\n"),
-                    ACE_TEXT_WCHAR_TO_TCHAR ((*iterator_2).filterName.c_str ()),
-                    ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::name (pin_p).c_str ()),
-                    ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::name (pin_2).c_str ()),
-                    ACE_TEXT_WCHAR_TO_TCHAR ((*iterator).filterName.c_str ()),
-                    ((*iterator).mediaType ? ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::toString (*(*iterator).mediaType, true).c_str ())
-                                           : ACE_TEXT ("NULL")),
-                    ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ()), result));
-      //} // end ELSE
-
-      result = builder_in->Connect (pin_p, pin_2);
-      if (FAILED (result)) // 0x80040207: VFW_E_NO_ACCEPTABLE_TYPES
-                           // 0x80040217: VFW_E_CANNOT_CONNECT
-      {
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("'intelligent' pin connection %s/%s <--> %s/%s failed: \"%s\" (0x%x), aborting\n"),
-                    ACE_TEXT_WCHAR_TO_TCHAR ((*iterator_2).filterName.c_str ()),
-                    ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::name (pin_p).c_str ()),
-                    ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::name (pin_2).c_str ()),
-                    ACE_TEXT_WCHAR_TO_TCHAR ((*iterator).filterName.c_str ()),
-                    ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ()),
-                    result));
-//#if defined (_DEBUG)
-//        Stream_MediaFramework_DirectShow_Tools::countFormats (pin_2,
-//                                                              GUID_NULL);
-//#endif // _DEBUG
-      } // end IF
-      else
-        goto continue_;
-      pin_2->Release (); pin_2 = NULL;
+      struct _AMMediaType media_type_s =
+        Stream_MediaFramework_DirectShow_Tools::toFormat (pin_p);
+      ACE_DEBUG ((LM_DEBUG,
+                  ACE_TEXT ("connected \"%s\"[%u] to \"%s\": %s\n"),
+                  ACE_TEXT_WCHAR_TO_TCHAR ((*iterator).filterName.c_str ()), i,
+                  ACE_TEXT_WCHAR_TO_TCHAR ((*iterator_2).filterName.c_str ()),
+                  ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::toString (media_type_s, true).c_str ())));
+      Stream_MediaFramework_DirectShow_Tools::free (media_type_s);
+      ACE_OS::memset (&media_type_s, 0, sizeof (struct _AMMediaType));
+      filter_2->Release (); filter_2 = NULL;
       pin_p->Release (); pin_p = NULL;
+      break; // success
+    } // end FOR
+    if (FAILED (result))
+    { ACE_ASSERT (filter_p); ACE_ASSERT (!filter_2);
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to connect \"%s\" to \"%s\": \"%s\" (0x%x), dumping pins\n"),
+                  ACE_TEXT_WCHAR_TO_TCHAR ((*iterator).filterName.c_str ()),
+                  ACE_TEXT_WCHAR_TO_TCHAR ((*iterator_2).filterName.c_str ()),
+                  ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ()), result));
+      for (unsigned int i = 0;
+           i < number_of_output_pins_i;
+           ++i)
+      { ACE_ASSERT (!pin_p);
+        pin_p = Stream_MediaFramework_DirectShow_Tools::pin (filter_p,
+                                                             PINDIR_OUTPUT,
+                                                             i);
+        ACE_ASSERT (pin_p);
+        Stream_MediaFramework_DirectShow_Tools::dump (pin_p);
+        pin_p->Release (); pin_p = NULL;
+      } // end FOR
       filter_p->Release (); filter_p = NULL;
+      result =
+        builder_in->FindFilterByName ((*iterator_2).filterName.c_str (),
+                                      &filter_2);
+      ACE_ASSERT (SUCCEEDED (result)); ACE_ASSERT (filter_2);
+      for (unsigned int i = 0;
+           i < number_of_input_pins_i;
+           ++i)
+      { ACE_ASSERT (!pin_2);
+        pin_2 = Stream_MediaFramework_DirectShow_Tools::pin (filter_2,
+                                                             PINDIR_INPUT,
+                                                             i);
+        ACE_ASSERT (pin_2);
+        Stream_MediaFramework_DirectShow_Tools::dump (pin_2);
+        pin_2->Release (); pin_2 = NULL;
+      } // end FOR
+      filter_2->Release (); filter_2 = NULL;
       return false;
-    } // end IF
-continue_:
-    struct _AMMediaType media_type_s =
-      Stream_MediaFramework_DirectShow_Tools::toFormat (pin_p);
-    ACE_DEBUG ((LM_DEBUG,
-                ACE_TEXT ("connected \"%s\" to \"%s\": %s\n"),
-                ACE_TEXT_WCHAR_TO_TCHAR ((*iterator_2).filterName.c_str ()),
-                ACE_TEXT_WCHAR_TO_TCHAR ((*iterator).filterName.c_str ()),
-                ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::toString (media_type_s, true).c_str ())));
-    Stream_MediaFramework_DirectShow_Tools::free (media_type_s);
-    ACE_OS::memset (&media_type_s, 0, sizeof (struct _AMMediaType));
-//continue_2:
-    pin_2->Release (); pin_2 = NULL;
-    pin_p->Release (); pin_p = NULL;
-
-    if (++iterator != graphConfiguration_in.end ())
-    { ACE_ASSERT (!pin_p);
-      pin_p =
-        Stream_MediaFramework_DirectShow_Tools::pin (filter_p,
-                                                     PINDIR_OUTPUT);
-      if (!pin_p)
-      {
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("%s: has no output pin, aborting\n"),
-                    ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::name (filter_p).c_str ())));
-        filter_p->Release (); filter_p = NULL;
-        break;
-      } // end IF
     } // end IF
     filter_p->Release (); filter_p = NULL;
   } // end FOR

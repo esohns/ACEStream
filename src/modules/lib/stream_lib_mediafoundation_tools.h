@@ -27,6 +27,7 @@
 #include "d3d9.h"
 #include "dxva2api.h"
 #include "mfapi.h"
+#undef GetObject
 #include "mfidl.h"
 #include "mfreadwrite.h"
 #include "strmif.h"

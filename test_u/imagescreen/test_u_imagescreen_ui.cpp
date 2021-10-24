@@ -1,4 +1,5 @@
-#include "ace/Synch.h"
+#include "stdafx.h"
+
 #include "test_u_imagescreen_ui.h"
 
 #include "test_u_imagescreen_common.h"
@@ -19,45 +20,10 @@ process_stream_events (struct Stream_ImageScreen_UI_CBData* CBData_in,
   ACE_ASSERT (CBData_in->UIState);
 
   enum Stream_Visualization_VideoRenderer renderer_e =
-    STREAM_VISUALIZATION_VIDEORENDERER_INVALID;
+    CBData_in->configuration->streamConfiguration.configuration_->renderer;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  struct Stream_ImageScreen_DirectShow_UI_CBData* directshow_cb_data_p = NULL;
-  struct Stream_ImageScreen_MediaFoundation_UI_CBData* mediafoundation_cb_data_p =
-    NULL;
   struct Stream_MediaFramework_Direct3D_Configuration* direct3DConfiguration_p =
-    NULL;
-  switch (CBData_in->mediaFramework)
-  {
-    case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
-    {
-      directshow_cb_data_p =
-        static_cast<struct Stream_ImageScreen_DirectShow_UI_CBData*> (CBData_in);
-      ACE_ASSERT (directshow_cb_data_p->configuration);
-      renderer_e =
-        directshow_cb_data_p->configuration->streamConfiguration.configuration_.renderer;
-      direct3DConfiguration_p =
-        &directshow_cb_data_p->configuration->direct3DConfiguration;
-      break;
-    }
-    case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
-    {
-      mediafoundation_cb_data_p =
-        static_cast<struct Stream_ImageScreen_MediaFoundation_UI_CBData*> (CBData_in);
-      ACE_ASSERT (mediafoundation_cb_data_p->configuration);
-      renderer_e =
-        mediafoundation_cb_data_p->configuration->streamConfiguration.configuration_.renderer;
-      direct3DConfiguration_p =
-        &mediafoundation_cb_data_p->configuration->direct3DConfiguration;
-      break;
-    }
-    default:
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("invalid/unknown media framework (was: %d), returning\n"),
-                  CBData_in->mediaFramework));
-      return;
-    }
-  } // end SWITCH
+    &CBData_in->configuration->direct3DConfiguration;
 #else
   struct Stream_ImageScreen_V4L_UI_CBData* cb_data_p =
     static_cast<struct Stream_ImageScreen_V4L_UI_CBData*> (CBData_in);
@@ -74,9 +40,11 @@ process_stream_events (struct Stream_ImageScreen_UI_CBData* CBData_in,
   int result = -1;
 
   { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, CBData_in->UIState->lock);
+#if defined (WXWIDGETS_USE)
     iterator =
       CBData_in->UIState->resources.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN));
     ACE_ASSERT (iterator != CBData_in->UIState->resources.end ());
+#endif // WXWIDGETS_USE
     dialog_p = dynamic_cast<wxDialog*> ((*iterator).second.second);
     ACE_ASSERT (dialog_p);
 
@@ -283,43 +251,6 @@ process_stream_events (struct Stream_ImageScreen_UI_CBData* CBData_in,
         }
         case COMMON_UI_EVENT_RESET:
         {
-          enum Stream_Visualization_VideoRenderer renderer_e =
-            STREAM_VISUALIZATION_VIDEORENDERER_INVALID;
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-          switch (CBData_in->mediaFramework)
-          {
-            case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
-            {
-              ACE_ASSERT (directshow_cb_data_p);
-              ACE_ASSERT (directshow_cb_data_p->configuration);
-              renderer_e =
-                directshow_cb_data_p->configuration->streamConfiguration.configuration_.renderer;
-              direct3DConfiguration_p =
-                &directshow_cb_data_p->configuration->direct3DConfiguration;
-              break;
-            }
-            case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
-            {
-              ACE_ASSERT (mediafoundation_cb_data_p);
-              ACE_ASSERT (mediafoundation_cb_data_p->configuration);
-              renderer_e =
-                mediafoundation_cb_data_p->configuration->streamConfiguration.configuration_.renderer;
-              break;
-            }
-            default:
-            {
-              ACE_DEBUG ((LM_ERROR,
-                          ACE_TEXT ("invalid/unknown media framework (was: %d), returning\n"),
-                          CBData_in->mediaFramework));
-              return;
-            }
-          } // end SWITCH
-#else
-          ACE_ASSERT (cb_data_p);
-          ACE_ASSERT (cb_data_p->configuration);
-          renderer_e =
-            cb_data_p->configuration->streamConfiguration.configuration_.renderer;
-#endif // ACE_WIN32 || ACE_WIN64
           switch (renderer_e)
           {
             case STREAM_VISUALIZATION_VIDEORENDERER_NULL:
@@ -345,11 +276,6 @@ process_stream_events (struct Stream_ImageScreen_UI_CBData* CBData_in,
             case STREAM_VISUALIZATION_VIDEORENDERER_MEDIAFOUNDATION:
               break;
 #endif // ACE_WIN32 || ACE_WIN64
-#if defined (GTK_SUPPORT)
-            case STREAM_VISUALIZATION_VIDEORENDERER_GTK_CAIRO:
-            case STREAM_VISUALIZATION_VIDEORENDERER_GTK_PIXBUF:
-              break;
-#endif // GTK_SUPPORT
             default:
             {
               ACE_DEBUG ((LM_ERROR,
@@ -430,122 +356,25 @@ stream_processing_thread (void* arg_in)
   ACE_ASSERT (thread_data_p);
   ACE_ASSERT (thread_data_p->CBData);
 
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-  const Stream_ImageScreen_DirectShow_SessionData_t* directshow_session_data_container_p =
-    NULL;
-  const Stream_ImageScreen_MediaFoundation_SessionData_t* mediafoundation_session_data_container_p =
-    NULL;
-  const Stream_ImageScreen_DirectShow_SessionData* directshow_session_data_p =
-    NULL;
-  const Stream_ImageScreen_MediaFoundation_SessionData* mediafoundation_session_data_p =
-    NULL;
-#else
-  const Stream_ImageScreen_V4L_SessionData_t* session_data_container_p = NULL;
-  const Stream_ImageScreen_V4L_SessionData* session_data_p = NULL;
-#endif // ACE_WIN32 || ACE_WIN64
+  const Stream_ImageScreen_SessionData_t* session_data_container_p = NULL;
+  const Stream_ImageScreen_SessionData* session_data_p = NULL;
   Stream_IStreamControlBase* stream_p = NULL;
 
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-  struct Stream_ImageScreen_DirectShow_UI_CBData* directshow_cb_data_p = NULL;
-  struct Stream_ImageScreen_MediaFoundation_UI_CBData* mediafoundation_cb_data_p =
-    NULL;
-  switch (thread_data_p->CBData->mediaFramework)
-  {
-    case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
-    {
-      directshow_cb_data_p =
-        static_cast<struct Stream_ImageScreen_DirectShow_UI_CBData*> (thread_data_p->CBData);
-      ACE_ASSERT (directshow_cb_data_p->configuration);
-      ACE_ASSERT (directshow_cb_data_p->stream);
-      break;
-    }
-    case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
-    {
-      mediafoundation_cb_data_p =
-        static_cast<struct Stream_ImageScreen_MediaFoundation_UI_CBData*> (thread_data_p->CBData);
-      ACE_ASSERT (mediafoundation_cb_data_p->configuration);
-      ACE_ASSERT (mediafoundation_cb_data_p->stream);
-      break;
-    }
-    default:
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("invalid/unknown media framework (was: %d), returning\n"),
-                  thread_data_p->CBData->mediaFramework));
-      goto error;
-    }
-  } // end SWITCH
-#else
-  struct Stream_ImageScreen_V4L_UI_CBData* cb_data_p =
-    static_cast<struct Stream_ImageScreen_V4L_UI_CBData*> (thread_data_p->CBData);
-  ACE_ASSERT (cb_data_p->configuration);
-  ACE_ASSERT (cb_data_p->stream);
-#endif // ACE_WIN32 || ACE_WIN64
-
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-  switch (thread_data_p->CBData->mediaFramework)
-  {
-    case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
-    {
-      Stream_ImageScreen_DirectShow_StreamConfiguration_t::ITERATOR_T iterator =
-        const_cast<Stream_ImageScreen_DirectShow_StreamConfiguration_t::ITERATOR_T&> (directshow_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR ("")));
-      ACE_ASSERT (iterator != directshow_cb_data_p->configuration->streamConfiguration.end ());
-
-      if (!directshow_cb_data_p->stream->initialize (directshow_cb_data_p->configuration->streamConfiguration))
-      {
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("failed to initialize stream, aborting\n")));
-        goto error;
-      } // end IF
-      stream_p = directshow_cb_data_p->stream;
-      directshow_session_data_container_p =
-        &directshow_cb_data_p->stream->getR ();
-      ACE_ASSERT (directshow_session_data_container_p);
-      directshow_session_data_p = &directshow_session_data_container_p->getR ();
-      ACE_ASSERT (directshow_session_data_p);
-      thread_data_p->sessionId = directshow_session_data_p->sessionId;
-      break;
-    }
-    case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
-    {
-      if (!mediafoundation_cb_data_p->stream->initialize (mediafoundation_cb_data_p->configuration->streamConfiguration))
-      {
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("failed to initialize stream, aborting\n")));
-        goto error;
-      } // end IF
-      stream_p = mediafoundation_cb_data_p->stream;
-      mediafoundation_session_data_container_p =
-        &mediafoundation_cb_data_p->stream->getR ();
-      ACE_ASSERT (mediafoundation_session_data_container_p);
-      mediafoundation_session_data_p =
-        &mediafoundation_session_data_container_p->getR ();
-      ACE_ASSERT (mediafoundation_session_data_p);
-      thread_data_p->sessionId = mediafoundation_session_data_p->sessionId;
-      break;
-    }
-    default:
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("invalid/unknown media framework (was: %d), returning\n"),
-                  thread_data_p->CBData->mediaFramework));
-      goto error;
-    }
-  } // end SWITCH
-#else
-  if (!cb_data_p->stream->initialize (cb_data_p->configuration->streamConfiguration))
+  Stream_ImageScreen_StreamConfiguration_t::ITERATOR_T iterator =
+    thread_data_p->CBData->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
+  ACE_ASSERT (iterator != thread_data_p->CBData->configuration->streamConfiguration.end ());
+  if (!thread_data_p->CBData->stream->initialize (thread_data_p->CBData->configuration->streamConfiguration))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to Stream_ImageScreen_V4L_Stream::initialize(), aborting\n")));
+                ACE_TEXT ("failed to initialize stream, aborting\n")));
     goto error;
   } // end IF
-  stream_p = cb_data_p->stream;
-  session_data_container_p = &cb_data_p->stream->getR ();
+  stream_p = thread_data_p->CBData->stream;
+  session_data_container_p = &thread_data_p->CBData->stream->getR_2 ();
   ACE_ASSERT (session_data_container_p);
   session_data_p = &session_data_container_p->getR ();
   ACE_ASSERT (session_data_p);
   thread_data_p->sessionId = session_data_p->sessionId;
-#endif // ACE_WIN32 || ACE_WIN64
 
   // *NOTE*: blocks until 'finished'
   ACE_ASSERT (stream_p);
@@ -577,105 +406,57 @@ error:
 /////////////////////////////////////////
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-//wxIMPLEMENT_DYNAMIC_CLASS (Stream_ImageScreen_DirectShow_WxWidgetsDialog_t, dialog_main)
+//wxIMPLEMENT_DYNAMIC_CLASS (Stream_ImageScreen_WxWidgetsDialog_t, dialog_main)
 wxClassInfo
-Stream_ImageScreen_DirectShow_WxWidgetsDialog_t::ms_classInfo (L"Stream_ImageScreen_DirectShow_WxWidgetsDialog_t",
-                                                           &dialog_main::ms_classInfo,
-                                                           NULL,
-                                                           (int) sizeof (Stream_ImageScreen_DirectShow_WxWidgetsDialog_t),
-                                                           Stream_ImageScreen_DirectShow_WxWidgetsDialog_t::wxCreateObject);
+Stream_ImageScreen_WxWidgetsDialog_t::ms_classInfo (ACE_TEXT_ALWAYS_CHAR ("Stream_ImageScreen_WxWidgetsDialog_t"),
+                                                    &wxDialog_main::ms_classInfo,
+                                                    NULL,
+                                                    (int) sizeof (Stream_ImageScreen_WxWidgetsDialog_t),
+                                                    Stream_ImageScreen_WxWidgetsDialog_t::wxCreateObject);
 wxClassInfo*
-Stream_ImageScreen_DirectShow_WxWidgetsDialog_t::GetClassInfo () const
+Stream_ImageScreen_WxWidgetsDialog_t::GetClassInfo () const
 {
-  return &Stream_ImageScreen_DirectShow_WxWidgetsDialog_t::ms_classInfo;
+  return &Stream_ImageScreen_WxWidgetsDialog_t::ms_classInfo;
 }
 
 wxObject*
-Stream_ImageScreen_DirectShow_WxWidgetsDialog_t::wxCreateObject ()
+Stream_ImageScreen_WxWidgetsDialog_t::wxCreateObject ()
 {
-  return new Stream_ImageScreen_DirectShow_WxWidgetsDialog_t;
+  return new Stream_ImageScreen_WxWidgetsDialog_t;
 }
 
-//wxIMPLEMENT_DYNAMIC_CLASS (Stream_ImageScreen_MediaFoundation_WxWidgetsDialog_t, dialog_main)
-wxClassInfo
-Stream_ImageScreen_MediaFoundation_WxWidgetsDialog_t::ms_classInfo (L"Stream_ImageScreen_MediaFoundation_WxWidgetsDialog_t",
-                                                                &dialog_main::ms_classInfo,
-                                                                NULL,
-                                                                (int) sizeof (Stream_ImageScreen_MediaFoundation_WxWidgetsDialog_t),
-                                                                Stream_ImageScreen_MediaFoundation_WxWidgetsDialog_t::wxCreateObject);
-wxClassInfo*
-Stream_ImageScreen_MediaFoundation_WxWidgetsDialog_t::GetClassInfo () const
-{
-  return &Stream_ImageScreen_MediaFoundation_WxWidgetsDialog_t::ms_classInfo;
-}
-
-wxObject*
-Stream_ImageScreen_MediaFoundation_WxWidgetsDialog_t::wxCreateObject ()
-{
-  return new Stream_ImageScreen_MediaFoundation_WxWidgetsDialog_t;
-}
-
-wxBEGIN_EVENT_TABLE (Stream_ImageScreen_DirectShow_WxWidgetsDialog_t, dialog_main)
- EVT_TOGGLEBUTTON (XRCID ("togglebutton_record"), Stream_ImageScreen_DirectShow_WxWidgetsDialog_t::togglebutton_record_toggled_cb)
- EVT_BUTTON (XRCID ("button_snapshot"), Stream_ImageScreen_DirectShow_WxWidgetsDialog_t::button_snapshot_clicked_cb)
- EVT_BUTTON (XRCID ("button_cut"), Stream_ImageScreen_DirectShow_WxWidgetsDialog_t::button_cut_clicked_cb)
-#if defined (_DEBUG)
- EVT_BUTTON (XRCID ("button_report"), Stream_ImageScreen_DirectShow_WxWidgetsDialog_t::button_report_clicked_cb)
-#endif // _DEBUG
- EVT_CHOICE (XRCID ("choice_source"), Stream_ImageScreen_DirectShow_WxWidgetsDialog_t::choice_source_changed_cb)
- EVT_BUTTON (XRCID ("button_camera_properties"), Stream_ImageScreen_DirectShow_WxWidgetsDialog_t::button_camera_properties_clicked_cb)
- EVT_CHOICE (XRCID ("choice_format"), Stream_ImageScreen_DirectShow_WxWidgetsDialog_t::choice_format_changed_cb)
- EVT_CHOICE (XRCID ("choice_resolution"), Stream_ImageScreen_DirectShow_WxWidgetsDialog_t::choice_resolution_changed_cb)
- EVT_CHOICE (XRCID ("choice_framerate"), Stream_ImageScreen_DirectShow_WxWidgetsDialog_t::choice_framerate_changed_cb)
- EVT_BUTTON (XRCID ("button_reset"), Stream_ImageScreen_DirectShow_WxWidgetsDialog_t::button_reset_clicked_cb)
- EVT_TOGGLEBUTTON (XRCID ("togglebutton_save"), Stream_ImageScreen_DirectShow_WxWidgetsDialog_t::togglebutton_save_toggled_cb)
- EVT_DIRPICKER_CHANGED (XRCID ("directorypicker_save"), Stream_ImageScreen_DirectShow_WxWidgetsDialog_t::picker_directory_save_changed_cb)
- EVT_TOGGLEBUTTON (XRCID ("togglebutton_display"), Stream_ImageScreen_DirectShow_WxWidgetsDialog_t::togglebutton_display_toggled_cb)
- EVT_TOGGLEBUTTON (XRCID ("togglebutton_fullscreen"), Stream_ImageScreen_DirectShow_WxWidgetsDialog_t::togglebutton_fullscreen_toggled_cb)
- EVT_CHOICE (XRCID ("choice_displayadapter"), Stream_ImageScreen_DirectShow_WxWidgetsDialog_t::choice_displayadapter_changed_cb)
- EVT_CHOICE (XRCID ("choice_screen"), Stream_ImageScreen_DirectShow_WxWidgetsDialog_t::choice_screen_changed_cb)
- EVT_BUTTON (XRCID ("button_display_settings"), Stream_ImageScreen_DirectShow_WxWidgetsDialog_t::button_display_settings_clicked_cb)
- EVT_CHOICE (XRCID ("choice_resolution_2"), Stream_ImageScreen_DirectShow_WxWidgetsDialog_t::choice_resolution_2_changed_cb)
- EVT_BUTTON (XRCID ("button_about"), Stream_ImageScreen_DirectShow_WxWidgetsDialog_t::button_about_clicked_cb)
- EVT_BUTTON (XRCID ("button_quit"), Stream_ImageScreen_DirectShow_WxWidgetsDialog_t::button_quit_clicked_cb)
- EVT_IDLE (Stream_ImageScreen_DirectShow_WxWidgetsDialog_t::dialog_main_idle_cb)
- EVT_CHAR_HOOK (Stream_ImageScreen_DirectShow_WxWidgetsDialog_t::dialog_main_keydown_cb)
-wxEND_EVENT_TABLE ()
-
-wxBEGIN_EVENT_TABLE (Stream_ImageScreen_MediaFoundation_WxWidgetsDialog_t, dialog_main)
- EVT_TOGGLEBUTTON (XRCID ("togglebutton_record"), Stream_ImageScreen_MediaFoundation_WxWidgetsDialog_t::togglebutton_record_toggled_cb)
- EVT_BUTTON (XRCID ("button_snapshot"), Stream_ImageScreen_MediaFoundation_WxWidgetsDialog_t::button_snapshot_clicked_cb)
- EVT_BUTTON (XRCID ("button_cut"), Stream_ImageScreen_MediaFoundation_WxWidgetsDialog_t::button_cut_clicked_cb)
-#if defined (_DEBUG)
- EVT_BUTTON (XRCID ("button_report"), Stream_ImageScreen_MediaFoundation_WxWidgetsDialog_t::button_report_clicked_cb)
-#endif // _DEBUG
- EVT_CHOICE (XRCID ("choice_source"), Stream_ImageScreen_MediaFoundation_WxWidgetsDialog_t::choice_source_changed_cb)
- EVT_BUTTON (XRCID ("button_camera_properties"), Stream_ImageScreen_MediaFoundation_WxWidgetsDialog_t::button_camera_properties_clicked_cb)
- EVT_CHOICE (XRCID ("choice_format"), Stream_ImageScreen_MediaFoundation_WxWidgetsDialog_t::choice_format_changed_cb)
- EVT_CHOICE (XRCID ("choice_resolution"), Stream_ImageScreen_MediaFoundation_WxWidgetsDialog_t::choice_resolution_changed_cb)
- EVT_CHOICE (XRCID ("choice_framerate"), Stream_ImageScreen_MediaFoundation_WxWidgetsDialog_t::choice_framerate_changed_cb)
- EVT_BUTTON (XRCID ("button_reset"), Stream_ImageScreen_MediaFoundation_WxWidgetsDialog_t::button_reset_clicked_cb)
- EVT_TOGGLEBUTTON (XRCID ("togglebutton_save"), Stream_ImageScreen_MediaFoundation_WxWidgetsDialog_t::togglebutton_save_toggled_cb)
- EVT_DIRPICKER_CHANGED (XRCID ("directorypicker_save"), Stream_ImageScreen_MediaFoundation_WxWidgetsDialog_t::picker_directory_save_changed_cb)
- EVT_TOGGLEBUTTON (XRCID ("togglebutton_display"), Stream_ImageScreen_MediaFoundation_WxWidgetsDialog_t::togglebutton_display_toggled_cb)
- EVT_TOGGLEBUTTON (XRCID ("togglebutton_fullscreen"), Stream_ImageScreen_MediaFoundation_WxWidgetsDialog_t::togglebutton_fullscreen_toggled_cb)
- EVT_CHOICE (XRCID ("choice_displayadapter"), Stream_ImageScreen_MediaFoundation_WxWidgetsDialog_t::choice_displayadapter_changed_cb)
- EVT_CHOICE (XRCID ("choice_screen"), Stream_ImageScreen_MediaFoundation_WxWidgetsDialog_t::choice_screen_changed_cb)
- EVT_BUTTON (XRCID ("button_display_settings"), Stream_ImageScreen_MediaFoundation_WxWidgetsDialog_t::button_display_settings_clicked_cb)
- EVT_CHOICE (XRCID ("choice_resolution_2"), Stream_ImageScreen_MediaFoundation_WxWidgetsDialog_t::choice_resolution_2_changed_cb)
- EVT_BUTTON (XRCID ("button_about"), Stream_ImageScreen_MediaFoundation_WxWidgetsDialog_t::button_about_clicked_cb)
- EVT_BUTTON (XRCID ("button_quit"), Stream_ImageScreen_MediaFoundation_WxWidgetsDialog_t::button_quit_clicked_cb)
- EVT_IDLE (Stream_ImageScreen_MediaFoundation_WxWidgetsDialog_t::dialog_main_idle_cb)
- EVT_CHAR_HOOK (Stream_ImageScreen_MediaFoundation_WxWidgetsDialog_t::dialog_main_keydown_cb)
+wxBEGIN_EVENT_TABLE (Stream_ImageScreen_WxWidgetsDialog_t, wxDialog_main)
+ EVT_TOGGLEBUTTON (XRCID ("togglebutton_record"), Stream_ImageScreen_WxWidgetsDialog_t::togglebutton_record_toggled_cb)
+ EVT_BUTTON (XRCID ("button_snapshot"), Stream_ImageScreen_WxWidgetsDialog_t::button_snapshot_clicked_cb)
+ EVT_BUTTON (XRCID ("button_cut"), Stream_ImageScreen_WxWidgetsDialog_t::button_cut_clicked_cb)
+ EVT_BUTTON (XRCID ("button_report"), Stream_ImageScreen_WxWidgetsDialog_t::button_report_clicked_cb)
+ EVT_BUTTON (XRCID ("button_reset"), Stream_ImageScreen_WxWidgetsDialog_t::button_reset_camera_clicked_cb)
+ EVT_CHOICE (XRCID ("choice_source"), Stream_ImageScreen_WxWidgetsDialog_t::choice_source_changed_cb)
+ EVT_BUTTON (XRCID ("button_camera_properties"), Stream_ImageScreen_WxWidgetsDialog_t::button_camera_properties_clicked_cb)
+ EVT_CHOICE (XRCID ("choice_format"), Stream_ImageScreen_WxWidgetsDialog_t::choice_format_changed_cb)
+ EVT_CHOICE (XRCID ("choice_resolution"), Stream_ImageScreen_WxWidgetsDialog_t::choice_resolution_changed_cb)
+ EVT_CHOICE (XRCID ("choice_framerate"), Stream_ImageScreen_WxWidgetsDialog_t::choice_framerate_changed_cb)
+ EVT_TOGGLEBUTTON (XRCID ("togglebutton_save"), Stream_ImageScreen_WxWidgetsDialog_t::togglebutton_save_toggled_cb)
+ //EVT_DIRPICKER_CHANGED (XRCID ("directorypicker_save"), Stream_ImageScreen_WxWidgetsDialog_t::picker_directory_save_changed_cb)
+ EVT_TOGGLEBUTTON (XRCID ("togglebutton_display"), Stream_ImageScreen_WxWidgetsDialog_t::togglebutton_display_toggled_cb)
+ EVT_TOGGLEBUTTON (XRCID ("togglebutton_fullscreen"), Stream_ImageScreen_WxWidgetsDialog_t::togglebutton_fullscreen_toggled_cb)
+ EVT_CHOICE (XRCID ("choice_displayadapter"), Stream_ImageScreen_WxWidgetsDialog_t::choice_displayadapter_changed_cb)
+ EVT_CHOICE (XRCID ("choice_screen"), Stream_ImageScreen_WxWidgetsDialog_t::choice_screen_changed_cb)
+ //EVT_BUTTON (XRCID ("button_display_settings"), Stream_ImageScreen_WxWidgetsDialog_t::button_display_settings_clicked_cb)
+ EVT_CHOICE (XRCID ("choice_resolution_2"), Stream_ImageScreen_WxWidgetsDialog_t::choice_resolution_2_changed_cb)
+ EVT_BUTTON (XRCID ("button_about"), Stream_ImageScreen_WxWidgetsDialog_t::button_about_clicked_cb)
+ EVT_BUTTON (XRCID ("button_quit"), Stream_ImageScreen_WxWidgetsDialog_t::button_quit_clicked_cb)
+ EVT_IDLE (Stream_ImageScreen_WxWidgetsDialog_t::dialog_main_idle_cb)
+ EVT_CHAR_HOOK (Stream_ImageScreen_WxWidgetsDialog_t::dialog_main_keydown_cb)
 wxEND_EVENT_TABLE ()
 #else
 //wxIMPLEMENT_DYNAMIC_CLASS (Stream_ImageScreen_V4L_WxWidgetsDialog_t, wxDialog_main)
 wxClassInfo
 Stream_ImageScreen_V4L_WxWidgetsDialog_t::ms_classInfo (ACE_TEXT_ALWAYS_WCHAR ("Stream_ImageScreen_V4L_WxWidgetsDialog_t"),
-                                                    &wxDialog_main::ms_classInfo,
-                                                    NULL,
-                                                    (int) sizeof (Stream_ImageScreen_V4L_WxWidgetsDialog_t),
-                                                    Stream_ImageScreen_V4L_WxWidgetsDialog_t::wxCreateObject);
+                                                        &wxDialog_main::ms_classInfo,
+                                                        NULL,
+                                                        (int) sizeof (Stream_ImageScreen_V4L_WxWidgetsDialog_t),
+                                                        Stream_ImageScreen_V4L_WxWidgetsDialog_t::wxCreateObject);
 wxClassInfo*
 Stream_ImageScreen_V4L_WxWidgetsDialog_t::GetClassInfo () const
 {

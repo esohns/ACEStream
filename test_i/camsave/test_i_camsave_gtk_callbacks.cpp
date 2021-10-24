@@ -35,6 +35,7 @@
 #include "reftime.h"
 #include "dvdmedia.h"
 #include "mferror.h"
+#undef GetObject
 #include "mfidl.h"
 #include "mfreadwrite.h"
 #if defined (UUIDS_H)
@@ -4021,7 +4022,7 @@ continue_:
 //                  ACE_TEXT (TEST_I_CamSave_THREAD_NAME));
 //  const char* thread_name_2 = thread_name_p;
   ACE_OS::strcpy (thread_name,
-                  ACE_TEXT (TEST_I_THREAD_NAME));
+                  ACE_TEXT (TEST_I_STREAM_THREAD_NAME));
   thread_name_2 = thread_name;
   thread_manager_p = ACE_Thread_Manager::instance ();
   ACE_ASSERT (thread_manager_p);

@@ -683,9 +683,11 @@ continue_3:
   waveformatex_p->wFormatTag = WAVE_FORMAT_PCM;
   waveformatex_p->nChannels = 2; // stereo
   waveformatex_p->nSamplesPerSec = 44100;
-  waveformatex_p->nAvgBytesPerSec = 176400; // 44100 * (16 / 8) * 2
-  waveformatex_p->nBlockAlign = 4; // (16 / 8) * 2
   waveformatex_p->wBitsPerSample = 16;
+  waveformatex_p->nBlockAlign =
+    (waveformatex_p->nChannels * (waveformatex_p->wBitsPerSample / 8));
+  waveformatex_p->nAvgBytesPerSec =
+    (waveformatex_p->nSamplesPerSec * waveformatex_p->nBlockAlign);
   waveformatex_p->cbSize = 0;
 
   result = CreateAudioMediaType (waveformatex_p,

@@ -19,5 +19,4 @@
  ***************************************************************************/
 #include "stdafx.h"
 
-//#include "ace/Synch.h"
 #include "test_u_imagescreen_session_message.h"

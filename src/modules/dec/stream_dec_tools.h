@@ -30,6 +30,7 @@
 #define __CGUID_H__
 #include "ks.h"
 #include "guiddef.h"
+#undef GetObject
 #include "mfidl.h"
 #include "mfobjects.h"
 #include "strmif.h"

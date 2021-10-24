@@ -33,7 +33,7 @@ process_stream_events (struct Stream_AVSave_UI_CBData* CBData_in,
         static_cast<struct Stream_AVSave_DirectShow_UI_CBData*> (CBData_in);
       ACE_ASSERT (directshow_cb_data_p->configuration);
       renderer_e =
-        directshow_cb_data_p->configuration->streamConfiguration.configuration_.renderer;
+        directshow_cb_data_p->configuration->videoStreamConfiguration.configuration_->renderer;
       direct3DConfiguration_p =
         &directshow_cb_data_p->configuration->direct3DConfiguration;
       break;
@@ -44,7 +44,7 @@ process_stream_events (struct Stream_AVSave_UI_CBData* CBData_in,
         static_cast<struct Stream_AVSave_MediaFoundation_UI_CBData*> (CBData_in);
       ACE_ASSERT (mediafoundation_cb_data_p->configuration);
       renderer_e =
-        mediafoundation_cb_data_p->configuration->streamConfiguration.configuration_.renderer;
+        mediafoundation_cb_data_p->configuration->videoStreamConfiguration.configuration_->renderer;
       direct3DConfiguration_p =
         &mediafoundation_cb_data_p->configuration->direct3DConfiguration;
       break;
@@ -73,9 +73,11 @@ process_stream_events (struct Stream_AVSave_UI_CBData* CBData_in,
   int result = -1;
 
   { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, CBData_in->UIState->lock);
+#if defined (WXWIDGETS_USE)
     iterator =
       CBData_in->UIState->resources.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN));
     ACE_ASSERT (iterator != CBData_in->UIState->resources.end ());
+#endif // WXWIDGETS_USE
     dialog_p = dynamic_cast<wxDialog*> ((*iterator).second.second);
     ACE_ASSERT (dialog_p);
 
@@ -292,7 +294,7 @@ process_stream_events (struct Stream_AVSave_UI_CBData* CBData_in,
               ACE_ASSERT (directshow_cb_data_p);
               ACE_ASSERT (directshow_cb_data_p->configuration);
               renderer_e =
-                directshow_cb_data_p->configuration->streamConfiguration.configuration_.renderer;
+                directshow_cb_data_p->configuration->videoStreamConfiguration.configuration_->renderer;
               direct3DConfiguration_p =
                 &directshow_cb_data_p->configuration->direct3DConfiguration;
               break;
@@ -302,7 +304,7 @@ process_stream_events (struct Stream_AVSave_UI_CBData* CBData_in,
               ACE_ASSERT (mediafoundation_cb_data_p);
               ACE_ASSERT (mediafoundation_cb_data_p->configuration);
               renderer_e =
-                mediafoundation_cb_data_p->configuration->streamConfiguration.configuration_.renderer;
+                mediafoundation_cb_data_p->configuration->videoStreamConfiguration.configuration_->renderer;
               break;
             }
             default:
@@ -442,7 +444,7 @@ stream_processing_thread (void* arg_in)
   const Stream_AVSave_V4L_SessionData_t* session_data_container_p = NULL;
   const Stream_AVSave_V4L_SessionData* session_data_p = NULL;
 #endif // ACE_WIN32 || ACE_WIN64
-  Stream_IStreamControlBase* stream_p = NULL;
+  Stream_IStreamControlBase* stream_p = NULL, *stream_2 = NULL;
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   struct Stream_AVSave_DirectShow_UI_CBData* directshow_cb_data_p = NULL;
@@ -455,7 +457,8 @@ stream_processing_thread (void* arg_in)
       directshow_cb_data_p =
         static_cast<struct Stream_AVSave_DirectShow_UI_CBData*> (thread_data_p->CBData);
       ACE_ASSERT (directshow_cb_data_p->configuration);
-      ACE_ASSERT (directshow_cb_data_p->stream);
+      ACE_ASSERT (directshow_cb_data_p->audioStream);
+      ACE_ASSERT (directshow_cb_data_p->videoStream);
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
@@ -463,7 +466,8 @@ stream_processing_thread (void* arg_in)
       mediafoundation_cb_data_p =
         static_cast<struct Stream_AVSave_MediaFoundation_UI_CBData*> (thread_data_p->CBData);
       ACE_ASSERT (mediafoundation_cb_data_p->configuration);
-      ACE_ASSERT (mediafoundation_cb_data_p->stream);
+      ACE_ASSERT (mediafoundation_cb_data_p->audioStream);
+      ACE_ASSERT (mediafoundation_cb_data_p->videoStream);
       break;
     }
     default:
@@ -478,7 +482,8 @@ stream_processing_thread (void* arg_in)
   struct Stream_AVSave_V4L_UI_CBData* cb_data_p =
     static_cast<struct Stream_AVSave_V4L_UI_CBData*> (thread_data_p->CBData);
   ACE_ASSERT (cb_data_p->configuration);
-  ACE_ASSERT (cb_data_p->stream);
+  ACE_ASSERT (cb_data_p->audioStream);
+  ACE_ASSERT (cb_data_p->videoStream);
 #endif // ACE_WIN32 || ACE_WIN64
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -486,19 +491,26 @@ stream_processing_thread (void* arg_in)
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
     {
-      Stream_AVSave_DirectShow_StreamConfiguration_t::ITERATOR_T iterator =
-        const_cast<Stream_AVSave_DirectShow_StreamConfiguration_t::ITERATOR_T&> (directshow_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR ("")));
-      ACE_ASSERT (iterator != directshow_cb_data_p->configuration->streamConfiguration.end ());
+      //Stream_AVSave_DirectShow_StreamConfiguration_t::ITERATOR_T iterator =
+      //  const_cast<Stream_AVSave_DirectShow_StreamConfiguration_t::ITERATOR_T&> (directshow_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR ("")));
+      //ACE_ASSERT (iterator != directshow_cb_data_p->configuration->streamConfiguration.end ());
 
-      if (!directshow_cb_data_p->stream->initialize (directshow_cb_data_p->configuration->streamConfiguration))
+      if (!directshow_cb_data_p->audioStream->initialize (directshow_cb_data_p->configuration->audioStreamConfiguration))
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("failed to initialize stream, aborting\n")));
         goto error;
       } // end IF
-      stream_p = directshow_cb_data_p->stream;
+      if (!directshow_cb_data_p->videoStream->initialize (directshow_cb_data_p->configuration->videoStreamConfiguration))
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("failed to initialize stream, aborting\n")));
+        goto error;
+      } // end IF
+      stream_p = directshow_cb_data_p->audioStream;
+      stream_2 = directshow_cb_data_p->videoStream;
       directshow_session_data_container_p =
-        &directshow_cb_data_p->stream->getR ();
+        &directshow_cb_data_p->videoStream->getR_2 ();
       ACE_ASSERT (directshow_session_data_container_p);
       directshow_session_data_p = &directshow_session_data_container_p->getR ();
       ACE_ASSERT (directshow_session_data_p);
@@ -507,15 +519,22 @@ stream_processing_thread (void* arg_in)
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
     {
-      if (!mediafoundation_cb_data_p->stream->initialize (mediafoundation_cb_data_p->configuration->streamConfiguration))
+      if (!mediafoundation_cb_data_p->audioStream->initialize (mediafoundation_cb_data_p->configuration->audioStreamConfiguration))
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("failed to initialize stream, aborting\n")));
         goto error;
       } // end IF
-      stream_p = mediafoundation_cb_data_p->stream;
+      if (!mediafoundation_cb_data_p->videoStream->initialize (mediafoundation_cb_data_p->configuration->videoStreamConfiguration))
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("failed to initialize stream, aborting\n")));
+        goto error;
+      } // end IF
+      stream_p = mediafoundation_cb_data_p->audioStream;
+      stream_2 = mediafoundation_cb_data_p->videoStream;
       mediafoundation_session_data_container_p =
-        &mediafoundation_cb_data_p->stream->getR ();
+        &mediafoundation_cb_data_p->videoStream->getR_2 ();
       ACE_ASSERT (mediafoundation_session_data_container_p);
       mediafoundation_session_data_p =
         &mediafoundation_session_data_container_p->getR ();
@@ -532,14 +551,21 @@ stream_processing_thread (void* arg_in)
     }
   } // end SWITCH
 #else
-  if (!cb_data_p->stream->initialize (cb_data_p->configuration->streamConfiguration))
+  if (!cb_data_p->audioStream->initialize (cb_data_p->configuration->audioStreamConfiguration))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Stream_AVSave_V4L_Stream::initialize(), aborting\n")));
     goto error;
   } // end IF
-  stream_p = cb_data_p->stream;
-  session_data_container_p = &cb_data_p->stream->getR ();
+  if (!cb_data_p->videoStream->initialize (cb_data_p->configuration->videoStreamConfiguration))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to Stream_AVSave_V4L_Stream::initialize(), aborting\n")));
+    goto error;
+  } // end IF
+  stream_p = cb_data_p->audioStream;
+  stream_2 = cb_data_p->videoStream;
+  session_data_container_p = &cb_data_p->videoStream->getR_2 ();
   ACE_ASSERT (session_data_container_p);
   session_data_p = &session_data_container_p->getR ();
   ACE_ASSERT (session_data_p);
@@ -547,10 +573,13 @@ stream_processing_thread (void* arg_in)
 #endif // ACE_WIN32 || ACE_WIN64
 
   // *NOTE*: blocks until 'finished'
-  ACE_ASSERT (stream_p);
+  ACE_ASSERT (stream_p && stream_2);
   stream_p->start ();
   ACE_ASSERT (stream_p->isRunning ());
+  stream_2->start ();
+  ACE_ASSERT (stream_2->isRunning ());
   stream_p->wait (true, false, false);
+  stream_2->wait (true, false, false);
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   result = 0;
@@ -578,11 +607,11 @@ error:
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 //wxIMPLEMENT_DYNAMIC_CLASS (Stream_AVSave_DirectShow_WxWidgetsDialog_t, dialog_main)
 wxClassInfo
-Stream_AVSave_DirectShow_WxWidgetsDialog_t::ms_classInfo (L"Stream_AVSave_DirectShow_WxWidgetsDialog_t",
-                                                           &dialog_main::ms_classInfo,
-                                                           NULL,
-                                                           (int) sizeof (Stream_AVSave_DirectShow_WxWidgetsDialog_t),
-                                                           Stream_AVSave_DirectShow_WxWidgetsDialog_t::wxCreateObject);
+Stream_AVSave_DirectShow_WxWidgetsDialog_t::ms_classInfo (ACE_TEXT_ALWAYS_CHAR ("Stream_AVSave_DirectShow_WxWidgetsDialog_t"),
+                                                          &wxDialog_main::ms_classInfo,
+                                                          NULL,
+                                                          (int) sizeof (Stream_AVSave_DirectShow_WxWidgetsDialog_t),
+                                                          Stream_AVSave_DirectShow_WxWidgetsDialog_t::wxCreateObject);
 wxClassInfo*
 Stream_AVSave_DirectShow_WxWidgetsDialog_t::GetClassInfo () const
 {
@@ -597,11 +626,11 @@ Stream_AVSave_DirectShow_WxWidgetsDialog_t::wxCreateObject ()
 
 //wxIMPLEMENT_DYNAMIC_CLASS (Stream_AVSave_MediaFoundation_WxWidgetsDialog_t, dialog_main)
 wxClassInfo
-Stream_AVSave_MediaFoundation_WxWidgetsDialog_t::ms_classInfo (L"Stream_AVSave_MediaFoundation_WxWidgetsDialog_t",
-                                                                &dialog_main::ms_classInfo,
-                                                                NULL,
-                                                                (int) sizeof (Stream_AVSave_MediaFoundation_WxWidgetsDialog_t),
-                                                                Stream_AVSave_MediaFoundation_WxWidgetsDialog_t::wxCreateObject);
+Stream_AVSave_MediaFoundation_WxWidgetsDialog_t::ms_classInfo (ACE_TEXT_ALWAYS_CHAR ("Stream_AVSave_MediaFoundation_WxWidgetsDialog_t"),
+                                                               &wxDialog_main::ms_classInfo,
+                                                               NULL,
+                                                               (int) sizeof (Stream_AVSave_MediaFoundation_WxWidgetsDialog_t),
+                                                               Stream_AVSave_MediaFoundation_WxWidgetsDialog_t::wxCreateObject);
 wxClassInfo*
 Stream_AVSave_MediaFoundation_WxWidgetsDialog_t::GetClassInfo () const
 {
@@ -614,26 +643,24 @@ Stream_AVSave_MediaFoundation_WxWidgetsDialog_t::wxCreateObject ()
   return new Stream_AVSave_MediaFoundation_WxWidgetsDialog_t;
 }
 
-wxBEGIN_EVENT_TABLE (Stream_AVSave_DirectShow_WxWidgetsDialog_t, dialog_main)
+wxBEGIN_EVENT_TABLE (Stream_AVSave_DirectShow_WxWidgetsDialog_t, wxDialog_main)
  EVT_TOGGLEBUTTON (XRCID ("togglebutton_record"), Stream_AVSave_DirectShow_WxWidgetsDialog_t::togglebutton_record_toggled_cb)
  EVT_BUTTON (XRCID ("button_snapshot"), Stream_AVSave_DirectShow_WxWidgetsDialog_t::button_snapshot_clicked_cb)
  EVT_BUTTON (XRCID ("button_cut"), Stream_AVSave_DirectShow_WxWidgetsDialog_t::button_cut_clicked_cb)
-#if defined (_DEBUG)
  EVT_BUTTON (XRCID ("button_report"), Stream_AVSave_DirectShow_WxWidgetsDialog_t::button_report_clicked_cb)
-#endif // _DEBUG
+ EVT_BUTTON (XRCID ("button_reset"), Stream_AVSave_DirectShow_WxWidgetsDialog_t::button_reset_camera_clicked_cb)
  EVT_CHOICE (XRCID ("choice_source"), Stream_AVSave_DirectShow_WxWidgetsDialog_t::choice_source_changed_cb)
  EVT_BUTTON (XRCID ("button_camera_properties"), Stream_AVSave_DirectShow_WxWidgetsDialog_t::button_camera_properties_clicked_cb)
  EVT_CHOICE (XRCID ("choice_format"), Stream_AVSave_DirectShow_WxWidgetsDialog_t::choice_format_changed_cb)
  EVT_CHOICE (XRCID ("choice_resolution"), Stream_AVSave_DirectShow_WxWidgetsDialog_t::choice_resolution_changed_cb)
  EVT_CHOICE (XRCID ("choice_framerate"), Stream_AVSave_DirectShow_WxWidgetsDialog_t::choice_framerate_changed_cb)
- EVT_BUTTON (XRCID ("button_reset"), Stream_AVSave_DirectShow_WxWidgetsDialog_t::button_reset_clicked_cb)
  EVT_TOGGLEBUTTON (XRCID ("togglebutton_save"), Stream_AVSave_DirectShow_WxWidgetsDialog_t::togglebutton_save_toggled_cb)
- EVT_DIRPICKER_CHANGED (XRCID ("directorypicker_save"), Stream_AVSave_DirectShow_WxWidgetsDialog_t::picker_directory_save_changed_cb)
+ //EVT_DIRPICKER_CHANGED (XRCID ("directorypicker_save"), Stream_AVSave_DirectShow_WxWidgetsDialog_t::picker_directory_save_changed_cb)
  EVT_TOGGLEBUTTON (XRCID ("togglebutton_display"), Stream_AVSave_DirectShow_WxWidgetsDialog_t::togglebutton_display_toggled_cb)
  EVT_TOGGLEBUTTON (XRCID ("togglebutton_fullscreen"), Stream_AVSave_DirectShow_WxWidgetsDialog_t::togglebutton_fullscreen_toggled_cb)
  EVT_CHOICE (XRCID ("choice_displayadapter"), Stream_AVSave_DirectShow_WxWidgetsDialog_t::choice_displayadapter_changed_cb)
  EVT_CHOICE (XRCID ("choice_screen"), Stream_AVSave_DirectShow_WxWidgetsDialog_t::choice_screen_changed_cb)
- EVT_BUTTON (XRCID ("button_display_settings"), Stream_AVSave_DirectShow_WxWidgetsDialog_t::button_display_settings_clicked_cb)
+ //EVT_BUTTON (XRCID ("button_display_settings"), Stream_AVSave_DirectShow_WxWidgetsDialog_t::button_display_settings_clicked_cb)
  EVT_CHOICE (XRCID ("choice_resolution_2"), Stream_AVSave_DirectShow_WxWidgetsDialog_t::choice_resolution_2_changed_cb)
  EVT_BUTTON (XRCID ("button_about"), Stream_AVSave_DirectShow_WxWidgetsDialog_t::button_about_clicked_cb)
  EVT_BUTTON (XRCID ("button_quit"), Stream_AVSave_DirectShow_WxWidgetsDialog_t::button_quit_clicked_cb)
@@ -641,26 +668,24 @@ wxBEGIN_EVENT_TABLE (Stream_AVSave_DirectShow_WxWidgetsDialog_t, dialog_main)
  EVT_CHAR_HOOK (Stream_AVSave_DirectShow_WxWidgetsDialog_t::dialog_main_keydown_cb)
 wxEND_EVENT_TABLE ()
 
-wxBEGIN_EVENT_TABLE (Stream_AVSave_MediaFoundation_WxWidgetsDialog_t, dialog_main)
+wxBEGIN_EVENT_TABLE (Stream_AVSave_MediaFoundation_WxWidgetsDialog_t, wxDialog_main)
  EVT_TOGGLEBUTTON (XRCID ("togglebutton_record"), Stream_AVSave_MediaFoundation_WxWidgetsDialog_t::togglebutton_record_toggled_cb)
  EVT_BUTTON (XRCID ("button_snapshot"), Stream_AVSave_MediaFoundation_WxWidgetsDialog_t::button_snapshot_clicked_cb)
  EVT_BUTTON (XRCID ("button_cut"), Stream_AVSave_MediaFoundation_WxWidgetsDialog_t::button_cut_clicked_cb)
-#if defined (_DEBUG)
  EVT_BUTTON (XRCID ("button_report"), Stream_AVSave_MediaFoundation_WxWidgetsDialog_t::button_report_clicked_cb)
-#endif // _DEBUG
+ EVT_BUTTON (XRCID ("button_reset"), Stream_AVSave_MediaFoundation_WxWidgetsDialog_t::button_reset_camera_clicked_cb)
  EVT_CHOICE (XRCID ("choice_source"), Stream_AVSave_MediaFoundation_WxWidgetsDialog_t::choice_source_changed_cb)
  EVT_BUTTON (XRCID ("button_camera_properties"), Stream_AVSave_MediaFoundation_WxWidgetsDialog_t::button_camera_properties_clicked_cb)
  EVT_CHOICE (XRCID ("choice_format"), Stream_AVSave_MediaFoundation_WxWidgetsDialog_t::choice_format_changed_cb)
  EVT_CHOICE (XRCID ("choice_resolution"), Stream_AVSave_MediaFoundation_WxWidgetsDialog_t::choice_resolution_changed_cb)
  EVT_CHOICE (XRCID ("choice_framerate"), Stream_AVSave_MediaFoundation_WxWidgetsDialog_t::choice_framerate_changed_cb)
- EVT_BUTTON (XRCID ("button_reset"), Stream_AVSave_MediaFoundation_WxWidgetsDialog_t::button_reset_clicked_cb)
  EVT_TOGGLEBUTTON (XRCID ("togglebutton_save"), Stream_AVSave_MediaFoundation_WxWidgetsDialog_t::togglebutton_save_toggled_cb)
- EVT_DIRPICKER_CHANGED (XRCID ("directorypicker_save"), Stream_AVSave_MediaFoundation_WxWidgetsDialog_t::picker_directory_save_changed_cb)
+ //EVT_DIRPICKER_CHANGED (XRCID ("directorypicker_save"), Stream_AVSave_MediaFoundation_WxWidgetsDialog_t::picker_directory_save_changed_cb)
  EVT_TOGGLEBUTTON (XRCID ("togglebutton_display"), Stream_AVSave_MediaFoundation_WxWidgetsDialog_t::togglebutton_display_toggled_cb)
  EVT_TOGGLEBUTTON (XRCID ("togglebutton_fullscreen"), Stream_AVSave_MediaFoundation_WxWidgetsDialog_t::togglebutton_fullscreen_toggled_cb)
  EVT_CHOICE (XRCID ("choice_displayadapter"), Stream_AVSave_MediaFoundation_WxWidgetsDialog_t::choice_displayadapter_changed_cb)
  EVT_CHOICE (XRCID ("choice_screen"), Stream_AVSave_MediaFoundation_WxWidgetsDialog_t::choice_screen_changed_cb)
- EVT_BUTTON (XRCID ("button_display_settings"), Stream_AVSave_MediaFoundation_WxWidgetsDialog_t::button_display_settings_clicked_cb)
+ //EVT_BUTTON (XRCID ("button_display_settings"), Stream_AVSave_MediaFoundation_WxWidgetsDialog_t::button_display_settings_clicked_cb)
  EVT_CHOICE (XRCID ("choice_resolution_2"), Stream_AVSave_MediaFoundation_WxWidgetsDialog_t::choice_resolution_2_changed_cb)
  EVT_BUTTON (XRCID ("button_about"), Stream_AVSave_MediaFoundation_WxWidgetsDialog_t::button_about_clicked_cb)
  EVT_BUTTON (XRCID ("button_quit"), Stream_AVSave_MediaFoundation_WxWidgetsDialog_t::button_quit_clicked_cb)
@@ -670,11 +695,11 @@ wxEND_EVENT_TABLE ()
 #else
 //wxIMPLEMENT_DYNAMIC_CLASS (Stream_AVSave_V4L_WxWidgetsDialog_t, wxDialog_main)
 wxClassInfo
-Stream_AVSave_V4L_WxWidgetsDialog_t::ms_classInfo (ACE_TEXT_ALWAYS_WCHAR ("Stream_AVSave_V4L_WxWidgetsDialog_t"),
-                                                    &wxDialog_main::ms_classInfo,
-                                                    NULL,
-                                                    (int) sizeof (Stream_AVSave_V4L_WxWidgetsDialog_t),
-                                                    Stream_AVSave_V4L_WxWidgetsDialog_t::wxCreateObject);
+Stream_AVSave_V4L_WxWidgetsDialog_t::ms_classInfo (ACE_TEXT_ALWAYS_CHAR ("Stream_AVSave_V4L_WxWidgetsDialog_t"),
+                                                   &wxDialog_main::ms_classInfo,
+                                                   NULL,
+                                                   (int) sizeof (Stream_AVSave_V4L_WxWidgetsDialog_t),
+                                                   Stream_AVSave_V4L_WxWidgetsDialog_t::wxCreateObject);
 wxClassInfo*
 Stream_AVSave_V4L_WxWidgetsDialog_t::GetClassInfo () const
 {
@@ -720,8 +745,8 @@ Stream_AVSave_V4L_WxWidgetsDialog_t::wxCreateObject ()
 //////////////////////////////////////////
 
 Stream_AVSave_WxWidgetsDialog_T<wxDialog_main,
-                                 Stream_AVSave_V4L_WxWidgetsIApplication_t,
-                                 Stream_AVSave_V4L_Stream>::Stream_AVSave_WxWidgetsDialog_T (wxWindow* parent_in)
+                                Stream_AVSave_V4L_WxWidgetsIApplication_t,
+                                Stream_AVSave_V4L_Stream>::Stream_AVSave_WxWidgetsDialog_T (wxWindow* parent_in)
  : inherited (parent_in, wxID_ANY, wxEmptyString)
  , application_ (NULL)
  , initializing_ (true)
@@ -733,8 +758,8 @@ Stream_AVSave_WxWidgetsDialog_T<wxDialog_main,
 
 bool
 Stream_AVSave_WxWidgetsDialog_T<wxDialog_main,
-                                 Stream_AVSave_V4L_WxWidgetsIApplication_t,
-                                 Stream_AVSave_V4L_Stream>::OnInit_2 (IAPPLICATION_T* iapplication_in)
+                                Stream_AVSave_V4L_WxWidgetsIApplication_t,
+                                Stream_AVSave_V4L_Stream>::OnInit_2 (IAPPLICATION_T* iapplication_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_AVSave_WxWidgetsDialog_T::OnInit_2"));
 
