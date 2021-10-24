@@ -21,7 +21,6 @@
 
 #include "stream_dec_common.h"
 
-//#include "ace/Synch.h"
 #include "test_i_message.h"
 
 #include "ace/Malloc_Base.h"

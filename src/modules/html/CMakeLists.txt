@@ -67,10 +67,8 @@ target_sources (${PROJECT_NAME}_HTML
                 PRIVATE stdafx.cpp
                 PRIVATE stdafx.h
                 ${absolute_source_files})
-
-#if (CMAKE_CXX_COMPILER_ID STREQUAL "CLang")
-# add_compile_options (-fPIC)
-#endif ()
+target_precompile_headers (${PROJECT_NAME}_HTML
+                           PUBLIC stdafx.h)
 
 set_property (TARGET ${PROJECT_NAME}_HTML PROPERTY FOLDER "modules")
 
@@ -89,8 +87,8 @@ target_link_libraries (${PROJECT_NAME}_HTML PUBLIC ${PROJECT_NAME})
 #set_target_properties (${PROJECT_NAME}_HTML PROPERTIES VERSION ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_MICRO} SOVERSION 1)
 
 # add PCH
-set_target_properties (${PROJECT_NAME}_HTML PROPERTIES COTIRE_CXX_PREFIX_HEADER_INIT "stdafx.h")
-cotire (${PROJECT_NAME}_HTML)
+#set_target_properties (${PROJECT_NAME}_HTML PROPERTIES COTIRE_CXX_PREFIX_HEADER_INIT "stdafx.h")
+#cotire (${PROJECT_NAME}_HTML)
 
 # add all targets to the build-tree export set
 export (TARGETS ${PROJECT_NAME}_HTML

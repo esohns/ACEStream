@@ -1,39 +1,5 @@
-#set (ACE_LIB_FILE libACE.so)
-#if (DEFINED ENV{ACE_ROOT})
-# find_library (ACE_LIBRARY ${ACE_LIB_FILE}
-#               PATHS ENV ACE_ROOT
-#               PATH_SUFFIXES ace build/linux/ace
-#               DOC "searching for ${ACE_LIB_FILE}")
-#else ()
-# find_library (ACE_LIBRARY ${ACE_LIB_FILE}
-#               DOC "searching for ${ACE_LIB_FILE} (system paths)")
-#endif ()
-#if (NOT EXISTS ACE_LIBRARY)
-#if (NOT ACE_LIBRARY)
-# message (FATAL_ERROR "could not find ${ACE_LIB_FILE} (was: \"${ACE_LIBRARY}\"), aborting")
-#endif ()
-
 get_filename_component (BUILD_PATH ${CMAKE_CURRENT_BINARY_DIR}/../.. REALPATH DIRECTORY)
 get_filename_component (BUILD_PATH_SUFFIX ${BUILD_PATH} NAME)
-#find_package (Common ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_MICRO}
-#              REQUIRED COMPONENTS lib
-#              CONFIG
-#              PATHS ${CMAKE_CURRENT_SOURCE_DIR}/../modules ${CMAKE_CURRENT_SOURCE_DIR}/../..
-#              PATH_SUFFIXES Common/${BUILD_PATH_SUFFIX}
-#              NO_DEFAULT_PATH)
-#if (NOT EXISTS ${Common_DIR})
-# message (FATAL_ERROR "could not find package \"Common\", aborting")
-#endif ()
-
-#find_package (${PROJECT_NAME} ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_MICRO}
-#              REQUIRED
-#              CONFIG
-#              PATHS ${CMAKE_CURRENT_SOURCE_DIR}/../..
-#              PATH_SUFFIXES ${BUILD_PATH_SUFFIX}
-#              NO_DEFAULT_PATH)
-#if (NOT EXISTS ${ACEStream_DIR})
-# message (FATAL_ERROR "could not find package \"ACEStream\", aborting")
-#endif ()
 
 ############## definitions ###############
 #add_definitions (-DACE_HAS_DLL)
@@ -109,8 +75,10 @@ target_link_libraries (${EXECUTABLE} ACEStream)
 target_link_libraries (${EXECUTABLE} ACEStream_Statistic)
 
 # add PCH
-set_target_properties (${EXECUTABLE} PROPERTIES COTIRE_CXX_PREFIX_HEADER_INIT "stdafx.h")
-cotire (${EXECUTABLE})
+#set_target_properties (${EXECUTABLE} PROPERTIES COTIRE_CXX_PREFIX_HEADER_INIT "stdafx.h")
+#cotire (${EXECUTABLE})
+target_precompile_headers (${EXECUTABLE}
+                           PUBLIC stdafx.h)
 
 ############### installation #############
 install (TARGETS ${EXECUTABLE}

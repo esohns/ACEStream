@@ -1,16 +1,17 @@
-#ifndef TEST_U_AVSAVE_UI_H
-#define TEST_U_AVSAVE_UI_H
+#ifndef TEST_I_AVSAVE_UI_H
+#define TEST_I_AVSAVE_UI_H
 
+#undef DrawText
 #include "wx/wx.h"
 
 #include "ace/config-macros.h"
 
 #include "common_ui_wxwidgets_itoplevel.h"
 
-#include "test_u_avsave_common.h"
-#include "test_u_avsave_stream.h"
-//#include "test_u_avsave_ui_base.h" // wxFormBuilder
-#include "camsave_wxwidgets_ui.h" // wxGlade
+#include "test_i_avsave_common.h"
+#include "test_i_avsave_stream.h"
+//#include "test_i_avsave_ui_base.h" // wxFormBuilder
+#include "avsave_wxwidgets_ui.h" // wxGlade
 
 // helper functions
 void process_stream_events (struct Stream_AVSave_UI_CBData*, bool&);
@@ -91,13 +92,14 @@ class Stream_AVSave_WxWidgetsDialog_T
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 // specializations (for Win32)
 template <>
-class Stream_AVSave_WxWidgetsDialog_T<Stream_AVSave_DirectShow_WxWidgetsIApplication_t,
+class Stream_AVSave_WxWidgetsDialog_T<wxDialog_main,
+                                      Stream_AVSave_DirectShow_WxWidgetsIApplication_t,
                                       Stream_AVSave_DirectShow_Stream>
- : public dialog_main
+ : public wxDialog_main
  , public Common_UI_wxWidgets_ITopLevel_T<struct Common_UI_wxWidgets_State,
                                           struct Stream_AVSave_DirectShow_UI_CBData>
 {
-  typedef dialog_main inherited;
+  typedef wxDialog_main inherited;
   //typedef Common_UI_wxWidgets_ITopLevel_T<struct Common_UI_wxWidgets_State,
   //                                        struct Stream_AVSave_DirectShow_UI_CBData> inherited2;
 
@@ -114,7 +116,8 @@ class Stream_AVSave_WxWidgetsDialog_T<Stream_AVSave_DirectShow_WxWidgetsIApplica
 
  private:
   // convenient types
-  typedef Stream_AVSave_WxWidgetsDialog_T<Stream_AVSave_DirectShow_WxWidgetsIApplication_t,
+  typedef Stream_AVSave_WxWidgetsDialog_T<wxDialog_main,
+                                          Stream_AVSave_DirectShow_WxWidgetsIApplication_t,
                                           Stream_AVSave_DirectShow_Stream> OWN_TYPE_T;
 
   // implement Common_UI_wxWidgets_ITopLevel
@@ -139,7 +142,7 @@ class Stream_AVSave_WxWidgetsDialog_T<Stream_AVSave_DirectShow_WxWidgetsIApplica
   virtual void choice_framerate_changed_cb (wxCommandEvent&);
   virtual void button_reset_format_clicked_cb (wxCommandEvent&);
   virtual void togglebutton_save_toggled_cb (wxCommandEvent&);
-  virtual void picker_directory_save_changed_cb (wxFileDirPickerEvent&);
+  //virtual void picker_directory_save_changed_cb (wxFileDirPickerEvent&);
   virtual void togglebutton_display_toggled_cb (wxCommandEvent&);
   virtual void togglebutton_fullscreen_toggled_cb (wxCommandEvent&);
   virtual void choice_adapter_changed_cb (wxCommandEvent&);
@@ -153,19 +156,20 @@ class Stream_AVSave_WxWidgetsDialog_T<Stream_AVSave_DirectShow_WxWidgetsIApplica
   wxDECLARE_EVENT_TABLE ();
 
   Stream_AVSave_DirectShow_WxWidgetsIApplication_t* application_;
-  bool                                               initializing_;
-  bool                                               reset_; // direct3d device-
-  bool                                               untoggling_;
+  bool                                              initializing_;
+  bool                                              reset_; // direct3d device-
+  bool                                              untoggling_;
 };
 
 template <>
-class Stream_AVSave_WxWidgetsDialog_T<Stream_AVSave_MediaFoundation_WxWidgetsIApplication_t,
-                                       Stream_AVSave_MediaFoundation_Stream>
- : public dialog_main
+class Stream_AVSave_WxWidgetsDialog_T<wxDialog_main,
+                                      Stream_AVSave_MediaFoundation_WxWidgetsIApplication_t,
+                                      Stream_AVSave_MediaFoundation_Stream>
+ : public wxDialog_main
  , public Common_UI_wxWidgets_ITopLevel_T<struct Common_UI_wxWidgets_State,
                                           struct Stream_AVSave_MediaFoundation_UI_CBData>
 {
-  typedef dialog_main inherited;
+  typedef wxDialog_main inherited;
   //typedef Common_UI_wxWidgets_ITopLevel_T<struct Common_UI_wxWidgets_State,
   //                                        struct Stream_AVSave_MediaFoundation_UI_CBData> inherited2;
 
@@ -182,8 +186,9 @@ class Stream_AVSave_WxWidgetsDialog_T<Stream_AVSave_MediaFoundation_WxWidgetsIAp
 
  private:
   // convenient types
-  typedef Stream_AVSave_WxWidgetsDialog_T<Stream_AVSave_MediaFoundation_WxWidgetsIApplication_t,
-                                           Stream_AVSave_MediaFoundation_Stream> OWN_TYPE_T;
+  typedef Stream_AVSave_WxWidgetsDialog_T<wxDialog_main,
+                                          Stream_AVSave_MediaFoundation_WxWidgetsIApplication_t,
+                                          Stream_AVSave_MediaFoundation_Stream> OWN_TYPE_T;
 
   // implement Common_UI_wxWidgets_ITopLevel
   virtual bool OnInit_2 (IAPPLICATION_T*);
@@ -207,7 +212,7 @@ class Stream_AVSave_WxWidgetsDialog_T<Stream_AVSave_MediaFoundation_WxWidgetsIAp
   virtual void choice_framerate_changed_cb (wxCommandEvent&);
   virtual void button_reset_format_clicked_cb (wxCommandEvent&);
   virtual void togglebutton_save_toggled_cb (wxCommandEvent&);
-  virtual void picker_directory_save_changed_cb (wxFileDirPickerEvent&);
+  //virtual void picker_directory_save_changed_cb (wxFileDirPickerEvent&);
   virtual void togglebutton_display_toggled_cb (wxCommandEvent&);
   virtual void togglebutton_fullscreen_toggled_cb (wxCommandEvent&);
   virtual void choice_adapter_changed_cb (wxCommandEvent&);
@@ -221,16 +226,16 @@ class Stream_AVSave_WxWidgetsDialog_T<Stream_AVSave_MediaFoundation_WxWidgetsIAp
   wxDECLARE_EVENT_TABLE ();
 
   Stream_AVSave_MediaFoundation_WxWidgetsIApplication_t* application_;
-  bool                                                    initializing_;
-  bool                                                    reset_; // direct3d device-
-  bool                                                    untoggling_;
+  bool                                                   initializing_;
+  bool                                                   reset_; // direct3d device-
+  bool                                                   untoggling_;
 };
 #else
 // specializations (for V4L Linux)
 template <>
 class Stream_AVSave_WxWidgetsDialog_T<wxDialog_main,
-                                       Stream_AVSave_V4L_WxWidgetsIApplication_t,
-                                       Stream_AVSave_V4L_Stream>
+                                      Stream_AVSave_V4L_WxWidgetsIApplication_t,
+                                      Stream_AVSave_V4L_Stream>
  : public wxDialog_main
  , public Common_UI_wxWidgets_ITopLevel_T<struct Common_UI_wxWidgets_State,
                                           struct Stream_AVSave_V4L_UI_CBData>
@@ -253,8 +258,8 @@ class Stream_AVSave_WxWidgetsDialog_T<wxDialog_main,
  private:
   // convenient types
   typedef Stream_AVSave_WxWidgetsDialog_T<wxDialog_main,
-                                           Stream_AVSave_V4L_WxWidgetsIApplication_t,
-                                           Stream_AVSave_V4L_Stream> OWN_TYPE_T;
+                                          Stream_AVSave_V4L_WxWidgetsIApplication_t,
+                                          Stream_AVSave_V4L_Stream> OWN_TYPE_T;
 
   // implement Common_UI_wxWidgets_ITopLevel
   virtual bool OnInit_2 (IAPPLICATION_T*);
@@ -290,13 +295,13 @@ class Stream_AVSave_WxWidgetsDialog_T<wxDialog_main,
 //  wxDECLARE_EVENT_TABLE ();
 
   Stream_AVSave_V4L_WxWidgetsIApplication_t* application_;
-  bool                                        initializing_;
-  bool                                        untoggling_;
+  bool                                       initializing_;
+  bool                                       untoggling_;
 };
 #endif // ACE_WIN32 || ACE_WIN64
 
 // include template definition
-#include "test_u_avsave_ui.inl"
+#include "test_i_avsave_ui.inl"
 
 #endif // __test_u_avsave_ui__
 

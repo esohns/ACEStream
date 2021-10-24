@@ -38,6 +38,12 @@ extern "C"
 
 #include "common_isubscribe.h"
 
+#if defined (GUI_SUPPORT)
+#if defined (WXWIDGETS_SUPPORT)
+#include "common_ui_wxwidgets_xrc_definition.h"
+#endif // WXWIDGETS_SUPPORT
+#endif // GUI_SUPPORT
+
 #include "stream_common.h"
 #include "stream_isessionnotify.h"
 #include "stream_istreamcontrol.h"
@@ -56,11 +62,14 @@ extern "C"
 #include "stream_vis_defines.h"
 
 #include "test_u_common.h"
-#if defined (GTK_USE)
+#if defined (GUI_SUPPORT)
+#if defined (GTK_SUPPORT)
 #include "test_u_gtk_common.h"
-#elif defined (QT_USE)
+#endif // GTK_SUPPORT
+#if defined (QT_SUPPORT)
 #include "test_u_qt_common.h"
-#endif // GTK_USE
+#endif // QT_SUPPORT
+#endif // GUI_SUPPORT
 
 // forward declarations
 template <typename NotificationType,
@@ -204,7 +213,7 @@ struct Stream_ImageScreen_StreamConfiguration
     , renderer (STREAM_VISUALIZATION_VIDEORENDERER_DIRECTDRAW_3D)
 #else
     , renderer (STREAM_VISUALIZATION_VIDEORENDERER_X11)
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
   {
     printFinalReport = true;
   }
@@ -251,24 +260,18 @@ typedef Stream_MessageAllocatorHeapBase_T<ACE_MT_SYNCH,
                                           Stream_ImageScreen_Message_t,
                                           Stream_ImageScreen_SessionMessage_t> Stream_ImageScreen_MessageAllocator_t;
 
-#if defined (WXWIDGETS_USE)
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#if defined (GUI_SUPPORT)
+#if defined (WXWIDGETS_SUPPORT)
 struct Stream_ImageScreen_DirectShow_UI_CBData;
 typedef Common_UI_wxWidgets_IApplication_T<struct Common_UI_wxWidgets_State,
-                                           struct Stream_ImageScreen_DirectShow_UI_CBData> Stream_ImageScreen_DirectShow_WxWidgetsIApplication_t;
-struct Stream_ImageScreen_MediaFoundation_UI_CBData;
-typedef Common_UI_wxWidgets_IApplication_T<struct Common_UI_wxWidgets_State,
-                                           struct Stream_ImageScreen_MediaFoundation_UI_CBData> Stream_ImageScreen_MediaFoundation_WxWidgetsIApplication_t;
-#else
-struct Stream_ImageScreen_UI_CBData;
-typedef Common_UI_wxWidgets_IApplication_T<struct Common_UI_wxWidgets_State,
-                                           struct Stream_ImageScreen_UI_CBData> Stream_ImageScreen_WxWidgetsIApplication_t;
-#endif // ACE_WIN32 || ACE_WIN64
-#endif // WXWIDGETS_USE
+                                           struct Stream_ImageScreen_UI_CBData> Stream_ImageScreen_DirectShow_WxWidgetsIApplication_t;
+#endif // WXWIDGETS_SUPPORT
+#endif // GUI_SUPPORT
 typedef Common_ISubscribe_T<Stream_ImageScreen_ISessionNotify_t> Stream_ImageScreen_ISubscribe_t;
 
 typedef Stream_ImageScreen_EventHandler_T<Stream_ImageScreen_ISessionNotify_t,
                                           Stream_ImageScreen_Message_t,
+#if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
                                           Common_UI_GTK_State_t,
 #elif defined (WXWIDGETS_USE)
@@ -278,11 +281,13 @@ typedef Stream_ImageScreen_EventHandler_T<Stream_ImageScreen_ISessionNotify_t,
                                           struct Common_UI_Qt_State,
 #else
                                           struct Common_UI_State,
-#endif
+#endif // GTK_USE || WXWIDGETS_USE || QT_USE
+#endif // GUI_SUPPORT
                                           Stream_ImageScreen_SessionMessage_t> Stream_ImageScreen_EventHandler_t;
 
 //////////////////////////////////////////
 
+#if defined (GUI_SUPPORT)
 struct Stream_ImageScreen_ProgressData
 #if defined (GTK_USE)
  : Test_U_GTK_ProgressData
@@ -377,8 +382,7 @@ struct Stream_ImageScreen_UI_ThreadData
   struct Stream_ImageScreen_UI_CBData* CBData;
 };
 
-#if defined (GTK_USE)
-#elif defined (WXWIDGETS_USE)
+#if defined (WXWIDGETS_SUPPORT)
 extern const char toplevel_widget_classname_string_[];
 typedef Common_UI_WxWidgetsXRCDefinition_T<struct Common_UI_wxWidgets_State,
                                            toplevel_widget_classname_string_> Stream_ImageScreen_WxWidgetsXRCDefinition_t;
@@ -390,6 +394,7 @@ typedef Comon_UI_WxWidgets_Application_T<Stream_ImageScreen_WxWidgetsXRCDefiniti
                                          struct Stream_ImageScreen_UI_CBData,
                                          Stream_ImageScreen_WxWidgetsDialog_t,
                                          wxGUIAppTraits> Stream_ImageScreen_WxWidgetsApplication_t;
-#endif
+#endif // WXWIDGETS_SUPPORT
+#endif // GUI_SUPPORT
 
 #endif

@@ -137,9 +137,6 @@ Test_I_Target_DirectShow_TCPStream::initialize (const CONFIGURATION_T& configura
   iterator =
     const_cast<inherited::CONFIGURATION_T&> (configuration_in).find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (iterator != configuration_in.end ());
-  struct Test_I_Target_DirectShow_ModuleHandlerConfiguration* configuration_p =
-    dynamic_cast<struct Test_I_Target_DirectShow_ModuleHandlerConfiguration*> (&(*iterator).second.second);
-  ACE_ASSERT (configuration_p);
 
   // ---------------------------------------------------------------------------
 
@@ -166,7 +163,7 @@ Test_I_Target_DirectShow_TCPStream::initialize (const CONFIGURATION_T& configura
 #if defined (_DEBUG)
   ACE_DEBUG ((LM_DEBUG,
               ACE_TEXT ("source format: %s\n"),
-              ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::toString (configuration_p->sourceFormat, true).c_str ())));
+              ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::toString ((*iterator).second.second->sourceFormat, true).c_str ())));
 
   //log_file_name =
   //  Common_File_Tools::getLogDirectory (std::string (),
@@ -180,7 +177,7 @@ Test_I_Target_DirectShow_TCPStream::initialize (const CONFIGURATION_T& configura
   // ---------------------------------------------------------------------------
 
   ACE_ASSERT (session_data_r.formats.empty ());
-  session_data_r.formats.push_back (*Stream_MediaFramework_DirectShow_Tools::copy (configuration_p->sourceFormat));
+  session_data_r.formats.push_back (*Stream_MediaFramework_DirectShow_Tools::copy ((*iterator).second.second->sourceFormat));
 
   // ---------------------------------------------------------------------------
 
@@ -369,9 +366,6 @@ Test_I_Target_DirectShow_UDPStream::initialize (const CONFIGURATION_T& configura
   iterator =
     const_cast<inherited::CONFIGURATION_T&> (configuration_in).find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (iterator != configuration_in.end ());
-  struct Test_I_Target_DirectShow_ModuleHandlerConfiguration* configuration_p =
-    dynamic_cast<struct Test_I_Target_DirectShow_ModuleHandlerConfiguration*> (&(*iterator).second.second);
-  ACE_ASSERT (configuration_p);
 
   // ---------------------------------------------------------------------------
 
@@ -398,7 +392,7 @@ Test_I_Target_DirectShow_UDPStream::initialize (const CONFIGURATION_T& configura
 #if defined (_DEBUG)
   ACE_DEBUG ((LM_DEBUG,
               ACE_TEXT ("source format: %s\n"),
-              ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::toString (configuration_p->sourceFormat, true).c_str ())));
+              ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::toString ((*iterator).second.second->sourceFormat, true).c_str ())));
 
   //log_file_name =
   //  Common_File_Tools::getLogDirectory (std::string (),
@@ -412,7 +406,7 @@ Test_I_Target_DirectShow_UDPStream::initialize (const CONFIGURATION_T& configura
   // ---------------------------------------------------------------------------
 
   ACE_ASSERT (session_data_r.formats.empty ());
-  session_data_r.formats.push_back (*Stream_MediaFramework_DirectShow_Tools::copy (configuration_p->sourceFormat));
+  session_data_r.formats.push_back (*Stream_MediaFramework_DirectShow_Tools::copy ((*iterator).second.second->sourceFormat));
 
   // ---------------------------------------------------------------------------
 
@@ -607,15 +601,12 @@ Test_I_Target_MediaFoundation_TCPStream::initialize (const CONFIGURATION_T& conf
   iterator =
     const_cast<inherited::CONFIGURATION_T&> (configuration_in).find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (iterator != configuration_in.end ());
-  struct Test_I_Target_MediaFoundation_ModuleHandlerConfiguration* configuration_p =
-    dynamic_cast<struct Test_I_Target_MediaFoundation_ModuleHandlerConfiguration*> (&(*iterator).second.second);
-  ACE_ASSERT (configuration_p);
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  ACE_ASSERT (configuration_p->sourceFormat);
+  ACE_ASSERT ((*iterator).second.second->sourceFormat);
   ACE_ASSERT (!session_data_r.sourceFormat);
 
   session_data_r.sourceFormat =
-    Stream_MediaFramework_MediaFoundation_Tools::copy (configuration_p->sourceFormat);
+    Stream_MediaFramework_MediaFoundation_Tools::copy ((*iterator).second.second->sourceFormat);
   if (!session_data_r.sourceFormat)
   {
     ACE_DEBUG ((LM_ERROR,
@@ -649,7 +640,7 @@ Test_I_Target_MediaFoundation_TCPStream::initialize (const CONFIGURATION_T& conf
   COM_initialized = true;
 
   // sanity check(s)
-  ACE_ASSERT (configuration_p->sourceFormat);
+  ACE_ASSERT ((*iterator).second.second->sourceFormat);
 
   bool release_source = false;
   IMFTopologyNode* topology_node_p = NULL;
@@ -768,15 +759,15 @@ Test_I_Target_MediaFoundation_TCPStream::initialize (const CONFIGURATION_T& conf
   topology_node_p->Release (); topology_node_p = NULL;
 
   if (!Stream_Module_Decoder_Tools::loadTargetRendererTopology (url_string,
-                                                                configuration_p->sourceFormat,
-                                                                configuration_p->window,
+                                                                (*iterator).second.second->sourceFormat,
+                                                                (*iterator).second.second->window,
                                                                 session_data_r.rendererNodeId,
                                                                 topology_p))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to Stream_Module_Decoder_Tools::loadTargetRendererTopology(\"%s\"), aborting\n"),
                 ACE_TEXT (stream_name_string_),
-                ACE_TEXT (configuration_p->deviceIdentifier.c_str ())));
+                ACE_TEXT ((*iterator).second.second->deviceIdentifier.c_str ())));
     goto error;
   } // end IF
   ACE_ASSERT (topology_p);
@@ -785,7 +776,7 @@ Test_I_Target_MediaFoundation_TCPStream::initialize (const CONFIGURATION_T& conf
 #if defined (_DEBUG)
   ACE_DEBUG ((LM_DEBUG,
               ACE_TEXT ("%s: source format: \"%s\"\n"),
-              ACE_TEXT (Stream_MediaFramework_MediaFoundation_Tools::toString (configuration_p->sourceFormat).c_str ()),
+              ACE_TEXT (Stream_MediaFramework_MediaFoundation_Tools::toString ((*iterator).second.second->sourceFormat).c_str ()),
               ACE_TEXT (stream_name_string_)));
 #endif // _DEBUG
 
@@ -800,10 +791,10 @@ Test_I_Target_MediaFoundation_TCPStream::initialize (const CONFIGURATION_T& conf
     //              ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
     mediaSession_->Release (); mediaSession_ = NULL;
   } // end IF
-  if (configuration_p->session)
+  if ((*iterator).second.second->session)
   {
-    reference_count = configuration_p->session->AddRef ();
-    mediaSession_ = configuration_p->session;
+    reference_count = (*iterator).second.second->session->AddRef ();
+    mediaSession_ = (*iterator).second.second->session;
 
     if (!Stream_MediaFramework_MediaFoundation_Tools::clear (mediaSession_))
     {
@@ -826,10 +817,10 @@ Test_I_Target_MediaFoundation_TCPStream::initialize (const CONFIGURATION_T& conf
   } // end IF
   ACE_ASSERT (mediaSession_);
 
-  if (!configuration_p->session)
+  if (!(*iterator).second.second->session)
   {
     reference_count = mediaSession_->AddRef ();
-    configuration_p->session = mediaSession_;
+    (*iterator).second.second->session = mediaSession_;
   } // end IF
 #endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
   topology_p->Release (); topology_p = NULL;
@@ -971,15 +962,12 @@ Test_I_Target_MediaFoundation_UDPStream::initialize (const CONFIGURATION_T& conf
   iterator =
     const_cast<inherited::CONFIGURATION_T&> (configuration_in).find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (iterator != configuration_in.end ());
-  struct Test_I_Target_MediaFoundation_ModuleHandlerConfiguration* configuration_p =
-    dynamic_cast<struct Test_I_Target_MediaFoundation_ModuleHandlerConfiguration*> (&(*iterator).second.second);
-  ACE_ASSERT (configuration_p);
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  ACE_ASSERT (configuration_p->sourceFormat);
+  ACE_ASSERT ((*iterator).second.second->sourceFormat);
   ACE_ASSERT (!session_data_r.sourceFormat);
 
   session_data_r.sourceFormat =
-    Stream_MediaFramework_MediaFoundation_Tools::copy (configuration_p->sourceFormat);
+    Stream_MediaFramework_MediaFoundation_Tools::copy ((*iterator).second.second->sourceFormat);
   if (!session_data_r.sourceFormat)
   {
     ACE_DEBUG ((LM_ERROR,
@@ -1013,19 +1001,19 @@ Test_I_Target_MediaFoundation_UDPStream::initialize (const CONFIGURATION_T& conf
   COM_initialized = true;
 
   // sanity check(s)
-  ACE_ASSERT (configuration_p->sourceFormat);
+  ACE_ASSERT ((*iterator).second.second->sourceFormat);
 
   if (!Stream_Module_Decoder_Tools::loadTargetRendererTopology (url_string,
-                                                                configuration_p->sourceFormat,
+                                                                (*iterator).second.second->sourceFormat,
                                                                 NULL,
-                                                                //configuration_p->window,
+                                                                //(*iterator).second.second->window,
                                                                 session_data_r.rendererNodeId,
                                                                 topology_p))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to Stream_Module_Decoder_Tools::loadTargetRendererTopology(\"%s\"), aborting\n"),
                 ACE_TEXT (stream_name_string_),
-                ACE_TEXT (configuration_p->deviceIdentifier.c_str ())));
+                ACE_TEXT ((*iterator).second.second->deviceIdentifier.c_str ())));
     goto error;
   } // end IF
   ACE_ASSERT (topology_p);
@@ -1034,7 +1022,7 @@ Test_I_Target_MediaFoundation_UDPStream::initialize (const CONFIGURATION_T& conf
 #if defined (_DEBUG)
   ACE_DEBUG ((LM_DEBUG,
               ACE_TEXT ("%s: source format: \"%s\"\n"),
-              ACE_TEXT (Stream_MediaFramework_MediaFoundation_Tools::toString (configuration_p->sourceFormat).c_str ()),
+              ACE_TEXT (Stream_MediaFramework_MediaFoundation_Tools::toString ((*iterator).second.second->sourceFormat).c_str ()),
               ACE_TEXT (stream_name_string_)));
 #endif // _DEBUG
 
@@ -1049,10 +1037,10 @@ Test_I_Target_MediaFoundation_UDPStream::initialize (const CONFIGURATION_T& conf
     //              ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
     mediaSession_->Release (); mediaSession_ = NULL;
   } // end IF
-  if (configuration_p->session)
+  if ((*iterator).second.second->session)
   {
-    reference_count = configuration_p->session->AddRef ();
-    mediaSession_ = configuration_p->session;
+    reference_count = (*iterator).second.second->session->AddRef ();
+    mediaSession_ = (*iterator).second.second->session;
 
     if (!Stream_MediaFramework_MediaFoundation_Tools::clear (mediaSession_))
     {
@@ -1074,10 +1062,10 @@ Test_I_Target_MediaFoundation_UDPStream::initialize (const CONFIGURATION_T& conf
   } // end IF
   ACE_ASSERT (mediaSession_);
 
-  if (!configuration_p->session)
+  if (!(*iterator).second.second->session)
   {
     reference_count = mediaSession_->AddRef ();
-    configuration_p->session = mediaSession_;
+    (*iterator).second.second->session = mediaSession_;
   } // end IF
 #endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
   topology_p->Release (); topology_p = NULL;

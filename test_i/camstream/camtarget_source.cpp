@@ -23,6 +23,7 @@
                       //         (see: stream_lib_common.h)
 #include "Unknwn.h"
 
+#undef NANOSECONDS
 #include "streams.h"
 
 #include "ace/Log_Msg.h"

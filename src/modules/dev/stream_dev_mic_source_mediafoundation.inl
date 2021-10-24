@@ -670,7 +670,7 @@ continue_:
         CoUninitialize ();
 
       inherited::sessionEndProcessed_ = true;
-      if (likely (inherited::concurrency_ != STREAM_HEADMODULECONCURRENCY_CONCURRENT))
+      if (likely (inherited::configuration_->concurrency != STREAM_HEADMODULECONCURRENCY_CONCURRENT))
       { Common_ITask* itask_p = this; // *TODO*: is the no other way ?
         itask_p->stop (false,  // wait for completion ?
                        false); // high priority ?

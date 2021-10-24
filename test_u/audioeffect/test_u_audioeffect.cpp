@@ -130,7 +130,7 @@ do_printUsage (const std::string& programName_in)
             << std::endl;
 #else
   std::cout << ACE_TEXT_ALWAYS_CHAR ("-d [STRING] : device [\"")
-            << ACE_TEXT_ALWAYS_CHAR (STREAM_LIB_MIC_ALSA_DEFAULT_DEVICE_NAME)
+            << ACE_TEXT_ALWAYS_CHAR (STREAM_LIB_ALSA_CAPTURE_DEFAULT_DEVICE_NAME)
             << ACE_TEXT_ALWAYS_CHAR ("\"]")
             << std::endl;
   std::cout << ACE_TEXT_ALWAYS_CHAR ("-e[[STRING]]: effect [\"")
@@ -259,7 +259,7 @@ do_processArguments (int argc_in,
 //  deviceIdentifier_out = ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_DEVICE_DIRECTORY);
 //  deviceIdentifier_out += ACE_DIRECTORY_SEPARATOR_CHAR_A;
   deviceIdentifier_out =
-      ACE_TEXT_ALWAYS_CHAR (STREAM_LIB_MIC_ALSA_DEFAULT_DEVICE_NAME);
+      ACE_TEXT_ALWAYS_CHAR (STREAM_LIB_ALSA_CAPTURE_DEFAULT_DEVICE_NAME);
   effect_out.clear ();
 #endif // ACE_WIN32 || ACE_WIN64
   path = Common_File_Tools::getTempDirectory ();
@@ -1604,7 +1604,7 @@ ACE_TMAIN (int argc_in,
 //    ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_DEVICE_DIRECTORY);
 //  device_identifier_string += ACE_DIRECTORY_SEPARATOR_CHAR_A;
 //  device_identifier_string +=
-      ACE_TEXT_ALWAYS_CHAR (STREAM_LIB_MIC_ALSA_DEFAULT_DEVICE_NAME);
+      ACE_TEXT_ALWAYS_CHAR (STREAM_LIB_ALSA_CAPTURE_DEFAULT_DEVICE_NAME);
   std::string effect_name;
 #endif // ACE_WIN32 || ACE_WIN64
   std::string path = Common_File_Tools::getTempDirectory ();

@@ -45,8 +45,8 @@ class Stream_ImageScreen_WxWidgetsDialog_T
  private:
   // convenient types
   typedef Stream_ImageScreen_WxWidgetsDialog_T<WidgetBaseClassType,
-                                           InterfaceType,
-                                           StreamType> OWN_TYPE_T;
+                                               InterfaceType,
+                                               StreamType> OWN_TYPE_T;
 
   // implement Common_UI_wxWidgets_ITopLevel
   virtual bool OnInit_2 (IAPPLICATION_T*);
@@ -91,13 +91,14 @@ class Stream_ImageScreen_WxWidgetsDialog_T
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 // specializations (for Win32)
 template <>
-class Stream_ImageScreen_WxWidgetsDialog_T<Stream_ImageScreen_DirectShow_WxWidgetsIApplication_t,
-                                       Stream_ImageScreen_DirectShow_Stream>
- : public dialog_main
+class Stream_ImageScreen_WxWidgetsDialog_T<wxDialog_main,
+                                           Stream_ImageScreen_DirectShow_WxWidgetsIApplication_t,
+                                           Stream_ImageScreen_Stream>
+ : public wxDialog_main
  , public Common_UI_wxWidgets_ITopLevel_T<struct Common_UI_wxWidgets_State,
                                           struct Stream_ImageScreen_DirectShow_UI_CBData>
 {
-  typedef dialog_main inherited;
+  typedef wxDialog_main inherited;
   //typedef Common_UI_wxWidgets_ITopLevel_T<struct Common_UI_wxWidgets_State,
   //                                        struct Stream_ImageScreen_DirectShow_UI_CBData> inherited2;
 
@@ -114,8 +115,9 @@ class Stream_ImageScreen_WxWidgetsDialog_T<Stream_ImageScreen_DirectShow_WxWidge
 
  private:
   // convenient types
-  typedef Stream_ImageScreen_WxWidgetsDialog_T<Stream_ImageScreen_DirectShow_WxWidgetsIApplication_t,
-                                           Stream_ImageScreen_DirectShow_Stream> OWN_TYPE_T;
+  typedef Stream_ImageScreen_WxWidgetsDialog_T<wxDialog_main,
+                                               Stream_ImageScreen_DirectShow_WxWidgetsIApplication_t,
+                                               Stream_ImageScreen_Stream> OWN_TYPE_T;
 
   // implement Common_UI_wxWidgets_ITopLevel
   virtual bool OnInit_2 (IAPPLICATION_T*);
@@ -139,7 +141,7 @@ class Stream_ImageScreen_WxWidgetsDialog_T<Stream_ImageScreen_DirectShow_WxWidge
   virtual void choice_framerate_changed_cb (wxCommandEvent&);
   virtual void button_reset_format_clicked_cb (wxCommandEvent&);
   virtual void togglebutton_save_toggled_cb (wxCommandEvent&);
-  virtual void picker_directory_save_changed_cb (wxFileDirPickerEvent&);
+  //virtual void picker_directory_save_changed_cb (wxFileDirPickerEvent&);
   virtual void togglebutton_display_toggled_cb (wxCommandEvent&);
   virtual void togglebutton_fullscreen_toggled_cb (wxCommandEvent&);
   virtual void choice_adapter_changed_cb (wxCommandEvent&);
@@ -153,19 +155,20 @@ class Stream_ImageScreen_WxWidgetsDialog_T<Stream_ImageScreen_DirectShow_WxWidge
   wxDECLARE_EVENT_TABLE ();
 
   Stream_ImageScreen_DirectShow_WxWidgetsIApplication_t* application_;
-  bool                                               initializing_;
-  bool                                               reset_; // direct3d device-
-  bool                                               untoggling_;
+  bool                                                   initializing_;
+  bool                                                   reset_; // direct3d device-
+  bool                                                   untoggling_;
 };
 
 template <>
-class Stream_ImageScreen_WxWidgetsDialog_T<Stream_ImageScreen_MediaFoundation_WxWidgetsIApplication_t,
-                                       Stream_ImageScreen_MediaFoundation_Stream>
- : public dialog_main
+class Stream_ImageScreen_WxWidgetsDialog_T<wxDialog_main,
+                                           Stream_ImageScreen_MediaFoundation_WxWidgetsIApplication_t,
+                                           Stream_ImageScreen_Stream>
+ : public wxDialog_main
  , public Common_UI_wxWidgets_ITopLevel_T<struct Common_UI_wxWidgets_State,
                                           struct Stream_ImageScreen_MediaFoundation_UI_CBData>
 {
-  typedef dialog_main inherited;
+  typedef wxDialog_main inherited;
   //typedef Common_UI_wxWidgets_ITopLevel_T<struct Common_UI_wxWidgets_State,
   //                                        struct Stream_ImageScreen_MediaFoundation_UI_CBData> inherited2;
 
@@ -182,8 +185,9 @@ class Stream_ImageScreen_WxWidgetsDialog_T<Stream_ImageScreen_MediaFoundation_Wx
 
  private:
   // convenient types
-  typedef Stream_ImageScreen_WxWidgetsDialog_T<Stream_ImageScreen_MediaFoundation_WxWidgetsIApplication_t,
-                                           Stream_ImageScreen_MediaFoundation_Stream> OWN_TYPE_T;
+  typedef Stream_ImageScreen_WxWidgetsDialog_T<wxDialog_main,
+                                               Stream_ImageScreen_MediaFoundation_WxWidgetsIApplication_t,
+                                               Stream_ImageScreen_Stream> OWN_TYPE_T;
 
   // implement Common_UI_wxWidgets_ITopLevel
   virtual bool OnInit_2 (IAPPLICATION_T*);
@@ -207,7 +211,7 @@ class Stream_ImageScreen_WxWidgetsDialog_T<Stream_ImageScreen_MediaFoundation_Wx
   virtual void choice_framerate_changed_cb (wxCommandEvent&);
   virtual void button_reset_format_clicked_cb (wxCommandEvent&);
   virtual void togglebutton_save_toggled_cb (wxCommandEvent&);
-  virtual void picker_directory_save_changed_cb (wxFileDirPickerEvent&);
+  //virtual void picker_directory_save_changed_cb (wxFileDirPickerEvent&);
   virtual void togglebutton_display_toggled_cb (wxCommandEvent&);
   virtual void togglebutton_fullscreen_toggled_cb (wxCommandEvent&);
   virtual void choice_adapter_changed_cb (wxCommandEvent&);
@@ -221,9 +225,9 @@ class Stream_ImageScreen_WxWidgetsDialog_T<Stream_ImageScreen_MediaFoundation_Wx
   wxDECLARE_EVENT_TABLE ();
 
   Stream_ImageScreen_MediaFoundation_WxWidgetsIApplication_t* application_;
-  bool                                                    initializing_;
-  bool                                                    reset_; // direct3d device-
-  bool                                                    untoggling_;
+  bool                                                        initializing_;
+  bool                                                        reset_; // direct3d device-
+  bool                                                        untoggling_;
 };
 #else
 // specializations (for V4L Linux)

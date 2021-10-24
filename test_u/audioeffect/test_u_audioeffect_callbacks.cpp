@@ -8106,14 +8106,16 @@ combobox_source_changed_cb (GtkWidget* widget_in,
     {
       (*directshow_modulehandler_configuration_iterator).second.second->audioInput =
           card_id_i;
-      (*directshow_modulehandler_configuration_iterator).second.second->deviceIdentifier.identifier =
-          device_identifier_string;
+      ACE_OS::strcpy ((*directshow_modulehandler_configuration_iterator).second.second->deviceIdentifier.identifier._string,
+                      device_identifier_string.c_str ());
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
     {
-      (*mediafoundation_modulehandler_configuration_iterator).second.second->deviceIdentifier.identifier =
-          device_identifier_string;
+      (*mediafoundation_modulehandler_configuration_iterator).second.second->audioInput =
+        card_id_i;
+      ACE_OS::strcpy ((*mediafoundation_modulehandler_configuration_iterator).second.second->deviceIdentifier.identifier._string,
+                      device_identifier_string.c_str ());
 
       //if (mediafoundation_ui_cb_data_p->configuration->moduleHandlerConfiguration.sourceReader)
       //{
@@ -8139,7 +8141,7 @@ combobox_source_changed_cb (GtkWidget* widget_in,
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("failed to Stream_Device_MediaFoundation_Tools::getMediaSource(\"%s\"), returning\n"),
-                    ACE_TEXT (device_string.c_str ())));
+                    ACE_TEXT (device_identifier_string.c_str ())));
         return;
       } // end IF
 #else
@@ -8245,7 +8247,7 @@ combobox_source_changed_cb (GtkWidget* widget_in,
       directshow_ui_cb_data_p->configuration->streamConfiguration.configuration_->filterGraphConfiguration.clear ();
 
       IAMBufferNegotiation* buffer_negotiation_p = NULL;
-      if (!Stream_Device_DirectShow_Tools::loadDeviceGraph (device_string,
+      if (!Stream_Device_DirectShow_Tools::loadDeviceGraph (device_identifier_string,
                                                             CLSID_AudioInputDeviceCategory,
                                                             (*directshow_modulehandler_configuration_iterator).second.second->builder,
                                                             buffer_negotiation_p,
@@ -8254,7 +8256,7 @@ combobox_source_changed_cb (GtkWidget* widget_in,
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("failed to Stream_Device_DirectShow_Tools::loadDeviceGraph(\"%s\"), returning\n"),
-                    ACE_TEXT (device_string.c_str ())));
+                    ACE_TEXT (device_identifier_string.c_str ())));
         return;
       } // end IF
       ACE_ASSERT ((*directshow_modulehandler_configuration_iterator).second.second->builder);
@@ -8276,7 +8278,7 @@ combobox_source_changed_cb (GtkWidget* widget_in,
 
       struct _MFRatio pixel_aspect_ratio = { 1, 1 };
 #if COMMON_OS_WIN32_TARGET_PLATFORM(0x0601) // _WIN32_WINNT_WIN7
-      if (!Stream_Device_MediaFoundation_Tools::loadDeviceTopology (device_string,
+      if (!Stream_Device_MediaFoundation_Tools::loadDeviceTopology (device_identifier_string,
                                                                     MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE_AUDCAP_GUID,
                                                                     media_source_p,
                                                                     mediafoundation_source_impl_p,

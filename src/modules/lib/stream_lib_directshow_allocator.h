@@ -24,6 +24,7 @@
 #include "mmreg.h"
 #include "mmsystem.h"
 
+#undef NANOSECONDS
 #include "streams.h"
 
 #include "ace/Global_Macros.h"

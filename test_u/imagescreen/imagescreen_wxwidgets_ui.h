@@ -9,9 +9,10 @@
 //  g++ main.cpp $(wx-config --libs) $(wx-config --cxxflags) -o MyApp Dialog1.cpp Frame1.cpp
 //
 
-#ifndef CAMSAVE_WXWIDGETS_UI_H
-#define CAMSAVE_WXWIDGETS_UI_H
+#ifndef IMAGESCREEN_WXWIDGETS_UI_H
+#define IMAGESCREEN_WXWIDGETS_UI_H
 
+#undef DrawText
 #include <wx/wx.h>
 #include <wx/image.h>
 

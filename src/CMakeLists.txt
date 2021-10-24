@@ -193,10 +193,12 @@ target_sources (${PROJECT_NAME}
                 PRIVATE stdafx.cpp
                 PRIVATE stdafx.h
                 ${absolute_source_files})
+target_precompile_headers (${PROJECT_NAME}
+                           PUBLIC stdafx.h)
 
 if (UNIX)
  if(CMAKE_COMPILER_IS_GNUCXX)
-  set (CMAKE_SHARED_LINKER_FLAGS "-Wl,--as-needed")
+#  set (CMAKE_SHARED_LINKER_FLAGS "-Wl,--as-needed")
 #  set (CMAKE_STATIC_LINKER_FLAGS "-Wl,--as-needed")
  endif (CMAKE_COMPILER_IS_GNUCXX)
 endif (UNIX)
@@ -223,8 +225,8 @@ target_link_libraries (${PROJECT_NAME} Common)
 target_link_libraries (${PROJECT_NAME} ${PROJECT_NAME}_Miscellaneous)
 
 # add PCH
-set_target_properties (${PROJECT_NAME} PROPERTIES COTIRE_CXX_PREFIX_HEADER_INIT "stdafx.h")
-cotire (${PROJECT_NAME})
+#set_target_properties (${PROJECT_NAME} PROPERTIES COTIRE_CXX_PREFIX_HEADER_INIT "stdafx.h")
+#cotire (${PROJECT_NAME})
 
 # add all targets to the build-tree export set
 export (TARGETS ${PROJECT_NAME}

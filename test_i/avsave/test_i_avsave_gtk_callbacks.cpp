@@ -21,7 +21,7 @@
 
 #include "test_i_avsave_gtk_callbacks.h"
 
-#include <math.h>
+//#include <math.h>
 
 #include <limits>
 #include <map>
@@ -31,6 +31,7 @@
 #include "ace/config-lite.h"
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #include "strmif.h"
+#undef NANOSECONDS
 #include "reftime.h"
 #include "dvdmedia.h"
 #include "mferror.h"

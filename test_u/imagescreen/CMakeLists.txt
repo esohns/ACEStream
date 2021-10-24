@@ -87,12 +87,13 @@ set (${EXECUTABLE}_EXE_SRCS
      test_u_imagescreen_stream.cpp
      test_u_imagescreen_stream.h)
 if (GUI_SUPPORT)
- if (GTK_USE)
+ if (GTK_SUPPORT)
   set (${EXECUTABLE}_EXE_SRCS
        ${${EXECUTABLE}_EXE_SRCS}
        test_u_imagescreen_gtk_callbacks.cpp
        test_u_imagescreen_gtk_callbacks.h)
- elseif (WXWIDGETS_USE)
+ endif (GTK_SUPPORT)
+ if (WXWIDGETS_SUPPORT)
   set (${EXECUTABLE}_EXE_SRCS
        ${${EXECUTABLE}_EXE_SRCS}
        test_u_imagescreen_ui.cpp
@@ -102,7 +103,7 @@ if (GUI_SUPPORT)
        imagescreen_wxwidgets_ui.h)
 #       test_u_imagescreen_ui_base.cpp
 #       test_u_imagescreen_ui_base.h)
- endif ()
+ endif (WXWIDGETS_SUPPORT)
 endif (GUI_SUPPORT)
 
 if (UNIX)
@@ -209,8 +210,10 @@ target_link_libraries (${EXECUTABLE} PUBLIC ${PROJECT_NAME}_Visualization)
 target_link_libraries (${EXECUTABLE} PUBLIC ${PROJECT_NAME}_Test_U)
 
 # add PCH
-set_target_properties (${EXECUTABLE} PROPERTIES COTIRE_CXX_PREFIX_HEADER_INIT "stdafx.h")
-cotire (${EXECUTABLE})
+#set_target_properties (${EXECUTABLE} PROPERTIES COTIRE_CXX_PREFIX_HEADER_INIT "stdafx.h")
+#cotire (${EXECUTABLE})
+target_precompile_headers (${EXECUTABLE}
+                           PUBLIC stdafx.h)
 
 install (TARGETS ${EXECUTABLE}
          EXPORT ${PROJECT_NAME}Targets

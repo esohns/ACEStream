@@ -1,6 +1,6 @@
-#include "test_u_avsave_ui.h"
+#include "test_i_avsave_ui.h"
 
-#include "test_u_avsave_common.h"
+#include "test_i_avsave_common.h"
 
 //////////////////////////////////////////
 

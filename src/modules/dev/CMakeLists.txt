@@ -86,6 +86,7 @@ target_include_directories (${PROJECT_NAME}_Device PUBLIC
                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../dec>)
 
 ############## next target ################
+unset (source_files)
 set (source_files
 #     stream_dev_exports.h
      stream_dev_common.h
@@ -150,10 +151,13 @@ foreach (source_file ${source_files})
    )
  #       $<INSTALL_INTERFACE:${INCLUDE_DIR}/${source_file}>)
 endforeach ()
+message (STATUS "absolute_source_files: ${absolute_source_files}")
 target_sources (${PROJECT_NAME}_Device
                 PRIVATE stdafx.cpp
                 PRIVATE stdafx.h
                 ${absolute_source_files})
+target_precompile_headers (${PROJECT_NAME}_Device
+                           PUBLIC stdafx.h)
 
 set_property (TARGET ${PROJECT_NAME}_Device PROPERTY FOLDER "modules")
 
@@ -196,8 +200,8 @@ target_link_libraries (${PROJECT_NAME}_Device PUBLIC ${PROJECT_NAME}_Decoder)
 #set_target_properties (${PROJECT_NAME}_Device PROPERTIES VERSION ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_MICRO} SOVERSION 1)
 
 # add PCH
-set_target_properties (${PROJECT_NAME}_Device PROPERTIES COTIRE_CXX_PREFIX_HEADER_INIT "stdafx.h")
-cotire (${PROJECT_NAME}_Device)
+#set_target_properties (${PROJECT_NAME}_Device PROPERTIES COTIRE_CXX_PREFIX_HEADER_INIT "stdafx.h")
+#cotire (${PROJECT_NAME}_Device)
 
 # add all targets to the build-tree export set
 export (TARGETS ${PROJECT_NAME}_Device

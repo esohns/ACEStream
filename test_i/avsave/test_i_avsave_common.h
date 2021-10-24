@@ -71,16 +71,17 @@ extern "C"
 
 #if defined (GUI_SUPPORT)
 #include "common_ui_common.h"
-#if defined (GTK_USE)
+#if defined (GTK_SUPPORT)
 #include "common_ui_gtk_builder_definition.h"
 #include "common_ui_gtk_common.h"
 #include "common_ui_gtk_manager.h"
 #include "common_ui_gtk_manager_common.h"
-#elif defined (WXWIDGETS_USE)
+#endif // GTK_SUPPORT
+#if defined (WXWIDGETS_SUPPORT)
 #include "common_ui_wxwidgets_application.h"
 #include "common_ui_wxwidgets_common.h"
 #include "common_ui_wxwidgets_xrc_definition.h"
-#endif
+#endif // WXWIDGETS_SUPPORT
 #endif // GUI_SUPPORT
 
 #include "stream_common.h"
@@ -664,7 +665,7 @@ struct Stream_AVSave_ALSA_ModuleHandlerConfiguration
    , subscribers (NULL)
   {
     deviceIdentifier.identifier =
-        ACE_TEXT_ALWAYS_CHAR (STREAM_LIB_MIC_ALSA_DEFAULT_DEVICE_NAME);
+        ACE_TEXT_ALWAYS_CHAR (STREAM_LIB_ALSA_CAPTURE_DEFAULT_DEVICE_NAME);
 
     ACE_OS::memset (&outputFormat, 0, sizeof (struct Stream_MediaFramework_ALSA_MediaType));
   }
@@ -749,9 +750,15 @@ struct Stream_AVSave_DirectShow_StreamConfiguration
   Stream_AVSave_DirectShow_StreamConfiguration ()
    : Stream_AVSave_StreamConfiguration ()
    , format ()
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+   , renderer (STREAM_VISUALIZATION_VIDEORENDERER_DIRECTDRAW_3D)
+#else
+   , renderer (STREAM_VISUALIZATION_VIDEORENDERER_X11)
+#endif // ACE_WIN32 || ACE_WIN64
   {}
 
-  struct _AMMediaType format;
+  struct _AMMediaType                     format;
+  enum Stream_Visualization_VideoRenderer renderer;
 };
 
 typedef Stream_IStreamControl_T<enum Stream_ControlType,
@@ -826,16 +833,17 @@ struct Stream_AVSave_DirectShow_Configuration
 #endif // GTK_USE
 #endif // GUI_SUPPORT
    , signalHandlerConfiguration ()
+   , direct3DConfiguration ()
    , audioStreamConfiguration ()
    , videoStreamConfiguration ()
    , userData ()
   {}
 
   // **************************** signal data **********************************
-  struct Stream_AVSave_SignalHandlerConfiguration    signalHandlerConfiguration;
+  struct Stream_AVSave_SignalHandlerConfiguration     signalHandlerConfiguration;
   // **************************** stream data **********************************
+  struct Stream_MediaFramework_Direct3D_Configuration direct3DConfiguration;
   Stream_AVSave_DirectShow_StreamConfiguration_t      audioStreamConfiguration;
-  //struct Stream_MediaFramework_Direct3D_Configuration direct3DConfiguration;
   Stream_AVSave_DirectShow_StreamConfiguration_t      videoStreamConfiguration;
 
   struct Stream_UserData                              userData;
@@ -937,7 +945,7 @@ typedef Stream_MessageAllocatorHeapBase_T<ACE_MT_SYNCH,
 #endif // ACE_WIN32 || ACE_WIN64
 
 #if defined (GUI_SUPPORT)
-#if defined (WXWIDGETS_USE)
+#if defined (WXWIDGETS_SUPPORT)
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 struct Stream_AVSave_DirectShow_UI_CBData;
 typedef Common_UI_wxWidgets_IApplication_T<struct Common_UI_wxWidgets_State,
@@ -1163,21 +1171,22 @@ struct Stream_AVSave_UI_ThreadData
   struct Stream_AVSave_UI_CBData* CBData;
 };
 
-#if defined (GTK_USE)
-#elif defined (WXWIDGETS_USE)
+#if defined (WXWIDGETS_SUPPORT)
 extern const char toplevel_widget_classname_string_[];
 typedef Common_UI_WxWidgetsXRCDefinition_T<struct Common_UI_wxWidgets_State,
                                            toplevel_widget_classname_string_> Stream_AVSave_WxWidgetsXRCDefinition_t;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-typedef Stream_AVSave_WxWidgetsDialog_T<Stream_AVSave_DirectShow_WxWidgetsIApplication_t,
-                                         Stream_AVSave_DirectShow_Stream> Stream_AVSave_DirectShow_WxWidgetsDialog_t;
+typedef Stream_AVSave_WxWidgetsDialog_T<wxDialog_main,
+                                        Stream_AVSave_DirectShow_WxWidgetsIApplication_t,
+                                        Stream_AVSave_DirectShow_Stream> Stream_AVSave_DirectShow_WxWidgetsDialog_t;
 typedef Comon_UI_WxWidgets_Application_T<Stream_AVSave_WxWidgetsXRCDefinition_t,
                                          struct Common_UI_wxWidgets_State,
                                          struct Stream_AVSave_DirectShow_UI_CBData,
                                          Stream_AVSave_DirectShow_WxWidgetsDialog_t,
                                          wxGUIAppTraits> Stream_AVSave_DirectShow_WxWidgetsApplication_t;
-typedef Stream_AVSave_WxWidgetsDialog_T<Stream_AVSave_MediaFoundation_WxWidgetsIApplication_t,
-                                         Stream_AVSave_MediaFoundation_Stream> Stream_AVSave_MediaFoundation_WxWidgetsDialog_t;
+typedef Stream_AVSave_WxWidgetsDialog_T<wxDialog_main,
+                                        Stream_AVSave_MediaFoundation_WxWidgetsIApplication_t,
+                                        Stream_AVSave_MediaFoundation_Stream> Stream_AVSave_MediaFoundation_WxWidgetsDialog_t;
 typedef Comon_UI_WxWidgets_Application_T<Stream_AVSave_WxWidgetsXRCDefinition_t,
                                          struct Common_UI_wxWidgets_State,
                                          struct Stream_AVSave_MediaFoundation_UI_CBData,
@@ -1185,15 +1194,15 @@ typedef Comon_UI_WxWidgets_Application_T<Stream_AVSave_WxWidgetsXRCDefinition_t,
                                          wxGUIAppTraits> Stream_AVSave_MediaFoundation_WxWidgetsApplication_t;
 #else
 typedef Stream_AVSave_WxWidgetsDialog_T<wxDialog_main,
-                                         Stream_AVSave_V4L_WxWidgetsIApplication_t,
-                                         Stream_AVSave_V4L_Stream> Stream_AVSave_V4L_WxWidgetsDialog_t;
+                                        Stream_AVSave_V4L_WxWidgetsIApplication_t,
+                                        Stream_AVSave_V4L_Stream> Stream_AVSave_V4L_WxWidgetsDialog_t;
 typedef Comon_UI_WxWidgets_Application_T<Stream_AVSave_WxWidgetsXRCDefinition_t,
                                          struct Common_UI_wxWidgets_State,
                                          struct Stream_AVSave_V4L_UI_CBData,
                                          Stream_AVSave_V4L_WxWidgetsDialog_t,
                                          wxGUIAppTraits> Stream_AVSave_V4L_WxWidgetsApplication_t;
 #endif // ACE_WIN32 || ACE_WIN64
-#endif
+#endif // WXWIDGETS_SUPPORT
 #endif // GUI_SUPPORT
 
 #endif

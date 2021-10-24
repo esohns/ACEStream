@@ -16,14 +16,14 @@
 // Windows Header Files
 #include "windows.h"
 
-#include "strmif.h"
-#include "reftime.h"
+//#include "strmif.h"
+//#include "reftime.h"
 #if defined (DEBUG)
 //// *NOTE*: wxWidgets may have #defined __WXDEBUG__
 //#if defined (__WXDEBUG__)
 //#undef __WXDEBUG__
 //#endif // __WXDEBUG__
-#include "wxdebug.h"
+//#include "wxdebug.h"
 #endif // DEBUG
 // *NOTE*: uuids.h doesn't have double include protection
 #if defined (UUIDS_H)

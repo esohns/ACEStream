@@ -1,14 +1,17 @@
 #if defined (ACE_WIN64) || defined (ACE_WIN32)
-#include <OleCtl.h>
+#include "OleCtl.h"
 // *NOTE*: uuids.h doesn't have double include protection
 #if defined (UUIDS_H)
 #else
 #define UUIDS_H
-#include <uuids.h>
+#include "uuids.h"
 #endif // UUIDS_H
 #endif // ACE_WIN64 || ACE_WIN32
 
+#undef DrawText
 #include "wx/aboutdlg.h"
+#include "wx/tglbtn.h"
+#include "wx/xrc/xmlres.h"
 
 #include "ace/Date_Time.h"
 #include "ace/Log_Msg.h"
@@ -21,7 +24,7 @@
 
 #include "common_ui_wxwidgets_tools.h"
 
-#include "common_test_u_tools.h"
+//#include "common_test_u_tools.h"
 
 #if defined (HAVE_CONFIG_H)
 #include "ACEStream_config.h"
@@ -41,8 +44,8 @@ template <typename WidgetBaseClassType,
           typename InterfaceType,
           typename StreamType>
 Stream_ImageScreen_WxWidgetsDialog_T<WidgetBaseClassType,
-                                 InterfaceType,
-                                 StreamType>::Stream_ImageScreen_WxWidgetsDialog_T (wxWindow* parent_in)
+                                     InterfaceType,
+                                     StreamType>::Stream_ImageScreen_WxWidgetsDialog_T (wxWindow* parent_in)
  : inherited (parent_in)
  , application_ (NULL)
  , initializing_ (true)
@@ -108,16 +111,16 @@ Stream_ImageScreen_WxWidgetsDialog_T<WidgetBaseClassType,
   button_report->Show (false);
 #endif // _DEBUG
   bool activate_source = true;
-  typename InterfaceType::CONFIGURATION_T& configuration_r =
+  typename InterfaceType::CONFIGURATION_T& cb_data_r =
     const_cast<typename InterfaceType::CONFIGURATION_T&> (application_->getR_2 ());
-  ACE_ASSERT (configuration_r.configuration);
+  ACE_ASSERT (cb_data_r.configuration);
   typename StreamType::CONFIGURATION_T::ITERATOR_T stream_iterator =
-    configuration_r.configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
-  ACE_ASSERT (stream_iterator != configuration_r.configuration->streamConfiguration.end ());
+    cb_data_r.configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
+  ACE_ASSERT (stream_iterator != cb_data_r.configuration->streamConfiguration.end ());
 
   Stream_Device_List_t devices_a;
 #if defined (ACE_WIN64) || defined (ACE_WIN32)
-  switch (configuration_r.mediaFramework)
+  switch (cb_data_r.mediaFramework)
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
     {
@@ -136,7 +139,7 @@ Stream_ImageScreen_WxWidgetsDialog_T<WidgetBaseClassType,
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("invalid/unknown media framework (was: %d), aborting\n"),
-                  configuration_r.mediaFramework));
+                  cb_data_r.mediaFramework));
       return false;
     }
   } // end SWITCH
@@ -152,7 +155,7 @@ Stream_ImageScreen_WxWidgetsDialog_T<WidgetBaseClassType,
        ++iterator)
   {
 #if defined (ACE_WIN64) || defined (ACE_WIN32)
-    switch (configuration_r.mediaFramework)
+    switch (cb_data_r.mediaFramework)
     {
       case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
       {
@@ -171,7 +174,7 @@ Stream_ImageScreen_WxWidgetsDialog_T<WidgetBaseClassType,
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("invalid/unknown media framework (was: %d), aborting\n"),
-                    configuration_r.mediaFramework));
+                    cb_data_r.mediaFramework));
         return false;
       }
     } // end SWITCH
@@ -230,11 +233,11 @@ Stream_ImageScreen_WxWidgetsDialog_T<WidgetBaseClassType,
   // sanity check(s)
   ACE_ASSERT (application_);
 
-  typename InterfaceType::CONFIGURATION_T& configuration_r =
+  typename InterfaceType::CONFIGURATION_T& cb_data_r =
     const_cast<typename InterfaceType::CONFIGURATION_T&> (application_->getR_2 ());
-  ACE_ASSERT (configuration_r.stream);
+  ACE_ASSERT (cb_data_r.stream);
 
-  if (configuration_r.stream->isRunning ())
+  if (cb_data_r.stream->isRunning ())
     inherited::gauge_progress->Pulse ();
 }
 
@@ -251,9 +254,9 @@ Stream_ImageScreen_WxWidgetsDialog_T<WidgetBaseClassType,
   // sanity check(s)
   ACE_ASSERT (application_);
 
-  typename InterfaceType::CONFIGURATION_T& configuration_r =
+  typename InterfaceType::CONFIGURATION_T& cb_data_r =
     const_cast<typename InterfaceType::CONFIGURATION_T&> (application_->getR_2 ());
-  ACE_ASSERT (configuration_r.stream);
+  ACE_ASSERT (cb_data_r.stream);
 }
 
 //////////////////////////////////////////
@@ -282,11 +285,11 @@ Stream_ImageScreen_WxWidgetsDialog_T<WidgetBaseClassType,
   // sanity check(s)
   ACE_ASSERT (application_);
 
-  typename InterfaceType::CONFIGURATION_T& configuration_r =
+  typename InterfaceType::CONFIGURATION_T& cb_data_r =
     const_cast<typename InterfaceType::CONFIGURATION_T&> (application_->getR_2 ());
-  ACE_ASSERT (configuration_r.stream);
+  ACE_ASSERT (cb_data_r.stream);
 
-  configuration_r.stream->control (STREAM_CONTROL_STEP_2);
+  cb_data_r.stream->control (STREAM_CONTROL_STEP_2);
 }
 template <typename WidgetBaseClassType,
           typename InterfaceType,
@@ -323,17 +326,17 @@ Stream_ImageScreen_WxWidgetsDialog_T<WidgetBaseClassType,
   // sanity check(s)
   ACE_ASSERT (application_);
 
-  typename InterfaceType::CONFIGURATION_T& configuration_r =
+  typename InterfaceType::CONFIGURATION_T& cb_data_r =
     const_cast<typename InterfaceType::CONFIGURATION_T&> (application_->getR_2 ());
-  ACE_ASSERT (configuration_r.configuration);
+  ACE_ASSERT (cb_data_r.configuration);
 #if defined (ACE_WIN64) || defined (ACE_WIN32)
   ACE_ASSERT (false);
   ACE_NOTSUP;
   ACE_NOTREACHED (return;)
 #else
   typename StreamType::CONFIGURATION_T::ITERATOR_T stream_iterator =
-    configuration_r.configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
-  ACE_ASSERT (stream_iterator != configuration_r.configuration->streamConfiguration.end ());
+    cb_data_r.configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
+  ACE_ASSERT (stream_iterator != cb_data_r.configuration->streamConfiguration.end ());
 #endif // ACE_WIN64 || ACE_WIN32
 
   std::string device_identifier;
@@ -501,17 +504,17 @@ Stream_ImageScreen_WxWidgetsDialog_T<WidgetBaseClassType,
   // sanity check(s)
   ACE_ASSERT (application_);
 
-  typename InterfaceType::CONFIGURATION_T& configuration_r =
+  typename InterfaceType::CONFIGURATION_T& cb_data_r =
     const_cast<typename InterfaceType::CONFIGURATION_T&> (application_->getR_2 ());
-  ACE_ASSERT (configuration_r.configuration);
+  ACE_ASSERT (cb_data_r.configuration);
 #if defined (ACE_WIN64) || defined (ACE_WIN32)
   ACE_ASSERT (false);
   ACE_NOTSUP;
   ACE_NOTREACHED (return;)
 #else
   typename StreamType::CONFIGURATION_T::ITERATOR_T stream_iterator =
-    configuration_r.configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
-  ACE_ASSERT (stream_iterator != configuration_r.configuration->streamConfiguration.end ());
+    cb_data_r.configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
+  ACE_ASSERT (stream_iterator != cb_data_r.configuration->streamConfiguration.end ());
 #endif // ACE_WIN64 || ACE_WIN32
 }
 
@@ -541,9 +544,9 @@ Stream_ImageScreen_WxWidgetsDialog_T<WidgetBaseClassType,
 
   // step1: make sure the stream has stopped
   StreamType* stream_p = NULL;
-  typename InterfaceType::CONFIGURATION_T& configuration_r =
+  typename InterfaceType::CONFIGURATION_T& cb_data_r =
     const_cast<typename InterfaceType::CONFIGURATION_T&> (application_->getR_2 ());
-  stream_p = configuration_r.stream;
+  stream_p = cb_data_r.stream;
   ACE_ASSERT (stream_p);
   const enum Stream_StateMachine_ControlState& status_r =
     stream_p->status ();
@@ -567,9 +570,10 @@ Stream_ImageScreen_WxWidgetsDialog_T<WidgetBaseClassType,
 //////////////////////////////////////////
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-Stream_ImageScreen_WxWidgetsDialog_T<Stream_ImageScreen_DirectShow_WxWidgetsIApplication_t,
-                                 Stream_ImageScreen_DirectShow_Stream>::Stream_ImageScreen_WxWidgetsDialog_T (wxWindow* parent_in)
- : inherited (parent_in)
+Stream_ImageScreen_WxWidgetsDialog_T<wxDialog_main,
+                                     Stream_ImageScreen_DirectShow_WxWidgetsIApplication_t,
+                                     Stream_ImageScreen_Stream>::Stream_ImageScreen_WxWidgetsDialog_T (wxWindow* parent_in)
+ : inherited (parent_in, wxID_ANY, wxString (ACE_TEXT_ALWAYS_CHAR (ACEStream_PACKAGE_NAME)), wxDefaultPosition, wxDefaultSize, wxCAPTION | wxMAXIMIZE_BOX | wxMINIMIZE_BOX | wxRESIZE_BORDER)
  , application_ (NULL)
  , initializing_ (true)
  , reset_ (false)
@@ -583,8 +587,9 @@ Stream_ImageScreen_WxWidgetsDialog_T<Stream_ImageScreen_DirectShow_WxWidgetsIApp
 }
 
 bool
-Stream_ImageScreen_WxWidgetsDialog_T<Stream_ImageScreen_DirectShow_WxWidgetsIApplication_t,
-                                 Stream_ImageScreen_DirectShow_Stream>::OnInit_2 (IAPPLICATION_T* iapplication_in)
+Stream_ImageScreen_WxWidgetsDialog_T<wxDialog_main,
+                                     Stream_ImageScreen_DirectShow_WxWidgetsIApplication_t,
+                                     Stream_ImageScreen_Stream>::OnInit_2 (IAPPLICATION_T* iapplication_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_ImageScreen_WxWidgetsDialog_T::OnInit_2"));
 
@@ -599,32 +604,30 @@ Stream_ImageScreen_WxWidgetsDialog_T<Stream_ImageScreen_DirectShow_WxWidgetsIApp
   button_snapshot = XRCCTRL (*this, "button_snapshot", wxButton);
   button_cut = XRCCTRL (*this, "button_cut", wxButton);
   button_report = XRCCTRL (*this, "button_report", wxButton);
-  button_snapshot = XRCCTRL (*this, "button_snapshot", wxButton);
-  spincontrol_frames_captured = XRCCTRL (*this, "spincontrol_frames_captured", wxSpinCtrl);
-  spincontrol_frames_dropped = XRCCTRL (*this, "spincontrol_frames_dropped", wxSpinCtrl);
-  spincontrol_messages_session = XRCCTRL (*this, "spincontrol_messages_session", wxSpinCtrl);
-  spincontrol_messages_data = XRCCTRL (*this, "spincontrol_messages_data", wxSpinCtrl);
-  spincontrol_data = XRCCTRL (*this, "spincontrol_data", wxSpinCtrl);
-  spincontrol_buffer = XRCCTRL (*this, "spincontrol_buffer", wxSpinCtrl);
+  spinctrl_control = XRCCTRL (*this, "spinctrl_control", wxSpinCtrl);
+  spinctrl_session = XRCCTRL (*this, "spinctrl_session", wxSpinCtrl);
+  spinctrl_data = XRCCTRL (*this, "spinctrl_data", wxSpinCtrl);
+  spinctrl_payload = XRCCTRL (*this, "spinctrl_payload", wxSpinCtrl);
+  spinctrl_framesize = XRCCTRL (*this, "spinctrl_framesize", wxSpinCtrl);
   choice_source = XRCCTRL (*this, "choice_source", wxChoice);
-  button_hardware_settings = XRCCTRL (*this, "button_hardware_settings", wxButton);
+  button_reset_camera = XRCCTRL (*this, "button_reset_camera", wxButton);
+  choice_source = XRCCTRL (*this, "choice_source", wxChoice);
+  button_camera_properties = XRCCTRL (*this, "button_camera_properties", wxButton);
   choice_format = XRCCTRL (*this, "choice_format", wxChoice);
   choice_resolution = XRCCTRL (*this, "choice_resolution", wxChoice);
   choice_framerate = XRCCTRL (*this, "choice_framerate", wxChoice);
-  button_reset_format = XRCCTRL (*this, "button_reset_format", wxButton);
-  togglebutton_save = XRCCTRL (*this, "togglebutton_save", wxToggleButton);
-  textcontrol_filename = XRCCTRL (*this, "textcontrol_filename", wxTextCtrl);
-  directorypicker_save = XRCCTRL (*this, "directorypicker_save", wxDirPickerCtrl);
   togglebutton_display = XRCCTRL (*this, "togglebutton_display", wxToggleButton);
   togglebutton_fullscreen = XRCCTRL (*this, "togglebutton_fullscreen", wxToggleButton);
-  choice_adapter = XRCCTRL (*this, "choice_adapter", wxChoice);
-  choice_display = XRCCTRL (*this, "choice_display", wxChoice);
-  button_display_settings = XRCCTRL (*this, "button_display_settings", wxButton);
+  choice_displayadapter = XRCCTRL (*this, "choice_displayadapter", wxChoice);
+  choice_screen = XRCCTRL (*this, "choice_screen", wxChoice);
   choice_resolution_2 = XRCCTRL (*this, "choice_resolution_2", wxChoice);
+  togglebutton_save = XRCCTRL (*this, "togglebutton_save", wxToggleButton);
+  textctrl_filename = XRCCTRL (*this, "textctrl_filename", wxTextCtrl);
+  //directorypicker_save = XRCCTRL (*this, "directorypicker_save", wxDirPickerCtrl);
   panel_video = XRCCTRL (*this, "panel_video", wxPanel);
+  gauge_progress = XRCCTRL (*this, "gauge_progress", wxGauge);
   button_about = XRCCTRL (*this, "button_about", wxButton);
   button_quit = XRCCTRL (*this, "button_quit", wxButton);
-  gauge_progress = XRCCTRL (*this, "gauge_progress", wxGauge);
 
   this->SetDefaultItem (togglebutton_record);
 
@@ -633,29 +636,27 @@ Stream_ImageScreen_WxWidgetsDialog_T<Stream_ImageScreen_DirectShow_WxWidgetsIApp
 #else
   button_report->Show (false);
 #endif // _DEBUG
-  spincontrol_frames_captured->SetRange (0,
+  spinctrl_control->SetRange (0,
                                          std::numeric_limits<int>::max ());
-  spincontrol_frames_dropped->SetRange (0,
+  spinctrl_session->SetRange (0,
                                         std::numeric_limits<int>::max ());
-  spincontrol_messages_session->SetRange (0,
+  spinctrl_data->SetRange (0,
                                           std::numeric_limits<int>::max ());
-  spincontrol_messages_data->SetRange (0,
+  spinctrl_payload->SetRange (0,
                                        std::numeric_limits<int>::max ());
-  spincontrol_data->SetRange (0,
+  spinctrl_framesize->SetRange (0,
                               std::numeric_limits<int>::max ());
-  spincontrol_buffer->SetRange (0,
-                                std::numeric_limits<int>::max ());
 
   bool activate_source_b = true, activate_display_b = true;
-  Stream_ImageScreen_DirectShow_WxWidgetsIApplication_t::CONFIGURATION_T& configuration_r =
-    const_cast<Stream_ImageScreen_DirectShow_WxWidgetsIApplication_t::CONFIGURATION_T&> (application_->getR_2 ());
-  ACE_ASSERT (configuration_r.configuration);
-  Stream_ImageScreen_DirectShow_Stream::CONFIGURATION_T::ITERATOR_T stream_iterator =
-    configuration_r.configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
-  ACE_ASSERT (stream_iterator != configuration_r.configuration->streamConfiguration.end ());
-  Stream_ImageScreen_DirectShow_Stream::CONFIGURATION_T::ITERATOR_T stream_iterator_2 =
-    configuration_r.configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (Stream_Visualization_Tools::rendererToModuleName (configuration_r.configuration->streamConfiguration.configuration_.renderer).c_str ()));
-  ACE_ASSERT (stream_iterator_2 != configuration_r.configuration->streamConfiguration.end ());
+  typename Stream_ImageScreen_DirectShow_WxWidgetsIApplication_t::CBDATA_T& cb_data_r =
+    const_cast<typename Stream_ImageScreen_DirectShow_WxWidgetsIApplication_t::CBDATA_T&> (application_->getR_2 ());
+  ACE_ASSERT (cb_data_r.configuration);
+  Stream_ImageScreen_Stream::CONFIGURATION_T::ITERATOR_T stream_iterator =
+    cb_data_r.configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
+  ACE_ASSERT (stream_iterator != cb_data_r.configuration->streamConfiguration.end ());
+  Stream_ImageScreen_Stream::CONFIGURATION_T::ITERATOR_T stream_iterator_2 =
+    cb_data_r.configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (Stream_Visualization_Tools::rendererToModuleName (cb_data_r.configuration->streamConfiguration.configuration_.renderer).c_str ()));
+  ACE_ASSERT (stream_iterator_2 != cb_data_r.configuration->streamConfiguration.end ());
 
   Stream_Device_List_t devices_a =
     Stream_Device_DirectShow_Tools::getCaptureDevices (CLSID_VideoInputDeviceCategory);
@@ -783,9 +784,11 @@ Stream_ImageScreen_WxWidgetsDialog_T<Stream_ImageScreen_DirectShow_WxWidgetsIApp
 
   return true;
 }
+
 void
-Stream_ImageScreen_WxWidgetsDialog_T<Stream_ImageScreen_DirectShow_WxWidgetsIApplication_t,
-                                 Stream_ImageScreen_DirectShow_Stream>::OnExit_2 ()
+Stream_ImageScreen_WxWidgetsDialog_T<wxDialog_main,
+                                     Stream_ImageScreen_DirectShow_WxWidgetsIApplication_t,
+                                     Stream_ImageScreen_Stream>::OnExit_2 ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_ImageScreen_WxWidgetsDialog_T::OnExit_2"));
 
@@ -796,38 +799,40 @@ Stream_ImageScreen_WxWidgetsDialog_T<Stream_ImageScreen_DirectShow_WxWidgetsIApp
 //////////////////////////////////////////
 
 void
-Stream_ImageScreen_WxWidgetsDialog_T<Stream_ImageScreen_DirectShow_WxWidgetsIApplication_t,
-                                 Stream_ImageScreen_DirectShow_Stream>::dialog_main_idle_cb (wxIdleEvent& event_in)
+Stream_ImageScreen_WxWidgetsDialog_T<wxDialog_main,
+                                     Stream_ImageScreen_DirectShow_WxWidgetsIApplication_t,
+                                     Stream_ImageScreen_Stream>::dialog_main_idle_cb (wxIdleEvent& event_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_ImageScreen_WxWidgetsDialog_T::dialog_main_idle_cb"));
 
   // sanity check(s)
   ACE_ASSERT (application_);
 
-  Stream_ImageScreen_DirectShow_WxWidgetsIApplication_t::CONFIGURATION_T& configuration_r =
+  Stream_ImageScreen_DirectShow_WxWidgetsIApplication_t::CONFIGURATION_T& cb_data_r =
     const_cast<Stream_ImageScreen_DirectShow_WxWidgetsIApplication_t::CONFIGURATION_T&> (application_->getR_2 ());
-  ACE_ASSERT (configuration_r.stream);
+  ACE_ASSERT (cb_data_r.stream);
   bool finished_b = false;
 
-  process_stream_events (&configuration_r,
+  process_stream_events (&cb_data_r,
                          finished_b);
   if (!finished_b &&
-      configuration_r.stream->isRunning ())
+      cb_data_r.stream->isRunning ())
     gauge_progress->Pulse ();
 }
 
 void
-Stream_ImageScreen_WxWidgetsDialog_T<Stream_ImageScreen_DirectShow_WxWidgetsIApplication_t,
-                                 Stream_ImageScreen_DirectShow_Stream>::dialog_main_keydown_cb (wxKeyEvent& event_in)
+Stream_ImageScreen_WxWidgetsDialog_T<wxDialog_main,
+                                     Stream_ImageScreen_DirectShow_WxWidgetsIApplication_t,
+                                     Stream_ImageScreen_Stream>::dialog_main_keydown_cb (wxKeyEvent& event_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_ImageScreen_WxWidgetsDialog_T::dialog_main_keydown_cb"));
 
   // sanity check(s)
   ACE_ASSERT (application_);
 
-  Stream_ImageScreen_DirectShow_WxWidgetsIApplication_t::CONFIGURATION_T& configuration_r =
+  Stream_ImageScreen_DirectShow_WxWidgetsIApplication_t::CONFIGURATION_T& cb_data_r =
     const_cast<Stream_ImageScreen_DirectShow_WxWidgetsIApplication_t::CONFIGURATION_T&> (application_->getR_2 ());
-  ACE_ASSERT (configuration_r.stream);
+  ACE_ASSERT (cb_data_r.stream);
 
   switch (event_in.GetUnicodeKey ())
   {
@@ -837,7 +842,7 @@ Stream_ImageScreen_WxWidgetsDialog_T<Stream_ImageScreen_DirectShow_WxWidgetsIApp
     case 'C':
     {
       // sanity check(s)
-      if (!configuration_r.stream->isRunning ())
+      if (!cb_data_r.stream->isRunning ())
         return; // nothing to do
 
       wxCommandEvent event_s (wxEVT_COMMAND_BUTTON_CLICKED,
@@ -880,7 +885,7 @@ Stream_ImageScreen_WxWidgetsDialog_T<Stream_ImageScreen_DirectShow_WxWidgetsIApp
     case 'S':
     {
       // sanity check(s)
-      if (!configuration_r.stream->isRunning ())
+      if (!cb_data_r.stream->isRunning ())
         return; // nothing to do
 
       wxCommandEvent event_s (wxEVT_COMMAND_BUTTON_CLICKED,
@@ -912,8 +917,9 @@ Stream_ImageScreen_WxWidgetsDialog_T<Stream_ImageScreen_DirectShow_WxWidgetsIApp
 //////////////////////////////////////////
 
 void
-Stream_ImageScreen_WxWidgetsDialog_T<Stream_ImageScreen_DirectShow_WxWidgetsIApplication_t,
-                                 Stream_ImageScreen_DirectShow_Stream>::togglebutton_record_toggled_cb (wxCommandEvent& event_in)
+Stream_ImageScreen_WxWidgetsDialog_T<wxDialog_main,
+                                     Stream_ImageScreen_DirectShow_WxWidgetsIApplication_t,
+                                     Stream_ImageScreen_Stream>::togglebutton_record_toggled_cb (wxCommandEvent& event_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_ImageScreen_WxWidgetsDialog_T::togglebutton_record_toggled_cb"));
 
@@ -928,17 +934,17 @@ Stream_ImageScreen_WxWidgetsDialog_T<Stream_ImageScreen_DirectShow_WxWidgetsIApp
   ACE_ASSERT (application_);
 
   // --> user pressed play/pause/stop
-  Stream_ImageScreen_DirectShow_WxWidgetsIApplication_t::CONFIGURATION_T& configuration_r =
+  Stream_ImageScreen_DirectShow_WxWidgetsIApplication_t::CONFIGURATION_T& cb_data_r =
     const_cast<Stream_ImageScreen_DirectShow_WxWidgetsIApplication_t::CONFIGURATION_T&> (application_->getR_2 ());
-  ACE_ASSERT (configuration_r.configuration);
-  Stream_ImageScreen_DirectShow_Stream::CONFIGURATION_T::ITERATOR_T stream_iterator =
-    configuration_r.configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
-  ACE_ASSERT (stream_iterator != configuration_r.configuration->streamConfiguration.end ());
-  Stream_ImageScreen_DirectShow_Stream::CONFIGURATION_T::ITERATOR_T stream_iterator_2 =
-    configuration_r.configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (Stream_Visualization_Tools::rendererToModuleName (configuration_r.configuration->streamConfiguration.configuration_.renderer).c_str ()));
-  ACE_ASSERT (stream_iterator_2 != configuration_r.configuration->streamConfiguration.end ());
+  ACE_ASSERT (cb_data_r.configuration);
+  Stream_ImageScreen_Stream::CONFIGURATION_T::ITERATOR_T stream_iterator =
+    cb_data_r.configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
+  ACE_ASSERT (stream_iterator != cb_data_r.configuration->streamConfiguration.end ());
+  Stream_ImageScreen_Stream::CONFIGURATION_T::ITERATOR_T stream_iterator_2 =
+    cb_data_r.configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (Stream_Visualization_Tools::rendererToModuleName (cb_data_r.configuration->streamConfiguration.configuration_.renderer).c_str ()));
+  ACE_ASSERT (stream_iterator_2 != cb_data_r.configuration->streamConfiguration.end ());
 
-  Stream_IStreamControlBase* stream_p = configuration_r.stream;
+  Stream_IStreamControlBase* stream_p = cb_data_r.stream;
   ACE_ASSERT (stream_p);
 
   // toggle ?
@@ -965,13 +971,13 @@ Stream_ImageScreen_WxWidgetsDialog_T<Stream_ImageScreen_DirectShow_WxWidgetsIApp
   struct _AMMediaType* media_type_p = NULL;
 
   // step1: reset progress reporting
-  ACE_OS::memset (&configuration_r.progressData.statistic,
+  ACE_OS::memset (&cb_data_r.progressData.statistic,
                   0,
                   sizeof (struct Stream_ImageScreen_StatisticData));
 
   // step2: update configuration
   // step2a: update capture device configuration
-  configuration_r.configuration->streamConfiguration.allocatorConfiguration_.defaultBufferSize =
+  cb_data_r.configuration->streamConfiguration.allocatorConfiguration_.defaultBufferSize =
     spincontrol_buffer->GetValue ();
 
   // *NOTE*: the capture format has been updated already (see:
@@ -1001,7 +1007,7 @@ Stream_ImageScreen_WxWidgetsDialog_T<Stream_ImageScreen_DirectShow_WxWidgetsIApp
   //converter >> framerate_i;
 
   Common_UI_Resolution_t resolution_2 =
-    Stream_MediaFramework_DirectShow_Tools::toResolution (configuration_r.configuration->streamConfiguration.configuration_.format);
+    Stream_MediaFramework_DirectShow_Tools::toResolution (cb_data_r.configuration->streamConfiguration.configuration_.format);
   //bool reset_device_b =
   //  ((resolution_s.cx != resolution_2.cx) || (resolution_s.cy != resolution_2.cy));
   //ACE_ASSERT ((*stream_iterator).second.second.sourceFormat);
@@ -1011,7 +1017,7 @@ Stream_ImageScreen_WxWidgetsDialog_T<Stream_ImageScreen_DirectShow_WxWidgetsIApp
   //{
     Stream_MediaFramework_DirectShow_Tools::free ((*stream_iterator).second.second.outputFormat);
     (*stream_iterator).second.second.outputFormat =
-      Stream_MediaFramework_DirectShow_Tools::toRGB (configuration_r.configuration->streamConfiguration.configuration_.format);
+      Stream_MediaFramework_DirectShow_Tools::toRGB (cb_data_r.configuration->streamConfiguration.configuration_.format);
     Stream_MediaFramework_DirectShow_Tools::free ((*stream_iterator_2).second.second.outputFormat);
     media_type_p =
       Stream_MediaFramework_DirectShow_Tools::copy ((*stream_iterator).second.second.outputFormat);
@@ -1020,9 +1026,9 @@ Stream_ImageScreen_WxWidgetsDialog_T<Stream_ImageScreen_DirectShow_WxWidgetsIApp
     CoTaskMemFree (media_type_p); media_type_p = NULL;
   //} // end IF
 
-  configuration_r.configuration->direct3DConfiguration.presentationParameters.BackBufferWidth =
+  cb_data_r.configuration->direct3DConfiguration.presentationParameters.BackBufferWidth =
     resolution_2.cx;
-  configuration_r.configuration->direct3DConfiguration.presentationParameters.BackBufferHeight =
+  cb_data_r.configuration->direct3DConfiguration.presentationParameters.BackBufferHeight =
     resolution_2.cy;
 
   // step2b: update save configuration
@@ -1057,9 +1063,9 @@ continue_:
   //    client_data_p->GetData ().ToStdString ();
 
     //ACE_ASSERT ((*stream_iterator_2).second.second.direct3DConfiguration);
-    configuration_r.configuration->direct3DConfiguration.focusWindow =
+    cb_data_r.configuration->direct3DConfiguration.focusWindow =
       (HWND)panel_video->GetHandle ();
-    configuration_r.configuration->direct3DConfiguration.presentationParameters.hDeviceWindow =
+    cb_data_r.configuration->direct3DConfiguration.presentationParameters.hDeviceWindow =
       (HWND)panel_video->GetHandle ();
   } // end IF
   else
@@ -1070,9 +1076,9 @@ continue_:
   //  (*stream_iterator_2).second.second.deviceIdentifier.clear ();
   //  //ACE_ASSERT ((*stream_iterator_2).second.second.direct3DConfiguration);
 
-    configuration_r.configuration->direct3DConfiguration.focusWindow =
+    cb_data_r.configuration->direct3DConfiguration.focusWindow =
       NULL;
-    configuration_r.configuration->direct3DConfiguration.presentationParameters.hDeviceWindow =
+    cb_data_r.configuration->direct3DConfiguration.presentationParameters.hDeviceWindow =
       NULL;
   } // end ELSE
   if (togglebutton_fullscreen->GetValue ())
@@ -1083,13 +1089,13 @@ continue_:
   //  (*stream_iterator_2).second.second.fullScreen = true;
 
   //  //ACE_ASSERT ((*stream_iterator).second.second.direct3DConfiguration);
-    configuration_r.configuration->direct3DConfiguration.focusWindow =
+    cb_data_r.configuration->direct3DConfiguration.focusWindow =
       GetAncestor ((HWND)panel_video->GetHandle (),
                    GA_ROOTOWNER);
-    ACE_ASSERT (configuration_r.configuration->direct3DConfiguration.focusWindow == (HWND)this->GetHandle ());
-    configuration_r.configuration->direct3DConfiguration.presentationParameters.hDeviceWindow =
+    ACE_ASSERT (cb_data_r.configuration->direct3DConfiguration.focusWindow == (HWND)this->GetHandle ());
+    cb_data_r.configuration->direct3DConfiguration.presentationParameters.hDeviceWindow =
       NULL;
-    //configuration_r.configuration->direct3DConfiguration.presentationParameters.Windowed =
+    //cb_data_r.configuration->direct3DConfiguration.presentationParameters.Windowed =
     //  FALSE;
   } // end IF
   else
@@ -1103,16 +1109,16 @@ continue_:
   //    (*stream_iterator_2).second.second.area.top + rectangle_s.GetHeight ();
   //  (*stream_iterator_2).second.second.fullScreen = false;
 
-    configuration_r.configuration->direct3DConfiguration.focusWindow =
+    cb_data_r.configuration->direct3DConfiguration.focusWindow =
       (HWND)panel_video->GetHandle ();
-    configuration_r.configuration->direct3DConfiguration.presentationParameters.hDeviceWindow =
+    cb_data_r.configuration->direct3DConfiguration.presentationParameters.hDeviceWindow =
       (HWND)panel_video->GetHandle ();
-  //  configuration_r.configuration->direct3DConfiguration.presentationParameters.Windowed =
+  //  cb_data_r.configuration->direct3DConfiguration.presentationParameters.Windowed =
   //    TRUE;
   } // end ELSE
 
   // step3: set up device ?
-  switch (configuration_r.configuration->streamConfiguration.configuration_.renderer)
+  switch (cb_data_r.configuration->streamConfiguration.configuration_.renderer)
   {
     //case STREAM_VISUALIZATION_VIDEORENDERER_DIRECTDRAW_2D:
     //  break;
@@ -1122,15 +1128,15 @@ continue_:
         break;
 
       // sanity check(s)
-      ACE_ASSERT (configuration_r.configuration->direct3DConfiguration.handle);
-      ACE_ASSERT (ACE_OS::thr_equal (ACE_OS::thr_self (), configuration_r.configuration->direct3DConfiguration.threadId));
+      ACE_ASSERT (cb_data_r.configuration->direct3DConfiguration.handle);
+      ACE_ASSERT (ACE_OS::thr_equal (ACE_OS::thr_self (), cb_data_r.configuration->direct3DConfiguration.threadId));
 
       // *TODO*: remove ASAP
-      ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, configuration_r.configuration->direct3DConfiguration.lock);
+      ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, cb_data_r.configuration->direct3DConfiguration.lock);
 
       // *NOTE*: may toggle the device between windowed/fullscreen mode
-      if (!Stream_MediaFramework_DirectDraw_Tools::reset (configuration_r.configuration->direct3DConfiguration.handle,
-                                                          configuration_r.configuration->direct3DConfiguration))
+      if (!Stream_MediaFramework_DirectDraw_Tools::reset (cb_data_r.configuration->direct3DConfiguration.handle,
+                                                          cb_data_r.configuration->direct3DConfiguration))
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("failed to Stream_MediaFramework_DirectDraw_Tools::reset(), returning\n")));
@@ -1154,7 +1160,7 @@ continue_:
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: invalid/unknown video renderer (was: %d), aborting\n"),
                   ACE_TEXT (stream_name_string_),
-                  configuration_r.configuration->streamConfiguration.configuration_.renderer));
+                  cb_data_r.configuration->streamConfiguration.configuration_.renderer));
       return;
     }
   } // end SWITCH
@@ -1166,7 +1172,7 @@ continue_:
                                Stream_ImageScreen_DirectShow_WxWidgetsIApplication_t::CONFIGURATION_T> (ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_THREAD_NAME),
                                                                                                     ::stream_processing_thread,
                                                                                                     COMMON_EVENT_REACTOR_THREAD_GROUP_ID + 1,
-                                                                                                    configuration_r,
+                                                                                                    cb_data_r,
                                                                                                     thread_id_2);
   if (!result)
   {
@@ -1193,52 +1199,60 @@ continue_:
   choice_display->Enable (false);
   gauge_progress->Enable (true);
 }
+
 void
-Stream_ImageScreen_WxWidgetsDialog_T<Stream_ImageScreen_DirectShow_WxWidgetsIApplication_t,
-                                 Stream_ImageScreen_DirectShow_Stream>::button_snapshot_clicked_cb (wxCommandEvent& event_in)
+Stream_ImageScreen_WxWidgetsDialog_T<wxDialog_main,
+                                     Stream_ImageScreen_DirectShow_WxWidgetsIApplication_t,
+                                     Stream_ImageScreen_Stream>::button_snapshot_clicked_cb (wxCommandEvent& event_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_ImageScreen_WxWidgetsDialog_T::button_snapshot_clicked_cb"));
 
   // sanity check(s)
   ACE_ASSERT (application_);
 
-  Stream_ImageScreen_DirectShow_WxWidgetsIApplication_t::CONFIGURATION_T& configuration_r =
+  Stream_ImageScreen_DirectShow_WxWidgetsIApplication_t::CONFIGURATION_T& cb_data_r =
     const_cast<Stream_ImageScreen_DirectShow_WxWidgetsIApplication_t::CONFIGURATION_T&> (application_->getR_2 ());
-  ACE_ASSERT (configuration_r.stream);
+  ACE_ASSERT (cb_data_r.stream);
 
-  configuration_r.stream->control (STREAM_CONTROL_STEP_2);
+  cb_data_r.stream->control (STREAM_CONTROL_STEP_2);
 }
+
 void
-Stream_ImageScreen_WxWidgetsDialog_T<Stream_ImageScreen_DirectShow_WxWidgetsIApplication_t,
-                                 Stream_ImageScreen_DirectShow_Stream>::button_cut_clicked_cb (wxCommandEvent& event_in)
+Stream_ImageScreen_WxWidgetsDialog_T<wxDialog_main,
+                                     Stream_ImageScreen_DirectShow_WxWidgetsIApplication_t,
+                                     Stream_ImageScreen_Stream>::button_cut_clicked_cb (wxCommandEvent& event_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_ImageScreen_WxWidgetsDialog_T::button_cut_clicked_cb"));
 
 }
+
 #if defined (_DEBUG)
 void
-Stream_ImageScreen_WxWidgetsDialog_T<Stream_ImageScreen_DirectShow_WxWidgetsIApplication_t,
-                                 Stream_ImageScreen_DirectShow_Stream>::button_report_clicked_cb (wxCommandEvent& event_in)
+Stream_ImageScreen_WxWidgetsDialog_T<wxDialog_main,
+                                     Stream_ImageScreen_DirectShow_WxWidgetsIApplication_t,
+                                     Stream_ImageScreen_Stream>::button_report_clicked_cb (wxCommandEvent& event_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_ImageScreen_WxWidgetsDialog_T::button_report_clicked_cb"));
 
 }
 #endif // _DEBUG
+
 void
-Stream_ImageScreen_WxWidgetsDialog_T<Stream_ImageScreen_DirectShow_WxWidgetsIApplication_t,
-                                 Stream_ImageScreen_DirectShow_Stream>::choice_source_changed_cb (wxCommandEvent& event_in)
+Stream_ImageScreen_WxWidgetsDialog_T<wxDialog_main,
+                                     Stream_ImageScreen_DirectShow_WxWidgetsIApplication_t,
+                                     Stream_ImageScreen_Stream>::choice_source_changed_cb (wxCommandEvent& event_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_ImageScreen_WxWidgetsDialog_T::choice_source_changed_cb"));
 
   // sanity check(s)
   ACE_ASSERT (application_);
 
-  Stream_ImageScreen_DirectShow_WxWidgetsIApplication_t::CONFIGURATION_T& configuration_r =
+  Stream_ImageScreen_DirectShow_WxWidgetsIApplication_t::CONFIGURATION_T& cb_data_r =
     const_cast<Stream_ImageScreen_DirectShow_WxWidgetsIApplication_t::CONFIGURATION_T&> (application_->getR_2 ());
-  ACE_ASSERT (configuration_r.configuration);
-  Stream_ImageScreen_DirectShow_Stream::CONFIGURATION_T::ITERATOR_T stream_iterator =
-    configuration_r.configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
-  ACE_ASSERT (stream_iterator != configuration_r.configuration->streamConfiguration.end ());
+  ACE_ASSERT (cb_data_r.configuration);
+  Stream_ImageScreen_Stream::CONFIGURATION_T::ITERATOR_T stream_iterator =
+    cb_data_r.configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
+  ACE_ASSERT (stream_iterator != cb_data_r.configuration->streamConfiguration.end ());
   std::string device_identifier;
   wxStringClientData* client_data_p =
     dynamic_cast<wxStringClientData*> (choice_source->GetClientObject (event_in.GetSelection ()));
@@ -1251,16 +1265,16 @@ Stream_ImageScreen_WxWidgetsDialog_T<Stream_ImageScreen_DirectShow_WxWidgetsIApp
     (*stream_iterator).second.second.builder->Release (); (*stream_iterator).second.second.builder = NULL;
   } // end IF
   IAMBufferNegotiation* buffer_negotiation_p = NULL;
-  if (configuration_r.streamConfiguration)
+  if (cb_data_r.streamConfiguration)
   {
-    configuration_r.streamConfiguration->Release (); configuration_r.streamConfiguration = NULL;
+    cb_data_r.streamConfiguration->Release (); cb_data_r.streamConfiguration = NULL;
   } // end IF
   Stream_MediaFramework_DirectShow_Graph_t graph_layout;
   if (!Stream_Device_DirectShow_Tools::loadDeviceGraph (device_identifier,
                                                         CLSID_VideoInputDeviceCategory,
                                                         (*stream_iterator).second.second.builder,
                                                         buffer_negotiation_p,
-                                                        configuration_r.streamConfiguration,
+                                                        cb_data_r.streamConfiguration,
                                                         graph_layout))
   {
     ACE_DEBUG ((LM_ERROR,
@@ -1270,14 +1284,14 @@ Stream_ImageScreen_WxWidgetsDialog_T<Stream_ImageScreen_DirectShow_WxWidgetsIApp
   } // end IF
   ACE_ASSERT ((*stream_iterator).second.second.builder);
   ACE_ASSERT (buffer_negotiation_p);
-  ACE_ASSERT (configuration_r.streamConfiguration);
+  ACE_ASSERT (cb_data_r.streamConfiguration);
 
   buffer_negotiation_p->Release (); buffer_negotiation_p = NULL;
 
   choice_format->SetSelection (wxNOT_FOUND);
   choice_format->Clear ();
   Common_Identifiers_t subformats_a =
-    Stream_Device_DirectShow_Tools::getCaptureSubFormats (configuration_r.streamConfiguration);
+    Stream_Device_DirectShow_Tools::getCaptureSubFormats (cb_data_r.streamConfiguration);
   ACE_ASSERT (!subformats_a.empty ());
   int index_i = -1;
   for (Common_IdentifiersIterator_t iterator = subformats_a.begin ();
@@ -1305,7 +1319,7 @@ Stream_ImageScreen_WxWidgetsDialog_T<Stream_ImageScreen_DirectShow_WxWidgetsIApp
   filter_p->Release (); filter_p = NULL;
   choice_format->Enable (!subformats_a.empty ());
   index_i =
-    (initializing_ ? choice_format->FindString (Stream_MediaFramework_Tools::mediaSubTypeToString (configuration_r.configuration->streamConfiguration.configuration_.format.subtype, STREAM_MEDIAFRAMEWORK_DIRECTSHOW))
+    (initializing_ ? choice_format->FindString (Stream_MediaFramework_Tools::mediaSubTypeToString (cb_data_r.configuration->streamConfiguration.configuration_.format.subtype, STREAM_MEDIAFRAMEWORK_DIRECTSHOW))
                    : 0);
   choice_format->Select (index_i);
   wxCommandEvent event_s (wxEVT_COMMAND_CHOICE_SELECTED,
@@ -1313,21 +1327,23 @@ Stream_ImageScreen_WxWidgetsDialog_T<Stream_ImageScreen_DirectShow_WxWidgetsIApp
   event_s.SetInt (index_i);
   this->AddPendingEvent (event_s);
 }
+
 void
-Stream_ImageScreen_WxWidgetsDialog_T<Stream_ImageScreen_DirectShow_WxWidgetsIApplication_t,
-                                 Stream_ImageScreen_DirectShow_Stream>::button_camera_properties_clicked_cb (wxCommandEvent& event_in)
+Stream_ImageScreen_WxWidgetsDialog_T<wxDialog_main,
+                                     Stream_ImageScreen_DirectShow_WxWidgetsIApplication_t,
+                                     Stream_ImageScreen_Stream>::button_camera_properties_clicked_cb (wxCommandEvent& event_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_ImageScreen_WxWidgetsDialog_T::button_camera_properties_clicked_cb"));
 
   // sanity check(s)
   ACE_ASSERT (application_);
 
-  Stream_ImageScreen_DirectShow_WxWidgetsIApplication_t::CONFIGURATION_T& configuration_r =
+  Stream_ImageScreen_DirectShow_WxWidgetsIApplication_t::CONFIGURATION_T& cb_data_r =
     const_cast<Stream_ImageScreen_DirectShow_WxWidgetsIApplication_t::CONFIGURATION_T&> (application_->getR_2 ());
-  ACE_ASSERT (configuration_r.configuration);
-  Stream_ImageScreen_DirectShow_Stream::CONFIGURATION_T::ITERATOR_T stream_iterator =
-    configuration_r.configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
-  ACE_ASSERT (stream_iterator != configuration_r.configuration->streamConfiguration.end ());
+  ACE_ASSERT (cb_data_r.configuration);
+  Stream_ImageScreen_Stream::CONFIGURATION_T::ITERATOR_T stream_iterator =
+    cb_data_r.configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
+  ACE_ASSERT (stream_iterator != cb_data_r.configuration->streamConfiguration.end ());
   ACE_ASSERT ((*stream_iterator).second.second.builder);
 
   IBaseFilter* filter_p = NULL;
@@ -1368,21 +1384,23 @@ Stream_ImageScreen_WxWidgetsDialog_T<Stream_ImageScreen_DirectShow_WxWidgetsIApp
   iunknown_p->Release (); iunknown_p = NULL;
   CoTaskMemFree (uuids_a.pElems); uuids_a.pElems = NULL;
 }
+
 void
-Stream_ImageScreen_WxWidgetsDialog_T<Stream_ImageScreen_DirectShow_WxWidgetsIApplication_t,
-                                 Stream_ImageScreen_DirectShow_Stream>::choice_format_changed_cb (wxCommandEvent& event_in)
+Stream_ImageScreen_WxWidgetsDialog_T<wxDialog_main,
+                                     Stream_ImageScreen_DirectShow_WxWidgetsIApplication_t,
+                                     Stream_ImageScreen_Stream>::choice_format_changed_cb (wxCommandEvent& event_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_ImageScreen_WxWidgetsDialog_T::choice_format_changed_cb"));
 
   // sanity check(s)
   ACE_ASSERT (application_);
 
-  Stream_ImageScreen_DirectShow_WxWidgetsIApplication_t::CONFIGURATION_T& configuration_r =
+  Stream_ImageScreen_DirectShow_WxWidgetsIApplication_t::CONFIGURATION_T& cb_data_r =
     const_cast<Stream_ImageScreen_DirectShow_WxWidgetsIApplication_t::CONFIGURATION_T&> (application_->getR_2 ());
-  ACE_ASSERT (configuration_r.configuration);
-  Stream_ImageScreen_DirectShow_Stream::CONFIGURATION_T::ITERATOR_T stream_iterator =
-    configuration_r.configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
-  ACE_ASSERT (stream_iterator != configuration_r.configuration->streamConfiguration.end ());
+  ACE_ASSERT (cb_data_r.configuration);
+  Stream_ImageScreen_Stream::CONFIGURATION_T::ITERATOR_T stream_iterator =
+    cb_data_r.configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
+  ACE_ASSERT (stream_iterator != cb_data_r.configuration->streamConfiguration.end ());
   wxStringClientData* client_data_p =
     dynamic_cast<wxStringClientData*> (choice_format->GetClientObject (event_in.GetSelection ()));
   ACE_ASSERT (client_data_p);
@@ -1391,11 +1409,11 @@ Stream_ImageScreen_WxWidgetsDialog_T<Stream_ImageScreen_DirectShow_WxWidgetsIApp
   ACE_ASSERT (!InlineIsEqualGUID (format_s, GUID_NULL));
   int index_i = wxNOT_FOUND;
   Common_UI_Resolutions_t resolutions_a =
-    Stream_Device_DirectShow_Tools::getCaptureResolutions (configuration_r.streamConfiguration,
+    Stream_Device_DirectShow_Tools::getCaptureResolutions (cb_data_r.streamConfiguration,
                                                            format_s);
   ACE_ASSERT (!resolutions_a.empty ());
   Common_UI_Resolution_t resolution_s =
-    Stream_MediaFramework_DirectShow_Tools::toResolution (configuration_r.configuration->streamConfiguration.configuration_.format);
+    Stream_MediaFramework_DirectShow_Tools::toResolution (cb_data_r.configuration->streamConfiguration.configuration_.format);
 
   choice_resolution->SetSelection (wxNOT_FOUND);
   choice_resolution->Clear ();
@@ -1439,21 +1457,23 @@ Stream_ImageScreen_WxWidgetsDialog_T<Stream_ImageScreen_DirectShow_WxWidgetsIApp
   event_s.SetInt (index_i);
   this->AddPendingEvent (event_s);
 }
+
 void
-Stream_ImageScreen_WxWidgetsDialog_T<Stream_ImageScreen_DirectShow_WxWidgetsIApplication_t,
-                                 Stream_ImageScreen_DirectShow_Stream>::choice_resolution_changed_cb (wxCommandEvent& event_in)
+Stream_ImageScreen_WxWidgetsDialog_T<wxDialog_main,
+                                     Stream_ImageScreen_DirectShow_WxWidgetsIApplication_t,
+                                     Stream_ImageScreen_Stream>::choice_resolution_changed_cb (wxCommandEvent& event_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_ImageScreen_WxWidgetsDialog_T::choice_resolution_changed_cb"));
 
   // sanity check(s)
   ACE_ASSERT (application_);
 
-  Stream_ImageScreen_DirectShow_WxWidgetsIApplication_t::CONFIGURATION_T& configuration_r =
+  Stream_ImageScreen_DirectShow_WxWidgetsIApplication_t::CONFIGURATION_T& cb_data_r =
     const_cast<Stream_ImageScreen_DirectShow_WxWidgetsIApplication_t::CONFIGURATION_T&> (application_->getR_2 ());
-  ACE_ASSERT (configuration_r.configuration);
-  Stream_ImageScreen_DirectShow_Stream::CONFIGURATION_T::ITERATOR_T stream_iterator =
-    configuration_r.configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
-  ACE_ASSERT (stream_iterator != configuration_r.configuration->streamConfiguration.end ());
+  ACE_ASSERT (cb_data_r.configuration);
+  Stream_ImageScreen_Stream::CONFIGURATION_T::ITERATOR_T stream_iterator =
+    cb_data_r.configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
+  ACE_ASSERT (stream_iterator != cb_data_r.configuration->streamConfiguration.end ());
   wxStringClientData* client_data_p =
     dynamic_cast<wxStringClientData*> (choice_format->GetClientObject (choice_format->GetSelection ()));
   ACE_ASSERT (client_data_p);
@@ -1468,12 +1488,12 @@ Stream_ImageScreen_WxWidgetsDialog_T<Stream_ImageScreen_DirectShow_WxWidgetsIApp
   converter >> resolution_s.cx;
   converter >> resolution_s.cy;
   Common_UI_Framerates_t framerates_a =
-    Stream_Device_DirectShow_Tools::getCaptureFramerates (configuration_r.streamConfiguration,
+    Stream_Device_DirectShow_Tools::getCaptureFramerates (cb_data_r.streamConfiguration,
                                                           format_s,
                                                           resolution_s);
   ACE_ASSERT (!framerates_a.empty ());
   unsigned int framerate_i =
-    Stream_MediaFramework_DirectShow_Tools::toFramerate (configuration_r.configuration->streamConfiguration.configuration_.format);
+    Stream_MediaFramework_DirectShow_Tools::toFramerate (cb_data_r.configuration->streamConfiguration.configuration_.format);
 
   choice_framerate->Clear ();
   int index_i = wxNOT_FOUND;
@@ -1500,24 +1520,26 @@ Stream_ImageScreen_WxWidgetsDialog_T<Stream_ImageScreen_DirectShow_WxWidgetsIApp
   event_s.SetInt (index_i);
   this->AddPendingEvent (event_s);
 }
+
 void
-Stream_ImageScreen_WxWidgetsDialog_T<Stream_ImageScreen_DirectShow_WxWidgetsIApplication_t,
-                                 Stream_ImageScreen_DirectShow_Stream>::choice_framerate_changed_cb (wxCommandEvent& event_in)
+Stream_ImageScreen_WxWidgetsDialog_T<wxDialog_main,
+                                     Stream_ImageScreen_DirectShow_WxWidgetsIApplication_t,
+                                     Stream_ImageScreen_Stream>::choice_framerate_changed_cb (wxCommandEvent& event_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_ImageScreen_WxWidgetsDialog_T::choice_framerate_changed_cb"));
 
   // sanity check(s)
   ACE_ASSERT (application_);
 
-  Stream_ImageScreen_DirectShow_WxWidgetsIApplication_t::CONFIGURATION_T& configuration_r =
+  Stream_ImageScreen_DirectShow_WxWidgetsIApplication_t::CONFIGURATION_T& cb_data_r =
     const_cast<Stream_ImageScreen_DirectShow_WxWidgetsIApplication_t::CONFIGURATION_T&> (application_->getR_2 ());
-  ACE_ASSERT (configuration_r.configuration);
-  Stream_ImageScreen_DirectShow_Stream::CONFIGURATION_T::ITERATOR_T stream_iterator =
-    configuration_r.configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
-  ACE_ASSERT (stream_iterator != configuration_r.configuration->streamConfiguration.end ());
-  Stream_ImageScreen_DirectShow_Stream::CONFIGURATION_T::ITERATOR_T stream_iterator_2 =
-    configuration_r.configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (Stream_Visualization_Tools::rendererToModuleName (configuration_r.configuration->streamConfiguration.configuration_.renderer).c_str ()));
-  ACE_ASSERT (stream_iterator_2 != configuration_r.configuration->streamConfiguration.end ());
+  ACE_ASSERT (cb_data_r.configuration);
+  Stream_ImageScreen_Stream::CONFIGURATION_T::ITERATOR_T stream_iterator =
+    cb_data_r.configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
+  ACE_ASSERT (stream_iterator != cb_data_r.configuration->streamConfiguration.end ());
+  Stream_ImageScreen_Stream::CONFIGURATION_T::ITERATOR_T stream_iterator_2 =
+    cb_data_r.configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (Stream_Visualization_Tools::rendererToModuleName (cb_data_r.configuration->streamConfiguration.configuration_.renderer).c_str ()));
+  ACE_ASSERT (stream_iterator_2 != cb_data_r.configuration->streamConfiguration.end ());
   wxStringClientData* client_data_p =
     dynamic_cast<wxStringClientData*> (choice_source->GetClientObject (choice_source->GetSelection ()));
   ACE_ASSERT (client_data_p);
@@ -1549,12 +1571,12 @@ Stream_ImageScreen_WxWidgetsDialog_T<Stream_ImageScreen_DirectShow_WxWidgetsIApp
   converter >> framerate_i;
 
   struct _AMMediaType* media_type_p = NULL;
-  Stream_MediaFramework_DirectShow_Tools::free (configuration_r.configuration->streamConfiguration.configuration_.format);
+  Stream_MediaFramework_DirectShow_Tools::free (cb_data_r.configuration->streamConfiguration.configuration_.format);
   if (!Stream_Device_DirectShow_Tools::getVideoCaptureFormat ((*stream_iterator).second.second.builder,
                                                               format_s,
                                                               resolution_s.cx, resolution_s.cy,
                                                               framerate_i,
-                                                              configuration_r.configuration->streamConfiguration.configuration_.format))
+                                                              cb_data_r.configuration->streamConfiguration.configuration_.format))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Stream_Device_DirectShow_Tools::getVideoCaptureFormat(\"%s\",%s,%dx%d,%d), returning\n"),
@@ -1568,7 +1590,7 @@ Stream_ImageScreen_WxWidgetsDialog_T<Stream_ImageScreen_DirectShow_WxWidgetsIApp
   // update controls
   if (initializing_)
     togglebutton_record->Enable (true);
-  spincontrol_buffer->SetValue (Stream_MediaFramework_DirectShow_Tools::toFramesize (configuration_r.configuration->streamConfiguration.configuration_.format));
+  spincontrol_buffer->SetValue (Stream_MediaFramework_DirectShow_Tools::toFramesize (cb_data_r.configuration->streamConfiguration.configuration_.format));
   IBaseFilter* filter_p = NULL;
   HRESULT result =
     (*stream_iterator).second.second.builder->FindFilterByName (STREAM_DEV_CAM_DIRECTSHOW_FILTER_NAME_CAPTURE_VIDEO,
@@ -1585,25 +1607,27 @@ Stream_ImageScreen_WxWidgetsDialog_T<Stream_ImageScreen_DirectShow_WxWidgetsIApp
     return;
   } // end IF
   filter_p->Release (); filter_p = NULL;
-  button_reset_format->Enable (!Stream_MediaFramework_DirectShow_Tools::match (configuration_r.configuration->streamConfiguration.configuration_.format,
+  button_reset_format->Enable (!Stream_MediaFramework_DirectShow_Tools::match (cb_data_r.configuration->streamConfiguration.configuration_.format,
                                                                                *media_type_p));
   Stream_MediaFramework_DirectShow_Tools::delete_ (media_type_p);
 }
+
 void
-Stream_ImageScreen_WxWidgetsDialog_T<Stream_ImageScreen_DirectShow_WxWidgetsIApplication_t,
-                                 Stream_ImageScreen_DirectShow_Stream>::button_reset_camera_clicked_cb (wxCommandEvent& event_in)
+Stream_ImageScreen_WxWidgetsDialog_T<wxDialog_main,
+                                     Stream_ImageScreen_DirectShow_WxWidgetsIApplication_t,
+                                     Stream_ImageScreen_Stream>::button_reset_camera_clicked_cb (wxCommandEvent& event_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_ImageScreen_WxWidgetsDialog_T::button_reset_camera_clicked_cb"));
 
   // sanity check(s)
   ACE_ASSERT (application_);
 
-  Stream_ImageScreen_DirectShow_WxWidgetsIApplication_t::CONFIGURATION_T& configuration_r =
+  Stream_ImageScreen_DirectShow_WxWidgetsIApplication_t::CONFIGURATION_T& cb_data_r =
     const_cast<Stream_ImageScreen_DirectShow_WxWidgetsIApplication_t::CONFIGURATION_T&> (application_->getR_2 ());
-  ACE_ASSERT (configuration_r.configuration);
-  Stream_ImageScreen_DirectShow_Stream::CONFIGURATION_T::ITERATOR_T stream_iterator =
-    configuration_r.configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
-  ACE_ASSERT (stream_iterator != configuration_r.configuration->streamConfiguration.end ());
+  ACE_ASSERT (cb_data_r.configuration);
+  Stream_ImageScreen_Stream::CONFIGURATION_T::ITERATOR_T stream_iterator =
+    cb_data_r.configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
+  ACE_ASSERT (stream_iterator != cb_data_r.configuration->streamConfiguration.end ());
   ACE_ASSERT ((*stream_iterator).second.second.builder);
 
   IBaseFilter* filter_p = NULL;
@@ -1674,8 +1698,9 @@ Stream_ImageScreen_WxWidgetsDialog_T<Stream_ImageScreen_DirectShow_WxWidgetsIApp
 }
 
 void
-Stream_ImageScreen_WxWidgetsDialog_T<Stream_ImageScreen_DirectShow_WxWidgetsIApplication_t,
-                                 Stream_ImageScreen_DirectShow_Stream>::togglebutton_save_toggled_cb (wxCommandEvent& event_in)
+Stream_ImageScreen_WxWidgetsDialog_T<wxDialog_main,
+                                     Stream_ImageScreen_DirectShow_WxWidgetsIApplication_t,
+                                     Stream_ImageScreen_Stream>::togglebutton_save_toggled_cb (wxCommandEvent& event_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_ImageScreen_WxWidgetsDialog_T::togglebutton_save_toggled_cb"));
 
@@ -1683,29 +1708,32 @@ Stream_ImageScreen_WxWidgetsDialog_T<Stream_ImageScreen_DirectShow_WxWidgetsIApp
   textcontrol_filename->Enable (is_checked_b);
   directorypicker_save->Enable (is_checked_b);
 }
+
 void
-Stream_ImageScreen_WxWidgetsDialog_T<Stream_ImageScreen_DirectShow_WxWidgetsIApplication_t,
-                                 Stream_ImageScreen_DirectShow_Stream>::picker_directory_save_changed_cb (wxFileDirPickerEvent& event_in)
+Stream_ImageScreen_WxWidgetsDialog_T<wxDialog_main,
+                                     Stream_ImageScreen_DirectShow_WxWidgetsIApplication_t,
+                                     Stream_ImageScreen_Stream>::picker_directory_save_changed_cb (wxFileDirPickerEvent& event_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_ImageScreen_WxWidgetsDialog_T::picker_directory_save_changed_cb"));
 
 }
 
 void
-Stream_ImageScreen_WxWidgetsDialog_T<Stream_ImageScreen_DirectShow_WxWidgetsIApplication_t,
-                                 Stream_ImageScreen_DirectShow_Stream>::togglebutton_display_toggled_cb (wxCommandEvent& event_in)
+Stream_ImageScreen_WxWidgetsDialog_T<wxDialog_main,
+                                     Stream_ImageScreen_DirectShow_WxWidgetsIApplication_t,
+                                     Stream_ImageScreen_Stream>::togglebutton_display_toggled_cb (wxCommandEvent& event_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_ImageScreen_WxWidgetsDialog_T::togglebutton_display_toggled_cb"));
 
   // sanity check(s)
   ACE_ASSERT (application_);
 
-  Stream_ImageScreen_DirectShow_WxWidgetsIApplication_t::CONFIGURATION_T& configuration_r =
+  Stream_ImageScreen_DirectShow_WxWidgetsIApplication_t::CONFIGURATION_T& cb_data_r =
     const_cast<Stream_ImageScreen_DirectShow_WxWidgetsIApplication_t::CONFIGURATION_T&> (application_->getR_2 ());
-  ACE_ASSERT (configuration_r.configuration);
-  Stream_ImageScreen_DirectShow_Stream::CONFIGURATION_T::ITERATOR_T stream_iterator =
-    configuration_r.configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (Stream_Visualization_Tools::rendererToModuleName (configuration_r.configuration->streamConfiguration.configuration_.renderer).c_str ()));
-  ACE_ASSERT (stream_iterator != configuration_r.configuration->streamConfiguration.end ());
+  ACE_ASSERT (cb_data_r.configuration);
+  Stream_ImageScreen_Stream::CONFIGURATION_T::ITERATOR_T stream_iterator =
+    cb_data_r.configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (Stream_Visualization_Tools::rendererToModuleName (cb_data_r.configuration->streamConfiguration.configuration_.renderer).c_str ()));
+  ACE_ASSERT (stream_iterator != cb_data_r.configuration->streamConfiguration.end ());
 
   bool is_checked_b = event_in.IsChecked ();
   togglebutton_fullscreen->Enable (is_checked_b);
@@ -1735,7 +1763,7 @@ Stream_ImageScreen_WxWidgetsDialog_T<Stream_ImageScreen_DirectShow_WxWidgetsIApp
     (*stream_iterator).second.second.deviceIdentifier.clear ();
   } // end ELSE
 
-  switch (configuration_r.configuration->streamConfiguration.configuration_.renderer)
+  switch (cb_data_r.configuration->streamConfiguration.configuration_.renderer)
   {
     //case STREAM_VISUALIZATION_VIDEORENDERER_DIRECTDRAW_2D:
     //  break;
@@ -1744,16 +1772,16 @@ Stream_ImageScreen_WxWidgetsDialog_T<Stream_ImageScreen_DirectShow_WxWidgetsIApp
       //ACE_ASSERT ((*stream_iterator).second.second.direct3DConfiguration);
       if (is_checked_b)
       {
-        configuration_r.configuration->direct3DConfiguration.focusWindow =
+        cb_data_r.configuration->direct3DConfiguration.focusWindow =
           (HWND)panel_video->GetHandle ();
       } // end IF
       else
       {
-        configuration_r.configuration->direct3DConfiguration.focusWindow =
+        cb_data_r.configuration->direct3DConfiguration.focusWindow =
           NULL;
-        configuration_r.configuration->direct3DConfiguration.presentationParameters.hDeviceWindow =
+        cb_data_r.configuration->direct3DConfiguration.presentationParameters.hDeviceWindow =
           NULL;
-        configuration_r.configuration->direct3DConfiguration.presentationParameters.Windowed =
+        cb_data_r.configuration->direct3DConfiguration.presentationParameters.Windowed =
           FALSE;
       } // end ELSE
       break;
@@ -1773,27 +1801,29 @@ Stream_ImageScreen_WxWidgetsDialog_T<Stream_ImageScreen_DirectShow_WxWidgetsIApp
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: invalid/unknown video renderer (was: %d), aborting\n"),
                   ACE_TEXT (stream_name_string_),
-                  configuration_r.configuration->streamConfiguration.configuration_.renderer));
+                  cb_data_r.configuration->streamConfiguration.configuration_.renderer));
       return;
     }
   } // end SWITCH
 }
+
 void
-Stream_ImageScreen_WxWidgetsDialog_T<Stream_ImageScreen_DirectShow_WxWidgetsIApplication_t,
-                                 Stream_ImageScreen_DirectShow_Stream>::togglebutton_fullscreen_toggled_cb (wxCommandEvent& event_in)
+Stream_ImageScreen_WxWidgetsDialog_T<wxDialog_main,
+                                     Stream_ImageScreen_DirectShow_WxWidgetsIApplication_t,
+                                     Stream_ImageScreen_Stream>::togglebutton_fullscreen_toggled_cb (wxCommandEvent& event_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_ImageScreen_WxWidgetsDialog_T::togglebutton_fullscreen_toggled_cb"));
 
   // sanity check(s)
   ACE_ASSERT (application_);
 
-  Stream_ImageScreen_DirectShow_WxWidgetsIApplication_t::CONFIGURATION_T& configuration_r =
+  Stream_ImageScreen_DirectShow_WxWidgetsIApplication_t::CONFIGURATION_T& cb_data_r =
     const_cast<Stream_ImageScreen_DirectShow_WxWidgetsIApplication_t::CONFIGURATION_T&> (application_->getR_2 ());
-  ACE_ASSERT (configuration_r.configuration);
-  Stream_ImageScreen_DirectShow_Stream::CONFIGURATION_T::ITERATOR_T stream_iterator =
-    configuration_r.configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (Stream_Visualization_Tools::rendererToModuleName (configuration_r.configuration->streamConfiguration.configuration_.renderer).c_str ()));
-  ACE_ASSERT (stream_iterator != configuration_r.configuration->streamConfiguration.end ());
-  ACE_ASSERT (configuration_r.stream);
+  ACE_ASSERT (cb_data_r.configuration);
+  Stream_ImageScreen_Stream::CONFIGURATION_T::ITERATOR_T stream_iterator =
+    cb_data_r.configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (Stream_Visualization_Tools::rendererToModuleName (cb_data_r.configuration->streamConfiguration.configuration_.renderer).c_str ()));
+  ACE_ASSERT (stream_iterator != cb_data_r.configuration->streamConfiguration.end ());
+  ACE_ASSERT (cb_data_r.stream);
 
   choice_resolution_2->Enable (event_in.IsChecked ());
   if (event_in.IsChecked ())
@@ -1816,8 +1846,8 @@ Stream_ImageScreen_WxWidgetsDialog_T<Stream_ImageScreen_DirectShow_WxWidgetsIApp
   } // end ELSE
 
   std::string module_name_string =
-    Stream_Visualization_Tools::rendererToModuleName (configuration_r.configuration->streamConfiguration.configuration_.renderer);
-  switch (configuration_r.configuration->streamConfiguration.configuration_.renderer)
+    Stream_Visualization_Tools::rendererToModuleName (cb_data_r.configuration->streamConfiguration.configuration_.renderer);
+  switch (cb_data_r.configuration->streamConfiguration.configuration_.renderer)
   {
     //case STREAM_VISUALIZATION_VIDEORENDERER_DIRECTDRAW_2D:
     //  break;
@@ -1826,16 +1856,16 @@ Stream_ImageScreen_WxWidgetsDialog_T<Stream_ImageScreen_DirectShow_WxWidgetsIApp
       //ACE_ASSERT ((*stream_iterator).second.second.direct3DConfiguration);
       if (event_in.IsChecked ())
       { // --> toggle to fullscreen
-        configuration_r.configuration->direct3DConfiguration.presentationParameters.hDeviceWindow =
+        cb_data_r.configuration->direct3DConfiguration.presentationParameters.hDeviceWindow =
           NULL;
-        configuration_r.configuration->direct3DConfiguration.presentationParameters.Windowed =
+        cb_data_r.configuration->direct3DConfiguration.presentationParameters.Windowed =
           FALSE;
       } // end IF
       else
       { // toggle to windowed
-        configuration_r.configuration->direct3DConfiguration.presentationParameters.hDeviceWindow =
+        cb_data_r.configuration->direct3DConfiguration.presentationParameters.hDeviceWindow =
           (HWND)panel_video->GetHandle ();
-        configuration_r.configuration->direct3DConfiguration.presentationParameters.Windowed =
+        cb_data_r.configuration->direct3DConfiguration.presentationParameters.Windowed =
           TRUE;
       } // end ELSE
       break;
@@ -1855,15 +1885,15 @@ Stream_ImageScreen_WxWidgetsDialog_T<Stream_ImageScreen_DirectShow_WxWidgetsIApp
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: invalid/unknown video renderer (was: %d), aborting\n"),
                   ACE_TEXT (stream_name_string_),
-                  configuration_r.configuration->streamConfiguration.configuration_.renderer));
+                  cb_data_r.configuration->streamConfiguration.configuration_.renderer));
       return;
     }
   } // end SWITCH
 
-  if (!configuration_r.stream->isRunning ())
+  if (!cb_data_r.stream->isRunning ())
     return;
   Stream_Module_t* module_p =
-    const_cast<Stream_Module_t*> (configuration_r.stream->find (module_name_string.c_str ()));
+    const_cast<Stream_Module_t*> (cb_data_r.stream->find (module_name_string.c_str ()));
   ACE_ASSERT (module_p);
   Common_UI_IFullscreen* ifullscreen_p =
     dynamic_cast<Common_UI_IFullscreen*> (module_p->writer ());
@@ -1871,34 +1901,38 @@ Stream_ImageScreen_WxWidgetsDialog_T<Stream_ImageScreen_DirectShow_WxWidgetsIApp
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s:%s: dynamic_cast<Common_UI_IFullscreen> failed, aborting\n"),
-                ACE_TEXT (configuration_r.stream->name ().c_str ()),
+                ACE_TEXT (cb_data_r.stream->name ().c_str ()),
                 ACE_TEXT (module_name_string.c_str ())));
     return;
   } // end IF
   ifullscreen_p->toggle ();
 }
+
 void
-Stream_ImageScreen_WxWidgetsDialog_T<Stream_ImageScreen_DirectShow_WxWidgetsIApplication_t,
-                                 Stream_ImageScreen_DirectShow_Stream>::choice_displayadapter_changed_cb (wxCommandEvent& event_in)
+Stream_ImageScreen_WxWidgetsDialog_T<wxDialog_main,
+                                     Stream_ImageScreen_DirectShow_WxWidgetsIApplication_t,
+                                     Stream_ImageScreen_Stream>::choice_displayadapter_changed_cb (wxCommandEvent& event_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_ImageScreen_WxWidgetsDialog_T::choice_displayadapter_changed_cb"));
 
 }
+
 void
-Stream_ImageScreen_WxWidgetsDialog_T<Stream_ImageScreen_DirectShow_WxWidgetsIApplication_t,
-                                 Stream_ImageScreen_DirectShow_Stream>::choice_screen_changed_cb (wxCommandEvent& event_in)
+Stream_ImageScreen_WxWidgetsDialog_T<wxDialog_main,
+                                     Stream_ImageScreen_DirectShow_WxWidgetsIApplication_t,
+                                     Stream_ImageScreen_Stream>::choice_screen_changed_cb (wxCommandEvent& event_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_ImageScreen_WxWidgetsDialog_T::choice_screen_changed_cb"));
 
   // sanity check(s)
   ACE_ASSERT (application_);
 
-  Stream_ImageScreen_DirectShow_WxWidgetsIApplication_t::CONFIGURATION_T& configuration_r =
+  Stream_ImageScreen_DirectShow_WxWidgetsIApplication_t::CONFIGURATION_T& cb_data_r =
     const_cast<Stream_ImageScreen_DirectShow_WxWidgetsIApplication_t::CONFIGURATION_T&> (application_->getR_2 ());
-  ACE_ASSERT (configuration_r.configuration);
-  Stream_ImageScreen_DirectShow_Stream::CONFIGURATION_T::ITERATOR_T stream_iterator =
-    configuration_r.configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (Stream_Visualization_Tools::rendererToModuleName (configuration_r.configuration->streamConfiguration.configuration_.renderer).c_str ()));
-  ACE_ASSERT (stream_iterator != configuration_r.configuration->streamConfiguration.end ());
+  ACE_ASSERT (cb_data_r.configuration);
+  Stream_ImageScreen_Stream::CONFIGURATION_T::ITERATOR_T stream_iterator =
+    cb_data_r.configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (Stream_Visualization_Tools::rendererToModuleName (cb_data_r.configuration->streamConfiguration.configuration_.renderer).c_str ()));
+  ACE_ASSERT (stream_iterator != cb_data_r.configuration->streamConfiguration.end ());
   wxStringClientData* client_data_p =
     dynamic_cast<wxStringClientData*> (choice_display->GetClientObject (event_in.GetSelection ()));
   ACE_ASSERT (client_data_p);
@@ -1986,24 +2020,29 @@ Stream_ImageScreen_WxWidgetsDialog_T<Stream_ImageScreen_DirectShow_WxWidgetsIApp
   if (initializing_)
     initializing_ = false;
 }
+
 void
-Stream_ImageScreen_WxWidgetsDialog_T<Stream_ImageScreen_DirectShow_WxWidgetsIApplication_t,
-                                 Stream_ImageScreen_DirectShow_Stream>::button_display_settings_clicked_cb (wxCommandEvent& event_in)
+Stream_ImageScreen_WxWidgetsDialog_T<wxDialog_main,
+                                     Stream_ImageScreen_DirectShow_WxWidgetsIApplication_t,
+                                     Stream_ImageScreen_Stream>::button_display_settings_clicked_cb (wxCommandEvent& event_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_ImageScreen_WxWidgetsDialog_T::button_display_settings_clicked_cb"));
 
 }
+
 void
-Stream_ImageScreen_WxWidgetsDialog_T<Stream_ImageScreen_DirectShow_WxWidgetsIApplication_t,
-                                 Stream_ImageScreen_DirectShow_Stream>::choice_resolution_2_changed_cb (wxCommandEvent& event_in)
+Stream_ImageScreen_WxWidgetsDialog_T<wxDialog_main,
+                                     Stream_ImageScreen_DirectShow_WxWidgetsIApplication_t,
+                                     Stream_ImageScreen_Stream>::choice_resolution_2_changed_cb (wxCommandEvent& event_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_ImageScreen_WxWidgetsDialog_T::choice_resolution_2_changed_cb"));
 
 }
 
 void
-Stream_ImageScreen_WxWidgetsDialog_T<Stream_ImageScreen_DirectShow_WxWidgetsIApplication_t,
-                                 Stream_ImageScreen_DirectShow_Stream>::button_about_clicked_cb (wxCommandEvent& event_in)
+Stream_ImageScreen_WxWidgetsDialog_T<wxDialog_main,
+                                     Stream_ImageScreen_DirectShow_WxWidgetsIApplication_t,
+                                     Stream_ImageScreen_Stream>::button_about_clicked_cb (wxCommandEvent& event_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_ImageScreen_WxWidgetsDialog_T::button_about_clicked_cb"));
 
@@ -2039,9 +2078,11 @@ Stream_ImageScreen_WxWidgetsDialog_T<Stream_ImageScreen_DirectShow_WxWidgetsIApp
 #endif // HAVE_CONFIG_H
   wxAboutBox (about_dialog_info);
 }
+
 void
-Stream_ImageScreen_WxWidgetsDialog_T<Stream_ImageScreen_DirectShow_WxWidgetsIApplication_t,
-                                 Stream_ImageScreen_DirectShow_Stream>::button_quit_clicked_cb (wxCommandEvent& event_in)
+Stream_ImageScreen_WxWidgetsDialog_T<wxDialog_main,
+                                     Stream_ImageScreen_DirectShow_WxWidgetsIApplication_t,
+                                     Stream_ImageScreen_Stream>::button_quit_clicked_cb (wxCommandEvent& event_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_ImageScreen_WxWidgetsDialog_T::button_quit_clicked_cb"));
 
@@ -2049,10 +2090,10 @@ Stream_ImageScreen_WxWidgetsDialog_T<Stream_ImageScreen_DirectShow_WxWidgetsIApp
   ACE_ASSERT (application_);
 
   // step1: make sure the stream has stopped
-  Stream_ImageScreen_DirectShow_Stream* stream_p = NULL;
-  Stream_ImageScreen_DirectShow_WxWidgetsIApplication_t::CONFIGURATION_T& configuration_r =
+  Stream_ImageScreen_Stream* stream_p = NULL;
+  Stream_ImageScreen_DirectShow_WxWidgetsIApplication_t::CONFIGURATION_T& cb_data_r =
     const_cast<Stream_ImageScreen_DirectShow_WxWidgetsIApplication_t::CONFIGURATION_T&> (application_->getR_2 ());
-  stream_p = configuration_r.stream;
+  stream_p = cb_data_r.stream;
   ACE_ASSERT (stream_p);
   const enum Stream_StateMachine_ControlState& status_r =
     stream_p->status ();
@@ -2075,8 +2116,9 @@ Stream_ImageScreen_WxWidgetsDialog_T<Stream_ImageScreen_DirectShow_WxWidgetsIApp
 
 // ---------------------------------------
 
-Stream_ImageScreen_WxWidgetsDialog_T<Stream_ImageScreen_MediaFoundation_WxWidgetsIApplication_t,
-                                 Stream_ImageScreen_MediaFoundation_Stream>::Stream_ImageScreen_WxWidgetsDialog_T (wxWindow* parent_in)
+Stream_ImageScreen_WxWidgetsDialog_T<wxDialog_main,
+                                     Stream_ImageScreen_MediaFoundation_WxWidgetsIApplication_t,
+                                     Stream_ImageScreen_MediaFoundation_Stream>::Stream_ImageScreen_WxWidgetsDialog_T (wxWindow* parent_in)
  : inherited (parent_in)
  , application_ (NULL)
  , initializing_ (true)
@@ -2090,8 +2132,9 @@ Stream_ImageScreen_WxWidgetsDialog_T<Stream_ImageScreen_MediaFoundation_WxWidget
 }
 
 bool
-Stream_ImageScreen_WxWidgetsDialog_T<Stream_ImageScreen_MediaFoundation_WxWidgetsIApplication_t,
-                                 Stream_ImageScreen_MediaFoundation_Stream>::OnInit_2 (IAPPLICATION_T* iapplication_in)
+Stream_ImageScreen_WxWidgetsDialog_T<wxDialog_main,
+                                     Stream_ImageScreen_MediaFoundation_WxWidgetsIApplication_t,
+                                     Stream_ImageScreen_MediaFoundation_Stream>::OnInit_2 (IAPPLICATION_T* iapplication_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_ImageScreen_WxWidgetsDialog_T::OnInit_2"));
 
@@ -2138,12 +2181,12 @@ Stream_ImageScreen_WxWidgetsDialog_T<Stream_ImageScreen_MediaFoundation_WxWidget
   button_report->Show (false);
 #endif // _DEBUG
   bool activate_source = true;
-  Stream_ImageScreen_MediaFoundation_WxWidgetsIApplication_t::CONFIGURATION_T& configuration_r =
+  Stream_ImageScreen_MediaFoundation_WxWidgetsIApplication_t::CONFIGURATION_T& cb_data_r =
     const_cast<Stream_ImageScreen_MediaFoundation_WxWidgetsIApplication_t::CONFIGURATION_T&> (application_->getR_2 ());
-  ACE_ASSERT (configuration_r.configuration);
+  ACE_ASSERT (cb_data_r.configuration);
   Stream_ImageScreen_MediaFoundation_Stream::CONFIGURATION_T::ITERATOR_T stream_iterator =
-    configuration_r.configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
-  ACE_ASSERT (stream_iterator != configuration_r.configuration->streamConfiguration.end ());
+    cb_data_r.configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
+  ACE_ASSERT (stream_iterator != cb_data_r.configuration->streamConfiguration.end ());
   Stream_Device_List_t devices_a =
     Stream_Device_DirectShow_Tools::getCaptureDevices (CLSID_VideoInputDeviceCategory);
 
@@ -2178,9 +2221,11 @@ Stream_ImageScreen_WxWidgetsDialog_T<Stream_ImageScreen_MediaFoundation_WxWidget
 
   return true;
 }
+
 void
-Stream_ImageScreen_WxWidgetsDialog_T<Stream_ImageScreen_MediaFoundation_WxWidgetsIApplication_t,
-                                 Stream_ImageScreen_MediaFoundation_Stream>::OnExit_2 ()
+Stream_ImageScreen_WxWidgetsDialog_T<wxDialog_main,
+                                     Stream_ImageScreen_MediaFoundation_WxWidgetsIApplication_t,
+                                     Stream_ImageScreen_MediaFoundation_Stream>::OnExit_2 ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_ImageScreen_WxWidgetsDialog_T::OnExit_2"));
 
@@ -2191,8 +2236,9 @@ Stream_ImageScreen_WxWidgetsDialog_T<Stream_ImageScreen_MediaFoundation_WxWidget
 //////////////////////////////////////////
 
 void
-Stream_ImageScreen_WxWidgetsDialog_T<Stream_ImageScreen_MediaFoundation_WxWidgetsIApplication_t,
-                                 Stream_ImageScreen_MediaFoundation_Stream>::dialog_main_idle_cb (wxIdleEvent& event_in)
+Stream_ImageScreen_WxWidgetsDialog_T<wxDialog_main,
+                                     Stream_ImageScreen_MediaFoundation_WxWidgetsIApplication_t,
+                                     Stream_ImageScreen_MediaFoundation_Stream>::dialog_main_idle_cb (wxIdleEvent& event_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_ImageScreen_WxWidgetsDialog_T::dialog_main_idle_cb"));
 
@@ -2201,76 +2247,85 @@ Stream_ImageScreen_WxWidgetsDialog_T<Stream_ImageScreen_MediaFoundation_WxWidget
   // sanity check(s)
   ACE_ASSERT (application_);
 
-  Stream_ImageScreen_MediaFoundation_WxWidgetsIApplication_t::CONFIGURATION_T& configuration_r =
+  Stream_ImageScreen_MediaFoundation_WxWidgetsIApplication_t::CONFIGURATION_T& cb_data_r =
     const_cast<Stream_ImageScreen_MediaFoundation_WxWidgetsIApplication_t::CONFIGURATION_T&> (application_->getR_2 ());
-  ACE_ASSERT (configuration_r.stream);
+  ACE_ASSERT (cb_data_r.stream);
 
-  if (configuration_r.stream->isRunning ())
+  if (cb_data_r.stream->isRunning ())
     gauge_progress->Pulse ();
 }
 
 void
-Stream_ImageScreen_WxWidgetsDialog_T<Stream_ImageScreen_MediaFoundation_WxWidgetsIApplication_t,
-                                 Stream_ImageScreen_MediaFoundation_Stream>::dialog_main_keydown_cb (wxKeyEvent& event_in)
+Stream_ImageScreen_WxWidgetsDialog_T<wxDialog_main,
+                                     Stream_ImageScreen_MediaFoundation_WxWidgetsIApplication_t,
+                                     Stream_ImageScreen_MediaFoundation_Stream>::dialog_main_keydown_cb (wxKeyEvent& event_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_ImageScreen_WxWidgetsDialog_T::dialog_main_keydown_cb"));
 
   // sanity check(s)
   ACE_ASSERT (application_);
 
-  Stream_ImageScreen_MediaFoundation_WxWidgetsIApplication_t::CONFIGURATION_T& configuration_r =
+  Stream_ImageScreen_MediaFoundation_WxWidgetsIApplication_t::CONFIGURATION_T& cb_data_r =
     const_cast<Stream_ImageScreen_MediaFoundation_WxWidgetsIApplication_t::CONFIGURATION_T&> (application_->getR_2 ());
-  ACE_ASSERT (configuration_r.stream);
+  ACE_ASSERT (cb_data_r.stream);
 }
 
 //////////////////////////////////////////
 
 void
-Stream_ImageScreen_WxWidgetsDialog_T<Stream_ImageScreen_MediaFoundation_WxWidgetsIApplication_t,
-                                 Stream_ImageScreen_MediaFoundation_Stream>::togglebutton_record_toggled_cb (wxCommandEvent& event_in)
+Stream_ImageScreen_WxWidgetsDialog_T<wxDialog_main,
+                                     Stream_ImageScreen_MediaFoundation_WxWidgetsIApplication_t,
+                                     Stream_ImageScreen_MediaFoundation_Stream>::togglebutton_record_toggled_cb (wxCommandEvent& event_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_ImageScreen_WxWidgetsDialog_T::togglebutton_record_toggled_cb"));
 
 }
 void
-Stream_ImageScreen_WxWidgetsDialog_T<Stream_ImageScreen_MediaFoundation_WxWidgetsIApplication_t,
-                                 Stream_ImageScreen_MediaFoundation_Stream>::button_snapshot_clicked_cb (wxCommandEvent& event_in)
+Stream_ImageScreen_WxWidgetsDialog_T<wxDialog_main,
+                                     Stream_ImageScreen_MediaFoundation_WxWidgetsIApplication_t,
+                                     Stream_ImageScreen_MediaFoundation_Stream>::button_snapshot_clicked_cb (wxCommandEvent& event_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_ImageScreen_WxWidgetsDialog_T::button_snapshot_clicked_cb"));
 
 }
+
 void
-Stream_ImageScreen_WxWidgetsDialog_T<Stream_ImageScreen_MediaFoundation_WxWidgetsIApplication_t,
-                                 Stream_ImageScreen_MediaFoundation_Stream>::button_cut_clicked_cb (wxCommandEvent& event_in)
+Stream_ImageScreen_WxWidgetsDialog_T<wxDialog_main,
+                                     Stream_ImageScreen_MediaFoundation_WxWidgetsIApplication_t,
+                                     Stream_ImageScreen_MediaFoundation_Stream>::button_cut_clicked_cb (wxCommandEvent& event_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_ImageScreen_WxWidgetsDialog_T::button_cut_clicked_cb"));
 
 }
+
 #if defined (_DEBUG)
 void
-Stream_ImageScreen_WxWidgetsDialog_T<Stream_ImageScreen_MediaFoundation_WxWidgetsIApplication_t,
-                                 Stream_ImageScreen_MediaFoundation_Stream>::button_report_clicked_cb (wxCommandEvent& event_in)
+Stream_ImageScreen_WxWidgetsDialog_T<wxDialog_main,
+                                     Stream_ImageScreen_MediaFoundation_WxWidgetsIApplication_t,
+                                     Stream_ImageScreen_MediaFoundation_Stream>::button_report_clicked_cb (wxCommandEvent& event_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_ImageScreen_WxWidgetsDialog_T::button_report_clicked_cb"));
 
 }
 #endif // _DEBUG
+
 void
-Stream_ImageScreen_WxWidgetsDialog_T<Stream_ImageScreen_MediaFoundation_WxWidgetsIApplication_t,
-                                 Stream_ImageScreen_MediaFoundation_Stream>::choice_source_changed_cb (wxCommandEvent& event_in)
+Stream_ImageScreen_WxWidgetsDialog_T<wxDialog_main,
+                                     Stream_ImageScreen_MediaFoundation_WxWidgetsIApplication_t,
+                                     Stream_ImageScreen_MediaFoundation_Stream>::choice_source_changed_cb (wxCommandEvent& event_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_ImageScreen_WxWidgetsDialog_T::choice_source_changed_cb"));
 
   // sanity check(s)
   ACE_ASSERT (application_);
 
-  Stream_ImageScreen_MediaFoundation_WxWidgetsIApplication_t::CONFIGURATION_T& configuration_r =
+  Stream_ImageScreen_MediaFoundation_WxWidgetsIApplication_t::CONFIGURATION_T& cb_data_r =
     const_cast<Stream_ImageScreen_MediaFoundation_WxWidgetsIApplication_t::CONFIGURATION_T&> (application_->getR_2 ());
-  ACE_ASSERT (configuration_r.configuration);
-  ACE_ASSERT (configuration_r.stream);
+  ACE_ASSERT (cb_data_r.configuration);
+  ACE_ASSERT (cb_data_r.stream);
   Stream_ImageScreen_MediaFoundation_Stream::CONFIGURATION_T::ITERATOR_T stream_iterator =
-    configuration_r.configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
-  ACE_ASSERT (stream_iterator != configuration_r.configuration->streamConfiguration.end ());
+    cb_data_r.configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
+  ACE_ASSERT (stream_iterator != cb_data_r.configuration->streamConfiguration.end ());
   std::string device_identifier;
   int index_i = -1;
 
@@ -2298,7 +2353,7 @@ Stream_ImageScreen_WxWidgetsDialog_T<Stream_ImageScreen_MediaFoundation_WxWidget
 #endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0601)
 
   Stream_Module_t* module_p =
-    const_cast<Stream_Module_t*> (configuration_r.stream->find (ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_NULL_DEFAULT_NAME_STRING)));
+    const_cast<Stream_Module_t*> (cb_data_r.stream->find (ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_NULL_DEFAULT_NAME_STRING)));
   if (!module_p)
   {
     ACE_DEBUG ((LM_ERROR,
@@ -2346,12 +2401,12 @@ Stream_ImageScreen_WxWidgetsDialog_T<Stream_ImageScreen_MediaFoundation_WxWidget
 #endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
   topology_p->Release (); topology_p = NULL;
 
-  if (configuration_r.configuration->streamConfiguration.configuration_.format)
+  if (cb_data_r.configuration->streamConfiguration.configuration_.format)
   {
-    configuration_r.configuration->streamConfiguration.configuration_.format->Release (); configuration_r.configuration->streamConfiguration.configuration_.format = NULL;
+    cb_data_r.configuration->streamConfiguration.configuration_.format->Release (); cb_data_r.configuration->streamConfiguration.configuration_.format = NULL;
   } // end IF
   HRESULT result_2 =
-    MFCreateMediaType (&configuration_r.configuration->streamConfiguration.configuration_.format);
+    MFCreateMediaType (&cb_data_r.configuration->streamConfiguration.configuration_.format);
   if (FAILED (result_2))
   {
     ACE_DEBUG ((LM_ERROR,
@@ -2359,17 +2414,17 @@ Stream_ImageScreen_WxWidgetsDialog_T<Stream_ImageScreen_MediaFoundation_WxWidget
                 ACE_TEXT (Common_Error_Tools::errorToString (result_2).c_str ())));
     return;
   } // end IF
-  ACE_ASSERT (configuration_r.configuration->streamConfiguration.configuration_.format);
+  ACE_ASSERT (cb_data_r.configuration->streamConfiguration.configuration_.format);
   result_2 =
-    configuration_r.configuration->streamConfiguration.configuration_.format->SetGUID (MF_MT_MAJOR_TYPE,
+    cb_data_r.configuration->streamConfiguration.configuration_.format->SetGUID (MF_MT_MAJOR_TYPE,
                                                                                        MFMediaType_Video);
   ACE_ASSERT (SUCCEEDED (result_2));
   result_2 =
-    configuration_r.configuration->streamConfiguration.configuration_.format->SetUINT32 (MF_MT_INTERLACE_MODE,
+    cb_data_r.configuration->streamConfiguration.configuration_.format->SetUINT32 (MF_MT_INTERLACE_MODE,
                                                                                          MFVideoInterlace_Unknown);
   ACE_ASSERT (SUCCEEDED (result_2));
   result_2 =
-    MFSetAttributeRatio (configuration_r.configuration->streamConfiguration.configuration_.format,
+    MFSetAttributeRatio (cb_data_r.configuration->streamConfiguration.configuration_.format,
                          MF_MT_PIXEL_ASPECT_RATIO,
                          pixel_aspect_ratio.Numerator,
                          pixel_aspect_ratio.Denominator);
@@ -2386,60 +2441,74 @@ Stream_ImageScreen_WxWidgetsDialog_T<Stream_ImageScreen_MediaFoundation_WxWidget
   //                                     log_file_name);
   //} // end IF
 }
+
 void
-Stream_ImageScreen_WxWidgetsDialog_T<Stream_ImageScreen_MediaFoundation_WxWidgetsIApplication_t,
-                                 Stream_ImageScreen_MediaFoundation_Stream>::button_camera_properties_clicked_cb (wxCommandEvent& event_in)
+Stream_ImageScreen_WxWidgetsDialog_T<wxDialog_main,
+                                     Stream_ImageScreen_MediaFoundation_WxWidgetsIApplication_t,
+                                     Stream_ImageScreen_MediaFoundation_Stream>::button_camera_properties_clicked_cb (wxCommandEvent& event_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_ImageScreen_WxWidgetsDialog_T::button_camera_properties_clicked_cb"));
 
 }
+
 void
-Stream_ImageScreen_WxWidgetsDialog_T<Stream_ImageScreen_MediaFoundation_WxWidgetsIApplication_t,
-                                 Stream_ImageScreen_MediaFoundation_Stream>::choice_format_changed_cb (wxCommandEvent& event_in)
+Stream_ImageScreen_WxWidgetsDialog_T<wxDialog_main,
+                                     Stream_ImageScreen_MediaFoundation_WxWidgetsIApplication_t,
+                                     Stream_ImageScreen_MediaFoundation_Stream>::choice_format_changed_cb (wxCommandEvent& event_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_ImageScreen_WxWidgetsDialog_T::choice_format_changed_cb"));
 
 }
+
 void
-Stream_ImageScreen_WxWidgetsDialog_T<Stream_ImageScreen_MediaFoundation_WxWidgetsIApplication_t,
-                                 Stream_ImageScreen_MediaFoundation_Stream>::choice_resolution_changed_cb (wxCommandEvent& event_in)
+Stream_ImageScreen_WxWidgetsDialog_T<wxDialog_main,
+                                     Stream_ImageScreen_MediaFoundation_WxWidgetsIApplication_t,
+                                     Stream_ImageScreen_MediaFoundation_Stream>::choice_resolution_changed_cb (wxCommandEvent& event_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_ImageScreen_WxWidgetsDialog_T::choice_resolution_changed_cb"));
 
 }
+
 void
-Stream_ImageScreen_WxWidgetsDialog_T<Stream_ImageScreen_MediaFoundation_WxWidgetsIApplication_t,
-                                 Stream_ImageScreen_MediaFoundation_Stream>::choice_framerate_changed_cb (wxCommandEvent& event_in)
+Stream_ImageScreen_WxWidgetsDialog_T<wxDialog_main,
+                                     Stream_ImageScreen_MediaFoundation_WxWidgetsIApplication_t,
+                                     Stream_ImageScreen_MediaFoundation_Stream>::choice_framerate_changed_cb (wxCommandEvent& event_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_ImageScreen_WxWidgetsDialog_T::choice_framerate_changed_cb"));
 
 }
+
 void
-Stream_ImageScreen_WxWidgetsDialog_T<Stream_ImageScreen_MediaFoundation_WxWidgetsIApplication_t,
-                                 Stream_ImageScreen_MediaFoundation_Stream>::button_reset_camera_clicked_cb (wxCommandEvent& event_in)
+Stream_ImageScreen_WxWidgetsDialog_T<wxDialog_main,
+                                     Stream_ImageScreen_MediaFoundation_WxWidgetsIApplication_t,
+                                     Stream_ImageScreen_MediaFoundation_Stream>::button_reset_camera_clicked_cb (wxCommandEvent& event_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_ImageScreen_WxWidgetsDialog_T::button_reset_camera_clicked_cb"));
 
 }
 
 void
-Stream_ImageScreen_WxWidgetsDialog_T<Stream_ImageScreen_MediaFoundation_WxWidgetsIApplication_t,
-                                 Stream_ImageScreen_MediaFoundation_Stream>::togglebutton_save_toggled_cb (wxCommandEvent& event_in)
+Stream_ImageScreen_WxWidgetsDialog_T<wxDialog_main,
+                                     Stream_ImageScreen_MediaFoundation_WxWidgetsIApplication_t,
+                                     Stream_ImageScreen_MediaFoundation_Stream>::togglebutton_save_toggled_cb (wxCommandEvent& event_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_ImageScreen_WxWidgetsDialog_T::togglebutton_save_toggled_cb"));
 
 }
+
 void
-Stream_ImageScreen_WxWidgetsDialog_T<Stream_ImageScreen_MediaFoundation_WxWidgetsIApplication_t,
-                                 Stream_ImageScreen_MediaFoundation_Stream>::picker_directory_save_changed_cb (wxFileDirPickerEvent& event_in)
+Stream_ImageScreen_WxWidgetsDialog_T<wxDialog_main,
+                                     Stream_ImageScreen_MediaFoundation_WxWidgetsIApplication_t,
+                                     Stream_ImageScreen_MediaFoundation_Stream>::picker_directory_save_changed_cb (wxFileDirPickerEvent& event_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_ImageScreen_WxWidgetsDialog_T::picker_directory_save_changed_cb"));
 
 }
 
 void
-Stream_ImageScreen_WxWidgetsDialog_T<Stream_ImageScreen_MediaFoundation_WxWidgetsIApplication_t,
-                                 Stream_ImageScreen_MediaFoundation_Stream>::togglebutton_display_toggled_cb (wxCommandEvent& event_in)
+Stream_ImageScreen_WxWidgetsDialog_T<wxDialog_main,
+                                     Stream_ImageScreen_MediaFoundation_WxWidgetsIApplication_t,
+                                     Stream_ImageScreen_MediaFoundation_Stream>::togglebutton_display_toggled_cb (wxCommandEvent& event_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_ImageScreen_WxWidgetsDialog_T::togglebutton_display_toggled_cb"));
 
@@ -2447,45 +2516,56 @@ Stream_ImageScreen_WxWidgetsDialog_T<Stream_ImageScreen_MediaFoundation_WxWidget
   togglebutton_fullscreen->Enable (is_checked_b);
   choice_display->Enable (is_checked_b);
 }
+
 void
-Stream_ImageScreen_WxWidgetsDialog_T<Stream_ImageScreen_MediaFoundation_WxWidgetsIApplication_t,
-                                 Stream_ImageScreen_MediaFoundation_Stream>::togglebutton_fullscreen_toggled_cb (wxCommandEvent& event_in)
+Stream_ImageScreen_WxWidgetsDialog_T<wxDialog_main,
+                                     Stream_ImageScreen_MediaFoundation_WxWidgetsIApplication_t,
+                                     Stream_ImageScreen_MediaFoundation_Stream>::togglebutton_fullscreen_toggled_cb (wxCommandEvent& event_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_ImageScreen_WxWidgetsDialog_T::togglebutton_fullscreen_toggled_cb"));
 
 }
+
 void
-Stream_ImageScreen_WxWidgetsDialog_T<Stream_ImageScreen_MediaFoundation_WxWidgetsIApplication_t,
-                                 Stream_ImageScreen_MediaFoundation_Stream>::choice_displayadapter_changed_cb (wxCommandEvent& event_in)
+Stream_ImageScreen_WxWidgetsDialog_T<wxDialog_main,
+                                     Stream_ImageScreen_MediaFoundation_WxWidgetsIApplication_t,
+                                     Stream_ImageScreen_MediaFoundation_Stream>::choice_displayadapter_changed_cb (wxCommandEvent& event_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_ImageScreen_WxWidgetsDialog_T::choice_displayadapter_changed_cb"));
 
 }
+
 void
-Stream_ImageScreen_WxWidgetsDialog_T<Stream_ImageScreen_MediaFoundation_WxWidgetsIApplication_t,
-                                 Stream_ImageScreen_MediaFoundation_Stream>::choice_screen_changed_cb (wxCommandEvent& event_in)
+Stream_ImageScreen_WxWidgetsDialog_T<wxDialog_main,
+                                     Stream_ImageScreen_MediaFoundation_WxWidgetsIApplication_t,
+                                     Stream_ImageScreen_MediaFoundation_Stream>::choice_screen_changed_cb (wxCommandEvent& event_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_ImageScreen_WxWidgetsDialog_T::choice_screen_changed_cb"));
 
 }
+
 void
-Stream_ImageScreen_WxWidgetsDialog_T<Stream_ImageScreen_MediaFoundation_WxWidgetsIApplication_t,
-                                 Stream_ImageScreen_MediaFoundation_Stream>::button_display_settings_clicked_cb (wxCommandEvent& event_in)
+Stream_ImageScreen_WxWidgetsDialog_T<wxDialog_main,
+                                     Stream_ImageScreen_MediaFoundation_WxWidgetsIApplication_t,
+                                     Stream_ImageScreen_MediaFoundation_Stream>::button_display_settings_clicked_cb (wxCommandEvent& event_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_ImageScreen_WxWidgetsDialog_T::button_display_settings_clicked_cb"));
 
 }
+
 void
-Stream_ImageScreen_WxWidgetsDialog_T<Stream_ImageScreen_MediaFoundation_WxWidgetsIApplication_t,
-                                 Stream_ImageScreen_MediaFoundation_Stream>::choice_resolution_2_changed_cb (wxCommandEvent& event_in)
+Stream_ImageScreen_WxWidgetsDialog_T<wxDialog_main,
+                                     Stream_ImageScreen_MediaFoundation_WxWidgetsIApplication_t,
+                                     Stream_ImageScreen_MediaFoundation_Stream>::choice_resolution_2_changed_cb (wxCommandEvent& event_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_ImageScreen_WxWidgetsDialog_T::choice_resolution_2_changed_cb"));
 
 }
 
 void
-Stream_ImageScreen_WxWidgetsDialog_T<Stream_ImageScreen_MediaFoundation_WxWidgetsIApplication_t,
-                                 Stream_ImageScreen_MediaFoundation_Stream>::button_about_clicked_cb (wxCommandEvent& event_in)
+Stream_ImageScreen_WxWidgetsDialog_T<wxDialog_main,
+                                     Stream_ImageScreen_MediaFoundation_WxWidgetsIApplication_t,
+                                     Stream_ImageScreen_MediaFoundation_Stream>::button_about_clicked_cb (wxCommandEvent& event_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_ImageScreen_WxWidgetsDialog_T::button_about_clicked_cb"));
 
@@ -2496,9 +2576,11 @@ Stream_ImageScreen_WxWidgetsDialog_T<Stream_ImageScreen_MediaFoundation_WxWidget
   about_dialog_info.SetCopyright (wxT ("(C) 2007 Me <my@email.addre.ss>"));
   wxAboutBox (about_dialog_info);
 }
+
 void
-Stream_ImageScreen_WxWidgetsDialog_T<Stream_ImageScreen_MediaFoundation_WxWidgetsIApplication_t,
-                                 Stream_ImageScreen_MediaFoundation_Stream>::button_quit_clicked_cb (wxCommandEvent& event_in)
+Stream_ImageScreen_WxWidgetsDialog_T<wxDialog_main,
+                                     Stream_ImageScreen_MediaFoundation_WxWidgetsIApplication_t,
+                                     Stream_ImageScreen_MediaFoundation_Stream>::button_quit_clicked_cb (wxCommandEvent& event_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_ImageScreen_WxWidgetsDialog_T::button_quit_clicked_cb"));
 
@@ -2507,9 +2589,9 @@ Stream_ImageScreen_WxWidgetsDialog_T<Stream_ImageScreen_MediaFoundation_WxWidget
 
   // step1: make sure the stream has stopped
   Stream_ImageScreen_MediaFoundation_Stream* stream_p = NULL;
-  Stream_ImageScreen_MediaFoundation_WxWidgetsIApplication_t::CONFIGURATION_T& configuration_r =
+  Stream_ImageScreen_MediaFoundation_WxWidgetsIApplication_t::CONFIGURATION_T& cb_data_r =
     const_cast<Stream_ImageScreen_MediaFoundation_WxWidgetsIApplication_t::CONFIGURATION_T&> (application_->getR_2 ());
-  stream_p = configuration_r.stream;
+  stream_p = cb_data_r.stream;
   ACE_ASSERT (stream_p);
   const enum Stream_StateMachine_ControlState& status_r =
     stream_p->status ();
@@ -2529,5 +2611,4 @@ Stream_ImageScreen_WxWidgetsDialog_T<Stream_ImageScreen_MediaFoundation_WxWidget
                 ACE_TEXT ("failed to ACE_OS::raise(%S): \"%m\", continuing\n"),
                 SIGINT));
 }
-#else
 #endif // ACE_WIN32 || ACE_WIN64

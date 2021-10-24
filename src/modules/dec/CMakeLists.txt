@@ -120,6 +120,7 @@ target_include_directories (${PROJECT_NAME}_Decoder PUBLIC
                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../vis>)
 
 ############## next target ################
+unset (source_files)
 set (source_files
      stream_dec_avi_decoder.cpp
      stream_dec_avi_decoder.h
@@ -241,10 +242,10 @@ endforeach ()
 target_sources (${PROJECT_NAME}_Decoder
                 PRIVATE stdafx.cpp
                 PRIVATE stdafx.h
-                PRIVATE
-                ${absolute_source_files}
-                INTERFACE
-                ${absolute_script_files})
+                PRIVATE ${absolute_source_files}
+                INTERFACE ${absolute_script_files})
+target_precompile_headers (${PROJECT_NAME}_Decoder
+                           PUBLIC stdafx.h)
 
 # *NOTE*: generate .def file and export all symbols on Windows
 if (WIN32)
@@ -310,8 +311,8 @@ target_link_libraries (${PROJECT_NAME}_Decoder PUBLIC ${PROJECT_NAME}_MediaFrame
 #set_target_properties (${PROJECT_NAME}_Decoder PROPERTIES VERSION ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_MICRO} SOVERSION 1)
 
 # add PCH
-set_target_properties (${PROJECT_NAME}_Decoder PROPERTIES COTIRE_CXX_PREFIX_HEADER_INIT "stdafx.h")
-cotire (${PROJECT_NAME}_Decoder)
+#set_target_properties (${PROJECT_NAME}_Decoder PROPERTIES COTIRE_CXX_PREFIX_HEADER_INIT "stdafx.h")
+#cotire (${PROJECT_NAME}_Decoder)
 
 # add all targets to the build-tree export set
 export (TARGETS ${PROJECT_NAME}_Decoder

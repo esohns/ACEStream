@@ -65,6 +65,8 @@ target_sources (${PROJECT_NAME}_Statistic
                 PRIVATE stdafx.cpp
                 PRIVATE stdafx.h
                 ${absolute_source_files})
+target_precompile_headers (${PROJECT_NAME}_Statistic
+                           PUBLIC stdafx.h)
 
 set_property (TARGET ${PROJECT_NAME}_Statistic PROPERTY FOLDER "modules")
 
@@ -81,8 +83,8 @@ target_link_libraries (${PROJECT_NAME}_Statistic PUBLIC ${PROJECT_NAME})
 #set_target_properties (${PROJECT_NAME}_Statistic PROPERTIES VERSION ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_MICRO} SOVERSION 1)
 
 # add PCH
-set_target_properties (${PROJECT_NAME}_Statistic PROPERTIES COTIRE_CXX_PREFIX_HEADER_INIT "stdafx.h")
-cotire (${PROJECT_NAME}_Statistic)
+#set_target_properties (${PROJECT_NAME}_Statistic PROPERTIES COTIRE_CXX_PREFIX_HEADER_INIT "stdafx.h")
+#cotire (${PROJECT_NAME}_Statistic)
 
 # add all targets to the build-tree export set
 export (TARGETS ${PROJECT_NAME}_Statistic

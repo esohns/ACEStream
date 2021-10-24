@@ -515,11 +515,9 @@ Stream_Dev_Cam_Source_MediaFoundation_T<ACE_SYNCH_USE,
           topology_p->Release (); topology_p = NULL;
           goto error;
         } // end IF
-#if defined (_DEBUG)
         ACE_DEBUG ((LM_DEBUG,
                     ACE_TEXT ("capture format: \"%s\"\n"),
                     ACE_TEXT (Stream_MediaFramework_MediaFoundation_Tools::toString (session_data_r.formats.back ()).c_str ())));
-#endif // _DEBUG
 
         IMFAttributes* attributes_p = NULL;
         result_2 = MFCreateAttributes (&attributes_p, 4);
@@ -751,10 +749,11 @@ continue_:
       if (likely (COM_initialized))
         CoUninitialize ();
 
-      if (likely (inherited::concurrency_ != STREAM_HEADMODULECONCURRENCY_CONCURRENT))
-        inherited::stop (false, // wait ?
-                         false, // high priority ?
-                         true); // locked access ?
+      if (likely (inherited::configuration_->concurrency != STREAM_HEADMODULECONCURRENCY_CONCURRENT))
+      { Common_ITask* itask_p = this; // *TODO*: is the no other way ?
+        itask_p->stop (false,  // wait for completion ?
+                       false); // high priority ?
+      } // end IF
 
       break;
     }

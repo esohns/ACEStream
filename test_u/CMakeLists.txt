@@ -272,13 +272,15 @@ target_sources (${PROJECT_NAME}_Test_U
                 PRIVATE stdafx.cpp
                 PRIVATE stdafx.h
                 ${absolute_source_files})
+target_precompile_headers (${PROJECT_NAME}_Test_U
+                           PUBLIC stdafx.h)
 
 ##########################################
 
 # add PCH
-set_target_properties (${PROJECT_NAME}_Test_U PROPERTIES
-                       COTIRE_CXX_PREFIX_HEADER_INIT "stdafx.h")
-cotire (${PROJECT_NAME}_Test_U)
+#set_target_properties (${PROJECT_NAME}_Test_U PROPERTIES
+#                       COTIRE_CXX_PREFIX_HEADER_INIT "stdafx.h")
+#cotire (${PROJECT_NAME}_Test_U)
 
 # add all targets to the build-tree export set
 #export (TARGETS ${PROJECT_NAME}_Test_U

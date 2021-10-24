@@ -9,7 +9,7 @@
 //  g++ main.cpp $(wx-config --libs) $(wx-config --cxxflags) -o MyApp Dialog1.cpp Frame1.cpp
 //
 
-#include "camsave_wxwidgets_ui.h"
+#include "imagescreen_wxwidgets_ui.h"
 
 // begin wxGlade: ::extracode
 // end wxGlade

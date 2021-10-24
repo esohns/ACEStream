@@ -24,6 +24,7 @@
 #include <mfapi.h>
 #include <mferror.h>
 #include <shlwapi.h>
+#include <wxdebug.h>
 
 #include "stream_macros.h"
 

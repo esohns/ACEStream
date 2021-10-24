@@ -6,7 +6,7 @@
 //      are changed infrequently
 //
 #if defined (_MSC_VER)
-#define WIN32_LEAN_AND_MEAN		// Exclude rarely-used stuff from Windows headers
+#define WIN32_LEAN_AND_MEAN // Exclude rarely-used stuff from Windows headers
 
 // *NOTE*: work around quirky MSVC...
 #define NOMINMAX
@@ -16,28 +16,28 @@
 #include "targetver.h"
 
 // Windows Header Files
-#include <windows.h>
+#include "windows.h"
 
-#include <strmif.h>
-#include <reftime.h>
+//#include <strmif.h>
+//#include <reftime.h>
 #if defined (DEBUG)
 //// *NOTE*: wxWidgets may have #defined __WXDEBUG__
 //#if defined (__WXDEBUG__)
 //#undef __WXDEBUG__
 //#endif // __WXDEBUG__
-#include <wxdebug.h>
+//#include <wxdebug.h>
 #endif // DEBUG
 // *NOTE*: uuids.h doesn't have double include protection
 #if defined (UUIDS_H)
 #else
 #define UUIDS_H
-#include <uuids.h>
+#include "uuids.h"
 #endif // UUIDS_H
 
 //#include <streams.h>
 
 // support imagemagick
-#define ssize_t ssize_t
+//#define ssize_t ssize_t
 #endif // _MSC_VER
 
 // C RunTime Header Files
@@ -70,11 +70,12 @@
 
 #include "test_u_common.h"
 #if defined (GUI_SUPPORT)
-#if defined (GTK_USE)
+#if defined (GTK_SUPPORT)
 #include "test_u_gtk_common.h"
-#elif defined (WXWIDGETS_USE)
+#endif // GTK_SUPPORT
+#if defined (WXWIDGETS_SUPPORT)
 #include "test_u_wxwidgets_common.h"
-#endif
+#endif // WXWIDGETS_SUPPORT
 #endif // GUI_SUPPORT
 
 #include "test_u_imagescreen_common.h"
