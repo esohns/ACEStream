@@ -23,7 +23,7 @@
 #endif // ACE_WIN32 || ACE_WIN64
 
 #include "ace/Log_Msg.h"
-//#include "ace/Thread_Manager.h"
+#include "ace/Thread_Manager.h"
 
 #include "stream_macros.h"
 

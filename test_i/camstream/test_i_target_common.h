@@ -38,9 +38,9 @@
 #endif // ACE_WIN32 || ACE_WIN64
 
 #if defined (GUI_SUPPORT)
-#if defined (GTK_USE)
+#if defined (GTK_SUPPORT)
 #include "gtk/gtk.h"
-#endif // GTK_USE
+#endif // GTK_SUPPORT
 #endif // GUI_SUPPORT
 
 #include "ace/INET_Addr.h"
@@ -50,12 +50,12 @@
 #include "ace/Time_Value.h"
 
 #if defined (GUI_SUPPORT)
-#if defined (GTK_USE)
+#if defined (GTK_SUPPORT)
 #include "common_ui_gtk_builder_definition.h"
 #include "common_ui_gtk_common.h"
 #include "common_ui_gtk_manager.h"
 #include "common_ui_gtk_manager_common.h"
-#endif // GTK_USE
+#endif // GTK_SUPPORT
 #endif // GUI_SUPPORT
 
 #include "stream_control_message.h"
@@ -647,7 +647,7 @@ struct Test_I_Target_StreamConfiguration
   struct Stream_MediaFramework_FFMPEG_VideoMediaType format;
 #if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
-  GdkWindow*                                    window;
+  GdkWindow*                                         window;
 #endif // GTK_USE
 #endif // GUI_SUPPORT
 };

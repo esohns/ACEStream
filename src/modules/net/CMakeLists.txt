@@ -94,10 +94,6 @@ target_link_libraries (${PROJECT_NAME}_Network PUBLIC ${PROJECT_NAME})
 #set_target_properties (${PROJECT_NAME}_Network PROPERTIES DEFINE_SYMBOL STREAM_NET_BUILD_DLL)
 #set_target_properties (${PROJECT_NAME}_Network PROPERTIES VERSION ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_MICRO} SOVERSION 1)
 
-# add PCH
-#set_target_properties (${PROJECT_NAME}_Network PROPERTIES COTIRE_CXX_PREFIX_HEADER_INIT "stdafx.h")
-#cotire (${PROJECT_NAME}_Network)
-
 # add all targets to the build-tree export set
 export (TARGETS ${PROJECT_NAME}_Network
         APPEND FILE "${PROJECT_BINARY_DIR}/${PROJECT_NAME}Targets.cmake")

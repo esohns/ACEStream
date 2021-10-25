@@ -26,10 +26,6 @@
 
 #include "ace/config-lite.h"
 #include "ace/INET_Addr.h"
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-#else
-#include "ace/Netlink_Addr.h"
-#endif
 #include "ace/SOCK_Connector.h"
 #include "ace/Synch_Traits.h"
 #if defined (SSL_SUPPORT)
@@ -70,7 +66,6 @@
 #include "test_i_connection_common.h"
 
 #include "test_i_camstream_defines.h"
-//#include "test_i_source_common.h"
 
 // forward declarations
 #if defined (ACE_WIN32) || defined (ACE_WIN64)

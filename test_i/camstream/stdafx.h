@@ -34,7 +34,6 @@
 #endif // _MSC_VER
 
 // C RunTime Header Files
-//#include <sstream>
 #include <string>
 
 // System Library Header Files
@@ -62,14 +61,16 @@
 
 #include "test_i_common.h"
 #if defined (GUI_SUPPORT)
-#if defined (GTK_USE)
+#if defined (GTK_SUPPORT)
 #include "test_i_gtk_common.h"
-#endif // GTK_USE
+#endif // GTK_SUPPORT
 #endif // GUI_SUPPORT
 
 #if defined (HAVE_CONFIG_H)
 #include "ACENetwork_config.h"
 #endif // HAVE_CONFIG_H
+#include "net_common.h"
+#include "net_macros.h"
 
 #include "test_i_camstream_common.h"
 

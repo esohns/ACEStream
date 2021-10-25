@@ -29,25 +29,26 @@
 #include "ace/Synch_Traits.h"
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-#include <d3d9.h>
-#include <mfidl.h>
-#include <strmif.h>
-//#include <mtype.h>
+#include "d3d9.h"
+#include "mfidl.h"
+#include "strmif.h"
 #else
-#include <linux/videodev2.h>
+#include "linux/videodev2.h"
 
+#if defined (FFMPEG_SUPPORT)
 #ifdef __cplusplus
 extern "C"
 {
 #include "libavutil/pixfmt.h"
 }
 #endif // __cplusplus
+#endif // FFMPEG_SUPPORT
 #endif // ACE_WIN32 || ACE_WIN64
 
 #if defined (GUI_SUPPORT)
-#if defined (GTK_USE)
+#if defined (GTK_SUPPORT)
 #include "gtk/gtk.h"
-#endif // GTK_USE
+#endif // GTK_SUPPORT
 #endif // GUI_SUPPORT
 
 #include "common.h"
@@ -81,7 +82,7 @@ extern "C"
 
 #include "stream_net_common.h"
 
-#include "net_configuration.h"
+//#include "net_configuration.h"
 #include "net_defines.h"
 
 #include "test_i_common.h"

@@ -25,15 +25,15 @@
 #include "stream_macros.h"
 #include "stream_session_message_base.h"
 
+#include "stream_net_common.h"
+
 #include "net_common.h"
 #include "net_common_tools.h"
-#include "net_configuration.h"
+#include "net_connection_configuration.h"
 #include "net_iconnector.h"
 
 #include "net_client_common_tools.h"
 #include "net_client_defines.h"
-
-#include "stream_net_common.h"
 
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,

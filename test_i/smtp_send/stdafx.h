@@ -21,7 +21,7 @@
 //#if defined (__WXDEBUG__)
 //#undef __WXDEBUG__
 //#endif // __WXDEBUG__
-#include "wxdebug.h"
+//#include "wxdebug.h"
 #endif // DEBUG
 #endif // _MSC_VER
 
@@ -51,13 +51,18 @@
 #include "stream_common.h"
 #include "stream_macros.h"
 
+#if defined (HAVE_CONFIG_H)
+#include "ACENetwork_config.h"
+#endif // HAVE_CONFIG_H
+
 #include "test_i_common.h"
 #if defined (GUI_SUPPORT)
-#if defined (GTK_USE)
+#if defined (GTK_SUPPORT)
 #include "test_i_gtk_common.h"
-#elif defined (WXWIDGETS_USE)
+#endif // GTK_SUPPORT
+#if defined (WXWIDGETS_SUPPORT)
 #include "test_i_wxwidgets_common.h"
-#endif
+#endif // WXWIDGETS_SUPPORT
 #endif // GUI_SUPPORT
 
 #include "test_i_smtp_send_common.h"

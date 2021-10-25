@@ -220,11 +220,13 @@ target_link_libraries (${EXECUTABLE_SOURCE} ACENetwork)
 target_link_libraries (${EXECUTABLE_SOURCE} ${PROJECT_NAME}_Test_I)
 
 # add PCH
-set_target_properties (${EXECUTABLE_SOURCE} PROPERTIES COTIRE_CXX_PREFIX_HEADER_INIT "stdafx.h")
+#set_target_properties (${EXECUTABLE_SOURCE} PROPERTIES COTIRE_CXX_PREFIX_HEADER_INIT "stdafx.h")
 #set_target_properties (${EXECUTABLE_SOURCE} PROPERTIES COTIRE_ENABLE_PRECOMPILED_HEADER FALSE)
-if (UNIX)
- cotire (${EXECUTABLE_SOURCE})
-endif (UNIX)
+#if (UNIX)
+# cotire (${EXECUTABLE_SOURCE})
+#endif (UNIX)
+target_precompile_headers (${EXECUTABLE_SOURCE}
+                           PUBLIC stdafx.h)
 
 set (RESOURCE_FILES
      etc/resources.rc
@@ -353,10 +355,12 @@ if (WIN32)
  set_target_properties (${LIBRARY_DS} PROPERTIES DEFINE_SYMBOL STREAM_HAS_DLL)
  set_target_properties (${LIBRARY_DS} PROPERTIES VERSION ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_MICRO} SOVERSION 1)
 
- # add PCH
+# add PCH
 # set_target_properties (${LIBRARY_DS} PROPERTIES COTIRE_CXX_PREFIX_HEADER_INIT "stdafx.h")
 # set_target_properties (${LIBRARY_DS} PROPERTIES COTIRE_ENABLE_PRECOMPILED_HEADER FALSE)
 # cotire (${LIBRARY_DS})
+ target_precompile_headers (${LIBRARY_DS}
+                            PUBLIC stdafx.h)
 
 # add all targets to the build-tree export set
  export (TARGETS ${LIBRARY_DS}
@@ -412,10 +416,12 @@ if (WIN32)
  set_target_properties (${LIBRARY_MF} PROPERTIES DEFINE_SYMBOL STREAM_HAS_DLL)
  set_target_properties (${LIBRARY_MF} PROPERTIES VERSION ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_MICRO} SOVERSION 1)
 
- # add PCH
+# add PCH
 # set_target_properties (${LIBRARY_MF} PROPERTIES COTIRE_CXX_PREFIX_HEADER_INIT "stdafx.h")
- set_target_properties (${LIBRARY_MF} PROPERTIES COTIRE_ENABLE_PRECOMPILED_HEADER FALSE)
+# set_target_properties (${LIBRARY_MF} PROPERTIES COTIRE_ENABLE_PRECOMPILED_HEADER FALSE)
 # cotire (${LIBRARY_MF})
+ target_precompile_headers (${LIBRARY_MF}
+                            PUBLIC stdafx.h)
 
 # add all targets to the build-tree export set
  export (TARGETS ${LIBRARY_MF}
@@ -493,12 +499,6 @@ if (WIN32)
  endif ()
 endif ()
 
-#if (WIN32)
-# if (MSVC)
-#  target_link_options (${EXECUTABLE_TARGET} PUBLIC "$<$<CXX_COMPILER_ID:MSVC>:-SAFESEH:NO>")
-# endif (MSVC)
-#endif (WIN32)
-
 #add_dependencies (${EXECUTABLE_TARGET} ACE)
 add_dependencies (${EXECUTABLE_TARGET} Common)
 add_dependencies (${EXECUTABLE_TARGET} CommonImage)
@@ -559,8 +559,10 @@ target_link_libraries (${EXECUTABLE_TARGET} ${PROJECT_NAME}_Test_I)
 
 # add PCH
 #set_target_properties (${EXECUTABLE_TARGET} PROPERTIES COTIRE_CXX_PREFIX_HEADER_INIT "stdafx.h")
-set_target_properties (${EXECUTABLE_TARGET} PROPERTIES COTIRE_ENABLE_PRECOMPILED_HEADER FALSE)
+#set_target_properties (${EXECUTABLE_TARGET} PROPERTIES COTIRE_ENABLE_PRECOMPILED_HEADER FALSE)
 #cotire (${EXECUTABLE_TARGET})
+target_precompile_headers (${EXECUTABLE_TARGET}
+                           PUBLIC stdafx.h)
 
 install (TARGETS ${EXECUTABLE_TARGET}
          EXPORT ${PROJECT_NAME}Targets

@@ -90,22 +90,19 @@ set (${EXECUTABLE_SOURCE}_EXE_SRCS
      test_i_target_stream.h)
 #  test_i_template_instantiations.cpp
 if (GUI_SUPPORT)
- if (GTK_USE)
+ if (GTK_SUPPORT)
   set (${EXECUTABLE_SOURCE}_EXE_SRCS
        ${${EXECUTABLE_SOURCE}_EXE_SRCS}
        test_i_callbacks.cpp
        test_i_callbacks.h)
-# elseif (WXWIDGETS_USE)
+ endif (GTK_SUPPORT)
+ if (WXWIDGETS_SUPPORT)
 #  set (${EXECUTABLE_SOURCE}_EXE_SRCS
 #       ${${EXECUTABLE_SOURCE}_EXE_SRCS})
- endif ()
+ endif (WXWIDGETS_SUPPORT)
 endif (GUI_SUPPORT)
 
-set_source_files_properties (etc/resources.rc PROPERTIES HEADER_FILE_ONLY TRUE)
-
-if (UNIX)
-# add_definitions (-D_GLIBCXX_INCLUDE_NEXT_C_HEADERS)
-endif (UNIX)
+#set_source_files_properties (etc/resources.rc PROPERTIES HEADER_FILE_ONLY TRUE)
 
 cmake_policy (SET CMP0065 OLD) # do not add flags to export symbols from executables without the ENABLE_EXPORTS target property
 add_executable (${EXECUTABLE_SOURCE}
@@ -157,6 +154,8 @@ target_link_libraries (${EXECUTABLE_SOURCE} ACENetwork)
 #                       COTIRE_ENABLE_PRECOMPILED_HEADER TRUE)
 #cotire (${EXECUTABLE_SOURCE})
 #add_precompiled_header (${EXECUTABLE_SOURCE} stdafx.h FORCEINCLUDE SOURCE_CXX stdafx.cpp)
+target_precompile_headers (${EXECUTABLE_SOURCE}
+                           PUBLIC stdafx.h)
 
 set (RESOURCE_FILES
      etc/resources.rc
@@ -252,15 +251,16 @@ set (${EXECUTABLE_TARGET}_EXE_SRCS
      test_i_target_stream.h)
 #  test_i_template_instantiations.cpp
 if (GUI_SUPPORT)
- if (GTK_USE)
+ if (GTK_SUPPORT)
   set (${EXECUTABLE_TARGET}_EXE_SRCS
        ${${EXECUTABLE_TARGET}_EXE_SRCS}
        test_i_callbacks.cpp
        test_i_callbacks.h)
-# elseif (WXWIDGETS_USE)
+ endif (GTK_SUPPORT)
+ if (WXWIDGETS_SUPPORT)
 #  set (${EXECUTABLE_TARGET}_EXE_SRCS
 #       ${${EXECUTABLE_TARGET}_EXE_SRCS})
- endif (GTK_USE)
+ endif (WXWIDGETS_SUPPORT)
 endif (GUI_SUPPORT)
 
 add_executable (${EXECUTABLE_TARGET}
@@ -310,6 +310,8 @@ target_link_libraries (${EXECUTABLE_TARGET} ACENetwork)
 # add_msvc_precompiled_header (stdafx.h, stdafx.cpp, absolute_source_files)
 #endif (WIN32)
 #add_precompiled_header (${EXECUTABLE_TARGET} stdafx.h FORCEINCLUDE SOURCE_CXX stdafx.cpp)
+target_precompile_headers (${EXECUTABLE_TARGET}
+                           PUBLIC stdafx.h)
 
 ##########################################
 
