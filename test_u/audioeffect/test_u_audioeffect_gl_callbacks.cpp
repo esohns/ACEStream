@@ -1570,9 +1570,6 @@ glarea_expose_event_cb (GtkWidget* widget_in,
 
   gtk_gl_area_swap_buffers (GTK_GL_AREA (widget_in));
 
-  //// auto-redraw
-  //gtk_widget_queue_draw (widget_in);
-
   return TRUE;
 }
 #else

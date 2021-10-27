@@ -59,18 +59,15 @@ Stream_Statistic_StatisticAnalysis_T<ACE_SYNCH_USE,
  : inherited (stream_in)
  , inherited2 ()
  , inherited3 ()
- , amplitudeSum_ (0)
- , amplitudeSumSqr_ (0)
- , amplitudeVariance_ (0)
+ , amplitudeM_ (0.0)
+ , amplitudeS_ (0.0)
  , streak_ (0)
  , streakCount_ (0)
- , streakSum_ (0)
- , streakSumSqr_ (0)
- , streakVariance_ (0)
- , volume_ (0)
- , volumeSum_ (0)
- , volumeSumSqr_ (0)
- , volumeVariance_ (0)
+ , streakM_ (0.0)
+ , streakS_ (0.0)
+ , volumeM_ (0.0)
+ , volumeS_ (0.0)
+ , eventDispatcher_ (NULL)
  , iterator_ (NULL)
  , sampleCount_ (0)
  , sampleIsSigned_ (false)
@@ -113,19 +110,15 @@ Stream_Statistic_StatisticAnalysis_T<ACE_SYNCH_USE,
     //         (re-)activate()d (see below)
     inherited::msg_queue (NULL);
 
-    amplitudeSum_ = 0;
-    amplitudeSumSqr_ = 0;
-    amplitudeVariance_ = 0;
+    amplitudeM_ = 0.0;
+    amplitudeS_ = 0.0;
 
     streak_ = 0;
     streakCount_ = 0;
-    streakSum_ = 0;
-    streakSumSqr_ = 0;
-    streakVariance_ = 0;
-    volume_ = 0;
-    volumeSum_ = 0;
-    volumeSumSqr_ = 0;
-    volumeVariance_ = 0;
+    streakM_ = 0.0;
+    streakS_ = 0.0;
+    volumeM_ = 0.0;
+    volumeS_ = 0.0;
 
     eventDispatcher_ = NULL;
     iterator_.buffer_ = NULL;
@@ -340,17 +333,19 @@ error:
       SessionDataType& session_data_r =
           const_cast<SessionDataType&> (inherited::sessionData_->getR ());
 
-      session_data_r.statistic.amplitudeAverage =
-          (sampleCount_ ? amplitudeSum_ / sampleCount_ : 0.0);
-      session_data_r.statistic.amplitudeVariance = amplitudeVariance_;
-      session_data_r.statistic.streakAverage =
-          (sampleCount_ ? streakSum_ / sampleCount_ : 0.0);
+      session_data_r.statistic.amplitudeAverage = amplitudeM_;
+      session_data_r.statistic.amplitudeVariance =
+              ((sampleCount_ > 1) ? amplitudeS_ / (double)(sampleCount_ - 1)
+                                  : 0.0);
+      session_data_r.statistic.streakAverage = streakM_;
       session_data_r.statistic.streakCount = streakCount_;
-      session_data_r.statistic.streakVariance = streakVariance_;
-      session_data_r.statistic.volumeAverage =
-          (sampleCount_ ? volumeSum_ / sampleCount_ : 0.0);
-      session_data_r.statistic.volumeVariance = volumeVariance_;
-
+      session_data_r.statistic.streakVariance =
+          ((sampleCount_ > 1) ? streakS_ / (double)(sampleCount_ - 1)
+                              : 0.0);
+      session_data_r.statistic.volumeAverage = volumeM_;
+      session_data_r.statistic.volumeVariance =
+          ((sampleCount_ > 1) ? volumeS_ / (double)(sampleCount_ - 1)
+                              : 0.0);
       break;
     }
     case STREAM_SESSION_MESSAGE_END:
@@ -512,132 +507,99 @@ Stream_Statistic_StatisticAnalysis_T<ACE_SYNCH_USE,
   ACE_ASSERT (inherited::configuration_);
   ACE_ASSERT (endIndex_in < inherited3::slots_);
 
-  ValueType difference = 0, abs_value = 0;
+  static bool in_peak = false;
+  static bool was_in_peak = false;
+  static bool in_streak = false;
+  static bool was_in_streak = false;
+  static bool in_volume = false;
+  static bool was_in_volume = false;
+
+  ValueType abs_value = 0;
+  double difference = 0.0, old_mean = 0.0, variance = 0.0;
+
   for (unsigned int j = 0; j < (endIndex_in - startIndex_in + 1); ++j, ++sampleCount_)
   {
     // step1: 'attack' detection
-    static bool in_peak = false;
-    static bool was_in_peak = false;
-
     abs_value =
       (sampleIsSigned_ ? std::abs (inherited3::buffer_[channel_in][startIndex_in + j]) + static_cast<ValueType> ((1 << ((8 * iterator_.subSampleSize_) - 1)) - 1)
                        : inherited3::buffer_[channel_in][startIndex_in + j]);
-    amplitudeSum_ += abs_value;
-    amplitudeSumSqr_ += (abs_value * abs_value);
-    amplitudeVariance_ =
-        ((sampleCount_ > 1) ? (amplitudeSumSqr_ - ((amplitudeSum_ * amplitudeSum_) / (double)sampleCount_)) / (double)(sampleCount_ - 1)
-                            : 0);
-    difference =
-      (sampleCount_ ? abs_value - (amplitudeSum_ / (double)sampleCount_)
-                    : 0);
-
+    old_mean = (sampleCount_ ? amplitudeM_ : abs_value);
+    amplitudeM_ =
+        (sampleCount_ ? old_mean + (((double)abs_value - old_mean) / (double)sampleCount_)
+                      : abs_value);
+    difference = ((double)abs_value - amplitudeM_);
+    amplitudeS_ =
+        amplitudeS_ + (((double)abs_value - old_mean) * ((double)abs_value - amplitudeM_));
+    variance =
+        ((sampleCount_ > 1) ? amplitudeS_ / (double)(sampleCount_ - 1)
+                            : 0.0);
     was_in_peak = in_peak;
     in_peak =
-        (std::abs (difference) > (MODULE_STAT_ANALYSIS_ACTIVITY_DETECTION_DEVIATION_RANGE * std::sqrt (amplitudeVariance_)));
-    //if (in_peak && !was_in_peak)
-    //  ACE_DEBUG ((LM_DEBUG,
-    //              ACE_TEXT ("detected peak...\n")));
-
-    // step2: 'sustain' detection
-    static bool in_streak = false;
-    static bool was_in_streak = false;
-    static bool in_volume = false;
-    static bool was_in_volume = false;
-    if (difference <= 0)
-    {
-      if (in_streak)
-      {
-//        ACE_DEBUG ((LM_DEBUG,
-//                    ACE_TEXT ("detected streak end\n")));
-        ++streakCount_;
-      } // end IF
-      streak_ = 0;
-      in_streak = false;
-//        if (in_volume)
-//          ACE_DEBUG ((LM_DEBUG,
-//                      ACE_TEXT ("detected volume end\n")));
-      volume_ = 0;
-      in_volume = false;
-
-      goto continue_;
-    } // end IF
+        (std::abs (difference) > (MODULE_STAT_ANALYSIS_PEAK_DETECTION_DEVIATION_RANGE * std::sqrt (variance)));
 
     // step2a: 'sustain' detection (streak)
-    ++streak_;
-    streakSum_ += streak_;
-    streakSumSqr_ += (streak_ * streak_);
-    streakVariance_ =
-        ((sampleCount_ > 1) ? (streakSumSqr_ - ((streakSum_ * streakSum_) / (double)sampleCount_)) / (double)(sampleCount_ - 1)
-                            : 0.0);
-    difference = (sampleCount_ ? streak_ - (streakSum_ / (double)sampleCount_)
-                                : 0.0);
+    if (difference <= 0)
+    { // --> amplitude drop
+      streak_ = 0;
+      in_streak = false;
 
+      in_volume = false;
+      volumeM_ = 0.0;
+      volumeS_ = 0.0;
+
+      goto continue_; // --> streak-end
+    } // end IF
+
+    ++streak_;
+    old_mean = (sampleCount_ ? streakM_ : abs_value);
+    streakM_ =
+        (sampleCount_ ? old_mean + (((double)streak_ - old_mean) / (double)sampleCount_)
+                      : streak_);
+    difference = ((double)streak_ - streakM_);
+    streakS_ =
+        streakS_ + (((double)streak_ - old_mean) * ((double)streak_ - streakM_));
+    variance =
+        ((sampleCount_ > 1) ? streakS_ / (double)(sampleCount_ - 1)
+                            : 0.0);
     was_in_streak = in_streak;
     in_streak =
-        (std::abs (difference) >= (MODULE_STAT_ANALYSIS_ACTIVITY_DETECTION_DEVIATION_RANGE * std::sqrt (streakVariance_)));
+        (std::abs (difference) >= (MODULE_STAT_ANALYSIS_ACTIVITY_DETECTION_DEVIATION_RANGE * std::sqrt (variance)));
+
     if (unlikely (in_streak))
     {
       if (!was_in_streak)
-      {
-//        ACE_DEBUG ((LM_DEBUG,
-//                    ACE_TEXT ("detected noise (streak)\n")));
-        //        goto continue_2;
-      } // end IF
-
+        ++streakCount_;
       goto continue_2;
     } // end IF
+    // --> !in_streak
     if (unlikely (was_in_streak))
     {
-//      ACE_DEBUG ((LM_DEBUG,
-//                  ACE_TEXT ("detected streak end\n")));
       streak_ = 0;
-      ++streakCount_;
-      was_in_streak = false;
 
-      volume_ = 0;
       in_volume = false;
-      was_in_volume = false;
+      volumeM_ = 0.0;
+      volumeS_ = 0.0;
     } // end IF
 
-    continue;
-
-    // *TODO*
     // step2b: 'sustain' detection (volume)
-    volume_ += abs_value;
-    volumeSum_ += abs_value;
-    volumeSumSqr_ += (abs_value * abs_value);
-    volumeVariance_ =
-        ((sampleCount_ > 1) ? (volumeSumSqr_ - ((volumeSum_ * volumeSum_) / (double)sampleCount_)) / (double)(sampleCount_ - 1)
+    old_mean = (sampleCount_ ? volumeM_ : abs_value);
+    volumeM_ =
+        (sampleCount_ ? old_mean + (((double)abs_value - old_mean) / (double)sampleCount_)
+                      : abs_value);
+    difference = ((double)abs_value - volumeM_);
+    volumeS_ =
+        volumeS_ + (((double)abs_value - old_mean) * ((double)abs_value - volumeM_));
+    variance =
+        ((sampleCount_ > 1) ? volumeS_ / (double)(sampleCount_ - 1)
                             : 0.0);
-    difference = (sampleCount_ ? volume_ - (volumeSum_ / (double)sampleCount_)
-                               : 0.0);
-
     was_in_volume = in_volume;
+    ACE_UNUSED_ARG (was_in_volume);
     in_volume =
-        (std::abs (difference) > (MODULE_STAT_ANALYSIS_ACTIVITY_DETECTION_DEVIATION_RANGE * std::sqrt (volumeVariance_)));
-    if (unlikely (in_volume))
-    {
-      if (!was_in_volume)
-      {
-//          ACE_DEBUG ((LM_DEBUG,
-//                      ACE_TEXT ("detected noise (volume)\n")));
-        //        goto continue_2;
-      } // end IF
-
-      goto continue_2;
-    } // end IF
-    if (unlikely (was_in_volume))
-    {
-//        ACE_DEBUG ((LM_DEBUG,
-//                    ACE_TEXT ("detected volume end...\n")));
-      volume_ = 0;
-      in_volume = false;
-      was_in_volume = false;
-    } // end IF
+        (std::abs (difference) > (MODULE_STAT_ANALYSIS_ACTIVITY_DETECTION_DEVIATION_RANGE * std::sqrt (variance)));
 
 continue_2:
-    if (unlikely ((in_streak || in_volume) &&  // <-- 'activity' ?
-                  inherited::configuration_->dispatch))
+    if (unlikely (inherited::configuration_->dispatch &&
+                  ((in_streak && !was_in_streak) || in_volume)))  // <-- 'activity' ?
     {
       try {
         inherited::configuration_->dispatch->dispatch (STREAM_STATISTIC_ANALYSIS_EVENT_ACTIVITY);
@@ -649,8 +611,8 @@ continue_2:
     } // end IF
 
 continue_:
-    if (unlikely ((in_peak && !was_in_peak) && // <-- 'peak' ?
-                  inherited::configuration_->dispatch))
+    if (unlikely (inherited::configuration_->dispatch &&
+                  (in_peak && !was_in_peak))) // <-- 'peak' ?
     {
       try {
         inherited::configuration_->dispatch->dispatch (STREAM_STATISTIC_ANALYSIS_EVENT_PEAK);
@@ -661,15 +623,4 @@ continue_:
       }
     } // end IF
   } // end FOR
-
-//unlock:
-//  if (release_lock)
-//  {
-//    ACE_ASSERT (lock_);
-//    result = lock_->release ();
-//    if (result == -1)
-//      ACE_DEBUG ((LM_ERROR,
-//                  ACE_TEXT ("failed to ACE_SYNCH_RECURSIVE_MUTEX::release(): \"%m\", continuing\n")));
-//    release_lock = false;
-//  } // end IF
 }

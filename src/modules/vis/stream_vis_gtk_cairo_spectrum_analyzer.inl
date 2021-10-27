@@ -1232,10 +1232,10 @@ Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
   STREAM_TRACE (ACE_TEXT ("Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T::setP"));
 
   // sanity check(s)
-  ACE_ASSERT (inherited::configuration_);
-  ACE_ASSERT (inherited::configuration_->window);
   if (!inherited::sessionData_)
     return;
+  ACE_ASSERT (inherited::configuration_);
+  ACE_ASSERT (inherited::configuration_->window);
 #if GTK_CHECK_VERSION(3,10,0)
   ACE_ASSERT (surface_in);
 #else

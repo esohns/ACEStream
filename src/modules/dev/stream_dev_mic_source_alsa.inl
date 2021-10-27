@@ -426,9 +426,7 @@ Stream_Dev_Mic_Source_ALSA_T<ACE_SYNCH_USE,
         isPassive_ = true;
       else
       {
-        // *TODO*: remove type inference
-        //  int mode = STREAM_DEV_MIC_ALSA_DEFAULT_MODE;
-        int mode = 0;
+        int mode = STREAM_DEV_MIC_ALSA_DEFAULT_MODE;
 //    snd_spcm_init();
         result =
             snd_pcm_open (&deviceHandle_,

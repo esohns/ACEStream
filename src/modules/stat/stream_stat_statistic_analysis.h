@@ -109,25 +109,20 @@ class Stream_Statistic_StatisticAnalysis_T
   inline virtual ValueType Value (unsigned int slot_in, unsigned int subSlot_in) const { ACE_UNUSED_ARG (slot_in); ACE_UNUSED_ARG (subSlot_in); ACE_ASSERT (false); ACE_NOTSUP_RETURN (0); ACE_NOTREACHED (return 0;) }
 
   // peak detection
-
-  ValueType                       amplitudeSum_;
-  ValueType                       amplitudeSumSqr_;
-  double                          amplitudeVariance_;
+  double                          amplitudeM_; // mean
+  double                          amplitudeS_;
 
   // activity detection
   unsigned int                    streak_;
-  unsigned int                    streakCount_;
-  double                          streakSum_;
-  double                          streakSumSqr_;
-  double                          streakVariance_;
-  ValueType                       volume_;
-  double                          volumeSum_;
-  double                          volumeSumSqr_;
-  double                          volumeVariance_;
+  unsigned int                    streakCount_; // total-
+  double                          streakM_;
+  double                          streakS_;
+  double                          volumeM_;
+  double                          volumeS_;
 
   INOTIFY_T*                      eventDispatcher_;
   typename inherited3::ITERATOR_T iterator_;
-  unsigned int                    sampleCount_;
+  unsigned int                    sampleCount_; // processed-
   bool                            sampleIsSigned_;
 };
 

@@ -3489,6 +3489,31 @@ stream_processing_function (void* arg_in)
                            false);
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
+  switch (data_base_p->mediaFramework)
+  {
+    case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
+    {
+      directshow_ui_cb_data_p->CBData->resizeNotification = NULL;
+      break;
+    }
+    case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
+    {
+      mediafoundation_ui_cb_data_p->CBData->resizeNotification = NULL;
+      break;
+    }
+    default:
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("invalid/unknown media framework (was: %d), aborting\n"),
+                  data_base_p->mediaFramework));
+      goto error;
+    }
+  } // end SWITCH
+#else
+  data_p->CBData->resizeNotification = NULL;
+#endif // ACE_WIN32 || ACE_WIN64
+
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
   result = 0;
 #else
   result = NULL;
@@ -5163,9 +5188,13 @@ continue_:
 
 #if defined (GTKGL_SUPPORT)
     event_source_id =
-      g_timeout_add (COMMON_UI_GTK_REFRESH_DEFAULT_OPENGL,
-                     idle_update_display_cb,
-                     userData_in);
+//      g_timeout_add (COMMON_UI_GTK_REFRESH_DEFAULT_OPENGL,
+//                     idle_update_display_cb,
+//                     userData_in);
+        g_idle_add_full (G_PRIORITY_DEFAULT_IDLE, // _LOW doesn't work (on Win32)
+                         idle_update_display_cb,
+                         userData_in,
+                         NULL);
     if (event_source_id > 0)
       state_r.eventSourceIds.insert (event_source_id);
     else
@@ -5616,85 +5645,14 @@ idle_update_display_cb (gpointer userData_in)
     const_cast<Common_UI_GTK_State_t&> (gtk_manager_p->getR ());
   GdkWindow* window_p = NULL;
 
-//#if defined (ACE_WIN32) || defined (ACE_WIN64)
-//  struct Test_U_AudioEffect_DirectShow_UI_CBData* directshow_ui_cb_data_p = NULL;
-//  struct Test_U_AudioEffect_MediaFoundation_UI_CBData* mediafoundation_ui_cb_data_p =
-//      NULL;
-//  Test_U_AudioEffect_MediaFoundation_StreamConfiguration_t::ITERATOR_T mediafoundation_modulehandler_configuration_iterator;
-//  Test_U_AudioEffect_DirectShow_StreamConfiguration_t::ITERATOR_T directshow_modulehandler_configuration_iterator;
-//  switch (ui_cb_data_base_p->mediaFramework)
-//  {
-//    case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
-//    {
-//      directshow_ui_cb_data_p =
-//        static_cast<struct Test_U_AudioEffect_DirectShow_UI_CBData*> (userData_in);
-//      // sanity check(s)
-//      ACE_ASSERT (directshow_ui_cb_data_p);
-//      ACE_ASSERT (directshow_ui_cb_data_p->configuration);
-//
-//      directshow_modulehandler_configuration_iterator =
-//        directshow_ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
-//      ACE_ASSERT (directshow_modulehandler_configuration_iterator != directshow_ui_cb_data_p->configuration->streamConfiguration.end ());
-//      break;
-//    }
-//    case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
-//    {
-//      mediafoundation_ui_cb_data_p =
-//        static_cast<struct Test_U_AudioEffect_MediaFoundation_UI_CBData*> (userData_in);
-//      // sanity check(s)
-//      ACE_ASSERT (mediafoundation_ui_cb_data_p);
-//      ACE_ASSERT (mediafoundation_ui_cb_data_p->configuration);
-//
-//      mediafoundation_modulehandler_configuration_iterator =
-//        mediafoundation_ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
-//      ACE_ASSERT (mediafoundation_modulehandler_configuration_iterator != mediafoundation_ui_cb_data_p->configuration->streamConfiguration.end ());
-//      break;
-//    }
-//    default:
-//    {
-//      ACE_DEBUG ((LM_ERROR,
-//                  ACE_TEXT ("invalid/unknown media framework (was: %d), aborting\n"),
-//                  ui_cb_data_base_p->mediaFramework));
-//      return false;
-//    }
-//  } // end SWITCH
-//#else
-//  struct Test_U_AudioEffect_UI_CBData* ui_cb_data_p =
-//      static_cast<struct Test_U_AudioEffect_UI_CBData*> (userData_in);
-//  // sanity check(s)
-//  ACE_ASSERT (ui_cb_data_p);
-//  ACE_ASSERT (ui_cb_data_p->configuration);
-//
-//  Test_U_AudioEffect_ALSA_StreamConfiguration_t::ITERATOR_T modulehandler_configuration_iterator =
-//    ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
-//  ACE_ASSERT (modulehandler_configuration_iterator != ui_cb_data_p->configuration->streamConfiguration.end ());
-//#endif // ACE_WIN32 || ACE_WIN64
-//
-//  Common_UI_GTK_BuildersConstIterator_t iterator =
-//    state_r.builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN));
-//  ACE_ASSERT (iterator != state_r.builders.end ());
-
-//  // step1: trigger refresh of the 2D drawing area
-//  GtkDrawingArea* drawing_area_p =
-//    GTK_DRAWING_AREA (gtk_builder_get_object ((*iterator).second.second,
-//                                              ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_DRAWINGAREA_NAME)));
-//  ACE_ASSERT (drawing_area_p);
-//
-//  window_p = gtk_widget_get_window (GTK_WIDGET (drawing_area_p));
-//  if (!window_p)
-//    goto continue_; // <-- not realized yet
-//  gdk_window_invalidate_rect (window_p,
-//                              NULL,
-//                              false);
-//
-//continue_:
 #if defined (GTKGL_SUPPORT)
-  // step2: trigger refresh of the 3D OpenGL area
+  // trigger refresh of the 3D OpenGL area
   ACE_ASSERT (!state_r.OpenGLContexts.empty ());
   Common_UI_GTK_GLContextsIterator_t iterator_2 = state_r.OpenGLContexts.begin ();
   window_p = gtk_widget_get_window (GTK_WIDGET (&(*iterator_2).first->darea));
-  if (!window_p)
+  if (unlikely (!window_p))
     goto continue_2; // <-- not realized yet
+
   gdk_window_invalidate_rect (window_p,
                               NULL,
                               false);
@@ -8443,8 +8401,7 @@ continue_:
         NULL;
   } // end IF
   ACE_ASSERT (!ui_cb_data_p->handle);
-//  int mode = STREAM_DEV_MIC_ALSA_DEFAULT_MODE;
-  int mode = 0;
+  int mode = STREAM_DEV_MIC_ALSA_DEFAULT_MODE;
   //    snd_spcm_init();
   result = snd_pcm_open (&ui_cb_data_p->handle,
                          device_identifier_string.c_str (),
