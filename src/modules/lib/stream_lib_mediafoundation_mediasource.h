@@ -24,10 +24,11 @@
 #include <list>
 #include <map>
 
+#undef GetObject
+#include "mfidl.h"
+
 #include "ace/Global_Macros.h"
 #include "ace/Synch_Traits.h"
-
-#include <mfidl.h>
 
 #include "common_iinitialize.h"
 

@@ -796,56 +796,56 @@ struct Test_U_AudioEffect_UI_CBDataBase
 #else
    : Test_U_UI_CBData ()
 #endif // GTK_USE
-#if defined (GTK_USE)
-   , area2D ()
-#if defined (GTKGL_SUPPORT)
-   , area3D ()
-#endif // GTKGL_SUPPORT
    , surfaceLock ()
+#if defined (GTK_USE)
 #if GTK_CHECK_VERSION(3,10,0)
    , cairoSurface2D (NULL)
 #else
    , pixelBuffer2D (NULL)
 #endif // GTK_CHECK_VERSION(3,10,0)
+#endif // GTK_USE
+#if defined (GTK_USE)
 #if defined (GTKGL_SUPPORT)
    , OpenGLInstructions ()
 #endif // GTKGL_SUPPORT
 #endif // GTK_USE
    , isFirst (true)
+#if defined (GTK_USE)
+#if defined (GTKGL_SUPPORT)
+   , objectRotation (1)
+#endif // GTKGL_SUPPORT
+#endif // GTK_USE
    , progressData ()
 #if defined (GTK_USE)
    , resizeNotification (NULL)
 #endif // GTK_USE
    , stream (NULL)
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-   , useMediaFoundation (false)
-#endif // ACE_WIN32 || ACE_WIN64
   {}
 
-#if defined (GTK_USE)
-  GdkRectangle                               area2D;
-#if defined (GTKGL_SUPPORT)
-  GdkRectangle                               area3D;
-#endif // GTKGL_SUPPORT
   ACE_SYNCH_MUTEX                            surfaceLock;
+#if defined (GTK_USE)
 #if GTK_CHECK_VERSION(3,10,0)
   cairo_surface_t*                           cairoSurface2D;
 #else
   GdkPixbuf*                                 pixelBuffer2D;
 #endif // GTK_CHECK_VERSION(3,10,0)
+#endif // GTK_USE
+#if defined (GTK_USE)
 #if defined (GTKGL_SUPPORT)
   Stream_Visualization_OpenGL_Instructions_t OpenGLInstructions;
 #endif // GTKGL_SUPPORT
 #endif // GTK_USE
   bool                                       isFirst; // first activation ?
+#if defined (GTK_USE)
+#if defined (GTKGL_SUPPORT)
+  int                                        objectRotation;
+#endif // GTKGL_SUPPORT
+#endif // GTK_USE
   struct Test_U_AudioEffect_ProgressData     progressData;
 #if defined (GTK_USE)
   Test_U_Common_ISet_t*                      resizeNotification;
 #endif // GTK_USE
   Stream_IStreamControlBase*                 stream;
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-  bool                                       useMediaFoundation;
-#endif // ACE_WIN32 || ACE_WIN64
 };
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 struct Test_U_AudioEffect_DirectShow_UI_CBData

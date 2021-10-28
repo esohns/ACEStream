@@ -18,8 +18,9 @@
 *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
 ***************************************************************************/
 
-#include <mfidl.h>
-#include <shlwapi.h>
+#undef GetObject
+#include "mfidl.h"
+#include "Shlwapi.h"
 
 #include "ace/Log_Msg.h"
 
@@ -27,8 +28,6 @@
 
 #include "stream_common.h"
 #include "stream_macros.h"
-
-//#include "stream_dev_mediafoundation_tools.h"
 
 template <typename ConfigurationType>
 Stream_MediaFramework_MediaFoundation_Callback_T<ConfigurationType>::Stream_MediaFramework_MediaFoundation_Callback_T ()

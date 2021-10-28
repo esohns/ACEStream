@@ -30,6 +30,7 @@
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #include "d3d9.h"
+#undef GetObject
 #include "mfidl.h"
 #include "strmif.h"
 #else

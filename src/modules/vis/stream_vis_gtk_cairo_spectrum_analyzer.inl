@@ -1081,20 +1081,22 @@ Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
   {
     case STREAM_STATISTIC_ANALYSIS_EVENT_ACTIVITY:
     {
-#if GTK_CHECK_VERSION(3,0,0)
-      foregroundColor_.red   = randomGenerator_ () / 255.0;
-      foregroundColor_.green = randomGenerator_ () / 255.0;
-      foregroundColor_.blue  = randomGenerator_ () / 255.0;
-      //foregroundColor_.alpha = ;
-#else
-      foregroundColor_.red   = randomGenerator_ ();
-      foregroundColor_.green = randomGenerator_ ();
-      foregroundColor_.blue  = randomGenerator_ ();
-      //foregroundColor_.alpha = ;
-#endif // GTK_CHECK_VERSION(3,0,0)
-      opengl_instruction.color = foregroundColor_;
+//#if GTK_CHECK_VERSION(3,0,0)
+//      foregroundColor_.red   = randomGenerator_ () / 255.0;
+//      foregroundColor_.green = randomGenerator_ () / 255.0;
+//      foregroundColor_.blue  = randomGenerator_ () / 255.0;
+//      //foregroundColor_.alpha = ;
+//#else
+//      foregroundColor_.red   = randomGenerator_ ();
+//      foregroundColor_.green = randomGenerator_ ();
+//      foregroundColor_.blue  = randomGenerator_ ();
+//      //foregroundColor_.alpha = ;
+//#endif // GTK_CHECK_VERSION(3,0,0)
+//      opengl_instruction.color = foregroundColor_;
+//      opengl_instruction.type =
+//        STREAM_VISUALIZATION_OPENGL_INSTRUCTION_SET_COLOR_FG;
       opengl_instruction.type =
-        STREAM_VISUALIZATION_OPENGL_INSTRUCTION_SET_COLOR_FG;
+        STREAM_VISUALIZATION_OPENGL_INSTRUCTION_CHANGE_ROTATION;
       break;
     }
     case STREAM_STATISTIC_ANALYSIS_EVENT_PEAK:

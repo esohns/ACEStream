@@ -29,9 +29,8 @@
 #else
 #include "windef.h"
 #endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0602)
-//#include <winnt.h>
 #include "Ks.h"
-#include "Guiddef.h"
+#include "guiddef.h"
 #undef GetObject
 #include "evr.h"
 #include "strmif.h"

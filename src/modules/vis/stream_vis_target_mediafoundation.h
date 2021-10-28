@@ -21,13 +21,15 @@
 #ifndef STREAM_MODULE_VIS_TARGET_MEDIAFOUNDATION_H
 #define STREAM_MODULE_VIS_TARGET_MEDIAFOUNDATION_H
 
-#include <d3d9.h>
-#include <evr.h>
-#include <Guiddef.h>
-#include <mfidl.h>
-#include <mfobjects.h>
-#include <PropIdl.h>
-#include <strmif.h>
+#include "d3d9.h"
+#undef GetObject
+#include "evr.h"
+#include "guiddef.h"
+#undef GetObject
+#include "mfidl.h"
+#include "mfobjects.h"
+#include "PropIdl.h"
+#include "strmif.h"
 
 #include "ace/Global_Macros.h"
 #include "ace/Synch_Traits.h"

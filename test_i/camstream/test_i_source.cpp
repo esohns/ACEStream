@@ -24,13 +24,13 @@
 #include <string>
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-#include <initguid.h> // *NOTE*: this exports DEFINE_GUIDs (see stream_misc_common.h)
-#include <mfapi.h>
+#include "initguid.h" // *NOTE*: this exports DEFINE_GUIDs (see stream_misc_common.h)
+#include "mfapi.h"
 // *NOTE*: uuids.h doesn't have double include protection
 #if defined (UUIDS_H)
 #else
 #define UUIDS_H
-#include <uuids.h>
+#include "uuids.h"
 #endif // UUIDS_H
 #endif // ACE_WIN32 || ACE_WIN64
 
@@ -64,11 +64,11 @@
 #if defined (GUI_SUPPORT)
 #include "common_ui_defines.h"
 
-#if defined (GTK_USE)
+#if defined (GTK_SUPPORT)
 //#include "common_ui_glade_definition.h"
 #include "common_ui_gtk_builder_definition.h"
 #include "common_ui_gtk_manager_common.h"
-#endif // GTK_USE
+#endif // GTK_SUPPORT
 #endif // GUI_SUPPORT
 
 #if defined (HAVE_CONFIG_H)
@@ -89,9 +89,9 @@
 #include "test_i_defines.h"
 
 #if defined (GUI_SUPPORT)
-#if defined (GTK_USE)
+#if defined (GTK_SUPPORT)
 #include "test_i_callbacks.h"
-#endif // GTK_USE
+#endif // GTK_SUPPORT
 #endif // GUI_SUPPORT
 #include "test_i_common_modules.h"
 

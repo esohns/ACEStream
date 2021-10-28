@@ -23,14 +23,15 @@
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #if COMMON_OS_WIN32_TARGET_PLATFORM(0x0602) // _WIN32_WINNT_WIN8
-#include <minwindef.h>
+#include "minwindef.h"
 #else
-#include <windef.h>
+#include "windef.h"
 #endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0602)
-#include <winnt.h>
-#include <guiddef.h>
-#include <mfidl.h>
-#include <mfobjects.h>
+//#include "winnt.h"
+#include "guiddef.h"
+#undef GetObject
+#include "mfidl.h"
+#include "mfobjects.h"
 #endif // ACE_WIN32 || ACE_WIN64
 
 #include "ace/Global_Macros.h"

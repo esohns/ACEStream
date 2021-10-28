@@ -58,6 +58,11 @@ processInstructions (struct Test_U_AudioEffect_UI_CBDataBase* CBDataBase_in)
       instruction_p = &CBDataBase_in->OpenGLInstructions.front ();
       switch (instruction_p->type)
       {
+        case STREAM_VISUALIZATION_OPENGL_INSTRUCTION_CHANGE_ROTATION:
+        {
+          CBDataBase_in->objectRotation *= -1;
+          break;
+        }
         case STREAM_VISUALIZATION_OPENGL_INSTRUCTION_SET_COLOR_BG:
         {
           glClearColor (static_cast<GLclampf> (instruction_p->color.red),
@@ -1435,6 +1440,7 @@ glarea_expose_event_cb (GtkWidget* widget_in,
 
       texture_id_p =
         &(*directshow_modulehandler_configuration_iterator).second.second->OpenGLTextureId;
+
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
@@ -1535,7 +1541,7 @@ glarea_expose_event_cb (GtkWidget* widget_in,
 //  rot_x += 0.3f;
 //  rot_y += 0.20f;
 //  rot_z += 0.4f;
-  rotation -= 1.0f; // Decrease The Rotation Variable For The Cube
+  rotation -= (1.0f * ui_cb_data_base_p->objectRotation); // modify The Rotation Angle For The Cube
 
   //GLuint vertex_array_id = 0;
   //glGenVertexArrays (1, &vertex_array_id);

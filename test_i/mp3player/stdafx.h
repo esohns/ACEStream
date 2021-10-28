@@ -4,7 +4,7 @@
 //      are changed infrequently
 //
 #if defined (_MSC_VER)
-#define WIN32_LEAN_AND_MEAN		// Exclude rarely-used stuff from Windows headers
+#define WIN32_LEAN_AND_MEAN // Exclude rarely-used stuff from Windows headers
 
 // *NOTE*: work around quirky MSVC...
 #define NOMINMAX
@@ -12,11 +12,10 @@
 #include "targetver.h"
 
 // Windows Header Files
-#include <windows.h>
+#include "windows.h"
 #endif // _MSC_VER
 
 // C RunTime Header Files
-//#include <sstream>
 #include <string>
 
 // System Library Header Files
@@ -46,13 +45,13 @@
 
 #include "test_i_common.h"
 #if defined (GUI_SUPPORT)
-#if defined (GTK_USE)
-//#include "test_i_gtk_common.h"
-#endif // GTK_USE
+#if defined (GTK_SUPPORT)
+#include "test_i_gtk_common.h"
+#endif // GTK_SUPPORT
 #endif // GUI_SUPPORT
 
-#if defined (HAVE_CONFIG_H)
-#include "ACENetwork_config.h"
-#endif // HAVE_CONFIG_H
+//#if defined (HAVE_CONFIG_H)
+//#include "ACENetwork_config.h"
+//#endif // HAVE_CONFIG_H
 
 // *TODO*: reference additional headers your program requires here

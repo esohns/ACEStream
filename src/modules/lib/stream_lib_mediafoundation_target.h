@@ -21,17 +21,16 @@
 #ifndef STREAM_LIB_MEDIAFOUNDATION_TARGET_H
 #define STREAM_LIB_MEDIAFOUNDATION_TARGET_H
 
-#include <d3d9.h>
-#include <dxva2api.h>
-#include <mfidl.h>
-#include <mfreadwrite.h>
+#include "d3d9.h"
+#include "dxva2api.h"
+#undef GetObject
+#include "mfidl.h"
+#include "mfreadwrite.h"
 
 #include "ace/Global_Macros.h"
 #include "ace/Synch_Traits.h"
 
 #include "common_iinitialize.h"
-
- //#include "common_time_common.h"
 
 #include "stream_common.h"
 #include "stream_task_base_synch.h"

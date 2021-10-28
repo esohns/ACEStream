@@ -36,7 +36,7 @@
 //         data (which is assumed to be static)
 //         --> values outside of this range are 'outliers' and hence potential
 //             'peak' candidates
-#define MODULE_STAT_ANALYSIS_PEAK_DETECTION_DEVIATION_RANGE     6.0 // sigma
+#define MODULE_STAT_ANALYSIS_PEAK_DETECTION_DEVIATION_RANGE     5.0 // sigma
 
 #define MODULE_STAT_SPECTRUMANALYSIS_DEFAULT_SAMPLE_RATE        44100
 

@@ -19,7 +19,7 @@
  ***************************************************************************/
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-#include <qedit.h>
+#include "qedit.h"
 #endif // ACE_WIN32 || ACE_WIN64
 
 #include "ace/Log_Msg.h"

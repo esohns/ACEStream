@@ -14,7 +14,7 @@
 // Windows Header Files
 #include "windows.h"
 
-#include "Guiddef.h"
+#include "guiddef.h"
 #endif // _MSC_VER
 
 // C RunTime Header Files

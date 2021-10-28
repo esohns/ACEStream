@@ -63,23 +63,13 @@
 
 #include "stream_stat_common.h"
 
-//#include "stream_net_http_defines.h"
-
-#if defined (HAVE_CONFIG_H)
-#include "ACENetwork_config.h"
-#endif // HAVE_CONFIG_H
-
 #include "net_common_tools.h"
 
 //#include "test_i_common.h"
 #include "test_i_defines.h"
 
-//#include "test_i_module_databasewriter.h"
-
-//#include "test_i_connection_manager_common.h"
 #include "test_i_mp3player_common.h"
 #include "test_i_mp3player_defines.h"
-//#include "test_i_http_get_signalhandler.h"
 #include "test_i_stream.h"
 
 const char stream_name_string_[] = ACE_TEXT_ALWAYS_CHAR ("MP3PlayerStream");
