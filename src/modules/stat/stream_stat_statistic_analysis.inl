@@ -515,7 +515,7 @@ Stream_Statistic_StatisticAnalysis_T<ACE_SYNCH_USE,
   static bool was_in_volume = false;
 
   ValueType abs_value = 0;
-  double difference = 0.0, old_mean = 0.0, variance = 0.0;
+  double difference = 0.0, old_mean = 0.0, std_deviation = 0.0;
 
   for (unsigned int j = 0; j < (endIndex_in - startIndex_in + 1); ++j, ++sampleCount_)
   {
@@ -527,15 +527,15 @@ Stream_Statistic_StatisticAnalysis_T<ACE_SYNCH_USE,
     amplitudeM_ =
         (sampleCount_ ? old_mean + (((double)abs_value - old_mean) / (double)sampleCount_)
                       : abs_value);
-    difference = ((double)abs_value - amplitudeM_);
+    difference = ((double)abs_value - old_mean);
     amplitudeS_ =
         amplitudeS_ + (((double)abs_value - old_mean) * ((double)abs_value - amplitudeM_));
-    variance =
-        ((sampleCount_ > 1) ? amplitudeS_ / (double)(sampleCount_ - 1)
-                            : 0.0);
+    std_deviation = (sampleCount_ ? std::sqrt (amplitudeS_ / (double)sampleCount_)
+                                  : 0.0);
+        
     was_in_peak = in_peak;
     in_peak =
-        (std::abs (difference) > (MODULE_STAT_ANALYSIS_PEAK_DETECTION_DEVIATION_RANGE * std::sqrt (variance)));
+        (std::abs (difference) > (MODULE_STAT_ANALYSIS_PEAK_DETECTION_DEVIATION_RANGE * std_deviation));
 
     // step2a: 'sustain' detection (streak)
     if (difference <= 0)
@@ -555,15 +555,14 @@ Stream_Statistic_StatisticAnalysis_T<ACE_SYNCH_USE,
     streakM_ =
         (sampleCount_ ? old_mean + (((double)streak_ - old_mean) / (double)sampleCount_)
                       : streak_);
-    difference = ((double)streak_ - streakM_);
+    difference = ((double)streak_ - old_mean);
     streakS_ =
         streakS_ + (((double)streak_ - old_mean) * ((double)streak_ - streakM_));
-    variance =
-        ((sampleCount_ > 1) ? streakS_ / (double)(sampleCount_ - 1)
-                            : 0.0);
+    std_deviation = (sampleCount_ ? std::sqrt (streakS_ / (double)sampleCount_)
+                                  : 0.0);
     was_in_streak = in_streak;
     in_streak =
-        (std::abs (difference) >= (MODULE_STAT_ANALYSIS_ACTIVITY_DETECTION_DEVIATION_RANGE * std::sqrt (variance)));
+        (std::abs (difference) >= (MODULE_STAT_ANALYSIS_ACTIVITY_DETECTION_DEVIATION_RANGE * std_deviation));
 
     if (unlikely (in_streak))
     {
@@ -586,16 +585,15 @@ Stream_Statistic_StatisticAnalysis_T<ACE_SYNCH_USE,
     volumeM_ =
         (sampleCount_ ? old_mean + (((double)abs_value - old_mean) / (double)sampleCount_)
                       : abs_value);
-    difference = ((double)abs_value - volumeM_);
+    difference = ((double)abs_value - old_mean);
     volumeS_ =
         volumeS_ + (((double)abs_value - old_mean) * ((double)abs_value - volumeM_));
-    variance =
-        ((sampleCount_ > 1) ? volumeS_ / (double)(sampleCount_ - 1)
-                            : 0.0);
+    std_deviation = (sampleCount_ ? std::sqrt (volumeS_ / (double)sampleCount_)
+                                  : 0.0);
     was_in_volume = in_volume;
     ACE_UNUSED_ARG (was_in_volume);
     in_volume =
-        (std::abs (difference) > (MODULE_STAT_ANALYSIS_ACTIVITY_DETECTION_DEVIATION_RANGE * std::sqrt (variance)));
+        (std::abs (difference) > (MODULE_STAT_ANALYSIS_ACTIVITY_DETECTION_DEVIATION_RANGE * std_deviation));
 
 continue_2:
     if (unlikely (inherited::configuration_->dispatch &&

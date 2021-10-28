@@ -30,6 +30,7 @@
 #define UUIDS_H
 #include "uuids.h"
 #endif // UUIDS_H
+#define INITGUID
 #endif // ACE_WIN32 || ACE_WIN64
 
 #include "ace/Get_Opt.h"
@@ -81,6 +82,7 @@
 #include "stream_dev_directshow_tools.h"
 #include "stream_dev_tools.h"
 
+#include "stream_lib_directsound_common.h"
 #include "stream_lib_directshow_tools.h"
 #include "stream_lib_guids.h"
 #include "stream_lib_tools.h"
@@ -717,7 +719,7 @@ continue_3:
   } // end IF
 
 continue_4:
-  union Stream_MediaFramework_DirectShow_AudioEffectOptions effect_options;
+  union Stream_MediaFramework_DirectSound_AudioEffectOptions effect_options;
   if (!Stream_Module_Decoder_Tools::loadAudioRendererGraph ((useDirectShowSource_in ? CLSID_AudioInputDeviceCategory : GUID_NULL),
                                                             outputMediaType_out,
                                                             (mute_in ? -1 : 0),

@@ -29,10 +29,11 @@
 #else
 #include "windef.h"
 #endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0602)
-#include "Ks.h"
+#include "ks.h"
 #include "guiddef.h"
 #undef GetObject
-#include "evr.h"
+//#include "evr.h"
+#define __CGUID_H__
 #include "strmif.h"
 #include "mediaobj.h"
 
@@ -46,6 +47,9 @@
 #if defined (FFMPEG_SUPPORT)
 #include "stream_lib_ffmpeg_common.h"
 #endif // FFMPEG_SUPPORT
+
+// forward declarations
+class IMFVideoDisplayControl;
 
 class Stream_MediaFramework_DirectShow_Tools
 {

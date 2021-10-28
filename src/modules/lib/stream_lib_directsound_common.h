@@ -18,26 +18,32 @@
 *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
 ***************************************************************************/
 
-#ifndef STREAM_STAT_DEFINES_H
-#define STREAM_STAT_DEFINES_H
+#ifndef STREAM_LIB_DIRECTSOUND_COMMON_H
+#define STREAM_LIB_DIRECTSOUND_COMMON_H
 
-#define MODULE_STAT_ANALYSIS_DEFAULT_NAME_STRING                "StatisticAnalysis"
-#define MODULE_STAT_REPORT_DEFAULT_NAME_STRING                  "StatisticReport"
+// *WARNING*: "...Note Header files ksproxy.h and dsound.h define similar but
+//            incompatible versions of the IKsPropertySet interface.
+//            Applications that require the KS proxy module should use the
+//            version defined in ksproxy.h.The DirectSound version of
+//            IKsPropertySet is described in the DirectSound reference pages in
+//            the Microsoft Windows SDK documentation.
+//            If an application must include both ksproxy.h and dsound.h,
+//            whichever header file the compiler scans first is the one whose
+//            definition of IKsPropertySet is used by the compiler. ..."
+#include "dsound.h"
 
-#define MODULE_STAT_ANALYSIS_DEFAULT_BUFFER_SIZE                1024 // #slots
-
-// *NOTE*: (in a normal distribution,) values in the range of +/- 5.0 * sigma
-//         (i.e. five standard deviations) account for 99.99994% of all sample
-//         data (which is assumed to be static)
-//         --> values outside of this range are potential 'activity' candidates
-#define MODULE_STAT_ANALYSIS_ACTIVITY_DETECTION_DEVIATION_RANGE 5.0 // sigma
-// *NOTE*: (in a normal distribution,) values in the range of +/- 6.0 * sigma
-//         (i.e. six standard deviations) account for 99.999996% of all sample
-//         data (which is assumed to be static)
-//         --> values outside of this range are 'outliers' and hence potential
-//             'peak' candidates
-#define MODULE_STAT_ANALYSIS_PEAK_DETECTION_DEVIATION_RANGE     3.0 // sigma
-
-#define MODULE_STAT_SPECTRUMANALYSIS_DEFAULT_SAMPLE_RATE        44100
+union Stream_MediaFramework_DirectSound_AudioEffectOptions
+{
+  struct _DSCFXAec        AECOptions;
+  struct _DSFXChorus      chorusOptions;
+  struct _DSFXCompressor  compressorOptions;
+  struct _DSFXDistortion  distortionOptions;
+  struct _DSFXEcho        echoOptions;
+  struct _DSFXParamEq     equalizerOptions;
+  struct _DSFXFlanger     flangerOptions;
+  struct _DSFXGargle      gargleOptions;
+  struct _DSFXI3DL2Reverb reverbOptions;
+  struct _DSFXWavesReverb wavesReverbOptions;
+};
 
 #endif

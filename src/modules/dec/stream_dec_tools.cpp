@@ -28,7 +28,6 @@
 #include "winnt.h"
 #include "guiddef.h"
 #include "amvideo.h"
-//#include "combaseapi.h"
 #include "dmodshow.h"
 #include "dmoreg.h"
 // *WARNING*: "...Note Header files ksproxy.h and dsound.h define similar but
@@ -40,12 +39,9 @@
 //            If an application must include both ksproxy.h and dsound.h,
 //            whichever header file the compiler scans first is the one whose
 //            definition of IKsPropertySet is used by the compiler. ..."
-//#include "MMReg.h"
-#include "WinNT.h"
-#include "Guiddef.h"
-#include "Ks.h"
-#include "KsProxy.h"
-#include "MMSystem.h"
+#include "ks.h"
+#include "ksproxy.h"
+#include "mmsystem.h"
 #define INITGUID
 #include "dsound.h"
 #include "dvdmedia.h"
@@ -103,6 +99,7 @@ extern "C"
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #include "stream_lib_directshow_common.h"
 #include "stream_lib_directshow_tools.h"
+#include "stream_lib_directsound_common.h"
 #include "stream_lib_mediafoundation_tools.h"
 #endif // ACE_WIN32 || ACE_WIN64
 
@@ -1180,7 +1177,7 @@ Stream_Module_Decoder_Tools::loadAudioRendererGraph (REFGUID deviceCategory_in,
                                                      const int audioOutput_in,
                                                      IGraphBuilder* IGraphBuilder_in,
                                                      REFGUID effect_in,
-                                                     const union Stream_MediaFramework_DirectShow_AudioEffectOptions& effectOptions_in,
+                                                     const union Stream_MediaFramework_DirectSound_AudioEffectOptions& effectOptions_in,
                                                      Stream_MediaFramework_DirectShow_GraphConfiguration_t& graphConfiguration_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Decoder_Tools::loadAudioRendererGraph"));

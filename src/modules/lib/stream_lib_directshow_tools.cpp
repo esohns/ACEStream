@@ -24,7 +24,8 @@
 #include <sstream>
 
 #include "amvideo.h"
-// *WARNING*: "...Note Header files ksproxy.h and dsound.h define similar but
+#include "mmreg.h"
+ // *WARNING*: "...Note Header files ksproxy.h and dsound.h define similar but
 //            incompatible versions of the IKsPropertySet interface.Applications
 //            that require the KS proxy module should use the version defined in
 //            ksproxy.h.The DirectSound version of IKsPropertySet is described
@@ -35,15 +36,16 @@
 //            definition of IKsPropertySet is used by the compiler. ..."
 //#include <dsound.h>
 //#include <dxva.h>
+#include "evr.h"
 #include "fourcc.h"
 #include "ksmedia.h"
-#include "KsProxy.h"
+#include "ksproxy.h"
 #include "dmoreg.h"
 #include "Dmodshow.h"
 #include "dvdmedia.h"
 //#include "ksuuids.h"
 #include "mfapi.h"
-#include "mmreg.h"
+//#include "mmreg.h"
 #include "mtype.h"
 #include "oleauto.h"
 #include "qedit.h"
@@ -67,11 +69,6 @@
 #include "common_error_tools.h"
 
 #include "stream_macros.h"
-
-//#include "stream_dec_defines.h"
-//#include "stream_dec_tools.h"
-
-//#include "stream_dev_defines.h"
 
 #include "stream_lib_tools.h"
 

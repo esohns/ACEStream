@@ -164,6 +164,9 @@ elseif (WIN32)
       stream_lib_directshow_target.inl
       stream_lib_directshow_tools.cpp
       stream_lib_directshow_tools.h
+      stream_lib_directsound_common.h
+      stream_lib_directsound_tools.cpp
+      stream_lib_directsound_tools.h
       stream_lib_guids.h
       stream_lib_mediafoundation_callback.cpp
       stream_lib_mediafoundation_callback.h
@@ -224,7 +227,7 @@ elseif (WIN32)
  else ()
   target_link_libraries (${PROJECT_NAME}_MediaFramework PUBLIC $ENV{LIB_ROOT}/DXSDK/Lib/x86/D3dx9.lib)
  endif (DEFINED ENV{DXSDK_DIR})
-
+ target_link_libraries (${PROJECT_NAME}_MediaFramework PUBLIC dsound.lib)
  target_link_libraries (${PROJECT_NAME}_MediaFramework PUBLIC ${DIRECTSHOW_BASECLASSES_DIRECTORY}/cmake/baseclasses/${CMAKE_BUILD_TYPE}/BaseClasses${LIB_FILE_SUFFIX}.lib)
 
  target_link_libraries (${PROJECT_NAME}_MediaFramework PUBLIC ${ACE_LIBRARY})
@@ -285,6 +288,8 @@ elseif (WIN32)
       stream_lib_directshow_target.h
       stream_lib_directshow_target.inl
       stream_lib_directshow_tools.h
+      stream_lib_directsound_common.h
+      stream_lib_directsound_tools.h
       stream_lib_guids.h
       stream_lib_mediafoundation_callback.h
       stream_lib_mediafoundation_callback.inl

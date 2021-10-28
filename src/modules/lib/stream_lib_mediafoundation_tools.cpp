@@ -25,13 +25,11 @@
 
 //#include <dvdmedia.h>
 //#include <Dmodshow.h>
-//#include <evr.h>
+#include "evr.h"
 //#include <fourcc.h>
-
-#include <mfapi.h>
-#include <mferror.h>
-
-#include <wmcodecdsp.h>
+#include "mfapi.h"
+#include "mferror.h"
+#include "wmcodecdsp.h"
 
 #include "ace/Log_Msg.h"
 #include "ace/OS.h"

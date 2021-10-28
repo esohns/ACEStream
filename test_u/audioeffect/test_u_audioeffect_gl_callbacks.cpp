@@ -65,17 +65,17 @@ processInstructions (struct Test_U_AudioEffect_UI_CBDataBase* CBDataBase_in)
         }
         case STREAM_VISUALIZATION_OPENGL_INSTRUCTION_SET_COLOR_BG:
         {
-          glClearColor (static_cast<GLclampf> (instruction_p->color.red),
-                        static_cast<GLclampf> (instruction_p->color.green),
-                        static_cast<GLclampf> (instruction_p->color.blue),
+          glClearColor ((float)instruction_p->color.red   / (float)std::numeric_limits<guint16>::max (),
+                        (float)instruction_p->color.green / (float)std::numeric_limits<guint16>::max (),
+                        (float)instruction_p->color.blue  / (float)std::numeric_limits<guint16>::max (),
                         1.0F);
           break;
         }
         case STREAM_VISUALIZATION_OPENGL_INSTRUCTION_SET_COLOR_FG:
         {
-          glColor4f (static_cast<GLclampf> (instruction_p->color.red),
-                     static_cast<GLclampf> (instruction_p->color.green),
-                     static_cast<GLclampf> (instruction_p->color.blue),
+          glColor4f ((float)instruction_p->color.red   / (float)std::numeric_limits<guint16>::max (),
+                     (float)instruction_p->color.green / (float)std::numeric_limits<guint16>::max (),
+                     (float)instruction_p->color.blue  / (float)std::numeric_limits<guint16>::max (),
                      1.0F);
           break;
         }
@@ -1490,6 +1490,8 @@ glarea_expose_event_cb (GtkWidget* widget_in,
   if (!gtk_gl_area_make_current (GTK_GL_AREA (widget_in)))
     return FALSE;
 
+  processInstructions (ui_cb_data_base_p);
+
   glClear (GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
   COMMON_GL_ASSERT;
   glLoadIdentity (); // Reset the transformation matrix.
@@ -1572,9 +1574,9 @@ glarea_expose_event_cb (GtkWidget* widget_in,
   //glViewport (0, 0,
   //            data_p->area3D.width, data_p->area3D.height);
 
-  processInstructions (ui_cb_data_base_p);
-
   gtk_gl_area_swap_buffers (GTK_GL_AREA (widget_in));
+
+  gtk_gl_area_endgl (GTK_GL_AREA (widget_in));
 
   return TRUE;
 }

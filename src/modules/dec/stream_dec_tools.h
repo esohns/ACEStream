@@ -59,6 +59,7 @@ extern "C"
 #include "stream_lib_common.h"
 #include "stream_lib_defines.h"
 #include "stream_lib_directshow_common.h"
+#include "stream_lib_directsound_common.h"
 #endif // ACE_WIN32 || ACE_WIN64
 
 #include "stream_dec_common.h"
@@ -98,13 +99,13 @@ class Stream_Module_Decoder_Tools
 
   // direct show
   // *NOTE*: loads a filter graph (source side)
-  static bool loadAudioRendererGraph (REFGUID,                                                          // device category (GUID_NULL: retain first filter w/o input pins)
-                                      const struct _AMMediaType&,                                       // media type
-                                      int,                                                              // output handle [0: null]
-                                      IGraphBuilder*,                                                   // graph handle
-                                      REFGUID,                                                          // DMO effect CLSID [GUID_NULL: no effect]
-                                      const union Stream_MediaFramework_DirectShow_AudioEffectOptions&, // DMO effect options
-                                      Stream_MediaFramework_DirectShow_GraphConfiguration_t&);          // return value: graph layout
+  static bool loadAudioRendererGraph (REFGUID,                                                           // device category (GUID_NULL: retain first filter w/o input pins)
+                                      const struct _AMMediaType&,                                        // media type
+                                      int,                                                               // output handle [0: null]
+                                      IGraphBuilder*,                                                    // graph handle
+                                      REFGUID,                                                           // DMO effect CLSID [GUID_NULL: no effect]
+                                      const union Stream_MediaFramework_DirectSound_AudioEffectOptions&, // DMO effect options
+                                      Stream_MediaFramework_DirectShow_GraphConfiguration_t&);           // return value: graph layout
   static bool loadVideoRendererGraph (REFGUID,                                                 // device category (GUID_NULL: retain first filter w/o input pins)
                                       const struct _AMMediaType&,                              // capture media type (i.e. capture device output)
                                       const struct _AMMediaType&,                              // output media type (sample grabber-)

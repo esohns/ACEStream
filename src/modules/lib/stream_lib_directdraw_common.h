@@ -21,18 +21,16 @@
 #ifndef STREAM_LIB_DIRECTDRAW_COMMON_H
 #define STREAM_LIB_DIRECTDRAW_COMMON_H
 
-#include <d3d9.h>
-#include <d3d9types.h>
+#include "d3d9.h"
 
 #include "ace/OS.h"
 #include "ace/OS_NS_Thread.h"
 #include "ace/Synch_Traits.h"
 #include "ace/Thread_Mutex.h"
 
-#include "common_defines.h"
+#include "common_macros.h"
 
 #include "stream_lib_defines.h"
-#include "stream_lib_directdraw_tools.h"
 
 struct Stream_MediaFramework_Direct3D_Configuration
 {

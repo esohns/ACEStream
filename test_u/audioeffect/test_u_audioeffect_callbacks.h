@@ -118,6 +118,7 @@ extern "C"
   G_MODULE_EXPORT void filechooserbutton_destination_file_set_cb (GtkFileChooserButton*, gpointer);
   G_MODULE_EXPORT void filechooserdialog_cb (GtkFileChooser*, gpointer);
   G_MODULE_EXPORT void radiobutton_2d_toggled_cb (GtkToggleButton*, gpointer);
+  G_MODULE_EXPORT void hscale_volume_value_changed_cb (GtkRange*, gpointer);
   G_MODULE_EXPORT void scale_sinus_frequency_value_changed_cb (GtkRange*, gpointer);
 #ifdef __cplusplus
 }

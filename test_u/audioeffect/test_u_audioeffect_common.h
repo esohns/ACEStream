@@ -28,6 +28,7 @@
 
 #include "ace/config-lite.h"
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
+#include "endpointvolume.h"
 #include "mfapi.h"
 #undef GetObject
 #include "mfidl.h"
@@ -121,6 +122,7 @@ extern "C"
 #include "stream_lib_defines.h"
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #include "stream_lib_directshow_common.h"
+#include "stream_lib_directsound_common.h"
 #endif // ACE_WIN32 || ACE_WIN64
 
 #include "stream_stat_common.h"
@@ -368,7 +370,7 @@ struct Test_U_AudioEffect_ModuleHandlerConfiguration
 #endif // GUI_SUPPORT
   {}
 
-  int                                               audioInput; // win32: waveIn- UNIX: ALSA card id
+  int                                               audioInput; // win32: waveIn-; UNIX: ALSA card id
   int                                               audioOutput; // win32: waveOut-
   // *PORTABILITY*: Win32: (usb) device path
   //                UNIX : (ALSA/OSS/...) device name/device file path (e.g. "hw:0,0"/"/dev/snd/pcmC0D0c", "/dev/dsp" (Linux))
@@ -428,20 +430,20 @@ struct Test_U_AudioEffect_DirectShow_ModuleHandlerConfiguration
    , subscribers (NULL)
   {}
 
-  IGraphBuilder*                                            builder;
-  CLSID                                                     effect;
-  union Stream_MediaFramework_DirectShow_AudioEffectOptions effectOptions;
-  struct Test_U_AudioEffect_DirectShow_FilterConfiguration* filterConfiguration;
-  CLSID                                                     filterCLSID;
-  struct _AMMediaType                                       outputFormat;
+  IGraphBuilder*                                             builder;
+  CLSID                                                      effect;
+  union Stream_MediaFramework_DirectSound_AudioEffectOptions effectOptions;
+  struct Test_U_AudioEffect_DirectShow_FilterConfiguration*  filterConfiguration;
+  CLSID                                                      filterCLSID;
+  struct _AMMediaType                                        outputFormat;
   // *IMPORTANT NOTE*: 'asynchronous' filters implement IAsyncReader (downstream
   //                   filters 'pull' media samples), 'synchronous' filters
   //                   implement IMemInputPin and 'push' media samples to
   //                   downstream filters
-  bool                                                      push;
-  Test_U_AudioEffect_DirectShow_StreamConfiguration_t*      streamConfiguration;
-  Test_U_AudioEffect_DirectShow_ISessionNotify_t*           subscriber;
-  Test_U_AudioEffect_DirectShow_Subscribers_t*              subscribers;
+  bool                                                       push;
+  Test_U_AudioEffect_DirectShow_StreamConfiguration_t*       streamConfiguration;
+  Test_U_AudioEffect_DirectShow_ISessionNotify_t*            subscriber;
+  Test_U_AudioEffect_DirectShow_Subscribers_t*               subscribers;
 };
 
 //extern const char stream_name_string_[];
@@ -856,11 +858,13 @@ struct Test_U_AudioEffect_DirectShow_UI_CBData
    , configuration (NULL)
    , streamConfiguration (NULL)
    , subscribers ()
+   , volumeControl (NULL)
   {}
 
   struct Test_U_AudioEffect_DirectShow_Configuration* configuration;
   IAMStreamConfig*                                    streamConfiguration;
   Test_U_AudioEffect_DirectShow_Subscribers_t         subscribers;
+  IAudioEndpointVolume*                               volumeControl;
 };
 
 struct Test_U_AudioEffect_MediaFoundation_UI_CBData

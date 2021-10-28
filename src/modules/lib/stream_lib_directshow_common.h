@@ -22,29 +22,11 @@
 #define STREAM_LIB_DIRECTSHOW_COMMON_H
 
 #include <deque>
+#include <list>
 #include <string>
 #include <vector>
 
-// *WARNING*: "...Note Header files ksproxy.h and dsound.h define similar but
-//            incompatible versions of the IKsPropertySet interface.
-//            Applications that require the KS proxy module should use the
-//            version defined in ksproxy.h.The DirectSound version of
-//            IKsPropertySet is described in the DirectSound reference pages in
-//            the Microsoft Windows SDK documentation.
-//            If an application must include both ksproxy.h and dsound.h,
-//            whichever header file the compiler scans first is the one whose
-//            definition of IKsPropertySet is used by the compiler. ..."
-//#include "MMReg.h"
-#include "WinNT.h"
-#include "Guiddef.h"
-#include "Ks.h"
-#include "KsProxy.h"
-#include "MMSystem.h"
-#define INITGUID
-#include "dsound.h"
 #include "strmif.h"
-
-#include "ace/OS.h"
 
 #include "stream_lib_defines.h"
 
@@ -82,23 +64,7 @@ struct Stream_MediaFramework_DirectShow_FilterConfiguration
    : allocator (NULL)
    , allocatorProperties (NULL)
    , pinConfiguration (NULL)
-  {
-    //ACE_OS::memset (&allocatorProperties,
-    //                0,
-    //                sizeof (struct _AllocatorProperties));
-    //// *TODO*: IMemAllocator::SetProperties returns VFW_E_BADALIGN (0x8004020e)
-    ////         if this is -1/0 (why ?)
-    ////allocatorProperties_.cbAlign = -1;  // <-- use default
-    //allocatorProperties.cbAlign = 1;
-    //allocatorProperties.cbBuffer = -1; // <-- use default
-    //// *TODO*: IMemAllocator::SetProperties returns E_INVALIDARG (0x80070057)
-    ////         if this is -1/0 (why ?)
-    ////allocatorProperties.cbPrefix = -1; // <-- use default
-    //allocatorProperties.cbPrefix = 0;
-    //allocatorProperties.cBuffers =
-    //  STREAM_LIB_DIRECTSHOW_FILTER_SOURCE_BUFFERS;
-    ////allocatorProperties_.cBuffers = -1; // <-- use default
-  }
+  {}
 
   Stream_IAllocator*                                              allocator; // message-
   struct _AllocatorProperties*                                    allocatorProperties; // IMediaSample-
@@ -126,19 +92,5 @@ struct Stream_MediaFramework_DirectShow_GraphConfigurationEntry
 typedef std::list<struct Stream_MediaFramework_DirectShow_GraphConfigurationEntry> Stream_MediaFramework_DirectShow_GraphConfiguration_t;
 typedef Stream_MediaFramework_DirectShow_GraphConfiguration_t::iterator Stream_MediaFramework_DirectShow_GraphConfigurationIterator_t;
 typedef Stream_MediaFramework_DirectShow_GraphConfiguration_t::const_iterator Stream_MediaFramework_DirectShow_GraphConfigurationConstIterator_t;
-
-union Stream_MediaFramework_DirectShow_AudioEffectOptions
-{
-  struct _DSCFXAec        AECOptions;
-  struct _DSFXChorus      chorusOptions;
-  struct _DSFXCompressor  compressorOptions;
-  struct _DSFXDistortion  distortionOptions;
-  struct _DSFXEcho        echoOptions;
-  struct _DSFXParamEq     equalizerOptions;
-  struct _DSFXFlanger     flangerOptions;
-  struct _DSFXGargle      gargleOptions;
-  struct _DSFXI3DL2Reverb reverbOptions;
-  struct _DSFXWavesReverb wavesReverbOptions;
-};
 
 #endif

@@ -26,7 +26,7 @@
 #include <map>
 #include <string>
 
-#include <Guiddef.h>
+#include "guiddef.h"
 #endif // ACE_WIN32 || ACE_WIN64
 
 enum Stream_MediaType_Type

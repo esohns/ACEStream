@@ -33,6 +33,8 @@
 #undef GetObject
 #include "mfidl.h"
 #include "mfreadwrite.h"
+#include "initguid.h"
+#include "mmdeviceapi.h"
 #include "OleAuto.h"
 // *NOTE*: uuids.h doesn't have double include protection
 #if defined (UUIDS_H)
@@ -81,11 +83,6 @@ extern "C"
 #include "common_file_tools.h"
 #include "common_process_tools.h"
 
-#if defined (GTKGL_SUPPORT)
-//#include "common_gl_defines.h"
-//#include "common_gl_tools.h"
-#endif /* GTKGL_SUPPORT */
-
 #include "common_image_tools.h"
 
 #include "common_timer_manager_common.h"
@@ -107,6 +104,7 @@ extern "C"
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #include "stream_lib_directshow_tools.h"
+#include "stream_lib_directsound_tools.h"
 #include "stream_lib_mediafoundation_tools.h"
 #include "stream_lib_tools.h"
 #endif // ACE_WIN32 || ACE_WIN64
@@ -6858,6 +6856,67 @@ togglebutton_sinus_toggled_cb (GtkToggleButton* toggleButton_in,
 } // togglebutton_sinus_toggled_cb
 
 void
+hscale_volume_value_changed_cb (GtkRange* range_in,
+                                gpointer userData_in)
+{
+  STREAM_TRACE (ACE_TEXT ("::hscale_volume_value_changed_cb"));
+
+  struct Test_U_AudioEffect_UI_CBDataBase* ui_cb_data_base_p =
+    static_cast<struct Test_U_AudioEffect_UI_CBDataBase*> (userData_in);
+
+  // sanity check(s)
+  ACE_ASSERT (ui_cb_data_base_p);
+
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  struct Test_U_AudioEffect_DirectShow_UI_CBData* directshow_ui_cb_data_p =
+    NULL;
+  struct Test_U_AudioEffect_MediaFoundation_UI_CBData* mediafoundation_ui_cb_data_p =
+    NULL;
+  switch (ui_cb_data_base_p->mediaFramework)
+  {
+    case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
+    {
+      directshow_ui_cb_data_p =
+        static_cast<struct Test_U_AudioEffect_DirectShow_UI_CBData*> (userData_in);
+      // sanity check(s)
+      ACE_ASSERT (directshow_ui_cb_data_p);
+      ACE_ASSERT (directshow_ui_cb_data_p->volumeControl);
+      HRESULT result =
+        directshow_ui_cb_data_p->volumeControl->SetMasterVolumeLevelScalar (static_cast<float> (gtk_range_get_value (range_in) / 100.0),
+                                                                            NULL);
+      ACE_ASSERT (SUCCEEDED (result));
+      break;
+    }
+    case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
+    {
+      mediafoundation_ui_cb_data_p =
+        static_cast<struct Test_U_AudioEffect_MediaFoundation_UI_CBData*> (userData_in);
+      // sanity check(s)
+      ACE_ASSERT (mediafoundation_ui_cb_data_p);
+      ACE_ASSERT (mediafoundation_ui_cb_data_p->configuration);
+      ACE_ASSERT (false); // *TODO*
+      break;
+    }
+    default:
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("invalid/unknown media framework (was: %d), returning\n"),
+                  ui_cb_data_base_p->mediaFramework));
+      return;
+    }
+  } // end SWITCH
+#else
+  struct Test_U_AudioEffect_UI_CBData* data_p =
+    static_cast<struct Test_U_AudioEffect_UI_CBData*> (userData_in);
+
+  // sanity check(s)
+  ACE_ASSERT (data_p);
+  ACE_ASSERT (data_p->configuration);
+  ACE_ASSERT (false); // *TODO*
+#endif // ACE_WIN32 || ACE_WIN64
+} // hscale_volume_value_changed_cb
+
+void
 scale_sinus_frequency_value_changed_cb (GtkRange* range_in,
                                         gpointer userData_in)
 {
@@ -6885,11 +6944,6 @@ scale_sinus_frequency_value_changed_cb (GtkRange* range_in,
       // sanity check(s)
       ACE_ASSERT (directshow_ui_cb_data_p);
       ACE_ASSERT (directshow_ui_cb_data_p->configuration);
-
-      directshow_ui_cb_data_p =
-        static_cast<struct Test_U_AudioEffect_DirectShow_UI_CBData*> (userData_in);
-      // sanity check(s)
-      ACE_ASSERT (directshow_ui_cb_data_p);
 
       directshow_modulehandler_configuration_iterator =
         directshow_ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
@@ -6937,7 +6991,7 @@ scale_sinus_frequency_value_changed_cb (GtkRange* range_in,
 
   (*modulehandler_configuration_iterator).second.second->sinusFrequency =
     gtk_range_get_value (range_in);
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
 } // scale_sinus_frequency_value_changed_cb
 
 void
@@ -8509,7 +8563,76 @@ continue_:
   switch (ui_cb_data_base_p->mediaFramework)
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
+    {
+      // retrieve volume control handle
+      // step1: retrieve DirectSound device GUID from wave device id
+      struct _GUID GUID_s =
+        Stream_MediaFramework_DirectSound_Tools::waveDeviceIdToDirectSoundGUID (static_cast<ULONG> ((*directshow_modulehandler_configuration_iterator).second.second->audioInput));
+      ACE_ASSERT (!InlineIsEqualGUID (GUID_s, GUID_NULL));
+      HRESULT result = E_FAIL;
+      //result = CoInitialize (NULL);
+      //ACE_ASSERT (SUCCEEDED (result));
+      IMMDeviceEnumerator* enumerator_p = NULL;
+      result =
+        CoCreateInstance (__uuidof (MMDeviceEnumerator), NULL, CLSCTX_INPROC_SERVER,
+                          __uuidof (IMMDeviceEnumerator), (LPVOID*)&enumerator_p);
+      ACE_ASSERT (SUCCEEDED (result));
+      IMMDeviceCollection* devices_p = NULL;
+      result =
+        enumerator_p->EnumAudioEndpoints (eCapture, DEVICE_STATEMASK_ALL, &devices_p);
+      ACE_ASSERT (SUCCEEDED (result));
+      enumerator_p->Release (); enumerator_p = NULL;
+      IMMDevice* device_p = NULL;
+      UINT num_devices_i = 0;
+      result = devices_p->GetCount (&num_devices_i);
+      ACE_ASSERT (SUCCEEDED (result));
+      IPropertyStore* property_store_p = NULL;
+      PROPVARIANT property_s;
+      PropVariantInit (&property_s);
+      struct _GUID GUID_2 = GUID_NULL;
+      for (UINT i = 0;
+           i < num_devices_i;
+           ++i)
+      { ACE_ASSERT (!device_p);
+        result = devices_p->Item (i,
+                                  &device_p);
+        ACE_ASSERT (SUCCEEDED (result));
+        result = device_p->OpenPropertyStore (STGM_READ,
+                                              &property_store_p);
+        ACE_ASSERT (SUCCEEDED (result));
+        result = property_store_p->GetValue (PKEY_AudioEndpoint_GUID,
+                                             &property_s);
+        ACE_ASSERT (SUCCEEDED (result));
+        property_store_p->Release (); property_store_p = NULL;
+        ACE_ASSERT (property_s.vt == VT_LPWSTR);
+        GUID_2 =
+          Common_Tools::StringToGUID (ACE_TEXT_ALWAYS_CHAR (ACE_TEXT_WCHAR_TO_TCHAR (property_s.pwszVal)));
+        if (InlineIsEqualGUID (GUID_2, GUID_s))
+          break;
+        PropVariantClear (&property_s);
+        device_p->Release (); device_p = NULL;
+      } // end FOR
+      PropVariantClear (&property_s);
+      devices_p->Release (); devices_p = NULL;
+      if (!device_p)
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("failed to retrieve volume control handle for wave device (id was: %d), returning\n"),
+                    (*directshow_modulehandler_configuration_iterator).second.second->audioInput));
+        return;
+      } // end IF
+      if (directshow_ui_cb_data_p->volumeControl)
+      {
+        directshow_ui_cb_data_p->volumeControl->Release (); directshow_ui_cb_data_p->volumeControl = NULL;
+      } // end IF
+      result =
+        device_p->Activate (__uuidof (IAudioEndpointVolume), CLSCTX_INPROC_SERVER, NULL,
+                            (LPVOID*)&directshow_ui_cb_data_p->volumeControl);
+      ACE_ASSERT (SUCCEEDED (result));
+      device_p->Release (); device_p = NULL;
+      //CoUninitialize ();
       break;
+    }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
     {
       media_source_p->Release (); media_source_p = NULL;
