@@ -55,14 +55,16 @@
     <property name="page_increment">10</property>
   </object>
   <object class="GtkAboutDialog" id="dialog_about">
-    <property name="can_focus">False</property>
+    <property name="can_focus">True</property>
     <property name="border_width">5</property>
+    <property name="title" translatable="yes">About</property>
     <property name="resizable">False</property>
     <property name="destroy_with_parent">True</property>
     <property name="type_hint">dialog</property>
     <property name="skip_taskbar_hint">True</property>
     <property name="skip_pager_hint">True</property>
     <property name="deletable">False</property>
+    <property name="has_separator">True</property>
     <property name="program_name">audioeffect</property>
     <property name="version">0.1</property>
     <property name="copyright" translatable="yes">Copyright (C) 2016 by Erik Sohns</property>
@@ -73,12 +75,11 @@
     <child internal-child="vbox">
       <object class="GtkVBox" id="dialog_about_vbox">
         <property name="visible">True</property>
-        <property name="can_focus">False</property>
-        <property name="spacing">2</property>
+        <property name="can_focus">True</property>
         <child internal-child="action_area">
           <object class="GtkHButtonBox" id="dialog_about_action_area">
             <property name="visible">True</property>
-            <property name="can_focus">False</property>
+            <property name="can_focus">True</property>
             <property name="layout_style">end</property>
           </object>
           <packing>
@@ -93,7 +94,7 @@
   </object>
   <object class="GtkFileFilter" id="filefilter_wav"/>
   <object class="GtkFileChooserDialog" id="filechooserdialog">
-    <property name="can_focus">False</property>
+    <property name="can_focus">True</property>
     <property name="border_width">5</property>
     <property name="title" translatable="yes">choose a file</property>
     <property name="role">GtkFileChooserDialog</property>
@@ -106,16 +107,13 @@
     <property name="show_hidden">True</property>
     <property name="use_preview_label">False</property>
     <child internal-child="vbox">
-      <object class="GtkVBox" id="filechooserdialog-vbox1">
-        <property name="can_focus">False</property>
+      <object class="GtkVBox" id="vbox_filechooserdialog">
+        <property name="can_focus">True</property>
         <property name="spacing">2</property>
         <child internal-child="action_area">
-          <object class="GtkHButtonBox" id="filechooserdialog-action_area1">
-            <property name="can_focus">False</property>
+          <object class="GtkHButtonBox" id="action_area_filechooserdialog">
+            <property name="can_focus">True</property>
             <property name="layout_style">end</property>
-            <child>
-              <placeholder/>
-            </child>
             <child>
               <placeholder/>
             </child>
@@ -186,41 +184,42 @@
     </columns>
   </object>
   <object class="GtkDialog" id="dialog_main">
-    <property name="can_focus">False</property>
+    <property name="can_focus">True</property>
+    <property name="title" translatable="yes">audioeffect</property>
     <property name="type_hint">normal</property>
     <property name="deletable">False</property>
     <child internal-child="vbox">
       <object class="GtkVBox" id="vbox_main">
         <property name="visible">True</property>
-        <property name="can_focus">False</property>
+        <property name="can_focus">True</property>
         <child>
           <object class="GtkHBox" id="hbox_main">
             <property name="visible">True</property>
-            <property name="can_focus">False</property>
+            <property name="can_focus">True</property>
             <child>
               <object class="GtkVBox" id="vbox_controls">
                 <property name="visible">True</property>
-                <property name="can_focus">False</property>
+                <property name="can_focus">True</property>
                 <child>
                   <object class="GtkHBox" id="hbox_actions_information">
                     <property name="visible">True</property>
-                    <property name="can_focus">False</property>
+                    <property name="can_focus">True</property>
                     <child>
                       <object class="GtkFrame" id="frame_actions">
                         <property name="visible">True</property>
-                        <property name="can_focus">False</property>
+                        <property name="can_focus">True</property>
                         <property name="label_xalign">0</property>
                         <property name="label_yalign">0</property>
                         <child>
                           <object class="GtkAlignment" id="alignment_actions">
                             <property name="visible">True</property>
-                            <property name="can_focus">False</property>
+                            <property name="can_focus">True</property>
                             <property name="xalign">0</property>
                             <property name="yalign">0</property>
                             <child>
                               <object class="GtkVButtonBox" id="vbuttonbox_actions">
                                 <property name="visible">True</property>
-                                <property name="can_focus">False</property>
+                                <property name="can_focus">True</property>
                                 <property name="homogeneous">True</property>
                                 <property name="layout_style">spread</property>
                                 <child>
@@ -453,7 +452,7 @@
                                       <object class="GtkSpinButton" id="spinbutton_captured_frames">
                                         <property name="visible">True</property>
                                         <property name="sensitive">False</property>
-                                        <property name="can_focus">True</property>
+                                        <property name="can_focus">False</property>
                                         <property name="tooltip_text" translatable="yes">captured frames</property>
                                         <property name="editable">False</property>
                                         <property name="has_frame">False</property>
@@ -477,7 +476,7 @@
                                       <object class="GtkSpinButton" id="spinbutton_dropped_frames">
                                         <property name="visible">True</property>
                                         <property name="sensitive">False</property>
-                                        <property name="can_focus">True</property>
+                                        <property name="can_focus">False</property>
                                         <property name="tooltip_text" translatable="yes">dropped frames</property>
                                         <property name="editable">False</property>
                                         <property name="has_frame">False</property>
@@ -506,6 +505,7 @@
                                 <child>
                                   <object class="GtkLabel" id="label_buffersize">
                                     <property name="visible">True</property>
+                                    <property name="sensitive">False</property>
                                     <property name="can_focus">False</property>
                                     <property name="label" translatable="yes">buffer</property>
                                     <property name="track_visited_links">False</property>
@@ -519,9 +519,7 @@
                                   <object class="GtkSpinButton" id="spinbutton_buffersize">
                                     <property name="visible">True</property>
                                     <property name="sensitive">False</property>
-                                    <property name="can_focus">True</property>
-                                    <property name="can_default">True</property>
-                                    <property name="receives_default">True</property>
+                                    <property name="can_focus">False</property>
                                     <property name="tooltip_text" translatable="yes">bytes</property>
                                     <property name="editable">False</property>
                                     <property name="has_frame">False</property>
@@ -871,6 +869,8 @@
                                               <object class="GtkHScale" id="hscale_volume">
                                                 <property name="visible">True</property>
                                                 <property name="can_focus">True</property>
+                                                <property name="can_default">True</property>
+                                                <property name="receives_default">True</property>
                                                 <property name="tooltip_text" translatable="yes">volume (%)</property>
                                                 <property name="adjustment">adjustment_volume</property>
                                                 <property name="restrict_to_fill_level">False</property>
@@ -889,13 +889,18 @@
                                               <object class="GtkHScale" id="hscale_boost">
                                                 <property name="visible">True</property>
                                                 <property name="can_focus">True</property>
+                                                <property name="can_default">True</property>
+                                                <property name="receives_default">True</property>
                                                 <property name="tooltip_text" translatable="yes">boost (dB)</property>
+                                                <property name="update_policy">discontinuous</property>
                                                 <property name="adjustment">adjustment_boost</property>
                                                 <property name="restrict_to_fill_level">False</property>
                                                 <property name="fill_level">0</property>
                                                 <property name="round_digits">0</property>
                                                 <property name="digits">0</property>
+                                                <property name="draw_value">False</property>
                                                 <signal name="value-changed" handler="hscale_boost_value_changed_cb" swapped="no"/>
+                                                <signal name="change-value" handler="hscale_boost_change_value_cb" swapped="no"/>
                                               </object>
                                               <packing>
                                                 <property name="expand">True</property>
@@ -1482,6 +1487,7 @@
                 <property name="label">gtk-about</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
+                <property name="can_default">True</property>
                 <property name="receives_default">True</property>
                 <property name="tooltip_text" translatable="yes">about</property>
                 <property name="relief">half</property>
@@ -1500,6 +1506,7 @@
                 <property name="label">gtk-quit</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
+                <property name="can_default">True</property>
                 <property name="receives_default">True</property>
                 <property name="tooltip_text" translatable="yes">quit</property>
                 <property name="relief">half</property>

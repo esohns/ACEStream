@@ -3910,6 +3910,13 @@ idle_initialize_UI_cb (gpointer userData_in)
                                   ACE_TEXT_ALWAYS_CHAR ("text"), 0,
                                   NULL);
 
+  GtkHScale* scale_p =
+    GTK_HSCALE (gtk_builder_get_object ((*iterator).second.second,
+                                        ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_HSCALE_BOOST_NAME)));
+  ACE_ASSERT (scale_p);
+  gtk_range_set_update_policy (GTK_RANGE (scale_p),
+                               GTK_UPDATE_DISCONTINUOUS);
+
   std::string filename;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   Test_U_AudioEffect_MediaFoundation_StreamConfiguration_t::ITERATOR_T mediafoundation_modulehandler_configuration_iterator;
@@ -4048,22 +4055,22 @@ idle_initialize_UI_cb (gpointer userData_in)
                            userData_in);
   } // end IF
 
-  GtkScale* scale_p =
+  GtkScale* scale_2 =
     GTK_SCALE (gtk_builder_get_object ((*iterator).second.second,
                                        ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_SCALE_SINUS_FREQUENCY_NAME)));
-  ACE_ASSERT (scale_p);
+  ACE_ASSERT (scale_2);
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   switch (ui_cb_data_base_p->mediaFramework)
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
     {
-      gtk_range_set_value (GTK_RANGE (scale_p),
+      gtk_range_set_value (GTK_RANGE (scale_2),
                            (*directshow_modulehandler_configuration_iterator).second.second->sinusFrequency);
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
     {
-      gtk_range_set_value (GTK_RANGE (scale_p),
+      gtk_range_set_value (GTK_RANGE (scale_2),
                            (*mediafoundation_modulehandler_configuration_iterator).second.second->sinusFrequency);
       break;
     }
@@ -4079,8 +4086,8 @@ idle_initialize_UI_cb (gpointer userData_in)
   gtk_range_set_value (GTK_RANGE (scale_p),
                        (*modulehandler_configuration_iterator).second.second->sinusFrequency);
 #endif // ACE_WIN32 || ACE_WIN64
-  gtk_scale_add_mark (scale_p,
-                      gtk_range_get_value (GTK_RANGE (scale_p)),
+  gtk_scale_add_mark (scale_2,
+                      gtk_range_get_value (GTK_RANGE (scale_2)),
                       GTK_POS_TOP,
                       NULL);
 
@@ -6793,6 +6800,95 @@ hscale_volume_value_changed_cb (GtkRange* range_in,
 #endif // ACE_WIN32 || ACE_WIN64
 } // hscale_volume_value_changed_cb
 
+gboolean
+hscale_boost_change_value_cb (GtkRange* range_in,
+                              GtkScrollType* scrollType_in,
+                              gdouble value_in,
+                              gpointer userData_in)
+{
+  STREAM_TRACE (ACE_TEXT ("::hscale_boost_change_value_cb"));
+
+  struct Test_U_AudioEffect_UI_CBDataBase* ui_cb_data_base_p =
+    static_cast<struct Test_U_AudioEffect_UI_CBDataBase*> (userData_in);
+
+  // sanity check(s)
+  ACE_ASSERT (ui_cb_data_base_p);
+
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  struct Test_U_AudioEffect_DirectShow_UI_CBData* directshow_ui_cb_data_p =
+    NULL;
+  struct Test_U_AudioEffect_MediaFoundation_UI_CBData* mediafoundation_ui_cb_data_p =
+    NULL;
+  switch (ui_cb_data_base_p->mediaFramework)
+  {
+    case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
+    {
+      directshow_ui_cb_data_p =
+        static_cast<struct Test_U_AudioEffect_DirectShow_UI_CBData*> (userData_in);
+      // sanity check(s)
+      ACE_ASSERT (directshow_ui_cb_data_p);
+      ACE_ASSERT (directshow_ui_cb_data_p->boostControl);
+      float min_level_f = 0.0F, max_level_f = 0.0F, stepping_f = 0.0F;
+      HRESULT result =
+        directshow_ui_cb_data_p->boostControl->GetLevelRange (0,
+                                                              &min_level_f,
+                                                              &max_level_f,
+                                                              &stepping_f);
+      ACE_ASSERT (SUCCEEDED (result));
+      // determine the closest discrete value
+      std::vector<float> values_a;
+      for (float i = min_level_f;
+           i <= max_level_f;
+           i += stepping_f)
+        values_a.push_back (i);
+      std::vector<float>::const_iterator iterator =
+        std::find (values_a.begin (), values_a.end (),
+                   static_cast<float> (value_in));
+      if (iterator != values_a.end ())
+        return FALSE; // propagate the event
+      iterator =
+        std::lower_bound (values_a.begin (), values_a.end (),
+                          static_cast<float> (value_in));
+      gdouble value_f = values_a.back ();
+      if (iterator != values_a.end ())
+        value_f = *iterator;
+      g_signal_emit_by_name (G_OBJECT (range_in),
+                             ACE_TEXT_ALWAYS_CHAR ("change-value"),
+                             scrollType_in, static_cast<gdouble> (value_f), userData_in,
+                             NULL);
+      break;
+    }
+    case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
+    {
+      mediafoundation_ui_cb_data_p =
+        static_cast<struct Test_U_AudioEffect_MediaFoundation_UI_CBData*> (userData_in);
+      // sanity check(s)
+      ACE_ASSERT (mediafoundation_ui_cb_data_p);
+      ACE_ASSERT (mediafoundation_ui_cb_data_p->configuration);
+      ACE_ASSERT (false); // *TODO*
+      break;
+    }
+    default:
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("invalid/unknown media framework (was: %d), returning\n"),
+                  ui_cb_data_base_p->mediaFramework));
+      break;
+    }
+  } // end SWITCH
+#else
+  struct Test_U_AudioEffect_UI_CBData* data_p =
+    static_cast<struct Test_U_AudioEffect_UI_CBData*> (userData_in);
+
+  // sanity check(s)
+  ACE_ASSERT (data_p);
+  ACE_ASSERT (data_p->configuration);
+  ACE_ASSERT (false); // *TODO*
+#endif // ACE_WIN32 || ACE_WIN64
+
+  return TRUE;
+} // hscale_boost_change_value_cb
+
 void
 hscale_boost_value_changed_cb (GtkRange* range_in,
                                gpointer userData_in)
@@ -6819,12 +6915,19 @@ hscale_boost_value_changed_cb (GtkRange* range_in,
       // sanity check(s)
       ACE_ASSERT (directshow_ui_cb_data_p);
       ACE_ASSERT (directshow_ui_cb_data_p->boostControl);
-      float min_level_f = 0.0F, max_level_f = 0.0F, stepping_f = 0.0F;
-      HRESULT result =
-        directshow_ui_cb_data_p->boostControl->SetLevel (0,
-                                                         static_cast<float> (gtk_range_get_value (range_in)),
-                                                         NULL);
-      ACE_ASSERT (SUCCEEDED (result));
+      float value_f = static_cast<float> (gtk_range_get_value (range_in));
+      UINT num_channels_i =
+        Stream_MediaFramework_DirectShow_Tools::toChannels (directshow_ui_cb_data_p->configuration->streamConfiguration.configuration_->format);
+      HRESULT result = E_FAIL;
+      for (UINT i = 0;
+           i < num_channels_i;
+           ++i)
+      {
+        result = directshow_ui_cb_data_p->boostControl->SetLevel (i,
+                                                                  value_f,
+                                                                  NULL);
+        //ACE_ASSERT (SUCCEEDED (result));
+      } // end FOR
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
@@ -8525,6 +8628,7 @@ continue_:
       PROPVARIANT property_s;
       PropVariantInit (&property_s);
       struct _GUID GUID_2 = GUID_NULL;
+      std::ostringstream converter;
       for (UINT i = 0;
            i < num_devices_i;
            ++i)
@@ -8605,7 +8709,21 @@ continue_:
                            static_cast<gdouble> (max_level_f));
       gtk_range_set_increments (GTK_RANGE (hscale_p),
                                 static_cast<gdouble> (stepping_f),
-                                0.0);
+                                static_cast<gdouble> (stepping_f));
+      converter.precision (2);
+      converter << std::fixed; // for fixed point notation
+      for (float i = min_level_f;
+           i <= max_level_f;
+           i += stepping_f)
+      {
+        converter.str (ACE_TEXT_ALWAYS_CHAR (""));
+        converter.clear ();
+        converter << i;
+        gtk_scale_add_mark (GTK_SCALE (hscale_p),
+                            static_cast<gdouble> (i),
+                            GTK_POS_TOP,
+                            converter.str ().c_str ());
+      } // end FOR
       result =
         directshow_ui_cb_data_p->boostControl->GetLevel (0,
                                                          &boost_f);

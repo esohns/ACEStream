@@ -202,6 +202,7 @@ class Stream_MediaFramework_DirectShow_Tools
   static void setFramerate (const unsigned int&,   // framerate (i.e. fps)
                             struct _AMMediaType&); // in/out: media type
   static unsigned int toBitrate (const struct _AMMediaType&); // media type
+  static unsigned int toChannels (const struct _AMMediaType&); // media type
   // *IMPORTANT NOTE*: callers must 'DeleteMediaType' any return values
   inline static DMO_MEDIA_TYPE* toDMOMediaType (const struct _AMMediaType& mediaType_in) { return reinterpret_cast<DMO_MEDIA_TYPE*> (Stream_MediaFramework_DirectShow_Tools::copy (mediaType_in)); }
   static unsigned int toFramerate (const struct _AMMediaType&); // media type

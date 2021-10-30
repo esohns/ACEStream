@@ -168,6 +168,9 @@ Stream_MediaFramework_DirectSound_Tools::walkDeviceTreeFromPart (IPart* part_in,
   LPWSTR pwszPartName = NULL;
   HRESULT result_2 = part_in->GetName (&pwszPartName);
   ACE_ASSERT (SUCCEEDED (result_2));
+  ACE_DEBUG ((LM_DEBUG,
+              ACE_TEXT ("found part \"%s\"\n"),
+              ACE_TEXT_WCHAR_TO_TCHAR (pwszPartName)));
   if (!pwszPartName ||
       (ACE_TEXT_ALWAYS_CHAR (ACE_TEXT_WCHAR_TO_TCHAR (pwszPartName)) != volumeControlName_in))
   {
@@ -198,35 +201,28 @@ continue_:
     part_in->Release ();
     return NULL;
   } // end IF
-  UINT nParts = 0;
-  result_2 = parts_p->GetCount (&nParts);
+  UINT num_parts_i = 0;
+  result_2 = parts_p->GetCount (&num_parts_i);
   ACE_ASSERT (SUCCEEDED (result_2));
+  IPart* part_p = NULL;
+  PartType parttype_e;
+  IConnector* connector_p = NULL, *connector_2 = NULL;
+  BOOL connected_b = FALSE;
   for (UINT i = 0;
-       i < nParts;
+       i < num_parts_i;
        ++i)
-  {
-    IPart* part_p = NULL;
+  { ACE_ASSERT (!part_p);
     result_2 = parts_p->GetPart (i, &part_p);
     ACE_ASSERT (SUCCEEDED (result_2));
-    result =
-      Stream_MediaFramework_DirectSound_Tools::walkDeviceTreeFromPart (part_p,
-                                                                       volumeControlName_in);
-    if (result)
-      break;
-    part_p = NULL;
-    result_2 = parts_p->GetPart (i, &part_p);
-    ACE_ASSERT (SUCCEEDED (result_2));
-    PartType parttype_e;
     result_2 = part_p->GetPartType (&parttype_e);
     ACE_ASSERT (SUCCEEDED (result_2));
     if (parttype_e == Connector)
     {
-      IConnector* connector_p = NULL, *connector_2 = NULL;
       result_2 = part_p->QueryInterface (IID_PPV_ARGS (&connector_p));
       ACE_ASSERT (SUCCEEDED (result_2));
       part_p->Release (); part_p = NULL;
-      BOOL connected_b = FALSE;
       result_2 = connector_p->IsConnected (&connected_b);
+      ACE_ASSERT (SUCCEEDED (result_2));
       if (!connected_b)
       {
         connector_p->Release (); connector_p = NULL;
@@ -234,17 +230,25 @@ continue_:
       } // end IF
       connector_p->GetConnectedTo (&connector_2);
       ACE_ASSERT (SUCCEEDED (result_2));
+      connector_p->Release (); connector_p = NULL;
       result_2 = connector_2->QueryInterface (IID_PPV_ARGS (&part_p));
       ACE_ASSERT (SUCCEEDED (result_2));
       connector_2->Release (); connector_2 = NULL;
       result =
         Stream_MediaFramework_DirectSound_Tools::walkDeviceTreeFromPart (part_p,
                                                                          volumeControlName_in);
+      part_p = NULL;
       if (result)
         break;
       continue;
     } // end IF
-    part_p->Release (); part_p = NULL;
+
+    result =
+      Stream_MediaFramework_DirectSound_Tools::walkDeviceTreeFromPart (part_p,
+                                                                       volumeControlName_in);
+    part_p = NULL;
+    if (result)
+      break;
   } // end FOR
   parts_p->Release (); parts_p = NULL;
   part_in->Release ();
