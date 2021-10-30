@@ -25,7 +25,7 @@
 
 #include "amvideo.h"
 //#include <mmiscapi.h>
-#include "MMSystem.h"
+#include "mmsystem.h"
 #include "aviriff.h"
 #include "dvdmedia.h"
 #include "fourcc.h"
@@ -210,12 +210,10 @@ Stream_Decoder_AVIEncoder_ReaderTask_T<ACE_SYNCH_USE,
                 inherited::mod_->name ()));
     return false;
   } // end IF
-#if defined (_DEBUG)
   ACE_DEBUG ((LM_DEBUG,
               ACE_TEXT ("%s: post-processing AVI file header (was: \"%s\")\n"),
               inherited::mod_->name (),
               ACE_TEXT (targetFilename_in.c_str ())));
-#endif // _DEBUG
   // *NOTE*: things left to do (in order):
   //         - correct cb value of 'RIFF' _rifflist (6)
   //         - set dwTotalFrames in _avimainheader  (1)
@@ -416,7 +414,6 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
                                        UserDataType>::Stream_Decoder_AVIEncoder_WriterTask_T (typename inherited::ISTREAM_T* stream_in)
 #endif // ACE_WIN32 || ACE_WIN64
  : inherited (stream_in)
- , isActive_ (true)
  , isFirst_ (true)
  , format_ ()
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -507,7 +504,6 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
 
   if (inherited::isInitialized_)
   {
-    isActive_ = true;
     isFirst_ = true;
     ACE_OS::memset (&format_, 0, sizeof (MediaType));
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -537,9 +533,6 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
     writeAVI1Index_ = true;
     writeAVI2Index_ = false;
   } // end IF
-
-  // *TODO*: remove type inference
-  isActive_ = true;
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
@@ -634,8 +627,8 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
   STREAM_TRACE (ACE_TEXT ("Stream_Decoder_AVIEncoder_WriterTask_T::handleDataMessage"));
 
   // sanity check(s)
-  if (unlikely (!isActive_))
-    return; // nothing to do
+  if (unlikely (!inherited::sessionData_))
+    return; // nothing to do (yet)
 
   // initialize return value(s)
   // *NOTE*: the default behavior is to pass all messages along. In this case,
@@ -1088,8 +1081,6 @@ continue_:
       ACE_Message_Block* message_block_p = NULL;
 
       // sanity check(s)
-      if (unlikely (!isActive_))
-        goto continue_2; // nothing to do
       if (!writeAVI1Index_)
         goto continue_2;
 

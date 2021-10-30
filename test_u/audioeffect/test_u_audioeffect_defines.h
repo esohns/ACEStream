@@ -58,11 +58,9 @@
 // GTK widget names
 #define TEST_U_STREAM_UI_GTK_BUTTON_CUT_NAME                 "button_cut"
 #define TEST_U_STREAM_UI_GTK_BUTTON_REPORT_NAME              "button_report"
-//#define TEST_U_STREAM_UI_GTK_ADJUSTMENT_NAME                 "scrolledwindow_vadjustment"
 #define TEST_U_STREAM_UI_GTK_BOX_DISPLAY_NAME                "vbox_display"
 #define TEST_U_STREAM_UI_GTK_BUTTONBOX_ACTIONS_NAME          "buttonbox_actions"
 #define TEST_U_STREAM_UI_GTK_BUTTON_ABOUT_NAME               "button_about"
-//#define TEST_U_STREAM_UI_GTK_BUTTON_CLEAR_NAME               "button_clear"
 #define TEST_U_STREAM_UI_GTK_BUTTON_RESET_NAME               "button_reset"
 #define TEST_U_STREAM_UI_GTK_BUTTON_SETTINGS_NAME            "button_settings"
 #define TEST_U_STREAM_UI_GTK_BUTTON_QUIT_NAME                "button_quit"
@@ -87,6 +85,7 @@
 #define TEST_U_STREAM_UI_GTK_FILEFILTER_WAV_NAME             "filefilter_wav"
 #define TEST_U_STREAM_UI_GTK_FRAME_CONFIGURATION_NAME        "frame_configuration"
 #define TEST_U_STREAM_UI_GTK_FRAME_EFFECT_NAME               "frame_effect"
+#define TEST_U_STREAM_UI_GTK_FRAME_FORMAT_NAME               "frame_format"
 #define TEST_U_STREAM_UI_GTK_FRAME_SAVE_NAME                 "frame_save"
 #define TEST_U_STREAM_UI_GTK_FRAME_SINUS_NAME                "frame_sinus"
 #define TEST_U_STREAM_UI_GTK_BOX_EFFECT_NAME                 "box_effect_2"
@@ -104,13 +103,10 @@
 //#define TEST_U_STREAM_UI_GTK_RADIOACTION_SPECTRUM_NAME       "radioaction_spectrum"
 #define TEST_U_STREAM_UI_GTK_RADIOBUTTON_OSCILLOSCOPE_NAME   "radiobutton_oscilloscope"
 #define TEST_U_STREAM_UI_GTK_RADIOBUTTON_SPECTRUM_NAME       "radiobutton_spectrum"
-//#define TEST_U_STREAM_UI_GTK_PANGO_LOG_FONT_DESCRIPTION      "Monospace 8"
-//#define TEST_U_STREAM_UI_GTK_PANGO_LOG_COLOR_BASE            "#FFFFFF" // white
-//#define TEST_U_STREAM_UI_GTK_PANGO_LOG_COLOR_TEXT            "#000000" // green
 #define TEST_U_STREAM_UI_GTK_PROGRESSBAR_NAME                "progressbar"
 #define TEST_U_STREAM_UI_GTK_SCALE_SINUS_FREQUENCY_NAME      "scale_sinus_frequency"
-//#define TEST_U_STREAM_UI_GTK_SCROLLEDWINDOW_NAME             "scrolledwindow"
-//#define TEST_U_STREAM_UI_GTK_SCROLLMARK_NAME                 "insert"
+#define TEST_U_STREAM_UI_GTK_HSCALE_BOOST_NAME               "hscale_boost"
+#define TEST_U_STREAM_UI_GTK_HSCALE_VOLUME_NAME              "hscale_volume"
 #define TEST_U_STREAM_UI_GTK_SPINBUTTON_BUFFERSIZE_NAME      "spinbutton_buffersize"
 #define TEST_U_STREAM_UI_GTK_SPINBUTTON_CAPTUREDFRAMES_NAME  "spinbutton_captured_frames"
 #define TEST_U_STREAM_UI_GTK_SPINBUTTON_DATA_NAME            "spinbutton_data"
@@ -121,7 +117,6 @@
 #define TEST_U_STREAM_UI_GTK_TOGGLEBUTTON_RECORD_NAME        "togglebutton_record"
 #define TEST_U_STREAM_UI_GTK_TOGGLEBUTTON_3D_NAME            "togglebutton_3d"
 #define TEST_U_STREAM_UI_GTK_TOGGLEBUTTON_MUTE_NAME          "togglebutton_mute"
-//#define TEST_U_STREAM_UI_GTK_TEXTVIEW_NAME                   "textview"
 
 //----------------------------------------
 

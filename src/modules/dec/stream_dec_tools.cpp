@@ -1187,6 +1187,7 @@ Stream_Module_Decoder_Tools::loadAudioRendererGraph (REFGUID deviceCategory_in,
   struct Stream_MediaFramework_DirectShow_GraphConfigurationEntry graph_entry;
   IBaseFilter* filter_p = NULL;
   IDMOWrapperFilter* wrapper_filter_p = NULL;
+  IMediaObject* media_object_p = NULL;
 
   // initialize return value(s)
   graphConfiguration_out.clear ();
@@ -1323,8 +1324,12 @@ continue_:
     struct tagPROPVARIANT property_s;
     PropVariantInit (&property_s);
     property_s.vt = VT_I4;
-    property_s.intVal = SINGLE_CHANNEL_AEC; // *TODO*: SINGLE_CHANNEL_NSAGC ?
-    result = property_store_p->SetValue (MFPKEY_WMAAECMA_SYSTEM_MODE, property_s);
+    // *IMPORTANT NOTE*: when selecting SINGLE_CHANNEL_AEC, the DSP has two
+    //                   input pins, which does not work with the DMO wrapper
+    //                   filter
+    property_s.intVal = SINGLE_CHANNEL_NSAGC;
+    result =
+      property_store_p->SetValue (MFPKEY_WMAAECMA_SYSTEM_MODE, property_s);
     if (FAILED (result))
     {
       ACE_DEBUG ((LM_ERROR,
@@ -1608,6 +1613,25 @@ continue_:
                 ACE_TEXT ("invalid/unknown effect (was: \"%s\"), continuing\n"),
                 ACE_TEXT (Common_Tools::GUIDToString (effect_in).c_str ())));
   wrapper_filter_p->Release (); wrapper_filter_p = NULL;
+  result = filter_p->QueryInterface (IID_PPV_ARGS (&media_object_p));
+  if (FAILED (result))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to IUnknown::QueryInterface(IID_IMediaObject): \"%s\", aborting\n"),
+                ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ())));
+    goto error;
+  } // end IF
+  ACE_ASSERT (media_object_p);
+  result = media_object_p->AllocateStreamingResources ();
+  if (FAILED (result))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to IMediaObject::AllocateStreamingResources(): \"%s\", aborting\n"),
+                ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ())));
+    media_object_p->Release (); media_object_p = NULL;
+    goto error;
+  } // end IF
+  media_object_p->Release (); media_object_p = NULL;
   result =
     IGraphBuilder_in->AddFilter (filter_p,
                                  STREAM_DEC_DIRECTSHOW_FILTER_NAME_EFFECT_AUDIO);

@@ -21,19 +21,27 @@
 #ifndef STREAM_LIB_DIRECTSOUND_TOOLS_H
 #define STREAM_LIB_DIRECTSOUND_TOOLS_H
 
+#include "devicetopology.h"
 #include "guiddef.h"
+#include "mmdeviceapi.h"
 
 #include "ace/Global_Macros.h"
 
 class Stream_MediaFramework_DirectSound_Tools
 {
  public:
-  static struct _GUID waveDeviceIdToDirectSoundGUID (ULONG);
+  static struct _GUID waveDeviceIdToDirectSoundGUID (ULONG); // waveIn device id
+  static IAudioVolumeLevel* getMicrophoneBoostControl (IMMDevice*); // device handle
 
  private:
   ACE_UNIMPLEMENTED_FUNC (Stream_MediaFramework_DirectSound_Tools ())
   ACE_UNIMPLEMENTED_FUNC (Stream_MediaFramework_DirectSound_Tools (const Stream_MediaFramework_DirectSound_Tools&))
   ACE_UNIMPLEMENTED_FUNC (Stream_MediaFramework_DirectSound_Tools& operator= (const Stream_MediaFramework_DirectSound_Tools&))
+
+  // helper methods
+  // *IMPORTANT NOTE*: fire-and-forget the first argument
+  static IAudioVolumeLevel* walkDeviceTreeFromPart (IPart*,              // part handle
+                                                    const std::string&); // (volume-)control name
 };
 
 #endif

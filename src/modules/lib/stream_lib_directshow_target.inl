@@ -393,7 +393,7 @@ Stream_MediaFramework_DirectShow_Target_T<ACE_SYNCH_USE,
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: failed to CoInitializeEx(): \"%s\", aborting\n"),
                     inherited::mod_->name (),
-                    ACE_TEXT (Common_Error_Tools::errorToString (result_2).c_str ())));
+                    ACE_TEXT (Common_Error_Tools::errorToString (result_2, false, false).c_str ())));
         goto error;
       } // end IF
       COM_initialized = true;
@@ -464,7 +464,7 @@ Stream_MediaFramework_DirectShow_Target_T<ACE_SYNCH_USE,
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: failed to IMediaEventEx::SetNotifyWindow(): \"%s\", aborting\n"),
                     inherited::mod_->name (),
-                    ACE_TEXT (Common_Error_Tools::errorToString (result_2).c_str ())));
+                    ACE_TEXT (Common_Error_Tools::errorToString (result_2, true, false).c_str ())));
         goto error;
       } // end IF
 
@@ -473,7 +473,7 @@ error_2:
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: failed to IGraphBuilder::QueryInterface(): \"%s\", aborting\n"),
                   inherited::mod_->name (),
-                  ACE_TEXT (Common_Error_Tools::errorToString (result_2).c_str ())));
+                  ACE_TEXT (Common_Error_Tools::errorToString (result_2, true, false).c_str ())));
       goto error;
 
 do_run:
@@ -486,9 +486,9 @@ do_run:
       if (FAILED (result_2))
       {
         ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("%s: failed to IMediaControl::Run(): \"%s\", returning\n"),
+                    ACE_TEXT ("%s: failed to IMediaControl::Run(): \"%s\", aborting\n"),
                     inherited::mod_->name (),
-                    ACE_TEXT (Common_Error_Tools::errorToString (result_2).c_str ())));
+                    ACE_TEXT (Common_Error_Tools::errorToString (result_2, true, false).c_str ())));
         goto error;
       } // end IF
       is_running = true;
@@ -525,7 +525,7 @@ error:
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("%s: failed to IMediaControl::Stop(): \"%s\", continuing\n"),
                       inherited::mod_->name (),
-                      ACE_TEXT (Common_Error_Tools::errorToString (result_2).c_str ())));
+                      ACE_TEXT (Common_Error_Tools::errorToString (result_2, true, false).c_str ())));
       } // end IF
       if (COM_initialized)
         CoUninitialize ();
@@ -546,7 +546,7 @@ error:
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: failed to CoInitializeEx(): \"%s\", aborting\n"),
                     inherited::mod_->name (),
-                    ACE_TEXT (Common_Error_Tools::errorToString (result_2).c_str ())));
+                    ACE_TEXT (Common_Error_Tools::errorToString (result_2, false, false).c_str ())));
         break;
       } // end IF
       COM_initialized = true;
@@ -570,7 +570,7 @@ error:
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("%s: failed to IMediaEventEx::SetNotifyWindow(): \"%s\", continuing\n"),
                       inherited::mod_->name (),
-                      ACE_TEXT (Common_Error_Tools::errorToString (result_2).c_str ())));
+                      ACE_TEXT (Common_Error_Tools::errorToString (result_2, true, false).c_str ())));
         IMediaEventEx_->Release (); IMediaEventEx_ = NULL;
       } // end IF
 
@@ -584,7 +584,7 @@ error:
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("%s: failed to IMediaControl::Stop(): \"%s\", continuing\n"),
                       inherited::mod_->name (),
-                      ACE_TEXT (Common_Error_Tools::errorToString (result_2).c_str ())));
+                      ACE_TEXT (Common_Error_Tools::errorToString (result_2, true, false).c_str ())));
         IMediaControl_->Release (); IMediaControl_ = NULL;
       } // end IF
 

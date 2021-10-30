@@ -858,12 +858,14 @@ struct Test_U_AudioEffect_DirectShow_UI_CBData
    , configuration (NULL)
    , streamConfiguration (NULL)
    , subscribers ()
+   , boostControl (NULL)
    , volumeControl (NULL)
   {}
 
   struct Test_U_AudioEffect_DirectShow_Configuration* configuration;
   IAMStreamConfig*                                    streamConfiguration;
   Test_U_AudioEffect_DirectShow_Subscribers_t         subscribers;
+  IAudioVolumeLevel*                                  boostControl;
   IAudioEndpointVolume*                               volumeControl;
 };
 

@@ -2,6 +2,11 @@
 <interface>
   <requires lib="gtk+" version="2.24"/>
   <!-- interface-naming-policy toplevel-contextual -->
+  <object class="GtkAdjustment" id="adjustment_boost">
+    <property name="upper">100</property>
+    <property name="step_increment">1</property>
+    <property name="page_increment">10</property>
+  </object>
   <object class="GtkAdjustment" id="adjustment_buffersize">
     <property name="upper">100</property>
     <property name="step_increment">1</property>
@@ -593,54 +598,6 @@
                                             <property name="position">0</property>
                                           </packing>
                                         </child>
-                                        <child>
-                                          <object class="GtkHBox" id="hbox_volume">
-                                            <property name="visible">True</property>
-                                            <property name="can_focus">False</property>
-                                            <child>
-                                              <object class="GtkHScale" id="hscale_volume">
-                                                <property name="visible">True</property>
-                                                <property name="can_focus">True</property>
-                                                <property name="tooltip_text" translatable="yes">Volume (%)</property>
-                                                <property name="adjustment">adjustment_volume</property>
-                                                <property name="restrict_to_fill_level">False</property>
-                                                <property name="fill_level">0</property>
-                                                <property name="round_digits">0</property>
-                                                <property name="digits">0</property>
-                                                <signal name="value-changed" handler="hscale_volume_value_changed_cb" swapped="no"/>
-                                              </object>
-                                              <packing>
-                                                <property name="expand">True</property>
-                                                <property name="fill">True</property>
-                                                <property name="position">0</property>
-                                              </packing>
-                                            </child>
-                                            <child>
-                                              <object class="GtkToggleButton" id="togglebutton_mute">
-                                                <property name="label" translatable="yes">_Mute</property>
-                                                <property name="visible">True</property>
-                                                <property name="can_focus">True</property>
-                                                <property name="can_default">True</property>
-                                                <property name="receives_default">True</property>
-                                                <property name="tooltip_text" translatable="yes">mute</property>
-                                                <property name="relief">half</property>
-                                                <property name="use_underline">True</property>
-                                                <property name="focus_on_click">False</property>
-                                                <signal name="toggled" handler="togglebutton_mute_toggled_cb" swapped="no"/>
-                                              </object>
-                                              <packing>
-                                                <property name="expand">False</property>
-                                                <property name="fill">False</property>
-                                                <property name="position">1</property>
-                                              </packing>
-                                            </child>
-                                          </object>
-                                          <packing>
-                                            <property name="expand">True</property>
-                                            <property name="fill">True</property>
-                                            <property name="position">1</property>
-                                          </packing>
-                                        </child>
                                       </object>
                                     </child>
                                   </object>
@@ -827,6 +784,9 @@
                                                         <property name="position">1</property>
                                                       </packing>
                                                     </child>
+                                                    <child>
+                                                      <placeholder/>
+                                                    </child>
                                                   </object>
                                                 </child>
                                               </object>
@@ -852,6 +812,101 @@
                               <packing>
                                 <property name="expand">False</property>
                                 <property name="fill">False</property>
+                                <property name="position">1</property>
+                              </packing>
+                            </child>
+                            <child>
+                              <object class="GtkFrame" id="frame_volume">
+                                <property name="visible">True</property>
+                                <property name="can_focus">False</property>
+                                <property name="label_xalign">0</property>
+                                <child>
+                                  <object class="GtkAlignment" id="alignment_volume">
+                                    <property name="visible">True</property>
+                                    <property name="can_focus">False</property>
+                                    <property name="xalign">0</property>
+                                    <property name="yalign">0</property>
+                                    <child>
+                                      <object class="GtkHBox" id="hbox_volume">
+                                        <property name="visible">True</property>
+                                        <property name="can_focus">False</property>
+                                        <child>
+                                          <object class="GtkToggleButton" id="togglebutton_mute">
+                                            <property name="label" translatable="yes">_Mute</property>
+                                            <property name="visible">True</property>
+                                            <property name="can_focus">True</property>
+                                            <property name="can_default">True</property>
+                                            <property name="receives_default">True</property>
+                                            <property name="tooltip_text" translatable="yes">mute</property>
+                                            <property name="relief">half</property>
+                                            <property name="use_underline">True</property>
+                                            <property name="focus_on_click">False</property>
+                                            <signal name="toggled" handler="togglebutton_mute_toggled_cb" swapped="no"/>
+                                          </object>
+                                          <packing>
+                                            <property name="expand">False</property>
+                                            <property name="fill">False</property>
+                                            <property name="position">0</property>
+                                          </packing>
+                                        </child>
+                                        <child>
+                                          <object class="GtkVBox" id="vbox_volume">
+                                            <property name="visible">True</property>
+                                            <property name="can_focus">False</property>
+                                            <child>
+                                              <object class="GtkHScale" id="hscale_volume">
+                                                <property name="visible">True</property>
+                                                <property name="can_focus">True</property>
+                                                <property name="tooltip_text" translatable="yes">volume (%)</property>
+                                                <property name="adjustment">adjustment_volume</property>
+                                                <property name="restrict_to_fill_level">False</property>
+                                                <property name="fill_level">0</property>
+                                                <property name="round_digits">0</property>
+                                                <property name="digits">0</property>
+                                                <signal name="value-changed" handler="hscale_volume_value_changed_cb" swapped="no"/>
+                                              </object>
+                                              <packing>
+                                                <property name="expand">True</property>
+                                                <property name="fill">True</property>
+                                                <property name="position">0</property>
+                                              </packing>
+                                            </child>
+                                            <child>
+                                              <object class="GtkHScale" id="hscale_boost">
+                                                <property name="visible">True</property>
+                                                <property name="can_focus">True</property>
+                                                <property name="tooltip_text" translatable="yes">boost (dB)</property>
+                                                <property name="adjustment">adjustment_boost</property>
+                                                <property name="restrict_to_fill_level">False</property>
+                                                <property name="fill_level">0</property>
+                                                <property name="round_digits">0</property>
+                                                <property name="digits">0</property>
+                                                <signal name="value-changed" handler="hscale_boost_value_changed_cb" swapped="no"/>
+                                              </object>
+                                              <packing>
+                                                <property name="expand">True</property>
+                                                <property name="fill">True</property>
+                                                <property name="position">1</property>
+                                              </packing>
+                                            </child>
+                                          </object>
+                                          <packing>
+                                            <property name="expand">True</property>
+                                            <property name="fill">True</property>
+                                            <property name="position">1</property>
+                                          </packing>
+                                        </child>
+                                      </object>
+                                    </child>
+                                  </object>
+                                </child>
+                                <child type="label_item">
+                                  <placeholder/>
+                                </child>
+                              </object>
+                              <packing>
+                                <property name="expand">True</property>
+                                <property name="fill">True</property>
                                 <property name="position">2</property>
                               </packing>
                             </child>

@@ -3756,8 +3756,17 @@ idle_initialize_UI_cb (gpointer userData_in)
     GTK_LIST_STORE (gtk_builder_get_object ((*iterator).second.second,
                                             ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_LISTSTORE_SOURCE_NAME)));
   ACE_ASSERT (list_store_p);
+  gint sort_column_id = 1;
+  GtkSortType sort_order = GTK_SORT_DESCENDING;
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  if (!use_framework_source_b)
+  {
+    sort_column_id = 2;
+    sort_order = GTK_SORT_ASCENDING;
+  } // end IF
+#endif // ACE_WIN32 || ACE_WIN64
   gtk_tree_sortable_set_sort_column_id (GTK_TREE_SORTABLE (list_store_p),
-                                        1, GTK_SORT_DESCENDING);
+                                        sort_column_id, sort_order);
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   if (!load_capture_devices (list_store_p,
                              ui_cb_data_base_p->mediaFramework,
@@ -5350,8 +5359,7 @@ idle_session_end_cb (gpointer userData_in)
     un_toggling_stream = true;
     gtk_signal_emit_by_name (GTK_OBJECT (toggle_button_p), "toggled");
   } // end IF
-  gtk_widget_set_sensitive (GTK_WIDGET (toggle_button_p),
-                            TRUE);
+  gtk_widget_set_sensitive (GTK_WIDGET (toggle_button_p), TRUE);
 
   GtkButton* button_p =
     GTK_BUTTON (gtk_builder_get_object ((*iterator).second.second,
@@ -5363,9 +5371,20 @@ idle_session_end_cb (gpointer userData_in)
                                         ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_BUTTON_REPORT_NAME)));
   ACE_ASSERT (button_p);
   gtk_widget_set_sensitive (GTK_WIDGET (button_p), FALSE);
+
+  GtkComboBox* combo_box_p =
+    GTK_COMBO_BOX (gtk_builder_get_object ((*iterator).second.second,
+                                           ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_COMBOBOX_SOURCE_NAME)));
+  ACE_ASSERT (combo_box_p);
+  gtk_widget_set_sensitive (GTK_WIDGET (combo_box_p), TRUE);
+  toggle_button_p =
+    GTK_TOGGLE_BUTTON (gtk_builder_get_object ((*iterator).second.second,
+                                               ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_TOGGLEBUTTON_MUTE_NAME)));
+  ACE_ASSERT (toggle_button_p);
+  gtk_widget_set_sensitive (GTK_WIDGET (toggle_button_p), TRUE);
   GtkFrame* frame_p =
     GTK_FRAME (gtk_builder_get_object ((*iterator).second.second,
-                                       ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_FRAME_CONFIGURATION_NAME)));
+                                       ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_FRAME_FORMAT_NAME)));
   ACE_ASSERT (frame_p);
   gtk_widget_set_sensitive (GTK_WIDGET (frame_p), TRUE);
   frame_p =
@@ -5450,6 +5469,7 @@ idle_update_info_display_cb (gpointer userData_in)
           ACE_ASSERT (spin_button_p);
           break;
         }
+        case COMMON_UI_EVENT_ABORT:
         case COMMON_UI_EVENT_FINISHED:
         case COMMON_UI_EVENT_STOPPED:
         {
@@ -6388,9 +6408,19 @@ togglebutton_record_toggled_cb (GtkToggleButton* toggleButton_in,
   ACE_ASSERT (button_p);
   gtk_widget_set_sensitive (GTK_WIDGET (button_p), TRUE);
 
+  combo_box_p =
+    GTK_COMBO_BOX (gtk_builder_get_object ((*iterator).second.second,
+                                           ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_COMBOBOX_SOURCE_NAME)));
+  ACE_ASSERT (combo_box_p);
+  gtk_widget_set_sensitive (GTK_WIDGET (combo_box_p), FALSE);
+  toggle_button_p =
+    GTK_TOGGLE_BUTTON (gtk_builder_get_object ((*iterator).second.second,
+                                               ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_TOGGLEBUTTON_MUTE_NAME)));
+  ACE_ASSERT (toggle_button_p);
+  gtk_widget_set_sensitive (GTK_WIDGET (toggle_button_p), FALSE);
   frame_p =
     GTK_FRAME (gtk_builder_get_object ((*iterator).second.second,
-                                       ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_FRAME_CONFIGURATION_NAME)));
+                                       ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_FRAME_FORMAT_NAME)));
   ACE_ASSERT (frame_p);
   gtk_widget_set_sensitive (GTK_WIDGET (frame_p), FALSE);
   frame_p =
@@ -6915,6 +6945,69 @@ hscale_volume_value_changed_cb (GtkRange* range_in,
   ACE_ASSERT (false); // *TODO*
 #endif // ACE_WIN32 || ACE_WIN64
 } // hscale_volume_value_changed_cb
+
+void
+hscale_boost_value_changed_cb (GtkRange* range_in,
+                               gpointer userData_in)
+{
+  STREAM_TRACE (ACE_TEXT ("::hscale_boost_value_changed_cb"));
+
+  struct Test_U_AudioEffect_UI_CBDataBase* ui_cb_data_base_p =
+    static_cast<struct Test_U_AudioEffect_UI_CBDataBase*> (userData_in);
+
+  // sanity check(s)
+  ACE_ASSERT (ui_cb_data_base_p);
+
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  struct Test_U_AudioEffect_DirectShow_UI_CBData* directshow_ui_cb_data_p =
+    NULL;
+  struct Test_U_AudioEffect_MediaFoundation_UI_CBData* mediafoundation_ui_cb_data_p =
+    NULL;
+  switch (ui_cb_data_base_p->mediaFramework)
+  {
+    case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
+    {
+      directshow_ui_cb_data_p =
+        static_cast<struct Test_U_AudioEffect_DirectShow_UI_CBData*> (userData_in);
+      // sanity check(s)
+      ACE_ASSERT (directshow_ui_cb_data_p);
+      ACE_ASSERT (directshow_ui_cb_data_p->boostControl);
+      float min_level_f = 0.0F, max_level_f = 0.0F, stepping_f = 0.0F;
+      HRESULT result =
+        directshow_ui_cb_data_p->boostControl->SetLevel (0,
+                                                         static_cast<float> (gtk_range_get_value (range_in)),
+                                                         NULL);
+      ACE_ASSERT (SUCCEEDED (result));
+      break;
+    }
+    case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
+    {
+      mediafoundation_ui_cb_data_p =
+        static_cast<struct Test_U_AudioEffect_MediaFoundation_UI_CBData*> (userData_in);
+      // sanity check(s)
+      ACE_ASSERT (mediafoundation_ui_cb_data_p);
+      ACE_ASSERT (mediafoundation_ui_cb_data_p->configuration);
+      ACE_ASSERT (false); // *TODO*
+      break;
+    }
+    default:
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("invalid/unknown media framework (was: %d), returning\n"),
+                  ui_cb_data_base_p->mediaFramework));
+      return;
+    }
+  } // end SWITCH
+#else
+  struct Test_U_AudioEffect_UI_CBData* data_p =
+    static_cast<struct Test_U_AudioEffect_UI_CBData*> (userData_in);
+
+  // sanity check(s)
+  ACE_ASSERT (data_p);
+  ACE_ASSERT (data_p->configuration);
+  ACE_ASSERT (false); // *TODO*
+#endif // ACE_WIN32 || ACE_WIN64
+} // hscale_boost_value_changed_cb
 
 void
 scale_sinus_frequency_value_changed_cb (GtkRange* range_in,
@@ -8629,8 +8722,59 @@ continue_:
         device_p->Activate (__uuidof (IAudioEndpointVolume), CLSCTX_INPROC_SERVER, NULL,
                             (LPVOID*)&directshow_ui_cb_data_p->volumeControl);
       ACE_ASSERT (SUCCEEDED (result));
+
+      float volume_level_f = 0.0;
+      result =
+        directshow_ui_cb_data_p->volumeControl->GetMasterVolumeLevelScalar (&volume_level_f);
+      ACE_ASSERT (SUCCEEDED (result));
+      GtkHScale* hscale_p =
+        GTK_HSCALE (gtk_builder_get_object ((*iterator).second.second,
+                                            ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_HSCALE_VOLUME_NAME)));
+      ACE_ASSERT (hscale_p);
+      gtk_range_set_value (GTK_RANGE (hscale_p),
+                           static_cast<gdouble> (volume_level_f) * 100.0);
+
+      float min_level_f = 0.0F, max_level_f = 0.0F, stepping_f = 0.0F, boost_f = 0.0F;
+      if (directshow_ui_cb_data_p->boostControl)
+      {
+        directshow_ui_cb_data_p->boostControl->Release (); directshow_ui_cb_data_p->boostControl = NULL;
+      } // end IF
+      directshow_ui_cb_data_p->boostControl =
+        Stream_MediaFramework_DirectSound_Tools::getMicrophoneBoostControl (device_p);
+      if (!directshow_ui_cb_data_p->boostControl)
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("failed to retrieve boost control handle for wave device (id was: %d), returning\n"),
+                    (*directshow_modulehandler_configuration_iterator).second.second->audioInput));
+        goto error_2;
+      } // end IF
+      result =
+        directshow_ui_cb_data_p->boostControl->GetLevelRange (0,
+                                                              &min_level_f,
+                                                              &max_level_f,
+                                                              &stepping_f);
+      ACE_ASSERT (SUCCEEDED (result));
+      hscale_p =
+        GTK_HSCALE (gtk_builder_get_object ((*iterator).second.second,
+                                            ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_HSCALE_BOOST_NAME)));
+      ACE_ASSERT (hscale_p);
+      gtk_range_set_range (GTK_RANGE (hscale_p),
+                           static_cast<gdouble> (min_level_f),
+                           static_cast<gdouble> (max_level_f));
+      gtk_range_set_increments (GTK_RANGE (hscale_p),
+                                static_cast<gdouble> (stepping_f),
+                                0.0);
+      result =
+        directshow_ui_cb_data_p->boostControl->GetLevel (0,
+                                                         &boost_f);
+      ACE_ASSERT (SUCCEEDED (result));
+      gtk_range_set_value (GTK_RANGE (hscale_p),
+                           static_cast<gdouble> (boost_f));
+
+error_2:
       device_p->Release (); device_p = NULL;
       //CoUninitialize ();
+
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:

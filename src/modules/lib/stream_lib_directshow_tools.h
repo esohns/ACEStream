@@ -49,7 +49,7 @@
 #endif // FFMPEG_SUPPORT
 
 // forward declarations
-class IMFVideoDisplayControl;
+struct IMFVideoDisplayControl;
 
 class Stream_MediaFramework_DirectShow_Tools
 {

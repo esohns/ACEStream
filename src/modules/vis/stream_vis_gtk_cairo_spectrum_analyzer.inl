@@ -223,7 +223,6 @@ Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
 #if defined (GTKGL_SUPPORT)
     OpenGLInstructions_ = NULL;
     OpenGLInstructionsLock_ = NULL;
-    //OpenGLTextureId_ = 0;
 #if GTK_CHECK_VERSION(3,0,0)
     gboolean result_2 =
       gdk_rgba_parse (&backgroundColor_,
@@ -238,24 +237,11 @@ Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
     foregroundColor_.pixel = 0;
     foregroundColor_.red = 65535; foregroundColor_.green = 65535; foregroundColor_.blue = 65535; // opaque white
 #endif /* GTK_CHECK_VERSION (3,0,0) */
-//#if GTK_CHECK_VERSION(3,0,0)
-//    OpenGLWindow_ = NULL;
-//#else
-//#if defined (GTKGLAREA_SUPPORT)
-//    OpenGLWindow_ = NULL;
-//#else
-//    OpenGLContext_ = NULL;
-//    OpenGLWindow_ = NULL;
-//#endif /* GTKGLAREA_SUPPORT */
-//#endif /* GTK_CHECK_VERSION (3,0,0) */
 #endif /* GTKGL_SUPPORT */
 
     height_ = width_ = 0;
 
     mode2D_ = NULL;
-//#if defined (GTKGL_SUPPORT)
-//    mode3D_ = NULL;
-//#endif // GTKGL_SUPPORT
   } // end IF
 
   mode2D_ =
@@ -266,17 +252,6 @@ Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
     goto continue_;
 
   surfaceLock_ = configuration_in.surfaceLock;
-//#if GTK_CHECK_VERSION(3,10,0)
-//  if (configuration_in.cairoSurface2D)
-//    cairoSurface_ =
-//      cairo_surface_reference (configuration_in.cairoSurface2D);
-//#else
-//  if (configuration_in.pixelBuffer2D)
-//  {
-//    g_object_ref (configuration_in.pixelBuffer2D);
-//    pixelBuffer_ = configuration_in.pixelBuffer2D;
-//  } // end IF
-//#endif // GTK_CHECK_VERSION(3,10,0)
 
   // *TODO*: remove type inferences
 #if GTK_CHECK_VERSION(3,10,0)
@@ -308,49 +283,12 @@ Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
   ACE_ASSERT (height_); ACE_ASSERT (width_);
 
 continue_:
-//#if defined (GTKGL_SUPPORT)
-//  mode3D_ =
-//    &const_cast<ConfigurationType&> (configuration_in).spectrumAnalyzer3DMode;
-//#endif // GTKGL_SUPPORT
-
 #if defined (GTKGL_SUPPORT)
   OpenGLInstructions_ = configuration_in.OpenGLInstructions;
   OpenGLInstructionsLock_ = configuration_in.OpenGLInstructionsLock;
-  //OpenGLTextureId_ = configuration_in.OpenGLTextureId;
-//#if GTK_CHECK_VERSION(3,0,0)
-//  OpenGLWindow_ = configuration_in.OpenGLWindow;
-//#else /* GTK_CHECK_VERSION (3,0,0) */
-//#if defined (GTKGLAREA_SUPPORT)
-//  OpenGLWindow_ = configuration_in.OpenGLWindow;
-//#else
-//  OpenGLContext_ = configuration_in.OpenGLContext;
-//  OpenGLWindow_ = configuration_in.OpenGLWindow;
-//#endif /* GTKGLAREA_SUPPORT */
-//#endif /* GTK_CHECK_VERSION (3,0,0) */
 #endif /* GTKGL_SUPPORT */
 
-//#if defined (GTKGL_SUPPORT)
-  //if (OpenGLWindow_)
-  //{
-  //  //ACE_ASSERT (OpenGLTextureId_ > 0);
-  //} // end IF
-//#if GTK_CHECK_VERSION(3,0,0)
-//#else /* GTK_CHECK_VERSION (3,0,0) */
-//#if defined (GTKGLAREA_SUPPORT)
-//#else
-//  if (OpenGLContext_)
-//  {
-//    //ACE_ASSERT (OpenGLTextureId_ > 0);
-//  } // end IF
-//#endif /* GTKGLAREA_SUPPORT */
-//#endif /* GTK_CHECK_VERSION (3,0,0) */
-//#endif /* GTKGL_SUPPORT */
-
-//#if defined (GTKGL_SUPPORT)
-//  if (unlikely (!mode2D_ && !mode3D_))
-//#else
   if (unlikely (!mode2D_))
-//#endif // GTKGL_SUPPORT
   {
     ACE_DEBUG ((LM_WARNING,
                 ACE_TEXT ("%s: no graphics output\n"),
@@ -379,20 +317,51 @@ continue_:
     reinterpret_cast<struct tWAVEFORMATEX*> (media_type_s.pbFormat);
 #endif // ACE_WIN32 || ACE_WIN64
 
+  unsigned int data_sample_size = 0;
+  unsigned int sound_sample_size = 0;
   unsigned int channels, sample_rate;
+  bool is_signed_format = false;
+  int sample_byte_order = ACE_BYTE_ORDER;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   ACE_ASSERT (waveformatex_p);
+  data_sample_size = waveformatex_p->nBlockAlign;
+  sound_sample_size = (data_sample_size * 8) /
+                       waveformatex_p->wBitsPerSample;
+  // *NOTE*: Microsoft(TM) uses signed little endian
+  is_signed_format = true;
+  sample_byte_order = ACE_LITTLE_ENDIAN;
   channels = waveformatex_p->nChannels;
   sample_rate = waveformatex_p->nSamplesPerSec;
+  // *NOTE*: apparently, all Win32 sound data is signed 16 bits
 
   Stream_MediaFramework_DirectShow_Tools::free (media_type_s);
 #else
   struct Stream_MediaFramework_ALSA_MediaType media_type_s;
   inherited2::getMediaType (configuration_in.outputFormat,
                             media_type_s);
+  data_sample_size =
+    ((snd_pcm_format_width (media_type_s.format) / 8) *
+      media_type_s.channels);
+  sound_sample_size = data_sample_size / media_type_s.channels;
+  is_signed_format =
+    snd_pcm_format_signed (session_data_r.inputFormat.format);
+  sample_byte_order =
+      ((snd_pcm_format_little_endian (media_type_s.format) == 1) ? ACE_LITTLE_ENDIAN
+                                                                 : -1);
   channels = media_type_s.channels;
   sample_rate = media_type_s.rate;
 #endif // ACE_WIN32 || ACE_WIN64
+  if (unlikely (!sampleIterator_.initialize (data_sample_size,
+                                             sound_sample_size,
+                                             is_signed_format,
+                                             sample_byte_order)))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s: failed to initialize sample iterator, aborting\n"),
+                inherited::mod_->name ()));
+    return false;
+  } // end IF
+
   return inherited3::Initialize (channels,
                                  configuration_in.spectrumAnalyzerResolution,
                                  sample_rate);
@@ -439,7 +408,7 @@ Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
   //         largely depends on upstream configuration (i.e. data may be
   //         arriving over the network) and the hardware/driver/source module
   //         implementation
-  //ACE_ASSERT (message_inout->length () % sampleIterator_.dataSampleSize_ == 0);
+  ACE_ASSERT (!(message_inout->length () % sampleIterator_.dataSampleSize_));
   ACE_ASSERT (!(message_inout->length () % sampleIterator_.soundSampleSize_));
 
   unsigned int number_of_samples =
@@ -542,9 +511,8 @@ Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
       unsigned int data_sample_size = 0;
       unsigned int sound_sample_size = 0;
       unsigned int channels, sample_rate;
-//      bool is_signed_format = false;
+      bool is_signed_format = false;
       int sample_byte_order = ACE_BYTE_ORDER;
-//      unsigned int maximum_value = 0;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
       struct _AMMediaType media_type_s;
       ACE_OS::memset (&media_type_s, 0, sizeof (struct _AMMediaType));
@@ -560,8 +528,8 @@ Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
       data_sample_size = waveformatex_p->nBlockAlign;
       sound_sample_size = (data_sample_size * 8) /
                           waveformatex_p->wBitsPerSample;
-//      // *NOTE*: Microsoft(TM) uses signed little endian
-//      is_signed_format = true;
+      // *NOTE*: Microsoft(TM) uses signed little endian
+      is_signed_format = true;
       sample_byte_order = ACE_LITTLE_ENDIAN;
 
       channels = waveformatex_p->nChannels;
@@ -576,7 +544,8 @@ Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
         ((snd_pcm_format_width (media_type_s.format) / 8) *
           media_type_s.channels);
       sound_sample_size = data_sample_size / media_type_s.channels;
-//      is_signed_format = snd_pcm_format_signed (session_data_r.inputFormat.format);
+      is_signed_format =
+        snd_pcm_format_signed (session_data_r.inputFormat.format);
       sample_byte_order =
           ((snd_pcm_format_little_endian (media_type_s.format) == 1) ? ACE_LITTLE_ENDIAN
                                                                      : -1);
@@ -586,7 +555,7 @@ Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
 #endif // ACE_WIN32 || ACE_WIN64
       result_2 = sampleIterator_.initialize (data_sample_size,
                                              sound_sample_size,
-                                             true,
+                                             is_signed_format,
                                              sample_byte_order);
       if (unlikely (!result_2))
       {

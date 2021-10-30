@@ -234,12 +234,12 @@ Stream_Decoder_WAVEncoder_T<ACE_SYNCH_USE,
 
   // sanity check(s)
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  if (unlikely (!inherited::isActive_))
-    return;
+  if (unlikely (!inherited::sessionData_))
+    return; // nothing to do (yet)
 #else
 #if defined (SOX_SUPPORT)
   if (unlikely (!outputFile_))
-    return; // nothing to do
+    return; // nothing to do (yet)
 #endif // SOX_SUPPORT
 #endif // ACE_WIN32 || ACE_WIN64
 

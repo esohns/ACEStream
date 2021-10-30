@@ -28,21 +28,10 @@
 #include "ace/Singleton.h"
 #include "ace/Synch_Traits.h"
 
-//#if defined (ACE_WIN32) || defined (ACE_WIN64)
-//#include "gl/GL.h"
-//#else
-//#include "GL/gl.h"
-//#endif // ACE_WIN32 || ACE_WIN64
 #include "gtk/gtk.h"
 #if GTK_CHECK_VERSION(3,16,0)
 #else
 #if defined (GTKGL_SUPPORT)
-//#if defined (ACE_WIN32) || defined (ACE_WIN64)
-//#include "gl/GL.h"
-//#include "gl/GLU.h"
-//#else
-//#include "GL/gl.h"
-//#endif // ACE_WIN32 || ACE_WIN64
 #if defined (GTKGLAREA_SUPPORT)
 #include "gtkgl/gtkglarea.h"
 #endif // GTKGLAREA_SUPPORT
