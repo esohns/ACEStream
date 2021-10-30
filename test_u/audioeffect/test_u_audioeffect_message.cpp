@@ -96,7 +96,7 @@ Test_U_AudioEffect_DirectShow_Message::duplicate (void) const
     //         a shallow copy of the existing data block
     ACE_NEW_MALLOC_NORETURN (message_p,
                              static_cast<Test_U_AudioEffect_DirectShow_Message*> (inherited::message_block_allocator_->calloc (inherited::capacity (),
-                                                                                                                 '\0')),
+                                                                                                                               '\0')),
                              Test_U_AudioEffect_DirectShow_Message (*this));
   } // end ELSE
   if (!message_p)
@@ -127,6 +127,9 @@ Test_U_AudioEffect_DirectShow_Message::duplicate (void) const
   } // end IF
 
   // *NOTE*: if "this" is initialized, so is the "clone" (and vice-versa)...
+
+  // reset data index
+  message_p->data_.index = -1;
 
   return message_p;
 }

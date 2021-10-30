@@ -1472,11 +1472,10 @@ do_work (unsigned int bufferSize_in,
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
     {
       //directshow_configuration.pinConfiguration.bufferSize = bufferSize_in;
-      struct _AMMediaType* media_type_p =
+      ACE_ASSERT (!directshow_configuration.pinConfiguration.format);
+      directshow_configuration.pinConfiguration.format =
         Stream_MediaFramework_DirectShow_Tools::copy ((*directshow_modulehandler_iterator).second.second->sourceFormat);
-      ACE_ASSERT (media_type_p);
-      directshow_configuration.pinConfiguration.format = *media_type_p;
-      CoTaskMemFree (media_type_p); media_type_p = NULL;
+      ACE_ASSERT (directshow_configuration.pinConfiguration.format);
 
       //ACE_ASSERT (!directshow_configuration.filterConfiguration.format);
       //Stream_Device_DirectShow_Tools::copy (*directshow_configuration.moduleHandlerConfiguration.format,

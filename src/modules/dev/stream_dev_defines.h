@@ -47,6 +47,7 @@
 #define STREAM_DEV_CAM_DEFAULT_CAPTURE_SIZE_WIDTH                 640
 #define STREAM_DEV_CAM_DEFAULT_CAPTURE_RATE                       30 // fps
 
+#define STREAM_DEV_MIC_DEFAULT_BITS_PER_SAMPLE                    16
 #define STREAM_DEV_MIC_DEFAULT_CHANNELS                           2 // i.e. stereo
 #define STREAM_DEV_MIC_DEFAULT_SAMPLE_RATE                        44100 // Hz
 

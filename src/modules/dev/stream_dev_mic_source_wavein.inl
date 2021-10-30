@@ -396,7 +396,7 @@ Stream_Dev_Mic_Source_WaveIn_T<ACE_SYNCH_USE,
       ACE_DEBUG ((LM_DEBUG,
                   ACE_TEXT ("%s: capture format: \"%s\"\n"),
                   inherited::mod_->name (),
-                  ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::toString (session_data_r.formats.back ()).c_str ())));
+                  ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::toString (session_data_r.formats.back (), true).c_str ())));
 
       break;
 

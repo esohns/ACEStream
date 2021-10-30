@@ -619,7 +619,8 @@ Stream_MediaFramework_DirectShow_Source_Filter_T<MessageType,
     goto error;
   } // end IF
   // *TODO*: remove type inference
-  if (!iinitialize_2->initialize (configuration_in.pinConfiguration->format))
+  ACE_ASSERT (configuration_in.pinConfiguration->format);
+  if (!iinitialize_2->initialize (*configuration_in.pinConfiguration->format))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to Stream_MediaFramework_DirectShow_Source_Filter_OutputPin_T::initialize(), aborting\n"),
@@ -757,7 +758,7 @@ Stream_MediaFramework_DirectShow_Source_Filter_OutputPin_T<ConfigurationType>::i
   STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_DirectShow_Source_Filter_OutputPin_T::initialize"));
 
   if (mediaType_)
-    Stream_MediaFramework_DirectShow_Tools::delete_ (mediaType_);
+    Stream_MediaFramework_DirectShow_Tools::delete_ (mediaType_, false);
   mediaType_ =
     Stream_MediaFramework_DirectShow_Tools::copy (mediaType_in);
   if (!mediaType_)

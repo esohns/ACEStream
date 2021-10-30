@@ -3014,14 +3014,12 @@ get_buffer_size (gpointer userData_in)
   ACE_OS::memset (&value, 0, sizeof (struct _GValue));
 #endif // GTK_CHECK_VERSION (2,30,0)
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  g_value_init (&value, G_TYPE_STRING);
   gtk_tree_model_get_value (GTK_TREE_MODEL (list_store_p),
                             &iterator_2,
                             1, &value);
   ACE_ASSERT (G_VALUE_TYPE (&value) == G_TYPE_STRING);
   std::string format_string = g_value_get_string (&value);
 #else
-  g_value_init (&value, G_TYPE_INT);
   gtk_tree_model_get_value (GTK_TREE_MODEL (list_store_p),
                             &iterator_2,
                             2, &value);
@@ -3632,17 +3630,6 @@ idle_initialize_UI_cb (gpointer userData_in)
   ACE_ASSERT (iterator != state_r.builders.end ());
 #endif // ACE_WIN32 || ACE_WIN64
 
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-  HRESULT hresult = CoInitializeEx (NULL, COINIT_MULTITHREADED);
-  if (FAILED (hresult))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to CoInitializeEx(COINIT_MULTITHREADED): \"%s\", continuing\n"),
-                ACE_TEXT (Common_Error_Tools::errorToString (hresult).c_str ())));
-    //return G_SOURCE_REMOVE;
-  } // end IF
-#endif // ACE_WIN32 || ACE_WIN64
-
   // step1: initialize dialog window(s)
   GtkDialog* dialog_p =
     GTK_DIALOG (gtk_builder_get_object ((*iterator).second.second,
@@ -3920,7 +3907,7 @@ idle_initialize_UI_cb (gpointer userData_in)
   gtk_cell_layout_set_attributes (GTK_CELL_LAYOUT (combo_box_p), cell_renderer_p,
                                   //"cell-background", 0,
                                   //"text", 1,
-                                  "text", 0,
+                                  ACE_TEXT_ALWAYS_CHAR ("text"), 0,
                                   NULL);
 
   std::string filename;
@@ -4124,7 +4111,7 @@ idle_initialize_UI_cb (gpointer userData_in)
   gtk_cell_layout_set_attributes (GTK_CELL_LAYOUT (combo_box_p), cell_renderer_p,
                                   //"cell-background", 0,
                                   //"text", 1,
-                                  "text", 0,
+                                  ACE_TEXT_ALWAYS_CHAR ("text"), 0,
                                   NULL);
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   if (!load_audio_effects (list_store_p,
@@ -4737,8 +4724,7 @@ continue_:
       GTK_COMBO_BOX (gtk_builder_get_object ((*iterator).second.second,
                                              ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_COMBOBOX_SOURCE_NAME)));
     ACE_ASSERT (combo_box_p);
-    gtk_widget_set_sensitive (GTK_WIDGET (combo_box_p),
-                              TRUE);
+    gtk_widget_set_sensitive (GTK_WIDGET (combo_box_p), TRUE);
     gint index_i = 0;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
@@ -4749,8 +4735,8 @@ continue_:
 #else
       GValue value;
       ACE_OS::memset (&value, 0, sizeof (struct _GValue));
-      g_value_init (&value, G_TYPE_STRING);
 #endif // GTK_CHECK_VERSION (2,30,0)
+      g_value_init (&value, G_TYPE_STRING);
       g_value_set_string (&value,
                           (*modulehandler_configuration_iterator).second.second->deviceIdentifier.identifier.c_str ());
       index_i =
@@ -4774,8 +4760,7 @@ continue_:
         GTK_TOGGLE_BUTTON (gtk_builder_get_object ((*iterator).second.second,
                                                    ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_TOGGLEBUTTON_RECORD_NAME)));
     ACE_ASSERT (toggle_button_p);
-    gtk_widget_set_sensitive (GTK_WIDGET (toggle_button_p),
-                              FALSE);
+    gtk_widget_set_sensitive (GTK_WIDGET (toggle_button_p), FALSE);
   } // end IF
 
   bool is_active = !filename.empty ();
@@ -4785,14 +4770,12 @@ continue_:
           GTK_TOGGLE_BUTTON (gtk_builder_get_object ((*iterator).second.second,
                                                      ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_CHECKBUTTON_SAVE_NAME)));
     ACE_ASSERT (toggle_button_p);
-    gtk_toggle_button_set_active (toggle_button_p,
-                                  true);
+    gtk_toggle_button_set_active (toggle_button_p, TRUE);
     GtkBox* box_p =
       GTK_BOX (gtk_builder_get_object ((*iterator).second.second,
                                        ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_BOX_SAVE_NAME)));
     ACE_ASSERT (box_p);
-    gtk_widget_set_sensitive (GTK_WIDGET (box_p),
-                              true);
+    gtk_widget_set_sensitive (GTK_WIDGET (box_p), TRUE);
   } // end IF
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -4827,14 +4810,12 @@ continue_:
         GTK_TOGGLE_BUTTON (gtk_builder_get_object ((*iterator).second.second,
                                                    ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_CHECKBUTTON_SINUS_NAME)));
     ACE_ASSERT (toggle_button_p);
-    gtk_toggle_button_set_active (toggle_button_p,
-                                  true);
+    gtk_toggle_button_set_active (toggle_button_p, TRUE);
     GtkBox* box_p =
       GTK_BOX (gtk_builder_get_object ((*iterator).second.second,
                                        ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_BOX_SINUS_NAME)));
     ACE_ASSERT (box_p);
-    gtk_widget_set_sensitive (GTK_WIDGET (box_p),
-                              true);
+    gtk_widget_set_sensitive (GTK_WIDGET (box_p), TRUE);
   } // end IF
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -4879,8 +4860,7 @@ continue_:
       GTK_COMBO_BOX (gtk_builder_get_object ((*iterator).second.second,
                                              ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_COMBOBOX_EFFECT_NAME)));
     ACE_ASSERT (combo_box_p);
-    gtk_widget_set_sensitive (GTK_WIDGET (combo_box_p),
-                              (n_rows > 0));
+    gtk_widget_set_sensitive (GTK_WIDGET (combo_box_p), (n_rows > 0));
 
     // *TODO*: there must be a better way to do this...
     GtkTreeIter tree_iterator;
@@ -4896,7 +4876,6 @@ continue_:
 #else
     GValue value;
     ACE_OS::memset (&value, 0, sizeof (struct _GValue));
-    g_value_init (&value, G_TYPE_STRING);
 #endif // GTK_CHECK_VERSION (2,30,0)
     std::string effect_string_2;
     do
@@ -4934,15 +4913,13 @@ continue_:
           GTK_TOGGLE_BUTTON (gtk_builder_get_object ((*iterator).second.second,
                                                      ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_CHECKBUTTON_EFFECT_NAME)));
       ACE_ASSERT (toggle_button_p);
-    gtk_toggle_button_set_active (toggle_button_p,
-                                  true);
+    gtk_toggle_button_set_active (toggle_button_p, TRUE);
 
     GtkBox* box_p =
       GTK_BOX (gtk_builder_get_object ((*iterator).second.second,
                                        ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_BOX_EFFECT_NAME)));
     ACE_ASSERT (box_p);
-    gtk_widget_set_sensitive (GTK_WIDGET (box_p),
-                              true);
+    gtk_widget_set_sensitive (GTK_WIDGET (box_p), TRUE);
   } // end IF
 
   GtkRadioButton* radio_button_p = NULL;
@@ -4984,8 +4961,7 @@ continue_:
           GTK_TOGGLE_BUTTON (gtk_builder_get_object ((*iterator).second.second,
                                                      ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_CHECKBUTTON_VISUALIZATION_NAME)));
     ACE_ASSERT (toggle_button_p);
-    gtk_toggle_button_set_active (toggle_button_p,
-                                  true);
+    gtk_toggle_button_set_active (toggle_button_p, TRUE);
 
     if (mode_2d < STREAM_VISUALIZATION_SPECTRUMANALYZER_2DMODE_MAX)
     {
@@ -4994,8 +4970,7 @@ continue_:
                                                     (mode_2d == STREAM_VISUALIZATION_SPECTRUMANALYZER_2DMODE_OSCILLOSCOPE) ? ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_RADIOBUTTON_OSCILLOSCOPE_NAME)
                                                                                                                         : ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_RADIOBUTTON_SPECTRUM_NAME)));
       ACE_ASSERT (radio_button_p);
-      gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (radio_button_p),
-                                    true);
+      gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (radio_button_p), TRUE);
     } // end IF
     if (mode_3d < STREAM_VISUALIZATION_SPECTRUMANALYZER_3DMODE_MAX)
     {
@@ -5003,16 +4978,14 @@ continue_:
           GTK_TOGGLE_BUTTON (gtk_builder_get_object ((*iterator).second.second,
                                                      ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_TOGGLEBUTTON_3D_NAME)));
       ACE_ASSERT (toggle_button_p);
-      gtk_toggle_button_set_active (toggle_button_p,
-                                    true);
+      gtk_toggle_button_set_active (toggle_button_p, TRUE);
     } // end IF
 
     GtkBox* box_p =
       GTK_BOX (gtk_builder_get_object ((*iterator).second.second,
                                        ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_BOX_VISUALIZATION_NAME)));
     ACE_ASSERT (box_p);
-    gtk_widget_set_sensitive (GTK_WIDGET (box_p),
-                              true);
+    gtk_widget_set_sensitive (GTK_WIDGET (box_p), TRUE);
   } // end IF
 
   GdkWindow* window_p = NULL;
@@ -5053,129 +5026,6 @@ continue_:
   window_p = (*modulehandler_configuration_iterator).second.second->window;
 #endif // ACE_WIN32 || ACE_WIN64
   ACE_ASSERT (window_p);
-
-//  // *NOTE*: the surface / pixel buffer haven't been created yet, as the window
-//  //         wasn't 'viewable' during the first 'configure' event
-//  //         --> create it now
-//  GtkAllocation allocation;
-//  gtk_widget_get_allocation (GTK_WIDGET (drawing_area_p),
-//                             &allocation);
-//  GdkEvent event_s;
-//  event_s.type = GDK_CONFIGURE;
-//  event_s.configure.type = GDK_CONFIGURE;
-//  event_s.configure.window = window_p;
-//  event_s.configure.send_event = TRUE;
-//  event_s.configure.x = allocation.x;
-//  event_s.configure.y = allocation.y;
-//  event_s.configure.width = allocation.width;
-//  event_s.configure.height = allocation.height;
-//  GQuark detail = 0;
-////#if GTK_CHECK_VERSION(2,30,0)
-////  GValue value = G_VALUE_INIT;
-////#else
-////  GValue value;
-////  ACE_OS::memset (&value, 0, sizeof (struct _GValue));
-////  g_value_init (&value, G_TYPE_BOOLEAN);
-////#endif // GTK_CHECK_VERSION (2,30,0)
-//  g_signal_emit (G_OBJECT (drawing_area_p),
-//                 g_signal_lookup (ACE_TEXT_ALWAYS_CHAR ("configure-event"),
-//                                  GTK_TYPE_DRAWING_AREA),
-//                 detail,
-//                 &event_s, userData_in,
-//                 //&value);
-//                 NULL);
-//  //g_signal_emit_by_name (G_OBJECT (drawing_area_p),
-//  //                       ACE_TEXT_ALWAYS_CHAR ("configure-event"),
-//  //                       &event_s, userData_in,
-//  //                       &value,
-//  //                       NULL);
-//  //g_value_unset (&value);
-
-//  GdkRectangle area_s;
-//#if GTK_CHECK_VERSION(3,10,0)
-//  // *NOTE*: cairo surfaces are initialized in drawingarea_configure_event_cb
-//  //         (see below)
-//  cairo_surface_t* surface_p = NULL;
-//#else
-//  GdkPixbuf* pixel_buffer_p = NULL;
-//#endif // GTK_CHECK_VERSION(3,10,0)
-//#if defined (ACE_WIN32) || defined (ACE_WIN64)
-//  switch (ui_cb_data_base_p->mediaFramework)
-//  {
-//    case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
-//    {
-//#if GTK_CHECK_VERSION(3,10,0)
-//      surface_p =
-//        (*directshow_modulehandler_configuration_iterator).second.second->cairoSurface2D;
-//#else
-//      pixel_buffer_p =
-//        (*directshow_modulehandler_configuration_iterator).second.second->pixelBuffer2D;
-//#endif // GTK_CHECK_VERSION(3,10,0)
-//      area_s = ui_cb_data_base_p->area2D;
-//      break;
-//    }
-//    case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
-//    {
-//#if GTK_CHECK_VERSION(3,10,0)
-//      surface_p =
-//        (*mediafoundation_modulehandler_configuration_iterator).second.second->cairoSurface2D;
-//#else
-//      pixel_buffer_p =
-//        (*mediafoundation_modulehandler_configuration_iterator).second.second->pixelBuffer2D;
-//#endif // GTK_CHECK_VERSION(3,10,0)
-//      area_s = ui_cb_data_base_p->area2D;
-//      break;
-//    }
-//    default:
-//    {
-//      ACE_DEBUG ((LM_ERROR,
-//                  ACE_TEXT ("invalid/unknown media framework (was: %d), aborting\n"),
-//                  ui_cb_data_base_p->mediaFramework));
-//      return G_SOURCE_REMOVE;
-//    }
-//  } // end SWITCH
-//#else
-//#if GTK_CHECK_VERSION(3,10,0)
-//  surface_p =
-//    (*modulehandler_configuration_iterator).second.second->cairoSurface2D;
-//#else
-//  pixel_buffer_p =
-//    (*modulehandler_configuration_iterator).second.second->pixelBuffer2D;
-//#endif // GTK_CHECK_VERSION(3,10,0)
-//  area_s = ui_cb_data_base_p->area2D;
-//#endif // ACE_WIN32 || ACE_WIN64
-//  //cairo_t* context_p = gdk_cairo_create (GDK_DRAWABLE (window_p));
-//  cairo_t* context_p = gdk_cairo_create (window_p);
-//  if (!context_p)
-//  {
-//    ACE_DEBUG ((LM_ERROR,
-//                ACE_TEXT ("failed to gdk_cairo_create(), aborting\n")));
-//    return G_SOURCE_REMOVE;
-//  } // end IF
-//#if GTK_CHECK_VERSION(3,10,0)
-//  ACE_ASSERT (surface_p);
-//  //gdk_cairo_set_source_surface (context_p,
-//  //                              surface_p,
-//  gdk_cairo_set_source_window (context_p,
-//                               window_p,
-//                               area_s.x, area_s.y);
-//#else
-//  ACE_ASSERT (pixel_buffer_p);
-//  gdk_cairo_set_source_pixbuf (context_p,
-//                               pixel_buffer_p,
-//                               0.0, 0.0);
-//  cairo_reset_clip (context_p);
-//#endif // GTK_CHECK_VERSION(3,10,0)
-//  cairo_set_source_rgb (context_p, 0.0, 0.0, 0.0);
-//  cairo_rectangle (context_p,
-//                   0.0, 0.0,
-//                   area_s.width, area_s.height);
-//  cairo_fill (context_p);
-//  cairo_paint (context_p);
-//  cairo_destroy (context_p);
-//  gdk_window_invalidate_rect (window_p,
-//                              NULL,
-//                              false);
 
   // step12: initialize updates
   { ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, state_r.lock, G_SOURCE_REMOVE);
@@ -5719,14 +5569,12 @@ togglebutton_record_toggled_cb (GtkToggleButton* toggleButton_in,
 #else
     GValue value;
     ACE_OS::memset (&value, 0, sizeof (struct _GValue));
-    g_value_init (&value, G_TYPE_STRING);
 #endif // GTK_CHECK_VERSION (2,30,0)
 #if GTK_CHECK_VERSION(2,30,0)
     GValue value_2 = G_VALUE_INIT;
 #else
     GValue value_2;
     ACE_OS::memset (&value_2, 0, sizeof (struct _GValue));
-    g_value_init (&value_2, G_TYPE_UINT);
 #endif // GTK_CHECK_VERSION (2,30,0)
     Stream_IStreamControlBase* stream_p = NULL;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -6163,7 +6011,6 @@ togglebutton_record_toggled_cb (GtkToggleButton* toggleButton_in,
     GTK_LIST_STORE (gtk_builder_get_object ((*iterator).second.second,
                                             ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_LISTSTORE_CHANNELS_NAME)));
   ACE_ASSERT (list_store_p);
-  //value = G_VALUE_INIT;
   gtk_tree_model_get_value (GTK_TREE_MODEL (list_store_p),
                             &iterator_2,
                             1, &value);
@@ -7196,7 +7043,6 @@ togglebutton_effect_toggled_cb (GtkToggleButton* toggleButton_in,
 #else
       GValue value;
       ACE_OS::memset (&value, 0, sizeof (struct _GValue));
-      g_value_init (&value, G_TYPE_STRING);
 #endif // GTK_CHECK_VERSION (2,30,0)
       gtk_tree_model_get_value (GTK_TREE_MODEL (list_store_p),
                                 &iterator_2,
@@ -7927,7 +7773,6 @@ combobox_effect_changed_cb (GtkWidget* widget_in,
 #else
   GValue value;
   ACE_OS::memset (&value, 0, sizeof (struct _GValue));
-  g_value_init (&value, G_TYPE_STRING);
 #endif // GTK_CHECK_VERSION (2,30,0)
   gtk_tree_model_get_value (GTK_TREE_MODEL (list_store_p),
                             &iterator_2,
@@ -7941,7 +7786,6 @@ combobox_effect_changed_cb (GtkWidget* widget_in,
 #else
   GValue value_2;
   ACE_OS::memset (&value_2, 0, sizeof (struct _GValue));
-  g_value_init (&value_2, G_TYPE_STRING);
 #endif // GTK_CHECK_VERSION (2,30,0)
   gtk_tree_model_get_value (GTK_TREE_MODEL (list_store_p),
                             &iterator_2,
@@ -8247,14 +8091,12 @@ combobox_source_changed_cb (GtkWidget* widget_in,
 #else
   GValue value;
   ACE_OS::memset (&value, 0, sizeof (struct _GValue));
-  g_value_init (&value, G_TYPE_STRING);
 #endif // GTK_CHECK_VERSION (2,30,0)
 #if GTK_CHECK_VERSION(2,30,0)
   GValue value_2 = G_VALUE_INIT;
 #else
   GValue value_2;
   ACE_OS::memset (&value_2, 0, sizeof (struct _GValue));
-  g_value_init (&value_2, G_TYPE_UINT);
 #endif // GTK_CHECK_VERSION (2,30,0)
   gtk_tree_model_get_value (GTK_TREE_MODEL (list_store_p),
                             &iterator_2,
@@ -8937,14 +8779,12 @@ combobox_format_changed_cb (GtkWidget* widget_in,
   ACE_OS::memset (&value, 0, sizeof (struct _GValue));
 #endif // GTK_CHECK_VERSION (2,30,0)  
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-//  g_value_init (&value, G_TYPE_STRING);
   gtk_tree_model_get_value (GTK_TREE_MODEL (list_store_p),
                             &iterator_2,
                             1, &value);
   ACE_ASSERT (G_VALUE_TYPE (&value) == G_TYPE_STRING);
   std::string format_string = g_value_get_string (&value);
 #else
-//  g_value_init (&value, G_TYPE_INT);
   gtk_tree_model_get_value (GTK_TREE_MODEL (list_store_p),
                             &iterator_2,
                             2, &value);
@@ -8998,7 +8838,6 @@ combobox_format_changed_cb (GtkWidget* widget_in,
 #else
     GValue value_2;
     ACE_OS::memset (&value_2, 0, sizeof (struct _GValue));
-    g_value_init (&value_2, G_TYPE_STRING);
 #endif // GTK_CHECK_VERSION (2,30,0)
     gtk_tree_model_get_value (GTK_TREE_MODEL (list_store_2),
                               &iterator_2,
@@ -9280,7 +9119,6 @@ combobox_frequency_changed_cb (GtkWidget* widget_in,
   ACE_OS::memset (&value, 0, sizeof (struct _GValue));
 #endif // GTK_CHECK_VERSION (2,30,0)
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  g_value_init (&value, G_TYPE_STRING);
   gtk_tree_model_get_value (GTK_TREE_MODEL (list_store_p),
                             &iterator_2,
                             1, &value);
@@ -9359,7 +9197,6 @@ combobox_frequency_changed_cb (GtkWidget* widget_in,
 #else
     GValue value_2;
     ACE_OS::memset (&value_2, 0, sizeof (struct _GValue));
-    g_value_init (&value_2, G_TYPE_STRING);
 #endif // GTK_CHECK_VERSION (2,30,0)
     gtk_tree_model_get_value (GTK_TREE_MODEL (list_store_2),
                               &iterator_2,
@@ -9481,8 +9318,8 @@ combobox_frequency_changed_cb (GtkWidget* widget_in,
 #else
     GValue value;
     ACE_OS::memset (&value, 0, sizeof (struct _GValue));
-    g_value_init (&value, G_TYPE_UINT);
 #endif // GTK_CHECK_VERSION (2,30,0)
+    g_value_init (&value, G_TYPE_UINT);
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
     g_value_set_uint (&value,
@@ -9652,7 +9489,6 @@ combobox_resolution_changed_cb (GtkWidget* widget_in,
   ACE_OS::memset (&value, 0, sizeof (struct _GValue));
 #endif // GTK_CHECK_VERSION (2,30,0)
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  g_value_init (&value, G_TYPE_STRING);
   gtk_tree_model_get_value (GTK_TREE_MODEL (list_store_p),
                             &iterator_2,
                             1, &value);
@@ -9755,7 +9591,6 @@ combobox_resolution_changed_cb (GtkWidget* widget_in,
 #else
     GValue value_2;
     ACE_OS::memset (&value_2, 0, sizeof (struct _GValue));
-    g_value_init (&value_2, G_TYPE_STRING);
 #endif // GTK_CHECK_VERSION (2,30,0)
     gtk_tree_model_get_value (GTK_TREE_MODEL (list_store_2),
                               &iterator_2,
@@ -9878,8 +9713,8 @@ combobox_resolution_changed_cb (GtkWidget* widget_in,
 #else
     GValue value;
     ACE_OS::memset (&value, 0, sizeof (struct _GValue));
-    g_value_init (&value, G_TYPE_UINT);
 #endif // GTK_CHECK_VERSION (2,30,0)
+    g_value_init (&value, G_TYPE_UINT);
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
     g_value_set_uint (&value,
@@ -10049,7 +9884,6 @@ combobox_channels_changed_cb (GtkWidget* widget_in,
   ACE_OS::memset (&value, 0, sizeof (struct _GValue));
 #endif // GTK_CHECK_VERSION (2,30,0)
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  g_value_init (&value, G_TYPE_STRING);
   gtk_tree_model_get_value (GTK_TREE_MODEL (list_store_p),
                             &iterator_2,
                             1, &value);
@@ -10216,7 +10050,7 @@ drawingarea_query_tooltip_cb (GtkWidget*  widget_in,
   enum Stream_Visualization_SpectrumAnalyzer_2DMode mode =
       STREAM_VISUALIZATION_SPECTRUMANALYZER_2DMODE_INVALID;
   unsigned int sample_size = 0; // bytes
-  bool is_signed_format = false;
+  bool is_signed_format = true;
   unsigned int channels = 0;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   struct Test_U_AudioEffect_DirectShow_UI_CBData* directshow_ui_cb_data_p =
@@ -10239,7 +10073,8 @@ drawingarea_query_tooltip_cb (GtkWidget*  widget_in,
       directshow_modulehandler_configuration_iterator =
         directshow_ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
       ACE_ASSERT (directshow_modulehandler_configuration_iterator != directshow_ui_cb_data_p->configuration->streamConfiguration.end ());
-
+      if (!directshow_ui_cb_data_p->stream->isRunning ())
+        return FALSE;
       istream_p = dynamic_cast<Stream_IStream_t*> (directshow_ui_cb_data_p->stream);
       mode =
         (*directshow_modulehandler_configuration_iterator).second.second->spectrumAnalyzer2DMode;
@@ -10264,7 +10099,8 @@ drawingarea_query_tooltip_cb (GtkWidget*  widget_in,
       mediafoundation_modulehandler_configuration_iterator =
         mediafoundation_ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
       ACE_ASSERT (mediafoundation_modulehandler_configuration_iterator != mediafoundation_ui_cb_data_p->configuration->streamConfiguration.end ());
-
+      if (!mediafoundation_ui_cb_data_p->stream->isRunning ())
+        return FALSE;
       istream_p = dynamic_cast<Stream_IStream_t*> (mediafoundation_ui_cb_data_p->stream);
       mode =
         (*mediafoundation_modulehandler_configuration_iterator).second.second->spectrumAnalyzer2DMode;
@@ -10309,7 +10145,8 @@ drawingarea_query_tooltip_cb (GtkWidget*  widget_in,
   Test_U_AudioEffect_ALSA_StreamConfiguration_t::ITERATOR_T modulehandler_configuration_iterator =
     ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (modulehandler_configuration_iterator != ui_cb_data_p->configuration->streamConfiguration.end ());
-
+  if (!ui_cb_data_p->stream->isRunning ())
+    return FALSE;
   istream_p = dynamic_cast<Stream_IStream_t*> (ui_cb_data_p->stream);
   mode =
     (*modulehandler_configuration_iterator).second.second->spectrumAnalyzer2DMode;
@@ -10466,12 +10303,12 @@ drawingarea_realize_cb (GtkWidget* widget_in,
 //                             &allocation);
 //  GQuark detail = 0;
 ////#if GTK_CHECK_VERSION(2,30,0)
-////  GValue value = G_VALUE_INIT;
+////  GValue value = ;
 ////#else
 ////  GValue value;
 ////  ACE_OS::memset (&value, 0, sizeof (struct _GValue));
 ////  g_value_init (&value, G_TYPE_BOOLEAN);
-////#endif // GTK_CHECK_VERSION (2,30,0)
+////#endif // GTK_CG_VALUE_INITHECK_VERSION (2,30,0)
 //  g_signal_emit (G_OBJECT (widget_in),
 //                 g_signal_lookup (ACE_TEXT_ALWAYS_CHAR ("size-allocate"),
 //                                  GTK_TYPE_WIDGET),

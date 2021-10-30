@@ -557,7 +557,7 @@ do_initialize_directshow (const std::string& deviceIdentifier_in,
                           const struct Test_U_AudioEffect_DirectShow_Configuration& configuration_in,
                           IGraphBuilder*& IGraphBuilder_out,
                           IAMStreamConfig*& IAMStreamConfig_out,
-                          struct _AMMediaType& outputMediaType_out,
+                          struct _AMMediaType& captureMediaType_out,
                           bool coInitialize_in,
                           bool useDirectShowSource_in,
                           bool mute_in)
@@ -600,7 +600,32 @@ continue_:
   //Stream_Module_Device_Tools::initialize (true);
 
   // initialize return value(s)
-  Stream_MediaFramework_DirectShow_Tools::free (outputMediaType_out);
+  Stream_MediaFramework_DirectShow_Tools::free (captureMediaType_out);
+
+  struct tWAVEFORMATEX waveformatex_s;
+  ACE_OS::memset (&waveformatex_s, 0, sizeof (struct tWAVEFORMATEX));
+  waveformatex_p = &waveformatex_s;
+
+  waveformatex_p->wFormatTag = WAVE_FORMAT_PCM;
+  waveformatex_p->nChannels = STREAM_DEV_MIC_DEFAULT_CHANNELS; // stereo
+  waveformatex_p->nSamplesPerSec = STREAM_DEV_MIC_DEFAULT_SAMPLE_RATE;
+  waveformatex_p->wBitsPerSample = STREAM_DEV_MIC_DEFAULT_BITS_PER_SAMPLE;
+  waveformatex_p->nBlockAlign =
+    (waveformatex_p->nChannels * (waveformatex_p->wBitsPerSample / 8));
+  waveformatex_p->nAvgBytesPerSec =
+    (waveformatex_p->nSamplesPerSec * waveformatex_p->nBlockAlign);
+  waveformatex_p->cbSize = 0;
+
+  result = CreateAudioMediaType (waveformatex_p,
+                                 &captureMediaType_out,
+                                 TRUE);
+  if (FAILED (result))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to CreateAudioMediaType(): \"%s\", aborting\n"),
+                ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
+    goto error;
+  } // end IF
 
   if (!useDirectShowSource_in)
     goto continue_2;
@@ -645,6 +670,10 @@ continue_2:
                 ACE_TEXT ("failed to allocate memory, aborting\n")));
     goto error;
   } // end IF
+
+  ACE_ASSERT (!configuration_in.filterConfiguration.pinConfiguration->format);
+  configuration_in.filterConfiguration.pinConfiguration->format =
+    &captureMediaType_out;
   if (!filter_p->initialize (configuration_in.filterConfiguration))
   {
     ACE_DEBUG ((LM_ERROR,
@@ -678,40 +707,12 @@ continue_2:
   graph_layout.push_back (filter_name);
 
 continue_3:
-  struct tWAVEFORMATEX waveformatex_s;
-  ACE_OS::memset (&waveformatex_s, 0, sizeof (struct tWAVEFORMATEX));
-  waveformatex_p = &waveformatex_s;
-
-  waveformatex_p->wFormatTag = WAVE_FORMAT_PCM;
-  waveformatex_p->nChannels = 2; // stereo
-  waveformatex_p->nSamplesPerSec = 44100;
-  waveformatex_p->wBitsPerSample = 16;
-  waveformatex_p->nBlockAlign =
-    (waveformatex_p->nChannels * (waveformatex_p->wBitsPerSample / 8));
-  waveformatex_p->nAvgBytesPerSec =
-    (waveformatex_p->nSamplesPerSec * waveformatex_p->nBlockAlign);
-  waveformatex_p->cbSize = 0;
-
-  result = CreateAudioMediaType (waveformatex_p,
-                                 &outputMediaType_out,
-                                 TRUE);
-  if (FAILED (result))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to CreateAudioMediaType(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
-    goto error;
-  } // end IF
-
-  ////////////////////////////////////////
-
-  //mediaType_out->lSampleSize = waveformatex_p->nAvgBytesPerSec;
   if (!useDirectShowSource_in)
     goto continue_4;
 
   if (!Stream_Device_DirectShow_Tools::setCaptureFormat (IGraphBuilder_out,
                                                          CLSID_AudioInputDeviceCategory,
-                                                         outputMediaType_out))
+                                                         captureMediaType_out))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Stream_Device_DirectShow_Tools::setCaptureFormat(), aborting\n")));
@@ -721,7 +722,7 @@ continue_3:
 continue_4:
   union Stream_MediaFramework_DirectSound_AudioEffectOptions effect_options;
   if (!Stream_Module_Decoder_Tools::loadAudioRendererGraph ((useDirectShowSource_in ? CLSID_AudioInputDeviceCategory : GUID_NULL),
-                                                            outputMediaType_out,
+                                                            captureMediaType_out,
                                                             (mute_in ? -1 : 0),
                                                             IGraphBuilder_out,
                                                             GUID_NULL,
@@ -768,7 +769,7 @@ error:
   {
     IAMStreamConfig_out->Release (); IAMStreamConfig_out = NULL;
   } // end IF
-  Stream_MediaFramework_DirectShow_Tools::free (outputMediaType_out);
+  Stream_MediaFramework_DirectShow_Tools::free (captureMediaType_out);
 
   if (coInitialize_in)
     CoUninitialize ();

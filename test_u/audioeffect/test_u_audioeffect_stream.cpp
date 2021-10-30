@@ -22,7 +22,6 @@
 #include "test_u_audioeffect_stream.h"
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-//#include "dshow.h"
 #include "Mferror.h"
 #endif // ACE_WIN32 || ACE_WIN64
 
@@ -38,10 +37,6 @@
 #include "stream_lib_mediafoundation_tools.h"
 #endif // ACE_WIN32 || ACE_WIN64
 
-//#include "stream_dec_defines.h"
-
-//#include "stream_dev_defines.h"
-
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #include "stream_dev_directshow_tools.h"
 #include "stream_dev_mediafoundation_tools.h"
@@ -52,7 +47,6 @@
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 Test_U_AudioEffect_DirectShow_Stream::Test_U_AudioEffect_DirectShow_Stream ()
  : inherited ()
- //, graphBuilder_ (NULL)
 {
   STREAM_TRACE (ACE_TEXT ("Test_U_AudioEffect_DirectShow_Stream::Test_U_AudioEffect_DirectShow_Stream"));
 
@@ -61,9 +55,6 @@ Test_U_AudioEffect_DirectShow_Stream::Test_U_AudioEffect_DirectShow_Stream ()
 Test_U_AudioEffect_DirectShow_Stream::~Test_U_AudioEffect_DirectShow_Stream ()
 {
   STREAM_TRACE (ACE_TEXT ("Test_U_AudioEffect_DirectShow_Stream::~Test_U_AudioEffect_DirectShow_Stream"));
-
-  //if (graphBuilder_)
-  //  graphBuilder_->Release ();
 
   // *NOTE*: this implements an ordered shutdown on destruction...
   inherited::shutdown ();
@@ -234,44 +225,13 @@ Test_U_AudioEffect_DirectShow_Stream::initialize (const inherited::CONFIGURATION
   std::string log_file_name;
   IAMGraphStreams* graph_streams_p = NULL;
 
-  //result = CoInitializeEx (NULL,
-  //                         (COINIT_MULTITHREADED     |
-  //                          COINIT_DISABLE_OLE1DDE   |
-  //                          COINIT_SPEED_OVER_MEMORY));
-  //if (FAILED (result))
-  //{
-  //  ACE_DEBUG ((LM_ERROR,
-  //              ACE_TEXT ("failed to CoInitializeEx(): \"%s\", aborting\n"),
-  //              ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
-  //  return false;
-  //} // end IF
-  //COM_initialized = true;
-
   ACE_ASSERT ((*iterator).second.second->builder);
-
-  //if (!Stream_Device_Tools::setCaptureFormat (graphBuilder_,
-  //                                            CLSID_AudioInputDeviceCategory,
-  //                                            *configuration_in.moduleHandlerConfiguration->format))
-  //{
-  //  ACE_DEBUG ((LM_ERROR,
-  //              ACE_TEXT ("failed to Stream_Device_Tools::setCaptureFormat(), aborting\n")));
-  //  goto error;
-  //} // end IF
-//#if defined (_DEBUG)
-//  log_file_name =
-//    Common_Log_Tools::getLogDirectory (std::string (),
-//                                       0);
-//  log_file_name += ACE_DIRECTORY_SEPARATOR_STR;
-//  log_file_name += STREAM_LIB_DIRECTSHOW_LOGFILE_NAME;
-//  Stream_MediaFramework_DirectShow_Tools::debug (graphBuilder_,
-//                                                 log_file_name);
-//#endif // _DEBUG
 
   if (!Stream_Module_Decoder_Tools::loadAudioRendererGraph ((configuration_in.configuration_->useFrameworkSource ? CLSID_AudioInputDeviceCategory
                                                                                                                  : GUID_NULL),
                                                             configuration_in.configuration_->format,
                                                             ((*iterator).second.second->mute ? -1
-                                                                                            : (*iterator).second.second->audioOutput),
+                                                                                             : (*iterator).second.second->audioOutput),
                                                             (*iterator).second.second->builder,
                                                             (*iterator).second.second->effect,
                                                             (*iterator).second.second->effectOptions,
@@ -302,9 +262,44 @@ Test_U_AudioEffect_DirectShow_Stream::initialize (const inherited::CONFIGURATION
   } // end IF
   graph_configuration.push_front (graph_entry);
 
+  if (!configuration_in.configuration_->useFrameworkSource)
+  {
+    result_2 =
+      (*iterator).second.second->builder->FindFilterByName (STREAM_LIB_DIRECTSHOW_FILTER_NAME_SOURCE_L,
+                                                            &filter_p);
+    if (FAILED (result_2))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("%s: failed to IGraphBuilder::FindFilterByName(\"%s\"): \"%s\", aborting\n"),
+                  ACE_TEXT (stream_name_string_),
+                  ACE_TEXT_WCHAR_TO_TCHAR (STREAM_LIB_DIRECTSHOW_FILTER_NAME_SOURCE_L),
+                  ACE_TEXT (Common_Error_Tools::errorToString (result_2).c_str ())));
+      goto error;
+    } // end IF
+    IPin* pin_p = Stream_MediaFramework_DirectShow_Tools::pin (filter_p,
+                                                               PINDIR_OUTPUT,
+                                                               0);
+    ACE_ASSERT (pin_p);
+    typename Test_U_AudioEffect_DirectShowFilter_t::OUTPUT_PIN_T* pin_2 =
+      dynamic_cast<typename Test_U_AudioEffect_DirectShowFilter_t::OUTPUT_PIN_T*> (pin_p);
+    ACE_ASSERT (pin_2);
+    if (!pin_2->initialize (configuration_in.configuration_->format))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("%s: failed to Stream_MediaFramework_DirectShow_Source_Filter_OutputPin_T::initialize(\"%s\"), aborting\n"),
+                  ACE_TEXT (stream_name_string_),
+                  ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::toString (configuration_in.configuration_->format, true).c_str ())));
+      pin_p->Release (); pin_p = NULL;
+      filter_p->Release (); filter_p = NULL;
+      goto error;
+    } // end IF
+    pin_p->Release (); pin_p = NULL;
+    filter_p->Release (); filter_p = NULL;
+  } // end IF
+
 //  result_2 =
 //    (*iterator).second.second->builder->FindFilterByName (STREAM_LIB_DIRECTSHOW_FILTER_NAME_GRAB,
-//                                                         &filter_p);
+//                                                          &filter_p);
 //  if (FAILED (result_2))
 //  {
 //    ACE_DEBUG ((LM_ERROR,
@@ -347,29 +342,7 @@ Test_U_AudioEffect_DirectShow_Stream::initialize (const inherited::CONFIGURATION
 //    goto error;
 //  } // end IF
 //  isample_grabber_p->Release (); isample_grabber_p = NULL;
-//
-//  ACE_ASSERT (buffer_negotiation_p);
-//  ACE_OS::memset (&allocator_properties, 0, sizeof (allocator_properties));
-//  // *TODO*: IMemAllocator::SetProperties returns VFW_E_BADALIGN (0x8004020e)
-//  //         if this is -1/0 (why ?)
-//  allocator_properties.cbAlign = 1;
-//  //allocator_properties.cbAlign = -1; // <-- use default
-//  allocator_properties.cbBuffer =
-//    configuration_in.configuration->allocatorConfiguration->defaultBufferSize;
-//  allocator_properties.cbPrefix = -1; // <-- use default
-//  allocator_properties.cBuffers =
-//    STREAM_DEV_MIC_DIRECTSHOW_DEFAULT_DEVICE_BUFFERS;
-//  result_2 =
-//      buffer_negotiation_p->SuggestAllocatorProperties (&allocator_properties);
-//  if (FAILED (result_2))
-//  {
-//    ACE_DEBUG ((LM_ERROR,
-//                ACE_TEXT ("%s: failed to IAMBufferNegotiation::SuggestAllocatorProperties(): \"%s\", aborting\n"),
-//                ACE_TEXT (stream_name_string_),
-//                ACE_TEXT (Common_Error_Tools::errorToString (result_2).c_str ())));
-//    goto error;
-//  } // end IF
-//
+
   if (!Stream_MediaFramework_DirectShow_Tools::connect ((*iterator).second.second->builder,
                                                         graph_configuration))
   {
@@ -378,53 +351,7 @@ Test_U_AudioEffect_DirectShow_Stream::initialize (const inherited::CONFIGURATION
                 ACE_TEXT (stream_name_string_)));
     goto error;
   } // end IF
-//  // *NOTE*: for some (unknown) reason, connect()ing the sample grabber to the
-//  //         null renderer 'breaks' the connection between the AVI decompressor
-//  //         and the sample grabber (go ahead, try it in with graphedit.exe)
-//  //         --> reconnect the AVI decompressor to the (connected) sample
-//  //             grabber; this seems to work
-//  if (!Stream_MediaFramework_DirectShow_Tools::connected (graphBuilder_,
-//                                                          STREAM_DEV_MIC_DIRECTSHOW_FILTER_NAME_CAPTURE_AUDIO))
-//  {
-//    ACE_DEBUG ((LM_DEBUG,
-//                ACE_TEXT ("%s: reconnecting\n"),
-//                ACE_TEXT (stream_name_string_)));
-//
-//    if (!Stream_MediaFramework_DirectShow_Tools::connectFirst (graphBuilder_,
-//                                                               STREAM_DEV_MIC_DIRECTSHOW_FILTER_NAME_CAPTURE_AUDIO))
-//    {
-//      ACE_DEBUG ((LM_ERROR,
-//                  ACE_TEXT ("%s: failed to Stream_MediaFramework_DirectShow_Tools::connectFirst(), aborting\n"),
-//                  ACE_TEXT (stream_name_string_)));
-//      goto error;
-//    } // end IF
-//  } // end IF
-//  ACE_ASSERT (Stream_MediaFramework_DirectShow_Tools::connected (graphBuilder_,
-//                                                                 STREAM_DEV_MIC_DIRECTSHOW_FILTER_NAME_CAPTURE_AUDIO));
-//
-//#if defined (_DEBUG)
-//  ACE_OS::memset (&allocator_properties, 0, sizeof (allocator_properties));
-//  result_2 =
-//      buffer_negotiation_p->GetAllocatorProperties (&allocator_properties);
-//  if (FAILED (result_2)) // E_FAIL (0x80004005)
-//  {
-//    ACE_DEBUG ((LM_WARNING,
-//                ACE_TEXT ("%s: failed to IAMBufferNegotiation::GetAllocatorProperties(): \"%s\", continuing\n"),
-//                ACE_TEXT (stream_name_string_),
-//                ACE_TEXT (Common_Error_Tools::errorToString (result_2, true).c_str ())));
-//    //goto error;
-//  } // end IF
-//  else
-//    ACE_DEBUG ((LM_DEBUG,
-//                ACE_TEXT ("%s: allocator properties (buffers/size/alignment/prefix): %d/%d/%d/%d\n"),
-//                ACE_TEXT (stream_name_string_),
-//                allocator_properties.cBuffers,
-//                allocator_properties.cbBuffer,
-//                allocator_properties.cbAlign,
-//                allocator_properties.cbPrefix));
-//#endif // _DEBUG
-//  buffer_negotiation_p->Release (); buffer_negotiation_p = NULL;
-//
+
 //  result_2 = graphBuilder_->QueryInterface (IID_PPV_ARGS (&media_filter_p));
 //  if (FAILED (result_2))
 //  {
@@ -484,13 +411,10 @@ Test_U_AudioEffect_DirectShow_Stream::initialize (const inherited::CONFIGURATION
   //media_type_s.majortype = MEDIATYPE_Audio;
   //media_type_s.subtype = MEDIASUBTYPE_PCM;
   session_data_r.formats.push_back (configuration_in.configuration_->format);
-  ACE_DEBUG ((LM_DEBUG,
-              ACE_TEXT ("%s: input format: %s\n"),
-              ACE_TEXT (stream_name_string_),
-              ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::toString (configuration_in.configuration_->format, false).c_str ())));
-
-  //Stream_MediaFramework_DirectShow_Tools::free (media_type_s);
-  //ACE_OS::memset (&media_type_s, 0, sizeof (struct _AMMediaType));
+  //ACE_DEBUG ((LM_DEBUG,
+  //            ACE_TEXT ("%s: capture format: %s\n"),
+  //            ACE_TEXT (stream_name_string_),
+  //            ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::toString (configuration_in.configuration_->format, false).c_str ())));
 
   // ---------------------------------------------------------------------------
 
@@ -539,9 +463,6 @@ error:
   {
     (*iterator).second.second->builder->Release (); (*iterator).second.second->builder = NULL;
   } // end IF
-
-  //if (COM_initialized)
-  //  CoUninitialize ();
 
   return false;
 }

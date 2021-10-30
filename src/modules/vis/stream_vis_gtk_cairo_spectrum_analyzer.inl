@@ -408,8 +408,8 @@ Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
   //         largely depends on upstream configuration (i.e. data may be
   //         arriving over the network) and the hardware/driver/source module
   //         implementation
-  ACE_ASSERT (!(message_inout->length () % sampleIterator_.dataSampleSize_));
-  ACE_ASSERT (!(message_inout->length () % sampleIterator_.soundSampleSize_));
+  //ACE_ASSERT (!(message_inout->length () % sampleIterator_.dataSampleSize_));
+  //ACE_ASSERT (!(message_inout->length () % sampleIterator_.soundSampleSize_));
 
   unsigned int number_of_samples =
     message_inout->length () / sampleIterator_.dataSampleSize_;

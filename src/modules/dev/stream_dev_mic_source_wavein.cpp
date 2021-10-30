@@ -44,7 +44,8 @@ libacestream_wave_in_data_cb (HWAVEIN   hwi,
     case WIM_CLOSE:
     {
       ACE_DEBUG ((LM_DEBUG,
-                  ACE_TEXT ("closed capture device...\n")));
+                  ACE_TEXT ("closed capture device...\n"),
+                  cb_data_p->task->mod_->name ()));
       return;
     }
     case WIM_DATA:
@@ -55,13 +56,15 @@ libacestream_wave_in_data_cb (HWAVEIN   hwi,
     case WIM_OPEN:
     {
       ACE_DEBUG ((LM_DEBUG,
-                  ACE_TEXT ("opened capture device...\n")));
+                  ACE_TEXT ("%s: opened capture device...\n"),
+                  cb_data_p->task->mod_->name ()));
       return;
     }
     default:
     {
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("invalid/unknown message type (was: %u), returning\n"),
+                  ACE_TEXT ("%s: invalid/unknown message type (was: %u), returning\n"),
+                  cb_data_p->task->mod_->name (),
                   uMsg));
       return;
     }
@@ -80,7 +83,8 @@ libacestream_wave_in_data_cb (HWAVEIN   hwi,
                                         cb_data_p->phase);
   cb_data_p->buffers[wavehdr_p->dwUser]->wr_ptr (wavehdr_p->dwBytesRecorded);
   ACE_ASSERT (cb_data_p->task);
-  int result = cb_data_p->task->put_next (cb_data_p->buffers[wavehdr_p->dwUser], NULL);
+  int result =
+    cb_data_p->task->put_next (cb_data_p->buffers[wavehdr_p->dwUser], NULL);
   if (unlikely (result == -1))
   {
     ACE_DEBUG ((LM_ERROR,

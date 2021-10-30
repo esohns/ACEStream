@@ -46,13 +46,15 @@ class Stream_MediaFramework_DirectShow_Source_Filter_T
  , public Common_IInitialize_T<ConfigurationType>
  , public Common_IInitializeP_T<struct _AMMediaType>
 {
-  typedef Stream_MediaFramework_DirectShow_Source_Filter_OutputPin_T<PinConfigurationType> OUTPUT_PIN_T;
   // friends
-  friend class OUTPUT_PIN_T;
+  friend class Stream_MediaFramework_DirectShow_Source_Filter_OutputPin_T<PinConfigurationType>;
 
   typedef CSource inherited;
 
  public:
+  // convenient types
+  typedef Stream_MediaFramework_DirectShow_Source_Filter_OutputPin_T<PinConfigurationType> OUTPUT_PIN_T;
+
   // non-COM (!) ctor
   Stream_MediaFramework_DirectShow_Source_Filter_T ();
   virtual ~Stream_MediaFramework_DirectShow_Source_Filter_T ();
