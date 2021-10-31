@@ -28,7 +28,6 @@
 #endif // NUMELMS
 
 #include "strmif.h"
-//#include "strsafe.h"
 #include "vfwmsgs.h"
 //// *NOTE*: wxWidgets may have #defined __WXDEBUG__
 //#undef __WXDEBUG__

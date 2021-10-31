@@ -33,7 +33,6 @@
 #undef GetObject
 #include "mfidl.h"
 #include "mfreadwrite.h"
-#include "initguid.h"
 #include "mmdeviceapi.h"
 #include "OleAuto.h"
 // *NOTE*: uuids.h doesn't have double include protection
@@ -4210,6 +4209,37 @@ idle_initialize_UI_cb (gpointer userData_in)
   gtk_toggle_button_set_active (toggle_button_p,
                                 (mode_3d < STREAM_VISUALIZATION_SPECTRUMANALYZER_3DMODE_MAX));
 
+
+  GtkSizeGroup* size_group_p =
+    GTK_SIZE_GROUP (gtk_builder_get_object ((*iterator).second.second,
+                                            ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_SIZEGROUP_OPTIONS_NAME)));
+  ACE_ASSERT (size_group_p);
+  toggle_button_p =
+    GTK_TOGGLE_BUTTON (gtk_builder_get_object ((*iterator).second.second,
+                                               ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_TOGGLEBUTTON_MUTE_NAME)));
+  ACE_ASSERT (toggle_button_p);
+  gtk_size_group_add_widget (size_group_p, GTK_WIDGET (toggle_button_p));
+  GtkCheckButton* check_button_p =
+    GTK_CHECK_BUTTON (gtk_builder_get_object ((*iterator).second.second,
+                                              ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_CHECKBUTTON_SAVE_NAME)));
+  ACE_ASSERT (check_button_p);
+  gtk_size_group_add_widget (size_group_p, GTK_WIDGET (check_button_p));
+  check_button_p =
+    GTK_CHECK_BUTTON (gtk_builder_get_object ((*iterator).second.second,
+                                              ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_CHECKBUTTON_SINUS_NAME)));
+  ACE_ASSERT (check_button_p);
+  gtk_size_group_add_widget (size_group_p, GTK_WIDGET (check_button_p));
+  check_button_p =
+    GTK_CHECK_BUTTON (gtk_builder_get_object ((*iterator).second.second,
+                                              ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_CHECKBUTTON_EFFECT_NAME)));
+  ACE_ASSERT (check_button_p);
+  gtk_size_group_add_widget (size_group_p, GTK_WIDGET (check_button_p));
+  check_button_p =
+    GTK_CHECK_BUTTON (gtk_builder_get_object ((*iterator).second.second,
+                                              ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_CHECKBUTTON_VISUALIZATION_NAME)));
+  ACE_ASSERT (check_button_p);
+  gtk_size_group_add_widget (size_group_p, GTK_WIDGET (check_button_p));
+
   //GtkProgressBar* progress_bar_p =
   //  GTK_PROGRESS_BAR (gtk_builder_get_object ((*iterator).second.second,
   //                                            ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_PROGRESSBAR_NAME)));
@@ -5799,8 +5829,10 @@ togglebutton_record_toggled_cb (GtkToggleButton* toggleButton_in,
     {
       (*directshow_modulehandler_configuration_iterator).second.second->audioInput =
           g_value_get_uint (&value_2);
-      ACE_OS::strcpy ((*directshow_modulehandler_configuration_iterator).second.second->deviceIdentifier.identifier._string,
-                      ACE_TEXT_ALWAYS_CHAR (g_value_get_string (&value)));
+      (*directshow_modulehandler_configuration_iterator).second.second->deviceIdentifier.identifier._guid =
+        Stream_MediaFramework_DirectSound_Tools::waveDeviceIdToDirectSoundGUID (static_cast<ULONG> ((*directshow_modulehandler_configuration_iterator).second.second->audioInput));
+      //ACE_OS::strcpy ((*directshow_modulehandler_configuration_iterator).second.second->deviceIdentifier.identifier._string,
+      //                ACE_TEXT_ALWAYS_CHAR (g_value_get_string (&value)));
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
@@ -6093,7 +6125,7 @@ togglebutton_record_toggled_cb (GtkToggleButton* toggleButton_in,
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
     {
-      if (save_to_file)
+      if (save_to_file && filename_p)
         (*directshow_modulehandler_configuration_iterator).second.second->targetFileName =
           Common_UI_GTK_Tools::UTF8ToLocale (filename_p, -1);
       else
@@ -6102,7 +6134,7 @@ togglebutton_record_toggled_cb (GtkToggleButton* toggleButton_in,
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
     {
-      if (save_to_file)
+      if (save_to_file && filename_p)
         (*mediafoundation_modulehandler_configuration_iterator).second.second->targetFileName =
           Common_UI_GTK_Tools::UTF8ToLocale (filename_p, -1);
       else
@@ -6118,7 +6150,7 @@ togglebutton_record_toggled_cb (GtkToggleButton* toggleButton_in,
     }
   } // end SWITCH
 #else
-  if (save_to_file)
+  if (save_to_file && filename_p)
     (*modulehandler_configuration_iterator).second.second->targetFileName =
       Common_UI_GTK_Tools::UTF8ToLocale (filename_p, -1);
   else
@@ -8607,13 +8639,12 @@ continue_:
       struct _GUID GUID_s =
         Stream_MediaFramework_DirectSound_Tools::waveDeviceIdToDirectSoundGUID (static_cast<ULONG> ((*directshow_modulehandler_configuration_iterator).second.second->audioInput));
       ACE_ASSERT (!InlineIsEqualGUID (GUID_s, GUID_NULL));
-      HRESULT result = E_FAIL;
-      //result = CoInitialize (NULL);
-      //ACE_ASSERT (SUCCEEDED (result));
+      (*directshow_modulehandler_configuration_iterator).second.second->deviceIdentifier.identifier._guid =
+        GUID_s;
       IMMDeviceEnumerator* enumerator_p = NULL;
-      result =
+      HRESULT result =
         CoCreateInstance (__uuidof (MMDeviceEnumerator), NULL, CLSCTX_INPROC_SERVER,
-                          __uuidof (IMMDeviceEnumerator), (LPVOID*)&enumerator_p);
+                          IID_PPV_ARGS (&enumerator_p));
       ACE_ASSERT (SUCCEEDED (result));
       IMMDeviceCollection* devices_p = NULL;
       result =

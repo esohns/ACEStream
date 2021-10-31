@@ -120,6 +120,9 @@ if (WIN32)
       stream_dev_mic_source_mediafoundation.cpp
       stream_dev_mic_source_mediafoundation.h
       stream_dev_mic_source_mediafoundation.inl
+      stream_dev_mic_source_wasapi.cpp
+      stream_dev_mic_source_wasapi.h
+      stream_dev_mic_source_wasapi.inl
       stream_dev_mic_source_wavein.cpp
       stream_dev_mic_source_wavein.h
       stream_dev_mic_source_wavein.inl
@@ -176,6 +179,7 @@ if (UNIX)
   target_link_libraries (${PROJECT_NAME}_Device PUBLIC ${LIBCAMERA_LIBRARIES})
  endif (LIBCAMERA_SUPPORT)
 elseif (WIN32)
+ target_link_libraries (${PROJECT_NAME}_Device PUBLIC Avrt.lib)
  target_link_libraries (${PROJECT_NAME}_Device PUBLIC d3d9.lib)
  target_link_libraries (${PROJECT_NAME}_Device PUBLIC dmoguids.lib)
  target_link_libraries (${PROJECT_NAME}_Device PUBLIC dxva2.lib)
@@ -243,6 +247,8 @@ elseif (WIN32)
           stream_dev_cam_source_mediafoundation.inl
           stream_dev_mic_source_directshow.h
           stream_dev_mic_source_directshow.inl
+          stream_dev_mic_source_wasapi.h
+          stream_dev_mic_source_wasapi.inl
           stream_dev_mic_source_wavein.h
           stream_dev_mic_source_wavein.inl
           stream_dev_mic_source_mediafoundation.h

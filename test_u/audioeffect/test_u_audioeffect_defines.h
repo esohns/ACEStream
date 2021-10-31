@@ -55,6 +55,8 @@
 
 //----------------------------------------
 
+#if defined (GUI_SUPPORT)
+#if defined (GTK_USE)
 // GTK widget names
 #define TEST_U_STREAM_UI_GTK_BUTTON_CUT_NAME                 "button_cut"
 #define TEST_U_STREAM_UI_GTK_BUTTON_REPORT_NAME              "button_report"
@@ -107,6 +109,7 @@
 #define TEST_U_STREAM_UI_GTK_SCALE_SINUS_FREQUENCY_NAME      "scale_sinus_frequency"
 #define TEST_U_STREAM_UI_GTK_HSCALE_BOOST_NAME               "hscale_boost"
 #define TEST_U_STREAM_UI_GTK_HSCALE_VOLUME_NAME              "hscale_volume"
+#define TEST_U_STREAM_UI_GTK_SIZEGROUP_OPTIONS_NAME          "sizegroup_options"
 #define TEST_U_STREAM_UI_GTK_SPINBUTTON_BUFFERSIZE_NAME      "spinbutton_buffersize"
 #define TEST_U_STREAM_UI_GTK_SPINBUTTON_CAPTUREDFRAMES_NAME  "spinbutton_captured_frames"
 #define TEST_U_STREAM_UI_GTK_SPINBUTTON_DATA_NAME            "spinbutton_data"
@@ -117,6 +120,8 @@
 #define TEST_U_STREAM_UI_GTK_TOGGLEBUTTON_RECORD_NAME        "togglebutton_record"
 #define TEST_U_STREAM_UI_GTK_TOGGLEBUTTON_3D_NAME            "togglebutton_3d"
 #define TEST_U_STREAM_UI_GTK_TOGGLEBUTTON_MUTE_NAME          "togglebutton_mute"
+#endif // GTK_USE
+#endif // GUI_SUPPORT
 
 //----------------------------------------
 

@@ -66,7 +66,7 @@ Stream_MessageQueue_T<ACE_SYNCH_USE,
         {
           // *NOTE*: currently, all of these are 'session' messages
           SessionMessageType* session_message_p =
-              dynamic_cast<SessionMessageType*> (message_block_p);
+              static_cast<SessionMessageType*> (message_block_p);
           if (likely (session_message_p &&
                       !flushSessionMessages_in))
             break;
@@ -98,11 +98,9 @@ Stream_MessageQueue_T<ACE_SYNCH_USE,
         }
         default:
         {
-#if defined (_DEBUG)
           ACE_DEBUG ((LM_DEBUG,
                       ACE_TEXT ("retaining message (type was: %d)\n"),
                       message_block_p->msg_type ()));
-#endif // _DEBUG
           break;
         }
       } // end SWITCH

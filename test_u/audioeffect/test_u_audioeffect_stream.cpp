@@ -83,8 +83,10 @@ Test_U_AudioEffect_DirectShow_Stream::load (Stream_ILayout* layout_in,
                     false);
   else
     ACE_NEW_RETURN (module_p,
-                    Test_U_Dev_Mic_Source_WaveIn_Module (this,
-                                                         ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_MIC_SOURCE_WAVEIN_DEFAULT_NAME_STRING)),
+                    //Test_U_Dev_Mic_Source_WaveIn_Module (this,
+                    //                                     ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_MIC_SOURCE_WAVEIN_DEFAULT_NAME_STRING)),
+                    Test_U_Dev_Mic_Source_WASAPI_Module (this,
+                                                         ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_MIC_SOURCE_WASAPI_DEFAULT_NAME_STRING)),
                     false);
   ACE_ASSERT (module_p);
   layout_in->append (module_p, NULL, 0);
@@ -188,7 +190,8 @@ Test_U_AudioEffect_DirectShow_Stream::initialize (const inherited::CONFIGURATION
   // ******************* Mic Source ************************
   std::string head_module_name_string =
     (configuration_in.configuration_->useFrameworkSource ? ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_MIC_SOURCE_DIRECTSHOW_DEFAULT_NAME_STRING)
-                                                         : ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_MIC_SOURCE_WAVEIN_DEFAULT_NAME_STRING));
+                                                         //: ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_MIC_SOURCE_WAVEIN_DEFAULT_NAME_STRING));
+                                                         : ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_MIC_SOURCE_WASAPI_DEFAULT_NAME_STRING));
   Stream_Module_t* module_p =
     const_cast<Stream_Module_t*> (inherited::find (head_module_name_string));
   ACE_ASSERT (module_p);

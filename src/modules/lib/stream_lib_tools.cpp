@@ -22,20 +22,21 @@
 #include "stream_lib_tools.h"
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-#include <amvideo.h>
-#include <d3d9.h>
-#include <initguid.h> // *NOTE*: this exports DEFINE_GUIDs (see e.g. dxva.h)
-#include <dvdmedia.h>
-#include <dxva.h>
-#include <fourcc.h>
+#define INITGUID // *NOTE*: this exports DEFINE_GUIDs (see e.g. dxva.h)
+#include "guiddef.h"
+#include "amvideo.h"
+#include "d3d9.h"
+#include "dvdmedia.h"
+#include "dxva.h"
+#include "fourcc.h"
 // *NOTE*: uuids.h doesn't have double include protection
 #if defined (UUIDS_H)
 #else
 #define UUIDS_H
-#include <uuids.h>
+#include "uuids.h"
 #endif // UUIDS_H
-#include <mfapi.h>
-#include <wmcodecdsp.h>
+#include "mfapi.h"
+#include "wmcodecdsp.h"
 #else
 #if defined (FFMPEG_SUPPORT)
 #ifdef __cplusplus

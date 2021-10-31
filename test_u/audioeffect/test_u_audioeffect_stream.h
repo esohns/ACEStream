@@ -210,6 +210,6 @@ class Test_U_AudioEffect_ALSA_Stream
   ACE_UNIMPLEMENTED_FUNC (Test_U_AudioEffect_ALSA_Stream (const Test_U_AudioEffect_ALSA_Stream&))
   ACE_UNIMPLEMENTED_FUNC (Test_U_AudioEffect_ALSA_Stream& operator= (const Test_U_AudioEffect_ALSA_Stream&))
 };
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
 
 #endif

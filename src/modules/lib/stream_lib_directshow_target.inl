@@ -588,6 +588,12 @@ error:
         IMediaControl_->Release (); IMediaControl_ = NULL;
       } // end IF
 
+      result = inherited::msg_queue_->flush ();
+      if (unlikely (result == -1))
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("%s: failed to ACE_Mesage_Queue::flush(): \"%m\", continuing\n"),
+                    inherited::mod_->name ()));
+
       if (IGraphBuilder_)
       {
         IGraphBuilder_->Release (); IGraphBuilder_ = NULL;

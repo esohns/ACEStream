@@ -26,7 +26,6 @@
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #include <map>
 
-#include "guiddef.h"
 #include "mfobjects.h"
 #include "strmif.h"
 #else

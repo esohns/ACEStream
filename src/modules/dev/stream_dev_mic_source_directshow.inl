@@ -1105,11 +1105,9 @@ continue_:
   ACE_ASSERT (inherited::sessionData_);
   ACE_ASSERT (IMediaEventEx_);
 
-#if defined (_DEBUG)
   ACE_DEBUG ((LM_DEBUG,
               ACE_TEXT ("%s: event processing worker thread (id: %t) starting\n"),
               inherited::mod_->name ()));
-#endif // _DEBUG
 
   // process DirectShow events
 

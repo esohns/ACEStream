@@ -21,7 +21,8 @@
 
 #include "stream_lib_directsound_tools.h"
 
-#include "initguid.h"
+#define INITGUID
+#include "guiddef.h"
 #include "mmreg.h"
 // *WARNING*: "...Note Header files ksproxy.h and dsound.h define similar but
 //            incompatible versions of the IKsPropertySet interface.Applications

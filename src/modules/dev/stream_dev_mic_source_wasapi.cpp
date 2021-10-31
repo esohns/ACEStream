@@ -17,30 +17,11 @@
  *   Free Software Foundation, Inc.,                                       *
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
+#include "stdafx.h"
 
-#ifndef STREAM_LIB_DIRECTSOUND_TOOLS_H
-#define STREAM_LIB_DIRECTSOUND_TOOLS_H
+#include "stream_dev_mic_source_wasapi.h"
 
-#include "devicetopology.h"
-#include "mmdeviceapi.h"
+#include "stream_dev_defines.h"
 
-#include "ace/Global_Macros.h"
-
-class Stream_MediaFramework_DirectSound_Tools
-{
- public:
-  static struct _GUID waveDeviceIdToDirectSoundGUID (ULONG); // waveIn device id
-  static IAudioVolumeLevel* getMicrophoneBoostControl (IMMDevice*); // device handle
-
- private:
-  ACE_UNIMPLEMENTED_FUNC (Stream_MediaFramework_DirectSound_Tools ())
-  ACE_UNIMPLEMENTED_FUNC (Stream_MediaFramework_DirectSound_Tools (const Stream_MediaFramework_DirectSound_Tools&))
-  ACE_UNIMPLEMENTED_FUNC (Stream_MediaFramework_DirectSound_Tools& operator= (const Stream_MediaFramework_DirectSound_Tools&))
-
-  // helper methods
-  // *IMPORTANT NOTE*: fire-and-forget the first argument
-  static IAudioVolumeLevel* walkDeviceTreeFromPart (IPart*,              // part handle
-                                                    const std::string&); // (volume-)control name
-};
-
-#endif
+const char libacestream_default_dev_mic_source_wasapi_module_name_string[] =
+  ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_MIC_SOURCE_WASAPI_DEFAULT_NAME_STRING);

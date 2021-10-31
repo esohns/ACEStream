@@ -19,8 +19,8 @@
 ***************************************************************************/
 #include "stdafx.h"
 
-#include "initguid.h" // *NOTE*: this exports DEFINE_GUIDs
-                      //         (see: stream_lib_common.h)
+#define INITGUID // *NOTE*: this exports DEFINE_GUIDs
+                 //         (see: stream_lib_common.h)
 #include "Unknwn.h"
 
 #undef NANOSECONDS

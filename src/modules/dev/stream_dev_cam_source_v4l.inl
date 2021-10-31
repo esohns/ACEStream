@@ -22,17 +22,6 @@
 
 #include "ace/Log_Msg.h"
 
-//#if defined (_DEBUG)
-//#include "common_tools.h"
-
-//#include "common_file_tools.h"
-
-////#include "common_image_defines.h"
-//#include "common_image_tools.h"
-
-//#include "common_ui_defines.h"
-//#endif // _DEBUG
-
 #include "stream_macros.h"
 
 #include "stream_dev_tools.h"
