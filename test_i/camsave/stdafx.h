@@ -69,17 +69,11 @@
 #include "test_i_gtk_common.h"
 #endif // GTK_SUPPORT
 #if defined (WXWIDGETS_SUPPORT)
-//#if defined (_MSC_VER)
-//#undef ACE_LACKS_MODE_T
-//#endif // _MSC_VER
 #include "test_i_wxwidgets_common.h"
-//#if defined (_MSC_VER)
-//#define ACE_LACKS_MODE_T 1
-//#endif // _MSC_VER
 #endif // WXWIDGETS_SUPPORT
 #endif // GUI_SUPPORT
 
-#include "test_i_camsave_common.h"
+//#include "test_i_camsave_common.h"
 
 // *TODO*: reference additional headers your program requires here
 

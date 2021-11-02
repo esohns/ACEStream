@@ -343,8 +343,7 @@ continue_:
     ((snd_pcm_format_width (media_type_s.format) / 8) *
       media_type_s.channels);
   sound_sample_size = data_sample_size / media_type_s.channels;
-  is_signed_format =
-    snd_pcm_format_signed (session_data_r.inputFormat.format);
+  is_signed_format = snd_pcm_format_signed (media_type_s.format);
   sample_byte_order =
       ((snd_pcm_format_little_endian (media_type_s.format) == 1) ? ACE_LITTLE_ENDIAN
                                                                  : -1);
@@ -544,8 +543,7 @@ Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
         ((snd_pcm_format_width (media_type_s.format) / 8) *
           media_type_s.channels);
       sound_sample_size = data_sample_size / media_type_s.channels;
-      is_signed_format =
-        snd_pcm_format_signed (session_data_r.inputFormat.format);
+      is_signed_format = snd_pcm_format_signed (media_type_s.format);
       sample_byte_order =
           ((snd_pcm_format_little_endian (media_type_s.format) == 1) ? ACE_LITTLE_ENDIAN
                                                                      : -1);

@@ -1,12 +1,3 @@
-#include (FindPkgConfig)
-
-if (UNIX)
-# include (CheckLibraryExists)
-# check_library_exists (pthread pthread_create "" HAVE_LIB_PTHREAD)
- set (CMAKE_THREAD_PREFER_PTHREAD ON)
- find_package (Threads)
-endif (UNIX)
-
 ##pkg_check_modules (PKG_ACE REQUIRED ACE)
 if (UNIX)
 ## *NOTE*: Common requires libcap
@@ -14,9 +5,6 @@ if (UNIX)
 # pkg_check_modules (PKG_FFMPEG REQUIRED libavcodec libswscale libavutil)
 endif ()
 # *TODO*: repair WIN32 pkgconfig support
-
-#add_definitions (-DHAVE_CONFIG_H)
-#set_property (SOURCE PROPERTY COMPILE_DEFINITIONS HAVE_CONFIG_H)
 
 get_filename_component (BUILD_PATH ${CMAKE_CURRENT_BINARY_DIR}/../.. REALPATH)
 get_filename_component (BUILD_PATH_SUFFIX ${BUILD_PATH} NAME)

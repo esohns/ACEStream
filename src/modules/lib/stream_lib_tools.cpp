@@ -38,6 +38,9 @@
 #include "mfapi.h"
 #include "wmcodecdsp.h"
 #else
+#if defined (LIBCAMERA_SUPPORT)
+#include "libcamera/libcamera.h"
+#endif // LIBCAMERA_SUPPORT
 #if defined (FFMPEG_SUPPORT)
 #ifdef __cplusplus
 extern "C"

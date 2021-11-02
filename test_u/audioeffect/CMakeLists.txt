@@ -26,13 +26,7 @@ if (UNIX)
 
  set (CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_CURRENT_SOURCE_DIR}/../../src/modules/lib/scripts")
  include (sox)
- if (NOT SOX_SUPPORT)
-  message (FATAL_ERROR "sox not supported, aborting")
- endif (NOT SOX_SUPPORT)
 endif (UNIX)
-
-#add_definitions (-DHAVE_CONFIG_H)
-#set_property (SOURCE PROPERTY COMPILE_DEFINITIONS HAVE_CONFIG_H)
 
 get_filename_component (BUILD_PATH ${CMAKE_CURRENT_BINARY_DIR}/../.. REALPATH)
 get_filename_component (BUILD_PATH_SUFFIX ${BUILD_PATH} NAME)
@@ -191,13 +185,11 @@ add_dependencies (${EXECUTABLE} ${PROJECT_NAME}_Visualization)
 add_dependencies (${EXECUTABLE} ${PROJECT_NAME}_Test_U)
 
 if (UNIX)
-# target_link_libraries (${EXECUTABLE} PUBLIC ${CMAKE_THREAD_LIBS_INIT})
-# target_link_libraries (${EXECUTABLE} PUBLIC rt)
+ target_link_libraries (${EXECUTABLE} PUBLIC ${CMAKE_THREAD_LIBS_INIT})
  target_link_libraries (${EXECUTABLE} PUBLIC ${PKG_ALSA_LIBRARIES})
  target_link_libraries (${EXECUTABLE} PUBLIC ${SOX_LIBRARIES})
 elseif (WIN32)
- set (DIRECTX_SDK_DIRECTORY
-      $ENV{DXSDK_DIR})
+ set (DIRECTX_SDK_DIRECTORY $ENV{DXSDK_DIR})
 
  target_link_libraries (${EXECUTABLE} PUBLIC mfplat.lib)
  target_link_libraries (${EXECUTABLE} PUBLIC mfuuid.lib)
@@ -250,8 +242,6 @@ target_link_libraries (${EXECUTABLE} PUBLIC ${PROJECT_NAME}_Visualization)
 target_link_libraries (${EXECUTABLE} PUBLIC ${PROJECT_NAME}_Test_U)
 
 # add PCH
-#set_target_properties (${EXECUTABLE} PROPERTIES COTIRE_CXX_PREFIX_HEADER_INIT "stdafx.h")
-#cotire (${EXECUTABLE})
 target_precompile_headers (${EXECUTABLE}
                            PUBLIC stdafx.h)
 

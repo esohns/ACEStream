@@ -34,6 +34,7 @@ extern "C"
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
 #include "X11/Xlib.h"
+#undef CursorShape
 #endif // ACE_WIN32 || ACE_WIN64
 
 #if defined (GUI_SUPPORT)
@@ -149,7 +150,7 @@ struct Stream_ImageScreen_ModuleHandlerConfiguration
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
    , window (NULL)
 #else
-   , window (None)
+   , window (0)
 #endif // ACE_WIN32 || ACE_WIN64
   {
     concurrency = STREAM_HEADMODULECONCURRENCY_ACTIVE;

@@ -31,12 +31,9 @@
 #define UUIDS_H
 #include "uuids.h"
 #endif // UUIDS_H
-
-//#include <streams.h>
 #endif // _MSC_VER
 
 // C RunTime Header Files
-//#include <sstream>
 #include <string>
 
 // System Library Header Files
@@ -44,7 +41,6 @@
 #include "ace/Global_Macros.h"
 #include "ace/Log_Msg.h"
 
-//#if defined (LIBACESTREAM_ENABLE_VALGRIND_SUPPORT)
 #if defined (VALGRIND_SUPPORT)
 #include "valgrind/valgrind.h"
 #endif // VALGRIND_SUPPORT
@@ -65,7 +61,7 @@
 
 #include "test_u_common.h"
 
-#include "test_u_camerascreen_common.h"
+//#include "test_u_camerascreen_common.h"
 
 // *TODO*: reference additional headers your program requires here
 

@@ -42,7 +42,7 @@
 #include "linux/videodev2.h"
 
 #include "X11/X.h"
-
+#undef CursorShape
 #if defined (FFMPEG_SUPPORT)
 #ifdef __cplusplus
 extern "C"
@@ -450,7 +450,7 @@ struct Stream_AVSave_ModuleHandlerConfiguration
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
    , window (NULL)
 #else
-   , window (None)
+   , window (0)
 #endif // ACE_WIN32 || ACE_WIN64
    , targetFileName ()
   {

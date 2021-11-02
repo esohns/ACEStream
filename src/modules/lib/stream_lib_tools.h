@@ -38,7 +38,7 @@ extern "C"
 #endif // ACE_WIN32 || ACE_WIN64
 
 #if defined (LIBCAMERA_SUPPORT)
-#include "libcamera/libcamera.h"
+#include "libcamera/pixel_format.h"
 #endif // LIBCAMERA_SUPPORT
 
 #if defined (FFMPEG_SUPPORT)

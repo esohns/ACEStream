@@ -14,9 +14,6 @@ if (NOT EXISTS ${ACENetwork_DIR})
 endif ()
 add_definitions (-DHTTP_HAS_DLL)
 
-add_definitions (-DHAVE_CONFIG_H)
-#set_property (SOURCE PROPERTY COMPILE_DEFINITIONS HAVE_CONFIG_H)
-
 if (UNIX)
  if (SSL_SUPPORT)
   include_directories (${PKG_SSL_INCLUDE_DIRS})

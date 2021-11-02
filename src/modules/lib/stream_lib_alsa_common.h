@@ -29,7 +29,6 @@ extern "C"
 #include "alsa/asoundlib.h"
 }
 
-#include "stream_lib_defines.h"
 #include "stream_lib_alsa_defines.h"
 
 struct Stream_MediaFramework_ALSA_MediaType
@@ -40,11 +39,11 @@ struct Stream_MediaFramework_ALSA_MediaType
    , bufferTime (STREAM_LIB_ALSA_PLAYBACK_DEFAULT_BUFFER_TIME)
    , format (STREAM_LIB_ALSA_DEFAULT_FORMAT)
    , subFormat (SND_PCM_SUBFORMAT_STD)
-   , channels (STREAM_LIB_MIC_DEFAULT_CHANNELS)
+   , channels (STREAM_LIB_ALSA_CAPTURE_DEFAULT_CHANNELS)
    , periods (STREAM_LIB_ALSA_PLAYBACK_DEFAULT_PERIODS)
    , periodSize (STREAM_LIB_ALSA_PLAYBACK_DEFAULT_PERIOD_SIZE)
    , periodTime (STREAM_LIB_ALSA_PLAYBACK_DEFAULT_PERIOD_TIME)
-   , rate (STREAM_LIB_MIC_DEFAULT_SAMPLE_RATE)
+   , rate (STREAM_LIB_ALSA_CAPTURE_DEFAULT_SAMPLE_RATE)
   {}
 
   enum _snd_pcm_access    access;

@@ -19,7 +19,4 @@
  ***************************************************************************/
 #include "stdafx.h"
 
-//#include "ace/Synch.h"
 #include "stream_task_base_asynch.h"
-
-//#include "ace/Time_Value.h"

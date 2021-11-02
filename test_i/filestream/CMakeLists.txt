@@ -9,9 +9,6 @@ if (NOT EXISTS ${ACENetwork_DIR})
  message (FATAL_ERROR "could not find package \"ACENetwork\", aborting")
 endif (NOT EXISTS ${ACENetwork_DIR})
 
-add_definitions (-DHAVE_CONFIG_H)
-#set_property (SOURCE PROPERTY COMPILE_DEFINITIONS HAVE_CONFIG_H)
-
 if (UNIX)
 # include_directories (${PKG_CAP_INCLUDE_DIRS})
 

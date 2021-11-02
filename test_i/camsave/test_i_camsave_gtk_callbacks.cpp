@@ -51,6 +51,8 @@
 #include "linux/videodev2.h"
 #include "libv4l2.h"
 #if defined (LIBCAMERA_SUPPORT)
+#undef emit
+#undef slots
 #include "libcamera/libcamera.h"
 #endif // LIBCAMERA_SUPPORT
 

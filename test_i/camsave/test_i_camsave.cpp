@@ -28,6 +28,8 @@
 #else
 #include "libv4l2.h"
 #if defined (LIBCAMERA_SUPPORT)
+#undef emit
+#undef slots
 #include "libcamera/libcamera.h"
 #endif // LIBCAMERA_SUPPORT
 #endif // ACE_WIN32 || ACE_WIN64

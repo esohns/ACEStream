@@ -28,9 +28,12 @@
 
 #include "stream_common.h"
 #include "stream_configuration.h"
+#include "stream_control_message.h"
 #include "stream_data_message_base.h"
 
 #include "test_i_common.h"
+
+#include "test_i_avsave_common.h"
 
 // forward declaration(s)
 template <ACE_SYNCH_DECL,

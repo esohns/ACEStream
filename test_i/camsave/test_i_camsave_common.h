@@ -42,7 +42,7 @@
 #include "linux/videodev2.h"
 
 #if defined (LIBCAMERA_SUPPORT)
-#include "libcamera/libcamera.h"
+//#include "libcamera/libcamera.h"
 #endif // LIBCAMERA_SUPPORT
 
 #include "X11/X.h"
@@ -214,6 +214,12 @@ struct Stream_CamSave_V4L_MessageData
 };
 
 #if defined (LIBCAMERA_SUPPORT)
+namespace libcamera {
+class FrameBuffer;
+class Camera;
+class Request;
+class Stream;
+} /* namespace libcamera */
 struct Stream_CamSave_LibCamera_MessageData
 {
   Stream_CamSave_LibCamera_MessageData ()

@@ -19,13 +19,4 @@
  ***************************************************************************/
 #include "stdafx.h"
 
-//#include "ace/Synch.h"
 #include "stream_datablockallocatorheap.h"
-
-//#include "stream_configuration.h"
-//#include "stream_exports.h"
-
-//////////////////////////////////////////
-
-// export
-//template class Stream_Export Stream_DataBlockAllocatorHeap_T<struct Stream_AllocatorConfiguration>;

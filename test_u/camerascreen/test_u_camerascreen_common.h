@@ -42,6 +42,8 @@
 #include "linux/videodev2.h"
 
 #include "X11/X.h"
+#undef CursorShape
+#include "wayland-client.h"
 
 #if defined (FFMPEG_SUPPORT)
 #ifdef __cplusplus

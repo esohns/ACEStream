@@ -154,7 +154,7 @@ foreach (source_file ${source_files})
    )
  #       $<INSTALL_INTERFACE:${INCLUDE_DIR}/${source_file}>)
 endforeach ()
-message (STATUS "absolute_source_files: ${absolute_source_files}")
+#message (STATUS "absolute_source_files: ${absolute_source_files}")
 target_sources (${PROJECT_NAME}_Device
                 PRIVATE stdafx.cpp
                 PRIVATE stdafx.h

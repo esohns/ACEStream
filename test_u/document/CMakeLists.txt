@@ -13,11 +13,6 @@ if (NOT EXISTS ${Common_DIR})
 endif ()
 
 ############## definitions ###############
-add_definitions (-DACE_HAS_DLL)
-add_definitions (-DHAVE_CONFIG_H)
-set_property (SOURCE PROPERTY COMPILE_DEFINITIONS HAVE_CONFIG_H)
-#add_definitions (-DCOMMON_HAS_DLL)
-#add_definitions (-DSTREAM_HAS_DLL)
 
 ############## includes ###############
 if (LIBREOFFICE_SUPPORT)
@@ -72,20 +67,20 @@ add_executable (${EXECUTABLE}
                 ${document_EXE_SRCS})
 set_property (TARGET ${EXECUTABLE} PROPERTY FOLDER "test_u")
 
-target_link_libraries (${EXECUTABLE} ${ACE_LIBRARY})
+if (UNIX)
+ target_link_libraries (${EXECUTABLE} PUBLIC ${CMAKE_THREAD_LIBS_INIT})
+endif ()
 
-target_link_libraries (${EXECUTABLE} Common)
-target_link_libraries (${EXECUTABLE} CommonLog)
-#target_link_libraries (${EXECUTABLE} CommonParser)
-target_link_libraries (${EXECUTABLE} CommonTimer)
+target_link_libraries (${EXECUTABLE} PUBLIC ${ACE_LIBRARY})
 
-target_link_libraries (${EXECUTABLE} ACEStream)
-target_link_libraries (${EXECUTABLE} ACEStream_Document)
-#target_link_libraries (${EXECUTABLE} ACEStream_Statistic)
+target_link_libraries (${EXECUTABLE} PUBLIC Common)
+target_link_libraries (${EXECUTABLE} PUBLIC CommonLog)
+target_link_libraries (${EXECUTABLE} PUBLIC CommonTimer)
+
+target_link_libraries (${EXECUTABLE} PUBLIC ACEStream)
+target_link_libraries (${EXECUTABLE} PUBLIC ACEStream_Document)
 
 # add PCH
-#set_target_properties (${EXECUTABLE} PROPERTIES COTIRE_CXX_PREFIX_HEADER_INIT "stdafx.h")
-#cotire (${EXECUTABLE})
 target_precompile_headers (${EXECUTABLE}
                            PUBLIC stdafx.h)
 

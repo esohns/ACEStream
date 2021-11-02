@@ -78,7 +78,7 @@
 #endif // WXWIDGETS_SUPPORT
 #endif // GUI_SUPPORT
 
-#include "test_u_imagescreen_common.h"
+//#include "test_u_imagescreen_common.h"
 
 // *TODO*: reference additional headers your program requires here
 

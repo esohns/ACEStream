@@ -34,6 +34,8 @@ extern "C"
 #endif // __cplusplus
 #endif // FFMPEG_SUPPORT
 
+#undef emit
+#undef slots
 #include "libcamera/libcamera.h"
 
 #include "ace/Global_Macros.h"

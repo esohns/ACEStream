@@ -18,6 +18,8 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
+#include "test_i_camsave_common.h"
+
 #if defined (GUI_SUPPORT)
 #if defined (GTK_SUPPORT)
 #include "gtk/gtk.h"
@@ -33,7 +35,6 @@
 
 #include "stream_macros.h"
 
-#include "test_i_camsave_common.h"
 #include "test_i_camsave_defines.h"
 #if defined (GUI_SUPPORT)
 #if defined (GTK_SUPPORT)
