@@ -18,8 +18,8 @@ endif (GUI_SUPPORT)
 
 add_library (${PROJECT_NAME}_Test_I STATIC "")
 
-get_filename_component (BUILD_PATH ${CMAKE_CURRENT_BINARY_DIR}/.. REALPATH)
-get_filename_component (BUILD_PATH_SUFFIX ${BUILD_PATH} NAME)
+string (REPLACE ${CMAKE_SOURCE_DIR} "" BUILD_PATH_SUFFIX ${CMAKE_BINARY_DIR})
+string (SUBSTRING ${BUILD_PATH_SUFFIX} 1 -1 BUILD_PATH_SUFFIX)
 find_package (Common ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_MICRO}
               REQUIRED
               CONFIG
@@ -30,15 +30,6 @@ if (NOT EXISTS ${Common_DIR})
  message (FATAL_ERROR "could not find package \"Common\", aborting")
 endif ()
 add_definitions (-DCOMMON_HAS_DLL)
-if (GUI_SUPPORT)
- add_definitions (-DCOMMON_UI_HAS_DLL)
- if (GTK_SUPPORT)
-  add_definitions (-DCOMMON_UI_GTK_HAS_DLL)
-  if (GTKGL_SUPPORT)
-   add_definitions (-DCOMMON_GL_HAS_DLL)
-  endif (GTKGL_SUPPORT)
- endif (GTK_SUPPORT)
-endif (GUI_SUPPORT)
 
 if (GUI_SUPPORT)
  if (CURSES_SUPPORT)

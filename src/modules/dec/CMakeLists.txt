@@ -20,8 +20,8 @@ endif (WIN32)
 
 add_library (${PROJECT_NAME}_Decoder STATIC "")
 
-get_filename_component (BUILD_PATH ${CMAKE_CURRENT_BINARY_DIR}/../../.. REALPATH)
-get_filename_component (BUILD_PATH_SUFFIX ${BUILD_PATH} NAME)
+string (REPLACE ${CMAKE_SOURCE_DIR} "" BUILD_PATH_SUFFIX ${CMAKE_BINARY_DIR})
+string (SUBSTRING ${BUILD_PATH_SUFFIX} 1 -1 BUILD_PATH_SUFFIX)
 
 if (FFMPEG_SUPPORT)
  target_include_directories (${PROJECT_NAME}_Decoder PUBLIC

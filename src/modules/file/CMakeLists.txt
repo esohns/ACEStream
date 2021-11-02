@@ -4,8 +4,8 @@ include (ImageMagick)
 
 add_library (${PROJECT_NAME}_File STATIC "")
 
-get_filename_component (BUILD_PATH ${CMAKE_CURRENT_BINARY_DIR}/../../.. REALPATH)
-get_filename_component (BUILD_PATH_SUFFIX ${BUILD_PATH} NAME)
+string (REPLACE ${CMAKE_SOURCE_DIR} "" BUILD_PATH_SUFFIX ${CMAKE_BINARY_DIR})
+string (SUBSTRING ${BUILD_PATH_SUFFIX} 1 -1 BUILD_PATH_SUFFIX)
 
 if (IMAGEMAGICK_SUPPORT)
  target_include_directories (${PROJECT_NAME}_File PUBLIC
@@ -90,10 +90,6 @@ target_link_libraries (${PROJECT_NAME}_File PUBLIC ${PROJECT_NAME})
 
 #set_target_properties (${PROJECT_NAME}_File PROPERTIES DEFINE_SYMBOL STREAM_FILE_BUILD_DLL)
 #set_target_properties (${PROJECT_NAME}_File PROPERTIES VERSION ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_MICRO} SOVERSION 1)
-
-# add PCH
-#set_target_properties (${PROJECT_NAME}_File PROPERTIES COTIRE_CXX_PREFIX_HEADER_INIT "stdafx.h")
-#cotire (${PROJECT_NAME}_File)
 
 # add all targets to the build-tree export set
 export (TARGETS ${PROJECT_NAME}_File
