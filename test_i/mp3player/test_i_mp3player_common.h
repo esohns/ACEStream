@@ -28,23 +28,7 @@
 #include "common_configuration.h"
 
 #include "test_i_configuration.h"
-//#include "test_i_connection_common.h"
-
 #include "test_i_stream_common.h"
-//#include "test_i_http_get_network.h"
-
-//struct Test_I_HTTPGet_SignalHandlerConfiguration
-// : Common_SignalHandlerConfiguration
-//{
-//  Test_I_HTTPGet_SignalHandlerConfiguration ()
-//   : Common_SignalHandlerConfiguration ()
-//   //messageAllocator (NULL)
-//   , statisticReportingInterval (0)
-//  {}
-//
-//  //Stream_IAllocator* messageAllocator;
-//  unsigned int       statisticReportingInterval; // statistic collecting interval (second(s)) [0: off]
-//};
 
 struct Test_I_MP3Player_Configuration
  : Test_I_Configuration

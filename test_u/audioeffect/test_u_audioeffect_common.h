@@ -494,13 +494,11 @@ struct Test_U_AudioEffect_ALSA_ModuleHandlerConfiguration
 {
   Test_U_AudioEffect_ALSA_ModuleHandlerConfiguration ()
    : Test_U_AudioEffect_ModuleHandlerConfiguration ()
-   , asynchPlayback (false)
-   , captureDeviceHandle (NULL)
+   , ALSAConfiguration (NULL)
    , effect ()
    , effectOptions ()
    , manageSoX (false)
    , outputFormat ()
-   , playbackDeviceHandle (NULL)
    , streamConfiguration (NULL)
    , subscriber (NULL)
    , subscribers (NULL)
@@ -509,18 +507,14 @@ struct Test_U_AudioEffect_ALSA_ModuleHandlerConfiguration
         ACE_TEXT_ALWAYS_CHAR (STREAM_LIB_ALSA_CAPTURE_DEFAULT_DEVICE_NAME);
   }
 
-  // *NOTE*: current capturing is asynchronous (SIGIO), so asynchronous playback
-  //         is not possible (playback eventually hogs all threads and starves)
-  bool                                           asynchPlayback;
-  struct _snd_pcm*                               captureDeviceHandle;
-  std::string                                    effect;
-  std::vector<std::string>                       effectOptions;
-  bool                                           manageSoX;
-  struct Stream_MediaFramework_ALSA_MediaType    outputFormat;
-  struct _snd_pcm*                               playbackDeviceHandle;
-  Test_U_AudioEffect_ALSA_StreamConfiguration_t* streamConfiguration;
-  Test_U_AudioEffect_ISessionNotify_t*           subscriber;
-  Test_U_AudioEffect_Subscribers_t*              subscribers;
+  struct Stream_MediaFramework_ALSA_Configuration* ALSAConfiguration;
+  std::string                                      effect;
+  std::vector<std::string>                         effectOptions;
+  bool                                             manageSoX;
+  struct Stream_MediaFramework_ALSA_MediaType      outputFormat;
+  Test_U_AudioEffect_ALSA_StreamConfiguration_t*   streamConfiguration;
+  Test_U_AudioEffect_ISessionNotify_t*             subscriber;
+  Test_U_AudioEffect_Subscribers_t*                subscribers;
 };
 #endif // ACE_WIN32 || ACE_WIN64
 
@@ -638,19 +632,11 @@ struct Test_U_AudioEffect_Configuration
 #endif // GUI_SUPPORT
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
-   , ALSAConfiguration ()
-#endif // ACE_WIN32 || ACE_WIN64
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-#else
    , streamConfiguration ()
 #endif // ACE_WIN32 || ACE_WIN64
    , signalHandlerConfiguration ()
   {}
 
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-#else
-  struct Stream_Device_ALSAConfiguration               ALSAConfiguration;
-#endif // ACE_WIN32 || ACE_WIN64
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
   Test_U_AudioEffect_ALSA_StreamConfiguration_t        streamConfiguration;

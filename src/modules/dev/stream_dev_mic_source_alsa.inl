@@ -18,14 +18,6 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-//#ifdef __cplusplus
-//extern "C"
-//{
-//#include <libavcodec/avcodec.h>
-//#include <libavutil/pixfmt.h>
-//}
-//#endif /* __cplusplus */
-
 #include "ace/Log_Msg.h"
 #include "ace/Message_Block.h"
 #include "ace/Message_Queue.h"
@@ -107,9 +99,9 @@ stream_dev_mic_source_alsa_async_callback (snd_async_handler_t* handler_in)
     // generate sinus ?
     if (unlikely (data_p->sinus))
       Stream_Module_Decoder_Tools::sinus (*data_p->frequency,
-                                          data_p->sampleRate,
+                                          data_p->format.rate,
                                           data_p->sampleSize,
-                                          data_p->channels,
+                                          data_p->format.channels,
                                           reinterpret_cast<uint8_t*> (message_block_p->rd_ptr ()),
                                           static_cast<unsigned int> (frames_read),
                                           data_p->phase);
@@ -203,7 +195,9 @@ Stream_Dev_Mic_Source_ALSA_T<ACE_SYNCH_USE,
               true)
  , asynchCBData_ ()
  , asynchHandler_ (NULL)
+#if defined(_DEBUG)
  , debugOutput_ (NULL)
+#endif // _DEBUG
  , deviceHandle_ (NULL)
  , isPassive_ (false)
  , queue_ (STREAM_QUEUE_MAX_SLOTS, // max # slots
@@ -243,6 +237,7 @@ Stream_Dev_Mic_Source_ALSA_T<ACE_SYNCH_USE,
 
   int result = -1;
 
+#if defined(_DEBUG)
   if (debugOutput_)
   {
     result = snd_output_close (debugOutput_);
@@ -251,6 +246,7 @@ Stream_Dev_Mic_Source_ALSA_T<ACE_SYNCH_USE,
                   ACE_TEXT ("failed to snd_output_close(): \"%s\", continuing\n"),
                   ACE_TEXT (snd_strerror (result))));
   } // end IF
+#endif // _DEBUG
 
   if (!isPassive_)
     if (deviceHandle_)
@@ -293,13 +289,10 @@ Stream_Dev_Mic_Source_ALSA_T<ACE_SYNCH_USE,
   STREAM_TRACE (ACE_TEXT ("Stream_Dev_Mic_Source_ALSA_T::initialize"));
 
   int result = -1;
-  bool result_2 = false;
 
   if (inherited::isInitialized_)
   {
-    //ACE_DEBUG ((LM_WARNING,
-    //            ACE_TEXT ("re-initializing...\n")));
-
+#if defined(_DEBUG)
     if (debugOutput_)
     {
       result = snd_output_close (debugOutput_);
@@ -309,6 +302,7 @@ Stream_Dev_Mic_Source_ALSA_T<ACE_SYNCH_USE,
                     ACE_TEXT (snd_strerror (result))));
       debugOutput_ = NULL;
     } // end IF
+#endif // _DEBUG
 
     if (!isPassive_)
       if (deviceHandle_)
@@ -320,10 +314,10 @@ Stream_Dev_Mic_Source_ALSA_T<ACE_SYNCH_USE,
                       ACE_TEXT (snd_strerror (result))));
         deviceHandle_ = NULL;
       } // end IF
-
     isPassive_ = false;
   } // end IF
 
+#if defined(_DEBUG)
   if (configuration_in.debug)
   {
     result =
@@ -335,37 +329,15 @@ Stream_Dev_Mic_Source_ALSA_T<ACE_SYNCH_USE,
                   ACE_TEXT ("failed to snd_output_stdio_open(): \"%s\", continuing\n"),
                   ACE_TEXT (snd_strerror (result))));
   } // end IF
+#endif // _DEBUG
 
-//  if (!Stream_Module_Device_Tools::initializeCapture (deviceHandle_,
-//                                                      configuration_in.method,
-//                                                      const_cast<ConfigurationType&> (configuration_in).buffers))
-//  {
-//    ACE_DEBUG ((LM_ERROR,
-//                ACE_TEXT ("failed to Stream_Module_Device_Tools::initializeCapture(%d): \"%m\", aborting\n"),
-//                captureFileDescriptor_));
-//    goto error;
-//  } // end IF
+  ACE_ASSERT (configuration_in.ALSAConfiguration);
+  deviceHandle_ = configuration_in.ALSAConfiguration->handle;
+  if (deviceHandle_)
+    isPassive_ = true;
 
-  result_2 = inherited::initialize (configuration_in,
-                                    allocator_in);
-  if (!result_2)
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to Stream_HeadModuleTaskBase_T::initialize(): \"%m\", aborting\n")));
-
-  return result_2;
-
-//error:
-//  if (debugOutput_)
-//  {
-//    result = snd_output_close (debugOutput_);
-//    if (result < 0)
-//      ACE_DEBUG ((LM_ERROR,
-//                  ACE_TEXT ("failed to snd_output_close(): \"%s\", continuing\n"),
-//                  ACE_TEXT (snd_strerror (result))));
-//    debugOutput_ = NULL;
-//  } // end IF
-
-//  return false;
+  return inherited::initialize (configuration_in,
+                                allocator_in);
 }
 
 template <ACE_SYNCH_DECL,
@@ -404,6 +376,7 @@ Stream_Dev_Mic_Source_ALSA_T<ACE_SYNCH_USE,
 
   // sanity check(s)
   ACE_ASSERT (inherited::configuration_);
+  ACE_ASSERT (inherited::configuration_->ALSAConfiguration);
   ACE_ASSERT (inherited::isInitialized_);
 
   switch (message_inout->type ())
@@ -411,7 +384,6 @@ Stream_Dev_Mic_Source_ALSA_T<ACE_SYNCH_USE,
     case STREAM_SESSION_MESSAGE_BEGIN:
     {
       ACE_ASSERT (inherited::sessionData_);
-      ACE_ASSERT (!deviceHandle_);
       SessionDataType& session_data_r =
           const_cast<SessionDataType&> (inherited::sessionData_->getR ());
       ACE_ASSERT (!session_data_r.formats.empty ());
@@ -421,12 +393,11 @@ Stream_Dev_Mic_Source_ALSA_T<ACE_SYNCH_USE,
       bool stop_device = false;
       int signal = 0;
 
-      deviceHandle_ = inherited::configuration_->captureDeviceHandle;
-      if (deviceHandle_)
-        isPassive_ = true;
-      else
-      {
+      if (!isPassive_)
+      { ACE_ASSERT (!deviceHandle_);
         int mode = STREAM_DEV_MIC_ALSA_DEFAULT_MODE;
+        if (inherited::configuration_->ALSAConfiguration->asynch)
+          mode |= SND_PCM_ASYNC;
 //    snd_spcm_init();
         result =
             snd_pcm_open (&deviceHandle_,
@@ -436,9 +407,10 @@ Stream_Dev_Mic_Source_ALSA_T<ACE_SYNCH_USE,
         if (result < 0)
         {
           ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("%s: failed to snd_pcm_open(\"%s\") for capture: \"%s\", aborting\n"),
+                      ACE_TEXT ("%s: failed to snd_pcm_open(\"%s\",%d) for capture: \"%s\", aborting\n"),
                       inherited::mod_->name (),
                       ACE_TEXT (inherited::configuration_->deviceIdentifier.identifier.c_str ()),
+                       mode,
                       ACE_TEXT (snd_strerror (result))));
           goto error;
         } // end IF
@@ -456,9 +428,10 @@ Stream_Dev_Mic_Source_ALSA_T<ACE_SYNCH_USE,
                       inherited::mod_->name ()));
           goto error;
         } // end IF
-      } // end ELSE
+      } // end IF
       ACE_ASSERT (deviceHandle_);
 
+#if defined(_DEBUG)
       if (debugOutput_)
       {
         result = snd_pcm_dump (deviceHandle_,
@@ -492,6 +465,7 @@ Stream_Dev_Mic_Source_ALSA_T<ACE_SYNCH_USE,
   //                    ACE_TEXT (inherited::configuration_->deviceIdentifier.c_str ()),
   //                    ACE_TEXT (snd_strerror (result))));
       } // end IF
+#endif // _DEBUG
 
       ACE_ASSERT (inherited::configuration_->messageAllocator);
       asynchCBData_.allocator = inherited::configuration_->messageAllocator;
@@ -500,10 +474,8 @@ Stream_Dev_Mic_Source_ALSA_T<ACE_SYNCH_USE,
       ACE_ASSERT (inherited::configuration_->allocatorConfiguration);
       asynchCBData_.bufferSize =
           inherited::configuration_->allocatorConfiguration->defaultBufferSize;
-      asynchCBData_.channels = media_type_r.channels;
-      asynchCBData_.format = media_type_r.format;
+      asynchCBData_.format = media_type_r;
       asynchCBData_.queue = inherited::msg_queue ();
-      asynchCBData_.sampleRate = media_type_r.rate;
       asynchCBData_.sampleSize =
           (snd_pcm_format_width (media_type_r.format) / 8) *
           media_type_r.channels;
@@ -547,7 +519,6 @@ Stream_Dev_Mic_Source_ALSA_T<ACE_SYNCH_USE,
                   inherited::mod_->name (),
                   ACE_TEXT (snd_pcm_name (deviceHandle_))));
 
-//continue_:
       break;
 
 error:
@@ -623,6 +594,7 @@ error:
         deviceHandle_ = NULL;
       } // end IF
 
+#if defined(_DEBUG)
       if (debugOutput_)
       {
         result = snd_output_close (debugOutput_);
@@ -633,6 +605,7 @@ error:
                       ACE_TEXT (snd_strerror (result))));
         debugOutput_ = NULL;
       } // end IF
+#endif // _DEBUG
 
       if (inherited::configuration_->concurrency != STREAM_HEADMODULECONCURRENCY_CONCURRENT)
       { Common_ITask* itask_p = this;

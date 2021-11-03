@@ -659,7 +659,7 @@ struct Stream_AVSave_ALSA_ModuleHandlerConfiguration
 {
   Stream_AVSave_ALSA_ModuleHandlerConfiguration ()
    : Stream_AVSave_ModuleHandlerConfiguration ()
-   , captureDeviceHandle (NULL)
+   , ALSAConfiguration (NULL)
    , outputFormat ()
    , sinus (false)
    , sinusFrequency (440.0)
@@ -672,12 +672,12 @@ struct Stream_AVSave_ALSA_ModuleHandlerConfiguration
     ACE_OS::memset (&outputFormat, 0, sizeof (struct Stream_MediaFramework_ALSA_MediaType));
   }
 
-  struct _snd_pcm*                            captureDeviceHandle;
-  struct Stream_MediaFramework_ALSA_MediaType outputFormat;
-  bool                                        sinus;
-  double                                      sinusFrequency;
-  Stream_AVSave_V4L_ISessionNotify_t*         subscriber;
-  Stream_AVSave_V4L_Subscribers_t*            subscribers;
+  struct Stream_MediaFramework_ALSA_Configuration* ALSAConfiguration;
+  struct Stream_MediaFramework_ALSA_MediaType      outputFormat;
+  bool                                             sinus;
+  double                                           sinusFrequency;
+  Stream_AVSave_V4L_ISessionNotify_t*              subscriber;
+  Stream_AVSave_V4L_Subscribers_t*                 subscribers;
 };
 #endif // ACE_WIN32 || ACE_WIN64
 

@@ -23,7 +23,7 @@
 
 //#define STREAM_LIB_ALSA_DEVICE_CAPTURE_PREFIX                     "hw"
 #define STREAM_LIB_ALSA_DEVICE_CAPTURE_PREFIX                     "sysdefault"
-#define STREAM_LIB_ALSA_DEVICE_PLAYBACK_PREFIX                    "default"
+#define STREAM_LIB_ALSA_DEVICE_PLAYBACK_PREFIX                    "sysdefault"
 #define STREAM_LIB_ALSA_PCM_INTERFACE_NAME                        "pcm"
 
 #define STREAM_LIB_ALSA_DEFAULT_ACCESS                            SND_PCM_ACCESS_RW_INTERLEAVED
@@ -41,7 +41,10 @@
 #define STREAM_LIB_ALSA_CAPTURE_DEFAULT_PERIODS                   16
 // *TODO*: these belong somewhere else
 #define STREAM_LIB_ALSA_CAPTURE_DEFAULT_CHANNELS                  2 // i.e. stereo
-#define STREAM_LIB_ALSA_CAPTURE_DEFAULT_SAMPLE_RATE               44100 // Hz
+#define STREAM_LIB_ALSA_CAPTURE_DEFAULT_SAMPLE_RATE               48000 // Hz
+
+#define STREAM_LIB_ALSA_CAPTURE_DEFAULT_SELEM_BOOST_NAME         "Mic Boost"
+#define STREAM_LIB_ALSA_CAPTURE_DEFAULT_SELEM_VOLUME_NAME        "Capture"
 
 #define STREAM_LIB_ALSA_PLAYBACK_DEFAULT_BUFFER_SIZE              16384 // bytes
 #define STREAM_LIB_ALSA_PLAYBACK_DEFAULT_BUFFER_TIME              341333 // us

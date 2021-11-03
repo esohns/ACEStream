@@ -143,38 +143,22 @@ struct Stream_Device_Identifier
 typedef std::list<struct Stream_Device_Identifier> Stream_Device_List_t;
 typedef Stream_Device_List_t::const_iterator Stream_Device_ListIterator_t;
 
-//struct Stream_Device_V4LConfiguration
-//{
-//  Stream_Device_V4LConfiguration ()
-//   : identifier ()
-//  {}
-
-//  std::string identifier;
-//};
-
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
-struct Stream_Device_ALSAConfiguration
-{
-  struct Stream_MediaFramework_ALSA_MediaType format;
-};
-
 struct Stream_Device_ALSA_Capture_AsynchCBData
 {
-  Stream_IAllocator*            allocator;
-  Stream_Statistic*             statistic;
+//  struct _snd_pcm_channel_area*               areas;
+  unsigned int                                bufferSize;
+  unsigned int                                sampleSize;
 
-  //  struct _snd_pcm_channel_area* areas;
-  unsigned int                  bufferSize;
-  unsigned int                  channels;
-  enum _snd_pcm_format          format;
-  ACE_Message_Queue_Base*       queue;
-  unsigned int                  sampleRate;
-  unsigned int                  sampleSize;
+  Stream_IAllocator*                          allocator;
+  struct Stream_MediaFramework_ALSA_MediaType format;
+  ACE_Message_Queue_Base*                     queue;
+  Stream_Statistic*                           statistic;
 
-  double*                       frequency;
-  bool                          sinus;
-  double                        phase;
+  double*                                     frequency;
+  bool                                        sinus;
+  double                                      phase;
 };
 
 struct Stream_Device_ALSA_Playback_AsynchCBData

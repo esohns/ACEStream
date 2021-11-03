@@ -1331,14 +1331,13 @@ Stream_Device_Tools::setFormat (struct _snd_pcm* deviceHandle_in,
                 ACE_TEXT (snd_strerror (result))));
     goto error;
   } // end IF
-  result =
-      snd_pcm_hw_params_set_rate_near (deviceHandle_in, snd_pcm_hw_params_p,
-                                       &const_cast<struct Stream_MediaFramework_ALSA_MediaType&> (mediaType_in).rate,
-                                       &subunit_direction);
+  result = snd_pcm_hw_params_set_rate (deviceHandle_in, snd_pcm_hw_params_p,
+                                       mediaType_in.rate,
+                                       subunit_direction);
   if (unlikely (result < 0))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: failed to snd_pcm_hw_params_set_rate_near(): \"%s\", aborting\n"),
+                ACE_TEXT ("%s: failed to snd_pcm_hw_params_set_rate(): \"%s\", aborting\n"),
                 ACE_TEXT (snd_pcm_name (deviceHandle_in)),
                 ACE_TEXT (snd_strerror (result))));
     goto error;

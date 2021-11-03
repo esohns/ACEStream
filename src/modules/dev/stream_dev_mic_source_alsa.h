@@ -145,7 +145,9 @@ class Stream_Dev_Mic_Source_ALSA_T
 
   struct Stream_Device_ALSA_Capture_AsynchCBData asynchCBData_;
   struct _snd_async_handler*                     asynchHandler_;
+#if defined(_DEBUG)
   struct _snd_output*                            debugOutput_;
+#endif // _DEBUG
   struct _snd_pcm*                               deviceHandle_;
   bool                                           isPassive_;
   typename inherited::MESSAGE_QUEUE_T            queue_;

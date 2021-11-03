@@ -1018,7 +1018,14 @@ do_work (unsigned int bufferSize_in,
   Test_U_AudioEffect_Module_EventHandler_Module event_handler (istream_p,
                                                                ACE_TEXT_ALWAYS_CHAR (STREAM_MISC_MESSAGEHANDLER_DEFAULT_NAME_STRING));
   Test_U_AudioEffect_ALSA_StreamConfiguration_t::ITERATOR_T modulehandler_iterator;
+  struct Stream_MediaFramework_ALSA_Configuration ALSA_configuration;
+  struct Stream_MediaFramework_ALSA_Configuration ALSA_configuration_2;
+  // *WARNING*: when capturing is asynchronous (SIGIO), asynchronous playback
+  //            may not be possible (playback eventually hogs all threads and
+  //            starves)
+//  ALSA_configuration_2.asynch = false;
   struct Test_U_AudioEffect_ALSA_ModuleHandlerConfiguration modulehandler_configuration;
+  struct Test_U_AudioEffect_ALSA_ModuleHandlerConfiguration modulehandler_configuration_2;
   struct Test_U_AudioEffect_ALSA_StreamConfiguration stream_configuration;
 #endif // ACE_WIN32 || ACE_WIN64
 
@@ -1130,47 +1137,47 @@ do_work (unsigned int bufferSize_in,
 #else
   modulehandler_configuration.allocatorConfiguration =
     allocator_configuration_p;
+  modulehandler_configuration.ALSAConfiguration = &ALSA_configuration;
   stream_configuration.allocatorConfiguration = allocator_configuration_p;
-  configuration_in.streamConfiguration.initialize (module_configuration,
-                                                   modulehandler_configuration,
-                                                   stream_configuration);
-
-  modulehandler_iterator =
-      configuration_in.streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
-  ACE_ASSERT (modulehandler_iterator != configuration_in.streamConfiguration.end ());
-
-  (*modulehandler_iterator).second.second->deviceIdentifier.identifier =
-      deviceIdentifier_in;
-  (*modulehandler_iterator).second.second->effect = effectName_in;
-  (*modulehandler_iterator).second.second->messageAllocator =
-      &message_allocator;
-  (*modulehandler_iterator).second.second->mute = mute_in;
+  modulehandler_configuration.deviceIdentifier.identifier = deviceIdentifier_in;
+  modulehandler_configuration.effect = effectName_in;
+  modulehandler_configuration.messageAllocator = &message_allocator;
+  modulehandler_configuration.mute = mute_in;
 #if defined (GUI_SUPPORT)
 #if defined (GTK_SUPPORT)
-  (*modulehandler_iterator).second.second->surfaceLock = &CBData_in.surfaceLock;
+  modulehandler_configuration.surfaceLock = &CBData_in.surfaceLock;
 #endif // GTK_SUPPORT
 #endif // GUI_SUPPORT
 #if defined (GUI_SUPPORT)
 #if defined (GTK_SUPPORT)
 #if defined (GTKGL_SUPPORT)
-  (*modulehandler_iterator).second.second->OpenGLInstructions =
+  modulehandler_configuration.OpenGLInstructions =
       &CBData_in.OpenGLInstructions;
-  (*modulehandler_iterator).second.second->OpenGLInstructionsLock =
-      &state_r.lock;
+  modulehandler_configuration.OpenGLInstructionsLock = &state_r.lock;
 #endif // GTKGL_SUPPORT
 #endif // GTK_SUPPORT
 #endif // GUI_SUPPORT
-  (*modulehandler_iterator).second.second->printProgressDot =
-      UIDefinitionFile_in.empty ();
-  (*modulehandler_iterator).second.second->statisticReportingInterval =
+  modulehandler_configuration.printProgressDot = UIDefinitionFile_in.empty ();
+  modulehandler_configuration.statisticReportingInterval =
       ACE_Time_Value (statisticReportingInterval_in, 0);
-  (*modulehandler_iterator).second.second->streamConfiguration =
-      &CBData_in.configuration->streamConfiguration;
-  (*modulehandler_iterator).second.second->subscriber =
-      &ui_event_handler;
-  (*modulehandler_iterator).second.second->targetFileName =
+  modulehandler_configuration.streamConfiguration =
+      &configuration_in.streamConfiguration;
+  modulehandler_configuration.subscriber = &ui_event_handler;
+  modulehandler_configuration.targetFileName =
       (targetFilename_in.empty () ? Common_File_Tools::getTempDirectory ()
                                   : targetFilename_in);
+  configuration_in.streamConfiguration.initialize (module_configuration,
+                                                   modulehandler_configuration,
+                                                   stream_configuration);
+  modulehandler_iterator =
+      configuration_in.streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR(""));
+  ACE_ASSERT(modulehandler_iterator != configuration_in.streamConfiguration.end());
+
+  modulehandler_configuration_2 = modulehandler_configuration;
+  modulehandler_configuration_2.ALSAConfiguration = &ALSA_configuration_2;
+  configuration_in.streamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_TARGET_ALSA_DEFAULT_NAME_STRING),
+                                                               std::make_pair (&module_configuration,
+                                                                               &modulehandler_configuration_2)));
 #endif // ACE_WIN32 || ACE_WIN64
 
   // ********************** stream configuration data **************************
@@ -1214,7 +1221,6 @@ do_work (unsigned int bufferSize_in,
       (!UIDefinitionFile_in.empty () ? &event_handler
                                      : NULL);
   stream_configuration.printFinalReport = true;
-  stream_configuration.format = configuration_in.ALSAConfiguration.format;
 #endif // ACE_WIN32 || ACE_WIN64
 
   // intialize timers
@@ -1269,13 +1275,15 @@ do_work (unsigned int bufferSize_in,
       return;
     }
   } // end SWITCH
+#else
+  result = true;
+#endif // ACE_WIN32 || ACE_WIN64
   if (!result)
   {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to intialize media framework, returning\n")));
-    goto error;
+      ACE_DEBUG ((LM_ERROR,
+                 ACE_TEXT ("failed to intialize media framework, returning\n")));
+      goto error;
   } // end IF
-#endif // ACE_WIN32 || ACE_WIN64
 
   // step0e: initialize signal handling
 #if defined (ACE_WIN32) || defined (ACE_WIN64)

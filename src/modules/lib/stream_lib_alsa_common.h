@@ -21,7 +21,7 @@
 #ifndef STREAM_LIB_ALSA_COMMON_H
 #define STREAM_LIB_ALSA_COMMON_H
 
-#include <deque>
+//#include <deque>
 
 #define ALSA_PCM_NEW_HW_PARAMS_API
 extern "C"
@@ -57,7 +57,21 @@ struct Stream_MediaFramework_ALSA_MediaType
   unsigned int            periodTime;
   unsigned int            rate;
 };
-typedef std::deque<struct Stream_MediaFramework_ALSA_MediaType> Stream_MediaFramework_ALSA_Formats_t;
-typedef Stream_MediaFramework_ALSA_Formats_t::iterator Stream_MediaFramework_ALSA_FormatsIterator_t;
+//typedef std::deque<struct Stream_MediaFramework_ALSA_MediaType> Stream_MediaFramework_ALSA_Formats_t;
+//typedef Stream_MediaFramework_ALSA_Formats_t::iterator Stream_MediaFramework_ALSA_FormatsIterator_t;
+
+struct Stream_MediaFramework_ALSA_Configuration
+{
+  Stream_MediaFramework_ALSA_Configuration ()
+   : asynch (true)
+   , handle (NULL)
+  {}
+
+  // *WARNING*: when capturing is asynchronous (SIGIO), asynchronous playback
+  //            may not be possible (playback eventually hogs all threads and
+  //            starves)
+  bool             asynch;
+  struct _snd_pcm* handle;
+};
 
 #endif

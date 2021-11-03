@@ -103,18 +103,12 @@ struct Test_I_MP3Player_SessionData
                                   struct Stream_UserData>::operator+= (rhs_in);
 
     //data += rhs_in.data;
-    ////format =
-    //parserContext = (parserContext ? parserContext : rhs_in.parserContext);
     targetFileName = (targetFileName.empty () ? rhs_in.targetFileName
                                               : targetFileName);
 
     return *this;
   }
-
-  //struct Test_I_DataSet                     data; // html handler module
-  //enum Stream_Decoder_CompressionFormatType format; // decompressor module
-  //struct Test_I_SAXParserContext*           parserContext; // html parser/handler module
-  std::string                               targetFileName; // file writer module
+  std::string targetFileName; // file writer module
 };
 typedef Stream_SessionData_T<struct Test_I_MP3Player_SessionData> Test_I_MP3Player_SessionData_t;
 
@@ -147,20 +141,18 @@ struct Test_I_MP3Player_ModuleHandlerConfiguration
    : Test_I_ModuleHandlerConfiguration ()
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
-   , asynchPlayback (false)
+   , ALSAConfiguration (NULL)
    , deviceIdentifier ()
-   , playbackDeviceHandle (NULL)
 #endif // ACE_WIN32 || ACE_WIN64
    , pushStatisticMessages (true)
   {}
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
-  bool                            asynchPlayback;
-  struct Stream_Device_Identifier deviceIdentifier;
-  struct _snd_pcm*                playbackDeviceHandle;
+  struct Stream_MediaFramework_ALSA_Configuration* ALSAConfiguration;
+  struct Stream_Device_Identifier                  deviceIdentifier;
 #endif // ACE_WIN32 || ACE_WIN64
-  bool                            pushStatisticMessages;
+  bool                                             pushStatisticMessages;
 };
 
 struct Test_I_MP3Player_StreamConfiguration

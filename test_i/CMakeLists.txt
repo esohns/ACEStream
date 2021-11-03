@@ -257,11 +257,6 @@ target_precompile_headers (${PROJECT_NAME}_Test_I
 
 ##########################################
 
-# add PCH
-#set_target_properties (${PROJECT_NAME}_Test_I PROPERTIES
-#                       COTIRE_CXX_PREFIX_HEADER_INIT "stdafx.h")
-#cotire (${PROJECT_NAME}_Test_I)
-
 # add all targets to the build-tree export set
 #export (TARGETS ${PROJECT_NAME}_Test_U
 #        APPEND FILE "${PROJECT_BINARY_DIR}/${PROJECT_NAME}Targets.cmake")

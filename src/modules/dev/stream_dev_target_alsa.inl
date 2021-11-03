@@ -36,27 +36,24 @@ static void
 stream_dev_target_alsa_async_callback (snd_async_handler_t* handler_in)
 {
   // sanity check(s)
-  ACE_ASSERT (handler_in);
-
+  ACE_ASSERT(handler_in);
   struct Stream_Device_ALSA_Playback_AsynchCBData* data_p =
       reinterpret_cast<struct Stream_Device_ALSA_Playback_AsynchCBData*> (snd_async_handler_get_callback_private (handler_in));
-  snd_pcm_t* handle_p = snd_async_handler_get_pcm (handler_in);
-
-  // sanity check(s)
   ACE_ASSERT (data_p);
+  snd_pcm_t* handle_p = snd_async_handler_get_pcm (handler_in);
   ACE_ASSERT (handle_p);
 
   snd_pcm_sframes_t available_frames, frames_written = 0;
   int result = -1;
-  snd_pcm_uframes_t frames_to_write;
+  snd_pcm_uframes_t frames_to_write = 0;
 
   do
   {
     available_frames = snd_pcm_avail_update (handle_p);
-    if (available_frames < 0)
+    if (unlikely (available_frames < 0))
     {
       // overrun ? --> recover
-      if (available_frames == -EPIPE)
+      if (likely (available_frames == -EPIPE))
         goto recover;
 
       ACE_DEBUG ((LM_ERROR,
@@ -71,7 +68,7 @@ stream_dev_target_alsa_async_callback (snd_async_handler_t* handler_in)
     {
       result = data_p->queue->dequeue (data_p->currentBuffer,
                                        NULL);
-      if (result == -1)
+      if (unlikely (result == -1))
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("failed to ACE_Message_Queue_Base::dequeue(): \"%m\", returning\n")));
@@ -87,10 +84,10 @@ stream_dev_target_alsa_async_callback (snd_async_handler_t* handler_in)
     frames_written = snd_pcm_writei (handle_p,
                                      data_p->currentBuffer->rd_ptr (),
                                      frames_to_write);
-    if (frames_written < 0)
+    if (unlikely (frames_written < 0))
     {
       // overrun ? --> recover
-      if (frames_written == -EPIPE)
+      if (likely (frames_written == -EPIPE))
         goto recover;
 
       ACE_DEBUG ((LM_ERROR,
@@ -115,7 +112,7 @@ recover:
     result = snd_pcm_recover (handle_p,
                               -EPIPE,
                               1);
-    if (result < 0)
+    if (unlikely (result < 0))
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to snd_pcm_recover(): \"%s\", returning\n"),
@@ -148,13 +145,19 @@ Stream_Dev_Target_ALSA_T<ACE_SYNCH_USE,
  : inherited (stream_in)
  , asynchCBData_ ()
  , asynchHandler_ (NULL)
+#if defined (_DEBUG)
  , debugOutput_ (NULL)
+#endif // _DEBUG
  , deviceHandle_ (NULL)
+ , format_ ()
  , isPassive_ (false)
- , useALSAAsynch_ (false)
+ , queue_ (STREAM_QUEUE_MAX_SLOTS, // max # slots
+           NULL)                   // notification handle
+ , sampleSize_ (0)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Dev_Target_ALSA_T::Stream_Dev_Target_ALSA_T"));
 
+  inherited::msg_queue (&queue_);
 }
 
 template <ACE_SYNCH_DECL,
@@ -176,15 +179,15 @@ Stream_Dev_Target_ALSA_T<ACE_SYNCH_USE,
 
   int result = -1;
 
-  if (useALSAAsynch_)
+  if (inherited::configuration_ &&
+      inherited::configuration_->ALSAConfiguration &&
+      inherited::configuration_->ALSAConfiguration->asynch)
   {
-    QUEUE_T* message_queue_p = inherited::msg_queue ();
-    ACE_ASSERT (message_queue_p);
-    result = message_queue_p->deactivate ();
+    result = queue_.deactivate ();
     if (result == -1)
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to ACE_Message_Queue::deactivate(): \"%m\", continuing\n")));
-    result = message_queue_p->flush ();
+    result = queue_.flush ();
     if (result == -1)
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to ACE_Message_Queue::flush(): \"%m\", continuing\n")));
@@ -193,6 +196,7 @@ Stream_Dev_Target_ALSA_T<ACE_SYNCH_USE,
       asynchCBData_.currentBuffer->release ();
   } // end IF
 
+#if defined (_DEBUG)
   if (debugOutput_)
   {
     result = snd_output_close (debugOutput_);
@@ -201,6 +205,7 @@ Stream_Dev_Target_ALSA_T<ACE_SYNCH_USE,
                   ACE_TEXT ("failed to snd_output_close(): \"%s\", continuing\n"),
                   ACE_TEXT (snd_strerror (result))));
   } // end IF
+#endif // _DEBUG
 
   if (!isPassive_)
     if (deviceHandle_)
@@ -233,22 +238,20 @@ Stream_Dev_Target_ALSA_T<ACE_SYNCH_USE,
   STREAM_TRACE (ACE_TEXT ("Stream_Dev_Target_ALSA_T::initialize"));
 
   int result = -1;
-  bool result_2 = false;
-  QUEUE_T* message_queue_p = inherited::msg_queue ();
-  ACE_ASSERT (message_queue_p);
 
   if (inherited::isInitialized_)
-  {
-    if (useALSAAsynch_)
+  { ACE_ASSERT(inherited::configuration_);
+    ACE_ASSERT(inherited::configuration_->ALSAConfiguration);
+    if (inherited::configuration_->ALSAConfiguration->asynch)
     {
-      result = message_queue_p->deactivate ();
+      result = queue_.deactivate ();
       if (result == -1)
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("failed to ACE_Message_Queue::deactivate(): \"%m\", aborting\n")));
         return false;
       } // end IF
-      result = message_queue_p->flush ();
+      result = queue_.flush ();
       if (result == -1)
       {
         ACE_DEBUG ((LM_ERROR,
@@ -260,10 +263,9 @@ Stream_Dev_Target_ALSA_T<ACE_SYNCH_USE,
       {
         asynchCBData_.currentBuffer->release (); asynchCBData_.currentBuffer = NULL;
       } // end IF
-
-      useALSAAsynch_ = false;
     } // end IF
 
+#if defined (_DEBUG)
     if (debugOutput_)
     {
       result = snd_output_close (debugOutput_);
@@ -273,6 +275,7 @@ Stream_Dev_Target_ALSA_T<ACE_SYNCH_USE,
                     ACE_TEXT (snd_strerror (result))));
       debugOutput_ = NULL;
     } // end IF
+#endif // _DEBUG
 
     if (!isPassive_)
       if (deviceHandle_)
@@ -284,14 +287,13 @@ Stream_Dev_Target_ALSA_T<ACE_SYNCH_USE,
                       ACE_TEXT (snd_strerror (result))));
         deviceHandle_ = NULL;
       } // end IF
-
     isPassive_ = false;
   } // end IF
 
-  useALSAAsynch_ = configuration_in.asynchPlayback;
-  if (useALSAAsynch_)
+  ACE_ASSERT (configuration_in.ALSAConfiguration);
+  if (configuration_in.ALSAConfiguration->asynch)
   {
-    result = message_queue_p->activate ();
+    result = queue_.activate ();
     if (result == -1)
     {
       ACE_DEBUG ((LM_ERROR,
@@ -309,27 +311,17 @@ Stream_Dev_Target_ALSA_T<ACE_SYNCH_USE,
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to snd_output_stdio_open(): \"%s\", continuing\n"),
                 ACE_TEXT (snd_strerror (result))));
-#endif
+#endif // _DEBUG
 
-//  if (!Stream_Module_Device_Tools::initializeCapture (deviceHandle_,
-//                                                      configuration_in.method,
-//                                                      const_cast<ConfigurationType&> (configuration_in).buffers))
-//  {
-//    ACE_DEBUG ((LM_ERROR,
-//                ACE_TEXT ("failed to Stream_Module_Device_Tools::initializeCapture(%d): \"%m\", aborting\n"),
-//                captureFileDescriptor_));
-//    goto error;
-//  } // end IF
+  deviceHandle_ = configuration_in.ALSAConfiguration->handle;
+  if (deviceHandle_)
+    isPassive_ = true;
 
-  result_2 = inherited::initialize (configuration_in,
-                                    allocator_in);
-  if (!result_2)
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to Stream_HeadModuleTaskBase_T::initialize(): \"%m\", aborting\n")));
-
-  return result_2;
+  return inherited::initialize (configuration_in,
+                                allocator_in);
 
 //error:
+#if defined (_DEBUG)
   if (debugOutput_)
   {
     result = snd_output_close (debugOutput_);
@@ -339,6 +331,7 @@ Stream_Dev_Target_ALSA_T<ACE_SYNCH_USE,
                   ACE_TEXT (snd_strerror (result))));
     debugOutput_ = NULL;
   } // end IF
+#endif // _DEBUG
 
   return false;
 }
@@ -363,14 +356,17 @@ Stream_Dev_Target_ALSA_T<ACE_SYNCH_USE,
   STREAM_TRACE (ACE_TEXT ("Stream_Dev_Target_ALSA_T::handleDataMessage"));
 
   // sanity check(s)
-  if (!deviceHandle_)
+  if (unlikely (!deviceHandle_))
     return;
+  ACE_ASSERT (inherited::configuration_);
+  ACE_ASSERT (inherited::configuration_->ALSAConfiguration);
 
+  int result = -1;
   ACE_Message_Block* message_block_p = message_inout;
-  if (useALSAAsynch_)
+  if (likely (inherited::configuration_->ALSAConfiguration->asynch))
   {
     message_block_p = message_inout->duplicate ();
-    if (!message_block_p)
+    if (unlikely (!message_block_p))
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: failed to DataMessageType::duplicate(): \"%m\", returning\n"),
@@ -378,10 +374,9 @@ Stream_Dev_Target_ALSA_T<ACE_SYNCH_USE,
       return;
     } // end IF
 
-    ACE_Message_Queue_Base* message_queue_p = inherited::msg_queue ();
-    ACE_ASSERT (message_queue_p);
-    int result = message_queue_p->enqueue (message_block_p, NULL);
-    if (result == -1)
+    ACE_ASSERT (inherited::msg_queue_);
+    result = inherited::msg_queue_->enqueue (message_block_p, NULL);
+    if (unlikely (result == -1))
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: failed to ACE_Message_Queue::enqueue(): \"%m\", returning\n"),
@@ -389,33 +384,23 @@ Stream_Dev_Target_ALSA_T<ACE_SYNCH_USE,
       message_block_p->release (); message_block_p =NULL;
       return;
     } // end IF
+    message_block_p = NULL;
 
     return;
   } // end IF
 
-  // sanity check(s)
-  ACE_ASSERT (inherited::sessionData_);
-  SessionDataType& session_data_r =
-      const_cast<SessionDataType&> (inherited::sessionData_->getR ());
-  struct Stream_MediaFramework_ALSA_MediaType& media_type_r =
-      session_data_r.formats.back ();
-
-  snd_pcm_sframes_t available_frames, frames_written = 0;
-  int result = -1;
-  snd_pcm_uframes_t frames_to_write;
+  snd_pcm_sframes_t available_frames = 0, frames_written = 0;
+  snd_pcm_uframes_t frames_to_write = 0;
   unsigned int offset = 0;
   unsigned int bytes_to_write = message_block_p->length ();
-  unsigned int sample_size =
-      (snd_pcm_format_width (media_type_r.format) / 8) *
-      media_type_r.channels;
 
   do
   {
     available_frames = snd_pcm_avail_update (deviceHandle_);
-    if (available_frames < 0)
+    if (unlikely (available_frames < 0))
     {
       // overrun ? --> recover
-      if (available_frames == -EPIPE)
+      if (likely (available_frames == -EPIPE))
         goto recover;
 
       ACE_DEBUG ((LM_ERROR,
@@ -423,13 +408,13 @@ Stream_Dev_Target_ALSA_T<ACE_SYNCH_USE,
                   ACE_TEXT (snd_strerror (result))));
       return;
     } // end IF
-    if (available_frames == 0)
+    if (unlikely (available_frames == 0))
     {
       result = snd_pcm_wait (deviceHandle_, -1);
-      if (result < 0)
+      if (unlikely (result < 0))
       {
         // underrun ? --> recover
-        if (result == -EPIPE)
+        if (likely (result == -EPIPE))
           goto recover;
 
         ACE_DEBUG ((LM_ERROR,
@@ -441,17 +426,17 @@ Stream_Dev_Target_ALSA_T<ACE_SYNCH_USE,
       continue;
     } // end IF
 
-    frames_to_write = bytes_to_write / sample_size;
+    frames_to_write = bytes_to_write / sampleSize_;
     frames_to_write =
         (frames_to_write > static_cast<snd_pcm_uframes_t> (available_frames) ? available_frames
                                                                              : frames_to_write);
     frames_written = snd_pcm_writei (deviceHandle_,
                                      message_block_p->rd_ptr () + offset,
                                      frames_to_write);
-    if (frames_written < 0)
+    if (unlikely (frames_written < 0))
     {
       // overrun ? --> recover
-      if (frames_written == -EPIPE)
+      if (likely (frames_written == -EPIPE))
         goto recover;
 
       ACE_DEBUG ((LM_ERROR,
@@ -459,15 +444,14 @@ Stream_Dev_Target_ALSA_T<ACE_SYNCH_USE,
                   ACE_TEXT (snd_strerror (result))));
       return;
     } // end IF
-    bytes_to_write -= (frames_written * sample_size);
-    offset += (frames_written * sample_size);
+    bytes_to_write -= (frames_written * sampleSize_);
+    offset += (frames_written * sampleSize_);
 
-    if (bytes_to_write == 0)
+    if (unlikely (bytes_to_write == 0))
     {
-      if (!message_block_p->cont ())
-        break;
-
       message_block_p = message_block_p->cont ();
+      if (likely (!message_block_p))
+        break;
       bytes_to_write = message_block_p->length ();
       offset = 0;
     } // end IF
@@ -482,7 +466,7 @@ recover:
     result = snd_pcm_recover (deviceHandle_,
                               -EPIPE,
                               1);
-    if (result < 0)
+    if (unlikely (result < 0))
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to snd_pcm_recover(): \"%s\", returning\n"),
@@ -518,6 +502,7 @@ Stream_Dev_Target_ALSA_T<ACE_SYNCH_USE,
 
   // sanity check(s)
   ACE_ASSERT (inherited::configuration_);
+  ACE_ASSERT (inherited::configuration_->ALSAConfiguration);
   ACE_ASSERT (inherited::isInitialized_);
 
   switch (message_inout->type ())
@@ -529,60 +514,60 @@ Stream_Dev_Target_ALSA_T<ACE_SYNCH_USE,
 
       SessionDataType& session_data_r =
           const_cast<SessionDataType&> (inherited::sessionData_->getR ());
-      struct Stream_MediaFramework_ALSA_MediaType& media_type_r =
-          session_data_r.formats.back ();
+      format_ = session_data_r.formats.back ();
+      sampleSize_ =
+          (snd_pcm_format_width (format_.format) / 8) * format_.channels;
 
       bool stop_device = false;
       size_t initial_buffer_size = 0;
-      void* buffer_p = NULL;
-
-      deviceHandle_ = inherited::configuration_->playbackDeviceHandle;
-      if (deviceHandle_)
-        isPassive_ = true;
-      else
-      {
-//        std::string device_name_string = inherited::configuration_->device;
-        std::string device_name_string =
-            Stream_Device_Tools::getDeviceName (SND_PCM_STREAM_PLAYBACK);
-        if (device_name_string.empty ())
-        {
-          ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("%s: failed to Stream_Device_Tools::getDeviceName(SND_PCM_STREAM_PLAYBACK), aborting\n"),
-                      inherited::mod_->name ()));
-          goto error;
-        } // end IF
+      void *buffer_p = NULL;
+      if (!isPassive_)
+      { ACE_ASSERT (!deviceHandle_);
+//        std::string device_name_string =
+//            Stream_Device_Tools::getDeviceName (SND_PCM_STREAM_PLAYBACK);
+//        if (device_name_string.empty ())
+//        {
+//          ACE_DEBUG ((LM_ERROR,
+//                      ACE_TEXT ("%s: failed to Stream_Device_Tools::getDeviceName(SND_PCM_STREAM_PLAYBACK), aborting\n"),
+//                      inherited::mod_->name ()));
+//          goto error;
+//        } // end IF
 
         // *TODO*: remove type inference
 //        int mode = STREAM_DEV_TARGET_ALSA_DEFAULT_MODE;
         int mode = 0;
+        if (inherited::configuration_->ALSAConfiguration->asynch)
+          mode |= SND_PCM_ASYNC;
         //    snd_spcm_init();
         result = snd_pcm_open (&deviceHandle_,
-                               device_name_string.c_str (),
-                               SND_PCM_STREAM_PLAYBACK, mode);
+                               inherited::configuration_->deviceIdentifier.identifier.c_str (),
+                               SND_PCM_STREAM_PLAYBACK,
+                               mode);
         if (result < 0)
         {
           ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("%s: failed to snd_pcm_open(\"%s\") for playback: \"%s\", aborting\n"),
+                      ACE_TEXT ("%s: failed to snd_pcm_open(\"%s\",%d) for playback: \"%s\", aborting\n"),
                       inherited::mod_->name (),
-                      ACE_TEXT (device_name_string.c_str ()),
+                      ACE_TEXT (inherited::configuration_->deviceIdentifier.identifier.c_str ()),
+                      mode,
                       ACE_TEXT (snd_strerror (result))));
           goto error;
         } // end IF
         ACE_DEBUG ((LM_DEBUG,
                     ACE_TEXT ("%s: opened ALSA device (playback) \"%s\"...\n"),
                     inherited::mod_->name (),
-                    ACE_TEXT (device_name_string.c_str ())));
+                    ACE_TEXT (inherited::configuration_->deviceIdentifier.identifier.c_str ())));
 
         // *TODO*: remove type inference
         if (!Stream_Device_Tools::setFormat (deviceHandle_,
-                                             media_type_r))
+                                             format_))
         {
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("%s: failed to Stream_Device_Tools::setFormat(): \"%m\", aborting\n"),
                       inherited::mod_->name ()));
           goto error;
         } // end IF
-      } // end ELSE
+      } // end IF
       ACE_ASSERT (deviceHandle_);
 
 #if defined (_DEBUG)
@@ -600,12 +585,12 @@ Stream_Dev_Target_ALSA_T<ACE_SYNCH_USE,
       } // end IF
 #endif // _DEBUG
 
-      if (useALSAAsynch_)
+      if (inherited::configuration_->ALSAConfiguration->asynch)
       {
         //  asynchCBData_.areas = areas;
         asynchCBData_.queue = inherited::msg_queue ();
         asynchCBData_.sampleSize =
-            (snd_pcm_format_width (media_type_r.format) / 8) * media_type_r.channels;
+            (snd_pcm_format_width (format_.format) / 8) * format_.channels;
         result =
             snd_async_add_pcm_handler (&asynchHandler_,
                                        deviceHandle_,
@@ -627,22 +612,22 @@ Stream_Dev_Target_ALSA_T<ACE_SYNCH_USE,
         // *NOTE*: apparently, ALSA needs some initial data
         //         --> write one periods' worth of silence
         initial_buffer_size =
-            media_type_r.periodSize * asynchCBData_.sampleSize;
+            format_.periodSize * asynchCBData_.sampleSize;
         buffer_p = malloc (initial_buffer_size);
         ACE_ASSERT (buffer_p);
         result =
-            snd_pcm_format_set_silence (media_type_r.format,
+            snd_pcm_format_set_silence (format_.format,
                                         buffer_p,
-                                        media_type_r.periodSize);
+                                        format_.periodSize);
         ACE_ASSERT (result >= 0);
         result = snd_pcm_writei (deviceHandle_,
                                  buffer_p,
-                                 media_type_r.periodSize);
+                                 format_.periodSize);
         ACE_ASSERT (result >= 0);
         free (buffer_p); buffer_p = NULL;
       } // end IF
 
-      if (!useALSAAsynch_)
+      if (!inherited::configuration_->ALSAConfiguration->asynch)
       {
         result =  snd_pcm_start (deviceHandle_);
         if (result < 0)
@@ -703,7 +688,7 @@ error:
     }
     case STREAM_SESSION_MESSAGE_END:
     {
-      if (deviceHandle_ && !useALSAAsynch_)
+      if (deviceHandle_ && !inherited::configuration_->ALSAConfiguration->asynch)
       {
         result = snd_pcm_drop (deviceHandle_);
         if (result < 0)
@@ -718,7 +703,7 @@ error:
                       ACE_TEXT (snd_pcm_name (deviceHandle_))));
       } // end IF
 
-      if (useALSAAsynch_)
+      if (inherited::configuration_->ALSAConfiguration->asynch)
       {
         result = snd_async_del_handler (asynchHandler_);
         if (result < 0)
@@ -764,7 +749,7 @@ error:
         debugOutput_ = NULL;
       } // end IF
 
-      if (useALSAAsynch_)
+      if (inherited::configuration_->ALSAConfiguration->asynch)
       {
         QUEUE_T* message_queue_p = inherited::msg_queue ();
         ACE_ASSERT (message_queue_p);

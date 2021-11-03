@@ -138,6 +138,8 @@ if (UNIX)
       ${source_files}
       stream_lib_alsa_common.h
       stream_lib_alsa_defines.h
+      stream_lib_alsa_tools.cpp
+      stream_lib_alsa_tools.h
       stream_lib_v4l_common.h
       stream_lib_v4l_defines.h)
 elseif (WIN32)
@@ -269,6 +271,7 @@ if (UNIX)
       ${source_files}
       stream_lib_alsa_common.h
       stream_lib_alsa_defines.h
+      stream_lib_alsa_tools.h
       stream_lib_v4l_common.h
       stream_lib_v4l_defines.h)
 elseif (WIN32)
