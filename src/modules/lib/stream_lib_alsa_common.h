@@ -34,27 +34,15 @@ extern "C"
 struct Stream_MediaFramework_ALSA_MediaType
 {
   Stream_MediaFramework_ALSA_MediaType ()
-   : access (STREAM_LIB_ALSA_DEFAULT_ACCESS)
-   , bufferSize (STREAM_LIB_ALSA_PLAYBACK_DEFAULT_BUFFER_SIZE)
-   , bufferTime (STREAM_LIB_ALSA_PLAYBACK_DEFAULT_BUFFER_TIME)
-   , format (STREAM_LIB_ALSA_DEFAULT_FORMAT)
+   : format (STREAM_LIB_ALSA_DEFAULT_FORMAT)
    , subFormat (SND_PCM_SUBFORMAT_STD)
    , channels (STREAM_LIB_ALSA_CAPTURE_DEFAULT_CHANNELS)
-   , periods (STREAM_LIB_ALSA_PLAYBACK_DEFAULT_PERIODS)
-   , periodSize (STREAM_LIB_ALSA_PLAYBACK_DEFAULT_PERIOD_SIZE)
-   , periodTime (STREAM_LIB_ALSA_PLAYBACK_DEFAULT_PERIOD_TIME)
    , rate (STREAM_LIB_ALSA_CAPTURE_DEFAULT_SAMPLE_RATE)
   {}
 
-  enum _snd_pcm_access    access;
-  snd_pcm_uframes_t       bufferSize;
-  unsigned int            bufferTime;
   enum _snd_pcm_format    format;
   enum _snd_pcm_subformat subFormat;
   unsigned int            channels;
-  unsigned int            periods;
-  snd_pcm_uframes_t       periodSize;
-  unsigned int            periodTime;
   unsigned int            rate;
 };
 //typedef std::deque<struct Stream_MediaFramework_ALSA_MediaType> Stream_MediaFramework_ALSA_Formats_t;
@@ -63,15 +51,26 @@ struct Stream_MediaFramework_ALSA_MediaType
 struct Stream_MediaFramework_ALSA_Configuration
 {
   Stream_MediaFramework_ALSA_Configuration ()
-   : asynch (true)
+   : access (STREAM_LIB_ALSA_DEFAULT_ACCESS)
+   , asynch (STREAM_LIB_ALSA_PLAYBACK_DEFAULT_ASYNCH)
+   , bufferSize (STREAM_LIB_ALSA_PLAYBACK_DEFAULT_BUFFER_SIZE)
+   , bufferTime (STREAM_LIB_ALSA_PLAYBACK_DEFAULT_BUFFER_TIME)
+   , format (NULL)
    , handle (NULL)
+   , periods (STREAM_LIB_ALSA_PLAYBACK_DEFAULT_PERIODS)
+   , periodSize (STREAM_LIB_ALSA_PLAYBACK_DEFAULT_PERIOD_SIZE)
+   , periodTime (STREAM_LIB_ALSA_PLAYBACK_DEFAULT_PERIOD_TIME)
   {}
 
-  // *WARNING*: when capturing is asynchronous (SIGIO), asynchronous playback
-  //            may not be possible (playback eventually hogs all threads and
-  //            starves)
-  bool             asynch;
-  struct _snd_pcm* handle;
+  enum _snd_pcm_access                         access;
+  bool                                         asynch;
+  snd_pcm_uframes_t                            bufferSize;
+  unsigned int                                 bufferTime;
+  struct Stream_MediaFramework_ALSA_MediaType* format; // capture-/playback-
+  struct _snd_pcm*                             handle;
+  unsigned int                                 periods;
+  snd_pcm_uframes_t                            periodSize;
+  unsigned int                                 periodTime;
 };
 
 #endif

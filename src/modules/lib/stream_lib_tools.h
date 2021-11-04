@@ -64,13 +64,6 @@ extern "C"
 #include "stream_lib_defines.h"
 #else
 #include "stream_lib_v4l_common.h"
-
-// forward declarations
-#if defined (SOX_SUPPORT)
-typedef double sox_rate_t;
-struct sox_encodinginfo_t;
-struct sox_signalinfo_t;
-#endif // SOX_SUPPORT
 #endif // ACE_WIN32 || ACE_WIN64
 
 class Stream_MediaFramework_Tools
@@ -122,15 +115,6 @@ class Stream_MediaFramework_Tools
 #else
   static bool initialize ();
   static void finalize ();
-
-  // ALSA
-#if defined (SOX_SUPPORT)
-  static void ALSAToSoX (enum _snd_pcm_format,       // format
-                         sox_rate_t,                 // sample rate
-                         unsigned int,               // channels
-                         struct sox_encodinginfo_t&, // return value: format
-                         struct sox_signalinfo_t&);  // return value: format
-#endif // SOX_SUPPORT
 
   // X11
   static unsigned int v4lFormatToBitDepth (__u32); // format (fourcc)

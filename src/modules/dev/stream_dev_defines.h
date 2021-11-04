@@ -33,9 +33,6 @@
 #define STREAM_DEV_MIC_WAVEIN_DEFAULT_DEVICE_BUFFERS              10
 //#define STREAM_DEV_DIRECTSHOW_FILTER_SOURCE_FRAME_INTERVAL 20 // ms
 #else
-// ALSA
-#define STREAM_DEV_MIC_ALSA_DEFAULT_MODE                          SND_PCM_NO_SOFTVOL
-
 // general
 #define STREAM_DEV_DEVICE_DIRECTORY                               "/dev"
 

@@ -1019,10 +1019,13 @@ do_work (unsigned int bufferSize_in,
                                                                ACE_TEXT_ALWAYS_CHAR (STREAM_MISC_MESSAGEHANDLER_DEFAULT_NAME_STRING));
   Test_U_AudioEffect_ALSA_StreamConfiguration_t::ITERATOR_T modulehandler_iterator;
   struct Stream_MediaFramework_ALSA_Configuration ALSA_configuration;
+  ALSA_configuration.asynch = STREAM_LIB_ALSA_CAPTURE_DEFAULT_ASYNCH;
+  ALSA_configuration.bufferSize = STREAM_LIB_ALSA_CAPTURE_DEFAULT_BUFFER_SIZE;
+  ALSA_configuration.bufferTime = STREAM_LIB_ALSA_CAPTURE_DEFAULT_BUFFER_TIME;
+  ALSA_configuration.periods = STREAM_LIB_ALSA_CAPTURE_DEFAULT_PERIODS;
+  ALSA_configuration.periodSize = STREAM_LIB_ALSA_CAPTURE_DEFAULT_PERIOD_SIZE;
+  ALSA_configuration.periodTime = STREAM_LIB_ALSA_CAPTURE_DEFAULT_PERIOD_TIME;
   struct Stream_MediaFramework_ALSA_Configuration ALSA_configuration_2;
-  // *WARNING*: when capturing is asynchronous (SIGIO), asynchronous playback
-  //            may not be possible (playback eventually hogs all threads and
-  //            starves)
 //  ALSA_configuration_2.asynch = false;
   struct Test_U_AudioEffect_ALSA_ModuleHandlerConfiguration modulehandler_configuration;
   struct Test_U_AudioEffect_ALSA_ModuleHandlerConfiguration modulehandler_configuration_2;
@@ -1166,6 +1169,7 @@ do_work (unsigned int bufferSize_in,
   modulehandler_configuration.targetFileName =
       (targetFilename_in.empty () ? Common_File_Tools::getTempDirectory ()
                                   : targetFilename_in);
+
   configuration_in.streamConfiguration.initialize (module_configuration,
                                                    modulehandler_configuration,
                                                    stream_configuration);
@@ -1175,6 +1179,8 @@ do_work (unsigned int bufferSize_in,
 
   modulehandler_configuration_2 = modulehandler_configuration;
   modulehandler_configuration_2.ALSAConfiguration = &ALSA_configuration_2;
+  modulehandler_configuration_2.deviceIdentifier.identifier =
+    ACE_TEXT_ALWAYS_CHAR (STREAM_LIB_ALSA_DEVICE_PLAYBACK_PREFIX);
   configuration_in.streamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_TARGET_ALSA_DEFAULT_NAME_STRING),
                                                                std::make_pair (&module_configuration,
                                                                                &modulehandler_configuration_2)));

@@ -21,20 +21,17 @@
 #include <fstream>
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-//#include <xiosbase>
-
-#include <amvideo.h>
-//#include <mmiscapi.h>
-#include <MMSystem.h>
-#include <aviriff.h>
-#include <dvdmedia.h>
-#include <fourcc.h>
-#include <mfobjects.h>
+#include "amvideo.h"
+#include "MMSystem.h"
+#include "aviriff.h"
+#include "dvdmedia.h"
+#include "fourcc.h"
+#include "mfobjects.h"
 // *NOTE*: uuids.h doesn't have double include protection
 #if defined (UUIDS_H)
 #else
 #define UUIDS_H
-#include <uuids.h>
+#include "uuids.h"
 #endif // UUIDS_H
 #endif // ACE_WIN32 || ACE_WIN64
 
@@ -45,6 +42,8 @@
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
+#include "stream_lib_alsa_tools.h"
+
 #if defined (SOX_SUPPORT)
 inline static sox_bool
 sox_overwrite_permitted (char const* filename_in) { ACE_UNUSED_ARG (filename_in); return sox_true; }
@@ -424,11 +423,11 @@ Stream_Decoder_WAVEncoder_T<ACE_SYNCH_USE,
 //      oob_data.comments = comments;
 //      oob_data.instr;
 //      oob_data.loops;
-      Stream_MediaFramework_Tools::ALSAToSoX (media_type_r.format,
-                                              media_type_r.rate,
-                                              media_type_r.channels,
-                                              encodingInfo_,
-                                              signalInfo_);
+      Stream_MediaFramework_ALSA_Tools::ALSAToSoX (media_type_r.format,
+                                                   media_type_r.rate,
+                                                   media_type_r.channels,
+                                                   encodingInfo_,
+                                                   signalInfo_);
       ACE_ASSERT (!outputFile_);
       outputFile_ =
           sox_open_write (inherited::configuration_->targetFileName.c_str (),

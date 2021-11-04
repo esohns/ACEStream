@@ -25,10 +25,9 @@
 
 #include "stream_macros.h"
 
-#include "stream_lib_tools.h"
+#include "stream_lib_alsa_tools.h"
 
 #include "stream_dec_defines.h"
-//#include "stream_dec_tools.h"
 
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,
@@ -440,11 +439,11 @@ Stream_Decoder_SoXEffect_T<ACE_SYNCH_USE,
       struct Stream_MediaFramework_ALSA_MediaType& media_type_r =
           getMediaType (session_data_r.formats.back ());
 
-      Stream_MediaFramework_Tools::ALSAToSoX (media_type_r.format,
-                                              media_type_r.rate,
-                                              media_type_r.channels,
-                                              encodingInfo_,
-                                              signalInfo_);
+      Stream_MediaFramework_ALSA_Tools::ALSAToSoX (media_type_r.format,
+                                                   media_type_r.rate,
+                                                   media_type_r.channels,
+                                                   encodingInfo_,
+                                                   signalInfo_);
 
       const struct sox_effect_handler_t* effect_handler_p = NULL;
       struct sox_effect_t* effect_p = NULL;

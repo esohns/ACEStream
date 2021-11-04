@@ -99,7 +99,6 @@ class Stream_Dev_Target_ALSA_T
   struct _snd_output*                             debugOutput_;
 #endif // _DEBUG
   struct _snd_pcm*                                deviceHandle_;
-  struct Stream_MediaFramework_ALSA_MediaType     format_;
   bool                                            isPassive_;
   typename inherited::MESSAGE_QUEUE_T             queue_;
   unsigned int                                    sampleSize_;

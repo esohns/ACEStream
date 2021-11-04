@@ -1222,31 +1222,9 @@ Test_U_AudioEffect_ALSA_Stream::initialize (const typename inherited::CONFIGURAT
   bool reset_setup_pipeline = false;
   Test_U_AudioEffect_SessionData* session_data_p = NULL;
   typename inherited::CONFIGURATION_T::ITERATOR_T iterator;
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-  struct Test_U_AudioEffect_DirectShow_ModuleHandlerConfiguration* directshow_configuration_p =
-      NULL;
-  struct Test_U_AudioEffect_MediaFoundation_ModuleHandlerConfiguration* mediafoundation_configuration_p =
-      NULL;
-#else
-  struct Test_U_AudioEffect_ModuleHandlerConfiguration* configuration_p = NULL;
-#endif // ACE_WIN32 || ACE_WIN64
   typename inherited::ISTREAM_T::MODULE_T* module_p = NULL;
   Test_U_AudioEffect_IDispatch_t* idispatch_p = NULL;
   Test_U_Dev_Mic_Source_ALSA* source_impl_p = NULL;
-
-//  ACE_ASSERT (configuration_in.moduleHandlerConfiguration->deviceHandle);
-//  // *TODO*: remove type inference
-//  if (!configuration_in.moduleHandlerConfiguration->format)
-//  {
-//    if (!Stream_Device_Tools::getCaptureFormat (configuration_in.moduleHandlerConfiguration->deviceHandle,
-//                                                       const_cast<Test_U_AudioEffect_ALSA_StreamConfiguration&> (configuration_in).moduleHandlerConfiguration->format))
-//    {
-//      ACE_DEBUG ((LM_ERROR,
-//                  ACE_TEXT ("failed to Stream_Device_Tools::getCaptureFormat(): \"%m\", aborting\n")));
-//      return false;
-//    } // end IF
-//  } // end IF
-//  ACE_ASSERT (configuration_in.moduleHandlerConfiguration->format);
 
   // allocate a new session state, reset stream
   const_cast<typename inherited::CONFIGURATION_T&> (configuration_in).configuration_->setupPipeline =
@@ -1271,26 +1249,11 @@ Test_U_AudioEffect_ALSA_Stream::initialize (const typename inherited::CONFIGURAT
   iterator =
       const_cast<typename inherited::CONFIGURATION_T&> (configuration_in).find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (iterator != configuration_in.end ());
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-  if (configuration_in.useMediaFoundation)
-  {
-    mediafoundation_configuration_p = (*iterator).second.second;
-    session_data_p->targetFileName =
-        mediafoundation_configuration_p->fileIdentifier.identifier;
-  } // end IF
-  else
-  {
-    directshow_configuration_p = (*iterator).second.second;
-    session_data_p->targetFileName =
-        directshow_configuration_p->fileIdentifier.identifier;
-  } // end ELSE
-#else
-  configuration_p = (*iterator).second.second;
-  session_data_p->targetFileName = configuration_p->fileIdentifier.identifier;
-#endif // ACE_WIN32 || ACE_WIN64
-  //session_data_r.size =
-  //  Common_File_Tools::size (configuration_in.moduleHandlerConfiguration->fileName);
+  (*iterator).second.second->outputFormat =
+    configuration_in.configuration_->format;
   session_data_p->formats.push_back (configuration_in.configuration_->format);
+  session_data_p->targetFileName =
+    (*iterator).second.second->fileIdentifier.identifier;
 
   // ---------------------------------------------------------------------------
 
@@ -1301,14 +1264,7 @@ Test_U_AudioEffect_ALSA_Stream::initialize (const typename inherited::CONFIGURAT
   idispatch_p =
       dynamic_cast<Test_U_AudioEffect_IDispatch_t*> (const_cast<Stream_Module_t*> (module_p)->writer ());
   ACE_ASSERT (idispatch_p);
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-  if (configuration_in.useMediaFoundation)
-    mediafoundation_configuration_p->dispatch = idispatch_p;
-  else
-    directshow_configuration_p->dispatch = idispatch_p;
-#else
-  configuration_p->dispatch = idispatch_p;
-#endif // ACE_WIN32 || ACE_WIN64
+  (*iterator).second.second->dispatch = idispatch_p;
 
   // ---------------------------------------------------------------------------
 

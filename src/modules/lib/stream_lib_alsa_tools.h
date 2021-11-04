@@ -29,9 +29,29 @@ extern "C"
 
 #include "ace/Global_Macros.h"
 
+#include "stream_lib_alsa_common.h"
+
+// forward declarations
+#if defined (SOX_SUPPORT)
+typedef double sox_rate_t;
+struct sox_encodinginfo_t;
+struct sox_signalinfo_t;
+#endif // SOX_SUPPORT
+
 class Stream_MediaFramework_ALSA_Tools
 {
  public:
+  static bool setFormat (struct _snd_pcm*,                                        // device handle
+                         const struct Stream_MediaFramework_ALSA_Configuration&); // configuration
+  static bool getFormat (struct _snd_pcm*,                                  // device handle
+                         struct Stream_MediaFramework_ALSA_Configuration&); // return value: configuration
+
+  static std::string getDeviceName (enum _snd_pcm_stream); // direction
+  static std::string formatToString (const struct _snd_pcm*,            // device handle
+                                     const struct _snd_pcm_hw_params*); // format
+
+  static void dump (struct _snd_pcm*); // device handle
+
   static bool getCaptureVolumeLevels (const std::string&, // card name
                                       const std::string&, // selem name
                                       long&,              // return value: min level
@@ -40,6 +60,14 @@ class Stream_MediaFramework_ALSA_Tools
   static bool setCaptureVolumeLevel (const std::string&, // card name
                                      const std::string&, // selem name
                                      long);              // level
+
+#if defined (SOX_SUPPORT)
+  static void ALSAToSoX (enum _snd_pcm_format,       // format
+                         sox_rate_t,                 // sample rate
+                         unsigned int,               // channels
+                         struct sox_encodinginfo_t&, // return value: format
+                         struct sox_signalinfo_t&);  // return value: format
+#endif // SOX_SUPPORT
 
  private:
   ACE_UNIMPLEMENTED_FUNC (Stream_MediaFramework_ALSA_Tools ())

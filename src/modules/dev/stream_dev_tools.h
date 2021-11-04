@@ -38,11 +38,6 @@
 #else
 #include <memory>
 
-#define ALSA_PCM_NEW_HW_PARAMS_API
-extern "C"
-{
-#include "alsa/asoundlib.h"
-}
 #include "linux/videodev2.h"
 #endif // ACE_WIN32 || ACE_WIN64
 
@@ -90,18 +85,6 @@ class Stream_Device_Tools
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
-  // ALSA
-  static bool setFormat (struct _snd_pcm*,                                    // device handle
-                         const struct Stream_MediaFramework_ALSA_MediaType&); // media type
-  static bool getFormat (struct _snd_pcm*,                              // device handle
-                         struct Stream_MediaFramework_ALSA_MediaType&); // return value: media type
-
-  static std::string getDeviceName (enum _snd_pcm_stream); // direction
-  static std::string formatToString (const struct _snd_pcm*,            // device handle
-                                     const struct _snd_pcm_hw_params*); // format
-
-  static void dump (struct _snd_pcm*); // device handle
-
   // v4l
   static Stream_Device_List_t getVideoCaptureDevices ();
   static struct v4l2_pix_format getVideoCaptureFormat (int,                              // file descriptor

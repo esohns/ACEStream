@@ -2373,16 +2373,16 @@ load_sample_rates (struct _snd_pcm* handle_in,
     goto error;
   } // end IF
 
-  result = snd_pcm_hw_params_set_access (handle_in,
-                                         format_p,
-                                         mediaType_in.access);
-  if (result < 0)
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to snd_pcm_hw_params_set_access(): \"%s\", aborting\n"),
-                ACE_TEXT (snd_strerror (result))));
-    goto error;
-  } // end IF
+//   result = snd_pcm_hw_params_set_access (handle_in,
+//                                          format_p,
+//                                          mediaType_in.access);
+//   if (result < 0)
+//   {
+//     ACE_DEBUG ((LM_ERROR,
+//                 ACE_TEXT ("failed to snd_pcm_hw_params_set_access(): \"%s\", aborting\n"),
+//                 ACE_TEXT (snd_strerror (result))));
+//     goto error;
+//   } // end IF
   result = snd_pcm_hw_params_set_format (handle_in,
                                          format_p,
                                          mediaType_in.format);
@@ -2404,7 +2404,6 @@ load_sample_rates (struct _snd_pcm* handle_in,
                 ACE_TEXT (snd_strerror (result))));
     goto error;
   } // end IF
-
   result = snd_pcm_hw_params_get_rate_min (format_p,
                                            &rate_min,
                                            &subunit_direction);
@@ -2430,6 +2429,7 @@ load_sample_rates (struct _snd_pcm* handle_in,
   } // end IF
   else
     sample_rates_supported.insert (rate_min);
+  snd_pcm_hw_params_free (format_p); format_p = NULL;
 
   for (std::set<unsigned int>::const_iterator iterator_2 = sample_rates_supported.begin ();
        iterator_2 != sample_rates_supported.end ();
@@ -2444,8 +2444,6 @@ load_sample_rates (struct _snd_pcm* handle_in,
                         1, *iterator_2,
                         -1);
   } // end FOR
-
-  snd_pcm_hw_params_free (format_p); format_p = NULL;
 
   return true;
 
@@ -2496,16 +2494,16 @@ load_sample_resolutions (struct _snd_pcm* handle_in,
     goto error;
   } // end IF
 
-  result = snd_pcm_hw_params_set_access (handle_in,
-                                         format_p,
-                                         mediaType_in.access);
-  if (result < 0)
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to snd_pcm_hw_params_set_access(): \"%s\", aborting\n"),
-                ACE_TEXT (snd_strerror (result))));
-    goto error;
-  } // end IF
+//   result = snd_pcm_hw_params_set_access (handle_in,
+//                                          format_p,
+//                                          mediaType_in.access);
+//   if (result < 0)
+//   {
+//     ACE_DEBUG ((LM_ERROR,
+//                 ACE_TEXT ("failed to snd_pcm_hw_params_set_access(): \"%s\", aborting\n"),
+//                 ACE_TEXT (snd_strerror (result))));
+//     goto error;
+//   } // end IF
   result = snd_pcm_hw_params_set_format (handle_in,
                                          format_p,
                                          mediaType_in.format);
@@ -2517,18 +2515,17 @@ load_sample_resolutions (struct _snd_pcm* handle_in,
     goto error;
   } // end IF
   result =
-      snd_pcm_hw_params_set_rate_near (handle_in,
-                                       format_p,
-                                       &const_cast<struct Stream_MediaFramework_ALSA_MediaType&> (mediaType_in).rate,
-                                       &subunit_direction);
+      snd_pcm_hw_params_set_rate (handle_in,
+                                  format_p,
+                                  const_cast<struct Stream_MediaFramework_ALSA_MediaType&> (mediaType_in).rate,
+                                  subunit_direction);
   if (result < 0)
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to snd_pcm_hw_params_set_rate_near(): \"%s\", aborting\n"),
+                ACE_TEXT ("failed to snd_pcm_hw_params_set_rate(): \"%s\", aborting\n"),
                 ACE_TEXT (snd_strerror (result))));
     goto error;
   } // end IF
-
   resolutions_supported.insert (snd_pcm_format_width (mediaType_in.format));
 //  for (unsigned int* i = resolutions;
 //       *i;
@@ -2541,6 +2538,7 @@ load_sample_resolutions (struct _snd_pcm* handle_in,
 //    if (result == 0)
 //      resolutions_supported.insert (*i);
 //  } // end FOR
+  snd_pcm_hw_params_free (format_p); format_p = NULL;
 
   for (std::set<int>::const_iterator iterator_2 = resolutions_supported.begin ();
        iterator_2 != resolutions_supported.end ();
@@ -2555,8 +2553,6 @@ load_sample_resolutions (struct _snd_pcm* handle_in,
                         1, *iterator_2,
                         -1);
   } // end FOR
-
-  snd_pcm_hw_params_free (format_p); format_p = NULL;
 
   return true;
 
@@ -2608,16 +2604,16 @@ load_channels (struct _snd_pcm* handle_in,
     goto error;
   } // end IF
 
-  result = snd_pcm_hw_params_set_access (handle_in,
-                                         format_p,
-                                         mediaType_in.access);
-  if (result < 0)
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to snd_pcm_hw_params_set_access(): \"%s\", aborting\n"),
-                ACE_TEXT (snd_strerror (result))));
-    goto error;
-  } // end IF
+//   result = snd_pcm_hw_params_set_access (handle_in,
+//                                          format_p,
+//                                          mediaType_in.access);
+//   if (result < 0)
+//   {
+//     ACE_DEBUG ((LM_ERROR,
+//                 ACE_TEXT ("failed to snd_pcm_hw_params_set_access(): \"%s\", aborting\n"),
+//                 ACE_TEXT (snd_strerror (result))));
+//     goto error;
+//   } // end IF
   result = snd_pcm_hw_params_set_format (handle_in,
                                          format_p,
                                          mediaType_in.format);
@@ -2629,18 +2625,17 @@ load_channels (struct _snd_pcm* handle_in,
 //    goto error;
   } // end IF
   result =
-      snd_pcm_hw_params_set_rate_near (handle_in,
-                                       format_p,
-                                       &const_cast<struct Stream_MediaFramework_ALSA_MediaType&> (mediaType_in).rate,
-                                       &subunit_direction);
+      snd_pcm_hw_params_set_rate (handle_in,
+                                  format_p,
+                                  const_cast<struct Stream_MediaFramework_ALSA_MediaType&> (mediaType_in).rate,
+                                  subunit_direction);
   if (result < 0)
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to snd_pcm_hw_params_set_rate_near(): \"%s\", aborting\n"),
+                ACE_TEXT ("failed to snd_pcm_hw_params_set_rate(): \"%s\", aborting\n"),
                 ACE_TEXT (snd_strerror (result))));
     goto error;
   } // end IF
-
   result = snd_pcm_hw_params_get_channels_min (format_p,
                                                &channels_min);
   ACE_ASSERT (result == 0);
@@ -2663,6 +2658,7 @@ load_channels (struct _snd_pcm* handle_in,
   } // end IF
   else
     channels_supported.insert (channels_min);
+  snd_pcm_hw_params_free (format_p); format_p = NULL;
 
   for (std::set<unsigned int>::const_iterator iterator_2 = channels_supported.begin ();
        iterator_2 != channels_supported.end ();
@@ -2677,8 +2673,6 @@ load_channels (struct _snd_pcm* handle_in,
                         1, *iterator_2,
                         -1);
   } // end FOR
-
-  snd_pcm_hw_params_free (format_p); format_p = NULL;
 
   return true;
 
@@ -6097,13 +6091,19 @@ togglebutton_record_toggled_cb (GtkToggleButton* toggleButton_in,
   ui_cb_data_p->configuration->streamConfiguration.configuration_->format.channels =
     g_value_get_uint (&value);
   ACE_ASSERT (ui_cb_data_p->handle);
-  if (!Stream_Device_Tools::setFormat (ui_cb_data_p->handle,
-                                       ui_cb_data_p->configuration->streamConfiguration.configuration_->format))
+  ACE_ASSERT ((*modulehandler_configuration_iterator).second.second->ALSAConfiguration);
+  ACE_ASSERT (!(*modulehandler_configuration_iterator).second.second->ALSAConfiguration->format);
+  (*modulehandler_configuration_iterator).second.second->ALSAConfiguration->format =
+    &ui_cb_data_p->configuration->streamConfiguration.configuration_->format;
+  if (!Stream_MediaFramework_ALSA_Tools::setFormat (ui_cb_data_p->handle,
+                                                    *(*modulehandler_configuration_iterator).second.second->ALSAConfiguration))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to Stream_Device_Tools::setFormat(): \"%m\", returning\n")));
+                ACE_TEXT ("failed to Stream_MediaFramework_ALSA_Tools::setFormat(): \"%m\", returning\n")));
+    (*modulehandler_configuration_iterator).second.second->ALSAConfiguration->format = NULL;
     return;
   } // end IF
+  (*modulehandler_configuration_iterator).second.second->ALSAConfiguration->format = NULL;
 #endif // ACE_WIN32 || ACE_WIN64
   g_value_unset (&value);
 
@@ -8591,10 +8591,9 @@ continue_:
         NULL;
   } // end IF
   ACE_ASSERT (!ui_cb_data_p->handle);
-  int mode = STREAM_DEV_MIC_ALSA_DEFAULT_MODE;
-  if ((*modulehandler_configuration_iterator).second.second->ALSAConfiguration->asynch)
-    mode |= SND_PCM_ASYNC;
-  //    snd_spcm_init();
+  int mode = STREAM_LIB_ALSA_CAPTURE_DEFAULT_MODE;
+//   if ((*modulehandler_configuration_iterator).second.second->ALSAConfiguration->asynch)
+//     mode |= SND_PCM_ASYNC;
   result = snd_pcm_open (&ui_cb_data_p->handle,
                          device_identifier_string.c_str (),
                          SND_PCM_STREAM_CAPTURE, mode);
@@ -8646,7 +8645,7 @@ continue_:
 
   result_2 =
       load_formats (ui_cb_data_p->handle,
-                    ui_cb_data_p->configuration->streamConfiguration.configuration_->format.access,
+                    (*modulehandler_configuration_iterator).second.second->ALSAConfiguration->access,
                     list_store_2);
 #endif // ACE_WIN32 || ACE_WIN64
   if (!result_2)

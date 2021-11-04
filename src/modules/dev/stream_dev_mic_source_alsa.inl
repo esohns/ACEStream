@@ -29,10 +29,11 @@
 #include "stream_macros.h"
 #include "stream_session_message_base.h"
 
+#include "stream_lib_alsa_tools.h"
+
 #include "stream_dec_tools.h"
 
 #include "stream_dev_defines.h"
-#include "stream_dev_tools.h"
 
 static void
 stream_dev_mic_source_alsa_async_callback (snd_async_handler_t* handler_in)
@@ -382,7 +383,7 @@ Stream_Dev_Mic_Source_ALSA_T<ACE_SYNCH_USE,
   switch (message_inout->type ())
   {
     case STREAM_SESSION_MESSAGE_BEGIN:
-    {
+    { // sanity check(s)
       ACE_ASSERT (inherited::sessionData_);
       SessionDataType& session_data_r =
           const_cast<SessionDataType&> (inherited::sessionData_->getR ());
@@ -395,10 +396,9 @@ Stream_Dev_Mic_Source_ALSA_T<ACE_SYNCH_USE,
 
       if (!isPassive_)
       { ACE_ASSERT (!deviceHandle_);
-        int mode = STREAM_DEV_MIC_ALSA_DEFAULT_MODE;
-        if (inherited::configuration_->ALSAConfiguration->asynch)
-          mode |= SND_PCM_ASYNC;
-//    snd_spcm_init();
+        int mode = STREAM_LIB_ALSA_CAPTURE_DEFAULT_MODE;
+//         if (inherited::configuration_->ALSAConfiguration->asynch)
+//           mode |= SND_PCM_ASYNC;
         result =
             snd_pcm_open (&deviceHandle_,
                           inherited::configuration_->deviceIdentifier.identifier.c_str (),
@@ -410,7 +410,7 @@ Stream_Dev_Mic_Source_ALSA_T<ACE_SYNCH_USE,
                       ACE_TEXT ("%s: failed to snd_pcm_open(\"%s\",%d) for capture: \"%s\", aborting\n"),
                       inherited::mod_->name (),
                       ACE_TEXT (inherited::configuration_->deviceIdentifier.identifier.c_str ()),
-                       mode,
+                      mode,
                       ACE_TEXT (snd_strerror (result))));
           goto error;
         } // end IF
@@ -419,15 +419,19 @@ Stream_Dev_Mic_Source_ALSA_T<ACE_SYNCH_USE,
                     inherited::mod_->name (),
                     ACE_TEXT (inherited::configuration_->deviceIdentifier.identifier.c_str ())));
 
-        // *TODO*: remove type inference
-        if (!Stream_Device_Tools::setFormat (deviceHandle_,
-                                             media_type_r))
+        ACE_ASSERT (!inherited::configuration_->ALSAConfiguration->format);
+        inherited::configuration_->ALSAConfiguration->format =
+          &const_cast<struct Stream_MediaFramework_ALSA_MediaType&> (media_type_r);
+        if (!Stream_MediaFramework_ALSA_Tools::setFormat (deviceHandle_,
+                                                          *inherited::configuration_->ALSAConfiguration))
         {
           ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("%s: failed to Stream_Device_Tools::setFormat(): \"%m\", aborting\n"),
+                      ACE_TEXT ("%s: failed to Stream_MediaFramework_ALSA_Tools::setFormat(), aborting\n"),
                       inherited::mod_->name ()));
+          inherited::configuration_->ALSAConfiguration->format = NULL;
           goto error;
         } // end IF
+        inherited::configuration_->ALSAConfiguration->format = NULL;
       } // end IF
       ACE_ASSERT (deviceHandle_);
 

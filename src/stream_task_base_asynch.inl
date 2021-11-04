@@ -543,21 +543,11 @@ Stream_TaskBaseAsynch_T<ACE_SYNCH_USE,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_TaskBaseAsynch_T::control"));
 
+  // sanity check(s)
+  ACE_ASSERT (inherited::msg_queue_);
+
   int result = -1;
   ACE_Message_Block* message_block_p = NULL;
-
-  // sanity check(s)
-  if (unlikely (!inherited::msg_queue_))
-  {
-    if (inherited::mod_)
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("%s: task has no message queue, returning\n"),
-                  inherited::mod_->name ()));
-    else
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("task has no message queue, returning\n")));
-    return;
-  } // end IF
 
   // enqueue a control message
   ACE_NEW_NORETURN (message_block_p,

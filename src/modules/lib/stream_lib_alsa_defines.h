@@ -21,24 +21,34 @@
 #ifndef STREAM_LIB_ALSA_DEFINES_H
 #define STREAM_LIB_ALSA_DEFINES_H
 
+// device names
 //#define STREAM_LIB_ALSA_DEVICE_CAPTURE_PREFIX                     "hw"
 #define STREAM_LIB_ALSA_DEVICE_CAPTURE_PREFIX                     "sysdefault"
 #define STREAM_LIB_ALSA_DEVICE_PLAYBACK_PREFIX                    "sysdefault"
+//#define STREAM_LIB_ALSA_DEVICE_DMIX                               "plug:dmix"
+#define STREAM_LIB_ALSA_DEVICE_DEFAULT                            "default"
+//#define STREAM_LIB_ALSA_DEVICE_PLUGHW                             "plug:hw"
+
 #define STREAM_LIB_ALSA_PCM_INTERFACE_NAME                        "pcm"
 
 #define STREAM_LIB_ALSA_DEFAULT_ACCESS                            SND_PCM_ACCESS_RW_INTERLEAVED
 //#define STREAM_LIB_ALSA_DEFAULT_DEVICE_NAME                       "hw:0,0"
 #define STREAM_LIB_ALSA_DEFAULT_FORMAT                            SND_PCM_FORMAT_S16
 #define STREAM_LIB_ALSA_DEFAULT_LOG_FILE                          "alsa.log"
-#define STREAM_LIB_ALSA_DEFAULT_MODE                              SND_PCM_ASYNC
+// #define STREAM_LIB_ALSA_DEFAULT_MODE                              SND_PCM_ASYNC
 
-#define STREAM_LIB_ALSA_CAPTURE_DEFAULT_BUFFER_SIZE               16384 // bytes
+// capture stream
+#define STREAM_LIB_ALSA_CAPTURE_DEFAULT_ASYNCH                    true
+// *IMPORTANT NOTE*: "...Latency is directly proportional with the buffer size
+//                    on playback devices or the period siz on capture devices..."
+#define STREAM_LIB_ALSA_CAPTURE_DEFAULT_BUFFER_SIZE               2048 // bytes (== periodsize * period)
 #define STREAM_LIB_ALSA_CAPTURE_DEFAULT_BUFFER_TIME               341333 // us
 #define STREAM_LIB_ALSA_CAPTURE_DEFAULT_DEVICE_NAME               STREAM_LIB_ALSA_DEVICE_CAPTURE_PREFIX
+#define STREAM_LIB_ALSA_CAPTURE_DEFAULT_MODE                      SND_PCM_NO_SOFTVOL
 // *TODO*: number of frames between each interrupt
 #define STREAM_LIB_ALSA_CAPTURE_DEFAULT_PERIOD_SIZE               1024 // frames
 #define STREAM_LIB_ALSA_CAPTURE_DEFAULT_PERIOD_TIME               21333 // us
-#define STREAM_LIB_ALSA_CAPTURE_DEFAULT_PERIODS                   16
+#define STREAM_LIB_ALSA_CAPTURE_DEFAULT_PERIODS                   2
 // *TODO*: these belong somewhere else
 #define STREAM_LIB_ALSA_CAPTURE_DEFAULT_CHANNELS                  2 // i.e. stereo
 #define STREAM_LIB_ALSA_CAPTURE_DEFAULT_SAMPLE_RATE               48000 // Hz
@@ -46,12 +56,14 @@
 #define STREAM_LIB_ALSA_CAPTURE_DEFAULT_SELEM_BOOST_NAME         "Mic Boost"
 #define STREAM_LIB_ALSA_CAPTURE_DEFAULT_SELEM_VOLUME_NAME        "Capture"
 
-#define STREAM_LIB_ALSA_PLAYBACK_DEFAULT_BUFFER_SIZE              16384 // bytes
+// playback stream
+#define STREAM_LIB_ALSA_PLAYBACK_DEFAULT_ASYNCH                   true
+#define STREAM_LIB_ALSA_PLAYBACK_DEFAULT_BUFFER_SIZE              32768 // bytes (== periodsize * period)
 #define STREAM_LIB_ALSA_PLAYBACK_DEFAULT_BUFFER_TIME              341333 // us
 #define STREAM_LIB_ALSA_PLAYBACK_DEFAULT_DEVICE_NAME              STREAM_LIB_ALSA_DEVICE_PLAYBACK_PREFIX
 // *TODO*: number of frames between each interrupt
-#define STREAM_LIB_ALSA_PLAYBACK_DEFAULT_PERIOD_SIZE              1024 // frames
+#define STREAM_LIB_ALSA_PLAYBACK_DEFAULT_PERIOD_SIZE              8192 // frames
 #define STREAM_LIB_ALSA_PLAYBACK_DEFAULT_PERIOD_TIME              21333 // us
-#define STREAM_LIB_ALSA_PLAYBACK_DEFAULT_PERIODS                  16
+#define STREAM_LIB_ALSA_PLAYBACK_DEFAULT_PERIODS                  4
 
 #endif

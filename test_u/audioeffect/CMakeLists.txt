@@ -261,7 +261,7 @@ endif ()
 unset (ARGS)
 set (ENVIRONMENT "")
 if (UNIX)
- file (TO_NATIVE_PATH "${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_BUILD_TYPE}/${EXECUTABLE}" COMMAND)
+ file (TO_NATIVE_PATH "${CMAKE_CURRENT_BINARY_DIR}/${EXECUTABLE}" COMMAND)
  if (GUI_SUPPORT)
   if (GTK_SUPPORT)
    if (GTK3_USE OR GTK4_USE)
@@ -274,7 +274,7 @@ if (UNIX)
  set (RUNTIME_LIBRARY_DIR ${PROJECT_SOURCE_DIR}/modules/ACE/lib)
 # set (ENVIRONMENT "GDK_BACKEND=x11")
 elseif (WIN32)
- file (TO_NATIVE_PATH "${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_BUILD_TYPE}/${EXECUTABLE}.exe" COMMAND)
+ file (TO_NATIVE_PATH "${CMAKE_CURRENT_BINARY_DIR}/${EXECUTABLE}.exe" COMMAND)
  string (REPLACE "\\" "\\\\" COMMAND ${COMMAND})
  if (GUI_SUPPORT)
   if (GTK_SUPPORT)
@@ -324,7 +324,7 @@ create_target_launcher (${EXECUTABLE}
                         ARGS ${ARGS}
 #                        FORWARD_ARGS
                         RUNTIME_LIBRARY_DIRS ${RUNTIME_LIBRARY_DIR}
-                        WORKING_DIRECTORY ${PROJECT_BINARY_DIR}/../test_u/${EXECUTABLE}
+                        WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/test_u/${EXECUTABLE}
                         ENVIRONMENT ${ENVIRONMENT})
 
 add_test (NAME ${EXECUTABLE}_test
