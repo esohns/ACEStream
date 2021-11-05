@@ -65,7 +65,8 @@ stream_dev_mic_source_alsa_async_callback (snd_async_handler_t* handler_in)
       if (available_frames == -EPIPE)
         goto recover;
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to snd_pcm_avail_update(): \"%s\", returning\n"),
+                  ACE_TEXT ("%s: failed to snd_pcm_avail_update(): \"%s\", returning\n"),
+                  ACE_TEXT (snd_pcm_name (handle_p)),
                   ACE_TEXT (snd_strerror (result))));
       goto error;
     } // end IF
@@ -81,7 +82,8 @@ stream_dev_mic_source_alsa_async_callback (snd_async_handler_t* handler_in)
               static_cast<ACE_Message_Block*> (data_p->allocator->malloc (data_p->bufferSize));
         } catch (...) {
           ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("caught exception in Stream_IAllocator::malloc(%u), continuing\n"),
+                      ACE_TEXT ("%s: caught exception in Stream_IAllocator::malloc(%u), continuing\n"),
+                      ACE_TEXT (snd_pcm_name (handle_p)),
                       data_p->bufferSize));
           message_block_p = NULL;
         }
@@ -92,7 +94,8 @@ stream_dev_mic_source_alsa_async_callback (snd_async_handler_t* handler_in)
       if (unlikely (!message_block_p))
       {
         ACE_DEBUG ((LM_CRITICAL,
-                    ACE_TEXT ("failed to allocate memory, aborting\n")));
+                    ACE_TEXT ("%s: failed to allocate memory, aborting\n"),
+                    ACE_TEXT (snd_pcm_name (handle_p))));
         goto error;
       } // end IF
     } // end IF
@@ -135,7 +138,8 @@ stream_dev_mic_source_alsa_async_callback (snd_async_handler_t* handler_in)
     if (unlikely (result < 0))
     {
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to ACE_Message_Queue_Base::enqueue_tail(): \"%m\", returning\n")));
+                  ACE_TEXT ("%s: failed to ACE_Message_Queue_Base::enqueue_tail(): \"%m\", returning\n"),
+                  ACE_TEXT (snd_pcm_name (handle_p))));
       goto error;
     } // end IF
     message_block_p = NULL;
@@ -144,16 +148,18 @@ stream_dev_mic_source_alsa_async_callback (snd_async_handler_t* handler_in)
 
 recover:
     ACE_DEBUG ((LM_WARNING,
-                ACE_TEXT ("buffer overrun, recovering\n")));
+                ACE_TEXT ("%s: buffer overrun, recovering\n"),
+                ACE_TEXT (snd_pcm_name (handle_p))));
 
-    //        result = snd_pcm_prepare (handle_p);
+//        result = snd_pcm_prepare (handle_p);
     result = snd_pcm_recover (handle_p,
                               -EPIPE,
                               1);
     if (unlikely (result < 0))
     {
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to snd_pcm_recover(): \"%s\", returning\n"),
+                  ACE_TEXT ("%s: failed to snd_pcm_recover(): \"%s\", returning\n"),
+                  ACE_TEXT (snd_pcm_name (handle_p)),
                   ACE_TEXT (snd_strerror (result))));
       return;
     } // end IF

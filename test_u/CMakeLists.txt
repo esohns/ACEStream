@@ -16,6 +16,10 @@ if (GUI_SUPPORT)
  endif (GTK_USE)
 endif (GUI_SUPPORT)
 
+if (UNIX)
+ add_link_options ("LINKER:--as-needed")
+endif (UNIX)
+
 add_library (${PROJECT_NAME}_Test_U STATIC "")
 
 string (REPLACE ${CMAKE_SOURCE_DIR} "" BUILD_PATH_SUFFIX ${CMAKE_BINARY_DIR})
@@ -128,7 +132,6 @@ elseif (WIN32)
   endif (WXWIDGETS_SUPPORT)
  endif (GUI_SUPPORT)
 endif ()
-
 target_include_directories (${PROJECT_NAME}_Test_U PUBLIC
                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../3rd_party/tree>)
 target_include_directories (${PROJECT_NAME}_Test_U PUBLIC
@@ -269,8 +272,8 @@ target_precompile_headers (${PROJECT_NAME}_Test_U
 ##########################################
 
 # add all targets to the build-tree export set
-#export (TARGETS ${PROJECT_NAME}_Test_U
-#        APPEND FILE "${PROJECT_BINARY_DIR}/${PROJECT_NAME}Targets.cmake")
+export (TARGETS ${PROJECT_NAME}_Test_U
+        APPEND FILE "${PROJECT_BINARY_DIR}/${PROJECT_NAME}Targets.cmake")
 
 # ----------------------------------------
 

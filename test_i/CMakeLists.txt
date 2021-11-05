@@ -16,6 +16,10 @@ if (GUI_SUPPORT)
  endif (GTK_USE)
 endif (GUI_SUPPORT)
 
+if (UNIX)
+ add_link_options ("LINKER:--as-needed")
+endif (UNIX)
+
 add_library (${PROJECT_NAME}_Test_I STATIC "")
 
 string (REPLACE ${CMAKE_SOURCE_DIR} "" BUILD_PATH_SUFFIX ${CMAKE_BINARY_DIR})
@@ -258,8 +262,8 @@ target_precompile_headers (${PROJECT_NAME}_Test_I
 ##########################################
 
 # add all targets to the build-tree export set
-#export (TARGETS ${PROJECT_NAME}_Test_U
-#        APPEND FILE "${PROJECT_BINARY_DIR}/${PROJECT_NAME}Targets.cmake")
+export (TARGETS ${PROJECT_NAME}_Test_I
+        APPEND FILE "${PROJECT_BINARY_DIR}/${PROJECT_NAME}Targets.cmake")
 
 # ----------------------------------------
 
