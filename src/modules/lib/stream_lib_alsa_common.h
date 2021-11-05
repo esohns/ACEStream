@@ -60,6 +60,7 @@ struct Stream_MediaFramework_ALSA_Configuration
    , periods (STREAM_LIB_ALSA_PLAYBACK_DEFAULT_PERIODS)
    , periodSize (STREAM_LIB_ALSA_PLAYBACK_DEFAULT_PERIOD_SIZE)
    , periodTime (STREAM_LIB_ALSA_PLAYBACK_DEFAULT_PERIOD_TIME)
+   , rateResample (false)
   {}
 
   enum _snd_pcm_access                         access;
@@ -71,6 +72,7 @@ struct Stream_MediaFramework_ALSA_Configuration
   unsigned int                                 periods;
   snd_pcm_uframes_t                            periodSize;
   unsigned int                                 periodTime;
+  bool                                         rateResample; // ? allow auto-resample : only hw rates
 };
 
 #endif

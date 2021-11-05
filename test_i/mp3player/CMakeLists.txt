@@ -118,8 +118,6 @@ target_link_libraries (${EXECUTABLE} ${PROJECT_NAME}_Statistic)
 target_link_libraries (${EXECUTABLE} ${PROJECT_NAME}_Test_I)
 
 # add PCH
-#set_target_properties (${EXECUTABLE} PROPERTIES COTIRE_CXX_PREFIX_HEADER_INIT "stdafx.h")
-#cotire (${EXECUTABLE})
 target_precompile_headers (${EXECUTABLE}
                            PUBLIC stdafx.h)
 
@@ -129,7 +127,7 @@ install (TARGETS ${EXECUTABLE}
 
 if (UNIX)
  create_target_launcher (${EXECUTABLE}
-                         ARGS "-c.\\\\..\\\\..\\\\..\\\\test_i\\\\http_get\\\\etc\\\\options.cnf -d news -e articles -f output.txt -l -p 80 -t -u http://www.heise.de/newsticker.html"
+                         ARGS "-f /mnt/win_d/test.mp3 -l -o /mnt/win_d/output.wav -t"
 #                         FORWARD_ARGS
                          RUNTIME_LIBRARY_DIRS ${PROJECT_SOURCE_DIR}/modules/ATCD/ACE/lib
                                               ${PROJECT_SOURCE_DIR}/../libxml2-2.9.4/.libs
@@ -140,14 +138,14 @@ if (UNIX)
                                               ${PROJECT_SOURCE_DIR}/cmake/src/modules/net/protocols/http/Debug
                                               ${PROJECT_SOURCE_DIR}/../ACENetwork/cmake/src/Debug
                                               ${PROJECT_SOURCE_DIR}/../ACENetwork/cmake/src/protocol/http/Debug
-                         WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/test_i/http_get
+                         WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/test_i/${EXECUTABLE}
                          ENVIRONMENT foo=bar)
 elseif (WIN32)
- file (TO_CMAKE_PATH $ENV{LIB_ROOT}/ffmpeg/bin FFMPEG_PATH)
+# file (TO_CMAKE_PATH $ENV{LIB_ROOT}/ffmpeg/bin FFMPEG_PATH)
  file (TO_CMAKE_PATH $ENV{LIB_ROOT}/mpg123 MPG123_PATH)
  file (TO_CMAKE_PATH $ENV{LIB_ROOT}/ACE_TAO/ACE/lib ACE_PATH)
  set (RUNTIME_LIBRARY_DIRS ${RUNTIME_LIBRARY_DIRS}
-                           ${FFMPEG_PATH}
+#                           ${FFMPEG_PATH}
                            ${MPG123_PATH}
                            ${ACE_PATH})
  create_target_launcher (${EXECUTABLE}
@@ -163,6 +161,6 @@ elseif (WIN32)
                                               ${PROJECT_SOURCE_DIR}/cmake/src/modules/net/protocols/http/Debug
                                               ${PROJECT_SOURCE_DIR}/../ACENetwork/cmake/src/Debug
                                               ${PROJECT_SOURCE_DIR}/../ACENetwork/cmake/src/protocol/http/Debug
-                         WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/test_i/http_get
+                         WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/test_i/${EXECUTABLE}
                          ENVIRONMENT foo=bar)
 endif ()

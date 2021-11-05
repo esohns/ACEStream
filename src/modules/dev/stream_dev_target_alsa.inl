@@ -73,7 +73,7 @@ stream_dev_target_alsa_async_callback (snd_async_handler_t* handler_in)
       if (unlikely (result == -1))
       {
         int error = ACE_OS::last_error ();
-        if (likely (error == ETIMEDOUT))
+        if (likely (error == EAGAIN))
           return;
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: failed to ACE_Message_Queue_Base::dequeue(): \"%m\", returning\n"),
