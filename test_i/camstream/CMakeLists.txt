@@ -124,7 +124,7 @@ set (${EXECUTABLE_SOURCE}_EXE_SRCS
      test_i_target_stream.h)
 #  test_i_template_instantiations.cpp
 if (GUI_SUPPORT)
- if (GTK_USE)
+ if (GTK_SUPPORT)
   set (${EXECUTABLE_SOURCE}_EXE_SRCS
        ${${EXECUTABLE_SOURCE}_EXE_SRCS}
        test_i_callbacks.cpp
@@ -132,7 +132,7 @@ if (GUI_SUPPORT)
 # elseif (WXWIDGETS_USE)
 #  set (${EXECUTABLE_TARGET}_EXE_SRCS
 #       ${${EXECUTABLE_TARGET}_EXE_SRCS})
- endif (GTK_USE)
+ endif (GTK_SUPPORT)
 endif (GUI_SUPPORT)
 
 cmake_policy (SET CMP0065 OLD) # do not add flags to export symbols from executables without the ENABLE_EXPORTS target property
@@ -217,11 +217,6 @@ target_link_libraries (${EXECUTABLE_SOURCE} ACENetwork)
 target_link_libraries (${EXECUTABLE_SOURCE} ${PROJECT_NAME}_Test_I)
 
 # add PCH
-#set_target_properties (${EXECUTABLE_SOURCE} PROPERTIES COTIRE_CXX_PREFIX_HEADER_INIT "stdafx.h")
-#set_target_properties (${EXECUTABLE_SOURCE} PROPERTIES COTIRE_ENABLE_PRECOMPILED_HEADER FALSE)
-#if (UNIX)
-# cotire (${EXECUTABLE_SOURCE})
-#endif (UNIX)
 target_precompile_headers (${EXECUTABLE_SOURCE}
                            PUBLIC stdafx.h)
 
@@ -353,9 +348,6 @@ if (WIN32)
  set_target_properties (${LIBRARY_DS} PROPERTIES VERSION ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_MICRO} SOVERSION 1)
 
 # add PCH
-# set_target_properties (${LIBRARY_DS} PROPERTIES COTIRE_CXX_PREFIX_HEADER_INIT "stdafx.h")
-# set_target_properties (${LIBRARY_DS} PROPERTIES COTIRE_ENABLE_PRECOMPILED_HEADER FALSE)
-# cotire (${LIBRARY_DS})
  target_precompile_headers (${LIBRARY_DS}
                             PUBLIC stdafx.h)
 
@@ -414,9 +406,6 @@ if (WIN32)
  set_target_properties (${LIBRARY_MF} PROPERTIES VERSION ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_MICRO} SOVERSION 1)
 
 # add PCH
-# set_target_properties (${LIBRARY_MF} PROPERTIES COTIRE_CXX_PREFIX_HEADER_INIT "stdafx.h")
-# set_target_properties (${LIBRARY_MF} PROPERTIES COTIRE_ENABLE_PRECOMPILED_HEADER FALSE)
-# cotire (${LIBRARY_MF})
  target_precompile_headers (${LIBRARY_MF}
                             PUBLIC stdafx.h)
 
@@ -469,7 +458,7 @@ set (${EXECUTABLE_TARGET}_EXE_SRCS
      test_i_target_stream.h)
 #  test_i_template_instantiations.cpp
 if (GUI_SUPPORT)
- if (GTK_USE)
+ if (GTK_SUPPORT)
   set (${EXECUTABLE_TARGET}_EXE_SRCS
        ${${EXECUTABLE_TARGET}_EXE_SRCS}
        test_i_callbacks.cpp
@@ -477,7 +466,7 @@ if (GUI_SUPPORT)
 # elseif (WXWIDGETS_USE)
 #  set (${EXECUTABLE_TARGET}_EXE_SRCS
 #       ${${EXECUTABLE_TARGET}_EXE_SRCS})
- endif (GTK_USE)
+ endif (GTK_SUPPORT)
 endif (GUI_SUPPORT)
 
 add_executable (${EXECUTABLE_TARGET}
@@ -511,53 +500,41 @@ add_dependencies (${EXECUTABLE_TARGET} ${PROJECT_NAME}_Visualization)
 
 add_dependencies (${EXECUTABLE_TARGET} ACENetwork)
 
-target_link_libraries (${EXECUTABLE_TARGET} ${CMAKE_THREAD_LIBS_INIT})
+target_link_libraries (${EXECUTABLE_TARGET} PUBLIC ${CMAKE_THREAD_LIBS_INIT})
 if (FFMPEG_SUPPORT)
- target_link_libraries (${EXECUTABLE_TARGET} ${ffmpeg_LIBRARIES})
+ target_link_libraries (${EXECUTABLE_TARGET} PUBLIC ${ffmpeg_LIBRARIES})
 endif (FFMPEG_SUPPORT)
 if (UNIX)
- target_link_libraries (${EXECUTABLE_TARGET} ${PKG_V4L2_LIBRARIES})
+ target_link_libraries (${EXECUTABLE_TARGET} PUBLIC ${PKG_V4L2_LIBRARIES})
 
- target_link_libraries (${EXECUTABLE_TARGET} X11)
+# target_link_libraries (${EXECUTABLE_TARGET} PUBLIC X11)
 elseif (WIN32)
- target_link_libraries (${EXECUTABLE_TARGET} evr.lib)
- target_link_libraries (${EXECUTABLE_TARGET} strmiids.lib)
- target_link_libraries (${EXECUTABLE_TARGET} winmm.lib)
+ target_link_libraries (${EXECUTABLE_TARGET} PUBLIC evr.lib)
+ target_link_libraries (${EXECUTABLE_TARGET} PUBLIC strmiids.lib)
+ target_link_libraries (${EXECUTABLE_TARGET} PUBLIC winmm.lib)
 endif ()
-target_link_libraries (${EXECUTABLE_TARGET} ${ACE_LIBRARY})
+target_link_libraries (${EXECUTABLE_TARGET} PUBLIC ${ACE_LIBRARY})
 
-target_link_libraries (${EXECUTABLE_TARGET} Common)
-target_link_libraries (${EXECUTABLE_TARGET} CommonImage)
-target_link_libraries (${EXECUTABLE_TARGET} CommonLog)
-target_link_libraries (${EXECUTABLE_TARGET} CommonSignal)
-target_link_libraries (${EXECUTABLE_TARGET} CommonTimer)
-if (GUI_SUPPORT)
- target_link_libraries (${EXECUTABLE_TARGET} CommonUI)
- if (GTK_SUPPORT)
-  target_link_libraries (${EXECUTABLE_TARGET} CommonUI_GTK)
- endif (GTK_SUPPORT)
- if (WXWIDGETS_SUPPORT)
-  target_link_libraries (${EXECUTABLE_TARGET} CommonUI_wxWidgets)
- endif (WXWIDGETS_SUPPORT)
-endif (GUI_SUPPORT)
+target_link_libraries (${EXECUTABLE_TARGET} PUBLIC Common)
+target_link_libraries (${EXECUTABLE_TARGET} PUBLIC CommonImage)
+target_link_libraries (${EXECUTABLE_TARGET} PUBLIC CommonLog)
+target_link_libraries (${EXECUTABLE_TARGET} PUBLIC CommonSignal)
+target_link_libraries (${EXECUTABLE_TARGET} PUBLIC CommonTimer)
 
-target_link_libraries (${EXECUTABLE_TARGET} ${PROJECT_NAME})
-target_link_libraries (${EXECUTABLE_TARGET} ${PROJECT_NAME}_Decoder)
-target_link_libraries (${EXECUTABLE_TARGET} ${PROJECT_NAME}_Device)
-target_link_libraries (${EXECUTABLE_TARGET} ${PROJECT_NAME}_MediaFramework)
-target_link_libraries (${EXECUTABLE_TARGET} ${PROJECT_NAME}_Miscellaneous)
-target_link_libraries (${EXECUTABLE_TARGET} ${PROJECT_NAME}_Network)
-target_link_libraries (${EXECUTABLE_TARGET} ${PROJECT_NAME}_Statistic)
-target_link_libraries (${EXECUTABLE_TARGET} ${PROJECT_NAME}_Visualization)
+target_link_libraries (${EXECUTABLE_TARGET} PUBLIC ${PROJECT_NAME})
+target_link_libraries (${EXECUTABLE_TARGET} PUBLIC ${PROJECT_NAME}_Decoder)
+target_link_libraries (${EXECUTABLE_TARGET} PUBLIC ${PROJECT_NAME}_Device)
+target_link_libraries (${EXECUTABLE_TARGET} PUBLIC ${PROJECT_NAME}_MediaFramework)
+target_link_libraries (${EXECUTABLE_TARGET} PUBLIC ${PROJECT_NAME}_Miscellaneous)
+target_link_libraries (${EXECUTABLE_TARGET} PUBLIC ${PROJECT_NAME}_Network)
+target_link_libraries (${EXECUTABLE_TARGET} PUBLIC ${PROJECT_NAME}_Statistic)
+target_link_libraries (${EXECUTABLE_TARGET} PUBLIC ${PROJECT_NAME}_Visualization)
 
-target_link_libraries (${EXECUTABLE_TARGET} ACENetwork)
+target_link_libraries (${EXECUTABLE_TARGET} PUBLIC ACENetwork)
 
-target_link_libraries (${EXECUTABLE_TARGET} ${PROJECT_NAME}_Test_I)
+target_link_libraries (${EXECUTABLE_TARGET} PUBLIC ${PROJECT_NAME}_Test_I)
 
 # add PCH
-#set_target_properties (${EXECUTABLE_TARGET} PROPERTIES COTIRE_CXX_PREFIX_HEADER_INIT "stdafx.h")
-#set_target_properties (${EXECUTABLE_TARGET} PROPERTIES COTIRE_ENABLE_PRECOMPILED_HEADER FALSE)
-#cotire (${EXECUTABLE_TARGET})
 target_precompile_headers (${EXECUTABLE_TARGET}
                            PUBLIC stdafx.h)
 
