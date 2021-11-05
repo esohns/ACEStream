@@ -32,15 +32,12 @@
 #include "ace/Profile_Timer.h"
 #include "ace/Sig_Handler.h"
 #include "ace/Signal.h"
-//#include "ace/Synch.h"
 #include "ace/Version.h"
 
 #if defined (HAVE_CONFIG_H)
 #include "Common_config.h"
 #endif // HAVE_CONFIG_H
-
 #include "common.h"
-//#include "common_file_tools.h"
 #include "common_tools.h"
 
 #include "common_log_tools.h"
@@ -53,7 +50,6 @@
 #if defined (HAVE_CONFIG_H)
 #include "ACEStream_config.h"
 #endif // HAVE_CONFIG_H
-
 #include "stream_allocatorheap.h"
 #include "stream_macros.h"
 
@@ -66,7 +62,6 @@
 #if defined (HAVE_CONFIG_H)
 #include "ACENetwork_config.h"
 #endif // HAVE_CONFIG_H
-
 #include "net_common_tools.h"
 
 #include "test_i_common.h"
@@ -550,10 +545,6 @@ do_work (unsigned int bufferSize_in,
                 ACE_TEXT ("failed to allocate memory, returning\n")));
     return;
   } // end IF
-  //configuration.userData.connectionConfiguration =
-  //    &configuration.connectionConfiguration;
-  //configuration.userData.streamConfiguration =
-  //    &configuration.streamConfiguration;
   if (useReactor_in)
     configuration.dispatchConfiguration.numberOfReactorThreads =
       numberOfDispatchThreads_in;
@@ -897,7 +888,7 @@ ACE_TMAIN (int argc_in,
   bool log_to_file = false;
   unsigned short port = HTTP_DEFAULT_SERVER_PORT;
   bool use_reactor =
-          (COMMON_EVENT_DEFAULT_DISPATCH == COMMON_EVENT_DISPATCH_REACTOR);
+    (COMMON_EVENT_DEFAULT_DISPATCH == COMMON_EVENT_DISPATCH_REACTOR);
   unsigned int statistic_reporting_interval =
     STREAM_DEFAULT_STATISTIC_REPORTING_INTERVAL;
   bool trace_information = false;
@@ -1035,7 +1026,8 @@ ACE_TMAIN (int argc_in,
     return EXIT_FAILURE;
   } // end IF
   if (!Common_Signal_Tools::preInitialize (signal_set,
-                                           use_reactor,
+                                           (use_reactor ? COMMON_SIGNAL_DISPATCH_REACTOR
+                                                        : COMMON_SIGNAL_DISPATCH_PROACTOR),
                                            previous_signal_actions,
                                            previous_signal_mask))
   {

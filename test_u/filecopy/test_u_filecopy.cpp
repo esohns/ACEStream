@@ -777,7 +777,7 @@ ACE_TMAIN (int argc_in,
     return EXIT_FAILURE;
   } // end IF
   if (!Common_Signal_Tools::preInitialize (signal_set,
-                                           (COMMON_EVENT_DEFAULT_DISPATCH == COMMON_EVENT_DISPATCH_REACTOR),
+                                           COMMON_SIGNAL_DEFAULT_DISPATCH_MODE,
                                            previous_signal_actions,
                                            previous_signal_mask))
   {
@@ -800,8 +800,7 @@ ACE_TMAIN (int argc_in,
   lock_2 = &state_r.subscribersLock;
 #endif // GTK_USE
 #endif // GUI_SUPPORT
-  Stream_Filecopy_SignalHandler signal_handler (((configuration.dispatchConfiguration.numberOfReactorThreads) ? COMMON_SIGNAL_DISPATCH_REACTOR
-                                                                                                              : COMMON_SIGNAL_DISPATCH_PROACTOR),
+  Stream_Filecopy_SignalHandler signal_handler (COMMON_SIGNAL_DEFAULT_DISPATCH_MODE,
                                                 lock_2);
 
   // step1f: handle specific program modes
@@ -809,8 +808,7 @@ ACE_TMAIN (int argc_in,
   {
     do_printVersion (ACE::basename (argv_in[0]));
 
-    Common_Signal_Tools::finalize (((COMMON_EVENT_DEFAULT_DISPATCH == COMMON_EVENT_DISPATCH_REACTOR) ? COMMON_SIGNAL_DISPATCH_REACTOR
-                                                                                                     : COMMON_SIGNAL_DISPATCH_SIGNAL),
+    Common_Signal_Tools::finalize (COMMON_SIGNAL_DEFAULT_DISPATCH_MODE,
                                    signal_set,
                                    previous_signal_actions,
                                    previous_signal_mask);
@@ -834,8 +832,7 @@ ACE_TMAIN (int argc_in,
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Common_Tools::setResourceLimits(), aborting\n")));
 
-    Common_Signal_Tools::finalize (((COMMON_EVENT_DEFAULT_DISPATCH == COMMON_EVENT_DISPATCH_REACTOR) ? COMMON_SIGNAL_DISPATCH_REACTOR
-                                                                                                     : COMMON_SIGNAL_DISPATCH_SIGNAL),
+    Common_Signal_Tools::finalize (COMMON_SIGNAL_DEFAULT_DISPATCH_MODE,
                                    signal_set,
                                    previous_signal_actions,
                                    previous_signal_mask);
@@ -907,8 +904,7 @@ ACE_TMAIN (int argc_in,
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to ACE_Profile_Timer::elapsed_time: \"%m\", aborting\n")));
 
-    Common_Signal_Tools::finalize (((COMMON_EVENT_DEFAULT_DISPATCH == COMMON_EVENT_DISPATCH_REACTOR) ? COMMON_SIGNAL_DISPATCH_REACTOR
-                                                                                                     : COMMON_SIGNAL_DISPATCH_SIGNAL),
+    Common_Signal_Tools::finalize (COMMON_SIGNAL_DEFAULT_DISPATCH_MODE,
                                    signal_set,
                                    previous_signal_actions,
                                    previous_signal_mask);
@@ -965,8 +961,7 @@ ACE_TMAIN (int argc_in,
               elapsed_rusage.ru_nivcsw));
 #endif
 
-  Common_Signal_Tools::finalize (((COMMON_EVENT_DEFAULT_DISPATCH == COMMON_EVENT_DISPATCH_REACTOR) ? COMMON_SIGNAL_DISPATCH_REACTOR
-                                                                                                   : COMMON_SIGNAL_DISPATCH_SIGNAL),
+  Common_Signal_Tools::finalize (COMMON_SIGNAL_DEFAULT_DISPATCH_MODE,
                                  signal_set,
                                  previous_signal_actions,
                                  previous_signal_mask);

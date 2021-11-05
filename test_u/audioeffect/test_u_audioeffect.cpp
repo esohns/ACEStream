@@ -542,13 +542,13 @@ do_initializeSignals (bool allowUserRuntimeConnect_in,
 //  signals_out.sig_del (SIGIO);             // 29      /* I/O now possible */
   // remove realtime-signals (don't need 'em)
 
-#ifdef ENABLE_VALGRIND_SUPPORT
+#if defined (VALGRIND_SUPPORT)
   // *NOTE*: valgrind uses SIGRT32 (--> SIGRTMAX ?) and apparently will not work
   // if the application installs its own handler (see documentation)
   if (RUNNING_ON_VALGRIND)
     signals_out.sig_del (SIGRTMAX);        // 64
-#endif
-#endif
+#endif // VALGRIND_SUPPORT
+#endif // ACE_WIN32 || ACE_WIN64
 }
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -1928,7 +1928,7 @@ ACE_TMAIN (int argc_in,
     return EXIT_FAILURE;
   } // end IF
   if (!Common_Signal_Tools::preInitialize (signal_set,
-                                           (COMMON_EVENT_DEFAULT_DISPATCH == COMMON_EVENT_DISPATCH_REACTOR),
+                                           COMMON_SIGNAL_DEFAULT_DISPATCH_MODE,
                                            previous_signal_actions,
                                            previous_signal_mask))
   {

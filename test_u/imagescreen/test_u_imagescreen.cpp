@@ -652,7 +652,7 @@ ACE_TMAIN (int argc_in,
     goto clean;
   } // end IF
   if (!Common_Signal_Tools::preInitialize (signal_set,
-                                           (COMMON_EVENT_DEFAULT_DISPATCH == COMMON_EVENT_DISPATCH_REACTOR),
+                                           COMMON_SIGNAL_DEFAULT_DISPATCH_MODE,
                                            previous_signal_actions,
                                            previous_signal_mask))
   {

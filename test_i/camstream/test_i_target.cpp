@@ -46,7 +46,6 @@
 #if defined (HAVE_CONFIG_H)
 #include "Common_config.h"
 #endif // HAVE_CONFIG_H
-
 #include "common_file_tools.h"
 #include "common_tools.h"
 
@@ -59,17 +58,16 @@
 
 #if defined (GUI_SUPPORT)
 #include "common_ui_defines.h"
-#if defined (GTK_USE)
+#if defined (GTK_SUPPORT)
 //#include "common_ui_glade_definition.h"
 #include "common_ui_gtk_builder_definition.h"
 #include "common_ui_gtk_manager_common.h"
-#endif // GTK_USE
+#endif // GTK_SUPPORT
 #endif // GUI_SUPPORT
 
 #if defined (HAVE_CONFIG_H)
 #include "ACEStream_config.h"
 #endif // HAVE_CONFIG_H
-
 #include "stream_allocatorheap.h"
 #include "stream_macros.h"
 
@@ -84,9 +82,9 @@
 #include "test_i_defines.h"
 
 #if defined (GUI_SUPPORT)
-#if defined (GTK_USE)
+#if defined (GTK_SUPPORT)
 #include "test_i_callbacks.h"
-#endif // GTK_USE
+#endif // GTK_SUPPORT
 #endif // GUI_SUPPORT
 #include "test_i_common_modules.h"
 #include "test_i_module_eventhandler.h"
@@ -169,6 +167,10 @@ do_printUsage (const std::string& programName_in)
             << TEST_I_DEFAULT_PORT
             << ACE_TEXT_ALWAYS_CHAR ("]")
             << std::endl;
+  std::cout << ACE_TEXT_ALWAYS_CHAR ("-r          : use reactor [")
+            << (COMMON_EVENT_DEFAULT_DISPATCH == COMMON_EVENT_DISPATCH_REACTOR)
+            << ACE_TEXT_ALWAYS_CHAR ("]")
+            << std::endl;
   std::cout << ACE_TEXT_ALWAYS_CHAR ("-s [VALUE]  : statistic reporting interval (second(s)) [")
             << STREAM_DEFAULT_STATISTIC_REPORTING_INTERVAL
             << ACE_TEXT_ALWAYS_CHAR ("] [0: off]")
@@ -211,6 +213,7 @@ do_processArguments (int argc_in,
                      std::string& netWorkInterface_out,
                      bool& useLoopBack_out,
                      unsigned short& listeningPortNumber_out,
+                     bool& useReactor_out,
                      unsigned int& statisticReportingInterval_out,
                      bool& traceInformation_out,
                      bool& useUDP_out,
@@ -245,6 +248,8 @@ do_processArguments (int argc_in,
     ACE_TEXT_ALWAYS_CHAR (NET_INTERFACE_DEFAULT_ETHERNET);
   useLoopBack_out = false;
   listeningPortNumber_out = TEST_I_DEFAULT_PORT;
+  useReactor_out =
+    (COMMON_EVENT_DEFAULT_DISPATCH == COMMON_EVENT_DISPATCH_REACTOR);
   statisticReportingInterval_out = STREAM_DEFAULT_STATISTIC_REPORTING_INTERVAL;
   traceInformation_out = false;
   useUDP_out = false;
@@ -256,9 +261,9 @@ do_processArguments (int argc_in,
   ACE_Get_Opt argumentParser (argc_in,
                               argv_in,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-                              ACE_TEXT ("b:c:e:f::g::lmn:op:s:tuvx:z:"),
+                              ACE_TEXT ("b:c:e:f::g::lmn:op:rs:tuvx:z:"),
 #else
-                              ACE_TEXT ("b:c:e:f::g::ln:op:s:tuvx:z:"),
+                              ACE_TEXT ("b:c:e:f::g::ln:op:rs:tuvx:z:"),
 #endif // ACE_WIN32 || ACE_WIN64
                               1,                          // skip command name
                               1,                          // report parsing errors
@@ -338,6 +343,11 @@ do_processArguments (int argc_in,
         converter.str (ACE_TEXT_ALWAYS_CHAR (""));
         converter << argumentParser.opt_arg ();
         converter >> listeningPortNumber_out;
+        break;
+      }
+      case 'r':
+      {
+        useReactor_out = true;
         break;
       }
       case 's':
@@ -832,6 +842,7 @@ do_work (unsigned int bufferSize_in,
          const std::string& networkInterface_in,
          bool useLoopBack_in,
          unsigned short listeningPortNumber_in,
+         bool useReactor_in,
          unsigned int statisticReportingInterval_in,
          bool useUDP_in,
          unsigned int numberOfDispatchThreads_in,
@@ -861,6 +872,12 @@ do_work (unsigned int bufferSize_in,
 
   // step0a: initialize event dispatch
   struct Common_EventDispatchConfiguration event_dispatch_configuration_s;
+  if (useReactor_in)
+    event_dispatch_configuration_s.numberOfReactorThreads =
+      TEST_I_DEFAULT_NUMBER_OF_DISPATCHING_THREADS;
+  else
+    event_dispatch_configuration_s.numberOfProactorThreads =
+      TEST_I_DEFAULT_NUMBER_OF_DISPATCHING_THREADS;
   struct Stream_AllocatorConfiguration allocator_configuration;
   bool serialize_output = false;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -2516,6 +2533,8 @@ ACE_TMAIN (int argc_in,
     ACE_TEXT_ALWAYS_CHAR (NET_INTERFACE_DEFAULT_ETHERNET);
   bool use_loopback = false;
   unsigned short listening_port_number = TEST_I_DEFAULT_PORT;
+  bool use_reactor =
+    (COMMON_EVENT_DEFAULT_DISPATCH == COMMON_EVENT_DISPATCH_REACTOR);
   unsigned int statistic_reporting_interval =
       STREAM_DEFAULT_STATISTIC_REPORTING_INTERVAL;
   bool trace_information = false;
@@ -2540,6 +2559,7 @@ ACE_TMAIN (int argc_in,
                             network_interface,
                             use_loopback,
                             listening_port_number,
+                            use_reactor,
                             statistic_reporting_interval,
                             trace_information,
                             use_UDP,
@@ -2734,12 +2754,15 @@ ACE_TMAIN (int argc_in,
 
   // step1e: pre-initialize signal handling
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  Test_I_Target_DirectShow_SignalHandler_t directshow_signal_handler (COMMON_SIGNAL_DISPATCH_SIGNAL,
+  Test_I_Target_DirectShow_SignalHandler_t directshow_signal_handler ((use_reactor ? COMMON_SIGNAL_DISPATCH_REACTOR
+                                                                                   : COMMON_SIGNAL_DISPATCH_PROACTOR),
                                                                       lock_2);
-  Test_I_Target_MediaFoundation_SignalHandler_t mediafoundation_signal_handler (COMMON_SIGNAL_DISPATCH_SIGNAL,
+  Test_I_Target_MediaFoundation_SignalHandler_t mediafoundation_signal_handler ((use_reactor ? COMMON_SIGNAL_DISPATCH_REACTOR
+                                                                                             : COMMON_SIGNAL_DISPATCH_PROACTOR),
                                                                                 lock_2);
 #else
-  Test_I_Target_SignalHandler_t signal_handler (COMMON_SIGNAL_DISPATCH_SIGNAL,
+  Test_I_Target_SignalHandler_t signal_handler ((use_reactor ? COMMON_SIGNAL_DISPATCH_REACTOR
+                                                             : COMMON_SIGNAL_DISPATCH_PROACTOR),
                                                 lock_2);
 #endif // ACE_WIN32 || ACE_WIN64
   ACE_Sig_Set signal_set (0);
@@ -2766,7 +2789,8 @@ ACE_TMAIN (int argc_in,
     return EXIT_FAILURE;
   } // end IF
   if (!Common_Signal_Tools::preInitialize (signal_set,
-                                           false,
+                                           (use_reactor ? COMMON_SIGNAL_DISPATCH_REACTOR
+                                                        : COMMON_SIGNAL_DISPATCH_PROACTOR),
                                            previous_signal_actions,
                                            previous_signal_mask))
   {
@@ -2789,7 +2813,8 @@ ACE_TMAIN (int argc_in,
   {
     do_printVersion (ACE::basename (argv_in[0]));
 
-    Common_Signal_Tools::finalize (COMMON_SIGNAL_DISPATCH_SIGNAL,
+    Common_Signal_Tools::finalize ((use_reactor ? COMMON_SIGNAL_DISPATCH_REACTOR
+                                                : COMMON_SIGNAL_DISPATCH_PROACTOR),
                                    signal_set,
                                    previous_signal_actions,
                                    previous_signal_mask);
@@ -2813,7 +2838,8 @@ ACE_TMAIN (int argc_in,
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Common_Tools::setResourceLimits(), aborting\n")));
 
-    Common_Signal_Tools::finalize (COMMON_SIGNAL_DISPATCH_SIGNAL,
+    Common_Signal_Tools::finalize ((use_reactor ? COMMON_SIGNAL_DISPATCH_REACTOR
+                                                : COMMON_SIGNAL_DISPATCH_PROACTOR),
                                    signal_set,
                                    previous_signal_actions,
                                    previous_signal_mask);
@@ -2873,7 +2899,8 @@ ACE_TMAIN (int argc_in,
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Common_UI_GTK_Manager_T::initialize(), aborting\n")));
 
-    Common_Signal_Tools::finalize (COMMON_SIGNAL_DISPATCH_SIGNAL,
+    Common_Signal_Tools::finalize ((use_reactor ? COMMON_SIGNAL_DISPATCH_REACTOR
+                                                : COMMON_SIGNAL_DISPATCH_PROACTOR),
                                    signal_set,
                                    previous_signal_actions,
                                    previous_signal_mask);
@@ -2908,6 +2935,7 @@ continue_:
            network_interface,
            use_loopback,
            listening_port_number,
+           use_reactor,
            statistic_reporting_interval,
            use_UDP,
            number_of_dispatch_threads,
@@ -2953,7 +2981,8 @@ continue_:
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to ACE_Profile_Timer::elapsed_time: \"%m\", aborting\n")));
 
-    Common_Signal_Tools::finalize (COMMON_SIGNAL_DISPATCH_SIGNAL,
+    Common_Signal_Tools::finalize ((use_reactor ? COMMON_SIGNAL_DISPATCH_REACTOR
+                                                : COMMON_SIGNAL_DISPATCH_PROACTOR),
                                    signal_set,
                                    previous_signal_actions,
                                    previous_signal_mask);
@@ -3010,7 +3039,8 @@ continue_:
               elapsed_rusage.ru_nivcsw));
 #endif // ACE_WIN32 || ACE_WIN64
 
-  Common_Signal_Tools::finalize (COMMON_SIGNAL_DISPATCH_SIGNAL,
+  Common_Signal_Tools::finalize ((use_reactor ? COMMON_SIGNAL_DISPATCH_REACTOR
+                                              : COMMON_SIGNAL_DISPATCH_PROACTOR),
                                  signal_set,
                                  previous_signal_actions,
                                  previous_signal_mask);

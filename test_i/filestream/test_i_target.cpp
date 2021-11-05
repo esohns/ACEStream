@@ -36,8 +36,6 @@
 #if defined (HAVE_CONFIG_H)
 #include "Common_config.h"
 #endif // HAVE_CONFIG_H
-
-//#include "common_file_tools.h"
 #include "common_tools.h"
 
 #include "common_log_tools.h"
@@ -49,26 +47,24 @@
 
 #if defined (GUI_SUPPORT)
 #include "common_ui_defines.h"
-#if defined (GTK_USE)
-//#include "common_ui_glade_definition.h"
+#if defined (GTK_SUPPORT)
 #include "common_ui_gtk_builder_definition.h"
 #include "common_ui_gtk_manager_common.h"
-#endif // GTK_USE
+#endif // GTK_SUPPORT
 #endif // GUI_SUPPORT
 
 #if defined (HAVE_CONFIG_H)
 #include "ACEStream_config.h"
 #endif // HAVE_CONFIG_H
-
 #include "stream_allocatorheap.h"
 #include "stream_macros.h"
 
 #include "stream_misc_defines.h"
 
 #if defined (GUI_SUPPORT)
-#if defined (GTK_USE)
+#if defined (GTK_SUPPORT)
 #include "test_i_callbacks.h"
-#endif // GTK_USE
+#endif // GTK_SUPPORT
 #endif // GUI_SUPPORT
 #include "test_i_common.h"
 #include "test_i_defines.h"
@@ -145,6 +141,10 @@ do_printUsage (const std::string& programName_in)
             << NET_ADDRESS_DEFAULT_PORT
             << ACE_TEXT_ALWAYS_CHAR ("]")
             << std::endl;
+  std::cout << ACE_TEXT_ALWAYS_CHAR ("-r          : use reactor [")
+            << (COMMON_EVENT_DEFAULT_DISPATCH == COMMON_EVENT_DISPATCH_REACTOR)
+            << ACE_TEXT_ALWAYS_CHAR ("]")
+            << std::endl;
   std::cout << ACE_TEXT_ALWAYS_CHAR ("-s [VALUE]  : statistic reporting interval (second(s)) [")
             << STREAM_DEFAULT_STATISTIC_REPORTING_INTERVAL
             << ACE_TEXT_ALWAYS_CHAR ("] [0: off]")
@@ -179,6 +179,7 @@ do_processArguments (int argc_in,
                      std::string& netWorkInterface_out,
                      bool& useLoopBack_out,
                      unsigned short& listeningPortNumber_out,
+                     bool& useReactor_out,
                      unsigned int& statisticReportingInterval_out,
                      bool& traceInformation_out,
                      bool& useUDP_out,
@@ -208,6 +209,8 @@ do_processArguments (int argc_in,
   netWorkInterface_out = ACE_TEXT_ALWAYS_CHAR (NET_INTERFACE_DEFAULT_ETHERNET);
   useLoopBack_out = false;
   listeningPortNumber_out = NET_ADDRESS_DEFAULT_PORT;
+  useReactor_out =
+    (COMMON_EVENT_DEFAULT_DISPATCH == COMMON_EVENT_DISPATCH_REACTOR);
   statisticReportingInterval_out = STREAM_DEFAULT_STATISTIC_REPORTING_INTERVAL;
   traceInformation_out = false;
   useUDP_out = false;
@@ -216,7 +219,7 @@ do_processArguments (int argc_in,
 
   ACE_Get_Opt argumentParser (argc_in,
                               argv_in,
-                              ACE_TEXT ("b:c:e:f:g::ln:op:s:tuvx:"),
+                              ACE_TEXT ("b:c:e:f:g::ln:op:rs:tuvx:"),
                               1,                         // skip command name
                               1,                         // report parsing errors
                               ACE_Get_Opt::PERMUTE_ARGS, // ordering
@@ -284,6 +287,11 @@ do_processArguments (int argc_in,
         converter.str (ACE_TEXT_ALWAYS_CHAR (""));
         converter << argumentParser.opt_arg ();
         converter >> listeningPortNumber_out;
+        break;
+      }
+      case 'r':
+      {
+        useReactor_out = true;
         break;
       }
       case 's':
@@ -414,12 +422,12 @@ do_initializeSignals (bool allowUserRuntimeConnect_in,
   // *NOTE* don't care about SIGPIPE
   signals_out.sig_del (SIGPIPE);           // 12      /* Broken pipe: write to pipe with no readers */
 
-#ifdef ENABLE_VALGRIND_SUPPORT
+#if defined (VALGRIND_SUPPORT)
   // *NOTE*: valgrind uses SIGRT32 (--> SIGRTMAX ?) and apparently will not work
   // if the application installs its own handler (see documentation)
   if (RUNNING_ON_VALGRIND)
     signals_out.sig_del (SIGRTMAX);        // 64
-#endif
+#endif // VALGRIND_SUPPORT
 #endif
 }
 
@@ -431,6 +439,7 @@ do_work (unsigned int bufferSize_in,
          const std::string& networkInterface_in,
          bool useLoopBack_in,
          unsigned short listeningPortNumber_in,
+         bool useReactor_in,
          unsigned int statisticReportingInterval_in,
          bool useUDP_in,
          unsigned int numberOfDispatchThreads_in,
@@ -447,14 +456,12 @@ do_work (unsigned int bufferSize_in,
   int result = -1;
 
   // step0a: initialize configuration
-  CBData_in.configuration->dispatchConfiguration.numberOfReactorThreads =
-      1;
-  CBData_in.configuration->dispatchConfiguration.numberOfProactorThreads =
+  if (useReactor_in)
+    CBData_in.configuration->dispatchConfiguration.numberOfReactorThreads =
       numberOfDispatchThreads_in;
-  //configuration.userData.connectionConfiguration =
-  //    &configuration.connectionConfiguration;
-  //configuration.userData.streamConfiguration =
-  //  &configuration.streamConfiguration;
+  else
+    CBData_in.configuration->dispatchConfiguration.numberOfProactorThreads =
+      numberOfDispatchThreads_in;
   CBData_in.configuration->protocol = (useUDP_in ? NET_TRANSPORTLAYER_UDP
                                                  : NET_TRANSPORTLAYER_TCP);
 
@@ -1043,6 +1050,8 @@ ACE_TMAIN (int argc_in,
   std::string network_interface = ACE_TEXT_ALWAYS_CHAR (NET_INTERFACE_DEFAULT_ETHERNET);
   bool use_loopback = false;
   unsigned short listening_port_number = NET_ADDRESS_DEFAULT_PORT;
+  bool use_reactor =
+    (COMMON_EVENT_DEFAULT_DISPATCH == COMMON_EVENT_DISPATCH_REACTOR);
   unsigned int statistic_reporting_interval =
       STREAM_DEFAULT_STATISTIC_REPORTING_INTERVAL;
   bool trace_information = false;
@@ -1063,6 +1072,7 @@ ACE_TMAIN (int argc_in,
                             network_interface,
                             use_loopback,
                             listening_port_number,
+                            use_reactor,
                             statistic_reporting_interval,
                             trace_information,
                             use_UDP,
@@ -1209,7 +1219,8 @@ ACE_TMAIN (int argc_in,
     return EXIT_FAILURE;
   } // end IF
   if (!Common_Signal_Tools::preInitialize (signal_set,
-                                           false,
+                                           (use_reactor ? COMMON_SIGNAL_DISPATCH_REACTOR
+                                                        : COMMON_SIGNAL_DISPATCH_PROACTOR),
                                            previous_signal_actions,
                                            previous_signal_mask))
   {
@@ -1226,14 +1237,16 @@ ACE_TMAIN (int argc_in,
 #endif
     return EXIT_FAILURE;
   } // end IF
-  Stream_Target_SignalHandler signal_handler (COMMON_SIGNAL_DISPATCH_SIGNAL,
+  Stream_Target_SignalHandler signal_handler ((use_reactor ? COMMON_SIGNAL_DISPATCH_REACTOR
+                                                           : COMMON_SIGNAL_DISPATCH_PROACTOR),
                                               lock_2);
 
   // step1f: handle specific program modes
   if (print_version_and_exit)
   {
     do_printVersion (ACE::basename (argv_in[0]));
-    Common_Signal_Tools::finalize (COMMON_SIGNAL_DISPATCH_SIGNAL,
+    Common_Signal_Tools::finalize ((use_reactor ? COMMON_SIGNAL_DISPATCH_REACTOR
+                                                : COMMON_SIGNAL_DISPATCH_PROACTOR),
                                    signal_set,
                                    previous_signal_actions,
                                    previous_signal_mask);
@@ -1257,7 +1270,8 @@ ACE_TMAIN (int argc_in,
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Common_Tools::setResourceLimits(), aborting\n")));
 
-    Common_Signal_Tools::finalize (COMMON_SIGNAL_DISPATCH_SIGNAL,
+    Common_Signal_Tools::finalize ((use_reactor ? COMMON_SIGNAL_DISPATCH_REACTOR
+                                                : COMMON_SIGNAL_DISPATCH_PROACTOR),
                                    signal_set,
                                    previous_signal_actions,
                                    previous_signal_mask);
@@ -1293,7 +1307,8 @@ ACE_TMAIN (int argc_in,
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to Common_UI_GTK_Manager_T::initialize(), aborting\n")));
 
-      Common_Signal_Tools::finalize (COMMON_SIGNAL_DISPATCH_SIGNAL,
+      Common_Signal_Tools::finalize ((use_reactor ? COMMON_SIGNAL_DISPATCH_REACTOR
+                                                  : COMMON_SIGNAL_DISPATCH_PROACTOR),
                                      signal_set,
                                      previous_signal_actions,
                                      previous_signal_mask);
@@ -1320,6 +1335,7 @@ ACE_TMAIN (int argc_in,
            network_interface,
            use_loopback,
            listening_port_number,
+           use_reactor,
            statistic_reporting_interval,
            use_UDP,
            number_of_dispatch_threads,
@@ -1353,7 +1369,8 @@ ACE_TMAIN (int argc_in,
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to ACE_Profile_Timer::elapsed_time: \"%m\", aborting\n")));
 
-    Common_Signal_Tools::finalize (COMMON_SIGNAL_DISPATCH_SIGNAL,
+    Common_Signal_Tools::finalize ((use_reactor ? COMMON_SIGNAL_DISPATCH_REACTOR
+                                                : COMMON_SIGNAL_DISPATCH_PROACTOR),
                                    signal_set,
                                    previous_signal_actions,
                                    previous_signal_mask);
@@ -1410,7 +1427,8 @@ ACE_TMAIN (int argc_in,
               elapsed_rusage.ru_nivcsw));
 #endif
 
-  Common_Signal_Tools::finalize (COMMON_SIGNAL_DISPATCH_SIGNAL,
+  Common_Signal_Tools::finalize ((use_reactor ? COMMON_SIGNAL_DISPATCH_REACTOR
+                                              : COMMON_SIGNAL_DISPATCH_PROACTOR),
                                  signal_set,
                                  previous_signal_actions,
                                  previous_signal_mask);

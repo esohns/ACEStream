@@ -182,6 +182,10 @@ do_printUsage (const std::string& programName_in)
             << TEST_I_DEFAULT_PORT
             << ACE_TEXT_ALWAYS_CHAR ("]")
             << std::endl;
+  std::cout << ACE_TEXT_ALWAYS_CHAR ("-r          : use reactor [")
+            << (COMMON_EVENT_DEFAULT_DISPATCH == COMMON_EVENT_DISPATCH_REACTOR)
+            << ACE_TEXT_ALWAYS_CHAR ("]")
+            << std::endl;
   std::cout << ACE_TEXT_ALWAYS_CHAR ("-s [VALUE]  : statistic reporting interval (second(s)) [")
             << STREAM_DEFAULT_STATISTIC_REPORTING_INTERVAL
             << ACE_TEXT_ALWAYS_CHAR ("] [0: off]")
@@ -222,7 +226,7 @@ do_processArguments (int argc_in,
                      enum Stream_MediaFramework_Type& mediaFramework_out,
 #endif // ACE_WIN32 || ACE_WIN64
                      unsigned short& port_out,
-                     enum Common_EventDispatchType& eventDispatchType_in,
+                     bool& useReactor_out,
                      unsigned int& statisticReportingInterval_out,
                      bool& traceInformation_out,
                      bool& useUDP_out,
@@ -243,7 +247,7 @@ do_processArguments (int argc_in,
   deviceIdentifier_out += ACE_DIRECTORY_SEPARATOR_CHAR_A;
   deviceIdentifier_out +=
     ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_DEFAULT_VIDEO_DEVICE);
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
   std::string path = configuration_path;
   path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
   path += ACE_TEXT_ALWAYS_CHAR (COMMON_LOCATION_CONFIGURATION_SUBDIRECTORY);
@@ -258,9 +262,10 @@ do_processArguments (int argc_in,
   logToFile_out = false;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   mediaFramework_out = STREAM_LIB_DEFAULT_MEDIAFRAMEWORK;
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
   port_out = TEST_I_DEFAULT_PORT;
-  eventDispatchType_in = COMMON_EVENT_DEFAULT_DISPATCH;
+  useReactor_out =
+    (COMMON_EVENT_DEFAULT_DISPATCH == COMMON_EVENT_DISPATCH_REACTOR);
   statisticReportingInterval_out = STREAM_DEFAULT_STATISTIC_REPORTING_INTERVAL;
   traceInformation_out = false;
   useUDP_out = false;
@@ -271,10 +276,10 @@ do_processArguments (int argc_in,
   ACE_Get_Opt argumentParser (argc_in,
                               argv_in,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-                              ACE_TEXT ("b:ce:fg::h:lmp:s:tuvx:"),
+                              ACE_TEXT ("b:ce:fg::h:lmp:rs:tuvx:"),
 #else
-                              ACE_TEXT ("b:d:e:fg::h:lp:s:tuvx:"),
-#endif
+                              ACE_TEXT ("b:d:e:fg::h:lp:rs:tuvx:"),
+#endif // ACE_WIN32 || ACE_WIN64
                               1,                          // skip command name
                               1,                          // report parsing errors
                               ACE_Get_Opt::PERMUTE_ARGS,  // ordering
@@ -306,7 +311,7 @@ do_processArguments (int argc_in,
         deviceIdentifier_out = ACE_TEXT_ALWAYS_CHAR (argumentParser.opt_arg ());
         break;
       }
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
       case 'e':
       {
         gtkRcFile_out = ACE_TEXT_ALWAYS_CHAR (argumentParser.opt_arg ());
@@ -342,13 +347,18 @@ do_processArguments (int argc_in,
         mediaFramework_out = STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION;
         break;
       }
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
       case 'p':
       {
         converter.clear ();
         converter.str (ACE_TEXT_ALWAYS_CHAR (""));
         converter << argumentParser.opt_arg ();
         converter >> port_out;
+        break;
+      }
+      case 'r':
+      {
+        useReactor_out = true;
         break;
       }
       case 's':
@@ -799,7 +809,7 @@ do_work (const std::string& deviceIdentifier_in,
          enum Stream_MediaFramework_Type mediaFramework_in,
 #endif // ACE_WIN32 || ACE_WIN64
          unsigned short port_in,
-         enum Common_EventDispatchType eventDispatchType_in,
+         bool useReactor_in,
          unsigned int statisticReportingInterval_in,
          bool useUDP_in,
          unsigned int numberOfProactorDispatchThreads_in,
@@ -850,9 +860,12 @@ do_work (const std::string& deviceIdentifier_in,
   camstream_configuration_p = v4l2CBData_in.configuration;
 #endif // ACE_WIN32 || ACE_WIN64
   ACE_ASSERT (camstream_configuration_p);
-  camstream_configuration_p->dispatchConfiguration.numberOfProactorThreads =
-    numberOfProactorDispatchThreads_in;
-  camstream_configuration_p->dispatchConfiguration.numberOfReactorThreads = 1;
+  if (useReactor_in)
+    camstream_configuration_p->dispatchConfiguration.numberOfReactorThreads =
+      TEST_I_DEFAULT_NUMBER_OF_DISPATCHING_THREADS;
+  else
+    camstream_configuration_p->dispatchConfiguration.numberOfProactorThreads =
+      numberOfProactorDispatchThreads_in;
   if (!Common_Tools::initializeEventDispatch (camstream_configuration_p->dispatchConfiguration))
   {
     ACE_DEBUG ((LM_ERROR,
@@ -1109,102 +1122,90 @@ do_work (const std::string& deviceIdentifier_in,
                                                    : NET_TRANSPORTLAYER_TCP);
 
   result = false;
-  switch (eventDispatchType_in)
+  if (useReactor_in)
   {
-    case COMMON_EVENT_DISPATCH_REACTOR:
-    {
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-      switch (mediaFramework_in)
-      {
-        case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
-        {
-          ACE_NEW_NORETURN (directShowCBData_in.stream,
-                            Test_I_Source_DirectShow_TCPStream_t ());
-          ACE_NEW_NORETURN (directShowCBData_in.UDPStream,
-                            Test_I_Source_DirectShow_UDPStream_t ());
-          result = (directShowCBData_in.stream &&
-                    directShowCBData_in.UDPStream);
-          break;
-        }
-        case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
-        {
-          ACE_NEW_NORETURN (mediaFoundationCBData_in.stream,
-                            Test_I_Source_MediaFoundation_TCPStream_t ());
-          ACE_NEW_NORETURN (mediaFoundationCBData_in.UDPStream,
-                            Test_I_Source_MediaFoundation_UDPStream_t ());
-          result = (mediaFoundationCBData_in.stream &&
-                    mediaFoundationCBData_in.UDPStream);
-          break;
-        }
-        default:
-        {
-          ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("invalid/unknown media framework (was: %d), returning\n"),
-                      mediaFramework_in));
-          return;
-        }
-      } // end SWITCH
-#else
-      ACE_NEW_NORETURN (v4l2CBData_in.stream,
-                        Test_I_Source_V4L_TCPStream_t ());
-      ACE_NEW_NORETURN (v4l2CBData_in.UDPStream,
-                        Test_I_Source_V4L_UDPStream_t ());
-      result = (v4l2CBData_in.stream &&
-                v4l2CBData_in.UDPStream);
-#endif // ACE_WIN32 || ACE_WIN64
-      break;
-    }
-    case COMMON_EVENT_DISPATCH_PROACTOR:
+    switch (mediaFramework_in)
     {
+      case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
+      {
+        ACE_NEW_NORETURN (directShowCBData_in.stream,
+                          Test_I_Source_DirectShow_TCPStream_t ());
+        ACE_NEW_NORETURN (directShowCBData_in.UDPStream,
+                          Test_I_Source_DirectShow_UDPStream_t ());
+        result = (directShowCBData_in.stream &&
+                  directShowCBData_in.UDPStream);
+        break;
+      }
+      case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
+      {
+        ACE_NEW_NORETURN (mediaFoundationCBData_in.stream,
+                          Test_I_Source_MediaFoundation_TCPStream_t ());
+        ACE_NEW_NORETURN (mediaFoundationCBData_in.UDPStream,
+                          Test_I_Source_MediaFoundation_UDPStream_t ());
+        result = (mediaFoundationCBData_in.stream &&
+                  mediaFoundationCBData_in.UDPStream);
+        break;
+      }
+      default:
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("invalid/unknown media framework (was: %d), returning\n"),
+                    mediaFramework_in));
+        return;
+      }
+    } // end SWITCH
+#else
+    ACE_NEW_NORETURN (v4l2CBData_in.stream,
+                      Test_I_Source_V4L_TCPStream_t ());
+    ACE_NEW_NORETURN (v4l2CBData_in.UDPStream,
+                      Test_I_Source_V4L_UDPStream_t ());
+    result = (v4l2CBData_in.stream &&
+              v4l2CBData_in.UDPStream);
+#endif // ACE_WIN32 || ACE_WIN64
+  } // end IF
+  else
+  {
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-      switch (mediaFramework_in)
-      {
-        case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
-        {
-          ACE_NEW_NORETURN (directShowCBData_in.stream,
-                            Test_I_Source_DirectShow_AsynchTCPStream_t ());
-          ACE_NEW_NORETURN (directShowCBData_in.UDPStream,
-                            Test_I_Source_DirectShow_AsynchUDPStream_t ());
-          result = (directShowCBData_in.stream &&
-                    directShowCBData_in.UDPStream);
-          break;
-        }
-        case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
-        {
-          ACE_NEW_NORETURN (mediaFoundationCBData_in.stream,
-                            Test_I_Source_MediaFoundation_AsynchTCPStream_t ());
-          ACE_NEW_NORETURN (mediaFoundationCBData_in.UDPStream,
-                            Test_I_Source_MediaFoundation_AsynchUDPStream_t ());
-          result = (mediaFoundationCBData_in.stream &&
-                    mediaFoundationCBData_in.UDPStream);
-          break;
-        }
-        default:
-        {
-          ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("invalid/unknown media framework (was: %d), returning\n"),
-                      mediaFramework_in));
-          return;
-        }
-      } // end SWITCH
-#else
-      ACE_NEW_NORETURN (v4l2CBData_in.stream,
-                        Test_I_Source_V4L_AsynchTCPStream_t ());
-      ACE_NEW_NORETURN (v4l2CBData_in.UDPStream,
-                        Test_I_Source_V4L_AsynchUDPStream_t ());
-      result = (v4l2CBData_in.stream &&
-                v4l2CBData_in.UDPStream);
-#endif // ACE_WIN32 || ACE_WIN64
-      break;
-    }
-    default:
+    switch (mediaFramework_in)
     {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("invalid/unknown event dispatch type (was: %d), returning\n"),
-                  eventDispatchType_in));
-      return;
-    }
-  } // end SWITCH
+      case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
+      {
+        ACE_NEW_NORETURN (directShowCBData_in.stream,
+                          Test_I_Source_DirectShow_AsynchTCPStream_t ());
+        ACE_NEW_NORETURN (directShowCBData_in.UDPStream,
+                          Test_I_Source_DirectShow_AsynchUDPStream_t ());
+        result = (directShowCBData_in.stream &&
+                  directShowCBData_in.UDPStream);
+        break;
+      }
+      case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
+      {
+        ACE_NEW_NORETURN (mediaFoundationCBData_in.stream,
+                          Test_I_Source_MediaFoundation_AsynchTCPStream_t ());
+        ACE_NEW_NORETURN (mediaFoundationCBData_in.UDPStream,
+                          Test_I_Source_MediaFoundation_AsynchUDPStream_t ());
+        result = (mediaFoundationCBData_in.stream &&
+                  mediaFoundationCBData_in.UDPStream);
+        break;
+      }
+      default:
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("invalid/unknown media framework (was: %d), returning\n"),
+                    mediaFramework_in));
+        return;
+      }
+    } // end SWITCH
+#else
+    ACE_NEW_NORETURN (v4l2CBData_in.stream,
+                      Test_I_Source_V4L_AsynchTCPStream_t ());
+    ACE_NEW_NORETURN (v4l2CBData_in.UDPStream,
+                      Test_I_Source_V4L_AsynchUDPStream_t ());
+    result = (v4l2CBData_in.stream &&
+              v4l2CBData_in.UDPStream);
+#endif // ACE_WIN32 || ACE_WIN64
+  } // end ELSE
   if (!result)
   {
     ACE_DEBUG ((LM_CRITICAL,
@@ -1273,8 +1274,8 @@ do_work (const std::string& deviceIdentifier_in,
 #endif // ACE_WIN32 || ACE_WIN64
   struct Common_TimerConfiguration timer_configuration;
   timer_configuration.dispatch =
-    ((eventDispatchType_in == COMMON_EVENT_DISPATCH_REACTOR) ? COMMON_TIMER_DISPATCH_REACTOR
-                                                             : COMMON_TIMER_DISPATCH_PROACTOR);
+    (useReactor_in ? COMMON_TIMER_DISPATCH_REACTOR
+                   : COMMON_TIMER_DISPATCH_PROACTOR);
   Common_Timer_Manager_t* timer_manager_p =
       COMMON_TIMERMANAGER_SINGLETON::instance ();
   ACE_ASSERT (timer_manager_p);
@@ -1442,11 +1443,11 @@ do_work (const std::string& deviceIdentifier_in,
   ACE_Event_Handler* event_handler_p = NULL;
 //  struct Net_SocketHandlerConfiguration* socket_handler_configuration_p = NULL;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  Test_I_Source_DirectShow_SignalHandler_t directshow_signal_handler (((eventDispatchType_in == COMMON_EVENT_DISPATCH_REACTOR) ? COMMON_SIGNAL_DISPATCH_REACTOR
-                                                                                                                               : COMMON_SIGNAL_DISPATCH_PROACTOR),
+  Test_I_Source_DirectShow_SignalHandler_t directshow_signal_handler ((useReactor_in ? COMMON_SIGNAL_DISPATCH_REACTOR
+                                                                                     : COMMON_SIGNAL_DISPATCH_PROACTOR),
                                                                       &directShowCBData_in.subscribersLock);
-  Test_I_Source_MediaFoundation_SignalHandler_t mediafoundation_signal_handler (((eventDispatchType_in == COMMON_EVENT_DISPATCH_REACTOR) ? COMMON_SIGNAL_DISPATCH_REACTOR
-                                                                                                                                         : COMMON_SIGNAL_DISPATCH_PROACTOR),
+  Test_I_Source_MediaFoundation_SignalHandler_t mediafoundation_signal_handler ((useReactor_in ? COMMON_SIGNAL_DISPATCH_REACTOR
+                                                                                               : COMMON_SIGNAL_DISPATCH_PROACTOR),
                                                                                 &mediaFoundationCBData_in.subscribersLock);
 
   switch (mediaFramework_in)
@@ -1468,8 +1469,8 @@ do_work (const std::string& deviceIdentifier_in,
     }
   } // end SWITCH
 #else
-  Test_I_Source_V4L_SignalHandler_t signal_handler (((eventDispatchType_in == COMMON_EVENT_DISPATCH_REACTOR) ? COMMON_SIGNAL_DISPATCH_REACTOR
-                                                                                                              : COMMON_SIGNAL_DISPATCH_PROACTOR),
+  Test_I_Source_V4L_SignalHandler_t signal_handler ((useReactor_in ? COMMON_SIGNAL_DISPATCH_REACTOR
+                                                                   : COMMON_SIGNAL_DISPATCH_PROACTOR),
                                                      &v4l2CBData_in.subscribersLock);
   event_handler_p =
     dynamic_cast<Test_I_Source_V4L_Module_EventHandler*> (event_handler_module.writer ());
@@ -1743,8 +1744,8 @@ do_work (const std::string& deviceIdentifier_in,
     goto clean;
   } // end IF
   ACE_ASSERT (event_handler_p);
-  if (!Common_Signal_Tools::initialize (((eventDispatchType_in == COMMON_EVENT_DISPATCH_REACTOR) ? COMMON_SIGNAL_DISPATCH_REACTOR
-                                                                                                 : COMMON_SIGNAL_DISPATCH_PROACTOR),
+  if (!Common_Signal_Tools::initialize ((useReactor_in ? COMMON_SIGNAL_DISPATCH_REACTOR
+                                                       : COMMON_SIGNAL_DISPATCH_PROACTOR),
                                         signalSet_in,
                                         ignoredSignalSet_in,
                                         event_handler_p,
@@ -1954,8 +1955,8 @@ clean:
   //              ACE_TEXT ("%s: failed to ACE_Module::close (): \"%m\", continuing\n"),
   //              event_handler.name ()));
 
-  Common_Signal_Tools::finalize (((eventDispatchType_in == COMMON_EVENT_DISPATCH_REACTOR) ? COMMON_SIGNAL_DISPATCH_REACTOR
-                                                                                          : COMMON_SIGNAL_DISPATCH_PROACTOR),
+  Common_Signal_Tools::finalize ((useReactor_in ? COMMON_SIGNAL_DISPATCH_REACTOR
+                                                : COMMON_SIGNAL_DISPATCH_PROACTOR),
                                  signalSet_in,
                                  previousSignalActions_inout,
                                  previousSignalMask_in);
@@ -2101,8 +2102,8 @@ ACE_TMAIN (int argc_in,
     STREAM_LIB_DEFAULT_MEDIAFRAMEWORK;
 #endif // ACE_WIN32 || ACE_WIN64
   unsigned short port = TEST_I_DEFAULT_PORT;
-  enum Common_EventDispatchType event_dispatch_type_e =
-      COMMON_EVENT_DEFAULT_DISPATCH;
+  bool use_reactor =
+    (COMMON_EVENT_DEFAULT_DISPATCH == COMMON_EVENT_DISPATCH_REACTOR);
   unsigned int statistic_reporting_interval =
     STREAM_DEFAULT_STATISTIC_REPORTING_INTERVAL;
   bool trace_information = false;
@@ -2129,7 +2130,7 @@ ACE_TMAIN (int argc_in,
                             media_framework_e,
 #endif // ACE_WIN32 || ACE_WIN64
                             port,
-                            event_dispatch_type_e,
+                            use_reactor,
                             statistic_reporting_interval,
                             trace_information,
                             use_UDP,
@@ -2358,7 +2359,8 @@ ACE_TMAIN (int argc_in,
     return EXIT_FAILURE;
   } // end IF
   if (!Common_Signal_Tools::preInitialize (signal_set,
-                                           (event_dispatch_type_e == COMMON_EVENT_DISPATCH_REACTOR),
+                                           (use_reactor ? COMMON_SIGNAL_DISPATCH_REACTOR
+                                                        : COMMON_SIGNAL_DISPATCH_PROACTOR),
                                            previous_signal_actions,
                                            previous_signal_mask))
   {
@@ -2382,8 +2384,8 @@ ACE_TMAIN (int argc_in,
   {
     do_printVersion (ACE::basename (argv_in[0]));
 
-    Common_Signal_Tools::finalize (((event_dispatch_type_e == COMMON_EVENT_DISPATCH_REACTOR) ? COMMON_SIGNAL_DISPATCH_REACTOR
-                                                                                             : COMMON_SIGNAL_DISPATCH_PROACTOR),
+    Common_Signal_Tools::finalize ((use_reactor ? COMMON_SIGNAL_DISPATCH_REACTOR
+                                                : COMMON_SIGNAL_DISPATCH_PROACTOR),
                                    signal_set,
                                    previous_signal_actions,
                                    previous_signal_mask);
@@ -2408,8 +2410,8 @@ ACE_TMAIN (int argc_in,
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Common_Tools::setResourceLimits(), aborting\n")));
 
-    Common_Signal_Tools::finalize (((event_dispatch_type_e == COMMON_EVENT_DISPATCH_REACTOR) ? COMMON_SIGNAL_DISPATCH_REACTOR
-                                                                                             : COMMON_SIGNAL_DISPATCH_PROACTOR),
+    Common_Signal_Tools::finalize ((use_reactor ? COMMON_SIGNAL_DISPATCH_REACTOR
+                                                : COMMON_SIGNAL_DISPATCH_PROACTOR),
                                    signal_set,
                                    previous_signal_actions,
                                    previous_signal_mask);
@@ -2438,8 +2440,8 @@ ACE_TMAIN (int argc_in,
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to Common_UI_GTK_Manager_T::initialize(), aborting\n")));
 
-      Common_Signal_Tools::finalize (((event_dispatch_type_e == COMMON_EVENT_DISPATCH_REACTOR) ? COMMON_SIGNAL_DISPATCH_REACTOR
-                                                                                               : COMMON_SIGNAL_DISPATCH_PROACTOR),
+      Common_Signal_Tools::finalize ((use_reactor ? COMMON_SIGNAL_DISPATCH_REACTOR
+                                                  : COMMON_SIGNAL_DISPATCH_PROACTOR),
                                      signal_set,
                                      previous_signal_actions,
                                      previous_signal_mask);
@@ -2476,7 +2478,7 @@ ACE_TMAIN (int argc_in,
            media_framework_e,
 #endif // ACE_WIN32 || ACE_WIN64
            port,
-           event_dispatch_type_e,
+           use_reactor,
            statistic_reporting_interval,
            use_UDP,
            number_of_proactor_dispatch_threads,
@@ -2515,8 +2517,8 @@ ACE_TMAIN (int argc_in,
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to ACE_Profile_Timer::elapsed_time: \"%m\", aborting\n")));
 
-    Common_Signal_Tools::finalize (((event_dispatch_type_e == COMMON_EVENT_DISPATCH_REACTOR) ? COMMON_SIGNAL_DISPATCH_REACTOR
-                                                                                             : COMMON_SIGNAL_DISPATCH_PROACTOR),
+    Common_Signal_Tools::finalize ((use_reactor ? COMMON_SIGNAL_DISPATCH_REACTOR
+                                                : COMMON_SIGNAL_DISPATCH_PROACTOR),
                                    signal_set,
                                    previous_signal_actions,
                                    previous_signal_mask);
@@ -2574,8 +2576,8 @@ ACE_TMAIN (int argc_in,
               elapsed_rusage.ru_nivcsw));
 #endif // ACE_WIN32 || ACE_WIN64
 
-  Common_Signal_Tools::finalize (((event_dispatch_type_e == COMMON_EVENT_DISPATCH_REACTOR) ? COMMON_SIGNAL_DISPATCH_REACTOR
-                                                                                           : COMMON_SIGNAL_DISPATCH_PROACTOR),
+  Common_Signal_Tools::finalize ((use_reactor ? COMMON_SIGNAL_DISPATCH_REACTOR
+                                              : COMMON_SIGNAL_DISPATCH_PROACTOR),
                                  signal_set,
                                  previous_signal_actions,
                                  previous_signal_mask);

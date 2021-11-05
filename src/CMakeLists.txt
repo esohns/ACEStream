@@ -20,6 +20,10 @@ else ()
 endif ()
 add_definitions (-DCOMMON_HAS_DLL)
 
+if (UNIX)
+ add_link_options ("LINKER:--as-needed")
+endif (UNIX)
+
 # ........................................
 
 add_library (${PROJECT_NAME} STATIC "")
