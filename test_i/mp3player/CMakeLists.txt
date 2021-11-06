@@ -1,26 +1,12 @@
-if (UNIX)
- set (MPG123_LIB_FILE libmpg123.so.0)
- find_library (MPG123_LIBRARY ${MPG123_LIB_FILE}
-#               PATH_SUFFIXES lib
-               DOC "searching for \"${MPG123_LIB_FILE}\"")
-elseif (WIN32)
-# unset (MPG123_LIB_FILE)
- set (MPG123_LIB_FILE libmpg123-0.lib)
- find_library (MPG123_LIBRARY ${MPG123_LIB_FILE}
-#               PATHS ${CMAKE_CURRENT_SOURCE_DIR}/../../../../libmysql
-#               PATH_SUFFIXES lib
-               PATHS $ENV{LIB_ROOT}/mpg123
-#               PATH_SUFFIXES cmake/libmysql/Debug
-               DOC "searching for \"${MPG123_LIB_FILE}\"")
-endif ()
-if (NOT MPG123_LIBRARY)
- message (FATAL_ERROR "could not find \"${MPG123_LIB_FILE}\"), aborting")
-endif (NOT MPG123_LIBRARY)
-#add_dependencies (${PROJECT_NAME}_Database libmysqlpp.so)
+set (CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_CURRENT_SOURCE_DIR}/../../src/modules/dec/scripts")
+include (mpg123)
 
 get_filename_component (BUILD_PATH ${CMAKE_CURRENT_BINARY_DIR}/../.. REALPATH)
 get_filename_component (BUILD_PATH_SUFFIX ${BUILD_PATH} NAME)
 
+if (MPG123_SUPPORT)
+ include_directories (${MPG123_INCLUDE_DIRS})
+endif (MPG123_SUPPORT)
 if (UNIX)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../Common/src)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../Common/src/log)
@@ -54,7 +40,7 @@ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../src)
 include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../src/modules/dec)
 include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../src/modules/dev)
 include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../src/modules/file)
-include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../src/modules/misc)
+#include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../src/modules/misc)
 include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../src/modules/stat)
 
 include_directories (${CMAKE_CURRENT_SOURCE_DIR}/..)
@@ -94,7 +80,11 @@ if (WIN32)
 endif ()
 
 target_link_libraries (${EXECUTABLE} ${CMAKE_THREAD_LIBS_INIT})
-target_link_libraries (${EXECUTABLE} ${MPG123_LIBRARY})
+
+if (MPG123_SUPPORT)
+ target_link_libraries (${EXECUTABLE} ${MPG123_LIBRARY})
+endif (MPG123_SUPPORT)
+
 target_link_libraries (${EXECUTABLE} ${ACE_LIBRARY})
 
 target_link_libraries (${EXECUTABLE} Common)
@@ -136,7 +126,6 @@ if (UNIX)
                          WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/test_i/${EXECUTABLE}
                          ENVIRONMENT foo=bar)
 elseif (WIN32)
-# file (TO_CMAKE_PATH $ENV{LIB_ROOT}/ffmpeg/bin FFMPEG_PATH)
  file (TO_CMAKE_PATH $ENV{LIB_ROOT}/mpg123 MPG123_PATH)
  file (TO_CMAKE_PATH $ENV{LIB_ROOT}/ACE_TAO/ACE/lib ACE_PATH)
  set (RUNTIME_LIBRARY_DIRS ${RUNTIME_LIBRARY_DIRS}
