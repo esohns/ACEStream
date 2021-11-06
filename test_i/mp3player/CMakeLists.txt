@@ -71,6 +71,8 @@ set (${EXECUTABLE}_EXE_SRCS
      test_i_session_message.h
      test_i_mp3player_common.h
      test_i_mp3player_defines.h
+     test_i_mp3player_signalhandler.cpp
+     test_i_mp3player_signalhandler.h
      test_i.cpp
      test_i_stream.cpp
      test_i_stream.h
@@ -92,15 +94,8 @@ if (WIN32)
 endif ()
 
 target_link_libraries (${EXECUTABLE} ${CMAKE_THREAD_LIBS_INIT})
-if (UNIX)
-elseif (WIN32)
-# target_link_options (${EXECUTABLE} PUBLIC "$<$<CXX_COMPILER_ID:MSVC>:-SAFESEH:NO>")
-endif ()
 target_link_libraries (${EXECUTABLE} ${MPG123_LIBRARY})
 target_link_libraries (${EXECUTABLE} ${ACE_LIBRARY})
-#if (SSL_SUPPORT)
-# target_link_libraries (${EXECUTABLE} ${ACE_SSL_LIBRARY})
-#endif (SSL_SUPPORT)
 
 target_link_libraries (${EXECUTABLE} Common)
 target_link_libraries (${EXECUTABLE} CommonLog)

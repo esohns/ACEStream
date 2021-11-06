@@ -86,18 +86,11 @@ Test_I_Stream::initialize (const Test_I_StreamConfiguration_t& configuration_in)
   // sanity check(s)
   ACE_ASSERT (!this->isRunning ());
 
-//  bool result = false;
   bool setup_pipeline = configuration_in.configuration_->setupPipeline;
   bool reset_setup_pipeline = false;
   struct Test_I_MP3Player_SessionData* session_data_p = NULL;
   typename inherited::CONFIGURATION_T::ITERATOR_T iterator;
   Test_I_MP3Decoder* MP3Decoder_impl_p = NULL;
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-  struct _AMMediaType media_type_s;
-  WAVEFORMATEX format_s;
-#else
-  struct Stream_MediaFramework_ALSA_MediaType media_type_s;
-#endif // ACE_WIN32 || ACE_WIN64
 
   // allocate a new session state, reset stream
   const_cast<Test_I_StreamConfiguration_t&> (configuration_in).configuration_->setupPipeline =
@@ -120,34 +113,8 @@ Test_I_Stream::initialize (const Test_I_StreamConfiguration_t& configuration_in)
   iterator =
       const_cast<Test_I_StreamConfiguration_t&> (configuration_in).find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (iterator != configuration_in.end ());
-
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-  format_s.wFormatTag = WAVE_FORMAT_PCM;
-  format_s.nChannels = 2;
-  format_s.nSamplesPerSec = 44100;
-  format_s.wBitsPerSample = 16;
-  format_s.nBlockAlign = (format_s.nChannels * (format_s.wBitsPerSample / 8));
-  format_s.nAvgBytesPerSec = (format_s.nSamplesPerSec * format_s.nBlockAlign);
-  format_s.cbSize = 0;
-  HRESULT result = CreateAudioMediaType (&format_s, &media_type_s, TRUE);
-  if (FAILED (result))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: failed to CreateAudioMediaType(): \"%s\", aborting\n"),
-                ACE_TEXT (stream_name_string_),
-                ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ())));
-    goto failed;
-  } // end IF
-#else
-//  media_type_s.access = SND_PCM_ACCESS_RW_INTERLEAVED;
-  media_type_s.channels = 2;
-  media_type_s.format = SND_PCM_FORMAT_S16;
-  media_type_s.rate = 44100;
-#endif // ACE_WIN32 || ACE_WIN64
-  session_data_p->formats.push_back (media_type_s);
   session_data_p->targetFileName =
     configuration_in.configuration_->fileIdentifier.identifier;
-//  configuration_in.moduleConfiguration.streamState = &state_;
 
   // ---------------------------------------------------------------------------
   // *TODO*: remove type inferences

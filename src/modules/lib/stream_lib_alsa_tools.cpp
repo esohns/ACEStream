@@ -50,7 +50,9 @@ Stream_MediaFramework_ALSA_Tools::setFormat (struct _snd_pcm* deviceHandle_in,
   int subunit_direction = 0;
   unsigned int periods_i = configuration_in.periods;
   snd_pcm_uframes_t period_size_i = configuration_in.periodSize;
+  unsigned int period_time_i = configuration_in.periodTime;
   snd_pcm_uframes_t buffer_size_i = configuration_in.bufferSize;
+  unsigned int buffer_time_i = configuration_in.bufferTime;
   snd_pcm_sw_params_t* snd_pcm_sw_params_p = NULL;
   snd_pcm_uframes_t start_threshold_i =
       ((snd_pcm_stream (deviceHandle_in) == SND_PCM_STREAM_PLAYBACK) ? configuration_in.bufferSize : 1);
@@ -133,13 +135,28 @@ Stream_MediaFramework_ALSA_Tools::setFormat (struct _snd_pcm* deviceHandle_in,
   /* Set buffer size (in frames). The resulting latency is given by */
   /* latency = periodsize * periods / (rate * bytes_per_frame)      */
   result =
-    snd_pcm_hw_params_set_periods_near (deviceHandle_in, snd_pcm_hw_params_p,
-                                        &periods_i,
-                                        &subunit_direction);
+    snd_pcm_hw_params_set_periods_min (deviceHandle_in, snd_pcm_hw_params_p,
+                                       &periods_i,
+                                       &subunit_direction);
+//    snd_pcm_hw_params_set_periods_near (deviceHandle_in, snd_pcm_hw_params_p,
+//                                        &periods_i,
+//                                        &subunit_direction);
   if (unlikely (result < 0))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: failed to snd_pcm_hw_params_set_periods_near(%u): \"%s\", aborting\n"),
+                ACE_TEXT ("%s: failed to snd_pcm_hw_params_set_periods_min(%u): \"%s\", aborting\n"),
+                ACE_TEXT (snd_pcm_name (deviceHandle_in)), configuration_in.periods,
+                ACE_TEXT (snd_strerror (result))));
+    goto error;
+  } // end IF
+  result =
+    snd_pcm_hw_params_set_periods_first (deviceHandle_in, snd_pcm_hw_params_p,
+                                         &periods_i,
+                                         &subunit_direction);
+  if (unlikely (result < 0))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s: failed to snd_pcm_hw_params_set_periods_first(%u): \"%s\", aborting\n"),
                 ACE_TEXT (snd_pcm_name (deviceHandle_in)), configuration_in.periods,
                 ACE_TEXT (snd_strerror (result))));
     goto error;
@@ -167,19 +184,25 @@ Stream_MediaFramework_ALSA_Tools::setFormat (struct _snd_pcm* deviceHandle_in,
                 ACE_TEXT ("%s: failed to set period size (was: %u, result: %u), continuing\n"),
                 ACE_TEXT (snd_pcm_name (deviceHandle_in)),
                 configuration_in.periodSize, period_size_i));
-//   subunit_direction = 0;
-//   result =
-//       snd_pcm_hw_params_set_period_time_near (deviceHandle_in, snd_pcm_hw_params_p,
-//                                               &const_cast<struct Stream_MediaFramework_ALSA_MediaType&> (mediaType_in).periodTime,
-//                                               &subunit_direction);
-//   if (unlikely (result < 0))
-//   {
-//     ACE_DEBUG ((LM_ERROR,
-//                 ACE_TEXT ("%s: failed to snd_pcm_hw_params_set_period_time_near(): \"%s\", aborting\n"),
-//                 ACE_TEXT (snd_pcm_name (deviceHandle_in)),
-//                 ACE_TEXT (snd_strerror (result))));
-//     goto error;
-//   } // end IF
+  subunit_direction = 0;
+  result =
+    snd_pcm_hw_params_set_period_time_near (deviceHandle_in, snd_pcm_hw_params_p,
+                                            &period_time_i,
+                                            &subunit_direction);
+  if (unlikely (result < 0))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s: failed to snd_pcm_hw_params_set_period_time_near(%u): \"%s\", aborting\n"),
+                ACE_TEXT (snd_pcm_name (deviceHandle_in)), configuration_in.periodTime,
+                ACE_TEXT (snd_strerror (result))));
+    goto error;
+  } // end IF
+  if (period_time_i != configuration_in.periodTime)
+    ACE_DEBUG ((LM_WARNING,
+                ACE_TEXT ("%s: failed to set period time (was: %u, result: %u), continuing\n"),
+                ACE_TEXT (snd_pcm_name (deviceHandle_in)),
+                configuration_in.periodTime, period_time_i));
+
   subunit_direction = 0;
   result =
     snd_pcm_hw_params_set_buffer_size_near (deviceHandle_in, snd_pcm_hw_params_p,
@@ -197,19 +220,24 @@ Stream_MediaFramework_ALSA_Tools::setFormat (struct _snd_pcm* deviceHandle_in,
                 ACE_TEXT ("%s: failed to set buffer size (was: %u, result: %u), continuing\n"),
                 ACE_TEXT (snd_pcm_name (deviceHandle_in)),
                 configuration_in.bufferSize, buffer_size_i));
-//   subunit_direction = 0;
-//   result =
-//       snd_pcm_hw_params_set_buffer_time_near (deviceHandle_in, snd_pcm_hw_params_p,
-//                                               &const_cast<struct Stream_MediaFramework_ALSA_MediaType&> (mediaType_in).bufferTime,
-//                                               &subunit_direction);
-//   if (unlikely (result < 0))
-//   {
-//     ACE_DEBUG ((LM_ERROR,
-//                 ACE_TEXT ("%s: failed to snd_pcm_hw_params_set_buffer_time_near(): \"%s\", aborting\n"),
-//                 ACE_TEXT (snd_pcm_name (deviceHandle_in)),
-//                 ACE_TEXT (snd_strerror (result))));
-//     goto error;
-//   } // end IF
+  subunit_direction = 0;
+  result =
+    snd_pcm_hw_params_set_buffer_time_near (deviceHandle_in, snd_pcm_hw_params_p,
+                                            &buffer_time_i,
+                                            &subunit_direction);
+  if (unlikely (result < 0))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s: failed to snd_pcm_hw_params_set_buffer_time_near(%u): \"%s\", aborting\n"),
+                ACE_TEXT (snd_pcm_name (deviceHandle_in)), configuration_in.bufferTime,
+                ACE_TEXT (snd_strerror (result))));
+    goto error;
+  } // end IF
+  if (buffer_time_i != configuration_in.bufferTime)
+    ACE_DEBUG ((LM_WARNING,
+                ACE_TEXT ("%s: failed to set buffer time (was: %u, result: %u), continuing\n"),
+                ACE_TEXT (snd_pcm_name (deviceHandle_in)),
+                configuration_in.bufferTime, buffer_time_i));
 
   result = snd_pcm_hw_params (deviceHandle_in,
                               snd_pcm_hw_params_p);
@@ -556,8 +584,7 @@ Stream_MediaFramework_ALSA_Tools::formatToString (const struct _snd_pcm* deviceH
   int subunit_direction = 0;
   unsigned int period_time;
   snd_pcm_uframes_t period_size;
-//  unsigned int periods;
-  unsigned int period_min, period_max;
+  unsigned int periods;
   unsigned int buffer_time;
   snd_pcm_uframes_t buffer_size;
   unsigned int rate_resample;
@@ -686,43 +713,24 @@ Stream_MediaFramework_ALSA_Tools::formatToString (const struct _snd_pcm* deviceH
   result += converter.str ();
   result += ACE_TEXT_ALWAYS_CHAR ("\n");
   subunit_direction = 0;
-//  result_2 = snd_pcm_hw_params_get_periods (format_in,
-//                                            &periods,
-//                                            &subunit_direction);
-  result_2 = snd_pcm_hw_params_get_period_time_min (format_in,
-                                                    &period_min,
-                                                    &subunit_direction);
+  result_2 = snd_pcm_hw_params_get_periods (format_in,
+                                            &periods,
+                                            &subunit_direction);
   if (result_2 < 0)
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to snd_pcm_hw_params_get_period_time_min(): \"%s\", aborting\n"),
+                ACE_TEXT ("failed to snd_pcm_hw_params_get_periods(): \"%s\", aborting\n"),
                 ACE_TEXT (snd_strerror (result_2))));
     return result;
   } // end IF
-  result_2 = snd_pcm_hw_params_get_period_time_max (format_in,
-                                                    &period_max,
-                                                    &subunit_direction);
-  if (result_2 < 0)
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to snd_pcm_hw_params_get_period_time_max(): \"%s\", aborting\n"),
-                ACE_TEXT (snd_strerror (result_2))));
-    return result;
-  } // end IF
-//  result += ACE_TEXT_ALWAYS_CHAR ("periods: ");
-  result += ACE_TEXT_ALWAYS_CHAR ("period time (min/max): ");
+  result += ACE_TEXT_ALWAYS_CHAR ("periods: ");
   converter.str (ACE_TEXT_ALWAYS_CHAR (""));
   converter.clear ();
-//  converter << periods;
-  converter << period_min;
-  result += converter.str ();
-  result += ACE_TEXT_ALWAYS_CHAR ("/");
-  converter.str (ACE_TEXT_ALWAYS_CHAR (""));
-  converter.clear ();
-  converter << period_max;
+  converter << periods;
   result += converter.str ();
   result += ACE_TEXT_ALWAYS_CHAR ("\n");
 
+  subunit_direction = 0;
   result_2 = snd_pcm_hw_params_get_buffer_time (format_in,
                                                 &buffer_time,
                                                 &subunit_direction);
@@ -844,17 +852,13 @@ Stream_MediaFramework_ALSA_Tools::dump (struct _snd_pcm* deviceHandle_in)
 
   struct _snd_pcm_hw_params* format_p = NULL;
   int result = -1;
-  unsigned int rate_min, rate_max;
   int subunit_direction = 0;
-  unsigned int period_time_min, period_time_max;
+  unsigned int value_min_i, value_max_i;
   snd_pcm_uframes_t period_size_min, period_size_max;
-  unsigned int periods_min, periods_max;
-  unsigned int buffer_time_min, buffer_time_max;
   snd_pcm_uframes_t buffer_size_min, buffer_size_max;
 
-//    snd_pcm_hw_params_alloca (&format_p);
-  snd_pcm_hw_params_malloc (&format_p);
-  if (!format_p)
+  result = snd_pcm_hw_params_malloc (&format_p);
+  if ((result < 0) || !format_p)
   {
     ACE_DEBUG ((LM_CRITICAL,
                 ACE_TEXT ("failed to snd_pcm_hw_params_malloc(): \"%m\", aborting\n")));
@@ -869,64 +873,94 @@ Stream_MediaFramework_ALSA_Tools::dump (struct _snd_pcm* deviceHandle_in)
     goto error;
   } // end IF
 
-  result = snd_pcm_hw_params_get_rate_min (format_p,
-                                           &rate_min, &subunit_direction);
+  result = snd_pcm_hw_params_get_channels_min (format_p,
+                                               &value_min_i);
   ACE_ASSERT (result >= 0);
+  result = snd_pcm_hw_params_get_channels_max (format_p,
+                                               &value_max_i);
+  ACE_ASSERT (result >= 0);
+  ACE_DEBUG ((LM_DEBUG,
+              ACE_TEXT ("%s: available channels: %u-%u...\n"),
+              ACE_TEXT (snd_pcm_name (deviceHandle_in)),
+              value_min_i, value_max_i));
+
+  result = snd_pcm_hw_params_get_rate_min (format_p,
+                                           &value_min_i,
+                                           &subunit_direction);
+  ACE_ASSERT (result >= 0);
+  subunit_direction = 0;
   result = snd_pcm_hw_params_get_rate_max (format_p,
-                                           &rate_max, &subunit_direction);
+                                           &value_max_i,
+                                           &subunit_direction);
   ACE_ASSERT (result >= 0);
   ACE_DEBUG ((LM_DEBUG,
               ACE_TEXT ("%s: available rates: %u-%u...\n"),
               ACE_TEXT (snd_pcm_name (deviceHandle_in)),
-              rate_min, rate_max));
+              value_min_i, value_max_i));
 
+  subunit_direction = 0;
   result =
     snd_pcm_hw_params_get_period_time_min (format_p,
-                                           &period_time_min, &subunit_direction);
+                                           &value_min_i,
+                                           &subunit_direction);
   ACE_ASSERT (result >= 0);
+  subunit_direction = 0;
   result =
     snd_pcm_hw_params_get_period_time_max (format_p,
-                                           &period_time_max, &subunit_direction);
+                                           &value_max_i,
+                                           &subunit_direction);
   ACE_ASSERT (result >= 0);
   ACE_DEBUG ((LM_DEBUG,
               ACE_TEXT ("%s: available period times: %u-%u (us)...\n"),
               ACE_TEXT (snd_pcm_name (deviceHandle_in)),
-              period_time_min, period_time_max));
+              value_min_i, value_max_i));
+  subunit_direction = 0;
   result =
     snd_pcm_hw_params_get_period_size_min (format_p,
-                                           &period_size_min, &subunit_direction);
+                                           &period_size_min,
+                                           &subunit_direction);
   ACE_ASSERT (result >= 0);
+  subunit_direction = 0;
   result =
     snd_pcm_hw_params_get_period_size_max (format_p,
-                                           &period_size_max, &subunit_direction);
+                                           &period_size_max,
+                                           &subunit_direction);
   ACE_ASSERT (result >= 0);
   ACE_DEBUG ((LM_DEBUG,
               ACE_TEXT ("%s: available period sizes: %u-%u (frames)...\n"),
               ACE_TEXT (snd_pcm_name (deviceHandle_in)),
               period_size_min, period_size_max));
+  subunit_direction = 0;
   result = snd_pcm_hw_params_get_periods_min (format_p,
-                                              &periods_min, &subunit_direction);
+                                              &value_min_i,
+                                              &subunit_direction);
   ACE_ASSERT (result >= 0);
+  subunit_direction = 0;
   result = snd_pcm_hw_params_get_periods_max (format_p,
-                                              &periods_max, &subunit_direction);
+                                              &value_max_i,
+                                              &subunit_direction);
   ACE_ASSERT (result >= 0);
   ACE_DEBUG ((LM_DEBUG,
               ACE_TEXT ("%s: available periods: %u-%u (frames)...\n"),
               ACE_TEXT (snd_pcm_name (deviceHandle_in)),
-              periods_min, periods_max));
+              value_min_i, value_max_i));
 
+  subunit_direction = 0;
   result =
     snd_pcm_hw_params_get_buffer_time_min (format_p,
-                                           &buffer_time_min, &subunit_direction);
+                                           &value_min_i,
+                                           &subunit_direction);
   ACE_ASSERT (result >= 0);
+  subunit_direction = 0;
   result =
     snd_pcm_hw_params_get_buffer_time_max (format_p,
-                                           &buffer_time_max, &subunit_direction);
+                                           &value_max_i,
+                                           &subunit_direction);
   ACE_ASSERT (result >= 0);
   ACE_DEBUG ((LM_DEBUG,
               ACE_TEXT ("%s: available buffer times: %u-%u (us)...\n"),
               ACE_TEXT (snd_pcm_name (deviceHandle_in)),
-              buffer_time_min, buffer_time_max));
+              value_min_i, value_max_i));
   result = snd_pcm_hw_params_get_buffer_size_min (format_p,
                                                   &buffer_size_min);
   ACE_ASSERT (result >= 0);
@@ -937,6 +971,19 @@ Stream_MediaFramework_ALSA_Tools::dump (struct _snd_pcm* deviceHandle_in)
               ACE_TEXT ("%s: available buffer sizes: %u-%u (frames)...\n"),
               ACE_TEXT (snd_pcm_name (deviceHandle_in)),
               buffer_size_min, buffer_size_max));
+
+  // current configuration
+  result = snd_pcm_hw_params_current (deviceHandle_in, format_p);
+  if (result < 0)
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to snd_pcm_hw_params_any(): \"%s\", aborting\n"),
+                ACE_TEXT (snd_strerror (result))));
+    goto error;
+  } // end IF
+  ACE_DEBUG ((LM_DEBUG,
+              ACE_TEXT ("%s\n"),
+              ACE_TEXT (Stream_MediaFramework_ALSA_Tools::formatToString (deviceHandle_in, format_p).c_str ())));
 
 error:
   if (format_p)

@@ -66,6 +66,7 @@
 #include "test_i_stream.h"
 #include "test_i_mp3player_common.h"
 #include "test_i_mp3player_defines.h"
+#include "test_i_mp3player_signalhandler.h"
 
 const char stream_name_string_[] = ACE_TEXT_ALWAYS_CHAR ("MP3PlayerStream");
 
@@ -288,7 +289,9 @@ do_initializeSignals (ACE_Sig_Set& signals_out,
   if (RUNNING_ON_VALGRIND)
     signals_out.sig_del (SIGRTMAX);        // 64
 #endif // VALGRIND_SUPPORT
-#endif
+  // *NOTE*: ALSA uses SIGIO
+  signals_out.sig_del (SIGIO);             // 29      /* Pollable event occurred (System V). */
+#endif // ACE_WIN32 || ACE_WIN64
 }
 
 void
@@ -298,7 +301,7 @@ do_work (unsigned int bufferSize_in,
          const ACE_Sig_Set& signalSet_in,
          const ACE_Sig_Set& ignoredSignalSet_in,
          Common_SignalActions_t& previousSignalActions_inout,
-         Common_SignalHandler_t& signalHandler_in)
+         Test_I_SignalHandler& signalHandler_in)
 {
   STREAM_TRACE (ACE_TEXT ("::do_work"));
 
@@ -325,6 +328,7 @@ do_work (unsigned int bufferSize_in,
 #if defined(ACE_WIN32) || defined(ACE_WIN64)
 #else
   struct Stream_MediaFramework_ALSA_Configuration ALSA_configuration;
+  ALSA_configuration.asynch = false;
   ALSA_configuration.rateResample = true;
   modulehandler_configuration.ALSAConfiguration = &ALSA_configuration;
   modulehandler_configuration.deviceIdentifier.identifier =
@@ -357,6 +361,7 @@ do_work (unsigned int bufferSize_in,
                                                false);
 
   // step0c: initialize signal handling
+  configuration.signalHandlerConfiguration.stream = &stream;
   if (!signalHandler_in.initialize (configuration.signalHandlerConfiguration))
   {
     ACE_DEBUG ((LM_ERROR,
@@ -583,9 +588,8 @@ ACE_TMAIN (int argc_in,
     return EXIT_FAILURE;
   } // end IF
   ACE_SYNCH_RECURSIVE_MUTEX signal_lock;
-  Common_SignalHandler_t signal_handler (COMMON_SIGNAL_DEFAULT_DISPATCH_MODE,
-                                         &signal_lock,
-                                         NULL);
+  Test_I_SignalHandler signal_handler (COMMON_SIGNAL_DEFAULT_DISPATCH_MODE,
+                                       &signal_lock);
 
   // step1f: handle specific program modes
   if (print_version_and_exit)

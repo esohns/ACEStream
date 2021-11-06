@@ -18,6 +18,10 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
+#if defined (_GNU_SOURCE)
+#include "unistd.h"
+#endif // _GNU_SOURCE
+
 #include "ace/Log_Msg.h"
 #include "ace/OS.h"
 #include "ace/Time_Value.h"
@@ -67,31 +71,38 @@ Stream_MessageQueueBase_T<ACE_SYNCH_USE,
   STREAM_TRACE (ACE_TEXT ("Stream_MessageQueueBase_T::waitForIdleState"));
 
   ACE_Time_Value one_second (1, 0);
-  size_t number_of_messages = 0;
+#if defined (_GNU_SOURCE)
+#else
   int result = -1;
+#endif // _GNU_SOURCE
+  size_t count = 0;
+  bool has_waited = false;
   OWN_TYPE_T* this_p = const_cast<OWN_TYPE_T*> (this);
 
   do
   {
-    number_of_messages = this_p->message_count ();
-    if (unlikely (number_of_messages > 0))
-    {
-      ACE_DEBUG ((LM_DEBUG,
-                  ACE_TEXT ("waiting (count: %u message(s))...\n"),
-                  number_of_messages));
+    count = this_p->message_count ();
+    if (!count || this_p->deactivated ())
+      break;
+    has_waited = true;
+    ACE_DEBUG ((LM_DEBUG,
+                ACE_TEXT ("waiting for %u message(s)...\n"),
+                count));
 
-      result = ACE_OS::sleep (one_second);
-      if (unlikely (result == -1))
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("failed to ACE_OS::sleep(%#T): \"%m\", continuing\n"),
-                    &one_second));
-
-      continue;
-    } // end IF
-
-    // OK: queue is empty ATM
-    break;
+#if defined (_GNU_SOURCE)
+    TEMP_FAILURE_RETRY(ACE_OS::sleep (one_second));
+#else
+    result = ACE_OS::sleep (one_second);
+    if (unlikely (result == -1))
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to ACE_OS::sleep(%#T): \"%m\", continuing\n"),
+                  &one_second));
+#endif // _GNU_SOURCE
   } while (true);
+
+  if (has_waited)
+    ACE_DEBUG ((LM_DEBUG,
+                ACE_TEXT ("waiting for message(s)...DONE\n")));
 }
 
 template <ACE_SYNCH_DECL,

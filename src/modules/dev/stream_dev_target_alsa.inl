@@ -309,9 +309,12 @@ Stream_Dev_Target_ALSA_T<ACE_SYNCH_USE,
 
 #if defined (_DEBUG)
   result =
-      snd_output_stdio_open (&debugOutput_,
-                             ACE_TEXT_ALWAYS_CHAR (STREAM_LIB_ALSA_DEFAULT_LOG_FILE),
-                             ACE_TEXT_ALWAYS_CHAR ("w"));
+     snd_output_stdio_attach (&debugOutput_,
+                              stdout,
+                              0);
+//    snd_output_stdio_open (&debugOutput_,
+//                             ACE_TEXT_ALWAYS_CHAR (STREAM_LIB_ALSA_DEFAULT_LOG_FILE),
+//                             ACE_TEXT_ALWAYS_CHAR ("w"));
   if (result < 0)
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to snd_output_stdio_open(): \"%s\", continuing\n"),
@@ -401,6 +404,9 @@ Stream_Dev_Target_ALSA_T<ACE_SYNCH_USE,
   STREAM_TRACE (ACE_TEXT ("Stream_Dev_Target_ALSA_T::handleSessionMessage"));
 
   int result = -1;
+#if defined (_DEBUG)
+  struct _snd_pcm_hw_params* snd_pcm_hw_params_p = NULL;
+#endif // _DEBUG
 
   // don't care (implies yes per default, if part of a stream)
   ACE_UNUSED_ARG (passMessageDownstream_out);
@@ -493,6 +499,15 @@ open:
           goto error;
         } // end IF
         inherited::configuration_->ALSAConfiguration->format = NULL;
+
+#if defined (_DEBUG)
+        Stream_MediaFramework_ALSA_Tools::dump (deviceHandle_);
+        snd_pcm_hw_params_malloc (&snd_pcm_hw_params_p);
+        ACE_ASSERT (snd_pcm_hw_params_p);
+        snd_pcm_hw_params_current (deviceHandle_, snd_pcm_hw_params_p);
+        snd_pcm_hw_params_dump (snd_pcm_hw_params_p, debugOutput_);
+        snd_pcm_hw_params_free (snd_pcm_hw_params_p); snd_pcm_hw_params_p = NULL;
+#endif // _DEBUG
       } // end IF
       ACE_ASSERT (deviceHandle_);
 
@@ -709,19 +724,20 @@ error:
 }
 
 template <ACE_SYNCH_DECL,
-  typename TimePolicyType,
-  typename ConfigurationType,
-  typename ControlMessageType,
-  typename DataMessageType,
-  typename SessionMessageType,
-  typename SessionDataType>
+          typename TimePolicyType,
+          typename ConfigurationType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
+          typename SessionDataType>
 void Stream_Dev_Target_ALSA_T<ACE_SYNCH_USE,
-  TimePolicyType,
-  ConfigurationType,
-  ControlMessageType,
-  DataMessageType,
-  SessionMessageType,
-  SessionDataType>::stop (bool waitForCompletion_in, bool highPriority_in) {
+                              TimePolicyType,
+                              ConfigurationType,
+                              ControlMessageType,
+                              DataMessageType,
+                              SessionMessageType,
+                              SessionDataType>::stop (bool waitForCompletion_in, bool highPriority_in)
+{
   STREAM_TRACE (ACE_TEXT ("Stream_Dev_Target_ALSA_T::stop"));
 
   // sanity check(s)
@@ -732,39 +748,41 @@ void Stream_Dev_Target_ALSA_T<ACE_SYNCH_USE,
 
   // enqueue a control message
   ACE_NEW_NORETURN (message_block_p,
-    ACE_Message_Block (0, // size
-      ACE_Message_Block::MB_STOP, // type
-      NULL, // continuation
-      NULL, // data
-      NULL, // buffer allocator
-      NULL, // locking strategy
-      ACE_DEFAULT_MESSAGE_BLOCK_PRIORITY, // priority
-      ACE_Time_Value::zero, // execution time
-      ACE_Time_Value::max_time, // deadline time
-      NULL, // data block allocator
-      NULL)); // message allocator
-  if (unlikely (!message_block_p)) {
+                    ACE_Message_Block (0, // size
+                                       ACE_Message_Block::MB_STOP, // type
+                                       NULL, // continuation
+                                       NULL, // data
+                                       NULL, // buffer allocator
+                                       NULL, // locking strategy
+                                       ACE_DEFAULT_MESSAGE_BLOCK_PRIORITY, // priority
+                                       ACE_Time_Value::zero, // execution time
+                                       ACE_Time_Value::max_time, // deadline time
+                                       NULL, // data block allocator
+                                       NULL)); // message allocator
+  if (unlikely (!message_block_p))
+  {
     if (inherited::mod_)
       ACE_DEBUG ((LM_CRITICAL,
-        ACE_TEXT ("%s: failed to allocate ACE_Message_Block: \"%m\", returning\n"),
-        inherited::mod_->name ()));
+                  ACE_TEXT ("%s: failed to allocate ACE_Message_Block: \"%m\", returning\n"),
+                  inherited::mod_->name ()));
     else
-      ACE_DEBUG (
-        (LM_CRITICAL, ACE_TEXT ("failed to allocate ACE_Message_Block: \"%m\", returning\n")));
+      ACE_DEBUG ((LM_CRITICAL,
+                  ACE_TEXT ("failed to allocate ACE_Message_Block: \"%m\", returning\n")));
     return;
   } // end IF
 
   result = (highPriority_in ? inherited::ungetq (message_block_p, NULL)
                             : inherited::putq (message_block_p, NULL));
-  if (unlikely (result == -1)) {
+  if (unlikely (result == -1))
+  {
     if (inherited::mod_)
       ACE_DEBUG ((LM_ERROR,
-        ACE_TEXT ("%s: failed to ACE_Task::putq(): \"%m\", continuing\n"),
-        inherited::mod_->name ()));
+                  ACE_TEXT ("%s: failed to ACE_Task::putq(): \"%m\", continuing\n"),
+                  inherited::mod_->name ()));
     else
-      ACE_DEBUG ((LM_ERROR, ACE_TEXT ("failed to ACE_Task::putq(): \"%m\", continuing\n")));
-    message_block_p->release ();
-    message_block_p = NULL;
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to ACE_Task::putq(): \"%m\", continuing\n")));
+    message_block_p->release (); message_block_p = NULL;
   } // end IF
 
   if (waitForCompletion_in)
@@ -772,19 +790,20 @@ void Stream_Dev_Target_ALSA_T<ACE_SYNCH_USE,
 }
 
 template <ACE_SYNCH_DECL,
-  typename TimePolicyType,
-  typename ConfigurationType,
-  typename ControlMessageType,
-  typename DataMessageType,
-  typename SessionMessageType,
-  typename SessionDataType>
+          typename TimePolicyType,
+          typename ConfigurationType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
+          typename SessionDataType>
 int Stream_Dev_Target_ALSA_T<ACE_SYNCH_USE,
-  TimePolicyType,
-  ConfigurationType,
-  ControlMessageType,
-  DataMessageType,
-  SessionMessageType,
-  SessionDataType>::svc (void) {
+                             TimePolicyType,
+                             ConfigurationType,
+                             ControlMessageType,
+                             DataMessageType,
+                             SessionMessageType,
+                             SessionDataType>::svc (void)
+{
   STREAM_TRACE (ACE_TEXT ("Stream_Dev_Target_ALSA_T::svc"));
 
 #if defined(ACE_WIN32) || defined(ACE_WIN64)
@@ -795,18 +814,17 @@ int Stream_Dev_Target_ALSA_T<ACE_SYNCH_USE,
 #endif // _WIN32_WINNT_WIN10
 #endif // ACE_WIN32 || ACE_WIN64
   ACE_DEBUG ((LM_DEBUG,
-    ACE_TEXT ("%s: (%s): worker thread (id: %t, group: %d) starting\n"),
-    inherited::mod_->name (),
-    ACE_TEXT (inherited::threadName_.c_str ()),
-    inherited::grp_id_));
+              ACE_TEXT ("%s: (%s): worker thread (id: %t, group: %d) starting\n"),
+              inherited::mod_->name (),
+              ACE_TEXT (inherited::threadName_.c_str ()),
+              inherited::grp_id_));
 
   ACE_Message_Block *message_block_p = NULL, *head_p = NULL;
   int result = -1;
   int result_2 = -1;
-  int error = -1;
+  int error_i = -1;
   snd_pcm_sframes_t available_frames = 0, frames_written = 0;
   snd_pcm_uframes_t frames_to_write = 0;
-  unsigned int offset = 0;
   unsigned int bytes_to_write = 0;
 
   do
@@ -814,8 +832,8 @@ int Stream_Dev_Target_ALSA_T<ACE_SYNCH_USE,
     result = inherited::getq (message_block_p, NULL);
     if (unlikely (result == -1))
     {
-      error = ACE_OS::last_error ();
-      if (error != ESHUTDOWN)
+      error_i = ACE_OS::last_error ();
+      if (error_i != ESHUTDOWN)
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: worker thread %t failed to ACE_Task::getq(): \"%m\", aborting\n"),
                     inherited::mod_->name ()));
@@ -848,15 +866,25 @@ int Stream_Dev_Target_ALSA_T<ACE_SYNCH_USE,
     } // end IF
 
     // process manually
-    head_p = message_block_p;
+    if (unlikely (head_p))
+    {
+      ACE_Message_Block* message_block_2 = head_p;
+      while (message_block_2->cont ())
+        message_block_2 = message_block_2->cont ();
+      message_block_2->cont (message_block_p);
+    } // end IF
+    else
+      head_p = message_block_p;
+    message_block_p = head_p;
     bytes_to_write = message_block_p->length ();
     do
     {
       available_frames = snd_pcm_avail_update (deviceHandle_);
       if (unlikely (available_frames < 0))
-      {
+      { error_i = available_frames;
         // overrun ? --> recover
-        if (likely (available_frames == -EPIPE))
+        if (likely ((error_i == -EPIPE)    ||
+                    (error_i == -ESTRPIPE)))
           goto recover;
 
         ACE_DEBUG ((LM_ERROR,
@@ -868,11 +896,12 @@ int Stream_Dev_Target_ALSA_T<ACE_SYNCH_USE,
       } // end IF
       if (unlikely (available_frames == 0))
       {
-        result = snd_pcm_wait (deviceHandle_, -1);
+        result = snd_pcm_wait (deviceHandle_, STREAM_LIB_ALSA_DEFAULT_WAIT_TIMEOUT_MS);
         if (unlikely (result < 0))
-        {
+        { error_i = result;
           // underrun ? --> recover
-          if (likely (result == -EPIPE))
+          if (likely ((error_i == -EPIPE)    ||
+                      (error_i == -ESTRPIPE)))
             goto recover;
 
           ACE_DEBUG ((LM_ERROR,
@@ -882,7 +911,8 @@ int Stream_Dev_Target_ALSA_T<ACE_SYNCH_USE,
           head_p->release (); head_p = NULL;
           return -1;
         } // end IF
-
+        else if (unlikely (result == 0))
+          break; // timeout --> try again later
         continue;
       } // end IF
 
@@ -891,12 +921,13 @@ int Stream_Dev_Target_ALSA_T<ACE_SYNCH_USE,
         (frames_to_write > static_cast<snd_pcm_uframes_t> (available_frames) ? available_frames
                                                                              : frames_to_write);
       frames_written = snd_pcm_writei (deviceHandle_,
-                                       message_block_p->rd_ptr () + offset,
+                                       message_block_p->rd_ptr (),
                                        frames_to_write);
       if (unlikely (frames_written < 0))
-      {
+      { error_i = frames_written;
         // overrun ? --> recover
-        if (likely (frames_written == -EPIPE))
+        if (likely ((error_i == -EPIPE)    ||
+                    (error_i == -ESTRPIPE)))
           goto recover;
 
         ACE_DEBUG ((LM_ERROR,
@@ -907,7 +938,7 @@ int Stream_Dev_Target_ALSA_T<ACE_SYNCH_USE,
         return -1;
       } // end IF
       bytes_to_write -= (frames_written * sampleSize_);
-      offset += (frames_written * sampleSize_);
+      message_block_p->rd_ptr (frames_written * sampleSize_);
 
       if (bytes_to_write == 0)
       {
@@ -917,8 +948,10 @@ int Stream_Dev_Target_ALSA_T<ACE_SYNCH_USE,
           head_p->release (); head_p = NULL;
           break; // --> get more data
         } // end IF
+        ACE_ASSERT (head_p->cont ());
+        head_p->cont (NULL);
+        head_p->release (); head_p = message_block_p;
         bytes_to_write = message_block_p->length ();
-        offset = 0;
       } // end IF
 
       continue;
@@ -930,8 +963,12 @@ recover:
 
 //     result = snd_pcm_prepare (handle_p);
       result = snd_pcm_recover (deviceHandle_,
-                                -EPIPE,
+                                error_i,
+#if defined (_DEBUG)
+                                0);
+#else
                                 1);
+#endif // _DEBUG
       if (unlikely (result < 0))
       {
         ACE_DEBUG ((LM_ERROR,
@@ -942,9 +979,12 @@ recover:
         return -1;
       } // end IF
     } while (true);
-
-    message_block_p = NULL;
   } while (true);
+
+  if (unlikely (head_p))
+  {
+    head_p->release (); head_p = NULL;
+  }
 
   return result;
 }

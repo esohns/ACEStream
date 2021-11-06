@@ -19,12 +19,12 @@
  ***************************************************************************/
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-#include <mmreg.h>
+#include "mmreg.h"
 // *NOTE*: uuids.h doesn't have double include protection
 #if defined (UUIDS_H)
 #else
 #define UUIDS_H
-#include <uuids.h>
+#include "uuids.h"
 #endif // UUIDS_H
 #endif // ACE_WIN32 || ACE_WIN64
 
@@ -35,6 +35,11 @@
 #include "common_file_tools.h"
 
 #include "stream_macros.h"
+
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#else
+#include "stream_lib_alsa_common.h"
+#endif // ACE_WIN32 || ACE_WIN64
 
 template <ACE_SYNCH_DECL,
           typename ControlMessageType,
@@ -67,7 +72,7 @@ template <ACE_SYNCH_DECL,
                             MediaType>::Stream_Decoder_MP3Decoder_T (ISTREAM_T* stream_in,
 #else
                             MediaType>::Stream_Decoder_MP3Decoder_T (typename inherited::ISTREAM_T* stream_in,
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
                                                                      bool autoStart_in,
                                                                      enum Stream_HeadModuleConcurrency concurrency_in,
                                                                      bool generateSessionMessages_in)
@@ -232,14 +237,12 @@ Stream_Decoder_MP3Decoder_T<ACE_SYNCH_USE,
   int result = -1;
   int result_2 = -1;
   int error = 0;
-//  ssize_t bytes_read = -1;
   ACE_Message_Block* message_block_p = NULL;
   ACE_Time_Value no_wait = COMMON_TIME_NOW;
   int message_type = -1;
   DataMessageType* message_p = NULL;
   bool finished = false;
   bool stop_processing = false;
-//  int file_index_i = 0;
   std::string file_path_string;
   unsigned int file_size_i = 0;
   int encoding_i = 0, channels_i = 0;
@@ -247,25 +250,29 @@ Stream_Decoder_MP3Decoder_T<ACE_SYNCH_USE,
   int error_i = MPG123_ERR;
   size_t done_u = 0;
   MediaType media_type_s;
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  struct _AMMediaType media_type_2;
+  WAVEFORMATEX format_s;
+  HRESULT result_3 = E_FAIL;
+#else
+  struct Stream_MediaFramework_ALSA_MediaType media_type_2;
+#endif // ACE_WIN32 || ACE_WIN64
 
   // sanity check(s)
   ACE_ASSERT (inherited::configuration_);
-  //ACE_ASSERT (inherited::configuration_->allocatorConfiguration);
   ACE_ASSERT (inherited::sessionData_);
   ACE_ASSERT (handle_);
-  const SessionDataType& session_data_r = inherited::sessionData_->getR ();
-//  ACE_ASSERT (session_data_r.lock);
+  SessionDataType& session_data_r =
+    const_cast<SessionDataType&> (inherited::sessionData_->getR ());
 
 //next:
   file_path_string = inherited::configuration_->fileIdentifier.identifier;
   file_size_i = Common_File_Tools::size (file_path_string);
-#if defined (_DEBUG)
   ACE_DEBUG ((LM_DEBUG,
               ACE_TEXT ("%s: processing file \"%s\" (%u byte(s))\n"),
               inherited::mod_->name (),
               ACE_TEXT (file_path_string.c_str ()),
               file_size_i));
-#endif // _DEBUG
   error_i = mpg123_open (handle_, file_path_string.c_str ());
   if (error_i != MPG123_OK)
   {
@@ -274,7 +281,7 @@ Stream_Decoder_MP3Decoder_T<ACE_SYNCH_USE,
                 inherited::mod_->name (),
                 ACE_TEXT (file_path_string.c_str ()),
                 ACE_TEXT (mpg123_plain_strerror (error_i))));
-    return result_2;
+    return -1;
   } // end IF
   error_i = mpg123_getformat (handle_,
                               &rate_l,
@@ -291,29 +298,36 @@ Stream_Decoder_MP3Decoder_T<ACE_SYNCH_USE,
   } // end IF
 
   // sanity check(s)
-  ACE_ASSERT (!session_data_r.formats.empty ());
-  inherited2::getMediaType (session_data_r.formats.back (),
-                            media_type_s);
+  ACE_ASSERT (session_data_r.formats.empty ());
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  ACE_ASSERT (InlineIsEqualGUID (media_type_s.formattype, FORMAT_WaveFormatEx));
-  ACE_ASSERT (media_type_s.pbFormat);
-  struct tWAVEFORMATEX* waveformatex_p =
-    reinterpret_cast<struct tWAVEFORMATEX*> (media_type_s.pbFormat);
-  ACE_ASSERT (waveformatex_p);
-  waveformatex_p->wFormatTag = WAVE_FORMAT_PCM;
-  waveformatex_p->nChannels = channels_i;
-  waveformatex_p->nSamplesPerSec = rate_l;
+  ACE_OS::memset (&media_type_2, 0, sizeof (struct _AMMediaType));)
+  ACE_OS::memset (&format_s, 0, sizeof (WAVEFORMATEX));)
+  format_s.wFormatTag = WAVE_FORMAT_PCM;
+  format_s.nChannels = channels_i;
+  format_s.nSamplesPerSec = rate_l;
   ACE_ASSERT (encoding_i == MPG123_ENC_SIGNED_16);
-  waveformatex_p->wBitsPerSample = 16;
-  waveformatex_p->nBlockAlign =
-    (waveformatex_p->nChannels * (waveformatex_p->wBitsPerSample / 8));
-  waveformatex_p->nAvgBytesPerSec =
-    (waveformatex_p->nSamplesPerSec * waveformatex_p->nBlockAlign);
+  format_s.wBitsPerSample = 16;
+  format_s.nBlockAlign = (format_s.nChannels * (format_s.wBitsPerSample / 8));
+  format_s.nAvgBytesPerSec = (format_s.nSamplesPerSec * format_s.nBlockAlign);
+  result_3 = CreateAudioMediaType (&format_s, &media_type_2, TRUE);
+  if (FAILED (result_3))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s: failed to CreateAudioMediaType(): \"%s\", aborting\n"),
+                ACE_TEXT (Common_Error_Tools::errorToString (result_3, true).c_str ())));
+    goto continue_;
+  } // end IF
+  inherited2::getMediaType (media_type_2,
+                            media_type_s);
 #else
-  media_type_s.channels = channels_i;
   ACE_ASSERT (encoding_i == MPG123_ENC_SIGNED_16);
-  media_type_s.rate = rate_l;
+  media_type_2.format = SND_PCM_FORMAT_S16;
+  media_type_2.channels = channels_i;
+  media_type_2.rate = rate_l;
+  inherited2::getMediaType (media_type_2,
+                            media_type_s);
 #endif // ACE_WIN32 || ACE_WIN64
+  session_data_r.formats.push_back (media_type_s);
 
   do
   {
@@ -329,8 +343,7 @@ Stream_Decoder_MP3Decoder_T<ACE_SYNCH_USE,
         case ACE_Message_Block::MB_STOP:
         {
           // clean up
-          message_block_p->release ();
-          message_block_p = NULL;
+          message_block_p->release (); message_block_p = NULL;
 
           // *NOTE*: when close()d manually (i.e. user abort), 'finished' will not
           //         have been set at this stage
@@ -452,7 +465,7 @@ done:
           inherited::STATE_MACHINE_T::finished ();
         } // end IF
 
-        if (error_i == MPG123_DONE)
+        if (unlikely (error_i == MPG123_DONE))
         {
           result_2 = 0;
 
@@ -460,7 +473,7 @@ done:
           // *NOTE*: (if active,) this enqueues STREAM_SESSION_END
           //         --> continue
           inherited::STATE_MACHINE_T::finished ();
-        }
+        } // end IF
 
         break;
       }
@@ -492,6 +505,7 @@ continue_:
                 ACE_TEXT ("%s: failed to mpg123_close(): \"%s\", continuing\n"),
                 inherited::mod_->name (),
                 ACE_TEXT (mpg123_plain_strerror (error_i))));
+  mpg123_delete (handle_); handle_ = NULL;
 
   return result_2;
 }

@@ -44,6 +44,9 @@
 #include "test_i_common.h"
 #include "test_i_defines.h"
 
+// forward declarations
+class Stream_IStreamControlBase;
+
 struct Test_I_ModuleHandlerConfiguration
  : virtual Stream_ModuleHandlerConfiguration
 {
@@ -78,6 +81,7 @@ struct Test_I_SignalHandlerConfiguration
 #endif // ACE_WIN32 || ACE_WIN64
    , statisticReportingInterval (ACE_Time_Value::zero)
    , statisticReportingTimerId (-1)
+   , stream (NULL)
   {}
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -85,6 +89,7 @@ struct Test_I_SignalHandlerConfiguration
 #endif // ACE_WIN32 || ACE_WIN64
   ACE_Time_Value                  statisticReportingInterval; // statistic reporting interval (second(s)) [0: off]
   long                            statisticReportingTimerId;
+  Stream_IStreamControlBase*      stream;
 };
 
 //struct Test_I_StreamConfiguration
