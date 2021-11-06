@@ -333,6 +333,7 @@ do_work (unsigned int bufferSize_in,
   modulehandler_configuration.ALSAConfiguration = &ALSA_configuration;
   modulehandler_configuration.deviceIdentifier.identifier =
     ACE_TEXT_ALWAYS_CHAR (STREAM_LIB_ALSA_PLAYBACK_DEFAULT_DEVICE_NAME);
+//    ACE_TEXT_ALWAYS_CHAR (STREAM_LIB_ALSA_DEVICE_PLAYBACK_PREFIX);
 #endif // ACE_WIN32 || ACE_WIN64
   modulehandler_configuration.allocatorConfiguration =
     &configuration.allocatorConfiguration;

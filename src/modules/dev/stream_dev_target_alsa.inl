@@ -309,12 +309,12 @@ Stream_Dev_Target_ALSA_T<ACE_SYNCH_USE,
 
 #if defined (_DEBUG)
   result =
-     snd_output_stdio_attach (&debugOutput_,
-                              stdout,
-                              0);
-//    snd_output_stdio_open (&debugOutput_,
-//                             ACE_TEXT_ALWAYS_CHAR (STREAM_LIB_ALSA_DEFAULT_LOG_FILE),
-//                             ACE_TEXT_ALWAYS_CHAR ("w"));
+//     snd_output_stdio_attach (&debugOutput_,
+//                              stdout,
+//                              0);
+    snd_output_stdio_open (&debugOutput_,
+                           ACE_TEXT_ALWAYS_CHAR (STREAM_LIB_ALSA_DEFAULT_LOG_FILE),
+                           ACE_TEXT_ALWAYS_CHAR ("w"));
   if (result < 0)
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to snd_output_stdio_open(): \"%s\", continuing\n"),
@@ -651,8 +651,15 @@ error:
                       ACE_TEXT ("%s: failed to snd_pcm_drain(): \"%s\", continuing\n"),
                       ACE_TEXT (inherited::mod_->name ()),
                       ACE_TEXT (snd_strerror (result))));
-        else
-          ACE_DEBUG ((LM_DEBUG,
+        ACE_Time_Value delay (0, 100000); // 100 ms
+        snd_pcm_state_t state_e = snd_pcm_state (deviceHandle_);
+        while ((state_e == SND_PCM_STATE_RUNNING) ||
+               (state_e == SND_PCM_STATE_DRAINING))
+        {
+          ACE_OS::sleep (delay);
+          state_e = snd_pcm_state (deviceHandle_);
+        } // end WHILE
+        ACE_DEBUG ((LM_DEBUG,
                       ACE_TEXT ("%s: \"%s\": stopped playback device...\n"),
                       ACE_TEXT (inherited::mod_->name ()),
                       ACE_TEXT (snd_pcm_name (deviceHandle_))));
@@ -696,6 +703,11 @@ error:
 #if defined (_DEBUG)
       if (debugOutput_)
       {
+        result = snd_output_flush (debugOutput_);
+        if (result)
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("failed to snd_output_flush(): \"%s\", continuing\n"),
+                      ACE_TEXT (snd_strerror (result))));
         result = snd_output_close (debugOutput_);
         if (result < 0)
           ACE_DEBUG ((LM_ERROR,
@@ -912,7 +924,10 @@ int Stream_Dev_Target_ALSA_T<ACE_SYNCH_USE,
           return -1;
         } // end IF
         else if (unlikely (result == 0))
+        {
+          message_block_p = NULL;
           break; // timeout --> try again later
+        } // end IF
         continue;
       } // end IF
 
@@ -978,6 +993,7 @@ recover:
         head_p->release (); head_p = NULL;
         return -1;
       } // end IF
+      message_block_p = NULL;
     } while (true);
   } while (true);
 
