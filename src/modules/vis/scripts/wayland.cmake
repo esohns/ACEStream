@@ -1,0 +1,37 @@
+set (WAYLAND_SUPPORT_DEFAULT ON)
+if (UNIX)
+ include (FindPkgConfig)
+ if (CMAKE_SYSTEM_NAME MATCHES "Linux")
+  include (OS)
+# *NOTE*: (on Ubuntu,) libwayland does not come with pkg-config support
+  if (${LSB_RELEASE_ID_SHORT} MATCHES "Ubuntu")
+# pkg_check_modules (PKG_WAYLAND REQUIRED libwayland-dev) # Ubuntu
+   set (WAYLAND_LIB_FILE libwayland-client.so)
+   find_library (WAYLAND_LIBRARY ${WAYLAND_LIB_FILE}
+                 PATHS /usr/lib
+                 PATH_SUFFIXES x86_64-linux-gnu
+                 DOC "searching for \"${WAYLAND_LIB_FILE}\"")
+   if (WAYLAND_LIBRARY)
+    message (STATUS "Found ${WAYLAND_LIB_FILE} library \"${WAYLAND_LIBRARY}\"")
+    set (WAYLAND_FOUND TRUE)
+   endif (WAYLAND_LIBRARY)
+   set (WAYLAND_INCLUDE_DIRS "/usr/include")
+   set (WAYLAND_LIBRARIES ${WAYLAND_LIBRARY})
+  else ()
+   pkg_check_modules (PKG_WAYLAND wayland-client) # Fedora
+  endif ()
+ else ()
+  pkg_check_modules (PKG_WAYLAND wayland-client)
+ endif (CMAKE_SYSTEM_NAME MATCHES "Linux")
+ if (PKG_WAYLAND_FOUND)
+  set (WAYLAND_FOUND TRUE)
+  set (WAYLAND_INCLUDE_DIRS "${PKG_WAYLAND_INCLUDE_DIRS}")
+  set (WAYLAND_LIBRARIES "${PKG_WAYLAND_LIBRARIES}")
+ endif (PKG_WAYLAND_FOUND)
+endif (UNIX)
+if (WAYLAND_FOUND)
+ option (WAYLAND_SUPPORT "enable wayland support" ${WAYLAND_SUPPORT_DEFAULT})
+ if (WAYLAND_SUPPORT)
+  add_definitions (-DWAYLAND_SUPPORT)
+ endif (WAYLAND_SUPPORT)
+endif (WAYLAND_FOUND)

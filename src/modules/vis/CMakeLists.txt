@@ -3,9 +3,6 @@ include (OpenGL)
 include (ffmpeg)
 include (ImageMagick)
 
-set (CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_CURRENT_SOURCE_DIR}/../dec/scripts")
-include (opencv)
-
 set (CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_CURRENT_SOURCE_DIR}/../../../modules/Common/src/ui/scripts;${CMAKE_CURRENT_SOURCE_DIR}/../../../../Common/src/ui/scripts")
 include (PreUIFramework)
 include (SetUIFramework)
@@ -13,32 +10,23 @@ if (GTK_SUPPORT) # *NOTE*: _SUPPORT, not _USE !
  include (SetGTKVersion)
 endif (GTK_SUPPORT)
 
+set (CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_CURRENT_SOURCE_DIR}/../dec/scripts")
+include (opencv)
+
+set (CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_CURRENT_SOURCE_DIR}/scripts")
+include (wayland)
+
 get_filename_component (BUILD_PATH ${CMAKE_CURRENT_BINARY_DIR}/../../.. REALPATH)
 get_filename_component (BUILD_PATH_SUFFIX ${BUILD_PATH} NAME)
 
-if (UNIX)
-# pkg_check_modules (PKG_WAYLAND REQUIRED wayland-client) # Fedora
-# *NOTE*: (on Ubuntu,) libwayland does not come with pkg-config support
-# pkg_check_modules (PKG_WAYLAND REQUIRED libwayland-dev) # Ubuntu
- set (WAYLAND_LIB_FILE libwayland-client.so)
- find_library (WAYLAND_LIBRARY ${WAYLAND_LIB_FILE}
-               DOC "searching for \"${WAYLAND_LIB_FILE}\"")
- if (NOT WAYLAND_LIBRARY)
-  message (FATAL_ERROR "could not find libglut (was: \"${WAYLAND_LIB_FILE}\"), aborting")
- endif (NOT WAYLAND_LIBRARY)
- set (PKG_WAYLAND_INCLUDE_DIRS "/usr/include")
- set (PKG_WAYLAND_LIBRARIES ${WAYLAND_LIBRARY})
-endif (UNIX)
-
-if (UNIX)
-elseif (WIN32)
+if (WIN32)
  add_definitions (-D__STDC_CONSTANT_MACROS)
 
  if (CMAKE_BUILD_TYPE STREQUAL Debug)
  # *NOTE*: DirectShow uses 'DEBUG'
   add_definitions (-DDEBUG) # activate DirectShow debug logging
  endif (CMAKE_BUILD_TYPE STREQUAL Debug)
-endif ()
+endif (WIN32)
 
 add_library (${PROJECT_NAME}_Visualization STATIC "")
 
@@ -54,10 +42,6 @@ if (IMAGEMAGICK_SUPPORT)
  target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
                              "$<BUILD_INTERFACE:${ImageMagick_INCLUDE_DIRS}>")
 endif (IMAGEMAGICK_SUPPORT)
-if (OPENCV_SUPPORT)
- target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
-                             $<BUILD_INTERFACE:${OPENCV_INCLUDE_DIRS}>)
-endif (OPENCV_SUPPORT)
 if (GTK_SUPPORT)
 # message (STATUS "VIS:: GTK_INCLUDE_DIRS: ${GTK_INCLUDE_DIRS}")
  target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
@@ -72,10 +56,15 @@ if (GTK_SUPPORT)
   endif (GTKGLAREA_SUPPORT)
  endif (GTKGL_SUPPORT)
 endif (GTK_SUPPORT)
-if (UNIX)
+if (OPENCV_SUPPORT)
  target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
-                             $<BUILD_INTERFACE:${PKG_WAYLAND_INCLUDE_DIRS}>)
-
+                             $<BUILD_INTERFACE:${OPENCV_INCLUDE_DIRS}>)
+endif (OPENCV_SUPPORT)
+if (WAYLAND_SUPPORT)
+ target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
+                             $<BUILD_INTERFACE:${WAYLAND_INCLUDE_DIRS}>)
+endif (WAYLAND_SUPPORT)
+if (UNIX)
  target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../modules/Common/src>)
  target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
@@ -177,16 +166,6 @@ if (IMAGEMAGICK_SUPPORT)
       stream_vis_imagemagick_resize.h
       stream_vis_imagemagick_resize.inl)
 endif (IMAGEMAGICK_SUPPORT)
-if (OPENCV_SUPPORT)
- set (source_files
-      ${source_files}
-      stream_vis_opencv.cpp
-      stream_vis_opencv.h
-      stream_vis_opencv.inl
-      stream_vis_opencv_classifier.cpp
-      stream_vis_opencv_classifier.h
-      stream_vis_opencv_classifier.inl)
-endif (OPENCV_SUPPORT)
 if (GTK_SUPPORT)
  set (source_files
       ${source_files}
@@ -204,12 +183,26 @@ if (GTK_SUPPORT)
       stream_vis_gtk_window.h
       stream_vis_gtk_window.inl)
 endif (GTK_SUPPORT)
-if (UNIX)
+if (OPENCV_SUPPORT)
+ set (source_files
+      ${source_files}
+      stream_vis_opencv.cpp
+      stream_vis_opencv.h
+      stream_vis_opencv.inl
+      stream_vis_opencv_classifier.cpp
+      stream_vis_opencv_classifier.h
+      stream_vis_opencv_classifier.inl)
+endif (OPENCV_SUPPORT)
+if (WAYLAND_SUPPORT)
  set (source_files
       ${source_files}
       stream_vis_wayland_window.cpp
       stream_vis_wayland_window.h
-      stream_vis_wayland_window.inl
+      stream_vis_wayland_window.inl)
+endif (WAYLAND_SUPPORT)
+if (UNIX)
+ set (source_files
+      ${source_files}
       stream_vis_x11_window.cpp
       stream_vis_x11_window.h
       stream_vis_x11_window.inl)
@@ -270,8 +263,14 @@ endif (IMAGEMAGICK_SUPPORT)
 if (GTK_SUPPORT)
  target_link_libraries (${PROJECT_NAME}_Visualization PUBLIC ${GTK_LIBRARIES})
 endif (GTK_SUPPORT)
+if (OPENCV_SUPPORT)
+ target_link_libraries (${PROJECT_NAME}_Visualization PUBLIC ${OPENCV_LIBRARIES})
+endif (OPENCV_SUPPORT)
+if (WAYLAND_SUPPORT)
+ target_link_libraries (${PROJECT_NAME}_Visualization PUBLIC ${WAYLAND_LIBRARIES})
+endif (WAYLAND_SUPPORT)
 if (UNIX)
- target_link_libraries (${PROJECT_NAME}_Visualization PUBLIC ${PKG_WAYLAND_LIBRARIES})
+ target_link_libraries (${PROJECT_NAME}_Visualization PUBLIC X11)
 elseif (WIN32)
  target_link_libraries (${PROJECT_NAME}_Visualization PUBLIC Advapi32.lib)
  target_link_libraries (${PROJECT_NAME}_Visualization PUBLIC Evr.lib)
@@ -295,10 +294,6 @@ target_link_libraries (${PROJECT_NAME}_Visualization PUBLIC ${PROJECT_NAME})
 
 #set_target_properties (${PROJECT_NAME}_Visualization PROPERTIES DEFINE_SYMBOL STREAM_VIS_BUILD_DLL)
 #set_target_properties (${PROJECT_NAME}_Visualization PROPERTIES VERSION ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_MICRO} SOVERSION 1)
-
-# add PCH
-#set_target_properties (${PROJECT_NAME}_Visualization PROPERTIES COTIRE_CXX_PREFIX_HEADER_INIT "stdafx.h")
-#cotire (${PROJECT_NAME}_Visualization)
 
 # add all targets to the build-tree export set
 export (TARGETS ${PROJECT_NAME}_Visualization
@@ -329,14 +324,6 @@ if (IMAGEMAGICK_SUPPORT)
       stream_vis_imagemagick_resize.h
       stream_vis_imagemagick_resize.inl)
 endif (IMAGEMAGICK_SUPPORT)
-if (OPENCV_SUPPORT)
- set (header_files
-      ${header_files}
-      stream_vis_opencv.h
-      stream_vis_opencv.inl
-      stream_vis_opencv_classifier.h
-      stream_vis_opencv_classifier.inl)
-endif (OPENCV_SUPPORT)
 if (GTK_SUPPORT)
  set (header_files
       ${header_files}
@@ -350,6 +337,20 @@ if (GTK_SUPPORT)
       stream_vis_gtk_window.h
       stream_vis_gtk_window.inl)
 endif (GTK_SUPPORT)
+if (OPENCV_SUPPORT)
+ set (header_files
+      ${header_files}
+      stream_vis_opencv.h
+      stream_vis_opencv.inl
+      stream_vis_opencv_classifier.h
+      stream_vis_opencv_classifier.inl)
+endif (OPENCV_SUPPORT)
+if (WAYLAND_SUPPORT)
+ set (header_files
+      ${header_files}
+      stream_vis_wayland_window.h
+      stream_vis_wayland_window.inl)
+endif (WAYLAND_SUPPORT)
 if (UNIX)
  set (header_files
       ${header_files}
