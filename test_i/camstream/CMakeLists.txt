@@ -16,8 +16,8 @@ elseif (WIN32)
 #      "$ENV{PROGRAMFILES(X86)}/Microsoft SDKs/Windows/v7.0/Samples/multimedia/directshow")
 endif ()
 
-get_filename_component (BUILD_PATH ${CMAKE_CURRENT_BINARY_DIR}/../.. REALPATH)
-get_filename_component (BUILD_PATH_SUFFIX ${BUILD_PATH} NAME)
+string (REPLACE ${CMAKE_SOURCE_DIR} "" BUILD_PATH_SUFFIX ${CMAKE_BINARY_DIR})
+string (SUBSTRING ${BUILD_PATH_SUFFIX} 1 -1 BUILD_PATH_SUFFIX)
 
 find_package (ACENetwork ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_MICRO}
               REQUIRED
@@ -40,6 +40,9 @@ endif (WIN32 AND (CMAKE_BUILD_TYPE STREQUAL Debug))
 if (FFMPEG_SUPPORT)
  include_directories (${ffmpeg_INCLUDE_DIRS})
 endif (FFMPEG_SUPPORT)
+if (SSL_SUPPORT)
+ include_directories (${SSL_INCLUDE_DIRS})
+endif (SSL_SUPPORT)
 if (UNIX)
 # include_directories (${PKG_CAP_INCLUDE_DIRS})
  include_directories (${PKG_V4L2_INCLUDE_DIRS})
@@ -53,10 +56,6 @@ if (UNIX)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../ACENetwork/src)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../ACENetwork/src/client_server)
 elseif (WIN32)
- if (OPENSSL_SUPPORT)
-  include_directories (${SSL_INCLUDE_DIRS})
- endif (OPENSSL_SUPPORT)
-
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../3rd_party/msvc)
 
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../Common/src)

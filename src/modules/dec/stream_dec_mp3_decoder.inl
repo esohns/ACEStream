@@ -20,7 +20,8 @@
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #include "mmreg.h"
-// *NOTE*: uuids.h doesn't have double include protection
+#include "mtype.h"
+ // *NOTE*: uuids.h doesn't have double include protection
 #if defined (UUIDS_H)
 #else
 #define UUIDS_H
@@ -300,8 +301,8 @@ Stream_Decoder_MP3Decoder_T<ACE_SYNCH_USE,
   // sanity check(s)
   ACE_ASSERT (session_data_r.formats.empty ());
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  ACE_OS::memset (&media_type_2, 0, sizeof (struct _AMMediaType));)
-  ACE_OS::memset (&format_s, 0, sizeof (WAVEFORMATEX));)
+  ACE_OS::memset (&media_type_2, 0, sizeof (struct _AMMediaType));
+  ACE_OS::memset (&format_s, 0, sizeof (WAVEFORMATEX));
   format_s.wFormatTag = WAVE_FORMAT_PCM;
   format_s.nChannels = channels_i;
   format_s.nSamplesPerSec = rate_l;

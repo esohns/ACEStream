@@ -1152,7 +1152,7 @@ do_work (const std::string& captureinterfaceIdentifier_in,
       if (statisticReportingInterval_in)
       {
         directshow_modulehandler_configuration.statisticCollectionInterval.set (0,
-                                                                                STREAM_DEV_CAM_STATISTIC_COLLECTION_INTERVAL * 1000);
+                                                                                STREAM_DEFAULT_STATISTIC_COLLECTION_INTERVAL_MS * 1000);
         directshow_modulehandler_configuration.statisticReportingInterval =
           statisticReportingInterval_in;
       } // end IF
@@ -1178,7 +1178,7 @@ do_work (const std::string& captureinterfaceIdentifier_in,
       if (statisticReportingInterval_in)
       {
         mediafoundation_modulehandler_configuration.statisticCollectionInterval.set (0,
-                                                                                     STREAM_DEV_CAM_STATISTIC_COLLECTION_INTERVAL * 1000);
+                                                                                     STREAM_DEFAULT_STATISTIC_COLLECTION_INTERVAL_MS * 1000);
         mediafoundation_modulehandler_configuration.statisticReportingInterval =
           statisticReportingInterval_in;
       } // end IF

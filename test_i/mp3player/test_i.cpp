@@ -260,11 +260,7 @@ do_initializeSignals (ACE_Sig_Set& signals_out,
   signals_out.sig_add (SIGFPE);            // 8       /* floating point exception */
   //  signals_out.sig_add (SIGSEGV);           // 11      /* segment violation */
   signals_out.sig_add (SIGTERM);           // 15      /* Software termination signal from kill */
-  if (allowUserRuntimeConnect_in)
-  {
-    signals_out.sig_add (SIGBREAK);        // 21      /* Ctrl-Break sequence */
-    ignoredSignals_out.sig_add (SIGBREAK); // 21      /* Ctrl-Break sequence */
-  } // end IF
+  signals_out.sig_add (SIGBREAK);          // 21      /* Ctrl-Break sequence */
   signals_out.sig_add (SIGABRT);           // 22      /* abnormal termination triggered by abort call */
   signals_out.sig_add (SIGABRT_COMPAT);    // 6       /* SIGABRT compatible with other platforms, same as SIGABRT */
 #else
@@ -429,10 +425,9 @@ ACE_TMAIN (int argc_in,
   STREAM_TRACE (ACE_TEXT ("::main"));
 
   // step0: initialize
+  int result = -1;
   // *PORTABILITY*: on Windows, initialize ACE...
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  int result = -1;
-
   result = ACE::init ();
   if (result == -1)
   {
@@ -440,8 +435,8 @@ ACE_TMAIN (int argc_in,
                 ACE_TEXT ("failed to ACE::init(): \"%m\", aborting\n")));
     return EXIT_FAILURE;
   } // end IF
-#endif
-  Common_Tools::initialize ();
+#endif // ACE_WIN32 || ACE_WIN64
+  Common_Tools::initialize (false);
 
   // *PROCESS PROFILE*
   ACE_Profile_Timer process_profile;
@@ -481,7 +476,7 @@ ACE_TMAIN (int argc_in,
     if (result == -1)
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to ACE::fini(): \"%m\", continuing\n")));
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
     return EXIT_FAILURE;
   } // end IF
 
@@ -516,7 +511,7 @@ ACE_TMAIN (int argc_in,
     if (result == -1)
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to ACE::fini(): \"%m\", continuing\n")));
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
     return EXIT_FAILURE;
   } // end IF
 
@@ -542,7 +537,7 @@ ACE_TMAIN (int argc_in,
     if (result == -1)
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to ACE::fini(): \"%m\", continuing\n")));
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
     return EXIT_FAILURE;
   } // end IF
 
@@ -554,7 +549,7 @@ ACE_TMAIN (int argc_in,
                         ignored_signal_set);
   Common_SignalActions_t previous_signal_actions;
   sigset_t previous_signal_mask;
-  int result = ACE_OS::sigemptyset (&previous_signal_mask);
+  result = ACE_OS::sigemptyset (&previous_signal_mask);
   if (result == -1)
   {
     ACE_DEBUG ((LM_ERROR,
@@ -567,7 +562,7 @@ ACE_TMAIN (int argc_in,
     if (result == -1)
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to ACE::fini(): \"%m\", continuing\n")));
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
     return EXIT_FAILURE;
   } // end IF
   if (!Common_Signal_Tools::preInitialize (signal_set,
@@ -585,7 +580,7 @@ ACE_TMAIN (int argc_in,
     if (result == -1)
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to ACE::fini(): \"%m\", continuing\n")));
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
     return EXIT_FAILURE;
   } // end IF
   ACE_SYNCH_RECURSIVE_MUTEX signal_lock;
@@ -608,7 +603,7 @@ ACE_TMAIN (int argc_in,
     if (result == -1)
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to ACE::fini(): \"%m\", continuing\n")));
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
     return EXIT_SUCCESS;
   } // end IF
 
@@ -683,7 +678,7 @@ ACE_TMAIN (int argc_in,
     if (result == -1)
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to ACE::fini(): \"%m\", continuing\n")));
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
     return EXIT_FAILURE;
   } // end IF
   ACE_Profile_Timer::Rusage elapsed_rusage;
@@ -727,7 +722,7 @@ ACE_TMAIN (int argc_in,
               elapsed_rusage.ru_nsignals,
               elapsed_rusage.ru_nvcsw,
               elapsed_rusage.ru_nivcsw));
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
 
   Common_Signal_Tools::finalize (COMMON_SIGNAL_DEFAULT_DISPATCH_MODE,
                                  signal_set,
@@ -740,7 +735,7 @@ ACE_TMAIN (int argc_in,
   if (result == -1)
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to ACE::fini(): \"%m\", continuing\n")));
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
 
   return EXIT_SUCCESS;
 } // end main

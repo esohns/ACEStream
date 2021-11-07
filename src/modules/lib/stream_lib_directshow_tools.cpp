@@ -4494,6 +4494,20 @@ Stream_MediaFramework_DirectShow_Tools::toBitrate (const struct _AMMediaType& me
 }
 
 unsigned int
+Stream_MediaFramework_DirectShow_Tools::toFrameBits (const struct _AMMediaType& mediaType_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_DirectShow_Tools::toFrameBits"));
+
+  // sanity check(s)
+  ACE_ASSERT (InlineIsEqualGUID (mediaType_in.formattype, FORMAT_WaveFormatEx));
+  ACE_ASSERT (mediaType_in.pbFormat);
+  struct tWAVEFORMATEX* waveformatex_p =
+    (struct tWAVEFORMATEX*)mediaType_in.pbFormat;
+
+  return waveformatex_p->wBitsPerSample;
+}
+
+unsigned int
 Stream_MediaFramework_DirectShow_Tools::toChannels (const struct _AMMediaType& mediaType_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_DirectShow_Tools::toBitrate"));

@@ -941,7 +941,7 @@ Stream_MediaFramework_ALSA_Tools::dump (struct _snd_pcm* deviceHandle_in)
                                               &subunit_direction);
   ACE_ASSERT (result >= 0);
   ACE_DEBUG ((LM_DEBUG,
-              ACE_TEXT ("%s: available periods: %u-%u (frames)...\n"),
+              ACE_TEXT ("%s: available periods: %u-%u...\n"),
               ACE_TEXT (snd_pcm_name (deviceHandle_in)),
               value_min_i, value_max_i));
 

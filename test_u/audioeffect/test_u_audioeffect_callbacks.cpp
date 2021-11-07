@@ -9438,13 +9438,13 @@ combobox_frequency_changed_cb (GtkWidget* widget_in,
   ACE_ASSERT (list_store_p);
 
   bool result_2 = false;
+  unsigned int sample_bits_i = 0;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #if COMMON_OS_WIN32_TARGET_PLATFORM(0x0602) // _WIN32_WINNT_WIN8
   IMFMediaSourceEx* media_source_p = NULL;
 #else
   IMFMediaSource* media_source_p = NULL;
 #endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0602)
-
   if (!use_framework_source_b)
   {
     GtkComboBox* combo_box_2 =
@@ -9490,6 +9490,7 @@ combobox_frequency_changed_cb (GtkWidget* widget_in,
       struct tWAVEFORMATEX* audio_info_header_p =
         reinterpret_cast<struct tWAVEFORMATEX*> (directshow_ui_cb_data_p->configuration->streamConfiguration.configuration_->format.pbFormat);
       audio_info_header_p->nSamplesPerSec = sample_rate;
+      sample_bits_i = audio_info_header_p->wBitsPerSample;
       if (!use_framework_source_b)
         break;
 
@@ -9513,6 +9514,17 @@ combobox_frequency_changed_cb (GtkWidget* widget_in,
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("failed to IMFMediaType::SetUINT32(MF_MT_AUDIO_SAMPLES_PER_SECOND,%u): \"%s\", returning\n"),
+                    sample_rate,
+                    ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
+        return;
+      } // end IF
+      result =
+        mediafoundation_ui_cb_data_p->configuration->streamConfiguration.configuration_->format->GetUINT32 (MF_MT_AUDIO_BITS_PER_SAMPLE,
+                                                                                                            &sample_bits_i);
+      if (FAILED (result))
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("failed to IMFMediaType::GetUINT32(MF_MT_AUDIO_BITS_PER_SAMPLE): \"%s\", returning\n"),
                     sample_rate,
                     ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
         return;
@@ -9552,6 +9564,8 @@ combobox_frequency_changed_cb (GtkWidget* widget_in,
 
   ui_cb_data_p->configuration->streamConfiguration.configuration_->format.rate =
       sample_rate;
+  sample_bits_i =
+    snd_pcm_format_width (ui_cb_data_p->configuration->streamConfiguration.configuration_->format.format);
 
   result_2 =
       load_sample_resolutions (ui_cb_data_p->handle,
@@ -9593,7 +9607,7 @@ combobox_frequency_changed_cb (GtkWidget* widget_in,
     gtk_widget_set_sensitive (GTK_WIDGET (combo_box_p), TRUE);
 #endif // ACE_WIN32 || ACE_WIN64
     g_value_set_uint (&value,
-                      snd_pcm_format_width (ui_cb_data_p->configuration->streamConfiguration.configuration_->format.format));
+                      sample_bits_i);
     index_i =
         Common_UI_GTK_Tools::valueToIndex (gtk_combo_box_get_model (combo_box_p),
                                            value,
@@ -9602,7 +9616,7 @@ combobox_frequency_changed_cb (GtkWidget* widget_in,
     {
       ACE_DEBUG ((LM_WARNING,
                   ACE_TEXT ("invalid/unknown resolution (was: %u), continuing\n"),
-                  snd_pcm_format_width (ui_cb_data_p->configuration->streamConfiguration.configuration_->format.format)));
+                  sample_bits_i));
       index_i = 0;
     } // end IF
     gtk_combo_box_set_active (combo_box_p, index_i);
@@ -9829,6 +9843,7 @@ combobox_resolution_changed_cb (GtkWidget* widget_in,
   ACE_ASSERT (list_store_p);
 
   bool result_2 = false;
+  unsigned int channels_i = 0;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #if COMMON_OS_WIN32_TARGET_PLATFORM(0x0602) // _WIN32_WINNT_WIN8
   IMFMediaSourceEx* media_source_p = NULL;
@@ -9883,6 +9898,7 @@ combobox_resolution_changed_cb (GtkWidget* widget_in,
       struct tWAVEFORMATEX* audio_info_header_p =
         reinterpret_cast<struct tWAVEFORMATEX*> (directshow_ui_cb_data_p->configuration->streamConfiguration.configuration_->format.pbFormat);
       audio_info_header_p->wBitsPerSample = bits_per_sample;
+      channels_i = audio_info_header_p->nChannels;
       if (!use_framework_source_b)
         break;
 
@@ -9907,6 +9923,17 @@ combobox_resolution_changed_cb (GtkWidget* widget_in,
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("failed to IMFMediaType::SetUINT32(MF_MT_AUDIO_BITS_PER_SAMPLE,%d): \"%s\", returning\n"),
+                    bits_per_sample,
+                    ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
+        return;
+      } // end IF
+      result =
+        mediafoundation_ui_cb_data_p->configuration->streamConfiguration.configuration_->format->GetUINT32 (MF_MT_AUDIO_NUM_CHANNELS,
+                                                                                                            &channels_i);
+      if (FAILED (result))
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("failed to IMFMediaType::GetUINT32(MF_MT_AUDIO_NUM_CHANNELS): \"%s\", returning\n"),
                     bits_per_sample,
                     ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
         return;
@@ -9946,6 +9973,8 @@ combobox_resolution_changed_cb (GtkWidget* widget_in,
   ACE_ASSERT (ui_cb_data_p->configuration);
   ACE_UNUSED_ARG (format_e);
   ACE_UNUSED_ARG (bits_per_sample);
+  channels_i =
+    ui_cb_data_p->configuration->streamConfiguration.configuration_->format.channels;
 
   result_2 =
       load_channels (ui_cb_data_p->handle,
@@ -9985,7 +10014,7 @@ combobox_resolution_changed_cb (GtkWidget* widget_in,
     g_value_init (&value, G_TYPE_UINT);
 #endif // GTK_CHECK_VERSION (2,30,0)
     g_value_set_uint (&value,
-                      ui_cb_data_p->configuration->streamConfiguration.configuration_->format.channels);
+                      channels_i);
     index_i =
         Common_UI_GTK_Tools::valueToIndex (gtk_combo_box_get_model (combo_box_p),
                                            value,
@@ -9994,7 +10023,7 @@ combobox_resolution_changed_cb (GtkWidget* widget_in,
     {
       ACE_DEBUG ((LM_WARNING,
                   ACE_TEXT ("invalid/unknown channels (was: %u), continuing\n"),
-                  ui_cb_data_p->configuration->streamConfiguration.configuration_->format.channels));
+                  channels_i));
       index_i = 0;
     } // end IF
     gtk_combo_box_set_active (combo_box_p, index_i);
