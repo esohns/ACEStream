@@ -16,7 +16,7 @@
 #include "guiddef.h"
 //#include "strmif.h"
 //#include "reftime.h"
-//#include <streams.h>
+//#include "streams.h"
 // *NOTE*: uuids.h doesn't have double include protection
 //#if defined (UUIDS_H)
 //#else
@@ -46,7 +46,6 @@
 #include "stream_macros.h"
 
 #include "stream_lib_common.h"
-//#include "stream_lib_exports.h"
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 //#include "stream_lib_directdraw_common.h"
 //#include "stream_lib_directshow_common.h"

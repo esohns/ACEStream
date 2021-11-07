@@ -120,7 +120,7 @@ struct Stream_ModuleHandlerConfiguration
    , slurpFiles (false)
    , socketHandle (ACE_INVALID_HANDLE)
    , statisticCollectionInterval (ACE_Time_Value::zero)
-   , statisticReportingInterval (STREAM_DEFAULT_STATISTIC_REPORTING_INTERVAL, 0)
+   , statisticReportingInterval (STREAM_DEFAULT_STATISTIC_REPORTING_INTERVAL_S, 0)
    , timerManager (NULL)
   {}
 

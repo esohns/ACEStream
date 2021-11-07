@@ -3,7 +3,7 @@
 
 #include "ace/config-lite.h"
 
-#define STREAM_DEV_CAM_STATISTIC_COLLECTION_INTERVAL              STREAM_DEFAULT_STATISTIC_COLLECTION_INTERVAL // ms
+//#define STREAM_DEV_CAM_STATISTIC_COLLECTION_INTERVAL            STREAM_DEFAULT_STATISTIC_COLLECTION_INTERVAL_MS // ms
 
 /////////////////////////////////////////
 

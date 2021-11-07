@@ -532,8 +532,7 @@ do_work (
     &configuration_in.protocolConfiguration;
   modulehandler_configuration.request = &request_s;
   if (statisticReportingInterval_in)
-    modulehandler_configuration.statisticCollectionInterval.set (0,
-                                                                 STREAM_DEFAULT_STATISTIC_COLLECTION_INTERVAL * 1000);
+    modulehandler_configuration.statisticCollectionInterval.set (0, STREAM_DEFAULT_STATISTIC_COLLECTION_INTERVAL_MS * 1000);
 #if defined (GUI_SUPPORT)
   modulehandler_configuration.subscriber = &ui_event_handler;
 #endif // GUI_SUPPORT
@@ -838,7 +837,7 @@ ACE_TMAIN (int argc_in,
   bool use_reactor =
     (COMMON_EVENT_DEFAULT_DISPATCH == COMMON_EVENT_DISPATCH_REACTOR);
   unsigned int statistic_reporting_interval =
-    STREAM_DEFAULT_STATISTIC_REPORTING_INTERVAL;
+    STREAM_DEFAULT_STATISTIC_REPORTING_INTERVAL_S;
 #if defined (_DEBUG)
   bool trace_information = false;
 #endif // _DEBUG

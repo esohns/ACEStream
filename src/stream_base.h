@@ -195,12 +195,12 @@ class Stream_Base_T
   virtual ~Stream_Base_T ();
 
   // implement Stream_IStreamControl_T
-  // *NOTE*: delegate these calls to the head module (which also implements this
-  //         API)
+  // *NOTE*: delegate most of these calls to the head module (which also
+  //         implements this API)
   virtual void start ();
-  virtual void stop (bool = true,  // wait for completion ?
-                     bool = true,  // recurse upstream (if any) ?
-                     bool = true); // locked access ?
+  virtual void stop (bool = true,   // wait for completion ?
+                     bool = true,   // recurse upstream (if any) ?
+                     bool = false); // high priority ?
   inline virtual Stream_SessionId_t id () const { const StateType& state_r = state (); return (state_r.sessionData ? state_r.sessionData->sessionId : -1); }
   virtual bool isRunning () const;
   virtual void finished (bool = true); // recurse upstream (if any) ?

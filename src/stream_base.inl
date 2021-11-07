@@ -799,7 +799,7 @@ Stream_Base_T<ACE_SYNCH_USE,
               DataMessageType,
               SessionMessageType>::stop (bool wait_in,
                                          bool recurseUpstream_in,
-                                         bool lockedAccess_in)
+                                         bool highPriority_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Base_T::stop"));
 
@@ -811,28 +811,31 @@ Stream_Base_T<ACE_SYNCH_USE,
   if (upstream_ &&
       recurseUpstream_in)
   {
+    ISTREAM_T* istream_p = dynamic_cast<ISTREAM_T*> (upstream_);
     istreamcontrol_p = dynamic_cast<ISTREAM_CONTROL_T*> (upstream_);
     if (unlikely (!istreamcontrol_p))
     {
-      ISTREAM_T* istream_p = dynamic_cast<ISTREAM_T*> (upstream_);
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("%s: dynamic_cast<Stream_IStreamControl_T> failed, returning\n"),
-                  (istream_p ? ACE_TEXT (istream_p->name ().c_str ()) : ACE_TEXT (""))));
-      return;
+                  ACE_TEXT ("%s: dynamic_cast<Stream_IStreamControl_T> failed, continuing\n"),
+                  (istream_p ? ACE_TEXT (istream_p->name ().c_str ()) : ACE_TEXT ("N/A"))));
+      goto continue_;
     } // end IF
     try {
       istreamcontrol_p->stop (wait_in,
                               recurseUpstream_in,
-                              lockedAccess_in);
+                              highPriority_in);
     } catch (...) {
-      ISTREAM_T* istream_p = dynamic_cast<ISTREAM_T*> (upstream_);
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("%s: caught exception in Stream_IStreamControl::stop(), returning\n"),
-                  (istream_p ? ACE_TEXT (istream_p->name ().c_str ()) : ACE_TEXT (""))));
-      return;
+                  ACE_TEXT ("%s: caught exception in Stream_IStreamControl::stop(), continuing\n"),
+                  (istream_p ? ACE_TEXT (istream_p->name ().c_str ()) : ACE_TEXT ("N/A"))));
     }
+    ACE_DEBUG ((LM_DEBUG,
+                ACE_TEXT ("%s: stopped upstream: %s, continuing\n"),
+                ACE_TEXT (StreamName),
+                (istream_p ? ACE_TEXT (istream_p->name ().c_str ()) : ACE_TEXT ("N/A"))));
   } // end IF
 
+continue_:
   if (unlikely (!isRunning ()))
     return;
 
@@ -859,7 +862,7 @@ Stream_Base_T<ACE_SYNCH_USE,
   try {
     istreamcontrol_p->stop (wait_in,
                             recurseUpstream_in,
-                            lockedAccess_in);
+                            highPriority_in);
   } catch (...) {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s/%s: caught exception in Stream_IStreamControl_T::stop(), returning\n"),
@@ -868,7 +871,6 @@ Stream_Base_T<ACE_SYNCH_USE,
     return;
   }
 
-//wait:
   if (wait_in)
     wait (true,   // wait for any worker thread(s) ?
           false,  // wait for upstream (if any) ?

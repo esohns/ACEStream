@@ -41,14 +41,14 @@ class Stream_IStreamControlBase
 {
  public:
   virtual void start () = 0;
-  virtual void stop (bool = true,      // wait for completion ?
-                     bool = true,      // recurse upstream (if any) ?
-                     bool = true) = 0; // locked access ?
+  virtual void stop (bool = true,       // wait for completion ?
+                     bool = true,       // recurse upstream (if any) ?
+                     bool = false) = 0; // high priority ?
 
   virtual Stream_SessionId_t id () const = 0; // current session- : -1
   virtual bool isRunning () const = 0;
 
-  // *NOTE*: signal asynchronous completion
+  // *NOTE*: signals asynchronous completion
   virtual void finished (bool = true) = 0; // recurse upstream (if any) ?
 
 //  // *NOTE*: wait for all queued data to drain
@@ -61,7 +61,7 @@ class Stream_IStreamControlBase
                               bool = false,      // flush session messages ?
                               bool = false) = 0; // flush upstream (if any) ?
 
-  // *NOTE*: this waits for outbound (!) data only
+  // *TODO*: this currently waits for outbound (!) data only
   virtual void idle () const = 0;
   // *NOTE*: wait for workers, and/or all queued data to drain
   virtual void wait (bool = true,             // wait for any worker thread(s) ?
@@ -107,7 +107,7 @@ class Stream_IStream_T
  , public Common_IDumpState
 {
  public:
-  inline virtual ~Stream_IStream_T () {}
+//  inline virtual ~Stream_IStream_T () {}
 
   // convenient types
   typedef ACE_Task<ACE_SYNCH_USE,
@@ -140,7 +140,7 @@ class Stream_IStreamLayout_T
                            TimePolicyType>
 {
  public:
-  inline virtual ~Stream_IStreamLayout_T () {}
+//  inline virtual ~Stream_IStreamLayout_T () {}
 
   // *IMPORTANT NOTE*: access to the module list happens in lockstep, i.e.
   //                   derived classes need not synchronize this, and should not

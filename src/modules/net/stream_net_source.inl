@@ -1017,8 +1017,7 @@ Stream_Module_Net_SourceH_T<ACE_SYNCH_USE,
           (inherited::configuration_->timerManager ? inherited::configuration_->timerManager
                                                    : inherited::TIMER_MANAGER_SINGLETON_T::instance ());
         ACE_ASSERT (itimer_manager_p);
-        ACE_Time_Value interval (STREAM_DEFAULT_STATISTIC_COLLECTION_INTERVAL,
-                                 0);
+        ACE_Time_Value interval (0, STREAM_DEFAULT_STATISTIC_COLLECTION_INTERVAL_MS * 1000);
         inherited::timerId_ =
             itimer_manager_p->schedule_timer (&(inherited::statisticHandler_), // event handler handle
                                               NULL,                            // asynchronous completion token

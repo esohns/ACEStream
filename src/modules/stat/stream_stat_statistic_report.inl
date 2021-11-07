@@ -69,7 +69,7 @@ Stream_Statistic_StatisticReport_WriterTask_T<ACE_SYNCH_USE,
                            this,
                            false)
  , localReportingHandlerId_ (-1)
- , reportingInterval_ (STREAM_DEFAULT_STATISTIC_REPORTING_INTERVAL, 0)
+ , reportingInterval_ (STREAM_DEFAULT_STATISTIC_REPORTING_INTERVAL_S, 0)
  , printFinalReport_ (false)
  , byteCounter_ (0)
  , fragmentCounter_ (0)

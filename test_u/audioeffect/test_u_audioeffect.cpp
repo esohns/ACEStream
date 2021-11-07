@@ -191,7 +191,7 @@ do_printUsage (const std::string& programName_in)
             << std::endl;
 #endif // ACE_WIN32 || ACE_WIN64
   std::cout << ACE_TEXT_ALWAYS_CHAR ("-s [VALUE]  : statistic reporting interval (second(s)) [")
-            << STREAM_DEFAULT_STATISTIC_REPORTING_INTERVAL
+            << STREAM_DEFAULT_STATISTIC_REPORTING_INTERVAL_S
             << ACE_TEXT_ALWAYS_CHAR ("] [0: off])")
             << std::endl;
   std::cout << ACE_TEXT_ALWAYS_CHAR ("-t          : trace information [")
@@ -289,7 +289,8 @@ do_processArguments (int argc_in,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   mediaFramework_out = STREAM_LIB_DEFAULT_MEDIAFRAMEWORK;
 #endif // ACE_WIN32 || ACE_WIN64
-  statisticReportingInterval_out = STREAM_DEFAULT_STATISTIC_REPORTING_INTERVAL;
+  statisticReportingInterval_out =
+    STREAM_DEFAULT_STATISTIC_REPORTING_INTERVAL_S;
   traceInformation_out = false;
   mute_out = false;
   printVersionAndExit_out = false;
@@ -1659,7 +1660,7 @@ ACE_TMAIN (int argc_in,
     STREAM_LIB_DEFAULT_MEDIAFRAMEWORK;
 #endif // ACE_WIN32 || ACE_WIN64
   unsigned int statistic_reporting_interval =
-    STREAM_DEFAULT_STATISTIC_REPORTING_INTERVAL;
+    STREAM_DEFAULT_STATISTIC_REPORTING_INTERVAL_S;
   bool trace_information = false;
   bool mute = false;
   bool print_version_and_exit = false;

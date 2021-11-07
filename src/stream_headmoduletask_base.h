@@ -115,26 +115,22 @@ class Stream_HeadModuleTaskBase_T
   //         unpredictable results
   //         --> use Common_MessageQueueIterator_T and lock the queue manually
   virtual bool isShuttingDown () const;
-  // enqueue MB_STOP --> stop worker thread(s)
 
-  // implement Stream_IModuleHandler_T
-//  virtual const ConfigurationType& get () const;
+  // implement (part of) Stream_IModuleHandler_T
   virtual bool initialize (const ConfigurationType&,
                            Stream_IAllocator* = NULL);
 
   // implement (part of) Stream_IStreamControl_T
   inline virtual void start () { inherited2::change (STREAM_STATE_RUNNING); }
-  virtual void stop (bool = true,  // wait for completion ?
-                     bool = true,  // N/A
-                     bool = true); // N/A
+  virtual void stop (bool = true,   // wait for completion ?
+                     bool = true,   // N/A
+                     bool = false); // high priority ?
   virtual bool isRunning () const;
   inline virtual void pause () { inherited2::change (STREAM_STATE_PAUSED); }
   inline virtual void idle () const { queue_.waitForIdleState (); }
   virtual void wait (bool = true,         // wait for any worker thread(s) ?
                      bool = false,        // N/A
                      bool = false) const; // N/A
-
-  //inline virtual std::string name () const { std::string result = ACE_TEXT_ALWAYS_CHAR (inherited2::name ()); return result; };
 
   virtual void control (SessionControlType, // control type
                         bool = false);      // N/A
@@ -144,14 +140,11 @@ class Stream_HeadModuleTaskBase_T
   //            --> make sure there are no session message 'loops'
   virtual void notify (SessionEventType, // notification type
                        bool = false);    // N/A
-  inline virtual const StreamStateType& state () const { static StreamStateType dummy;  ACE_ASSERT (false); ACE_NOTSUP_RETURN (dummy); ACE_NOTREACHED (return dummy;) }
+  inline virtual const StreamStateType& state () const { ACE_ASSERT (streamState_); return *streamState_; }
   inline virtual enum Stream_StateMachine_ControlState status () const { enum Stream_StateMachine_ControlState result = inherited2::current (); return result; }
 
   // implement Stream_ILock_T
-  // *WARNING*: on Windows, 'critical sections' (such as this) are 'recursive',
-  //            so lock() increases the count, and unlock needs to be called
-  //            an equal number of times. Note how lock/unlock does not keep
-  //            track of the recursion counter
+  // *NOTE*: these just use queue_.lock_ (type ACE_SYNCH_MUTEX_T, non-recursive)
   virtual bool lock (bool = true,  // block ?
                      bool = true); // N/A
   virtual int unlock (bool = false, // unblock ?
@@ -189,7 +182,6 @@ class Stream_HeadModuleTaskBase_T
                                   enum Stream_StateMachine_ControlState,
                                   StreamStateType> ISTREAM_CONTROL_T;
   typedef Stream_ILock_T<ACE_SYNCH_USE> ILOCK_T;
-  //typedef typename Common_IRecursiveLock_T<ACE_SYNCH_USE>::MUTEX_T LOCK_T;
 
   // *TODO*: on MSVC 2015u3 the accurate declaration does not compile
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -215,8 +207,6 @@ class Stream_HeadModuleTaskBase_T
   // implement/hide (part of) Stream_IStreamControl_T
   inline virtual void finished (bool = true) { inherited2::finished (); }
 
-  // disambiguate Common_TaskBase_T and Common_StateMachine_Base_T
-  //using inherited2::finished;
   // disambiguate Stream_TaskBase_T and Common_StateMachine_Base_T
   using inherited::isInitialized_;
 
@@ -272,6 +262,7 @@ class Stream_HeadModuleTaskBase_T
   // *NOTE*: starts a worker thread in open (), i.e. when push()ed onto a stream
   bool                                autoStart_;
   bool                                generateSessionMessages_;
+  bool                                isHighPriorityStop_;
 };
 
 // include template definition

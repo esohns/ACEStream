@@ -228,7 +228,7 @@ do_printUsage (const std::string& programName_in)
             << ACE_TEXT_ALWAYS_CHAR ("\"]")
             << std::endl;
   std::cout << ACE_TEXT_ALWAYS_CHAR ("-s [VALUE]  : statistic reporting interval (second(s)) [")
-            << STREAM_DEFAULT_STATISTIC_REPORTING_INTERVAL
+            << STREAM_DEFAULT_STATISTIC_REPORTING_INTERVAL_S
             << ACE_TEXT_ALWAYS_CHAR ("] [0: off])")
             << std::endl;
   std::cout << ACE_TEXT_ALWAYS_CHAR ("-t          : trace information [")
@@ -302,7 +302,8 @@ do_processArguments (int argc_in,
   mediaFramework_out = STREAM_LIB_DEFAULT_MEDIAFRAMEWORK;
 #endif // ACE_WIN32 || ACE_WIN64
   displayDevice_out = Common_UI_Tools::getDefaultDisplay ();
-  statisticReportingInterval_out = STREAM_DEFAULT_STATISTIC_REPORTING_INTERVAL;
+  statisticReportingInterval_out =
+    STREAM_DEFAULT_STATISTIC_REPORTING_INTERVAL_S;
   traceInformation_out = false;
   mode_out = STREAM_AVSAVE_PROGRAMMODE_NORMAL;
 
@@ -2027,7 +2028,7 @@ ACE_TMAIN (int argc_in,
   struct Common_UI_DisplayDevice display_device_s =
     Common_UI_Tools::getDefaultDisplay ();
   unsigned int statistic_reporting_interval =
-    STREAM_DEFAULT_STATISTIC_REPORTING_INTERVAL;
+    STREAM_DEFAULT_STATISTIC_REPORTING_INTERVAL_S;
   bool trace_information = false;
   enum Stream_AVSave_ProgramMode program_mode_e =
       STREAM_AVSAVE_PROGRAMMODE_NORMAL;
