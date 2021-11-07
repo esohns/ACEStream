@@ -478,8 +478,7 @@ do_processArguments (int argc_in,
 }
 
 void
-do_initializeSignals (bool allowUserRuntimeConnect_in,
-                      ACE_Sig_Set& signals_out,
+do_initializeSignals (ACE_Sig_Set& signals_out,
                       ACE_Sig_Set& ignoredSignals_out)
 {
   STREAM_TRACE (ACE_TEXT ("::do_initializeSignals"));
@@ -510,12 +509,7 @@ do_initializeSignals (bool allowUserRuntimeConnect_in,
   signals_out.sig_add (SIGILL);            // 4       /* illegal instruction - invalid function image */
   signals_out.sig_add (SIGFPE);            // 8       /* floating point exception */
   //  signals_out.sig_add (SIGSEGV);           // 11      /* segment violation */
-  signals_out.sig_add (SIGTERM);           // 15      /* Software termination signal from kill */
-  if (allowUserRuntimeConnect_in)
-  {
-    signals_out.sig_add (SIGBREAK);        // 21      /* Ctrl-Break sequence */
-    ignoredSignals_out.sig_add (SIGBREAK); // 21      /* Ctrl-Break sequence */
-  } // end IF
+  signals_out.sig_add (SIGBREAK);          // 21      /* Ctrl-Break sequence */
   signals_out.sig_add (SIGABRT);           // 22      /* abnormal termination triggered by abort call */
   signals_out.sig_add (SIGABRT_COMPAT);    // 6       /* SIGABRT compatible with other platforms, same as SIGABRT */
 #else
@@ -1907,8 +1901,7 @@ ACE_TMAIN (int argc_in,
   // step1e: pre-initialize signal handling
   ACE_Sig_Set signal_set (0);
   ACE_Sig_Set ignored_signal_set (0);
-  do_initializeSignals (true, // allow SIGUSR1/SIGBREAK
-                        signal_set,
+  do_initializeSignals (signal_set,
                         ignored_signal_set);
   Common_SignalActions_t previous_signal_actions;
   sigset_t previous_signal_mask;
