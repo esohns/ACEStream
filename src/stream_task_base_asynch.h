@@ -87,8 +87,8 @@ class Stream_TaskBaseAsynch_T
   //         --> use Common_MessageQueueIterator_T and lock the queue manually
   virtual bool isShuttingDown () const;
   // enqueue MB_STOP --> stop worker thread(s)
-  virtual void stop (bool = true,  // wait for completion ?
-                     bool = true); // high priority ? (i.e. do not wait for queued messages)
+  virtual void stop (bool = true,   // wait for completion ?
+                     bool = false); // high priority ? (i.e. do not wait for queued messages)
 
   // override (part of) Stream_ITask_T
   inline virtual void waitForIdleState () const { queue_.waitForIdleState (); }

@@ -155,9 +155,9 @@ class Stream_CameraScreen_MediaFoundation_Stream
   // override (part of) Stream_IStreamControl_T
   virtual const Stream_Module_t* find (const std::string&) const; // module name
   virtual void start ();
-  virtual void stop (bool = true,  // wait for completion ?
-                     bool = true,  // recurse upstream (if any) ?
-                     bool = true); // locked access ?
+  virtual void stop (bool = true,   // wait for completion ?
+                     bool = true,   // recurse upstream (if any) ?
+                     bool = false); // locked access ?
 
   // implement IMFAsyncCallback
   virtual STDMETHODIMP QueryInterface (const IID&,

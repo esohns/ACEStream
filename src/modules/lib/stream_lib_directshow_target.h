@@ -115,8 +115,8 @@ class Stream_MediaFramework_DirectShow_Target_T
                   HWND,                           // (target) window handle {NULL: NullRenderer}
                   IGraphBuilder*&);               // return value: graph builder handle
   // enqueue MB_STOP --> stop worker thread(s)
-  virtual void stop (bool = true,  // wait for completion ?
-                     bool = true); // high priority ? (i.e. do not wait for queued messages)
+  virtual void stop (bool = true,   // wait for completion ?
+                     bool = false); // high priority ? (i.e. do not wait for queued messages)
 
   IGraphBuilder*                      IGraphBuilder_;
 

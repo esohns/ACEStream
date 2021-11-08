@@ -18,6 +18,8 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
+#include "ace/Log_Msg.h"
+
 #include "stream_defines.h"
 #include "stream_macros.h"
 
@@ -33,7 +35,7 @@ Stream_CachedDataBlockAllocatorHeap_T<ACE_SYNCH_USE>::Stream_CachedDataBlockAllo
   STREAM_TRACE (ACE_TEXT ("Stream_CachedDataBlockAllocatorHeap_T::Stream_CachedDataBlockAllocatorHeap_T"));
 
   // sanity check(s)
-  if (!chunks_in)
+  if (unlikely (!chunks_in))
     ACE_DEBUG ((LM_WARNING,
                 ACE_TEXT ("cannot allocate unlimited memory, caching %d buffers...\n"),
                 STREAM_QUEUE_DEFAULT_CACHED_MESSAGES));
@@ -45,13 +47,6 @@ Stream_CachedDataBlockAllocatorHeap_T<ACE_SYNCH_USE>::Stream_CachedDataBlockAllo
 }
 
 template <ACE_SYNCH_DECL>
-Stream_CachedDataBlockAllocatorHeap_T<ACE_SYNCH_USE>::~Stream_CachedDataBlockAllocatorHeap_T ()
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_CachedDataBlockAllocatorHeap_T::~Stream_CachedDataBlockAllocatorHeap_T"));
-
-}
-
-template <ACE_SYNCH_DECL>
 void*
 Stream_CachedDataBlockAllocatorHeap_T<ACE_SYNCH_USE>::calloc ()
 {
@@ -59,13 +54,10 @@ Stream_CachedDataBlockAllocatorHeap_T<ACE_SYNCH_USE>::calloc ()
 
   ACE_Data_Block* data_block_p = NULL;
   try {
-    // delegate allocation to the base class and:
-    // - use placement new to invoke a ctor on the allocated space
-    // - perform necessary initialization...
     ACE_NEW_MALLOC_NORETURN (data_block_p,
                              static_cast<ACE_Data_Block*> (inherited::calloc (sizeof (ACE_Data_Block))),
                              ACE_Data_Block (0,                                                         // size of data chunk
-                                             ACE_Message_Block::MB_NORMAL,                              // message type
+                                             STREAM_MESSAGE_CONTROL,                                    // message type
                                              NULL,                                                      // data --> use allocator !
                                              NULL,                                                      // allocator
                                              &OWN_TYPE_T::referenceCountLock_,                          // reference count lock
@@ -73,12 +65,12 @@ Stream_CachedDataBlockAllocatorHeap_T<ACE_SYNCH_USE>::calloc ()
                                              this));                                                    // data block allocator
   } catch (...) {
     ACE_DEBUG ((LM_CRITICAL,
-                ACE_TEXT ("caught exception in ACE_NEW_MALLOC_NORETURN(ACE_Data_Block()), continuing\n")));
+                ACE_TEXT ("caught exception in ACE_NEW_MALLOC_NORETURN(ACE_Data_Block(0)): \"%m\", continuing\n")));
   }
-  if (!data_block_p)
+  if (unlikely (!data_block_p))
   {
     ACE_DEBUG ((LM_CRITICAL,
-                ACE_TEXT ("unable to allocate ACE_Data_Block(), aborting\n")));
+                ACE_TEXT ("failed to allocate ACE_Data_Block(0): \"%m\", aborting\n")));
     return NULL;
   } // end IF
 
@@ -93,48 +85,27 @@ Stream_CachedDataBlockAllocatorHeap_T<ACE_SYNCH_USE>::malloc (size_t bytes_in)
 
   ACE_Data_Block* data_block_p = NULL;
   try {
-    // delegate allocation to the base class and:
-    // - use placement new to invoke a ctor on the allocated space
-    // - perform necessary initialization...
     ACE_NEW_MALLOC_NORETURN (data_block_p,
                              static_cast<ACE_Data_Block*> (inherited::malloc (sizeof (ACE_Data_Block))),
-                             ACE_Data_Block (bytes_in,                                                             // size of data chunk
-                                             (bytes_in ? ACE_Message_Block::MB_DATA : ACE_Message_Block::MB_USER), // message type
-                                             NULL,                                                                 // data --> use allocator !
-                                             (bytes_in ? heapAllocator_ : NULL),                                   // allocator
-                                             &OWN_TYPE_T::referenceCountLock_,                                     // reference count lock
-                                             0,                                                                    // flags: release (heap) memory in dtor
-                                             this));                                                               // data block allocator
+                             ACE_Data_Block (bytes_in,                                                   // size of data chunk
+                                             (bytes_in ? STREAM_MESSAGE_DATA : STREAM_MESSAGE_SESSION),  // message type
+                                             NULL,                                                       // data --> use allocator !
+                                             (bytes_in ? heapAllocator_ : NULL),                         // allocator
+                                             &OWN_TYPE_T::referenceCountLock_,                           // reference count lock
+                                             0,                                                          // flags: release (heap) memory in dtor
+                                             this));                                                     // data block allocator
   } catch (...) {
     ACE_DEBUG ((LM_CRITICAL,
-                ACE_TEXT ("caught exception in ACE_NEW_MALLOC_NORETURN(ACE_Data_Block(%u)), continuing\n"),
+                ACE_TEXT ("caught exception in ACE_NEW_MALLOC_NORETURN(ACE_Data_Block(%u)): \"%m\", continuing\n"),
                 bytes_in));
   }
-  if (!data_block_p)
+  if (unlikely (!data_block_p))
   {
     ACE_DEBUG ((LM_CRITICAL,
-                ACE_TEXT ("unable to allocate ACE_Data_Block(%u), aborting\n"),
+                ACE_TEXT ("failed to allocate ACE_Data_Block(%u): \"%m\", aborting\n"),
                 bytes_in));
     return NULL;
   } // end IF
 
   return data_block_p;
-}
-
-template <ACE_SYNCH_DECL>
-size_t
-Stream_CachedDataBlockAllocatorHeap_T<ACE_SYNCH_USE>::cache_depth () const
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_CachedDataBlockAllocatorHeap_T::cache_depth"));
-
-  return const_cast<OWN_TYPE_T*> (this)->pool_depth ();
-}
-
-template <ACE_SYNCH_DECL>
-size_t
-Stream_CachedDataBlockAllocatorHeap_T<ACE_SYNCH_USE>::cache_size () const
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_CachedDataBlockAllocatorHeap_T::cache_size"));
-
-  return poolSize_;
 }

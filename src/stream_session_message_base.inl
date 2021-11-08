@@ -42,7 +42,7 @@ Stream_SessionMessageBase_T<//AllocatorConfigurationType,
                                                                         SessionDataType*& data_inout,
                                                                         UserDataType* userData_in)
  : inherited (0,                                  // size
-              ACE_Message_Block::MB_USER,         // type
+              ACE_Message_Block::MB_EVENT,        // type
               NULL,                               // continuation
               NULL,                               // data
               NULL,                               // buffer allocator
@@ -168,9 +168,9 @@ Stream_SessionMessageBase_T<//AllocatorConfigurationType,
   userData_ = NULL;
 
   // *WARNING*: cannot reset the message type (data block has already gone)
-//  inherited::msg_type (ACE_Message_Block::MB_USER);
-  // *IMPORTANT NOTE*: this is an ugly hack to support message allocators
-  //                   (see e.g. stream_cachedmessageallocator.cpp:172)
+//  inherited::msg_type (STREAM_MESSAGE_SESSION);
+  // *WORKAROUND*: this is an ugly hack to support message allocators
+  //               (see e.g. stream_cachedmessageallocator.cpp:172)
   inherited::priority_ = std::numeric_limits<unsigned long>::min ();
 }
 

@@ -118,8 +118,8 @@ class Stream_Dev_Mic_Source_DirectShow_T
   virtual bool initialize (const ConfigurationType&,
                            Stream_IAllocator* = NULL);
   //virtual void start ();
-  //virtual void stop (bool = true,  // wait for completion ?
-  //                   bool = true); // locked access ?
+  //virtual void stop (bool = true,   // wait for completion ?
+  //                   bool = false); // high priority ?
 
   // implement Common_IStatistic
   // *NOTE*: implements regular (timer-based) statistic collection

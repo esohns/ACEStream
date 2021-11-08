@@ -52,7 +52,6 @@ class Stream_StateMachine_Control_T
 
   // implement (part of) Common_IStateMachine_2
   virtual std::string stateToString (enum Stream_StateMachine_ControlState) const;
-  inline virtual void finished () { change (STREAM_STATE_FINISHED); }
 
  protected:
   // convenient types
@@ -61,7 +60,9 @@ class Stream_StateMachine_Control_T
                                      enum Stream_StateMachine_ControlState,
                                      Common_IStateMachine_2<enum Stream_StateMachine_ControlState> > STATEMACHINE_BASE_T;
 
+  // implement (part of) Common_IStateMachine_2
   using inherited::initialize;
+  inline virtual void finished () { change (STREAM_STATE_FINISHED); }
 
   // implement (part of) Common_IStateMachine_2
   // *IMPORTANT NOTE*: STREAM_STATE_FINISHED: processing has completed in the

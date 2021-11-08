@@ -179,7 +179,7 @@ Stream_Module_Net_IO_Stream_T<ACE_SYNCH_USE,
                               UserDataType>::initialize (const CONFIGURATION_T& configuration_in,
 #else
                               UserDataType>::initialize (const typename inherited::CONFIGURATION_T& configuration_in,
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
                                                          ACE_HANDLE handle_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Net_IO_Stream_T::initialize"));
@@ -430,7 +430,7 @@ Stream_Module_Net_IO_Stream_T<ACE_SYNCH_USE,
                               ConnectionManagerType,
                               UserDataType>::stop (bool wait_in,
                                                    bool recurseUpstream_in,
-                                                   bool lockedAccess_in)
+                                                   bool highPriority_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Net_IO_Stream_T::stop"));
 
@@ -452,7 +452,7 @@ Stream_Module_Net_IO_Stream_T<ACE_SYNCH_USE,
 
   inherited::stop (wait_in,
                    recurseUpstream_in,
-                   lockedAccess_in);
+                   highPriority_in);
 
   // clean up
   if (likely (connection_p))

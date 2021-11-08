@@ -43,7 +43,7 @@ Stream_Miscellaneous_Distributor_T<ACE_SYNCH_USE,
                                    SessionDataType>::Stream_Miscellaneous_Distributor_T (ISTREAM_T* stream_in)
 #else
                                    SessionDataType>::Stream_Miscellaneous_Distributor_T (typename inherited::ISTREAM_T* stream_in)
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
  : inherited (stream_in)
 // , lock_ ()
  , branches_ ()
@@ -72,12 +72,12 @@ Stream_Miscellaneous_Distributor_T<ACE_SYNCH_USE,
                                    DataMessageType,
                                    SessionMessageType,
                                    SessionDataType>::forward (ACE_Message_Block* messageBlock_in,
-                                                              bool dispose_in)
+                                                              bool dispose_in,
+                                                              bool highPriority_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Miscellaneous_Distributor_T::forward"));
 
   // sanity check(s)
-  //ACE_ASSERT (!queues_.empty ());
   ACE_ASSERT (messageBlock_in);
 
   int result = -1;
@@ -101,11 +101,12 @@ Stream_Miscellaneous_Distributor_T<ACE_SYNCH_USE,
       // iff this is a session message, update its' data
       switch (messageBlock_in->msg_type ())
       {
-        case ACE_Message_Block::MB_DATA:
-        case ACE_Message_Block::MB_PROTO:
-        case ACE_Message_Block::MB_STOP:
+        case ACE_Message_Block::MB_STOP: // see: stop()
+        case STREAM_MESSAGE_CONTROL:
+        case STREAM_MESSAGE_DATA:
+        case STREAM_MESSAGE_OBJECT:
           break;
-        case ACE_Message_Block::MB_USER:
+        case STREAM_MESSAGE_SESSION:
         {
           // retrieve branch session data
           QUEUE_TO_MODULE_ITERATOR_T iterator_2 =
@@ -114,26 +115,12 @@ Stream_Miscellaneous_Distributor_T<ACE_SYNCH_USE,
           ACE_ASSERT ((*iterator_2).second);
           HEAD_TO_SESSIONDATA_ITERATOR_T iterator_3 =
               data_.find ((*iterator_2).second);
-          // *NOTE*: if some upstream initialization failed an the filter sends
+          SessionMessageType* session_message_p =
+            static_cast<SessionMessageType*> (messageBlock_in);
+          // *NOTE*: if some upstream initialization failed and the task sends
           //         'abort', 'this' has not been initialized yet
           if (likely (iterator_3 != data_.end ()))
           { ACE_ASSERT ((*iterator_3).second);
-          } // end IF
-
-          // *NOTE*: currently, all of these are 'session' messages
-          SessionMessageType* session_message_p =
-            static_cast<SessionMessageType*> (messageBlock_in);
-          //if (unlikely (!session_message_p))
-          //{
-          //  ACE_DEBUG ((LM_ERROR,
-          //              ACE_TEXT ("%s: dynamic_cast<Stream_SessionMessageBase_T>(0x%@) failed (type was: %d), returning\n"),
-          //              inherited::mod_->name (),
-          //              messageBlock_in,
-          //              messageBlock_in->msg_type ()));
-          //  goto continue_;
-          //} // end IF
-          if (likely (iterator_3 != data_.end ()))
-          {
             (*iterator_3).second->increase ();
             session_message_p->setP ((*iterator_3).second);
           } // end IF
@@ -146,8 +133,6 @@ Stream_Miscellaneous_Distributor_T<ACE_SYNCH_USE,
 
           break;
         }
-        case STREAM_MESSAGE_CONTROL:
-          break;
         default:
         {
           ACE_DEBUG ((LM_ERROR,
@@ -158,13 +143,15 @@ Stream_Miscellaneous_Distributor_T<ACE_SYNCH_USE,
         }
       } // end SWITCH
 
-      result = (*iterator).second->enqueue (message_block_p,
-                                            NULL);
+      result =
+        (highPriority_in ? (*iterator).second->enqueue_head (message_block_p, NULL)
+                         : (*iterator).second->enqueue_tail (message_block_p, NULL));
       if (unlikely (result == -1))
       {
         ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("%s: failed to ACE_Message_Queue_Base::enqueue(): \"%m\", returning\n"),
-                    inherited::mod_->name ()));
+                    ACE_TEXT ("%s: failed to ACE_Message_Queue_Base::%s(): \"%m\", returning\n"),
+                    inherited::mod_->name (),
+                    (highPriority_in ? ACE_TEXT ("enqueue_head") : ACE_TEXT ("enqueue_tail"))));
         message_block_p->release (); message_block_p = NULL;
         goto continue_;
       } // end IF
@@ -247,7 +234,9 @@ Stream_Miscellaneous_Distributor_T<ACE_SYNCH_USE,
         } // end FOR
       } // end lock scope
 
-      forward (message_inout, false);
+      forward (message_inout,
+               false,
+               false);
 
       break;
 
@@ -258,7 +247,9 @@ error:
     }
     case STREAM_SESSION_MESSAGE_END:
     {
-      forward (message_inout, false);
+      forward (message_inout,
+               false,
+               false);
 
       stop (false,  // wait ?
             false); // high priority ?
@@ -277,7 +268,9 @@ error:
     }
     default:
     {
-      forward (message_inout, false);
+      forward (message_inout,
+               false,
+               false);
 
       break;
     }
@@ -306,8 +299,6 @@ Stream_Miscellaneous_Distributor_T<ACE_SYNCH_USE,
   ACE_ASSERT (!branches_in.empty ());
 
   { ACE_GUARD_RETURN (ACE_Thread_Mutex, aGuard, inherited::lock_, false);
-    // sanity check(s)
-//    ACE_ASSERT (branches_.empty ());
     branches_ = branches_in;
   } // end lock scope
 
@@ -335,7 +326,7 @@ Stream_Miscellaneous_Distributor_T<ACE_SYNCH_USE,
   // sanity check(s)
   ACE_ASSERT (module_in);
 
-  ACE_Message_Queue_Base* queue_p = NULL;
+  Stream_Queue_t* queue_p = NULL;
   ACE_NEW_NORETURN (queue_p,
                     typename inherited::MESSAGE_QUEUE_T (STREAM_QUEUE_MAX_SLOTS, // max # slots
                                                          NULL));                 // notification handle
@@ -355,7 +346,7 @@ Stream_Miscellaneous_Distributor_T<ACE_SYNCH_USE,
     inherited::lockActivate_ = false;
     if (unlikely (!inherited::start (NULL)))
     {
-      ACE_DEBUG ((LM_CRITICAL,
+      ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: failed to Common_Task_Base_T::start(), aborting\n"),
                   inherited::mod_->name ()));
       inherited::lockActivate_ = lock_activate_was_b;
@@ -556,6 +547,7 @@ Stream_Miscellaneous_Distributor_T<ACE_SYNCH_USE,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Miscellaneous_Distributor_T::onLink"));
 
+  ACE_UNUSED_ARG (module_in);
 }
 
 template <ACE_SYNCH_DECL,
@@ -576,6 +568,7 @@ Stream_Miscellaneous_Distributor_T<ACE_SYNCH_USE,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Miscellaneous_Distributor_T::onUnlink"));
 
+  ACE_UNUSED_ARG (module_in);
 }
 
 template <ACE_SYNCH_DECL,
@@ -593,16 +586,9 @@ Stream_Miscellaneous_Distributor_T<ACE_SYNCH_USE,
                                    DataMessageType,
                                    SessionMessageType,
                                    SessionDataType>::stop (bool waitForCompletion_in,
-                                                           bool highPriority_in,
-                                                           bool lockedAccess_in)
+                                                           bool highPriority_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Miscellaneous_Distributor_T::stop"));
-
-  ACE_UNUSED_ARG (highPriority_in);
-  ACE_UNUSED_ARG (lockedAccess_in);
-
-  // sanity check(s)
-  //ACE_ASSERT (!queues_.empty ());
 
   ACE_Message_Block* message_block_p = NULL;
 
@@ -627,7 +613,10 @@ Stream_Miscellaneous_Distributor_T<ACE_SYNCH_USE,
     return;
   } // end IF
 
-  forward (message_block_p, true); message_block_p = NULL;
+  forward (message_block_p,
+           true,
+           highPriority_in);
+  message_block_p = NULL;
 
   if (waitForCompletion_in)
     wait (true);
@@ -811,8 +800,7 @@ Stream_Miscellaneous_Distributor_T<ACE_SYNCH_USE,
       }
       default:
       {
-        result_2 = task_p->put (message_block_p,
-                                NULL);
+        result_2 = task_p->put (message_block_p, NULL);
         if (unlikely (result_2 == -1))
         {
           ACE_DEBUG ((LM_ERROR,

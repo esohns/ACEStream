@@ -91,8 +91,8 @@ class Stream_Dev_Target_ALSA_T
 
   // helper methods
   // enqueue MB_STOP --> stop worker thread(s)
-  virtual void stop (bool = true,  // wait for completion ?
-                     bool = true); // high priority ? (i.e. do not wait for queued messages)
+  virtual void stop (bool = true,   // wait for completion ?
+                     bool = false); // high priority ? (i.e. do not wait for queued messages)
   // override (part of) ACE_Task_Base
   virtual int svc (void);
 

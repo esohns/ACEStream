@@ -82,8 +82,8 @@ class Stream_TaskBaseSynch_T
 
   // implement Common_ITask
   inline virtual bool isShuttingDown () const { return false; }
-  inline virtual void stop (bool = true,    // N/A
-                            bool = true) {} // N/A
+  inline virtual void stop (bool = true,     // N/A
+                            bool = false) {} // N/A
 
   // implement Stream_ITask_T
   inline virtual void waitForIdleState () const {}

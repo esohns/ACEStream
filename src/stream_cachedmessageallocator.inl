@@ -258,29 +258,22 @@ Stream_CachedMessageAllocator_T<ACE_SYNCH_USE,
   //switch (message_block_p->msg_type ())
   switch (message_block_p->msg_priority ())
   {
-    case 0:
+    case 0: // <-- session message
       sessionMessageAllocator_.free (handle_in);
       break;
-    //case ACE_Message_Block::MB_NORMAL: // undifferentiated
-    //case ACE_Message_Block::MB_BREAK:
-    //case ACE_Message_Block::MB_FLUSH:
-    //case ACE_Message_Block::MB_HANGUP:
-    case STREAM_MESSAGE_CONTROL_PRIORITY:
+    case STREAM_MESSAGE_CONTROL_PRIORITY: // <-- control message
       controlMessageAllocator_.free (handle_in);
       break;
-    //case ACE_Message_Block::MB_DATA:
-    //case ACE_Message_Block::MB_PROTO:
-    case UINT64_MAX:
+    case UINT64_MAX: // <-- data message
       dataMessageAllocator_.free (handle_in);
       break;
-    //case ACE_Message_Block::MB_USER:
     default:
     {
-      //ACE_DEBUG ((LM_ERROR,
-      //            ACE_TEXT ("invalid/unknown message type (was: %d), returning\n"),
+      //ACE_DEBUG ((LM_CRITICAL,
+      //            ACE_TEXT ("invalid/unknown message type (was: %d), continuing\n"),
       //            message_block_p->msg_type ()));
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("invalid/unknown message priority (was: %d), returning\n"),
+      ACE_DEBUG ((LM_CRITICAL,
+                  ACE_TEXT ("invalid/unknown message priority (was: %d), continuing\n"),
                   message_block_p->msg_priority ()));
       break;
     }

@@ -110,28 +110,17 @@ Stream_HeadTask_T<ACE_SYNCH_USE,
 
   switch (messageBlock_in->msg_type ())
   {
-    case ACE_Message_Block::MB_DATA:
-    case ACE_Message_Block::MB_PROTO:
+    case STREAM_MESSAGE_CONTROL:
+    {
+      enqueue_message = false;
       break;
-    //////////////////////////////////////
-    case ACE_Message_Block::MB_USER:
+    }
+    case STREAM_MESSAGE_SESSION:
     {
       enqueue_message = false;
 
-      // *NOTE*: currently, all of these are 'session' messages
       SessionMessageType* session_message_p =
-        dynamic_cast<SessionMessageType*> (messageBlock_in);
-      if (unlikely (!session_message_p))
-      {
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("%s: dynamic_cast<SessionMessageType>(%@) failed (type was: %d), aborting\n"),
-                    inherited::mod_->name (),
-                    messageBlock_in,
-                    messageBlock_in->msg_type ()));
-        result = -1;
-        break;
-      } // end IF
-
+        static_cast<SessionMessageType*> (messageBlock_in);
       switch (session_message_p->type ())
       {
         case STREAM_SESSION_MESSAGE_LINK:
@@ -158,6 +147,7 @@ Stream_HeadTask_T<ACE_SYNCH_USE,
         }
         default:
         {
+          // *TODO*: merge session data every time ?
           if (isLinked_)
             session_message_p->initialize (session_message_p->sessionId (),
                                            session_message_p->type (),
@@ -166,16 +156,11 @@ Stream_HeadTask_T<ACE_SYNCH_USE,
           break;
         }
       } // end SWITCH
-
       break;
     }
-    //////////////////////////////////////
-    case STREAM_MESSAGE_CONTROL:
-    {
-      enqueue_message = false;
+    case STREAM_MESSAGE_DATA:
+    case STREAM_MESSAGE_OBJECT:
       break;
-    }
-    //////////////////////////////////////
     default:
     {
       ACE_DEBUG ((LM_ERROR,
@@ -270,28 +255,17 @@ Stream_TailTask_T<ACE_SYNCH_USE,
 
   switch (messageBlock_in->msg_type ())
   {
-    case ACE_Message_Block::MB_DATA:
-    case ACE_Message_Block::MB_PROTO:
+    case STREAM_MESSAGE_CONTROL:
+    {
+      enqueue_message = false;
       break;
-    //////////////////////////////////////
-    case ACE_Message_Block::MB_USER:
+    }
+    case STREAM_MESSAGE_SESSION:
     {
       enqueue_message = false;
 
-      // *NOTE*: currently, all of these are 'session' messages
       SessionMessageType* session_message_p =
-        dynamic_cast<SessionMessageType*> (messageBlock_in);
-      if (unlikely (!session_message_p))
-      {
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("%s: dynamic_cast<SessionMessageType>(%@) failed (type was: %d), aborting\n"),
-                    inherited::mod_->name (),
-                    messageBlock_in,
-                    messageBlock_in->msg_type ()));
-        result = -1;
-        break;
-      } // end IF
-
+        static_cast<SessionMessageType*> (messageBlock_in);
       switch (session_message_p->type ())
       {
         case STREAM_SESSION_MESSAGE_BEGIN:
@@ -305,11 +279,11 @@ Stream_TailTask_T<ACE_SYNCH_USE,
         { ACE_ASSERT (sessionData_);
           const typename SessionMessageType::DATA_T::DATA_T& session_data_r =
             sessionData_->getR ();
-          if (unlikely (!putControlMessage (STREAM_CONTROL_END,
-                                            session_data_r)))
+          if (unlikely (!reply (STREAM_CONTROL_END,
+                                session_data_r)))
           {
             ACE_DEBUG ((LM_ERROR,
-                        ACE_TEXT ("%s: failed to Stream_TailTask_T::putControlMessage(%d), aborting\n"),
+                        ACE_TEXT ("%s: failed to Stream_TailTask_T::reply(%d), aborting\n"),
                         inherited::mod_->name (),
                         STREAM_CONTROL_END));
             result = -1;
@@ -323,13 +297,9 @@ Stream_TailTask_T<ACE_SYNCH_USE,
       } // end SWITCH
       break;
     }
-    //////////////////////////////////////
-    case STREAM_MESSAGE_CONTROL:
-    {
-      enqueue_message = false;
+    case STREAM_MESSAGE_DATA:
+    case STREAM_MESSAGE_OBJECT:
       break;
-    }
-    //////////////////////////////////////
     default:
     {
       ACE_DEBUG ((LM_ERROR,
@@ -364,18 +334,18 @@ Stream_TailTask_T<ACE_SYNCH_USE,
                   ControlMessageType,
                   DataMessageType,
                   SessionMessageType,
-                  SessionEventType>::putControlMessage (typename ControlMessageType::CONTROL_T controlType_in,
-                                                        const typename SessionMessageType::DATA_T::DATA_T& sessionData_in)
+                  SessionEventType>::reply (typename ControlMessageType::CONTROL_T controlType_in,
+                                            const typename SessionMessageType::DATA_T::DATA_T& sessionData_in)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_TailTask_T::putControlMessage"));
+  STREAM_TRACE (ACE_TEXT ("Stream_TailTask_T::reply"));
 
   // initialize return value(s)
   ACE_Message_Block* message_block_p = NULL;
 
   // *TODO*: remove type inference
-  if (allocator_)
+  if (likely (allocator_))
   {
-allocate:
+retry:
     try {
       // *TODO*: remove type inference
       ACE_NEW_MALLOC_NORETURN (message_block_p,
@@ -389,15 +359,16 @@ allocate:
     }
 
     // keep retrying ?
-    if (!message_block_p && !allocator_->block ())
-      goto allocate;
+    if (unlikely (!message_block_p &&
+                  !allocator_->block ()))
+      goto retry;
   } // end IF
   else
     ACE_NEW_NORETURN (message_block_p,
                       ControlMessageType (controlType_in));
   if (unlikely (!message_block_p))
   {
-    if (allocator_)
+    if (likely (allocator_))
     {
       if (allocator_->block ())
         ACE_DEBUG ((LM_CRITICAL,
@@ -420,7 +391,7 @@ allocate:
                 sizeof (typename SessionMessageType::DATA_T::DATA_T)));
     message_block_p->release (); message_block_p = NULL;
     return false;
-  } // end IF  
+  } // end IF
   result =
     message_block_p->copy (reinterpret_cast<const char*> (&sessionData_in),
                            sizeof (typename SessionMessageType::DATA_T::DATA_T));

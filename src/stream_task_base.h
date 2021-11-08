@@ -154,6 +154,8 @@ class Stream_TaskBase_T
   // *NOTE*: 'high priority' effectively means that the message is enqueued at
   //         the head end (i.e. will be the next to dequeue), whereas it would
   //         be enqueued at the tail end otherwise
+  // *WARNING*: this implementation put()s messages, potentially ignoring the
+  //            'high-priority' argument
   virtual void control (int,           // message type
                         bool = false); // high-priority ?
 

@@ -153,9 +153,9 @@ class Stream_AVSave_MediaFoundation_Stream
   // override (part of) Stream_IStreamControl_T
   virtual const Stream_Module_t* find (const std::string&) const; // module name
   virtual void start ();
-  virtual void stop (bool = true,  // wait for completion ?
-                     bool = true,  // recurse upstream (if any) ?
-                     bool = true); // locked access ?
+  virtual void stop (bool = true,   // wait for completion ?
+                     bool = true,   // recurse upstream (if any) ?
+                     bool = false); // high priority ?
 
   // implement IMFAsyncCallback
   virtual STDMETHODIMP QueryInterface (const IID&,

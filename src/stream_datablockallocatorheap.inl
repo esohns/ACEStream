@@ -60,12 +60,12 @@ Stream_DataBlockAllocatorHeap_T<ACE_SYNCH_USE,
   ACE_Data_Block* data_block_p = NULL;
   try {
     ACE_NEW_MALLOC_NORETURN (data_block_p,
-                             static_cast<ACE_Data_Block*> (inherited::malloc (sizeof (ACE_Data_Block))),
+                             static_cast<ACE_Data_Block*> (inherited::calloc (sizeof (ACE_Data_Block))),
                              ACE_Data_Block (0,
-                                             ACE_Message_Block::MB_NORMAL,
+                                             STREAM_MESSAGE_CONTROL,
                                              NULL,
                                              NULL,
-                                             NULL,
+                                             &OWN_TYPE_T::referenceCountLock_,
                                              0,
                                              this));
   } catch (...) {
@@ -94,29 +94,20 @@ Stream_DataBlockAllocatorHeap_T<ACE_SYNCH_USE,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_DataBlockAllocatorHeap_T::malloc"));
 
-  // sanity check(s)
-  if (heapAllocator_)
-  {
-    ACE_ASSERT (heapAllocator_->configuration_);
-  } // end IF
-
   ACE_Data_Block* data_block_p = NULL;
   try {
-    // - delegate allocation to base class and...
-    // - use placement new and...
-    // - perform necessary initialization
     // *TODO*: use the heap allocator to allocate the instance
     ACE_NEW_MALLOC_NORETURN (data_block_p,
                              static_cast<ACE_Data_Block*> (inherited::malloc (sizeof (ACE_Data_Block))),
                              ACE_Data_Block (bytes_in,                                 // size of data chunk
-                                             (bytes_in ? ACE_Message_Block::MB_DATA : ACE_Message_Block::MB_USER),
+                                             (bytes_in ? STREAM_MESSAGE_DATA : STREAM_MESSAGE_SESSION),
                                              NULL,                                     // data --> use allocator !
                                              (bytes_in ? heapAllocator_ : NULL),       // heap allocator
                                              &OWN_TYPE_T::referenceCountLock_,         // reference count lock
                                              0,                                        // flags: release (heap) memory in dtor
                                              this));                                   // data block allocator
   } catch (...) {
-    ACE_DEBUG ((LM_ERROR,
+    ACE_DEBUG ((LM_CRITICAL,
                 ACE_TEXT ("caught exception in ACE_NEW_MALLOC_NORETURN(ACE_Data_Block(%u)): \"%m\", continuing\n"),
                 bytes_in));
   }
@@ -172,7 +163,7 @@ Stream_DataBlockAllocatorHeap_T<ACE_SYNCH_USE,
   return std::numeric_limits<unsigned int>::max ();
 #else
   return -1;
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
 }
 
 template <ACE_SYNCH_DECL,
@@ -183,7 +174,7 @@ Stream_DataBlockAllocatorHeap_T<ACE_SYNCH_USE,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_DataBlockAllocatorHeap_T::dump_state"));
 
-  ACE_DEBUG ((LM_INFO,
-              ACE_TEXT ("# data fragments in flight: %u\n"),
+  ACE_DEBUG ((LM_DEBUG,
+              ACE_TEXT ("total# of in-flight message(s): %u\n"),
               poolSize_.value ()));
 }

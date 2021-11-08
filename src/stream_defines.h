@@ -27,6 +27,8 @@
 //                   stream_cachedmessageallocatorheap_base.inl:190)
 // *TODO*: find an alternative method and implement proper message priorization
 #define STREAM_MESSAGE_CONTROL_PRIORITY                     100
+#define STREAM_MESSAGE_SESSION_TYPE                         ACE_Message_Block::MB_EVENT
+
 #define STREAM_MESSAGE_DEFAULT_DATA_BUFFER_SIZE             16384 // 16 kB
 
 // queue

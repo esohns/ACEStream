@@ -318,7 +318,7 @@ Stream_Decoder_AVIParserDriver::wait ()
           is_data = true;
         break;
       }
-      case ACE_Message_Block::MB_USER:
+      case STREAM_MESSAGE_SESSION_TYPE:
       {
         session_message_p = dynamic_cast<ISESSIONMESSAGE_T*> (message_block_p);
         if (session_message_p)

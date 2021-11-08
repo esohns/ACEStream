@@ -662,30 +662,27 @@ Stream_Decoder_H264_NAL_Decoder_T<ACE_SYNCH_USE,
       case ACE_Message_Block::MB_DATA:
       case ACE_Message_Block::MB_PROTO:
         is_data = true; break;
-      case ACE_Message_Block::MB_USER:
+      case STREAM_MESSAGE_SESSION_TYPE:
       {
-        session_message_p = dynamic_cast<SessionMessageType*> (message_block_p);
-        if (session_message_p)
+        session_message_p = static_cast<SessionMessageType*> (message_block_p);
+        switch (session_message_p->type ())
         {
-          switch (session_message_p->type ())
+          case STREAM_SESSION_MESSAGE_END:
           {
-            case STREAM_SESSION_MESSAGE_END:
-            {
-              done = true; // session has finished --> abort
+            done = true; // session has finished --> abort
 
-              break;
-            }
-            default:
-            {
-              inherited::handleMessage (session_message_p,
-                                        stop_processing);
-              if (stop_processing)
-                done = true; // session has finished (error) --> abort
-              message_block_p = NULL;
-              break;
-            }
-          } // end SWITCH
-        } // end IF
+            break;
+          }
+          default:
+          {
+            inherited::handleMessage (session_message_p,
+                                      stop_processing);
+            if (stop_processing)
+              done = true; // session has finished (error) --> abort
+            message_block_p = NULL;
+            break;
+          }
+        } // end SWITCH
         break;
       }
       default:

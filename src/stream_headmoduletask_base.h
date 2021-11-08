@@ -201,8 +201,8 @@ class Stream_HeadModuleTaskBase_T
   virtual void onChange (enum Stream_StateMachine_ControlState); // new state
 
   // hide part of Common_ITask
-  virtual void stop (bool = true,  // wait for completion ?
-                     bool = true); // high priority ? (i.e. do not wait for queued messages)
+  virtual void stop (bool = true,   // wait for completion ?
+                     bool = false); // high priority ? (i.e. do not wait for queued messages)
 
   // implement/hide (part of) Stream_IStreamControl_T
   inline virtual void finished (bool = true) { inherited2::finished (); }
@@ -210,15 +210,13 @@ class Stream_HeadModuleTaskBase_T
   // disambiguate Stream_TaskBase_T and Common_StateMachine_Base_T
   using inherited::isInitialized_;
 
-  //typename ACE_SYNCH_USE::RECURSIVE_MUTEX lock_;
+  bool                                isHighPriorityStop_;
   typename inherited::MESSAGE_QUEUE_T queue_;
-
   bool                                sessionEndProcessed_;
   bool                                sessionEndSent_;
   ACE_SYNCH_MUTEX_T                   stateMachineLock_;
   ILOCK_T*                            streamLock_;
   StreamStateType*                    streamState_;
-
   // timer
   STATISTIC_HANDLER_T                 statisticHandler_;
   long                                timerId_;
@@ -262,7 +260,6 @@ class Stream_HeadModuleTaskBase_T
   // *NOTE*: starts a worker thread in open (), i.e. when push()ed onto a stream
   bool                                autoStart_;
   bool                                generateSessionMessages_;
-  bool                                isHighPriorityStop_;
 };
 
 // include template definition

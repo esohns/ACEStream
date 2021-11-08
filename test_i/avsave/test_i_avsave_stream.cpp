@@ -620,7 +620,7 @@ Stream_AVSave_MediaFoundation_Stream::start ()
 void
 Stream_AVSave_MediaFoundation_Stream::stop (bool waitForCompletion_in,
                                             bool recurseUpstream_in,
-                                            bool lockedAccess_in)
+                                            bool highPriority_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_AVSave_MediaFoundation_Stream::stop"));
 
@@ -638,7 +638,7 @@ Stream_AVSave_MediaFoundation_Stream::stop (bool waitForCompletion_in,
 
   inherited::stop (waitForCompletion_in,
                    recurseUpstream_in,
-                   lockedAccess_in);
+                   highPriority_in);
 }
 
 HRESULT

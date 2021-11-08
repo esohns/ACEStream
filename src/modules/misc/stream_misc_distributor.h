@@ -30,12 +30,10 @@
 #include "ace/Module.h"
 #include "ace/Synch_Traits.h"
 
-//#include "common_iget.h"
 #include "common_ilock.h"
 
 #include "stream_common.h"
 #include "stream_ilink.h"
-//#include "stream_task_base_asynch.h"
 #include "stream_task_base_synch.h"
 
 extern const char libacestream_default_misc_distributor_module_name_string[];
@@ -111,7 +109,7 @@ class Stream_Miscellaneous_Distributor_T
  protected:
   // convenient types
   typedef std::map<ACE_thread_t,
-                   ACE_Message_Queue_Base*> THREAD_TO_QUEUE_MAP_T;
+                   Stream_Queue_t*> THREAD_TO_QUEUE_MAP_T;
   typedef typename THREAD_TO_QUEUE_MAP_T::const_iterator THREAD_TO_QUEUE_ITERATOR_T;
   typedef ACE_Module<ACE_SYNCH_USE,
                      TimePolicyType> MODULE_T;
@@ -131,8 +129,6 @@ class Stream_Miscellaneous_Distributor_T
     inline bool operator() (const BRANCH_TO_HEAD_PAIR_T& entry_in, MODULE_T* module_in) const { return !ACE_OS::strcmp (entry_in.second->name (), module_in->name ()); }
   };
 
-  // *NOTE*: use Common_TaskBase_Ts' lock_
-//  mutable ACE_SYNCH_MUTEX_T lock_;
   Stream_Branches_t         branches_;
   BRANCH_TO_HEAD_MAP_T      heads_;
   QUEUE_TO_MODULE_MAP_T     modules_;
@@ -157,17 +153,16 @@ class Stream_Miscellaneous_Distributor_T
   ACE_UNIMPLEMENTED_FUNC (Stream_Miscellaneous_Distributor_T& operator= (const Stream_Miscellaneous_Distributor_T&))
 
   // helper methods
-//  virtual const MODULE_T* const getP_2 () const; // return value: head module handle
   void forward (ACE_Message_Block*, // message handle
-                bool = false);      // dispose of original message ?
+                bool = false,       // dispose of original message ?
+                bool = false);      // high priority ?
 
   // override ACE_Task_Base members
   virtual int svc (void);
 
-  // override Common_ITaskControl_T members
-  virtual void stop (bool = true,  // wait for completion ?
-                     bool = true,  // high priority ?
-                     bool = true); // locked access ?
+  // override Common_ITask members
+  virtual void stop (bool = true,   // wait for completion ?
+                     bool = false); // high priority ?
   virtual void idle ();
   virtual void wait (bool = true) const; // wait for the message queue(s) ? : worker thread(s) only
 

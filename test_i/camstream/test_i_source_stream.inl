@@ -783,7 +783,8 @@ Test_I_Source_MediaFoundation_Stream_T<StreamStateType,
                                        SessionMessageType,
                                        ConnectionManagerType,
                                        ConnectorType>::stop (bool waitForCompletion_in,
-                                                             bool lockedAccess_in)
+                                                             bool recureUpstream_in,
+                                                             bool highPriority_in)
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_Source_MediaFoundation_Stream_T::stop"));
 
@@ -797,7 +798,8 @@ Test_I_Source_MediaFoundation_Stream_T<StreamStateType,
   } // end IF
 
   inherited::stop (waitForCompletion_in,
-                   lockedAccess_in);
+                   recureUpstream_in,
+                   highPriority_in);
 }
 
 template <typename StreamStateType,

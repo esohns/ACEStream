@@ -38,7 +38,6 @@
 #include "stream_defines.h"
 #include "stream_ilock.h"
 #include "stream_inotify.h"
-//#include "stream_istreamcontrol.h"
 #include "stream_statemachine_common.h"
 #include "stream_statistic.h"
 
@@ -68,7 +67,7 @@ struct Stream_UserData;
 enum Stream_HeadModuleConcurrency
 #else
 enum Stream_HeadModuleConcurrency : int
-#endif
+#endif // __llvm__
 {
   STREAM_HEADMODULECONCURRENCY_INVALID = -1,
   ////////////////////////////////////////
@@ -83,14 +82,14 @@ enum Stream_HeadModuleConcurrency : int
 enum Stream_MessageType
 #else
 enum Stream_MessageType : int
-#endif
+#endif // __llvm__
 {
   STREAM_MESSAGE_INVALID       = -1,
   ////////////////////////////////////////
   // *NOTE*: see "ace/Message_Block.h" for details
-  STREAM_MESSAGE_MASK          = ACE_Message_Block::MB_USER, // == 0x200
+  STREAM_MESSAGE_MASK          = ACE_Message_Block::MB_USER,  // == 0x200
   STREAM_MESSAGE_CONTROL,
-  STREAM_MESSAGE_SESSION,
+  STREAM_MESSAGE_SESSION       = STREAM_MESSAGE_SESSION_TYPE,
   ////////////////////////////////////////
   // *** data ***
   STREAM_MESSAGE_DATA          = ACE_Message_Block::MB_DATA,  // data (raw)
@@ -105,7 +104,7 @@ enum Stream_MessageType : int
 enum Stream_ControlType
 #else
 enum Stream_ControlType : int
-#endif
+#endif // __llvm__
 {
   // *NOTE*: see "ace/Message_Block.h" and "stream_message_base.h" for details
   STREAM_CONTROL_USER_MASK   = 0x400, // user-defined message mask

@@ -141,9 +141,9 @@ class Stream_Module_Net_IO_Stream_T
   inline virtual std::string name () const { std::string name_s = StreamName; return (name_.empty () ? name_s : name_); }
 
   // override (part of) Stream_IStreamControl_T
-  virtual void stop (bool = true,  // wait for completion ?
-                     bool = true,  // recurse upstream (if any) ?
-                     bool = true); // locked access ?
+  virtual void stop (bool = true,   // wait for completion ?
+                     bool = true,   // recurse upstream (if any) ?
+                     bool = false); // high priority ?
   virtual void finished (bool = true); // recurse upstream (if any) ?
   using inherited::flush;
   inline virtual const SessionDataContainerType& getR_2 () const { ACE_ASSERT (inherited::sessionData_); return *inherited::sessionData_; }

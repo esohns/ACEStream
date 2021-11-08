@@ -386,6 +386,11 @@ error:
 error_2:
       break;
     }
+    case STREAM_MESSAGE_SESSION_TYPE:
+    {
+
+      break;
+    }
     case ACE_Message_Block::MB_USER:
     {
       try {

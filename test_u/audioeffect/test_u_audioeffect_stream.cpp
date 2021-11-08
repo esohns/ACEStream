@@ -556,9 +556,11 @@ Test_U_AudioEffect_MediaFoundation_Stream::start ()
 
   inherited::start ();
 }
+
 void
 Test_U_AudioEffect_MediaFoundation_Stream::stop (bool waitForCompletion_in,
-                                                 bool lockedAccess_in)
+                                                 bool recurseUpstream_in,
+                                                 bool highPriority_in)
 {
   STREAM_TRACE (ACE_TEXT ("Test_U_AudioEffect_MediaFoundation_Stream::stop"));
 
@@ -575,7 +577,8 @@ Test_U_AudioEffect_MediaFoundation_Stream::stop (bool waitForCompletion_in,
 #endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
 
   inherited::stop (waitForCompletion_in,
-                   lockedAccess_in);
+                   recurseUpstream_in,
+                   highPriority_in);
 }
 
 bool

@@ -180,7 +180,7 @@ Stream_MessageBase_T<//AllocatorConfigurationType,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MessageBase_T::~Stream_MessageBase_T"));
 
-  // *NOTE*: will be called BEFORE this is passed back to the allocator
+  // *NOTE*: invoked BEFORE 'this' is passed back to the allocator
 
   //ACE_DEBUG ((LM_DEBUG,
   //            ACE_TEXT ("freeing message (ID: %d)\n"),
@@ -192,9 +192,9 @@ Stream_MessageBase_T<//AllocatorConfigurationType,
   type_ = static_cast<MessageType> (STREAM_MESSAGE_INVALID);
 
   // *WARNING*: cannot reset the message type (data block has already gone)
-//  inherited::msg_type (ACE_Message_Block::MB_USER);
-  // *IMPORTANT NOTE*: this is an ugly hack to support message allocators
-  //                   (see e.g. stream_cachedmessageallocator.cpp:172)
+//  inherited::msg_type (STREAM_MESSAGE_DATA);
+  // *WORKAROUND*: this is an ugly hack to support message allocators
+  //               (see e.g. stream_cachedmessageallocator.cpp:172)
   inherited::priority_ = std::numeric_limits<unsigned long>::max ();
 }
 
@@ -220,7 +220,7 @@ Stream_MessageBase_T<//AllocatorConfigurationType,
     inherited::data_block (dataBlock_in);
   } // end IF
   ACE_ASSERT (inherited::data_block_);
-  inherited::data_block_->msg_type (ACE_Message_Block::MB_DATA);
+  inherited::data_block_->msg_type (STREAM_MESSAGE_DATA);
   sessionId_ = sessionId_in;
   type_ = static_cast<MessageType> (STREAM_MESSAGE_DATA);
   //msg_execution_time ();

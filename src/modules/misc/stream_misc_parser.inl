@@ -552,18 +552,15 @@ Stream_Module_CppParser_T<ACE_SYNCH_USE,
 
   int result = -1;
   ACE_Message_Block* message_block_p = NULL;
-  ACE_Message_Queue_Base* message_queue_p = inherited::msg_queue ();
   bool done = false;
   SessionMessageType* session_message_p = NULL;
-  enum Stream_SessionMessageType session_message_type =
-      STREAM_SESSION_MESSAGE_INVALID;
   bool is_data = false;
 
   // *IMPORTANT NOTE*: 'this' is the parser thread currently blocked in yylex()
 
   // sanity check(s)
   ACE_ASSERT (blockInParse_);
-  if (!message_queue_p)
+  if (!inherited::msg_queue_)
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: message queue not set - cannot wait, returning\n"),
@@ -574,8 +571,7 @@ Stream_Module_CppParser_T<ACE_SYNCH_USE,
   // 1. wait for data
   do
   {
-    result = message_queue_p->dequeue_head (message_block_p,
-                                            NULL);
+    result = inherited::msg_queue_->dequeue_head (message_block_p, NULL);
     if (result == -1)
     {
       int error = ACE_OS::last_error ();
@@ -589,18 +585,14 @@ Stream_Module_CppParser_T<ACE_SYNCH_USE,
 
     switch (message_block_p->msg_type ())
     {
-      case ACE_Message_Block::MB_DATA:
-      case ACE_Message_Block::MB_PROTO:
+      case STREAM_MESSAGE_DATA:
+      case STREAM_MESSAGE_OBJECT:
         is_data = true; break;
-      case ACE_Message_Block::MB_USER:
+      case STREAM_MESSAGE_SESSION:
       {
-        session_message_p = dynamic_cast<SessionMessageType*> (message_block_p);
-        if (session_message_p)
-        {
-          session_message_type = session_message_p->type ();
-          if (session_message_type == STREAM_SESSION_MESSAGE_END)
-            done = true; // session has finished --> abort
-        } // end IF
+        session_message_p = static_cast<SessionMessageType*> (message_block_p);
+        if (session_message_p->type () == STREAM_SESSION_MESSAGE_END)
+          done = true; // session has finished --> abort
         break;
       }
       default:
@@ -609,7 +601,7 @@ Stream_Module_CppParser_T<ACE_SYNCH_USE,
     if (is_data) break;
 
     // requeue message
-    result = message_queue_p->enqueue_tail (message_block_p, NULL);
+    result = inherited::msg_queue_->enqueue_tail (message_block_p, NULL);
     if (result == -1)
     {
       ACE_DEBUG ((LM_ERROR,

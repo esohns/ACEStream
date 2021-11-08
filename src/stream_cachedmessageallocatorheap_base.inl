@@ -188,59 +188,23 @@ Stream_CachedMessageAllocatorHeapBase_T<ControlMessageType,
     case 0:
       sessionMessageAllocator_.free (handle_in);
       break;
-    //case ACE_Message_Block::MB_NORMAL: // undifferentiated
-    //case ACE_Message_Block::MB_BREAK:
-    //case ACE_Message_Block::MB_FLUSH:
-    //case ACE_Message_Block::MB_HANGUP:
     case STREAM_MESSAGE_CONTROL_PRIORITY:
       controlMessageAllocator_.free (handle_in);
       break;
-    //case ACE_Message_Block::MB_DATA:
-    //case ACE_Message_Block::MB_PROTO:
     case UINT64_MAX:
       inherited::free (handle_in);
       break;
-    //case ACE_Message_Block::MB_USER:
     default:
     {
-      //ACE_DEBUG ((LM_ERROR,
-      //            ACE_TEXT ("invalid/unknown message type (was: %d), returning\n"),
+      //ACE_DEBUG ((LM_CRITICAL,
+      //            ACE_TEXT ("invalid/unknown message type (was: %d), continuing\n"),
       //            message_block_p->msg_type ()));
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("invalid/unknown message priority (was: %d), returning\n"),
+      ACE_DEBUG ((LM_CRITICAL,
+                  ACE_TEXT ("invalid/unknown message priority (was: %d), continuing\n"),
                   message_block_p->msg_priority ()));
       break;
     }
   } // end SWITCH
-}
-
-template <typename ControlMessageType,
-          typename DataMessageType,
-          typename SessionMessageType>
-size_t
-Stream_CachedMessageAllocatorHeapBase_T<ControlMessageType,
-                                        DataMessageType,
-                                        SessionMessageType>::cache_depth () const
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_CachedMessageAllocatorHeapBase_T::cache_depth"));
-
-  OWN_TYPE_T* this_p = const_cast<OWN_TYPE_T*> (this);
-
-  return  this_p->dataBlockAllocator_.pool_depth ();
-}
-
-template <typename ControlMessageType,
-          typename DataMessageType,
-          typename SessionMessageType>
-size_t
-Stream_CachedMessageAllocatorHeapBase_T<ControlMessageType,
-                                        DataMessageType,
-                                        SessionMessageType>::cache_size () const
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_CachedMessageAllocatorHeapBase_T::cache_size"));
-
-  //return dataBlockAllocator_.cache_size ();
-  return std::numeric_limits<size_t>::max ();
 }
 
 //////////////////////////////////////////

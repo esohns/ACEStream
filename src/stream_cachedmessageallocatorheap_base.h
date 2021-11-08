@@ -53,8 +53,8 @@ class Stream_CachedMessageAllocatorHeapBase_T
   // only IF allocation is synchronized
   virtual void* malloc (size_t); // bytes
   virtual void free (void*); // handle
-  virtual size_t cache_depth () const; // return value: #bytes allocated
-  virtual size_t cache_size  () const; // return value: #inflight ACE_Message_Blocks
+  inline virtual size_t cache_depth () const { OWN_TYPE_T* this_p = const_cast<OWN_TYPE_T*> (this); return  this_p->dataBlockAllocator_.pool_depth (); }
+  inline virtual size_t cache_size  () const { return std::numeric_limits<size_t>::max (); }
 
   //// *NOTE*: returns a pointer to <MessageType>/<SessionMessageType>
   ////         --> see above

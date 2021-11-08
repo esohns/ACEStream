@@ -48,7 +48,7 @@ class Stream_CachedDataBlockAllocatorHeap_T
   Stream_CachedDataBlockAllocatorHeap_T (unsigned int,   // number of chunks
                                          ACE_Allocator*, // (heap) memory allocator
                                          bool = true);   // block until a buffer is available ?
-  virtual ~Stream_CachedDataBlockAllocatorHeap_T ();
+  inline virtual ~Stream_CachedDataBlockAllocatorHeap_T () {}
 
   // implement (part of) Stream_IAllocator
   // *IMPORTANT NOTE*: whatever is passed into the ctors' 3rd argument, this
@@ -59,8 +59,8 @@ class Stream_CachedDataBlockAllocatorHeap_T
   virtual void* malloc (size_t); // bytes
   // *NOTE*: frees an ACE_Data_Block
   inline virtual void free (void* handle_in) { inherited::free (handle_in); } // handle
-  virtual size_t cache_depth () const; // return value: #bytes allocated
-  virtual size_t cache_size () const;  // return value: #in-flight data blocks
+  inline virtual size_t cache_depth () const { return const_cast<OWN_TYPE_T*> (this)->pool_depth (); }
+  inline virtual size_t cache_size () const { return poolSize_; }
 
   // *NOTE*: returns a pointer to ACE_Data_Block
   inline virtual void* calloc (size_t bytes_in,

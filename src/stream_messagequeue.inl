@@ -21,7 +21,6 @@
 #include "ace/Log_Msg.h"
 #include "ace/Message_Block.h"
 #include "ace/Synch_Traits.h"
-#include "ace/Time_Value.h"
 
 #include "stream_macros.h"
 
@@ -62,23 +61,21 @@ Stream_MessageQueue_T<ACE_SYNCH_USE,
     {
       switch (message_block_p->msg_type ())
       {
-        case ACE_Message_Block::MB_USER:
+        case STREAM_MESSAGE_SESSION:
         {
-          // *NOTE*: currently, all of these are 'session' messages
-          SessionMessageType* session_message_p =
-              static_cast<SessionMessageType*> (message_block_p);
-          if (likely (session_message_p &&
-                      !flushSessionMessages_in))
+          if (likely (!flushSessionMessages_in))
             break;
-        } // *WARNING*: control falls through here
-        case ACE_Message_Block::MB_DATA:
+          // *WARNING*: control falls through here
+        }
+        case STREAM_MESSAGE_DATA:
+        case STREAM_MESSAGE_OBJECT:
         {
           // remove this block
           if (message_block_p == inherited::head_)
             inherited::head_ = message_block_p->next ();
           else
             message_block_p->prev ()->next (message_block_p->next ());
-          if (message_block_p == inherited::tail_)
+          if (unlikely (message_block_p == inherited::tail_))
             inherited::tail_ = message_block_p->prev ();
 
           temp_p = message_block_p;
@@ -96,6 +93,7 @@ Stream_MessageQueue_T<ACE_SYNCH_USE,
 
           continue;
         }
+        case STREAM_MESSAGE_CONTROL:
         default:
         {
           ACE_DEBUG ((LM_DEBUG,

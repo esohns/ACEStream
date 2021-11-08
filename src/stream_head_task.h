@@ -106,8 +106,8 @@ class Stream_TailTask_T
   ACE_UNIMPLEMENTED_FUNC (Stream_TailTask_T& operator= (const Stream_TailTask_T&))
 
   // helper methods
-  bool putControlMessage (typename ControlMessageType::CONTROL_T,              // control type
-                          const typename SessionMessageType::DATA_T::DATA_T&); // session data
+  bool reply (typename ControlMessageType::CONTROL_T,              // control type
+              const typename SessionMessageType::DATA_T::DATA_T&); // session data
 
   Stream_IAllocator*                   allocator_;
   typename SessionMessageType::DATA_T* sessionData_;
