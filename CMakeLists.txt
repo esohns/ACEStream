@@ -5,7 +5,7 @@ include (Configuration)
 include (Macros)
 include (OS)
 
-cmake_minimum_required (VERSION 2.8)
+cmake_minimum_required (VERSION 2.8...3.12)
 
 cmake_policy (SET CMP0069 NEW) # IPO is enforced when enabled
 include (CheckIPOSupported)
@@ -177,6 +177,12 @@ if (CXX_COMPILER_ID_STRING_LOWER STREQUAL LLVM_COMPILER_ID_STRING_LOWER)
  add_compile_options (-fPIC)
 # add_definitions (-D_GLIBCXX_USE_CXX11_ABI=0)
 endif ()
+
+################################################################################
+# policies
+cmake_policy (SET CMP0007 NEW)
+cmake_policy (SET CMP0011 NEW)
+cmake_policy (SET CMP0074 NEW)
 
 ################################################################################
 if (DEFINED ENV{LIB_ROOT})

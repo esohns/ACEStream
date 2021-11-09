@@ -43,12 +43,6 @@ if (GUI_SUPPORT)
  if (GTK_SUPPORT)
   target_include_directories (${PROJECT_NAME}_Test_U PUBLIC
                               "$<BUILD_INTERFACE:${GTK_INCLUDE_DIRS}>")
-
-  if (LIBGLADE_SUPPORT)
-   target_include_directories (${PROJECT_NAME}_Test_U PUBLIC
-                               $<BUILD_INTERFACE:${LIBGLADE_INCLUDES}>)
-  endif (LIBGLADE_SUPPORT)
-
   if (GTKGLAREA_SUPPORT)
 # *NOTE*: check out the 'master' branch for gtk3-based applications
 # *NOTE*: check out the 'gtkglarea-2' branch for gtk2-based applications
@@ -58,12 +52,15 @@ if (GUI_SUPPORT)
   endif (GTKGLAREA_SUPPORT)
  endif (GTK_SUPPORT)
  if (QT_SUPPORT)
+  if (WIN32)
+   cmake_policy (SET CMP0020 OLD)
+  endif (WIN32)
   target_include_directories (${PROJECT_NAME}_Test_U PUBLIC
                               $<BUILD_INTERFACE:${QT_INCLUDE_DIRS}>)
  endif (QT_SUPPORT)
  if (WXWIDGETS_SUPPORT)
   target_include_directories (${PROJECT_NAME}_Test_U PUBLIC
-                              $<BUILD_INTERFACE:${wxWidgets_INCLUDE_DIRS}>)
+                              "$<BUILD_INTERFACE:${wxWidgets_INCLUDE_DIRS}>")
  endif (WXWIDGETS_SUPPORT)
 endif (GUI_SUPPORT)
 
@@ -142,6 +139,9 @@ target_include_directories (${PROJECT_NAME}_Test_U PUBLIC
                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../src>)
 target_include_directories (${PROJECT_NAME}_Test_U PUBLIC
                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../src/modules/lib>)
+
+#get_target_property (debug ${PROJECT_NAME}_Test_U INTERFACE_INCLUDE_DIRECTORIES)
+#message (STATUS "${PROJECT_NAME}_Test_U INTERFACE_INCLUDE_DIRECTORIES: \"${debug}\"")
 
 if (GUI_SUPPORT)
  if (GTK_SUPPORT)
@@ -274,6 +274,14 @@ target_precompile_headers (${PROJECT_NAME}_Test_U
 # add all targets to the build-tree export set
 export (TARGETS ${PROJECT_NAME}_Test_U
         APPEND FILE "${PROJECT_BINARY_DIR}/${PROJECT_NAME}Targets.cmake")
+
+############### install files ################
+
+install (TARGETS ${PROJECT_NAME}_Test_U
+         EXPORT ${PROJECT_NAME}Targets
+         ARCHIVE DESTINATION "${INSTALL_LIB_DIR}" COMPONENT lib)
+#         LIBRARY DESTINATION "${INSTALL_LIB_DIR}" COMPONENT lib
+#         RUNTIME DESTINATION "${INSTALL_BIN_DIR}" COMPONENT lib)
 
 # ----------------------------------------
 
