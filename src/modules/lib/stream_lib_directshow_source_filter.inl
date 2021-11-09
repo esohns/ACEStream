@@ -1484,7 +1484,7 @@ Stream_MediaFramework_DirectShow_Source_Filter_OutputPin_T<ConfigurationType>::F
   //         ignored; this requires investigation). Until further notice,
   //         memcpy() seems to be unavoidable to forward the data)
   ACE_OS::memcpy (data_p, message_block_p->rd_ptr (), data_length_2);
-  message_block_p->release ();
+  message_block_p->release (); message_block_p = NULL;
   result = mediaSample_in->SetActualDataLength (data_length_2);
   if (unlikely (FAILED (result)))
   {

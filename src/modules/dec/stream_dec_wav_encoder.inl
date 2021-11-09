@@ -73,7 +73,7 @@ Stream_Decoder_WAVEncoder_T<ACE_SYNCH_USE,
                             UserDataType>::Stream_Decoder_WAVEncoder_T (ISTREAM_T* stream_in)
 #else
                             UserDataType>::Stream_Decoder_WAVEncoder_T (typename inherited::ISTREAM_T* stream_in)
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
  : inherited (stream_in)
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else

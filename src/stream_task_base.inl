@@ -817,8 +817,6 @@ error_4:
       stopProcessing_out = true;
     } // end IF
   } // end IF
-  else
-    messageBlock_in->release ();
 }
 
 template <ACE_SYNCH_DECL,
