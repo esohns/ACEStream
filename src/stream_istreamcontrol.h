@@ -107,8 +107,6 @@ class Stream_IStream_T
  , public Common_IDumpState
 {
  public:
-//  inline virtual ~Stream_IStream_T () {}
-
   // convenient types
   typedef ACE_Task<ACE_SYNCH_USE,
                    TimePolicyType> TASK_T;
@@ -140,8 +138,6 @@ class Stream_IStreamLayout_T
                            TimePolicyType>
 {
  public:
-//  inline virtual ~Stream_IStreamLayout_T () {}
-
   // *IMPORTANT NOTE*: access to the module list happens in lockstep, i.e.
   //                   derived classes need not synchronize this, and should not
   //                   block in this method

@@ -645,6 +645,10 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
     {
       case ACE_Message_Block::MB_STOP:
       {
+        if (unlikely (isHighPriorityStop_))
+          control (STREAM_CONTROL_ABORT,
+                   false);
+
         // *IMPORTANT NOTE*: when close()d manually (i.e. on a user abort),
         //                   the stream may not have finish()ed
         { ACE_GUARD_RETURN (ACE_Thread_Mutex, aGuard, inherited::lock_, -1);
@@ -1201,8 +1205,7 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
 
   SessionEventType message_type_e = STREAM_SESSION_MESSAGE_INVALID;
   switch (control_in)
-  {
-    // control
+  { // control
     case STREAM_CONTROL_ABORT:
     case STREAM_CONTROL_CONNECT:
     case STREAM_CONTROL_DISCONNECT:
@@ -1211,7 +1214,8 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
     case STREAM_CONTROL_STEP:
     case STREAM_CONTROL_STEP_2:
     {
-      if (!inherited::putControlMessage (control_in))
+      if (!inherited::putControlMessage (control_in,
+                                         false))
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: failed to Stream_TaskBase_T::putControlMessage(%d), continuing\n"),
                     inherited::name (),

@@ -141,7 +141,7 @@ Stream_TaskBaseAsynch_T<ACE_SYNCH_USE,
 
   if (unlikely (inherited::isInitialized_))
   {
-    queue_.flush ();
+    queue_.flush (true);
   } // end IF
 
   if (unlikely (queue_.deactivated ()))
@@ -422,7 +422,7 @@ Stream_TaskBaseAsynch_T<ACE_SYNCH_USE,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_TaskBaseAsynch_T::put"));
 
-  // *TODO*: move this into svc()
+  // *TODO*: move this into svc() ?
   if (unlikely (messageBlock_in->msg_type () == ACE_Message_Block::MB_FLUSH))
   {
     // *TODO*: support selective flushing via ControlMessageType
@@ -441,9 +441,33 @@ Stream_TaskBaseAsynch_T<ACE_SYNCH_USE,
     return (result > 0 ? 0 : result);
   } // end IF
 
+  bool high_priority_b = false;
+
+  switch (messageBlock_in->msg_type ())
+  {
+    case STREAM_MESSAGE_CONTROL:
+    {
+      ControlMessageType* message_p =
+        static_cast<ControlMessageType*> (messageBlock_in);
+
+      switch (message_p->type ())
+      {
+        case STREAM_CONTROL_MESSAGE_ABORT:
+          high_priority_b = true;
+          break;
+        default:
+          break;
+      } // end SWITCH
+
+      break;
+    }
+    default:
+      break;
+  } // end SWITCH
+
   // drop the message into the queue
-  return inherited::putq (messageBlock_in,
-                          timeout_in);
+  return (high_priority_b ? inherited::ungetq (messageBlock_in, timeout_in)
+                          : inherited::putq (messageBlock_in, timeout_in));
 }
 
 template <ACE_SYNCH_DECL,
@@ -471,23 +495,64 @@ Stream_TaskBaseAsynch_T<ACE_SYNCH_USE,
   // sanity check(s)
   ACE_ASSERT (inherited::msg_queue_);
 
-  bool result = false;
   ACE_Message_Block* message_block_p = NULL;
-  { ACE_GUARD_RETURN (ACE_SYNCH_MUTEX_T, aGuard, inherited::msg_queue_->lock (), false);
+  { ACE_GUARD_RETURN (ACE_SYNCH_MUTEX_T, aGuard, inherited::msg_queue_->lock (), false); // <-- *TODO*: false negative !
     for (typename inherited::MESSAGE_QUEUE_ITERATOR_T iterator (*inherited::msg_queue_);
          iterator.next (message_block_p);
          iterator.advance ())
     { ACE_ASSERT (message_block_p);
       if (unlikely (message_block_p->msg_type () == ACE_Message_Block::MB_STOP))
-      {
-        result = true;
-        break;
-      } // end IF
+        return true;
       message_block_p = NULL;
     } // end FOR
   } // end lock scope
 
-  return result;
+  return false;
+}
+
+template <ACE_SYNCH_DECL,
+          typename TimePolicyType,
+          typename ConfigurationType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
+          typename SessionControlType,
+          typename SessionEventType,
+          typename UserDataType>
+void
+Stream_TaskBaseAsynch_T<ACE_SYNCH_USE,
+                        TimePolicyType,
+                        ConfigurationType,
+                        ControlMessageType,
+                        DataMessageType,
+                        SessionMessageType,
+                        SessionControlType,
+                        SessionEventType,
+                        UserDataType>::handleControlMessage (ControlMessageType& message_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_TaskBaseAsynch_T::handleControlMessage"));
+
+  switch (message_in.type ())
+  {
+    case STREAM_CONTROL_ABORT:
+    {
+      unsigned int result = queue_.flush (false); // flush all data messages
+      if (unlikely (result == static_cast<unsigned int> (-1)))
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("%s: failed to Stream_MessageQueue_T::flush(false): \"%m\", returning\n"),
+                    inherited::mod_->name ()));
+        return;
+      } // end IF
+      ACE_DEBUG ((LM_DEBUG,
+                  ACE_TEXT ("%s: aborting: flushed %u data messages\n"),
+                  inherited::mod_->name (),
+                  result));
+      break;
+    }
+    default:
+      break;
+  } // end SWITCH
 }
 
 template <ACE_SYNCH_DECL,
@@ -564,13 +629,9 @@ Stream_TaskBaseAsynch_T<ACE_SYNCH_USE,
                                        NULL));                             // message allocator
   if (unlikely (!message_block_p))
   {
-    if (inherited::mod_)
-      ACE_DEBUG ((LM_CRITICAL,
-                  ACE_TEXT ("%s: failed to allocate ACE_Message_Block: \"%m\", returning\n"),
-                  inherited::mod_->name ()));
-    else
-      ACE_DEBUG ((LM_CRITICAL,
-                  ACE_TEXT ("failed to allocate ACE_Message_Block: \"%m\", returning\n")));
+    ACE_DEBUG ((LM_CRITICAL,
+                ACE_TEXT ("%s: failed to allocate ACE_Message_Block: \"%m\", returning\n"),
+                inherited::mod_->name ()));
     return;
   } // end IF
 
@@ -578,14 +639,10 @@ Stream_TaskBaseAsynch_T<ACE_SYNCH_USE,
                             : inherited::putq (message_block_p, NULL));
   if (unlikely (result == -1))
   {
-    if (inherited::mod_)
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("%s: failed to ACE_Task::putq(): \"%m\", continuing\n"),
-                  inherited::mod_->name ()));
-    else
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to ACE_Task::putq(): \"%m\", continuing\n")));
-
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s: failed to ACE_Task::%s(): \"%m\", continuing\n"),
+                inherited::mod_->name (),
+                (highPriority_in ? ACE_TEXT ("ungetq") : ACE_TEXT ("putq"))));
     message_block_p->release (); message_block_p = NULL;
   } // end IF
 }
@@ -629,7 +686,6 @@ Stream_TaskBaseAsynch_T<ACE_SYNCH_USE,
 
   ACE_Message_Block* message_block_p = NULL;
   int result = -1;
-  int result_2 = -1;
   int error = -1;
   bool stop_processing = false;
 
@@ -639,27 +695,29 @@ Stream_TaskBaseAsynch_T<ACE_SYNCH_USE,
     if (unlikely (result == -1))
     {
       error = ACE_OS::last_error ();
-      if (error != ESHUTDOWN)
+      if (unlikely (error != ESHUTDOWN))
+      {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: worker thread %t failed to ACE_Task::getq(): \"%m\", aborting\n"),
                     inherited::mod_->name ()));
-      else
-        result = 0; // OK, queue has been close()d
+        return -1;
+      } // end IF
+      result = 0; // OK, queue has been deactivate()d
       break;
     } // end IF
+
     ACE_ASSERT (message_block_p);
     if (unlikely (message_block_p->msg_type () == ACE_Message_Block::MB_STOP))
     {
-      result = 0;
-      if (inherited::thr_count_ > 1)
+      if (unlikely (inherited::thr_count_ > 1))
       {
-        result_2 = inherited::putq (message_block_p, NULL);
-        if (unlikely (result_2 == -1))
+        result = inherited::putq (message_block_p, NULL);
+        if (unlikely (result == -1))
         {
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("%s: failed to ACE_Task::putq(): \"%m\", aborting\n"),
                       inherited::mod_->name ()));
-          result = -1;
+          return -1;
         } // end IF
         message_block_p = NULL;
       } // end IF
@@ -674,7 +732,7 @@ Stream_TaskBaseAsynch_T<ACE_SYNCH_USE,
     // process manually
     inherited::handleMessage (message_block_p,
                               stop_processing);
-    if (unlikely (stop_processing && inherited::thr_count_))
+    if (unlikely (stop_processing))
       this->stop (false, // wait ?
                   true); // high priority ?
 

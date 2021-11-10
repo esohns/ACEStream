@@ -288,26 +288,91 @@ Stream_Module_Aggregator_WriterTask_T<ACE_SYNCH_USE,
   // sanity check
   ACE_ASSERT (messageBlock_in);
 
-  // initialize return value(s)
-  stopProcessing_out = false;
-
   bool forward_b = true;
   switch (messageBlock_in->msg_type ())
   {
-    case ACE_Message_Block::MB_DATA:
-    case ACE_Message_Block::MB_PROTO:
+    case STREAM_MESSAGE_CONTROL:
+    {
+      ControlMessageType* control_message_p =
+        static_cast<ControlMessageType*> (messageBlock_in);
+
+      try {
+        this->handleControlMessage (*control_message_p);
+      } catch (...) {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("%s: caught an exception in Stream_ITask_T::handleControlMessage(), aborting\n"),
+                    inherited::mod_->name ()));
+        goto error;
+      }
+
+      break;
+
+error:
+      stopProcessing_out = true;
+      break;
+    }
+    case STREAM_MESSAGE_SESSION:
+    {
+      SessionMessageType* session_message_p =
+        static_cast<SessionMessageType*> (messageBlock_in);
+
+      enum Stream_SessionMessageType session_message_type =
+        session_message_p->type ();
+      bool post_process_b = false;
+      // pre-process !UNLINK/!END messages
+      if (unlikely ((session_message_type == STREAM_SESSION_MESSAGE_UNLINK) ||
+                    (session_message_type == STREAM_SESSION_MESSAGE_END)))
+        post_process_b = true;
+      else
+        inherited::TASK_BASE_T::handleSessionMessage (session_message_p,
+                                                      forward_b);
+      ACE_ASSERT (session_message_p && forward_b);
+      // process message
+      try {
+        handleSessionMessage (session_message_p,
+                              forward_b);
+      } catch (...) {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("%s: caught an exception in handleSessionMessage(), aborting\n"),
+                    inherited::mod_->name ()));
+        goto error_2;
+      }
+      // post-process UNLINK/END messages
+      if (unlikely (post_process_b))
+      {
+        // *TODO*: currently, the session data will not be released (see below)
+        //         if the module forwards the session end message itself
+        //         --> memory leakage, resolve ASAP
+        if (unlikely (!forward_b))
+        {
+          ACE_DEBUG ((LM_WARNING,
+                      ACE_TEXT ("%s: cannot post-process session message (type was: %d), continuing\n"),
+                      inherited::mod_->name (),
+                      session_message_type));
+        } // end IF
+        else
+        { ACE_ASSERT (session_message_p);
+          inherited::TASK_BASE_T::handleSessionMessage (session_message_p,
+                                                        forward_b);
+          ACE_ASSERT (session_message_p && forward_b);
+        } // end ELSE
+      } // end IF
+
+      // *NOTE*: iff this was a SESSION_END message, stop processing (see above)
+      if (unlikely (session_message_type == STREAM_SESSION_MESSAGE_END))
+        stopProcessing_out = true;
+
+      break;
+
+error_2:
+      stopProcessing_out = true;
+      break;
+    }
+    case STREAM_MESSAGE_DATA:
+    case STREAM_MESSAGE_OBJECT:
     {
       DataMessageType* message_p =
-        dynamic_cast<DataMessageType*> (messageBlock_in);
-      if (!message_p)
-      {
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("%s: dynamic_cast<DataMessageType>(0x%@) failed (type was: \"%s\"), aborting\n"),
-                    inherited::mod_->name (),
-                    messageBlock_in,
-                    ACE_TEXT (Stream_Tools::messageTypeToString (static_cast<enum Stream_MessageType> (messageBlock_in->msg_type ())).c_str ())));
-        goto error;
-      } // end IF
+        static_cast<DataMessageType*> (messageBlock_in);
 
         //// *IMPORTANT NOTE*: in certain scenarios (e.g. asynchronous 
         ////                   configurations with a network data source), data may
@@ -345,84 +410,44 @@ Stream_Module_Aggregator_WriterTask_T<ACE_SYNCH_USE,
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: caught an exception in Stream_ITask_T::handleDataMessage(), aborting\n"),
                     inherited::mod_->name ()));
-        goto error;
-      }
-
-      break;
-
-error:
-      break;
-    }
-    case ACE_Message_Block::MB_BREAK:
-    case ACE_Message_Block::MB_FLUSH:
-    case ACE_Message_Block::MB_HANGUP:
-    case ACE_Message_Block::MB_NORMAL: // undifferentiated
-    case STREAM_CONTROL_CONNECT:
-    case STREAM_CONTROL_LINK:
-    case STREAM_CONTROL_STEP:
-    {
-      ControlMessageType* control_message_p =
-        dynamic_cast<ControlMessageType*> (messageBlock_in);
-      if (!control_message_p)
-      {
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("%s: dynamic_cast<ControlMessageType>(0x%@) failed (type was: \"%s\"), aborting\n"),
-                    inherited::mod_->name (),
-                    messageBlock_in,
-                    ACE_TEXT (Stream_Tools::messageTypeToString (static_cast<enum Stream_MessageType> (messageBlock_in->msg_type ())).c_str ())));
-        goto error_2;
-      } // end IF
-
-      try {
-        this->handleControlMessage (*control_message_p);
-      } catch (...) {
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("%s: caught an exception in Stream_ITask_T::handleControlMessage(), aborting\n"),
-                    inherited::mod_->name ()));
-      }
-
-      break;
-
-error_2:
-      break;
-    }
-    case STREAM_MESSAGE_SESSION_TYPE:
-    {
-
-      break;
-    }
-    case ACE_Message_Block::MB_USER:
-    {
-      try {
-        this->handleUserMessage (messageBlock_in,
-                                 stopProcessing_out,
-                                 forward_b);
-      } catch (...) {
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("%s: caught an exception in Stream_ITask_T::handleUserMessage() (type was: \"%s\"), aborting\n"),
-                    inherited::mod_->name (),
-                    ACE_TEXT (Stream_Tools::messageTypeToString (static_cast<enum Stream_MessageType> (messageBlock_in->msg_type ())).c_str ())));
         goto error_3;
       }
 
       break;
 
 error_3:
+      stopProcessing_out = true;
+      break;
+    }
+    case ACE_Message_Block::MB_USER:
+    {
+      try {
+        this->handleUserMessage (messageBlock_in,
+                                 forward_b);
+      } catch (...) {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("%s: caught an exception in Stream_ITask_T::handleUserMessage() (type was: \"%s\"), aborting\n"),
+                    inherited::mod_->name (),
+                    ACE_TEXT (Stream_Tools::messageTypeToString (static_cast<enum Stream_MessageType> (messageBlock_in->msg_type ())).c_str ())));
+        goto error_4;
+      }
+
+      break;
+
+error_4:
+      stopProcessing_out = true;
       break;
     }
     default:
     {
-      ACE_DEBUG ((LM_WARNING,
-                  ACE_TEXT ("%s: received invalid/unknown message (type was: \"%s\"), continuing\n"),
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("%s: received invalid/unknown message (type was: \"%s\"), aborting\n"),
                   inherited::mod_->name (),
                   ACE_TEXT (Stream_Tools::messageTypeToString (static_cast<enum Stream_MessageType> (messageBlock_in->msg_type ())).c_str ())));
+      stopProcessing_out = true;
       break;
     }
   } // end SWITCH
-
-  // pass message downstream ?
-  if (unlikely (!forward_b))
-    stopProcessing_out = true;
 }
 
 template <ACE_SYNCH_DECL,

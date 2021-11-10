@@ -38,7 +38,7 @@ add_definitions (-DCOMMON_HAS_DLL)
 if (GUI_SUPPORT)
  if (CURSES_SUPPORT)
   target_include_directories (${PROJECT_NAME}_Test_I PUBLIC
-                              $<BUILD_INTERFACE:${CURSES_INCLUDE_DIRS}>)
+                              "$<BUILD_INTERFACE:${CURSES_INCLUDE_DIRS}>")
  endif (CURSES_SUPPORT)
  if (GTK_SUPPORT)
   target_include_directories (${PROJECT_NAME}_Test_I PUBLIC

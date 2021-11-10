@@ -524,18 +524,10 @@ do_initializeSignals (ACE_Sig_Set& signals_out,
   signals_out.sig_del (SIGKILL);           // 9       /* Kill signal */
   signals_out.sig_del (SIGSTOP);           // 19      /* Stop process */
   // ---------------------------------------------------------------------------
-  if (!allowUserRuntimeConnect_in)
-  {
-    signals_out.sig_del (SIGUSR1);         // 10      /* User-defined signal 1 */
-    ignoredSignals_out.sig_add (SIGUSR1);  // 10      /* User-defined signal 1 */
-  } // end IF
   // *NOTE* core dump on SIGSEGV
   signals_out.sig_del (SIGSEGV);           // 11      /* Segmentation fault: Invalid memory reference */
   // *NOTE* don't care about SIGPIPE
   signals_out.sig_del (SIGPIPE);           // 12      /* Broken pipe: write to pipe with no readers */
-
-//  signals_out.sig_del (SIGIO);             // 29      /* I/O now possible */
-  // remove realtime-signals (don't need 'em)
 
 #if defined (VALGRIND_SUPPORT)
   // *NOTE*: valgrind uses SIGRT32 (--> SIGRTMAX ?) and apparently will not work

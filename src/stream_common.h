@@ -129,7 +129,7 @@ enum Stream_ControlType : int
 enum Stream_ControlMessageType
 #else
 enum Stream_ControlMessageType : int
-#endif
+#endif // __llvm__
 {
   // *NOTE*: see "ace/Message_Block.h" and "stream_message_base.h" for details
   STREAM_CONTROL_MESSAGE_MASK      = 0x400,
@@ -156,7 +156,7 @@ enum Stream_ControlMessageType : int
 enum Stream_SessionMessageType
 #else
 enum Stream_SessionMessageType : int
-#endif
+#endif // __llvm__
 {
   // *NOTE*: see "ace/Message_Block.h" and "stream_message_base.h" for details
   STREAM_SESSION_MESSAGE_MASK      = ACE_Message_Block::MB_USER, // == 0x200

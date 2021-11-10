@@ -86,11 +86,9 @@ class Stream_TaskBaseAsynch_T
   //         unpredictable results
   //         --> use Common_MessageQueueIterator_T and lock the queue manually
   virtual bool isShuttingDown () const;
-  // enqueue MB_STOP --> stop worker thread(s)
-  virtual void stop (bool = true,   // wait for completion ?
-                     bool = false); // high priority ? (i.e. do not wait for queued messages)
 
   // override (part of) Stream_ITask_T
+  virtual void handleControlMessage (ControlMessageType&); // control message handle
   inline virtual void waitForIdleState () const { queue_.waitForIdleState (); }
 
   // override (part of) Stream_IModuleHandler_T
@@ -110,6 +108,11 @@ class Stream_TaskBaseAsynch_T
                             UserDataType> TASK_BASE_T;
 
   Stream_TaskBaseAsynch_T (typename TASK_BASE_T::ISTREAM_T* = NULL); // stream handle
+
+  // implement Common_IAsynchTask
+  // enqueue MB_STOP --> stop worker thread(s)
+  virtual void stop (bool = true,   // wait for completion ?
+                     bool = false); // high priority ? (i.e. do not wait for queued messages)
 
   typename inherited::MESSAGE_QUEUE_T queue_;
 

@@ -131,8 +131,7 @@ Stream_Decoder_AVIEncoder_ReaderTask_T<ACE_SYNCH_USE,
     case STREAM_MESSAGE_CONTROL:
     {
       ControlMessageType* message_p =
-        dynamic_cast<ControlMessageType*> (messageBlock_in);
-      ACE_ASSERT (message_p);
+        static_cast<ControlMessageType*> (messageBlock_in);
 
       switch (message_p->type ())
       {

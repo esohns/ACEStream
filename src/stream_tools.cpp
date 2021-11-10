@@ -343,13 +343,13 @@ Stream_Tools::messageTypeToString (enum Stream_MessageType messageType_in)
   switch (messageType_in)
   {
   case STREAM_MESSAGE_CONTROL:
-    result = ACE_TEXT_ALWAYS_CHAR ("MESSAGE_CONTROL"); break;
+    result = ACE_TEXT_ALWAYS_CHAR ("CONTROL"); break;
     case STREAM_MESSAGE_SESSION:
-      result = ACE_TEXT_ALWAYS_CHAR ("MESSAGE_SESSION"); break;
+      result = ACE_TEXT_ALWAYS_CHAR ("SESSION"); break;
     case STREAM_MESSAGE_DATA:
-      result = ACE_TEXT_ALWAYS_CHAR ("MESSAGE_DATA"); break;
+      result = ACE_TEXT_ALWAYS_CHAR ("DATA"); break;
     case STREAM_MESSAGE_OBJECT:
-      result = ACE_TEXT_ALWAYS_CHAR ("MESSAGE_OBJECT"); break;
+      result = ACE_TEXT_ALWAYS_CHAR ("OBJECT"); break;
     default:
     {
       ACE_DEBUG ((LM_ERROR,

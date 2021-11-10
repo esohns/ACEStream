@@ -39,8 +39,12 @@ class Stream_ITask_T
   //         --> handle with care
   virtual void handleDataMessage (DataMessageType*&, // message handle
                                   bool&) = 0;        // return value: pass message downstream ?
+  // *WARNING*: failing to pass session messages downstream may cause havoc !
   virtual void handleSessionMessage (SessionMessageType*&, // session message handle
                                      bool&) = 0;           // return value: pass message downstream ?
+  virtual void handleUserMessage (ACE_Message_Block*&, // message block handle
+                                  bool&) = 0;          // return value: pass message downstream ?
+
   virtual void handleProcessingError (const ACE_Message_Block* const) = 0; // message block handle
 
   virtual void waitForIdleState () const = 0;

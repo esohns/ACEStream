@@ -60,7 +60,6 @@ Stream_TaskBase_T<ACE_SYNCH_USE,
  , isInitialized_ (false)
  , linked_ (0)
  , sessionData_ (NULL)
-// , stream_ (stream_in)
  /////////////////////////////////////////
  , freeSessionData_ (true)
  , sessionData_2 (NULL)
@@ -542,6 +541,7 @@ Stream_TaskBase_T<ACE_SYNCH_USE,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_TaskBase_T::handleProcessingError"));
 
+  // *TODO*: spruce this up a little more
   ACE_DEBUG ((LM_ERROR,
               ACE_TEXT ("%s: failed to process message %@, continuing\n"),
               inherited::mod_->name (),
@@ -638,7 +638,6 @@ Stream_TaskBase_T<ACE_SYNCH_USE,
   // sanity check
   ACE_ASSERT (messageBlock_in);
 
-  // *NOTE*: the default behavior is to pass everything downstream
   bool forward_b = true;
   switch (messageBlock_in->msg_type ())
   {
@@ -653,15 +652,14 @@ Stream_TaskBase_T<ACE_SYNCH_USE,
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: caught an exception in Stream_ITask_T::handleControlMessage(), aborting\n"),
                     inherited::mod_->name ()));
-        stopProcessing_out = true;
         goto error;
       }
 
       break;
 
 error:
+      stopProcessing_out = true;
       forward_b = false;
-
       break;
     }
     case STREAM_MESSAGE_SESSION:
@@ -688,7 +686,6 @@ error:
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: caught an exception in handleSessionMessage(), aborting\n"),
                     inherited::mod_->name ()));
-        stopProcessing_out = true;
         goto error_2;
       }
       // post-process UNLINK/END messages
@@ -719,8 +716,8 @@ error:
       break;
 
 error_2:
+      stopProcessing_out = true;
       forward_b = false;
-
       break;
     }
     case STREAM_MESSAGE_DATA:
@@ -744,7 +741,7 @@ error_2:
       //         'early' messages in the head module, introduce an intermediate
       //         state machine state 'in_session') to handle these situations
       ACE_ASSERT (inherited::mod_);
-      if (unlikely (this == inherited::mod_->writer () &&
+      if (unlikely ((this == inherited::mod_->writer ()) &&
                     !sessionData_))
       { 
         ACE_DEBUG ((LM_WARNING,
@@ -760,36 +757,33 @@ error_2:
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: caught an exception in Stream_ITask_T::handleDataMessage(), aborting\n"),
                     inherited::mod_->name ()));
-        stopProcessing_out = true;
         goto error_3;
       }
 
       break;
 
 error_3:
+      stopProcessing_out = true;
       forward_b = false;
-
       break;
     }
     case ACE_Message_Block::MB_USER:
     {
       try {
         handleUserMessage (messageBlock_in,
-                           stopProcessing_out,
                            forward_b);
       } catch (...) {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: caught an exception in Stream_ITask_T::handleUserMessage(), aborting\n"),
                     inherited::mod_->name ()));
-        stopProcessing_out = true;
         goto error_4;
       }
 
       break;
 
 error_4:
+      stopProcessing_out = true;
       forward_b = false;
-
       break;
     }
     default:
@@ -998,49 +992,6 @@ error:
   } // end IF
 
   return false;
-}
-
-template <ACE_SYNCH_DECL,
-          typename TimePolicyType,
-          typename ConfigurationType,
-          typename ControlMessageType,
-          typename DataMessageType,
-          typename SessionMessageType,
-          typename SessionControlType,
-          typename SessionEventType,
-          typename UserDataType>
-void
-Stream_TaskBase_T<ACE_SYNCH_USE,
-                  TimePolicyType,
-                  ConfigurationType,
-                  ControlMessageType,
-                  DataMessageType,
-                  SessionMessageType,
-                  SessionControlType,
-                  SessionEventType,
-                  UserDataType>::handleUserMessage (ACE_Message_Block* messageBlock_in,
-                                                    bool& stopProcessing_out,
-                                                    bool& passMessageDownstream_out)
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_TaskBase_T::handleUserMessage"));
-
-  // sanity check(s)
-  ACE_ASSERT (messageBlock_in);
-
-  switch (messageBlock_in->msg_type ())
-  {
-    default:
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("%s: invalid/unknown user message (type was: %d), aborting\n"),
-                  inherited::mod_->name (),
-                  messageBlock_in->msg_type ()));
-      messageBlock_in->release ();
-      stopProcessing_out = true;
-      passMessageDownstream_out = false;
-      break;
-    }
-  } // end SWITCH
 }
 
 template <ACE_SYNCH_DECL,

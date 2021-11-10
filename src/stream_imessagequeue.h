@@ -24,6 +24,7 @@
 class Stream_IMessageQueue
 {
  public:
+  // *NOTE*: returns #flushed messages
   virtual unsigned int flush (bool = false) = 0; // flush session messages ?
 
   virtual void waitForIdleState () const = 0;

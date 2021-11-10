@@ -96,12 +96,13 @@ class Stream_TaskBase_T
 
   virtual ~Stream_TaskBase_T ();
 
-  // implement (part of) Stream_ITaskBase_T
-  // *NOTE*: these are just default (essentially NOP) implementations
+  // implement (part of) Stream_ITask_T
+  // *NOTE*: some default (essentially NOP) definitions
   inline virtual void handleControlMessage (ControlMessageType&) {}
   inline virtual void handleDataMessage (DataMessageType*&, bool&) {}
   virtual void handleSessionMessage (SessionMessageType*&, // session message handle
                                      bool&);               // return value: pass this message downstream ?
+  inline virtual void handleUserMessage (ACE_Message_Block*&, bool&) {}
   virtual void handleProcessingError (const ACE_Message_Block* const); // message handle
 
   // implement Stream_IModuleHandler_T
@@ -143,18 +144,13 @@ class Stream_TaskBase_T
                           typename SessionMessageType::DATA_T*&, // session data container
                           UserDataType* = NULL);                 // user data handle
 
-  // default implementation to handle user messages
-  virtual void handleUserMessage (ACE_Message_Block*, // control message
-                                  bool&,              // return value: stop processing ?
-                                  bool&);             // return value: pass message downstream ?
-
   virtual void notify (SessionEventType); // session event
 
   // helper methods
   // *NOTE*: 'high priority' effectively means that the message is enqueued at
   //         the head end (i.e. will be the next to dequeue), whereas it would
   //         be enqueued at the tail end otherwise
-  // *WARNING*: this implementation put()s messages, potentially ignoring the
+  // *WARNING*: this definition put()s messages, potentially ignoring the
   //            'high-priority' argument
   virtual void control (int,           // message type
                         bool = false); // high-priority ?
@@ -188,7 +184,7 @@ class Stream_TaskBase_T
   ACE_UNIMPLEMENTED_FUNC (Stream_TaskBase_T& operator= (const Stream_TaskBase_T&))
 
   // override/hide ACE_Task_Base members
-  inline virtual int put (ACE_Message_Block* messageBlock_in, ACE_Time_Value* timeValue_in) { return inherited::put_next (messageBlock_in, timeValue_in); }
+  inline virtual int put (ACE_Message_Block* messageBlock_in, ACE_Time_Value* timeValue_in) { ACE_ASSERT (false); return inherited::put_next (messageBlock_in, timeValue_in); }
 
   bool                                 freeSessionData_;
   // *NOTE*: these apply to 'downstream', iff linked, only

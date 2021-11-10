@@ -117,5 +117,5 @@ Stream_MessageQueue_T<ACE_SYNCH_USE,
     } // end IF
   } // end lock scope
 
-  return result;
+  return static_cast<unsigned int> (result);
 }

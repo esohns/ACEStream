@@ -677,7 +677,8 @@ do_work (const std::string& bootstrapFileName_in,
   Common_IInitialize_T<Test_I_HTTPGet_StreamConfiguration_t>* iinitialize_p =
     NULL;
   Stream_IStreamControlBase* istream_base_p = NULL;
-  Stream_IStream_t* stream_p = NULL;
+//  Stream_IStream_t* istream_p = NULL;
+  Stream_Base* stream_base_p = NULL;
   Test_I_StockItem stock_item;
   Test_I_HTTPGet_Configuration configuration;
   Test_I_HTTPGet_InetConnectionManager_t* connection_manager_p =
@@ -721,19 +722,19 @@ do_work (const std::string& bootstrapFileName_in,
   {
     if (useSSL_in)
 #if defined (SSL_SUPPORT)
-      ACE_NEW_NORETURN (stream_p,
+      ACE_NEW_NORETURN (stream_base_p,
                         Test_I_HTTPGet_SSL_Stream_t ());
 #else
       ;
 #endif // SSL_SUPPORT
     else
-      ACE_NEW_NORETURN (stream_p,
+      ACE_NEW_NORETURN (stream_base_p,
                         Test_I_HTTPGet_Stream_t ());
   } // end IF
   else
-    ACE_NEW_NORETURN (stream_p,
+    ACE_NEW_NORETURN (stream_base_p,
                       Test_I_HTTPGet_AsynchStream_t ());
-  if (!stream_p)
+  if (!stream_base_p)
   {
     ACE_DEBUG ((LM_CRITICAL,
                 ACE_TEXT ("failed to allocate memory, returning\n")));
@@ -939,7 +940,7 @@ do_work (const std::string& bootstrapFileName_in,
   finalize_event_dispatch = true;
 
   iinitialize_p =
-    dynamic_cast<Common_IInitialize_T<Test_I_HTTPGet_StreamConfiguration_t>*> (stream_p);
+    dynamic_cast<Common_IInitialize_T<Test_I_HTTPGet_StreamConfiguration_t>*> (stream_base_p);
   ACE_ASSERT (iinitialize_p);
   if (!iinitialize_p->initialize (configuration.streamConfiguration))
   {
@@ -950,7 +951,7 @@ do_work (const std::string& bootstrapFileName_in,
 
   // *NOTE*: this call blocks until the file has been sent (or an error
   //         occurs)
-  istream_base_p = dynamic_cast<Stream_IStreamControlBase*> (stream_p);
+  istream_base_p = dynamic_cast<Stream_IStreamControlBase*> (stream_base_p);
   ACE_ASSERT (istream_base_p);
   istream_base_p->start ();
   //    if (!stream_p->isRunning ())
@@ -997,7 +998,7 @@ do_work (const std::string& bootstrapFileName_in,
   //  ACE_DEBUG ((LM_ERROR,
   //              ACE_TEXT ("%s: failed to ACE_Module::close (): \"%m\", continuing\n"),
   //              event_handler.name ()));
-  delete stream_p;
+  delete stream_base_p;
 
   ACE_DEBUG ((LM_DEBUG,
               ACE_TEXT ("finished working...\n")));
@@ -1010,8 +1011,8 @@ error:
                                          true);
   if (stop_timers)
     timer_manager_p->stop ();
-  if (stream_p)
-    delete stream_p;
+  if (stream_base_p)
+    delete stream_base_p;
 }
 
 COMMON_DEFINE_PRINTVERSION_FUNCTION(do_printVersion,STREAM_MAKE_VERSION_STRING_VARIABLE(programName_in,ACE_TEXT_ALWAYS_CHAR (ACEStream_PACKAGE_VERSION_FULL),version_string),version_string)
