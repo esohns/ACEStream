@@ -23,7 +23,7 @@
 *.lib
 
 # Executables
-#*.exe
+*.exe
 *.out
 *.app
 
@@ -32,6 +32,12 @@
 
 # Patches
 *.patch
+
+# Log files
+*.log
+
+# build
+build/
 
 # Automake
 Makefile.in
@@ -49,32 +55,19 @@ m4/lt~obsolete.m4
 
 # Kdevelop
 .kdev4/
+*.kdev4
 
-#Linux
-clang/
-cmake/
-
-# MSVC
-Debug/
-Release/
-.vs/
-Debug_obj/
-Release_obj/
-ipch/
-*.sdf
-*.suo
-*.vcxproj.user
-*.log
-*.opensdf
-build/
-
-# links (linux-specific)
-modules/ACE
-modules/Common
-modules/ACENetwork
-
-# qtcreator (linux-specific)
+# QtCreator
 Makefile.am.user
 CMakeLists.txt.user*
 
+# MSVC
+.vs/
+
+# links (linux-specific)
+#modules/ACE
+#modules/Common
+#modules/ACENetwork
+
+# data
 test_u/imagescreen/data/
