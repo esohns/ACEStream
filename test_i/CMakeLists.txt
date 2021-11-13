@@ -286,7 +286,10 @@ add_subdirectory (smtp_send)
 
 add_custom_target (test_i ALL
                    COMMENT "building test_i...")
-add_dependencies (test_i avsave camsave camsource camtarget filesource filetarget HTTP_get_1 HTTP_get_2 imagesave mp3player SMTP_send)
+add_dependencies (test_i avsave camsave imagesave mp3player)
+# *IMPORTANT NOTE*: comment temporarily to disambiguate ACEStream <-> ACENetwork
+#                   interdependencies
+add_dependencies (test_i camsource camtarget filesource filetarget HTTP_get_1 HTTP_get_2 SMTP_send)
 if (WIN32)
  add_dependencies (test_i camtarget_source camtarget_source_mf)
 endif (WIN32)
