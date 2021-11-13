@@ -36,9 +36,78 @@ Stream_MessageQueueBase_T<ACE_SYNCH_USE,
  : inherited (maxMessages_in,           // high water mark
               maxMessages_in,           // low water mark
               notificationInterface_in) // notification strategy
+ , isShuttingDown_ (false)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MessageQueueBase_T::Stream_MessageQueueBase_T"));
 
+}
+
+template <ACE_SYNCH_DECL,
+          typename TimePolicyType>
+int
+Stream_MessageQueueBase_T<ACE_SYNCH_USE,
+                          TimePolicyType>::dequeue_head (ACE_Message_Block*& message_out,
+                                                         ACE_Time_Value* timeout_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_MessageQueueBase_T::dequeue_head"));
+
+  ACE_GUARD_RETURN (ACE_SYNCH_MUTEX_T, aGuard, inherited::lock (), -1);
+
+  if (unlikely (inherited::state_ == ACE_Message_Queue_Base::DEACTIVATED))
+  {
+    errno = ESHUTDOWN;
+    return -1;
+  } // end IF
+
+  if (unlikely (inherited::wait_not_empty_cond (timeout_in) == -1))
+    return -1;
+
+  int result = inherited::dequeue_head_i (message_out);
+  if (unlikely (result == -1))
+    return -1;
+  ACE_ASSERT (message_out);
+  if (unlikely (message_out->msg_type () == ACE_Message_Block::MB_STOP))
+    isShuttingDown_ = true;
+
+  return 0;
+}
+
+template <ACE_SYNCH_DECL,
+          typename TimePolicyType>
+int
+Stream_MessageQueueBase_T<ACE_SYNCH_USE,
+                          TimePolicyType>::enqueue_head_i (ACE_Message_Block* messageBlock_in,
+                                                           ACE_Time_Value* timeout_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_MessageQueueBase_T::enqueue_head_i"));
+
+  int queue_count = 0;
+  ACE_Notification_Strategy *notifier = 0;
+  {
+//    ACE_GUARD_RETURN (ACE_SYNCH_MUTEX_T, aGuard, inherited::lock_, -1);
+
+    if (inherited::state_ == ACE_Message_Queue_Base::DEACTIVATED)
+    {
+      errno = ESHUTDOWN;
+      return -1;
+    }
+
+    if (inherited::wait_not_full_cond (timeout_in) == -1)
+      return -1;
+
+    queue_count = inherited::enqueue_head_i (messageBlock_in);
+    if (queue_count == -1)
+      return -1;
+
+#if defined (ACE_HAS_MONITOR_POINTS) && (ACE_HAS_MONITOR_POINTS == 1)
+    inherited::monitor_->receive (inherited::cur_length_);
+#endif
+    notifier = inherited::notification_strategy_;
+  }
+
+  if (0 != notifier)
+    notifier->notify ();
+  return queue_count;
 }
 
 template <ACE_SYNCH_DECL,

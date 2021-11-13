@@ -1077,6 +1077,7 @@ Stream_Base_T<ACE_SYNCH_USE,
     }
   } // end IF
 }
+
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           const char* StreamName,
@@ -1267,8 +1268,8 @@ Stream_Base_T<ACE_SYNCH_USE,
     } // end IF
     try {
       return istreamcontrol_p->flush (flushInbound_in,
-                                       flushSessionMessages_in,
-                                       flushUpstream_in);
+                                      flushSessionMessages_in,
+                                      flushUpstream_in);
     } catch (...) {
       ISTREAM_T* istream_p = dynamic_cast<ISTREAM_T*> (upstream_);
       ACE_DEBUG ((LM_ERROR,

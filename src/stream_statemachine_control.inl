@@ -42,7 +42,6 @@ Stream_StateMachine_Control_T<ACE_SYNCH_USE>::change (Stream_StateMachine_Contro
   ACE_ASSERT (inherited::stateLock_);
 
   bool result = false;
-  bool set_result = true;
   ACE_Reverse_Lock<ACE_SYNCH_MUTEX_T> reverse_lock (*inherited::stateLock_);
 
   { ACE_GUARD_RETURN (ACE_SYNCH_MUTEX_T, aGuard, *inherited::stateLock_, false);
@@ -199,7 +198,13 @@ Stream_StateMachine_Control_T<ACE_SYNCH_USE>::change (Stream_StateMachine_Contro
             goto continue_;
           }
           case STREAM_STATE_STOPPED: // *NOTE*: allow STOPPED --> STOPPED
-            return true; // done
+          {
+            { ACE_GUARD_RETURN (ACE_Reverse_Lock<ACE_SYNCH_MUTEX_T>, aGuard_2, reverse_lock, false);
+              result = inherited::change (newState_in);
+            } // end lock scope
+
+            goto continue_;
+          }
           // error cases
           case STREAM_STATE_PAUSED:
           default:
@@ -222,18 +227,19 @@ Stream_StateMachine_Control_T<ACE_SYNCH_USE>::change (Stream_StateMachine_Contro
           }
           case STREAM_STATE_INITIALIZED:
           {
+            // *WARNING*: falls through
+          }
+          case STREAM_STATE_STOPPED:  // *NOTE*: allow FINISHED --> (STOPPED) --> FINISHED
+          {
             { ACE_GUARD_RETURN (ACE_Reverse_Lock<ACE_SYNCH_MUTEX_T>, aGuard_2, reverse_lock, false);
               result = inherited::change (newState_in);
             } // end lock scope
 
-            // *WARNING*: falls through
-            set_result = false;
+            goto continue_;
           }
-          case STREAM_STATE_STOPPED:  // *NOTE*: allow FINISHED --> (STOPPED)
-          case STREAM_STATE_FINISHED: // *NOTE*: allow FINISHED --> (FINISHED)
+          case STREAM_STATE_FINISHED: // *NOTE*: disregard FINISHED --> FINISHED
           {
-            if (set_result)
-              result = true;
+            result = true;
 
             goto continue_;
           }

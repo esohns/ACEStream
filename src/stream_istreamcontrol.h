@@ -46,6 +46,8 @@ class Stream_IStreamControlBase
                      bool = false) = 0; // high priority ?
 
   virtual Stream_SessionId_t id () const = 0; // current session- : -1
+  // *NOTE*: the semantic really is: is there activity on the stream (i.e. is
+  //         there currently data being processed by active components)
   virtual bool isRunning () const = 0;
 
   // *NOTE*: signals asynchronous completion

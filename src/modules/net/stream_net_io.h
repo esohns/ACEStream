@@ -100,7 +100,7 @@ class Stream_Module_Net_IOReader_T // --> input
   Stream_Module_Net_IOReader_T (ISTREAM_T*);                     // stream handle
 #else
   Stream_Module_Net_IOReader_T (typename inherited::ISTREAM_T*); // stream handle
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
   inline virtual ~Stream_Module_Net_IOReader_T () {}
 
   // implement (part of) Stream_ITaskBase_T
@@ -206,15 +206,15 @@ class Stream_Module_Net_IOWriter_T // --> output
   Stream_Module_Net_IOWriter_T (ISTREAM_T*,                     // stream handle
 #else
   Stream_Module_Net_IOWriter_T (typename inherited::ISTREAM_T*, // stream handle
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
                                 bool = true);                   // generate session messages ?
-  inline virtual ~Stream_Module_Net_IOWriter_T () {};
+  inline virtual ~Stream_Module_Net_IOWriter_T () {}
 
 #if defined (__GNUG__) || defined (_MSC_VER)
   // *PORTABILITY*: for some reason, this base class member is not exposed
   //                (MSVC/gcc)
   using inherited::STATE_MACHINE_T::initialize;
-#endif
+#endif // __GNUG__ || _MSC_VER
 
   // override (part of) Stream_IModuleHandler_T
   virtual bool initialize (const ConfigurationType&,

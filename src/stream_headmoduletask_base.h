@@ -116,6 +116,9 @@ class Stream_HeadModuleTaskBase_T
   //         --> use Common_MessageQueueIterator_T and lock the queue manually
   virtual bool isShuttingDown () const;
 
+  // override (part of) Stream_TaskBase_T
+  virtual void handleControlMessage (ControlMessageType&); // control message handle
+
   // implement (part of) Stream_IModuleHandler_T
   virtual bool initialize (const ConfigurationType&,
                            Stream_IAllocator* = NULL);
@@ -198,7 +201,7 @@ class Stream_HeadModuleTaskBase_T
 
   // implement state machine callback
   // *NOTE*: this method is threadsafe
-  virtual void onChange (enum Stream_StateMachine_ControlState); // new state
+  virtual bool onChange (enum Stream_StateMachine_ControlState); // new state
 
   // hide part of Common_ITask
   virtual void stop (bool = true,   // wait for completion ?

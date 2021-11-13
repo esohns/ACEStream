@@ -259,7 +259,6 @@ class Stream_Base_T
   inline virtual const SessionDataContainerType& getR_2 () const { ACE_ASSERT (sessionData_); return *sessionData_; }
   // *IMPORTANT NOTE*: this is a 'fire-and-forget' API
   virtual void setPR (SessionDataContainerType*&);
-  //inline virtual const MESSAGE_QUEUE_T& getR_2 () const { return messageQueue_; };
 
   // implement Common_IInitialize_T
   virtual bool initialize (const CONFIGURATION_T&);

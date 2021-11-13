@@ -27,6 +27,10 @@ class Stream_IMessageQueue
   // *NOTE*: returns #flushed messages
   virtual unsigned int flush (bool = false) = 0; // flush session messages ?
 
+  // *NOTE*: resets the 'shutting down' state
+  virtual void reset () = 0;
+
+  virtual bool isShuttingDown () const = 0; // MB_STOP has been dequeued ?
   virtual void waitForIdleState () const = 0;
 };
 

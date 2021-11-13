@@ -275,12 +275,6 @@ Stream_TaskBaseAsynch_T<ACE_SYNCH_USE,
   {
     case 0:
     {
-      ACE_DEBUG ((LM_DEBUG,
-                  ACE_TEXT ("%s: (%s): worker thread (id: %t, group: %d) stopping\n"),
-                  inherited::mod_->name (),
-                  ACE_TEXT (inherited::threadName_.c_str ()),
-                  inherited::grp_id_));
-
       ACE_thread_t handle = ACE_OS::thr_self ();
       // final thread ? --> clean up
       if (likely (ACE_OS::thr_equal (handle,
@@ -441,8 +435,6 @@ Stream_TaskBaseAsynch_T<ACE_SYNCH_USE,
     return (result > 0 ? 0 : result);
   } // end IF
 
-  bool high_priority_b = false;
-
   switch (messageBlock_in->msg_type ())
   {
     case STREAM_MESSAGE_CONTROL:
@@ -453,8 +445,26 @@ Stream_TaskBaseAsynch_T<ACE_SYNCH_USE,
       switch (message_p->type ())
       {
         case STREAM_CONTROL_MESSAGE_ABORT:
-          high_priority_b = true;
-          break;
+        {
+          // *IMPORTANT NOTE*: make sure the message is actually processed
+          { ACE_GUARD_RETURN (ACE_SYNCH_MUTEX_T, aGuard, queue_.lock (), -1);
+            if (unlikely (!inherited::thr_count_ ||
+                          queue_.isShuttingDown ()))
+            {
+              // *IMPORTANT NOTE*: it is either too early or too late to process
+              //                   this message by this (and (!) subsequent
+              //                   synchronous downstream-) task(s)
+              //                   --> do it manually
+              bool stop_processing = false;
+              inherited::handleMessage (messageBlock_in,
+                                        stop_processing);
+              return 0;
+            } // end IF
+            return queue_.enqueue_head_i (messageBlock_in, NULL);
+          } // end lock scope
+
+          ACE_NOTREACHED (break;)
+        }
         default:
           break;
       } // end SWITCH
@@ -466,8 +476,7 @@ Stream_TaskBaseAsynch_T<ACE_SYNCH_USE,
   } // end SWITCH
 
   // drop the message into the queue
-  return (high_priority_b ? inherited::ungetq (messageBlock_in, timeout_in)
-                          : inherited::putq (messageBlock_in, timeout_in));
+  return inherited::putq (messageBlock_in, timeout_in);
 }
 
 template <ACE_SYNCH_DECL,
@@ -738,6 +747,12 @@ Stream_TaskBaseAsynch_T<ACE_SYNCH_USE,
 
     message_block_p = NULL;
   } while (true);
+
+  ACE_DEBUG ((LM_DEBUG,
+              ACE_TEXT ("%s: (%s): worker thread (id: %t, group: %d) leaving\n"),
+              inherited::mod_->name (),
+              ACE_TEXT (inherited::threadName_.c_str ()),
+              inherited::grp_id_));
 
   return result;
 }

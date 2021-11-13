@@ -147,16 +147,12 @@ class Stream_Module_Net_IO_Stream_T
   virtual void finished (bool = true); // recurse upstream (if any) ?
   using inherited::flush;
   inline virtual const SessionDataContainerType& getR_2 () const { ACE_ASSERT (inherited::sessionData_); return *inherited::sessionData_; }
-//  using inherited::getR_2;
-
-  // override Common_IStatistic_T
-  //virtual bool collect (StatisticContainerType&); // return value: statistic data
-  //inline virtual void update (const ACE_Time_Value&) { ACE_ASSERT (false); ACE_NOTSUP; ACE_NOTREACHED (return;) }
-  //inline virtual void report () const { ACE_ASSERT (false); ACE_NOTSUP; ACE_NOTREACHED (return;) }
 
   // implement Stream_IMessageQueue
   // *IMPORTANT NOTE*: these manipulate the 'outbound' queue only
   inline virtual unsigned int flush (bool flushSessionMessages_in = false) { return inherited::messageQueue_.flush (flushSessionMessages_in); }
+  inline virtual void reset () { ACE_ASSERT (false); ACE_NOTSUP; }
+  inline virtual bool isShuttingDown () const { ACE_ASSERT (false); ACE_NOTSUP_RETURN (false); }
   inline virtual void waitForIdleState () const { inherited::messageQueue_.waitForIdleState (); }
 
   // implement Stream_IOutboundDataNotify

@@ -130,7 +130,7 @@ Test_I_SignalHandler::handle (const struct Common_Signal& signal_in)
     ACE_ASSERT (inherited::configuration_->stream);
     inherited::configuration_->stream->stop (false, // wait ?
                                              true,  // recurse upstream (if any) ?
-                                             true); // locked access ?
+                                             true); // high priority ?
 
     // step2: stop UI event processing ?
     // *TODO*: triggering UI shutdown from a widget callback is more consistent,

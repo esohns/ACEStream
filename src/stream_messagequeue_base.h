@@ -47,8 +47,17 @@ class Stream_MessageQueueBase_T
                              ACE_Notification_Strategy* = NULL); // notification callback handle
   inline virtual ~Stream_MessageQueueBase_T () {}
 
+  // override (part of) ACE_Message_Queue_T
+  virtual int dequeue_head (ACE_Message_Block*&,
+                            ACE_Time_Value* = 0);
+  // *WARNING*: caller needs to hold lock_ !
+  virtual int enqueue_head_i (ACE_Message_Block*,
+                              ACE_Time_Value* = 0);
+
   // implement Stream_IMessageQueue
   virtual unsigned int flush (bool = false); // flush session messages ?
+  inline virtual void reset () { isShuttingDown_ = false; }
+  inline virtual bool isShuttingDown () const { return isShuttingDown_; }
   virtual void waitForIdleState () const;
 
   // implement Common_IDumpState
@@ -65,6 +74,8 @@ class Stream_MessageQueueBase_T
   //                   messages (instead of the amount of enqueued bytes) to
   //                   determine its' water mark
   inline virtual bool is_full_i (void) { return (inherited::cur_count_ >= inherited::high_water_mark_); }
+
+  bool isShuttingDown_; // MB_STOP has been dequeued ?
 
  private:
   // convenient types

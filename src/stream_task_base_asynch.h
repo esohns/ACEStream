@@ -87,7 +87,7 @@ class Stream_TaskBaseAsynch_T
   //         --> use Common_MessageQueueIterator_T and lock the queue manually
   virtual bool isShuttingDown () const;
 
-  // override (part of) Stream_ITask_T
+  // implement/override (part of) Stream_TaskBase_T
   virtual void handleControlMessage (ControlMessageType&); // control message handle
   inline virtual void waitForIdleState () const { queue_.waitForIdleState (); }
 
