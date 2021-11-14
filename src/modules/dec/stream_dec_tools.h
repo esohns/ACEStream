@@ -101,7 +101,8 @@ class Stream_Module_Decoder_Tools
   // *NOTE*: loads a filter graph (source side)
   static bool loadAudioRendererGraph (REFGUID,                                                           // device category (GUID_NULL: retain first filter w/o input pins)
                                       const struct _AMMediaType&,                                        // media type
-                                      int,                                                               // output handle [0: null]
+                                      bool,                                                              // add sample grabber ?
+                                      int,                                                               // output handle [-1: null renderer]
                                       IGraphBuilder*,                                                    // graph handle
                                       REFGUID,                                                           // DMO effect CLSID [GUID_NULL: no effect]
                                       const union Stream_MediaFramework_DirectSound_AudioEffectOptions&, // DMO effect options

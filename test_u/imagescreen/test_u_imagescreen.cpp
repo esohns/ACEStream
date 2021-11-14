@@ -564,8 +564,8 @@ ACE_TMAIN (int argc_in,
                                           true);
 #endif // ACE_WIN32 || ACE_WIN64
 
-  ACE_Sig_Set signal_set (0);
-  ACE_Sig_Set ignored_signal_set (0);
+  ACE_Sig_Set signal_set (false);
+  ACE_Sig_Set ignored_signal_set (false);
   Common_SignalActions_t previous_signal_actions;
   sigset_t previous_signal_mask;
   Stream_ImageScreen_SignalHandler signal_handler (COMMON_SIGNAL_DISPATCH_SIGNAL,

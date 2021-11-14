@@ -710,6 +710,7 @@ continue_4:
   union Stream_MediaFramework_DirectSound_AudioEffectOptions effect_options;
   if (!Stream_Module_Decoder_Tools::loadAudioRendererGraph ((useDirectShowSource_in ? CLSID_AudioInputDeviceCategory : GUID_NULL),
                                                             captureMediaType_out,
+                                                            false,
                                                             (mute_in ? -1 : 0),
                                                             IGraphBuilder_out,
                                                             GUID_NULL,
@@ -1891,8 +1892,8 @@ ACE_TMAIN (int argc_in,
   } // end IF
 
   // step1e: pre-initialize signal handling
-  ACE_Sig_Set signal_set (0);
-  ACE_Sig_Set ignored_signal_set (0);
+  ACE_Sig_Set signal_set (false);
+  ACE_Sig_Set ignored_signal_set (false);
   do_initializeSignals (signal_set,
                         ignored_signal_set);
   Common_SignalActions_t previous_signal_actions;

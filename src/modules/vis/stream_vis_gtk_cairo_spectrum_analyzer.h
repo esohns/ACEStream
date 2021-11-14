@@ -199,6 +199,7 @@ class Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T
 //#if defined (GTKGL_SUPPORT)
 //  enum Stream_Visualization_SpectrumAnalyzer_3DMode* mode3D_;
 //#endif // GTKGL_SUPPORT
+  typename inherited::MESSAGE_QUEUE_T                queue_;
 
   Common_Timer_ResetCounterHandler                   renderHandler_;
   long                                               renderHandlerTimerId_;

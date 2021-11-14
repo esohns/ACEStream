@@ -38,6 +38,7 @@
 #include "stream_dev_target_wavout.h"
 
 #include "stream_lib_directshow_asynch_source_filter.h"
+#include "stream_lib_directshow_source.h"
 #include "stream_lib_directshow_source_filter.h"
 #include "stream_lib_directshow_target.h"
 #else
@@ -449,12 +450,9 @@ DATASTREAM_MODULE_INPUT_ONLY (Test_U_AudioEffect_SessionData,                   
 typedef Stream_MediaFramework_DirectShow_Source_Filter_T<Test_U_AudioEffect_DirectShow_Message,
                                                          struct Test_U_AudioEffect_DirectShow_FilterConfiguration,
                                                          struct Stream_MediaFramework_DirectShow_FilterPinConfiguration> Test_U_AudioEffect_DirectShowFilter_t;
-typedef Stream_MediaFramework_DirectShow_Asynch_Source_Filter_T<Common_TimePolicy_t,
-                                                                Test_U_AudioEffect_DirectShow_SessionMessage,
-                                                                Test_U_AudioEffect_DirectShow_Message,
+typedef Stream_MediaFramework_DirectShow_Asynch_Source_Filter_T<Test_U_AudioEffect_DirectShow_Message,
                                                                 struct Test_U_AudioEffect_DirectShow_FilterConfiguration,
-                                                                struct Stream_MediaFramework_DirectShow_FilterPinConfiguration,
-                                                                struct _AMMediaType> Test_U_AudioEffect_AsynchDirectShowFilter_t;
+                                                                struct Stream_MediaFramework_DirectShow_FilterPinConfiguration> Test_U_AudioEffect_AsynchDirectShowFilter_t;
 typedef Stream_MediaFramework_DirectShow_Target_T<ACE_MT_SYNCH,
                                                   Common_TimePolicy_t,
                                                   struct Test_U_AudioEffect_DirectShow_ModuleHandlerConfiguration,
@@ -469,9 +467,25 @@ typedef Stream_MediaFramework_DirectShow_Target_T<ACE_MT_SYNCH,
 DATASTREAM_MODULE_INPUT_ONLY (Test_U_AudioEffect_DirectShow_SessionData,                       // session data type
                               enum Stream_SessionMessageType,                                  // session event type
                               struct Test_U_AudioEffect_DirectShow_ModuleHandlerConfiguration, // module handler configuration type
-                              libacestream_default_lib_directshow_module_name_string,
+                              libacestream_default_lib_directshow_target_module_name_string,
                               Stream_INotify_t,                                                // stream notification interface type
                               Test_U_AudioEffect_DirectShow_Target);                           // writer type
+
+typedef Stream_MediaFramework_DirectShow_Source_T<ACE_MT_SYNCH,
+                                                  Common_TimePolicy_t,
+                                                  struct Test_U_AudioEffect_DirectShow_ModuleHandlerConfiguration,
+                                                  Stream_ControlMessage_t,
+                                                  Test_U_AudioEffect_DirectShow_Message,
+                                                  Test_U_AudioEffect_DirectShow_SessionMessage,
+                                                  Test_U_AudioEffect_DirectShow_SessionData,
+                                                  struct _AMMediaType> Test_U_AudioEffect_DirectShow_Source;
+DATASTREAM_MODULE_INPUT_ONLY (Test_U_AudioEffect_DirectShow_SessionData,                       // session data type
+                              enum Stream_SessionMessageType,                                  // session event type
+                              struct Test_U_AudioEffect_DirectShow_ModuleHandlerConfiguration, // module handler configuration type
+                              libacestream_default_lib_directshow_source_module_name_string,
+                              Stream_INotify_t,                                                // stream notification interface type
+                              Test_U_AudioEffect_DirectShow_Source);                           // writer type
+
 typedef Stream_Dev_Target_WavOut_T<ACE_MT_SYNCH,
                                    Common_TimePolicy_t,
                                    struct Test_U_AudioEffect_DirectShow_ModuleHandlerConfiguration,
@@ -485,6 +499,7 @@ DATASTREAM_MODULE_INPUT_ONLY (Test_U_AudioEffect_DirectShow_SessionData,        
                               libacestream_default_dev_target_wavout_module_name_string,
                               Stream_INotify_t,                                                // stream notification interface type
                               Test_U_AudioEffect_DirectShow_WavOut);                           // writer type
+
 typedef Stream_Module_FileWriter_T<ACE_MT_SYNCH,
                                    Common_TimePolicy_t,
                                    struct Test_U_AudioEffect_DirectShow_ModuleHandlerConfiguration,

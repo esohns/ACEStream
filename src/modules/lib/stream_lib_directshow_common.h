@@ -45,6 +45,7 @@ struct Stream_MediaFramework_DirectShow_FilterPinConfiguration
    , hasMediaSampleBuffers (false)
    , isTopToBottom (false)
    , queue (NULL)
+   , setSampleTimes (false)
   {}
 
   struct _AllocatorProperties* allocatorProperties;
@@ -53,9 +54,14 @@ struct Stream_MediaFramework_DirectShow_FilterPinConfiguration
   // *NOTE*: some image formats have a bottom-to-top memory layout; in
   //         DirectShow, this is reflected by a positive biHeight; see also:
   //         https://msdn.microsoft.com/en-us/library/windows/desktop/dd407212(v=vs.85).aspx
-  //         --> set this if the sample data is top-to-bottom
-  bool                         isTopToBottom; // frame memory layout
-  ACE_Message_Queue_Base*      queue;  // (inbound) buffer queue handle
+  //         --> set this if the frame data is top-to-bottom
+  bool                         isTopToBottom; // video-frame memory layout
+  ACE_Message_Queue_Base*      queue; // (inbound) buffer queue handle
+  // *NOTE*: if this is 'false', the renderer will output frames ASAP. This is
+  //         the correct setting for 'capture' streams. Set this to 'true' for
+  //         'playback' streams, where the source may receive the frames faster
+  //         than appropriate for playback
+  bool                         setSampleTimes;
 };
 
 struct Stream_MediaFramework_DirectShow_FilterConfiguration

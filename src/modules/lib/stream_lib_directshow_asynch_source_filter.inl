@@ -18,7 +18,7 @@
 *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
 ***************************************************************************/
 
-#include "Guiddef.h"
+#include "guiddef.h"
 #include "dvdmedia.h"
 #include "vfwmsgs.h"
 
@@ -33,20 +33,14 @@
 #include "stream_lib_common.h"
 #include "stream_lib_defines.h"
 
-template <typename TimePolicyType,
-          typename SessionMessageType,
-          typename DataMessageType,
+template <typename MessageType,
           typename ConfigurationType,
-          typename PinConfigurationType,
-          typename MediaType>
+          typename PinConfigurationType>
 CUnknown* WINAPI
-Stream_MediaFramework_DirectShow_Asynch_Source_Filter_T<TimePolicyType,
-                                                        SessionMessageType,
-                                                        DataMessageType,
+Stream_MediaFramework_DirectShow_Asynch_Source_Filter_T<MessageType,
                                                         ConfigurationType,
-                                                        PinConfigurationType,
-                                                        MediaType>::CreateInstance (LPUNKNOWN IUnknown_in,
-                                                                                    HRESULT* result_out)
+                                                        PinConfigurationType>::CreateInstance (LPUNKNOWN IUnknown_in,
+                                                                                               HRESULT* result_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_DirectShow_Asynch_Source_Filter_T::CreateInstance"));
 
@@ -71,19 +65,14 @@ Stream_MediaFramework_DirectShow_Asynch_Source_Filter_T<TimePolicyType,
 
   return unknown_p;
 } // CreateInstance
-template <typename TimePolicyType,
-          typename SessionMessageType,
-          typename DataMessageType,
+
+template <typename MessageType,
           typename ConfigurationType,
-          typename PinConfigurationType,
-          typename MediaType>
+          typename PinConfigurationType>
 void WINAPI
-Stream_MediaFramework_DirectShow_Asynch_Source_Filter_T<TimePolicyType,
-                                                        SessionMessageType,
-                                                        DataMessageType,
+Stream_MediaFramework_DirectShow_Asynch_Source_Filter_T<MessageType,
                                                         ConfigurationType,
-                                                        PinConfigurationType,
-                                                        MediaType>::DeleteInstance (void* pointer_in)
+                                                        PinConfigurationType>::DeleteInstance (void* pointer_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_DirectShow_Asynch_Source_Filter_T::DeleteInstance"));
 
@@ -120,19 +109,13 @@ Stream_MediaFramework_DirectShow_Asynch_Source_Filter_T<TimePolicyType,
 
 // ------------------------------------
 
-template <typename TimePolicyType,
-          typename SessionMessageType,
-          typename DataMessageType,
+template <typename MessageType,
           typename ConfigurationType,
-          typename PinConfigurationType,
-          typename MediaType>
+          typename PinConfigurationType>
 void
-Stream_MediaFramework_DirectShow_Asynch_Source_Filter_T<TimePolicyType,
-                                                        SessionMessageType,
-                                                        DataMessageType,
+Stream_MediaFramework_DirectShow_Asynch_Source_Filter_T<MessageType,
                                                         ConfigurationType,
-                                                        PinConfigurationType,
-                                                        MediaType>::operator delete (void* pointer_in)
+                                                        PinConfigurationType>::operator delete (void* pointer_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_DirectShow_Asynch_Source_Filter_T::operator delete"));
 
@@ -185,18 +168,12 @@ Stream_MediaFramework_DirectShow_Asynch_Source_Filter_T<TimePolicyType,
 //  OWN_TYPE_T::DeleteInstance (pointer_in);
 //}
 
-template <typename TimePolicyType,
-          typename SessionMessageType,
-          typename DataMessageType,
+template <typename MessageType,
           typename ConfigurationType,
-          typename PinConfigurationType,
-          typename MediaType>
-Stream_MediaFramework_DirectShow_Asynch_Source_Filter_T<TimePolicyType,
-                                                        SessionMessageType,
-                                                        DataMessageType,
+          typename PinConfigurationType>
+Stream_MediaFramework_DirectShow_Asynch_Source_Filter_T<MessageType,
                                                         ConfigurationType,
-                                                        PinConfigurationType,
-                                                        MediaType>::Stream_MediaFramework_DirectShow_Asynch_Source_Filter_T ()
+                                                        PinConfigurationType>::Stream_MediaFramework_DirectShow_Asynch_Source_Filter_T ()
  : inherited (NAME (STREAM_LIB_DS_WIN32_FILTER_NAME_ASYNCH_SOURCE), // name
               NULL,                                                 // owner
               CLSID_ACEStream_MediaFramework_Asynch_Source_Filter,  // CLSID
@@ -225,18 +202,13 @@ Stream_MediaFramework_DirectShow_Asynch_Source_Filter_T<TimePolicyType,
   //            ACE_TEXT (Stream_Module_Device_DirectShow_Tools::name (this).c_str ()),
   //            ACE_TEXT (Stream_Module_Device_DirectShow_Tools::name (pin_p).c_str ())));
 } // (Constructor)
-template <typename TimePolicyType,
-          typename SessionMessageType,
-          typename DataMessageType,
+
+template <typename MessageType,
           typename ConfigurationType,
-          typename PinConfigurationType,
-          typename MediaType>
-Stream_MediaFramework_DirectShow_Asynch_Source_Filter_T<TimePolicyType,
-                                                        SessionMessageType,
-                                                        DataMessageType,
+          typename PinConfigurationType>
+Stream_MediaFramework_DirectShow_Asynch_Source_Filter_T<MessageType,
                                                         ConfigurationType,
-                                                        PinConfigurationType,
-                                                        MediaType>::~Stream_MediaFramework_DirectShow_Asynch_Source_Filter_T ()
+                                                        PinConfigurationType>::~Stream_MediaFramework_DirectShow_Asynch_Source_Filter_T ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_DirectShow_Asynch_Source_Filter_T::~Stream_MediaFramework_DirectShow_Asynch_Source_Filter_T"));
 
@@ -264,21 +236,16 @@ Stream_MediaFramework_DirectShow_Asynch_Source_Filter_T<TimePolicyType,
                   ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
   } // end IF
 }
-template <typename TimePolicyType,
-          typename SessionMessageType,
-          typename DataMessageType,
+
+template <typename MessageType,
           typename ConfigurationType,
-          typename PinConfigurationType,
-          typename MediaType>
-Stream_MediaFramework_DirectShow_Asynch_Source_Filter_T<TimePolicyType,
-                                                        SessionMessageType,
-                                                        DataMessageType,
+          typename PinConfigurationType>
+Stream_MediaFramework_DirectShow_Asynch_Source_Filter_T<MessageType,
                                                         ConfigurationType,
-                                                        PinConfigurationType,
-                                                        MediaType>::Stream_MediaFramework_DirectShow_Asynch_Source_Filter_T (LPTSTR name_in,
-                                                                                                                             LPUNKNOWN owner_in,
-                                                                                                                             REFGUID CLSID_in,
-                                                                                                                             HRESULT* result_out)
+                                                        PinConfigurationType>::Stream_MediaFramework_DirectShow_Asynch_Source_Filter_T (LPTSTR name_in,
+                                                                                                                                        LPUNKNOWN owner_in,
+                                                                                                                                        REFGUID CLSID_in,
+                                                                                                                                        HRESULT* result_out)
  : inherited (name_in,
               owner_in,
               CLSID_in,
@@ -309,19 +276,13 @@ Stream_MediaFramework_DirectShow_Asynch_Source_Filter_T<TimePolicyType,
   //            ACE_TEXT (Stream_Module_Device_DirectShow_Tools::name (pin_p).c_str ())));
 } // (Constructor)
 
-template <typename TimePolicyType,
-          typename SessionMessageType,
-          typename DataMessageType,
+template <typename MessageType,
           typename ConfigurationType,
-          typename PinConfigurationType,
-          typename MediaType>
+          typename PinConfigurationType>
 bool
-Stream_MediaFramework_DirectShow_Asynch_Source_Filter_T<TimePolicyType,
-                                                        SessionMessageType,
-                                                        DataMessageType,
+Stream_MediaFramework_DirectShow_Asynch_Source_Filter_T<MessageType,
                                                         ConfigurationType,
-                                                        PinConfigurationType,
-                                                        MediaType>::initialize (const ConfigurationType& configuration_in)
+                                                        PinConfigurationType>::initialize (const ConfigurationType& configuration_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_DirectShow_Asynch_Source_Filter_T::initialize"));
 
@@ -368,24 +329,16 @@ error:
 
   return false;
 }
-template <typename TimePolicyType,
-          typename SessionMessageType,
-          typename DataMessageType,
+
+template <typename MessageType,
           typename ConfigurationType,
-          typename PinConfigurationType,
-          typename MediaType>
+          typename PinConfigurationType>
 bool
-Stream_MediaFramework_DirectShow_Asynch_Source_Filter_T<TimePolicyType,
-                                                        SessionMessageType,
-                                                        DataMessageType,
+Stream_MediaFramework_DirectShow_Asynch_Source_Filter_T<MessageType,
                                                         ConfigurationType,
-                                                        PinConfigurationType,
-                                                        MediaType>::initialize (const MediaType* mediaType_in)
+                                                        PinConfigurationType>::initialize (const struct _AMMediaType& mediaType_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_DirectShow_Asynch_Source_Filter_T::initialize"));
-
-  // sanity check(s)
-  ACE_ASSERT (mediaType_in);
 
   // *NOTE*: the pin will inherited::AddPin() itself to 'this'
   IPin* ipin_p =
@@ -411,7 +364,7 @@ Stream_MediaFramework_DirectShow_Asynch_Source_Filter_T<TimePolicyType,
   } // end IF
   ipin_p->Release (); ipin_p = NULL;
 
-  return iinitialize_p->initialize (*mediaType_in);
+  return iinitialize_p->initialize (mediaType_in);
 
 error:
   if (ipin_p)
@@ -422,57 +375,43 @@ error:
 
 ////////////////////////////////////////////////////////////////////////////////
 
-template <typename ConfigurationType,
-          typename FilterType,
-          typename MediaType>
-Stream_MediaFramework_DirectShow_Source_Filter_AsynchOutputPin_T<ConfigurationType,
-                                                                 FilterType,
-                                                                 MediaType>::Stream_MediaFramework_DirectShow_Source_Filter_AsynchOutputPin_T (HRESULT* result_out,
-                                                                                                                                               FilterType* parentFilter_in,
-                                                                                                                                               LPCWSTR pinName_in)
+template <typename ConfigurationType>
+Stream_MediaFramework_DirectShow_Source_Filter_AsynchOutputPin_T<ConfigurationType>::Stream_MediaFramework_DirectShow_Source_Filter_AsynchOutputPin_T (HRESULT* result_out,
+                                                                                                                                                       CSource* parentFilter_in,
+                                                                                                                                                       LPCWSTR pinName_in)
 #if defined (UNICODE)
  : inherited (pinName_in,
 #else
  : inherited (ACE_TEXT_ALWAYS_CHAR (ACE_TEXT_WCHAR_TO_TCHAR (pinName_in)),
 #endif // UNICODE
-              parentFilter_in,                                                    // owning filter
-              &lock_,                                                             // lock
-              result_out,                                                         // OLE return code
-              pinName_in,                                                         // pin name
-              PINDIR_OUTPUT)                                                      // pin direction
- , allocatorProperties_ ()
+              parentFilter_in,                // owning filter
+              parentFilter_in->pStateLock (), // lock handle
+              result_out,                     // OLE return code
+              pinName_in,                     // pin name
+              PINDIR_OUTPUT)                  // pin direction
  , configuration_ (NULL)
  , isInitialized_ (false)
  , mediaType_ (NULL)
- //, parentFilter_ (parent_in)
- , queue_ (NULL)
- , defaultFrameInterval_ (STREAM_LIB_DIRECTSHOW_FILTER_SOURCE_FRAME_INTERVAL)
+ /////////////////////////////////////////
+ , defaultFrameInterval_ (STREAM_LIB_DIRECTSHOW_FILTER_SOURCE_FRAME_INTERVAL_MS)
  , frameInterval_ (0)
  , numberOfMediaTypes_ (1)
  , flushing_ (false)
  , queriedForIAsyncReader_ (false)
  , requestQueue_ ()
- , lock_ ()
- , sampleTime_ ()
+ , sampleNumber_ (0)
+ , sampleSize_ (0)
+ , sampleTime_ (0)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_DirectShow_Source_Filter_AsynchOutputPin_T::Stream_MediaFramework_DirectShow_Source_Filter_AsynchOutputPin_T"));
 
-  // *TODO*: IMemAllocator::SetProperties returns VFW_E_BADALIGN (0x8004020e)
-  //         if this is -1/0 (why ?)
-  allocatorProperties_.cbAlign = 1;  // <-- use default
-  allocatorProperties_.cbBuffer = -1; // <-- use default
-  allocatorProperties_.cbPrefix = -1; // <-- use default
-  allocatorProperties_.cBuffers = -1; // <-- use default
-  //allocatorProperties_.cBuffers =
-  //  MODULE_DEV_CAM_DIRECTSHOW_DEFAULT_DEVICE_BUFFERS;
+  // sanity check(s)
+  ACE_ASSERT (inherited::m_pFilter);
+  ACE_ASSERT (result_out);
 } // (Constructor)
 
-template <typename ConfigurationType,
-          typename FilterType,
-          typename MediaType>
-Stream_MediaFramework_DirectShow_Source_Filter_AsynchOutputPin_T<ConfigurationType,
-                                                                 FilterType,
-                                                                 MediaType>::~Stream_MediaFramework_DirectShow_Source_Filter_AsynchOutputPin_T ()
+template <typename ConfigurationType>
+Stream_MediaFramework_DirectShow_Source_Filter_AsynchOutputPin_T<ConfigurationType>::~Stream_MediaFramework_DirectShow_Source_Filter_AsynchOutputPin_T ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_DirectShow_Source_Filter_AsynchOutputPin_T::~Stream_MediaFramework_DirectShow_Source_Filter_AsynchOutputPin_T"));
 
@@ -482,14 +421,10 @@ Stream_MediaFramework_DirectShow_Source_Filter_AsynchOutputPin_T<ConfigurationTy
 
 // ------------------------------------
 
-template <typename ConfigurationType,
-          typename FilterType,
-          typename MediaType>
+template <typename ConfigurationType>
 HRESULT
-Stream_MediaFramework_DirectShow_Source_Filter_AsynchOutputPin_T<ConfigurationType,
-                                                                 FilterType,
-                                                                 MediaType>::NonDelegatingQueryInterface (REFIID riid_in,
-                                                                                                          void** interface_out)
+Stream_MediaFramework_DirectShow_Source_Filter_AsynchOutputPin_T<ConfigurationType>::NonDelegatingQueryInterface (REFIID riid_in,
+                                                                                                                  void** interface_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_DirectShow_Source_Filter_AsynchOutputPin_T::NonDelegatingQueryInterface"));
 
@@ -513,13 +448,9 @@ Stream_MediaFramework_DirectShow_Source_Filter_AsynchOutputPin_T<ConfigurationTy
 
 // ------------------------------------
 
-template <typename ConfigurationType,
-          typename FilterType,
-          typename MediaType>
+template <typename ConfigurationType>
 HRESULT
-Stream_MediaFramework_DirectShow_Source_Filter_AsynchOutputPin_T<ConfigurationType,
-                                                                 FilterType,
-                                                                 MediaType>::InitAllocator (IMemAllocator** allocator_out)
+Stream_MediaFramework_DirectShow_Source_Filter_AsynchOutputPin_T<ConfigurationType>::InitAllocator (IMemAllocator** allocator_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_DirectShow_Source_Filter_AsynchOutputPin_T::InitAllocator"));
 
@@ -564,19 +495,15 @@ Stream_MediaFramework_DirectShow_Source_Filter_AsynchOutputPin_T<ConfigurationTy
 
 // ---------------------------------------
 
-template <typename ConfigurationType,
-          typename FilterType,
-          typename MediaType>
+template <typename ConfigurationType>
 HRESULT
-Stream_MediaFramework_DirectShow_Source_Filter_AsynchOutputPin_T<ConfigurationType,
-                                                                 FilterType,
-                                                                 MediaType>::Get (REFGUID guidPropSet_in,
-                                                                                  DWORD dwPropID_in,
-                                                                                  LPVOID pInstanceData_in,
-                                                                                  DWORD cbInstanceData_in,
-                                                                                  LPVOID pPropData_in,
-                                                                                  DWORD cbPropData_in,
-                                                                                  DWORD* pcbReturned_in)
+Stream_MediaFramework_DirectShow_Source_Filter_AsynchOutputPin_T<ConfigurationType>::Get (REFGUID guidPropSet_in,
+                                                                                          DWORD dwPropID_in,
+                                                                                          LPVOID pInstanceData_in,
+                                                                                          DWORD cbInstanceData_in,
+                                                                                          LPVOID pPropData_in,
+                                                                                          DWORD cbPropData_in,
+                                                                                          DWORD* pcbReturned_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_DirectShow_Source_Filter_AsynchOutputPin_T::Get"));
 
@@ -601,15 +528,12 @@ Stream_MediaFramework_DirectShow_Source_Filter_AsynchOutputPin_T<ConfigurationTy
 
   return S_OK;
 }
-template <typename ConfigurationType,
-          typename FilterType,
-          typename MediaType>
+
+template <typename ConfigurationType>
 HRESULT
-Stream_MediaFramework_DirectShow_Source_Filter_AsynchOutputPin_T<ConfigurationType,
-                                                                 FilterType,
-                                                                 MediaType>::QuerySupported (REFGUID guidPropSet_in,
-                                                                                             DWORD dwPropID_in,
-                                                                                             DWORD* pTypeSupport_in)
+Stream_MediaFramework_DirectShow_Source_Filter_AsynchOutputPin_T<ConfigurationType>::QuerySupported (REFGUID guidPropSet_in,
+                                                                                                     DWORD dwPropID_in,
+                                                                                                     DWORD* pTypeSupport_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_DirectShow_Source_Filter_AsynchOutputPin_T::QuerySupported"));
 
@@ -628,50 +552,42 @@ Stream_MediaFramework_DirectShow_Source_Filter_AsynchOutputPin_T<ConfigurationTy
 
 // ------------------------------------
 
-template <typename ConfigurationType,
-          typename FilterType,
-          typename MediaType>
+template <typename ConfigurationType>
 HRESULT
-Stream_MediaFramework_DirectShow_Source_Filter_AsynchOutputPin_T<ConfigurationType,
-                                                                 FilterType,
-                                                                 MediaType>::SuggestAllocatorProperties (const struct _AllocatorProperties* pprop_in)
+Stream_MediaFramework_DirectShow_Source_Filter_AsynchOutputPin_T<ConfigurationType>::SuggestAllocatorProperties (const struct _AllocatorProperties* properties_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_DirectShow_Source_Filter_AsynchOutputPin_T::SuggestAllocatorProperties"));
 
   // sanity check(s)
-  CheckPointer (pprop_in, E_POINTER);
+  CheckPointer (properties_in, E_POINTER);
+  ACE_ASSERT (configuration_);
 
-  allocatorProperties_ = *pprop_in;
+  *configuration_->allocatorProperties = *properties_in;
 
   return S_OK;
 }
-template <typename ConfigurationType,
-          typename FilterType,
-          typename MediaType>
+
+template <typename ConfigurationType>
 HRESULT
-Stream_MediaFramework_DirectShow_Source_Filter_AsynchOutputPin_T<ConfigurationType,
-                                                                 FilterType,
-                                                                 MediaType>::GetAllocatorProperties (struct _AllocatorProperties* pprop_inout)
+Stream_MediaFramework_DirectShow_Source_Filter_AsynchOutputPin_T<ConfigurationType>::GetAllocatorProperties (struct _AllocatorProperties* properties_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_DirectShow_Source_Filter_AsynchOutputPin_T::GetAllocatorProperties"));
 
   // sanity check(s)
-  CheckPointer (pprop_inout, E_POINTER);
+  CheckPointer (properties_out, E_POINTER);
+  ACE_ASSERT (configuration_);
+  ACE_ASSERT (configuration_->allocatorProperties);
 
-  *pprop_inout = allocatorProperties_;
+  *properties_out = *configuration_->allocatorProperties;
 
-  return S_OK;
+  return NOERROR;
 }
 
 // ------------------------------------
 
-template <typename ConfigurationType,
-          typename FilterType,
-          typename MediaType>
+template <typename ConfigurationType>
 HRESULT
-Stream_MediaFramework_DirectShow_Source_Filter_AsynchOutputPin_T<ConfigurationType,
-                                                                 FilterType,
-                                                                 MediaType>::SetFormat (struct _AMMediaType* pmt_in)
+Stream_MediaFramework_DirectShow_Source_Filter_AsynchOutputPin_T<ConfigurationType>::SetFormat (struct _AMMediaType* pmt_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_DirectShow_Source_Filter_AsynchOutputPin_T::SetFormat"));
 
@@ -739,13 +655,10 @@ continue_:
 
   return S_OK;
 }
-template <typename ConfigurationType,
-          typename FilterType,
-          typename MediaType>
+
+template <typename ConfigurationType>
 HRESULT
-Stream_MediaFramework_DirectShow_Source_Filter_AsynchOutputPin_T<ConfigurationType,
-                                                                 FilterType,
-                                                                 MediaType>::GetFormat (struct _AMMediaType** ppmt_inout)
+Stream_MediaFramework_DirectShow_Source_Filter_AsynchOutputPin_T<ConfigurationType>::GetFormat (struct _AMMediaType** ppmt_inout)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_DirectShow_Source_Filter_AsynchOutputPin_T::GetFormat"));
 
@@ -770,14 +683,11 @@ Stream_MediaFramework_DirectShow_Source_Filter_AsynchOutputPin_T<ConfigurationTy
 
   return S_OK;
 }
-template <typename ConfigurationType,
-          typename FilterType,
-          typename MediaType>
+
+template <typename ConfigurationType>
 HRESULT
-Stream_MediaFramework_DirectShow_Source_Filter_AsynchOutputPin_T<ConfigurationType,
-                                                                 FilterType,
-                                                                 MediaType>::GetNumberOfCapabilities (int* piCount_inout,
-                                                                                                      int* piSize_inout)
+Stream_MediaFramework_DirectShow_Source_Filter_AsynchOutputPin_T<ConfigurationType>::GetNumberOfCapabilities (int* piCount_inout,
+                                                                                                              int* piSize_inout)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_DirectShow_Source_Filter_AsynchOutputPin_T::GetNumberOfCapabilities"));
 
@@ -790,15 +700,12 @@ Stream_MediaFramework_DirectShow_Source_Filter_AsynchOutputPin_T<ConfigurationTy
 
   return S_OK;
 }
-template <typename ConfigurationType,
-          typename FilterType,
-          typename MediaType>
+
+template <typename ConfigurationType>
 HRESULT
-Stream_MediaFramework_DirectShow_Source_Filter_AsynchOutputPin_T<ConfigurationType,
-                                                                 FilterType,
-                                                                 MediaType>::GetStreamCaps (int iIndex_in,
-                                                                                            struct _AMMediaType** ppmt_inout,
-                                                                                            BYTE* pSCC_in)
+Stream_MediaFramework_DirectShow_Source_Filter_AsynchOutputPin_T<ConfigurationType>::GetStreamCaps (int iIndex_in,
+                                                                                                    struct _AMMediaType** ppmt_inout,
+                                                                                                    BYTE* pSCC_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_DirectShow_Source_Filter_AsynchOutputPin_T::GetStreamCaps"));
 
@@ -884,13 +791,9 @@ Stream_MediaFramework_DirectShow_Source_Filter_AsynchOutputPin_T<ConfigurationTy
 // accept the preconfigured media type, if any
 // Returns E_INVALIDARG if the mediatype is not acceptable
 //
-template <typename ConfigurationType,
-          typename FilterType,
-          typename MediaType>
+template <typename ConfigurationType>
 HRESULT
-Stream_MediaFramework_DirectShow_Source_Filter_AsynchOutputPin_T<ConfigurationType,
-                                                                 FilterType,
-                                                                 MediaType>::CheckMediaType (const CMediaType *mediaType_in)
+Stream_MediaFramework_DirectShow_Source_Filter_AsynchOutputPin_T<ConfigurationType>::CheckMediaType (const CMediaType *mediaType_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_DirectShow_Source_Filter_AsynchOutputPin_T::CheckMediaType"));
 
@@ -924,14 +827,10 @@ Stream_MediaFramework_DirectShow_Source_Filter_AsynchOutputPin_T<ConfigurationTy
 // Prefered types should be ordered by quality, zero as highest quality
 // (iPosition > 4 is invalid)
 //
-template <typename ConfigurationType,
-          typename FilterType,
-          typename MediaType>
+template <typename ConfigurationType>
 HRESULT
-Stream_MediaFramework_DirectShow_Source_Filter_AsynchOutputPin_T<ConfigurationType,
-                                                                 FilterType,
-                                                                 MediaType>::GetMediaType (int position_in,
-                                                                                           CMediaType* mediaType_out)
+Stream_MediaFramework_DirectShow_Source_Filter_AsynchOutputPin_T<ConfigurationType>::GetMediaType (int position_in,
+                                                                                                   CMediaType* mediaType_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_DirectShow_Source_Filter_AsynchOutputPin_T::GetMediaType"));
 
@@ -952,13 +851,9 @@ Stream_MediaFramework_DirectShow_Source_Filter_AsynchOutputPin_T<ConfigurationTy
 //
 // Called when a media type is agreed between filters
 //
-template <typename ConfigurationType,
-          typename FilterType,
-          typename MediaType>
+template <typename ConfigurationType>
 HRESULT
-Stream_MediaFramework_DirectShow_Source_Filter_AsynchOutputPin_T<ConfigurationType,
-                                                                 FilterType,
-                                                                 MediaType>::SetMediaType (const CMediaType* mediaType_in)
+Stream_MediaFramework_DirectShow_Source_Filter_AsynchOutputPin_T<ConfigurationType>::SetMediaType (const CMediaType* mediaType_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_DirectShow_Source_Filter_AsynchOutputPin_T::SetMediaType"));
 
@@ -977,7 +872,6 @@ Stream_MediaFramework_DirectShow_Source_Filter_AsynchOutputPin_T<ConfigurationTy
                 ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
     return result;
   } // end IF
-#if defined (_DEBUG)
   IBaseFilter* ibase_filter_p =
     Stream_MediaFramework_DirectShow_Tools::toFilter (this);
   ACE_ASSERT (ibase_filter_p);
@@ -987,18 +881,13 @@ Stream_MediaFramework_DirectShow_Source_Filter_AsynchOutputPin_T<ConfigurationTy
               ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::name (this).c_str ()),
               ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::toString (*mediaType_in, true).c_str ())));
   ibase_filter_p->Release (); ibase_filter_p = NULL;
-#endif // _DEBUG
 
   return S_OK;
 } // SetMediaType
 
-template <typename ConfigurationType,
-          typename FilterType,
-          typename MediaType>
+template <typename ConfigurationType>
 HRESULT
-Stream_MediaFramework_DirectShow_Source_Filter_AsynchOutputPin_T<ConfigurationType,
-                                                                 FilterType,
-                                                                 MediaType>::CheckConnect (IPin* pin_in)
+Stream_MediaFramework_DirectShow_Source_Filter_AsynchOutputPin_T<ConfigurationType>::CheckConnect (IPin* pin_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_DirectShow_Source_Filter_AsynchOutputPin_T::CheckConnect"));
 
@@ -1006,13 +895,10 @@ Stream_MediaFramework_DirectShow_Source_Filter_AsynchOutputPin_T<ConfigurationTy
 
   return inherited::CheckConnect (pin_in);
 }
-template <typename ConfigurationType,
-          typename FilterType,
-          typename MediaType>
+
+template <typename ConfigurationType>
 HRESULT
-Stream_MediaFramework_DirectShow_Source_Filter_AsynchOutputPin_T<ConfigurationType,
-                                                                 FilterType,
-                                                                 MediaType>::CompleteConnect (IPin* pin_in)
+Stream_MediaFramework_DirectShow_Source_Filter_AsynchOutputPin_T<ConfigurationType>::CompleteConnect (IPin* pin_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_DirectShow_Source_Filter_AsynchOutputPin_T::CompleteConnect"));
 
@@ -1025,13 +911,10 @@ Stream_MediaFramework_DirectShow_Source_Filter_AsynchOutputPin_T<ConfigurationTy
 //  return E_FAIL;
 //#endif
 }
-template <typename ConfigurationType,
-          typename FilterType,
-          typename MediaType>
+
+template <typename ConfigurationType>
 HRESULT
-Stream_MediaFramework_DirectShow_Source_Filter_AsynchOutputPin_T<ConfigurationType,
-                                                                 FilterType,
-                                                                 MediaType>::BreakConnect ()
+Stream_MediaFramework_DirectShow_Source_Filter_AsynchOutputPin_T<ConfigurationType>::BreakConnect ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_DirectShow_Source_Filter_AsynchOutputPin_T::BreakConnect"));
 
@@ -1058,13 +941,9 @@ Stream_MediaFramework_DirectShow_Source_Filter_AsynchOutputPin_T<ConfigurationTy
 
 // ------------------------------------
 
-template <typename ConfigurationType,
-          typename FilterType,
-          typename MediaType>
+template <typename ConfigurationType>
 HRESULT
-Stream_MediaFramework_DirectShow_Source_Filter_AsynchOutputPin_T<ConfigurationType,
-                                                                 FilterType,
-                                                                 MediaType>::BeginFlush (void)
+Stream_MediaFramework_DirectShow_Source_Filter_AsynchOutputPin_T<ConfigurationType>::BeginFlush (void)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_DirectShow_Source_Filter_AsynchOutputPin_T::BeginFlush"));
 
@@ -1075,13 +954,10 @@ Stream_MediaFramework_DirectShow_Source_Filter_AsynchOutputPin_T<ConfigurationTy
 
   return S_OK;
 }
-template <typename ConfigurationType,
-          typename FilterType,
-          typename MediaType>
+
+template <typename ConfigurationType>
 HRESULT
-Stream_MediaFramework_DirectShow_Source_Filter_AsynchOutputPin_T<ConfigurationType,
-                                                                 FilterType,
-                                                                 MediaType>::EndFlush (void)
+Stream_MediaFramework_DirectShow_Source_Filter_AsynchOutputPin_T<ConfigurationType>::EndFlush (void)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_DirectShow_Source_Filter_AsynchOutputPin_T::EndFlush"));
 
@@ -1096,38 +972,32 @@ Stream_MediaFramework_DirectShow_Source_Filter_AsynchOutputPin_T<ConfigurationTy
 // return the length of the file, and the length currently
 // available locally. We only support locally accessible files,
 // so they are always the same
-template <typename ConfigurationType,
-          typename FilterType,
-          typename MediaType>
+template <typename ConfigurationType>
 HRESULT
-Stream_MediaFramework_DirectShow_Source_Filter_AsynchOutputPin_T<ConfigurationType,
-                                                                 FilterType,
-                                                                 MediaType>::Length (LONGLONG* total_out,
-                                                                                     LONGLONG* available_out)
+Stream_MediaFramework_DirectShow_Source_Filter_AsynchOutputPin_T<ConfigurationType>::Length (LONGLONG* total_out,
+                                                                                             LONGLONG* available_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_DirectShow_Source_Filter_AsynchOutputPin_T::Length"));
 
   // sanity check(s)
   ACE_ASSERT (total_out);
   ACE_ASSERT (available_out);
-  ACE_ASSERT (queue_);
+  ACE_ASSERT (configuration_);
+  ACE_ASSERT (configuration_->queue);
 
   *total_out = std::numeric_limits<LONGLONG>::max ();
-  *available_out = static_cast<LONGLONG> (queue_->message_length ());
+  *available_out =
+    static_cast<LONGLONG> (configuration_->queue->message_length ());
 
   return S_OK;
 }
 
 // queue an aligned read request. call WaitForNext to get
 // completion.
-template <typename ConfigurationType,
-          typename FilterType,
-          typename MediaType>
+template <typename ConfigurationType>
 HRESULT
-Stream_MediaFramework_DirectShow_Source_Filter_AsynchOutputPin_T<ConfigurationType,
-                                                                 FilterType,
-                                                                 MediaType>::Request (IMediaSample* mediaSample_in,
-                                                                                      DWORD_PTR userContext_in)
+Stream_MediaFramework_DirectShow_Source_Filter_AsynchOutputPin_T<ConfigurationType>::Request (IMediaSample* mediaSample_in,
+                                                                                              DWORD_PTR userContext_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_DirectShow_Source_Filter_AsynchOutputPin_T::Request"));
 
@@ -1146,15 +1016,11 @@ Stream_MediaFramework_DirectShow_Source_Filter_AsynchOutputPin_T<ConfigurationTy
 
 // we need to return an addrefed allocator, even if it is the preferred
 // one, since he doesn't know whether it is the preferred one or not.
-template <typename ConfigurationType,
-          typename FilterType,
-          typename MediaType>
+template <typename ConfigurationType>
 HRESULT
-Stream_MediaFramework_DirectShow_Source_Filter_AsynchOutputPin_T<ConfigurationType,
-                                                                 FilterType,
-                                                                 MediaType>::RequestAllocator (IMemAllocator* allocator_in,
-                                                                                               struct _AllocatorProperties* properties_in,
-                                                                                               IMemAllocator** allocator_out)
+Stream_MediaFramework_DirectShow_Source_Filter_AsynchOutputPin_T<ConfigurationType>::RequestAllocator (IMemAllocator* allocator_in,
+                                                                                                       struct _AllocatorProperties* properties_in,
+                                                                                                       IMemAllocator** allocator_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_DirectShow_Source_Filter_AsynchOutputPin_T::RequestAllocator"));
 
@@ -1274,15 +1140,11 @@ error:
 
 //
 // synchronous read that need not be aligned.
-template <typename ConfigurationType,
-          typename FilterType,
-          typename MediaType>
+template <typename ConfigurationType>
 HRESULT
-Stream_MediaFramework_DirectShow_Source_Filter_AsynchOutputPin_T<ConfigurationType,
-                                                                 FilterType,
-                                                                 MediaType>::SyncRead (LONGLONG position_in,
-                                                                                       LONG length_in,
-                                                                                       BYTE* buffer_out)
+Stream_MediaFramework_DirectShow_Source_Filter_AsynchOutputPin_T<ConfigurationType>::SyncRead (LONGLONG position_in,
+                                                                                               LONG length_in,
+                                                                                               BYTE* buffer_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_DirectShow_Source_Filter_AsynchOutputPin_T::SyncRead"));
 
@@ -1297,13 +1159,9 @@ Stream_MediaFramework_DirectShow_Source_Filter_AsynchOutputPin_T<ConfigurationTy
 }
 
 // sync-aligned request. just like a request/waitfornext pair.
-template <typename ConfigurationType,
-          typename FilterType,
-          typename MediaType>
+template <typename ConfigurationType>
 HRESULT
-Stream_MediaFramework_DirectShow_Source_Filter_AsynchOutputPin_T<ConfigurationType,
-                                                                 FilterType,
-                                                                 MediaType>::SyncReadAligned (IMediaSample* mediaSample_in)
+Stream_MediaFramework_DirectShow_Source_Filter_AsynchOutputPin_T<ConfigurationType>::SyncReadAligned (IMediaSample* mediaSample_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_DirectShow_Source_Filter_AsynchOutputPin_T::SyncReadAligned"));
 
@@ -1317,22 +1175,19 @@ Stream_MediaFramework_DirectShow_Source_Filter_AsynchOutputPin_T<ConfigurationTy
 
 //
 // collect the next ready sample
-template <typename ConfigurationType,
-          typename FilterType,
-          typename MediaType>
+template <typename ConfigurationType>
 HRESULT
-Stream_MediaFramework_DirectShow_Source_Filter_AsynchOutputPin_T<ConfigurationType,
-                                                                 FilterType,
-                                                                 MediaType>::WaitForNext (DWORD timeout_in,
-                                                                                          IMediaSample** mediaSample_out,
-                                                                                          DWORD_PTR* userContext_out)
+Stream_MediaFramework_DirectShow_Source_Filter_AsynchOutputPin_T<ConfigurationType>::WaitForNext (DWORD timeout_in,
+                                                                                                  IMediaSample** mediaSample_out,
+                                                                                                  DWORD_PTR* userContext_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_DirectShow_Source_Filter_AsynchOutputPin_T::WaitForNext"));
 
   // sanity check(s)
   CheckPointer (mediaSample_out, E_POINTER);
   CheckPointer (userContext_out, E_POINTER);
-  ACE_ASSERT (queue_);
+  ACE_ASSERT (configuration_);
+  ACE_ASSERT (configuration_->queue);
   ACE_ASSERT (!requestQueue_.empty ());
 
   // initialize return value(s)
@@ -1354,7 +1209,8 @@ Stream_MediaFramework_DirectShow_Source_Filter_AsynchOutputPin_T<ConfigurationTy
     do
     {
       message_block_p = NULL;
-      result_2 = queue_->dequeue_head (message_block_p, timeout_p);
+      result_2 =
+        configuration_->queue->dequeue_head (message_block_p, timeout_p);
       if (unlikely (result_2 == -1))
       {
         int error = ACE_OS::last_error ();
@@ -1386,7 +1242,7 @@ Stream_MediaFramework_DirectShow_Source_Filter_AsynchOutputPin_T<ConfigurationTy
   } // end ELSE
 
   HRESULT result = E_FAIL;
-  result_2 = queue_->dequeue_head (message_block_p, timeout_p);
+  result_2 = configuration_->queue->dequeue_head (message_block_p, timeout_p);
   if (unlikely (result_2 == -1))
   {
     int error = ACE_OS::last_error ();
@@ -1426,33 +1282,22 @@ Stream_MediaFramework_DirectShow_Source_Filter_AsynchOutputPin_T<ConfigurationTy
 
 // ------------------------------------
 
-template <typename ConfigurationType,
-          typename FilterType,
-          typename MediaType>
+template <typename ConfigurationType>
 bool
-Stream_MediaFramework_DirectShow_Source_Filter_AsynchOutputPin_T<ConfigurationType,
-                                                                 FilterType,
-                                                                 MediaType>::initialize (const ConfigurationType& configuration_in)
+Stream_MediaFramework_DirectShow_Source_Filter_AsynchOutputPin_T<ConfigurationType>::initialize (const ConfigurationType& configuration_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_DirectShow_Source_Filter_AsynchOutputPin_T::initialize"));
 
   configuration_ = &const_cast<ConfigurationType&> (configuration_in);
 
-  // *TODO*: remove type inferences
-  //mediaType_ = configuration_->mediaType;
-  queue_ = configuration_->queue;
-
   isInitialized_ = true;
 
   return true;
 }
-template <typename ConfigurationType,
-          typename FilterType,
-          typename MediaType>
+
+template <typename ConfigurationType>
 bool
-Stream_MediaFramework_DirectShow_Source_Filter_AsynchOutputPin_T<ConfigurationType,
-                                                                 FilterType,
-                                                                 MediaType>::initialize (const MediaType& mediaType_in)
+Stream_MediaFramework_DirectShow_Source_Filter_AsynchOutputPin_T<ConfigurationType>::initialize (const struct _AMMediaType& mediaType_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_DirectShow_Source_Filter_AsynchOutputPin_T::initialize"));
 

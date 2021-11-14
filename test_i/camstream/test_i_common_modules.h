@@ -457,12 +457,9 @@ struct Test_I_Source_DirectShow_FilterConfiguration
 typedef Stream_MediaFramework_DirectShow_Source_Filter_T<Test_I_Source_DirectShow_Stream_Message,
                                                          struct Test_I_Source_DirectShow_FilterConfiguration,
                                                          struct Stream_MediaFramework_DirectShow_FilterPinConfiguration> Test_I_Source_DirectShowFilter_t;
-typedef Stream_MediaFramework_DirectShow_Asynch_Source_Filter_T<Common_TimePolicy_t,
-                                                                Test_I_Source_DirectShow_SessionMessage,
-                                                                Test_I_Source_DirectShow_Stream_Message,
+typedef Stream_MediaFramework_DirectShow_Asynch_Source_Filter_T<Test_I_Source_DirectShow_Stream_Message,
                                                                 struct Test_I_Source_DirectShow_FilterConfiguration,
-                                                                struct Test_I_Source_DirectShow_FilterPinConfiguration,
-                                                                struct _AMMediaType> Test_I_Source_AsynchDirectShowFilter_t;
+                                                                struct Test_I_Source_DirectShow_FilterPinConfiguration> Test_I_Source_AsynchDirectShowFilter_t;
 typedef Stream_Vis_Target_DirectShow_T<ACE_MT_SYNCH,
                                        Common_TimePolicy_t,
                                        struct Test_I_Source_DirectShow_ModuleHandlerConfiguration,
@@ -630,12 +627,9 @@ typedef Stream_Vis_Target_Direct3D_T<ACE_MT_SYNCH,
 typedef Stream_MediaFramework_DirectShow_Source_Filter_T<Test_I_Target_DirectShow_Stream_Message,
                                                          struct Test_I_Target_DirectShow_FilterConfiguration,
                                                          struct Stream_MediaFramework_DirectShow_FilterPinConfiguration> Test_I_Target_DirectShowFilter_t;
-typedef Stream_MediaFramework_DirectShow_Asynch_Source_Filter_T<Common_TimePolicy_t,
-                                                                Test_I_Target_DirectShow_SessionMessage,
-                                                                Test_I_Target_DirectShow_Stream_Message,
+typedef Stream_MediaFramework_DirectShow_Asynch_Source_Filter_T<Test_I_Target_DirectShow_Stream_Message,
                                                                 struct Test_I_Target_DirectShow_FilterConfiguration,
-                                                                struct Stream_MediaFramework_DirectShow_FilterPinConfiguration,
-                                                                struct _AMMediaType> Test_I_Target_AsynchDirectShowFilter_t;
+                                                                struct Stream_MediaFramework_DirectShow_FilterPinConfiguration> Test_I_Target_AsynchDirectShowFilter_t;
 typedef Stream_Vis_Target_DirectShow_T<ACE_MT_SYNCH,
                                        Common_TimePolicy_t,
                                        struct Test_I_Target_DirectShow_ModuleHandlerConfiguration,

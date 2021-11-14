@@ -19,9 +19,9 @@
  ***************************************************************************/
 #include "stdafx.h"
 
-#include "stream_dev_target_wavout.h"
+#include "stream_lib_directshow_source.h"
 
-#include "stream_dev_defines.h"
+#include "stream_lib_defines.h"
 
-const char libacestream_default_dev_target_wavout_module_name_string[] =
-  ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_TARGET_WAVOUT_DEFAULT_NAME_STRING);
+const char libacestream_default_lib_directshow_source_module_name_string[] =
+  ACE_TEXT_ALWAYS_CHAR (STREAM_LIB_DIRECTSHOW_SOURCE_DEFAULT_NAME_STRING);

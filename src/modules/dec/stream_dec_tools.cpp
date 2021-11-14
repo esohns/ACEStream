@@ -1174,6 +1174,7 @@ Stream_Module_Decoder_Tools::AVPixelFormatToOpenCVFormat (enum AVPixelFormat for
 bool
 Stream_Module_Decoder_Tools::loadAudioRendererGraph (REFGUID deviceCategory_in,
                                                      const struct _AMMediaType& mediaType_in,
+                                                     bool grabSamples_in,
                                                      const int audioOutput_in,
                                                      IGraphBuilder* IGraphBuilder_in,
                                                      REFGUID effect_in,
@@ -1195,7 +1196,6 @@ Stream_Module_Decoder_Tools::loadAudioRendererGraph (REFGUID deviceCategory_in,
   // sanity check(s)
   ACE_ASSERT (IGraphBuilder_in);
 
-  // *TODO*: add source filter name
   if (!Stream_MediaFramework_DirectShow_Tools::reset (IGraphBuilder_in,
                                                       deviceCategory_in))
   {
@@ -1203,6 +1203,51 @@ Stream_Module_Decoder_Tools::loadAudioRendererGraph (REFGUID deviceCategory_in,
                 ACE_TEXT ("failed to Stream_MediaFramework_DirectShow_Tools::reset(), aborting\n")));
     return false;
   } // end IF
+  if (InlineIsEqualGUID (deviceCategory_in, CLSID_AudioInputDeviceCategory))
+    graph_entry.filterName = STREAM_LIB_DIRECTSHOW_FILTER_NAME_CAPTURE_AUDIO;
+  //else if (InlineIsEqualGUID (deviceCategory_in, CLSID_VideoInputDeviceCategory))
+  //  graph_entry.filterName = STREAM_LIB_DIRECTSHOW_FILTER_NAME_CAPTURE_VIDEO;
+  else if (InlineIsEqualGUID (deviceCategory_in, GUID_NULL))
+  {
+    IEnumFilters* enumerator_p = NULL;
+    result = IGraphBuilder_in->EnumFilters (&enumerator_p);
+    if (FAILED (result))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to IGraphBuilder::EnumFilters(): \"%s\", aborting\n"),
+                  ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ())));
+      return false;
+    } // end IF
+    result = enumerator_p->Next (1, &filter_p, NULL);
+    if (FAILED (result))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to IGraphBuilder::EnumFilters(): \"%s\", aborting\n"),
+                  ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ())));
+      enumerator_p->Release ();
+      return false;
+    } // end IF
+    ACE_ASSERT (filter_p);
+    struct _FilterInfo filter_info;
+    ACE_OS::memset (&filter_info, 0, sizeof (struct _FilterInfo));
+    result = filter_p->QueryFilterInfo (&filter_info);
+    if (FAILED (result))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to IBaseFilter::QueryFilterInfo(): \"%s\", aborting\n"),
+                  ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ())));
+      filter_p->Release ();
+      enumerator_p->Release ();
+      return false;
+    } // end IF
+    graph_entry.filterName = filter_info.achName;
+    if (filter_info.pGraph)
+      filter_info.pGraph->Release ();
+    filter_p->Release (); filter_p = NULL;
+    enumerator_p->Release ();
+  } // end ELSE IF
+  graph_entry.mediaType = Stream_MediaFramework_DirectShow_Tools::copy (mediaType_in);
+  graphConfiguration_out.push_back (graph_entry);
 
   // step0: add resampler ?
   ACE_ASSERT (InlineIsEqualGUID (mediaType_in.majortype, MEDIATYPE_Audio));
@@ -1650,6 +1695,8 @@ continue_:
               ACE_TEXT_WCHAR_TO_TCHAR (graph_entry.filterName.c_str ())));
 
 continue_2:
+  if (!grabSamples_in)
+    goto continue_3;
   result = CoCreateInstance (CLSID_SampleGrabber, NULL,
                              CLSCTX_INPROC_SERVER,
                              IID_PPV_ARGS (&filter_p));
@@ -1679,8 +1726,9 @@ continue_2:
               ACE_TEXT ("added \"%s\"\n"),
               ACE_TEXT_WCHAR_TO_TCHAR (graph_entry.filterName.c_str ())));
 
+continue_3:
   // send to an output (waveOut) ?
-  if (audioOutput_in > 0)
+  if (audioOutput_in >= 0)
   {
     GUID_s = CLSID_AudioRender;
     graph_entry.filterName = STREAM_LIB_DIRECTSHOW_FILTER_NAME_RENDER_AUDIO;
@@ -1732,6 +1780,10 @@ continue_2:
   //              ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ())));
   //  return false;
   //} // end IF
+
+#if defined (_DEBUG)
+  Stream_MediaFramework_DirectShow_Tools::dump (graphConfiguration_out);
+#endif // _DEBUG
 
   return true;
 
@@ -2167,6 +2219,10 @@ render:
   } // end IF
   filter_p->Release (); filter_p = NULL;
   graphConfiguration_out.push_back (graph_entry);
+
+#if defined (_DEBUG)
+  Stream_MediaFramework_DirectShow_Tools::dump (graphConfiguration_out);
+#endif // _DEBUG
 
   return true;
 

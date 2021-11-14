@@ -56,8 +56,8 @@ class Stream_IStreamControlBase
 //  // *NOTE*: wait for all queued data to drain
 //  virtual void idle (bool = false) = 0; // wait for upstream (if any) ?
   // *NOTE*: flush the pipeline, releasing any data
-  // *NOTE*: session messages are not flushed iff all asynchronous modules
-  //         implement Stream_IMessageQueue
+  // *IMPORTANT NOTE*: session messages are not flushed iff all asynchronous
+  //                   modules implement Stream_IMessageQueue
   // *TODO*: this precondition should not be strictly necessary
   virtual unsigned int flush (bool = true,       // flush inbound data ?
                               bool = false,      // flush session messages ?

@@ -158,6 +158,9 @@ elseif (WIN32)
       stream_lib_directshow_message_base.cpp
       stream_lib_directshow_message_base.h
       stream_lib_directshow_message_base.inl
+      stream_lib_directshow_source.cpp
+      stream_lib_directshow_source.h
+      stream_lib_directshow_source.inl
       stream_lib_directshow_source_filter.cpp
       stream_lib_directshow_source_filter.h
       stream_lib_directshow_source_filter.inl
@@ -286,6 +289,8 @@ elseif (WIN32)
       stream_lib_directshow_common.h
       stream_lib_directshow_message_base.h
       stream_lib_directshow_message_base.inl
+      stream_lib_directshow_source.h
+      stream_lib_directshow_source.inl
       stream_lib_directshow_source_filter.h
       stream_lib_directshow_source_filter.inl
       stream_lib_directshow_target.h

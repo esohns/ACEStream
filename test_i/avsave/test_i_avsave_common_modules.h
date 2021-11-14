@@ -347,12 +347,9 @@ struct Stream_AVSave_DirectShow_FilterConfiguration
 typedef Stream_MediaFramework_DirectShow_Source_Filter_T<Stream_AVSave_DirectShow_Message_t,
                                                          struct Stream_AVSave_DirectShow_FilterConfiguration,
                                                          struct Stream_MediaFramework_DirectShow_FilterPinConfiguration> Stream_AVSave_DirectShowFilter_t;
-typedef Stream_MediaFramework_DirectShow_Asynch_Source_Filter_T<Common_TimePolicy_t,
-                                                                Stream_AVSave_DirectShow_SessionMessage_t,
-                                                                Stream_AVSave_DirectShow_Message_t,
+typedef Stream_MediaFramework_DirectShow_Asynch_Source_Filter_T<Stream_AVSave_DirectShow_Message_t,
                                                                 struct Stream_AVSave_DirectShow_FilterConfiguration,
-                                                                struct Stream_MediaFramework_DirectShow_FilterPinConfiguration,
-                                                                struct _AMMediaType> Stream_AVSave_AsynchDirectShowFilter_t;
+                                                                struct Stream_MediaFramework_DirectShow_FilterPinConfiguration> Stream_AVSave_AsynchDirectShowFilter_t;
 typedef Stream_Vis_Target_DirectShow_T<ACE_MT_SYNCH,
                                        Common_TimePolicy_t,
                                        struct Stream_AVSave_DirectShow_ModuleHandlerConfiguration,

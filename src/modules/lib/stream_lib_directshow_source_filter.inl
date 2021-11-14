@@ -300,7 +300,9 @@ Stream_MediaFramework_DirectShow_Source_Filter_T<MessageType,
   // sanity check(s)
   CheckPointer (interface_out, E_POINTER);
 
-  if (InlineIsEqualGUID (riid_in, IID_IMemAllocator))
+  if (InlineIsEqualGUID (riid_in, IID_IAMFilterMiscFlags))
+    return GetInterface ((IAMFilterMiscFlags*)this, interface_out);
+  else if (InlineIsEqualGUID (riid_in, IID_IMemAllocator))
     return GetInterface ((IMemAllocator*)this, interface_out);
 
   return inherited::NonDelegatingQueryInterface (riid_in, interface_out);
@@ -471,6 +473,7 @@ Stream_MediaFramework_DirectShow_Source_Filter_T<MessageType,
 
   // sanity check(s)
   CheckPointer (mediaSample_out, E_POINTER);
+  ACE_ASSERT (!*mediaSample_out);
   //CheckPointer (startTime_out, E_POINTER);
   //CheckPointer (endTime_out, E_POINTER);
   ACE_ASSERT (configuration_);
@@ -486,7 +489,7 @@ Stream_MediaFramework_DirectShow_Source_Filter_T<MessageType,
   unsigned int message_size = (configuration_->allocatorProperties->cbPrefix +
                                configuration_->allocatorProperties->cbBuffer);
   MessageType* message_p = NULL;
-  if (configuration_->allocator)
+  if (likely (configuration_->allocator))
   {
 allocate:
     try {
@@ -507,7 +510,7 @@ allocate:
   else
     ACE_NEW_NORETURN (message_p,
                       MessageType (message_size));
-  if (!message_p)
+  if (unlikely (!message_p))
   {
     if (configuration_->allocator &&
         configuration_->allocator->block ())
@@ -555,7 +558,7 @@ Stream_MediaFramework_DirectShow_Source_Filter_T<MessageType,
 
   ACE_Message_Block* message_p =
     dynamic_cast<ACE_Message_Block*> (mediaSample_in);
-  if (message_p)
+  if (likely (message_p))
     message_p->release ();
   else
     mediaSample_in->Release ();
@@ -695,19 +698,20 @@ Stream_MediaFramework_DirectShow_Source_Filter_OutputPin_T<ConfigurationType>::S
 #else
  : inherited (ACE_TEXT_ALWAYS_CHAR (ACE_TEXT_WCHAR_TO_TCHAR (pinName_in)),
 #endif // UNICODE
-              result_out,
-              parentFilter_in,
-              pinName_in)
+              result_out,      // OLE return code
+              parentFilter_in, // owning filter
+              pinName_in)      // pin name
  , configuration_ (NULL)
  , isInitialized_ (false)
  , mediaType_ (NULL)
  /////////////////////////////////////////
- , defaultFrameInterval_ (STREAM_LIB_DIRECTSHOW_FILTER_SOURCE_FRAME_INTERVAL)
+ , defaultFrameInterval_ (STREAM_LIB_DIRECTSHOW_FILTER_SOURCE_FRAME_INTERVAL_MS)
  , frameInterval_ (0)
  , numberOfMediaTypes_ (1)
  , directShowHasEnded_ (false)
- //, lock_ ()
- , sampleTime_ ()
+ , sampleNumber_ (0)
+ , sampleSize_ (0)
+ , sampleTime_ (0)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_DirectShow_Source_Filter_OutputPin_T::Stream_MediaFramework_DirectShow_Source_Filter_OutputPin_T"));
 
@@ -795,6 +799,10 @@ Stream_MediaFramework_DirectShow_Source_Filter_OutputPin_T<ConfigurationType>::N
     return GetInterface ((IAMBufferNegotiation*)this, interface_out);
   else if (InlineIsEqualGUID (riid_in, IID_IAMStreamConfig))
     return GetInterface ((IAMStreamConfig*)this, interface_out);
+  else if (InlineIsEqualGUID (riid_in, IID_IAMPushSource))
+    return GetInterface ((IAMPushSource*)this, interface_out);
+  else if (InlineIsEqualGUID (riid_in, IID_IAMLatency))
+    return GetInterface ((IAMLatency*)this, interface_out);
 
   return inherited::NonDelegatingQueryInterface (riid_in, interface_out);
 }
@@ -957,7 +965,7 @@ Stream_MediaFramework_DirectShow_Source_Filter_OutputPin_T<ConfigurationType>::S
     return result;
   } // end IF
 
-  // compute frame interval to correctly set the sample time
+  // compute frame interval/size to correctly set the sample time(s)
   REFERENCE_TIME avg_time_per_frame; // 100ns units
   if (InlineIsEqualGUID (inherited::m_mt.majortype, MEDIATYPE_Video))
   {
@@ -968,12 +976,14 @@ Stream_MediaFramework_DirectShow_Source_Filter_OutputPin_T<ConfigurationType>::S
       video_info_header_p =
         reinterpret_cast<struct tagVIDEOINFOHEADER*> (inherited::m_mt.pbFormat);
       avg_time_per_frame = video_info_header_p->AvgTimePerFrame;
+      sampleSize_ = video_info_header_p->bmiHeader.biSizeImage;
     } // end IF
     else if (InlineIsEqualGUID (inherited::m_mt.formattype, FORMAT_VideoInfo2))
     { ACE_ASSERT (inherited::m_mt.cbFormat == sizeof (struct tagVIDEOINFOHEADER2));
       video_info_header2_p =
         reinterpret_cast<struct tagVIDEOINFOHEADER2*> (inherited::m_mt.pbFormat);
       avg_time_per_frame = video_info_header2_p->AvgTimePerFrame;
+      sampleSize_ = video_info_header2_p->bmiHeader.biSizeImage;
     } // end ELSE IF
     else
     {
@@ -984,7 +994,7 @@ Stream_MediaFramework_DirectShow_Source_Filter_OutputPin_T<ConfigurationType>::S
                   ACE_TEXT (Common_Tools::GUIDToString (inherited::m_mt.formattype).c_str ())));
       return E_FAIL;
     } // end ELSE
-    frameInterval_ = avg_time_per_frame / 10000; // 100ns --> ms
+    frameInterval_ = avg_time_per_frame / (UNITS / MILLISECONDS); // 100ns --> ms
   } // end IF
   else if (InlineIsEqualGUID (inherited::m_mt.majortype, MEDIATYPE_Audio))
   { 
@@ -994,6 +1004,8 @@ Stream_MediaFramework_DirectShow_Source_Filter_OutputPin_T<ConfigurationType>::S
       struct tWAVEFORMATEX* waveformatex_p =
         reinterpret_cast<struct tWAVEFORMATEX*> (inherited::m_mt.pbFormat);
       frameInterval_ = waveformatex_p->nSamplesPerSec / 1000;
+      sampleSize_ =
+        (waveformatex_p->wBitsPerSample / 8) * waveformatex_p->nChannels;
     } // end ELSE
     else
       ACE_DEBUG ((LM_WARNING,
@@ -1274,18 +1286,12 @@ Stream_MediaFramework_DirectShow_Source_Filter_OutputPin_T<ConfigurationType>::D
   CheckPointer (allocator_in, E_POINTER);
   CheckPointer (properties_inout, E_POINTER);
   ACE_ASSERT (inherited::m_pFilter);
-
-  CAutoLock cAutoLock (inherited::m_pFilter->pStateLock ());
+  ACE_ASSERT (configuration_);
+  ACE_ASSERT (configuration_->allocatorProperties);
 
   struct _AMMediaType media_type;
   ACE_OS::memset (&media_type, 0, sizeof (struct _AMMediaType));
-  struct _AllocatorProperties allocator_properties_s;
-  ACE_OS::memset (&allocator_properties_s, 0, sizeof (struct _AllocatorProperties));
-
-  HRESULT result = GetAllocatorProperties (&allocator_properties_s);
-  ACE_ASSERT (SUCCEEDED (result));
-
-  result = inherited::ConnectionMediaType (&media_type);
+  HRESULT result = inherited::ConnectionMediaType (&media_type);
   if (FAILED (result))
   {
     ACE_DEBUG ((LM_ERROR,
@@ -1296,42 +1302,39 @@ Stream_MediaFramework_DirectShow_Source_Filter_OutputPin_T<ConfigurationType>::D
     return result;
   } // end IF
 
-  // *TODO*: IMemAllocator::SetProperties returns VFW_E_BADALIGN (0x8004020e)
-  //         if this is -1/0 (why ?)
-  if (properties_inout->cbAlign <= 0)
-    properties_inout->cbAlign = 1;
-
+  long number_of_buffers_i = 0;
   if (InlineIsEqualGUID (media_type.formattype, FORMAT_VideoInfo) &&
       (media_type.cbFormat == sizeof (struct tagVIDEOINFOHEADER)))
-  {
-    struct tagVIDEOINFOHEADER* video_info_p =
+  { struct tagVIDEOINFOHEADER* video_info_p =
       reinterpret_cast<struct tagVIDEOINFOHEADER*> (media_type.pbFormat);
     ACE_ASSERT (video_info_p);
+
+    number_of_buffers_i = STREAM_LIB_DIRECTSHOW_VIDEO_DEFAULT_SOURCE_BUFFERS;
     properties_inout->cbBuffer =
       std::max (static_cast<long> (video_info_p->bmiHeader.biSizeImage),
-                allocator_properties_s.cbBuffer);
+                configuration_->allocatorProperties->cbBuffer);
   } // end IF
   else if (InlineIsEqualGUID (media_type.formattype, FORMAT_VideoInfo2) &&
            (media_type.cbFormat == sizeof (struct tagVIDEOINFOHEADER2)))
-  {
-    struct tagVIDEOINFOHEADER2* video_info_p =
+  { struct tagVIDEOINFOHEADER2* video_info_p =
       reinterpret_cast<struct tagVIDEOINFOHEADER2*> (media_type.pbFormat);
     ACE_ASSERT (video_info_p);
+
+    number_of_buffers_i = STREAM_LIB_DIRECTSHOW_VIDEO_DEFAULT_SOURCE_BUFFERS;
     properties_inout->cbBuffer =
       std::max (static_cast<long> (video_info_p->bmiHeader.biSizeImage),
-                allocator_properties_s.cbBuffer);
+                configuration_->allocatorProperties->cbBuffer);
   } // end ELSE IF
   else if (InlineIsEqualGUID (media_type.formattype, FORMAT_WaveFormatEx) &&
            (media_type.cbFormat == sizeof (struct tWAVEFORMATEX)))
-  {
-    struct tWAVEFORMATEX* audio_info_p =
+  { struct tWAVEFORMATEX* audio_info_p =
       reinterpret_cast<struct tWAVEFORMATEX*> (media_type.pbFormat);
     ACE_ASSERT (audio_info_p);
-    // *IMPORTANT NOTE*: with DirectShow, lower buffer sizes result in lower
-    //                   latency
+
+    number_of_buffers_i = STREAM_LIB_DIRECTSHOW_AUDIO_DEFAULT_SOURCE_BUFFERS;
     properties_inout->cbBuffer =
-      std::max (static_cast<long> ((audio_info_p->nSamplesPerSec * (audio_info_p->wBitsPerSample / 8) * audio_info_p->nChannels) / 8), // <-- arbitrary factor
-                allocator_properties_s.cbBuffer);
+      std::max (static_cast<long> ((audio_info_p->nSamplesPerSec * (audio_info_p->wBitsPerSample / 8) * audio_info_p->nChannels) / STREAM_LIB_DIRECTSHOW_AUDIO_DEFAULT_BUFFER_FACTOR),
+                configuration_->allocatorProperties->cbBuffer);
   } // end ELSE IF
   else
   {
@@ -1343,13 +1346,25 @@ Stream_MediaFramework_DirectShow_Source_Filter_OutputPin_T<ConfigurationType>::D
     FreeMediaType (media_type);
     return VFW_E_INVALIDMEDIATYPE;
   } // end ELSE
-  ACE_ASSERT (properties_inout->cbBuffer);
-  //properties_inout->cbPrefix = 0;
-  // *NOTE*: IMemAllocator::SetProperties returns E_INVALIDARG (0x80070057)
-  //         if this is set (why ?)
   properties_inout->cBuffers =
-    std::max (static_cast<long> (STREAM_LIB_DIRECTSHOW_FILTER_SOURCE_BUFFERS),
-              allocator_properties_s.cBuffers);
+    std::max (number_of_buffers_i,
+              configuration_->allocatorProperties->cBuffers);
+  ACE_ASSERT (properties_inout->cBuffers);
+  ACE_ASSERT (properties_inout->cbBuffer);
+
+  properties_inout->cbAlign = configuration_->allocatorProperties->cbAlign;
+  // *NOTE*: IMemAllocator::SetProperties() returns VFW_E_BADALIGN (0x8004020e)
+  //         if this is -1/0
+  if (properties_inout->cbAlign <= 0)
+  {
+    ACE_DEBUG ((LM_WARNING,
+                ACE_TEXT ("%s/%s: adjusting _AllocatorProperties::cbAlign (was %d), continuing\n"),
+                ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::name (inherited::m_pFilter).c_str ()),
+                ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::name (this).c_str ()),
+                properties_inout->cbAlign));
+    properties_inout->cbAlign = 1;
+  } // end IF
+  properties_inout->cbPrefix = configuration_->allocatorProperties->cbPrefix;
 
   FreeMediaType (media_type);
 
@@ -1358,6 +1373,7 @@ Stream_MediaFramework_DirectShow_Source_Filter_OutputPin_T<ConfigurationType>::D
   // *NOTE*: this function does not actually allocate any memory (see
   //         IMemAllocator::Commit ())
   // *NOTE*: this may invoke QueryAccept() (see above)
+  struct _AllocatorProperties allocator_properties_s;
   ACE_OS::memset (&allocator_properties_s, 0, sizeof (struct _AllocatorProperties));
   result = allocator_in->SetProperties (properties_inout,
                                         &allocator_properties_s);
@@ -1376,16 +1392,16 @@ Stream_MediaFramework_DirectShow_Source_Filter_OutputPin_T<ConfigurationType>::D
 
   // --> is this allocator suitable ?
   // *TODO*: this needs more work
+  ACE_ASSERT (allocator_properties_s.cBuffers >= 1);
   if (allocator_properties_s.cbBuffer < properties_inout->cbBuffer)
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s/%s: IMemAllocator::SetProperties() returned %d (expected: %d), aborting\n"),
+                ACE_TEXT ("%s/%s: IMemAllocator::SetProperties() returned buffer size %d (expected: %d), aborting\n"),
                 ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::name (inherited::m_pFilter).c_str ()),
                 ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::name (this).c_str ()),
                 allocator_properties_s.cbBuffer, properties_inout->cbBuffer));
     return E_FAIL;
   } // end IF
-  ACE_ASSERT (allocator_properties_s.cBuffers >= 1);
 
   //// (try to) allocate required memory
   //result = allocator_in->Commit ();
@@ -1496,12 +1512,12 @@ Stream_MediaFramework_DirectShow_Source_Filter_OutputPin_T<ConfigurationType>::F
     return S_FALSE; // --> stop
   } // end IF
 
-  // the current time is the samples' start
-  CRefTime ref_time = sampleTime_;
-  // increment to find the finish time
-  sampleTime_ += (LONG)frameInterval_;
-  result = mediaSample_in->SetTime ((REFERENCE_TIME*)&ref_time,
-                                    (REFERENCE_TIME*)&sampleTime_);
+  REFERENCE_TIME start_time = sampleTime_;
+  sampleTime_ += MILLISECONDS_TO_100NS_UNITS(frameInterval_);
+  // *NOTE*: this sets the samples' "stream" time (== "presentation" time)
+  result =
+    mediaSample_in->SetTime ((configuration_->setSampleTimes ? &start_time : NULL),
+                             (configuration_->setSampleTimes ? &sampleTime_ : NULL));
   if (unlikely (FAILED (result)))
   {
     ACE_DEBUG ((LM_ERROR,
@@ -1511,8 +1527,15 @@ Stream_MediaFramework_DirectShow_Source_Filter_OutputPin_T<ConfigurationType>::F
                 ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ())));
     return S_FALSE; // --> stop
   } // end IF
-  result = mediaSample_in->SetMediaTime ((REFERENCE_TIME*)&ref_time,
-                                         (REFERENCE_TIME*)&sampleTime_);
+
+  if (!configuration_->setSampleTimes)
+    goto continue_;
+  // *NOTE*: this sets the samples' "media" time (== frame/sample number)
+  start_time = sampleNumber_;
+  ACE_ASSERT (sampleSize_);
+  sampleNumber_ += (data_length_2 / sampleSize_);
+  result = mediaSample_in->SetMediaTime (&start_time,
+                                         &sampleNumber_);
   if (unlikely (FAILED (result)))
   {
     ACE_DEBUG ((LM_ERROR,
@@ -1523,6 +1546,11 @@ Stream_MediaFramework_DirectShow_Source_Filter_OutputPin_T<ConfigurationType>::F
     return S_FALSE; // --> stop
   } // end IF
 
+continue_:
+  // *NOTE*: "...The filter that first generates the data in the sample should
+  //         set this flag to TRUE or FALSE, as appropriate. For uncompressed
+  //         video and PCM audio, set every sample to TRUE. For compressed
+  //         video, set key frames to TRUE and delta frames to FALSE..."
   // *TODO*: support delta frames
   result = mediaSample_in->SetSyncPoint (TRUE);
   if (unlikely (FAILED (result)))
@@ -1560,10 +1588,12 @@ Stream_MediaFramework_DirectShow_Source_Filter_OutputPin_T<ConfigurationType>::O
               ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::name (inherited::m_pFilter).c_str ()),
               ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::name (this).c_str ())));
 
-  // { CAutoLock cAutoLockShared (&lock_);
-  // need to also reset the repeat time in case the system
-  // clock is turned off after m_iRepeatTime gets very big
-  //frameInterval_ = defaultFrameInterval_; } // end lock scope
+  // *WARNING*: inherited::m_pLock is held by CBaseFilter::Pause() (see: amfilter.cpp:557)
+  //{ CAutoLock cAutoLockShared (inherited::m_pLock);
+    //reset the repeat time in case the system
+    //clock is turned off after m_iRepeatTime gets very big
+    frameInterval_ = defaultFrameInterval_;
+  //} // end lock scope
 
   return NOERROR;
 } // OnThreadCreate
@@ -1883,17 +1913,20 @@ Stream_MediaFramework_DirectShow_Source_Filter_OutputPin_T<ConfigurationType>::N
 
   // Adjust the repeat rate.
   if (quality_in.Proportion <= 0)
-      frameInterval_ = 1000;        // We don't go slower than 1 per second
+      //frameInterval_ = 1000;        // We don't go slower than 1 per second
+    frameInterval_ = defaultFrameInterval_;
   else
   {
-    frameInterval_ = frameInterval_ * 1000 / quality_in.Proportion;
-    if (frameInterval_ > 1000)
-      frameInterval_ = 1000;    // We don't go slower than 1 per second
-    else if (frameInterval_ < 10)
-      frameInterval_ = 10;      // We don't go faster than 100/sec
+    frameInterval_ =
+      (REFERENCE_TIME)(frameInterval_ * (1000.0F / (float)quality_in.Proportion));
+    //if (frameInterval_ > 1000)
+    //  frameInterval_ = 1000;    // We don't go slower than 1 per second
+    //else if (frameInterval_ < 10)
+    //  frameInterval_ = 10;      // We don't go faster than 100/sec
   } // end ELSE
 
   // skip forwards
+  // *TODO*: verify that tagQuality.Late has 'unit' (i.e. *100ns) format
   if (quality_in.Late > 0)
     sampleTime_ = sampleTime_ + quality_in.Late;
 
@@ -2017,6 +2050,7 @@ Stream_MediaFramework_DirectShow_Source_Filter_OutputPin_T<ConfigurationType>::G
   // sanity check(s)
   CheckPointer (properties_out, E_POINTER);
   ACE_ASSERT (configuration_);
+  ACE_ASSERT (configuration_->allocatorProperties);
 
   *properties_out = *configuration_->allocatorProperties;
 
@@ -2146,9 +2180,9 @@ Stream_MediaFramework_DirectShow_Source_Filter_OutputPin_T<ConfigurationType>::G
   // sanity check(s)
   if (iIndex_in > 0)
     return S_FALSE; // E_INVALIDARG
-  ACE_ASSERT (ppmt_inout);
+  CheckPointer (ppmt_inout, E_POINTER);
   ACE_ASSERT (!*ppmt_inout);
-  ACE_ASSERT (pSCC_in);
+  CheckPointer (pSCC_in, E_POINTER);
   ACE_ASSERT (mediaType_);
 
   *ppmt_inout =
@@ -2221,4 +2255,104 @@ Stream_MediaFramework_DirectShow_Source_Filter_OutputPin_T<ConfigurationType>::G
   } // end ELSE
 
   return S_OK;
+}
+
+template <typename ConfigurationType>
+STDMETHODIMP
+Stream_MediaFramework_DirectShow_Source_Filter_OutputPin_T<ConfigurationType>::GetLatency (REFERENCE_TIME* prtLatency_out)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_DirectShow_Source_Filter_OutputPin_T::GetLatency"));
+
+  // sanity check(s)
+  CheckPointer (prtLatency_out, E_POINTER);
+
+  *prtLatency_out = MILLISECONDS_TO_100NS_UNITS(frameInterval_);
+
+  return NOERROR;
+}
+
+template <typename ConfigurationType>
+STDMETHODIMP
+Stream_MediaFramework_DirectShow_Source_Filter_OutputPin_T<ConfigurationType>::GetPushSourceFlags (ULONG* pFlags_out)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_DirectShow_Source_Filter_OutputPin_T::GetPushSourceFlags"));
+
+  // sanity check(s)
+  CheckPointer (pFlags_out, E_POINTER);
+  ACE_ASSERT (configuration_);
+
+  ULONG flags_i = AM_PUSHSOURCECAPS_PRIVATE_CLOCK;
+  if (configuration_->setSampleTimes)
+    flags_i |= AM_PUSHSOURCECAPS_NOT_LIVE;
+  else
+    flags_i |= AM_PUSHSOURCECAPS_INTERNAL_RM;
+    
+  *pFlags_out = flags_i;
+
+  return NOERROR;
+}
+
+template <typename ConfigurationType>
+STDMETHODIMP
+Stream_MediaFramework_DirectShow_Source_Filter_OutputPin_T<ConfigurationType>::SetPushSourceFlags (ULONG flags_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_DirectShow_Source_Filter_OutputPin_T::SetPushSourceFlags"));
+
+  ACE_UNUSED_ARG (flags_in);
+
+  ACE_ASSERT (false);
+  ACE_NOTSUP_RETURN (E_FAIL);
+  ACE_NOTREACHED (return E_FAIL;)
+}
+
+template <typename ConfigurationType>
+STDMETHODIMP
+Stream_MediaFramework_DirectShow_Source_Filter_OutputPin_T<ConfigurationType>::SetStreamOffset (REFERENCE_TIME rtOffset_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_DirectShow_Source_Filter_OutputPin_T::SetStreamOffset"));
+
+  ACE_UNUSED_ARG (rtOffset_in);
+
+  ACE_ASSERT (false);
+  ACE_NOTSUP_RETURN (S_FALSE);
+  ACE_NOTREACHED (return S_FALSE;)
+}
+
+template <typename ConfigurationType>
+STDMETHODIMP
+Stream_MediaFramework_DirectShow_Source_Filter_OutputPin_T<ConfigurationType>::GetStreamOffset (REFERENCE_TIME* prtOffset_out)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_DirectShow_Source_Filter_OutputPin_T::GetStreamOffset"));
+
+  // sanity check(s)
+  CheckPointer (prtOffset_out, E_POINTER);
+
+  *prtOffset_out = sampleTime_;
+
+  return S_OK;
+}
+
+template <typename ConfigurationType>
+STDMETHODIMP
+Stream_MediaFramework_DirectShow_Source_Filter_OutputPin_T<ConfigurationType>::GetMaxStreamOffset (REFERENCE_TIME* prtMaxOffset_out)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_DirectShow_Source_Filter_OutputPin_T::GetStreamOffset"));
+
+  // sanity check(s)
+  CheckPointer (prtMaxOffset_out, E_POINTER);
+
+  *prtMaxOffset_out = std::numeric_limits<REFERENCE_TIME>::max ();
+
+  return S_OK;
+}
+
+template <typename ConfigurationType>
+STDMETHODIMP
+Stream_MediaFramework_DirectShow_Source_Filter_OutputPin_T<ConfigurationType>::SetMaxStreamOffset (REFERENCE_TIME rtMaxOffset_in)
+{
+  ACE_UNUSED_ARG (rtMaxOffset_in);
+
+  ACE_ASSERT (false);
+  ACE_NOTSUP_RETURN (E_FAIL);
+  ACE_NOTREACHED (return E_FAIL;)
 }

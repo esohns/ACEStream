@@ -425,6 +425,7 @@ struct Test_U_AudioEffect_DirectShow_ModuleHandlerConfiguration
    , filterCLSID (GUID_NULL)
    , outputFormat ()
    , push (STREAM_LIB_DIRECTSHOW_FILTER_SOURCE_DEFAULT_PUSH)
+   , sampleIsDataMessage (false)
    , streamConfiguration (NULL)
    , subscriber (NULL)
    , subscribers (NULL)
@@ -441,6 +442,7 @@ struct Test_U_AudioEffect_DirectShow_ModuleHandlerConfiguration
   //                   implement IMemInputPin and 'push' media samples to
   //                   downstream filters
   bool                                                       push;
+  bool                                                       sampleIsDataMessage;
   Test_U_AudioEffect_DirectShow_StreamConfiguration_t*       streamConfiguration;
   Test_U_AudioEffect_DirectShow_ISessionNotify_t*            subscriber;
   Test_U_AudioEffect_DirectShow_Subscribers_t*               subscribers;
@@ -666,18 +668,18 @@ struct Test_U_AudioEffect_DirectShow_Configuration
    , streamConfiguration ()
   {
     ACE_OS::memset (&allocatorProperties, 0, sizeof (struct _AllocatorProperties));
+    //allocatorProperties_.cBuffers = -1; // <-- use default
+    allocatorProperties.cBuffers =
+      STREAM_LIB_DIRECTSHOW_AUDIO_DEFAULT_SOURCE_BUFFERS;
+    allocatorProperties.cbBuffer = -1; // <-- use default
     // *TODO*: IMemAllocator::SetProperties returns VFW_E_BADALIGN (0x8004020e)
     //         if this is -1/0 (why ?)
     //allocatorProperties_.cbAlign = -1;  // <-- use default
     allocatorProperties.cbAlign = 1;
-    allocatorProperties.cbBuffer = -1; // <-- use default
     // *TODO*: IMemAllocator::SetProperties returns E_INVALIDARG (0x80070057)
     //         if this is -1/0 (why ?)
     //allocatorProperties.cbPrefix = -1; // <-- use default
     allocatorProperties.cbPrefix = 0;
-    allocatorProperties.cBuffers =
-      STREAM_LIB_DIRECTSHOW_FILTER_SOURCE_BUFFERS;
-    //allocatorProperties_.cBuffers = -1; // <-- use default
 
     filterConfiguration.allocatorProperties = &allocatorProperties;
     filterConfiguration.pinConfiguration = &pinConfiguration;

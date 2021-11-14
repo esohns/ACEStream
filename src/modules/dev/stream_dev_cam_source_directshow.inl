@@ -616,6 +616,9 @@ continue_:
 
       builder_p->Release (); builder_p = NULL;
 
+      if (COM_initialized)
+        CoUninitialize ();
+
       break;
 
 error:

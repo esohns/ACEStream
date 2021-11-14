@@ -65,7 +65,6 @@ Stream_Base_T<ACE_SYNCH_USE,
               NULL, // --> allocate head module
               NULL) // --> allocate tail module
  , configuration_ (NULL)
- , finishOnDisconnect_ (false)
  , isInitialized_ (false)
  , layout_ ()
  , lock_ ()
@@ -286,6 +285,7 @@ Stream_Base_T<ACE_SYNCH_USE,
 
   return result;
 }
+
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           const char* StreamName,
@@ -320,7 +320,78 @@ Stream_Base_T<ACE_SYNCH_USE,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Base_T::setup"));
 
-  // step1: setup layout
+  // sanity check(s)
+  ACE_ASSERT (configuration_);
+  ACE_ASSERT (configuration_->configuration_);
+
+  IMODULE_T* imodule_p = NULL;
+  TASK_T* task_p = NULL;
+  IMODULE_HANDLER_T* imodule_handler_p = NULL;
+  typename CONFIGURATION_T::ITERATOR_T iterator_2;
+
+  // step1: initialize modules
+  { ACE_GUARD_RETURN (ACE_SYNCH_RECURSIVE_MUTEX, aGuard, lock_, false);
+    for (LAYOUT_ITERATOR_T iterator = layout_.begin ();
+         iterator != layout_.end ();
+         ++iterator)
+    {
+      imodule_p = dynamic_cast<IMODULE_T*> (*iterator);
+      if (likely (imodule_p))
+        imodule_p->reset ();
+      else
+        ACE_DEBUG ((LM_WARNING,
+                    ACE_TEXT ("%s/%s: dynamic_cast<Stream_IModule_T> failed, continuing\n"),
+                    ACE_TEXT (StreamName), (*iterator)->name ()));
+
+      // *TODO*: remove type inference
+      iterator_2 = configuration_->find ((*iterator)->name ());
+      if (iterator_2 == configuration_->end ())
+        iterator_2 = configuration_->find (ACE_TEXT_ALWAYS_CHAR (""));
+      else
+        ACE_DEBUG ((LM_DEBUG,
+                    ACE_TEXT ("%s/%s: applying dedicated configuration\n"),
+                    ACE_TEXT (StreamName), (*iterator)->name ()));
+      ACE_ASSERT (iterator_2 != configuration_->end ());
+      if (unlikely (!imodule_p->initialize (*(*iterator_2).second.first)))
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("%s/%s: failed to Common_IInitialize_T::initialize(), aborting\n"),
+                    ACE_TEXT (StreamName), (*iterator)->name ()));
+        return false;
+      } // end IF
+
+      task_p = (*iterator)->writer ();
+      ACE_ASSERT (task_p);
+      imodule_handler_p = dynamic_cast<IMODULE_HANDLER_T*> (task_p);
+      if (!imodule_handler_p)
+      { // *TODO*: determine the 'active' side of the module by some
+        //         member/function
+        task_p = (*iterator)->reader ();
+        ACE_ASSERT (task_p);
+        imodule_handler_p = dynamic_cast<IMODULE_HANDLER_T*> (task_p);
+        if (unlikely (!imodule_handler_p))
+        {
+          ACE_DEBUG ((LM_WARNING,
+                      ACE_TEXT ("%s/%s: dynamic_cast<Stream_IModuleHandler_T> failed, continuing\n"),
+                      ACE_TEXT (StreamName), (*iterator)->name ()));
+          continue;
+        } // end IF
+      } // end IF
+      if (unlikely (!imodule_handler_p->initialize (*(*iterator_2).second.second,
+                                                    configuration_->configuration_->messageAllocator)))
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("%s/%s: failed to Stream_IModuleHandler_T::initialize(), aborting\n"),
+                    ACE_TEXT (StreamName), (*iterator)->name ()));
+        return false;
+      } // end IF
+//      ACE_DEBUG ((LM_DEBUG,
+//                  ACE_TEXT ("%s/%s: initialized\n"),
+//                  ACE_TEXT (StreamName), (*iterator)->name ()));
+    } // end FOR
+  } // end lock scope
+
+  // step2: setup layout
   { ACE_GUARD_RETURN (ACE_SYNCH_RECURSIVE_MUTEX, aGuard, lock_, false);
     if (!layout_.setup (*this))
     {
@@ -330,13 +401,14 @@ Stream_Base_T<ACE_SYNCH_USE,
       return false;
     } // end IF
   } // end lock scope
+
 #if defined (_DEBUG)
   //layout_.dump_state ();
   //std::cout << ACE_TEXT_ALWAYS_CHAR ("\n----------------------\n");
   dump_state ();
 #endif // _DEBUG
 
-  // step2: set notification strategy ?
+  // step3: set notification strategy ?
   if (notificationStrategy_in)
   {
     MODULE_T* module_p = inherited::head ();
@@ -398,11 +470,7 @@ Stream_Base_T<ACE_SYNCH_USE,
 
   // sanity check(s)
   ACE_ASSERT (configuration_);
-
-  IMODULE_T* imodule_p = NULL;
-  TASK_T* task_p = NULL;
-  IMODULE_HANDLER_T* imodule_handler_p = NULL;
-  typename CONFIGURATION_T::ITERATOR_T iterator_2;
+  ACE_ASSERT (configuration_->configuration_);
 
   // step1: allocate session data ?
   if (resetSessionData_in)
@@ -451,7 +519,7 @@ Stream_Base_T<ACE_SYNCH_USE,
     } // end IF
   } // end IF
 
-  // step2: load/initialize modules
+  // step2: load modules
   { ACE_GUARD (ACE_SYNCH_RECURSIVE_MUTEX, aGuard, lock_);
     if (unlikely (!load (&layout_,
                          delete_)))
@@ -466,15 +534,15 @@ Stream_Base_T<ACE_SYNCH_USE,
     //         appropriate (see: initialize():3066)
     if (state_.module)
     {
-      if (!layout_.append (state_.module,
-                           configuration_->configuration_->moduleBranch))
+      if (unlikely (!layout_.append (state_.module,
+                                     configuration_->configuration_->moduleBranch)))
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: failed to Stream_Layout_T::append(\"%s\",\"%s\"), returning\n"),
                     ACE_TEXT (StreamName),
                     state_.module->name (),
                     ACE_TEXT (configuration_->configuration_->moduleBranch.c_str ())));
-        return;
+        goto error;
       } // end IF
 //      ACE_DEBUG ((LM_DEBUG,
 //                  ACE_TEXT ("%s: appended \"%s\" to \"%s\" branch\n"),
@@ -482,72 +550,23 @@ Stream_Base_T<ACE_SYNCH_USE,
 //                  configuration_->configuration->module->name (),
 //                  (configuration_->configuration->moduleBranch.empty () ? ACE_TEXT ("main") : ACE_TEXT (configuration_->configuration->moduleBranch.c_str ()))));
     } // end IF
-    for (LAYOUT_ITERATOR_T iterator = layout_.begin ();
-         iterator != layout_.end ();
-         ++iterator)
-    {
-      imodule_p = dynamic_cast<IMODULE_T*> (*iterator);
-      if (unlikely (!imodule_p))
-      {
-        ACE_DEBUG ((LM_WARNING,
-                    ACE_TEXT ("%s/%s: dynamic_cast<Stream_IModule_T> failed, continuing\n"),
-                    ACE_TEXT (StreamName), (*iterator)->name ()));
-        continue;
-      } // end IF
-      imodule_p->reset ();
 
-      // *TODO*: remove type inference
-      iterator_2 = configuration_->find ((*iterator)->name ());
-      if (iterator_2 == configuration_->end ())
-        iterator_2 = configuration_->find (ACE_TEXT_ALWAYS_CHAR (""));
-      else
-        ACE_DEBUG ((LM_DEBUG,
-                    ACE_TEXT ("%s/%s: applying dedicated configuration\n"),
-                    ACE_TEXT (StreamName), (*iterator)->name ()));
-      ACE_ASSERT (iterator_2 != configuration_->end ());
-      if (unlikely (!imodule_p->initialize (*(*iterator_2).second.first)))
-      {
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("%s/%s: failed to Common_IInitialize_T::initialize(), returning\n"),
-                    ACE_TEXT (StreamName), (*iterator)->name ()));
-        goto error;
-      } // end IF
-//      ACE_DEBUG ((LM_DEBUG,
-//                  ACE_TEXT ("%s/%s: initialized\n"),
-//                  ACE_TEXT (StreamName), (*iterator)->name ()));
+    if (unlikely (layout_.empty ()))
+      goto continue_;
 
-      task_p = (*iterator)->writer ();
-      ACE_ASSERT (task_p);
-      imodule_handler_p = dynamic_cast<IMODULE_HANDLER_T*> (task_p);
-      if (!imodule_handler_p)
-      { // *TODO*: determine the 'active' side of the module by some
-        //         member/function
-        //ACE_DEBUG ((LM_DEBUG,
-        //            ACE_TEXT ("%s: dynamic_cast<Stream_IModuleHandler_T> failed, continuing\n"),
-        //            (*iterator)->name ()));
-        task_p = (*iterator)->reader ();
-        ACE_ASSERT (task_p);
-        imodule_handler_p = dynamic_cast<IMODULE_HANDLER_T*> (task_p);
-        if (unlikely (!imodule_handler_p))
-        {
-          ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("%s/%s: dynamic_cast<Stream_IModuleHandler_T> failed, continuing\n"),
-                      ACE_TEXT (StreamName), (*iterator)->name ()));
-          continue;
-        } // end IF
-      } // end IF
-      ACE_ASSERT (configuration_->configuration_);
-      if (unlikely (!imodule_handler_p->initialize (*(*iterator_2).second.second,
-                                                    configuration_->configuration_->messageAllocator)))
-      {
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("%s/%s: failed to Stream_IModuleHandler_T::initialize(), aborting\n"),
-                    ACE_TEXT (StreamName), (*iterator)->name ()));
-        goto error;
-      } // end IF
-    } // end FOR
+    // *NOTE*: push()ing a module will open() it
+    //         --> set the argument that is passed along (head module expects a
+    //             handle to the session data)
+    LAYOUT_ITERATOR_T iterator = layout_.begin ();
+    (*iterator)->arg (sessionData_);
+    // *NOTE*: the head module writer task needs access to the stream state
+    ISET_T* iset_p = dynamic_cast<ISET_T*> ((*iterator)->writer ());
+    if (unlikely (!iset_p))
+      goto continue_;
+    iset_p->setP (&state_);
   } // end lock scope
 
+continue_:
   // step3: setup pipeline ?
   if (setupPipeline_in)
     if (unlikely (!setup (NULL)))
@@ -1147,23 +1166,23 @@ Stream_Base_T<ACE_SYNCH_USE,
   // send control ?
   // *TODO*: this is strategy and needs to be traited ASAP
 //  bool send_control = false;
-  ControlType control_type = STREAM_CONTROL_INVALID;
-  switch (notification_in)
-  {
-    case STREAM_SESSION_MESSAGE_ABORT:
-    {
-      control_type = STREAM_CONTROL_FLUSH;
-      break;
-    }
-    case STREAM_SESSION_MESSAGE_DISCONNECT:
-    {
-      control_type = STREAM_CONTROL_DISCONNECT;
-      break;
-    }
-    default:
-      break;
-  } // end SWITCH
-  ACE_UNUSED_ARG (control_type);
+  //ControlType control_type = STREAM_CONTROL_INVALID;
+  //switch (notification_in)
+  //{
+  //  case STREAM_SESSION_MESSAGE_ABORT:
+  //  {
+  //    control_type = STREAM_CONTROL_FLUSH;
+  //    break;
+  //  }
+  //  case STREAM_SESSION_MESSAGE_DISCONNECT:
+  //  {
+  //    control_type = STREAM_CONTROL_DISCONNECT;
+  //    break;
+  //  }
+  //  default:
+  //    break;
+  //} // end SWITCH
+  //ACE_UNUSED_ARG (control_type);
 
   MODULE_T* module_p = NULL;
   result = inherited::top (module_p);
@@ -1173,7 +1192,7 @@ Stream_Base_T<ACE_SYNCH_USE,
 //    ACE_DEBUG ((LM_WARNING,
 //                ACE_TEXT ("%s: failed to ACE_Stream::top(), continuing\n"),
 //                ACE_TEXT (StreamName)));
-    goto continue_;
+    return;
   } // end IF
   ACE_ASSERT (module_p);
   istreamcontrol_p = dynamic_cast<ISTREAM_CONTROL_T*> (module_p->writer ());
@@ -1196,21 +1215,6 @@ Stream_Base_T<ACE_SYNCH_USE,
                 notification_in));
     return;
   }
-
-continue_:
-  // finished ?
-  // *TODO*: this is strategy and needs to be traited ASAP
-  switch (notification_in)
-  {
-    case STREAM_SESSION_MESSAGE_DISCONNECT:
-    {
-      if (finishOnDisconnect_)
-        finished (false); // recurse upstream ?
-      break;
-    }
-    default:
-      break;
-  } // end SWITCH
 }
 
 template <ACE_SYNCH_DECL,
@@ -1293,18 +1297,17 @@ Stream_Base_T<ACE_SYNCH_USE,
   for (Stream_ModuleListIterator_t iterator = modules_a.begin ();
        iterator != modules_a.end ();
        ++iterator)
-  {
+  { ACE_ASSERT (*iterator);
     task_p = const_cast<MODULE_T*> (*iterator)->writer ();
     if (unlikely (!task_p))
       continue; // close()d already ?
-
-    ACE_ASSERT (task_p->msg_queue_);
     iqueue_p = dynamic_cast<Stream_IMessageQueue*> (task_p->msg_queue_);
     if (unlikely (!iqueue_p))
     {
       // *NOTE*: most probable cause: module is (upstream) head
       // *TODO*: all messages are flushed here, this must not happen
-      result_2 = task_p->msg_queue_->flush ();
+      if (likely (task_p->msg_queue_))
+        result_2 = task_p->msg_queue_->flush ();
     } // end IF
     else
       result_2 = static_cast<int> (iqueue_p->flush (flushSessionMessages_in));
@@ -1330,18 +1333,17 @@ continue_:
   for (Stream_ModuleListReverseIterator_t iterator = modules_a.rbegin ();
        iterator != modules_a.rend ();
        ++iterator)
-  {
-    if (!(*iterator)) continue;
+  { ACE_ASSERT (*iterator);
     task_p = (*iterator)->reader ();
     if (unlikely (!task_p))
       continue; // close()d already ?
-
     iqueue_p = dynamic_cast<Stream_IMessageQueue*> (task_p->msg_queue_);
     if (unlikely (!iqueue_p))
     {
       // *NOTE*: most probable cause: stream head/tail, or module does not have
       //         a reader task
-      if (task_p->msg_queue_)
+      // *TODO*: all messages are flushed here, this must not happen
+      if (likely (task_p->msg_queue_))
         result_2 = task_p->msg_queue_->flush ();
     } // end IF
     else

@@ -151,12 +151,9 @@ const struct _AMOVIESETUP_FILTER sudFilterRegAM2 =
 typedef Stream_MediaFramework_DirectShow_Source_Filter_T<Test_I_Target_DirectShow_Stream_Message,
                                                          struct Test_I_Target_DirectShow_FilterConfiguration,
                                                          struct Stream_MediaFramework_DirectShow_FilterPinConfiguration> Stream_MediaFramework_DirectShow_Source_Filter_t;
-typedef Stream_MediaFramework_DirectShow_Asynch_Source_Filter_T<Common_TimePolicy_t,
-                                                                Test_I_Target_DirectShow_SessionMessage,
-                                                                Test_I_Target_DirectShow_Stream_Message,
+typedef Stream_MediaFramework_DirectShow_Asynch_Source_Filter_T<Test_I_Target_DirectShow_Stream_Message,
                                                                 struct Test_I_Target_DirectShow_FilterConfiguration,
-                                                                struct Stream_MediaFramework_DirectShow_FilterPinConfiguration,
-                                                                struct _AMMediaType> Stream_MediaFramework_DirectShow_Asynch_Source_Filter_t;
+                                                                struct Stream_MediaFramework_DirectShow_FilterPinConfiguration> Stream_MediaFramework_DirectShow_Asynch_Source_Filter_t;
 
 void WINAPI InitRoutine (BOOL, const CLSID*);
 

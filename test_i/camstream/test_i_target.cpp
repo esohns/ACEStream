@@ -2766,8 +2766,8 @@ ACE_TMAIN (int argc_in,
                                                              : COMMON_SIGNAL_DISPATCH_PROACTOR),
                                                 lock_2);
 #endif // ACE_WIN32 || ACE_WIN64
-  ACE_Sig_Set signal_set (0);
-  ACE_Sig_Set ignored_signal_set (0);
+  ACE_Sig_Set signal_set (false);
+  ACE_Sig_Set ignored_signal_set (false);
   do_initializeSignals (true, // allow SIGUSR1/SIGBREAK
                         signal_set,
                         ignored_signal_set);

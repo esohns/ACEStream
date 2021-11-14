@@ -96,6 +96,8 @@ Test_U_AudioEffect_DirectShow_Stream::load (Stream_ILayout* layout_in,
   //                                                                      ACE_TEXT_ALWAYS_CHAR (MODULE_STAT_REPORT_DEFAULT_NAME_STRING)),
   //                false);
   //layout_in->append (module_p, NULL, 0);
+#if defined (GUI_SUPPORT)
+#if defined (GTK_USE)
   ACE_NEW_RETURN (module_p,
                   Test_U_AudioEffect_DirectShow_StatisticAnalysis_Module (this,
                                                                           ACE_TEXT_ALWAYS_CHAR (MODULE_STAT_ANALYSIS_DEFAULT_NAME_STRING)),
@@ -103,20 +105,6 @@ Test_U_AudioEffect_DirectShow_Stream::load (Stream_ILayout* layout_in,
   ACE_ASSERT (module_p);
   layout_in->append (module_p, NULL, 0);
   module_p = NULL;
-  if (!(*iterator).second.second->mute)
-  {
-    ACE_NEW_RETURN (module_p,
-                    //Test_U_AudioEffect_DirectShow_WavOut_Module (this,
-                    //                                             ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_TARGET_WAVOUT_DEFAULT_NAME_STRING)),
-                    Test_U_AudioEffect_DirectShow_Target_Module (this,
-                                                                 ACE_TEXT_ALWAYS_CHAR (STREAM_LIB_DIRECTSHOW_DEFAULT_NAME_STRING)),
-                    false);
-    ACE_ASSERT (module_p);
-    layout_in->append (module_p, NULL, 0);
-    module_p = NULL;
-  } // end IF
-#if defined (GUI_SUPPORT)
-#if defined (GTK_USE)
   ACE_NEW_RETURN (module_p,
                   Test_U_AudioEffect_DirectShow_Vis_SpectrumAnalyzer_Module (this,
                                                                              ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_GTK_SPECTRUM_ANALYZER_DEFAULT_NAME_STRING)),
@@ -125,6 +113,29 @@ Test_U_AudioEffect_DirectShow_Stream::load (Stream_ILayout* layout_in,
   layout_in->append (module_p, NULL, 0);
 #endif // GTK_USE
 #endif // GUI_SUPPORT
+  if (!(*iterator).second.second->mute ||
+      !InlineIsEqualGUID ((*iterator).second.second->effect, GUID_NULL))
+  {
+    ACE_NEW_RETURN (module_p,
+                    //Test_U_AudioEffect_DirectShow_WavOut_Module (this,
+                    //                                             ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_TARGET_WAVOUT_DEFAULT_NAME_STRING)),
+                    Test_U_AudioEffect_DirectShow_Target_Module (this,
+                                                                 ACE_TEXT_ALWAYS_CHAR (STREAM_LIB_DIRECTSHOW_TARGET_DEFAULT_NAME_STRING)),
+                    false);
+    ACE_ASSERT (module_p);
+    layout_in->append (module_p, NULL, 0);
+    module_p = NULL;
+  } // end IF
+  if (!InlineIsEqualGUID ((*iterator).second.second->effect, GUID_NULL))
+  {
+    ACE_NEW_RETURN (module_p,
+                    Test_U_AudioEffect_DirectShow_Source_Module (this,
+                                                                 ACE_TEXT_ALWAYS_CHAR (STREAM_LIB_DIRECTSHOW_SOURCE_DEFAULT_NAME_STRING)),
+                    false);
+    ACE_ASSERT (module_p);
+    layout_in->append (module_p, NULL, 0);
+    module_p = NULL;
+  } // end IF
   module_p = NULL;
   ACE_NEW_RETURN (module_p,
                   Test_U_AudioEffect_DirectShow_WAVEncoder_Module (this,
@@ -187,20 +198,6 @@ Test_U_AudioEffect_DirectShow_Stream::initialize (const inherited::CONFIGURATION
 
   // ---------------------------------------------------------------------------
 
-  // ******************* Mic Source ************************
-  std::string head_module_name_string =
-    (configuration_in.configuration_->useFrameworkSource ? ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_MIC_SOURCE_DIRECTSHOW_DEFAULT_NAME_STRING)
-                                                         //: ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_MIC_SOURCE_WAVEIN_DEFAULT_NAME_STRING));
-                                                         : ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_MIC_SOURCE_WASAPI_DEFAULT_NAME_STRING));
-  Stream_Module_t* module_p =
-    const_cast<Stream_Module_t*> (inherited::find (head_module_name_string));
-  ACE_ASSERT (module_p);
-  Common_ISetP_T<struct Test_U_AudioEffect_DirectShow_StreamState>* iset_p =
-    dynamic_cast<Common_ISetP_T<struct Test_U_AudioEffect_DirectShow_StreamState>*> (module_p->writer ());
-  ACE_ASSERT (iset_p);
-
-  // ---------------------------------------------------------------------------
-
   // ********************** Spectrum Analyzer *****************
 #if defined (GUI_SUPPORT)
 #if defined (GTK_SUPPORT)
@@ -213,7 +210,6 @@ Test_U_AudioEffect_DirectShow_Stream::initialize (const inherited::CONFIGURATION
 #endif // GTK_SUPPORT
 #endif // GUI_SUPPORT
 
-  //struct _AllocatorProperties allocator_properties;
   IAMBufferNegotiation* buffer_negotiation_p = NULL;
   //bool COM_initialized = false;
   bool release_builder = false;
@@ -224,7 +220,7 @@ Test_U_AudioEffect_DirectShow_Stream::initialize (const inherited::CONFIGURATION
   Stream_MediaFramework_DirectShow_GraphConfiguration_t graph_configuration;
   struct Stream_MediaFramework_DirectShow_GraphConfigurationEntry graph_entry;
   IBaseFilter* filter_p = NULL;
-  //ISampleGrabber* isample_grabber_p = NULL;
+  ISampleGrabber* isample_grabber_p = NULL;
   std::string log_file_name;
   IAMGraphStreams* graph_streams_p = NULL;
 
@@ -233,6 +229,7 @@ Test_U_AudioEffect_DirectShow_Stream::initialize (const inherited::CONFIGURATION
   if (!Stream_Module_Decoder_Tools::loadAudioRendererGraph ((configuration_in.configuration_->useFrameworkSource ? CLSID_AudioInputDeviceCategory
                                                                                                                  : GUID_NULL),
                                                             configuration_in.configuration_->format,
+                                                            !InlineIsEqualGUID ((*iterator).second.second->effect, GUID_NULL),
                                                             ((*iterator).second.second->mute ? -1
                                                                                              : (*iterator).second.second->audioOutput),
                                                             (*iterator).second.second->builder,
@@ -245,25 +242,11 @@ Test_U_AudioEffect_DirectShow_Stream::initialize (const inherited::CONFIGURATION
                 ACE_TEXT (stream_name_string_)));
     goto error;
   } // end IF
-
-  graph_entry.filterName =
-    (configuration_in.configuration_->useFrameworkSource ? STREAM_LIB_DIRECTSHOW_FILTER_NAME_CAPTURE_AUDIO
-                                                         : STREAM_LIB_DIRECTSHOW_FILTER_NAME_SOURCE_L);
-  graph_entry.mediaType =
-    Stream_MediaFramework_DirectShow_Tools::copy (configuration_in.configuration_->format);
-  if (!graph_entry.mediaType)
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: failed to Stream_MediaFramework_DirectShow_Tools::copy(), aborting\n"),
-                ACE_TEXT (stream_name_string_)));
-    goto error;
-  } // end IF
   if (!InlineIsEqualGUID ((*iterator).second.second->effect, GUID_NULL))
-  {
+  { ACE_ASSERT (!graph_configuration.empty ());
     // *NOTE*: this seems to require lSampleSize of 1 to connect successfully....
-    graph_entry.mediaType->lSampleSize = 1;
+    graph_configuration.front ().mediaType->lSampleSize = 1;
   } // end IF
-  graph_configuration.push_front (graph_entry);
 
   if (!configuration_in.configuration_->useFrameworkSource)
   {
@@ -300,51 +283,54 @@ Test_U_AudioEffect_DirectShow_Stream::initialize (const inherited::CONFIGURATION
     filter_p->Release (); filter_p = NULL;
   } // end IF
 
-//  result_2 =
-//    (*iterator).second.second->builder->FindFilterByName (STREAM_LIB_DIRECTSHOW_FILTER_NAME_GRAB,
-//                                                          &filter_p);
-//  if (FAILED (result_2))
-//  {
-//    ACE_DEBUG ((LM_ERROR,
-//                ACE_TEXT ("%s: failed to IGraphBuilder::FindFilterByName(\"%s\"): \"%s\", aborting\n"),
-//                ACE_TEXT (stream_name_string_),
-//                ACE_TEXT_WCHAR_TO_TCHAR (STREAM_LIB_DIRECTSHOW_FILTER_NAME_GRAB),
-//                ACE_TEXT (Common_Error_Tools::errorToString (result_2).c_str ())));
-//    goto error;
-//  } // end IF
-//  ACE_ASSERT (filter_p);
-//  result_2 = filter_p->QueryInterface (IID_ISampleGrabber,
-//                                       (void**)&isample_grabber_p);
-//  if (FAILED (result_2))
-//  {
-//    ACE_DEBUG ((LM_ERROR,
-//                ACE_TEXT ("%s: failed to IBaseFilter::QueryInterface(IID_ISampleGrabber): \"%s\", aborting\n"),
-//                ACE_TEXT (stream_name_string_),
-//                ACE_TEXT (Common_Error_Tools::errorToString (result_2).c_str ())));
-//    goto error;
-//  } // end IF
-//  ACE_ASSERT (isample_grabber_p);
-//  filter_p->Release (); filter_p = NULL;
-//
-//  result_2 = isample_grabber_p->SetBufferSamples (false);
-//  if (FAILED (result_2))
-//  {
-//    ACE_DEBUG ((LM_ERROR,
-//                ACE_TEXT ("%s: failed to ISampleGrabber::SetBufferSamples(false): \"%s\", aborting\n"),
-//                ACE_TEXT (stream_name_string_),
-//                ACE_TEXT (Common_Error_Tools::errorToString (result_2).c_str ())));
-//    goto error;
-//  } // end IF
-//  result_2 = isample_grabber_p->SetCallback (source_impl_p, 0);
-//  if (FAILED (result_2))
-//  {
-//    ACE_DEBUG ((LM_ERROR,
-//                ACE_TEXT ("%s: failed to ISampleGrabber::SetCallback(): \"%s\", aborting\n"),
-//                ACE_TEXT (stream_name_string_),
-//                ACE_TEXT (Common_Error_Tools::errorToString (result_2).c_str ())));
-//    goto error;
-//  } // end IF
-//  isample_grabber_p->Release (); isample_grabber_p = NULL;
+  //if (!InlineIsEqualGUID ((*iterator).second.second->effect, GUID_NULL))
+  //{
+  //  result_2 =
+  //    (*iterator).second.second->builder->FindFilterByName (STREAM_LIB_DIRECTSHOW_FILTER_NAME_GRAB,
+  //                                                          &filter_p);
+  //  if (FAILED (result_2))
+  //  {
+  //    ACE_DEBUG ((LM_ERROR,
+  //                ACE_TEXT ("%s: failed to IGraphBuilder::FindFilterByName(\"%s\"): \"%s\", aborting\n"),
+  //                ACE_TEXT (stream_name_string_),
+  //                ACE_TEXT_WCHAR_TO_TCHAR (STREAM_LIB_DIRECTSHOW_FILTER_NAME_GRAB),
+  //                ACE_TEXT (Common_Error_Tools::errorToString (result_2).c_str ())));
+  //    goto error;
+  //  } // end IF
+  //  ACE_ASSERT (filter_p);
+  //  result_2 = filter_p->QueryInterface (IID_ISampleGrabber,
+  //                                       (void**)&isample_grabber_p);
+  //  if (FAILED (result_2))
+  //  {
+  //    ACE_DEBUG ((LM_ERROR,
+  //                ACE_TEXT ("%s: failed to IBaseFilter::QueryInterface(IID_ISampleGrabber): \"%s\", aborting\n"),
+  //                ACE_TEXT (stream_name_string_),
+  //                ACE_TEXT (Common_Error_Tools::errorToString (result_2).c_str ())));
+  //    goto error;
+  //  } // end IF
+  //  ACE_ASSERT (isample_grabber_p);
+  //  filter_p->Release (); filter_p = NULL;
+
+  //  result_2 = isample_grabber_p->SetBufferSamples (false);
+  //  if (FAILED (result_2))
+  //  {
+  //    ACE_DEBUG ((LM_ERROR,
+  //                ACE_TEXT ("%s: failed to ISampleGrabber::SetBufferSamples(false): \"%s\", aborting\n"),
+  //                ACE_TEXT (stream_name_string_),
+  //                ACE_TEXT (Common_Error_Tools::errorToString (result_2).c_str ())));
+  //    goto error;
+  //  } // end IF
+  ////  result_2 = isample_grabber_p->SetCallback (source_impl_p, 0);
+  ////  if (FAILED (result_2))
+  ////  {
+  ////    ACE_DEBUG ((LM_ERROR,
+  ////                ACE_TEXT ("%s: failed to ISampleGrabber::SetCallback(): \"%s\", aborting\n"),
+  ////                ACE_TEXT (stream_name_string_),
+  ////                ACE_TEXT (Common_Error_Tools::errorToString (result_2).c_str ())));
+  ////    goto error;
+  ////  } // end IF
+  //  isample_grabber_p->Release (); isample_grabber_p = NULL;
+  //} // end IF
 
   if (!Stream_MediaFramework_DirectShow_Tools::connect ((*iterator).second.second->builder,
                                                         graph_configuration))
@@ -355,27 +341,28 @@ Test_U_AudioEffect_DirectShow_Stream::initialize (const inherited::CONFIGURATION
     goto error;
   } // end IF
 
-//  result_2 = graphBuilder_->QueryInterface (IID_PPV_ARGS (&media_filter_p));
-//  if (FAILED (result_2))
-//  {
-//    ACE_DEBUG ((LM_ERROR,
-//                ACE_TEXT ("%s: failed to IGraphBuilder::QueryInterface(IID_IMediaFilter): \"%s\", aborting\n"),
-//                ACE_TEXT (stream_name_string_),
-//                ACE_TEXT (Common_Error_Tools::errorToString (result_2).c_str ())));
-//    goto error;
-//  } // end IF
-//  ACE_ASSERT (media_filter_p);
-//  result_2 = media_filter_p->SetSyncSource (NULL);
-//  if (FAILED (result_2))
-//  {
-//    ACE_DEBUG ((LM_ERROR,
-//                ACE_TEXT ("%s: failed to IMediaFilter::SetSyncSource(): \"%s\", aborting\n"),
-//                ACE_TEXT (stream_name_string_),
-//                ACE_TEXT (Common_Error_Tools::errorToString (result_2).c_str ())));
-//    goto error;
-//  } // end IF
-//  media_filter_p->Release (); media_filter_p = NULL;
-//
+  result_2 =
+    (*iterator).second.second->builder->QueryInterface (IID_PPV_ARGS (&media_filter_p));
+  if (FAILED (result_2))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s: failed to IGraphBuilder::QueryInterface(IID_IMediaFilter): \"%s\", aborting\n"),
+                ACE_TEXT (stream_name_string_),
+                ACE_TEXT (Common_Error_Tools::errorToString (result_2).c_str ())));
+    goto error;
+  } // end IF
+  ACE_ASSERT (media_filter_p);
+  result_2 = media_filter_p->SetSyncSource (NULL);
+  if (FAILED (result_2))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s: failed to IMediaFilter::SetSyncSource(): \"%s\", aborting\n"),
+                ACE_TEXT (stream_name_string_),
+                ACE_TEXT (Common_Error_Tools::errorToString (result_2).c_str ())));
+    goto error;
+  } // end IF
+  media_filter_p->Release (); media_filter_p = NULL;
+
 //  result_2 = graphBuilder_->QueryInterface (IID_PPV_ARGS (&graph_streams_p));
 //  if (FAILED (result_2))
 //  {
@@ -421,13 +408,6 @@ Test_U_AudioEffect_DirectShow_Stream::initialize (const inherited::CONFIGURATION
 
   // ---------------------------------------------------------------------------
 
-  iset_p->setP (&(inherited::state_));
-
-  // *NOTE*: push()ing the module will open() it
-  //         --> set the argument that is passed along (head module expects a
-  //             handle to the session data)
-  module_p->arg (inherited::sessionData_);
-
   if (!inherited::setup (NULL))
   {
     ACE_DEBUG ((LM_ERROR,
@@ -439,9 +419,6 @@ Test_U_AudioEffect_DirectShow_Stream::initialize (const inherited::CONFIGURATION
   // -------------------------------------------------------------
 
   inherited::isInitialized_ = true;
-#if defined (_DEBUG)
-  inherited::dump_state ();
-#endif // _DEBUG
 
   return true;
 

@@ -2316,11 +2316,11 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
                                               DUPLICATE_CLOSE_SOURCE | DUPLICATE_SAME_ACCESS)))
             {
               ACE_DEBUG ((LM_ERROR,
-                          ACE_TEXT ("%s: failed to DuplicateHandle(0x%@): \"%s\", returning\n"),
+                          ACE_TEXT ("%s: failed to DuplicateHandle(0x%@): \"%s\", aborting\n"),
                           inherited::mod_->name (),
                           handle,
                           ACE_TEXT (Common_Error_Tools::errorToString (::GetLastError (), false).c_str ())));
-              return;
+              return false;
             } // end IF
             inherited::closeHandles_ = true;
 #endif // ACE_WIN32 || ACE_WIN64

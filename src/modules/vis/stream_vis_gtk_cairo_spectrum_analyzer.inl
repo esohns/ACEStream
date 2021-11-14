@@ -105,6 +105,8 @@ Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
 //#if defined (GTKGL_SUPPORT)
 // , mode3D_ (NULL)
 //#endif // GTKGL_SUPPORT
+ , queue_ (STREAM_QUEUE_MAX_SLOTS, // max # slots
+           NULL)                   // notification handle
  , renderHandler_ (this)
  , renderHandlerTimerId_ (-1)
  , sampleIterator_ (NULL)
@@ -134,6 +136,8 @@ Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
   foregroundColor_.red = 65535; foregroundColor_.green = 65535; foregroundColor_.blue = 65535; // opaque white
 #endif // GTK_CHECK_VERSION (3,0,0)
 #endif // GTKGL_SUPPORT
+
+  inherited::msg_queue (&queue_);
 
   randomGenerator_ = std::bind (randomDistribution_, randomEngine_);
 }

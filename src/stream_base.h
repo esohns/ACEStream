@@ -339,8 +339,6 @@ class Stream_Base_T
   void shutdown ();
 
   CONFIGURATION_T*                  configuration_;
-  // *NOTE*: finish session on disconnect notification ?
-  bool                              finishOnDisconnect_;
   // *NOTE*: derived classes set this iff (!) their initialization succeeded;
   //         otherwise the dtor will NOT join any worker threads before
   //         close()ing the modules
@@ -377,6 +375,7 @@ class Stream_Base_T
                          SessionMessageType> ITASK_T;
   typedef Stream_StateMachine_Control_T<ACE_SYNCH_USE> STATE_MACHINE_CONTROL_T;
   typedef Common_IGetP_T<ISTREAM_T> IGET_T;
+  typedef Common_ISetP_T<StateType> ISET_T;
 
 //  // make friends between ourselves; instances need to access the session data
 //  // lock during (un)link() calls

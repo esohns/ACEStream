@@ -3101,7 +3101,7 @@ get_buffer_size (gpointer userData_in)
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   // *IMPORTANT NOTE*: with DirectShow, lower buffer sizes result in lower
   //                   latency
-  return (sample_rate * (bits_per_sample / 8) * channels) / 8; // <-- arbitrary factor
+  return (sample_rate * (bits_per_sample / 8) * channels) / STREAM_LIB_DIRECTSHOW_AUDIO_DEFAULT_BUFFER_FACTOR;
 #else
   ACE_UNUSED_ARG (format_e);
   ACE_UNUSED_ARG (sample_rate);
@@ -5702,7 +5702,7 @@ togglebutton_record_toggled_cb (GtkToggleButton* toggleButton_in,
     // step1: stop stream
     stream_p->stop (false,
                     false,
-                    true);
+                    false);
 
     return;
   } // end IF
@@ -5732,68 +5732,36 @@ togglebutton_record_toggled_cb (GtkToggleButton* toggleButton_in,
                                              ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_SPINBUTTON_BUFFERSIZE_NAME)));
   ACE_ASSERT (spin_button_p);
   value_i = gtk_spin_button_get_value_as_int (spin_button_p);
-  if (value_i)
-  {
+  ACE_ASSERT (value_i);
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-    switch (ui_cb_data_base_p->mediaFramework)
-    {
-      case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
-      {
-        directshow_ui_cb_data_p->configuration->streamConfiguration.configuration_->allocatorConfiguration->defaultBufferSize =
-          value_i;
-        break;
-      }
-      case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
-      {
-        mediafoundation_ui_cb_data_p->configuration->streamConfiguration.configuration_->allocatorConfiguration->defaultBufferSize =
-          value_i;
-        break;
-      }
-      default:
-      {
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("invalid/unknown media framework (was: %d), returning\n"),
-                    ui_cb_data_base_p->mediaFramework));
-        return;
-      }
-    } // end SWITCH
-#else
-    ui_cb_data_p->configuration->streamConfiguration.configuration_->allocatorConfiguration->defaultBufferSize =
-      static_cast<unsigned int> (value_i);
-#endif // ACE_WIN32 || ACE_WIN64
-  } // end IF
-  else
+  switch (ui_cb_data_base_p->mediaFramework)
   {
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-    switch (ui_cb_data_base_p->mediaFramework)
+    case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
     {
-      case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
-      {
-        value_i =
-          directshow_ui_cb_data_p->configuration->streamConfiguration.configuration_->allocatorConfiguration->defaultBufferSize;
-        break;
-      }
-      case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
-      {
-        value_i =
-          mediafoundation_ui_cb_data_p->configuration->streamConfiguration.configuration_->allocatorConfiguration->defaultBufferSize;
-        break;
-      }
-      default:
-      {
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("invalid/unknown media framework (was: %d), returning\n"),
-                    ui_cb_data_base_p->mediaFramework));
-        return;
-      }
-    } // end SWITCH
+      directshow_ui_cb_data_p->configuration->allocatorProperties.cbBuffer =
+        value_i;
+      directshow_ui_cb_data_p->configuration->streamConfiguration.configuration_->allocatorConfiguration->defaultBufferSize =
+        value_i;
+      break;
+    }
+    case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
+    {
+      mediafoundation_ui_cb_data_p->configuration->streamConfiguration.configuration_->allocatorConfiguration->defaultBufferSize =
+        value_i;
+      break;
+    }
+    default:
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("invalid/unknown media framework (was: %d), returning\n"),
+                  ui_cb_data_base_p->mediaFramework));
+      return;
+    }
+  } // end SWITCH
 #else
-    value_i =
-      static_cast<gint> (ui_cb_data_p->configuration->streamConfiguration.configuration_->allocatorConfiguration->defaultBufferSize);
+  ui_cb_data_p->configuration->streamConfiguration.configuration_->allocatorConfiguration->defaultBufferSize =
+    static_cast<unsigned int> (value_i);
 #endif // ACE_WIN32 || ACE_WIN64
-    gtk_spin_button_set_value (spin_button_p,
-                               static_cast<gdouble> (value_i));
-  } // end ELSE
 
   GtkComboBox* combo_box_p =
     GTK_COMBO_BOX (gtk_builder_get_object ((*iterator).second.second,

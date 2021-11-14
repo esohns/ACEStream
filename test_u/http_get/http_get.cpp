@@ -940,8 +940,8 @@ ACE_TMAIN (int argc_in,
   std::string host_name;
   unsigned short port;
   std::string URL;
-  ACE_Sig_Set signal_set (0);
-  ACE_Sig_Set ignored_signal_set (0);
+  ACE_Sig_Set signal_set (false);
+  ACE_Sig_Set ignored_signal_set (false);
   Common_SignalActions_t previous_signal_actions;
   sigset_t previous_signal_mask;
   std::string log_file_name;

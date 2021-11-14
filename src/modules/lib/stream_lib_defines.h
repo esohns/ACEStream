@@ -26,7 +26,8 @@
 #define STREAM_LIB_TAGGER_DEFAULT_NAME_STRING                    "Tagger"
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-#define STREAM_LIB_DIRECTSHOW_DEFAULT_NAME_STRING                "DirectShow"
+#define STREAM_LIB_DIRECTSHOW_SOURCE_DEFAULT_NAME_STRING         "DirectShowSource"
+#define STREAM_LIB_DIRECTSHOW_TARGET_DEFAULT_NAME_STRING         "DirectShowTarget"
 
 #define STREAM_LIB_DEFAULT_MEDIAFRAMEWORK                        STREAM_MEDIAFRAMEWORK_DIRECTSHOW
 
@@ -38,9 +39,15 @@
 #define STREAM_LIB_DIRECTSOUND_MIC_BOOST_PART_DEFAULT_NAME       "Microphone Boost"
 
 // DirectShow
-#define STREAM_LIB_DIRECTSHOW_FILTER_SOURCE_BUFFERS              30 // ==> max. #frames(/sec)
+// *NOTE*: this is the reciprocal (!) factor of the media samples size, i.e. the
+//         size will be (samplerate * (bits/sample / 8) * #channels) / factor
+// *IMPORTANT NOTE*: with DirectShow, lower buffer sizes result in lower latency
+#define STREAM_LIB_DIRECTSHOW_AUDIO_DEFAULT_BUFFER_FACTOR        32
+#define STREAM_LIB_DIRECTSHOW_AUDIO_DEFAULT_SOURCE_BUFFERS       15 // ~max. in-flight #'frames' (== #((bits/sample / 8) * #channels))
 
-#define STREAM_LIB_DIRECTSHOW_FILTER_SOURCE_FRAME_INTERVAL       20 // ms
+#define STREAM_LIB_DIRECTSHOW_VIDEO_DEFAULT_SOURCE_BUFFERS       30 // --> max. in-flight #frames
+
+#define STREAM_LIB_DIRECTSHOW_FILTER_SOURCE_FRAME_INTERVAL_MS    20 // ms
 // *NOTE*: if the graph (i.e. usually the renderers'-) (default) allocator
 //         supplies the sample buffers (instead of the (source) filter), and the
 //         stream message type does not implement IMediaSample, the 'push'

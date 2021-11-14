@@ -146,7 +146,10 @@ class Stream_Module_Net_IO_Stream_T
                      bool = false); // high priority ?
   virtual void finished (bool = true); // recurse upstream (if any) ?
   using inherited::flush;
-  inline virtual const SessionDataContainerType& getR_2 () const { ACE_ASSERT (inherited::sessionData_); return *inherited::sessionData_; }
+  // *NOTE*: the default implementation forwards calls to the head module
+  virtual void notify (NotificationType, // notification type
+                       bool = false);    // recurse upstream (if any) ?
+  //inline virtual const SessionDataContainerType& getR_2 () const { ACE_ASSERT (inherited::sessionData_); return *inherited::sessionData_; }
 
   // implement Stream_IMessageQueue
   // *IMPORTANT NOTE*: these manipulate the 'outbound' queue only
@@ -207,6 +210,8 @@ class Stream_Module_Net_IO_Stream_T
                                 READER_T,                          // reader type
                                 WRITER_T> IO_MODULE_T;             // writer type
 
+  // *NOTE*: finish session on disconnect notification ?
+  bool        finishOnDisconnect_;
   ACE_HANDLE  handle_; // socket-
   std::string name_;
 

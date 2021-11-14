@@ -18,36 +18,33 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#ifndef STREAM_LIB_DIRECTSHOW_TARGET_H
-#define STREAM_LIB_DIRECTSHOW_TARGET_H
+#ifndef STREAM_LIB_DIRECTSHOW_SOURCE_H
+#define STREAM_LIB_DIRECTSHOW_SOURCE_H
 
-#include "BaseTyps.h"
-#include "OAIdl.h"
-#include "control.h"
-#include "guiddef.h"
-#include "strmif.h"
 #if COMMON_OS_WIN32_TARGET_PLATFORM(0x0602) // _WIN32_WINNT_WIN8
 #include "minwindef.h"
 #else
 #include "windef.h"
 #endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0602)
+#include "basetyps.h"
+#include "Unknwnbase.h"
+#include "strmif.h"
+#include "qedit.h"
 
 #include "ace/Global_Macros.h"
 #include "ace/Synch_Traits.h"
 
 #include "common_iinitialize.h"
 
-#include "common_ui_windowtype_converter.h"
-
 #include "stream_common.h"
 #include "stream_task_base_synch.h"
 
 #include "stream_lib_mediatype_converter.h"
 
-// forward declarations
+ // forward declarations
 class Stream_IAllocator;
 
-extern const char libacestream_default_lib_directshow_target_module_name_string[];
+extern const char libacestream_default_lib_directshow_source_module_name_string[];
 
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,
@@ -60,11 +57,8 @@ template <ACE_SYNCH_DECL,
           ////////////////////////////////
           typename SessionDataType,
           ////////////////////////////////
-          typename FilterConfigurationType, // DirectShow-
-          typename PinConfigurationType,    // DirectShow-
-          typename MediaType,
-          typename FilterType>              // DirectShow-
-class Stream_MediaFramework_DirectShow_Target_T
+          typename MediaType>
+class Stream_MediaFramework_DirectShow_Source_T
  : public Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
                                  TimePolicyType,
                                  ConfigurationType,
@@ -75,8 +69,7 @@ class Stream_MediaFramework_DirectShow_Target_T
                                  enum Stream_SessionMessageType,
                                  struct Stream_UserData>
  , public Stream_MediaFramework_MediaTypeConverter_T<MediaType>
- , public Common_UI_WindowTypeConverter_T<HWND>
- //, public FilterType
+ , public ISampleGrabberCB
 {
   typedef Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
                                  TimePolicyType,
@@ -88,12 +81,10 @@ class Stream_MediaFramework_DirectShow_Target_T
                                  enum Stream_SessionMessageType,
                                  struct Stream_UserData> inherited;
   typedef Stream_MediaFramework_MediaTypeConverter_T<MediaType> inherited2;
-  typedef Common_UI_WindowTypeConverter_T<HWND> inherited3;
-  //typedef FilterType inherited4;
 
  public:
-  Stream_MediaFramework_DirectShow_Target_T (ISTREAM_T*); // stream handle
-  virtual ~Stream_MediaFramework_DirectShow_Target_T ();
+  Stream_MediaFramework_DirectShow_Source_T (ISTREAM_T*); // stream handle
+  virtual ~Stream_MediaFramework_DirectShow_Source_T ();
 
   // override (part of) Stream_IModuleHandler_T
   virtual bool initialize (const ConfigurationType&,
@@ -105,38 +96,24 @@ class Stream_MediaFramework_DirectShow_Target_T
   virtual void handleSessionMessage (SessionMessageType*&, // session message handle
                                      bool&);               // return value: pass message downstream ?
 
- protected:
-  // convenient types
-  typedef FilterType FILTER_T;
-
-  // helper methods
-  bool loadGraph (REFGUID,                        // (source) filter CLSID
-                  const FilterConfigurationType&, // (source) filter configuration
-                  const struct _AMMediaType&,     // 'preferred' media type
-                  HWND,                           // (target) window handle {NULL: NullRenderer}
-                  IGraphBuilder*&);               // return value: graph builder handle
-  // enqueue MB_STOP --> stop worker thread(s)
-  virtual void stop (bool = true,   // wait for completion ?
-                     bool = false); // high priority ? (i.e. do not wait for queued messages)
-
-  IGraphBuilder*                      IGraphBuilder_;
-
-  IMediaControl*                      IMediaControl_;
-  IMediaEventEx*                      IMediaEventEx_;
-  DWORD                               ROTID_;
+  // implement ISampleGrabberCB
+  inline virtual STDMETHODIMP QueryInterface (REFIID riid, __deref_out void** ppv) { return NonDelegatingQueryInterface (riid, ppv); }
+  inline virtual STDMETHODIMP_(ULONG) AddRef () { ACE_ASSERT (false); ACE_NOTSUP_RETURN (E_FAIL); ACE_NOTREACHED (return E_FAIL;) }
+  inline virtual STDMETHODIMP_(ULONG) Release () { ACE_ASSERT (false); ACE_NOTSUP_RETURN (E_FAIL); ACE_NOTREACHED (return E_FAIL;) }
+  inline virtual STDMETHODIMP NonDelegatingQueryInterface (REFIID, void**) { ACE_ASSERT (false); ACE_NOTSUP_RETURN (E_FAIL); ACE_NOTREACHED (return E_FAIL;) }
+  inline virtual STDMETHODIMP BufferCB (double, BYTE*, long) { ACE_ASSERT (false); ACE_NOTSUP_RETURN (E_FAIL); ACE_NOTREACHED (return E_FAIL;) }
+  virtual STDMETHODIMP SampleCB (double,         // SampleTime
+                                 IMediaSample*); // Sample
 
  private:
-  ACE_UNIMPLEMENTED_FUNC (Stream_MediaFramework_DirectShow_Target_T ())
-  ACE_UNIMPLEMENTED_FUNC (Stream_MediaFramework_DirectShow_Target_T (const Stream_MediaFramework_DirectShow_Target_T&))
-  ACE_UNIMPLEMENTED_FUNC (Stream_MediaFramework_DirectShow_Target_T& operator= (const Stream_MediaFramework_DirectShow_Target_T&))
+  ACE_UNIMPLEMENTED_FUNC (Stream_MediaFramework_DirectShow_Source_T ())
+  ACE_UNIMPLEMENTED_FUNC (Stream_MediaFramework_DirectShow_Source_T (const Stream_MediaFramework_DirectShow_Source_T&))
+  ACE_UNIMPLEMENTED_FUNC (Stream_MediaFramework_DirectShow_Source_T& operator= (const Stream_MediaFramework_DirectShow_Source_T&))
 
-  // convenient types
-  typedef Common_IInitialize_T<FilterConfigurationType> IINITIALIZE_FILTER_T;
-
-  typename inherited::MESSAGE_QUEUE_T queue_;
+  IGraphBuilder* IGraphBuilder_;
 };
 
 // include template definition
-#include "stream_lib_directshow_target.inl"
+#include "stream_lib_directshow_source.inl"
 
 #endif

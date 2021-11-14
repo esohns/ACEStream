@@ -37,38 +37,29 @@
 #include "stream_task_base_synch.h"
 
 // forward declarations
-template <typename ConfigurationType,
-          typename FilterType,
-          typename MediaType>
+template <typename ConfigurationType>
 class Stream_MediaFramework_DirectShow_Source_Filter_AsynchOutputPin_T;
 
-template <typename TimePolicyType,
-          typename SessionMessageType,
-          typename DataMessageType,
+template <typename MessageType,
           ///////////////////////////////
           typename ConfigurationType,
-          typename PinConfigurationType,
-          typename MediaType>
+          typename PinConfigurationType>
 class Stream_MediaFramework_DirectShow_Asynch_Source_Filter_T
  : public CSource
  , public Common_IInitialize_T<ConfigurationType>
- , public Common_IInitializeP_T<MediaType>
+ , public Common_IInitialize_T<struct _AMMediaType>
 {
+  // friends
+  friend class Stream_MediaFramework_DirectShow_Source_Filter_AsynchOutputPin_T<PinConfigurationType>;
+
   typedef CSource inherited;
-  typedef Stream_MediaFramework_DirectShow_Source_Filter_AsynchOutputPin_T<PinConfigurationType,
-                                                                           Stream_MediaFramework_DirectShow_Asynch_Source_Filter_T<TimePolicyType,
-                                                                                                                         SessionMessageType,
-                                                                                                                         DataMessageType,
-                                                                                                                         ConfigurationType,
-                                                                                                                         PinConfigurationType,
-                                                                                                                         MediaType>,
-                                                                           MediaType> OUTPUT_PIN_T;
-  friend OUTPUT_PIN_T;
 
  public:
   // convenient types
-  typedef ConfigurationType CONFIG_T;
+  typedef Stream_MediaFramework_DirectShow_Source_Filter_AsynchOutputPin_T<PinConfigurationType> OUTPUT_PIN_T;
 
+  // non-COM (!) ctor
+  Stream_MediaFramework_DirectShow_Asynch_Source_Filter_T ();
   virtual ~Stream_MediaFramework_DirectShow_Asynch_Source_Filter_T ();
 
   static CUnknown* WINAPI CreateInstance (LPUNKNOWN, // aggregating IUnknown interface handle ('owner')
@@ -80,7 +71,7 @@ class Stream_MediaFramework_DirectShow_Asynch_Source_Filter_T
   // implement Common_IInitialize_T
   virtual bool initialize (const ConfigurationType&);
   // *NOTE*: sets the preferred (i.e. default) media type
-  virtual bool initialize (const MediaType*);
+  virtual bool initialize (const struct _AMMediaType&);
 
   // ------------------------------------
 
@@ -96,12 +87,16 @@ class Stream_MediaFramework_DirectShow_Asynch_Source_Filter_T
   //                             size_t); // number of bytes
 
  protected:
-  // non-COM (!) ctor
-  Stream_MediaFramework_DirectShow_Asynch_Source_Filter_T ();
-
   ConfigurationType* filterConfiguration_;
 
  private:
+  // convenient types
+  typedef Stream_MediaFramework_DirectShow_Asynch_Source_Filter_T<MessageType,
+                                                                  ConfigurationType,
+                                                                  PinConfigurationType> OWN_TYPE_T;
+  typedef Common_IInitialize_T<PinConfigurationType> IPIN_INITIALIZE_T;
+  typedef Common_IInitialize_T<struct _AMMediaType> IPIN_MEDIA_INITIALIZE_T;
+
   // ctor used by the COM class factory
   Stream_MediaFramework_DirectShow_Asynch_Source_Filter_T (LPTSTR,    // name
                                                            LPUNKNOWN, // aggregating IUnknown interface handle ('owner')
@@ -110,25 +105,11 @@ class Stream_MediaFramework_DirectShow_Asynch_Source_Filter_T
 
   ACE_UNIMPLEMENTED_FUNC (Stream_MediaFramework_DirectShow_Asynch_Source_Filter_T (const Stream_MediaFramework_DirectShow_Asynch_Source_Filter_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_MediaFramework_DirectShow_Asynch_Source_Filter_T& operator= (const Stream_MediaFramework_DirectShow_Asynch_Source_Filter_T&))
-
-  // convenient types
-  typedef Stream_MediaFramework_DirectShow_Asynch_Source_Filter_T<TimePolicyType,
-                                                                  SessionMessageType,
-                                                                  DataMessageType,
-                                                                  ConfigurationType,
-                                                                  PinConfigurationType,
-                                                                  MediaType> OWN_TYPE_T;
-  typedef Common_IInitialize_T<PinConfigurationType> IPIN_INITIALIZE_T;
-  typedef Common_IInitialize_T<MediaType> IPIN_MEDIA_INITIALIZE_T;
-
-  //bool         hasCOMReference_;
 }; // Stream_MediaFramework_DirectShow_Asynch_Source_Filter_T
 
 ////////////////////////////////////////////////////////////////////////////////
 
-template <typename ConfigurationType,
-          typename FilterType,
-          typename MediaType>
+template <typename ConfigurationType> // implements Stream_MediaFramework_DirectShow_FilterPinConfiguration
 class Stream_MediaFramework_DirectShow_Source_Filter_AsynchOutputPin_T
  : public CBasePin
  , public IKsPropertySet
@@ -136,14 +117,14 @@ class Stream_MediaFramework_DirectShow_Source_Filter_AsynchOutputPin_T
  , public IAMStreamConfig
  , public IAsyncReader
  , public Common_IInitialize_T<ConfigurationType>
- , public Common_IInitialize_T<MediaType>
+ , public Common_IInitialize_T<struct _AMMediaType>
 {
   typedef CBasePin inherited;
 
  public:
-  Stream_MediaFramework_DirectShow_Source_Filter_AsynchOutputPin_T (HRESULT*,    // return value: result
-                                                                    FilterType*, // filter handle
-                                                                    LPCWSTR);    // name
+  Stream_MediaFramework_DirectShow_Source_Filter_AsynchOutputPin_T (HRESULT*, // return value: result
+                                                                    CSource*, // (parent) filter
+                                                                    LPCWSTR); // name
   virtual ~Stream_MediaFramework_DirectShow_Source_Filter_AsynchOutputPin_T ();
 
   // ------------------------------------
@@ -162,11 +143,11 @@ class Stream_MediaFramework_DirectShow_Source_Filter_AsynchOutputPin_T
   //STDMETHODIMP Connect (IPin*,                       // receive (input) pin
   //                      const struct _AMMediaType*); // (optional) media type handle
   virtual HRESULT CheckMediaType (const CMediaType*);
+  virtual HRESULT GetMediaType (int, CMediaType*);
   virtual HRESULT SetMediaType (const CMediaType*);
   virtual HRESULT CheckConnect (IPin*);
   virtual HRESULT BreakConnect ();
   virtual HRESULT CompleteConnect (IPin*);
-  virtual HRESULT GetMediaType (int, CMediaType*);
 
   // ------------------------------------
 
@@ -271,15 +252,12 @@ class Stream_MediaFramework_DirectShow_Source_Filter_AsynchOutputPin_T
   // implement Common_IInitialize_T
   virtual bool initialize (const ConfigurationType&);
   // *NOTE*: sets the preferred (i.e. default) media type
-  virtual bool initialize (const MediaType&);
+  virtual bool initialize (const struct _AMMediaType&);
 
  protected:
-  struct _AllocatorProperties allocatorProperties_;
-  ConfigurationType*          configuration_;
-  bool                        isInitialized_;        // initialized
-  MediaType*                  mediaType_;            // (current) media type
-  //FilterType*                 parentFilter_;         // same as inherited::m_pFilter
-  ACE_Message_Queue_Base*     queue_;                // inbound queue (active object)
+  ConfigurationType*   configuration_;
+  bool                 isInitialized_; // initialized
+  struct _AMMediaType* mediaType_;     // (preferred) media type
 
  private:
   ACE_UNIMPLEMENTED_FUNC (Stream_MediaFramework_DirectShow_Source_Filter_AsynchOutputPin_T ())
@@ -293,19 +271,20 @@ class Stream_MediaFramework_DirectShow_Source_Filter_AsynchOutputPin_T
   };
   typedef std::queue<struct Stream_DirectShow_AsyncReadRequest> REQUEST_QUEUE_T;
 
-  const int                   defaultFrameInterval_; // initial frame interval (ms)
+  REFERENCE_TIME       defaultFrameInterval_; // initial frame interval (ms)
 
-  int                         frameInterval_;        // (ms)
+  REFERENCE_TIME       frameInterval_;        // (ms)
   // *TODO*: support multiple media types
-  unsigned int                numberOfMediaTypes_;
+  unsigned int         numberOfMediaTypes_;
 
-  bool                        flushing_;
-  bool                        queriedForIAsyncReader_;
+  bool                 flushing_;
+  bool                 queriedForIAsyncReader_;
 
-  REQUEST_QUEUE_T             requestQueue_;
-  CCritSec                    lock_;                 // lock on sampleTime_
-  CRefTime                    sampleTime_;
-}; // Stream_MediaFramework_DirectShow_Source_Filter_OutputPin_T
+  REQUEST_QUEUE_T      requestQueue_;
+  REFERENCE_TIME       sampleNumber_;
+  unsigned int         sampleSize_;            // bytes (i.e. sizeof(video_frame)/sizeof(audio_frame))
+  REFERENCE_TIME       sampleTime_;            // (*100ns)
+}; // Stream_MediaFramework_DirectShow_Source_Filter_AsynchOutputPin_T
 
 // include template definition
 #include "stream_lib_directshow_asynch_source_filter.inl"

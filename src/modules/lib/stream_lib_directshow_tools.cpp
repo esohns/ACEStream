@@ -2579,15 +2579,14 @@ Stream_MediaFramework_DirectShow_Tools::reset (IGraphBuilder* builder_in,
     IPin* pin_p = NULL;
     struct _FilterInfo filter_info;
     while (enumerator_p->Next (1, &filter_p, NULL) == S_OK)
-    {
-      ACE_ASSERT (filter_p);
+    { ACE_ASSERT (filter_p);
 
       pin_p = Stream_MediaFramework_DirectShow_Tools::pin (filter_p,
                                                            PINDIR_INPUT);
       if (pin_p)
       {
-        pin_p->Release ();
-        filter_p->Release ();
+        pin_p->Release (); pin_p = NULL;
+        filter_p->Release (); filter_p = NULL;
         continue;
       } // end IF
 
@@ -2598,16 +2597,14 @@ Stream_MediaFramework_DirectShow_Tools::reset (IGraphBuilder* builder_in,
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("failed to IBaseFilter::QueryFilterInfo(): \"%s\", aborting\n"),
                     ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ())));
-
-        // clean up
         filter_p->Release ();
         enumerator_p->Release ();
-
         return false;
       } // end IF
       filter_name = filter_info.achName;
 
       // clean up
+      filter_p->Release (); filter_p = NULL;
       if (filter_info.pGraph)
         filter_info.pGraph->Release ();
 
@@ -2632,7 +2629,6 @@ Stream_MediaFramework_DirectShow_Tools::reset (IGraphBuilder* builder_in,
 
   if (filter_name.empty ())
     goto continue_;
-
   result =
     builder_in->FindFilterByName (filter_name.c_str (),
                                   &filter_p);
