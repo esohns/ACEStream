@@ -4660,8 +4660,8 @@ button_cut_clicked_cb (GtkButton* button_in,
     static_cast<struct Stream_CamSave_V4L_UI_CBData*> (ui_cb_data_base_p);
   cb_data_p->stream->control (STREAM_CONTROL_STEP,
                               false);
-#endif
-} // action_cut_activate_cb
+#endif // ACE_WIN32 || ACE_WIN64
+} // button_cut_clicked_cb
 
 void
 button_report_clicked_cb (GtkButton* button_in,
@@ -4677,7 +4677,6 @@ button_report_clicked_cb (GtkButton* button_in,
   ACE_ASSERT (ui_cb_data_base_p);
 } // button_report_clicked_cb
 
-
 void
 button_hw_settings_clicked_cb (GtkButton* button_in,
                                gpointer userData_in)
@@ -4690,6 +4689,90 @@ button_hw_settings_clicked_cb (GtkButton* button_in,
 
   // sanity check(s)
   ACE_ASSERT (ui_cb_data_base_p);
+
+  Common_UI_GTK_BuildersIterator_t iterator =
+    ui_cb_data_base_p->UIState->builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN));
+  // sanity check(s)
+  ACE_ASSERT (iterator != ui_cb_data_base_p->UIState->builders.end ());
+
+  GtkDrawingArea* drawing_area_p =
+    GTK_DRAWING_AREA (gtk_builder_get_object ((*iterator).second.second,
+                                              ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_DRAWINGAREA_NAME)));
+  ACE_ASSERT (drawing_area_p);
+  GdkWindow* window_p = gtk_widget_get_window (GTK_WIDGET (drawing_area_p));
+
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  struct Stream_CamSave_DirectShow_UI_CBData* directshow_cb_data_p = NULL;
+  struct Stream_CamSave_MediaFoundation_UI_CBData* mediafoundation_cb_data_p =
+    NULL;
+  switch (ui_cb_data_base_p->mediaFramework)
+  {
+    case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
+    {
+      directshow_cb_data_p =
+        static_cast<struct Stream_CamSave_DirectShow_UI_CBData*> (ui_cb_data_base_p);
+      Stream_CamSave_DirectShow_Stream::CONFIGURATION_T::ITERATOR_T stream_iterator =
+        directshow_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
+      ACE_ASSERT (stream_iterator != directshow_cb_data_p->configuration->streamConfiguration.end ());
+      ACE_ASSERT ((*stream_iterator).second.second->builder);
+
+      IBaseFilter* filter_p = NULL;
+      HRESULT result =
+        (*stream_iterator).second.second->builder->FindFilterByName (STREAM_LIB_DIRECTSHOW_FILTER_NAME_CAPTURE_VIDEO,
+                                                                     &filter_p);
+      ACE_ASSERT (SUCCEEDED (result) && filter_p);
+      ISpecifyPropertyPages* property_pages_p = NULL;
+      result = filter_p->QueryInterface (IID_PPV_ARGS (&property_pages_p));
+      ACE_ASSERT (SUCCEEDED (result) && property_pages_p);
+      struct tagCAUUID uuids_a;
+      ACE_OS::memset (&uuids_a, 0, sizeof (struct tagCAUUID));
+      result = property_pages_p->GetPages (&uuids_a);
+      ACE_ASSERT (SUCCEEDED (result) && uuids_a.pElems);
+      property_pages_p->Release (); property_pages_p = NULL;
+      IUnknown* iunknown_p = NULL;
+      filter_p->QueryInterface (IID_PPV_ARGS (&iunknown_p));
+      ACE_ASSERT (SUCCEEDED (result) && iunknown_p);
+      ACE_ASSERT (gdk_win32_window_is_win32 (window_p));
+      // display modal properties dialog
+      // *TODO*: implement modeless support
+      result =
+        OleCreatePropertyFrame (gdk_win32_window_get_impl_hwnd (window_p), // Parent window {NULL ? modeless : modal}
+                                0, 0,                     // Reserved
+#if defined (OLE2ANSI)
+                                Stream_MediaFramework_DirectShow_Tools::name (filter_p).c_str (), // Caption for the dialog box
+#else
+                                ACE_TEXT_ALWAYS_WCHAR (Stream_MediaFramework_DirectShow_Tools::name (filter_p).c_str ()), // Caption for the dialog box
+#endif // OLE2ANSI
+                                1,                        // Number of objects (just the filter)
+                                &iunknown_p,              // Array of object pointers
+                                uuids_a.cElems,           // Number of property pages
+                                uuids_a.pElems,           // Array of property page CLSIDs
+                                0,                        // Locale identifier
+                                0, NULL);                 // Reserved
+      ACE_ASSERT (SUCCEEDED (result));
+      iunknown_p->Release (); iunknown_p = NULL;
+      CoTaskMemFree (uuids_a.pElems); uuids_a.pElems = NULL;
+
+      break;
+    }
+    case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
+    {
+      mediafoundation_cb_data_p =
+        static_cast<struct Stream_CamSave_MediaFoundation_UI_CBData*> (ui_cb_data_base_p);
+      break;
+    }
+    default:
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("invalid/unknown media framework (was: %d), returning\n"),
+                  ui_cb_data_base_p->mediaFramework));
+      return;
+    }
+  } // end SWITCH
+#else
+  struct Stream_CamSave_V4L_UI_CBData* cb_data_p =
+    static_cast<struct Stream_CamSave_V4L_UI_CBData*> (ui_cb_data_base_p);
+#endif // ACE_WIN32 || ACE_WIN64
 } // button_hw_settings_clicked_cb
 
 void

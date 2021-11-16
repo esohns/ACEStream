@@ -159,7 +159,10 @@ class Stream_MediaFramework_DirectShow_Source_Filter_OutputPin_T
   // -------------------------------------
 
   // implement/overload IUnknown
-  DECLARE_IUNKNOWN
+  //DECLARE_IUNKNOWN
+  inline virtual STDMETHODIMP QueryInterface (REFIID riid, __deref_out void** ppv) { return NonDelegatingQueryInterface (riid, ppv); }
+  inline virtual STDMETHODIMP_(ULONG) AddRef () { return inherited::NonDelegatingAddRef (); }
+  inline virtual STDMETHODIMP_(ULONG) Release () { return inherited::NonDelegatingRelease (); }
   virtual STDMETHODIMP NonDelegatingQueryInterface (REFIID, void**);
 
   // -------------------------------------
@@ -286,9 +289,7 @@ class Stream_MediaFramework_DirectShow_Source_Filter_OutputPin_T
   ACE_UNIMPLEMENTED_FUNC (Stream_MediaFramework_DirectShow_Source_Filter_OutputPin_T (const Stream_MediaFramework_DirectShow_Source_Filter_OutputPin_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_MediaFramework_DirectShow_Source_Filter_OutputPin_T& operator= (const Stream_MediaFramework_DirectShow_Source_Filter_OutputPin_T&))
 
-  REFERENCE_TIME       defaultFrameInterval_;  // initial frame interval (ms)
-
-  REFERENCE_TIME       frameInterval_;         // (ms)
+  REFERENCE_TIME       frameInterval_;         // (*100ns)
   // *TODO*: support multiple media types
   unsigned int         numberOfMediaTypes_;
 

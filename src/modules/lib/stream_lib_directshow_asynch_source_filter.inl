@@ -393,7 +393,6 @@ Stream_MediaFramework_DirectShow_Source_Filter_AsynchOutputPin_T<ConfigurationTy
  , isInitialized_ (false)
  , mediaType_ (NULL)
  /////////////////////////////////////////
- , defaultFrameInterval_ (STREAM_LIB_DIRECTSHOW_FILTER_SOURCE_FRAME_INTERVAL_MS)
  , frameInterval_ (0)
  , numberOfMediaTypes_ (1)
  , flushing_ (false)

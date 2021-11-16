@@ -195,6 +195,7 @@ class Stream_MediaFramework_DirectShow_Tools
   static void free (Stream_MediaFramework_DirectShow_Formats_t&);
   static bool match (const struct _AMMediaType&,  // media type
                      const struct _AMMediaType&); // media type
+  static bool isVideoFormat (const struct _AMMediaType&); // ? : audio
   static void setFormat (REFGUID,               // media type
                          struct _AMMediaType&); // in/out: media type
   static void setResolution (const Common_Image_Resolution_t&, // resolution
@@ -214,6 +215,8 @@ class Stream_MediaFramework_DirectShow_Tools
   static struct _AMMediaType toRGB (const struct _AMMediaType&); // media type
   static std::string toString (const struct _AMMediaType&, // media type
                                bool = false);              // condensed version ?
+
+  static std::string toString (const struct tWAVEFORMATEX&); // media type
 
 #if defined (FFMPEG_SUPPORT)
   // *IMPORTANT NOTE*: callers must 'delete_' return values

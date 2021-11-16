@@ -1470,6 +1470,7 @@ Stream_Device_DirectShow_Tools::loadDeviceGraph (const std::string& devicePath_i
                       ACE_TEXT ("%s: enabled input pin \"%s\"\n"),
                       ACE_TEXT_WCHAR_TO_TCHAR (filter_name.c_str ()),
                       ACE_TEXT_WCHAR_TO_TCHAR (pin_info_s.achName)));
+          pin_info_s.pFilter->Release ();
         } // end IF
         //else if (InlineIsEqualGUID (deviceCategory_in, CLSID_VideoInputDeviceCategory))
         pin_p->Release (); pin_p = NULL;

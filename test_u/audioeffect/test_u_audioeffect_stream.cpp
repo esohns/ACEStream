@@ -223,6 +223,8 @@ Test_U_AudioEffect_DirectShow_Stream::initialize (const inherited::CONFIGURATION
   ISampleGrabber* isample_grabber_p = NULL;
   std::string log_file_name;
   IAMGraphStreams* graph_streams_p = NULL;
+  REFERENCE_TIME max_latency_i =
+    MILLISECONDS_TO_100NS_UNITS(STREAM_LIB_DIRECTSHOW_FILTER_SOURCE_MAX_LATENCY_MS);
 
   ACE_ASSERT ((*iterator).second.second->builder);
 
@@ -332,6 +334,38 @@ Test_U_AudioEffect_DirectShow_Stream::initialize (const inherited::CONFIGURATION
   //  isample_grabber_p->Release (); isample_grabber_p = NULL;
   //} // end IF
 
+  result_2 =
+    (*iterator).second.second->builder->QueryInterface (IID_PPV_ARGS (&graph_streams_p));
+  if (FAILED (result_2))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s: failed to IGraphBuilder::QueryInterface(IID_IAMGraphStreams): \"%s\", aborting\n"),
+                ACE_TEXT (stream_name_string_),
+                ACE_TEXT (Common_Error_Tools::errorToString (result_2).c_str ())));
+    goto error;
+  } // end IF
+  ACE_ASSERT (graph_streams_p);
+  result_2 = graph_streams_p->SyncUsingStreamOffset (TRUE);
+  if (FAILED (result_2))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s: failed to IAMGraphStreams::SyncUsingStreamOffset(FALSE): \"%s\", aborting\n"),
+                ACE_TEXT (stream_name_string_),
+                ACE_TEXT (Common_Error_Tools::errorToString (result_2).c_str ())));
+    goto error;
+  } // end IF
+  result_2 = graph_streams_p->SetMaxGraphLatency (max_latency_i);
+  if (FAILED (result_2))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s: failed to IAMGraphStreams::SetMaxGraphLatency(%q): \"%s\", aborting\n"),
+                ACE_TEXT (stream_name_string_),
+                max_latency_i,
+                ACE_TEXT (Common_Error_Tools::errorToString (result_2).c_str ())));
+    goto error;
+  } // end IF
+  graph_streams_p->Release (); graph_streams_p = NULL;
+
   if (!Stream_MediaFramework_DirectShow_Tools::connect ((*iterator).second.second->builder,
                                                         graph_configuration))
   {
@@ -363,48 +397,7 @@ Test_U_AudioEffect_DirectShow_Stream::initialize (const inherited::CONFIGURATION
   } // end IF
   media_filter_p->Release (); media_filter_p = NULL;
 
-//  result_2 = graphBuilder_->QueryInterface (IID_PPV_ARGS (&graph_streams_p));
-//  if (FAILED (result_2))
-//  {
-//    ACE_DEBUG ((LM_ERROR,
-//                ACE_TEXT ("%s: failed to IGraphBuilder::QueryInterface(IID_IAMGraphStreams): \"%s\", aborting\n"),
-//                ACE_TEXT (stream_name_string_),
-//                ACE_TEXT (Common_Error_Tools::errorToString (result_2).c_str ())));
-//    goto error;
-//  } // end IF
-//  ACE_ASSERT (graph_streams_p);
-//  result_2 = graph_streams_p->SyncUsingStreamOffset (FALSE);
-//  if (FAILED (result_2))
-//  {
-//    ACE_DEBUG ((LM_ERROR,
-//                ACE_TEXT ("%s: failed to IAMGraphStreams::SyncUsingStreamOffset(): \"%s\", aborting\n"),
-//                ACE_TEXT (stream_name_string_),
-//                ACE_TEXT (Common_Error_Tools::errorToString (result_2).c_str ())));
-//    goto error;
-//  } // end IF
-//  graph_streams_p->Release (); graph_streams_p = NULL;
-//
-//  if (!Stream_MediaFramework_DirectShow_Tools::getOutputFormat (graphBuilder_,
-//                                                                STREAM_LIB_DIRECTSHOW_FILTER_NAME_GRAB,
-//                                                                media_type_s))
-//  {
-//    ACE_DEBUG ((LM_ERROR,
-//                ACE_TEXT ("%s: failed to Stream_Device_DirectShow_Tools::getOutputFormat(\"%s\"), aborting\n"),
-//                ACE_TEXT (stream_name_string_),
-//                ACE_TEXT_WCHAR_TO_TCHAR (STREAM_LIB_DIRECTSHOW_FILTER_NAME_GRAB)));
-//    goto error;
-//  } // end IF
-  //media_type_s.bFixedSizeSamples = TRUE;
-  //media_type_s.bTemporalCompression = FALSE;
-  //media_type_s.cbFormat = sizeof (struct tWAVEFORMATEX);
-  //media_type_s.formattype = FORMAT_WaveFormatEx;
-  //media_type_s.majortype = MEDIATYPE_Audio;
-  //media_type_s.subtype = MEDIASUBTYPE_PCM;
   session_data_r.formats.push_back (configuration_in.configuration_->format);
-  //ACE_DEBUG ((LM_DEBUG,
-  //            ACE_TEXT ("%s: capture format: %s\n"),
-  //            ACE_TEXT (stream_name_string_),
-  //            ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::toString (configuration_in.configuration_->format, false).c_str ())));
 
   // ---------------------------------------------------------------------------
 

@@ -654,10 +654,7 @@ Stream_Decoder_WAVEncoder_T<ACE_SYNCH_USE,
   inherited::getMediaType (session_data_r.formats.back (),
                            media_type_s);
   ACE_ASSERT (InlineIsEqualGUID (media_type_s.formattype, FORMAT_WaveFormatEx));
-  //ACE_ASSERT (media_type_s.pbFormat);
-  //struct tWAVEFORMATEX* waveformatex_p =
-  //  reinterpret_cast<struct tWAVEFORMATEX*> (media_type_s.pbFormat);
-  //ACE_ASSERT (waveformatex_p);
+  ACE_ASSERT (media_type_s.pbFormat);
 
   struct _rifflist* RIFF_wave_p =
     reinterpret_cast<struct _rifflist*> (messageBlock_inout->wr_ptr ());
@@ -669,10 +666,10 @@ Stream_Decoder_WAVEncoder_T<ACE_SYNCH_USE,
 
   RIFF_wave_p->fcc = FCC ('RIFF');
   RIFF_wave_p->cb = 0 + // update here
-                    (sizeof (struct _rifflist)  +
-                     sizeof (struct _riffchunk) +
-                     16                         +
-                     sizeof (struct _riffchunk));
+                    (sizeof (struct _rifflist)  + // RIFF/WAVE chunk
+                     sizeof (struct _riffchunk) + // fmt chunk
+                     16                         + // fmt chunk data
+                     sizeof (struct _riffchunk)); // data chunk
   RIFF_wave_p->fccListType = FCC ('WAVE');
 
   RIFF_chunk_fmt_p->fcc = FCC ('fmt ');

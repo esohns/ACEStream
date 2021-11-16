@@ -39,15 +39,14 @@
 #define STREAM_LIB_DIRECTSOUND_MIC_BOOST_PART_DEFAULT_NAME       "Microphone Boost"
 
 // DirectShow
-// *NOTE*: this is the reciprocal (!) factor of the media samples size, i.e. the
-//         size will be (samplerate * (bits/sample / 8) * #channels) / factor
-// *IMPORTANT NOTE*: with DirectShow, lower buffer sizes result in lower latency
-#define STREAM_LIB_DIRECTSHOW_AUDIO_DEFAULT_BUFFER_FACTOR        32
-#define STREAM_LIB_DIRECTSHOW_AUDIO_DEFAULT_SOURCE_BUFFERS       15 // ~max. in-flight #'frames' (== #((bits/sample / 8) * #channels))
-
+// *NOTE*: max. in-flight #'frames' (== #((bits/sample / 8) * #channels))
+//         --> (buffer size / frame size) * #SOURCE_BUFFERS
+#define STREAM_LIB_DIRECTSHOW_AUDIO_DEFAULT_SOURCE_BUFFERS       15
 #define STREAM_LIB_DIRECTSHOW_VIDEO_DEFAULT_SOURCE_BUFFERS       30 // --> max. in-flight #frames
 
-#define STREAM_LIB_DIRECTSHOW_FILTER_SOURCE_FRAME_INTERVAL_MS    20 // ms
+// *IMPORTANT NOTE*: with DirectShow, lower buffer sizes result in lower latency
+// *NOTE*: buffer size is: bps * MAX_LATENCY_MS / 1000
+#define STREAM_LIB_DIRECTSHOW_FILTER_SOURCE_MAX_LATENCY_MS       20 // ms
 // *NOTE*: if the graph (i.e. usually the renderers'-) (default) allocator
 //         supplies the sample buffers (instead of the (source) filter), and the
 //         stream message type does not implement IMediaSample, the 'push'
@@ -77,6 +76,10 @@
 #define STREAM_LIB_DIRECTSHOW_FILTER_NAME_RENDER_VIDEO           L"Video Renderer"
 #define STREAM_LIB_DIRECTSHOW_FILTER_NAME_RESAMPLER              L"Resampler"
 
+#define STREAM_LIB_DIRECTSHOW_FILTER_CLSID_AUDIO_RENDER_WAVEOUT  CLSID_AudioRender
+#define STREAM_LIB_DIRECTSHOW_FILTER_CLSID_AUDIO_RENDER_DIRECTSOUND CLSID_DSoundRender
+#define STREAM_LIB_DEFAULT_DIRECTSHOW_FILTER_CLSID_AUDIO_RENDER  STREAM_LIB_DIRECTSHOW_FILTER_CLSID_AUDIO_RENDER_DIRECTSOUND
+
 // *IMPORTANT NOTE*: "...When the Video Renderer draws to a DirectDraw overlay
 //                   surface, it allocates a single buffer for its input pin. If
 //                   the upstream filter attempts to force a connection using
@@ -96,7 +99,7 @@
 #define STREAM_LIB_DEFAULT_DIRECTSHOW_FILTER_CLSID_VIDEO_RENDER  STREAM_LIB_DIRECTSHOW_FILTER_CLSID_VIDEO_RENDER_DX7
 #else
 #define STREAM_LIB_DEFAULT_DIRECTSHOW_FILTER_CLSID_VIDEO_RENDER  STREAM_LIB_DIRECTSHOW_FILTER_CLSID_VIDEO_RENDER
-#endif
+#endif // VMR9_SUPPORT || VMR7_SUPPORT
 #else
 #define STREAM_LIB_DEFAULT_DIRECTSHOW_FILTER_CLSID_VIDEO_RENDER  STREAM_LIB_DIRECTSHOW_FILTER_CLSID_VIDEO_RENDER_ENHANCED
 #endif // _WIN32_WINNT < _WIN32_WINNT_WINXP || _WIN32_WINNT < _WIN32_WINNT_VISTA

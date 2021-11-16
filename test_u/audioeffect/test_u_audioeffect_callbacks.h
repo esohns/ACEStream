@@ -88,6 +88,7 @@ extern "C"
 {
 #endif /* __cplusplus */
   G_MODULE_EXPORT void button_cut_clicked_cb (GtkButton*, gpointer);
+  G_MODULE_EXPORT void button_properties_clicked_cb (GtkButton*, gpointer);
   G_MODULE_EXPORT void button_report_clicked_cb (GtkButton*, gpointer);
   G_MODULE_EXPORT void button_reset_clicked_cb (GtkButton*, gpointer);
   G_MODULE_EXPORT void button_settings_clicked_cb (GtkButton*, gpointer);

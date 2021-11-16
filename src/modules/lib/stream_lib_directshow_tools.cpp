@@ -847,11 +847,12 @@ Stream_MediaFramework_DirectShow_Tools::name (IPin* pin_in)
   // sanity check(s)
   ACE_ASSERT (pin_in);
 
-  struct _PinInfo pin_info;
-  ACE_OS::memset (&pin_info, 0, sizeof (struct _PinInfo));
-  HRESULT result_2 = pin_in->QueryPinInfo (&pin_info);
+  struct _PinInfo pin_info_s;
+  ACE_OS::memset (&pin_info_s, 0, sizeof (struct _PinInfo));
+  HRESULT result_2 = pin_in->QueryPinInfo (&pin_info_s);
   ACE_ASSERT (SUCCEEDED (result_2));
-  result = ACE_TEXT_ALWAYS_CHAR (ACE_TEXT_WCHAR_TO_TCHAR (pin_info.achName));
+  result = ACE_TEXT_ALWAYS_CHAR (ACE_TEXT_WCHAR_TO_TCHAR (pin_info_s.achName));
+  pin_info_s.pFilter->Release ();
 
   return result;
 }
@@ -1143,9 +1144,9 @@ Stream_MediaFramework_DirectShow_Tools::toFilter (IPin* pin_in)
   // sanity check(s)
   ACE_ASSERT (pin_in);
 
-  struct _PinInfo pin_info;
-  ACE_OS::memset (&pin_info, 0, sizeof (struct _PinInfo));
-  HRESULT result = pin_in->QueryPinInfo (&pin_info);
+  struct _PinInfo pin_info_s;
+  ACE_OS::memset (&pin_info_s, 0, sizeof (struct _PinInfo));
+  HRESULT result = pin_in->QueryPinInfo (&pin_info_s);
   if (FAILED (result))
   {
     ACE_DEBUG ((LM_ERROR,
@@ -1153,9 +1154,9 @@ Stream_MediaFramework_DirectShow_Tools::toFilter (IPin* pin_in)
                 ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ())));
     return NULL;
   } // end IF
-  ACE_ASSERT (pin_info.pFilter);
+  ACE_ASSERT (pin_info_s.pFilter);
 
-  return pin_info.pFilter;
+  return pin_info_s.pFilter;
 }
 
 std::string
@@ -2005,25 +2006,7 @@ Stream_MediaFramework_DirectShow_Tools::graphBuilderConnect (IGraphBuilder* buil
     ACE_ASSERT (enumerator_p);
     filter_p->Release ();
     while (S_OK == enumerator_p->Next (1, &pin_2, NULL))
-    {
-      ACE_ASSERT (pin_2);
-
-      //result = pin_2->QueryPinInfo (&pin_info);
-      //if (FAILED (result))
-      //{
-      //  ACE_DEBUG ((LM_ERROR,
-      //              ACE_TEXT ("failed to IPin::QueryPinInfo(): \"%s\", aborting\n"),
-      //              ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ())));
-
-      //  // clean up
-      //  pin_2->Release ();
-      //  enumerator_p->Release ();
-      //  pin_p->Release ();
-      //  builder_p->Release ();
-
-      //  return false;
-      //} // end IF
-
+    { ACE_ASSERT (pin_2);
       result = pin_2->QueryDirection (&pin_direction);
       if (FAILED (result))
       {
@@ -2040,9 +2023,7 @@ Stream_MediaFramework_DirectShow_Tools::graphBuilderConnect (IGraphBuilder* buil
       } // end IF
       if (pin_direction != PINDIR_INPUT)
       {
-        pin_2->Release ();
-        pin_2 = NULL;
-
+        pin_2->Release (); pin_2 = NULL;
         continue;
       } // end IF
 
@@ -2363,11 +2344,9 @@ Stream_MediaFramework_DirectShow_Tools::disconnect (IBaseFilter* filter_in)
       enumerator_p->Release (); enumerator_p = NULL;
       return false;
     } // end IF
-#if defined (_DEBUG)
     ACE_DEBUG ((LM_DEBUG,
                 ACE_TEXT ("disconnected \"%s\"...\n"),
                 ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::name (filter_in).c_str ())));
-#endif // _DEBUG
     pin_p->Release (); pin_p = NULL;
   } // end WHILE
   enumerator_p->Release (); enumerator_p = NULL;
@@ -3638,6 +3617,28 @@ continue_:
   return true;
 }
 
+bool
+Stream_MediaFramework_DirectShow_Tools::isVideoFormat (const struct _AMMediaType& mediaType_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_DirectShow_Tools::isVideoFormat"));
+
+  if (InlineIsEqualGUID (mediaType_in.formattype, FORMAT_VideoInfo) &&
+      (mediaType_in.cbFormat == sizeof (struct tagVIDEOINFOHEADER)))
+    return true;
+  else if (InlineIsEqualGUID (mediaType_in.formattype, FORMAT_VideoInfo2) &&
+           (mediaType_in.cbFormat == sizeof (struct tagVIDEOINFOHEADER2)))
+    return true;
+  else if (InlineIsEqualGUID (mediaType_in.formattype, FORMAT_WaveFormatEx) &&
+           (mediaType_in.cbFormat == sizeof (struct tWAVEFORMATEX)))
+    return false;
+  else
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("invalid/unknown media type format (was: \"%s\"), aborting\n"),
+                ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::toString (mediaType_in).c_str ())));
+
+  return false; // <-- false negative
+}
+
 void
 Stream_MediaFramework_DirectShow_Tools::setFormat (REFGUID mediaSubType_in,
                                                    struct _AMMediaType& mediaType_inout)
@@ -4073,7 +4074,6 @@ Stream_MediaFramework_DirectShow_Tools::toString (const struct _AMMediaType& med
     converter.clear ();
     converter << video_info_header_p->bmiHeader.biClrImportant;
     result += converter.str ();
-    result += ACE_TEXT_ALWAYS_CHAR ("\n");
   } // end IF
   else if (InlineIsEqualGUID (mediaType_in.formattype, FORMAT_VideoInfo2))
   {
@@ -4222,112 +4222,111 @@ Stream_MediaFramework_DirectShow_Tools::toString (const struct _AMMediaType& med
     converter.clear ();
     converter << video_info_header2_p->bmiHeader.biClrImportant;
     result += converter.str ();
-    result += ACE_TEXT_ALWAYS_CHAR ("\n");
   } // end ELSE IF
   else if (InlineIsEqualGUID (mediaType_in.formattype, FORMAT_WaveFormatEx))
   {
     struct tWAVEFORMATEX* waveformatex_p =
       (struct tWAVEFORMATEX*)mediaType_in.pbFormat;
-    result += ACE_TEXT_ALWAYS_CHAR ("---\nwFormatTag: \"");
-    WORD_TO_STRING_MAP_ITERATOR_T iterator =
-      Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatTypeToStringMap.find (waveformatex_p->wFormatTag);
-    if (iterator == Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatTypeToStringMap.end ())
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("invalid/unknown wave formattype (was: %d), aborting\n"),
-                  waveformatex_p->wFormatTag));
-      return std::string ();
-    } // end IF
-    result += (*iterator).second;
-
-    result += ACE_TEXT_ALWAYS_CHAR ("\"\nnChannels: ");
-    converter.str (ACE_TEXT_ALWAYS_CHAR (""));
-    converter.clear ();
-    converter << waveformatex_p->nChannels;
-    result += converter.str ();
-
-    result += ACE_TEXT_ALWAYS_CHAR ("\nnSamplesPerSec: ");
-    converter.str (ACE_TEXT_ALWAYS_CHAR (""));
-    converter.clear ();
-    converter << waveformatex_p->nSamplesPerSec;
-    result += converter.str ();
-
-    result += ACE_TEXT_ALWAYS_CHAR ("\nnAvgBytesPerSec: ");
-    converter.str (ACE_TEXT_ALWAYS_CHAR (""));
-    converter.clear ();
-    converter << waveformatex_p->nAvgBytesPerSec;
-    result += converter.str ();
-
-    result += ACE_TEXT_ALWAYS_CHAR ("\nnBlockAlign: ");
-    converter.str (ACE_TEXT_ALWAYS_CHAR (""));
-    converter.clear ();
-    converter << waveformatex_p->nBlockAlign;
-    result += converter.str ();
-
-    result += ACE_TEXT_ALWAYS_CHAR ("\nwBitsPerSample: ");
-    converter.str (ACE_TEXT_ALWAYS_CHAR (""));
-    converter.clear ();
-    converter << waveformatex_p->wBitsPerSample;
-    result += converter.str ();
-
-    result += ACE_TEXT_ALWAYS_CHAR ("\ncbSize: ");
-    converter.str (ACE_TEXT_ALWAYS_CHAR (""));
-    converter.clear ();
-    converter << waveformatex_p->cbSize;
-    result += converter.str ();
-
-    if (waveformatex_p->wFormatTag == WAVE_FORMAT_EXTENSIBLE)
-    {
-      WAVEFORMATEXTENSIBLE* waveformatextensible_p =
-        (WAVEFORMATEXTENSIBLE*)mediaType_in.pbFormat;
-
-      // *TODO*: the second argument may not be entirely accurate
-      if (Stream_MediaFramework_Tools::isCompressedAudio (mediaType_in.subtype,
-                                                          STREAM_MEDIAFRAMEWORK_DIRECTSHOW))
-      {
-        result += ACE_TEXT_ALWAYS_CHAR ("\nwSamplesPerBlock: ");
-        converter.str (ACE_TEXT_ALWAYS_CHAR (""));
-        converter.clear ();
-        converter << waveformatextensible_p->Samples.wSamplesPerBlock;
-        result += converter.str ();
-      } // end IF
-      else
-      {
-        result += ACE_TEXT_ALWAYS_CHAR ("\nwValidBitsPerSample: ");
-        converter.str (ACE_TEXT_ALWAYS_CHAR (""));
-        converter.clear ();
-        converter << waveformatextensible_p->Samples.wValidBitsPerSample;
-        result += converter.str ();
-      } // end ELSE
-
-      result += ACE_TEXT_ALWAYS_CHAR ("\ndwChannelMask: 0x");
-      converter.str (ACE_TEXT_ALWAYS_CHAR (""));
-      converter.clear ();
-      converter <<
-        std::hex << waveformatextensible_p->dwChannelMask << std::dec;
-      result += converter.str ();
-
-      result += ACE_TEXT_ALWAYS_CHAR ("\nSubFormat: \"");
-      Stream_MediaFramework_GUIDToStringMapConstIterator_t iterator =
-        Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatSubTypeToStringMap.find (waveformatextensible_p->SubFormat);
-      if (iterator == Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatSubTypeToStringMap.end ())
-      {
-        ACE_DEBUG ((LM_WARNING,
-                    ACE_TEXT ("invalid/unknown wave subformat (was: \"%s\"), aborting\n"),
-                    ACE_TEXT (Common_Tools::GUIDToString (waveformatextensible_p->SubFormat).c_str ())));
-        result += Common_Tools::GUIDToString (waveformatextensible_p->SubFormat);
-      } // end IF
-      else
-        result += (*iterator).second;
-      result += ACE_TEXT_ALWAYS_CHAR ("\"\n");
-    } // end IF
-    else
-      result += ACE_TEXT_ALWAYS_CHAR ("\n");
+    result += ACE_TEXT_ALWAYS_CHAR ("---\n");
+    result +=
+      Stream_MediaFramework_DirectShow_Tools::toString (*waveformatex_p);
   } // end ELSE IF
   else
     ACE_DEBUG ((LM_WARNING,
                 ACE_TEXT ("invalid/unknown media formattype (was: \"%s\"), continuing\n"),
                 ACE_TEXT (Common_Tools::GUIDToString (mediaType_in.formattype).c_str ())));
+
+  return result;
+}
+
+std::string
+Stream_MediaFramework_DirectShow_Tools::toString (const struct tWAVEFORMATEX& format_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_DirectShow_Tools::toString"));
+
+  std::string result;
+
+  result += ACE_TEXT_ALWAYS_CHAR ("wFormatTag: \"");
+  WORD_TO_STRING_MAP_ITERATOR_T iterator =
+    Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatTypeToStringMap.find (format_in.wFormatTag);
+  if (iterator == Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatTypeToStringMap.end ())
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("invalid/unknown wave formattype (was: %d), aborting\n"),
+                format_in.wFormatTag));
+    return std::string ();
+  } // end IF
+  result += (*iterator).second;
+
+  std::ostringstream converter;
+  result += ACE_TEXT_ALWAYS_CHAR ("\"\nnChannels: ");
+  converter.str (ACE_TEXT_ALWAYS_CHAR (""));
+  converter.clear ();
+  converter << format_in.nChannels;
+  result += converter.str ();
+
+  result += ACE_TEXT_ALWAYS_CHAR ("\nnSamplesPerSec: ");
+  converter.str (ACE_TEXT_ALWAYS_CHAR (""));
+  converter.clear ();
+  converter << format_in.nSamplesPerSec;
+  result += converter.str ();
+
+  result += ACE_TEXT_ALWAYS_CHAR ("\nnAvgBytesPerSec: ");
+  converter.str (ACE_TEXT_ALWAYS_CHAR (""));
+  converter.clear ();
+  converter << format_in.nAvgBytesPerSec;
+  result += converter.str ();
+
+  result += ACE_TEXT_ALWAYS_CHAR ("\nnBlockAlign: "); // frame size
+  converter.str (ACE_TEXT_ALWAYS_CHAR (""));
+  converter.clear ();
+  converter << format_in.nBlockAlign;
+  result += converter.str ();
+
+  result += ACE_TEXT_ALWAYS_CHAR ("\nwBitsPerSample: ");
+  converter.str (ACE_TEXT_ALWAYS_CHAR (""));
+  converter.clear ();
+  converter << format_in.wBitsPerSample;
+  result += converter.str ();
+
+  result += ACE_TEXT_ALWAYS_CHAR ("\ncbSize: ");
+  converter.str (ACE_TEXT_ALWAYS_CHAR (""));
+  converter.clear ();
+  converter << format_in.cbSize;
+  result += converter.str ();
+
+  if (format_in.wFormatTag == WAVE_FORMAT_EXTENSIBLE)
+  {
+    WAVEFORMATEXTENSIBLE* waveformatextensible_p =
+      (WAVEFORMATEXTENSIBLE*)&format_in;
+
+    result += ACE_TEXT_ALWAYS_CHAR ("\nwValidBitsPerSample|wSamplesPerBlock: ");
+    converter.str (ACE_TEXT_ALWAYS_CHAR (""));
+    converter.clear ();
+    converter << waveformatextensible_p->Samples.wValidBitsPerSample;
+    result += converter.str ();
+
+    result += ACE_TEXT_ALWAYS_CHAR ("\ndwChannelMask: 0x");
+    converter.str (ACE_TEXT_ALWAYS_CHAR (""));
+    converter.clear ();
+    converter <<
+      std::hex << waveformatextensible_p->dwChannelMask << std::dec;
+    result += converter.str ();
+
+    result += ACE_TEXT_ALWAYS_CHAR ("\nSubFormat: \"");
+    Stream_MediaFramework_GUIDToStringMapConstIterator_t iterator =
+      Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatSubTypeToStringMap.find (waveformatextensible_p->SubFormat);
+    if (iterator == Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatSubTypeToStringMap.end ())
+    {
+      ACE_DEBUG ((LM_WARNING,
+                  ACE_TEXT ("invalid/unknown wave subformat (was: \"%s\"), continuing\n"),
+                  ACE_TEXT (Common_Tools::GUIDToString (waveformatextensible_p->SubFormat).c_str ())));
+      result += Common_Tools::GUIDToString (waveformatextensible_p->SubFormat);
+    } // end IF
+    else
+      result += (*iterator).second;
+    result += ACE_TEXT_ALWAYS_CHAR ("\"");
+  } // end IF
 
   return result;
 }

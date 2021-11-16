@@ -1223,6 +1223,7 @@ Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   struct _AMMediaType media_type_s;
+  ACE_OS::memset (&media_type_s, 0, sizeof (struct _AMMediaType));
 #else
   MediaType media_type_s;
 #endif // ACE_WIN32 || ACE_WIN64

@@ -3098,15 +3098,13 @@ get_buffer_size (gpointer userData_in)
   unsigned int channels = g_value_get_uint (&value);
   g_value_unset (&value);
 
+  unsigned int bps = (sample_rate * (bits_per_sample / 8) * channels);
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   // *IMPORTANT NOTE*: with DirectShow, lower buffer sizes result in lower
   //                   latency
-  return (sample_rate * (bits_per_sample / 8) * channels) / STREAM_LIB_DIRECTSHOW_AUDIO_DEFAULT_BUFFER_FACTOR;
+  return (unsigned int)((STREAM_LIB_DIRECTSHOW_FILTER_SOURCE_MAX_LATENCY_MS * bps) / (float)MILLISECONDS);
 #else
   ACE_UNUSED_ARG (format_e);
-  ACE_UNUSED_ARG (sample_rate);
-  ACE_UNUSED_ARG (bits_per_sample);
-  ACE_UNUSED_ARG (channels);
   return ui_cb_data_p->configuration->streamConfiguration.configuration_->allocatorConfiguration->defaultBufferSize;
 //  return (sample_rate * snd_pcm_format_size (format_e, 1) * channels);
 #endif // ACE_WIN32 || ACE_WIN64
@@ -4223,7 +4221,11 @@ idle_initialize_UI_cb (gpointer userData_in)
     GTK_TOGGLE_BUTTON (gtk_builder_get_object ((*iterator).second.second,
                                                ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_TOGGLEBUTTON_MUTE_NAME)));
   ACE_ASSERT (toggle_button_p);
-  gtk_size_group_add_widget (size_group_p, GTK_WIDGET (toggle_button_p));
+  button_p =
+    GTK_BUTTON (gtk_builder_get_object ((*iterator).second.second,
+                                        ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_BUTTON_PROPERTIES_NAME)));
+  ACE_ASSERT (button_p);
+  gtk_size_group_add_widget (size_group_p, GTK_WIDGET (button_p));
   GtkCheckButton* check_button_p =
     GTK_CHECK_BUTTON (gtk_builder_get_object ((*iterator).second.second,
                                               ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_CHECKBUTTON_SAVE_NAME)));
@@ -5274,6 +5276,11 @@ idle_session_end_cb (gpointer userData_in)
                                                ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_TOGGLEBUTTON_MUTE_NAME)));
   ACE_ASSERT (toggle_button_p);
   gtk_widget_set_sensitive (GTK_WIDGET (toggle_button_p), TRUE);
+  button_p =
+    GTK_BUTTON (gtk_builder_get_object ((*iterator).second.second,
+                                        ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_BUTTON_PROPERTIES_NAME)));
+  ACE_ASSERT (button_p);
+  gtk_widget_set_sensitive (GTK_WIDGET (button_p), FALSE);
   GtkFrame* frame_p =
     GTK_FRAME (gtk_builder_get_object ((*iterator).second.second,
                                        ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_FRAME_FORMAT_NAME)));
@@ -5303,11 +5310,11 @@ idle_update_info_display_cb (gpointer userData_in)
 {
   STREAM_TRACE (ACE_TEXT ("::idle_update_info_display_cb"));
 
-  struct Test_U_AudioEffect_UI_CBDataBase* data_base_p =
+  struct Test_U_AudioEffect_UI_CBDataBase* ui_cb_data_base_p =
       static_cast<struct Test_U_AudioEffect_UI_CBDataBase*> (userData_in);
 
   // sanity check(s)
-  ACE_ASSERT (data_base_p);
+  ACE_ASSERT (ui_cb_data_base_p);
 
   Common_UI_GTK_Manager_t* gtk_manager_p =
     COMMON_UI_GTK_MANAGER_SINGLETON::instance ();
@@ -5353,7 +5360,7 @@ idle_update_info_display_cb (gpointer userData_in)
                                                      ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_SPINBUTTON_DATA_NAME)));
           ACE_ASSERT (spin_button_p);
           gtk_spin_button_set_value (spin_button_p,
-                                     static_cast<gdouble> (data_base_p->progressData.statistic.bytes));
+                                     static_cast<gdouble> (ui_cb_data_base_p->progressData.statistic.bytes));
 
           spin_button_p =
             GTK_SPIN_BUTTON (gtk_builder_get_object ((*iterator).second.second,
@@ -5379,13 +5386,13 @@ idle_update_info_display_cb (gpointer userData_in)
                                                      ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_SPINBUTTON_CAPTUREDFRAMES_NAME)));
           ACE_ASSERT (spin_button_p);
           gtk_spin_button_set_value (spin_button_p,
-                                     static_cast<gdouble> (data_base_p->progressData.statistic.capturedFrames));
+                                     static_cast<gdouble> (ui_cb_data_base_p->progressData.statistic.capturedFrames));
           spin_button_p =
             GTK_SPIN_BUTTON (gtk_builder_get_object ((*iterator).second.second,
                                                      ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_SPINBUTTON_DROPPEDFRAMES_NAME)));
           ACE_ASSERT (spin_button_p);
           gtk_spin_button_set_value (spin_button_p,
-                                     static_cast<gdouble> (data_base_p->progressData.statistic.droppedFrames));
+                                     static_cast<gdouble> (ui_cb_data_base_p->progressData.statistic.droppedFrames));
 
           spin_button_p =
             GTK_SPIN_BUTTON (gtk_builder_get_object ((*iterator).second.second,
@@ -5393,14 +5400,14 @@ idle_update_info_display_cb (gpointer userData_in)
           ACE_ASSERT (spin_button_p);
 
           ACE_DEBUG ((LM_DEBUG,
-                      ACE_TEXT ("statistic: a/s/v (a/v): %.2f/%.2f; (a/c/v): %.2f/%u/%.2f; (a/v): %.2f/%.2f\n"),
-                      data_base_p->progressData.statistic.amplitudeAverage,
-                      data_base_p->progressData.statistic.amplitudeVariance,
-                      data_base_p->progressData.statistic.streakAverage,
-                      data_base_p->progressData.statistic.streakCount,
-                      data_base_p->progressData.statistic.streakVariance,
-                      data_base_p->progressData.statistic.volumeAverage,
-                      data_base_p->progressData.statistic.volumeVariance));
+                      ACE_TEXT ("statistic analysis: a/s/v (a/v): %.2f/%.2f; (a/c/v): %.2f/%u/%.2f; (a/v): %.2f/%.2f\n"),
+                      ui_cb_data_base_p->progressData.statistic.amplitudeAverage,
+                      ui_cb_data_base_p->progressData.statistic.amplitudeVariance,
+                      ui_cb_data_base_p->progressData.statistic.streakAverage,
+                      ui_cb_data_base_p->progressData.statistic.streakCount,
+                      ui_cb_data_base_p->progressData.statistic.streakVariance,
+                      ui_cb_data_base_p->progressData.statistic.volumeAverage,
+                      ui_cb_data_base_p->progressData.statistic.volumeVariance));
 
           is_session_message = true;
           break;
@@ -5429,6 +5436,84 @@ idle_update_info_display_cb (gpointer userData_in)
                     ACE_TEXT ("failed to ACE_Unbounded_Stack::pop(): \"%m\", continuing\n")));
     } // end WHILE
   } // end lock scope
+
+  // display renderer statistics
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  struct Test_U_AudioEffect_DirectShow_UI_CBData* directshow_ui_cb_data_p =
+    NULL;
+  struct Test_U_AudioEffect_MediaFoundation_UI_CBData* mediafoundation_ui_cb_data_p =
+    NULL;
+  Test_U_AudioEffect_MediaFoundation_StreamConfiguration_t::ITERATOR_T mediafoundation_modulehandler_configuration_iterator;
+  Test_U_AudioEffect_DirectShow_StreamConfiguration_t::ITERATOR_T directshow_modulehandler_configuration_iterator;
+  switch (ui_cb_data_base_p->mediaFramework)
+  {
+    case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
+    {
+      directshow_ui_cb_data_p =
+        static_cast<struct Test_U_AudioEffect_DirectShow_UI_CBData*> (userData_in);
+      // sanity check(s)
+      ACE_ASSERT (directshow_ui_cb_data_p);
+      ACE_ASSERT (directshow_ui_cb_data_p->configuration);
+      ACE_ASSERT (directshow_ui_cb_data_p->stream);
+      if (!directshow_ui_cb_data_p->stream->isRunning ())
+        break;
+
+      directshow_modulehandler_configuration_iterator =
+        directshow_ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
+      ACE_ASSERT (directshow_modulehandler_configuration_iterator != directshow_ui_cb_data_p->configuration->streamConfiguration.end ());
+      ACE_ASSERT ((*directshow_modulehandler_configuration_iterator).second.second->builder);
+      Stream_MediaFrameWork_DirectSound_Statistics_t statistics_a;
+      Stream_MediaFramework_DirectSound_Tools::getAudioRendererStatistics ((*directshow_modulehandler_configuration_iterator).second.second->builder,
+                                                                           statistics_a);
+      //for (Stream_MediaFrameWork_DirectSound_StatisticsIterator_t iterator_2 = statistics_a.begin ();
+      //     iterator_2 != statistics_a.end ();
+      //     ++iterator_2)
+      //{
+      //  ACE_DEBUG ((LM_DEBUG,
+      //              ACE_TEXT ("renderer statistic: %s: %d/%d\n"),
+      //              ACE_TEXT (Stream_MediaFramework_DirectSound_Tools::toString ((*iterator_2).first).c_str ()),
+      //              (*iterator_2).second.first, (*iterator_2).second.second));
+      //} // end FOR
+      //ACE_DEBUG ((LM_DEBUG,
+      //            ACE_TEXT ("\n")));
+
+      break;
+    }
+    case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
+    {
+      mediafoundation_ui_cb_data_p =
+        static_cast<struct Test_U_AudioEffect_MediaFoundation_UI_CBData*> (userData_in);
+      // sanity check(s)
+      ACE_ASSERT (mediafoundation_ui_cb_data_p);
+      ACE_ASSERT (mediafoundation_ui_cb_data_p->configuration);
+
+      mediafoundation_modulehandler_configuration_iterator =
+        mediafoundation_ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
+      ACE_ASSERT (mediafoundation_modulehandler_configuration_iterator != mediafoundation_ui_cb_data_p->configuration->streamConfiguration.end ());
+      break;
+    }
+    default:
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("invalid/unknown media framework (was: %d), aborting\n"),
+                  ui_cb_data_base_p->mediaFramework));
+      return G_SOURCE_REMOVE;
+    }
+  } // end SWITCH
+#else
+  struct Test_U_AudioEffect_UI_CBData* data_p =
+    static_cast<struct Test_U_AudioEffect_UI_CBData*> (userData_in);
+
+  // sanity check(s)
+  ACE_ASSERT (data_p);
+
+  ACE_ASSERT (data_p->stream);
+  stream_p = data_p->stream;
+
+  Test_U_AudioEffect_ALSA_StreamConfiguration_t::ITERATOR_T modulehandler_configuration_iterator =
+    data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
+  ACE_ASSERT (modulehandler_configuration_iterator != data_p->configuration->streamConfiguration.end ());
+#endif // ACE_WIN32 || ACE_WIN64
 
   return G_SOURCE_CONTINUE;
 }
@@ -6267,6 +6352,11 @@ togglebutton_record_toggled_cb (GtkToggleButton* toggleButton_in,
                                                ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_TOGGLEBUTTON_MUTE_NAME)));
   ACE_ASSERT (toggle_button_p);
   gtk_widget_set_sensitive (GTK_WIDGET (toggle_button_p), FALSE);
+  button_p =
+    GTK_BUTTON (gtk_builder_get_object ((*iterator).second.second,
+                                        ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_BUTTON_PROPERTIES_NAME)));
+  ACE_ASSERT (button_p);
+  gtk_widget_set_sensitive (GTK_WIDGET (button_p), TRUE);
   frame_p =
     GTK_FRAME (gtk_builder_get_object ((*iterator).second.second,
                                        ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_FRAME_FORMAT_NAME)));
@@ -6290,14 +6380,14 @@ togglebutton_record_toggled_cb (GtkToggleButton* toggleButton_in,
 
   // step1: set up progress reporting
   ui_cb_data_base_p->progressData.statistic = Test_U_AudioEffect_Statistic ();
-  //GtkProgressBar* progress_bar_p =
-  //  GTK_PROGRESS_BAR (gtk_builder_get_object ((*iterator).second.second,
-  //                                            ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_PROGRESSBAR_NAME)));
-  //ACE_ASSERT (progress_bar_p);
-  //gint width, height;
-  //gtk_widget_get_size_request (GTK_WIDGET (progress_bar_p), &width, &height);
-  //gtk_progress_bar_set_pulse_step (progress_bar_p,
-  //                                 1.0 / static_cast<double> (width));
+  GtkProgressBar* progress_bar_p =
+    GTK_PROGRESS_BAR (gtk_builder_get_object ((*iterator).second.second,
+                                              ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_PROGRESSBAR_NAME)));
+  ACE_ASSERT (progress_bar_p);
+  gint width, height;
+  gtk_widget_get_size_request (GTK_WIDGET (progress_bar_p), &width, &height);
+  gtk_progress_bar_set_pulse_step (progress_bar_p,
+                                   1.0 / static_cast<double> (width));
   //gtk_progress_bar_set_fraction (progress_bar_p, 0.0);
 
   // step3: start processing thread
@@ -6510,13 +6600,115 @@ button_cut_clicked_cb (GtkButton* button_in,
                               false); // recurse upstream ?
 #endif // ACE_WIN32 || ACE_WIN64
   ACE_ASSERT (stream_p);
-} // action_cut_activate_cb
+} // button_cut_clicked_cb
+
+void
+button_properties_clicked_cb (GtkButton* button_in,
+                              gpointer userData_in)
+{
+  STREAM_TRACE (ACE_TEXT ("::button_properties_clicked_cb"));
+
+  ACE_UNUSED_ARG (button_in);
+
+  struct Test_U_AudioEffect_UI_CBDataBase* ui_cb_data_base_p =
+    static_cast<struct Test_U_AudioEffect_UI_CBDataBase*> (userData_in);
+
+  // sanity check(s)
+  ACE_ASSERT (ui_cb_data_base_p);
+
+  Common_UI_GTK_BuildersIterator_t iterator =
+    ui_cb_data_base_p->UIState->builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN));
+  // sanity check(s)
+  ACE_ASSERT (iterator != ui_cb_data_base_p->UIState->builders.end ());
+
+  GtkDrawingArea* drawing_area_p =
+    GTK_DRAWING_AREA (gtk_builder_get_object ((*iterator).second.second,
+                                              ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_DRAWINGAREA_NAME)));
+  ACE_ASSERT (drawing_area_p);
+  GdkWindow* window_p = gtk_widget_get_window (GTK_WIDGET (drawing_area_p));
+
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  struct Test_U_AudioEffect_DirectShow_UI_CBData* directshow_ui_cb_data_p = NULL;
+  struct Test_U_AudioEffect_MediaFoundation_UI_CBData* mediafoundation_ui_cb_data_p =
+    NULL;
+  Test_U_AudioEffect_DirectShow_StreamConfiguration_t::ITERATOR_T directshow_modulehandler_configuration_iterator;
+  Test_U_AudioEffect_MediaFoundation_StreamConfiguration_t::ITERATOR_T mediafoundation_modulehandler_configuration_iterator;
+  switch (ui_cb_data_base_p->mediaFramework)
+  {
+    case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
+    {
+      directshow_ui_cb_data_p =
+        static_cast<struct Test_U_AudioEffect_DirectShow_UI_CBData*> (ui_cb_data_base_p);
+      directshow_modulehandler_configuration_iterator =
+        directshow_ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
+      ACE_ASSERT (directshow_modulehandler_configuration_iterator != directshow_ui_cb_data_p->configuration->streamConfiguration.end ());
+      ACE_ASSERT ((*directshow_modulehandler_configuration_iterator).second.second->builder);
+
+      IBaseFilter* filter_p = NULL;
+      HRESULT result =
+        (*directshow_modulehandler_configuration_iterator).second.second->builder->FindFilterByName (STREAM_LIB_DIRECTSHOW_FILTER_NAME_RENDER_AUDIO,
+                                                                                                     &filter_p);
+      ACE_ASSERT (SUCCEEDED (result) && filter_p);
+      ISpecifyPropertyPages* property_pages_p = NULL;
+      result = filter_p->QueryInterface (IID_PPV_ARGS (&property_pages_p));
+      ACE_ASSERT (SUCCEEDED (result) && property_pages_p);
+      struct tagCAUUID uuids_a;
+      ACE_OS::memset (&uuids_a, 0, sizeof (struct tagCAUUID));
+      result = property_pages_p->GetPages (&uuids_a);
+      ACE_ASSERT (SUCCEEDED (result) && uuids_a.pElems);
+      property_pages_p->Release (); property_pages_p = NULL;
+      IUnknown* iunknown_p = NULL;
+      filter_p->QueryInterface (IID_PPV_ARGS (&iunknown_p));
+      ACE_ASSERT (SUCCEEDED (result) && iunknown_p);
+      ACE_ASSERT (gdk_win32_window_is_win32 (window_p));
+      LCID locale_id = 1033;
+      // display modal properties dialog
+      // *TODO*: implement modeless support (i.e. return immediately)
+      result =
+        OleCreatePropertyFrame (NULL,//gdk_win32_window_get_impl_hwnd (window_p), // Parent window {NULL ? modeless : modal}
+                                0, 0,                     // Reserved
+#if defined (OLE2ANSI)
+                                Stream_MediaFramework_DirectShow_Tools::name (filter_p).c_str (), // Caption for the dialog box
+#else
+                                ACE_TEXT_ALWAYS_WCHAR (Stream_MediaFramework_DirectShow_Tools::name (filter_p).c_str ()), // Caption for the dialog box
+#endif // OLE2ANSI
+                                1,                        // Number of objects (just the filter)
+                                &iunknown_p,              // Array of object pointers
+                                uuids_a.cElems,           // Number of property pages
+                                uuids_a.pElems,           // Array of property page CLSIDs
+                                locale_id,                // Locale identifier
+                                0, NULL);                 // Reserved
+      ACE_ASSERT (SUCCEEDED (result));
+      iunknown_p->Release (); iunknown_p = NULL;
+      CoTaskMemFree (uuids_a.pElems); uuids_a.pElems = NULL;
+
+      break;
+    }
+    case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
+    {
+      mediafoundation_ui_cb_data_p =
+        static_cast<struct Test_U_AudioEffect_MediaFoundation_UI_CBData*> (ui_cb_data_base_p);
+      break;
+    }
+    default:
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("invalid/unknown media framework (was: %d), returning\n"),
+                  ui_cb_data_base_p->mediaFramework));
+      return;
+    }
+  } // end SWITCH
+#else
+  struct Test_U_AudioEffect_UI_CBData* cb_data_p =
+    static_cast<struct Test_U_AudioEffect_UI_CBData*> (ui_cb_data_base_p);
+#endif // ACE_WIN32 || ACE_WIN64
+}
 
 void
 button_report_clicked_cb (GtkButton* button_in,
                           gpointer userData_in)
 {
-  STREAM_TRACE (ACE_TEXT ("::action_report_activate_cb"));
+  STREAM_TRACE (ACE_TEXT ("::button_report_clicked_cb"));
 
   ACE_UNUSED_ARG (button_in);
 

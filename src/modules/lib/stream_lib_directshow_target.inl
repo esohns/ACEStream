@@ -358,31 +358,20 @@ Stream_MediaFramework_DirectShow_Target_T<ACE_SYNCH_USE,
   {
     case STREAM_SESSION_MESSAGE_BEGIN:
     {
-      const typename SessionMessageType::DATA_T& session_data_container_r =
-        message_inout->getR ();
-      SessionDataType& session_data_r =
-        const_cast<SessionDataType&> (session_data_container_r.getR ());
+      // sanity check(s)
+      ACE_ASSERT (inherited::sessionData_);
 
+      SessionDataType& session_data_r =
+        const_cast<SessionDataType&> (inherited::sessionData_->getR ());
       bool COM_initialized = false;
       bool is_running = false;
       bool remove_from_ROT = false;
 #if defined (_DEBUG)
       std::string log_file_name;
 #endif // _DEBUG
-      //struct _AllocatorProperties allocator_properties;
       IAMBufferNegotiation* buffer_negotiation_p = NULL;
       IVideoWindow* video_window_p = NULL;
       ULONG reference_count = 0;
-
-      //ACE_OS::memset (&allocator_properties, 0, sizeof (allocator_properties));
-      //// *TODO*: IMemAllocator::SetProperties returns VFW_E_BADALIGN (0x8004020e)
-      ////         if this is -1/0 (why ?)
-      ////allocator_properties.cbAlign = -1;  // <-- use default
-      //allocator_properties.cbAlign = 1;
-      //allocator_properties.cbBuffer = inherited::configuration_->bufferSize;
-      //allocator_properties.cbPrefix = -1; // <-- use default
-      //allocator_properties.cBuffers =
-      //  MODULE_DEV_CAM_DIRECTSHOW_DEFAULT_DEVICE_BUFFERS;
 
       HRESULT result_2 = CoInitializeEx (NULL,
                                          (COINIT_MULTITHREADED    |

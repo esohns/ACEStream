@@ -98,7 +98,7 @@ class Stream_MediaFramework_DirectShow_Source_T
 
   // implement ISampleGrabberCB
   inline virtual STDMETHODIMP QueryInterface (REFIID riid, __deref_out void** ppv) { return NonDelegatingQueryInterface (riid, ppv); }
-  inline virtual STDMETHODIMP_(ULONG) AddRef () { ACE_ASSERT (false); ACE_NOTSUP_RETURN (E_FAIL); ACE_NOTREACHED (return E_FAIL;) }
+  inline virtual STDMETHODIMP_(ULONG) AddRef () { return S_OK; }
   inline virtual STDMETHODIMP_(ULONG) Release () { ACE_ASSERT (false); ACE_NOTSUP_RETURN (E_FAIL); ACE_NOTREACHED (return E_FAIL;) }
   inline virtual STDMETHODIMP NonDelegatingQueryInterface (REFIID, void**) { ACE_ASSERT (false); ACE_NOTSUP_RETURN (E_FAIL); ACE_NOTREACHED (return E_FAIL;) }
   inline virtual STDMETHODIMP BufferCB (double, BYTE*, long) { ACE_ASSERT (false); ACE_NOTSUP_RETURN (E_FAIL); ACE_NOTREACHED (return E_FAIL;) }

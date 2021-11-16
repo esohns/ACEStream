@@ -21,16 +21,27 @@
 #ifndef STREAM_LIB_DIRECTSOUND_TOOLS_H
 #define STREAM_LIB_DIRECTSOUND_TOOLS_H
 
+#include <string>
+
 #include "devicetopology.h"
 #include "mmdeviceapi.h"
 
 #include "ace/Global_Macros.h"
+
+#include "stream_lib_directsound_common.h"
+
+// forward declarations
+struct IFilterGraph;
 
 class Stream_MediaFramework_DirectSound_Tools
 {
  public:
   static struct _GUID waveDeviceIdToDirectSoundGUID (ULONG); // waveIn device id
   static IAudioVolumeLevel* getMicrophoneBoostControl (IMMDevice*); // device handle
+
+  static void getAudioRendererStatistics (IFilterGraph*,                                    // filter graph handle
+                                          Stream_MediaFrameWork_DirectSound_Statistics_t&); // return value: statistic information
+  static std::string toString (enum _AM_AUDIO_RENDERER_STAT_PARAM); // parameter
 
  private:
   ACE_UNIMPLEMENTED_FUNC (Stream_MediaFramework_DirectSound_Tools ())

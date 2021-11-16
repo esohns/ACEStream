@@ -21,6 +21,10 @@
 #ifndef STREAM_LIB_DIRECTSOUND_COMMON_H
 #define STREAM_LIB_DIRECTSOUND_COMMON_H
 
+#include <map>
+#include <utility>
+
+#include "mmreg.h"
 // *WARNING*: "...Note Header files ksproxy.h and dsound.h define similar but
 //            incompatible versions of the IKsPropertySet interface.
 //            Applications that require the KS proxy module should use the
@@ -31,6 +35,9 @@
 //            whichever header file the compiler scans first is the one whose
 //            definition of IKsPropertySet is used by the compiler. ..."
 #include "dsound.h"
+
+// forward declarations
+enum _AM_AUDIO_RENDERER_STAT_PARAM;
 
 union Stream_MediaFramework_DirectSound_AudioEffectOptions
 {
@@ -45,5 +52,9 @@ union Stream_MediaFramework_DirectSound_AudioEffectOptions
   struct _DSFXI3DL2Reverb reverbOptions;
   struct _DSFXWavesReverb wavesReverbOptions;
 };
+
+typedef std::pair<DWORD, DWORD> Stream_MediaFrameWork_DirectSound_StatisticValue_t;
+typedef std::map<enum _AM_AUDIO_RENDERER_STAT_PARAM, Stream_MediaFrameWork_DirectSound_StatisticValue_t> Stream_MediaFrameWork_DirectSound_Statistics_t;
+typedef Stream_MediaFrameWork_DirectSound_Statistics_t::const_iterator Stream_MediaFrameWork_DirectSound_StatisticsIterator_t;
 
 #endif

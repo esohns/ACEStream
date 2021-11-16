@@ -36,6 +36,7 @@
 #include "dsound.h"
 #include "dsconf.h"
 #include "ks.h"
+#include "strmif.h"
 
 #include "ace/Log_Msg.h"
 #include "ace/OS.h"
@@ -156,6 +157,91 @@ Stream_MediaFramework_DirectSound_Tools::getMicrophoneBoostControl (IMMDevice* d
   
   return Stream_MediaFramework_DirectSound_Tools::walkDeviceTreeFromPart (part_p,
                                                                           ACE_TEXT_ALWAYS_CHAR (STREAM_LIB_DIRECTSOUND_MIC_BOOST_PART_DEFAULT_NAME));
+}
+
+void
+Stream_MediaFramework_DirectSound_Tools::getAudioRendererStatistics (IFilterGraph* graph_in,
+                                                                     Stream_MediaFrameWork_DirectSound_Statistics_t& statistic_out)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_DirectSound_Tools::getAudioRendererStatistics"));
+
+  // sanity check(s)
+  ACE_ASSERT (graph_in);
+
+  // initialize return value(s)
+  statistic_out.clear ();
+
+  // step1: retrieve filter
+  IBaseFilter* filter_p = NULL;
+  HRESULT result =
+    graph_in->FindFilterByName (STREAM_LIB_DIRECTSHOW_FILTER_NAME_RENDER_AUDIO,
+                                &filter_p);
+  ACE_ASSERT (SUCCEEDED (result) && filter_p);
+
+  // step2: retrieve interface
+  IAMAudioRendererStats* statistic_p = NULL;
+  result = filter_p->QueryInterface (IID_PPV_ARGS (&statistic_p));
+  ACE_ASSERT (SUCCEEDED (result) && statistic_p);
+  filter_p->Release (); filter_p = NULL;
+
+  // step3: retrieve information
+  DWORD value_1 = 0, value_2 = 0;
+  for (DWORD i = AM_AUDREND_STAT_PARAM_BREAK_COUNT;
+       i <= AM_AUDREND_STAT_PARAM_JITTER;
+       ++i)
+  {
+    result = statistic_p->GetStatParam (i,
+                                        &value_1,
+                                        &value_2);
+    if (unlikely (FAILED (result))) // 6: AM_AUDREND_STAT_PARAM_SLAVE_RATE: "...Valid only when the
+                                    // DirectSound Renderer is matching rates to another clock or a live source. ..."
+      continue;
+    statistic_out[static_cast<enum _AM_AUDIO_RENDERER_STAT_PARAM> (i)] = std::make_pair (value_1, value_2);
+  } // end FOR
+  statistic_p->Release ();
+}
+
+std::string
+Stream_MediaFramework_DirectSound_Tools::toString (enum _AM_AUDIO_RENDERER_STAT_PARAM parameter_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_DirectSound_Tools::toString"));
+
+  switch (parameter_in)
+  {
+    case AM_AUDREND_STAT_PARAM_BREAK_COUNT:
+      return ACE_TEXT_ALWAYS_CHAR ("BREAK_COUNT");
+    case AM_AUDREND_STAT_PARAM_SLAVE_MODE:
+      return ACE_TEXT_ALWAYS_CHAR ("SLAVE_MODE");
+    case AM_AUDREND_STAT_PARAM_SILENCE_DUR:
+      return ACE_TEXT_ALWAYS_CHAR ("SILENCE_DUR");
+    case AM_AUDREND_STAT_PARAM_LAST_BUFFER_DUR:
+      return ACE_TEXT_ALWAYS_CHAR ("LAST_BUFFER_DUR");
+    case AM_AUDREND_STAT_PARAM_DISCONTINUITIES:
+      return ACE_TEXT_ALWAYS_CHAR ("DISCONTINUITIES");
+    case AM_AUDREND_STAT_PARAM_SLAVE_RATE:
+      return ACE_TEXT_ALWAYS_CHAR ("SLAVE_RATE");
+    case AM_AUDREND_STAT_PARAM_SLAVE_DROPWRITE_DUR:
+      return ACE_TEXT_ALWAYS_CHAR ("DROPWRITE_DUR");
+    case AM_AUDREND_STAT_PARAM_SLAVE_HIGHLOWERROR:
+      return ACE_TEXT_ALWAYS_CHAR ("HIGHLOWERROR");
+    case AM_AUDREND_STAT_PARAM_SLAVE_LASTHIGHLOWERROR:
+      return ACE_TEXT_ALWAYS_CHAR ("LASTHIGHLOWERROR");
+    case AM_AUDREND_STAT_PARAM_SLAVE_ACCUMERROR:
+      return ACE_TEXT_ALWAYS_CHAR ("SLAVE_ACCUMERROR");
+    case AM_AUDREND_STAT_PARAM_BUFFERFULLNESS:
+      return ACE_TEXT_ALWAYS_CHAR ("BUFFERFULLNESS");
+    case AM_AUDREND_STAT_PARAM_JITTER:
+      return ACE_TEXT_ALWAYS_CHAR ("JITTER");
+    default:
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("invalid/unknown parameter (was: %d), aborting\n"),
+                  parameter_in));
+      break;
+    }
+  } // end SWITCH
+
+  return ACE_TEXT_ALWAYS_CHAR ("");
 }
 
 IAudioVolumeLevel*

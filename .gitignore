@@ -3,6 +3,8 @@
 *.lo
 *.o
 *.obj
+*.Po
+*.Plo
 
 # Precompiled Headers
 *.gch
@@ -29,6 +31,7 @@
 
 # Backup files
 *.bak
+*~
 
 # Patches
 *.patch
@@ -40,18 +43,14 @@
 build/
 
 # Automake
+Makefile
 Makefile.in
 aclocal.m4
 autom4te.cache/
 aux_config/
 config.h.in
 configure
-*~
-m4/libtool.m4
-m4/ltoptions.m4
-m4/ltsugar.m4
-m4/ltversion.m4
-m4/lt~obsolete.m4
+m4/
 
 # Kdevelop
 .kdev4/

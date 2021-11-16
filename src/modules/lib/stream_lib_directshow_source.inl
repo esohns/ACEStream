@@ -141,7 +141,6 @@ Stream_MediaFramework_DirectShow_Source_T<ACE_SYNCH_USE,
   IGraphBuilder_->AddRef ();
 
   // retrieve sample grabber filter
-  ISampleGrabber* sample_grabber_p = NULL;
   IBaseFilter* filter_p = NULL;
   result_2 = IGraphBuilder_->FindFilterByName (STREAM_LIB_DIRECTSHOW_FILTER_NAME_GRAB,
                                                &filter_p);
@@ -156,6 +155,7 @@ Stream_MediaFramework_DirectShow_Source_T<ACE_SYNCH_USE,
     return false;
   } // end IF
   ACE_ASSERT (filter_p);
+  ISampleGrabber* sample_grabber_p = NULL;
   result_2 = filter_p->QueryInterface (IID_ISampleGrabber,
                                        (void**)&sample_grabber_p);
   if (FAILED (result_2))
@@ -267,12 +267,20 @@ Stream_MediaFramework_DirectShow_Source_T<ACE_SYNCH_USE,
   {
     case STREAM_SESSION_MESSAGE_BEGIN:
     {
-      std::string log_file_name;
+      // sanity check(s)
+      ACE_ASSERT (inherited::sessionData_);
+      ACE_ASSERT (IGraphBuilder_);
+
+      SessionDataType& session_data_r =
+        const_cast<SessionDataType&> (inherited::sessionData_->getR ());
+      struct _AMMediaType media_type_s;
+      MediaType media_type_2;
+      ACE_OS::memset (&media_type_2, 0, sizeof (MediaType));
 
       result_2 = CoInitializeEx (NULL,
-                                         (COINIT_MULTITHREADED    |
-                                          COINIT_DISABLE_OLE1DDE  |
-                                          COINIT_SPEED_OVER_MEMORY));
+                                 (COINIT_MULTITHREADED    |
+                                  COINIT_DISABLE_OLE1DDE  |
+                                  COINIT_SPEED_OVER_MEMORY));
       if (SUCCEEDED (result_2)) // RPC_E_CHANGED_MODE : 0x80010106L
         COM_initialized = true;
       else
@@ -282,24 +290,68 @@ Stream_MediaFramework_DirectShow_Source_T<ACE_SYNCH_USE,
                     ACE_TEXT (Common_Error_Tools::errorToString (result_2, true, false).c_str ())));
 
 //#if defined (_DEBUG)
-//      log_file_name =
-//        Common_Log_Tools::getLogDirectory (ACE_TEXT_ALWAYS_CHAR (""),
-//                                           0);
-//      log_file_name += ACE_DIRECTORY_SEPARATOR_STR;
-//      log_file_name += STREAM_LIB_DIRECTSHOW_LOGFILE_NAME;
-//      Stream_MediaFramework_DirectShow_Tools::debug (builder_p,
-//                                                     log_file_name);
-//      ACE_DEBUG ((LM_DEBUG,
-//                  ACE_TEXT ("set DirectShow logfile: \"%s\"\n"),
-//                  ACE_TEXT (log_file_name.c_str ())));
+      //      std::string log_file_name =
+      //        Common_Log_Tools::getLogDirectory (ACE_TEXT_ALWAYS_CHAR (""),
+      //                                           0);
+      //      log_file_name += ACE_DIRECTORY_SEPARATOR_STR;
+      //      log_file_name += STREAM_LIB_DIRECTSHOW_LOGFILE_NAME;
+      //      Stream_MediaFramework_DirectShow_Tools::debug (IGraphBuilder_,
+      //                                                     log_file_name);
+      //      ACE_DEBUG ((LM_DEBUG,
+      //                  ACE_TEXT ("set DirectShow logfile: \"%s\"\n"),
+      //                  ACE_TEXT (log_file_name.c_str ())));
 //#endif // _DEBUG
+
+      // retrieve sample grabber filter
+      IBaseFilter* filter_p = NULL;
+      ISampleGrabber* sample_grabber_p = NULL;
+      result_2 =
+        IGraphBuilder_->FindFilterByName (STREAM_LIB_DIRECTSHOW_FILTER_NAME_GRAB,
+                                          &filter_p);
+      if (FAILED (result_2))
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("%s: failed to IFilterGraph::FindFilterByName(%s): \"%s\", aborting\n"),
+                    inherited::mod_->name (),
+                    ACE_TEXT_WCHAR_TO_TCHAR (STREAM_LIB_DIRECTSHOW_FILTER_NAME_GRAB),
+                    ACE_TEXT (Common_Error_Tools::errorToString (result_2, true, false).c_str ())));
+        goto error;
+      } // end IF
+      ACE_ASSERT (filter_p);
+      result_2 = filter_p->QueryInterface (IID_ISampleGrabber,
+                                           (void**)&sample_grabber_p);
+      if (FAILED (result_2))
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("%s: failed to IUnknown::QueryInterface(IID_ISampleGrabber): \"%s\", aborting\n"),
+                    inherited::mod_->name (),
+                    ACE_TEXT (Common_Error_Tools::errorToString (result_2, true, false).c_str ())));
+        filter_p->Release (); filter_p = NULL;
+        goto error;
+      } // end IF
+      ACE_ASSERT (sample_grabber_p);
+      filter_p->Release (); filter_p = NULL;
+      result_2 = sample_grabber_p->GetConnectedMediaType (&media_type_s);
+      if (FAILED (result_2))
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("%s: failed to ISampleGrabber::GetConnectedMediaType(): \"%s\", aborting\n"),
+                    inherited::mod_->name (),
+                    ACE_TEXT (Common_Error_Tools::errorToString (result_2, true, false).c_str ())));
+        sample_grabber_p->Release (); sample_grabber_p = NULL;
+        goto error;
+      } // end IF
+      sample_grabber_p->Release (); sample_grabber_p = NULL;
+      inherited2::getMediaType (media_type_s,
+                                media_type_2);
+      session_data_r.formats.push_back (media_type_2);
 
       if (COM_initialized)
         CoUninitialize ();
 
       break;
 
-//error:
+error:
       if (COM_initialized)
         CoUninitialize ();
 

@@ -30,6 +30,8 @@
 #include "stream_defines.h"
 #include "stream_macros.h"
 
+#include "stream_lib_directshow_tools.h"
+
 template <ACE_SYNCH_DECL,
           typename ControlMessageType,
           typename DataMessageType,
@@ -246,14 +248,14 @@ Stream_Dev_Mic_Source_WASAPI_T<ACE_SYNCH_USE,
 
       REFERENCE_TIME requested_duration_i = 0;
       IMMDeviceEnumerator* enumerator_p = NULL;
-      HRESULT result =
+      HRESULT result_2 =
         CoCreateInstance (__uuidof (MMDeviceEnumerator), NULL, CLSCTX_ALL,
                           IID_PPV_ARGS (&enumerator_p));
-      ACE_ASSERT (SUCCEEDED (result));
+      ACE_ASSERT (SUCCEEDED (result_2));
       IMMDeviceCollection* devices_p = NULL;
-      result =
+      result_2 =
         enumerator_p->EnumAudioEndpoints (eCapture, DEVICE_STATEMASK_ALL, &devices_p);
-      ACE_ASSERT (SUCCEEDED (result));
+      ACE_ASSERT (SUCCEEDED (result_2));
       enumerator_p->Release (); enumerator_p = NULL;
       UINT num_devices_i = 0;
       result = devices_p->GetCount (&num_devices_i);
@@ -267,15 +269,15 @@ Stream_Dev_Mic_Source_WASAPI_T<ACE_SYNCH_USE,
            i < num_devices_i;
            ++i)
       { ACE_ASSERT (!device_p);
-        result = devices_p->Item (i,
-                                  &device_p);
-        ACE_ASSERT (SUCCEEDED (result));
-        result = device_p->OpenPropertyStore (STGM_READ,
-                                              &property_store_p);
-        ACE_ASSERT (SUCCEEDED (result));
-        result = property_store_p->GetValue (PKEY_AudioEndpoint_GUID,
-                                             &property_s);
-        ACE_ASSERT (SUCCEEDED (result));
+        result_2 = devices_p->Item (i,
+                                    &device_p);
+        ACE_ASSERT (SUCCEEDED (result_2));
+        result_2 = device_p->OpenPropertyStore (STGM_READ,
+                                                &property_store_p);
+        ACE_ASSERT (SUCCEEDED (result_2));
+        result_2 = property_store_p->GetValue (PKEY_AudioEndpoint_GUID,
+                                               &property_s);
+        ACE_ASSERT (SUCCEEDED (result_2));
         property_store_p->Release (); property_store_p = NULL;
         ACE_ASSERT (property_s.vt == VT_LPWSTR);
         GUID_s =
@@ -287,14 +289,15 @@ Stream_Dev_Mic_Source_WASAPI_T<ACE_SYNCH_USE,
       } // end FOR
       PropVariantClear (&property_s);
       devices_p->Release (); devices_p = NULL;
-      //UINT32 number_of_buffer_frames_i = 0;
+      UINT32 number_of_buffer_frames_i = 0;
       DWORD stream_flags_i =
-        (AUDCLNT_STREAMFLAGS_EVENTCALLBACK     |
+        (AUDCLNT_STREAMFLAGS_EVENTCALLBACK |
          //AUDCLNT_STREAMFLAGS_NOPERSIST         |
          /////////////////////////////////
          AUDCLNT_SESSIONFLAGS_EXPIREWHENUNOWNED);
       HANDLE task_h = NULL;
       DWORD task_index_i = 0;
+      //struct tWAVEFORMATEX* audio_info_2 = NULL;
       if (!device_p)
       {
         ACE_DEBUG ((LM_ERROR,
@@ -304,23 +307,65 @@ Stream_Dev_Mic_Source_WASAPI_T<ACE_SYNCH_USE,
         goto error;
       } // end IF
       ACE_ASSERT (!audioClient_);
-      result = device_p->Activate (__uuidof (IAudioClient), CLSCTX_ALL,
-                                   NULL, (void**)&audioClient_);
-      ACE_ASSERT (SUCCEEDED (result));
+      result_2 = device_p->Activate (__uuidof (IAudioClient), CLSCTX_ALL,
+                                     NULL, (void**)&audioClient_);
+      ACE_ASSERT (SUCCEEDED (result_2) && audioClient_);
+      // sanity check(s)
+      result_2 = audioClient_->IsFormatSupported (AUDCLNT_SHAREMODE_EXCLUSIVE,
+                                                  audio_info_p,
+                                                  NULL/*&audio_info_2*/);
+      if (unlikely (FAILED (result_2)))
+      { //ACE_ASSERT (audio_info_2);
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("%s: failed to IAudioClient::IsFormatSupported(%d,%s), aborting\n"),
+                    //ACE_TEXT ("%s: failed to IAudioClient::IsFormatSupported(%d,%s): closest match: \"%s\", aborting\n"),
+                    inherited::mod_->name (),
+                    AUDCLNT_SHAREMODE_EXCLUSIVE,
+                    ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::toString (*audio_info_p).c_str ())));//,
+                    //ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::toString (*audio_info_2).c_str ())));
+        device_p->Release (); device_p = NULL;
+        //CoTaskMemFree (audio_info_2);
+        goto error;
+      } // end IF
+      result_2 = audioClient_->GetDevicePeriod (NULL, &requested_duration_i);
+      ACE_ASSERT (SUCCEEDED (result_2));
+      result_2 = audioClient_->Initialize (AUDCLNT_SHAREMODE_EXCLUSIVE,
+                                           stream_flags_i,
+                                           requested_duration_i,
+                                           requested_duration_i,
+                                           audio_info_p,
+                                           NULL);
+retry:
+      if (unlikely (FAILED (result_2))) // AUDCLNT_E_UNSUPPORTED_FORMAT: 0x88890008
+      {
+        if (unlikely (result_2 = AUDCLNT_E_BUFFER_SIZE_NOT_ALIGNED))
+        {
+          result_2 = audioClient_->GetBufferSize (&number_of_buffer_frames_i);
+          ACE_ASSERT (SUCCEEDED (result_2));
+          audioClient_->Release (); audioClient_ = NULL;
+          requested_duration_i =
+            (REFERENCE_TIME)((10000.0 * 1000 / audio_info_p->nSamplesPerSec * number_of_buffer_frames_i) + 0.5);
+          result_2 = device_p->Activate (__uuidof (IAudioClient), CLSCTX_ALL,
+                                         NULL, (void**)&audioClient_);
+          ACE_ASSERT (SUCCEEDED (result_2) && audioClient_);
+          result_2 = audioClient_->Initialize (AUDCLNT_SHAREMODE_EXCLUSIVE,
+                                               stream_flags_i,
+                                               requested_duration_i,
+                                               requested_duration_i,
+                                               audio_info_p,
+                                               NULL);
+          goto retry;
+        } // end IF
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("%s: failed to IAudioClient::Initialize(%d,%q,%q,%s): \"%s\", aborting\n"),
+                    inherited::mod_->name (),
+                    stream_flags_i, requested_duration_i, requested_duration_i,
+                    ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::toString (media_type_r, true).c_str ()),
+                    ACE_TEXT (Common_Error_Tools::errorToString (result_2, true, false).c_str ())));
+        device_p->Release (); device_p = NULL;
+        goto error;
+      } // end IF
       device_p->Release (); device_p = NULL;
-      //result = audioClient_->GetBufferSize (&number_of_buffer_frames_i);
-      //ACE_ASSERT (SUCCEEDED (result));
-      //requested_duration_i =
-      //  (REFERENCE_TIME)((10000.0 * 1000 / audio_info_p->nSamplesPerSecond * number_of_buffer_frames_i) + 0.5);
-      result = audioClient_->GetDevicePeriod (NULL, &requested_duration_i);
-      ACE_ASSERT (SUCCEEDED (result));
-      result = audioClient_->Initialize (AUDCLNT_SHAREMODE_EXCLUSIVE,
-                                         stream_flags_i,
-                                         requested_duration_i,
-                                         requested_duration_i,
-                                         audio_info_p,
-                                         NULL);
-      ACE_ASSERT (SUCCEEDED (result));
       ACE_ASSERT (!event_);
       event_ = CreateEvent (NULL,  // lpEventAttributes
                             FALSE, // bManualReset
@@ -333,12 +378,12 @@ Stream_Dev_Mic_Source_WASAPI_T<ACE_SYNCH_USE,
                     inherited::mod_->name ()));
         goto error;
       } // end IF
-      result = audioClient_->SetEventHandle (event_);
-      ACE_ASSERT (SUCCEEDED (result));
+      result_2 = audioClient_->SetEventHandle (event_);
+      ACE_ASSERT (SUCCEEDED (result_2));
 
       ACE_ASSERT (!audioCaptureClient_);
-      result = audioClient_->GetService (IID_PPV_ARGS (&audioCaptureClient_));
-      ACE_ASSERT (SUCCEEDED (result));
+      result_2 = audioClient_->GetService (IID_PPV_ARGS (&audioCaptureClient_));
+      ACE_ASSERT (SUCCEEDED (result_2));
 
       ACE_ASSERT (!task_);
       task_ = AvSetMmThreadCharacteristics (TEXT ("Pro Audio"), &task_index_i);
@@ -350,8 +395,8 @@ Stream_Dev_Mic_Source_WASAPI_T<ACE_SYNCH_USE,
         goto error;
       } // end IF
 
-      result = audioClient_->Start ();
-      ACE_ASSERT (SUCCEEDED (result));
+      result_2 = audioClient_->Start ();
+      ACE_ASSERT (SUCCEEDED (result_2));
 
       break;
 
@@ -375,24 +420,28 @@ error:
         inherited::timerId_ = -1;
       } // end IF
 
-      HRESULT result = E_FAIL;      
-      if (audioClient_)
+      HRESULT result_2 = E_FAIL;
+      if (likely (audioClient_))
       {
-        result = audioClient_->Stop ();
-        ACE_ASSERT (SUCCEEDED (result));
+        result_2 = audioClient_->Stop ();
+        if (unlikely (FAILED (result_2)))
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("%s: failed to IAudioClient::Stop(): \"%s\", continuing\n"),
+                      inherited::mod_->name (),
+                      ACE_TEXT (Common_Error_Tools::errorToString (result_2, true, false).c_str ())));
       } // end IF
 
-      if (task_)
+      if (likely (task_))
       {
         AvRevertMmThreadCharacteristics (task_);
         task_ = NULL;
       } // end IF
 
-      if (audioCaptureClient_)
+      if (likely (audioCaptureClient_))
       {
         audioCaptureClient_->Release (); audioCaptureClient_ = NULL;
       } // end IF
-      if (audioClient_)
+      if (likely (audioClient_))
       {
         audioClient_->Release (); audioClient_ = NULL;
       } // end IF

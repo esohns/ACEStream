@@ -110,7 +110,7 @@ Stream_AllocatorHeap_T<ACE_SYNCH_USE,
   void* result = inherited2::malloc (bytes_in);
 
   // update allocation counter
-  if (result)
+  if (likely (result))
     poolSize_ += bytes_in;
 
   return result;

@@ -63,6 +63,7 @@
 #define TEST_U_STREAM_UI_GTK_BOX_DISPLAY_NAME                "vbox_display"
 #define TEST_U_STREAM_UI_GTK_BUTTONBOX_ACTIONS_NAME          "buttonbox_actions"
 #define TEST_U_STREAM_UI_GTK_BUTTON_ABOUT_NAME               "button_about"
+#define TEST_U_STREAM_UI_GTK_BUTTON_PROPERTIES_NAME          "button_properties"
 #define TEST_U_STREAM_UI_GTK_BUTTON_RESET_NAME               "button_reset"
 #define TEST_U_STREAM_UI_GTK_BUTTON_SETTINGS_NAME            "button_settings"
 #define TEST_U_STREAM_UI_GTK_BUTTON_QUIT_NAME                "button_quit"

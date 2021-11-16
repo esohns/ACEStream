@@ -271,9 +271,7 @@ class Stream_MediaFramework_DirectShow_Source_Filter_AsynchOutputPin_T
   };
   typedef std::queue<struct Stream_DirectShow_AsyncReadRequest> REQUEST_QUEUE_T;
 
-  REFERENCE_TIME       defaultFrameInterval_; // initial frame interval (ms)
-
-  REFERENCE_TIME       frameInterval_;        // (ms)
+  REFERENCE_TIME       frameInterval_;        // (*100ns)
   // *TODO*: support multiple media types
   unsigned int         numberOfMediaTypes_;
 

@@ -1730,7 +1730,7 @@ continue_3:
   // send to an output (waveOut) ?
   if (audioOutput_in >= 0)
   {
-    GUID_s = CLSID_AudioRender;
+    GUID_s = STREAM_LIB_DEFAULT_DIRECTSHOW_FILTER_CLSID_AUDIO_RENDER;
     graph_entry.filterName = STREAM_LIB_DIRECTSHOW_FILTER_NAME_RENDER_AUDIO;
   } // end IF
   else
