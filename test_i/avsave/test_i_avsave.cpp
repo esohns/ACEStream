@@ -789,12 +789,12 @@ continue_:
   //  goto continue_2;
 
 #if COMMON_OS_WIN32_TARGET_PLATFORM(0x0601) // _WIN32_WINNT_WIN7
-  if (!Stream_Device_MediaFoundation_Tools::getMediaSource (captureinterfaceIdentifier_in,
-                                                            MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE_VIDCAP_GUID,
-                                                            media_source_p))
+  if (!Stream_MediaFramework_MediaFoundation_Tools::getMediaSource (captureinterfaceIdentifier_in,
+                                                                    MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE_VIDCAP_GUID,
+                                                                    media_source_p))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to Stream_Device_MediaFoundation_Tools::getMediaSource(\"%s\"), aborting\n"),
+                ACE_TEXT ("failed to Stream_MediaFramework_MediaFoundation_Tools::getMediaSource(\"%s\"), aborting\n"),
                 ACE_TEXT (captureinterfaceIdentifier_in.c_str ())));
     goto error;
   } // end IF

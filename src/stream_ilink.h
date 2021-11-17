@@ -43,7 +43,7 @@ class Stream_IDistributorModule
   //         - the module has been initialize()d
   //         - the corresponding head module has not been push()ed yet
   virtual bool has (const std::string&,       // branch name
-                    unsigned int&) const = 0; // return value: index (iff any; see above)
+                    unsigned int&) const = 0; // return value: index (zero-based; see above)
   virtual Stream_ModuleList_t next () const = 0; // return value: branch 'head's
 };
 

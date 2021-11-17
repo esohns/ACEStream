@@ -41,6 +41,7 @@ struct Stream_Visualization_OpenGL_Instruction
 {
   Stream_Visualization_OpenGL_Instruction ()
    : type (STREAM_VISUALIZATION_OPENGL_INSTRUCTION_INVALID)
+   , color ()
   {}
 
   enum Stream_Visualization_OpenGL_InstructionType type;

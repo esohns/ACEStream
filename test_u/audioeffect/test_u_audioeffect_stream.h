@@ -144,7 +144,7 @@ class Test_U_AudioEffect_MediaFoundation_Stream
   virtual bool initialize (const inherited::CONFIGURATION_T&); // configuration
 
   // implement IMFAsyncCallback
-  virtual STDMETHODIMP QueryInterface (const IID&,
+  virtual STDMETHODIMP QueryInterface (REFIID,
                                        void**);
   inline virtual STDMETHODIMP_ (ULONG) AddRef () { return InterlockedIncrement (&referenceCount_); }
   inline virtual STDMETHODIMP_ (ULONG) Release () { ULONG count = InterlockedDecrement (&referenceCount_); return count; }

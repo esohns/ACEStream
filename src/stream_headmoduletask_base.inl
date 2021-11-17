@@ -706,14 +706,12 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
 
         // *IMPORTANT NOTE*: when close()d manually (i.e. on a user abort),
         //                   the stream may not have finish()ed
-        { ACE_GUARD_RETURN (ACE_Thread_Mutex, aGuard, inherited::lock_, -1);
-          if (unlikely (inherited2::current () != STREAM_STATE_FINISHED))
-          {
-            inherited2::finished (); // *NOTE*: enqueues SESSION_END --> continue
-            message_block_p->release (); message_block_p = NULL;
-            continue;
-          } // end IF
-        } // end lock scope
+        if (unlikely (inherited2::current () != STREAM_STATE_FINISHED))
+        {
+          inherited2::finished (); // *NOTE*: enqueues SESSION_END --> continue
+          message_block_p->release (); message_block_p = NULL;
+          continue;
+        } // end IF
 
         // *NOTE*: this is racy; the penultimate thread may have left svc() and
         //         not have decremented thr_count_ yet. In this case, the

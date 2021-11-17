@@ -18,29 +18,26 @@
 *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
 ***************************************************************************/
 
+#include "AudioClient.h"
+#include "mfapi.h"
+#include "mferror.h"
+#include "shlwapi.h"
+#include "wxdebug.h"
+
 #include "ace/Guard_T.h"
 #include "ace/Log_Msg.h"
-
-#include <mfapi.h>
-#include <mferror.h>
-#include <shlwapi.h>
-#include <wxdebug.h>
 
 #include "stream_macros.h"
 
 template <typename TimePolicyType,
-          typename SessionMessageType,
-          typename ProtocolMessageType,
-          typename ConfigurationType,
-          typename MediaType>
+          typename MessageType,
+          typename ConfigurationType>
 HRESULT
 Stream_MediaFramework_MediaFoundation_MediaSource_T<TimePolicyType,
-                                                    SessionMessageType,
-                                                    ProtocolMessageType,
-                                                    ConfigurationType,
-                                                    MediaType>::CreateInstance (IUnknown* parent_in,
-                                                                                REFIID interfaceID_in,
-                                                                                void** interface_out)
+                                                    MessageType,
+                                                    ConfigurationType>::CreateInstance (IUnknown* parent_in,
+                                                                                        REFIID interfaceID_in,
+                                                                                        void** interface_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_MediaFoundation_MediaSource_T::CreateInstance"));
 
@@ -65,7 +62,7 @@ Stream_MediaFramework_MediaFoundation_MediaSource_T<TimePolicyType,
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to instantiate Stream_MediaFramework_MediaFoundation_MediaSource_T: \"%s\", aborting\n"),
                 ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
-    instance_p->Release (); instance_p = NULL;
+    delete instance_p; instance_p = NULL;
     return result;
   } // end IF
   result = instance_p->QueryInterface (interfaceID_in, interface_out);
@@ -74,29 +71,50 @@ Stream_MediaFramework_MediaFoundation_MediaSource_T<TimePolicyType,
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Stream_MediaFramework_MediaFoundation_MediaSource_T::QueryInterface(): \"%s\", aborting\n"),
                 ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
-    instance_p->Release (); instance_p = NULL;
+    delete instance_p; instance_p = NULL;
     return result;
   } // end IF
   ACE_ASSERT (interface_out);
-  instance_p->Release (); instance_p = NULL;
 
   return result;
 }
 
 template <typename TimePolicyType,
-          typename SessionMessageType,
-          typename ProtocolMessageType,
-          typename ConfigurationType,
-          typename MediaType>
+          typename MessageType,
+          typename ConfigurationType>
 Stream_MediaFramework_MediaFoundation_MediaSource_T<TimePolicyType,
-                                                    SessionMessageType,
-                                                    ProtocolMessageType,
-                                                    ConfigurationType,
-                                                    MediaType>::Stream_MediaFramework_MediaFoundation_MediaSource_T (HRESULT* result_out)
+                                                    MessageType,
+                                                    ConfigurationType>::Stream_MediaFramework_MediaFoundation_MediaSource_T ()
  : eventQueue_ (NULL)
 //, hasCOMReference_ (false)
  , lock_ ()
- , referenceCount_ (1)
+ , referenceCount_ (0)
+ , shutdownInvoked_ (false)
+ , state_ (STATE_INVALID)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_MediaFoundation_MediaSource_T::Stream_MediaFramework_MediaFoundation_MediaSource_T"));
+
+  HRESULT result = MFCreateEventQueue (&eventQueue_);
+  if (FAILED (result))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to MFCreateEventQueue(): \"%s\", returning\n"),
+                ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
+    return;
+  } // end IF
+}
+
+template <typename TimePolicyType,
+          typename MessageType,
+          typename ConfigurationType>
+Stream_MediaFramework_MediaFoundation_MediaSource_T<TimePolicyType,
+                                                    MessageType,
+                                                    ConfigurationType>::Stream_MediaFramework_MediaFoundation_MediaSource_T (HRESULT* result_out)
+ : eventQueue_ (NULL)
+//, hasCOMReference_ (false)
+ , lock_ ()
+ , referenceCount_ (0)
+ , shutdownInvoked_ (false)
  , state_ (STATE_INVALID)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_MediaFoundation_MediaSource_T::Stream_MediaFramework_MediaFoundation_MediaSource_T"));
@@ -104,27 +122,22 @@ Stream_MediaFramework_MediaFoundation_MediaSource_T<TimePolicyType,
   // sanity check(s)
   ACE_ASSERT (result_out);
 
-  //{ ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, lock_);
-    *result_out = MFCreateEventQueue (&eventQueue_);
-    if (FAILED (*result_out))
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to MFCreateEventQueue(): \"%s\", returning\n"),
-                  ACE_TEXT (Common_Error_Tools::errorToString (*result_out).c_str ())));
-      return;
-    } // end IF
-  //} // end lock scope
+  *result_out = MFCreateEventQueue (&eventQueue_);
+  if (FAILED (*result_out))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to MFCreateEventQueue(): \"%s\", returning\n"),
+                ACE_TEXT (Common_Error_Tools::errorToString (*result_out).c_str ())));
+    return;
+  } // end IF
 }
+
 template <typename TimePolicyType,
-          typename SessionMessageType,
-          typename ProtocolMessageType,
-          typename ConfigurationType,
-          typename MediaType>
+          typename MessageType,
+          typename ConfigurationType>
 Stream_MediaFramework_MediaFoundation_MediaSource_T<TimePolicyType,
-                                                    SessionMessageType,
-                                                    ProtocolMessageType,
-                                                    ConfigurationType,
-                                                    MediaType>::~Stream_MediaFramework_MediaFoundation_MediaSource_T ()
+                                                    MessageType,
+                                                    ConfigurationType>::~Stream_MediaFramework_MediaFoundation_MediaSource_T ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_MediaFoundation_MediaSource_T::~Stream_MediaFramework_MediaFoundation_MediaSource_T"));
 
@@ -145,21 +158,17 @@ Stream_MediaFramework_MediaFoundation_MediaSource_T<TimePolicyType,
 }
 
 template <typename TimePolicyType,
-          typename SessionMessageType,
-          typename ProtocolMessageType,
-          typename ConfigurationType,
-          typename MediaType>
+          typename MessageType,
+          typename ConfigurationType>
 HRESULT
 Stream_MediaFramework_MediaFoundation_MediaSource_T<TimePolicyType,
-                                                    SessionMessageType,
-                                                    ProtocolMessageType,
-                                                    ConfigurationType,
-                                                    MediaType>::BeginCreateObject (LPCWSTR pwszURL,
-                                                                                   DWORD dwFlags,
-                                                                                   IPropertyStore* pProps,
-                                                                                   IUnknown** ppIUnknownCancelCookie,
-                                                                                   IMFAsyncCallback* pCallback,
-                                                                                   IUnknown* punkState)
+                                                    MessageType,
+                                                    ConfigurationType>::BeginCreateObject (LPCWSTR pwszURL,
+                                                                                           DWORD dwFlags,
+                                                                                           IPropertyStore* pProps,
+                                                                                           IUnknown** ppIUnknownCancelCookie,
+                                                                                           IMFAsyncCallback* pCallback,
+                                                                                           IUnknown* punkState)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_MediaFoundation_MediaSource_T::BeginCreateObject"));
 
@@ -167,17 +176,14 @@ Stream_MediaFramework_MediaFoundation_MediaSource_T<TimePolicyType,
   ACE_NOTSUP_RETURN (E_FAIL);
   ACE_NOTREACHED (return E_FAIL);
 }
+
 template <typename TimePolicyType,
-          typename SessionMessageType,
-          typename ProtocolMessageType,
-          typename ConfigurationType,
-          typename MediaType>
+          typename MessageType,
+          typename ConfigurationType>
 HRESULT
 Stream_MediaFramework_MediaFoundation_MediaSource_T<TimePolicyType,
-                                                    SessionMessageType,
-                                                    ProtocolMessageType,
-                                                    ConfigurationType,
-                                                    MediaType>::CancelObjectCreation (IUnknown* pIUnknownCancelCookie)
+                                                    MessageType,
+                                                    ConfigurationType>::CancelObjectCreation (IUnknown* pIUnknownCancelCookie)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_MediaFoundation_MediaSource_T::CancelObjectCreation"));
 
@@ -185,19 +191,16 @@ Stream_MediaFramework_MediaFoundation_MediaSource_T<TimePolicyType,
   ACE_NOTSUP_RETURN (E_FAIL);
   ACE_NOTREACHED (return E_FAIL);
 }
+
 template <typename TimePolicyType,
-          typename SessionMessageType,
-          typename ProtocolMessageType,
-          typename ConfigurationType,
-          typename MediaType>
+          typename MessageType,
+          typename ConfigurationType>
 HRESULT
 Stream_MediaFramework_MediaFoundation_MediaSource_T<TimePolicyType,
-                                                    SessionMessageType,
-                                                    ProtocolMessageType,
-                                                    ConfigurationType,
-                                                    MediaType>::EndCreateObject (IMFAsyncResult* pResult,
-                                                                                 MF_OBJECT_TYPE* pObjectType,
-                                                                                 IUnknown** ppObject)
+                                                    MessageType,
+                                                    ConfigurationType>::EndCreateObject (IMFAsyncResult* pResult,
+                                                                                         MF_OBJECT_TYPE* pObjectType,
+                                                                                         IUnknown** ppObject)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_MediaFoundation_MediaSource_T::EndCreateObject"));
 
@@ -207,17 +210,13 @@ Stream_MediaFramework_MediaFoundation_MediaSource_T<TimePolicyType,
 }
 
 template <typename TimePolicyType,
-          typename SessionMessageType,
-          typename ProtocolMessageType,
-          typename ConfigurationType,
-          typename MediaType>
+          typename MessageType,
+          typename ConfigurationType>
 HRESULT
 Stream_MediaFramework_MediaFoundation_MediaSource_T<TimePolicyType,
-                                                    SessionMessageType,
-                                                    ProtocolMessageType,
-                                                    ConfigurationType,
-                                                    MediaType>::QueryInterface (REFIID IID_in,
-                                                                                void** interface_out)
+                                                    MessageType,
+                                                    ConfigurationType>::QueryInterface (REFIID IID_in,
+                                                                                        void** interface_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_MediaFoundation_MediaSource_T::QueryInterface"));
 
@@ -230,6 +229,11 @@ Stream_MediaFramework_MediaFoundation_MediaSource_T<TimePolicyType,
 #else
     QITABENT (OWN_TYPE_T, IMFMediaSource),
 #endif // _WIN32_WINNT_WIN8
+    //QITABENT (OWN_TYPE_T, IMFAttributes),
+    QITABENT (OWN_TYPE_T, IMFPresentationDescriptor),
+    //QITABENT (OWN_TYPE_T, IMFAttributes),
+    QITABENT (OWN_TYPE_T, IMFStreamDescriptor),
+    QITABENT (OWN_TYPE_T, IMFMediaTypeHandler),
     //QITABENT (OWN_TYPE_T, IMarshal),
     { 0 },
   };
@@ -241,16 +245,12 @@ Stream_MediaFramework_MediaFoundation_MediaSource_T<TimePolicyType,
 }
 
 template <typename TimePolicyType,
-          typename SessionMessageType,
-          typename ProtocolMessageType,
-          typename ConfigurationType,
-          typename MediaType>
+          typename MessageType,
+          typename ConfigurationType>
 ULONG
 Stream_MediaFramework_MediaFoundation_MediaSource_T<TimePolicyType,
-                                                    SessionMessageType,
-                                                    ProtocolMessageType,
-                                                    ConfigurationType,
-                                                    MediaType>::Release ()
+                                                    MessageType,
+                                                    ConfigurationType>::Release ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_MediaFoundation_MediaSource_T::Release"));
 
@@ -262,17 +262,13 @@ Stream_MediaFramework_MediaFoundation_MediaSource_T<TimePolicyType,
 }
 
 template <typename TimePolicyType,
-          typename SessionMessageType,
-          typename ProtocolMessageType,
-          typename ConfigurationType,
-          typename MediaType>
+          typename MessageType,
+          typename ConfigurationType>
 HRESULT
 Stream_MediaFramework_MediaFoundation_MediaSource_T<TimePolicyType,
-                                                    SessionMessageType,
-                                                    ProtocolMessageType,
-                                                    ConfigurationType,
-                                                    MediaType>::BeginGetEvent (IMFAsyncCallback* asynchCallback_in,
-                                                                               IUnknown* state_in)
+                                                    MessageType,
+                                                    ConfigurationType>::BeginGetEvent (IMFAsyncCallback* asynchCallback_in,
+                                                                                       IUnknown* state_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_MediaFoundation_MediaSource_T::BeginGetEvent"));
 
@@ -293,18 +289,15 @@ Stream_MediaFramework_MediaFoundation_MediaSource_T<TimePolicyType,
 done:
   return result;
 }
+
 template <typename TimePolicyType,
-          typename SessionMessageType,
-          typename ProtocolMessageType,
-          typename ConfigurationType,
-          typename MediaType>
+          typename MessageType,
+          typename ConfigurationType>
 HRESULT
 Stream_MediaFramework_MediaFoundation_MediaSource_T<TimePolicyType,
-                                                    SessionMessageType,
-                                                    ProtocolMessageType,
-                                                    ConfigurationType,
-                                                    MediaType>::EndGetEvent (IMFAsyncResult* asynchResult_in,
-                                                                             IMFMediaEvent** event_out)
+                                                    MessageType,
+                                                    ConfigurationType>::EndGetEvent (IMFAsyncResult* asynchResult_in,
+                                                                                     IMFMediaEvent** event_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_MediaFoundation_MediaSource_T::EndGetEvent"));
 
@@ -327,17 +320,13 @@ done:
 }
 
 template <typename TimePolicyType,
-          typename SessionMessageType,
-          typename ProtocolMessageType,
-          typename ConfigurationType,
-          typename MediaType>
+          typename MessageType,
+          typename ConfigurationType>
 HRESULT
 Stream_MediaFramework_MediaFoundation_MediaSource_T<TimePolicyType,
-                                                    SessionMessageType,
-                                                    ProtocolMessageType,
-                                                    ConfigurationType,
-                                                    MediaType>::GetEvent (DWORD flags_in,
-                                                                          IMFMediaEvent** event_out)
+                                                    MessageType,
+                                                    ConfigurationType>::GetEvent (DWORD flags_in,
+                                                                                  IMFMediaEvent** event_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_MediaFoundation_MediaSource_T::GetEvent"));
 
@@ -368,19 +357,15 @@ done:
 }
 
 template <typename TimePolicyType,
-          typename SessionMessageType,
-          typename ProtocolMessageType,
-          typename ConfigurationType,
-          typename MediaType>
+          typename MessageType,
+          typename ConfigurationType>
 HRESULT
 Stream_MediaFramework_MediaFoundation_MediaSource_T<TimePolicyType,
-                                                    SessionMessageType,
-                                                    ProtocolMessageType,
-                                                    ConfigurationType,
-                                                    MediaType>::QueueEvent (MediaEventType type_in,
-                                                                            REFGUID extendedType_in,
-                                                                            HRESULT status_in,
-                                                                            const PROPVARIANT* value_in)
+                                                    MessageType,
+                                                    ConfigurationType>::QueueEvent (MediaEventType type_in,
+                                                                                    REFGUID extendedType_in,
+                                                                                    HRESULT status_in,
+                                                                                    const PROPVARIANT* value_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_MediaFoundation_MediaSource_T::QueueEvent"));
 
@@ -406,60 +391,53 @@ done:
 }
 
 template <typename TimePolicyType,
-          typename SessionMessageType,
-          typename ProtocolMessageType,
-          typename ConfigurationType,
-          typename MediaType>
+          typename MessageType,
+          typename ConfigurationType>
 HRESULT
 Stream_MediaFramework_MediaFoundation_MediaSource_T<TimePolicyType,
-                                                    SessionMessageType,
-                                                    ProtocolMessageType,
-                                                    ConfigurationType,
-                                                    MediaType>::GetCharacteristics (DWORD* characteristics_out)
+                                                    MessageType,
+                                                    ConfigurationType>::GetCharacteristics (DWORD* characteristics_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_MediaFoundation_MediaSource_T::GetCharacteristics"));
 
-  ACE_UNUSED_ARG (characteristics_out);
+  // sanity check(s)
+  ACE_ASSERT (characteristics_out);
+  if (shutdownInvoked_)
+    return MF_E_SHUTDOWN;
 
-  ACE_ASSERT (false);
-  ACE_NOTSUP_RETURN (E_FAIL);
+  *characteristics_out =
+    (MFMEDIASOURCE_IS_LIVE             |
+     MFMEDIASOURCE_CAN_PAUSE           |
+     MFMEDIASOURCE_DOES_NOT_USE_NETWORK); // *TODO*: this may not always be true !
 
-  ACE_NOTREACHED (return E_FAIL;)
+  return S_OK;
 }
+
 template <typename TimePolicyType,
-          typename SessionMessageType,
-          typename ProtocolMessageType,
-          typename ConfigurationType,
-          typename MediaType>
+          typename MessageType,
+          typename ConfigurationType>
 HRESULT
 Stream_MediaFramework_MediaFoundation_MediaSource_T<TimePolicyType,
-                                                    SessionMessageType,
-                                                    ProtocolMessageType,
-                                                    ConfigurationType,
-                                                    MediaType>::CreatePresentationDescriptor (IMFPresentationDescriptor** presentationDescriptor_out)
+                                                    MessageType,
+                                                    ConfigurationType>::CreatePresentationDescriptor (IMFPresentationDescriptor** presentationDescriptor_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_MediaFoundation_MediaSource_T::CreatePresentationDescriptor"));
 
   // sanity check(s)
-  ACE_ASSERT (presentationDescriptor_out);
+  ACE_ASSERT (presentationDescriptor_out && !*presentationDescriptor_out);
 
-  *presentationDescriptor_out = this;
-
-  return S_OK;
+  return QueryInterface (IID_PPV_ARGS (presentationDescriptor_out));
 }
+
 template <typename TimePolicyType,
-          typename SessionMessageType,
-          typename ProtocolMessageType,
-          typename ConfigurationType,
-          typename MediaType>
+          typename MessageType,
+          typename ConfigurationType>
 HRESULT
 Stream_MediaFramework_MediaFoundation_MediaSource_T<TimePolicyType,
-                                                    SessionMessageType,
-                                                    ProtocolMessageType,
-                                                    ConfigurationType,
-                                                    MediaType>::Start (IMFPresentationDescriptor* presentationDescriptor_in,
-                                                                       const GUID* timeFormat_in,
-                                                                       const PROPVARIANT* startPosition_in)
+                                                    MessageType,
+                                                    ConfigurationType>::Start (IMFPresentationDescriptor* presentationDescriptor_in,
+                                                                               const GUID* timeFormat_in,
+                                                                               const PROPVARIANT* startPosition_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_MediaFoundation_MediaSource_T::Start"));
 
@@ -472,17 +450,14 @@ Stream_MediaFramework_MediaFoundation_MediaSource_T<TimePolicyType,
 
   ACE_NOTREACHED (return E_FAIL;)
 }
+
 template <typename TimePolicyType,
-          typename SessionMessageType,
-          typename ProtocolMessageType,
-          typename ConfigurationType,
-          typename MediaType>
+          typename MessageType,
+          typename ConfigurationType>
 HRESULT
 Stream_MediaFramework_MediaFoundation_MediaSource_T<TimePolicyType,
-                                                    SessionMessageType,
-                                                    ProtocolMessageType,
-                                                    ConfigurationType,
-                                                    MediaType>::Stop (void)
+                                                    MessageType,
+                                                    ConfigurationType>::Stop (void)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_MediaFoundation_MediaSource_T::Stop"));
 
@@ -491,17 +466,14 @@ Stream_MediaFramework_MediaFoundation_MediaSource_T<TimePolicyType,
 
   ACE_NOTREACHED (return E_FAIL;)
 }
+
 template <typename TimePolicyType,
-          typename SessionMessageType,
-          typename ProtocolMessageType,
-          typename ConfigurationType,
-          typename MediaType>
+          typename MessageType,
+          typename ConfigurationType>
 HRESULT
 Stream_MediaFramework_MediaFoundation_MediaSource_T<TimePolicyType,
-                                                    SessionMessageType,
-                                                    ProtocolMessageType,
-                                                    ConfigurationType,
-                                                    MediaType>::Pause (void)
+                                                    MessageType,
+                                                    ConfigurationType>::Pause (void)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_MediaFoundation_MediaSource_T::Pause"));
 
@@ -510,19 +482,18 @@ Stream_MediaFramework_MediaFoundation_MediaSource_T<TimePolicyType,
 
   ACE_NOTREACHED (return E_FAIL;)
 }
+
 template <typename TimePolicyType,
-          typename SessionMessageType,
-          typename ProtocolMessageType,
-          typename ConfigurationType,
-          typename MediaType>
+          typename MessageType,
+          typename ConfigurationType>
 HRESULT
 Stream_MediaFramework_MediaFoundation_MediaSource_T<TimePolicyType,
-                                                    SessionMessageType,
-                                                    ProtocolMessageType,
-                                                    ConfigurationType,
-                                                    MediaType>::Shutdown (void)
+                                                    MessageType,
+                                                    ConfigurationType>::Shutdown (void)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_MediaFoundation_MediaSource_T::Shutdown"));
+
+  shutdownInvoked_ = true;
 
   ACE_ASSERT (false);
   ACE_NOTSUP_RETURN (E_FAIL);
@@ -531,16 +502,12 @@ Stream_MediaFramework_MediaFoundation_MediaSource_T<TimePolicyType,
 }
 
 template <typename TimePolicyType,
-          typename SessionMessageType,
-          typename ProtocolMessageType,
-          typename ConfigurationType,
-          typename MediaType>
+          typename MessageType,
+          typename ConfigurationType>
 HRESULT
 Stream_MediaFramework_MediaFoundation_MediaSource_T<TimePolicyType,
-                                                    SessionMessageType,
-                                                    ProtocolMessageType,
-                                                    ConfigurationType,
-                                                    MediaType>::GetSourceAttributes (IMFAttributes** attributes_out)
+                                                    MessageType,
+                                                    ConfigurationType>::GetSourceAttributes (IMFAttributes** attributes_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_MediaFoundation_MediaSource_T::GetSourceAttributes"));
 
@@ -551,18 +518,15 @@ Stream_MediaFramework_MediaFoundation_MediaSource_T<TimePolicyType,
 
   ACE_NOTREACHED (return E_FAIL;)
 }
+
 template <typename TimePolicyType,
-          typename SessionMessageType,
-          typename ProtocolMessageType,
-          typename ConfigurationType,
-          typename MediaType>
+          typename MessageType,
+          typename ConfigurationType>
 HRESULT
 Stream_MediaFramework_MediaFoundation_MediaSource_T<TimePolicyType,
-                                                    SessionMessageType,
-                                                    ProtocolMessageType,
-                                                    ConfigurationType,
-                                                    MediaType>::GetStreamAttributes (DWORD streamIdentifier_in,
-                                                                                     IMFAttributes** attributes_out)
+                                                    MessageType,
+                                                    ConfigurationType>::GetStreamAttributes (DWORD streamIdentifier_in,
+                                                                                             IMFAttributes** attributes_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_MediaFoundation_MediaSource_T::GetStreamAttributes"));
 
@@ -574,17 +538,14 @@ Stream_MediaFramework_MediaFoundation_MediaSource_T<TimePolicyType,
 
   ACE_NOTREACHED (return E_FAIL;)
 }
+
 template <typename TimePolicyType,
-          typename SessionMessageType,
-          typename ProtocolMessageType,
-          typename ConfigurationType,
-          typename MediaType>
+          typename MessageType,
+          typename ConfigurationType>
 HRESULT
 Stream_MediaFramework_MediaFoundation_MediaSource_T<TimePolicyType,
-                                                    SessionMessageType,
-                                                    ProtocolMessageType,
-                                                    ConfigurationType,
-                                                    MediaType>::SetD3DManager (IUnknown* Direct3DManager_in)
+                                                    MessageType,
+                                                    ConfigurationType>::SetD3DManager (IUnknown* Direct3DManager_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_MediaFoundation_MediaSource_T::SetD3DManager"));
 
@@ -597,16 +558,12 @@ Stream_MediaFramework_MediaFoundation_MediaSource_T<TimePolicyType,
 }
 
 template <typename TimePolicyType,
-          typename SessionMessageType,
-          typename ProtocolMessageType,
-          typename ConfigurationType,
-          typename MediaType>
+          typename MessageType,
+          typename ConfigurationType>
 HRESULT
 Stream_MediaFramework_MediaFoundation_MediaSource_T<TimePolicyType,
-                                                    SessionMessageType,
-                                                    ProtocolMessageType,
-                                                    ConfigurationType,
-                                                    MediaType>::Clone (IMFPresentationDescriptor** ppPresentationDescriptor)
+                                                    MessageType,
+                                                    ConfigurationType>::Clone (IMFPresentationDescriptor** ppPresentationDescriptor)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_MediaFoundation_MediaSource_T::Clone"));
 
@@ -617,17 +574,14 @@ Stream_MediaFramework_MediaFoundation_MediaSource_T<TimePolicyType,
 
   ACE_NOTREACHED (return E_FAIL;)
 }
+
 template <typename TimePolicyType,
-          typename SessionMessageType,
-          typename ProtocolMessageType,
-          typename ConfigurationType,
-          typename MediaType>
+          typename MessageType,
+          typename ConfigurationType>
 HRESULT
 Stream_MediaFramework_MediaFoundation_MediaSource_T<TimePolicyType,
-                                                    SessionMessageType,
-                                                    ProtocolMessageType,
-                                                    ConfigurationType,
-                                                    MediaType>::DeselectStream (DWORD dwIndex)
+                                                    MessageType,
+                                                    ConfigurationType>::DeselectStream (DWORD dwIndex)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_MediaFoundation_MediaSource_T::DeselectStream"));
 
@@ -638,19 +592,16 @@ Stream_MediaFramework_MediaFoundation_MediaSource_T<TimePolicyType,
 
   ACE_NOTREACHED (return E_FAIL;)
 }
+
 template <typename TimePolicyType,
-          typename SessionMessageType,
-          typename ProtocolMessageType,
-          typename ConfigurationType,
-          typename MediaType>
+          typename MessageType,
+          typename ConfigurationType>
 HRESULT
 Stream_MediaFramework_MediaFoundation_MediaSource_T<TimePolicyType,
-                                                    SessionMessageType,
-                                                    ProtocolMessageType,
-                                                    ConfigurationType,
-                                                    MediaType>::GetStreamDescriptorByIndex (DWORD dwIndex,
-                                                                                            BOOL* pfSelected,
-                                                                                            IMFStreamDescriptor** ppStreamDescriptor)
+                                                    MessageType,
+                                                    ConfigurationType>::GetStreamDescriptorByIndex (DWORD dwIndex,
+                                                                                                    BOOL* pfSelected,
+                                                                                                    IMFStreamDescriptor** ppStreamDescriptor)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_MediaFoundation_MediaSource_T::GetStreamDescriptorByIndex"));
 
@@ -658,24 +609,20 @@ Stream_MediaFramework_MediaFoundation_MediaSource_T<TimePolicyType,
 
   // sanity check(s)
   ACE_ASSERT (pfSelected);
-  ACE_ASSERT (ppStreamDescriptor);
+  ACE_ASSERT (ppStreamDescriptor && !*ppStreamDescriptor);
 
   *pfSelected = TRUE;
-  *ppStreamDescriptor = this;
 
-  return S_OK;
+  return QueryInterface (IID_PPV_ARGS (ppStreamDescriptor));
 }
+
 template <typename TimePolicyType,
-          typename SessionMessageType,
-          typename ProtocolMessageType,
-          typename ConfigurationType,
-          typename MediaType>
+          typename MessageType,
+          typename ConfigurationType>
 HRESULT
 Stream_MediaFramework_MediaFoundation_MediaSource_T<TimePolicyType,
-                                                    SessionMessageType,
-                                                    ProtocolMessageType,
-                                                    ConfigurationType,
-                                                    MediaType>::GetStreamDescriptorCount (DWORD* pdwDescriptorCount)
+                                                    MessageType,
+                                                    ConfigurationType>::GetStreamDescriptorCount (DWORD* pdwDescriptorCount)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_MediaFoundation_MediaSource_T::DeselectStream"));
 
@@ -686,17 +633,14 @@ Stream_MediaFramework_MediaFoundation_MediaSource_T<TimePolicyType,
 
   return S_OK;
 }
+
 template <typename TimePolicyType,
-          typename SessionMessageType,
-          typename ProtocolMessageType,
-          typename ConfigurationType,
-          typename MediaType>
+          typename MessageType,
+          typename ConfigurationType>
 HRESULT
 Stream_MediaFramework_MediaFoundation_MediaSource_T<TimePolicyType,
-                                                    SessionMessageType,
-                                                    ProtocolMessageType,
-                                                    ConfigurationType,
-                                                    MediaType>::SelectStream (DWORD dwIndex)
+                                                    MessageType,
+                                                    ConfigurationType>::SelectStream (DWORD dwIndex)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_MediaFoundation_MediaSource_T::SelectStream"));
 
@@ -706,37 +650,28 @@ Stream_MediaFramework_MediaFoundation_MediaSource_T<TimePolicyType,
 }
 
 template <typename TimePolicyType,
-          typename SessionMessageType,
-          typename ProtocolMessageType,
-          typename ConfigurationType,
-          typename MediaType>
+          typename MessageType,
+          typename ConfigurationType>
 HRESULT
 Stream_MediaFramework_MediaFoundation_MediaSource_T<TimePolicyType,
-                                                    SessionMessageType,
-                                                    ProtocolMessageType,
-                                                    ConfigurationType,
-                                                    MediaType>::GetMediaTypeHandler (IMFMediaTypeHandler** ppMediaTypeHandler)
+                                                    MessageType,
+                                                    ConfigurationType>::GetMediaTypeHandler (IMFMediaTypeHandler** ppMediaTypeHandler)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_MediaFoundation_MediaSource_T::GetMediaTypeHandler"));
 
   // sanity check(s)
-  ACE_ASSERT (ppMediaTypeHandler);
+  ACE_ASSERT (ppMediaTypeHandler && !*ppMediaTypeHandler);
 
-  *ppMediaTypeHandler = this;
-
-  return S_OK;
+  return QueryInterface (IID_PPV_ARGS (ppMediaTypeHandler));
 }
+
 template <typename TimePolicyType,
-          typename SessionMessageType,
-          typename ProtocolMessageType,
-          typename ConfigurationType,
-          typename MediaType>
+          typename MessageType,
+          typename ConfigurationType>
 HRESULT
 Stream_MediaFramework_MediaFoundation_MediaSource_T<TimePolicyType,
-                                                    SessionMessageType,
-                                                    ProtocolMessageType,
-                                                    ConfigurationType,
-                                                    MediaType>::GetStreamIdentifier (DWORD* pdwStreamIdentifier)
+                                                    MessageType,
+                                                    ConfigurationType>::GetStreamIdentifier (DWORD* pdwStreamIdentifier)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_MediaFoundation_MediaSource_T::GetStreamIdentifier"));
 
@@ -749,77 +684,48 @@ Stream_MediaFramework_MediaFoundation_MediaSource_T<TimePolicyType,
 }
 
 template <typename TimePolicyType,
-          typename SessionMessageType,
-          typename ProtocolMessageType,
-          typename ConfigurationType,
-          typename MediaType>
+          typename MessageType,
+          typename ConfigurationType>
 HRESULT
 Stream_MediaFramework_MediaFoundation_MediaSource_T<TimePolicyType,
-                                                    SessionMessageType,
-                                                    ProtocolMessageType,
-                                                    ConfigurationType,
-                                                    MediaType>::GetCurrentMediaType (IMFMediaType** ppMediaType)
+                                                    MessageType,
+                                                    ConfigurationType>::GetCurrentMediaType (IMFMediaType** ppMediaType)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_MediaFoundation_MediaSource_T::GetCurrentMediaType"));
 
   // sanity check(s)
   ACE_ASSERT (ppMediaType && !*ppMediaType);
+  if (!configuration_ || !configuration_->mediaType)
+    return MF_E_NOT_INITIALIZED;
 
   HRESULT result = MFCreateMediaType (ppMediaType);
-  ACE_ASSERT (SUCCEEDED (result)); ACE_ASSERT (*ppMediaType);
-
-  result = (*ppMediaType)->SetGUID (MF_MT_MAJOR_TYPE,
-                                    MFMediaType_Video);
-  ACE_ASSERT (SUCCEEDED (result));
-  result =
-    (*ppMediaType)->SetUINT32 (MF_MT_INTERLACE_MODE,
-                               MFVideoInterlace_Unknown);
-  ACE_ASSERT (SUCCEEDED (result));
-  result = MFSetAttributeRatio (*ppMediaType,
-                                MF_MT_PIXEL_ASPECT_RATIO,
-                                1, 1);
-  ACE_ASSERT (SUCCEEDED (result));
-  result = (*ppMediaType)->SetGUID (MF_MT_SUBTYPE,
-                                    MFVideoFormat_RGB32);
-  ACE_ASSERT (SUCCEEDED (result));
-  result = MFSetAttributeSize (*ppMediaType,
-                               MF_MT_FRAME_RATE,
-                               STREAM_DEV_CAM_DEFAULT_CAPTURE_RATE, 1);
-  ACE_ASSERT (SUCCEEDED (result));
-  result = MFSetAttributeSize (*ppMediaType,
-                               MF_MT_FRAME_SIZE,
-                               STREAM_DEV_CAM_DEFAULT_CAPTURE_SIZE_WIDTH,
-                               STREAM_DEV_CAM_DEFAULT_CAPTURE_SIZE_HEIGHT);
-  ACE_ASSERT (SUCCEEDED (result));
-  result = (*ppMediaType)->SetUINT32 (MF_MT_ALL_SAMPLES_INDEPENDENT,
-                                      1);
-  ACE_ASSERT (SUCCEEDED (result));
-  result = (*ppMediaType)->SetUINT32 (MF_MT_FIXED_SIZE_SAMPLES,
-                                      1);
-  ACE_ASSERT (SUCCEEDED (result));
-  UINT32 frame_size = 0;
-  result = MFCalculateImageSize (MFVideoFormat_RGB32,
-                                 STREAM_DEV_CAM_DEFAULT_CAPTURE_SIZE_WIDTH,
-                                 STREAM_DEV_CAM_DEFAULT_CAPTURE_SIZE_HEIGHT,
-                                 &frame_size);
-  ACE_ASSERT (SUCCEEDED (result));
-  result = (*ppMediaType)->SetUINT32 (MF_MT_SAMPLE_SIZE,
-                                      frame_size);
-  ACE_ASSERT (SUCCEEDED (result));
+  if (FAILED (result) || !*ppMediaType)
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to MFCreateMediaType(): \"%s\", aborting\n"),
+                ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
+    return result;
+  } // end IF
+  result = configuration_->mediaType->CopyAllItems (*ppMediaType);
+  if (FAILED (result))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to IMFMediaType::CopyAllItems(): \"%s\", aborting\n"),
+                ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
+    (*ppMediaType)->Release (); *ppMediaType = NULL;
+    return result;
+  } // end IF
 
   return S_OK;
 }
+
 template <typename TimePolicyType,
-          typename SessionMessageType,
-          typename ProtocolMessageType,
-          typename ConfigurationType,
-          typename MediaType>
+          typename MessageType,
+          typename ConfigurationType>
 HRESULT
 Stream_MediaFramework_MediaFoundation_MediaSource_T<TimePolicyType,
-                                                    SessionMessageType,
-                                                    ProtocolMessageType,
-                                                    ConfigurationType,
-                                                    MediaType>::GetMajorType (GUID* pguidMajorType)
+                                                    MessageType,
+                                                    ConfigurationType>::GetMajorType (GUID* pguidMajorType)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_MediaFoundation_MediaSource_T::GetMajorType"));
 
@@ -830,61 +736,73 @@ Stream_MediaFramework_MediaFoundation_MediaSource_T<TimePolicyType,
 
   return S_OK;
 }
+
 template <typename TimePolicyType,
-          typename SessionMessageType,
-          typename ProtocolMessageType,
-          typename ConfigurationType,
-          typename MediaType>
+          typename MessageType,
+          typename ConfigurationType>
 HRESULT
 Stream_MediaFramework_MediaFoundation_MediaSource_T<TimePolicyType,
-                                                    SessionMessageType,
-                                                    ProtocolMessageType,
-                                                    ConfigurationType,
-                                                    MediaType>::GetMediaTypeByIndex (DWORD dwIndex,
-                                                                                     IMFMediaType** ppType)
+                                                    MessageType,
+                                                    ConfigurationType>::GetMediaTypeByIndex (DWORD dwIndex,
+                                                                                             IMFMediaType** ppType)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_MediaFoundation_MediaSource_T::GetMajorType"));
+  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_MediaFoundation_MediaSource_T::GetMediaTypeByIndex"));
 
   // sanity check(s)
-  ACE_ASSERT (!ppType);
+  ACE_ASSERT (ppType && !*ppType);
+  if (dwIndex > 0)
+    return MF_E_NO_MORE_TYPES;
+  ACE_ASSERT (configuration_);
+  ACE_ASSERT (configuration_->mediaType);
 
-  ACE_ASSERT (false);
+  HRESULT result = MFCreateMediaType (ppType);
+  if (FAILED (result))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to MFCreateMediaType(): \"%s\", aborting\n"),
+                ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
+    return result;
+  } // end IF
+  ACE_ASSERT (*ppType);
+  result = configuration_->mediaType->CopyAllItems (*ppType);
+  if (FAILED (result))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to IMFMediaType::CopyAllItems(): \"%s\", aborting\n"),
+                ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
+    (*ppType)->Release (); *ppType = NULL;
+    return result;
+  } // end IF
 
   return S_OK;
 }
+
 template <typename TimePolicyType,
-          typename SessionMessageType,
-          typename ProtocolMessageType,
-          typename ConfigurationType,
-          typename MediaType>
+          typename MessageType,
+          typename ConfigurationType>
 HRESULT
 Stream_MediaFramework_MediaFoundation_MediaSource_T<TimePolicyType,
-                                                    SessionMessageType,
-                                                    ProtocolMessageType,
-                                                    ConfigurationType,
-                                                    MediaType>::GetMediaTypeCount (DWORD* pdwTypeCount)
+                                                    MessageType,
+                                                    ConfigurationType>::GetMediaTypeCount (DWORD* pdwTypeCount)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_MediaFoundation_MediaSource_T::GetMediaTypeCount"));
 
   // sanity check(s)
-  ACE_ASSERT (!pdwTypeCount);
+  ACE_ASSERT (pdwTypeCount);
 
   *pdwTypeCount = 1;
 
   return S_OK;
 }
+
 template <typename TimePolicyType,
-          typename SessionMessageType,
-          typename ProtocolMessageType,
-          typename ConfigurationType,
-          typename MediaType>
+          typename MessageType,
+          typename ConfigurationType>
 HRESULT
 Stream_MediaFramework_MediaFoundation_MediaSource_T<TimePolicyType,
-                                                    SessionMessageType,
-                                                    ProtocolMessageType,
-                                                    ConfigurationType,
-                                                    MediaType>::IsMediaTypeSupported (IMFMediaType* pMediaType,
-                                                                                      IMFMediaType** ppMediaType)
+                                                    MessageType,
+                                                    ConfigurationType>::IsMediaTypeSupported (IMFMediaType* pMediaType,
+                                                                                              IMFMediaType** ppMediaType)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_MediaFoundation_MediaSource_T::IsMediaTypeSupported"));
 
@@ -895,24 +813,80 @@ Stream_MediaFramework_MediaFoundation_MediaSource_T<TimePolicyType,
 
   return S_OK;
 }
+
 template <typename TimePolicyType,
-          typename SessionMessageType,
-          typename ProtocolMessageType,
-          typename ConfigurationType,
-          typename MediaType>
+          typename MessageType,
+          typename ConfigurationType>
 HRESULT
 Stream_MediaFramework_MediaFoundation_MediaSource_T<TimePolicyType,
-                                                    SessionMessageType,
-                                                    ProtocolMessageType,
-                                                    ConfigurationType,
-                                                    MediaType>::SetCurrentMediaType (IMFMediaType* pMediaType)
+                                                    MessageType,
+                                                    ConfigurationType>::SetCurrentMediaType (IMFMediaType* pMediaType)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_MediaFoundation_MediaSource_T::IsMediaTypeSupported"));
 
   // sanity check(s)
   ACE_ASSERT (pMediaType);
+  ACE_ASSERT (configuration_);
+  ACE_ASSERT (configuration_->mediaType);
 
-  return S_OK;
+  DWORD flags = 0;
+  return configuration_->mediaType->IsEqual (pMediaType, &flags);
+}
+
+template <typename TimePolicyType,
+          typename MessageType,
+          typename ConfigurationType>
+HRESULT
+Stream_MediaFramework_MediaFoundation_MediaSource_T<TimePolicyType,
+                                                    MessageType,
+                                                    ConfigurationType>::GetUINT32 (REFGUID guidKey_in,
+                                                                                   UINT32* punValue)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_MediaFoundation_MediaSource_T::GetUINT32"));
+
+  // sanity check(s)
+  ACE_ASSERT (punValue);
+
+  if (InlineIsEqualGUID (guidKey_in, MF_SD_PROTECTED))
+  {
+    *punValue = FALSE;
+    return S_OK;
+  } // end IF
+
+  ACE_DEBUG ((LM_ERROR,
+              ACE_TEXT ("invalid/unknown key GUID (was: \"%s\"), aborting\n"),
+              ACE_TEXT (Common_Tools::GUIDToString (guidKey_in).c_str ())));
+
+  return MF_E_ATTRIBUTENOTFOUND;
+}
+
+template <typename TimePolicyType,
+          typename MessageType,
+          typename ConfigurationType>
+HRESULT
+Stream_MediaFramework_MediaFoundation_MediaSource_T<TimePolicyType,
+                                                    MessageType,
+                                                    ConfigurationType>::GetBlobSize (REFGUID guidKey_in,
+                                                                                     UINT32* pcbBlobSize)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_MediaFoundation_MediaSource_T::GetBlobSize"));
+
+  // sanity check(s)
+  ACE_ASSERT (pcbBlobSize);
+
+#if (NTDDI_VERSION >= NTDDI_WIN10_RS4)
+  if (InlineIsEqualGUID (guidKey_in, MF_SD_AMBISONICS_SAMPLE3D_DESCRIPTION))
+  {
+    *pcbBlobSize = sizeof (struct AMBISONICS_PARAMS);
+    return S_OK;
+  } // end IF
+#endif // NTDDI_VERSION >= NTDDI_WIN10_RS4
+
+  ACE_DEBUG ((LM_ERROR,
+              ACE_TEXT ("invalid/unknown key GUID (was: \"%s\"), aborting\n"),
+              ACE_TEXT (Common_Tools::GUIDToString (guidKey_in).c_str ())));
+
+  return MF_E_ATTRIBUTENOTFOUND;
 }
 
 //template <typename TimePolicyType,
@@ -1180,35 +1154,28 @@ Stream_MediaFramework_MediaFoundation_MediaSource_T<TimePolicyType,
 //}
 
 template <typename TimePolicyType,
-          typename SessionMessageType,
-          typename ProtocolMessageType,
-          typename ConfigurationType,
-          typename MediaType>
+          typename MessageType,
+          typename ConfigurationType>
 bool
 Stream_MediaFramework_MediaFoundation_MediaSource_T<TimePolicyType,
-                                                    SessionMessageType,
-                                                    ProtocolMessageType,
-                                                    ConfigurationType,
-                                                    MediaType>::initialize (const ConfigurationType& configuration_in)
+                                                    MessageType,
+                                                    ConfigurationType>::initialize (const ConfigurationType& configuration_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_MediaFoundation_MediaSource_T::initialize"));
 
   configuration_ = &const_cast<ConfigurationType&> (configuration_in);
+  shutdownInvoked_ = false;
 
   return true;
 }
 
 template <typename TimePolicyType,
-          typename SessionMessageType,
-          typename ProtocolMessageType,
-          typename ConfigurationType,
-          typename MediaType>
+          typename MessageType,
+          typename ConfigurationType>
 void
 Stream_MediaFramework_MediaFoundation_MediaSource_T<TimePolicyType,
-                                                    SessionMessageType,
-                                                    ProtocolMessageType,
-                                                    ConfigurationType,
-                                                    MediaType>::operator delete (void* pointer_in)
+                                                    MessageType,
+                                                    ConfigurationType>::operator delete (void* pointer_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_MediaFoundation_MediaSource_T::operator delete"));
 

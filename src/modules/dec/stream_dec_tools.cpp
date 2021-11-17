@@ -3116,9 +3116,6 @@ Stream_Module_Decoder_Tools::loadAudioRendererTopology (const std::string& devic
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Decoder_Tools::loadAudioRendererTopology"));
 
-  // sanity check(s)
-  ACE_ASSERT (mediaType_inout);
-
   bool release_topology = false;
   struct _GUID sub_type = GUID_NULL;
   MFT_REGISTER_TYPE_INFO mft_register_type_info = { GUID_NULL, GUID_NULL };
@@ -3167,10 +3164,10 @@ Stream_Module_Decoder_Tools::loadAudioRendererTopology (const std::string& devic
   {
 #if COMMON_OS_WIN32_TARGET_PLATFORM(0x0601) // _WIN32_WINNT_WIN7
     if (!Stream_Device_MediaFoundation_Tools::loadDeviceTopology (deviceIdentifier_in,
-                                                                         MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE_AUDCAP_GUID,
-                                                                         media_source_p,
-                                                                         NULL, // do not load a dummy sink
-                                                                         topology_inout))
+                                                                  MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE_AUDCAP_GUID,
+                                                                  media_source_p,
+                                                                  NULL, // do not load a dummy sink
+                                                                  topology_inout))
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to Stream_Device_MediaFoundation_Tools::loadDeviceTopology(\"%s\"), aborting\n"),
@@ -3218,15 +3215,18 @@ Stream_Module_Decoder_Tools::loadAudioRendererTopology (const std::string& devic
   unknown_p->Release (); unknown_p = NULL;
 
   // step1a: set default capture media type ?
-  result = mediaType_inout->GetCount (&item_count);
-  if (FAILED (result))
+  if (mediaType_inout)
   {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to IMFMediaType::GetCount(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
-    goto error;
+    result = mediaType_inout->GetCount (&item_count);
+    if (FAILED (result))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to IMFMediaType::GetCount(): \"%s\", aborting\n"),
+                  ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
+      goto error;
+    } // end IF
   } // end IF
-  if (!item_count)
+  if (!mediaType_inout || !item_count)
   {
     if (!Stream_Device_MediaFoundation_Tools::getCaptureFormat (media_source_p,
                                                                 mediaType_inout))
@@ -3575,7 +3575,7 @@ continue_2:
 
 continue_3:
   // step5: add audio renderer sink ?
-  if (!(audioOutput_in > 0))
+  if (audioOutput_in < 0)
     goto continue_4;
 
 #if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
@@ -3647,7 +3647,7 @@ continue_3:
   result = topology_node_p->GetTopoNodeID (&rendererNodeId_out);
   ACE_ASSERT (SUCCEEDED (result));
   ACE_DEBUG ((LM_DEBUG,
-              ACE_TEXT ("added renderer node (id: %q)...\n"),
+              ACE_TEXT ("%q: added audio renderer node...\n"),
               rendererNodeId_out));
   result =
     source_node_p->ConnectOutput ((sampleGrabberSinkCallback_in ? 1 : 0),

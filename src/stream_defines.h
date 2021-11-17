@@ -70,6 +70,7 @@
 
 #define STREAM_SUBSTREAM_DISPLAY_NAME                       "display"
 #define STREAM_SUBSTREAM_NETWORK_NAME                       "network"
+#define STREAM_SUBSTREAM_PLAYBACK_NAME                      "playback"
 #define STREAM_SUBSTREAM_SAVE_NAME                          "save to file"
 
 // statistic

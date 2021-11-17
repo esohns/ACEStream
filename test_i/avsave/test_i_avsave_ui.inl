@@ -2362,12 +2362,12 @@ Stream_AVSave_WxWidgetsDialog_T<wxDialog_main,
   IMFMediaSource* media_source_p = NULL;
 #endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0602)
 #if COMMON_OS_WIN32_TARGET_PLATFORM(0x0601) // _WIN32_WINNT_WIN7
-  if (!Stream_Device_MediaFoundation_Tools::getMediaSource (device_identifier,
-                                                            MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE_VIDCAP_GUID,
-                                                            media_source_p))
+  if (!Stream_MediaFramework_MediaFoundation_Tools::getMediaSource (device_identifier,
+                                                                    MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE_VIDCAP_GUID,
+                                                                    media_source_p))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to Stream_Device_MediaFoundation_Tools::getMediaSource(\"%s\"), returning\n"),
+                ACE_TEXT ("failed to Stream_MediaFramework_MediaFoundation_Tools::getMediaSource(\"%s\"), returning\n"),
                 ACE_TEXT (device_identifier.c_str ())));
     return;
   } // end IF

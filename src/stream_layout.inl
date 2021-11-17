@@ -344,38 +344,37 @@ Stream_Layout_T<ACE_SYNCH_USE,
   { ACE_ASSERT (!distributorModule_in);
     typename inherited::pre_order_iterator iterator =
         inherited::set_head (module_in);
-    return (inherited::is_valid (iterator));
+    return inherited::is_valid (iterator);
   } // end IF
 
-  typename inherited::sibling_iterator iterator, iterator_end;
+  typename inherited::sibling_iterator iterator;
   if (unlikely (distributorModule_in))
   {
     // establish branch head
-    find (distributorModule_in,
-          iterator);
+    find (distributorModule_in, iterator);
     ACE_ASSERT (inherited::is_valid (iterator));
-    unsigned int num_branches_i =
+    unsigned int num_existing_branches_i =
         inherited::number_of_children (iterator);
-    if (unlikely (num_branches_i < index_in))
-    { // --> module is (sub-)branch 'head'
-//      ACE_ASSERT (!index_in || (index_in == num_branches_i));
+    if (unlikely (!num_existing_branches_i ||
+                  ((num_existing_branches_i - 1) < index_in)))
+    { // --> module is (new) branch 'head'
       iterator = inherited::append_child (iterator, module_in);
-      ACE_ASSERT (inherited::is_valid (iterator));
-      return true;
+      return inherited::is_valid (iterator);
     } // end IF
+    ACE_ASSERT (num_existing_branches_i && (index_in <= (num_existing_branches_i - 1)));
+    // --> append to existing branch
     iterator = iterator.begin ();
     ACE_ASSERT (inherited::is_valid (iterator));
-    iterator = inherited::sibling (iterator, index_in - 1);
+    iterator = inherited::sibling (iterator, index_in);
     ACE_ASSERT (inherited::is_valid (iterator));
     iterator = inherited::append_child (iterator, module_in);
-    ACE_ASSERT (inherited::is_valid (iterator));
-    return true;
+    return inherited::is_valid (iterator);
   } // end IF
 
+  typename inherited::sibling_iterator iterator_end = inherited::end ();
   // --> append to 'main' branch
   iterator = inherited::begin ();
   ACE_ASSERT (inherited::is_valid (iterator));
-  iterator_end = inherited::end ();
   // *TODO*: try --iterator_end
   while (inherited::next_sibling (iterator) != iterator_end)
     ++iterator;
@@ -399,21 +398,8 @@ Stream_Layout_T<ACE_SYNCH_USE,
   // sanity check(s)
   ACE_ASSERT (module_in);
 
-  if (likely (branchName_in.empty ()))
-  {
-    // --> append to 'main' branch
-    typename inherited::sibling_iterator iterator, iterator_end;
-    iterator = inherited::begin ();
-    ACE_ASSERT (inherited::is_valid (iterator));
-    iterator_end = inherited::end ();
-    // *TODO*: try --iterator_end
-    while (inherited::next_sibling (iterator) != iterator_end)
-      ++iterator;
-    ACE_ASSERT (inherited::is_valid (iterator));
-    iterator = inherited::insert_after (iterator, module_in);
-
-    return (inherited::is_valid (iterator));
-  } // end IF
+  if (unlikely (branchName_in.empty ()))
+    return append (module_in, NULL, 0);
 
   unsigned int index_i = 0;
   for (typename inherited::iterator iterator = inherited::begin ();
@@ -425,9 +411,7 @@ Stream_Layout_T<ACE_SYNCH_USE,
                              branchName_in,
                              index_i))
       continue;
-    return append (module_in,
-                   *iterator,
-                   index_i);
+    return append (module_in, *iterator, index_i);
   } // end FOR
   ACE_DEBUG ((LM_ERROR,
               ACE_TEXT ("branch (was: \"%s\") not found, aborting\n"),
@@ -737,9 +721,8 @@ Stream_Layout_T<ACE_SYNCH_USE,
   if (unlikely (!is_distributor (node_in.data)))
     return false;
 
-  Stream_IDistributorModule* idistributor_p = NULL;
-  idistributor_p =
-      dynamic_cast<Stream_IDistributorModule*> (node_in.data->writer ());
+  Stream_IDistributorModule* idistributor_p =
+    dynamic_cast<Stream_IDistributorModule*> (node_in.data->writer ());
   ACE_ASSERT (idistributor_p);
   return idistributor_p->has (branchName_in,
                               index_out);

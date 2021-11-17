@@ -33,6 +33,8 @@
 #include "stream_common.h"
 #include "stream_headmoduletask_base.h"
 
+#include "stream_lib_mediatype_converter.h"
+
 #include "stream_dev_defines.h"
 
 extern const char libacestream_default_dev_mic_source_wasapi_module_name_string[];
@@ -53,8 +55,10 @@ template <ACE_SYNCH_DECL,
           typename SessionDataContainerType,
           ////////////////////////////////
           typename StatisticContainerType,
-          typename TimerManagerType> // implements Common_ITimer
-class Stream_Dev_Mic_Source_WASAPI_T
+          typename TimerManagerType, // implements Common_ITimer
+          ////////////////////////////////
+          typename MediaType>
+  class Stream_Dev_Mic_Source_WASAPI_T
  : public Stream_HeadModuleTaskBase_T<ACE_MT_SYNCH,
                                       Common_TimePolicy_t,
                                       ControlMessageType,
@@ -69,6 +73,7 @@ class Stream_Dev_Mic_Source_WASAPI_T
                                       StatisticContainerType,
                                       TimerManagerType,
                                       struct Stream_UserData>
+ , public Stream_MediaFramework_MediaTypeConverter_T<MediaType>
 {
   typedef Stream_HeadModuleTaskBase_T<ACE_MT_SYNCH,
                                       Common_TimePolicy_t,
@@ -84,6 +89,7 @@ class Stream_Dev_Mic_Source_WASAPI_T
                                       StatisticContainerType,
                                       TimerManagerType,
                                       struct Stream_UserData> inherited;
+  typedef Stream_MediaFramework_MediaTypeConverter_T<MediaType> inherited2;
 
  public:
   Stream_Dev_Mic_Source_WASAPI_T (ISTREAM_T*); // stream handle
@@ -137,7 +143,8 @@ class Stream_Dev_Mic_Source_WASAPI_T
                                          SessionDataType,
                                          SessionDataContainerType,
                                          StatisticContainerType,
-                                         TimerManagerType> OWN_TYPE_T;
+                                         TimerManagerType,
+                                         MediaType> OWN_TYPE_T;
 
   //ACE_UNIMPLEMENTED_FUNC (Stream_Dev_Mic_Source_WASAPI_T ())
   ACE_UNIMPLEMENTED_FUNC (Stream_Dev_Mic_Source_WASAPI_T (const Stream_Dev_Mic_Source_WASAPI_T&))

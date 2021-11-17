@@ -494,7 +494,12 @@ Stream_Miscellaneous_Distributor_T<ACE_SYNCH_USE,
     index_out = std::distance (branches_.begin (), iterator);
     return true;
   } // end IF
+  ACE_DEBUG ((LM_WARNING,
+              ACE_TEXT ("%s: branch (was: %s) index not found (head module already push()ed ?), continuing\n"),
+              inherited::mod_->name (),
+              ACE_TEXT (branchName_in.c_str ())));
 
+  // *NOTE*: this is a map search; the index may be wrong...
   return (heads_.find (branchName_in) != heads_.end ());
 }
 

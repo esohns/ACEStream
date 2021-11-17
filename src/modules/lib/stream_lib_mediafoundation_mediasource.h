@@ -33,10 +33,8 @@
 #include "common_iinitialize.h"
 
 template <typename TimePolicyType,
-          typename SessionMessageType,
-          typename ProtocolMessageType,
-          typename ConfigurationType,
-          typename MediaType>
+          typename MessageType,
+          typename ConfigurationType>
 class Stream_MediaFramework_MediaFoundation_MediaSource_T
  : public IMFSchemeHandler
 #if COMMON_OS_WIN32_TARGET_PLATFORM (0x0602) // _WIN32_WINNT_WIN8
@@ -52,13 +50,10 @@ class Stream_MediaFramework_MediaFoundation_MediaSource_T
 {
  public:
   typedef Stream_MediaFramework_MediaFoundation_MediaSource_T<TimePolicyType,
-                                                              SessionMessageType,
-                                                              ProtocolMessageType,
-                                                              ConfigurationType,
-                                                              MediaType> OWN_TYPE_T;
+                                                              MessageType,
+                                                              ConfigurationType> OWN_TYPE_T;
 
-  //// *NOTE*: the non-COM (!) ctor
-  //Stream_MediaFramework_MediaFoundation_MediaSource_T ();
+  Stream_MediaFramework_MediaFoundation_MediaSource_T ();
   virtual ~Stream_MediaFramework_MediaFoundation_MediaSource_T ();
 
   static HRESULT CreateInstance (IUnknown*, // parent
@@ -144,7 +139,7 @@ class Stream_MediaFramework_MediaFoundation_MediaSource_T
                                 MF_ATTRIBUTES_MATCH_TYPE, // MatchType
                                 BOOL*) { ACE_ASSERT (false); return E_FAIL; } // pbResult
   virtual STDMETHODIMP GetUINT32 (REFGUID,  // guidKey
-                                  UINT32*) { ACE_ASSERT (false); return E_FAIL; } // punValue
+                                  UINT32*); // punValue
   virtual STDMETHODIMP GetUINT64 (REFGUID, // guidKey
                                   UINT64*) { ACE_ASSERT (false); return E_FAIL; } // punValue
   virtual STDMETHODIMP GetDouble (REFGUID,  // guidKey
@@ -161,7 +156,7 @@ class Stream_MediaFramework_MediaFoundation_MediaSource_T
                                            LPWSTR*,  // ppwszValue
                                            UINT32*) { ACE_ASSERT (false); return E_FAIL; } // pcchLength
   virtual STDMETHODIMP GetBlobSize (REFGUID,  // guidKey
-                                    UINT32*) { ACE_ASSERT (false); return E_FAIL; } // pcbBlobSize
+                                    UINT32*); // pcbBlobSize
   virtual STDMETHODIMP GetBlob (REFGUID,  // guidKey
                                 UINT8*,   // pBuf
                                 UINT32,   // cbBufSize
@@ -249,11 +244,11 @@ class Stream_MediaFramework_MediaFoundation_MediaSource_T
   ACE_UNIMPLEMENTED_FUNC (Stream_MediaFramework_MediaFoundation_MediaSource_T& operator= (const Stream_MediaFramework_MediaFoundation_MediaSource_T&))
 
   //typedef GrowableArray<MPEG1Stream*> StreamList;
-  typedef std::map<BYTE, DWORD> STREAM_MAP_T;    // Maps stream ID to index
+  typedef std::map<BYTE, DWORD> STREAM_MAP_T; // maps stream ID to index
   typedef STREAM_MAP_T::iterator STREAM_MAP_ITERATOR_T;
   typedef std::list<IMFSample*> SAMPLE_LIST_T;
   typedef SAMPLE_LIST_T::iterator SAMPLE_LIST_ITERATOR_T;
-  typedef std::list<IUnknown*>  TOKEN_LIST_T;    // List of tokens for IMFMediaStream::RequestSample
+  typedef std::list<IUnknown*> TOKEN_LIST_T; // List of tokens for IMFMediaStream::RequestSample
   typedef TOKEN_LIST_T::iterator TOKEN_LIST_ITERATOR_T;
 
   enum STATE_T
@@ -270,6 +265,7 @@ class Stream_MediaFramework_MediaFoundation_MediaSource_T
   //bool                hasCOMReference_;
   ACE_SYNCH_MUTEX     lock_;
   volatile long       referenceCount_;
+  bool                shutdownInvoked_;
   STATE_T             state_; // Current state (running, stopped, paused)
 }; // Stream_MediaFramework_MediaFoundation_MediaSource_T
 

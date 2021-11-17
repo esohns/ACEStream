@@ -522,6 +522,7 @@ Stream_Dev_Mic_Source_MediaFoundation_T<ACE_SYNCH_USE,
           goto error;
         } // end IF
 #endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
+        topology_p->Release (); topology_p = NULL;
       } // end ELSE
 #if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
       ACE_ASSERT (mediaSession_);

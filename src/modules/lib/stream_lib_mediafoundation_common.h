@@ -23,9 +23,24 @@
 
 #include <deque>
 
-#include <mfobjects.h>
+#include "mfobjects.h"
 
 typedef std::deque<IMFMediaType*> Stream_MediaFramework_MediaFoundation_Formats_t;
 typedef Stream_MediaFramework_MediaFoundation_Formats_t::iterator Stream_MediaFramework_MediaFoundation_FormatsIterator_t;
+
+class Stream_IStreamControlBase;
+struct IMFMediaSession;
+struct Stream_MediaFramework_MediaFoundation_Configuration
+{
+  Stream_MediaFramework_MediaFoundation_Configuration ()
+   : controller (NULL)
+   , mediaSession (NULL)
+   , mediaType (NULL)
+  {}
+
+  Stream_IStreamControlBase* controller;
+  IMFMediaSession* mediaSession;
+  IMFMediaType* mediaType; // input-
+};
 
 #endif

@@ -112,10 +112,8 @@ DEFINE_CLASSFACTORY_SERVER_LOCK;
 // -----------------------------------------------------------------------------
 
 typedef Stream_MediaFramework_MediaFoundation_MediaSource_T<Common_TimePolicy_t,
-                                                            Test_I_Target_MediaFoundation_SessionMessage,
                                                             Test_I_Target_MediaFoundation_Stream_Message,
-                                                            struct Test_I_MediaFoundationConfiguration,
-                                                            IMFMediaType*> Stream_MediaFramework_MediaFoundation_MediaSource_t;
+                                                            struct Test_I_MediaFoundationConfiguration> Stream_MediaFramework_MediaFoundation_MediaSource_t;
 
 // g_ClassFactories: Array of class factory data.
 // Defines a look-up table of CLSIDs and corresponding creation functions.

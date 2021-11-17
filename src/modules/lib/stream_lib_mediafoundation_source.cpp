@@ -20,3 +20,8 @@
 #include "stdafx.h"
 
 #include "stream_lib_mediafoundation_source.h"
+
+#include "stream_lib_defines.h"
+
+const char libacestream_default_lib_mediafoundation_source_module_name_string[] =
+  ACE_TEXT_ALWAYS_CHAR (STREAM_LIB_MEDIAFOUNDATION_SOURCE_DEFAULT_NAME_STRING);

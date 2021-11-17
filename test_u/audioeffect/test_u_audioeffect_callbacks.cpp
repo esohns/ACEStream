@@ -3105,6 +3105,7 @@ get_buffer_size (gpointer userData_in)
   return (unsigned int)((STREAM_LIB_DIRECTSHOW_FILTER_SOURCE_MAX_LATENCY_MS * bps) / (float)MILLISECONDS);
 #else
   ACE_UNUSED_ARG (format_e);
+  ACE_UNUSED_ARG (bps);
   return ui_cb_data_p->configuration->streamConfiguration.configuration_->allocatorConfiguration->defaultBufferSize;
 //  return (sample_rate * snd_pcm_format_size (format_e, 1) * channels);
 #endif // ACE_WIN32 || ACE_WIN64
@@ -3236,39 +3237,10 @@ stream_processing_function (void* arg_in)
   GtkStatusbar* statusbar_p = NULL;
   //ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, data_p->CBData->lock);
 
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-  switch (data_base_p->mediaFramework)
-  {
-    case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
-    {
-      iterator =
-        state_r.builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN));
-      // sanity check(s)
-      ACE_ASSERT (iterator != state_r.builders.end ());
-      break;
-    }
-    case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
-    {
-      iterator =
-        state_r.builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN));
-      // sanity check(s)
-      ACE_ASSERT (iterator != state_r.builders.end ());
-      break;
-    }
-    default:
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("invalid/unknown media framework (was: %d), aborting\n"),
-                  data_base_p->mediaFramework));
-      goto error;
-    }
-  } // end SWITCH
-#else
   iterator =
     state_r.builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN));
   // sanity check(s)
   ACE_ASSERT (iterator != state_r.builders.end ());
-#endif // ACE_WIN32 || ACE_WIN64
 
   // retrieve progress bar handle
   gdk_threads_enter ();
@@ -3442,37 +3414,9 @@ stream_processing_function (void* arg_in)
 
   // generate context id
   gdk_threads_enter ();
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-  switch (data_base_p->mediaFramework)
-  {
-    case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
-    {
-      state_r.contextIds.insert (std::make_pair (COMMON_UI_GTK_STATUSCONTEXT_INFORMATION,
-                                                 gtk_statusbar_get_context_id (statusbar_p,
-                                                                               converter.str ().c_str ())));
-      break;
-    }
-    case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
-    {
-      state_r.contextIds.insert (std::make_pair (COMMON_UI_GTK_STATUSCONTEXT_INFORMATION,
-                                                 gtk_statusbar_get_context_id (statusbar_p,
-                                                                               converter.str ().c_str ())));
-      break;
-    }
-    default:
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("invalid/unknown media framework (was: %d), aborting\n"),
-                  data_base_p->mediaFramework));
-      goto error;
-    }
-  } // end SWITCH
-#else
   state_r.contextIds.insert (std::make_pair (COMMON_UI_GTK_STATUSCONTEXT_INFORMATION,
                                              gtk_statusbar_get_context_id (statusbar_p,
                                                                            converter.str ().c_str ())));
-#endif // ACE_WIN32 || ACE_WIN64
-
   gdk_threads_leave ();
 
   istream_control_p->start ();
@@ -4165,8 +4109,7 @@ idle_initialize_UI_cb (gpointer userData_in)
     GTK_TOGGLE_BUTTON (gtk_builder_get_object ((*iterator).second.second,
                                                ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_TOGGLEBUTTON_MUTE_NAME)));
   ACE_ASSERT (toggle_button_p);
-  gtk_toggle_button_set_active (toggle_button_p,
-                                is_mute);
+  gtk_toggle_button_set_active (toggle_button_p, is_mute);
 
   enum Stream_Visualization_SpectrumAnalyzer_2DMode mode_2d =
     STREAM_VISUALIZATION_SPECTRUMANALYZER_2DMODE_INVALID;
@@ -4211,7 +4154,6 @@ idle_initialize_UI_cb (gpointer userData_in)
   ACE_ASSERT (toggle_button_p);
   gtk_toggle_button_set_active (toggle_button_p,
                                 (mode_3d < STREAM_VISUALIZATION_SPECTRUMANALYZER_3DMODE_MAX));
-
 
   GtkSizeGroup* size_group_p =
     GTK_SIZE_GROUP (gtk_builder_get_object ((*iterator).second.second,
@@ -4272,7 +4214,7 @@ idle_initialize_UI_cb (gpointer userData_in)
 //                NULL);
 //#endif // GTK_CHECK_VERSION (3,10,0)
 #else
-#if GTK_CHECK_VERSION(2,12,0)
+#if GTK_CHECK_VERSION(2,12,0) // *TODO*: this seems to be wrong
   g_object_set (GTK_WIDGET (drawing_area_p),
                 ACE_TEXT_ALWAYS_CHAR ("gtk-tooltip-timeout"), &tooltip_timeout,
                 NULL);
@@ -4626,17 +4568,6 @@ idle_initialize_UI_cb (gpointer userData_in)
   ACE_ASSERT (result_2);
 
   //--------------------------------------
-
-  //object_p =
-  //  gtk_builder_get_object ((*iterator).second.second,
-  //                          ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_BUTTON_CLEAR_NAME));
-  //ACE_ASSERT (object_p);
-  //result_2 =
-  //  g_signal_connect (object_p,
-  //                    ACE_TEXT_ALWAYS_CHAR ("clicked"),
-  //                    G_CALLBACK (button_clear_clicked_cb),
-  //                    userData_in);
-  //ACE_ASSERT (result_2);
 
   //   // step8: use correct screen
   //   if (parentWidget_in)
@@ -5501,18 +5432,13 @@ idle_update_info_display_cb (gpointer userData_in)
     }
   } // end SWITCH
 #else
-  struct Test_U_AudioEffect_UI_CBData* data_p =
-    static_cast<struct Test_U_AudioEffect_UI_CBData*> (userData_in);
-
   // sanity check(s)
-  ACE_ASSERT (data_p);
-
-  ACE_ASSERT (data_p->stream);
-  stream_p = data_p->stream;
-
+  struct Test_U_AudioEffect_UI_CBData* ui_cb_data_p =
+    static_cast<struct Test_U_AudioEffect_UI_CBData*> (userData_in);
+  ACE_ASSERT (ui_cb_data_p);
   Test_U_AudioEffect_ALSA_StreamConfiguration_t::ITERATOR_T modulehandler_configuration_iterator =
-    data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
-  ACE_ASSERT (modulehandler_configuration_iterator != data_p->configuration->streamConfiguration.end ());
+    ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
+  ACE_ASSERT (modulehandler_configuration_iterator != ui_cb_data_p->configuration->streamConfiguration.end ());
 #endif // ACE_WIN32 || ACE_WIN64
 
   return G_SOURCE_CONTINUE;
@@ -6289,28 +6215,30 @@ togglebutton_record_toggled_cb (GtkToggleButton* toggleButton_in,
           NULL;
       } // end IF
 
+      ACE_ASSERT (mediafoundation_ui_cb_data_p->configuration->streamConfiguration.configuration_->format);
+
       // set missing format properties
       UINT32 number_of_channels, bits_per_sample, sample_rate;
       HRESULT result =
-        (*mediafoundation_modulehandler_configuration_iterator).second.second->outputFormat->GetUINT32 (MF_MT_AUDIO_SAMPLES_PER_SECOND,
-                                                                                                       &sample_rate);
+        mediafoundation_ui_cb_data_p->configuration->streamConfiguration.configuration_->format->GetUINT32 (MF_MT_AUDIO_SAMPLES_PER_SECOND,
+                                                                                                            &sample_rate);
       ACE_ASSERT (SUCCEEDED (result));
       result =
-        (*mediafoundation_modulehandler_configuration_iterator).second.second->outputFormat->GetUINT32 (MF_MT_AUDIO_BITS_PER_SAMPLE,
-                                                                                                       &bits_per_sample);
+        mediafoundation_ui_cb_data_p->configuration->streamConfiguration.configuration_->format->GetUINT32 (MF_MT_AUDIO_BITS_PER_SAMPLE,
+                                                                                                            &bits_per_sample);
       ACE_ASSERT (SUCCEEDED (result));
       result =
-        (*mediafoundation_modulehandler_configuration_iterator).second.second->outputFormat->GetUINT32 (MF_MT_AUDIO_NUM_CHANNELS,
-                                                                                                       &number_of_channels);
+        mediafoundation_ui_cb_data_p->configuration->streamConfiguration.configuration_->format->GetUINT32 (MF_MT_AUDIO_NUM_CHANNELS,
+                                                                                                            &number_of_channels);
       ACE_ASSERT (SUCCEEDED (result));
       unsigned int block_alignment_i = number_of_channels * (bits_per_sample / 8);
       result =
-        (*mediafoundation_modulehandler_configuration_iterator).second.second->outputFormat->SetUINT32 (MF_MT_AUDIO_BLOCK_ALIGNMENT,
-                                                                                                        block_alignment_i);
+        mediafoundation_ui_cb_data_p->configuration->streamConfiguration.configuration_->format->SetUINT32 (MF_MT_AUDIO_BLOCK_ALIGNMENT,
+                                                                                                            block_alignment_i);
       ACE_ASSERT (SUCCEEDED (result));
       result =
-        (*mediafoundation_modulehandler_configuration_iterator).second.second->outputFormat->SetUINT32 (MF_MT_AUDIO_AVG_BYTES_PER_SECOND,
-                                                                                                        sample_rate * block_alignment_i);
+        mediafoundation_ui_cb_data_p->configuration->streamConfiguration.configuration_->format->SetUINT32 (MF_MT_AUDIO_AVG_BYTES_PER_SECOND,
+                                                                                                            sample_rate * block_alignment_i);
       ACE_ASSERT (SUCCEEDED (result));
       break;
     }
@@ -6699,8 +6627,10 @@ button_properties_clicked_cb (GtkButton* button_in,
     }
   } // end SWITCH
 #else
-  struct Test_U_AudioEffect_UI_CBData* cb_data_p =
+  struct Test_U_AudioEffect_UI_CBData* ui_cb_data_p =
     static_cast<struct Test_U_AudioEffect_UI_CBData*> (ui_cb_data_base_p);
+  ACE_UNUSED_ARG (ui_cb_data_p);
+  ACE_UNUSED_ARG (window_p);
 #endif // ACE_WIN32 || ACE_WIN64
 }
 
@@ -6964,8 +6894,11 @@ hscale_volume_value_changed_cb (GtkRange* range_in,
         static_cast<struct Test_U_AudioEffect_MediaFoundation_UI_CBData*> (userData_in);
       // sanity check(s)
       ACE_ASSERT (mediafoundation_ui_cb_data_p);
-      ACE_ASSERT (mediafoundation_ui_cb_data_p->configuration);
-      ACE_ASSERT (false); // *TODO*
+      ACE_ASSERT (mediafoundation_ui_cb_data_p->volumeControl);
+      HRESULT result =
+        mediafoundation_ui_cb_data_p->volumeControl->SetMasterVolumeLevelScalar (static_cast<float> (gtk_range_get_value (range_in) / 100.0),
+                                                                                 NULL);
+      ACE_ASSERT (SUCCEEDED (result));
       break;
     }
     default:
@@ -7176,8 +7109,28 @@ hscale_boost_value_changed_cb (GtkRange* range_in,
         static_cast<struct Test_U_AudioEffect_MediaFoundation_UI_CBData*> (userData_in);
       // sanity check(s)
       ACE_ASSERT (mediafoundation_ui_cb_data_p);
-      ACE_ASSERT (mediafoundation_ui_cb_data_p->configuration);
-      ACE_ASSERT (false); // *TODO*
+      ACE_ASSERT (mediafoundation_ui_cb_data_p->boostControl);
+      float value_f = static_cast<float> (gtk_range_get_value (range_in));
+      UINT32 num_channels_i = 0;
+      HRESULT result =
+        mediafoundation_ui_cb_data_p->configuration->streamConfiguration.configuration_->format->GetUINT32 (MF_MT_AUDIO_NUM_CHANNELS,
+                                                                                                            &num_channels_i);
+      if (FAILED (result))
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("failed to IMFMediaType::GetUINT32(MF_MT_AUDIO_NUM_CHANNELS): \"%s\", returning\n"),
+                    ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
+        return;
+      } // end IF
+      for (UINT i = 0;
+           i < static_cast<UINT> (num_channels_i);
+           ++i)
+      {
+        result = mediafoundation_ui_cb_data_p->boostControl->SetLevel (i,
+                                                                       value_f,
+                                                                       NULL);
+        //ACE_ASSERT (SUCCEEDED (result));
+      } // end FOR
       break;
     }
     default:
@@ -8476,7 +8429,6 @@ combobox_source_changed_cb (GtkWidget* widget_in,
                                               ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_LISTSTORE_FORMAT_NAME)));
   ACE_ASSERT (list_store_2);
 
-//  bool result = false;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #if defined (_WIN32_WINNT) && (_WIN32_WINNT >= 0x0602) // _WIN32_WINNT_WIN8
   IMFMediaSourceEx* media_source_p = NULL;
@@ -8517,13 +8469,16 @@ combobox_source_changed_cb (GtkWidget* widget_in,
         (*mediafoundation_modulehandler_configuration_iterator).second.second->session->Release (); (*mediafoundation_modulehandler_configuration_iterator).second.second->session = NULL;
       } // end IF
 
+      if (!use_framework_source_b)
+        break;
+
 #if COMMON_OS_WIN32_TARGET_PLATFORM(0x0601) // _WIN32_WINNT_WIN7
-      if (!Stream_Device_MediaFoundation_Tools::getMediaSource (device_identifier_string,
-                                                                MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE_AUDCAP_GUID,
-                                                                media_source_p))
+      if (!Stream_MediaFramework_MediaFoundation_Tools::getMediaSource (device_identifier_string,
+                                                                        MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE_AUDCAP_GUID,
+                                                                        media_source_p))
       {
         ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("failed to Stream_Device_MediaFoundation_Tools::getMediaSource(\"%s\"), returning\n"),
+                    ACE_TEXT ("failed to Stream_MediaFramework_MediaFoundation_Tools::getMediaSource(\"%s\"), returning\n"),
                     ACE_TEXT (device_identifier_string.c_str ())));
         return;
       } // end IF
@@ -8559,7 +8514,9 @@ combobox_source_changed_cb (GtkWidget* widget_in,
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
     {
       module_name =
-        ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_MIC_SOURCE_WAVEIN_DEFAULT_NAME_STRING);
+        (use_framework_source_b ? ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_MIC_SOURCE_DIRECTSHOW_DEFAULT_NAME_STRING)
+                                //: ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_MIC_SOURCE_WAVEIN_DEFAULT_NAME_STRING));
+                                : ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_MIC_SOURCE_WASAPI_DEFAULT_NAME_STRING));
       module_p =
         const_cast<Stream_Module_t*> (istream_p->find (module_name));
       break;
@@ -8567,7 +8524,9 @@ combobox_source_changed_cb (GtkWidget* widget_in,
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
     {
       module_name =
-        ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_MIC_SOURCE_MEDIAFOUNDATION_DEFAULT_NAME_STRING);
+        (use_framework_source_b ? ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_MIC_SOURCE_MEDIAFOUNDATION_DEFAULT_NAME_STRING)
+         //: ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_MIC_SOURCE_WAVEIN_DEFAULT_NAME_STRING));
+                                : ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_MIC_SOURCE_WASAPI_DEFAULT_NAME_STRING));
       module_p =
         const_cast<Stream_Module_t*> (istream_p->find (module_name));
       break;
@@ -8597,22 +8556,24 @@ combobox_source_changed_cb (GtkWidget* widget_in,
   GtkHScale* hscale_p = NULL, *hscale_2 = NULL;
   std::ostringstream converter;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  //Test_U_Dev_Mic_Source_DirectShow* directshow_source_impl_p = NULL;
-  Test_U_Dev_Mic_Source_WaveIn* directshow_source_impl_p = NULL;
+  Test_U_Dev_Mic_Source_DirectShow* directshow_source_impl_p = NULL;
+  //Test_U_Dev_Mic_Source_WaveIn* directshow_source_impl_p = NULL;
+  Test_U_Dev_Mic_Source_WASAPI* directshow_source_impl_2 = NULL;
   Test_U_Dev_Mic_Source_MediaFoundation* mediafoundation_source_impl_p = NULL;
+  Test_U_Dev_Mic_Source_WASAPI* mediafoundation_source_impl_2 = NULL;
   IMFTopology* topology_p = NULL;
 
   if (!use_framework_source_b)
   {
-    gtk_tree_model_get_value (GTK_TREE_MODEL (list_store_p),
-                              &iterator_2,
-                              1, &value_2);
-    ACE_ASSERT (G_VALUE_TYPE (&value_2) == G_TYPE_STRING);
-    std::istringstream converter;
-    converter.str (g_value_get_string (&value_2));
-    g_value_unset (&value_2);
-    converter >> (*directshow_modulehandler_configuration_iterator).second.second->audioInput;
-    result_2 = load_formats ((*directshow_modulehandler_configuration_iterator).second.second->audioInput,
+    //gtk_tree_model_get_value (GTK_TREE_MODEL (list_store_p),
+    //                          &iterator_2,
+    //                          1, &value_2);
+    //ACE_ASSERT (G_VALUE_TYPE (&value_2) == G_TYPE_STRING);
+    //std::istringstream converter;
+    //converter.str (g_value_get_string (&value_2));
+    //g_value_unset (&value_2);
+    //converter >> card_id_i;
+    result_2 = load_formats (card_id_i,
                              list_store_2);
     goto continue_;
   } // end IF
@@ -8710,11 +8671,11 @@ combobox_source_changed_cb (GtkWidget* widget_in,
       ACE_ASSERT ((*mediafoundation_modulehandler_configuration_iterator).second.second->outputFormat);
       result =
         (*mediafoundation_modulehandler_configuration_iterator).second.second->outputFormat->SetGUID (MF_MT_MAJOR_TYPE,
-                                                                                                     MFMediaType_Audio);
+                                                                                                      MFMediaType_Audio);
       ACE_ASSERT (SUCCEEDED (result));
       result =
         (*mediafoundation_modulehandler_configuration_iterator).second.second->outputFormat->SetUINT32 (MF_MT_ALL_SAMPLES_INDEPENDENT,
-                                                                                                       TRUE);
+                                                                                                        TRUE);
       ACE_ASSERT (SUCCEEDED (result));
 
       //if (!load_formats (data_p->configuration->moduleHandlerConfiguration.sourceReader,
@@ -8866,139 +8827,166 @@ continue_:
                                               ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_HSCALE_BOOST_NAME)));
   ACE_ASSERT (hscale_2);
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
+  // retrieve volume control handle
+  // step1: retrieve DirectSound device GUID from wave device id
+  struct _GUID GUID_s =
+    Stream_MediaFramework_DirectSound_Tools::waveDeviceIdToDirectSoundGUID (card_id_i);
+  ACE_ASSERT (!InlineIsEqualGUID (GUID_s, GUID_NULL));
+  IMMDeviceEnumerator* enumerator_p = NULL;
+  HRESULT result =
+    CoCreateInstance (__uuidof (MMDeviceEnumerator), NULL, CLSCTX_INPROC_SERVER,
+                      IID_PPV_ARGS (&enumerator_p));
+  ACE_ASSERT (SUCCEEDED (result));
+  IMMDeviceCollection* devices_p = NULL;
+  result =
+    enumerator_p->EnumAudioEndpoints (eCapture, DEVICE_STATEMASK_ALL, &devices_p);
+  ACE_ASSERT (SUCCEEDED (result));
+  enumerator_p->Release (); enumerator_p = NULL;
+  IMMDevice* device_p = NULL;
+  UINT num_devices_i = 0;
+  result = devices_p->GetCount (&num_devices_i);
+  ACE_ASSERT (SUCCEEDED (result));
+  IPropertyStore* property_store_p = NULL;
+  PROPVARIANT property_s;
+  PropVariantInit (&property_s);
+  struct _GUID GUID_2 = GUID_NULL;
+  IAudioEndpointVolume* i_audio_endpoint_volume_p = NULL;
+  IAudioVolumeLevel* i_audio_volume_level_p = NULL;
+  for (UINT i = 0;
+       i < num_devices_i;
+       ++i)
+  {
+    ACE_ASSERT (!device_p);
+    result = devices_p->Item (i,
+                              &device_p);
+    ACE_ASSERT (SUCCEEDED (result));
+    result = device_p->OpenPropertyStore (STGM_READ,
+                                          &property_store_p);
+    ACE_ASSERT (SUCCEEDED (result));
+    result = property_store_p->GetValue (PKEY_AudioEndpoint_GUID,
+                                         &property_s);
+    ACE_ASSERT (SUCCEEDED (result));
+    property_store_p->Release (); property_store_p = NULL;
+    ACE_ASSERT (property_s.vt == VT_LPWSTR);
+    GUID_2 =
+      Common_Tools::StringToGUID (ACE_TEXT_ALWAYS_CHAR (ACE_TEXT_WCHAR_TO_TCHAR (property_s.pwszVal)));
+    if (InlineIsEqualGUID (GUID_2, GUID_s))
+      break;
+    PropVariantClear (&property_s);
+    device_p->Release (); device_p = NULL;
+  } // end FOR
+  PropVariantClear (&property_s);
+  devices_p->Release (); devices_p = NULL;
+  if (!device_p)
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to retrieve volume control handle for wave device (id was: %d), returning\n"),
+                card_id_i));
+    goto error_2;
+  } // end IF
+  result =
+    device_p->Activate (__uuidof (IAudioEndpointVolume), CLSCTX_INPROC_SERVER, NULL,
+                        (LPVOID*)&i_audio_endpoint_volume_p);
+  ACE_ASSERT (SUCCEEDED (result) && i_audio_endpoint_volume_p);
+  float volume_level_f = 0.0;
+  result =
+    i_audio_endpoint_volume_p->GetMasterVolumeLevelScalar (&volume_level_f);
+  ACE_ASSERT (SUCCEEDED (result));
+
+  float min_level_f = 0.0F, max_level_f = 0.0F, stepping_f = 0.0F, boost_f = 0.0F;
+  i_audio_volume_level_p =
+    Stream_MediaFramework_DirectSound_Tools::getMicrophoneBoostControl (device_p);
+  if (!i_audio_volume_level_p)
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to retrieve boost control handle for wave device (id was: %d), returning\n"),
+                card_id_i));
+    goto error_2;
+  } // end IF
+  result = i_audio_volume_level_p->GetLevelRange (0,
+                                                  &min_level_f,
+                                                  &max_level_f,
+                                                  &stepping_f);
+  ACE_ASSERT (SUCCEEDED (result));
+  gtk_range_set_range (GTK_RANGE (hscale_2),
+                       static_cast<gdouble> (min_level_f),
+                       static_cast<gdouble> (max_level_f));
+  gtk_range_set_increments (GTK_RANGE (hscale_2),
+                            static_cast<gdouble> (stepping_f),
+                            static_cast<gdouble> (stepping_f));
+  converter.precision (2);
+  converter << std::fixed; // for fixed point notation
+  for (float i = min_level_f;
+       i <= max_level_f;
+       i += stepping_f)
+  {
+    converter.str (ACE_TEXT_ALWAYS_CHAR (""));
+    converter.clear ();
+    converter << i;
+    gtk_scale_add_mark (GTK_SCALE (hscale_2),
+                        static_cast<gdouble> (i),
+                        GTK_POS_TOP,
+                        converter.str ().c_str ());
+  } // end FOR
+  result = i_audio_volume_level_p->GetLevel (0, &boost_f);
+  ACE_ASSERT (SUCCEEDED (result));
+  device_p->Release (); device_p = NULL;
+
+  goto continue_2;
+
+error_2:
+  if (device_p)
+  {
+    device_p->Release (); device_p = NULL;
+  } // end IF
+  if (i_audio_endpoint_volume_p)
+  {
+    i_audio_endpoint_volume_p->Release (); i_audio_endpoint_volume_p = NULL;
+  } // end IF
+  goto error;
+
+continue_2:
   switch (ui_cb_data_base_p->mediaFramework)
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
     {
-      // retrieve volume control handle
-      // step1: retrieve DirectSound device GUID from wave device id
-      struct _GUID GUID_s =
-        Stream_MediaFramework_DirectSound_Tools::waveDeviceIdToDirectSoundGUID (static_cast<ULONG> ((*directshow_modulehandler_configuration_iterator).second.second->audioInput));
-      ACE_ASSERT (!InlineIsEqualGUID (GUID_s, GUID_NULL));
       (*directshow_modulehandler_configuration_iterator).second.second->deviceIdentifier.identifier._guid =
         GUID_s;
-      IMMDeviceEnumerator* enumerator_p = NULL;
-      HRESULT result =
-        CoCreateInstance (__uuidof (MMDeviceEnumerator), NULL, CLSCTX_INPROC_SERVER,
-                          IID_PPV_ARGS (&enumerator_p));
-      ACE_ASSERT (SUCCEEDED (result));
-      IMMDeviceCollection* devices_p = NULL;
-      result =
-        enumerator_p->EnumAudioEndpoints (eCapture, DEVICE_STATEMASK_ALL, &devices_p);
-      ACE_ASSERT (SUCCEEDED (result));
-      enumerator_p->Release (); enumerator_p = NULL;
-      IMMDevice* device_p = NULL;
-      UINT num_devices_i = 0;
-      result = devices_p->GetCount (&num_devices_i);
-      ACE_ASSERT (SUCCEEDED (result));
-      IPropertyStore* property_store_p = NULL;
-      PROPVARIANT property_s;
-      PropVariantInit (&property_s);
-      struct _GUID GUID_2 = GUID_NULL;
-      for (UINT i = 0;
-           i < num_devices_i;
-           ++i)
-      { ACE_ASSERT (!device_p);
-        result = devices_p->Item (i,
-                                  &device_p);
-        ACE_ASSERT (SUCCEEDED (result));
-        result = device_p->OpenPropertyStore (STGM_READ,
-                                              &property_store_p);
-        ACE_ASSERT (SUCCEEDED (result));
-        result = property_store_p->GetValue (PKEY_AudioEndpoint_GUID,
-                                             &property_s);
-        ACE_ASSERT (SUCCEEDED (result));
-        property_store_p->Release (); property_store_p = NULL;
-        ACE_ASSERT (property_s.vt == VT_LPWSTR);
-        GUID_2 =
-          Common_Tools::StringToGUID (ACE_TEXT_ALWAYS_CHAR (ACE_TEXT_WCHAR_TO_TCHAR (property_s.pwszVal)));
-        if (InlineIsEqualGUID (GUID_2, GUID_s))
-          break;
-        PropVariantClear (&property_s);
-        device_p->Release (); device_p = NULL;
-      } // end FOR
-      PropVariantClear (&property_s);
-      devices_p->Release (); devices_p = NULL;
-      if (!device_p)
-      {
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("failed to retrieve volume control handle for wave device (id was: %d), returning\n"),
-                    (*directshow_modulehandler_configuration_iterator).second.second->audioInput));
-        return;
-      } // end IF
       if (directshow_ui_cb_data_p->volumeControl)
       {
         directshow_ui_cb_data_p->volumeControl->Release (); directshow_ui_cb_data_p->volumeControl = NULL;
       } // end IF
-      result =
-        device_p->Activate (__uuidof (IAudioEndpointVolume), CLSCTX_INPROC_SERVER, NULL,
-                            (LPVOID*)&directshow_ui_cb_data_p->volumeControl);
-      ACE_ASSERT (SUCCEEDED (result));
-
-      float volume_level_f = 0.0;
-      result =
-        directshow_ui_cb_data_p->volumeControl->GetMasterVolumeLevelScalar (&volume_level_f);
-      ACE_ASSERT (SUCCEEDED (result));
-      gtk_range_set_value (GTK_RANGE (hscale_p),
-                           static_cast<gdouble> (volume_level_f) * 100.0);
-
-      float min_level_f = 0.0F, max_level_f = 0.0F, stepping_f = 0.0F, boost_f = 0.0F;
+      directshow_ui_cb_data_p->volumeControl = i_audio_endpoint_volume_p;
       if (directshow_ui_cb_data_p->boostControl)
       {
         directshow_ui_cb_data_p->boostControl->Release (); directshow_ui_cb_data_p->boostControl = NULL;
       } // end IF
-      directshow_ui_cb_data_p->boostControl =
-        Stream_MediaFramework_DirectSound_Tools::getMicrophoneBoostControl (device_p);
-      if (!directshow_ui_cb_data_p->boostControl)
-      {
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("failed to retrieve boost control handle for wave device (id was: %d), returning\n"),
-                    (*directshow_modulehandler_configuration_iterator).second.second->audioInput));
-        goto error_2;
-      } // end IF
-      result =
-        directshow_ui_cb_data_p->boostControl->GetLevelRange (0,
-                                                              &min_level_f,
-                                                              &max_level_f,
-                                                              &stepping_f);
-      ACE_ASSERT (SUCCEEDED (result));
-      gtk_range_set_range (GTK_RANGE (hscale_2),
-                           static_cast<gdouble> (min_level_f),
-                           static_cast<gdouble> (max_level_f));
-      gtk_range_set_increments (GTK_RANGE (hscale_2),
-                                static_cast<gdouble> (stepping_f),
-                                static_cast<gdouble> (stepping_f));
-      converter.precision (2);
-      converter << std::fixed; // for fixed point notation
-      for (float i = min_level_f;
-           i <= max_level_f;
-           i += stepping_f)
-      {
-        converter.str (ACE_TEXT_ALWAYS_CHAR (""));
-        converter.clear ();
-        converter << i;
-        gtk_scale_add_mark (GTK_SCALE (hscale_2),
-                            static_cast<gdouble> (i),
-                            GTK_POS_TOP,
-                            converter.str ().c_str ());
-      } // end FOR
-      result =
-        directshow_ui_cb_data_p->boostControl->GetLevel (0,
-                                                         &boost_f);
-      ACE_ASSERT (SUCCEEDED (result));
-      gtk_range_set_value (GTK_RANGE (hscale_2),
-                           static_cast<gdouble> (boost_f));
-
-error_2:
-      device_p->Release (); device_p = NULL;
-      //CoUninitialize ();
-
+      directshow_ui_cb_data_p->boostControl = i_audio_volume_level_p;
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
     {
-      media_source_p->Release (); media_source_p = NULL;
-      topology_p->Release (); topology_p = NULL;
+      (*mediafoundation_modulehandler_configuration_iterator).second.second->deviceIdentifier.identifier._guid =
+        GUID_s;
+      if (mediafoundation_ui_cb_data_p->volumeControl)
+      {
+        mediafoundation_ui_cb_data_p->volumeControl->Release (); mediafoundation_ui_cb_data_p->volumeControl = NULL;
+      } // end IF
+      mediafoundation_ui_cb_data_p->volumeControl = i_audio_endpoint_volume_p;
+      if (mediafoundation_ui_cb_data_p->boostControl)
+      {
+        mediafoundation_ui_cb_data_p->boostControl->Release (); mediafoundation_ui_cb_data_p->boostControl = NULL;
+      } // end IF
+      mediafoundation_ui_cb_data_p->boostControl = i_audio_volume_level_p;
+
+      if (media_source_p)
+      {
+        media_source_p->Release (); media_source_p = NULL;
+      }
+      if (topology_p)
+      {
+        topology_p->Release (); topology_p = NULL;
+      } // end IF
       break;
     }
     default:
@@ -9006,9 +8994,15 @@ error_2:
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("invalid/unknown media framework (was: %d), returning\n"),
                   ui_cb_data_base_p->mediaFramework));
+      i_audio_endpoint_volume_p->Release ();
+      i_audio_volume_level_p->Release ();
       return;
     }
   } // end SWITCH
+  gtk_range_set_value (GTK_RANGE (hscale_p),
+                       static_cast<gdouble> (volume_level_f) * 100.0);
+  gtk_range_set_value (GTK_RANGE (hscale_2),
+                       static_cast<gdouble> (boost_f));
 #else
   if (!Stream_MediaFramework_ALSA_Tools::getCaptureVolumeLevels (device_identifier_string,
                                                                  ACE_TEXT_ALWAYS_CHAR (STREAM_LIB_ALSA_CAPTURE_DEFAULT_SELEM_VOLUME_NAME),
@@ -9286,6 +9280,7 @@ combobox_format_changed_cb (GtkWidget* widget_in,
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
     { ACE_ASSERT (directshow_ui_cb_data_p->configuration);
+      ACE_ASSERT (directshow_ui_cb_data_p->configuration->streamConfiguration.configuration_);
       directshow_ui_cb_data_p->configuration->streamConfiguration.configuration_->format.subtype =
         GUID_s;
       if (!use_framework_source_b)
@@ -9299,7 +9294,6 @@ combobox_format_changed_cb (GtkWidget* widget_in,
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
     { ACE_ASSERT (mediafoundation_ui_cb_data_p->configuration);
       ACE_ASSERT (mediafoundation_ui_cb_data_p->configuration->streamConfiguration.configuration_->format);
-      ACE_ASSERT ((*mediafoundation_modulehandler_configuration_iterator).second.second->session);
 
       HRESULT result =
         mediafoundation_ui_cb_data_p->configuration->streamConfiguration.configuration_->format->SetGUID (MF_MT_SUBTYPE,
@@ -9313,6 +9307,8 @@ combobox_format_changed_cb (GtkWidget* widget_in,
       } // end IF
       if (!use_framework_source_b)
         break;
+
+      ACE_ASSERT ((*mediafoundation_modulehandler_configuration_iterator).second.second->session);
 
 #if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
       if (!Stream_MediaFramework_MediaFoundation_Tools::getMediaSource ((*mediafoundation_modulehandler_configuration_iterator).second.second->session,
@@ -9408,7 +9404,10 @@ combobox_format_changed_cb (GtkWidget* widget_in,
       break;
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
     {
-      media_source_p->Release (); media_source_p = NULL;
+      if (media_source_p)
+      {
+        media_source_p->Release (); media_source_p = NULL;
+      }
       break;
     }
     default:
@@ -9663,9 +9662,6 @@ combobox_frequency_changed_cb (GtkWidget* widget_in,
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
     { ACE_ASSERT (mediafoundation_ui_cb_data_p->configuration);
       ACE_ASSERT (mediafoundation_ui_cb_data_p->configuration->streamConfiguration.configuration_->format);
-#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
-      ACE_ASSERT ((*mediafoundation_modulehandler_configuration_iterator).second.second->session);
-#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
 
       HRESULT result =
         mediafoundation_ui_cb_data_p->configuration->streamConfiguration.configuration_->format->SetUINT32 (MF_MT_AUDIO_SAMPLES_PER_SECOND,
@@ -9693,6 +9689,7 @@ combobox_frequency_changed_cb (GtkWidget* widget_in,
         break;
 
 #if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
+      ACE_ASSERT ((*mediafoundation_modulehandler_configuration_iterator).second.second->session);
       if (!Stream_MediaFramework_MediaFoundation_Tools::getMediaSource ((*mediafoundation_modulehandler_configuration_iterator).second.second->session,
                                                                         media_source_p))
       {
@@ -9789,7 +9786,10 @@ combobox_frequency_changed_cb (GtkWidget* widget_in,
       break;
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
     {
-      media_source_p->Release (); media_source_p = NULL;
+      if (media_source_p)
+      {
+        media_source_p->Release (); media_source_p = NULL;
+      } // end IF
       break;
     }
     default:
@@ -10072,9 +10072,6 @@ combobox_resolution_changed_cb (GtkWidget* widget_in,
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
     { ACE_ASSERT (mediafoundation_ui_cb_data_p->configuration);
       ACE_ASSERT (mediafoundation_ui_cb_data_p->configuration->streamConfiguration.configuration_->format);
-#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
-      ACE_ASSERT ((*mediafoundation_modulehandler_configuration_iterator).second.second->session);
-#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
 
       HRESULT result =
         mediafoundation_ui_cb_data_p->configuration->streamConfiguration.configuration_->format->SetUINT32 (MF_MT_AUDIO_BITS_PER_SAMPLE,
@@ -10094,7 +10091,6 @@ combobox_resolution_changed_cb (GtkWidget* widget_in,
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("failed to IMFMediaType::GetUINT32(MF_MT_AUDIO_NUM_CHANNELS): \"%s\", returning\n"),
-                    bits_per_sample,
                     ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
         return;
       } // end IF
@@ -10102,6 +10098,7 @@ combobox_resolution_changed_cb (GtkWidget* widget_in,
         break;
 
 #if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
+      ACE_ASSERT ((*mediafoundation_modulehandler_configuration_iterator).second.second->session);
       if (!Stream_MediaFramework_MediaFoundation_Tools::getMediaSource ((*mediafoundation_modulehandler_configuration_iterator).second.second->session,
                                                                         media_source_p))
       {
@@ -10196,7 +10193,10 @@ combobox_resolution_changed_cb (GtkWidget* widget_in,
       break;
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
     {
-      media_source_p->Release (); media_source_p = NULL;
+      if (media_source_p)
+      {
+        media_source_p->Release (); media_source_p = NULL;
+      } // end IF
       break;
     }
     default:

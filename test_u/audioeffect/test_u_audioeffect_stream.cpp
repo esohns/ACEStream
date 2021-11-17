@@ -40,6 +40,8 @@
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #include "stream_dev_directshow_tools.h"
 #include "stream_dev_mediafoundation_tools.h"
+#else
+#include "stream_misc_defines.h"
 #endif // ACE_WIN32 || ACE_WIN64
 
 #include "test_u_audioeffect_common_modules.h"
@@ -95,7 +97,9 @@ Test_U_AudioEffect_DirectShow_Stream::load (Stream_ILayout* layout_in,
   //                Test_U_AudioEffect_DirectShow_StatisticReport_Module (this,
   //                                                                      ACE_TEXT_ALWAYS_CHAR (MODULE_STAT_REPORT_DEFAULT_NAME_STRING)),
   //                false);
+  //ACE_ASSERT (module_p);
   //layout_in->append (module_p, NULL, 0);
+  //module_p = NULL;
 #if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
   ACE_NEW_RETURN (module_p,
@@ -111,6 +115,7 @@ Test_U_AudioEffect_DirectShow_Stream::load (Stream_ILayout* layout_in,
                   false);
   ACE_ASSERT (module_p);
   layout_in->append (module_p, NULL, 0);
+  module_p = NULL;
 #endif // GTK_USE
 #endif // GUI_SUPPORT
   if (!(*iterator).second.second->mute ||
@@ -126,30 +131,33 @@ Test_U_AudioEffect_DirectShow_Stream::load (Stream_ILayout* layout_in,
     layout_in->append (module_p, NULL, 0);
     module_p = NULL;
   } // end IF
-  if (!InlineIsEqualGUID ((*iterator).second.second->effect, GUID_NULL))
+  if (!(*iterator).second.second->targetFileName.empty ())
   {
+    if (!InlineIsEqualGUID ((*iterator).second.second->effect, GUID_NULL))
+    {
+      ACE_NEW_RETURN (module_p,
+                      Test_U_AudioEffect_DirectShow_Source_Module (this,
+                                                                   ACE_TEXT_ALWAYS_CHAR (STREAM_LIB_DIRECTSHOW_SOURCE_DEFAULT_NAME_STRING)),
+                      false);
+      ACE_ASSERT (module_p);
+      layout_in->append (module_p, NULL, 0);
+      module_p = NULL;
+    } // end IF
     ACE_NEW_RETURN (module_p,
-                    Test_U_AudioEffect_DirectShow_Source_Module (this,
-                                                                 ACE_TEXT_ALWAYS_CHAR (STREAM_LIB_DIRECTSHOW_SOURCE_DEFAULT_NAME_STRING)),
+                    Test_U_AudioEffect_DirectShow_WAVEncoder_Module (this,
+                                                                     ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_ENCODER_WAV_DEFAULT_NAME_STRING)),
+                    false);
+    ACE_ASSERT (module_p);
+    layout_in->append (module_p, NULL, 0);
+    module_p = NULL;
+    ACE_NEW_RETURN (module_p,
+                    Test_U_AudioEffect_DirectShow_FileWriter_Module (this,
+                                                                     ACE_TEXT_ALWAYS_CHAR (STREAM_FILE_SINK_DEFAULT_NAME_STRING)),
                     false);
     ACE_ASSERT (module_p);
     layout_in->append (module_p, NULL, 0);
     module_p = NULL;
   } // end IF
-  module_p = NULL;
-  ACE_NEW_RETURN (module_p,
-                  Test_U_AudioEffect_DirectShow_WAVEncoder_Module (this,
-                                                                   ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_ENCODER_WAV_DEFAULT_NAME_STRING)),
-                  false);
-  ACE_ASSERT (module_p);
-  layout_in->append (module_p, NULL, 0);
-  module_p = NULL;
-  ACE_NEW_RETURN (module_p,
-                  Test_U_AudioEffect_DirectShow_FileWriter_Module (this,
-                                                                   ACE_TEXT_ALWAYS_CHAR (STREAM_FILE_SINK_DEFAULT_NAME_STRING)),
-                  false);
-  ACE_ASSERT (module_p);
-  layout_in->append (module_p, NULL, 0);
 
   delete_out = true;
 
@@ -557,46 +565,96 @@ Test_U_AudioEffect_MediaFoundation_Stream::load (Stream_ILayout* layout_in,
 {
   STREAM_TRACE (ACE_TEXT ("Test_U_AudioEffect_MediaFoundation_Stream::load"));
 
+  // initialize return value(s)
+  delete_out = false;
+
+  // sanity check(s)
+  ACE_ASSERT (inherited::configuration_);
+  typename inherited::CONFIGURATION_T::ITERATOR_T iterator =
+    inherited::configuration_->find (ACE_TEXT_ALWAYS_CHAR (""));
+  ACE_ASSERT (iterator != inherited::configuration_->end ());
+
   Stream_Module_t* module_p = NULL;
-  ACE_NEW_RETURN (module_p,
-                  Test_U_Dev_Mic_Source_MediaFoundation_Module (this,
-                                                                ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_MIC_SOURCE_MEDIAFOUNDATION_DEFAULT_NAME_STRING)),
-                  false);
+  if (inherited::configuration_->configuration_->useFrameworkSource)
+    ACE_NEW_RETURN (module_p,
+                    Test_U_Dev_Mic_Source_MediaFoundation_Module (this,
+                                                                  ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_MIC_SOURCE_MEDIAFOUNDATION_DEFAULT_NAME_STRING)),
+                    false);
+  else
+    ACE_NEW_RETURN (module_p,
+                    //Test_U_Dev_Mic_Source_WaveIn2_Module (this,
+                    //                                      ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_MIC_SOURCE_WAVEIN_DEFAULT_NAME_STRING)),
+                    Test_U_Dev_Mic_Source_WASAPI2_Module (this,
+                                                          ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_MIC_SOURCE_WASAPI_DEFAULT_NAME_STRING)),
+                    false);
+  ACE_ASSERT (module_p);
   layout_in->append (module_p, NULL, 0);
-  //module_p = NULL;
+  module_p = NULL;
   //ACE_NEW_RETURN (module_p,
   //                Test_U_AudioEffect_MediaFoundation_StatisticReport_Module (this,
   //                                                                           ACE_TEXT_ALWAYS_CHAR (MODULE_STAT_REPORT_DEFAULT_NAME_STRING)),
   //                false);
+  //ACE_ASSERT (module_p);
   //layout_in->append (module_p, NULL, 0);
-  module_p = NULL;
+  //module_p = NULL;
+#if defined (GUI_SUPPORT)
+#if defined (GTK_USE)
   ACE_NEW_RETURN (module_p,
                   Test_U_AudioEffect_MediaFoundation_StatisticAnalysis_Module (this,
                                                                                ACE_TEXT_ALWAYS_CHAR (MODULE_STAT_ANALYSIS_DEFAULT_NAME_STRING)),
                   false);
+  ACE_ASSERT (module_p);
   layout_in->append (module_p, NULL, 0);
-#if defined (GUI_SUPPORT)
-#if defined (GTK_USE)
   module_p = NULL;
   ACE_NEW_RETURN (module_p,
                   Test_U_AudioEffect_MediaFoundation_Vis_SpectrumAnalyzer_Module (this,
                                                                                   ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_GTK_SPECTRUM_ANALYZER_DEFAULT_NAME_STRING)),
                   false);
+  ACE_ASSERT (module_p);
   layout_in->append (module_p, NULL, 0);
+  module_p = NULL;
 #endif // GTK_USE
 #endif // GUI_SUPPORT
-  module_p = NULL;
-  ACE_NEW_RETURN (module_p,
-                  Test_U_AudioEffect_MediaFoundation_WAVEncoder_Module (this,
-                                                                        ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_ENCODER_WAV_DEFAULT_NAME_STRING)),
-                  false);
-  layout_in->append (module_p, NULL, 0);
-  module_p = NULL;
-  ACE_NEW_RETURN (module_p,
-                  Test_U_AudioEffect_MediaFoundation_FileWriter_Module (this,
-                                                                        ACE_TEXT_ALWAYS_CHAR (STREAM_FILE_SINK_DEFAULT_NAME_STRING)),
-                  false);
-  layout_in->append (module_p, NULL, 0);
+  if (!(*iterator).second.second->mute ||
+      !InlineIsEqualGUID ((*iterator).second.second->effect, GUID_NULL))
+  {
+    ACE_NEW_RETURN (module_p,
+                    //Test_U_AudioEffect_MediaFoundation_WavOut_Module (this,
+                    //                                                  ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_TARGET_WAVOUT_DEFAULT_NAME_STRING)),
+                    Test_U_AudioEffect_MediaFoundation_Target_Module (this,
+                                                                      ACE_TEXT_ALWAYS_CHAR (STREAM_LIB_MEDIAFOUNDATION_TARGET_DEFAULT_NAME_STRING)),
+                    false);
+    ACE_ASSERT (module_p);
+    layout_in->append (module_p, NULL, 0);
+    module_p = NULL;
+  } // end IF
+  if (!(*iterator).second.second->targetFileName.empty ())
+  {
+    if (!InlineIsEqualGUID ((*iterator).second.second->effect, GUID_NULL))
+    {
+      ACE_NEW_RETURN (module_p,
+                      Test_U_AudioEffect_MediaFoundation_Source_Module (this,
+                                                                        ACE_TEXT_ALWAYS_CHAR (STREAM_LIB_MEDIAFOUNDATION_SOURCE_DEFAULT_NAME_STRING)),
+                      false);
+      ACE_ASSERT (module_p);
+      layout_in->append (module_p, NULL, 0);
+      module_p = NULL;
+    } // end IF
+    ACE_NEW_RETURN (module_p,
+                    Test_U_AudioEffect_MediaFoundation_WAVEncoder_Module (this,
+                                                                          ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_ENCODER_WAV_DEFAULT_NAME_STRING)),
+                    false);
+    ACE_ASSERT (module_p);
+    layout_in->append (module_p, NULL, 0);
+    module_p = NULL;
+    ACE_NEW_RETURN (module_p,
+                    Test_U_AudioEffect_MediaFoundation_FileWriter_Module (this,
+                                                                          ACE_TEXT_ALWAYS_CHAR (STREAM_FILE_SINK_DEFAULT_NAME_STRING)),
+                    false);
+    ACE_ASSERT (module_p);
+    layout_in->append (module_p, NULL, 0);
+    module_p = NULL;
+  } // end IF
 
   delete_out = true;
 
@@ -1142,15 +1200,6 @@ Test_U_AudioEffect_ALSA_Stream::load (Stream_ILayout* layout_in,
     layout_in->append (module_p, NULL, 0);
     module_p = NULL;
   } // end IF
-  if (!(*iterator).second.second->mute)
-  {
-    ACE_NEW_RETURN (module_p,
-                    Test_U_AudioEffect_Target_ALSA_Module (this,
-                                                           ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_TARGET_ALSA_DEFAULT_NAME_STRING)),
-                    false);
-    layout_in->append (module_p, NULL, 0);
-    module_p = NULL;
-  } // end IF
 #if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
   ACE_NEW_RETURN (module_p,
@@ -1161,20 +1210,61 @@ Test_U_AudioEffect_ALSA_Stream::load (Stream_ILayout* layout_in,
   module_p = NULL;
 #endif // GTK_USE
 #endif // GUI_SUPPORT
-  ACE_NEW_RETURN (module_p,
-                  Test_U_AudioEffect_ALSA_WAVEncoder_Module (this,
-                                                             ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_ENCODER_WAV_DEFAULT_NAME_STRING)),
-                  false);
-  layout_in->append (module_p, NULL, 0);
-  module_p = NULL;
-//  ACE_NEW_RETURN (module_p,
-//                  Test_U_AudioEffect_Module_FileWriter_Module (this,
-//                                                               ACE_TEXT_ALWAYS_CHAR (MODULE_FILE_SINK_DEFAULT_NAME_STRING)),
-//                  false);
-//  modules_out.push_back (module_p);
-//  module_p = NULL;
-  // *NOTE*: currently, on UNIX systems, the WAV encoder writes the WAV file
-  //         itself
+  // *NOTE*: this processing stream may have branches, depending on:
+  //         - whether the output is muted
+  //         - whether the output is saved to file
+  if (!(*iterator).second.second->mute ||
+      !(*iterator).second.second->targetFileName.empty ())
+  {
+    typename inherited::MODULE_T* branch_p = NULL; // NULL: 'main' branch
+    unsigned int index_i = 0;
+    if (!(*iterator).second.second->mute &&
+        !(*iterator).second.second->targetFileName.empty ())
+    {
+      ACE_NEW_RETURN (module_p,
+                      Test_U_AudioEffect_Distributor_Module (this,
+                                                             ACE_TEXT_ALWAYS_CHAR (STREAM_MISC_DISTRIBUTOR_DEFAULT_NAME_STRING)),
+                      false);
+      branch_p = module_p;
+      inherited::configuration_->configuration_->branches.push_back (ACE_TEXT_ALWAYS_CHAR (STREAM_SUBSTREAM_PLAYBACK_NAME));
+      inherited::configuration_->configuration_->branches.push_back (ACE_TEXT_ALWAYS_CHAR (STREAM_SUBSTREAM_SAVE_NAME));
+      Stream_IDistributorModule* idistributor_p =
+        dynamic_cast<Stream_IDistributorModule*> (module_p->writer ());
+      ACE_ASSERT (idistributor_p);
+      idistributor_p->initialize (inherited::configuration_->configuration_->branches);
+      layout_in->append (module_p, NULL, 0);
+      module_p = NULL;
+    } // end IF
+
+    if (!(*iterator).second.second->mute)
+    {
+      ACE_NEW_RETURN (module_p,
+                      Test_U_AudioEffect_Target_ALSA_Module (this,
+                                                             ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_TARGET_ALSA_DEFAULT_NAME_STRING)),
+                      false);
+      layout_in->append (module_p, branch_p, index_i);
+      ++index_i;
+      module_p = NULL;
+    } // end IF
+    if (!(*iterator).second.second->targetFileName.empty ())
+    {
+      ACE_NEW_RETURN (module_p,
+                      Test_U_AudioEffect_ALSA_WAVEncoder_Module (this,
+                                                                 ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_ENCODER_WAV_DEFAULT_NAME_STRING)),
+                      false);
+      layout_in->append (module_p, branch_p, index_i);
+      ++index_i;
+      module_p = NULL;
+      // *NOTE*: currently, on UNIX systems, the WAV encoder writes the WAV file
+      //         itself
+      //  ACE_NEW_RETURN (module_p,
+      //                  Test_U_AudioEffect_Module_FileWriter_Module (this,
+      //                                                               ACE_TEXT_ALWAYS_CHAR (MODULE_FILE_SINK_DEFAULT_NAME_STRING)),
+      //                  false);
+      //  modules_out.push_back (module_p);
+      //  module_p = NULL;
+    } // end IF
+  } // end ELSE
 
   delete_out = true;
 

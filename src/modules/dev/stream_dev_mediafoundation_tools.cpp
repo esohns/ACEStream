@@ -211,172 +211,21 @@ error_2:
   return result;
 }
 
-bool
-Stream_Device_MediaFoundation_Tools::getMediaSource (const std::string& deviceIdentifier_in,
-                                                     REFGUID deviceCategory_in,
-#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0602) // _WIN32_WINNT_WIN8
-                                                     IMFMediaSourceEx*& mediaSource_out)
-#else
-                                                     IMFMediaSource*& mediaSource_out)
-#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0602)
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_Device_MediaFoundation_Tools::getMediaSource"));
-
-  bool result = false;
-
-  if (mediaSource_out)
-  {
-    mediaSource_out->Release (); mediaSource_out = NULL;
-  } // end IF
-
-  IMFAttributes* attributes_p = NULL;
-  UINT32 count = 0;
-  IMFActivate** devices_pp = NULL;
-  unsigned int index = 0;
-  struct _GUID GUID_s = GUID_NULL;
-
-#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0601) // _WIN32_WINNT_WIN7
-  if (InlineIsEqualGUID (deviceCategory_in, MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE_AUDCAP_GUID))
-    //GUID_s = MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE_AUDCAP_SYMBOLIC_LINK;
-    GUID_s = MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE_AUDCAP_ENDPOINT_ID;
-  else if (InlineIsEqualGUID (deviceCategory_in, MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE_VIDCAP_GUID))
-    GUID_s = MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE_VIDCAP_SYMBOLIC_LINK;
-  else
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("invalid/unknown device category (was: %s, aborting\n"),
-                ACE_TEXT (Common_Tools::GUIDToString (GUID_s).c_str ())));
-    goto error;
-  } // end IF
-#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0601)
-
-  HRESULT result_2 = MFCreateAttributes (&attributes_p, 1);
-  if (FAILED (result_2))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to MFCreateAttributes(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Error_Tools::errorToString (result_2).c_str ())));
-    return false;
-  } // end IF
-
-#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0601) // _WIN32_WINNT_WIN7
-  result_2 =
-    attributes_p->SetGUID (MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE,
-                           deviceCategory_in);
-  if (FAILED (result_2))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to IMFAttributes::SetGUID(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Error_Tools::errorToString (result_2).c_str ())));
-    goto error;
-  } // end IF
-#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0601)
-
-#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0601) // _WIN32_WINNT_WIN7
-  result_2 = MFEnumDeviceSources (attributes_p,
-                                  &devices_pp,
-                                  &count);
-  if (FAILED (result_2))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to MFEnumDeviceSources(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Error_Tools::errorToString (result_2).c_str ())));
-    goto error;
-  } // end IF
-#else
-  ACE_ASSERT (false);
-  ACE_NOTSUP_RETURN (false);
-  ACE_NOTREACHED (return false;)
-#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0601)
-  ACE_ASSERT (devices_pp);
-  if (count == 0)
-  {
-    ACE_DEBUG ((LM_DEBUG,
-                ACE_TEXT ("no capture devices found, aborting\n")));
-    goto error;
-  } // end IF
-
-  if (!deviceIdentifier_in.empty ())
-  {
-    WCHAR buffer_a[BUFSIZ];
-    UINT32 length;
-    bool found = false;
-    for (UINT32 i = 0; i < count; i++)
-    {
-      ACE_OS::memset (buffer_a, 0, sizeof (WCHAR[BUFSIZ]));
-      length = 0;
-      result_2 =
-        devices_pp[index]->GetString (GUID_s,
-                                      buffer_a,
-                                      sizeof (WCHAR[BUFSIZ]),
-                                      &length);
-      if (FAILED (result_2))
-      {
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("failed to IMFActivate::GetString(%s): \"%s\", aborting\n"),
-                    ACE_TEXT (Common_Tools::GUIDToString (GUID_s).c_str ()),
-                    ACE_TEXT (Common_Error_Tools::errorToString (result_2).c_str ())));
-        goto error;
-      } // end IF
-      if (!ACE_OS::strcmp (buffer_a,
-                           ACE_TEXT_ALWAYS_WCHAR (deviceIdentifier_in.c_str ())))
-      {
-        found = true;
-        index = i;
-        break;
-      } // end IF
-    } // end FOR
-    if (!found)
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("media source (device identifier was: \"%s\") not found, aborting\n"),
-                  ACE_TEXT (deviceIdentifier_in.c_str ())));
-      goto error;
-    } // end IF
-  } // end IF
-  result_2 =
-    devices_pp[index]->ActivateObject (IID_PPV_ARGS (&mediaSource_out));
-  if (FAILED (result_2)) // MF_E_SHUTDOWN: 0xC00D3E85
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to IMFActivate::ActivateObject(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Error_Tools::errorToString (result_2).c_str ())));
-    goto error;
-  } // end IF
-
-  result = true;
-
-error:
-  if (attributes_p)
-    attributes_p->Release ();
-
-  for (UINT32 i = 0; i < count; i++)
-    devices_pp[i]->Release ();
-  CoTaskMemFree (devices_pp);
-
-  if (!result && mediaSource_out)
-  {
-    mediaSource_out->Release (); mediaSource_out = NULL;
-  } // end IF
-
-  return result;
-}
-
 #if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
 bool
 Stream_Device_MediaFoundation_Tools::loadDeviceTopology (const std::string& deviceIdentifier_in,
-                                                                REFGUID deviceCategory_in,
+                                                         REFGUID deviceCategory_in,
 #if COMMON_OS_WIN32_TARGET_PLATFORM(0x0602) // _WIN32_WINNT_WIN8
-                                                                IMFMediaSourceEx*& mediaSource_inout,
+                                                         IMFMediaSourceEx*& mediaSource_inout,
 #else
-                                                                IMFMediaSource*& mediaSource_inout,
+                                                         IMFMediaSource*& mediaSource_inout,
 #endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0602)
 #if COMMON_OS_WIN32_TARGET_PLATFORM(0x0601) // _WIN32_WINNT_WIN7
-                                                                IMFSampleGrabberSinkCallback2* sampleGrabberSinkCallback_in,
+                                                         IMFSampleGrabberSinkCallback2* sampleGrabberSinkCallback_in,
 #else
-                                                                IMFSampleGrabberSinkCallback* sampleGrabberSinkCallback_in,
+                                                         IMFSampleGrabberSinkCallback* sampleGrabberSinkCallback_in,
 #endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0601)
-                                                                IMFTopology*& topology_out)
+                                                         IMFTopology*& topology_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Device_MediaFoundation_Tools::loadDeviceTopology"));
 
@@ -444,12 +293,12 @@ Stream_Device_MediaFoundation_Tools::loadDeviceTopology (const std::string& devi
                                        MF_CONNECT_DIRECT);
   ACE_ASSERT (SUCCEEDED (result));
   if (!mediaSource_inout)
-    if (!Stream_Device_MediaFoundation_Tools::getMediaSource (deviceIdentifier_in,
-                                                              deviceCategory_in,
-                                                              mediaSource_inout))
+    if (!Stream_MediaFramework_MediaFoundation_Tools::getMediaSource (deviceIdentifier_in,
+                                                                      deviceCategory_in,
+                                                                      mediaSource_inout))
     {
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to Stream_Device_MediaFoundation_Tools::getMediaSource(\"%s\"), aborting\n"),
+                  ACE_TEXT ("failed to Stream_MediaFramework_MediaFoundation_Tools::getMediaSource(\"%s\"), aborting\n"),
                   ACE_TEXT (deviceIdentifier_in.c_str ())));
       goto error;
     } // end IF
@@ -623,7 +472,7 @@ Stream_Device_MediaFoundation_Tools::getCaptureFormat (IMFMediaSourceEx* mediaSo
 #else
 Stream_Device_MediaFoundation_Tools::getCaptureFormat (IMFMediaSource* mediaSource_in,
 #endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0602)
-                                                              IMFMediaType*& mediaType_out)
+                                                       IMFMediaType*& mediaType_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Device_MediaFoundation_Tools::getCaptureFormat"));
 

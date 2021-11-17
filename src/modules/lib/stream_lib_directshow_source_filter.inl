@@ -1954,7 +1954,7 @@ Stream_MediaFramework_DirectShow_Source_Filter_OutputPin_T<ConfigurationType>::G
     return E_PROP_SET_UNSUPPORTED;
   if (dwPropID_in != AMPROPERTY_PIN_CATEGORY)
     return E_PROP_ID_UNSUPPORTED;
-  if (pPropData_in == NULL && pcbReturned_in == NULL)
+  if (pPropData_in == NULL || pcbReturned_in == NULL)
     return E_POINTER;
 
   if (pcbReturned_in)

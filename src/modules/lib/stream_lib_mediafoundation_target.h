@@ -35,6 +35,8 @@
 #include "stream_common.h"
 #include "stream_task_base_synch.h"
 
+extern const char libacestream_default_lib_mediafoundation_target_module_name_string[];
+
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           ////////////////////////////////

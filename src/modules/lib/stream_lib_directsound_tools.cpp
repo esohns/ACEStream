@@ -41,9 +41,13 @@
 #include "ace/Log_Msg.h"
 #include "ace/OS.h"
 
+#include "common_error_tools.h"
+
 #include "stream_macros.h"
 
 #include "stream_lib_defines.h"
+
+#include "stream_lib_directshow_tools.h"
 
 struct stream_directshow_device_enumeration_cbdata
 {
@@ -181,7 +185,15 @@ Stream_MediaFramework_DirectSound_Tools::getAudioRendererStatistics (IFilterGrap
   // step2: retrieve interface
   IAMAudioRendererStats* statistic_p = NULL;
   result = filter_p->QueryInterface (IID_PPV_ARGS (&statistic_p));
-  ACE_ASSERT (SUCCEEDED (result) && statistic_p);
+  if (unlikely (FAILED (result) || !statistic_p))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s: failed to IBaseFilter::QueryInterface(IID_IAMAudioRendererStats): \"%s\", returning\n"),
+                ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::name (filter_p).c_str ()),
+                ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ())));
+    filter_p->Release (); filter_p = NULL;
+    return;
+  } // end IF
   filter_p->Release (); filter_p = NULL;
 
   // step3: retrieve information

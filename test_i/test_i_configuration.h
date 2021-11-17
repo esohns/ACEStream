@@ -34,12 +34,12 @@
 
 #include "stream_common.h"
 #include "stream_configuration.h"
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-#include "stream_istreamcontrol.h"
-#endif // ACE_WIN32 || ACE_WIN64
 
 #include "stream_lib_common.h"
 #include "stream_lib_defines.h"
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#include "stream_lib_mediafoundation_common.h"
+#endif // ACE_WIN32 || ACE_WIN64
 
 #include "test_i_common.h"
 #include "test_i_defines.h"
@@ -101,16 +101,12 @@ struct Test_I_SignalHandlerConfiguration
 //};
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-struct IMFMediaSession;
 struct Test_I_MediaFoundationConfiguration
+ : Stream_MediaFramework_MediaFoundation_Configuration
 {
   Test_I_MediaFoundationConfiguration ()
-   : controller (NULL)
-   , mediaSession (NULL)
+   : Stream_MediaFramework_MediaFoundation_Configuration ()
   {}
-
-  Stream_IStreamControlBase* controller;
-  IMFMediaSession*           mediaSession;
 };
 #endif // ACE_WIN32 || ACE_WIN64
 

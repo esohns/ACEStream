@@ -61,16 +61,6 @@ class Stream_Device_MediaFoundation_Tools
                                 const IMFMediaType*); // media type
 
   // -------------------------------------
-
-  static bool getMediaSource (const std::string&,  // device identifier
-                              REFGUID,             // device category
-#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0602) // _WIN32_WINNT_WIN8
-                              IMFMediaSourceEx*&); // return value: media source handle
-#else
-                              IMFMediaSource*&);   // return value: media source handle
-#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0602)
-
-  // -------------------------------------
 #if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
   // *NOTE*: if the fourth argument is NULL, the topology has no sink and cannot
   //         be loaded

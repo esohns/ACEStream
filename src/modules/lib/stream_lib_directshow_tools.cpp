@@ -2239,12 +2239,9 @@ Stream_MediaFramework_DirectShow_Tools::clear (IGraphBuilder* builder_in)
     return false;
   } // end IF
   IBaseFilter* filter_p = NULL;
-#if defined (_DEBUG)
   struct _FilterInfo filter_info;
-#endif // _DEBUG
   while (enumerator_p->Next (1, &filter_p, NULL) == S_OK)
   { ACE_ASSERT (filter_p);
-#if defined (_DEBUG)
     ACE_OS::memset (&filter_info, 0, sizeof (struct _FilterInfo));
     result = filter_p->QueryFilterInfo (&filter_info);
     if (FAILED (result))
@@ -2258,7 +2255,6 @@ Stream_MediaFramework_DirectShow_Tools::clear (IGraphBuilder* builder_in)
     } // end IF
     if (filter_info.pGraph)
       filter_info.pGraph->Release ();
-#endif // _DEBUG
     result = builder_in->RemoveFilter (filter_p);
     if (FAILED (result))
     {

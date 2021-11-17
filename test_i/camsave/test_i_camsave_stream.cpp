@@ -118,7 +118,7 @@ Stream_CamSave_DirectShow_Stream::load (Stream_ILayout* layout_in,
   //         - whether the output is displayed on a screen
   //         - whether the output is saved to file
   typename inherited::MODULE_T* branch_p = NULL; // NULL: 'main' branch
-  unsigned int index_i = 1;
+  unsigned int index_i = 0;
 
   layout_in->append (&source_, NULL, 0);
   layout_in->append (&statisticReport_, NULL, 0);

@@ -847,10 +847,8 @@ struct Test_I_Target_UI_CBData
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 typedef Stream_MediaFramework_MediaFoundation_MediaSource_T<Common_TimePolicy_t,
-                                                            Test_I_Target_MediaFoundation_SessionMessage,
                                                             Test_I_Target_MediaFoundation_Stream_Message,
-                                                            struct Test_I_MediaFoundationConfiguration,
-                                                            IMFMediaType*> Stream_MediaFramework_MediaFoundation_MediaSource_t;
+                                                            struct Test_I_MediaFoundationConfiguration> Stream_MediaFramework_MediaFoundation_MediaSource_t;
 #endif // ACE_WIN32 || ACE_WIN64
 
 #endif

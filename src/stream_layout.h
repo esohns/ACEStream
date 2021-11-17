@@ -129,7 +129,7 @@ class Stream_Layout_T
   // append a module to a branch
   bool append (MODULE_T*,         // module handle
                MODULE_T* = NULL,  // distributor module handle {NULL: 'main' branch}
-               unsigned int = 0); // distributor sub-branch index, if any (zero-based)
+               unsigned int = 0); // distributor branch index (zero-based)
   bool append (MODULE_T*,           // module handle
                const std::string&); // branch name {"": 'main' branch}
   bool remove (const std::string&); // nodule name
@@ -166,7 +166,7 @@ class Stream_Layout_T
   //         - the corresponding head module has not been push()ed yet
   bool has_branch (NODE_T&,              // distributor node
                    const std::string&,   // branch name
-                   unsigned int&) const; // return value: index (iff any; see above)
+                   unsigned int&) const; // return value: index (zero-based; see above)
 };
 
 // include template definition

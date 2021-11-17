@@ -553,13 +553,14 @@ do_initialize_directshow (const std::string& deviceIdentifier_in,
 
   HRESULT result = E_FAIL;
   IAMBufferNegotiation* buffer_negotiation_p = NULL;
-  struct tWAVEFORMATEX* waveformatex_p = NULL;
   Stream_MediaFramework_DirectShow_Graph_t graph_layout;
   Stream_MediaFramework_DirectShow_GraphConfiguration_t graph_configuration;
   IMediaFilter* media_filter_p = NULL;
   Test_U_AudioEffect_DirectShowFilter_t* filter_p = NULL;
   IBaseFilter* filter_2 = NULL;
   std::wstring filter_name = STREAM_LIB_DIRECTSHOW_FILTER_NAME_SOURCE_L;
+  struct tWAVEFORMATEX waveformatex_s;
+  ACE_OS::memset (&waveformatex_s, 0, sizeof (struct tWAVEFORMATEX));
 
   // sanity check(s)
   ACE_ASSERT (!IGraphBuilder_out);
@@ -589,21 +590,17 @@ continue_:
   // initialize return value(s)
   Stream_MediaFramework_DirectShow_Tools::free (captureMediaType_out);
 
-  struct tWAVEFORMATEX waveformatex_s;
-  ACE_OS::memset (&waveformatex_s, 0, sizeof (struct tWAVEFORMATEX));
-  waveformatex_p = &waveformatex_s;
+  waveformatex_s.wFormatTag = WAVE_FORMAT_PCM;
+  waveformatex_s.nChannels = STREAM_DEV_MIC_DEFAULT_CHANNELS; // stereo
+  waveformatex_s.nSamplesPerSec = STREAM_DEV_MIC_DEFAULT_SAMPLE_RATE;
+  waveformatex_s.wBitsPerSample = STREAM_DEV_MIC_DEFAULT_BITS_PER_SAMPLE;
+  waveformatex_s.nBlockAlign =
+    (waveformatex_s.nChannels * (waveformatex_s.wBitsPerSample / 8));
+  waveformatex_s.nAvgBytesPerSec =
+    (waveformatex_s.nSamplesPerSec * waveformatex_s.nBlockAlign);
+  //waveformatex_s.cbSize = 0;
 
-  waveformatex_p->wFormatTag = WAVE_FORMAT_PCM;
-  waveformatex_p->nChannels = STREAM_DEV_MIC_DEFAULT_CHANNELS; // stereo
-  waveformatex_p->nSamplesPerSec = STREAM_DEV_MIC_DEFAULT_SAMPLE_RATE;
-  waveformatex_p->wBitsPerSample = STREAM_DEV_MIC_DEFAULT_BITS_PER_SAMPLE;
-  waveformatex_p->nBlockAlign =
-    (waveformatex_p->nChannels * (waveformatex_p->wBitsPerSample / 8));
-  waveformatex_p->nAvgBytesPerSec =
-    (waveformatex_p->nSamplesPerSec * waveformatex_p->nBlockAlign);
-  waveformatex_p->cbSize = 0;
-
-  result = CreateAudioMediaType (waveformatex_p,
+  result = CreateAudioMediaType (&waveformatex_s,
                                  &captureMediaType_out,
                                  TRUE);
   if (FAILED (result))
@@ -741,6 +738,9 @@ continue_4:
   } // end IF
   media_filter_p->Release (); media_filter_p = NULL;
 
+  if (coInitialize_in)
+    CoUninitialize ();
+
   return true;
 
 error:
@@ -764,13 +764,33 @@ error:
 
   return false;
 }
+
 bool
-do_initialize_mediafoundation (bool coInitialize_in,
-                               bool initializeMediaFoundation_in)
+do_initialize_mediafoundation (const std::string& deviceIdentifier_in,
+                               struct Test_U_AudioEffect_MediaFoundation_Configuration& configuration_in,
+                               IMFMediaSession*& session_out,
+                               IMFMediaType*& captureMediaType_out,
+                               bool coInitialize_in,
+                               bool initializeMediaFoundation_in,
+                               bool useMediaFoundationSource_in,
+                               bool mute_in)
 {
   STREAM_TRACE (ACE_TEXT ("::do_initialize_mediafoundation"));
 
   HRESULT result = E_FAIL;
+  struct tWAVEFORMATEX waveformatex_s;
+  ACE_OS::memset (&waveformatex_s, 0, sizeof (struct tWAVEFORMATEX));
+  struct _AMMediaType media_type_s;
+  ACE_OS::memset (&media_type_s, 0, sizeof (struct _AMMediaType));
+  Test_U_AudioEffect_MediaFoundation_MediaSource_t* media_source_p = NULL;
+#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0602) // _WIN32_WINNT_WIN8
+  IMFMediaSourceEx* media_source_2 = NULL;
+#else
+  IMFMediaSource* media_source_2 = NULL;
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0602)
+  IMFTopology* topology_p = NULL;
+  TOPOID sample_grabber_id = 0, renderer_id = 0;
+  IMFAttributes* attributes_p = NULL;
 
   if (!coInitialize_in)
     goto continue_;
@@ -807,20 +827,223 @@ continue_2:
   Stream_MediaFramework_Tools::initialize (STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION);
   //Stream_Module_Device_Tools::initialize (true);
 
+  // initialize return value(s)
+  if (captureMediaType_out)
+  {
+    captureMediaType_out->Release (); captureMediaType_out = NULL;
+  } // end IF
+
+  waveformatex_s.wFormatTag = WAVE_FORMAT_PCM;
+  waveformatex_s.nChannels = STREAM_DEV_MIC_DEFAULT_CHANNELS; // stereo
+  waveformatex_s.nSamplesPerSec = STREAM_DEV_MIC_DEFAULT_SAMPLE_RATE;
+  waveformatex_s.wBitsPerSample = STREAM_DEV_MIC_DEFAULT_BITS_PER_SAMPLE;
+  waveformatex_s.nBlockAlign =
+    (waveformatex_s.nChannels * (waveformatex_s.wBitsPerSample / 8));
+  waveformatex_s.nAvgBytesPerSec =
+    (waveformatex_s.nSamplesPerSec * waveformatex_s.nBlockAlign);
+  //waveformatex_s.cbSize = 0;
+
+  result = CreateAudioMediaType (&waveformatex_s,
+                                 &media_type_s,
+                                 TRUE);
+  if (FAILED (result))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to CreateAudioMediaType(): \"%s\", aborting\n"),
+                ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
+    goto error;
+  } // end IF
+  result = MFCreateMediaTypeFromRepresentation (AM_MEDIA_TYPE_REPRESENTATION,
+                                                &media_type_s,
+                                                &captureMediaType_out);
+  if (FAILED (result))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to MFCreateMediaTypeFromRepresentation(): \"%s\", aborting\n"),
+                ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
+    goto error;
+  } // end IF
+  ACE_ASSERT (captureMediaType_out);
+  Stream_MediaFramework_DirectShow_Tools::free (media_type_s);
+  ACE_ASSERT (!configuration_in.mediaFoundationConfiguration.mediaType);
+  result =
+    MFCreateMediaType (&configuration_in.mediaFoundationConfiguration.mediaType);
+  if (FAILED (result) || !configuration_in.mediaFoundationConfiguration.mediaType)
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to MFCreateMediaType(): \"%s\", aborting\n"),
+                ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
+    goto error;
+  } // end IF
+  result =
+    captureMediaType_out->CopyAllItems (configuration_in.mediaFoundationConfiguration.mediaType);
+  if (FAILED (result))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to IMFMediaType::CopyAllItems(): \"%s\", aborting\n"),
+                ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
+    configuration_in.mediaFoundationConfiguration.mediaType->Release (); configuration_in.mediaFoundationConfiguration.mediaType = NULL;
+    goto error;
+  } // end IF
+
+  if (!useMediaFoundationSource_in)
+  {
+    ACE_NEW_NORETURN (media_source_p,
+                      Test_U_AudioEffect_MediaFoundation_MediaSource_t ());
+    if (!media_source_p)
+    {
+      ACE_DEBUG ((LM_CRITICAL,
+                  ACE_TEXT ("failed to allocate memory, aborting\n")));
+      goto error;
+    } // end IF
+    if (!media_source_p->initialize (configuration_in.mediaFoundationConfiguration))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to Stream_MediaFramework_MediaFoundation_MediaSource_T::initialize(), aborting\n")));
+      delete media_source_p; media_source_p = NULL;
+      goto error;
+    } // end IF
+    result = media_source_p->QueryInterface (IID_PPV_ARGS (&media_source_2));
+    if (FAILED (result))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to Stream_MediaFramework_MediaFoundation_MediaSource_T::QueryInterface(): \"%s\", aborting\n"),
+                  ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
+      delete media_source_p; media_source_p = NULL;
+      goto error;
+    } // end IF
+    ACE_ASSERT (media_source_2);
+  } // end IF
+
+  if (!Stream_Device_MediaFoundation_Tools::loadDeviceTopology (deviceIdentifier_in,
+                                                                MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE_AUDCAP_GUID,
+                                                                media_source_2,
+                                                                NULL,
+                                                                topology_p))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to Stream_Device_MediaFoundation_Tools::loadDeviceTopology(\"%s\"), aborting\n"),
+                ACE_TEXT (deviceIdentifier_in.c_str ())));
+    goto error;
+  } // end IF
+  ACE_ASSERT (media_source_2);
+  ACE_ASSERT (topology_p);
+  media_source_2->Release (); media_source_2 = NULL;
+
+  if (!useMediaFoundationSource_in)
+    goto continue_3;
+
+  if (!Stream_Device_MediaFoundation_Tools::setCaptureFormat (topology_p,
+                                                              captureMediaType_out))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to Stream_Device_MediaFoundation_Tools::setCaptureFormat(), aborting\n")));
+    goto error;
+  } // end IF
+
+continue_3:
+  if (!Stream_Module_Decoder_Tools::loadAudioRendererTopology (deviceIdentifier_in,
+                                                               captureMediaType_out,
+                                                               NULL,
+                                                               0,
+                                                               sample_grabber_id,
+                                                               renderer_id,
+                                                               topology_p))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to Stream_Module_Decoder_Tools::loadAudioRendererTopology(), aborting\n")));
+    goto error;
+  } // end IF
+
+  result = MFCreateAttributes (&attributes_p, 4);
+  if (FAILED (result))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to MFCreateAttributes(): \"%s\", aborting\n"),
+                ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
+    goto error;
+  } // end IF
+  result = attributes_p->SetUINT32 (MF_SESSION_GLOBAL_TIME, FALSE);
+  ACE_ASSERT (SUCCEEDED (result));
+  result = attributes_p->SetGUID (MF_SESSION_QUALITY_MANAGER, GUID_NULL);
+  ACE_ASSERT (SUCCEEDED (result));
+  //result_2 = attributes_p->SetGUID (MF_SESSION_TOPOLOADER, );
+  //ACE_ASSERT (SUCCEEDED (result_2));
+#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0602) // _WIN32_WINNT_WIN8
+  result = attributes_p->SetUINT32 (MF_LOW_LATENCY, TRUE);
+  ACE_ASSERT (SUCCEEDED (result));
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0602)
+  if (session_out)
+  {
+    session_out->Release (); session_out = NULL;
+  } // end IF
+#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
+  result = MFCreateMediaSession (attributes_p,
+                                 &session_out);
+  if (FAILED (result))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to MFCreateMediaSession(): \"%s\", aborting\n"),
+                ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
+    goto error;
+  } // end IF
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
+  ACE_ASSERT (session_out);
+  attributes_p->Release (); attributes_p = NULL;
+
+#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
+  DWORD topology_flags = (MFSESSION_SETTOPOLOGY_IMMEDIATE);// |
+                          //MFSESSION_SETTOPOLOGY_NORESOLUTION);// |
+                          //MFSESSION_SETTOPOLOGY_CLEAR_CURRENT);
+  result = session_out->SetTopology (topology_flags,
+                                     topology_p);
+  if (FAILED (result))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to IMFMediaSession::SetTopology(): \"%s\", aborting\n"),
+                ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
+    goto error;
+  } // end IF
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
+  topology_p->Release (); topology_p = NULL;
+
+  if (coInitialize_in)
+    CoUninitialize ();
+
   return true;
 
 error:
-  result = MFShutdown ();
-  if (FAILED (result))
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to MFShutdown(): \"%s\", continuing\n"),
-                ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
+  Stream_MediaFramework_DirectShow_Tools::free (media_type_s);
+  if (captureMediaType_out)
+  {
+    captureMediaType_out->Release (); captureMediaType_out = NULL;
+  } // end IF
+  if (media_source_2)
+    media_source_2->Release ();
+  if (topology_p)
+    topology_p->Release ();
+  if (attributes_p)
+    attributes_p->Release ();
+  if (session_out)
+  {
+    session_out->Release (); session_out = NULL;
+  } // end IF
+
+  if (initializeMediaFoundation_in)
+  {
+    result = MFShutdown ();
+    if (FAILED (result))
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to MFShutdown(): \"%s\", continuing\n"),
+                  ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
+  } // end IF
 
   if (coInitialize_in)
     CoUninitialize ();
 
   return false;
 }
+
 void
 do_finalize_directshow (struct Test_U_AudioEffect_DirectShow_UI_CBData& CBData_in)
 {
@@ -1183,8 +1406,10 @@ do_work (unsigned int bufferSize_in,
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
     {
-      directshow_stream_configuration.allocatorConfiguration = &allocator_configuration;
-      directshow_stream_configuration.messageAllocator = &directshow_message_allocator;
+      directshow_stream_configuration.allocatorConfiguration =
+        &allocator_configuration;
+      directshow_stream_configuration.messageAllocator =
+        &directshow_message_allocator;
       directshow_stream_configuration.module =
         (!UIDefinitionFile_in.empty () ? &directshow_event_handler
                                        : NULL);
@@ -1193,6 +1418,8 @@ do_work (unsigned int bufferSize_in,
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
     {
+      mediafoundation_stream_configuration.allocatorConfiguration =
+        &allocator_configuration;
       mediafoundation_stream_configuration.messageAllocator =
         &mediafoundation_message_allocator;
       mediafoundation_stream_configuration.module =
@@ -1237,7 +1464,7 @@ do_work (unsigned int bufferSize_in,
                                   directShowCBData_in.streamConfiguration,
                                   directshow_stream_configuration.format,
                                   true,  // initialize COM ?
-                                  useFrameworkSource_in, // use DirectShow source ? : WaveIn
+                                  useFrameworkSource_in, // use DirectShow source ? : WASAPI
                                   mute_in);
       if (!result)
       {
@@ -1257,8 +1484,14 @@ do_work (unsigned int bufferSize_in,
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
     {
       result =
-        do_initialize_mediafoundation (true, // initialize COM ?
-                                       true);
+        do_initialize_mediafoundation ((*mediafoundation_modulehandler_iterator).second.second->deviceIdentifier.identifier._string,
+                                       *mediaFoundationCBData_in.configuration,
+                                       (*mediafoundation_modulehandler_iterator).second.second->session,
+                                       mediafoundation_stream_configuration.format,
+                                       true, // initialize COM ?
+                                       true, // initialize MediaFoundation framework ?
+                                       useFrameworkSource_in, // use MediaFoundation source ? : WASAPI
+                                       mute_in);
       break;
     }
     default:
@@ -1763,6 +1996,7 @@ ACE_TMAIN (int argc_in,
       directshow_ui_cb_data.configuration = &directshow_configuration;
 #if defined (GTK_SUPPORT)
       directshow_ui_cb_data.progressData.state = &state_r;
+
       directshow_configuration.GTKConfiguration.argc = argc_in;
       directshow_configuration.GTKConfiguration.argv = argv_in;
       directshow_configuration.GTKConfiguration.CBData = &directshow_ui_cb_data;
@@ -1773,7 +2007,7 @@ ACE_TMAIN (int argc_in,
       directshow_configuration.GTKConfiguration.definition = &gtk_ui_definition;
 #if GTK_CHECK_VERSION(3,0,0)
       if (!UI_CSS_file.empty ())
-        directshow_ui_cb_data.configuration->GTKConfiguration.CSSProviders[UI_CSS_file] =
+        directshow_configuration.GTKConfiguration.CSSProviders[UI_CSS_file] =
           NULL;
 #endif // GTK_CHECK_VERSION(3,0,0)
       gtk_configuration_p = &directshow_configuration.GTKConfiguration;
@@ -1785,27 +2019,27 @@ ACE_TMAIN (int argc_in,
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
     {
+      mediafoundation_ui_cb_data.configuration = &mediafoundation_configuration;
 #if defined (GTK_SUPPORT)
       mediafoundation_ui_cb_data.progressData.state = &state_r;
 
-      mediafoundation_ui_cb_data.configuration->GTKConfiguration.argc = argc_in;
-      mediafoundation_ui_cb_data.configuration->GTKConfiguration.argv = argv_in;
-      mediafoundation_ui_cb_data.configuration->GTKConfiguration.CBData = &mediafoundation_ui_cb_data;
-      mediafoundation_ui_cb_data.configuration->GTKConfiguration.eventHooks.finiHook =
+      mediafoundation_configuration.GTKConfiguration.argc = argc_in;
+      mediafoundation_configuration.GTKConfiguration.argv = argv_in;
+      mediafoundation_configuration.GTKConfiguration.CBData = &mediafoundation_ui_cb_data;
+      mediafoundation_configuration.GTKConfiguration.eventHooks.finiHook =
           idle_finalize_UI_cb;
-      mediafoundation_ui_cb_data.configuration->GTKConfiguration.eventHooks.initHook =
+      mediafoundation_configuration.GTKConfiguration.eventHooks.initHook =
           idle_initialize_UI_cb;
-      mediafoundation_ui_cb_data.configuration->GTKConfiguration.definition = &gtk_ui_definition;
+      mediafoundation_configuration.GTKConfiguration.definition = &gtk_ui_definition;
 #if GTK_CHECK_VERSION(3,0,0)
       if (!UI_CSS_file.empty ())
-        mediafoundation_ui_cb_data.configuration->GTKConfiguration.CSSProviders[UI_CSS_file] =
+        mediafoundation_configuration.GTKConfiguration.CSSProviders[UI_CSS_file] =
           NULL;
 #endif // GTK_CHECK_VERSION(3,0,0)
       gtk_configuration_p = &mediafoundation_ui_cb_data.configuration->GTKConfiguration;
 #endif // GTK_SUPPORT
       cb_data_base_p = &mediafoundation_ui_cb_data;
       cb_data_base_p->mediaFramework = STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION;
-      mediafoundation_ui_cb_data.configuration = &mediafoundation_configuration;
 
       break;
     }

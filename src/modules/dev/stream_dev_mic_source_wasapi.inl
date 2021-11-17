@@ -43,7 +43,8 @@ template <ACE_SYNCH_DECL,
           typename SessionDataType,
           typename SessionDataContainerType,
           typename StatisticContainerType,
-          typename TimerManagerType>
+          typename TimerManagerType,
+          typename MediaType>
 Stream_Dev_Mic_Source_WASAPI_T<ACE_SYNCH_USE,
                                ControlMessageType,
                                DataMessageType,
@@ -55,11 +56,13 @@ Stream_Dev_Mic_Source_WASAPI_T<ACE_SYNCH_USE,
                                SessionDataType,
                                SessionDataContainerType,
                                StatisticContainerType,
-                               TimerManagerType>::Stream_Dev_Mic_Source_WASAPI_T (ISTREAM_T* stream_in)
+                               TimerManagerType,
+                               MediaType>::Stream_Dev_Mic_Source_WASAPI_T (ISTREAM_T* stream_in)
  : inherited (stream_in,                            // stream handle
               false,                                // auto-start ?
               STREAM_HEADMODULECONCURRENCY_PASSIVE, // concurrency
               true)                                 // generate session messages ?
+ , inherited2 ()
  , audioClient_ (NULL)
  , audioCaptureClient_ (NULL)
  , event_ (NULL)
@@ -81,7 +84,8 @@ template <ACE_SYNCH_DECL,
           typename SessionDataType,
           typename SessionDataContainerType,
           typename StatisticContainerType,
-          typename TimerManagerType>
+          typename TimerManagerType,
+          typename MediaType>
 Stream_Dev_Mic_Source_WASAPI_T<ACE_SYNCH_USE,
                                ControlMessageType,
                                DataMessageType,
@@ -93,7 +97,8 @@ Stream_Dev_Mic_Source_WASAPI_T<ACE_SYNCH_USE,
                                SessionDataType,
                                SessionDataContainerType,
                                StatisticContainerType,
-                               TimerManagerType>::~Stream_Dev_Mic_Source_WASAPI_T ()
+                               TimerManagerType,
+                               MediaType>::~Stream_Dev_Mic_Source_WASAPI_T ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Dev_Mic_Source_WASAPI_T::~Stream_Dev_Mic_Source_WASAPI_T"));
 
@@ -116,7 +121,8 @@ template <ACE_SYNCH_DECL,
           typename SessionDataType,
           typename SessionDataContainerType,
           typename StatisticContainerType,
-          typename TimerManagerType>
+          typename TimerManagerType,
+          typename MediaType>
 bool
 Stream_Dev_Mic_Source_WASAPI_T<ACE_SYNCH_USE,
                                ControlMessageType,
@@ -129,8 +135,9 @@ Stream_Dev_Mic_Source_WASAPI_T<ACE_SYNCH_USE,
                                SessionDataType,
                                SessionDataContainerType,
                                StatisticContainerType,
-                               TimerManagerType>::initialize (const ConfigurationType& configuration_in,
-                                                              Stream_IAllocator* allocator_in)
+                               TimerManagerType,
+                               MediaType>::initialize (const ConfigurationType& configuration_in,
+                                                       Stream_IAllocator* allocator_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Dev_Mic_Source_WASAPI_T::initialize"));
 
@@ -171,7 +178,8 @@ template <ACE_SYNCH_DECL,
           typename SessionDataType,
           typename SessionDataContainerType,
           typename StatisticContainerType,
-          typename TimerManagerType>
+          typename TimerManagerType,
+          typename MediaType>
 void
 Stream_Dev_Mic_Source_WASAPI_T<ACE_SYNCH_USE,
                                ControlMessageType,
@@ -184,8 +192,9 @@ Stream_Dev_Mic_Source_WASAPI_T<ACE_SYNCH_USE,
                                SessionDataType,
                                SessionDataContainerType,
                                StatisticContainerType,
-                               TimerManagerType>::handleSessionMessage (SessionMessageType*& message_inout,
-                                                                        bool& passMessageDownstream_out)
+                               TimerManagerType,
+                               MediaType>::handleSessionMessage (SessionMessageType*& message_inout,
+                                                                 bool& passMessageDownstream_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Dev_Mic_Source_WASAPI_T::handleSessionMessage"));
 
@@ -236,12 +245,15 @@ Stream_Dev_Mic_Source_WASAPI_T<ACE_SYNCH_USE,
       } // end IF
 
       ACE_ASSERT (!session_data_r.formats.empty ());
-      struct _AMMediaType& media_type_r = session_data_r.formats.back ();
-      ACE_ASSERT (media_type_r.majortype == MEDIATYPE_Audio);
-      ACE_ASSERT (media_type_r.subtype == MEDIASUBTYPE_PCM);
-      ACE_ASSERT (media_type_r.formattype == FORMAT_WaveFormatEx);
+      struct _AMMediaType media_type_s;
+      ACE_OS::memset (&media_type_s, 0, sizeof (struct _AMMediaType));
+      inherited2::getMediaType (session_data_r.formats.back (),
+                                media_type_s);
+      ACE_ASSERT (media_type_s.majortype == MEDIATYPE_Audio);
+      ACE_ASSERT (media_type_s.subtype == MEDIASUBTYPE_PCM);
+      ACE_ASSERT (media_type_s.formattype == FORMAT_WaveFormatEx);
       struct tWAVEFORMATEX* audio_info_p =
-        reinterpret_cast<struct tWAVEFORMATEX*> (media_type_r.pbFormat);
+        reinterpret_cast<struct tWAVEFORMATEX*> (media_type_s.pbFormat);
       frameSize_ = audio_info_p->nChannels * (audio_info_p->wBitsPerSample / 8);
       ACE_ASSERT (frameSize_ == audio_info_p->nBlockAlign);
       ACE_ASSERT (inherited::configuration_->deviceIdentifier.identifierDiscriminator == Stream_Device_Identifier::GUID);
@@ -338,7 +350,7 @@ Stream_Dev_Mic_Source_WASAPI_T<ACE_SYNCH_USE,
 retry:
       if (unlikely (FAILED (result_2))) // AUDCLNT_E_UNSUPPORTED_FORMAT: 0x88890008
       {
-        if (unlikely (result_2 = AUDCLNT_E_BUFFER_SIZE_NOT_ALIGNED))
+        if (unlikely (result_2 == AUDCLNT_E_BUFFER_SIZE_NOT_ALIGNED))
         {
           result_2 = audioClient_->GetBufferSize (&number_of_buffer_frames_i);
           ACE_ASSERT (SUCCEEDED (result_2));
@@ -360,7 +372,7 @@ retry:
                     ACE_TEXT ("%s: failed to IAudioClient::Initialize(%d,%q,%q,%s): \"%s\", aborting\n"),
                     inherited::mod_->name (),
                     stream_flags_i, requested_duration_i, requested_duration_i,
-                    ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::toString (media_type_r, true).c_str ()),
+                    ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::toString (*audio_info_p).c_str ()),
                     ACE_TEXT (Common_Error_Tools::errorToString (result_2, true, false).c_str ())));
         device_p->Release (); device_p = NULL;
         goto error;
@@ -398,9 +410,13 @@ retry:
       result_2 = audioClient_->Start ();
       ACE_ASSERT (SUCCEEDED (result_2));
 
+      Stream_MediaFramework_DirectShow_Tools::free (media_type_s);
+
       break;
 
 error:
+      Stream_MediaFramework_DirectShow_Tools::free (media_type_s);
+
       this->notify (STREAM_SESSION_MESSAGE_ABORT);
 
       break;
@@ -471,7 +487,8 @@ template <ACE_SYNCH_DECL,
           typename SessionDataType,
           typename SessionDataContainerType,
           typename StatisticContainerType,
-          typename TimerManagerType>
+          typename TimerManagerType,
+          typename MediaType>
 bool
 Stream_Dev_Mic_Source_WASAPI_T<ACE_SYNCH_USE,
                                ControlMessageType,
@@ -484,7 +501,8 @@ Stream_Dev_Mic_Source_WASAPI_T<ACE_SYNCH_USE,
                                SessionDataType,
                                SessionDataContainerType,
                                StatisticContainerType,
-                               TimerManagerType>::collect (StatisticContainerType& data_out)
+                               TimerManagerType,
+                               MediaType>::collect (StatisticContainerType& data_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Dev_Mic_Source_WASAPI_T::collect"));
 
@@ -542,7 +560,8 @@ template <ACE_SYNCH_DECL,
           typename SessionDataType,
           typename SessionDataContainerType,
           typename StatisticContainerType,
-          typename TimerManagerType>
+          typename TimerManagerType,
+          typename MediaType>
 int
 Stream_Dev_Mic_Source_WASAPI_T<ACE_SYNCH_USE,
                                ControlMessageType,
@@ -555,7 +574,8 @@ Stream_Dev_Mic_Source_WASAPI_T<ACE_SYNCH_USE,
                                SessionDataType,
                                SessionDataContainerType,
                                StatisticContainerType,
-                               TimerManagerType>::svc (void)
+                               TimerManagerType,
+                               MediaType>::svc (void)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Dev_Mic_Source_WASAPI_T::svc"));
 

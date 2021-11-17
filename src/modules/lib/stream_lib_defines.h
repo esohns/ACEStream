@@ -29,6 +29,9 @@
 #define STREAM_LIB_DIRECTSHOW_SOURCE_DEFAULT_NAME_STRING         "DirectShowSource"
 #define STREAM_LIB_DIRECTSHOW_TARGET_DEFAULT_NAME_STRING         "DirectShowTarget"
 
+#define STREAM_LIB_MEDIAFOUNDATION_SOURCE_DEFAULT_NAME_STRING    "MediaFoundationSource"
+#define STREAM_LIB_MEDIAFOUNDATION_TARGET_DEFAULT_NAME_STRING    "MediaFoundationTarget"
+
 #define STREAM_LIB_DEFAULT_MEDIAFRAMEWORK                        STREAM_MEDIAFRAMEWORK_DIRECTSHOW
 
 // DirectDraw
@@ -123,6 +126,7 @@
 //         --> (try to) wait for the next MESessionTopologySet event
 #define STREAM_LIB_MEDIAFOUNDATION_TOPOLOGY_GET_TIMEOUT          10 // seconds
 
+#define STREAM_LIB_MEDIAFOUNDATION_MEDIASOURCE_FRIENDLY_NAME     L"MediaSource"
 // *NOTE*: #samples each stream tries to hold in its queue
 #define STREAM_LIB_MEDIAFOUNDATION_MEDIASOURCE_SAMPLE_QUEUE_SIZE 2;
 

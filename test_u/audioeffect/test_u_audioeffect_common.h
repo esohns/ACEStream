@@ -123,6 +123,7 @@ extern "C"
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #include "stream_lib_directshow_common.h"
 #include "stream_lib_directsound_common.h"
+#include "stream_lib_mediafoundation_common.h"
 #endif // ACE_WIN32 || ACE_WIN64
 
 #include "stream_stat_common.h"
@@ -696,10 +697,12 @@ struct Test_U_AudioEffect_MediaFoundation_Configuration
 {
   Test_U_AudioEffect_MediaFoundation_Configuration ()
    : Test_U_AudioEffect_Configuration ()
+   , mediaFoundationConfiguration ()
    , streamConfiguration ()
   {}
 
-  Test_U_AudioEffect_MediaFoundation_StreamConfiguration_t streamConfiguration;
+  struct Stream_MediaFramework_MediaFoundation_Configuration mediaFoundationConfiguration;
+  Test_U_AudioEffect_MediaFoundation_StreamConfiguration_t   streamConfiguration;
 };
 #endif // ACE_WIN32 || ACE_WIN64
 
@@ -864,10 +867,14 @@ struct Test_U_AudioEffect_MediaFoundation_UI_CBData
    : Test_U_AudioEffect_UI_CBDataBase ()
    , configuration (NULL)
    , subscribers ()
+   , boostControl (NULL)
+   , volumeControl (NULL)
   {}
 
   struct Test_U_AudioEffect_MediaFoundation_Configuration* configuration;
   Test_U_AudioEffect_MediaFoundation_Subscribers_t         subscribers;
+  IAudioVolumeLevel*                                       boostControl;
+  IAudioEndpointVolume*                                    volumeControl;
 };
 #else
 struct Test_U_AudioEffect_UI_CBData

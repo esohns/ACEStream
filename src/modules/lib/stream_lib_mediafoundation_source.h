@@ -35,6 +35,8 @@
 #include "stream_common.h"
 #include "stream_task_base_synch.h"
 
+extern const char libacestream_default_lib_mediafoundation_source_module_name_string[];
+
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           ////////////////////////////////
@@ -76,7 +78,7 @@ class Stream_MediaFramework_MediaFoundation_Source_T
                                  UserDataType> inherited;
 
  public:
-  Stream_MediaFramework_MediaFoundation_Source_T ();
+  Stream_MediaFramework_MediaFoundation_Source_T (ISTREAM_T*); // stream handle
   virtual ~Stream_MediaFramework_MediaFoundation_Source_T ();
 
   virtual bool initialize (const ConfigurationType&);
@@ -126,9 +128,6 @@ class Stream_MediaFramework_MediaFoundation_Source_T
   STDMETHODIMP OnSetPresentationClock (IMFPresentationClock*); // presentation clock handle
   STDMETHODIMP OnShutdown ();
 
- protected:
-  SessionDataType*      sessionData_;
-
  private:
   // convenient types
   typedef Stream_MediaFramework_MediaFoundation_Source_T<ACE_SYNCH_USE,
@@ -142,7 +141,7 @@ class Stream_MediaFramework_MediaFoundation_Source_T
                                                          MediaType,
                                                          UserDataType> OWN_TYPE_T;
 
-  //ACE_UNIMPLEMENTED_FUNC (Stream_MediaFramework_MediaFoundation_Source_T ())
+  ACE_UNIMPLEMENTED_FUNC (Stream_MediaFramework_MediaFoundation_Source_T ())
   ACE_UNIMPLEMENTED_FUNC (Stream_MediaFramework_MediaFoundation_Source_T (const Stream_MediaFramework_MediaFoundation_Source_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_MediaFramework_MediaFoundation_Source_T& operator= (const Stream_MediaFramework_MediaFoundation_Source_T&))
 
@@ -154,8 +153,6 @@ class Stream_MediaFramework_MediaFoundation_Source_T
 #else
                                    IMFMediaSource*&,               // media source handle (in/out)
 #endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0602)
-                                   WCHAR*&,                        // return value: symbolic link
-                                   UINT32&,                        // return value: symbolic link size
                                    IDirect3DDeviceManager9*,       // Direct3D device manager handle
 #if COMMON_OS_WIN32_TARGET_PLATFORM(0x0601) // _WIN32_WINNT_WIN7
                                    IMFSampleGrabberSinkCallback2*, // grabber sink callback handle [NULL: do not use tee/grabber]

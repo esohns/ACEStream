@@ -1302,9 +1302,9 @@ Stream_Dev_Mic_Source_DirectShow_T<ACE_SYNCH_USE,
 
   if (!ICaptureGraphBuilder2_out)
   {
-    CoCreateInstance (CLSID_CaptureGraphBuilder2, NULL,
-                      CLSCTX_INPROC_SERVER,
-                      IID_PPV_ARGS (&ICaptureGraphBuilder2_out));
+    result = CoCreateInstance (CLSID_CaptureGraphBuilder2, NULL,
+                               CLSCTX_INPROC_SERVER,
+                               IID_PPV_ARGS (&ICaptureGraphBuilder2_out));
     if (FAILED (result))
     {
       ACE_DEBUG ((LM_ERROR,

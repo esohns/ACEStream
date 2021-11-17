@@ -6744,12 +6744,12 @@ combobox_source_changed_cb (GtkComboBox* comboBox_in,
       //} // end IF
       //ACE_ASSERT (mediafoundation_ui_cb_data_p->configuration->moduleHandlerConfiguration.sourceReader);
 #if COMMON_OS_WIN32_TARGET_PLATFORM(0x0601) // _WIN32_WINNT_WIN7
-      if (!Stream_Device_MediaFoundation_Tools::getMediaSource ((*mediafoundation_modulehandler_iterator).second.second->deviceIdentifier.identifier._string,
-                                                                MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE_VIDCAP_GUID,
-                                                                (*mediafoundation_modulehandler_iterator).second.second->mediaSource))
+      if (!Stream_MediaFramework_MediaFoundation_Tools::getMediaSource ((*mediafoundation_modulehandler_iterator).second.second->deviceIdentifier.identifier._string,
+                                                                        MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE_VIDCAP_GUID,
+                                                                        (*mediafoundation_modulehandler_iterator).second.second->mediaSource))
       {
         ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("failed to Stream_Device_MediaFoundation_Tools::getMediaSource(\"%s\"), returning\n"),
+                    ACE_TEXT ("failed to Stream_MediaFramework_MediaFoundation_Tools::getMediaSource(\"%s\"), returning\n"),
                     ACE_TEXT ((*mediafoundation_modulehandler_iterator).second.second->deviceIdentifier.identifier._string)));
         return;
       } // end IF

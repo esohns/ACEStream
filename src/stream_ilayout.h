@@ -26,9 +26,11 @@
 class Stream_ILayout
 {
  public:
+  // *IMPORTANT NOTE*: to append branch modules, append the corresponding
+  //                   distributor module first !
   virtual bool append (Stream_Module_t*,        // module handle
                        Stream_Module_t* = NULL, // distributor module handle {NULL: 'main' branch}
-                       unsigned int = 0) = 0;   // distributor sub-branch index, if any (zero-based)
+                       unsigned int = 0) = 0;   // distributor branch index (zero-based)
 };
 
 #endif

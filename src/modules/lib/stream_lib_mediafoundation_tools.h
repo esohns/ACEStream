@@ -94,6 +94,14 @@ class Stream_MediaFramework_MediaFoundation_Tools
 #else
                               IMFMediaSource*&);      // return value: media source handle
 #endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0602)
+  static bool getMediaSource (const std::string&,  // device identifier
+                              REFGUID,             // device category
+#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0602) // _WIN32_WINNT_WIN8
+                              IMFMediaSourceEx*&); // return value: media source handle
+#else
+                              IMFMediaSource*&);   // return value: media source handle
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0602)
+
   //// *TODO*: using the Direct3D device manager (used by the EVR renderer) is
   ////         currently broken
   ////         --> pass NULL and use a different visualization module (e.g. the

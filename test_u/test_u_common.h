@@ -111,14 +111,6 @@ struct Test_U_V4L2_MessageData
 typedef Stream_DataBase_T<struct Test_U_V4L2_MessageData> Test_U_V4L2_MessageData_t;
 #endif // ACE_WIN32 || ACE_WIN64
 
-//struct Test_U_UserData
-// : Stream_UserData
-//{
-//  Test_U_UserData ()
-//   : Stream_UserData ()
-//  {}
-//};
-
 struct Test_U_SessionData
  : Stream_SessionData
 {
@@ -252,9 +244,9 @@ class Test_U_ALSA_SessionData
 
   std::string targetFileName;
 
- private:
-  ACE_UNIMPLEMENTED_FUNC (Test_U_ALSA_SessionData (const Test_U_ALSA_SessionData&))
-  ACE_UNIMPLEMENTED_FUNC (Test_U_ALSA_SessionData& operator= (const Test_U_ALSA_SessionData&))
+// private:
+//  ACE_UNIMPLEMENTED_FUNC (Test_U_ALSA_SessionData (const Test_U_ALSA_SessionData&))
+//  ACE_UNIMPLEMENTED_FUNC (Test_U_ALSA_SessionData& operator= (const Test_U_ALSA_SessionData&))
 };
 typedef Stream_SessionData_T<Test_U_ALSA_SessionData> Test_U_ALSA_SessionData_t;
 
