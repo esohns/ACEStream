@@ -691,13 +691,10 @@ Test_U_AudioEffect_MediaFoundation_Stream::initialize (const inherited::CONFIGUR
 
   // sanity check(s)
   ACE_ASSERT (inherited::sessionData_);
-
   Test_U_AudioEffect_MediaFoundation_SessionData& session_data_r =
     const_cast<Test_U_AudioEffect_MediaFoundation_SessionData&> (inherited::sessionData_->getR ());
   inherited::CONFIGURATION_T::ITERATOR_T iterator =
     const_cast<inherited::CONFIGURATION_T&> (configuration_in).find (ACE_TEXT_ALWAYS_CHAR (""));
-
-  // sanity check(s)
   ACE_ASSERT (iterator != configuration_in.end ());
 
   // *TODO*: remove type inference
@@ -705,19 +702,17 @@ Test_U_AudioEffect_MediaFoundation_Stream::initialize (const inherited::CONFIGUR
 
   // ---------------------------------------------------------------------------
 
-  // ******************* Mic Source ************************
+  // ********************** Spectrum Analyzer *****************
+#if defined (GUI_SUPPORT)
+#if defined (GTK_SUPPORT)
   Stream_Module_t* module_p =
-    const_cast<Stream_Module_t*> (inherited::find (ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_MIC_SOURCE_MEDIAFOUNDATION_DEFAULT_NAME_STRING)));
+    const_cast<Stream_Module_t*> (inherited::find (ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_GTK_SPECTRUM_ANALYZER_DEFAULT_NAME_STRING)));
   ACE_ASSERT (module_p);
-  Test_U_Dev_Mic_Source_MediaFoundation* source_impl_p =
-    dynamic_cast<Test_U_Dev_Mic_Source_MediaFoundation*> (module_p->writer ());
-  if (!source_impl_p)
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: dynamic_cast<Test_U_Dev_Mic_Source_MediaFoundation> failed, aborting\n"),
-                ACE_TEXT (stream_name_string_)));
-    return false;
-  } // end IF
+  Test_U_AudioEffect_IDispatch_t* idispatch_p = dynamic_cast<Test_U_AudioEffect_IDispatch_t*> (module_p->writer ());
+  ACE_ASSERT (idispatch_p);
+  (*iterator).second.second->dispatch = idispatch_p;
+#endif // GTK_SUPPORT
+#endif // GUI_SUPPORT
 
   bool graph_loaded = false;
   bool COM_initialized = false;
@@ -726,6 +721,11 @@ Test_U_AudioEffect_MediaFoundation_Stream::initialize (const inherited::CONFIGUR
   enum MFSESSION_GETFULLTOPOLOGY_FLAGS flags =
     MFSESSION_GETFULLTOPOLOGY_CURRENT;
   ULONG reference_count = 0;
+#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0601) // _WIN32_WINNT_WIN7
+  IMFSampleGrabberSinkCallback2* sample_grabber_p = NULL;
+#else
+  IMFSampleGrabberSinkCallback* sample_grabber_p = NULL;
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0601)
 
   result_2 = CoInitializeEx (NULL,
                              (COINIT_MULTITHREADED    |
@@ -748,60 +748,34 @@ Test_U_AudioEffect_MediaFoundation_Stream::initialize (const inherited::CONFIGUR
   {
     reference_count = (*iterator).second.second->session->AddRef ();
     mediaSession_ = (*iterator).second.second->session;
-
-    if (!Stream_MediaFramework_MediaFoundation_Tools::clear (mediaSession_))
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("%s: failed to Stream_MediaFramework_MediaFoundation_Tools::clear(), aborting\n"),
-                  ACE_TEXT (stream_name_string_)));
-      goto error;
-    } // end IF
-
-    // *NOTE*: IMFMediaSession::SetTopology() is asynchronous; subsequent calls
-    //         to retrieve the topology handle may fail (MF_E_INVALIDREQUEST)
-    //         --> (try to) wait for the next MESessionTopologySet event
-    // *NOTE*: this procedure doesn't always work as expected (GetFullTopology()
-    //         still fails with MF_E_INVALIDREQUEST)
-    do
-    {
-      result_2 = mediaSession_->GetFullTopology (flags,
-                                                 0,
-                                                 &topology_p);
-    } while (result_2 == MF_E_INVALIDREQUEST);
-    if (FAILED (result_2)) // MF_E_INVALIDREQUEST: 0xC00D36B2L
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("%s: failed to IMFMediaSession::GetFullTopology(): \"%s\", aborting\n"),
-                  ACE_TEXT (stream_name_string_),
-                  ACE_TEXT (Common_Error_Tools::errorToString (result_2).c_str ())));
-      goto error;
-    } // end IF
-    ACE_ASSERT (topology_p);
-
-    if ((*iterator).second.second->sampleGrabberNodeId)
-      goto continue_;
-    if (!Stream_MediaFramework_MediaFoundation_Tools::getSampleGrabberNodeId (topology_p,
-                                                                              (*iterator).second.second->sampleGrabberNodeId))
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("%s: failed to Stream_MediaFramework_MediaFoundation_Tools::clear(), aborting\n"),
-                  ACE_TEXT (stream_name_string_)));
-      goto error;
-    } // end IF
-    ACE_ASSERT ((*iterator).second.second->sampleGrabberNodeId);
-
-    goto continue_;
   } // end IF
 #endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
 
-  TOPOID renderer_node_id = 0;
+  if (!(*iterator).second.second->targetFileName.empty () &&
+      !InlineIsEqualGUID ((*iterator).second.second->effect, GUID_NULL))
+  {
+    Stream_Module_t* module_2 =
+      const_cast<Stream_Module_t*> (inherited::find (ACE_TEXT_ALWAYS_CHAR (STREAM_LIB_MEDIAFOUNDATION_SOURCE_DEFAULT_NAME_STRING)));
+    ACE_ASSERT (module_2);
+#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0601) // _WIN32_WINNT_WIN7
+    sample_grabber_p =
+      dynamic_cast<IMFSampleGrabberSinkCallback2*> (module_2->writer ());
+#else
+    sample_grabber_p =
+      dynamic_cast<IMFSampleGrabberSinkCallback*> (module_2->writer ());
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0601)
+    ACE_ASSERT (sample_grabber_p);
+  } // end IF
+
   if (!Stream_Module_Decoder_Tools::loadAudioRendererTopology ((*iterator).second.second->deviceIdentifier.identifier._string,
+                                                               (configuration_in.configuration_->useFrameworkSource ? MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE_AUDCAP_GUID
+                                                                                                                    : GUID_NULL),
                                                                configuration_in.configuration_->format,
-                                                               source_impl_p,
+                                                               sample_grabber_p,
                                                                ((*iterator).second.second->mute ? -1
-                                                                                               : (*iterator).second.second->audioOutput),
-                                                               (*iterator).second.second->sampleGrabberNodeId,
-                                                               renderer_node_id,
+                                                                                                : (*iterator).second.second->audioOutput),
+                                                               (*iterator).second.second->effect,
+                                                               (*iterator).second.second->effectOptions,
                                                                topology_p))
   {
     ACE_DEBUG ((LM_ERROR,
@@ -817,10 +791,10 @@ Test_U_AudioEffect_MediaFoundation_Stream::initialize (const inherited::CONFIGUR
 #endif // _DEBUG
 
 #if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
-  ACE_ASSERT (!mediaSession_);
   if (!Stream_MediaFramework_MediaFoundation_Tools::setTopology (topology_p,
                                                                  mediaSession_,
-                                                                 true))
+                                                                 false, // is partial ?
+                                                                 true)) // wait for completion ?
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to Stream_MediaFramework_MediaFoundation_Tools::setTopology(), aborting\n"),
@@ -829,47 +803,47 @@ Test_U_AudioEffect_MediaFoundation_Stream::initialize (const inherited::CONFIGUR
   } // end IF
   ACE_ASSERT (mediaSession_);
 
-  reference_count = mediaSession_->AddRef ();
-  (*iterator).second.second->session = mediaSession_;
-continue_:
+  if (!(*iterator).second.second->session)
+  {
+    reference_count = mediaSession_->AddRef ();
+    (*iterator).second.second->session = mediaSession_;
+  } // end IF
 #endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
   ACE_ASSERT (topology_p);
-  if (!Stream_Device_MediaFoundation_Tools::setCaptureFormat (topology_p,
-                                                              configuration_in.configuration_->format))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: failed to Stream_Device_MediaFoundation_Tools::setCaptureFormat(), aborting\n"),
-                ACE_TEXT (stream_name_string_)));
-    goto error;
-  } // end IF
-  topology_p->Release (); topology_p = NULL;
-#if defined (_DEBUG)
-  ACE_DEBUG ((LM_DEBUG,
-              ACE_TEXT ("%s: capture format: \"%s\"\n"),
-              ACE_TEXT (stream_name_string_),
-              ACE_TEXT (Stream_MediaFramework_MediaFoundation_Tools::toString (configuration_in.configuration_->format).c_str ())));
-#endif // _DEBUG
-
-  //media_type_p =
-  //  Stream_MediaFramework_MediaFoundation_Tools::copy (configuration_in.configuration->format);
-  //if (!media_type_p)
+  //if (!Stream_Device_MediaFoundation_Tools::setCaptureFormat (topology_p,
+  //                                                            configuration_in.configuration_->format))
   //{
   //  ACE_DEBUG ((LM_ERROR,
-  //              ACE_TEXT ("failed to Stream_MediaFramework_MediaFoundation_Tools::copy(), aborting\n")));
+  //              ACE_TEXT ("%s: failed to Stream_Device_MediaFoundation_Tools::setCaptureFormat(), aborting\n"),
+  //              ACE_TEXT (stream_name_string_)));
   //  goto error;
   //} // end IF
-  //session_data_r.formats.push_back (media_type_p);
+  //ACE_DEBUG ((LM_DEBUG,
+  //            ACE_TEXT ("%s: capture format: \"%s\"\n"),
+  //            ACE_TEXT (stream_name_string_),
+  //            ACE_TEXT (Stream_MediaFramework_MediaFoundation_Tools::toString (configuration_in.configuration_->format).c_str ())));
+  topology_p->Release (); topology_p = NULL;
 
-  if (!Stream_MediaFramework_MediaFoundation_Tools::getOutputFormat (topology_p,
-                                                                     (*iterator).second.second->sampleGrabberNodeId,
-                                                                     media_type_p))
+  media_type_p =
+    Stream_MediaFramework_MediaFoundation_Tools::copy (configuration_in.configuration_->format);
+  if (!media_type_p)
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to Stream_MediaFramework_MediaFoundation_Tools::getOutputFormat(), aborting\n")));
+                ACE_TEXT ("failed to Stream_MediaFramework_MediaFoundation_Tools::copy(), aborting\n")));
     goto error;
   } // end IF
-  ACE_ASSERT (media_type_p);
   session_data_r.formats.push_back (media_type_p);
+
+  //if (!Stream_MediaFramework_MediaFoundation_Tools::getOutputFormat (topology_p,
+  //                                                                   (*iterator).second.second->sampleGrabberNodeId,
+  //                                                                   media_type_p))
+  //{
+  //  ACE_DEBUG ((LM_ERROR,
+  //              ACE_TEXT ("failed to Stream_MediaFramework_MediaFoundation_Tools::getOutputFormat(), aborting\n")));
+  //  goto error;
+  //} // end IF
+  //ACE_ASSERT (media_type_p);
+  //session_data_r.formats.push_back (media_type_p);
 
 #if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
   if (session_data_r.session)
@@ -879,13 +853,6 @@ continue_:
   reference_count = mediaSession_->AddRef ();
   session_data_r.session = mediaSession_;
 #endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
-
-  source_impl_p->setP (&(inherited::state_));
-
-  // *NOTE*: push()ing the module will open() it
-  //         --> set the argument that is passed along (head module expects a
-  //             handle to the session data)
-  module_p->arg (inherited::sessionData_);
 
   if (configuration_in.configuration_->setupPipeline)
     if (!inherited::setup ())

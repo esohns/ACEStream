@@ -969,6 +969,7 @@ Stream_AVSave_MediaFoundation_Stream::initialize (const inherited::CONFIGURATION
   enum MFSESSION_GETFULLTOPOLOGY_FLAGS flags =
     MFSESSION_GETFULLTOPOLOGY_CURRENT;
   IMFMediaType* media_type_p = NULL;
+  TOPOID node_id = 0, node_id_2 = 0;
 
   result_2 = CoInitializeEx (NULL,
                              (COINIT_MULTITHREADED    |
@@ -1021,17 +1022,17 @@ Stream_AVSave_MediaFoundation_Stream::initialize (const inherited::CONFIGURATION
 #endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
     ACE_ASSERT (topology_p);
 
-    if ((*iterator).second.second->sampleGrabberNodeId)
-      goto continue_;
+    //if ((*iterator).second.second->sampleGrabberNodeId)
+    //  goto continue_;
     if (!Stream_MediaFramework_MediaFoundation_Tools::getSampleGrabberNodeId (topology_p,
-                                                                              (*iterator).second.second->sampleGrabberNodeId))
+                                                                              node_id))
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: failed to Stream_MediaFramework_MediaFoundation_Tools::getSampleGrabberNodeId(), aborting\n"),
                   ACE_TEXT (stream_name_string_)));
       goto error;
     } // end IF
-    ACE_ASSERT ((*iterator).second.second->sampleGrabberNodeId);
+    ACE_ASSERT (node_id);
 
 #if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
     goto continue_;
@@ -1044,8 +1045,8 @@ Stream_AVSave_MediaFoundation_Stream::initialize (const inherited::CONFIGURATION
                                                                source_impl_p,
                                                                NULL,
                                                                //(*iterator).second.second->window,
-                                                               (*iterator).second.second->sampleGrabberNodeId,
-                                                               (*iterator).second.second->rendererNodeId,
+                                                               node_id,
+                                                               node_id_2,
                                                                topology_p))
   {
     ACE_DEBUG ((LM_ERROR,
@@ -1090,7 +1091,7 @@ continue_:
   media_type_p = NULL;
 
   if (!Stream_MediaFramework_MediaFoundation_Tools::getOutputFormat (topology_p,
-                                                                     (*iterator).second.second->sampleGrabberNodeId,
+                                                                     node_id,
                                                                      media_type_p))
   {
     ACE_DEBUG ((LM_ERROR,

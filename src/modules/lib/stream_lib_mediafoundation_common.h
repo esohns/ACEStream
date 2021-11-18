@@ -30,17 +30,20 @@ typedef Stream_MediaFramework_MediaFoundation_Formats_t::iterator Stream_MediaFr
 
 class Stream_IStreamControlBase;
 struct IMFMediaSession;
+class ACE_Message_Queue_Base;
 struct Stream_MediaFramework_MediaFoundation_Configuration
 {
   Stream_MediaFramework_MediaFoundation_Configuration ()
    : controller (NULL)
    , mediaSession (NULL)
    , mediaType (NULL)
+   , queue (NULL)
   {}
 
   Stream_IStreamControlBase* controller;
-  IMFMediaSession* mediaSession;
-  IMFMediaType* mediaType; // input-
+  IMFMediaSession*           mediaSession;
+  IMFMediaType*              mediaType; // input-
+  ACE_Message_Queue_Base*    queue;
 };
 
 #endif

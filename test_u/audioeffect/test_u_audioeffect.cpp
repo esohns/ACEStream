@@ -791,6 +791,7 @@ do_initialize_mediafoundation (const std::string& deviceIdentifier_in,
   IMFTopology* topology_p = NULL;
   TOPOID sample_grabber_id = 0, renderer_id = 0;
   IMFAttributes* attributes_p = NULL;
+  std::string effect_options; // *TODO*
 
   if (!coInitialize_in)
     goto continue_;
@@ -943,11 +944,13 @@ continue_2:
 
 continue_3:
   if (!Stream_Module_Decoder_Tools::loadAudioRendererTopology (deviceIdentifier_in,
+                                                               (useMediaFoundationSource_in ? MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE_AUDCAP_GUID
+                                                                                            : GUID_NULL),
                                                                captureMediaType_out,
                                                                NULL,
-                                                               0,
-                                                               sample_grabber_id,
-                                                               renderer_id,
+                                                               (mute_in ? -1 : 0),
+                                                               GUID_NULL,
+                                                               effect_options,
                                                                topology_p))
   {
     ACE_DEBUG ((LM_ERROR,
@@ -1256,11 +1259,11 @@ do_work (unsigned int bufferSize_in,
   switch (mediaFramework_in)
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
-    { ACE_ASSERT (directShowCBData_in.configuration);
+    {
       directshow_modulehandler_configuration.allocatorConfiguration =
         allocator_configuration_p;
       directshow_modulehandler_configuration.filterConfiguration =
-        &directShowCBData_in.configuration->filterConfiguration;
+        &directShowConfiguration_in.filterConfiguration;
       directshow_modulehandler_configuration.messageAllocator =
         &directshow_message_allocator;
       directshow_modulehandler_configuration.mute = mute_in;
@@ -1290,9 +1293,9 @@ do_work (unsigned int bufferSize_in,
           (targetFilename_in.empty () ? Common_File_Tools::getTempDirectory ()
                                       : targetFilename_in);
 
-      directShowCBData_in.configuration->streamConfiguration.initialize (module_configuration,
-                                                                         directshow_modulehandler_configuration,
-                                                                         directshow_stream_configuration);
+      directShowConfiguration_in.streamConfiguration.initialize (module_configuration,
+                                                                 directshow_modulehandler_configuration,
+                                                                 directshow_stream_configuration);
 
       directshow_modulehandler_iterator =
         directShowConfiguration_in.streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
@@ -1301,9 +1304,11 @@ do_work (unsigned int bufferSize_in,
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
-    { ACE_ASSERT (mediaFoundationCBData_in.configuration);
+    {
       mediafoundation_modulehandler_configuration.allocatorConfiguration =
         allocator_configuration_p;
+      mediafoundation_modulehandler_configuration.mediaFoundationConfiguration =
+        &mediaFoundationConfiguration_in.mediaFoundationConfiguration;
       mediafoundation_modulehandler_configuration.mute = mute_in;
 
       mediafoundation_modulehandler_configuration.audioOutput = 1;

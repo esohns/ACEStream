@@ -439,13 +439,15 @@ Stream_Dev_Mic_Source_MediaFoundation_T<ACE_SYNCH_USE,
       { ACE_ASSERT (!session_data_r.formats.empty ());
         IMFMediaType* media_type_p = session_data_r.formats.back ();
         IMFTopology* topology_p = NULL;
+        std::string effect_options;
         if (!Stream_Module_Decoder_Tools::loadAudioRendererTopology (inherited::configuration_->deviceIdentifier.identifier._string,
+                                                                     MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE_AUDCAP_GUID,
                                                                      media_type_p,
                                                                      this,
                                                                      (inherited::configuration_->mute ? -1
                                                                                                       : inherited::configuration_->audioOutput),
-                                                                     sampleGrabberSinkNodeId_,
-                                                                     session_data_r.rendererNodeId,
+                                                                     GUID_NULL,
+                                                                     effect_options,
                                                                      topology_p))
         {
           ACE_DEBUG ((LM_ERROR,

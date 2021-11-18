@@ -503,9 +503,10 @@ struct Stream_CameraScreen_MediaFoundation_ModuleHandlerConfiguration
    : Stream_CameraScreen_ModuleHandlerConfiguration ()
    , area ()
    , direct3DConfiguration (NULL)
+   , mediaFoundationConfiguration (NULL)
    , outputFormat (NULL)
-   , rendererNodeId (0)
-   , sampleGrabberNodeId (0)
+   //, rendererNodeId (0)
+   //, sampleGrabberNodeId (0)
    , session (NULL)
    //, sourceFormat (NULL)
    , subscriber (NULL)
@@ -515,16 +516,17 @@ struct Stream_CameraScreen_MediaFoundation_ModuleHandlerConfiguration
     mediaFramework = STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION;
   }
 
-  struct tagRECT                                       area;
-  struct Stream_MediaFramework_Direct3D_Configuration* direct3DConfiguration;
-  IMFMediaType*                                        outputFormat;
-  TOPOID                                               rendererNodeId;
-  TOPOID                                               sampleGrabberNodeId;
-  IMFMediaSession*                                     session;
+  struct tagRECT                                              area;
+  struct Stream_MediaFramework_Direct3D_Configuration*        direct3DConfiguration;
+  struct Stream_MediaFramework_MediaFoundation_Configuration* mediaFoundationConfiguration;
+  IMFMediaType*                                               outputFormat;
+  //TOPOID                                               rendererNodeId;
+  //TOPOID                                               sampleGrabberNodeId;
+  IMFMediaSession*                                            session;
   //IMFMediaType*                                        sourceFormat;
-  Stream_CameraScreen_MediaFoundation_ISessionNotify_t*     subscriber;
-  Stream_CameraScreen_MediaFoundation_Subscribers_t*        subscribers;
-  IMFVideoDisplayControl*                              windowController;
+  Stream_CameraScreen_MediaFoundation_ISessionNotify_t*       subscriber;
+  Stream_CameraScreen_MediaFoundation_Subscribers_t*          subscribers;
+  IMFVideoDisplayControl*                                     windowController;
 };
 #else
 struct Stream_CameraScreen_V4L_StreamConfiguration;

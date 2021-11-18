@@ -57,11 +57,15 @@ class Stream_MediaFramework_MediaFoundation_Tools
                       TOPOID);      // topology node id
   static bool clear (IMFMediaSession*, // media session handle
                      bool = true);     // wait for completion ?
+  static bool clear (IMFTopology*); // topology handle
   // *NOTE*: removes all 'transform' type MFTs (and any connected downstream
   //         nodes)
-  static bool clear (IMFTopology*); // topology handle
+  static bool clearTransforms (IMFTopology*); // topology handle
   // *NOTE*: disconnects all downstream nodes as well
   static bool disconnect (IMFTopologyNode*); // topology node handle
+  // *NOTE*: (disconnects the topology and-) removes all (but a specific source-) nodes
+  static bool reset (IMFTopology*, // topology handle
+                     REFGUID);     // retain (device) category source (GUID_NULL: retain first filter w/o input pins)
 
   // -------------------------------------
 
@@ -158,6 +162,7 @@ class Stream_MediaFramework_MediaFoundation_Tools
 
   //static void dump (IMFSourceReader*); // source reader handle
   static void dump (IMFTopology*); // topology handle
+  static void dump (IMFAttributes*); // attributes handle
   static void dump (IMFTransform*); // transform handle
 
   static bool copy (const IMFAttributes*, // source

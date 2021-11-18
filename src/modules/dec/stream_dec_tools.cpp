@@ -1222,7 +1222,7 @@ Stream_Module_Decoder_Tools::loadAudioRendererGraph (REFGUID deviceCategory_in,
     if (FAILED (result))
     {
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to IGraphBuilder::EnumFilters(): \"%s\", aborting\n"),
+                  ACE_TEXT ("failed to IEnumFilters::Next(): \"%s\", aborting\n"),
                   ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ())));
       enumerator_p->Release ();
       return false;
@@ -3103,6 +3103,7 @@ error:
 
 bool
 Stream_Module_Decoder_Tools::loadAudioRendererTopology (const std::string& deviceIdentifier_in,
+                                                        REFGUID deviceCategory_in,
                                                         IMFMediaType* mediaType_inout,
 #if COMMON_OS_WIN32_TARGET_PLATFORM(0x0601) // _WIN32_WINNT_WIN7
                                                         IMFSampleGrabberSinkCallback2* sampleGrabberSinkCallback_in,
@@ -3110,8 +3111,8 @@ Stream_Module_Decoder_Tools::loadAudioRendererTopology (const std::string& devic
                                                         IMFSampleGrabberSinkCallback* sampleGrabberSinkCallback_in,
 #endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0601)
                                                         int audioOutput_in,
-                                                        TOPOID& sampleGrabberSinkNodeId_out,
-                                                        TOPOID& rendererNodeId_out,
+                                                        REFGUID effect_in,
+                                                        const std::string& effectOptions_in, // *TODO*
                                                         IMFTopology*& topology_inout)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Decoder_Tools::loadAudioRendererTopology"));
@@ -3149,6 +3150,7 @@ Stream_Module_Decoder_Tools::loadAudioRendererTopology (const std::string& devic
            MFT_ENUM_FLAG_TRANSCODE_ONLY |
            MFT_ENUM_FLAG_SORTANDFILTER);
 #endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0601)
+  struct _GUID GUID_s = GUID_NULL;
   IMFTransform* transform_p = NULL;
   TOPOID node_id = 0;
   //IMFAudioProcessorControl* video_processor_control_p = NULL;
@@ -3157,14 +3159,28 @@ Stream_Module_Decoder_Tools::loadAudioRendererTopology (const std::string& devic
   IMFMediaTypeHandler* media_type_handler_p = NULL;
   int i = 0;
 
-  // initialize return value(s)
-  sampleGrabberSinkNodeId_out = 0;
-  rendererNodeId_out = 0;
-  if (!topology_inout)
+  if (topology_inout)
+  {
+    if (!Stream_MediaFramework_MediaFoundation_Tools::reset (topology_inout,
+                                                             deviceCategory_in))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to Stream_MediaFramework_MediaFoundation_Tools::reset(), aborting\n")));
+      return false;
+    } // end IF
+    if (!Stream_MediaFramework_MediaFoundation_Tools::getMediaSource (topology_inout,
+                                                                      media_source_p))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to Stream_MediaFramework_MediaFoundation_Tools::getMediaSource(), aborting\n")));
+      return false;
+    } // end ELSE IF
+  } // end IF
+  else
   {
 #if COMMON_OS_WIN32_TARGET_PLATFORM(0x0601) // _WIN32_WINNT_WIN7
     if (!Stream_Device_MediaFoundation_Tools::loadDeviceTopology (deviceIdentifier_in,
-                                                                  MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE_AUDCAP_GUID,
+                                                                  deviceCategory_in,
                                                                   media_source_p,
                                                                   NULL, // do not load a dummy sink
                                                                   topology_inout))
@@ -3176,14 +3192,7 @@ Stream_Module_Decoder_Tools::loadAudioRendererTopology (const std::string& devic
     } // end IF
 #endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0601)
     release_topology = true;
-  } // end IF
-  else if (!Stream_MediaFramework_MediaFoundation_Tools::getMediaSource (topology_inout,
-                                                                         media_source_p))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to Stream_MediaFramework_MediaFoundation_Tools::getMediaSource(), aborting\n")));
-    goto error;
-  } // end ELSE IF
+  } // end ELSE
   ACE_ASSERT (topology_inout);
   ACE_ASSERT (media_source_p);
 
@@ -3271,22 +3280,6 @@ Stream_Module_Decoder_Tools::loadAudioRendererTopology (const std::string& devic
                                                        STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION))
     goto continue_;
 
-  //if (!media_source_p)
-  //{
-  //  result = source_node_p->GetUnknown (MF_TOPONODE_SOURCE,
-  //                                      IID_PPV_ARGS (&media_source_p));
-  //  ACE_ASSERT (SUCCEEDED (result));
-  //} // end IF
-  //if (!Stream_MediaFramework_MediaFoundation_Tools::getCaptureFormat (media_source_p,
-  //                                                                    media_type_p))
-  //{
-  //  ACE_DEBUG ((LM_ERROR,
-  //              ACE_TEXT ("failed to Stream_MediaFramework_MediaFoundation_Tools::getCaptureFormat(), aborting\n")));
-  //  goto error;
-  //} // end IF
-  //media_source_p->Release (); media_source_p = NULL;
-
-  //IMFAttributes* attributes_p = NULL;
   while (true)
   {
     mft_register_type_info.guidSubtype = sub_type;
@@ -3337,7 +3330,13 @@ clean:
 
 clean:
 #endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0601)
-    ACE_ASSERT (transform_p);
+  if (!transform_p)
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("could not find decoder (subtype was: \"%s\"), aborting\n"),
+                ACE_TEXT (Stream_MediaFramework_Tools::mediaSubTypeToString (sub_type, STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION).c_str ())));
+    goto error;
+  } // end IF
 
     result = transform_p->SetInputType (0,
                                         media_type_p,
@@ -3382,9 +3381,6 @@ clean:
     } // end IF
     result = topology_node_p->GetTopoNodeID (&node_id);
     ACE_ASSERT (SUCCEEDED (result));
-    //ACE_DEBUG ((LM_DEBUG,
-    //            ACE_TEXT ("added transform node (id: %q)...\n"),
-    //            node_id));
     result = source_node_p->ConnectOutput (0,
                                            topology_node_p,
                                            0);
@@ -3422,8 +3418,6 @@ clean:
       goto error;
     } // end IF
     transform_p->Release (); transform_p = NULL;
-
-    // debug info
     ACE_DEBUG ((LM_DEBUG,
                 ACE_TEXT ("%q: added decoder for \"%s\": \"%s\"...\n"),
                 node_id,
@@ -3439,11 +3433,169 @@ clean:
   } // end WHILE
 
 continue_:
-  // step3: add tee node ?
-  if ((!sampleGrabberSinkCallback_in && !(audioOutput_in > 0)) ||
-      ((sampleGrabberSinkCallback_in && !(audioOutput_in > 0)) || // XOR
-      (!sampleGrabberSinkCallback_in &&  (audioOutput_in > 0))))
+  // step3: add effect node ?
+  if (InlineIsEqualGUID (effect_in, GUID_NULL))
     goto continue_2;
+
+  mft_register_type_info.guidSubtype = sub_type;
+  item_count = 0;
+  if (!Stream_MediaFramework_MediaFoundation_Tools::load (MFT_CATEGORY_AUDIO_EFFECT,
+                                                          flags,
+                                                          &mft_register_type_info,    // input type
+                                                          NULL,                       // output type
+#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0601) // _WIN32_WINNT_WIN7
+                                                          decoders_p,                 // array of decoders
+#else
+                                                          NULL,                       // attributes
+                                                          decoders_p,                 // array of decoders
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0601)
+                                                          item_count))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to Stream_MediaFramework_MediaFoundation_Tools::load(%s,%s), aborting\n"),
+                ACE_TEXT (Common_Tools::GUIDToString (MFT_CATEGORY_AUDIO_EFFECT).c_str ()),
+                ACE_TEXT (Stream_MediaFramework_Tools::mediaSubTypeToString (sub_type, STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION).c_str ())));
+    goto error;
+  } // end IF
+  ACE_ASSERT (decoders_p);
+  if (!item_count)
+    goto clean_2;
+
+#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0601) // _WIN32_WINNT_WIN7
+  for (UINT32 i = 0;
+       i < item_count;
+       ++i)
+  {
+    module_string =
+      Stream_MediaFramework_MediaFoundation_Tools::toString (decoders_p[i]);
+    GUID_s = GUID_NULL;
+    result = decoders_p[i]->GetGUID (MFT_TRANSFORM_CLSID_Attribute,
+                                     &GUID_s);
+    ACE_ASSERT (SUCCEEDED (result));
+    if (!InlineIsEqualGUID (effect_in, GUID_s))
+      continue;
+    result =
+      decoders_p[i]->ActivateObject (IID_PPV_ARGS (&transform_p));
+    ACE_ASSERT (SUCCEEDED (result));
+    break;
+  } // end FOR
+
+clean_2:
+  for (UINT32 i = 0; i < item_count; i++)
+    decoders_p[i]->Release ();
+  CoTaskMemFree (decoders_p); decoders_p = NULL;
+
+  //result = transform_p->GetAttributes (&attributes_p);
+  //ACE_ASSERT (SUCCEEDED (result));
+  //result = attributes_p->SetUINT32 (MF_TRANSFORM_ASYNC_UNLOCK, TRUE);
+  //ACE_ASSERT (SUCCEEDED (result));
+  //attributes_p->Release ();
+#else
+  ACE_ASSERT (false);
+  ACE_NOTSUP_RETURN (false);
+  ACE_NOTREACHED (return false;)
+
+clean_2:
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0601)
+  if (!transform_p)
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("could not find effect (CLSID was: \"%s\"), aborting\n"),
+                ACE_TEXT (Common_Tools::GUIDToString (effect_in).c_str ())));
+    goto error;
+  } // end IF
+
+  result = transform_p->SetInputType (0,
+                                      media_type_p,
+                                      0);
+  if (FAILED (result))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to IMFTransform::SetInputType(): \"%s\", aborting\n"),
+                ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
+    transform_p->Release (); transform_p = NULL;
+    goto error;
+  } // end IF
+
+#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
+  result = MFCreateTopologyNode (MF_TOPOLOGY_TRANSFORM_NODE,
+                                 &topology_node_p);
+  if (FAILED (result))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to MFCreateTopologyNode(MF_TOPOLOGY_TRANSFORM_NODE): \"%s\", aborting\n"),
+                ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
+    transform_p->Release (); transform_p = NULL;
+    goto error;
+  } // end IF
+  ACE_ASSERT (topology_node_p);
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
+  result = topology_node_p->SetObject (transform_p);
+  ACE_ASSERT (SUCCEEDED (result));
+  result = topology_node_p->SetUINT32 (MF_TOPONODE_CONNECT_METHOD,
+                                       MF_CONNECT_DIRECT);
+  ACE_ASSERT (SUCCEEDED (result));
+  //result = topology_node_p->SetUINT32 (MF_TOPONODE_DECODER,
+  //                                     TRUE);
+  ACE_ASSERT (SUCCEEDED (result));
+  result = topology_inout->AddNode (topology_node_p);
+  if (FAILED (result))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to IMFTopology::AddNode(): \"%s\", aborting\n"),
+                ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
+    goto error;
+  } // end IF
+  result = topology_node_p->GetTopoNodeID (&node_id);
+  ACE_ASSERT (SUCCEEDED (result));
+  result = source_node_p->ConnectOutput (0,
+                                         topology_node_p,
+                                         0);
+  if (FAILED (result))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to IMFTopologyNode::ConnectOutput(): \"%s\", aborting\n"),
+                ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
+    transform_p->Release (); transform_p = NULL;
+    goto error;
+  } // end IF
+  source_node_p->Release ();
+  source_node_p = topology_node_p;
+  topology_node_p = NULL;
+
+  media_type_p->Release (); media_type_p = NULL;
+  if (!Stream_MediaFramework_MediaFoundation_Tools::getOutputFormat (transform_p,
+                                                                     media_type_p))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to Stream_MediaFramework_MediaFoundation_Tools::getOutputFormat(): \"%s\", aborting\n"),
+                ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
+    transform_p->Release (); transform_p = NULL;
+    goto error;
+  } // end IF
+  result = transform_p->SetOutputType (0,
+                                       media_type_p,
+                                       0);
+  if (FAILED (result))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to IMFTransform::SetOutputType(): \"%s\", aborting\n"),
+                ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
+    transform_p->Release (); transform_p = NULL;
+    goto error;
+  } // end IF
+  transform_p->Release (); transform_p = NULL;
+  ACE_DEBUG ((LM_DEBUG,
+              ACE_TEXT ("%q: added effect: \"%s\"...\n"),
+              node_id,
+              ACE_TEXT (module_string.c_str ())));
+
+continue_2:
+  // step3: add tee node ?
+  if ((!sampleGrabberSinkCallback_in && !(audioOutput_in >= 0)) ||
+      ((sampleGrabberSinkCallback_in && !(audioOutput_in >= 0)) || // XOR
+       (!sampleGrabberSinkCallback_in && (audioOutput_in >= 0))))
+    goto continue_3;
 
 #if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
   result = MFCreateTopologyNode (MF_TOPOLOGY_TEE_NODE,
@@ -3467,9 +3619,6 @@ continue_:
   } // end IF
   result = topology_node_p->GetTopoNodeID (&node_id);
   ACE_ASSERT (SUCCEEDED (result));
-  ACE_DEBUG ((LM_DEBUG,
-              ACE_TEXT ("added tee node (id: %q)...\n"),
-              node_id));
   result = source_node_p->ConnectOutput (0,
                                          topology_node_p,
                                          0);
@@ -3483,11 +3632,14 @@ continue_:
   source_node_p->Release ();
   source_node_p = topology_node_p;
   topology_node_p = NULL;
+  ACE_DEBUG ((LM_DEBUG,
+              ACE_TEXT ("%q: added tee node...\n"),
+              node_id));
 
-continue_2:
+continue_3:
   // step4: add sample grabber sink ?
   if (!sampleGrabberSinkCallback_in)
-    goto continue_3;
+    goto continue_4;
 
 #if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
   result =
@@ -3556,11 +3708,8 @@ continue_2:
                 ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
     goto error;
   } // end IF
-  result = topology_node_p->GetTopoNodeID (&sampleGrabberSinkNodeId_out);
+  result = topology_node_p->GetTopoNodeID (&node_id);
   ACE_ASSERT (SUCCEEDED (result));
-  ACE_DEBUG ((LM_DEBUG,
-              ACE_TEXT ("added sample grabber sink node (id: %q)...\n"),
-              sampleGrabberSinkNodeId_out));
   result = source_node_p->ConnectOutput (0,
                                          topology_node_p,
                                          0);
@@ -3572,11 +3721,14 @@ continue_2:
     goto error;
   } // end IF
   topology_node_p->Release (); topology_node_p = NULL;
+  ACE_DEBUG ((LM_DEBUG,
+              ACE_TEXT ("%q: added sample grabber sink node...\n"),
+              node_id));
 
-continue_3:
+continue_4:
   // step5: add audio renderer sink ?
   if (audioOutput_in < 0)
-    goto continue_4;
+    goto continue_5;
 
 #if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
   result = MFCreateAudioRendererActivate (&activate_p);
@@ -3589,16 +3741,6 @@ continue_3:
   } // end IF
 #endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
   ACE_ASSERT (activate_p);
-  //// *NOTE*: select a (custom) video presenter
-  //result = activate_p->SetGUID (MF_ACTIVATE_CUSTOM_VIDEO_PRESENTER_CLSID,
-  //                              );
-  //if (FAILED (result))
-  //{
-  //  ACE_DEBUG ((LM_ERROR,
-  //              ACE_TEXT ("failed to IMFActivate::SetGUID(MF_ACTIVATE_CUSTOM_VIDEO_PRESENTER_CLSID) \"%s\", aborting\n"),
-  //              ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
-  //  goto error;
-  //} // end IF
 
   result = activate_p->ActivateObject (IID_PPV_ARGS (&media_sink_p));
   ACE_ASSERT (SUCCEEDED (result));
@@ -3644,11 +3786,8 @@ continue_3:
                 ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
     goto error;
   } // end IF
-  result = topology_node_p->GetTopoNodeID (&rendererNodeId_out);
+  result = topology_node_p->GetTopoNodeID (&node_id);
   ACE_ASSERT (SUCCEEDED (result));
-  ACE_DEBUG ((LM_DEBUG,
-              ACE_TEXT ("%q: added audio renderer node...\n"),
-              rendererNodeId_out));
   result =
     source_node_p->ConnectOutput ((sampleGrabberSinkCallback_in ? 1 : 0),
                                   topology_node_p,
@@ -3664,8 +3803,11 @@ continue_3:
   media_source_p->Release (); media_source_p = NULL;
   media_type_p->Release (); media_type_p = NULL;
   source_node_p->Release (); source_node_p = NULL;
+  ACE_DEBUG ((LM_DEBUG,
+              ACE_TEXT ("%q: added audio renderer node...\n"),
+              node_id));
 
-continue_4:
+continue_5:
   return true;
 
 error:

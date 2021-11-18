@@ -462,7 +462,8 @@ struct Test_U_AudioEffect_MediaFoundation_ModuleHandlerConfiguration
    : Test_U_AudioEffect_ModuleHandlerConfiguration ()
    , effect (GUID_NULL)
    , effectOptions ()
-   , sampleGrabberNodeId (0)
+   , mediaFoundationConfiguration (NULL)
+   //, sampleGrabberNodeId (0)
    , session (NULL)
    , outputFormat (NULL)
    , streamConfiguration (NULL)
@@ -476,14 +477,15 @@ struct Test_U_AudioEffect_MediaFoundation_ModuleHandlerConfiguration
                   ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
   }
 
-  CLSID                                                     effect;
-  std::string                                               effectOptions;
-  TOPOID                                                    sampleGrabberNodeId;
-  IMFMediaSession*                                          session;
-  IMFMediaType*                                             outputFormat;
-  Test_U_AudioEffect_MediaFoundation_StreamConfiguration_t* streamConfiguration;
-  Test_U_AudioEffect_MediaFoundation_ISessionNotify_t*      subscriber;
-  Test_U_AudioEffect_MediaFoundation_Subscribers_t*         subscribers;
+  CLSID                                                       effect;
+  std::string                                                 effectOptions;
+  struct Stream_MediaFramework_MediaFoundation_Configuration* mediaFoundationConfiguration;
+  //TOPOID                                                      sampleGrabberNodeId;
+  IMFMediaSession*                                            session;
+  IMFMediaType*                                               outputFormat;
+  Test_U_AudioEffect_MediaFoundation_StreamConfiguration_t*   streamConfiguration;
+  Test_U_AudioEffect_MediaFoundation_ISessionNotify_t*        subscriber;
+  Test_U_AudioEffect_MediaFoundation_Subscribers_t*           subscribers;
 };
 #else
 struct Test_U_AudioEffect_ALSA_StreamConfiguration;

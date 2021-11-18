@@ -539,7 +539,8 @@ typedef Stream_MediaFramework_MediaFoundation_Target_T<ACE_MT_SYNCH,
                                                        Test_U_AudioEffect_MediaFoundation_Message,
                                                        Test_U_AudioEffect_MediaFoundation_SessionMessage,
                                                        Test_U_AudioEffect_MediaFoundation_SessionData,
-                                                       Test_U_AudioEffect_MediaFoundation_SessionData_t> Test_U_AudioEffect_MediaFoundation_Target;
+                                                       Test_U_AudioEffect_MediaFoundation_SessionData_t,
+                                                       IMFMediaType*> Test_U_AudioEffect_MediaFoundation_Target;
 DATASTREAM_MODULE_INPUT_ONLY (Test_U_AudioEffect_MediaFoundation_SessionData,                  // session data type
                               enum Stream_SessionMessageType,                                  // session event type
                               struct Test_U_AudioEffect_MediaFoundation_ModuleHandlerConfiguration, // module handler configuration type

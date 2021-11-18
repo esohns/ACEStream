@@ -355,7 +355,7 @@ Stream_Vis_Target_MediaFoundation_T<ACE_SYNCH_USE,
       ACE_ASSERT (window_h);
       if (!initialize_Session (window_h,
                                inherited::configuration_->area,
-                               inherited::configuration_->rendererNodeId,
+                               /*inherited::configuration_->rendererNodeId*/0, // *TODO*
                                media_sink_p,
                                video_display_control_p,
                                //videoSampleAllocator_,
@@ -1818,7 +1818,8 @@ template <ACE_SYNCH_DECL,
           typename DataMessageType,
           typename SessionMessageType,
           typename SessionDataType,
-          typename SessionDataContainerType>
+          typename SessionDataContainerType,
+          typename MediaType>
 Stream_Vis_Target_MediaFoundation_2<ACE_SYNCH_USE,
                                     TimePolicyType,
                                     ConfigurationType,
@@ -1826,7 +1827,8 @@ Stream_Vis_Target_MediaFoundation_2<ACE_SYNCH_USE,
                                     DataMessageType,
                                     SessionMessageType,
                                     SessionDataType,
-                                    SessionDataContainerType>::Stream_Vis_Target_MediaFoundation_2 (ISTREAM_T* stream_in)
+                                    SessionDataContainerType,
+                                    MediaType>::Stream_Vis_Target_MediaFoundation_2 (ISTREAM_T* stream_in)
  : inherited (stream_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Vis_Target_MediaFoundation_2::Stream_Vis_Target_MediaFoundation_2"));
@@ -1840,7 +1842,8 @@ template <ACE_SYNCH_DECL,
           typename DataMessageType,
           typename SessionMessageType,
           typename SessionDataType,
-          typename SessionDataContainerType>
+          typename SessionDataContainerType,
+          typename MediaType>
 void
 Stream_Vis_Target_MediaFoundation_2<ACE_SYNCH_USE,
                                     TimePolicyType,
@@ -1849,8 +1852,9 @@ Stream_Vis_Target_MediaFoundation_2<ACE_SYNCH_USE,
                                     DataMessageType,
                                     SessionMessageType,
                                     SessionDataType,
-                                    SessionDataContainerType>::handleDataMessage (DataMessageType*& message_inout,
-                                                                                  bool& passMessageDownstream_out)
+                                    SessionDataContainerType,
+                                    MediaType>::handleDataMessage (DataMessageType*& message_inout,
+                                                                   bool& passMessageDownstream_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Vis_Target_MediaFoundation_2::handleDataMessage"));
 
@@ -1934,7 +1938,8 @@ template <ACE_SYNCH_DECL,
           typename DataMessageType,
           typename SessionMessageType,
           typename SessionDataType,
-          typename SessionDataContainerType>
+          typename SessionDataContainerType,
+          typename MediaType>
 void
 Stream_Vis_Target_MediaFoundation_2<ACE_SYNCH_USE,
                                     TimePolicyType,
@@ -1943,8 +1948,9 @@ Stream_Vis_Target_MediaFoundation_2<ACE_SYNCH_USE,
                                     DataMessageType,
                                     SessionMessageType,
                                     SessionDataType,
-                                    SessionDataContainerType>::handleSessionMessage (SessionMessageType*& message_inout,
-                                                                                     bool& passMessageDownstream_out)
+                                    SessionDataContainerType,
+                                    MediaType>::handleSessionMessage (SessionMessageType*& message_inout,
+                                                                      bool& passMessageDownstream_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Vis_Target_MediaFoundation_2::handleSessionMessage"));
 

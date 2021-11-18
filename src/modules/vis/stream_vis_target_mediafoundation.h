@@ -205,7 +205,9 @@ template <ACE_SYNCH_DECL,
           typename SessionMessageType,
           ////////////////////////////////
           typename SessionDataType,
-          typename SessionDataContainerType>
+          typename SessionDataContainerType,
+          ////////////////////////////////
+          typename MediaType>
 class Stream_Vis_Target_MediaFoundation_2
  : public Stream_MediaFramework_MediaFoundation_Target_T<ACE_SYNCH_USE,
                                                          TimePolicyType,
@@ -214,7 +216,8 @@ class Stream_Vis_Target_MediaFoundation_2
                                                          DataMessageType,
                                                          SessionMessageType,
                                                          SessionDataType,
-                                                         SessionDataContainerType>
+                                                         SessionDataContainerType,
+                                                         MediaType>
 {
   typedef Stream_MediaFramework_MediaFoundation_Target_T<ACE_SYNCH_USE,
                                                          TimePolicyType,
@@ -223,7 +226,8 @@ class Stream_Vis_Target_MediaFoundation_2
                                                          DataMessageType,
                                                          SessionMessageType,
                                                          SessionDataType,
-                                                         SessionDataContainerType> inherited;
+                                                         SessionDataContainerType,
+                                                         MediaType> inherited;
 
  public:
   Stream_Vis_Target_MediaFoundation_2 (ISTREAM_T*); // stream handle

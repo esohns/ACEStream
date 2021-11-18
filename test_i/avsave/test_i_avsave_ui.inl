@@ -2384,9 +2384,9 @@ Stream_AVSave_WxWidgetsDialog_T<wxDialog_main,
     media_source_p->Release (); media_source_p = NULL;
     return;
   } // end IF
-  Stream_AVSave_MediaFoundation_MediaFoundationDisplayNull* display_impl_p =
-    dynamic_cast<Stream_AVSave_MediaFoundation_MediaFoundationDisplayNull*> (module_p->writer ());
-  ACE_ASSERT (display_impl_p);
+  //Stream_AVSave_MediaFoundation_MediaFoundationDisplayNull* display_impl_p =
+  //  dynamic_cast<Stream_AVSave_MediaFoundation_MediaFoundationDisplayNull*> (module_p->writer ());
+  //ACE_ASSERT (display_impl_p);
 
   IMFTopology* topology_p = NULL;
   struct _MFRatio pixel_aspect_ratio = { 1, 1 };
@@ -2394,7 +2394,7 @@ Stream_AVSave_WxWidgetsDialog_T<wxDialog_main,
   if (!Stream_Device_MediaFoundation_Tools::loadDeviceTopology (device_identifier,
                                                                 MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE_VIDCAP_GUID,
                                                                 media_source_p,
-                                                                display_impl_p,
+                                                                /*display_impl_p*/NULL,
                                                                 topology_p))
   {
     ACE_DEBUG ((LM_ERROR,

@@ -126,15 +126,16 @@ class Stream_Module_Decoder_Tools
 
   // media foundation
   static bool loadAudioRendererTopology (const std::string&,             // device name ("FriendlyName")
-                                         IMFMediaType*,                  // input/return value: sample grabber sink input media type handle
+                                         REFGUID,                        // device category (GUID_NULL: retain existing media source)
+                                         IMFMediaType*,                  // media type handle
 #if COMMON_OS_WIN32_TARGET_PLATFORM(0x0601) // _WIN32_WINNT_WIN7
                                          IMFSampleGrabberSinkCallback2*, // sample grabber sink callback handle [NULL: do not use tee/grabber]
 #else
                                          IMFSampleGrabberSinkCallback*,  // sample grabber sink callback handle [NULL: do not use tee/grabber]
 #endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0601)
                                          int,                            // output handle [-1: do not use tee/renderer]
-                                         TOPOID&,                        // return value: sample grabber sink node id
-                                         TOPOID&,                        // return value: audio renderer sink node id
+                                         REFGUID,                        // audio effect CLSID [GUID_NULL: no effect]
+                                         const std::string&,             // audio effect options *TODO*
                                          IMFTopology*&);                 // input/return value: topology handle
   static bool loadVideoRendererTopology (const std::string&,             // device name ("FriendlyName")
                                          const IMFMediaType*,            // sample grabber sink input media type handle

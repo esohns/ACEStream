@@ -484,7 +484,8 @@ typedef Stream_Vis_Target_MediaFoundation_2<ACE_MT_SYNCH,
                                             Stream_CamSave_MediaFoundation_Message_t,
                                             Stream_CamSave_MediaFoundation_SessionMessage_t,
                                             Stream_CamSave_MediaFoundation_SessionData,
-                                            Stream_CamSave_MediaFoundation_SessionData_t> Stream_CamSave_MediaFoundation_MediaFoundationDisplayNull;
+                                            Stream_CamSave_MediaFoundation_SessionData_t,
+                                            IMFMediaType*> Stream_CamSave_MediaFoundation_MediaFoundationDisplayNull;
 
 #if (GTK_SUPPORT)
 typedef Stream_Module_Vis_GTK_Pixbuf_T<ACE_MT_SYNCH,

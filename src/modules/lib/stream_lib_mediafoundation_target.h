@@ -32,8 +32,12 @@
 
 #include "common_iinitialize.h"
 
+#include "common_ui_windowtype_converter.h"
+
 #include "stream_common.h"
 #include "stream_task_base_synch.h"
+
+#include "stream_lib_mediatype_converter.h"
 
 extern const char libacestream_default_lib_mediafoundation_target_module_name_string[];
 
@@ -47,7 +51,9 @@ template <ACE_SYNCH_DECL,
           typename SessionMessageType,
           ////////////////////////////////
           typename SessionDataType,          // session data
-          typename SessionDataContainerType> // session message payload (reference counted)
+          typename SessionDataContainerType, // session message payload (reference counted)
+          ////////////////////////////////
+          typename MediaType>
 class Stream_MediaFramework_MediaFoundation_Target_T
  : public Stream_TaskBaseSynch_T<ACE_SYNCH_USE, 
                                  TimePolicyType,
@@ -58,12 +64,9 @@ class Stream_MediaFramework_MediaFoundation_Target_T
                                  enum Stream_ControlType,
                                  enum Stream_SessionMessageType,
                                  struct Stream_UserData>
- //, public Stream_IModuleHandler_T<ConfigurationType>
-#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0601) // _WIN32_WINNT_WIN7
- , public IMFSampleGrabberSinkCallback2
-#else
- , public IMFSampleGrabberSinkCallback
-#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0601)
+ , public Stream_MediaFramework_MediaTypeConverter_T<MediaType>
+ , public Common_UI_WindowTypeConverter_T<HWND>
+ , public IMFAsyncCallback
 {
   typedef Stream_TaskBaseSynch_T<ACE_SYNCH_USE, 
                                  TimePolicyType,
@@ -74,11 +77,10 @@ class Stream_MediaFramework_MediaFoundation_Target_T
                                  enum Stream_ControlType,
                                  enum Stream_SessionMessageType,
                                  struct Stream_UserData> inherited;
+  typedef Stream_MediaFramework_MediaTypeConverter_T<MediaType> inherited2;
+  typedef Common_UI_WindowTypeConverter_T<HWND> inherited3;
 
  public:
-  //// convenience types
-  //typedef Common_IInitialize_T<ConfigurationType> IINITIALIZE_T;
-
   Stream_MediaFramework_MediaFoundation_Target_T (ISTREAM_T*); // stream handle
   virtual ~Stream_MediaFramework_MediaFoundation_Target_T ();
 
@@ -91,47 +93,20 @@ class Stream_MediaFramework_MediaFoundation_Target_T
   virtual void handleSessionMessage (SessionMessageType*&, // session message handle
                                      bool&);               // return value: pass message downstream ?
 
-  //// implement Stream_IModuleHandler_T
-  //virtual const ConfigurationType& get () const;
-
-  // implement IMFSampleGrabberSinkCallback2
-  virtual STDMETHODIMP QueryInterface (const IID&,
+  // implement IMFAsyncCallback
+  virtual STDMETHODIMP QueryInterface (REFIID,
                                        void**);
-  virtual STDMETHODIMP_ (ULONG) AddRef ();
-  virtual STDMETHODIMP_ (ULONG) Release ();
-  //STDMETHODIMP OnEvent (DWORD,           // stream index
-  //                      IMFMediaEvent*); // event handle
-  //STDMETHODIMP OnFlush (DWORD); // stream index
-  //STDMETHODIMP OnReadSample (HRESULT,     // result
-  //                           DWORD,       // stream index
-  //                           DWORD,       // stream flags
-  //                           LONGLONG,    // timestamp
-  //                           IMFSample*); // sample handle
-  virtual STDMETHODIMP OnClockStart (MFTIME,    // (system) clock start time
-                                     LONGLONG); // clock start offset
-  virtual STDMETHODIMP OnClockStop (MFTIME); // (system) clock start time
-  virtual STDMETHODIMP OnClockPause (MFTIME); // (system) clock pause time
-  virtual STDMETHODIMP OnClockRestart (MFTIME); // (system) clock restart time
-  virtual STDMETHODIMP OnClockSetRate (MFTIME, // (system) clock rate set time
-                                       float); // new playback rate
-  virtual STDMETHODIMP OnProcessSample (REFGUID,     // major media type
-                                        DWORD,       // flags
-                                        LONGLONG,    // timestamp
-                                        LONGLONG,    // duration
-                                        const BYTE*, // buffer
-                                        DWORD);      // buffer size
-  virtual STDMETHODIMP OnProcessSampleEx (REFGUID,         // major media type
-                                          DWORD,           // flags
-                                          LONGLONG,        // timestamp
-                                          LONGLONG,        // duration
-                                          const BYTE*,     // buffer
-                                          DWORD,           // buffer size
-                                          IMFAttributes*); // media sample attributes
-  virtual STDMETHODIMP OnSetPresentationClock (IMFPresentationClock*); // presentation clock handle
-  virtual STDMETHODIMP OnShutdown ();
+  inline virtual STDMETHODIMP_ (ULONG) AddRef () { return InterlockedIncrement (&referenceCount_); }
+  inline virtual STDMETHODIMP_ (ULONG) Release () { ULONG count = InterlockedDecrement (&referenceCount_); return count; }
+  // *NOTE*: "...If you want default values for both parameters, return
+  //         E_NOTIMPL. ..."
+  inline virtual STDMETHODIMP GetParameters (DWORD* flags_out, DWORD* queue_out) { ACE_UNUSED_ARG (flags_out); ACE_UNUSED_ARG (queue_out); return E_NOTIMPL; }
+  virtual STDMETHODIMP Invoke (IMFAsyncResult*); // asynchronous result handle
 
  protected:
-  SessionDataContainerType* sessionData_;
+  // enqueue MB_STOP --> stop worker thread(s)
+  virtual void stop (bool = true,   // wait for completion ?
+                     bool = false); // high priority ? (i.e. do not wait for queued messages)
 
  private:
   // convenient types
@@ -142,7 +117,8 @@ class Stream_MediaFramework_MediaFoundation_Target_T
                                                          DataMessageType,
                                                          SessionMessageType,
                                                          SessionDataType,
-                                                         SessionDataContainerType> OWN_TYPE_T;
+                                                         SessionDataContainerType,
+                                                         MediaType> OWN_TYPE_T;
 
   ACE_UNIMPLEMENTED_FUNC (Stream_MediaFramework_MediaFoundation_Target_T ())
   ACE_UNIMPLEMENTED_FUNC (Stream_MediaFramework_MediaFoundation_Target_T (const Stream_MediaFramework_MediaFoundation_Target_T&))
@@ -159,13 +135,12 @@ class Stream_MediaFramework_MediaFoundation_Target_T
                                    IMFMediaSession*&);             // intput/return value: media session handle
   inline void finalize_MediaFoundation () {}
 
-  bool                      isFirst_;
+  bool                                isFirst_;
 
-  LONGLONG                  baseTimeStamp_;
-  IMFMediaSession*          mediaSession_;
-  IMFPresentationClock*     presentationClock_;
-  long                      referenceCount_;
-  TOPOID                    sampleGrabberSinkNodeId_;
+  LONGLONG                            baseTimeStamp_;
+  IMFMediaSession*                    mediaSession_;
+  typename inherited::MESSAGE_QUEUE_T queue_;
+  long                                referenceCount_;
 };
 
 // include template definition

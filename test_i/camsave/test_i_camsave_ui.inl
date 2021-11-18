@@ -2380,10 +2380,10 @@ Stream_CamSave_WxWidgetsDialog_T<wxDialog_main,
   struct _MFRatio pixel_aspect_ratio = { 1, 1 };
 #if COMMON_OS_WIN32_TARGET_PLATFORM(0x0601) // _WIN32_WINNT_WIN7
   if (!Stream_Device_MediaFoundation_Tools::loadDeviceTopology (device_identifier,
-                                                                        MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE_VIDCAP_GUID,
-                                                                        media_source_p,
-                                                                        display_impl_p,
-                                                                        topology_p))
+                                                                MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE_VIDCAP_GUID,
+                                                                media_source_p,
+                                                                /*display_impl_p*/NULL, // *TODO*
+                                                                topology_p))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Stream_Device_MediaFoundation_Tools::loadDeviceTopology(), returning\n")));

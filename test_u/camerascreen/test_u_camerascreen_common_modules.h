@@ -291,7 +291,8 @@ typedef Stream_Vis_Target_MediaFoundation_2<ACE_MT_SYNCH,
                                             Stream_CameraScreen_MediaFoundation_Message_t,
                                             Stream_CameraScreen_MediaFoundation_SessionMessage_t,
                                             Stream_CameraScreen_MediaFoundation_SessionData,
-                                            Stream_CameraScreen_MediaFoundation_SessionData_t> Stream_CameraScreen_MediaFoundation_DisplayNull;
+                                            Stream_CameraScreen_MediaFoundation_SessionData_t,
+                                            IMFMediaType*> Stream_CameraScreen_MediaFoundation_DisplayNull;
 #else
 typedef Stream_Module_Vis_GTK_Window_T<ACE_MT_SYNCH,
                                        Common_TimePolicy_t,

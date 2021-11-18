@@ -378,7 +378,8 @@ typedef Stream_Vis_Target_MediaFoundation_2<ACE_MT_SYNCH,
                                             Stream_AVSave_MediaFoundation_Message_t,
                                             Stream_AVSave_MediaFoundation_SessionMessage_t,
                                             Stream_AVSave_MediaFoundation_SessionData,
-                                            Stream_AVSave_MediaFoundation_SessionData_t> Stream_AVSave_MediaFoundation_MediaFoundationDisplayNull;
+                                            Stream_AVSave_MediaFoundation_SessionData_t,
+                                            IMFMediaType*> Stream_AVSave_MediaFoundation_MediaFoundationDisplayNull;
 
 //typedef Stream_Module_Vis_GTK_Cairo_T<ACE_MT_SYNCH,
 //                                      Common_TimePolicy_t,

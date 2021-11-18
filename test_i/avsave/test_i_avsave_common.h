@@ -577,10 +577,11 @@ struct Stream_AVSave_MediaFoundation_ModuleHandlerConfiguration
    : Stream_AVSave_ModuleHandlerConfiguration ()
    , area ()
    , direct3DConfiguration (NULL)
+   , mediaFoundationConfiguration (NULL)
    , outboundStreamName ()
    , outputFormat (NULL)
-   , rendererNodeId (0)
-   , sampleGrabberNodeId (0)
+   //, rendererNodeId (0)
+   //, sampleGrabberNodeId (0)
    , session (NULL)
    //, sourceFormat (NULL)
    , subscriber (NULL)
@@ -590,17 +591,18 @@ struct Stream_AVSave_MediaFoundation_ModuleHandlerConfiguration
     mediaFramework = STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION;
   }
 
-  struct tagRECT                                       area;
-  struct Stream_MediaFramework_Direct3D_Configuration* direct3DConfiguration;
-  std::string                                          outboundStreamName; // message handler
-  IMFMediaType*                                        outputFormat;
-  TOPOID                                               rendererNodeId;
-  TOPOID                                               sampleGrabberNodeId;
-  IMFMediaSession*                                     session;
+  struct tagRECT                                              area;
+  struct Stream_MediaFramework_Direct3D_Configuration*        direct3DConfiguration;
+  struct Stream_MediaFramework_MediaFoundation_Configuration* mediaFoundationConfiguration;
+  std::string                                                 outboundStreamName; // message handler
+  IMFMediaType*                                               outputFormat;
+  //TOPOID                                               rendererNodeId;
+  //TOPOID                                               sampleGrabberNodeId;
+  IMFMediaSession*                                            session;
   //IMFMediaType*                                        sourceFormat;
-  Stream_AVSave_MediaFoundation_ISessionNotify_t*     subscriber;
-  Stream_AVSave_MediaFoundation_Subscribers_t*        subscribers;
-  IMFVideoDisplayControl*                              windowController;
+  Stream_AVSave_MediaFoundation_ISessionNotify_t*             subscriber;
+  Stream_AVSave_MediaFoundation_Subscribers_t*                subscribers;
+  IMFVideoDisplayControl*                                     windowController;
 };
 #else
 struct Stream_AVSave_V4L_StreamConfiguration;
