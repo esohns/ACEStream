@@ -773,7 +773,8 @@ do_initialize_mediafoundation (const std::string& deviceIdentifier_in,
                                bool coInitialize_in,
                                bool initializeMediaFoundation_in,
                                bool useMediaFoundationSource_in,
-                               bool mute_in)
+                               bool mute_in,
+                               Test_U_AudioEffect_MediaFoundation_Stream& stream_in)
 {
   STREAM_TRACE (ACE_TEXT ("::do_initialize_mediafoundation"));
 
@@ -782,11 +783,10 @@ do_initialize_mediafoundation (const std::string& deviceIdentifier_in,
   ACE_OS::memset (&waveformatex_s, 0, sizeof (struct tWAVEFORMATEX));
   struct _AMMediaType media_type_s;
   ACE_OS::memset (&media_type_s, 0, sizeof (struct _AMMediaType));
-  Test_U_AudioEffect_MediaFoundation_MediaSource_t* media_source_p = NULL;
 #if COMMON_OS_WIN32_TARGET_PLATFORM(0x0602) // _WIN32_WINNT_WIN8
-  IMFMediaSourceEx* media_source_2 = NULL;
+  IMFMediaSourceEx* media_source_p = NULL;
 #else
-  IMFMediaSource* media_source_2 = NULL;
+  IMFMediaSource* media_source_p = NULL;
 #endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0602)
   IMFTopology* topology_p = NULL;
   TOPOID sample_grabber_id = 0, renderer_id = 0;
@@ -889,36 +889,27 @@ continue_2:
 
   if (!useMediaFoundationSource_in)
   {
-    ACE_NEW_NORETURN (media_source_p,
-                      Test_U_AudioEffect_MediaFoundation_MediaSource_t ());
-    if (!media_source_p)
-    {
-      ACE_DEBUG ((LM_CRITICAL,
-                  ACE_TEXT ("failed to allocate memory, aborting\n")));
-      goto error;
-    } // end IF
-    if (!media_source_p->initialize (configuration_in.mediaFoundationConfiguration))
+    Test_U_AudioEffect_MediaFoundation_Target* writer_p =
+      &const_cast<Test_U_AudioEffect_MediaFoundation_Target&> (stream_in.getR_3 ());
+    if (!writer_p->initialize (configuration_in.mediaFoundationConfiguration))
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to Stream_MediaFramework_MediaFoundation_MediaSource_T::initialize(), aborting\n")));
-      delete media_source_p; media_source_p = NULL;
       goto error;
     } // end IF
-    result = media_source_p->QueryInterface (IID_PPV_ARGS (&media_source_2));
-    if (FAILED (result))
+    result = stream_in.QueryInterface (IID_PPV_ARGS (&media_source_p));
+    if (FAILED (result) || !media_source_p)
     {
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to Stream_MediaFramework_MediaFoundation_MediaSource_T::QueryInterface(): \"%s\", aborting\n"),
+                  ACE_TEXT ("failed to Test_U_AudioEffect_MediaFoundation_Stream::QueryInterface(): \"%s\", aborting\n"),
                   ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
-      delete media_source_p; media_source_p = NULL;
       goto error;
     } // end IF
-    ACE_ASSERT (media_source_2);
   } // end IF
 
   if (!Stream_Device_MediaFoundation_Tools::loadDeviceTopology (deviceIdentifier_in,
                                                                 MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE_AUDCAP_GUID,
-                                                                media_source_2,
+                                                                media_source_p,
                                                                 NULL,
                                                                 topology_p))
   {
@@ -927,9 +918,9 @@ continue_2:
                 ACE_TEXT (deviceIdentifier_in.c_str ())));
     goto error;
   } // end IF
-  ACE_ASSERT (media_source_2);
+  ACE_ASSERT (media_source_p);
   ACE_ASSERT (topology_p);
-  media_source_2->Release (); media_source_2 = NULL;
+  media_source_p->Release (); media_source_p = NULL;
 
   if (!useMediaFoundationSource_in)
     goto continue_3;
@@ -1021,8 +1012,8 @@ error:
   {
     captureMediaType_out->Release (); captureMediaType_out = NULL;
   } // end IF
-  if (media_source_2)
-    media_source_2->Release ();
+  if (media_source_p)
+    media_source_p->Release ();
   if (topology_p)
     topology_p->Release ();
   if (attributes_p)
@@ -1496,7 +1487,8 @@ do_work (unsigned int bufferSize_in,
                                        true, // initialize COM ?
                                        true, // initialize MediaFoundation framework ?
                                        useFrameworkSource_in, // use MediaFoundation source ? : WASAPI
-                                       mute_in);
+                                       mute_in,
+                                       mediafoundation_stream);
       break;
     }
     default:

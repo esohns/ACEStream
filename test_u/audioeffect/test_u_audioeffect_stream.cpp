@@ -455,6 +455,8 @@ Test_U_AudioEffect_MediaFoundation_Stream::Test_U_AudioEffect_MediaFoundation_St
 #if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
  , mediaSession_ (NULL)
 #endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
+ , mediaFoundationSource_ (this,
+                           ACE_TEXT_ALWAYS_CHAR (STREAM_LIB_MEDIAFOUNDATION_TARGET_DEFAULT_NAME_STRING))
  , referenceCount_ (0)
 {
   STREAM_TRACE (ACE_TEXT ("Test_U_AudioEffect_MediaFoundation_Stream::Test_U_AudioEffect_MediaFoundation_Stream"));
@@ -504,12 +506,22 @@ Test_U_AudioEffect_MediaFoundation_Stream::start ()
 #if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
   ACE_ASSERT (mediaSession_);
 
+  HRESULT result = mediaSession_->BeginGetEvent (this, NULL);
+  if (FAILED (result))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s: failed to IMFMediaSession::BeginGetEvent(): \"%s\", returning\n"),
+                ACE_TEXT (stream_name_string_),
+                ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
+    return;
+  } // end IF
+
   struct _GUID GUID_s = GUID_NULL;
   struct tagPROPVARIANT property_s;
   PropVariantInit (&property_s);
   //property_s.vt = VT_EMPTY;
-  HRESULT result = mediaSession_->Start (&GUID_s,      // time format
-                                         &property_s); // start position
+  result = mediaSession_->Start (&GUID_s,      // time format
+                                 &property_s); // start position
   if (FAILED (result))
   {
     ACE_DEBUG ((LM_ERROR,
@@ -520,16 +532,6 @@ Test_U_AudioEffect_MediaFoundation_Stream::start ()
     return;
   } // end IF
   PropVariantClear (&property_s);
-
-  result = mediaSession_->BeginGetEvent (this, NULL);
-  if (FAILED (result))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: failed to IMFMediaSession::BeginGetEvent(): \"%s\", returning\n"),
-                ACE_TEXT (stream_name_string_),
-                ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
-    return;
-  } // end IF
 #endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
 
   inherited::start ();
@@ -618,15 +620,16 @@ Test_U_AudioEffect_MediaFoundation_Stream::load (Stream_ILayout* layout_in,
   if (!(*iterator).second.second->mute ||
       !InlineIsEqualGUID ((*iterator).second.second->effect, GUID_NULL))
   {
-    ACE_NEW_RETURN (module_p,
-                    //Test_U_AudioEffect_MediaFoundation_WavOut_Module (this,
-                    //                                                  ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_TARGET_WAVOUT_DEFAULT_NAME_STRING)),
-                    Test_U_AudioEffect_MediaFoundation_Target_Module (this,
-                                                                      ACE_TEXT_ALWAYS_CHAR (STREAM_LIB_MEDIAFOUNDATION_TARGET_DEFAULT_NAME_STRING)),
-                    false);
-    ACE_ASSERT (module_p);
-    layout_in->append (module_p, NULL, 0);
-    module_p = NULL;
+    //ACE_NEW_RETURN (module_p,
+    //                //Test_U_AudioEffect_MediaFoundation_WavOut_Module (this,
+    //                //                                                  ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_TARGET_WAVOUT_DEFAULT_NAME_STRING)),
+    //                Test_U_AudioEffect_MediaFoundation_Target_Module (this,
+    //                                                                  ACE_TEXT_ALWAYS_CHAR (STREAM_LIB_MEDIAFOUNDATION_TARGET_DEFAULT_NAME_STRING)),
+    //                false);
+    //ACE_ASSERT (module_p);
+    //layout_in->append (module_p, NULL, 0);
+    //module_p = NULL;
+    layout_in->append (&mediaFoundationSource_, NULL, 0);
   } // end IF
   if (!(*iterator).second.second->targetFileName.empty ())
   {
@@ -748,6 +751,15 @@ Test_U_AudioEffect_MediaFoundation_Stream::initialize (const inherited::CONFIGUR
   {
     reference_count = (*iterator).second.second->session->AddRef ();
     mediaSession_ = (*iterator).second.second->session;
+
+    if (!Stream_MediaFramework_MediaFoundation_Tools::getTopology (mediaSession_,
+                                                                   topology_p))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("%s: failed to Stream_MediaFramework_MediaFoundation_Tools::getTopology(), aborting\n"),
+                  ACE_TEXT (stream_name_string_)));
+      goto error;
+    } // end IF
   } // end IF
 #endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
 
@@ -803,6 +815,14 @@ Test_U_AudioEffect_MediaFoundation_Stream::initialize (const inherited::CONFIGUR
   } // end IF
   ACE_ASSERT (mediaSession_);
 
+  if ((*iterator).second.second->mediaFoundationConfiguration->mediaEventGenerator)
+  {
+    (*iterator).second.second->mediaFoundationConfiguration->mediaEventGenerator->Release (); (*iterator).second.second->mediaFoundationConfiguration->mediaEventGenerator = NULL;
+  } // end IF
+  result_2 =
+    mediaSession_->QueryInterface (IID_PPV_ARGS (&(*iterator).second.second->mediaFoundationConfiguration->mediaEventGenerator));
+  ACE_ASSERT (SUCCEEDED (result_2) && (*iterator).second.second->mediaFoundationConfiguration->mediaEventGenerator);
+
   if (!(*iterator).second.second->session)
   {
     reference_count = mediaSession_->AddRef ();
@@ -810,18 +830,6 @@ Test_U_AudioEffect_MediaFoundation_Stream::initialize (const inherited::CONFIGUR
   } // end IF
 #endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
   ACE_ASSERT (topology_p);
-  //if (!Stream_Device_MediaFoundation_Tools::setCaptureFormat (topology_p,
-  //                                                            configuration_in.configuration_->format))
-  //{
-  //  ACE_DEBUG ((LM_ERROR,
-  //              ACE_TEXT ("%s: failed to Stream_Device_MediaFoundation_Tools::setCaptureFormat(), aborting\n"),
-  //              ACE_TEXT (stream_name_string_)));
-  //  goto error;
-  //} // end IF
-  //ACE_DEBUG ((LM_DEBUG,
-  //            ACE_TEXT ("%s: capture format: \"%s\"\n"),
-  //            ACE_TEXT (stream_name_string_),
-  //            ACE_TEXT (Stream_MediaFramework_MediaFoundation_Tools::toString (configuration_in.configuration_->format).c_str ())));
   topology_p->Release (); topology_p = NULL;
 
   media_type_p =
@@ -829,21 +837,11 @@ Test_U_AudioEffect_MediaFoundation_Stream::initialize (const inherited::CONFIGUR
   if (!media_type_p)
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to Stream_MediaFramework_MediaFoundation_Tools::copy(), aborting\n")));
+                ACE_TEXT ("%s: failed to Stream_MediaFramework_MediaFoundation_Tools::copy(), aborting\n"),
+                ACE_TEXT (stream_name_string_)));
     goto error;
   } // end IF
   session_data_r.formats.push_back (media_type_p);
-
-  //if (!Stream_MediaFramework_MediaFoundation_Tools::getOutputFormat (topology_p,
-  //                                                                   (*iterator).second.second->sampleGrabberNodeId,
-  //                                                                   media_type_p))
-  //{
-  //  ACE_DEBUG ((LM_ERROR,
-  //              ACE_TEXT ("failed to Stream_MediaFramework_MediaFoundation_Tools::getOutputFormat(), aborting\n")));
-  //  goto error;
-  //} // end IF
-  //ACE_ASSERT (media_type_p);
-  //session_data_r.formats.push_back (media_type_p);
 
 #if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
   if (session_data_r.session)
@@ -896,6 +894,21 @@ error:
   return false;
 }
 
+const Test_U_AudioEffect_MediaFoundation_Target&
+Test_U_AudioEffect_MediaFoundation_Stream::getR_3 () const
+{
+  STREAM_TRACE (ACE_TEXT ("Test_U_AudioEffect_MediaFoundation_Stream::getR_3"));
+
+  Test_U_AudioEffect_MediaFoundation_Stream* this_p =
+    const_cast<Test_U_AudioEffect_MediaFoundation_Stream*> (this);
+
+  Test_U_AudioEffect_MediaFoundation_Target* writer_p =
+    static_cast<Test_U_AudioEffect_MediaFoundation_Target*> (this_p->mediaFoundationSource_.writer ());
+  ACE_ASSERT (writer_p);
+
+  return *writer_p;
+}
+
 HRESULT
 Test_U_AudioEffect_MediaFoundation_Stream::QueryInterface (const IID& IID_in,
                                                            void** interface_out)
@@ -908,11 +921,21 @@ Test_U_AudioEffect_MediaFoundation_Stream::QueryInterface (const IID& IID_in,
     { 0 },
   };
 
-  return QISearch (this,
-                   query_interface_table,
-                   IID_in,
-                   interface_out);
+  HRESULT result = QISearch (this,
+                             query_interface_table,
+                             IID_in,
+                             interface_out);
+  if (result == E_NOINTERFACE)
+  {
+    Test_U_AudioEffect_MediaFoundation_Target* writer_p =
+      static_cast<Test_U_AudioEffect_MediaFoundation_Target*> (mediaFoundationSource_.writer ());
+    result = writer_p->QueryInterface (IID_in,
+                                       interface_out);
+  } // end IF
+
+  return result;
 }
+
 HRESULT
 Test_U_AudioEffect_MediaFoundation_Stream::Invoke (IMFAsyncResult* result_in)
 {
@@ -930,10 +953,6 @@ Test_U_AudioEffect_MediaFoundation_Stream::Invoke (IMFAsyncResult* result_in)
 #if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
   ACE_ASSERT (mediaSession_);
 #endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
-  ACE_ASSERT (inherited::sessionData_);
-
-  //Stream_CamSave_SessionData& session_data_r =
-  //  const_cast<Stream_CamSave_SessionData&> (inherited::sessionData_->get ());
 
 #if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
   result = mediaSession_->EndGetEvent (result_in, &media_event_p);
@@ -962,7 +981,7 @@ Test_U_AudioEffect_MediaFoundation_Stream::Invoke (IMFAsyncResult* result_in)
       break;
     }
     case MEError:
-    {
+    { // MF_E_STREAM_ERROR: 0xc00da7fb
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: received MEError: \"%s\"\n"),
                   ACE_TEXT (stream_name_string_),
@@ -1071,6 +1090,32 @@ Test_U_AudioEffect_MediaFoundation_Stream::Invoke (IMFAsyncResult* result_in)
                   ACE_TEXT ("%s: received MESessionTopologyStatus: \"%s\"\n"),
                   ACE_TEXT (stream_name_string_),
                   ACE_TEXT (Stream_MediaFramework_MediaFoundation_Tools::toString (topology_status).c_str ())));
+      break;
+    }
+    case MEExtendedType:
+    {
+      struct _GUID GUID_s = GUID_NULL;
+      result = media_event_p->GetExtendedType (&GUID_s);
+      ACE_ASSERT (SUCCEEDED (result));
+      // MF_MEEXT_SAR_AUDIO_ENDPOINT_CHANGED: {02E7187D-0087-437E-A27F-CF5ADCCD3112}
+      ACE_DEBUG ((LM_DEBUG,
+                  ACE_TEXT ("%s: received extended media session event (type was: %s)\n"),
+                  ACE_TEXT (stream_name_string_),
+                  ACE_TEXT (Common_Tools::GUIDToString (GUID_s).c_str ())));
+      break;
+    }
+    case MEStreamSinkFormatInvalidated:
+    {
+      ACE_DEBUG ((LM_DEBUG,
+                  ACE_TEXT ("%s: received MEStreamSinkFormatInvalidated\n"),
+                  ACE_TEXT (stream_name_string_)));
+      break;
+    }
+    case MEEndOfPresentationSegment:
+    {
+      ACE_DEBUG ((LM_DEBUG,
+                  ACE_TEXT ("%s: received MEEndOfPresentationSegment\n"),
+                  ACE_TEXT (stream_name_string_)));
       break;
     }
     default:

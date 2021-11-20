@@ -3208,6 +3208,9 @@ Stream_Module_Decoder_Tools::loadAudioRendererTopology (const std::string& devic
     collection_p->Release (); collection_p = NULL;
     goto error;
   } // end IF
+  if (number_of_source_nodes > 1)
+    ACE_DEBUG ((LM_WARNING,
+                ACE_TEXT ("topology contains several source nodes, continuing\n")));
   result = collection_p->GetElement (0, &unknown_p);
   ACE_ASSERT (SUCCEEDED (result));
   collection_p->Release (); collection_p = NULL;

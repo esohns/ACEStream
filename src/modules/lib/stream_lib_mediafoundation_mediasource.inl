@@ -29,6 +29,266 @@
 
 #include "stream_macros.h"
 
+template <typename MediaSourceType>
+HRESULT
+Stream_MediaFramework_MediaFoundation_MediaStream_T<MediaSourceType>::CreateInstance (IUnknown* parent_in,
+                                                                                      REFIID interfaceID_in,
+                                                                                      void** interface_out)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_MediaFoundation_MediaStream_T::CreateInstance"));
+
+  // sanity check(s)
+  CheckPointer (parent_in, E_POINTER);
+  CheckPointer (interface_out, E_POINTER);
+
+  MediaSourceType* media_source_p = dynamic_cast<MediaSourceType*> (parent_in);
+  ACE_ASSERT (media_source_p);
+
+  OWN_TYPE_T* instance_p = NULL;
+  ACE_NEW_NORETURN (instance_p,
+                    OWN_TYPE_T (media_source_p));
+  if (!instance_p)
+  {
+    ACE_DEBUG ((LM_CRITICAL,
+                ACE_TEXT ("failed to allocate memory: \"%m\", aborting\n")));
+    return E_OUTOFMEMORY;
+  } // end IF
+  HRESULT result = instance_p->QueryInterface (interfaceID_in, interface_out);
+  if (FAILED (result) || !interface_out)
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to Stream_MediaFramework_MediaFoundation_MediaSource_T::QueryInterface(): \"%s\", aborting\n"),
+                ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
+    delete instance_p; instance_p = NULL;
+    return result;
+  } // end IF
+
+  return result;
+}
+
+template <typename MediaSourceType>
+Stream_MediaFramework_MediaFoundation_MediaStream_T<MediaSourceType>::Stream_MediaFramework_MediaFoundation_MediaStream_T (MediaSourceType* mediaSource_in)
+ : eventQueue_ (NULL)
+ , mediaSource_ (mediaSource_in)
+ , referenceCount_ (1)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_MediaFoundation_MediaStream_T::Stream_MediaFramework_MediaFoundation_MediaStream_T"));
+
+  HRESULT result = MFCreateEventQueue (&eventQueue_);
+  if (FAILED (result) || !eventQueue_)
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to MFCreateEventQueue(): \"%s\", continuing\n"),
+                ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
+
+  ACE_ASSERT (mediaSource_);
+}
+
+template <typename MediaSourceType>
+Stream_MediaFramework_MediaFoundation_MediaStream_T<MediaSourceType>::Stream_MediaFramework_MediaFoundation_MediaStream_T (HRESULT* result_out)
+ : eventQueue_ (NULL)
+ , mediaSource_ (NULL)
+ , referenceCount_ (1)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_MediaFoundation_MediaStream_T::Stream_MediaFramework_MediaFoundation_MediaStream_T"));
+
+  // sanity check(s)
+  ACE_ASSERT (result_out);
+
+  HRESULT result = MFCreateEventQueue (&eventQueue_);
+  if (FAILED (result) || !eventQueue_)
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to MFCreateEventQueue(): \"%s\", aborting\n"),
+                ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
+    *result_out = result;
+  } // end IF
+  else
+    *result_out = S_OK;
+}
+
+template <typename MediaSourceType>
+Stream_MediaFramework_MediaFoundation_MediaStream_T<MediaSourceType>::~Stream_MediaFramework_MediaFoundation_MediaStream_T ()
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_MediaFoundation_MediaStream_T::~Stream_MediaFramework_MediaFoundation_MediaStream_T"));
+
+  if (eventQueue_)
+  {
+    HRESULT result = eventQueue_->Shutdown ();
+    if (FAILED (result))
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to IMFMediaEventQueue::Shutdown(): \"%s\", continuing\n"),
+                  ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
+    eventQueue_->Release ();
+  } // end IF
+}
+
+template <typename MediaSourceType>
+HRESULT
+Stream_MediaFramework_MediaFoundation_MediaStream_T<MediaSourceType>::QueryInterface (REFIID IID_in,
+                                                                                      void** interface_out)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_MediaFoundation_MediaStream_T::QueryInterface"));
+
+  static const QITAB query_interface_table[] =
+  {
+    QITABENT (OWN_TYPE_T, IUnknown),
+    QITABENT (OWN_TYPE_T, IMFMediaEventGenerator),
+    QITABENT (OWN_TYPE_T, IMFMediaStream),
+    { 0 },
+  };
+
+  return QISearch (this,
+                   query_interface_table,
+                   IID_in,
+                   interface_out);
+}
+
+template <typename MediaSourceType>
+ULONG
+Stream_MediaFramework_MediaFoundation_MediaStream_T<MediaSourceType>::Release ()
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_MediaFoundation_MediaStream_T::Release"));
+
+  ULONG count = InterlockedDecrement (&referenceCount_);
+  //if (count == 0)
+  //delete this;
+
+  return count;
+}
+
+template <typename MediaSourceType>
+HRESULT
+Stream_MediaFramework_MediaFoundation_MediaStream_T<MediaSourceType>::BeginGetEvent (IMFAsyncCallback* asynchCallback_in,
+                                                                                     IUnknown* state_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_MediaFoundation_MediaStream_T::BeginGetEvent"));
+
+  // sanity check(s)
+  ACE_ASSERT (eventQueue_);
+
+  return eventQueue_->BeginGetEvent (asynchCallback_in,
+                                     state_in);
+}
+
+template <typename MediaSourceType>
+HRESULT
+Stream_MediaFramework_MediaFoundation_MediaStream_T<MediaSourceType>::EndGetEvent (IMFAsyncResult* asynchResult_in,
+                                                                                   IMFMediaEvent** event_out)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_MediaFoundation_MediaStream_T::EndGetEvent"));
+
+  // sanity check(s)
+  ACE_ASSERT (eventQueue_);
+
+  return eventQueue_->EndGetEvent (asynchResult_in,
+                                   event_out);
+}
+
+template <typename MediaSourceType>
+HRESULT
+Stream_MediaFramework_MediaFoundation_MediaStream_T<MediaSourceType>::GetEvent (DWORD flags_in,
+                                                                                IMFMediaEvent** event_out)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_MediaFoundation_MediaStream_T::GetEvent"));
+
+  // sanity check(s)
+  ACE_ASSERT (eventQueue_);
+
+  return eventQueue_->GetEvent (flags_in,
+                                event_out);
+}
+
+template <typename MediaSourceType>
+HRESULT
+Stream_MediaFramework_MediaFoundation_MediaStream_T<MediaSourceType>::QueueEvent (MediaEventType type_in,
+                                                                                  REFGUID extendedType_in,
+                                                                                  HRESULT status_in,
+                                                                                  const PROPVARIANT* value_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_MediaFoundation_MediaStream_T::QueueEvent"));
+
+  // sanity check(s)
+  ACE_ASSERT (eventQueue_);
+
+  return eventQueue_->QueueEventParamVar (type_in,
+                                          extendedType_in,
+                                          status_in,
+                                          value_in);
+}
+
+template <typename MediaSourceType>
+HRESULT
+Stream_MediaFramework_MediaFoundation_MediaStream_T<MediaSourceType>::RequestSample (IUnknown* pToken)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_MediaFoundation_MediaStream_T::RequestSample"));
+
+  // sanity check(s)
+  ACE_ASSERT (pToken);
+  ACE_ASSERT (mediaSource_);
+
+  pToken->AddRef ();
+  mediaSource_->tokens_.push_back (pToken);
+
+  return (mediaSource_->shutdownInvoked_ ? MF_E_SHUTDOWN : S_OK);
+}
+
+template <typename MediaSourceType>
+void
+Stream_MediaFramework_MediaFoundation_MediaStream_T<MediaSourceType>::operator delete (void* pointer_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_MediaFoundation_MediaStream_T::operator delete"));
+
+  //// *NOTE*: when used as a regular C++ library (template) class, applications
+  ////         instantiate filter objects through the default ctor. In this case,
+  ////         class instances behave as standard COM objects, and must therefore
+  ////         implement the IUnknown reference-counting mechanism to avoid memory
+  ////         leakage.
+  //if (hasCOMReference_)
+  //{
+  //  ULONG reference_count = Release ();
+  //  return; // dtor has been invoked --> done
+  //} // end IF
+
+  // *NOTE*: when applications instantiate filter (COM) objects from DLLs, that
+  //         filter instance may be allocated in a separate heap (this depends
+  //         on the C runtime version (and, apparently, also type, i.e. static/
+  //         dynamic) that was compiled into(/with ? ...) the DLL) and needs to
+  //         be deallocated 'from' the same heap; i.e. the global 'delete'
+  //         operator may (see above) fail in this particular scenario (
+  //         _CrtIsValidHeapPointer() assertion), which is a known and long-
+  //         standing issue. *TODO*: does this affect _DEBUG builds only ?
+  //         --> overload the delete operator and forward the instance handle to
+  //             a static function 'inside' (see 'translation/compilation units'
+  //             and/or scope/namespace issues on how to address the 'global
+  //             delete' operator) the DLL
+  //         This implementation also handles the scenario where filter
+  //         instances are allocated from 'plugin' DLLs that can be loaded/
+  //         unloaded at runtime
+  //OWN_TYPE_T::DeleteInstance (pointer_in);
+}
+//template <typename TimePolicyType,
+//          typename SessionMessageType,
+//          typename ProtocolMessageType,
+//          typename MediaType,
+//          typename ModuleType>
+//void
+//Stream_MediaFramework_MediaFoundation_MediaSource_T<TimePolicyType,
+//                                       SessionMessageType,
+//                                       ProtocolMessageType,
+//                                       MediaType,
+//                                       ModuleType>::operator delete (void* pointer_in,
+//                                                                     size_t bytes_in)
+//{
+//  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_MediaFoundation_MediaSource_T::operator delete"));
+//
+//  ACE_UNUSED_ARG (bytes_in);
+//
+//  // *NOTE*: see above
+//  OWN_TYPE_T::DeleteInstance (pointer_in);
+//}
+
+//////////////////////////////////////////
+
 template <typename TimePolicyType,
           typename MessageType,
           typename ConfigurationType>
@@ -47,7 +307,7 @@ Stream_MediaFramework_MediaFoundation_MediaSource_T<TimePolicyType,
   if (parent_in)
     return CLASS_E_NOAGGREGATION;
 
-  HRESULT result = S_OK;
+  HRESULT result = E_FAIL;
   OWN_TYPE_T* instance_p = NULL;
   ACE_NEW_NORETURN (instance_p,
                     OWN_TYPE_T (&result));
@@ -85,23 +345,23 @@ template <typename TimePolicyType,
 Stream_MediaFramework_MediaFoundation_MediaSource_T<TimePolicyType,
                                                     MessageType,
                                                     ConfigurationType>::Stream_MediaFramework_MediaFoundation_MediaSource_T ()
- : eventQueue_ (NULL)
+ : configuration_ (NULL)
+ , eventQueue_ (NULL)
 //, hasCOMReference_ (false)
  , lock_ ()
  , referenceCount_ (0)
  , shutdownInvoked_ (false)
  , state_ (STATE_INVALID)
+ , tokens_ ()
+ , mediaStream_ (NULL)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_MediaFoundation_MediaSource_T::Stream_MediaFramework_MediaFoundation_MediaSource_T"));
 
   HRESULT result = MFCreateEventQueue (&eventQueue_);
-  if (FAILED (result))
-  {
+  if (FAILED (result) || !eventQueue_)
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to MFCreateEventQueue(): \"%s\", returning\n"),
+                ACE_TEXT ("failed to MFCreateEventQueue(): \"%s\", continuing\n"),
                 ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
-    return;
-  } // end IF
 }
 
 template <typename TimePolicyType,
@@ -110,26 +370,31 @@ template <typename TimePolicyType,
 Stream_MediaFramework_MediaFoundation_MediaSource_T<TimePolicyType,
                                                     MessageType,
                                                     ConfigurationType>::Stream_MediaFramework_MediaFoundation_MediaSource_T (HRESULT* result_out)
- : eventQueue_ (NULL)
+ : configuration_ (NULL)
+ , eventQueue_ (NULL)
 //, hasCOMReference_ (false)
  , lock_ ()
  , referenceCount_ (0)
  , shutdownInvoked_ (false)
  , state_ (STATE_INVALID)
+ , tokens_ ()
+ , mediaStream_ (NULL)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_MediaFoundation_MediaSource_T::Stream_MediaFramework_MediaFoundation_MediaSource_T"));
 
   // sanity check(s)
   ACE_ASSERT (result_out);
 
-  *result_out = MFCreateEventQueue (&eventQueue_);
-  if (FAILED (*result_out))
+  HRESULT result = MFCreateEventQueue (&eventQueue_);
+  if (FAILED (result) || !eventQueue_)
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to MFCreateEventQueue(): \"%s\", returning\n"),
-                ACE_TEXT (Common_Error_Tools::errorToString (*result_out).c_str ())));
-    return;
+                ACE_TEXT ("failed to MFCreateEventQueue(): \"%s\", aborting\n"),
+                ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
+    *result_out = result;
   } // end IF
+  else
+    *result_out = S_OK;
 }
 
 template <typename TimePolicyType,
@@ -152,9 +417,26 @@ Stream_MediaFramework_MediaFoundation_MediaSource_T<TimePolicyType,
                     ACE_TEXT ("failed to Stream_MediaFramework_MediaFoundation_MediaSource_T::Shutdown(): \"%s\", continuing\n"),
                     ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
     } // end IF
+
     if (eventQueue_)
+    {
+      result = eventQueue_->Shutdown ();
+      if (FAILED (result))
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("failed to IMFMediaEventQueue::Shutdown(): \"%s\", continuing\n"),
+                    ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
       eventQueue_->Release ();
+    } // end IF
+
+    for (TOKEN_LIST_ITERATOR_T iterator = tokens_.begin ();
+         iterator != tokens_.end ();
+         ++iterator)
+      (*iterator)->Release ();
+    tokens_.clear ();
   } // end lock scope
+
+  if (mediaStream_)
+    delete mediaStream_;
 }
 
 template <typename TimePolicyType,
@@ -234,10 +516,12 @@ Stream_MediaFramework_MediaFoundation_MediaSource_T<TimePolicyType,
     //QITABENT (OWN_TYPE_T, IMFAttributes),
     QITABENT (OWN_TYPE_T, IMFStreamDescriptor),
     QITABENT (OWN_TYPE_T, IMFMediaTypeHandler),
+    QITABENT (OWN_TYPE_T, IMFGetService),
     //QITABENT (OWN_TYPE_T, IMarshal),
     { 0 },
   };
 
+  // *TODO*: {0B5E1C7E-BD76-46BC-896C-B2EDB40DD803}
   return QISearch (this,
                    query_interface_table,
                    IID_in,
@@ -275,19 +559,8 @@ Stream_MediaFramework_MediaFoundation_MediaSource_T<TimePolicyType,
   // sanity check(s)
   ACE_ASSERT (eventQueue_);
 
-  HRESULT result = S_OK;
-
-  { ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, lock_, E_FAIL);
-    result = (state_ == STATE_SHUTDOWN ? MF_E_SHUTDOWN : S_OK);
-    if (FAILED (result))
-      goto done;
-    result = eventQueue_->BeginGetEvent (asynchCallback_in, state_in);
-    if (FAILED (result))
-      goto done;
-  } // end lock scope
-
-done:
-  return result;
+  return eventQueue_->BeginGetEvent (asynchCallback_in,
+                                     state_in);
 }
 
 template <typename TimePolicyType,
@@ -304,19 +577,8 @@ Stream_MediaFramework_MediaFoundation_MediaSource_T<TimePolicyType,
   // sanity check(s)
   ACE_ASSERT (eventQueue_);
 
-  HRESULT result = S_OK;
-
-  { ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, lock_, E_FAIL);
-    result = (state_ == STATE_SHUTDOWN ? MF_E_SHUTDOWN : S_OK);
-    if (FAILED (result))
-      goto done;
-    result = eventQueue_->EndGetEvent (asynchResult_in, event_out);
-    if (FAILED (result))
-      goto done;
-  } // end lock scope
-
-done:
-  return result;
+  return eventQueue_->EndGetEvent (asynchResult_in,
+                                   event_out);
 }
 
 template <typename TimePolicyType,
@@ -330,30 +592,11 @@ Stream_MediaFramework_MediaFoundation_MediaSource_T<TimePolicyType,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_MediaFoundation_MediaSource_T::GetEvent"));
 
-  HRESULT result = S_OK;
+  // sanity check(s)
+  ACE_ASSERT (eventQueue_);
 
-  IMFMediaEventQueue* event_queue_p = NULL;
-
-  // *NOTE*: this could block indefinitely
-  //         --> don't hold onto the critical section
-  ULONG reference_count = 0;
-  { ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, lock_, E_FAIL);
-    result = (state_ == STATE_SHUTDOWN ? MF_E_SHUTDOWN : S_OK);
-    if (FAILED (result))
-      goto done;
-    event_queue_p = eventQueue_;
-    reference_count = event_queue_p->AddRef ();
-  } // lock scope
-
-  result = event_queue_p->GetEvent (flags_in, event_out);
-  if (FAILED (result))
-    goto done;
-
-done:
-  if (event_queue_p)
-    event_queue_p->Release ();
-
-  return result;
+  return eventQueue_->GetEvent (flags_in,
+                                event_out);
 }
 
 template <typename TimePolicyType,
@@ -372,22 +615,10 @@ Stream_MediaFramework_MediaFoundation_MediaSource_T<TimePolicyType,
   // sanity check(s)
   ACE_ASSERT (eventQueue_);
 
-  HRESULT result = S_OK;
-
-  { ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, lock_, E_FAIL);
-    result = (state_ == STATE_SHUTDOWN ? MF_E_SHUTDOWN : S_OK);
-    if (FAILED (result))
-      goto done;
-    result = eventQueue_->QueueEventParamVar (type_in,
-                                              extendedType_in,
-                                              status_in,
-                                              value_in);
-    if (FAILED (result))
-      goto done;
-  } // end lock scope
-
-done:
-  return result;
+  return eventQueue_->QueueEventParamVar (type_in,
+                                          extendedType_in,
+                                          status_in,
+                                          value_in);
 }
 
 template <typename TimePolicyType,
@@ -444,11 +675,61 @@ Stream_MediaFramework_MediaFoundation_MediaSource_T<TimePolicyType,
   ACE_UNUSED_ARG (presentationDescriptor_in);
   ACE_UNUSED_ARG (timeFormat_in);
   ACE_UNUSED_ARG (startPosition_in);
+  
+  // sanity check(s)
+  ACE_ASSERT (eventQueue_);
+  if ((timeFormat_in != NULL) && (*timeFormat_in != GUID_NULL))
+    return MF_E_UNSUPPORTED_TIME_FORMAT;
 
-  ACE_ASSERT (false);
-  ACE_NOTSUP_RETURN (E_FAIL);
+  if (mediaStream_)
+  {
+    delete mediaStream_; mediaStream_ = NULL;
+  } // end IF
+  ACE_NEW_NORETURN (mediaStream_,
+                    STREAM_T (this));
+  if (!mediaStream_)
+  {
+    ACE_DEBUG ((LM_CRITICAL,
+                ACE_TEXT ("failed to allocate memory: \"%m\", aborting\n")));
+    return MF_E_RT_OUTOFMEMORY;
+  } // end IF
 
-  ACE_NOTREACHED (return E_FAIL;)
+  // send MENewStream
+  IMFMediaStream* media_stream_p = NULL;
+  HRESULT result =
+    mediaStream_->QueryInterface (IID_PPV_ARGS (&media_stream_p));
+  ACE_ASSERT (SUCCEEDED (result) && media_stream_p);
+  result = eventQueue_->QueueEventParamUnk (MENewStream,
+                                            GUID_NULL,
+                                            S_OK,
+                                            media_stream_p);
+  ACE_ASSERT (SUCCEEDED (result));
+  media_stream_p->Release (); media_stream_p = NULL;
+
+  // send MESourceStarted
+  struct tagPROPVARIANT property_s;
+  PropVariantInit (&property_s);
+  property_s.vt = VT_EMPTY;
+  result = eventQueue_->QueueEventParamVar (MESourceStarted,
+                                            GUID_NULL,
+                                            S_OK,
+                                            &property_s);
+  ACE_ASSERT (SUCCEEDED (result));
+  PropVariantClear (&property_s);
+
+  // send MEStreamStarted
+  property_s.vt = VT_EMPTY;
+  result = mediaStream_->QueueEvent (MEStreamStarted,
+                                     GUID_NULL,
+                                     S_OK,
+                                     &property_s);
+  ACE_ASSERT (SUCCEEDED (result));
+  PropVariantClear (&property_s);
+
+  ACE_DEBUG ((LM_DEBUG,
+              ACE_TEXT ("media source started\n")));
+
+  return (shutdownInvoked_ ? MF_E_SHUTDOWN : S_OK);
 }
 
 template <typename TimePolicyType,
@@ -585,12 +866,11 @@ Stream_MediaFramework_MediaFoundation_MediaSource_T<TimePolicyType,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_MediaFoundation_MediaSource_T::DeselectStream"));
 
-  ACE_UNUSED_ARG (dwIndex);
+  ACE_DEBUG ((LM_DEBUG,
+              ACE_TEXT ("stream deselected (index was: %d)\n"),
+              dwIndex));
 
-  ACE_ASSERT (false);
-  ACE_NOTSUP_RETURN (E_FAIL);
-
-  ACE_NOTREACHED (return E_FAIL;)
+  return S_OK;
 }
 
 template <typename TimePolicyType,
@@ -646,6 +926,10 @@ Stream_MediaFramework_MediaFoundation_MediaSource_T<TimePolicyType,
 
   ACE_UNUSED_ARG (dwIndex);
 
+  ACE_DEBUG ((LM_DEBUG,
+              ACE_TEXT ("stream selected (index was: %d)\n"),
+              dwIndex));
+
   return S_OK;
 }
 
@@ -679,6 +963,143 @@ Stream_MediaFramework_MediaFoundation_MediaSource_T<TimePolicyType,
   ACE_ASSERT (pdwStreamIdentifier);
 
   *pdwStreamIdentifier = 0;
+
+  return S_OK;
+}
+
+template <typename TimePolicyType,
+          typename MessageType,
+          typename ConfigurationType>
+HRESULT
+Stream_MediaFramework_MediaFoundation_MediaSource_T<TimePolicyType,
+                                                    MessageType,
+                                                    ConfigurationType>::GetUINT32 (REFGUID guidKey_in,
+                                                                                   UINT32* punValue)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_MediaFoundation_MediaSource_T::GetUINT32"));
+
+  // sanity check(s)
+  ACE_ASSERT (punValue);
+
+  // {00AF2181-BDC2-423C-ABCA-F503593BC121}
+  if (InlineIsEqualGUID (guidKey_in, MF_SD_PROTECTED))
+  {
+    *punValue = FALSE;
+    return S_OK;
+  } // end IF
+
+  // *TODO*: {FAFB680A-39EA-4850-AF71-78FDFB651088}
+  ACE_DEBUG ((LM_ERROR,
+              ACE_TEXT ("invalid/unknown key GUID (was: \"%s\"), aborting\n"),
+              ACE_TEXT (Common_Tools::GUIDToString (guidKey_in).c_str ())));
+
+  return MF_E_ATTRIBUTENOTFOUND;
+}
+
+template <typename TimePolicyType,
+          typename MessageType,
+          typename ConfigurationType>
+HRESULT
+Stream_MediaFramework_MediaFoundation_MediaSource_T<TimePolicyType,
+                                                    MessageType,
+                                                    ConfigurationType>::GetUINT64 (REFGUID guidKey_in,
+                                                                                   UINT64* punValue)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_MediaFoundation_MediaSource_T::GetUINT64"));
+
+  // sanity check(s)
+  ACE_ASSERT (punValue);
+
+  // {6C990D3B-BB8E-477A-8598-0D5D96FCD88A}
+  if (InlineIsEqualGUID (guidKey_in, MF_PD_PLAYBACK_BOUNDARY_TIME))
+  {
+    *punValue = 0;
+    return S_OK;
+  } // end IF
+
+  ACE_DEBUG ((LM_ERROR,
+              ACE_TEXT ("invalid/unknown key GUID (was: \"%s\"), aborting\n"),
+              ACE_TEXT (Common_Tools::GUIDToString (guidKey_in).c_str ())));
+
+  return MF_E_ATTRIBUTENOTFOUND;
+}
+
+template <typename TimePolicyType,
+          typename MessageType,
+          typename ConfigurationType>
+HRESULT
+Stream_MediaFramework_MediaFoundation_MediaSource_T<TimePolicyType,
+                                                    MessageType,
+                                                    ConfigurationType>::GetBlobSize (REFGUID guidKey_in,
+                                                                                     UINT32* pcbBlobSize)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_MediaFoundation_MediaSource_T::GetBlobSize"));
+
+  // sanity check(s)
+  ACE_ASSERT (pcbBlobSize);
+
+#if (NTDDI_VERSION >= NTDDI_WIN10_RS4)
+  // {F715CF3E-A964-4C3F-94AE-9D6BA7264641}
+  if (InlineIsEqualGUID (guidKey_in, MF_SD_AMBISONICS_SAMPLE3D_DESCRIPTION))
+  {
+    *pcbBlobSize = sizeof (struct AMBISONICS_PARAMS);
+    return S_OK;
+  } // end IF
+#endif // NTDDI_VERSION >= NTDDI_WIN10_RS4
+
+  ACE_DEBUG ((LM_ERROR,
+              ACE_TEXT ("invalid/unknown key GUID (was: \"%s\"), aborting\n"),
+              ACE_TEXT (Common_Tools::GUIDToString (guidKey_in).c_str ())));
+
+  return MF_E_ATTRIBUTENOTFOUND;
+}
+
+template <typename TimePolicyType,
+          typename MessageType,
+          typename ConfigurationType>
+HRESULT
+Stream_MediaFramework_MediaFoundation_MediaSource_T<TimePolicyType,
+                                                    MessageType,
+                                                    ConfigurationType>::DeleteItem (REFGUID guidKey_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_MediaFoundation_MediaSource_T::DeleteItem"));
+
+  //if (InlineIsEqualGUID (guidKey_in, GUID_NULL))
+  //{
+  //  return S_OK;
+  //} // end IF
+
+  // *TODO*: {0B5E1C7E-BD76-46BC-896C-B2EDB40DD803}
+  ACE_DEBUG ((LM_WARNING,
+              ACE_TEXT ("invalid/unknown key GUID (was: \"%s\"), continuing\n"),
+              ACE_TEXT (Common_Tools::GUIDToString (guidKey_in).c_str ())));
+
+  return S_OK;
+}
+
+template <typename TimePolicyType,
+          typename MessageType,
+          typename ConfigurationType>
+HRESULT
+Stream_MediaFramework_MediaFoundation_MediaSource_T<TimePolicyType,
+                                                    MessageType,
+                                                    ConfigurationType>::SetUnknown (REFGUID guidKey_in,
+                                                                                    IUnknown* unknown_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_MediaFoundation_MediaSource_T::SetUnknown"));
+
+  // sanity check(s)
+  ACE_ASSERT (unknown_in);
+
+  //if (InlineIsEqualGUID (guidKey_in, GUID_NULL))
+  //{
+  //  return S_OK;
+  //} // end IF
+
+  // *TODO*: {0B5E1C7E-BD76-46BC-896C-B2EDB40DD803}
+  ACE_DEBUG ((LM_WARNING,
+              ACE_TEXT ("invalid/unknown key GUID (was: \"%s\"), continuing\n"),
+              ACE_TEXT (Common_Tools::GUIDToString (guidKey_in).c_str ())));
 
   return S_OK;
 }
@@ -839,54 +1260,26 @@ template <typename TimePolicyType,
 HRESULT
 Stream_MediaFramework_MediaFoundation_MediaSource_T<TimePolicyType,
                                                     MessageType,
-                                                    ConfigurationType>::GetUINT32 (REFGUID guidKey_in,
-                                                                                   UINT32* punValue)
+                                                    ConfigurationType>::GetService (REFGUID guidService,
+                                                                                    REFIID riid,
+                                                                                    LPVOID* ppvObject)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_MediaFoundation_MediaSource_T::GetUINT32"));
+  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_MediaFoundation_MediaSource_T::GetService"));
 
   // sanity check(s)
-  ACE_ASSERT (punValue);
+  ACE_ASSERT (ppvObject);
 
-  if (InlineIsEqualGUID (guidKey_in, MF_SD_PROTECTED))
-  {
-    *punValue = FALSE;
-    return S_OK;
-  } // end IF
-
-  ACE_DEBUG ((LM_ERROR,
-              ACE_TEXT ("invalid/unknown key GUID (was: \"%s\"), aborting\n"),
-              ACE_TEXT (Common_Tools::GUIDToString (guidKey_in).c_str ())));
-
-  return MF_E_ATTRIBUTENOTFOUND;
-}
-
-template <typename TimePolicyType,
-          typename MessageType,
-          typename ConfigurationType>
-HRESULT
-Stream_MediaFramework_MediaFoundation_MediaSource_T<TimePolicyType,
-                                                    MessageType,
-                                                    ConfigurationType>::GetBlobSize (REFGUID guidKey_in,
-                                                                                     UINT32* pcbBlobSize)
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_MediaFoundation_MediaSource_T::GetBlobSize"));
-
-  // sanity check(s)
-  ACE_ASSERT (pcbBlobSize);
-
-#if (NTDDI_VERSION >= NTDDI_WIN10_RS4)
-  if (InlineIsEqualGUID (guidKey_in, MF_SD_AMBISONICS_SAMPLE3D_DESCRIPTION))
-  {
-    *pcbBlobSize = sizeof (struct AMBISONICS_PARAMS);
-    return S_OK;
-  } // end IF
-#endif // NTDDI_VERSION >= NTDDI_WIN10_RS4
+  //if (InlineIsEqualGUID (guidService, GUID_NULL))
+  //{
+  //  return S_OK;
+  //} // end IF
 
   ACE_DEBUG ((LM_ERROR,
-              ACE_TEXT ("invalid/unknown key GUID (was: \"%s\"), aborting\n"),
-              ACE_TEXT (Common_Tools::GUIDToString (guidKey_in).c_str ())));
+              ACE_TEXT ("invalid/unknown service/interface GUID (was: \"%s\",\"%s\"), aborting\n"),
+              ACE_TEXT (Common_Tools::GUIDToString (guidService).c_str ()),
+              ACE_TEXT (Common_Tools::GUIDToString (riid).c_str ())));
 
-  return MF_E_ATTRIBUTENOTFOUND;
+  return MF_E_UNSUPPORTED_SERVICE;
 }
 
 //template <typename TimePolicyType,
@@ -1165,6 +1558,11 @@ Stream_MediaFramework_MediaFoundation_MediaSource_T<TimePolicyType,
 
   configuration_ = &const_cast<ConfigurationType&> (configuration_in);
   shutdownInvoked_ = false;
+  for (TOKEN_LIST_ITERATOR_T iterator = tokens_.begin ();
+       iterator != tokens_.end ();
+       ++iterator)
+    (*iterator)->Release ();
+  tokens_.clear ();
 
   return true;
 }

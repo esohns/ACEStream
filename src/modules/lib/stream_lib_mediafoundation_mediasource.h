@@ -21,6 +21,7 @@
 #ifndef STREAM_LIB_MEDIAFOUNDATION_MEDIASOURCE_H
 #define STREAM_LIB_MEDIAFOUNDATION_MEDIASOURCE_H
 
+#include <deque>
 #include <list>
 #include <map>
 
@@ -31,6 +32,68 @@
 #include "ace/Synch_Traits.h"
 
 #include "common_iinitialize.h"
+
+template <typename MediaSourceType>
+class Stream_MediaFramework_MediaFoundation_MediaStream_T
+ : public IMFMediaStream
+{
+ public:
+  typedef Stream_MediaFramework_MediaFoundation_MediaStream_T<MediaSourceType> OWN_TYPE_T;
+
+  Stream_MediaFramework_MediaFoundation_MediaStream_T (MediaSourceType*); // media source handle
+  virtual ~Stream_MediaFramework_MediaFoundation_MediaStream_T ();
+
+  static HRESULT CreateInstance (IUnknown*, // parent
+                                 REFIID,    // interface id
+                                 void**);   // return value: instance handle
+
+  // implement IMFMediaStream
+  // IUnknown
+  virtual STDMETHODIMP QueryInterface (REFIID,
+                                       void**);
+  inline virtual STDMETHODIMP_ (ULONG) AddRef () { return InterlockedIncrement (&referenceCount_); }
+  virtual STDMETHODIMP_ (ULONG) Release ();
+  // IMFMediaEventGenerator
+  virtual STDMETHODIMP BeginGetEvent (IMFAsyncCallback*, // asynchronous callback handle
+                                      IUnknown*);        // 
+  virtual STDMETHODIMP EndGetEvent (IMFAsyncResult*,  // asynchronous result
+                                    IMFMediaEvent**); // return value: event handle
+  virtual STDMETHODIMP GetEvent (DWORD,            // flags
+                                 IMFMediaEvent**); // return value: event handle
+  virtual STDMETHODIMP QueueEvent (MediaEventType,      // event type
+                                   REFGUID,             // extended event type
+                                   HRESULT,             // status
+                                   const PROPVARIANT*); // value
+  // IMFMediaStream
+  inline virtual STDMETHODIMP GetMediaSource (IMFMediaSource** ppMediaSource) { ACE_ASSERT (mediaSource_); return mediaSource_->QueryInterface (IID_PPV_ARGS (ppMediaSource)); }
+  inline virtual STDMETHODIMP GetStreamDescriptor (IMFStreamDescriptor** ppStreamDescriptor) { ACE_ASSERT (mediaSource_); return mediaSource_->QueryInterface (IID_PPV_ARGS (ppStreamDescriptor)); }
+  virtual STDMETHODIMP RequestSample (IUnknown*); // pToken
+
+  // *NOTE*: - allocation functions are always 'static'
+  //         - "The call to the class - specific T::operator delete on a
+  //           polymorphic class is the only case where a static member function
+  //           is called through dynamic dispatch."
+
+  // *NOTE*: these ensure that all instances are (de)allocated off their
+  //         originating (DLL) heap
+  static void operator delete (void*); // instance handle
+  //static void operator delete (void*,   // instance handle
+  //                             size_t); // number of bytes
+
+ private:
+  // ctor used by the COM class factory
+  Stream_MediaFramework_MediaFoundation_MediaStream_T (HRESULT*); // return value: result
+
+  ACE_UNIMPLEMENTED_FUNC (Stream_MediaFramework_MediaFoundation_MediaStream_T ())
+  ACE_UNIMPLEMENTED_FUNC (Stream_MediaFramework_MediaFoundation_MediaStream_T (const Stream_MediaFramework_MediaFoundation_MediaStream_T&))
+  ACE_UNIMPLEMENTED_FUNC (Stream_MediaFramework_MediaFoundation_MediaStream_T& operator= (const Stream_MediaFramework_MediaFoundation_MediaStream_T&))
+
+  IMFMediaEventQueue* eventQueue_;
+  MediaSourceType*    mediaSource_;
+  volatile long       referenceCount_;
+}; // Stream_MediaFramework_MediaFoundation_MediaStream_T
+
+//////////////////////////////////////////
 
 template <typename TimePolicyType,
           typename MessageType,
@@ -45,14 +108,17 @@ class Stream_MediaFramework_MediaFoundation_MediaSource_T
  , public IMFPresentationDescriptor
  , public IMFStreamDescriptor
  , public IMFMediaTypeHandler
+ , public IMFGetService
  //, public IMarshal
  , public Common_IInitialize_T<ConfigurationType>
 {
- public:
   typedef Stream_MediaFramework_MediaFoundation_MediaSource_T<TimePolicyType,
                                                               MessageType,
                                                               ConfigurationType> OWN_TYPE_T;
+  typedef Stream_MediaFramework_MediaFoundation_MediaStream_T<OWN_TYPE_T> STREAM_T;
+  friend class STREAM_T;
 
+ public:
   Stream_MediaFramework_MediaFoundation_MediaSource_T ();
   virtual ~Stream_MediaFramework_MediaFoundation_MediaSource_T ();
 
@@ -61,34 +127,34 @@ class Stream_MediaFramework_MediaFoundation_MediaSource_T
                                  void**);   // return value: instance handle
 
   // implement IMFSchemeHandler
-  STDMETHODIMP BeginCreateObject (LPCWSTR,           // pwszURL
-                                  DWORD,             // dwFlags
-                                  IPropertyStore*,   // pProps
-                                  IUnknown**,        // ppIUnknownCancelCookie
-                                  IMFAsyncCallback*, // pCallback
-                                  IUnknown*);        // punkState
-  STDMETHODIMP CancelObjectCreation (IUnknown*); // pIUnknownCancelCookie
-  STDMETHODIMP EndCreateObject (IMFAsyncResult*, // pResult
-                                MF_OBJECT_TYPE*, // pObjectType
-                                IUnknown**);     // ppObject
+  virtual STDMETHODIMP BeginCreateObject (LPCWSTR,           // pwszURL
+                                          DWORD,             // dwFlags
+                                          IPropertyStore*,   // pProps
+                                          IUnknown**,        // ppIUnknownCancelCookie
+                                          IMFAsyncCallback*, // pCallback
+                                          IUnknown*);        // punkState
+  virtual STDMETHODIMP CancelObjectCreation (IUnknown*); // pIUnknownCancelCookie
+  virtual STDMETHODIMP EndCreateObject (IMFAsyncResult*, // pResult
+                                        MF_OBJECT_TYPE*, // pObjectType
+                                        IUnknown**);     // ppObject
 
-  // implement IMFMediaSourceEx
+  // implement IMFMediaSource[Ex]
   // IUnknown
-  STDMETHODIMP QueryInterface (REFIID,
-                               void**);
-  inline STDMETHODIMP_ (ULONG) AddRef () { return InterlockedIncrement (&referenceCount_); }
-  STDMETHODIMP_ (ULONG) Release ();
+  virtual STDMETHODIMP QueryInterface (REFIID,
+                                       void**);
+  inline virtual STDMETHODIMP_ (ULONG) AddRef () { return InterlockedIncrement (&referenceCount_); }
+  virtual STDMETHODIMP_ (ULONG) Release ();
   // IMFMediaEventGenerator
-  STDMETHODIMP BeginGetEvent (IMFAsyncCallback*, // asynchronous callback handle
-                              IUnknown*);        // 
-  STDMETHODIMP EndGetEvent (IMFAsyncResult*,  // asynchronous result
-                            IMFMediaEvent**); // return value: event handle
-  STDMETHODIMP GetEvent (DWORD,            // flags
-                         IMFMediaEvent**); // return value: event handle
-  STDMETHODIMP QueueEvent (MediaEventType,      // event type
-                           REFGUID,             // extended event type
-                           HRESULT,             // status
-                           const PROPVARIANT*); // value
+  virtual STDMETHODIMP BeginGetEvent (IMFAsyncCallback*, // asynchronous callback handle
+                                      IUnknown*);        // 
+  virtual STDMETHODIMP EndGetEvent (IMFAsyncResult*,  // asynchronous result
+                                    IMFMediaEvent**); // return value: event handle
+  virtual STDMETHODIMP GetEvent (DWORD,            // flags
+                                 IMFMediaEvent**); // return value: event handle
+  virtual STDMETHODIMP QueueEvent (MediaEventType,      // event type
+                                   REFGUID,             // extended event type
+                                   HRESULT,             // status
+                                   const PROPVARIANT*); // value
   // IMFMediaSource
   virtual STDMETHODIMP GetCharacteristics (DWORD*); // return value: characteristics
   virtual STDMETHODIMP CreatePresentationDescriptor (IMFPresentationDescriptor**); // return value: presentation descriptor handle
@@ -114,9 +180,77 @@ class Stream_MediaFramework_MediaFoundation_MediaSource_T
   virtual STDMETHODIMP SelectStream (DWORD); // dwIndex
 
   // IMFStreamDescriptor
+  // IMFAttributes (see below)
   virtual STDMETHODIMP GetMediaTypeHandler (IMFMediaTypeHandler**); // ppMediaTypeHandler
   virtual STDMETHODIMP GetStreamIdentifier (DWORD*); // pdwStreamIdentifier
 
+  // implement IMFMediaTypeHandler
+  // IMFAttributes
+  virtual STDMETHODIMP GetItem (REFGUID, // guidKey
+                                PROPVARIANT*) { ACE_ASSERT (false); return E_FAIL; } // pValue
+  virtual STDMETHODIMP GetItemType (REFGUID, // guidKey
+                                    MF_ATTRIBUTE_TYPE*) { ACE_ASSERT (false); return E_FAIL; } // pType
+  virtual STDMETHODIMP CompareItem (REFGUID,        // guidKey
+                                    REFPROPVARIANT, // Value
+                                    BOOL*) { ACE_ASSERT (false); return E_FAIL; } // pbResult
+  virtual STDMETHODIMP Compare (IMFAttributes*,           // pTheirs
+                                MF_ATTRIBUTES_MATCH_TYPE, // MatchType
+                                BOOL*) { ACE_ASSERT (false); return E_FAIL; } // pbResult
+  virtual STDMETHODIMP GetUINT32 (REFGUID,  // guidKey
+                                  UINT32*); // punValue
+  virtual STDMETHODIMP GetUINT64 (REFGUID,  // guidKey
+                                  UINT64*); // punValue
+  virtual STDMETHODIMP GetDouble (REFGUID, // guidKey
+                                  double*) { ACE_ASSERT (false); return E_FAIL; } // pfValue
+  virtual STDMETHODIMP GetGUID (REFGUID, // guidKey
+                                GUID*) { ACE_ASSERT (false); return E_FAIL; } // pguidValue
+  virtual STDMETHODIMP GetStringLength (REFGUID, // guidKey
+                                        UINT32*) { ACE_ASSERT (false); return E_FAIL; } // pcchLength
+  virtual STDMETHODIMP GetString (REFGUID, // guidKey
+                                  LPWSTR,  // pwszValue
+                                  UINT32,  // cchBufSize
+                                  UINT32*) { ACE_ASSERT (false); return E_FAIL; } // pcchLength
+  virtual STDMETHODIMP GetAllocatedString (REFGUID, // guidKey
+                                           LPWSTR*, // ppwszValue
+                                           UINT32*) { ACE_ASSERT (false); return E_FAIL; } // pcchLength
+  virtual STDMETHODIMP GetBlobSize (REFGUID,  // guidKey
+                                    UINT32*); // pcbBlobSize
+  virtual STDMETHODIMP GetBlob (REFGUID, // guidKey
+                                UINT8*,  // pBuf
+                                UINT32,  // cbBufSize
+                                UINT32*) { ACE_ASSERT (false); return E_FAIL; } // pcbBlobSize
+  virtual STDMETHODIMP GetAllocatedBlob (REFGUID, // guidKey
+                                         UINT8**, // ppBuf
+                                         UINT32*) { ACE_ASSERT (false); return E_FAIL; } // pcbSize
+  virtual STDMETHODIMP GetUnknown (REFGUID, // guidKey
+                                   REFIID,  // riid
+                                   LPVOID*) { ACE_ASSERT (false); return E_FAIL; } // ppv
+  virtual STDMETHODIMP SetItem (REFGUID, // guidKey
+                                REFPROPVARIANT) { ACE_ASSERT (false); return E_FAIL; } // Value
+  virtual STDMETHODIMP DeleteItem (REFGUID); // guidKey
+  virtual STDMETHODIMP DeleteAllItems (void) { ACE_ASSERT (false); return E_FAIL; }
+  virtual STDMETHODIMP SetUINT32 (REFGUID, // guidKey
+                                  UINT32) { ACE_ASSERT (false); return E_FAIL; } // unValue
+  virtual STDMETHODIMP SetUINT64 (REFGUID, // guidKey
+                                  UINT64) { ACE_ASSERT (false); return E_FAIL; } // unValue
+  virtual STDMETHODIMP SetDouble (REFGUID, // guidKey
+                                  double) { ACE_ASSERT (false); return E_FAIL; } // fValue
+  virtual STDMETHODIMP SetGUID (REFGUID, // guidKey
+                                REFGUID) { ACE_ASSERT (false); return E_FAIL; } // guidValue
+  virtual STDMETHODIMP SetString (REFGUID, // guidKey
+                                  LPCWSTR) { ACE_ASSERT (false); return E_FAIL; } // wszValue
+  virtual STDMETHODIMP SetBlob (REFGUID,      // guidKey
+                                const UINT8*, // pBuf
+                                UINT32) { ACE_ASSERT (false); return E_FAIL; } // cbBufSize
+  virtual STDMETHODIMP SetUnknown (REFGUID,    // guidKey
+                                   IUnknown*); // pUnknown
+  virtual STDMETHODIMP LockStore (void) { ACE_ASSERT (false); return E_FAIL; }
+  virtual STDMETHODIMP UnlockStore (void) { ACE_ASSERT (false); return E_FAIL; }
+  virtual STDMETHODIMP GetCount (UINT32*) { ACE_ASSERT (false); return E_FAIL; } // pcItems
+  virtual STDMETHODIMP GetItemByIndex (UINT32, // unIndex
+                                       GUID*,  // pguidKey
+                                       PROPVARIANT*) { ACE_ASSERT (false); return E_FAIL; } // pValue
+  virtual STDMETHODIMP CopyAllItems (IMFAttributes*) { ACE_ASSERT (false); return E_FAIL; } // pDest
   // IMFMediaTypeHandler
   virtual STDMETHODIMP GetCurrentMediaType (IMFMediaType**); // ppMediaType
   virtual STDMETHODIMP GetMajorType (GUID*); // pguidMajorType
@@ -127,72 +261,10 @@ class Stream_MediaFramework_MediaFoundation_MediaSource_T
                                              IMFMediaType**); // ppMediaType
   virtual STDMETHODIMP SetCurrentMediaType (IMFMediaType*); // pMediaType
 
-  // IMFAttributes
-  virtual STDMETHODIMP GetItem (REFGUID,       // guidKey
-                                PROPVARIANT*) { ACE_ASSERT (false); return E_FAIL; } // pValue
-  virtual STDMETHODIMP GetItemType (REFGUID,             // guidKey
-                                    MF_ATTRIBUTE_TYPE*) { ACE_ASSERT (false); return E_FAIL; } // pType
-  virtual STDMETHODIMP CompareItem (REFGUID,        // guidKey
-                                    REFPROPVARIANT, // Value
-                                    BOOL*) { ACE_ASSERT (false); return E_FAIL; } // pbResult
-  virtual STDMETHODIMP Compare (IMFAttributes*,           // pTheirs
-                                MF_ATTRIBUTES_MATCH_TYPE, // MatchType
-                                BOOL*) { ACE_ASSERT (false); return E_FAIL; } // pbResult
-  virtual STDMETHODIMP GetUINT32 (REFGUID,  // guidKey
-                                  UINT32*); // punValue
-  virtual STDMETHODIMP GetUINT64 (REFGUID, // guidKey
-                                  UINT64*) { ACE_ASSERT (false); return E_FAIL; } // punValue
-  virtual STDMETHODIMP GetDouble (REFGUID,  // guidKey
-                                  double*) { ACE_ASSERT (false); return E_FAIL; } // pfValue
-  virtual STDMETHODIMP GetGUID (REFGUID, // guidKey
-                                GUID*) { ACE_ASSERT (false); return E_FAIL; } // pguidValue
-  virtual STDMETHODIMP GetStringLength (REFGUID,  // guidKey
-                                        UINT32*) { ACE_ASSERT (false); return E_FAIL; } // pcchLength
-  virtual STDMETHODIMP GetString (REFGUID,  // guidKey
-                                  LPWSTR,   // pwszValue
-                                  UINT32,   // cchBufSize
-                                  UINT32*) { ACE_ASSERT (false); return E_FAIL; } // pcchLength
-  virtual STDMETHODIMP GetAllocatedString (REFGUID,  // guidKey
-                                           LPWSTR*,  // ppwszValue
-                                           UINT32*) { ACE_ASSERT (false); return E_FAIL; } // pcchLength
-  virtual STDMETHODIMP GetBlobSize (REFGUID,  // guidKey
-                                    UINT32*); // pcbBlobSize
-  virtual STDMETHODIMP GetBlob (REFGUID,  // guidKey
-                                UINT8*,   // pBuf
-                                UINT32,   // cbBufSize
-                                UINT32*) { ACE_ASSERT (false); return E_FAIL; } // pcbBlobSize
-  virtual STDMETHODIMP GetAllocatedBlob (REFGUID,  // guidKey
-                                         UINT8**,  // ppBuf
-                                         UINT32*) { ACE_ASSERT (false); return E_FAIL; } // pcbSize
-  virtual STDMETHODIMP GetUnknown (REFGUID, // guidKey
-                                   REFIID,  // riid
-                                   LPVOID*) { ACE_ASSERT (false); return E_FAIL; } // ppv
-  virtual STDMETHODIMP SetItem (REFGUID,         // guidKey
-                                REFPROPVARIANT) { ACE_ASSERT (false); return E_FAIL; } // Value
-  virtual STDMETHODIMP DeleteItem (REFGUID) { ACE_ASSERT (false); return E_FAIL; } // guidKey
-  virtual STDMETHODIMP DeleteAllItems (void) { ACE_ASSERT (false); return E_FAIL; }
-  virtual STDMETHODIMP SetUINT32 (REFGUID, // guidKey
-                                  UINT32) { ACE_ASSERT (false); return E_FAIL; } // unValue
-  virtual STDMETHODIMP SetUINT64 (REFGUID, // guidKey
-                                  UINT64) { ACE_ASSERT (false); return E_FAIL; } // unValue
-  virtual STDMETHODIMP SetDouble (REFGUID, // guidKey
-                                  double) { ACE_ASSERT (false); return E_FAIL; } // fValue
-  virtual STDMETHODIMP SetGUID (REFGUID,  // guidKey
-                                REFGUID) { ACE_ASSERT (false); return E_FAIL; } // guidValue
-  virtual STDMETHODIMP SetString (REFGUID,  // guidKey
-                                  LPCWSTR) { ACE_ASSERT (false); return E_FAIL; } // wszValue
-  virtual STDMETHODIMP SetBlob (REFGUID,      // guidKey
-                                const UINT8*, // pBuf
-                                UINT32) { ACE_ASSERT (false); return E_FAIL; } // cbBufSize
-  virtual STDMETHODIMP SetUnknown (REFGUID,    // guidKey
-                                   IUnknown*) { ACE_ASSERT (false); return E_FAIL; } // pUnknown
-  virtual STDMETHODIMP LockStore (void) { ACE_ASSERT (false); return E_FAIL; }
-  virtual STDMETHODIMP UnlockStore (void) { ACE_ASSERT (false); return E_FAIL; }
-  virtual STDMETHODIMP GetCount (UINT32*) { ACE_ASSERT (false); return E_FAIL; } // pcItems
-  virtual STDMETHODIMP GetItemByIndex (UINT32,        // unIndex
-                                       GUID*,         // pguidKey
-                                       PROPVARIANT*) { ACE_ASSERT (false); return E_FAIL; } // pValue
-  virtual STDMETHODIMP CopyAllItems (IMFAttributes*) { ACE_ASSERT (false); return E_FAIL; } // pDest
+  // IMFGetService
+  virtual STDMETHODIMP GetService (REFGUID,  // guidService
+                                   REFIID,   // riid
+                                   LPVOID*); // ppvObject
 
   //// IMarshal
   //virtual STDMETHODIMP GetUnmarshalClass (REFIID riid,
@@ -234,21 +306,12 @@ class Stream_MediaFramework_MediaFoundation_MediaSource_T
   //                             size_t); // number of bytes
 
  protected:
-  ConfigurationType*  configuration_;
-
- private:
-  // ctor used by the COM class factory
-  Stream_MediaFramework_MediaFoundation_MediaSource_T (HRESULT*); // return value: result
-
-  ACE_UNIMPLEMENTED_FUNC (Stream_MediaFramework_MediaFoundation_MediaSource_T (const Stream_MediaFramework_MediaFoundation_MediaSource_T&))
-  ACE_UNIMPLEMENTED_FUNC (Stream_MediaFramework_MediaFoundation_MediaSource_T& operator= (const Stream_MediaFramework_MediaFoundation_MediaSource_T&))
-
-  //typedef GrowableArray<MPEG1Stream*> StreamList;
+  // convenient types
   typedef std::map<BYTE, DWORD> STREAM_MAP_T; // maps stream ID to index
   typedef STREAM_MAP_T::iterator STREAM_MAP_ITERATOR_T;
   typedef std::list<IMFSample*> SAMPLE_LIST_T;
   typedef SAMPLE_LIST_T::iterator SAMPLE_LIST_ITERATOR_T;
-  typedef std::list<IUnknown*> TOKEN_LIST_T; // List of tokens for IMFMediaStream::RequestSample
+  typedef std::deque<IUnknown*> TOKEN_LIST_T; // List of tokens for IMFMediaStream::RequestSample
   typedef TOKEN_LIST_T::iterator TOKEN_LIST_ITERATOR_T;
 
   enum STATE_T
@@ -261,12 +324,23 @@ class Stream_MediaFramework_MediaFoundation_MediaSource_T
     STATE_SHUTDOWN
   };
 
+  ConfigurationType*  configuration_;
   IMFMediaEventQueue* eventQueue_;
   //bool                hasCOMReference_;
   ACE_SYNCH_MUTEX     lock_;
   volatile long       referenceCount_;
   bool                shutdownInvoked_;
   STATE_T             state_; // Current state (running, stopped, paused)
+  TOKEN_LIST_T        tokens_;
+
+ private:  
+  // ctor used by the COM class factory
+  Stream_MediaFramework_MediaFoundation_MediaSource_T (HRESULT*); // return value: result
+
+  ACE_UNIMPLEMENTED_FUNC (Stream_MediaFramework_MediaFoundation_MediaSource_T (const Stream_MediaFramework_MediaFoundation_MediaSource_T&))
+  ACE_UNIMPLEMENTED_FUNC (Stream_MediaFramework_MediaFoundation_MediaSource_T& operator= (const Stream_MediaFramework_MediaFoundation_MediaSource_T&))
+
+  STREAM_T*           mediaStream_;
 }; // Stream_MediaFramework_MediaFoundation_MediaSource_T
 
 // include template definition

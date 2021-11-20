@@ -308,66 +308,68 @@ continue_:
     return false;
   } // end IF
 
-  // *TODO*: remove type inferences
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-  // sanity check(s)
-  struct _AMMediaType media_type_s;
-  ACE_OS::memset (&media_type_s, 0, sizeof (struct _AMMediaType));
-  inherited2::getMediaType (configuration_in.outputFormat,
-                            media_type_s);
-  ACE_ASSERT (InlineIsEqualGUID (media_type_s.formattype, FORMAT_WaveFormatEx));
-  ACE_ASSERT (media_type_s.pbFormat);
-  struct tWAVEFORMATEX* waveformatex_p =
-    reinterpret_cast<struct tWAVEFORMATEX*> (media_type_s.pbFormat);
-#endif // ACE_WIN32 || ACE_WIN64
+//  // *TODO*: remove type inferences
+//#if defined (ACE_WIN32) || defined (ACE_WIN64)
+//  // sanity check(s)
+//  struct _AMMediaType media_type_s;
+//  ACE_OS::memset (&media_type_s, 0, sizeof (struct _AMMediaType));
+//  inherited2::getMediaType (configuration_in.outputFormat,
+//                            media_type_s);
+//  ACE_ASSERT (InlineIsEqualGUID (media_type_s.formattype, FORMAT_WaveFormatEx));
+//  ACE_ASSERT (media_type_s.pbFormat);
+//  struct tWAVEFORMATEX* waveformatex_p =
+//    reinterpret_cast<struct tWAVEFORMATEX*> (media_type_s.pbFormat);
+//#endif // ACE_WIN32 || ACE_WIN64
+//
+//  unsigned int data_sample_size = 0;
+//  unsigned int sound_sample_size = 0;
+//  unsigned int channels, sample_rate;
+//  bool is_signed_format = false;
+//  int sample_byte_order = ACE_BYTE_ORDER;
+//#if defined (ACE_WIN32) || defined (ACE_WIN64)
+//  ACE_ASSERT (waveformatex_p);
+//  data_sample_size = waveformatex_p->nBlockAlign;
+//  sound_sample_size = (data_sample_size * 8) /
+//                       waveformatex_p->wBitsPerSample;
+//  // *NOTE*: Microsoft(TM) uses signed little endian
+//  is_signed_format = true;
+//  sample_byte_order = ACE_LITTLE_ENDIAN;
+//  channels = waveformatex_p->nChannels;
+//  sample_rate = waveformatex_p->nSamplesPerSec;
+//  // *NOTE*: apparently, all Win32 sound data is signed 16 bits
+//
+//  Stream_MediaFramework_DirectShow_Tools::free (media_type_s);
+//#else
+//  struct Stream_MediaFramework_ALSA_MediaType media_type_s;
+//  inherited2::getMediaType (configuration_in.outputFormat,
+//                            media_type_s);
+//  data_sample_size =
+//    ((snd_pcm_format_width (media_type_s.format) / 8) *
+//      media_type_s.channels);
+//  sound_sample_size = data_sample_size / media_type_s.channels;
+//  is_signed_format = snd_pcm_format_signed (media_type_s.format);
+//  sample_byte_order =
+//      ((snd_pcm_format_little_endian (media_type_s.format) == 1) ? ACE_LITTLE_ENDIAN
+//                                                                 : -1);
+//  channels = media_type_s.channels;
+//  sample_rate = media_type_s.rate;
+//#endif // ACE_WIN32 || ACE_WIN64
+//  if (unlikely (!sampleIterator_.initialize (data_sample_size,
+//                                             sound_sample_size,
+//                                             is_signed_format,
+//                                             sample_byte_order)))
+//  {
+//    ACE_DEBUG ((LM_ERROR,
+//                ACE_TEXT ("%s: failed to initialize sample iterator, aborting\n"),
+//                inherited::mod_->name ()));
+//    return false;
+//  } // end IF
+//
+//  return inherited3::Initialize (channels,
+//                                 configuration_in.spectrumAnalyzerResolution,
+//                                 sample_rate);
 
-  unsigned int data_sample_size = 0;
-  unsigned int sound_sample_size = 0;
-  unsigned int channels, sample_rate;
-  bool is_signed_format = false;
-  int sample_byte_order = ACE_BYTE_ORDER;
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-  ACE_ASSERT (waveformatex_p);
-  data_sample_size = waveformatex_p->nBlockAlign;
-  sound_sample_size = (data_sample_size * 8) /
-                       waveformatex_p->wBitsPerSample;
-  // *NOTE*: Microsoft(TM) uses signed little endian
-  is_signed_format = true;
-  sample_byte_order = ACE_LITTLE_ENDIAN;
-  channels = waveformatex_p->nChannels;
-  sample_rate = waveformatex_p->nSamplesPerSec;
-  // *NOTE*: apparently, all Win32 sound data is signed 16 bits
-
-  Stream_MediaFramework_DirectShow_Tools::free (media_type_s);
-#else
-  struct Stream_MediaFramework_ALSA_MediaType media_type_s;
-  inherited2::getMediaType (configuration_in.outputFormat,
-                            media_type_s);
-  data_sample_size =
-    ((snd_pcm_format_width (media_type_s.format) / 8) *
-      media_type_s.channels);
-  sound_sample_size = data_sample_size / media_type_s.channels;
-  is_signed_format = snd_pcm_format_signed (media_type_s.format);
-  sample_byte_order =
-      ((snd_pcm_format_little_endian (media_type_s.format) == 1) ? ACE_LITTLE_ENDIAN
-                                                                 : -1);
-  channels = media_type_s.channels;
-  sample_rate = media_type_s.rate;
-#endif // ACE_WIN32 || ACE_WIN64
-  if (unlikely (!sampleIterator_.initialize (data_sample_size,
-                                             sound_sample_size,
-                                             is_signed_format,
-                                             sample_byte_order)))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: failed to initialize sample iterator, aborting\n"),
-                inherited::mod_->name ()));
-    return false;
-  } // end IF
-
-  return inherited3::Initialize (channels,
-                                 configuration_in.spectrumAnalyzerResolution,
-                                 sample_rate);
+  return true;
 }
 
 template <ACE_SYNCH_DECL,

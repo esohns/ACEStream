@@ -48,12 +48,15 @@ Stream_MediaFramework_MediaFoundation_Target_T<ACE_SYNCH_USE,
                                                SessionDataContainerType,
                                                MediaType>::Stream_MediaFramework_MediaFoundation_Target_T (ISTREAM_T* stream_in)
  : inherited (stream_in)
+ , inherited2 ()
+ , inherited3 ()
+ , inherited4 ()
  , isFirst_ (false)
  , baseTimeStamp_ (0)
+ , manageMediaSession_ (true)
  , mediaSession_ (NULL)
  , queue_ (STREAM_QUEUE_MAX_SLOTS, // max # slots
            NULL)                   // notification handle
- , referenceCount_ (0)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_MediaFoundation_Target_T::Stream_MediaFramework_MediaFoundation_Target_T"));
 
@@ -85,13 +88,15 @@ Stream_MediaFramework_MediaFoundation_Target_T<ACE_SYNCH_USE,
 
   if (mediaSession_)
   {
-    HRESULT result = mediaSession_->Shutdown ();
-    if (FAILED (result))
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to IMFMediaSession::Shutdown(): \"%s\", continuing\n"),
-                  ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
-    mediaSession_->Release ();
-    mediaSession_ = NULL;
+    if (manageMediaSession_)
+    {
+      HRESULT result = mediaSession_->Shutdown ();
+      if (FAILED (result))
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("failed to IMFMediaSession::Shutdown(): \"%s\", continuing\n"),
+                    ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
+    } // end IF
+    mediaSession_->Release (); mediaSession_ = NULL;
   } // end IF
 }
 
@@ -149,13 +154,17 @@ Stream_MediaFramework_MediaFoundation_Target_T<ACE_SYNCH_USE,
     baseTimeStamp_ = 0;
     if (mediaSession_)
     {
-      HRESULT result = mediaSession_->Shutdown ();
-      if (FAILED (result))
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("failed to IMFMediaSession::Shutdown(): \"%s\", continuing\n"),
-                    ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
+      if (manageMediaSession_)
+      {
+        HRESULT result = mediaSession_->Shutdown ();
+        if (FAILED (result))
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("failed to IMFMediaSession::Shutdown(): \"%s\", continuing\n"),
+                      ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
+      } // end IF
       mediaSession_->Release (); mediaSession_ = NULL;
     } // end IF
+    manageMediaSession_ = true;
   } // end IF
 
   ACE_ASSERT (inherited::msg_queue_);
@@ -165,12 +174,13 @@ Stream_MediaFramework_MediaFoundation_Target_T<ACE_SYNCH_USE,
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to ACE_Message_Queue::activate() \"%m\", aborting\n"),
                 inherited::mod_->name ()));
-    return false;
+    goto error;
   } // end IF
 
   // *TODO*: remove type inference
   if (configuration_in.session)
   {
+    manageMediaSession_ = false;
     ULONG reference_count = configuration_in.session->AddRef ();
     mediaSession_ = configuration_in.session;
   } // end IF
@@ -180,8 +190,43 @@ Stream_MediaFramework_MediaFoundation_Target_T<ACE_SYNCH_USE,
   configuration_in.mediaFoundationConfiguration->queue =
     inherited::msg_queue_;
 
-  return inherited::initialize (configuration_in,
-                                allocator_in);
+  if (!inherited4::initialize (*configuration_in.mediaFoundationConfiguration))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s: failed to Stream_MediaFramework_MediaFoundation_MediaSource_T::initialize() \"%m\", aborting\n"),
+                inherited::mod_->name ()));
+    goto error;
+  } // end IF
+
+  if (!inherited::initialize (configuration_in,
+                              allocator_in))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s: failed to Stream_TaskBaseSynch_T::initialize() \"%m\", aborting\n"),
+                inherited::mod_->name ()));
+    goto error;
+  } // end IF
+
+  if (COM_initialized)
+    CoUninitialize ();
+
+  return true;
+
+error:
+  if (mediaSession_)
+  {
+    mediaSession_->Release (); mediaSession_ = NULL;
+  } // end IF
+  result_2 = inherited::msg_queue_->deactivate ();
+  if (unlikely (result_2 == -1))
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s: failed to ACE_Message_Queue::deactivate() \"%m\", continuing\n"),
+                inherited::mod_->name ()));
+
+  if (COM_initialized)
+    CoUninitialize ();
+
+  return false;
 }
 
 template <ACE_SYNCH_DECL,
@@ -300,6 +345,7 @@ Stream_MediaFramework_MediaFoundation_Target_T<ACE_SYNCH_USE,
       {
         if (session_data_r.session)
         {
+          manageMediaSession_ = false;
           reference_count = session_data_r.session->AddRef ();
           mediaSession_ = session_data_r.session;
           goto continue_;
@@ -319,42 +365,51 @@ Stream_MediaFramework_MediaFoundation_Target_T<ACE_SYNCH_USE,
 continue_:
       ACE_ASSERT (mediaSession_);
 
-      PropVariantInit (&property_s);
-      //property_s.vt = VT_EMPTY;
-      result_2 = mediaSession_->Start (&GUID_s,      // time format
-                                       &property_s); // start position
-      if (FAILED (result_2))
+      if (manageMediaSession_)
       {
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("%s: failed to IMFMediaSession::Start(): \"%s\", aborting\n"),
-                    inherited::mod_->name (),
-                    ACE_TEXT (Common_Error_Tools::errorToString (result_2).c_str ())));
+        PropVariantInit (&property_s);
+        //property_s.vt = VT_EMPTY;
+        result_2 = mediaSession_->Start (&GUID_s,      // time format
+                                         &property_s); // start position
+        if (FAILED (result_2))
+        {
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("%s: failed to IMFMediaSession::Start(): \"%s\", aborting\n"),
+                      inherited::mod_->name (),
+                      ACE_TEXT (Common_Error_Tools::errorToString (result_2).c_str ())));
+          PropVariantClear (&property_s);
+          goto error;
+        } // end IF
         PropVariantClear (&property_s);
-        goto error;
-      } // end IF
-      PropVariantClear (&property_s);
 
-      result_2 = mediaSession_->BeginGetEvent (this, NULL);
-      if (FAILED (result_2))
-      {
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("%s: failed to IMFMediaSession::BeginGetEvent(): \"%s\", aborting\n"),
-                    inherited::mod_->name (),
-                    ACE_TEXT (Common_Error_Tools::errorToString (result_2).c_str ())));
-        goto error;
+        result_2 = mediaSession_->BeginGetEvent (this, NULL);
+        if (FAILED (result_2))
+        {
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("%s: failed to IMFMediaSession::BeginGetEvent(): \"%s\", aborting\n"),
+                      inherited::mod_->name (),
+                      ACE_TEXT (Common_Error_Tools::errorToString (result_2).c_str ())));
+          goto error;
+        } // end IF
       } // end IF
+
+      if (COM_initialized)
+        CoUninitialize ();
 
       break;
 
 error:
       if (mediaSession_)
       {
-        result_2 = mediaSession_->Shutdown ();
-        if (FAILED (result_2))
-          ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("%s: failed to IMFMediaSession::Shutdown(): \"%s\", continuing\n"),
-                      inherited::mod_->name (),
-                      ACE_TEXT (Common_Error_Tools::errorToString (result_2).c_str ())));
+        if (manageMediaSession_)
+        {
+          result_2 = mediaSession_->Shutdown ();
+          if (FAILED (result_2))
+            ACE_DEBUG ((LM_ERROR,
+                        ACE_TEXT ("%s: failed to IMFMediaSession::Shutdown(): \"%s\", continuing\n"),
+                        inherited::mod_->name (),
+                        ACE_TEXT (Common_Error_Tools::errorToString (result_2).c_str ())));
+        } // end IF
         mediaSession_->Release (); mediaSession_ = NULL;
       } // end IF
 
@@ -386,12 +441,15 @@ error:
 
       if (mediaSession_)
       {
-        result_2 = mediaSession_->Shutdown ();
-        if (FAILED (result_2))
-          ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("%s: failed to IMFMediaSession::Shutdown(): \"%s\", continuing\n"),
-                      inherited::mod_->name (),
-                      ACE_TEXT (Common_Error_Tools::errorToString (result_2).c_str ())));
+        if (manageMediaSession_)
+        {
+          result_2 = mediaSession_->Shutdown ();
+          if (FAILED (result_2))
+            ACE_DEBUG ((LM_ERROR,
+                        ACE_TEXT ("%s: failed to IMFMediaSession::Shutdown(): \"%s\", continuing\n"),
+                        inherited::mod_->name (),
+                        ACE_TEXT (Common_Error_Tools::errorToString (result_2).c_str ())));
+        } // end IF
         mediaSession_->Release (); mediaSession_ = NULL;
       } // end IF
 
@@ -434,10 +492,15 @@ Stream_MediaFramework_MediaFoundation_Target_T<ACE_SYNCH_USE,
     { 0 },
   };
 
-  return QISearch (this,
-                   query_interface_table,
-                   IID_in,
-                   interface_out);
+  HRESULT result = QISearch (this,
+                             query_interface_table,
+                             IID_in,
+                             interface_out);
+  if (result == E_NOINTERFACE)
+    result = inherited4::QueryInterface (IID_in,
+                                         interface_out);
+
+  return result;
 }
 
 template <ACE_SYNCH_DECL,

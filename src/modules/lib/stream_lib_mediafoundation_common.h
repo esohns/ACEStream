@@ -35,12 +35,14 @@ struct Stream_MediaFramework_MediaFoundation_Configuration
 {
   Stream_MediaFramework_MediaFoundation_Configuration ()
    : controller (NULL)
+   , mediaEventGenerator (NULL)
    , mediaSession (NULL)
    , mediaType (NULL)
    , queue (NULL)
   {}
 
   Stream_IStreamControlBase* controller;
+  IMFMediaEventGenerator*    mediaEventGenerator; // media session-
   IMFMediaSession*           mediaSession;
   IMFMediaType*              mediaType; // input-
   ACE_Message_Queue_Base*    queue;

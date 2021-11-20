@@ -2583,17 +2583,26 @@ Stream_MediaFramework_MediaFoundation_Tools::clear (IMFTopology* topology_in)
 
   HRESULT result = E_FAIL;
   WORD number_of_nodes_i = 0;
+retry:
   result = topology_in->GetNodeCount (&number_of_nodes_i);
   ACE_ASSERT (SUCCEEDED (result));
   IMFTopologyNode* topology_node_p = NULL;
+  TOPOID node_id = 0;
   for (WORD i = 0;
        i < number_of_nodes_i;
        ++i)
   { ACE_ASSERT (!topology_node_p);
     result = topology_in->GetNode (i, &topology_node_p);
-    ACE_ASSERT (SUCCEEDED (result) && topology_node_p);
+    if (FAILED (result) && (result == MF_E_INVALIDINDEX))
+      goto retry; // *TODO*: why does this happen ?
+    ACE_ASSERT (topology_node_p);
     result = topology_in->RemoveNode (topology_node_p);
     ACE_ASSERT (SUCCEEDED (result));
+    result = topology_node_p->GetTopoNodeID (&node_id);
+    ACE_ASSERT (SUCCEEDED (result));
+    ACE_DEBUG ((LM_DEBUG,
+                ACE_TEXT ("removed node (id was: %q)...\n"),
+                node_id));
     topology_node_p->Release (); topology_node_p = NULL;
   } // end FOR
 

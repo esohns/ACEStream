@@ -37,6 +37,7 @@
 #include "stream_common.h"
 #include "stream_task_base_synch.h"
 
+#include "stream_lib_mediafoundation_mediasource.h"
 #include "stream_lib_mediatype_converter.h"
 
 extern const char libacestream_default_lib_mediafoundation_target_module_name_string[];
@@ -66,6 +67,9 @@ class Stream_MediaFramework_MediaFoundation_Target_T
                                  struct Stream_UserData>
  , public Stream_MediaFramework_MediaTypeConverter_T<MediaType>
  , public Common_UI_WindowTypeConverter_T<HWND>
+ , public Stream_MediaFramework_MediaFoundation_MediaSource_T<TimePolicyType,
+                                                              DataMessageType,
+                                                              struct Stream_MediaFramework_MediaFoundation_Configuration>
  , public IMFAsyncCallback
 {
   typedef Stream_TaskBaseSynch_T<ACE_SYNCH_USE, 
@@ -79,6 +83,9 @@ class Stream_MediaFramework_MediaFoundation_Target_T
                                  struct Stream_UserData> inherited;
   typedef Stream_MediaFramework_MediaTypeConverter_T<MediaType> inherited2;
   typedef Common_UI_WindowTypeConverter_T<HWND> inherited3;
+  typedef Stream_MediaFramework_MediaFoundation_MediaSource_T<TimePolicyType,
+                                                              DataMessageType,
+                                                              struct Stream_MediaFramework_MediaFoundation_Configuration> inherited4;
 
  public:
   Stream_MediaFramework_MediaFoundation_Target_T (ISTREAM_T*); // stream handle
@@ -86,6 +93,7 @@ class Stream_MediaFramework_MediaFoundation_Target_T
 
   virtual bool initialize (const ConfigurationType&,
                            Stream_IAllocator* = NULL);
+  using inherited4::initialize;
 
   // implement (part of) Stream_ITaskBase_T
   virtual void handleDataMessage (DataMessageType*&, // data message handle
@@ -96,8 +104,8 @@ class Stream_MediaFramework_MediaFoundation_Target_T
   // implement IMFAsyncCallback
   virtual STDMETHODIMP QueryInterface (REFIID,
                                        void**);
-  inline virtual STDMETHODIMP_ (ULONG) AddRef () { return InterlockedIncrement (&referenceCount_); }
-  inline virtual STDMETHODIMP_ (ULONG) Release () { ULONG count = InterlockedDecrement (&referenceCount_); return count; }
+  inline virtual STDMETHODIMP_ (ULONG) AddRef () { return InterlockedIncrement (&(inherited4::referenceCount_)); }
+  inline virtual STDMETHODIMP_ (ULONG) Release () { ULONG count = InterlockedDecrement (&(inherited4::referenceCount_)); return count; }
   // *NOTE*: "...If you want default values for both parameters, return
   //         E_NOTIMPL. ..."
   inline virtual STDMETHODIMP GetParameters (DWORD* flags_out, DWORD* queue_out) { ACE_UNUSED_ARG (flags_out); ACE_UNUSED_ARG (queue_out); return E_NOTIMPL; }
@@ -138,9 +146,9 @@ class Stream_MediaFramework_MediaFoundation_Target_T
   bool                                isFirst_;
 
   LONGLONG                            baseTimeStamp_;
+  bool                                manageMediaSession_;
   IMFMediaSession*                    mediaSession_;
   typename inherited::MESSAGE_QUEUE_T queue_;
-  long                                referenceCount_;
 };
 
 // include template definition

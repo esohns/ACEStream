@@ -1958,66 +1958,63 @@ Stream_Vis_Target_MediaFoundation_2<ACE_SYNCH_USE,
   HRESULT result_2 = E_FAIL;
   bool COM_initialized = false;
 
-  // sanity check(s)
-  ACE_ASSERT (configuration_);
-
   switch (message_inout->type ())
   {
-  case STREAM_SESSION_MESSAGE_BEGIN:
-  {
-    const SessionDataContainerType& session_data_container_r =
-      message_inout->getR ();
-    SessionDataType& session_data_r =
-      const_cast<SessionDataType&> (session_data_container_r.getR ());
-
-    result_2 = CoInitializeEx (NULL,
-                               (COINIT_MULTITHREADED     |
-                                COINIT_DISABLE_OLE1DDE   |
-                                COINIT_SPEED_OVER_MEMORY));
-    if (FAILED (result_2))
+    case STREAM_SESSION_MESSAGE_BEGIN:
     {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("%s: failed to CoInitializeEx(): \"%s\", aborting\n"),
-                  inherited::mod_->name (),
-                  ACE_TEXT (Common_Error_Tools::errorToString (result_2).c_str ())));
-      goto error;
-    } // end IF
-    COM_initialized = true;
+      const SessionDataContainerType& session_data_container_r =
+        message_inout->getR ();
+      SessionDataType& session_data_r =
+        const_cast<SessionDataType&> (session_data_container_r.getR ());
 
-    goto continue_;
+      result_2 = CoInitializeEx (NULL,
+                                 (COINIT_MULTITHREADED     |
+                                  COINIT_DISABLE_OLE1DDE   |
+                                  COINIT_SPEED_OVER_MEMORY));
+      if (FAILED (result_2))
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("%s: failed to CoInitializeEx(): \"%s\", aborting\n"),
+                    inherited::mod_->name (),
+                    ACE_TEXT (Common_Error_Tools::errorToString (result_2).c_str ())));
+        goto error;
+      } // end IF
+      COM_initialized = true;
 
-  error:
-    session_data_r.aborted = true;
+      goto continue_;
 
-  continue_:
-    if (COM_initialized)
-      CoUninitialize ();
+error:
+      this->notify (STREAM_SESSION_MESSAGE_ABORT);
 
-    break;
-  }
-  case STREAM_SESSION_MESSAGE_END:
-  {
-    result_2 = CoInitializeEx (NULL,
-                               (COINIT_MULTITHREADED     |
-                                COINIT_DISABLE_OLE1DDE   |
-                                COINIT_SPEED_OVER_MEMORY));
-    if (FAILED (result_2))
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("%s: failed to CoInitializeEx(): \"%s\", aborting\n"),
-                  inherited::mod_->name (),
-                  ACE_TEXT (Common_Error_Tools::errorToString (result_2).c_str ())));
+continue_:
+      if (COM_initialized)
+        CoUninitialize ();
+
       break;
-    } // end IF
-    COM_initialized = true;
+    }
+    case STREAM_SESSION_MESSAGE_END:
+    {
+      result_2 = CoInitializeEx (NULL,
+                                 (COINIT_MULTITHREADED     |
+                                  COINIT_DISABLE_OLE1DDE   |
+                                  COINIT_SPEED_OVER_MEMORY));
+      if (FAILED (result_2))
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("%s: failed to CoInitializeEx(): \"%s\", aborting\n"),
+                    inherited::mod_->name (),
+                    ACE_TEXT (Common_Error_Tools::errorToString (result_2).c_str ())));
+        break;
+      } // end IF
+      COM_initialized = true;
 
-    if (COM_initialized)
-      CoUninitialize ();
+      if (COM_initialized)
+        CoUninitialize ();
 
-    break;
-  }
-  default:
-    break;
+      break;
+    }
+    default:
+      break;
   } // end SWITCH
 }
 

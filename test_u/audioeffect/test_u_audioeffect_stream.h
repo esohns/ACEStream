@@ -25,12 +25,14 @@
 #include "ace/Global_Macros.h"
 #include "ace/Synch_Traits.h"
 
+#include "common_iget.h"
 #include "common_time_common.h"
 
 #include "stream_base.h"
 #include "stream_common.h"
 
 #include "test_u_audioeffect_common.h"
+#include "test_u_audioeffect_common_modules.h"
 #include "test_u_audioeffect_message.h"
 #include "test_u_audioeffect_session_message.h"
 
@@ -107,6 +109,7 @@ class Test_U_AudioEffect_MediaFoundation_Stream
                         Stream_ControlMessage_t,
                         Test_U_AudioEffect_MediaFoundation_Message,
                         Test_U_AudioEffect_MediaFoundation_SessionMessage>
+ , public Common_IGetR_3_T<Test_U_AudioEffect_MediaFoundation_Target>
  , public IMFAsyncCallback
 {
   typedef Stream_Base_T<ACE_MT_SYNCH,
@@ -143,6 +146,8 @@ class Test_U_AudioEffect_MediaFoundation_Stream
   // implement Common_IInitialize_T
   virtual bool initialize (const inherited::CONFIGURATION_T&); // configuration
 
+  virtual const Test_U_AudioEffect_MediaFoundation_Target& getR_3 () const; // return value: type
+
   // implement IMFAsyncCallback
   virtual STDMETHODIMP QueryInterface (REFIID,
                                        void**);
@@ -158,9 +163,10 @@ class Test_U_AudioEffect_MediaFoundation_Stream
   ACE_UNIMPLEMENTED_FUNC (Test_U_AudioEffect_MediaFoundation_Stream& operator= (const Test_U_AudioEffect_MediaFoundation_Stream&))
 
 #if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
-  IMFMediaSession* mediaSession_;
+  IMFMediaSession*                                 mediaSession_;
 #endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
-  ULONG            referenceCount_;
+  Test_U_AudioEffect_MediaFoundation_Target_Module mediaFoundationSource_;
+  ULONG                                            referenceCount_;
 };
 #else
 class Test_U_AudioEffect_ALSA_Stream
