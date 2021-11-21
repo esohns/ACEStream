@@ -2017,8 +2017,8 @@ Stream_MediaFramework_MediaFoundation_Tools::setTopology (IMFTopology* topology_
     } // end IF
     result = attributes_p->SetUINT32 (MF_SESSION_GLOBAL_TIME, FALSE);
     ACE_ASSERT (SUCCEEDED (result));
-    result = attributes_p->SetGUID (MF_SESSION_QUALITY_MANAGER, GUID_NULL);
-    ACE_ASSERT (SUCCEEDED (result));
+    //result = attributes_p->SetGUID (MF_SESSION_QUALITY_MANAGER, GUID_NULL);
+    //ACE_ASSERT (SUCCEEDED (result));
     //result = attributes_p->SetGUID (MF_SESSION_TOPOLOADER, );
     //ACE_ASSERT (SUCCEEDED (result));
 #if COMMON_OS_WIN32_TARGET_PLATFORM(0x0602) // _WIN32_WINNT_WIN8
@@ -2050,6 +2050,12 @@ Stream_MediaFramework_MediaFoundation_Tools::setTopology (IMFTopology* topology_
   } // end ELSE
   ACE_ASSERT (mediaSession_inout);
 
+  if (!isPartial_in)
+  {
+    topology_p = topology_in;
+    topology_p->AddRef ();
+    goto continue_;
+  } // end IF
   result = MFCreateTopoLoader (&topology_loader_p);
   if (FAILED (result))
   {
@@ -2074,6 +2080,7 @@ Stream_MediaFramework_MediaFoundation_Tools::setTopology (IMFTopology* topology_
     goto error;
   } // end IF
   topology_loader_p->Release (); topology_loader_p = NULL;
+continue_:
   ACE_ASSERT (topology_p);
 
   result = mediaSession_inout->SetTopology (topology_flags,
@@ -2091,7 +2098,7 @@ Stream_MediaFramework_MediaFoundation_Tools::setTopology (IMFTopology* topology_
   //         to retrieve a topology handle will fail (MF_E_INVALIDREQUEST)
   //         --> wait a little ?
   if (!waitForCompletion_in)
-    goto continue_;
+    goto continue_2;
 
   timeout += COMMON_TIME_NOW;
   do
@@ -2118,7 +2125,7 @@ Stream_MediaFramework_MediaFoundation_Tools::setTopology (IMFTopology* topology_
     ACE_DEBUG ((LM_WARNING,
                 ACE_TEXT ("failed to IMFMediaSession::SetTopology(): timed out, continuing\n")));
 
-continue_:
+continue_2:
   return true;
 
 error:
@@ -2880,6 +2887,12 @@ Stream_MediaFramework_MediaFoundation_Tools::reset (IMFTopology* topology_in,
     topology_node_p->Release ();
     return false;
   } // end IF
+  TOPOID node_id = 0;
+  result = topology_node_p->GetTopoNodeID (&node_id);
+  ACE_ASSERT (SUCCEEDED (result));
+  ACE_DEBUG ((LM_DEBUG,
+              ACE_TEXT ("added source node (id: %q)...\n"),
+              node_id));
   topology_node_p->Release (); topology_node_p = NULL;
 
   return true;

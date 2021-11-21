@@ -66,7 +66,7 @@ class Stream_MediaFramework_MediaFoundation_MediaStream_T
                                    const PROPVARIANT*); // value
   // IMFMediaStream
   inline virtual STDMETHODIMP GetMediaSource (IMFMediaSource** ppMediaSource) { ACE_ASSERT (mediaSource_); return mediaSource_->QueryInterface (IID_PPV_ARGS (ppMediaSource)); }
-  inline virtual STDMETHODIMP GetStreamDescriptor (IMFStreamDescriptor** ppStreamDescriptor) { ACE_ASSERT (mediaSource_); return mediaSource_->QueryInterface (IID_PPV_ARGS (ppStreamDescriptor)); }
+  virtual STDMETHODIMP GetStreamDescriptor (IMFStreamDescriptor**);
   virtual STDMETHODIMP RequestSample (IUnknown*); // pToken
 
   // *NOTE*: - allocation functions are always 'static'
@@ -79,6 +79,8 @@ class Stream_MediaFramework_MediaFoundation_MediaStream_T
   static void operator delete (void*); // instance handle
   //static void operator delete (void*,   // instance handle
   //                             size_t); // number of bytes
+
+  bool                selected_;
 
  private:
   // ctor used by the COM class factory
@@ -105,9 +107,9 @@ class Stream_MediaFramework_MediaFoundation_MediaSource_T
 #else
  , public IMFMediaSource
 #endif // _WIN32_WINNT_WIN8
- , public IMFPresentationDescriptor
- , public IMFStreamDescriptor
- , public IMFMediaTypeHandler
+ //, public IMFPresentationDescriptor
+ //, public IMFStreamDescriptor
+ //, public IMFMediaTypeHandler
  , public IMFGetService
  //, public IMarshal
  , public Common_IInitialize_T<ConfigurationType>
@@ -170,96 +172,96 @@ class Stream_MediaFramework_MediaFoundation_MediaSource_T
                                             IMFAttributes**); // return value: attributes
   virtual STDMETHODIMP SetD3DManager (IUnknown*); // Direct3D manager handle
 
-  // IMFPresentationDescriptor
-  virtual STDMETHODIMP Clone (IMFPresentationDescriptor**); // ppPresentationDescriptor
-  virtual STDMETHODIMP DeselectStream (DWORD); // dwIndex
-  virtual STDMETHODIMP GetStreamDescriptorByIndex (DWORD,                  // dwIndex
-                                                   BOOL*,                  // pfSelected
-                                                   IMFStreamDescriptor**); // ppDescriptor
-  virtual STDMETHODIMP GetStreamDescriptorCount (DWORD*); // pdwDescriptorCount
-  virtual STDMETHODIMP SelectStream (DWORD); // dwIndex
-
-  // IMFStreamDescriptor
+  //// IMFPresentationDescriptor
   // IMFAttributes (see below)
-  virtual STDMETHODIMP GetMediaTypeHandler (IMFMediaTypeHandler**); // ppMediaTypeHandler
-  virtual STDMETHODIMP GetStreamIdentifier (DWORD*); // pdwStreamIdentifier
+  //virtual STDMETHODIMP Clone (IMFPresentationDescriptor**); // ppPresentationDescriptor
+  //virtual STDMETHODIMP DeselectStream (DWORD); // dwIndex
+  //virtual STDMETHODIMP GetStreamDescriptorByIndex (DWORD,                  // dwIndex
+  //                                                 BOOL*,                  // pfSelected
+  //                                                 IMFStreamDescriptor**); // ppDescriptor
+  //virtual STDMETHODIMP GetStreamDescriptorCount (DWORD*); // pdwDescriptorCount
+  //virtual STDMETHODIMP SelectStream (DWORD); // dwIndex
 
-  // implement IMFMediaTypeHandler
+  // implement IMFStreamDescriptor
   // IMFAttributes
-  virtual STDMETHODIMP GetItem (REFGUID, // guidKey
-                                PROPVARIANT*) { ACE_ASSERT (false); return E_FAIL; } // pValue
-  virtual STDMETHODIMP GetItemType (REFGUID, // guidKey
-                                    MF_ATTRIBUTE_TYPE*) { ACE_ASSERT (false); return E_FAIL; } // pType
-  virtual STDMETHODIMP CompareItem (REFGUID,        // guidKey
-                                    REFPROPVARIANT, // Value
-                                    BOOL*) { ACE_ASSERT (false); return E_FAIL; } // pbResult
-  virtual STDMETHODIMP Compare (IMFAttributes*,           // pTheirs
-                                MF_ATTRIBUTES_MATCH_TYPE, // MatchType
-                                BOOL*) { ACE_ASSERT (false); return E_FAIL; } // pbResult
-  virtual STDMETHODIMP GetUINT32 (REFGUID,  // guidKey
-                                  UINT32*); // punValue
-  virtual STDMETHODIMP GetUINT64 (REFGUID,  // guidKey
-                                  UINT64*); // punValue
-  virtual STDMETHODIMP GetDouble (REFGUID, // guidKey
-                                  double*) { ACE_ASSERT (false); return E_FAIL; } // pfValue
-  virtual STDMETHODIMP GetGUID (REFGUID, // guidKey
-                                GUID*) { ACE_ASSERT (false); return E_FAIL; } // pguidValue
-  virtual STDMETHODIMP GetStringLength (REFGUID, // guidKey
-                                        UINT32*) { ACE_ASSERT (false); return E_FAIL; } // pcchLength
-  virtual STDMETHODIMP GetString (REFGUID, // guidKey
-                                  LPWSTR,  // pwszValue
-                                  UINT32,  // cchBufSize
-                                  UINT32*) { ACE_ASSERT (false); return E_FAIL; } // pcchLength
-  virtual STDMETHODIMP GetAllocatedString (REFGUID, // guidKey
-                                           LPWSTR*, // ppwszValue
-                                           UINT32*) { ACE_ASSERT (false); return E_FAIL; } // pcchLength
-  virtual STDMETHODIMP GetBlobSize (REFGUID,  // guidKey
-                                    UINT32*); // pcbBlobSize
-  virtual STDMETHODIMP GetBlob (REFGUID, // guidKey
-                                UINT8*,  // pBuf
-                                UINT32,  // cbBufSize
-                                UINT32*) { ACE_ASSERT (false); return E_FAIL; } // pcbBlobSize
-  virtual STDMETHODIMP GetAllocatedBlob (REFGUID, // guidKey
-                                         UINT8**, // ppBuf
-                                         UINT32*) { ACE_ASSERT (false); return E_FAIL; } // pcbSize
-  virtual STDMETHODIMP GetUnknown (REFGUID, // guidKey
-                                   REFIID,  // riid
-                                   LPVOID*) { ACE_ASSERT (false); return E_FAIL; } // ppv
-  virtual STDMETHODIMP SetItem (REFGUID, // guidKey
-                                REFPROPVARIANT) { ACE_ASSERT (false); return E_FAIL; } // Value
-  virtual STDMETHODIMP DeleteItem (REFGUID); // guidKey
-  virtual STDMETHODIMP DeleteAllItems (void) { ACE_ASSERT (false); return E_FAIL; }
-  virtual STDMETHODIMP SetUINT32 (REFGUID, // guidKey
-                                  UINT32) { ACE_ASSERT (false); return E_FAIL; } // unValue
-  virtual STDMETHODIMP SetUINT64 (REFGUID, // guidKey
-                                  UINT64) { ACE_ASSERT (false); return E_FAIL; } // unValue
-  virtual STDMETHODIMP SetDouble (REFGUID, // guidKey
-                                  double) { ACE_ASSERT (false); return E_FAIL; } // fValue
-  virtual STDMETHODIMP SetGUID (REFGUID, // guidKey
-                                REFGUID) { ACE_ASSERT (false); return E_FAIL; } // guidValue
-  virtual STDMETHODIMP SetString (REFGUID, // guidKey
-                                  LPCWSTR) { ACE_ASSERT (false); return E_FAIL; } // wszValue
-  virtual STDMETHODIMP SetBlob (REFGUID,      // guidKey
-                                const UINT8*, // pBuf
-                                UINT32) { ACE_ASSERT (false); return E_FAIL; } // cbBufSize
-  virtual STDMETHODIMP SetUnknown (REFGUID,    // guidKey
-                                   IUnknown*); // pUnknown
-  virtual STDMETHODIMP LockStore (void) { ACE_ASSERT (false); return E_FAIL; }
-  virtual STDMETHODIMP UnlockStore (void) { ACE_ASSERT (false); return E_FAIL; }
-  virtual STDMETHODIMP GetCount (UINT32*) { ACE_ASSERT (false); return E_FAIL; } // pcItems
-  virtual STDMETHODIMP GetItemByIndex (UINT32, // unIndex
-                                       GUID*,  // pguidKey
-                                       PROPVARIANT*) { ACE_ASSERT (false); return E_FAIL; } // pValue
-  virtual STDMETHODIMP CopyAllItems (IMFAttributes*) { ACE_ASSERT (false); return E_FAIL; } // pDest
+  //virtual STDMETHODIMP GetItem (REFGUID, // guidKey
+  //                              PROPVARIANT*) { ACE_ASSERT (false); return E_FAIL; } // pValue
+  //virtual STDMETHODIMP GetItemType (REFGUID, // guidKey
+  //                                  MF_ATTRIBUTE_TYPE*) { ACE_ASSERT (false); return E_FAIL; } // pType
+  //virtual STDMETHODIMP CompareItem (REFGUID,        // guidKey
+  //                                  REFPROPVARIANT, // Value
+  //                                  BOOL*) { ACE_ASSERT (false); return E_FAIL; } // pbResult
+  //virtual STDMETHODIMP Compare (IMFAttributes*,           // pTheirs
+  //                              MF_ATTRIBUTES_MATCH_TYPE, // MatchType
+  //                              BOOL*) { ACE_ASSERT (false); return E_FAIL; } // pbResult
+  //virtual STDMETHODIMP GetUINT32 (REFGUID,  // guidKey
+  //                                UINT32*); // punValue
+  //virtual STDMETHODIMP GetUINT64 (REFGUID,  // guidKey
+  //                                UINT64*); // punValue
+  //virtual STDMETHODIMP GetDouble (REFGUID, // guidKey
+  //                                double*) { ACE_ASSERT (false); return E_FAIL; } // pfValue
+  //virtual STDMETHODIMP GetGUID (REFGUID, // guidKey
+  //                              GUID*) { ACE_ASSERT (false); return E_FAIL; } // pguidValue
+  //virtual STDMETHODIMP GetStringLength (REFGUID, // guidKey
+  //                                      UINT32*) { ACE_ASSERT (false); return E_FAIL; } // pcchLength
+  //virtual STDMETHODIMP GetString (REFGUID, // guidKey
+  //                                LPWSTR,  // pwszValue
+  //                                UINT32,  // cchBufSize
+  //                                UINT32*) { ACE_ASSERT (false); return E_FAIL; } // pcchLength
+  //virtual STDMETHODIMP GetAllocatedString (REFGUID, // guidKey
+  //                                         LPWSTR*, // ppwszValue
+  //                                         UINT32*) { ACE_ASSERT (false); return E_FAIL; } // pcchLength
+  //virtual STDMETHODIMP GetBlobSize (REFGUID,  // guidKey
+  //                                  UINT32*); // pcbBlobSize
+  //virtual STDMETHODIMP GetBlob (REFGUID, // guidKey
+  //                              UINT8*,  // pBuf
+  //                              UINT32,  // cbBufSize
+  //                              UINT32*) { ACE_ASSERT (false); return E_FAIL; } // pcbBlobSize
+  //virtual STDMETHODIMP GetAllocatedBlob (REFGUID, // guidKey
+  //                                       UINT8**, // ppBuf
+  //                                       UINT32*) { ACE_ASSERT (false); return E_FAIL; } // pcbSize
+  //virtual STDMETHODIMP GetUnknown (REFGUID, // guidKey
+  //                                 REFIID,  // riid
+  //                                 LPVOID*) { ACE_ASSERT (false); return E_FAIL; } // ppv
+  //virtual STDMETHODIMP SetItem (REFGUID, // guidKey
+  //                              REFPROPVARIANT) { ACE_ASSERT (false); return E_FAIL; } // Value
+  //virtual STDMETHODIMP DeleteItem (REFGUID); // guidKey
+  //virtual STDMETHODIMP DeleteAllItems (void) { ACE_ASSERT (false); return E_FAIL; }
+  //virtual STDMETHODIMP SetUINT32 (REFGUID, // guidKey
+  //                                UINT32) { ACE_ASSERT (false); return E_FAIL; } // unValue
+  //virtual STDMETHODIMP SetUINT64 (REFGUID, // guidKey
+  //                                UINT64) { ACE_ASSERT (false); return E_FAIL; } // unValue
+  //virtual STDMETHODIMP SetDouble (REFGUID, // guidKey
+  //                                double) { ACE_ASSERT (false); return E_FAIL; } // fValue
+  //virtual STDMETHODIMP SetGUID (REFGUID, // guidKey
+  //                              REFGUID) { ACE_ASSERT (false); return E_FAIL; } // guidValue
+  //virtual STDMETHODIMP SetString (REFGUID, // guidKey
+  //                                LPCWSTR) { ACE_ASSERT (false); return E_FAIL; } // wszValue
+  //virtual STDMETHODIMP SetBlob (REFGUID,      // guidKey
+  //                              const UINT8*, // pBuf
+  //                              UINT32) { ACE_ASSERT (false); return E_FAIL; } // cbBufSize
+  //virtual STDMETHODIMP SetUnknown (REFGUID,    // guidKey
+  //                                 IUnknown*); // pUnknown
+  //virtual STDMETHODIMP LockStore (void) { ACE_ASSERT (false); return E_FAIL; }
+  //virtual STDMETHODIMP UnlockStore (void) { ACE_ASSERT (false); return E_FAIL; }
+  //virtual STDMETHODIMP GetCount (UINT32*) { ACE_ASSERT (false); return E_FAIL; } // pcItems
+  //virtual STDMETHODIMP GetItemByIndex (UINT32, // unIndex
+  //                                     GUID*,  // pguidKey
+  //                                     PROPVARIANT*) { ACE_ASSERT (false); return E_FAIL; } // pValue
+  //virtual STDMETHODIMP CopyAllItems (IMFAttributes*) { ACE_ASSERT (false); return E_FAIL; } // pDest
+  //// IMFStreamDescriptor
+  //virtual STDMETHODIMP GetMediaTypeHandler (IMFMediaTypeHandler**); // ppMediaTypeHandler
+  //virtual STDMETHODIMP GetStreamIdentifier (DWORD*); // pdwStreamIdentifier
+
   // IMFMediaTypeHandler
-  virtual STDMETHODIMP GetCurrentMediaType (IMFMediaType**); // ppMediaType
-  virtual STDMETHODIMP GetMajorType (GUID*); // pguidMajorType
-  virtual STDMETHODIMP GetMediaTypeByIndex (DWORD,           // dwIndex
-                                            IMFMediaType**); // ppType
-  virtual STDMETHODIMP GetMediaTypeCount (DWORD*); // pdwTypeCount
-  virtual STDMETHODIMP IsMediaTypeSupported (IMFMediaType*, // pMediaType
-                                             IMFMediaType**); // ppMediaType
-  virtual STDMETHODIMP SetCurrentMediaType (IMFMediaType*); // pMediaType
+  //virtual STDMETHODIMP GetCurrentMediaType (IMFMediaType**); // ppMediaType
+  //virtual STDMETHODIMP GetMajorType (GUID*); // pguidMajorType
+  //virtual STDMETHODIMP GetMediaTypeByIndex (DWORD,           // dwIndex
+  //                                          IMFMediaType**); // ppType
+  //virtual STDMETHODIMP GetMediaTypeCount (DWORD*); // pdwTypeCount
+  //virtual STDMETHODIMP IsMediaTypeSupported (IMFMediaType*, // pMediaType
+  //                                           IMFMediaType**); // ppMediaType
+  //virtual STDMETHODIMP SetCurrentMediaType (IMFMediaType*); // pMediaType
 
   // IMFGetService
   virtual STDMETHODIMP GetService (REFGUID,  // guidService
@@ -313,6 +315,8 @@ class Stream_MediaFramework_MediaFoundation_MediaSource_T
   typedef SAMPLE_LIST_T::iterator SAMPLE_LIST_ITERATOR_T;
   typedef std::deque<IUnknown*> TOKEN_LIST_T; // List of tokens for IMFMediaStream::RequestSample
   typedef TOKEN_LIST_T::iterator TOKEN_LIST_ITERATOR_T;
+  typedef std::map<struct _GUID, IUnknown*, struct common_less_guid> IUNKNOWN_MAP_T;
+  typedef IUNKNOWN_MAP_T::iterator IUNKNOWN_MAP_ITERATOR_T;
 
   enum STATE_T
   {
@@ -324,14 +328,16 @@ class Stream_MediaFramework_MediaFoundation_MediaSource_T
     STATE_SHUTDOWN
   };
 
-  ConfigurationType*  configuration_;
-  IMFMediaEventQueue* eventQueue_;
+  ConfigurationType*         configuration_;
+  IMFMediaEventQueue*        eventQueue_;
   //bool                hasCOMReference_;
-  ACE_SYNCH_MUTEX     lock_;
-  volatile long       referenceCount_;
-  bool                shutdownInvoked_;
-  STATE_T             state_; // Current state (running, stopped, paused)
-  TOKEN_LIST_T        tokens_;
+  ACE_SYNCH_MUTEX            lock_;
+  IMFPresentationDescriptor* presentationDescriptor_;
+  volatile long              referenceCount_;
+  bool                       shutdownInvoked_;
+  STATE_T                    state_; // Current state (running, stopped, paused)
+  TOKEN_LIST_T               tokens_;
+  IUNKNOWN_MAP_T             unknowns_;
 
  private:  
   // ctor used by the COM class factory

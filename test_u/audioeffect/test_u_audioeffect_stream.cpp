@@ -519,7 +519,7 @@ Test_U_AudioEffect_MediaFoundation_Stream::start ()
   struct _GUID GUID_s = GUID_NULL;
   struct tagPROPVARIANT property_s;
   PropVariantInit (&property_s);
-  //property_s.vt = VT_EMPTY;
+  property_s.vt = VT_EMPTY;
   result = mediaSession_->Start (&GUID_s,      // time format
                                  &property_s); // start position
   if (FAILED (result))
@@ -947,6 +947,8 @@ Test_U_AudioEffect_MediaFoundation_Stream::Invoke (IMFAsyncResult* result_in)
   HRESULT status = E_FAIL;
   struct tagPROPVARIANT value;
   PropVariantInit (&value);
+  bool stop_b = false;
+  bool request_event_b = true;
 
   // sanity check(s)
   ACE_ASSERT (result_in);
@@ -983,9 +985,10 @@ Test_U_AudioEffect_MediaFoundation_Stream::Invoke (IMFAsyncResult* result_in)
     case MEError:
     { // MF_E_STREAM_ERROR: 0xc00da7fb
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("%s: received MEError: \"%s\"\n"),
+                  ACE_TEXT ("%s: received MEError: \"%s\", aborting\n"),
                   ACE_TEXT (stream_name_string_),
                   ACE_TEXT (Common_Error_Tools::errorToString (status).c_str ())));
+      stop_b = true;
       break;
     }
     case MESessionClosed:
@@ -1015,6 +1018,7 @@ Test_U_AudioEffect_MediaFoundation_Stream::Invoke (IMFAsyncResult* result_in)
       //  ACE_DEBUG ((LM_ERROR,
       //              ACE_TEXT ("failed to IMFMediaSession::Shutdown(): \"%s\", continuing\n"),
       //              ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
+      request_event_b = false;
       break;
     }
     case MESessionEnded:
@@ -1048,9 +1052,11 @@ Test_U_AudioEffect_MediaFoundation_Stream::Invoke (IMFAsyncResult* result_in)
     }
     case MESessionStarted:
     { // status MF_E_INVALIDREQUEST: 0xC00D36B2L
+      // attribute MF_EVENT_PRESENTATION_TIME_OFFSET: {5AD914D1-9B45-4A8D-A2C0-81D1E50BFB07}
       ACE_DEBUG ((LM_DEBUG,
-                  ACE_TEXT ("%s: received MESessionStarted\n"),
-                  ACE_TEXT (stream_name_string_)));
+                  ACE_TEXT ("%s: received MESessionStarted: \"%s\"\n"),
+                  ACE_TEXT (stream_name_string_),
+                  ACE_TEXT (Common_Error_Tools::errorToString (status).c_str ())));
       break;
     }
     case MESessionStopped:
@@ -1058,10 +1064,7 @@ Test_U_AudioEffect_MediaFoundation_Stream::Invoke (IMFAsyncResult* result_in)
       ACE_DEBUG ((LM_DEBUG,
                   ACE_TEXT ("%s: received MESessionStopped, stopping\n"),
                   ACE_TEXT (stream_name_string_)));
-
-      if (isRunning ())
-        this->stop (false, // wait ?
-                    true); // locked access ?
+      stop_b = true;
       break;
     }
     case MESessionTopologySet:
@@ -1112,7 +1115,7 @@ Test_U_AudioEffect_MediaFoundation_Stream::Invoke (IMFAsyncResult* result_in)
       break;
     }
     case MEEndOfPresentationSegment:
-    {
+    { // *TODO*: {9C86CC50-68CE-4CFF-AA1E-9A5A40D5B4E0}
       ACE_DEBUG ((LM_DEBUG,
                   ACE_TEXT ("%s: received MEEndOfPresentationSegment\n"),
                   ACE_TEXT (stream_name_string_)));
@@ -1130,6 +1133,8 @@ Test_U_AudioEffect_MediaFoundation_Stream::Invoke (IMFAsyncResult* result_in)
   PropVariantClear (&value);
   media_event_p->Release (); media_event_p = NULL;
 
+  if (!request_event_b)
+    goto continue_;
 #if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
   result = mediaSession_->BeginGetEvent (this, NULL);
   if (FAILED (result))
@@ -1141,6 +1146,12 @@ Test_U_AudioEffect_MediaFoundation_Stream::Invoke (IMFAsyncResult* result_in)
     goto error;
   } // end IF
 #endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
+
+continue_:
+  if (unlikely (stop_b))
+    stop (false,
+          true,
+          false);
 
   return S_OK;
 

@@ -29,6 +29,8 @@
 
 #include "stream_macros.h"
 
+#include "stream_lib_mediafoundation_tools.h"
+
 template <typename MediaSourceType>
 HRESULT
 Stream_MediaFramework_MediaFoundation_MediaStream_T<MediaSourceType>::CreateInstance (IUnknown* parent_in,
@@ -68,7 +70,8 @@ Stream_MediaFramework_MediaFoundation_MediaStream_T<MediaSourceType>::CreateInst
 
 template <typename MediaSourceType>
 Stream_MediaFramework_MediaFoundation_MediaStream_T<MediaSourceType>::Stream_MediaFramework_MediaFoundation_MediaStream_T (MediaSourceType* mediaSource_in)
- : eventQueue_ (NULL)
+ : selected_ (false)
+ , eventQueue_ (NULL)
  , mediaSource_ (mediaSource_in)
  , referenceCount_ (1)
 {
@@ -85,7 +88,8 @@ Stream_MediaFramework_MediaFoundation_MediaStream_T<MediaSourceType>::Stream_Med
 
 template <typename MediaSourceType>
 Stream_MediaFramework_MediaFoundation_MediaStream_T<MediaSourceType>::Stream_MediaFramework_MediaFoundation_MediaStream_T (HRESULT* result_out)
- : eventQueue_ (NULL)
+ : selected_ (false)
+ , eventQueue_ (NULL)
  , mediaSource_ (NULL)
  , referenceCount_ (1)
 {
@@ -214,6 +218,26 @@ Stream_MediaFramework_MediaFoundation_MediaStream_T<MediaSourceType>::QueueEvent
                                           extendedType_in,
                                           status_in,
                                           value_in);
+}
+
+template <typename MediaSourceType>
+HRESULT
+Stream_MediaFramework_MediaFoundation_MediaStream_T<MediaSourceType>::GetStreamDescriptor (IMFStreamDescriptor** ppStreamDescriptor_out)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_MediaFoundation_MediaStream_T::GetStreamDescriptor"));
+
+  // sanity check(s)
+  ACE_ASSERT (ppStreamDescriptor_out && !*ppStreamDescriptor_out);
+  ACE_ASSERT (mediaSource_);
+  ACE_ASSERT (mediaSource_->presentationDescriptor_);
+
+  BOOL selected_b = FALSE;
+  HRESULT result =
+    mediaSource_->presentationDescriptor_->GetStreamDescriptorByIndex (0,
+                                                                       &selected_b,
+                                                                       ppStreamDescriptor_out);
+  ACE_ASSERT (SUCCEEDED (result) && selected_b && *ppStreamDescriptor_out);
+  return S_OK;
 }
 
 template <typename MediaSourceType>
@@ -348,11 +372,13 @@ Stream_MediaFramework_MediaFoundation_MediaSource_T<TimePolicyType,
  : configuration_ (NULL)
  , eventQueue_ (NULL)
 //, hasCOMReference_ (false)
+ , presentationDescriptor_ (NULL)
  , lock_ ()
  , referenceCount_ (0)
  , shutdownInvoked_ (false)
  , state_ (STATE_INVALID)
  , tokens_ ()
+ , unknowns_ ()
  , mediaStream_ (NULL)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_MediaFoundation_MediaSource_T::Stream_MediaFramework_MediaFoundation_MediaSource_T"));
@@ -362,6 +388,16 @@ Stream_MediaFramework_MediaFoundation_MediaSource_T<TimePolicyType,
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to MFCreateEventQueue(): \"%s\", continuing\n"),
                 ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
+
+  ACE_NEW_NORETURN (mediaStream_,
+                    STREAM_T (this));
+  if (!mediaStream_)
+  {
+    ACE_DEBUG ((LM_CRITICAL,
+                ACE_TEXT ("failed to allocate memory: \"%m\", aborting\n")));
+    return;
+  } // end IF
+  mediaStream_->selected_ = true;
 }
 
 template <typename TimePolicyType,
@@ -374,10 +410,12 @@ Stream_MediaFramework_MediaFoundation_MediaSource_T<TimePolicyType,
  , eventQueue_ (NULL)
 //, hasCOMReference_ (false)
  , lock_ ()
+ , presentationDescriptor_ (NULL)
  , referenceCount_ (0)
  , shutdownInvoked_ (false)
  , state_ (STATE_INVALID)
  , tokens_ ()
+ , unknowns_ ()
  , mediaStream_ (NULL)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_MediaFoundation_MediaSource_T::Stream_MediaFramework_MediaFoundation_MediaSource_T"));
@@ -392,9 +430,21 @@ Stream_MediaFramework_MediaFoundation_MediaSource_T<TimePolicyType,
                 ACE_TEXT ("failed to MFCreateEventQueue(): \"%s\", aborting\n"),
                 ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
     *result_out = result;
+    return;
   } // end IF
-  else
-    *result_out = S_OK;
+
+  ACE_NEW_NORETURN (mediaStream_,
+                    STREAM_T (this));
+  if (!mediaStream_)
+  {
+    ACE_DEBUG ((LM_CRITICAL,
+                ACE_TEXT ("failed to allocate memory: \"%m\", aborting\n")));
+    *result_out = E_OUTOFMEMORY;
+    return;
+  } // end IF
+  mediaStream_->selected_ = true;
+
+  *result_out = S_OK;
 }
 
 template <typename TimePolicyType,
@@ -409,7 +459,8 @@ Stream_MediaFramework_MediaFoundation_MediaSource_T<TimePolicyType,
   HRESULT result = E_FAIL;
 
   { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, lock_);
-    if (state_ != STATE_SHUTDOWN)
+    if ((state_ != STATE_INVALID) && 
+        (state_ != STATE_SHUTDOWN))
     {
       result = Shutdown ();
       if (FAILED (result))
@@ -428,11 +479,20 @@ Stream_MediaFramework_MediaFoundation_MediaSource_T<TimePolicyType,
       eventQueue_->Release ();
     } // end IF
 
+    if (presentationDescriptor_)
+      presentationDescriptor_->Release ();
+
     for (TOKEN_LIST_ITERATOR_T iterator = tokens_.begin ();
          iterator != tokens_.end ();
          ++iterator)
       (*iterator)->Release ();
     tokens_.clear ();
+
+    for (IUNKNOWN_MAP_ITERATOR_T iterator = unknowns_.begin ();
+         iterator != unknowns_.end ();
+         ++iterator)
+      (*iterator).second->Release ();
+    unknowns_.clear ();
   } // end lock scope
 
   if (mediaStream_)
@@ -512,10 +572,10 @@ Stream_MediaFramework_MediaFoundation_MediaSource_T<TimePolicyType,
     QITABENT (OWN_TYPE_T, IMFMediaSource),
 #endif // _WIN32_WINNT_WIN8
     //QITABENT (OWN_TYPE_T, IMFAttributes),
-    QITABENT (OWN_TYPE_T, IMFPresentationDescriptor),
+    //QITABENT (OWN_TYPE_T, IMFPresentationDescriptor),
     //QITABENT (OWN_TYPE_T, IMFAttributes),
-    QITABENT (OWN_TYPE_T, IMFStreamDescriptor),
-    QITABENT (OWN_TYPE_T, IMFMediaTypeHandler),
+    //QITABENT (OWN_TYPE_T, IMFStreamDescriptor),
+    //QITABENT (OWN_TYPE_T, IMFMediaTypeHandler),
     QITABENT (OWN_TYPE_T, IMFGetService),
     //QITABENT (OWN_TYPE_T, IMarshal),
     { 0 },
@@ -656,8 +716,69 @@ Stream_MediaFramework_MediaFoundation_MediaSource_T<TimePolicyType,
 
   // sanity check(s)
   ACE_ASSERT (presentationDescriptor_out && !*presentationDescriptor_out);
+  ACE_ASSERT (configuration_);
+  ACE_ASSERT (configuration_->mediaType);
 
-  return QueryInterface (IID_PPV_ARGS (presentationDescriptor_out));
+  HRESULT result = E_FAIL;
+  IMFStreamDescriptor** stream_descriptors_a = NULL;
+  IMFMediaType** media_types_a = NULL;
+  IMFMediaTypeHandler* media_type_handler_p = NULL;
+
+  if (presentationDescriptor_)
+    goto clone;
+
+  ACE_NEW_NORETURN (stream_descriptors_a,
+                    IMFStreamDescriptor*[1]);
+  if (!stream_descriptors_a)
+  {
+    ACE_DEBUG ((LM_CRITICAL,
+                ACE_TEXT ("failed to allocate memory: \"%m\", aborting\n")));
+    return E_OUTOFMEMORY;
+  } // end IF
+  ACE_OS::memset (stream_descriptors_a, 0, sizeof (IMFStreamDescriptor*[1]));
+
+  ACE_NEW_NORETURN (media_types_a,
+                    IMFMediaType*[1]);
+  if (!media_types_a)
+  {
+    ACE_DEBUG ((LM_CRITICAL,
+                ACE_TEXT ("failed to allocate memory: \"%m\", aborting\n")));
+    delete [] stream_descriptors_a;
+    return E_OUTOFMEMORY;
+  } // end IF
+  ACE_OS::memset (media_types_a, 0, sizeof (IMFMediaType*[1]));
+  media_types_a[0] =
+    Stream_MediaFramework_MediaFoundation_Tools::copy (configuration_->mediaType);
+  ACE_ASSERT (media_types_a[0]);
+  result = MFCreateStreamDescriptor (0,
+                                     1,
+                                     media_types_a,
+                                     &stream_descriptors_a[0]);
+  ACE_ASSERT (SUCCEEDED (result) && stream_descriptors_a[0]);
+  result = stream_descriptors_a[0]->GetMediaTypeHandler (&media_type_handler_p);
+  ACE_ASSERT (SUCCEEDED (result) && media_type_handler_p);
+  result =
+    media_type_handler_p->SetCurrentMediaType (configuration_->mediaType);
+  ACE_ASSERT (SUCCEEDED (result));
+  result = MFCreatePresentationDescriptor (1,
+                                           stream_descriptors_a,
+                                           &presentationDescriptor_);
+  ACE_ASSERT (SUCCEEDED (result) && presentationDescriptor_);
+  result = presentationDescriptor_->SelectStream (0);
+  ACE_ASSERT (SUCCEEDED (result));
+
+  // clean up
+  media_type_handler_p->Release ();
+  media_types_a[0]->Release ();
+  delete[] media_types_a;
+  stream_descriptors_a[0]->Release ();
+  delete [] stream_descriptors_a;
+
+clone:
+  result = presentationDescriptor_->Clone (presentationDescriptor_out);
+  ACE_ASSERT (SUCCEEDED (result) && *presentationDescriptor_out);
+
+  return S_OK;
 }
 
 template <typename TimePolicyType,
@@ -673,26 +794,13 @@ Stream_MediaFramework_MediaFoundation_MediaSource_T<TimePolicyType,
   STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_MediaFoundation_MediaSource_T::Start"));
 
   ACE_UNUSED_ARG (presentationDescriptor_in);
-  ACE_UNUSED_ARG (timeFormat_in);
   ACE_UNUSED_ARG (startPosition_in);
   
   // sanity check(s)
-  ACE_ASSERT (eventQueue_);
   if ((timeFormat_in != NULL) && (*timeFormat_in != GUID_NULL))
     return MF_E_UNSUPPORTED_TIME_FORMAT;
-
-  if (mediaStream_)
-  {
-    delete mediaStream_; mediaStream_ = NULL;
-  } // end IF
-  ACE_NEW_NORETURN (mediaStream_,
-                    STREAM_T (this));
-  if (!mediaStream_)
-  {
-    ACE_DEBUG ((LM_CRITICAL,
-                ACE_TEXT ("failed to allocate memory: \"%m\", aborting\n")));
-    return MF_E_RT_OUTOFMEMORY;
-  } // end IF
+  ACE_ASSERT (eventQueue_);
+  ACE_ASSERT (mediaStream_);
 
   // send MENewStream
   IMFMediaStream* media_stream_p = NULL;
@@ -742,10 +850,10 @@ Stream_MediaFramework_MediaFoundation_MediaSource_T<TimePolicyType,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_MediaFoundation_MediaSource_T::Stop"));
 
-  ACE_ASSERT (false);
-  ACE_NOTSUP_RETURN (E_FAIL);
+  ACE_DEBUG ((LM_DEBUG,
+              ACE_TEXT ("media source stopped\n")));
 
-  ACE_NOTREACHED (return E_FAIL;)
+  return S_OK;
 }
 
 template <typename TimePolicyType,
@@ -838,421 +946,441 @@ Stream_MediaFramework_MediaFoundation_MediaSource_T<TimePolicyType,
   ACE_NOTREACHED (return E_FAIL;)
 }
 
-template <typename TimePolicyType,
-          typename MessageType,
-          typename ConfigurationType>
-HRESULT
-Stream_MediaFramework_MediaFoundation_MediaSource_T<TimePolicyType,
-                                                    MessageType,
-                                                    ConfigurationType>::Clone (IMFPresentationDescriptor** ppPresentationDescriptor)
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_MediaFoundation_MediaSource_T::Clone"));
-
-  ACE_UNUSED_ARG (ppPresentationDescriptor);
-
-  ACE_ASSERT (false);
-  ACE_NOTSUP_RETURN (E_FAIL);
-
-  ACE_NOTREACHED (return E_FAIL;)
-}
-
-template <typename TimePolicyType,
-          typename MessageType,
-          typename ConfigurationType>
-HRESULT
-Stream_MediaFramework_MediaFoundation_MediaSource_T<TimePolicyType,
-                                                    MessageType,
-                                                    ConfigurationType>::DeselectStream (DWORD dwIndex)
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_MediaFoundation_MediaSource_T::DeselectStream"));
-
-  ACE_DEBUG ((LM_DEBUG,
-              ACE_TEXT ("stream deselected (index was: %d)\n"),
-              dwIndex));
-
-  return S_OK;
-}
-
-template <typename TimePolicyType,
-          typename MessageType,
-          typename ConfigurationType>
-HRESULT
-Stream_MediaFramework_MediaFoundation_MediaSource_T<TimePolicyType,
-                                                    MessageType,
-                                                    ConfigurationType>::GetStreamDescriptorByIndex (DWORD dwIndex,
-                                                                                                    BOOL* pfSelected,
-                                                                                                    IMFStreamDescriptor** ppStreamDescriptor)
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_MediaFoundation_MediaSource_T::GetStreamDescriptorByIndex"));
-
-  ACE_UNUSED_ARG (dwIndex);
-
-  // sanity check(s)
-  ACE_ASSERT (pfSelected);
-  ACE_ASSERT (ppStreamDescriptor && !*ppStreamDescriptor);
-
-  *pfSelected = TRUE;
-
-  return QueryInterface (IID_PPV_ARGS (ppStreamDescriptor));
-}
-
-template <typename TimePolicyType,
-          typename MessageType,
-          typename ConfigurationType>
-HRESULT
-Stream_MediaFramework_MediaFoundation_MediaSource_T<TimePolicyType,
-                                                    MessageType,
-                                                    ConfigurationType>::GetStreamDescriptorCount (DWORD* pdwDescriptorCount)
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_MediaFoundation_MediaSource_T::DeselectStream"));
-
-  // sanity check(s)
-  ACE_ASSERT (pdwDescriptorCount);
-
-  *pdwDescriptorCount = 1;
-
-  return S_OK;
-}
-
-template <typename TimePolicyType,
-          typename MessageType,
-          typename ConfigurationType>
-HRESULT
-Stream_MediaFramework_MediaFoundation_MediaSource_T<TimePolicyType,
-                                                    MessageType,
-                                                    ConfigurationType>::SelectStream (DWORD dwIndex)
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_MediaFoundation_MediaSource_T::SelectStream"));
-
-  ACE_UNUSED_ARG (dwIndex);
-
-  ACE_DEBUG ((LM_DEBUG,
-              ACE_TEXT ("stream selected (index was: %d)\n"),
-              dwIndex));
-
-  return S_OK;
-}
-
-template <typename TimePolicyType,
-          typename MessageType,
-          typename ConfigurationType>
-HRESULT
-Stream_MediaFramework_MediaFoundation_MediaSource_T<TimePolicyType,
-                                                    MessageType,
-                                                    ConfigurationType>::GetMediaTypeHandler (IMFMediaTypeHandler** ppMediaTypeHandler)
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_MediaFoundation_MediaSource_T::GetMediaTypeHandler"));
-
-  // sanity check(s)
-  ACE_ASSERT (ppMediaTypeHandler && !*ppMediaTypeHandler);
-
-  return QueryInterface (IID_PPV_ARGS (ppMediaTypeHandler));
-}
-
-template <typename TimePolicyType,
-          typename MessageType,
-          typename ConfigurationType>
-HRESULT
-Stream_MediaFramework_MediaFoundation_MediaSource_T<TimePolicyType,
-                                                    MessageType,
-                                                    ConfigurationType>::GetStreamIdentifier (DWORD* pdwStreamIdentifier)
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_MediaFoundation_MediaSource_T::GetStreamIdentifier"));
-
-  // sanity check(s)
-  ACE_ASSERT (pdwStreamIdentifier);
-
-  *pdwStreamIdentifier = 0;
-
-  return S_OK;
-}
-
-template <typename TimePolicyType,
-          typename MessageType,
-          typename ConfigurationType>
-HRESULT
-Stream_MediaFramework_MediaFoundation_MediaSource_T<TimePolicyType,
-                                                    MessageType,
-                                                    ConfigurationType>::GetUINT32 (REFGUID guidKey_in,
-                                                                                   UINT32* punValue)
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_MediaFoundation_MediaSource_T::GetUINT32"));
-
-  // sanity check(s)
-  ACE_ASSERT (punValue);
-
-  // {00AF2181-BDC2-423C-ABCA-F503593BC121}
-  if (InlineIsEqualGUID (guidKey_in, MF_SD_PROTECTED))
-  {
-    *punValue = FALSE;
-    return S_OK;
-  } // end IF
-
-  // *TODO*: {FAFB680A-39EA-4850-AF71-78FDFB651088}
-  ACE_DEBUG ((LM_ERROR,
-              ACE_TEXT ("invalid/unknown key GUID (was: \"%s\"), aborting\n"),
-              ACE_TEXT (Common_Tools::GUIDToString (guidKey_in).c_str ())));
-
-  return MF_E_ATTRIBUTENOTFOUND;
-}
-
-template <typename TimePolicyType,
-          typename MessageType,
-          typename ConfigurationType>
-HRESULT
-Stream_MediaFramework_MediaFoundation_MediaSource_T<TimePolicyType,
-                                                    MessageType,
-                                                    ConfigurationType>::GetUINT64 (REFGUID guidKey_in,
-                                                                                   UINT64* punValue)
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_MediaFoundation_MediaSource_T::GetUINT64"));
-
-  // sanity check(s)
-  ACE_ASSERT (punValue);
-
-  // {6C990D3B-BB8E-477A-8598-0D5D96FCD88A}
-  if (InlineIsEqualGUID (guidKey_in, MF_PD_PLAYBACK_BOUNDARY_TIME))
-  {
-    *punValue = 0;
-    return S_OK;
-  } // end IF
-
-  ACE_DEBUG ((LM_ERROR,
-              ACE_TEXT ("invalid/unknown key GUID (was: \"%s\"), aborting\n"),
-              ACE_TEXT (Common_Tools::GUIDToString (guidKey_in).c_str ())));
-
-  return MF_E_ATTRIBUTENOTFOUND;
-}
-
-template <typename TimePolicyType,
-          typename MessageType,
-          typename ConfigurationType>
-HRESULT
-Stream_MediaFramework_MediaFoundation_MediaSource_T<TimePolicyType,
-                                                    MessageType,
-                                                    ConfigurationType>::GetBlobSize (REFGUID guidKey_in,
-                                                                                     UINT32* pcbBlobSize)
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_MediaFoundation_MediaSource_T::GetBlobSize"));
-
-  // sanity check(s)
-  ACE_ASSERT (pcbBlobSize);
-
-#if (NTDDI_VERSION >= NTDDI_WIN10_RS4)
-  // {F715CF3E-A964-4C3F-94AE-9D6BA7264641}
-  if (InlineIsEqualGUID (guidKey_in, MF_SD_AMBISONICS_SAMPLE3D_DESCRIPTION))
-  {
-    *pcbBlobSize = sizeof (struct AMBISONICS_PARAMS);
-    return S_OK;
-  } // end IF
-#endif // NTDDI_VERSION >= NTDDI_WIN10_RS4
-
-  ACE_DEBUG ((LM_ERROR,
-              ACE_TEXT ("invalid/unknown key GUID (was: \"%s\"), aborting\n"),
-              ACE_TEXT (Common_Tools::GUIDToString (guidKey_in).c_str ())));
-
-  return MF_E_ATTRIBUTENOTFOUND;
-}
-
-template <typename TimePolicyType,
-          typename MessageType,
-          typename ConfigurationType>
-HRESULT
-Stream_MediaFramework_MediaFoundation_MediaSource_T<TimePolicyType,
-                                                    MessageType,
-                                                    ConfigurationType>::DeleteItem (REFGUID guidKey_in)
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_MediaFoundation_MediaSource_T::DeleteItem"));
-
-  //if (InlineIsEqualGUID (guidKey_in, GUID_NULL))
-  //{
-  //  return S_OK;
-  //} // end IF
-
-  // *TODO*: {0B5E1C7E-BD76-46BC-896C-B2EDB40DD803}
-  ACE_DEBUG ((LM_WARNING,
-              ACE_TEXT ("invalid/unknown key GUID (was: \"%s\"), continuing\n"),
-              ACE_TEXT (Common_Tools::GUIDToString (guidKey_in).c_str ())));
-
-  return S_OK;
-}
-
-template <typename TimePolicyType,
-          typename MessageType,
-          typename ConfigurationType>
-HRESULT
-Stream_MediaFramework_MediaFoundation_MediaSource_T<TimePolicyType,
-                                                    MessageType,
-                                                    ConfigurationType>::SetUnknown (REFGUID guidKey_in,
-                                                                                    IUnknown* unknown_in)
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_MediaFoundation_MediaSource_T::SetUnknown"));
-
-  // sanity check(s)
-  ACE_ASSERT (unknown_in);
-
-  //if (InlineIsEqualGUID (guidKey_in, GUID_NULL))
-  //{
-  //  return S_OK;
-  //} // end IF
-
-  // *TODO*: {0B5E1C7E-BD76-46BC-896C-B2EDB40DD803}
-  ACE_DEBUG ((LM_WARNING,
-              ACE_TEXT ("invalid/unknown key GUID (was: \"%s\"), continuing\n"),
-              ACE_TEXT (Common_Tools::GUIDToString (guidKey_in).c_str ())));
-
-  return S_OK;
-}
-
-template <typename TimePolicyType,
-          typename MessageType,
-          typename ConfigurationType>
-HRESULT
-Stream_MediaFramework_MediaFoundation_MediaSource_T<TimePolicyType,
-                                                    MessageType,
-                                                    ConfigurationType>::GetCurrentMediaType (IMFMediaType** ppMediaType)
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_MediaFoundation_MediaSource_T::GetCurrentMediaType"));
-
-  // sanity check(s)
-  ACE_ASSERT (ppMediaType && !*ppMediaType);
-  if (!configuration_ || !configuration_->mediaType)
-    return MF_E_NOT_INITIALIZED;
-
-  HRESULT result = MFCreateMediaType (ppMediaType);
-  if (FAILED (result) || !*ppMediaType)
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to MFCreateMediaType(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
-    return result;
-  } // end IF
-  result = configuration_->mediaType->CopyAllItems (*ppMediaType);
-  if (FAILED (result))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to IMFMediaType::CopyAllItems(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
-    (*ppMediaType)->Release (); *ppMediaType = NULL;
-    return result;
-  } // end IF
-
-  return S_OK;
-}
-
-template <typename TimePolicyType,
-          typename MessageType,
-          typename ConfigurationType>
-HRESULT
-Stream_MediaFramework_MediaFoundation_MediaSource_T<TimePolicyType,
-                                                    MessageType,
-                                                    ConfigurationType>::GetMajorType (GUID* pguidMajorType)
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_MediaFoundation_MediaSource_T::GetMajorType"));
-
-  // sanity check(s)
-  ACE_ASSERT (pguidMajorType);
-
-  *pguidMajorType = MFMediaType_Video;
-
-  return S_OK;
-}
-
-template <typename TimePolicyType,
-          typename MessageType,
-          typename ConfigurationType>
-HRESULT
-Stream_MediaFramework_MediaFoundation_MediaSource_T<TimePolicyType,
-                                                    MessageType,
-                                                    ConfigurationType>::GetMediaTypeByIndex (DWORD dwIndex,
-                                                                                             IMFMediaType** ppType)
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_MediaFoundation_MediaSource_T::GetMediaTypeByIndex"));
-
-  // sanity check(s)
-  ACE_ASSERT (ppType && !*ppType);
-  if (dwIndex > 0)
-    return MF_E_NO_MORE_TYPES;
-  ACE_ASSERT (configuration_);
-  ACE_ASSERT (configuration_->mediaType);
-
-  HRESULT result = MFCreateMediaType (ppType);
-  if (FAILED (result))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to MFCreateMediaType(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
-    return result;
-  } // end IF
-  ACE_ASSERT (*ppType);
-  result = configuration_->mediaType->CopyAllItems (*ppType);
-  if (FAILED (result))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to IMFMediaType::CopyAllItems(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
-    (*ppType)->Release (); *ppType = NULL;
-    return result;
-  } // end IF
-
-  return S_OK;
-}
-
-template <typename TimePolicyType,
-          typename MessageType,
-          typename ConfigurationType>
-HRESULT
-Stream_MediaFramework_MediaFoundation_MediaSource_T<TimePolicyType,
-                                                    MessageType,
-                                                    ConfigurationType>::GetMediaTypeCount (DWORD* pdwTypeCount)
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_MediaFoundation_MediaSource_T::GetMediaTypeCount"));
-
-  // sanity check(s)
-  ACE_ASSERT (pdwTypeCount);
-
-  *pdwTypeCount = 1;
-
-  return S_OK;
-}
-
-template <typename TimePolicyType,
-          typename MessageType,
-          typename ConfigurationType>
-HRESULT
-Stream_MediaFramework_MediaFoundation_MediaSource_T<TimePolicyType,
-                                                    MessageType,
-                                                    ConfigurationType>::IsMediaTypeSupported (IMFMediaType* pMediaType,
-                                                                                              IMFMediaType** ppMediaType)
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_MediaFoundation_MediaSource_T::IsMediaTypeSupported"));
-
-  // sanity check(s)
-  ACE_ASSERT (pMediaType);
-
-  ACE_ASSERT (false);
-
-  return S_OK;
-}
-
-template <typename TimePolicyType,
-          typename MessageType,
-          typename ConfigurationType>
-HRESULT
-Stream_MediaFramework_MediaFoundation_MediaSource_T<TimePolicyType,
-                                                    MessageType,
-                                                    ConfigurationType>::SetCurrentMediaType (IMFMediaType* pMediaType)
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_MediaFoundation_MediaSource_T::IsMediaTypeSupported"));
-
-  // sanity check(s)
-  ACE_ASSERT (pMediaType);
-  ACE_ASSERT (configuration_);
-  ACE_ASSERT (configuration_->mediaType);
-
-  DWORD flags = 0;
-  return configuration_->mediaType->IsEqual (pMediaType, &flags);
-}
+//template <typename TimePolicyType,
+//          typename MessageType,
+//          typename ConfigurationType>
+//HRESULT
+//Stream_MediaFramework_MediaFoundation_MediaSource_T<TimePolicyType,
+//                                                    MessageType,
+//                                                    ConfigurationType>::Clone (IMFPresentationDescriptor** ppPresentationDescriptor)
+//{
+//  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_MediaFoundation_MediaSource_T::Clone"));
+//
+//  ACE_UNUSED_ARG (ppPresentationDescriptor);
+//
+//  ACE_ASSERT (false);
+//  ACE_NOTSUP_RETURN (E_FAIL);
+//
+//  ACE_NOTREACHED (return E_FAIL;)
+//}
+//
+//template <typename TimePolicyType,
+//          typename MessageType,
+//          typename ConfigurationType>
+//HRESULT
+//Stream_MediaFramework_MediaFoundation_MediaSource_T<TimePolicyType,
+//                                                    MessageType,
+//                                                    ConfigurationType>::DeselectStream (DWORD dwIndex)
+//{
+//  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_MediaFoundation_MediaSource_T::DeselectStream"));
+//
+//  ACE_UNUSED_ARG (dwIndex);
+//
+//  // sanity check(s)
+//  ACE_ASSERT (mediaStream_);
+//
+//  mediaStream_->selected_ = false;
+//
+//  ACE_DEBUG ((LM_DEBUG,
+//              ACE_TEXT ("stream deselected (index was: %d)\n"),
+//              dwIndex));
+//
+//  return S_OK;
+//}
+//
+//template <typename TimePolicyType,
+//          typename MessageType,
+//          typename ConfigurationType>
+//HRESULT
+//Stream_MediaFramework_MediaFoundation_MediaSource_T<TimePolicyType,
+//                                                    MessageType,
+//                                                    ConfigurationType>::GetStreamDescriptorByIndex (DWORD dwIndex,
+//                                                                                                    BOOL* pfSelected,
+//                                                                                                    IMFStreamDescriptor** ppStreamDescriptor)
+//{
+//  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_MediaFoundation_MediaSource_T::GetStreamDescriptorByIndex"));
+//
+//  ACE_UNUSED_ARG (dwIndex);
+//
+//  // sanity check(s)
+//  ACE_ASSERT (pfSelected);
+//  ACE_ASSERT (ppStreamDescriptor && !*ppStreamDescriptor);
+//
+//  *pfSelected = (mediaStream_ ? (mediaStream_->selected_ ? TRUE : FALSE)
+//                              : FALSE);
+//
+//  return QueryInterface (IID_PPV_ARGS (ppStreamDescriptor));
+//}
+//
+//template <typename TimePolicyType,
+//          typename MessageType,
+//          typename ConfigurationType>
+//HRESULT
+//Stream_MediaFramework_MediaFoundation_MediaSource_T<TimePolicyType,
+//                                                    MessageType,
+//                                                    ConfigurationType>::GetStreamDescriptorCount (DWORD* pdwDescriptorCount)
+//{
+//  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_MediaFoundation_MediaSource_T::DeselectStream"));
+//
+//  // sanity check(s)
+//  ACE_ASSERT (pdwDescriptorCount);
+//
+//  *pdwDescriptorCount = 1;
+//
+//  return S_OK;
+//}
+//
+//template <typename TimePolicyType,
+//          typename MessageType,
+//          typename ConfigurationType>
+//HRESULT
+//Stream_MediaFramework_MediaFoundation_MediaSource_T<TimePolicyType,
+//                                                    MessageType,
+//                                                    ConfigurationType>::SelectStream (DWORD dwIndex)
+//{
+//  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_MediaFoundation_MediaSource_T::SelectStream"));
+//
+//  ACE_UNUSED_ARG (dwIndex);
+//
+//  // sanity check(s)
+//  ACE_ASSERT (mediaStream_);
+//
+//  mediaStream_->selected_ = true;
+//
+//  ACE_DEBUG ((LM_DEBUG,
+//              ACE_TEXT ("stream selected (index was: %d)\n"),
+//              dwIndex));
+//
+//  return S_OK;
+//}
+
+//template <typename TimePolicyType,
+//          typename MessageType,
+//          typename ConfigurationType>
+//HRESULT
+//Stream_MediaFramework_MediaFoundation_MediaSource_T<TimePolicyType,
+//                                                    MessageType,
+//                                                    ConfigurationType>::GetMediaTypeHandler (IMFMediaTypeHandler** ppMediaTypeHandler)
+//{
+//  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_MediaFoundation_MediaSource_T::GetMediaTypeHandler"));
+//
+//  // sanity check(s)
+//  ACE_ASSERT (ppMediaTypeHandler && !*ppMediaTypeHandler);
+//
+//  return QueryInterface (IID_PPV_ARGS (ppMediaTypeHandler));
+//}
+//
+//template <typename TimePolicyType,
+//          typename MessageType,
+//          typename ConfigurationType>
+//HRESULT
+//Stream_MediaFramework_MediaFoundation_MediaSource_T<TimePolicyType,
+//                                                    MessageType,
+//                                                    ConfigurationType>::GetStreamIdentifier (DWORD* pdwStreamIdentifier)
+//{
+//  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_MediaFoundation_MediaSource_T::GetStreamIdentifier"));
+//
+//  // sanity check(s)
+//  ACE_ASSERT (pdwStreamIdentifier);
+//
+//  *pdwStreamIdentifier = 0;
+//
+//  return S_OK;
+//}
+//
+//template <typename TimePolicyType,
+//          typename MessageType,
+//          typename ConfigurationType>
+//HRESULT
+//Stream_MediaFramework_MediaFoundation_MediaSource_T<TimePolicyType,
+//                                                    MessageType,
+//                                                    ConfigurationType>::GetUINT32 (REFGUID guidKey_in,
+//                                                                                   UINT32* punValue)
+//{
+//  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_MediaFoundation_MediaSource_T::GetUINT32"));
+//
+//  // sanity check(s)
+//  ACE_ASSERT (punValue);
+//
+//  // {00AF2181-BDC2-423C-ABCA-F503593BC121}
+//  if (InlineIsEqualGUID (guidKey_in, MF_SD_PROTECTED))
+//  {
+//    *punValue = FALSE;
+//    return S_OK;
+//  } // end IF
+//
+//  // *TODO*: {FAFB680A-39EA-4850-AF71-78FDFB651088}
+//  ACE_DEBUG ((LM_ERROR,
+//              ACE_TEXT ("invalid/unknown key GUID (was: \"%s\"), aborting\n"),
+//              ACE_TEXT (Common_Tools::GUIDToString (guidKey_in).c_str ())));
+//
+//  return MF_E_ATTRIBUTENOTFOUND;
+//}
+//
+//template <typename TimePolicyType,
+//          typename MessageType,
+//          typename ConfigurationType>
+//HRESULT
+//Stream_MediaFramework_MediaFoundation_MediaSource_T<TimePolicyType,
+//                                                    MessageType,
+//                                                    ConfigurationType>::GetUINT64 (REFGUID guidKey_in,
+//                                                                                   UINT64* punValue)
+//{
+//  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_MediaFoundation_MediaSource_T::GetUINT64"));
+//
+//  // sanity check(s)
+//  ACE_ASSERT (punValue);
+//
+//  // {6C990D3B-BB8E-477A-8598-0D5D96FCD88A}
+//  if (InlineIsEqualGUID (guidKey_in, MF_PD_PLAYBACK_BOUNDARY_TIME))
+//  {
+//    *punValue = 0;
+//    return S_OK;
+//  } // end IF
+//
+//  ACE_DEBUG ((LM_ERROR,
+//              ACE_TEXT ("invalid/unknown key GUID (was: \"%s\"), aborting\n"),
+//              ACE_TEXT (Common_Tools::GUIDToString (guidKey_in).c_str ())));
+//
+//  return MF_E_ATTRIBUTENOTFOUND;
+//}
+//
+//template <typename TimePolicyType,
+//          typename MessageType,
+//          typename ConfigurationType>
+//HRESULT
+//Stream_MediaFramework_MediaFoundation_MediaSource_T<TimePolicyType,
+//                                                    MessageType,
+//                                                    ConfigurationType>::GetBlobSize (REFGUID guidKey_in,
+//                                                                                     UINT32* pcbBlobSize)
+//{
+//  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_MediaFoundation_MediaSource_T::GetBlobSize"));
+//
+//  // sanity check(s)
+//  ACE_ASSERT (pcbBlobSize);
+//
+//#if (NTDDI_VERSION >= NTDDI_WIN10_RS4)
+//  // {F715CF3E-A964-4C3F-94AE-9D6BA7264641}
+//  if (InlineIsEqualGUID (guidKey_in, MF_SD_AMBISONICS_SAMPLE3D_DESCRIPTION))
+//  {
+//    *pcbBlobSize = sizeof (struct AMBISONICS_PARAMS);
+//    return S_OK;
+//  } // end IF
+//#endif // NTDDI_VERSION >= NTDDI_WIN10_RS4
+//
+//  ACE_DEBUG ((LM_ERROR,
+//              ACE_TEXT ("invalid/unknown key GUID (was: \"%s\"), aborting\n"),
+//              ACE_TEXT (Common_Tools::GUIDToString (guidKey_in).c_str ())));
+//
+//  return MF_E_ATTRIBUTENOTFOUND;
+//}
+//
+//template <typename TimePolicyType,
+//          typename MessageType,
+//          typename ConfigurationType>
+//HRESULT
+//Stream_MediaFramework_MediaFoundation_MediaSource_T<TimePolicyType,
+//                                                    MessageType,
+//                                                    ConfigurationType>::DeleteItem (REFGUID guidKey_in)
+//{
+//  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_MediaFoundation_MediaSource_T::DeleteItem"));
+//
+//  //if (InlineIsEqualGUID (guidKey_in, GUID_NULL))
+//  //{
+//  //  return S_OK;
+//  //} // end IF
+//
+//  // *TODO*: {0B5E1C7E-BD76-46BC-896C-B2EDB40DD803}
+//  ACE_DEBUG ((LM_WARNING,
+//              ACE_TEXT ("invalid/unknown key GUID (was: \"%s\"), continuing\n"),
+//              ACE_TEXT (Common_Tools::GUIDToString (guidKey_in).c_str ())));
+//
+//  IUNKNOWN_MAP_ITERATOR_T iterator = unknowns_.find (guidKey_in);
+//  ACE_ASSERT (iterator != unknowns_.end ());
+//  (*iterator).second->Release ();
+//  unknowns_.erase (iterator);
+//
+//  return S_OK;
+//}
+//
+//template <typename TimePolicyType,
+//          typename MessageType,
+//          typename ConfigurationType>
+//HRESULT
+//Stream_MediaFramework_MediaFoundation_MediaSource_T<TimePolicyType,
+//                                                    MessageType,
+//                                                    ConfigurationType>::SetUnknown (REFGUID guidKey_in,
+//                                                                                    IUnknown* unknown_in)
+//{
+//  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_MediaFoundation_MediaSource_T::SetUnknown"));
+//
+//  // sanity check(s)
+//  ACE_ASSERT (unknown_in);
+//
+//  //if (InlineIsEqualGUID (guidKey_in, GUID_NULL))
+//  //{
+//  //  return S_OK;
+//  //} // end IF
+//
+//  // *TODO*: {0B5E1C7E-BD76-46BC-896C-B2EDB40DD803}
+//  ACE_DEBUG ((LM_WARNING,
+//              ACE_TEXT ("invalid/unknown key GUID (was: \"%s\"), continuing\n"),
+//              ACE_TEXT (Common_Tools::GUIDToString (guidKey_in).c_str ())));
+//
+//  unknowns_.insert (std::make_pair (guidKey_in, unknown_in));
+//
+//  return S_OK;
+//}
+//
+//template <typename TimePolicyType,
+//          typename MessageType,
+//          typename ConfigurationType>
+//HRESULT
+//Stream_MediaFramework_MediaFoundation_MediaSource_T<TimePolicyType,
+//                                                    MessageType,
+//                                                    ConfigurationType>::GetCurrentMediaType (IMFMediaType** ppMediaType)
+//{
+//  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_MediaFoundation_MediaSource_T::GetCurrentMediaType"));
+//
+//  // sanity check(s)
+//  ACE_ASSERT (ppMediaType && !*ppMediaType);
+//  if (!configuration_ || !configuration_->mediaType)
+//    return MF_E_NOT_INITIALIZED;
+//
+//  HRESULT result = MFCreateMediaType (ppMediaType);
+//  if (FAILED (result) || !*ppMediaType)
+//  {
+//    ACE_DEBUG ((LM_ERROR,
+//                ACE_TEXT ("failed to MFCreateMediaType(): \"%s\", aborting\n"),
+//                ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
+//    return result;
+//  } // end IF
+//  result = configuration_->mediaType->CopyAllItems (*ppMediaType);
+//  if (FAILED (result))
+//  {
+//    ACE_DEBUG ((LM_ERROR,
+//                ACE_TEXT ("failed to IMFMediaType::CopyAllItems(): \"%s\", aborting\n"),
+//                ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
+//    (*ppMediaType)->Release (); *ppMediaType = NULL;
+//    return result;
+//  } // end IF
+//
+//  return S_OK;
+//}
+//
+//template <typename TimePolicyType,
+//          typename MessageType,
+//          typename ConfigurationType>
+//HRESULT
+//Stream_MediaFramework_MediaFoundation_MediaSource_T<TimePolicyType,
+//                                                    MessageType,
+//                                                    ConfigurationType>::GetMajorType (GUID* pguidMajorType)
+//{
+//  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_MediaFoundation_MediaSource_T::GetMajorType"));
+//
+//  // sanity check(s)
+//  ACE_ASSERT (pguidMajorType);
+//
+//  *pguidMajorType = MFMediaType_Video;
+//
+//  return S_OK;
+//}
+//
+//template <typename TimePolicyType,
+//          typename MessageType,
+//          typename ConfigurationType>
+//HRESULT
+//Stream_MediaFramework_MediaFoundation_MediaSource_T<TimePolicyType,
+//                                                    MessageType,
+//                                                    ConfigurationType>::GetMediaTypeByIndex (DWORD dwIndex,
+//                                                                                             IMFMediaType** ppType)
+//{
+//  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_MediaFoundation_MediaSource_T::GetMediaTypeByIndex"));
+//
+//  // sanity check(s)
+//  ACE_ASSERT (ppType && !*ppType);
+//  if (dwIndex > 0)
+//    return MF_E_NO_MORE_TYPES;
+//  ACE_ASSERT (configuration_);
+//  ACE_ASSERT (configuration_->mediaType);
+//
+//  HRESULT result = MFCreateMediaType (ppType);
+//  if (FAILED (result))
+//  {
+//    ACE_DEBUG ((LM_ERROR,
+//                ACE_TEXT ("failed to MFCreateMediaType(): \"%s\", aborting\n"),
+//                ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
+//    return result;
+//  } // end IF
+//  ACE_ASSERT (*ppType);
+//  result = configuration_->mediaType->CopyAllItems (*ppType);
+//  if (FAILED (result))
+//  {
+//    ACE_DEBUG ((LM_ERROR,
+//                ACE_TEXT ("failed to IMFMediaType::CopyAllItems(): \"%s\", aborting\n"),
+//                ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
+//    (*ppType)->Release (); *ppType = NULL;
+//    return result;
+//  } // end IF
+//
+//  return S_OK;
+//}
+//
+//template <typename TimePolicyType,
+//          typename MessageType,
+//          typename ConfigurationType>
+//HRESULT
+//Stream_MediaFramework_MediaFoundation_MediaSource_T<TimePolicyType,
+//                                                    MessageType,
+//                                                    ConfigurationType>::GetMediaTypeCount (DWORD* pdwTypeCount)
+//{
+//  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_MediaFoundation_MediaSource_T::GetMediaTypeCount"));
+//
+//  // sanity check(s)
+//  ACE_ASSERT (pdwTypeCount);
+//
+//  *pdwTypeCount = 1;
+//
+//  return S_OK;
+//}
+//
+//template <typename TimePolicyType,
+//          typename MessageType,
+//          typename ConfigurationType>
+//HRESULT
+//Stream_MediaFramework_MediaFoundation_MediaSource_T<TimePolicyType,
+//                                                    MessageType,
+//                                                    ConfigurationType>::IsMediaTypeSupported (IMFMediaType* pMediaType,
+//                                                                                              IMFMediaType** ppMediaType)
+//{
+//  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_MediaFoundation_MediaSource_T::IsMediaTypeSupported"));
+//
+//  // sanity check(s)
+//  ACE_ASSERT (pMediaType);
+//
+//  ACE_ASSERT (false);
+//
+//  return S_OK;
+//}
+//
+//template <typename TimePolicyType,
+//          typename MessageType,
+//          typename ConfigurationType>
+//HRESULT
+//Stream_MediaFramework_MediaFoundation_MediaSource_T<TimePolicyType,
+//                                                    MessageType,
+//                                                    ConfigurationType>::SetCurrentMediaType (IMFMediaType* pMediaType)
+//{
+//  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_MediaFoundation_MediaSource_T::IsMediaTypeSupported"));
+//
+//  // sanity check(s)
+//  ACE_ASSERT (pMediaType);
+//  ACE_ASSERT (configuration_);
+//  ACE_ASSERT (configuration_->mediaType);
+//
+//  DWORD flags = 0;
+//  return configuration_->mediaType->IsEqual (pMediaType, &flags);
+//}
 
 template <typename TimePolicyType,
           typename MessageType,
@@ -1563,6 +1691,12 @@ Stream_MediaFramework_MediaFoundation_MediaSource_T<TimePolicyType,
        ++iterator)
     (*iterator)->Release ();
   tokens_.clear ();
+
+  for (IUNKNOWN_MAP_ITERATOR_T iterator = unknowns_.begin ();
+       iterator != unknowns_.end ();
+       ++iterator)
+    (*iterator).second->Release ();
+  unknowns_.clear ();
 
   return true;
 }

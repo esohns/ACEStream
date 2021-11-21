@@ -3195,6 +3195,10 @@ update_media_type (gpointer userData_in)
                                                                                                             block_alignment_i);
       ACE_ASSERT (SUCCEEDED (result));
       result =
+        mediafoundation_ui_cb_data_p->configuration->streamConfiguration.configuration_->format->SetUINT32 (MF_MT_SAMPLE_SIZE,
+                                                                                                            block_alignment_i);
+      ACE_ASSERT (SUCCEEDED (result));
+      result =
         mediafoundation_ui_cb_data_p->configuration->streamConfiguration.configuration_->format->SetUINT32 (MF_MT_AUDIO_AVG_BYTES_PER_SECOND,
                                                                                                             sample_rate * block_alignment_i);
       ACE_ASSERT (SUCCEEDED (result));
@@ -3207,6 +3211,14 @@ update_media_type (gpointer userData_in)
       (*mediafoundation_modulehandler_configuration_iterator).second.second->outputFormat =
         Stream_MediaFramework_MediaFoundation_Tools::copy (mediafoundation_ui_cb_data_p->configuration->streamConfiguration.configuration_->format);
       ACE_ASSERT (SUCCEEDED ((*mediafoundation_modulehandler_configuration_iterator).second.second->outputFormat));
+
+      if (mediafoundation_ui_cb_data_p->configuration->mediaFoundationConfiguration.mediaType)
+      {
+        mediafoundation_ui_cb_data_p->configuration->mediaFoundationConfiguration.mediaType->Release (); mediafoundation_ui_cb_data_p->configuration->mediaFoundationConfiguration.mediaType = NULL;
+      } // end IF
+      mediafoundation_ui_cb_data_p->configuration->mediaFoundationConfiguration.mediaType =
+        Stream_MediaFramework_MediaFoundation_Tools::copy (mediafoundation_ui_cb_data_p->configuration->streamConfiguration.configuration_->format);
+      ACE_ASSERT (SUCCEEDED (mediafoundation_ui_cb_data_p->configuration->mediaFoundationConfiguration.mediaType));
 
       break;
     }
@@ -10282,10 +10294,6 @@ combobox_resolution_changed_cb (GtkWidget* widget_in,
                     ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
         return;
       } // end IF
-      result =
-        mediafoundation_ui_cb_data_p->configuration->streamConfiguration.configuration_->format->SetUINT32 (MF_MT_SAMPLE_SIZE,
-                                                                                                            (bits_per_sample / 8));
-      ACE_ASSERT (SUCCEEDED (result));
 
       result =
         mediafoundation_ui_cb_data_p->configuration->streamConfiguration.configuration_->format->GetUINT32 (MF_MT_AUDIO_NUM_CHANNELS,

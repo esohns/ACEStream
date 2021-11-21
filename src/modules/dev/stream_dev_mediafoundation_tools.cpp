@@ -330,12 +330,17 @@ Stream_Device_MediaFoundation_Tools::loadDeviceTopology (const std::string& devi
                 ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
     goto error;
   } // end IF
-  ACE_ASSERT (is_selected);
+  //ACE_ASSERT (is_selected);
   presentation_descriptor_p->Release (); presentation_descriptor_p = NULL;
   result = topology_node_p->SetUnknown (MF_TOPONODE_STREAM_DESCRIPTOR,
                                         stream_descriptor_p);
   ACE_ASSERT (SUCCEEDED (result));
   stream_descriptor_p->Release (); stream_descriptor_p = NULL;
+
+  result = topology_node_p->SetUINT32 (MF_TOPONODE_MARKIN_HERE, TRUE);
+  ACE_ASSERT (SUCCEEDED (result));
+  result = topology_node_p->SetUINT32 (MF_TOPONODE_MARKOUT_HERE, TRUE);
+  ACE_ASSERT (SUCCEEDED (result));
 
   result = topology_out->AddNode (topology_node_p);
   if (FAILED (result))

@@ -3153,11 +3153,14 @@ Stream_Module_Decoder_Tools::loadAudioRendererTopology (const std::string& devic
   struct _GUID GUID_s = GUID_NULL;
   IMFTransform* transform_p = NULL;
   TOPOID node_id = 0;
-  //IMFAudioProcessorControl* video_processor_control_p = NULL;
+  //IMFAudioProcessorControl* audio_processor_control_p = NULL;
   IMFMediaSink* media_sink_p = NULL;
   IMFStreamSink* stream_sink_p = NULL;
+  IMFPresentationDescriptor* presentation_descriptor_p = NULL;
+  BOOL selected_b = FALSE;
+  IMFStreamDescriptor* stream_descriptor_p = NULL;
   IMFMediaTypeHandler* media_type_handler_p = NULL;
-  int i = 0;
+  DWORD characteristics_i = 0;
 
   if (topology_inout)
   {
@@ -3226,7 +3229,7 @@ Stream_Module_Decoder_Tools::loadAudioRendererTopology (const std::string& devic
   } // end IF
   unknown_p->Release (); unknown_p = NULL;
 
-  // step1a: set default capture media type ?
+  // step1a: set capture media type
   if (mediaType_inout)
   {
     result = mediaType_inout->GetCount (&item_count);
@@ -3258,6 +3261,22 @@ Stream_Module_Decoder_Tools::loadAudioRendererTopology (const std::string& devic
                 ACE_TEXT ("failed to Stream_MediaFramework_MediaFoundation_Tools::copy(), aborting\n")));
     goto error;
   } // end IF
+  result =
+    media_source_p->CreatePresentationDescriptor (&presentation_descriptor_p);
+  ACE_ASSERT (SUCCEEDED (result) && presentation_descriptor_p);
+  result =
+    presentation_descriptor_p->GetStreamDescriptorByIndex (0,
+                                                           &selected_b,
+                                                           &stream_descriptor_p);
+  ACE_ASSERT (SUCCEEDED (result) && stream_descriptor_p);
+  presentation_descriptor_p->Release (); presentation_descriptor_p = NULL;
+  result = stream_descriptor_p->GetMediaTypeHandler (&media_type_handler_p);
+  ACE_ASSERT (SUCCEEDED (result) && media_type_handler_p);
+  stream_descriptor_p->Release (); stream_descriptor_p = NULL;
+  media_type_handler_p->SetCurrentMediaType (media_type_p);
+  ACE_ASSERT (SUCCEEDED (result));
+  media_type_handler_p->Release (); media_type_handler_p = NULL;
+
   result = media_type_p->GetGUID (MF_MT_SUBTYPE,
                                   &sub_type);
   if (FAILED (result))
@@ -3675,11 +3694,11 @@ continue_3:
                                                &stream_sink_p);
   ACE_ASSERT (SUCCEEDED (result));
   media_sink_p->Release (); media_sink_p = NULL;
-  //result = stream_sink_p->GetMediaTypeHandler (&media_type_handler_p);
-  //ACE_ASSERT (SUCCEEDED (result));
-  //media_type_handler_p->SetCurrentMediaType (media_type_p);
-  //ACE_ASSERT (SUCCEEDED (result));
-  //media_type_handler_p->Release ();
+  result = stream_sink_p->GetMediaTypeHandler (&media_type_handler_p);
+  ACE_ASSERT (SUCCEEDED (result));
+  media_type_handler_p->SetCurrentMediaType (media_type_p);
+  ACE_ASSERT (SUCCEEDED (result));
+  media_type_handler_p->Release (); media_type_handler_p = NULL;
 
 #if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
   result = MFCreateTopologyNode (MF_TOPOLOGY_OUTPUT_NODE,
@@ -3701,8 +3720,8 @@ continue_3:
   ACE_ASSERT (SUCCEEDED (result));
   result = topology_node_p->SetUINT32 (MF_TOPONODE_STREAMID, 0);
   ACE_ASSERT (SUCCEEDED (result));
-  //result = topology_node_p->SetUINT32 (MF_TOPONODE_NOSHUTDOWN_ON_REMOVE, FALSE);
-  //ACE_ASSERT (SUCCEEDED (result));
+  result = topology_node_p->SetUINT32 (MF_TOPONODE_NOSHUTDOWN_ON_REMOVE, FALSE);
+  ACE_ASSERT (SUCCEEDED (result));
   result = topology_inout->AddNode (topology_node_p);
   if (FAILED (result))
   {
@@ -3747,10 +3766,16 @@ continue_4:
 
   result = activate_p->ActivateObject (IID_PPV_ARGS (&media_sink_p));
   ACE_ASSERT (SUCCEEDED (result));
-  activate_p->Release (); activate_p = NULL;
   result = media_sink_p->GetStreamSinkByIndex (0,
                                                &stream_sink_p);
   ACE_ASSERT (SUCCEEDED (result));
+  result = media_sink_p->GetCharacteristics (&characteristics_i);
+  ACE_ASSERT (SUCCEEDED (result));
+  if (characteristics_i & MEDIASINK_CLOCK_REQUIRED)
+  {
+    result = media_sink_p->SetPresentationClock (NULL);
+    ACE_ASSERT (SUCCEEDED (result));
+  } // end IF
   media_sink_p->Release (); media_sink_p = NULL;
   media_type_handler_p = NULL;
   result = stream_sink_p->GetMediaTypeHandler (&media_type_handler_p);
@@ -3771,16 +3796,20 @@ continue_4:
   } // end IF
   ACE_ASSERT (topology_node_p);
 #endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
-  result = topology_node_p->SetObject (stream_sink_p);
+  //result = topology_node_p->SetObject (stream_sink_p);
+  result = topology_node_p->SetObject (activate_p);
   ACE_ASSERT (SUCCEEDED (result));
+  activate_p->Release (); activate_p = NULL;
   stream_sink_p->Release (); stream_sink_p = NULL;
   result = topology_node_p->SetUINT32 (MF_TOPONODE_CONNECT_METHOD,
                                        MF_CONNECT_DIRECT);
   ACE_ASSERT (SUCCEEDED (result));
   result = topology_node_p->SetUINT32 (MF_TOPONODE_STREAMID, 0);
   ACE_ASSERT (SUCCEEDED (result));
-  //result = topology_node_p->SetUINT32 (MF_TOPONODE_NOSHUTDOWN_ON_REMOVE, FALSE);
-  //ACE_ASSERT (SUCCEEDED (result));
+  result = topology_node_p->SetUINT32 (MF_TOPONODE_NOSHUTDOWN_ON_REMOVE, FALSE);
+  ACE_ASSERT (SUCCEEDED (result));
+  result = topology_node_p->SetUINT32 (MF_TOPONODE_DISABLE_PREROLL, TRUE);
+  ACE_ASSERT (SUCCEEDED (result));
   result = topology_inout->AddNode (topology_node_p);
   if (FAILED (result))
   {
