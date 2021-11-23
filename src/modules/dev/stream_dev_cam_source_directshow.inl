@@ -449,7 +449,7 @@ error_2:
       inherited2::getWindowType (inherited::configuration_->window,
                                  window_h);
       ACE_ASSERT (window_h);
-      if (!initialize_DirectShow (ACE_TEXT_ALWAYS_CHAR (inherited::configuration_->deviceIdentifier.identifier._string),
+      if (!initialize_DirectShow (inherited::configuration_->deviceIdentifier,
                                   window_h,
                                   ICaptureGraphBuilder2_,
                                   IAMVideoControl_,
@@ -1097,7 +1097,7 @@ Stream_Dev_Cam_Source_DirectShow_T<ACE_SYNCH_USE,
                                    StatisticContainerType,
                                    TimerManagerType,
                                    UserDataType,
-                                   MediaSampleIsDataMessage>::initialize_DirectShow (const std::string& devicePath_in,
+                                   MediaSampleIsDataMessage>::initialize_DirectShow (const struct Stream_Device_Identifier& deviceIdentifier_in,
                                                                                      HWND windowHandle_in,
                                                                                      ICaptureGraphBuilder2*& ICaptureGraphBuilder2_out,
                                                                                      IAMVideoControl*& IAMVideoControl_out,
@@ -1140,17 +1140,17 @@ Stream_Dev_Cam_Source_DirectShow_T<ACE_SYNCH_USE,
   struct _AllocatorProperties allocator_properties;
   ACE_OS::memset (&allocator_properties, 0, sizeof (allocator_properties));
 
-  if (!Stream_Device_DirectShow_Tools::loadDeviceGraph (devicePath_in,
+  if (!Stream_Device_DirectShow_Tools::loadDeviceGraph (deviceIdentifier_in,
                                                         CLSID_VideoInputDeviceCategory,
                                                         graph_builder_p,
                                                         buffer_negotiation_p,
                                                         stream_config_p,
                                                         graph_layout))
-  {
+  { ACE_ASSERT (deviceIdentifier_in.identifierDiscriminator == Stream_Device_Identifier::STRING);
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to Stream_Device_DirectShow_Tools::loadDeviceGraph(\"%s\"), aborting\n"),
                 inherited::mod_->name (),
-                ACE_TEXT (devicePath_in.c_str ())));
+                ACE_TEXT (deviceIdentifier_in.identifier._string)));
     goto error;
   } // end IF
   ACE_ASSERT (graph_builder_p);

@@ -188,14 +188,13 @@ Stream_AVSave_DirectShow_Stream::initialize (const inherited::CONFIGURATION_T& c
     goto continue_;
   } // end IF
 
-  ACE_ASSERT ((*iterator).second.second->deviceIdentifier.identifierDiscriminator == Stream_Device_Identifier::STRING);
-  if (!Stream_Device_DirectShow_Tools::loadDeviceGraph (ACE_TEXT_ALWAYS_CHAR ((*iterator).second.second->deviceIdentifier.identifier._string),
+  if (!Stream_Device_DirectShow_Tools::loadDeviceGraph ((*iterator).second.second->deviceIdentifier,
                                                         CLSID_VideoInputDeviceCategory,
                                                         (*iterator).second.second->builder,
                                                         buffer_negotiation_p,
                                                         stream_config_p,
                                                         graph_layout))
-  {
+  { ACE_ASSERT ((*iterator).second.second->deviceIdentifier.identifierDiscriminator == Stream_Device_Identifier::STRING);
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to Stream_Device_DirectShow_Tools::loadDeviceGraph(\"%s\"), aborting\n"),
                 ACE_TEXT (stream_name_string_),
@@ -1039,8 +1038,8 @@ Stream_AVSave_MediaFoundation_Stream::initialize (const inherited::CONFIGURATION
   } // end IF
 #endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
 
-  ACE_ASSERT ((*iterator).second.second->deviceIdentifier.identifierDiscriminator == Stream_Device_Identifier::STRING);
-  if (!Stream_Module_Decoder_Tools::loadVideoRendererTopology (ACE_TEXT_ALWAYS_CHAR ((*iterator).second.second->deviceIdentifier.identifier._string),
+  ACE_ASSERT ((*iterator).second.second->deviceIdentifier.identifierDiscriminator == Stream_Device_Identifier::GUID);
+  if (!Stream_Module_Decoder_Tools::loadVideoRendererTopology ((*iterator).second.second->deviceIdentifier.identifier._guid,
                                                                configuration_in.configuration_->format,
                                                                source_impl_p,
                                                                NULL,

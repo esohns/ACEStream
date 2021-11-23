@@ -112,9 +112,9 @@ class Stream_MediaFramework_MediaFoundation_Target_T
   virtual STDMETHODIMP Invoke (IMFAsyncResult*); // asynchronous result handle
 
  protected:
-  // enqueue MB_STOP --> stop worker thread(s)
-  virtual void stop (bool = true,   // wait for completion ?
-                     bool = false); // high priority ? (i.e. do not wait for queued messages)
+  //// enqueue MB_STOP --> stop worker thread(s)
+  //virtual void stop (bool = true,   // wait for completion ?
+  //                   bool = false); // high priority ? (i.e. do not wait for queued messages)
 
  private:
   // convenient types
@@ -141,14 +141,13 @@ class Stream_MediaFramework_MediaFoundation_Target_T
 #endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0601)
                                    TOPOID&,                        // return value: node id
                                    IMFMediaSession*&);             // intput/return value: media session handle
-  inline void finalize_MediaFoundation () {}
+  //inline void finalize_MediaFoundation () {}
 
-  bool                                isFirst_;
+  bool             isFirst_;
 
-  LONGLONG                            baseTimeStamp_;
-  bool                                manageMediaSession_;
-  IMFMediaSession*                    mediaSession_;
-  typename inherited::MESSAGE_QUEUE_T queue_;
+  LONGLONG         baseTimeStamp_;
+  bool             manageMediaSession_;
+  IMFMediaSession* mediaSession_;
 };
 
 // include template definition

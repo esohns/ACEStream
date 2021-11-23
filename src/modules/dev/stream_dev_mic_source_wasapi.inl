@@ -245,8 +245,9 @@ Stream_Dev_Mic_Source_WASAPI_T<ACE_SYNCH_USE,
       } // end IF
 
       ACE_ASSERT (!session_data_r.formats.empty ());
-      struct _AMMediaType media_type_s;
+      struct _AMMediaType media_type_s, media_type_2;
       ACE_OS::memset (&media_type_s, 0, sizeof (struct _AMMediaType));
+      ACE_OS::memset (&media_type_2, 0, sizeof (struct _AMMediaType));
       inherited2::getMediaType (session_data_r.formats.back (),
                                 media_type_s);
       ACE_ASSERT (media_type_s.majortype == MEDIATYPE_Audio);
@@ -272,6 +273,8 @@ Stream_Dev_Mic_Source_WASAPI_T<ACE_SYNCH_USE,
       UINT num_devices_i = 0;
       result = devices_p->GetCount (&num_devices_i);
       ACE_ASSERT (SUCCEEDED (result));
+      enum _AUDCLNT_SHAREMODE share_mode_e =
+        STREAM_DEV_MIC_WASAPI_DEFAULT_SHAREMODE;
       IMMDevice* device_p = NULL;
       struct _GUID GUID_s;
       IPropertyStore* property_store_p = NULL;
@@ -309,7 +312,7 @@ Stream_Dev_Mic_Source_WASAPI_T<ACE_SYNCH_USE,
          AUDCLNT_SESSIONFLAGS_EXPIREWHENUNOWNED);
       HANDLE task_h = NULL;
       DWORD task_index_i = 0;
-      //struct tWAVEFORMATEX* audio_info_2 = NULL;
+      struct tWAVEFORMATEX* audio_info_2 = NULL;
       if (!device_p)
       {
         ACE_DEBUG ((LM_ERROR,
@@ -323,28 +326,54 @@ Stream_Dev_Mic_Source_WASAPI_T<ACE_SYNCH_USE,
                                      NULL, (void**)&audioClient_);
       ACE_ASSERT (SUCCEEDED (result_2) && audioClient_);
       // sanity check(s)
-      result_2 = audioClient_->IsFormatSupported (AUDCLNT_SHAREMODE_EXCLUSIVE,
-                                                  audio_info_p,
-                                                  NULL/*&audio_info_2*/);
+      result_2 =
+        audioClient_->IsFormatSupported (share_mode_e,
+                                         audio_info_p,
+                                         ((share_mode_e == AUDCLNT_SHAREMODE_EXCLUSIVE) ? NULL : &audio_info_2));
       if (unlikely (FAILED (result_2)))
-      { //ACE_ASSERT (audio_info_2);
+      {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: failed to IAudioClient::IsFormatSupported(%d,%s), aborting\n"),
-                    //ACE_TEXT ("%s: failed to IAudioClient::IsFormatSupported(%d,%s): closest match: \"%s\", aborting\n"),
                     inherited::mod_->name (),
-                    AUDCLNT_SHAREMODE_EXCLUSIVE,
-                    ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::toString (*audio_info_p).c_str ())));//,
-                    //ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::toString (*audio_info_2).c_str ())));
+                    share_mode_e,
+                    ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::toString (*audio_info_p).c_str ())));
         device_p->Release (); device_p = NULL;
-        //CoTaskMemFree (audio_info_2);
         goto error;
+      } // end IF
+      if ((result_2 == S_FALSE) && audio_info_2)
+      {
+        ACE_DEBUG ((LM_WARNING,
+                    ACE_TEXT ("%s: closest format matched is: \"%s\" (was: \"%s\"), continuing\n"),
+                    inherited::mod_->name (),
+                    ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::toString (*audio_info_2).c_str ()),
+                    ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::toString (*audio_info_p).c_str ())));
+        result_2 = CreateAudioMediaType (audio_info_2,
+                                         &media_type_2,
+                                         TRUE);
+        if (FAILED (result_2))
+        {
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("%s: failed to CreateAudioMediaType(): \"%s\", aborting\n"),
+                      inherited::mod_->name (),
+                      ACE_TEXT (Common_Error_Tools::errorToString (result_2).c_str ())));
+          device_p->Release (); device_p = NULL;
+          CoTaskMemFree (audio_info_2); audio_info_2 = NULL;
+          goto error;
+        } // end IF
+        MediaType media_type_3;
+        ACE_OS::memset (&media_type_3, 0, sizeof (MediaType));
+        inherited2::getMediaType (media_type_2,
+                                  media_type_3);
+        session_data_r.formats.push_back (media_type_3);
+        Stream_MediaFramework_DirectShow_Tools::free (media_type_2);
+        audio_info_p = audio_info_2;
       } // end IF
       result_2 = audioClient_->GetDevicePeriod (NULL, &requested_duration_i);
       ACE_ASSERT (SUCCEEDED (result_2));
-      result_2 = audioClient_->Initialize (AUDCLNT_SHAREMODE_EXCLUSIVE,
+      result_2 = audioClient_->Initialize (share_mode_e,
                                            stream_flags_i,
                                            requested_duration_i,
-                                           requested_duration_i,
+                                           ((share_mode_e == AUDCLNT_SHAREMODE_EXCLUSIVE) ? requested_duration_i : 0),
                                            audio_info_p,
                                            NULL);
 retry:
@@ -360,24 +389,36 @@ retry:
           result_2 = device_p->Activate (__uuidof (IAudioClient), CLSCTX_ALL,
                                          NULL, (void**)&audioClient_);
           ACE_ASSERT (SUCCEEDED (result_2) && audioClient_);
-          result_2 = audioClient_->Initialize (AUDCLNT_SHAREMODE_EXCLUSIVE,
+          result_2 = audioClient_->Initialize (share_mode_e,
                                                stream_flags_i,
                                                requested_duration_i,
-                                               requested_duration_i,
+                                               ((share_mode_e == AUDCLNT_SHAREMODE_EXCLUSIVE) ? requested_duration_i : 0),
                                                audio_info_p,
                                                NULL);
           goto retry;
         } // end IF
         ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("%s: failed to IAudioClient::Initialize(%d,%q,%q,%s): \"%s\", aborting\n"),
+                    ACE_TEXT ("%s: failed to IAudioClient::Initialize(%d,%d,%q,%q,%s): \"%s\", aborting\n"),
                     inherited::mod_->name (),
-                    stream_flags_i, requested_duration_i, requested_duration_i,
+                    share_mode_e,
+                    stream_flags_i,
+                    requested_duration_i,
+                    ((share_mode_e == AUDCLNT_SHAREMODE_EXCLUSIVE) ? requested_duration_i : 0),
                     ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::toString (*audio_info_p).c_str ()),
                     ACE_TEXT (Common_Error_Tools::errorToString (result_2, true, false).c_str ())));
+        if (audio_info_2)
+        {
+          CoTaskMemFree (audio_info_2); audio_info_2 = NULL;
+        } // end IF
         device_p->Release (); device_p = NULL;
         goto error;
       } // end IF
+      if (audio_info_2)
+      {
+        CoTaskMemFree (audio_info_2); audio_info_2 = NULL;
+      } // end IF
       device_p->Release (); device_p = NULL;
+
       ACE_ASSERT (!event_);
       event_ = CreateEvent (NULL,  // lpEventAttributes
                             FALSE, // bManualReset

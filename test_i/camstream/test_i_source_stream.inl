@@ -279,7 +279,7 @@ Test_I_Source_DirectShow_Stream_T<StreamStateType,
   else
     release_builder = true;
 
-  if (!Stream_Device_DirectShow_Tools::loadDeviceGraph ((*iterator).second.second->deviceIdentifier.identifier._string,
+  if (!Stream_Device_DirectShow_Tools::loadDeviceGraph ((*iterator).second.second->deviceIdentifier,
                                                         CLSID_VideoInputDeviceCategory,
                                                         (*iterator).second.second->builder,
                                                         buffer_negotiation_p,
@@ -1019,7 +1019,8 @@ Test_I_Source_MediaFoundation_Stream_T<StreamStateType,
     input_mediatype_was_null = true;
   } // end IF
   ACE_ASSERT (configuration_in.configuration_->format);
-  if (!Stream_Module_Decoder_Tools::loadVideoRendererTopology ((*iterator).second.second->deviceIdentifier.identifier._string,
+  ACE_ASSERT ((*iterator).second.second->deviceIdentifier.identifierDiscriminator == Stream_Device_Identifier::GUID);
+  if (!Stream_Module_Decoder_Tools::loadVideoRendererTopology ((*iterator).second.second->deviceIdentifier.identifier._guid,
                                                                configuration_in.configuration_->format,
                                                                source_impl_p,
                                                                (*iterator).second.second->window,

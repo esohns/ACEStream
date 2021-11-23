@@ -115,6 +115,7 @@ endif (UNIX)
 set (source_files
      stream_lib_common.h
      stream_lib_defines.h
+     stream_lib_macros.h
      stream_lib_mediatype_converter.cpp
      stream_lib_mediatype_converter.h
      stream_lib_mediatype_converter.inl
@@ -235,6 +236,7 @@ elseif (WIN32)
   target_link_libraries (${PROJECT_NAME}_MediaFramework PUBLIC $ENV{LIB_ROOT}/DXSDK/Lib/x86/D3dx9.lib)
  endif (DEFINED ENV{DXSDK_DIR})
  target_link_libraries (${PROJECT_NAME}_MediaFramework PUBLIC dsound.lib)
+ target_link_libraries (${PROJECT_NAME}_MediaFramework PUBLIC mfuuid.lib)
  target_link_libraries (${PROJECT_NAME}_MediaFramework PUBLIC ${DIRECTSHOW_BASECLASSES_DIRECTORY}/cmake/baseclasses/${CMAKE_BUILD_TYPE}/BaseClasses${LIB_FILE_SUFFIX}.lib)
 
  target_link_libraries (${PROJECT_NAME}_MediaFramework PUBLIC ${ACE_LIBRARY})
@@ -252,6 +254,7 @@ unset (source_files)
 set (source_files
      stream_lib_common.h
      stream_lib_defines.h
+     stream_lib_macros.h
      stream_lib_mediatype_converter.h
      stream_lib_mediatype_converter.inl
      stream_lib_tagger.h

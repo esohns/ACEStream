@@ -247,13 +247,18 @@ Stream_MediaFramework_MediaFoundation_MediaStream_T<MediaSourceType>::RequestSam
   STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_MediaFoundation_MediaStream_T::RequestSample"));
 
   // sanity check(s)
-  ACE_ASSERT (pToken);
   ACE_ASSERT (mediaSource_);
+  if (mediaSource_->state_ == MediaSourceType::STATE_SHUTDOWN)
+    return MF_E_SHUTDOWN;
 
-  pToken->AddRef ();
-  mediaSource_->tokens_.push_back (pToken);
+  if (pToken)
+  {
+    pToken->AddRef ();
+    ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, mediaSource_->lock_, E_FAIL);
+    mediaSource_->tokens_.push_back (pToken);
+  } // end IF
 
-  return (mediaSource_->shutdownInvoked_ ? MF_E_SHUTDOWN : S_OK);
+  return S_OK;
 }
 
 template <typename MediaSourceType>
@@ -375,10 +380,8 @@ Stream_MediaFramework_MediaFoundation_MediaSource_T<TimePolicyType,
  , presentationDescriptor_ (NULL)
  , lock_ ()
  , referenceCount_ (0)
- , shutdownInvoked_ (false)
  , state_ (STATE_INVALID)
  , tokens_ ()
- , unknowns_ ()
  , mediaStream_ (NULL)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_MediaFoundation_MediaSource_T::Stream_MediaFramework_MediaFoundation_MediaSource_T"));
@@ -406,17 +409,16 @@ template <typename TimePolicyType,
 Stream_MediaFramework_MediaFoundation_MediaSource_T<TimePolicyType,
                                                     MessageType,
                                                     ConfigurationType>::Stream_MediaFramework_MediaFoundation_MediaSource_T (HRESULT* result_out)
- : configuration_ (NULL)
+ : buffering_ (true)
+ , configuration_ (NULL)
  , eventQueue_ (NULL)
 //, hasCOMReference_ (false)
  , lock_ ()
+ , mediaStream_ (NULL)
  , presentationDescriptor_ (NULL)
  , referenceCount_ (0)
- , shutdownInvoked_ (false)
  , state_ (STATE_INVALID)
  , tokens_ ()
- , unknowns_ ()
- , mediaStream_ (NULL)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_MediaFoundation_MediaSource_T::Stream_MediaFramework_MediaFoundation_MediaSource_T"));
 
@@ -487,12 +489,6 @@ Stream_MediaFramework_MediaFoundation_MediaSource_T<TimePolicyType,
          ++iterator)
       (*iterator)->Release ();
     tokens_.clear ();
-
-    for (IUNKNOWN_MAP_ITERATOR_T iterator = unknowns_.begin ();
-         iterator != unknowns_.end ();
-         ++iterator)
-      (*iterator).second->Release ();
-    unknowns_.clear ();
   } // end lock scope
 
   if (mediaStream_)
@@ -693,7 +689,7 @@ Stream_MediaFramework_MediaFoundation_MediaSource_T<TimePolicyType,
 
   // sanity check(s)
   ACE_ASSERT (characteristics_out);
-  if (shutdownInvoked_)
+  if (state_ == STATE_SHUTDOWN)
     return MF_E_SHUTDOWN;
 
   *characteristics_out =
@@ -753,8 +749,12 @@ Stream_MediaFramework_MediaFoundation_MediaSource_T<TimePolicyType,
   result = MFCreateStreamDescriptor (0,
                                      1,
                                      media_types_a,
-                                     &stream_descriptors_a[0]);
+                                     &(stream_descriptors_a[0]));
   ACE_ASSERT (SUCCEEDED (result) && stream_descriptors_a[0]);
+  result =
+    stream_descriptors_a[0]->SetString (MF_SD_STREAM_NAME,
+                                        STREAM_LIB_MEDIAFOUNDATION_MEDIASOURCE_DEFAULT_STREAM_NAME);
+  ACE_ASSERT (SUCCEEDED (result));
   result = stream_descriptors_a[0]->GetMediaTypeHandler (&media_type_handler_p);
   ACE_ASSERT (SUCCEEDED (result) && media_type_handler_p);
   result =
@@ -764,15 +764,24 @@ Stream_MediaFramework_MediaFoundation_MediaSource_T<TimePolicyType,
                                            stream_descriptors_a,
                                            &presentationDescriptor_);
   ACE_ASSERT (SUCCEEDED (result) && presentationDescriptor_);
+  UINT32 bytes_per_second_i = 0;
+  result =
+    configuration_->mediaType->GetUINT32 (MF_MT_AUDIO_AVG_BYTES_PER_SECOND,
+                                          &bytes_per_second_i);
+  ACE_ASSERT (SUCCEEDED (result));
+  result = presentationDescriptor_->SetUINT32 (MF_PD_AUDIO_ENCODING_BITRATE,
+                                               bytes_per_second_i * 8);
+  ACE_ASSERT (SUCCEEDED (result));
+  //MF_PD_VIDEO_ENCODING_BITRATE
   result = presentationDescriptor_->SelectStream (0);
   ACE_ASSERT (SUCCEEDED (result));
 
   // clean up
-  media_type_handler_p->Release ();
+  media_type_handler_p->Release (); media_type_handler_p = NULL;
   media_types_a[0]->Release ();
-  delete[] media_types_a;
+  delete [] media_types_a; media_types_a = NULL;
   stream_descriptors_a[0]->Release ();
-  delete [] stream_descriptors_a;
+  delete [] stream_descriptors_a; stream_descriptors_a = NULL;
 
 clone:
   result = presentationDescriptor_->Clone (presentationDescriptor_out);
@@ -799,12 +808,53 @@ Stream_MediaFramework_MediaFoundation_MediaSource_T<TimePolicyType,
   // sanity check(s)
   if ((timeFormat_in != NULL) && (*timeFormat_in != GUID_NULL))
     return MF_E_UNSUPPORTED_TIME_FORMAT;
+  if (state_ == STATE_SHUTDOWN)
+    return MF_E_SHUTDOWN;
+  ACE_ASSERT (configuration_);
+  ACE_ASSERT (configuration_->mediaType);
   ACE_ASSERT (eventQueue_);
   ACE_ASSERT (mediaStream_);
 
-  // send MENewStream
-  IMFMediaStream* media_stream_p = NULL;
+  // step1: validate presentation descriptor
+  DWORD num_stream_descriptors = 0;
+  BOOL selected_b = FALSE;
+  IMFStreamDescriptor* stream_descriptor_p = NULL;
+  IMFMediaTypeHandler* media_type_handler_p = NULL;
+  IMFMediaType* media_type_p = NULL;
+  DWORD flags_i = 0;
   HRESULT result =
+    presentationDescriptor_in->GetStreamDescriptorCount (&num_stream_descriptors);
+  ACE_ASSERT (SUCCEEDED (result));
+  if (num_stream_descriptors != 1)
+    return MF_E_UNSUPPORTED_REPRESENTATION;
+  result =
+    presentationDescriptor_in->GetStreamDescriptorByIndex (0,
+                                                           &selected_b,
+                                                           &stream_descriptor_p);
+  ACE_ASSERT (SUCCEEDED (result) && stream_descriptor_p);
+  if (!selected_b)
+  {
+    stream_descriptor_p->Release (); stream_descriptor_p = NULL;
+    return MF_E_UNSUPPORTED_REPRESENTATION;
+  } // end IF
+  result = stream_descriptor_p->GetMediaTypeHandler (&media_type_handler_p);
+  ACE_ASSERT (SUCCEEDED (result) && media_type_handler_p);
+  stream_descriptor_p->Release (); stream_descriptor_p = NULL;
+  result = media_type_handler_p->GetCurrentMediaType (&media_type_p);
+  ACE_ASSERT (SUCCEEDED (result) && media_type_p);
+  media_type_handler_p->Release (); media_type_handler_p = NULL;
+  result = configuration_->mediaType->IsEqual (media_type_p, &flags_i);
+  if (FAILED (result) || (result == S_FALSE))
+  {
+    media_type_p->Release (); media_type_p = NULL;
+    return MF_E_INVALIDMEDIATYPE;
+  } // end IF
+  media_type_p->Release (); media_type_p = NULL;
+
+  // step2: send events
+  // send MENewStream
+  IUnknown* media_stream_p = NULL;
+  result =
     mediaStream_->QueryInterface (IID_PPV_ARGS (&media_stream_p));
   ACE_ASSERT (SUCCEEDED (result) && media_stream_p);
   result = eventQueue_->QueueEventParamUnk (MENewStream,
@@ -812,32 +862,63 @@ Stream_MediaFramework_MediaFoundation_MediaSource_T<TimePolicyType,
                                             S_OK,
                                             media_stream_p);
   ACE_ASSERT (SUCCEEDED (result));
-  media_stream_p->Release (); media_stream_p = NULL;
 
-  // send MESourceStarted
+  //// send MEUpdatedStream
+  //result = eventQueue_->QueueEventParamUnk (MEUpdatedStream,
+  //                                          GUID_NULL,
+  //                                          S_OK,
+  //                                          media_stream_p);
+  //ACE_ASSERT (SUCCEEDED (result));
+  //media_stream_p->Release (); media_stream_p = NULL;
+
+  // send MEStreamStarted
   struct tagPROPVARIANT property_s;
   PropVariantInit (&property_s);
+  //property_s.vt = VT_EMPTY;
+  property_s.vt = VT_I8;
+  property_s.hVal.QuadPart = 0;
+  result = mediaStream_->QueueEvent (MEStreamStarted,
+                                     GUID_NULL,
+                                     S_OK,
+                                     &property_s);
+  ACE_ASSERT (SUCCEEDED (result));
+
+  // send MESourceStarted
+  //property_s.vt = VT_EMPTY;
+  property_s.vt = VT_I8;
+  property_s.hVal.QuadPart = MFGetSystemTime ();
+  IMFMediaEvent* media_event_p = NULL;
+  result = MFCreateMediaEvent (MESourceStarted,
+                               GUID_NULL,
+                               S_OK,
+                               &property_s,
+                               &media_event_p);
+  ACE_ASSERT (SUCCEEDED (result) && media_event_p);
+  PropVariantClear (&property_s);
+  //result = media_event_p->SetUINT64 (MF_EVENT_SOURCE_ACTUAL_START,
+  //                                   0);
+  //ACE_ASSERT (SUCCEEDED (result));
+  result = eventQueue_->QueueEvent (media_event_p);
+  ACE_ASSERT (SUCCEEDED (result));
+  media_event_p->Release (); media_event_p = NULL;
+
+  // send MEBufferingStarted
+  buffering_ = true;
+  PropVariantClear (&property_s);
   property_s.vt = VT_EMPTY;
-  result = eventQueue_->QueueEventParamVar (MESourceStarted,
+  result = eventQueue_->QueueEventParamVar (MEBufferingStarted,
                                             GUID_NULL,
                                             S_OK,
                                             &property_s);
   ACE_ASSERT (SUCCEEDED (result));
   PropVariantClear (&property_s);
 
-  // send MEStreamStarted
-  property_s.vt = VT_EMPTY;
-  result = mediaStream_->QueueEvent (MEStreamStarted,
-                                     GUID_NULL,
-                                     S_OK,
-                                     &property_s);
-  ACE_ASSERT (SUCCEEDED (result));
-  PropVariantClear (&property_s);
+  state_ = STATE_STARTED;
 
   ACE_DEBUG ((LM_DEBUG,
               ACE_TEXT ("media source started\n")));
 
-  return (shutdownInvoked_ ? MF_E_SHUTDOWN : S_OK);
+  return S_OK;
 }
 
 template <typename TimePolicyType,
@@ -849,6 +930,30 @@ Stream_MediaFramework_MediaFoundation_MediaSource_T<TimePolicyType,
                                                     ConfigurationType>::Stop (void)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_MediaFoundation_MediaSource_T::Stop"));
+
+  // sanity check(s)
+  ACE_ASSERT (eventQueue_);
+  ACE_ASSERT (mediaStream_);
+
+  // send MEStreamStopped
+  struct tagPROPVARIANT property_s;
+  PropVariantInit (&property_s);
+  property_s.vt = VT_EMPTY;
+  HRESULT result = mediaStream_->QueueEvent (MEStreamStopped,
+                                             GUID_NULL,
+                                             S_OK,
+                                             &property_s);
+  ACE_ASSERT (SUCCEEDED (result));
+
+  // send MESourceStopped
+  result = eventQueue_->QueueEventParamVar (MESourceStopped,
+                                            GUID_NULL,
+                                            S_OK,
+                                            &property_s);
+  ACE_ASSERT (SUCCEEDED (result));
+  PropVariantClear (&property_s);
+
+  state_ = STATE_STOPPED;
 
   ACE_DEBUG ((LM_DEBUG,
               ACE_TEXT ("media source stopped\n")));
@@ -869,6 +974,11 @@ Stream_MediaFramework_MediaFoundation_MediaSource_T<TimePolicyType,
   ACE_ASSERT (false);
   ACE_NOTSUP_RETURN (E_FAIL);
 
+  ACE_DEBUG ((LM_DEBUG,
+              ACE_TEXT ("media source paused\n")));
+
+  state_ = STATE_PAUSED;
+
   ACE_NOTREACHED (return E_FAIL;)
 }
 
@@ -882,12 +992,12 @@ Stream_MediaFramework_MediaFoundation_MediaSource_T<TimePolicyType,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_MediaFoundation_MediaSource_T::Shutdown"));
 
-  shutdownInvoked_ = true;
+  state_ = STATE_SHUTDOWN;
 
-  ACE_ASSERT (false);
-  ACE_NOTSUP_RETURN (E_FAIL);
+  ACE_DEBUG ((LM_DEBUG,
+              ACE_TEXT ("media source shutdown\n")));
 
-  ACE_NOTREACHED (return E_FAIL;)
+  return S_OK;
 }
 
 template <typename TimePolicyType,
@@ -1684,19 +1794,18 @@ Stream_MediaFramework_MediaFoundation_MediaSource_T<TimePolicyType,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_MediaFoundation_MediaSource_T::initialize"));
 
+  buffering_ = true;
   configuration_ = &const_cast<ConfigurationType&> (configuration_in);
-  shutdownInvoked_ = false;
+  //if (presentationDescriptor_)
+  //{
+  //  presentationDescriptor_->Release (); presentationDescriptor_ = NULL;
+  //} // end IF
+  state_ = STATE_INITIALIZED;
   for (TOKEN_LIST_ITERATOR_T iterator = tokens_.begin ();
        iterator != tokens_.end ();
        ++iterator)
     (*iterator)->Release ();
   tokens_.clear ();
-
-  for (IUNKNOWN_MAP_ITERATOR_T iterator = unknowns_.begin ();
-       iterator != unknowns_.end ();
-       ++iterator)
-    (*iterator).second->Release ();
-  unknowns_.clear ();
 
   return true;
 }

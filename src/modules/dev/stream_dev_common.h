@@ -93,6 +93,53 @@ struct Stream_Device_Identifier
 #endif // ACE_WIN32 || ACE_WIN64
   {}
 
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  inline void clear ()
+  {
+    switch (identifierDiscriminator)
+    {
+      case GUID:
+      {
+        identifier._guid = GUID_NULL;
+        break;
+      }
+      case STRING:
+      {
+        ACE_OS::memset (identifier._string, 0, sizeof (char[BUFSIZ]));
+        break;
+      }
+      default:
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("invalid/unknown discriminator type (was: %d), continuing\n"),
+                    identifierDiscriminator));
+        break;
+      }
+    } // end SWITCH
+  }
+  inline bool empty ()
+  {
+    switch (identifierDiscriminator)
+    {
+      case GUID:
+        return !InlineIsEqualGUID (identifier._guid, GUID_NULL);
+      case STRING:
+        return (ACE_OS::strlen (identifier._string) > 0);
+      default:
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("invalid/unknown type discriminator (was: %d), aborting\n"),
+                    identifierDiscriminator));
+        break;
+      }
+    } // end SWITCH
+    return false; // *TODO*: false negative !
+  }
+#else
+  inline void clear () { ACE_OS::close (fileDescriptor); fileDescriptor = -1; identifier.clear (); }
+  inline bool empty () { return ((fileDescriptor >= 0) || !identifier.empty (); }
+#endif // ACE_WIN32 || ACE_WIN64
+
   std::string            description;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   union identifierType
@@ -111,30 +158,6 @@ struct Stream_Device_Identifier
     INVALID
   };
   enum discriminatorType identifierDiscriminator;
-
-  void clear ()
-  {
-    switch (identifierDiscriminator)
-    {
-      case GUID:
-      {
-        identifier._guid = GUID_NULL;
-        break;
-      }
-      case STRING:
-      {
-        ACE_OS::memset (identifier._string, 0, sizeof (char[BUFSIZ]));
-        break;
-      }
-      default:
-      {
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("invalid/unknown type (was: %d), continuing\n"),
-                    identifierDiscriminator));
-        break;
-      }
-    } // end SWITCH
-  }
 #else
   int                    fileDescriptor;
   std::string            identifier;

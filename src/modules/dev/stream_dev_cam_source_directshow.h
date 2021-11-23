@@ -149,12 +149,12 @@ class Stream_Dev_Cam_Source_DirectShow_T
   ACE_UNIMPLEMENTED_FUNC (Stream_Dev_Cam_Source_DirectShow_T& operator= (const Stream_Dev_Cam_Source_DirectShow_T&))
 
   // helper methods
-  bool initialize_DirectShow (const std::string&,      // (source) device path
-                              HWND,                    // (target) window handle [NULL: NullRenderer]
-                              ICaptureGraphBuilder2*&, // return value: (capture) graph builder handle
-                              IAMVideoControl*&,       // return value; capture filter video control
-                              IAMDroppedFrames*&,      // return value: capture filter statistic handle
-                              ISampleGrabber*&);       // return value: sample grabber handle
+  bool initialize_DirectShow (const struct Stream_Device_Identifier&, // device identifier
+                              HWND,                                   // (target) window handle [NULL: NullRenderer]
+                              ICaptureGraphBuilder2*&,                // return value: (capture) graph builder handle
+                              IAMVideoControl*&,                      // return value; capture filter video control
+                              IAMDroppedFrames*&,                     // return value: capture filter statistic handle
+                              ISampleGrabber*&);                      // return value: sample grabber handle
 
   bool                   isFirst_;
   IAMDroppedFrames*      IAMDroppedFrames_;

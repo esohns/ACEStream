@@ -23,7 +23,6 @@
 
 #include <string>
 
-#include "devicetopology.h"
 #include "mmdeviceapi.h"
 
 #include "ace/Global_Macros.h"
@@ -32,6 +31,8 @@
 
 // forward declarations
 struct IFilterGraph;
+struct IPart;
+struct IAudioVolumeLevel;
 
 class Stream_MediaFramework_DirectSound_Tools
 {

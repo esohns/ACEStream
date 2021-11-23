@@ -167,6 +167,7 @@ class Test_U_AudioEffect_MediaFoundation_Stream
 #endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
   Test_U_AudioEffect_MediaFoundation_Target_Module mediaFoundationSource_;
   ULONG                                            referenceCount_;
+  bool                                             topologyIsReady_;
 };
 #else
 class Test_U_AudioEffect_ALSA_Stream

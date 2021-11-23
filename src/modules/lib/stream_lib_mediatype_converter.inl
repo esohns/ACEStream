@@ -63,7 +63,15 @@ Stream_MediaFramework_MediaTypeConverter_T<MediaType>::getMediaType (const struc
     mediaType_out->Release (); mediaType_out = NULL;
   } // end IF
 
-  HRESULT result =
+  HRESULT result = MFCreateMediaType (&mediaType_out);
+  if (unlikely (FAILED (result) || !mediaType_out))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to MFCreateMediaType(): \"%s\", aborting\n"),
+                ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
+    return;
+  } // end IF
+  result =
     MFInitMediaTypeFromAMMediaType (mediaType_out,
                                     &mediaType_in);
   if (unlikely (FAILED (result)))
@@ -71,9 +79,9 @@ Stream_MediaFramework_MediaTypeConverter_T<MediaType>::getMediaType (const struc
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to MFInitMediaTypeFromAMMediaType(): \"%s\", aborting\n"),
                 ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
+    mediaType_out->Release (); mediaType_out = NULL;
     return;
   } // end IF
-  ACE_ASSERT (mediaType_out);
 }
 
 template <typename MediaType>

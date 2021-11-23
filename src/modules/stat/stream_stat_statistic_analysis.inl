@@ -263,7 +263,8 @@ Stream_Statistic_StatisticAnalysis_T<ACE_SYNCH_USE,
       // *NOTE*: apparently, all Win32 sound data is signed 16 bits
       struct tWAVEFORMATEX* waveformatex_p =
         reinterpret_cast<struct tWAVEFORMATEX*> (media_type_s.pbFormat);
-      ACE_ASSERT (waveformatex_p->wFormatTag == WAVE_FORMAT_PCM);
+      ACE_ASSERT ((waveformatex_p->wFormatTag == WAVE_FORMAT_PCM) ||
+                  (waveformatex_p->wFormatTag == WAVE_FORMAT_EXTENSIBLE));
       num_channels = waveformatex_p->nChannels;
       //sample_size = waveformatex_p->nBlockAlign;
       sample_size =

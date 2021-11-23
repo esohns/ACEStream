@@ -44,7 +44,7 @@ class Stream_Device_MediaFoundation_Tools
 
   // *NOTE*: argument must be MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE_AUDCAP_GUID or
   //                          MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE_VIDCAP_GUID
-  static std::string getDefaultCaptureDevice (REFGUID); // device category
+  static struct Stream_Device_Identifier getDefaultCaptureDevice (REFGUID); // device category
   static Stream_Device_List_t getCaptureDevices (REFGUID); // device category
 
   //static bool getCaptureFormat (IMFSourceReader*, // source handle
@@ -64,12 +64,12 @@ class Stream_Device_MediaFoundation_Tools
 #if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
   // *NOTE*: if the fourth argument is NULL, the topology has no sink and cannot
   //         be loaded
-  static bool loadDeviceTopology (const std::string&,             // device identifier
-                                  REFGUID,                        // device category
+  static bool loadDeviceTopology (const struct Stream_Device_Identifier&, // device identifier
+                                  REFGUID,                                // device category
 #if COMMON_OS_WIN32_TARGET_PLATFORM(0x0602) // _WIN32_WINNT_WIN8
-                                  IMFMediaSourceEx*&,             // input/return value: (capture) media source handle
+                                  IMFMediaSourceEx*&,                     // input/return value: (capture) media source handle
 #else
-                                  IMFMediaSource*&,               // input/return value: (capture) media source handle
+                                  IMFMediaSource*&,                       // input/return value: (capture) media source handle
 #endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0602)
 #if COMMON_OS_WIN32_TARGET_PLATFORM(0x0601) // _WIN32_WINNT_WIN7
                                   IMFSampleGrabberSinkCallback2*, // sample grabber sink callback handle [NULL: do not use tee/grabber]

@@ -4735,7 +4735,11 @@ combobox_source_changed_cb (GtkWidget* widget_in,
         directshow_cb_data_p->streamConfiguration->Release (); directshow_cb_data_p->streamConfiguration = NULL;
       } // end IF
       Stream_MediaFramework_DirectShow_Graph_t graph_layout;
-      if (!Stream_Device_DirectShow_Tools::loadDeviceGraph (device_identifier_string,
+      ACE_OS::strcpy ((*directshow_stream_iterator).second.second->deviceIdentifier.identifier._string,
+                      device_identifier_string.c_str ());
+      (*directshow_stream_iterator).second.second->deviceIdentifier.identifierDiscriminator =
+        Stream_Device_Identifier::STRING;
+      if (!Stream_Device_DirectShow_Tools::loadDeviceGraph ((*directshow_stream_iterator).second.second->deviceIdentifier,
                                                             CLSID_VideoInputDeviceCategory,
                                                             (*directshow_stream_iterator).second.second->builder,
                                                             buffer_negotiation_p,
@@ -4777,8 +4781,12 @@ combobox_source_changed_cb (GtkWidget* widget_in,
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
     {
+      ACE_OS::strcpy ((*mediafoundation_stream_iterator).second.second->deviceIdentifier.identifier._string,
+                      device_identifier_string.c_str ());
+      (*mediafoundation_stream_iterator).second.second->deviceIdentifier.identifierDiscriminator =
+        Stream_Device_Identifier::STRING;
 #if COMMON_OS_WIN32_TARGET_PLATFORM(0x0601) // _WIN32_WINNT_WIN7
-      if (!Stream_MediaFramework_MediaFoundation_Tools::getMediaSource (device_identifier_string,
+      if (!Stream_MediaFramework_MediaFoundation_Tools::getMediaSource ((*mediafoundation_stream_iterator).second.second->deviceIdentifier.identifier._guid,
                                                                         MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE_VIDCAP_GUID,
                                                                         media_source_p))
       {
@@ -4819,7 +4827,7 @@ combobox_source_changed_cb (GtkWidget* widget_in,
       IMFTopology* topology_p = NULL;
       struct _MFRatio pixel_aspect_ratio = { 1, 1 };
 #if COMMON_OS_WIN32_TARGET_PLATFORM(0x0601) // _WIN32_WINNT_WIN7
-      HRESULT result_3 = MFTRegisterLocalByCLSID (__uuidof(CColorConvertDMO),
+      HRESULT result_3 = MFTRegisterLocalByCLSID (__uuidof (CColorConvertDMO),
                                                   MFT_CATEGORY_VIDEO_PROCESSOR,
                                                   L"",
                                                   MFT_ENUM_FLAG_SYNCMFT,
@@ -4828,7 +4836,7 @@ combobox_source_changed_cb (GtkWidget* widget_in,
                                                   0,
                                                   NULL);
 
-      if (!Stream_Device_MediaFoundation_Tools::loadDeviceTopology (device_identifier_string,
+      if (!Stream_Device_MediaFoundation_Tools::loadDeviceTopology ((*mediafoundation_stream_iterator).second.second->deviceIdentifier,
                                                                     MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE_VIDCAP_GUID,
                                                                     media_source_p,
                                                                     //NULL,
@@ -5213,7 +5221,7 @@ combobox_format_changed_cb (GtkWidget* widget_in,
       IMFMediaSource* media_source_p = NULL;
 #endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0602)
 #if COMMON_OS_WIN32_TARGET_PLATFORM(0x0601) // _WIN32_WINNT_WIN7
-      if (!Stream_MediaFramework_MediaFoundation_Tools::getMediaSource (device_identifier_string,
+      if (!Stream_MediaFramework_MediaFoundation_Tools::getMediaSource ((*mediafoundation_stream_iterator).second.second->deviceIdentifier.identifier._guid,
                                                                         MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE_VIDCAP_GUID,
                                                                         media_source_p))
       {
@@ -5539,7 +5547,7 @@ combobox_resolution_changed_cb (GtkWidget* widget_in,
       IMFMediaSource* media_source_p = NULL;
 #endif // _WIN32_WINNT) && (_WIN32_WINNT >= 0x0602)
 #if COMMON_OS_WIN32_TARGET_PLATFORM(0x0601) // _WIN32_WINNT_WIN7
-      if (!Stream_MediaFramework_MediaFoundation_Tools::getMediaSource (device_identifier_string,
+      if (!Stream_MediaFramework_MediaFoundation_Tools::getMediaSource ((*mediafoundation_stream_iterator).second.second->deviceIdentifier.identifier._guid,
                                                                         MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE_VIDCAP_GUID,
                                                                         media_source_p))
       {

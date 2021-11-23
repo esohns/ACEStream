@@ -6715,16 +6715,14 @@ combobox_source_changed_cb (GtkComboBox* comboBox_in,
       } // end IF
 
 #if COMMON_OS_WIN32_TARGET_PLATFORM(0x0601) // _WIN32_WINNT_WIN7
-      HRESULT result_3 = MFTRegisterLocalByCLSID (
-        __uuidof(CColorConvertDMO),
-        MFT_CATEGORY_VIDEO_PROCESSOR,
-        L"",
-        MFT_ENUM_FLAG_SYNCMFT,
-        0,
-        NULL,
-        0,
-        NULL
-      );
+      HRESULT result_3 = MFTRegisterLocalByCLSID (__uuidof (CColorConvertDMO),
+                                                  MFT_CATEGORY_VIDEO_PROCESSOR,
+                                                  L"",
+                                                  MFT_ENUM_FLAG_SYNCMFT,
+                                                  0,
+                                                  NULL,
+                                                  0,
+                                                  NULL);
 #endif // _WIN32_WINNT_WIN7
 
       //if (!Stream_Device_Tools::getSourceReader (mediafoundation_ui_cb_data_p->configuration->moduleHandlerConfiguration.mediaSource,
@@ -6744,13 +6742,14 @@ combobox_source_changed_cb (GtkComboBox* comboBox_in,
       //} // end IF
       //ACE_ASSERT (mediafoundation_ui_cb_data_p->configuration->moduleHandlerConfiguration.sourceReader);
 #if COMMON_OS_WIN32_TARGET_PLATFORM(0x0601) // _WIN32_WINNT_WIN7
-      if (!Stream_MediaFramework_MediaFoundation_Tools::getMediaSource ((*mediafoundation_modulehandler_iterator).second.second->deviceIdentifier.identifier._string,
+      ACE_ASSERT ((*mediafoundation_modulehandler_iterator).second.second->deviceIdentifier.identifierDiscriminator == Stream_Device_Identifier::GUID);
+      if (!Stream_MediaFramework_MediaFoundation_Tools::getMediaSource ((*mediafoundation_modulehandler_iterator).second.second->deviceIdentifier.identifier._guid,
                                                                         MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE_VIDCAP_GUID,
                                                                         (*mediafoundation_modulehandler_iterator).second.second->mediaSource))
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("failed to Stream_MediaFramework_MediaFoundation_Tools::getMediaSource(\"%s\"), returning\n"),
-                    ACE_TEXT ((*mediafoundation_modulehandler_iterator).second.second->deviceIdentifier.identifier._string)));
+                    ACE_TEXT (Common_Tools::GUIDToString ((*mediafoundation_modulehandler_iterator).second.second->deviceIdentifier.identifier._guid).c_str ())));
         return;
       } // end IF
       ACE_ASSERT ((*mediafoundation_modulehandler_iterator).second.second->mediaSource);
@@ -6800,7 +6799,11 @@ combobox_source_changed_cb (GtkComboBox* comboBox_in,
       } // end IF
 
       IAMBufferNegotiation* buffer_negotiation_p = NULL;
-      if (!Stream_Device_DirectShow_Tools::loadDeviceGraph (device_identifier_string,
+      (*directshow_modulehandler_iterator).second.second->deviceIdentifier.identifierDiscriminator =
+        Stream_Device_Identifier::STRING;
+      ACE_OS::strcpy ((*directshow_modulehandler_iterator).second.second->deviceIdentifier.identifier._string,
+                      device_identifier_string.c_str ());
+      if (!Stream_Device_DirectShow_Tools::loadDeviceGraph ((*directshow_modulehandler_iterator).second.second->deviceIdentifier,
                                                             CLSID_VideoInputDeviceCategory,
                                                             (*directshow_modulehandler_iterator).second.second->builder,
                                                             buffer_negotiation_p,
@@ -6824,9 +6827,14 @@ combobox_source_changed_cb (GtkComboBox* comboBox_in,
       //  dynamic_cast<Test_I_Stream_MediaFoundation_CamSource*> (module_p->writer ());
       //ACE_ASSERT (mediafoundation_source_impl_p);
 
+      (*mediafoundation_modulehandler_iterator).second.second->deviceIdentifier.identifierDiscriminator =
+        Stream_Device_Identifier::STRING;
+      ACE_OS::strcpy ((*mediafoundation_modulehandler_iterator).second.second->deviceIdentifier.identifier._string,
+                      device_identifier_string.c_str ());
+
       struct _MFRatio pixel_aspect_ratio = { 1, 1 };
 #if COMMON_OS_WIN32_TARGET_PLATFORM(0x0601) // _WIN32_WINNT_WIN7
-      if (!Stream_Device_MediaFoundation_Tools::loadDeviceTopology (device_identifier_string,
+      if (!Stream_Device_MediaFoundation_Tools::loadDeviceTopology ((*mediafoundation_modulehandler_iterator).second.second->deviceIdentifier,
                                                                     MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE_VIDCAP_GUID,
                                                                     (*mediafoundation_modulehandler_iterator).second.second->mediaSource,
                                                                     NULL,

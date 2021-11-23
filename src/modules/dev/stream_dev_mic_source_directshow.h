@@ -167,11 +167,11 @@ class Stream_Dev_Mic_Source_DirectShow_T
   virtual int svc (void);
 
   // helper methods
-  bool initialize_DirectShow (const std::string&,      // (source) device path
-                              int,                     // (target) audio output [0: none]
-                              ICaptureGraphBuilder2*&, // return value: (capture) graph builder handle
-                              IAMDroppedFrames*&,      // return value: capture filter statistic handle
-                              ISampleGrabber*&);       // return value: sample grabber handle
+  bool initialize_DirectShow (const struct Stream_Device_Identifier&, // device identifier
+                              int,                                    // (target) audio output [-1: none]
+                              ICaptureGraphBuilder2*&,                // return value: (capture) graph builder handle
+                              IAMDroppedFrames*&,                     // return value: capture filter statistic handle
+                              ISampleGrabber*&);                      // return value: sample grabber handle
 
   bool                   isFirst_;
   //ACE_SYNCH_MUTEX        lock_;

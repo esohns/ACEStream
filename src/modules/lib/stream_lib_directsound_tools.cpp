@@ -23,6 +23,7 @@
 
 #define INITGUID
 #include "guiddef.h"
+#include "devicetopology.h"
 #include "mmreg.h"
 // *WARNING*: "...Note Header files ksproxy.h and dsound.h define similar but
 //            incompatible versions of the IKsPropertySet interface.Applications

@@ -51,16 +51,13 @@ Stream_MediaFramework_MediaFoundation_Target_T<ACE_SYNCH_USE,
  , inherited2 ()
  , inherited3 ()
  , inherited4 ()
- , isFirst_ (false)
+ , isFirst_ (true)
  , baseTimeStamp_ (0)
  , manageMediaSession_ (true)
  , mediaSession_ (NULL)
- , queue_ (STREAM_QUEUE_MAX_SLOTS, // max # slots
-           NULL)                   // notification handle
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_MediaFoundation_Target_T::Stream_MediaFramework_MediaFoundation_Target_T"));
 
-  inherited::msg_queue (&queue_);
 }
 
 template <ACE_SYNCH_DECL,
@@ -84,16 +81,27 @@ Stream_MediaFramework_MediaFoundation_Target_T<ACE_SYNCH_USE,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_MediaFoundation_Target_T::~Stream_MediaFramework_MediaFoundation_Target_T"));
 
-  inherited::idle ();
-
   if (mediaSession_)
   {
     if (manageMediaSession_)
     {
-      HRESULT result = mediaSession_->Shutdown ();
+      HRESULT result = mediaSession_->Stop ();
       if (FAILED (result))
         ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("failed to IMFMediaSession::Shutdown(): \"%s\", continuing\n"),
+                    ACE_TEXT ("%s: failed to IMFMediaSession::Stop(): \"%s\", continuing\n"),
+                    inherited::mod_->name (),
+                    ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
+      result = mediaSession_->Close ();
+      if (FAILED (result))
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("%s: failed to IMFMediaSession::Close(): \"%s\", continuing\n"),
+                    inherited::mod_->name (),
+                    ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
+      result = mediaSession_->Shutdown ();
+      if (FAILED (result))
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("%s: failed to IMFMediaSession::Shutdown(): \"%s\", continuing\n"),
+                    inherited::mod_->name (),
                     ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
     } // end IF
     mediaSession_->Release (); mediaSession_ = NULL;
@@ -149,32 +157,33 @@ Stream_MediaFramework_MediaFoundation_Target_T<ACE_SYNCH_USE,
 
   if (inherited::isInitialized_)
   {
-    inherited::idle ();
-
     baseTimeStamp_ = 0;
     if (mediaSession_)
     {
       if (manageMediaSession_)
       {
-        HRESULT result = mediaSession_->Shutdown ();
+        HRESULT result = mediaSession_->Stop ();
         if (FAILED (result))
           ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("failed to IMFMediaSession::Shutdown(): \"%s\", continuing\n"),
+                      ACE_TEXT ("%s: failed to IMFMediaSession::Stop(): \"%s\", continuing\n"),
+                      inherited::mod_->name (),
+                      ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
+        result = mediaSession_->Close ();
+        if (FAILED (result))
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("%s: failed to IMFMediaSession::Close(): \"%s\", continuing\n"),
+                      inherited::mod_->name (),
+                      ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
+        result = mediaSession_->Shutdown ();
+        if (FAILED (result))
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("%s: failed to IMFMediaSession::Shutdown(): \"%s\", continuing\n"),
+                      inherited::mod_->name (),
                       ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
       } // end IF
       mediaSession_->Release (); mediaSession_ = NULL;
     } // end IF
     manageMediaSession_ = true;
-  } // end IF
-
-  ACE_ASSERT (inherited::msg_queue_);
-  result_2 = inherited::msg_queue_->activate ();
-  if (unlikely (result_2 == -1))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: failed to ACE_Message_Queue::activate() \"%m\", aborting\n"),
-                inherited::mod_->name ()));
-    goto error;
   } // end IF
 
   // *TODO*: remove type inference
@@ -187,9 +196,6 @@ Stream_MediaFramework_MediaFoundation_Target_T<ACE_SYNCH_USE,
 
   // *TODO*: remove type inference
   ACE_ASSERT (configuration_in.mediaFoundationConfiguration);
-  configuration_in.mediaFoundationConfiguration->queue =
-    inherited::msg_queue_;
-
   if (!inherited4::initialize (*configuration_in.mediaFoundationConfiguration))
   {
     ACE_DEBUG ((LM_ERROR,
@@ -217,11 +223,6 @@ error:
   {
     mediaSession_->Release (); mediaSession_ = NULL;
   } // end IF
-  result_2 = inherited::msg_queue_->deactivate ();
-  if (unlikely (result_2 == -1))
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: failed to ACE_Message_Queue::deactivate() \"%m\", continuing\n"),
-                inherited::mod_->name ()));
 
   if (COM_initialized)
     CoUninitialize ();
@@ -255,27 +256,139 @@ Stream_MediaFramework_MediaFoundation_Target_T<ACE_SYNCH_USE,
   // don't care (implies yes per default, if part of a stream)
   ACE_UNUSED_ARG (passMessageDownstream_out);
 
-  ACE_Message_Block* message_block_p = message_inout->duplicate ();
-  if (unlikely (!message_block_p))
+  // sanity check(s)
+  ACE_ASSERT (inherited4::configuration_);
+  ACE_ASSERT (inherited4::configuration_->mediaType);
+  ACE_ASSERT (inherited4::mediaStream_);
+  if (unlikely (inherited4::state_ != inherited4::STATE_STARTED))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: failed to ACE_Message_Block::duplicate(): \"%m\", returning\n"),
-                inherited::mod_->name ()));
+                ACE_TEXT ("%s: media source not running (state was: %d), returning\n"),
+                inherited::mod_->name (),
+                inherited4::state_));
     return;
   } // end IF
-  ACE_ASSERT (inherited::msg_queue_);
-  int result = inherited::msg_queue_->enqueue_tail (message_block_p, NULL);
-  if (unlikely (result == -1))
+
+  HRESULT result = E_FAIL;
+  if (unlikely (inherited4::buffering_))
+  {
+    inherited4::buffering_ = false;
+
+    // send MEBufferingStopped
+    struct tagPROPVARIANT property_s;
+    PropVariantInit (&property_s);
+    PropVariantClear (&property_s);
+    property_s.vt = VT_EMPTY;
+    result = inherited4::eventQueue_->QueueEventParamVar (MEBufferingStopped,
+                                                          GUID_NULL,
+                                                          S_OK,
+                                                          &property_s);
+    ACE_ASSERT (SUCCEEDED (result));
+    PropVariantClear (&property_s);
+  } // end IF
+
+  // send MEMediaSample
+  // step0: allocate sample
+  IMFSample* sample_p = NULL;
+  result = MFCreateSample (&sample_p);
+  if (unlikely (FAILED (result) || !sample_p))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: failed to ACE_Message_Queue::enqueue_tail(): \"%m\", returning\n"),
-                inherited::mod_->name ()));
-
-    // clean up
-    message_block_p->release ();
-
+                ACE_TEXT ("%s: failed to MFCreateSample(): \"%s\", returning\n"),
+                inherited::mod_->name (),
+                ACE_TEXT (Common_Error_Tools::errorToString (result, true, false).c_str ())));
     return;
   } // end IF
+
+  // step1: set attributes
+  //result = sample_p->SetUINT32 (MFSampleExtension_CleanPoint,
+  //                              TRUE);
+  //ACE_ASSERT (SUCCEEDED (result));
+  //MFSampleExtension_ForwardedDecodeUnits
+  //MFSampleExtension_ForwardedDecodeUnitType
+  { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, inherited4::lock_);
+    if (!inherited4::tokens_.empty ())
+    {
+      IUnknown* unknown_p = inherited4::tokens_.front ();
+      ACE_ASSERT (unknown_p);
+      result = sample_p->SetUnknown (MFSampleExtension_Token,
+                                     unknown_p);
+      ACE_ASSERT (SUCCEEDED (result));
+      unknown_p->Release (); unknown_p = NULL;
+      inherited4::tokens_.pop_front ();
+    } // end IF
+  } // end lock scope
+
+  // step2: set buffer / parameters
+  IMFMediaBuffer* buffer_p = NULL;
+  size_t total_length_i = message_inout->total_length ();
+  result = MFCreateMemoryBuffer (total_length_i,
+                                 &buffer_p);
+  if (unlikely (FAILED (result) || !buffer_p))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s: failed to MFCreateMemoryBuffer(%u): \"%s\", returning\n"),
+                inherited::mod_->name (),
+                total_length_i,
+                ACE_TEXT (Common_Error_Tools::errorToString (result, true, false).c_str ())));
+    sample_p->Release (); sample_p = NULL;
+    return;
+  } // end IF
+  BYTE* data_p = NULL;
+  DWORD max_length_i = 0, current_length_i = 0;
+  result = buffer_p->Lock (&data_p,
+                           &max_length_i,
+                           &current_length_i);
+  ACE_ASSERT (SUCCEEDED (result) && data_p && (max_length_i == total_length_i) && !current_length_i);
+  ACE_Message_Block* message_block_p = message_inout;
+  unsigned int offset_i = 0;
+  do
+  {
+    ACE_OS::memcpy (data_p + offset_i, message_block_p->rd_ptr (),
+                    message_block_p->length ());
+    offset_i += message_block_p->length ();
+    message_block_p = message_block_p->cont ();
+  } while (message_block_p);
+  result = buffer_p->Unlock ();
+  ACE_ASSERT (SUCCEEDED (result));
+  result = buffer_p->SetCurrentLength (total_length_i);
+  ACE_ASSERT (SUCCEEDED (result));
+  result = sample_p->AddBuffer (buffer_p);
+  ACE_ASSERT (SUCCEEDED (result));
+  buffer_p->Release (); buffer_p = NULL;
+
+  result = sample_p->SetSampleTime (baseTimeStamp_);
+  ACE_ASSERT (SUCCEEDED (result));
+  UINT32 bytes_per_second_i = 0;
+  result =
+    inherited4::configuration_->mediaType->GetUINT32 (MF_MT_AUDIO_AVG_BYTES_PER_SECOND,
+                                                      &bytes_per_second_i);
+  ACE_ASSERT (SUCCEEDED (result) && bytes_per_second_i);
+  LONGLONG duration_i =
+    (LONGLONG)(total_length_i * MILLISECONDS_TO_100NS_UNITS(1000) / (double)bytes_per_second_i);
+  result = sample_p->SetSampleDuration (duration_i);
+  ACE_ASSERT (SUCCEEDED (result));
+  baseTimeStamp_ += duration_i;
+
+  // step3: send event
+  struct tagPROPVARIANT property_s;
+  PropVariantInit (&property_s);
+  property_s.vt = VT_UNKNOWN;
+  property_s.punkVal = sample_p;
+  result = inherited4::mediaStream_->QueueEvent (MEMediaSample,
+                                                 GUID_NULL,
+                                                 S_OK,
+                                                 &property_s);
+  if (unlikely (FAILED (result)))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s: failed to IMFEventQueue::QueueEventParamUnk(): \"%s\", returning\n"),
+                inherited::mod_->name (),
+                ACE_TEXT (Common_Error_Tools::errorToString (result, true, false).c_str ())));
+    PropVariantClear (&property_s);
+    return;
+  } // end IF
+  PropVariantClear (&property_s);
 }
 
 template <ACE_SYNCH_DECL,
@@ -367,6 +480,16 @@ continue_:
 
       if (manageMediaSession_)
       {
+        result_2 = mediaSession_->BeginGetEvent (this, NULL);
+        if (FAILED (result_2))
+        {
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("%s: failed to IMFMediaSession::BeginGetEvent(): \"%s\", aborting\n"),
+                      inherited::mod_->name (),
+                      ACE_TEXT (Common_Error_Tools::errorToString (result_2).c_str ())));
+          goto error;
+        } // end IF
+
         PropVariantInit (&property_s);
         //property_s.vt = VT_EMPTY;
         result_2 = mediaSession_->Start (&GUID_s,      // time format
@@ -381,16 +504,6 @@ continue_:
           goto error;
         } // end IF
         PropVariantClear (&property_s);
-
-        result_2 = mediaSession_->BeginGetEvent (this, NULL);
-        if (FAILED (result_2))
-        {
-          ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("%s: failed to IMFMediaSession::BeginGetEvent(): \"%s\", aborting\n"),
-                      inherited::mod_->name (),
-                      ACE_TEXT (Common_Error_Tools::errorToString (result_2).c_str ())));
-          goto error;
-        } // end IF
       } // end IF
 
       if (COM_initialized)
@@ -403,6 +516,18 @@ error:
       {
         if (manageMediaSession_)
         {
+          result_2 = mediaSession_->Stop ();
+          if (FAILED (result_2))
+            ACE_DEBUG ((LM_ERROR,
+                        ACE_TEXT ("%s: failed to IMFMediaSession::Stop(): \"%s\", continuing\n"),
+                        inherited::mod_->name (),
+                        ACE_TEXT (Common_Error_Tools::errorToString (result_2).c_str ())));
+          result_2 = mediaSession_->Close ();
+          if (FAILED (result_2))
+            ACE_DEBUG ((LM_ERROR,
+                        ACE_TEXT ("%s: failed to IMFMediaSession::Close(): \"%s\", continuing\n"),
+                        inherited::mod_->name (),
+                        ACE_TEXT (Common_Error_Tools::errorToString (result_2).c_str ())));
           result_2 = mediaSession_->Shutdown ();
           if (FAILED (result_2))
             ACE_DEBUG ((LM_ERROR,
@@ -437,12 +562,24 @@ error:
       } // end IF
       COM_initialized = true;
 
-      finalize_MediaFoundation (); // stop 'streaming thread'
+      //finalize_MediaFoundation (); // stop 'streaming thread'
 
       if (mediaSession_)
       {
         if (manageMediaSession_)
         {
+          result_2 = mediaSession_->Stop ();
+          if (FAILED (result_2))
+            ACE_DEBUG ((LM_ERROR,
+                        ACE_TEXT ("%s: failed to IMFMediaSession::Stop(): \"%s\", continuing\n"),
+                        inherited::mod_->name (),
+                        ACE_TEXT (Common_Error_Tools::errorToString (result_2).c_str ())));
+          result_2 = mediaSession_->Close ();
+          if (FAILED (result_2))
+            ACE_DEBUG ((LM_ERROR,
+                        ACE_TEXT ("%s: failed to IMFMediaSession::Close(): \"%s\", continuing\n"),
+                        inherited::mod_->name (),
+                        ACE_TEXT (Common_Error_Tools::errorToString (result_2).c_str ())));
           result_2 = mediaSession_->Shutdown ();
           if (FAILED (result_2))
             ACE_DEBUG ((LM_ERROR,
@@ -709,63 +846,63 @@ error:
   return E_FAIL;
 }
 
-template <ACE_SYNCH_DECL,
-          typename TimePolicyType,
-          typename ConfigurationType,
-          typename ControlMessageType,
-          typename DataMessageType,
-          typename SessionMessageType,
-          typename SessionDataType,
-          typename SessionDataContainerType,
-          typename MediaType>
-void
-Stream_MediaFramework_MediaFoundation_Target_T<ACE_SYNCH_USE,
-                                               TimePolicyType,
-                                               ConfigurationType,
-                                               ControlMessageType,
-                                               DataMessageType,
-                                               SessionMessageType,
-                                               SessionDataType,
-                                               SessionDataContainerType,
-                                               MediaType>::stop (bool waitForCompletion_in,
-                                                                 bool highPriority_in)
-{
-  COMMON_TRACE (ACE_TEXT ("Stream_MediaFramework_MediaFoundation_Target_T::stop"));
-
-  int result = -1;
-  ACE_Message_Block* message_block_p = NULL;
-
-  // enqueue a ACE_Message_Block::MB_STOP message
-  ACE_NEW_NORETURN (message_block_p,
-                    ACE_Message_Block (0,                                  // size
-                                       ACE_Message_Block::MB_STOP,         // type
-                                       NULL,                               // continuation
-                                       NULL,                               // data
-                                       NULL,                               // buffer allocator
-                                       NULL,                               // locking strategy
-                                       ACE_DEFAULT_MESSAGE_BLOCK_PRIORITY, // priority
-                                       ACE_Time_Value::zero,               // execution time
-                                       ACE_Time_Value::max_time,           // deadline time
-                                       NULL,                               // data block allocator
-                                       NULL));                             // message allocator
-  if (unlikely (!message_block_p))
-  {
-      ACE_DEBUG ((LM_CRITICAL,
-                  ACE_TEXT ("%s: failed to allocate ACE_Message_Block: \"%m\", returning\n"),
-                  inherited::mod_->name ()));
-    return;
-  } // end IF
-
-  result = (highPriority_in ? queue_.enqueue_head (message_block_p, NULL)
-                            : queue_.enqueue_tail (message_block_p, NULL));
-  if (unlikely (result == -1))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: failed to ACE_Message_Queue::enqueue(): \"%m\", continuing\n"),
-                inherited::mod_->name ()));
-    message_block_p->release (); message_block_p = NULL;
-  } // end IF
-}
+//template <ACE_SYNCH_DECL,
+//          typename TimePolicyType,
+//          typename ConfigurationType,
+//          typename ControlMessageType,
+//          typename DataMessageType,
+//          typename SessionMessageType,
+//          typename SessionDataType,
+//          typename SessionDataContainerType,
+//          typename MediaType>
+//void
+//Stream_MediaFramework_MediaFoundation_Target_T<ACE_SYNCH_USE,
+//                                               TimePolicyType,
+//                                               ConfigurationType,
+//                                               ControlMessageType,
+//                                               DataMessageType,
+//                                               SessionMessageType,
+//                                               SessionDataType,
+//                                               SessionDataContainerType,
+//                                               MediaType>::stop (bool waitForCompletion_in,
+//                                                                 bool highPriority_in)
+//{
+//  COMMON_TRACE (ACE_TEXT ("Stream_MediaFramework_MediaFoundation_Target_T::stop"));
+//
+//  int result = -1;
+//  ACE_Message_Block* message_block_p = NULL;
+//
+//  // enqueue a ACE_Message_Block::MB_STOP message
+//  ACE_NEW_NORETURN (message_block_p,
+//                    ACE_Message_Block (0,                                  // size
+//                                       ACE_Message_Block::MB_STOP,         // type
+//                                       NULL,                               // continuation
+//                                       NULL,                               // data
+//                                       NULL,                               // buffer allocator
+//                                       NULL,                               // locking strategy
+//                                       ACE_DEFAULT_MESSAGE_BLOCK_PRIORITY, // priority
+//                                       ACE_Time_Value::zero,               // execution time
+//                                       ACE_Time_Value::max_time,           // deadline time
+//                                       NULL,                               // data block allocator
+//                                       NULL));                             // message allocator
+//  if (unlikely (!message_block_p))
+//  {
+//      ACE_DEBUG ((LM_CRITICAL,
+//                  ACE_TEXT ("%s: failed to allocate ACE_Message_Block: \"%m\", returning\n"),
+//                  inherited::mod_->name ()));
+//    return;
+//  } // end IF
+//
+//  result = (highPriority_in ? queue_.enqueue_head (message_block_p, NULL)
+//                            : queue_.enqueue_tail (message_block_p, NULL));
+//  if (unlikely (result == -1))
+//  {
+//    ACE_DEBUG ((LM_ERROR,
+//                ACE_TEXT ("%s: failed to ACE_Message_Queue::enqueue(): \"%m\", continuing\n"),
+//                inherited::mod_->name ()));
+//    message_block_p->release (); message_block_p = NULL;
+//  } // end IF
+//}
 
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,

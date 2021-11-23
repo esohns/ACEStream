@@ -25,6 +25,7 @@
 
 #include "ace/config-lite.h"
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
+#include "audiosessiontypes.h"
 #include "winnt.h"
 #include "guiddef.h"
 #include "amvideo.h"
@@ -100,6 +101,7 @@ extern "C"
 #include "stream_lib_directshow_common.h"
 #include "stream_lib_directshow_tools.h"
 #include "stream_lib_directsound_common.h"
+#include "stream_lib_directsound_tools.h"
 #include "stream_lib_mediafoundation_tools.h"
 #endif // ACE_WIN32 || ACE_WIN64
 
@@ -3102,8 +3104,9 @@ error:
 }
 
 bool
-Stream_Module_Decoder_Tools::loadAudioRendererTopology (const std::string& deviceIdentifier_in,
+Stream_Module_Decoder_Tools::loadAudioRendererTopology (REFGUID deviceIdentifier_in,
                                                         REFGUID deviceCategory_in,
+                                                        bool useFrameWorkSource_in,
                                                         IMFMediaType* mediaType_inout,
 #if COMMON_OS_WIN32_TARGET_PLATFORM(0x0601) // _WIN32_WINNT_WIN7
                                                         IMFSampleGrabberSinkCallback2* sampleGrabberSinkCallback_in,
@@ -3132,7 +3135,7 @@ Stream_Module_Decoder_Tools::loadAudioRendererTopology (const std::string& devic
   IMFTopologyNode* source_node_p = NULL;
   IMFCollection* collection_p = NULL;
   HRESULT result = E_FAIL;
-  DWORD number_of_source_nodes = 0;
+  DWORD number_of_source_nodes = 0, number_of_streams_i = 0;
   IUnknown* unknown_p = NULL;
   UINT32 item_count = 0;
   UINT32 flags = 0;
@@ -3161,11 +3164,13 @@ Stream_Module_Decoder_Tools::loadAudioRendererTopology (const std::string& devic
   IMFStreamDescriptor* stream_descriptor_p = NULL;
   IMFMediaTypeHandler* media_type_handler_p = NULL;
   DWORD characteristics_i = 0;
+  IMFAttributes* attributes_p = NULL;
+  std::string device_string;
 
   if (topology_inout)
   {
     if (!Stream_MediaFramework_MediaFoundation_Tools::reset (topology_inout,
-                                                             deviceCategory_in))
+                                                             (useFrameWorkSource_in ? deviceCategory_in : GUID_NULL)))
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to Stream_MediaFramework_MediaFoundation_Tools::reset(), aborting\n")));
@@ -3182,7 +3187,9 @@ Stream_Module_Decoder_Tools::loadAudioRendererTopology (const std::string& devic
   else
   {
 #if COMMON_OS_WIN32_TARGET_PLATFORM(0x0601) // _WIN32_WINNT_WIN7
-    if (!Stream_Device_MediaFoundation_Tools::loadDeviceTopology (deviceIdentifier_in,
+    struct Stream_Device_Identifier device_identifier;
+    device_identifier.identifier._guid = deviceIdentifier_in;
+    if (!Stream_Device_MediaFoundation_Tools::loadDeviceTopology (device_identifier,
                                                                   deviceCategory_in,
                                                                   media_source_p,
                                                                   NULL, // do not load a dummy sink
@@ -3190,7 +3197,7 @@ Stream_Module_Decoder_Tools::loadAudioRendererTopology (const std::string& devic
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to Stream_Device_MediaFoundation_Tools::loadDeviceTopology(\"%s\"), aborting\n"),
-                  ACE_TEXT (deviceIdentifier_in.c_str ())));
+                  ACE_TEXT (Common_Tools::GUIDToString (deviceIdentifier_in).c_str ())));
       goto error;
     } // end IF
 #endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0601)
@@ -3752,8 +3759,30 @@ continue_4:
   if (audioOutput_in < 0)
     goto continue_5;
 
+  GUID_s =
+    Stream_MediaFramework_DirectSound_Tools::waveDeviceIdToDirectSoundGUID (audioOutput_in);
+  device_string =
+    Stream_MediaFramework_MediaFoundation_Tools::identifierToString (GUID_s,
+                                                                     MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE_AUDCAP_GUID);
 #if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
+  //result = MFCreateAttributes (&attributes_p, 1);
+  //ACE_ASSERT (SUCCEEDED (result) && attributes_p);
+  //result = attributes_p->SetString (MF_AUDIO_RENDERER_ATTRIBUTE_ENDPOINT_ID,
+  //                                  ACE_TEXT_ALWAYS_WCHAR (device_string.c_str ()));
+  //ACE_ASSERT (SUCCEEDED (result));
+  //result = attributes_p->SetUINT32 (MF_AUDIO_RENDERER_ATTRIBUTE_FLAGS,
+  //                                  MF_AUDIO_RENDERER_ATTRIBUTE_FLAGS_NOPERSIST);
+  //ACE_ASSERT (SUCCEEDED (result));
+  //result = attributes_p->SetGUID (MF_AUDIO_RENDERER_ATTRIBUTE_SESSION_ID,
+  //                                GUID_NULL);
+  //ACE_ASSERT (SUCCEEDED (result));
+  //result = attributes_p->SetUINT32 (MF_AUDIO_RENDERER_ATTRIBUTE_STREAM_CATEGORY,
+  //                                  AudioCategory_Other);
+  //ACE_ASSERT (SUCCEEDED (result));
+  //result = MFCreateAudioRenderer (attributes_p,
+  //                                &media_sink_p);
   result = MFCreateAudioRendererActivate (&activate_p);
+  //attributes_p->Release (); attributes_p = NULL;
   if (FAILED (result))
   {
     ACE_DEBUG ((LM_ERROR,
@@ -3762,27 +3791,35 @@ continue_4:
     goto error;
   } // end IF
 #endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
+  //ACE_ASSERT (media_sink_p);
   ACE_ASSERT (activate_p);
 
   result = activate_p->ActivateObject (IID_PPV_ARGS (&media_sink_p));
+  ACE_ASSERT (SUCCEEDED (result) && media_sink_p);
+  activate_p->Release (); activate_p = NULL;
+  result = media_sink_p->GetStreamSinkCount (&number_of_streams_i);
   ACE_ASSERT (SUCCEEDED (result));
+  ACE_ASSERT (number_of_streams_i >= 1);
   result = media_sink_p->GetStreamSinkByIndex (0,
                                                &stream_sink_p);
   ACE_ASSERT (SUCCEEDED (result));
   result = media_sink_p->GetCharacteristics (&characteristics_i);
   ACE_ASSERT (SUCCEEDED (result));
-  if (characteristics_i & MEDIASINK_CLOCK_REQUIRED)
-  {
+  ACE_DEBUG ((LM_DEBUG,
+              ACE_TEXT ("IMFMediaSink characteristics: 0x%x\n"),
+              characteristics_i));
+  //if (characteristics_i & MEDIASINK_CLOCK_REQUIRED)
+  //{
     result = media_sink_p->SetPresentationClock (NULL);
     ACE_ASSERT (SUCCEEDED (result));
-  } // end IF
+  //} // end IF
   media_sink_p->Release (); media_sink_p = NULL;
-  media_type_handler_p = NULL;
-  result = stream_sink_p->GetMediaTypeHandler (&media_type_handler_p);
-  ACE_ASSERT (SUCCEEDED (result));
-  media_type_handler_p->SetCurrentMediaType (media_type_p);
-  ACE_ASSERT (SUCCEEDED (result));
-  media_type_handler_p->Release (); media_type_handler_p = NULL;
+  //media_type_handler_p = NULL;
+  //result = stream_sink_p->GetMediaTypeHandler (&media_type_handler_p);
+  //ACE_ASSERT (SUCCEEDED (result));
+  //media_type_handler_p->SetCurrentMediaType (media_type_p);
+  //ACE_ASSERT (SUCCEEDED (result));
+  //media_type_handler_p->Release (); media_type_handler_p = NULL;
 
 #if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
   result = MFCreateTopologyNode (MF_TOPOLOGY_OUTPUT_NODE,
@@ -3796,20 +3833,22 @@ continue_4:
   } // end IF
   ACE_ASSERT (topology_node_p);
 #endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
-  //result = topology_node_p->SetObject (stream_sink_p);
-  result = topology_node_p->SetObject (activate_p);
+  // *IMPORTANT NOTE*: topology loaders do not support sink activates (MF_E_TOPO_SINK_ACTIVATES_UNSUPPORTED)
+  //                   --> bind stream sink manually
+  result = topology_node_p->SetObject (stream_sink_p);
+  //result = topology_node_p->SetObject (activate_p);
   ACE_ASSERT (SUCCEEDED (result));
-  activate_p->Release (); activate_p = NULL;
+  //activate_p->Release (); activate_p = NULL;
   stream_sink_p->Release (); stream_sink_p = NULL;
   result = topology_node_p->SetUINT32 (MF_TOPONODE_CONNECT_METHOD,
-                                       MF_CONNECT_DIRECT);
+                                       MF_CONNECT_ALLOW_DECODER);
   ACE_ASSERT (SUCCEEDED (result));
   result = topology_node_p->SetUINT32 (MF_TOPONODE_STREAMID, 0);
   ACE_ASSERT (SUCCEEDED (result));
   result = topology_node_p->SetUINT32 (MF_TOPONODE_NOSHUTDOWN_ON_REMOVE, FALSE);
   ACE_ASSERT (SUCCEEDED (result));
-  result = topology_node_p->SetUINT32 (MF_TOPONODE_DISABLE_PREROLL, TRUE);
-  ACE_ASSERT (SUCCEEDED (result));
+  //result = topology_node_p->SetUINT32 (MF_TOPONODE_DISABLE_PREROLL, TRUE);
+  //ACE_ASSERT (SUCCEEDED (result));
   result = topology_inout->AddNode (topology_node_p);
   if (FAILED (result))
   {
@@ -3862,7 +3901,7 @@ error:
 }
 
 bool
-Stream_Module_Decoder_Tools::loadVideoRendererTopology (const std::string& deviceIdentifier_in,
+Stream_Module_Decoder_Tools::loadVideoRendererTopology (REFGUID deviceIdentifier_in,
                                                         const IMFMediaType* mediaType_in,
 #if COMMON_OS_WIN32_TARGET_PLATFORM(0x0601) // _WIN32_WINNT_WIN7
                                                         IMFSampleGrabberSinkCallback2* sampleGrabberSinkCallback_in,
@@ -3925,7 +3964,9 @@ Stream_Module_Decoder_Tools::loadVideoRendererTopology (const std::string& devic
   if (!topology_inout)
   {
 #if COMMON_OS_WIN32_TARGET_PLATFORM(0x0601) // _WIN32_WINNT_WIN7
-    if (!Stream_Device_MediaFoundation_Tools::loadDeviceTopology (deviceIdentifier_in,
+    struct Stream_Device_Identifier device_identifier;
+    device_identifier.identifier._guid = deviceIdentifier_in;
+    if (!Stream_Device_MediaFoundation_Tools::loadDeviceTopology (device_identifier,
                                                                   MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE_VIDCAP_GUID,
                                                                   media_source_p,
                                                                   NULL, // do not load a dummy sink
@@ -3933,7 +3974,7 @@ Stream_Module_Decoder_Tools::loadVideoRendererTopology (const std::string& devic
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to Stream_Device_MediaFoundation_Tools::loadDeviceTopology(\"%s\"), aborting\n"),
-                  ACE_TEXT (deviceIdentifier_in.c_str ())));
+                  ACE_TEXT (Common_Tools::GUIDToString (deviceIdentifier_in).c_str ())));
       goto error;
     } // end IF
 #endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0601)

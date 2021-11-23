@@ -23,29 +23,29 @@
 
 #include <sstream>
 
-#include <oleauto.h>
+#include "oleauto.h"
 
-#include <dmoreg.h>
-#include <dshow.h>
+#include "dmoreg.h"
+#include "dshow.h"
 //#include <dsound.h>
-#include <dvdmedia.h>
-#include <Dmodshow.h>
-#include <evr.h>
+#include "dvdmedia.h"
+#include "Dmodshow.h"
+#include "evr.h"
 //#include <fourcc.h>
-#include <ks.h>
-#include <ksmedia.h>
+#include "ks.h"
+#include "ksmedia.h"
  //#include <ksuuids.h>
-#include <qedit.h>
+#include "qedit.h"
 
-#include <mfapi.h>
-#include <mferror.h>
+#include "mfapi.h"
+#include "mferror.h"
 //#include <mftransform.h>
 
-#include <wmcodecdsp.h>
+#include "wmcodecdsp.h"
 
 #include "ace/Log_Msg.h"
 #include "ace/OS.h"
-#include "ace/Synch.h"
+//#include "ace/Synch.h"
 
 #include "common_time_common.h"
 #include "common_tools.h"
@@ -69,23 +69,18 @@ Stream_Device_MediaFoundation_Tools::initialize ()
 
 }
 
-std::string
+struct Stream_Device_Identifier
 Stream_Device_MediaFoundation_Tools::getDefaultCaptureDevice (REFGUID deviceCategory_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Device_MediaFoundation_Tools::getDefaultCaptureDevice"));
 
   // initialize return value(s)
-  std::string result;
+  struct Stream_Device_Identifier result;
 
   Stream_Device_List_t devices_a =
     Stream_Device_MediaFoundation_Tools::getCaptureDevices (deviceCategory_in);
   if (likely (!devices_a.empty ()))
-  {
-    const struct Stream_Device_Identifier& device_identifier_s =
-      devices_a.front ();
-    ACE_ASSERT (device_identifier_s.identifierDiscriminator == Stream_Device_Identifier::STRING);
-    result = device_identifier_s.identifier._string;
-  } // end IF
+    return devices_a.front ();
 
   return result;
 }
@@ -213,7 +208,7 @@ error_2:
 
 #if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
 bool
-Stream_Device_MediaFoundation_Tools::loadDeviceTopology (const std::string& deviceIdentifier_in,
+Stream_Device_MediaFoundation_Tools::loadDeviceTopology (const struct Stream_Device_Identifier& deviceIdentifier_in,
                                                          REFGUID deviceCategory_in,
 #if COMMON_OS_WIN32_TARGET_PLATFORM(0x0602) // _WIN32_WINNT_WIN8
                                                          IMFMediaSourceEx*& mediaSource_inout,
@@ -260,6 +255,9 @@ Stream_Device_MediaFoundation_Tools::loadDeviceTopology (const std::string& devi
     result = topology_out->SetUINT32 (MF_TOPOLOGY_DXVA_MODE,
                                       MFTOPOLOGY_DXVA_FULL);
     ACE_ASSERT (SUCCEEDED (result));
+    result = topology_out->SetUINT32 (MF_TOPOLOGY_ENABLE_XVP_FOR_PLAYBACK,
+                                      TRUE);
+    ACE_ASSERT (SUCCEEDED (result));
   } // end IF
   result = topology_out->SetUINT32 (MF_TOPOLOGY_ENUMERATE_SOURCE_TYPES,
                                     TRUE);
@@ -292,16 +290,21 @@ Stream_Device_MediaFoundation_Tools::loadDeviceTopology (const std::string& devi
   result = topology_node_p->SetUINT32 (MF_TOPONODE_CONNECT_METHOD,
                                        MF_CONNECT_DIRECT);
   ACE_ASSERT (SUCCEEDED (result));
+  result = topology_node_p->SetUINT32 (MF_TOPONODE_LOCKED,
+                                       TRUE);
+  ACE_ASSERT (SUCCEEDED (result));
   if (!mediaSource_inout)
-    if (!Stream_MediaFramework_MediaFoundation_Tools::getMediaSource (deviceIdentifier_in,
+  { ACE_ASSERT (deviceIdentifier_in.identifierDiscriminator == Stream_Device_Identifier::GUID);
+    if (!Stream_MediaFramework_MediaFoundation_Tools::getMediaSource (deviceIdentifier_in.identifier._guid,
                                                                       deviceCategory_in,
                                                                       mediaSource_inout))
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to Stream_MediaFramework_MediaFoundation_Tools::getMediaSource(\"%s\"), aborting\n"),
-                  ACE_TEXT (deviceIdentifier_in.c_str ())));
+                  ACE_TEXT (Common_Tools::GUIDToString (deviceIdentifier_in.identifier._guid).c_str ())));
       goto error;
     } // end IF
+  } // end IF
   ACE_ASSERT (mediaSource_inout);
   result = topology_node_p->SetUnknown (MF_TOPONODE_SOURCE,
                                         mediaSource_inout);
@@ -330,7 +333,7 @@ Stream_Device_MediaFoundation_Tools::loadDeviceTopology (const std::string& devi
                 ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
     goto error;
   } // end IF
-  //ACE_ASSERT (is_selected);
+  ACE_ASSERT (is_selected);
   presentation_descriptor_p->Release (); presentation_descriptor_p = NULL;
   result = topology_node_p->SetUnknown (MF_TOPONODE_STREAM_DESCRIPTOR,
                                         stream_descriptor_p);
@@ -729,7 +732,7 @@ error:
 //}
 bool
 Stream_Device_MediaFoundation_Tools::setCaptureFormat (IMFTopology* IMFTopology_in,
-                                                              const IMFMediaType* mediaType_in)
+                                                       const IMFMediaType* mediaType_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Device_MediaFoundation_Tools::setCaptureFormat"));
 
@@ -778,7 +781,7 @@ Stream_Device_MediaFoundation_Tools::setCaptureFormat (IMFTopology* IMFTopology_
   ACE_ASSERT (SUCCEEDED (result));
   topology_node_p->Release ();
   if (!Stream_Device_MediaFoundation_Tools::setCaptureFormat (media_source_p,
-                                                                     mediaType_in))
+                                                              mediaType_in))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Stream_Device_MediaFoundation_Tools::setCaptureFormat(), aborting\n")));

@@ -125,8 +125,9 @@ class Stream_Module_Decoder_Tools
                                        Stream_MediaFramework_DirectShow_GraphConfiguration_t&); // return value: graph layout
 
   // media foundation
-  static bool loadAudioRendererTopology (const std::string&,             // device name ("FriendlyName")
-                                         REFGUID,                        // device category (GUID_NULL: retain existing media source)
+  static bool loadAudioRendererTopology (REFGUID,                        // device identifier
+                                         REFGUID,                        // device category
+                                         bool,                           // use framework source ? : retain any existing media source
                                          IMFMediaType*,                  // media type handle
 #if COMMON_OS_WIN32_TARGET_PLATFORM(0x0601) // _WIN32_WINNT_WIN7
                                          IMFSampleGrabberSinkCallback2*, // sample grabber sink callback handle [NULL: do not use tee/grabber]
@@ -137,7 +138,7 @@ class Stream_Module_Decoder_Tools
                                          REFGUID,                        // audio effect CLSID [GUID_NULL: no effect]
                                          const std::string&,             // audio effect options *TODO*
                                          IMFTopology*&);                 // input/return value: topology handle
-  static bool loadVideoRendererTopology (const std::string&,             // device name ("FriendlyName")
+  static bool loadVideoRendererTopology (REFGUID,                        // device identifier
                                          const IMFMediaType*,            // sample grabber sink input media type handle
 #if COMMON_OS_WIN32_TARGET_PLATFORM(0x0601) // _WIN32_WINNT_WIN7
                                          IMFSampleGrabberSinkCallback2*, // sample grabber sink callback handle [NULL: do not use tee/grabber]

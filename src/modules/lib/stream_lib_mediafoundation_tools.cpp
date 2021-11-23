@@ -23,12 +23,11 @@
 
 #include <sstream>
 
-//#include <dvdmedia.h>
-//#include <Dmodshow.h>
 #include "evr.h"
-//#include <fourcc.h>
 #include "mfapi.h"
 #include "mferror.h"
+#define INITGUID
+#include "mmdeviceapi.h"
 #include "wmcodecdsp.h"
 
 #include "ace/Log_Msg.h"
@@ -44,6 +43,7 @@
 #include "stream_lib_defines.h"
 #include "stream_lib_directshow_tools.h"
 #include "stream_lib_guids.h"
+#include "stream_lib_macros.h"
 #include "stream_lib_tools.h"
 
 // initialize statics
@@ -68,6 +68,101 @@ Stream_MediaFramework_MediaFoundation_Tools::initialize ()
 #if defined (_WIN32_WINNT) && (_WIN32_WINNT >= 0x0602) // _WIN32_WINNT_WIN8
   Stream_MediaFramework_MediaFoundation_Tools::Stream_MediaMajorTypeToStringMap.insert (std::make_pair (MFMediaType_Stream, ACE_TEXT_ALWAYS_CHAR ("MF stream")));
 #endif // _WIN32_WINNT) && (_WIN32_WINNT >= 0x0602)
+}
+
+std::string
+Stream_MediaFramework_MediaFoundation_Tools::identifierToString (REFGUID deviceIdentifier_in,
+                                                                 REFGUID deviceCategory_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_MediaFoundation_Tools::identifierToString"));
+
+  std::string return_value;
+
+  HRESULT result = E_FAIL;
+#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0601) // _WIN32_WINNT_WIN7
+  if (InlineIsEqualGUID (deviceCategory_in, MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE_AUDCAP_GUID))
+  {
+    IMMDeviceEnumerator* enumerator_p = NULL;
+    result = CoCreateInstance (__uuidof (MMDeviceEnumerator), NULL,
+                               CLSCTX_ALL, __uuidof (IMMDeviceEnumerator),
+                               (void**)&enumerator_p);
+    if (FAILED (result) || !enumerator_p)
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to CoCreateInstance(MMDeviceEnumerator): \"%s\", aborting\n"),
+                  ACE_TEXT (Common_Error_Tools::errorToString (result, false, false).c_str ())));
+      return ACE_TEXT_ALWAYS_CHAR ("");
+    } // end IF
+    DWORD state_mask_i = DEVICE_STATEMASK_ALL;
+    IMMDeviceCollection* device_collection_p = NULL;
+    result = enumerator_p->EnumAudioEndpoints (eAll,
+                                               state_mask_i,
+                                               &device_collection_p);
+    if (FAILED (result) || !device_collection_p)
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to IMMDeviceEnumerator::EnumAudioEndpoints(): \"%s\", aborting\n"),
+                  ACE_TEXT (Common_Error_Tools::errorToString (result, false, false).c_str ())));
+      enumerator_p->Release ();
+      return ACE_TEXT_ALWAYS_CHAR ("");
+    } // end IF
+    enumerator_p->Release (); enumerator_p = NULL;
+    UINT number_of_devices_i = 0;
+    result = device_collection_p->GetCount (&number_of_devices_i);
+    ACE_ASSERT (SUCCEEDED (result));
+    IMMDevice* device_p = NULL;
+    IPropertyStore* properties_p = NULL;
+    struct tagPROPVARIANT property_s;
+    struct _GUID GUID_s = GUID_NULL;
+    LPWSTR string_p = NULL;
+    for (UINT i = 0;
+         i < number_of_devices_i;
+         ++i)
+    {
+      result = device_collection_p->Item (i, &device_p);
+      ACE_ASSERT (SUCCEEDED (result) && device_p);
+      result = device_p->OpenPropertyStore (STGM_READ,
+                                            &properties_p);
+      ACE_ASSERT (SUCCEEDED (result) && properties_p);
+      PropVariantInit (&property_s);
+      result = properties_p->GetValue (PKEY_AudioEndpoint_GUID,
+                                       &property_s);
+      ACE_ASSERT (SUCCEEDED (result) && (property_s.vt == VT_LPWSTR));
+      properties_p->Release (); properties_p = NULL;
+      GUID_s =
+        Common_Tools::StringToGUID (ACE_TEXT_ALWAYS_CHAR (ACE_TEXT_WCHAR_TO_TCHAR (property_s.pwszVal)));
+      if (!InlineIsEqualGUID (GUID_s, deviceIdentifier_in))
+      {
+        PropVariantClear (&property_s);
+        device_p->Release (); device_p = NULL;
+        continue;
+      } // end IF
+      PropVariantClear (&property_s);
+      result = device_p->GetId (&string_p);
+      ACE_ASSERT (SUCCEEDED (result) && string_p);
+      return_value = ACE_TEXT_ALWAYS_CHAR (ACE_TEXT_WCHAR_TO_TCHAR (string_p));
+      CoTaskMemFree (string_p);
+      device_p->Release (); device_p = NULL;
+      break;
+    } // end FOR
+    device_collection_p->Release (); device_collection_p = NULL;
+  } // end IF
+  else if (InlineIsEqualGUID (deviceCategory_in, MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE_VIDCAP_GUID))
+  {
+    ACE_ASSERT (false); // *TODO*
+    ACE_NOTSUP_RETURN (ACE_TEXT_ALWAYS_CHAR (""));
+    ACE_NOTREACHED (return ACE_TEXT_ALWAYS_CHAR ("");)
+  } // end ELSE IF
+  else
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("invalid/unknown device category (was: %s, aborting\n"),
+                ACE_TEXT (Common_Tools::GUIDToString (deviceCategory_in).c_str ())));
+    return ACE_TEXT_ALWAYS_CHAR ("");
+  } // end ELSE
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0601)
+
+  return return_value;
 }
 
 struct _GUID
@@ -903,7 +998,7 @@ Stream_MediaFramework_MediaFoundation_Tools::getMediaSource (const IMFTopology* 
 }
 
 bool
-Stream_MediaFramework_MediaFoundation_Tools::getMediaSource (const std::string& deviceIdentifier_in,
+Stream_MediaFramework_MediaFoundation_Tools::getMediaSource (REFGUID deviceIdentifier_in,
                                                              REFGUID deviceCategory_in,
 #if COMMON_OS_WIN32_TARGET_PLATFORM(0x0602) // _WIN32_WINNT_WIN8
                                                              IMFMediaSourceEx*& mediaSource_out)
@@ -925,18 +1020,32 @@ Stream_MediaFramework_MediaFoundation_Tools::getMediaSource (const std::string& 
   IMFActivate** devices_pp = NULL;
   unsigned int index = 0;
   struct _GUID GUID_s = GUID_NULL;
+  std::string device_identifier_string;
+
+  device_identifier_string =
+    Stream_MediaFramework_MediaFoundation_Tools::identifierToString (deviceIdentifier_in,
+                                                                     deviceCategory_in);
+  if (device_identifier_string.empty ())
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to Stream_MediaFramework_MediaFoundation_Tools::identifierToString(\"%s\"), aborting\n"),
+                ACE_TEXT (Common_Tools::GUIDToString (deviceIdentifier_in).c_str ())));
+    goto error;
+  } // end IF
 
 #if COMMON_OS_WIN32_TARGET_PLATFORM(0x0601) // _WIN32_WINNT_WIN7
   if (InlineIsEqualGUID (deviceCategory_in, MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE_AUDCAP_GUID))
+  {
     //GUID_s = MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE_AUDCAP_SYMBOLIC_LINK;
     GUID_s = MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE_AUDCAP_ENDPOINT_ID;
+  } // end IF
   else if (InlineIsEqualGUID (deviceCategory_in, MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE_VIDCAP_GUID))
     GUID_s = MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE_VIDCAP_SYMBOLIC_LINK;
   else
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("invalid/unknown device category (was: %s, aborting\n"),
-                ACE_TEXT (Common_Tools::GUIDToString (GUID_s).c_str ())));
+                ACE_TEXT (Common_Tools::GUIDToString (deviceCategory_in).c_str ())));
     goto error;
   } // end IF
 #endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0601)
@@ -987,7 +1096,7 @@ Stream_MediaFramework_MediaFoundation_Tools::getMediaSource (const std::string& 
     goto error;
   } // end IF
 
-  if (!deviceIdentifier_in.empty ())
+  if (!InlineIsEqualGUID (deviceIdentifier_in, GUID_NULL))
   {
     WCHAR buffer_a[BUFSIZ];
     UINT32 length;
@@ -1010,7 +1119,7 @@ Stream_MediaFramework_MediaFoundation_Tools::getMediaSource (const std::string& 
         goto error;
       } // end IF
       if (!ACE_OS::strcmp (buffer_a,
-                           ACE_TEXT_ALWAYS_WCHAR (deviceIdentifier_in.c_str ())))
+                           ACE_TEXT_ALWAYS_WCHAR (device_identifier_string.c_str ())))
       {
         found = true;
         index = i;
@@ -1021,7 +1130,7 @@ Stream_MediaFramework_MediaFoundation_Tools::getMediaSource (const std::string& 
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("media source (device identifier was: \"%s\") not found, aborting\n"),
-                  ACE_TEXT (deviceIdentifier_in.c_str ())));
+                  ACE_TEXT (device_identifier_string.c_str ())));
       goto error;
     } // end IF
   } // end IF
@@ -1709,8 +1818,8 @@ Stream_MediaFramework_MediaFoundation_Tools::addGrabber (const IMFMediaType* med
   ACE_ASSERT (SUCCEEDED (result));
   result = topology_node_p->SetUINT32 (MF_TOPONODE_STREAMID, 0);
   ACE_ASSERT (SUCCEEDED (result));
-  //result = topology_node_p->SetUINT32 (MF_TOPONODE_NOSHUTDOWN_ON_REMOVE, FALSE);
-  //ACE_ASSERT (SUCCEEDED (result));
+  result = topology_node_p->SetUINT32 (MF_TOPONODE_NOSHUTDOWN_ON_REMOVE, FALSE);
+  ACE_ASSERT (SUCCEEDED (result));
   result = topology_in->AddNode (topology_node_p);
   if (FAILED (result))
   {
@@ -1738,14 +1847,20 @@ Stream_MediaFramework_MediaFoundation_Tools::addGrabber (const IMFMediaType* med
   return true;
 
 error:
+  if (stream_sink_p)
+  {
+    stream_sink_p->Release (); stream_sink_p = NULL;
+  } // end IF
   if (media_sink_p)
-    media_sink_p->Release ();
+  {
+    media_sink_p->Release (); media_sink_p = NULL;
+  } // end IF
+  if (topology_node_p)
+  {
+    topology_node_p->Release (); topology_node_p = NULL;
+  } // end IF
   if (grabberNodeId_out)
   {
-    if (topology_node_p)
-    {
-      topology_node_p->Release (); topology_node_p = NULL;
-    } // end IF
     result = topology_in->GetNodeByID (grabberNodeId_out,
                                        &topology_node_p);
     ACE_ASSERT (SUCCEEDED (result));
@@ -1756,9 +1871,22 @@ error:
                   grabberNodeId_out,
                   ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
     grabberNodeId_out = 0;
+    IUnknown* unknown_p = NULL;
+    result = topology_node_p->GetObject (&unknown_p);
+    ACE_ASSERT (SUCCEEDED (result) && unknown_p);
+    result = unknown_p->QueryInterface (IID_PPV_ARGS (&stream_sink_p));
+    ACE_ASSERT (SUCCEEDED (result) && stream_sink_p);
+    unknown_p->Release (); unknown_p = NULL;
+    result = stream_sink_p->GetMediaSink (&media_sink_p);
+    ACE_ASSERT (SUCCEEDED (result) && media_sink_p);
+    stream_sink_p->Release (); stream_sink_p = NULL;
+    result = media_sink_p->Shutdown ();
+    ACE_ASSERT (SUCCEEDED (result));
+    media_sink_p->Release (); media_sink_p = NULL;
+    result = topology_node_p->SetObject (NULL);
+    ACE_ASSERT (SUCCEEDED (result));
+    topology_node_p->Release (); topology_node_p = NULL;
   } // end IF
-  if (topology_node_p)
-    topology_node_p->Release ();
 
   return false;
 }
@@ -1952,10 +2080,18 @@ Stream_MediaFramework_MediaFoundation_Tools::addRenderer (HWND windowHandle_in,
   return true;
 
 error:
+  if (stream_sink_p)
+  {
+    stream_sink_p->Release (); stream_sink_p = NULL;
+  } // end IF
   if (media_sink_p)
-    media_sink_p->Release ();
+  {
+    media_sink_p->Release (); media_sink_p = NULL;
+  } // end IF
   if (topology_node_p)
-    topology_node_p->Release ();
+  {
+    topology_node_p->Release (); topology_node_p = NULL;
+  } // end IF
   if (rendererNodeId_out)
   {
     topology_node_p = NULL;
@@ -1968,9 +2104,25 @@ error:
                   ACE_TEXT ("failed to IMFTopology::RemoveNode(%q): \"%s\", continuing\n"),
                   rendererNodeId_out,
                   ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
-    // *TODO*: apparently, topology_node_p is invalid after RemoveNode()
-    //topology_node_p->Release ();
+    result = topology_node_p->SetObject (NULL);
+    ACE_ASSERT (SUCCEEDED (result));
+    topology_node_p->Release (); topology_node_p = NULL;
     rendererNodeId_out = 0;
+    IUnknown* unknown_p = NULL;
+    result = topology_node_p->GetObject (&unknown_p);
+    ACE_ASSERT (SUCCEEDED (result) && unknown_p);
+    result = unknown_p->QueryInterface (IID_PPV_ARGS (&stream_sink_p));
+    ACE_ASSERT (SUCCEEDED (result) && stream_sink_p);
+    unknown_p->Release (); unknown_p = NULL;
+    result = stream_sink_p->GetMediaSink (&media_sink_p);
+    ACE_ASSERT (SUCCEEDED (result) && media_sink_p);
+    stream_sink_p->Release (); stream_sink_p = NULL;
+    result = media_sink_p->Shutdown ();
+    ACE_ASSERT (SUCCEEDED (result));
+    media_sink_p->Release (); media_sink_p = NULL;
+    result = topology_node_p->SetObject (NULL);
+    ACE_ASSERT (SUCCEEDED (result));
+    topology_node_p->Release (); topology_node_p = NULL;
   } // end IF
 
   return false;
@@ -1992,16 +2144,17 @@ Stream_MediaFramework_MediaFoundation_Tools::setTopology (IMFTopology* topology_
   bool release_media_session = false;
   IMFTopoLoader* topology_loader_p = NULL;
   IMFTopology* topology_p = NULL;
-  DWORD topology_flags = (MFSESSION_SETTOPOLOGY_IMMEDIATE    |
-                          MFSESSION_SETTOPOLOGY_NORESOLUTION);// |
-                          //MFSESSION_SETTOPOLOGY_CLEAR_CURRENT);
+  // *WARNING*: do NOT set the MFSESSION_SETTOPOLOGY_CLEAR_CURRENT flag here
+  //            --> if the flag is passed in, the new topology will NOT be set
+  DWORD topology_flags = (MFSESSION_SETTOPOLOGY_IMMEDIATE   |
+                          MFSESSION_SETTOPOLOGY_NORESOLUTION);
   if (isPartial_in)
     topology_flags &= ~MFSESSION_SETTOPOLOGY_NORESOLUTION;
   IMFMediaEvent* media_event_p = NULL;
-  bool received_topology_set_event = false;
+  bool received_topology_event = false;
   MediaEventType event_type = MEUnknown;
-  ACE_Time_Value timeout (STREAM_LIB_MEDIAFOUNDATION_TOPOLOGY_GET_TIMEOUT,
-                          0);
+  ACE_Time_Value timeout (STREAM_LIB_MEDIAFOUNDATION_TOPOLOGY_GET_TIMEOUT, 0);
+  UINT32 value_i = 0;
 
   // initialize return value(s)
   if (!mediaSession_inout)
@@ -2017,8 +2170,8 @@ Stream_MediaFramework_MediaFoundation_Tools::setTopology (IMFTopology* topology_
     } // end IF
     result = attributes_p->SetUINT32 (MF_SESSION_GLOBAL_TIME, FALSE);
     ACE_ASSERT (SUCCEEDED (result));
-    //result = attributes_p->SetGUID (MF_SESSION_QUALITY_MANAGER, GUID_NULL);
-    //ACE_ASSERT (SUCCEEDED (result));
+    result = attributes_p->SetGUID (MF_SESSION_QUALITY_MANAGER, GUID_NULL);
+    ACE_ASSERT (SUCCEEDED (result));
     //result = attributes_p->SetGUID (MF_SESSION_TOPOLOADER, );
     //ACE_ASSERT (SUCCEEDED (result));
 #if COMMON_OS_WIN32_TARGET_PLATFORM(0x0602) // _WIN32_WINNT_WIN8
@@ -2041,7 +2194,7 @@ Stream_MediaFramework_MediaFoundation_Tools::setTopology (IMFTopology* topology_
   else
   {
     if (!Stream_MediaFramework_MediaFoundation_Tools::clear (mediaSession_inout,
-                                                             true))
+                                                             waitForCompletion_in))
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to Stream_MediaFramework_MediaFoundation_Tools::clear(), aborting\n")));
@@ -2067,21 +2220,22 @@ Stream_MediaFramework_MediaFoundation_Tools::setTopology (IMFTopology* topology_
   result = topology_loader_p->Load (topology_in,
                                     &topology_p,
                                     NULL);
-  if (FAILED (result)) // MF_E_INVALIDMEDIATYPE    : 0xC00D36B4L
-  {                    // MF_E_NO_MORE_TYPES       : 0xC00D36B9L
-                       // MF_E_TOPO_CODEC_NOT_FOUND: 0xC00D5212L
-                       // MF_E_TOPO_UNSUPPORTED:     0xC00D5214L
+  if (FAILED (result)) // MF_E_INVALIDMEDIATYPE               : 0xC00D36B4
+  {                    // MF_E_NO_MORE_TYPES                  : 0xC00D36B9
+                       // MF_E_TOPO_SINK_ACTIVATES_UNSUPPORTED: 0xC00D521B
+                       // MF_E_TOPO_CODEC_NOT_FOUND           : 0xC00D5212
+                       // MF_E_TOPO_UNSUPPORTED               : 0xC00D5214
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IMFTopoLoader::Load(): \"%s\", aborting\n"),
                 ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
-#if defined (_DEBUG)
     Stream_MediaFramework_MediaFoundation_Tools::dump (topology_in);
-#endif // _DEBUG
     goto error;
   } // end IF
   topology_loader_p->Release (); topology_loader_p = NULL;
 continue_:
   ACE_ASSERT (topology_p);
+
+  Stream_MediaFramework_MediaFoundation_Tools::dump (topology_p);
 
   result = mediaSession_inout->SetTopology (topology_flags,
                                             topology_p);
@@ -2092,11 +2246,10 @@ continue_:
                 ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
     goto error;
   } // end IF
-  topology_p->Release (); topology_p = NULL;
 
   // *NOTE*: IMFMediaSession::SetTopology() is asynchronous; subsequent calls
   //         to retrieve a topology handle will fail (MF_E_INVALIDREQUEST)
-  //         --> wait a little ?
+  //         --> wait until it finishes ?
   if (!waitForCompletion_in)
     goto continue_2;
 
@@ -2117,15 +2270,75 @@ continue_:
     result = media_event_p->GetType (&event_type);
     ACE_ASSERT (SUCCEEDED (result));
     if (event_type == MESessionTopologySet)
-      received_topology_set_event = true;
+    {
+      HRESULT status = E_FAIL;
+      result = media_event_p->GetStatus (&status);
+      ACE_ASSERT (SUCCEEDED (result));
+      if (FAILED (status))
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("failed to IMFMediaSession::SetTopology(): \"%s\"), aborting\n"),
+                    ACE_TEXT (Common_Error_Tools::errorToString (status).c_str ())));
+        goto error;
+      } // end IF
+      received_topology_event = true;
+    } // end IF
+    ACE_DEBUG ((LM_DEBUG,
+                ACE_TEXT ("popped media session event (type: \"%s\")...\n"),
+                ACE_TEXT (Stream_MediaFramework_MediaFoundation_Tools::toString (event_type).c_str ())));
     media_event_p->Release ();
-  } while (!received_topology_set_event &&
+  } while (!received_topology_event &&
            (COMMON_TIME_NOW < timeout));
-  if (!received_topology_set_event)
+  if (!received_topology_event)
+    ACE_DEBUG ((LM_WARNING,
+                ACE_TEXT ("failed to IMFMediaSession::SetTopology(): timed out, continuing\n")));
+
+  result = topology_p->GetUINT32 (MF_TOPOLOGY_RESOLUTION_STATUS,
+                                  &value_i);
+  if (SUCCEEDED (result))
+    ACE_DEBUG ((LM_DEBUG,
+                ACE_TEXT ("topology resolution status: 0x%x\n"),
+                value_i));
+
+  received_topology_event = false;
+  do
+  { // *TODO*: this shouldn't block
+    media_event_p = NULL;
+    result = mediaSession_inout->GetEvent (0,
+                                           &media_event_p);
+    if (FAILED (result))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to IMFMediaSession::GetEvent(): \"%s\", aborting\n"),
+                  ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
+      goto error;
+    } // end IF
+    ACE_ASSERT (media_event_p);
+    result = media_event_p->GetType (&event_type);
+    ACE_ASSERT (SUCCEEDED (result));
+    if (event_type == MESessionTopologyStatus)
+    {
+      UINT32 attribute_value = 0;
+      MF_TOPOSTATUS topology_status = MF_TOPOSTATUS_INVALID;
+      result = media_event_p->GetUINT32 (MF_EVENT_TOPOLOGY_STATUS,
+                                         &attribute_value);
+      ACE_ASSERT (SUCCEEDED (result));
+      topology_status = static_cast<MF_TOPOSTATUS> (attribute_value);
+      if (topology_status == MF_TOPOSTATUS_READY)
+        received_topology_event = true;
+    } // end IF
+    ACE_DEBUG ((LM_DEBUG,
+                ACE_TEXT ("popped media session event (type: \"%s\")...\n"),
+                ACE_TEXT (Stream_MediaFramework_MediaFoundation_Tools::toString (event_type).c_str ())));
+    media_event_p->Release ();
+  } while (!received_topology_event &&
+           (COMMON_TIME_NOW < timeout));
+  if (!received_topology_event)
     ACE_DEBUG ((LM_WARNING,
                 ACE_TEXT ("failed to IMFMediaSession::SetTopology(): timed out, continuing\n")));
 
 continue_2:
+  topology_p->Release (); topology_p = NULL;
   return true;
 
 error:
@@ -2481,15 +2694,14 @@ Stream_MediaFramework_MediaFoundation_Tools::clear (IMFMediaSession* mediaSessio
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_MediaFoundation_Tools::clear"));
 
-  ACE_Time_Value timeout (STREAM_LIB_MEDIAFOUNDATION_TOPOLOGY_GET_TIMEOUT,
-                          0);
+  ACE_Time_Value timeout (STREAM_LIB_MEDIAFOUNDATION_TOPOLOGY_GET_TIMEOUT, 0);
   ACE_Time_Value deadline;
   IMFMediaEvent* media_event_p = NULL;
   bool received_topology_event = false;
   MediaEventType event_type = MEUnknown;
 
   // *NOTE*: this method is asynchronous
-  //         --> wait for MESessionTopologiesCleared ?
+  //         --> wait for MESessionTopologiesCleared
   HRESULT result = mediaSession_in->ClearTopologies ();
   if (FAILED (result))
   {
@@ -2532,7 +2744,7 @@ Stream_MediaFramework_MediaFoundation_Tools::clear (IMFMediaSession* mediaSessio
   } while (!received_topology_event &&
            (COMMON_TIME_NOW < deadline));
   if (!received_topology_event)
-    ACE_DEBUG ((LM_ERROR,
+    ACE_DEBUG ((LM_WARNING,
                 ACE_TEXT ("failed to IMFMediaSession::ClearTopologies(): timed out, continuing\n")));
 
 continue_:
@@ -2548,7 +2760,7 @@ continue_:
   } // end IF
 
   // *NOTE*: IMFMediaSession::SetTopology() is asynchronous
-  //         --> wait for the next MESessionTopologySet ?
+  //         --> wait for the next MESessionTopologySet
   if (!waitForCompletion_in)
     return true;
 
@@ -2574,14 +2786,63 @@ continue_:
   } while (!received_topology_event &&
            (COMMON_TIME_NOW < deadline));
   if (!received_topology_event)
-    ACE_DEBUG ((LM_ERROR,
+    ACE_DEBUG ((LM_WARNING,
                 ACE_TEXT ("failed to IMFMediaSession::SetTopology(): timed out, continuing\n")));
 
   return true;
 }
 
+void
+Stream_MediaFramework_MediaFoundation_Tools::shutdown (IMFMediaSession* mediaSession_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_MediaFoundation_Tools::shutdown"));
+
+  // sanity check(s)
+  ACE_ASSERT (mediaSession_in);
+
+  // step1: stop session
+  HRESULT result = mediaSession_in->Stop ();
+  if (FAILED (result))
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to IMFMediaSession::Stop(): \"%s\", continuing\n"),
+                ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
+
+  // step2: tear down topology/ies
+  IMFTopology* topology_p = NULL;
+  if (!Stream_MediaFramework_MediaFoundation_Tools::getTopology (mediaSession_in,
+                                                                 topology_p))
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to Stream_MediaFramework_MediaFoundation_Tools::getTopology(), continuing\n")));
+  if (!Stream_MediaFramework_MediaFoundation_Tools::clear (mediaSession_in,
+                                                           true)) // wait for completion
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to Stream_MediaFramework_MediaFoundation_Tools::clear(), continuing\n")));
+  if (topology_p &&
+      !Stream_MediaFramework_MediaFoundation_Tools::clear (topology_p,
+                                                           true)) // shutdown
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to Stream_MediaFramework_MediaFoundation_Tools::clear(), continuing\n")));
+  if (topology_p)
+  {
+    topology_p->Release (); topology_p = NULL;
+  } // end IF
+
+  // step3: tear down session
+  result = mediaSession_in->Close ();
+  if (FAILED (result))
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to IMFMediaSession::Close(): \"%s\", continuing\n"),
+                ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
+  result = mediaSession_in->Shutdown ();
+  if (FAILED (result))
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to IMFMediaSession::Shutdown(): \"%s\", continuing\n"),
+                ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
+}
+
 bool
-Stream_MediaFramework_MediaFoundation_Tools::clear (IMFTopology* topology_in)
+Stream_MediaFramework_MediaFoundation_Tools::clear (IMFTopology* topology_in,
+                                                    bool shutdown_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_MediaFoundation_Tools::clear"));
 
@@ -2601,16 +2862,18 @@ retry:
   { ACE_ASSERT (!topology_node_p);
     result = topology_in->GetNode (i, &topology_node_p);
     if (FAILED (result) && (result == MF_E_INVALIDINDEX))
-      goto retry; // *TODO*: why does this happen ?
+      goto retry; // *NOTE*: apparently, removing a node reindexes the remaining ones
     ACE_ASSERT (topology_node_p);
     result = topology_in->RemoveNode (topology_node_p);
     ACE_ASSERT (SUCCEEDED (result));
     result = topology_node_p->GetTopoNodeID (&node_id);
     ACE_ASSERT (SUCCEEDED (result));
+    if (shutdown_in)
+      Stream_MediaFramework_MediaFoundation_Tools::shutdown (topology_node_p);
+    topology_node_p->Release (); topology_node_p = NULL;
     ACE_DEBUG ((LM_DEBUG,
                 ACE_TEXT ("removed node (id was: %q)...\n"),
                 node_id));
-    topology_node_p->Release (); topology_node_p = NULL;
   } // end FOR
 
   return true;
@@ -2720,10 +2983,12 @@ Stream_MediaFramework_MediaFoundation_Tools::clearTransforms (IMFTopology* topol
           collection_p->Release (); collection_p = NULL;
           return false;
         } // end IF
+        result = topology_node_3->SetObject (NULL);
+        ACE_ASSERT (SUCCEEDED (result));
+        topology_node_3->Release (); topology_node_3 = NULL;
         ACE_DEBUG ((LM_DEBUG,
                     ACE_TEXT ("removed node (id was: %q)...\n"),
                     node_id));
-        topology_node_3->Release (); topology_node_3 = NULL;
       } // end FOR
       result = topology_node_2->GetTopoNodeID (&node_id);
       ACE_ASSERT (SUCCEEDED (result));
@@ -2738,10 +3003,12 @@ Stream_MediaFramework_MediaFoundation_Tools::clearTransforms (IMFTopology* topol
         collection_p->Release (); collection_p = NULL;
         return false;
       } // end IF
+      result = topology_node_2->SetObject (NULL);
+      ACE_ASSERT (SUCCEEDED (result));
+      topology_node_2->Release (); topology_node_2 = NULL;
       ACE_DEBUG ((LM_DEBUG,
                   ACE_TEXT ("removed transform node (id was: %q)...\n"),
                   node_id));
-      topology_node_2->Release (); topology_node_2 = NULL;
     } // end FOR
     topology_node_p->Release (); topology_node_p = NULL;
   } // end FOR
@@ -2807,6 +3074,62 @@ Stream_MediaFramework_MediaFoundation_Tools::disconnect (IMFTopologyNode* IMFTop
   return true;
 }
 
+void
+Stream_MediaFramework_MediaFoundation_Tools::shutdown (IMFTopologyNode* topologyNode_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_MediaFoundation_Tools::shutdown"));
+
+  // sanity check(s)
+  ACE_ASSERT (topologyNode_in);
+
+  enum MF_TOPOLOGY_TYPE node_type_e = MF_TOPOLOGY_MAX;
+  HRESULT result = topologyNode_in->GetNodeType (&node_type_e);
+  ACE_ASSERT (SUCCEEDED (result));
+  switch (node_type_e)
+  {
+    case MF_TOPOLOGY_OUTPUT_NODE:
+    {
+      IUnknown* unknown_p = NULL;
+      result = topologyNode_in->GetObject (&unknown_p);
+      ACE_ASSERT (SUCCEEDED (result) && unknown_p);
+      IMFStreamSink* stream_sink_p = NULL;
+      result = unknown_p->QueryInterface (IID_PPV_ARGS (&stream_sink_p));
+      ACE_ASSERT (SUCCEEDED (result) && stream_sink_p);
+      unknown_p->Release (); unknown_p = NULL;
+      IMFMediaSink* media_sink_p = NULL;
+      result = stream_sink_p->GetMediaSink (&media_sink_p);
+      if (FAILED (result) || !media_sink_p)
+      { // MF_E_STREAMSINK_REMOVED: 0xc00d4a38
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("failed to IMFStreamSink::GetMediaSink(): \"%s\"; cannot shutdown, continuing\n"),
+                    ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
+        stream_sink_p->Release (); stream_sink_p = NULL;
+        break;
+      } // end IF
+      result = media_sink_p->Shutdown ();
+      ACE_ASSERT (SUCCEEDED (result));
+      media_sink_p->Release (); media_sink_p = NULL;
+      stream_sink_p->Release (); stream_sink_p = NULL;
+      break;
+    }
+    case MF_TOPOLOGY_SOURCESTREAM_NODE:
+    {
+      IMFMediaSource* media_source_p = NULL;
+      result = topologyNode_in->GetUnknown (MF_TOPONODE_SOURCE,
+                                            IID_PPV_ARGS (&media_source_p));
+      ACE_ASSERT (SUCCEEDED (result) && media_source_p);
+      result = media_source_p->Shutdown ();
+      ACE_ASSERT (SUCCEEDED (result));
+      RELEASE_COM_OBJECT(media_source_p); media_source_p = NULL;
+      break;
+    }
+    default:
+      break;
+  } // end SWITCH
+  result = topologyNode_in->SetObject (NULL);
+  ACE_ASSERT (SUCCEEDED (result));
+}
+
 bool
 Stream_MediaFramework_MediaFoundation_Tools::reset (IMFTopology* topology_in,
                                                     REFGUID deviceCategory_in)
@@ -2852,7 +3175,7 @@ Stream_MediaFramework_MediaFoundation_Tools::reset (IMFTopology* topology_in,
   if (number_of_source_nodes > 1)
     ACE_DEBUG ((LM_WARNING,
                 ACE_TEXT ("topology has several source nodes, continuing\n")));
-  IMFTopologyNode* topology_node_p = NULL;
+  IMFTopologyNode* topology_node_p = NULL, *topology_node_2 = NULL;
   IUnknown* unknown_p = NULL;
   result = collection_p->GetElement (0, &unknown_p);
   ACE_ASSERT (SUCCEEDED (result));
@@ -2869,31 +3192,78 @@ Stream_MediaFramework_MediaFoundation_Tools::reset (IMFTopology* topology_in,
   } // end IF
   ACE_ASSERT (topology_node_p);
   unknown_p->Release (); unknown_p = NULL;
-
-  if (!Stream_MediaFramework_MediaFoundation_Tools::clear (topology_in))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to Stream_MediaFramework_MediaFoundation_Tools::clear(), aborting\n")));
-    topology_node_p->Release ();
-    return false;
-  } // end IF
-
-  result = topology_in->AddNode (topology_node_p);
-  if (FAILED (result))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to IMFTopology::AddNode(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
-    topology_node_p->Release ();
-    return false;
-  } // end IF
-  TOPOID node_id = 0;
+  TOPOID node_id = 0, node_id_2 = 0;
   result = topology_node_p->GetTopoNodeID (&node_id);
   ACE_ASSERT (SUCCEEDED (result));
-  ACE_DEBUG ((LM_DEBUG,
-              ACE_TEXT ("added source node (id: %q)...\n"),
-              node_id));
   topology_node_p->Release (); topology_node_p = NULL;
+
+  // remove/shutdown all other nodes
+  WORD number_of_nodes_i = 0;
+retry:
+  result = topology_in->GetNodeCount (&number_of_nodes_i);
+  ACE_ASSERT (SUCCEEDED (result));
+  enum MF_TOPOLOGY_TYPE node_type_e = MF_TOPOLOGY_MAX;
+  for (WORD i = 0;
+       i < number_of_nodes_i;
+       ++i)
+  { ACE_ASSERT (!topology_node_2);
+    result = topology_in->GetNode (i, &topology_node_2);
+    if (FAILED (result) && (result == MF_E_INVALIDINDEX))
+      goto retry; // *TODO*: why does this happen ?
+    ACE_ASSERT (topology_node_2);
+    result = topology_node_2->GetTopoNodeID (&node_id_2);
+    ACE_ASSERT (SUCCEEDED (result));
+    if (node_id == node_id_2)
+    {
+      topology_node_2->Release (); topology_node_2 = NULL;
+      continue;
+    } // end IF
+    result = topology_in->RemoveNode (topology_node_2);
+    ACE_ASSERT (SUCCEEDED (result));
+    result = topology_node_2->GetNodeType (&node_type_e);
+    ACE_ASSERT (SUCCEEDED (result));
+    switch (node_type_e)
+    {
+      case MF_TOPOLOGY_OUTPUT_NODE:
+      {
+        result = topology_node_2->GetObject (&unknown_p);
+        ACE_ASSERT (SUCCEEDED (result) && unknown_p);
+        IMFStreamSink* stream_sink_p = NULL;
+        result = unknown_p->QueryInterface (IID_PPV_ARGS (&stream_sink_p));
+        ACE_ASSERT (SUCCEEDED (result) && stream_sink_p);
+        unknown_p->Release (); unknown_p = NULL;
+        IMFMediaSink* media_sink_p = NULL;
+        result = stream_sink_p->GetMediaSink (&media_sink_p);
+        ACE_ASSERT (SUCCEEDED (result) && media_sink_p);
+        stream_sink_p->Release (); stream_sink_p = NULL;
+        result = media_sink_p->Shutdown ();
+        ACE_ASSERT (SUCCEEDED (result));
+        media_sink_p->Release (); media_sink_p = NULL;
+        break;
+      }
+      case MF_TOPOLOGY_SOURCESTREAM_NODE:
+      {
+        result = topology_node_2->GetObject (&unknown_p);
+        ACE_ASSERT (SUCCEEDED (result) && unknown_p);
+        IMFMediaSource* media_source_p = NULL;
+        result = topology_node_2->GetUnknown (MF_TOPONODE_SOURCE,
+                                              IID_PPV_ARGS (&media_source_p));
+        ACE_ASSERT (SUCCEEDED (result) && media_source_p);
+        result = media_source_p->Shutdown ();
+        ACE_ASSERT (SUCCEEDED (result));
+        media_source_p->Release (); media_source_p = NULL;
+        break;
+      }
+      default:
+        break;
+    } // end SWITCH
+    result = topology_node_2->SetObject (NULL);
+    ACE_ASSERT (SUCCEEDED (result));
+    topology_node_2->Release (); topology_node_2 = NULL;
+    ACE_DEBUG ((LM_DEBUG,
+                ACE_TEXT ("removed node (id was: %q)...\n"),
+                node_id_2));
+  } // end FOR
 
   return true;
 }
@@ -3357,6 +3727,257 @@ error:
 //
 //  return true;
 //}
+
+std::string
+Stream_MediaFramework_MediaFoundation_Tools::toString (MediaEventType eventType_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_MediaFoundation_Tools::toString"));
+
+  switch (eventType_in)
+  {
+    case MEUnknown:
+      return ACE_TEXT_ALWAYS_CHAR ("MEUnknown");
+    case MEError:
+      return ACE_TEXT_ALWAYS_CHAR ("MEError");
+    case MEExtendedType:
+      return ACE_TEXT_ALWAYS_CHAR ("MEExtendedType");
+    case MENonFatalError:
+    //case MEGenericV1Anchor:
+      return ACE_TEXT_ALWAYS_CHAR ("MENonFatalError");
+    case MESessionUnknown:
+      return ACE_TEXT_ALWAYS_CHAR ("MESessionUnknown");
+    case MESessionTopologySet:
+      return ACE_TEXT_ALWAYS_CHAR ("MESessionTopologySet");
+    case MESessionTopologiesCleared:
+      return ACE_TEXT_ALWAYS_CHAR ("MESessionTopologiesCleared");
+    case MESessionStarted:
+      return ACE_TEXT_ALWAYS_CHAR ("MESessionStarted");
+    case MESessionPaused:
+      return ACE_TEXT_ALWAYS_CHAR ("MESessionPaused");
+    case MESessionStopped:
+      return ACE_TEXT_ALWAYS_CHAR ("MESessionStopped");
+    case MESessionClosed:
+      return ACE_TEXT_ALWAYS_CHAR ("MESessionClosed");
+    case MESessionEnded:
+      return ACE_TEXT_ALWAYS_CHAR ("MESessionEnded");
+    case MESessionRateChanged:
+      return ACE_TEXT_ALWAYS_CHAR ("MESessionRateChanged");
+    case MESessionScrubSampleComplete:
+      return ACE_TEXT_ALWAYS_CHAR ("MESessionScrubSampleComplete");
+    case MESessionCapabilitiesChanged:
+      return ACE_TEXT_ALWAYS_CHAR ("MESessionCapabilitiesChanged");
+    case MESessionTopologyStatus:
+      return ACE_TEXT_ALWAYS_CHAR ("MESessionTopologyStatus");
+    case MESessionNotifyPresentationTime:
+      return ACE_TEXT_ALWAYS_CHAR ("MESessionNotifyPresentationTime");
+    case MENewPresentation:
+      return ACE_TEXT_ALWAYS_CHAR ("MENewPresentation");
+    case MELicenseAcquisitionStart:
+      return ACE_TEXT_ALWAYS_CHAR ("MELicenseAcquisitionStart");
+    case MELicenseAcquisitionCompleted:
+      return ACE_TEXT_ALWAYS_CHAR ("MELicenseAcquisitionCompleted");
+    case MEIndividualizationStart:
+      return ACE_TEXT_ALWAYS_CHAR ("MEIndividualizationStart");
+    case MEIndividualizationCompleted:
+      return ACE_TEXT_ALWAYS_CHAR ("MEIndividualizationCompleted");
+    case MEEnablerProgress:
+      return ACE_TEXT_ALWAYS_CHAR ("MEEnablerProgress");
+    case MEEnablerCompleted:
+      return ACE_TEXT_ALWAYS_CHAR ("MEEnablerCompleted");
+    case MEPolicyError:
+      return ACE_TEXT_ALWAYS_CHAR ("MEPolicyError");
+    case MEPolicyReport:
+      return ACE_TEXT_ALWAYS_CHAR ("MEPolicyReport");
+    case MEBufferingStarted:
+      return ACE_TEXT_ALWAYS_CHAR ("MEBufferingStarted");
+    case MEBufferingStopped:
+      return ACE_TEXT_ALWAYS_CHAR ("MEBufferingStopped");
+    case MEConnectStart:
+      return ACE_TEXT_ALWAYS_CHAR ("MEConnectStart");
+    case MEConnectEnd:
+      return ACE_TEXT_ALWAYS_CHAR ("MEConnectEnd");
+    case MEReconnectStart:
+      return ACE_TEXT_ALWAYS_CHAR ("MEReconnectStart");
+    case MEReconnectEnd:
+      return ACE_TEXT_ALWAYS_CHAR ("MEReconnectEnd");
+    case MERendererEvent:
+      return ACE_TEXT_ALWAYS_CHAR ("MERendererEvent");
+    case MESessionStreamSinkFormatChanged:
+    //case MESessionV1Anchor:
+      return ACE_TEXT_ALWAYS_CHAR ("MESessionStreamSinkFormatChanged");
+    case MESourceUnknown:
+      return ACE_TEXT_ALWAYS_CHAR ("MESourceUnknown");
+    case MESourceStarted:
+      return ACE_TEXT_ALWAYS_CHAR ("MESourceStarted");
+    case MEStreamStarted:
+      return ACE_TEXT_ALWAYS_CHAR ("MEStreamStarted");
+    case MESourceSeeked:
+      return ACE_TEXT_ALWAYS_CHAR ("MESourceSeeked");
+    case MEStreamSeeked:
+      return ACE_TEXT_ALWAYS_CHAR ("MEStreamSeeked");
+    case MENewStream:
+      return ACE_TEXT_ALWAYS_CHAR ("MENewStream");
+    case MEUpdatedStream:
+      return ACE_TEXT_ALWAYS_CHAR ("MEUpdatedStream");
+    case MESourceStopped:
+      return ACE_TEXT_ALWAYS_CHAR ("MESourceStopped");
+    case MEStreamStopped:
+      return ACE_TEXT_ALWAYS_CHAR ("MEStreamStopped");
+    case MESourcePaused:
+      return ACE_TEXT_ALWAYS_CHAR ("MESourcePaused");
+    case MEStreamPaused:
+      return ACE_TEXT_ALWAYS_CHAR ("MEStreamPaused");
+    case MEEndOfPresentation:
+      return ACE_TEXT_ALWAYS_CHAR ("MEEndOfPresentation");
+    case MEEndOfStream:
+      return ACE_TEXT_ALWAYS_CHAR ("MEEndOfStream");
+    case MEMediaSample:
+      return ACE_TEXT_ALWAYS_CHAR ("MEMediaSample");
+    case MEStreamTick:
+      return ACE_TEXT_ALWAYS_CHAR ("MEStreamTick");
+    case MEStreamThinMode:
+      return ACE_TEXT_ALWAYS_CHAR ("MEStreamThinMode");
+    case MEStreamFormatChanged:
+      return ACE_TEXT_ALWAYS_CHAR ("MEStreamFormatChanged");
+    case MESourceRateChanged:
+      return ACE_TEXT_ALWAYS_CHAR ("MESourceRateChanged");
+    case MEEndOfPresentationSegment:
+      return ACE_TEXT_ALWAYS_CHAR ("MEEndOfPresentationSegment");
+    case MESourceCharacteristicsChanged:
+      return ACE_TEXT_ALWAYS_CHAR ("MESourceCharacteristicsChanged");
+    case MESourceRateChangeRequested:
+      return ACE_TEXT_ALWAYS_CHAR ("MESourceRateChangeRequested");
+    case MESourceMetadataChanged:
+      return ACE_TEXT_ALWAYS_CHAR ("MESourceMetadataChanged");
+    case MESequencerSourceTopologyUpdated:
+    //case MESourceV1Anchor:
+      return ACE_TEXT_ALWAYS_CHAR ("MESequencerSourceTopologyUpdated");
+    case MESinkUnknown:
+      return ACE_TEXT_ALWAYS_CHAR ("MESinkUnknown");
+    case MEStreamSinkStarted:
+      return ACE_TEXT_ALWAYS_CHAR ("MEStreamSinkStarted");
+    case MEStreamSinkStopped:
+      return ACE_TEXT_ALWAYS_CHAR ("MEStreamSinkStopped");
+    case MEStreamSinkPaused:
+      return ACE_TEXT_ALWAYS_CHAR ("MEStreamSinkPaused");
+    case MEStreamSinkRateChanged:
+      return ACE_TEXT_ALWAYS_CHAR ("MEStreamSinkRateChanged");
+    case MEStreamSinkRequestSample:
+      return ACE_TEXT_ALWAYS_CHAR ("MEStreamSinkRequestSample");
+    case MEStreamSinkMarker:
+      return ACE_TEXT_ALWAYS_CHAR ("MEStreamSinkMarker");
+    case MEStreamSinkPrerolled:
+      return ACE_TEXT_ALWAYS_CHAR ("MEStreamSinkPrerolled");
+    case MEStreamSinkScrubSampleComplete:
+      return ACE_TEXT_ALWAYS_CHAR ("MEStreamSinkScrubSampleComplete");
+    case MEStreamSinkFormatChanged:
+      return ACE_TEXT_ALWAYS_CHAR ("MEStreamSinkFormatChanged");
+    case MEStreamSinkDeviceChanged:
+      return ACE_TEXT_ALWAYS_CHAR ("MEStreamSinkDeviceChanged");
+    case MEQualityNotify:
+      return ACE_TEXT_ALWAYS_CHAR ("MEQualityNotify");
+    case MESinkInvalidated:
+      return ACE_TEXT_ALWAYS_CHAR ("MESinkInvalidated");
+    case MEAudioSessionNameChanged:
+      return ACE_TEXT_ALWAYS_CHAR ("MEAudioSessionNameChanged");
+    case MEAudioSessionVolumeChanged:
+      return ACE_TEXT_ALWAYS_CHAR ("MEAudioSessionVolumeChanged");
+    case MEAudioSessionDeviceRemoved:
+      return ACE_TEXT_ALWAYS_CHAR ("MEAudioSessionDeviceRemoved");
+    case MEAudioSessionServerShutdown:
+      return ACE_TEXT_ALWAYS_CHAR ("MEAudioSessionServerShutdown");
+    case MEAudioSessionGroupingParamChanged:
+      return ACE_TEXT_ALWAYS_CHAR ("MEAudioSessionGroupingParamChanged");
+    case MEAudioSessionIconChanged:
+      return ACE_TEXT_ALWAYS_CHAR ("MEAudioSessionIconChanged");
+    case MEAudioSessionFormatChanged:
+      return ACE_TEXT_ALWAYS_CHAR ("MEAudioSessionFormatChanged");
+    case MEAudioSessionDisconnected:
+      return ACE_TEXT_ALWAYS_CHAR ("MEAudioSessionDisconnected");
+    case MEAudioSessionExclusiveModeOverride:
+    //case MESinkV1Anchor:
+      return ACE_TEXT_ALWAYS_CHAR ("MEAudioSessionExclusiveModeOverride");
+    case MECaptureAudioSessionVolumeChanged:
+      return ACE_TEXT_ALWAYS_CHAR ("MECaptureAudioSessionVolumeChanged");
+    case MECaptureAudioSessionDeviceRemoved:
+      return ACE_TEXT_ALWAYS_CHAR ("MECaptureAudioSessionDeviceRemoved");
+    case MECaptureAudioSessionFormatChanged:
+      return ACE_TEXT_ALWAYS_CHAR ("MECaptureAudioSessionFormatChanged");
+    case MECaptureAudioSessionDisconnected:
+      return ACE_TEXT_ALWAYS_CHAR ("MECaptureAudioSessionDisconnected");
+    case MECaptureAudioSessionExclusiveModeOverride:
+      return ACE_TEXT_ALWAYS_CHAR ("MECaptureAudioSessionExclusiveModeOverride");
+    case MECaptureAudioSessionServerShutdown:
+    //case MESinkV2Anchor:
+      return ACE_TEXT_ALWAYS_CHAR ("MECaptureAudioSessionServerShutdown");
+    case METrustUnknown:
+      return ACE_TEXT_ALWAYS_CHAR ("METrustUnknown");
+    case MEPolicyChanged:
+      return ACE_TEXT_ALWAYS_CHAR ("MEPolicyChanged");
+    case MEContentProtectionMessage:
+      return ACE_TEXT_ALWAYS_CHAR ("MEContentProtectionMessage");
+    case MEPolicySet:
+    //case METrustV1Anchor:
+      return ACE_TEXT_ALWAYS_CHAR ("MEPolicySet");
+    case MEWMDRMLicenseBackupCompleted:
+      return ACE_TEXT_ALWAYS_CHAR ("MEWMDRMLicenseBackupCompleted");
+    case MEWMDRMLicenseBackupProgress:
+      return ACE_TEXT_ALWAYS_CHAR ("MEWMDRMLicenseBackupProgress");
+    case MEWMDRMLicenseRestoreCompleted:
+      return ACE_TEXT_ALWAYS_CHAR ("MEWMDRMLicenseRestoreCompleted");
+    case MEWMDRMLicenseRestoreProgress:
+      return ACE_TEXT_ALWAYS_CHAR ("MEWMDRMLicenseRestoreProgress");
+    case MEWMDRMLicenseAcquisitionCompleted:
+      return ACE_TEXT_ALWAYS_CHAR ("MEWMDRMLicenseAcquisitionCompleted");
+    case MEWMDRMIndividualizationCompleted:
+      return ACE_TEXT_ALWAYS_CHAR ("MEWMDRMIndividualizationCompleted");
+    case MEWMDRMIndividualizationProgress:
+      return ACE_TEXT_ALWAYS_CHAR ("MEWMDRMIndividualizationProgress");
+    case MEWMDRMProximityCompleted:
+      return ACE_TEXT_ALWAYS_CHAR ("MEWMDRMProximityCompleted");
+    case MEWMDRMLicenseStoreCleaned:
+      return ACE_TEXT_ALWAYS_CHAR ("MEWMDRMLicenseStoreCleaned");
+    case MEWMDRMRevocationDownloadCompleted:
+    //case MEWMDRMV1Anchor:
+      return ACE_TEXT_ALWAYS_CHAR ("MEWMDRMRevocationDownloadCompleted");
+    case METransformUnknown:
+      return ACE_TEXT_ALWAYS_CHAR ("METransformUnknown");
+    case METransformNeedInput:
+      return ACE_TEXT_ALWAYS_CHAR ("METransformNeedInput");
+    case METransformHaveOutput:
+      return ACE_TEXT_ALWAYS_CHAR ("METransformHaveOutput");
+    case METransformDrainComplete:
+      return ACE_TEXT_ALWAYS_CHAR ("METransformDrainComplete");
+    case METransformMarker:
+      return ACE_TEXT_ALWAYS_CHAR ("METransformMarker");
+    case METransformInputStreamStateChanged:
+      return ACE_TEXT_ALWAYS_CHAR ("METransformInputStreamStateChanged");
+    case MEByteStreamCharacteristicsChanged:
+      return ACE_TEXT_ALWAYS_CHAR ("MEByteStreamCharacteristicsChanged");
+    case MEVideoCaptureDeviceRemoved:
+      return ACE_TEXT_ALWAYS_CHAR ("MEVideoCaptureDeviceRemoved");
+    case MEVideoCaptureDevicePreempted:
+      return ACE_TEXT_ALWAYS_CHAR ("MEVideoCaptureDevicePreempted");
+    case MEStreamSinkFormatInvalidated:
+      return ACE_TEXT_ALWAYS_CHAR ("MEStreamSinkFormatInvalidated");
+    case MEEncodingParameters:
+      return ACE_TEXT_ALWAYS_CHAR ("MEEncodingParameters");
+    case MEContentProtectionMetadata:
+      return ACE_TEXT_ALWAYS_CHAR ("MEContentProtectionMetadata");
+    case MEDeviceThermalStateChanged:
+      return ACE_TEXT_ALWAYS_CHAR ("MEDeviceThermalStateChanged");
+    case MEReservedMax:
+      return ACE_TEXT_ALWAYS_CHAR ("MEReservedMax");
+    default:
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("invalid/unknown media event type (was: %u), aborting\n"),
+                  eventType_in));
+      break;
+    }
+  } // end SWITCH
+  return ACE_TEXT_ALWAYS_CHAR ("");
+}
 
 std::string
 Stream_MediaFramework_MediaFoundation_Tools::toString (enum MF_TOPOLOGY_TYPE nodeType_in)

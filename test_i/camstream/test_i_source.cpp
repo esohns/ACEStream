@@ -501,7 +501,7 @@ do_initializeSignals (bool allowUserRuntimeConnect_in,
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 bool
-do_initialize_directshow (const std::string& devicePath_in,
+do_initialize_directshow (const struct Stream_Device_Identifier& deviceIdentifier_in,
                           bool coInitialize_in,
                           bool hasUI_in,
                           IGraphBuilder*& IGraphBuilder_out,
@@ -526,7 +526,7 @@ do_initialize_directshow (const std::string& devicePath_in,
   Stream_MediaFramework_Tools::initialize (STREAM_MEDIAFRAMEWORK_DIRECTSHOW);
   Stream_Device_DirectShow_Tools::initialize (coInitialize_in);
 
-  if (!Stream_Device_DirectShow_Tools::loadDeviceGraph (devicePath_in,
+  if (!Stream_Device_DirectShow_Tools::loadDeviceGraph (deviceIdentifier_in,
                                                         CLSID_VideoInputDeviceCategory,
                                                         IGraphBuilder_out,
                                                         buffer_negotiation_p,
@@ -535,7 +535,7 @@ do_initialize_directshow (const std::string& devicePath_in,
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Stream_Device_DirectShow_Tools::loadDeviceGraph(\"%s\"), aborting\n"),
-                ACE_TEXT (devicePath_in.c_str ())));
+                ACE_TEXT (deviceIdentifier_in.identifier._string)));
     goto error;
   } // end IF
   ACE_ASSERT (IGraphBuilder_out);
@@ -551,12 +551,10 @@ do_initialize_directshow (const std::string& devicePath_in,
                 ACE_TEXT ("failed to Stream_Device_DirectShow_Tools::getCaptureFormat(CLSID_VideoInputDeviceCategory), aborting\n")));
     goto error;
   } // end IF
-#if defined (_DEBUG)
   ACE_DEBUG ((LM_DEBUG,
               ACE_TEXT ("\"%s\": default capture format: %s\n"),
-              ACE_TEXT (Stream_Device_DirectShow_Tools::devicePathToString (devicePath_in).c_str ()),
+              ACE_TEXT (Stream_Device_DirectShow_Tools::devicePathToString (deviceIdentifier_in.identifier._string).c_str ()),
               ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::toString (captureFormat_inout, true).c_str ())));
-#endif // _DEBUG
   media_type_p =
     Stream_MediaFramework_DirectShow_Tools::copy (captureFormat_inout);
   if (!media_type_p)
@@ -795,7 +793,7 @@ do_finalize_mediafoundation ()
 #endif // ACE_WIN32 || ACE_WIN64
 
 void
-do_work (const std::string& deviceIdentifier_in,
+do_work (const struct Stream_Device_Identifier& captureDeviceIdentifier_in,
          unsigned int bufferSize_in,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
          bool showConsole_in,
@@ -961,10 +959,8 @@ do_work (const std::string& deviceIdentifier_in,
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
     {
       struct Test_I_Source_DirectShow_ModuleHandlerConfiguration directshow_modulehandler_configuration;
-      directshow_modulehandler_configuration.deviceIdentifier.identifierDiscriminator =
-        Stream_Device_Identifier::STRING;
-      ACE_OS::strcpy (directshow_modulehandler_configuration.deviceIdentifier.identifier._string,
-                      deviceIdentifier_in.c_str ());
+      directshow_modulehandler_configuration.deviceIdentifier =
+        captureDeviceIdentifier_in;
       Test_I_Source_DirectShow_StreamConfiguration_t directshow_stream_configuration;
       struct Test_I_Source_DirectShow_StreamConfiguration directshow_stream_configuration_2;
       Test_I_Source_DirectShow_StreamConfiguration_t directshow_stream_configuration_3;
@@ -1001,17 +997,14 @@ do_work (const std::string& deviceIdentifier_in,
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
     {
       struct Test_I_Source_MediaFoundation_ModuleHandlerConfiguration mediafoundation_modulehandler_configuration;
-      mediafoundation_modulehandler_configuration.deviceIdentifier.identifierDiscriminator =
-        Stream_Device_Identifier::STRING;
-      ACE_OS::strcpy (mediafoundation_modulehandler_configuration.deviceIdentifier.identifier._string,
-                      deviceIdentifier_in.c_str ());
-
       mediafoundation_modulehandler_configuration.allocatorConfiguration =
         allocator_configuration_p;
       mediafoundation_modulehandler_configuration.configuration =
         mediaFoundationCBData_in.configuration;
       mediafoundation_modulehandler_configuration.connectionConfigurations =
         &mediaFoundationCBData_in.configuration->connectionConfigurations;
+      mediafoundation_modulehandler_configuration.deviceIdentifier =
+        captureDeviceIdentifier_in;
       mediafoundation_modulehandler_configuration.statisticReportingInterval =
         ACE_Time_Value (statisticReportingInterval_in, 0);
       //(*mediafoundation_modulehandler_iterator).second.second->stream =
@@ -1227,7 +1220,7 @@ do_work (const std::string& deviceIdentifier_in,
       ACE_ASSERT (directshow_modulehandler_iterator != (*directshow_stream_iterator).second.end ());
 
       result =
-        do_initialize_directshow (deviceIdentifier_in,
+        do_initialize_directshow (captureDeviceIdentifier_in,
                                   UIDefinitionFilename_in.empty (), // initialize COM ?
                                   !UIDefinitionFilename_in.empty (), // has UI ?
                                   (*directshow_modulehandler_iterator).second.second->builder,
@@ -2075,7 +2068,7 @@ ACE_TMAIN (int argc_in,
   unsigned int buffer_size = TEST_I_DEFAULT_BUFFER_SIZE;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   bool show_console = false;
-  std::string device_identifier;
+  struct Stream_Device_Identifier device_identifier;
   struct _GUID interface_identifier = GUID_NULL;
 #else
   std::string device_identifier =

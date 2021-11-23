@@ -366,23 +366,18 @@ error:
   return result;
 }
 
-std::string
+struct Stream_Device_Identifier
 Stream_Device_DirectShow_Tools::getDefaultCaptureDevice (REFGUID deviceCategory_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Device_DirectShow_Tools::getDefaultCaptureDevice"));
 
   // initialize return value(s)
-  std::string result;
+  struct Stream_Device_Identifier result;
 
   Stream_Device_List_t devices_a =
     Stream_Device_DirectShow_Tools::getCaptureDevices (deviceCategory_in);
   if (likely (!devices_a.empty ()))
-  {
-    const struct Stream_Device_Identifier& device_identifier_s =
-      devices_a.front ();
-    ACE_ASSERT (device_identifier_s.identifierDiscriminator == Stream_Device_Identifier::STRING);
-    result = device_identifier_s.identifier._string;
-  } // end IF
+    return devices_a.front ();
 
   return result;
 }
@@ -1198,7 +1193,7 @@ Stream_Device_DirectShow_Tools::setCaptureFormat (IGraphBuilder* builder_in,
 }
 
 bool
-Stream_Device_DirectShow_Tools::loadDeviceGraph (const std::string& devicePath_in,
+Stream_Device_DirectShow_Tools::loadDeviceGraph (const struct Stream_Device_Identifier& deviceIdentifier_in,
                                                  REFGUID deviceCategory_in,
                                                  IGraphBuilder*& IGraphBuilder_inout,
                                                  IAMBufferNegotiation*& IAMBufferNegotiation_out,
@@ -1211,6 +1206,7 @@ Stream_Device_DirectShow_Tools::loadDeviceGraph (const std::string& devicePath_i
   ACE_ASSERT (graphLayout_out.empty ());
 
   // sanity check(s)
+  ACE_ASSERT (deviceIdentifier_in.identifierDiscriminator == Stream_Device_Identifier::STRING);
   if (IAMBufferNegotiation_out)
   {
     IAMBufferNegotiation_out->Release (); IAMBufferNegotiation_out = NULL;
@@ -1355,8 +1351,8 @@ Stream_Device_DirectShow_Tools::loadDeviceGraph (const std::string& devicePath_i
     result = VariantClear (&variant_s);
     ACE_ASSERT (SUCCEEDED (result));
     properties_p->Release (); properties_p = NULL;
-    if (devicePath_in.empty () ||
-        !ACE_OS::strcmp (devicePath_in.c_str (),
+    if (!ACE_OS::strlen (deviceIdentifier_in.identifier._string) ||
+        !ACE_OS::strcmp (deviceIdentifier_in.identifier._string,
                          device_path_string.c_str ()))
       break;
     moniker_p->Release (); moniker_p = NULL;
@@ -1366,7 +1362,7 @@ Stream_Device_DirectShow_Tools::loadDeviceGraph (const std::string& devicePath_i
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("device (path was: \"%s\") not found, aborting\n"),
-                ACE_TEXT (devicePath_in.c_str ())));
+                ACE_TEXT (deviceIdentifier_in.identifier._string)));
     goto error;
   } // end IF
 

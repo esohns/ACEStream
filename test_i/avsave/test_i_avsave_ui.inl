@@ -1257,11 +1257,13 @@ Stream_AVSave_WxWidgetsDialog_T<wxDialog_main,
   Stream_AVSave_DirectShow_Stream::CONFIGURATION_T::ITERATOR_T stream_iterator =
     cb_data_r.configuration->videoStreamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (stream_iterator != cb_data_r.configuration->videoStreamConfiguration.end ());
-  std::string device_identifier;
+  struct Stream_Device_Identifier device_identifier;
   wxStringClientData* client_data_p =
     dynamic_cast<wxStringClientData*> (choice_source->GetClientObject (event_in.GetSelection ()));
   ACE_ASSERT (client_data_p);
-  device_identifier = client_data_p->GetData ().ToStdString ();
+  ACE_OS::strcpy (device_identifier.identifier._string,
+                  client_data_p->GetData ().ToStdString ().c_str ());
+  device_identifier.identifierDiscriminator = Stream_Device_Identifier::STRING;
   ACE_ASSERT (!device_identifier.empty ());
 
   if ((*stream_iterator).second.second->builder)
@@ -1283,7 +1285,7 @@ Stream_AVSave_WxWidgetsDialog_T<wxDialog_main,
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Stream_Device_DirectShow_Tools::loadDeviceGraph(\"%s\"), returning\n"),
-                ACE_TEXT (device_identifier.c_str ())));
+                ACE_TEXT (device_identifier.identifier._string)));
     return;
   } // end IF
   ACE_ASSERT ((*stream_iterator).second.second->builder);
@@ -2348,7 +2350,7 @@ Stream_AVSave_WxWidgetsDialog_T<wxDialog_main,
   Stream_AVSave_MediaFoundation_Stream::CONFIGURATION_T::ITERATOR_T stream_iterator =
     cb_data_r.configuration->videoStreamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (stream_iterator != cb_data_r.configuration->videoStreamConfiguration.end ());
-  std::string device_identifier;
+  struct Stream_Device_Identifier device_identifier;
   int index_i = -1;
 
   ACE_ASSERT (false);
@@ -2362,13 +2364,14 @@ Stream_AVSave_WxWidgetsDialog_T<wxDialog_main,
   IMFMediaSource* media_source_p = NULL;
 #endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0602)
 #if COMMON_OS_WIN32_TARGET_PLATFORM(0x0601) // _WIN32_WINNT_WIN7
-  if (!Stream_MediaFramework_MediaFoundation_Tools::getMediaSource (device_identifier,
+  ACE_ASSERT (device_identifier.identifierDiscriminator == Stream_Device_Identifier::GUID);
+  if (!Stream_MediaFramework_MediaFoundation_Tools::getMediaSource (device_identifier.identifier._guid,
                                                                     MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE_VIDCAP_GUID,
                                                                     media_source_p))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Stream_MediaFramework_MediaFoundation_Tools::getMediaSource(\"%s\"), returning\n"),
-                ACE_TEXT (device_identifier.c_str ())));
+                ACE_TEXT (Common_Tools::GUIDToString (device_identifier.identifier._guid).c_str ())));
     return;
   } // end IF
   ACE_ASSERT (media_source_p);

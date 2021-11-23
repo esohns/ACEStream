@@ -51,7 +51,7 @@ class Stream_Device_DirectShow_Tools
   static std::string devicePath (const std::string&); // device 'friendly' name
 
   // *NOTE*: returns the devices' 'path'
-  static std::string getDefaultCaptureDevice (REFGUID); // (capture) device category
+  static struct Stream_Device_Identifier getDefaultCaptureDevice (REFGUID); // (capture) device category
   static Stream_Device_List_t getCaptureDevices (REFGUID); // (capture) device category
 
   // -------------------------------------
@@ -84,7 +84,7 @@ class Stream_Device_DirectShow_Tools
 
   // filter graph
   // *NOTE*: loads the (capture device) filter and puts it into an empty graph
-  static bool loadDeviceGraph (const std::string&,                         // device path
+  static bool loadDeviceGraph (const struct Stream_Device_Identifier&,     // device identifier
                                REFGUID,                                    // device category
                                IGraphBuilder*&,                            // return value: (capture) graph handle
                                IAMBufferNegotiation*&,                     // return value: capture filter output pin buffer allocator configuration handle

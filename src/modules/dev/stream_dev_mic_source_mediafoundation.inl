@@ -440,8 +440,10 @@ Stream_Dev_Mic_Source_MediaFoundation_T<ACE_SYNCH_USE,
         IMFMediaType* media_type_p = session_data_r.formats.back ();
         IMFTopology* topology_p = NULL;
         std::string effect_options;
-        if (!Stream_Module_Decoder_Tools::loadAudioRendererTopology (inherited::configuration_->deviceIdentifier.identifier._string,
+        ACE_ASSERT (inherited::configuration_->deviceIdentifier.identifierDiscriminator == Stream_Device_Identifier::GUID);
+        if (!Stream_Module_Decoder_Tools::loadAudioRendererTopology (inherited::configuration_->deviceIdentifier.identifier._guid,
                                                                      MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE_AUDCAP_GUID,
+                                                                     true,
                                                                      media_type_p,
                                                                      this,
                                                                      (inherited::configuration_->mute ? -1

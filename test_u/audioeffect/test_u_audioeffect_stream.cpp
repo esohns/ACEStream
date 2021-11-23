@@ -34,6 +34,7 @@
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #include "stream_lib_defines.h"
 #include "stream_lib_directshow_tools.h"
+#include "stream_lib_macros.h"
 #include "stream_lib_mediafoundation_tools.h"
 #endif // ACE_WIN32 || ACE_WIN64
 
@@ -458,6 +459,7 @@ Test_U_AudioEffect_MediaFoundation_Stream::Test_U_AudioEffect_MediaFoundation_St
  , mediaFoundationSource_ (this,
                            ACE_TEXT_ALWAYS_CHAR (STREAM_LIB_MEDIAFOUNDATION_TARGET_DEFAULT_NAME_STRING))
  , referenceCount_ (0)
+ , topologyIsReady_ (false)
 {
   STREAM_TRACE (ACE_TEXT ("Test_U_AudioEffect_MediaFoundation_Stream::Test_U_AudioEffect_MediaFoundation_Stream"));
 
@@ -516,22 +518,29 @@ Test_U_AudioEffect_MediaFoundation_Stream::start ()
     return;
   } // end IF
 
-  struct _GUID GUID_s = GUID_NULL;
-  struct tagPROPVARIANT property_s;
-  PropVariantInit (&property_s);
-  property_s.vt = VT_EMPTY;
-  result = mediaSession_->Start (&GUID_s,      // time format
-                                 &property_s); // start position
-  if (FAILED (result))
+  if (topologyIsReady_)
   {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: failed to IMFMediaSession::Start(): \"%s\", returning\n"),
-                ACE_TEXT (stream_name_string_),
-                ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
+    struct _GUID GUID_s = GUID_NULL;
+    struct tagPROPVARIANT property_s;
+    PropVariantInit (&property_s);
+    property_s.vt = VT_EMPTY;
+    result = mediaSession_->Start (&GUID_s,      // time format
+                                   &property_s); // start position
+    if (FAILED (result))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("%s: failed to IMFMediaSession::Start(): \"%s\", returning\n"),
+                  ACE_TEXT (stream_name_string_),
+                  ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
+      PropVariantClear (&property_s);
+      return;
+    } // end IF
     PropVariantClear (&property_s);
-    return;
   } // end IF
-  PropVariantClear (&property_s);
+  else
+    ACE_DEBUG ((LM_WARNING,
+                ACE_TEXT ("%s: topology not ready, media session start deferred, continuing\n"),
+                ACE_TEXT (stream_name_string_)));
 #endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
 
   inherited::start ();
@@ -747,20 +756,72 @@ Test_U_AudioEffect_MediaFoundation_Stream::initialize (const inherited::CONFIGUR
     mediaSession_->Release (); mediaSession_ = NULL;
   } // end IF
 
+  // *TODO*: reusing media sessions is harder than it seems...
+  //         --> use a fresh one every time
   if ((*iterator).second.second->session)
   {
-    reference_count = (*iterator).second.second->session->AddRef ();
-    mediaSession_ = (*iterator).second.second->session;
+    Stream_MediaFramework_MediaFoundation_Tools::shutdown ((*iterator).second.second->session);
+    (*iterator).second.second->session->Release (); (*iterator).second.second->session = NULL;
 
-    if (!Stream_MediaFramework_MediaFoundation_Tools::getTopology (mediaSession_,
-                                                                   topology_p))
+    //reference_count = (*iterator).second.second->session->AddRef ();
+    //mediaSession_ = (*iterator).second.second->session;
+
+    //if (!)
+    //{
+    //  ACE_DEBUG ((LM_ERROR,
+    //              ACE_TEXT ("%s: failed to Stream_MediaFramework_MediaFoundation_Tools::getTopology(), aborting\n"),
+    //              ACE_TEXT (stream_name_string_)));
+    //  goto error;
+    //} // end IF
+  } // end IF
+
+  IMFMediaSource* media_source_p = NULL;
+  if (!configuration_in.configuration_->useFrameworkSource)
+  {
+    Test_U_AudioEffect_MediaFoundation_Target* writer_p =
+      &const_cast<Test_U_AudioEffect_MediaFoundation_Target&> (getR_3 ());
+    if (!writer_p->initialize (*(*iterator).second.second->mediaFoundationConfiguration))
     {
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("%s: failed to Stream_MediaFramework_MediaFoundation_Tools::getTopology(), aborting\n"),
-                  ACE_TEXT (stream_name_string_)));
+                  ACE_TEXT ("failed to Stream_MediaFramework_MediaFoundation_MediaSource_T::initialize(), aborting\n")));
+      goto error;
+    } // end IF
+    result_2 = QueryInterface (IID_PPV_ARGS (&media_source_p));
+    if (FAILED (result_2) || !media_source_p)
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to Test_U_AudioEffect_MediaFoundation_Stream::QueryInterface(): \"%s\", aborting\n"),
+                  ACE_TEXT (Common_Error_Tools::errorToString (result_2).c_str ())));
       goto error;
     } // end IF
   } // end IF
+
+  if (!Stream_Device_MediaFoundation_Tools::loadDeviceTopology ((*iterator).second.second->deviceIdentifier,
+                                                                MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE_AUDCAP_GUID,
+                                                                media_source_p,
+                                                                NULL,
+                                                                topology_p))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to Stream_Device_MediaFoundation_Tools::loadDeviceTopology(\"%s\"), aborting\n"),
+                ACE_TEXT (Common_Tools::GUIDToString ((*iterator).second.second->deviceIdentifier.identifier._guid).c_str ())));
+    goto error;
+  } // end IF
+  ACE_ASSERT (media_source_p);
+  ACE_ASSERT (topology_p);
+  media_source_p->Release (); media_source_p = NULL;
+
+  if (!configuration_in.configuration_->useFrameworkSource)
+    goto continue_3;
+
+  if (!Stream_Device_MediaFoundation_Tools::setCaptureFormat (topology_p,
+                                                              configuration_in.configuration_->format))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to Stream_Device_MediaFoundation_Tools::setCaptureFormat(), aborting\n")));
+    goto error;
+  } // end IF
+continue_3:
 #endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
 
   if (!(*iterator).second.second->targetFileName.empty () &&
@@ -779,9 +840,10 @@ Test_U_AudioEffect_MediaFoundation_Stream::initialize (const inherited::CONFIGUR
     ACE_ASSERT (sample_grabber_p);
   } // end IF
 
-  if (!Stream_Module_Decoder_Tools::loadAudioRendererTopology ((*iterator).second.second->deviceIdentifier.identifier._string,
-                                                               (configuration_in.configuration_->useFrameworkSource ? MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE_AUDCAP_GUID
-                                                                                                                    : GUID_NULL),
+  ACE_ASSERT ((*iterator).second.second->deviceIdentifier.identifierDiscriminator == Stream_Device_Identifier::GUID);
+  if (!Stream_Module_Decoder_Tools::loadAudioRendererTopology ((*iterator).second.second->deviceIdentifier.identifier._guid,
+                                                               MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE_AUDCAP_GUID,
+                                                               configuration_in.configuration_->useFrameworkSource,
                                                                configuration_in.configuration_->format,
                                                                sample_grabber_p,
                                                                ((*iterator).second.second->mute ? -1
@@ -793,19 +855,16 @@ Test_U_AudioEffect_MediaFoundation_Stream::initialize (const inherited::CONFIGUR
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to Stream_Module_Decoder_Tools::loadAudioRendererTopology(\"%s\"), aborting\n"),
                 ACE_TEXT (stream_name_string_),
-                ACE_TEXT ((*iterator).second.second->deviceIdentifier.identifier._string)));
+                ACE_TEXT (Common_Tools::GUIDToString ((*iterator).second.second->deviceIdentifier.identifier._guid).c_str ())));
     goto error;
   } // end IF
   ACE_ASSERT (topology_p);
   graph_loaded = true;
-#if defined (_DEBUG)
-  Stream_MediaFramework_MediaFoundation_Tools::dump (topology_p);
-#endif // _DEBUG
 
 #if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
   if (!Stream_MediaFramework_MediaFoundation_Tools::setTopology (topology_p,
                                                                  mediaSession_,
-                                                                 false, // is partial ?
+                                                                 true, // is partial ?
                                                                  true)) // wait for completion ?
   {
     ACE_DEBUG ((LM_ERROR,
@@ -814,6 +873,7 @@ Test_U_AudioEffect_MediaFoundation_Stream::initialize (const inherited::CONFIGUR
     goto error;
   } // end IF
   ACE_ASSERT (mediaSession_);
+  topologyIsReady_ = true; // *NOTE*: the last call blocks until MF_TOPOSTATUS_READY
 
   if ((*iterator).second.second->mediaFoundationConfiguration->mediaEventGenerator)
   {
@@ -929,6 +989,7 @@ Test_U_AudioEffect_MediaFoundation_Stream::QueryInterface (const IID& IID_in,
   {
     Test_U_AudioEffect_MediaFoundation_Target* writer_p =
       static_cast<Test_U_AudioEffect_MediaFoundation_Target*> (mediaFoundationSource_.writer ());
+    ACE_ASSERT (writer_p);
     result = writer_p->QueryInterface (IID_in,
                                        interface_out);
   } // end IF
@@ -983,7 +1044,9 @@ Test_U_AudioEffect_MediaFoundation_Stream::Invoke (IMFAsyncResult* result_in)
       break;
     }
     case MEError:
-    { // MF_E_STREAM_ERROR: 0xc00da7fb
+    { // MF_E_INVALID_TIMESTAMP : 0xc00d36c0
+      // MF_E_STREAMSINK_REMOVED: 0xc00d4a38
+      // MF_E_STREAM_ERROR      : 0xc00da7fb
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: received MEError: \"%s\", aborting\n"),
                   ACE_TEXT (stream_name_string_),
@@ -1038,33 +1101,59 @@ Test_U_AudioEffect_MediaFoundation_Stream::Invoke (IMFAsyncResult* result_in)
     }
     case MESessionCapabilitiesChanged:
     {
+      UINT32 session_capabilities_i = 0, session_capabilities_delta_i = 0;
+      result = media_event_p->GetUINT32 (MF_EVENT_SESSIONCAPS,
+                                         &session_capabilities_i);
+      ACE_ASSERT (SUCCEEDED (result));
+      result = media_event_p->GetUINT32 (MF_EVENT_SESSIONCAPS_DELTA,
+                                         &session_capabilities_delta_i);
+      ACE_ASSERT (SUCCEEDED (result));
       ACE_DEBUG ((LM_DEBUG,
-                  ACE_TEXT ("%s: received MESessionCapabilitiesChanged\n"),
-                  ACE_TEXT (stream_name_string_)));
+                  ACE_TEXT ("%s: received MESessionCapabilitiesChanged: %u/%u\n"),
+                  ACE_TEXT (stream_name_string_),
+                  session_capabilities_i, session_capabilities_delta_i));
       break;
     }
     case MESessionNotifyPresentationTime:
     {
+      UINT64 presentation_time_start_i = 0;
+      result = media_event_p->GetUINT64 (MF_EVENT_START_PRESENTATION_TIME,
+                                         &presentation_time_start_i);
+      ACE_ASSERT (SUCCEEDED (result));
+      UINT64 presentation_time_offset_i = 0;
+      result = media_event_p->GetUINT64 (MF_EVENT_PRESENTATION_TIME_OFFSET,
+                                         &presentation_time_offset_i);
+      ACE_ASSERT (SUCCEEDED (result));
+      UINT64 presentation_time_at_output_i = 0;
+      result = media_event_p->GetUINT64 (MF_EVENT_START_PRESENTATION_TIME_AT_OUTPUT,
+                                         &presentation_time_at_output_i);
+      ACE_ASSERT (SUCCEEDED (result));
       ACE_DEBUG ((LM_DEBUG,
-                  ACE_TEXT ("%s: received MESessionNotifyPresentationTime\n"),
-                  ACE_TEXT (stream_name_string_)));
+                  ACE_TEXT ("%s: received MESessionNotifyPresentationTime: %Q/%Q/%Q\n"),
+                  ACE_TEXT (stream_name_string_),
+                  presentation_time_start_i, presentation_time_offset_i, presentation_time_at_output_i));
       break;
     }
     case MESessionStarted:
-    { // status MF_E_INVALIDREQUEST: 0xC00D36B2L
-      // attribute MF_EVENT_PRESENTATION_TIME_OFFSET: {5AD914D1-9B45-4A8D-A2C0-81D1E50BFB07}
+    { // status MF_E_INVALIDREQUEST    : 0xC00D36B2
+      // status MF_E_STREAMSINK_REMOVED: 0xc00d4a38
+      UINT64 presentation_time_offset_i = 0;
+      result = media_event_p->GetUINT64 (MF_EVENT_PRESENTATION_TIME_OFFSET,
+                                         &presentation_time_offset_i);
+      //ACE_ASSERT (SUCCEEDED (result)); // MF_E_ATTRIBUTENOTFOUND: 0xc00d36e6
       ACE_DEBUG ((LM_DEBUG,
-                  ACE_TEXT ("%s: received MESessionStarted: \"%s\"\n"),
+                  ACE_TEXT ("%s: received MESessionStarted: \"%s\", presentation offset: %q\n"),
                   ACE_TEXT (stream_name_string_),
-                  ACE_TEXT (Common_Error_Tools::errorToString (status).c_str ())));
+                  ACE_TEXT (Common_Error_Tools::errorToString (status).c_str ()),
+                  presentation_time_offset_i));
       break;
     }
     case MESessionStopped:
-    { // status MF_E_INVALIDREQUEST: 0xC00D36B2L
+    { // status MF_E_INVALIDREQUEST: 0xC00D36B2
       ACE_DEBUG ((LM_DEBUG,
                   ACE_TEXT ("%s: received MESessionStopped, stopping\n"),
                   ACE_TEXT (stream_name_string_)));
-      stop_b = true;
+      //stop_b = true;
       break;
     }
     case MESessionTopologySet:
@@ -1079,20 +1168,37 @@ Test_U_AudioEffect_MediaFoundation_Stream::Invoke (IMFAsyncResult* result_in)
     {
       UINT32 attribute_value = 0;
       MF_TOPOSTATUS topology_status = MF_TOPOSTATUS_INVALID;
-
       result = media_event_p->GetUINT32 (MF_EVENT_TOPOLOGY_STATUS,
                                          &attribute_value);
-      if (FAILED (result))
-        ACE_DEBUG ((LM_DEBUG,
-                    ACE_TEXT ("%s: failed to IMFMediaEvent::GetUINT32(MF_EVENT_TOPOLOGY_STATUS): \"%s\", continuing\n"),
-                    ACE_TEXT (stream_name_string_),
-                    ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
-      else
-        topology_status = static_cast<MF_TOPOSTATUS> (attribute_value);
+      ACE_ASSERT (SUCCEEDED (result));
+      topology_status = static_cast<MF_TOPOSTATUS> (attribute_value);
       ACE_DEBUG ((LM_DEBUG,
                   ACE_TEXT ("%s: received MESessionTopologyStatus: \"%s\"\n"),
                   ACE_TEXT (stream_name_string_),
                   ACE_TEXT (Stream_MediaFramework_MediaFoundation_Tools::toString (topology_status).c_str ())));
+      // start media session ?
+      if (topology_status == MF_TOPOSTATUS_READY)
+      {
+        topologyIsReady_ = true;
+        if (isRunning ())
+        {
+          ACE_DEBUG ((LM_WARNING,
+                      ACE_TEXT ("%s: topology is ready, starting media session\n"),
+                      ACE_TEXT (stream_name_string_)));
+          struct _GUID GUID_s = GUID_NULL;
+          struct tagPROPVARIANT property_s;
+          PropVariantInit (&property_s);
+          property_s.vt = VT_EMPTY;
+          result = mediaSession_->Start (&GUID_s,      // time format
+                                         &property_s); // start position
+          if (FAILED (result))
+            ACE_DEBUG ((LM_ERROR,
+                        ACE_TEXT ("%s: failed to IMFMediaSession::Start(): \"%s\", continuing\n"),
+                        ACE_TEXT (stream_name_string_),
+                        ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
+          PropVariantClear (&property_s);
+        } // end IF
+      } // end IF
       break;
     }
     case MEExtendedType:
@@ -1109,9 +1215,22 @@ Test_U_AudioEffect_MediaFoundation_Stream::Invoke (IMFAsyncResult* result_in)
     }
     case MEStreamSinkFormatInvalidated:
     {
+      //IMFMediaSink* media_sink_p = NULL;
+      //// *TODO*: {3EA99C15-A893-4B46-B221-5FAE05C36152}
+      //struct _GUID GUID_s =
+      //  Common_Tools::StringToGUID (ACE_TEXT_ALWAYS_CHAR ("{3EA99C15-A893-4B46-B221-5FAE05C36152}"));
+      //result = media_event_p->GetUnknown (GUID_s,
+      //                                    IID_PPV_ARGS (&media_sink_p));
+      //ACE_ASSERT (SUCCEEDED (result) && media_sink_p);
+      TOPOID node_id = 0;
+      result = media_event_p->GetUINT64 (MF_EVENT_OUTPUT_NODE,
+                                         &node_id);
+      ACE_ASSERT (SUCCEEDED (result));
       ACE_DEBUG ((LM_DEBUG,
-                  ACE_TEXT ("%s: received MEStreamSinkFormatInvalidated\n"),
-                  ACE_TEXT (stream_name_string_)));
+                  ACE_TEXT ("%s: received MEStreamSinkFormatInvalidated (id: %q)\n"),
+                  ACE_TEXT (stream_name_string_),
+                  node_id));
+      //media_sink_p->Release (); media_sink_p = NULL;
       break;
     }
     case MEEndOfPresentationSegment:

@@ -46,26 +46,39 @@ class Stream_MediaFramework_MediaFoundation_Tools
  public:
   static void initialize ();
 
+  // device identifier
+  static std::string identifierToString (REFGUID,  // device identifier
+                                         REFGUID); // device category
+
+  // format
   static struct _GUID toFormat (const IMFMediaType*);
   static Common_Image_Resolution_t toResolution (const IMFMediaType*);
   static unsigned int toFramerate (const IMFMediaType*);
 
+  // topology node
+  // *NOTE*: disconnects all downstream nodes as well
+  static bool disconnect (IMFTopologyNode*); // topology node handle
+  static void shutdown (IMFTopologyNode*); // topology node handle
+
+  // topology
   // *NOTE*: 'tees' the upstream node of the first output node (if any); else,
   //         starting from the first source node, 'tee' the last connected node
   //         from the first stream
   static bool append (IMFTopology*, // topology handle
                       TOPOID);      // topology node id
-  static bool clear (IMFMediaSession*, // media session handle
-                     bool = true);     // wait for completion ?
-  static bool clear (IMFTopology*); // topology handle
+  static bool clear (IMFTopology*, // topology handle
+                     bool = true); // shutdown nodes ?
   // *NOTE*: removes all 'transform' type MFTs (and any connected downstream
   //         nodes)
   static bool clearTransforms (IMFTopology*); // topology handle
-  // *NOTE*: disconnects all downstream nodes as well
-  static bool disconnect (IMFTopologyNode*); // topology node handle
   // *NOTE*: (disconnects the topology and-) removes all (but a specific source-) nodes
   static bool reset (IMFTopology*, // topology handle
                      REFGUID);     // retain (device) category source (GUID_NULL: retain first filter w/o input pins)
+
+  // session
+  static bool clear (IMFMediaSession*, // media session handle
+                     bool = true);     // wait for completion ?
+  static void shutdown (IMFMediaSession*); // media session handle
 
   // -------------------------------------
 
@@ -84,7 +97,7 @@ class Stream_MediaFramework_MediaFoundation_Tools
 
 #if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
   static bool getTopology (IMFMediaSession*, // media session handle
-                           IMFTopology*&);   // return value: topology handle
+                           IMFTopology*&);   // return value: (current- !) topology handle
   static bool getMediaSource (IMFMediaSession*,    // media session handle
 #if COMMON_OS_WIN32_TARGET_PLATFORM(0x0602) // _WIN32_WINNT_WIN8
                               IMFMediaSourceEx*&); // return value: media source handle
@@ -98,7 +111,7 @@ class Stream_MediaFramework_MediaFoundation_Tools
 #else
                               IMFMediaSource*&);      // return value: media source handle
 #endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0602)
-  static bool getMediaSource (const std::string&,  // device identifier
+  static bool getMediaSource (REFGUID,             // device identifier
                               REFGUID,             // device category
 #if COMMON_OS_WIN32_TARGET_PLATFORM(0x0602) // _WIN32_WINNT_WIN8
                               IMFMediaSourceEx*&); // return value: media source handle
@@ -215,6 +228,7 @@ class Stream_MediaFramework_MediaFoundation_Tools
   static bool expand (TOPOLOGY_PATH_T&,   // input/return value: topology path
                       TOPOLOGY_PATHS_T&); // input/return value: topology paths
 
+  static std::string toString (MediaEventType); // event type
   static std::string toString (enum MF_TOPOLOGY_TYPE); // node type
 };
 

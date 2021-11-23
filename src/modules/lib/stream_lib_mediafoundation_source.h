@@ -146,23 +146,24 @@ class Stream_MediaFramework_MediaFoundation_Source_T
   ACE_UNIMPLEMENTED_FUNC (Stream_MediaFramework_MediaFoundation_Source_T& operator= (const Stream_MediaFramework_MediaFoundation_Source_T&))
 
   // helper methods
-  bool initialize_MediaFoundation (HWND,                           // (target) window handle [NULL: NullRenderer]
-                                   const IMFMediaType*,            // media type handle
+  bool initialize_MediaFoundation (const struct Stream_Device_Identifier&, // device identifier
+                                   HWND,                                   // (target) window handle [NULL: NullRenderer]
+                                   const IMFMediaType*,                    // media type handle
 #if COMMON_OS_WIN32_TARGET_PLATFORM(0x0602) // _WIN32_WINNT_WIN8
-                                   IMFMediaSourceEx*&,             // media source handle (in/out)
+                                   IMFMediaSourceEx*&,                     // media source handle (in/out)
 #else
-                                   IMFMediaSource*&,               // media source handle (in/out)
+                                   IMFMediaSource*&,                       // media source handle (in/out)
 #endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0602)
-                                   IDirect3DDeviceManager9*,       // Direct3D device manager handle
+                                   IDirect3DDeviceManager9*,               // Direct3D device manager handle
 #if COMMON_OS_WIN32_TARGET_PLATFORM(0x0601) // _WIN32_WINNT_WIN7
-                                   IMFSampleGrabberSinkCallback2*, // grabber sink callback handle [NULL: do not use tee/grabber]
+                                   IMFSampleGrabberSinkCallback2*,         // grabber sink callback handle [NULL: do not use tee/grabber]
 #else
-                                   IMFSampleGrabberSinkCallback*,  // grabber sink callback handle [NULL: do not use tee/grabber]
+                                   IMFSampleGrabberSinkCallback*,          // grabber sink callback handle [NULL: do not use tee/grabber]
 #endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0601)
-                                   TOPOID&,                        // return value: sample grabber sink node id
-                                   TOPOID&//,                        // return value: EVR sink node id
+                                   TOPOID&,                                // return value: sample grabber sink node id
+                                   TOPOID&//,                              // return value: EVR sink node id
 #if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
-                                   ,IMFMediaSession*&);             // input/return value: media session handle
+                                   ,IMFMediaSession*&);                    // input/return value: media session handle
 #else
                                    );
 #endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)

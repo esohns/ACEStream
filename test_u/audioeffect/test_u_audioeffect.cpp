@@ -540,7 +540,7 @@ do_initializeSignals (ACE_Sig_Set& signals_out,
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 bool
-do_initialize_directshow (const std::string& deviceIdentifier_in,
+do_initialize_directshow (const struct Stream_Device_Identifier& deviceIdentifier_in,
                           const struct Test_U_AudioEffect_DirectShow_Configuration& configuration_in,
                           IGraphBuilder*& IGraphBuilder_out,
                           IAMStreamConfig*& IAMStreamConfig_out,
@@ -623,7 +623,7 @@ continue_:
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Stream_Device_DirectShow_Tools::loadDeviceGraph(\"%s\"), aborting\n"),
-                ACE_TEXT (deviceIdentifier_in.c_str ())));
+                ACE_TEXT (deviceIdentifier_in.identifier._string)));
     goto error;
   } // end IF
   ACE_ASSERT (IGraphBuilder_out);
@@ -766,7 +766,7 @@ error:
 }
 
 bool
-do_initialize_mediafoundation (const std::string& deviceIdentifier_in,
+do_initialize_mediafoundation (const struct Stream_Device_Identifier& deviceIdentifier_in,
                                struct Test_U_AudioEffect_MediaFoundation_Configuration& configuration_in,
                                IMFMediaSession*& session_out,
                                IMFMediaType*& captureMediaType_out,
@@ -774,7 +774,8 @@ do_initialize_mediafoundation (const std::string& deviceIdentifier_in,
                                bool initializeMediaFoundation_in,
                                bool useMediaFoundationSource_in,
                                bool mute_in,
-                               Test_U_AudioEffect_MediaFoundation_Stream& stream_in)
+                               Test_U_AudioEffect_MediaFoundation_Stream& stream_in,
+                               bool makeSession_in)
 {
   STREAM_TRACE (ACE_TEXT ("::do_initialize_mediafoundation"));
 
@@ -792,6 +793,8 @@ do_initialize_mediafoundation (const std::string& deviceIdentifier_in,
   TOPOID sample_grabber_id = 0, renderer_id = 0;
   IMFAttributes* attributes_p = NULL;
   std::string effect_options; // *TODO*
+  UINT32 channel_mask_i = (SPEAKER_FRONT_LEFT |
+                           SPEAKER_FRONT_RIGHT);
 
   if (!coInitialize_in)
     goto continue_;
@@ -826,6 +829,7 @@ continue_:
 
 continue_2:
   Stream_MediaFramework_Tools::initialize (STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION);
+  Stream_MediaFramework_Tools::initialize (STREAM_MEDIAFRAMEWORK_DIRECTSHOW);
   //Stream_Module_Device_Tools::initialize (true);
 
   // initialize return value(s)
@@ -865,27 +869,19 @@ continue_2:
     goto error;
   } // end IF
   ACE_ASSERT (captureMediaType_out);
+  result = captureMediaType_out->SetUINT32 (MF_MT_AUDIO_CHANNEL_MASK,
+                                            channel_mask_i);
+  ACE_ASSERT (SUCCEEDED (result));
+  result = captureMediaType_out->DeleteItem (MF_MT_AUDIO_PREFER_WAVEFORMATEX);
+  ACE_ASSERT (SUCCEEDED (result));
   Stream_MediaFramework_DirectShow_Tools::free (media_type_s);
   ACE_ASSERT (!configuration_in.mediaFoundationConfiguration.mediaType);
-  result =
-    MFCreateMediaType (&configuration_in.mediaFoundationConfiguration.mediaType);
-  if (FAILED (result) || !configuration_in.mediaFoundationConfiguration.mediaType)
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to MFCreateMediaType(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
-    goto error;
-  } // end IF
-  result =
-    captureMediaType_out->CopyAllItems (configuration_in.mediaFoundationConfiguration.mediaType);
-  if (FAILED (result))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to IMFMediaType::CopyAllItems(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
-    configuration_in.mediaFoundationConfiguration.mediaType->Release (); configuration_in.mediaFoundationConfiguration.mediaType = NULL;
-    goto error;
-  } // end IF
+  configuration_in.mediaFoundationConfiguration.mediaType =
+    Stream_MediaFramework_MediaFoundation_Tools::copy (captureMediaType_out);
+  ACE_ASSERT (configuration_in.mediaFoundationConfiguration.mediaType);
+
+  if (!makeSession_in)
+    goto continue_4;
 
   if (!useMediaFoundationSource_in)
   {
@@ -915,7 +911,7 @@ continue_2:
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Stream_Device_MediaFoundation_Tools::loadDeviceTopology(\"%s\"), aborting\n"),
-                ACE_TEXT (deviceIdentifier_in.c_str ())));
+                ACE_TEXT (Common_Tools::GUIDToString (deviceIdentifier_in.identifier._guid).c_str ())));
     goto error;
   } // end IF
   ACE_ASSERT (media_source_p);
@@ -934,9 +930,10 @@ continue_2:
   } // end IF
 
 continue_3:
-  if (!Stream_Module_Decoder_Tools::loadAudioRendererTopology (deviceIdentifier_in,
-                                                               (useMediaFoundationSource_in ? MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE_AUDCAP_GUID
-                                                                                            : GUID_NULL),
+  ACE_ASSERT (deviceIdentifier_in.identifierDiscriminator == Stream_Device_Identifier::GUID);
+  if (!Stream_Module_Decoder_Tools::loadAudioRendererTopology (deviceIdentifier_in.identifier._guid,
+                                                               MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE_AUDCAP_GUID,
+                                                               useMediaFoundationSource_in,
                                                                captureMediaType_out,
                                                                NULL,
                                                                (mute_in ? -1 : 0),
@@ -986,21 +983,20 @@ continue_3:
   attributes_p->Release (); attributes_p = NULL;
 
 #if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
-  DWORD topology_flags = (MFSESSION_SETTOPOLOGY_IMMEDIATE);// |
-                          //MFSESSION_SETTOPOLOGY_NORESOLUTION);// |
-                          //MFSESSION_SETTOPOLOGY_CLEAR_CURRENT);
-  result = session_out->SetTopology (topology_flags,
-                                     topology_p);
-  if (FAILED (result))
+  if (!Stream_MediaFramework_MediaFoundation_Tools::setTopology (topology_p,
+                                                                 session_out,
+                                                                 false, // is partial ?
+                                                                 true)) // wait for completion ?
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to IMFMediaSession::SetTopology(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
+                ACE_TEXT ("%s: failed to Stream_MediaFramework_MediaFoundation_Tools::setTopology(), aborting\n"),
+                ACE_TEXT (stream_name_string_)));
     goto error;
   } // end IF
 #endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
   topology_p->Release (); topology_p = NULL;
 
+continue_4:
   if (coInitialize_in)
     CoUninitialize ();
 
@@ -1259,7 +1255,7 @@ do_work (unsigned int bufferSize_in,
         &directshow_message_allocator;
       directshow_modulehandler_configuration.mute = mute_in;
 
-      directshow_modulehandler_configuration.audioOutput = 1;
+      directshow_modulehandler_configuration.audioOutput = 0;
 #if defined (GUI_SUPPORT)
 #if defined (GTK_SUPPORT)
       directshow_modulehandler_configuration.surfaceLock =
@@ -1302,7 +1298,7 @@ do_work (unsigned int bufferSize_in,
         &mediaFoundationConfiguration_in.mediaFoundationConfiguration;
       mediafoundation_modulehandler_configuration.mute = mute_in;
 
-      mediafoundation_modulehandler_configuration.audioOutput = 1;
+      mediafoundation_modulehandler_configuration.audioOutput = 0;
 #if defined (GUI_SUPPORT)
 #if defined (GTK_SUPPORT)
       mediafoundation_modulehandler_configuration.surfaceLock =
@@ -1454,7 +1450,7 @@ do_work (unsigned int bufferSize_in,
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
     {
       result =
-        do_initialize_directshow ((*directshow_modulehandler_iterator).second.second->deviceIdentifier.identifier._string,
+        do_initialize_directshow ((*directshow_modulehandler_iterator).second.second->deviceIdentifier,
                                   *directShowCBData_in.configuration,
                                   (*directshow_modulehandler_iterator).second.second->builder,
                                   directShowCBData_in.streamConfiguration,
@@ -1480,7 +1476,7 @@ do_work (unsigned int bufferSize_in,
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
     {
       result =
-        do_initialize_mediafoundation ((*mediafoundation_modulehandler_iterator).second.second->deviceIdentifier.identifier._string,
+        do_initialize_mediafoundation ((*mediafoundation_modulehandler_iterator).second.second->deviceIdentifier,
                                        *mediaFoundationCBData_in.configuration,
                                        (*mediafoundation_modulehandler_iterator).second.second->session,
                                        mediafoundation_stream_configuration.format,
@@ -1488,7 +1484,8 @@ do_work (unsigned int bufferSize_in,
                                        true, // initialize MediaFoundation framework ?
                                        useFrameworkSource_in, // use MediaFoundation source ? : WASAPI
                                        mute_in,
-                                       mediafoundation_stream);
+                                       mediafoundation_stream,
+                                       UIDefinitionFile_in.empty ()); // make session ?
       break;
     }
     default:

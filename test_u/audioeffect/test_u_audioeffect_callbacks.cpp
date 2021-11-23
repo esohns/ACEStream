@@ -2703,6 +2703,7 @@ load_audio_effects (GtkListStore* listStore_in)
   GtkTreeIter iterator;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   HRESULT result_2 = E_FAIL;
+  std::string friendly_name_string;
   switch (mediaFramework_in)
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
@@ -2711,7 +2712,6 @@ load_audio_effects (GtkListStore* listStore_in)
       int result_3 = -1;
       CLSID class_id = GUID_NULL;
       WCHAR* string_p = NULL;
-      std::string friendly_name_string;
 
       result_2 = DMOEnum (DMOCATEGORY_AUDIO_EFFECT,
                           DMO_ENUMF_INCLUDE_KEYED,
@@ -2753,7 +2753,6 @@ error_2:
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
     {
       UINT32 item_count = 0;
-      IMFTransform* transform_p = NULL;
       MFT_REGISTER_TYPE_INFO mft_register_type_info =
         { MFMediaType_Audio, MFAudioFormat_PCM };
       UINT32 flags = 0;
@@ -2761,25 +2760,25 @@ error_2:
       flags = (MFT_ENUM_FLAG_SYNCMFT        |
                MFT_ENUM_FLAG_ASYNCMFT       |
                MFT_ENUM_FLAG_HARDWARE       |
-               //MFT_ENUM_FLAG_FIELDOFUSE     |
+               MFT_ENUM_FLAG_FIELDOFUSE     |
                MFT_ENUM_FLAG_LOCALMFT       |
-               //MFT_ENUM_FLAG_TRANSCODE_ONLY |
+               MFT_ENUM_FLAG_TRANSCODE_ONLY |
                MFT_ENUM_FLAG_SORTANDFILTER);
-      IMFActivate** activate_p = NULL;
+      IMFActivate** activate_a = NULL;
 #else
-      CLSID* activate_p = NULL;
+      CLSID* activate_a = NULL;
 #endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0601)
-      IMFAttributes* attributes_p = NULL;
+      struct _GUID GUID_s = GUID_NULL;
 
       if (!Stream_MediaFramework_MediaFoundation_Tools::load (MFT_CATEGORY_AUDIO_EFFECT,
                                                               flags,
                                                               &mft_register_type_info,    // input type
                                                               NULL,                       // output type
 #if COMMON_OS_WIN32_TARGET_PLATFORM(0x0601) // _WIN32_WINNT_WIN7
-                                                              activate_p,                 // array of decoders
+                                                              activate_a,                 // array of effects
 #else
                                                               NULL,                       // attributes
-                                                              activate_p,                 // array of decoders
+                                                              activate_a,                 // array of decoders
 #endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0601)
                                                               item_count))
       {
@@ -2789,46 +2788,20 @@ error_2:
                     ACE_TEXT (Stream_MediaFramework_Tools::mediaSubTypeToString (MFAudioFormat_PCM, STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION).c_str ())));
         goto error;
       } // end IF
-      ACE_ASSERT (activate_p);
-      if (!item_count)
-      {
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("cannot find decoder for: \"%s\", aborting\n"),
-                    ACE_TEXT (Stream_MediaFramework_Tools::mediaSubTypeToString (MFAudioFormat_PCM, STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION).c_str ())));
-        goto error;
-      } // end IF
+      ACE_ASSERT (activate_a);
 
       for (UINT32 i = 0; i < item_count; i++)
       {
-#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0601) // _WIN32_WINNT_WIN7
-        result_2 = activate_p[i]->ActivateObject (IID_PPV_ARGS (&transform_p));
-        if (FAILED (result_2))
-        {
-          ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("failed to IMFActivate::ActivateObject(): \"%s\", aborting\n"),
-                      ACE_TEXT (Common_Error_Tools::errorToString (result_2).c_str ())));
-          goto error;
-        } // end IF
-#else
-        ACE_ASSERT (false);
-        ACE_NOTSUP_RETURN (false);
-        ACE_NOTREACHED (return false;)
-#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0601)
-        ACE_ASSERT (transform_p);
-
-        result_2 = transform_p->GetAttributes (&attributes_p);
-        if (FAILED (result_2))
-        {
-          ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("failed to IMFTransform::GetAttributes(): \"%s\", continuing\n"),
-                      ACE_TEXT (Common_Error_Tools::errorToString (result_2).c_str ())));
-          transform_p->Release (); transform_p = NULL;
-          continue;
-        } // end IF
-        ACE_ASSERT (attributes_p);
-
-        attributes_p->Release (); attributes_p = NULL;
-        transform_p->Release (); transform_p = NULL;
+        friendly_name_string =
+          Stream_MediaFramework_MediaFoundation_Tools::toString (activate_a[i]);
+        result_2 = activate_a[i]->GetGUID (MFT_TRANSFORM_CLSID_Attribute,
+                                           &GUID_s);
+        ACE_ASSERT (SUCCEEDED (result_2));
+        gtk_list_store_append (listStore_in, &iterator);
+        gtk_list_store_set (listStore_in, &iterator,
+                            0, friendly_name_string.c_str (),
+                            1, Common_Tools::GUIDToString (GUID_s).c_str (),
+                            -1);
       } // end FOR
 
       result = true;
@@ -2836,8 +2809,8 @@ error_2:
 error:
 #if COMMON_OS_WIN32_TARGET_PLATFORM(0x0601) // _WIN32_WINNT_WIN7
       for (UINT32 i = 0; i < item_count; i++)
-        activate_p[i]->Release ();
-      CoTaskMemFree (activate_p); activate_p = NULL;
+        activate_a[i]->Release ();
+      CoTaskMemFree (activate_a); activate_a = NULL;
 #else
       ACE_ASSERT (false);
       ACE_NOTSUP_RETURN (false);
@@ -2876,6 +2849,7 @@ error:
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Common_Tools::command(\"%s\"), aborting\n"),
                 ACE_TEXT (command_line_string.c_str ())));
+    result = false;
     goto continue_;
   } // end IF
   start_position =
@@ -2885,6 +2859,7 @@ error:
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to parse shell command output (was: \"%s\"), aborting\n"),
                 ACE_TEXT (command_output_string.c_str ())));
+    result = false;
     goto continue_;
   } // end IF
   end_position =
@@ -2895,6 +2870,7 @@ error:
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to parse shell command output (was: \"%s\"), aborting\n"),
                 ACE_TEXT (command_output_string.c_str ())));
+    result = false;
     goto continue_;
   } // end IF
   command_output_string.copy (buffer_a,
@@ -2909,7 +2885,7 @@ error:
     ACE_DEBUG ((LM_DEBUG,
                 ACE_TEXT ("failed to parse shell command output (was: \"%s\"), aborting\n"),
                 ACE_TEXT (command_output_string.c_str ())));
-    result = true;
+    result = false;
     goto continue_;
   } // end IF
   do
@@ -2927,7 +2903,7 @@ error:
   } while (true);
 
   result = true;
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
 continue_:
 
   return result;
@@ -3197,6 +3173,12 @@ update_media_type (gpointer userData_in)
       result =
         mediafoundation_ui_cb_data_p->configuration->streamConfiguration.configuration_->format->SetUINT32 (MF_MT_SAMPLE_SIZE,
                                                                                                             block_alignment_i);
+      ACE_ASSERT (SUCCEEDED (result));
+      UINT32 channel_mask_i = (SPEAKER_FRONT_LEFT |
+                               SPEAKER_FRONT_RIGHT);
+      result =
+        mediafoundation_ui_cb_data_p->configuration->streamConfiguration.configuration_->format->SetUINT32 (MF_MT_AUDIO_CHANNEL_MASK,
+                                                                                                            channel_mask_i);
       ACE_ASSERT (SUCCEEDED (result));
       result =
         mediafoundation_ui_cb_data_p->configuration->streamConfiguration.configuration_->format->SetUINT32 (MF_MT_AUDIO_AVG_BYTES_PER_SECOND,
@@ -6847,18 +6829,18 @@ togglebutton_save_toggled_cb (GtkToggleButton* toggleButton_in,
   char* filename_p = NULL;
   GFile* file_p =
     gtk_file_chooser_get_file (GTK_FILE_CHOOSER (file_chooser_button_p));
-  if (file_p)
+  if (!file_p)
+    goto continue_;
+  filename_p = g_file_get_path (file_p);
+  if (!filename_p)
   {
-    filename_p = g_file_get_path (file_p);
-    if (!filename_p)
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to g_file_get_path(): \"%m\", returning\n")));
-      g_object_unref (file_p); file_p = NULL;
-      return;
-    } // end IF
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to g_file_get_path(): \"%m\", returning\n")));
     g_object_unref (file_p); file_p = NULL;
+    return;
   } // end IF
+  g_object_unref (file_p); file_p = NULL;
+continue_:
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   struct Test_U_AudioEffect_DirectShow_UI_CBData* directshow_ui_cb_data_p = NULL;
   struct Test_U_AudioEffect_MediaFoundation_UI_CBData* mediafoundation_ui_cb_data_p =
@@ -6879,12 +6861,9 @@ togglebutton_save_toggled_cb (GtkToggleButton* toggleButton_in,
         directshow_ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
       ACE_ASSERT (directshow_modulehandler_configuration_iterator != directshow_ui_cb_data_p->configuration->streamConfiguration.end ());
 
-      if (is_active)
-      {
-        if (filename_p)
-          (*directshow_modulehandler_configuration_iterator).second.second->targetFileName =
-            Common_UI_GTK_Tools::UTF8ToLocale (filename_p, -1);
-      } // end IF
+      if (is_active && filename_p)
+        (*directshow_modulehandler_configuration_iterator).second.second->targetFileName =
+          Common_UI_GTK_Tools::UTF8ToLocale (filename_p, -1);
       else
         (*directshow_modulehandler_configuration_iterator).second.second->targetFileName.clear ();
       break;
@@ -6901,12 +6880,9 @@ togglebutton_save_toggled_cb (GtkToggleButton* toggleButton_in,
         mediafoundation_ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
       ACE_ASSERT (mediafoundation_modulehandler_configuration_iterator != mediafoundation_ui_cb_data_p->configuration->streamConfiguration.end ());
 
-      if (is_active)
-      {
-        if (filename_p)
-          (*mediafoundation_modulehandler_configuration_iterator).second.second->targetFileName =
-            Common_UI_GTK_Tools::UTF8ToLocale (filename_p, -1);
-      } // end IF
+      if (is_active && filename_p)
+        (*mediafoundation_modulehandler_configuration_iterator).second.second->targetFileName =
+          Common_UI_GTK_Tools::UTF8ToLocale (filename_p, -1);
       else
         (*mediafoundation_modulehandler_configuration_iterator).second.second->targetFileName.clear ();
       break;
@@ -6916,7 +6892,7 @@ togglebutton_save_toggled_cb (GtkToggleButton* toggleButton_in,
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("invalid/unknown media framework (was: %d), returning\n"),
                   ui_cb_data_base_p->mediaFramework));
-      return;
+      break;
     }
   } // end SWITCH
 #else
@@ -6929,12 +6905,9 @@ togglebutton_save_toggled_cb (GtkToggleButton* toggleButton_in,
     ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (modulehandler_configuration_iterator != ui_cb_data_p->configuration->streamConfiguration.end ());
 
-  if (is_active)
-  {
-    if (filename_p)
-      (*modulehandler_configuration_iterator).second.second->targetFileName =
-        Common_UI_GTK_Tools::UTF8ToLocale (filename_p, -1);
-  } // end IF
+  if (is_active && filename_p)
+    (*modulehandler_configuration_iterator).second.second->targetFileName =
+      Common_UI_GTK_Tools::UTF8ToLocale (filename_p, -1);
   else
     (*modulehandler_configuration_iterator).second.second->targetFileName.clear ();
 #endif // ACE_WIN32 || ACE_WIN64
@@ -8699,13 +8672,13 @@ combobox_source_changed_cb (GtkWidget* widget_in,
       } // end IF
 
 #if COMMON_OS_WIN32_TARGET_PLATFORM(0x0601) // _WIN32_WINNT_WIN7
-      if (!Stream_MediaFramework_MediaFoundation_Tools::getMediaSource (device_identifier_string,
+      if (!Stream_MediaFramework_MediaFoundation_Tools::getMediaSource ((*mediafoundation_modulehandler_configuration_iterator).second.second->deviceIdentifier.identifier._guid,
                                                                         MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE_AUDCAP_GUID,
                                                                         media_source_p))
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("failed to Stream_MediaFramework_MediaFoundation_Tools::getMediaSource(\"%s\"), returning\n"),
-                    ACE_TEXT (device_identifier_string.c_str ())));
+                    ACE_TEXT (Common_Tools::GUIDToString ((*mediafoundation_modulehandler_configuration_iterator).second.second->deviceIdentifier.identifier._guid).c_str ())));
         return;
       } // end IF
 #else
@@ -8819,7 +8792,7 @@ combobox_source_changed_cb (GtkWidget* widget_in,
       directshow_ui_cb_data_p->configuration->streamConfiguration.configuration_->filterGraphConfiguration.clear ();
 
       IAMBufferNegotiation* buffer_negotiation_p = NULL;
-      if (!Stream_Device_DirectShow_Tools::loadDeviceGraph (device_identifier_string,
+      if (!Stream_Device_DirectShow_Tools::loadDeviceGraph ((*directshow_modulehandler_configuration_iterator).second.second->deviceIdentifier,
                                                             CLSID_AudioInputDeviceCategory,
                                                             (*directshow_modulehandler_configuration_iterator).second.second->builder,
                                                             buffer_negotiation_p,
@@ -8850,7 +8823,7 @@ combobox_source_changed_cb (GtkWidget* widget_in,
 
       struct _MFRatio pixel_aspect_ratio = { 1, 1 };
 #if COMMON_OS_WIN32_TARGET_PLATFORM(0x0601) // _WIN32_WINNT_WIN7
-      if (!Stream_Device_MediaFoundation_Tools::loadDeviceTopology (device_identifier_string,
+      if (!Stream_Device_MediaFoundation_Tools::loadDeviceTopology ((*mediafoundation_modulehandler_configuration_iterator).second.second->deviceIdentifier,
                                                                     MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE_AUDCAP_GUID,
                                                                     media_source_p,
                                                                     mediafoundation_source_impl_p,
@@ -11765,9 +11738,26 @@ filechooserbutton_destination_file_set_cb (GtkFileChooserButton* button_in,
     COMMON_UI_GTK_MANAGER_SINGLETON::instance ();
   ACE_ASSERT (gtk_manager_p);
   const Common_UI_GTK_State_t& state_r = gtk_manager_p->getR ();
+
+  Common_UI_GTK_BuildersConstIterator_t iterator =
+    state_r.builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN));
+  ACE_ASSERT (iterator != state_r.builders.end ());
+
+  char* filename_p = NULL;
+  GFile* file_p = gtk_file_chooser_get_file (GTK_FILE_CHOOSER (button_in));
+  if (!file_p)
+    return;
+  filename_p = g_file_get_path (file_p);
+  if (!filename_p)
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to g_file_get_path(): \"%m\", returning\n")));
+    g_object_unref (file_p); file_p = NULL;
+    return;
+  } // end IF
+  g_object_unref (file_p); file_p = NULL;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  struct Test_U_AudioEffect_DirectShow_UI_CBData* directshow_ui_cb_data_p =
-    NULL;
+  struct Test_U_AudioEffect_DirectShow_UI_CBData* directshow_ui_cb_data_p = NULL;
   struct Test_U_AudioEffect_MediaFoundation_UI_CBData* mediafoundation_ui_cb_data_p =
     NULL;
   Test_U_AudioEffect_MediaFoundation_StreamConfiguration_t::ITERATOR_T mediafoundation_modulehandler_configuration_iterator;
@@ -11776,28 +11766,34 @@ filechooserbutton_destination_file_set_cb (GtkFileChooserButton* button_in,
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
     {
+      // sanity check(s)
       directshow_ui_cb_data_p =
         static_cast<struct Test_U_AudioEffect_DirectShow_UI_CBData*> (userData_in);
-      // sanity check(s)
       ACE_ASSERT (directshow_ui_cb_data_p);
       ACE_ASSERT (directshow_ui_cb_data_p->configuration);
 
       directshow_modulehandler_configuration_iterator =
         directshow_ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
       ACE_ASSERT (directshow_modulehandler_configuration_iterator != directshow_ui_cb_data_p->configuration->streamConfiguration.end ());
+
+      (*directshow_modulehandler_configuration_iterator).second.second->targetFileName =
+        Common_UI_GTK_Tools::UTF8ToLocale (filename_p, -1);
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
     {
+      // sanity check(s)
       mediafoundation_ui_cb_data_p =
         static_cast<struct Test_U_AudioEffect_MediaFoundation_UI_CBData*> (userData_in);
-      // sanity check(s)
       ACE_ASSERT (mediafoundation_ui_cb_data_p);
       ACE_ASSERT (mediafoundation_ui_cb_data_p->configuration);
 
       mediafoundation_modulehandler_configuration_iterator =
         mediafoundation_ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
       ACE_ASSERT (mediafoundation_modulehandler_configuration_iterator != mediafoundation_ui_cb_data_p->configuration->streamConfiguration.end ());
+
+      (*mediafoundation_modulehandler_configuration_iterator).second.second->targetFileName =
+        Common_UI_GTK_Tools::UTF8ToLocale (filename_p, -1);
       break;
     }
     default:
@@ -11809,88 +11805,73 @@ filechooserbutton_destination_file_set_cb (GtkFileChooserButton* button_in,
     }
   } // end SWITCH
 #else
-  struct Test_U_AudioEffect_UI_CBData* data_p =
-    static_cast<struct Test_U_AudioEffect_UI_CBData*> (userData_in);
-
   // sanity check(s)
-  ACE_ASSERT (data_p);
-  ACE_ASSERT (data_p->configuration);
+  struct Test_U_AudioEffect_UI_CBData* ui_cb_data_p =
+    static_cast<struct Test_U_AudioEffect_UI_CBData*> (userData_in);
+  ACE_ASSERT (ui_cb_data_p->configuration);
 
   Test_U_AudioEffect_ALSA_StreamConfiguration_t::ITERATOR_T modulehandler_configuration_iterator =
-    data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
-  ACE_ASSERT (modulehandler_configuration_iterator != data_p->configuration->streamConfiguration.end ());
+    ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
+  ACE_ASSERT (modulehandler_configuration_iterator != ui_cb_data_p->configuration->streamConfiguration.end ());
+
+  (*modulehandler_configuration_iterator).second.second->targetFileName =
+    Common_UI_GTK_Tools::UTF8ToLocale (filename_p, -1);
 #endif // ACE_WIN32 || ACE_WIN64
+  g_free (filename_p);
+} // filechooserbutton_destination_file_set_cb
+
+void
+filechooserdialog_response_cb (GtkDialog* dialog_in,
+                               int responseId_in,
+                               gpointer userData_in)
+{
+  STREAM_TRACE (ACE_TEXT ("::filechooserbutton_destination_file_set_cb"));
+
+  // sanity check(s)
+  struct Test_U_AudioEffect_UI_CBDataBase* ui_cb_data_base_p =
+    static_cast<struct Test_U_AudioEffect_UI_CBDataBase*> (userData_in);
+  ACE_ASSERT (ui_cb_data_base_p);
+
+  Common_UI_GTK_Manager_t* gtk_manager_p =
+    COMMON_UI_GTK_MANAGER_SINGLETON::instance ();
+  ACE_ASSERT (gtk_manager_p);
+  const Common_UI_GTK_State_t& state_r = gtk_manager_p->getR ();
 
   Common_UI_GTK_BuildersConstIterator_t iterator =
     state_r.builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN));
   ACE_ASSERT (iterator != state_r.builders.end ());
 
-  //// step1: display chooser dialog
-  //GtkFileChooserDialog* file_chooser_dialog_p =
-  //  GTK_FILE_CHOOSER_DIALOG (gtk_builder_get_object ((*iterator).second.second,
-  //                                                   ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_DIALOG_FILECHOOSER_OPEN_NAME)));
-  //ACE_ASSERT (file_chooser_dialog_p);
+  GtkFileChooserButton* file_chooser_button_p =
+    GTK_FILE_CHOOSER_BUTTON (gtk_builder_get_object ((*iterator).second.second,
+                                                     ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_FILECHOOSERBUTTON_SAVE_NAME)));
+  ACE_ASSERT (file_chooser_button_p);
 
-  //// run dialog
-  //GFile* file_p = NULL;
-  //gint result = gtk_dialog_run (GTK_DIALOG (file_chooser_dialog_p));
-  //switch (result)
-  //{
-  //  case GTK_RESPONSE_OK:
-  //    file_p = gtk_file_chooser_get_file (GTK_FILE_CHOOSER (file_chooser_dialog_p));
-  //    if (!file_p) return FALSE; // ? *TODO*
-  //    break;
-  //  case GTK_RESPONSE_DELETE_EVENT: // ESC
-  //  case GTK_RESPONSE_CANCEL:
-  //  default:
-  //    //gtk_widget_hide (GTK_WIDGET (file_chooser_dialog_p));
-  //    return FALSE;
-  //} // end SWITCH
-  //ACE_ASSERT (file_p);
-  //gtk_widget_hide (GTK_WIDGET (file_chooser_dialog_p));
-  //GtkEntry* entry_p =
-  //  GTK_ENTRY (gtk_builder_get_object ((*iterator).second.second,
-  //  ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_ENTRY_SOURCE_NAME)));
-  //ACE_ASSERT (entry_p);
+  switch (responseId_in)
+  {
+    case GTK_RESPONSE_OK:
+    {
+      filechooserbutton_destination_file_set_cb (file_chooser_button_p,
+                                                 userData_in);
+      break;
+    }
+    case GTK_RESPONSE_DELETE_EVENT: // ESC
+    case GTK_RESPONSE_CANCEL:
+    default:
+      break;
+  } // end SWITCH
+}
 
-  //GFile* file_p = gtk_file_chooser_get_file (GTK_FILE_CHOOSER (button_in));
-  //ACE_ASSERT (file_p);
-  //char* string_p = g_file_get_path (file_p);
-  //if (!string_p)
-  //{
-  //  ACE_DEBUG ((LM_ERROR,
-  //              ACE_TEXT ("failed to g_file_get_path(%@): \"%m\", returning\n"),
-  //              file_p));
-
-  //  // clean up
-  //  g_object_unref (file_p);
-
-  //  return;
-  //} // end IF
-  //g_object_unref (file_p);
-  //gtk_entry_set_text (entry_p, string_p);
-
-  // record button
-  //GtkToggleAction* toggle_button_p =
-  //  GTK_TOGGLE_ACTION (gtk_builder_get_object ((*iterator).second.second,
-  //                                             ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_togglebutton_RECORD_NAME)));
-  //ACE_ASSERT (toggle_button_p);
-  //gtk_action_set_sensitive (GTK_ACTION (toggle_button_p),
-  //                          !data_p->configuration->moduleHandlerConfiguration.targetFileName.empty ());
-} // filechooserbutton_cb
-
-void
-filechooserdialog_cb (GtkFileChooser* chooser_in,
-                      gpointer userData_in)
-{
-  STREAM_TRACE (ACE_TEXT ("::filechooserdialog_cb"));
-
-  ACE_UNUSED_ARG (userData_in);
-
-  gtk_dialog_response (GTK_DIALOG (GTK_FILE_CHOOSER_DIALOG (chooser_in)),
-                       GTK_RESPONSE_ACCEPT);
-} // filechooserdialog_cb
-
+//void
+//filechooser_file_activated_cb (GtkFileChooser* chooser_in,
+//                               gpointer userData_in)
+//{
+//  STREAM_TRACE (ACE_TEXT ("::filechooser_file_activated_cb"));
+//
+//  ACE_UNUSED_ARG (userData_in);
+//
+//  gtk_dialog_response (GTK_DIALOG (GTK_FILE_CHOOSER_DIALOG (chooser_in)),
+//                       GTK_RESPONSE_ACCEPT);
+//} // filechooser_file_activated_cb
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */

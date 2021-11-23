@@ -309,35 +309,33 @@ class Stream_MediaFramework_MediaFoundation_MediaSource_T
 
  protected:
   // convenient types
-  typedef std::map<BYTE, DWORD> STREAM_MAP_T; // maps stream ID to index
-  typedef STREAM_MAP_T::iterator STREAM_MAP_ITERATOR_T;
-  typedef std::list<IMFSample*> SAMPLE_LIST_T;
-  typedef SAMPLE_LIST_T::iterator SAMPLE_LIST_ITERATOR_T;
+  //typedef std::map<BYTE, DWORD> STREAM_MAP_T; // maps stream id to index
+  //typedef STREAM_MAP_T::iterator STREAM_MAP_ITERATOR_T;
+  //typedef std::list<IMFSample*> SAMPLE_LIST_T;
+  //typedef SAMPLE_LIST_T::iterator SAMPLE_LIST_ITERATOR_T;
   typedef std::deque<IUnknown*> TOKEN_LIST_T; // List of tokens for IMFMediaStream::RequestSample
   typedef TOKEN_LIST_T::iterator TOKEN_LIST_ITERATOR_T;
-  typedef std::map<struct _GUID, IUnknown*, struct common_less_guid> IUNKNOWN_MAP_T;
-  typedef IUNKNOWN_MAP_T::iterator IUNKNOWN_MAP_ITERATOR_T;
 
-  enum STATE_T
+  typedef enum
   {
-    STATE_INVALID = -1, // Initial state. Have not started opening the stream.
-    STATE_OPENING = 0,  // BeginOpen is in progress.
+    STATE_INVALID = -1,
+    STATE_INITIALIZED = 0,
     STATE_STOPPED,
     STATE_PAUSED,
     STATE_STARTED,
     STATE_SHUTDOWN
-  };
+  } STATE_T;
 
+  bool                       buffering_;
   ConfigurationType*         configuration_;
   IMFMediaEventQueue*        eventQueue_;
   //bool                hasCOMReference_;
   ACE_SYNCH_MUTEX            lock_;
+  STREAM_T*                  mediaStream_;
   IMFPresentationDescriptor* presentationDescriptor_;
   volatile long              referenceCount_;
-  bool                       shutdownInvoked_;
-  STATE_T                    state_; // Current state (running, stopped, paused)
+  STATE_T                    state_;
   TOKEN_LIST_T               tokens_;
-  IUNKNOWN_MAP_T             unknowns_;
 
  private:  
   // ctor used by the COM class factory
@@ -345,8 +343,6 @@ class Stream_MediaFramework_MediaFoundation_MediaSource_T
 
   ACE_UNIMPLEMENTED_FUNC (Stream_MediaFramework_MediaFoundation_MediaSource_T (const Stream_MediaFramework_MediaFoundation_MediaSource_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_MediaFramework_MediaFoundation_MediaSource_T& operator= (const Stream_MediaFramework_MediaFoundation_MediaSource_T&))
-
-  STREAM_T*           mediaStream_;
 }; // Stream_MediaFramework_MediaFoundation_MediaSource_T
 
 // include template definition

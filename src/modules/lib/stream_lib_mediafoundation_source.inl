@@ -876,7 +876,8 @@ Stream_MediaFramework_MediaFoundation_Source_T<ACE_SYNCH_USE,
       if (!mediaSession_)
       {
         IMFMediaSource* media_source_p = NULL;
-        if (!initialize_MediaFoundation (NULL,
+        if (!initialize_MediaFoundation (inherited::configuration_->deviceIdentifier,
+                                         NULL,
                                          session_data_r.formats.back (),
                                          media_source_p,
                                          NULL,
@@ -1020,7 +1021,8 @@ Stream_MediaFramework_MediaFoundation_Source_T<ACE_SYNCH_USE,
                                                SessionDataContainerType,
                                                SessionDataType,
                                                MediaType,
-                                               UserDataType>::initialize_MediaFoundation (HWND windowHandle_in,
+                                               UserDataType>::initialize_MediaFoundation (const struct Stream_Device_Identifier& deviceIdentifier_in,
+                                                                                          HWND windowHandle_in,
                                                                                           const IMFMediaType* IMFMediaType_in,
 #if COMMON_OS_WIN32_TARGET_PLATFORM(0x0602) // _WIN32_WINNT_WIN8
                                                                                           IMFMediaSourceEx*& IMFMediaSource_inout,
@@ -1050,16 +1052,15 @@ Stream_MediaFramework_MediaFoundation_Source_T<ACE_SYNCH_USE,
   HRESULT result = E_FAIL;
   bool release_media_session = false;
   bool release_media_source = false;
-  std::string device_name;
   if (!IMFMediaSource_inout)
-  {
-    if (!Stream_MediaFramework_MediaFoundation_Tools::getMediaSource (device_name,
+  { ACE_ASSERT (deviceIdentifier_in.identifierDiscriminator == Stream_Device_Identifier::GUID);
+    if (!Stream_MediaFramework_MediaFoundation_Tools::getMediaSource (deviceIdentifier_in.identifier._guid,
                                                                       MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE_VIDCAP_GUID,
                                                                       IMFMediaSource_inout))
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to Stream_MediaFramework_MediaFoundation_Tools::getMediaSource(\"%s\"), aborting\n"),
-                  ACE_TEXT (device_name.c_str ())));
+                  ACE_TEXT (Common_Tools::GUIDToString (deviceIdentifier_in.identifier._guid).c_str ())));
       return false;
     } // end IF
     release_media_source = true;

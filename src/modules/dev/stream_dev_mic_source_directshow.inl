@@ -424,7 +424,7 @@ error_3:
       ACE_ASSERT (!IAMDroppedFrames_);
 
       // *TODO*: remove type inferences
-      if (unlikely (!initialize_DirectShow (inherited::configuration_->deviceIdentifier.identifier._string,
+      if (unlikely (!initialize_DirectShow (inherited::configuration_->deviceIdentifier,
                                             inherited::configuration_->audioOutput,
                                             ICaptureGraphBuilder2_,
                                             IAMDroppedFrames_,
@@ -1286,7 +1286,7 @@ Stream_Dev_Mic_Source_DirectShow_T<ACE_SYNCH_USE,
                                    SessionDataType,
                                    SessionDataContainerType,
                                    StatisticContainerType,
-                                   TimerManagerType>::initialize_DirectShow (const std::string& deviceIdentifier_in,
+                                   TimerManagerType>::initialize_DirectShow (const struct Stream_Device_Identifier& deviceIdentifier_in,
                                                                              int audioOutput_in,
                                                                              ICaptureGraphBuilder2*& ICaptureGraphBuilder2_out,
                                                                              IAMDroppedFrames*& IAMDroppedFrames_out,
@@ -1332,7 +1332,7 @@ Stream_Dev_Mic_Source_DirectShow_T<ACE_SYNCH_USE,
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to Stream_Device_DirectShow_Tools::loadDeviceGraph(\"%s\"), aborting\n"),
                 inherited::mod_->name (),
-                ACE_TEXT (deviceIdentifier_in.c_str ())));
+                ACE_TEXT (deviceIdentifier_in.identifier._string)));
     goto error;
   } // end IF
   ACE_ASSERT (graph_builder_p);
@@ -1556,8 +1556,8 @@ continue_:
 //continue_2:
   IBaseFilter* filter_4 = NULL;
   result =
-    graph_builder_p->FindFilterByName ((audioOutput_in ? STREAM_LIB_DIRECTSHOW_FILTER_NAME_RENDER_AUDIO
-                                                       : STREAM_LIB_DIRECTSHOW_FILTER_NAME_RENDER_NULL),
+    graph_builder_p->FindFilterByName ((audioOutput_in >= 0 ? STREAM_LIB_DIRECTSHOW_FILTER_NAME_RENDER_AUDIO
+                                                            : STREAM_LIB_DIRECTSHOW_FILTER_NAME_RENDER_NULL),
                                        &filter_4);
   if (FAILED (result))
   {
@@ -1566,14 +1566,14 @@ continue_:
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: failed to IGraphBuilder::FindFilterByName(\"%s\"): \"%s\", aborting\n"),
                   inherited::mod_->name (),
-                  ACE_TEXT_WCHAR_TO_TCHAR ((audioOutput_in ? STREAM_LIB_DIRECTSHOW_FILTER_NAME_RENDER_AUDIO
-                                                           : STREAM_LIB_DIRECTSHOW_FILTER_NAME_RENDER_NULL)),
+                  ACE_TEXT_WCHAR_TO_TCHAR ((audioOutput_in >= 0 ? STREAM_LIB_DIRECTSHOW_FILTER_NAME_RENDER_AUDIO
+                                                                : STREAM_LIB_DIRECTSHOW_FILTER_NAME_RENDER_NULL)),
                   ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
       goto error;
     } // end IF
 
-    result = CoCreateInstance ((audioOutput_in ? CLSID_AudioRender
-                                               : CLSID_NullRenderer), NULL,
+    result = CoCreateInstance ((audioOutput_in >= 0 ? CLSID_AudioRender
+                                                    : CLSID_NullRenderer), NULL,
                                CLSCTX_INPROC_SERVER,
                                IID_PPV_ARGS (&filter_4));
     if (FAILED (result))
@@ -1581,16 +1581,16 @@ continue_:
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: failed to CoCreateInstance(%s): \"%s\", aborting\n"),
                   inherited::mod_->name (),
-                  (audioOutput_in ? ACE_TEXT ("CLSID_AudioRender")
-                                  : ACE_TEXT ("CLSID_NullRenderer")),
+                  (audioOutput_in >= 0 ? ACE_TEXT ("CLSID_AudioRender")
+                                       : ACE_TEXT ("CLSID_NullRenderer")),
                   ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
       goto error;
     } // end IF
     ACE_ASSERT (filter_4);
     result =
       graph_builder_p->AddFilter (filter_4,
-                                  (audioOutput_in ? STREAM_LIB_DIRECTSHOW_FILTER_NAME_RENDER_AUDIO
-                                                  : STREAM_LIB_DIRECTSHOW_FILTER_NAME_RENDER_NULL));
+                                  (audioOutput_in >= 0 ? STREAM_LIB_DIRECTSHOW_FILTER_NAME_RENDER_AUDIO
+                                                       : STREAM_LIB_DIRECTSHOW_FILTER_NAME_RENDER_NULL));
     if (FAILED (result))
     {
       ACE_DEBUG ((LM_ERROR,
