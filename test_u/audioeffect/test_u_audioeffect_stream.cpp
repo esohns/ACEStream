@@ -456,13 +456,19 @@ Test_U_AudioEffect_MediaFoundation_Stream::Test_U_AudioEffect_MediaFoundation_St
 #if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
  , mediaSession_ (NULL)
 #endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
- , mediaFoundationSource_ (this,
-                           ACE_TEXT_ALWAYS_CHAR (STREAM_LIB_MEDIAFOUNDATION_TARGET_DEFAULT_NAME_STRING))
+ , mediaFoundationSource_ (NULL)
  , referenceCount_ (0)
  , topologyIsReady_ (false)
 {
   STREAM_TRACE (ACE_TEXT ("Test_U_AudioEffect_MediaFoundation_Stream::Test_U_AudioEffect_MediaFoundation_Stream"));
 
+  ACE_NEW_NORETURN (mediaFoundationSource_,
+                    Test_U_AudioEffect_MediaFoundation_Target_Module (this,
+                                                                      ACE_TEXT_ALWAYS_CHAR (STREAM_LIB_MEDIAFOUNDATION_TARGET_DEFAULT_NAME_STRING)));
+  if (!mediaFoundationSource_)
+    ACE_DEBUG ((LM_CRITICAL,
+                ACE_TEXT ("%s: failed to allocate memory, continuing\n"),
+                ACE_TEXT (stream_name_string_)));
 }
 
 Test_U_AudioEffect_MediaFoundation_Stream::~Test_U_AudioEffect_MediaFoundation_Stream ()
@@ -474,8 +480,7 @@ Test_U_AudioEffect_MediaFoundation_Stream::~Test_U_AudioEffect_MediaFoundation_S
   if (mediaSession_)
   {
     result = mediaSession_->Shutdown ();
-    if (FAILED (result) &&
-      (result != MF_E_SHUTDOWN)) // already shut down...
+    if (FAILED (result) && (result != MF_E_SHUTDOWN)) // already shut down...
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: failed to IMFMediaSession::Shutdown(): \"%s\", continuing\n"),
                   ACE_TEXT (stream_name_string_),
@@ -638,7 +643,7 @@ Test_U_AudioEffect_MediaFoundation_Stream::load (Stream_ILayout* layout_in,
     //ACE_ASSERT (module_p);
     //layout_in->append (module_p, NULL, 0);
     //module_p = NULL;
-    layout_in->append (&mediaFoundationSource_, NULL, 0);
+    layout_in->append (mediaFoundationSource_, NULL, 0);
   } // end IF
   if (!(*iterator).second.second->targetFileName.empty ())
   {
@@ -963,7 +968,7 @@ Test_U_AudioEffect_MediaFoundation_Stream::getR_3 () const
     const_cast<Test_U_AudioEffect_MediaFoundation_Stream*> (this);
 
   Test_U_AudioEffect_MediaFoundation_Target* writer_p =
-    static_cast<Test_U_AudioEffect_MediaFoundation_Target*> (this_p->mediaFoundationSource_.writer ());
+    static_cast<Test_U_AudioEffect_MediaFoundation_Target*> (this_p->mediaFoundationSource_->writer ());
   ACE_ASSERT (writer_p);
 
   return *writer_p;
@@ -988,7 +993,7 @@ Test_U_AudioEffect_MediaFoundation_Stream::QueryInterface (const IID& IID_in,
   if (result == E_NOINTERFACE)
   {
     Test_U_AudioEffect_MediaFoundation_Target* writer_p =
-      static_cast<Test_U_AudioEffect_MediaFoundation_Target*> (mediaFoundationSource_.writer ());
+      static_cast<Test_U_AudioEffect_MediaFoundation_Target*> (mediaFoundationSource_->writer ());
     ACE_ASSERT (writer_p);
     result = writer_p->QueryInterface (IID_in,
                                        interface_out);

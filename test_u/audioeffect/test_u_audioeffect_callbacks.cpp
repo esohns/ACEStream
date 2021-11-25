@@ -3174,12 +3174,16 @@ update_media_type (gpointer userData_in)
         mediafoundation_ui_cb_data_p->configuration->streamConfiguration.configuration_->format->SetUINT32 (MF_MT_SAMPLE_SIZE,
                                                                                                             block_alignment_i);
       ACE_ASSERT (SUCCEEDED (result));
-      UINT32 channel_mask_i = (SPEAKER_FRONT_LEFT |
-                               SPEAKER_FRONT_RIGHT);
       result =
-        mediafoundation_ui_cb_data_p->configuration->streamConfiguration.configuration_->format->SetUINT32 (MF_MT_AUDIO_CHANNEL_MASK,
-                                                                                                            channel_mask_i);
+        mediafoundation_ui_cb_data_p->configuration->streamConfiguration.configuration_->format->SetUINT32 (MF_MT_AUDIO_VALID_BITS_PER_SAMPLE,
+                                                                                                            bits_per_sample);
       ACE_ASSERT (SUCCEEDED (result));
+      //UINT32 channel_mask_i = (SPEAKER_FRONT_LEFT |
+      //                         SPEAKER_FRONT_RIGHT);
+      //result =
+      //  mediafoundation_ui_cb_data_p->configuration->streamConfiguration.configuration_->format->SetUINT32 (MF_MT_AUDIO_CHANNEL_MASK,
+      //                                                                                                      channel_mask_i);
+      //ACE_ASSERT (SUCCEEDED (result));
       result =
         mediafoundation_ui_cb_data_p->configuration->streamConfiguration.configuration_->format->SetUINT32 (MF_MT_AUDIO_AVG_BYTES_PER_SECOND,
                                                                                                             sample_rate * block_alignment_i);
@@ -8635,7 +8639,8 @@ combobox_source_changed_cb (GtkWidget* widget_in,
       //ACE_OS::strcpy ((*directshow_modulehandler_configuration_iterator).second.second->deviceIdentifier.identifier._string,
       //                device_identifier_string.c_str ());
       (*directshow_modulehandler_configuration_iterator).second.second->deviceIdentifier.identifier._guid =
-        Stream_MediaFramework_DirectSound_Tools::waveDeviceIdToDirectSoundGUID (static_cast<ULONG> (card_id_i));
+        Stream_MediaFramework_DirectSound_Tools::waveDeviceIdToDirectSoundGUID (static_cast<ULONG> (card_id_i),
+                                                                                true); // capture
       //ACE_OS::strcpy ((*directshow_modulehandler_configuration_iterator).second.second->deviceIdentifier.identifier._string,
       //                ACE_TEXT_ALWAYS_CHAR (g_value_get_string (&value)));
       break;
@@ -8647,7 +8652,8 @@ combobox_source_changed_cb (GtkWidget* widget_in,
       //ACE_OS::strcpy ((*mediafoundation_modulehandler_configuration_iterator).second.second->deviceIdentifier.identifier._string,
       //                device_identifier_string.c_str ());
       (*mediafoundation_modulehandler_configuration_iterator).second.second->deviceIdentifier.identifier._guid =
-        Stream_MediaFramework_DirectSound_Tools::waveDeviceIdToDirectSoundGUID (static_cast<ULONG> (card_id_i));
+        Stream_MediaFramework_DirectSound_Tools::waveDeviceIdToDirectSoundGUID (static_cast<ULONG> (card_id_i),
+                                                                                true); // capture
       //ACE_OS::strcpy ((*mediafoundation_modulehandler_configuration_iterator).second.second->deviceIdentifier.identifier._string,
       //                ACE_TEXT_ALWAYS_CHAR (g_value_get_string (&value)));
 
@@ -9007,7 +9013,8 @@ continue_:
   // retrieve volume control handle
   // step1: retrieve DirectSound device GUID from wave device id
   struct _GUID GUID_s =
-    Stream_MediaFramework_DirectSound_Tools::waveDeviceIdToDirectSoundGUID (card_id_i);
+    Stream_MediaFramework_DirectSound_Tools::waveDeviceIdToDirectSoundGUID (card_id_i,
+                                                                            true); // capture
   ACE_ASSERT (!InlineIsEqualGUID (GUID_s, GUID_NULL));
   IMMDeviceEnumerator* enumerator_p = NULL;
   HRESULT result =

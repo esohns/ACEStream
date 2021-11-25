@@ -489,7 +489,36 @@ Stream_MediaFramework_Tools::initialize ()
   Stream_MediaFramework_Tools::Stream_MediaFramework_MediaFoundation_MediaSubTypeToStringMap.insert (std::make_pair (MFAudioFormat_Dolby_AC3, ACE_TEXT_ALWAYS_CHAR ("Dolby_AC3")));
   Stream_MediaFramework_Tools::Stream_MediaFramework_MediaFoundation_MediaSubTypeToStringMap.insert (std::make_pair (MFAudioFormat_Dolby_DDPlus, ACE_TEXT_ALWAYS_CHAR ("Dolby_DDPlus")));
 #endif // _WIN32_WINNT && (_WIN32_WINNT > 0x0601) // _WIN32_WINNT_WIN8
+#if (WINVER >= _WIN32_WINNT_WINTHRESHOLD)
+  Stream_MediaFramework_Tools::Stream_MediaFramework_MediaFoundation_MediaSubTypeToStringMap.insert (std::make_pair (MFAudioFormat_FLAC, ACE_TEXT_ALWAYS_CHAR ("FLAC")));
+  Stream_MediaFramework_Tools::Stream_MediaFramework_MediaFoundation_MediaSubTypeToStringMap.insert (std::make_pair (MFAudioFormat_FLAC, ACE_TEXT_ALWAYS_CHAR ("ALAC")));
+  Stream_MediaFramework_Tools::Stream_MediaFramework_MediaFoundation_MediaSubTypeToStringMap.insert (std::make_pair (MFAudioFormat_FLAC, ACE_TEXT_ALWAYS_CHAR ("Opus")));
+#endif // WINVER >= _WIN32_WINNT_WINTHRESHOLD
 #endif // ACE_WIN32 || ACE_WIN64
+  Stream_MediaFramework_Tools::Stream_MediaFramework_MediaFoundation_MediaSubTypeToStringMap.insert (std::make_pair (MFAudioFormat_Dolby_AC3, ACE_TEXT_ALWAYS_CHAR ("Dolby_AC3")));
+  Stream_MediaFramework_Tools::Stream_MediaFramework_MediaFoundation_MediaSubTypeToStringMap.insert (std::make_pair (MFAudioFormat_Dolby_DDPlus, ACE_TEXT_ALWAYS_CHAR ("Dolby_DDPlus")));
+  Stream_MediaFramework_Tools::Stream_MediaFramework_MediaFoundation_MediaSubTypeToStringMap.insert (std::make_pair (MFAudioFormat_Vorbis, ACE_TEXT_ALWAYS_CHAR ("Vorbis")));
+  Stream_MediaFramework_Tools::Stream_MediaFramework_MediaFoundation_MediaSubTypeToStringMap.insert (std::make_pair (MFAudioFormat_DTS_RAW, ACE_TEXT_ALWAYS_CHAR ("DTS_RAW")));
+  Stream_MediaFramework_Tools::Stream_MediaFramework_MediaFoundation_MediaSubTypeToStringMap.insert (std::make_pair (MFAudioFormat_DTS_HD, ACE_TEXT_ALWAYS_CHAR ("DTS_HD")));
+  Stream_MediaFramework_Tools::Stream_MediaFramework_MediaFoundation_MediaSubTypeToStringMap.insert (std::make_pair (MFAudioFormat_DTS_XLL, ACE_TEXT_ALWAYS_CHAR ("DTS_XLL")));
+  Stream_MediaFramework_Tools::Stream_MediaFramework_MediaFoundation_MediaSubTypeToStringMap.insert (std::make_pair (MFAudioFormat_DTS_LBR, ACE_TEXT_ALWAYS_CHAR ("DTS_LBR")));
+  Stream_MediaFramework_Tools::Stream_MediaFramework_MediaFoundation_MediaSubTypeToStringMap.insert (std::make_pair (MFAudioFormat_DTS_UHD, ACE_TEXT_ALWAYS_CHAR ("DTS_UHD")));
+  Stream_MediaFramework_Tools::Stream_MediaFramework_MediaFoundation_MediaSubTypeToStringMap.insert (std::make_pair (MFAudioFormat_DTS_UHDY, ACE_TEXT_ALWAYS_CHAR ("DTS_UHDY")));
+  Stream_MediaFramework_Tools::Stream_MediaFramework_MediaFoundation_MediaSubTypeToStringMap.insert (std::make_pair (MFAudioFormat_DTS_UHDY, ACE_TEXT_ALWAYS_CHAR ("DTS_UHDY")));
+#if (NTDDI_VERSION >= NTDDI_WIN10_RS2)
+  Stream_MediaFramework_Tools::Stream_MediaFramework_MediaFoundation_MediaSubTypeToStringMap.insert (std::make_pair (MFAudioFormat_Float_SpatialObjects, ACE_TEXT_ALWAYS_CHAR ("Float_SpatialObjects")));
+#endif // NTDDI_VERSION >= NTDDI_WIN10_RS2
+#if (WINVER >= _WIN32_WINNT_THRESHOLD)
+  Stream_MediaFramework_Tools::Stream_MediaFramework_MediaFoundation_MediaSubTypeToStringMap.insert (std::make_pair (MFAudioFormat_LPCM, ACE_TEXT_ALWAYS_CHAR ("LPCM")));
+  Stream_MediaFramework_Tools::Stream_MediaFramework_MediaFoundation_MediaSubTypeToStringMap.insert (std::make_pair (MFAudioFormat_PCM_HDCP, ACE_TEXT_ALWAYS_CHAR ("PCM_HDCP")));
+  Stream_MediaFramework_Tools::Stream_MediaFramework_MediaFoundation_MediaSubTypeToStringMap.insert (std::make_pair (MFAudioFormat_Dolby_AC3_HDCP, ACE_TEXT_ALWAYS_CHAR ("Dolby_AC3_HDCP")));
+  Stream_MediaFramework_Tools::Stream_MediaFramework_MediaFoundation_MediaSubTypeToStringMap.insert (std::make_pair (MFAudioFormat_AAC_HDCP, ACE_TEXT_ALWAYS_CHAR ("AAC_HDCP")));
+  Stream_MediaFramework_Tools::Stream_MediaFramework_MediaFoundation_MediaSubTypeToStringMap.insert (std::make_pair (MFAudioFormat_ADTS_HDCP, ACE_TEXT_ALWAYS_CHAR ("ADTS_HDCP")));
+  Stream_MediaFramework_Tools::Stream_MediaFramework_MediaFoundation_MediaSubTypeToStringMap.insert (std::make_pair (MFAudioFormat_Base_HDCP, ACE_TEXT_ALWAYS_CHAR ("Base_HDCP")));
+  Stream_MediaFramework_Tools::Stream_MediaFramework_MediaFoundation_MediaSubTypeToStringMap.insert (std::make_pair (MFVideoFormat_H264_HDCP, ACE_TEXT_ALWAYS_CHAR ("H264_HDCP")));
+  Stream_MediaFramework_Tools::Stream_MediaFramework_MediaFoundation_MediaSubTypeToStringMap.insert (std::make_pair (MFVideoFormat_HEVC_HDCP, ACE_TEXT_ALWAYS_CHAR ("HEVC_HDCP")));
+  Stream_MediaFramework_Tools::Stream_MediaFramework_MediaFoundation_MediaSubTypeToStringMap.insert (std::make_pair (MFVideoFormat_Base_HDCP, ACE_TEXT_ALWAYS_CHAR ("Base_HDCP")));
+#endif // WINVER >= _WIN32_WINNT_THRESHOLD
 
   return true;
 }

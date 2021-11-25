@@ -37,7 +37,8 @@ struct IAudioVolumeLevel;
 class Stream_MediaFramework_DirectSound_Tools
 {
  public:
-  static struct _GUID waveDeviceIdToDirectSoundGUID (ULONG); // waveIn device id
+  static struct _GUID waveDeviceIdToDirectSoundGUID (ULONG,        // waveIn/Out device id
+                                                     bool = true); // capture ? : playback
   static IAudioVolumeLevel* getMicrophoneBoostControl (IMMDevice*); // device handle
 
   static void getAudioRendererStatistics (IFilterGraph*,                                    // filter graph handle

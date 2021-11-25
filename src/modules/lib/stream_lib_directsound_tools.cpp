@@ -42,6 +42,8 @@
 #include "ace/Log_Msg.h"
 #include "ace/OS.h"
 
+#include "common_tools.h"
+
 #include "common_error_tools.h"
 
 #include "stream_macros.h"
@@ -96,6 +98,11 @@ stream_directshow_device_enumeration_a_cb (LPGUID lpGuid,
   ACE_ASSERT (SUCCEEDED (result));
   if (directsound_device_description_p->WaveDeviceId == cbdata_p->deviceId)
   {
+    ACE_DEBUG ((LM_DEBUG,
+                ACE_TEXT ("found device (id: %u): \"%s\"; GUID: \"%s\"\n"),
+                cbdata_p->deviceId,
+                ACE_TEXT (directsound_device_description_p->Description),
+                ACE_TEXT (Common_Tools::GUIDToString (directsound_device_description_p->DeviceId).c_str ())));
     delete [] directsound_device_description_p; directsound_device_description_p = NULL;
     cbdata_p->deviceGUID = *lpGuid;
     return FALSE; // done
@@ -106,7 +113,8 @@ stream_directshow_device_enumeration_a_cb (LPGUID lpGuid,
 }
 
 struct _GUID
-Stream_MediaFramework_DirectSound_Tools::waveDeviceIdToDirectSoundGUID (ULONG waveDeviceId_in)
+Stream_MediaFramework_DirectSound_Tools::waveDeviceIdToDirectSoundGUID (ULONG waveDeviceId_in,
+                                                                        bool capture_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_DirectSound_Tools::waveDeviceIdToDirectSoundGUID"));
 
@@ -129,7 +137,8 @@ Stream_MediaFramework_DirectSound_Tools::waveDeviceIdToDirectSoundGUID (ULONG wa
   ACE_ASSERT (!FAILED (result));
   class_factory_p->Release (); class_factory_p = NULL;
   result =
-    DirectSoundCaptureEnumerate (stream_directshow_device_enumeration_a_cb, &cb_data_s);
+    (capture_in ? DirectSoundCaptureEnumerate (stream_directshow_device_enumeration_a_cb, &cb_data_s)
+                : DirectSoundEnumerate (stream_directshow_device_enumeration_a_cb, &cb_data_s));
   ACE_ASSERT (!FAILED (result));
   cb_data_s.IPropertySet->Release (); cb_data_s.IPropertySet = NULL;
   FreeLibrary (library_h);

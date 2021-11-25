@@ -902,16 +902,16 @@ Stream_MediaFramework_MediaFoundation_MediaSource_T<TimePolicyType,
   ACE_ASSERT (SUCCEEDED (result));
   media_event_p->Release (); media_event_p = NULL;
 
-  // send MEBufferingStarted
-  buffering_ = true;
-  PropVariantClear (&property_s);
-  property_s.vt = VT_EMPTY;
-  result = eventQueue_->QueueEventParamVar (MEBufferingStarted,
-                                            GUID_NULL,
-                                            S_OK,
-                                            &property_s);
-  ACE_ASSERT (SUCCEEDED (result));
-  PropVariantClear (&property_s);
+  //// send MEBufferingStarted
+  //buffering_ = true;
+  //PropVariantClear (&property_s);
+  //property_s.vt = VT_EMPTY;
+  //result = eventQueue_->QueueEventParamVar (MEBufferingStarted,
+  //                                          GUID_NULL,
+  //                                          S_OK,
+  //                                          &property_s);
+  //ACE_ASSERT (SUCCEEDED (result));
+  //PropVariantClear (&property_s);
 
   state_ = STATE_STARTED;
 

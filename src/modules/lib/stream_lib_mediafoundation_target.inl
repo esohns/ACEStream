@@ -270,22 +270,22 @@ Stream_MediaFramework_MediaFoundation_Target_T<ACE_SYNCH_USE,
   } // end IF
 
   HRESULT result = E_FAIL;
-  if (unlikely (inherited4::buffering_))
-  {
-    inherited4::buffering_ = false;
+  //if (unlikely (inherited4::buffering_))
+  //{
+  //  inherited4::buffering_ = false;
 
-    // send MEBufferingStopped
-    struct tagPROPVARIANT property_s;
-    PropVariantInit (&property_s);
-    PropVariantClear (&property_s);
-    property_s.vt = VT_EMPTY;
-    result = inherited4::eventQueue_->QueueEventParamVar (MEBufferingStopped,
-                                                          GUID_NULL,
-                                                          S_OK,
-                                                          &property_s);
-    ACE_ASSERT (SUCCEEDED (result));
-    PropVariantClear (&property_s);
-  } // end IF
+  //  // send MEBufferingStopped
+  //  struct tagPROPVARIANT property_s;
+  //  PropVariantInit (&property_s);
+  //  PropVariantClear (&property_s);
+  //  property_s.vt = VT_EMPTY;
+  //  result = inherited4::eventQueue_->QueueEventParamVar (MEBufferingStopped,
+  //                                                        GUID_NULL,
+  //                                                        S_OK,
+  //                                                        &property_s);
+  //  ACE_ASSERT (SUCCEEDED (result));
+  //  PropVariantClear (&property_s);
+  //} // end IF
 
   // send MEMediaSample
   // step0: allocate sample
@@ -301,6 +301,13 @@ Stream_MediaFramework_MediaFoundation_Target_T<ACE_SYNCH_USE,
   } // end IF
 
   // step1: set attributes
+  if (isFirst_)
+  {
+    isFirst_ = false;
+    result = sample_p->SetUINT32 (MFSampleExtension_Discontinuity,
+                                  TRUE);
+    ACE_ASSERT (SUCCEEDED (result));
+  } // end IF
   //result = sample_p->SetUINT32 (MFSampleExtension_CleanPoint,
   //                              TRUE);
   //ACE_ASSERT (SUCCEEDED (result));
@@ -349,9 +356,9 @@ Stream_MediaFramework_MediaFoundation_Target_T<ACE_SYNCH_USE,
     offset_i += message_block_p->length ();
     message_block_p = message_block_p->cont ();
   } while (message_block_p);
-  result = buffer_p->Unlock ();
-  ACE_ASSERT (SUCCEEDED (result));
   result = buffer_p->SetCurrentLength (total_length_i);
+  ACE_ASSERT (SUCCEEDED (result));
+  result = buffer_p->Unlock ();
   ACE_ASSERT (SUCCEEDED (result));
   result = sample_p->AddBuffer (buffer_p);
   ACE_ASSERT (SUCCEEDED (result));

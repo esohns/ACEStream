@@ -872,8 +872,8 @@ continue_2:
   result = captureMediaType_out->SetUINT32 (MF_MT_AUDIO_CHANNEL_MASK,
                                             channel_mask_i);
   ACE_ASSERT (SUCCEEDED (result));
-  result = captureMediaType_out->DeleteItem (MF_MT_AUDIO_PREFER_WAVEFORMATEX);
-  ACE_ASSERT (SUCCEEDED (result));
+  //result = captureMediaType_out->DeleteItem (MF_MT_AUDIO_PREFER_WAVEFORMATEX);
+  //ACE_ASSERT (SUCCEEDED (result));
   Stream_MediaFramework_DirectShow_Tools::free (media_type_s);
   ACE_ASSERT (!configuration_in.mediaFoundationConfiguration.mediaType);
   configuration_in.mediaFoundationConfiguration.mediaType =

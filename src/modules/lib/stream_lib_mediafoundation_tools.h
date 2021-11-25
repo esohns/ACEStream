@@ -159,7 +159,8 @@ class Stream_MediaFramework_MediaFoundation_Tools
 #endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0601)
                           IMFTopology*,                   // topology handle
                           TOPOID&);                       // return value: grabber node id
-  static bool addRenderer (HWND,         // window handle
+  static bool addRenderer (REFGUID,      // (major) media type (audio/video)
+                           HWND,         // window handle (video only)
                            IMFTopology*, // topology handle
                            TOPOID&);     // return value: renderer node id
 
@@ -177,6 +178,7 @@ class Stream_MediaFramework_MediaFoundation_Tools
   static void dump (IMFTopology*); // topology handle
   static void dump (IMFAttributes*); // attributes handle
   static void dump (IMFTransform*); // transform handle
+  static void dump (IMFStreamSink*); // stream sink handle
 
   static bool copy (const IMFAttributes*, // source
                     IMFAttributes*,       // destination

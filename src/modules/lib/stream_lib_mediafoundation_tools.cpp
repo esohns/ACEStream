@@ -21,6 +21,7 @@
 
 #include "stream_lib_mediafoundation_tools.h"
 
+#include <iomanip>
 #include <sstream>
 
 #include "evr.h"
@@ -608,6 +609,37 @@ Stream_MediaFramework_MediaFoundation_Tools::dump (IMFTransform* IMFTransform_in
                 ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
     return;
   } // end IF
+}
+
+void
+Stream_MediaFramework_MediaFoundation_Tools::dump (IMFStreamSink* streamSink_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_MediaFoundation_Tools::dump"));
+
+  // sanity check(s)
+  ACE_ASSERT (streamSink_in);
+
+  IMFMediaTypeHandler* media_type_handler_p = NULL;
+  HRESULT result = streamSink_in->GetMediaTypeHandler (&media_type_handler_p);
+  ACE_ASSERT (SUCCEEDED (result) && media_type_handler_p);
+  DWORD count_i = 0;
+  result = media_type_handler_p->GetMediaTypeCount (&count_i);
+  ACE_ASSERT (SUCCEEDED (result));
+  IMFMediaType* media_type_p = NULL;
+  for (DWORD i = 0;
+       i < count_i;
+       ++i)
+  { ACE_ASSERT (!media_type_p);
+    result = media_type_handler_p->GetMediaTypeByIndex (i,
+                                                        &media_type_p);
+    ACE_ASSERT (SUCCEEDED (result) && media_type_p);
+    ACE_DEBUG ((LM_DEBUG,
+                ACE_TEXT ("#%u: %s\n"),
+                i,
+                ACE_TEXT (Stream_MediaFramework_MediaFoundation_Tools::toString (media_type_p).c_str ())));
+    media_type_p->Release (); media_type_p = NULL;
+  } // end FOR
+  media_type_handler_p->Release (); media_type_handler_p = NULL;
 }
 
 //bool
@@ -1892,7 +1924,8 @@ error:
 }
 
 bool
-Stream_MediaFramework_MediaFoundation_Tools::addRenderer (HWND windowHandle_in,
+Stream_MediaFramework_MediaFoundation_Tools::addRenderer (REFGUID majorMediaType_in,
+                                                          HWND windowHandle_in,
                                                           IMFTopology* topology_in,
                                                           TOPOID& rendererNodeId_out)
 {
@@ -1906,16 +1939,27 @@ Stream_MediaFramework_MediaFoundation_Tools::addRenderer (HWND windowHandle_in,
 
   IMFTopologyNode* topology_node_p = NULL;
 
-  // step1: create (EVR) renderer
+  // step1: create renderer
   IMFActivate* activate_p = NULL;
   HRESULT result = S_OK;
+  DWORD characteristics_i = 0;
 #if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
-  result = MFCreateVideoRendererActivate (windowHandle_in,
-                                          &activate_p);
+  if (InlineIsEqualGUID (majorMediaType_in, MFMediaType_Audio))
+    result = MFCreateAudioRendererActivate (&activate_p);
+  else if (InlineIsEqualGUID (majorMediaType_in, MFMediaType_Video))
+    result = MFCreateVideoRendererActivate (windowHandle_in,
+                                            &activate_p);
+  else
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("invalid/unknown major media type (was: \"%s\"), aborting\n"),
+                ACE_TEXT (Common_Tools::GUIDToString (majorMediaType_in).c_str ())));
+    return false;
+  } // end ELSE
   if (FAILED (result))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to MFCreateVideoRendererActivate() \"%s\", aborting\n"),
+                ACE_TEXT ("failed to MFCreateXXXRendererActivate() \"%s\", aborting\n"),
                 ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
     return false;
   } // end IF
@@ -1933,6 +1977,19 @@ Stream_MediaFramework_MediaFoundation_Tools::addRenderer (HWND windowHandle_in,
   //  activate_p->Release (); activate_p = NULL;
   //  return false;
   //} // end IF
+  //result = activate_p->SetString (MF_AUDIO_RENDERER_ATTRIBUTE_ENDPOINT_ID,
+  //                                ACE_TEXT_ALWAYS_WCHAR (device_string.c_str ()));
+  //ACE_ASSERT (SUCCEEDED (result));
+  //result = activate_p->SetUINT32 (MF_AUDIO_RENDERER_ATTRIBUTE_FLAGS,
+  //                                MF_AUDIO_RENDERER_ATTRIBUTE_FLAGS_NOPERSIST);
+  //ACE_ASSERT (SUCCEEDED (result));
+  //result = activate_p->SetGUID (MF_AUDIO_RENDERER_ATTRIBUTE_SESSION_ID,
+  //                              GUID_NULL);
+  //ACE_ASSERT (SUCCEEDED (result));
+  //result = activate_p->SetUINT32 (MF_AUDIO_RENDERER_ATTRIBUTE_STREAM_CATEGORY,
+  //                                AudioCategory_Media);
+  //ACE_ASSERT (SUCCEEDED (result));
+
   IMFMediaSink* media_sink_p = NULL;
   result = activate_p->ActivateObject (IID_PPV_ARGS (&media_sink_p));
   if (FAILED (result))
@@ -1946,16 +2003,8 @@ Stream_MediaFramework_MediaFoundation_Tools::addRenderer (HWND windowHandle_in,
   ACE_ASSERT (media_sink_p);
   activate_p->Release (); activate_p = NULL;
 
-  //result = MFCreateVideoRenderer (IID_PPV_ARGS (&media_sink_p));
-  //if (FAILED (result))
-  //{
-  //  ACE_DEBUG ((LM_ERROR,
-  //              ACE_TEXT ("failed to MFCreateVideoRenderer(): \"%s\", aborting\n"),
-  //              ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
-  //  goto error;
-  //} // end IF
-
   IMFStreamSink* stream_sink_p = NULL;
+  IMFMediaTypeHandler* media_type_handler_p = NULL;
 #if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
   IMFPresentationTimeSource* presentation_time_source_p = NULL;
 
@@ -2008,18 +2057,15 @@ Stream_MediaFramework_MediaFoundation_Tools::addRenderer (HWND windowHandle_in,
   } // end IF
   presentation_clock_p->Release (); presentation_clock_p = NULL;
 #endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
-
-  //IMFTransform* transform_p = NULL;
-  //result =
-  //  MFCreateVideoMixer (NULL,                         // owner
-  //                      IID_IDirect3DDevice9,         // device
-  //                      IID_PPV_ARGS (&transform_p)); // return value: interface handle
-  //if (FAILED (result))
+  result = media_sink_p->GetCharacteristics (&characteristics_i);
+  ACE_ASSERT (SUCCEEDED (result));
+  ACE_DEBUG ((LM_DEBUG,
+              ACE_TEXT ("IMFMediaSink characteristics: 0x%x\n"),
+              characteristics_i));
+  //if (characteristics_i & MEDIASINK_CLOCK_REQUIRED)
   //{
-  //  ACE_DEBUG ((LM_ERROR,
-  //              ACE_TEXT ("failed to MFCreateVideoPresenter(): \"%s\", aborting\n"),
-  //              ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
-  //  goto error;
+    //result = media_sink_p->SetPresentationClock (NULL);
+    //ACE_ASSERT (SUCCEEDED (result));
   //} // end IF
 
   // step2: add node to topology
@@ -2037,18 +2083,28 @@ Stream_MediaFramework_MediaFoundation_Tools::addRenderer (HWND windowHandle_in,
 #endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
   result = media_sink_p->GetStreamSinkByIndex (0,
                                                &stream_sink_p);
-  ACE_ASSERT (SUCCEEDED (result));
+  ACE_ASSERT (SUCCEEDED (result) && stream_sink_p);
   media_sink_p->Release (); media_sink_p = NULL;
+  Stream_MediaFramework_MediaFoundation_Tools::dump (stream_sink_p);
+  //result = stream_sink_p->GetMediaTypeHandler (&media_type_handler_p);
+  //ACE_ASSERT (SUCCEEDED (result));
+  //result = media_type_handler_p->SetCurrentMediaType (media_type_p);
+  //ACE_ASSERT (SUCCEEDED (result));
+  //media_type_handler_p->Release (); media_type_handler_p = NULL;
+  // *IMPORTANT NOTE*: topology loaders do not support sink activates (MF_E_TOPO_SINK_ACTIVATES_UNSUPPORTED)
+  //                   --> bind stream sink manually
   result = topology_node_p->SetObject (stream_sink_p);
   ACE_ASSERT (SUCCEEDED (result));
   stream_sink_p->Release (); stream_sink_p = NULL;
   result = topology_node_p->SetUINT32 (MF_TOPONODE_CONNECT_METHOD,
-                                       MF_CONNECT_DIRECT);
+                                       MF_CONNECT_ALLOW_DECODER);
   ACE_ASSERT (SUCCEEDED (result));
   result = topology_node_p->SetUINT32 (MF_TOPONODE_STREAMID, 0);
   ACE_ASSERT (SUCCEEDED (result));
-  //result = topology_node_p->SetUINT32 (MF_TOPONODE_NOSHUTDOWN_ON_REMOVE, FALSE);
-  //ACE_ASSERT (SUCCEEDED (result));
+  result = topology_node_p->SetUINT32 (MF_TOPONODE_NOSHUTDOWN_ON_REMOVE, FALSE);
+  ACE_ASSERT (SUCCEEDED (result));
+  result = topology_node_p->SetUINT32 (MF_TOPONODE_DISABLE_PREROLL, TRUE);
+  ACE_ASSERT (SUCCEEDED (result));
   result = topology_in->AddNode (topology_node_p);
   if (FAILED (result))
   {
@@ -2073,9 +2129,10 @@ Stream_MediaFramework_MediaFoundation_Tools::addRenderer (HWND windowHandle_in,
     goto error;
   } // end IF
 
-  if (!Stream_MediaFramework_MediaFoundation_Tools::enableDirectXAcceleration (topology_in))
-    ACE_DEBUG ((LM_WARNING,
-                ACE_TEXT ("failed to Stream_MediaFramework_MediaFoundation_Tools::enableDirectXAcceleration(), continuing\n")));
+  if (InlineIsEqualGUID (majorMediaType_in, MFMediaType_Video))
+    if (!Stream_MediaFramework_MediaFoundation_Tools::enableDirectXAcceleration (topology_in))
+      ACE_DEBUG ((LM_WARNING,
+                  ACE_TEXT ("failed to Stream_MediaFramework_MediaFoundation_Tools::enableDirectXAcceleration(), continuing\n")));
 
   return true;
 
@@ -2370,7 +2427,7 @@ Stream_MediaFramework_MediaFoundation_Tools::append (IMFTopology* topology_in,
   HRESULT result = E_FAIL;
   IMFTopologyNode* topology_node_p = NULL;
   result = topology_in->GetNodeByID (nodeId_in,
-                                        &topology_node_p);
+                                     &topology_node_p);
   if (FAILED (result))
   {
     ACE_DEBUG ((LM_ERROR,
@@ -2387,7 +2444,7 @@ Stream_MediaFramework_MediaFoundation_Tools::append (IMFTopology* topology_in,
   IMFMediaType* media_type_p = NULL;
   IMFCollection* collection_p = NULL;
   result = topology_in->GetOutputNodeCollection (&collection_p);
-  ACE_ASSERT (SUCCEEDED (result));
+  ACE_ASSERT (SUCCEEDED (result) && collection_p);
   DWORD number_of_nodes = 0;
   result = collection_p->GetElementCount (&number_of_nodes);
   ACE_ASSERT (SUCCEEDED (result));
@@ -2398,6 +2455,7 @@ Stream_MediaFramework_MediaFoundation_Tools::append (IMFTopology* topology_in,
   enum MF_TOPOLOGY_TYPE node_type = MF_TOPOLOGY_MAX;
   IMFTopologyNode* topology_node_4 = NULL;
   DWORD input_index = 0;
+  DWORD number_of_outputs_i = 0;
 
   if (number_of_nodes <= 0)
   {
@@ -2406,10 +2464,9 @@ Stream_MediaFramework_MediaFoundation_Tools::append (IMFTopology* topology_in,
 
 use_source_node:
     add_tee_node = false;
-    collection_p->Release ();
-    collection_p = NULL;
+    collection_p->Release (); collection_p = NULL;
     result = topology_in->GetSourceNodeCollection (&collection_p);
-    ACE_ASSERT (SUCCEEDED (result));
+    ACE_ASSERT (SUCCEEDED (result) && collection_p);
     result = collection_p->GetElementCount (&number_of_nodes);
     ACE_ASSERT (SUCCEEDED (result));
     if (number_of_nodes <= 0)
@@ -2420,9 +2477,8 @@ use_source_node:
       goto error;
     } // end IF
     result = collection_p->GetElement (0, &unknown_p);
-    ACE_ASSERT (SUCCEEDED (result));
+    ACE_ASSERT (SUCCEEDED (result) && unknown_p);
     collection_p->Release (); collection_p = NULL;
-    ACE_ASSERT (unknown_p);
     result = unknown_p->QueryInterface (IID_PPV_ARGS (&topology_node_2));
     if (FAILED (result))
     {
@@ -2437,18 +2493,22 @@ use_source_node:
 
     do
     {
-      result = topology_node_2->GetOutputCount (&number_of_nodes);
+      result = topology_node_2->GetOutputCount (&number_of_outputs_i);
       ACE_ASSERT (SUCCEEDED (result));
-      if (number_of_nodes <= 0)
+      if (number_of_outputs_i <= 0)
+      {
+        topology_node_3 = topology_node_2;
+        topology_node_3->AddRef ();
         break;
+      } // end IF
 
       topology_node_3 = NULL;
       result = topology_node_2->GetOutput (0,
                                            &topology_node_3,
                                            &input_index);
-      ACE_ASSERT (SUCCEEDED (result));
+      ACE_ASSERT (SUCCEEDED (result) && topology_node_3);
       topology_node_2->Release ();
-      topology_node_2 = topology_node_3;
+      topology_node_2 = topology_node_3; // transfer reference
     } while (true);
 
     goto continue_;
@@ -2459,19 +2519,10 @@ use_source_node:
        ++i)
   {
     result = collection_p->GetElement (i, &unknown_p);
-    ACE_ASSERT (SUCCEEDED (result));
-    ACE_ASSERT (unknown_p);
+    ACE_ASSERT (SUCCEEDED (result) && unknown_p);
     result = unknown_p->QueryInterface (IID_PPV_ARGS (&topology_node_2));
-    if (FAILED (result))
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to IUnknown::QueryInterface(IID_IMFTopologyNode): \"%s\", aborting\n"),
-                  ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
-      unknown_p->Release (); unknown_p = NULL;
-      goto error;
-    } // end IF
+    ACE_ASSERT (SUCCEEDED (result) && topology_node_2);
     unknown_p->Release (); unknown_p = NULL;
-    ACE_ASSERT (topology_node_2);
 
     result = topology_node_2->GetTopoNodeID (&node_id);
     ACE_ASSERT (SUCCEEDED (result));
@@ -2480,11 +2531,14 @@ use_source_node:
       topology_node_2->Release (); topology_node_2 = NULL;
       continue;
     } // end IF
-
     break;
   } // end FOR
   if (!topology_node_2)
+  {
+    ACE_DEBUG ((LM_DEBUG,
+                ACE_TEXT ("topology contains no suitable output nodes; querying source node(s), continuing\n")));
     goto use_source_node;
+  } // end IF
   collection_p->Release (); collection_p = NULL;
 
   result = topology_node_2->GetInputCount (&number_of_inputs);
@@ -2514,11 +2568,11 @@ continue_:
       ACE_ASSERT (SUCCEEDED (result));
       IMFMediaTypeHandler* media_type_handler_p = NULL;
       result = stream_descriptor_p->GetMediaTypeHandler (&media_type_handler_p);
-      ACE_ASSERT (SUCCEEDED (result));
-      stream_descriptor_p->Release ();
+      ACE_ASSERT (SUCCEEDED (result) && media_type_handler_p);
+      stream_descriptor_p->Release (); stream_descriptor_p = NULL;
       result = media_type_handler_p->GetCurrentMediaType (&media_type_p);
-      ACE_ASSERT (SUCCEEDED (result));
-      media_type_handler_p->Release ();
+      ACE_ASSERT (SUCCEEDED (result) && media_type_p);
+      media_type_handler_p->Release (); media_type_handler_p = NULL;
 
       break;
     }
@@ -2574,6 +2628,7 @@ continue_:
       goto error;
     }
   } // end SWITCH
+  ACE_ASSERT (media_type_p);
 
   // step2: add a tee node ?
   if (!add_tee_node)
@@ -2629,7 +2684,7 @@ continue_:
     topology_node_4->Release (); topology_node_4 = NULL;
     goto error;
   } // end IF
-  topology_node_3->Release ();
+  topology_node_3->Release (); topology_node_3 = NULL;
   result = topology_node_4->SetInputPrefType (0,
                                               media_type_p);
   ACE_ASSERT (SUCCEEDED (result));
@@ -2667,14 +2722,125 @@ continue_2:
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IMFTopologyNode::ConnectOutput(): \"%s\", aborting\n"),
                 ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
+    if (topology_node_2)
+    {
+      topology_node_2->Release (); topology_node_2 = NULL;
+    } // end IF
     topology_node_4->Release (); topology_node_4 = NULL;
     goto error;
   } // end IF
   result = topology_node_p->SetInputPrefType (0,
                                               media_type_p);
   ACE_ASSERT (SUCCEEDED (result));
-  media_type_p->Release ();
+  result = topology_node_p->GetNodeType (&node_type);
+  ACE_ASSERT (SUCCEEDED (result));
+  switch (node_type)
+  {
+    case MF_TOPOLOGY_SOURCESTREAM_NODE:
+    {
+      // source node --> unknown contains a stream dscriptor handle
+      IMFStreamDescriptor* stream_descriptor_p = NULL;
+      result =
+        topology_node_p->GetUnknown (MF_TOPONODE_STREAM_DESCRIPTOR,
+                                     IID_PPV_ARGS (&stream_descriptor_p));
+      ACE_ASSERT (SUCCEEDED (result));
+      IMFMediaTypeHandler* media_type_handler_p = NULL;
+      result = stream_descriptor_p->GetMediaTypeHandler (&media_type_handler_p);
+      ACE_ASSERT (SUCCEEDED (result) && media_type_handler_p);
+      stream_descriptor_p->Release (); stream_descriptor_p = NULL;
+      result = media_type_handler_p->SetCurrentMediaType (media_type_p);
+      ACE_ASSERT (SUCCEEDED (result));
+      media_type_handler_p->Release (); media_type_handler_p = NULL;
+
+      break;
+    }
+    case MF_TOPOLOGY_TRANSFORM_NODE:
+    {
+      unknown_p = NULL;
+      result = topology_node_p->GetObject (&unknown_p);
+      ACE_ASSERT (SUCCEEDED (result));
+      IMFTransform* transform_p = NULL;
+      result = unknown_p->QueryInterface (IID_PPV_ARGS (&transform_p));
+      if (FAILED (result))
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("failed to IUnknown::QueryInterface(IID_IMFTransform): \"%s\", aborting\n"),
+                    ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
+        unknown_p->Release (); unknown_p = NULL;
+        if (topology_node_2)
+        {
+          topology_node_2->Release (); topology_node_2 = NULL;
+        } // end IF
+        topology_node_4->Release (); topology_node_4 = NULL;
+        goto error;
+      } // end IF
+      unknown_p->Release (); unknown_p = NULL;
+      result = transform_p->SetInputType (0,
+                                          media_type_p,
+                                          0);
+      if (FAILED (result))
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("failed to IMFTransform::SetInputType(): \"%s\", aborting\n"),
+                    ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
+        transform_p->Release (); transform_p = NULL;
+        if (topology_node_2)
+        {
+          topology_node_2->Release (); topology_node_2 = NULL;
+        } // end IF
+        topology_node_4->Release (); topology_node_4 = NULL;
+        goto error;
+      } // end IF
+      transform_p->Release (); transform_p = NULL;
+
+      break;
+    }
+    case MF_TOPOLOGY_TEE_NODE:
+    {
+      //result = topology_node_p->SetInputPrefType (0,
+      //                                            media_type_p);
+      //ACE_ASSERT (SUCCEEDED (result));
+
+      break;
+    }
+    case MF_TOPOLOGY_OUTPUT_NODE:
+    {
+      unknown_p = NULL;
+      result = topology_node_p->GetObject (&unknown_p);
+      ACE_ASSERT (SUCCEEDED (result));
+      IMFStreamSink* stream_sink_p = NULL;
+      result = unknown_p->QueryInterface (IID_PPV_ARGS (&stream_sink_p));
+      ACE_ASSERT (SUCCEEDED (result) && stream_sink_p);
+      unknown_p->Release (); unknown_p = NULL;
+      IMFMediaTypeHandler* media_type_handler_p = NULL;
+      result = stream_sink_p->GetMediaTypeHandler (&media_type_handler_p);
+      ACE_ASSERT (SUCCEEDED (result) && media_type_handler_p);
+      stream_sink_p->Release (); stream_sink_p = NULL;
+      result = media_type_handler_p->SetCurrentMediaType (media_type_p);
+      ACE_ASSERT (SUCCEEDED (result));
+      media_type_handler_p->Release (); media_type_handler_p = NULL;
+
+      break;
+    }
+    default:
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("invalid/unknown node type (was: %d), aborting\n"),
+                  node_type));
+      if (topology_node_2)
+      {
+        topology_node_2->Release (); topology_node_2 = NULL;
+      } // end IF
+      topology_node_4->Release (); topology_node_4 = NULL;
+      goto error;
+    }
+  } // end SWITCH
+  media_type_p->Release (); media_type_p = NULL;
   topology_node_p->Release (); topology_node_p = NULL;
+  if (topology_node_2)
+  {
+    topology_node_2->Release (); topology_node_2 = NULL;
+  } // end IF
   topology_node_4->Release (); topology_node_4 = NULL;
 
   return true;
@@ -4322,26 +4488,8 @@ Stream_MediaFramework_MediaFoundation_Tools::toString (const IMFMediaType* media
 
   std::string result;
 
-  //struct _AMMediaType media_type_s;
-  //ACE_OS::memset (&media_type_s, 0, sizeof (struct _AMMediaType));
-  //HRESULT result_2 =
-  //  MFInitAMMediaTypeFromMFMediaType (const_cast<IMFMediaType*> (mediaType_in),
-  //                                    GUID_NULL, // auto-deduce format type
-  //                                    &media_type_s);
-  //if (FAILED (result_2)) // MF_E_ATTRIBUTENOTFOUND: 0xC00D36E6L
-  //{
-  //  ACE_DEBUG ((LM_ERROR,
-  //              ACE_TEXT ("failed to MFInitAMMediaTypeFromMFMediaType(): \"%s\", aborting\n"),
-  //              ACE_TEXT (Common_Error_Tools::errorToString (result_2).c_str ())));
-  //  return std::string ();
-  //} // end IF
-
-  //result =
-  //  Stream_MediaFramework_DirectShow_Tools::toString (media_type_s);
-
-  //// clean up
-  //Stream_MediaFramework_DirectShow_Tools::freeMediaType (media_type_s);
   struct _GUID guid_s = GUID_NULL;
+  bool is_video_b = false;
   result = ACE_TEXT_ALWAYS_CHAR ("majortype: \"");
   HRESULT result_2 =
     const_cast<IMFMediaType*> (mediaType_in)->GetMajorType (&guid_s);
@@ -4358,7 +4506,10 @@ Stream_MediaFramework_MediaFoundation_Tools::toString (const IMFMediaType* media
   } // end IF
   else
     result += (*iterator).second;
+  is_video_b = InlineIsEqualGUID (guid_s, MFMediaType_Video);
   BOOL uses_temporal_compression = FALSE;
+  // *WARNING*: if MF_MT_ALL_SAMPLES_INDEPENDENT is not set, this returns 'true',
+  //            which may well be a false positive
   result_2 =
     const_cast<IMFMediaType*> (mediaType_in)->IsCompressedFormat (&uses_temporal_compression);
   ACE_ASSERT (SUCCEEDED (result_2));
@@ -4386,12 +4537,14 @@ Stream_MediaFramework_MediaFoundation_Tools::toString (const IMFMediaType* media
                                                                 &value_v);
     ACE_ASSERT (SUCCEEDED (result_2));
     if (InlineIsEqualGUID (guid_s, MF_MT_ALL_SAMPLES_INDEPENDENT))
-    { ACE_ASSERT (value_v.vt == VT_UINT);
+    { ACE_ASSERT (value_v.vt == VT_UI4);
       result += ACE_TEXT_ALWAYS_CHAR ("\nindependent samples: ");
       result +=
         (value_v.uintVal ? ACE_TEXT_ALWAYS_CHAR ("true")
                          : ACE_TEXT_ALWAYS_CHAR ("false"));
     } // end IF
+    else if (InlineIsEqualGUID (guid_s, MF_MT_MAJOR_TYPE))
+    {} // end ELSE IF
     else if (InlineIsEqualGUID (guid_s, MF_MT_AM_FORMAT_TYPE))
     { ACE_ASSERT (value_v.vt == VT_CLSID);
       result += ACE_TEXT_ALWAYS_CHAR ("\nformat type: ");
@@ -4449,6 +4602,68 @@ Stream_MediaFramework_MediaFoundation_Tools::toString (const IMFMediaType* media
       result += converter.str ();
       result += ACE_TEXT_ALWAYS_CHAR (" byte(s)");
     } // end ELSE IF
+    else if (InlineIsEqualGUID (guid_s, MF_MT_AUDIO_SAMPLES_PER_SECOND))
+    { ACE_ASSERT (value_v.vt == VT_UI4);
+      result += ACE_TEXT_ALWAYS_CHAR ("\nsamples/sec: ");
+      converter.str (ACE_TEXT_ALWAYS_CHAR (""));
+      converter.clear ();
+      converter << value_v.uintVal;
+      result += converter.str ();
+    } // end ELSE IF
+    else if (InlineIsEqualGUID (guid_s, MF_MT_AUDIO_NUM_CHANNELS))
+    {
+      ACE_ASSERT (value_v.vt == VT_UI4);
+      result += ACE_TEXT_ALWAYS_CHAR ("\n#channels: ");
+      converter.str (ACE_TEXT_ALWAYS_CHAR (""));
+      converter.clear ();
+      converter << value_v.uintVal;
+      result += converter.str ();
+    } // end ELSE IF
+    else if (InlineIsEqualGUID (guid_s, MF_MT_AUDIO_CHANNEL_MASK))
+    {
+      ACE_ASSERT (value_v.vt == VT_UI4);
+      result += ACE_TEXT_ALWAYS_CHAR ("\naudio channel mask: 0x");
+      converter.str (ACE_TEXT_ALWAYS_CHAR (""));
+      converter.clear ();
+      converter << std::setw (8) << std::setfill ('0') << std::hex << value_v.uintVal << std::dec;
+      result += converter.str ();
+    } // end ELSE IF
+    else if (InlineIsEqualGUID (guid_s, MF_MT_AUDIO_AVG_BYTES_PER_SECOND))
+    {
+      ACE_ASSERT (value_v.vt == VT_UI4);
+      result += ACE_TEXT_ALWAYS_CHAR ("\naverage bytes/sec: ");
+      converter.str (ACE_TEXT_ALWAYS_CHAR (""));
+      converter.clear ();
+      converter << value_v.uintVal;
+      result += converter.str ();
+    } // end ELSE IF
+    else if (InlineIsEqualGUID (guid_s, MF_MT_AUDIO_BLOCK_ALIGNMENT))
+    {
+      ACE_ASSERT (value_v.vt == VT_UI4);
+      result += ACE_TEXT_ALWAYS_CHAR ("\nblock alignment: ");
+      converter.str (ACE_TEXT_ALWAYS_CHAR (""));
+      converter.clear ();
+      converter << value_v.uintVal;
+      result += converter.str ();
+      result += ACE_TEXT_ALWAYS_CHAR (" byte(s)");
+    } // end ELSE IF
+    else if (InlineIsEqualGUID (guid_s, MF_MT_AUDIO_PREFER_WAVEFORMATEX))
+    {
+      ACE_ASSERT (value_v.vt == VT_UI4);
+      result += ACE_TEXT_ALWAYS_CHAR ("\nprefer waveformatex: ");
+      result +=
+        (value_v.uintVal ? ACE_TEXT_ALWAYS_CHAR ("true")
+                         : ACE_TEXT_ALWAYS_CHAR ("false"));
+    } // end ELSE IF
+    else if (InlineIsEqualGUID (guid_s, MF_MT_AUDIO_BITS_PER_SAMPLE))
+    {
+      ACE_ASSERT (value_v.vt == VT_UI4);
+      result += ACE_TEXT_ALWAYS_CHAR ("\nbits/sample: ");
+      converter.str (ACE_TEXT_ALWAYS_CHAR (""));
+      converter.clear ();
+      converter << value_v.uintVal;
+      result += converter.str ();
+    } // end ELSE IF
     else if (InlineIsEqualGUID (guid_s, MF_MT_FRAME_SIZE))
     { ACE_ASSERT (value_v.vt == VT_UINT);
     } // end ELSE IF
@@ -4499,6 +4714,8 @@ Stream_MediaFramework_MediaFoundation_Tools::toString (const IMFMediaType* media
                   ACE_TEXT ("invalid/unknown media type attribute (was: \"%s\"), continuing\n"),
                   ACE_TEXT (Common_Tools::GUIDToString (guid_s).c_str ())));
   } // end FOR
+  if (!is_video_b)
+    return result;
   UINT32 width, height;
   result_2 = MFGetAttributeSize (const_cast<IMFMediaType*> (mediaType_in),
                                  MF_MT_FRAME_SIZE,
