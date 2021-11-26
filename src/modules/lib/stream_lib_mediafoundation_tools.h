@@ -51,6 +51,16 @@ class Stream_MediaFramework_MediaFoundation_Tools
                                          REFGUID); // device category
 
   // format
+  static bool isPartial (REFGUID,              // major media type (audio/video)
+                         const IMFMediaType*); // target
+  // *IMPORTANT NOTE*: only the attributes that do NOT exist in the target are
+  //                   merged
+  static bool merge (const IMFMediaType*, // source
+                     IMFMediaType*);      // target
+  // *NOTE*: test whether the second argument is a 'part' of the first
+  //         i.e. has <= #attributes, AND the attribute values match
+  static bool isPartOf (const IMFMediaType*,  // source
+                        const IMFMediaType*); // target
   static struct _GUID toFormat (const IMFMediaType*);
   static Common_Image_Resolution_t toResolution (const IMFMediaType*);
   static unsigned int toFramerate (const IMFMediaType*);
@@ -62,10 +72,11 @@ class Stream_MediaFramework_MediaFoundation_Tools
 
   // topology
   // *NOTE*: 'tees' the upstream node of the first output node (if any); else,
-  //         starting from the first source node, 'tee' the last connected node
-  //         from the first stream
+  //         starting from the first source node, append to the last connected
+  //         node from the first stream
   static bool append (IMFTopology*, // topology handle
-                      TOPOID);      // topology node id
+                      TOPOID,       // topology node id
+                      bool = true); // set (input) format ?
   static bool clear (IMFTopology*, // topology handle
                      bool = true); // shutdown nodes ?
   // *NOTE*: removes all 'transform' type MFTs (and any connected downstream
@@ -82,6 +93,12 @@ class Stream_MediaFramework_MediaFoundation_Tools
 
   // -------------------------------------
 
+  static bool getInputFormat (IMFTopology*,    // topology handle
+                              TOPOID,          // node identifier
+                              IMFMediaType*&); // return value: media type
+  static bool setInputFormat (IMFTopology*,   // topology handle
+                              TOPOID,         // node identifier
+                              IMFMediaType*); // media type
   //static bool getOutputFormat (IMFSourceReader*, // source handle
   //                             IMFMediaType*&);  // return value: media type
   // *NOTE*: returns the first RGB or Chroma-Luminance format
@@ -162,7 +179,8 @@ class Stream_MediaFramework_MediaFoundation_Tools
   static bool addRenderer (REFGUID,      // (major) media type (audio/video)
                            HWND,         // window handle (video only)
                            IMFTopology*, // topology handle
-                           TOPOID&);     // return value: renderer node id
+                           TOPOID&,      // return value: renderer node id
+                           bool = true); // set (input) format ?
 
 #if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
   static bool setTopology (IMFTopology*,      // topology handle
@@ -195,7 +213,7 @@ class Stream_MediaFramework_MediaFoundation_Tools
 #else
   static std::string toString (IMFMediaSource*); // media source handle
 #endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0602)
-  //static std::string transformToString (IMFTransform*); // transform handle
+  static std::string toString (IMFTransform*); // transform handle
 
   // *NOTE*: this wraps MFTEnum()/MFTEnumEx()
   static bool load (REFGUID,                       // category

@@ -869,7 +869,7 @@ continue_3:
 #if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
   if (!Stream_MediaFramework_MediaFoundation_Tools::setTopology (topology_p,
                                                                  mediaSession_,
-                                                                 true, // is partial ?
+                                                                 false, // is partial ?
                                                                  true)) // wait for completion ?
   {
     ACE_DEBUG ((LM_ERROR,

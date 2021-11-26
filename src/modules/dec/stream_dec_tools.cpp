@@ -49,6 +49,7 @@
 #include "fourcc.h"
 #include "mediaobj.h"
 #include "mfapi.h"
+#include "Mferror.h"
 #undef GetObject
 #include "mfidl.h"
 #include "mtype.h"
@@ -3285,6 +3286,10 @@ Stream_Module_Decoder_Tools::loadAudioRendererTopology (REFGUID deviceIdentifier
   ACE_ASSERT (SUCCEEDED (result));
   media_type_handler_p->Release (); media_type_handler_p = NULL;
 
+  result = source_node_p->SetOutputPrefType (0,
+                                             media_type_p);
+  ACE_ASSERT (SUCCEEDED (result));
+
   result = media_type_p->GetGUID (MF_MT_SUBTYPE,
                                   &sub_type);
   if (FAILED (result))
@@ -3401,6 +3406,11 @@ clean:
     result = topology_node_p->SetUINT32 (MF_TOPONODE_DECODER,
                                          TRUE);
     ACE_ASSERT (SUCCEEDED (result));
+
+    result = topology_node_p->SetInputPrefType (0,
+                                                media_type_p);
+    ACE_ASSERT (SUCCEEDED (result));
+
     result = topology_inout->AddNode (topology_node_p);
     if (FAILED (result))
     {
@@ -3448,6 +3458,11 @@ clean:
       goto error;
     } // end IF
     transform_p->Release (); transform_p = NULL;
+
+    result = source_node_p->SetOutputPrefType (0,
+                                               media_type_p);
+    ACE_ASSERT (SUCCEEDED (result));
+
     ACE_DEBUG ((LM_DEBUG,
                 ACE_TEXT ("%q: added decoder for \"%s\": \"%s\"...\n"),
                 node_id,
@@ -3568,6 +3583,11 @@ clean_2:
   //result = topology_node_p->SetUINT32 (MF_TOPONODE_DECODER,
   //                                     TRUE);
   ACE_ASSERT (SUCCEEDED (result));
+
+  result = topology_node_p->SetInputPrefType (0,
+                                              media_type_p);
+  ACE_ASSERT (SUCCEEDED (result));
+
   result = topology_inout->AddNode (topology_node_p);
   if (FAILED (result))
   {
@@ -3615,6 +3635,11 @@ clean_2:
     goto error;
   } // end IF
   transform_p->Release (); transform_p = NULL;
+
+  result = source_node_p->SetOutputPrefType (0,
+                                             media_type_p);
+  ACE_ASSERT (SUCCEEDED (result));
+
   ACE_DEBUG ((LM_DEBUG,
               ACE_TEXT ("%q: added effect: \"%s\"...\n"),
               node_id,
@@ -3639,6 +3664,11 @@ continue_2:
   } // end IF
   ACE_ASSERT (topology_node_p);
 #endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
+
+  result = topology_node_p->SetInputPrefType (0,
+                                              media_type_p);
+  ACE_ASSERT (SUCCEEDED (result));
+
   result = topology_inout->AddNode (topology_node_p);
   if (FAILED (result))
   {
@@ -3662,6 +3692,11 @@ continue_2:
   source_node_p->Release ();
   source_node_p = topology_node_p;
   topology_node_p = NULL;
+
+  result = source_node_p->SetOutputPrefType (0,
+                                             media_type_p);
+  ACE_ASSERT (SUCCEEDED (result));
+
   ACE_DEBUG ((LM_DEBUG,
               ACE_TEXT ("%q: added tee node...\n"),
               node_id));
@@ -3730,6 +3765,11 @@ continue_3:
   ACE_ASSERT (SUCCEEDED (result));
   result = topology_node_p->SetUINT32 (MF_TOPONODE_NOSHUTDOWN_ON_REMOVE, FALSE);
   ACE_ASSERT (SUCCEEDED (result));
+
+  result = topology_node_p->SetInputPrefType (0,
+                                              media_type_p);
+  ACE_ASSERT (SUCCEEDED (result));
+
   result = topology_inout->AddNode (topology_node_p);
   if (FAILED (result))
   {
@@ -3867,6 +3907,11 @@ clean_3:
   //result = topology_node_p->SetUINT32 (MF_TOPONODE_DECODER,
   //                                     TRUE);
   ACE_ASSERT (SUCCEEDED (result));
+
+  result = topology_node_p->SetInputPrefType (0,
+                                              media_type_p);
+  ACE_ASSERT (SUCCEEDED (result));
+
   result = topology_inout->AddNode (topology_node_p);
   if (FAILED (result))
   {
@@ -3892,29 +3937,6 @@ clean_3:
   source_node_p = topology_node_p;
   topology_node_p = NULL;
 
-  //media_type_p->Release (); media_type_p = NULL;
-  //if (!Stream_MediaFramework_MediaFoundation_Tools::getOutputFormat (transform_p,
-  //                                                                   media_type_p))
-  //{
-  //  ACE_DEBUG ((LM_ERROR,
-  //              ACE_TEXT ("failed to Stream_MediaFramework_MediaFoundation_Tools::getOutputFormat(): \"%s\", aborting\n"),
-  //              ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
-  //  transform_p->Release (); transform_p = NULL;
-  //  goto error;
-  //} // end IF
-  *TODO*: set output type to preferred type of renderer
-  result = transform_p->SetOutputType (0,
-                                       media_type_p,
-                                       0);
-  if (FAILED (result))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to IMFTransform::SetOutputType(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
-    transform_p->Release (); transform_p = NULL;
-    goto error;
-  } // end IF
-  transform_p->Release (); transform_p = NULL;
   ACE_DEBUG ((LM_DEBUG,
               ACE_TEXT ("%q: added resampler: \"%s\"...\n"),
               node_id,
@@ -3932,36 +3954,109 @@ clean_3:
   //            ACE_TEXT (Common_Tools::GUIDToString (GUID_s).c_str ()),
   //            ACE_TEXT (device_string.c_str ())));
 
+  node_id = 0;
   if (!Stream_MediaFramework_MediaFoundation_Tools::addRenderer (MFMediaType_Audio,
                                                                  NULL,
                                                                  topology_inout,
-                                                                 node_id))
+                                                                 node_id,
+                                                                 false)) // set input format manually
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Stream_MediaFramework_MediaFoundation_Tools::addRenderer(), aborting\n")));
     goto error;
   } // end IF
-  result = topology_inout->GetNodeByID (node_id,
-                                        &topology_node_p);
-  ACE_ASSERT (SUCCEEDED (result));
-  result =
-    source_node_p->ConnectOutput ((sampleGrabberSinkCallback_in ? 1 : 0),
-                                  topology_node_p,
-                                  0);
-  if (FAILED (result))
+  //ACE_DEBUG ((LM_DEBUG,
+  //            ACE_TEXT ("%q: added audio renderer node...\n"),
+  //            node_id));
+
+  media_type_p->Release (); media_type_p = NULL;
+  if (!Stream_MediaFramework_MediaFoundation_Tools::getInputFormat (topology_inout,
+                                                                    node_id,
+                                                                    media_type_p))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to IMFTopologyNode::ConnectOutput(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
+                ACE_TEXT ("failed to Stream_MediaFramework_MediaFoundation_Tools::getInputFormat(), aborting\n")));
     goto error;
   } // end IF
-  topology_node_p->Release (); topology_node_p = NULL;
+  ACE_ASSERT (media_type_p);
+retry:
+  result = transform_p->SetOutputType ((sampleGrabberSinkCallback_in ? 1 : 0),
+                                       media_type_p,
+                                       0);
+  if (FAILED (result))
+  {
+    if ((result == MF_E_INVALIDMEDIATYPE) &&
+        (Stream_MediaFramework_MediaFoundation_Tools::isPartial (MFMediaType_Audio,
+                                                                 media_type_p)))
+    {
+      if (!Stream_MediaFramework_MediaFoundation_Tools::merge (mediaType_inout,
+                                                               media_type_p))
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("failed to Stream_MediaFramework_MediaFoundation_Tools::merge(), aborting\n")));
+        transform_p->Release (); transform_p = NULL;
+        goto error;
+      } // end IF
+      // *NOTE*: iff MF_MT_SUBTYPE == MFAudioFormat_Float:
+      //         --> set MF_MT_AUDIO_BITS_PER_SAMPLE to 32
+      //         --> reset MF_MT_AUDIO_BLOCK_ALIGNMENT / MF_MT_AUDIO_AVG_BYTES_PER_SECOND
+      result = media_type_p->GetGUID (MF_MT_SUBTYPE,
+                                      &GUID_s);
+      ACE_ASSERT (SUCCEEDED (result));
+      if (InlineIsEqualGUID (GUID_s, MFAudioFormat_Float))
+      {
+        UINT32 value_i = 0, value_2 = 0;
+        result = media_type_p->GetUINT32 (MF_MT_AUDIO_BITS_PER_SAMPLE,
+                                          &value_i);
+        ACE_ASSERT (SUCCEEDED (result) && value_i);
+        if (value_i != 32)
+          ACE_DEBUG ((LM_WARNING,
+                      ACE_TEXT ("resetting MF_MT_AUDIO_BITS_PER_SAMPLE to 32 (was: %u), continuing\n"),
+                      value_i));
+        result = media_type_p->SetUINT32 (MF_MT_AUDIO_BITS_PER_SAMPLE,
+                                          32);
+        ACE_ASSERT (SUCCEEDED (result));
+        result = media_type_p->GetUINT32 (MF_MT_AUDIO_NUM_CHANNELS,
+                                          &value_i);
+        ACE_ASSERT (SUCCEEDED (result));
+        result = media_type_p->SetUINT32 (MF_MT_AUDIO_BLOCK_ALIGNMENT,
+                                          value_i * (32 / 8));
+        ACE_ASSERT (SUCCEEDED (result));
+        result = media_type_p->GetUINT32 (MF_MT_AUDIO_SAMPLES_PER_SECOND,
+                                          &value_2);
+        ACE_ASSERT (SUCCEEDED (result));
+        result = media_type_p->SetUINT32 (MF_MT_AUDIO_AVG_BYTES_PER_SECOND,
+                                          value_i * (32 / 8) * value_2);
+        ACE_ASSERT (SUCCEEDED (result));
+      } // end IF
+      goto retry;
+    } // end IF
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s: failed to IMFTransform::SetOutputType(): \"%s\", aborting\n"),
+                ACE_TEXT (Stream_MediaFramework_MediaFoundation_Tools::toString (transform_p).c_str ()),
+                ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
+    Stream_MediaFramework_MediaFoundation_Tools::dump (transform_p);
+    transform_p->Release (); transform_p = NULL;
+    goto error;
+  } // end IF
+
+  result = source_node_p->SetOutputPrefType ((sampleGrabberSinkCallback_in ? 1 : 0),
+                                             media_type_p);
+  ACE_ASSERT (SUCCEEDED (result));
+
+  if (!Stream_MediaFramework_MediaFoundation_Tools::setInputFormat (topology_inout,
+                                                                    node_id,
+                                                                    media_type_p))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to Stream_MediaFramework_MediaFoundation_Tools::setInputFormat(), aborting\n")));
+    goto error;
+  } // end IF
+
+  transform_p->Release (); transform_p = NULL;
   media_source_p->Release (); media_source_p = NULL;
   media_type_p->Release (); media_type_p = NULL;
   source_node_p->Release (); source_node_p = NULL;
-  ACE_DEBUG ((LM_DEBUG,
-              ACE_TEXT ("%q: added audio renderer node...\n"),
-              node_id));
 
 continue_5:
   return true;
