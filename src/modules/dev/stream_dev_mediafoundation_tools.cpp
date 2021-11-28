@@ -252,21 +252,29 @@ Stream_Device_MediaFoundation_Tools::loadDeviceTopology (const struct Stream_Dev
 #if COMMON_OS_WIN32_TARGET_PLATFORM(0x0601) // _WIN32_WINNT_WIN7
   if (InlineIsEqualGUID (deviceCategory_in, MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE_VIDCAP_GUID))
   {
-    result = topology_out->SetUINT32 (MF_TOPOLOGY_DXVA_MODE,
-                                      MFTOPOLOGY_DXVA_FULL);
-    ACE_ASSERT (SUCCEEDED (result));
     result = topology_out->SetUINT32 (MF_TOPOLOGY_ENABLE_XVP_FOR_PLAYBACK,
                                       TRUE);
     ACE_ASSERT (SUCCEEDED (result));
   } // end IF
+  result = topology_out->SetUINT32 (MF_TOPOLOGY_DXVA_MODE,
+                                    MFTOPOLOGY_DXVA_FULL);
+  ACE_ASSERT (SUCCEEDED (result));
+  result = topology_out->SetUINT32 (MF_TOPOLOGY_STATIC_PLAYBACK_OPTIMIZATIONS,
+                                    FALSE);
+  ACE_ASSERT (SUCCEEDED (result));
   result = topology_out->SetUINT32 (MF_TOPOLOGY_ENUMERATE_SOURCE_TYPES,
                                     TRUE);
   ACE_ASSERT (SUCCEEDED (result));
   result = topology_out->SetUINT32 (MF_TOPOLOGY_HARDWARE_MODE,
                                     MFTOPOLOGY_HWMODE_USE_HARDWARE);
   ACE_ASSERT (SUCCEEDED (result));
-  result = topology_out->SetUINT32 (MF_TOPOLOGY_STATIC_PLAYBACK_OPTIMIZATIONS,
+  // MF_TOPOLOGY_ENABLE_DXGI_TRANSCODE_BRANCH_LOADER: {BFE3335C-490E-47D1-AB70-4F2416F467BA}
+  result = topology_out->SetUINT32 (Common_Tools::StringToGUID (ACE_TEXT_ALWAYS_CHAR ("{BFE3335C-490E-47D1-AB70-4F2416F467BA}")),
                                     FALSE);
+  ACE_ASSERT (SUCCEEDED (result));
+  // *TODO*: {2BE0B4FB-B6C6-4768-9A79-B28A96DAE116}
+  result = topology_out->SetUINT32 (Common_Tools::StringToGUID (ACE_TEXT_ALWAYS_CHAR ("{2BE0B4FB-B6C6-4768-9A79-B28A96DAE116}")),
+                                    0);
   ACE_ASSERT (SUCCEEDED (result));
 #endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0601)
 #if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
@@ -274,6 +282,25 @@ Stream_Device_MediaFoundation_Tools::loadDeviceTopology (const struct Stream_Dev
                                     TRUE);
   ACE_ASSERT (SUCCEEDED (result));
 #endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
+  result = topology_out->SetUINT64 (MF_TOPOLOGY_START_TIME_ON_PRESENTATION_SWITCH,
+                                    0);
+  ACE_ASSERT (SUCCEEDED (result));
+  // MF_TOPOLOGY_AUDIO_FORMAT_CHANGE_ON_START = {5AB2CFB2-EA8D-4961-99F2-DF0555F488F3}
+  result = topology_out->SetUINT32 (Common_Tools::StringToGUID (ACE_TEXT_ALWAYS_CHAR ("{5AB2CFB2-EA8D-4961-99F2-DF0555F488F3}")),
+                                    FALSE);
+  ACE_ASSERT (SUCCEEDED (result));
+  // MF_TOPOLOGY_MFPLAYEX = {E48E1D3B-859A-40EC-928E-A5889EF0B458}
+  result = topology_out->SetUINT32 (Common_Tools::StringToGUID (ACE_TEXT_ALWAYS_CHAR ("{E48E1D3B-859A-40EC-928E-A5889EF0B458}")),
+                                    FALSE);
+  ACE_ASSERT (SUCCEEDED (result));
+  // MF_TOPOLOGY_ENABLE_TRANSCODE_BRANCH_LOADER = {F297151B-1410-4936-A111-6D103A461F34}
+  result = topology_out->SetUINT32 (Common_Tools::StringToGUID (ACE_TEXT_ALWAYS_CHAR ("{F297151B-1410-4936-A111-6D103A461F34}")),
+                                    FALSE);
+  ACE_ASSERT (SUCCEEDED (result));
+  //// MF_TOPOLOGY_D3D_MANAGER: {66289BFB-1DF1-4951-A97A-D7BD1D03AC76}
+  //result = topology_out->SetUnknown (Common_Tools::StringToGUID (ACE_TEXT_ALWAYS_CHAR ("{66289BFB-1DF1-4951-A97A-D7BD1D03AC76}")),
+  //                                   NULL);
+  //ACE_ASSERT (SUCCEEDED (result));
 
 #if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
   result = MFCreateTopologyNode (MF_TOPOLOGY_SOURCESTREAM_NODE,
@@ -290,8 +317,17 @@ Stream_Device_MediaFoundation_Tools::loadDeviceTopology (const struct Stream_Dev
   result = topology_node_p->SetUINT32 (MF_TOPONODE_CONNECT_METHOD,
                                        MF_CONNECT_DIRECT);
   ACE_ASSERT (SUCCEEDED (result));
+  // *TODO*: {4DB04908-0D94-47B3-933E-86BDAA16FA77}
+  result = topology_node_p->SetUINT32 (Common_Tools::StringToGUID (ACE_TEXT_ALWAYS_CHAR ("{4DB04908-0D94-47B3-933E-86BDAA16FA77}")),
+                                       0);
+  ACE_ASSERT (SUCCEEDED (result));
+  //MF_TOPONODE_WORKQUEUE_ID
+  //MF_TOPONODE_WORKQUEUE_MMCSS_CLASS
   result = topology_node_p->SetUINT32 (MF_TOPONODE_LOCKED,
                                        TRUE);
+  ACE_ASSERT (SUCCEEDED (result));
+  result = topology_node_p->SetUINT64 (MF_TOPONODE_MEDIASTART,
+                                       0);
   ACE_ASSERT (SUCCEEDED (result));
   if (!mediaSource_inout)
   { ACE_ASSERT (deviceIdentifier_in.identifierDiscriminator == Stream_Device_Identifier::GUID);
@@ -425,8 +461,8 @@ Stream_Device_MediaFoundation_Tools::loadDeviceTopology (const struct Stream_Dev
   ACE_ASSERT (SUCCEEDED (result));
   result = topology_node_2->SetUINT32 (MF_TOPONODE_STREAMID, 0);
   ACE_ASSERT (SUCCEEDED (result));
-  //result = topology_node_2->SetUINT32 (MF_TOPONODE_NOSHUTDOWN_ON_REMOVE, FALSE);
-  //ACE_ASSERT (SUCCEEDED (result));
+  result = topology_node_2->SetUINT32 (MF_TOPONODE_NOSHUTDOWN_ON_REMOVE, FALSE);
+  ACE_ASSERT (SUCCEEDED (result));
   result = topology_out->AddNode (topology_node_2);
   if (FAILED (result))
   {

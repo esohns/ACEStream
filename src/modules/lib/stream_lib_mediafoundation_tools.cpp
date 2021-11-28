@@ -24,6 +24,7 @@
 #include <iomanip>
 #include <sstream>
 
+#include "AudioSessionTypes.h"
 #include "evr.h"
 #include "mfapi.h"
 #include "mferror.h"
@@ -2212,6 +2213,7 @@ error:
 bool
 Stream_MediaFramework_MediaFoundation_Tools::addRenderer (REFGUID majorMediaType_in,
                                                           HWND windowHandle_in,
+                                                          REFGUID deviceIdentifier_in,
                                                           IMFTopology* topology_in,
                                                           TOPOID& rendererNodeId_out,
                                                           bool setInputFormat_in)
@@ -2230,9 +2232,42 @@ Stream_MediaFramework_MediaFoundation_Tools::addRenderer (REFGUID majorMediaType
   IMFActivate* activate_p = NULL;
   HRESULT result = S_OK;
   DWORD characteristics_i = 0;
+  IMFMediaSink* media_sink_p = NULL;
 #if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
   if (InlineIsEqualGUID (majorMediaType_in, MFMediaType_Audio))
-    result = MFCreateAudioRendererActivate (&activate_p);
+  {
+    IMFAttributes* attributes_p = NULL;
+    result = MFCreateAttributes (&attributes_p, 4);
+    ACE_ASSERT (SUCCEEDED (result) && attributes_p);
+    if (InlineIsEqualGUID (deviceIdentifier_in, GUID_NULL))
+      result = attributes_p->SetUINT32 (MF_AUDIO_RENDERER_ATTRIBUTE_ENDPOINT_ROLE,
+                                        eConsole);
+    else
+    {
+      std::string device_string =
+        Stream_MediaFramework_MediaFoundation_Tools::identifierToString (deviceIdentifier_in,
+                                                                         MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE_AUDCAP_GUID);
+      result = attributes_p->SetString (MF_AUDIO_RENDERER_ATTRIBUTE_ENDPOINT_ID,
+                                        ACE_TEXT_ALWAYS_WCHAR (device_string.c_str ()));
+    } // end ELSE
+    ACE_ASSERT (SUCCEEDED (result));
+    result = attributes_p->SetUINT32 (MF_AUDIO_RENDERER_ATTRIBUTE_FLAGS,
+                                      MF_AUDIO_RENDERER_ATTRIBUTE_FLAGS_NOPERSIST);
+    ACE_ASSERT (SUCCEEDED (result));
+    result = attributes_p->SetGUID (MF_AUDIO_RENDERER_ATTRIBUTE_SESSION_ID,
+                                    GUID_NULL);
+    ACE_ASSERT (SUCCEEDED (result));
+    result = attributes_p->SetUINT32 (MF_AUDIO_RENDERER_ATTRIBUTE_STREAM_CATEGORY,
+                                      AudioCategory_Media);
+    ACE_ASSERT (SUCCEEDED (result));
+
+    result = MFCreateAudioRenderer (//attributes_p
+                                    NULL, &media_sink_p);
+    ACE_ASSERT (SUCCEEDED (result) && media_sink_p);
+    attributes_p->Release (); attributes_p = NULL;
+    goto continue_;
+    //result = MFCreateAudioRendererActivate (&activate_p);
+  } // end IF
   else if (InlineIsEqualGUID (majorMediaType_in, MFMediaType_Video))
     result = MFCreateVideoRendererActivate (windowHandle_in,
                                             &activate_p);
@@ -2264,20 +2299,31 @@ Stream_MediaFramework_MediaFoundation_Tools::addRenderer (REFGUID majorMediaType
   //  activate_p->Release (); activate_p = NULL;
   //  return false;
   //} // end IF
-  //result = activate_p->SetString (MF_AUDIO_RENDERER_ATTRIBUTE_ENDPOINT_ID,
-  //                                ACE_TEXT_ALWAYS_WCHAR (device_string.c_str ()));
-  //ACE_ASSERT (SUCCEEDED (result));
-  //result = activate_p->SetUINT32 (MF_AUDIO_RENDERER_ATTRIBUTE_FLAGS,
-  //                                MF_AUDIO_RENDERER_ATTRIBUTE_FLAGS_NOPERSIST);
-  //ACE_ASSERT (SUCCEEDED (result));
-  //result = activate_p->SetGUID (MF_AUDIO_RENDERER_ATTRIBUTE_SESSION_ID,
-  //                              GUID_NULL);
-  //ACE_ASSERT (SUCCEEDED (result));
-  //result = activate_p->SetUINT32 (MF_AUDIO_RENDERER_ATTRIBUTE_STREAM_CATEGORY,
-  //                                AudioCategory_Media);
-  //ACE_ASSERT (SUCCEEDED (result));
+  if (InlineIsEqualGUID (majorMediaType_in, MFMediaType_Audio))
+  {
+    if (InlineIsEqualGUID (deviceIdentifier_in, GUID_NULL))
+      result = activate_p->SetUINT32 (MF_AUDIO_RENDERER_ATTRIBUTE_ENDPOINT_ROLE,
+                                      eConsole);
+    else
+    {
+      std::string device_string =
+        Stream_MediaFramework_MediaFoundation_Tools::identifierToString (deviceIdentifier_in,
+                                                                         MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE_AUDCAP_GUID);
+      result = activate_p->SetString (MF_AUDIO_RENDERER_ATTRIBUTE_ENDPOINT_ID,
+                                      ACE_TEXT_ALWAYS_WCHAR (device_string.c_str ()));
+    } // end ELSE
+    ACE_ASSERT (SUCCEEDED (result));
+    result = activate_p->SetUINT32 (MF_AUDIO_RENDERER_ATTRIBUTE_FLAGS,
+                                    MF_AUDIO_RENDERER_ATTRIBUTE_FLAGS_NOPERSIST);
+    ACE_ASSERT (SUCCEEDED (result));
+    //result = activate_p->SetGUID (MF_AUDIO_RENDERER_ATTRIBUTE_SESSION_ID,
+    //                              GUID_NULL);
+    //ACE_ASSERT (SUCCEEDED (result));
+    result = activate_p->SetUINT32 (MF_AUDIO_RENDERER_ATTRIBUTE_STREAM_CATEGORY,
+                                    AudioCategory_Media);
+    ACE_ASSERT (SUCCEEDED (result));
+  } // end IF
 
-  IMFMediaSink* media_sink_p = NULL;
   result = activate_p->ActivateObject (IID_PPV_ARGS (&media_sink_p));
   if (FAILED (result))
   {
@@ -2290,6 +2336,7 @@ Stream_MediaFramework_MediaFoundation_Tools::addRenderer (REFGUID majorMediaType
   ACE_ASSERT (media_sink_p);
   activate_p->Release (); activate_p = NULL;
 
+continue_:
   IMFStreamSink* stream_sink_p = NULL;
   IMFMediaTypeHandler* media_type_handler_p = NULL;
 #if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
@@ -2333,15 +2380,15 @@ Stream_MediaFramework_MediaFoundation_Tools::addRenderer (REFGUID majorMediaType
     presentation_clock_p->Release (); presentation_clock_p = NULL;
     goto error;
   } // end IF
-  result = presentation_clock_p->Start (0);
-  if (FAILED (result))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to IMFPresentationClock::Start(0): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
-    presentation_clock_p->Release (); presentation_clock_p = NULL;
-    goto error;
-  } // end IF
+  //result = presentation_clock_p->Start (0);
+  //if (FAILED (result))
+  //{
+  //  ACE_DEBUG ((LM_ERROR,
+  //              ACE_TEXT ("failed to IMFPresentationClock::Start(0): \"%s\", aborting\n"),
+  //              ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
+  //  presentation_clock_p->Release (); presentation_clock_p = NULL;
+  //  goto error;
+  //} // end IF
   presentation_clock_p->Release (); presentation_clock_p = NULL;
 #endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
   result = media_sink_p->GetCharacteristics (&characteristics_i);
@@ -2372,7 +2419,43 @@ Stream_MediaFramework_MediaFoundation_Tools::addRenderer (REFGUID majorMediaType
                                                &stream_sink_p);
   ACE_ASSERT (SUCCEEDED (result) && stream_sink_p);
   media_sink_p->Release (); media_sink_p = NULL;
-  Stream_MediaFramework_MediaFoundation_Tools::dump (stream_sink_p);
+
+  IMFMediaEvent* media_event_p = NULL;
+  DWORD event_type = 0;
+  HRESULT status = E_FAIL;
+  do
+  {
+    ACE_ASSERT (!media_event_p);
+    result = stream_sink_p->GetEvent (MF_EVENT_FLAG_NO_WAIT, &media_event_p);
+    if (FAILED (result))
+    {
+      ACE_ASSERT (result == MF_E_NO_EVENTS_AVAILABLE);
+      break;
+    } // end IF
+    result = media_event_p->GetType (&event_type);
+    ACE_ASSERT (SUCCEEDED (result));
+    switch (event_type)
+    {
+      case MEExtendedType:
+      {
+        struct _GUID GUID_s = GUID_NULL;
+        result = media_event_p->GetExtendedType (&GUID_s);
+        ACE_ASSERT (SUCCEEDED (result));
+        // MF_MEEXT_SAR_AUDIO_ENDPOINT_CHANGED: {02E7187D-0087-437E-A27F-CF5ADCCD3112}
+        break;
+      }
+      default:
+        break;
+    } // end SWITCH
+    result = media_event_p->GetStatus (&status);
+    ACE_ASSERT (SUCCEEDED (result));
+    ACE_DEBUG ((LM_DEBUG,
+                ACE_TEXT ("popped stream sink event (type: \"%s\")...\n"),
+                ACE_TEXT (Stream_MediaFramework_MediaFoundation_Tools::toString (event_type).c_str ())));
+    media_event_p->Release (); media_event_p = NULL;
+  } while (true);
+
+  //Stream_MediaFramework_MediaFoundation_Tools::dump (stream_sink_p);
   //result = stream_sink_p->GetMediaTypeHandler (&media_type_handler_p);
   //ACE_ASSERT (SUCCEEDED (result));
   //result = media_type_handler_p->SetCurrentMediaType (media_type_p);
@@ -2392,6 +2475,11 @@ Stream_MediaFramework_MediaFoundation_Tools::addRenderer (REFGUID majorMediaType
   ACE_ASSERT (SUCCEEDED (result));
   result = topology_node_p->SetUINT32 (MF_TOPONODE_DISABLE_PREROLL, TRUE);
   ACE_ASSERT (SUCCEEDED (result));
+  // *TODO*: {E139E0EE-F14D-4A53-BC1E-B805723E0105}
+  result = topology_node_p->SetUINT32 (Common_Tools::StringToGUID (ACE_TEXT_ALWAYS_CHAR ("{E139E0EE-F14D-4A53-BC1E-B805723E0105}")),
+                                       0);
+  ACE_ASSERT (SUCCEEDED (result));
+
   result = topology_in->AddNode (topology_node_p);
   if (FAILED (result))
   {
@@ -2488,8 +2576,8 @@ Stream_MediaFramework_MediaFoundation_Tools::setTopology (IMFTopology* topology_
   IMFTopology* topology_p = NULL;
   // *WARNING*: do NOT set the MFSESSION_SETTOPOLOGY_CLEAR_CURRENT flag here
   //            --> if the flag is passed in, the new topology will NOT be set
-  DWORD topology_flags = (MFSESSION_SETTOPOLOGY_IMMEDIATE   |
-                          MFSESSION_SETTOPOLOGY_NORESOLUTION);
+  DWORD topology_flags = MFSESSION_SETTOPOLOGY_IMMEDIATE  |
+                         MFSESSION_SETTOPOLOGY_NORESOLUTION;
   if (isPartial_in)
     topology_flags &= ~MFSESSION_SETTOPOLOGY_NORESOLUTION;
   IMFMediaEvent* media_event_p = NULL;
@@ -2520,10 +2608,36 @@ Stream_MediaFramework_MediaFoundation_Tools::setTopology (IMFTopology* topology_
     result = attributes_p->SetUINT32 (MF_LOW_LATENCY, TRUE);
     ACE_ASSERT (SUCCEEDED (result));
 #endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0602)
+    // IID_IMFTelemetrySession: {627D2CA6-E1CD-4898-999D-101308F1D431}
+    //result = attributes_p->SetUnknown (Common_Tools::StringToGUID (ACE_TEXT_ALWAYS_CHAR ("{627D2CA6-E1CD-4898-999D-101308F1D431}")),
+    //                                   NULL);
+    //ACE_ASSERT (SUCCEEDED (result));
+    // MF_TELEMETRY_SESSION_OBJECT_ATTRIBUTE: {2ACF1917-3743-41DF-A564-E727A80EA33D}
+    result = attributes_p->SetGUID (Common_Tools::StringToGUID (ACE_TEXT_ALWAYS_CHAR ("{2ACF1917-3743-41DF-A564-E727A80EA33D}")),
+                                    GUID_NULL);
+    ACE_ASSERT (SUCCEEDED (result));
+    // *TODO*: {B1BEA77F-99BA-4AF5-AF20-76D209550E73}
+    result = attributes_p->SetUINT32 (Common_Tools::StringToGUID (ACE_TEXT_ALWAYS_CHAR ("{B1BEA77F-99BA-4AF5-AF20-76D209550E73}")),
+                                      0);
+    ACE_ASSERT (SUCCEEDED (result));
+    //// *TODO*: {8B1034CF-AE42-4A7C-A0A6-BFD7EE052CCB}
+    //result = attributes_p->SetBlob (Common_Tools::StringToGUID (ACE_TEXT_ALWAYS_CHAR ("{8B1034CF-AE42-4A7C-A0A6-BFD7EE052CCB}")),
+    //                                NULL,
+    //                                0);
+    //ACE_ASSERT (SUCCEEDED (result));
+    // MF_LOW_LATENCY: {9C27891A-ED7A-40E1-88E8-B22727A024EE}
+    result = attributes_p->SetUINT32 (Common_Tools::StringToGUID (ACE_TEXT_ALWAYS_CHAR ("{9C27891A-ED7A-40E1-88E8-B22727A024EE}")),
+                                      TRUE);
+    ACE_ASSERT (SUCCEEDED (result));
+    // MF_SESSION_PREROLL_FROM_RATE0: {09A7FF3E-F62A-465E-B1F9-E63D190B1A10}
+    result = attributes_p->SetUINT32 (Common_Tools::StringToGUID (ACE_TEXT_ALWAYS_CHAR ("{09A7FF3E-F62A-465E-B1F9-E63D190B1A10}")),
+                                      TRUE);
+    ACE_ASSERT (SUCCEEDED (result));
+
     result = MFCreateMediaSession (attributes_p,
                                    &mediaSession_inout);
     if (FAILED (result)) // MF_E_SHUTDOWN: 0xC00D3E85L
-    {
+    {                    // DISCARDED:     0x8007009d
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to MFCreateMediaSession(): \"%s\", aborting\n"),
                   ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
@@ -2635,13 +2749,6 @@ continue_:
     ACE_DEBUG ((LM_WARNING,
                 ACE_TEXT ("failed to IMFMediaSession::SetTopology(): timed out, continuing\n")));
 
-  result = topology_p->GetUINT32 (MF_TOPOLOGY_RESOLUTION_STATUS,
-                                  &value_i);
-  if (SUCCEEDED (result))
-    ACE_DEBUG ((LM_DEBUG,
-                ACE_TEXT ("topology resolution status: 0x%x\n"),
-                value_i));
-
   received_topology_event = false;
   do
   { // *TODO*: this shouldn't block
@@ -2678,6 +2785,13 @@ continue_:
   if (!received_topology_event)
     ACE_DEBUG ((LM_WARNING,
                 ACE_TEXT ("failed to IMFMediaSession::SetTopology(): timed out, continuing\n")));
+
+  result = topology_p->GetUINT32 (MF_TOPOLOGY_RESOLUTION_STATUS,
+                                  &value_i);
+  if (SUCCEEDED (result))
+    ACE_DEBUG ((LM_DEBUG,
+                ACE_TEXT ("topology resolution status: 0x%x\n"),
+                value_i));
 
 continue_2:
   topology_p->Release (); topology_p = NULL;

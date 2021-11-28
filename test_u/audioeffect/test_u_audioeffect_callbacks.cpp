@@ -4075,9 +4075,38 @@ idle_initialize_UI_cb (gpointer userData_in)
                       ACE_TEXT (filename.c_str ())));
           return G_SOURCE_REMOVE;
         } // end IF
-      result =
-        gtk_file_chooser_set_filename (GTK_FILE_CHOOSER (file_chooser_button_p),
-                                       filename.c_str ());
+      GFile* file_p = g_file_new_for_path (filename.c_str ());
+      ACE_ASSERT (file_p);
+      GFile* file_2 = g_file_get_parent (file_p);
+      ACE_ASSERT (file_2);
+      GError* error_p = NULL;
+      if (!gtk_file_chooser_set_current_folder_file (GTK_FILE_CHOOSER (file_chooser_button_p),
+                                                     file_2,
+                                                     &error_p))
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("failed to gtk_file_chooser_set_current_folder_file(): \"%s\", aborting\n"),
+                    ACE_TEXT (error_p->message)));
+        g_error_free (error_p); error_p = NULL;
+        g_object_unref (file_p); file_p = NULL;
+        g_object_unref (file_2); file_2 = NULL;
+        return G_SOURCE_REMOVE;
+      } // end IF
+      if (!gtk_file_chooser_select_file (GTK_FILE_CHOOSER (file_chooser_button_p),
+                                         file_p,
+                                         &error_p))
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("failed to gtk_file_chooser_select_file(): \"%s\", aborting\n"),
+                    ACE_TEXT (error_p->message)));
+        g_error_free (error_p); error_p = NULL;
+        g_object_unref (file_p); file_p = NULL;
+        g_object_unref (file_2); file_2 = NULL;
+        return G_SOURCE_REMOVE;
+      } // end IF
+      g_object_unref (file_p); file_p = NULL;
+      g_object_unref (file_2); file_2 = NULL;
+      result = 1;
     } // end IF
     else
     {
@@ -4094,7 +4123,7 @@ idle_initialize_UI_cb (gpointer userData_in)
   if (!result)
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to gtk_file_chooser_set_filename(\"%s\"): \"%s\", aborting\n"),
+                ACE_TEXT ("failed to gtk_file_chooser_set_filename(\"%s\"), aborting\n"),
                 ACE_TEXT (filename.c_str ())));
     return G_SOURCE_REMOVE;
   } // end IF

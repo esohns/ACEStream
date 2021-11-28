@@ -3166,7 +3166,6 @@ Stream_Module_Decoder_Tools::loadAudioRendererTopology (REFGUID deviceIdentifier
   IMFMediaTypeHandler* media_type_handler_p = NULL;
   DWORD characteristics_i = 0;
   IMFAttributes* attributes_p = NULL;
-  std::string device_string;
   IWMResamplerProps* resampler_properties_p = NULL;
 
   if (topology_inout)
@@ -3406,6 +3405,9 @@ clean:
     result = topology_node_p->SetUINT32 (MF_TOPONODE_DECODER,
                                          TRUE);
     ACE_ASSERT (SUCCEEDED (result));
+    result = topology_node_p->SetUINT32 (MF_TOPONODE_DRAIN,
+                                         MF_TOPONODE_DRAIN_ALWAYS);
+    ACE_ASSERT (SUCCEEDED (result));
 
     result = topology_node_p->SetInputPrefType (0,
                                                 media_type_p);
@@ -3580,8 +3582,11 @@ clean_2:
   result = topology_node_p->SetUINT32 (MF_TOPONODE_CONNECT_METHOD,
                                        MF_CONNECT_DIRECT);
   ACE_ASSERT (SUCCEEDED (result));
-  //result = topology_node_p->SetUINT32 (MF_TOPONODE_DECODER,
-  //                                     TRUE);
+  result = topology_node_p->SetUINT32 (MF_TOPONODE_DECODER,
+                                       TRUE);
+  ACE_ASSERT (SUCCEEDED (result));
+  result = topology_node_p->SetUINT32 (MF_TOPONODE_DRAIN,
+                                       MF_TOPONODE_DRAIN_ALWAYS);
   ACE_ASSERT (SUCCEEDED (result));
 
   result = topology_node_p->SetInputPrefType (0,
@@ -3906,6 +3911,25 @@ clean_3:
   ACE_ASSERT (SUCCEEDED (result));
   //result = topology_node_p->SetUINT32 (MF_TOPONODE_DECODER,
   //                                     TRUE);
+  //ACE_ASSERT (SUCCEEDED (result));
+  result = topology_node_p->SetUINT32 (MF_TOPONODE_DRAIN,
+                                       MF_TOPONODE_DRAIN_ALWAYS);
+  ACE_ASSERT (SUCCEEDED (result));
+  // *TODO*: {E139E0EE-F14D-4A53-BC1E-B805723E0105}
+  result = topology_node_p->SetUINT32 (Common_Tools::StringToGUID (ACE_TEXT_ALWAYS_CHAR ("{E139E0EE-F14D-4A53-BC1E-B805723E0105}")),
+                                       0);
+  ACE_ASSERT (SUCCEEDED (result));
+  // *TODO*: {4DB04908-0D94-47B3-933E-86BDAA16FA77}
+  result = topology_node_p->SetUINT32 (Common_Tools::StringToGUID (ACE_TEXT_ALWAYS_CHAR ("{4DB04908-0D94-47B3-933E-86BDAA16FA77}")),
+                                       0);
+  ACE_ASSERT (SUCCEEDED (result));
+  // MF_TOPOLOGY_D3D_MANAGER: {66289BFB-1DF1-4951-A97A-D7BD1D03AC76}
+  result = topology_node_p->SetUnknown (Common_Tools::StringToGUID (ACE_TEXT_ALWAYS_CHAR ("{66289BFB-1DF1-4951-A97A-D7BD1D03AC76}")),
+                                        NULL);
+  ACE_ASSERT (SUCCEEDED (result));
+  // MF_TOPONODE_SAMPLE_PROCESSING_TRACKER: {D81F457D-B4B6-4816-B27F-2C0EDF6AB303}
+  result = topology_node_p->SetUnknown (Common_Tools::StringToGUID (ACE_TEXT_ALWAYS_CHAR ("{D81F457D-B4B6-4816-B27F-2C0EDF6AB303}")),
+                                        NULL);
   ACE_ASSERT (SUCCEEDED (result));
 
   result = topology_node_p->SetInputPrefType (0,
@@ -3945,18 +3969,10 @@ clean_3:
   GUID_s =
     Stream_MediaFramework_DirectSound_Tools::waveDeviceIdToDirectSoundGUID (audioOutput_in,
                                                                             false); // playback
-  device_string =
-    Stream_MediaFramework_MediaFoundation_Tools::identifierToString (GUID_s,
-                                                                     MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE_AUDCAP_GUID);
-  //ACE_DEBUG ((LM_DEBUG,
-  //            ACE_TEXT ("audio device id %d --> %s --> %s\n"),
-  //            audioOutput_in,
-  //            ACE_TEXT (Common_Tools::GUIDToString (GUID_s).c_str ()),
-  //            ACE_TEXT (device_string.c_str ())));
-
   node_id = 0;
   if (!Stream_MediaFramework_MediaFoundation_Tools::addRenderer (MFMediaType_Audio,
                                                                  NULL,
+                                                                 GUID_s,
                                                                  topology_inout,
                                                                  node_id,
                                                                  false)) // set input format manually
@@ -4027,6 +4043,11 @@ retry:
         ACE_ASSERT (SUCCEEDED (result));
         result = media_type_p->SetUINT32 (MF_MT_AUDIO_AVG_BYTES_PER_SECOND,
                                           value_i * (32 / 8) * value_2);
+        ACE_ASSERT (SUCCEEDED (result));
+        UINT32 channel_mask_i = (SPEAKER_FRONT_LEFT |
+                                 SPEAKER_FRONT_RIGHT);
+        result = media_type_p->SetUINT32 (MF_MT_AUDIO_CHANNEL_MASK,
+                                          channel_mask_i);
         ACE_ASSERT (SUCCEEDED (result));
       } // end IF
       goto retry;
@@ -4824,8 +4845,8 @@ continue_3:
   ACE_ASSERT (SUCCEEDED (result));
   result = topology_node_p->SetUINT32 (MF_TOPONODE_STREAMID, 0);
   ACE_ASSERT (SUCCEEDED (result));
-  //result = topology_node_p->SetUINT32 (MF_TOPONODE_NOSHUTDOWN_ON_REMOVE, FALSE);
-  //ACE_ASSERT (SUCCEEDED (result));
+  result = topology_node_p->SetUINT32 (MF_TOPONODE_NOSHUTDOWN_ON_REMOVE, FALSE);
+  ACE_ASSERT (SUCCEEDED (result));
   result = topology_inout->AddNode (topology_node_p);
   if (FAILED (result))
   {
@@ -5438,8 +5459,8 @@ continue_:
   ACE_ASSERT (SUCCEEDED (result));
   result = topology_node_p->SetUINT32 (MF_TOPONODE_STREAMID, 0);
   ACE_ASSERT (SUCCEEDED (result));
-  //result = topology_node_p->SetUINT32 (MF_TOPONODE_NOSHUTDOWN_ON_REMOVE, FALSE);
-  //ACE_ASSERT (SUCCEEDED (result));
+  result = topology_node_p->SetUINT32 (MF_TOPONODE_NOSHUTDOWN_ON_REMOVE, FALSE);
+  ACE_ASSERT (SUCCEEDED (result));
   result = topology_inout->AddNode (topology_node_p);
   if (FAILED (result))
   {
@@ -5788,6 +5809,9 @@ continue_:
   result = topology_node_p->SetObject (activate_p);
   ACE_ASSERT (SUCCEEDED (result));
   activate_p->Release (); activate_p = NULL;
+  result = topology_node_p->SetUINT32 (MF_TOPONODE_CONNECT_METHOD,
+                                       MF_CONNECT_DIRECT);
+  ACE_ASSERT (SUCCEEDED (result));
   result = topology_node_p->SetUINT32 (MF_TOPONODE_STREAMID, 0);
   ACE_ASSERT (SUCCEEDED (result));
   result = topology_node_p->SetUINT32 (MF_TOPONODE_NOSHUTDOWN_ON_REMOVE, FALSE);

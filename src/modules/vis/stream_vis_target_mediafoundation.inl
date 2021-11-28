@@ -1423,6 +1423,7 @@ Stream_Vis_Target_MediaFoundation_T<ACE_SYNCH_USE,
     //if (!Stream_Module_Device_Tools::addRenderer (windowHandle_in,
     if (!Stream_MediaFramework_MediaFoundation_Tools::addRenderer (MFMediaType_Video,
                                                                    window_handle,
+                                                                   GUID_NULL,
                                                                    topology_p,
                                                                    node_id))
     {

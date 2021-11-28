@@ -23,7 +23,7 @@
 
 #include "ace/config-lite.h"
 
-#define TEST_U_STREAM_AUDIOEFFECT_DEFAULT_BUFFER_SIZE        8192 // bytes
+//#define TEST_U_STREAM_AUDIOEFFECT_DEFAULT_BUFFER_SIZE        8192 // bytes
 #define TEST_U_STREAM_AUDIOEFFECT_DEFAULT_IMAGE_FILE         "image.png"
 #define TEST_U_STREAM_AUDIOEFFECT_DEFAULT_OUTPUT_FILE        "output.wav"
 #define TEST_U_STREAM_AUDIOEFFECT_DEFAULT_SINUS              false

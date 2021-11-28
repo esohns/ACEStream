@@ -308,9 +308,9 @@ Stream_MediaFramework_MediaFoundation_Target_T<ACE_SYNCH_USE,
                                   TRUE);
     ACE_ASSERT (SUCCEEDED (result));
   } // end IF
-  //result = sample_p->SetUINT32 (MFSampleExtension_CleanPoint,
-  //                              TRUE);
-  //ACE_ASSERT (SUCCEEDED (result));
+  result = sample_p->SetUINT32 (MFSampleExtension_CleanPoint,
+                                TRUE);
+  ACE_ASSERT (SUCCEEDED (result));
   //MFSampleExtension_ForwardedDecodeUnits
   //MFSampleExtension_ForwardedDecodeUnitType
   { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, inherited4::lock_);

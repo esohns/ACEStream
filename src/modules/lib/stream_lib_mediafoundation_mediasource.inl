@@ -567,13 +567,8 @@ Stream_MediaFramework_MediaFoundation_MediaSource_T<TimePolicyType,
 #else
     QITABENT (OWN_TYPE_T, IMFMediaSource),
 #endif // _WIN32_WINNT_WIN8
-    //QITABENT (OWN_TYPE_T, IMFAttributes),
-    //QITABENT (OWN_TYPE_T, IMFPresentationDescriptor),
-    //QITABENT (OWN_TYPE_T, IMFAttributes),
-    //QITABENT (OWN_TYPE_T, IMFStreamDescriptor),
-    //QITABENT (OWN_TYPE_T, IMFMediaTypeHandler),
     QITABENT (OWN_TYPE_T, IMFGetService),
-    //QITABENT (OWN_TYPE_T, IMarshal),
+    QITABENT (OWN_TYPE_T, IMFPMPClient),
     { 0 },
   };
 
@@ -773,6 +768,10 @@ Stream_MediaFramework_MediaFoundation_MediaSource_T<TimePolicyType,
                                                bytes_per_second_i * 8);
   ACE_ASSERT (SUCCEEDED (result));
   //MF_PD_VIDEO_ENCODING_BITRATE
+  result = presentationDescriptor_->SetUINT32 (MF_PD_AUDIO_ISVARIABLEBITRATE,
+                                               0);
+  ACE_ASSERT (SUCCEEDED (result));
+
   result = presentationDescriptor_->SelectStream (0);
   ACE_ASSERT (SUCCEEDED (result));
 

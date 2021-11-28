@@ -70,7 +70,7 @@ class Stream_StateMachine_Control_T
   //                   (e.g. a file has been read). Data processing may still be
   //                   ongoing at this stage
   // *NOTE*: PAUSED --> PAUSED is silently remapped to PAUSED --> RUNNING
-  //         in the model of a (traditional) tape recorder
+  //         using the model of a (traditional) tape recorder
   //         --> derived classes must implement the corresponding behavior
   virtual bool change (enum Stream_StateMachine_ControlState); // new state
 

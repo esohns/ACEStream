@@ -145,7 +145,7 @@ do_printUsage (const std::string& programName_in)
   path += ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_AUDIOEFFECT_DEFAULT_OUTPUT_FILE);
   std::cout << ACE_TEXT_ALWAYS_CHAR ("-f[[STRING]]: target filename [")
             << path
-            << ACE_TEXT_ALWAYS_CHAR ("] {\"\" --> default}")
+            << ACE_TEXT_ALWAYS_CHAR ("] {\"\" --> do not save}")
             << std::endl;
   path = configuration_path;
   path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
@@ -217,7 +217,6 @@ do_printUsage (const std::string& programName_in)
 bool
 do_processArguments (int argc_in,
                      ACE_TCHAR** argv_in, // cannot be const...
-                     unsigned int& bufferSize_out,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
                      bool& showConsole_out,
 #else
@@ -254,7 +253,6 @@ do_processArguments (int argc_in,
   std::string path = configuration_path;
   path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
   path += ACE_TEXT_ALWAYS_CHAR (COMMON_LOCATION_CONFIGURATION_SUBDIRECTORY);
-  bufferSize_out = TEST_U_STREAM_AUDIOEFFECT_DEFAULT_BUFFER_SIZE;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   showConsole_out = false;
 #else
@@ -265,7 +263,9 @@ do_processArguments (int argc_in,
   effect_out.clear ();
 #endif // ACE_WIN32 || ACE_WIN64
   path = Common_File_Tools::getTempDirectory ();
-  targetFileName_out.clear ();
+  path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
+  path += ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_AUDIOEFFECT_DEFAULT_OUTPUT_FILE);
+  targetFileName_out = path;
 #if defined (GUI_SUPPORT)
   UIFile_out = configuration_path;
   UIFile_out += ACE_DIRECTORY_SEPARATOR_CHAR_A;
@@ -364,12 +364,7 @@ do_processArguments (int argc_in,
         if (opt_arg)
           targetFileName_out = ACE_TEXT_ALWAYS_CHAR (opt_arg);
         else
-        {
-          targetFileName_out = path;
-          targetFileName_out += ACE_DIRECTORY_SEPARATOR_CHAR_A;
-          targetFileName_out +=
-            ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_AUDIOEFFECT_DEFAULT_OUTPUT_FILE);
-        } // end ELSE
+          targetFileName_out.clear ();
         break;
       }
 #if defined (GUI_SUPPORT)
@@ -1072,7 +1067,7 @@ do_finalize_mediafoundation ()
 #endif // ACE_WIN32 || ACE_WIN64
 
 void
-do_work (unsigned int bufferSize_in,
+do_work (
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
          bool showConsole_in,
 #else
@@ -1390,10 +1385,7 @@ do_work (unsigned int bufferSize_in,
 #endif // ACE_WIN32 || ACE_WIN64
 
   // ********************** stream configuration data **************************
-  if (bufferSize_in)
-    allocator_configuration.defaultBufferSize = bufferSize_in;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-
   switch (mediaFramework_in)
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
@@ -1830,7 +1822,7 @@ ACE_TMAIN (int argc_in,
     Common_File_Tools::getWorkingDirectory ();
 
   // step1a set defaults
-  unsigned int buffer_size = TEST_U_STREAM_AUDIOEFFECT_DEFAULT_BUFFER_SIZE;
+  //unsigned int buffer_size = TEST_U_STREAM_AUDIOEFFECT_DEFAULT_BUFFER_SIZE;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   bool show_console = false;
 #else
@@ -1842,7 +1834,9 @@ ACE_TMAIN (int argc_in,
   std::string effect_name;
 #endif // ACE_WIN32 || ACE_WIN64
   std::string path = Common_File_Tools::getTempDirectory ();
-  std::string target_filename;
+  path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
+  path += ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_AUDIOEFFECT_DEFAULT_OUTPUT_FILE);
+  std::string target_filename = path;
 #if defined (GUI_SUPPORT)
   path = configuration_path;
   path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
@@ -1885,7 +1879,6 @@ ACE_TMAIN (int argc_in,
   // step1b: parse/process/validate configuration
   if (!do_processArguments (argc_in,
                             argv_in,
-                            buffer_size,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
                             show_console,
 #else
@@ -2223,7 +2216,7 @@ ACE_TMAIN (int argc_in,
   ACE_High_Res_Timer timer;
   timer.start ();
   // step2: do actual work
-  do_work (buffer_size,
+  do_work (
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
            show_console,
 #else

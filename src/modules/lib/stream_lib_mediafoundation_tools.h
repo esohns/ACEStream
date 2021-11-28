@@ -178,6 +178,7 @@ class Stream_MediaFramework_MediaFoundation_Tools
                           TOPOID&);                       // return value: grabber node id
   static bool addRenderer (REFGUID,      // (major) media type (audio/video)
                            HWND,         // window handle (video only)
+                           REFGUID,      // device identifier (audio only)
                            IMFTopology*, // topology handle
                            TOPOID&,      // return value: renderer node id
                            bool = true); // set (input) format ?

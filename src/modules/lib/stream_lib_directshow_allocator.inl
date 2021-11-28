@@ -346,7 +346,10 @@ Stream_MediaFramework_DirectShow_AllocatorBase_T<ConfigurationType,
   {
     first_run = false;
 
-    result = CoInitializeEx (NULL, COINIT_MULTITHREADED);
+    result = CoInitializeEx (NULL,
+                             (COINIT_MULTITHREADED    |
+                              COINIT_DISABLE_OLE1DDE  |
+                              COINIT_SPEED_OVER_MEMORY));
     if (FAILED (result))
     {
       ACE_DEBUG ((LM_ERROR,
