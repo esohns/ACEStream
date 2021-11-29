@@ -89,7 +89,7 @@ Test_U_AudioEffect_DirectShow_Stream::load (Stream_ILayout* layout_in,
                     //Test_U_Dev_Mic_Source_WaveIn_Module (this,
                     //                                     ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_MIC_SOURCE_WAVEIN_DEFAULT_NAME_STRING)),
                     Test_U_Dev_Mic_Source_WASAPI_Module (this,
-                                                         ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_MIC_SOURCE_WASAPI_DEFAULT_NAME_STRING)),
+                                                         ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_WASAPI_CAPTURE_DEFAULT_NAME_STRING)),
                     false);
   ACE_ASSERT (module_p);
   layout_in->append (module_p, NULL, 0);
@@ -457,19 +457,15 @@ Test_U_AudioEffect_MediaFoundation_Stream::Test_U_AudioEffect_MediaFoundation_St
 #if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
  , mediaSession_ (NULL)
 #endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
- , mediaFoundationSource_ (NULL)
+ , mediaFoundationSource_ (this,
+                           ACE_TEXT_ALWAYS_CHAR (STREAM_LIB_MEDIAFOUNDATION_SOURCE_DEFAULT_NAME_STRING))
+ , mediaFoundationTarget_ (this,
+                           ACE_TEXT_ALWAYS_CHAR (STREAM_LIB_MEDIAFOUNDATION_TARGET_DEFAULT_NAME_STRING))
  , referenceCount_ (0)
  , topologyIsReady_ (false)
 {
   STREAM_TRACE (ACE_TEXT ("Test_U_AudioEffect_MediaFoundation_Stream::Test_U_AudioEffect_MediaFoundation_Stream"));
 
-  ACE_NEW_NORETURN (mediaFoundationSource_,
-                    Test_U_AudioEffect_MediaFoundation_Target_Module (this,
-                                                                      ACE_TEXT_ALWAYS_CHAR (STREAM_LIB_MEDIAFOUNDATION_TARGET_DEFAULT_NAME_STRING)));
-  if (!mediaFoundationSource_)
-    ACE_DEBUG ((LM_CRITICAL,
-                ACE_TEXT ("%s: failed to allocate memory, continuing\n"),
-                ACE_TEXT (stream_name_string_)));
 }
 
 Test_U_AudioEffect_MediaFoundation_Stream::~Test_U_AudioEffect_MediaFoundation_Stream ()
@@ -490,6 +486,27 @@ Test_U_AudioEffect_MediaFoundation_Stream::~Test_U_AudioEffect_MediaFoundation_S
   } // end IF
 #endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
 
+  if (inherited::find (ACE_TEXT_ALWAYS_CHAR (STREAM_LIB_MEDIAFOUNDATION_TARGET_DEFAULT_NAME_STRING),
+                       false,
+                       false) &&
+      !inherited::remove (&mediaFoundationTarget_,
+                          true,   // lock ?
+                          false)) // reset ?
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s: failed to Stream_Base_T::remove(%s): \"%m\", continuing\n"),
+                ACE_TEXT (stream_name_string_),
+                mediaFoundationTarget_.name ()));
+  if (inherited::find (ACE_TEXT_ALWAYS_CHAR (STREAM_LIB_MEDIAFOUNDATION_SOURCE_DEFAULT_NAME_STRING),
+                       false,
+                       false) &&
+      !inherited::remove (&mediaFoundationSource_,
+                          true,   // lock ?
+                          false)) // reset ?
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s: failed to Stream_Base_T::remove(%s): \"%m\", continuing\n"),
+                ACE_TEXT (stream_name_string_),
+                mediaFoundationSource_.name ()));
+
   // *NOTE*: this implements an ordered shutdown on destruction
   inherited::shutdown ();
 }
@@ -503,8 +520,11 @@ Test_U_AudioEffect_MediaFoundation_Stream::find (const std::string& name_in) con
   //                    ACE_TEXT_ALWAYS_CHAR ("DisplayNull")) == 0)
   //  return const_cast<Test_U_AudioEffect_MediaFoundation_Module_DisplayNull_Module*> (&displayNull_);
 
-  return inherited::find (name_in);
+  return inherited::find (name_in,
+                          false,
+                          false);
 }
+
 void
 Test_U_AudioEffect_MediaFoundation_Stream::start ()
 {
@@ -629,7 +649,7 @@ Test_U_AudioEffect_MediaFoundation_Stream::load (Stream_ILayout* layout_in,
                     //Test_U_Dev_Mic_Source_WaveIn2_Module (this,
                     //                                      ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_MIC_SOURCE_WAVEIN_DEFAULT_NAME_STRING)),
                     Test_U_Dev_Mic_Source_WASAPI2_Module (this,
-                                                          ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_MIC_SOURCE_WASAPI_DEFAULT_NAME_STRING)),
+                                                          ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_WASAPI_CAPTURE_DEFAULT_NAME_STRING)),
                     false);
   ACE_ASSERT (module_p);
   layout_in->append (module_p, NULL, 0);
@@ -659,32 +679,25 @@ Test_U_AudioEffect_MediaFoundation_Stream::load (Stream_ILayout* layout_in,
   module_p = NULL;
 #endif // GTK_USE
 #endif // GUI_SUPPORT
-  if (!(*iterator).second.second->mute ||
-      !InlineIsEqualGUID ((*iterator).second.second->effect, GUID_NULL))
+  if (!InlineIsEqualGUID ((*iterator).second.second->effect, GUID_NULL))
   {
-    //ACE_NEW_RETURN (module_p,
-    //                //Test_U_AudioEffect_MediaFoundation_WavOut_Module (this,
-    //                //                                                  ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_TARGET_WAVOUT_DEFAULT_NAME_STRING)),
-    //                Test_U_AudioEffect_MediaFoundation_Target_Module (this,
-    //                                                                  ACE_TEXT_ALWAYS_CHAR (STREAM_LIB_MEDIAFOUNDATION_TARGET_DEFAULT_NAME_STRING)),
-    //                false);
-    //ACE_ASSERT (module_p);
-    //layout_in->append (module_p, NULL, 0);
-    //module_p = NULL;
-    layout_in->append (mediaFoundationSource_, NULL, 0);
+    layout_in->append (&mediaFoundationTarget_, NULL, 0);
+    if (!(*iterator).second.second->mute ||
+        !(*iterator).second.second->targetFileName.empty ())
+      layout_in->append (&mediaFoundationSource_, NULL, 0);
+  } // end IF
+  if (!(*iterator).second.second->mute)
+  {
+    ACE_NEW_RETURN (module_p,
+                    Test_U_AudioEffect_MediaFoundation_WASAPIOut_Module (this,
+                                                                         ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_WASAPI_RENDER_DEFAULT_NAME_STRING)),
+                    false);
+    ACE_ASSERT (module_p);
+    layout_in->append (module_p, NULL, 0);
+    module_p = NULL;
   } // end IF
   if (!(*iterator).second.second->targetFileName.empty ())
   {
-    if (!InlineIsEqualGUID ((*iterator).second.second->effect, GUID_NULL))
-    {
-      ACE_NEW_RETURN (module_p,
-                      Test_U_AudioEffect_MediaFoundation_Source_Module (this,
-                                                                        ACE_TEXT_ALWAYS_CHAR (STREAM_LIB_MEDIAFOUNDATION_SOURCE_DEFAULT_NAME_STRING)),
-                      false);
-      ACE_ASSERT (module_p);
-      layout_in->append (module_p, NULL, 0);
-      module_p = NULL;
-    } // end IF
     ACE_NEW_RETURN (module_p,
                     Test_U_AudioEffect_MediaFoundation_WAVEncoder_Module (this,
                                                                           ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_ENCODER_WAV_DEFAULT_NAME_STRING)),
@@ -692,6 +705,7 @@ Test_U_AudioEffect_MediaFoundation_Stream::load (Stream_ILayout* layout_in,
     ACE_ASSERT (module_p);
     layout_in->append (module_p, NULL, 0);
     module_p = NULL;
+
     ACE_NEW_RETURN (module_p,
                     Test_U_AudioEffect_MediaFoundation_FileWriter_Module (this,
                                                                           ACE_TEXT_ALWAYS_CHAR (STREAM_FILE_SINK_DEFAULT_NAME_STRING)),
@@ -717,7 +731,6 @@ Test_U_AudioEffect_MediaFoundation_Stream::initialize (const inherited::CONFIGUR
   bool result = false;
   bool setup_pipeline = configuration_in.configuration_->setupPipeline;
   bool reset_setup_pipeline = false;
-  IMFMediaType* media_type_p = NULL;
 
   // allocate a new session state, reset stream
   const_cast<inherited::CONFIGURATION_T&> (configuration_in).configuration_->setupPipeline =
@@ -771,10 +784,11 @@ Test_U_AudioEffect_MediaFoundation_Stream::initialize (const inherited::CONFIGUR
 #else
   IMFSampleGrabberSinkCallback* sample_grabber_p = NULL;
 #endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0601)
+  IMFMediaType* media_type_p = NULL;
 
   result_2 = CoInitializeEx (NULL,
-                             (COINIT_MULTITHREADED    |
-                              COINIT_DISABLE_OLE1DDE  |
+                             (COINIT_MULTITHREADED |
+                              COINIT_DISABLE_OLE1DDE |
                               COINIT_SPEED_OVER_MEMORY));
   if (FAILED (result_2)) // RPC_E_CHANGED_MODE : 0x80010106L
     ACE_DEBUG ((LM_ERROR,
@@ -857,20 +871,53 @@ Test_U_AudioEffect_MediaFoundation_Stream::initialize (const inherited::CONFIGUR
 continue_3:
 #endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
 
-  if (!(*iterator).second.second->targetFileName.empty () &&
-      !InlineIsEqualGUID ((*iterator).second.second->effect, GUID_NULL))
+  module_p =
+    const_cast<Stream_Module_t*> (inherited::find (ACE_TEXT_ALWAYS_CHAR (STREAM_LIB_MEDIAFOUNDATION_SOURCE_DEFAULT_NAME_STRING)));
+  if (module_p)
   {
-    Stream_Module_t* module_2 =
-      const_cast<Stream_Module_t*> (inherited::find (ACE_TEXT_ALWAYS_CHAR (STREAM_LIB_MEDIAFOUNDATION_SOURCE_DEFAULT_NAME_STRING)));
-    ACE_ASSERT (module_2);
+    // get sample grabber handle
+    sample_grabber_p =
 #if COMMON_OS_WIN32_TARGET_PLATFORM(0x0601) // _WIN32_WINNT_WIN7
-    sample_grabber_p =
-      dynamic_cast<IMFSampleGrabberSinkCallback2*> (module_2->writer ());
+      dynamic_cast<IMFSampleGrabberSinkCallback2*> (module_p->writer ());
 #else
-    sample_grabber_p =
-      dynamic_cast<IMFSampleGrabberSinkCallback*> (module_2->writer ());
+      dynamic_cast<IMFSampleGrabberSinkCallback*> (module_p->writer ());
 #endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0601)
     ACE_ASSERT (sample_grabber_p);
+
+    // set output format
+    struct _GUID GUID_s =
+      Stream_MediaFramework_DirectSound_Tools::waveDeviceIdToDirectSoundGUID ((*iterator).second.second->audioOutput,
+                                                                              false); // playback
+    struct tWAVEFORMATEX waveformatex_s;
+    Stream_MediaFramework_DirectSound_Tools::getAudioRendererFormat (GUID_s,
+                                                                     waveformatex_s);
+    result_2 = MFCreateMediaType (&media_type_p);
+    ACE_ASSERT (SUCCEEDED (result_2) && media_type_p);
+    //struct _AMMediaType media_type_s;
+    //ACE_OS::memset (&media_type_s, 0, sizeof (struct _AMMediaType));
+    //result_2 = CreateAudioMediaType (&waveformatex_s,
+    //                                 &media_type_s,
+    //                                 TRUE);
+    //ACE_ASSERT (SUCCEEDED (result_2));
+    //result_2 = MFInitMediaTypeFromAMMediaType (media_type_p,
+    //                                           &media_type_s);
+    //ACE_ASSERT (SUCCEEDED (result_2));
+    //Stream_MediaFramework_DirectShow_Tools::free (media_type_s);
+    result_2 = MFInitMediaTypeFromWaveFormatEx (media_type_p,
+                                                &waveformatex_s,
+                                                sizeof (struct tWAVEFORMATEX) + waveformatex_s.cbSize);
+    ACE_ASSERT (SUCCEEDED (result_2));
+    // *TODO*: remove ASAP
+    result_2 = media_type_p->SetGUID (MF_MT_SUBTYPE,
+                                      MFAudioFormat_Float);
+    ACE_ASSERT (SUCCEEDED (result_2));
+    DWORD channel_mask_i = (SPEAKER_FRONT_LEFT |
+                            SPEAKER_FRONT_RIGHT);
+    result_2 = media_type_p->SetUINT32 (MF_MT_AUDIO_CHANNEL_MASK,
+                                        channel_mask_i);
+    ACE_ASSERT (SUCCEEDED (result_2));
+    result_2 = media_type_p->DeleteItem (MF_MT_AUDIO_VALID_BITS_PER_SAMPLE);
+    ACE_ASSERT (SUCCEEDED (result_2));
   } // end IF
 
   ACE_ASSERT ((*iterator).second.second->deviceIdentifier.identifierDiscriminator == Stream_Device_Identifier::GUID);
@@ -878,9 +925,11 @@ continue_3:
                                                                MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE_AUDCAP_GUID,
                                                                configuration_in.configuration_->useFrameworkSource,
                                                                configuration_in.configuration_->format,
+                                                               media_type_p,
                                                                sample_grabber_p,
-                                                               ((*iterator).second.second->mute ? -1
-                                                                                                : (*iterator).second.second->audioOutput),
+                                                               -1, // *TODO*: cannot get the SAR to render audio
+                                                               //((*iterator).second.second->mute ? -1
+                                                               //                                 : (*iterator).second.second->audioOutput),
                                                                (*iterator).second.second->effect,
                                                                (*iterator).second.second->effectOptions,
                                                                topology_p))
@@ -925,6 +974,10 @@ continue_3:
   ACE_ASSERT (topology_p);
   topology_p->Release (); topology_p = NULL;
 
+  if (media_type_p)
+  {
+    media_type_p->Release (); media_type_p = NULL;
+  } // end IF
   media_type_p =
     Stream_MediaFramework_MediaFoundation_Tools::copy (configuration_in.configuration_->format);
   if (!media_type_p)
@@ -992,11 +1045,8 @@ Test_U_AudioEffect_MediaFoundation_Stream::getR_3 () const
 {
   STREAM_TRACE (ACE_TEXT ("Test_U_AudioEffect_MediaFoundation_Stream::getR_3"));
 
-  Test_U_AudioEffect_MediaFoundation_Stream* this_p =
-    const_cast<Test_U_AudioEffect_MediaFoundation_Stream*> (this);
-
   Test_U_AudioEffect_MediaFoundation_Target* writer_p =
-    static_cast<Test_U_AudioEffect_MediaFoundation_Target*> (this_p->mediaFoundationSource_->writer ());
+    static_cast<Test_U_AudioEffect_MediaFoundation_Target*> (const_cast<Test_U_AudioEffect_MediaFoundation_Target_Module&> (mediaFoundationTarget_).writer ());
   ACE_ASSERT (writer_p);
 
   return *writer_p;
@@ -1021,7 +1071,7 @@ Test_U_AudioEffect_MediaFoundation_Stream::QueryInterface (const IID& IID_in,
   if (result == E_NOINTERFACE)
   {
     Test_U_AudioEffect_MediaFoundation_Target* writer_p =
-      static_cast<Test_U_AudioEffect_MediaFoundation_Target*> (mediaFoundationSource_->writer ());
+      static_cast<Test_U_AudioEffect_MediaFoundation_Target*> (mediaFoundationTarget_.writer ());
     ACE_ASSERT (writer_p);
     result = writer_p->QueryInterface (IID_in,
                                        interface_out);

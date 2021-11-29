@@ -162,13 +162,14 @@ class Test_U_AudioEffect_MediaFoundation_Stream
   ACE_UNIMPLEMENTED_FUNC (Test_U_AudioEffect_MediaFoundation_Stream (const Test_U_AudioEffect_MediaFoundation_Stream&))
   ACE_UNIMPLEMENTED_FUNC (Test_U_AudioEffect_MediaFoundation_Stream& operator= (const Test_U_AudioEffect_MediaFoundation_Stream&))
 
-    ACE_SYNCH_RECURSIVE_CONDITION                   condition_;
+  ACE_SYNCH_RECURSIVE_CONDITION                    condition_;
 #if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
-  IMFMediaSession*                                  mediaSession_;
+  IMFMediaSession*                                 mediaSession_;
 #endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
-  Test_U_AudioEffect_MediaFoundation_Target_Module* mediaFoundationSource_;
-  ULONG                                             referenceCount_;
-  bool                                              topologyIsReady_;
+  Test_U_AudioEffect_MediaFoundation_Source_Module mediaFoundationSource_;
+  Test_U_AudioEffect_MediaFoundation_Target_Module mediaFoundationTarget_;
+  ULONG                                            referenceCount_;
+  bool                                             topologyIsReady_;
 };
 #else
 class Test_U_AudioEffect_ALSA_Stream

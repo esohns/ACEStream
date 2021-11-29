@@ -8750,7 +8750,7 @@ combobox_source_changed_cb (GtkWidget* widget_in,
       module_name =
         (use_framework_source_b ? ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_MIC_SOURCE_DIRECTSHOW_DEFAULT_NAME_STRING)
                                 //: ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_MIC_SOURCE_WAVEIN_DEFAULT_NAME_STRING));
-                                : ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_MIC_SOURCE_WASAPI_DEFAULT_NAME_STRING));
+                                : ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_WASAPI_CAPTURE_DEFAULT_NAME_STRING));
       module_p =
         const_cast<Stream_Module_t*> (istream_p->find (module_name));
       break;
@@ -8760,7 +8760,7 @@ combobox_source_changed_cb (GtkWidget* widget_in,
       module_name =
         (use_framework_source_b ? ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_MIC_SOURCE_MEDIAFOUNDATION_DEFAULT_NAME_STRING)
          //: ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_MIC_SOURCE_WAVEIN_DEFAULT_NAME_STRING));
-                                : ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_MIC_SOURCE_WASAPI_DEFAULT_NAME_STRING));
+                                : ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_WASAPI_CAPTURE_DEFAULT_NAME_STRING));
       module_p =
         const_cast<Stream_Module_t*> (istream_p->find (module_name));
       break;
@@ -11694,29 +11694,14 @@ drawingarea_expose_event_cb (GtkWidget* widget_in,
 {
   STREAM_TRACE (ACE_TEXT ("::drawingarea_expose_event_cb"));
 
+  ACE_UNUSED_ARG (event_in);
+
   // sanity check(s)
   ACE_ASSERT (widget_in);
-//  ACE_ASSERT (event_in);
-  ACE_UNUSED_ARG (event_in);
-  ACE_ASSERT (userData_in);
-
   struct Test_U_AudioEffect_UI_CBDataBase* ui_cb_data_base_p =
     static_cast<struct Test_U_AudioEffect_UI_CBDataBase*> (userData_in);
-
-  // sanity check(s)
   ACE_ASSERT (ui_cb_data_base_p);
 
-//  bool destroy_context = false;
-#if GTK_CHECK_VERSION(3,10,0)
-  // sanity check(s)
-  if (!ui_cb_data_base_p->cairoSurface2D)
-    return FALSE; // --> widget has not been realized yet
-
-  cairo_set_source_surface (context_in,
-                            ui_cb_data_base_p->cairoSurface2D,
-                            0.0, 0.0);
-                            //data_p->area2D->x, data_p->area2D->y);
-#else
   // sanity check(s)
   if (!ui_cb_data_base_p->pixelBuffer2D)
     return FALSE; // --> widget has not been realized yet
@@ -11727,7 +11712,7 @@ drawingarea_expose_event_cb (GtkWidget* widget_in,
 //                               0.0, 0.0);
   cairo_t* context_p =
     gdk_cairo_create (GDK_DRAWABLE (gtk_widget_get_window (widget_in)));
-  if (!context_p)
+  if (unlikely (!context_p))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to gdk_cairo_create(), aborting\n")));
@@ -11736,24 +11721,10 @@ drawingarea_expose_event_cb (GtkWidget* widget_in,
   gdk_cairo_set_source_pixbuf (context_p,
                                ui_cb_data_base_p->pixelBuffer2D,
                                0.0, 0.0);
-#endif // GTK_CHECK_VERSION(3,10,0)
 
-#if GTK_CHECK_VERSION(3,10,0)
-//  { ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, data_base_p->cairoSurfaceLock, FALSE);
-//#else
-//  { ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, data_base_p->pixelBufferLock, FALSE);
-//#endif
-    cairo_paint (context_in);
-#else
-//    cairo_paint (context_in);
-    cairo_paint (context_p);
-//  } // end lock scope
-#endif // GTK_CHECK_VERSION(3,10,0)
+  cairo_paint (context_p);
 
-#if GTK_CHECK_VERSION(3,10,0)
-#else
-  cairo_destroy (context_p);
-#endif // GTK_CHECK_VERSION(3,10,0)
+  cairo_destroy (context_p); context_p = NULL;
 
   return TRUE;
 }
@@ -11897,17 +11868,16 @@ filechooserdialog_response_cb (GtkDialog* dialog_in,
   } // end SWITCH
 }
 
-//void
-//filechooser_file_activated_cb (GtkFileChooser* chooser_in,
-//                               gpointer userData_in)
-//{
-//  STREAM_TRACE (ACE_TEXT ("::filechooser_file_activated_cb"));
-//
-//  ACE_UNUSED_ARG (userData_in);
-//
-//  gtk_dialog_response (GTK_DIALOG (GTK_FILE_CHOOSER_DIALOG (chooser_in)),
-//                       GTK_RESPONSE_ACCEPT);
-//} // filechooser_file_activated_cb
+void
+filechooser_file_activated_cb (GtkFileChooser* chooser_in,
+                               gpointer userData_in)
+{
+  STREAM_TRACE (ACE_TEXT ("::filechooser_file_activated_cb"));
+
+  ACE_UNUSED_ARG (userData_in);
+
+  ACE_ASSERT (false); // *TODO*
+} // filechooser_file_activated_cb
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */

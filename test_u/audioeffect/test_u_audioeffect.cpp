@@ -931,6 +931,7 @@ continue_3:
                                                                useMediaFoundationSource_in,
                                                                captureMediaType_out,
                                                                NULL,
+                                                               NULL,
                                                                (mute_in ? -1 : 0),
                                                                GUID_NULL,
                                                                effect_options,
@@ -1133,6 +1134,7 @@ do_work (
   struct Test_U_AudioEffect_DirectShow_ModuleHandlerConfiguration directshow_modulehandler_configuration;
   struct Test_U_AudioEffect_DirectShow_StreamConfiguration directshow_stream_configuration;
   struct Test_U_AudioEffect_MediaFoundation_ModuleHandlerConfiguration mediafoundation_modulehandler_configuration;
+  struct Test_U_AudioEffect_MediaFoundation_ModuleHandlerConfiguration mediafoundation_modulehandler_configuration_2; // mediafoundation target module
   struct Test_U_AudioEffect_MediaFoundation_StreamConfiguration mediafoundation_stream_configuration;
   Test_U_AudioEffect_DirectShow_Stream directshow_stream;
   Test_U_AudioEffect_MediaFoundation_Stream mediafoundation_stream;
@@ -1324,6 +1326,13 @@ do_work (
       mediafoundation_modulehandler_iterator =
         mediaFoundationConfiguration_in.streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
       ACE_ASSERT (mediafoundation_modulehandler_iterator != mediaFoundationConfiguration_in.streamConfiguration.end ());
+
+      mediafoundation_modulehandler_configuration_2 =
+        mediafoundation_modulehandler_configuration;
+      mediafoundation_modulehandler_configuration_2.passData = false;
+      mediaFoundationCBData_in.configuration->streamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (STREAM_LIB_MEDIAFOUNDATION_TARGET_DEFAULT_NAME_STRING),
+                                                                                          std::make_pair (&module_configuration,
+                                                                                                          &mediafoundation_modulehandler_configuration_2)));
 
       break;
     }

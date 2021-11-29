@@ -35,7 +35,8 @@
 #include "stream_dev_mic_source_mediafoundation.h"
 #include "stream_dev_mic_source_wasapi.h"
 #include "stream_dev_mic_source_wavein.h"
-#include "stream_dev_target_wavout.h"
+#include "stream_dev_target_wasapi.h"
+//#include "stream_dev_target_wavout.h"
 
 #include "stream_lib_directshow_asynch_source_filter.h"
 #include "stream_lib_directshow_source.h"
@@ -565,19 +566,52 @@ DATASTREAM_MODULE_INPUT_ONLY (Test_U_AudioEffect_MediaFoundation_SessionData,   
                               Stream_INotify_t,                                                // stream notification interface type
                               Test_U_AudioEffect_MediaFoundation_Source);                      // writer type
 
-typedef Stream_Dev_Target_WavOut_T<ACE_MT_SYNCH,
+typedef Stream_Dev_Target_WASAPI_T<ACE_MT_SYNCH,
                                    Common_TimePolicy_t,
                                    struct Test_U_AudioEffect_DirectShow_ModuleHandlerConfiguration,
                                    Stream_ControlMessage_t,
                                    Test_U_AudioEffect_DirectShow_Message,
                                    Test_U_AudioEffect_DirectShow_SessionMessage,
-                                   Test_U_AudioEffect_DirectShow_SessionData> Test_U_AudioEffect_DirectShow_WavOut;
+                                   enum Stream_ControlType,
+                                   enum Stream_SessionMessageType,
+                                   struct Stream_UserData,
+                                   struct _AMMediaType> Test_U_AudioEffect_DirectShow_WASAPIOut;
 DATASTREAM_MODULE_INPUT_ONLY (Test_U_AudioEffect_DirectShow_SessionData,                       // session data type
                               enum Stream_SessionMessageType,                                  // session event type
                               struct Test_U_AudioEffect_DirectShow_ModuleHandlerConfiguration, // module handler configuration type
-                              libacestream_default_dev_target_wavout_module_name_string,
+                              libacestream_default_dev_target_wasapi_module_name_string,
                               Stream_INotify_t,                                                // stream notification interface type
-                              Test_U_AudioEffect_DirectShow_WavOut);                           // writer type
+                              Test_U_AudioEffect_DirectShow_WASAPIOut);                        // writer type
+//typedef Stream_Dev_Target_WavOut_T<ACE_MT_SYNCH,
+//                                   Common_TimePolicy_t,
+//                                   struct Test_U_AudioEffect_DirectShow_ModuleHandlerConfiguration,
+//                                   Stream_ControlMessage_t,
+//                                   Test_U_AudioEffect_DirectShow_Message,
+//                                   Test_U_AudioEffect_DirectShow_SessionMessage,
+//                                   Test_U_AudioEffect_DirectShow_SessionData> Test_U_AudioEffect_DirectShow_WavOut;
+//DATASTREAM_MODULE_INPUT_ONLY (Test_U_AudioEffect_DirectShow_SessionData,                       // session data type
+//                              enum Stream_SessionMessageType,                                  // session event type
+//                              struct Test_U_AudioEffect_DirectShow_ModuleHandlerConfiguration, // module handler configuration type
+//                              libacestream_default_dev_target_wavout_module_name_string,
+//                              Stream_INotify_t,                                                // stream notification interface type
+//                              Test_U_AudioEffect_DirectShow_WavOut);                           // writer type
+
+typedef Stream_Dev_Target_WASAPI_T<ACE_MT_SYNCH,
+                                   Common_TimePolicy_t,
+                                   struct Test_U_AudioEffect_MediaFoundation_ModuleHandlerConfiguration,
+                                   Stream_ControlMessage_t,
+                                   Test_U_AudioEffect_MediaFoundation_Message,
+                                   Test_U_AudioEffect_MediaFoundation_SessionMessage,
+                                   enum Stream_ControlType,
+                                   enum Stream_SessionMessageType,
+                                   struct Stream_UserData,
+                                   struct _AMMediaType> Test_U_AudioEffect_MediaFoundation_WASAPIOut;
+DATASTREAM_MODULE_INPUT_ONLY (Test_U_AudioEffect_MediaFoundation_SessionData,                       // session data type
+                              enum Stream_SessionMessageType,                                       // session event type
+                              struct Test_U_AudioEffect_MediaFoundation_ModuleHandlerConfiguration, // module handler configuration type
+                              libacestream_default_dev_target_wasapi_module_name_string,
+                              Stream_INotify_t,                                                     // stream notification interface type
+                              Test_U_AudioEffect_MediaFoundation_WASAPIOut);                        // writer type
 
 typedef Stream_Module_FileWriter_T<ACE_MT_SYNCH,
                                    Common_TimePolicy_t,

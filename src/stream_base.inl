@@ -3753,12 +3753,10 @@ Stream_Base_T<ACE_SYNCH_USE,
     if (imodule_p)
       imodule_p->reset ();
   } // end IF
-//#if defined (_DEBUG)
 //  ACE_DEBUG ((LM_DEBUG,
 //              ACE_TEXT ("%s: removed module \"%s\"\n"),
 //              ACE_TEXT (StreamName),
 //              module_in->name ()));
-//#endif // _DEBUG
 
   return true;
 }

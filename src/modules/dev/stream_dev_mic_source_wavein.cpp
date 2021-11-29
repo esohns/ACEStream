@@ -24,7 +24,7 @@
 #include "stream_dev_defines.h"
 
 const char libacestream_default_dev_mic_source_wavein_module_name_string[] =
-  ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_MIC_SOURCE_WAVEIN_DEFAULT_NAME_STRING);
+  ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_WAVEIN_CAPTURE_DEFAULT_NAME_STRING);
 
 void CALLBACK
 libacestream_wave_in_data_cb (HWAVEIN   hwi,
@@ -34,9 +34,9 @@ libacestream_wave_in_data_cb (HWAVEIN   hwi,
                               DWORD_PTR dwParam2)
 {
   // sanity check(s)
-  ACE_ASSERT (dwInstance);
   struct libacestream_wave_in_cbdata* cb_data_p =
     reinterpret_cast<struct libacestream_wave_in_cbdata*> (dwInstance);
+  ACE_ASSERT (cb_data_p);
 
   struct wavehdr_tag* wavehdr_p = NULL;
   switch (uMsg)
@@ -49,7 +49,7 @@ libacestream_wave_in_data_cb (HWAVEIN   hwi,
       return;
     }
     case WIM_DATA:
-    { ACE_ASSERT (dwParam1);
+    {
       wavehdr_p = reinterpret_cast<struct wavehdr_tag*> (dwParam1);
       break;
     }

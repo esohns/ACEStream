@@ -167,6 +167,7 @@ Test_U_AudioEffect_DirectShow_EventHandler::notify (Stream_SessionId_t sessionId
   } // end IF
 #endif // GUI_SUPPORT
 }
+
 void
 Test_U_AudioEffect_DirectShow_EventHandler::notify (Stream_SessionId_t sessionId_in,
                                                     const Test_U_AudioEffect_DirectShow_SessionMessage& sessionMessage_in)
@@ -193,6 +194,7 @@ Test_U_AudioEffect_DirectShow_EventHandler::notify (Stream_SessionId_t sessionId
       break;
     }
   } // end SWITCH
+
 #if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
   Common_UI_GTK_State_t& state_r =
@@ -331,6 +333,7 @@ Test_U_AudioEffect_MediaFoundation_EventHandler::notify (Stream_SessionId_t sess
   } // end IF
 #endif // GUI_SUPPORT
 }
+
 void
 Test_U_AudioEffect_MediaFoundation_EventHandler::notify (Stream_SessionId_t sessionId_in,
                                                          const Test_U_AudioEffect_MediaFoundation_SessionMessage& sessionMessage_in)
@@ -339,9 +342,25 @@ Test_U_AudioEffect_MediaFoundation_EventHandler::notify (Stream_SessionId_t sess
 
   ACE_UNUSED_ARG (sessionId_in);
 
-  enum Common_UI_EventType event_e =
-    ((sessionMessage_in.type () == STREAM_SESSION_MESSAGE_STATISTIC) ? COMMON_UI_EVENT_STATISTIC
-                                                                     : COMMON_UI_EVENT_INVALID);
+  enum Common_UI_EventType event_e = COMMON_UI_EVENT_INVALID;
+  switch (sessionMessage_in.type ())
+  {
+    case STREAM_SESSION_MESSAGE_ABORT:
+      event_e = COMMON_UI_EVENT_ABORT; break;
+    case STREAM_SESSION_MESSAGE_STATISTIC:
+      event_e = COMMON_UI_EVENT_STATISTIC; break;
+    default:
+    {
+      std::string type_string;
+      Test_U_AudioEffect_MediaFoundation_SessionMessage::MessageTypeToString (sessionMessage_in.type (),
+                                                                              type_string);
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("invalid/unknown session message (type was: \"%s\"), continuing\n"),
+                  ACE_TEXT (type_string.c_str ())));
+      break;
+    }
+  } // end SWITCH
+
 #if defined (GUI_SUPPORT)
   if (CBData_)
   {

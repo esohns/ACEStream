@@ -18,53 +18,48 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#ifndef STREAM_DEV_TARGET_WAVOUT_H
-#define STREAM_DEV_TARGET_WAVOUT_H
+#ifndef STREAM_DEV_TARGET_WASAPI_H
+#define STREAM_DEV_TARGET_WASAPI_H
 
-#include "Mmeapi.h"
+#include <string>
+
+#include "Audioclient.h"
 
 #include "ace/Global_Macros.h"
-#include "ace/Message_Block.h"
 #include "ace/Synch_Traits.h"
+
+#include "common_time_common.h"
 
 #include "stream_common.h"
 #include "stream_task_base_synch.h"
 
-extern const char libacestream_default_dev_target_wavout_module_name_string[];
+#include "stream_lib_mediatype_converter.h"
 
-struct Stream_Device_WavOut_Playback_AsynchCBData
-{
-  bool   done;
-  size_t inFlightBuffers;
-  HANDLE lock;
-};
-static void
-CALLBACK stream_dev_target_wavout_async_callback (HWAVEOUT,
-                                                  UINT,
-                                                  DWORD_PTR,
-                                                  DWORD_PTR,
-                                                  DWORD_PTR);
+#include "stream_dev_defines.h"
+
+extern const char libacestream_default_dev_target_wasapi_module_name_string[];
 
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,
-          ////////////////////////////////
           typename ConfigurationType,
-          ////////////////////////////////
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType,
-          ////////////////////////////////
-          typename SessionDataType>
-class Stream_Dev_Target_WavOut_T
- : public Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
+          typename SessionControlType,
+          typename SessionEventType,
+          typename UserDataType,
+          typename MediaType>
+class Stream_Dev_Target_WASAPI_T
+ : public Stream_TaskBaseSynch_T<ACE_SYNCH_USE, 
                                  TimePolicyType,
                                  ConfigurationType,
                                  ControlMessageType,
                                  DataMessageType,
                                  SessionMessageType,
-                                 enum Stream_ControlType,
-                                 enum Stream_SessionMessageType,
-                                 struct Stream_UserData>
+                                 SessionControlType,
+                                 SessionEventType,
+                                 UserDataType>
+ , public Stream_MediaFramework_MediaTypeConverter_T<MediaType>
 {
   typedef Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
                                  TimePolicyType,
@@ -72,40 +67,46 @@ class Stream_Dev_Target_WavOut_T
                                  ControlMessageType,
                                  DataMessageType,
                                  SessionMessageType,
-                                 enum Stream_ControlType,
-                                 enum Stream_SessionMessageType,
-                                 struct Stream_UserData> inherited;
+                                 SessionControlType,
+                                 SessionEventType,
+                                 UserDataType> inherited;
+  typedef Stream_MediaFramework_MediaTypeConverter_T<MediaType> inherited2;
 
  public:
-  Stream_Dev_Target_WavOut_T (ISTREAM_T*); // stream handle
-  virtual ~Stream_Dev_Target_WavOut_T ();
+  Stream_Dev_Target_WASAPI_T (ISTREAM_T*); // stream handle
+  virtual ~Stream_Dev_Target_WASAPI_T ();
 
   // override (part of) Stream_IModuleHandler_T
   virtual bool initialize (const ConfigurationType&,
                            Stream_IAllocator* = NULL);
 
-//  // implement (part of) Stream_ITaskBase
+  // implement (part of) Stream_ITaskBase
   virtual void handleDataMessage (DataMessageType*&, // data message handle
                                   bool&);            // return value: pass message downstream ?
   virtual void handleSessionMessage (SessionMessageType*&, // session message handle
                                      bool&);               // return value: pass message downstream ?
 
  private:
-  // convenient types
-  typedef ACE_Message_Queue<ACE_SYNCH_USE,
-                            TimePolicyType> QUEUE_T;
+  ACE_UNIMPLEMENTED_FUNC (Stream_Dev_Target_WASAPI_T ())
+  ACE_UNIMPLEMENTED_FUNC (Stream_Dev_Target_WASAPI_T (const Stream_Dev_Target_WASAPI_T&))
+  ACE_UNIMPLEMENTED_FUNC (Stream_Dev_Target_WASAPI_T& operator= (const Stream_Dev_Target_WASAPI_T&))
 
-  ACE_UNIMPLEMENTED_FUNC (Stream_Dev_Target_WavOut_T ())
-  ACE_UNIMPLEMENTED_FUNC (Stream_Dev_Target_WavOut_T (const Stream_Dev_Target_WavOut_T&))
-  ACE_UNIMPLEMENTED_FUNC (Stream_Dev_Target_WavOut_T& operator= (const Stream_Dev_Target_WavOut_T&))
+  // enqueue MB_STOP --> stop worker thread(s)
+  virtual void stop (bool = true,   // wait for completion ?
+                     bool = false); // high priority ? (i.e. do not wait for queued messages)
+  // override (part of) ACE_Task_Base
+  virtual int svc (void);
 
-  struct Stream_Device_WavOut_Playback_AsynchCBData CBData_;
-  HWAVEOUT                                          handle_;
-  struct wavehdr_tag                                header_;
-  HANDLE                                            lock_;
+  IAudioClient*                       audioClient_;
+  IAudioRenderClient*                 audioRenderClient_;
+  UINT32                              bufferSize_; // in #frames
+  HANDLE                              event_;
+  size_t                              frameSize_; // byte(s)
+  typename inherited::MESSAGE_QUEUE_T queue_;
+  HANDLE                              task_;
 };
 
 // include template definition
-#include "stream_dev_target_wavout.inl"
+#include "stream_dev_target_wasapi.inl"
 
 #endif

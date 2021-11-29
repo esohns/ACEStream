@@ -118,6 +118,8 @@ class Stream_Layout_T
   Stream_Layout_T ();
   inline virtual ~Stream_Layout_T () {}
 
+  using inherited::end;
+
   bool setup (STREAM_T&);
   void unset (STREAM_T&);
 
@@ -125,6 +127,8 @@ class Stream_Layout_T
                   bool = false) const; // sanitize module names ?
   Stream_ModuleList_t prev (const std::string&) const; // nodule name
   Stream_ModuleList_t next (const std::string&) const; // nodule name
+  bool find (MODULE_T*,
+             typename inherited::iterator_base&) const;
 
   // append a module to a branch
   bool append (MODULE_T*,         // module handle
@@ -154,8 +158,6 @@ class Stream_Layout_T
               ISTREAM_T*, // stream handle
               MODULE_T*); // stream tail handle
 
-  bool find (MODULE_T*,
-             typename inherited::iterator_base&) const;
   void prev (NODE_T&,                     // distributor node
              const std::string&,          // module name
              Stream_ModuleList_t&) const; // return value

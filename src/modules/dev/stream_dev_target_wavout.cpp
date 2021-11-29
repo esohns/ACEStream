@@ -24,4 +24,4 @@
 #include "stream_dev_defines.h"
 
 const char libacestream_default_dev_target_wavout_module_name_string[] =
-  ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_TARGET_WAVOUT_DEFAULT_NAME_STRING);
+  ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_WAVEOUT_RENDER_DEFAULT_NAME_STRING);

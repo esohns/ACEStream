@@ -266,19 +266,35 @@ Stream_Dev_Mic_Source_WASAPI_T<ACE_SYNCH_USE,
                           IID_PPV_ARGS (&enumerator_p));
       ACE_ASSERT (SUCCEEDED (result_2));
       IMMDeviceCollection* devices_p = NULL;
+      UINT num_devices_i = 0;
+      enum _AUDCLNT_SHAREMODE share_mode_e =
+        STREAM_DEV_WASAPI_CAPTURE_DEFAULT_SHAREMODE;
+      IMMDevice* device_p = NULL;
+      struct _GUID GUID_s = GUID_NULL;
+      IPropertyStore* property_store_p = NULL;
+      struct tagPROPVARIANT property_s;
+      UINT32 number_of_buffer_frames_i = 0;
+      DWORD stream_flags_i =
+        (AUDCLNT_STREAMFLAGS_EVENTCALLBACK |
+         //AUDCLNT_STREAMFLAGS_NOPERSIST         |
+         /////////////////////////////////
+         AUDCLNT_SESSIONFLAGS_EXPIREWHENUNOWNED);
+      HANDLE task_h = NULL;
+      DWORD task_index_i = 0;
+      struct tWAVEFORMATEX* audio_info_2 = NULL;
+      if (InlineIsEqualGUID (inherited::configuration_->deviceIdentifier.identifier._guid, GUID_NULL))
+      {
+        result_2 =
+          enumerator_p->GetDefaultAudioEndpoint (eCapture, eConsole, &device_p);
+        ACE_ASSERT (SUCCEEDED (result_2) && device_p);
+        goto continue_;
+      } // end IF
       result_2 =
         enumerator_p->EnumAudioEndpoints (eCapture, DEVICE_STATEMASK_ALL, &devices_p);
       ACE_ASSERT (SUCCEEDED (result_2));
       enumerator_p->Release (); enumerator_p = NULL;
-      UINT num_devices_i = 0;
-      result = devices_p->GetCount (&num_devices_i);
-      ACE_ASSERT (SUCCEEDED (result));
-      enum _AUDCLNT_SHAREMODE share_mode_e =
-        STREAM_DEV_MIC_WASAPI_DEFAULT_SHAREMODE;
-      IMMDevice* device_p = NULL;
-      struct _GUID GUID_s;
-      IPropertyStore* property_store_p = NULL;
-      PROPVARIANT property_s;
+      result_2 = devices_p->GetCount (&num_devices_i);
+      ACE_ASSERT (SUCCEEDED (result_2));
       PropVariantInit (&property_s);
       for (UINT i = 0;
            i < num_devices_i;
@@ -297,22 +313,12 @@ Stream_Dev_Mic_Source_WASAPI_T<ACE_SYNCH_USE,
         ACE_ASSERT (property_s.vt == VT_LPWSTR);
         GUID_s =
           Common_Tools::StringToGUID (ACE_TEXT_ALWAYS_CHAR (ACE_TEXT_WCHAR_TO_TCHAR (property_s.pwszVal)));
+        PropVariantClear (&property_s);
         if (InlineIsEqualGUID (inherited::configuration_->deviceIdentifier.identifier._guid, GUID_s))
           break;
-        PropVariantClear (&property_s);
         device_p->Release (); device_p = NULL;
       } // end FOR
-      PropVariantClear (&property_s);
       devices_p->Release (); devices_p = NULL;
-      UINT32 number_of_buffer_frames_i = 0;
-      DWORD stream_flags_i =
-        (AUDCLNT_STREAMFLAGS_EVENTCALLBACK |
-         //AUDCLNT_STREAMFLAGS_NOPERSIST         |
-         /////////////////////////////////
-         AUDCLNT_SESSIONFLAGS_EXPIREWHENUNOWNED);
-      HANDLE task_h = NULL;
-      DWORD task_index_i = 0;
-      struct tWAVEFORMATEX* audio_info_2 = NULL;
       if (!device_p)
       {
         ACE_DEBUG ((LM_ERROR,
@@ -321,6 +327,8 @@ Stream_Dev_Mic_Source_WASAPI_T<ACE_SYNCH_USE,
                     ACE_TEXT (Common_Tools::GUIDToString (inherited::configuration_->deviceIdentifier.identifier._guid).c_str ())));
         goto error;
       } // end IF
+continue_:
+      ACE_ASSERT (device_p);
       ACE_ASSERT (!audioClient_);
       result_2 = device_p->Activate (__uuidof (IAudioClient), CLSCTX_ALL,
                                      NULL, (void**)&audioClient_);
@@ -833,8 +841,7 @@ continue_:
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: failed to WaitForSingleObject(), aborting\n"),
-                  inherited::mod_->name (),
-                  bytes_to_read_i));
+                  inherited::mod_->name ()));
       goto error;
     } // end IF
 

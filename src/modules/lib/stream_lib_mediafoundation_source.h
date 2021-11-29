@@ -35,6 +35,8 @@
 #include "stream_common.h"
 #include "stream_task_base_synch.h"
 
+#include "stream_lib_mediatype_converter.h"
+
 extern const char libacestream_default_lib_mediafoundation_source_module_name_string[];
 
 template <ACE_SYNCH_DECL,
@@ -61,6 +63,7 @@ class Stream_MediaFramework_MediaFoundation_Source_T
                                  enum Stream_ControlType,
                                  enum Stream_SessionMessageType,
                                  UserDataType>
+ , public Stream_MediaFramework_MediaTypeConverter_T<MediaType>
 #if COMMON_OS_WIN32_TARGET_PLATFORM(0x0601) // _WIN32_WINNT_WIN7
  , public IMFSampleGrabberSinkCallback2
 #else
@@ -76,6 +79,7 @@ class Stream_MediaFramework_MediaFoundation_Source_T
                                  enum Stream_ControlType,
                                  enum Stream_SessionMessageType,
                                  UserDataType> inherited;
+  typedef Stream_MediaFramework_MediaTypeConverter_T<MediaType> inherited2;
 
  public:
   Stream_MediaFramework_MediaFoundation_Source_T (ISTREAM_T*); // stream handle
@@ -88,9 +92,6 @@ class Stream_MediaFramework_MediaFoundation_Source_T
                                   bool&);            // return value: pass message downstream ?
   virtual void handleSessionMessage (SessionMessageType*&, // session message handle
                                      bool&);               // return value: pass message downstream ?
-
-  //// implement Stream_IModuleHandler_T
-  //virtual const ConfigurationType& get () const;
 
   // implement IMFSampleGrabberSinkCallback2
   STDMETHODIMP QueryInterface (const IID&,

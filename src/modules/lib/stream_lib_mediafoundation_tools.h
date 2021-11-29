@@ -47,20 +47,28 @@ class Stream_MediaFramework_MediaFoundation_Tools
   static void initialize ();
 
   // device identifier
+  // *TODO*: move to dev/
   static std::string identifierToString (REFGUID,  // device identifier
                                          REFGUID); // device category
 
   // format
-  static bool isPartial (REFGUID,              // major media type (audio/video)
-                         const IMFMediaType*); // target
+  static bool canRender (const IMFMediaType*, // media type handle
+                         IMFMediaType*&);     // return value: closest match
+  static bool has (const IMFMediaType*, // media type handle
+                   REFGUID);            // attribute identifier
+  static bool isPartial (const IMFMediaType*); // media type handle
+  // *NOTE*: test whether either argument is a 'part' of the other
+  //         i.e. has <= #attributes, AND the attribute values match
+  static bool isPartOf (const IMFMediaType*,  // media type handle 1
+                        const IMFMediaType*); // media type handle 2
+  // *TODO*: this (probably) does the same as 'isPartOf' (see above)
+  static bool match (const IMFMediaType*,  // media type handle 1
+                     const IMFMediaType*); // media type handle 2
   // *IMPORTANT NOTE*: only the attributes that do NOT exist in the target are
   //                   merged
   static bool merge (const IMFMediaType*, // source
                      IMFMediaType*);      // target
-  // *NOTE*: test whether the second argument is a 'part' of the first
-  //         i.e. has <= #attributes, AND the attribute values match
-  static bool isPartOf (const IMFMediaType*,  // source
-                        const IMFMediaType*); // target
+  static bool reconfigure (IMFMediaType*); // media type handle
   static struct _GUID toFormat (const IMFMediaType*);
   static Common_Image_Resolution_t toResolution (const IMFMediaType*);
   static unsigned int toFramerate (const IMFMediaType*);
@@ -101,9 +109,12 @@ class Stream_MediaFramework_MediaFoundation_Tools
                               IMFMediaType*); // media type
   //static bool getOutputFormat (IMFSourceReader*, // source handle
   //                             IMFMediaType*&);  // return value: media type
-  // *NOTE*: returns the first RGB or Chroma-Luminance format
-  static bool getOutputFormat (IMFTransform*,   // MFT handle
-                               IMFMediaType*&); // return value: media type
+  // *NOTE*: video: returns the current-, first RGB/Chroma-Luminance/available
+  //         audio: returns the current-, first PCM/IEEE Float/available
+  //         format of the first output stream
+  static bool getOutputFormat (IMFTransform*,  // MFT handle
+                               IMFMediaType*&, // return value: media type
+                               bool&);         // return value: current format ? : available-
   // *NOTE*: returns the first available output type of the first output node
   //         (if any), else, starting from the first source node, the first
   //         available output type (of the first stream) of the last connected
@@ -168,7 +179,10 @@ class Stream_MediaFramework_MediaFoundation_Tools
 
   // -------------------------------------
 
-  static bool addGrabber (const IMFMediaType*,            // sample grabber sink input media type handle
+  static bool addResampler (const IMFMediaType*, // resampler sink output media type handle
+                            IMFTopology*,        // topology handle
+                            TOPOID&);            // return value: renderer node id
+  static bool addGrabber (
 #if COMMON_OS_WIN32_TARGET_PLATFORM(0x0601) // _WIN32_WINNT_WIN7
                           IMFSampleGrabberSinkCallback2*, // sample grabber sink callback handle
 #else

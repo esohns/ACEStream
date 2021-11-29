@@ -111,11 +111,6 @@ class Stream_MediaFramework_MediaFoundation_Target_T
   inline virtual STDMETHODIMP GetParameters (DWORD* flags_out, DWORD* queue_out) { ACE_UNUSED_ARG (flags_out); ACE_UNUSED_ARG (queue_out); return E_NOTIMPL; }
   virtual STDMETHODIMP Invoke (IMFAsyncResult*); // asynchronous result handle
 
- protected:
-  //// enqueue MB_STOP --> stop worker thread(s)
-  //virtual void stop (bool = true,   // wait for completion ?
-  //                   bool = false); // high priority ? (i.e. do not wait for queued messages)
-
  private:
   // convenient types
   typedef Stream_MediaFramework_MediaFoundation_Target_T<ACE_SYNCH_USE,

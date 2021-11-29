@@ -41,6 +41,8 @@ class Stream_MediaFramework_DirectSound_Tools
                                                      bool = true); // capture ? : playback
   static IAudioVolumeLevel* getMicrophoneBoostControl (IMMDevice*); // device handle
 
+  static void getAudioRendererFormat (REFGUID,                // device identifier
+                                      struct tWAVEFORMATEX&); // return value: 'mix' format
   static void getAudioRendererStatistics (IFilterGraph*,                                    // filter graph handle
                                           Stream_MediaFrameWork_DirectSound_Statistics_t&); // return value: statistic information
   static std::string toString (enum _AM_AUDIO_RENDERER_STAT_PARAM); // parameter

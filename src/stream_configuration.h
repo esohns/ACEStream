@@ -114,6 +114,7 @@ struct Stream_ModuleHandlerConfiguration
    , messageAllocator (NULL)
    , outboundNotificationHandle (NULL)
    , parserConfiguration (NULL)
+   , passData (true)
    , passive (true)
    , printFinalReport (false)
    , reportingInterval (0)
@@ -176,6 +177,7 @@ struct Stream_ModuleHandlerConfiguration
   Stream_IAllocator*                          messageAllocator;
   Stream_IOutboundDataNotify*                 outboundNotificationHandle;           // IO module(s)
   struct Common_FlexBisonParserConfiguration* parserConfiguration;                  // parser module(s)
+  bool                                        passData;                             // renderer module(s)
   bool                                        passive;                              // network/device/... module(s)
   bool                                        printFinalReport;                     // statistic module(s)
   unsigned int                                reportingInterval;                    // (statistic) reporting interval (second(s)) [0: off]

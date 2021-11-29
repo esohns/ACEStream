@@ -19,9 +19,9 @@
  ***************************************************************************/
 #include "stdafx.h"
 
-#include "stream_dev_mic_source_wasapi.h"
+#include "stream_dev_target_wasapi.h"
 
 #include "stream_dev_defines.h"
 
-const char libacestream_default_dev_mic_source_wasapi_module_name_string[] =
-  ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_WASAPI_CAPTURE_DEFAULT_NAME_STRING);
+const char libacestream_default_dev_target_wasapi_module_name_string[] =
+  ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_WASAPI_RENDER_DEFAULT_NAME_STRING);

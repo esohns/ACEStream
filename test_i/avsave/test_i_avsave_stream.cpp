@@ -1192,7 +1192,7 @@ error:
 Stream_AVSave_WaveIn_Stream::Stream_AVSave_WaveIn_Stream ()
  : inherited ()
  , source_ (this,
-            ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_MIC_SOURCE_WAVEIN_DEFAULT_NAME_STRING))
+            ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_WAVEIN_CAPTURE_DEFAULT_NAME_STRING))
 // , statisticReport_ (this,
 //                     ACE_TEXT_ALWAYS_CHAR (MODULE_STAT_REPORT_DEFAULT_NAME_STRING))
  , tagger_ (this,

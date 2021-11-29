@@ -853,64 +853,6 @@ error:
   return E_FAIL;
 }
 
-//template <ACE_SYNCH_DECL,
-//          typename TimePolicyType,
-//          typename ConfigurationType,
-//          typename ControlMessageType,
-//          typename DataMessageType,
-//          typename SessionMessageType,
-//          typename SessionDataType,
-//          typename SessionDataContainerType,
-//          typename MediaType>
-//void
-//Stream_MediaFramework_MediaFoundation_Target_T<ACE_SYNCH_USE,
-//                                               TimePolicyType,
-//                                               ConfigurationType,
-//                                               ControlMessageType,
-//                                               DataMessageType,
-//                                               SessionMessageType,
-//                                               SessionDataType,
-//                                               SessionDataContainerType,
-//                                               MediaType>::stop (bool waitForCompletion_in,
-//                                                                 bool highPriority_in)
-//{
-//  COMMON_TRACE (ACE_TEXT ("Stream_MediaFramework_MediaFoundation_Target_T::stop"));
-//
-//  int result = -1;
-//  ACE_Message_Block* message_block_p = NULL;
-//
-//  // enqueue a ACE_Message_Block::MB_STOP message
-//  ACE_NEW_NORETURN (message_block_p,
-//                    ACE_Message_Block (0,                                  // size
-//                                       ACE_Message_Block::MB_STOP,         // type
-//                                       NULL,                               // continuation
-//                                       NULL,                               // data
-//                                       NULL,                               // buffer allocator
-//                                       NULL,                               // locking strategy
-//                                       ACE_DEFAULT_MESSAGE_BLOCK_PRIORITY, // priority
-//                                       ACE_Time_Value::zero,               // execution time
-//                                       ACE_Time_Value::max_time,           // deadline time
-//                                       NULL,                               // data block allocator
-//                                       NULL));                             // message allocator
-//  if (unlikely (!message_block_p))
-//  {
-//      ACE_DEBUG ((LM_CRITICAL,
-//                  ACE_TEXT ("%s: failed to allocate ACE_Message_Block: \"%m\", returning\n"),
-//                  inherited::mod_->name ()));
-//    return;
-//  } // end IF
-//
-//  result = (highPriority_in ? queue_.enqueue_head (message_block_p, NULL)
-//                            : queue_.enqueue_tail (message_block_p, NULL));
-//  if (unlikely (result == -1))
-//  {
-//    ACE_DEBUG ((LM_ERROR,
-//                ACE_TEXT ("%s: failed to ACE_Message_Queue::enqueue(): \"%m\", continuing\n"),
-//                inherited::mod_->name ()));
-//    message_block_p->release (); message_block_p = NULL;
-//  } // end IF
-//}
-
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ConfigurationType,
@@ -968,7 +910,7 @@ Stream_MediaFramework_MediaFoundation_Target_T<ACE_SYNCH_USE,
   } // end IF
   ACE_ASSERT (topology_p);
 
-  if (!Stream_MediaFramework_MediaFoundation_Tools::addGrabber (mediaType_in,
+  if (!Stream_MediaFramework_MediaFoundation_Tools::addGrabber (//mediaType_in,
                                                                 sampleGrabberSinkCallback_in,
                                                                 topology_p,
                                                                 node_id))

@@ -846,26 +846,18 @@ Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
                                        NULL));                             // message allocator
   if (unlikely (!message_block_p))
   {
-    if (inherited::mod_)
-      ACE_DEBUG ((LM_CRITICAL,
-                  ACE_TEXT ("%s: failed to allocate ACE_Message_Block: \"%m\", returning\n"),
-                  inherited::mod_->name ()));
-    else
-      ACE_DEBUG ((LM_CRITICAL,
-                  ACE_TEXT ("failed to allocate ACE_Message_Block: \"%m\", returning\n")));
+    ACE_DEBUG ((LM_CRITICAL,
+                ACE_TEXT ("%s: failed to allocate ACE_Message_Block: \"%m\", returning\n"),
+                inherited::mod_->name ()));
     return;
   } // end IF
 
   result = this->putq (message_block_p, NULL);
   if (unlikely (result == -1))
   {
-    if (inherited::mod_)
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("%s: failed to ACE_Task_Base::putq(): \"%m\", continuing\n"),
-                  inherited::mod_->name ()));
-    else
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to ACE_Task_Base::putq(): \"%m\", continuing\n")));
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s: failed to ACE_Task_Base::putq(): \"%m\", continuing\n"),
+                inherited::mod_->name ()));
     message_block_p->release (); message_block_p = NULL;
   } // end IF
 }

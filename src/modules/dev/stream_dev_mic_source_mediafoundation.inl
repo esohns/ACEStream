@@ -441,10 +441,25 @@ Stream_Dev_Mic_Source_MediaFoundation_T<ACE_SYNCH_USE,
         IMFTopology* topology_p = NULL;
         std::string effect_options;
         ACE_ASSERT (inherited::configuration_->deviceIdentifier.identifierDiscriminator == Stream_Device_Identifier::GUID);
+
+        //// set output format
+        //struct _GUID GUID_s =
+        //  Stream_MediaFramework_DirectSound_Tools::waveDeviceIdToDirectSoundGUID ((*iterator).second.second->audioOutput,
+        //                                                                          false); // playback
+        //struct tWAVEFORMATEX waveformatex_s;
+        //Stream_MediaFramework_DirectSound_Tools::getAudioRendererFormat (GUID_s,
+        //                                                                 waveformatex_s);
+        //result_2 = MFCreateMediaType (&media_type_p);
+        //ACE_ASSERT (SUCCEEDED (result_2) && media_type_p);
+        //result_2 = MFInitMediaTypeFromWaveFormatEx (media_type_p,
+        //                                            &waveformatex_s,
+        //                                            sizeof (struct tWAVEFORMATEX));
+        //ACE_ASSERT (SUCCEEDED (result_2));
         if (!Stream_Module_Decoder_Tools::loadAudioRendererTopology (inherited::configuration_->deviceIdentifier.identifier._guid,
                                                                      MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE_AUDCAP_GUID,
                                                                      true,
                                                                      media_type_p,
+                                                                     NULL,
                                                                      this,
                                                                      (inherited::configuration_->mute ? -1
                                                                                                       : inherited::configuration_->audioOutput),

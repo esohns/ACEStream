@@ -779,6 +779,7 @@ Stream_MediaFramework_DirectShow_Tools::dump (IPin* pin_in)
   } // end WHILE
   ienum_media_types_p->Release (); ienum_media_types_p = NULL;
 }
+
 void
 Stream_MediaFramework_DirectShow_Tools::dump (const struct _AMMediaType& mediaType_in)
 {

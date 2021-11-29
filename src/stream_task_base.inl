@@ -637,6 +637,7 @@ Stream_TaskBase_T<ACE_SYNCH_USE,
 
   // sanity check
   ACE_ASSERT (messageBlock_in);
+  ACE_ASSERT (configuration_);
 
   bool forward_b = true;
   switch (messageBlock_in->msg_type ())
@@ -658,6 +659,7 @@ Stream_TaskBase_T<ACE_SYNCH_USE,
       break;
 
 error:
+      messageBlock_in->release ();
       stopProcessing_out = true;
       forward_b = false;
       break;
@@ -695,12 +697,10 @@ error:
         //         if the module forwards the session end message itself
         //         --> memory leakage, resolve ASAP
         if (unlikely (!forward_b))
-        {
           ACE_DEBUG ((LM_WARNING,
                       ACE_TEXT ("%s: cannot post-process session message (type was: %d), continuing\n"),
                       inherited::mod_->name (),
                       session_message_type));
-        } // end IF
         else
         { ACE_ASSERT (session_message_p);
           OWN_TYPE_T::handleSessionMessage (session_message_p,
@@ -716,6 +716,7 @@ error:
       break;
 
 error_2:
+      messageBlock_in->release ();
       stopProcessing_out = true;
       forward_b = false;
       break;
@@ -759,10 +760,17 @@ error_2:
                     inherited::mod_->name ()));
         goto error_3;
       }
+      if (unlikely (forward_b &&
+                    !configuration_->passData)) // *TODO*: remove type inference
+      {
+        messageBlock_in->release ();
+        forward_b = false;
+      } // end IF
 
       break;
 
 error_3:
+      messageBlock_in->release ();
       stopProcessing_out = true;
       forward_b = false;
       break;
@@ -782,6 +790,7 @@ error_3:
       break;
 
 error_4:
+      messageBlock_in->release ();
       stopProcessing_out = true;
       forward_b = false;
       break;
@@ -792,6 +801,7 @@ error_4:
                   ACE_TEXT ("%s: invalid/unknown message (type was: \"%s\"), aborting\n"),
                   inherited::mod_->name (),
                   ACE_TEXT (Stream_Tools::messageTypeToString (static_cast<enum Stream_MessageType> (messageBlock_in->msg_type ())).c_str ())));
+      messageBlock_in->release ();
       stopProcessing_out = true;
       forward_b = false;
       break;
@@ -1019,7 +1029,6 @@ Stream_TaskBase_T<ACE_SYNCH_USE,
   Stream_SessionId_t session_id = 0;
 
   // sanity check(s)
-  ACE_ASSERT (inherited::mod_);
   if (likely (sessionData_))
   {
     const typename SessionMessageType::DATA_T::DATA_T& session_data_r =
@@ -1029,7 +1038,7 @@ Stream_TaskBase_T<ACE_SYNCH_USE,
 
   INOTIFY_T* inotify_p = dynamic_cast<INOTIFY_T*> (inherited::mod_);
   if (unlikely (!inotify_p))
-  { // *TODO*: remove type inferences
+  {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: dynamic_cast<Stream_ISessionNotify_T>(0x%@) failed, returning\n"),
                 inherited::mod_->name (),
