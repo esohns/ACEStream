@@ -4034,10 +4034,6 @@ idle_initialize_UI_cb (gpointer userData_in)
     (*modulehandler_configuration_iterator).second.second->targetFileName.clear ();
 #endif // ACE_WIN32 || ACE_WIN64
 
-  //GtkFileChooserDialog* file_chooser_dialog_p =
-  //  GTK_FILE_CHOOSER_DIALOG (gtk_builder_get_object ((*iterator).second.second,
-  //                                                   ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_FILECHOOSERDIALOG_SAVE_NAME)));
-  //ACE_ASSERT (file_chooser_dialog_p);
   GtkFileFilter* file_filter_p =
     GTK_FILE_FILTER (gtk_builder_get_object ((*iterator).second.second,
                                              ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_FILEFILTER_WAV_NAME)));
@@ -4059,8 +4055,11 @@ idle_initialize_UI_cb (gpointer userData_in)
     GTK_FILE_CHOOSER_BUTTON (gtk_builder_get_object ((*iterator).second.second,
                                                      ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_FILECHOOSERBUTTON_SAVE_NAME)));
   ACE_ASSERT (file_chooser_button_p);
+  GtkFileChooserDialog* file_chooser_dialog_p =
+    GTK_FILE_CHOOSER_DIALOG (gtk_builder_get_object ((*iterator).second.second,
+                                                     ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_FILECHOOSERDIALOG_SAVE_NAME)));
+  ACE_ASSERT (file_chooser_dialog_p);
   gboolean result = FALSE;
-//  gchar* filename_p = NULL;
   if (!filename.empty ())
   {
     if (!Common_File_Tools::isDirectory (filename))
@@ -4080,77 +4079,43 @@ idle_initialize_UI_cb (gpointer userData_in)
       GFile* file_2 = g_file_get_parent (file_p);
       ACE_ASSERT (file_2);
       GError* error_p = NULL;
-      if (!gtk_file_chooser_set_current_folder_file (GTK_FILE_CHOOSER (file_chooser_button_p),
-                                                     file_2,
-                                                     &error_p))
-      {
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("failed to gtk_file_chooser_set_current_folder_file(): \"%s\", aborting\n"),
-                    ACE_TEXT (error_p->message)));
-        g_error_free (error_p); error_p = NULL;
-        g_object_unref (file_p); file_p = NULL;
-        g_object_unref (file_2); file_2 = NULL;
-        return G_SOURCE_REMOVE;
-      } // end IF
-      if (!gtk_file_chooser_select_file (GTK_FILE_CHOOSER (file_chooser_button_p),
-                                         file_p,
-                                         &error_p))
-      {
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("failed to gtk_file_chooser_select_file(): \"%s\", aborting\n"),
-                    ACE_TEXT (error_p->message)));
-        g_error_free (error_p); error_p = NULL;
-        g_object_unref (file_p); file_p = NULL;
-        g_object_unref (file_2); file_2 = NULL;
-        return G_SOURCE_REMOVE;
-      } // end IF
+      result =
+        gtk_file_chooser_set_file (GTK_FILE_CHOOSER (file_chooser_button_p),
+                                   file_p,
+                                   &error_p);
+      ACE_ASSERT (result && !error_p);
+      result =
+        gtk_file_chooser_set_file (GTK_FILE_CHOOSER (file_chooser_dialog_p),
+                                   file_p,
+                                   &error_p);
+      ACE_ASSERT (result && !error_p);
       g_object_unref (file_p); file_p = NULL;
       g_object_unref (file_2); file_2 = NULL;
-      result = 1;
     } // end IF
     else
     {
       result =
         gtk_file_chooser_set_current_folder (GTK_FILE_CHOOSER (file_chooser_button_p),
                                              filename.c_str ());
+      ACE_ASSERT (result);
+      result =
+        gtk_file_chooser_set_current_folder (GTK_FILE_CHOOSER (file_chooser_dialog_p),
+                                             filename.c_str ());
+      ACE_ASSERT (result);
       filename.clear ();
     } // end ELSE
   } // end IF
   else
+  {
     result =
       gtk_file_chooser_set_current_folder (GTK_FILE_CHOOSER (file_chooser_button_p),
                                            Common_File_Tools::getTempDirectory ().c_str ());
-  if (!result)
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to gtk_file_chooser_set_filename(\"%s\"), aborting\n"),
-                ACE_TEXT (filename.c_str ())));
-    return G_SOURCE_REMOVE;
-  } // end IF
-  //std::string default_folder_uri = ACE_TEXT_ALWAYS_CHAR ("file://");
-  //default_folder_uri += filename;
-  //filename_p = Common_UI_GTK_Tools::localeToUTF8 (default_folder_uri);
-  //ACE_ASSERT (filename_p);
-  //if (!gtk_file_chooser_set_current_folder_uri (GTK_FILE_CHOOSER (file_chooser_button_p),
-  //                                              filename_p))
-  //{
-  //  ACE_DEBUG ((LM_ERROR,
-  //              ACE_TEXT ("failed to gtk_file_chooser_set_current_folder_uri(\"%s\"): \"%m\", aborting\n"),
-  //              ACE_TEXT (filename_p)));
-  //  g_free (filename_p);
-  //  return G_SOURCE_REMOVE;
-  //} // end IF^
-  //g_free (filename_p); filename_p = NULL;
-  if (filename.empty ())
-  {
-    GtkCheckButton* check_button_p =
-      GTK_CHECK_BUTTON (gtk_builder_get_object ((*iterator).second.second,
-                                                ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_CHECKBUTTON_SAVE_NAME)));
-    ACE_ASSERT (check_button_p);
-    g_signal_emit_by_name (G_OBJECT (check_button_p),
-                           ACE_TEXT_ALWAYS_CHAR ("toggled"),
-                           userData_in);
-  } // end IF
+    ACE_ASSERT (result);
+    result =
+      gtk_file_chooser_set_current_folder (GTK_FILE_CHOOSER (file_chooser_dialog_p),
+                                           Common_File_Tools::getTempDirectory ().c_str ());
+    ACE_ASSERT (result);
+  } // end ELSE
 
   GtkScale* scale_2 =
     GTK_SCALE (gtk_builder_get_object ((*iterator).second.second,
@@ -4889,21 +4854,38 @@ continue_:
     gtk_widget_set_sensitive (GTK_WIDGET (toggle_button_p), FALSE);
   } // end IF
 
-  bool is_active = !filename.empty ();
-  if (is_active)
+  if (!filename.empty ())
   {
+    //GtkBox* box_p =
+    //  GTK_BOX (gtk_builder_get_object ((*iterator).second.second,
+    //                                   ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_BOX_SAVE_NAME)));
+    //ACE_ASSERT (box_p);
+    //gtk_widget_set_sensitive (GTK_WIDGET (box_p), TRUE);
+
     toggle_button_p =
           GTK_TOGGLE_BUTTON (gtk_builder_get_object ((*iterator).second.second,
                                                      ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_CHECKBUTTON_SAVE_NAME)));
     ACE_ASSERT (toggle_button_p);
+    gtk_signal_handler_block_by_func (GTK_OBJECT (toggle_button_p),
+                                      G_CALLBACK (togglebutton_save_toggled_cb),
+                                      userData_in);
     gtk_toggle_button_set_active (toggle_button_p, TRUE);
-    GtkBox* box_p =
-      GTK_BOX (gtk_builder_get_object ((*iterator).second.second,
-                                       ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_BOX_SAVE_NAME)));
-    ACE_ASSERT (box_p);
-    gtk_widget_set_sensitive (GTK_WIDGET (box_p), TRUE);
+    gtk_signal_handler_unblock_by_func (GTK_OBJECT (toggle_button_p),
+                                        G_CALLBACK (togglebutton_save_toggled_cb),
+                                        userData_in);
   } // end IF
+  else
+  {
+    //GtkCheckButton* check_button_p =
+    //  GTK_CHECK_BUTTON (gtk_builder_get_object ((*iterator).second.second,
+    //                                            ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_CHECKBUTTON_SAVE_NAME)));
+    //ACE_ASSERT (check_button_p);
+    //g_signal_emit_by_name (G_OBJECT (check_button_p),
+    //                       ACE_TEXT_ALWAYS_CHAR ("toggled"),
+    //                       userData_in);
+  } // end ELSE
 
+  bool is_active = false;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   switch (ui_cb_data_base_p->mediaFramework)
   {
@@ -5333,7 +5315,9 @@ idle_session_end_cb (gpointer userData_in)
   if (gtk_toggle_button_get_active (toggle_button_p))
   {
     un_toggling_stream = true;
-    gtk_signal_emit_by_name (GTK_OBJECT (toggle_button_p), "toggled");
+    gtk_signal_emit_by_name (GTK_OBJECT (toggle_button_p),
+                             ACE_TEXT_ALWAYS_CHAR ("toggled"),
+                             userData_in);
   } // end IF
   gtk_widget_set_sensitive (GTK_WIDGET (toggle_button_p), TRUE);
 
@@ -6855,13 +6839,13 @@ togglebutton_save_toggled_cb (GtkToggleButton* toggleButton_in,
 
   bool is_active = gtk_toggle_button_get_active (toggleButton_in);
 
-  GtkFileChooserButton* file_chooser_button_p =
-    GTK_FILE_CHOOSER_BUTTON (gtk_builder_get_object ((*iterator).second.second,
-                                                     ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_FILECHOOSERBUTTON_SAVE_NAME)));
-  ACE_ASSERT (file_chooser_button_p);
+  GtkFileChooserDialog* file_chooser_dialog_p =
+    GTK_FILE_CHOOSER_DIALOG (gtk_builder_get_object ((*iterator).second.second,
+                                                     ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_FILECHOOSERDIALOG_SAVE_NAME)));
+  ACE_ASSERT (file_chooser_dialog_p);
   char* filename_p = NULL;
   GFile* file_p =
-    gtk_file_chooser_get_file (GTK_FILE_CHOOSER (file_chooser_button_p));
+    gtk_file_chooser_get_file (GTK_FILE_CHOOSER (file_chooser_dialog_p));
   if (!file_p)
     goto continue_;
   filename_p = g_file_get_path (file_p);
@@ -6894,9 +6878,9 @@ continue_:
         directshow_ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
       ACE_ASSERT (directshow_modulehandler_configuration_iterator != directshow_ui_cb_data_p->configuration->streamConfiguration.end ());
 
-      if (is_active && filename_p)
+      if (is_active)
         (*directshow_modulehandler_configuration_iterator).second.second->targetFileName =
-          Common_UI_GTK_Tools::UTF8ToLocale (filename_p, -1);
+          Common_UI_GTK_Tools::UTF8ToLocale ((filename_p ? filename_p : ACE_TEXT_ALWAYS_CHAR ("")), -1);
       else
         (*directshow_modulehandler_configuration_iterator).second.second->targetFileName.clear ();
       break;
@@ -6913,9 +6897,9 @@ continue_:
         mediafoundation_ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
       ACE_ASSERT (mediafoundation_modulehandler_configuration_iterator != mediafoundation_ui_cb_data_p->configuration->streamConfiguration.end ());
 
-      if (is_active && filename_p)
+      if (is_active)
         (*mediafoundation_modulehandler_configuration_iterator).second.second->targetFileName =
-          Common_UI_GTK_Tools::UTF8ToLocale (filename_p, -1);
+          Common_UI_GTK_Tools::UTF8ToLocale ((filename_p ? filename_p : ACE_TEXT_ALWAYS_CHAR ("")), -1);
       else
         (*mediafoundation_modulehandler_configuration_iterator).second.second->targetFileName.clear ();
       break;
@@ -6938,9 +6922,9 @@ continue_:
     ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (modulehandler_configuration_iterator != ui_cb_data_p->configuration->streamConfiguration.end ());
 
-  if (is_active && filename_p)
+  if (is_active)
     (*modulehandler_configuration_iterator).second.second->targetFileName =
-      Common_UI_GTK_Tools::UTF8ToLocale (filename_p, -1);
+      Common_UI_GTK_Tools::UTF8ToLocale ((filename_p ? filename_p : ACE_TEXT_ALWAYS_CHAR ("")), -1);
   else
     (*modulehandler_configuration_iterator).second.second->targetFileName.clear ();
 #endif // ACE_WIN32 || ACE_WIN64
@@ -11832,7 +11816,7 @@ filechooserdialog_response_cb (GtkDialog* dialog_in,
                                int responseId_in,
                                gpointer userData_in)
 {
-  STREAM_TRACE (ACE_TEXT ("::filechooserbutton_destination_file_set_cb"));
+  STREAM_TRACE (ACE_TEXT ("::filechooserdialog_response_cb"));
 
   // sanity check(s)
   struct Test_U_AudioEffect_UI_CBDataBase* ui_cb_data_base_p =
@@ -11876,7 +11860,7 @@ filechooser_file_activated_cb (GtkFileChooser* chooser_in,
 
   ACE_UNUSED_ARG (userData_in);
 
-  ACE_ASSERT (false); // *TODO*
+  //ACE_ASSERT (false); // *TODO*
 } // filechooser_file_activated_cb
 #ifdef __cplusplus
 }

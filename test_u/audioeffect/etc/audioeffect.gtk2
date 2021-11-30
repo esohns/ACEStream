@@ -1161,36 +1161,22 @@
                                           </packing>
                                         </child>
                                         <child>
-                                          <object class="GtkHBox" id="box_save_2">
+                                          <object class="GtkFileChooserButton" id="filechooserbutton_destination">
                                             <property name="visible">True</property>
-                                            <property name="sensitive">False</property>
-                                            <property name="can_focus">False</property>
-                                            <property name="homogeneous">True</property>
-                                            <child>
-                                              <object class="GtkFileChooserButton" id="filechooserbutton_destination">
-                                                <property name="visible">True</property>
-                                                <property name="can_focus">True</property>
-                                                <property name="can_default">True</property>
-                                                <property name="receives_default">True</property>
-                                                <property name="has_tooltip">True</property>
-                                                <property name="tooltip_text" translatable="yes">destination file/folder</property>
-                                                <property name="filter">filefilter_wav</property>
-                                                <property name="local_only">False</property>
-                                                <property name="preview_widget_active">False</property>
-                                                <property name="show_hidden">True</property>
-                                                <property name="use_preview_label">False</property>
-                                                <property name="dialog">filechooserdialog_destination</property>
-                                                <property name="focus_on_click">False</property>
-                                                <property name="title" translatable="yes">choose a file</property>
-                                                <signal name="file-set" handler="filechooserbutton_destination_file_set_cb" swapped="no"/>
-                                                <signal name="file-activated" handler="filechooser_file_activated_cb" swapped="no"/>
-                                              </object>
-                                              <packing>
-                                                <property name="expand">True</property>
-                                                <property name="fill">True</property>
-                                                <property name="position">0</property>
-                                              </packing>
-                                            </child>
+                                            <property name="can_focus">True</property>
+                                            <property name="can_default">True</property>
+                                            <property name="receives_default">True</property>
+                                            <property name="has_tooltip">True</property>
+                                            <property name="tooltip_text" translatable="yes">destination file/folder</property>
+                                            <property name="filter">filefilter_wav</property>
+                                            <property name="local_only">False</property>
+                                            <property name="preview_widget_active">False</property>
+                                            <property name="show_hidden">True</property>
+                                            <property name="use_preview_label">False</property>
+                                            <property name="dialog">filechooserdialog_destination</property>
+                                            <property name="focus_on_click">False</property>
+                                            <property name="title" translatable="yes">choose a filename...</property>
+                                            <signal name="file-set" handler="filechooserbutton_destination_file_set_cb" swapped="no"/>
                                           </object>
                                           <packing>
                                             <property name="expand">True</property>
@@ -1392,9 +1378,9 @@
                             <property name="events">GDK_EXPOSURE_MASK | GDK_STRUCTURE_MASK</property>
                             <property name="tooltip_text" translatable="yes">signal</property>
                             <property name="double_buffered">False</property>
-                            <signal name="expose-event" handler="drawingarea_expose_event_cb" swapped="no"/>
                             <signal name="realize" handler="drawingarea_realize_cb" swapped="no"/>
                             <signal name="size-allocate" handler="drawingarea_size_allocate_cb" swapped="no"/>
+                            <signal name="expose-event" handler="drawingarea_expose_event_cb" swapped="no"/>
                             <signal name="query-tooltip" handler="drawingarea_query_tooltip_cb" swapped="no"/>
                           </object>
                           <packing>
@@ -1548,7 +1534,6 @@
     <property name="title" translatable="yes">choose a filename...</property>
     <property name="role">GtkFileChooserDialog</property>
     <property name="modal">True</property>
-    <property name="destroy_with_parent">True</property>
     <property name="type_hint">dialog</property>
     <property name="deletable">False</property>
     <property name="transient_for">dialog_main</property>
@@ -1560,7 +1545,6 @@
     <property name="preview_widget_active">False</property>
     <property name="show_hidden">True</property>
     <property name="use_preview_label">False</property>
-    <signal name="file-activated" handler="filechooser_file_activated_cb" swapped="no"/>
     <signal name="response" handler="filechooserdialog_response_cb" swapped="no"/>
     <child internal-child="vbox">
       <object class="GtkVBox" id="dialog-vbox6">
@@ -1618,8 +1602,8 @@
       </object>
     </child>
     <action-widgets>
-      <action-widget response="0">button_select</action-widget>
-      <action-widget response="1">button_cancel</action-widget>
+      <action-widget response="-5">button_select</action-widget>
+      <action-widget response="-6">button_cancel</action-widget>
     </action-widgets>
   </object>
 </interface>

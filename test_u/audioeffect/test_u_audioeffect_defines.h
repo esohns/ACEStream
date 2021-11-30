@@ -65,6 +65,7 @@
 #define TEST_U_STREAM_UI_GTK_BUTTON_ABOUT_NAME               "button_about"
 #define TEST_U_STREAM_UI_GTK_BUTTON_PROPERTIES_NAME          "button_properties"
 #define TEST_U_STREAM_UI_GTK_BUTTON_RESET_NAME               "button_reset"
+#define TEST_U_STREAM_UI_GTK_BUTTON_SELECT_NAME              "button_select"
 #define TEST_U_STREAM_UI_GTK_BUTTON_SETTINGS_NAME            "button_settings"
 #define TEST_U_STREAM_UI_GTK_BUTTON_QUIT_NAME                "button_quit"
 #define TEST_U_STREAM_UI_GTK_CHECKBUTTON_EFFECT_NAME         "checkbutton_effect"
