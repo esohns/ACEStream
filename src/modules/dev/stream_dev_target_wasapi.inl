@@ -272,18 +272,21 @@ Stream_Dev_Target_WASAPI_T<ACE_SYNCH_USE,
       IMMDeviceCollection* devices_p = NULL;
       UINT num_devices_i = 0;
       enum _AUDCLNT_SHAREMODE share_mode_e =
-        STREAM_DEV_WASAPI_RENDER_DEFAULT_SHAREMODE;
+        STREAM_LIB_WASAPI_RENDER_DEFAULT_SHAREMODE;
       IMMDevice* device_p = NULL;
       struct _GUID GUID_s = GUID_NULL;
       IPropertyStore* property_store_p = NULL;
       struct tagPROPVARIANT property_s;
       DWORD stream_flags_i =
-        (AUDCLNT_STREAMFLAGS_EVENTCALLBACK |
-         //AUDCLNT_STREAMFLAGS_NOPERSIST         |
+        (AUDCLNT_STREAMFLAGS_EVENTCALLBACK           |
+         //AUDCLNT_STREAMFLAGS_NOPERSIST             |
          /////////////////////////////////
-         AUDCLNT_SESSIONFLAGS_EXPIREWHENUNOWNED);
+         AUDCLNT_SESSIONFLAGS_EXPIREWHENUNOWNED      |
+         AUDCLNT_SESSIONFLAGS_DISPLAY_HIDEWHENEXPIRED);
       HANDLE task_h = NULL;
       struct tWAVEFORMATEX* audio_info_2 = NULL;
+      IAudioSessionControl* audio_session_control_p = NULL;
+
       if (InlineIsEqualGUID (device_identifier_s, GUID_NULL))
       {
         result_2 =
@@ -368,13 +371,14 @@ continue_:
       } // end IF
       result_2 = audioClient_->GetDevicePeriod (NULL, &requested_duration_i);
       ACE_ASSERT (SUCCEEDED (result_2));
+      GUID_s = CLSID_ACEStream_MediaFramework_WASAPI_AudioSession;
 retry:
       result_2 = audioClient_->Initialize (share_mode_e,
                                            stream_flags_i,
                                            requested_duration_i,
                                            ((share_mode_e == AUDCLNT_SHAREMODE_EXCLUSIVE) ? requested_duration_i : 0),
                                            audio_info_p,
-                                           NULL);
+                                           &GUID_s);
       if (unlikely (FAILED (result_2))) // AUDCLNT_E_UNSUPPORTED_FORMAT: 0x88890008
       {
         if (unlikely (result_2 == AUDCLNT_E_BUFFER_SIZE_NOT_ALIGNED))
@@ -404,6 +408,13 @@ retry:
       device_p->Release (); device_p = NULL;
       result_2 = audioClient_->GetBufferSize (&bufferSize_);
       ACE_ASSERT (SUCCEEDED (result_2) && bufferSize_);
+      result_2 =
+        audioClient_->GetService (IID_PPV_ARGS (&audio_session_control_p));
+      ACE_ASSERT (SUCCEEDED (result_2) && audio_session_control_p);
+      result_2 =
+        audio_session_control_p->RegisterAudioSessionNotification (this);
+      ACE_ASSERT (SUCCEEDED (result_2));
+      audio_session_control_p->Release (); audio_session_control_p = NULL;
 
       ACE_ASSERT (!event_);
       event_ = CreateEvent (NULL,  // lpEventAttributes
@@ -471,6 +482,15 @@ error:
       } // end IF
       if (likely (audioClient_))
       {
+        IAudioSessionControl* audio_session_control_p = NULL;
+        result_2 =
+          audioClient_->GetService (IID_PPV_ARGS (&audio_session_control_p));
+        ACE_ASSERT (SUCCEEDED (result_2) && audio_session_control_p);
+        result_2 =
+          audio_session_control_p->UnregisterAudioSessionNotification (this);
+        ACE_ASSERT (SUCCEEDED (result_2));
+        audio_session_control_p->Release (); audio_session_control_p = NULL;
+
         audioClient_->Release (); audioClient_ = NULL;
       } // end IF
 
@@ -479,6 +499,263 @@ error:
     default:
       break;
   } // end SWITCH
+}
+
+template <ACE_SYNCH_DECL,
+          typename TimePolicyType,
+          typename ConfigurationType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
+          typename SessionControlType,
+          typename SessionEventType,
+          typename UserDataType,
+          typename MediaType>
+HRESULT
+Stream_Dev_Target_WASAPI_T<ACE_SYNCH_USE,
+                           TimePolicyType,
+                           ConfigurationType,
+                           ControlMessageType,
+                           DataMessageType,
+                           SessionMessageType,
+                           SessionControlType,
+                           SessionEventType,
+                           UserDataType,
+                           MediaType>::QueryInterface (REFIID IID_in,
+                                                       void** interface_out)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Dev_Target_WASAPI_T::QueryInterface"));
+
+  static const QITAB query_interface_table[] =
+  {
+    QITABENT (OWN_TYPE_T, IUnknown),
+    QITABENT (OWN_TYPE_T, IAudioSessionEvents),
+    { 0 },
+  };
+
+  return QISearch (this,
+                   query_interface_table,
+                   IID_in,
+                   interface_out);
+}
+
+template <ACE_SYNCH_DECL,
+          typename TimePolicyType,
+          typename ConfigurationType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
+          typename SessionControlType,
+          typename SessionEventType,
+          typename UserDataType,
+          typename MediaType>
+HRESULT
+Stream_Dev_Target_WASAPI_T<ACE_SYNCH_USE,
+                           TimePolicyType,
+                           ConfigurationType,
+                           ControlMessageType,
+                           DataMessageType,
+                           SessionMessageType,
+                           SessionControlType,
+                           SessionEventType,
+                           UserDataType,
+                           MediaType>::OnDisplayNameChanged (LPCWSTR NewDisplayName,
+                                                             LPCGUID EventContext)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Dev_Target_WASAPI_T::OnDisplayNameChanged"));
+
+  ACE_UNUSED_ARG (NewDisplayName);
+  ACE_UNUSED_ARG (EventContext);
+
+  return S_OK;
+}
+
+template <ACE_SYNCH_DECL,
+          typename TimePolicyType,
+          typename ConfigurationType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
+          typename SessionControlType,
+          typename SessionEventType,
+          typename UserDataType,
+          typename MediaType>
+HRESULT
+Stream_Dev_Target_WASAPI_T<ACE_SYNCH_USE,
+                           TimePolicyType,
+                           ConfigurationType,
+                           ControlMessageType,
+                           DataMessageType,
+                           SessionMessageType,
+                           SessionControlType,
+                           SessionEventType,
+                           UserDataType,
+                           MediaType>::OnIconPathChanged (LPCWSTR NewIconPath,
+                                                          LPCGUID EventContext)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Dev_Target_WASAPI_T::OnIconPathChanged"));
+
+  ACE_UNUSED_ARG (NewIconPath);
+  ACE_UNUSED_ARG (EventContext);
+
+  return S_OK;
+}
+
+template <ACE_SYNCH_DECL,
+          typename TimePolicyType,
+          typename ConfigurationType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
+          typename SessionControlType,
+          typename SessionEventType,
+          typename UserDataType,
+          typename MediaType>
+HRESULT
+Stream_Dev_Target_WASAPI_T<ACE_SYNCH_USE,
+                           TimePolicyType,
+                           ConfigurationType,
+                           ControlMessageType,
+                           DataMessageType,
+                           SessionMessageType,
+                           SessionControlType,
+                           SessionEventType,
+                           UserDataType,
+                           MediaType>::OnSimpleVolumeChanged (float NewVolume,
+                                                              BOOL NewMute,
+                                                              LPCGUID EventContext)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Dev_Target_WASAPI_T::OnSimpleVolumeChanged"));
+
+  ACE_UNUSED_ARG (NewVolume);
+  ACE_UNUSED_ARG (NewMute);
+  ACE_UNUSED_ARG (EventContext);
+
+  return S_OK;
+}
+
+template <ACE_SYNCH_DECL,
+          typename TimePolicyType,
+          typename ConfigurationType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
+          typename SessionControlType,
+          typename SessionEventType,
+          typename UserDataType,
+          typename MediaType>
+HRESULT
+Stream_Dev_Target_WASAPI_T<ACE_SYNCH_USE,
+                           TimePolicyType,
+                           ConfigurationType,
+                           ControlMessageType,
+                           DataMessageType,
+                           SessionMessageType,
+                           SessionControlType,
+                           SessionEventType,
+                           UserDataType,
+                           MediaType>::OnChannelVolumeChanged (DWORD ChannelCount,
+                                                               float NewChannelVolumeArray[],
+                                                               DWORD ChangedChannel,
+                                                               LPCGUID EventContext)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Dev_Target_WASAPI_T::OnChannelVolumeChanged"));
+
+  ACE_UNUSED_ARG (ChannelCount);
+  ACE_UNUSED_ARG (NewChannelVolumeArray);
+  ACE_UNUSED_ARG (ChangedChannel);
+  ACE_UNUSED_ARG (EventContext);
+
+  return S_OK;
+}
+
+template <ACE_SYNCH_DECL,
+          typename TimePolicyType,
+          typename ConfigurationType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
+          typename SessionControlType,
+          typename SessionEventType,
+          typename UserDataType,
+          typename MediaType>
+HRESULT
+Stream_Dev_Target_WASAPI_T<ACE_SYNCH_USE,
+                           TimePolicyType,
+                           ConfigurationType,
+                           ControlMessageType,
+                           DataMessageType,
+                           SessionMessageType,
+                           SessionControlType,
+                           SessionEventType,
+                           UserDataType,
+                           MediaType>::OnGroupingParamChanged (LPCGUID NewGroupingParam,
+                                                               LPCGUID EventContext)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Dev_Target_WASAPI_T::OnGroupingParamChanged"));
+
+  ACE_UNUSED_ARG (NewGroupingParam);
+  ACE_UNUSED_ARG (EventContext);
+
+  return S_OK;
+}
+
+template <ACE_SYNCH_DECL,
+          typename TimePolicyType,
+          typename ConfigurationType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
+          typename SessionControlType,
+          typename SessionEventType,
+          typename UserDataType,
+          typename MediaType>
+HRESULT
+Stream_Dev_Target_WASAPI_T<ACE_SYNCH_USE,
+                           TimePolicyType,
+                           ConfigurationType,
+                           ControlMessageType,
+                           DataMessageType,
+                           SessionMessageType,
+                           SessionControlType,
+                           SessionEventType,
+                           UserDataType,
+                           MediaType>::OnStateChanged (AudioSessionState NewState)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Dev_Target_WASAPI_T::OnStateChanged"));
+
+  ACE_UNUSED_ARG (NewState);
+
+  return S_OK;
+}
+
+template <ACE_SYNCH_DECL,
+          typename TimePolicyType,
+          typename ConfigurationType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
+          typename SessionControlType,
+          typename SessionEventType,
+          typename UserDataType,
+          typename MediaType>
+HRESULT
+Stream_Dev_Target_WASAPI_T<ACE_SYNCH_USE,
+                           TimePolicyType,
+                           ConfigurationType,
+                           ControlMessageType,
+                           DataMessageType,
+                           SessionMessageType,
+                           SessionControlType,
+                           SessionEventType,
+                           UserDataType,
+                           MediaType>::OnSessionDisconnected (AudioSessionDisconnectReason DisconnectReason)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Dev_Target_WASAPI_T::OnSessionDisconnected"));
+
+  ACE_UNUSED_ARG (DisconnectReason);
+
+  return S_OK;
 }
 
 template <ACE_SYNCH_DECL,
@@ -539,6 +816,66 @@ Stream_Dev_Target_WASAPI_T<ACE_SYNCH_USE,
                 inherited::mod_->name ()));
     message_block_p->release (); message_block_p = NULL;
   } // end IF
+
+  if (likely (waitForCompletion_in))
+    inherited::wait ();
+}
+
+template <ACE_SYNCH_DECL,
+          typename TimePolicyType,
+          typename ConfigurationType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
+          typename SessionControlType,
+          typename SessionEventType,
+          typename UserDataType,
+          typename MediaType>
+ACE_Message_Block*
+Stream_Dev_Target_WASAPI_T<ACE_SYNCH_USE,
+                           TimePolicyType,
+                           ConfigurationType,
+                           ControlMessageType,
+                           DataMessageType,
+                           SessionMessageType,
+                           SessionControlType,
+                           SessionEventType,
+                           UserDataType,
+                           MediaType>::get ()
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Dev_Target_WASAPI_T::get"));
+
+  ACE_Message_Block* message_block_p = NULL;
+  int result = inherited::getq (message_block_p, NULL);
+  if (unlikely (result == -1))
+  {
+    int error = ACE_OS::last_error ();
+    if (error != EWOULDBLOCK) // Win32: 10035
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("%s: failed to ACE_Task::getq(): \"%m\", aborting\n"),
+                  inherited::mod_->name ()));
+    return NULL;
+  } // end IF
+  ACE_ASSERT (message_block_p);
+
+  switch (message_block_p->msg_type ())
+  {
+    case ACE_Message_Block::MB_STOP:
+    {
+      message_block_p->release (); message_block_p = NULL;
+      break;
+    }
+    case STREAM_MESSAGE_DATA:
+    case STREAM_MESSAGE_OBJECT:
+      break;
+    default:
+    {
+      message_block_p->release (); message_block_p = NULL;
+      break;
+    }
+  } // end SWITCH
+
+  return message_block_p;
 }
 
 template <ACE_SYNCH_DECL,
@@ -570,17 +907,15 @@ Stream_Dev_Target_WASAPI_T<ACE_SYNCH_USE,
               inherited::mod_->name ()));
 
   int result = 0;
-  int result_2 = -1;
   ACE_Message_Block* message_block_p = NULL;
-  int error = 0;
   DWORD task_index_i = 0;
-  DWORD result_3 = 0;
-  HRESULT result_4 = E_FAIL;
-  UINT32 packet_length_i = 0;
-  UINT32 num_frames_available_i = 0, num_frames_written_i = 0;
+  DWORD result_2 = 0;
+  HRESULT result_3 = E_FAIL;
+  UINT32 num_frames_available_i = 0;
   BYTE* data_p = 0;
-  //DWORD flags_i = 0;
   size_t bytes_to_write_i = 0;
+  unsigned int offset_i = 0;
+  UINT32 buffer_size_i = 0;
 
   ACE_ASSERT (!task_);
   task_ = AvSetMmThreadCharacteristics (TEXT ("Pro Audio"), &task_index_i);
@@ -596,67 +931,93 @@ Stream_Dev_Target_WASAPI_T<ACE_SYNCH_USE,
   // process sample data
   do
   {
-    message_block_p = NULL;
-    result_2 = inherited::getq (message_block_p, NULL);
-    if (unlikely (result_2 == -1))
-    {
-      error = ACE_OS::last_error ();
-      if (error != EWOULDBLOCK) // Win32: 10035
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("%s: failed to ACE_Task::getq(): \"%m\", aborting\n"),
-                    inherited::mod_->name ()));
-      break;
-    } // end IF
-    ACE_ASSERT (message_block_p);
-
-    switch (message_block_p->msg_type ())
-    {
-      case ACE_Message_Block::MB_STOP:
-      {
-        message_block_p->release (); message_block_p = NULL;
-        goto done;
-      }
-      case STREAM_MESSAGE_DATA:
-      case STREAM_MESSAGE_OBJECT:
-      {
-        // step1: wait for the next buffer
+    // step1: wait for the next buffer
 next_buffer:
-        result_3 = WaitForSingleObject (event_, INFINITE);
-        if (unlikely (result_3 != WAIT_OBJECT_0))
-        {
-          ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("%s: failed to WaitForSingleObject(), aborting\n"),
-                      inherited::mod_->name ()));
-          result = -1;
-          goto done;
-        } // end IF
+    result_2 = WaitForSingleObject (event_, INFINITE);
+    if (unlikely (result_2 != WAIT_OBJECT_0))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("%s: failed to WaitForSingleObject(), aborting\n"),
+                  inherited::mod_->name ()));
+      result = -1;
+      goto done;
+    } // end IF
 
-        // step2: grab the next buffer(s) from the render device
-        result_4 = audioRenderClient_->GetBuffer (bufferSize_,
-                                                  &data_p);
-        ACE_ASSERT (SUCCEEDED (result_4) && data_p);
-        bytes_to_write_i = frameSize_ * bufferSize_;
-        bytes_to_write_i =
-          std::min (message_block_p->length (), bytes_to_write_i);
-        ACE_ASSERT ((bytes_to_write_i % frameSize_) == 0);
-        ACE_OS::memcpy (data_p, message_block_p->rd_ptr (),
-                        bytes_to_write_i);
-        result_4 = audioRenderClient_->ReleaseBuffer (bytes_to_write_i / frameSize_,
-                                                      /*flags_i*/0);
-        ACE_ASSERT (SUCCEEDED (result_4));
+    // step2: grab the next buffer(s) from the render device
+    buffer_size_i = bufferSize_;
+retry:
+    result_3 = audioRenderClient_->GetBuffer (buffer_size_i,
+                                              &data_p);
+    //AUDCLNT_E_BUFFER_TOO_LARGE: 0x88890006
+    if (FAILED (result_3))
+    {
+      if (result_3 == AUDCLNT_E_BUFFER_TOO_LARGE)
+      {
+        // retry with a smaller buffer
+        buffer_size_i /= 2;
+        // *TODO*: do not write less data than IAudioClient::GetStreamLatency()
+        buffer_size_i += (frameSize_ - (buffer_size_i % frameSize_));
+        ACE_ASSERT ((buffer_size_i % frameSize_) == 0);
+        goto retry;
+      } // end IF
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("%s: failed to IAudioRenderClient::GetBuffer(): \"%s\", aborting\n"),
+                  inherited::mod_->name (),
+                  ACE_TEXT (Common_Error_Tools::errorToString (result_3, true, false).c_str ())));
+      result = -1;
+      goto done;
+    } // end IF
+    ACE_ASSERT (data_p);
+    num_frames_available_i = buffer_size_i;
+    offset_i = 0;
 
-        message_block_p->rd_ptr (bytes_to_write_i);
-        if (message_block_p->length ())
-          goto next_buffer;
+    if (message_block_p)
+      goto continue_;
 
-        // *WARNING*: control falls through
-      }
-      default:
+next_buffer_2:
+    message_block_p = get ();
+    if (!message_block_p)
+    {
+      result_3 = audioRenderClient_->ReleaseBuffer (buffer_size_i - num_frames_available_i,
+                                                    /*flags_i*/0);
+      ACE_ASSERT (SUCCEEDED (result_3));
+      goto done;
+    } // end IF
+
+continue_:
+    bytes_to_write_i =
+      std::min (message_block_p->length (), (num_frames_available_i * frameSize_));
+    ACE_ASSERT ((bytes_to_write_i % frameSize_) == 0);
+    ACE_OS::memcpy (data_p + offset_i, message_block_p->rd_ptr (),
+                    bytes_to_write_i);
+    num_frames_available_i -= bytes_to_write_i / frameSize_;
+    offset_i += bytes_to_write_i;
+
+    message_block_p->rd_ptr (bytes_to_write_i);
+    if (!message_block_p->length ())
+    {
+      if (message_block_p->cont ())
+      {
+        ACE_Message_Block* message_block_2 = message_block_p->cont ();
+        message_block_p->cont (NULL);
+        message_block_p->release (); message_block_p = message_block_2;
+      } // end IF
+      else
       {
         message_block_p->release (); message_block_p = NULL;
-        break;
-      }
-    } // end SWITCH
+      } // end ELSE
+    } // end IF
+
+    if (!num_frames_available_i)
+    {
+      result_3 = audioRenderClient_->ReleaseBuffer (buffer_size_i,
+                                                    /*flags_i*/0);
+      ACE_ASSERT (SUCCEEDED (result_3));
+      goto next_buffer;
+    } // end IF
+    if (!message_block_p)
+      goto next_buffer_2;
+    goto continue_;
   } while (true);
   result = -1;
 

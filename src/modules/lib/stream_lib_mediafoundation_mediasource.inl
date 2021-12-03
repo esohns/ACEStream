@@ -252,11 +252,10 @@ Stream_MediaFramework_MediaFoundation_MediaStream_T<MediaSourceType>::RequestSam
     return MF_E_SHUTDOWN;
 
   if (pToken)
-  {
     pToken->AddRef ();
-    ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, mediaSource_->lock_, E_FAIL);
+  { ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, mediaSource_->lock_, E_FAIL);
     mediaSource_->tokens_.push_back (pToken);
-  } // end IF
+  } // end lock scope
 
   return S_OK;
 }
@@ -487,7 +486,8 @@ Stream_MediaFramework_MediaFoundation_MediaSource_T<TimePolicyType,
     for (TOKEN_LIST_ITERATOR_T iterator = tokens_.begin ();
          iterator != tokens_.end ();
          ++iterator)
-      (*iterator)->Release ();
+      if (*iterator)
+        (*iterator)->Release ();
     tokens_.clear ();
   } // end lock scope
 
@@ -771,6 +771,9 @@ Stream_MediaFramework_MediaFoundation_MediaSource_T<TimePolicyType,
   result = presentationDescriptor_->SetUINT32 (MF_PD_AUDIO_ISVARIABLEBITRATE,
                                                0);
   ACE_ASSERT (SUCCEEDED (result));
+  result = presentationDescriptor_->SetUINT64 (MF_PD_DURATION,
+                                               static_cast<UINT64> (std::numeric_limits<INT64>::max ()));
+  ACE_ASSERT (SUCCEEDED (result));
 
   result = presentationDescriptor_->SelectStream (0);
   ACE_ASSERT (SUCCEEDED (result));
@@ -862,30 +865,21 @@ Stream_MediaFramework_MediaFoundation_MediaSource_T<TimePolicyType,
                                             media_stream_p);
   ACE_ASSERT (SUCCEEDED (result));
 
-  //// send MEUpdatedStream
-  //result = eventQueue_->QueueEventParamUnk (MEUpdatedStream,
-  //                                          GUID_NULL,
-  //                                          S_OK,
-  //                                          media_stream_p);
-  //ACE_ASSERT (SUCCEEDED (result));
-  //media_stream_p->Release (); media_stream_p = NULL;
+  // send MEUpdatedStream
+  result = eventQueue_->QueueEventParamUnk (MEUpdatedStream,
+                                            GUID_NULL,
+                                            S_OK,
+                                            media_stream_p);
+  ACE_ASSERT (SUCCEEDED (result));
+  media_stream_p->Release (); media_stream_p = NULL;
 
-  // send MEStreamStarted
+  // send MESourceStarted
   struct tagPROPVARIANT property_s;
   PropVariantInit (&property_s);
   //property_s.vt = VT_EMPTY;
   property_s.vt = VT_I8;
+  //property_s.hVal.QuadPart = MFGetSystemTime ();
   property_s.hVal.QuadPart = 0;
-  result = mediaStream_->QueueEvent (MEStreamStarted,
-                                     GUID_NULL,
-                                     S_OK,
-                                     &property_s);
-  ACE_ASSERT (SUCCEEDED (result));
-
-  // send MESourceStarted
-  //property_s.vt = VT_EMPTY;
-  property_s.vt = VT_I8;
-  property_s.hVal.QuadPart = MFGetSystemTime ();
   IMFMediaEvent* media_event_p = NULL;
   result = MFCreateMediaEvent (MESourceStarted,
                                GUID_NULL,
@@ -894,12 +888,22 @@ Stream_MediaFramework_MediaFoundation_MediaSource_T<TimePolicyType,
                                &media_event_p);
   ACE_ASSERT (SUCCEEDED (result) && media_event_p);
   PropVariantClear (&property_s);
-  //result = media_event_p->SetUINT64 (MF_EVENT_SOURCE_ACTUAL_START,
-  //                                   0);
-  //ACE_ASSERT (SUCCEEDED (result));
+  result = media_event_p->SetUINT64 (MF_EVENT_SOURCE_ACTUAL_START,
+                                     0);
+  ACE_ASSERT (SUCCEEDED (result));
   result = eventQueue_->QueueEvent (media_event_p);
   ACE_ASSERT (SUCCEEDED (result));
   media_event_p->Release (); media_event_p = NULL;
+
+  // send MEStreamStarted
+  //property_s.vt = VT_EMPTY;
+  property_s.vt = VT_I8;
+  property_s.hVal.QuadPart = 0;
+  result = mediaStream_->QueueEvent (MEStreamStarted,
+                                     GUID_NULL,
+                                     S_OK,
+                                     &property_s);
+  ACE_ASSERT (SUCCEEDED (result));
 
   //// send MEBufferingStarted
   //buffering_ = true;
@@ -1511,7 +1515,9 @@ Stream_MediaFramework_MediaFoundation_MediaSource_T<TimePolicyType,
   //  return S_OK;
   //} // end IF
 
-  ACE_DEBUG ((LM_ERROR,
+  // MF_RATE_CONTROL_SERVICE: {866FA297-B802-4BF8-9DC9-5E3B6A9F53C9}
+  // IID_IMFRateControl: {88DDCD21-03C3-4275-91ED-55EE3929328F}
+  ACE_DEBUG ((LM_DEBUG,
               ACE_TEXT ("invalid/unknown service/interface GUID (was: \"%s\",\"%s\"), aborting\n"),
               ACE_TEXT (Common_Tools::GUIDToString (guidService).c_str ()),
               ACE_TEXT (Common_Tools::GUIDToString (riid).c_str ())));
@@ -1800,11 +1806,14 @@ Stream_MediaFramework_MediaFoundation_MediaSource_T<TimePolicyType,
   //  presentationDescriptor_->Release (); presentationDescriptor_ = NULL;
   //} // end IF
   state_ = STATE_INITIALIZED;
-  for (TOKEN_LIST_ITERATOR_T iterator = tokens_.begin ();
-       iterator != tokens_.end ();
-       ++iterator)
-    (*iterator)->Release ();
-  tokens_.clear ();
+  { ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, lock_, false);
+    for (TOKEN_LIST_ITERATOR_T iterator = tokens_.begin ();
+         iterator != tokens_.end ();
+         ++iterator)
+      if (*iterator)
+        (*iterator)->Release ();
+    tokens_.clear ();
+  } // end lock scope
 
   return true;
 }

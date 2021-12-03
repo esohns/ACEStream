@@ -9,6 +9,7 @@
 // *NOTE*: work around quirky MSVC...
 #define NOMINMAX
 
+#define WINAPI_FAMILY WINAPI_FAMILY_DESKTOP_APP
 #include "targetver.h"
 
 // Windows Header Files

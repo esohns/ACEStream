@@ -23,6 +23,7 @@
 
 #include <string>
 
+#include "audiopolicy.h"
 #include "Audioclient.h"
 
 #include "ace/Global_Macros.h"
@@ -60,6 +61,7 @@ class Stream_Dev_Target_WASAPI_T
                                  SessionEventType,
                                  UserDataType>
  , public Stream_MediaFramework_MediaTypeConverter_T<MediaType>
+ , public IAudioSessionEvents
 {
   typedef Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
                                  TimePolicyType,
@@ -86,10 +88,48 @@ class Stream_Dev_Target_WASAPI_T
   virtual void handleSessionMessage (SessionMessageType*&, // session message handle
                                      bool&);               // return value: pass message downstream ?
 
+  // implement IAudioSessionEvents
+  // IUnknown
+  virtual STDMETHODIMP QueryInterface (REFIID,
+                                       void**);
+  inline virtual STDMETHODIMP_ (ULONG) AddRef () { return 1; }
+  inline virtual STDMETHODIMP_ (ULONG) Release () { return 1; }
+  // IAudioSessionEvents
+  virtual STDMETHODIMP OnDisplayNameChanged (LPCWSTR NewDisplayName,
+                                             LPCGUID EventContext);
+  virtual STDMETHODIMP OnIconPathChanged (LPCWSTR NewIconPath,
+                                          LPCGUID EventContext);
+  virtual STDMETHODIMP OnSimpleVolumeChanged (float NewVolume,
+                                              BOOL NewMute,
+                                              LPCGUID EventContext);
+  virtual STDMETHODIMP OnChannelVolumeChanged (DWORD ChannelCount,
+                                               float NewChannelVolumeArray [],
+                                               DWORD ChangedChannel,
+                                               LPCGUID EventContext);
+  virtual STDMETHODIMP OnGroupingParamChanged (LPCGUID NewGroupingParam,
+                                               LPCGUID EventContext);
+  virtual STDMETHODIMP OnStateChanged (AudioSessionState NewState);
+  virtual STDMETHODIMP OnSessionDisconnected (AudioSessionDisconnectReason DisconnectReason);
+
  private:
+  // convenient types
+  typedef Stream_Dev_Target_WASAPI_T<ACE_SYNCH_USE,
+                                     TimePolicyType,
+                                     ConfigurationType,
+                                     ControlMessageType,
+                                     DataMessageType,
+                                     SessionMessageType,
+                                     SessionControlType,
+                                     SessionEventType,
+                                     UserDataType,
+                                     MediaType> OWN_TYPE_T;
+
   ACE_UNIMPLEMENTED_FUNC (Stream_Dev_Target_WASAPI_T ())
   ACE_UNIMPLEMENTED_FUNC (Stream_Dev_Target_WASAPI_T (const Stream_Dev_Target_WASAPI_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Dev_Target_WASAPI_T& operator= (const Stream_Dev_Target_WASAPI_T&))
+
+  // block and get next buffer. If the return value is NULL, stop
+  ACE_Message_Block* get ();
 
   // enqueue MB_STOP --> stop worker thread(s)
   virtual void stop (bool = true,   // wait for completion ?

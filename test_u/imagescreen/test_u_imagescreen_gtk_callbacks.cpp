@@ -690,11 +690,11 @@ togglebutton_start_toggled_cb (GtkToggleButton* toggleButton_in,
       //                 idle_update_progress_cb,
       //                 &data_p->progressData,
       //                 NULL);
-      g_timeout_add_full (G_PRIORITY_DEFAULT_IDLE,            // _LOW doesn't work (on Win32)
-                          COMMON_UI_REFRESH_DEFAULT_PROGRESS, // ms (?)
-                          idle_update_progress_cb,
-                          &ui_cb_data_p->progressData,
-                          NULL);
+      g_timeout_add (//G_PRIORITY_DEFAULT_IDLE,            // _LOW doesn't work (on Win32)
+                     COMMON_UI_REFRESH_DEFAULT_PROGRESS_MS, // ms (?)
+                     idle_update_progress_cb,
+                     &ui_cb_data_p->progressData);//,
+                     //NULL);
   if (!ui_cb_data_p->progressData.eventSourceId)
   {
     ACE_DEBUG ((LM_ERROR,

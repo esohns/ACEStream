@@ -23,6 +23,7 @@
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #include "Mferror.h"
+#include "mfapi.h"
 #endif // ACE_WIN32 || ACE_WIN64
 
 #include "ace/Log_Msg.h"
@@ -634,6 +635,7 @@ Test_U_AudioEffect_MediaFoundation_Stream::load (Stream_ILayout* layout_in,
 
   // sanity check(s)
   ACE_ASSERT (inherited::configuration_);
+  ACE_ASSERT (inherited::configuration_->configuration_);
   typename inherited::CONFIGURATION_T::ITERATOR_T iterator =
     inherited::configuration_->find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (iterator != inherited::configuration_->end ());
@@ -679,13 +681,29 @@ Test_U_AudioEffect_MediaFoundation_Stream::load (Stream_ILayout* layout_in,
   module_p = NULL;
 #endif // GTK_USE
 #endif // GUI_SUPPORT
-  if (!InlineIsEqualGUID ((*iterator).second.second->effect, GUID_NULL))
+  struct _GUID GUID_s =
+    Stream_MediaFramework_DirectSound_Tools::waveDeviceIdToDirectSoundGUID ((*iterator).second.second->audioOutput,
+                                                                            false); // playback
+  struct tWAVEFORMATEX* waveformatex_p = NULL;
+  UINT32 size_i = 0;
+  HRESULT result =
+    MFCreateWaveFormatExFromMFMediaType (inherited::configuration_->configuration_->format,
+                                         &waveformatex_p,
+                                         &size_i,
+                                         MFWaveFormatExConvertFlag_Normal);
+  ACE_ASSERT (SUCCEEDED (result) && waveformatex_p);
+  bool can_render_b =
+    Stream_MediaFramework_DirectSound_Tools::canRender (GUID_s,
+                                                        *waveformatex_p);
+  if (!InlineIsEqualGUID ((*iterator).second.second->effect, GUID_NULL) ||
+      (!(*iterator).second.second->mute && !can_render_b))
   {
     layout_in->append (&mediaFoundationTarget_, NULL, 0);
-    if (!(*iterator).second.second->mute ||
+    if ((!(*iterator).second.second->mute && !can_render_b) ||
         !(*iterator).second.second->targetFileName.empty ())
       layout_in->append (&mediaFoundationSource_, NULL, 0);
   } // end IF
+  CoTaskMemFree (waveformatex_p); waveformatex_p = NULL;
   if (!(*iterator).second.second->mute)
   {
     ACE_NEW_RETURN (module_p,
@@ -727,6 +745,30 @@ Test_U_AudioEffect_MediaFoundation_Stream::initialize (const inherited::CONFIGUR
 
   // sanity check(s)
   ACE_ASSERT (!isRunning ());
+
+  if (inherited::isInitialized_)
+  {
+    if (inherited::find (ACE_TEXT_ALWAYS_CHAR (STREAM_LIB_MEDIAFOUNDATION_TARGET_DEFAULT_NAME_STRING),
+                         false,
+                         false) &&
+        !inherited::remove (&mediaFoundationTarget_,
+                            true,   // lock ?
+                            false)) // reset ?
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("%s: failed to Stream_Base_T::remove(%s): \"%m\", continuing\n"),
+                  ACE_TEXT (stream_name_string_),
+                  mediaFoundationTarget_.name ()));
+    if (inherited::find (ACE_TEXT_ALWAYS_CHAR (STREAM_LIB_MEDIAFOUNDATION_SOURCE_DEFAULT_NAME_STRING),
+                         false,
+                         false) &&
+        !inherited::remove (&mediaFoundationSource_,
+                            true,   // lock ?
+                            false)) // reset ?
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("%s: failed to Stream_Base_T::remove(%s): \"%m\", continuing\n"),
+                  ACE_TEXT (stream_name_string_),
+                  mediaFoundationSource_.name ()));
+  } // end IF
 
   bool result = false;
   bool setup_pipeline = configuration_in.configuration_->setupPipeline;
@@ -891,22 +933,8 @@ continue_3:
     struct tWAVEFORMATEX waveformatex_s;
     Stream_MediaFramework_DirectSound_Tools::getAudioRendererFormat (GUID_s,
                                                                      waveformatex_s);
-    result_2 = MFCreateMediaType (&media_type_p);
-    ACE_ASSERT (SUCCEEDED (result_2) && media_type_p);
-    //struct _AMMediaType media_type_s;
-    //ACE_OS::memset (&media_type_s, 0, sizeof (struct _AMMediaType));
-    //result_2 = CreateAudioMediaType (&waveformatex_s,
-    //                                 &media_type_s,
-    //                                 TRUE);
-    //ACE_ASSERT (SUCCEEDED (result_2));
-    //result_2 = MFInitMediaTypeFromAMMediaType (media_type_p,
-    //                                           &media_type_s);
-    //ACE_ASSERT (SUCCEEDED (result_2));
-    //Stream_MediaFramework_DirectShow_Tools::free (media_type_s);
-    result_2 = MFInitMediaTypeFromWaveFormatEx (media_type_p,
-                                                &waveformatex_s,
-                                                sizeof (struct tWAVEFORMATEX) + waveformatex_s.cbSize);
-    ACE_ASSERT (SUCCEEDED (result_2));
+    media_type_p = Stream_MediaFramework_MediaFoundation_Tools::to (waveformatex_s);
+    ACE_ASSERT (SUCCEEDED (media_type_p));
     // *TODO*: remove ASAP
     result_2 = media_type_p->SetGUID (MF_MT_SUBTYPE,
                                       MFAudioFormat_Float);
@@ -1258,17 +1286,19 @@ Test_U_AudioEffect_MediaFoundation_Stream::Invoke (IMFAsyncResult* result_in)
       ACE_ASSERT (SUCCEEDED (result));
       topology_status = static_cast<MF_TOPOSTATUS> (attribute_value);
       ACE_DEBUG ((LM_DEBUG,
-                  ACE_TEXT ("%s: received MESessionTopologyStatus: \"%s\"\n"),
+                  ACE_TEXT ("%s: received MESessionTopologyStatus: \"%s\" (status was: \"%s\")\n"),
                   ACE_TEXT (stream_name_string_),
-                  ACE_TEXT (Stream_MediaFramework_MediaFoundation_Tools::toString (topology_status).c_str ())));
+                  ACE_TEXT (Stream_MediaFramework_MediaFoundation_Tools::toString (topology_status).c_str ()),
+                  ACE_TEXT (Common_Error_Tools::errorToString (status).c_str ())));
       // start media session ?
-      if (topology_status == MF_TOPOSTATUS_READY)
+      if ((topology_status == MF_TOPOSTATUS_READY) &&
+          (SUCCEEDED (status)))
       {
         int result_2 = -1;
         { ACE_GUARD_RETURN (ACE_SYNCH_RECURSIVE_MUTEX, aGuard, inherited::lock_, E_FAIL);
           topologyIsReady_ = true;
           result_2 = condition_.broadcast ();
-          if (result_2 == -1)
+          if (unlikely (result_2 == -1))
           {
             ACE_DEBUG ((LM_ERROR,
                         ACE_TEXT ("%s: failed to ACE_Condition::broadcast(): \"%m\", aborting\n"),

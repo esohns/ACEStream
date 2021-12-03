@@ -5139,7 +5139,7 @@ continue_:
   { ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, state_r.lock, G_SOURCE_REMOVE);
     // schedule asynchronous updates of the info view
     guint event_source_id =
-        g_timeout_add (COMMON_UI_REFRESH_DEFAULT_WIDGET,
+        g_timeout_add (COMMON_UI_REFRESH_DEFAULT_WIDGET_MS,
                        idle_update_info_display_cb,
                        userData_in);
     if (event_source_id > 0)
@@ -5153,13 +5153,13 @@ continue_:
 
 #if defined (GTKGL_SUPPORT)
     event_source_id =
-//      g_timeout_add (COMMON_UI_GTK_REFRESH_DEFAULT_OPENGL,
-//                     idle_update_display_cb,
-//                     userData_in);
-        g_idle_add_full (G_PRIORITY_DEFAULT_IDLE, // _LOW doesn't work (on Win32)
-                         idle_update_display_cb,
-                         userData_in,
-                         NULL);
+      g_timeout_add (COMMON_UI_GTK_REFRESH_DEFAULT_OPENGL_MS,
+                     idle_update_display_cb,
+                     userData_in);
+        //g_idle_add_full (G_PRIORITY_DEFAULT_IDLE, // _LOW doesn't work (on Win32)
+        //                 idle_update_display_cb,
+        //                 userData_in,
+        //                 NULL);
     if (event_source_id > 0)
       state_r.eventSourceIds.insert (event_source_id);
     else
@@ -6930,11 +6930,11 @@ continue_:
 #endif // ACE_WIN32 || ACE_WIN64
   g_free (filename_p);
 
-  GtkBox* box_p =
-    GTK_BOX (gtk_builder_get_object ((*iterator).second.second,
-                                     ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_BOX_SAVE_NAME)));
-  ACE_ASSERT (box_p);
-  gtk_widget_set_sensitive (GTK_WIDGET (box_p),
+  GtkFileChooserButton* file_chooser_button_p =
+    GTK_FILE_CHOOSER_BUTTON (gtk_builder_get_object ((*iterator).second.second,
+                                                     ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_FILECHOOSERBUTTON_SAVE_NAME)));
+  ACE_ASSERT (file_chooser_button_p);
+  gtk_widget_set_sensitive (GTK_WIDGET (file_chooser_button_p),
                             is_active);
 } // togglebutton_save_toggled_cb
 
@@ -11811,57 +11811,57 @@ filechooserbutton_destination_file_set_cb (GtkFileChooserButton* button_in,
   g_free (filename_p);
 } // filechooserbutton_destination_file_set_cb
 
-void
-filechooserdialog_response_cb (GtkDialog* dialog_in,
-                               int responseId_in,
-                               gpointer userData_in)
-{
-  STREAM_TRACE (ACE_TEXT ("::filechooserdialog_response_cb"));
-
-  // sanity check(s)
-  struct Test_U_AudioEffect_UI_CBDataBase* ui_cb_data_base_p =
-    static_cast<struct Test_U_AudioEffect_UI_CBDataBase*> (userData_in);
-  ACE_ASSERT (ui_cb_data_base_p);
-
-  Common_UI_GTK_Manager_t* gtk_manager_p =
-    COMMON_UI_GTK_MANAGER_SINGLETON::instance ();
-  ACE_ASSERT (gtk_manager_p);
-  const Common_UI_GTK_State_t& state_r = gtk_manager_p->getR ();
-
-  Common_UI_GTK_BuildersConstIterator_t iterator =
-    state_r.builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN));
-  ACE_ASSERT (iterator != state_r.builders.end ());
-
-  GtkFileChooserButton* file_chooser_button_p =
-    GTK_FILE_CHOOSER_BUTTON (gtk_builder_get_object ((*iterator).second.second,
-                                                     ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_FILECHOOSERBUTTON_SAVE_NAME)));
-  ACE_ASSERT (file_chooser_button_p);
-
-  switch (responseId_in)
-  {
-    case GTK_RESPONSE_OK:
-    {
-      filechooserbutton_destination_file_set_cb (file_chooser_button_p,
-                                                 userData_in);
-      break;
-    }
-    case GTK_RESPONSE_DELETE_EVENT: // ESC
-    case GTK_RESPONSE_CANCEL:
-    default:
-      break;
-  } // end SWITCH
-}
-
-void
-filechooser_file_activated_cb (GtkFileChooser* chooser_in,
-                               gpointer userData_in)
-{
-  STREAM_TRACE (ACE_TEXT ("::filechooser_file_activated_cb"));
-
-  ACE_UNUSED_ARG (userData_in);
-
-  //ACE_ASSERT (false); // *TODO*
-} // filechooser_file_activated_cb
+//void
+//filechooserdialog_response_cb (GtkDialog* dialog_in,
+//                               int responseId_in,
+//                               gpointer userData_in)
+//{
+//  STREAM_TRACE (ACE_TEXT ("::filechooserdialog_response_cb"));
+//
+//  // sanity check(s)
+//  struct Test_U_AudioEffect_UI_CBDataBase* ui_cb_data_base_p =
+//    static_cast<struct Test_U_AudioEffect_UI_CBDataBase*> (userData_in);
+//  ACE_ASSERT (ui_cb_data_base_p);
+//
+//  Common_UI_GTK_Manager_t* gtk_manager_p =
+//    COMMON_UI_GTK_MANAGER_SINGLETON::instance ();
+//  ACE_ASSERT (gtk_manager_p);
+//  const Common_UI_GTK_State_t& state_r = gtk_manager_p->getR ();
+//
+//  Common_UI_GTK_BuildersConstIterator_t iterator =
+//    state_r.builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN));
+//  ACE_ASSERT (iterator != state_r.builders.end ());
+//
+//  GtkFileChooserButton* file_chooser_button_p =
+//    GTK_FILE_CHOOSER_BUTTON (gtk_builder_get_object ((*iterator).second.second,
+//                                                     ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_FILECHOOSERBUTTON_SAVE_NAME)));
+//  ACE_ASSERT (file_chooser_button_p);
+//
+//  switch (responseId_in)
+//  {
+//    case GTK_RESPONSE_OK:
+//    {
+//      filechooserbutton_destination_file_set_cb (file_chooser_button_p,
+//                                                 userData_in);
+//      break;
+//    }
+//    case GTK_RESPONSE_DELETE_EVENT: // ESC
+//    case GTK_RESPONSE_CANCEL:
+//    default:
+//      break;
+//  } // end SWITCH
+//}
+//
+//void
+//filechooser_file_activated_cb (GtkFileChooser* chooser_in,
+//                               gpointer userData_in)
+//{
+//  STREAM_TRACE (ACE_TEXT ("::filechooser_file_activated_cb"));
+//
+//  ACE_UNUSED_ARG (userData_in);
+//
+//  //ACE_ASSERT (false); // *TODO*
+//} // filechooser_file_activated_cb
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */

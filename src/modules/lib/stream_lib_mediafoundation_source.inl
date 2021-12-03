@@ -52,7 +52,7 @@ Stream_MediaFramework_MediaFoundation_Source_T<ACE_SYNCH_USE,
                                                UserDataType>::Stream_MediaFramework_MediaFoundation_Source_T (ISTREAM_T* stream_in)
  : inherited (stream_in)
  , inherited2 ()
- , isFirst_ (false)
+ , isFirst_ (true)
  , baseTimeStamp_ (0)
 #if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
  , mediaSession_ (NULL)
@@ -146,6 +146,7 @@ Stream_MediaFramework_MediaFoundation_Source_T<ACE_SYNCH_USE,
 
   if (inherited::isInitialized_)
   {
+    isFirst_ = true;
     baseTimeStamp_ = 0;
 #if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
     if (mediaSession_)
@@ -460,9 +461,7 @@ Stream_MediaFramework_MediaFoundation_Source_T<ACE_SYNCH_USE,
 
   ACE_UNUSED_ARG (systemClockTime_in);
 
-  ACE_ASSERT (false);
-  ACE_NOTSUP_RETURN (S_OK);
-  ACE_NOTREACHED (return S_OK;)
+  return S_OK;
 }
 
 template <ACE_SYNCH_DECL,
@@ -753,9 +752,7 @@ Stream_MediaFramework_MediaFoundation_Source_T<ACE_SYNCH_USE,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_MediaFoundation_Source_T::OnShutdown"));
 
-  ACE_ASSERT (false);
-  ACE_NOTSUP_RETURN (E_FAIL);
-  ACE_NOTREACHED (return E_FAIL;)
+  return S_OK;
 }
 
 template <ACE_SYNCH_DECL,
@@ -893,17 +890,15 @@ Stream_MediaFramework_MediaFoundation_Source_T<ACE_SYNCH_USE,
       } // end IF
       ACE_ASSERT (mediaSession_);
 
-      result_2 = mediaSession_->GetFullTopology (flags_i,
-                                                 0,
-                                                 &topology_p);
-      if (FAILED (result_2) || !topology_p)
+      if (!Stream_MediaFramework_MediaFoundation_Tools::getTopology (mediaSession_,
+                                                                     topology_p))
       {
         ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("%s: failed to IMFMediaSession::GetFullTopology(): \"%s\", aborting\n"),
-                    inherited::mod_->name (),
-                    ACE_TEXT (Common_Error_Tools::errorToString (result_2, true, false).c_str ())));
+                    ACE_TEXT ("%s: failed to Stream_MediaFramework_MediaFoundation_Tools::getTopology(), aborting\n"),
+                    inherited::mod_->name ()));
         goto error;
       } // end IF
+      ACE_ASSERT (topology_p);
       if (!Stream_MediaFramework_MediaFoundation_Tools::getSampleGrabberNodeId (topology_p,
                                                                                 node_id))
       {

@@ -268,7 +268,7 @@ Stream_Dev_Mic_Source_WASAPI_T<ACE_SYNCH_USE,
       IMMDeviceCollection* devices_p = NULL;
       UINT num_devices_i = 0;
       enum _AUDCLNT_SHAREMODE share_mode_e =
-        STREAM_DEV_WASAPI_CAPTURE_DEFAULT_SHAREMODE;
+        STREAM_LIB_WASAPI_CAPTURE_DEFAULT_SHAREMODE;
       IMMDevice* device_p = NULL;
       struct _GUID GUID_s = GUID_NULL;
       IPropertyStore* property_store_p = NULL;

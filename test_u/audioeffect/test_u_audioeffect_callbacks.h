@@ -117,8 +117,8 @@ extern "C"
   G_MODULE_EXPORT gboolean drawingarea_expose_event_cb (GtkWidget*, GdkEvent*, gpointer);
 #endif // GTK_CHECK_VERSION(3,0,0)
   G_MODULE_EXPORT void filechooserbutton_destination_file_set_cb (GtkFileChooserButton*, gpointer);
-  G_MODULE_EXPORT void filechooserdialog_response_cb (GtkDialog*, int, gpointer);
-  G_MODULE_EXPORT void filechooser_file_activated_cb (GtkFileChooser*, gpointer);
+  //G_MODULE_EXPORT void filechooserdialog_response_cb (GtkDialog*, int, gpointer);
+  //G_MODULE_EXPORT void filechooser_file_activated_cb (GtkFileChooser*, gpointer);
   G_MODULE_EXPORT void radiobutton_2d_toggled_cb (GtkToggleButton*, gpointer);
   G_MODULE_EXPORT gboolean hscale_boost_change_value_cb (GtkRange*, GtkScrollType*, gdouble, gpointer);
   G_MODULE_EXPORT void hscale_boost_value_changed_cb (GtkRange*, gpointer);

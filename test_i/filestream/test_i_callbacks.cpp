@@ -487,7 +487,7 @@ idle_initialize_source_UI_cb (gpointer userData_in)
     } // end ELSE
     // schedule asynchronous updates of the info view
     event_source_id =
-      g_timeout_add (COMMON_UI_REFRESH_DEFAULT_WIDGET,
+      g_timeout_add (COMMON_UI_REFRESH_DEFAULT_WIDGET_MS,
                      idle_update_info_display_source_cb,
                      ui_cb_data_p);
     if (event_source_id > 0)
@@ -1178,7 +1178,7 @@ idle_initialize_target_UI_cb (gpointer userData_in)
 
     // schedule asynchronous updates of the info view
     event_source_id =
-      g_timeout_add (COMMON_UI_REFRESH_DEFAULT_WIDGET,
+      g_timeout_add (COMMON_UI_REFRESH_DEFAULT_WIDGET_MS,
                      idle_update_info_display_target_cb,
                      ui_cb_data_p);
     if (event_source_id > 0)
@@ -2205,11 +2205,11 @@ toggle_action_start_toggled_cb (GtkToggleAction* action_in,
       //                 idle_update_progress_cb,
       //                 &ui_cb_data_p->progressData,
       //                 NULL);
-      g_timeout_add_full (G_PRIORITY_DEFAULT_IDLE,            // _LOW doesn't work (on Win32)
-                          COMMON_UI_REFRESH_DEFAULT_PROGRESS, // ms (?)
-                          idle_update_progress_source_cb,
-                          &ui_cb_data_p->progressData,
-                          NULL);
+      g_timeout_add (//G_PRIORITY_DEFAULT_IDLE,               // _LOW doesn't work (on Win32)
+                     COMMON_UI_REFRESH_DEFAULT_PROGRESS_MS, // ms (?)
+                     idle_update_progress_source_cb,
+                     &ui_cb_data_p->progressData);// ,
+                     //NULL);
     if (!event_source_id)
     {
       ACE_DEBUG ((LM_ERROR,
@@ -2749,11 +2749,11 @@ action_listen_activate_cb (GtkAction* action_in,
         //                 idle_update_progress_cb,
         //                 &ui_cb_data_p->progressData,
         //                 NULL);
-        g_timeout_add_full (G_PRIORITY_DEFAULT_IDLE,            // _LOW doesn't work (on Win32)
-                            COMMON_UI_REFRESH_DEFAULT_PROGRESS, // ms (?)
-                            idle_update_progress_target_cb,
-                            &ui_cb_data_p->progressData,
-                            NULL);
+        g_timeout_add (//G_PRIORITY_DEFAULT_IDLE,            // _LOW doesn't work (on Win32)
+                       COMMON_UI_REFRESH_DEFAULT_PROGRESS_MS, // ms (?)
+                       idle_update_progress_target_cb,
+                       &ui_cb_data_p->progressData);//,
+                       //NULL);
       if (ui_cb_data_p->progressData.eventSourceId > 0)
         state_r.eventSourceIds.insert (ui_cb_data_p->progressData.eventSourceId);
       else

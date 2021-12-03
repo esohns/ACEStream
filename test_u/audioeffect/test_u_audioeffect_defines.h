@@ -94,7 +94,7 @@
 #define TEST_U_STREAM_UI_GTK_FRAME_SINUS_NAME                "frame_sinus"
 #define TEST_U_STREAM_UI_GTK_BOX_EFFECT_NAME                 "box_effect_2"
 #define TEST_U_STREAM_UI_GTK_BOX_OPTIONS_NAME                "box_options"
-#define TEST_U_STREAM_UI_GTK_BOX_SAVE_NAME                   "box_save_2"
+//#define TEST_U_STREAM_UI_GTK_BOX_SAVE_NAME                   "box_save_2"
 #define TEST_U_STREAM_UI_GTK_BOX_SINUS_NAME                  "box_sinus_2"
 #define TEST_U_STREAM_UI_GTK_BOX_VISUALIZATION_NAME          "box_visualization_2"
 #define TEST_U_STREAM_UI_GTK_LISTSTORE_EFFECT_NAME           "liststore_effect"

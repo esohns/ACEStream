@@ -67,8 +67,10 @@ class Stream_MediaFramework_MediaFoundation_Tools
   // *IMPORTANT NOTE*: only the attributes that do NOT exist in the target are
   //                   merged
   static bool merge (const IMFMediaType*, // source
-                     IMFMediaType*);      // target
-  static bool reconfigure (IMFMediaType*); // media type handle
+                     IMFMediaType*,       // target
+                     bool = true);        // reconfigure ?
+  // *IMPORTANT NOTE*: make sure to Release() the return value
+  static IMFMediaType* to (const struct tWAVEFORMATEX&); // media type
   static struct _GUID toFormat (const IMFMediaType*);
   static Common_Image_Resolution_t toResolution (const IMFMediaType*);
   static unsigned int toFramerate (const IMFMediaType*);
@@ -79,9 +81,13 @@ class Stream_MediaFramework_MediaFoundation_Tools
   static void shutdown (IMFTopologyNode*); // topology node handle
 
   // topology
-  // *NOTE*: 'tees' the upstream node of the first output node (if any); else,
-  //         starting from the first source node, append to the last connected
-  //         node from the first stream
+  // *NOTE*: if there are no source nodes, abort
+  //         if the xth branch does not have a sink, append to its last
+  //         connected node
+  //         else (i.e. all branches have sinks) if the xth branch has a tee
+  //         node, add an output and append there
+  //         else (i.e. all branches have sinks and there are no tees) tee the
+  //         upstream node of the first sink and append there
   static bool append (IMFTopology*, // topology handle
                       TOPOID,       // topology node id
                       bool = true); // set (input) format ?
@@ -255,13 +261,21 @@ class Stream_MediaFramework_MediaFoundation_Tools
   ////         will automatically load the decoder. ..."
   //static bool setOutputFormat (IMFSourceReader*,     // source handle
   //                             const IMFMediaType*); // media type
+  static bool reconfigure (IMFMediaType*); // media type handle
 
   typedef std::list<IMFTopologyNode*> TOPOLOGY_PATH_T;
   typedef TOPOLOGY_PATH_T::iterator TOPOLOGY_PATH_ITERATOR_T;
   typedef std::list<TOPOLOGY_PATH_T> TOPOLOGY_PATHS_T;
   typedef TOPOLOGY_PATHS_T::iterator TOPOLOGY_PATHS_ITERATOR_T;
-  static bool expand (TOPOLOGY_PATH_T&,   // input/return value: topology path
-                      TOPOLOGY_PATHS_T&); // input/return value: topology paths
+  static void clean (TOPOLOGY_PATH_T&); // list of nodes
+  static void clean (TOPOLOGY_PATHS_T&); // list of branches
+  static void expand (const TOPOLOGY_PATH_T&,    // input/return value: topology path
+                      TOPOLOGY_PATH_ITERATOR_T&, // iterator
+                      TOPOLOGY_PATHS_T&);        // input/return value: topology paths
+  static bool hasTee (TOPOLOGY_PATH_T&,   // topology path
+                      IMFTopologyNode*&); // return value: tee node handle
+  static bool parse (const IMFTopology*, // topology handle
+                     TOPOLOGY_PATHS_T&); // return value: list of branches
 
   static std::string toString (MediaEventType); // event type
   static std::string toString (enum MF_TOPOLOGY_TYPE); // node type

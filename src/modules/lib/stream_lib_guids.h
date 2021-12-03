@@ -46,4 +46,12 @@ DEFINE_GUID (CLSID_ACEStream_MediaFramework_MF_MediaSource,
              0x8a, 0x1,
              0x37, 0x68, 0xb5, 0x59, 0xb6, 0xda);
 
+// {B7A69703-157C-4B1F-9152-419DF35B2C51}
+DEFINE_GUID (CLSID_ACEStream_MediaFramework_WASAPI_AudioSession,
+             0xb7a69703,
+             0x157c,
+             0x4b1f,
+             0x91, 0x52,
+             0x41, 0x9d, 0xf3, 0x5b, 0x2c, 0x51);
+
 #endif

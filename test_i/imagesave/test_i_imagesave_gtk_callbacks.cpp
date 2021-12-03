@@ -488,7 +488,7 @@ idle_initialize_UI_cb (gpointer userData_in)
 //    } // end ELSE
 //    // schedule asynchronous updates of the info view
 //    event_source_id =
-      g_timeout_add (COMMON_UI_REFRESH_DEFAULT_WIDGET,
+      g_timeout_add (COMMON_UI_REFRESH_DEFAULT_WIDGET_MS,
                      idle_update_info_display_cb,
                      userData_in);
     if (event_source_id > 0)
@@ -1296,11 +1296,11 @@ togglebutton_process_toggled_cb (GtkToggleButton* toggleButton_in,
       //                 idle_update_progress_cb,
       //                 &data_p->progressData,
       //                 NULL);
-      g_timeout_add_full (G_PRIORITY_DEFAULT_IDLE,            // _LOW doesn't work (on Win32)
-                          COMMON_UI_REFRESH_DEFAULT_PROGRESS, // ms (?)
-                          idle_update_progress_cb,
-                          &cb_data_p->progressData,
-                          NULL);
+      g_timeout_add (//G_PRIORITY_DEFAULT_IDLE,            // _LOW doesn't work (on Win32)
+                     COMMON_UI_REFRESH_DEFAULT_PROGRESS_MS, // ms (?)
+                     idle_update_progress_cb,
+                     &cb_data_p->progressData);// ,
+                     //NULL);
     if (!cb_data_p->progressData.eventSourceId)
     {
       ACE_DEBUG ((LM_ERROR,

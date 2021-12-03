@@ -262,7 +262,7 @@ Stream_MediaFramework_MediaFoundation_Target_T<ACE_SYNCH_USE,
   ACE_ASSERT (inherited4::mediaStream_);
   if (unlikely (inherited4::state_ != inherited4::STATE_STARTED))
   {
-    ACE_DEBUG ((LM_ERROR,
+    ACE_DEBUG ((LM_WARNING,
                 ACE_TEXT ("%s: media source not running (state was: %d), returning\n"),
                 inherited::mod_->name (),
                 inherited4::state_));
@@ -308,23 +308,26 @@ Stream_MediaFramework_MediaFoundation_Target_T<ACE_SYNCH_USE,
                                   TRUE);
     ACE_ASSERT (SUCCEEDED (result));
   } // end IF
-  result = sample_p->SetUINT32 (MFSampleExtension_CleanPoint,
-                                TRUE);
-  ACE_ASSERT (SUCCEEDED (result));
+  //result = sample_p->SetUINT32 (MFSampleExtension_CleanPoint,
+  //                              TRUE);
+  //ACE_ASSERT (SUCCEEDED (result));
   //MFSampleExtension_ForwardedDecodeUnits
   //MFSampleExtension_ForwardedDecodeUnitType
+  IUnknown* unknown_p = NULL;
   { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, inherited4::lock_);
     if (!inherited4::tokens_.empty ())
     {
-      IUnknown* unknown_p = inherited4::tokens_.front ();
-      ACE_ASSERT (unknown_p);
-      result = sample_p->SetUnknown (MFSampleExtension_Token,
-                                     unknown_p);
-      ACE_ASSERT (SUCCEEDED (result));
-      unknown_p->Release (); unknown_p = NULL;
+      unknown_p = inherited4::tokens_.front ();
       inherited4::tokens_.pop_front ();
     } // end IF
   } // end lock scope
+  result = sample_p->SetUnknown (MFSampleExtension_Token,
+                                 unknown_p);
+  ACE_ASSERT (SUCCEEDED (result));
+  if (unknown_p)
+  {
+    unknown_p->Release (); unknown_p = NULL;
+  } // end IF
 
   // step2: set buffer / parameters
   IMFMediaBuffer* buffer_p = NULL;

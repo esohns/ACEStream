@@ -3168,6 +3168,7 @@ Stream_Module_Decoder_Tools::loadAudioRendererTopology (REFGUID deviceIdentifier
   DWORD characteristics_i = 0;
   IMFAttributes* attributes_p = NULL;
   bool is_current_format_b = true;
+  bool add_tee_node_b = false;
 
   if (topology_inout)
   {
@@ -3651,17 +3652,11 @@ retry:
           (Stream_MediaFramework_MediaFoundation_Tools::isPartial (media_type_p)))
       {
         if (!Stream_MediaFramework_MediaFoundation_Tools::merge (mediaType_inout,
-                                                                 media_type_p))
+                                                                 media_type_p,
+                                                                 true)) // reconfigure ?
         {
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("failed to Stream_MediaFramework_MediaFoundation_Tools::merge(), aborting\n")));
-          transform_p->Release (); transform_p = NULL;
-          goto error;
-        } // end IF
-        if (!Stream_MediaFramework_MediaFoundation_Tools::reconfigure (media_type_p))
-        {
-          ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("failed to Stream_MediaFramework_MediaFoundation_Tools::reconfigure(), aborting\n")));
           transform_p->Release (); transform_p = NULL;
           goto error;
         } // end IF
@@ -3687,9 +3682,8 @@ retry:
 
 continue_2:
   // step3: add tee node ?
-  if ((!sampleGrabberSinkCallback_in && !(audioOutput_in >= 0)) ||
-      ((sampleGrabberSinkCallback_in && !(audioOutput_in >= 0)) || // XOR
-       (!sampleGrabberSinkCallback_in && (audioOutput_in >= 0))))
+  add_tee_node_b = (sampleGrabberSinkCallback_in && (audioOutput_in >= 0));
+  if (!add_tee_node_b)
     goto continue_3;
 
 #if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
@@ -3760,10 +3754,13 @@ continue_3:
                   ACE_TEXT ("failed to Stream_MediaFramework_MediaFoundation_Tools::addResampler(), aborting\n")));
       goto error;
     } // end IF
-    media_type_p->Release (); media_type_p = NULL;
-    media_type_p =
-      Stream_MediaFramework_MediaFoundation_Tools::copy (outputMediaType_in);
-    ACE_ASSERT (media_type_p);
+    if (!add_tee_node_b) // set new output type ?
+    {
+      media_type_p->Release (); media_type_p = NULL;
+      media_type_p =
+        Stream_MediaFramework_MediaFoundation_Tools::copy (outputMediaType_in);
+      ACE_ASSERT (media_type_p);
+    } // end IF
   } // end IF
   ACE_ASSERT (node_id);
   ACE_ASSERT (!topology_node_p);
@@ -3801,6 +3798,19 @@ continue_4:
   if (!Stream_MediaFramework_MediaFoundation_Tools::canRender (media_type_p,
                                                                media_type_2))
   {
+    if (Stream_MediaFramework_MediaFoundation_Tools::isPartial (media_type_2))
+    {
+      if (!Stream_MediaFramework_MediaFoundation_Tools::merge (media_type_p,
+                                                               media_type_2,
+                                                               true)) // reconfigure ?
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("failed to Stream_MediaFramework_MediaFoundation_Tools::merge(), aborting\n")));
+        media_type_2->Release (); media_type_2 = NULL;
+        goto error;
+      } // end IF
+    } // end IF
+
     node_id = 0;
     if (!Stream_MediaFramework_MediaFoundation_Tools::addResampler (media_type_2,
                                                                     topology_inout,
@@ -3835,11 +3845,11 @@ continue_4:
   } // end IF
   ACE_ASSERT (node_id);
 
+continue_5:
   source_node_p->Release (); source_node_p = NULL;
   media_type_p->Release (); media_type_p = NULL;
   media_source_p->Release (); media_source_p = NULL;
 
-continue_5:
   return true;
 
 error:

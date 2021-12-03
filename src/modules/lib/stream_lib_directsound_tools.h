@@ -41,6 +41,8 @@ class Stream_MediaFramework_DirectSound_Tools
                                                      bool = true); // capture ? : playback
   static IAudioVolumeLevel* getMicrophoneBoostControl (IMMDevice*); // device handle
 
+  static bool canRender (REFGUID,                      // device identifier
+                         const struct tWAVEFORMATEX&); // return value: 'mix' format
   static void getAudioRendererFormat (REFGUID,                // device identifier
                                       struct tWAVEFORMATEX&); // return value: 'mix' format
   static void getAudioRendererStatistics (IFilterGraph*,                                    // filter graph handle
