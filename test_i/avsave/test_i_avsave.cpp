@@ -253,7 +253,7 @@ do_printUsage (const std::string& programName_in)
 bool
 do_processArguments (int argc_in,
                      ACE_TCHAR** argv_in, // cannot be const...
-                     struct Stream_Device_Identifier& captureinterfaceIdentifier_out,
+                     struct Stream_Device_Identifier& deviceIdentifier_out,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
                      bool& showConsole_out,
 #endif // ACE_WIN32 || ACE_WIN64
@@ -277,13 +277,13 @@ do_processArguments (int argc_in,
 
   // initialize results
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  ACE_OS::memset (captureinterfaceIdentifier_out.identifier._string, 0, sizeof (char[BUFSIZ]));
+  ACE_OS::memset (deviceIdentifier_out.identifier._string, 0, sizeof (char[BUFSIZ]));
   showConsole_out = false;
 #else
-  captureinterfaceIdentifier_out =
+  deviceIdentifier_out.identifier =
     ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_DEVICE_DIRECTORY);
-  captureinterfaceIdentifier_out += ACE_DIRECTORY_SEPARATOR_CHAR_A;
-  captureinterfaceIdentifier_out +=
+  deviceIdentifier_out.identifier += ACE_DIRECTORY_SEPARATOR_CHAR_A;
+  deviceIdentifier_out.identifier +=
     ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_DEFAULT_VIDEO_DEVICE);
 #endif // ACE_WIN32 || ACE_WIN64
   std::string path = Common_File_Tools::getTempDirectory ();
@@ -343,8 +343,14 @@ do_processArguments (int argc_in,
 #endif // ACE_WIN32 || ACE_WIN64
       case 'd':
       {
-        ACE_OS::strcpy (captureinterfaceIdentifier_out.identifier._string,
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+        deviceIdentifier_out.identifierDiscriminator = Stream_Device_Identifier::STRING;
+        ACE_OS::strcpy (deviceIdentifier_out.identifier._string,
                         ACE_TEXT_ALWAYS_CHAR (argumentParser.opt_arg ()));
+#else
+        deviceIdentifier_out.identifier =
+          ACE_TEXT_ALWAYS_CHAR (argumentParser.opt_arg ());
+#endif // ACE_WIN32 || ACE_WIN64
         break;
       }
       case 'f':
@@ -1213,8 +1219,7 @@ do_work (const struct Stream_Device_Identifier& deviceIdentifier_in,
   video_modulehandler_configuration.allocatorConfiguration = &allocator_configuration;
   video_modulehandler_configuration.buffers =
     STREAM_LIB_V4L_DEFAULT_DEVICE_BUFFERS;
-  video_modulehandler_configuration.deviceIdentifier.identifier =
-      captureinterfaceIdentifier_in;
+  video_modulehandler_configuration.deviceIdentifier = deviceIdentifier_in;
 #if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
 //  modulehandler_configuration.pixelBufferLock = &state_r.lock;
@@ -1223,8 +1228,9 @@ do_work (const struct Stream_Device_Identifier& deviceIdentifier_in,
 //  // *TODO*: turn these into an option
 //  modulehandler_configuration.method = STREAM_DEV_CAM_V4L_DEFAULT_IO_METHOD;
   video_modulehandler_configuration.outputFormat =
-      Stream_Device_Tools::defaultCaptureFormat (captureinterfaceIdentifier_in);
-  video_modulehandler_configuration.outputFormat.format.pixelformat = V4L2_PIX_FMT_BGR24;
+      Stream_Device_Tools::defaultCaptureFormat (deviceIdentifier_in.identifier);
+  video_modulehandler_configuration.outputFormat.format.pixelformat =
+    V4L2_PIX_FMT_BGR24;
 //  if (statisticReportingInterval_in)
 //  {
 //    video_modulehandler_configuration.statisticCollectionInterval.set (0,
@@ -1451,7 +1457,7 @@ do_work (const struct Stream_Device_Identifier& deviceIdentifier_in,
                                                         video_modulehandler_configuration,
                                                         video_stream_configuration);
 
-  if (!do_initialize_v4l (captureinterfaceIdentifier_in,
+  if (!do_initialize_v4l (deviceIdentifier_in.identifier,
                           video_modulehandler_configuration.deviceIdentifier,
                           configuration_in.videoStreamConfiguration.configuration_->format,
                           video_modulehandler_configuration.outputFormat))
@@ -1997,10 +2003,10 @@ ACE_TMAIN (int argc_in,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   bool show_console = false;
 #else
-  capture_device_identifier =
+  device_identifier.identifier =
     ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_DEVICE_DIRECTORY);
-  capture_device_identifier += ACE_DIRECTORY_SEPARATOR_CHAR_A;
-  capture_device_identifier +=
+  device_identifier.identifier += ACE_DIRECTORY_SEPARATOR_CHAR_A;
+  device_identifier.identifier +=
     ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_DEFAULT_VIDEO_DEVICE);
 #endif // ACE_WIN32 || ACE_WIN64
   std::string path = Common_File_Tools::getTempDirectory ();
@@ -2206,7 +2212,7 @@ ACE_TMAIN (int argc_in,
 #else
     case STREAM_AVSAVE_PROGRAMMODE_TEST_METHODS:
     {
-      do_testMethods (capture_device_identifier);
+      do_testMethods (device_identifier.identifier);
 
       Common_Log_Tools::finalizeLogging ();
 

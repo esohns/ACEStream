@@ -215,7 +215,7 @@ do_processArguments (int argc_in,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
                      bool& showConsole_out,
 #else
-                     std::string& deviceIdentifier_out,
+                     struct Stream_Device_Identifier& deviceIdentifier_out,
 #endif // ACE_WIN32 || ACE_WIN64
                      std::string& gtkRcFile_out,
                      bool& useUncompressedFormat_out,
@@ -243,9 +243,9 @@ do_processArguments (int argc_in,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   showConsole_out = false;
 #else
-  deviceIdentifier_out = ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_DEVICE_DIRECTORY);
-  deviceIdentifier_out += ACE_DIRECTORY_SEPARATOR_CHAR_A;
-  deviceIdentifier_out +=
+  deviceIdentifier_out.identifier = ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_DEVICE_DIRECTORY);
+  deviceIdentifier_out.identifier += ACE_DIRECTORY_SEPARATOR_CHAR_A;
+  deviceIdentifier_out.identifier +=
     ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_DEFAULT_VIDEO_DEVICE);
 #endif // ACE_WIN32 || ACE_WIN64
   std::string path = configuration_path;
@@ -309,7 +309,8 @@ do_processArguments (int argc_in,
 #else
       case 'd':
       {
-        deviceIdentifier_out = ACE_TEXT_ALWAYS_CHAR (argumentParser.opt_arg ());
+        deviceIdentifier_out.identifier =
+          ACE_TEXT_ALWAYS_CHAR (argumentParser.opt_arg ());
         break;
       }
 #endif // ACE_WIN32 || ACE_WIN64
@@ -793,7 +794,7 @@ do_finalize_mediafoundation ()
 #endif // ACE_WIN32 || ACE_WIN64
 
 void
-do_work (const struct Stream_Device_Identifier& captureDeviceIdentifier_in,
+do_work (const struct Stream_Device_Identifier& deviceIdentifier_in,
          unsigned int bufferSize_in,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
          bool showConsole_in,
@@ -960,7 +961,7 @@ do_work (const struct Stream_Device_Identifier& captureDeviceIdentifier_in,
     {
       struct Test_I_Source_DirectShow_ModuleHandlerConfiguration directshow_modulehandler_configuration;
       directshow_modulehandler_configuration.deviceIdentifier =
-        captureDeviceIdentifier_in;
+        deviceIdentifier_in;
       Test_I_Source_DirectShow_StreamConfiguration_t directshow_stream_configuration;
       struct Test_I_Source_DirectShow_StreamConfiguration directshow_stream_configuration_2;
       Test_I_Source_DirectShow_StreamConfiguration_t directshow_stream_configuration_3;
@@ -1004,7 +1005,7 @@ do_work (const struct Stream_Device_Identifier& captureDeviceIdentifier_in,
       mediafoundation_modulehandler_configuration.connectionConfigurations =
         &mediaFoundationCBData_in.configuration->connectionConfigurations;
       mediafoundation_modulehandler_configuration.deviceIdentifier =
-        captureDeviceIdentifier_in;
+        deviceIdentifier_in;
       mediafoundation_modulehandler_configuration.statisticReportingInterval =
         ACE_Time_Value (statisticReportingInterval_in, 0);
       //(*mediafoundation_modulehandler_iterator).second.second->stream =
@@ -1075,7 +1076,7 @@ do_work (const struct Stream_Device_Identifier& captureDeviceIdentifier_in,
   struct Test_I_Source_V4L_ModuleHandlerConfiguration modulehandler_configuration;
   modulehandler_configuration.connectionConfigurations =
       &v4l2CBData_in.configuration->connectionConfigurations;
-  modulehandler_configuration.deviceIdentifier.identifier = deviceIdentifier_in;
+  modulehandler_configuration.deviceIdentifier = deviceIdentifier_in;
   modulehandler_configuration.subscriber = &event_handler;
 
   struct Test_I_Source_V4L_StreamConfiguration stream_configuration;
@@ -1220,7 +1221,7 @@ do_work (const struct Stream_Device_Identifier& captureDeviceIdentifier_in,
       ACE_ASSERT (directshow_modulehandler_iterator != (*directshow_stream_iterator).second.end ());
 
       result =
-        do_initialize_directshow (captureDeviceIdentifier_in,
+        do_initialize_directshow (deviceIdentifier_in,
                                   UIDefinitionFilename_in.empty (), // initialize COM ?
                                   !UIDefinitionFilename_in.empty (), // has UI ?
                                   (*directshow_modulehandler_iterator).second.second->builder,
@@ -2066,15 +2067,16 @@ ACE_TMAIN (int argc_in,
 
   // step1a set defaults
   unsigned int buffer_size = TEST_I_DEFAULT_BUFFER_SIZE;
+  struct Stream_Device_Identifier device_identifier;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   bool show_console = false;
-  struct Stream_Device_Identifier device_identifier;
   struct _GUID interface_identifier = GUID_NULL;
 #else
-  std::string device_identifier =
-      ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_DEVICE_DIRECTORY);
-  device_identifier += ACE_DIRECTORY_SEPARATOR_CHAR_A;
-  device_identifier += ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_DEFAULT_VIDEO_DEVICE);
+  device_identifier.identifier =
+    ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_DEVICE_DIRECTORY);
+  device_identifier.identifier += ACE_DIRECTORY_SEPARATOR_CHAR_A;
+  device_identifier.identifier +=
+    ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_DEFAULT_VIDEO_DEVICE);
   std::string interface_identifier;
 #endif // ACE_WIN32 || ACE_WIN64
   std::string path = configuration_path;

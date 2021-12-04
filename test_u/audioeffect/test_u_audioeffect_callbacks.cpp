@@ -3229,7 +3229,7 @@ update_media_type (gpointer userData_in)
 
   // step2: initialize output format
   (*modulehandler_configuration_iterator).second.second->outputFormat =
-    ui_cb_data_p->configuration->streamConfiguration.configuration_->format);
+    ui_cb_data_p->configuration->streamConfiguration.configuration_->format;
 #endif // ACE_WIN32 || ACE_WIN64
 }
 

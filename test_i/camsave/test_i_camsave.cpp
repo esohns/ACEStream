@@ -292,10 +292,10 @@ do_processArguments (int argc_in,
   showConsole_out = false;
 #else
   useLibCamera_out = false;
-  captureinterfaceIdentifier_out =
+  deviceIdentifier_out.identifier =
     ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_DEVICE_DIRECTORY);
-  captureinterfaceIdentifier_out += ACE_DIRECTORY_SEPARATOR_CHAR_A;
-  captureinterfaceIdentifier_out +=
+  deviceIdentifier_out.identifier += ACE_DIRECTORY_SEPARATOR_CHAR_A;
+  deviceIdentifier_out.identifier +=
     ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_DEFAULT_VIDEO_DEVICE);
 #endif // ACE_WIN32 || ACE_WIN64
   std::string path = Common_File_Tools::getTempDirectory ();
@@ -357,10 +357,15 @@ do_processArguments (int argc_in,
       }
       case 'd':
       {
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
         deviceIdentifier_out.identifierDiscriminator =
           Stream_Device_Identifier::STRING;
         ACE_OS::strcpy (deviceIdentifier_out.identifier._string,
                         ACE_TEXT_ALWAYS_CHAR (argumentParser.opt_arg ()));
+#else
+        deviceIdentifier_out.identifier =
+          ACE_TEXT_ALWAYS_CHAR (argumentParser.opt_arg ());
+#endif // ACE_WIN32 || ACE_WIN64
         break;
       }
       case 'f':
@@ -1310,8 +1315,7 @@ do_work (const struct Stream_Device_Identifier& deviceIdentifier_in,
 #if defined (LIBCAMERA_SUPPORT)
     libcamera_modulehandler_configuration.allocatorConfiguration =
         &allocator_configuration;
-    libcamera_modulehandler_configuration.deviceIdentifier.identifier =
-        captureinterfaceIdentifier_in;
+    libcamera_modulehandler_configuration.deviceIdentifier = deviceIdentifier_in;
     libcamera::Camera* camera_p = NULL;
     libcamera::CameraManager* camera_manager_p = NULL;
     ACE_NEW_NORETURN (camera_manager_p,
@@ -1326,7 +1330,7 @@ do_work (const struct Stream_Device_Identifier& deviceIdentifier_in,
     } // end IF
     camera_p =
         Stream_Device_Tools::getCamera (camera_manager_p,
-                                        captureinterfaceIdentifier_in).get ();
+                                        deviceIdentifier_in.identifier).get ();
     ACE_ASSERT (camera_p);
     libcamera_modulehandler_configuration.outputFormat =
         Stream_Device_Tools::defaultCaptureFormat (camera_p);
@@ -1351,10 +1355,9 @@ error:
         &allocator_configuration;
     v4l_modulehandler_configuration.buffers =
       STREAM_LIB_V4L_DEFAULT_DEVICE_BUFFERS;
-    v4l_modulehandler_configuration.deviceIdentifier.identifier =
-        captureinterfaceIdentifier_in;
+    v4l_modulehandler_configuration.deviceIdentifier = deviceIdentifier_in;
     v4l_modulehandler_configuration.outputFormat =
-        Stream_Device_Tools::defaultCaptureFormat (captureinterfaceIdentifier_in);
+        Stream_Device_Tools::defaultCaptureFormat (deviceIdentifier_in.identifier);
     v4l_modulehandler_configuration.outputFormat.format.pixelformat =
         V4L2_PIX_FMT_RGB32;
     if (statisticReportingInterval_in)
@@ -1646,7 +1649,7 @@ error:
 #endif // LIBCAMERA_SUPPORT
   }
   else
-    if (!do_initialize_v4l (captureinterfaceIdentifier_in,
+    if (!do_initialize_v4l (deviceIdentifier_in.identifier,
                             v4l_modulehandler_configuration.deviceIdentifier,
                             v4l_stream_configuration.format,
                             v4l_modulehandler_configuration.outputFormat))
@@ -2386,7 +2389,7 @@ ACE_TMAIN (int argc_in,
       }
     } // end SWITCH
 #else
-  device_identifier =
+  device_identifier.identifier =
       Stream_Device_Tools::getDefaultVideoCaptureDevice (use_libcamera);
 #endif // ACE_WIN32 || ACE_WIN64
 
@@ -2497,7 +2500,7 @@ ACE_TMAIN (int argc_in,
 #else
     case STREAM_CAMSAVE_PROGRAMMODE_TEST_METHODS:
     {
-      do_testMethods (capture_device_identifier);
+      do_testMethods (device_identifier.identifier);
 
       Common_Log_Tools::finalizeLogging ();
 

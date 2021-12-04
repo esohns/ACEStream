@@ -491,10 +491,9 @@ Stream_MediaFramework_Tools::initialize ()
 #endif // _WIN32_WINNT && (_WIN32_WINNT > 0x0601) // _WIN32_WINNT_WIN8
 #if (WINVER >= _WIN32_WINNT_WINTHRESHOLD)
   Stream_MediaFramework_Tools::Stream_MediaFramework_MediaFoundation_MediaSubTypeToStringMap.insert (std::make_pair (MFAudioFormat_FLAC, ACE_TEXT_ALWAYS_CHAR ("FLAC")));
-  Stream_MediaFramework_Tools::Stream_MediaFramework_MediaFoundation_MediaSubTypeToStringMap.insert (std::make_pair (MFAudioFormat_FLAC, ACE_TEXT_ALWAYS_CHAR ("ALAC")));
-  Stream_MediaFramework_Tools::Stream_MediaFramework_MediaFoundation_MediaSubTypeToStringMap.insert (std::make_pair (MFAudioFormat_FLAC, ACE_TEXT_ALWAYS_CHAR ("Opus")));
+  Stream_MediaFramework_Tools::Stream_MediaFramework_MediaFoundation_MediaSubTypeToStringMap.insert (std::make_pair (MFAudioFormat_ALAC, ACE_TEXT_ALWAYS_CHAR ("ALAC")));
+  Stream_MediaFramework_Tools::Stream_MediaFramework_MediaFoundation_MediaSubTypeToStringMap.insert (std::make_pair (MFAudioFormat_Opus, ACE_TEXT_ALWAYS_CHAR ("Opus")));
 #endif // WINVER >= _WIN32_WINNT_WINTHRESHOLD
-#endif // ACE_WIN32 || ACE_WIN64
   Stream_MediaFramework_Tools::Stream_MediaFramework_MediaFoundation_MediaSubTypeToStringMap.insert (std::make_pair (MFAudioFormat_Dolby_AC3, ACE_TEXT_ALWAYS_CHAR ("Dolby_AC3")));
   Stream_MediaFramework_Tools::Stream_MediaFramework_MediaFoundation_MediaSubTypeToStringMap.insert (std::make_pair (MFAudioFormat_Dolby_DDPlus, ACE_TEXT_ALWAYS_CHAR ("Dolby_DDPlus")));
   Stream_MediaFramework_Tools::Stream_MediaFramework_MediaFoundation_MediaSubTypeToStringMap.insert (std::make_pair (MFAudioFormat_Vorbis, ACE_TEXT_ALWAYS_CHAR ("Vorbis")));
@@ -519,6 +518,7 @@ Stream_MediaFramework_Tools::initialize ()
   Stream_MediaFramework_Tools::Stream_MediaFramework_MediaFoundation_MediaSubTypeToStringMap.insert (std::make_pair (MFVideoFormat_HEVC_HDCP, ACE_TEXT_ALWAYS_CHAR ("HEVC_HDCP")));
   Stream_MediaFramework_Tools::Stream_MediaFramework_MediaFoundation_MediaSubTypeToStringMap.insert (std::make_pair (MFVideoFormat_Base_HDCP, ACE_TEXT_ALWAYS_CHAR ("Base_HDCP")));
 #endif // WINVER >= _WIN32_WINNT_THRESHOLD
+#endif // ACE_WIN32 || ACE_WIN64
 
   return true;
 }

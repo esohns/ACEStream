@@ -257,10 +257,10 @@ do_process_arguments (int argc_in,
   } // end SWITCH
   showConsole_out = false;
 #else
-  captureinterfaceIdentifier_out =
+  deviceIdentifier_out.identifier =
     ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_DEVICE_DIRECTORY);
-  captureinterfaceIdentifier_out += ACE_DIRECTORY_SEPARATOR_CHAR_A;
-  captureinterfaceIdentifier_out +=
+  deviceIdentifier_out.identifier += ACE_DIRECTORY_SEPARATOR_CHAR_A;
+  deviceIdentifier_out.identifier +=
     ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_DEFAULT_VIDEO_DEVICE);
 #endif // ACE_WIN32 || ACE_WIN64
   logToFile_out = false;
@@ -315,10 +315,15 @@ do_process_arguments (int argc_in,
 #endif // ACE_WIN32 || ACE_WIN64
       case 'd':
       {
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
         deviceIdentifier_out.identifierDiscriminator =
           Stream_Device_Identifier::STRING;
         ACE_OS::strcpy (deviceIdentifier_out.identifier._string,
                         ACE_TEXT_ALWAYS_CHAR (argumentParser.opt_arg ()));
+#else
+        deviceIdentifier_out.identifier =
+          ACE_TEXT_ALWAYS_CHAR (argumentParser.opt_arg ());
+#endif // ACE_WIN32 || ACE_WIN64
         break;
       }
       case 'g':
@@ -1055,12 +1060,11 @@ do_work (const struct Stream_Device_Identifier& deviceIdentifier_in,
   modulehandler_configuration.allocatorConfiguration = &allocator_configuration;
   modulehandler_configuration.buffers =
     STREAM_LIB_V4L_DEFAULT_DEVICE_BUFFERS;
-  modulehandler_configuration.deviceIdentifier.identifier =
-      captureinterfaceIdentifier_in;
+  modulehandler_configuration.deviceIdentifier = deviceIdentifier_in;
 //  // *TODO*: turn these into an option
 //  modulehandler_configuration.method = STREAM_DEV_CAM_V4L_DEFAULT_IO_METHOD;
   modulehandler_configuration.outputFormat =
-      Stream_Device_Tools::defaultCaptureFormat (captureinterfaceIdentifier_in);
+      Stream_Device_Tools::defaultCaptureFormat (deviceIdentifier_in.identifier);
   modulehandler_configuration.subscriber = &ui_event_handler;
 
   struct Stream_CameraScreen_V4L_StreamConfiguration stream_configuration;
@@ -1239,7 +1243,7 @@ do_work (const struct Stream_Device_Identifier& deviceIdentifier_in,
     }
   } // end SWITCH
 #else
-  if (!do_initialize_v4l (captureinterfaceIdentifier_in,
+  if (!do_initialize_v4l (deviceIdentifier_in.identifier,
                           modulehandler_configuration.deviceIdentifier,
                           stream_configuration.format,
                           modulehandler_configuration.outputFormat))
@@ -1557,10 +1561,10 @@ ACE_TMAIN (int argc_in,
   } // end SWITCH
   bool show_console = false;
 #else
-  capture_device_identifier =
+  device_identifier.identifier =
     ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_DEVICE_DIRECTORY);
-  capture_device_identifier += ACE_DIRECTORY_SEPARATOR_CHAR_A;
-  capture_device_identifier +=
+  device_identifier.identifier += ACE_DIRECTORY_SEPARATOR_CHAR_A;
+  device_identifier.identifier +=
     ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_DEFAULT_VIDEO_DEVICE);
 #endif // ACE_WIN32 || ACE_WIN64
   bool opengl_mode = false;
@@ -1677,7 +1681,7 @@ ACE_TMAIN (int argc_in,
 #else
     case STREAM_CAMERASCREEN_PROGRAMMODE_TEST_METHODS:
     {
-      do_test_methods (capture_device_identifier);
+      do_test_methods (device_identifier.identifier);
 
       Common_Log_Tools::finalizeLogging ();
 
