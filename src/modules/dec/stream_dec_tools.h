@@ -196,8 +196,10 @@ class Stream_Module_Decoder_Tools
   // *TODO*: move this somewhere else
   static void sinus (double,       // frequency (Hz)
                      unsigned int, // sample rate (Hz)
-                     unsigned int, // 'data' sample size (bytes)
+                     unsigned int, // #bytes/(mono-)sample
                      unsigned int, // #channels
+                     bool,         // format is signed ?
+                     bool,         // format is little endian ? : big endian
                      uint8_t*,     // target buffer
                      unsigned int, // #'data' samples to write
                      double&);     // in/out: current phase

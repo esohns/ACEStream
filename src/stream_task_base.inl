@@ -943,12 +943,8 @@ Stream_TaskBase_T<ACE_SYNCH_USE,
 retry:
     try {
       // *IMPORTANT NOTE*: 0 --> session message !
-      ACE_NEW_MALLOC_NORETURN (session_message_p,
-                               static_cast<SessionMessageType*> (allocator_->malloc (0)),
-                               SessionMessageType ((session_data_p ? session_data_p->sessionId : -1),
-                                                   eventType_in,
-                                                   sessionData_inout,
-                                                   userData_in));
+      ACE_ALLOCATOR_NORETURN (session_message_p,
+                              static_cast<SessionMessageType*> (allocator_->malloc (0)));
     } catch (...) {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: caught exception in Stream_IAllocator::malloc(0), aborting\n"),
@@ -982,6 +978,11 @@ retry:
                   inherited::mod_->name ()));
     goto error;
   } // end IF
+  if (likely (allocator_))
+    session_message_p->initialize ((session_data_p ? session_data_p->sessionId : -1),
+                                   eventType_in,
+                                   sessionData_inout,
+                                   userData_in);
 
   result = put (session_message_p, NULL);
   if (unlikely (result == -1))

@@ -19,7 +19,6 @@
  ***************************************************************************/
 #include "stdafx.h"
 
-//#include "ace/Synch.h"
 #include "test_u_audioeffect_session_message.h"
 
 #include "ace/Malloc_Base.h"
@@ -80,29 +79,33 @@ Test_U_AudioEffect_DirectShow_SessionMessage::duplicate (void) const
 
   // if there is no allocator, use the standard new and delete calls.
   if (inherited::message_block_allocator_ == NULL)
+    ACE_NEW_NORETURN (message_p,
+                      Test_U_AudioEffect_DirectShow_SessionMessage (*this));
+  else
+    ACE_NEW_MALLOC_NORETURN (message_p,
+                             static_cast<Test_U_AudioEffect_DirectShow_SessionMessage*> (inherited::message_block_allocator_->malloc (0)),
+                             Test_U_AudioEffect_DirectShow_SessionMessage (*this));
+  if (unlikely (!message_p))
   {
-    ACE_NEW_RETURN (message_p,
-                    Test_U_AudioEffect_DirectShow_SessionMessage (*this),
-                    NULL);
+    Stream_IAllocator* allocator_p =
+      dynamic_cast<Stream_IAllocator*> (inherited::message_block_allocator_);
+    if ((allocator_p && allocator_p->block ()) ||
+         !allocator_p)
+      ACE_DEBUG ((LM_CRITICAL,
+                  ACE_TEXT ("failed to allocate Test_U_AudioEffect_DirectShow_SessionMessage: \"%m\", aborting\n")));
+    return NULL;
   } // end IF
-
-  // *WARNING*: the allocator returns a Test_U_AudioEffect_DirectShow_SessionMessageBase<ConfigurationType>
-  // when passing 0 as argument to malloc()...
-  ACE_NEW_MALLOC_RETURN (message_p,
-                         static_cast<Test_U_AudioEffect_DirectShow_SessionMessage*> (inherited::message_block_allocator_->malloc (0)),
-                         Test_U_AudioEffect_DirectShow_SessionMessage (*this),
-                         NULL);
 
   // increment the reference counts of all the continuation messages
   if (inherited::cont_)
   {
     message_p->cont_ = inherited::cont_->duplicate ();
-
-    // when things go wrong, release all resources and return
-    if (message_p->cont_ == 0)
+    if (unlikely (!message_p->cont_))
     {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to Test_U_AudioEffect_DirectShow_SessionMessage::duplicate(): \"%m\", aborting\n")));
       message_p->release ();
-      message_p = NULL;
+      return NULL;
     } // end IF
   } // end IF
 
@@ -166,29 +169,33 @@ Test_U_AudioEffect_MediaFoundation_SessionMessage::duplicate (void) const
 
   // if there is no allocator, use the standard new and delete calls.
   if (inherited::message_block_allocator_ == NULL)
+    ACE_NEW_NORETURN (message_p,
+                      Test_U_AudioEffect_MediaFoundation_SessionMessage (*this));
+  else
+    ACE_NEW_MALLOC_NORETURN (message_p,
+                             static_cast<Test_U_AudioEffect_MediaFoundation_SessionMessage*> (inherited::message_block_allocator_->malloc (0)),
+                             Test_U_AudioEffect_MediaFoundation_SessionMessage (*this));
+  if (unlikely (!message_p))
   {
-    ACE_NEW_RETURN (message_p,
-                    Test_U_AudioEffect_MediaFoundation_SessionMessage (*this),
-                    NULL);
+    Stream_IAllocator* allocator_p =
+      dynamic_cast<Stream_IAllocator*> (inherited::message_block_allocator_);
+    if ((allocator_p && allocator_p->block ()) ||
+         !allocator_p)
+      ACE_DEBUG ((LM_CRITICAL,
+                  ACE_TEXT ("failed to allocate Test_U_AudioEffect_MediaFoundation_SessionMessage: \"%m\", aborting\n")));
+    return NULL;
   } // end IF
-
-  // *WARNING*: the allocator returns a Test_U_AudioEffect_MediaFoundation_SessionMessageBase<ConfigurationType>
-  // when passing 0 as argument to malloc()...
-  ACE_NEW_MALLOC_RETURN (message_p,
-                         static_cast<Test_U_AudioEffect_MediaFoundation_SessionMessage*> (inherited::message_block_allocator_->malloc (0)),
-                         Test_U_AudioEffect_MediaFoundation_SessionMessage (*this),
-                         NULL);
 
   // increment the reference counts of all the continuation messages
   if (inherited::cont_)
   {
     message_p->cont_ = inherited::cont_->duplicate ();
-
-    // when things go wrong, release all resources and return
-    if (message_p->cont_ == 0)
+    if (unlikely (!message_p->cont_))
     {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to Test_U_AudioEffect_MediaFoundation_SessionMessage::duplicate(): \"%m\", aborting\n")));
       message_p->release ();
-      message_p = NULL;
+      return NULL;
     } // end IF
   } // end IF
 
@@ -250,18 +257,26 @@ Test_U_AudioEffect_SessionMessage::duplicate (void) const
 
   // if there is no allocator, use the standard new and delete calls.
   if (inherited::message_block_allocator_ == NULL)
+    ACE_NEW_NORETURN (message_p,
+                      Test_U_AudioEffect_SessionMessage (*this));
+  else // otherwise, use the existing message_block_allocator
   {
-    ACE_NEW_RETURN (message_p,
-                    Test_U_AudioEffect_SessionMessage (*this),
-                    NULL);
+    // *WARNING*: the allocator returns a Test_U_AudioEffect_SessionMessageBase<ConfigurationType>
+    // when passing 0 as argument to malloc()...
+    ACE_NEW_MALLOC_NORETURN (message_p,
+                             static_cast<Test_U_AudioEffect_SessionMessage*> (inherited::message_block_allocator_->malloc (0)),
+                             Test_U_AudioEffect_SessionMessage (*this));
+  } // end ELSE
+  if (unlikely (!message_p))
+  {
+    Stream_IAllocator* allocator_p =
+      dynamic_cast<Stream_IAllocator*> (inherited::message_block_allocator_);
+    if ((allocator_p && allocator_p->block ()) ||
+         !allocator_p)
+      ACE_DEBUG ((LM_CRITICAL,
+                  ACE_TEXT ("failed to allocate Test_U_AudioEffect_SessionMessage: \"%m\", aborting\n")));
+    return NULL;
   } // end IF
-
-  // *WARNING*: the allocator returns a Test_U_AudioEffect_SessionMessageBase<ConfigurationType>
-  // when passing 0 as argument to malloc()...
-  ACE_NEW_MALLOC_RETURN (message_p,
-                         static_cast<Test_U_AudioEffect_SessionMessage*> (inherited::message_block_allocator_->malloc (0)),
-                         Test_U_AudioEffect_SessionMessage (*this),
-                         NULL);
 
   // increment the reference counts of all the continuation messages
   if (inherited::cont_)
@@ -269,10 +284,12 @@ Test_U_AudioEffect_SessionMessage::duplicate (void) const
     message_p->cont_ = inherited::cont_->duplicate ();
 
     // when things go wrong, release all resources and return
-    if (message_p->cont_ == 0)
+    if (unlikely (!message_p->cont_))
     {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to Test_U_AudioEffect_SessionMessage::duplicate(): \"%m\", aborting\n")));
       message_p->release ();
-      message_p = NULL;
+      return NULL;
     } // end IF
   } // end IF
 

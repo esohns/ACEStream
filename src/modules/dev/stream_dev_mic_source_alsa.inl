@@ -22,7 +22,9 @@
 #include "ace/Message_Block.h"
 #include "ace/Message_Queue.h"
 
+#include "common_configuration.h"
 #include "common_file_tools.h"
+
 #include "common_timer_manager_common.h"
 
 #include "stream_defines.h"
@@ -46,6 +48,7 @@ stream_dev_mic_source_alsa_async_callback (snd_async_handler_t* handler_in)
   struct Stream_Device_ALSA_Capture_AsynchCBData* data_p =
       reinterpret_cast<struct Stream_Device_ALSA_Capture_AsynchCBData*> (snd_async_handler_get_callback_private (handler_in));
   ACE_ASSERT (data_p);
+  ACE_ASSERT (data_p->allocatorConfiguration);
   ACE_ASSERT (data_p->queue);
   ACE_ASSERT (data_p->statistic);
   snd_pcm_t* handle_p = snd_async_handler_get_pcm (handler_in);
@@ -79,18 +82,18 @@ stream_dev_mic_source_alsa_async_callback (snd_async_handler_t* handler_in)
       {
         try {
           message_block_p =
-              static_cast<ACE_Message_Block*> (data_p->allocator->malloc (data_p->bufferSize));
+              static_cast<ACE_Message_Block*> (data_p->allocator->malloc (data_p->allocatorConfiguration->defaultBufferSize));
         } catch (...) {
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("%s: caught exception in Stream_IAllocator::malloc(%u), continuing\n"),
                       ACE_TEXT (snd_pcm_name (handle_p)),
-                      data_p->bufferSize));
+                      data_p->allocatorConfiguration->defaultBufferSize));
           message_block_p = NULL;
         }
       } // end IF
       else
         ACE_NEW_NORETURN (message_block_p,
-                          ACE_Message_Block (data_p->bufferSize));
+                          ACE_Message_Block (data_p->allocatorConfiguration->defaultBufferSize));
       if (unlikely (!message_block_p))
       {
         ACE_DEBUG ((LM_CRITICAL,
@@ -100,37 +103,59 @@ stream_dev_mic_source_alsa_async_callback (snd_async_handler_t* handler_in)
       } // end IF
     } // end IF
 
+    frames_to_read = message_block_p->size () / data_p->frameSize;
+    frames_to_read =
+      (frames_to_read > static_cast<snd_pcm_uframes_t> (available_frames) ? available_frames
+                                                                          : frames_to_read);
     // generate sinus ?
-    if (unlikely (data_p->sinus))
-      Stream_Module_Decoder_Tools::sinus (*data_p->frequency,
-                                          data_p->format.rate,
-                                          data_p->sampleSize,
-                                          data_p->format.channels,
-                                          reinterpret_cast<uint8_t*> (message_block_p->rd_ptr ()),
-                                          static_cast<unsigned int> (frames_read),
-                                          data_p->phase);
-    else
+    frames_read = snd_pcm_readi (handle_p,
+                                 message_block_p->wr_ptr (),
+                                 frames_to_read);
+    if (unlikely (frames_read < 0))
     {
-      frames_to_read = message_block_p->size () / data_p->sampleSize;
-      frames_to_read =
-          (frames_to_read > static_cast<snd_pcm_uframes_t> (available_frames) ? available_frames
-                                                                              : frames_to_read);
-      frames_read = snd_pcm_readi (handle_p,
-                                   message_block_p->wr_ptr (),
-                                   frames_to_read);
-      if (unlikely (frames_read < 0))
+      // overrun ? --> recover
+      if (frames_read == -EPIPE)
+        goto recover;
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("%s: failed to snd_pcm_readi(): \"%s\", returning\n"),
+                  ACE_TEXT (snd_pcm_name (handle_p)),
+                  ACE_TEXT (snd_strerror (frames_read))));
+      goto error;
+    } // end IF
+    switch (data_p->generatorConfiguration.type)
+    {
+      case STREAM_MEDIAFRAMEWORK_SOUNDGENERATOR_SAWTOOTH:
       {
-        // overrun ? --> recover
-        if (frames_read == -EPIPE)
-          goto recover;
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("%s: failed to snd_pcm_readi(): \"%s\", returning\n"),
-                    ACE_TEXT (snd_pcm_name (handle_p)),
-                    ACE_TEXT (snd_strerror (frames_read))));
-        goto error;
-      } // end IF
-    } // end ELSE
-    message_block_p->wr_ptr (static_cast<unsigned int> (frames_read) * data_p->sampleSize);
+        ACE_ASSERT (false); // *TODO*
+        break;
+      }
+      case STREAM_MEDIAFRAMEWORK_SOUNDGENERATOR_SINE:
+      {
+        Stream_Module_Decoder_Tools::sinus (*data_p->generatorConfiguration.frequency,
+                                            data_p->format.rate,
+                                            data_p->bytesPerSample,
+                                            data_p->format.channels,
+                                            data_p->isSignedFormat,
+                                            data_p->isLittleEndianFormat,
+                                            reinterpret_cast<uint8_t*> (message_block_p->wr_ptr ()),
+                                            static_cast<unsigned int> (frames_read),
+                                            data_p->generatorConfiguration.phase);
+        break;
+      }
+      case STREAM_MEDIAFRAMEWORK_SOUNDGENERATOR_SQUARE:
+      {
+        ACE_ASSERT (false); // *TODO*
+        break;
+      }
+      case STREAM_MEDIAFRAMEWORK_SOUNDGENERATOR_NOISE:
+      {
+        ACE_ASSERT (false); // *TODO*
+        break;
+      }
+      default:
+        break;
+    } // end SWITCH
+    message_block_p->wr_ptr (static_cast<unsigned int> (frames_read) * data_p->frameSize);
     data_p->statistic->capturedFrames += frames_read;
 
     result = data_p->queue->enqueue_tail (message_block_p,
@@ -479,19 +504,29 @@ Stream_Dev_Mic_Source_ALSA_T<ACE_SYNCH_USE,
 
       ACE_ASSERT (inherited::configuration_->messageAllocator);
       asynchCBData_.allocator = inherited::configuration_->messageAllocator;
-      asynchCBData_.statistic = &session_data_r.statistic;
-      //  asynchCBData_.areas = areas;
       ACE_ASSERT (inherited::configuration_->allocatorConfiguration);
-      asynchCBData_.bufferSize =
-          inherited::configuration_->allocatorConfiguration->defaultBufferSize;
+      asynchCBData_.allocatorConfiguration =
+        inherited::configuration_->allocatorConfiguration;
+//  asynchCBData_.areas = areas;
+      asynchCBData_.bytesPerSample =
+        (snd_pcm_format_width (media_type_r.format) / 8);
       asynchCBData_.format = media_type_r;
-      asynchCBData_.queue = inherited::msg_queue ();
-      asynchCBData_.sampleSize =
-          (snd_pcm_format_width (media_type_r.format) / 8) *
+      asynchCBData_.frameSize =
+        (snd_pcm_format_width (media_type_r.format) / 8) *
           media_type_r.channels;
-      asynchCBData_.frequency = &inherited::configuration_->sinusFrequency;
-      asynchCBData_.sinus = inherited::configuration_->sinus;
-      asynchCBData_.phase = 0.0;
+      asynchCBData_.isLittleEndianFormat =
+        (snd_pcm_format_little_endian (media_type_r.format) == 1);
+      asynchCBData_.isSignedFormat =
+        (snd_pcm_format_signed (media_type_r.format) == 1);
+      asynchCBData_.queue = inherited::msg_queue ();
+      asynchCBData_.statistic = &session_data_r.statistic;
+
+      asynchCBData_.generatorConfiguration.frequency =
+        &inherited::configuration_->sinusFrequency;
+      asynchCBData_.generatorConfiguration.phase = 0.0;
+      asynchCBData_.generatorConfiguration.type =
+        (inherited::configuration_->sinus ? STREAM_MEDIAFRAMEWORK_SOUNDGENERATOR_SINE
+                                          : STREAM_MEDIAFRAMEWORK_SOUNDGENERATOR_INVALID);
       result =
           snd_async_add_pcm_handler (&asynchHandler_,
                                      deviceHandle_,

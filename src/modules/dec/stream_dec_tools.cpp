@@ -775,42 +775,84 @@ clean:
 void
 Stream_Module_Decoder_Tools::sinus (double frequency_in,
                                     unsigned int sampleRate_in,
-                                    unsigned int sampleSize_in, // 'data'-
+                                    unsigned int bytesPerSample_in,
                                     unsigned int channels_in,
+                                    bool formatIsSigned_in,
+                                    bool formatIsLittleEndian_in,
                                     uint8_t* buffer_in,
                                     unsigned int samplesToWrite_in, // #'data' samples
                                     double& phase_inout)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Decoder_Tools::sinus"));
 
+  // sanity check(s)
+  ACE_ASSERT (bytesPerSample_in <= 8);
+
   static double maximum_phase_d = 2.0 * M_PI;
   double step_d =
     (maximum_phase_d * frequency_in) / static_cast<double> (sampleRate_in);
-  unsigned int bytes_per_sample_i = sampleSize_in / channels_in;
-  unsigned int maximum_value_i = (1 << ((bytes_per_sample_i * 8) - 1)) - 1;
-  double phase_d = phase_inout;
-  int value_i = 0;
-  uint8_t* pointer_p = buffer_in;
+  uint64_t maximum_value_i =
+    ((bytesPerSample_in == 8) ? (formatIsSigned_in ? std::numeric_limits<int64_t>::max ()
+                                                   : std::numeric_limits<uint64_t>::max ())
+                              : (formatIsSigned_in ? (1UL << ((bytesPerSample_in * 8) - 1)) - 1
+                                                   : (1UL <<  (bytesPerSample_in * 8)) - 1));
+  bool byte_swap_b =
+    (formatIsLittleEndian_in ? (ACE_BYTE_ORDER != ACE_LITTLE_ENDIAN)
+                             : (ACE_BYTE_ORDER == ACE_LITTLE_ENDIAN));
+  double value_d = 0.0;
+  uint8_t* data_p = buffer_in;
   for (unsigned int i = 0; i < samplesToWrite_in; ++i)
   {
-    value_i = static_cast<int> (std::sin (phase_d) * maximum_value_i);
-    for (unsigned int j = 0; j < channels_in; ++j)
-    {
-      for (unsigned int k = 0; k < bytes_per_sample_i; ++k)
+    value_d = std::sin (phase_inout) * (double)maximum_value_i;
+    for (unsigned int j = 0; j < channels_in; ++j, data_p += bytesPerSample_in)
+      switch (bytesPerSample_in)
       {
-        if (likely (ACE_BYTE_ORDER == ACE_LITTLE_ENDIAN))
-          *(pointer_p + k) = (value_i >> (k * 8)) & 0xFF;
-        else
-          *(pointer_p + bytes_per_sample_i - 1 - k) =
-            (value_i >> (k * 8)) & 0xFF;
-      } // end FOR
-      pointer_p += bytes_per_sample_i;
-    } // end FOR
-    phase_d += step_d;
-    if (unlikely (phase_d >= maximum_phase_d))
-      phase_d -= maximum_phase_d;
+        case 1:
+        {
+          *data_p =
+            (formatIsSigned_in ? (uint8_t)static_cast<int8_t> (value_d)
+                               : static_cast<uint8_t> (value_d));
+          break;
+        }
+        case 2:
+        {
+          *reinterpret_cast<uint16_t*> (data_p) =
+            (byte_swap_b ? Common_Tools::byteswap (formatIsSigned_in ? (uint16_t)static_cast<int16_t> (value_d)
+                                                                     : static_cast<uint16_t> (value_d))
+                         : (formatIsSigned_in ? (uint16_t)static_cast<int16_t> (value_d)
+                                              : static_cast<uint16_t> (value_d)));
+          break;
+        }
+        case 4:
+        {
+          *reinterpret_cast<uint32_t*> (data_p) =
+            (byte_swap_b ? Common_Tools::byteswap (formatIsSigned_in ? (uint32_t)static_cast<int32_t> (value_d)
+                                                                     : static_cast<uint32_t> (value_d))
+                         : (formatIsSigned_in ? (uint32_t)static_cast<int32_t> (value_d)
+                                              : static_cast<uint32_t> (value_d)));
+          break;
+        }
+        case 8:
+        {
+          *reinterpret_cast<uint64_t*> (data_p) =
+            (byte_swap_b ? Common_Tools::byteswap (formatIsSigned_in ? (uint64_t)static_cast<int64_t> (value_d)
+                                                                     : static_cast<uint64_t> (value_d))
+                         : (formatIsSigned_in ? (uint64_t)static_cast<int64_t> (value_d)
+                                              : static_cast<uint64_t> (value_d)));
+          break;
+        }
+        default:
+        {
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("invalid/unknown value size (was: %u), returning\n"),
+                      bytesPerSample_in));
+          return;
+        }
+      } // end SWITCH
+    phase_inout += step_d;
+    if (unlikely (phase_inout >= maximum_phase_d))
+      phase_inout -= maximum_phase_d;
   } // end FOR
-  phase_inout = phase_d;
 }
 
 #if defined (OPENCV_SUPPORT)

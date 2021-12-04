@@ -779,12 +779,15 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
         //                   (un-)link()ed (e.g. inbound network data
         //                   processing), the handle may have to be updated
         if (unlikely (session_data_container_p != inherited::sessionData_))
-        { ACE_ASSERT (inherited::sessionData_);
-          ACE_DEBUG ((LM_DEBUG,
-                      ACE_TEXT ("%s: updating session data\n"),
-                      inherited::mod_->name ()));
+        {
           session_data_container_p = inherited::sessionData_;
-          session_data_p = &inherited::sessionData_->getR ();
+          session_data_p =
+            (inherited::sessionData_ ? &inherited::sessionData_->getR ()
+                                     : NULL);
+          if (session_data_p)
+            ACE_DEBUG ((LM_DEBUG,
+                        ACE_TEXT ("%s: updated session data\n"),
+                        inherited::mod_->name ()));
         } // end IF
 
         // finished ?
@@ -829,7 +832,7 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
       break;
     // session aborted ?
     // *TODO*: remove type inferences
-    { ACE_ASSERT (session_data_p->lock);
+    { ACE_ASSERT (session_data_p && session_data_p->lock);
       ACE_GUARD_RETURN (ACE_SYNCH_MUTEX_T, aGuard, *session_data_p->lock, -1);
       // *TODO*: remove type inferences
       if (unlikely (session_data_p->aborted))

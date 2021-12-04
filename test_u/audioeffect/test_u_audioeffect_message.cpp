@@ -99,14 +99,14 @@ Test_U_AudioEffect_DirectShow_Message::duplicate (void) const
                                                                                                                                '\0')),
                              Test_U_AudioEffect_DirectShow_Message (*this));
   } // end ELSE
-  if (!message_p)
+  if (unlikely (!message_p))
   {
     Stream_IAllocator* allocator_p =
       dynamic_cast<Stream_IAllocator*> (inherited::message_block_allocator_);
-    ACE_ASSERT (allocator_p);
-    if (allocator_p->block ())
+    if ((allocator_p && allocator_p->block ()) ||
+         !allocator_p)
       ACE_DEBUG ((LM_CRITICAL,
-                  ACE_TEXT ("failed to allocate Stream_MessageBase: \"%m\", aborting\n")));
+                  ACE_TEXT ("failed to allocate Test_U_AudioEffect_DirectShow_Message: \"%m\", aborting\n")));
     return NULL;
   } // end IF
 
@@ -114,14 +114,11 @@ Test_U_AudioEffect_DirectShow_Message::duplicate (void) const
   if (inherited::cont_)
   {
     message_p->cont_ = inherited::cont_->duplicate ();
-    if (!message_p->cont_)
+    if (unlikely (!message_p->cont_))
     {
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to Stream_MessageBase::duplicate(): \"%m\", aborting\n")));
-
-      // clean up
+                  ACE_TEXT ("failed to Test_U_AudioEffect_DirectShow_Message::duplicate(): \"%m\", aborting\n")));
       message_p->release ();
-
       return NULL;
     } // end IF
   } // end IF

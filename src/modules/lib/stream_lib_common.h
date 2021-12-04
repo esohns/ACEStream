@@ -55,6 +55,24 @@ enum Stream_MediaFramework_Type
   STREAM_MEDIAFRAMEWORK_INVALID
 };
 
+enum Stream_MediaFramework_SoundGeneratorType
+{
+  STREAM_MEDIAFRAMEWORK_SOUNDGENERATOR_SAWTOOTH = 0,
+  STREAM_MEDIAFRAMEWORK_SOUNDGENERATOR_SINE,
+  STREAM_MEDIAFRAMEWORK_SOUNDGENERATOR_SQUARE,
+  STREAM_MEDIAFRAMEWORK_SOUNDGENERATOR_NOISE,
+  ////////////////////////////////////////
+  STREAM_MEDIAFRAMEWORK_SOUNDGENERATOR_MAX,
+  STREAM_MEDIAFRAMEWORK_SOUNDGENERATOR_INVALID
+};
+
+struct Stream_MediaFramework_SoundGeneratorConfiguration
+{
+  double*                                       frequency;
+  double                                        phase;
+  enum Stream_MediaFramework_SoundGeneratorType type;
+};
+
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 struct Stream_MediaFramework_GUID_OperatorLess
 {

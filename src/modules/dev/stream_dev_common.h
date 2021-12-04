@@ -44,6 +44,7 @@ extern "C"
 #include "ace/Log_Msg.h"
 #include "ace/OS.h"
 #else
+#include "stream_lib_common.h"
 #include "stream_lib_alsa_common.h"
 #endif // ACE_WIN32 || ACE_WIN64
 
@@ -168,20 +169,22 @@ typedef Stream_Device_List_t::const_iterator Stream_Device_ListIterator_t;
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
+struct Common_AllocatorConfiguration;
 struct Stream_Device_ALSA_Capture_AsynchCBData
 {
-//  struct _snd_pcm_channel_area*               areas;
-  unsigned int                                bufferSize;
-  unsigned int                                sampleSize;
+  Stream_IAllocator*                                      allocator;
+  struct Common_AllocatorConfiguration*                   allocatorConfiguration;
+//  struct _snd_pcm_channel_area*                            areas;
+  unsigned int                                             bytesPerSample; // #bytes/(mono-)-
+  struct Stream_MediaFramework_ALSA_MediaType              format;
+  unsigned int                                             frameSize; // bytesPerSample * format.channels
+  bool                                                     isLittleEndianFormat;
+  bool                                                     isSignedFormat;
+  ACE_Message_Queue_Base*                                  queue;
+  Stream_Statistic*                                        statistic;
 
-  Stream_IAllocator*                          allocator;
-  struct Stream_MediaFramework_ALSA_MediaType format;
-  ACE_Message_Queue_Base*                     queue;
-  Stream_Statistic*                           statistic;
-
-  double*                                     frequency;
-  bool                                        sinus;
-  double                                      phase;
+  // sound generator
+  struct Stream_MediaFramework_SoundGeneratorConfiguration generatorConfiguration;
 };
 
 struct Stream_Device_ALSA_Playback_AsynchCBData
