@@ -227,11 +227,13 @@ Stream_Device_MediaFoundation_Tools::loadDeviceTopology (const struct Stream_Dev
   // initialize return value(s)
   if (topology_out)
   {
+    Stream_MediaFramework_MediaFoundation_Tools::clear (topology_out,
+                                                        true);
     topology_out->Release (); topology_out = NULL;
   } // end IF
 
+  struct _GUID major_type_s = GUID_NULL;
   IMFTopologyNode* topology_node_p = NULL;
-  IMFTopologyNode* topology_node_2 = NULL;
   TOPOID node_id = 0;
   IMFPresentationDescriptor* presentation_descriptor_p = NULL;
   IMFStreamDescriptor* stream_descriptor_p = NULL;
@@ -252,10 +254,22 @@ Stream_Device_MediaFoundation_Tools::loadDeviceTopology (const struct Stream_Dev
 #if COMMON_OS_WIN32_TARGET_PLATFORM(0x0601) // _WIN32_WINNT_WIN7
   if (InlineIsEqualGUID (deviceCategory_in, MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE_VIDCAP_GUID))
   {
+    major_type_s = MFMediaType_Video;
     result = topology_out->SetUINT32 (MF_TOPOLOGY_ENABLE_XVP_FOR_PLAYBACK,
                                       TRUE);
     ACE_ASSERT (SUCCEEDED (result));
   } // end IF
+  else if (InlineIsEqualGUID (deviceCategory_in, MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE_AUDCAP_GUID))
+  {
+    major_type_s = MFMediaType_Audio;
+  } // end ELSE IF
+  else
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("invalid/unknown device category: \"%s\", aborting\n"),
+                ACE_TEXT (Common_Tools::GUIDToString (deviceCategory_in).c_str ())));
+    goto error;
+  } // end ELSE
   result = topology_out->SetUINT32 (MF_TOPOLOGY_DXVA_MODE,
                                     MFTOPOLOGY_DXVA_FULL);
   ACE_ASSERT (SUCCEEDED (result));
@@ -395,114 +409,48 @@ Stream_Device_MediaFoundation_Tools::loadDeviceTopology (const struct Stream_Dev
               ACE_TEXT ("%q: added source node: \"%s\"...\n"),
               node_id,
               ACE_TEXT (Stream_MediaFramework_MediaFoundation_Tools::toString (mediaSource_inout).c_str ())));
-
-  // *NOTE*: add 'dummy' sink node so the topology can be loaded ?
-  if (!sampleGrabberSinkCallback_in)
-    goto continue_;
-
-  if (!Stream_Device_MediaFoundation_Tools::getCaptureFormat (mediaSource_inout,
-                                                              media_type_p))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to Stream_Device_MediaFoundation_Tools::getCaptureFormat(), aborting\n")));
-    goto error;
-  } // end IF
-
-#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
-  result =
-    MFCreateSampleGrabberSinkActivate (media_type_p,
-                                       sampleGrabberSinkCallback_in,
-                                       &activate_p);
-#else
-  ACE_ASSERT (false);
-  ACE_NOTSUP_RETURN (false);
-  ACE_NOTREACHED (return false;)
-#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
-  if (FAILED (result))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to MFCreateSampleGrabberSinkActivate(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
-    media_type_p->Release (); media_type_p = NULL;
-    goto error;
-  } // end IF
-  media_type_p->Release (); media_type_p = NULL;
-#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0601) // _WIN32_WINNT_WIN7
-  result = activate_p->SetUINT32 (MF_SAMPLEGRABBERSINK_IGNORE_CLOCK,
-                                  TRUE);
-  ACE_ASSERT (SUCCEEDED (result));
-#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0601)
-
-  result = activate_p->ActivateObject (IID_PPV_ARGS (&media_sink_p));
-  ACE_ASSERT (SUCCEEDED (result));
-  activate_p->Release (); activate_p = NULL;
-  result = media_sink_p->GetStreamSinkByIndex (0,
-                                               &stream_sink_p);
-  ACE_ASSERT (SUCCEEDED (result));
-  media_sink_p->Release (); media_sink_p = NULL;
-
-#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
-  result = MFCreateTopologyNode (MF_TOPOLOGY_OUTPUT_NODE,
-                                 &topology_node_2);
-  if (FAILED (result))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to MFCreateTopologyNode(MF_TOPOLOGY_OUTPUT_NODE): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
-    goto error;
-  } // end IF
-  ACE_ASSERT (topology_node_2);
-#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
-  result = topology_node_2->SetObject (stream_sink_p);
-  ACE_ASSERT (SUCCEEDED (result));
-  stream_sink_p->Release (); stream_sink_p = NULL;
-  result = topology_node_2->SetUINT32 (MF_TOPONODE_CONNECT_METHOD,
-                                       MF_CONNECT_DIRECT);
-  ACE_ASSERT (SUCCEEDED (result));
-  result = topology_node_2->SetUINT32 (MF_TOPONODE_STREAMID, 0);
-  ACE_ASSERT (SUCCEEDED (result));
-  result = topology_node_2->SetUINT32 (MF_TOPONODE_NOSHUTDOWN_ON_REMOVE, FALSE);
-  ACE_ASSERT (SUCCEEDED (result));
-  result = topology_out->AddNode (topology_node_2);
-  if (FAILED (result))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to IMFTopology::AddNode(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
-    goto error;
-  } // end IF
-  result = topology_node_2->GetTopoNodeID (&node_id);
-  ACE_ASSERT (SUCCEEDED (result));
-  ACE_DEBUG ((LM_DEBUG,
-              ACE_TEXT ("%q: added 'dummy' sink node...\n"),
-              node_id));
-  result = topology_node_p->ConnectOutput (0,
-                                           topology_node_2,
-                                           0);
-  if (FAILED (result))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to IMFTopologyNode::ConnectOutput(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
-    goto error;
-  } // end IF
-  topology_node_2->Release (); topology_node_2 = NULL;
-continue_:
   topology_node_p->Release (); topology_node_p = NULL;
+  node_id = 0;
 
+  if (!sampleGrabberSinkCallback_in)
+  {
+    if (!Stream_MediaFramework_MediaFoundation_Tools::addRenderer (major_type_s,
+                                                                   NULL,
+                                                                   GUID_NULL, // *TODO*: this is not the null-renderer !
+                                                                   topology_out,
+                                                                   node_id,
+                                                                   true))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to Stream_MediaFramework_MediaFoundation_Tools::addRenderer(), aborting\n")));
+      goto error;
+    } // end IF
+    goto continue_;
+  } // end IF
+
+  if (!Stream_MediaFramework_MediaFoundation_Tools::addGrabber (sampleGrabberSinkCallback_in,
+                                                                topology_out,
+                                                                node_id))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to Stream_MediaFramework_MediaFoundation_Tools::addGrabber(), aborting\n")));
+    goto error;
+  } // end IF
+
+continue_:
   return true;
 
 error:
   if (topology_node_p)
     topology_node_p->Release ();
-  if (topology_node_2)
-    topology_node_2->Release ();
   if (presentation_descriptor_p)
     presentation_descriptor_p->Release ();
   if (stream_descriptor_p)
     stream_descriptor_p->Release ();
   if (topology_out)
   {
+    Stream_MediaFramework_MediaFoundation_Tools::clear (topology_out,
+                                                        true);
     topology_out->Release (); topology_out = NULL;
   } // end IF
 

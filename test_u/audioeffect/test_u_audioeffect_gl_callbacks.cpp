@@ -285,7 +285,7 @@ glarea_realize_cb (GtkWidget* widget_in,
     filename += ACE_TEXT_ALWAYS_CHAR (COMMON_LOCATION_CONFIGURATION_SUBDIRECTORY);
     filename += ACE_DIRECTORY_SEPARATOR_CHAR;
     filename +=
-      ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_AUDIOEFFECT_DEFAULT_IMAGE_FILE);
+      ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_AUDIOEFFECT_OPENGL_DEFAULT_TEXTURE_FILE);
     *texture_id_p = Common_GL_Tools::loadTexture (filename);
     if (!*texture_id_p)
     {

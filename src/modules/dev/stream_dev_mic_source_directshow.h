@@ -174,7 +174,6 @@ class Stream_Dev_Mic_Source_DirectShow_T
                               ISampleGrabber*&);                      // return value: sample grabber handle
 
   bool                   isFirst_;
-  //ACE_SYNCH_MUTEX        lock_;
 
   //HANDLE                 eventHandle_;
   IAMDroppedFrames*      IAMDroppedFrames_;

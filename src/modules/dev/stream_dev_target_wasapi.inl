@@ -257,11 +257,31 @@ Stream_Dev_Target_WASAPI_T<ACE_SYNCH_USE,
         reinterpret_cast<struct tWAVEFORMATEX*> (media_type_s.pbFormat);
       frameSize_ = audio_info_p->nChannels * (audio_info_p->wBitsPerSample / 8);
       ACE_ASSERT (frameSize_ == audio_info_p->nBlockAlign);
-      ACE_ASSERT (inherited::configuration_->deviceIdentifier.identifierDiscriminator == Stream_Device_Identifier::GUID);
-      struct _GUID device_identifier_s =
-        ((inherited::configuration_->audioOutput >= 0) ? Stream_MediaFramework_DirectSound_Tools::waveDeviceIdToDirectSoundGUID (static_cast<ULONG> (inherited::configuration_->audioOutput),
-                                                                                                                                 false) // render
-                                                       : inherited::configuration_->deviceIdentifier.identifier._guid);
+      struct _GUID device_identifier_s = GUID_NULL;
+      switch (inherited::configuration_->deviceIdentifier.identifierDiscriminator)
+      {
+        case Stream_Device_Identifier::ID:
+        {
+          device_identifier_s =
+            Stream_MediaFramework_DirectSound_Tools::waveDeviceIdToDirectSoundGUID (static_cast<ULONG> (inherited::configuration_->deviceIdentifier.identifier._id),
+                                                                                    false); // render
+          break;
+        }
+        case Stream_Device_Identifier::GUID:
+        {
+          device_identifier_s =
+            inherited::configuration_->deviceIdentifier.identifier._guid;
+          break;
+        }
+        default:
+        {
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("%s: invalid/unknown device identifier type (was: %d), aborting\n"),
+                      inherited::mod_->name (),
+                      inherited::configuration_->deviceIdentifier.identifierDiscriminator));
+          goto error;
+        }
+      } // end SWITCH
 
       REFERENCE_TIME requested_duration_i = 0;
       IMMDeviceEnumerator* enumerator_p = NULL;
@@ -488,7 +508,12 @@ error:
         ACE_ASSERT (SUCCEEDED (result_2) && audio_session_control_p);
         result_2 =
           audio_session_control_p->UnregisterAudioSessionNotification (this);
-        ACE_ASSERT (SUCCEEDED (result_2));
+        // *NOTE*: needs to be the same thread that called RegisterAudioSessionNotification() ?
+        if (FAILED (result_2)) // E_NOTFOUND: 0x80070490
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("%s: failed to IAudioSessionControl::UnregisterAudioSessionNotification(): \"%s\", continuing\n"),
+                      inherited::mod_->name (),
+                      ACE_TEXT (Common_Error_Tools::errorToString (result_2, true, false).c_str ())));
         audio_session_control_p->Release (); audio_session_control_p = NULL;
 
         audioClient_->Release (); audioClient_ = NULL;
@@ -918,7 +943,9 @@ Stream_Dev_Target_WASAPI_T<ACE_SYNCH_USE,
   UINT32 buffer_size_i = 0;
 
   ACE_ASSERT (!task_);
-  task_ = AvSetMmThreadCharacteristics (TEXT ("Pro Audio"), &task_index_i);
+  task_ =
+    AvSetMmThreadCharacteristics (TEXT (STREAM_LIB_WASAPI_RENDER_DEFAULT_TASKNAME),
+                                  &task_index_i);
   if (!task_)
   {
     ACE_DEBUG ((LM_ERROR,

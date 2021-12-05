@@ -1132,9 +1132,11 @@ do_work (
   Stream_IStreamControlBase* istream_control_p = NULL;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   struct Test_U_AudioEffect_DirectShow_ModuleHandlerConfiguration directshow_modulehandler_configuration;
+  struct Test_U_AudioEffect_DirectShow_ModuleHandlerConfiguration directshow_modulehandler_configuration_2; // renderer module
   struct Test_U_AudioEffect_DirectShow_StreamConfiguration directshow_stream_configuration;
   struct Test_U_AudioEffect_MediaFoundation_ModuleHandlerConfiguration mediafoundation_modulehandler_configuration;
   struct Test_U_AudioEffect_MediaFoundation_ModuleHandlerConfiguration mediafoundation_modulehandler_configuration_2; // mediafoundation target module
+  struct Test_U_AudioEffect_MediaFoundation_ModuleHandlerConfiguration mediafoundation_modulehandler_configuration_3; // renderer module
   struct Test_U_AudioEffect_MediaFoundation_StreamConfiguration mediafoundation_stream_configuration;
   Test_U_AudioEffect_DirectShow_Stream directshow_stream;
   Test_U_AudioEffect_MediaFoundation_Stream mediafoundation_stream;
@@ -1248,11 +1250,12 @@ do_work (
         allocator_configuration_p;
       directshow_modulehandler_configuration.filterConfiguration =
         &directShowConfiguration_in.filterConfiguration;
+      directshow_modulehandler_configuration.generatorConfiguration =
+        &directShowConfiguration_in.generatorConfiguration;
       directshow_modulehandler_configuration.messageAllocator =
         &directshow_message_allocator;
       directshow_modulehandler_configuration.mute = mute_in;
 
-      directshow_modulehandler_configuration.audioOutput = 0;
 #if defined (GUI_SUPPORT)
 #if defined (GTK_SUPPORT)
       directshow_modulehandler_configuration.surfaceLock =
@@ -1273,9 +1276,9 @@ do_work (
         ACE_Time_Value (statisticReportingInterval_in, 0);
       directshow_modulehandler_configuration.subscriber =
         &directshow_ui_event_handler;
-      directshow_modulehandler_configuration.targetFileName =
-          (targetFilename_in.empty () ? Common_File_Tools::getTempDirectory ()
-                                      : targetFilename_in);
+      if (!targetFilename_in.empty ())
+        directshow_modulehandler_configuration.fileIdentifier.identifier =
+          targetFilename_in;
 
       directShowConfiguration_in.streamConfiguration.initialize (module_configuration,
                                                                  directshow_modulehandler_configuration,
@@ -1285,17 +1288,29 @@ do_work (
         directShowConfiguration_in.streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
       ACE_ASSERT (directshow_modulehandler_iterator != directShowConfiguration_in.streamConfiguration.end ());
 
+      directshow_modulehandler_configuration_2 =
+        directshow_modulehandler_configuration;
+      directshow_modulehandler_configuration_2.deviceIdentifier.identifierDiscriminator =
+        Stream_Device_Identifier::ID;
+      directshow_modulehandler_configuration_2.deviceIdentifier.identifier._id =
+        (mute_in ? -1 : 0);
+      directshow_modulehandler_configuration_2.passData = false;
+      directShowConfiguration_in.streamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (STREAM_LIB_DIRECTSHOW_TARGET_DEFAULT_NAME_STRING),
+                                                                             std::make_pair (&module_configuration,
+                                                                                             &directshow_modulehandler_configuration_2)));
+
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
     {
       mediafoundation_modulehandler_configuration.allocatorConfiguration =
         allocator_configuration_p;
+      mediafoundation_modulehandler_configuration.generatorConfiguration =
+        &mediaFoundationConfiguration_in.generatorConfiguration;
       mediafoundation_modulehandler_configuration.mediaFoundationConfiguration =
         &mediaFoundationConfiguration_in.mediaFoundationConfiguration;
       mediafoundation_modulehandler_configuration.mute = mute_in;
 
-      mediafoundation_modulehandler_configuration.audioOutput = 0;
 #if defined (GUI_SUPPORT)
 #if defined (GTK_SUPPORT)
       mediafoundation_modulehandler_configuration.surfaceLock =
@@ -1316,23 +1331,37 @@ do_work (
         ACE_Time_Value (statisticReportingInterval_in, 0);
       mediafoundation_modulehandler_configuration.subscriber =
         &mediafoundation_ui_event_handler;
-      mediafoundation_modulehandler_configuration.targetFileName =
-          (targetFilename_in.empty () ? Common_File_Tools::getTempDirectory ()
-                                      : targetFilename_in);
+      if (!targetFilename_in.empty ())
+        mediafoundation_modulehandler_configuration.fileIdentifier.identifier =
+          targetFilename_in;
 
-      mediaFoundationCBData_in.configuration->streamConfiguration.initialize (module_configuration,
-                                                                              mediafoundation_modulehandler_configuration,
-                                                                              mediafoundation_stream_configuration);
+      mediaFoundationConfiguration_in.streamConfiguration.initialize (module_configuration,
+                                                                      mediafoundation_modulehandler_configuration,
+                                                                      mediafoundation_stream_configuration);
       mediafoundation_modulehandler_iterator =
         mediaFoundationConfiguration_in.streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
       ACE_ASSERT (mediafoundation_modulehandler_iterator != mediaFoundationConfiguration_in.streamConfiguration.end ());
 
       mediafoundation_modulehandler_configuration_2 =
         mediafoundation_modulehandler_configuration;
+      mediafoundation_modulehandler_configuration_2.deviceIdentifier.identifierDiscriminator =
+        Stream_Device_Identifier::ID;
+      mediafoundation_modulehandler_configuration_2.deviceIdentifier.identifier._id =
+        (mute_in ? -1 : 0);
       mediafoundation_modulehandler_configuration_2.passData = false;
-      mediaFoundationCBData_in.configuration->streamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (STREAM_LIB_MEDIAFOUNDATION_TARGET_DEFAULT_NAME_STRING),
-                                                                                          std::make_pair (&module_configuration,
-                                                                                                          &mediafoundation_modulehandler_configuration_2)));
+      mediaFoundationConfiguration_in.streamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (STREAM_LIB_MEDIAFOUNDATION_TARGET_DEFAULT_NAME_STRING),
+                                                                                  std::make_pair (&module_configuration,
+                                                                                                  &mediafoundation_modulehandler_configuration_2)));
+
+      mediafoundation_modulehandler_configuration_3 =
+        mediafoundation_modulehandler_configuration;
+      mediafoundation_modulehandler_configuration_3.deviceIdentifier.identifierDiscriminator =
+        Stream_Device_Identifier::ID;
+      mediafoundation_modulehandler_configuration_3.deviceIdentifier.identifier._id =
+        (mute_in ? -1 : 0);
+      mediaFoundationConfiguration_in.streamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_WASAPI_RENDER_DEFAULT_NAME_STRING),
+                                                                                  std::make_pair (&module_configuration,
+                                                                                                  &mediafoundation_modulehandler_configuration_3)));
 
       break;
     }
@@ -1438,6 +1467,10 @@ do_work (
 #endif // ACE_WIN32 || ACE_WIN64
 
   // intialize timers
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  timer_configuration.taskType =
+    ACE_TEXT_ALWAYS_CHAR (STREAM_LIB_WASAPI_CAPTURE_DEFAULT_TASKNAME);
+#endif // ACE_WIN32 || ACE_WIN64
   timer_manager_p = COMMON_TIMERMANAGER_SINGLETON::instance ();
   ACE_ASSERT (timer_manager_p);
   timer_manager_p->initialize (timer_configuration);
@@ -1982,8 +2015,16 @@ ACE_TMAIN (int argc_in,
   struct Test_U_AudioEffect_DirectShow_Configuration directshow_configuration;
   directshow_configuration.filterConfiguration.pinConfiguration =
     &directshow_configuration.pinConfiguration;
+  directshow_configuration.generatorConfiguration.frequency =
+    TEST_U_STREAM_AUDIOEFFECT_NOISE_DEFAULT_FREQUENCY_D;
+  directshow_configuration.generatorConfiguration.type =
+    TEST_U_STREAM_AUDIOEFFECT_NOISE_DEFAULT_TYPE;
   struct Test_U_AudioEffect_DirectShow_UI_CBData directshow_ui_cb_data;
   struct Test_U_AudioEffect_MediaFoundation_Configuration mediafoundation_configuration;
+  mediafoundation_configuration.generatorConfiguration.frequency =
+    TEST_U_STREAM_AUDIOEFFECT_NOISE_DEFAULT_FREQUENCY_D;
+  mediafoundation_configuration.generatorConfiguration.type =
+    TEST_U_STREAM_AUDIOEFFECT_NOISE_DEFAULT_TYPE;
   struct Test_U_AudioEffect_MediaFoundation_UI_CBData mediafoundation_ui_cb_data;
   switch (media_framework_e)
   {

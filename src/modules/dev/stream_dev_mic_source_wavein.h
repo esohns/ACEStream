@@ -52,11 +52,7 @@ struct libacestream_wave_in_cbdata
 
   unsigned int       channels;
   unsigned int       sampleRate;
-  unsigned int       sampleSize;
-
-  double*            frequency;
-  bool               sinus;
-  double             phase;
+  unsigned int       sampleSize; // #bytes/(mono-)sample
 };
 
 template <ACE_SYNCH_DECL,

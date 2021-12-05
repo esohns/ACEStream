@@ -461,8 +461,7 @@ Stream_Dev_Mic_Source_MediaFoundation_T<ACE_SYNCH_USE,
                                                                      media_type_p,
                                                                      NULL,
                                                                      this,
-                                                                     (inherited::configuration_->mute ? -1
-                                                                                                      : inherited::configuration_->audioOutput),
+                                                                     -1,
                                                                      GUID_NULL,
                                                                      effect_options,
                                                                      topology_p))
@@ -602,6 +601,13 @@ error:
     }
     case STREAM_SESSION_MESSAGE_END:
     {
+      // *NOTE*: only process the first 'session end' message
+      { ACE_GUARD (ACE_Thread_Mutex, aGuard, inherited::lock_);
+        if (inherited::sessionEndProcessed_)
+          break; // done
+        inherited::sessionEndProcessed_ = true;
+      } // end lock scope
+
       if (inherited::timerId_ != -1)
       {
         const void* act_p = NULL;
@@ -689,7 +695,6 @@ continue_:
       if (COM_initialized)
         CoUninitialize ();
 
-      inherited::sessionEndProcessed_ = true;
       if (likely (inherited::configuration_->concurrency != STREAM_HEADMODULECONCURRENCY_CONCURRENT))
       { Common_ITask* itask_p = this; // *TODO*: is the no other way ?
         itask_p->stop (false,  // wait for completion ?

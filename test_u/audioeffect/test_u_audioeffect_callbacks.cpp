@@ -3078,7 +3078,7 @@ get_buffer_size (gpointer userData_in)
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   // *IMPORTANT NOTE*: with DirectShow, lower buffer sizes result in lower
   //                   latency
-  return (unsigned int)((STREAM_LIB_DIRECTSHOW_FILTER_SOURCE_MAX_LATENCY_MS * bps) / (float)MILLISECONDS);
+  return static_cast<unsigned int> ((STREAM_LIB_DIRECTSHOW_FILTER_SOURCE_MAX_LATENCY_MS * bps) / (double)MILLISECONDS);
 #else
   ACE_UNUSED_ARG (format_e);
   ACE_UNUSED_ARG (bps);
@@ -3998,9 +3998,10 @@ idle_initialize_UI_cb (gpointer userData_in)
       ACE_ASSERT (directshow_modulehandler_configuration_iterator != directshow_ui_cb_data_p->configuration->streamConfiguration.end ());
 
       filename =
-        (*directshow_modulehandler_configuration_iterator).second.second->targetFileName;
+        ((*directshow_modulehandler_configuration_iterator).second.second->fileIdentifier.empty () ? Common_File_Tools::getTempDirectory ()
+                                                                                                   : (*directshow_modulehandler_configuration_iterator).second.second->fileIdentifier.identifier);
       if (Common_File_Tools::isDirectory (filename))
-        (*directshow_modulehandler_configuration_iterator).second.second->targetFileName.clear ();
+        (*directshow_modulehandler_configuration_iterator).second.second->fileIdentifier.clear ();
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
@@ -4010,9 +4011,10 @@ idle_initialize_UI_cb (gpointer userData_in)
       ACE_ASSERT (mediafoundation_modulehandler_configuration_iterator != mediafoundation_ui_cb_data_p->configuration->streamConfiguration.end ());
 
       filename =
-        (*mediafoundation_modulehandler_configuration_iterator).second.second->targetFileName;
+        ((*mediafoundation_modulehandler_configuration_iterator).second.second->fileIdentifier.empty () ? Common_File_Tools::getTempDirectory ()
+                                                                                                        : (*mediafoundation_modulehandler_configuration_iterator).second.second->fileIdentifier.identifier);
       if (Common_File_Tools::isDirectory (filename))
-        (*mediafoundation_modulehandler_configuration_iterator).second.second->targetFileName.clear ();
+        (*mediafoundation_modulehandler_configuration_iterator).second.second->fileIdentifier.clear ();
       break;
     }
     default:
@@ -4125,15 +4127,15 @@ idle_initialize_UI_cb (gpointer userData_in)
   switch (ui_cb_data_base_p->mediaFramework)
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
-    {
+    { ACE_ASSERT ((*directshow_modulehandler_configuration_iterator).second.second->generatorConfiguration);
       gtk_range_set_value (GTK_RANGE (scale_2),
-                           (*directshow_modulehandler_configuration_iterator).second.second->sinusFrequency);
+                           (*directshow_modulehandler_configuration_iterator).second.second->generatorConfiguration->frequency);
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
-    {
+    { ACE_ASSERT ((*mediafoundation_modulehandler_configuration_iterator).second.second->generatorConfiguration);
       gtk_range_set_value (GTK_RANGE (scale_2),
-                           (*mediafoundation_modulehandler_configuration_iterator).second.second->sinusFrequency);
+                           (*mediafoundation_modulehandler_configuration_iterator).second.second->generatorConfiguration->frequency);
       break;
     }
     default:
@@ -4149,7 +4151,8 @@ idle_initialize_UI_cb (gpointer userData_in)
                        (*modulehandler_configuration_iterator).second.second->sinusFrequency);
 #endif // ACE_WIN32 || ACE_WIN64
   gtk_scale_add_mark (scale_2,
-                      gtk_range_get_value (GTK_RANGE (scale_2)),
+                      //gtk_range_get_value (GTK_RANGE (scale_2)),
+                      TEST_U_STREAM_AUDIOEFFECT_NOISE_DEFAULT_FREQUENCY_D,
                       GTK_POS_TOP,
                       NULL);
 
@@ -4890,15 +4893,15 @@ continue_:
   switch (ui_cb_data_base_p->mediaFramework)
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
-    {
+    { ACE_ASSERT ((*directshow_modulehandler_configuration_iterator).second.second->generatorConfiguration);
       is_active =
-        (*directshow_modulehandler_configuration_iterator).second.second->sinus;
+        ((*directshow_modulehandler_configuration_iterator).second.second->generatorConfiguration->type != STREAM_MEDIAFRAMEWORK_SOUNDGENERATOR_INVALID);
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
-    {
+    { ACE_ASSERT ((*mediafoundation_modulehandler_configuration_iterator).second.second->generatorConfiguration);
       is_active =
-        (*mediafoundation_modulehandler_configuration_iterator).second.second->sinus;
+        ((*mediafoundation_modulehandler_configuration_iterator).second.second->generatorConfiguration->type != STREAM_MEDIAFRAMEWORK_SOUNDGENERATOR_INVALID);
       break;
     }
     default:
@@ -6879,10 +6882,10 @@ continue_:
       ACE_ASSERT (directshow_modulehandler_configuration_iterator != directshow_ui_cb_data_p->configuration->streamConfiguration.end ());
 
       if (is_active)
-        (*directshow_modulehandler_configuration_iterator).second.second->targetFileName =
+        (*directshow_modulehandler_configuration_iterator).second.second->fileIdentifier.identifier =
           Common_UI_GTK_Tools::UTF8ToLocale ((filename_p ? filename_p : ACE_TEXT_ALWAYS_CHAR ("")), -1);
       else
-        (*directshow_modulehandler_configuration_iterator).second.second->targetFileName.clear ();
+        (*directshow_modulehandler_configuration_iterator).second.second->fileIdentifier.clear ();
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
@@ -6898,10 +6901,10 @@ continue_:
       ACE_ASSERT (mediafoundation_modulehandler_configuration_iterator != mediafoundation_ui_cb_data_p->configuration->streamConfiguration.end ());
 
       if (is_active)
-        (*mediafoundation_modulehandler_configuration_iterator).second.second->targetFileName =
+        (*mediafoundation_modulehandler_configuration_iterator).second.second->fileIdentifier.identifier =
           Common_UI_GTK_Tools::UTF8ToLocale ((filename_p ? filename_p : ACE_TEXT_ALWAYS_CHAR ("")), -1);
       else
-        (*mediafoundation_modulehandler_configuration_iterator).second.second->targetFileName.clear ();
+        (*mediafoundation_modulehandler_configuration_iterator).second.second->fileIdentifier.clear ();
       break;
     }
     default:
@@ -6980,9 +6983,10 @@ togglebutton_sinus_toggled_cb (GtkToggleButton* toggleButton_in,
       directshow_modulehandler_configuration_iterator =
         directshow_ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
       ACE_ASSERT (directshow_modulehandler_configuration_iterator != directshow_ui_cb_data_p->configuration->streamConfiguration.end ());
-
-      (*directshow_modulehandler_configuration_iterator).second.second->sinus =
-        is_active;
+      ACE_ASSERT ((*directshow_modulehandler_configuration_iterator).second.second->generatorConfiguration);
+      (*directshow_modulehandler_configuration_iterator).second.second->generatorConfiguration->type =
+        (is_active ? STREAM_MEDIAFRAMEWORK_SOUNDGENERATOR_SINE 
+                   : STREAM_MEDIAFRAMEWORK_SOUNDGENERATOR_INVALID);
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
@@ -6996,9 +7000,10 @@ togglebutton_sinus_toggled_cb (GtkToggleButton* toggleButton_in,
       mediafoundation_modulehandler_configuration_iterator =
         mediafoundation_ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
       ACE_ASSERT (mediafoundation_modulehandler_configuration_iterator != mediafoundation_ui_cb_data_p->configuration->streamConfiguration.end ());
-
-      (*mediafoundation_modulehandler_configuration_iterator).second.second->sinus =
-        is_active;
+      ACE_ASSERT ((*mediafoundation_modulehandler_configuration_iterator).second.second->generatorConfiguration);
+      (*mediafoundation_modulehandler_configuration_iterator).second.second->generatorConfiguration->type =
+        (is_active ? STREAM_MEDIAFRAMEWORK_SOUNDGENERATOR_SINE 
+                   : STREAM_MEDIAFRAMEWORK_SOUNDGENERATOR_INVALID);
       break;
     }
     default:
@@ -7407,8 +7412,8 @@ scale_sinus_frequency_value_changed_cb (GtkRange* range_in,
       directshow_modulehandler_configuration_iterator =
         directshow_ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
       ACE_ASSERT (directshow_modulehandler_configuration_iterator != directshow_ui_cb_data_p->configuration->streamConfiguration.end ());
-
-      (*directshow_modulehandler_configuration_iterator).second.second->sinusFrequency =
+      ACE_ASSERT ((*directshow_modulehandler_configuration_iterator).second.second->generatorConfiguration);
+      (*directshow_modulehandler_configuration_iterator).second.second->generatorConfiguration->frequency =
         gtk_range_get_value (range_in);
       break;
     }
@@ -7423,8 +7428,8 @@ scale_sinus_frequency_value_changed_cb (GtkRange* range_in,
       mediafoundation_modulehandler_configuration_iterator =
         mediafoundation_ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
       ACE_ASSERT (mediafoundation_modulehandler_configuration_iterator != mediafoundation_ui_cb_data_p->configuration->streamConfiguration.end ());
-
-      (*mediafoundation_modulehandler_configuration_iterator).second.second->sinusFrequency =
+      ACE_ASSERT ((*mediafoundation_modulehandler_configuration_iterator).second.second->generatorConfiguration);
+      (*mediafoundation_modulehandler_configuration_iterator).second.second->generatorConfiguration->frequency =
         gtk_range_get_value (range_in);
       break;
     }
@@ -8647,28 +8652,24 @@ combobox_source_changed_cb (GtkWidget* widget_in,
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
     {
-      (*directshow_modulehandler_configuration_iterator).second.second->audioInput =
-          card_id_i;
-      //ACE_OS::strcpy ((*directshow_modulehandler_configuration_iterator).second.second->deviceIdentifier.identifier._string,
-      //                device_identifier_string.c_str ());
+      //(*directshow_modulehandler_configuration_iterator).second.second->deviceIdentifier.identifier._id =
+      //    card_id_i;
       (*directshow_modulehandler_configuration_iterator).second.second->deviceIdentifier.identifier._guid =
         Stream_MediaFramework_DirectSound_Tools::waveDeviceIdToDirectSoundGUID (static_cast<ULONG> (card_id_i),
                                                                                 true); // capture
-      //ACE_OS::strcpy ((*directshow_modulehandler_configuration_iterator).second.second->deviceIdentifier.identifier._string,
-      //                ACE_TEXT_ALWAYS_CHAR (g_value_get_string (&value)));
+      (*directshow_modulehandler_configuration_iterator).second.second->deviceIdentifier.identifierDiscriminator =
+        Stream_Device_Identifier::GUID;
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
     {
-      (*mediafoundation_modulehandler_configuration_iterator).second.second->audioInput =
-        card_id_i;
-      //ACE_OS::strcpy ((*mediafoundation_modulehandler_configuration_iterator).second.second->deviceIdentifier.identifier._string,
-      //                device_identifier_string.c_str ());
+      //(*mediafoundation_modulehandler_configuration_iterator).second.second->deviceIdentifier.identifier._id =
+      //  card_id_i;
       (*mediafoundation_modulehandler_configuration_iterator).second.second->deviceIdentifier.identifier._guid =
         Stream_MediaFramework_DirectSound_Tools::waveDeviceIdToDirectSoundGUID (static_cast<ULONG> (card_id_i),
                                                                                 true); // capture
-      //ACE_OS::strcpy ((*mediafoundation_modulehandler_configuration_iterator).second.second->deviceIdentifier.identifier._string,
-      //                ACE_TEXT_ALWAYS_CHAR (g_value_get_string (&value)));
+      (*mediafoundation_modulehandler_configuration_iterator).second.second->deviceIdentifier.identifierDiscriminator =
+        Stream_Device_Identifier::GUID;
 
       if (!use_framework_source_b)
         break;
@@ -10746,9 +10747,12 @@ drawingarea_query_tooltip_cb (GtkWidget*  widget_in,
         reinterpret_cast<struct tWAVEFORMATEX*> ((*directshow_modulehandler_configuration_iterator).second.second->outputFormat.pbFormat);
       ACE_ASSERT (waveformatex_p);
       sample_size = waveformatex_p->wBitsPerSample / 8;
-      // *NOTE*: Microsoft(TM) uses signed little endian
-      is_signed_format = true;
       channels = waveformatex_p->nChannels;
+      // *NOTE*: "...If the audio contains 8 bits per sample, the audio samples
+      //         are unsigned values. (Each audio sample has the range 0–255.)
+      //         If the audio contains 16 bits per sample or higher, the audio
+      //         samples are signed values. ..."
+      is_signed_format = !(sample_size == 1);
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
@@ -10768,17 +10772,16 @@ drawingarea_query_tooltip_cb (GtkWidget*  widget_in,
       mode =
         (*mediafoundation_modulehandler_configuration_iterator).second.second->spectrumAnalyzer2DMode;
       result =
-        (*mediafoundation_modulehandler_configuration_iterator).second.second->outputFormat->GetUINT32 (MF_MT_SAMPLE_SIZE,
+        (*mediafoundation_modulehandler_configuration_iterator).second.second->outputFormat->GetUINT32 (MF_MT_AUDIO_BITS_PER_SAMPLE,
                                                                                                         &sample_size);
       if (FAILED (result))
       {
         ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("failed to IMFMediaType::GetUINT32(MF_MT_SAMPLE_SIZE): \"%s\", aborting\n"),
+                    ACE_TEXT ("failed to IMFMediaType::GetUINT32(MF_MT_AUDIO_BITS_PER_SAMPLE): \"%s\", aborting\n"),
                     ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
         return FALSE;
       } // end IF
-      // *NOTE*: Microsoft(TM) uses signed little endian
-      is_signed_format = true;
+      sample_size /= 8;
       result =
         (*mediafoundation_modulehandler_configuration_iterator).second.second->outputFormat->GetUINT32 (MF_MT_AUDIO_NUM_CHANNELS,
                                                                                                         &channels);
@@ -10789,6 +10792,11 @@ drawingarea_query_tooltip_cb (GtkWidget*  widget_in,
                     ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
         return FALSE;
       } // end IF
+      // *NOTE*: "...If the audio contains 8 bits per sample, the audio samples
+      //         are unsigned values. (Each audio sample has the range 0–255.)
+      //         If the audio contains 16 bits per sample or higher, the audio
+      //         samples are signed values. ..."
+      is_signed_format = !(sample_size == 1);
       break;
     }
     default:
@@ -10852,25 +10860,39 @@ drawingarea_query_tooltip_cb (GtkWidget*  widget_in,
     {
       // *NOTE*: works for integer value types only
       // *WARNING*: correct only for two's complement value representations
-      unsigned int maximum_value =
+      uint64_t maximum_value =
           (is_signed_format ? ((1 << ((sample_size * 8) - 1)) - 1)
                             : ((1 << (sample_size * 8)) - 1));
       double half_height = allocation.height / 2.0;
       // *TODO*: the value type depends on the format, so this isn't accurate
       if (is_signed_format)
         converter <<
-          static_cast<int> ((half_height - y_in) * (maximum_value / half_height));
+          static_cast<int64_t> (((half_height - y_in) * static_cast<int64_t> (maximum_value)) / half_height);
       else
         converter <<
-          static_cast<unsigned int> ((half_height - y_in) * (maximum_value / half_height));
+          static_cast<uint64_t> (((half_height - y_in) * maximum_value) / half_height);
       break;
     }
     case STREAM_VISUALIZATION_SPECTRUMANALYZER_2DMODE_SPECTRUM:
     {
+      // *NOTE*: works for integer value types only
+      // *WARNING*: correct only for two's complement value representations
+      uint64_t maximum_value =
+        (is_signed_format ? ((1 << ((sample_size * 8) - 1)) - 1)
+                          : ((1 << (sample_size * 8)) - 1));
+      double half_height = allocation.height / 2.0;
+      // *TODO*: the value type depends on the format, so this isn't accurate
+      if (is_signed_format)
+        converter <<
+          static_cast<int64_t> (((half_height - y_in) * static_cast<int64_t> (maximum_value)) / half_height);
+      else
+        converter <<
+          static_cast<uint64_t> (((half_height - y_in) * maximum_value) / half_height);
       unsigned int allocation_per_channel = (allocation.width / channels);
       unsigned int slot =
         static_cast<unsigned int> ((x_in % allocation_per_channel) * (math_fft_p->Slots () / static_cast<double> (allocation_per_channel)));
-      converter << math_fft_p->Frequency (slot)
+      converter << ACE_TEXT_ALWAYS_CHAR (", ")
+                << math_fft_p->Frequency (slot)
                 << ACE_TEXT_ALWAYS_CHAR (" Hz");
       break;
     }
@@ -11767,7 +11789,7 @@ filechooserbutton_destination_file_set_cb (GtkFileChooserButton* button_in,
         directshow_ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
       ACE_ASSERT (directshow_modulehandler_configuration_iterator != directshow_ui_cb_data_p->configuration->streamConfiguration.end ());
 
-      (*directshow_modulehandler_configuration_iterator).second.second->targetFileName =
+      (*directshow_modulehandler_configuration_iterator).second.second->fileIdentifier.identifier =
         Common_UI_GTK_Tools::UTF8ToLocale (filename_p, -1);
       break;
     }
@@ -11783,7 +11805,7 @@ filechooserbutton_destination_file_set_cb (GtkFileChooserButton* button_in,
         mediafoundation_ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
       ACE_ASSERT (mediafoundation_modulehandler_configuration_iterator != mediafoundation_ui_cb_data_p->configuration->streamConfiguration.end ());
 
-      (*mediafoundation_modulehandler_configuration_iterator).second.second->targetFileName =
+      (*mediafoundation_modulehandler_configuration_iterator).second.second->fileIdentifier.identifier =
         Common_UI_GTK_Tools::UTF8ToLocale (filename_p, -1);
       break;
     }

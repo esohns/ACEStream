@@ -3796,6 +3796,15 @@ continue_3:
                   ACE_TEXT ("failed to Stream_MediaFramework_MediaFoundation_Tools::addResampler(), aborting\n")));
       goto error;
     } // end IF
+    ACE_ASSERT (node_id);
+    ACE_ASSERT (!topology_node_p);
+    result = topology_inout->GetNodeByID (node_id,
+                                          &topology_node_p);
+    ACE_ASSERT (SUCCEEDED (result) && topology_node_p);
+    source_node_p->Release ();
+    source_node_p = topology_node_p;
+    topology_node_p = NULL;
+
     if (!add_tee_node_b) // set new output type ?
     {
       media_type_p->Release (); media_type_p = NULL;
@@ -3804,14 +3813,6 @@ continue_3:
       ACE_ASSERT (media_type_p);
     } // end IF
   } // end IF
-  ACE_ASSERT (node_id);
-  ACE_ASSERT (!topology_node_p);
-  result = topology_inout->GetNodeByID (node_id,
-                                        &topology_node_p);
-  ACE_ASSERT (SUCCEEDED (result) && topology_node_p);
-  source_node_p->Release ();
-  source_node_p = topology_node_p;
-  topology_node_p = NULL;
 
   node_id = 0;
   if (!Stream_MediaFramework_MediaFoundation_Tools::addGrabber (sampleGrabberSinkCallback_in,

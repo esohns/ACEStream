@@ -216,7 +216,7 @@ Stream_Dev_Mic_Source_DirectShow_T<ACE_SYNCH_USE,
 
   if (unlikely (inherited::isInitialized_))
   {
-    isFirst_ = false;
+    isFirst_ = true;
 
     //eventHandle_ = ACE_INVALID_HANDLE;
 
@@ -425,7 +425,7 @@ error_3:
 
       // *TODO*: remove type inferences
       if (unlikely (!initialize_DirectShow (inherited::configuration_->deviceIdentifier,
-                                            inherited::configuration_->audioOutput,
+                                            -1,
                                             ICaptureGraphBuilder2_,
                                             IAMDroppedFrames_,
                                             sample_grabber_p)))
@@ -597,9 +597,9 @@ error:
     {
       // *NOTE*: only process the first 'session end' message
       { ACE_GUARD (ACE_Thread_Mutex, aGuard, inherited::lock_);
-        if (sessionEndProcessed_)
+        if (inherited::sessionEndProcessed_)
           break; // done
-        sessionEndProcessed_ = true;
+        inherited::sessionEndProcessed_ = true;
       } // end lock scope
 
       if (likely (inherited::timerId_ != -1))
@@ -957,6 +957,7 @@ Stream_Dev_Mic_Source_DirectShow_T<ACE_SYNCH_USE,
   ACE_ASSERT (inherited::configuration_);
   // *TODO*: remove type inference
   ACE_ASSERT (inherited::configuration_->allocatorConfiguration);
+  //ACE_ASSERT (inherited::configuration_->generatorConfiguration);
 
   int result = -1;
 
@@ -972,8 +973,8 @@ Stream_Dev_Mic_Source_DirectShow_T<ACE_SYNCH_USE,
   //  //            IMediaSample_in));
   //  message_p = NULL;
   //}
-  if (unlikely (!message_p))
-  {
+  //if (unlikely (!message_p))
+  //{
     // *TODO*: remove type inference
     message_p =
       inherited::allocateMessage (inherited::configuration_->allocatorConfiguration->defaultBufferSize);
@@ -1007,27 +1008,38 @@ Stream_Dev_Mic_Source_DirectShow_T<ACE_SYNCH_USE,
                      size,
                      ACE_Message_Block::DONT_DELETE);
     message_p->wr_ptr (size);
-  } // end IF
+  //} // end IF
 
-  if (inherited::configuration_->sinus)
-  { ACE_ASSERT (inherited::sessionData_);
-    SessionDataType& session_data_r =
-      const_cast<SessionDataType&> (inherited::sessionData_->getR ());
-    ACE_ASSERT (!session_data_r.formats.empty ());
-    const struct _AMMediaType& media_type_r =
-      session_data_r.formats.back ();
-    ACE_ASSERT (InlineIsEqualGUID (media_type_r.formattype, FORMAT_WaveFormatEx));
-    struct tWAVEFORMATEX* waveformatex_p =
-      reinterpret_cast<struct tWAVEFORMATEX*> (media_type_r.pbFormat);
-    static double stream_dev_mic_source_directshow_sinus_phase = 0.0;
-    Stream_Module_Decoder_Tools::sinus (inherited::configuration_->sinusFrequency,
-                                        waveformatex_p->nSamplesPerSec,
-                                        waveformatex_p->nBlockAlign,
-                                        waveformatex_p->nChannels,
-                                        reinterpret_cast<uint8_t*> (message_p->rd_ptr ()),
-                                        (message_p->length () / waveformatex_p->nBlockAlign),
-                                        stream_dev_mic_source_directshow_sinus_phase);
-  } // end IF
+  //if (inherited::configuration_->generatorConfiguration->type != STREAM_MEDIAFRAMEWORK_SOUNDGENERATOR_INVALID)
+  //{ ACE_ASSERT (inherited::sessionData_);
+  //  SessionDataType& session_data_r =
+  //    const_cast<SessionDataType&> (inherited::sessionData_->getR ());
+  //  ACE_ASSERT (!session_data_r.formats.empty ());
+  //  const struct _AMMediaType& media_type_r =
+  //    session_data_r.formats.back ();
+  //  ACE_ASSERT (InlineIsEqualGUID (media_type_r.formattype, FORMAT_WaveFormatEx));
+  //  struct tWAVEFORMATEX* waveformatex_p =
+  //    reinterpret_cast<struct tWAVEFORMATEX*> (media_type_r.pbFormat);
+  //  static double stream_dev_mic_source_directshow_sinus_phase = 0.0;
+  //  data_r.sample->Release (); data_r.sample = NULL;
+  //  buffer_p = NULL;
+  //  ACE_NEW_NORETURN (buffer_p,
+  //                    BYTE[size]);
+  //  ACE_ASSERT (buffer_p);
+  //  Stream_Module_Decoder_Tools::sinus (*inherited::configuration_->generatorConfiguration->frequency,
+  //                                      waveformatex_p->nSamplesPerSec,
+  //                                      waveformatex_p->wBitsPerSample / 8,
+  //                                      waveformatex_p->nChannels,
+  //                                      !((waveformatex_p->wBitsPerSample / 8) == 1),
+  //                                      true,
+  //                                      buffer_p,
+  //                                      (size / waveformatex_p->nBlockAlign),
+  //                                      stream_dev_mic_source_directshow_sinus_phase);
+  //  message_p->base (reinterpret_cast<char*> (buffer_p),
+  //                   size,
+  //                   0); // own the buffer
+  //  message_p->wr_ptr (size);
+  //} // end IF
 
   result = inherited::put_next (message_p, NULL);
   if (unlikely (result == -1))

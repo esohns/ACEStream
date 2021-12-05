@@ -132,11 +132,11 @@ stream_dev_mic_source_alsa_async_callback (snd_async_handler_t* handler_in)
       case STREAM_MEDIAFRAMEWORK_SOUNDGENERATOR_SINE:
       {
         Stream_Module_Decoder_Tools::sinus (*data_p->generatorConfiguration.frequency,
-                                            data_p->format.rate,
-                                            data_p->bytesPerSample,
-                                            data_p->format.channels,
-                                            data_p->isSignedFormat,
-                                            data_p->isLittleEndianFormat,
+                                            data_p->generatorConfiguration.samplesPerSecond,
+                                            data_p->generatorConfiguration.bytesPerSample,
+                                            data_p->generatorConfiguration.numberOfChannels,
+                                            data_p->generatorConfiguration.isSignedFormat,
+                                            data_p->generatorConfiguration.isLittleEndianFormat,
                                             reinterpret_cast<uint8_t*> (message_block_p->wr_ptr ()),
                                             static_cast<unsigned int> (frames_read),
                                             data_p->generatorConfiguration.phase);

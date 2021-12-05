@@ -48,8 +48,10 @@
 #define STREAM_LIB_DIRECTSHOW_VIDEO_DEFAULT_SOURCE_BUFFERS          30 // --> max. in-flight #frames
 
 // *IMPORTANT NOTE*: with DirectShow, lower buffer sizes result in lower latency
-// *NOTE*: buffer size is: bps * MAX_LATENCY_MS / 1000
-#define STREAM_LIB_DIRECTSHOW_FILTER_SOURCE_MAX_LATENCY_MS          20 // ms
+// *NOTE*: buffer size (bytes) is: avg.#bytes/s * MAX_LATENCY_MS / 1000
+// *NOTE*: the maximum latency cannot be lower than the minimum period size
+//         as returned by IAudioClient::GetDevicePeriod(); seems to be ~3ms
+#define STREAM_LIB_DIRECTSHOW_FILTER_SOURCE_MAX_LATENCY_MS          10 // ms
 // *NOTE*: if the graph (i.e. usually the renderers'-) (default) allocator
 //         supplies the sample buffers (instead of the (source) filter), and the
 //         stream message type does not implement IMediaSample, the 'push'
@@ -136,6 +138,10 @@
 #define STREAM_LIB_MEDIAFOUNDATION_BYTESTREAMHANDLER_ROOTKEY        "Software\\Microsoft\\Windows Media Foundation\\ByteStreamHandlers"
 
 // WASAPI
+// see also: HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Multimedia\SystemProfile\Tasks
+#define STREAM_LIB_WASAPI_CAPTURE_DEFAULT_TASKNAME                  "Pro Audio"
+#define STREAM_LIB_WASAPI_RENDER_DEFAULT_TASKNAME                   "Playback"
+
 #define STREAM_LIB_WASAPI_CAPTURE_DEFAULT_SHAREMODE                 AUDCLNT_SHAREMODE_EXCLUSIVE
 #define STREAM_LIB_WASAPI_RENDER_DEFAULT_SHAREMODE                  AUDCLNT_SHAREMODE_SHARED
 #endif // ACE_WIN32 || ACE_WIN64

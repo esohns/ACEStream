@@ -99,6 +99,11 @@ struct Stream_Device_Identifier
   {
     switch (identifierDiscriminator)
     {
+      case ID:
+      {
+        identifier._id = -1;
+        break;
+      }
       case GUID:
       {
         identifier._guid = GUID_NULL;
@@ -122,6 +127,8 @@ struct Stream_Device_Identifier
   {
     switch (identifierDiscriminator)
     {
+      case ID:
+        return (identifier._id < 0);
       case GUID:
         return !InlineIsEqualGUID (identifier._guid, GUID_NULL);
       case STRING:
@@ -145,6 +152,7 @@ struct Stream_Device_Identifier
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   union identifierType
   {
+    int          _id;
     struct _GUID _guid;
     char         _string[BUFSIZ];
 
@@ -154,7 +162,8 @@ struct Stream_Device_Identifier
   }                      identifier;
   enum discriminatorType
   {
-    GUID = 0,
+    ID = 0,
+    GUID,
     STRING,
     INVALID
   };
@@ -172,14 +181,11 @@ typedef Stream_Device_List_t::const_iterator Stream_Device_ListIterator_t;
 struct Common_AllocatorConfiguration;
 struct Stream_Device_ALSA_Capture_AsynchCBData
 {
-  Stream_IAllocator*                                      allocator;
-  struct Common_AllocatorConfiguration*                   allocatorConfiguration;
+  Stream_IAllocator*                                       allocator;
+  struct Common_AllocatorConfiguration*                    allocatorConfiguration;
 //  struct _snd_pcm_channel_area*                            areas;
-  unsigned int                                             bytesPerSample; // #bytes/(mono-)-
   struct Stream_MediaFramework_ALSA_MediaType              format;
   unsigned int                                             frameSize; // bytesPerSample * format.channels
-  bool                                                     isLittleEndianFormat;
-  bool                                                     isSignedFormat;
   ACE_Message_Queue_Base*                                  queue;
   Stream_Statistic*                                        statistic;
 

@@ -18,24 +18,21 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#ifndef STREAM_DEV_MIC_SOURCE_WASAPI_H
-#define STREAM_DEV_MIC_SOURCE_WASAPI_H
-
-#include "Audioclient.h"
+#ifndef STREAM_DEC_NOISE_SOURCE_H
+#define STREAM_DEC_NOISE_SOURCE_H
 
 #include "ace/Global_Macros.h"
 #include "ace/Synch_Traits.h"
 
 #include "common_time_common.h"
+#include "common_timer_handler.h"
 
 #include "stream_common.h"
 #include "stream_headmoduletask_base.h"
 
 #include "stream_lib_mediatype_converter.h"
 
-#include "stream_dev_defines.h"
-
-extern const char libacestream_default_dev_mic_source_wasapi_module_name_string[];
+extern const char libacestream_default_dec_noise_source_module_name_string[];
 
 template <ACE_SYNCH_DECL,
           ////////////////////////////////
@@ -56,7 +53,7 @@ template <ACE_SYNCH_DECL,
           typename TimerManagerType, // implements Common_ITimer
           ////////////////////////////////
           typename MediaType>
-  class Stream_Dev_Mic_Source_WASAPI_T
+class Stream_Dec_Noise_Source_T
  : public Stream_HeadModuleTaskBase_T<ACE_MT_SYNCH,
                                       Common_TimePolicy_t,
                                       ControlMessageType,
@@ -72,6 +69,7 @@ template <ACE_SYNCH_DECL,
                                       TimerManagerType,
                                       struct Stream_UserData>
  , public Stream_MediaFramework_MediaTypeConverter_T<MediaType>
+ , public Common_ITimerHandler
 {
   typedef Stream_HeadModuleTaskBase_T<ACE_MT_SYNCH,
                                       Common_TimePolicy_t,
@@ -90,8 +88,8 @@ template <ACE_SYNCH_DECL,
   typedef Stream_MediaFramework_MediaTypeConverter_T<MediaType> inherited2;
 
  public:
-  Stream_Dev_Mic_Source_WASAPI_T (ISTREAM_T*); // stream handle
-  virtual ~Stream_Dev_Mic_Source_WASAPI_T ();
+  Stream_Dec_Noise_Source_T (ISTREAM_T*); // stream handle
+  virtual ~Stream_Dec_Noise_Source_T ();
 
   // *PORTABILITY*: for some reason, this base class member is not exposed
   //                (MSVC/gcc)
@@ -113,51 +111,53 @@ template <ACE_SYNCH_DECL,
   // override (part of) Stream_IModuleHandler_T
   virtual bool initialize (const ConfigurationType&,
                            Stream_IAllocator* = NULL);
-  //virtual void start ();
-  //virtual void stop (bool = true,   // wait for completion ?
-  //                   bool = false); // high priority ?
 
   // implement Common_IStatistic
   // *NOTE*: implements regular (timer-based) statistic collection
   virtual bool collect (StatisticContainerType&); // return value: (currently unused !)
   //virtual void report () const;
 
-  // implement (part of) Stream_ITaskBase
+//  // implement (part of) Stream_ITaskBase
 //  virtual void handleDataMessage (ProtocolMessageType*&, // data message handle
 //                                  bool&);                // return value: pass message downstream ?
   virtual void handleSessionMessage (SessionMessageType*&, // session message handle
                                      bool&);               // return value: pass message downstream ?
 
+  // implement Common_ITimerHandler
+  inline virtual const long get () const { return handler_.get (); }
+  virtual void handle (const void*); // asynchronous completion token handle
+
  private:
   // convenient types
-  typedef Stream_Dev_Mic_Source_WASAPI_T<ACE_SYNCH_USE,
-                                         ControlMessageType,
-                                         DataMessageType,
-                                         SessionMessageType,
-                                         ConfigurationType,
-                                         StreamControlType,
-                                         StreamNotificationType,
-                                         StreamStateType,
-                                         SessionDataType,
-                                         SessionDataContainerType,
-                                         StatisticContainerType,
-                                         TimerManagerType,
-                                         MediaType> OWN_TYPE_T;
+  typedef Stream_Dec_Noise_Source_T<ACE_SYNCH_USE,
+                                    ControlMessageType,
+                                    DataMessageType,
+                                    SessionMessageType,
+                                    ConfigurationType,
+                                    StreamControlType,
+                                    StreamNotificationType,
+                                    StreamStateType,
+                                    SessionDataType,
+                                    SessionDataContainerType,
+                                    StatisticContainerType,
+                                    TimerManagerType,
+                                    MediaType> OWN_TYPE_T;
 
-  //ACE_UNIMPLEMENTED_FUNC (Stream_Dev_Mic_Source_WASAPI_T ())
-  ACE_UNIMPLEMENTED_FUNC (Stream_Dev_Mic_Source_WASAPI_T (const Stream_Dev_Mic_Source_WASAPI_T&))
-  ACE_UNIMPLEMENTED_FUNC (Stream_Dev_Mic_Source_WASAPI_T& operator= (const Stream_Dev_Mic_Source_WASAPI_T&))
+  //ACE_UNIMPLEMENTED_FUNC (Stream_Dec_Noise_Source_T ())
+  ACE_UNIMPLEMENTED_FUNC (Stream_Dec_Noise_Source_T (const Stream_Dec_Noise_Source_T&))
+  ACE_UNIMPLEMENTED_FUNC (Stream_Dec_Noise_Source_T& operator= (const Stream_Dec_Noise_Source_T&))
 
-  virtual int svc (void);
-
-  IAudioClient*        audioClient_;
-  IAudioCaptureClient* audioCaptureClient_;
-  HANDLE               event_;
-  size_t               frameSize_; // byte(s)
-  HANDLE               task_;
+  unsigned int                                frameSize_;
+  Common_Timer_Handler                        handler_;
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  struct _AMMediaType                         mediaType_;
+  HANDLE                                      task_;
+#else
+  struct Stream_MediaFramework_ALSA_MediaType mediaType_;
+#endif // ACE_WIN32 || ACE_WIN64
 };
 
 // include template definition
-#include "stream_dev_mic_source_wasapi.inl"
+#include "stream_dec_noise_source.inl"
 
 #endif

@@ -51,6 +51,7 @@
 #define STREAM_DEC_ENCODER_SOX_EFFECT_DEFAULT_NAME_STRING            "SoX_Effect"
 #endif // SOX_SUPPORT
 #endif // ACE_WIN32 || ACE_WIN64
+#define STREAM_DEC_ENCODER_NOISE_SOURCE_DEFAULT_NAME_STRING          "Noise_Source"
 #define STREAM_DEC_ENCODER_WAV_DEFAULT_NAME_STRING                   "WAV_Encoder"
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)

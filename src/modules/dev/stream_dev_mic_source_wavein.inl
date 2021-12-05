@@ -70,7 +70,7 @@ Stream_Dev_Mic_Source_WaveIn_T<ACE_SYNCH_USE,
 
   ACE_OS::memset (&bufferHeaders_, 0, sizeof (struct wavehdr_tag[STREAM_DEV_MIC_WAVEIN_DEFAULT_DEVICE_BUFFERS]));
   ACE_OS::memset (&CBData_, 0, sizeof (struct libacestream_wave_in_cbdata));
-  ACE_OS::memset (&context_, 0, sizeof (HWAVEIN));
+  CBData_.task = this;
 }
 
 template <ACE_SYNCH_DECL,
@@ -100,8 +100,8 @@ Stream_Dev_Mic_Source_WaveIn_T<ACE_SYNCH_USE,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Dev_Mic_Source_WaveIn_T::~Stream_Dev_Mic_Source_WaveIn_T"));
 
-  if (closeContext_)
-  {
+  if (unlikely (closeContext_))
+  { ACE_ASSERT (context_);
     MMRESULT result = waveInClose (context_);
     if (unlikely (result != MMSYSERR_NOERROR))
       ACE_DEBUG ((LM_ERROR,
@@ -140,10 +140,10 @@ Stream_Dev_Mic_Source_WaveIn_T<ACE_SYNCH_USE,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Dev_Mic_Source_WaveIn_T::initialize"));
 
-  if (unlikely (inherited::isInitialized_))
+  if (inherited::isInitialized_)
   {
-    if (closeContext_)
-    {
+    if (unlikely (closeContext_))
+    { ACE_ASSERT (context_);
       MMRESULT result = waveInClose (context_);
       if (unlikely (result != MMSYSERR_NOERROR))
         ACE_DEBUG ((LM_ERROR,
@@ -151,6 +151,7 @@ Stream_Dev_Mic_Source_WaveIn_T<ACE_SYNCH_USE,
                     inherited::mod_->name (),
                     result));
       closeContext_ = false;
+      context_ = NULL;
     } // end IF
   } // end IF
 
@@ -171,12 +172,6 @@ Stream_Dev_Mic_Source_WaveIn_T<ACE_SYNCH_USE,
   //  printf ("%d\n", capabilities_s.dwFormats);
   //  printf ("%d\n", capabilities_s.wChannels);
   //};
-
-  CBData_.task = this;
-  CBData_.frequency =
-    &const_cast<ConfigurationType&> (configuration_in).sinusFrequency;
-  CBData_.sinus = configuration_in.sinus;
-  CBData_.phase = 0.0;
 
   return inherited::initialize (configuration_in,
                                 allocator_in);
@@ -305,8 +300,9 @@ Stream_Dev_Mic_Source_WaveIn_T<ACE_SYNCH_USE,
       ACE_ASSERT (media_type_r.formattype == FORMAT_WaveFormatEx);
       struct tWAVEFORMATEX* audio_info_p =
         reinterpret_cast<struct tWAVEFORMATEX*> (media_type_r.pbFormat);
+      ACE_ASSERT (inherited::configuration_->deviceIdentifier.identifierDiscriminator == Stream_Device_Identifier::ID);
       result = waveInOpen (&context_,
-                           configuration_->audioInput,
+                           inherited::configuration_->deviceIdentifier.identifier._id,
                            audio_info_p,
                            (DWORD)(VOID*)libacestream_wave_in_data_cb,
                            (DWORD)&CBData_,
@@ -317,13 +313,14 @@ Stream_Dev_Mic_Source_WaveIn_T<ACE_SYNCH_USE,
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: failed to waveInOpen(%d): \"%s\", aborting\n"),
                     inherited::mod_->name (),
-                    configuration_->audioInput,
+                    inherited::configuration_->deviceIdentifier.identifier._id,
                     ACE_TEXT (error_msg_a)));
         goto error;
       } // end IF
       ACE_DEBUG ((LM_DEBUG,
-                  ACE_TEXT ("%s: opened capture device (handle: %@)\n"),
+                  ACE_TEXT ("%s: opened capture device (id: %d, handle: %@)\n"),
                   inherited::mod_->name (),
+                  inherited::configuration_->deviceIdentifier.identifier._id,
                   &context_));
 
       CBData_.channels = audio_info_p->nChannels;
@@ -336,10 +333,9 @@ Stream_Dev_Mic_Source_WaveIn_T<ACE_SYNCH_USE,
                             inherited::configuration_->allocatorConfiguration->defaultBufferSize))
       {
         ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("%s: failed to allocate buffers (%d), aborting\n"),
+                    ACE_TEXT ("%s: failed to allocate buffers (%u), aborting\n"),
                     inherited::mod_->name (),
-                    16384,
-                    ACE_TEXT (error_msg_a)));
+                    inherited::configuration_->allocatorConfiguration->defaultBufferSize));
         goto error;
       } // end IF
 
@@ -387,8 +383,9 @@ Stream_Dev_Mic_Source_WaveIn_T<ACE_SYNCH_USE,
         goto error;
       } // end IF
       ACE_DEBUG ((LM_DEBUG,
-                  ACE_TEXT ("%s: started audio capture (handle: %@, %u buffer(s))\n"),
+                  ACE_TEXT ("%s: started audio capture (id: %u, handle: %@, %u buffer(s))\n"),
                   inherited::mod_->name (),
+                  inherited::configuration_->deviceIdentifier.identifier._id,
                   &context_,
                   STREAM_DEV_MIC_WAVEIN_DEFAULT_DEVICE_BUFFERS));
 
@@ -407,6 +404,13 @@ error:
     }
     case STREAM_SESSION_MESSAGE_END:
     {
+      // *NOTE*: only process the first 'session end' message
+      { ACE_GUARD (ACE_Thread_Mutex, aGuard, inherited::lock_);
+        if (inherited::sessionEndProcessed_)
+          break; // done
+        inherited::sessionEndProcessed_ = true;
+      } // end lock scope
+
       if (likely (inherited::timerId_ != -1))
       {
         const void* act_p = NULL;
@@ -461,7 +465,6 @@ error:
         } // end IF
       } // end FOR
 
-      inherited::sessionEndProcessed_ = true;
       if (likely (inherited::configuration_->concurrency != STREAM_HEADMODULECONCURRENCY_CONCURRENT))
       { Common_ITask* itask_p = this; // *TODO*: is the no other way ?
         itask_p->stop (false,  // wait for completion ?

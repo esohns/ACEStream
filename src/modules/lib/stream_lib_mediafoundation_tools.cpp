@@ -2818,7 +2818,7 @@ Stream_MediaFramework_MediaFoundation_Tools::addRenderer (REFGUID majorMediaType
                                       MF_AUDIO_RENDERER_ATTRIBUTE_FLAGS_NOPERSIST);
     ACE_ASSERT (SUCCEEDED (result));
     result = attributes_p->SetGUID (MF_AUDIO_RENDERER_ATTRIBUTE_SESSION_ID,
-                                    GUID_NULL);
+                                    CLSID_ACEStream_MediaFramework_WASAPI_AudioSession);
     ACE_ASSERT (SUCCEEDED (result));
     result = attributes_p->SetUINT32 (MF_AUDIO_RENDERER_ATTRIBUTE_STREAM_CATEGORY,
                                       AudioCategory_Media);
@@ -4287,45 +4287,7 @@ retry:
     } // end IF
     result = topology_in->RemoveNode (topology_node_2);
     ACE_ASSERT (SUCCEEDED (result));
-    result = topology_node_2->GetNodeType (&node_type_e);
-    ACE_ASSERT (SUCCEEDED (result));
-    switch (node_type_e)
-    {
-      case MF_TOPOLOGY_OUTPUT_NODE:
-      {
-        result = topology_node_2->GetObject (&unknown_p);
-        ACE_ASSERT (SUCCEEDED (result) && unknown_p);
-        IMFStreamSink* stream_sink_p = NULL;
-        result = unknown_p->QueryInterface (IID_PPV_ARGS (&stream_sink_p));
-        ACE_ASSERT (SUCCEEDED (result) && stream_sink_p);
-        unknown_p->Release (); unknown_p = NULL;
-        IMFMediaSink* media_sink_p = NULL;
-        result = stream_sink_p->GetMediaSink (&media_sink_p);
-        ACE_ASSERT (SUCCEEDED (result) && media_sink_p);
-        stream_sink_p->Release (); stream_sink_p = NULL;
-        result = media_sink_p->Shutdown ();
-        ACE_ASSERT (SUCCEEDED (result));
-        media_sink_p->Release (); media_sink_p = NULL;
-        break;
-      }
-      case MF_TOPOLOGY_SOURCESTREAM_NODE:
-      {
-        result = topology_node_2->GetObject (&unknown_p);
-        ACE_ASSERT (SUCCEEDED (result) && unknown_p);
-        IMFMediaSource* media_source_p = NULL;
-        result = topology_node_2->GetUnknown (MF_TOPONODE_SOURCE,
-                                              IID_PPV_ARGS (&media_source_p));
-        ACE_ASSERT (SUCCEEDED (result) && media_source_p);
-        result = media_source_p->Shutdown ();
-        ACE_ASSERT (SUCCEEDED (result));
-        media_source_p->Release (); media_source_p = NULL;
-        break;
-      }
-      default:
-        break;
-    } // end SWITCH
-    result = topology_node_2->SetObject (NULL);
-    ACE_ASSERT (SUCCEEDED (result));
+    Stream_MediaFramework_MediaFoundation_Tools::shutdown (topology_node_2);
     topology_node_2->Release (); topology_node_2 = NULL;
     ACE_DEBUG ((LM_DEBUG,
                 ACE_TEXT ("removed node (id was: %q)...\n"),

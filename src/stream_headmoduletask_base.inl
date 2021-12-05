@@ -500,7 +500,7 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
                       result_2));
 
         // clean up
-        if (unlikely (inherited::sessionData_))
+        if (likely (inherited::sessionData_))
         {
           inherited::sessionData_->decrease (); inherited::sessionData_ = NULL;
         } // end IF

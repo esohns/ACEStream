@@ -493,12 +493,10 @@ error:
                     inherited::mod_->name ()));
       }
 
-      if (!linked_ &&
-          sessionData_)
-      {
-        if (freeSessionData_) // --> head modules finalize this in close()
-          sessionData_->decrease ();
-        sessionData_ = NULL;
+      if (!linked_        &&
+          freeSessionData_) // --> head modules finalize this in close()
+      { ACE_ASSERT (sessionData_);
+        sessionData_->decrease (); sessionData_ = NULL;
         sessionDataLock_ = NULL;
       } // end IF
 

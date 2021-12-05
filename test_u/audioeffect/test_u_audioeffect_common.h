@@ -336,11 +336,12 @@ struct Test_U_AudioEffect_ModuleHandlerConfiguration
 {
   Test_U_AudioEffect_ModuleHandlerConfiguration ()
    : Test_U_ModuleHandlerConfiguration ()
-   , audioInput (0)
-   , audioOutput (0)
+   //, audioInput (0)
+   //, audioOutput (0)
    , deviceIdentifier ()
    , dispatch (NULL)
    , fps (STREAM_VIS_SPECTRUMANALYZER_DEFAULT_FRAME_RATE)
+   , generatorConfiguration (NULL)
    , mute (false)
 #if defined (GUI_SUPPORT)
 #if defined (GTK_SUPPORT)
@@ -361,9 +362,6 @@ struct Test_U_AudioEffect_ModuleHandlerConfiguration
    , spectrumAnalyzerResolution (STREAM_VIS_SPECTRUMANALYZER_DEFAULT_BUFFER_SIZE)
 #endif // GTK_SUPPORT
 #endif // GUI_SUPPORT
-   , sinus (TEST_U_STREAM_AUDIOEFFECT_DEFAULT_SINUS)
-   , sinusFrequency (TEST_U_STREAM_AUDIOEFFECT_DEFAULT_SINUS_FREQUENCY)
-   , targetFileName ()
 #if defined (GUI_SUPPORT)
 #if defined (GTK_SUPPORT)
    , window (NULL)
@@ -371,13 +369,10 @@ struct Test_U_AudioEffect_ModuleHandlerConfiguration
 #endif // GUI_SUPPORT
   {}
 
-  int                                               audioInput; // win32: waveIn-; UNIX: ALSA card id
-  int                                               audioOutput; // win32: waveOut-
-  // *PORTABILITY*: Win32: (usb) device path
-  //                UNIX : (ALSA/OSS/...) device name/device file path (e.g. "hw:0,0"/"/dev/snd/pcmC0D0c", "/dev/dsp" (Linux))
-  struct Stream_Device_Identifier                   deviceIdentifier;
+  struct Stream_Device_Identifier                   deviceIdentifier; // capture/render
   Test_U_AudioEffect_IDispatch_t*                   dispatch;
   unsigned int                                      fps;
+  struct Stream_MediaFramework_SoundGeneratorConfiguration* generatorConfiguration;
   bool                                              mute;
 #if defined (GUI_SUPPORT)
 #if defined (GTK_SUPPORT)
@@ -398,9 +393,6 @@ struct Test_U_AudioEffect_ModuleHandlerConfiguration
   unsigned int                                      spectrumAnalyzerResolution;
 #endif // GTK_SUPPORT
 #endif // GUI_SUPPORT
-  bool                                              sinus;
-  double                                            sinusFrequency;
-  std::string                                       targetFileName;
 #if defined (GUI_SUPPORT)
 #if defined (GTK_SUPPORT)
   GdkWindow*                                        window;
@@ -635,6 +627,7 @@ struct Test_U_AudioEffect_Configuration
 #else
    : Test_U_Configuration ()
 #endif // GUI_SUPPORT
+   , generatorConfiguration ()
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
    , streamConfiguration ()
@@ -642,11 +635,12 @@ struct Test_U_AudioEffect_Configuration
    , signalHandlerConfiguration ()
   {}
 
+  struct Stream_MediaFramework_SoundGeneratorConfiguration generatorConfiguration;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
-  Test_U_AudioEffect_ALSA_StreamConfiguration_t        streamConfiguration;
+  Test_U_AudioEffect_ALSA_StreamConfiguration_t            streamConfiguration;
 #endif // ACE_WIN32 || ACE_WIN64
-  struct Test_U_AudioEffect_SignalHandlerConfiguration signalHandlerConfiguration;
+  struct Test_U_AudioEffect_SignalHandlerConfiguration     signalHandlerConfiguration;
 };
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 struct Test_U_AudioEffect_DirectShow_FilterConfiguration

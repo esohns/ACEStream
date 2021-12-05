@@ -160,11 +160,8 @@ class Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T
   cairo_surface_t*                                   cairoSurface_;
 #else
   GdkPixbuf*                                         pixelBuffer_;
-#endif
+#endif /* GTK_CHECK_VERSION (3,10,0) */
 #if defined (GTKGL_SUPPORT)
-  Stream_Visualization_OpenGL_Instructions_t*        OpenGLInstructions_;
-  ACE_SYNCH_MUTEX*                                   OpenGLInstructionsLock_;
-  //GLuint                                             OpenGLTextureId_;
 #if GTK_CHECK_VERSION(3,0,0)
   GdkRGBA                                            backgroundColor_;
   GdkRGBA                                            foregroundColor_;
@@ -172,22 +169,6 @@ class Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T
   GdkColor                                           backgroundColor_;
   GdkColor                                           foregroundColor_;
 #endif /* GTK_CHECK_VERSION (3,0,0) */
-//#if GTK_CHECK_VERSION(3,0,0)
-//#if GTK_CHECK_VERSION(3,16,0)
-//  GtkGLArea*                                         OpenGLWindow_;
-//#else
-//#if defined (GTKGLAREA_SUPPORT)
-//  GglaArea*                                          OpenGLWindow_;
-//#endif // GTKGLAREA_SUPPORT
-//#endif /* GTK_CHECK_VERSION (3,16,0) */
-//#else /* GTK_CHECK_VERSION (3,0,0) */
-//#if defined (GTKGLAREA_SUPPORT)
-//  GtkGLArea*                                         OpenGLWindow_;
-//#else
-//  GdkGLContext*                                      OpenGLContext_;
-//  GdkGLDrawable*                                     OpenGLWindow_;
-//#endif // GTKGLAREA_SUPPORT
-//#endif /* GTK_CHECK_VERSION (3,0,0) */
 #endif /* GTKGL_SUPPORT */
   double                                             channelFactor_;
   double                                             scaleFactorX_;

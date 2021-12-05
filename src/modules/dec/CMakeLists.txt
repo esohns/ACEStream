@@ -144,6 +144,9 @@ set (source_files
      stream_dec_mpeg_ts_decoder.cpp
      stream_dec_mpeg_ts_decoder.h
      stream_dec_mpeg_ts_decoder.inl
+     stream_dec_noise_source.cpp
+     stream_dec_noise_source.h
+     stream_dec_noise_source.inl
      stream_dec_riff_common.h
      stream_dec_riff_scanner.cpp
      stream_dec_riff_scanner.h
@@ -335,6 +338,8 @@ set (${PROJECT_NAME}_Decoder_LIB_HDRS
      stream_dec_mpeg_ts_common.h
      stream_dec_mpeg_ts_decoder.h
      stream_dec_mpeg_ts_decoder.inl
+     stream_dec_noise_source.h
+     stream_dec_noise_source.inl
      stream_dec_riff_common.h
      stream_dec_riff_scanner.h
      stream_dec_tools.h

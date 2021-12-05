@@ -68,7 +68,15 @@ enum Stream_MediaFramework_SoundGeneratorType
 
 struct Stream_MediaFramework_SoundGeneratorConfiguration
 {
-  double*                                       frequency;
+  // media type
+  unsigned int                                  samplesPerSecond;
+  unsigned int                                  bytesPerSample; // #bytes/(mono-)-
+  unsigned int                                  numberOfChannels;
+  bool                                          isLittleEndianFormat;
+  bool                                          isSignedFormat;
+
+  // generator
+  double                                        frequency;
   double                                        phase;
   enum Stream_MediaFramework_SoundGeneratorType type;
 };

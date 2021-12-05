@@ -447,7 +447,9 @@ retry:
       ACE_ASSERT (SUCCEEDED (result_2));
 
       ACE_ASSERT (!task_);
-      task_ = AvSetMmThreadCharacteristics (TEXT ("Pro Audio"), &task_index_i);
+      task_ =
+        AvSetMmThreadCharacteristics (TEXT (STREAM_LIB_WASAPI_CAPTURE_DEFAULT_TASKNAME),
+                                      &task_index_i);
       if (!task_)
       {
         ACE_DEBUG ((LM_ERROR,
@@ -726,8 +728,10 @@ Stream_Dev_Mic_Source_WASAPI_T<ACE_SYNCH_USE,
         } // end ELSE
 
         // has STREAM_SESSION_END been processed ?
-        if (!sessionEndProcessed_)
-          continue; // continue processing until STREAM_SESSION_END
+        { ACE_GUARD_RETURN (ACE_Thread_Mutex, aGuard, inherited::lock_, -1);
+          if (!inherited::sessionEndProcessed_)
+            continue; // continue processing until STREAM_SESSION_END
+        } // end lock scope
 
         // --> STREAM_SESSION_END has been processed, leave
 

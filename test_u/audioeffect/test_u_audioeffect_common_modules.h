@@ -29,6 +29,7 @@
 #include "stream_common.h"
 #include "stream_streammodule_base.h"
 
+#include "stream_dec_noise_source.h"
 #include "stream_dec_wav_encoder.h"
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #include "stream_dev_mic_source_directshow.h"
@@ -76,6 +77,45 @@
 
 // declare module(s)
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
+typedef Stream_Dec_Noise_Source_T<ACE_MT_SYNCH,
+                                  Stream_ControlMessage_t,
+                                  Test_U_AudioEffect_DirectShow_Message,
+                                  Test_U_AudioEffect_DirectShow_SessionMessage,
+                                  struct Test_U_AudioEffect_DirectShow_ModuleHandlerConfiguration,
+                                  enum Stream_ControlType,
+                                  enum Stream_SessionMessageType,
+                                  struct Test_U_AudioEffect_DirectShow_StreamState,
+                                  Test_U_AudioEffect_DirectShow_SessionData,
+                                  Test_U_AudioEffect_DirectShow_SessionData_t,
+                                  struct Test_U_AudioEffect_Statistic,
+                                  Common_Timer_Manager_t,
+                                  struct _AMMediaType> Test_U_Dec_Noise_Source_DirectShow;
+DATASTREAM_MODULE_INPUT_ONLY (Test_U_AudioEffect_DirectShow_SessionData,                       // session data type
+                              enum Stream_SessionMessageType,                                  // session event type
+                              struct Test_U_AudioEffect_DirectShow_ModuleHandlerConfiguration, // module handler configuration type
+                              libacestream_default_dec_noise_source_module_name_string,
+                              Stream_INotify_t,                                                // stream notification interface type
+                              Test_U_Dec_Noise_Source_DirectShow);                             // writer type
+typedef Stream_Dec_Noise_Source_T<ACE_MT_SYNCH,
+                                  Stream_ControlMessage_t,
+                                  Test_U_AudioEffect_MediaFoundation_Message,
+                                  Test_U_AudioEffect_MediaFoundation_SessionMessage,
+                                  struct Test_U_AudioEffect_MediaFoundation_ModuleHandlerConfiguration,
+                                  enum Stream_ControlType,
+                                  enum Stream_SessionMessageType,
+                                  struct Test_U_AudioEffect_MediaFoundation_StreamState,
+                                  Test_U_AudioEffect_MediaFoundation_SessionData,
+                                  Test_U_AudioEffect_MediaFoundation_SessionData_t,
+                                  struct Test_U_AudioEffect_Statistic,
+                                  Common_Timer_Manager_t,
+                                  IMFMediaType*> Test_U_Dec_Noise_Source_MediaFoundation;
+DATASTREAM_MODULE_INPUT_ONLY (Test_U_AudioEffect_MediaFoundation_SessionData,                       // session data type
+                              enum Stream_SessionMessageType,                                       // session event type
+                              struct Test_U_AudioEffect_MediaFoundation_ModuleHandlerConfiguration, // module handler configuration type
+                              libacestream_default_dec_noise_source_module_name_string,
+                              Stream_INotify_t,                                                     // stream notification interface type
+                              Test_U_Dec_Noise_Source_MediaFoundation);                             // writer type
+
 typedef Stream_Dev_Mic_Source_DirectShow_T<ACE_MT_SYNCH,
                                            Stream_ControlMessage_t,
                                            Test_U_AudioEffect_DirectShow_Message,
@@ -171,6 +211,26 @@ DATASTREAM_MODULE_INPUT_ONLY (Test_U_AudioEffect_MediaFoundation_SessionData,   
                               Stream_INotify_t,                                                // stream notification interface type
                               Test_U_Dev_Mic_Source_WASAPI2);                                  // writer type
 #else
+typedef Stream_Dec_Noise_Source_T<ACE_MT_SYNCH,
+                                  Stream_ControlMessage_t,
+                                  Test_U_AudioEffect_Message,
+                                  Test_U_AudioEffect_SessionMessage,
+                                  struct Test_U_AudioEffect_ModuleHandlerConfiguration,
+                                  enum Stream_ControlType,
+                                  enum Stream_SessionMessageType,
+                                  struct Test_U_AudioEffect_StreamState,
+                                  Test_U_AudioEffect_SessionData,
+                                  Test_U_AudioEffect_SessionData_t,
+                                  struct Test_U_AudioEffect_Statistic,
+                                  Common_Timer_Manager_t,
+                                  struct Stream_MediaFramework_ALSA_MediaType> Test_U_Dec_Noise_Source_ALSA;
+DATASTREAM_MODULE_INPUT_ONLY (Test_U_AudioEffect_SessionData,                           // session data type
+                              enum Stream_SessionMessageType,                           // session event type
+                              struct Test_U_AudioEffect_ModuleHandlerConfiguration,     // module handler configuration type
+                              libacestream_default_dec_noise_source_module_name_string,
+                              Stream_INotify_t,                                         // stream notification interface type
+                              Test_U_Dec_Noise_Source_ALSA);                            // writer type
+
 typedef Stream_Dev_Mic_Source_ALSA_T<ACE_MT_SYNCH,
                                      Stream_ControlMessage_t,
                                      Test_U_AudioEffect_Message,
