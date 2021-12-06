@@ -61,6 +61,7 @@ Stream_Dec_Noise_Source_T<ACE_SYNCH_USE,
               STREAM_HEADMODULECONCURRENCY_PASSIVE, // concurrency
               true)                                 // generate session messages ?
  , inherited2 ()
+ , bufferSize_ (0)
  , frameSize_ (0)
  , handler_ (this,
              false)
@@ -161,6 +162,7 @@ Stream_Dec_Noise_Source_T<ACE_SYNCH_USE,
 
   if (unlikely (inherited::isInitialized_))
   {
+    bufferSize_ = 0;
     frameSize_ = 0;
 
     long timer_id = handler_.get ();
@@ -326,6 +328,9 @@ Stream_Dec_Noise_Source_T<ACE_SYNCH_USE,
       // *IMPORTANT NOTE*: larger buffers are more efficient, but introduce more
       //                   latency
       ACE_ASSERT (inherited::configuration_->allocatorConfiguration);
+      bufferSize_ =
+        static_cast<unsigned int> (inherited::configuration_->allocatorConfiguration->defaultBufferSize * 1.1);
+      bufferSize_ += frameSize_ - (bufferSize_ % frameSize_);
       suseconds_t buffer_time_us =
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
         static_cast<suseconds_t> ((inherited::configuration_->allocatorConfiguration->defaultBufferSize / static_cast<double> (waveformatex_p->nAvgBytesPerSec)) * 1000000.0);
@@ -349,8 +354,7 @@ Stream_Dec_Noise_Source_T<ACE_SYNCH_USE,
 #endif // ACE_WIN32 || ACE_WIN64
 
       // start sample generator timer
-      ACE_ASSERT (buffer_time_us > 5000);
-      interval.set (0, buffer_time_us - 5000);
+      interval.set (0, buffer_time_us);
       long timer_id =
         itimer_manager_p->schedule_timer (&handler_,                  // event handler handle
                                           NULL,                       // asynchronous completion token
@@ -480,12 +484,14 @@ Stream_Dec_Noise_Source_T<ACE_SYNCH_USE,
   // step1: allocate buffer
   try {
     message_block_p =
-      static_cast<ACE_Message_Block*> (inherited::allocator_->malloc (inherited::configuration_->allocatorConfiguration->defaultBufferSize));
+      //static_cast<ACE_Message_Block*> (inherited::allocator_->malloc (inherited::configuration_->allocatorConfiguration->defaultBufferSize));
+      static_cast<ACE_Message_Block*> (inherited::allocator_->malloc (bufferSize_));
   } catch (...) {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: caught exception in Stream_IAllocator::malloc(%u), continuing\n"),
                 inherited::mod_->name (),
-                inherited::configuration_->allocatorConfiguration->defaultBufferSize));
+                //inherited::configuration_->allocatorConfiguration->defaultBufferSize));
+                bufferSize_));
     message_block_p = NULL;
   }
   if (unlikely (!message_block_p))
@@ -497,9 +503,11 @@ Stream_Dec_Noise_Source_T<ACE_SYNCH_USE,
   } // end IF
 
   // step2: write frames
-  ACE_ASSERT ((inherited::configuration_->allocatorConfiguration->defaultBufferSize % frameSize_) == 0);
+  //ACE_ASSERT ((inherited::configuration_->allocatorConfiguration->defaultBufferSize % frameSize_) == 0);
+  ACE_ASSERT ((bufferSize_ % frameSize_) == 0);
   number_of_frames_i =
-    inherited::configuration_->allocatorConfiguration->defaultBufferSize / frameSize_;
+    //inherited::configuration_->allocatorConfiguration->defaultBufferSize / frameSize_;
+    bufferSize_ / frameSize_;
   switch (inherited::configuration_->generatorConfiguration->type)
   {
     case STREAM_MEDIAFRAMEWORK_SOUNDGENERATOR_SAWTOOTH:

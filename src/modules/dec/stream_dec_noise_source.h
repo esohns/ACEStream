@@ -147,6 +147,7 @@ class Stream_Dec_Noise_Source_T
   ACE_UNIMPLEMENTED_FUNC (Stream_Dec_Noise_Source_T (const Stream_Dec_Noise_Source_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Dec_Noise_Source_T& operator= (const Stream_Dec_Noise_Source_T&))
 
+  unsigned int                                bufferSize_;
   unsigned int                                frameSize_;
   Common_Timer_Handler                        handler_;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)

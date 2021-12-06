@@ -18,6 +18,8 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
+#include <utility>
+
 #include "ace/Log_Msg.h"
 
 #include "common_tools.h"
@@ -635,7 +637,6 @@ Stream_MediaFramework_MediaFoundation_Source_T<ACE_SYNCH_USE,
 
   DataMessageType* message_p = NULL;
   int result = -1;
-  HRESULT result_2 = E_FAIL;
 
   if (unlikely (isFirst_))
   {
@@ -648,29 +649,26 @@ Stream_MediaFramework_MediaFoundation_Source_T<ACE_SYNCH_USE,
   ACE_ASSERT (inherited::configuration_);
   // *TODO*: remove type inference
   ACE_ASSERT (inherited::configuration_->allocatorConfiguration);
-  ACE_ASSERT (inherited::configuration_->allocatorConfiguration->defaultBufferSize);
 
   message_p =
-    inherited::allocateMessage (inherited::configuration_->allocatorConfiguration->defaultBufferSize);
+    inherited::allocateMessage (std::max (static_cast<DWORD> (inherited::configuration_->allocatorConfiguration->defaultBufferSize),
+                                          bufferSize_in));
   if (unlikely (!message_p))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: failed to Stream_TaskBase_T::allocateMessage(%d), aborting\n"),
+                ACE_TEXT ("%s: failed to Stream_TaskBase_T::allocateMessage(%u), aborting\n"),
                 inherited::mod_->name (),
-                inherited::configuration_->allocatorConfiguration->defaultBufferSize));
+                std::max (static_cast<DWORD> (inherited::configuration_->allocatorConfiguration->defaultBufferSize), bufferSize_in)));
     return E_FAIL;
   } // end IF
   ACE_ASSERT (message_p);
-
-  // sanity check(s)
-  ACE_ASSERT (message_p->capacity () >= bufferSize_in);
 
   result = message_p->copy (reinterpret_cast<char*> (const_cast<BYTE*> (buffer_in)),
                             bufferSize_in);
   if (unlikely (result == -1))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: failed to ACE_Message_Block::copy(%d): \"%m\", aborting\n"),
+                ACE_TEXT ("%s: failed to ACE_Message_Block::copy(%u): \"%m\", aborting\n"),
                 inherited::mod_->name (),
                 bufferSize_in));
     message_p->release (); message_p = NULL;

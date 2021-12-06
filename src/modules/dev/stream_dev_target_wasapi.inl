@@ -126,6 +126,15 @@ Stream_Dev_Target_WASAPI_T<ACE_SYNCH_USE,
 
   if (unlikely (inherited::isInitialized_))
   {
+    int result = queue_.activate ();
+    if (unlikely (result == -1))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("%s: failed to ACE_Message_Queue::activate(): \"%m\", aborting\n"),
+                  inherited::mod_->name ()));
+      return false;
+    } // end IF
+
     task_ = NULL;
     if (event_)
     {
@@ -480,9 +489,6 @@ error:
         Common_ITask* itask_p = this;
         itask_p->stop (true,   // wait ?
                        false); // high priority ?
-        ACE_DEBUG ((LM_DEBUG,
-                    ACE_TEXT ("%s: joined renderer thread\n"),
-                    inherited::mod_->name ()));
       } // end IF
 
       HRESULT result_2 = E_FAIL;
@@ -888,6 +894,11 @@ Stream_Dev_Target_WASAPI_T<ACE_SYNCH_USE,
     case ACE_Message_Block::MB_STOP:
     {
       message_block_p->release (); message_block_p = NULL;
+      result = queue_.deactivate ();
+      if (unlikely (result == -1))
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("%s: failed to ACE_Message_Queue::deactivate(): \"%m\", continuing\n"),
+                    inherited::mod_->name ()));
       break;
     }
     case STREAM_MESSAGE_DATA:
