@@ -657,23 +657,45 @@ Test_U_AudioEffect_MediaFoundation_Stream::load (Stream_ILayout* layout_in,
   ACE_ASSERT (iterator_2 != inherited::configuration_->end ());
 
   Stream_Module_t* module_p = NULL;
-  if ((*iterator).second.second->generatorConfiguration->type != STREAM_MEDIAFRAMEWORK_SOUNDGENERATOR_INVALID)
-    ACE_NEW_RETURN (module_p,
-                    Test_U_Dec_Noise_Source_MediaFoundation_Module (this,
-                                                                    ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_ENCODER_NOISE_SOURCE_DEFAULT_NAME_STRING)),
-                    false);
-  else if (inherited::configuration_->configuration_->useFrameworkSource)
-    ACE_NEW_RETURN (module_p,
-                    Test_U_Dev_Mic_Source_MediaFoundation_Module (this,
-                                                                  ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_MIC_SOURCE_MEDIAFOUNDATION_DEFAULT_NAME_STRING)),
-                    false);
-  else
-    ACE_NEW_RETURN (module_p,
-                    //Test_U_Dev_Mic_Source_WaveIn2_Module (this,
-                    //                                      ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_MIC_SOURCE_WAVEIN_DEFAULT_NAME_STRING)),
-                    Test_U_Dev_Mic_Source_WASAPI2_Module (this,
-                                                          ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_WASAPI_CAPTURE_DEFAULT_NAME_STRING)),
-                    false);
+  switch (inherited::configuration_->configuration_->sourceType)
+  {
+    case AUDIOEFFECT_SOURCE_DEVICE:
+    {
+      if (inherited::configuration_->configuration_->useFrameworkSource)
+        ACE_NEW_RETURN (module_p,
+                        Test_U_Dev_Mic_Source_MediaFoundation_Module (this,
+                                                                      ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_MIC_SOURCE_MEDIAFOUNDATION_DEFAULT_NAME_STRING)),
+                        false);
+      else
+        ACE_NEW_RETURN (module_p,
+                        //Test_U_Dev_Mic_Source_WaveIn2_Module (this,
+                        //                                      ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_MIC_SOURCE_WAVEIN_DEFAULT_NAME_STRING)),
+                        Test_U_Dev_Mic_Source_WASAPI2_Module (this,
+                                                              ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_WASAPI_CAPTURE_DEFAULT_NAME_STRING)),
+                        false);
+      break;
+    }
+    case AUDIOEFFECT_SOURCE_NOISE:
+    {
+      ACE_NEW_RETURN (module_p,
+                      Test_U_Dec_Noise_Source_MediaFoundation_Module (this,
+                                                                      ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_ENCODER_NOISE_SOURCE_DEFAULT_NAME_STRING)),
+                      false);
+      break;
+    }
+    case AUDIOEFFECT_SOURCE_FILE:
+    {
+      ACE_ASSERT (false); // *TODO*
+      break;
+    }
+    default:
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("invalid/unknown source type (was: %d), aborting\n"),
+                  inherited::configuration_->configuration_->sourceType));
+      return false;
+    }
+  } // end SWITCH
   ACE_ASSERT (module_p);
   layout_in->append (module_p, NULL, 0);
   module_p = NULL;

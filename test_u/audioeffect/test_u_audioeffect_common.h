@@ -161,6 +161,16 @@ class Test_U_AudioEffect_SessionMessage;
 class Test_U_AudioEffect_Stream;
 #endif // ACE_WIN32 || ACE_WIN64
 
+enum Test_U_AudioEffect_SourceType
+{
+  AUDIOEFFECT_SOURCE_DEVICE,
+  AUDIOEFFECT_SOURCE_NOISE,
+  AUDIOEFFECT_SOURCE_FILE,
+  ////////////////////////////////////////
+  AUDIOEFFECT_SOURCE_MAX,
+  AUDIOEFFECT_SOURCE_INVALID
+};
+
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 struct Test_U_AudioEffect_DirectShow_MessageData
 {
@@ -550,12 +560,23 @@ struct Test_U_AudioEffect_StreamState
 };
 #endif // ACE_WIN32 || ACE_WIN64
 
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-struct Test_U_AudioEffect_DirectShow_StreamConfiguration
+struct Test_U_AudioEffect_StreamConfiguration
  : Stream_Configuration
 {
-  Test_U_AudioEffect_DirectShow_StreamConfiguration ()
+  Test_U_AudioEffect_StreamConfiguration ()
    : Stream_Configuration ()
+   , sourceType (AUDIOEFFECT_SOURCE_INVALID)
+  {}
+
+  enum Test_U_AudioEffect_SourceType sourceType;
+};
+
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+struct Test_U_AudioEffect_DirectShow_StreamConfiguration
+ : Test_U_AudioEffect_StreamConfiguration
+{
+  Test_U_AudioEffect_DirectShow_StreamConfiguration ()
+   : Test_U_AudioEffect_StreamConfiguration ()
    , filterGraphConfiguration ()
    , format ()
    , useFrameworkSource (false)
@@ -567,10 +588,10 @@ struct Test_U_AudioEffect_DirectShow_StreamConfiguration
 };
 
 struct Test_U_AudioEffect_MediaFoundation_StreamConfiguration
- : Stream_Configuration
+ : Test_U_AudioEffect_StreamConfiguration
 {
   Test_U_AudioEffect_MediaFoundation_StreamConfiguration ()
-   : Stream_Configuration ()
+   : Test_U_AudioEffect_StreamConfiguration ()
    , format (NULL)
    , useFrameworkSource (false)
   {}
@@ -580,10 +601,10 @@ struct Test_U_AudioEffect_MediaFoundation_StreamConfiguration
 };
 #else
 struct Test_U_AudioEffect_ALSA_StreamConfiguration
- : Stream_Configuration
+ : Test_U_AudioEffect_StreamConfiguration
 {
   Test_U_AudioEffect_ALSA_StreamConfiguration ()
-   : Stream_Configuration ()
+   : Test_U_AudioEffect_StreamConfiguration ()
    , format ()
   {}
 
@@ -628,19 +649,19 @@ struct Test_U_AudioEffect_Configuration
    : Test_U_Configuration ()
 #endif // GUI_SUPPORT
    , generatorConfiguration ()
+   , signalHandlerConfiguration ()
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
    , streamConfiguration ()
 #endif // ACE_WIN32 || ACE_WIN64
-   , signalHandlerConfiguration ()
   {}
 
   struct Stream_MediaFramework_SoundGeneratorConfiguration generatorConfiguration;
+  struct Test_U_AudioEffect_SignalHandlerConfiguration     signalHandlerConfiguration;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
   Test_U_AudioEffect_ALSA_StreamConfiguration_t            streamConfiguration;
 #endif // ACE_WIN32 || ACE_WIN64
-  struct Test_U_AudioEffect_SignalHandlerConfiguration     signalHandlerConfiguration;
 };
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 struct Test_U_AudioEffect_DirectShow_FilterConfiguration

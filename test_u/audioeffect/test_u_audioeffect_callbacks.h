@@ -87,26 +87,20 @@ gboolean idle_update_display_cb (gpointer);
 extern "C"
 {
 #endif /* __cplusplus */
+  G_MODULE_EXPORT void button_about_clicked_cb (GtkButton*, gpointer);
   G_MODULE_EXPORT void button_cut_clicked_cb (GtkButton*, gpointer);
   G_MODULE_EXPORT void button_properties_clicked_cb (GtkButton*, gpointer);
   G_MODULE_EXPORT void button_report_clicked_cb (GtkButton*, gpointer);
   G_MODULE_EXPORT void button_reset_clicked_cb (GtkButton*, gpointer);
   G_MODULE_EXPORT void button_settings_clicked_cb (GtkButton*, gpointer);
-  G_MODULE_EXPORT void togglebutton_record_toggled_cb (GtkToggleButton*, gpointer);
-  G_MODULE_EXPORT void togglebutton_save_toggled_cb (GtkToggleButton*, gpointer);
-  G_MODULE_EXPORT void togglebutton_sinus_toggled_cb (GtkToggleButton*, gpointer);
-  G_MODULE_EXPORT void togglebutton_effect_toggled_cb (GtkToggleButton*, gpointer);
-  G_MODULE_EXPORT void togglebutton_mute_toggled_cb (GtkToggleButton*, gpointer);
-  G_MODULE_EXPORT void togglebutton_visualization_toggled_cb (GtkToggleButton*, gpointer);
-  G_MODULE_EXPORT void togglebutton_3d_toggled_cb (GtkToggleButton*, gpointer);
-  G_MODULE_EXPORT void button_about_clicked_cb (GtkButton*, gpointer);
   G_MODULE_EXPORT void button_quit_clicked_cb (GtkButton*, gpointer);
+  G_MODULE_EXPORT void combobox_channels_changed_cb (GtkWidget*, gpointer);
+  G_MODULE_EXPORT void combobox_device_changed_cb (GtkWidget*, gpointer);
   G_MODULE_EXPORT void combobox_effect_changed_cb (GtkWidget*, gpointer);
-  G_MODULE_EXPORT void combobox_source_changed_cb (GtkWidget*, gpointer);
   G_MODULE_EXPORT void combobox_format_changed_cb (GtkWidget*, gpointer);
   G_MODULE_EXPORT void combobox_frequency_changed_cb (GtkWidget*, gpointer);
   G_MODULE_EXPORT void combobox_resolution_changed_cb (GtkWidget*, gpointer);
-  G_MODULE_EXPORT void combobox_channels_changed_cb (GtkWidget*, gpointer);
+  G_MODULE_EXPORT void combobox_source_changed_cb (GtkWidget*, gpointer);
   G_MODULE_EXPORT gboolean drawingarea_query_tooltip_cb (GtkWidget*, gint, gint, gboolean, GtkTooltip*, gpointer);
   G_MODULE_EXPORT void drawingarea_realize_cb (GtkWidget*, gpointer);
   G_MODULE_EXPORT void drawingarea_size_allocate_cb (GtkWidget*, GdkRectangle*, gpointer);
@@ -116,14 +110,23 @@ extern "C"
 #else
   G_MODULE_EXPORT gboolean drawingarea_expose_event_cb (GtkWidget*, GdkEvent*, gpointer);
 #endif // GTK_CHECK_VERSION(3,0,0)
-  G_MODULE_EXPORT void filechooserbutton_destination_file_set_cb (GtkFileChooserButton*, gpointer);
+  G_MODULE_EXPORT void filechooserbutton_file_file_set_cb (GtkFileChooserButton*, gpointer);
+  G_MODULE_EXPORT void filechooserbutton_save_file_set_cb (GtkFileChooserButton*, gpointer);
   //G_MODULE_EXPORT void filechooserdialog_response_cb (GtkDialog*, int, gpointer);
   //G_MODULE_EXPORT void filechooser_file_activated_cb (GtkFileChooser*, gpointer);
-  G_MODULE_EXPORT void radiobutton_2d_toggled_cb (GtkToggleButton*, gpointer);
-  G_MODULE_EXPORT gboolean hscale_boost_change_value_cb (GtkRange*, GtkScrollType*, gdouble, gpointer);
-  G_MODULE_EXPORT void hscale_boost_value_changed_cb (GtkRange*, gpointer);
+  G_MODULE_EXPORT gboolean hscale_device_boost_change_value_cb (GtkRange*, GtkScrollType*, gdouble, gpointer);
+  G_MODULE_EXPORT void hscale_device_boost_value_changed_cb (GtkRange*, gpointer);
+  G_MODULE_EXPORT void hscale_device_volume_value_changed_cb (GtkRange*, gpointer);
+  G_MODULE_EXPORT void hscale_sinus_frequency_value_changed_cb (GtkRange*, gpointer);
   G_MODULE_EXPORT void hscale_volume_value_changed_cb (GtkRange*, gpointer);
-  G_MODULE_EXPORT void scale_sinus_frequency_value_changed_cb (GtkRange*, gpointer);
+  G_MODULE_EXPORT void radiobutton_2d_toggled_cb (GtkToggleButton*, gpointer);
+  G_MODULE_EXPORT void radiobutton_noise_toggled_cb (GtkToggleButton*, gpointer);
+  G_MODULE_EXPORT void togglebutton_3d_toggled_cb (GtkToggleButton*, gpointer);
+  G_MODULE_EXPORT void togglebutton_effect_toggled_cb (GtkToggleButton*, gpointer);
+  G_MODULE_EXPORT void togglebutton_mute_toggled_cb (GtkToggleButton*, gpointer);
+  G_MODULE_EXPORT void togglebutton_record_toggled_cb (GtkToggleButton*, gpointer);
+  G_MODULE_EXPORT void togglebutton_save_toggled_cb (GtkToggleButton*, gpointer);
+  G_MODULE_EXPORT void togglebutton_visualization_toggled_cb (GtkToggleButton*, gpointer);
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */

@@ -140,17 +140,13 @@ do_printUsage (const std::string& programName_in)
             << ACE_TEXT_ALWAYS_CHAR ("\"] {\"\" --> default}")
             << std::endl;
 #endif // ACE_WIN32 || ACE_WIN64
-  std::string path = Common_File_Tools::getTempDirectory ();
-  path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
-  path += ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_AUDIOEFFECT_DEFAULT_OUTPUT_FILE);
-  std::cout << ACE_TEXT_ALWAYS_CHAR ("-f[[STRING]]: target filename [")
-            << path
-            << ACE_TEXT_ALWAYS_CHAR ("] {\"\" --> do not save}")
+  std::cout << ACE_TEXT_ALWAYS_CHAR ("-f [STRING] : source filename")
             << std::endl;
-  path = configuration_path;
+  std::string path = configuration_path;
   path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
   path += ACE_TEXT_ALWAYS_CHAR (COMMON_LOCATION_CONFIGURATION_SUBDIRECTORY);
 #if defined (GUI_SUPPORT)
+#if defined (GTK_USE) || defined (WXWIDGETS_USE)
   std::string UI_file = path;
   UI_file += ACE_DIRECTORY_SEPARATOR_CHAR_A;
 #if defined (GTK_USE)
@@ -169,7 +165,8 @@ do_printUsage (const std::string& programName_in)
             << UI_file
             << ACE_TEXT_ALWAYS_CHAR ("\"] {\"\" --> no GUI}")
             << std::endl;
-#if defined (GTK_USE)
+#endif // GTK_USE || WXWIDGETS_USE
+#if defined (GTK_SUPPORT)
   std::string UI_style_file = path;
   UI_file += ACE_DIRECTORY_SEPARATOR_CHAR_A;
   UI_file +=
@@ -178,7 +175,7 @@ do_printUsage (const std::string& programName_in)
             << UI_style_file
             << ACE_TEXT_ALWAYS_CHAR ("\"] {\"\" --> default}")
             << std::endl;
-#endif // GTK_USE
+#endif // GTK_SUPPORT
 #endif // GUI_SUPPORT
   std::cout << ACE_TEXT_ALWAYS_CHAR ("-l          : log to a file [")
             << false
@@ -190,6 +187,13 @@ do_printUsage (const std::string& programName_in)
             << ACE_TEXT_ALWAYS_CHAR ("]")
             << std::endl;
 #endif // ACE_WIN32 || ACE_WIN64
+  path = Common_File_Tools::getTempDirectory ();
+  path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
+  path += ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_AUDIOEFFECT_DEFAULT_OUTPUT_FILE);
+  std::cout << ACE_TEXT_ALWAYS_CHAR ("-o[[STRING]]: target filename [")
+            << path
+            << ACE_TEXT_ALWAYS_CHAR ("] {\"\" --> do not save}")
+            << std::endl;
   std::cout << ACE_TEXT_ALWAYS_CHAR ("-s [VALUE]  : statistic reporting interval (second(s)) [")
             << STREAM_DEFAULT_STATISTIC_REPORTING_INTERVAL_S
             << ACE_TEXT_ALWAYS_CHAR ("] [0: off])")
@@ -207,7 +211,7 @@ do_printUsage (const std::string& programName_in)
             << ACE_TEXT_ALWAYS_CHAR ("]")
             << std::endl;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  std::cout << ACE_TEXT_ALWAYS_CHAR ("-x          : use framework source [") // ? (directshow/mediafoundation) source : wavein
+  std::cout << ACE_TEXT_ALWAYS_CHAR ("-x          : use framework source [") // ? (directshow|mediafoundation) capture : WASAPI|waveIn
             << false
             << ACE_TEXT_ALWAYS_CHAR ("]")
             << std::endl;
@@ -223,17 +227,18 @@ do_processArguments (int argc_in,
                      std::string& deviceIdentifier_out,
                      std::string& effect_out,
 #endif // ACE_WIN32 || ACE_WIN64
-                     std::string& targetFileName_out,
+                     std::string& sourceFileName_out,
 #if defined (GUI_SUPPORT)
                      std::string& UIFile_out,
-#if defined (GTK_USE)
+#if defined (GTK_SUPPORT)
                      std::string& UICSSFile_out,
-#endif // GTK_USE
+#endif // GTK_SUPPORT
 #endif // GUI_SUPPORT
                      bool& logToFile_out,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
                      enum Stream_MediaFramework_Type& mediaFramework_out,
 #endif // ACE_WIN32 || ACE_WIN64
+                     std::string& targetFileName_out,
                      unsigned int& statisticReportingInterval_out,
                      bool& traceInformation_out,
                      bool& mute_out,
@@ -248,11 +253,11 @@ do_processArguments (int argc_in,
 
   std::string configuration_path =
     Common_File_Tools::getWorkingDirectory ();
+  configuration_path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
+  configuration_path +=
+    ACE_TEXT_ALWAYS_CHAR (COMMON_LOCATION_CONFIGURATION_SUBDIRECTORY);
 
   // initialize results
-  std::string path = configuration_path;
-  path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
-  path += ACE_TEXT_ALWAYS_CHAR (COMMON_LOCATION_CONFIGURATION_SUBDIRECTORY);
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   showConsole_out = false;
 #else
@@ -262,10 +267,7 @@ do_processArguments (int argc_in,
       ACE_TEXT_ALWAYS_CHAR (STREAM_LIB_ALSA_CAPTURE_DEFAULT_DEVICE_NAME);
   effect_out.clear ();
 #endif // ACE_WIN32 || ACE_WIN64
-  path = Common_File_Tools::getTempDirectory ();
-  path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
-  path += ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_AUDIOEFFECT_DEFAULT_OUTPUT_FILE);
-  targetFileName_out = path;
+  sourceFileName_out.clear ();
 #if defined (GUI_SUPPORT)
   UIFile_out = configuration_path;
   UIFile_out += ACE_DIRECTORY_SEPARATOR_CHAR_A;
@@ -281,14 +283,18 @@ do_processArguments (int argc_in,
 #elif defined (WXWIDGETS_USE)
       ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_AUDIOEFFECT_WXWIDGETS_XRC_FILE);
 #endif // GTK_USE || WXWIDGETS_USE
-#if defined (GTK_USE)
+#if defined (GTK_SUPPORT)
   UICSSFile_out.clear ();
-#endif // GTK_USE
+#endif // GTK_SUPPORT
 #endif // GUI_SUPPORT
   logToFile_out = false;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   mediaFramework_out = STREAM_LIB_DEFAULT_MEDIAFRAMEWORK;
 #endif // ACE_WIN32 || ACE_WIN64
+  std::string path = Common_File_Tools::getTempDirectory ();
+  path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
+  path += ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_AUDIOEFFECT_DEFAULT_OUTPUT_FILE);
+  targetFileName_out = path;
   statisticReportingInterval_out =
     STREAM_DEFAULT_STATISTIC_REPORTING_INTERVAL_S;
   traceInformation_out = false;
@@ -298,13 +304,14 @@ do_processArguments (int argc_in,
   useFrameworkSource_out = false;
 #endif // ACE_WIN32 || ACE_WIN64
 
-  std::string options_string = ACE_TEXT_ALWAYS_CHAR ("f::ls:tuv");
+  std::string options_string = ACE_TEXT_ALWAYS_CHAR ("flo::s:tuv");
 #if defined (GUI_SUPPORT)
-#if defined (GTK_USE)
-  options_string += ACE_TEXT_ALWAYS_CHAR ("g::i::");
-#elif defined (WXWIDGETS_USE)
+#if defined (GTK_USE) || defined (WXWIDGETS_USE)
   options_string += ACE_TEXT_ALWAYS_CHAR ("g::");
 #endif // GTK_USE || WXWIDGETS_USE
+#if defined (GTK_SUPPORT)
+  options_string += ACE_TEXT_ALWAYS_CHAR ("i::");
+#endif // GTK_SUPPORT
 #endif // GUI_SUPPORT
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   options_string += ACE_TEXT_ALWAYS_CHAR ("cmx");
@@ -360,14 +367,11 @@ do_processArguments (int argc_in,
 #endif // ACE_WIN32 || ACE_WIN64
       case 'f':
       {
-        ACE_TCHAR* opt_arg = argument_parser.opt_arg ();
-        if (opt_arg)
-          targetFileName_out = ACE_TEXT_ALWAYS_CHAR (opt_arg);
-        else
-          targetFileName_out.clear ();
+        sourceFileName_out = ACE_TEXT_ALWAYS_CHAR (argument_parser.opt_arg ());
         break;
       }
 #if defined (GUI_SUPPORT)
+#if defined (GTK_USE) || defined (WXWIDGETS_USE)
       case 'g':
       {
         ACE_TCHAR* opt_arg = argument_parser.opt_arg ();
@@ -377,7 +381,8 @@ do_processArguments (int argc_in,
           UIFile_out.clear ();
         break;
       }
-#if defined (GTK_USE)
+#endif // GTK_USE || WXWIDGETS_USE
+#if defined (GTK_SUPPORT)
       case 'i':
       {
         ACE_TCHAR* opt_arg = argument_parser.opt_arg ();
@@ -394,7 +399,7 @@ do_processArguments (int argc_in,
         } // end ELSE
         break;
       }
-#endif // GTK_USE
+#endif // GTK_SUPPORT
 #endif // GUI_SUPPORT
       case 'l':
       {
@@ -408,6 +413,15 @@ do_processArguments (int argc_in,
         break;
       }
 #endif // ACE_WIN32 || ACE_WIN64
+      case 'o':
+      {
+        ACE_TCHAR* opt_arg = argument_parser.opt_arg ();
+        if (opt_arg)
+          targetFileName_out = ACE_TEXT_ALWAYS_CHAR (opt_arg);
+        else
+          targetFileName_out.clear ();
+        break;
+      }
       case 's':
       {
         converter.clear ();
@@ -1075,13 +1089,14 @@ do_work (
          const std::string& deviceIdentifier_in,
          const std::string& effectName_in,
 #endif // ACE_WIN32 || ACE_WIN64
-         const std::string& targetFilename_in,
+         const std::string& sourceFilename_in,
 #if defined (GUI_SUPPORT)
          const std::string& UIDefinitionFile_in,
 #endif // GUI_SUPPORT
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
          enum Stream_MediaFramework_Type mediaFramework_in,
 #endif // ACE_WIN32 || ACE_WIN64
+         const std::string& targetFilename_in,
          unsigned int statisticReportingInterval_in,
          bool mute_in,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -1132,11 +1147,14 @@ do_work (
   Stream_IStreamControlBase* istream_control_p = NULL;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   struct Test_U_AudioEffect_DirectShow_ModuleHandlerConfiguration directshow_modulehandler_configuration;
-  struct Test_U_AudioEffect_DirectShow_ModuleHandlerConfiguration directshow_modulehandler_configuration_2; // renderer module
+  struct Test_U_AudioEffect_DirectShow_ModuleHandlerConfiguration directshow_modulehandler_configuration_2; // directshow target module
+  struct Test_U_AudioEffect_DirectShow_ModuleHandlerConfiguration directshow_modulehandler_configuration_3; // renderer module
+  struct Test_U_AudioEffect_DirectShow_ModuleHandlerConfiguration directshow_modulehandler_configuration_4; // file writer module
   struct Test_U_AudioEffect_DirectShow_StreamConfiguration directshow_stream_configuration;
   struct Test_U_AudioEffect_MediaFoundation_ModuleHandlerConfiguration mediafoundation_modulehandler_configuration;
-  struct Test_U_AudioEffect_MediaFoundation_ModuleHandlerConfiguration mediafoundation_modulehandler_configuration_2; // mediafoundation target module
+  struct Test_U_AudioEffect_MediaFoundation_ModuleHandlerConfiguration mediafoundation_modulehandler_configuration_2; // mediafoundation target target module
   struct Test_U_AudioEffect_MediaFoundation_ModuleHandlerConfiguration mediafoundation_modulehandler_configuration_3; // renderer module
+  struct Test_U_AudioEffect_MediaFoundation_ModuleHandlerConfiguration mediafoundation_modulehandler_configuration_4; // file writer module
   struct Test_U_AudioEffect_MediaFoundation_StreamConfiguration mediafoundation_stream_configuration;
   Test_U_AudioEffect_DirectShow_Stream directshow_stream;
   Test_U_AudioEffect_MediaFoundation_Stream mediafoundation_stream;
@@ -1228,7 +1246,8 @@ do_work (
   struct Stream_MediaFramework_ALSA_Configuration ALSA_configuration_2;
 //  ALSA_configuration_2.asynch = false;
   struct Test_U_AudioEffect_ALSA_ModuleHandlerConfiguration modulehandler_configuration;
-  struct Test_U_AudioEffect_ALSA_ModuleHandlerConfiguration modulehandler_configuration_2;
+  struct Test_U_AudioEffect_ALSA_ModuleHandlerConfiguration modulehandler_configuration_2; // renderer module
+  struct Test_U_AudioEffect_ALSA_ModuleHandlerConfiguration modulehandler_configuration_3; // file writer module
   struct Test_U_AudioEffect_ALSA_StreamConfiguration stream_configuration;
 #endif // ACE_WIN32 || ACE_WIN64
 
@@ -1276,9 +1295,9 @@ do_work (
         ACE_Time_Value (statisticReportingInterval_in, 0);
       directshow_modulehandler_configuration.subscriber =
         &directshow_ui_event_handler;
-      if (!targetFilename_in.empty ())
+      if (!sourceFilename_in.empty ())
         directshow_modulehandler_configuration.fileIdentifier.identifier =
-          targetFilename_in;
+          sourceFilename_in;
 
       directShowConfiguration_in.streamConfiguration.initialize (module_configuration,
                                                                  directshow_modulehandler_configuration,
@@ -1298,6 +1317,27 @@ do_work (
       directShowConfiguration_in.streamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (STREAM_LIB_DIRECTSHOW_TARGET_DEFAULT_NAME_STRING),
                                                                              std::make_pair (&module_configuration,
                                                                                              &directshow_modulehandler_configuration_2)));
+
+      directshow_modulehandler_configuration_3 =
+        directshow_modulehandler_configuration;
+      directshow_modulehandler_configuration_3.deviceIdentifier.identifierDiscriminator =
+        Stream_Device_Identifier::ID;
+      directshow_modulehandler_configuration_3.deviceIdentifier.identifier._id =
+        (mute_in ? -1 : 0);
+      directShowConfiguration_in.streamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_WASAPI_RENDER_DEFAULT_NAME_STRING),
+                                                                             std::make_pair (&module_configuration,
+                                                                                             &directshow_modulehandler_configuration_3)));
+
+      directshow_modulehandler_configuration_4 =
+        directshow_modulehandler_configuration;
+      directshow_modulehandler_configuration_4.fileIdentifier.clear ();
+      if (!targetFilename_in.empty ())
+        directshow_modulehandler_configuration_4.fileIdentifier.identifier =
+          targetFilename_in;
+
+      directShowConfiguration_in.streamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (STREAM_FILE_SINK_DEFAULT_NAME_STRING),
+                                                                             std::make_pair (&module_configuration,
+                                                                                             &directshow_modulehandler_configuration_4)));
 
       break;
     }
@@ -1331,9 +1371,9 @@ do_work (
         ACE_Time_Value (statisticReportingInterval_in, 0);
       mediafoundation_modulehandler_configuration.subscriber =
         &mediafoundation_ui_event_handler;
-      if (!targetFilename_in.empty ())
+      if (!sourceFilename_in.empty ())
         mediafoundation_modulehandler_configuration.fileIdentifier.identifier =
-          targetFilename_in;
+          sourceFilename_in;
 
       mediaFoundationConfiguration_in.streamConfiguration.initialize (module_configuration,
                                                                       mediafoundation_modulehandler_configuration,
@@ -1363,6 +1403,17 @@ do_work (
                                                                                   std::make_pair (&module_configuration,
                                                                                                   &mediafoundation_modulehandler_configuration_3)));
 
+      mediafoundation_modulehandler_configuration_4 =
+        mediafoundation_modulehandler_configuration;
+      mediafoundation_modulehandler_configuration_4.fileIdentifier.clear ();
+      if (!targetFilename_in.empty ())
+        mediafoundation_modulehandler_configuration_4.fileIdentifier.identifier =
+          targetFilename_in;
+
+      mediaFoundationConfiguration_in.streamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (STREAM_FILE_SINK_DEFAULT_NAME_STRING),
+                                                                                  std::make_pair (&module_configuration,
+                                                                                                  &mediafoundation_modulehandler_configuration_4)));
+
       break;
     }
     default:
@@ -1391,20 +1442,20 @@ do_work (
 #if defined (GTK_SUPPORT)
 #if defined (GTKGL_SUPPORT)
   modulehandler_configuration.OpenGLInstructions =
-      &CBData_in.OpenGLInstructions;
+    &CBData_in.OpenGLInstructions;
   modulehandler_configuration.OpenGLInstructionsLock = &state_r.lock;
 #endif // GTKGL_SUPPORT
 #endif // GTK_SUPPORT
 #endif // GUI_SUPPORT
   modulehandler_configuration.printProgressDot = UIDefinitionFile_in.empty ();
   modulehandler_configuration.statisticReportingInterval =
-      ACE_Time_Value (statisticReportingInterval_in, 0);
+    ACE_Time_Value (statisticReportingInterval_in, 0);
   modulehandler_configuration.streamConfiguration =
-      &configuration_in.streamConfiguration;
+    &configuration_in.streamConfiguration;
   modulehandler_configuration.subscriber = &ui_event_handler;
-  modulehandler_configuration.targetFileName =
-      (targetFilename_in.empty () ? Common_File_Tools::getTempDirectory ()
-                                  : targetFilename_in);
+  if (!sourceFilename_in.empty ())
+    modulehandler_configuration.fileIdentifier.identifier =
+      sourceFilename_in;
 
   configuration_in.streamConfiguration.initialize (module_configuration,
                                                    modulehandler_configuration,
@@ -1420,6 +1471,15 @@ do_work (
   configuration_in.streamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_TARGET_ALSA_DEFAULT_NAME_STRING),
                                                                std::make_pair (&module_configuration,
                                                                                &modulehandler_configuration_2)));
+
+  modulehandler_configuration_3 = modulehandler_configuration;
+  modulehandler_configuration_3.fileIdentifier.clear ();
+  if (!targetFilename_in.empty ())
+    modulehandler_configuration.fileIdentifier.identifier =
+      targetFilename_in;
+  configuration_in.streamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (STREAM_FILE_SINK_DEFAULT_NAME_STRING),
+                                                               std::make_pair (&module_configuration,
+                                                                               &modulehandler_configuration_3)));
 #endif // ACE_WIN32 || ACE_WIN64
 
   // ********************** stream configuration data **************************
@@ -1875,10 +1935,8 @@ ACE_TMAIN (int argc_in,
       ACE_TEXT_ALWAYS_CHAR (STREAM_LIB_ALSA_CAPTURE_DEFAULT_DEVICE_NAME);
   std::string effect_name;
 #endif // ACE_WIN32 || ACE_WIN64
-  std::string path = Common_File_Tools::getTempDirectory ();
-  path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
-  path += ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_AUDIOEFFECT_DEFAULT_OUTPUT_FILE);
-  std::string target_filename = path;
+  std::string path;
+  std::string source_filename;
 #if defined (GUI_SUPPORT)
   path = configuration_path;
   path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
@@ -1909,6 +1967,10 @@ ACE_TMAIN (int argc_in,
   enum Stream_MediaFramework_Type media_framework_e =
     STREAM_LIB_DEFAULT_MEDIAFRAMEWORK;
 #endif // ACE_WIN32 || ACE_WIN64
+  path = Common_File_Tools::getTempDirectory ();
+  path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
+  path += ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_AUDIOEFFECT_DEFAULT_OUTPUT_FILE);
+  std::string target_filename = path;
   unsigned int statistic_reporting_interval =
     STREAM_DEFAULT_STATISTIC_REPORTING_INTERVAL_S;
   bool trace_information = false;
@@ -1927,17 +1989,18 @@ ACE_TMAIN (int argc_in,
                             device_identifier_string,
                             effect_name,
 #endif // ACE_WIN32 || ACE_WIN64
-                            target_filename,
+                            source_filename,
 #if defined (GUI_SUPPORT)
                             UI_definition_file,
-#if defined (GTK_USE)
+#if defined (GTK_SUPPORT)
                             UI_CSS_file,
-#endif // GTK_USE
+#endif // GTK_SUPPORT
 #endif // GUI_SUPPORT
                             log_to_file,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
                             media_framework_e,
 #endif // ACE_WIN32 || ACE_WIN64
+                            target_filename,
                             statistic_reporting_interval,
                             trace_information,
                             mute,
@@ -2273,13 +2336,14 @@ ACE_TMAIN (int argc_in,
            device_identifier_string,
            effect_name,
 #endif // ACE_WIN32 || ACE_WIN64
-           target_filename,
+           source_filename,
 #if defined (GUI_SUPPORT)
            UI_definition_file,
 #endif // GUI_SUPPORT
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
            media_framework_e,
 #endif // ACE_WIN32 || ACE_WIN64
+           target_filename,
            statistic_reporting_interval,
            mute,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)

@@ -590,13 +590,29 @@ load_formats (int deviceId_in,
   // initialize result
   gtk_list_store_clear (listStore_in);
 
-  MMRESULT result_2 = MMSYSERR_NOERROR;
-  WAVEINCAPS capabilities_s;
   GtkTreeIter iterator;
+  if (deviceId_in == -1)
+  {
+    gtk_list_store_append (listStore_in, &iterator);
+    gtk_list_store_set (listStore_in, &iterator,
+                        0, ACE_TEXT_ALWAYS_CHAR ("PCM"),
+                        1, ACE_TEXT_ALWAYS_CHAR (Common_Tools::GUIDToString (MEDIASUBTYPE_PCM).c_str ()),
+                        2, -1,
+                        -1);
+    gtk_list_store_append (listStore_in, &iterator);
+    gtk_list_store_set (listStore_in, &iterator,
+                        0, ACE_TEXT_ALWAYS_CHAR ("IEEE_FLOAT"),
+                        1, ACE_TEXT_ALWAYS_CHAR (Common_Tools::GUIDToString (MEDIASUBTYPE_IEEE_FLOAT).c_str ()),
+                        2, -1,
+                        -1);
+    return true;
+  } // end IF
 
-  result_2 = waveInGetDevCaps (deviceId_in,
-                               &capabilities_s,
-                               sizeof (WAVEINCAPS));
+  WAVEINCAPS capabilities_s;
+  ACE_OS::memset (&capabilities_s, 0, sizeof (WAVEINCAPS));
+  MMRESULT result_2 = waveInGetDevCaps (deviceId_in,
+                                        &capabilities_s,
+                                        sizeof (WAVEINCAPS));
   if (unlikely (result_2 != MMSYSERR_NOERROR))
   { char error_msg_a[BUFSIZ];
     waveInGetErrorText (result_2, error_msg_a, BUFSIZ - 1);
@@ -612,12 +628,15 @@ load_formats (int deviceId_in,
               capabilities_s.dwFormats));
   if (unlikely (!capabilities_s.dwFormats))
     return false;
-  gtk_list_store_append (listStore_in, &iterator);
 
+  // *TODO*: check format support
+  gtk_list_store_append (listStore_in, &iterator);
   gtk_list_store_set (listStore_in, &iterator,
                       0, ACE_TEXT_ALWAYS_CHAR ("PCM"),
                       1, ACE_TEXT_ALWAYS_CHAR (Common_Tools::GUIDToString (MEDIASUBTYPE_PCM).c_str ()),
+                      2, -1,
                       -1);
+
   return true;
 }
 
@@ -812,13 +831,32 @@ load_sample_rates (int deviceId_in,
   // initialize result
   gtk_list_store_clear (listStore_in);
 
-  MMRESULT result_2 = MMSYSERR_NOERROR;
-  WAVEINCAPS capabilities_s;
   GtkTreeIter iterator;
+  std::ostringstream converter;
+  if (deviceId_in == -1)
+  {
+    std::vector<unsigned int> rates_a = { 4000, 8000, 11025, 22050, 44100, 48000, 96000 };
+    for (std::vector<unsigned int>::const_iterator iterator_2 = rates_a.begin ();
+         iterator_2 != rates_a.end ();
+         ++iterator_2)
+    {
+      converter << *iterator_2;
+      gtk_list_store_append (listStore_in, &iterator);
+      gtk_list_store_set (listStore_in, &iterator,
+                          0, converter.str ().c_str (),
+                          1, *iterator_2,
+                          -1);
+      converter.clear ();
+      converter.str (ACE_TEXT_ALWAYS_CHAR (""));
+    } // end FOR
+    return true;
+  } // end IF
 
-  result_2 = waveInGetDevCaps (deviceId_in,
-                               &capabilities_s,
-                               sizeof (WAVEINCAPS));
+  WAVEINCAPS capabilities_s;
+  ACE_OS::memset (&capabilities_s, 0, sizeof (WAVEINCAPS));
+  MMRESULT result_2 = waveInGetDevCaps (deviceId_in,
+                                        &capabilities_s,
+                                        sizeof (WAVEINCAPS));
   if (unlikely (result_2 != MMSYSERR_NOERROR))
   { char error_msg_a[BUFSIZ];
     waveInGetErrorText (result_2, error_msg_a, BUFSIZ - 1);
@@ -828,10 +866,9 @@ load_sample_rates (int deviceId_in,
     return false;
   } // end IF
 
-  std::ostringstream converter;
-  unsigned int sample_rate = 11025;
+  unsigned int sample_rate = 0;
   if (capabilities_s.dwFormats & 0x0000000F)
-  {
+  { sample_rate = 11025;
     ACE_DEBUG ((LM_DEBUG,
                 ACE_TEXT ("found device \"%s\" sample rate: %ukHz\n"),
                 ACE_TEXT (capabilities_s.szPname), sample_rate));
@@ -844,9 +881,8 @@ load_sample_rates (int deviceId_in,
                         1, sample_rate,
                         -1);
   } // end IF
-  sample_rate = 22050;
   if (capabilities_s.dwFormats & 0x000000F0)
-  {
+  { sample_rate = 22050;
     ACE_DEBUG ((LM_DEBUG,
                 ACE_TEXT ("found device \"%s\" sample rate: %ukHz\n"),
                 ACE_TEXT (capabilities_s.szPname), sample_rate));
@@ -859,9 +895,8 @@ load_sample_rates (int deviceId_in,
                         1, sample_rate,
                         -1);
   } // end IF
-  sample_rate = 44100;
   if (capabilities_s.dwFormats & 0x00000F00)
-  {
+  { sample_rate = 44100;
     ACE_DEBUG ((LM_DEBUG,
                 ACE_TEXT ("found device \"%s\" sample rate: %ukHz\n"),
                 ACE_TEXT (capabilities_s.szPname), sample_rate));
@@ -874,9 +909,8 @@ load_sample_rates (int deviceId_in,
                         1, sample_rate,
                         -1);
   } // end IF
-  sample_rate = 48000;
   if (capabilities_s.dwFormats & 0x0000F000)
-  {
+  { sample_rate = 48000;
     ACE_DEBUG ((LM_DEBUG,
                 ACE_TEXT ("found device \"%s\" sample rate: %ukHz\n"),
                 ACE_TEXT (capabilities_s.szPname), sample_rate));
@@ -889,9 +923,8 @@ load_sample_rates (int deviceId_in,
                         1, sample_rate,
                         -1);
   } // end IF
-  sample_rate = 96000;
   if (capabilities_s.dwFormats & 0x000F0000)
-  {
+  { sample_rate = 96000;
     ACE_DEBUG ((LM_DEBUG,
                 ACE_TEXT ("found device \"%s\" sample rate: %ukHz\n"),
                 ACE_TEXT (capabilities_s.szPname), sample_rate));
@@ -1128,13 +1161,32 @@ load_sample_resolutions (int deviceId_in,
   // initialize result
   gtk_list_store_clear (listStore_in);
 
-  MMRESULT result_2 = MMSYSERR_NOERROR;
-  WAVEINCAPS capabilities_s;
   GtkTreeIter iterator;
+  std::ostringstream converter;
+  if (deviceId_in == -1)
+  {
+    std::vector<unsigned int> resolutions_a = {8, 16, 32};
+    for (std::vector<unsigned int>::const_iterator iterator_2 = resolutions_a.begin ();
+         iterator_2 != resolutions_a.end ();
+         ++iterator_2)
+    {
+      converter << *iterator_2;
+      gtk_list_store_append (listStore_in, &iterator);
+      gtk_list_store_set (listStore_in, &iterator,
+                          0, converter.str ().c_str (),
+                          1, *iterator_2,
+                          -1);
+      converter.clear ();
+      converter.str (ACE_TEXT_ALWAYS_CHAR (""));
+    } // end FOR
+    return true;
+  } // end IF
 
-  result_2 = waveInGetDevCaps (deviceId_in,
-                               &capabilities_s,
-                               sizeof (WAVEINCAPS));
+  WAVEINCAPS capabilities_s;
+  ACE_OS::memset (&capabilities_s, 0, sizeof (WAVEINCAPS));
+  MMRESULT result_2 = waveInGetDevCaps (deviceId_in,
+                                        &capabilities_s,
+                                        sizeof (WAVEINCAPS));
   if (unlikely (result_2 != MMSYSERR_NOERROR))
   { char error_msg_a[BUFSIZ];
     waveInGetErrorText (result_2, error_msg_a, BUFSIZ - 1);
@@ -1144,7 +1196,6 @@ load_sample_resolutions (int deviceId_in,
     return false;
   } // end IF
 
-  std::ostringstream converter;
   switch (sampleRate_in)
   {
     case 11025:
@@ -1567,13 +1618,32 @@ load_channels (int deviceId_in,
   // initialize result
   gtk_list_store_clear (listStore_in);
 
-  MMRESULT result_2 = MMSYSERR_NOERROR;
-  WAVEINCAPS capabilities_s;
   GtkTreeIter iterator;
+  std::ostringstream converter;
+  if (deviceId_in == -1)
+  {
+    std::vector<unsigned int> rates_a = {1, 2};
+    for (std::vector<unsigned int>::const_iterator iterator_2 = rates_a.begin ();
+         iterator_2 != rates_a.end ();
+         ++iterator_2)
+    {
+      converter << *iterator_2;
+      gtk_list_store_append (listStore_in, &iterator);
+      gtk_list_store_set (listStore_in, &iterator,
+                          0, converter.str ().c_str (),
+                          1, *iterator_2,
+                          -1);
+      converter.clear ();
+      converter.str (ACE_TEXT_ALWAYS_CHAR (""));
+    } // end FOR
+    return true;
+  } // end IF
 
-  result_2 = waveInGetDevCaps (deviceId_in,
-                               &capabilities_s,
-                               sizeof (WAVEINCAPS));
+  WAVEINCAPS capabilities_s;
+  ACE_OS::memset (&capabilities_s, 0, sizeof (WAVEINCAPS));
+  MMRESULT result_2 = waveInGetDevCaps (deviceId_in,
+                                        &capabilities_s,
+                                        sizeof (WAVEINCAPS));
   if (unlikely (result_2 != MMSYSERR_NOERROR))
   { char error_msg_a[BUFSIZ];
     waveInGetErrorText (result_2, error_msg_a, BUFSIZ - 1);
@@ -1583,7 +1653,6 @@ load_channels (int deviceId_in,
     return false;
   } // end IF
 
-  std::ostringstream converter;
   switch (sampleRate_in)
   {
     case 11025:
@@ -3634,48 +3703,58 @@ idle_initialize_UI_cb (gpointer userData_in)
 {
   STREAM_TRACE (ACE_TEXT ("::idle_initialize_UI_cb"));
 
-  ACE_ASSERT (userData_in);
-
+  // sanity check(s)
   struct Test_U_AudioEffect_UI_CBDataBase* ui_cb_data_base_p =
     static_cast<struct Test_U_AudioEffect_UI_CBDataBase*> (userData_in);
-
-  // sanity check(s)
   ACE_ASSERT (ui_cb_data_base_p);
-
   Common_UI_GTK_Manager_t* gtk_manager_p =
     COMMON_UI_GTK_MANAGER_SINGLETON::instance ();
   ACE_ASSERT (gtk_manager_p);
   Common_UI_GTK_State_t& state_r =
     const_cast<Common_UI_GTK_State_t&> (gtk_manager_p->getR ());
-  Common_UI_GTK_BuildersConstIterator_t iterator;
+  Common_UI_GTK_BuildersConstIterator_t iterator =
+    state_r.builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN));
+  ACE_ASSERT (iterator != state_r.builders.end ());
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   struct Test_U_AudioEffect_DirectShow_UI_CBData* directshow_ui_cb_data_p = NULL;
   struct Test_U_AudioEffect_MediaFoundation_UI_CBData* mediafoundation_ui_cb_data_p =
     NULL;
+  Test_U_AudioEffect_DirectShow_StreamConfiguration_t::ITERATOR_T directshow_modulehandler_configuration_iterator;
+  Test_U_AudioEffect_MediaFoundation_StreamConfiguration_t::ITERATOR_T mediafoundation_modulehandler_configuration_iterator;
+  Test_U_AudioEffect_DirectShow_StreamConfiguration_t::ITERATOR_T directshow_modulehandler_configuration_iterator_2; // file writer
+  Test_U_AudioEffect_MediaFoundation_StreamConfiguration_t::ITERATOR_T mediafoundation_modulehandler_configuration_iterator_2; // file writer
   switch (ui_cb_data_base_p->mediaFramework)
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
     {
+      // sanity check(s)
       directshow_ui_cb_data_p =
         static_cast<struct Test_U_AudioEffect_DirectShow_UI_CBData*> (userData_in);
-      // sanity check(s)
       ACE_ASSERT (directshow_ui_cb_data_p);
 
-      iterator =
-        state_r.builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN));
-      ACE_ASSERT (iterator != state_r.builders.end ());
+      directshow_modulehandler_configuration_iterator =
+        directshow_ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
+      ACE_ASSERT (directshow_modulehandler_configuration_iterator != directshow_ui_cb_data_p->configuration->streamConfiguration.end ());
+      directshow_modulehandler_configuration_iterator_2 =
+        directshow_ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (STREAM_FILE_SINK_DEFAULT_NAME_STRING));
+      ACE_ASSERT (directshow_modulehandler_configuration_iterator_2 != directshow_ui_cb_data_p->configuration->streamConfiguration.end ());
+
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
     {
+      // sanity check(s)
       mediafoundation_ui_cb_data_p =
         static_cast<struct Test_U_AudioEffect_MediaFoundation_UI_CBData*> (userData_in);
-      // sanity check(s)
       ACE_ASSERT (mediafoundation_ui_cb_data_p);
 
-      iterator =
-        state_r.builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN));
-      ACE_ASSERT (iterator != state_r.builders.end ());
+      mediafoundation_modulehandler_configuration_iterator =
+        mediafoundation_ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
+      ACE_ASSERT (mediafoundation_modulehandler_configuration_iterator != mediafoundation_ui_cb_data_p->configuration->streamConfiguration.end ());
+      mediafoundation_modulehandler_configuration_iterator_2 =
+        mediafoundation_ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (STREAM_FILE_SINK_DEFAULT_NAME_STRING));
+      ACE_ASSERT (mediafoundation_modulehandler_configuration_iterator_2 != mediafoundation_ui_cb_data_p->configuration->streamConfiguration.end ());
+
       break;
     }
     default:
@@ -3687,18 +3766,20 @@ idle_initialize_UI_cb (gpointer userData_in)
     }
   } // end SWITCH
 #else
+  // sanity check(s)
   struct Test_U_AudioEffect_UI_CBData* data_p =
     static_cast<struct Test_U_AudioEffect_UI_CBData*> (userData_in);
-
-  // sanity check(s)
   ACE_ASSERT (data_p);
 
-  iterator =
-    state_r.builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN));
-  ACE_ASSERT (iterator != state_r.builders.end ());
+  Test_U_AudioEffect_ALSA_StreamConfiguration_t::ITERATOR_T modulehandler_configuration_iterator =
+    data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
+  ACE_ASSERT (modulehandler_configuration_iterator != data_p->configuration->streamConfiguration.end ());
+  Test_U_AudioEffect_ALSA_StreamConfiguration_t::ITERATOR_T modulehandler_configuration_iterator_2 = // file writer
+    data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (STREAM_FILE_SINK_DEFAULT_NAME_STRING));
+  ACE_ASSERT (modulehandler_configuration_iterator_2 != data_p->configuration->streamConfiguration.end ());
 #endif // ACE_WIN32 || ACE_WIN64
 
-  // step1: initialize dialog window(s)
+  // step1: initialize widgets
   GtkDialog* dialog_p =
     GTK_DIALOG (gtk_builder_get_object ((*iterator).second.second,
                                         ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_DIALOG_MAIN_NAME)));
@@ -3707,36 +3788,17 @@ idle_initialize_UI_cb (gpointer userData_in)
   //  ACE_ASSERT (image_icon_p);
   //  gtk_window_set_icon (GTK_WINDOW (dialog_p),
   //                       gtk_image_get_pixbuf (GTK_IMAGE (image_icon_p)));
-  //GdkWindow* dialog_window_p = gtk_widget_get_window (dialog_p);
-
-  GtkAboutDialog* about_dialog_p =
-    GTK_ABOUT_DIALOG (gtk_builder_get_object ((*iterator).second.second,
-                                              ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_DIALOG_ABOUT_NAME)));
-  ACE_ASSERT (about_dialog_p);
-
-  GtkButton* button_p =
-    GTK_BUTTON (gtk_builder_get_object ((*iterator).second.second,
-                                        ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_BUTTON_CUT_NAME)));
-  ACE_ASSERT (button_p);
-  gtk_widget_set_sensitive (GTK_WIDGET (button_p),
-                            FALSE);
-  button_p =
-    GTK_BUTTON (gtk_builder_get_object ((*iterator).second.second,
-                                        ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_BUTTON_REPORT_NAME)));
-  ACE_ASSERT (button_p);
-  gtk_widget_set_sensitive (GTK_WIDGET (button_p),
-                            FALSE);
 
   GtkSpinButton* spin_button_p =
     GTK_SPIN_BUTTON (gtk_builder_get_object ((*iterator).second.second,
-                                             ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_SPINBUTTON_CAPTUREDFRAMES_NAME)));
+                                             ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_SPINBUTTON_CAPTUREDSAMPLES_NAME)));
   ACE_ASSERT (spin_button_p);
   gtk_spin_button_set_range (spin_button_p,
                              0.0,
                              std::numeric_limits<unsigned int>::max ());
   spin_button_p =
     GTK_SPIN_BUTTON (gtk_builder_get_object ((*iterator).second.second,
-                                             ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_SPINBUTTON_DROPPEDFRAMES_NAME)));
+                                             ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_SPINBUTTON_DROPPEDSAMPLES_NAME)));
   ACE_ASSERT (spin_button_p);
   gtk_spin_button_set_range (spin_button_p,
                              0.0,
@@ -3764,7 +3826,6 @@ idle_initialize_UI_cb (gpointer userData_in)
   gtk_spin_button_set_range (spin_button_p,
                              0.0,
                              std::numeric_limits<unsigned int>::max ());
-
   gdouble buffer_size = 0.0;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   bool use_framework_source_b = false;
@@ -3811,12 +3872,55 @@ idle_initialize_UI_cb (gpointer userData_in)
     GTK_LIST_STORE (gtk_builder_get_object ((*iterator).second.second,
                                             ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_LISTSTORE_SOURCE_NAME)));
   ACE_ASSERT (list_store_p);
-  gint sort_column_id = 1;
+  GtkTreeIter iterator_2;
+  gtk_list_store_append (list_store_p, &iterator_2);
+  gtk_list_store_set (list_store_p, &iterator_2,
+                      0, ACE_TEXT_ALWAYS_CHAR ("Capture Device"),
+                      1, AUDIOEFFECT_SOURCE_DEVICE,
+                      -1);
+  gtk_list_store_append (list_store_p, &iterator_2);
+  gtk_list_store_set (list_store_p, &iterator_2,
+                      0, ACE_TEXT_ALWAYS_CHAR ("Noise"),
+                      1, AUDIOEFFECT_SOURCE_NOISE,
+                      -1);
+  gtk_list_store_append (list_store_p, &iterator_2);
+  gtk_list_store_set (list_store_p, &iterator_2,
+                      0, ACE_TEXT_ALWAYS_CHAR ("File"),
+                      1, AUDIOEFFECT_SOURCE_FILE,
+                      -1);
+  gtk_tree_sortable_set_sort_column_id (GTK_TREE_SORTABLE (list_store_p),
+                                        1, GTK_SORT_ASCENDING);
+  GtkComboBox* combo_box_p =
+    GTK_COMBO_BOX (gtk_builder_get_object ((*iterator).second.second,
+                                           ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_COMBOBOX_SOURCE_NAME)));
+  ACE_ASSERT (combo_box_p);
+  GtkCellRenderer* cell_renderer_p = gtk_cell_renderer_text_new ();
+  if (!cell_renderer_p)
+  {
+    ACE_DEBUG ((LM_CRITICAL,
+                ACE_TEXT ("failed to gtk_cell_renderer_text_new(), aborting\n")));
+    return G_SOURCE_REMOVE;
+  } // end IF
+  gtk_cell_layout_pack_start (GTK_CELL_LAYOUT (combo_box_p), cell_renderer_p,
+                              true);
+  // *NOTE*: cell_renderer_p does not need to be g_object_unref()ed because it
+  //         is GInitiallyUnowned and the floating reference has been
+  //         passed to combo_box_p by the gtk_cell_layout_pack_start() call
+  gtk_cell_layout_set_attributes (GTK_CELL_LAYOUT (combo_box_p), cell_renderer_p,
+                                  //"cell-background", 0,
+                                  "text", 0,
+                                  NULL);
+
+  list_store_p =
+    GTK_LIST_STORE (gtk_builder_get_object ((*iterator).second.second,
+                                            ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_LISTSTORE_DEVICE_NAME)));
+  ACE_ASSERT (list_store_p);
+  gint sort_column_id = 1; // device
   GtkSortType sort_order = GTK_SORT_DESCENDING;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   if (!use_framework_source_b)
   {
-    sort_column_id = 2;
+    sort_column_id = 2; // card
     sort_order = GTK_SORT_ASCENDING;
   } // end IF
 #endif // ACE_WIN32 || ACE_WIN64
@@ -3834,13 +3938,11 @@ idle_initialize_UI_cb (gpointer userData_in)
                 ACE_TEXT ("failed to ::load_capture_devices(), aborting\n")));
     return G_SOURCE_REMOVE;
   } // end IF
-  GtkComboBox* combo_box_p =
+  combo_box_p =
     GTK_COMBO_BOX (gtk_builder_get_object ((*iterator).second.second,
-                                           ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_COMBOBOX_SOURCE_NAME)));
+                                           ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_COMBOBOX_DEVICE_NAME)));
   ACE_ASSERT (combo_box_p);
-  //gtk_combo_box_set_model (combo_box_p,
-  //                         GTK_TREE_MODEL (list_store_p));
-  GtkCellRenderer* cell_renderer_p = gtk_cell_renderer_text_new ();
+  cell_renderer_p = gtk_cell_renderer_text_new ();
   if (!cell_renderer_p)
   {
     ACE_DEBUG ((LM_CRITICAL,
@@ -3854,8 +3956,7 @@ idle_initialize_UI_cb (gpointer userData_in)
   //         passed to combo_box_p by the gtk_cell_layout_pack_start() call
   gtk_cell_layout_set_attributes (GTK_CELL_LAYOUT (combo_box_p), cell_renderer_p,
                                   //"cell-background", 0,
-                                  //"text", 1,
-                                  "text", 0,
+                                  ACE_TEXT_ALWAYS_CHAR ("text"), 0,
                                   NULL);
 
   list_store_p =
@@ -3868,8 +3969,6 @@ idle_initialize_UI_cb (gpointer userData_in)
     GTK_COMBO_BOX (gtk_builder_get_object ((*iterator).second.second,
                                            ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_COMBOBOX_FORMAT_NAME)));
   ACE_ASSERT (combo_box_p);
-  //gtk_combo_box_set_model (combo_box_p,
-  //                         GTK_TREE_MODEL (list_store_p));
   cell_renderer_p = gtk_cell_renderer_text_new ();
   if (!cell_renderer_p)
   {
@@ -3884,8 +3983,7 @@ idle_initialize_UI_cb (gpointer userData_in)
   //         passed to combo_box_p by the gtk_cell_layout_pack_start() call
   gtk_cell_layout_set_attributes (GTK_CELL_LAYOUT (combo_box_p), cell_renderer_p,
                                   //"cell-background", 0,
-                                  //"text", 1,
-                                  "text", 0,
+                                  ACE_TEXT_ALWAYS_CHAR ("text"), 0,
                                   NULL);
 
   list_store_p =
@@ -3898,8 +3996,6 @@ idle_initialize_UI_cb (gpointer userData_in)
     GTK_COMBO_BOX (gtk_builder_get_object ((*iterator).second.second,
                                            ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_COMBOBOX_FREQUENCY_NAME)));
   ACE_ASSERT (combo_box_p);
-  //gtk_combo_box_set_model (combo_box_p,
-  //                         GTK_TREE_MODEL (list_store_p));
   cell_renderer_p = gtk_cell_renderer_text_new ();
   if (!cell_renderer_p)
   {
@@ -3914,8 +4010,7 @@ idle_initialize_UI_cb (gpointer userData_in)
   //         passed to combo_box_p by the gtk_cell_layout_pack_start() call
   gtk_cell_layout_set_attributes (GTK_CELL_LAYOUT (combo_box_p), cell_renderer_p,
                                   //"cell-background", 0,
-                                  //"text", 1,
-                                  "text", 0,
+                                  ACE_TEXT_ALWAYS_CHAR ("text"), 0,
                                   NULL);
 
   list_store_p =
@@ -3928,8 +4023,6 @@ idle_initialize_UI_cb (gpointer userData_in)
     GTK_COMBO_BOX (gtk_builder_get_object ((*iterator).second.second,
                                            ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_COMBOBOX_RESOLUTION_NAME)));
   ACE_ASSERT (combo_box_p);
-  //gtk_combo_box_set_model (combo_box_p,
-  //                         GTK_TREE_MODEL (list_store_p));
   cell_renderer_p = gtk_cell_renderer_text_new ();
   if (!cell_renderer_p)
   {
@@ -3944,8 +4037,7 @@ idle_initialize_UI_cb (gpointer userData_in)
   //         passed to combo_box_p by the gtk_cell_layout_pack_start() call
   gtk_cell_layout_set_attributes (GTK_CELL_LAYOUT (combo_box_p), cell_renderer_p,
                                   //"cell-background", 0,
-                                  //"text", 1,
-                                  "text", 0,
+                                  ACE_TEXT_ALWAYS_CHAR ("text"), 0,
                                   NULL);
 
   list_store_p =
@@ -3958,8 +4050,6 @@ idle_initialize_UI_cb (gpointer userData_in)
     GTK_COMBO_BOX (gtk_builder_get_object ((*iterator).second.second,
                                            ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_COMBOBOX_CHANNELS_NAME)));
   ACE_ASSERT (combo_box_p);
-  //gtk_combo_box_set_model (combo_box_p,
-  //                         GTK_TREE_MODEL (list_store_p));
   cell_renderer_p = gtk_cell_renderer_text_new ();
   if (!cell_renderer_p)
   {
@@ -3974,47 +4064,31 @@ idle_initialize_UI_cb (gpointer userData_in)
   //         passed to combo_box_p by the gtk_cell_layout_pack_start() call
   gtk_cell_layout_set_attributes (GTK_CELL_LAYOUT (combo_box_p), cell_renderer_p,
                                   //"cell-background", 0,
-                                  //"text", 1,
                                   ACE_TEXT_ALWAYS_CHAR ("text"), 0,
                                   NULL);
 
-//  GtkHScale* scale_p =
-//    GTK_HSCALE (gtk_builder_get_object ((*iterator).second.second,
-//                                        ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_HSCALE_BOOST_NAME)));
-//  ACE_ASSERT (scale_p);
-//  gtk_range_set_update_policy (GTK_RANGE (scale_p),
-//                               GTK_UPDATE_DELAYED);
+  //  GtkHScale* scale_p =
+  //    GTK_HSCALE (gtk_builder_get_object ((*iterator).second.second,
+  //                                        ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_HSCALE_BOOST_NAME)));
+  //  ACE_ASSERT (scale_p);
+  //  gtk_range_set_update_policy (GTK_RANGE (scale_p),
+  //                               GTK_UPDATE_DELAYED);
 
-  std::string filename;
+  enum Stream_MediaFramework_SoundGeneratorType noise_type_e =
+    STREAM_MEDIAFRAMEWORK_SOUNDGENERATOR_INVALID;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  Test_U_AudioEffect_MediaFoundation_StreamConfiguration_t::ITERATOR_T mediafoundation_modulehandler_configuration_iterator;
-  Test_U_AudioEffect_DirectShow_StreamConfiguration_t::ITERATOR_T directshow_modulehandler_configuration_iterator;
   switch (ui_cb_data_base_p->mediaFramework)
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
-    {
-      directshow_modulehandler_configuration_iterator =
-        directshow_ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
-      ACE_ASSERT (directshow_modulehandler_configuration_iterator != directshow_ui_cb_data_p->configuration->streamConfiguration.end ());
-
-      filename =
-        ((*directshow_modulehandler_configuration_iterator).second.second->fileIdentifier.empty () ? Common_File_Tools::getTempDirectory ()
-                                                                                                   : (*directshow_modulehandler_configuration_iterator).second.second->fileIdentifier.identifier);
-      if (Common_File_Tools::isDirectory (filename))
-        (*directshow_modulehandler_configuration_iterator).second.second->fileIdentifier.clear ();
+    { ACE_ASSERT ((*directshow_modulehandler_configuration_iterator).second.second->generatorConfiguration);
+      noise_type_e =
+        (*directshow_modulehandler_configuration_iterator).second.second->generatorConfiguration->type;
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
-    {
-      mediafoundation_modulehandler_configuration_iterator =
-        mediafoundation_ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
-      ACE_ASSERT (mediafoundation_modulehandler_configuration_iterator != mediafoundation_ui_cb_data_p->configuration->streamConfiguration.end ());
-
-      filename =
-        ((*mediafoundation_modulehandler_configuration_iterator).second.second->fileIdentifier.empty () ? Common_File_Tools::getTempDirectory ()
-                                                                                                        : (*mediafoundation_modulehandler_configuration_iterator).second.second->fileIdentifier.identifier);
-      if (Common_File_Tools::isDirectory (filename))
-        (*mediafoundation_modulehandler_configuration_iterator).second.second->fileIdentifier.clear ();
+    { ACE_ASSERT ((*mediafoundation_modulehandler_configuration_iterator).second.second->generatorConfiguration);
+      noise_type_e =
+        (*mediafoundation_modulehandler_configuration_iterator).second.second->generatorConfiguration->type;
       break;
     }
     default:
@@ -4026,17 +4100,94 @@ idle_initialize_UI_cb (gpointer userData_in)
     }
   } // end SWITCH
 #else
-  Test_U_AudioEffect_ALSA_StreamConfiguration_t::ITERATOR_T modulehandler_configuration_iterator =
-    data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
-  ACE_ASSERT (modulehandler_configuration_iterator != data_p->configuration->streamConfiguration.end ());
-
-  filename =
-    (*modulehandler_configuration_iterator).second.second->targetFileName;
-  if (Common_File_Tools::isDirectory (filename))
-    (*modulehandler_configuration_iterator).second.second->targetFileName.clear ();
+  ACE_ASSERT ((*modulehandler_configuration_iterator).second.second->generatorConfiguration);
+  noise_type_e =
+    (*modulehandler_configuration_iterator).second.second->generatorConfiguration->type;
 #endif // ACE_WIN32 || ACE_WIN64
+  if (noise_type_e != STREAM_MEDIAFRAMEWORK_SOUNDGENERATOR_INVALID)
+  {
+    GtkRadioButton* radio_button_p = NULL;
+    switch (noise_type_e)
+    {
+      case STREAM_MEDIAFRAMEWORK_SOUNDGENERATOR_SINE:
+        radio_button_p =
+          GTK_RADIO_BUTTON (gtk_builder_get_object ((*iterator).second.second,
+                                                    ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_RADIOBUTTON_SINUS_NAME)));
+        break;
+      case STREAM_MEDIAFRAMEWORK_SOUNDGENERATOR_NOISE:
+        radio_button_p =
+          GTK_RADIO_BUTTON (gtk_builder_get_object ((*iterator).second.second,
+                                                    ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_RADIOBUTTON_NOISE_NAME)));
+        break;
+      case STREAM_MEDIAFRAMEWORK_SOUNDGENERATOR_SAWTOOTH: // *TODO*
+      case STREAM_MEDIAFRAMEWORK_SOUNDGENERATOR_SQUARE: // *TODO*
+      default:
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("invalid/unknown noise type (was: %d), aborting\n"),
+                    noise_type_e));
+        return G_SOURCE_REMOVE;
+      }
+    } // end SWITCH
+    ACE_ASSERT (radio_button_p);
+    gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (radio_button_p), TRUE);
+  } // end IF
+
+  GtkHScale* hscale_p =
+    GTK_HSCALE (gtk_builder_get_object ((*iterator).second.second,
+                                       ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_HSCALE_SINUS_FREQUENCY_NAME)));
+  ACE_ASSERT (hscale_p);
+  gtk_scale_add_mark (GTK_SCALE (hscale_p),
+                      //gtk_range_get_value (GTK_RANGE (hscale_p)),
+                      TEST_U_STREAM_AUDIOEFFECT_NOISE_DEFAULT_FREQUENCY_D,
+                      GTK_POS_TOP,
+                      NULL);
+  double default_noise_frequency_d = 0.0;
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  switch (ui_cb_data_base_p->mediaFramework)
+  {
+    case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
+    { ACE_ASSERT ((*directshow_modulehandler_configuration_iterator).second.second->generatorConfiguration);
+      default_noise_frequency_d =
+        (*directshow_modulehandler_configuration_iterator).second.second->generatorConfiguration->frequency;
+      break;
+    }
+    case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
+    { ACE_ASSERT ((*mediafoundation_modulehandler_configuration_iterator).second.second->generatorConfiguration);
+      default_noise_frequency_d =
+        (*mediafoundation_modulehandler_configuration_iterator).second.second->generatorConfiguration->frequency;
+      break;
+    }
+    default:
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("invalid/unknown media framework (was: %d), aborting\n"),
+                  ui_cb_data_base_p->mediaFramework));
+      return G_SOURCE_REMOVE;
+    }
+  } // end SWITCH
+#else
+  default_noise_frequency_d =
+    (*modulehandler_configuration_iterator).second.second->generatorConfiguration->frequency;
+#endif // ACE_WIN32 || ACE_WIN64
+  gtk_range_set_value (GTK_RANGE (hscale_p),
+                       default_noise_frequency_d);
 
   GtkFileFilter* file_filter_p =
+    GTK_FILE_FILTER (gtk_builder_get_object ((*iterator).second.second,
+                                             ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_FILEFILTER_MP3_NAME)));
+  ACE_ASSERT (file_filter_p);
+  gtk_file_filter_add_mime_type (file_filter_p,
+                                 ACE_TEXT ("application/octet-stream"));
+  gtk_file_filter_add_mime_type (file_filter_p,
+                                 ACE_TEXT ("audio/mp3"));
+  gtk_file_filter_add_mime_type (file_filter_p,
+                                 ACE_TEXT ("audio/mpeg"));
+  gtk_file_filter_add_pattern (file_filter_p,
+                               ACE_TEXT ("*.mp3"));
+  gtk_file_filter_set_name (file_filter_p,
+                            ACE_TEXT ("MP3 files"));
+  file_filter_p =
     GTK_FILE_FILTER (gtk_builder_get_object ((*iterator).second.second,
                                              ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_FILEFILTER_WAV_NAME)));
   ACE_ASSERT (file_filter_p);
@@ -4053,30 +4204,192 @@ idle_initialize_UI_cb (gpointer userData_in)
   gtk_file_filter_set_name (file_filter_p,
                             ACE_TEXT ("WAV files"));
 
+  std::string filename_string;
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  switch (ui_cb_data_base_p->mediaFramework)
+  {
+    case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
+    {
+      filename_string =
+        (*directshow_modulehandler_configuration_iterator).second.second->fileIdentifier.identifier;
+      break;
+    }
+    case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
+    {
+      filename_string =
+        (*mediafoundation_modulehandler_configuration_iterator).second.second->fileIdentifier.identifier;
+      break;
+    }
+    default:
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("invalid/unknown media framework (was: %d), aborting\n"),
+                  ui_cb_data_base_p->mediaFramework));
+      return G_SOURCE_REMOVE;
+    }
+  } // end SWITCH
+#else
+  filename_string =
+    (*modulehandler_configuration_iterator).second.second->fileIdentifier.identifier;
+#endif // ACE_WIN32 || ACE_WIN64
   GtkFileChooserButton* file_chooser_button_p =
     GTK_FILE_CHOOSER_BUTTON (gtk_builder_get_object ((*iterator).second.second,
-                                                     ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_FILECHOOSERBUTTON_SAVE_NAME)));
+                                                     ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_FILECHOOSERBUTTON_FILE_NAME)));
   ACE_ASSERT (file_chooser_button_p);
   GtkFileChooserDialog* file_chooser_dialog_p =
     GTK_FILE_CHOOSER_DIALOG (gtk_builder_get_object ((*iterator).second.second,
-                                                     ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_FILECHOOSERDIALOG_SAVE_NAME)));
+                                                     ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_FILECHOOSERDIALOG_FILE_NAME)));
   ACE_ASSERT (file_chooser_dialog_p);
   gboolean result = FALSE;
-  if (!filename.empty ())
+  if (!filename_string.empty ())
   {
-    if (!Common_File_Tools::isDirectory (filename))
+    GFile* file_p = g_file_new_for_path (filename_string.c_str ());
+    ACE_ASSERT (file_p);
+    GFile* file_2 = g_file_get_parent (file_p);
+    ACE_ASSERT (file_2);
+    GError* error_p = NULL;
+    result =
+      gtk_file_chooser_set_file (GTK_FILE_CHOOSER (file_chooser_button_p),
+                                 file_p,
+                                 &error_p);
+    ACE_ASSERT (result && !error_p);
+    result =
+      gtk_file_chooser_set_file (GTK_FILE_CHOOSER (file_chooser_dialog_p),
+                                 file_p,
+                                 &error_p);
+    ACE_ASSERT (result && !error_p);
+    g_object_unref (file_p); file_p = NULL;
+    g_object_unref (file_2); file_2 = NULL;
+  } // end IF
+
+  GtkSizeGroup* size_group_p =
+    GTK_SIZE_GROUP (gtk_builder_get_object ((*iterator).second.second,
+                                            ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_SIZEGROUP_OPTIONS_NAME)));
+  ACE_ASSERT (size_group_p);
+  GtkButton* button_p =
+    GTK_BUTTON (gtk_builder_get_object ((*iterator).second.second,
+                                        ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_BUTTON_DEVICE_SETTINGS_NAME)));
+  ACE_ASSERT (button_p);
+  gtk_size_group_add_widget (size_group_p, GTK_WIDGET (button_p));
+  GtkCheckButton* check_button_p =
+    GTK_CHECK_BUTTON (gtk_builder_get_object ((*iterator).second.second,
+                                              ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_CHECKBUTTON_EFFECT_NAME)));
+  ACE_ASSERT (check_button_p);
+  gtk_size_group_add_widget (size_group_p, GTK_WIDGET (check_button_p));
+  GtkToggleButton* toggle_button_p =
+    GTK_TOGGLE_BUTTON (gtk_builder_get_object ((*iterator).second.second,
+                                               ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_TOGGLEBUTTON_MUTE_NAME)));
+  ACE_ASSERT (toggle_button_p);
+  check_button_p =
+    GTK_CHECK_BUTTON (gtk_builder_get_object ((*iterator).second.second,
+                                              ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_CHECKBUTTON_SAVE_NAME)));
+  ACE_ASSERT (check_button_p);
+  gtk_size_group_add_widget (size_group_p, GTK_WIDGET (check_button_p));
+  check_button_p =
+    GTK_CHECK_BUTTON (gtk_builder_get_object ((*iterator).second.second,
+                                              ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_CHECKBUTTON_VISUALIZATION_NAME)));
+  ACE_ASSERT (check_button_p);
+  gtk_size_group_add_widget (size_group_p, GTK_WIDGET (check_button_p));
+
+  list_store_p =
+    GTK_LIST_STORE (gtk_builder_get_object ((*iterator).second.second,
+                                            ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_LISTSTORE_EFFECT_NAME)));
+  ACE_ASSERT (list_store_p);
+  gtk_tree_sortable_set_sort_column_id (GTK_TREE_SORTABLE (list_store_p),
+                                        0, GTK_SORT_ASCENDING);
+  combo_box_p =
+    GTK_COMBO_BOX (gtk_builder_get_object ((*iterator).second.second,
+                                           ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_COMBOBOX_EFFECT_NAME)));
+  ACE_ASSERT (combo_box_p);
+  cell_renderer_p = gtk_cell_renderer_text_new ();
+  if (!cell_renderer_p)
+  {
+    ACE_DEBUG ((LM_CRITICAL,
+                ACE_TEXT ("failed to gtk_cell_renderer_text_new(), aborting\n")));
+    return G_SOURCE_REMOVE;
+  } // end IF
+  gtk_cell_layout_pack_start (GTK_CELL_LAYOUT (combo_box_p), cell_renderer_p,
+                              true);
+  // *NOTE*: cell_renderer_p does not need to be g_object_unref()ed because it
+  //         is GInitiallyUnowned and the floating reference has been
+  //         passed to combo_box_p by the gtk_cell_layout_pack_start() call
+  gtk_cell_layout_set_attributes (GTK_CELL_LAYOUT (combo_box_p), cell_renderer_p,
+                                  //"cell-background", 0,
+                                  ACE_TEXT_ALWAYS_CHAR ("text"), 0,
+                                  NULL);
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  if (!load_audio_effects (list_store_p,
+                           ui_cb_data_base_p->mediaFramework))
+#else
+  if (!load_audio_effects (list_store_p))
+#endif // ACE_WIN32 || ACE_WIN64
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to ::load_audio_effects(), aborting\n")));
+    return G_SOURCE_REMOVE;
+  } // end IF
+
+  // *TODO*: select output device
+
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  switch (ui_cb_data_base_p->mediaFramework)
+  {
+    case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
+    {
+      filename_string =
+        ((*directshow_modulehandler_configuration_iterator_2).second.second->fileIdentifier.empty () ? Common_File_Tools::getTempDirectory ()
+                                                                                                     : (*directshow_modulehandler_configuration_iterator_2).second.second->fileIdentifier.identifier);
+      if (Common_File_Tools::isDirectory (filename_string))
+        (*directshow_modulehandler_configuration_iterator_2).second.second->fileIdentifier.clear ();
+      break;
+    }
+    case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
+    {
+      filename_string =
+        ((*mediafoundation_modulehandler_configuration_iterator_2).second.second->fileIdentifier.empty () ? Common_File_Tools::getTempDirectory ()
+                                                                                                          : (*mediafoundation_modulehandler_configuration_iterator_2).second.second->fileIdentifier.identifier);
+      if (Common_File_Tools::isDirectory (filename_string))
+        (*mediafoundation_modulehandler_configuration_iterator_2).second.second->fileIdentifier.clear ();
+      break;
+    }
+    default:
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("invalid/unknown media framework (was: %d), aborting\n"),
+                  ui_cb_data_base_p->mediaFramework));
+      return G_SOURCE_REMOVE;
+    }
+  } // end SWITCH
+#else
+  filename_string =
+    ((*modulehandler_configuration_iterator_2).second.second->fileIdentifier.empty () ? Common_File_Tools::getTempDirectory ()
+                                                                                      : (*modulehandler_configuration_iterator_2).second.second->fileIdentifier.identifier);
+  if (Common_File_Tools::isDirectory (filename_string))
+    (*modulehandler_configuration_iterator_2).second.second->fileIdentifier.clear ();
+#endif // ACE_WIN32 || ACE_WIN64
+  file_chooser_button_p =
+    GTK_FILE_CHOOSER_BUTTON (gtk_builder_get_object ((*iterator).second.second,
+                                                     ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_FILECHOOSERBUTTON_SAVE_NAME)));
+  ACE_ASSERT (file_chooser_button_p);
+  file_chooser_dialog_p =
+    GTK_FILE_CHOOSER_DIALOG (gtk_builder_get_object ((*iterator).second.second,
+                                                     ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_FILECHOOSERDIALOG_SAVE_NAME)));
+  ACE_ASSERT (file_chooser_dialog_p);
+  if (!filename_string.empty ())
+  {
+    if (!Common_File_Tools::isDirectory (filename_string))
     {
       // *NOTE*: gtk does not complain if the file doesn't exist, but the button
       //         will display "(None)" --> create empty file
-      if (!Common_File_Tools::isReadable (filename))
-        if (!Common_File_Tools::create (filename))
+      if (!Common_File_Tools::isReadable (filename_string))
+        if (!Common_File_Tools::create (filename_string))
         {
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("failed to Common_File_Tools::create(\"%s\"): \"%m\", aborting\n"),
-                      ACE_TEXT (filename.c_str ())));
+                      ACE_TEXT (filename_string.c_str ())));
           return G_SOURCE_REMOVE;
         } // end IF
-      GFile* file_p = g_file_new_for_path (filename.c_str ());
+      GFile* file_p = g_file_new_for_path (filename_string.c_str ());
       ACE_ASSERT (file_p);
       GFile* file_2 = g_file_get_parent (file_p);
       ACE_ASSERT (file_2);
@@ -4098,13 +4411,13 @@ idle_initialize_UI_cb (gpointer userData_in)
     {
       result =
         gtk_file_chooser_set_current_folder (GTK_FILE_CHOOSER (file_chooser_button_p),
-                                             filename.c_str ());
+                                             filename_string.c_str ());
       ACE_ASSERT (result);
       result =
         gtk_file_chooser_set_current_folder (GTK_FILE_CHOOSER (file_chooser_dialog_p),
-                                             filename.c_str ());
+                                             filename_string.c_str ());
       ACE_ASSERT (result);
-      filename.clear ();
+      filename_string.clear ();
     } // end ELSE
   } // end IF
   else
@@ -4118,117 +4431,6 @@ idle_initialize_UI_cb (gpointer userData_in)
                                            Common_File_Tools::getTempDirectory ().c_str ());
     ACE_ASSERT (result);
   } // end ELSE
-
-  GtkScale* scale_2 =
-    GTK_SCALE (gtk_builder_get_object ((*iterator).second.second,
-                                       ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_SCALE_SINUS_FREQUENCY_NAME)));
-  ACE_ASSERT (scale_2);
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-  switch (ui_cb_data_base_p->mediaFramework)
-  {
-    case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
-    { ACE_ASSERT ((*directshow_modulehandler_configuration_iterator).second.second->generatorConfiguration);
-      gtk_range_set_value (GTK_RANGE (scale_2),
-                           (*directshow_modulehandler_configuration_iterator).second.second->generatorConfiguration->frequency);
-      break;
-    }
-    case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
-    { ACE_ASSERT ((*mediafoundation_modulehandler_configuration_iterator).second.second->generatorConfiguration);
-      gtk_range_set_value (GTK_RANGE (scale_2),
-                           (*mediafoundation_modulehandler_configuration_iterator).second.second->generatorConfiguration->frequency);
-      break;
-    }
-    default:
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("invalid/unknown media framework (was: %d), aborting\n"),
-                  ui_cb_data_base_p->mediaFramework));
-      return G_SOURCE_REMOVE;
-    }
-  } // end SWITCH
-#else
-  gtk_range_set_value (GTK_RANGE (scale_2),
-                       (*modulehandler_configuration_iterator).second.second->sinusFrequency);
-#endif // ACE_WIN32 || ACE_WIN64
-  gtk_scale_add_mark (scale_2,
-                      //gtk_range_get_value (GTK_RANGE (scale_2)),
-                      TEST_U_STREAM_AUDIOEFFECT_NOISE_DEFAULT_FREQUENCY_D,
-                      GTK_POS_TOP,
-                      NULL);
-
-  list_store_p =
-    GTK_LIST_STORE (gtk_builder_get_object ((*iterator).second.second,
-                                            ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_LISTSTORE_EFFECT_NAME)));
-  ACE_ASSERT (list_store_p);
-  gtk_tree_sortable_set_sort_column_id (GTK_TREE_SORTABLE (list_store_p),
-                                        0, GTK_SORT_ASCENDING);
-  combo_box_p =
-    GTK_COMBO_BOX (gtk_builder_get_object ((*iterator).second.second,
-                                           ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_COMBOBOX_EFFECT_NAME)));
-  ACE_ASSERT (combo_box_p);
-  //gtk_combo_box_set_model (combo_box_p,
-  //                         GTK_TREE_MODEL (list_store_p));
-  cell_renderer_p = gtk_cell_renderer_text_new ();
-  if (!cell_renderer_p)
-  {
-    ACE_DEBUG ((LM_CRITICAL,
-                ACE_TEXT ("failed to gtk_cell_renderer_text_new(), aborting\n")));
-    return G_SOURCE_REMOVE;
-  } // end IF
-  gtk_cell_layout_pack_start (GTK_CELL_LAYOUT (combo_box_p), cell_renderer_p,
-                              true);
-  // *NOTE*: cell_renderer_p does not need to be g_object_unref()ed because it
-  //         is GInitiallyUnowned and the floating reference has been
-  //         passed to combo_box_p by the gtk_cell_layout_pack_start() call
-  gtk_cell_layout_set_attributes (GTK_CELL_LAYOUT (combo_box_p), cell_renderer_p,
-                                  //"cell-background", 0,
-                                  //"text", 1,
-                                  ACE_TEXT_ALWAYS_CHAR ("text"), 0,
-                                  NULL);
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-  if (!load_audio_effects (list_store_p,
-                           ui_cb_data_base_p->mediaFramework))
-#else
-  if (!load_audio_effects (list_store_p))
-#endif // ACE_WIN32 || ACE_WIN64
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to ::load_audio_effects(), aborting\n")));
-    return G_SOURCE_REMOVE;
-  } // end IF
-
-  bool is_mute = false;
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-  switch (ui_cb_data_base_p->mediaFramework)
-  {
-    case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
-    {
-      is_mute =
-        (*directshow_modulehandler_configuration_iterator).second.second->mute;
-      break;
-    }
-    case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
-    {
-      is_mute =
-        (*mediafoundation_modulehandler_configuration_iterator).second.second->mute;
-      break;
-    }
-    default:
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("invalid/unknown media framework (was: %d), aborting\n"),
-                  ui_cb_data_base_p->mediaFramework));
-      return G_SOURCE_REMOVE;
-    }
-  } // end SWITCH
-#else
-  is_mute = (*modulehandler_configuration_iterator).second.second->mute;
-#endif // ACE_WIN32 || ACE_WIN64
-  GtkToggleButton* toggle_button_p =
-    GTK_TOGGLE_BUTTON (gtk_builder_get_object ((*iterator).second.second,
-                                               ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_TOGGLEBUTTON_MUTE_NAME)));
-  ACE_ASSERT (toggle_button_p);
-  gtk_toggle_button_set_active (toggle_button_p, is_mute);
 
   enum Stream_Visualization_SpectrumAnalyzer_2DMode mode_2d =
     STREAM_VISUALIZATION_SPECTRUMANALYZER_2DMODE_INVALID;
@@ -4267,57 +4469,18 @@ idle_initialize_UI_cb (gpointer userData_in)
   mode_3d =
     (*modulehandler_configuration_iterator).second.second->spectrumAnalyzer3DMode;
 #endif // ACE_WIN32 || ACE_WIN64
+  check_button_p =
+    GTK_CHECK_BUTTON (gtk_builder_get_object ((*iterator).second.second,
+                                              ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_CHECKBUTTON_VISUALIZATION_NAME)));
+  ACE_ASSERT (check_button_p);
+  gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (check_button_p),
+                                (mode_2d < STREAM_VISUALIZATION_SPECTRUMANALYZER_2DMODE_MAX));
   toggle_button_p =
     GTK_TOGGLE_BUTTON (gtk_builder_get_object ((*iterator).second.second,
                                                ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_TOGGLEBUTTON_3D_NAME)));
   ACE_ASSERT (toggle_button_p);
   gtk_toggle_button_set_active (toggle_button_p,
                                 (mode_3d < STREAM_VISUALIZATION_SPECTRUMANALYZER_3DMODE_MAX));
-
-  GtkSizeGroup* size_group_p =
-    GTK_SIZE_GROUP (gtk_builder_get_object ((*iterator).second.second,
-                                            ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_SIZEGROUP_OPTIONS_NAME)));
-  ACE_ASSERT (size_group_p);
-  toggle_button_p =
-    GTK_TOGGLE_BUTTON (gtk_builder_get_object ((*iterator).second.second,
-                                               ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_TOGGLEBUTTON_MUTE_NAME)));
-  ACE_ASSERT (toggle_button_p);
-  button_p =
-    GTK_BUTTON (gtk_builder_get_object ((*iterator).second.second,
-                                        ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_BUTTON_PROPERTIES_NAME)));
-  ACE_ASSERT (button_p);
-  gtk_size_group_add_widget (size_group_p, GTK_WIDGET (button_p));
-  GtkCheckButton* check_button_p =
-    GTK_CHECK_BUTTON (gtk_builder_get_object ((*iterator).second.second,
-                                              ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_CHECKBUTTON_SAVE_NAME)));
-  ACE_ASSERT (check_button_p);
-  gtk_size_group_add_widget (size_group_p, GTK_WIDGET (check_button_p));
-  check_button_p =
-    GTK_CHECK_BUTTON (gtk_builder_get_object ((*iterator).second.second,
-                                              ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_CHECKBUTTON_SINUS_NAME)));
-  ACE_ASSERT (check_button_p);
-  gtk_size_group_add_widget (size_group_p, GTK_WIDGET (check_button_p));
-  check_button_p =
-    GTK_CHECK_BUTTON (gtk_builder_get_object ((*iterator).second.second,
-                                              ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_CHECKBUTTON_EFFECT_NAME)));
-  ACE_ASSERT (check_button_p);
-  gtk_size_group_add_widget (size_group_p, GTK_WIDGET (check_button_p));
-  check_button_p =
-    GTK_CHECK_BUTTON (gtk_builder_get_object ((*iterator).second.second,
-                                              ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_CHECKBUTTON_VISUALIZATION_NAME)));
-  ACE_ASSERT (check_button_p);
-  gtk_size_group_add_widget (size_group_p, GTK_WIDGET (check_button_p));
-
-  //GtkProgressBar* progress_bar_p =
-  //  GTK_PROGRESS_BAR (gtk_builder_get_object ((*iterator).second.second,
-  //                                            ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_PROGRESSBAR_NAME)));
-  //ACE_ASSERT (progress_bar_p);
-  //gint width, height;
-  //gtk_widget_get_size_request (GTK_WIDGET (progress_bar_p), &width, &height);
-  //gtk_progress_bar_set_pulse_step (progress_bar_p,
-  //                                 1.0 / static_cast<double> (width));
-  //gtk_progress_bar_set_text (progress_bar_p,
-  //                           ACE_TEXT_ALWAYS_CHAR (""));
 
   GtkDrawingArea* drawing_area_p =
     GTK_DRAWING_AREA (gtk_builder_get_object ((*iterator).second.second,
@@ -4341,10 +4504,10 @@ idle_initialize_UI_cb (gpointer userData_in)
 #endif // GTK_CHECK_VERSION (3,0,0)
 
 #if defined (GTKGL_SUPPORT)
-  GtkVBox* box_p =
+  GtkVBox* vbox_p =
     GTK_VBOX (gtk_builder_get_object ((*iterator).second.second,
                                       ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_BOX_DISPLAY_NAME)));
-  ACE_ASSERT (box_p);
+  ACE_ASSERT (vbox_p);
   Common_UI_GTK_GLContextsIterator_t opengl_contexts_iterator;
 #if GTK_CHECK_VERSION(3,0,0)
 #if GTK_CHECK_VERSION(3,16,0)
@@ -4567,7 +4730,7 @@ idle_initialize_UI_cb (gpointer userData_in)
   //    break;
   //  } // end IF
   gtk_widget_destroy (GTK_WIDGET (drawing_area_2));
-  gtk_box_pack_start (GTK_BOX (box_p),
+  gtk_box_pack_start (GTK_BOX (vbox_p),
                       GTK_WIDGET ((*opengl_contexts_iterator).first),
                       TRUE, // expand
                       TRUE, // fill
@@ -4578,6 +4741,17 @@ idle_initialize_UI_cb (gpointer userData_in)
 //                             G_OBJECT ((*opengl_contexts_iterator).first));
 #endif /* GTK_CHECK_VERSION (3,8,0) */
 #endif /* GTKGL_SUPPORT */
+
+//GtkProgressBar* progress_bar_p =
+//  GTK_PROGRESS_BAR (gtk_builder_get_object ((*iterator).second.second,
+//                                            ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_PROGRESSBAR_NAME)));
+//ACE_ASSERT (progress_bar_p);
+//gint width, height;
+//gtk_widget_get_size_request (GTK_WIDGET (progress_bar_p), &width, &height);
+//gtk_progress_bar_set_pulse_step (progress_bar_p,
+//                                 1.0 / static_cast<double> (width));
+//gtk_progress_bar_set_text (progress_bar_p,
+//                           ACE_TEXT_ALWAYS_CHAR (""));
 
   // step5: (auto-)connect signals/slots
   gtk_builder_connect_signals ((*iterator).second.second,
@@ -4590,14 +4764,6 @@ idle_initialize_UI_cb (gpointer userData_in)
                       G_CALLBACK (gtk_widget_destroyed),
                       NULL);
   ACE_ASSERT (result_2);
-
-  // step5b: connect custom signals
-  //result_2 =
-  //  g_signal_connect (G_OBJECT (file_chooser_dialog_p),
-  //                    ACE_TEXT_ALWAYS_CHAR ("file-activated"),
-  //                    G_CALLBACK (filechooserdialog_cb),
-  //                    NULL);
-  //ACE_ASSERT (result_2);
 
   //--------------------------------------
 
@@ -4806,129 +4972,15 @@ continue_:
 
   // step11: activate some widgets
   gint n_rows = 0;
-  list_store_p =
-    GTK_LIST_STORE (gtk_builder_get_object ((*iterator).second.second,
-                                            ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_LISTSTORE_SOURCE_NAME)));
-  ACE_ASSERT (list_store_p);
-  n_rows =
-    gtk_tree_model_iter_n_children (GTK_TREE_MODEL (list_store_p), NULL);
-  if (n_rows)
-  {
-    combo_box_p =
-      GTK_COMBO_BOX (gtk_builder_get_object ((*iterator).second.second,
-                                             ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_COMBOBOX_SOURCE_NAME)));
-    ACE_ASSERT (combo_box_p);
-    gtk_widget_set_sensitive (GTK_WIDGET (combo_box_p), TRUE);
-    gint index_i = 0;
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-#else
-    if (!(*modulehandler_configuration_iterator).second.second->deviceIdentifier.identifier.empty ())
-    {
-#if GTK_CHECK_VERSION(2,30,0)
-      GValue value = G_VALUE_INIT;
-#else
-      GValue value;
-      ACE_OS::memset (&value, 0, sizeof (struct _GValue));
-#endif // GTK_CHECK_VERSION (2,30,0)
-      g_value_init (&value, G_TYPE_STRING);
-      g_value_set_string (&value,
-                          (*modulehandler_configuration_iterator).second.second->deviceIdentifier.identifier.c_str ());
-      index_i =
-          Common_UI_GTK_Tools::valueToIndex (gtk_combo_box_get_model (combo_box_p),
-                                             value,
-                                             1);
-      if (index_i == -1)
-      {
-        ACE_DEBUG ((LM_WARNING,
-                    ACE_TEXT ("invalid/unknown device identifier (was: \"%s\"), continuing\n"),
-                    ACE_TEXT ((*modulehandler_configuration_iterator).second.second->deviceIdentifier.identifier.c_str ())));
-        index_i = 0;
-      } // end IF
-    } // end IF
-#endif // ACE_WIN32 || ACE_WIN64
-    gtk_combo_box_set_active (combo_box_p, index_i);
-  } // end IF
-  else
-  {
-    GtkToggleButton* toggle_button_p =
-        GTK_TOGGLE_BUTTON (gtk_builder_get_object ((*iterator).second.second,
-                                                   ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_TOGGLEBUTTON_RECORD_NAME)));
-    ACE_ASSERT (toggle_button_p);
-    gtk_widget_set_sensitive (GTK_WIDGET (toggle_button_p), FALSE);
-  } // end IF
+  combo_box_p =
+    GTK_COMBO_BOX (gtk_builder_get_object ((*iterator).second.second,
+                                            ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_COMBOBOX_SOURCE_NAME)));
+  ACE_ASSERT (combo_box_p);
+  gtk_widget_set_sensitive (GTK_WIDGET (combo_box_p), TRUE);
+  gint index_i = 0;
+  gtk_combo_box_set_active (combo_box_p, index_i);
 
-  if (!filename.empty ())
-  {
-    //GtkBox* box_p =
-    //  GTK_BOX (gtk_builder_get_object ((*iterator).second.second,
-    //                                   ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_BOX_SAVE_NAME)));
-    //ACE_ASSERT (box_p);
-    //gtk_widget_set_sensitive (GTK_WIDGET (box_p), TRUE);
-
-    toggle_button_p =
-          GTK_TOGGLE_BUTTON (gtk_builder_get_object ((*iterator).second.second,
-                                                     ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_CHECKBUTTON_SAVE_NAME)));
-    ACE_ASSERT (toggle_button_p);
-    gtk_signal_handler_block_by_func (GTK_OBJECT (toggle_button_p),
-                                      G_CALLBACK (togglebutton_save_toggled_cb),
-                                      userData_in);
-    gtk_toggle_button_set_active (toggle_button_p, TRUE);
-    gtk_signal_handler_unblock_by_func (GTK_OBJECT (toggle_button_p),
-                                        G_CALLBACK (togglebutton_save_toggled_cb),
-                                        userData_in);
-  } // end IF
-  else
-  {
-    //GtkCheckButton* check_button_p =
-    //  GTK_CHECK_BUTTON (gtk_builder_get_object ((*iterator).second.second,
-    //                                            ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_CHECKBUTTON_SAVE_NAME)));
-    //ACE_ASSERT (check_button_p);
-    //g_signal_emit_by_name (G_OBJECT (check_button_p),
-    //                       ACE_TEXT_ALWAYS_CHAR ("toggled"),
-    //                       userData_in);
-  } // end ELSE
-
-  bool is_active = false;
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-  switch (ui_cb_data_base_p->mediaFramework)
-  {
-    case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
-    { ACE_ASSERT ((*directshow_modulehandler_configuration_iterator).second.second->generatorConfiguration);
-      is_active =
-        ((*directshow_modulehandler_configuration_iterator).second.second->generatorConfiguration->type != STREAM_MEDIAFRAMEWORK_SOUNDGENERATOR_INVALID);
-      break;
-    }
-    case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
-    { ACE_ASSERT ((*mediafoundation_modulehandler_configuration_iterator).second.second->generatorConfiguration);
-      is_active =
-        ((*mediafoundation_modulehandler_configuration_iterator).second.second->generatorConfiguration->type != STREAM_MEDIAFRAMEWORK_SOUNDGENERATOR_INVALID);
-      break;
-    }
-    default:
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("invalid/unknown media framework (was: %d), aborting\n"),
-                  ui_cb_data_base_p->mediaFramework));
-      return G_SOURCE_REMOVE;
-    }
-  } // end SWITCH
-#else
-  is_active = (*modulehandler_configuration_iterator).second.second->sinus;
-#endif // ACE_WIN32 || ACE_WIN64
-  if (is_active)
-  {
-    toggle_button_p =
-        GTK_TOGGLE_BUTTON (gtk_builder_get_object ((*iterator).second.second,
-                                                   ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_CHECKBUTTON_SINUS_NAME)));
-    ACE_ASSERT (toggle_button_p);
-    gtk_toggle_button_set_active (toggle_button_p, TRUE);
-    GtkBox* box_p =
-      GTK_BOX (gtk_builder_get_object ((*iterator).second.second,
-                                       ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_BOX_SINUS_NAME)));
-    ACE_ASSERT (box_p);
-    gtk_widget_set_sensitive (GTK_WIDGET (box_p), TRUE);
-  } // end IF
-
+  bool is_active_b = false;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   struct _GUID effect_id = GUID_NULL;
   switch (ui_cb_data_base_p->mediaFramework)
@@ -4953,12 +5005,12 @@ continue_:
       return G_SOURCE_REMOVE;
     }
   } // end SWITCH
-  is_active = !InlineIsEqualGUID (effect_id, GUID_NULL);
+  is_active_b = !InlineIsEqualGUID (effect_id, GUID_NULL);
 #else
-  is_active =
-    (!(*modulehandler_configuration_iterator).second.second->effect.empty () || is_mute);
+  is_active_b =
+    !(*modulehandler_configuration_iterator).second.second->effect.empty ();
 #endif // ACE_WIN32 || ACE_WIN64
-  if (is_active)
+  if (is_active_b)
   {
     list_store_p =
       GTK_LIST_STORE (gtk_builder_get_object ((*iterator).second.second,
@@ -5025,30 +5077,21 @@ continue_:
                                                      ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_CHECKBUTTON_EFFECT_NAME)));
       ACE_ASSERT (toggle_button_p);
     gtk_toggle_button_set_active (toggle_button_p, TRUE);
-
-    GtkBox* box_p =
-      GTK_BOX (gtk_builder_get_object ((*iterator).second.second,
-                                       ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_BOX_EFFECT_NAME)));
-    ACE_ASSERT (box_p);
-    gtk_widget_set_sensitive (GTK_WIDGET (box_p), TRUE);
   } // end IF
 
-  GtkRadioButton* radio_button_p = NULL;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   switch (ui_cb_data_base_p->mediaFramework)
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
     {
-      is_active =
-        ((mode_2d < STREAM_VISUALIZATION_SPECTRUMANALYZER_2DMODE_MAX) ||
-         ((*directshow_modulehandler_configuration_iterator).second.second->spectrumAnalyzer3DMode < STREAM_VISUALIZATION_SPECTRUMANALYZER_3DMODE_MAX));
+      is_active_b =
+        (*directshow_modulehandler_configuration_iterator).second.second->mute;
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
     {
-      is_active =
-        ((mode_2d < STREAM_VISUALIZATION_SPECTRUMANALYZER_2DMODE_MAX) ||
-         ((*mediafoundation_modulehandler_configuration_iterator).second.second->spectrumAnalyzer3DMode < STREAM_VISUALIZATION_SPECTRUMANALYZER_3DMODE_MAX));
+      is_active_b =
+        (*mediafoundation_modulehandler_configuration_iterator).second.second->mute;
       break;
     }
     default:
@@ -5057,16 +5100,37 @@ continue_:
                   ACE_TEXT ("invalid/unknown media framework (was: %d), aborting\n"),
                   ui_cb_data_base_p->mediaFramework));
       return G_SOURCE_REMOVE;
-    }
+  }
   } // end SWITCH
 #else
-  is_active =
-      (((*modulehandler_configuration_iterator).second.second->spectrumAnalyzer2DMode <
-        STREAM_VISUALIZATION_SPECTRUMANALYZER_2DMODE_MAX) ||
-       ((*modulehandler_configuration_iterator).second.second->spectrumAnalyzer3DMode <
-        STREAM_VISUALIZATION_SPECTRUMANALYZER_3DMODE_MAX));
+  is_active_b = (*modulehandler_configuration_iterator).second.second->mute;
 #endif // ACE_WIN32 || ACE_WIN64
-  if (is_active)
+  toggle_button_p =
+    GTK_TOGGLE_BUTTON (gtk_builder_get_object ((*iterator).second.second,
+                                               ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_TOGGLEBUTTON_MUTE_NAME)));
+  ACE_ASSERT (toggle_button_p);
+  gtk_toggle_button_set_active (toggle_button_p, is_active_b);
+
+  if (!filename_string.empty ())
+  {
+    toggle_button_p =
+          GTK_TOGGLE_BUTTON (gtk_builder_get_object ((*iterator).second.second,
+                                                     ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_CHECKBUTTON_SAVE_NAME)));
+    ACE_ASSERT (toggle_button_p);
+    gtk_signal_handler_block_by_func (GTK_OBJECT (toggle_button_p),
+                                      G_CALLBACK (togglebutton_save_toggled_cb),
+                                      userData_in);
+    gtk_toggle_button_set_active (toggle_button_p, TRUE);
+    gtk_signal_handler_unblock_by_func (GTK_OBJECT (toggle_button_p),
+                                        G_CALLBACK (togglebutton_save_toggled_cb),
+                                        userData_in);
+  } // end IF
+
+  GtkRadioButton* radio_button_p = NULL;
+  is_active_b =
+    ((mode_2d < STREAM_VISUALIZATION_SPECTRUMANALYZER_2DMODE_MAX) ||
+     (mode_3d < STREAM_VISUALIZATION_SPECTRUMANALYZER_3DMODE_MAX));
+  if (is_active_b)
   {
     toggle_button_p =
           GTK_TOGGLE_BUTTON (gtk_builder_get_object ((*iterator).second.second,
@@ -5091,12 +5155,6 @@ continue_:
       ACE_ASSERT (toggle_button_p);
       gtk_toggle_button_set_active (toggle_button_p, TRUE);
     } // end IF
-
-    GtkBox* box_p =
-      GTK_BOX (gtk_builder_get_object ((*iterator).second.second,
-                                       ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_BOX_VISUALIZATION_NAME)));
-    ACE_ASSERT (box_p);
-    gtk_widget_set_sensitive (GTK_WIDGET (box_p), TRUE);
   } // end IF
 
   GdkWindow* window_p = NULL;
@@ -5340,34 +5398,40 @@ idle_session_end_cb (gpointer userData_in)
                                            ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_COMBOBOX_SOURCE_NAME)));
   ACE_ASSERT (combo_box_p);
   gtk_widget_set_sensitive (GTK_WIDGET (combo_box_p), TRUE);
-  toggle_button_p =
-    GTK_TOGGLE_BUTTON (gtk_builder_get_object ((*iterator).second.second,
-                                               ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_TOGGLEBUTTON_MUTE_NAME)));
-  ACE_ASSERT (toggle_button_p);
-  gtk_widget_set_sensitive (GTK_WIDGET (toggle_button_p), TRUE);
+
+  combo_box_p =
+    GTK_COMBO_BOX (gtk_builder_get_object ((*iterator).second.second,
+                                           ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_COMBOBOX_DEVICE_NAME)));
+  ACE_ASSERT (combo_box_p);
+  gtk_widget_set_sensitive (GTK_WIDGET (combo_box_p), TRUE);
+
   button_p =
     GTK_BUTTON (gtk_builder_get_object ((*iterator).second.second,
                                         ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_BUTTON_PROPERTIES_NAME)));
   ACE_ASSERT (button_p);
   gtk_widget_set_sensitive (GTK_WIDGET (button_p), FALSE);
-  GtkFrame* frame_p =
-    GTK_FRAME (gtk_builder_get_object ((*iterator).second.second,
-                                       ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_FRAME_FORMAT_NAME)));
-  ACE_ASSERT (frame_p);
-  gtk_widget_set_sensitive (GTK_WIDGET (frame_p), TRUE);
-  frame_p =
-    GTK_FRAME (gtk_builder_get_object ((*iterator).second.second,
-                                       ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_FRAME_SAVE_NAME)));
-  ACE_ASSERT (frame_p);
-  gtk_widget_set_sensitive (GTK_WIDGET (frame_p), TRUE);
+
+  GtkVBox* vbox_p =
+    GTK_VBOX (gtk_builder_get_object ((*iterator).second.second,
+                                      ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_VBOX_FORMAT_OPTIONS_NAME)));
+  ACE_ASSERT (vbox_p);
+  gtk_widget_set_sensitive (GTK_WIDGET (vbox_p), TRUE);
+
   GtkCheckButton* check_button_p =
     GTK_CHECK_BUTTON (gtk_builder_get_object ((*iterator).second.second,
-                                              ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_CHECKBUTTON_SINUS_NAME)));
+                                              ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_CHECKBUTTON_EFFECT_NAME)));
   ACE_ASSERT (check_button_p);
   gtk_widget_set_sensitive (GTK_WIDGET (check_button_p), TRUE);
-  frame_p =
+
+  toggle_button_p =
+    GTK_TOGGLE_BUTTON (gtk_builder_get_object ((*iterator).second.second,
+                                               ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_TOGGLEBUTTON_MUTE_NAME)));
+  ACE_ASSERT (toggle_button_p);
+  gtk_widget_set_sensitive (GTK_WIDGET (toggle_button_p), TRUE);
+
+  GtkFrame* frame_p =
     GTK_FRAME (gtk_builder_get_object ((*iterator).second.second,
-                                       ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_FRAME_EFFECT_NAME)));
+                                       ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_FRAME_SAVE_NAME)));
   ACE_ASSERT (frame_p);
   gtk_widget_set_sensitive (GTK_WIDGET (frame_p), TRUE);
 
@@ -5452,13 +5516,13 @@ idle_update_info_display_cb (gpointer userData_in)
         {
           spin_button_p =
             GTK_SPIN_BUTTON (gtk_builder_get_object ((*iterator).second.second,
-                                                     ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_SPINBUTTON_CAPTUREDFRAMES_NAME)));
+                                                     ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_SPINBUTTON_CAPTUREDSAMPLES_NAME)));
           ACE_ASSERT (spin_button_p);
           gtk_spin_button_set_value (spin_button_p,
                                      static_cast<gdouble> (ui_cb_data_base_p->progressData.statistic.capturedFrames));
           spin_button_p =
             GTK_SPIN_BUTTON (gtk_builder_get_object ((*iterator).second.second,
-                                                     ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_SPINBUTTON_DROPPEDFRAMES_NAME)));
+                                                     ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_SPINBUTTON_DROPPEDSAMPLES_NAME)));
           ACE_ASSERT (spin_button_p);
           gtk_spin_button_set_value (spin_button_p,
                                      static_cast<gdouble> (ui_cb_data_base_p->progressData.statistic.droppedFrames));
@@ -6397,34 +6461,40 @@ togglebutton_record_toggled_cb (GtkToggleButton* toggleButton_in,
                                            ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_COMBOBOX_SOURCE_NAME)));
   ACE_ASSERT (combo_box_p);
   gtk_widget_set_sensitive (GTK_WIDGET (combo_box_p), FALSE);
-  GtkToggleButton* toggle_button_p =
-    GTK_TOGGLE_BUTTON (gtk_builder_get_object ((*iterator).second.second,
-                                               ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_TOGGLEBUTTON_MUTE_NAME)));
-  ACE_ASSERT (toggle_button_p);
-  gtk_widget_set_sensitive (GTK_WIDGET (toggle_button_p), FALSE);
+
+  combo_box_p =
+    GTK_COMBO_BOX (gtk_builder_get_object ((*iterator).second.second,
+                                           ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_COMBOBOX_DEVICE_NAME)));
+  ACE_ASSERT (combo_box_p);
+  gtk_widget_set_sensitive (GTK_WIDGET (combo_box_p), FALSE);
+
+  GtkVBox* vbox_p =
+    GTK_VBOX (gtk_builder_get_object ((*iterator).second.second,
+                                      ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_VBOX_FORMAT_OPTIONS_NAME)));
+  ACE_ASSERT (vbox_p);
+  gtk_widget_set_sensitive (GTK_WIDGET (vbox_p), FALSE);
+
   button_p =
     GTK_BUTTON (gtk_builder_get_object ((*iterator).second.second,
                                         ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_BUTTON_PROPERTIES_NAME)));
   ACE_ASSERT (button_p);
   gtk_widget_set_sensitive (GTK_WIDGET (button_p), TRUE);
-  GtkFrame* frame_p =
-    GTK_FRAME (gtk_builder_get_object ((*iterator).second.second,
-                                       ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_FRAME_FORMAT_NAME)));
-  ACE_ASSERT (frame_p);
-  gtk_widget_set_sensitive (GTK_WIDGET (frame_p), FALSE);
-  frame_p =
-    GTK_FRAME (gtk_builder_get_object ((*iterator).second.second,
-                                       ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_FRAME_SAVE_NAME)));
-  ACE_ASSERT (frame_p);
-  gtk_widget_set_sensitive (GTK_WIDGET (frame_p), FALSE);
+
   GtkCheckButton* check_button_p =
     GTK_CHECK_BUTTON (gtk_builder_get_object ((*iterator).second.second,
-                                              ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_CHECKBUTTON_SINUS_NAME)));
+                                              ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_CHECKBUTTON_EFFECT_NAME)));
   ACE_ASSERT (check_button_p);
   gtk_widget_set_sensitive (GTK_WIDGET (check_button_p), FALSE);
-  frame_p =
+
+  GtkToggleButton* toggle_button_p =
+    GTK_TOGGLE_BUTTON (gtk_builder_get_object ((*iterator).second.second,
+                                               ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_TOGGLEBUTTON_MUTE_NAME)));
+  ACE_ASSERT (toggle_button_p);
+  gtk_widget_set_sensitive (GTK_WIDGET (toggle_button_p), FALSE);
+
+  GtkFrame* frame_p =
     GTK_FRAME (gtk_builder_get_object ((*iterator).second.second,
-                                       ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_FRAME_EFFECT_NAME)));
+                                       ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_FRAME_SAVE_NAME)));
   ACE_ASSERT (frame_p);
   gtk_widget_set_sensitive (GTK_WIDGET (frame_p), FALSE);
 
@@ -6942,116 +7012,14 @@ continue_:
 } // togglebutton_save_toggled_cb
 
 void
-togglebutton_sinus_toggled_cb (GtkToggleButton* toggleButton_in,
-                               gpointer userData_in)
+hscale_device_volume_value_changed_cb (GtkRange* range_in,
+                                       gpointer userData_in)
 {
-  STREAM_TRACE (ACE_TEXT ("::togglebutton_sinus_toggled_cb"));
+  STREAM_TRACE (ACE_TEXT ("::hscale_device_volume_value_changed_cb"));
 
   // sanity check(s)
-  ACE_ASSERT (toggleButton_in);
   struct Test_U_AudioEffect_UI_CBDataBase* ui_cb_data_base_p =
     static_cast<struct Test_U_AudioEffect_UI_CBDataBase*> (userData_in);
-  ACE_ASSERT (ui_cb_data_base_p);
-
-  Common_UI_GTK_Manager_t* gtk_manager_p =
-    COMMON_UI_GTK_MANAGER_SINGLETON::instance ();
-  ACE_ASSERT (gtk_manager_p);
-  const Common_UI_GTK_State_t& state_r = gtk_manager_p->getR ();
-  bool is_active = gtk_toggle_button_get_active (toggleButton_in);
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-  struct Test_U_AudioEffect_DirectShow_UI_CBData* directshow_ui_cb_data_p =
-    NULL;
-  struct Test_U_AudioEffect_MediaFoundation_UI_CBData* mediafoundation_ui_cb_data_p =
-    NULL;
-  Test_U_AudioEffect_MediaFoundation_StreamConfiguration_t::ITERATOR_T mediafoundation_modulehandler_configuration_iterator;
-  Test_U_AudioEffect_DirectShow_StreamConfiguration_t::ITERATOR_T directshow_modulehandler_configuration_iterator;
-  switch (ui_cb_data_base_p->mediaFramework)
-  {
-    case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
-    {
-      directshow_ui_cb_data_p =
-        static_cast<struct Test_U_AudioEffect_DirectShow_UI_CBData*> (userData_in);
-      // sanity check(s)
-      ACE_ASSERT (directshow_ui_cb_data_p);
-      ACE_ASSERT (directshow_ui_cb_data_p->configuration);
-
-      directshow_ui_cb_data_p =
-        static_cast<struct Test_U_AudioEffect_DirectShow_UI_CBData*> (userData_in);
-      // sanity check(s)
-      ACE_ASSERT (directshow_ui_cb_data_p);
-
-      directshow_modulehandler_configuration_iterator =
-        directshow_ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
-      ACE_ASSERT (directshow_modulehandler_configuration_iterator != directshow_ui_cb_data_p->configuration->streamConfiguration.end ());
-      ACE_ASSERT ((*directshow_modulehandler_configuration_iterator).second.second->generatorConfiguration);
-      (*directshow_modulehandler_configuration_iterator).second.second->generatorConfiguration->type =
-        (is_active ? STREAM_MEDIAFRAMEWORK_SOUNDGENERATOR_SINE 
-                   : STREAM_MEDIAFRAMEWORK_SOUNDGENERATOR_INVALID);
-      break;
-    }
-    case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
-    {
-      mediafoundation_ui_cb_data_p =
-        static_cast<struct Test_U_AudioEffect_MediaFoundation_UI_CBData*> (userData_in);
-      // sanity check(s)
-      ACE_ASSERT (mediafoundation_ui_cb_data_p);
-      ACE_ASSERT (mediafoundation_ui_cb_data_p->configuration);
-
-      mediafoundation_modulehandler_configuration_iterator =
-        mediafoundation_ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
-      ACE_ASSERT (mediafoundation_modulehandler_configuration_iterator != mediafoundation_ui_cb_data_p->configuration->streamConfiguration.end ());
-      ACE_ASSERT ((*mediafoundation_modulehandler_configuration_iterator).second.second->generatorConfiguration);
-      (*mediafoundation_modulehandler_configuration_iterator).second.second->generatorConfiguration->type =
-        (is_active ? STREAM_MEDIAFRAMEWORK_SOUNDGENERATOR_SINE 
-                   : STREAM_MEDIAFRAMEWORK_SOUNDGENERATOR_INVALID);
-      break;
-    }
-    default:
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("invalid/unknown media framework (was: %d), returning\n"),
-                  ui_cb_data_base_p->mediaFramework));
-      return;
-    }
-  } // end SWITCH
-#else
-  struct Test_U_AudioEffect_UI_CBData* data_p =
-    static_cast<struct Test_U_AudioEffect_UI_CBData*> (userData_in);
-
-  // sanity check(s)
-  ACE_ASSERT (data_p);
-  ACE_ASSERT (data_p->configuration);
-
-  Test_U_AudioEffect_ALSA_StreamConfiguration_t::ITERATOR_T modulehandler_configuration_iterator =
-    data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
-  ACE_ASSERT (modulehandler_configuration_iterator != data_p->configuration->streamConfiguration.end ());
-
-  (*modulehandler_configuration_iterator).second.second->sinus =
-    is_active;
-#endif
-
-  Common_UI_GTK_BuildersConstIterator_t iterator =
-    state_r.builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN));
-  ACE_ASSERT (iterator != state_r.builders.end ());
-
-  GtkBox* box_p =
-      GTK_BOX (gtk_builder_get_object ((*iterator).second.second,
-                                       ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_BOX_SINUS_NAME)));
-  ACE_ASSERT (box_p);
-  gtk_widget_set_sensitive (GTK_WIDGET (box_p),
-                            is_active);
-} // togglebutton_sinus_toggled_cb
-
-void
-hscale_volume_value_changed_cb (GtkRange* range_in,
-                                gpointer userData_in)
-{
-  STREAM_TRACE (ACE_TEXT ("::hscale_volume_value_changed_cb"));
-
-  struct Test_U_AudioEffect_UI_CBDataBase* ui_cb_data_base_p =
-    static_cast<struct Test_U_AudioEffect_UI_CBDataBase*> (userData_in);
-
-  // sanity check(s)
   ACE_ASSERT (ui_cb_data_base_p);
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -7063,9 +7031,9 @@ hscale_volume_value_changed_cb (GtkRange* range_in,
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
     {
+      // sanity check(s)
       directshow_ui_cb_data_p =
         static_cast<struct Test_U_AudioEffect_DirectShow_UI_CBData*> (userData_in);
-      // sanity check(s)
       ACE_ASSERT (directshow_ui_cb_data_p);
       ACE_ASSERT (directshow_ui_cb_data_p->volumeControl);
       HRESULT result =
@@ -7076,9 +7044,9 @@ hscale_volume_value_changed_cb (GtkRange* range_in,
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
     {
+      // sanity check(s)
       mediafoundation_ui_cb_data_p =
         static_cast<struct Test_U_AudioEffect_MediaFoundation_UI_CBData*> (userData_in);
-      // sanity check(s)
       ACE_ASSERT (mediafoundation_ui_cb_data_p);
       ACE_ASSERT (mediafoundation_ui_cb_data_p->volumeControl);
       HRESULT result =
@@ -7096,10 +7064,9 @@ hscale_volume_value_changed_cb (GtkRange* range_in,
     }
   } // end SWITCH
 #else
+  // sanity check(s)
   struct Test_U_AudioEffect_UI_CBData* data_p =
     static_cast<struct Test_U_AudioEffect_UI_CBData*> (userData_in);
-
-  // sanity check(s)
   ACE_ASSERT (data_p);
   ACE_ASSERT (data_p->configuration);
 
@@ -7119,15 +7086,15 @@ hscale_volume_value_changed_cb (GtkRange* range_in,
     return;
   } // end IF
 #endif // ACE_WIN32 || ACE_WIN64
-} // hscale_volume_value_changed_cb
+} // hscale_device_volume_value_changed_cb
 
 gboolean
-hscale_boost_change_value_cb (GtkRange* range_in,
-                              GtkScrollType* scrollType_in,
-                              gdouble value_in,
-                              gpointer userData_in)
+hscale_device_boost_change_value_cb (GtkRange* range_in,
+                                     GtkScrollType* scrollType_in,
+                                     gdouble value_in,
+                                     gpointer userData_in)
 {
-  STREAM_TRACE (ACE_TEXT ("::hscale_boost_change_value_cb"));
+  STREAM_TRACE (ACE_TEXT ("::hscale_device_boost_change_value_cb"));
 
   struct Test_U_AudioEffect_UI_CBDataBase* ui_cb_data_base_p =
     static_cast<struct Test_U_AudioEffect_UI_CBDataBase*> (userData_in);
@@ -7273,13 +7240,13 @@ hscale_boost_change_value_cb (GtkRange* range_in,
 #endif // ACE_WIN32 || ACE_WIN64
 
   return TRUE;
-} // hscale_boost_change_value_cb
+} // hscale_device_boost_change_value_cb
 
 void
-hscale_boost_value_changed_cb (GtkRange* range_in,
-                               gpointer userData_in)
+hscale_device_boost_value_changed_cb (GtkRange* range_in,
+                                      gpointer userData_in)
 {
-  STREAM_TRACE (ACE_TEXT ("::hscale_boost_value_changed_cb"));
+  STREAM_TRACE (ACE_TEXT ("::hscale_device_boost_value_changed_cb"));
 
   struct Test_U_AudioEffect_UI_CBDataBase* ui_cb_data_base_p =
     static_cast<struct Test_U_AudioEffect_UI_CBDataBase*> (userData_in);
@@ -7378,13 +7345,89 @@ hscale_boost_value_changed_cb (GtkRange* range_in,
     return;
   } // end IF
 #endif // ACE_WIN32 || ACE_WIN64
-} // hscale_boost_value_changed_cb
+} // hscale_device_boost_value_changed_cb
 
 void
-scale_sinus_frequency_value_changed_cb (GtkRange* range_in,
-                                        gpointer userData_in)
+hscale_volume_value_changed_cb (GtkRange* range_in,
+                                gpointer userData_in)
 {
-  STREAM_TRACE (ACE_TEXT ("::scale_sinus_frequency_value_changed_cb"));
+  STREAM_TRACE (ACE_TEXT ("::hscale_volume_value_changed_cb"));
+
+  // sanity check(s)
+  struct Test_U_AudioEffect_UI_CBDataBase* ui_cb_data_base_p =
+    static_cast<struct Test_U_AudioEffect_UI_CBDataBase*> (userData_in);
+  ACE_ASSERT (ui_cb_data_base_p);
+
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  struct Test_U_AudioEffect_DirectShow_UI_CBData* directshow_ui_cb_data_p =
+    NULL;
+  struct Test_U_AudioEffect_MediaFoundation_UI_CBData* mediafoundation_ui_cb_data_p =
+    NULL;
+  switch (ui_cb_data_base_p->mediaFramework)
+  {
+    case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
+    {
+      // sanity check(s)
+      directshow_ui_cb_data_p =
+        static_cast<struct Test_U_AudioEffect_DirectShow_UI_CBData*> (userData_in);
+      ACE_ASSERT (directshow_ui_cb_data_p);
+      //ACE_ASSERT (directshow_ui_cb_data_p->volumeControl);
+      //HRESULT result =
+      //  directshow_ui_cb_data_p->volumeControl->SetMasterVolumeLevelScalar (static_cast<float> (gtk_range_get_value (range_in) / 100.0),
+      //                                                                      NULL);
+      //ACE_ASSERT (SUCCEEDED (result));
+      break;
+    }
+    case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
+    {
+      // sanity check(s)
+      mediafoundation_ui_cb_data_p =
+        static_cast<struct Test_U_AudioEffect_MediaFoundation_UI_CBData*> (userData_in);
+      ACE_ASSERT (mediafoundation_ui_cb_data_p);
+      //ACE_ASSERT (mediafoundation_ui_cb_data_p->volumeControl);
+      //HRESULT result =
+      //  mediafoundation_ui_cb_data_p->volumeControl->SetMasterVolumeLevelScalar (static_cast<float> (gtk_range_get_value (range_in) / 100.0),
+      //                                                                           NULL);
+      //ACE_ASSERT (SUCCEEDED (result));
+      break;
+    }
+    default:
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("invalid/unknown media framework (was: %d), returning\n"),
+                  ui_cb_data_base_p->mediaFramework));
+      return;
+    }
+  } // end SWITCH
+#else
+  // sanity check(s)
+  struct Test_U_AudioEffect_UI_CBData* data_p =
+    static_cast<struct Test_U_AudioEffect_UI_CBData*> (userData_in);
+  ACE_ASSERT (data_p);
+  ACE_ASSERT (data_p->configuration);
+  Test_U_AudioEffect_ALSA_StreamConfiguration_t::ITERATOR_T modulehandler_configuration_iterator =
+      data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
+  ACE_ASSERT (modulehandler_configuration_iterator != data_p->configuration->streamConfiguration.end ());
+
+  //if (!Stream_MediaFramework_ALSA_Tools::setCaptureVolumeLevel ((*modulehandler_configuration_iterator).second.second->deviceIdentifier.identifier,
+  //                                                              ACE_TEXT_ALWAYS_CHAR (STREAM_LIB_ALSA_CAPTURE_DEFAULT_SELEM_VOLUME_NAME),
+  //                                                              static_cast<long> (gtk_range_get_value (range_in))))
+  //{
+  //  ACE_DEBUG ((LM_ERROR,
+  //              ACE_TEXT ("failed to Stream_MediaFramework_ALSA_Tools::setCaptureVolumeLevel(\"%s\",\"%s\",%d), returning\n"),
+  //               ACE_TEXT ((*modulehandler_configuration_iterator).second.second->deviceIdentifier.identifier.c_str ()),
+  //               ACE_TEXT (STREAM_LIB_ALSA_CAPTURE_DEFAULT_SELEM_VOLUME_NAME),
+  //               static_cast<long> (gtk_range_get_value (range_in))));
+  //  return;
+  //} // end IF
+#endif // ACE_WIN32 || ACE_WIN64
+} // hscale_volume_value_changed_cb
+
+void
+hscale_sinus_frequency_value_changed_cb (GtkRange* range_in,
+                                         gpointer userData_in)
+{
+  STREAM_TRACE (ACE_TEXT ("::hscale_sinus_frequency_value_changed_cb"));
 
   struct Test_U_AudioEffect_UI_CBDataBase* ui_cb_data_base_p =
     static_cast<struct Test_U_AudioEffect_UI_CBDataBase*> (userData_in);
@@ -7456,7 +7499,7 @@ scale_sinus_frequency_value_changed_cb (GtkRange* range_in,
   (*modulehandler_configuration_iterator).second.second->sinusFrequency =
     gtk_range_get_value (range_in);
 #endif // ACE_WIN32 || ACE_WIN64
-} // scale_sinus_frequency_value_changed_cb
+} // hscale_sinus_frequency_value_changed_cb
 
 void
 togglebutton_effect_toggled_cb (GtkToggleButton* toggleButton_in,
@@ -7469,7 +7512,6 @@ togglebutton_effect_toggled_cb (GtkToggleButton* toggleButton_in,
   struct Test_U_AudioEffect_UI_CBDataBase* ui_cb_data_base_p =
     static_cast<struct Test_U_AudioEffect_UI_CBDataBase*> (userData_in);
   ACE_ASSERT (ui_cb_data_base_p);
-
   Common_UI_GTK_Manager_t* gtk_manager_p =
     COMMON_UI_GTK_MANAGER_SINGLETON::instance ();
   ACE_ASSERT (gtk_manager_p);
@@ -7484,17 +7526,11 @@ togglebutton_effect_toggled_cb (GtkToggleButton* toggleButton_in,
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
     {
+      // sanity check(s)
       directshow_ui_cb_data_p =
         static_cast<struct Test_U_AudioEffect_DirectShow_UI_CBData*> (userData_in);
-      // sanity check(s)
       ACE_ASSERT (directshow_ui_cb_data_p);
       ACE_ASSERT (directshow_ui_cb_data_p->configuration);
-
-      directshow_ui_cb_data_p =
-        static_cast<struct Test_U_AudioEffect_DirectShow_UI_CBData*> (userData_in);
-      // sanity check(s)
-      ACE_ASSERT (directshow_ui_cb_data_p);
-
       directshow_modulehandler_configuration_iterator =
         directshow_ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
       ACE_ASSERT (directshow_modulehandler_configuration_iterator != directshow_ui_cb_data_p->configuration->streamConfiguration.end ());
@@ -7502,12 +7538,11 @@ togglebutton_effect_toggled_cb (GtkToggleButton* toggleButton_in,
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
     {
+      // sanity check(s)
       mediafoundation_ui_cb_data_p =
         static_cast<struct Test_U_AudioEffect_MediaFoundation_UI_CBData*> (userData_in);
-      // sanity check(s)
       ACE_ASSERT (mediafoundation_ui_cb_data_p);
       ACE_ASSERT (mediafoundation_ui_cb_data_p->configuration);
-
       mediafoundation_modulehandler_configuration_iterator =
         mediafoundation_ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
       ACE_ASSERT (mediafoundation_modulehandler_configuration_iterator != mediafoundation_ui_cb_data_p->configuration->streamConfiguration.end ());
@@ -7522,38 +7557,33 @@ togglebutton_effect_toggled_cb (GtkToggleButton* toggleButton_in,
     }
   } // end SWITCH
 #else
+  // sanity check(s)
   struct Test_U_AudioEffect_UI_CBData* data_p =
       static_cast<struct Test_U_AudioEffect_UI_CBData*> (userData_in);
-
-  // sanity check(s)
   ACE_ASSERT (data_p);
   ACE_ASSERT (data_p->configuration);
-
   Test_U_AudioEffect_ALSA_StreamConfiguration_t::ITERATOR_T modulehandler_configuration_iterator =
     data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (modulehandler_configuration_iterator != data_p->configuration->streamConfiguration.end ());
 #endif // ACE_WIN32 || ACE_WIN64
-
   Common_UI_GTK_BuildersConstIterator_t iterator =
     state_r.builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN));
   ACE_ASSERT (iterator != state_r.builders.end ());
 
-  bool is_active = gtk_toggle_button_get_active (toggleButton_in);
-
-  GtkBox* box_p =
-      GTK_BOX (gtk_builder_get_object ((*iterator).second.second,
-                                       ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_BOX_EFFECT_NAME)));
-  ACE_ASSERT (box_p);
-  gtk_widget_set_sensitive (GTK_WIDGET (box_p),
-                            is_active);
-
-  if (is_active)
-  {
-    GtkComboBox* combo_box_p =
+  bool is_active_b = gtk_toggle_button_get_active (toggleButton_in);
+  GtkComboBox* combo_box_p =
       GTK_COMBO_BOX (gtk_builder_get_object ((*iterator).second.second,
                                              ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_COMBOBOX_EFFECT_NAME)));
-    ACE_ASSERT (combo_box_p);
+  ACE_ASSERT (combo_box_p);
+  gtk_widget_set_sensitive (GTK_WIDGET (combo_box_p),
+                            is_active_b);
 
+  std::string effect_string;
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  struct _GUID GUID_s = GUID_NULL;
+#endif // ACE_WIN32 || ACE_WIN64
+  if (is_active_b)
+  {
     GtkTreeIter iterator_2;
     if (gtk_combo_box_get_active_iter (combo_box_p,
                                        &iterator_2))
@@ -7576,10 +7606,10 @@ togglebutton_effect_toggled_cb (GtkToggleButton* toggleButton_in,
                                 0, &value);
 #endif // ACE_WIN32 || ACE_WIN64
       ACE_ASSERT (G_VALUE_TYPE (&value) == G_TYPE_STRING);
-      std::string effect_string = g_value_get_string (&value);
+      effect_string = g_value_get_string (&value);
       g_value_unset (&value);
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-      struct _GUID GUID_s = Common_Tools::StringToGUID (effect_string);
+      GUID_s = Common_Tools::StringToGUID (effect_string);
       if (InlineIsEqualGUID (GUID_s, GUID_NULL))
       {
         ACE_DEBUG ((LM_ERROR,
@@ -7587,64 +7617,36 @@ togglebutton_effect_toggled_cb (GtkToggleButton* toggleButton_in,
                     ACE_TEXT (effect_string.c_str ())));
         return;
       } // end IF
-
-      switch (ui_cb_data_base_p->mediaFramework)
-      {
-        case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
-        {
-          (*directshow_modulehandler_configuration_iterator).second.second->effect =
-            GUID_s;
-          break;
-        }
-        case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
-        {
-          (*mediafoundation_modulehandler_configuration_iterator).second.second->effect =
-            GUID_s;
-          break;
-        }
-        default:
-        {
-          ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("invalid/unknown media framework (was: %d), returning\n"),
-                      ui_cb_data_base_p->mediaFramework));
-          return;
-        }
-      } // end SWITCH
-#else
-      (*modulehandler_configuration_iterator).second.second->effect =
-        effect_string;
 #endif // ACE_WIN32 || ACE_WIN64
     } // end IF
   } // end IF
-  else
-  {
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-    switch (ui_cb_data_base_p->mediaFramework)
+  switch (ui_cb_data_base_p->mediaFramework)
+  {
+    case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
     {
-      case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
-      {
-        (*directshow_modulehandler_configuration_iterator).second.second->effect =
-          GUID_NULL;
-        break;
-      }
-      case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
-      {
-        (*mediafoundation_modulehandler_configuration_iterator).second.second->effect =
-          GUID_NULL;
-        break;
-      }
-      default:
-      {
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("invalid/unknown media framework (was: %d), returning\n"),
-                    ui_cb_data_base_p->mediaFramework));
-        return;
-      }
-    } // end SWITCH
+      (*directshow_modulehandler_configuration_iterator).second.second->effect =
+        GUID_s;
+      break;
+    }
+    case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
+    {
+      (*mediafoundation_modulehandler_configuration_iterator).second.second->effect =
+        GUID_s;
+      break;
+    }
+    default:
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("invalid/unknown media framework (was: %d), returning\n"),
+                  ui_cb_data_base_p->mediaFramework));
+      return;
+    }
+  } // end SWITCH
 #else
-    (*modulehandler_configuration_iterator).second.second->effect.clear ();
+  (*modulehandler_configuration_iterator).second.second->effect =
+    effect_string;
 #endif // ACE_WIN32 || ACE_WIN64
-  } // end IF
 } // togglebutton_effect_toggled_cb
 
 void
@@ -7658,6 +7660,13 @@ togglebutton_mute_toggled_cb (GtkToggleButton* toggleButton_in,
   struct Test_U_AudioEffect_UI_CBDataBase* ui_cb_data_base_p =
     static_cast<struct Test_U_AudioEffect_UI_CBDataBase*> (userData_in);
   ACE_ASSERT (ui_cb_data_base_p);
+  Common_UI_GTK_Manager_t* gtk_manager_p =
+    COMMON_UI_GTK_MANAGER_SINGLETON::instance ();
+  ACE_ASSERT (gtk_manager_p);
+  const Common_UI_GTK_State_t& state_r = gtk_manager_p->getR ();
+  Common_UI_GTK_BuildersConstIterator_t iterator =
+    state_r.builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN));
+  ACE_ASSERT (iterator != state_r.builders.end ());
 
   bool is_active = gtk_toggle_button_get_active (toggleButton_in);
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -7671,17 +7680,14 @@ togglebutton_mute_toggled_cb (GtkToggleButton* toggleButton_in,
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
     {
+      // sanity check(s)
       directshow_ui_cb_data_p =
         static_cast<struct Test_U_AudioEffect_DirectShow_UI_CBData*> (userData_in);
-      // sanity check(s)
       ACE_ASSERT (directshow_ui_cb_data_p);
       ACE_ASSERT (directshow_ui_cb_data_p->configuration);
-
       directshow_ui_cb_data_p =
         static_cast<struct Test_U_AudioEffect_DirectShow_UI_CBData*> (userData_in);
-      // sanity check(s)
       ACE_ASSERT (directshow_ui_cb_data_p);
-
       directshow_modulehandler_configuration_iterator =
         directshow_ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
       ACE_ASSERT (directshow_modulehandler_configuration_iterator != directshow_ui_cb_data_p->configuration->streamConfiguration.end ());
@@ -7692,12 +7698,11 @@ togglebutton_mute_toggled_cb (GtkToggleButton* toggleButton_in,
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
     {
+      // sanity check(s)
       mediafoundation_ui_cb_data_p =
         static_cast<struct Test_U_AudioEffect_MediaFoundation_UI_CBData*> (userData_in);
-      // sanity check(s)
       ACE_ASSERT (mediafoundation_ui_cb_data_p);
       ACE_ASSERT (mediafoundation_ui_cb_data_p->configuration);
-
       mediafoundation_modulehandler_configuration_iterator =
         mediafoundation_ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
       ACE_ASSERT (mediafoundation_modulehandler_configuration_iterator != mediafoundation_ui_cb_data_p->configuration->streamConfiguration.end ());
@@ -7715,11 +7720,10 @@ togglebutton_mute_toggled_cb (GtkToggleButton* toggleButton_in,
     }
   } // end SWITCH
 #else
+  // sanity check(s)
   struct Test_U_AudioEffect_UI_CBData* data_p =
     static_cast<struct Test_U_AudioEffect_UI_CBData*> (userData_in);
-  // sanity check(s)
   ACE_ASSERT (data_p);
-
   Test_U_AudioEffect_ALSA_StreamConfiguration_t::ITERATOR_T modulehandler_configuration_iterator =
     data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (modulehandler_configuration_iterator != data_p->configuration->streamConfiguration.end ());
@@ -7727,6 +7731,12 @@ togglebutton_mute_toggled_cb (GtkToggleButton* toggleButton_in,
   (*modulehandler_configuration_iterator).second.second->mute =
     is_active;
 #endif // ACE_WIN32 || ACE_WIN64
+  GtkHScale* hscale_p =
+    GTK_HSCALE (gtk_builder_get_object ((*iterator).second.second,
+                                        ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_HSCALE_VOLUME_NAME)));
+  ACE_ASSERT (hscale_p);
+  gtk_widget_set_sensitive (GTK_WIDGET (hscale_p),
+                            !is_active);
 } // togglebutton_mute_toggled_cb
 
 void
@@ -7740,7 +7750,6 @@ togglebutton_visualization_toggled_cb (GtkToggleButton* toggleButton_in,
   struct Test_U_AudioEffect_UI_CBDataBase* ui_cb_data_base_p =
     static_cast<struct Test_U_AudioEffect_UI_CBDataBase*> (userData_in);
   ACE_ASSERT (ui_cb_data_base_p);
-
   Common_UI_GTK_Manager_t* gtk_manager_p =
     COMMON_UI_GTK_MANAGER_SINGLETON::instance ();
   ACE_ASSERT (gtk_manager_p);
@@ -7749,11 +7758,11 @@ togglebutton_visualization_toggled_cb (GtkToggleButton* toggleButton_in,
     state_r.builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN));
   ACE_ASSERT (iterator != state_r.builders.end ());
 
-  GtkBox* box_p =
-      GTK_BOX (gtk_builder_get_object ((*iterator).second.second,
-                                       ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_BOX_VISUALIZATION_NAME)));
-  ACE_ASSERT (box_p);
-  gtk_widget_set_sensitive (GTK_WIDGET (box_p),
+  GtkHBox* hbox_p =
+      GTK_HBOX (gtk_builder_get_object ((*iterator).second.second,
+                                        ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_HBOX_VISUALIZATION_NAME)));
+  ACE_ASSERT (hbox_p);
+  gtk_widget_set_sensitive (GTK_WIDGET (hbox_p),
                             gtk_toggle_button_get_active (toggleButton_in));
 } // togglebutton_visualization_toggled_cb
 
@@ -7765,13 +7774,15 @@ radiobutton_2d_toggled_cb (GtkToggleButton* toggleButton_in,
 
   // sanity check(s)
   ACE_ASSERT (toggleButton_in);
+  if (!gtk_toggle_button_get_active (toggleButton_in))
+    return;
   struct Test_U_AudioEffect_UI_CBDataBase* ui_cb_data_base_p =
     static_cast<struct Test_U_AudioEffect_UI_CBDataBase*> (userData_in);
   ACE_ASSERT (ui_cb_data_base_p);
-
   Common_UI_GTK_Manager_t* gtk_manager_p =
     COMMON_UI_GTK_MANAGER_SINGLETON::instance ();
   ACE_ASSERT (gtk_manager_p);
+
   const Common_UI_GTK_State_t& state_r = gtk_manager_p->getR ();
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   struct Test_U_AudioEffect_DirectShow_UI_CBData* directshow_ui_cb_data_p =
@@ -7784,16 +7795,11 @@ radiobutton_2d_toggled_cb (GtkToggleButton* toggleButton_in,
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
     {
+      // sanity check(s)
       directshow_ui_cb_data_p =
         static_cast<struct Test_U_AudioEffect_DirectShow_UI_CBData*> (userData_in);
-      // sanity check(s)
       ACE_ASSERT (directshow_ui_cb_data_p);
       ACE_ASSERT (directshow_ui_cb_data_p->configuration);
-
-      directshow_ui_cb_data_p =
-        static_cast<struct Test_U_AudioEffect_DirectShow_UI_CBData*> (userData_in);
-      // sanity check(s)
-      ACE_ASSERT (directshow_ui_cb_data_p);
 
       directshow_modulehandler_configuration_iterator =
         directshow_ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
@@ -7802,9 +7808,9 @@ radiobutton_2d_toggled_cb (GtkToggleButton* toggleButton_in,
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
     {
+      // sanity check(s)
       mediafoundation_ui_cb_data_p =
         static_cast<struct Test_U_AudioEffect_MediaFoundation_UI_CBData*> (userData_in);
-      // sanity check(s)
       ACE_ASSERT (mediafoundation_ui_cb_data_p);
       ACE_ASSERT (mediafoundation_ui_cb_data_p->configuration);
 
@@ -7822,10 +7828,9 @@ radiobutton_2d_toggled_cb (GtkToggleButton* toggleButton_in,
     }
   } // end SWITCH
 #else
+  // sanity check(s)
   struct Test_U_AudioEffect_UI_CBData* data_p =
       static_cast<struct Test_U_AudioEffect_UI_CBData*> (userData_in);
-
-  // sanity check(s)
   ACE_ASSERT (data_p);
   ACE_ASSERT (data_p->configuration);
 
@@ -7837,11 +7842,6 @@ radiobutton_2d_toggled_cb (GtkToggleButton* toggleButton_in,
   Common_UI_GTK_BuildersConstIterator_t iterator =
     state_r.builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN));
   ACE_ASSERT (iterator != state_r.builders.end ());
-
-  bool is_active = gtk_toggle_button_get_active (toggleButton_in);
-  if (!is_active)
-    return;
-
   GtkRadioButton* radio_button_p =
       GTK_RADIO_BUTTON (gtk_builder_get_object ((*iterator).second.second,
                                                 ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_RADIOBUTTON_OSCILLOSCOPE_NAME)));
@@ -7877,6 +7877,150 @@ radiobutton_2d_toggled_cb (GtkToggleButton* toggleButton_in,
                                                             : STREAM_VISUALIZATION_SPECTRUMANALYZER_2DMODE_SPECTRUM);
 #endif // ACE_WIN32 || ACE_WIN64
 } // radiobutton_2d_toggled_cb
+
+void
+radiobutton_noise_toggled_cb (GtkToggleButton* toggleButton_in,
+                              gpointer userData_in)
+{
+  STREAM_TRACE (ACE_TEXT ("::radiobutton_noise_toggled_cb"));
+
+  // sanity check(s)
+  ACE_ASSERT (toggleButton_in);
+  if (!gtk_toggle_button_get_active (toggleButton_in))
+    return;
+  struct Test_U_AudioEffect_UI_CBDataBase* ui_cb_data_base_p =
+    static_cast<struct Test_U_AudioEffect_UI_CBDataBase*> (userData_in);
+  ACE_ASSERT (ui_cb_data_base_p);
+  Common_UI_GTK_Manager_t* gtk_manager_p =
+    COMMON_UI_GTK_MANAGER_SINGLETON::instance ();
+  ACE_ASSERT (gtk_manager_p);
+  const Common_UI_GTK_State_t& state_r = gtk_manager_p->getR ();
+  Common_UI_GTK_BuildersConstIterator_t iterator =
+    state_r.builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN));
+  ACE_ASSERT (iterator != state_r.builders.end ());
+  GtkRadioButton* radio_button_p =
+    GTK_RADIO_BUTTON (gtk_builder_get_object ((*iterator).second.second,
+                                              ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_RADIOBUTTON_NOISE_NAME)));
+  ACE_ASSERT (radio_button_p);
+  enum Stream_MediaFramework_SoundGeneratorType noise_type_e =
+    ((GTK_RADIO_BUTTON (toggleButton_in) == radio_button_p) ? STREAM_MEDIAFRAMEWORK_SOUNDGENERATOR_NOISE
+                                                            : STREAM_MEDIAFRAMEWORK_SOUNDGENERATOR_SINE);
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  struct Test_U_AudioEffect_DirectShow_UI_CBData* directshow_ui_cb_data_p =
+    NULL;
+  struct Test_U_AudioEffect_MediaFoundation_UI_CBData* mediafoundation_ui_cb_data_p =
+    NULL;
+  Test_U_AudioEffect_MediaFoundation_StreamConfiguration_t::ITERATOR_T mediafoundation_modulehandler_configuration_iterator;
+  Test_U_AudioEffect_DirectShow_StreamConfiguration_t::ITERATOR_T directshow_modulehandler_configuration_iterator;
+  switch (ui_cb_data_base_p->mediaFramework)
+  {
+    case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
+    {
+      // sanity check(s)
+      directshow_ui_cb_data_p =
+        static_cast<struct Test_U_AudioEffect_DirectShow_UI_CBData*> (userData_in);
+      ACE_ASSERT (directshow_ui_cb_data_p);
+      ACE_ASSERT (directshow_ui_cb_data_p->configuration);
+      directshow_modulehandler_configuration_iterator =
+        directshow_ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
+      ACE_ASSERT (directshow_modulehandler_configuration_iterator != directshow_ui_cb_data_p->configuration->streamConfiguration.end ());
+      ACE_ASSERT ((*directshow_modulehandler_configuration_iterator).second.second->generatorConfiguration);
+
+      (*directshow_modulehandler_configuration_iterator).second.second->generatorConfiguration->type =
+        noise_type_e;
+      break;
+    }
+    case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
+    {
+      // sanity check(s)
+      mediafoundation_ui_cb_data_p =
+        static_cast<struct Test_U_AudioEffect_MediaFoundation_UI_CBData*> (userData_in);
+      ACE_ASSERT (mediafoundation_ui_cb_data_p);
+      ACE_ASSERT (mediafoundation_ui_cb_data_p->configuration);
+      mediafoundation_modulehandler_configuration_iterator =
+        mediafoundation_ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
+      ACE_ASSERT (mediafoundation_modulehandler_configuration_iterator != mediafoundation_ui_cb_data_p->configuration->streamConfiguration.end ());
+      ACE_ASSERT ((*mediafoundation_modulehandler_configuration_iterator).second.second->generatorConfiguration);
+
+      (*mediafoundation_modulehandler_configuration_iterator).second.second->generatorConfiguration->type =
+        noise_type_e;
+      break;
+    }
+    default:
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("invalid/unknown media framework (was: %d), returning\n"),
+                  ui_cb_data_base_p->mediaFramework));
+      return;
+    }
+  } // end SWITCH
+#else
+  // sanity check(s)
+  struct Test_U_AudioEffect_UI_CBData* data_p =
+    static_cast<struct Test_U_AudioEffect_UI_CBData*> (userData_in);
+  ACE_ASSERT (data_p);
+  ACE_ASSERT (data_p->configuration);
+  Test_U_AudioEffect_ALSA_StreamConfiguration_t::ITERATOR_T modulehandler_configuration_iterator =
+    data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
+  ACE_ASSERT (modulehandler_configuration_iterator != data_p->configuration->streamConfiguration.end ());
+
+  (*modulehandler_configuration_iterator).second.second->generatorConfiguration->type =
+    noise_type_e;
+#endif // ACE_WIN32 || ACE_WIN64
+
+  // step1: load configuration options
+  GtkVBox* vbox_p =
+    GTK_VBOX (gtk_builder_get_object ((*iterator).second.second,
+                                      ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_VBOX_NOISE_NAME)));
+  ACE_ASSERT (vbox_p);
+  GtkHBox* hbox_p =
+    GTK_HBOX (gtk_builder_get_object ((*iterator).second.second,
+                                      ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_HBOX_NOISE_NAME)));
+  ACE_ASSERT (hbox_p);
+  gtk_container_remove (GTK_CONTAINER (vbox_p),
+                        GTK_WIDGET (hbox_p));
+  GList* list_p = NULL, * list_2 = NULL;
+  list_p = gtk_container_get_children (GTK_CONTAINER (vbox_p));
+  for (list_2 = list_p; list_2; list_2 = g_list_next (list_2))
+  {
+    g_object_ref (G_OBJECT (GTK_WIDGET (list_2->data)));
+    gtk_container_remove (GTK_CONTAINER (vbox_p),
+                          GTK_WIDGET (list_2->data));
+  } // end FOR
+  g_list_free (list_p); list_p = NULL;
+  gtk_container_add (GTK_CONTAINER (vbox_p),
+                     GTK_WIDGET (hbox_p));
+  GtkFrame* frame_p = NULL;
+  switch (noise_type_e)
+  {
+    case STREAM_MEDIAFRAMEWORK_SOUNDGENERATOR_SINE:
+    {
+      frame_p =
+        GTK_FRAME (gtk_builder_get_object ((*iterator).second.second,
+                                           ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_FRAME_SINUS_NAME)));
+      ACE_ASSERT (frame_p);
+      gtk_widget_unparent (GTK_WIDGET (frame_p));
+      break;
+    }
+    case STREAM_MEDIAFRAMEWORK_SOUNDGENERATOR_NOISE:
+      break;
+    case STREAM_MEDIAFRAMEWORK_SOUNDGENERATOR_SAWTOOTH: // *TODO*
+    case STREAM_MEDIAFRAMEWORK_SOUNDGENERATOR_SQUARE: // *TODO*
+    default:
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("invalid/unknown noise type (was: %d), returning\n"),
+                  noise_type_e));
+      return;
+    }
+  } // end SWITCH
+  if (frame_p)
+    gtk_box_pack_start (GTK_BOX (vbox_p),
+                        GTK_WIDGET (frame_p),
+                        TRUE, // expand
+                        TRUE, // fill
+                        0);   // padding
+} // radiobutton_noise_toggled_cb
 
 void
 togglebutton_3d_toggled_cb (GtkToggleButton* toggleButton_in,
@@ -8519,15 +8663,39 @@ combobox_source_changed_cb (GtkWidget* widget_in,
   STREAM_TRACE (ACE_TEXT ("::combobox_source_changed_cb"));
 
   // sanity check(s)
+  GtkTreeIter iterator_2;
+  if (!gtk_combo_box_get_active_iter (GTK_COMBO_BOX (widget_in),
+                                      &iterator_2))
+    return; // <-- nothing selected
   struct Test_U_AudioEffect_UI_CBDataBase* ui_cb_data_base_p =
     static_cast<struct Test_U_AudioEffect_UI_CBDataBase*> (userData_in);
   ACE_ASSERT (ui_cb_data_base_p);
-
-  Stream_IStreamControlBase* stream_p = NULL;
   Common_UI_GTK_Manager_t* gtk_manager_p =
     COMMON_UI_GTK_MANAGER_SINGLETON::instance ();
   ACE_ASSERT (gtk_manager_p);
   const Common_UI_GTK_State_t& state_r = gtk_manager_p->getR ();
+  Common_UI_GTK_BuildersConstIterator_t iterator =
+    state_r.builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN));
+  ACE_ASSERT (iterator != state_r.builders.end ());
+  GtkListStore* list_store_p =
+    GTK_LIST_STORE (gtk_builder_get_object ((*iterator).second.second,
+                                            ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_LISTSTORE_SOURCE_NAME)));
+  ACE_ASSERT (list_store_p);
+#if GTK_CHECK_VERSION(2,30,0)
+  GValue value = G_VALUE_INIT;
+#else
+  GValue value;
+  ACE_OS::memset (&value, 0, sizeof (struct _GValue));
+#endif // GTK_CHECK_VERSION (2,30,0)
+  gtk_tree_model_get_value (GTK_TREE_MODEL (list_store_p),
+                            &iterator_2,
+                            1, &value);
+  ACE_ASSERT (G_VALUE_TYPE (&value) == G_TYPE_UINT);
+  enum Test_U_AudioEffect_SourceType source_type_e =
+    static_cast<enum Test_U_AudioEffect_SourceType> (g_value_get_uint (&value));
+  g_value_unset (&value);
+  enum Stream_MediaFramework_SoundGeneratorType noise_type_e =
+    STREAM_MEDIAFRAMEWORK_SOUNDGENERATOR_INVALID;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   struct Test_U_AudioEffect_DirectShow_UI_CBData* directshow_ui_cb_data_p = NULL;
   struct Test_U_AudioEffect_MediaFoundation_UI_CBData* mediafoundation_ui_cb_data_p = NULL;
@@ -8538,13 +8706,352 @@ combobox_source_changed_cb (GtkWidget* widget_in,
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
     {
+      // sanity check(s)
       directshow_ui_cb_data_p =
         static_cast<struct Test_U_AudioEffect_DirectShow_UI_CBData*> (userData_in);
+      ACE_ASSERT (directshow_ui_cb_data_p);
+      ACE_ASSERT (directshow_ui_cb_data_p->configuration);
+      directshow_modulehandler_configuration_iterator =
+        directshow_ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
+      ACE_ASSERT (directshow_modulehandler_configuration_iterator != directshow_ui_cb_data_p->configuration->streamConfiguration.end ());
+      ACE_ASSERT ((*directshow_modulehandler_configuration_iterator).second.second->generatorConfiguration);
+
+      directshow_ui_cb_data_p->configuration->streamConfiguration.configuration_->sourceType =
+        source_type_e;
+      noise_type_e =
+        (*directshow_modulehandler_configuration_iterator).second.second->generatorConfiguration->type;
+      break;
+    }
+    case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
+    {
       // sanity check(s)
+      mediafoundation_ui_cb_data_p =
+        static_cast<struct Test_U_AudioEffect_MediaFoundation_UI_CBData*> (userData_in);
+      ACE_ASSERT (mediafoundation_ui_cb_data_p);
+      ACE_ASSERT (mediafoundation_ui_cb_data_p->configuration);
+      mediafoundation_modulehandler_configuration_iterator =
+        mediafoundation_ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
+      ACE_ASSERT (mediafoundation_modulehandler_configuration_iterator != mediafoundation_ui_cb_data_p->configuration->streamConfiguration.end ());
+      ACE_ASSERT ((*mediafoundation_modulehandler_configuration_iterator).second.second->generatorConfiguration);
+
+      mediafoundation_ui_cb_data_p->configuration->streamConfiguration.configuration_->sourceType =
+        source_type_e;
+      noise_type_e =
+        (*mediafoundation_modulehandler_configuration_iterator).second.second->generatorConfiguration->type;
+      break;
+    }
+    default:
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("invalid/unknown media framework (was: %d), returning\n"),
+                  ui_cb_data_base_p->mediaFramework));
+      return;
+    }
+  } // end SWITCH
+#else
+  // sanity check(s)
+  struct Test_U_AudioEffect_UI_CBData* ui_cb_data_p =
+    static_cast<struct Test_U_AudioEffect_UI_CBData*> (userData_in);
+  ACE_ASSERT (ui_cb_data_p->configuration);
+  ACE_ASSERT (ui_cb_data_p->stream);
+  Test_U_AudioEffect_ALSA_StreamConfiguration_t::ITERATOR_T modulehandler_configuration_iterator =
+    ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
+  ACE_ASSERT (modulehandler_configuration_iterator != ui_cb_data_p->configuration->streamConfiguration.end ());
+  ACE_ASSERT ((*modulehandler_modulehandler_configuration_iterator).second.second->generatorConfiguration);
+
+  ui_cb_data_p->configuration->streamConfiguration.configuration_->sourceType =
+    source_type_e;
+  noise_type_e =
+    (*modulehandler_configuration_iterator).second.second->generatorConfiguration->type;
+#endif // ACE_WIN32 || ACE_WIN64
+
+  bool result_2 = false;
+  GtkComboBox* combo_box_p = NULL;
+  gint n_rows = 0;
+
+  // step1: load configuration options
+  GtkVBox* vbox_p =
+    GTK_VBOX (gtk_builder_get_object ((*iterator).second.second,
+                                      ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_VBOX_CONFIGURATION_NAME)));
+  ACE_ASSERT (vbox_p);
+  combo_box_p =
+    GTK_COMBO_BOX (gtk_builder_get_object ((*iterator).second.second,
+                                           ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_COMBOBOX_SOURCE_NAME)));
+  ACE_ASSERT (combo_box_p);
+  gtk_container_remove (GTK_CONTAINER (vbox_p),
+                        GTK_WIDGET (combo_box_p));
+  GList* list_p = NULL, *list_2 = NULL;
+  list_p = gtk_container_get_children (GTK_CONTAINER (vbox_p));
+  for (list_2 = list_p; list_2; list_2 = g_list_next (list_2))
+  {
+    g_object_ref (G_OBJECT (GTK_WIDGET (list_2->data)));
+    gtk_container_remove (GTK_CONTAINER (vbox_p),
+                          GTK_WIDGET (list_2->data));
+  } // end FOR
+  g_list_free (list_p); list_p = NULL;
+  gtk_container_add (GTK_CONTAINER (vbox_p),
+                     GTK_WIDGET (combo_box_p));
+  GtkFrame* frame_p = NULL;
+  bool load_formats_b = false;
+  switch (source_type_e)
+  {
+    case AUDIOEFFECT_SOURCE_DEVICE:
+    {
+      GtkVBox* vbox_2 =
+        GTK_VBOX (gtk_builder_get_object ((*iterator).second.second,
+                                          ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_VBOX_FORMAT_OPTIONS_NAME)));
+      ACE_ASSERT (vbox_2);
+      gtk_widget_unparent (GTK_WIDGET (vbox_2));
+      gtk_box_pack_start (GTK_BOX (vbox_p),
+                          GTK_WIDGET (vbox_2),
+                          TRUE, // expand
+                          TRUE, // fill
+                          0);   // padding
+      frame_p =
+        GTK_FRAME (gtk_builder_get_object ((*iterator).second.second,
+                                           ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_FRAME_DEVICE_NAME)));
+      ACE_ASSERT (frame_p);
+      gtk_widget_unparent (GTK_WIDGET (frame_p));
+      break;
+    }
+    case AUDIOEFFECT_SOURCE_NOISE:
+    {
+      GtkVBox* vbox_2 =
+        GTK_VBOX (gtk_builder_get_object ((*iterator).second.second,
+                                          ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_VBOX_FORMAT_OPTIONS_NAME)));
+      ACE_ASSERT (vbox_2);
+      gtk_widget_unparent (GTK_WIDGET (vbox_2));
+      gtk_box_pack_start (GTK_BOX (vbox_p),
+                          GTK_WIDGET (vbox_2),
+                          TRUE, // expand
+                          TRUE, // fill
+                          0);   // padding
+      frame_p =
+        GTK_FRAME (gtk_builder_get_object ((*iterator).second.second,
+                                           ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_FRAME_NOISE_NAME)));
+      ACE_ASSERT (frame_p);
+      gtk_widget_unparent (GTK_WIDGET (frame_p));
+      load_formats_b = true;
+      break;
+    }
+    case AUDIOEFFECT_SOURCE_FILE:
+    {
+      frame_p =
+        GTK_FRAME (gtk_builder_get_object ((*iterator).second.second,
+                                           ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_FRAME_FILE_NAME)));
+      ACE_ASSERT (frame_p);
+      gtk_widget_unparent (GTK_WIDGET (frame_p));
+      break;
+    }
+    default:
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("invalid/unknown source type (was: %d), returning\n"),
+                  source_type_e));
+      return;
+    }
+  } // end SWITCH
+  gtk_box_pack_start (GTK_BOX (vbox_p),
+                      GTK_WIDGET (frame_p),
+                      TRUE, // expand
+                      TRUE, // fill
+                      0);   // padding
+
+  if (!load_formats_b)
+    goto continue_;
+
+  combo_box_p =
+    GTK_COMBO_BOX (gtk_builder_get_object ((*iterator).second.second,
+                                           ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_COMBOBOX_FORMAT_NAME)));
+  ACE_ASSERT (combo_box_p);
+  list_store_p =
+    GTK_LIST_STORE (gtk_builder_get_object ((*iterator).second.second,
+                                            ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_LISTSTORE_FORMAT_NAME)));
+  ACE_ASSERT (list_store_p);
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  result_2 = load_formats (-1,
+                           list_store_p);
+#else
+  result_2 = load_formats (-1,
+                           -1,
+                           list_store_p);
+#endif // ACE_WIN32 || ACE_WIN64
+  if (!result_2)
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to ::load_formats(), returning\n")));
+    return;
+  } // end IF
+  n_rows =
+    gtk_tree_model_iter_n_children (GTK_TREE_MODEL (list_store_p), NULL);
+  if (n_rows)
+  {
+    gtk_widget_set_sensitive (GTK_WIDGET (combo_box_p), TRUE);
+    gint index_i = 0;
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#else
+#if GTK_CHECK_VERSION(2,30,0)
+    GValue value = G_VALUE_INIT;
+#else
+    GValue value;
+    ACE_OS::memset (&value, 0, sizeof (struct _GValue));
+    g_value_init (&value, G_TYPE_INT);
+#endif // GTK_CHECK_VERSION (2,30,0)
+    g_value_set_int (&value,
+                     ui_cb_data_p->configuration->streamConfiguration.configuration_->format.format);
+    index_i =
+        Common_UI_GTK_Tools::valueToIndex (gtk_combo_box_get_model (combo_box_p),
+                                           value,
+                                           2);
+    if (index_i == -1)
+    {
+      ACE_DEBUG ((LM_WARNING,
+                  ACE_TEXT ("invalid/unknown format (was: %d), continuing\n"),
+                  ui_cb_data_p->configuration->streamConfiguration.configuration_->format.format));
+      index_i = 0;
+    } // end IF
+#endif // ACE_WIN32 || ACE_WIN64
+    gtk_combo_box_set_active (combo_box_p, index_i);
+  } // end IF
+
+continue_:
+  // activate source widget
+  switch (source_type_e)
+  {
+    case AUDIOEFFECT_SOURCE_DEVICE:
+    {
+      list_store_p =
+        GTK_LIST_STORE (gtk_builder_get_object ((*iterator).second.second,
+                                                ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_LISTSTORE_DEVICE_NAME)));
+      ACE_ASSERT (list_store_p);
+      combo_box_p =
+        GTK_COMBO_BOX (gtk_builder_get_object ((*iterator).second.second,
+                                                ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_COMBOBOX_DEVICE_NAME)));
+      ACE_ASSERT (combo_box_p);
+      n_rows =
+        gtk_tree_model_iter_n_children (GTK_TREE_MODEL (list_store_p), NULL);
+      gtk_widget_set_sensitive (GTK_WIDGET (combo_box_p), (n_rows > 0));
+      if (!n_rows)
+        return;
+      gint index_i = 0;
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#else
+      if (!(*modulehandler_configuration_iterator).second.second->deviceIdentifier.identifier.empty ())
+      {
+#if GTK_CHECK_VERSION(2,30,0)
+        GValue value = G_VALUE_INIT;
+#else
+        GValue value;
+        ACE_OS::memset (&value, 0, sizeof (struct _GValue));
+#endif // GTK_CHECK_VERSION (2,30,0)
+        g_value_init (&value, G_TYPE_STRING);
+        g_value_set_string (&value,
+                            (*modulehandler_configuration_iterator).second.second->deviceIdentifier.identifier.c_str ());
+        index_i =
+          Common_UI_GTK_Tools::valueToIndex (gtk_combo_box_get_model (combo_box_p),
+                                              value,
+                                              1);
+        if (index_i == -1)
+        {
+          ACE_DEBUG ((LM_WARNING,
+                      ACE_TEXT ("invalid/unknown device identifier (was: \"%s\"), continuing\n"),
+                      ACE_TEXT ((*modulehandler_configuration_iterator).second.second->deviceIdentifier.identifier.c_str ())));
+          index_i = 0;
+        } // end IF
+      } // end IF
+#endif // ACE_WIN32 || ACE_WIN64
+      gtk_combo_box_set_active (combo_box_p, index_i);
+      break;
+    }
+    case AUDIOEFFECT_SOURCE_NOISE:
+    {
+      GtkRadioButton* radio_button_p = NULL;
+      switch (noise_type_e)
+      {
+        case STREAM_MEDIAFRAMEWORK_SOUNDGENERATOR_SINE:
+          radio_button_p =
+            GTK_RADIO_BUTTON (gtk_builder_get_object ((*iterator).second.second,
+                                                      ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_RADIOBUTTON_SINUS_NAME)));
+          break;
+        case STREAM_MEDIAFRAMEWORK_SOUNDGENERATOR_NOISE:
+          radio_button_p =
+            GTK_RADIO_BUTTON (gtk_builder_get_object ((*iterator).second.second,
+                                                      ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_RADIOBUTTON_NOISE_NAME)));
+          break;
+        case STREAM_MEDIAFRAMEWORK_SOUNDGENERATOR_SAWTOOTH: // *TODO*
+        case STREAM_MEDIAFRAMEWORK_SOUNDGENERATOR_SQUARE: // *TODO*
+        default:
+        {
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("invalid/unknown noise type (was: %d), returning\n"),
+                      noise_type_e));
+          return;
+        }
+      } // end SWITCH
+      ACE_ASSERT (radio_button_p);
+      gtk_signal_emit_by_name (GTK_OBJECT (radio_button_p),
+                               ACE_TEXT_ALWAYS_CHAR ("toggled"),
+                               userData_in);
+      //gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (radio_button_p), TRUE);
+      break;
+    }
+    case AUDIOEFFECT_SOURCE_FILE:
+      break;
+    default:
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("invalid/unknown source type (was: %d), returning\n"),
+                  source_type_e));
+      return;
+    }
+  } // end SWITCH
+
+  GtkToggleButton* toggle_button_p =
+      GTK_TOGGLE_BUTTON (gtk_builder_get_object ((*iterator).second.second,
+                                                 ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_TOGGLEBUTTON_RECORD_NAME)));
+  ACE_ASSERT (toggle_button_p);
+  gtk_widget_set_sensitive (GTK_WIDGET (toggle_button_p), TRUE);
+} // combobox_source_changed_cb
+
+void
+combobox_device_changed_cb (GtkWidget* widget_in,
+                            gpointer userData_in)
+{
+  STREAM_TRACE (ACE_TEXT ("::combobox_device_changed_cb"));
+
+  // sanity check(s)
+  GtkTreeIter iterator_2;
+  if (!gtk_combo_box_get_active_iter (GTK_COMBO_BOX (widget_in),
+                                      &iterator_2))
+    return; // <-- nothing selected
+  struct Test_U_AudioEffect_UI_CBDataBase* ui_cb_data_base_p =
+    static_cast<struct Test_U_AudioEffect_UI_CBDataBase*> (userData_in);
+  ACE_ASSERT (ui_cb_data_base_p);
+  Common_UI_GTK_Manager_t* gtk_manager_p =
+    COMMON_UI_GTK_MANAGER_SINGLETON::instance ();
+  ACE_ASSERT (gtk_manager_p);
+  const Common_UI_GTK_State_t& state_r = gtk_manager_p->getR ();
+  Common_UI_GTK_BuildersConstIterator_t iterator =
+    state_r.builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN));
+  ACE_ASSERT (iterator != state_r.builders.end ());
+
+  Stream_IStreamControlBase* stream_p = NULL;
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  struct Test_U_AudioEffect_DirectShow_UI_CBData* directshow_ui_cb_data_p = NULL;
+  struct Test_U_AudioEffect_MediaFoundation_UI_CBData* mediafoundation_ui_cb_data_p = NULL;
+  Test_U_AudioEffect_MediaFoundation_StreamConfiguration_t::ITERATOR_T mediafoundation_modulehandler_configuration_iterator;
+  Test_U_AudioEffect_DirectShow_StreamConfiguration_t::ITERATOR_T directshow_modulehandler_configuration_iterator;
+  bool use_framework_source_b = false;
+  switch (ui_cb_data_base_p->mediaFramework)
+  {
+    case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
+    {
+      // sanity check(s)
+      directshow_ui_cb_data_p =
+        static_cast<struct Test_U_AudioEffect_DirectShow_UI_CBData*> (userData_in);
       ACE_ASSERT (directshow_ui_cb_data_p);
       ACE_ASSERT (directshow_ui_cb_data_p->configuration);
       ACE_ASSERT (directshow_ui_cb_data_p->stream);
-
       directshow_modulehandler_configuration_iterator =
         directshow_ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
       ACE_ASSERT (directshow_modulehandler_configuration_iterator != directshow_ui_cb_data_p->configuration->streamConfiguration.end ());
@@ -8556,13 +9063,12 @@ combobox_source_changed_cb (GtkWidget* widget_in,
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
     {
+      // sanity check(s)
       mediafoundation_ui_cb_data_p =
         static_cast<struct Test_U_AudioEffect_MediaFoundation_UI_CBData*> (userData_in);
-      // sanity check(s)
       ACE_ASSERT (mediafoundation_ui_cb_data_p);
       ACE_ASSERT (mediafoundation_ui_cb_data_p->configuration);
       ACE_ASSERT (mediafoundation_ui_cb_data_p->stream);
-
       mediafoundation_modulehandler_configuration_iterator =
         mediafoundation_ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
       ACE_ASSERT (mediafoundation_modulehandler_configuration_iterator != mediafoundation_ui_cb_data_p->configuration->streamConfiguration.end ());
@@ -8581,32 +9087,22 @@ combobox_source_changed_cb (GtkWidget* widget_in,
     }
   } // end SWITCH
 #else
+  // sanity check(s)
   struct Test_U_AudioEffect_UI_CBData* ui_cb_data_p =
     static_cast<struct Test_U_AudioEffect_UI_CBData*> (userData_in);
-
-  // sanity check(s)
   ACE_ASSERT (ui_cb_data_p->configuration);
   ACE_ASSERT (ui_cb_data_p->stream);
-
-  stream_p = ui_cb_data_p->stream;
-
   Test_U_AudioEffect_ALSA_StreamConfiguration_t::ITERATOR_T modulehandler_configuration_iterator =
     ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (modulehandler_configuration_iterator != ui_cb_data_p->configuration->streamConfiguration.end ());
+
+  stream_p = ui_cb_data_p->stream;
 #endif // ACE_WIN32 || ACE_WIN64
   ACE_ASSERT (stream_p);
 
-  Common_UI_GTK_BuildersConstIterator_t iterator =
-    state_r.builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN));
-  ACE_ASSERT (iterator != state_r.builders.end ());
-
-  GtkTreeIter iterator_2;
-  if (!gtk_combo_box_get_active_iter (GTK_COMBO_BOX (widget_in),
-                                      &iterator_2))
-    return; // <-- nothing selected
   GtkListStore* list_store_p =
     GTK_LIST_STORE (gtk_builder_get_object ((*iterator).second.second,
-                                            ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_LISTSTORE_SOURCE_NAME)));
+                                            ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_LISTSTORE_DEVICE_NAME)));
   ACE_ASSERT (list_store_p);
   std::string device_identifier_string;
   unsigned int card_id_i = std::numeric_limits<unsigned int>::max ();
@@ -8659,6 +9155,16 @@ combobox_source_changed_cb (GtkWidget* widget_in,
                                                                                 true); // capture
       (*directshow_modulehandler_configuration_iterator).second.second->deviceIdentifier.identifierDiscriminator =
         Stream_Device_Identifier::GUID;
+
+      if (directshow_ui_cb_data_p->streamConfiguration)
+      {
+        directshow_ui_cb_data_p->streamConfiguration->Release (); directshow_ui_cb_data_p->streamConfiguration = NULL;
+      } // end IF
+      if ((*directshow_modulehandler_configuration_iterator).second.second->builder)
+      {
+        (*directshow_modulehandler_configuration_iterator).second.second->builder->Release (); (*directshow_modulehandler_configuration_iterator).second.second->builder = NULL;
+      } // end IF
+      directshow_ui_cb_data_p->configuration->streamConfiguration.configuration_->filterGraphConfiguration.clear ();
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
@@ -8670,6 +9176,12 @@ combobox_source_changed_cb (GtkWidget* widget_in,
                                                                                 true); // capture
       (*mediafoundation_modulehandler_configuration_iterator).second.second->deviceIdentifier.identifierDiscriminator =
         Stream_Device_Identifier::GUID;
+
+      if ((*mediafoundation_modulehandler_configuration_iterator).second.second->session)
+      {
+        Stream_MediaFramework_MediaFoundation_Tools::shutdown ((*mediafoundation_modulehandler_configuration_iterator).second.second->session);
+        (*mediafoundation_modulehandler_configuration_iterator).second.second->session->Release (); (*mediafoundation_modulehandler_configuration_iterator).second.second->session = NULL;
+      } // end IF
 
       if (!use_framework_source_b)
         break;
@@ -8686,10 +9198,6 @@ combobox_source_changed_cb (GtkWidget* widget_in,
       //  mediafoundation_ui_cb_data_p->configuration->moduleHandlerConfiguration.mediaSource =
       //    NULL;
       //} // end IF
-      if ((*mediafoundation_modulehandler_configuration_iterator).second.second->session)
-      {
-        (*mediafoundation_modulehandler_configuration_iterator).second.second->session->Release (); (*mediafoundation_modulehandler_configuration_iterator).second.second->session = NULL;
-      } // end IF
 
 #if COMMON_OS_WIN32_TARGET_PLATFORM(0x0601) // _WIN32_WINNT_WIN7
       if (!Stream_MediaFramework_MediaFoundation_Tools::getMediaSource ((*mediafoundation_modulehandler_configuration_iterator).second.second->deviceIdentifier.identifier._guid,
@@ -8801,16 +9309,6 @@ combobox_source_changed_cb (GtkWidget* widget_in,
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
     {
-      if (directshow_ui_cb_data_p->streamConfiguration)
-      {
-        directshow_ui_cb_data_p->streamConfiguration->Release (); directshow_ui_cb_data_p->streamConfiguration = NULL;
-      } // end IF
-      if ((*directshow_modulehandler_configuration_iterator).second.second->builder)
-      {
-        (*directshow_modulehandler_configuration_iterator).second.second->builder->Release (); (*directshow_modulehandler_configuration_iterator).second.second->builder = NULL;
-      } // end IF
-      directshow_ui_cb_data_p->configuration->streamConfiguration.configuration_->filterGraphConfiguration.clear ();
-
       IAMBufferNegotiation* buffer_negotiation_p = NULL;
       if (!Stream_Device_DirectShow_Tools::loadDeviceGraph ((*directshow_modulehandler_configuration_iterator).second.second->deviceIdentifier,
                                                             CLSID_AudioInputDeviceCategory,
@@ -9017,11 +9515,11 @@ continue_:
   // get/set volume / boost levels
   hscale_p =
         GTK_HSCALE (gtk_builder_get_object ((*iterator).second.second,
-                                            ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_HSCALE_VOLUME_NAME)));
+                                            ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_HSCALE_DEVICE_VOLUME_NAME)));
   ACE_ASSERT (hscale_p);
   hscale_2 =
           GTK_HSCALE (gtk_builder_get_object ((*iterator).second.second,
-                                              ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_HSCALE_BOOST_NAME)));
+                                              ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_HSCALE_DEVICE_BOOST_NAME)));
   ACE_ASSERT (hscale_2);
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   // retrieve volume control handle
@@ -9299,7 +9797,7 @@ error:
     snd_pcm_hw_params_free (format_p); format_p = NULL;
   } // end IF
 #endif // ACE_WIN32 || ACE_WIN64
-} // combobox_source_changed_cb
+} // combobox_device_changed_cb
 
 void
 combobox_format_changed_cb (GtkWidget* widget_in,
@@ -9308,14 +9806,25 @@ combobox_format_changed_cb (GtkWidget* widget_in,
   STREAM_TRACE (ACE_TEXT ("::combobox_format_changed_cb"));
 
   // sanity check(s)
+  GtkTreeIter iterator_2;
+  if (!gtk_combo_box_get_active_iter (GTK_COMBO_BOX (widget_in),
+                                      &iterator_2))
+    return; // --> clear
   struct Test_U_AudioEffect_UI_CBDataBase* ui_cb_data_base_p =
     static_cast<struct Test_U_AudioEffect_UI_CBDataBase*> (userData_in);
   ACE_ASSERT (ui_cb_data_base_p);
-
   Common_UI_GTK_Manager_t* gtk_manager_p =
     COMMON_UI_GTK_MANAGER_SINGLETON::instance ();
   ACE_ASSERT (gtk_manager_p);
   const Common_UI_GTK_State_t& state_r = gtk_manager_p->getR ();
+  Common_UI_GTK_BuildersConstIterator_t iterator =
+    state_r.builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN));
+  ACE_ASSERT (iterator != state_r.builders.end ());
+  GtkListStore* list_store_p =
+    GTK_LIST_STORE (gtk_builder_get_object ((*iterator).second.second,
+                                            ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_LISTSTORE_FORMAT_NAME)));
+  ACE_ASSERT (list_store_p);
+  bool device_selected_b = false;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   struct Test_U_AudioEffect_DirectShow_UI_CBData* directshow_ui_cb_data_p =
     NULL;
@@ -9328,30 +9837,34 @@ combobox_format_changed_cb (GtkWidget* widget_in,
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
     {
+      // sanity check(s)
       directshow_ui_cb_data_p =
         static_cast<struct Test_U_AudioEffect_DirectShow_UI_CBData*> (userData_in);
-      // sanity check(s)
       ACE_ASSERT (directshow_ui_cb_data_p);
       ACE_ASSERT (directshow_ui_cb_data_p->configuration);
-
       directshow_modulehandler_configuration_iterator =
         directshow_ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
       ACE_ASSERT (directshow_modulehandler_configuration_iterator != directshow_ui_cb_data_p->configuration->streamConfiguration.end ());
+
+      device_selected_b =
+        (directshow_ui_cb_data_p->configuration->streamConfiguration.configuration_->sourceType == AUDIOEFFECT_SOURCE_DEVICE);
       use_framework_source_b =
         directshow_ui_cb_data_p->configuration->streamConfiguration.configuration_->useFrameworkSource;
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
     {
+      // sanity check(s)
       mediafoundation_ui_cb_data_p =
         static_cast<struct Test_U_AudioEffect_MediaFoundation_UI_CBData*> (userData_in);
-      // sanity check(s)
       ACE_ASSERT (mediafoundation_ui_cb_data_p);
       ACE_ASSERT (mediafoundation_ui_cb_data_p->configuration);
-
       mediafoundation_modulehandler_configuration_iterator =
         mediafoundation_ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
       ACE_ASSERT (mediafoundation_modulehandler_configuration_iterator != mediafoundation_ui_cb_data_p->configuration->streamConfiguration.end ());
+
+      device_selected_b =
+        (mediafoundation_ui_cb_data_p->configuration->streamConfiguration.configuration_->sourceType == AUDIOEFFECT_SOURCE_DEVICE);
       use_framework_source_b =
         mediafoundation_ui_cb_data_p->configuration->streamConfiguration.configuration_->useFrameworkSource;
       break;
@@ -9365,34 +9878,18 @@ combobox_format_changed_cb (GtkWidget* widget_in,
     }
   } // end SWITCH
 #else
+  // sanity check(s)
   struct Test_U_AudioEffect_UI_CBData* ui_cb_data_p =
     static_cast<struct Test_U_AudioEffect_UI_CBData*> (userData_in);
-
-  // sanity check(s)
   ACE_ASSERT (ui_cb_data_p);
   ACE_ASSERT (ui_cb_data_p->configuration);
-
   Test_U_AudioEffect_ALSA_StreamConfiguration_t::ITERATOR_T modulehandler_configuration_iterator =
     ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (modulehandler_configuration_iterator != ui_cb_data_p->configuration->streamConfiguration.end ());
+
+  device_selected_b =
+    (ui_cb_data_p->configuration->streamConfiguration.configuration_->sourceType == AUDIOEFFECT_SOURCE_DEVICE);
 #endif // ACE_WIN32 || ACE_WIN64
-
-  Common_UI_GTK_BuildersConstIterator_t iterator =
-    state_r.builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN));
-  ACE_ASSERT (iterator != state_r.builders.end ());
-
-  GtkTreeIter iterator_2;
-  if (!gtk_combo_box_get_active_iter (GTK_COMBO_BOX (widget_in),
-                                      &iterator_2))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to gtk_combo_box_get_active_iter(), returning\n")));
-    return;
-  } // end IF
-  GtkListStore* list_store_p =
-    GTK_LIST_STORE (gtk_builder_get_object ((*iterator).second.second,
-                                            ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_LISTSTORE_FORMAT_NAME)));
-  ACE_ASSERT (list_store_p);
 
 #if GTK_CHECK_VERSION(2,30,0)
   GValue value = G_VALUE_INIT;
@@ -9442,11 +9939,11 @@ combobox_format_changed_cb (GtkWidget* widget_in,
   {
     GtkComboBox* combo_box_p =
       GTK_COMBO_BOX (gtk_builder_get_object ((*iterator).second.second,
-                                             ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_COMBOBOX_SOURCE_NAME)));
+                                             ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_COMBOBOX_DEVICE_NAME)));
     ACE_ASSERT (combo_box_p);
     GtkListStore* list_store_2 =
       GTK_LIST_STORE (gtk_builder_get_object ((*iterator).second.second,
-                                              ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_LISTSTORE_SOURCE_NAME)));
+                                              ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_LISTSTORE_DEVICE_NAME)));
     ACE_ASSERT (list_store_2);
     if (!gtk_combo_box_get_active_iter (combo_box_p,
                                         &iterator_2))
@@ -9470,7 +9967,7 @@ combobox_format_changed_cb (GtkWidget* widget_in,
     g_value_unset (&value_2);
     unsigned int index_i = 0;
     converter >> index_i;
-    result_2 = load_sample_rates (index_i,
+    result_2 = load_sample_rates ((device_selected_b ? index_i : -1),
                                   list_store_p);
   } // end IF
 
@@ -9605,7 +10102,7 @@ combobox_format_changed_cb (GtkWidget* widget_in,
       if (media_source_p)
       {
         media_source_p->Release (); media_source_p = NULL;
-      }
+      } // end IF
       break;
     }
     default:
@@ -9629,7 +10126,7 @@ error_2:
       if (media_source_p)
       {
         media_source_p->Release (); media_source_p = NULL;
-      }
+      } // end IF
       break;
     }
     default:
@@ -9650,14 +10147,18 @@ combobox_frequency_changed_cb (GtkWidget* widget_in,
   STREAM_TRACE (ACE_TEXT ("::combobox_frequency_changed_cb"));
 
   // sanity check(s)
+  GtkTreeIter iterator_2;
+  if (!gtk_combo_box_get_active_iter (GTK_COMBO_BOX (widget_in),
+                                      &iterator_2))
+    return; // --> clear
   struct Test_U_AudioEffect_UI_CBDataBase* ui_cb_data_base_p =
     static_cast<struct Test_U_AudioEffect_UI_CBDataBase*> (userData_in);
   ACE_ASSERT (ui_cb_data_base_p);
-
   Common_UI_GTK_Manager_t* gtk_manager_p =
     COMMON_UI_GTK_MANAGER_SINGLETON::instance ();
   ACE_ASSERT (gtk_manager_p);
   const Common_UI_GTK_State_t& state_r = gtk_manager_p->getR ();
+  bool device_selected_b = false;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   struct Test_U_AudioEffect_DirectShow_UI_CBData* directshow_ui_cb_data_p =
     NULL;
@@ -9670,30 +10171,34 @@ combobox_frequency_changed_cb (GtkWidget* widget_in,
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
     {
+      // sanity check(s)
       directshow_ui_cb_data_p =
         static_cast<struct Test_U_AudioEffect_DirectShow_UI_CBData*> (userData_in);
-      // sanity check(s)
       ACE_ASSERT (directshow_ui_cb_data_p);
       ACE_ASSERT (directshow_ui_cb_data_p->configuration);
-
       directshow_modulehandler_configuration_iterator =
         directshow_ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
       ACE_ASSERT (directshow_modulehandler_configuration_iterator != directshow_ui_cb_data_p->configuration->streamConfiguration.end ());
+
+      device_selected_b =
+        (directshow_ui_cb_data_p->configuration->streamConfiguration.configuration_->sourceType == AUDIOEFFECT_SOURCE_DEVICE);
       use_framework_source_b =
         directshow_ui_cb_data_p->configuration->streamConfiguration.configuration_->useFrameworkSource;
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
     {
+      // sanity check(s)
       mediafoundation_ui_cb_data_p =
         static_cast<struct Test_U_AudioEffect_MediaFoundation_UI_CBData*> (userData_in);
-      // sanity check(s)
       ACE_ASSERT (mediafoundation_ui_cb_data_p);
       ACE_ASSERT (mediafoundation_ui_cb_data_p->configuration);
-
       mediafoundation_modulehandler_configuration_iterator =
         mediafoundation_ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
       ACE_ASSERT (mediafoundation_modulehandler_configuration_iterator != mediafoundation_ui_cb_data_p->configuration->streamConfiguration.end ());
+
+      device_selected_b =
+        (mediafoundation_ui_cb_data_p->configuration->streamConfiguration.configuration_->sourceType == AUDIOEFFECT_SOURCE_DEVICE);
       use_framework_source_b =
         mediafoundation_ui_cb_data_p->configuration->streamConfiguration.configuration_->useFrameworkSource;
       break;
@@ -9707,23 +10212,21 @@ combobox_frequency_changed_cb (GtkWidget* widget_in,
     }
   } // end SWITCH
 #else
+  // sanity check(s)
   struct Test_U_AudioEffect_UI_CBData* ui_cb_data_p =
     static_cast<struct Test_U_AudioEffect_UI_CBData*> (userData_in);
-
-  // sanity check(s)
   ACE_ASSERT (ui_cb_data_p);
   ACE_ASSERT (ui_cb_data_p->configuration);
-
   Test_U_AudioEffect_ALSA_StreamConfiguration_t::ITERATOR_T modulehandler_configuration_iterator =
     ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (modulehandler_configuration_iterator != ui_cb_data_p->configuration->streamConfiguration.end ());
-#endif // ACE_WIN32 || ACE_WIN64
 
+  device_selected_b =
+    (ui_cb_data_p->configuration->streamConfiguration.configuration_->sourceType == AUDIOEFFECT_SOURCE_DEVICE);
+#endif // ACE_WIN32 || ACE_WIN64
   Common_UI_GTK_BuildersConstIterator_t iterator =
     state_r.builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN));
   ACE_ASSERT (iterator != state_r.builders.end ());
-
-  GtkTreeIter iterator_2;
   GtkComboBox* combo_box_p =
     GTK_COMBO_BOX (gtk_builder_get_object ((*iterator).second.second,
                                            ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_COMBOBOX_FORMAT_NAME)));
@@ -9806,11 +10309,11 @@ combobox_frequency_changed_cb (GtkWidget* widget_in,
   {
     GtkComboBox* combo_box_2 =
       GTK_COMBO_BOX (gtk_builder_get_object ((*iterator).second.second,
-                                             ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_COMBOBOX_SOURCE_NAME)));
+                                             ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_COMBOBOX_DEVICE_NAME)));
     ACE_ASSERT (combo_box_2);
     GtkListStore* list_store_2 =
       GTK_LIST_STORE (gtk_builder_get_object ((*iterator).second.second,
-                                              ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_LISTSTORE_SOURCE_NAME)));
+                                              ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_LISTSTORE_DEVICE_NAME)));
     ACE_ASSERT (list_store_2);
     if (!gtk_combo_box_get_active_iter (combo_box_2,
                                         &iterator_2))
@@ -9834,7 +10337,7 @@ combobox_frequency_changed_cb (GtkWidget* widget_in,
     g_value_unset (&value_2);
     unsigned int index_i = 0;
     converter >> index_i;
-    result_2 = load_sample_resolutions (index_i,
+    result_2 = load_sample_resolutions ((device_selected_b ? index_i : -1),
                                         sample_rate,
                                         list_store_p);
   } // end IF
@@ -10036,14 +10539,18 @@ combobox_resolution_changed_cb (GtkWidget* widget_in,
   STREAM_TRACE (ACE_TEXT ("::combobox_resolution_changed_cb"));
 
   // sanity check(s)
+  GtkTreeIter iterator_2;
+  if (!gtk_combo_box_get_active_iter (GTK_COMBO_BOX (widget_in),
+                                      &iterator_2))
+    return; // --> clear
   struct Test_U_AudioEffect_UI_CBDataBase* ui_cb_data_base_p =
     static_cast<struct Test_U_AudioEffect_UI_CBDataBase*> (userData_in);
   ACE_ASSERT (ui_cb_data_base_p);
-
   Common_UI_GTK_Manager_t* gtk_manager_p =
     COMMON_UI_GTK_MANAGER_SINGLETON::instance ();
   ACE_ASSERT (gtk_manager_p);
   const Common_UI_GTK_State_t& state_r = gtk_manager_p->getR ();
+  bool device_selected_b = false;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   struct Test_U_AudioEffect_DirectShow_UI_CBData* directshow_ui_cb_data_p =
     NULL;
@@ -10062,10 +10569,12 @@ combobox_resolution_changed_cb (GtkWidget* widget_in,
       ACE_ASSERT (directshow_ui_cb_data_p);
       ACE_ASSERT (directshow_ui_cb_data_p->configuration);
       ACE_ASSERT (directshow_ui_cb_data_p->configuration->streamConfiguration.configuration_);
-
       directshow_modulehandler_configuration_iterator =
         directshow_ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
       ACE_ASSERT (directshow_modulehandler_configuration_iterator != directshow_ui_cb_data_p->configuration->streamConfiguration.end ());
+
+      device_selected_b =
+        (directshow_ui_cb_data_p->configuration->streamConfiguration.configuration_->sourceType == AUDIOEFFECT_SOURCE_DEVICE);
       use_framework_source_b =
         directshow_ui_cb_data_p->configuration->streamConfiguration.configuration_->useFrameworkSource;
       break;
@@ -10078,10 +10587,12 @@ combobox_resolution_changed_cb (GtkWidget* widget_in,
       ACE_ASSERT (mediafoundation_ui_cb_data_p);
       ACE_ASSERT (mediafoundation_ui_cb_data_p->configuration);
       ACE_ASSERT (mediafoundation_ui_cb_data_p->configuration->streamConfiguration.configuration_);
-
       mediafoundation_modulehandler_configuration_iterator =
         mediafoundation_ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
       ACE_ASSERT (mediafoundation_modulehandler_configuration_iterator != mediafoundation_ui_cb_data_p->configuration->streamConfiguration.end ());
+
+      device_selected_b =
+        (mediafoundation_ui_cb_data_p->configuration->streamConfiguration.configuration_->sourceType == AUDIOEFFECT_SOURCE_DEVICE);
       use_framework_source_b =
         mediafoundation_ui_cb_data_p->configuration->streamConfiguration.configuration_->useFrameworkSource;
       break;
@@ -10095,23 +10606,23 @@ combobox_resolution_changed_cb (GtkWidget* widget_in,
     }
   } // end SWITCH
 #else
+  // sanity check(s)
   struct Test_U_AudioEffect_UI_CBData* ui_cb_data_p =
     static_cast<struct Test_U_AudioEffect_UI_CBData*> (userData_in);
-
-  // sanity check(s)
   ACE_ASSERT (ui_cb_data_p);
   ACE_ASSERT (ui_cb_data_p->configuration);
-
   Test_U_AudioEffect_ALSA_StreamConfiguration_t::ITERATOR_T modulehandler_configuration_iterator =
     ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (modulehandler_configuration_iterator != ui_cb_data_p->configuration->streamConfiguration.end ());
+
+  device_selected_b =
+    (ui_cb_data_p->configuration->streamConfiguration.configuration_->sourceType == AUDIOEFFECT_SOURCE_DEVICE);
 #endif // ACE_WIN32 || ACE_WIN64
 
   Common_UI_GTK_BuildersConstIterator_t iterator =
     state_r.builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN));
   ACE_ASSERT (iterator != state_r.builders.end ());
 
-  GtkTreeIter iterator_2;
   GtkComboBox* combo_box_p =
     GTK_COMBO_BOX (gtk_builder_get_object ((*iterator).second.second,
                                            ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_COMBOBOX_FORMAT_NAME)));
@@ -10184,8 +10695,8 @@ combobox_resolution_changed_cb (GtkWidget* widget_in,
   if (!gtk_combo_box_get_active_iter (GTK_COMBO_BOX (widget_in),
                                       &iterator_2))
   {
-    //ACE_DEBUG ((LM_ERROR,
-    //            ACE_TEXT ("failed to gtk_combo_box_get_active_iter(), returning\n")));
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to gtk_combo_box_get_active_iter(), returning\n")));
     return;
   } // end IF
   list_store_p =
@@ -10217,11 +10728,11 @@ combobox_resolution_changed_cb (GtkWidget* widget_in,
   {
     GtkComboBox* combo_box_2 =
       GTK_COMBO_BOX (gtk_builder_get_object ((*iterator).second.second,
-                                             ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_COMBOBOX_SOURCE_NAME)));
+                                             ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_COMBOBOX_DEVICE_NAME)));
     ACE_ASSERT (combo_box_2);
     GtkListStore* list_store_2 =
       GTK_LIST_STORE (gtk_builder_get_object ((*iterator).second.second,
-                                              ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_LISTSTORE_SOURCE_NAME)));
+                                              ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_LISTSTORE_DEVICE_NAME)));
     ACE_ASSERT (list_store_2);
     if (!gtk_combo_box_get_active_iter (combo_box_2,
                                         &iterator_2))
@@ -10245,7 +10756,7 @@ combobox_resolution_changed_cb (GtkWidget* widget_in,
     g_value_unset (&value_2);
     unsigned int index_i = 0;
     converter >> index_i;
-    result_2 = load_channels (index_i,
+    result_2 = load_channels ((device_selected_b ? index_i : -1),
                               sample_rate,
                               bits_per_sample,
                               list_store_p);
@@ -10448,6 +10959,10 @@ combobox_channels_changed_cb (GtkWidget* widget_in,
   STREAM_TRACE (ACE_TEXT ("::combobox_channels_changed_cb"));
 
   // sanity check(s)
+  GtkTreeIter iterator_2;
+  if (!gtk_combo_box_get_active_iter (GTK_COMBO_BOX (widget_in),
+                                      &iterator_2))
+    return; // --> clear
   struct Test_U_AudioEffect_UI_CBDataBase* ui_cb_data_base_p =
     static_cast<struct Test_U_AudioEffect_UI_CBDataBase*> (userData_in);
   ACE_ASSERT (ui_cb_data_base_p);
@@ -10523,7 +11038,6 @@ combobox_channels_changed_cb (GtkWidget* widget_in,
     state_r.builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN));
   ACE_ASSERT (iterator != state_r.builders.end ());
 
-  GtkTreeIter iterator_2;
   GtkComboBox* combo_box_p =
     GTK_COMBO_BOX (gtk_builder_get_object ((*iterator).second.second,
                                            ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_COMBOBOX_FORMAT_NAME)));
@@ -10620,8 +11134,8 @@ combobox_channels_changed_cb (GtkWidget* widget_in,
   if (!gtk_combo_box_get_active_iter (GTK_COMBO_BOX (widget_in),
                                       &iterator_2))
   {
-    //ACE_DEBUG ((LM_ERROR,
-    //            ACE_TEXT ("failed to gtk_combo_box_get_active_iter(), returning\n")));
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to gtk_combo_box_get_active_iter(), returning\n")));
     return;
   } // end IF
   list_store_p =
@@ -11737,10 +12251,10 @@ drawingarea_expose_event_cb (GtkWidget* widget_in,
 #endif // GTK_CHECK_VERSION(3,0,0)
 
 void
-filechooserbutton_destination_file_set_cb (GtkFileChooserButton* button_in,
-                                           gpointer userData_in)
+filechooserbutton_save_file_set_cb (GtkFileChooserButton* button_in,
+                                    gpointer userData_in)
 {
-  STREAM_TRACE (ACE_TEXT ("::filechooserbutton_destination_file_set_cb"));
+  STREAM_TRACE (ACE_TEXT ("::filechooserbutton_save_file_set_cb"));
 
   // sanity check(s)
   struct Test_U_AudioEffect_UI_CBDataBase* ui_cb_data_base_p =
@@ -11831,7 +12345,7 @@ filechooserbutton_destination_file_set_cb (GtkFileChooserButton* button_in,
     Common_UI_GTK_Tools::UTF8ToLocale (filename_p, -1);
 #endif // ACE_WIN32 || ACE_WIN64
   g_free (filename_p);
-} // filechooserbutton_destination_file_set_cb
+} // filechooserbutton_save_file_set_cb
 
 //void
 //filechooserdialog_response_cb (GtkDialog* dialog_in,
