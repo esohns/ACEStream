@@ -39,6 +39,7 @@ class Stream_MediaFramework_DirectSound_Tools
  public:
   static struct _GUID waveDeviceIdToDirectSoundGUID (ULONG,        // waveIn/Out device id
                                                      bool = true); // capture ? : playback
+  static ULONG directSoundGUIDTowaveDeviceId (REFGUID); // device identifier
   static IAudioVolumeLevel* getMicrophoneBoostControl (IMMDevice*); // device handle
 
   static bool canRender (REFGUID,                      // device identifier

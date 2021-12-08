@@ -49,6 +49,7 @@ class Stream_Device_DirectShow_Tools
   // *NOTE*: returns the devices' "FriendlyName"
   static std::string devicePathToString (const std::string&); // device path
   static std::string devicePath (const std::string&); // device 'friendly' name
+  static std::string devicePath (ULONG); // waveIn device id
 
   // *NOTE*: returns the devices' 'path'
   static struct Stream_Device_Identifier getDefaultCaptureDevice (REFGUID); // (capture) device category

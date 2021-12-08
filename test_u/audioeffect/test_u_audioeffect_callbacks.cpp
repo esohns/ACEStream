@@ -9290,27 +9290,84 @@ combobox_device_changed_cb (GtkWidget* widget_in,
   Test_U_Dev_Mic_Source_WASAPI* mediafoundation_source_impl_2 = NULL;
   IMFTopology* topology_p = NULL;
 
-  if (!use_framework_source_b)
-  {
-    //gtk_tree_model_get_value (GTK_TREE_MODEL (list_store_p),
-    //                          &iterator_2,
-    //                          1, &value_2);
-    //ACE_ASSERT (G_VALUE_TYPE (&value_2) == G_TYPE_STRING);
-    //std::istringstream converter;
-    //converter.str (g_value_get_string (&value_2));
-    //g_value_unset (&value_2);
-    //converter >> card_id_i;
-    result_2 = load_formats (card_id_i,
-                             list_store_2);
-    goto continue_;
-  } // end IF
-
   switch (ui_cb_data_base_p->mediaFramework)
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
     {
+      Stream_Device_Identifier device_identifier;
+      std::string device_identifier_string =
+        Stream_Device_DirectShow_Tools::devicePath (card_id_i);
+      ACE_OS::strcpy (device_identifier.identifier._string,
+                      device_identifier_string.c_str ());
+      device_identifier.identifierDiscriminator = Stream_Device_Identifier::STRING;
       IAMBufferNegotiation* buffer_negotiation_p = NULL;
-      if (!Stream_Device_DirectShow_Tools::loadDeviceGraph ((*directshow_modulehandler_configuration_iterator).second.second->deviceIdentifier,
+
+      if (!use_framework_source_b)
+      {
+        Test_U_AudioEffect_DirectShowFilter_t* filter_p = NULL;
+        IBaseFilter* filter_2 = NULL;
+        std::wstring filter_name = STREAM_LIB_DIRECTSHOW_FILTER_NAME_SOURCE_L;
+
+        HRESULT result =
+          CoCreateInstance (CLSID_FilterGraph, NULL,
+                            CLSCTX_INPROC_SERVER,
+                            IID_PPV_ARGS (&(*directshow_modulehandler_configuration_iterator).second.second->builder));
+        if (FAILED (result))
+        {
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("failed to CoCreateInstance(CLSID_FilterGraph): \"%s\", aborting\n"),
+                      ACE_TEXT (Common_Error_Tools::errorToString (result, false).c_str ())));
+          goto error;
+        } // end IF
+        ACE_ASSERT ((*directshow_modulehandler_configuration_iterator).second.second->builder);
+        ACE_NEW_NORETURN (filter_p,
+                          Test_U_AudioEffect_DirectShowFilter_t ());
+        if (!filter_p)
+        {
+          ACE_DEBUG ((LM_CRITICAL,
+                      ACE_TEXT ("failed to allocate memory, aborting\n")));
+          goto error;
+        } // end IF
+
+        if (!filter_p->initialize (directshow_ui_cb_data_p->configuration->filterConfiguration))
+        {
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("failed to Stream_MediaFramework_DirectShow_Source_Filter_T::initialize(), aborting\n")));
+          delete filter_p; filter_p = NULL;
+          goto error;
+        } // end IF
+        result =
+          filter_p->NonDelegatingQueryInterface (IID_PPV_ARGS (&filter_2));
+        if (FAILED (result))
+        {
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("failed to NonDelegatingQueryInterface(IID_IBaseFilter): \"%s\", aborting\n"),
+                      ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ())));
+          delete filter_p; filter_p = NULL;
+          goto error;
+        } // end IF
+        // *WARNING*: invokes IBaseFilter::GetBuffer
+        result =
+          (*directshow_modulehandler_configuration_iterator).second.second->builder->AddFilter (filter_2,
+                                                                                                filter_name.c_str ());
+        if (FAILED (result))
+        {
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("failed to IGraphBuilder::AddFilter(): \"%s\", aborting\n"),
+                      ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ())));
+          filter_2->Release (); filter_2 = NULL;
+          delete filter_p; filter_p = NULL;
+          goto error;
+        } // end IF
+        filter_2->Release (); filter_2 = NULL;
+
+        result_2 = load_formats (card_id_i,
+                                 list_store_2);
+
+        goto continue_;
+      } // end IF
+
+      if (!Stream_Device_DirectShow_Tools::loadDeviceGraph (device_identifier,
                                                             CLSID_AudioInputDeviceCategory,
                                                             (*directshow_modulehandler_configuration_iterator).second.second->builder,
                                                             buffer_negotiation_p,
@@ -9325,7 +9382,6 @@ combobox_device_changed_cb (GtkWidget* widget_in,
       ACE_ASSERT ((*directshow_modulehandler_configuration_iterator).second.second->builder);
       ACE_ASSERT (buffer_negotiation_p);
       ACE_ASSERT (directshow_ui_cb_data_p->streamConfiguration);
-
       buffer_negotiation_p->Release (); buffer_negotiation_p = NULL;
 
       result_2 =
@@ -9372,6 +9428,13 @@ combobox_device_changed_cb (GtkWidget* widget_in,
       } // end IF
 #endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
       topology_p->Release (); topology_p = NULL;
+
+      if (!use_framework_source_b)
+      {
+        result_2 = load_formats (card_id_i,
+                                 list_store_2);
+        goto continue_;
+      } // end IF
 
       //if (!load_formats (data_p->configuration->moduleHandlerConfiguration.sourceReader,
       result_2 = load_formats (media_source_p,

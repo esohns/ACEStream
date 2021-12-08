@@ -234,6 +234,7 @@ error:
 
   return result;
 }
+
 std::string
 Stream_Device_DirectShow_Tools::devicePath (const std::string& friendlyName_in)
 {
@@ -310,10 +311,10 @@ Stream_Device_DirectShow_Tools::devicePath (const std::string& friendlyName_in)
                             0);
       if (FAILED (result_2)) // ERROR_FILE_NOT_FOUND: 0x80070002
       {
-        ACE_DEBUG ((LM_DEBUG,
-                    ACE_TEXT ("failed to IPropertyBag::Read(\"%s\"): \"%s\", continuing\n"),
-                    ACE_TEXT_WCHAR_TO_TCHAR (STREAM_LIB_DIRECTSHOW_PROPERTIES_NAME_STRING),
-                    ACE_TEXT (Common_Error_Tools::errorToString (result_2, true).c_str ())));
+        //ACE_DEBUG ((LM_DEBUG,
+        //            ACE_TEXT ("failed to IPropertyBag::Read(\"%s\"): \"%s\", continuing\n"),
+        //            ACE_TEXT_WCHAR_TO_TCHAR (STREAM_LIB_DIRECTSHOW_PROPERTIES_NAME_STRING),
+        //            ACE_TEXT (Common_Error_Tools::errorToString (result_2, true).c_str ())));
         result_2 = VariantClear (&variant_s);
         ACE_ASSERT (SUCCEEDED (result_2));
         properties_p->Release (); properties_p = NULL;
@@ -328,6 +329,135 @@ Stream_Device_DirectShow_Tools::devicePath (const std::string& friendlyName_in)
         properties_p->Release (); properties_p = NULL;
         continue;
       } // end IF
+      result_2 =
+        properties_p->Read (STREAM_LIB_DIRECTSHOW_PROPERTIES_PATH_STRING,
+                            &variant_s,
+                            0);
+      if (FAILED (result_2))
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("failed to IPropertyBag::Read(\"%s\"): \"%s\", aborting\n"),
+                    ACE_TEXT_WCHAR_TO_TCHAR (STREAM_LIB_DIRECTSHOW_PROPERTIES_PATH_STRING),
+                    ACE_TEXT (Common_Error_Tools::errorToString (result_2, true).c_str ())));
+        goto error;
+      } // end IF
+      properties_p->Release (); properties_p = NULL;
+      ACE_Wide_To_Ascii converter_2 (variant_s.bstrVal);
+      result_2 = VariantClear (&variant_s);
+      ACE_ASSERT (SUCCEEDED (result_2));
+      result = converter_2.char_rep ();
+      done = true;
+      break;
+    } // end WHILE
+    enum_moniker_p->Release (); enum_moniker_p = NULL;
+    if (done)
+      break;
+  } // end FOR
+
+error:
+  if (properties_p)
+    properties_p->Release ();
+  if (moniker_p)
+    moniker_p->Release ();
+  if (enum_moniker_p)
+    enum_moniker_p->Release ();
+  if (enumerator_p)
+    enumerator_p->Release ();
+
+  return result;
+}
+
+std::string
+Stream_Device_DirectShow_Tools::devicePath (ULONG deviceId_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Device_DirectShow_Tools::devicePath"));
+
+  std::string result;
+
+  ICreateDevEnum* enumerator_p = NULL;
+  IEnumMoniker* enum_moniker_p = NULL;
+  IMoniker* moniker_p = NULL;
+  IPropertyBag* properties_p = NULL;
+  struct tagVARIANT variant_s;
+  IKsPropertySet* property_set_p = NULL;
+  struct _GUID class_id_s = GUID_NULL;
+  Common_Identifiers_t class_ids_a;
+  bool done = false;
+
+  HRESULT result_2 =
+    CoCreateInstance (CLSID_SystemDeviceEnum, NULL,
+                      CLSCTX_INPROC_SERVER,
+                      IID_PPV_ARGS (&enumerator_p));
+  if (FAILED (result_2))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to CoCreateInstance(CLSID_SystemDeviceEnum): \"%s\", aborting\n"),
+                ACE_TEXT (Common_Error_Tools::errorToString (result_2, true).c_str ())));
+    return result;
+  } // end IF
+  ACE_ASSERT (enumerator_p);
+
+  VariantInit (&variant_s);
+
+  class_ids_a.push_back (CLSID_AudioInputDeviceCategory);
+  class_ids_a.push_back (CLSID_VideoInputDeviceCategory);
+
+  for (Common_IdentifiersIterator_t iterator = class_ids_a.begin ();
+       iterator != class_ids_a.end ();
+       ++iterator)
+  { ACE_ASSERT (!enum_moniker_p);
+    result_2 =
+      enumerator_p->CreateClassEnumerator (*iterator,
+                                           &enum_moniker_p,
+                                           0);
+    if (FAILED (result_2))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to ICreateDevEnum::CreateClassEnumerator(%s): \"%s\", aborting\n"),
+                  ACE_TEXT (Common_Tools::GUIDToString (*iterator).c_str ()),
+                  ACE_TEXT (Common_Error_Tools::errorToString (result_2, true).c_str ())));
+      goto error;
+    } // end IF
+    ACE_ASSERT (enum_moniker_p);
+
+    ACE_ASSERT (!moniker_p);
+    while (S_OK == enum_moniker_p->Next (1, &moniker_p, NULL))
+    { ACE_ASSERT (moniker_p);
+      result_2 = moniker_p->BindToStorage (NULL, NULL,
+                                           IID_PPV_ARGS (&properties_p));
+      if (FAILED (result_2))
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("failed to IMoniker::BindToStorage(): \"%s\", aborting\n"),
+                    ACE_TEXT (Common_Error_Tools::errorToString (result_2, true).c_str ())));
+        goto error;
+      } // end IF
+      ACE_ASSERT (properties_p);
+      moniker_p->Release (); moniker_p = NULL;
+      result_2 =
+        properties_p->Read (STREAM_LIB_DIRECTSHOW_PROPERTIES_ID_STRING,
+                            &variant_s,
+                            0);
+      if (FAILED (result_2)) // ERROR_FILE_NOT_FOUND: 0x80070002
+      {
+        //ACE_DEBUG ((LM_DEBUG,
+        //            ACE_TEXT ("failed to IPropertyBag::Read(\"%s\"): \"%s\", continuing\n"),
+        //            ACE_TEXT_WCHAR_TO_TCHAR (STREAM_LIB_DIRECTSHOW_PROPERTIES_ID_STRING),
+        //            ACE_TEXT (Common_Error_Tools::errorToString (result_2, true).c_str ())));
+        result_2 = VariantClear (&variant_s);
+        ACE_ASSERT (SUCCEEDED (result_2));
+        properties_p->Release (); properties_p = NULL;
+        continue;
+      } // end IF
+      if (deviceId_in != variant_s.ulVal)
+      {
+        result_2 = VariantClear (&variant_s);
+        ACE_ASSERT (SUCCEEDED (result_2));
+        properties_p->Release (); properties_p = NULL;
+        continue;
+      } // end IF
+      result_2 = VariantClear (&variant_s);
+      ACE_ASSERT (SUCCEEDED (result_2));
       result_2 =
         properties_p->Read (STREAM_LIB_DIRECTSHOW_PROPERTIES_PATH_STRING,
                             &variant_s,

@@ -360,9 +360,10 @@ Stream_MediaFramework_DirectShow_Target_T<ACE_SYNCH_USE,
     {
       // sanity check(s)
       ACE_ASSERT (inherited::sessionData_);
-
       SessionDataType& session_data_r =
         const_cast<SessionDataType&> (inherited::sessionData_->getR ());
+      ACE_ASSERT (!session_data_r.formats.empty ());
+
       bool COM_initialized = false;
       bool is_running = false;
       bool remove_from_ROT = false;
@@ -371,7 +372,10 @@ Stream_MediaFramework_DirectShow_Target_T<ACE_SYNCH_USE,
 #endif // _DEBUG
       IAMBufferNegotiation* buffer_negotiation_p = NULL;
       IVideoWindow* video_window_p = NULL;
+      HWND window_h = NULL;
       ULONG reference_count = 0;
+      struct _AMMediaType media_type_s;
+      ACE_OS::memset (&media_type_s, 0, sizeof (struct _AMMediaType));
 
       HRESULT result_2 = CoInitializeEx (NULL,
                                          (COINIT_MULTITHREADED    |
@@ -387,21 +391,28 @@ Stream_MediaFramework_DirectShow_Target_T<ACE_SYNCH_USE,
       } // end IF
       COM_initialized = true;
 
+      inherited2::getMediaType (session_data_r.formats.back (),
+                                media_type_s);
+
       if (!IGraphBuilder_)
       {
+        //if (session_data_r.builder)
+        //{
+        //  reference_count = session_data_r.builder->AddRef ();
+        //  IGraphBuilder_ = session_data_r.builder;
+        //  goto continue_;
+        //} // end IF
+
         // sanity check(s)
+        if (InlineIsEqualGUID (media_type_s.majortype, MEDIATYPE_Video))
+        {
+          ACE_ASSERT (inherited::configuration_->window);
+          inherited3::getWindowType (inherited::configuration_->window,
+                                     window_h);
+          ACE_ASSERT (window_h);
+        } // end IF
         // *TODO*: remove type inferences
         ACE_ASSERT (inherited::configuration_->filterConfiguration);
-        ACE_ASSERT (!session_data_r.formats.empty ());
-
-        ACE_ASSERT (inherited::configuration_->window);
-        struct _AMMediaType media_type_s;
-        HWND window_h = NULL;
-        inherited2::getMediaType (session_data_r.formats.back (),
-                                  media_type_s);
-        inherited3::getWindowType (inherited::configuration_->window,
-                                   window_h);
-        ACE_ASSERT (window_h);
         if (!loadGraph (inherited::configuration_->filterCLSID,
                         *inherited::configuration_->filterConfiguration,
                         media_type_s,
@@ -411,12 +422,12 @@ Stream_MediaFramework_DirectShow_Target_T<ACE_SYNCH_USE,
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("%s: failed to Stream_MediaFramework_DirectShow_Target_T::loadGraph(), aborting\n"),
                       inherited::mod_->name ()));
-          Stream_MediaFramework_DirectShow_Tools::free (media_type_s);
           goto error;
         } // end IF
-        Stream_MediaFramework_DirectShow_Tools::free (media_type_s);
       } // end IF
+//continue_:
       ACE_ASSERT (IGraphBuilder_);
+
 #if defined (_DEBUG)
       log_file_name =
         Common_Log_Tools::getLogDirectory (ACE_TEXT_ALWAYS_CHAR (ACEStream_PACKAGE_NAME), 0);
@@ -425,36 +436,41 @@ Stream_MediaFramework_DirectShow_Target_T<ACE_SYNCH_USE,
       Stream_MediaFramework_DirectShow_Tools::debug (IGraphBuilder_,
                                                      log_file_name);
 #endif // _DEBUG
+
+      // retrieve interfaces for media control (and the video window)
       // sanity check(s)
       ACE_ASSERT (!IMediaControl_);
       ACE_ASSERT (!IMediaEventEx_);
 
-      // retrieve interfaces for media control and the video window
       result_2 =
         IGraphBuilder_->QueryInterface (IID_PPV_ARGS (&IMediaControl_));
-      if (FAILED (result_2)) goto error_2;
+      if (FAILED (result_2))
+        goto error_2;
       result_2 =
         IGraphBuilder_->QueryInterface (IID_PPV_ARGS (&IMediaEventEx_));
-      if (FAILED (result_2)) goto error_2;
-
+      if (FAILED (result_2))
+        goto error_2;
       ACE_ASSERT (IMediaControl_);
       ACE_ASSERT (IMediaEventEx_);
 
-      // set the window handle used to process graph events
-      ACE_ASSERT (inherited::configuration_->window);
-      HWND window_p = NULL;
-      inherited3::getWindowType (inherited::configuration_->window,
-                                 window_p);
-      result_2 =
-        IMediaEventEx_->SetNotifyWindow (reinterpret_cast<OAHWND> (window_p),
-                                         STREAM_LIB_DIRECTSHOW_WM_GRAPHNOTIFY_EVENT, 0);
-      if (FAILED (result_2))
+      if (InlineIsEqualGUID (media_type_s.majortype, MEDIATYPE_Video))
       {
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("%s: failed to IMediaEventEx::SetNotifyWindow(): \"%s\", aborting\n"),
-                    inherited::mod_->name (),
-                    ACE_TEXT (Common_Error_Tools::errorToString (result_2, true, false).c_str ())));
-        goto error;
+        // set the window handle used to process graph events
+        ACE_ASSERT (inherited::configuration_->window);
+        window_h = NULL;
+        inherited3::getWindowType (inherited::configuration_->window,
+                                   window_h);
+        result_2 =
+          IMediaEventEx_->SetNotifyWindow (reinterpret_cast<OAHWND> (window_h),
+                                           STREAM_LIB_DIRECTSHOW_WM_GRAPHNOTIFY_EVENT, 0);
+        if (FAILED (result_2))
+        {
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("%s: failed to IMediaEventEx::SetNotifyWindow(): \"%s\", aborting\n"),
+                      inherited::mod_->name (),
+                      ACE_TEXT (Common_Error_Tools::errorToString (result_2, true, false).c_str ())));
+          goto error;
+        } // end IF
       } // end IF
 
       goto do_run;
@@ -495,6 +511,8 @@ do_run:
       ACE_ASSERT (ROTID_);
       remove_from_ROT = true;
 
+      Stream_MediaFramework_DirectShow_Tools::free (media_type_s);
+
       break;
 
 error:
@@ -516,6 +534,7 @@ error:
                       inherited::mod_->name (),
                       ACE_TEXT (Common_Error_Tools::errorToString (result_2, true, false).c_str ())));
       } // end IF
+      Stream_MediaFramework_DirectShow_Tools::free (media_type_s);
       if (COM_initialized)
         CoUninitialize ();
 

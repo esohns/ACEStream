@@ -83,23 +83,45 @@ Test_U_AudioEffect_DirectShow_Stream::load (Stream_ILayout* layout_in,
   ACE_ASSERT ((*iterator).second.second->generatorConfiguration);
 
   Stream_Module_t* module_p = NULL;
-  if ((*iterator).second.second->generatorConfiguration->type != STREAM_MEDIAFRAMEWORK_SOUNDGENERATOR_INVALID)
-    ACE_NEW_RETURN (module_p,
-                    Test_U_Dec_Noise_Source_DirectShow_Module (this,
-                                                               ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_ENCODER_NOISE_SOURCE_DEFAULT_NAME_STRING)),
-                    false);
-  else if (inherited::configuration_->configuration_->useFrameworkSource)
-    ACE_NEW_RETURN (module_p,
-                    Test_U_Dev_Mic_Source_DirectShow_Module (this,
-                                                             ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_MIC_SOURCE_DIRECTSHOW_DEFAULT_NAME_STRING)),
-                    false);
-  else
-    ACE_NEW_RETURN (module_p,
-                    //Test_U_Dev_Mic_Source_WaveIn_Module (this,
-                    //                                     ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_MIC_SOURCE_WAVEIN_DEFAULT_NAME_STRING)),
-                    Test_U_Dev_Mic_Source_WASAPI_Module (this,
-                                                         ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_WASAPI_CAPTURE_DEFAULT_NAME_STRING)),
-                    false);
+  switch (inherited::configuration_->configuration_->sourceType)
+  {
+    case AUDIOEFFECT_SOURCE_DEVICE:
+    {
+      if (inherited::configuration_->configuration_->useFrameworkSource)
+        ACE_NEW_RETURN (module_p,
+                        Test_U_Dev_Mic_Source_DirectShow_Module (this,
+                                                                 ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_MIC_SOURCE_DIRECTSHOW_DEFAULT_NAME_STRING)),
+                        false);
+      else
+        ACE_NEW_RETURN (module_p,
+                        //Test_U_Dev_Mic_Source_WaveIn_Module (this,
+                        //                                     ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_MIC_SOURCE_WAVEIN_DEFAULT_NAME_STRING)),
+                        Test_U_Dev_Mic_Source_WASAPI_Module (this,
+                                                             ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_WASAPI_CAPTURE_DEFAULT_NAME_STRING)),
+                        false);
+      break;
+    }
+    case AUDIOEFFECT_SOURCE_NOISE:
+    {
+      ACE_NEW_RETURN (module_p,
+                      Test_U_Dec_Noise_Source_DirectShow_Module (this,
+                                                                 ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_ENCODER_NOISE_SOURCE_DEFAULT_NAME_STRING)),
+                      false);
+      break;
+    }
+    case AUDIOEFFECT_SOURCE_FILE:
+    {
+      ACE_ASSERT (false); // *TODO*
+      break;
+    }
+    default:
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("invalid/unknown source type (was: %d), aborting\n"),
+                  inherited::configuration_->configuration_->sourceType));
+      return false;
+    }
+  } // end SWITCH
   ACE_ASSERT (module_p);
   layout_in->append (module_p, NULL, 0);
   module_p = NULL;
@@ -213,6 +235,9 @@ Test_U_AudioEffect_DirectShow_Stream::initialize (const inherited::CONFIGURATION
   inherited::CONFIGURATION_T::ITERATOR_T iterator_2 =
     const_cast<inherited::CONFIGURATION_T&> (configuration_in).find (ACE_TEXT_ALWAYS_CHAR (STREAM_LIB_DIRECTSHOW_TARGET_DEFAULT_NAME_STRING));
   ACE_ASSERT (iterator_2 != configuration_in.end ());
+  inherited::CONFIGURATION_T::ITERATOR_T iterator_3 =
+    const_cast<inherited::CONFIGURATION_T&> (configuration_in).find (ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_WASAPI_RENDER_DEFAULT_NAME_STRING));
+  ACE_ASSERT (iterator_2 != configuration_in.end ());
 
   // *TODO*: remove type inference
   session_data_r.targetFileName =
@@ -249,13 +274,13 @@ Test_U_AudioEffect_DirectShow_Stream::initialize (const inherited::CONFIGURATION
     MILLISECONDS_TO_100NS_UNITS(STREAM_LIB_DIRECTSHOW_FILTER_SOURCE_MAX_LATENCY_MS);
 
   ACE_ASSERT ((*iterator).second.second->builder);
-  ACE_ASSERT ((*iterator_2).second.second->deviceIdentifier.identifierDiscriminator == Stream_Device_Identifier::ID);
+  ACE_ASSERT ((*iterator_3).second.second->deviceIdentifier.identifierDiscriminator == Stream_Device_Identifier::ID);
   if (!Stream_Module_Decoder_Tools::loadAudioRendererGraph ((configuration_in.configuration_->useFrameworkSource ? CLSID_AudioInputDeviceCategory
                                                                                                                  : GUID_NULL),
                                                             configuration_in.configuration_->format,
                                                             !InlineIsEqualGUID ((*iterator).second.second->effect, GUID_NULL),
                                                             ((*iterator).second.second->mute ? -1
-                                                                                             : (*iterator_2).second.second->deviceIdentifier.identifier._id),
+                                                                                             : (*iterator_3).second.second->deviceIdentifier.identifier._id),
                                                             (*iterator).second.second->builder,
                                                             (*iterator).second.second->effect,
                                                             (*iterator).second.second->effectOptions,
@@ -418,6 +443,13 @@ Test_U_AudioEffect_DirectShow_Stream::initialize (const inherited::CONFIGURATION
     goto error;
   } // end IF
   media_filter_p->Release (); media_filter_p = NULL;
+
+  if ((*iterator_2).second.second->builder)
+  {
+    (*iterator_2).second.second->builder->Release (); (*iterator_2).second.second->builder = NULL;
+  } // end IF
+  (*iterator).second.second->builder->AddRef ();
+  (*iterator_2).second.second->builder = (*iterator).second.second->builder;
 
   session_data_r.formats.push_back (configuration_in.configuration_->format);
 

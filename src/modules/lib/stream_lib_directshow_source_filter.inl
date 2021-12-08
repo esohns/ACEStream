@@ -18,6 +18,8 @@
 *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
 ***************************************************************************/
 
+#include <utility>
+
 #include "amvideo.h"
 #include "vfwmsgs.h"
 
@@ -1431,6 +1433,8 @@ Stream_MediaFramework_DirectShow_Source_Filter_OutputPin_T<ConfigurationType>::F
   ACE_ASSERT (configuration_);
   ACE_ASSERT (configuration_->queue);
 
+  static bool is_first = true;
+
   // done ?
   HRESULT result = E_FAIL;
   enum Command command_e = CMD_INIT;
@@ -1456,11 +1460,18 @@ Stream_MediaFramework_DirectShow_Source_Filter_OutputPin_T<ConfigurationType>::F
     return S_FALSE; // --> stop
   } // end IF
   ACE_ASSERT (data_p);
-  long data_length_l = mediaSample_in->GetSize ();
-  ACE_ASSERT (data_length_l);
+  long available_buffer_size_i = mediaSample_in->GetSize ();
+  long total_buffer_size_i = available_buffer_size_i;
+  int result_2 = -1;
+  size_t bytes_to_write_i = 0;
+  unsigned int offset_i = 0;
 
-  ACE_Message_Block* message_block_p = NULL;
-  int result_2 = configuration_->queue->dequeue_head (message_block_p, NULL);
+  if (configuration_->buffer)
+    goto continue_;
+
+deqeue_next_buffer:
+  ACE_ASSERT (!configuration_->buffer);
+  result_2 = configuration_->queue->dequeue_head (configuration_->buffer, NULL);
   if (unlikely (result_2 == -1))
   {
     ACE_DEBUG ((LM_ERROR,
@@ -1469,10 +1480,11 @@ Stream_MediaFramework_DirectShow_Source_Filter_OutputPin_T<ConfigurationType>::F
                 ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::name (this).c_str ())));
     return S_FALSE; // --> stop
   } // end IF
-  ACE_ASSERT (message_block_p);
-  if (unlikely (message_block_p->msg_type () == ACE_Message_Block::MB_STOP))
+continue_:
+  ACE_ASSERT (configuration_->buffer);
+  if (unlikely (configuration_->buffer->msg_type () == ACE_Message_Block::MB_STOP))
   {
-    message_block_p->release (); message_block_p = NULL;
+    configuration_->buffer->release (); configuration_->buffer = NULL;
 
     // stream has ended --> wait for DirectShow ?
     if (!directShowHasEnded_)
@@ -1488,8 +1500,8 @@ Stream_MediaFramework_DirectShow_Source_Filter_OutputPin_T<ConfigurationType>::F
     return S_FALSE; // --> stop
   } // end IF
 
-  size_t data_length_2 = message_block_p->length ();
-  ACE_ASSERT (static_cast<size_t> (data_length_l) >= data_length_2);
+  bytes_to_write_i = std::min (configuration_->buffer->length (),
+                               static_cast<size_t> (available_buffer_size_i));
   // *NOTE*: ideally, the message buffers should derive from IMediaSample to
   //         avoid this copy; this is how asynchronous 'push' source filters can
   //         be more efficient in 'capture' pipelines
@@ -1502,9 +1514,18 @@ Stream_MediaFramework_DirectShow_Source_Filter_OutputPin_T<ConfigurationType>::F
   //         the allocator handle passed into IMemInputPin::NotifyAllocator() is
   //         ignored; this requires investigation). Until further notice,
   //         memcpy() seems to be unavoidable to forward the data)
-  ACE_OS::memcpy (data_p, message_block_p->rd_ptr (), data_length_2);
-  message_block_p->release (); message_block_p = NULL;
-  result = mediaSample_in->SetActualDataLength (data_length_2);
+  ACE_OS::memcpy (data_p + offset_i, configuration_->buffer->rd_ptr (), bytes_to_write_i);
+  offset_i += bytes_to_write_i;
+  available_buffer_size_i -= bytes_to_write_i;
+  configuration_->buffer->rd_ptr (bytes_to_write_i);
+  if (!configuration_->buffer->length ())
+  {
+    configuration_->buffer->release (); configuration_->buffer = NULL;
+  } // end IF
+  if (available_buffer_size_i)
+    goto deqeue_next_buffer;
+  
+  result = mediaSample_in->SetActualDataLength (total_buffer_size_i);
   if (unlikely (FAILED (result)))
   {
     ACE_DEBUG ((LM_ERROR,
@@ -1516,7 +1537,10 @@ Stream_MediaFramework_DirectShow_Source_Filter_OutputPin_T<ConfigurationType>::F
   } // end IF
 
   REFERENCE_TIME start_time = sampleTime_;
-  sampleTime_ += frameInterval_;
+  ACE_ASSERT (sampleSize_);
+  ACE_ASSERT ((total_buffer_size_i % sampleSize_) == 0);
+  long samples_written_i = (total_buffer_size_i / sampleSize_);
+  sampleTime_ += (frameInterval_ * samples_written_i);
   // *NOTE*: this sets the samples' "stream" time (== "presentation" time)
   result =
     mediaSample_in->SetTime ((configuration_->setSampleTimes ? &start_time : NULL),
@@ -1532,11 +1556,10 @@ Stream_MediaFramework_DirectShow_Source_Filter_OutputPin_T<ConfigurationType>::F
   } // end IF
 
   if (!configuration_->setSampleTimes)
-    goto continue_;
+    goto continue_2;
   // *NOTE*: this sets the samples' "media" time (== frame/sample number)
   start_time = sampleNumber_;
-  ACE_ASSERT (sampleSize_);
-  sampleNumber_ += (data_length_2 / sampleSize_);
+  sampleNumber_ += samples_written_i;
   result = mediaSample_in->SetMediaTime (&start_time,
                                          &sampleNumber_);
   if (unlikely (FAILED (result)))
@@ -1549,7 +1572,7 @@ Stream_MediaFramework_DirectShow_Source_Filter_OutputPin_T<ConfigurationType>::F
     return S_FALSE; // --> stop
   } // end IF
 
-continue_:
+continue_2:
   // *NOTE*: "...The filter that first generates the data in the sample should
   //         set this flag to TRUE or FALSE, as appropriate. For uncompressed
   //         video and PCM audio, set every sample to TRUE. For compressed
@@ -1566,8 +1589,31 @@ continue_:
     return S_FALSE; // --> stop
   } // end IF
 
-  //ULONG reference_count = mediaSample_in->AddRef ();
-  //reference_count = mediaSample_in->Release ();
+  result = mediaSample_in->SetPreroll (FALSE);
+  if (unlikely (FAILED (result)))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s/%s: failed to IMediaSample::SetPreroll(): \"%s\", aborting\n"),
+                ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::name (inherited::m_pFilter).c_str ()),
+                ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::name (this).c_str ()),
+                ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ())));
+    return S_FALSE; // --> stop
+  } // end IF
+
+  if (is_first)
+  {
+    is_first = false;
+    result = mediaSample_in->SetDiscontinuity (TRUE);
+    if (unlikely (FAILED (result)))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("%s/%s: failed to IMediaSample::SetDiscontinuity(): \"%s\", aborting\n"),
+                  ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::name (inherited::m_pFilter).c_str ()),
+                  ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::name (this).c_str ()),
+                  ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ())));
+      return S_FALSE; // --> stop
+    } // end IF
+  } // end IF
 
   return S_OK; // --> continue
 } // FillBuffer

@@ -41,6 +41,7 @@ struct Stream_MediaFramework_DirectShow_FilterPinConfiguration
 {
   Stream_MediaFramework_DirectShow_FilterPinConfiguration ()
    : allocatorProperties (NULL)
+   , buffer (NULL)
    , format (NULL)
    , hasMediaSampleBuffers (false)
    , isTopToBottom (false)
@@ -49,6 +50,7 @@ struct Stream_MediaFramework_DirectShow_FilterPinConfiguration
   {}
 
   struct _AllocatorProperties* allocatorProperties;
+  ACE_Message_Block*           buffer;
   struct _AMMediaType*         format; // (preferred) media type handle
   bool                         hasMediaSampleBuffers;
   // *NOTE*: some image formats have a bottom-to-top memory layout; in

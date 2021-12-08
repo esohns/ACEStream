@@ -97,17 +97,30 @@ stream_directshow_device_enumeration_a_cb (LPGUID lpGuid,
                                  cb_returned_i,
                                  &cb_returned_i);
   ACE_ASSERT (SUCCEEDED (result));
-  if (directsound_device_description_p->WaveDeviceId == cbdata_p->deviceId)
+  if ((cbdata_p->deviceId != std::numeric_limits<ULONG>::max ()) &&
+      (directsound_device_description_p->WaveDeviceId == cbdata_p->deviceId))
   {
     ACE_DEBUG ((LM_DEBUG,
                 ACE_TEXT ("found device (id: %u): \"%s\"; GUID: \"%s\"\n"),
                 cbdata_p->deviceId,
                 ACE_TEXT (directsound_device_description_p->Description),
-                ACE_TEXT (Common_Tools::GUIDToString (directsound_device_description_p->DeviceId).c_str ())));
-    delete [] directsound_device_description_p; directsound_device_description_p = NULL;
+                ACE_TEXT (Common_Tools::GUIDToString (*lpGuid).c_str ())));
     cbdata_p->deviceGUID = *lpGuid;
+    delete [] directsound_device_description_p; directsound_device_description_p = NULL;
     return FALSE; // done
   } // end IF
+  else if (!InlineIsEqualGUID (cbdata_p->deviceGUID, GUID_NULL) &&
+           InlineIsEqualGUID (cbdata_p->deviceGUID, *lpGuid))
+  {
+    ACE_DEBUG ((LM_DEBUG,
+                ACE_TEXT ("found device (GUID: \"%s\"): \"%s\"; id: %u\n"),
+                ACE_TEXT (Common_Tools::GUIDToString (*lpGuid).c_str ()),
+                ACE_TEXT (directsound_device_description_p->Description),
+                directsound_device_description_p->WaveDeviceId));
+    cbdata_p->deviceId = directsound_device_description_p->WaveDeviceId;
+    delete[] directsound_device_description_p; directsound_device_description_p = NULL;
+    return FALSE; // done
+  } // end ELSE IF
   delete [] directsound_device_description_p; directsound_device_description_p = NULL;
 
   return TRUE;
@@ -145,6 +158,47 @@ Stream_MediaFramework_DirectSound_Tools::waveDeviceIdToDirectSoundGUID (ULONG wa
   FreeLibrary (library_h);
 
   return cb_data_s.deviceGUID;
+}
+
+ULONG
+Stream_MediaFramework_DirectSound_Tools::directSoundGUIDTowaveDeviceId (REFGUID GUID_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_DirectSound_Tools::waveDeviceIdToDirectSoundGUID"));
+
+  HRESULT result = E_FAIL;
+  HMODULE library_h = LoadLibrary (ACE_TEXT ("dsound.dll"));
+  ACE_ASSERT (library_h);
+  LPFNGETCLASSOBJECT pDllGetClassObject =
+    (LPFNGETCLASSOBJECT)GetProcAddress (library_h, ACE_TEXT_ALWAYS_CHAR ("DllGetClassObject"));
+  ACE_ASSERT (pDllGetClassObject);
+  LPCLASSFACTORY class_factory_p = NULL;
+  result =
+    pDllGetClassObject (CLSID_DirectSoundPrivate, IID_PPV_ARGS (&class_factory_p));
+  ACE_ASSERT (!FAILED (result));
+  //LPKSPROPERTYSET property_set_p = NULL;
+  struct stream_directshow_device_enumeration_cbdata cb_data_s;
+  cb_data_s.deviceGUID = GUID_in;
+  cb_data_s.deviceId = std::numeric_limits<ULONG>::max ();
+  result =
+    class_factory_p->CreateInstance (NULL, IID_IKsPropertySet, (void**)(&cb_data_s.IPropertySet));
+  ACE_ASSERT (!FAILED (result));
+  class_factory_p->Release (); class_factory_p = NULL;
+  result =
+    DirectSoundCaptureEnumerate (stream_directshow_device_enumeration_a_cb, &cb_data_s);
+  ACE_ASSERT (!FAILED (result));
+  if (cb_data_s.deviceId != std::numeric_limits<ULONG>::max ())
+  {
+    cb_data_s.IPropertySet->Release (); cb_data_s.IPropertySet = NULL;
+    FreeLibrary (library_h);
+    return cb_data_s.deviceId;
+  } // end IF
+  result =
+    DirectSoundEnumerate (stream_directshow_device_enumeration_a_cb, &cb_data_s);
+  ACE_ASSERT (!FAILED (result));
+  cb_data_s.IPropertySet->Release (); cb_data_s.IPropertySet = NULL;
+  FreeLibrary (library_h);
+
+  return cb_data_s.deviceId;
 }
 
 IAudioVolumeLevel*
