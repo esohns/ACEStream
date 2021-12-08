@@ -65,20 +65,25 @@ typedef std::map<__u32, ACE_Message_Block*> Stream_Device_BufferMap_t;
 typedef Stream_Device_BufferMap_t::const_iterator Stream_Device_BufferMapIterator_t;
 #endif // ACE_WIN32 || ACE_WIN64
 
-enum Stream_Device_Mode
+enum Stream_Device_Renderer
 {
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  STREAM_DEVICE_MODE_DIRECTSHOW = 0,
-  STREAM_DEVICE_MODE_MEDIAFOUNDATION,
+  // *** audio ONLY (!) ***
+  STREAM_DEVICE_RENDERER_WAVEOUT = 0,
+  STREAM_DEVICE_RENDERER_WASAPI,
+  // *** video ONLY (!) ***
+  // *** audio/video ***
+  STREAM_DEVICE_RENDERER_DIRECTSHOW,
+  STREAM_DEVICE_RENDERER_MEDIAFOUNDATION,
 #else
   // *** audio ONLY (!) ***
-  STREAM_DEVICE_MODE_ALSA = 0,
+  STREAM_DEVICE_RENDERER_ALSA = 0,
   // *** video ONLY (!) ***
-  STREAM_DEVICE_MODE_V4L2,
+  STREAM_DEVICE_RENDERER_V4L2,
 #endif // ACE_WIN32 || ACE_WIN64
   ////////////////////////////////////////
-  STREAM_DEVICE_MODE_MAX,
-  STREAM_DEVICE_MODE_INVALID
+  STREAM_DEVICE_RENDERER_MAX,
+  STREAM_DEVICE_RENDERER_INVALID
 };
 
 struct Stream_Device_Identifier

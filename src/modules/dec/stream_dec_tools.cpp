@@ -773,20 +773,22 @@ clean:
 #endif // FFMPEG_SUPPORT
 
 void
-Stream_Module_Decoder_Tools::sinus (double frequency_in,
-                                    unsigned int sampleRate_in,
+Stream_Module_Decoder_Tools::sinus (unsigned int sampleRate_in,
                                     unsigned int bytesPerSample_in,
                                     unsigned int channels_in,
+                                    bool formatIsFloat_in,
                                     bool formatIsSigned_in,
                                     bool formatIsLittleEndian_in,
                                     uint8_t* buffer_in,
                                     unsigned int samplesToWrite_in, // #'data' samples
+                                    double frequency_in, 
                                     double& phase_inout)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Decoder_Tools::sinus"));
 
   // sanity check(s)
   ACE_ASSERT (bytesPerSample_in <= 8);
+  ACE_ASSERT (!formatIsFloat_in); // *TODO*
 
   static double maximum_phase_d = 2.0 * M_PI;
   double step_d =

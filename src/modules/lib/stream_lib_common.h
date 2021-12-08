@@ -72,12 +72,13 @@ struct Stream_MediaFramework_SoundGeneratorConfiguration
   unsigned int                                  samplesPerSecond;
   unsigned int                                  bytesPerSample; // #bytes/(mono-)-
   unsigned int                                  numberOfChannels;
+  bool                                          isFloatFormat; // i.e. IEEE-
   bool                                          isLittleEndianFormat;
   bool                                          isSignedFormat;
 
-  // generator
+  // waveform generators
   double                                        frequency;
-  double                                        phase;
+
   enum Stream_MediaFramework_SoundGeneratorType type;
 };
 

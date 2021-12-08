@@ -184,12 +184,11 @@ elseif (WIN32)
       stream_lib_mediafoundation_message_base.cpp
       stream_lib_mediafoundation_message_base.h
       stream_lib_mediafoundation_message_base.inl
+      stream_lib_mediafoundation_null.cpp
+      stream_lib_mediafoundation_null.h
       stream_lib_mediafoundation_source.cpp
       stream_lib_mediafoundation_source.h
       stream_lib_mediafoundation_source.inl
-#      stream_lib_mediafoundation_source_stream.cpp
-#      stream_lib_mediafoundation_source_stream.h
-#      stream_lib_mediafoundation_source_stream.inl
       stream_lib_mediafoundation_target.cpp
       stream_lib_mediafoundation_target.h
       stream_lib_mediafoundation_target.inl
@@ -307,10 +306,9 @@ elseif (WIN32)
       stream_lib_mediafoundation_mediasource.inl
       stream_lib_mediafoundation_message_base.h
       stream_lib_mediafoundation_message_base.inl
+      stream_lib_mediafoundation_null.h
       stream_lib_mediafoundation_source.h
       stream_lib_mediafoundation_source.inl
-      #      stream_lib_mediafoundation_source_stream.h
-      #      stream_lib_mediafoundation_source_stream.inl
       stream_lib_mediafoundation_target.h
       stream_lib_mediafoundation_target.inl
       stream_lib_mediafoundation_tools.h)

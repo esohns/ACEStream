@@ -121,10 +121,10 @@ class Stream_MediaFramework_MediaFoundation_Tools
   static bool getOutputFormat (IMFTransform*,  // MFT handle
                                IMFMediaType*&, // return value: media type
                                bool&);         // return value: current format ? : available-
-  // *NOTE*: returns the first available output type of the first output node
-  //         (if any), else, starting from the first source node, the first
-  //         available output type (of the first stream) of the last connected
-  //         node
+  // *NOTE*: iff the node id is 0: returns the first available output type of
+  //         the first output node (if any), else, starting from the first
+  //         source node, the first available output type (of the first stream)
+  //         of the last connected node
   static bool getOutputFormat (IMFTopology*,    // topology handle
                                TOPOID,          // node identifier
                                IMFMediaType*&); // return value: media type

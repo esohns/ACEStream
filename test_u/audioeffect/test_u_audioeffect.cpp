@@ -1388,7 +1388,7 @@ do_work (
         Stream_Device_Identifier::ID;
       mediafoundation_modulehandler_configuration_2.deviceIdentifier.identifier._id =
         (mute_in ? -1 : 0);
-      mediafoundation_modulehandler_configuration_2.passData = false;
+      //mediafoundation_modulehandler_configuration_2.passData = false;
       mediaFoundationConfiguration_in.streamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (STREAM_LIB_MEDIAFOUNDATION_TARGET_DEFAULT_NAME_STRING),
                                                                                   std::make_pair (&module_configuration,
                                                                                                   &mediafoundation_modulehandler_configuration_2)));
@@ -2058,6 +2058,7 @@ ACE_TMAIN (int argc_in,
   //if (run_stress_test)
   //  action_mode = Net_Client_TimeoutHandler::ACTION_STRESS;
 
+  Common_Tools::initialize (true);
 #if defined (GUI_SUPPORT)
   Common_UI_Tools::initialize ();
 #if defined (GTK_SUPPORT)

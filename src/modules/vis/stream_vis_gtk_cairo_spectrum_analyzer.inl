@@ -1274,6 +1274,12 @@ Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T::update"));
 
+  // sanity check(s)
+  ACE_ASSERT (inherited::configuration_);
+  ACE_ASSERT (inherited::configuration_->window);
+  ACE_ASSERT (cairoContext_);
+  ACE_ASSERT (mode2D_);
+
   int result = -1;
   bool release_lock = false;
   double half_height = height_ / 2.0;
@@ -1289,10 +1295,6 @@ Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
     else
       release_lock = true;
   } // end IF
-
-  // sanity check(s)
-  ACE_ASSERT (cairoContext_);
-  ACE_ASSERT (mode2D_);
 
   // step1: clear the window(s)
   if (*mode2D_ < STREAM_VISUALIZATION_SPECTRUMANALYZER_2DMODE_MAX)
@@ -1376,4 +1378,10 @@ unlock:
                   ACE_TEXT ("%s: failed to ACE_SYNCH_MUTEX::release(): \"%m\", continuing\n"),
                   inherited::mod_->name ()));
   } // end IF
+
+  gdk_threads_enter ();
+  gdk_window_invalidate_rect (inherited::configuration_->window,
+                              NULL,
+                              false);
+  gdk_threads_leave ();
 }

@@ -179,10 +179,10 @@ Stream_Device_DirectShow_Tools::devicePathToString (const std::string& devicePat
                             0);
       if (FAILED (result_2)) // ERROR_FILE_NOT_FOUND: 0x80070002
       { // most probable reason: audio device
-        ACE_DEBUG ((LM_DEBUG,
-                    ACE_TEXT ("failed to IPropertyBag::Read(\"%s\"): \"%s\", continuing\n"),
-                    ACE_TEXT_WCHAR_TO_TCHAR (STREAM_LIB_DIRECTSHOW_PROPERTIES_PATH_STRING),
-                    ACE_TEXT (Common_Error_Tools::errorToString (result_2, true).c_str ())));
+        //ACE_DEBUG ((LM_DEBUG,
+        //            ACE_TEXT ("failed to IPropertyBag::Read(\"%s\"): \"%s\", continuing\n"),
+        //            ACE_TEXT_WCHAR_TO_TCHAR (STREAM_LIB_DIRECTSHOW_PROPERTIES_PATH_STRING),
+        //            ACE_TEXT (Common_Error_Tools::errorToString (result_2, true).c_str ())));
         result_2 = VariantClear (&variant_s);
         ACE_ASSERT (SUCCEEDED (result_2));
         properties_p->Release (); properties_p = NULL;
@@ -449,6 +449,7 @@ Stream_Device_DirectShow_Tools::devicePath (ULONG deviceId_in)
         properties_p->Release (); properties_p = NULL;
         continue;
       } // end IF
+      ACE_ASSERT (variant_s.vt == VT_I4);
       if (deviceId_in != variant_s.ulVal)
       {
         result_2 = VariantClear (&variant_s);
@@ -1336,7 +1337,6 @@ Stream_Device_DirectShow_Tools::loadDeviceGraph (const struct Stream_Device_Iden
   ACE_ASSERT (graphLayout_out.empty ());
 
   // sanity check(s)
-  ACE_ASSERT (deviceIdentifier_in.identifierDiscriminator == Stream_Device_Identifier::STRING);
   if (IAMBufferNegotiation_out)
   {
     IAMBufferNegotiation_out->Release (); IAMBufferNegotiation_out = NULL;
@@ -1359,7 +1359,7 @@ Stream_Device_DirectShow_Tools::loadDeviceGraph (const struct Stream_Device_Iden
   struct _GUID GUID_s = GUID_NULL;
   DWORD returned_size = 0;
   std::string device_path_string;
-  LONG device_id = -1;
+  ULONG device_id = std::numeric_limits<ULONG>::max ();
   HRESULT result = E_FAIL;
   IBaseFilter* filter_p = NULL;
 
@@ -1455,37 +1455,47 @@ Stream_Device_DirectShow_Tools::loadDeviceGraph (const struct Stream_Device_Iden
         enum_moniker_p->Release (); enum_moniker_p = NULL;
         goto error;
       } // end IF
+      properties_p->Release (); properties_p = NULL;
+      ACE_ASSERT (variant_s.vt == VT_BSTR);
       ACE_Wide_To_Ascii converter (variant_s.bstrVal);
       device_path_string = converter.char_rep ();
+      result = VariantClear (&variant_s);
+      ACE_ASSERT (SUCCEEDED (result));
+      ACE_ASSERT (deviceIdentifier_in.identifierDiscriminator == Stream_Device_Identifier::STRING);
+      if (!ACE_OS::strlen (deviceIdentifier_in.identifier._string) ||
+          !ACE_OS::strcmp (deviceIdentifier_in.identifier._string,
+                           device_path_string.c_str ()))
+        break;
+      moniker_p->Release (); moniker_p = NULL;
     } // end IF
     else if (InlineIsEqualGUID (deviceCategory_in, CLSID_AudioInputDeviceCategory))
     {
       result =
-        properties_p->Read (STREAM_LIB_DIRECTSHOW_PROPERTIES_NAME_STRING,
+        properties_p->Read (STREAM_LIB_DIRECTSHOW_PROPERTIES_ID_STRING,
                             &variant_s,
                             0);
       if (FAILED (result))
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("failed to IPropertyBag::Read(%s): \"%s\", continuing\n"),
-                    ACE_TEXT_WCHAR_TO_TCHAR (STREAM_LIB_DIRECTSHOW_PROPERTIES_NAME_STRING),
+                    ACE_TEXT_WCHAR_TO_TCHAR (STREAM_LIB_DIRECTSHOW_PROPERTIES_ID_STRING),
                     ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ())));
         properties_p->Release (); properties_p = NULL;
         moniker_p->Release (); moniker_p = NULL;
         enum_moniker_p->Release (); enum_moniker_p = NULL;
         goto error;
       } // end IF
-      ACE_Wide_To_Ascii converter (variant_s.bstrVal);
-      device_path_string = converter.char_rep ();
-    } // end IF
-    result = VariantClear (&variant_s);
-    ACE_ASSERT (SUCCEEDED (result));
-    properties_p->Release (); properties_p = NULL;
-    if (!ACE_OS::strlen (deviceIdentifier_in.identifier._string) ||
-        !ACE_OS::strcmp (deviceIdentifier_in.identifier._string,
-                         device_path_string.c_str ()))
-      break;
-    moniker_p->Release (); moniker_p = NULL;
+      properties_p->Release (); properties_p = NULL;
+      ACE_ASSERT (variant_s.vt == VT_I4);
+      device_id = variant_s.ulVal;
+      result = VariantClear (&variant_s);
+      ACE_ASSERT (SUCCEEDED (result));
+      ACE_ASSERT (deviceIdentifier_in.identifierDiscriminator == Stream_Device_Identifier::ID);
+      if ((deviceIdentifier_in.identifier._id == -1) ||
+          (static_cast<ULONG> (deviceIdentifier_in.identifier._id) == device_id))
+        break;
+      moniker_p->Release (); moniker_p = NULL;
+    } // end ELSE IF
   } // end WHILE
   enum_moniker_p->Release (); enum_moniker_p = NULL;
   if (!moniker_p)

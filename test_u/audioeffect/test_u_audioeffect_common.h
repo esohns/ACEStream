@@ -565,10 +565,18 @@ struct Test_U_AudioEffect_StreamConfiguration
 {
   Test_U_AudioEffect_StreamConfiguration ()
    : Stream_Configuration ()
+   , renderer (STREAM_DEVICE_RENDERER_INVALID)
    , sourceType (AUDIOEFFECT_SOURCE_INVALID)
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+   , useFrameworkSource (false)
+#endif // ACE_WIN32 || ACE_WIN64
   {}
 
+  enum Stream_Device_Renderer        renderer;
   enum Test_U_AudioEffect_SourceType sourceType;
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  bool                               useFrameworkSource;
+#endif // ACE_WIN32 || ACE_WIN64
 };
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -579,12 +587,12 @@ struct Test_U_AudioEffect_DirectShow_StreamConfiguration
    : Test_U_AudioEffect_StreamConfiguration ()
    , filterGraphConfiguration ()
    , format ()
-   , useFrameworkSource (false)
-  {}
+  {
+    renderer = STREAM_DEVICE_RENDERER_DIRECTSHOW;
+  }
 
   Stream_MediaFramework_DirectShow_Graph_t filterGraphConfiguration;
   struct _AMMediaType                      format;
-  bool                                     useFrameworkSource;
 };
 
 struct Test_U_AudioEffect_MediaFoundation_StreamConfiguration
@@ -593,11 +601,11 @@ struct Test_U_AudioEffect_MediaFoundation_StreamConfiguration
   Test_U_AudioEffect_MediaFoundation_StreamConfiguration ()
    : Test_U_AudioEffect_StreamConfiguration ()
    , format (NULL)
-   , useFrameworkSource (false)
-  {}
+  {
+    renderer = STREAM_DEVICE_RENDERER_MEDIAFOUNDATION;
+  }
 
   IMFMediaType* format;
-  bool          useFrameworkSource;
 };
 #else
 struct Test_U_AudioEffect_ALSA_StreamConfiguration

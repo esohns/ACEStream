@@ -110,6 +110,8 @@ class Test_U_AudioEffect_MediaFoundation_Stream
                         Test_U_AudioEffect_MediaFoundation_Message,
                         Test_U_AudioEffect_MediaFoundation_SessionMessage>
  , public Common_IGetR_3_T<Test_U_AudioEffect_MediaFoundation_Target>
+ , public Common_IGetR_4_T<Test_U_AudioEffect_MediaFoundation_Source>
+ , public Common_IGetR_5_T<Test_U_Dev_Mic_Source_MediaFoundation>
  , public IMFAsyncCallback
 {
   typedef Stream_Base_T<ACE_MT_SYNCH,
@@ -147,6 +149,8 @@ class Test_U_AudioEffect_MediaFoundation_Stream
   virtual bool initialize (const inherited::CONFIGURATION_T&); // configuration
 
   virtual const Test_U_AudioEffect_MediaFoundation_Target& getR_3 () const; // return value: type
+  virtual const Test_U_AudioEffect_MediaFoundation_Source& getR_4 () const; // return value: type
+  virtual const Test_U_Dev_Mic_Source_MediaFoundation& getR_5 () const; // return value: type
 
   // implement IMFAsyncCallback
   virtual STDMETHODIMP QueryInterface (REFIID,
@@ -166,6 +170,7 @@ class Test_U_AudioEffect_MediaFoundation_Stream
 #if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
   IMFMediaSession*                                 mediaSession_;
 #endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
+  Test_U_Dev_Mic_Source_MediaFoundation_Module     frameworkSource_;
   Test_U_AudioEffect_MediaFoundation_Source_Module mediaFoundationSource_;
   Test_U_AudioEffect_MediaFoundation_Target_Module mediaFoundationTarget_;
   ULONG                                            referenceCount_;

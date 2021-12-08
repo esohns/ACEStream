@@ -189,19 +189,33 @@ class Stream_Module_Decoder_Tools
                      uint8_t*[]);        // target buffer(s)
 #endif // FFMPEG_SUPPORT
 
-  // *NOTE*: write a sinus waveform into the target buffer in the specified
-  //         audio format
+  // noise generators
+  // *TODO*: move these somewhere else
   // *WARNING*: make sure the data buffer contains enough space to hold the
   //            sample data
-  // *TODO*: move this somewhere else
-  static void sinus (double,       // frequency (Hz)
-                     unsigned int, // sample rate (Hz)
+  // *NOTE*: write random noise into the target buffer in the specified
+  //         audio format
+  template <typename DistributionType>
+  static void noise (unsigned int,       // sample rate (Hz)
+                     unsigned int,       // #bytes/(mono-)sample
+                     unsigned int,       // #channels
+                     //bool,               // format is floating point ? : integer
+                     bool,               // format is signed ? : unsigned
+                     bool,               // format is little endian ? : big endian
+                     uint8_t*,           // target buffer
+                     unsigned int,       // #'data' samples to write
+                     DistributionType&); // in/out: float/integer distribution handle
+  // *NOTE*: write a sine waveform into the target buffer in the specified
+  //         audio format
+  static void sinus (unsigned int, // sample rate (Hz)
                      unsigned int, // #bytes/(mono-)sample
                      unsigned int, // #channels
-                     bool,         // format is signed ?
+                     bool,         // format is floating point ? : integer
+                     bool,         // format is signed ? : unsigned
                      bool,         // format is little endian ? : big endian
                      uint8_t*,     // target buffer
                      unsigned int, // #'data' samples to write
+                     double,       // frequency (Hz)
                      double&);     // in/out: current phase
 
 #if defined (OPENCV_SUPPORT)
@@ -218,5 +232,8 @@ class Stream_Module_Decoder_Tools
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_Decoder_Tools (const Stream_Module_Decoder_Tools&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_Decoder_Tools& operator= (const Stream_Module_Decoder_Tools&))
 };
+
+// include template definition
+#include "stream_dec_tools.inl"
 
 #endif
