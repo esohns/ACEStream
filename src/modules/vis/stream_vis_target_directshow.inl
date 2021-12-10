@@ -400,7 +400,6 @@ Stream_Vis_Target_DirectShow_T<ACE_SYNCH_USE,
 
   int result = -1;
   HRESULT result_2 = E_FAIL;
-  bool COM_initialized = false;
 
   // sanity check(s)
   ACE_ASSERT (inherited::configuration_);
@@ -417,10 +416,7 @@ Stream_Vis_Target_DirectShow_T<ACE_SYNCH_USE,
     }
     case STREAM_SESSION_MESSAGE_BEGIN:
     {
-      //// step1: initialize COM
-      //// sanity check(s)
-      //Stream_MediaFramework_Tools::initialize (STREAM_MEDIAFRAMEWORK_DIRECTSHOW);
-      //Stream_Module_Device_DirectShow_Tools::initialize (true);
+      bool COM_initialized = Common_Tools::initializeCOM ();
 
       // sanity check(s)
       ACE_ASSERT (inherited::sessionData_);
@@ -661,6 +657,8 @@ Stream_Vis_Target_DirectShow_T<ACE_SYNCH_USE,
                     inherited::ROTID_));
       } // end IF
 
+      if (COM_initialized) Common_Tools::finalizeCOM ();
+
       break;
 
 error:
@@ -684,9 +682,6 @@ error:
                       ACE_TEXT (Common_Error_Tools::errorToString (result_2, true).c_str ())));
       } // end IF
 
-      if (COM_initialized)
-        CoUninitialize ();
-
       if (window_ && closeWindow_)
       {
         if (unlikely (!DestroyWindow (window_)))
@@ -698,6 +693,8 @@ error:
         closeWindow_ = false;
         window_ = NULL;
       } // end IF
+
+      if (COM_initialized) Common_Tools::finalizeCOM ();
 
       notify (STREAM_SESSION_MESSAGE_ABORT);
 
@@ -720,6 +717,7 @@ error:
       IPin* pin_p = NULL;
       enum _FilterState filter_state = State_Stopped;
       const SessionDataType& session_data_r = inherited::sessionData_->getR ();
+      bool COM_initialized = Common_Tools::initializeCOM ();
 
       result_2 =
         inherited::IMediaControl_->GetState (INFINITE,
@@ -838,28 +836,20 @@ error:
         } // end IF
       } // end IF
 
+      if (COM_initialized) Common_Tools::finalizeCOM ();
+
       break;
 
 error_2:
+      if (COM_initialized) Common_Tools::finalizeCOM ();
+
       notify (STREAM_SESSION_MESSAGE_ABORT);
 
       break;
     }
     case STREAM_SESSION_MESSAGE_END:
     {
-      result_2 = CoInitializeEx (NULL,
-                                 (COINIT_MULTITHREADED    |
-                                  COINIT_DISABLE_OLE1DDE  |
-                                  COINIT_SPEED_OVER_MEMORY));
-      if (unlikely (FAILED (result_2)))
-      {
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("%s: failed to CoInitializeEx(): \"%s\", returning\n"),
-                    inherited::mod_->name (),
-                    ACE_TEXT (Common_Error_Tools::errorToString (result_2).c_str ())));
-        break;
-      } // end IF
-      COM_initialized = true;
+      bool COM_initialized = Common_Tools::initializeCOM ();
 
       // step1: dispatch all data to DirectShow
       inherited::idle ();
@@ -958,9 +948,6 @@ error_2:
         inherited::IGraphBuilder_->Release (); inherited::IGraphBuilder_ = NULL;
       } // end IF
 
-      if (COM_initialized)
-        CoUninitialize ();
-
       if (window_ && closeWindow_)
       {
         if (unlikely (!DestroyWindow (window_)))
@@ -972,6 +959,8 @@ error_2:
         window_ = NULL;
         closeWindow_ = false;
       } // end IF
+
+      if (COM_initialized) Common_Tools::finalizeCOM ();
 
       break;
     }
@@ -1008,6 +997,15 @@ Stream_Vis_Target_DirectShow_T<ACE_SYNCH_USE,
   STREAM_TRACE (ACE_TEXT ("Stream_Vis_Target_DirectShow_T::initialize"));
 
   HRESULT result = E_FAIL;
+
+  // initialize COM ?
+  static bool first_run = true;
+  bool COM_initialized = false;
+  if (likely (first_run))
+  {
+    first_run = false;
+    COM_initialized = Common_Tools::initializeCOM ();
+  } // end IF
 
   if (inherited::isInitialized_)
   {
@@ -1047,6 +1045,8 @@ Stream_Vis_Target_DirectShow_T<ACE_SYNCH_USE,
 
   inherited::getWindowType (configuration_in.window,
                             window_);
+
+  if (COM_initialized) Common_Tools::finalizeCOM ();
 
   return inherited::initialize (configuration_in,
                                 allocator_in);

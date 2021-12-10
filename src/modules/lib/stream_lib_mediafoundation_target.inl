@@ -132,27 +132,15 @@ Stream_MediaFramework_MediaFoundation_Target_T<ACE_SYNCH_USE,
   STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_MediaFoundation_Target_T::initialize"));
 
   HRESULT result = E_FAIL;
-  static bool first_run = true;
-  bool COM_initialized = false;
   int result_2 = -1;
 
   // initialize COM ?
-  if (first_run)
+  static bool first_run = true;
+  bool COM_initialized = false;
+  if (likely (first_run))
   {
     first_run = false;
-
-    result = CoInitializeEx (NULL,
-                             (COINIT_MULTITHREADED    |
-                              COINIT_DISABLE_OLE1DDE  |
-                              COINIT_SPEED_OVER_MEMORY));
-    if (FAILED (result))
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to CoInitializeEx(): \"%s\", aborting\n"),
-                  ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
-      return false;
-    } // end IF
-    COM_initialized = true;
+    COM_initialized = Common_Tools::initializeCOM ();
   } // end IF
 
   if (inherited::isInitialized_)
@@ -213,8 +201,7 @@ Stream_MediaFramework_MediaFoundation_Target_T<ACE_SYNCH_USE,
     goto error;
   } // end IF
 
-  if (COM_initialized)
-    CoUninitialize ();
+  if (COM_initialized) Common_Tools::finalizeCOM ();
 
   return true;
 
@@ -224,8 +211,7 @@ error:
     mediaSession_->Release (); mediaSession_ = NULL;
   } // end IF
 
-  if (COM_initialized)
-    CoUninitialize ();
+  if (COM_initialized) Common_Tools::finalizeCOM ();
 
   return false;
 }
@@ -425,6 +411,7 @@ Stream_MediaFramework_MediaFoundation_Target_T<ACE_SYNCH_USE,
   STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_MediaFoundation_Target_T::handleSessionMessage"));
 
   //int result = -1;
+  HRESULT result_2 = E_FAIL;
 
   // don't care (implies yes per default, if part of a stream)
   ACE_UNUSED_ARG (passMessageDownstream_out);
@@ -442,27 +429,13 @@ Stream_MediaFramework_MediaFoundation_Target_T<ACE_SYNCH_USE,
 
       SessionDataType& session_data_r =
         const_cast<SessionDataType&> (inherited::sessionData_->getR ());
-      bool COM_initialized = false;
+      bool COM_initialized = Common_Tools::initializeCOM ();
       bool is_running = false;
       bool remove_from_ROT = false;
       ULONG reference_count = 0;
       TOPOID node_id = 0;
       struct _GUID GUID_s = GUID_NULL;
       struct tagPROPVARIANT property_s;
-
-      HRESULT result_2 = CoInitializeEx (NULL,
-                                         (COINIT_MULTITHREADED |
-                                          COINIT_DISABLE_OLE1DDE |
-                                          COINIT_SPEED_OVER_MEMORY));
-      if (FAILED (result_2))
-      {
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("%s: failed to CoInitializeEx(): \"%s\", aborting\n"),
-                    inherited::mod_->name (),
-                    ACE_TEXT (Common_Error_Tools::errorToString (result_2, false, false).c_str ())));
-        goto error;
-      } // end IF
-      COM_initialized = true;
 
       if (!mediaSession_)
       {
@@ -516,8 +489,7 @@ continue_:
         PropVariantClear (&property_s);
       } // end IF
 
-      if (COM_initialized)
-        CoUninitialize ();
+      if (COM_initialized) Common_Tools::finalizeCOM ();
 
       break;
 
@@ -548,8 +520,7 @@ error:
         mediaSession_->Release (); mediaSession_ = NULL;
       } // end IF
 
-      if (COM_initialized)
-        CoUninitialize ();
+      if (COM_initialized) Common_Tools::finalizeCOM ();
 
       this->notify (STREAM_SESSION_MESSAGE_ABORT);
 
@@ -557,20 +528,7 @@ error:
     }
     case STREAM_SESSION_MESSAGE_END:
     {
-      bool COM_initialized = false;
-      HRESULT result_2 = CoInitializeEx (NULL,
-                                         (COINIT_MULTITHREADED    |
-                                          COINIT_DISABLE_OLE1DDE  |
-                                          COINIT_SPEED_OVER_MEMORY));
-      if (FAILED (result_2))
-      {
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("%s: failed to CoInitializeEx(): \"%s\", aborting\n"),
-                    inherited::mod_->name (),
-                    ACE_TEXT (Common_Error_Tools::errorToString (result_2).c_str ())));
-        break;
-      } // end IF
-      COM_initialized = true;
+      bool COM_initialized = Common_Tools::initializeCOM ();
 
       //finalize_MediaFoundation (); // stop 'streaming thread'
 
@@ -600,8 +558,7 @@ error:
         mediaSession_->Release (); mediaSession_ = NULL;
       } // end IF
 
-      if (COM_initialized)
-        CoUninitialize ();
+      if (COM_initialized) Common_Tools::finalizeCOM ();
 
       break;
     }

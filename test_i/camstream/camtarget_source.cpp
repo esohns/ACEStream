@@ -209,6 +209,7 @@ operator delete (void* pointer_p)
 //{
 //  return NULL;
 //}
+
 void WINAPI
 InitRoutine (BOOL isLoading_in,
              const CLSID* CLSID_in)
@@ -217,13 +218,22 @@ InitRoutine (BOOL isLoading_in,
 
   ACE_UNUSED_ARG (CLSID_in);
 
+  // sanity check(s)
   if (!isLoading_in) // DLL being unloaded ?
     return; // nothing to do
 
-  // step1: initialize COM
-  // sanity check(s)
+  //// step1: initialize COM
+  //HRESULT result = CoInitializeEx (NULL,
+  //                                 (COINIT_MULTITHREADED |
+  //                                  COINIT_DISABLE_OLE1DDE |
+  //                                  COINIT_SPEED_OVER_MEMORY));
+  //if (FAILED (result)) // RPC_E_CHANGED_MODE : 0x80010106L
+  //  ACE_DEBUG ((LM_ERROR,
+  //              ACE_TEXT ("failed to CoInitializeEx(): \"%s\", continuing\n"),
+  //              ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
+
+  // step2: initialize media framework
   Stream_MediaFramework_Tools::initialize (STREAM_MEDIAFRAMEWORK_DIRECTSHOW);
-  Stream_Device_DirectShow_Tools::initialize (true); // initialize COM ?
 }
 
 //STDAPI
@@ -237,6 +247,7 @@ InitRoutine (BOOL isLoading_in,
 //
 //  return S_OK;
 //}
+
 //STDAPI
 //DllGetClassObject (REFCLSID rClsID_in,
 //                   REFIID riid_in,

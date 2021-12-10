@@ -127,7 +127,7 @@ Test_U_AudioEffect_DirectShow_EventHandler::end (Stream_SessionId_t sessionId_in
                     ACE_TEXT ("failed to g_idle_add(idle_session_end_cb): \"%m\", continuing\n")));
         goto continue_;
       } // end IF
-      //CBData_->eventSourceIds.insert (event_source_id);
+      state_r.eventSourceIds.insert (event_source_id);
       state_r.eventStack.push (COMMON_UI_EVENT_FINISHED);
     } // end lock scope
 #endif // GTK_USE
@@ -283,7 +283,7 @@ Test_U_AudioEffect_MediaFoundation_EventHandler::end (Stream_SessionId_t session
                     ACE_TEXT ("failed to g_idle_add(idle_session_end_cb): \"%m\", continuing\n")));
         goto continue_;
       } // end IF
-      //CBData_->eventSourceIds.insert (event_source_id);
+      state_r.eventSourceIds.insert (event_source_id);
       state_r.eventStack.push (COMMON_UI_EVENT_FINISHED);
     } // end lock scope
 #endif // GTK_USE

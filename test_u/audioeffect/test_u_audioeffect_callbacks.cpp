@@ -3348,6 +3348,7 @@ stream_processing_function (void* arg_in)
   ACE_THR_FUNC_RETURN result;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   result = std::numeric_limits<unsigned long>::max ();
+  bool COM_initialized = Common_Tools::initializeCOM ();
 #else
   result = arg_in;
 #endif // ACE_WIN32 || ACE_WIN64
@@ -3655,6 +3656,8 @@ stream_processing_function (void* arg_in)
   result = NULL;
 #endif // ACE_WIN32 || ACE_WIN64
 
+  goto continue_;
+
 error:
   guint event_source_id = g_idle_add (idle_session_end_cb,
                                       data_base_p->CBData);
@@ -3664,6 +3667,7 @@ error:
   else
     state_r.eventSourceIds.insert (event_source_id);
 
+continue_:
   { // synch access
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
     ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, state_r.lock, std::numeric_limits<ACE_THR_FUNC_RETURN>::max ());
@@ -3695,6 +3699,10 @@ error:
 
   // clean up
   delete data_base_p; data_base_p = NULL;
+
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  if (COM_initialized) Common_Tools::finalizeCOM ();
+#endif // ACE_WIN32 || ACE_WIN64
 
   return result;
 }
@@ -5321,6 +5329,11 @@ idle_finalize_UI_cb (gpointer userData_in)
                     true); // locked access ?
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
+  if (ui_cb_data_base_p->COMInitialized)
+  {
+    CoUninitialize ();
+    ui_cb_data_base_p->COMInitialized = false;
+  } // end IF
 #else
   // clean up
   int result = -1;
@@ -9664,10 +9677,10 @@ continue_:
     ACE_ASSERT (!device_p);
     result = devices_p->Item (i,
                               &device_p);
-    ACE_ASSERT (SUCCEEDED (result));
+    ACE_ASSERT (SUCCEEDED (result) && device_p);
     result = device_p->OpenPropertyStore (STGM_READ,
                                           &property_store_p);
-    ACE_ASSERT (SUCCEEDED (result));
+    ACE_ASSERT (SUCCEEDED (result) && property_store_p);
     result = property_store_p->GetValue (PKEY_AudioEndpoint_GUID,
                                          &property_s);
     ACE_ASSERT (SUCCEEDED (result));
@@ -9685,7 +9698,7 @@ continue_:
   if (!device_p)
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to retrieve volume control handle for wave device (id was: %d), returning\n"),
+                ACE_TEXT ("failed to retrieve volume control handle for waveIn device (id was: %d), returning\n"),
                 card_id_i));
     goto error_2;
   } // end IF

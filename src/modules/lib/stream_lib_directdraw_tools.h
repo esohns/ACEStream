@@ -23,13 +23,13 @@
 
 #include "common_defines.h"
 #if COMMON_OS_WIN32_TARGET_PLATFORM(0x0602) // _WIN32_WINNT_WIN8
-#include <minwindef.h>
+#include "minwindef.h"
 #else
-#include <windef.h>
+#include "windef.h"
 #endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0602)
-#include <d3d9.h>
-#include <d3dx9tex.h>
-#include <dxva2api.h>
+#include "d3d9.h"
+#include "d3dx9tex.h"
+#include "dxva2api.h"
 
 #include "ace/Global_Macros.h"
 
@@ -44,8 +44,8 @@ struct Stream_MediaFramework_Direct3D_Configuration;
 class Stream_MediaFramework_DirectDraw_Tools
 {
  public:
-  static bool initialize (bool = true); // initialize COM ?
-  static void finalize (bool = true); // finalize COM ?
+  static bool initialize ();
+  static void finalize ();
 
   static struct _D3DDISPLAYMODE getDisplayMode (UINT,                              // adapter
                                                 enum _D3DFORMAT,                   // format

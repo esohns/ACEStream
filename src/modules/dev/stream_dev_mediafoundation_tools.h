@@ -38,10 +38,6 @@
 class Stream_Device_MediaFoundation_Tools
 {
  public:
-  static void initialize ();
-
-  // -------------------------------------
-
   // *NOTE*: argument must be MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE_AUDCAP_GUID or
   //                          MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE_VIDCAP_GUID
   static struct Stream_Device_Identifier getDefaultCaptureDevice (REFGUID); // device category

@@ -24,8 +24,8 @@
 #include <string>
 
 #include "winnt.h"
-#include "Guiddef.h"
-#include "Ks.h"
+#include "guiddef.h"
+#include "ks.h"
 #include "strmif.h"
 
 #include "ace/Global_Macros.h"
@@ -42,9 +42,6 @@
 class Stream_Device_DirectShow_Tools
 {
  public:
-  static bool initialize (bool = true); // initialize COM ?
-  static void finalize (bool = true); // finalize COM ?
-
   // device
   // *NOTE*: returns the devices' "FriendlyName"
   static std::string devicePathToString (const std::string&); // device path

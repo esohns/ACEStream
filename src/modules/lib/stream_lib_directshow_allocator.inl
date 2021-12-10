@@ -339,25 +339,12 @@ Stream_MediaFramework_DirectShow_AllocatorBase_T<ConfigurationType,
   ACE_ASSERT (configuration_in.filterConfiguration->pinConfiguration);
 
   // initialize COM ?
-  HRESULT result = E_FAIL;
   static bool first_run = true;
   bool COM_initialized = false;
-  if (first_run)
+  if (likely (first_run))
   {
     first_run = false;
-
-    result = CoInitializeEx (NULL,
-                             (COINIT_MULTITHREADED    |
-                              COINIT_DISABLE_OLE1DDE  |
-                              COINIT_SPEED_OVER_MEMORY));
-    if (FAILED (result))
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to CoInitializeEx(COINIT_MULTITHREADED): \"%s\", aborting\n"),
-                  ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
-      return false;
-    } // end IF
-    COM_initialized = true;
+    COM_initialized = Common_Tools::initializeCOM ();
   } // end IF
 
   if (isInitialized_)
@@ -365,13 +352,11 @@ Stream_MediaFramework_DirectShow_AllocatorBase_T<ConfigurationType,
     // clean up ?
     //if (IMemAllocator_)
     //{
-    //  IMemAllocator_->Release ();
-    //  IMemAllocator_ = NULL;
+    //  IMemAllocator_->Release (); IMemAllocator_ = NULL;
     //} // end IF
     //if (IMemInputPin_)
     //{
-    //  IMemInputPin_->Release ();
-    //  IMemInputPin_ = NULL;
+    //  IMemInputPin_->Release (); IMemInputPin_ = NULL;
     //} // end IF
     //if (!push_)
     //{
@@ -408,28 +393,24 @@ Stream_MediaFramework_DirectShow_AllocatorBase_T<ConfigurationType,
     if (IMediaEventEx_)
     {
       IMediaEventEx_->SetNotifyWindow (NULL, 0, 0);
-      IMediaEventEx_->Release ();
-      IMediaEventEx_ = NULL;
+      IMediaEventEx_->Release (); IMediaEventEx_ = NULL;
     } // end IF
     if (IMediaControl_)
     {
       IMediaControl_->Stop ();
-      IMediaControl_->Release ();
-      IMediaControl_ = NULL;
+      IMediaControl_->Release (); IMediaControl_ = NULL;
     } // end IF
 
     if (IGraphBuilder_)
     {
-      IGraphBuilder_->Release ();
-      IGraphBuilder_ = NULL;
+      IGraphBuilder_->Release (); IGraphBuilder_ = NULL;
     } // end IF
 
     configuration_ = NULL;
     //mediaType_ = NULL;
     if (sessionData_)
     {
-      sessionData_->decrease ();
-      sessionData_ = NULL;
+      sessionData_->decrease (); sessionData_ = NULL;
     } // end IF
 
     isInitialized_ = false;
@@ -444,6 +425,8 @@ Stream_MediaFramework_DirectShow_AllocatorBase_T<ConfigurationType,
     &(inherited::queue_);
 
   isInitialized_ = true;
+
+  if (COM_initialized) Common_Tools::finalizeCOM ();
 
   return true;
 }

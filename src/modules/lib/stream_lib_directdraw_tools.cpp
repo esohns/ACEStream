@@ -47,31 +47,11 @@ IDirect3D9*
 Stream_MediaFramework_DirectDraw_Tools::direct3DHandle = NULL;
 
 bool
-Stream_MediaFramework_DirectDraw_Tools::initialize (bool coInitialize_in)
+Stream_MediaFramework_DirectDraw_Tools::initialize ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_DirectDraw_Tools::initialize"));
 
   HRESULT result = E_FAIL;
-  if (likely (coInitialize_in))
-  {
-    result = CoInitializeEx (NULL,
-                             (COINIT_MULTITHREADED    |
-                              COINIT_DISABLE_OLE1DDE  |
-                              COINIT_SPEED_OVER_MEMORY));
-    if (unlikely (FAILED (result))) // 0x80010106: RPC_E_CHANGED_MODE
-    {
-      if (result != RPC_E_CHANGED_MODE) // already initialized
-      {
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("failed to CoInitializeEx(): \"%s\", aborting\n"),
-                    ACE_TEXT (Common_Error_Tools::errorToString (result, false).c_str ())));
-        return false;
-      } // end IF
-      ACE_DEBUG ((LM_WARNING,
-                  ACE_TEXT ("failed to CoInitializeEx(): \"%s\", continuing\n"),
-                  ACE_TEXT (Common_Error_Tools::errorToString (result, false).c_str ())));
-    } // end IF
-  } // end IF
 
   if (Stream_MediaFramework_DirectDraw_Tools::direct3DHandle)
     return true;
@@ -104,7 +84,7 @@ Stream_MediaFramework_DirectDraw_Tools::initialize (bool coInitialize_in)
 }
 
 void
-Stream_MediaFramework_DirectDraw_Tools::finalize (bool coUninitialize_in)
+Stream_MediaFramework_DirectDraw_Tools::finalize ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_DirectDraw_Tools::finalize"));
 
@@ -112,9 +92,6 @@ Stream_MediaFramework_DirectDraw_Tools::finalize (bool coUninitialize_in)
   {
     Stream_MediaFramework_DirectDraw_Tools::direct3DHandle->Release (); Stream_MediaFramework_DirectDraw_Tools::direct3DHandle = NULL;
   } // end IF
-
-  if (likely (coUninitialize_in))
-    CoUninitialize ();
 }
 
 struct _D3DDISPLAYMODE

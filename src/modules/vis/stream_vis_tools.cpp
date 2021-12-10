@@ -50,8 +50,7 @@
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 bool
-Stream_Visualization_Tools::initialize (enum Stream_Visualization_Framework framework_in,
-                                        bool initializeCOM_in)
+Stream_Visualization_Tools::initialize (enum Stream_Visualization_Framework framework_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Visualization_Tools::initialize"));
 
@@ -59,11 +58,10 @@ Stream_Visualization_Tools::initialize (enum Stream_Visualization_Framework fram
 
   switch (framework_in)
   {
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
     case STREAM_VISUALIZATION_FRAMEWORK_DIRECTDRAW:
     {
       result =
-        Stream_MediaFramework_DirectDraw_Tools::initialize (initializeCOM_in);
+        Stream_MediaFramework_DirectDraw_Tools::initialize ();
       if (!result)
       {
         ACE_DEBUG ((LM_ERROR,
@@ -78,7 +76,6 @@ Stream_Visualization_Tools::initialize (enum Stream_Visualization_Framework fram
       break;
     case STREAM_VISUALIZATION_FRAMEWORK_MEDIAFOUNDATION:
       break;
-#endif // ACE_WIN32 || ACE_WIN64
     default:
     {
       ACE_DEBUG ((LM_ERROR,
@@ -90,18 +87,17 @@ Stream_Visualization_Tools::initialize (enum Stream_Visualization_Framework fram
 
   return result;
 }
+
 void
-Stream_Visualization_Tools::finalize (enum Stream_Visualization_Framework framework_in,
-                                      bool initializeCOM_in)
+Stream_Visualization_Tools::finalize (enum Stream_Visualization_Framework framework_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Visualization_Tools::finalize"));
 
   switch (framework_in)
   {
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
     case STREAM_VISUALIZATION_FRAMEWORK_DIRECTDRAW:
     {
-      Stream_MediaFramework_DirectDraw_Tools::finalize (initializeCOM_in);
+      Stream_MediaFramework_DirectDraw_Tools::finalize ();
       break;
     }
     case STREAM_VISUALIZATION_FRAMEWORK_DIRECTSHOW:
@@ -110,7 +106,6 @@ Stream_Visualization_Tools::finalize (enum Stream_Visualization_Framework framew
       break;
     case STREAM_VISUALIZATION_FRAMEWORK_MEDIAFOUNDATION:
       break;
-#endif // ACE_WIN32 || ACE_WIN64
     default:
     {
       ACE_DEBUG ((LM_ERROR,

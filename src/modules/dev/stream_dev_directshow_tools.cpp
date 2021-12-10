@@ -69,40 +69,6 @@
 #include "stream_dev_defines.h"
 #include "stream_dev_tools.h"
 
-bool
-Stream_Device_DirectShow_Tools::initialize (bool coInitialize_in)
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_Device_DirectShow_Tools::initialize"));
-
-  HRESULT result = E_FAIL;
-  if (likely (coInitialize_in))
-  {
-    result = CoInitializeEx (NULL,
-                             (COINIT_MULTITHREADED    |
-                              COINIT_DISABLE_OLE1DDE  |
-                              COINIT_SPEED_OVER_MEMORY));
-    if (FAILED (result))
-    {
-      // *NOTE*: most probable reason: already initialized (happens in the
-      //         debugger) --> continue
-      ACE_DEBUG ((LM_WARNING,
-                  ACE_TEXT ("failed to CoInitializeEx(): \"%s\", continuing\n"),
-                  ACE_TEXT (Common_Error_Tools::errorToString (result, false).c_str ())));
-    } // end IF
-  } // end IF
-
-  return true;
-}
-
-void
-Stream_Device_DirectShow_Tools::finalize (bool coUninitialize_in)
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_Device_DirectShow_Tools::finalize"));
-
-  if (likely (coUninitialize_in))
-    CoUninitialize ();
-}
-
 std::string
 Stream_Device_DirectShow_Tools::devicePathToString (const std::string& devicePath_in)
 {

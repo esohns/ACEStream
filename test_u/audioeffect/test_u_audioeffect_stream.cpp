@@ -1004,7 +1004,6 @@ Test_U_AudioEffect_MediaFoundation_Stream::initialize (const inherited::CONFIGUR
 #endif // GUI_SUPPORT
 
   bool graph_loaded = false;
-  bool COM_initialized = false;
   HRESULT result_2 = E_FAIL;
   IMFTopology* topology_p = NULL;
   enum MFSESSION_GETFULLTOPOLOGY_FLAGS flags =
@@ -1018,17 +1017,6 @@ Test_U_AudioEffect_MediaFoundation_Stream::initialize (const inherited::CONFIGUR
   IMFMediaType* media_type_p = NULL;
   bool use_framework_renderer_b = false;
   int render_device_id_i = -1;
-
-  result_2 = CoInitializeEx (NULL,
-                             (COINIT_MULTITHREADED |
-                              COINIT_DISABLE_OLE1DDE |
-                              COINIT_SPEED_OVER_MEMORY));
-  if (FAILED (result_2)) // RPC_E_CHANGED_MODE : 0x80010106L
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: failed to CoInitializeEx(): \"%s\", continuing\n"),
-                ACE_TEXT (stream_name_string_),
-                ACE_TEXT (Common_Error_Tools::errorToString (result_2).c_str ())));
-  COM_initialized = true;
 
 #if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
   if (mediaSession_)
@@ -1301,9 +1289,6 @@ error:
     mediaSession_->Release (); mediaSession_ = NULL;
   } // end IF
 #endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
-
-  if (COM_initialized)
-    CoUninitialize ();
 
   return false;
 }

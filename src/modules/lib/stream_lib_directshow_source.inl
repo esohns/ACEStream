@@ -105,20 +105,10 @@ Stream_MediaFramework_DirectShow_Source_T<ACE_SYNCH_USE,
   // initialize COM ?
   static bool first_run = true;
   bool COM_initialized = false;
-  if (first_run)
+  if (likely (first_run))
   {
     first_run = false;
-
-    result_2 = CoInitializeEx (NULL,
-                               (COINIT_MULTITHREADED    |
-                                COINIT_DISABLE_OLE1DDE  |
-                                COINIT_SPEED_OVER_MEMORY));
-    if (FAILED (result_2)) // RPC_E_CHANGED_MODE : 0x80010106L
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("%s: failed to CoInitializeEx(): \"%s\", continuing\n"),
-                  inherited::mod_->name (),
-                  ACE_TEXT (Common_Error_Tools::errorToString (result_2).c_str ())));
-    COM_initialized = true;
+    COM_initialized = Common_Tools::initializeCOM ();
   } // end IF
 
   if (inherited::isInitialized_)
@@ -135,6 +125,7 @@ Stream_MediaFramework_DirectShow_Source_T<ACE_SYNCH_USE,
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: no graph builder, aborting\n"),
                 inherited::mod_->name ()));
+    if (COM_initialized) Common_Tools::finalizeCOM ();
     return false;
   } // end IF
   IGraphBuilder_ = configuration_in.builder;
@@ -152,6 +143,7 @@ Stream_MediaFramework_DirectShow_Source_T<ACE_SYNCH_USE,
                 ACE_TEXT_WCHAR_TO_TCHAR (STREAM_LIB_DIRECTSHOW_FILTER_NAME_GRAB),
                 ACE_TEXT (Common_Error_Tools::errorToString (result_2, true, false).c_str ())));
     IGraphBuilder_->Release (); IGraphBuilder_ = NULL;
+    if (COM_initialized) Common_Tools::finalizeCOM ();
     return false;
   } // end IF
   ACE_ASSERT (filter_p);
@@ -166,6 +158,7 @@ Stream_MediaFramework_DirectShow_Source_T<ACE_SYNCH_USE,
                 ACE_TEXT (Common_Error_Tools::errorToString (result_2, true, false).c_str ())));
     filter_p->Release (); filter_p = NULL;
     IGraphBuilder_->Release (); IGraphBuilder_ = NULL;
+    if (COM_initialized) Common_Tools::finalizeCOM ();
     return false;
   } // end IF
   ACE_ASSERT (sample_grabber_p);
@@ -181,6 +174,7 @@ Stream_MediaFramework_DirectShow_Source_T<ACE_SYNCH_USE,
                 ACE_TEXT (Common_Error_Tools::errorToString (result_2, true, false).c_str ())));
     sample_grabber_p->Release (); sample_grabber_p = NULL;
     IGraphBuilder_->Release (); IGraphBuilder_ = NULL;
+    if (COM_initialized) Common_Tools::finalizeCOM ();
     return false;
   } // end IF
   result_2 = sample_grabber_p->SetCallback (this, 0);
@@ -192,6 +186,7 @@ Stream_MediaFramework_DirectShow_Source_T<ACE_SYNCH_USE,
                 ACE_TEXT (Common_Error_Tools::errorToString (result_2, true, false).c_str ())));
     sample_grabber_p->Release (); sample_grabber_p = NULL;
     IGraphBuilder_->Release (); IGraphBuilder_ = NULL;
+    if (COM_initialized) Common_Tools::finalizeCOM ();
     return false;
   } // end IF
   sample_grabber_p->Release (); sample_grabber_p = NULL;
@@ -202,8 +197,7 @@ Stream_MediaFramework_DirectShow_Source_T<ACE_SYNCH_USE,
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Stream_HeadModuleTaskBase_T::initialize(), aborting\n")));
 
-  if (COM_initialized)
-    CoUninitialize ();
+  if (COM_initialized) Common_Tools::finalizeCOM ();
 
   return result;
 }
@@ -260,7 +254,6 @@ Stream_MediaFramework_DirectShow_Source_T<ACE_SYNCH_USE,
   // don't care (implies yes per default, if part of a stream)
   ACE_UNUSED_ARG (passMessageDownstream_out);
 
-  bool COM_initialized = false;
   HRESULT result_2 = E_FAIL;
 
   switch (message_inout->type ())
@@ -271,23 +264,12 @@ Stream_MediaFramework_DirectShow_Source_T<ACE_SYNCH_USE,
       ACE_ASSERT (inherited::sessionData_);
       ACE_ASSERT (IGraphBuilder_);
 
+      bool COM_initialized = Common_Tools::initializeCOM ();
       SessionDataType& session_data_r =
         const_cast<SessionDataType&> (inherited::sessionData_->getR ());
       struct _AMMediaType media_type_s;
       MediaType media_type_2;
       ACE_OS::memset (&media_type_2, 0, sizeof (MediaType));
-
-      result_2 = CoInitializeEx (NULL,
-                                 (COINIT_MULTITHREADED    |
-                                  COINIT_DISABLE_OLE1DDE  |
-                                  COINIT_SPEED_OVER_MEMORY));
-      if (SUCCEEDED (result_2)) // RPC_E_CHANGED_MODE : 0x80010106L
-        COM_initialized = true;
-      else
-        ACE_DEBUG ((LM_WARNING,
-                    ACE_TEXT ("%s: failed to CoInitializeEx(): \"%s\", continuing\n"),
-                    inherited::mod_->name (),
-                    ACE_TEXT (Common_Error_Tools::errorToString (result_2, true, false).c_str ())));
 
 //#if defined (_DEBUG)
       //      std::string log_file_name =
@@ -346,14 +328,12 @@ Stream_MediaFramework_DirectShow_Source_T<ACE_SYNCH_USE,
                                 media_type_2);
       session_data_r.formats.push_back (media_type_2);
 
-      if (COM_initialized)
-        CoUninitialize ();
+      if (COM_initialized) Common_Tools::finalizeCOM ();
 
       break;
 
 error:
-      if (COM_initialized)
-        CoUninitialize ();
+      if (COM_initialized) Common_Tools::finalizeCOM ();
 
       this->notify (STREAM_SESSION_MESSAGE_ABORT);
 
@@ -361,25 +341,14 @@ error:
     }
     case STREAM_SESSION_MESSAGE_END:
     {
-      result_2 = CoInitializeEx (NULL,
-                                 (COINIT_MULTITHREADED    |
-                                  COINIT_DISABLE_OLE1DDE  |
-                                  COINIT_SPEED_OVER_MEMORY));
-      if (SUCCEEDED (result_2)) // RPC_E_CHANGED_MODE : 0x80010106L
-        COM_initialized = true;
-      else
-        ACE_DEBUG ((LM_WARNING,
-                    ACE_TEXT ("%s: failed to CoInitializeEx(): \"%s\", continuing\n"),
-                    inherited::mod_->name (),
-                    ACE_TEXT (Common_Error_Tools::errorToString (result_2, true, false).c_str ())));
+      bool COM_initialized = Common_Tools::initializeCOM ();
 
       if (IGraphBuilder_)
       {
         IGraphBuilder_->Release (); IGraphBuilder_ = NULL;
       } // end IF
 
-      if (COM_initialized)
-        CoUninitialize ();
+      if (COM_initialized) Common_Tools::finalizeCOM ();
 
       break;
     }

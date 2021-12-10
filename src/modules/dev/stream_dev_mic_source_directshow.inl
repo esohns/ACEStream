@@ -194,25 +194,14 @@ Stream_Dev_Mic_Source_DirectShow_T<ACE_SYNCH_USE,
 
   HRESULT result = E_FAIL;
 
-  //// initialize COM ?
-  //if (isFirst_)
-  //{
-  //  isFirst_ = false;
-
-  //  if (configuration_in.manageCOM)
-  //  {
-  //    result = CoInitializeEx (NULL,
-  //                             (COINIT_MULTITHREADED    |
-  //                              COINIT_DISABLE_OLE1DDE  |
-  //                              COINIT_SPEED_OVER_MEMORY));
-  //    if (FAILED (result)) // RPC_E_CHANGED_MODE : 0x80010106L
-  //      ACE_DEBUG ((LM_ERROR,
-  //                  ACE_TEXT ("%s: failed to CoInitializeEx(): \"%s\", continuing\n"),
-  //                  inherited::mod_->name (),
-  //                  ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
-  //    manageCOM_ = true;
-  //  } // end IF
-  //} // end IF
+  // initialize COM ?
+  static bool first_run = true;
+  bool COM_initialized = false;
+  if (likely (first_run))
+  {
+    first_run = false;
+    COM_initialized = Common_Tools::initializeCOM ();
+  } // end IF
 
   if (unlikely (inherited::isInitialized_))
   {
@@ -260,10 +249,9 @@ Stream_Dev_Mic_Source_DirectShow_T<ACE_SYNCH_USE,
     {
       ICaptureGraphBuilder2_->Release (); ICaptureGraphBuilder2_ = NULL;
     } // end IF
-
-    //manageCOM_ = false;
   } // end IF
-  //manageCOM_ = configuration_in.manageCOM;
+
+  if (COM_initialized) Common_Tools::finalizeCOM ();
 
   return inherited::initialize (configuration_in,
                                 allocator_in);
@@ -299,6 +287,7 @@ Stream_Dev_Mic_Source_DirectShow_T<ACE_SYNCH_USE,
   STREAM_TRACE (ACE_TEXT ("Stream_Dev_Mic_Source_DirectShow_T::handleSessionMessage"));
 
   int result = -1;
+  HRESULT result_2 = E_FAIL;
 
   // don't care (implies yes per default, if part of a stream)
   ACE_UNUSED_ARG (passMessageDownstream_out);
@@ -347,25 +336,9 @@ Stream_Dev_Mic_Source_DirectShow_T<ACE_SYNCH_USE,
 //                    &inherited::configuration_->statisticCollectionInterval));
       } // end IF
 
-      //bool COM_initialized = false;
+      bool COM_initialized = Common_Tools::initializeCOM ();
       bool is_running = false;
       bool is_active = false;
-      HRESULT result_2 = E_FAIL;
-
-      //if (manageCOM_)
-      //{
-      //  result_2 = CoInitializeEx (NULL,
-      //                            (COINIT_MULTITHREADED    |
-      //                             COINIT_DISABLE_OLE1DDE  |
-      //                             COINIT_SPEED_OVER_MEMORY));
-      //  if (FAILED (result_2)) // RPC_E_CHANGED_MODE : 0x80010106L
-      //    ACE_DEBUG ((LM_ERROR,
-      //                ACE_TEXT ("%s: failed to CoInitializeEx(): \"%s\", continuing\n"),
-      //                inherited::mod_->name (),
-      //                ACE_TEXT (Common_Error_Tools::errorToString (result_2).c_str ())));
-      //  COM_initialized = true;
-      //} // end IF
-
       ISampleGrabber* sample_grabber_p = NULL;
       ULONG reference_count = 0;
 
@@ -506,12 +479,11 @@ continue_2:
       ACE_ASSERT (IMediaEventEx_);
 
       ACE_ASSERT (!session_data_r.formats.empty ());
-#if defined (_DEBUG)
       ACE_DEBUG ((LM_DEBUG,
                   ACE_TEXT ("%s: capture format: \"%s\"\n"),
                   inherited::mod_->name (),
                   ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::toString (session_data_r.formats.back ()).c_str ())));
-
+#if defined (_DEBUG)
       log_file_name =
         Common_Log_Tools::getLogDirectory (ACE_TEXT_ALWAYS_CHAR (""),
                                            0);
@@ -551,6 +523,8 @@ continue_2:
       is_active = inherited::TASK_BASE_T::isRunning ();
       ACE_ASSERT (is_active);
 
+      if (COM_initialized) Common_Tools::finalizeCOM ();
+
       break;
 
 error:
@@ -586,8 +560,7 @@ error:
       //if (session_data_r.format)
       //  Stream_Device_Tools::deleteMediaType (session_data_r.format);
 
-      //if (manageCOM_ && COM_initialized)
-      //  CoUninitialize ();
+      if (COM_initialized) Common_Tools::finalizeCOM ();
 
       this->notify (STREAM_SESSION_MESSAGE_ABORT);
 
@@ -615,25 +588,7 @@ error:
         inherited::timerId_ = -1;
       } // end IF
 
-      // *TODO*: (without more overhead,) this can only assme that the calling
-      //         thread is the same as the one that dispatched the session begin
-      //         message, which is not a safe assumption
-      //bool COM_initialized = false;
-      HRESULT result_2 = E_FAIL;
-
-      //if (manageCOM_)
-      //{
-      //  result_2 = CoInitializeEx (NULL,
-      //                             (COINIT_MULTITHREADED    |
-      //                              COINIT_DISABLE_OLE1DDE  |
-      //                              COINIT_SPEED_OVER_MEMORY));
-      //  if (FAILED (result_2)) // RPC_E_CHANGED_MODE : 0x80010106L
-      //    ACE_DEBUG ((LM_ERROR,
-      //                ACE_TEXT ("%s: failed to CoInitializeEx(): \"%s\", continuing\n"),
-      //                inherited::mod_->name (),
-      //                ACE_TEXT (Common_Error_Tools::errorToString (result_2).c_str ())));
-      //  COM_initialized = true;
-      //} // end IF
+      bool COM_initialized = Common_Tools::initializeCOM ();
 
       // deregister graph from the ROT (GraphEdit.exe) ?
       if (likely (ROTID_))
@@ -734,8 +689,7 @@ continue_4:
         ICaptureGraphBuilder2_->Release (); ICaptureGraphBuilder2_ = NULL;
       } // end IF
 
-      //if (manageCOM_ && COM_initialized)
-      //  CoUninitialize ();
+      if (COM_initialized) Common_Tools::finalizeCOM ();
 
       // *NOTE*: there already is a MB_STOP message left in the queue
       //if (likely (inherited::concurrency_ != STREAM_HEADMODULECONCURRENCY_CONCURRENT))

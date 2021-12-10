@@ -244,7 +244,6 @@ Stream_Vis_Target_MediaFoundation_T<ACE_SYNCH_USE,
 
   int result = -1;
   HRESULT result_2 = E_FAIL;
-  bool COM_initialized = false;
 
   // sanity check(s)
   ACE_ASSERT (inherited::configuration_);
@@ -257,7 +256,7 @@ Stream_Vis_Target_MediaFoundation_T<ACE_SYNCH_USE,
         message_inout->getR ();
       SessionDataType& session_data_r =
         const_cast<SessionDataType&> (session_data_container_r.getR ());
-
+      bool COM_initialized = Common_Tools::initializeCOM ();
       ULONG reference_count = 0;
       IMFMediaSink* media_sink_p = NULL;
 //#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0602) // _WIN32_WINNT_WIN8
@@ -266,28 +265,6 @@ Stream_Vis_Target_MediaFoundation_T<ACE_SYNCH_USE,
       IMFVideoDisplayControl* video_display_control_p = NULL;
 //#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0602)
       DWORD count = 0;
-
-      result_2 = CoInitializeEx (NULL,
-                                 (COINIT_MULTITHREADED    |
-                                  COINIT_DISABLE_OLE1DDE  |
-                                  COINIT_SPEED_OVER_MEMORY));
-      if (FAILED (result_2))
-      {
-        if (result_2 == RPC_E_CHANGED_MODE)
-          ACE_DEBUG ((LM_WARNING,
-                      ACE_TEXT ("%s: failed to CoInitializeEx(): \"%s\", continuing\n"),
-                      inherited::mod_->name (),
-                      ACE_TEXT (Common_Error_Tools::errorToString (result_2).c_str ())));
-        else
-        {
-          ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("%s: failed to CoInitializeEx(): \"%s\", aborting\n"),
-                      inherited::mod_->name (),
-                      ACE_TEXT (Common_Error_Tools::errorToString (result_2).c_str ())));
-          goto error;
-        } // end ELSE
-      } // end IF
-      COM_initialized = true;
 
       // sanity check(s)
       //ACE_ASSERT (!streamSink_);
@@ -503,29 +480,16 @@ error:
       //  direct3DDevice_->Release (); direct3DDevice_ = NULL;
       //} // end IF
 
-      session_data_r.aborted = true;
+      notify (STREAM_SESSION_MESSAGE_ABORT);
 
 continue_:
-      if (COM_initialized)
-        CoUninitialize ();
+      if (COM_initialized) Common_Tools::finalizeCOM ();
 
       break;
     }
     case STREAM_SESSION_MESSAGE_END:
     {
-      result_2 = CoInitializeEx (NULL,
-                                 (COINIT_MULTITHREADED    |
-                                  COINIT_DISABLE_OLE1DDE  |
-                                  COINIT_SPEED_OVER_MEMORY));
-      if (FAILED (result_2))
-      {
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("%s: failed to CoInitializeEx(): \"%s\", aborting\n"),
-                    inherited::mod_->name (),
-                    ACE_TEXT (Common_Error_Tools::errorToString (result_2).c_str ())));
-        break;
-      } // end IF
-      COM_initialized = true;
+      bool COM_initialized = Common_Tools::initializeCOM ();
 
       //if (videoSampleAllocator_)
       //{
@@ -559,8 +523,7 @@ continue_:
       //  direct3DDevice_->Release (); direct3DDevice_ = NULL;
       //} // end IF
 
-      if (COM_initialized)
-        CoUninitialize ();
+      if (COM_initialized) Common_Tools::finalizeCOM ();
 
       break;
     }
@@ -620,6 +583,15 @@ Stream_Vis_Target_MediaFoundation_T<ACE_SYNCH_USE,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Vis_Target_MediaFoundation_T::initialize"));
 
+  // initialize COM ?
+  static bool first_run = true;
+  bool COM_initialized = false;
+  if (likely (first_run))
+  {
+    first_run = false;
+    COM_initialized = Common_Tools::initializeCOM ();
+  } // end IF
+
   if (inherited::isInitialized_)
   {
     //if (videoSampleAllocator_)
@@ -651,8 +623,6 @@ Stream_Vis_Target_MediaFoundation_T<ACE_SYNCH_USE,
     //{
     //  direct3DDevice_->Release (); direct3DDevice_ = NULL;
     //} // end IF
-
-    inherited::isInitialized_ = false;
   } // end IF
 
   // *TODO*: remove type inferences
@@ -668,6 +638,8 @@ Stream_Vis_Target_MediaFoundation_T<ACE_SYNCH_USE,
     ACE_UNUSED_ARG (reference_count);
     mediaSession_ = configuration_in.session;
   } // end IF
+
+  if (COM_initialized) Common_Tools::finalizeCOM ();
 
   return inherited::initialize (configuration_in);
 }
@@ -1958,7 +1930,6 @@ Stream_Vis_Target_MediaFoundation_2<ACE_SYNCH_USE,
 
   //int result = -1;
   HRESULT result_2 = E_FAIL;
-  bool COM_initialized = false;
 
   switch (message_inout->type ())
   {
@@ -1968,50 +1939,23 @@ Stream_Vis_Target_MediaFoundation_2<ACE_SYNCH_USE,
         message_inout->getR ();
       SessionDataType& session_data_r =
         const_cast<SessionDataType&> (session_data_container_r.getR ());
-
-      result_2 = CoInitializeEx (NULL,
-                                 (COINIT_MULTITHREADED     |
-                                  COINIT_DISABLE_OLE1DDE   |
-                                  COINIT_SPEED_OVER_MEMORY));
-      if (FAILED (result_2))
-      {
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("%s: failed to CoInitializeEx(): \"%s\", aborting\n"),
-                    inherited::mod_->name (),
-                    ACE_TEXT (Common_Error_Tools::errorToString (result_2).c_str ())));
-        goto error;
-      } // end IF
-      COM_initialized = true;
+      bool COM_initialized = Common_Tools::initializeCOM ();
 
       goto continue_;
 
-error:
+//error:
       this->notify (STREAM_SESSION_MESSAGE_ABORT);
 
 continue_:
-      if (COM_initialized)
-        CoUninitialize ();
+      if (COM_initialized) Common_Tools::finalizeCOM ();
 
       break;
     }
     case STREAM_SESSION_MESSAGE_END:
     {
-      result_2 = CoInitializeEx (NULL,
-                                 (COINIT_MULTITHREADED     |
-                                  COINIT_DISABLE_OLE1DDE   |
-                                  COINIT_SPEED_OVER_MEMORY));
-      if (FAILED (result_2))
-      {
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("%s: failed to CoInitializeEx(): \"%s\", aborting\n"),
-                    inherited::mod_->name (),
-                    ACE_TEXT (Common_Error_Tools::errorToString (result_2).c_str ())));
-        break;
-      } // end IF
-      COM_initialized = true;
+      bool COM_initialized = Common_Tools::initializeCOM ();
 
-      if (COM_initialized)
-        CoUninitialize ();
+      if (COM_initialized) Common_Tools::finalizeCOM ();
 
       break;
     }

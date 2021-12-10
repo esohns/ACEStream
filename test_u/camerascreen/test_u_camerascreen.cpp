@@ -409,7 +409,6 @@ do_process_arguments (int argc_in,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 bool
 do_initialize_directshow (const struct Stream_Device_Identifier& deviceIdentifier_in,
-                          bool coInitialize_in,
                           bool hasUI_in,
                           IGraphBuilder*& IGraphBuilder_out,
                           IAMStreamConfig*& IAMStreamConfig_out,
@@ -432,7 +431,6 @@ do_initialize_directshow (const struct Stream_Device_Identifier& deviceIdentifie
   ACE_ASSERT (!IAMStreamConfig_out);
 
   Stream_MediaFramework_Tools::initialize (STREAM_MEDIAFRAMEWORK_DIRECTSHOW);
-  Stream_Device_DirectShow_Tools::initialize (coInitialize_in);
 
   if (!Stream_Device_DirectShow_Tools::loadDeviceGraph (deviceIdentifier_in,
                                                         CLSID_VideoInputDeviceCategory,
@@ -632,9 +630,6 @@ error:
     IGraphBuilder_out->Release (); IGraphBuilder_out = NULL;
   } // end IF
 
-  if (coInitialize_in)
-    CoUninitialize ();
-
   return false;
 }
 
@@ -647,8 +642,6 @@ do_finalize_directshow (IAMStreamConfig*& streamConfiguration_inout)
   {
     streamConfiguration_inout->Release (); streamConfiguration_inout = NULL;
   } // end IF
-
-  Stream_Device_DirectShow_Tools::finalize (true);
 }
 
 bool
@@ -657,8 +650,7 @@ do_initialize_mediafoundation (const struct Stream_Device_Identifier& deviceIden
 #if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
                                IMFMediaSession*& IMFMediaSession_out,
 #endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
-                               bool loadDevice_in,
-                               bool coInitialize_in)
+                               bool loadDevice_in)
 {
   STREAM_TRACE (ACE_TEXT ("::do_initialize_mediafoundation"));
 
@@ -675,23 +667,6 @@ do_initialize_mediafoundation (const struct Stream_Device_Identifier& deviceIden
   ACE_ASSERT (!IMFMediaSession_out);
 #endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
 
-  if (!coInitialize_in)
-    goto continue_;
-
-  result = CoInitializeEx (NULL,
-                           (COINIT_MULTITHREADED    |
-                            COINIT_DISABLE_OLE1DDE  |
-                            COINIT_SPEED_OVER_MEMORY));
-  if (FAILED (result))
-  {
-    // *NOTE*: most probable reason: already initialized (happens in the debugger)
-    //         --> continue
-    ACE_DEBUG ((LM_WARNING,
-                ACE_TEXT ("failed to CoInitializeEx(): \"%s\", continuing\n"),
-                ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
-  } // end IF
-
-continue_:
   result = MFStartup (MF_VERSION,
                       MFSTARTUP_LITE);
   if (FAILED (result))
@@ -703,7 +678,6 @@ continue_:
   } // end IF
 
   Stream_MediaFramework_Tools::initialize (STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION);
-  Stream_Device_Tools::initialize (true); // initialize media frameworks ?
 
   if (!loadDevice_in)
     goto continue_2;
@@ -819,9 +793,6 @@ error:
                 ACE_TEXT ("failed to MFShutdown(): \"%s\", continuing\n"),
                 ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
 
-  if (coInitialize_in)
-    CoUninitialize ();
-
   return false;
 }
 
@@ -847,8 +818,6 @@ do_finalize_mediafoundation (IMFMediaSession*& mediaSession_inout)
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to MFShutdown(): \"%s\", continuing\n"),
                 ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
-
-  CoUninitialize ();
 }
 #else
 bool
@@ -1183,14 +1152,12 @@ do_work (const struct Stream_Device_Identifier& deviceIdentifier_in,
   IAMStreamConfig* stream_config_p = NULL;
   IMFMediaSession* media_session_p = NULL;
   bool load_device = true;
-  bool initialize_COM = true;
   switch (mediaFramework_in)
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
     {
       struct _AMMediaType* media_type_p = NULL;
       if (!do_initialize_directshow (deviceIdentifier_in,
-                                     initialize_COM,                    // initialize COM ?
                                      false,                             // has UI ?
                                      (*directshow_stream_iterator).second.second->builder,
                                      stream_config_p,
@@ -1222,8 +1189,7 @@ do_work (const struct Stream_Device_Identifier& deviceIdentifier_in,
 #if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
                                           (*mediafoundation_stream_iterator).second.second->session,
 #endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
-                                          load_device,     // load device ?
-                                          initialize_COM)) // initialize COM ?
+                                          load_device)) // load device ?
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("failed to ::do_initialize_mediafoundation(), returning\n")));
@@ -1503,11 +1469,12 @@ ACE_TMAIN (int argc_in,
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   int result = -1;
+  bool COM_initialized = false;
 #endif // ACE_WIN32 || ACE_WIN64
 
   // step0: initialize
-  // *PORTABILITY*: on Windows, initialize ACE...
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
+  // *PORTABILITY*: on Windows, initialize ACE...
   result = ACE::init ();
   if (result == -1)
   {
@@ -1528,6 +1495,7 @@ ACE_TMAIN (int argc_in,
   // initialize framework(s)
   Common_Tools::initialize (false); // initialize random number generator ?
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
+  COM_initialized = Common_Tools::initializeCOM ();
   Stream_MediaFramework_Tools::initialize (STREAM_LIB_DEFAULT_MEDIAFRAMEWORK);
 #endif // ACE_WIN32 || ACE_WIN64
 
@@ -1556,7 +1524,13 @@ ACE_TMAIN (int argc_in,
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("invalid/unknown media framework (was: %d), returning\n"),
                   STREAM_LIB_DEFAULT_MEDIAFRAMEWORK));
-      return false;
+      if (COM_initialized) Common_Tools::finalizeCOM ();
+      // *PORTABILITY*: on Windows, finalize ACE...
+      result = ACE::fini ();
+      if (result == -1)
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("failed to ACE::fini(): \"%m\", continuing\n")));
+      return EXIT_FAILURE;
     }
   } // end SWITCH
   bool show_console = false;
@@ -1600,8 +1574,9 @@ ACE_TMAIN (int argc_in,
                              program_mode_e))
   {
     do_print_usage (ACE::basename (argv_in[0]));
-    // *PORTABILITY*: on Windows, finalize ACE...
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
+    if (COM_initialized) Common_Tools::finalizeCOM ();
+    // *PORTABILITY*: on Windows, finalize ACE...
     result = ACE::fini ();
     if (result == -1)
       ACE_DEBUG ((LM_ERROR,
@@ -1624,8 +1599,9 @@ ACE_TMAIN (int argc_in,
                 ACE_TEXT ("invalid arguments, aborting\n")));
 
     do_print_usage (ACE::basename (argv_in[0]));
-    // *PORTABILITY*: on Windows, finalize ACE...
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
+    if (COM_initialized) Common_Tools::finalizeCOM ();
+    // *PORTABILITY*: on Windows, finalize ACE...
     result = ACE::fini ();
     if (result == -1)
       ACE_DEBUG ((LM_ERROR,
@@ -1650,8 +1626,9 @@ ACE_TMAIN (int argc_in,
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Common_Log_Tools::initializeLogging(), aborting\n")));
 
-    // *PORTABILITY*: on Windows, finalize ACE...
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
+    if (COM_initialized) Common_Tools::finalizeCOM ();
+    // *PORTABILITY*: on Windows, finalize ACE...
     result = ACE::fini ();
     if (result == -1)
       ACE_DEBUG ((LM_ERROR,
@@ -1668,8 +1645,9 @@ ACE_TMAIN (int argc_in,
       do_print_version (ACE::basename (argv_in[0]));
 
       Common_Log_Tools::finalizeLogging ();
-      // *PORTABILITY*: on Windows, finalize ACE...
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
+      if (COM_initialized) Common_Tools::finalizeCOM ();
+      // *PORTABILITY*: on Windows, finalize ACE...
       result = ACE::fini ();
       if (result == -1)
         ACE_DEBUG ((LM_ERROR,
@@ -1696,20 +1674,20 @@ ACE_TMAIN (int argc_in,
                   ACE_TEXT ("invalid/unknown program mode (was: %d), aborting\n"),
                   program_mode_e));
 
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+      if (COM_initialized) Common_Tools::finalizeCOM ();
       // *PORTABILITY*: on Windows, finalize ACE...
-  #if defined (ACE_WIN32) || defined (ACE_WIN64)
       result = ACE::fini ();
       if (result == -1)
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("failed to ACE::fini(): \"%m\", continuing\n")));
-  #endif // ACE_WIN32 || ACE_WIN64
+#endif // ACE_WIN32 || ACE_WIN64
       return EXIT_FAILURE;
     }
   } // end SWITCH
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  Stream_Visualization_Tools::initialize (STREAM_VIS_FRAMEWORK_DEFAULT,
-                                          true);
+  Stream_Visualization_Tools::initialize (STREAM_VIS_FRAMEWORK_DEFAULT);
 
   struct Stream_CameraScreen_DirectShow_Configuration directshow_configuration;
   struct Stream_CameraScreen_MediaFoundation_Configuration mediafoundation_configuration;
@@ -1766,8 +1744,9 @@ ACE_TMAIN (int argc_in,
                 ACE_TEXT ("failed to ACE_Profile_Timer::elapsed_time: \"%m\", aborting\n")));
 
     Common_Log_Tools::finalizeLogging ();
-    // *PORTABILITY*: on Windows, finalize ACE...
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
+    if (COM_initialized) Common_Tools::finalizeCOM ();
+    // *PORTABILITY*: on Windows, finalize ACE...
     result = ACE::fini ();
     if (result == -1)
       ACE_DEBUG ((LM_ERROR,
@@ -1820,8 +1799,9 @@ ACE_TMAIN (int argc_in,
 
   Common_Log_Tools::finalizeLogging ();
 
-  // *PORTABILITY*: on Windows, finalize ACE...
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
+  if (COM_initialized) Common_Tools::finalizeCOM ();
+  // *PORTABILITY*: on Windows, finalize ACE...
   result = ACE::fini ();
   if (result == -1)
     ACE_DEBUG ((LM_ERROR,

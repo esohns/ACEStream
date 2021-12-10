@@ -166,27 +166,15 @@ Stream_MediaFramework_DirectShow_Target_T<ACE_SYNCH_USE,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_DirectShow_Target_T::initialize"));
 
-  // initialize COM ?
   HRESULT result = E_FAIL;
+
+  // initialize COM ?
   static bool first_run = true;
   bool COM_initialized = false;
-  if (first_run)
+  if (likely (first_run))
   {
     first_run = false;
-
-    result = CoInitializeEx (NULL,
-                             (COINIT_MULTITHREADED    |
-                              COINIT_DISABLE_OLE1DDE  |
-                              COINIT_SPEED_OVER_MEMORY));
-    if (FAILED (result))
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("%s: failed to CoInitializeEx(): \"%s\", aborting\n"),
-                  inherited::mod_->name (),
-                  ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
-      return false;
-    } // end IF
-    COM_initialized = true;
+    COM_initialized = Common_Tools::initializeCOM ();
   } // end IF
 
   int result_2 = -1;
@@ -248,6 +236,8 @@ Stream_MediaFramework_DirectShow_Target_T<ACE_SYNCH_USE,
       inherited::msg_queue_;
   } // end IF
 
+  if (COM_initialized) Common_Tools::finalizeCOM ();
+
   return inherited::initialize (configuration_in,
                                 allocator_in);
 
@@ -262,6 +252,7 @@ error:
   {
     IGraphBuilder_->Release (); IGraphBuilder_ = NULL;
   } // end IF
+  if (COM_initialized) Common_Tools::finalizeCOM ();
 
   return false;
 }
@@ -347,6 +338,7 @@ Stream_MediaFramework_DirectShow_Target_T<ACE_SYNCH_USE,
   STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_DirectShow_Target_T::handleSessionMessage"));
 
   int result = -1;
+  HRESULT result_2 = E_FAIL;
 
   // don't care (implies yes per default, if part of a stream)
   ACE_UNUSED_ARG (passMessageDownstream_out);
@@ -364,7 +356,7 @@ Stream_MediaFramework_DirectShow_Target_T<ACE_SYNCH_USE,
         const_cast<SessionDataType&> (inherited::sessionData_->getR ());
       ACE_ASSERT (!session_data_r.formats.empty ());
 
-      bool COM_initialized = false;
+      bool COM_initialized = Common_Tools::initializeCOM ();
       bool is_running = false;
       bool remove_from_ROT = false;
 #if defined (_DEBUG)
@@ -376,20 +368,6 @@ Stream_MediaFramework_DirectShow_Target_T<ACE_SYNCH_USE,
       ULONG reference_count = 0;
       struct _AMMediaType media_type_s;
       ACE_OS::memset (&media_type_s, 0, sizeof (struct _AMMediaType));
-
-      HRESULT result_2 = CoInitializeEx (NULL,
-                                         (COINIT_MULTITHREADED    |
-                                          COINIT_DISABLE_OLE1DDE  |
-                                          COINIT_SPEED_OVER_MEMORY));
-      if (FAILED (result_2))
-      {
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("%s: failed to CoInitializeEx(): \"%s\", aborting\n"),
-                    inherited::mod_->name (),
-                    ACE_TEXT (Common_Error_Tools::errorToString (result_2, false, false).c_str ())));
-        goto error;
-      } // end IF
-      COM_initialized = true;
 
       inherited2::getMediaType (session_data_r.formats.back (),
                                 media_type_s);
@@ -513,6 +491,8 @@ do_run:
 
       Stream_MediaFramework_DirectShow_Tools::free (media_type_s);
 
+      if (COM_initialized) Common_Tools::finalizeCOM ();
+
       break;
 
 error:
@@ -525,6 +505,7 @@ error:
                       ROTID_));
         ROTID_ = 0;
       } // end IF
+
       if (is_running)
       { ACE_ASSERT (IMediaControl_);
         result_2 = IMediaControl_->Stop ();
@@ -534,9 +515,10 @@ error:
                       inherited::mod_->name (),
                       ACE_TEXT (Common_Error_Tools::errorToString (result_2, true, false).c_str ())));
       } // end IF
+
       Stream_MediaFramework_DirectShow_Tools::free (media_type_s);
-      if (COM_initialized)
-        CoUninitialize ();
+
+      if (COM_initialized) Common_Tools::finalizeCOM ();
 
       notify (STREAM_SESSION_MESSAGE_ABORT);
 
@@ -544,20 +526,7 @@ error:
     }
     case STREAM_SESSION_MESSAGE_END:
     {
-      bool COM_initialized = false;
-      HRESULT result_2 = CoInitializeEx (NULL,
-                                         (COINIT_MULTITHREADED    |
-                                          COINIT_DISABLE_OLE1DDE  |
-                                          COINIT_SPEED_OVER_MEMORY));
-      if (FAILED (result_2))
-      {
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("%s: failed to CoInitializeEx(): \"%s\", aborting\n"),
-                    inherited::mod_->name (),
-                    ACE_TEXT (Common_Error_Tools::errorToString (result_2, false, false).c_str ())));
-        break;
-      } // end IF
-      COM_initialized = true;
+      bool COM_initialized = Common_Tools::initializeCOM ();
 
       // deregister graph from the ROT ?
       if (ROTID_)
@@ -582,7 +551,8 @@ error:
         IMediaEventEx_->Release (); IMediaEventEx_ = NULL;
       } // end IF
 
-      stop (false, false);
+      stop (false,
+            false);
 
       if (IMediaControl_)
       {
@@ -607,8 +577,7 @@ error:
         IGraphBuilder_->Release (); IGraphBuilder_ = NULL;
       } // end IF
 
-      if (COM_initialized)
-        CoUninitialize ();
+      if (COM_initialized) Common_Tools::finalizeCOM ();
 
       break;
     }

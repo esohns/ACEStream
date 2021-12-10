@@ -170,20 +170,10 @@ Stream_Dev_Mic_Source_MediaFoundation_T<ACE_SYNCH_USE,
   // initialize COM ?
   static bool first_run = true;
   bool COM_initialized = false;
-  if (first_run)
+  if (likely (first_run))
   {
     first_run = false;
-
-    result_2 = CoInitializeEx (NULL,
-                               (COINIT_MULTITHREADED    |
-                                COINIT_DISABLE_OLE1DDE  |
-                                COINIT_SPEED_OVER_MEMORY));
-    if (FAILED (result_2)) // RPC_E_CHANGED_MODE : 0x80010106L
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("%s: failed to CoInitializeEx(): \"%s\", continuing\n"),
-                  inherited::mod_->name (),
-                  ACE_TEXT (Common_Error_Tools::errorToString (result_2).c_str ())));
-    COM_initialized = true;
+    COM_initialized = Common_Tools::initializeCOM ();
   } // end IF
 
   if (inherited::isInitialized_)
@@ -230,13 +220,9 @@ Stream_Dev_Mic_Source_MediaFoundation_T<ACE_SYNCH_USE,
     goto error;
   } // end IF
 
-  goto continue_;
-
 error:
-  if (COM_initialized)
-    CoUninitialize ();
+  if (COM_initialized) Common_Tools::finalizeCOM ();
 
-continue_:
   return result;
 }
 //template <ACE_SYNCH_DECL,
@@ -356,6 +342,7 @@ Stream_Dev_Mic_Source_MediaFoundation_T<ACE_SYNCH_USE,
   STREAM_TRACE (ACE_TEXT ("Stream_Dev_Mic_Source_MediaFoundation_T::handleSessionMessage"));
 
   int result = -1;
+  HRESULT result_2 = E_FAIL;
 
   // don't care (implies yes per default, if part of a stream)
   ACE_UNUSED_ARG (passMessageDownstream_out);
@@ -376,10 +363,9 @@ Stream_Dev_Mic_Source_MediaFoundation_T<ACE_SYNCH_USE,
   {
     case STREAM_SESSION_MESSAGE_BEGIN:
     {
-      bool COM_initialized = false;
+      bool COM_initialized = Common_Tools::initializeCOM ();
       //IMFTopologyNode* source_node_p = NULL;
       //IMFPresentationDescriptor* presentation_descriptor_p = NULL;
-      HRESULT result_2 = E_FAIL;
       ULONG reference_count = 0;
 
       if (inherited::configuration_->statisticCollectionInterval !=
@@ -404,17 +390,6 @@ Stream_Dev_Mic_Source_MediaFoundation_T<ACE_SYNCH_USE,
 //                    inherited::timerId_,
 //                    &inherited::configuration_->statisticCollectionInterval));
       } // end IF
-
-      result_2 = CoInitializeEx (NULL,
-                                 (COINIT_MULTITHREADED    |
-                                  COINIT_DISABLE_OLE1DDE  |
-                                  COINIT_SPEED_OVER_MEMORY));
-      if (FAILED (result_2)) // RPC_E_CHANGED_MODE : 0x80010106L
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("%s: failed to CoInitializeEx(): \"%s\", continuing\n"),
-                    inherited::mod_->name (),
-                    ACE_TEXT (Common_Error_Tools::errorToString (result_2).c_str ())));
-      COM_initialized = true;
 
       // sanity check(s)
 #if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
@@ -549,6 +524,8 @@ Stream_Dev_Mic_Source_MediaFoundation_T<ACE_SYNCH_USE,
       session_data_r.session = mediaSession_;
 #endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
 
+      if (COM_initialized) Common_Tools::finalizeCOM ();
+
       break;
 
 error:
@@ -562,12 +539,12 @@ error:
       if (session_data_r.session &&
           releaseSessionSession_)
       {
-        result = session_data_r.session->Shutdown ();
-        if (FAILED (result))
+        result_2 = session_data_r.session->Shutdown ();
+        if (FAILED (result_2))
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("%s: failed to IMFMediaSession::Shutdown(): \"%s\", continuing\n"),
                       inherited::mod_->name (),
-                      ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
+                      ACE_TEXT (Common_Error_Tools::errorToString (result_2).c_str ())));
         shutdown_session = false;
         session_data_r.session->Release (); session_data_r.session = NULL;
       } // end IF
@@ -575,12 +552,12 @@ error:
       {
         if (shutdown_session)
         {
-          result = mediaSession_->Shutdown ();
-          if (FAILED (result))
+          result_2 = mediaSession_->Shutdown ();
+          if (FAILED (result_2))
             ACE_DEBUG ((LM_ERROR,
                         ACE_TEXT ("%s: failed to IMFMediaSession::Shutdown(): \"%s\", continuing\n"),
                         inherited::mod_->name (),
-                        ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
+                        ACE_TEXT (Common_Error_Tools::errorToString (result_2).c_str ())));
         } // end IF
         mediaSession_->Release (); mediaSession_ = NULL;
       } // end IF
@@ -592,8 +569,7 @@ error:
         symbolicLinkSize_ = 0;
       } // end IF
 
-      if (COM_initialized)
-        CoUninitialize ();
+      if (COM_initialized) Common_Tools::finalizeCOM ();
 
       notify (STREAM_SESSION_MESSAGE_ABORT);
 
@@ -621,17 +597,7 @@ error:
         inherited::timerId_ = -1;
       } // end IF
 
-      bool COM_initialized = false;
-      HRESULT result_2 = CoInitializeEx (NULL,
-                                         (COINIT_MULTITHREADED    |
-                                          COINIT_DISABLE_OLE1DDE  |
-                                          COINIT_SPEED_OVER_MEMORY));
-      if (FAILED (result_2)) // RPC_E_CHANGED_MODE : 0x80010106L
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("%s: failed to CoInitializeEx(): \"%s\", continuing\n"),
-                    inherited::mod_->name (),
-                    ACE_TEXT (Common_Error_Tools::errorToString (result_2).c_str ())));
-      COM_initialized = true;
+      bool COM_initialized = Common_Tools::initializeCOM ();
 
 #if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
       if (!mediaSession_)
@@ -692,8 +658,7 @@ continue_:
       } // end IF
 #endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
 
-      if (COM_initialized)
-        CoUninitialize ();
+      if (COM_initialized) Common_Tools::finalizeCOM ();
 
       if (likely (inherited::configuration_->concurrency != STREAM_HEADMODULECONCURRENCY_CONCURRENT))
       { Common_ITask* itask_p = this; // *TODO*: is the no other way ?

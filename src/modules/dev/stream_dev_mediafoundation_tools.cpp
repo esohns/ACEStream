@@ -62,13 +62,6 @@
 #include "stream_lib_defines.h"
 #include "stream_lib_mediafoundation_tools.h"
 
-void
-Stream_Device_MediaFoundation_Tools::initialize ()
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_Device_MediaFoundation_Tools::initialize"));
-
-}
-
 struct Stream_Device_Identifier
 Stream_Device_MediaFoundation_Tools::getDefaultCaptureDevice (REFGUID deviceCategory_in)
 {

@@ -185,20 +185,7 @@ Stream_Dev_Cam_Source_MediaFoundation_T<ACE_SYNCH_USE,
   if (likely (first_run))
   {
     first_run = false;
-
-    result_2 = CoInitializeEx (NULL,
-                               (COINIT_MULTITHREADED    |
-                                COINIT_DISABLE_OLE1DDE  |
-                                COINIT_SPEED_OVER_MEMORY));
-    if (unlikely (FAILED (result_2)))
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to CoInitializeEx(): \"%s\", continuing\n"),
-                  ACE_TEXT (Common_Error_Tools::errorToString (result_2).c_str ())));
-      //goto error;
-    } // end IF
-    else
-      COM_initialized = true;
+    COM_initialized = Common_Tools::initializeCOM ();
   } // end IF
 
   if (unlikely (inherited::isInitialized_))
@@ -244,13 +231,9 @@ Stream_Dev_Cam_Source_MediaFoundation_T<ACE_SYNCH_USE,
     goto error;
   } // end IF
 
-  goto continue_;
-
 error:
-  if (COM_initialized)
-    CoUninitialize ();
+  if (COM_initialized) Common_Tools::finalizeCOM ();
 
-continue_:
   return result;
 }
 //template <ACE_SYNCH_DECL,
@@ -372,6 +355,7 @@ Stream_Dev_Cam_Source_MediaFoundation_T<ACE_SYNCH_USE,
   STREAM_TRACE (ACE_TEXT ("Stream_Dev_Cam_Source_MediaFoundation_T::handleSessionMessage"));
 
   int result = -1;
+  HRESULT result_2 = E_FAIL;
 
   // don't care (implies yes per default, if part of a stream)
   ACE_UNUSED_ARG (passMessageDownstream_out);
@@ -396,12 +380,11 @@ Stream_Dev_Cam_Source_MediaFoundation_T<ACE_SYNCH_USE,
       //ACE_ASSERT (inherited::configuration_->streamConfiguration);
       //ACE_ASSERT (session_data_r.sourceFormat);
 
-      bool COM_initialized = false;
+      bool COM_initialized = Common_Tools::initializeCOM ();
       bool release_device = false;
       //IDirect3DDeviceManager9* direct3D_manager_p = NULL;
       //IMFTopologyNode* source_node_p = NULL;
       //IMFPresentationDescriptor* presentation_descriptor_p = NULL;
-      HRESULT result_2 = E_FAIL;
       ULONG reference_count = 0;
 
       if (inherited::configuration_->statisticCollectionInterval !=
@@ -426,20 +409,6 @@ Stream_Dev_Cam_Source_MediaFoundation_T<ACE_SYNCH_USE,
 //                    inherited::timerId_,
 //                    &inherited::configuration_->statisticCollectionInterval));
       } // end IF
-
-      result_2 = CoInitializeEx (NULL,
-                                 (COINIT_MULTITHREADED    |
-                                  COINIT_DISABLE_OLE1DDE  |
-                                  COINIT_SPEED_OVER_MEMORY));
-
-      if (unlikely (FAILED (result_2)))
-      {
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("failed to CoInitializeEx(): \"%s\", aborting\n"),
-                    ACE_TEXT (Common_Error_Tools::errorToString (result_2).c_str ())));
-        goto error;
-      } // end IF
-      COM_initialized = true;
 
 #if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
       // sanity check(s)
@@ -582,6 +551,8 @@ Stream_Dev_Cam_Source_MediaFoundation_T<ACE_SYNCH_USE,
       session_data_r.session = mediaSession_;
 #endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
 
+      if (COM_initialized) Common_Tools::finalizeCOM ();
+
       break;
 
 error:
@@ -624,8 +595,7 @@ error:
         symbolicLinkSize_ = 0;
       } // end IF
 
-      if (COM_initialized)
-        CoUninitialize ();
+      if (COM_initialized) Common_Tools::finalizeCOM ();
 
       notify (STREAM_SESSION_MESSAGE_ABORT);
 
@@ -653,21 +623,7 @@ error:
         inherited::timerId_ = -1;
       } // end IF
 
-      bool COM_initialized = false;
-      HRESULT result_2 = CoInitializeEx (NULL,
-                                         (COINIT_MULTITHREADED    |
-                                          COINIT_DISABLE_OLE1DDE  |
-                                          COINIT_SPEED_OVER_MEMORY));
-
-      if (unlikely (FAILED (result_2)))
-      {
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("failed to CoInitializeEx(): \"%s\", aborting\n"),
-                    ACE_TEXT (Common_Error_Tools::errorToString (result_2).c_str ())));
-        break;
-      } // end IF
-      COM_initialized = true;
-
+      bool COM_initialized = Common_Tools::initializeCOM ();
       bool close_session = true;
 #if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
       if (unlikely (!mediaSession_))
@@ -747,8 +703,7 @@ continue_:
       } // end IF
 #endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
 
-      if (likely (COM_initialized))
-        CoUninitialize ();
+      if (COM_initialized) Common_Tools::finalizeCOM ();
 
       if (likely (inherited::configuration_->concurrency != STREAM_HEADMODULECONCURRENCY_CONCURRENT))
       { Common_ITask* itask_p = this; // *TODO*: is the no other way ?

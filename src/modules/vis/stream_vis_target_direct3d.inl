@@ -487,7 +487,6 @@ Stream_Vis_Target_Direct3D_T<ACE_SYNCH_USE,
   ACE_UNUSED_ARG (passMessageDownstream_out);
 
   HRESULT result_2 = E_FAIL;
-  bool COM_initialized = false;
 
   // sanity check(s)
   ACE_ASSERT (inherited::configuration_);
@@ -509,20 +508,7 @@ Stream_Vis_Target_Direct3D_T<ACE_SYNCH_USE,
       ACE_OS::memset (&media_type_s, 0, sizeof (struct _AMMediaType));
       Common_Image_Resolution_t resolution_s;
       HWND window_handle_p = NULL;
-
-      result_2 = CoInitializeEx (NULL,
-                                 (COINIT_MULTITHREADED    |
-                                  COINIT_DISABLE_OLE1DDE  |
-                                  COINIT_SPEED_OVER_MEMORY));
-      if (unlikely (FAILED (result_2)))
-      {
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("%s: failed to CoInitializeEx(): \"%s\", aborting\n"),
-                    inherited::mod_->name (),
-                    ACE_TEXT (Common_Error_Tools::errorToString (result_2).c_str ())));
-        goto error;
-      } // end IF
-      COM_initialized = true;
+      bool COM_initialized = Common_Tools::initializeCOM ();
 
       // sanity check(s)
       ACE_ASSERT (!session_data_r.formats.empty ());
@@ -589,12 +575,10 @@ Stream_Vis_Target_Direct3D_T<ACE_SYNCH_USE,
         } // end IF
       } // end IF
       ACE_ASSERT (window_handle_p);
-#if defined (_DEBUG)
       ACE_DEBUG ((LM_DEBUG,
                   ACE_TEXT ("%s: window handle: 0x%@\n"),
                   inherited::mod_->name (),
                   window_handle_p));
-#endif // _DEBUG
       if (direct3DConfiguration_->presentationParameters.Windowed)
         clientWindow_ = window_handle_p;
 
@@ -674,6 +658,8 @@ Stream_Vis_Target_Direct3D_T<ACE_SYNCH_USE,
 
       Stream_MediaFramework_DirectShow_Tools::free (media_type_s);
 
+      if (COM_initialized) Common_Tools::finalizeCOM ();
+
       break;
 
 error:
@@ -682,9 +668,6 @@ error:
         direct3DConfiguration_->handle->Release (); direct3DConfiguration_->handle = NULL;
       } // end IF
       Stream_MediaFramework_DirectShow_Tools::free (media_type_s);
-
-      if (COM_initialized)
-        CoUninitialize ();
 
       if (closeWindow_)
       { ACE_ASSERT (direct3DConfiguration_->presentationParameters.hDeviceWindow);
@@ -697,25 +680,15 @@ error:
         direct3DConfiguration_->presentationParameters.hDeviceWindow = NULL;
       } // end IF
 
+      if (COM_initialized) Common_Tools::finalizeCOM ();
+
       notify (STREAM_SESSION_MESSAGE_ABORT);
 
       break;
     }
     case STREAM_SESSION_MESSAGE_END:
     {
-      result_2 = CoInitializeEx (NULL,
-                                 (COINIT_MULTITHREADED    |
-                                  COINIT_DISABLE_OLE1DDE  |
-                                  COINIT_SPEED_OVER_MEMORY));
-      if (unlikely (FAILED (result_2)))
-      {
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("%s: failed to CoInitializeEx(): \"%s\", aborting\n"),
-                    inherited::mod_->name (),
-                    ACE_TEXT (Common_Error_Tools::errorToString (result_2).c_str ())));
-        break;
-      } // end IF
-      COM_initialized = true;
+      bool COM_initialized = Common_Tools::initializeCOM ();
 
       if (resetMode_)
       { ACE_ASSERT (direct3DConfiguration_);
@@ -734,9 +707,6 @@ error:
         releaseDeviceHandle_ = false;
       } // end IF
 
-      if (COM_initialized)
-        CoUninitialize ();
-
       if (closeWindow_)
       { ACE_ASSERT (direct3DConfiguration_);
         ACE_ASSERT (direct3DConfiguration_->presentationParameters.hDeviceWindow);
@@ -748,6 +718,8 @@ error:
         direct3DConfiguration_->presentationParameters.hDeviceWindow = NULL;
         closeWindow_ = false;
       } // end IF
+
+      if (COM_initialized) Common_Tools::finalizeCOM ();
 
       break;
     }
@@ -898,6 +870,15 @@ Stream_Vis_Target_Direct3D_T<ACE_SYNCH_USE,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Vis_Target_Direct3D_T::initialize"));
 
+  // initialize COM ?
+  static bool first_run = true;
+  bool COM_initialized = false;
+  if (likely (first_run))
+  {
+    first_run = false;
+    COM_initialized = Common_Tools::initializeCOM ();
+  } // end IF
+
   if (inherited::isInitialized_)
   {
     clientWindow_ = NULL;
@@ -936,6 +917,8 @@ Stream_Vis_Target_Direct3D_T<ACE_SYNCH_USE,
                                                                              : NULL);
   direct3DConfiguration_ = configuration_in.direct3DConfiguration;
   mediaFramework_ = configuration_in.mediaFramework;
+
+  if (COM_initialized) Common_Tools::finalizeCOM ();
 
   return inherited::initialize (configuration_in,
                                 allocator_in);
@@ -2403,7 +2386,6 @@ Stream_Vis_MediaFoundation_Target_Direct3D_T<ACE_SYNCH_USE,
 
   //int result = -1;
   HRESULT result_2 = E_FAIL;
-  bool COM_initialized = false;
 
   // sanity check(s)
   ACE_ASSERT (inherited::configuration_);
@@ -2428,20 +2410,7 @@ Stream_Vis_MediaFoundation_Target_Direct3D_T<ACE_SYNCH_USE,
         MFSESSION_GETFULLTOPOLOGY_CURRENT;
       TOPOID node_id = 0;
       Common_Image_Resolution_t resolution_s;
-
-      result_2 = CoInitializeEx (NULL,
-                                 (COINIT_MULTITHREADED    |
-                                  COINIT_DISABLE_OLE1DDE  |
-                                  COINIT_SPEED_OVER_MEMORY));
-      if (FAILED (result_2))
-      {
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("%s: failed to CoInitializeEx(): \"%s\", aborting\n"),
-                    inherited::mod_->name (),
-                    ACE_TEXT (Common_Error_Tools::errorToString (result_2).c_str ())));
-        goto error;
-      } // end IF
-      COM_initialized = true;
+      bool COM_initialized = Common_Tools::initializeCOM ();
 
       // sanity check(s)
       ACE_ASSERT (session_data_r.session);
@@ -2552,12 +2521,10 @@ Stream_Vis_MediaFoundation_Target_Direct3D_T<ACE_SYNCH_USE,
         inherited::closeWindow_ = true;
       } // end IF
       ACE_ASSERT (window_handle_p);
-#if defined (_DEBUG)
       ACE_DEBUG ((LM_DEBUG,
                   ACE_TEXT ("%s: window handle: 0x%@\n"),
                   inherited::mod_->name (),
                   window_handle_p));
-#endif // _DEBUG
       if (inherited::direct3DConfiguration_->presentationParameters.Windowed)
         inherited::clientWindow_ = window_handle_p;
 
@@ -2617,7 +2584,7 @@ Stream_Vis_MediaFoundation_Target_Direct3D_T<ACE_SYNCH_USE,
         // sanity check(s)
         ACE_ASSERT (!inherited::direct3DConfiguration_->handle);
 
-        Stream_MediaFramework_DirectDraw_Tools::initialize (false);
+        Stream_MediaFramework_DirectDraw_Tools::initialize ();
 
         if (unlikely (!initialize_Direct3D (*inherited::direct3DConfiguration_,
                                             media_type_2,
@@ -2641,6 +2608,8 @@ Stream_Vis_MediaFoundation_Target_Direct3D_T<ACE_SYNCH_USE,
 
       topology_p->Release (); topology_p = NULL;
 
+      if (COM_initialized) Common_Tools::finalizeCOM ();
+
       break;
 
 error:
@@ -2656,9 +2625,6 @@ error:
         inherited::direct3DConfiguration_->handle->Release (); inherited::direct3DConfiguration_->handle = NULL;
       } // end IF
 
-      if (COM_initialized)
-        CoUninitialize ();
-
       if (inherited::closeWindow_)
       { ACE_ASSERT (inherited::direct3DConfiguration_->presentationParameters.hDeviceWindow);
         inherited::closeWindow_ = false;
@@ -2671,25 +2637,15 @@ error:
           NULL;
       } // end IF
 
+      if (COM_initialized) Common_Tools::finalizeCOM ();
+
       notify (STREAM_SESSION_MESSAGE_ABORT);
 
       break;
     }
     case STREAM_SESSION_MESSAGE_END:
     {
-      result_2 = CoInitializeEx (NULL,
-                                 (COINIT_MULTITHREADED    |
-                                  COINIT_DISABLE_OLE1DDE  |
-                                  COINIT_SPEED_OVER_MEMORY));
-      if (FAILED (result_2))
-      {
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("%s: failed to CoInitializeEx(): \"%s\", aborting\n"),
-                    inherited::mod_->name (),
-                    ACE_TEXT (Common_Error_Tools::errorToString (result_2).c_str ())));
-        break;
-      } // end IF
-      COM_initialized = true;
+      bool COM_initialized = Common_Tools::initializeCOM ();
 
       if (inherited::releaseDeviceHandle_)
       { ACE_ASSERT (inherited::direct3DConfiguration_);
@@ -2697,9 +2653,6 @@ error:
         inherited::direct3DConfiguration_->handle->Release (); inherited::direct3DConfiguration_->handle = NULL;
         inherited::releaseDeviceHandle_ = false;
       } // end IF
-
-      if (COM_initialized)
-        CoUninitialize ();
 
       if (inherited::closeWindow_)
       { ACE_ASSERT (inherited::direct3DConfiguration_);
@@ -2713,6 +2666,8 @@ error:
         inherited::direct3DConfiguration_->presentationParameters.hDeviceWindow =
           NULL;
       } // end IF
+
+      if (COM_initialized) Common_Tools::finalizeCOM ();
 
       break;
     }

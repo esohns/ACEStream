@@ -78,7 +78,7 @@ Stream_MediaFramework_GUIDToStringMap_t Stream_MediaFramework_DirectShow_Tools::
 ACE_HANDLE Stream_MediaFramework_DirectShow_Tools::logFileHandle = ACE_INVALID_HANDLE;
 
 bool
-Stream_MediaFramework_DirectShow_Tools::initialize (bool coInitialize_in)
+Stream_MediaFramework_DirectShow_Tools::initialize ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_DirectShow_Tools::initialize"));
 
@@ -112,37 +112,7 @@ Stream_MediaFramework_DirectShow_Tools::initialize (bool coInitialize_in)
 
   // ---------------------------------------------------------------------------
 
-  if (likely (coInitialize_in))
-  {
-    HRESULT result = CoInitializeEx (NULL,
-                                     (COINIT_MULTITHREADED    |
-                                      COINIT_DISABLE_OLE1DDE  |
-                                      COINIT_SPEED_OVER_MEMORY));
-    if (unlikely (FAILED (result))) // 0x80010106: RPC_E_CHANGED_MODE
-    {
-      if (result != RPC_E_CHANGED_MODE) // already initialized
-      {
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("failed to CoInitializeEx(): \"%s\", aborting\n"),
-                    ACE_TEXT (Common_Error_Tools::errorToString (result, false).c_str ())));
-        return false;
-      } // end IF
-      ACE_DEBUG ((LM_WARNING,
-                  ACE_TEXT ("failed to CoInitializeEx(): \"%s\", continuing\n"),
-                  ACE_TEXT (Common_Error_Tools::errorToString (result, false).c_str ())));
-    } // end IF
-  } // end IF
-
   return true;
-}
-
-void
-Stream_MediaFramework_DirectShow_Tools::finalize (bool coUninitialize_in)
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_DirectShow_Tools::finalize"));
-
-  if (likely (coUninitialize_in))
-    CoUninitialize ();
 }
 
 bool

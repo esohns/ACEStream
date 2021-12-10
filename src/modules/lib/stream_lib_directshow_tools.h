@@ -56,8 +56,8 @@ class Stream_MediaFramework_DirectShow_Tools
   friend class Stream_MediaFramework_Tools;
 
  public:
-  static bool initialize (bool = true); // initialize COM ?
-  static void finalize (bool = true); // finalize COM ?
+  static bool initialize ();
+  inline static void finalize () {}
 
   // running object table
   static bool addToROT (IFilterGraph*, // filter graph handle

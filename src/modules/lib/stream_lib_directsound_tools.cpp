@@ -501,9 +501,12 @@ Stream_MediaFramework_DirectSound_Tools::waveDeviceIdToDirectSoundGUID (ULONG wa
     class_factory_p->CreateInstance (NULL, IID_IKsPropertySet, (void**)(&cb_data_s.IPropertySet));
   ACE_ASSERT (!FAILED (result));
   class_factory_p->Release (); class_factory_p = NULL;
-  result =
-    (capture_in ? DirectSoundCaptureEnumerate (stream_directshow_device_enumeration_a_cb, &cb_data_s)
-                : DirectSoundEnumerate (stream_directshow_device_enumeration_a_cb, &cb_data_s));
+  if (capture_in)
+    result =
+      DirectSoundCaptureEnumerate (stream_directshow_device_enumeration_a_cb, &cb_data_s);
+  else
+    result =
+      DirectSoundEnumerate (stream_directshow_device_enumeration_a_cb, &cb_data_s);
   ACE_ASSERT (!FAILED (result));
   cb_data_s.IPropertySet->Release (); cb_data_s.IPropertySet = NULL;
   FreeLibrary (library_h);
@@ -967,9 +970,9 @@ Stream_MediaFramework_DirectSound_Tools::getBestFormat (ULONG deviceId_in,
                 ACE_TEXT (Stream_MediaFramework_DirectSound_Tools::toString (format_out, true).c_str ())));
 
     format_out.wFormatTag = *iterator;
-    format_out.nChannels = *iterator_2;
+    format_out.nChannels = static_cast<WORD> (*iterator_2);
     format_out.nSamplesPerSec = *iterator_3;
-    format_out.wBitsPerSample = *iterator_4;
+    format_out.wBitsPerSample = static_cast<WORD> (*iterator_4);
     format_out.nBlockAlign =
       (format_out.nChannels * (format_out.wBitsPerSample / 8));
     format_out.nAvgBytesPerSec =

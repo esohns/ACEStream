@@ -3527,7 +3527,8 @@ Stream_MediaFramework_MediaFoundation_Tools::append (IMFTopology* topology_in,
     {
       case MF_TOPOLOGY_OUTPUT_NODE:
       {
-        topology_node_2 = *(*iterator).begin ();
+        // *NOTE*: in this case, topology_node_2 points to the current sink
+        topology_node_2 = *iterator_2;
         topology_node_2->AddRef ();
         topology_node_3 = *(--iterator_2);
         topology_node_3->AddRef ();
@@ -3546,7 +3547,7 @@ Stream_MediaFramework_MediaFoundation_Tools::append (IMFTopology* topology_in,
                     node_type_e));
         goto error;
       }
-    }
+    } // end SWITCH
   } // end FOR
   ACE_ASSERT (false);
   ACE_NOTREACHED (return false;)

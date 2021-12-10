@@ -565,7 +565,6 @@ do_initialize_directshow (const struct Stream_Device_Identifier& deviceIdentifie
                           IGraphBuilder*& IGraphBuilder_out,
                           IAMStreamConfig*& IAMStreamConfig_out,
                           struct _AMMediaType& captureMediaType_out,
-                          bool coInitialize_in,
                           bool useDirectShowSource_in,
                           bool mute_in)
 {
@@ -586,26 +585,7 @@ do_initialize_directshow (const struct Stream_Device_Identifier& deviceIdentifie
   ACE_ASSERT (!IGraphBuilder_out);
   ACE_ASSERT (!IAMStreamConfig_out);
 
-  if (!coInitialize_in)
-    goto continue_;
-
-  result = CoInitializeEx (NULL,
-                           (COINIT_MULTITHREADED    |
-                            COINIT_DISABLE_OLE1DDE  |
-                            COINIT_SPEED_OVER_MEMORY));
-  if (FAILED (result)) // RPC_E_CHANGED_MODE : 0x80010106L
-  {
-    // *NOTE*: most probable reason: already initialized (happens in the
-    //         debugger)
-    //         --> continue
-    ACE_DEBUG ((LM_WARNING,
-                ACE_TEXT ("failed to CoInitializeEx(): \"%s\", continuing\n"),
-                ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
-  } // end IF
-
-continue_:
   Stream_MediaFramework_Tools::initialize (STREAM_MEDIAFRAMEWORK_DIRECTSHOW);
-  //Stream_Module_Device_Tools::initialize (true);
 
   // initialize return value(s)
   Stream_MediaFramework_DirectShow_Tools::free (captureMediaType_out);
@@ -758,9 +738,6 @@ continue_4:
   } // end IF
   media_filter_p->Release (); media_filter_p = NULL;
 
-  if (coInitialize_in)
-    CoUninitialize ();
-
   return true;
 
 error:
@@ -779,9 +756,6 @@ error:
   } // end IF
   Stream_MediaFramework_DirectShow_Tools::free (captureMediaType_out);
 
-  if (coInitialize_in)
-    CoUninitialize ();
-
   return false;
 }
 
@@ -790,7 +764,6 @@ do_initialize_mediafoundation (const struct Stream_Device_Identifier& deviceIden
                                struct Test_U_AudioEffect_MediaFoundation_Configuration& configuration_in,
                                IMFMediaSession*& session_out,
                                IMFMediaType*& captureMediaType_out,
-                               bool coInitialize_in,
                                bool initializeMediaFoundation_in,
                                bool useMediaFoundationSource_in,
                                bool mute_in,
@@ -816,24 +789,6 @@ do_initialize_mediafoundation (const struct Stream_Device_Identifier& deviceIden
   UINT32 channel_mask_i = (SPEAKER_FRONT_LEFT |
                            SPEAKER_FRONT_RIGHT);
 
-  if (!coInitialize_in)
-    goto continue_;
-
-  result = CoInitializeEx (NULL,
-                           (COINIT_MULTITHREADED    |
-                            COINIT_DISABLE_OLE1DDE  |
-                            COINIT_SPEED_OVER_MEMORY));
-  if (FAILED (result)) // RPC_E_CHANGED_MODE : 0x80010106L
-  {
-    // *NOTE*: most probable reason: already initialized (happens in the
-    //         debugger)
-    //         --> continue
-    ACE_DEBUG ((LM_WARNING,
-                ACE_TEXT ("failed to CoInitializeEx(): \"%s\", continuing\n"),
-                ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
-  } // end IF
-
-continue_:
   if (!initializeMediaFoundation_in)
     goto continue_2;
 
@@ -1018,9 +973,6 @@ continue_3:
   topology_p->Release (); topology_p = NULL;
 
 continue_4:
-  if (coInitialize_in)
-    CoUninitialize ();
-
   return true;
 
 error:
@@ -1049,9 +1001,6 @@ error:
                   ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
   } // end IF
 
-  if (coInitialize_in)
-    CoUninitialize ();
-
   return false;
 }
 
@@ -1062,8 +1011,6 @@ do_finalize_directshow (struct Test_U_AudioEffect_DirectShow_UI_CBData& CBData_i
 
   ACE_UNUSED_ARG (CBData_in);
 
-  HRESULT result = E_FAIL;
-
   Test_U_AudioEffect_DirectShow_StreamConfiguration_t::ITERATOR_T iterator =
     CBData_in.configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (iterator != CBData_in.configuration->streamConfiguration.end ());
@@ -1072,23 +1019,18 @@ do_finalize_directshow (struct Test_U_AudioEffect_DirectShow_UI_CBData& CBData_i
   {
     (*iterator).second.second->builder->Release (); (*iterator).second.second->builder = NULL;
   } // end IF
-
-  CoUninitialize ();
 }
+
 void
 do_finalize_mediafoundation ()
 {
   STREAM_TRACE (ACE_TEXT ("::do_finalize_mediafoundation"));
 
-  HRESULT result = E_FAIL;
-
-  result = MFShutdown ();
+  HRESULT result = MFShutdown ();
   if (FAILED (result))
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to MFShutdown(): \"%s\", continuing\n"),
                 ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
-
-  CoUninitialize ();
 }
 #endif // ACE_WIN32 || ACE_WIN64
 
@@ -1592,7 +1534,6 @@ do_work (
                                   (*directshow_modulehandler_iterator).second.second->builder,
                                   directShowCBData_in.streamConfiguration,
                                   directshow_stream_configuration.format,
-                                  true,  // initialize COM ?
                                   useFrameworkSource_in, // use DirectShow source ? : WASAPI
                                   mute_in);
       if (!result)
@@ -1617,7 +1558,6 @@ do_work (
                                        *mediaFoundationCBData_in.configuration,
                                        (*mediafoundation_modulehandler_iterator).second.second->session,
                                        mediafoundation_stream_configuration.format,
-                                       true, // initialize COM ?
                                        true, // initialize MediaFoundation framework ?
                                        useFrameworkSource_in, // use MediaFoundation source ? : WASAPI
                                        mute_in,
@@ -1945,10 +1885,13 @@ ACE_TMAIN (int argc_in,
   STREAM_TRACE (ACE_TEXT ("::main"));
 
   int result = -1;
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  bool COM_initialized = false;
+#endif // ACE_WIN32 || ACE_WIN64
 
   // step0: initialize
-  // *PORTABILITY*: on Windows, initialize ACE...
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
+  // *PORTABILITY*: on Windows, initialize ACE...
   result = ACE::init ();
   if (result == -1)
   {
@@ -2058,8 +2001,8 @@ ACE_TMAIN (int argc_in,
   {
     do_printUsage (ACE::basename (argv_in[0]));
 
-    // *PORTABILITY*: on Windows, finalize ACE...
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
+    // *PORTABILITY*: on Windows, finalize ACE...
     result = ACE::fini ();
     if (result == -1)
       ACE_DEBUG ((LM_ERROR,
@@ -2091,8 +2034,8 @@ ACE_TMAIN (int argc_in,
                 ACE_TEXT ("invalid arguments, aborting\n")));
 
     do_printUsage (ACE::basename (argv_in[0]));
-    // *PORTABILITY*: on Windows, finalize ACE...
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
+    // *PORTABILITY*: on Windows, finalize ACE...
     result = ACE::fini ();
     if (result == -1)
       ACE_DEBUG ((LM_ERROR,
@@ -2104,6 +2047,9 @@ ACE_TMAIN (int argc_in,
   //  action_mode = Net_Client_TimeoutHandler::ACTION_STRESS;
 
   Common_Tools::initialize (true);
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  COM_initialized = Common_Tools::initializeCOM ();
+#endif // ACE_WIN32 || ACE_WIN64
 #if defined (GUI_SUPPORT)
   Common_UI_Tools::initialize ();
 #if defined (GTK_SUPPORT)
@@ -2195,8 +2141,9 @@ ACE_TMAIN (int argc_in,
                   ACE_TEXT ("invalid/unknown media framework (was: %d), returning\n"),
                   media_framework_e));
 
-    // *PORTABILITY*: on Windows, finalize ACE...
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
+      if (COM_initialized) Common_Tools::finalizeCOM ();
+      // *PORTABILITY*: on Windows, finalize ACE...
       result = ACE::fini ();
       if (result == -1)
         ACE_DEBUG ((LM_ERROR,
@@ -2261,8 +2208,9 @@ ACE_TMAIN (int argc_in,
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Common_Log_Tools::initializeLogging(), aborting\n")));
 
-    // *PORTABILITY*: on Windows, finalize ACE...
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
+    if (COM_initialized) Common_Tools::finalizeCOM ();
+    // *PORTABILITY*: on Windows, finalize ACE...
     result = ACE::fini ();
     if (result == -1)
       ACE_DEBUG ((LM_ERROR,
@@ -2285,8 +2233,9 @@ ACE_TMAIN (int argc_in,
                 ACE_TEXT ("failed to ACE_OS::sigemptyset(): \"%m\", aborting\n")));
 
     Common_Log_Tools::finalizeLogging ();
-    // *PORTABILITY*: on Windows, finalize ACE...
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
+    if (COM_initialized) Common_Tools::finalizeCOM ();
+    // *PORTABILITY*: on Windows, finalize ACE...
     result = ACE::fini ();
     if (result == -1)
       ACE_DEBUG ((LM_ERROR,
@@ -2302,8 +2251,9 @@ ACE_TMAIN (int argc_in,
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Common_Signal_Tools::preInitialize(), aborting\n")));
     Common_Log_Tools::finalizeLogging ();
-    // *PORTABILITY*: on Windows, finalize ACE...
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
+    if (COM_initialized) Common_Tools::finalizeCOM ();
+    // *PORTABILITY*: on Windows, finalize ACE...
     result = ACE::fini ();
     if (result == -1)
       ACE_DEBUG ((LM_ERROR,
@@ -2329,8 +2279,9 @@ ACE_TMAIN (int argc_in,
                                    previous_signal_actions,
                                    previous_signal_mask);
     Common_Log_Tools::finalizeLogging ();
-    // *PORTABILITY*: on Windows, finalize ACE...
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
+    if (COM_initialized) Common_Tools::finalizeCOM ();
+    // *PORTABILITY*: on Windows, finalize ACE...
     result = ACE::fini ();
     if (result == -1)
       ACE_DEBUG ((LM_ERROR,
@@ -2353,8 +2304,9 @@ ACE_TMAIN (int argc_in,
                                    previous_signal_actions,
                                    previous_signal_mask);
     Common_Log_Tools::finalizeLogging ();
-    // *PORTABILITY*: on Windows, finalize ACE...
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
+    if (COM_initialized) Common_Tools::finalizeCOM ();
+    // *PORTABILITY*: on Windows, finalize ACE...
     result = ACE::fini ();
     if (result == -1)
       ACE_DEBUG ((LM_ERROR,
@@ -2444,8 +2396,9 @@ ACE_TMAIN (int argc_in,
                                    previous_signal_actions,
                                    previous_signal_mask);
     Common_Log_Tools::finalizeLogging ();
-    // *PORTABILITY*: on Windows, finalize ACE...
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
+    if (COM_initialized) Common_Tools::finalizeCOM ();
+    // *PORTABILITY*: on Windows, finalize ACE...
     result = ACE::fini ();
     if (result == -1)
       ACE_DEBUG ((LM_ERROR,
@@ -2502,8 +2455,9 @@ ACE_TMAIN (int argc_in,
                                  previous_signal_mask);
   Common_Log_Tools::finalizeLogging ();
 
-  // *PORTABILITY*: on Windows, finalize ACE...
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
+  if (COM_initialized) Common_Tools::finalizeCOM ();
+  // *PORTABILITY*: on Windows, finalize ACE...
   result = ACE::fini ();
   if (result == -1)
     ACE_DEBUG ((LM_ERROR,

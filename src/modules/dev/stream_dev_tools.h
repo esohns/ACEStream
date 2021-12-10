@@ -74,8 +74,6 @@ class Stream_IAllocator;
 class Stream_Device_Tools
 {
  public:
-  static void initialize (bool = true); // initialize media frameworks ?
-
   static std::string getDefaultAudioCaptureDevice ();
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   static std::string getDefaultVideoCaptureDevice ();

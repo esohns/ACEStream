@@ -2115,18 +2115,6 @@ idle_initialize_source_UI_cb (gpointer userData_in)
   // sanity check(s)
   ACE_ASSERT (iterator != state_r.builders.end ());
 
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-  //HRESULT hresult = CoInitializeEx (NULL,
-  //                                  COINIT_MULTITHREADED);
-  //if (FAILED (hresult))
-  //{
-  //  ACE_DEBUG ((LM_ERROR,
-  //              ACE_TEXT ("failed to CoInitializeEx(COINIT_MULTITHREADED): \"%s\", aborting\n"),
-  //              ACE_TEXT (Common_Error_Tools::errorToString (hresult).c_str ())));
-  //  return G_SOURCE_REMOVE;
-  //} // end IF
-#endif // ACE_WIN32 || ACE_WIN64
-
   // step1: initialize dialog window(s)
   GtkWidget* dialog_p =
     GTK_WIDGET (gtk_builder_get_object ((*iterator).second.second,
@@ -3146,17 +3134,6 @@ idle_initialize_target_UI_cb (gpointer userData_in)
     state_r.builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN));
   // sanity check(s)
   ACE_ASSERT (iterator != state_r.builders.end ());
-
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-  HRESULT hresult = CoInitializeEx (NULL,
-                                    (COINIT_MULTITHREADED    |
-                                     COINIT_DISABLE_OLE1DDE  |
-                                     COINIT_SPEED_OVER_MEMORY));
-  if (FAILED (hresult)) // RPC_E_CHANGED_MODE : 0x80010106L
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to CoInitializeEx(): \"%s\", continuing\n"),
-                ACE_TEXT (Common_Error_Tools::errorToString (hresult).c_str ())));
-#endif
 
   // step1: initialize dialog window(s)
   GtkWidget* dialog_p =

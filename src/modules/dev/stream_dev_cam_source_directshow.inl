@@ -200,16 +200,7 @@ Stream_Dev_Cam_Source_DirectShow_T<ACE_SYNCH_USE,
   if (first_run)
   {
     first_run = false;
-
-    result_2 = CoInitializeEx (NULL,
-                               (COINIT_MULTITHREADED    |
-                                COINIT_DISABLE_OLE1DDE  |
-                                COINIT_SPEED_OVER_MEMORY));
-    if (FAILED (result_2)) // RPC_E_CHANGED_MODE : 0x80010106L
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to CoInitializeEx(): \"%s\", continuing\n"),
-                  ACE_TEXT (Common_Error_Tools::errorToString (result_2).c_str ())));
-    COM_initialized = true;
+    COM_initialized = Common_Tools::initializeCOM ();
   } // end IF
 
   if (inherited::isInitialized_)
@@ -256,7 +247,7 @@ Stream_Dev_Cam_Source_DirectShow_T<ACE_SYNCH_USE,
                 ACE_TEXT ("failed to Stream_HeadModuleTaskBase_T::initialize(), aborting\n")));
 
   if (COM_initialized)
-    CoUninitialize ();
+    Common_Tools::finalizeCOM ();
 
   return result;
 }
@@ -295,6 +286,7 @@ Stream_Dev_Cam_Source_DirectShow_T<ACE_SYNCH_USE,
   STREAM_TRACE (ACE_TEXT ("Stream_Dev_Cam_Source_DirectShow_T::handleSessionMessage"));
 
   int result = -1;
+  HRESULT result_2 = E_FAIL;
   IRunningObjectTable* ROT_p = NULL;
 
   // don't care (implies yes per default, if part of a stream)
@@ -321,6 +313,17 @@ Stream_Dev_Cam_Source_DirectShow_T<ACE_SYNCH_USE,
     case STREAM_SESSION_MESSAGE_BEGIN:
     {
       std::string log_file_name;
+      bool COM_initialized = Common_Tools::initializeCOM ();
+      bool is_running = false;
+      bool remove_from_ROT = false;
+      IGraphBuilder* builder_p = NULL;
+      ISampleGrabber* sample_grabber_p = NULL;
+      ULONG reference_count = 0;
+      IBaseFilter* filter_p = NULL;
+      struct _AMMediaType media_type_s;
+      ACE_OS::memset (&media_type_s, 0, sizeof (struct _AMMediaType));
+      bool release_media_type = false;
+      bool set_capture_format_b = true;
 
       if (inherited::configuration_->statisticCollectionInterval != ACE_Time_Value::zero)
       {
@@ -345,29 +348,6 @@ Stream_Dev_Cam_Source_DirectShow_T<ACE_SYNCH_USE,
                     &inherited::configuration_->statisticCollectionInterval));
       } // end IF
 
-      bool COM_initialized = false;
-      bool is_running = false;
-      bool remove_from_ROT = false;
-
-      HRESULT result_2 = CoInitializeEx (NULL,
-                                         (COINIT_MULTITHREADED    |
-                                          COINIT_DISABLE_OLE1DDE  |
-                                          COINIT_SPEED_OVER_MEMORY));
-      if (FAILED (result_2)) // RPC_E_CHANGED_MODE : 0x80010106L
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("%s: failed to CoInitializeEx(): \"%s\", continuing\n"),
-                    inherited::mod_->name (),
-                    ACE_TEXT (Common_Error_Tools::errorToString (result_2).c_str ())));
-      COM_initialized = true;
-
-      IGraphBuilder* builder_p = NULL;
-      ISampleGrabber* sample_grabber_p = NULL;
-      ULONG reference_count = 0;
-      IBaseFilter* filter_p = NULL;
-      struct _AMMediaType media_type_s;
-      ACE_OS::memset (&media_type_s, 0, sizeof (struct _AMMediaType));
-      bool release_media_type = false;
-      bool set_capture_format_b = true;
       if (inherited::configuration_->builder)
       {
         reference_count = inherited::configuration_->builder->AddRef ();
@@ -616,8 +596,7 @@ continue_:
 
       builder_p->Release (); builder_p = NULL;
 
-      if (COM_initialized)
-        CoUninitialize ();
+      if (COM_initialized) Common_Tools::finalizeCOM ();
 
       break;
 
@@ -662,8 +641,7 @@ error:
       if (release_media_type)
         Stream_MediaFramework_DirectShow_Tools::free (media_type_s);
 
-      if (COM_initialized)
-        CoUninitialize ();
+      if (COM_initialized) Common_Tools::finalizeCOM ();
 
       this->notify (STREAM_SESSION_MESSAGE_ABORT);
 
@@ -688,17 +666,7 @@ error:
         inherited::timerId_ = -1;
       } // end IF
 
-      bool COM_initialized = false;
-      HRESULT result_2 = CoInitializeEx (NULL,
-                                         (COINIT_MULTITHREADED    |
-                                          COINIT_DISABLE_OLE1DDE  |
-                                          COINIT_SPEED_OVER_MEMORY));
-      if (FAILED (result_2)) // RPC_E_CHANGED_MODE : 0x80010106L
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("%s: failed to CoInitializeEx(): \"%s\", continuing\n"),
-                    inherited::mod_->name (),
-                    ACE_TEXT (Common_Error_Tools::errorToString (result_2, false).c_str ())));
-      COM_initialized = true;
+      bool COM_initialized = Common_Tools::initializeCOM ();
 
       // deregister graph from the ROT ?
       if (ROTID_)
@@ -770,8 +738,7 @@ error:
         ICaptureGraphBuilder2_->Release (); ICaptureGraphBuilder2_ = NULL;
       } // end IF
 
-      if (COM_initialized)
-        CoUninitialize ();
+      if (COM_initialized) Common_Tools::finalizeCOM ();
 
       inherited::sessionEndProcessed_ = true;
       if (likely (inherited::configuration_->concurrency != STREAM_HEADMODULECONCURRENCY_CONCURRENT))

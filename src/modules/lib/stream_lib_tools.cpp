@@ -90,7 +90,7 @@ Stream_MediaFramework_Tools::initialize ()
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
     {
-      if (unlikely (!Stream_MediaFramework_DirectShow_Tools::initialize (true)))
+      if (unlikely (!Stream_MediaFramework_DirectShow_Tools::initialize ()))
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("failed to Stream_MediaFramework_DirectShow_Tools::initialize(), aborting\n")));

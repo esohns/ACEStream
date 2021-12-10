@@ -840,6 +840,7 @@ ACE_TMAIN (int argc_in,
 
   // step1a set defaults
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
+  bool COM_initialized = false;
   bool show_console = false;
 #endif // ACE_WIN32 || ACE_WIN64
   std::string path = Common_File_Tools::getTempDirectory ();
@@ -996,8 +997,8 @@ ACE_TMAIN (int argc_in,
   }
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  Stream_Visualization_Tools::initialize (STREAM_VIS_FRAMEWORK_DEFAULT,
-                                          true);
+  COM_initialized = Common_Tools::initializeCOM ();
+  Stream_Visualization_Tools::initialize (STREAM_VIS_FRAMEWORK_DEFAULT);
 #endif // ACE_WIN32 || ACE_WIN64
 
 #if defined (GUI_SUPPORT)
@@ -1084,6 +1085,7 @@ ACE_TMAIN (int argc_in,
     Common_Log_Tools::finalizeLogging ();
     // *PORTABILITY*: on Windows, finalize ACE...
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
+    if (COM_initialized) Common_Tools::finalizeCOM ();
     result = ACE::fini ();
     if (result == -1)
       ACE_DEBUG ((LM_ERROR,
@@ -1102,6 +1104,7 @@ ACE_TMAIN (int argc_in,
     Common_Log_Tools::finalizeLogging ();
     // *PORTABILITY*: on Windows, finalize ACE...
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
+    if (COM_initialized) Common_Tools::finalizeCOM ();
     result = ACE::fini ();
     if (result == -1)
       ACE_DEBUG ((LM_ERROR,
@@ -1134,6 +1137,7 @@ ACE_TMAIN (int argc_in,
     Common_Log_Tools::finalizeLogging ();
     // *PORTABILITY*: on Windows, finalize ACE...
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
+    if (COM_initialized) Common_Tools::finalizeCOM ();
     result = ACE::fini ();
     if (result == -1)
       ACE_DEBUG ((LM_ERROR,
@@ -1162,6 +1166,7 @@ ACE_TMAIN (int argc_in,
       Common_Tools::finalize ();
       // *PORTABILITY*: on Windows, finalize ACE...
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
+      if (COM_initialized) Common_Tools::finalizeCOM ();
       result = ACE::fini ();
       if (result == -1)
         ACE_DEBUG ((LM_ERROR,
@@ -1226,6 +1231,7 @@ ACE_TMAIN (int argc_in,
     Common_Log_Tools::finalizeLogging ();
     // *PORTABILITY*: on Windows, finalize ACE...
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
+    if (COM_initialized) Common_Tools::finalizeCOM ();
     result = ACE::fini ();
     if (result == -1)
       ACE_DEBUG ((LM_ERROR,
@@ -1284,6 +1290,7 @@ ACE_TMAIN (int argc_in,
 
   // *PORTABILITY*: on Windows, finalize ACE...
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
+  if (COM_initialized) Common_Tools::finalizeCOM ();
   result = ACE::fini ();
   if (result == -1)
     ACE_DEBUG ((LM_ERROR,

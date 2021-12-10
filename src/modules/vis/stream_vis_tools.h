@@ -35,10 +35,8 @@ class Stream_Visualization_Tools
 {
  public:
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  static bool initialize (enum Stream_Visualization_Framework = STREAM_VIS_FRAMEWORK_DEFAULT,
-                          bool = true); // initialize COM ?
-  static void finalize (enum Stream_Visualization_Framework = STREAM_VIS_FRAMEWORK_DEFAULT,
-                        bool = true); // finalize COM ?
+  static bool initialize (enum Stream_Visualization_Framework = STREAM_VIS_FRAMEWORK_DEFAULT);
+  static void finalize (enum Stream_Visualization_Framework = STREAM_VIS_FRAMEWORK_DEFAULT);
 #endif // ACE_WIN32 || ACE_WIN64
 
   static std::string rendererToModuleName (enum Stream_Visualization_AudioRenderer);

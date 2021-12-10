@@ -120,22 +120,6 @@ v4l_device_dirent_comparator_cb (const dirent** d1,
 }
 #endif // ACE_WIN32 || ACE_WIN64
 
-void
-Stream_Device_Tools::initialize (bool initializeFrameworks_in)
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_Device_Tools::initialize"));
-
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-  if (initializeFrameworks_in)
-  {
-    Stream_Device_DirectShow_Tools::initialize (true); // initialize COM ?
-    Stream_Device_MediaFoundation_Tools::initialize ();
-  } // end IF
-#else
-  ACE_UNUSED_ARG (initializeFrameworks_in);
-#endif // ACE_WIN32 || ACE_WIN64
-}
-
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
 std::string
