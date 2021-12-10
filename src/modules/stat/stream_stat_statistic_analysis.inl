@@ -522,7 +522,7 @@ Stream_Statistic_StatisticAnalysis_T<ACE_SYNCH_USE,
   {
     // step1: 'attack' detection
     abs_value =
-      (sampleIsSigned_ ? std::abs (inherited3::buffer_[channel_in][startIndex_in + j]) + static_cast<ValueType> ((1 << ((8 * iterator_.subSampleSize_) - 1)) - 1)
+      (sampleIsSigned_ ? std::abs (inherited3::buffer_[channel_in][startIndex_in + j]) + static_cast<ValueType> ((1ULL << ((8 * iterator_.subSampleSize_) - 1)) - 1)
                        : inherited3::buffer_[channel_in][startIndex_in + j]);
     old_mean = (sampleCount_ ? amplitudeM_ : abs_value);
     amplitudeM_ =

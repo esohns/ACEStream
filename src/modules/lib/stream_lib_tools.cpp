@@ -61,6 +61,7 @@ extern "C"
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #include "stream_lib_directshow_tools.h"
+#include "stream_lib_directsound_tools.h"
 #include "stream_lib_mediafoundation_tools.h"
 #else
 #include "X11/Xlib.h"
@@ -83,6 +84,8 @@ Stream_MediaFramework_Tools::initialize ()
   STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_Tools::initialize"));
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
+  Stream_MediaFramework_DirectSound_Tools::initialize ();
+
   switch (mediaFramework_in)
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:

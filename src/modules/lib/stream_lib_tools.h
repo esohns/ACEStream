@@ -153,6 +153,7 @@ class Stream_MediaFramework_Tools
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   static Stream_MediaFramework_GUIDToStringMap_t Stream_MediaFramework_FormatTypeToStringMap;
+  // *TODO*: move these ASAP
   static Stream_MediaFramework_GUIDToStringMap_t Stream_MediaFramework_DirectShow_MediaSubTypeToStringMap;
   static Stream_MediaFramework_GUIDToStringMap_t Stream_MediaFramework_MediaFoundation_MediaSubTypeToStringMap;
 #endif // ACE_WIN32 || ACE_WIN64

@@ -70,12 +70,11 @@
 
 #include "stream_macros.h"
 
+#include "stream_lib_directsound_tools.h"
 #include "stream_lib_tools.h"
 
 // initialize statics
 Stream_MediaFramework_GUIDToStringMap_t Stream_MediaFramework_DirectShow_Tools::Stream_MediaMajorTypeToStringMap;
-Stream_MediaFramework_DirectShow_Tools::WORD_TO_STRING_MAP_T Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatTypeToStringMap;
-Stream_MediaFramework_GUIDToStringMap_t Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatSubTypeToStringMap;
 ACE_HANDLE Stream_MediaFramework_DirectShow_Tools::logFileHandle = ACE_INVALID_HANDLE;
 
 bool
@@ -112,344 +111,6 @@ Stream_MediaFramework_DirectShow_Tools::initialize (bool coInitialize_in)
   Stream_MediaFramework_DirectShow_Tools::Stream_MediaMajorTypeToStringMap.insert (std::make_pair (MEDIATYPE_DVD_NAVIGATION, ACE_TEXT_ALWAYS_CHAR ("DVD_NAVIGATION")));
 
   // ---------------------------------------------------------------------------
-
-  Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatTypeToStringMap.insert (std::make_pair (WAVE_FORMAT_UNKNOWN, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
-  Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatTypeToStringMap.insert (std::make_pair (WAVE_FORMAT_PCM, ACE_TEXT_ALWAYS_CHAR ("PCM")));
-  Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatTypeToStringMap.insert (std::make_pair (WAVE_FORMAT_ADPCM, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
-  Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatTypeToStringMap.insert (std::make_pair (WAVE_FORMAT_IEEE_FLOAT, ACE_TEXT_ALWAYS_CHAR ("IEEE_FLOAT")));
-  Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatTypeToStringMap.insert (std::make_pair (WAVE_FORMAT_VSELP, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
-  Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatTypeToStringMap.insert (std::make_pair (WAVE_FORMAT_IBM_CVSD, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
-  Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatTypeToStringMap.insert (std::make_pair (WAVE_FORMAT_ALAW, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
-  Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatTypeToStringMap.insert (std::make_pair (WAVE_FORMAT_MULAW, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
-  Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatTypeToStringMap.insert (std::make_pair (WAVE_FORMAT_DTS, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
-  Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatTypeToStringMap.insert (std::make_pair (WAVE_FORMAT_DRM, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
-  Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatTypeToStringMap.insert (std::make_pair (WAVE_FORMAT_WMAVOICE9, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
-  Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatTypeToStringMap.insert (std::make_pair (WAVE_FORMAT_WMAVOICE10, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
-  Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatTypeToStringMap.insert (std::make_pair (WAVE_FORMAT_OKI_ADPCM, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
-  Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatTypeToStringMap.insert (std::make_pair (WAVE_FORMAT_DVI_ADPCM, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
-  Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatTypeToStringMap.insert (std::make_pair (WAVE_FORMAT_IMA_ADPCM, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
-  Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatTypeToStringMap.insert (std::make_pair (WAVE_FORMAT_MEDIASPACE_ADPCM, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
-  Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatTypeToStringMap.insert (std::make_pair (WAVE_FORMAT_SIERRA_ADPCM, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
-  Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatTypeToStringMap.insert (std::make_pair (WAVE_FORMAT_G723_ADPCM, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
-  Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatTypeToStringMap.insert (std::make_pair (WAVE_FORMAT_DIGISTD, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
-  Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatTypeToStringMap.insert (std::make_pair (WAVE_FORMAT_DIGIFIX, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
-  Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatTypeToStringMap.insert (std::make_pair (WAVE_FORMAT_DIALOGIC_OKI_ADPCM, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
-  Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatTypeToStringMap.insert (std::make_pair (WAVE_FORMAT_MEDIAVISION_ADPCM, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
-  Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatTypeToStringMap.insert (std::make_pair (WAVE_FORMAT_CU_CODEC, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
-#if defined (_WIN32_WINNT) && (_WIN32_WINNT > 0x0601) // _WIN32_WINNT_WIN8
-  Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatTypeToStringMap.insert (std::make_pair (WAVE_FORMAT_HP_DYN_VOICE, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
-#endif // _WIN32_WINNT && (_WIN32_WINNT > 0x0601) // _WIN32_WINNT_WIN8
-  Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatTypeToStringMap.insert (std::make_pair (WAVE_FORMAT_YAMAHA_ADPCM, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
-  Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatTypeToStringMap.insert (std::make_pair (WAVE_FORMAT_SONARC, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
-  Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatTypeToStringMap.insert (std::make_pair (WAVE_FORMAT_DSPGROUP_TRUESPEECH, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
-  Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatTypeToStringMap.insert (std::make_pair (WAVE_FORMAT_ECHOSC1, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
-  Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatTypeToStringMap.insert (std::make_pair (WAVE_FORMAT_AUDIOFILE_AF36, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
-  Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatTypeToStringMap.insert (std::make_pair (WAVE_FORMAT_APTX, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
-  Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatTypeToStringMap.insert (std::make_pair (WAVE_FORMAT_AUDIOFILE_AF10, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
-  Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatTypeToStringMap.insert (std::make_pair (WAVE_FORMAT_PROSODY_1612, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
-  Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatTypeToStringMap.insert (std::make_pair (WAVE_FORMAT_LRC, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
-  Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatTypeToStringMap.insert (std::make_pair (WAVE_FORMAT_DOLBY_AC2, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
-  Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatTypeToStringMap.insert (std::make_pair (WAVE_FORMAT_GSM610, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
-  Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatTypeToStringMap.insert (std::make_pair (WAVE_FORMAT_MSNAUDIO, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
-  Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatTypeToStringMap.insert (std::make_pair (WAVE_FORMAT_ANTEX_ADPCME, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
-  Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatTypeToStringMap.insert (std::make_pair (WAVE_FORMAT_CONTROL_RES_VQLPC, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
-  Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatTypeToStringMap.insert (std::make_pair (WAVE_FORMAT_DIGIREAL, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
-  Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatTypeToStringMap.insert (std::make_pair (WAVE_FORMAT_DIGIADPCM, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
-  Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatTypeToStringMap.insert (std::make_pair (WAVE_FORMAT_CONTROL_RES_CR10, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
-  Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatTypeToStringMap.insert (std::make_pair (WAVE_FORMAT_NMS_VBXADPCM, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
-  Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatTypeToStringMap.insert (std::make_pair (WAVE_FORMAT_CS_IMAADPCM, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
-  Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatTypeToStringMap.insert (std::make_pair (WAVE_FORMAT_ECHOSC3, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
-  Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatTypeToStringMap.insert (std::make_pair (WAVE_FORMAT_ROCKWELL_ADPCM, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
-  Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatTypeToStringMap.insert (std::make_pair (WAVE_FORMAT_ROCKWELL_DIGITALK, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
-  Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatTypeToStringMap.insert (std::make_pair (WAVE_FORMAT_XEBEC, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
-  Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatTypeToStringMap.insert (std::make_pair (WAVE_FORMAT_G721_ADPCM, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
-  Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatTypeToStringMap.insert (std::make_pair (WAVE_FORMAT_G728_CELP, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
-  Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatTypeToStringMap.insert (std::make_pair (WAVE_FORMAT_MSG723, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
-#if defined (_WIN32_WINNT) && (_WIN32_WINNT > 0x0601) // _WIN32_WINNT_WIN8
-  Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatTypeToStringMap.insert (std::make_pair (WAVE_FORMAT_INTEL_G723_1, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
-  Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatTypeToStringMap.insert (std::make_pair (WAVE_FORMAT_INTEL_G729, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
-  Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatTypeToStringMap.insert (std::make_pair (WAVE_FORMAT_SHARP_G726, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
-#endif // _WIN32_WINNT && (_WIN32_WINNT > 0x0601) // _WIN32_WINNT_WIN8
-  Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatTypeToStringMap.insert (std::make_pair (WAVE_FORMAT_MPEG, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
-  Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatTypeToStringMap.insert (std::make_pair (WAVE_FORMAT_RT24, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
-  Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatTypeToStringMap.insert (std::make_pair (WAVE_FORMAT_PAC, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
-  Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatTypeToStringMap.insert (std::make_pair (WAVE_FORMAT_MPEGLAYER3, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
-  Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatTypeToStringMap.insert (std::make_pair (WAVE_FORMAT_LUCENT_G723, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
-  Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatTypeToStringMap.insert (std::make_pair (WAVE_FORMAT_CIRRUS, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
-  Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatTypeToStringMap.insert (std::make_pair (WAVE_FORMAT_ESPCM, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
-  Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatTypeToStringMap.insert (std::make_pair (WAVE_FORMAT_VOXWARE, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
-  Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatTypeToStringMap.insert (std::make_pair (WAVE_FORMAT_CANOPUS_ATRAC, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
-  Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatTypeToStringMap.insert (std::make_pair (WAVE_FORMAT_G726_ADPCM, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
-  Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatTypeToStringMap.insert (std::make_pair (WAVE_FORMAT_G722_ADPCM, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
-#if defined (_WIN32_WINNT) && (_WIN32_WINNT > 0x0601) // _WIN32_WINNT_WIN8
-  Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatTypeToStringMap.insert (std::make_pair (WAVE_FORMAT_DSAT, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
-#endif // _WIN32_WINNT && (_WIN32_WINNT > 0x0601) // _WIN32_WINNT_WIN8
-  Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatTypeToStringMap.insert (std::make_pair (WAVE_FORMAT_DSAT_DISPLAY, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
-  Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatTypeToStringMap.insert (std::make_pair (WAVE_FORMAT_VOXWARE_BYTE_ALIGNED, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
-  Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatTypeToStringMap.insert (std::make_pair (WAVE_FORMAT_VOXWARE_AC8, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
-  Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatTypeToStringMap.insert (std::make_pair (WAVE_FORMAT_VOXWARE_AC10, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
-  Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatTypeToStringMap.insert (std::make_pair (WAVE_FORMAT_VOXWARE_AC16, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
-  Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatTypeToStringMap.insert (std::make_pair (WAVE_FORMAT_VOXWARE_AC20, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
-  Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatTypeToStringMap.insert (std::make_pair (WAVE_FORMAT_VOXWARE_RT24, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
-  Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatTypeToStringMap.insert (std::make_pair (WAVE_FORMAT_VOXWARE_RT29, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
-  Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatTypeToStringMap.insert (std::make_pair (WAVE_FORMAT_VOXWARE_RT29HW, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
-  Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatTypeToStringMap.insert (std::make_pair (WAVE_FORMAT_VOXWARE_VR12, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
-  Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatTypeToStringMap.insert (std::make_pair (WAVE_FORMAT_VOXWARE_VR18, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
-  Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatTypeToStringMap.insert (std::make_pair (WAVE_FORMAT_VOXWARE_TQ40, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
-#if defined (_WIN32_WINNT) && (_WIN32_WINNT > 0x0601) // _WIN32_WINNT_WIN8
-  Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatTypeToStringMap.insert (std::make_pair (WAVE_FORMAT_VOXWARE_SC3, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
-  Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatTypeToStringMap.insert (std::make_pair (WAVE_FORMAT_VOXWARE_SC3_1, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
-#endif // _WIN32_WINNT && (_WIN32_WINNT > 0x0601) // _WIN32_WINNT_WIN8
-  Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatTypeToStringMap.insert (std::make_pair (WAVE_FORMAT_SOFTSOUND, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
-  Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatTypeToStringMap.insert (std::make_pair (WAVE_FORMAT_VOXWARE_TQ60, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
-  Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatTypeToStringMap.insert (std::make_pair (WAVE_FORMAT_MSRT24, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
-  Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatTypeToStringMap.insert (std::make_pair (WAVE_FORMAT_G729A, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
-  Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatTypeToStringMap.insert (std::make_pair (WAVE_FORMAT_MVI_MVI2, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
-  Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatTypeToStringMap.insert (std::make_pair (WAVE_FORMAT_DF_G726, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
-  Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatTypeToStringMap.insert (std::make_pair (WAVE_FORMAT_DF_GSM610, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
-  Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatTypeToStringMap.insert (std::make_pair (WAVE_FORMAT_ISIAUDIO, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
-  Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatTypeToStringMap.insert (std::make_pair (WAVE_FORMAT_ONLIVE, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
-#if defined (_WIN32_WINNT) && (_WIN32_WINNT > 0x0601) // _WIN32_WINNT_WIN8
-  Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatTypeToStringMap.insert (std::make_pair (WAVE_FORMAT_MULTITUDE_FT_SX20, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
-  Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatTypeToStringMap.insert (std::make_pair (WAVE_FORMAT_INFOCOM_ITS_G721_ADPCM, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
-  Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatTypeToStringMap.insert (std::make_pair (WAVE_FORMAT_CONVEDIA_G729, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
-  Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatTypeToStringMap.insert (std::make_pair (WAVE_FORMAT_CONGRUENCY, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
-#endif // _WIN32_WINNT && (_WIN32_WINNT > 0x0601) // _WIN32_WINNT_WIN8
-  Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatTypeToStringMap.insert (std::make_pair (WAVE_FORMAT_SBC24, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
-  Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatTypeToStringMap.insert (std::make_pair (WAVE_FORMAT_DOLBY_AC3_SPDIF, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
-  Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatTypeToStringMap.insert (std::make_pair (WAVE_FORMAT_MEDIASONIC_G723, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
-  Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatTypeToStringMap.insert (std::make_pair (WAVE_FORMAT_PROSODY_8KBPS, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
-  Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatTypeToStringMap.insert (std::make_pair (WAVE_FORMAT_ZYXEL_ADPCM, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
-  Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatTypeToStringMap.insert (std::make_pair (WAVE_FORMAT_PHILIPS_LPCBB, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
-  Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatTypeToStringMap.insert (std::make_pair (WAVE_FORMAT_PACKED, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
-  Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatTypeToStringMap.insert (std::make_pair (WAVE_FORMAT_MALDEN_PHONYTALK, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
-#if defined (_WIN32_WINNT) && (_WIN32_WINNT > 0x0601) // _WIN32_WINNT_WIN8
-  Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatTypeToStringMap.insert (std::make_pair (WAVE_FORMAT_RACAL_RECORDER_GSM, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
-  Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatTypeToStringMap.insert (std::make_pair (WAVE_FORMAT_RACAL_RECORDER_G720_A, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
-  Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatTypeToStringMap.insert (std::make_pair (WAVE_FORMAT_RACAL_RECORDER_G723_1, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
-  Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatTypeToStringMap.insert (std::make_pair (WAVE_FORMAT_RACAL_RECORDER_TETRA_ACELP, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
-  Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatTypeToStringMap.insert (std::make_pair (WAVE_FORMAT_NEC_AAC, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
-#endif // _WIN32_WINNT && (_WIN32_WINNT > 0x0601) // _WIN32_WINNT_WIN8
-  Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatTypeToStringMap.insert (std::make_pair (WAVE_FORMAT_RAW_AAC1, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
-  Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatTypeToStringMap.insert (std::make_pair (WAVE_FORMAT_RHETOREX_ADPCM, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
-  Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatTypeToStringMap.insert (std::make_pair (WAVE_FORMAT_IRAT, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
-  Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatTypeToStringMap.insert (std::make_pair (WAVE_FORMAT_VIVO_G723, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
-  Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatTypeToStringMap.insert (std::make_pair (WAVE_FORMAT_VIVO_SIREN, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
-#if defined (_WIN32_WINNT) && (_WIN32_WINNT > 0x0601) // _WIN32_WINNT_WIN8
-  Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatTypeToStringMap.insert (std::make_pair (WAVE_FORMAT_PHILIPS_CELP, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
-  Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatTypeToStringMap.insert (std::make_pair (WAVE_FORMAT_PHILIPS_GRUNDIG, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
-#endif // _WIN32_WINNT && (_WIN32_WINNT > 0x0601) // _WIN32_WINNT_WIN8
-  Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatTypeToStringMap.insert (std::make_pair (WAVE_FORMAT_DIGITAL_G723, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
-  Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatTypeToStringMap.insert (std::make_pair (WAVE_FORMAT_SANYO_LD_ADPCM, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
-  Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatTypeToStringMap.insert (std::make_pair (WAVE_FORMAT_SIPROLAB_ACEPLNET, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
-  Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatTypeToStringMap.insert (std::make_pair (WAVE_FORMAT_SIPROLAB_ACELP4800, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
-  Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatTypeToStringMap.insert (std::make_pair (WAVE_FORMAT_SIPROLAB_ACELP8V3, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
-  Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatTypeToStringMap.insert (std::make_pair (WAVE_FORMAT_SIPROLAB_G729, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
-  Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatTypeToStringMap.insert (std::make_pair (WAVE_FORMAT_SIPROLAB_G729A, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
-  Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatTypeToStringMap.insert (std::make_pair (WAVE_FORMAT_SIPROLAB_KELVIN, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
-#if defined (_WIN32_WINNT) && (_WIN32_WINNT > 0x0601) // _WIN32_WINNT_WIN8
-  Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatTypeToStringMap.insert (std::make_pair (WAVE_FORMAT_VOICEAGE_AMR, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
-#endif // _WIN32_WINNT && (_WIN32_WINNT > 0x0601) // _WIN32_WINNT_WIN8
-  Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatTypeToStringMap.insert (std::make_pair (WAVE_FORMAT_G726ADPCM, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
-#if defined (_WIN32_WINNT) && (_WIN32_WINNT > 0x0601) // _WIN32_WINNT_WIN8
-  Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatTypeToStringMap.insert (std::make_pair (WAVE_FORMAT_DICTAPHONE_CELP68, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
-  Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatTypeToStringMap.insert (std::make_pair (WAVE_FORMAT_DICTAPHONE_CELP54, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
-#endif // _WIN32_WINNT && (_WIN32_WINNT > 0x0601) // _WIN32_WINNT_WIN8
-  Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatTypeToStringMap.insert (std::make_pair (WAVE_FORMAT_QUALCOMM_PUREVOICE, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
-  Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatTypeToStringMap.insert (std::make_pair (WAVE_FORMAT_QUALCOMM_HALFRATE, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
-  Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatTypeToStringMap.insert (std::make_pair (WAVE_FORMAT_TUBGSM, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
-  Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatTypeToStringMap.insert (std::make_pair (WAVE_FORMAT_MSAUDIO1, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
-  Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatTypeToStringMap.insert (std::make_pair (WAVE_FORMAT_WMAUDIO2, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
-  Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatTypeToStringMap.insert (std::make_pair (WAVE_FORMAT_WMAUDIO3, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
-  Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatTypeToStringMap.insert (std::make_pair (WAVE_FORMAT_WMAUDIO_LOSSLESS, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
-  Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatTypeToStringMap.insert (std::make_pair (WAVE_FORMAT_WMASPDIF, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
-  Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatTypeToStringMap.insert (std::make_pair (WAVE_FORMAT_UNISYS_NAP_ADPCM, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
-  Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatTypeToStringMap.insert (std::make_pair (WAVE_FORMAT_UNISYS_NAP_ULAW, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
-  Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatTypeToStringMap.insert (std::make_pair (WAVE_FORMAT_UNISYS_NAP_ALAW, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
-  Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatTypeToStringMap.insert (std::make_pair (WAVE_FORMAT_UNISYS_NAP_16K, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
-#if defined (_WIN32_WINNT) && (_WIN32_WINNT > 0x0601) // _WIN32_WINNT_WIN8
-  Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatTypeToStringMap.insert (std::make_pair (WAVE_FORMAT_SYCOM_ACM_SYC008, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
-  Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatTypeToStringMap.insert (std::make_pair (WAVE_FORMAT_SYCOM_ACM_SYC701_G726L, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
-  Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatTypeToStringMap.insert (std::make_pair (WAVE_FORMAT_SYCOM_ACM_SYC701_CELP54, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
-  Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatTypeToStringMap.insert (std::make_pair (WAVE_FORMAT_SYCOM_ACM_SYC701_CELP68, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
-  Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatTypeToStringMap.insert (std::make_pair (WAVE_FORMAT_KNOWLEDGE_ADVENTURE_ADPCM, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
-  Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatTypeToStringMap.insert (std::make_pair (WAVE_FORMAT_FRAUNHOFER_IIS_MPEG2_AAC, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
-  Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatTypeToStringMap.insert (std::make_pair (WAVE_FORMAT_DTS_DS, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
-#endif // _WIN32_WINNT && (_WIN32_WINNT > 0x0601) // _WIN32_WINNT_WIN8
-  Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatTypeToStringMap.insert (std::make_pair (WAVE_FORMAT_CREATIVE_ADPCM, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
-  Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatTypeToStringMap.insert (std::make_pair (WAVE_FORMAT_CREATIVE_FASTSPEECH8, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
-  Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatTypeToStringMap.insert (std::make_pair (WAVE_FORMAT_CREATIVE_FASTSPEECH10, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
-  Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatTypeToStringMap.insert (std::make_pair (WAVE_FORMAT_UHER_ADPCM, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
-#if defined (_WIN32_WINNT) && (_WIN32_WINNT > 0x0601) // _WIN32_WINNT_WIN8
-  Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatTypeToStringMap.insert (std::make_pair (WAVE_FORMAT_ULEAD_DV_AUDIO, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
-  Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatTypeToStringMap.insert (std::make_pair (WAVE_FORMAT_ULEAD_DV_AUDIO_1, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
-#endif // _WIN32_WINNT && (_WIN32_WINNT > 0x0601) // _WIN32_WINNT_WIN8
-  Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatTypeToStringMap.insert (std::make_pair (WAVE_FORMAT_QUARTERDECK, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
-  Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatTypeToStringMap.insert (std::make_pair (WAVE_FORMAT_ILINK_VC, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
-  Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatTypeToStringMap.insert (std::make_pair (WAVE_FORMAT_RAW_SPORT, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
-  Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatTypeToStringMap.insert (std::make_pair (WAVE_FORMAT_ESST_AC3, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
-  Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatTypeToStringMap.insert (std::make_pair (WAVE_FORMAT_GENERIC_PASSTHRU, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
-  Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatTypeToStringMap.insert (std::make_pair (WAVE_FORMAT_IPI_HSX, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
-  Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatTypeToStringMap.insert (std::make_pair (WAVE_FORMAT_IPI_RPELP, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
-  Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatTypeToStringMap.insert (std::make_pair (WAVE_FORMAT_CS2, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
-  Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatTypeToStringMap.insert (std::make_pair (WAVE_FORMAT_SONY_SCX, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
-#if defined (_WIN32_WINNT) && (_WIN32_WINNT > 0x0601) // _WIN32_WINNT_WIN8
-  Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatTypeToStringMap.insert (std::make_pair (WAVE_FORMAT_SONY_SCY, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
-  Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatTypeToStringMap.insert (std::make_pair (WAVE_FORMAT_SONY_ATRAC3, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
-  Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatTypeToStringMap.insert (std::make_pair (WAVE_FORMAT_SONY_SPC, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
-  Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatTypeToStringMap.insert (std::make_pair (WAVE_FORMAT_TELUM_AUDIO, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
-  Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatTypeToStringMap.insert (std::make_pair (WAVE_FORMAT_TELUM_IA_AUDIO, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
-  Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatTypeToStringMap.insert (std::make_pair (WAVE_FORMAT_NORCOM_VOICE_SYSTEMS_ADPCM, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
-#endif // _WIN32_WINNT && (_WIN32_WINNT > 0x0601) // _WIN32_WINNT_WIN8
-  Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatTypeToStringMap.insert (std::make_pair (WAVE_FORMAT_FM_TOWNS_SND, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
-#if defined (_WIN32_WINNT) && (_WIN32_WINNT > 0x0601) // _WIN32_WINNT_WIN8
-  Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatTypeToStringMap.insert (std::make_pair (WAVE_FORMAT_MICRONAS, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
-  Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatTypeToStringMap.insert (std::make_pair (WAVE_FORMAT_MICRONAS_CELP833, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
-  Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatTypeToStringMap.insert (std::make_pair (WAVE_FORMAT_BTV_DIGITAL, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
-  Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatTypeToStringMap.insert (std::make_pair (WAVE_FORMAT_INTEL_MUSIC_CODER, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
-  Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatTypeToStringMap.insert (std::make_pair (WAVE_FORMAT_INDEO_AUDIO, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
-#endif // _WIN32_WINNT && (_WIN32_WINNT > 0x0601) // _WIN32_WINNT_WIN8
-  Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatTypeToStringMap.insert (std::make_pair (WAVE_FORMAT_QDESIGN_MUSIC, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
-#if defined (_WIN32_WINNT) && (_WIN32_WINNT > 0x0601) // _WIN32_WINNT_WIN8
-  Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatTypeToStringMap.insert (std::make_pair (WAVE_FORMAT_ON2_VP7_AUDIO, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
-  Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatTypeToStringMap.insert (std::make_pair (WAVE_FORMAT_ON2_VP6_AUDIO, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
-#endif // _WIN32_WINNT && (_WIN32_WINNT > 0x0601) // _WIN32_WINNT_WIN8
-  Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatTypeToStringMap.insert (std::make_pair (WAVE_FORMAT_VME_VMPCM, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
-  Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatTypeToStringMap.insert (std::make_pair (WAVE_FORMAT_TPC, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
-#if defined (_WIN32_WINNT) && (_WIN32_WINNT > 0x0601) // _WIN32_WINNT_WIN8
-  Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatTypeToStringMap.insert (std::make_pair (WAVE_FORMAT_LIGHTWAVE_LOSSLESS, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
-#endif // _WIN32_WINNT && (_WIN32_WINNT > 0x0601) // _WIN32_WINNT_WIN8
-  Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatTypeToStringMap.insert (std::make_pair (WAVE_FORMAT_OLIGSM, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
-  Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatTypeToStringMap.insert (std::make_pair (WAVE_FORMAT_OLIADPCM, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
-  Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatTypeToStringMap.insert (std::make_pair (WAVE_FORMAT_OLICELP, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
-  Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatTypeToStringMap.insert (std::make_pair (WAVE_FORMAT_OLISBC, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
-  Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatTypeToStringMap.insert (std::make_pair (WAVE_FORMAT_OLIOPR, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
-  Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatTypeToStringMap.insert (std::make_pair (WAVE_FORMAT_LH_CODEC, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
-#if defined (_WIN32_WINNT) && (_WIN32_WINNT > 0x0601) // _WIN32_WINNT_WIN8
-  Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatTypeToStringMap.insert (std::make_pair (WAVE_FORMAT_LH_CODEC_CELP, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
-  Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatTypeToStringMap.insert (std::make_pair (WAVE_FORMAT_LH_CODEC_SBC8, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
-  Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatTypeToStringMap.insert (std::make_pair (WAVE_FORMAT_LH_CODEC_SBC12, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
-  Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatTypeToStringMap.insert (std::make_pair (WAVE_FORMAT_LH_CODEC_SBC16, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
-#endif // _WIN32_WINNT && (_WIN32_WINNT > 0x0601) // _WIN32_WINNT_WIN8
-  Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatTypeToStringMap.insert (std::make_pair (WAVE_FORMAT_NORRIS, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
-#if defined (_WIN32_WINNT) && (_WIN32_WINNT > 0x0601) // _WIN32_WINNT_WIN8
-  Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatTypeToStringMap.insert (std::make_pair (WAVE_FORMAT_ISIAUDIO_2, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
-#endif // _WIN32_WINNT && (_WIN32_WINNT > 0x0601) // _WIN32_WINNT_WIN8
-  Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatTypeToStringMap.insert (std::make_pair (WAVE_FORMAT_SOUNDSPACE_MUSICOMPRESS, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
-  Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatTypeToStringMap.insert (std::make_pair (WAVE_FORMAT_MPEG_ADTS_AAC, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
-  Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatTypeToStringMap.insert (std::make_pair (WAVE_FORMAT_MPEG_RAW_AAC, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
-  Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatTypeToStringMap.insert (std::make_pair (WAVE_FORMAT_MPEG_LOAS, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
-  Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatTypeToStringMap.insert (std::make_pair (WAVE_FORMAT_NOKIA_MPEG_ADTS_AAC, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
-  Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatTypeToStringMap.insert (std::make_pair (WAVE_FORMAT_NOKIA_MPEG_RAW_AAC, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
-  Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatTypeToStringMap.insert (std::make_pair (WAVE_FORMAT_VODAFONE_MPEG_ADTS_AAC, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
-  Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatTypeToStringMap.insert (std::make_pair (WAVE_FORMAT_VODAFONE_MPEG_RAW_AAC, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
-  Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatTypeToStringMap.insert (std::make_pair (WAVE_FORMAT_MPEG_HEAAC, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
-#if defined (_WIN32_WINNT) && (_WIN32_WINNT > 0x0601) // _WIN32_WINNT_WIN8
-  Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatTypeToStringMap.insert (std::make_pair (WAVE_FORMAT_VOXWARE_RT24_SPEECH, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
-  Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatTypeToStringMap.insert (std::make_pair (WAVE_FORMAT_SONICFOUNDRY_LOSSLESS, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
-  Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatTypeToStringMap.insert (std::make_pair (WAVE_FORMAT_INNINGS_TELECOM_ADPCM, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
-  Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatTypeToStringMap.insert (std::make_pair (WAVE_FORMAT_LUCENT_SX8300P, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
-  Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatTypeToStringMap.insert (std::make_pair (WAVE_FORMAT_LUCENT_SX5363S, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
-  Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatTypeToStringMap.insert (std::make_pair (WAVE_FORMAT_CUSEEME, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
-  Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatTypeToStringMap.insert (std::make_pair (WAVE_FORMAT_NTCSOFT_ALF2CM_ACM, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
-#endif // _WIN32_WINNT && (_WIN32_WINNT > 0x0601) // _WIN32_WINNT_WIN8
-  Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatTypeToStringMap.insert (std::make_pair (WAVE_FORMAT_DVM, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
-  Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatTypeToStringMap.insert (std::make_pair (WAVE_FORMAT_DTS2, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
-#if defined (_WIN32_WINNT) && (_WIN32_WINNT > 0x0601) // _WIN32_WINNT_WIN8
-  Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatTypeToStringMap.insert (std::make_pair (WAVE_FORMAT_MAKEAVIS, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
-  Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatTypeToStringMap.insert (std::make_pair (WAVE_FORMAT_DIVIO_MPEG4_AAC, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
-  Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatTypeToStringMap.insert (std::make_pair (WAVE_FORMAT_NOKIA_ADAPTIVE_MULTIRATE, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
-  Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatTypeToStringMap.insert (std::make_pair (WAVE_FORMAT_DIVIO_G726, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
-  Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatTypeToStringMap.insert (std::make_pair (WAVE_FORMAT_LEAD_SPEECH, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
-  Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatTypeToStringMap.insert (std::make_pair (WAVE_FORMAT_LEAD_VORBIS, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
-  Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatTypeToStringMap.insert (std::make_pair (WAVE_FORMAT_WAVPACK_AUDIO, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
-  Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatTypeToStringMap.insert (std::make_pair (WAVE_FORMAT_OGG_VORBIS_MODE_1, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
-  Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatTypeToStringMap.insert (std::make_pair (WAVE_FORMAT_OGG_VORBIS_MODE_2, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
-  Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatTypeToStringMap.insert (std::make_pair (WAVE_FORMAT_OGG_VORBIS_MODE_3, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
-  Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatTypeToStringMap.insert (std::make_pair (WAVE_FORMAT_OGG_VORBIS_MODE_1_PLUS, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
-  Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatTypeToStringMap.insert (std::make_pair (WAVE_FORMAT_OGG_VORBIS_MODE_2_PLUS, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
-  Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatTypeToStringMap.insert (std::make_pair (WAVE_FORMAT_OGG_VORBIS_MODE_3_PLUS, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
-  Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatTypeToStringMap.insert (std::make_pair (WAVE_FORMAT_3COM_NBX, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
-  Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatTypeToStringMap.insert (std::make_pair (WAVE_FORMAT_FAAD_AAC, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
-  Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatTypeToStringMap.insert (std::make_pair (WAVE_FORMAT_AMR_NB, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
-  Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatTypeToStringMap.insert (std::make_pair (WAVE_FORMAT_AMR_WB, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
-  Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatTypeToStringMap.insert (std::make_pair (WAVE_FORMAT_AMR_WP, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
-  Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatTypeToStringMap.insert (std::make_pair (WAVE_FORMAT_GSM_AMR_CBR, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
-  Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatTypeToStringMap.insert (std::make_pair (WAVE_FORMAT_GSM_AMR_VBR_SID, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
-  Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatTypeToStringMap.insert (std::make_pair (WAVE_FORMAT_COMVERSE_INFOSYS_G723_1, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
-  Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatTypeToStringMap.insert (std::make_pair (WAVE_FORMAT_COMVERSE_INFOSYS_AVQSBC, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
-  Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatTypeToStringMap.insert (std::make_pair (WAVE_FORMAT_COMVERSE_INFOSYS_SBC, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
-  Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatTypeToStringMap.insert (std::make_pair (WAVE_FORMAT_SYMBOL_G729_A, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
-  Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatTypeToStringMap.insert (std::make_pair (WAVE_FORMAT_VOICEAGE_AMR_WB, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
-  Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatTypeToStringMap.insert (std::make_pair (WAVE_FORMAT_INGENIENT_G726, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
-  Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatTypeToStringMap.insert (std::make_pair (WAVE_FORMAT_MPEG4_AAC, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
-  Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatTypeToStringMap.insert (std::make_pair (WAVE_FORMAT_ENCORE_G726, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
-  Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatTypeToStringMap.insert (std::make_pair (WAVE_FORMAT_ZOLL_ASAO, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
-  Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatTypeToStringMap.insert (std::make_pair (WAVE_FORMAT_SPEEX_VOICE, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
-  Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatTypeToStringMap.insert (std::make_pair (WAVE_FORMAT_VIANIX_MASC, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
-  Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatTypeToStringMap.insert (std::make_pair (WAVE_FORMAT_WM9_SPECTRUM_ANALYZER, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
-  Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatTypeToStringMap.insert (std::make_pair (WAVE_FORMAT_WMF_SPECTRUM_ANAYZER, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
-  Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatTypeToStringMap.insert (std::make_pair (WAVE_FORMAT_GSM_610, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
-  Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatTypeToStringMap.insert (std::make_pair (WAVE_FORMAT_GSM_620, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
-  Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatTypeToStringMap.insert (std::make_pair (WAVE_FORMAT_GSM_660, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
-  Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatTypeToStringMap.insert (std::make_pair (WAVE_FORMAT_GSM_690, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
-  Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatTypeToStringMap.insert (std::make_pair (WAVE_FORMAT_GSM_ADAPTIVE_MULTIRATE_WB, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
-  Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatTypeToStringMap.insert (std::make_pair (WAVE_FORMAT_POLYCOM_G722, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
-  Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatTypeToStringMap.insert (std::make_pair (WAVE_FORMAT_POLYCOM_G728, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
-  Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatTypeToStringMap.insert (std::make_pair (WAVE_FORMAT_POLYCOM_G729_A, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
-  Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatTypeToStringMap.insert (std::make_pair (WAVE_FORMAT_POLYCOM_SIREN, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
-  Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatTypeToStringMap.insert (std::make_pair (WAVE_FORMAT_GLOBAL_IP_ILBC, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
-  Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatTypeToStringMap.insert (std::make_pair (WAVE_FORMAT_RADIOTIME_TIME_SHIFT_RADIO, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
-  Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatTypeToStringMap.insert (std::make_pair (WAVE_FORMAT_NICE_ACA, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
-  Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatTypeToStringMap.insert (std::make_pair (WAVE_FORMAT_NICE_ADPCM, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
-  Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatTypeToStringMap.insert (std::make_pair (WAVE_FORMAT_VOCORD_G721, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
-  Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatTypeToStringMap.insert (std::make_pair (WAVE_FORMAT_VOCORD_G726, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
-  Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatTypeToStringMap.insert (std::make_pair (WAVE_FORMAT_VOCORD_G722_1, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
-  Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatTypeToStringMap.insert (std::make_pair (WAVE_FORMAT_VOCORD_G728, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
-  Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatTypeToStringMap.insert (std::make_pair (WAVE_FORMAT_VOCORD_G729, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
-  Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatTypeToStringMap.insert (std::make_pair (WAVE_FORMAT_VOCORD_G729_A, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
-  Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatTypeToStringMap.insert (std::make_pair (WAVE_FORMAT_VOCORD_G723_1, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
-  Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatTypeToStringMap.insert (std::make_pair (WAVE_FORMAT_VOCORD_LBC, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
-  Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatTypeToStringMap.insert (std::make_pair (WAVE_FORMAT_NICE_G728, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
-  Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatTypeToStringMap.insert (std::make_pair (WAVE_FORMAT_FRACE_TELECOM_G729, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
-  Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatTypeToStringMap.insert (std::make_pair (WAVE_FORMAT_CODIAN, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
-  Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatTypeToStringMap.insert (std::make_pair (WAVE_FORMAT_FLAC, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
-#endif // _WIN32_WINNT && (_WIN32_WINNT > 0x0601) // _WIN32_WINNT_WIN8
-  Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatTypeToStringMap.insert (std::make_pair (WAVE_FORMAT_EXTENSIBLE, ACE_TEXT_ALWAYS_CHAR ("EXTENSIBLE")));
-  Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatTypeToStringMap.insert (std::make_pair (WAVE_FORMAT_DEVELOPMENT, ACE_TEXT_ALWAYS_CHAR ("DEVELOPMENT")));
-
-  // ---------------------------------------------------------------------------
-
-  Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatSubTypeToStringMap.insert (std::make_pair (KSDATAFORMAT_SUBTYPE_ANALOG, ACE_TEXT_ALWAYS_CHAR ("Analog")));
-  Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatSubTypeToStringMap.insert (std::make_pair (KSDATAFORMAT_SUBTYPE_PCM, ACE_TEXT_ALWAYS_CHAR ("PCM")));
-  Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatSubTypeToStringMap.insert (std::make_pair (KSDATAFORMAT_SUBTYPE_IEEE_FLOAT, ACE_TEXT_ALWAYS_CHAR ("IEEE_FLOAT")));
-  Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatSubTypeToStringMap.insert (std::make_pair (KSDATAFORMAT_SUBTYPE_DRM, ACE_TEXT_ALWAYS_CHAR ("DRM")));
-  Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatSubTypeToStringMap.insert (std::make_pair (KSDATAFORMAT_SUBTYPE_ALAW, ACE_TEXT_ALWAYS_CHAR ("ALAW")));
-  Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatSubTypeToStringMap.insert (std::make_pair (KSDATAFORMAT_SUBTYPE_MULAW, ACE_TEXT_ALWAYS_CHAR ("MULAW")));
-  Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatSubTypeToStringMap.insert (std::make_pair (KSDATAFORMAT_SUBTYPE_ADPCM, ACE_TEXT_ALWAYS_CHAR ("ADPCM")));
-  Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatSubTypeToStringMap.insert (std::make_pair (KSDATAFORMAT_SUBTYPE_MPEG, ACE_TEXT_ALWAYS_CHAR ("MPEG")));
-  Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatSubTypeToStringMap.insert (std::make_pair (KSDATAFORMAT_SUBTYPE_IEC61937_DOLBY_DIGITAL, ACE_TEXT_ALWAYS_CHAR ("DOLBY_DIGITAL")));
-  Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatSubTypeToStringMap.insert (std::make_pair (KSDATAFORMAT_SUBTYPE_IEC61937_WMA_PRO, ACE_TEXT_ALWAYS_CHAR ("WMA_PRO")));
-  Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatSubTypeToStringMap.insert (std::make_pair (KSDATAFORMAT_SUBTYPE_IEC61937_DTS, ACE_TEXT_ALWAYS_CHAR ("DTS")));
-  Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatSubTypeToStringMap.insert (std::make_pair (KSDATAFORMAT_SUBTYPE_IEC61937_MPEG1, ACE_TEXT_ALWAYS_CHAR ("MPEG1")));
-  Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatSubTypeToStringMap.insert (std::make_pair (KSDATAFORMAT_SUBTYPE_IEC61937_MPEG2, ACE_TEXT_ALWAYS_CHAR ("MPEG2")));
-  Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatSubTypeToStringMap.insert (std::make_pair (KSDATAFORMAT_SUBTYPE_IEC61937_MPEG3, ACE_TEXT_ALWAYS_CHAR ("MPEG3")));
-  Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatSubTypeToStringMap.insert (std::make_pair (KSDATAFORMAT_SUBTYPE_IEC61937_AAC, ACE_TEXT_ALWAYS_CHAR ("AAC")));
-  Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatSubTypeToStringMap.insert (std::make_pair (KSDATAFORMAT_SUBTYPE_IEC61937_ATRAC, ACE_TEXT_ALWAYS_CHAR ("ATRAC")));
-  Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatSubTypeToStringMap.insert (std::make_pair (KSDATAFORMAT_SUBTYPE_IEC61937_ONE_BIT_AUDIO, ACE_TEXT_ALWAYS_CHAR ("ONE_BIT_AUDIO")));
-  Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatSubTypeToStringMap.insert (std::make_pair (KSDATAFORMAT_SUBTYPE_IEC61937_DOLBY_DIGITAL_PLUS, ACE_TEXT_ALWAYS_CHAR ("DOLBY_DIGITAL_PLUS")));
-  Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatSubTypeToStringMap.insert (std::make_pair (KSDATAFORMAT_SUBTYPE_IEC61937_DTS_HD, ACE_TEXT_ALWAYS_CHAR ("DTS_HD")));
-  Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatSubTypeToStringMap.insert (std::make_pair (KSDATAFORMAT_SUBTYPE_IEC61937_DOLBY_MLP, ACE_TEXT_ALWAYS_CHAR ("DOLBY_MLP")));
-  Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatSubTypeToStringMap.insert (std::make_pair (KSDATAFORMAT_SUBTYPE_IEC61937_DST, ACE_TEXT_ALWAYS_CHAR ("DST")));
-#if defined (_WIN32_WINNT) && (_WIN32_WINNT > 0x0601) // _WIN32_WINNT_WIN8
-  Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatSubTypeToStringMap.insert (std::make_pair (KSDATAFORMAT_SUBTYPE_MPEGLAYER3, ACE_TEXT_ALWAYS_CHAR ("MPEGLAYER3")));
-  Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatSubTypeToStringMap.insert (std::make_pair (KSDATAFORMAT_SUBTYPE_MPEG_HEAAC, ACE_TEXT_ALWAYS_CHAR ("HEAAC")));
-  Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatSubTypeToStringMap.insert (std::make_pair (KSDATAFORMAT_SUBTYPE_WMAUDIO2, ACE_TEXT_ALWAYS_CHAR ("WMAUDIO2")));
-  Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatSubTypeToStringMap.insert (std::make_pair (KSDATAFORMAT_SUBTYPE_WMAUDIO3, ACE_TEXT_ALWAYS_CHAR ("WMAUDIO3")));
-  Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatSubTypeToStringMap.insert (std::make_pair (KSDATAFORMAT_SUBTYPE_WMAUDIO_LOSSLESS, ACE_TEXT_ALWAYS_CHAR ("WMAUDIO_LOSSLESS")));
-#endif // _WIN32_WINNT && (_WIN32_WINNT > 0x0601) // _WIN32_WINNT_WIN8
-  Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatSubTypeToStringMap.insert (std::make_pair (KSDATAFORMAT_SUBTYPE_DTS_AUDIO, ACE_TEXT_ALWAYS_CHAR ("DTS_AUDIO")));
-  Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatSubTypeToStringMap.insert (std::make_pair (KSDATAFORMAT_SUBTYPE_SDDS_AUDIO, ACE_TEXT_ALWAYS_CHAR ("SDDS_AUDIO")));
 
   if (likely (coInitialize_in))
   {
@@ -2991,90 +2652,8 @@ Stream_MediaFramework_DirectShow_Tools::toString_2 (const struct _AMMediaType& m
     struct tWAVEFORMATEX* waveformatex_p =
       (struct tWAVEFORMATEX*)mediaType_in.pbFormat;
 
-    result += ACE_TEXT_ALWAYS_CHAR (" || format: ");
-
-    WORD_TO_STRING_MAP_ITERATOR_T iterator =
-      Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatTypeToStringMap.find (waveformatex_p->wFormatTag);
-    if (iterator == Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatTypeToStringMap.end ())
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("invalid/unknown wave formattype (was: %d), aborting\n"),
-                  waveformatex_p->wFormatTag));
-      return std::string ();
-    } // end IF
-    result += (*iterator).second;
-
-    result +=
-      ACE_TEXT_ALWAYS_CHAR (" || samples (channels/rate/bps/align/bps/size): ");
-
-    converter.str (ACE_TEXT_ALWAYS_CHAR (""));
-    converter.clear ();
-    converter << waveformatex_p->nChannels;
-    result += converter.str ();
-    result += ACE_TEXT_ALWAYS_CHAR ("/");
-    converter.str (ACE_TEXT_ALWAYS_CHAR (""));
-    converter.clear ();
-    converter << waveformatex_p->nSamplesPerSec;
-    result += converter.str ();
-    result += ACE_TEXT_ALWAYS_CHAR ("/");
-    converter.str (ACE_TEXT_ALWAYS_CHAR (""));
-    converter.clear ();
-    converter << waveformatex_p->nAvgBytesPerSec;
-    result += converter.str ();
-    result += ACE_TEXT_ALWAYS_CHAR ("/");
-    converter.str (ACE_TEXT_ALWAYS_CHAR (""));
-    converter.clear ();
-    converter << waveformatex_p->nBlockAlign;
-    result += converter.str ();
-    result += ACE_TEXT_ALWAYS_CHAR ("/");
-    converter.str (ACE_TEXT_ALWAYS_CHAR (""));
-    converter.clear ();
-    converter << waveformatex_p->wBitsPerSample;
-    result += converter.str ();
-    result += ACE_TEXT_ALWAYS_CHAR ("/");
-    converter.str (ACE_TEXT_ALWAYS_CHAR (""));
-    converter.clear ();
-    converter << waveformatex_p->cbSize;
-    result += converter.str ();
-
-    if (waveformatex_p->wFormatTag == WAVE_FORMAT_EXTENSIBLE)
-    {
-      WAVEFORMATEXTENSIBLE* waveformatextensible_p =
-        reinterpret_cast<WAVEFORMATEXTENSIBLE*> (mediaType_in.pbFormat);
-
-      result += ACE_TEXT_ALWAYS_CHAR (" || extensible (spb/mask/sub): ");
-
-      converter.str (ACE_TEXT_ALWAYS_CHAR (""));
-      converter.clear ();
-      // *TODO*: the second argument may not be entirely accurate
-      if (Stream_MediaFramework_Tools::isCompressedAudio (mediaType_in.subtype,
-                                                          STREAM_MEDIAFRAMEWORK_DIRECTSHOW))
-        converter << waveformatextensible_p->Samples.wSamplesPerBlock;
-      else
-        converter << waveformatextensible_p->Samples.wValidBitsPerSample;
-      result += converter.str ();
-      result += ACE_TEXT_ALWAYS_CHAR ("/");
-      converter.str (ACE_TEXT_ALWAYS_CHAR (""));
-      converter.clear ();
-      converter <<
-        std::hex << waveformatextensible_p->dwChannelMask << std::dec;
-      result += converter.str ();
-      result += ACE_TEXT_ALWAYS_CHAR ("/");
-      converter.str (ACE_TEXT_ALWAYS_CHAR (""));
-      converter.clear ();
-      Stream_MediaFramework_GUIDToStringMapConstIterator_t iterator =
-        Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatSubTypeToStringMap.find (waveformatextensible_p->SubFormat);
-      if (iterator == Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatSubTypeToStringMap.end ())
-      {
-        ACE_DEBUG ((LM_WARNING,
-                    ACE_TEXT ("invalid/unknown wave subformat (was: \"%s\"), aborting\n"),
-                    ACE_TEXT (Common_Tools::GUIDToString (waveformatextensible_p->SubFormat).c_str ())));
-        result += Common_Tools::GUIDToString (waveformatextensible_p->SubFormat);
-      } // end IF
-      else
-        result += (*iterator).second;
-      result += ACE_TEXT_ALWAYS_CHAR ("\"");
-    } // end IF
+    result += ACE_TEXT_ALWAYS_CHAR (" || ");
+    result += Stream_MediaFramework_DirectSound_Tools::toString (*waveformatex_p, true);
   } // end ELSE IF
   else if (!InlineIsEqualGUID (mediaType_in.formattype, GUID_NULL)) // <-- 'don't care'
     ACE_DEBUG ((LM_WARNING,
@@ -4226,104 +3805,12 @@ Stream_MediaFramework_DirectShow_Tools::toString (const struct _AMMediaType& med
       (struct tWAVEFORMATEX*)mediaType_in.pbFormat;
     result += ACE_TEXT_ALWAYS_CHAR ("---\n");
     result +=
-      Stream_MediaFramework_DirectShow_Tools::toString (*waveformatex_p);
+      Stream_MediaFramework_DirectSound_Tools::toString (*waveformatex_p, false);
   } // end ELSE IF
   else
     ACE_DEBUG ((LM_WARNING,
                 ACE_TEXT ("invalid/unknown media formattype (was: \"%s\"), continuing\n"),
                 ACE_TEXT (Common_Tools::GUIDToString (mediaType_in.formattype).c_str ())));
-
-  return result;
-}
-
-std::string
-Stream_MediaFramework_DirectShow_Tools::toString (const struct tWAVEFORMATEX& format_in)
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_DirectShow_Tools::toString"));
-
-  std::string result;
-
-  result += ACE_TEXT_ALWAYS_CHAR ("wFormatTag: \"");
-  WORD_TO_STRING_MAP_ITERATOR_T iterator =
-    Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatTypeToStringMap.find (format_in.wFormatTag);
-  if (iterator == Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatTypeToStringMap.end ())
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("invalid/unknown wave formattype (was: %d), aborting\n"),
-                format_in.wFormatTag));
-    return std::string ();
-  } // end IF
-  result += (*iterator).second;
-
-  std::ostringstream converter;
-  result += ACE_TEXT_ALWAYS_CHAR ("\"\nnChannels: ");
-  converter.str (ACE_TEXT_ALWAYS_CHAR (""));
-  converter.clear ();
-  converter << format_in.nChannels;
-  result += converter.str ();
-
-  result += ACE_TEXT_ALWAYS_CHAR ("\nnSamplesPerSec: ");
-  converter.str (ACE_TEXT_ALWAYS_CHAR (""));
-  converter.clear ();
-  converter << format_in.nSamplesPerSec;
-  result += converter.str ();
-
-  result += ACE_TEXT_ALWAYS_CHAR ("\nnAvgBytesPerSec: ");
-  converter.str (ACE_TEXT_ALWAYS_CHAR (""));
-  converter.clear ();
-  converter << format_in.nAvgBytesPerSec;
-  result += converter.str ();
-
-  result += ACE_TEXT_ALWAYS_CHAR ("\nnBlockAlign: "); // frame size
-  converter.str (ACE_TEXT_ALWAYS_CHAR (""));
-  converter.clear ();
-  converter << format_in.nBlockAlign;
-  result += converter.str ();
-
-  result += ACE_TEXT_ALWAYS_CHAR ("\nwBitsPerSample: ");
-  converter.str (ACE_TEXT_ALWAYS_CHAR (""));
-  converter.clear ();
-  converter << format_in.wBitsPerSample;
-  result += converter.str ();
-
-  result += ACE_TEXT_ALWAYS_CHAR ("\ncbSize: ");
-  converter.str (ACE_TEXT_ALWAYS_CHAR (""));
-  converter.clear ();
-  converter << format_in.cbSize;
-  result += converter.str ();
-
-  if (format_in.wFormatTag == WAVE_FORMAT_EXTENSIBLE)
-  {
-    WAVEFORMATEXTENSIBLE* waveformatextensible_p =
-      (WAVEFORMATEXTENSIBLE*)&format_in;
-
-    result += ACE_TEXT_ALWAYS_CHAR ("\nwValidBitsPerSample|wSamplesPerBlock: ");
-    converter.str (ACE_TEXT_ALWAYS_CHAR (""));
-    converter.clear ();
-    converter << waveformatextensible_p->Samples.wValidBitsPerSample;
-    result += converter.str ();
-
-    result += ACE_TEXT_ALWAYS_CHAR ("\ndwChannelMask: 0x");
-    converter.str (ACE_TEXT_ALWAYS_CHAR (""));
-    converter.clear ();
-    converter <<
-      std::hex << waveformatextensible_p->dwChannelMask << std::dec;
-    result += converter.str ();
-
-    result += ACE_TEXT_ALWAYS_CHAR ("\nSubFormat: \"");
-    Stream_MediaFramework_GUIDToStringMapConstIterator_t iterator =
-      Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatSubTypeToStringMap.find (waveformatextensible_p->SubFormat);
-    if (iterator == Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatSubTypeToStringMap.end ())
-    {
-      ACE_DEBUG ((LM_WARNING,
-                  ACE_TEXT ("invalid/unknown wave subformat (was: \"%s\"), continuing\n"),
-                  ACE_TEXT (Common_Tools::GUIDToString (waveformatextensible_p->SubFormat).c_str ())));
-      result += Common_Tools::GUIDToString (waveformatextensible_p->SubFormat);
-    } // end IF
-    else
-      result += (*iterator).second;
-    result += ACE_TEXT_ALWAYS_CHAR ("\"");
-  } // end IF
 
   return result;
 }
@@ -4511,6 +3998,99 @@ Stream_MediaFramework_DirectShow_Tools::toChannels (const struct _AMMediaType& m
     (struct tWAVEFORMATEX*)mediaType_in.pbFormat;
 
   return waveformatex_p->nChannels;
+}
+
+void
+Stream_MediaFramework_DirectShow_Tools::getAudioRendererStatistics (IFilterGraph* graph_in,
+                                                                    Stream_MediaFrameWork_DirectSound_Statistics_t& statistic_out)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_DirectShow_Tools::getAudioRendererStatistics"));
+
+  // sanity check(s)
+  ACE_ASSERT (graph_in);
+
+  // initialize return value(s)
+  statistic_out.clear ();
+
+  // step1: retrieve filter
+  IBaseFilter* filter_p = NULL;
+  HRESULT result =
+    graph_in->FindFilterByName (STREAM_LIB_DIRECTSHOW_FILTER_NAME_RENDER_AUDIO,
+                                &filter_p);
+  ACE_ASSERT (SUCCEEDED (result) && filter_p);
+
+  // step2: retrieve interface
+  IAMAudioRendererStats* statistic_p = NULL;
+  result = filter_p->QueryInterface (IID_PPV_ARGS (&statistic_p));
+  if (unlikely (FAILED (result) || !statistic_p))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s: failed to IBaseFilter::QueryInterface(IID_IAMAudioRendererStats): \"%s\", returning\n"),
+                ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::name (filter_p).c_str ()),
+                ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ())));
+    filter_p->Release (); filter_p = NULL;
+    return;
+  } // end IF
+  filter_p->Release (); filter_p = NULL;
+
+  // step3: retrieve information
+  DWORD value_1 = 0, value_2 = 0;
+  for (DWORD i = AM_AUDREND_STAT_PARAM_BREAK_COUNT;
+       i <= AM_AUDREND_STAT_PARAM_JITTER;
+       ++i)
+  {
+    result = statistic_p->GetStatParam (i,
+                                        &value_1,
+                                        &value_2);
+    if (unlikely (FAILED (result))) // 6: AM_AUDREND_STAT_PARAM_SLAVE_RATE: "...Valid only when the
+                                    // DirectSound Renderer is matching rates to another clock or a live source. ..."
+      continue;
+    statistic_out[static_cast<enum _AM_AUDIO_RENDERER_STAT_PARAM> (i)] = std::make_pair (value_1, value_2);
+  } // end FOR
+  statistic_p->Release ();
+}
+
+std::string
+Stream_MediaFramework_DirectShow_Tools::toString (enum _AM_AUDIO_RENDERER_STAT_PARAM parameter_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_DirectShow_Tools::toString"));
+
+  switch (parameter_in)
+  {
+    case AM_AUDREND_STAT_PARAM_BREAK_COUNT:
+      return ACE_TEXT_ALWAYS_CHAR ("BREAK_COUNT");
+    case AM_AUDREND_STAT_PARAM_SLAVE_MODE:
+      return ACE_TEXT_ALWAYS_CHAR ("SLAVE_MODE");
+    case AM_AUDREND_STAT_PARAM_SILENCE_DUR:
+      return ACE_TEXT_ALWAYS_CHAR ("SILENCE_DUR");
+    case AM_AUDREND_STAT_PARAM_LAST_BUFFER_DUR:
+      return ACE_TEXT_ALWAYS_CHAR ("LAST_BUFFER_DUR");
+    case AM_AUDREND_STAT_PARAM_DISCONTINUITIES:
+      return ACE_TEXT_ALWAYS_CHAR ("DISCONTINUITIES");
+    case AM_AUDREND_STAT_PARAM_SLAVE_RATE:
+      return ACE_TEXT_ALWAYS_CHAR ("SLAVE_RATE");
+    case AM_AUDREND_STAT_PARAM_SLAVE_DROPWRITE_DUR:
+      return ACE_TEXT_ALWAYS_CHAR ("DROPWRITE_DUR");
+    case AM_AUDREND_STAT_PARAM_SLAVE_HIGHLOWERROR:
+      return ACE_TEXT_ALWAYS_CHAR ("HIGHLOWERROR");
+    case AM_AUDREND_STAT_PARAM_SLAVE_LASTHIGHLOWERROR:
+      return ACE_TEXT_ALWAYS_CHAR ("LASTHIGHLOWERROR");
+    case AM_AUDREND_STAT_PARAM_SLAVE_ACCUMERROR:
+      return ACE_TEXT_ALWAYS_CHAR ("SLAVE_ACCUMERROR");
+    case AM_AUDREND_STAT_PARAM_BUFFERFULLNESS:
+      return ACE_TEXT_ALWAYS_CHAR ("BUFFERFULLNESS");
+    case AM_AUDREND_STAT_PARAM_JITTER:
+      return ACE_TEXT_ALWAYS_CHAR ("JITTER");
+    default:
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("invalid/unknown parameter (was: %d), aborting\n"),
+                  parameter_in));
+      break;
+    }
+  } // end SWITCH
+
+  return ACE_TEXT_ALWAYS_CHAR ("");
 }
 
 #if defined (FFMPEG_SUPPORT)

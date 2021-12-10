@@ -21,6 +21,7 @@
 #ifndef STREAM_LIB_DIRECTSOUND_TOOLS_H
 #define STREAM_LIB_DIRECTSOUND_TOOLS_H
 
+#include <map>
 #include <string>
 
 #include "mmdeviceapi.h"
@@ -30,35 +31,61 @@
 #include "stream_lib_directsound_common.h"
 
 // forward declarations
-struct IFilterGraph;
-struct IPart;
+enum _AUDCLNT_SHAREMODE;
 struct IAudioVolumeLevel;
+struct IPart;
 
 class Stream_MediaFramework_DirectSound_Tools
 {
+  friend class Stream_MediaFramework_DirectShow_Tools;
+
  public:
+  static void initialize ();
+
+  // devices
   static struct _GUID waveDeviceIdToDirectSoundGUID (ULONG,        // waveIn/Out device id
                                                      bool = true); // capture ? : playback
   static ULONG directSoundGUIDTowaveDeviceId (REFGUID); // device identifier
-  static IAudioVolumeLevel* getMicrophoneBoostControl (IMMDevice*); // device handle
 
+  // format
+  static std::string toString (const struct tWAVEFORMATEX&, // format
+                               bool = false);               // condensed version ?
+
+  // waveOut
+  static bool canRender (ULONG,                        // waveOut device id
+                         const struct tWAVEFORMATEX&); // format
+  // *IMPORTANT NOTE*: there seems to be no way to determine a 'preferred' format
+  //                   --> iterate over all of them !
+  static void getBestFormat (ULONG,                  // waveOut device id
+                             struct tWAVEFORMATEX&); // return value: default format
+
+  // WASAPI
   static bool canRender (REFGUID,                      // device identifier
-                         const struct tWAVEFORMATEX&); // return value: 'mix' format
-  static void getAudioRendererFormat (REFGUID,                // device identifier
-                                      struct tWAVEFORMATEX&); // return value: 'mix' format
-  static void getAudioRendererStatistics (IFilterGraph*,                                    // filter graph handle
-                                          Stream_MediaFrameWork_DirectSound_Statistics_t&); // return value: statistic information
-  static std::string toString (enum _AM_AUDIO_RENDERER_STAT_PARAM); // parameter
+                         enum _AUDCLNT_SHAREMODE,      // share mode
+                         const struct tWAVEFORMATEX&); // format
+  // *NOTE*: "...In shared mode, the audio engine always supports the mix format..."
+  // *TODO*: what about exclusive mode ?
+  static void getAudioEngineMixFormat (REFGUID,                // device identifier
+                                       struct tWAVEFORMATEX&); // return value: 'mix' format
+  static IAudioVolumeLevel* getMicrophoneBoostControl (IMMDevice*); // device handle
 
  private:
   ACE_UNIMPLEMENTED_FUNC (Stream_MediaFramework_DirectSound_Tools ())
   ACE_UNIMPLEMENTED_FUNC (Stream_MediaFramework_DirectSound_Tools (const Stream_MediaFramework_DirectSound_Tools&))
   ACE_UNIMPLEMENTED_FUNC (Stream_MediaFramework_DirectSound_Tools& operator= (const Stream_MediaFramework_DirectSound_Tools&))
 
+  // helper types
+  typedef std::map<WORD, std::string> WORD_TO_STRING_MAP_T;
+  typedef WORD_TO_STRING_MAP_T::const_iterator WORD_TO_STRING_MAP_ITERATOR_T;
+
   // helper methods
   // *IMPORTANT NOTE*: fire-and-forget the first argument
   static IAudioVolumeLevel* walkDeviceTreeFromPart (IPart*,              // part handle
                                                     const std::string&); // (volume-)control name
+  static std::string toString_2 (const struct tWAVEFORMATEX&); // format
+
+  static WORD_TO_STRING_MAP_T Stream_WaveFormatTypeToStringMap;
+  static Stream_MediaFramework_GUIDToStringMap_t Stream_WaveFormatSubTypeToStringMap;
 };
 
 #endif

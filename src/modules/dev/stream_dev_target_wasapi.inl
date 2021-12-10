@@ -379,7 +379,7 @@ continue_:
                     ACE_TEXT ("%s: failed to IAudioClient::IsFormatSupported(%d,%s), aborting\n"),
                     inherited::mod_->name (),
                     share_mode_e,
-                    ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::toString (*audio_info_p).c_str ())));
+                    ACE_TEXT (Stream_MediaFramework_DirectSound_Tools::toString (*audio_info_p, true).c_str ())));
         device_p->Release (); device_p = NULL;
         goto error;
       } // end IF
@@ -388,8 +388,8 @@ continue_:
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: format (was: %s) not supported; closest match: \"%s\", aborting\n"),
                     inherited::mod_->name (),
-                    ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::toString (*audio_info_p).c_str ()),
-                    ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::toString (*audio_info_2).c_str ())));
+                    ACE_TEXT (Stream_MediaFramework_DirectSound_Tools::toString (*audio_info_p, true).c_str ()),
+                    ACE_TEXT (Stream_MediaFramework_DirectSound_Tools::toString (*audio_info_2, true).c_str ())));
         CoTaskMemFree (audio_info_2); audio_info_2 = NULL;
         device_p->Release (); device_p = NULL;
         goto error;
@@ -402,12 +402,14 @@ continue_:
       ACE_ASSERT (SUCCEEDED (result_2));
       GUID_s = CLSID_ACEStream_MediaFramework_WASAPI_AudioSession;
 retry:
-      result_2 = audioClient_->Initialize (share_mode_e,
-                                           stream_flags_i,
-                                           requested_duration_i,
-                                           ((share_mode_e == AUDCLNT_SHAREMODE_EXCLUSIVE) ? requested_duration_i : 0),
-                                           audio_info_p,
-                                           &GUID_s);
+      result_2 =
+        audioClient_->Initialize (share_mode_e,
+                                  stream_flags_i,
+                                  requested_duration_i,
+                                  ((share_mode_e == AUDCLNT_SHAREMODE_EXCLUSIVE) ? requested_duration_i
+                                                                                 : 0),
+                                  audio_info_p,
+                                  &GUID_s);
       if (unlikely (FAILED (result_2))) // AUDCLNT_E_UNSUPPORTED_FORMAT: 0x88890008
       {
         if (unlikely (result_2 == AUDCLNT_E_BUFFER_SIZE_NOT_ALIGNED))
@@ -429,7 +431,7 @@ retry:
                     stream_flags_i,
                     requested_duration_i,
                     ((share_mode_e == AUDCLNT_SHAREMODE_EXCLUSIVE) ? requested_duration_i : 0),
-                    ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::toString (*audio_info_p).c_str ()),
+                    ACE_TEXT (Stream_MediaFramework_DirectSound_Tools::toString (*audio_info_p, true).c_str ()),
                     ACE_TEXT (Common_Error_Tools::errorToString (result_2, true, false).c_str ())));
         device_p->Release (); device_p = NULL;
         goto error;
@@ -511,7 +513,17 @@ error:
         IAudioSessionControl* audio_session_control_p = NULL;
         result_2 =
           audioClient_->GetService (IID_PPV_ARGS (&audio_session_control_p));
-        ACE_ASSERT (SUCCEEDED (result_2) && audio_session_control_p);
+        if (FAILED (result_2))
+        {
+          if (result_2 == AUDCLNT_E_NOT_INITIALIZED)
+            goto continue_2;
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("%s: failed to IAudioClient::GetService(IID_IAudioSessionControl): \"%s\", continuing\n"),
+                      inherited::mod_->name (),
+                      ACE_TEXT (Common_Error_Tools::errorToString (result_2, true, false).c_str ())));
+          goto continue_2;
+        } // end IF
+        ACE_ASSERT (audio_session_control_p);
         result_2 =
           audio_session_control_p->UnregisterAudioSessionNotification (this);
         // *NOTE*: needs to be the same thread that called RegisterAudioSessionNotification() ?
@@ -521,7 +533,7 @@ error:
                       inherited::mod_->name (),
                       ACE_TEXT (Common_Error_Tools::errorToString (result_2, true, false).c_str ())));
         audio_session_control_p->Release (); audio_session_control_p = NULL;
-
+continue_2:
         audioClient_->Release (); audioClient_ = NULL;
       } // end IF
 

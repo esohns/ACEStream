@@ -23,7 +23,9 @@
 
 #include <deque>
 #include <list>
+#include <map>
 #include <string>
+#include <utility>
 #include <vector>
 
 #include "strmif.h"
@@ -100,5 +102,9 @@ struct Stream_MediaFramework_DirectShow_GraphConfigurationEntry
 typedef std::list<struct Stream_MediaFramework_DirectShow_GraphConfigurationEntry> Stream_MediaFramework_DirectShow_GraphConfiguration_t;
 typedef Stream_MediaFramework_DirectShow_GraphConfiguration_t::iterator Stream_MediaFramework_DirectShow_GraphConfigurationIterator_t;
 typedef Stream_MediaFramework_DirectShow_GraphConfiguration_t::const_iterator Stream_MediaFramework_DirectShow_GraphConfigurationConstIterator_t;
+
+typedef std::pair<DWORD, DWORD> Stream_MediaFrameWork_DirectSound_StatisticValue_t;
+typedef std::map<enum _AM_AUDIO_RENDERER_STAT_PARAM, Stream_MediaFrameWork_DirectSound_StatisticValue_t> Stream_MediaFrameWork_DirectSound_Statistics_t;
+typedef Stream_MediaFrameWork_DirectSound_Statistics_t::const_iterator Stream_MediaFrameWork_DirectSound_StatisticsIterator_t;
 
 #endif

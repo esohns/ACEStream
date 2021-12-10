@@ -114,7 +114,8 @@ typedef Stream_Dev_Target_WavOut_T<ACE_MT_SYNCH,
                                    Stream_ControlMessage_t,
                                    Test_I_Stream_Message,
                                    Test_I_Stream_SessionMessage,
-                                   struct Test_I_MP3Player_SessionData> Test_I_WavOutPlayer;
+                                   struct Test_I_MP3Player_SessionData,
+                                   struct _AMMediaType> Test_I_WavOutPlayer;
 DATASTREAM_MODULE_INPUT_ONLY (struct Test_I_MP3Player_SessionData,         // session data type
                               enum Stream_SessionMessageType,           // session event type
                               struct Test_I_MP3Player_ModuleHandlerConfiguration, // module handler configuration type

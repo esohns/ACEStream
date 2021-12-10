@@ -966,6 +966,7 @@ load_sample_rates (IAMStreamConfig* IAMStreamConfig_in,
                 ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
     return false;
   } // end IF
+
   struct _AMMediaType* media_type_p = NULL;
   struct _AUDIO_STREAM_CONFIG_CAPS capabilities;
   struct tWAVEFORMATEX* waveformatex_p = NULL;
@@ -1406,6 +1407,7 @@ load_sample_resolutions (IAMStreamConfig* IAMStreamConfig_in,
                 ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
     return false;
   } // end IF
+
   struct _AMMediaType* media_type_p = NULL;
   struct _AUDIO_STREAM_CONFIG_CAPS capabilities;
   struct tWAVEFORMATEX* waveformatex_p = NULL;
@@ -2084,6 +2086,7 @@ load_channels (IAMStreamConfig* IAMStreamConfig_in,
                 ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
     return false;
   } // end IF
+
   struct _AMMediaType* media_type_p = NULL;
   struct _AUDIO_STREAM_CONFIG_CAPS capabilities;
   struct tWAVEFORMATEX* waveformatex_p = NULL;
@@ -5596,8 +5599,8 @@ idle_update_info_display_cb (gpointer userData_in)
       ACE_ASSERT (directshow_modulehandler_configuration_iterator != directshow_ui_cb_data_p->configuration->streamConfiguration.end ());
       ACE_ASSERT ((*directshow_modulehandler_configuration_iterator).second.second->builder);
       Stream_MediaFrameWork_DirectSound_Statistics_t statistics_a;
-      Stream_MediaFramework_DirectSound_Tools::getAudioRendererStatistics ((*directshow_modulehandler_configuration_iterator).second.second->builder,
-                                                                           statistics_a);
+      Stream_MediaFramework_DirectShow_Tools::getAudioRendererStatistics ((*directshow_modulehandler_configuration_iterator).second.second->builder,
+                                                                          statistics_a);
       //for (Stream_MediaFrameWork_DirectSound_StatisticsIterator_t iterator_2 = statistics_a.begin ();
       //     iterator_2 != statistics_a.end ();
       //     ++iterator_2)
@@ -9169,13 +9172,11 @@ combobox_device_changed_cb (GtkWidget* widget_in,
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
     {
-      //(*mediafoundation_modulehandler_configuration_iterator).second.second->deviceIdentifier.identifier._id =
-      //  card_id_i;
+      (*mediafoundation_modulehandler_configuration_iterator).second.second->deviceIdentifier.identifierDiscriminator =
+        Stream_Device_Identifier::GUID;
       (*mediafoundation_modulehandler_configuration_iterator).second.second->deviceIdentifier.identifier._guid =
         Stream_MediaFramework_DirectSound_Tools::waveDeviceIdToDirectSoundGUID (static_cast<ULONG> (card_id_i),
                                                                                 true); // capture
-      (*mediafoundation_modulehandler_configuration_iterator).second.second->deviceIdentifier.identifierDiscriminator =
-        Stream_Device_Identifier::GUID;
 
       if ((*mediafoundation_modulehandler_configuration_iterator).second.second->session)
       {
@@ -11483,8 +11484,8 @@ drawingarea_query_tooltip_cb (GtkWidget*  widget_in,
       // *NOTE*: works for integer value types only
       // *WARNING*: correct only for two's complement value representations
       uint64_t maximum_value =
-          (is_signed_format ? ((1 << ((sample_size * 8) - 1)) - 1)
-                            : ((1 << (sample_size * 8)) - 1));
+          (is_signed_format ? ((1ULL << ((sample_size * 8) - 1)) - 1)
+                            : ((1ULL << (sample_size * 8)) - 1));
       double half_height = allocation.height / 2.0;
       // *TODO*: the value type depends on the format, so this isn't accurate
       if (is_signed_format)
@@ -11500,8 +11501,8 @@ drawingarea_query_tooltip_cb (GtkWidget*  widget_in,
       // *NOTE*: works for integer value types only
       // *WARNING*: correct only for two's complement value representations
       uint64_t maximum_value =
-        (is_signed_format ? ((1 << ((sample_size * 8) - 1)) - 1)
-                          : ((1 << (sample_size * 8)) - 1));
+        (is_signed_format ? ((1ULL << ((sample_size * 8) - 1)) - 1)
+                          : ((1ULL << (sample_size * 8)) - 1));
       double half_height = allocation.height / 2.0;
       // *TODO*: the value type depends on the format, so this isn't accurate
       if (is_signed_format)

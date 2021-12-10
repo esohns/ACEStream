@@ -501,7 +501,7 @@ Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
       scaleFactorX_ =
           width_ / static_cast<double> (inherited3::channels_ * inherited3::slots_);
       scaleFactorY_ =
-          height_ / static_cast<double> (((1 << (sound_sample_size * 8)) - 1));
+          height_ / static_cast<double> (((1ULL << (sound_sample_size * 8)) - 1));
 
       // schedule the renderer
       if (inherited::configuration_->fps)
@@ -1234,7 +1234,8 @@ Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
   scaleFactorX_ =
       width_ / static_cast<double> (inherited3::channels_ * inherited3::slots_);
   scaleFactorY_ =
-      height_ / static_cast<double> (((1 << (sound_sample_size * 8)) - 1));
+    height_ / static_cast<double> (((1ULL << (sound_sample_size * 8)) - 1));
+  //height_ / static_cast<double> (((1ULL << (sound_sample_size * 8)) - 1));
 #endif // GTK_CHECK_VERSION (3,10,0)
   ACE_ASSERT (height_); ACE_ASSERT (width_);
 

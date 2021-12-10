@@ -42,9 +42,9 @@
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #include "stream_dev_directshow_tools.h"
 #include "stream_dev_mediafoundation_tools.h"
-#else
-#include "stream_misc_defines.h"
 #endif // ACE_WIN32 || ACE_WIN64
+
+#include "stream_misc_defines.h"
 
 #include "stream_dec_defines.h"
 
@@ -702,8 +702,10 @@ Test_U_AudioEffect_MediaFoundation_Stream::load (Stream_ILayout* layout_in,
   typename inherited::CONFIGURATION_T::ITERATOR_T iterator_3 =
     inherited::configuration_->find (ACE_TEXT_ALWAYS_CHAR (STREAM_FILE_SINK_DEFAULT_NAME_STRING));
   ACE_ASSERT (iterator_3 != inherited::configuration_->end ());
-
   Stream_Module_t* module_p = NULL;
+  bool device_can_render_format_b = false;
+  HRESULT result = E_FAIL;
+
   switch (inherited::configuration_->configuration_->sourceType)
   {
     case AUDIOEFFECT_SOURCE_DEVICE:
@@ -735,7 +737,8 @@ Test_U_AudioEffect_MediaFoundation_Stream::load (Stream_ILayout* layout_in,
     default:
     {
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("invalid/unknown source type (was: %d), aborting\n"),
+                  ACE_TEXT ("%s: invalid/unknown source type (was: %d), aborting\n"),
+                  ACE_TEXT (stream_name_string_),
                   inherited::configuration_->configuration_->sourceType));
       return false;
     }
@@ -768,48 +771,128 @@ Test_U_AudioEffect_MediaFoundation_Stream::load (Stream_ILayout* layout_in,
   module_p = NULL;
 #endif // GTK_USE
 #endif // GUI_SUPPORT
-  //ACE_ASSERT ((*iterator_2).second.second->deviceIdentifier.identifierDiscriminator == Stream_Device_Identifier::ID);
-  //struct _GUID GUID_s =
-  //  Stream_MediaFramework_DirectSound_Tools::waveDeviceIdToDirectSoundGUID ((*iterator_2).second.second->deviceIdentifier.identifier._id,
-  //                                                                          false); // playback
-  //struct tWAVEFORMATEX* waveformatex_p = NULL;
-  //UINT32 size_i = 0;
-  //HRESULT result =
-  //  MFCreateWaveFormatExFromMFMediaType (inherited::configuration_->configuration_->format,
-  //                                       &waveformatex_p,
-  //                                       &size_i,
-  //                                       MFWaveFormatExConvertFlag_Normal);
-  //ACE_ASSERT (SUCCEEDED (result) && waveformatex_p);
-  //bool can_render_b =
-  //  Stream_MediaFramework_DirectSound_Tools::canRender (GUID_s,
-  //                                                      *waveformatex_p);
-  //if (!InlineIsEqualGUID ((*iterator).second.second->effect, GUID_NULL) ||
-  //    (!(*iterator).second.second->mute && !can_render_b))
-  //{
+
+  switch (inherited::configuration_->configuration_->renderer)
+  {
+    case STREAM_DEVICE_RENDERER_WAVEOUT:
+    {
+      struct tWAVEFORMATEX* waveformatex_p = NULL;
+      UINT32 cbSize = 0;
+      result = MFCreateWaveFormatExFromMFMediaType (inherited::configuration_->configuration_->format,
+                                                    &waveformatex_p,
+                                                    &cbSize,
+                                                    MFWaveFormatExConvertFlag_Normal);
+      ACE_ASSERT (SUCCEEDED (result) && waveformatex_p);
+      ACE_ASSERT ((*iterator_3).second.second->deviceIdentifier.identifierDiscriminator == Stream_Device_Identifier::ID);
+      device_can_render_format_b =
+        Stream_MediaFramework_DirectSound_Tools::canRender ((*iterator_3).second.second->deviceIdentifier.identifier._id,
+                                                            *waveformatex_p);
+      CoTaskMemFree (waveformatex_p); waveformatex_p = NULL;
+      break;
+    }
+    case STREAM_DEVICE_RENDERER_WASAPI:
+    {
+      struct tWAVEFORMATEX* waveformatex_p = NULL;
+      UINT32 cbSize = 0;
+      result = MFCreateWaveFormatExFromMFMediaType (inherited::configuration_->configuration_->format,
+                                                    &waveformatex_p,
+                                                    &cbSize,
+                                                    MFWaveFormatExConvertFlag_Normal);
+      ACE_ASSERT (SUCCEEDED (result) && waveformatex_p);
+      ACE_ASSERT ((*iterator_3).second.second->deviceIdentifier.identifierDiscriminator == Stream_Device_Identifier::GUID);
+      device_can_render_format_b =
+        Stream_MediaFramework_DirectSound_Tools::canRender ((*iterator_3).second.second->deviceIdentifier.identifier._guid,
+                                                            STREAM_LIB_WASAPI_RENDER_DEFAULT_SHAREMODE,
+                                                            *waveformatex_p);
+      CoTaskMemFree (waveformatex_p); waveformatex_p = NULL;
+      break;
+    }
+    case STREAM_DEVICE_RENDERER_MEDIAFOUNDATION:
+      break;
+    default:
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("%s: invalid/unknown renderer type (was: %d), aborting\n"),
+                  ACE_TEXT (stream_name_string_),
+                  inherited::configuration_->configuration_->renderer));
+      return false;
+    }
+  } // end SWITCH
+  if (!InlineIsEqualGUID ((*iterator).second.second->effect, GUID_NULL)                                                                                                   ||
+      (!(*iterator).second.second->mute && (inherited::configuration_->configuration_->renderer == STREAM_DEVICE_RENDERER_MEDIAFOUNDATION))                               ||
+      (!(*iterator).second.second->mute && (inherited::configuration_->configuration_->renderer != STREAM_DEVICE_RENDERER_MEDIAFOUNDATION) && !device_can_render_format_b))
     layout_in->append (&mediaFoundationTarget_, NULL, 0);
-    //if (//(!(*iterator).second.second->mute && !can_render_b) ||
-    //    !(*iterator_3).second.second->fileIdentifier.empty ())
-    //  layout_in->append (&mediaFoundationSource_, NULL, 0);
-  //} // end IF
-  //CoTaskMemFree (waveformatex_p); waveformatex_p = NULL;
-  //if (!(*iterator).second.second->mute)
-  //{
-  //  ACE_NEW_RETURN (module_p,
-  //                  Test_U_AudioEffect_MediaFoundation_WASAPIOut_Module (this,
-  //                                                                       ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_WASAPI_RENDER_DEFAULT_NAME_STRING)),
-  //                  false);
-  //  ACE_ASSERT (module_p);
-  //  layout_in->append (module_p, NULL, 0);
-  //  module_p = NULL;
-  //} // end IF
-  if (!(*iterator).second.second->fileIdentifier.empty ())
+
+  if ((!InlineIsEqualGUID ((*iterator).second.second->effect, GUID_NULL) && !(*iterator_3).second.second->fileIdentifier.empty ()) ||
+      (!(*iterator).second.second->mute && (inherited::configuration_->configuration_->renderer != STREAM_DEVICE_RENDERER_MEDIAFOUNDATION) && !device_can_render_format_b))
+    layout_in->append (&mediaFoundationSource_, NULL, 0);
+
+  typename inherited::MODULE_T* branch_p = NULL; // NULL: 'main' branch
+  unsigned int index_i = 0;
+  if ((!(*iterator).second.second->mute && (inherited::configuration_->configuration_->renderer != STREAM_DEVICE_RENDERER_MEDIAFOUNDATION)) &&
+      !(*iterator_3).second.second->fileIdentifier.empty ())
+  {
+    ACE_NEW_RETURN (module_p,
+                    Test_U_AudioEffect_MediaFoundation_Distributor_Module (this,
+                                                                           ACE_TEXT_ALWAYS_CHAR (STREAM_MISC_DISTRIBUTOR_DEFAULT_NAME_STRING)),
+                    false);
+    ACE_ASSERT (module_p);
+    branch_p = module_p;
+    inherited::configuration_->configuration_->branches.push_back (ACE_TEXT_ALWAYS_CHAR (STREAM_SUBSTREAM_PLAYBACK_NAME));
+    inherited::configuration_->configuration_->branches.push_back (ACE_TEXT_ALWAYS_CHAR (STREAM_SUBSTREAM_SAVE_NAME));
+    Stream_IDistributorModule* idistributor_p =
+      dynamic_cast<Stream_IDistributorModule*> (module_p->writer ());
+    ACE_ASSERT (idistributor_p);
+    idistributor_p->initialize (inherited::configuration_->configuration_->branches);
+    layout_in->append (module_p, NULL, 0);
+    module_p = NULL;
+  } // end IF
+
+  if (!(*iterator).second.second->mute)
+    switch (inherited::configuration_->configuration_->renderer)
+    {
+      case STREAM_DEVICE_RENDERER_WAVEOUT:
+      {
+        ACE_NEW_RETURN (module_p,
+                        Test_U_AudioEffect_MediaFoundation_WavOut_Module (this,
+                                                                          ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_WAVEOUT_RENDER_DEFAULT_NAME_STRING)),
+                        false);
+        break;
+      }
+      case STREAM_DEVICE_RENDERER_WASAPI:
+      {
+        ACE_NEW_RETURN (module_p,
+                        Test_U_AudioEffect_MediaFoundation_WASAPIOut_Module (this,
+                                                                             ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_WASAPI_RENDER_DEFAULT_NAME_STRING)),
+                        false);
+        break;
+      }
+      case STREAM_DEVICE_RENDERER_MEDIAFOUNDATION:
+        break;
+      default:
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("%s: invalid/unknown renderer type (was: %d), aborting\n"),
+                    ACE_TEXT (stream_name_string_),
+                    inherited::configuration_->configuration_->renderer));
+        return false;
+      }
+    } // end SWITCH
+  if (module_p)
+  {
+    layout_in->append (module_p, branch_p, index_i);
+    ++index_i;
+    module_p = NULL;
+  } // end IF
+
+  if (!(*iterator_3).second.second->fileIdentifier.empty ())
   {
     ACE_NEW_RETURN (module_p,
                     Test_U_AudioEffect_MediaFoundation_WAVEncoder_Module (this,
                                                                           ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_ENCODER_WAV_DEFAULT_NAME_STRING)),
                     false);
     ACE_ASSERT (module_p);
-    layout_in->append (module_p, NULL, 0);
+    layout_in->append (module_p, branch_p, index_i);
     module_p = NULL;
 
     ACE_NEW_RETURN (module_p,
@@ -817,7 +900,7 @@ Test_U_AudioEffect_MediaFoundation_Stream::load (Stream_ILayout* layout_in,
                                                                           ACE_TEXT_ALWAYS_CHAR (STREAM_FILE_SINK_DEFAULT_NAME_STRING)),
                     false);
     ACE_ASSERT (module_p);
-    layout_in->append (module_p, NULL, 0);
+    layout_in->append (module_p, branch_p, index_i);
     module_p = NULL;
   } // end IF
 
@@ -934,6 +1017,7 @@ Test_U_AudioEffect_MediaFoundation_Stream::initialize (const inherited::CONFIGUR
 #endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0601)
   IMFMediaType* media_type_p = NULL;
   bool use_framework_renderer_b = false;
+  int render_device_id_i = -1;
 
   result_2 = CoInitializeEx (NULL,
                              (COINIT_MULTITHREADED |
@@ -1004,27 +1088,51 @@ Test_U_AudioEffect_MediaFoundation_Stream::initialize (const inherited::CONFIGUR
 #endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0601)
     ACE_ASSERT (sample_grabber_p);
 
-    // set sample grabber output format
-    ACE_ASSERT ((*iterator_3).second.second->deviceIdentifier.identifierDiscriminator == Stream_Device_Identifier::ID);
-    struct _GUID GUID_s =
-      Stream_MediaFramework_DirectSound_Tools::waveDeviceIdToDirectSoundGUID ((*iterator_3).second.second->deviceIdentifier.identifier._id,
-                                                                              false); // playback
-    struct tWAVEFORMATEX waveformatex_s;
-    Stream_MediaFramework_DirectSound_Tools::getAudioRendererFormat (GUID_s,
-                                                                     waveformatex_s);
-    media_type_p = Stream_MediaFramework_MediaFoundation_Tools::to (waveformatex_s);
-    ACE_ASSERT (SUCCEEDED (media_type_p));
-    // *TODO*: remove ASAP
-    result_2 = media_type_p->SetGUID (MF_MT_SUBTYPE,
-                                      MFAudioFormat_Float);
-    ACE_ASSERT (SUCCEEDED (result_2));
-    DWORD channel_mask_i = (SPEAKER_FRONT_LEFT |
-                            SPEAKER_FRONT_RIGHT);
-    result_2 = media_type_p->SetUINT32 (MF_MT_AUDIO_CHANNEL_MASK,
-                                        channel_mask_i);
-    ACE_ASSERT (SUCCEEDED (result_2));
-    result_2 = media_type_p->DeleteItem (MF_MT_AUDIO_VALID_BITS_PER_SAMPLE);
-    ACE_ASSERT (SUCCEEDED (result_2));
+    // set sample grabber output format ?
+    if (!(*iterator).second.second->mute &&
+        (inherited::configuration_->configuration_->renderer != STREAM_DEVICE_RENDERER_MEDIAFOUNDATION))
+      switch (inherited::configuration_->configuration_->renderer)
+      {
+        case STREAM_DEVICE_RENDERER_WAVEOUT:
+        {
+          struct tWAVEFORMATEX waveformatex_s;
+          ACE_ASSERT ((*iterator_3).second.second->deviceIdentifier.identifierDiscriminator == Stream_Device_Identifier::ID);
+          Stream_MediaFramework_DirectSound_Tools::getBestFormat ((*iterator_3).second.second->deviceIdentifier.identifier._id,
+                                                                  waveformatex_s);
+          media_type_p = Stream_MediaFramework_MediaFoundation_Tools::to (waveformatex_s);
+          ACE_ASSERT (SUCCEEDED (media_type_p));
+          break;
+        }
+        case STREAM_DEVICE_RENDERER_WASAPI:
+        {
+          struct tWAVEFORMATEX waveformatex_s;
+          ACE_ASSERT ((*iterator_3).second.second->deviceIdentifier.identifierDiscriminator == Stream_Device_Identifier::GUID);
+          Stream_MediaFramework_DirectSound_Tools::getAudioEngineMixFormat ((*iterator_3).second.second->deviceIdentifier.identifier._guid,
+                                                                            waveformatex_s);
+          media_type_p = Stream_MediaFramework_MediaFoundation_Tools::to (waveformatex_s);
+          ACE_ASSERT (SUCCEEDED (media_type_p));
+          // *TODO*: remove ASAP
+          result_2 = media_type_p->SetGUID (MF_MT_SUBTYPE,
+                                            MFAudioFormat_Float);
+          ACE_ASSERT (SUCCEEDED (result_2));
+          DWORD channel_mask_i = (SPEAKER_FRONT_LEFT |
+                                  SPEAKER_FRONT_RIGHT);
+          result_2 = media_type_p->SetUINT32 (MF_MT_AUDIO_CHANNEL_MASK,
+                                              channel_mask_i);
+          ACE_ASSERT (SUCCEEDED (result_2));
+          result_2 = media_type_p->DeleteItem (MF_MT_AUDIO_VALID_BITS_PER_SAMPLE);
+          ACE_ASSERT (SUCCEEDED (result_2));
+          break;
+        }
+        default:
+        {
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("%s: invalid/unknown renderer type (was: %d), aborting\n"),
+                      ACE_TEXT (stream_name_string_),
+                      inherited::configuration_->configuration_->sourceType));
+          return false;
+        }
+      } // end SWITCH
   } // end IF
 
   if (!Stream_Device_MediaFoundation_Tools::loadDeviceTopology ((*iterator).second.second->deviceIdentifier,
@@ -1057,8 +1165,31 @@ continue_3:
   use_framework_renderer_b =
     ((configuration_in.configuration_->renderer == STREAM_DEVICE_RENDERER_MEDIAFOUNDATION) &&
      !(*iterator).second.second->mute);
+  switch (inherited::configuration_->configuration_->renderer)
+  {
+    case STREAM_DEVICE_RENDERER_WAVEOUT:
+    {
+      ACE_ASSERT ((*iterator_3).second.second->deviceIdentifier.identifierDiscriminator == Stream_Device_Identifier::ID);
+      render_device_id_i = (*iterator_3).second.second->deviceIdentifier.identifier._id;
+      break;
+    }
+    case STREAM_DEVICE_RENDERER_WASAPI:
+    {
+      ACE_ASSERT ((*iterator_3).second.second->deviceIdentifier.identifierDiscriminator == Stream_Device_Identifier::GUID);
+      render_device_id_i =
+        static_cast<int> (Stream_MediaFramework_DirectSound_Tools::directSoundGUIDTowaveDeviceId ((*iterator_3).second.second->deviceIdentifier.identifier._guid));
+      break;
+    }
+    default:
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("%s: invalid/unknown renderer type (was: %d), aborting\n"),
+                  ACE_TEXT (stream_name_string_),
+                  inherited::configuration_->configuration_->sourceType));
+      return false;
+    }
+  } // end SWITCH
   ACE_ASSERT ((*iterator).second.second->deviceIdentifier.identifierDiscriminator == Stream_Device_Identifier::GUID);
-  ACE_ASSERT ((*iterator_3).second.second->deviceIdentifier.identifierDiscriminator == Stream_Device_Identifier::ID);
   if (!Stream_Module_Decoder_Tools::loadAudioRendererTopology ((*iterator).second.second->deviceIdentifier.identifier._guid,
                                                                MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE_AUDCAP_GUID,
                                                                configuration_in.configuration_->useFrameworkSource,
@@ -1066,7 +1197,7 @@ continue_3:
                                                                media_type_p,
                                                                sample_grabber_p,
                                                                //-1, // *TODO*: cannot get the SAR to render audio
-                                                               (use_framework_renderer_b ? (*iterator_3).second.second->deviceIdentifier.identifier._id
+                                                               (use_framework_renderer_b ? render_device_id_i
                                                                                          : -1),
                                                                (*iterator).second.second->effect,
                                                                (*iterator).second.second->effectOptions,

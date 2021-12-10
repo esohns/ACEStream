@@ -68,7 +68,7 @@ Stream_Dev_Mic_Source_WaveIn_T<ACE_SYNCH_USE,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Dev_Mic_Source_WaveIn_T::Stream_Dev_Mic_Source_WaveIn_T"));
 
-  ACE_OS::memset (&bufferHeaders_, 0, sizeof (struct wavehdr_tag[STREAM_DEV_MIC_WAVEIN_DEFAULT_DEVICE_BUFFERS]));
+  ACE_OS::memset (&bufferHeaders_, 0, sizeof (struct wavehdr_tag[STREAM_DEV_WAVEIN_DEFAULT_DEVICE_BUFFERS]));
   ACE_OS::memset (&CBData_, 0, sizeof (struct libacestream_wave_in_cbdata));
   CBData_.task = this;
 }
@@ -340,7 +340,7 @@ Stream_Dev_Mic_Source_WaveIn_T<ACE_SYNCH_USE,
       } // end IF
 
       for (unsigned int i = 0;
-           i < STREAM_DEV_MIC_WAVEIN_DEFAULT_DEVICE_BUFFERS;
+           i < STREAM_DEV_WAVEIN_DEFAULT_DEVICE_BUFFERS;
            ++i)
       {
         result = waveInPrepareHeader (context_,
@@ -387,7 +387,7 @@ Stream_Dev_Mic_Source_WaveIn_T<ACE_SYNCH_USE,
                   inherited::mod_->name (),
                   inherited::configuration_->deviceIdentifier.identifier._id,
                   &context_,
-                  STREAM_DEV_MIC_WAVEIN_DEFAULT_DEVICE_BUFFERS));
+                  STREAM_DEV_WAVEIN_DEFAULT_DEVICE_BUFFERS));
 
       ACE_ASSERT (!session_data_r.formats.empty ());
       ACE_DEBUG ((LM_DEBUG,
@@ -439,7 +439,7 @@ error:
 
       DataMessageType* message_p = NULL;
       for (unsigned int i = 0;
-           i < STREAM_DEV_MIC_WAVEIN_DEFAULT_DEVICE_BUFFERS;
+           i < STREAM_DEV_WAVEIN_DEFAULT_DEVICE_BUFFERS;
            ++i)
       {
         result = waveInUnprepareHeader (context_,
@@ -578,7 +578,7 @@ Stream_Dev_Mic_Source_WaveIn_T<ACE_SYNCH_USE,
   STREAM_TRACE (ACE_TEXT ("Stream_Dev_Mic_Source_WaveIn_T::set"));
 
   // sanity check(s)
-  ACE_ASSERT (index_in < STREAM_DEV_MIC_WAVEIN_DEFAULT_DEVICE_BUFFERS);
+  ACE_ASSERT (index_in < STREAM_DEV_WAVEIN_DEFAULT_DEVICE_BUFFERS);
 
   char         error_msg_a[BUFSIZ];
 
@@ -633,7 +633,7 @@ Stream_Dev_Mic_Source_WaveIn_T<ACE_SYNCH_USE,
   DataMessageType* message_p = NULL;
 
   for (unsigned int i = 0;
-       i < STREAM_DEV_MIC_WAVEIN_DEFAULT_DEVICE_BUFFERS;
+       i < STREAM_DEV_WAVEIN_DEFAULT_DEVICE_BUFFERS;
        ++i)
   {
     try {

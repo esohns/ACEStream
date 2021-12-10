@@ -215,6 +215,10 @@ do_printUsage (const std::string& programName_in)
             << false
             << ACE_TEXT_ALWAYS_CHAR ("]")
             << std::endl;
+  std::cout << ACE_TEXT_ALWAYS_CHAR ("-y          : use framework renderer [") // ? (directshow|mediafoundation) renderer : WASAPI|waveOut
+            << false
+            << ACE_TEXT_ALWAYS_CHAR ("]")
+            << std::endl;
 #endif // ACE_WIN32 || ACE_WIN64
 }
 
@@ -244,7 +248,8 @@ do_processArguments (int argc_in,
                      bool& mute_out,
                      bool& printVersionAndExit_out
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-                     ,bool& useFrameworkSource_out)
+                     ,bool& useFrameworkSource_out,
+                     bool& useFrameworkRenderer_out)
 #else
                      )
 #endif // ACE_WIN32 || ACE_WIN64
@@ -302,6 +307,7 @@ do_processArguments (int argc_in,
   printVersionAndExit_out = false;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   useFrameworkSource_out = false;
+  useFrameworkRenderer_out = false;
 #endif // ACE_WIN32 || ACE_WIN64
 
   std::string options_string = ACE_TEXT_ALWAYS_CHAR ("flo::s:tuv");
@@ -314,7 +320,7 @@ do_processArguments (int argc_in,
 #endif // GTK_SUPPORT
 #endif // GUI_SUPPORT
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  options_string += ACE_TEXT_ALWAYS_CHAR ("cmx");
+  options_string += ACE_TEXT_ALWAYS_CHAR ("cmxy");
 #else
   options_string += ACE_TEXT_ALWAYS_CHAR ("d:e::");
 #endif // ACE_WIN32 || ACE_WIN64
@@ -449,6 +455,11 @@ do_processArguments (int argc_in,
       case 'x':
       {
         useFrameworkSource_out = true;
+        break;
+      }
+      case 'y':
+      {
+        useFrameworkRenderer_out = true;
         break;
       }
 #endif // ACE_WIN32 || ACE_WIN64
@@ -1101,6 +1112,7 @@ do_work (
          bool mute_in,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
          bool useFrameworkSource_in,
+         bool useFrameworkRenderer_in,
 #endif // ACE_WIN32 || ACE_WIN64
 #if defined (GUI_SUPPORT)
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -1166,6 +1178,9 @@ do_work (
       istream_control_p = &directshow_stream;
       directshow_stream_configuration.useFrameworkSource =
         useFrameworkSource_in;
+      directshow_stream_configuration.renderer =
+        (useFrameworkRenderer_in ? STREAM_DEVICE_RENDERER_DIRECTSHOW
+                                 : STREAM_DEV_AUDIO_DEFAULT_RENDERER);
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
@@ -1174,6 +1189,9 @@ do_work (
       istream_control_p = &mediafoundation_stream;
       mediafoundation_stream_configuration.useFrameworkSource =
         useFrameworkSource_in;
+      mediafoundation_stream_configuration.renderer =
+        (useFrameworkRenderer_in ? STREAM_DEVICE_RENDERER_MEDIAFOUNDATION
+                                 : STREAM_DEV_AUDIO_DEFAULT_RENDERER);
       break;
     }
     default:
@@ -1395,10 +1413,35 @@ do_work (
 
       mediafoundation_modulehandler_configuration_3 =
         mediafoundation_modulehandler_configuration;
-      mediafoundation_modulehandler_configuration_3.deviceIdentifier.identifierDiscriminator =
-        Stream_Device_Identifier::ID;
-      mediafoundation_modulehandler_configuration_3.deviceIdentifier.identifier._id =
-        (mute_in ? -1 : 0);
+      switch (mediafoundation_stream_configuration.renderer)
+      {
+        case STREAM_DEVICE_RENDERER_WAVEOUT:
+        {
+          mediafoundation_modulehandler_configuration_3.deviceIdentifier.identifierDiscriminator =
+            Stream_Device_Identifier::ID;
+          mediafoundation_modulehandler_configuration_3.deviceIdentifier.identifier._id =
+            (mute_in ? -1 : 0); // *TODO*: -1 means WAVE_MAPPER
+          break;
+        }
+        case STREAM_DEVICE_RENDERER_WASAPI:
+        case STREAM_DEVICE_RENDERER_MEDIAFOUNDATION:
+        {
+          mediafoundation_modulehandler_configuration_3.deviceIdentifier.identifierDiscriminator =
+            Stream_Device_Identifier::GUID;
+          mediafoundation_modulehandler_configuration_3.deviceIdentifier.identifier._guid =
+            (mute_in ? GUID_NULL
+                     : Stream_MediaFramework_DirectSound_Tools::waveDeviceIdToDirectSoundGUID (0,
+                                                                                               false)); // playback
+          break;
+        }
+        default:
+        {
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("invalid/unknown renderer type (was: %d), returning\n"),
+                      mediafoundation_stream_configuration.renderer));
+          goto error;
+        }
+      } // end SWITCH
       mediaFoundationConfiguration_in.streamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_WASAPI_RENDER_DEFAULT_NAME_STRING),
                                                                                   std::make_pair (&module_configuration,
                                                                                                   &mediafoundation_modulehandler_configuration_3)));
@@ -1421,7 +1464,7 @@ do_work (
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("invalid/unknown media framework (was: %d), returning\n"),
                   mediaFramework_in));
-      return;
+      goto error;
     }
   } // end SWITCH
 #else
@@ -1515,7 +1558,7 @@ do_work (
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("invalid/unknown media framework (was: %d), returning\n"),
                   mediaFramework_in));
-      return;
+      goto error;
     }
   } // end SWITCH
 #else
@@ -1556,7 +1599,7 @@ do_work (
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("failed to do_initialize_directshow(), returning\n")));
-        return;
+        goto error;
       } // end IF
       ACE_ASSERT ((*directshow_modulehandler_iterator).second.second->builder);
       if (false) // use DirectShow source ?
@@ -1587,7 +1630,7 @@ do_work (
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("invalid/unknown media framework (was: %d), returning\n"),
                   mediaFramework_in));
-      return;
+      goto error;
     }
   } // end SWITCH
 #else
@@ -1623,7 +1666,7 @@ do_work (
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("invalid/unknown media framework (was: %d), returning\n"),
                   mediaFramework_in));
-      return;
+      goto error;
     }
   } // end SWITCH
 #else
@@ -1685,7 +1728,7 @@ do_work (
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("invalid/unknown media framework (was: %d), returning\n"),
                     mediaFramework_in));
-        return;
+        goto error;
       }
     } // end SWITCH
 #else
@@ -1758,7 +1801,7 @@ do_work (
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("invalid/unknown media framework (was: %d), returning\n"),
                     mediaFramework_in));
-        return;
+        goto error;
       }
     } // end SWITCH
     if (!success_b)
@@ -1824,7 +1867,7 @@ do_work (
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("invalid/unknown media framework (was: %d), returning\n"),
                   mediaFramework_in));
-      return;
+      goto error;
     }
   } // end SWITCH
 #else
@@ -1978,6 +2021,7 @@ ACE_TMAIN (int argc_in,
   bool print_version_and_exit = false;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   bool use_framework_source = false;
+  bool use_framework_renderer = false;
 #endif // ACE_WIN32 || ACE_WIN64
 
   // step1b: parse/process/validate configuration
@@ -2006,7 +2050,8 @@ ACE_TMAIN (int argc_in,
                             mute,
                             print_version_and_exit
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-                            ,use_framework_source))
+                            ,use_framework_source,
+                            use_framework_renderer))
 #else
                             ))
 #endif // ACE_WIN32 || ACE_WIN64
@@ -2349,6 +2394,7 @@ ACE_TMAIN (int argc_in,
            mute,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
            use_framework_source,
+           use_framework_renderer,
 #endif // ACE_WIN32 || ACE_WIN64
 #if defined (GUI_SUPPORT)
 #if defined (ACE_WIN32) || defined (ACE_WIN64)

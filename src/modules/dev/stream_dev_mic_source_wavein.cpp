@@ -70,7 +70,7 @@ libacestream_wave_in_data_cb (HWAVEIN   hwi,
     }
   } // end SWITCH
   ACE_ASSERT (wavehdr_p);
-  ACE_ASSERT (wavehdr_p->dwUser < STREAM_DEV_MIC_WAVEIN_DEFAULT_DEVICE_BUFFERS);
+  ACE_ASSERT (wavehdr_p->dwUser < STREAM_DEV_WAVEIN_DEFAULT_DEVICE_BUFFERS);
   //cb_data_p->buffers[wavehdr_p->dwUser]->reset ();
   cb_data_p->buffers[wavehdr_p->dwUser]->wr_ptr (wavehdr_p->dwBytesRecorded);
   ACE_ASSERT (cb_data_p->task);

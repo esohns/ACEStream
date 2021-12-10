@@ -137,14 +137,16 @@ template <ACE_SYNCH_DECL,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType,
-          typename SessionDataType>
+          typename SessionDataType,
+          typename MediaType>
 Stream_Dev_Target_WavOut_T<ACE_SYNCH_USE,
                            TimePolicyType,
                            ConfigurationType,
                            ControlMessageType,
                            DataMessageType,
                            SessionMessageType,
-                           SessionDataType>::Stream_Dev_Target_WavOut_T (ISTREAM_T* stream_in)
+                           SessionDataType,
+                           MediaType>::Stream_Dev_Target_WavOut_T (ISTREAM_T* stream_in)
  : inherited (stream_in)
  , CBData_ ()
  , handle_ ()
@@ -165,14 +167,16 @@ template <ACE_SYNCH_DECL,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType,
-          typename SessionDataType>
+          typename SessionDataType,
+          typename MediaType>
 Stream_Dev_Target_WavOut_T<ACE_SYNCH_USE,
-                         TimePolicyType,
-                         ConfigurationType,
-                         ControlMessageType,
-                         DataMessageType,
-                         SessionMessageType,
-                         SessionDataType>::~Stream_Dev_Target_WavOut_T ()
+                           TimePolicyType,
+                           ConfigurationType,
+                           ControlMessageType,
+                           DataMessageType,
+                           SessionMessageType,
+                           SessionDataType,
+                           MediaType>::~Stream_Dev_Target_WavOut_T ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Dev_Target_WavOut_T::~Stream_Dev_Target_WavOut_T"));
 
@@ -186,16 +190,18 @@ template <ACE_SYNCH_DECL,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType,
-          typename SessionDataType>
+          typename SessionDataType,
+          typename MediaType>
 bool
 Stream_Dev_Target_WavOut_T<ACE_SYNCH_USE,
-                         TimePolicyType,
-                         ConfigurationType,
-                         ControlMessageType,
-                         DataMessageType,
-                         SessionMessageType,
-                         SessionDataType>::initialize (const ConfigurationType& configuration_in,
-                                                       Stream_IAllocator* allocator_in)
+                           TimePolicyType,
+                           ConfigurationType,
+                           ControlMessageType,
+                           DataMessageType,
+                           SessionMessageType,
+                           SessionDataType,
+                           MediaType>::initialize (const ConfigurationType& configuration_in,
+                                                   Stream_IAllocator* allocator_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Dev_Target_WavOut_T::initialize"));
 
@@ -228,16 +234,18 @@ template <ACE_SYNCH_DECL,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType,
-          typename SessionDataType>
+          typename SessionDataType,
+          typename MediaType>
 void
 Stream_Dev_Target_WavOut_T<ACE_SYNCH_USE,
-                         TimePolicyType,
-                         ConfigurationType,
-                         ControlMessageType,
-                         DataMessageType,
-                         SessionMessageType,
-                         SessionDataType>::handleDataMessage (DataMessageType*& message_inout,
-                                                              bool& passMessageDownstream_out)
+                           TimePolicyType,
+                           ConfigurationType,
+                           ControlMessageType,
+                           DataMessageType,
+                           SessionMessageType,
+                           SessionDataType,
+                           MediaType>::handleDataMessage (DataMessageType*& message_inout,
+                                                          bool& passMessageDownstream_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Dev_Target_WavOut_T::handleDataMessage"));
 
@@ -308,16 +316,18 @@ template <ACE_SYNCH_DECL,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType,
-          typename SessionDataType>
+          typename SessionDataType,
+          typename MediaType>
 void
 Stream_Dev_Target_WavOut_T<ACE_SYNCH_USE,
-                         TimePolicyType,
-                         ConfigurationType,
-                         ControlMessageType,
-                         DataMessageType,
-                         SessionMessageType,
-                         SessionDataType>::handleSessionMessage (SessionMessageType*& message_inout,
-                                                                 bool& passMessageDownstream_out)
+                           TimePolicyType,
+                           ConfigurationType,
+                           ControlMessageType,
+                           DataMessageType,
+                           SessionMessageType,
+                           SessionDataType,
+                           MediaType>::handleSessionMessage (SessionMessageType*& message_inout,
+                                                             bool& passMessageDownstream_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Dev_Target_WavOut_T::handleSessionMessage"));
 
@@ -338,12 +348,14 @@ Stream_Dev_Target_WavOut_T<ACE_SYNCH_USE,
       SessionDataType& session_data_r =
           const_cast<SessionDataType&> (inherited::sessionData_->getR ());
       ACE_ASSERT (!session_data_r.formats.empty ());
-      struct _AMMediaType& media_type_r =
-          session_data_r.formats.back ();
-      ACE_ASSERT (InlineIsEqualGUID (media_type_r.formattype, FORMAT_WaveFormatEx));
-      ACE_ASSERT (media_type_r.pbFormat);
+      struct _AMMediaType media_type_s;
+      ACE_OS::memset (&media_type_s, 0, sizeof (struct _AMMediaType));
+      inherited2::getMediaType (session_data_r.formats.back (),
+                                media_type_s);
+      ACE_ASSERT (InlineIsEqualGUID (media_type_s.formattype, FORMAT_WaveFormatEx));
+      ACE_ASSERT (media_type_s.pbFormat);
       struct tWAVEFORMATEX* waveformatex_p =
-        reinterpret_cast<struct tWAVEFORMATEX*> (media_type_r.pbFormat);
+        reinterpret_cast<struct tWAVEFORMATEX*> (media_type_s.pbFormat);
       ACE_ASSERT (waveformatex_p);
       DWORD flags_u = CALLBACK_FUNCTION                        |
                       WAVE_MAPPED_DEFAULT_COMMUNICATION_DEVICE |

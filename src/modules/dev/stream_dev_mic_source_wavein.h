@@ -47,7 +47,7 @@ void CALLBACK libacestream_wave_in_data_cb (HWAVEIN,    // hwi: device context h
 
 struct libacestream_wave_in_cbdata
 {
-  ACE_Message_Block* buffers[STREAM_DEV_MIC_WAVEIN_DEFAULT_DEVICE_BUFFERS];
+  ACE_Message_Block* buffers[STREAM_DEV_WAVEIN_DEFAULT_DEVICE_BUFFERS];
   Stream_Task_t*     task;
 
   unsigned int       channels;
@@ -168,7 +168,7 @@ class Stream_Dev_Mic_Source_WaveIn_T
   bool allocateBuffers (Stream_IAllocator*, // allocator handle
                         unsigned int);      // buffer size
 
-  struct wavehdr_tag          bufferHeaders_[STREAM_DEV_MIC_WAVEIN_DEFAULT_DEVICE_BUFFERS];
+  struct wavehdr_tag          bufferHeaders_[STREAM_DEV_WAVEIN_DEFAULT_DEVICE_BUFFERS];
   libacestream_wave_in_cbdata CBData_;
   bool                        closeContext_;
   HWAVEIN                     context_;

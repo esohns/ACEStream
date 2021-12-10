@@ -3,8 +3,6 @@
 
 #include "ace/config-lite.h"
 
-//#define STREAM_DEV_CAM_STATISTIC_COLLECTION_INTERVAL            STREAM_DEFAULT_STATISTIC_COLLECTION_INTERVAL_MS // ms
-
 /////////////////////////////////////////
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -37,7 +35,9 @@
 //#define STREAM_DEV_DIRECTSHOW_FILTER_SOURCE_FRAME_INTERVAL 20 // ms
 
 // WaveIn/Out
-#define STREAM_DEV_MIC_WAVEIN_DEFAULT_DEVICE_BUFFERS              10
+#define STREAM_DEV_WAVEIN_DEFAULT_DEVICE_BUFFERS                  10
+
+#define STREAM_DEV_AUDIO_DEFAULT_RENDERER                         STREAM_DEVICE_RENDERER_WASAPI
 #else
 // general
 #define STREAM_DEV_DEVICE_DIRECTORY                               "/dev"

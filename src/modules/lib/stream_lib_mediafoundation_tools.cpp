@@ -248,7 +248,7 @@ bool
 Stream_MediaFramework_MediaFoundation_Tools::canRender (const IMFMediaType* mediaType_in,
                                                         IMFMediaType*& mediaType_out)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_MediaFoundation_Tools::has"));
+  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_MediaFoundation_Tools::canRender"));
 
   // sanity check(s)
   ACE_ASSERT (mediaType_in);
@@ -4943,7 +4943,17 @@ Stream_MediaFramework_MediaFoundation_Tools::getOutputFormat (IMFTopology* topol
       result = topology_node_p->GetOutput (0,
                                            &topology_node_2,
                                            &input_index);
-      ACE_ASSERT (SUCCEEDED (result) && topology_node_2);
+      if (FAILED (result))
+      {
+        if (result == MF_E_NOT_FOUND) // output exists but is not connected
+          break;
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("failed to IMFTopologyNode::GetOutput(%u): \"%s\", aborting\n"),
+                    0,
+                    ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
+        goto error;
+      } // end IF
+      ACE_ASSERT (topology_node_2);
       topology_node_p->Release ();
       topology_node_p = topology_node_2;
     } while (true);

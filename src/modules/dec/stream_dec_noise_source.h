@@ -153,7 +153,7 @@ class Stream_Dec_Noise_Source_T
   double                                      phase_;
 
   // noise generator state
-  typedef std::uniform_real_distribution<double>  REAL_DISTRIBUTION_T;
+  typedef std::uniform_real_distribution<long double> REAL_DISTRIBUTION_T;
   REAL_DISTRIBUTION_T                         realDistribution_;
   typedef std::uniform_int_distribution<uint64_t> INTEGER_DISTRIBUTION_T;
   INTEGER_DISTRIBUTION_T                      integerDistribution_;

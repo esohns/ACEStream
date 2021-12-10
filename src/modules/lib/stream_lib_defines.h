@@ -41,6 +41,11 @@
 // DirectSound
 #define STREAM_LIB_DIRECTSOUND_MIC_BOOST_PART_DEFAULT_NAME          "Microphone Boost"
 
+#define STREAM_LIB_DIRECTSOUND_WAVEOUT_BEST_DEFAULT_BITS_PER_SAMPLE 16
+#define STREAM_LIB_DIRECTSOUND_WAVEOUT_BEST_DEFAULT_CHANNELS        2        // stereo
+#define STREAM_LIB_DIRECTSOUND_WAVEOUT_BEST_DEFAULT_FORMAT          WAVE_FORMAT_IEEE_FLOAT
+#define STREAM_LIB_DIRECTSOUND_WAVEOUT_BEST_DEFAULT_SAMPLES_PER_SECOND 96000 // Hz
+
 // DirectShow
 // *NOTE*: max. in-flight #'frames' (== #((bits/sample / 8) * #channels))
 //         --> (buffer size / frame size) * #SOURCE_BUFFERS

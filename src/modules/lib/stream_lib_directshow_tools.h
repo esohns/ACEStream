@@ -216,7 +216,9 @@ class Stream_MediaFramework_DirectShow_Tools
   static std::string toString (const struct _AMMediaType&, // media type
                                bool = false);              // condensed version ?
 
-  static std::string toString (const struct tWAVEFORMATEX&); // media type
+  static void getAudioRendererStatistics (IFilterGraph*,                                    // filter graph handle
+                                          Stream_MediaFrameWork_DirectSound_Statistics_t&); // return value: statistic information
+  static std::string toString (enum _AM_AUDIO_RENDERER_STAT_PARAM); // parameter
 
 #if defined (FFMPEG_SUPPORT)
   // *IMPORTANT NOTE*: callers must 'delete_' return values
@@ -230,10 +232,6 @@ class Stream_MediaFramework_DirectShow_Tools
   ACE_UNIMPLEMENTED_FUNC (Stream_MediaFramework_DirectShow_Tools& operator= (const Stream_MediaFramework_DirectShow_Tools&))
 
   static Stream_MediaFramework_GUIDToStringMap_t Stream_MediaMajorTypeToStringMap;
-  typedef std::map<WORD, std::string> WORD_TO_STRING_MAP_T;
-  typedef WORD_TO_STRING_MAP_T::const_iterator WORD_TO_STRING_MAP_ITERATOR_T;
-  static WORD_TO_STRING_MAP_T Stream_WaveFormatTypeToStringMap;
-  static Stream_MediaFramework_GUIDToStringMap_t Stream_WaveFormatSubTypeToStringMap;
 
   static ACE_HANDLE logFileHandle;
 

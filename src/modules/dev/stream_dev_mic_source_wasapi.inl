@@ -344,7 +344,7 @@ continue_:
                     ACE_TEXT ("%s: failed to IAudioClient::IsFormatSupported(%d,%s), aborting\n"),
                     inherited::mod_->name (),
                     share_mode_e,
-                    ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::toString (*audio_info_p).c_str ())));
+                    ACE_TEXT (Stream_MediaFramework_DirectSound_Tools::toString (*audio_info_p, true).c_str ())));
         device_p->Release (); device_p = NULL;
         goto error;
       } // end IF
@@ -353,8 +353,8 @@ continue_:
         ACE_DEBUG ((LM_WARNING,
                     ACE_TEXT ("%s: closest format matched is: \"%s\" (was: \"%s\"), continuing\n"),
                     inherited::mod_->name (),
-                    ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::toString (*audio_info_2).c_str ()),
-                    ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::toString (*audio_info_p).c_str ())));
+                    ACE_TEXT (Stream_MediaFramework_DirectSound_Tools::toString (*audio_info_2, true).c_str ()),
+                    ACE_TEXT (Stream_MediaFramework_DirectSound_Tools::toString (*audio_info_p, true).c_str ())));
         result_2 = CreateAudioMediaType (audio_info_2,
                                          &media_type_2,
                                          TRUE);
@@ -412,7 +412,7 @@ retry:
                     stream_flags_i,
                     requested_duration_i,
                     ((share_mode_e == AUDCLNT_SHAREMODE_EXCLUSIVE) ? requested_duration_i : 0),
-                    ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::toString (*audio_info_p).c_str ()),
+                    ACE_TEXT (Stream_MediaFramework_DirectSound_Tools::toString (*audio_info_p, true).c_str ()),
                     ACE_TEXT (Common_Error_Tools::errorToString (result_2, true, false).c_str ())));
         if (audio_info_2)
         {

@@ -793,11 +793,14 @@ Stream_Module_Decoder_Tools::sinus (unsigned int sampleRate_in,
   static double maximum_phase_d = 2.0 * M_PI;
   double step_d =
     (maximum_phase_d * frequency_in) / static_cast<double> (sampleRate_in);
-  uint64_t maximum_value_i =
-    ((bytesPerSample_in == 8) ? (formatIsSigned_in ? std::numeric_limits<int64_t>::max ()
-                                                   : std::numeric_limits<uint64_t>::max ())
-                              : (formatIsSigned_in ? (1UL << ((bytesPerSample_in * 8) - 1)) - 1
-                                                   : (1UL <<  (bytesPerSample_in * 8)) - 1));
+  uint64_t maximum_value_i;
+  Common_Tools::max<uint64_t> (static_cast<uint8_t> (bytesPerSample_in),
+                               formatIsSigned_in,
+                               maximum_value_i);
+  long double maximum_value_d;
+  Common_Tools::max<long double> (static_cast<uint8_t> (bytesPerSample_in),
+                                  formatIsSigned_in,
+                                  maximum_value_d);
   bool byte_swap_b =
     (formatIsLittleEndian_in ? (ACE_BYTE_ORDER != ACE_LITTLE_ENDIAN)
                              : (ACE_BYTE_ORDER == ACE_LITTLE_ENDIAN));
@@ -819,7 +822,7 @@ Stream_Module_Decoder_Tools::sinus (unsigned int sampleRate_in,
         case 2:
         {
           *reinterpret_cast<uint16_t*> (data_p) =
-            (byte_swap_b ? Common_Tools::byteswap (formatIsSigned_in ? (uint16_t)static_cast<int16_t> (value_d)
+            (byte_swap_b ? Common_Tools::byteSwap (formatIsSigned_in ? (uint16_t)static_cast<int16_t> (value_d)
                                                                      : static_cast<uint16_t> (value_d))
                          : (formatIsSigned_in ? (uint16_t)static_cast<int16_t> (value_d)
                                               : static_cast<uint16_t> (value_d)));
@@ -828,7 +831,7 @@ Stream_Module_Decoder_Tools::sinus (unsigned int sampleRate_in,
         case 4:
         {
           *reinterpret_cast<uint32_t*> (data_p) =
-            (byte_swap_b ? Common_Tools::byteswap (formatIsSigned_in ? (uint32_t)static_cast<int32_t> (value_d)
+            (byte_swap_b ? Common_Tools::byteSwap (formatIsSigned_in ? (uint32_t)static_cast<int32_t> (value_d)
                                                                      : static_cast<uint32_t> (value_d))
                          : (formatIsSigned_in ? (uint32_t)static_cast<int32_t> (value_d)
                                               : static_cast<uint32_t> (value_d)));
@@ -837,7 +840,7 @@ Stream_Module_Decoder_Tools::sinus (unsigned int sampleRate_in,
         case 8:
         {
           *reinterpret_cast<uint64_t*> (data_p) =
-            (byte_swap_b ? Common_Tools::byteswap (formatIsSigned_in ? (uint64_t)static_cast<int64_t> (value_d)
+            (byte_swap_b ? Common_Tools::byteSwap (formatIsSigned_in ? (uint64_t)static_cast<int64_t> (value_d)
                                                                      : static_cast<uint64_t> (value_d))
                          : (formatIsSigned_in ? (uint64_t)static_cast<int64_t> (value_d)
                                               : static_cast<uint64_t> (value_d)));
@@ -3836,11 +3839,10 @@ continue_3:
 
 continue_4:
   // step5: add audio renderer sink ?
-  if (audioOutput_in < 0)
-    goto continue_5;
 
   // step5a: add resampler ?
-  if (!Stream_MediaFramework_MediaFoundation_Tools::canRender (media_type_p,
+  if ((audioOutput_in >= 0) &&
+      !Stream_MediaFramework_MediaFoundation_Tools::canRender (media_type_p,
                                                                media_type_2))
   {
     if (Stream_MediaFramework_MediaFoundation_Tools::isPartial (media_type_2))
@@ -3874,8 +3876,9 @@ continue_4:
   } // end IF
 
   GUID_s =
-    Stream_MediaFramework_DirectSound_Tools::waveDeviceIdToDirectSoundGUID (audioOutput_in,
-                                                                            false); // playback
+    ((audioOutput_in < 0) ? GUID_NULL
+                          : Stream_MediaFramework_DirectSound_Tools::waveDeviceIdToDirectSoundGUID (audioOutput_in,
+                                                                                                    false)); // playback
   node_id = 0;
   if (!Stream_MediaFramework_MediaFoundation_Tools::addRenderer (MFMediaType_Audio,
                                                                  NULL,

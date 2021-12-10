@@ -30,6 +30,8 @@
 #include "stream_common.h"
 #include "stream_task_base_synch.h"
 
+#include "stream_lib_mediatype_converter.h"
+
 extern const char libacestream_default_dev_target_wavout_module_name_string[];
 
 struct Stream_Device_WavOut_Playback_AsynchCBData
@@ -54,7 +56,8 @@ template <ACE_SYNCH_DECL,
           typename DataMessageType,
           typename SessionMessageType,
           ////////////////////////////////
-          typename SessionDataType>
+          typename SessionDataType,
+          typename MediaType>
 class Stream_Dev_Target_WavOut_T
  : public Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
                                  TimePolicyType,
@@ -65,6 +68,7 @@ class Stream_Dev_Target_WavOut_T
                                  enum Stream_ControlType,
                                  enum Stream_SessionMessageType,
                                  struct Stream_UserData>
+ , public Stream_MediaFramework_MediaTypeConverter_T<MediaType>
 {
   typedef Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
                                  TimePolicyType,
@@ -75,6 +79,7 @@ class Stream_Dev_Target_WavOut_T
                                  enum Stream_ControlType,
                                  enum Stream_SessionMessageType,
                                  struct Stream_UserData> inherited;
+  typedef Stream_MediaFramework_MediaTypeConverter_T<MediaType> inherited2;
 
  public:
   Stream_Dev_Target_WavOut_T (ISTREAM_T*); // stream handle
@@ -84,7 +89,7 @@ class Stream_Dev_Target_WavOut_T
   virtual bool initialize (const ConfigurationType&,
                            Stream_IAllocator* = NULL);
 
-//  // implement (part of) Stream_ITaskBase
+  // implement (part of) Stream_ITaskBase
   virtual void handleDataMessage (DataMessageType*&, // data message handle
                                   bool&);            // return value: pass message downstream ?
   virtual void handleSessionMessage (SessionMessageType*&, // session message handle
