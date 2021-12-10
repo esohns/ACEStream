@@ -32,6 +32,10 @@
 #include "stream_common.h"
 #include "stream_headmoduletask_base.h"
 
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#else
+#include "stream_lib_alsa_common.h"
+#endif // ACE_WIN32 || ACE_WIN64
 #include "stream_lib_mediatype_converter.h"
 
 extern const char libacestream_default_dec_noise_source_module_name_string[];
@@ -90,7 +94,12 @@ class Stream_Dec_Noise_Source_T
   typedef Stream_MediaFramework_MediaTypeConverter_T<MediaType> inherited2;
 
  public:
+  // *TODO*: on MSVC 2015u3 the accurate declaration does not compile
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
   Stream_Dec_Noise_Source_T (ISTREAM_T*); // stream handle
+#else
+  Stream_Dec_Noise_Source_T (typename inherited::ISTREAM_T*); // stream handle
+#endif // ACE_WIN32 || ACE_WIN64
   virtual ~Stream_Dec_Noise_Source_T ();
 
   // *PORTABILITY*: for some reason, this base class member is not exposed

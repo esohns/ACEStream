@@ -1157,7 +1157,7 @@ load_sample_resolutions (int deviceId_in,
                          unsigned int sampleRate_in,
                          GtkListStore* listStore_in)
 {
-  STREAM_TRACE (ACE_TEXT ("::load_sample_rates"));
+  STREAM_TRACE (ACE_TEXT ("::load_sample_resolutions"));
 
   // initialize result
   gtk_list_store_clear (listStore_in);
@@ -1624,9 +1624,9 @@ load_channels (int deviceId_in,
   std::ostringstream converter;
   if (deviceId_in == -1)
   {
-    std::vector<unsigned int> rates_a = {1, 2};
-    for (std::vector<unsigned int>::const_iterator iterator_2 = rates_a.begin ();
-         iterator_2 != rates_a.end ();
+    std::vector<unsigned int> channels_a = {1, 2};
+    for (std::vector<unsigned int>::const_iterator iterator_2 = channels_a.begin ();
+         iterator_2 != channels_a.end ();
          ++iterator_2)
     {
       converter << *iterator_2;
@@ -2308,17 +2308,33 @@ load_formats (struct _snd_pcm* handle_in,
   STREAM_TRACE (ACE_TEXT ("::load_formats"));
 
   // sanity check(s)
-  ACE_ASSERT (handle_in);
   ACE_ASSERT (listStore_in);
 
   // initialize result
   gtk_list_store_clear (listStore_in);
 
+  GtkTreeIter iterator;
+  enum _snd_pcm_format format_e = SND_PCM_FORMAT_UNKNOWN;
+  if (!handle_in)
+  {
+    for (int i = 0;
+          i <= static_cast<int> (SND_PCM_FORMAT_LAST);
+          ++i)
+    {
+      format_e = static_cast<enum _snd_pcm_format> (i);
+      gtk_list_store_append (listStore_in, &iterator);
+      gtk_list_store_set (listStore_in, &iterator,
+                          0, snd_pcm_format_description (format_e),
+                          1, snd_pcm_format_name (format_e),
+                          2, format_e,
+                          -1);
+    } // end FOR
+    return true;
+  } // end IF
+
   struct _snd_pcm_hw_params* format_p = NULL;
   snd_pcm_format_mask_t* format_mask_p = NULL;
-  enum _snd_pcm_format format_e = SND_PCM_FORMAT_UNKNOWN;
   std::set<snd_pcm_format_t> formats_supported;
-  GtkTreeIter iterator;
 
   //    snd_pcm_hw_params_alloca (&format_p);
   snd_pcm_hw_params_malloc (&format_p);
@@ -2420,12 +2436,31 @@ load_sample_rates (struct _snd_pcm* handle_in,
   // initialize result
   gtk_list_store_clear (listStore_in);
 
+  GtkTreeIter iterator;
+  std::ostringstream converter;
+  if (!handle_in)
+  {
+    std::vector<unsigned int> rates_a = { 4000, 8000, 11025, 22050, 44100, 48000, 96000 };
+    for (std::vector<unsigned int>::const_iterator iterator_2 = rates_a.begin ();
+          iterator_2 != rates_a.end ();
+          ++iterator_2)
+    {
+      converter << *iterator_2;
+      gtk_list_store_append (listStore_in, &iterator);
+      gtk_list_store_set (listStore_in, &iterator,
+                          0, converter.str ().c_str (),
+                          1, *iterator_2,
+                          -1);
+      converter.clear ();
+      converter.str (ACE_TEXT_ALWAYS_CHAR (""));
+    } // end FOR
+    return true;
+  } // end IF
+
   struct _snd_pcm_hw_params* format_p = NULL;
   unsigned int rate_min, rate_max;
   int subunit_direction = 0;
   std::set<unsigned int> sample_rates_supported;
-  GtkTreeIter iterator;
-  std::ostringstream converter;
 
 //    snd_pcm_hw_params_alloca (&format_p);
   snd_pcm_hw_params_malloc (&format_p);
@@ -2542,11 +2577,30 @@ load_sample_resolutions (struct _snd_pcm* handle_in,
   // initialize result
   gtk_list_store_clear (listStore_in);
 
+  GtkTreeIter iterator;
+  std::ostringstream converter;
+  if (!handle_in)
+  {
+    std::vector<unsigned int> resolutions_a = {8, 16, 32};
+    for (std::vector<unsigned int>::const_iterator iterator_2 = resolutions_a.begin ();
+          iterator_2 != resolutions_a.end ();
+          ++iterator_2)
+    {
+      converter << *iterator_2;
+      gtk_list_store_append (listStore_in, &iterator);
+      gtk_list_store_set (listStore_in, &iterator,
+                          0, converter.str ().c_str (),
+                          1, *iterator_2,
+                          -1);
+      converter.clear ();
+      converter.str (ACE_TEXT_ALWAYS_CHAR (""));
+    } // end FOR
+    return true;
+  } // end IF
+
   int subunit_direction = 0;
   struct _snd_pcm_hw_params* format_p = NULL;
   std::set<int> resolutions_supported;
-  GtkTreeIter iterator;
-  std::ostringstream converter;
 
 //    snd_pcm_hw_params_alloca (&format_p);
   snd_pcm_hw_params_malloc (&format_p);
@@ -2645,18 +2699,36 @@ load_channels (struct _snd_pcm* handle_in,
   STREAM_TRACE (ACE_TEXT ("::load_channels"));
 
   // sanity check(s)
-  ACE_ASSERT (handle_in);
   ACE_ASSERT (listStore_in);
 
   // initialize result
   gtk_list_store_clear (listStore_in);
 
+  GtkTreeIter iterator;
+  std::ostringstream converter;
+  if (!handle_in)
+  {
+    std::vector<unsigned int> channels_a = {1, 2};
+    for (std::vector<unsigned int>::const_iterator iterator_2 = channels_a.begin ();
+         iterator_2 != channels_a.end ();
+         ++iterator_2)
+    {
+      converter << *iterator_2;
+      gtk_list_store_append (listStore_in, &iterator);
+      gtk_list_store_set (listStore_in, &iterator,
+                          0, converter.str ().c_str (),
+                          1, *iterator_2,
+                          -1);
+      converter.clear ();
+      converter.str (ACE_TEXT_ALWAYS_CHAR (""));
+    } // end FOR
+    return true;
+  } // end IF
+
   struct _snd_pcm_hw_params* format_p = NULL;
   int subunit_direction = 0;
   unsigned int channels_min, channels_max;
   std::set<unsigned int> channels_supported;
-  GtkTreeIter iterator;
-  std::ostringstream converter;
 
 //    snd_pcm_hw_params_alloca (&format_p);
   snd_pcm_hw_params_malloc (&format_p);
@@ -3457,6 +3529,7 @@ stream_processing_function (void* arg_in)
   Stream_IStreamControlBase* istream_control_p = NULL;
   const Stream_Module_t* module_p = NULL;
   Test_U_Common_ISet_t* resize_notification_p = NULL;
+  guint event_source_id = 0;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   switch (data_base_p->mediaFramework)
   {
@@ -3659,8 +3732,8 @@ stream_processing_function (void* arg_in)
   goto continue_;
 
 error:
-  guint event_source_id = g_idle_add (idle_session_end_cb,
-                                      data_base_p->CBData);
+  event_source_id = g_idle_add (idle_session_end_cb,
+                                data_base_p->CBData);
   if (event_source_id == 0)
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to g_idle_add(idle_session_end_cb): \"%m\", continuing\n")));
@@ -7012,10 +7085,10 @@ continue_:
   ACE_ASSERT (modulehandler_configuration_iterator != ui_cb_data_p->configuration->streamConfiguration.end ());
 
   if (is_active)
-    (*modulehandler_configuration_iterator).second.second->targetFileName =
+    (*modulehandler_configuration_iterator).second.second->fileIdentifier.identifier =
       Common_UI_GTK_Tools::UTF8ToLocale ((filename_p ? filename_p : ACE_TEXT_ALWAYS_CHAR ("")), -1);
   else
-    (*modulehandler_configuration_iterator).second.second->targetFileName.clear ();
+    (*modulehandler_configuration_iterator).second.second->fileIdentifier.clear ();
 #endif // ACE_WIN32 || ACE_WIN64
   g_free (filename_p);
 
@@ -7501,18 +7574,17 @@ hscale_sinus_frequency_value_changed_cb (GtkRange* range_in,
     }
   } // end SWITCH
 #else
+  // sanity check(s)
   struct Test_U_AudioEffect_UI_CBData* data_p =
     static_cast<struct Test_U_AudioEffect_UI_CBData*> (userData_in);
-
-  // sanity check(s)
   ACE_ASSERT (data_p);
   ACE_ASSERT (data_p->configuration);
-
   Test_U_AudioEffect_ALSA_StreamConfiguration_t::ITERATOR_T modulehandler_configuration_iterator =
     data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (modulehandler_configuration_iterator != data_p->configuration->streamConfiguration.end ());
+  ACE_ASSERT ((*modulehandler_configuration_iterator).second.second->generatorConfiguration);
 
-  (*modulehandler_configuration_iterator).second.second->sinusFrequency =
+  (*modulehandler_configuration_iterator).second.second->generatorConfiguration->frequency =
     gtk_range_get_value (range_in);
 #endif // ACE_WIN32 || ACE_WIN64
 } // hscale_sinus_frequency_value_changed_cb
@@ -8773,7 +8845,7 @@ combobox_source_changed_cb (GtkWidget* widget_in,
   Test_U_AudioEffect_ALSA_StreamConfiguration_t::ITERATOR_T modulehandler_configuration_iterator =
     ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (modulehandler_configuration_iterator != ui_cb_data_p->configuration->streamConfiguration.end ());
-  ACE_ASSERT ((*modulehandler_modulehandler_configuration_iterator).second.second->generatorConfiguration);
+  ACE_ASSERT ((*modulehandler_configuration_iterator).second.second->generatorConfiguration);
 
   ui_cb_data_p->configuration->streamConfiguration.configuration_->sourceType =
     source_type_e;
@@ -8888,9 +8960,10 @@ combobox_source_changed_cb (GtkWidget* widget_in,
   result_2 = load_formats (-1,
                            list_store_p);
 #else
-  result_2 = load_formats (-1,
-                           -1,
-                           list_store_p);
+  result_2 =
+    load_formats (NULL,
+                  (*modulehandler_configuration_iterator).second.second->ALSAConfiguration->access,
+                  list_store_p);
 #endif // ACE_WIN32 || ACE_WIN64
   if (!result_2)
   {
@@ -9240,7 +9313,7 @@ combobox_device_changed_cb (GtkWidget* widget_in,
     }
   } // end SWITCH
 #else
-  (*modulehandler_configuration_iterator).second.second->audioInput = card_id_i;
+  ACE_UNUSED_ARG (card_id_i);
   (*modulehandler_configuration_iterator).second.second->deviceIdentifier.identifier =
       device_identifier_string;
 #endif // ACE_WIN32 || ACE_WIN64
@@ -10161,7 +10234,7 @@ combobox_format_changed_cb (GtkWidget* widget_in,
       format_e;
 
   result_2 =
-      load_sample_rates (ui_cb_data_p->handle,
+      load_sample_rates ((device_selected_b ? ui_cb_data_p->handle : NULL),
                          ui_cb_data_p->configuration->streamConfiguration.configuration_->format,
                          list_store_p);
 #endif // ACE_WIN32 || ACE_WIN64
@@ -10545,14 +10618,14 @@ combobox_frequency_changed_cb (GtkWidget* widget_in,
   ACE_ASSERT (ui_cb_data_p->handle);
 
   ui_cb_data_p->configuration->streamConfiguration.configuration_->format.rate =
-      sample_rate;
+    sample_rate;
   sample_bits_i =
     snd_pcm_format_width (ui_cb_data_p->configuration->streamConfiguration.configuration_->format.format);
 
   result_2 =
-      load_sample_resolutions (ui_cb_data_p->handle,
-                               ui_cb_data_p->configuration->streamConfiguration.configuration_->format,
-                               list_store_p);
+    load_sample_resolutions ((device_selected_b ? ui_cb_data_p->handle : NULL),
+                             ui_cb_data_p->configuration->streamConfiguration.configuration_->format,
+                             list_store_p);
 #endif // ACE_WIN32 || ACE_WIN64
   if (!result_2)
   {
@@ -10972,9 +11045,9 @@ combobox_resolution_changed_cb (GtkWidget* widget_in,
     ui_cb_data_p->configuration->streamConfiguration.configuration_->format.channels;
 
   result_2 =
-      load_channels (ui_cb_data_p->handle,
-                     ui_cb_data_p->configuration->streamConfiguration.configuration_->format,
-                     list_store_p);
+    load_channels ((device_selected_b ? ui_cb_data_p->handle : NULL),
+                   ui_cb_data_p->configuration->streamConfiguration.configuration_->format,
+                   list_store_p);
 #endif // ACE_WIN32 || ACE_WIN64
   if (!result_2)
   {
@@ -12458,12 +12531,11 @@ filechooserbutton_save_file_set_cb (GtkFileChooserButton* button_in,
   struct Test_U_AudioEffect_UI_CBData* ui_cb_data_p =
     static_cast<struct Test_U_AudioEffect_UI_CBData*> (userData_in);
   ACE_ASSERT (ui_cb_data_p->configuration);
-
   Test_U_AudioEffect_ALSA_StreamConfiguration_t::ITERATOR_T modulehandler_configuration_iterator =
     ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (modulehandler_configuration_iterator != ui_cb_data_p->configuration->streamConfiguration.end ());
 
-  (*modulehandler_configuration_iterator).second.second->targetFileName =
+  (*modulehandler_configuration_iterator).second.second->fileIdentifier.identifier =
     Common_UI_GTK_Tools::UTF8ToLocale (filename_p, -1);
 #endif // ACE_WIN32 || ACE_WIN64
   g_free (filename_p);

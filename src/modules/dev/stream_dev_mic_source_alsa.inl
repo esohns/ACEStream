@@ -46,7 +46,7 @@ stream_dev_mic_source_alsa_async_callback (snd_async_handler_t* handler_in)
   // sanity check(s)
   ACE_ASSERT (handler_in);
   struct Stream_Device_ALSA_Capture_AsynchCBData* data_p =
-      reinterpret_cast<struct Stream_Device_ALSA_Capture_AsynchCBData*> (snd_async_handler_get_callback_private (handler_in));
+      static_cast<struct Stream_Device_ALSA_Capture_AsynchCBData*> (snd_async_handler_get_callback_private (handler_in));
   ACE_ASSERT (data_p);
   ACE_ASSERT (data_p->allocatorConfiguration);
   ACE_ASSERT (data_p->queue);
@@ -107,7 +107,6 @@ stream_dev_mic_source_alsa_async_callback (snd_async_handler_t* handler_in)
     frames_to_read =
       (frames_to_read > static_cast<snd_pcm_uframes_t> (available_frames) ? available_frames
                                                                           : frames_to_read);
-    // generate sinus ?
     frames_read = snd_pcm_readi (handle_p,
                                  message_block_p->wr_ptr (),
                                  frames_to_read);
@@ -122,39 +121,6 @@ stream_dev_mic_source_alsa_async_callback (snd_async_handler_t* handler_in)
                   ACE_TEXT (snd_strerror (frames_read))));
       goto error;
     } // end IF
-    switch (data_p->generatorConfiguration.type)
-    {
-      case STREAM_MEDIAFRAMEWORK_SOUNDGENERATOR_SAWTOOTH:
-      {
-        ACE_ASSERT (false); // *TODO*
-        break;
-      }
-      case STREAM_MEDIAFRAMEWORK_SOUNDGENERATOR_SINE:
-      {
-        Stream_Module_Decoder_Tools::sinus (*data_p->generatorConfiguration.frequency,
-                                            data_p->generatorConfiguration.samplesPerSecond,
-                                            data_p->generatorConfiguration.bytesPerSample,
-                                            data_p->generatorConfiguration.numberOfChannels,
-                                            data_p->generatorConfiguration.isSignedFormat,
-                                            data_p->generatorConfiguration.isLittleEndianFormat,
-                                            reinterpret_cast<uint8_t*> (message_block_p->wr_ptr ()),
-                                            static_cast<unsigned int> (frames_read),
-                                            data_p->generatorConfiguration.phase);
-        break;
-      }
-      case STREAM_MEDIAFRAMEWORK_SOUNDGENERATOR_SQUARE:
-      {
-        ACE_ASSERT (false); // *TODO*
-        break;
-      }
-      case STREAM_MEDIAFRAMEWORK_SOUNDGENERATOR_NOISE:
-      {
-        ACE_ASSERT (false); // *TODO*
-        break;
-      }
-      default:
-        break;
-    } // end SWITCH
     message_block_p->wr_ptr (static_cast<unsigned int> (frames_read) * data_p->frameSize);
     data_p->statistic->capturedFrames += frames_read;
 
@@ -508,25 +474,13 @@ Stream_Dev_Mic_Source_ALSA_T<ACE_SYNCH_USE,
       asynchCBData_.allocatorConfiguration =
         inherited::configuration_->allocatorConfiguration;
 //  asynchCBData_.areas = areas;
-      asynchCBData_.bytesPerSample =
-        (snd_pcm_format_width (media_type_r.format) / 8);
-      asynchCBData_.format = media_type_r;
+//      asynchCBData_.format = media_type_r;
       asynchCBData_.frameSize =
         (snd_pcm_format_width (media_type_r.format) / 8) *
           media_type_r.channels;
-      asynchCBData_.isLittleEndianFormat =
-        (snd_pcm_format_little_endian (media_type_r.format) == 1);
-      asynchCBData_.isSignedFormat =
-        (snd_pcm_format_signed (media_type_r.format) == 1);
       asynchCBData_.queue = inherited::msg_queue ();
       asynchCBData_.statistic = &session_data_r.statistic;
 
-      asynchCBData_.generatorConfiguration.frequency =
-        &inherited::configuration_->sinusFrequency;
-      asynchCBData_.generatorConfiguration.phase = 0.0;
-      asynchCBData_.generatorConfiguration.type =
-        (inherited::configuration_->sinus ? STREAM_MEDIAFRAMEWORK_SOUNDGENERATOR_SINE
-                                          : STREAM_MEDIAFRAMEWORK_SOUNDGENERATOR_INVALID);
       result =
           snd_async_add_pcm_handler (&asynchHandler_,
                                      deviceHandle_,

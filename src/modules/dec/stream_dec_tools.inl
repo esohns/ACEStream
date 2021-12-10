@@ -18,6 +18,12 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
+#include "ace/Log_Msg.h"
+
+#include "common_tools.h"
+
+#include "stream_macros.h"
+
 template <typename DistributionType>
 void
 Stream_Module_Decoder_Tools::noise (unsigned int sampleRate_in,
@@ -35,7 +41,7 @@ Stream_Module_Decoder_Tools::noise (unsigned int sampleRate_in,
     (formatIsLittleEndian_in ? (ACE_BYTE_ORDER != ACE_LITTLE_ENDIAN)
                              : (ACE_BYTE_ORDER == ACE_LITTLE_ENDIAN));
   uint8_t* data_p = buffer_in;
-  DistributionType::result_type value;
+  typename DistributionType::result_type value;
   for (unsigned int i = 0; i < samplesToWrite_in; ++i)
   {
     value = Common_Tools::getRandomNumber (distribution_inout);
@@ -53,17 +59,17 @@ Stream_Module_Decoder_Tools::noise (unsigned int sampleRate_in,
         {
           *reinterpret_cast<uint16_t*> (data_p) =
             (byte_swap_b ? (formatIsSigned_in ? (uint16_t)Common_Tools::byteSwap (static_cast<int16_t> (value))
-                                              : static_cast<uint16_t> (value))
+                                              : Common_Tools::byteSwap (static_cast<uint16_t> (value)))
                          : (formatIsSigned_in ? (uint16_t)static_cast<int16_t> (value)
                                               : static_cast<uint16_t> (value)));
           break;
         }
         case 4:
         {
-          if (std::is_integral<DistributionType::result_type>::value)
+          if (std::is_integral<typename DistributionType::result_type>::value)
             *reinterpret_cast<uint32_t*> (data_p) =
               (byte_swap_b ? (formatIsSigned_in ? (uint32_t)Common_Tools::byteSwap (static_cast<int32_t> (value))
-                                                : static_cast<uint32_t> (value))
+                                                : Common_Tools::byteSwap (static_cast<uint32_t> (value)))
                            : (formatIsSigned_in ? (uint32_t)static_cast<int32_t> (value)
                                                 : static_cast<uint32_t> (value)));
           else
@@ -74,10 +80,10 @@ Stream_Module_Decoder_Tools::noise (unsigned int sampleRate_in,
         }
         case 8:
         {
-          if (std::is_integral<DistributionType::result_type>::value)
+          if (std::is_integral<typename DistributionType::result_type>::value)
             *reinterpret_cast<uint64_t*> (data_p) =
               (byte_swap_b ? (formatIsSigned_in ? (uint64_t)Common_Tools::byteSwap (static_cast<int64_t> (value))
-                                                : static_cast<uint64_t> (value))
+                                                : Common_Tools::byteSwap (static_cast<uint64_t> (value)))
                            : (formatIsSigned_in ? (uint64_t)static_cast<int64_t> (value)
                                                 : static_cast<uint64_t> (value)));
           else
@@ -88,7 +94,7 @@ Stream_Module_Decoder_Tools::noise (unsigned int sampleRate_in,
         }
         case 16:
         {
-          if (std::is_integral<DistributionType::result_type>::value)
+          if (std::is_integral<typename DistributionType::result_type>::value)
           {
             ACE_DEBUG ((LM_ERROR,
                         ACE_TEXT ("invalid/unknown value size (was: %u), returning\n"),

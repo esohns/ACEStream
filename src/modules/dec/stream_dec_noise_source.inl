@@ -18,6 +18,15 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#else
+#define ALSA_PCM_NEW_HW_PARAMS_API
+extern "C"
+{
+#include "alsa/asoundlib.h"
+}
+#endif // ACE_WIN32 || ACE_WIN64
+
 #include "ace/Log_Msg.h"
 
 #include "common_log_tools.h"
@@ -55,7 +64,11 @@ Stream_Dec_Noise_Source_T<ACE_SYNCH_USE,
                           SessionDataContainerType,
                           StatisticContainerType,
                           TimerManagerType,
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
                           MediaType>::Stream_Dec_Noise_Source_T (ISTREAM_T* stream_in)
+#else
+                          MediaType>::Stream_Dec_Noise_Source_T (typename inherited::ISTREAM_T* stream_in)
+#endif // ACE_WIN32 || ACE_WIN64
  : inherited (stream_in,                            // stream handle
               false,                                // auto-start ?
               STREAM_HEADMODULECONCURRENCY_PASSIVE, // concurrency
@@ -264,6 +277,8 @@ Stream_Dec_Noise_Source_T<ACE_SYNCH_USE,
     case STREAM_SESSION_MESSAGE_BEGIN:
     {
       ACE_Time_Value interval;
+      long timer_id = -1;
+      suseconds_t buffer_time_us = 0;
 
       // schedule regular statistic collection
       if (inherited::configuration_->statisticCollectionInterval !=
@@ -330,18 +345,19 @@ Stream_Dec_Noise_Source_T<ACE_SYNCH_USE,
       inherited2::getMediaType (session_data_r.formats.back (),
                                 mediaType_);
       frameSize_ =
-        (snd_pcm_format_width (mediaType_.format.format) / 8) * mediaType_.format.channels;
+        (snd_pcm_format_width (mediaType_.format) / 8) * mediaType_.channels;
       inherited::configuration_->generatorConfiguration->samplesPerSecond =
-        mediaType_.format.rate;
+        mediaType_.rate;
       inherited::configuration_->generatorConfiguration->bytesPerSample =
-        snd_pcm_format_width (mediaType_.format.format) / 8);
+        snd_pcm_format_width (mediaType_.format) / 8;
       inherited::configuration_->generatorConfiguration->numberOfChannels =
-        mediaType_.format.channels;
-      inherited::configuration_->generatorConfiguration->isFloatFormat = *TODO*;
+        mediaType_.channels;
+      inherited::configuration_->generatorConfiguration->isFloatFormat =
+        (snd_pcm_format_float (mediaType_.format) == 1);
       inherited::configuration_->generatorConfiguration->isLittleEndianFormat =
-        (snd_pcm_format_is_little_endian (mediaType_.format.format) == 1);
+        (snd_pcm_format_little_endian (mediaType_.format) == 1);
       inherited::configuration_->generatorConfiguration->isSignedFormat =
-        (snd_pcm_format_is_signed (mediaType_.format.format) == 1);
+        (snd_pcm_format_signed (mediaType_.format) == 1);
 #endif // ACE_WIN32 || ACE_WIN64
 
       // determine interval size from buffer size
@@ -351,11 +367,11 @@ Stream_Dec_Noise_Source_T<ACE_SYNCH_USE,
       bufferSize_ =
         static_cast<unsigned int> (inherited::configuration_->allocatorConfiguration->defaultBufferSize * 1.1);
       bufferSize_ += frameSize_ - (bufferSize_ % frameSize_);
-      suseconds_t buffer_time_us =
+      buffer_time_us =
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
         static_cast<suseconds_t> ((inherited::configuration_->allocatorConfiguration->defaultBufferSize / static_cast<double> (waveformatex_p->nAvgBytesPerSec)) * 1000000.0);
 #else
-        static_cast<suseconds_t> ((inherited::configuration_->allocatorConfiguration->defaultBufferSize / static_cast<double> (frameSize_ * mediaType_.format.rate)) * 1000000.0);
+        static_cast<suseconds_t> ((inherited::configuration_->allocatorConfiguration->defaultBufferSize / static_cast<double> (frameSize_ * mediaType_.rate)) * 1000000.0);
 #endif // ACE_WIN32 || ACE_WIN64
 
       // initialize noise generator
@@ -470,7 +486,7 @@ Stream_Dec_Noise_Source_T<ACE_SYNCH_USE,
 
       // start sample generator timer
       interval.set (0, buffer_time_us);
-      long timer_id =
+      timer_id =
         itimer_manager_p->schedule_timer (&handler_,                  // event handler handle
                                           NULL,                       // asynchronous completion token
                                           COMMON_TIME_NOW + interval, // first wakeup time

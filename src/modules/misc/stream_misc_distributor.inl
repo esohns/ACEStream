@@ -251,7 +251,7 @@ error:
                false,
                false);
 
-      stop (false,  // wait ?
+      stop (true,   // wait ?
             false); // high priority ?
 
       { ACE_GUARD (ACE_Thread_Mutex, aGuard, inherited::lock_);

@@ -85,7 +85,9 @@ Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
 #endif /* GTKGL_SUPPORT */
  , channelFactor_ (0.0)
  , scaleFactorX_ (0.0)
+ , scaleFactorX_2 (0.0)
  , scaleFactorY_ (0.0)
+ , halfHeight_ (0)
  , height_ (0)
  , width_ (0)
  , mode2D_ (NULL)
@@ -228,6 +230,11 @@ Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
 #endif /* GTK_CHECK_VERSION (3,0,0) */
 #endif /* GTKGL_SUPPORT */
 
+    channelFactor_ = 0.0;
+    scaleFactorX_ = 0.0;
+    scaleFactorX_2 = 0.0;
+    scaleFactorY_ = 0.0;
+    halfHeight_ = 0;
     height_ = width_ = 0;
 
     mode2D_ = NULL;
@@ -270,6 +277,7 @@ Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
   width_ = gdk_pixbuf_get_width (pixelBuffer_);
 #endif // GTK_CHECK_VERSION(3,10,0)
   ACE_ASSERT (height_); ACE_ASSERT (width_);
+  halfHeight_ = height_ / 2;
 
 continue_:
   if (unlikely (!mode2D_))
@@ -340,16 +348,14 @@ Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
   unsigned int samples_to_write = 0;
   unsigned int offset = 0;
   unsigned int tail_slot = 0;
-  sampleIterator_.buffer_ = message_inout->rd_ptr ();
+  //sampleIterator_.buffer_ = NULL;
 
   // sanity check(s)
   ACE_ASSERT (mode2D_);
 
   do
   {
-    samples_to_write =
-      (number_of_samples > inherited3::slots_ ? inherited3::slots_
-                                              : number_of_samples);
+    samples_to_write = std::min (inherited3::slots_, number_of_samples);
     sampleIterator_.buffer_ = message_inout->rd_ptr () + offset;
     for (unsigned int i = 0; i < inherited3::channels_; ++i)
     {
@@ -374,7 +380,7 @@ Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
       {
         // initialize the FFT working set buffer, transform to complex
         for (unsigned int j = 0; j < inherited3::slots_; ++j)
-          X_[i][bitReverseMap_[j]] = std::complex<double> (buffer_[i][j]);
+          X_[i][bitReverseMap_[j]] = std::complex<double> (buffer_[i][j], 0.0);
 
         // compute FFT
         inherited3::Compute (i);
@@ -437,6 +443,7 @@ Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
       unsigned int channels, sample_rate;
       bool is_signed_format = false;
       int sample_byte_order = ACE_BYTE_ORDER;
+      ACE_UINT64 maximum_value_i = 0;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
       struct _AMMediaType media_type_s;
       ACE_OS::memset (&media_type_s, 0, sizeof (struct _AMMediaType));
@@ -499,9 +506,13 @@ Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
 
       channelFactor_ = width_ / static_cast<double> (inherited3::channels_);
       scaleFactorX_ =
-          width_ / static_cast<double> (inherited3::channels_ * inherited3::slots_);
-      scaleFactorY_ =
-          height_ / static_cast<double> (((1ULL << (sound_sample_size * 8)) - 1));
+        width_ / static_cast<double> (inherited3::channels_ * inherited3::slots_);
+      scaleFactorX_2 =
+        width_ / static_cast<double> (inherited3::channels_ * ((inherited3::slots_ / 2) - 1));
+      Common_Tools::max<ACE_UINT64> (static_cast<uint8_t> (sound_sample_size),
+                                     false,
+                                     maximum_value_i);
+      scaleFactorY_ = height_ / static_cast<double> (maximum_value_i);
 
       // schedule the renderer
       if (inherited::configuration_->fps)
@@ -1283,7 +1294,6 @@ Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
 
   int result = -1;
   bool release_lock = false;
-  double half_height = height_ / 2.0;
   double x = 0.0;
 
   if (surfaceLock_)
@@ -1316,26 +1326,30 @@ Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
         cairo_set_source_rgb (cairoContext_, 0.0, 1.0, 0.0);
         cairo_move_to (cairoContext_,
                        i * channelFactor_,
-                       half_height);
+                       halfHeight_);
         for (unsigned int j = 0; j < inherited3::slots_; ++j)
           cairo_line_to (cairoContext_,
                          (i * channelFactor_) + (j * scaleFactorX_),
-                         half_height - (inherited3::buffer_[i][j] * scaleFactorY_));
+                         halfHeight_ - (inherited3::buffer_[i][j] * scaleFactorY_));
         break;
       }
       case STREAM_VISUALIZATION_SPECTRUMANALYZER_2DMODE_SPECTRUM:
       {
         // step2aa: draw thin, white columns
         cairo_set_source_rgb (cairoContext_, 1.0, 1.0, 1.0);
-        for (unsigned int j = 0; j < inherited3::slots_; ++j)
+        // *IMPORTANT NOTE*: - the first ('DC'-)slot does not contain frequency
+        //                     information
+        //                   - the slots N/2 - N are mirrored and do not contain
+        //                     additional information, i.e. only N/2 - 1 values
+        for (unsigned int j = 1; j < inherited3::halfSlots_; ++j)
         {
-          x = (i * channelFactor_) + (j * scaleFactorX_);
+          x = (i * channelFactor_) + (j * scaleFactorX_2);
           cairo_move_to (cairoContext_,
                          x,
                          height_);
           cairo_line_to (cairoContext_,
                          x,
-                         height_ - (inherited3::Intensity (j, i) * scaleFactorY_));
+                         height_ - (inherited3::Magnitude (j, i) * scaleFactorY_));
         } // end FOR
         break;
       }
@@ -1380,9 +1394,9 @@ unlock:
                   inherited::mod_->name ()));
   } // end IF
 
-  gdk_threads_enter ();
-  gdk_window_invalidate_rect (inherited::configuration_->window,
-                              NULL,
-                              false);
-  gdk_threads_leave ();
+  //gdk_threads_enter ();
+  //gdk_window_invalidate_rect (inherited::configuration_->window,
+  //                            NULL,
+  //                            false);
+  //gdk_threads_leave ();
 }

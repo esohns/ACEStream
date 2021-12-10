@@ -926,7 +926,7 @@ Stream_MediaFramework_MediaFoundation_Tools::parse (const IMFTopology* topology_
 
   // sanity check(s)
   ACE_ASSERT (topology_in);
-  ACE_ASSERT (branches_out.empty ());
+  Stream_MediaFramework_MediaFoundation_Tools::clean (branches_out);
 
   IMFCollection* collection_p = NULL;
   HRESULT result =
@@ -3737,6 +3737,7 @@ continue_3:
   {
     result = topology_node_4->GetOutputCount (&output_index_i);
     ACE_ASSERT (SUCCEEDED (result));
+    --output_index_i;
   } // end IF
   result = topology_node_4->ConnectOutput (output_index_i,
                                            topology_node_p,

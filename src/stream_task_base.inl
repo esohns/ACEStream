@@ -739,7 +739,7 @@ error_2:
       // *TODO*: prevent this from occurring altogether (e.g. pre-buffer all
       //         'early' messages in the head module, introduce an intermediate
       //         state machine state 'in_session') to handle these situations
-      ACE_ASSERT (inherited::mod_);
+      //ACE_ASSERT (inherited::mod_);
       if (unlikely ((this == inherited::mod_->writer ()) &&
                     !sessionData_))
       { 

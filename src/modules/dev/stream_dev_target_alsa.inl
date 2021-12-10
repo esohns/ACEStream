@@ -364,7 +364,7 @@ Stream_Dev_Target_ALSA_T<ACE_SYNCH_USE,
 
   switch (message_in.type ())
   {
-    case STREAM_CONTROL_ABORT:
+    case STREAM_CONTROL_MESSAGE_ABORT:
     {
       unsigned int result = queue_.flush (false); // flush all data messages
       if (unlikely (result == static_cast<unsigned int> (-1)))

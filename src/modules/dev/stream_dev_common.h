@@ -186,16 +186,13 @@ typedef Stream_Device_List_t::const_iterator Stream_Device_ListIterator_t;
 struct Common_AllocatorConfiguration;
 struct Stream_Device_ALSA_Capture_AsynchCBData
 {
-  Stream_IAllocator*                                       allocator;
-  struct Common_AllocatorConfiguration*                    allocatorConfiguration;
-//  struct _snd_pcm_channel_area*                            areas;
-  struct Stream_MediaFramework_ALSA_MediaType              format;
-  unsigned int                                             frameSize; // bytesPerSample * format.channels
-  ACE_Message_Queue_Base*                                  queue;
-  Stream_Statistic*                                        statistic;
-
-  // sound generator
-  struct Stream_MediaFramework_SoundGeneratorConfiguration generatorConfiguration;
+  Stream_IAllocator*                          allocator;
+  struct Common_AllocatorConfiguration*       allocatorConfiguration;
+//  struct _snd_pcm_channel_area*               areas;
+//  struct Stream_MediaFramework_ALSA_MediaType format;
+  unsigned int                                frameSize; // bytesPerSample * format.channels
+  ACE_Message_Queue_Base*                     queue;
+  Stream_Statistic*                           statistic;
 };
 
 struct Stream_Device_ALSA_Playback_AsynchCBData

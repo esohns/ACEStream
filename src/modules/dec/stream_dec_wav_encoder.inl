@@ -408,7 +408,7 @@ Stream_Decoder_WAVEncoder_T<ACE_SYNCH_USE,
 #else
       // sanity check(s)
       ACE_ASSERT (inherited::configuration_);
-      if (unlikely (inherited::configuration_->targetFileName.empty ()))
+      if (unlikely (inherited::configuration_->fileIdentifier.empty ()))
         return;
 
       SessionDataType& session_data_r =
@@ -430,7 +430,7 @@ Stream_Decoder_WAVEncoder_T<ACE_SYNCH_USE,
                                                    signalInfo_);
       ACE_ASSERT (!outputFile_);
       outputFile_ =
-          sox_open_write (inherited::configuration_->targetFileName.c_str (),
+          sox_open_write (inherited::configuration_->fileIdentifier.identifier.c_str (),
                           &signalInfo_,
                           &encodingInfo_,
                           //ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_SOX_WAV_MediaType_STRING),
@@ -442,13 +442,13 @@ Stream_Decoder_WAVEncoder_T<ACE_SYNCH_USE,
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: failed to sox_open_write(\"%s\"): \"%m\", aborting\n"),
                     inherited::mod_->name (),
-                    ACE_TEXT (inherited::configuration_->targetFileName.c_str ())));
+                    ACE_TEXT (inherited::configuration_->fileIdentifier.identifier.c_str ())));
         goto error;
       } // end IF
       ACE_DEBUG ((LM_DEBUG,
                   ACE_TEXT ("%s: opened file stream \"%s\"\n"),
                   inherited::mod_->name (),
-                  ACE_TEXT (inherited::configuration_->targetFileName.c_str ())));
+                  ACE_TEXT (inherited::configuration_->fileIdentifier.identifier.c_str ())));
 #endif // SOX_SUPPORT
       goto continue_;
 
@@ -603,7 +603,7 @@ continue_2:
         ACE_DEBUG ((LM_DEBUG,
                     ACE_TEXT ("%s: closed file stream \"%s\" (wrote: %Q byte(s))\n"),
                     inherited::mod_->name (),
-                    ACE_TEXT (inherited::configuration_->targetFileName.c_str ()),
+                    ACE_TEXT (inherited::configuration_->fileIdentifier.identifier.c_str ()),
                     bytes_written));
       } // end IF
 #endif // SOX_SUPPORT

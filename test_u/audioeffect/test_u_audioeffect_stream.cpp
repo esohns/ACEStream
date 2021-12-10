@@ -1676,18 +1676,44 @@ Test_U_AudioEffect_ALSA_Stream::load (Stream_ILayout* layout_in,
   typename inherited::CONFIGURATION_T::ITERATOR_T iterator =
       inherited::configuration_->find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (iterator != inherited::configuration_->end ());
+  typename inherited::CONFIGURATION_T::ITERATOR_T iterator_3 =
+    inherited::configuration_->find (ACE_TEXT_ALWAYS_CHAR (STREAM_FILE_SINK_DEFAULT_NAME_STRING));
+  ACE_ASSERT (iterator_3 != inherited::configuration_->end ());
 
   Stream_Module_t* module_p = NULL;
-  if (inherited::configuration_->configuration_->generatorConfiguration.type != STREAM_MEDIAFRAMEWORK_SOUNDGENERATOR_INVALID)
-    ACE_NEW_RETURN (module_p,
-                    Test_U_Dec_Noise_Source_ALSA_Module (this,
-                                                         ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_ENCODER_NOISE_SOURCE_DEFAULT_NAME_STRING)),
-                    false);
-  else
-    ACE_NEW_RETURN (module_p,
-                    Test_U_Dev_Mic_Source_ALSA_Module (this,
-                                                       ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_MIC_SOURCE_ALSA_DEFAULT_NAME_STRING)),
-                    false);
+  switch (inherited::configuration_->configuration_->sourceType)
+  {
+    case AUDIOEFFECT_SOURCE_DEVICE:
+    {
+      ACE_NEW_RETURN (module_p,
+                      Test_U_Dev_Mic_Source_ALSA_Module (this,
+                                                         ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_MIC_SOURCE_ALSA_DEFAULT_NAME_STRING)),
+                      false);
+      break;
+    }
+    case AUDIOEFFECT_SOURCE_NOISE:
+    {
+      ACE_NEW_RETURN (module_p,
+                      Test_U_Dec_Noise_Source_ALSA_Module (this,
+                                                           ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_ENCODER_NOISE_SOURCE_DEFAULT_NAME_STRING)),
+                      false);
+      break;
+    }
+    case AUDIOEFFECT_SOURCE_FILE:
+    {
+      ACE_ASSERT (false); // *TODO*
+      break;
+    }
+    default:
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("%s: invalid/unknown source type (was: %d), aborting\n"),
+                  ACE_TEXT (stream_name_string_),
+                  inherited::configuration_->configuration_->sourceType));
+      return false;
+    }
+  } // end SWITCH
+  ACE_ASSERT (module_p);
   layout_in->append (module_p, NULL, 0);
   module_p = NULL;
 //  ACE_NEW_RETURN (module_p,
@@ -1725,12 +1751,12 @@ Test_U_AudioEffect_ALSA_Stream::load (Stream_ILayout* layout_in,
   //         - whether the output is muted
   //         - whether the output is saved to file
   if (!(*iterator).second.second->mute ||
-      !(*iterator).second.second->targetFileName.empty ())
+      !(*iterator_3).second.second->fileIdentifier.empty ())
   {
     typename inherited::MODULE_T* branch_p = NULL; // NULL: 'main' branch
     unsigned int index_i = 0;
     if (!(*iterator).second.second->mute &&
-        !(*iterator).second.second->targetFileName.empty ())
+        !(*iterator_3).second.second->fileIdentifier.empty ())
     {
       ACE_NEW_RETURN (module_p,
                       Test_U_AudioEffect_Distributor_Module (this,
@@ -1757,7 +1783,7 @@ Test_U_AudioEffect_ALSA_Stream::load (Stream_ILayout* layout_in,
       ++index_i;
       module_p = NULL;
     } // end IF
-    if (!(*iterator).second.second->targetFileName.empty ())
+    if (!(*iterator_3).second.second->fileIdentifier.empty ())
     {
       ACE_NEW_RETURN (module_p,
                       Test_U_AudioEffect_ALSA_WAVEncoder_Module (this,

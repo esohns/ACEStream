@@ -23,6 +23,8 @@
 
 #include "ace/config-lite.h"
 
+#include "stream_dev_defines.h"
+
 #if defined (FFMPEG_SUPPORT)
 #define STREAM_VIS_LIBAV_RESIZE_DEFAULT_NAME_STRING                       "LibAVResize"
 #endif // FFMPEG_SUPPORT

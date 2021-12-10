@@ -172,7 +172,10 @@ class Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T
 #endif /* GTKGL_SUPPORT */
   double                                             channelFactor_;
   double                                             scaleFactorX_;
+  // *NOTE*: there are only (N/2)-1 meaningful values for real-valued data
+  double                                             scaleFactorX_2; // for spectrum
   double                                             scaleFactorY_;
+  int                                                halfHeight_;
   int                                                height_;
   int                                                width_;
 
