@@ -276,8 +276,6 @@ do_processArguments (int argc_in,
 #if defined (GUI_SUPPORT)
   UIFile_out = configuration_path;
   UIFile_out += ACE_DIRECTORY_SEPARATOR_CHAR_A;
-  UIFile_out += ACE_TEXT_ALWAYS_CHAR (COMMON_LOCATION_CONFIGURATION_SUBDIRECTORY);
-  UIFile_out += ACE_DIRECTORY_SEPARATOR_CHAR_A;
   UIFile_out +=
 #if defined (GTK_USE)
 #if GTK_CHECK_VERSION (3,0,0)
@@ -1416,6 +1414,8 @@ do_work (
   stream_configuration.allocatorConfiguration = allocator_configuration_p;
   modulehandler_configuration.deviceIdentifier.identifier = deviceIdentifier_in;
   modulehandler_configuration.effect = effectName_in;
+  modulehandler_configuration.generatorConfiguration =
+    &configuration_in.generatorConfiguration;
   modulehandler_configuration.messageAllocator = &message_allocator;
   modulehandler_configuration.mute = mute_in;
 #if defined (GUI_SUPPORT)
@@ -1929,9 +1929,6 @@ ACE_TMAIN (int argc_in,
   path += ACE_TEXT_ALWAYS_CHAR (COMMON_LOCATION_CONFIGURATION_SUBDIRECTORY);
   std::string UI_definition_file = path;
   UI_definition_file += ACE_DIRECTORY_SEPARATOR_CHAR_A;
-  UI_definition_file +=
-      ACE_TEXT_ALWAYS_CHAR (COMMON_LOCATION_CONFIGURATION_SUBDIRECTORY);
-  UI_definition_file += ACE_DIRECTORY_SEPARATOR_CHAR_A;
 #if defined (GTK_USE)
 #if GTK_CHECK_VERSION(3,0,0)
   UI_definition_file +=
@@ -2154,6 +2151,10 @@ ACE_TMAIN (int argc_in,
   } // end SWITCH
 #else
   struct Test_U_AudioEffect_Configuration configuration;
+  configuration.generatorConfiguration.frequency =
+    TEST_U_STREAM_AUDIOEFFECT_NOISE_DEFAULT_FREQUENCY_D;
+  configuration.generatorConfiguration.type =
+    TEST_U_STREAM_AUDIOEFFECT_NOISE_DEFAULT_TYPE;
   struct Test_U_AudioEffect_UI_CBData ui_cb_data;
   ui_cb_data.configuration = &configuration;
 

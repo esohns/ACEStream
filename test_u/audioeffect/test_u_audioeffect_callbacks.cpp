@@ -2430,7 +2430,6 @@ load_sample_rates (struct _snd_pcm* handle_in,
   STREAM_TRACE (ACE_TEXT ("::load_sample_rates"));
 
   // sanity check(s)
-  ACE_ASSERT (handle_in);
   ACE_ASSERT (listStore_in);
 
   // initialize result
@@ -2571,7 +2570,6 @@ load_sample_resolutions (struct _snd_pcm* handle_in,
   STREAM_TRACE (ACE_TEXT ("::load_sample_resolutions"));
 
   // sanity check(s)
-  ACE_ASSERT (handle_in);
   ACE_ASSERT (listStore_in);
 
   // initialize result
