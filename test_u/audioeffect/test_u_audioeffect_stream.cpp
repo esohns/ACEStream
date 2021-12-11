@@ -1824,7 +1824,6 @@ Test_U_AudioEffect_ALSA_Stream::initialize (const typename inherited::CONFIGURAT
   typename inherited::CONFIGURATION_T::ITERATOR_T iterator;
   typename inherited::ISTREAM_T::MODULE_T* module_p = NULL;
   Test_U_AudioEffect_IDispatch_t* idispatch_p = NULL;
-  Test_U_Dev_Mic_Source_ALSA* source_impl_p = NULL;
 
   // allocate a new session state, reset stream
   const_cast<typename inherited::CONFIGURATION_T&> (configuration_in).configuration_->setupPipeline =

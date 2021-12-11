@@ -216,7 +216,7 @@ typedef Stream_Dec_Noise_Source_T<ACE_MT_SYNCH,
                                   Stream_ControlMessage_t,
                                   Test_U_AudioEffect_Message,
                                   Test_U_AudioEffect_SessionMessage,
-                                  struct Test_U_AudioEffect_ModuleHandlerConfiguration,
+                                  struct Test_U_AudioEffect_ALSA_ModuleHandlerConfiguration,
                                   enum Stream_ControlType,
                                   enum Stream_SessionMessageType,
                                   struct Test_U_AudioEffect_StreamState,
@@ -225,12 +225,12 @@ typedef Stream_Dec_Noise_Source_T<ACE_MT_SYNCH,
                                   struct Test_U_AudioEffect_Statistic,
                                   Common_Timer_Manager_t,
                                   struct Stream_MediaFramework_ALSA_MediaType> Test_U_Dec_Noise_Source_ALSA;
-DATASTREAM_MODULE_INPUT_ONLY (Test_U_AudioEffect_SessionData,                           // session data type
-                              enum Stream_SessionMessageType,                           // session event type
-                              struct Test_U_AudioEffect_ModuleHandlerConfiguration,     // module handler configuration type
+DATASTREAM_MODULE_INPUT_ONLY (Test_U_AudioEffect_SessionData,                            // session data type
+                              enum Stream_SessionMessageType,                            // session event type
+                              struct Test_U_AudioEffect_ALSA_ModuleHandlerConfiguration, // module handler configuration type
                               libacestream_default_dec_noise_source_module_name_string,
-                              Stream_INotify_t,                                         // stream notification interface type
-                              Test_U_Dec_Noise_Source_ALSA);                            // writer type
+                              Stream_INotify_t,                                          // stream notification interface type
+                              Test_U_Dec_Noise_Source_ALSA);                             // writer type
 
 typedef Stream_Dev_Mic_Source_ALSA_T<ACE_MT_SYNCH,
                                      Stream_ControlMessage_t,

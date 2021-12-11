@@ -4684,15 +4684,13 @@ button_hw_settings_clicked_cb (GtkButton* button_in,
   STREAM_TRACE (ACE_TEXT ("::button_hw_settings_clicked_cb"));
 
   ACE_UNUSED_ARG (button_in);
+
+  // sanity check(s)
   struct Stream_CamSave_UI_CBData* ui_cb_data_base_p =
     static_cast<struct Stream_CamSave_UI_CBData*> (userData_in);
-
-  // sanity check(s)
   ACE_ASSERT (ui_cb_data_base_p);
-
   Common_UI_GTK_BuildersIterator_t iterator =
     ui_cb_data_base_p->UIState->builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN));
-  // sanity check(s)
   ACE_ASSERT (iterator != ui_cb_data_base_p->UIState->builders.end ());
 
   GtkDrawingArea* drawing_area_p =
@@ -4772,6 +4770,8 @@ button_hw_settings_clicked_cb (GtkButton* button_in,
 #else
   struct Stream_CamSave_V4L_UI_CBData* cb_data_p =
     static_cast<struct Stream_CamSave_V4L_UI_CBData*> (ui_cb_data_base_p);
+  ACE_UNUSED_ARG (cb_data_p);
+  ACE_UNUSED_ARG (window_p);
 #endif // ACE_WIN32 || ACE_WIN64
 } // button_hw_settings_clicked_cb
 

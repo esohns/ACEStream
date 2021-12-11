@@ -930,12 +930,13 @@ int Stream_Dev_Target_ALSA_T<ACE_SYNCH_USE,
       head_p = message_block_p;
     message_block_p = head_p;
     bytes_to_write = message_block_p->length ();
+
     do
     {
       available_frames = snd_pcm_avail_update (deviceHandle_);
       if (unlikely (available_frames < 0))
       { error_i = available_frames;
-        // overrun ? --> recover
+        // underrun ? --> recover
         if (likely ((error_i == -EPIPE)    ||
                     (error_i == -ESTRPIPE)))
           goto recover;
@@ -964,11 +965,10 @@ int Stream_Dev_Target_ALSA_T<ACE_SYNCH_USE,
           head_p->release (); head_p = NULL;
           return -1;
         } // end IF
-        else if (unlikely (result == 0))
-        {
-          message_block_p = NULL;
-          break; // timeout --> try again later
-        } // end IF
+        else if (unlikely (result == 0)) // timeout --> try again
+          ACE_DEBUG ((LM_WARNING,
+                      ACE_TEXT ("%s: failed to snd_pcm_wait(): timed out, continuing\n"),
+                      inherited::mod_->name ()));
         continue;
       } // end IF
 
@@ -981,7 +981,7 @@ int Stream_Dev_Target_ALSA_T<ACE_SYNCH_USE,
                                        frames_to_write);
       if (unlikely (frames_written < 0))
       { error_i = frames_written;
-        // overrun ? --> recover
+        // underrun ? --> recover
         if (likely ((error_i == -EPIPE)    ||
                     (error_i == -ESTRPIPE)))
           goto recover;
@@ -1034,7 +1034,6 @@ recover:
         head_p->release (); head_p = NULL;
         return -1;
       } // end IF
-      message_block_p = NULL;
     } while (true);
   } while (true);
 
