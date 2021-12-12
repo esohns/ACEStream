@@ -17,6 +17,7 @@
 #include "windows.h"
 
 //#include "strmif.h"
+//#undef NANOSECONDS
 //#include "reftime.h"
 #if defined (DEBUG)
 //// *NOTE*: wxWidgets may have #defined __WXDEBUG__

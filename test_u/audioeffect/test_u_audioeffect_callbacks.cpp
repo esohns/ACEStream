@@ -117,7 +117,7 @@ extern "C"
 #include "test_u_audioeffect_stream.h"
 
 // global variables
-bool un_toggling_stream = false;
+bool untoggling_record_button = false;
 
 bool
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -4257,20 +4257,6 @@ idle_initialize_UI_cb (gpointer userData_in)
 
   GtkFileFilter* file_filter_p =
     GTK_FILE_FILTER (gtk_builder_get_object ((*iterator).second.second,
-                                             ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_FILEFILTER_MP3_NAME)));
-  ACE_ASSERT (file_filter_p);
-  gtk_file_filter_add_mime_type (file_filter_p,
-                                 ACE_TEXT ("application/octet-stream"));
-  gtk_file_filter_add_mime_type (file_filter_p,
-                                 ACE_TEXT ("audio/mp3"));
-  gtk_file_filter_add_mime_type (file_filter_p,
-                                 ACE_TEXT ("audio/mpeg"));
-  gtk_file_filter_add_pattern (file_filter_p,
-                               ACE_TEXT ("*.mp3"));
-  gtk_file_filter_set_name (file_filter_p,
-                            ACE_TEXT ("MP3 files"));
-  file_filter_p =
-    GTK_FILE_FILTER (gtk_builder_get_object ((*iterator).second.second,
                                              ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_FILEFILTER_WAV_NAME)));
   ACE_ASSERT (file_filter_p);
   gtk_file_filter_add_mime_type (file_filter_p,
@@ -4285,6 +4271,20 @@ idle_initialize_UI_cb (gpointer userData_in)
                                ACE_TEXT ("*.wav"));
   gtk_file_filter_set_name (file_filter_p,
                             ACE_TEXT ("WAV files"));
+  file_filter_p =
+    GTK_FILE_FILTER (gtk_builder_get_object ((*iterator).second.second,
+                                             ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_FILEFILTER_MP3_NAME)));
+  ACE_ASSERT (file_filter_p);
+  gtk_file_filter_add_mime_type (file_filter_p,
+                                 ACE_TEXT ("application/octet-stream"));
+  gtk_file_filter_add_mime_type (file_filter_p,
+                                 ACE_TEXT ("audio/mp3"));
+  gtk_file_filter_add_mime_type (file_filter_p,
+                                 ACE_TEXT ("audio/mpeg"));
+  gtk_file_filter_add_pattern (file_filter_p,
+                               ACE_TEXT ("*.mp3"));
+  gtk_file_filter_set_name (file_filter_p,
+                            ACE_TEXT ("MP3 files"));
 
   std::string filename_string;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -4318,10 +4318,14 @@ idle_initialize_UI_cb (gpointer userData_in)
     GTK_FILE_CHOOSER_BUTTON (gtk_builder_get_object ((*iterator).second.second,
                                                      ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_FILECHOOSERBUTTON_FILE_NAME)));
   ACE_ASSERT (file_chooser_button_p);
+  gtk_file_chooser_add_filter (GTK_FILE_CHOOSER (file_chooser_button_p),
+                               file_filter_p);
   GtkFileChooserDialog* file_chooser_dialog_p =
     GTK_FILE_CHOOSER_DIALOG (gtk_builder_get_object ((*iterator).second.second,
                                                      ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_FILECHOOSERDIALOG_FILE_NAME)));
   ACE_ASSERT (file_chooser_dialog_p);
+  //gtk_file_chooser_add_filter (GTK_FILE_CHOOSER (file_chooser_dialog_p),
+  //                             file_filter_p);
   gboolean result = FALSE;
   if (!filename_string.empty ())
   {
@@ -5431,41 +5435,37 @@ idle_session_end_cb (gpointer userData_in)
 {
   STREAM_TRACE (ACE_TEXT ("::idle_session_end_cb"));
 
-  struct Test_U_AudioEffect_UI_CBDataBase* data_base_p =
-    static_cast<struct Test_U_AudioEffect_UI_CBDataBase*> (userData_in);
-
   // sanity check(s)
-  ACE_ASSERT (data_base_p);
-
+  struct Test_U_AudioEffect_UI_CBDataBase* ui_data_base_p =
+    static_cast<struct Test_U_AudioEffect_UI_CBDataBase*> (userData_in);
+  ACE_ASSERT (ui_data_base_p);
   Common_UI_GTK_Manager_t* gtk_manager_p =
     COMMON_UI_GTK_MANAGER_SINGLETON::instance ();
   ACE_ASSERT (gtk_manager_p);
   Common_UI_GTK_State_t& state_r =
     const_cast<Common_UI_GTK_State_t&> (gtk_manager_p->getR ());
-
-  // synch access
-  ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, state_r.lock, G_SOURCE_REMOVE);
-
   Common_UI_GTK_BuildersConstIterator_t iterator =
     state_r.builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN));
   ACE_ASSERT (iterator != state_r.builders.end ());
 
-  // *IMPORTANT NOTE*: there are two major reasons for being here that are not
-  //                   mutually exclusive, so there could be a race:
+  // *IMPORTANT NOTE*: there are three major reasons for being here that are not
+  //                   mutually exclusive:
   //                   - user pressed stop
+  //                   - audio file has ended playing
   //                   - there was an asynchronous error on the stream
+
   GtkToggleButton* toggle_button_p =
     GTK_TOGGLE_BUTTON (gtk_builder_get_object ((*iterator).second.second,
                                                ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_TOGGLEBUTTON_RECORD_NAME)));
   ACE_ASSERT (toggle_button_p);
-  gtk_button_set_label (GTK_BUTTON (toggle_button_p),
-                        GTK_STOCK_MEDIA_RECORD);
+  gtk_button_set_label (GTK_BUTTON (toggle_button_p), GTK_STOCK_MEDIA_RECORD);
   if (gtk_toggle_button_get_active (toggle_button_p))
   {
-    un_toggling_stream = true;
-    gtk_signal_emit_by_name (GTK_OBJECT (toggle_button_p),
-                             ACE_TEXT_ALWAYS_CHAR ("toggled"),
-                             userData_in);
+    untoggling_record_button = true;
+    gtk_toggle_button_set_active (toggle_button_p, FALSE);
+    //gtk_signal_emit_by_name (GTK_OBJECT (toggle_button_p),
+    //                         ACE_TEXT_ALWAYS_CHAR ("toggled"),
+    //                         userData_in);
   } // end IF
   gtk_widget_set_sensitive (GTK_WIDGET (toggle_button_p), TRUE);
 
@@ -5492,6 +5492,12 @@ idle_session_end_cb (gpointer userData_in)
   ACE_ASSERT (combo_box_p);
   gtk_widget_set_sensitive (GTK_WIDGET (combo_box_p), TRUE);
 
+  GtkFrame* frame_p =
+    GTK_FRAME (gtk_builder_get_object ((*iterator).second.second,
+                                       ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_FRAME_FILE_NAME)));
+  ACE_ASSERT (frame_p);
+  gtk_widget_set_sensitive (GTK_WIDGET (frame_p), FALSE);
+
   button_p =
     GTK_BUTTON (gtk_builder_get_object ((*iterator).second.second,
                                         ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_BUTTON_PROPERTIES_NAME)));
@@ -5516,7 +5522,7 @@ idle_session_end_cb (gpointer userData_in)
   ACE_ASSERT (toggle_button_p);
   gtk_widget_set_sensitive (GTK_WIDGET (toggle_button_p), TRUE);
 
-  GtkFrame* frame_p =
+  frame_p =
     GTK_FRAME (gtk_builder_get_object ((*iterator).second.second,
                                        ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_FRAME_SAVE_NAME)));
   ACE_ASSERT (frame_p);
@@ -5590,6 +5596,7 @@ idle_update_info_display_cb (gpointer userData_in)
         }
         case COMMON_UI_EVENT_ABORT:
         case COMMON_UI_EVENT_FINISHED:
+        case COMMON_UI_EVENT_STEP:
         case COMMON_UI_EVENT_STOPPED:
         {
           spin_button_p =
@@ -5883,26 +5890,28 @@ togglebutton_record_toggled_cb (GtkToggleButton* toggleButton_in,
 {
   STREAM_TRACE (ACE_TEXT ("::togglebutton_record_toggled_cb"));
 
-  // handle untoggle --> PLAY
-  if (un_toggling_stream)
+  // handle untoggle --> RECORD
+  if (untoggling_record_button)
   {
-    un_toggling_stream = false;
+    untoggling_record_button = false;
     return; // done
   } // end IF
 
   // --> user pressed play/pause/stop
 
+  // sanity check(s)
   struct Test_U_AudioEffect_UI_CBDataBase* ui_cb_data_base_p =
     static_cast<struct Test_U_AudioEffect_UI_CBDataBase*> (userData_in);
-  // sanity check(s)
   ACE_ASSERT (ui_cb_data_base_p);
-
   Common_UI_GTK_Manager_t* gtk_manager_p =
     COMMON_UI_GTK_MANAGER_SINGLETON::instance ();
   ACE_ASSERT (gtk_manager_p);
   Common_UI_GTK_State_t& state_r =
     const_cast<Common_UI_GTK_State_t&> (gtk_manager_p->getR ());
-  Common_UI_GTK_BuildersConstIterator_t iterator;
+  Common_UI_GTK_BuildersConstIterator_t iterator =
+    state_r.builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN));
+  ACE_ASSERT (iterator != state_r.builders.end ());
+
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   struct _GUID GUID_s = GUID_NULL;
 #endif // ACE_WIN32 || ACE_WIN64
@@ -5936,13 +5945,13 @@ togglebutton_record_toggled_cb (GtkToggleButton* toggleButton_in,
       ACE_ASSERT (directshow_ui_cb_data_p);
       ACE_ASSERT (directshow_ui_cb_data_p->configuration);
       ACE_ASSERT (directshow_ui_cb_data_p->stream);
-      stream_p = directshow_ui_cb_data_p->stream;
-      use_framework_source_b =
-        directshow_ui_cb_data_p->configuration->streamConfiguration.configuration_->useFrameworkSource;
-
       directshow_modulehandler_configuration_iterator =
         directshow_ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
       ACE_ASSERT (directshow_modulehandler_configuration_iterator != directshow_ui_cb_data_p->configuration->streamConfiguration.end ());
+
+      stream_p = directshow_ui_cb_data_p->stream;
+      use_framework_source_b =
+        directshow_ui_cb_data_p->configuration->streamConfiguration.configuration_->useFrameworkSource;
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
@@ -5953,13 +5962,13 @@ togglebutton_record_toggled_cb (GtkToggleButton* toggleButton_in,
       ACE_ASSERT (mediafoundation_ui_cb_data_p);
       ACE_ASSERT (mediafoundation_ui_cb_data_p->configuration);
       ACE_ASSERT (mediafoundation_ui_cb_data_p->stream);
-      stream_p = mediafoundation_ui_cb_data_p->stream;
-      use_framework_source_b =
-        mediafoundation_ui_cb_data_p->configuration->streamConfiguration.configuration_->useFrameworkSource;
-
       mediafoundation_modulehandler_configuration_iterator =
         mediafoundation_ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
       ACE_ASSERT (mediafoundation_modulehandler_configuration_iterator != mediafoundation_ui_cb_data_p->configuration->streamConfiguration.end ());
+
+      stream_p = mediafoundation_ui_cb_data_p->stream;
+      use_framework_source_b =
+        mediafoundation_ui_cb_data_p->configuration->streamConfiguration.configuration_->useFrameworkSource;
       break;
     }
     default:
@@ -5976,18 +5985,13 @@ togglebutton_record_toggled_cb (GtkToggleButton* toggleButton_in,
     static_cast<struct Test_U_AudioEffect_UI_CBData*> (userData_in);
   ACE_ASSERT (ui_cb_data_p->configuration);
   ACE_ASSERT (ui_cb_data_p->stream);
-
-  stream_p = ui_cb_data_p->stream;
-
   Test_U_AudioEffect_ALSA_StreamConfiguration_t::ITERATOR_T modulehandler_configuration_iterator =
     ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (modulehandler_configuration_iterator != ui_cb_data_p->configuration->streamConfiguration.end ());
+
+  stream_p = ui_cb_data_p->stream;
 #endif // ACE_WIN32 || ACE_WIN64
   ACE_ASSERT (stream_p);
-
-  iterator =
-    state_r.builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN));
-  ACE_ASSERT (iterator != state_r.builders.end ());
 
   // toggle ?
   if (!gtk_toggle_button_get_active (toggleButton_in))
@@ -5995,8 +5999,8 @@ togglebutton_record_toggled_cb (GtkToggleButton* toggleButton_in,
     // --> user pressed pause/stop
 
     // step0: modify widgets
-    gtk_widget_set_sensitive (GTK_WIDGET (toggleButton_in),
-                              FALSE);
+    // *NOTE*: wait for "end of session"
+    gtk_widget_set_sensitive (GTK_WIDGET (toggleButton_in), FALSE);
 
     // step1: stop stream
     stream_p->stop (false,
@@ -6062,300 +6066,7 @@ togglebutton_record_toggled_cb (GtkToggleButton* toggleButton_in,
     static_cast<unsigned int> (value_i);
 #endif // ACE_WIN32 || ACE_WIN64
 
-//  GtkComboBox* combo_box_p =
-//    GTK_COMBO_BOX (gtk_builder_get_object ((*iterator).second.second,
-//                                           ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_COMBOBOX_SOURCE_NAME)));
-//  ACE_ASSERT (combo_box_p);
-//  GtkTreeIter iterator_2;
-//  GtkListStore* list_store_p = NULL;
-//  GFile* file_p = NULL;
-//  GtkFrame* frame_p = NULL;
-//  GtkButton* button_p = NULL;
-//  GtkToggleButton* toggle_button_p = NULL;
-//  GtkFileChooserButton* file_chooser_button_p = NULL;
-//  bool save_to_file = false;
-//
-//  if (!gtk_combo_box_get_active_iter (combo_box_p,
-//                                      &iterator_2))
-//  {
-//    ACE_DEBUG ((LM_ERROR,
-//                ACE_TEXT ("no capture device selected, returning\n")));
-//    return;
-//  } // end IF
-//  list_store_p =
-//    GTK_LIST_STORE (gtk_builder_get_object ((*iterator).second.second,
-//                                            ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_LISTSTORE_SOURCE_NAME)));
-//  ACE_ASSERT (list_store_p);
-//  gtk_tree_model_get_value (GTK_TREE_MODEL (list_store_p),
-//                            &iterator_2,
-//                            1, &value);
-//  ACE_ASSERT (G_VALUE_TYPE (&value) == G_TYPE_STRING);
-//  gtk_tree_model_get_value (GTK_TREE_MODEL (list_store_p),
-//                            &iterator_2,
-//                            2, &value_2);
-//  ACE_ASSERT (G_VALUE_TYPE (&value_2) == G_TYPE_UINT);
-//#if defined (ACE_WIN32) || defined (ACE_WIN64)
-//  switch (ui_cb_data_base_p->mediaFramework)
-//  {
-//    case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
-//    {
-//      (*directshow_modulehandler_configuration_iterator).second.second->audioInput =
-//          g_value_get_uint (&value_2);
-//      (*directshow_modulehandler_configuration_iterator).second.second->deviceIdentifier.identifier._guid =
-//        Stream_MediaFramework_DirectSound_Tools::waveDeviceIdToDirectSoundGUID (static_cast<ULONG> ((*directshow_modulehandler_configuration_iterator).second.second->audioInput));
-//      //ACE_OS::strcpy ((*directshow_modulehandler_configuration_iterator).second.second->deviceIdentifier.identifier._string,
-//      //                ACE_TEXT_ALWAYS_CHAR (g_value_get_string (&value)));
-//      break;
-//    }
-//    case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
-//    {
-//      (*mediafoundation_modulehandler_configuration_iterator).second.second->audioInput =
-//          g_value_get_uint (&value_2);
-//      (*mediafoundation_modulehandler_configuration_iterator).second.second->deviceIdentifier.identifier._guid =
-//        Stream_MediaFramework_DirectSound_Tools::waveDeviceIdToDirectSoundGUID (static_cast<ULONG> ((*mediafoundation_modulehandler_configuration_iterator).second.second->audioInput));
-//      //ACE_OS::strcpy ((*mediafoundation_modulehandler_configuration_iterator).second.second->deviceIdentifier.identifier._string,
-//      //                ACE_TEXT_ALWAYS_CHAR (g_value_get_string (&value)));
-//      break;
-//    }
-//    default:
-//    {
-//      ACE_DEBUG ((LM_ERROR,
-//                  ACE_TEXT ("invalid/unknown media framework (was: %d), returning\n"),
-//                  ui_cb_data_base_p->mediaFramework));
-//      return;
-//    }
-//  } // end SWITCH
-//#else
-//  (*modulehandler_configuration_iterator).second.second->audioInput =
-//      g_value_get_uint (&value_2);
-//  (*modulehandler_configuration_iterator).second.second->deviceIdentifier.identifier =
-//    g_value_get_string (&value);
-//#endif // ACE_WIN32 || ACE_WIN64
-//  g_value_unset (&value); g_value_unset (&value_2);
-//
-//  combo_box_p =
-//    GTK_COMBO_BOX (gtk_builder_get_object ((*iterator).second.second,
-//                                           ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_COMBOBOX_FORMAT_NAME)));
-//  ACE_ASSERT (combo_box_p);
-//  if (!gtk_combo_box_get_active_iter (combo_box_p,
-//                                      &iterator_2))
-//  {
-//    ACE_DEBUG ((LM_ERROR,
-//                ACE_TEXT ("no capture format selected, returning\n")));
-//    return;
-//  } // end IF
-//  list_store_p =
-//    GTK_LIST_STORE (gtk_builder_get_object ((*iterator).second.second,
-//                                            ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_LISTSTORE_FORMAT_NAME)));
-//  ACE_ASSERT (list_store_p);
-//  //g_value_reset (&value);
-//  gtk_tree_model_get_value (GTK_TREE_MODEL (list_store_p),
-//                            &iterator_2,
-//#if defined (ACE_WIN32) || defined (ACE_WIN64)
-//                            1, &value);
-//  ACE_ASSERT (G_VALUE_TYPE (&value) == G_TYPE_STRING);
-//#else
-//                            2, &value);
-//  ACE_ASSERT (G_VALUE_TYPE (&value) == G_TYPE_INT);
-//#endif // ACE_WIN32 || ACE_WIN64
-//#if defined (ACE_WIN32) || defined (ACE_WIN64)
-//  GUID_s = Common_Tools::StringToGUID (g_value_get_string (&value));
-//  if (InlineIsEqualGUID (GUID_s, GUID_NULL))
-//  {
-//    ACE_DEBUG ((LM_ERROR,
-//                ACE_TEXT ("failed to Common_Tools::StringToGUID(\"%s\"), returning\n"),
-//                ACE_TEXT (g_value_get_string (&value))));
-//    return;
-//  } // end IF
-//  HRESULT result = E_FAIL;
-//  switch (ui_cb_data_base_p->mediaFramework)
-//  {
-//    case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
-//    {
-//      directshow_ui_cb_data_p->configuration->streamConfiguration.configuration_->format.subtype =
-//        GUID_s;
-//      break;
-//    }
-//    case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
-//    { ACE_ASSERT (mediafoundation_ui_cb_data_p->configuration->streamConfiguration.configuration_->format);
-//      result =
-//        mediafoundation_ui_cb_data_p->configuration->streamConfiguration.configuration_->format->SetGUID (MF_MT_SUBTYPE,
-//                                                                                                          GUID_s);
-//      ACE_ASSERT (SUCCEEDED (result));
-//      break;
-//    }
-//    default:
-//    {
-//      ACE_DEBUG ((LM_ERROR,
-//                  ACE_TEXT ("invalid/unknown media framework (was: %d), returning\n"),
-//                  ui_cb_data_base_p->mediaFramework));
-//      return;
-//    }
-//  } // end SWITCH
-//#else
-//  ui_cb_data_p->configuration->streamConfiguration.configuration_->format.format =
-//    static_cast<enum _snd_pcm_format> (g_value_get_int (&value));
-//#endif // ACE_WIN32 || ACE_WIN64
-//  g_value_unset (&value);
-//
-//  combo_box_p =
-//    GTK_COMBO_BOX (gtk_builder_get_object ((*iterator).second.second,
-//                                           ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_COMBOBOX_FREQUENCY_NAME)));
-//  ACE_ASSERT (combo_box_p);
-//  if (!gtk_combo_box_get_active_iter (combo_box_p,
-//                                      &iterator_2))
-//  {
-//    ACE_DEBUG ((LM_ERROR,
-//                ACE_TEXT ("no capture frequency selected, returning\n")));
-//    return;
-//  } // end IF
-//  list_store_p =
-//    GTK_LIST_STORE (gtk_builder_get_object ((*iterator).second.second,
-//                                            ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_LISTSTORE_FREQUENCY_NAME)));
-//  ACE_ASSERT (list_store_p);
-//  gtk_tree_model_get_value (GTK_TREE_MODEL (list_store_p),
-//                            &iterator_2,
-//                            1, &value);
-//  ACE_ASSERT (G_VALUE_TYPE (&value) == G_TYPE_UINT);
-//#if defined (ACE_WIN32) || defined (ACE_WIN64)
-//  result = E_FAIL;
-//  switch (ui_cb_data_base_p->mediaFramework)
-//  {
-//    case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
-//    { ACE_ASSERT (directshow_ui_cb_data_p->configuration->streamConfiguration.configuration_->format.cbFormat == sizeof (struct tWAVEFORMATEX));
-//      ACE_ASSERT (directshow_ui_cb_data_p->configuration->streamConfiguration.configuration_->format.pbFormat);
-//      struct tWAVEFORMATEX* waveformatex_p =
-//        reinterpret_cast<struct tWAVEFORMATEX*> (directshow_ui_cb_data_p->configuration->streamConfiguration.configuration_->format.pbFormat);
-//      waveformatex_p->nSamplesPerSec = g_value_get_uint (&value);
-//      break;
-//    }
-//    case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
-//    { ACE_ASSERT (mediafoundation_ui_cb_data_p->configuration->streamConfiguration.configuration_->format);
-//      result =
-//        mediafoundation_ui_cb_data_p->configuration->streamConfiguration.configuration_->format->SetUINT32 (MF_MT_AUDIO_SAMPLES_PER_SECOND,
-//                                                                                                            g_value_get_uint (&value));
-//      ACE_ASSERT (SUCCEEDED (result));
-//      break;
-//    }
-//    default:
-//    {
-//      ACE_DEBUG ((LM_ERROR,
-//                  ACE_TEXT ("invalid/unknown media framework (was: %d), returning\n"),
-//                  ui_cb_data_base_p->mediaFramework));
-//      return;
-//    }
-//  } // end SWITCH
-//#else
-//  ui_cb_data_p->configuration->streamConfiguration.configuration_->format.rate =
-//    g_value_get_uint (&value);
-//#endif // ACE_WIN32 || ACE_WIN64
-//  g_value_unset (&value);
-//
-//  combo_box_p =
-//    GTK_COMBO_BOX (gtk_builder_get_object ((*iterator).second.second,
-//                                           ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_COMBOBOX_RESOLUTION_NAME)));
-//  ACE_ASSERT (combo_box_p);
-//  if (!gtk_combo_box_get_active_iter (combo_box_p,
-//                                      &iterator_2))
-//  {
-//    ACE_DEBUG ((LM_ERROR,
-//                ACE_TEXT ("no capture resolution selected, returning\n")));
-//    return;
-//  } // end IF
-//  list_store_p =
-//    GTK_LIST_STORE (gtk_builder_get_object ((*iterator).second.second,
-//                                            ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_LISTSTORE_RESOLUTION_NAME)));
-//  ACE_ASSERT (list_store_p);
-//  gtk_tree_model_get_value (GTK_TREE_MODEL (list_store_p),
-//                            &iterator_2,
-//                            1, &value);
-//  ACE_ASSERT (G_VALUE_TYPE (&value) == G_TYPE_UINT);
-//#if defined (ACE_WIN32) || defined (ACE_WIN64)
-//  result = E_FAIL;
-//  switch (ui_cb_data_base_p->mediaFramework)
-//  {
-//    case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
-//    {
-//      ACE_ASSERT (directshow_ui_cb_data_p->configuration->streamConfiguration.configuration_->format.cbFormat == sizeof (struct tWAVEFORMATEX));
-//      ACE_ASSERT (directshow_ui_cb_data_p->configuration->streamConfiguration.configuration_->format.pbFormat);
-//      struct tWAVEFORMATEX* waveformatex_p =
-//        reinterpret_cast<struct tWAVEFORMATEX*> (directshow_ui_cb_data_p->configuration->streamConfiguration.configuration_->format.pbFormat);
-//      waveformatex_p->wBitsPerSample = static_cast<WORD> (g_value_get_uint (&value));
-//      break;
-//    }
-//    case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
-//    { ACE_ASSERT (mediafoundation_ui_cb_data_p->configuration->streamConfiguration.configuration_->format);
-//      result =
-//        mediafoundation_ui_cb_data_p->configuration->streamConfiguration.configuration_->format->SetUINT32 (MF_MT_AUDIO_BITS_PER_SAMPLE,
-//                                                                                                            g_value_get_uint (&value));
-//      ACE_ASSERT (SUCCEEDED (result));
-//      break;
-//    }
-//    default:
-//    {
-//      ACE_DEBUG ((LM_ERROR,
-//                  ACE_TEXT ("invalid/unknown media framework (was: %d), returning\n"),
-//                  ui_cb_data_base_p->mediaFramework));
-//      return;
-//    }
-//  } // end SWITCH
-//#else
-////  // *NOTE*: ALSA encodes the resolution in the format identifier, so it has
-////  //         already been set at this stage
-////  ACE_DEBUG ((LM_DEBUG,
-////              ACE_TEXT ("%s --> %d\n"),
-////              ACE_TEXT (snd_pcm_format_description (ui_cb_data_p->configuration->streamConfiguration.configuration_->format.format)),
-////              snd_pcm_format_width (ui_cb_data_p->configuration->streamConfiguration.configuration_->format.format)));
-//#endif // ACE_WIN32 || ACE_WIN64
-//  g_value_unset (&value);
-//
-//  combo_box_p =
-//    GTK_COMBO_BOX (gtk_builder_get_object ((*iterator).second.second,
-//                                           ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_COMBOBOX_CHANNELS_NAME)));
-//  ACE_ASSERT (combo_box_p);
-//  if (!gtk_combo_box_get_active_iter (combo_box_p,
-//                                      &iterator_2))
-//  {
-//    ACE_DEBUG ((LM_ERROR,
-//                ACE_TEXT ("no capture channels selected, returning\n")));
-//    return;
-//  } // end IF
-//  list_store_p =
-//    GTK_LIST_STORE (gtk_builder_get_object ((*iterator).second.second,
-//                                            ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_LISTSTORE_CHANNELS_NAME)));
-//  ACE_ASSERT (list_store_p);
-//  gtk_tree_model_get_value (GTK_TREE_MODEL (list_store_p),
-//                            &iterator_2,
-//                            1, &value);
-//  ACE_ASSERT (G_VALUE_TYPE (&value) == G_TYPE_UINT);
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-//  result = E_FAIL;
-//  switch (ui_cb_data_base_p->mediaFramework)
-//  {
-//    case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
-//    { ACE_ASSERT (directshow_ui_cb_data_p->configuration->streamConfiguration.configuration_->format.cbFormat == sizeof (struct tWAVEFORMATEX));
-//      ACE_ASSERT (directshow_ui_cb_data_p->configuration->streamConfiguration.configuration_->format.pbFormat);
-//      struct tWAVEFORMATEX* waveformatex_p =
-//        reinterpret_cast<struct tWAVEFORMATEX*> (directshow_ui_cb_data_p->configuration->streamConfiguration.configuration_->format.pbFormat);
-//      waveformatex_p->nChannels = static_cast<WORD> (g_value_get_uint (&value));
-//      break;
-//    }
-//    case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
-//    { ACE_ASSERT (mediafoundation_ui_cb_data_p->configuration->streamConfiguration.configuration_->format);
-//      result =
-//        mediafoundation_ui_cb_data_p->configuration->streamConfiguration.configuration_->format->SetUINT32 (MF_MT_AUDIO_NUM_CHANNELS,
-//                                                                                                            g_value_get_uint (&value));
-//      ACE_ASSERT (SUCCEEDED (result));
-//      break;
-//    }
-//    default:
-//    {
-//      ACE_DEBUG ((LM_ERROR,
-//                  ACE_TEXT ("invalid/unknown media framework (was: %d), returning\n"),
-//                  ui_cb_data_base_p->mediaFramework));
-//      return;
-//    }
-//  } // end SWITCH
 #else
   //ui_cb_data_p->configuration->streamConfiguration.configuration_->format.channels =
   //  g_value_get_uint (&value);
@@ -6374,163 +6085,9 @@ togglebutton_record_toggled_cb (GtkToggleButton* toggleButton_in,
   } // end IF
   (*modulehandler_configuration_iterator).second.second->ALSAConfiguration->format = NULL;
 #endif // ACE_WIN32 || ACE_WIN64
-//  g_value_unset (&value);
-
-//  toggle_button_p =
-//    GTK_TOGGLE_BUTTON (gtk_builder_get_object ((*iterator).second.second,
-//                                               ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_CHECKBUTTON_SAVE_NAME)));
-//  ACE_ASSERT (toggle_button_p);
-//  save_to_file = gtk_toggle_button_get_active (toggle_button_p);
-//  file_chooser_button_p =
-//    GTK_FILE_CHOOSER_BUTTON (gtk_builder_get_object ((*iterator).second.second,
-//                                                     ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_FILECHOOSERBUTTON_SAVE_NAME)));
-//  ACE_ASSERT (file_chooser_button_p);
-//  char* filename_p = NULL;
-//  file_p =
-//    gtk_file_chooser_get_file (GTK_FILE_CHOOSER (file_chooser_button_p));
-//  if (file_p)
-//  {
-//    filename_p = g_file_get_path (file_p);
-//    if (!filename_p)
-//    {
-//      ACE_DEBUG ((LM_ERROR,
-//                  ACE_TEXT ("failed to g_file_get_path(): \"%m\", returning\n")));
-//      g_object_unref (file_p); file_p = NULL;
-//      return;
-//    } // end IF
-//    g_object_unref (file_p); file_p = NULL;
-//  } // end IF
-//#if defined (ACE_WIN32) || defined (ACE_WIN64)
-//  switch (ui_cb_data_base_p->mediaFramework)
-//  {
-//    case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
-//    {
-//      if (save_to_file && filename_p)
-//        (*directshow_modulehandler_configuration_iterator).second.second->targetFileName =
-//          Common_UI_GTK_Tools::UTF8ToLocale (filename_p, -1);
-//      else
-//        (*directshow_modulehandler_configuration_iterator).second.second->targetFileName.clear ();
-//      break;
-//    }
-//    case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
-//    {
-//      if (save_to_file && filename_p)
-//        (*mediafoundation_modulehandler_configuration_iterator).second.second->targetFileName =
-//          Common_UI_GTK_Tools::UTF8ToLocale (filename_p, -1);
-//      else
-//        (*mediafoundation_modulehandler_configuration_iterator).second.second->targetFileName.clear ();
-//      break;
-//    }
-//    default:
-//    {
-//      ACE_DEBUG ((LM_ERROR,
-//                  ACE_TEXT ("invalid/unknown media framework (was: %d), returning\n"),
-//                  ui_cb_data_base_p->mediaFramework));
-//      return;
-//    }
-//  } // end SWITCH
-//#else
-//  if (save_to_file && filename_p)
-//    (*modulehandler_configuration_iterator).second.second->targetFileName =
-//      Common_UI_GTK_Tools::UTF8ToLocale (filename_p, -1);
-//  else
-//    (*modulehandler_configuration_iterator).second.second->targetFileName.clear ();
-//#endif // ACE_WIN32 || ACE_WIN64
-//  g_free (filename_p);
-
-//  toggle_button_p =
-//      GTK_TOGGLE_BUTTON (gtk_builder_get_object ((*iterator).second.second,
-//                                                 ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_TOGGLEBUTTON_MUTE_NAME)));
-//  ACE_ASSERT (toggle_button_p);
-//#if defined (ACE_WIN32) || defined (ACE_WIN64)
-//  switch (ui_cb_data_base_p->mediaFramework)
-//  {
-//    case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
-//    {
-//      (*directshow_modulehandler_configuration_iterator).second.second->mute =
-//        gtk_toggle_button_get_active (toggle_button_p);
-//      break;
-//    }
-//    case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
-//    {
-//      (*mediafoundation_modulehandler_configuration_iterator).second.second->mute =
-//        gtk_toggle_button_get_active (toggle_button_p);
-//      break;
-//    }
-//    default:
-//    {
-//      ACE_DEBUG ((LM_ERROR,
-//                  ACE_TEXT ("invalid/unknown media framework (was: %d), returning\n"),
-//                  ui_cb_data_base_p->mediaFramework));
-//      return;
-//    }
-//  } // end SWITCH
-//#else
-//  (*modulehandler_configuration_iterator).second.second->mute =
-//    gtk_toggle_button_get_active (toggle_button_p);
-//#endif // ACE_WIN32 || ACE_WIN64
-
-//  // sanity check(s)
-//#if defined (ACE_WIN32) || defined (ACE_WIN64)
-//  switch (ui_cb_data_base_p->mediaFramework)
-//  {
-//    case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
-//    { ACE_ASSERT (directshow_ui_cb_data_p->configuration->streamConfiguration.configuration_->format.cbFormat == sizeof (struct tWAVEFORMATEX));
-//      ACE_ASSERT (directshow_ui_cb_data_p->configuration->streamConfiguration.configuration_->format.pbFormat);
-//      struct tWAVEFORMATEX* waveformatex_p =
-//        reinterpret_cast<struct tWAVEFORMATEX*> (directshow_ui_cb_data_p->configuration->streamConfiguration.configuration_->format.pbFormat);
-//      // set missing format properties
-//      waveformatex_p->nBlockAlign =
-//        (waveformatex_p->nChannels * (waveformatex_p->wBitsPerSample / 8));
-//      waveformatex_p->nAvgBytesPerSec =
-//        (waveformatex_p->nSamplesPerSec * waveformatex_p->nBlockAlign);
-//      break;
-//    }
-//    case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
-//    {
-//      ACE_ASSERT (mediafoundation_ui_cb_data_p->configuration->streamConfiguration.configuration_->format);
-//
-//      // set missing format properties
-//      UINT32 number_of_channels, bits_per_sample, sample_rate;
-//      HRESULT result =
-//        mediafoundation_ui_cb_data_p->configuration->streamConfiguration.configuration_->format->GetUINT32 (MF_MT_AUDIO_SAMPLES_PER_SECOND,
-//                                                                                                            &sample_rate);
-//      ACE_ASSERT (SUCCEEDED (result));
-//      result =
-//        mediafoundation_ui_cb_data_p->configuration->streamConfiguration.configuration_->format->GetUINT32 (MF_MT_AUDIO_BITS_PER_SAMPLE,
-//                                                                                                            &bits_per_sample);
-//      ACE_ASSERT (SUCCEEDED (result));
-//      result =
-//        mediafoundation_ui_cb_data_p->configuration->streamConfiguration.configuration_->format->GetUINT32 (MF_MT_AUDIO_NUM_CHANNELS,
-//                                                                                                            &number_of_channels);
-//      ACE_ASSERT (SUCCEEDED (result));
-//      unsigned int block_alignment_i = number_of_channels * (bits_per_sample / 8);
-//      result =
-//        mediafoundation_ui_cb_data_p->configuration->streamConfiguration.configuration_->format->SetUINT32 (MF_MT_AUDIO_BLOCK_ALIGNMENT,
-//                                                                                                            block_alignment_i);
-//      ACE_ASSERT (SUCCEEDED (result));
-//      result =
-//        mediafoundation_ui_cb_data_p->configuration->streamConfiguration.configuration_->format->SetUINT32 (MF_MT_AUDIO_AVG_BYTES_PER_SECOND,
-//                                                                                                            sample_rate * block_alignment_i);
-//      ACE_ASSERT (SUCCEEDED (result));
-//      break;
-//    }
-//    default:
-//    {
-//      ACE_DEBUG ((LM_ERROR,
-//                  ACE_TEXT ("invalid/unknown media framework (was: %d), returning\n"),
-//                  ui_cb_data_base_p->mediaFramework));
-//      return;
-//    }
-//  } // end SWITCH
-//#else
-//  // sanity check(s)
-//  ACE_ASSERT ((*modulehandler_configuration_iterator).second.second->ALSAConfiguration->handle);
-//#endif // ACE_WIN32 || ACE_WIN64
 
   // step2: modify widgets
-  gtk_button_set_label (GTK_BUTTON (toggleButton_in),
-                        GTK_STOCK_MEDIA_STOP);
+  gtk_button_set_label (GTK_BUTTON (toggleButton_in), GTK_STOCK_MEDIA_STOP);
 
   GtkButton* button_p =
     GTK_BUTTON (gtk_builder_get_object ((*iterator).second.second,
@@ -6554,6 +6111,12 @@ togglebutton_record_toggled_cb (GtkToggleButton* toggleButton_in,
                                            ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_COMBOBOX_DEVICE_NAME)));
   ACE_ASSERT (combo_box_p);
   gtk_widget_set_sensitive (GTK_WIDGET (combo_box_p), FALSE);
+
+  GtkFrame* frame_p =
+    GTK_FRAME (gtk_builder_get_object ((*iterator).second.second,
+                                       ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_FRAME_FILE_NAME)));
+  ACE_ASSERT (frame_p);
+  gtk_widget_set_sensitive (GTK_WIDGET (frame_p), FALSE);
 
   GtkVBox* vbox_p =
     GTK_VBOX (gtk_builder_get_object ((*iterator).second.second,
@@ -6579,7 +6142,7 @@ togglebutton_record_toggled_cb (GtkToggleButton* toggleButton_in,
   ACE_ASSERT (toggle_button_p);
   gtk_widget_set_sensitive (GTK_WIDGET (toggle_button_p), FALSE);
 
-  GtkFrame* frame_p =
+  frame_p =
     GTK_FRAME (gtk_builder_get_object ((*iterator).second.second,
                                        ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_FRAME_SAVE_NAME)));
   ACE_ASSERT (frame_p);
@@ -12425,21 +11988,19 @@ drawingarea_expose_event_cb (GtkWidget* widget_in,
 #endif // GTK_CHECK_VERSION(3,0,0)
 
 void
-filechooserbutton_save_file_set_cb (GtkFileChooserButton* button_in,
+filechooserbutton_file_file_set_cb (GtkFileChooserButton* button_in,
                                     gpointer userData_in)
 {
-  STREAM_TRACE (ACE_TEXT ("::filechooserbutton_save_file_set_cb"));
+  STREAM_TRACE (ACE_TEXT ("::filechooserbutton_file_file_set_cb"));
 
   // sanity check(s)
   struct Test_U_AudioEffect_UI_CBDataBase* ui_cb_data_base_p =
     static_cast<struct Test_U_AudioEffect_UI_CBDataBase*> (userData_in);
   ACE_ASSERT (ui_cb_data_base_p);
-
   Common_UI_GTK_Manager_t* gtk_manager_p =
     COMMON_UI_GTK_MANAGER_SINGLETON::instance ();
   ACE_ASSERT (gtk_manager_p);
   const Common_UI_GTK_State_t& state_r = gtk_manager_p->getR ();
-
   Common_UI_GTK_BuildersConstIterator_t iterator =
     state_r.builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN));
   ACE_ASSERT (iterator != state_r.builders.end ());
@@ -12472,7 +12033,6 @@ filechooserbutton_save_file_set_cb (GtkFileChooserButton* button_in,
         static_cast<struct Test_U_AudioEffect_DirectShow_UI_CBData*> (userData_in);
       ACE_ASSERT (directshow_ui_cb_data_p);
       ACE_ASSERT (directshow_ui_cb_data_p->configuration);
-
       directshow_modulehandler_configuration_iterator =
         directshow_ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
       ACE_ASSERT (directshow_modulehandler_configuration_iterator != directshow_ui_cb_data_p->configuration->streamConfiguration.end ());
@@ -12488,7 +12048,6 @@ filechooserbutton_save_file_set_cb (GtkFileChooserButton* button_in,
         static_cast<struct Test_U_AudioEffect_MediaFoundation_UI_CBData*> (userData_in);
       ACE_ASSERT (mediafoundation_ui_cb_data_p);
       ACE_ASSERT (mediafoundation_ui_cb_data_p->configuration);
-
       mediafoundation_modulehandler_configuration_iterator =
         mediafoundation_ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
       ACE_ASSERT (mediafoundation_modulehandler_configuration_iterator != mediafoundation_ui_cb_data_p->configuration->streamConfiguration.end ());
@@ -12512,6 +12071,99 @@ filechooserbutton_save_file_set_cb (GtkFileChooserButton* button_in,
   ACE_ASSERT (ui_cb_data_p->configuration);
   Test_U_AudioEffect_ALSA_StreamConfiguration_t::ITERATOR_T modulehandler_configuration_iterator =
     ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
+  ACE_ASSERT (modulehandler_configuration_iterator != ui_cb_data_p->configuration->streamConfiguration.end ());
+
+  (*modulehandler_configuration_iterator).second.second->fileIdentifier.identifier =
+    Common_UI_GTK_Tools::UTF8ToLocale (filename_p, -1);
+#endif // ACE_WIN32 || ACE_WIN64
+  g_free (filename_p);
+} // filechooserbutton_file_file_set_cb
+
+void
+filechooserbutton_save_file_set_cb (GtkFileChooserButton* button_in,
+                                    gpointer userData_in)
+{
+  STREAM_TRACE (ACE_TEXT ("::filechooserbutton_save_file_set_cb"));
+
+  // sanity check(s)
+  struct Test_U_AudioEffect_UI_CBDataBase* ui_cb_data_base_p =
+    static_cast<struct Test_U_AudioEffect_UI_CBDataBase*> (userData_in);
+  ACE_ASSERT (ui_cb_data_base_p);
+  Common_UI_GTK_Manager_t* gtk_manager_p =
+    COMMON_UI_GTK_MANAGER_SINGLETON::instance ();
+  ACE_ASSERT (gtk_manager_p);
+  const Common_UI_GTK_State_t& state_r = gtk_manager_p->getR ();
+  Common_UI_GTK_BuildersConstIterator_t iterator =
+    state_r.builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN));
+  ACE_ASSERT (iterator != state_r.builders.end ());
+
+  char* filename_p = NULL;
+  GFile* file_p = gtk_file_chooser_get_file (GTK_FILE_CHOOSER (button_in));
+  if (!file_p)
+    return;
+  filename_p = g_file_get_path (file_p);
+  if (!filename_p)
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to g_file_get_path(): \"%m\", returning\n")));
+    g_object_unref (file_p); file_p = NULL;
+    return;
+  } // end IF
+  g_object_unref (file_p); file_p = NULL;
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  struct Test_U_AudioEffect_DirectShow_UI_CBData* directshow_ui_cb_data_p = NULL;
+  struct Test_U_AudioEffect_MediaFoundation_UI_CBData* mediafoundation_ui_cb_data_p =
+    NULL;
+  Test_U_AudioEffect_MediaFoundation_StreamConfiguration_t::ITERATOR_T mediafoundation_modulehandler_configuration_iterator;
+  Test_U_AudioEffect_DirectShow_StreamConfiguration_t::ITERATOR_T directshow_modulehandler_configuration_iterator;
+  switch (ui_cb_data_base_p->mediaFramework)
+  {
+    case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
+    {
+      // sanity check(s)
+      directshow_ui_cb_data_p =
+        static_cast<struct Test_U_AudioEffect_DirectShow_UI_CBData*> (userData_in);
+      ACE_ASSERT (directshow_ui_cb_data_p);
+      ACE_ASSERT (directshow_ui_cb_data_p->configuration);
+      directshow_modulehandler_configuration_iterator =
+        directshow_ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (STREAM_FILE_SINK_DEFAULT_NAME_STRING));
+      ACE_ASSERT (directshow_modulehandler_configuration_iterator != directshow_ui_cb_data_p->configuration->streamConfiguration.end ());
+
+      (*directshow_modulehandler_configuration_iterator).second.second->fileIdentifier.identifier =
+        Common_UI_GTK_Tools::UTF8ToLocale (filename_p, -1);
+      break;
+    }
+    case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
+    {
+      // sanity check(s)
+      mediafoundation_ui_cb_data_p =
+        static_cast<struct Test_U_AudioEffect_MediaFoundation_UI_CBData*> (userData_in);
+      ACE_ASSERT (mediafoundation_ui_cb_data_p);
+      ACE_ASSERT (mediafoundation_ui_cb_data_p->configuration);
+
+      mediafoundation_modulehandler_configuration_iterator =
+        mediafoundation_ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (STREAM_FILE_SINK_DEFAULT_NAME_STRING));
+      ACE_ASSERT (mediafoundation_modulehandler_configuration_iterator != mediafoundation_ui_cb_data_p->configuration->streamConfiguration.end ());
+
+      (*mediafoundation_modulehandler_configuration_iterator).second.second->fileIdentifier.identifier =
+        Common_UI_GTK_Tools::UTF8ToLocale (filename_p, -1);
+      break;
+    }
+    default:
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("invalid/unknown media framework (was: %d), returning\n"),
+                  ui_cb_data_base_p->mediaFramework));
+      return;
+    }
+  } // end SWITCH
+#else
+  // sanity check(s)
+  struct Test_U_AudioEffect_UI_CBData* ui_cb_data_p =
+    static_cast<struct Test_U_AudioEffect_UI_CBData*> (userData_in);
+  ACE_ASSERT (ui_cb_data_p->configuration);
+  Test_U_AudioEffect_ALSA_StreamConfiguration_t::ITERATOR_T modulehandler_configuration_iterator =
+    ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (STREAM_FILE_SINK_DEFAULT_NAME_STRING));
   ACE_ASSERT (modulehandler_configuration_iterator != ui_cb_data_p->configuration->streamConfiguration.end ());
 
   (*modulehandler_configuration_iterator).second.second->fileIdentifier.identifier =

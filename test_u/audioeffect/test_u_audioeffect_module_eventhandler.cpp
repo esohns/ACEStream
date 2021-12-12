@@ -19,7 +19,6 @@
  ***************************************************************************/
 #include "stdafx.h"
 
-//#include "ace/Synch.h"
 #include "test_u_audioeffect_module_eventhandler.h"
 
 #include "stream_macros.h"
@@ -150,4 +149,4 @@ Test_U_AudioEffect_Module_EventHandler::clone ()
 
   return task_p;
 }
-#endif
+#endif // ACE_WIN32 || ACE_WIN64

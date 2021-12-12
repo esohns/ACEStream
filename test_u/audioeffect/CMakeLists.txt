@@ -7,19 +7,10 @@ include (png)
 
 if (UNIX)
  include (ffmpeg) # AVI encoder
- if (NOT FFMPEG_SUPPORT)
-  messaget (FATAL_ERROR "ffmpeg not supported, aborting")
- endif (NOT FFMPEG_SUPPORT)
 endif (UNIX)
 
-#if (GUI_SUPPORT)
-# if (GTK_USE AND GTKGL_SUPPORT)
-#  option (GTKGL_USE "enable GTK OpenGL" ON)
-#  if (GTKGL_USE)
-#   add_definitions (-DGTKGL_USE)
-#  endif (GTKGL_USE)
-# endif (GTK_USE AND GTKGL_SUPPORT)
-#endif (GUI_SUPPORT)
+set (CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_CURRENT_SOURCE_DIR}/../../src/modules/dec/scripts")
+include (mpg123)
 
 if (UNIX)
  pkg_check_modules (PKG_ALSA REQUIRED alsa)
@@ -31,6 +22,9 @@ endif (UNIX)
 get_filename_component (BUILD_PATH ${CMAKE_CURRENT_BINARY_DIR}/../.. REALPATH)
 get_filename_component (BUILD_PATH_SUFFIX ${BUILD_PATH} NAME)
 
+if (MPG123_SUPPORT)
+ include_directories (${MPG123_INCLUDE_DIRS})
+endif (MPG123_SUPPORT)
 if (UNIX)
  include_directories (${PKG_ALSA_INCLUDE_DIRS})
  include_directories (${SOX_INCLUDE_DIRS})
@@ -126,6 +120,12 @@ set (${EXECUTABLE}_EXE_SRCS
      test_u_audioeffect_signalhandler.h
      test_u_audioeffect_stream.cpp
      test_u_audioeffect_stream.h)
+if (WIN32)
+ set (${EXECUTABLE}_EXE_SRCS
+      ${${EXECUTABLE}_EXE_SRCS}
+      test_u_audioeffect_module_mediafoundation_target.cpp
+      test_u_audioeffect_module_mediafoundation_target.h)
+endif (WIN32)
 if (GUI_SUPPORT)
  if (GTK_SUPPORT)
   set (${EXECUTABLE}_EXE_SRCS
@@ -184,8 +184,12 @@ add_dependencies (${EXECUTABLE} ${PROJECT_NAME}_Visualization)
 
 add_dependencies (${EXECUTABLE} ${PROJECT_NAME}_Test_U)
 
+target_link_libraries (${EXECUTABLE} PUBLIC ${CMAKE_THREAD_LIBS_INIT})
+
+if (MPG123_SUPPORT)
+ target_link_libraries (${EXECUTABLE} PUBLIC ${MPG123_LIBRARY})
+endif (MPG123_SUPPORT)
 if (UNIX)
- target_link_libraries (${EXECUTABLE} PUBLIC ${CMAKE_THREAD_LIBS_INIT})
  target_link_libraries (${EXECUTABLE} PUBLIC ${PKG_ALSA_LIBRARIES})
  target_link_libraries (${EXECUTABLE} PUBLIC ${SOX_LIBRARIES})
 elseif (WIN32)
@@ -293,14 +297,14 @@ elseif (WIN32)
    file (TO_CMAKE_PATH "${wxWidgets_LIB_DIR}" WXWIDGETS_PATH)
   endif (WXWIDGETS_SUPPORT)
  endif (GUI_SUPPORT)
- file (TO_CMAKE_PATH "${ffmpeg_LIB_DIR}" FFMPEG_PATH)
+ file (TO_CMAKE_PATH "${MPG123_LIB_DIR}" MPG123_PATH)
  file (TO_CMAKE_PATH "${ImageMagick_LIB_DIR}" IMAGEMAGICK_PATH)
  file (TO_CMAKE_PATH "${ASSIMP_LIB_DIR}" ASSIMP_PATH)
  file (TO_CMAKE_PATH "${PNG_LIB_DIR}" LIBPNG_PATH)
  file (TO_CMAKE_PATH "$ENV{LIB_ROOT}/zlib/cmake/${CMAKE_BUILD_TYPE}" ZLIB_PATH)
  file (TO_CMAKE_PATH "${ACE_LIB_DIR}" ACE_LIBRARY_PATH)
  set (RUNTIME_LIBRARY_DIR ${ASSIMP_PATH}
-                          ${FFMPEG_PATH}
+                          ${MPG123_PATH}
                           ${LIBPNG_PATH}
                           ${ZLIB_PATH}
                           ${IMAGEMAGICK_PATH}

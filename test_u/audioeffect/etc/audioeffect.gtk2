@@ -835,7 +835,7 @@
                                             <property name="can_default">True</property>
                                             <property name="receives_default">True</property>
                                             <property name="has_tooltip">True</property>
-                                            <property name="tooltip_text" translatable="yes">destination file/folder</property>
+                                            <property name="tooltip_text" translatable="yes">target file/folder</property>
                                             <property name="filter">filefilter_wav</property>
                                             <property name="local_only">False</property>
                                             <property name="preview_widget_active">False</property>
@@ -1224,10 +1224,38 @@
             <property name="can_focus">False</property>
             <property name="layout_style">end</property>
             <child>
-              <placeholder/>
+              <object class="GtkButton" id="button_cancel_file">
+                <property name="label">gtk-cancel</property>
+                <property name="visible">True</property>
+                <property name="can_focus">True</property>
+                <property name="receives_default">True</property>
+                <property name="relief">half</property>
+                <property name="use_stock">True</property>
+                <property name="focus_on_click">False</property>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="fill">False</property>
+                <property name="pack_type">end</property>
+                <property name="position">0</property>
+              </packing>
             </child>
             <child>
-              <placeholder/>
+              <object class="GtkButton" id="button_select_file">
+                <property name="label">gtk-ok</property>
+                <property name="visible">True</property>
+                <property name="can_focus">True</property>
+                <property name="receives_default">True</property>
+                <property name="relief">half</property>
+                <property name="use_stock">True</property>
+                <property name="focus_on_click">False</property>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="fill">False</property>
+                <property name="pack_type">end</property>
+                <property name="position">1</property>
+              </packing>
             </child>
           </object>
           <packing>
@@ -1239,8 +1267,15 @@
         <child>
           <placeholder/>
         </child>
+        <child>
+          <placeholder/>
+        </child>
       </object>
     </child>
+    <action-widgets>
+      <action-widget response="-5">button_select_file</action-widget>
+      <action-widget response="-6">button_cancel_file</action-widget>
+    </action-widgets>
   </object>
   <object class="GtkFileChooserDialog" id="filechooserdialog_save">
     <property name="can_focus">True</property>
@@ -1264,7 +1299,6 @@
     <property name="preview_widget_active">False</property>
     <property name="show_hidden">True</property>
     <property name="use_preview_label">False</property>
-    <signal name="response" handler="filechooserdialog_response_cb" swapped="no"/>
     <child internal-child="vbox">
       <object class="GtkVBox" id="filechooserdialog_save_vbox">
         <property name="visible">True</property>
@@ -1275,7 +1309,7 @@
             <property name="can_focus">False</property>
             <property name="layout_style">end</property>
             <child>
-              <object class="GtkButton" id="button_cancel">
+              <object class="GtkButton" id="button_cancel_save">
                 <property name="label">gtk-cancel</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
@@ -1292,7 +1326,7 @@
               </packing>
             </child>
             <child>
-              <object class="GtkButton" id="button_select">
+              <object class="GtkButton" id="button_select_save">
                 <property name="label">gtk-ok</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
@@ -1321,8 +1355,8 @@
       </object>
     </child>
     <action-widgets>
-      <action-widget response="-5">button_select</action-widget>
-      <action-widget response="-6">button_cancel</action-widget>
+      <action-widget response="-5">button_select_save</action-widget>
+      <action-widget response="-6">button_cancel_save</action-widget>
     </action-widgets>
   </object>
   <object class="GtkWindow" id="window_depot">
@@ -1702,7 +1736,11 @@
                     <child>
                       <object class="GtkFileChooserButton" id="filechooserbutton_file">
                         <property name="visible">True</property>
-                        <property name="can_focus">False</property>
+                        <property name="can_focus">True</property>
+                        <property name="can_default">True</property>
+                        <property name="receives_default">True</property>
+                        <property name="has_tooltip">True</property>
+                        <property name="tooltip_text" translatable="yes">source file</property>
                         <property name="create_folders">False</property>
                         <property name="filter">filefilter_wav</property>
                         <property name="local_only">False</property>

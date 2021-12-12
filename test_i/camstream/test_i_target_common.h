@@ -31,6 +31,7 @@
 #include "OAIdl.h"
 #include "control.h"
 #include "d3d9.h"
+#undef GetObject
 #include "evr.h"
 #include "mfapi.h"
 #include "mfobjects.h"

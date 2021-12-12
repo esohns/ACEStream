@@ -30,6 +30,7 @@
 //#include <dsound.h>
 #include "dvdmedia.h"
 #include "Dmodshow.h"
+#undef GetObject
 #include "evr.h"
 //#include <fourcc.h>
 #include "ks.h"

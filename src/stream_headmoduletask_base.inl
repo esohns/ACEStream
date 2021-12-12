@@ -1329,7 +1329,7 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
                                          false))
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: failed to Stream_TaskBase_T::putControlMessage(%d), continuing\n"),
-                    inherited::name (),
+                    inherited::mod_->name (),
                     control_in));
       break;
     }
@@ -1388,7 +1388,7 @@ send_session_message:
                                                streamState_->userData)))
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to Stream_TaskBase_T::putSessionMessage(%d), continuing\n"),
-                inherited::name (),
+                inherited::mod_->name (),
                 message_type_e));
 
   // clean up

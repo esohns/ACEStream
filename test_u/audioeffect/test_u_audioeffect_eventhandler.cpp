@@ -183,6 +183,8 @@ Test_U_AudioEffect_DirectShow_EventHandler::notify (Stream_SessionId_t sessionId
       event_e = COMMON_UI_EVENT_ABORT; break;
     case STREAM_SESSION_MESSAGE_STATISTIC:
       event_e = COMMON_UI_EVENT_STATISTIC; break;
+    case STREAM_SESSION_MESSAGE_STEP:
+      event_e = COMMON_UI_EVENT_STEP; break;
     default:
     {
       std::string type_string;
@@ -349,6 +351,8 @@ Test_U_AudioEffect_MediaFoundation_EventHandler::notify (Stream_SessionId_t sess
       event_e = COMMON_UI_EVENT_ABORT; break;
     case STREAM_SESSION_MESSAGE_STATISTIC:
       event_e = COMMON_UI_EVENT_STATISTIC; break;
+    case STREAM_SESSION_MESSAGE_STEP:
+      event_e = COMMON_UI_EVENT_STEP; break;
     default:
     {
       std::string type_string;
@@ -538,11 +542,20 @@ Test_U_AudioEffect_EventHandler::notify (Stream_SessionId_t sessionId_in,
 #endif // GUI_SUPPORT
 
       event_e = COMMON_UI_EVENT_STATISTIC;
-
       break;
     }
+    case STREAM_SESSION_MESSAGE_STEP:
+      event_e = COMMON_UI_EVENT_STEP; break;
     default:
-      return;
+    {
+      std::string type_string;
+      Test_U_AudioEffect_SessionMessage::MessageTypeToString (sessionMessage_in.type (),
+                                                              type_string);
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("invalid/unknown session message (type was: \"%s\"), continuing\n"),
+                  ACE_TEXT (type_string.c_str ())));
+      break;
+    }
   } // end SWITCH
 
 #if defined (GUI_SUPPORT)

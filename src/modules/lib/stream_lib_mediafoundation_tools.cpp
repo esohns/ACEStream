@@ -25,6 +25,9 @@
 #include <sstream>
 
 #include "AudioSessionTypes.h"
+#include "d3d9.h"
+#include "dxva2api.h"
+#undef GetObject
 #include "evr.h"
 #include "mfapi.h"
 #include "mferror.h"
@@ -3178,8 +3181,8 @@ Stream_MediaFramework_MediaFoundation_Tools::setTopology (IMFTopology* topology_
   IMFTopology* topology_p = NULL;
   // *WARNING*: do NOT set the MFSESSION_SETTOPOLOGY_CLEAR_CURRENT flag here
   //            --> if the flag is passed in, the new topology will NOT be set
-  DWORD topology_flags = MFSESSION_SETTOPOLOGY_IMMEDIATE;// |
-                         //MFSESSION_SETTOPOLOGY_NORESOLUTION;
+  DWORD topology_flags = MFSESSION_SETTOPOLOGY_IMMEDIATE   |
+                         MFSESSION_SETTOPOLOGY_NORESOLUTION;
   if (isPartial_in)
     topology_flags &= ~MFSESSION_SETTOPOLOGY_NORESOLUTION;
   IMFMediaEvent* media_event_p = NULL;
@@ -3319,10 +3322,14 @@ continue_:
                                            &media_event_p);
     if (FAILED (result))
     {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to IMFMediaSession::GetEvent(): \"%s\", aborting\n"),
-                  ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
-      goto error;
+      ACE_DEBUG ((((result == MF_E_MULTIPLE_SUBSCRIBERS) ? LM_WARNING : LM_ERROR),
+                  ACE_TEXT ("failed to IMFMediaSession::GetEvent(): \"%s\", %s\n"),
+                  ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ()),
+                  ((result == MF_E_MULTIPLE_SUBSCRIBERS) ? ACE_TEXT ("continuing") : ACE_TEXT ("aborting"))));
+      if (result != MF_E_MULTIPLE_SUBSCRIBERS) // 0xc00d36da
+        goto error;
+      received_topology_event = true;
+      continue;
     } // end IF
     ACE_ASSERT (media_event_p);
     result = media_event_p->GetType (&event_type);
@@ -3359,10 +3366,14 @@ continue_:
                                            &media_event_p);
     if (FAILED (result))
     {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to IMFMediaSession::GetEvent(): \"%s\", aborting\n"),
-                  ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
-      goto error;
+      ACE_DEBUG ((((result == MF_E_MULTIPLE_SUBSCRIBERS) ? LM_WARNING : LM_ERROR),
+                  ACE_TEXT ("failed to IMFMediaSession::GetEvent(): \"%s\", %s\n"),
+                  ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ()),
+                  ((result == MF_E_MULTIPLE_SUBSCRIBERS) ? ACE_TEXT ("continuing") : ACE_TEXT ("aborting"))));
+      if (result != MF_E_MULTIPLE_SUBSCRIBERS) // 0xc00d36da
+        goto error;
+      received_topology_event = true;
+      continue;
     } // end IF
     ACE_ASSERT (media_event_p);
     result = media_event_p->GetType (&event_type);
@@ -3498,7 +3509,7 @@ Stream_MediaFramework_MediaFoundation_Tools::append (IMFTopology* topology_in,
                     node_type_e));
         goto error;
       }
-    }
+    } // end SWITCH
   } // end FOR
 
   // test rule 2: does branch i have a tee ? --> append : continue
@@ -3830,24 +3841,23 @@ Stream_MediaFramework_MediaFoundation_Tools::clear (IMFMediaSession* mediaSessio
                                         &media_event_p);
     if (FAILED (result))
     {
+      ACE_DEBUG ((((result == MF_E_MULTIPLE_SUBSCRIBERS) ? LM_WARNING : LM_ERROR),
+                  ACE_TEXT ("failed to IMFMediaSession::GetEvent(): \"%s\", %s\n"),
+                  ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ()),
+                  ((result == MF_E_MULTIPLE_SUBSCRIBERS) ? ACE_TEXT ("continuing") : ACE_TEXT ("aborting"))));
       if (result != MF_E_MULTIPLE_SUBSCRIBERS) // 0xc00d36da
-      {
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("failed to IMFMediaSession::GetEvent(): \"%s\", aborting\n"),
-                    ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
         return false;
-      } // end IF
-      else
-      {
-        received_topology_event = true;
-        continue;
-      } // end ELSE
+      received_topology_event = true;
+      continue;
     } // end IF
     ACE_ASSERT (media_event_p);
     result = media_event_p->GetType (&event_type);
     ACE_ASSERT (SUCCEEDED (result));
     if (event_type == MESessionTopologiesCleared)
       received_topology_event = true;
+    ACE_DEBUG ((LM_DEBUG,
+                ACE_TEXT ("popped media session event (type: \"%s\")...\n"),
+                ACE_TEXT (Stream_MediaFramework_MediaFoundation_Tools::toString (event_type).c_str ())));
     media_event_p->Release ();
   } while (!received_topology_event &&
            (COMMON_TIME_NOW < deadline));
@@ -3873,6 +3883,7 @@ continue_:
     return true;
 
   //deadline = COMMON_TIME_NOW + timeout;
+  received_topology_event = false;
   do
   { // *TODO*: this shouldn't block
     media_event_p = NULL;
@@ -3880,16 +3891,23 @@ continue_:
                                         &media_event_p);
     if (FAILED (result))
     {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to IMFMediaSession::GetEvent(): \"%s\", aborting\n"),
-                  ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
-      return false;
+      ACE_DEBUG ((((result == MF_E_MULTIPLE_SUBSCRIBERS) ? LM_WARNING : LM_ERROR),
+                  ACE_TEXT ("failed to IMFMediaSession::GetEvent(): \"%s\", %s\n"),
+                  ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ()),
+                  ((result == MF_E_MULTIPLE_SUBSCRIBERS) ? ACE_TEXT ("continuing") : ACE_TEXT ("aborting"))));
+      if (result != MF_E_MULTIPLE_SUBSCRIBERS) // 0xc00d36da
+        return false;
+      received_topology_event = true;
+      continue;
     } // end IF
     ACE_ASSERT (media_event_p);
     result = media_event_p->GetType (&event_type);
     ACE_ASSERT (SUCCEEDED (result));
     if (event_type == MESessionTopologySet)
       received_topology_event = true;
+    ACE_DEBUG ((LM_DEBUG,
+                ACE_TEXT ("popped media session event (type: \"%s\")...\n"),
+                ACE_TEXT (Stream_MediaFramework_MediaFoundation_Tools::toString (event_type).c_str ())));
     media_event_p->Release ();
   } while (!received_topology_event &&
            (COMMON_TIME_NOW < deadline));
@@ -4556,7 +4574,6 @@ Stream_MediaFramework_MediaFoundation_Tools::setInputFormat (IMFTopology* topolo
         return false;
       } // end IF
       transform_p->Release (); transform_p = NULL;
-
       break;
     }
     case MF_TOPOLOGY_TEE_NODE:
@@ -4564,7 +4581,6 @@ Stream_MediaFramework_MediaFoundation_Tools::setInputFormat (IMFTopology* topolo
       result = topology_node_p->SetInputPrefType (0,
                                                   mediaType_in);
       ACE_ASSERT (SUCCEEDED (result));
-
       break;
     }
     case MF_TOPOLOGY_OUTPUT_NODE:
@@ -4599,7 +4615,6 @@ Stream_MediaFramework_MediaFoundation_Tools::setInputFormat (IMFTopology* topolo
       result = media_type_handler_p->SetCurrentMediaType (mediaType_in);
       ACE_ASSERT (SUCCEEDED (result));
       media_type_handler_p->Release (); media_type_handler_p = NULL;
-
       break;
     }
     default:
@@ -4611,7 +4626,6 @@ Stream_MediaFramework_MediaFoundation_Tools::setInputFormat (IMFTopology* topolo
       return false;
     }
   } // end SWITCH
-
   topology_node_p->Release (); topology_node_p = NULL;
 
   return true;
@@ -4982,7 +4996,7 @@ continue_:
   if (!topology_node_p)
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("output node not found [id was: %q], aborting\n"),
+                ACE_TEXT ("(output-) node not found [id was: %q], aborting\n"),
                 nodeId_in));
     goto error;
   } // end IF
@@ -4995,7 +5009,6 @@ continue_:
     {
       result = topology_node_p->GetObject (&unknown_p);
       ACE_ASSERT (SUCCEEDED (result) && unknown_p);
-
       IMFStreamSink* stream_sink_p = NULL;
       result = unknown_p->QueryInterface (IID_PPV_ARGS (&stream_sink_p));
       if (FAILED (result))
@@ -5053,7 +5066,6 @@ continue_:
     {
       result = topology_node_p->GetObject (&unknown_p);
       ACE_ASSERT (SUCCEEDED (result) && unknown_p);
-
       IMFTransform* transform_p = NULL;
       result = unknown_p->QueryInterface (IID_PPV_ARGS (&transform_p));
       if (FAILED (result))
@@ -5108,6 +5120,143 @@ error:
   } // end IF
 
   return false;
+}
+
+bool
+Stream_MediaFramework_MediaFoundation_Tools::setOutputFormat (IMFTopology* topology_in,
+                                                              TOPOID nodeId_in,
+                                                              const IMFMediaType* mediaType_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_MediaFoundation_Tools::setOutputFormat"));
+
+  // sanity check(s)
+  ACE_ASSERT (topology_in);
+  ACE_ASSERT (nodeId_in);
+  ACE_ASSERT (mediaType_in);
+
+  // step0: retrieve node handle and set preferred output type
+  IMFTopologyNode* topology_node_p = NULL;
+  HRESULT result = topology_in->GetNodeByID (nodeId_in,
+                                             &topology_node_p);
+  if (FAILED (result))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to IMFTopology::GetNodeByID(%q): \"%s\", aborting\n"),
+                nodeId_in,
+                ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
+    return false;
+  } // end IF
+  ACE_ASSERT (topology_node_p);
+  DWORD num_outputs_i = 0;
+  result = topology_node_p->GetOutputCount (&num_outputs_i);
+  ACE_ASSERT (SUCCEEDED (result));
+  for (DWORD i = 0;
+       i < num_outputs_i;
+       ++i)
+  {
+    result =
+      topology_node_p->SetOutputPrefType (i,
+                                          const_cast<IMFMediaType*> (mediaType_in));
+    ACE_ASSERT (SUCCEEDED (result));
+  } // end FOR
+
+  enum MF_TOPOLOGY_TYPE node_type_e = MF_TOPOLOGY_MAX;
+  result = topology_node_p->GetNodeType (&node_type_e);
+  ACE_ASSERT (SUCCEEDED (result));
+  IUnknown* unknown_p = NULL;
+  switch (node_type_e)
+  {
+    case MF_TOPOLOGY_SOURCESTREAM_NODE:
+    {
+      // source node --> unknown contains a stream dscriptor handle
+      IMFStreamDescriptor* stream_descriptor_p = NULL;
+      result =
+        topology_node_p->GetUnknown (MF_TOPONODE_STREAM_DESCRIPTOR,
+                                     IID_PPV_ARGS (&stream_descriptor_p));
+      ACE_ASSERT (SUCCEEDED (result) && stream_descriptor_p);
+      IMFMediaTypeHandler* media_type_handler_p = NULL;
+      result = stream_descriptor_p->GetMediaTypeHandler (&media_type_handler_p);
+      ACE_ASSERT (SUCCEEDED (result) && media_type_handler_p);
+      stream_descriptor_p->Release (); stream_descriptor_p = NULL;
+      result =
+        media_type_handler_p->SetCurrentMediaType (const_cast<IMFMediaType*> (mediaType_in));
+      if (FAILED (result))
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("failed to IMFMediaTypeHandler::GetCurrentMediaType(): \"%s\", aborting\n"),
+                    ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
+        media_type_handler_p->Release (); media_type_handler_p = NULL;
+        topology_node_p->Release (); topology_node_p = NULL;
+        return false;
+      } // end IF
+      media_type_handler_p->Release (); media_type_handler_p = NULL;
+      break;
+    }
+    case MF_TOPOLOGY_TRANSFORM_NODE:
+    {
+      result = topology_node_p->GetObject (&unknown_p);
+      ACE_ASSERT (SUCCEEDED (result) && unknown_p);
+      IMFTransform* transform_p = NULL;
+      result = unknown_p->QueryInterface (IID_PPV_ARGS (&transform_p));
+      if (FAILED (result))
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("failed to IUnknown::QueryInterface(IID_IMFTransform): \"%s\", aborting\n"),
+                    ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
+        unknown_p->Release (); unknown_p = NULL;
+        topology_node_p->Release (); topology_node_p = NULL;
+        return false;
+      } // end IF
+      unknown_p->Release (); unknown_p = NULL;
+      DWORD num_inputs_i = 0;
+      result = transform_p->GetStreamCount (&num_inputs_i,
+                                            &num_outputs_i);
+      ACE_ASSERT (SUCCEEDED (result) && num_inputs_i && num_outputs_i);
+      for (DWORD i = 0;
+           i < num_outputs_i;
+           ++i)
+      {
+        result =
+          transform_p->SetOutputType (i,
+                                      const_cast<IMFMediaType*> (mediaType_in),
+                                      0);
+        if (FAILED (result))
+        {
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("%s: failed to IMFTransform::SetOutputType(%u): \"%s\", aborting\n"),
+                      ACE_TEXT (Stream_MediaFramework_MediaFoundation_Tools::toString (transform_p).c_str ()),
+                      i,
+                      ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
+          transform_p->Release (); transform_p = NULL;
+          topology_node_p->Release (); topology_node_p = NULL;
+          return false;
+        } // end IF
+      } // end FOR
+      transform_p->Release (); transform_p = NULL;
+      break;
+    }
+    case MF_TOPOLOGY_TEE_NODE:
+      break;
+    case MF_TOPOLOGY_OUTPUT_NODE:
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("sink nodes do not have outputs (id was: %q), aborting\n"),
+                  nodeId_in));
+      topology_node_p->Release (); topology_node_p = NULL;
+      return false;
+    }
+    default:
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("invalid/unknown node type (was: %d), aborting\n"),
+                  node_type_e));
+      topology_node_p->Release (); topology_node_p = NULL;
+      return false;
+    }
+  } // end SWITCH
+  topology_node_p->Release (); topology_node_p = NULL;
+
+  return true;
 }
 
 //bool

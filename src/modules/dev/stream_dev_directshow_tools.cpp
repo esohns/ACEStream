@@ -29,6 +29,7 @@
 //#include "dshow.h"
 #include "dvdmedia.h"
 #include "Dmodshow.h"
+#undef GetObject
 #include "evr.h"
 //#include "Ks.h"
 //#include "ksmedia.h"

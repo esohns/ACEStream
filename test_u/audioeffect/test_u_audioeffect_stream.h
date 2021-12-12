@@ -35,6 +35,9 @@
 #include "test_u_audioeffect_common_modules.h"
 #include "test_u_audioeffect_message.h"
 #include "test_u_audioeffect_session_message.h"
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#include "test_u_audioeffect_module_mediafoundation_target.h"
+#endif // ACE_WIN32 || ACE_WIN64
 
 // forward declarations
 class Stream_IAllocator;
@@ -172,7 +175,7 @@ class Test_U_AudioEffect_MediaFoundation_Stream
 #endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
   Test_U_Dev_Mic_Source_MediaFoundation_Module     frameworkSource_;
   Test_U_AudioEffect_MediaFoundation_Source_Module mediaFoundationSource_;
-  Test_U_AudioEffect_MediaFoundation_Target_Module mediaFoundationTarget_;
+  Test_U_AudioEffect_MediaFoundation_MediaFoundationTarget_Module mediaFoundationTarget_;
   ULONG                                            referenceCount_;
   bool                                             topologyIsReady_;
 };

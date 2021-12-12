@@ -21,8 +21,6 @@
 
 #include "test_i_avsave_gtk_callbacks.h"
 
-//#include <math.h>
-
 #include <limits>
 #include <map>
 #include <set>

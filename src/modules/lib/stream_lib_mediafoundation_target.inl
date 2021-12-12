@@ -18,6 +18,9 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
+#undef NANOSECONDS
+#include "reftime.h"
+
 #include "ace/Log_Msg.h"
 
 #include "common_tools.h"
@@ -84,26 +87,7 @@ Stream_MediaFramework_MediaFoundation_Target_T<ACE_SYNCH_USE,
   if (mediaSession_)
   {
     if (manageMediaSession_)
-    {
-      HRESULT result = mediaSession_->Stop ();
-      if (FAILED (result))
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("%s: failed to IMFMediaSession::Stop(): \"%s\", continuing\n"),
-                    inherited::mod_->name (),
-                    ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
-      result = mediaSession_->Close ();
-      if (FAILED (result))
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("%s: failed to IMFMediaSession::Close(): \"%s\", continuing\n"),
-                    inherited::mod_->name (),
-                    ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
-      result = mediaSession_->Shutdown ();
-      if (FAILED (result))
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("%s: failed to IMFMediaSession::Shutdown(): \"%s\", continuing\n"),
-                    inherited::mod_->name (),
-                    ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
-    } // end IF
+      Stream_MediaFramework_MediaFoundation_Tools::shutdown (mediaSession_);
     mediaSession_->Release (); mediaSession_ = NULL;
   } // end IF
 }
@@ -149,26 +133,7 @@ Stream_MediaFramework_MediaFoundation_Target_T<ACE_SYNCH_USE,
     if (mediaSession_)
     {
       if (manageMediaSession_)
-      {
-        HRESULT result = mediaSession_->Stop ();
-        if (FAILED (result))
-          ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("%s: failed to IMFMediaSession::Stop(): \"%s\", continuing\n"),
-                      inherited::mod_->name (),
-                      ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
-        result = mediaSession_->Close ();
-        if (FAILED (result))
-          ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("%s: failed to IMFMediaSession::Close(): \"%s\", continuing\n"),
-                      inherited::mod_->name (),
-                      ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
-        result = mediaSession_->Shutdown ();
-        if (FAILED (result))
-          ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("%s: failed to IMFMediaSession::Shutdown(): \"%s\", continuing\n"),
-                      inherited::mod_->name (),
-                      ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
-      } // end IF
+        Stream_MediaFramework_MediaFoundation_Tools::shutdown (mediaSession_);
       mediaSession_->Release (); mediaSession_ = NULL;
     } // end IF
     manageMediaSession_ = true;
@@ -431,7 +396,6 @@ Stream_MediaFramework_MediaFoundation_Target_T<ACE_SYNCH_USE,
         const_cast<SessionDataType&> (inherited::sessionData_->getR ());
       bool COM_initialized = Common_Tools::initializeCOM ();
       bool is_running = false;
-      bool remove_from_ROT = false;
       ULONG reference_count = 0;
       TOPOID node_id = 0;
       struct _GUID GUID_s = GUID_NULL;
@@ -447,13 +411,16 @@ Stream_MediaFramework_MediaFoundation_Target_T<ACE_SYNCH_USE,
           goto continue_;
         } // end IF
 
-        if (!initialize_MediaFoundation (session_data_r.formats.back (),
-                                         NULL,
-                                         node_id,
-                                         mediaSession_))
+        // sanity check(s)
+        ACE_ASSERT (manageMediaSession_);
+
+        if (!initializeMediaSession (session_data_r.formats.back (),
+                                     NULL,
+                                     node_id,
+                                     mediaSession_))
         {
           ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("%s: failed to initialize_MediaFoundation(), aboring\n"),
+                      ACE_TEXT ("%s: failed to Stream_MediaFramework_MediaFoundation_Target_T::initializeMediaSession(), aboring\n"),
                       inherited::mod_->name ()));
           goto error;
         } // end IF
@@ -487,6 +454,7 @@ continue_:
           goto error;
         } // end IF
         PropVariantClear (&property_s);
+        is_running = true;
       } // end IF
 
       if (COM_initialized) Common_Tools::finalizeCOM ();
@@ -498,24 +466,8 @@ error:
       {
         if (manageMediaSession_)
         {
-          result_2 = mediaSession_->Stop ();
-          if (FAILED (result_2))
-            ACE_DEBUG ((LM_ERROR,
-                        ACE_TEXT ("%s: failed to IMFMediaSession::Stop(): \"%s\", continuing\n"),
-                        inherited::mod_->name (),
-                        ACE_TEXT (Common_Error_Tools::errorToString (result_2).c_str ())));
-          result_2 = mediaSession_->Close ();
-          if (FAILED (result_2))
-            ACE_DEBUG ((LM_ERROR,
-                        ACE_TEXT ("%s: failed to IMFMediaSession::Close(): \"%s\", continuing\n"),
-                        inherited::mod_->name (),
-                        ACE_TEXT (Common_Error_Tools::errorToString (result_2).c_str ())));
-          result_2 = mediaSession_->Shutdown ();
-          if (FAILED (result_2))
-            ACE_DEBUG ((LM_ERROR,
-                        ACE_TEXT ("%s: failed to IMFMediaSession::Shutdown(): \"%s\", continuing\n"),
-                        inherited::mod_->name (),
-                        ACE_TEXT (Common_Error_Tools::errorToString (result_2).c_str ())));
+          Stream_MediaFramework_MediaFoundation_Tools::shutdown (mediaSession_);
+          finalizeMediaSession ();
         } // end IF
         mediaSession_->Release (); mediaSession_ = NULL;
       } // end IF
@@ -530,35 +482,35 @@ error:
     {
       bool COM_initialized = Common_Tools::initializeCOM ();
 
-      //finalize_MediaFoundation (); // stop 'streaming thread'
-
       if (mediaSession_)
       {
         if (manageMediaSession_)
         {
-          result_2 = mediaSession_->Stop ();
-          if (FAILED (result_2))
-            ACE_DEBUG ((LM_ERROR,
-                        ACE_TEXT ("%s: failed to IMFMediaSession::Stop(): \"%s\", continuing\n"),
-                        inherited::mod_->name (),
-                        ACE_TEXT (Common_Error_Tools::errorToString (result_2).c_str ())));
-          result_2 = mediaSession_->Close ();
-          if (FAILED (result_2))
-            ACE_DEBUG ((LM_ERROR,
-                        ACE_TEXT ("%s: failed to IMFMediaSession::Close(): \"%s\", continuing\n"),
-                        inherited::mod_->name (),
-                        ACE_TEXT (Common_Error_Tools::errorToString (result_2).c_str ())));
-          result_2 = mediaSession_->Shutdown ();
-          if (FAILED (result_2))
-            ACE_DEBUG ((LM_ERROR,
-                        ACE_TEXT ("%s: failed to IMFMediaSession::Shutdown(): \"%s\", continuing\n"),
-                        inherited::mod_->name (),
-                        ACE_TEXT (Common_Error_Tools::errorToString (result_2).c_str ())));
+          Stream_MediaFramework_MediaFoundation_Tools::shutdown (mediaSession_);
+          finalizeMediaSession ();
         } // end IF
         mediaSession_->Release (); mediaSession_ = NULL;
       } // end IF
 
       if (COM_initialized) Common_Tools::finalizeCOM ();
+
+      break;
+    }
+    case STREAM_SESSION_MESSAGE_STEP:
+    {
+      // sanity check(s)
+      ACE_ASSERT (inherited::sessionData_);
+
+      SessionDataType& session_data_r =
+        const_cast<SessionDataType&> (inherited::sessionData_->getR ());
+      if (!updateMediaSession (session_data_r.formats.back ()))
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("%s: failed to Stream_MediaFramework_MediaFoundation_Target_T::updateMediaSession(), aborting\n"),
+                    inherited::mod_->name ()));
+        this->notify (STREAM_SESSION_MESSAGE_ABORT);
+        break;
+      } // end IF
 
       break;
     }
@@ -831,16 +783,16 @@ Stream_MediaFramework_MediaFoundation_Target_T<ACE_SYNCH_USE,
                                                SessionMessageType,
                                                SessionDataType,
                                                SessionDataContainerType,
-                                               MediaType>::initialize_MediaFoundation (IMFMediaType* mediaType_in,
+                                               MediaType>::initializeMediaSession (IMFMediaType* mediaType_in,
 #if COMMON_OS_WIN32_TARGET_PLATFORM(0x0601) // _WIN32_WINNT_WIN7
-                                                                                       IMFSampleGrabberSinkCallback2* sampleGrabberSinkCallback_in,
+                                                                                   IMFSampleGrabberSinkCallback2* sampleGrabberSinkCallback_in,
 #else
-                                                                                       IMFSampleGrabberSinkCallback* sampleGrabberSinkCallback_in,
+                                                                                   IMFSampleGrabberSinkCallback* sampleGrabberSinkCallback_in,
 #endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0601)
-                                                                                       TOPOID& sampleGrabberSinkNodeId_out,
-                                                                                       IMFMediaSession*& IMFMediaSession_inout)
+                                                                                   TOPOID& sampleGrabberSinkNodeId_out,
+                                                                                   IMFMediaSession*& IMFMediaSession_inout)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_MediaFoundation_Target_T::initialize_MediaFoundation"));
+  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_MediaFoundation_Target_T::initializeMediaSession"));
 
   // initialize return value(s)
   sampleGrabberSinkNodeId_out = 0;

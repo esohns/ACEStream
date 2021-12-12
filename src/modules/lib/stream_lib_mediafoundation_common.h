@@ -22,15 +22,19 @@
 #define STREAM_LIB_MEDIAFOUNDATION_COMMON_H
 
 #include <deque>
+#include <list>
 
+#undef GetObject
+#include "mfidl.h"
 #include "mfobjects.h"
+
+// forward declarations
+class Stream_IStreamControlBase;
+class ACE_Message_Queue_Base;
 
 typedef std::deque<IMFMediaType*> Stream_MediaFramework_MediaFoundation_Formats_t;
 typedef Stream_MediaFramework_MediaFoundation_Formats_t::iterator Stream_MediaFramework_MediaFoundation_FormatsIterator_t;
 
-class Stream_IStreamControlBase;
-struct IMFMediaSession;
-class ACE_Message_Queue_Base;
 struct Stream_MediaFramework_MediaFoundation_Configuration
 {
   Stream_MediaFramework_MediaFoundation_Configuration ()
@@ -47,5 +51,10 @@ struct Stream_MediaFramework_MediaFoundation_Configuration
   IMFMediaType*              mediaType; // input-
   ACE_Message_Queue_Base*    queue;
 };
+
+typedef std::list<IMFTopologyNode*> TOPOLOGY_PATH_T;
+typedef TOPOLOGY_PATH_T::iterator TOPOLOGY_PATH_ITERATOR_T;
+typedef std::list<TOPOLOGY_PATH_T> TOPOLOGY_PATHS_T;
+typedef TOPOLOGY_PATHS_T::iterator TOPOLOGY_PATHS_ITERATOR_T;
 
 #endif

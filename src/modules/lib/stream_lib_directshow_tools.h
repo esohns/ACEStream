@@ -31,7 +31,7 @@
 #endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0602)
 #include "ks.h"
 #include "guiddef.h"
-#undef GetObject
+//#undef GetObject
 //#include "evr.h"
 #define __CGUID_H__
 #include "strmif.h"

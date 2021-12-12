@@ -21,11 +21,9 @@
 #ifndef STREAM_LIB_MEDIAFOUNDATION_TARGET_H
 #define STREAM_LIB_MEDIAFOUNDATION_TARGET_H
 
-#include "d3d9.h"
-#include "dxva2api.h"
 #undef GetObject
 #include "mfidl.h"
-#include "mfreadwrite.h"
+#include "mfobjects.h"
 
 #include "ace/Global_Macros.h"
 #include "ace/Synch_Traits.h"
@@ -111,6 +109,25 @@ class Stream_MediaFramework_MediaFoundation_Target_T
   inline virtual STDMETHODIMP GetParameters (DWORD* flags_out, DWORD* queue_out) { ACE_UNUSED_ARG (flags_out); ACE_UNUSED_ARG (queue_out); return E_NOTIMPL; }
   virtual STDMETHODIMP Invoke (IMFAsyncResult*); // asynchronous result handle
 
+ protected:
+  // helper methods
+  virtual bool initializeMediaSession (IMFMediaType*,                  // sample grabber sink input media type handle
+#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0601) // _WIN32_WINNT_WIN7
+                                       IMFSampleGrabberSinkCallback2*, // sample grabber sink callback handle
+#else
+                                       IMFSampleGrabberSinkCallback*,  // sample grabber sink callback handle
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0601)
+                                       TOPOID&,                        // return value: sample grabber node id
+                                       IMFMediaSession*&);             // intput/return value: media session handle
+  inline virtual void finalizeMediaSession () {}
+  inline virtual bool updateMediaSession (IMFMediaType*) { ACE_ASSERT (false); ACE_NOTSUP_RETURN (false); ACE_NOTREACHED (return false;) } // (new) source media type handle
+
+  bool             isFirst_;
+
+  LONGLONG         baseTimeStamp_;
+  bool             manageMediaSession_;
+  IMFMediaSession* mediaSession_;
+
  private:
   // convenient types
   typedef Stream_MediaFramework_MediaFoundation_Target_T<ACE_SYNCH_USE,
@@ -126,23 +143,6 @@ class Stream_MediaFramework_MediaFoundation_Target_T
   ACE_UNIMPLEMENTED_FUNC (Stream_MediaFramework_MediaFoundation_Target_T ())
   ACE_UNIMPLEMENTED_FUNC (Stream_MediaFramework_MediaFoundation_Target_T (const Stream_MediaFramework_MediaFoundation_Target_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_MediaFramework_MediaFoundation_Target_T& operator= (const Stream_MediaFramework_MediaFoundation_Target_T&))
-
-  // helper methods
-  bool initialize_MediaFoundation (IMFMediaType*,                  // sample grabber sink input media type handle
-#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0601) // _WIN32_WINNT_WIN7
-                                   IMFSampleGrabberSinkCallback2*, // sample grabber sink callback handle
-#else
-                                   IMFSampleGrabberSinkCallback*,  // sample grabber sink callback handle
-#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0601)
-                                   TOPOID&,                        // return value: node id
-                                   IMFMediaSession*&);             // intput/return value: media session handle
-  //inline void finalize_MediaFoundation () {}
-
-  bool             isFirst_;
-
-  LONGLONG         baseTimeStamp_;
-  bool             manageMediaSession_;
-  IMFMediaSession* mediaSession_;
 };
 
 // include template definition

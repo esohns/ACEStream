@@ -79,28 +79,27 @@ if (WIN32)
  endif ()
 endif ()
 
-target_link_libraries (${EXECUTABLE} ${CMAKE_THREAD_LIBS_INIT})
+target_link_libraries (${EXECUTABLE} PUBLIC ${CMAKE_THREAD_LIBS_INIT})
 
 if (MPG123_SUPPORT)
- target_link_libraries (${EXECUTABLE} ${MPG123_LIBRARY})
+ target_link_libraries (${EXECUTABLE} PUBLIC ${MPG123_LIBRARY})
 endif (MPG123_SUPPORT)
 
-target_link_libraries (${EXECUTABLE} ${ACE_LIBRARY})
+target_link_libraries (${EXECUTABLE} PUBLIC ${ACE_LIBRARY})
 
-target_link_libraries (${EXECUTABLE} Common)
-target_link_libraries (${EXECUTABLE} CommonLog)
-target_link_libraries (${EXECUTABLE} CommonSignal)
-target_link_libraries (${EXECUTABLE} CommonTimer)
+target_link_libraries (${EXECUTABLE} PUBLIC Common)
+target_link_libraries (${EXECUTABLE} PUBLIC CommonLog)
+target_link_libraries (${EXECUTABLE} PUBLIC CommonSignal)
+target_link_libraries (${EXECUTABLE} PUBLIC CommonTimer)
 
-target_link_libraries (${EXECUTABLE} ${PROJECT_NAME})
-target_link_libraries (${EXECUTABLE} ${PROJECT_NAME}_Decoder)
-target_link_libraries (${EXECUTABLE} ${PROJECT_NAME}_Device)
-target_link_libraries (${EXECUTABLE} ${PROJECT_NAME}_File)
-target_link_libraries (${EXECUTABLE} ${PROJECT_NAME}_MediaFramework)
-#target_link_libraries (${EXECUTABLE} ${PROJECT_NAME}_Miscellaneous)
-target_link_libraries (${EXECUTABLE} ${PROJECT_NAME}_Statistic)
+target_link_libraries (${EXECUTABLE} PUBLIC ${PROJECT_NAME})
+target_link_libraries (${EXECUTABLE} PUBLIC ${PROJECT_NAME}_Decoder)
+target_link_libraries (${EXECUTABLE} PUBLIC ${PROJECT_NAME}_Device)
+target_link_libraries (${EXECUTABLE} PUBLIC ${PROJECT_NAME}_File)
+target_link_libraries (${EXECUTABLE} PUBLIC ${PROJECT_NAME}_MediaFramework)
+target_link_libraries (${EXECUTABLE} PUBLIC ${PROJECT_NAME}_Statistic)
 
-target_link_libraries (${EXECUTABLE} ${PROJECT_NAME}_Test_I)
+target_link_libraries (${EXECUTABLE} PUBLIC ${PROJECT_NAME}_Test_I)
 
 # add PCH
 target_precompile_headers (${EXECUTABLE}
@@ -126,10 +125,9 @@ if (UNIX)
                          WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/test_i/${EXECUTABLE}
                          ENVIRONMENT foo=bar)
 elseif (WIN32)
- file (TO_CMAKE_PATH $ENV{LIB_ROOT}/mpg123 MPG123_PATH)
- file (TO_CMAKE_PATH $ENV{LIB_ROOT}/ACE_TAO/ACE/lib ACE_PATH)
+ file (TO_CMAKE_PATH "${MPG123_LIB_DIR}" MPG123_PATH)
+ file (TO_CMAKE_PATH "${ACE_LIB_DIR}" ACE_PATH)
  set (RUNTIME_LIBRARY_DIRS ${RUNTIME_LIBRARY_DIRS}
-#                           ${FFMPEG_PATH}
                            ${MPG123_PATH}
                            ${ACE_PATH})
  create_target_launcher (${EXECUTABLE}

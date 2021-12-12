@@ -160,6 +160,8 @@ class Stream_Module_Decoder_Tools
                                           HWND,                // window handle [NULL: do not use tee/EVR]
                                           TOPOID&,             // return value: EVR sink node id
                                           IMFTopology*&);      // input/return value: topology handle
+  static bool updateRendererTopology (IMFTopology*,         // topology handle
+                                      const IMFMediaType*); // (new) source media type handle
 #endif // ACE_WIN32 || ACE_WIN64
 
   static std::string compressionFormatToString (enum Stream_Decoder_CompressionFormatType);

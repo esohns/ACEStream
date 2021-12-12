@@ -21,16 +21,15 @@
 #ifndef STREAM_LIB_MEDIAFOUNDATION_TOOLS_H
 #define STREAM_LIB_MEDIAFOUNDATION_TOOLS_H
 
-#include <list>
 #include <string>
 
-#include "d3d9.h"
-#include "dxva2api.h"
+#include "guiddef.h"
 #include "mfapi.h"
 #undef GetObject
 #include "mfidl.h"
-#include "mfreadwrite.h"
-#include "strmif.h"
+#include "mfobjects.h"
+#include "mftransform.h"
+#include "mmreg.h"
 
 #include "ace/Global_Macros.h"
 
@@ -81,6 +80,13 @@ class Stream_MediaFramework_MediaFoundation_Tools
   static void shutdown (IMFTopologyNode*); // topology node handle
 
   // topology
+  static void clean (TOPOLOGY_PATH_T&); // list of nodes
+  static void clean (TOPOLOGY_PATHS_T&); // list of branches
+  static bool hasTee (TOPOLOGY_PATH_T&,   // topology path
+                      IMFTopologyNode*&); // return value: tee node handle
+  static bool parse (const IMFTopology*, // topology handle
+                     TOPOLOGY_PATHS_T&); // return value: list of branches
+
   // *NOTE*: if there are no source nodes, abort
   //         if the xth branch does not have a sink, append to its last
   //         connected node
@@ -128,6 +134,9 @@ class Stream_MediaFramework_MediaFoundation_Tools
   static bool getOutputFormat (IMFTopology*,    // topology handle
                                TOPOID,          // node identifier
                                IMFMediaType*&); // return value: media type
+  static bool setOutputFormat (IMFTopology*,         // topology handle
+                               TOPOID,               // node identifier
+                               const IMFMediaType*); // media type
 
 #if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
   static bool getTopology (IMFMediaSession*, // media session handle
@@ -263,19 +272,9 @@ class Stream_MediaFramework_MediaFoundation_Tools
   //                             const IMFMediaType*); // media type
   static bool reconfigure (IMFMediaType*); // media type handle
 
-  typedef std::list<IMFTopologyNode*> TOPOLOGY_PATH_T;
-  typedef TOPOLOGY_PATH_T::iterator TOPOLOGY_PATH_ITERATOR_T;
-  typedef std::list<TOPOLOGY_PATH_T> TOPOLOGY_PATHS_T;
-  typedef TOPOLOGY_PATHS_T::iterator TOPOLOGY_PATHS_ITERATOR_T;
-  static void clean (TOPOLOGY_PATH_T&); // list of nodes
-  static void clean (TOPOLOGY_PATHS_T&); // list of branches
   static void expand (const TOPOLOGY_PATH_T&,    // input/return value: topology path
                       TOPOLOGY_PATH_ITERATOR_T&, // iterator
                       TOPOLOGY_PATHS_T&);        // input/return value: topology paths
-  static bool hasTee (TOPOLOGY_PATH_T&,   // topology path
-                      IMFTopologyNode*&); // return value: tee node handle
-  static bool parse (const IMFTopology*, // topology handle
-                     TOPOLOGY_PATHS_T&); // return value: list of branches
 
   static std::string toString (MediaEventType); // event type
   static std::string toString (enum MF_TOPOLOGY_TYPE); // node type

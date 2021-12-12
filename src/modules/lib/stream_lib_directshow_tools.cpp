@@ -36,6 +36,7 @@
 //            definition of IKsPropertySet is used by the compiler. ..."
 //#include <dsound.h>
 //#include <dxva.h>
+#undef GetObject
 #include "evr.h"
 #include "fourcc.h"
 #include "ksmedia.h"

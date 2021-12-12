@@ -111,7 +111,10 @@ Test_U_AudioEffect_DirectShow_Stream::load (Stream_ILayout* layout_in,
     }
     case AUDIOEFFECT_SOURCE_FILE:
     {
-      ACE_ASSERT (false); // *TODO*
+      ACE_NEW_RETURN (module_p,
+                      Test_U_Dec_MP3Decoder_DirectShow_Module (this,
+                                                               ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_MPEG_1LAYER3_DEFAULT_NAME_STRING)),
+                      false);
       break;
     }
     default:
@@ -237,11 +240,14 @@ Test_U_AudioEffect_DirectShow_Stream::initialize (const inherited::CONFIGURATION
   ACE_ASSERT (iterator_2 != configuration_in.end ());
   inherited::CONFIGURATION_T::ITERATOR_T iterator_3 =
     const_cast<inherited::CONFIGURATION_T&> (configuration_in).find (ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_WASAPI_RENDER_DEFAULT_NAME_STRING));
-  ACE_ASSERT (iterator_2 != configuration_in.end ());
+  ACE_ASSERT (iterator_3 != configuration_in.end ());
+  inherited::CONFIGURATION_T::ITERATOR_T iterator_4 =
+    const_cast<inherited::CONFIGURATION_T&> (configuration_in).find (ACE_TEXT_ALWAYS_CHAR (STREAM_FILE_SINK_DEFAULT_NAME_STRING));
+  ACE_ASSERT (iterator_4 != configuration_in.end ());
 
   // *TODO*: remove type inference
   session_data_r.targetFileName =
-    (*iterator).second.second->fileIdentifier.identifier;
+    (*iterator_4).second.second->fileIdentifier.identifier;
 
   // ---------------------------------------------------------------------------
 
@@ -451,7 +457,8 @@ Test_U_AudioEffect_DirectShow_Stream::initialize (const inherited::CONFIGURATION
   (*iterator).second.second->builder->AddRef ();
   (*iterator_2).second.second->builder = (*iterator).second.second->builder;
 
-  session_data_r.formats.push_back (configuration_in.configuration_->format);
+  if (inherited::configuration_->configuration_->sourceType != AUDIOEFFECT_SOURCE_FILE)
+    session_data_r.formats.push_back (configuration_in.configuration_->format);
 
   // ---------------------------------------------------------------------------
 
@@ -731,7 +738,10 @@ Test_U_AudioEffect_MediaFoundation_Stream::load (Stream_ILayout* layout_in,
     }
     case AUDIOEFFECT_SOURCE_FILE:
     {
-      ACE_ASSERT (false); // *TODO*
+      ACE_NEW_RETURN (module_p,
+                      Test_U_Dec_MP3Decoder_MediaFoundation_Module (this,
+                                                                    ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_MPEG_1LAYER3_DEFAULT_NAME_STRING)),
+                      false);
       break;
     }
     default:
@@ -984,10 +994,13 @@ Test_U_AudioEffect_MediaFoundation_Stream::initialize (const inherited::CONFIGUR
   inherited::CONFIGURATION_T::ITERATOR_T iterator_3 =
     const_cast<inherited::CONFIGURATION_T&> (configuration_in).find (ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_WASAPI_RENDER_DEFAULT_NAME_STRING));
   ACE_ASSERT (iterator_3 != configuration_in.end ());
+  inherited::CONFIGURATION_T::ITERATOR_T iterator_4 =
+    const_cast<inherited::CONFIGURATION_T&> (configuration_in).find (ACE_TEXT_ALWAYS_CHAR (STREAM_FILE_SINK_DEFAULT_NAME_STRING));
+  ACE_ASSERT (iterator_4 != configuration_in.end ());
 
   // *TODO*: remove type inference
   session_data_r.targetFileName =
-    (*iterator).second.second->fileIdentifier.identifier;
+    (*iterator_4).second.second->fileIdentifier.identifier;
 
   // ---------------------------------------------------------------------------
 
@@ -1234,16 +1247,19 @@ continue_3:
   {
     media_type_p->Release (); media_type_p = NULL;
   } // end IF
-  media_type_p =
-    Stream_MediaFramework_MediaFoundation_Tools::copy (configuration_in.configuration_->format);
-  if (!media_type_p)
+  if (inherited::configuration_->configuration_->sourceType != AUDIOEFFECT_SOURCE_FILE)
   {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: failed to Stream_MediaFramework_MediaFoundation_Tools::copy(), aborting\n"),
-                ACE_TEXT (stream_name_string_)));
-    goto error;
+    media_type_p =
+      Stream_MediaFramework_MediaFoundation_Tools::copy (configuration_in.configuration_->format);
+    if (!media_type_p)
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("%s: failed to Stream_MediaFramework_MediaFoundation_Tools::copy(), aborting\n"),
+                  ACE_TEXT (stream_name_string_)));
+      goto error;
+    } // end IF
+    session_data_r.formats.push_back (media_type_p);
   } // end IF
-  session_data_r.formats.push_back (media_type_p);
 
 #if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
   if (session_data_r.session)
@@ -1299,7 +1315,7 @@ Test_U_AudioEffect_MediaFoundation_Stream::getR_3 () const
   STREAM_TRACE (ACE_TEXT ("Test_U_AudioEffect_MediaFoundation_Stream::getR_3"));
 
   Test_U_AudioEffect_MediaFoundation_Target* writer_p =
-    static_cast<Test_U_AudioEffect_MediaFoundation_Target*> (const_cast<Test_U_AudioEffect_MediaFoundation_Target_Module&> (mediaFoundationTarget_).writer ());
+    static_cast<Test_U_AudioEffect_MediaFoundation_Target*> (const_cast<Test_U_AudioEffect_MediaFoundation_MediaFoundationTarget_Module&> (mediaFoundationTarget_).writer ());
   ACE_ASSERT (writer_p);
 
   return *writer_p;
@@ -1701,7 +1717,10 @@ Test_U_AudioEffect_ALSA_Stream::load (Stream_ILayout* layout_in,
     }
     case AUDIOEFFECT_SOURCE_FILE:
     {
-      ACE_ASSERT (false); // *TODO*
+      ACE_NEW_RETURN (module_p,
+                      Test_U_Dec_MP3Decoder_ALSA_Module (this,
+                                                         ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_MPEG_1LAYER3_DEFAULT_NAME_STRING)),
+                      false);
       break;
     }
     default:
@@ -1822,6 +1841,7 @@ Test_U_AudioEffect_ALSA_Stream::initialize (const typename inherited::CONFIGURAT
   bool reset_setup_pipeline = false;
   Test_U_AudioEffect_SessionData* session_data_p = NULL;
   typename inherited::CONFIGURATION_T::ITERATOR_T iterator;
+  typename inherited::CONFIGURATION_T::ITERATOR_T iterator_2;
   typename inherited::ISTREAM_T::MODULE_T* module_p = NULL;
   Test_U_AudioEffect_IDispatch_t* idispatch_p = NULL;
 
@@ -1848,11 +1868,15 @@ Test_U_AudioEffect_ALSA_Stream::initialize (const typename inherited::CONFIGURAT
   iterator =
       const_cast<typename inherited::CONFIGURATION_T&> (configuration_in).find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (iterator != configuration_in.end ());
+  iterator_2 =
+    const_cast<typename inherited::CONFIGURATION_T&> (configuration_in).find (ACE_TEXT_ALWAYS_CHAR (STREAM_FILE_SINK_DEFAULT_NAME_STRING));
+  ACE_ASSERT (iterator != configuration_in.end ());
   (*iterator).second.second->outputFormat =
     configuration_in.configuration_->format;
-  session_data_p->formats.push_back (configuration_in.configuration_->format);
+  if (inherited::configuration_->configuration_->sourceType != AUDIOEFFECT_SOURCE_FILE)
+    session_data_p->formats.push_back (configuration_in.configuration_->format);
   session_data_p->targetFileName =
-    (*iterator).second.second->fileIdentifier.identifier;
+    (*iterator_2).second.second->fileIdentifier.identifier;
 
   // ---------------------------------------------------------------------------
 

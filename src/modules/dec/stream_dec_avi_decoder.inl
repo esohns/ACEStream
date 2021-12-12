@@ -293,7 +293,7 @@ dispatch:
 
   // *NOTE*: parsing stops at the first (frame) data chunk. Note that the
   //         buffers have not been modified
-  //         --> advance the buffer(s) read pointer(s)
+  //         --> advance the buffers' read pointer(s)
   ACE_ASSERT (frameSize_);
 
   // find offset of the first (frame) data chunk

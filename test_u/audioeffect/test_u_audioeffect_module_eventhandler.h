@@ -29,8 +29,6 @@
 #include "stream_common.h"
 #include "stream_streammodule_base.h"
 
-#include "stream_dev_defines.h"
-
 #include "stream_misc_messagehandler.h"
 
 #include "test_u_audioeffect_common.h"
@@ -46,7 +44,7 @@ class Test_U_AudioEffect_DirectShow_Module_EventHandler
                                          Test_U_AudioEffect_DirectShow_Message,
                                          Test_U_AudioEffect_DirectShow_SessionMessage,
                                          Test_U_AudioEffect_DirectShow_SessionData,
-                                         struct Test_U_UserData>
+                                         struct Stream_UserData>
 {
   typedef Stream_Module_MessageHandler_T<ACE_MT_SYNCH,
                                          Common_TimePolicy_t,
@@ -55,7 +53,7 @@ class Test_U_AudioEffect_DirectShow_Module_EventHandler
                                          Test_U_AudioEffect_DirectShow_Message,
                                          Test_U_AudioEffect_DirectShow_SessionMessage,
                                          Test_U_AudioEffect_DirectShow_SessionData,
-                                         struct Test_U_UserData> inherited;
+                                         struct Stream_UserData> inherited;
 
  public:
   Test_U_AudioEffect_DirectShow_Module_EventHandler (ISTREAM_T*); // stream handle
@@ -81,7 +79,7 @@ class Test_U_AudioEffect_MediaFoundation_Module_EventHandler
                                          Test_U_AudioEffect_MediaFoundation_Message,
                                          Test_U_AudioEffect_MediaFoundation_SessionMessage,
                                          Test_U_AudioEffect_MediaFoundation_SessionData,
-                                         struct Test_U_UserData>
+                                         struct Stream_UserData>
 {
   typedef Stream_Module_MessageHandler_T<ACE_MT_SYNCH,
                                          Common_TimePolicy_t,
@@ -90,7 +88,7 @@ class Test_U_AudioEffect_MediaFoundation_Module_EventHandler
                                          Test_U_AudioEffect_MediaFoundation_Message,
                                          Test_U_AudioEffect_MediaFoundation_SessionMessage,
                                          Test_U_AudioEffect_MediaFoundation_SessionData,
-                                         struct Test_U_UserData> inherited;
+                                         struct Stream_UserData> inherited;
 
  public:
   Test_U_AudioEffect_MediaFoundation_Module_EventHandler (ISTREAM_T*); // stream handle
@@ -131,7 +129,7 @@ class Test_U_AudioEffect_Module_EventHandler
                                          Test_U_AudioEffect_Message,
                                          Test_U_AudioEffect_SessionMessage,
                                          Test_U_AudioEffect_SessionData,
-                                         struct Test_U_UserData>
+                                         struct Stream_UserData>
 {
   typedef Stream_Module_MessageHandler_T<ACE_MT_SYNCH,
                                          Common_TimePolicy_t,
@@ -140,7 +138,7 @@ class Test_U_AudioEffect_Module_EventHandler
                                          Test_U_AudioEffect_Message,
                                          Test_U_AudioEffect_SessionMessage,
                                          Test_U_AudioEffect_SessionData,
-                                         struct Test_U_UserData> inherited;
+                                         struct Stream_UserData> inherited;
 
  public:
   Test_U_AudioEffect_Module_EventHandler (typename inherited::ISTREAM_T*); // stream handle
@@ -164,6 +162,6 @@ DATASTREAM_MODULE_INPUT_ONLY (Test_U_AudioEffect_SessionData,                   
                               Stream_INotify_t,                                            // stream notification interface type
                               Test_U_AudioEffect_Module_EventHandler);                     // writer type
 
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
 
 #endif

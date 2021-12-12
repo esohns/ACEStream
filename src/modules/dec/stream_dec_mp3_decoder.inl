@@ -252,12 +252,14 @@ Stream_Decoder_MP3Decoder_T<ACE_SYNCH_USE,
   size_t done_u = 0;
   MediaType media_type_s;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
+  ACE_OS::memset (&media_type_s, 0, sizeof (MediaType));
   struct _AMMediaType media_type_2;
-  WAVEFORMATEX format_s;
+  struct tWAVEFORMATEX format_s;
   HRESULT result_3 = E_FAIL;
 #else
   struct Stream_MediaFramework_ALSA_MediaType media_type_2;
 #endif // ACE_WIN32 || ACE_WIN64
+  SessionDataContainerType* session_data_container_p = NULL;
 
   // sanity check(s)
   ACE_ASSERT (inherited::configuration_);
@@ -302,12 +304,11 @@ Stream_Decoder_MP3Decoder_T<ACE_SYNCH_USE,
   ACE_ASSERT (session_data_r.formats.empty ());
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   ACE_OS::memset (&media_type_2, 0, sizeof (struct _AMMediaType));
-  ACE_OS::memset (&format_s, 0, sizeof (WAVEFORMATEX));
+  ACE_OS::memset (&format_s, 0, sizeof (struct tWAVEFORMATEX));
   format_s.wFormatTag = WAVE_FORMAT_PCM;
   format_s.nChannels = channels_i;
   format_s.nSamplesPerSec = rate_l;
-  ACE_ASSERT (encoding_i == MPG123_ENC_SIGNED_16);
-  format_s.wBitsPerSample = 16;
+  format_s.wBitsPerSample = mpg123_encsize (encoding_i) * 8;
   format_s.nBlockAlign = (format_s.nChannels * (format_s.wBitsPerSample / 8));
   format_s.nAvgBytesPerSec = (format_s.nSamplesPerSec * format_s.nBlockAlign);
   result_3 = CreateAudioMediaType (&format_s, &media_type_2, TRUE);
@@ -318,17 +319,28 @@ Stream_Decoder_MP3Decoder_T<ACE_SYNCH_USE,
                 ACE_TEXT (Common_Error_Tools::errorToString (result_3, true).c_str ())));
     goto continue_;
   } // end IF
-  inherited2::getMediaType (media_type_2,
-                            media_type_s);
 #else
-  ACE_ASSERT (encoding_i == MPG123_ENC_SIGNED_16);
+  ACE_ASSERT (encoding_i == MPG123_ENC_SIGNED_16); // *TODO*
   media_type_2.format = SND_PCM_FORMAT_S16;
   media_type_2.channels = channels_i;
   media_type_2.rate = rate_l;
+#endif // ACE_WIN32 || ACE_WIN64
   inherited2::getMediaType (media_type_2,
                             media_type_s);
-#endif // ACE_WIN32 || ACE_WIN64
   session_data_r.formats.push_back (media_type_s);
+  session_data_container_p = inherited::sessionData_;
+  ACE_ASSERT (session_data_container_p);
+  session_data_container_p->increase ();
+  if (unlikely (!inherited::putSessionMessage (STREAM_SESSION_MESSAGE_STEP,
+                                               session_data_container_p,
+                                               inherited::streamState_->userData)))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s: failed to Stream_TaskBase_T::putSessionMessage(%d), aborting\n"),
+                inherited::mod_->name (),
+                STREAM_SESSION_MESSAGE_STEP));
+    goto continue_;
+  } // end IF
 
   do
   {

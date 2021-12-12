@@ -21,6 +21,7 @@
 #ifndef STREAM_LIB_MEDIAFOUNDATION_NULL_H
 #define STREAM_LIB_MEDIAFOUNDATION_NULL_H
 
+#undef GetObject
 #include "mfidl.h"
 
 #include "ace/Global_Macros.h"
