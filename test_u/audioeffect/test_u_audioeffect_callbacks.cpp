@@ -11409,12 +11409,8 @@ drawingarea_query_tooltip_cb (GtkWidget*  widget_in,
   ACE_UNUSED_ARG (keyboardMode_in);
 
   // sanity check(s)
-  ACE_ASSERT (userData_in);
-
   struct Test_U_AudioEffect_UI_CBDataBase* ui_cb_data_base_p =
     static_cast<struct Test_U_AudioEffect_UI_CBDataBase*> (userData_in);
-
-  // sanity check(s)
   ACE_ASSERT (ui_cb_data_base_p);
 
   Stream_IStream_t* istream_p = NULL;
@@ -11560,17 +11556,16 @@ drawingarea_query_tooltip_cb (GtkWidget*  widget_in,
   GtkAllocation allocation;
   gtk_widget_get_allocation (widget_in,
                              &allocation);
+  double half_height = allocation.height / 2.0;
+  uint64_t maximum_value = 0;
+  Common_Tools::max<uint64_t> (sample_size,
+                               is_signed_format,
+                               maximum_value);
   std::ostringstream converter;
   switch (mode)
   {
     case STREAM_VISUALIZATION_SPECTRUMANALYZER_2DMODE_OSCILLOSCOPE:
     {
-      // *NOTE*: works for integer value types only
-      // *WARNING*: correct only for two's complement value representations
-      uint64_t maximum_value =
-          (is_signed_format ? ((1ULL << ((sample_size * 8) - 1)) - 1)
-                            : ((1ULL << (sample_size * 8)) - 1));
-      double half_height = allocation.height / 2.0;
       // *TODO*: the value type depends on the format, so this isn't accurate
       if (is_signed_format)
         converter <<
@@ -11582,12 +11577,6 @@ drawingarea_query_tooltip_cb (GtkWidget*  widget_in,
     }
     case STREAM_VISUALIZATION_SPECTRUMANALYZER_2DMODE_SPECTRUM:
     {
-      // *NOTE*: works for integer value types only
-      // *WARNING*: correct only for two's complement value representations
-      uint64_t maximum_value =
-        (is_signed_format ? ((1ULL << ((sample_size * 8) - 1)) - 1)
-                          : ((1ULL << (sample_size * 8)) - 1));
-      double half_height = allocation.height / 2.0;
       // *TODO*: the value type depends on the format, so this isn't accurate
       if (is_signed_format)
         converter <<
@@ -11723,19 +11712,15 @@ drawingarea_size_allocate_cb (GtkWidget* widget_in,
 {
   STREAM_TRACE (ACE_TEXT ("::drawingarea_size_allocate_cb"));
 
-  ACE_UNUSED_ARG (widget_in);
-
   // sanity check(s)
   ACE_ASSERT (allocation_in);
   struct Test_U_AudioEffect_UI_CBDataBase* ui_cb_data_base_p =
     static_cast<struct Test_U_AudioEffect_UI_CBDataBase*> (userData_in);
   ACE_ASSERT (ui_cb_data_base_p);
-
   Common_UI_GTK_Manager_t* gtk_manager_p =
     COMMON_UI_GTK_MANAGER_SINGLETON::instance ();
   ACE_ASSERT (gtk_manager_p);
   const Common_UI_GTK_State_t& state_r = gtk_manager_p->getR ();
-
   Common_UI_GTK_BuildersConstIterator_t iterator =
     state_r.builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN));
   ACE_ASSERT (iterator != state_r.builders.end ());
@@ -11751,12 +11736,11 @@ drawingarea_size_allocate_cb (GtkWidget* widget_in,
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
     {
+      // sanity check(s)
       directshow_ui_cb_data_p =
         static_cast<struct Test_U_AudioEffect_DirectShow_UI_CBData*> (userData_in);
-      // sanity check(s)
       ACE_ASSERT (directshow_ui_cb_data_p);
       ACE_ASSERT (directshow_ui_cb_data_p->configuration);
-
       directshow_modulehandler_configuration_iterator =
         directshow_ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
       ACE_ASSERT (directshow_modulehandler_configuration_iterator != directshow_ui_cb_data_p->configuration->streamConfiguration.end ());
@@ -11764,12 +11748,11 @@ drawingarea_size_allocate_cb (GtkWidget* widget_in,
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
     {
+      // sanity check(s)
       mediafoundation_ui_cb_data_p =
         static_cast<struct Test_U_AudioEffect_MediaFoundation_UI_CBData*> (userData_in);
-      // sanity check(s)
       ACE_ASSERT (mediafoundation_ui_cb_data_p);
       ACE_ASSERT (mediafoundation_ui_cb_data_p->configuration);
-
       mediafoundation_modulehandler_configuration_iterator =
         mediafoundation_ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
       ACE_ASSERT (mediafoundation_modulehandler_configuration_iterator != mediafoundation_ui_cb_data_p->configuration->streamConfiguration.end ());
@@ -11784,13 +11767,11 @@ drawingarea_size_allocate_cb (GtkWidget* widget_in,
     }
   } // end SWITCH
 #else
+  // sanity check(s)
   struct Test_U_AudioEffect_UI_CBData* ui_cb_data_p =
     static_cast<struct Test_U_AudioEffect_UI_CBData*> (userData_in);
-
-  // sanity check(s)
   ACE_ASSERT (ui_cb_data_p);
   ACE_ASSERT (ui_cb_data_p->configuration);
-
   Test_U_AudioEffect_ALSA_StreamConfiguration_t::ITERATOR_T streamconfiguration_iterator =
       ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (streamconfiguration_iterator != ui_cb_data_p->configuration->streamConfiguration.end ());

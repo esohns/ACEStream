@@ -319,14 +319,14 @@ Test_U_AudioEffect_MediaFoundation_EventHandler::notify (Stream_SessionId_t sess
     { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, state_r.lock);
       CBData_->progressData.statistic.bytes += message_in.total_length ();
       state_r.eventStack.push (COMMON_UI_EVENT_DATA);
-      event_source_id = g_idle_add (idle_update_display_cb,
-                                    CBData_);
-      if (event_source_id == 0)
-      {
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("failed to g_idle_add(idle_update_display_cb): \"%m\", returning\n")));
-        return;
-      } // end IF
+      //event_source_id = g_idle_add (idle_update_display_cb,
+      //                              CBData_);
+      //if (event_source_id == 0)
+      //{
+      //  ACE_DEBUG ((LM_ERROR,
+      //              ACE_TEXT ("failed to g_idle_add(idle_update_display_cb): \"%m\", returning\n")));
+      //  return;
+      //} // end IF
   //  CBData_->eventSourceIds.insert (event_source_id);
     } // end lock scope
 #endif // GTK_USE
@@ -496,14 +496,14 @@ Test_U_AudioEffect_EventHandler::notify (Stream_SessionId_t sessionId_in,
     { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, state_r.lock);
       CBData_->progressData.statistic.bytes += message_in.total_length ();
       state_r.eventStack.push (COMMON_UI_EVENT_DATA);
-      event_source_id = g_idle_add (idle_update_display_cb,
-                                    CBData_);
-      if (event_source_id == 0)
-      {
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("failed to g_idle_add(idle_update_display_cb): \"%m\", returning\n")));
-        return;
-      } // end IF
+      //event_source_id = g_idle_add (idle_update_display_cb,
+      //                              CBData_);
+      //if (event_source_id == 0)
+      //{
+      //  ACE_DEBUG ((LM_ERROR,
+      //              ACE_TEXT ("failed to g_idle_add(idle_update_display_cb): \"%m\", returning\n")));
+      //  return;
+      //} // end IF
   //  CBData_->UIState.eventSourceIds.insert (event_source_id);
     } // end lock scope
 #endif // GTK_USE

@@ -754,7 +754,6 @@ Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T::stop"));
 
-  ACE_UNUSED_ARG (waitForCompletion_in);
   ACE_UNUSED_ARG (highPriority_in);
 
   int result = -1;
@@ -786,6 +785,15 @@ Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
                 ACE_TEXT ("%s: failed to ACE_Task_Base::putq(): \"%m\", continuing\n"),
                 inherited::mod_->name ()));
     message_block_p->release (); message_block_p = NULL;
+  } // end IF
+
+  if (likely (waitForCompletion_in))
+  {
+    result = inherited::TASK_T::wait ();
+    if (unlikely (result == -1))
+         ACE_DEBUG ((LM_ERROR,
+                     ACE_TEXT ("%s: failed to ACE_Task_Base::wait(): \"%m\", continuing\n"),
+                     inherited::mod_->name ()));
   } // end IF
 }
 
@@ -929,15 +937,15 @@ Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
                             cairoSurface_out,
                             0.0, 0.0);
 #else
-  gdk_cairo_set_source_pixbuf (cairoContext_out,
-                               pixelBuffer_out,
-                               0.0, 0.0);
+  //gdk_cairo_set_source_pixbuf (cairoContext_out,
+  //                             pixelBuffer_out,
+  //                             0.0, 0.0);
 #endif // GTK_CHECK_VERSION(3,10,0)
 
-  cairo_set_line_cap (cairoContext_out, CAIRO_LINE_CAP_BUTT);
+  //cairo_set_line_cap (cairoContext_out, CAIRO_LINE_CAP_BUTT);
   cairo_set_line_width (cairoContext_out, 1.0);
-  cairo_set_line_join (cairoContext_out, CAIRO_LINE_JOIN_MITER);
-  cairo_set_dash (cairoContext_out, NULL, 0, 0.0);
+  //cairo_set_line_join (cairoContext_out, CAIRO_LINE_JOIN_MITER);
+  //cairo_set_dash (cairoContext_out, NULL, 0, 0.0);
 
   return true;
 }
@@ -1147,6 +1155,7 @@ Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
   bool release_lock = false;
   unsigned int data_sample_size = 0;
   unsigned int sound_sample_size = 0;
+  ACE_UINT64 maximum_value_i = 0;
   const SessionDataType& session_data_r = inherited::sessionData_->getR ();
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -1160,11 +1169,13 @@ Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
   {
     result = surfaceLock_->acquire ();
     if (unlikely (result == -1))
+    {
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("%s: failed to ACE_SYNCH_MUTEX::acquire(): \"%m\", continuing\n"),
+                  ACE_TEXT ("%s: failed to ACE_SYNCH_MUTEX::acquire(): \"%m\", returning\n"),
                   inherited::mod_->name ()));
-    else
-      release_lock = true;
+      return;
+    } // end IF
+    release_lock = true;
   } // end IF
 
 #if GTK_CHECK_VERSION (3,10,0)
@@ -1206,16 +1217,21 @@ Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
   height_ = cairo_image_surface_get_height (cairoSurface_);
   width_ = cairo_image_surface_get_width (cairoSurface_);
 #else
-  ACE_ASSERT (inherited::sessionData_);
   ACE_ASSERT (cairoContext_);
   ACE_ASSERT (pixelBuffer_);
+
+  //gdk_cairo_set_source_pixbuf (cairoContext_,
+  //                             pixelBuffer_,
+  //                             0.0, 0.0);
+  //cairo_reset_clip (cairoContext_);
+
+  height_ = gdk_pixbuf_get_height (pixelBuffer_);
+  width_ = gdk_pixbuf_get_width (pixelBuffer_);
+#endif // GTK_CHECK_VERSION (3,10,0)
+  ACE_ASSERT (height_); ACE_ASSERT (width_);
+  halfHeight_ = height_ / 2;
+
   ACE_ASSERT (!session_data_r.formats.empty ());
-
-  gdk_cairo_set_source_pixbuf (cairoContext_,
-                               pixelBuffer_,
-                               0.0, 0.0);
-  cairo_reset_clip (cairoContext_);
-
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   inherited2::getMediaType (session_data_r.formats.back (),
                             media_type_s);
@@ -1234,21 +1250,19 @@ Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
                             media_type_s);
   data_sample_size =
     ((snd_pcm_format_width (media_type_s.format) / 8) *
-      media_type_s.channels);
+     media_type_s.channels);
   sound_sample_size = data_sample_size / media_type_s.channels;
 #endif // ACE_WIN32 || ACE_WIN64
 
-  height_ = gdk_pixbuf_get_height (pixelBuffer_);
-  width_ = gdk_pixbuf_get_width (pixelBuffer_);
-
   channelFactor_ = width_ / static_cast<double> (inherited3::channels_);
   scaleFactorX_ =
-      width_ / static_cast<double> (inherited3::channels_ * inherited3::slots_);
-  scaleFactorY_ =
-    height_ / static_cast<double> (((1ULL << (sound_sample_size * 8)) - 1));
-  //height_ / static_cast<double> (((1ULL << (sound_sample_size * 8)) - 1));
-#endif // GTK_CHECK_VERSION (3,10,0)
-  ACE_ASSERT (height_); ACE_ASSERT (width_);
+    width_ / static_cast<double> (inherited3::channels_ * inherited3::slots_);
+  scaleFactorX_2 =
+    width_ / static_cast<double> (inherited3::channels_ * ((inherited3::slots_ / 2) - 1));
+  Common_Tools::max<ACE_UINT64> (static_cast<uint8_t> (sound_sample_size),
+                                 false,
+                                 maximum_value_i);
+  scaleFactorY_ = height_ / static_cast<double> (maximum_value_i);
 
 unlock:
   if (likely (release_lock))
@@ -1295,6 +1309,13 @@ Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
   int result = -1;
   bool release_lock = false;
   double x = 0.0;
+#define CAIRO_ERROR_WORKAROUND(X)                                        \
+ if (cairo_status (X) != CAIRO_STATUS_SUCCESS) {                         \
+   cairo_destroy (cairoContext_); cairoContext_ = NULL;                  \
+   cairoContext_ = gdk_cairo_create (inherited::configuration_->window); \
+   ACE_ASSERT (cairoContext_);                                           \
+   cairo_set_line_width (cairoContext_, 1.0);                            \
+ } // end IF
 
   if (surfaceLock_)
   {
@@ -1338,18 +1359,21 @@ Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
         // step2aa: draw thin, white columns
         cairo_set_source_rgb (cairoContext_, 1.0, 1.0, 1.0);
         // *IMPORTANT NOTE*: - the first ('DC'-)slot does not contain frequency
-        //                     information
+        //                     information --> j = 1
         //                   - the slots N/2 - N are mirrored and do not contain
-        //                     additional information, i.e. only N/2 - 1 values
+        //                     additional information
+        //                     --> there are only N/2 - 1 meaningful values
         for (unsigned int j = 1; j < inherited3::halfSlots_; ++j)
+        //for (unsigned int j = 0; j < inherited3::slots_; ++j)
         {
           x = (i * channelFactor_) + (j * scaleFactorX_2);
+          //x = (i * channelFactor_) + (j * scaleFactorX_);
           cairo_move_to (cairoContext_,
                          x,
                          height_);
           cairo_line_to (cairoContext_,
                          x,
-                         height_ - (inherited3::Magnitude (j, i) * scaleFactorY_));
+                         height_ - (inherited3::Amplitude (j, i) * scaleFactorY_));
         } // end FOR
         break;
       }
@@ -1381,8 +1405,14 @@ Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
   } // end FOR
 #if GTK_CHECK_VERSION(3,10,0)
   cairo_surface_mark_dirty (cairoSurface_);
+  ACE_ASSERT (cairo_status (cairoSurface_) == CAIRO_STATUS_SUCCESS);
   cairo_surface_flush (cairoSurface_);
+  ACE_ASSERT (cairo_status (cairoSurface_) == CAIRO_STATUS_SUCCESS);
 #endif // GTK_CHECK_VERSION(3,10,0)
+  // *IMPORTANT NOTE*: this assert fails intermittently on Gtk2 Win32;
+  //                   the result is CAIRO_STATUS_NO_MEMORY
+  //ACE_ASSERT (cairo_status (cairoContext_) == CAIRO_STATUS_SUCCESS);
+  CAIRO_ERROR_WORKAROUND (cairoContext_);
 
 unlock:
   if (release_lock)
