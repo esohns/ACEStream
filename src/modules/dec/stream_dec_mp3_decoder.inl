@@ -328,9 +328,8 @@ Stream_Decoder_MP3Decoder_T<ACE_SYNCH_USE,
   inherited2::getMediaType (media_type_2,
                             media_type_s);
   session_data_r.formats.push_back (media_type_s);
-  session_data_container_p = inherited::sessionData_;
+  session_data_container_p = inherited::sessionData_->clone ();
   ACE_ASSERT (session_data_container_p);
-  session_data_container_p->increase ();
   if (unlikely (!inherited::putSessionMessage (STREAM_SESSION_MESSAGE_STEP,
                                                session_data_container_p,
                                                inherited::streamState_->userData)))

@@ -126,7 +126,7 @@ class Stream_Module_Base_T
   inline virtual void end (Stream_SessionId_t) { ACE_ASSERT (false); ACE_NOTSUP; ACE_NOTREACHED (return;) } // session id
   inline virtual void onLink (ACE_Module_Base*) {}
   inline virtual void onUnlink (ACE_Module_Base*) {}
-  virtual MODULE_T* clone ();
+  virtual MODULE_T* clone () const;
 
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_Base_T ())
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_Base_T (const Stream_Module_Base_T&))

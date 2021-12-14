@@ -382,7 +382,7 @@ Stream_Module_Base_T<ACE_SYNCH_USE,
                      ModuleName,
                      NotificationType,
                      ReaderTaskType,
-                     WriterTaskType>::clone ()
+                     WriterTaskType>::clone () const
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Base_T::clone"));
 
@@ -484,7 +484,7 @@ continue_2:
     if (!imodule_handler_p)
       goto continue_3;
     try {
-      result = imodule_handler_p->postClone (this,
+      result = imodule_handler_p->postClone (const_cast<OWN_TYPE_T*> (this),
                                              false); // initialize ?
     } catch (...) {
       ACE_DEBUG ((LM_ERROR,
@@ -509,7 +509,7 @@ continue_3:
     if (!imodule_handler_p)
       goto done;
     try {
-      result = imodule_handler_p->postClone (this,
+      result = imodule_handler_p->postClone (const_cast<OWN_TYPE_T*> (this),
                                              false);
     } catch (...) {
       ACE_DEBUG ((LM_ERROR,

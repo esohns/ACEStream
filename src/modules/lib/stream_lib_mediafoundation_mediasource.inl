@@ -974,13 +974,13 @@ Stream_MediaFramework_MediaFoundation_MediaSource_T<TimePolicyType,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_MediaFoundation_MediaSource_T::Pause"));
 
-  ACE_ASSERT (false);
+  ACE_ASSERT (false); // *TODO*
   ACE_NOTSUP_RETURN (E_FAIL);
+
+  state_ = STATE_PAUSED;
 
   ACE_DEBUG ((LM_DEBUG,
               ACE_TEXT ("media source paused\n")));
-
-  state_ = STATE_PAUSED;
 
   ACE_NOTREACHED (return E_FAIL;)
 }
@@ -1801,10 +1801,10 @@ Stream_MediaFramework_MediaFoundation_MediaSource_T<TimePolicyType,
 
   buffering_ = true;
   configuration_ = &const_cast<ConfigurationType&> (configuration_in);
-  //if (presentationDescriptor_)
-  //{
-  //  presentationDescriptor_->Release (); presentationDescriptor_ = NULL;
-  //} // end IF
+  if (presentationDescriptor_)
+  {
+    presentationDescriptor_->Release (); presentationDescriptor_ = NULL;
+  } // end IF
   state_ = STATE_INITIALIZED;
   { ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, lock_, false);
     for (TOKEN_LIST_ITERATOR_T iterator = tokens_.begin ();

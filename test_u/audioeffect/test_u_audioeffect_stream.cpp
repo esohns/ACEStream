@@ -598,14 +598,43 @@ Test_U_AudioEffect_MediaFoundation_Stream::start ()
 #if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
   ACE_ASSERT (mediaSession_);
 #endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
+  ACE_ASSERT (inherited::configuration_);
+  ACE_ASSERT (inherited::configuration_->configuration_);
   ACE_ASSERT (!topologyIsReady_);
 
   HRESULT result = E_FAIL;
   int result_2 = -1;
-  ACE_Time_Value deadline = COMMON_TIME_NOW + ACE_Time_Value (10, 0);
+  ACE_Time_Value deadline =
+    ACE_Time_Value (STREAM_LIB_MEDIAFOUNDATION_MEDIASESSION_READY_TIMEOUT_S, 0);
   int error = 0;
-  { ACE_GUARD (ACE_SYNCH_RECURSIVE_MUTEX, aGuard, inherited::lock_);
+  struct _GUID GUID_s = GUID_NULL;
+  struct tagPROPVARIANT property_s;
+  PropVariantInit (&property_s);
+  property_s.vt = VT_EMPTY;
 
+  // start receiving media session events ?
+  switch (inherited::configuration_->configuration_->sourceType)
+  {
+    case AUDIOEFFECT_SOURCE_DEVICE:
+    case AUDIOEFFECT_SOURCE_NOISE:
+      break;
+    case AUDIOEFFECT_SOURCE_FILE:
+    {
+      // *NOTE*: the source media type(s) is/are unknown at this stage; let the
+      //         mediafoundation target module update and manage the media
+      //         session
+      goto continue_2;
+    }
+    default:
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("invalid/unknown source type (was: %d), returning\n"),
+                  inherited::configuration_->configuration_->sourceType));
+      goto error;
+    }
+  } // end SWITCH
+
+  { ACE_GUARD (ACE_SYNCH_RECURSIVE_MUTEX, aGuard, inherited::lock_);
 #if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
     result = mediaSession_->BeginGetEvent (this, NULL);
     if (FAILED (result))
@@ -614,15 +643,15 @@ Test_U_AudioEffect_MediaFoundation_Stream::start ()
                   ACE_TEXT ("%s: failed to IMFMediaSession::BeginGetEvent(): \"%s\", returning\n"),
                   ACE_TEXT (stream_name_string_),
                   ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
-      return;
+      goto error;
     } // end IF
 #endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
 
     // wait for MF_TOPOSTATUS_READY event
+    deadline = COMMON_TIME_NOW + deadline;
     result_2 = condition_.wait (&deadline);
     if (unlikely (result_2 == -1))
-    {
-      error = ACE_OS::last_error ();
+    { error = ACE_OS::last_error ();
       if (error != ETIME) // 137: timed out
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: failed to ACE_Condition::wait(%#T): \"%m\", aborting\n"),
@@ -638,13 +667,9 @@ continue_:
                 ACE_TEXT ("%s: topology not ready%s, returning\n"),
                 ACE_TEXT (stream_name_string_),
                 (error == ETIME) ? ACE_TEXT (" (timed out)") : ACE_TEXT ("")));
-    return;
+    goto error;
   } // end IF
 
-  struct _GUID GUID_s = GUID_NULL;
-  struct tagPROPVARIANT property_s;
-  PropVariantInit (&property_s);
-  property_s.vt = VT_EMPTY;
 #if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
   result = mediaSession_->Start (&GUID_s,      // time format
                                  &property_s); // start position
@@ -654,13 +679,19 @@ continue_:
                 ACE_TEXT ("%s: failed to IMFMediaSession::Start(): \"%s\", returning\n"),
                 ACE_TEXT (stream_name_string_),
                 ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
-    PropVariantClear (&property_s);
-    return;
+    goto error;
   } // end IF
 #endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
+
+continue_2:
   PropVariantClear (&property_s);
 
   inherited::start ();
+
+  return;
+
+error:
+  PropVariantClear (&property_s);
 }
 
 void
@@ -988,9 +1019,9 @@ Test_U_AudioEffect_MediaFoundation_Stream::initialize (const inherited::CONFIGUR
   inherited::CONFIGURATION_T::ITERATOR_T iterator =
     const_cast<inherited::CONFIGURATION_T&> (configuration_in).find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (iterator != configuration_in.end ());
-  //inherited::CONFIGURATION_T::ITERATOR_T iterator_2 =
-  //  const_cast<inherited::CONFIGURATION_T&> (configuration_in).find (ACE_TEXT_ALWAYS_CHAR (STREAM_LIB_MEDIAFOUNDATION_TARGET_DEFAULT_NAME_STRING));
-  //ACE_ASSERT (iterator_2 != configuration_in.end ());
+  inherited::CONFIGURATION_T::ITERATOR_T iterator_2 =
+    const_cast<inherited::CONFIGURATION_T&> (configuration_in).find (ACE_TEXT_ALWAYS_CHAR (STREAM_LIB_MEDIAFOUNDATION_TARGET_DEFAULT_NAME_STRING));
+  ACE_ASSERT (iterator_2 != configuration_in.end ());
   inherited::CONFIGURATION_T::ITERATOR_T iterator_3 =
     const_cast<inherited::CONFIGURATION_T&> (configuration_in).find (ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_WASAPI_RENDER_DEFAULT_NAME_STRING));
   ACE_ASSERT (iterator_3 != configuration_in.end ());
@@ -1032,28 +1063,12 @@ Test_U_AudioEffect_MediaFoundation_Stream::initialize (const inherited::CONFIGUR
   int render_device_id_i = -1;
 
 #if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
-  if (mediaSession_)
-  {
-    mediaSession_->Release (); mediaSession_ = NULL;
-  } // end IF
-
   // *TODO*: reusing media sessions is harder than it seems...
   //         --> use a fresh one every time
-  if ((*iterator).second.second->session)
+  if (mediaSession_)
   {
-    Stream_MediaFramework_MediaFoundation_Tools::shutdown ((*iterator).second.second->session);
-    (*iterator).second.second->session->Release (); (*iterator).second.second->session = NULL;
-
-    //reference_count = (*iterator).second.second->session->AddRef ();
-    //mediaSession_ = (*iterator).second.second->session;
-
-    //if (!)
-    //{
-    //  ACE_DEBUG ((LM_ERROR,
-    //              ACE_TEXT ("%s: failed to Stream_MediaFramework_MediaFoundation_Tools::getTopology(), aborting\n"),
-    //              ACE_TEXT (stream_name_string_)));
-    //  goto error;
-    //} // end IF
+    Stream_MediaFramework_MediaFoundation_Tools::shutdown (mediaSession_);
+    mediaSession_->Release (); mediaSession_ = NULL;
   } // end IF
 
   IMFMediaSource* media_source_p = NULL;
@@ -1226,6 +1241,37 @@ continue_3:
   } // end IF
   ACE_ASSERT (mediaSession_);
 
+  switch (inherited::configuration_->configuration_->sourceType)
+  {
+    case AUDIOEFFECT_SOURCE_DEVICE:
+    case AUDIOEFFECT_SOURCE_NOISE:
+    {
+      (*iterator_2).second.second->manageMediaSession = false;
+      break;
+    }
+    case AUDIOEFFECT_SOURCE_FILE:
+    {
+      // *NOTE*: the source media type(s) is/are unknown at this stage; let the
+      //         mediafoundation target module update and manage the media
+      //         session
+      (*iterator_2).second.second->manageMediaSession = true;
+      break;
+    }
+    default:
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("invalid/unknown source type (was: %d), returning\n"),
+                  inherited::configuration_->configuration_->sourceType));
+      goto error;
+    }
+  } // end SWITCH
+
+  if ((*iterator).second.second->session)
+  {
+    (*iterator).second.second->session->Release (); (*iterator).second.second->session = NULL;
+  } // end IF
+  reference_count = mediaSession_->AddRef ();
+  (*iterator).second.second->session = mediaSession_;
   if ((*iterator).second.second->mediaFoundationConfiguration->mediaEventGenerator)
   {
     (*iterator).second.second->mediaFoundationConfiguration->mediaEventGenerator->Release (); (*iterator).second.second->mediaFoundationConfiguration->mediaEventGenerator = NULL;
@@ -1234,11 +1280,12 @@ continue_3:
     mediaSession_->QueryInterface (IID_PPV_ARGS (&(*iterator).second.second->mediaFoundationConfiguration->mediaEventGenerator));
   ACE_ASSERT (SUCCEEDED (result_2) && (*iterator).second.second->mediaFoundationConfiguration->mediaEventGenerator);
 
-  if (!(*iterator).second.second->session)
+  if (session_data_r.session)
   {
-    reference_count = mediaSession_->AddRef ();
-    (*iterator).second.second->session = mediaSession_;
+    session_data_r.session->Release (); session_data_r.session = NULL;
   } // end IF
+  reference_count = mediaSession_->AddRef ();
+  session_data_r.session = mediaSession_;
 #endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
   ACE_ASSERT (topology_p);
   topology_p->Release (); topology_p = NULL;
@@ -1260,15 +1307,6 @@ continue_3:
     } // end IF
     session_data_r.formats.push_back (media_type_p);
   } // end IF
-
-#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
-  if (session_data_r.session)
-  {
-    session_data_r.session->Release (); session_data_r.session = NULL;
-  } // end IF
-  reference_count = mediaSession_->AddRef ();
-  session_data_r.session = mediaSession_;
-#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
 
   if (configuration_in.configuration_->setupPipeline)
     if (!inherited::setup ())
@@ -1552,25 +1590,22 @@ Test_U_AudioEffect_MediaFoundation_Stream::Invoke (IMFAsyncResult* result_in)
       // start media session ?
       if (topology_status == MF_TOPOSTATUS_READY)
       {
-        if (SUCCEEDED (status))
-        {
-          int result_2 = -1;
-          { ACE_GUARD_RETURN (ACE_SYNCH_RECURSIVE_MUTEX, aGuard, inherited::lock_, E_FAIL);
+        { ACE_GUARD_RETURN (ACE_SYNCH_RECURSIVE_MUTEX, aGuard, inherited::lock_, E_FAIL);
+          if (SUCCEEDED (status))
             topologyIsReady_ = true;
-            result_2 = condition_.broadcast ();
-            if (unlikely (result_2 == -1))
-            {
-              ACE_DEBUG ((LM_ERROR,
-                          ACE_TEXT ("%s: failed to ACE_Condition::broadcast(): \"%m\", aborting\n"),
-                          ACE_TEXT (stream_name_string_),
-                          ACE_TEXT (Stream_MediaFramework_MediaFoundation_Tools::toString (topology_status).c_str ())));
-              stop_b = true;
-              goto error;
-            } // end IF
-          } // end lock scope
-        } // end IF
-        else
-          stop_b = true;
+          else
+            stop_b = true;
+          int result_2 = condition_.broadcast ();
+          if (unlikely (result_2 == -1))
+          {
+            ACE_DEBUG ((LM_ERROR,
+                        ACE_TEXT ("%s: failed to ACE_Condition::broadcast(): \"%m\", aborting\n"),
+                        ACE_TEXT (stream_name_string_),
+                        ACE_TEXT (Stream_MediaFramework_MediaFoundation_Tools::toString (topology_status).c_str ())));
+            stop_b = true;
+            goto error;
+          } // end IF
+        } // end lock scope
       } // end IF
       break;
     }

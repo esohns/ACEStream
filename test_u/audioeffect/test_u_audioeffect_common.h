@@ -464,8 +464,8 @@ struct Test_U_AudioEffect_MediaFoundation_ModuleHandlerConfiguration
    : Test_U_AudioEffect_ModuleHandlerConfiguration ()
    , effect (GUID_NULL)
    , effectOptions ()
+   , manageMediaSession (false)
    , mediaFoundationConfiguration (NULL)
-   //, sampleGrabberNodeId (0)
    , session (NULL)
    , outputFormat (NULL)
    , streamConfiguration (NULL)
@@ -481,8 +481,8 @@ struct Test_U_AudioEffect_MediaFoundation_ModuleHandlerConfiguration
 
   CLSID                                                       effect;
   std::string                                                 effectOptions;
+  bool                                                        manageMediaSession;
   struct Stream_MediaFramework_MediaFoundation_Configuration* mediaFoundationConfiguration;
-  //TOPOID                                                      sampleGrabberNodeId;
   IMFMediaSession*                                            session;
   IMFMediaType*                                               outputFormat;
   Test_U_AudioEffect_MediaFoundation_StreamConfiguration_t*   streamConfiguration;

@@ -26,8 +26,8 @@
 #include "ace/Global_Macros.h"
 #include "ace/Synch_Traits.h"
 
-#include "common_isubscribe.h"
 #include "common_iclone.h"
+#include "common_isubscribe.h"
 
 #include "stream_common.h"
 #include "stream_isessionnotify.h"
@@ -117,7 +117,7 @@ class Stream_Module_MessageHandler_T
                           bool = false);               // initialize from 'original' ?
 
   // implement Common_IClone_T
-  inline virtual ACE_Task<ACE_SYNCH_USE, TimePolicyType>* clone () { ACE_ASSERT (false); ACE_NOTSUP_RETURN (NULL); ACE_NOTREACHED (return NULL;) }
+  inline virtual ACE_Task<ACE_SYNCH_USE, TimePolicyType>* clone () const { ACE_ASSERT (false); ACE_NOTSUP_RETURN (NULL); ACE_NOTREACHED (return NULL;) }
 
  protected:
   // convenient types
@@ -247,7 +247,7 @@ class Stream_Module_MessageHandlerA_T
 
   // implement Common_IClone_T
   inline virtual ACE_Task<ACE_SYNCH_USE,
-                          TimePolicyType>* clone () { ACE_ASSERT (false); ACE_NOTSUP_RETURN (NULL); ACE_NOTREACHED (return NULL;) };
+                          TimePolicyType>* clone () const { ACE_ASSERT (false); ACE_NOTSUP_RETURN (NULL); ACE_NOTREACHED (return NULL;) };
 
  protected:
   // convenient types

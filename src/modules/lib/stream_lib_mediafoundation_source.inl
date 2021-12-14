@@ -18,8 +18,6 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#include <utility>
-
 #include "ace/Log_Msg.h"
 
 #include "common_tools.h"
@@ -54,13 +52,14 @@ Stream_MediaFramework_MediaFoundation_Source_T<ACE_SYNCH_USE,
                                                UserDataType>::Stream_MediaFramework_MediaFoundation_Source_T (ISTREAM_T* stream_in)
  : inherited (stream_in)
  , inherited2 ()
- , isFirst_ (true)
- , baseTimeStamp_ (0)
+ , condition_ (inherited::lock_)
+ , manageMediaSession_ (true)
 #if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
  , mediaSession_ (NULL)
 #endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
  , presentationClock_ (NULL)
  , referenceCount_ (1)
+ , topologyIsReady_ (false)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_MediaFoundation_Source_T::Stream_MediaFramework_MediaFoundation_Source_T"));
 
@@ -92,6 +91,8 @@ Stream_MediaFramework_MediaFoundation_Source_T<ACE_SYNCH_USE,
 #if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
   if (mediaSession_)
   {
+    if (manageMediaSession_)
+      Stream_MediaFramework_MediaFoundation_Tools::shutdown (mediaSession_);
     mediaSession_->Release (); mediaSession_ = NULL;
   } // end IF
 #endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
@@ -119,7 +120,8 @@ Stream_MediaFramework_MediaFoundation_Source_T<ACE_SYNCH_USE,
                                                SessionDataContainerType,
                                                SessionDataType,
                                                MediaType,
-                                               UserDataType>::initialize (const ConfigurationType& configuration_in)
+                                               UserDataType>::initialize (const ConfigurationType& configuration_in,
+                                                                          Stream_IAllocator* allocator_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_MediaFoundation_Source_T::initialize"));
 
@@ -136,24 +138,35 @@ Stream_MediaFramework_MediaFoundation_Source_T<ACE_SYNCH_USE,
 
   if (inherited::isInitialized_)
   {
-    isFirst_ = true;
-    baseTimeStamp_ = 0;
 #if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
     if (mediaSession_)
     {
+      if (manageMediaSession_)
+        Stream_MediaFramework_MediaFoundation_Tools::shutdown (mediaSession_);
       mediaSession_->Release (); mediaSession_ = NULL;
     } // end IF
+    manageMediaSession_ = true;
 #endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
     if (presentationClock_)
     {
       presentationClock_->Release (); presentationClock_ = NULL;
     } // end IF
     referenceCount_ = 1;
+    topologyIsReady_ = false;
+  } // end IF
+
+  // *TODO*: remove type inferences
+  manageMediaSession_ = configuration_in.manageMediaSession;
+  if (configuration_in.session)
+  {
+    ULONG reference_count = configuration_in.session->AddRef ();
+    mediaSession_ = configuration_in.session;
   } // end IF
 
   if (COM_initialized) Common_Tools::finalizeCOM ();
 
-  return inherited::initialize (configuration_in);;
+  return inherited::initialize (configuration_in,
+                                allocator_in);
 }
 
 template <ACE_SYNCH_DECL,
@@ -188,6 +201,7 @@ Stream_MediaFramework_MediaFoundation_Source_T<ACE_SYNCH_USE,
 #else
     QITABENT (OWN_TYPE_T, IMFSampleGrabberSinkCallback),
 #endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0601)
+    QITABENT (OWN_TYPE_T, IMFAsyncCallback),
     { 0 },
   };
 
@@ -620,20 +634,13 @@ Stream_MediaFramework_MediaFoundation_Source_T<ACE_SYNCH_USE,
   ACE_UNUSED_ARG (duration_in);
   ACE_UNUSED_ARG (attributes_in);
 
-  DataMessageType* message_p = NULL;
-  int result = -1;
-
-  if (unlikely (isFirst_))
-  {
-    isFirst_ = false;
-    baseTimeStamp_ = timeStamp_in;
-  } // end IF
-  timeStamp_in -= baseTimeStamp_; // absolute- to relative-
-
   // sanity check(s)
   ACE_ASSERT (inherited::configuration_);
   // *TODO*: remove type inference
   ACE_ASSERT (inherited::configuration_->allocatorConfiguration);
+
+  DataMessageType* message_p = NULL;
+  int result = -1;
 
   message_p =
     inherited::allocateMessage (std::max (static_cast<DWORD> (inherited::configuration_->allocatorConfiguration->defaultBufferSize),
@@ -748,6 +755,308 @@ template <ACE_SYNCH_DECL,
           typename SessionDataType,
           typename MediaType,
           typename UserDataType>
+HRESULT
+Stream_MediaFramework_MediaFoundation_Source_T<ACE_SYNCH_USE,
+                                               TimePolicyType,
+                                               ConfigurationType,
+                                               ControlMessageType,
+                                               DataMessageType,
+                                               SessionMessageType,
+                                               SessionDataContainerType,
+                                               SessionDataType,
+                                               MediaType,
+                                               UserDataType>::Invoke (IMFAsyncResult* result_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_MediaFoundation_Source_T::Invoke"));
+
+  HRESULT result = E_FAIL;
+  IMFMediaEvent* media_event_p = NULL;
+  MediaEventType event_type = MEUnknown;
+  HRESULT status = E_FAIL;
+  struct tagPROPVARIANT value;
+  bool stop_b = false;
+  bool request_event_b = true;
+  PropVariantInit (&value);
+
+  // sanity check(s)
+  ACE_ASSERT (result_in);
+#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
+  ACE_ASSERT (mediaSession_);
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
+
+#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
+  result = mediaSession_->EndGetEvent (result_in, &media_event_p);
+  if (FAILED (result) || !media_event_p)
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s: failed to IMFMediaSession::EndGetEvent(): \"%s\", aborting\n"),
+                inherited::mod_->name (),
+                ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
+    stop_b = true;
+    goto error;
+  } // end IF
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
+  result = media_event_p->GetType (&event_type);
+  ACE_ASSERT (SUCCEEDED (result));
+  result = media_event_p->GetStatus (&status);
+  ACE_ASSERT (SUCCEEDED (result));
+  result = media_event_p->GetValue (&value);
+  ACE_ASSERT (SUCCEEDED (result));
+  switch (event_type)
+  {
+    case MEEndOfPresentation:
+    {
+      ACE_DEBUG ((LM_DEBUG,
+                  ACE_TEXT ("%s: received MEEndOfPresentation\n"),
+                  inherited::mod_->name ()));
+      break;
+    }
+    case MEError:
+    { // MF_E_INVALID_TIMESTAMP : 0xc00d36c0
+      // MF_E_STREAMSINK_REMOVED: 0xc00d4a38
+      // MF_E_STREAM_ERROR      : 0xc00da7fb
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("%s: received MEError: \"%s\"\n"),
+                  inherited::mod_->name (),
+                  ACE_TEXT (Common_Error_Tools::errorToString (status).c_str ())));
+      request_event_b = false;
+      stop_b = true;
+      break;
+    }
+    case MESessionClosed:
+    {
+      ACE_DEBUG ((LM_DEBUG,
+                  ACE_TEXT ("%s: received MESessionClosed, shutting down\n"),
+                  inherited::mod_->name ()));
+#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
+      result = mediaSession_->Shutdown ();
+      if (FAILED (result))
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("%s: failed to IMFMediaSession::Shutdown(): \"%s\", continuing\n"),
+                    inherited::mod_->name (),
+                    ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
+      request_event_b = false;
+      break;
+    }
+    case MESessionEnded:
+    {
+      ACE_DEBUG ((LM_DEBUG,
+                  ACE_TEXT ("%s: received MESessionEnded, closing sesion\n"),
+                  inherited::mod_->name ()));
+#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
+      result = mediaSession_->Close ();
+      if (FAILED (result))
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("%s: failed to IMFMediaSession::Close(): \"%s\", continuing\n"),
+                    inherited::mod_->name (),
+                    ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
+      break;
+    }
+    case MESessionCapabilitiesChanged:
+    {
+      UINT32 session_capabilities_i = 0, session_capabilities_delta_i = 0;
+      result = media_event_p->GetUINT32 (MF_EVENT_SESSIONCAPS,
+                                         &session_capabilities_i);
+      ACE_ASSERT (SUCCEEDED (result));
+      result = media_event_p->GetUINT32 (MF_EVENT_SESSIONCAPS_DELTA,
+                                         &session_capabilities_delta_i);
+      ACE_ASSERT (SUCCEEDED (result));
+      ACE_DEBUG ((LM_DEBUG,
+                  ACE_TEXT ("%s: received MESessionCapabilitiesChanged: %u/%u\n"),
+                  inherited::mod_->name (),
+                  session_capabilities_i, session_capabilities_delta_i));
+      break;
+    }
+    case MESessionNotifyPresentationTime:
+    {
+      UINT64 presentation_time_start_i = 0;
+      result = media_event_p->GetUINT64 (MF_EVENT_START_PRESENTATION_TIME,
+                                         &presentation_time_start_i);
+      ACE_ASSERT (SUCCEEDED (result));
+      UINT64 presentation_time_offset_i = 0;
+      result = media_event_p->GetUINT64 (MF_EVENT_PRESENTATION_TIME_OFFSET,
+                                         &presentation_time_offset_i);
+      ACE_ASSERT (SUCCEEDED (result));
+      UINT64 presentation_time_at_output_i = 0;
+      result = media_event_p->GetUINT64 (MF_EVENT_START_PRESENTATION_TIME_AT_OUTPUT,
+                                         &presentation_time_at_output_i);
+      ACE_ASSERT (SUCCEEDED (result));
+      ACE_DEBUG ((LM_DEBUG,
+                  ACE_TEXT ("%s: received MESessionNotifyPresentationTime: %Q/%Q/%Q\n"),
+                  inherited::mod_->name (),
+                  presentation_time_start_i, presentation_time_offset_i, presentation_time_at_output_i));
+      break;
+    }
+    case MESessionStarted:
+    { // status MF_E_INVALIDREQUEST    : 0xC00D36B2
+      // status MF_E_ATTRIBUTENOTFOUND : 0xC00D36E6
+      // status MF_E_STREAMSINK_REMOVED: 0xc00d4a38
+      UINT64 presentation_time_offset_i = 0;
+      result = media_event_p->GetUINT64 (MF_EVENT_PRESENTATION_TIME_OFFSET,
+                                         &presentation_time_offset_i);
+      //ACE_ASSERT (SUCCEEDED (result)); // MF_E_ATTRIBUTENOTFOUND: 0xc00d36e6
+      ACE_DEBUG ((LM_DEBUG,
+                  ACE_TEXT ("%s: received MESessionStarted: \"%s\", presentation offset: %q\n"),
+                  inherited::mod_->name (),
+                  ACE_TEXT (Common_Error_Tools::errorToString (status).c_str ()),
+                  presentation_time_offset_i));
+      break;
+    }
+    case MESessionStopped:
+    { // status MF_E_INVALIDREQUEST: 0xC00D36B2
+      ACE_DEBUG ((LM_DEBUG,
+                  ACE_TEXT ("%s: received MESessionStopped, closing sesion\n"),
+                  inherited::mod_->name ()));
+#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
+      result = mediaSession_->Close ();
+      if (FAILED (result))
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("%s: failed to IMFMediaSession::Close(): \"%s\", continuing\n"),
+                    inherited::mod_->name (),
+                    ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
+      break;
+    }
+    case MESessionTopologySet:
+    {
+      ACE_DEBUG ((LM_DEBUG,
+                  ACE_TEXT ("%s: received MESessionTopologySet (status was: \"%s\")\n"),
+                  inherited::mod_->name (),
+                  ACE_TEXT (Common_Error_Tools::errorToString (status).c_str ())));
+      break;
+    }
+    case MESessionTopologyStatus:
+    {
+      UINT32 attribute_value = 0;
+      MF_TOPOSTATUS topology_status = MF_TOPOSTATUS_INVALID;
+      result = media_event_p->GetUINT32 (MF_EVENT_TOPOLOGY_STATUS,
+                                         &attribute_value);
+      ACE_ASSERT (SUCCEEDED (result));
+      topology_status = static_cast<MF_TOPOSTATUS> (attribute_value);
+      ACE_DEBUG ((LM_DEBUG,
+                  ACE_TEXT ("%s: received MESessionTopologyStatus: \"%s\" (status was: \"%s\")\n"),
+                  inherited::mod_->name (),
+                  ACE_TEXT (Stream_MediaFramework_MediaFoundation_Tools::toString (topology_status).c_str ()),
+                  ACE_TEXT (Common_Error_Tools::errorToString (status).c_str ())));
+      // start media session ?
+      if (topology_status == MF_TOPOSTATUS_READY)
+      {
+        { ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, inherited::lock_, E_FAIL);
+          if (SUCCEEDED (status))
+            topologyIsReady_ = true;
+          else
+            stop_b = true;
+          int result_2 = condition_.broadcast ();
+          if (unlikely (result_2 == -1))
+          {
+            ACE_DEBUG ((LM_ERROR,
+                        ACE_TEXT ("%s: failed to ACE_Condition::broadcast(): \"%m\", aborting\n"),
+                        inherited::mod_->name (),
+                        ACE_TEXT (Stream_MediaFramework_MediaFoundation_Tools::toString (topology_status).c_str ())));
+            stop_b = true;
+            goto error;
+          } // end IF
+        } // end lock scope
+      } // end IF
+      break;
+    }
+    case MEExtendedType:
+    {
+      struct _GUID GUID_s = GUID_NULL;
+      result = media_event_p->GetExtendedType (&GUID_s);
+      ACE_ASSERT (SUCCEEDED (result));
+      // MF_MEEXT_SAR_AUDIO_ENDPOINT_CHANGED: {02E7187D-0087-437E-A27F-CF5ADCCD3112}
+      ACE_DEBUG ((LM_DEBUG,
+                  ACE_TEXT ("%s: received extended media session event (type was: %s)\n"),
+                  inherited::mod_->name (),
+                  ACE_TEXT (Common_Tools::GUIDToString (GUID_s).c_str ())));
+      break;
+    }
+    case MEStreamSinkFormatInvalidated:
+    {
+      //IMFMediaSink* media_sink_p = NULL;
+      //// *TODO*: {3EA99C15-A893-4B46-B221-5FAE05C36152}
+      //struct _GUID GUID_s =
+      //  Common_Tools::StringToGUID (ACE_TEXT_ALWAYS_CHAR ("{3EA99C15-A893-4B46-B221-5FAE05C36152}"));
+      //result = media_event_p->GetUnknown (GUID_s,
+      //                                    IID_PPV_ARGS (&media_sink_p));
+      //ACE_ASSERT (SUCCEEDED (result) && media_sink_p);
+      TOPOID node_id = 0;
+      result = media_event_p->GetUINT64 (MF_EVENT_OUTPUT_NODE,
+                                         &node_id);
+      ACE_ASSERT (SUCCEEDED (result));
+      ACE_DEBUG ((LM_DEBUG,
+                  ACE_TEXT ("%s: received MEStreamSinkFormatInvalidated (id: %q)\n"),
+                  inherited::mod_->name (),
+                  node_id));
+      //media_sink_p->Release (); media_sink_p = NULL;
+      break;
+    }
+    case MEEndOfPresentationSegment:
+    { // *TODO*: {9C86CC50-68CE-4CFF-AA1E-9A5A40D5B4E0}
+      ACE_DEBUG ((LM_DEBUG,
+                  ACE_TEXT ("%s: received MEEndOfPresentationSegment\n"),
+                  inherited::mod_->name ()));
+      break;
+    }
+    default:
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("%s: received unknown/invalid media session event (type was: %d), continuing\n"),
+                  inherited::mod_->name (),
+                  event_type));
+      break;
+    }
+  } // end SWITCH
+  PropVariantClear (&value);
+  media_event_p->Release (); media_event_p = NULL;
+
+  if (unlikely (!request_event_b))
+    goto continue_;
+#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
+  result = mediaSession_->BeginGetEvent (this, NULL);
+  if (FAILED (result))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s: failed to IMFMediaSession::BeginGetEvent(): \"%s\", aborting\n"),
+                inherited::mod_->name (),
+                ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
+    stop_b = true;
+    goto error;
+  } // end IF
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
+
+continue_:
+  if (unlikely (stop_b))
+    this->notify (STREAM_SESSION_MESSAGE_ABORT);
+
+  return S_OK;
+
+#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
+error:
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
+  if (unlikely (stop_b))
+    this->notify (STREAM_SESSION_MESSAGE_ABORT);
+
+  if (media_event_p)
+    media_event_p->Release ();
+  PropVariantClear (&value);
+
+  return E_FAIL;
+}
+
+template <ACE_SYNCH_DECL,
+          typename TimePolicyType,
+          typename ConfigurationType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
+          typename SessionDataContainerType,
+          typename SessionDataType,
+          typename MediaType,
+          typename UserDataType>
 void
 Stream_MediaFramework_MediaFoundation_Source_T<ACE_SYNCH_USE,
                                                TimePolicyType,
@@ -795,10 +1104,6 @@ Stream_MediaFramework_MediaFoundation_Source_T<ACE_SYNCH_USE,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_MediaFoundation_Source_T::handleSessionMessage"));
 
-  int result = -1;
-  HRESULT result_2 = E_FAIL;
-  //IRunningObjectTable* ROT_p = NULL;
-
   // don't care (implies yes per default, if part of a stream)
   ACE_UNUSED_ARG (passMessageDownstream_out);
 
@@ -806,13 +1111,15 @@ Stream_MediaFramework_MediaFoundation_Source_T<ACE_SYNCH_USE,
   ACE_ASSERT (inherited::configuration_);
   ACE_ASSERT (inherited::isInitialized_);
 
+  int result = -1;
+  HRESULT result_2 = E_FAIL;
+
   switch (message_inout->type ())
   {
     case STREAM_SESSION_MESSAGE_BEGIN:
     {
       // sanity check(s)
       ACE_ASSERT (inherited::sessionData_);
-      ACE_ASSERT (!mediaSession_);
 
       SessionDataType& session_data_r =
         const_cast<SessionDataType&> (inherited::sessionData_->getR ());
@@ -820,45 +1127,45 @@ Stream_MediaFramework_MediaFoundation_Source_T<ACE_SYNCH_USE,
       MediaType media_type_2;
       ACE_OS::memset (&media_type_2, 0, sizeof (MediaType));
 
-      //bool is_running = false;
+      bool is_running = false;
       bool COM_initialized = Common_Tools::initializeCOM ();
-
       ULONG reference_count = 0;
-      if (inherited::configuration_->session)
-      {
-        reference_count = inherited::configuration_->session->AddRef ();
-        mediaSession_ = inherited::configuration_->session;
-        reference_count = mediaSession_->AddRef ();
-        session_data_r.session = mediaSession_;
-      } // end IF
-      else if (session_data_r.session)
-      {
-        reference_count = session_data_r.session->AddRef ();
-        mediaSession_ = session_data_r.session;
-      } // end ELSE IF
-      DWORD flags_i = MFSESSION_GETFULLTOPOLOGY_CURRENT;
       IMFTopology* topology_p = NULL;
       TOPOID node_id = 0;
+      struct _GUID GUID_s = GUID_NULL;
+      struct tagPROPVARIANT property_s;
+      ACE_Time_Value deadline =
+        ACE_Time_Value (STREAM_LIB_MEDIAFOUNDATION_MEDIASESSION_READY_TIMEOUT_S, 0);
+      int error = 0;
+
       if (!mediaSession_)
       {
+        if (session_data_r.session)
+        {
+          reference_count = session_data_r.session->AddRef ();
+          mediaSession_ = session_data_r.session;
+          goto continue_;
+        } // end IF
+
         IMFMediaSource* media_source_p = NULL;
-        if (!initialize_MediaFoundation (inherited::configuration_->deviceIdentifier,
-                                         NULL,
-                                         session_data_r.formats.back (),
-                                         media_source_p,
-                                         NULL,
-                                         this,
-                                         node_id,
-                                         session_data_r.rendererNodeId,
-                                         mediaSession_))
+        if (!initializeMediaSession (inherited::configuration_->deviceIdentifier,
+                                     NULL,
+                                     session_data_r.formats.back (),
+                                     media_source_p,
+                                     NULL,
+                                     this,
+                                     node_id,
+                                     session_data_r.rendererNodeId,
+                                     mediaSession_))
         {
           ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("%s: failed to initialize_MediaFoundation(), aborting\n"),
+                      ACE_TEXT ("%s: failed to Stream_MediaFramework_MediaFoundation_Source_T::initializeMediaSession(), aborting\n"),
                       inherited::mod_->name ()));
           goto error;
         } // end IF
         media_source_p->Release (); media_source_p = NULL;
       } // end IF
+continue_:
       ACE_ASSERT (mediaSession_);
 
       if (!Stream_MediaFramework_MediaFoundation_Tools::getTopology (mediaSession_,
@@ -889,11 +1196,72 @@ Stream_MediaFramework_MediaFoundation_Source_T<ACE_SYNCH_USE,
         goto error;
       } // end IF
       ACE_ASSERT (media_type_p);
+      topology_p->Release (); topology_p = NULL;
+
       inherited2::getMediaType (media_type_p,
                                 media_type_2);
       session_data_r.formats.push_back (media_type_2);
       media_type_p->Release (); media_type_p = NULL;
 
+      if (manageMediaSession_)
+      {
+        { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, inherited::lock_);
+          result_2 = mediaSession_->BeginGetEvent (this, NULL);
+          if (FAILED (result_2))
+          {
+            ACE_DEBUG ((LM_ERROR,
+                        ACE_TEXT ("%s: failed to IMFMediaSession::BeginGetEvent(): \"%s\", aborting\n"),
+                        inherited::mod_->name (),
+                        ACE_TEXT (Common_Error_Tools::errorToString (result_2).c_str ())));
+            goto error;
+          } // end IF
+
+          // wait for MF_TOPOSTATUS_READY event
+          deadline = COMMON_TIME_NOW + deadline;
+          result = condition_.wait (&deadline);
+          if (unlikely (result == -1))
+          {
+            error = ACE_OS::last_error ();
+            if (error != ETIME) // 137: timed out
+              ACE_DEBUG ((LM_ERROR,
+                          ACE_TEXT ("%s: failed to ACE_Condition::wait(%#T): \"%m\", aborting\n"),
+                          inherited::mod_->name (),
+                          &deadline));
+            goto continue_2;
+          } // end IF
+
+continue_2:
+          if (!topologyIsReady_)
+          {
+            ACE_DEBUG ((LM_ERROR,
+                        ACE_TEXT ("%s: topology not ready%s, aborting\n"),
+                        inherited::mod_->name (),
+                        (error == ETIME) ? ACE_TEXT (" (timed out)") : ACE_TEXT ("")));
+            goto error;
+          } // end IF
+
+          //if (unlikely (delayStart_))
+          //  goto continue_3;
+
+          PropVariantInit (&property_s);
+          //property_s.vt = VT_EMPTY;
+          result_2 = mediaSession_->Start (&GUID_s,      // time format
+                                           &property_s); // start position
+          if (FAILED (result_2))
+          {
+            ACE_DEBUG ((LM_ERROR,
+                        ACE_TEXT ("%s: failed to IMFMediaSession::Start(): \"%s\", aborting\n"),
+                        inherited::mod_->name (),
+                        ACE_TEXT (Common_Error_Tools::errorToString (result_2).c_str ())));
+            PropVariantClear (&property_s);
+            goto error;
+          } // end IF
+          PropVariantClear (&property_s);
+          is_running = true;
+        } // end lock scope
+      } // end IF
+
+//continue_3:
       if (COM_initialized) Common_Tools::finalizeCOM ();
 
       break;
@@ -905,6 +1273,11 @@ error:
         topology_p->Release ();
       if (mediaSession_)
       {
+        if (manageMediaSession_)
+        {
+          Stream_MediaFramework_MediaFoundation_Tools::shutdown (mediaSession_);
+          finalizeMediaSession ();
+        } // end IF
         mediaSession_->Release (); mediaSession_ = NULL;
       } // end IF
 
@@ -918,10 +1291,13 @@ error:
     {
       bool COM_initialized = Common_Tools::initializeCOM ();
 
-      finalize_MediaFoundation ();
-
       if (mediaSession_)
       {
+        if (manageMediaSession_)
+        {
+          Stream_MediaFramework_MediaFoundation_Tools::shutdown (mediaSession_);
+          finalizeMediaSession ();
+        } // end IF
         mediaSession_->Release (); mediaSession_ = NULL;
       } // end IF
 
@@ -954,29 +1330,29 @@ Stream_MediaFramework_MediaFoundation_Source_T<ACE_SYNCH_USE,
                                                SessionDataContainerType,
                                                SessionDataType,
                                                MediaType,
-                                               UserDataType>::initialize_MediaFoundation (const struct Stream_Device_Identifier& deviceIdentifier_in,
-                                                                                          HWND windowHandle_in,
-                                                                                          const IMFMediaType* IMFMediaType_in,
+                                               UserDataType>::initializeMediaSession (const struct Stream_Device_Identifier& deviceIdentifier_in,
+                                                                                      HWND windowHandle_in,
+                                                                                      const IMFMediaType* IMFMediaType_in,
 #if COMMON_OS_WIN32_TARGET_PLATFORM(0x0602) // _WIN32_WINNT_WIN8
-                                                                                          IMFMediaSourceEx*& IMFMediaSource_inout,
+                                                                                      IMFMediaSourceEx*& IMFMediaSource_inout,
 #else
-                                                                                          IMFMediaSource*& IMFMediaSource_inout,
+                                                                                      IMFMediaSource*& IMFMediaSource_inout,
 #endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0602)
-                                                                                          IDirect3DDeviceManager9* IDirect3DDeviceManager_in,
+                                                                                      IDirect3DDeviceManager9* IDirect3DDeviceManager_in,
 #if COMMON_OS_WIN32_TARGET_PLATFORM(0x0601) // _WIN32_WINNT_WIN7
-                                                                                          IMFSampleGrabberSinkCallback2* IMFSampleGrabberSinkCallback_in,
+                                                                                      IMFSampleGrabberSinkCallback2* IMFSampleGrabberSinkCallback_in,
 #else
-                                                                                          IMFSampleGrabberSinkCallback* IMFSampleGrabberSinkCallback_in,
+                                                                                      IMFSampleGrabberSinkCallback* IMFSampleGrabberSinkCallback_in,
 #endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0601)
-                                                                                          TOPOID& sampleGrabberSinkNodeId_out,
-                                                                                          TOPOID& rendererNodeId_out//,
+                                                                                      TOPOID& sampleGrabberSinkNodeId_out,
+                                                                                      TOPOID& rendererNodeId_out//,
 #if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
-                                                                                          ,IMFMediaSession*& IMFMediaSession_inout)
+                                                                                      ,IMFMediaSession*& IMFMediaSession_inout)
 #else
-                                                                                          )
+                                                                                      )
 #endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_MediaFoundation_Source_T::initialize_MediaFoundation"));
+  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_MediaFoundation_Source_T::initializeMediaSession"));
 
   // initialize return value(s)
   sampleGrabberSinkNodeId_out = 0;
@@ -1107,8 +1483,8 @@ Stream_MediaFramework_MediaFoundation_Source_T<ACE_SYNCH_USE,
                                                SessionDataContainerType,
                                                SessionDataType,
                                                MediaType,
-                                               UserDataType>::finalize_MediaFoundation ()
+                                               UserDataType>::finalizeMediaSession ()
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_MediaFoundation_Source_T::finalize_MediaFoundation"));
+  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_MediaFoundation_Source_T::finalizeMediaSession"));
 
 }

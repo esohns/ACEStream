@@ -3188,7 +3188,7 @@ Stream_MediaFramework_MediaFoundation_Tools::setTopology (IMFTopology* topology_
   IMFMediaEvent* media_event_p = NULL;
   bool received_topology_event = false;
   MediaEventType event_type = MEUnknown;
-  ACE_Time_Value timeout (STREAM_LIB_MEDIAFOUNDATION_TOPOLOGY_GET_TIMEOUT, 0);
+  ACE_Time_Value timeout (STREAM_LIB_MEDIAFOUNDATION_TOPOLOGY_GET_TIMEOUT_S, 0);
   UINT32 value_i = 0;
 
   // initialize return value(s)
@@ -3340,7 +3340,7 @@ continue_:
       result = media_event_p->GetStatus (&status);
       ACE_ASSERT (SUCCEEDED (result));
       if (FAILED (status))
-      {
+      { // MF_E_STREAMSINK_REMOVED: 0xC00D4A38
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("failed to IMFMediaSession::SetTopology(): \"%s\"), aborting\n"),
                     ACE_TEXT (Common_Error_Tools::errorToString (status).c_str ())));
@@ -3813,7 +3813,7 @@ Stream_MediaFramework_MediaFoundation_Tools::clear (IMFMediaSession* mediaSessio
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_MediaFoundation_Tools::clear"));
 
-  ACE_Time_Value timeout (STREAM_LIB_MEDIAFOUNDATION_TOPOLOGY_GET_TIMEOUT, 0);
+  ACE_Time_Value timeout (STREAM_LIB_MEDIAFOUNDATION_TOPOLOGY_GET_TIMEOUT_S, 0);
   ACE_Time_Value deadline;
   IMFMediaEvent* media_event_p = NULL;
   bool received_topology_event = false;

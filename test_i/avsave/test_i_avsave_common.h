@@ -324,9 +324,6 @@ class Stream_AVSave_MediaFoundation_SessionData
   TOPOID                              rendererNodeId;
   UINT                                resetToken;
   IMFMediaSession*                    session;
-
- private:
-  ACE_UNIMPLEMENTED_FUNC (Stream_AVSave_MediaFoundation_SessionData (const Stream_AVSave_MediaFoundation_SessionData&))
 };
 typedef Stream_SessionData_T<Stream_AVSave_MediaFoundation_SessionData> Stream_AVSave_MediaFoundation_SessionData_t;
 #else
@@ -577,13 +574,11 @@ struct Stream_AVSave_MediaFoundation_ModuleHandlerConfiguration
    : Stream_AVSave_ModuleHandlerConfiguration ()
    , area ()
    , direct3DConfiguration (NULL)
+   , manageMediaSession (false)
    , mediaFoundationConfiguration (NULL)
    , outboundStreamName ()
    , outputFormat (NULL)
-   //, rendererNodeId (0)
-   //, sampleGrabberNodeId (0)
    , session (NULL)
-   //, sourceFormat (NULL)
    , subscriber (NULL)
    , subscribers (NULL)
    , windowController (NULL)
@@ -593,13 +588,11 @@ struct Stream_AVSave_MediaFoundation_ModuleHandlerConfiguration
 
   struct tagRECT                                              area;
   struct Stream_MediaFramework_Direct3D_Configuration*        direct3DConfiguration;
+  bool                                                        manageMediaSession;
   struct Stream_MediaFramework_MediaFoundation_Configuration* mediaFoundationConfiguration;
   std::string                                                 outboundStreamName; // message handler
   IMFMediaType*                                               outputFormat;
-  //TOPOID                                               rendererNodeId;
-  //TOPOID                                               sampleGrabberNodeId;
   IMFMediaSession*                                            session;
-  //IMFMediaType*                                        sourceFormat;
   Stream_AVSave_MediaFoundation_ISessionNotify_t*             subscriber;
   Stream_AVSave_MediaFoundation_Subscribers_t*                subscribers;
   IMFVideoDisplayControl*                                     windowController;

@@ -34,7 +34,7 @@ Test_U_Module_EventHandler::Test_U_Module_EventHandler (ISTREAM_T* stream_in)
 
 ACE_Task<ACE_MT_SYNCH,
          Common_TimePolicy_t>*
-Test_U_Module_EventHandler:: clone ()
+Test_U_Module_EventHandler:: clone () const
 {
   STREAM_TRACE (ACE_TEXT ("Test_u_Module_EventHandler::clone"));
 

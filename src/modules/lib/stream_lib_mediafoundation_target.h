@@ -122,11 +122,14 @@ class Stream_MediaFramework_MediaFoundation_Target_T
   inline virtual void finalizeMediaSession () {}
   inline virtual bool updateMediaSession (IMFMediaType*) { ACE_ASSERT (false); ACE_NOTSUP_RETURN (false); ACE_NOTREACHED (return false;) } // (new) source media type handle
 
-  bool             isFirst_;
-
-  LONGLONG         baseTimeStamp_;
-  bool             manageMediaSession_;
-  IMFMediaSession* mediaSession_;
+  LONGLONG            baseTimeStamp_;
+  ACE_SYNCH_CONDITION condition_;
+  bool                delayStart_; // delay start()ing the media session ?
+  bool                isFirst_;
+  using               inherited::lock_; // disambiguate lock
+  bool                manageMediaSession_;
+  IMFMediaSession*    mediaSession_;
+  bool                topologyIsReady_;
 
  private:
   // convenient types

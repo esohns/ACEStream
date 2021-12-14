@@ -128,10 +128,11 @@
 #define STREAM_LIB_DIRECTSHOW_WM_GRAPHNOTIFY_EVENT                  WM_USER + 1
 
 // MediaFoundation
+#define STREAM_LIB_MEDIAFOUNDATION_MEDIASESSION_READY_TIMEOUT_S     10 // seconds
 // *NOTE*: IMFMediaSession::SetTopology() is asynchronous; subsequent calls
 //         to retrieve the topology handle may fail (MF_E_INVALIDREQUEST)
 //         --> (try to) wait for the next MESessionTopologySet event
-#define STREAM_LIB_MEDIAFOUNDATION_TOPOLOGY_GET_TIMEOUT             10 // seconds
+#define STREAM_LIB_MEDIAFOUNDATION_TOPOLOGY_GET_TIMEOUT_S           10 // seconds
 
 #define STREAM_LIB_MEDIAFOUNDATION_MEDIASOURCE_FRIENDLY_NAME        L"MediaSource"
 // *NOTE*: #samples each stream tries to hold in its queue

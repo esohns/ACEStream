@@ -33,6 +33,18 @@ Test_U_AudioEffect_MediaFoundation_MediaFoundationTarget::Test_U_AudioEffect_Med
 }
 
 bool
+Test_U_AudioEffect_MediaFoundation_MediaFoundationTarget::initialize (const struct Test_U_AudioEffect_MediaFoundation_ModuleHandlerConfiguration& configuration_in,
+                                                                      Stream_IAllocator* allocator_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Test_U_AudioEffect_MediaFoundation_MediaFoundationTarget::initialize"));
+
+  inherited::delayStart_ = true;
+
+  return inherited::initialize (configuration_in,
+                                allocator_in);
+}
+
+bool
 Test_U_AudioEffect_MediaFoundation_MediaFoundationTarget::updateMediaSession (IMFMediaType* mediaType_in)
 {
   STREAM_TRACE (ACE_TEXT ("Test_U_AudioEffect_MediaFoundation_MediaFoundationTarget::updateMediaSession"));
@@ -50,9 +62,14 @@ Test_U_AudioEffect_MediaFoundation_MediaFoundationTarget::updateMediaSession (IM
   struct tagPROPVARIANT property_s;
   PropVariantInit (&property_s);
   //property_s.vt = VT_EMPTY;
+  ACE_Time_Value deadline =
+    ACE_Time_Value (STREAM_LIB_MEDIAFOUNDATION_MEDIASESSION_READY_TIMEOUT_S, 0);
+  HRESULT result = E_FAIL;
+  int result_2 = -1;
+  int error = 0;
 
   // step1: stop the media session
-  HRESULT result = inherited::mediaSession_->Stop ();
+  result = inherited::mediaSession_->Stop ();
   if (FAILED (result))
   {
     ACE_DEBUG ((LM_ERROR,
@@ -86,21 +103,66 @@ Test_U_AudioEffect_MediaFoundation_MediaFoundationTarget::updateMediaSession (IM
     goto error;
   } // end IF
 
-#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
-  if (!Stream_MediaFramework_MediaFoundation_Tools::setTopology (topology_p,
-                                                                 mediaSession_,
-                                                                 false, // is partial ?
-                                                                 true)) // wait for completion ?
+  // step4: reset topology
+  result = mediaSession_->ClearTopologies ();
+  if (FAILED (result))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: failed to Stream_MediaFramework_MediaFoundation_Tools::setTopology(), aborting\n"),
-                inherited::mod_->name ()));
+                ACE_TEXT ("%s: failed to IMFMediaSession::ClearTopologies(): \"%s\", aborting\n"),
+                inherited::mod_->name (),
+                ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
     goto error;
   } // end IF
-#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
+  result = mediaSession_->SetTopology (MFSESSION_SETTOPOLOGY_CLEAR_CURRENT,
+                                       NULL);
+  if (FAILED (result))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s: failed to IMFMediaSession::SetTopology(MFSESSION_SETTOPOLOGY_CLEAR_CURRENT): \"%s\", aborting\n"),
+                inherited::mod_->name (),
+                ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
+    goto error;
+  } // end IF
+  { ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, inherited::lock_, false);
+    inherited::topologyIsReady_ = false;
+    result = mediaSession_->SetTopology (MFSESSION_SETTOPOLOGY_IMMEDIATE |
+                                         MFSESSION_SETTOPOLOGY_NORESOLUTION,
+                                         topology_p);
+    if (FAILED (result))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("%s: failed to IMFMediaSession::SetTopology(): \"%s\", aborting\n"),
+                  inherited::mod_->name (),
+                  ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
+      goto error;
+    } // end IF
+
+    // wait for MF_TOPOSTATUS_READY event
+//    deadline = COMMON_TIME_NOW + deadline;
+//    result_2 = inherited::condition_.wait (&deadline);
+//    if (unlikely (result_2 == -1))
+//    {
+//      error = ACE_OS::last_error ();
+//      if (error != ETIME) // 137: timed out
+//        ACE_DEBUG ((LM_ERROR,
+//                    ACE_TEXT ("%s: failed to ACE_Condition::wait(%#T): \"%m\", aborting\n"),
+//                    inherited::mod_->name (),
+//                    &deadline));
+//      goto continue_;
+//    } // end IF
+//continue_:
+//    if (!inherited::topologyIsReady_)
+//    {
+//      ACE_DEBUG ((LM_ERROR,
+//                  ACE_TEXT ("%s: topology not ready%s, aborting\n"),
+//                  inherited::mod_->name (),
+//                  (error == ETIME) ? ACE_TEXT (" (timed out)") : ACE_TEXT ("")));
+//      goto error;
+//    } // end IF
+  } // end lock scope
   topology_p->Release (); topology_p = NULL;
 
-  // step4: restart the media session ?
+  // step5: restart the media session ?
   if (likely (was_running_b))
   {
     result = inherited::mediaSession_->Start (&GUID_s,      // time format

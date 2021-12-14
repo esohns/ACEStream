@@ -73,6 +73,7 @@ Stream_SessionDataMediaBase_T<BaseType,
 #endif // ACE_WIN32 || ACE_WIN64
  , state (data_in.state)
  , statistic (data_in.statistic)
+ , targetFileName (data_in.targetFileName)
  , userData (data_in.userData)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_SessionDataMediaBase_T::Stream_SessionDataMediaBase_T"));
@@ -270,6 +271,41 @@ Stream_SessionData_T<DataType>::setR (const DataType& data_in)
 
 //  data_ = data_in;
 //}
+
+template <typename DataType>
+Stream_SessionData_T<DataType>*
+Stream_SessionData_T<DataType>::clone () const
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_SessionData_T::clone"));
+
+  OWN_TYPE_T* result_p = NULL;
+
+  DataType* data_p = NULL;
+  if (data_)
+  {
+    ACE_NEW_NORETURN (data_p,
+                      DataType (*data_)); // try to copy-construct
+    if (unlikely (!data_p))
+    {
+      ACE_DEBUG ((LM_CRITICAL,
+                  ACE_TEXT ("failed to allocate memory, aborting\n")));
+      return NULL;
+    } // end IF
+  } // end IF
+
+  ACE_NEW_NORETURN (result_p,
+                    OWN_TYPE_T (data_p));
+  if (unlikely (!result_p))
+  {
+    ACE_DEBUG ((LM_CRITICAL,
+                ACE_TEXT ("failed to allocate memory, aborting\n")));
+    if (data_p)
+      delete data_p;
+    return NULL;
+  } // end IF
+
+  return result_p;
+}
 
 template <typename DataType>
 void

@@ -327,9 +327,6 @@ class Stream_CamSave_DirectShow_SessionData
 #endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
   UINT                direct3DManagerResetToken;
   UINT                resetToken;
-
- private:
-  ACE_UNIMPLEMENTED_FUNC (Stream_CamSave_DirectShow_SessionData (const Stream_CamSave_DirectShow_SessionData&))
 };
 typedef Stream_SessionData_T<Stream_CamSave_DirectShow_SessionData> Stream_CamSave_DirectShow_SessionData_t;
 
@@ -402,9 +399,6 @@ class Stream_CamSave_MediaFoundation_SessionData
   TOPOID                              rendererNodeId;
   UINT                                resetToken;
   IMFMediaSession*                    session;
-
- private:
-  ACE_UNIMPLEMENTED_FUNC (Stream_CamSave_MediaFoundation_SessionData (const Stream_CamSave_MediaFoundation_SessionData&))
 };
 typedef Stream_SessionData_T<Stream_CamSave_MediaFoundation_SessionData> Stream_CamSave_MediaFoundation_SessionData_t;
 #else
@@ -630,12 +624,10 @@ struct Stream_CamSave_MediaFoundation_ModuleHandlerConfiguration
    : Stream_CamSave_ModuleHandlerConfiguration ()
    , area ()
    , direct3DConfiguration (NULL)
+   , manageMediaSession (false)
    , mediaFoundationConfiguration (NULL)
    , outputFormat (NULL)
-   //, rendererNodeId (0)
-   //, sampleGrabberNodeId (0)
    , session (NULL)
-   //, sourceFormat (NULL)
    , subscriber (NULL)
    , subscribers (NULL)
    , windowController (NULL)
@@ -645,12 +637,10 @@ struct Stream_CamSave_MediaFoundation_ModuleHandlerConfiguration
 
   struct tagRECT                                              area;
   struct Stream_MediaFramework_Direct3D_Configuration*        direct3DConfiguration;
+  bool                                                        manageMediaSession;
   struct Stream_MediaFramework_MediaFoundation_Configuration* mediaFoundationConfiguration;
   IMFMediaType*                                               outputFormat;
-  //TOPOID                                               rendererNodeId;
-  //TOPOID                                               sampleGrabberNodeId;
   IMFMediaSession*                                            session;
-  //IMFMediaType*                                        sourceFormat;
   Stream_CamSave_MediaFoundation_ISessionNotify_t*            subscriber;
   Stream_CamSave_MediaFoundation_Subscribers_t*               subscribers;
   IMFVideoDisplayControl*                                     windowController;

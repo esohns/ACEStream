@@ -25,7 +25,7 @@
 #include "ace/Synch_Traits.h"
 #include "ace/Task_T.h"
 
-//#include "common_time_common.h"
+#include "common_time_common.h"
 
 #include "stream_common.h"
 #include "stream_streammodule_base.h"
@@ -61,7 +61,7 @@ class Parser_Module_EventHandler
 
   // implement Common_IClone_T
   virtual ACE_Task<ACE_MT_SYNCH,
-                   Common_TimePolicy_t>* clone ();
+                   Common_TimePolicy_t>* clone () const;
 
  private:
   ACE_UNIMPLEMENTED_FUNC (Parser_Module_EventHandler ())

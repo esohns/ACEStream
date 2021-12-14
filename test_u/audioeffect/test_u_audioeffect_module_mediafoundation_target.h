@@ -60,6 +60,9 @@ class Test_U_AudioEffect_MediaFoundation_MediaFoundationTarget
   Test_U_AudioEffect_MediaFoundation_MediaFoundationTarget (ISTREAM_T*); // stream handle
   inline virtual ~Test_U_AudioEffect_MediaFoundation_MediaFoundationTarget () {}
 
+  virtual bool initialize (const struct Test_U_AudioEffect_MediaFoundation_ModuleHandlerConfiguration&,
+                           Stream_IAllocator* = NULL);
+
  private:
   ACE_UNIMPLEMENTED_FUNC (Test_U_AudioEffect_MediaFoundation_MediaFoundationTarget ())
   ACE_UNIMPLEMENTED_FUNC (Test_U_AudioEffect_MediaFoundation_MediaFoundationTarget (const Test_U_AudioEffect_MediaFoundation_MediaFoundationTarget&))

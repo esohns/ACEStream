@@ -28,6 +28,7 @@
 #include "ace/Synch_Traits.h"
 #include "ace/Time_Value.h"
 
+#include "common_iclone.h"
 #include "common_idumpstate.h"
 #include "common_iget.h"
 #include "common_ilock.h"
@@ -35,7 +36,7 @@
 
 #include "stream_common.h"
 
-template <typename BaseType,
+template <typename BaseType, // inherits Stream_SessionData
           typename MediaFormatType,
           typename StreamStateType, // inherits Stream_State
           typename StatisticType, // inherits Stream_Statistic
@@ -86,6 +87,7 @@ class Stream_SessionData_T
  , public Common_ILock_T<ACE_MT_SYNCH>
  , public Common_IGetSetR_T<DataType>
 // , public Common_ISetP_T<DataType>
+ , public Common_IClone_T<Stream_SessionData_T<DataType> >
  , public Common_IDumpState
 {
   typedef Common_ReferenceCounter_T<ACE_MT_SYNCH> inherited;
@@ -114,6 +116,9 @@ class Stream_SessionData_T
   // *IMPORTANT NOTE*: fire-and-forget API (first argument)
 //  virtual void setP (DataType*); // session data handle
 
+  // implement Common_IClone_T
+  virtual Stream_SessionData_T<DataType>* clone () const;
+
   // implement Common_IDumpState
   virtual void dump_state () const;
 
@@ -124,6 +129,9 @@ class Stream_SessionData_T
   ACE_UNIMPLEMENTED_FUNC (Stream_SessionData_T ())
   ACE_UNIMPLEMENTED_FUNC (Stream_SessionData_T (const Stream_SessionData_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_SessionData_T& operator= (const Stream_SessionData_T&))
+
+  // convenient types
+  typedef Stream_SessionData_T<DataType> OWN_TYPE_T;
 };
 
 // include template definition
