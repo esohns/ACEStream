@@ -279,6 +279,62 @@ Stream_MediaFramework_MediaFoundation_MediaStream_T<MediaSourceType>::RequestSam
 
 template <typename MediaSourceType>
 void
+Stream_MediaFramework_MediaFoundation_MediaStream_T<MediaSourceType>::start ()
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_MediaFoundation_MediaStream_T::start"));
+
+  // send MEStreamStarted
+  struct tagPROPVARIANT property_s;
+  PropVariantInit (&property_s);
+  //property_s.vt = VT_EMPTY;
+  property_s.vt = VT_I8;
+  property_s.hVal.QuadPart = 0;
+  HRESULT result = QueueEvent (MEStreamStarted,
+                               GUID_NULL,
+                               S_OK,
+                               &property_s);
+  ACE_ASSERT (SUCCEEDED (result));
+  PropVariantClear (&property_s);
+}
+
+template <typename MediaSourceType>
+void
+Stream_MediaFramework_MediaFoundation_MediaStream_T<MediaSourceType>::stop ()
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_MediaFoundation_MediaStream_T::stop"));
+
+  // send MEStreamStarted
+  struct tagPROPVARIANT property_s;
+  PropVariantInit (&property_s);
+  //property_s.vt = VT_EMPTY;
+  HRESULT result = QueueEvent (MEStreamStopped,
+                               GUID_NULL,
+                               S_OK,
+                               &property_s);
+  ACE_ASSERT (SUCCEEDED (result));
+  PropVariantClear (&property_s);
+}
+
+template <typename MediaSourceType>
+void
+Stream_MediaFramework_MediaFoundation_MediaStream_T<MediaSourceType>::end ()
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_MediaFoundation_MediaStream_T::end"));
+
+  // send MEEndOfStream
+  struct tagPROPVARIANT property_s;
+  PropVariantInit (&property_s);
+  //property_s.vt = VT_EMPTY;
+  HRESULT result = QueueEvent (MEEndOfStream,
+                               GUID_NULL,
+                               S_OK,
+                               &property_s);
+  ACE_ASSERT (SUCCEEDED (result));
+  PropVariantClear (&property_s);
+}
+
+template <typename MediaSourceType>
+void
 Stream_MediaFramework_MediaFoundation_MediaStream_T<MediaSourceType>::operator delete (void* pointer_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_MediaFoundation_MediaStream_T::operator delete"));
@@ -904,23 +960,16 @@ Stream_MediaFramework_MediaFoundation_MediaSource_T<TimePolicyType,
                                &property_s,
                                &media_event_p);
   ACE_ASSERT (SUCCEEDED (result) && media_event_p);
-  PropVariantClear (&property_s);
   result = media_event_p->SetUINT64 (MF_EVENT_SOURCE_ACTUAL_START,
                                      0);
   ACE_ASSERT (SUCCEEDED (result));
   result = eventQueue_->QueueEvent (media_event_p);
   ACE_ASSERT (SUCCEEDED (result));
   media_event_p->Release (); media_event_p = NULL;
+  PropVariantClear (&property_s);
 
   // send MEStreamStarted
-  //property_s.vt = VT_EMPTY;
-  property_s.vt = VT_I8;
-  property_s.hVal.QuadPart = 0;
-  result = mediaStream_->QueueEvent (MEStreamStarted,
-                                     GUID_NULL,
-                                     S_OK,
-                                     &property_s);
-  ACE_ASSERT (SUCCEEDED (result));
+  mediaStream_->start ();
 
   //// send MEBufferingStarted
   //buffering_ = true;
@@ -956,20 +1005,16 @@ Stream_MediaFramework_MediaFoundation_MediaSource_T<TimePolicyType,
   ACE_ASSERT (mediaStream_);
 
   // send MEStreamStopped
+  mediaStream_->stop ();
+
+  // send MESourceStopped
   struct tagPROPVARIANT property_s;
   PropVariantInit (&property_s);
   property_s.vt = VT_EMPTY;
-  HRESULT result = mediaStream_->QueueEvent (MEStreamStopped,
-                                             GUID_NULL,
-                                             S_OK,
-                                             &property_s);
-  ACE_ASSERT (SUCCEEDED (result));
-
-  // send MESourceStopped
-  result = eventQueue_->QueueEventParamVar (MESourceStopped,
-                                            GUID_NULL,
-                                            S_OK,
-                                            &property_s);
+  HRESULT result = eventQueue_->QueueEventParamVar (MESourceStopped,
+                                                    GUID_NULL,
+                                                    S_OK,
+                                                    &property_s);
   ACE_ASSERT (SUCCEEDED (result));
   PropVariantClear (&property_s);
 
@@ -1893,3 +1938,32 @@ Stream_MediaFramework_MediaFoundation_MediaSource_T<TimePolicyType,
 //  // *NOTE*: see above
 //  OWN_TYPE_T::DeleteInstance (pointer_in);
 //}
+
+template <typename TimePolicyType,
+          typename MessageType,
+          typename ConfigurationType>
+void
+Stream_MediaFramework_MediaFoundation_MediaSource_T<TimePolicyType,
+                                                    MessageType,
+                                                    ConfigurationType>::end ()
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_MediaFoundation_MediaSource_T::end"));
+
+  // sanity check(s)
+  ACE_ASSERT (eventQueue_);
+  ACE_ASSERT (mediaStream_);
+
+  // send MEEndOfStream
+  mediaStream_->end ();
+
+  // send MEEndOfPresentation
+  struct tagPROPVARIANT property_s;
+  PropVariantInit (&property_s);
+  property_s.vt = VT_EMPTY;
+  HRESULT result = eventQueue_->QueueEventParamVar (MEEndOfPresentation,
+                                                    GUID_NULL,
+                                                    S_OK,
+                                                    &property_s);
+  ACE_ASSERT (SUCCEEDED (result));
+  PropVariantClear (&property_s);
+}

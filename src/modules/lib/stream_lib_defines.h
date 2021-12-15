@@ -128,7 +128,10 @@
 #define STREAM_LIB_DIRECTSHOW_WM_GRAPHNOTIFY_EVENT                  WM_USER + 1
 
 // MediaFoundation
+// *NOTE*: transition from SetTopology() to MF_TOPOSTATUS_READY
 #define STREAM_LIB_MEDIAFOUNDATION_MEDIASESSION_READY_TIMEOUT_S     10 // seconds
+// *NOTE*: transition from Stop() to MESessionClosed
+#define STREAM_LIB_MEDIAFOUNDATION_MEDIASESSION_STOP_TIMEOUT_S      10 // seconds
 // *NOTE*: IMFMediaSession::SetTopology() is asynchronous; subsequent calls
 //         to retrieve the topology handle may fail (MF_E_INVALIDREQUEST)
 //         --> (try to) wait for the next MESessionTopologySet event

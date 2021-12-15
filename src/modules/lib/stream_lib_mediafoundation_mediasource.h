@@ -38,8 +38,6 @@ class Stream_MediaFramework_MediaFoundation_MediaStream_T
  : public IMFMediaStream
 {
  public:
-  typedef Stream_MediaFramework_MediaFoundation_MediaStream_T<MediaSourceType> OWN_TYPE_T;
-
   Stream_MediaFramework_MediaFoundation_MediaStream_T (MediaSourceType*); // media source handle
   virtual ~Stream_MediaFramework_MediaFoundation_MediaStream_T ();
 
@@ -69,6 +67,11 @@ class Stream_MediaFramework_MediaFoundation_MediaStream_T
   virtual STDMETHODIMP GetStreamDescriptor (IMFStreamDescriptor**);
   virtual STDMETHODIMP RequestSample (IUnknown*); // pToken
 
+  // send MEStreamStarted/MEStreamStopped/MEEndOfStream
+  void start ();
+  void stop ();
+  void end ();
+
   // *NOTE*: - allocation functions are always 'static'
   //         - "The call to the class - specific T::operator delete on a
   //           polymorphic class is the only case where a static member function
@@ -83,6 +86,9 @@ class Stream_MediaFramework_MediaFoundation_MediaStream_T
   bool                selected_;
 
  private:
+  // convenient types
+  typedef Stream_MediaFramework_MediaFoundation_MediaStream_T<MediaSourceType> OWN_TYPE_T;
+
   // ctor used by the COM class factory
   Stream_MediaFramework_MediaFoundation_MediaStream_T (HRESULT*); // return value: result
 
@@ -209,6 +215,9 @@ class Stream_MediaFramework_MediaFoundation_MediaSource_T
     STATE_STARTED,
     STATE_SHUTDOWN
   } STATE_T;
+
+  // send MEEndOfStream / MEEndOfPresentation
+  void end ();
 
   bool                       buffering_;
   ConfigurationType*         configuration_;

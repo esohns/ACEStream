@@ -743,6 +743,9 @@ Test_U_AudioEffect_MediaFoundation_Stream::load (Stream_ILayout* layout_in,
   Stream_Module_t* module_p = NULL;
   bool device_can_render_format_b = false;
   HRESULT result = E_FAIL;
+  bool has_mediafoundation_source_b =
+    (!InlineIsEqualGUID ((*iterator).second.second->effect, GUID_NULL) && !(*iterator_3).second.second->fileIdentifier.empty ()) ||
+    (!(*iterator).second.second->mute && (inherited::configuration_->configuration_->renderer != STREAM_DEVICE_RENDERER_MEDIAFOUNDATION) && !device_can_render_format_b);
 
   switch (inherited::configuration_->configuration_->sourceType)
   {
@@ -796,20 +799,23 @@ Test_U_AudioEffect_MediaFoundation_Stream::load (Stream_ILayout* layout_in,
   //module_p = NULL;
 #if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
-  ACE_NEW_RETURN (module_p,
-                  Test_U_AudioEffect_MediaFoundation_StatisticAnalysis_Module (this,
-                                                                               ACE_TEXT_ALWAYS_CHAR (MODULE_STAT_ANALYSIS_DEFAULT_NAME_STRING)),
-                  false);
-  ACE_ASSERT (module_p);
-  layout_in->append (module_p, NULL, 0);
-  module_p = NULL;
-  ACE_NEW_RETURN (module_p,
-                  Test_U_AudioEffect_MediaFoundation_Vis_SpectrumAnalyzer_Module (this,
-                                                                                  ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_GTK_SPECTRUM_ANALYZER_DEFAULT_NAME_STRING)),
-                  false);
-  ACE_ASSERT (module_p);
-  layout_in->append (module_p, NULL, 0);
-  module_p = NULL;
+  if (!has_mediafoundation_source_b)
+  {
+    ACE_NEW_RETURN (module_p,
+                    Test_U_AudioEffect_MediaFoundation_StatisticAnalysis_Module (this,
+                                                                                 ACE_TEXT_ALWAYS_CHAR (MODULE_STAT_ANALYSIS_DEFAULT_NAME_STRING)),
+                    false);
+    ACE_ASSERT (module_p);
+    layout_in->append (module_p, NULL, 0);
+    module_p = NULL;
+    ACE_NEW_RETURN (module_p,
+                    Test_U_AudioEffect_MediaFoundation_Vis_SpectrumAnalyzer_Module (this,
+                                                                                    ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_GTK_SPECTRUM_ANALYZER_DEFAULT_NAME_STRING)),
+                    false);
+    ACE_ASSERT (module_p);
+    layout_in->append (module_p, NULL, 0);
+    module_p = NULL;
+  } // end IF
 #endif // GTK_USE
 #endif // GUI_SUPPORT
 
@@ -864,9 +870,29 @@ Test_U_AudioEffect_MediaFoundation_Stream::load (Stream_ILayout* layout_in,
       (!(*iterator).second.second->mute && (inherited::configuration_->configuration_->renderer != STREAM_DEVICE_RENDERER_MEDIAFOUNDATION) && !device_can_render_format_b))
     layout_in->append (&mediaFoundationTarget_, NULL, 0);
 
-  if ((!InlineIsEqualGUID ((*iterator).second.second->effect, GUID_NULL) && !(*iterator_3).second.second->fileIdentifier.empty ()) ||
-      (!(*iterator).second.second->mute && (inherited::configuration_->configuration_->renderer != STREAM_DEVICE_RENDERER_MEDIAFOUNDATION) && !device_can_render_format_b))
+  if (has_mediafoundation_source_b)
+  {
     layout_in->append (&mediaFoundationSource_, NULL, 0);
+
+#if defined (GUI_SUPPORT)
+#if defined (GTK_USE)
+    ACE_NEW_RETURN (module_p,
+                    Test_U_AudioEffect_MediaFoundation_StatisticAnalysis_Module (this,
+                                                                                 ACE_TEXT_ALWAYS_CHAR (MODULE_STAT_ANALYSIS_DEFAULT_NAME_STRING)),
+                    false);
+    ACE_ASSERT (module_p);
+    layout_in->append (module_p, NULL, 0);
+    module_p = NULL;
+    ACE_NEW_RETURN (module_p,
+                    Test_U_AudioEffect_MediaFoundation_Vis_SpectrumAnalyzer_Module (this,
+                                                                                    ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_GTK_SPECTRUM_ANALYZER_DEFAULT_NAME_STRING)),
+                    false);
+    ACE_ASSERT (module_p);
+    layout_in->append (module_p, NULL, 0);
+    module_p = NULL;
+#endif // GTK_USE
+#endif // GUI_SUPPORT
+  } // end IF
 
   typename inherited::MODULE_T* branch_p = NULL; // NULL: 'main' branch
   unsigned int index_i = 0;
@@ -1600,8 +1626,7 @@ Test_U_AudioEffect_MediaFoundation_Stream::Invoke (IMFAsyncResult* result_in)
           {
             ACE_DEBUG ((LM_ERROR,
                         ACE_TEXT ("%s: failed to ACE_Condition::broadcast(): \"%m\", aborting\n"),
-                        ACE_TEXT (stream_name_string_),
-                        ACE_TEXT (Stream_MediaFramework_MediaFoundation_Tools::toString (topology_status).c_str ())));
+                        ACE_TEXT (stream_name_string_)));
             stop_b = true;
             goto error;
           } // end IF
