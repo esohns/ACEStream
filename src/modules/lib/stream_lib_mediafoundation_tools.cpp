@@ -48,6 +48,7 @@
 
 #include "stream_lib_defines.h"
 #include "stream_lib_directshow_tools.h"
+#include "stream_lib_directsound_tools.h"
 #include "stream_lib_guids.h"
 #include "stream_lib_macros.h"
 #include "stream_lib_tools.h"
@@ -1155,6 +1156,7 @@ Stream_MediaFramework_MediaFoundation_Tools::dump (IMFTopology* topology_in)
   int index_i = 0;
   IMFTopologyNode* topology_node_p = NULL;
   MF_TOPOLOGY_TYPE node_type_e = MF_TOPOLOGY_MAX;
+  IMFMediaType* media_type_p = NULL;
   TOPOLOGY_PATH_ITERATOR_T iterator_3;
   for (TOPOLOGY_PATHS_ITERATOR_T iterator = paths_s.begin ();
        iterator != paths_s.end ();
@@ -1183,12 +1185,23 @@ Stream_MediaFramework_MediaFoundation_Tools::dump (IMFTopology* topology_in)
       converter.clear ();
       converter << node_id;
       topology_string += converter.str ();
-      topology_string += ACE_TEXT_ALWAYS_CHAR (")");
 
       iterator_3 = iterator_2;
       if (++iterator_3 != (*iterator).end ())
+      {
+        topology_string += ACE_TEXT_ALWAYS_CHAR (") --> ");
+        Stream_MediaFramework_MediaFoundation_Tools::getOutputFormat (topology_in,
+                                                                      node_id,
+                                                                      media_type_p);
+        ACE_ASSERT (media_type_p);
+        topology_string +=
+          Stream_MediaFramework_MediaFoundation_Tools::toString (media_type_p,
+                                                                 true);
+        media_type_p->Release (); media_type_p = NULL;
         topology_string += ACE_TEXT_ALWAYS_CHAR (" --> ");
-
+      } // end IF
+      else
+        topology_string += ACE_TEXT_ALWAYS_CHAR (")");
       topology_string_base += topology_string;
     } // end FOR
     ACE_DEBUG ((LM_INFO,
@@ -5880,9 +5893,13 @@ Stream_MediaFramework_MediaFoundation_Tools::copy (const IMFMediaType* mediaType
 //}
 
 std::string
-Stream_MediaFramework_MediaFoundation_Tools::toString (const IMFMediaType* mediaType_in)
+Stream_MediaFramework_MediaFoundation_Tools::toString (const IMFMediaType* mediaType_in,
+                                                       bool condensed_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_MediaFoundation_Tools::toString"));
+
+  if (unlikely (condensed_in))
+    return Stream_MediaFramework_MediaFoundation_Tools::toString_2 (mediaType_in);
 
   std::string result;
 
@@ -6158,6 +6175,38 @@ Stream_MediaFramework_MediaFoundation_Tools::toString (const IMFMediaType* media
   converter.clear ();
   converter << denominator;
   result += converter.str ();
+
+  return result;
+}
+
+std::string
+Stream_MediaFramework_MediaFoundation_Tools::toString_2 (const IMFMediaType* mediaType_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_MediaFoundation_Tools::toString_2"));
+
+  std::string result;
+
+  struct _GUID guid_s = GUID_NULL;
+  HRESULT result_2 =
+    const_cast<IMFMediaType*> (mediaType_in)->GetMajorType (&guid_s);
+  ACE_ASSERT (SUCCEEDED (result_2));
+  if (InlineIsEqualGUID (guid_s, MFMediaType_Video))
+  {
+    ACE_ASSERT (false); // *TODO*
+    return result;
+  } // end IF
+
+  struct tWAVEFORMATEX* waveformatex_p = NULL;
+  UINT32 cbSize = 0;
+  result_2 =
+    MFCreateWaveFormatExFromMFMediaType (const_cast<IMFMediaType*> (mediaType_in),
+                                         &waveformatex_p,
+                                         &cbSize,
+                                         MFWaveFormatExConvertFlag_Normal);
+  ACE_ASSERT (SUCCEEDED (result_2) && waveformatex_p);
+  result = Stream_MediaFramework_DirectSound_Tools::toString (*waveformatex_p,
+                                                              true);
+  CoTaskMemFree (waveformatex_p); waveformatex_p = NULL;
 
   return result;
 }

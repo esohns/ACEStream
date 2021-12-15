@@ -69,6 +69,7 @@ Test_U_AudioEffect_MediaFoundation_MediaFoundationTarget::updateMediaSession (IM
   int error = 0;
 
   // step1: stop the media session
+  inherited::ignoreNextStop_ = true;
   result = inherited::mediaSession_->Stop ();
   if (FAILED (result))
   {
@@ -102,40 +103,43 @@ Test_U_AudioEffect_MediaFoundation_MediaFoundationTarget::updateMediaSession (IM
                 inherited::mod_->name ()));
     goto error;
   } // end IF
+#if defined (_DEBUG)
+  Stream_MediaFramework_MediaFoundation_Tools::dump (topology_p);
+#endif // _DEBUG
 
-  // step4: reset topology
-  result = mediaSession_->ClearTopologies ();
-  if (FAILED (result))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: failed to IMFMediaSession::ClearTopologies(): \"%s\", aborting\n"),
-                inherited::mod_->name (),
-                ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
-    goto error;
-  } // end IF
-  result = mediaSession_->SetTopology (MFSESSION_SETTOPOLOGY_CLEAR_CURRENT,
-                                       NULL);
-  if (FAILED (result))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: failed to IMFMediaSession::SetTopology(MFSESSION_SETTOPOLOGY_CLEAR_CURRENT): \"%s\", aborting\n"),
-                inherited::mod_->name (),
-                ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
-    goto error;
-  } // end IF
-  { ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, inherited::lock_, false);
-    inherited::topologyIsReady_ = false;
-    result = mediaSession_->SetTopology (MFSESSION_SETTOPOLOGY_IMMEDIATE |
-                                         MFSESSION_SETTOPOLOGY_NORESOLUTION,
-                                         topology_p);
-    if (FAILED (result))
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("%s: failed to IMFMediaSession::SetTopology(): \"%s\", aborting\n"),
-                  inherited::mod_->name (),
-                  ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
-      goto error;
-    } // end IF
+  //// step4: reset topology
+  //result = mediaSession_->ClearTopologies ();
+  //if (FAILED (result))
+  //{
+  //  ACE_DEBUG ((LM_ERROR,
+  //              ACE_TEXT ("%s: failed to IMFMediaSession::ClearTopologies(): \"%s\", aborting\n"),
+  //              inherited::mod_->name (),
+  //              ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
+  //  goto error;
+  //} // end IF
+  //result = mediaSession_->SetTopology (MFSESSION_SETTOPOLOGY_CLEAR_CURRENT,
+  //                                     NULL);
+  //if (FAILED (result))
+  //{
+  //  ACE_DEBUG ((LM_ERROR,
+  //              ACE_TEXT ("%s: failed to IMFMediaSession::SetTopology(MFSESSION_SETTOPOLOGY_CLEAR_CURRENT): \"%s\", aborting\n"),
+  //              inherited::mod_->name (),
+  //              ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
+  //  goto error;
+  //} // end IF
+  //{ ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, inherited::lock_, false);
+  //  inherited::topologyIsReady_ = false;
+  //  result = mediaSession_->SetTopology (MFSESSION_SETTOPOLOGY_IMMEDIATE |
+  //                                       MFSESSION_SETTOPOLOGY_NORESOLUTION,
+  //                                       topology_p);
+  //  if (FAILED (result))
+  //  {
+  //    ACE_DEBUG ((LM_ERROR,
+  //                ACE_TEXT ("%s: failed to IMFMediaSession::SetTopology(): \"%s\", aborting\n"),
+  //                inherited::mod_->name (),
+  //                ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
+  //    goto error;
+  //  } // end IF
 
     // wait for MF_TOPOSTATUS_READY event
 //    deadline = COMMON_TIME_NOW + deadline;
@@ -159,7 +163,7 @@ Test_U_AudioEffect_MediaFoundation_MediaFoundationTarget::updateMediaSession (IM
 //                  (error == ETIME) ? ACE_TEXT (" (timed out)") : ACE_TEXT ("")));
 //      goto error;
 //    } // end IF
-  } // end lock scope
+  //} // end lock scope
   topology_p->Release (); topology_p = NULL;
 
   // step5: restart the media session ?

@@ -125,6 +125,7 @@ class Stream_MediaFramework_MediaFoundation_Target_T
   LONGLONG            baseTimeStamp_;
   ACE_SYNCH_CONDITION condition_;
   bool                delayStart_; // delay start()ing the media session ?
+  bool                ignoreNextStop_; // do not Close() the media session on next MESessionStopped
   bool                isFirst_;
   using               inherited::lock_; // disambiguate lock
   bool                manageMediaSession_;

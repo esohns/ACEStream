@@ -57,6 +57,7 @@ Stream_MediaFramework_MediaFoundation_Target_T<ACE_SYNCH_USE,
  , baseTimeStamp_ (0)
  , condition_ (inherited::lock_)
  , delayStart_ (false)
+ , ignoreNextStop_ (false)
  , isFirst_ (true)
  , manageMediaSession_ (true)
  , mediaSession_ (NULL)
@@ -134,6 +135,7 @@ Stream_MediaFramework_MediaFoundation_Target_T<ACE_SYNCH_USE,
   {
     baseTimeStamp_ = 0;
     delayStart_ = false;
+    ignoreNextStop_ = false;
     isFirst_ = true;
     if (mediaSession_)
     {
@@ -780,6 +782,11 @@ Stream_MediaFramework_MediaFoundation_Target_T<ACE_SYNCH_USE,
       ACE_DEBUG ((LM_DEBUG,
                   ACE_TEXT ("%s: received MESessionStopped, closing sesion\n"),
                   inherited::mod_->name ()));
+      if (ignoreNextStop_)
+      {
+        ignoreNextStop_ = false;
+        break;
+      } // end IF
 #if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
       result = mediaSession_->Close ();
       if (FAILED (result))

@@ -229,14 +229,31 @@ Stream_MediaFramework_MediaFoundation_MediaStream_T<MediaSourceType>::GetStreamD
   // sanity check(s)
   ACE_ASSERT (ppStreamDescriptor_out && !*ppStreamDescriptor_out);
   ACE_ASSERT (mediaSource_);
-  ACE_ASSERT (mediaSource_->presentationDescriptor_);
 
+  HRESULT result = E_FAIL;
+  IMFPresentationDescriptor* presentation_descriptor_p = NULL;
   BOOL selected_b = FALSE;
-  HRESULT result =
-    mediaSource_->presentationDescriptor_->GetStreamDescriptorByIndex (0,
-                                                                       &selected_b,
-                                                                       ppStreamDescriptor_out);
+
+  if (mediaSource_->presentationDescriptor_)
+  {
+    mediaSource_->presentationDescriptor_->AddRef ();
+    presentation_descriptor_p = mediaSource_->presentationDescriptor_;
+  } // end IF
+  else
+  {
+    result = mediaSource_->CreatePresentationDescriptor (&presentation_descriptor_p);
+    ACE_ASSERT (SUCCEEDED (result) && presentation_descriptor_p);
+  } // end ELSE
+  ACE_ASSERT (presentation_descriptor_p);
+  
+  result =
+    presentation_descriptor_p->GetStreamDescriptorByIndex (0,
+                                                           &selected_b,
+                                                           ppStreamDescriptor_out);
   ACE_ASSERT (SUCCEEDED (result) && selected_b && *ppStreamDescriptor_out);
+
+  presentation_descriptor_p->Release (); presentation_descriptor_p = NULL;
+
   return S_OK;
 }
 

@@ -235,7 +235,8 @@ class Stream_MediaFramework_MediaFoundation_Tools
   static IMFMediaType* copy (const IMFMediaType*); // media type
   inline static void free (Stream_MediaFramework_MediaFoundation_Formats_t& formats_in) { for (Stream_MediaFramework_MediaFoundation_FormatsIterator_t iterator = formats_in.begin (); iterator != formats_in.end (); ++iterator) (*iterator)->Release (); formats_in.clear (); }
   //static std::string mediaSubTypeToString (REFGUID); // media subtype
-  static std::string toString (const IMFMediaType*); // media type
+  static std::string toString (const IMFMediaType*, // media type
+                               bool = false);       // condensed ?
   static std::string toString (MF_TOPOSTATUS); // topology status
   static std::string toString (IMFActivate*); // activate handle
 #if COMMON_OS_WIN32_TARGET_PLATFORM(0x0602) // _WIN32_WINNT_WIN8
@@ -278,6 +279,7 @@ class Stream_MediaFramework_MediaFoundation_Tools
 
   static std::string toString (MediaEventType); // event type
   static std::string toString (enum MF_TOPOLOGY_TYPE); // node type
+  static std::string toString_2 (const IMFMediaType*); // media type
 };
 
 #endif

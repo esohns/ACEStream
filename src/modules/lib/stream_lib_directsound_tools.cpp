@@ -1401,7 +1401,7 @@ Stream_MediaFramework_DirectSound_Tools::toString_2 (const struct tWAVEFORMATEX&
 
   std::ostringstream converter;
 
-  result += ACE_TEXT_ALWAYS_CHAR ("format: \"");
+  result += ACE_TEXT_ALWAYS_CHAR ("\"");
   WORD_TO_STRING_MAP_ITERATOR_T iterator =
     Stream_MediaFramework_DirectSound_Tools::Stream_WaveFormatTypeToStringMap.find (format_in.wFormatTag);
   if (iterator == Stream_MediaFramework_DirectSound_Tools::Stream_WaveFormatTypeToStringMap.end ())
@@ -1415,7 +1415,7 @@ Stream_MediaFramework_DirectSound_Tools::toString_2 (const struct tWAVEFORMATEX&
   else
     result += (*iterator).second;
 
-  result += ACE_TEXT_ALWAYS_CHAR ("\": (#c|#s/s|avgb/s|ba|b/s): ");
+  result += ACE_TEXT_ALWAYS_CHAR ("\" (#c|#s/s|avgb/s|ba|b/s): ");
   converter.str (ACE_TEXT_ALWAYS_CHAR (""));
   converter.clear ();
   converter << format_in.nChannels;
@@ -1485,10 +1485,6 @@ Stream_MediaFramework_DirectSound_Tools::toString_2 (const struct tWAVEFORMATEX&
       result += (*iterator).second;
     result += ACE_TEXT_ALWAYS_CHAR ("\"");
   } // end IF
-  else // *TODO*
-    ACE_DEBUG ((LM_DEBUG,
-                ACE_TEXT ("invalid/unknown wave formattype (was: %d), continuing\n"),
-                format_in.wFormatTag));
 
   return result;
 }

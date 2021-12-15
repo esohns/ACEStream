@@ -5713,26 +5713,14 @@ Stream_Module_Decoder_Tools::updateRendererTopology (IMFTopology* topology_in,
   ACE_ASSERT (topology_in);
   ACE_ASSERT (mediaType_in);
 
-  //struct _GUID GUID_s = GUID_NULL;
   HRESULT result = E_FAIL;
   TOPOLOGY_PATHS_T paths_s;
   MF_TOPOLOGY_TYPE node_type_e = MF_TOPOLOGY_MAX;
   TOPOID node_id = 0;
   bool next_path_b = false;
+  IMFMediaType* media_type_p = NULL;
 
-  //// step1: retrieve major media type
-  //result =
-  //  const_cast<IMFMediaType*> (mediaType_in)->GetGUID (MF_MT_MAJOR_TYPE,
-  //                                                     &GUID_s);
-  //if (FAILED (result))
-  //{
-  //  ACE_DEBUG ((LM_ERROR,
-  //              ACE_TEXT ("failed to IMFMediaType::GetGUID(MF_MT_MAJOR_TYPE): \"%s\", aborting\n"),
-  //              ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
-  //  return false;
-  //} // end IF
-
-  // step2: walk all topology paths from source to the first transform/sink node
+  // step1: walk all topology paths from source to the first transform/sink node
   //        resetting input/output types
   if (!Stream_MediaFramework_MediaFoundation_Tools::parse (topology_in,
                                                            paths_s))
@@ -5768,7 +5756,6 @@ Stream_Module_Decoder_Tools::updateRendererTopology (IMFTopology* topology_in,
           break;
         }
         case MF_TOPOLOGY_OUTPUT_NODE:
-        case MF_TOPOLOGY_TRANSFORM_NODE:
         {
           if (!Stream_MediaFramework_MediaFoundation_Tools::setInputFormat (topology_in,
                                                                             node_id,
@@ -5778,8 +5765,37 @@ Stream_Module_Decoder_Tools::updateRendererTopology (IMFTopology* topology_in,
                         ACE_TEXT ("failed to Stream_MediaFramework_MediaFoundation_Tools::setInputFormat(), aborting\n")));
             goto error;
           } // end IF
-          if (node_type_e == MF_TOPOLOGY_TRANSFORM_NODE)
-            next_path_b = true;
+          break;
+        }
+        case MF_TOPOLOGY_TRANSFORM_NODE:
+        {
+          if (!Stream_MediaFramework_MediaFoundation_Tools::getOutputFormat (topology_in,
+                                                                             node_id,
+                                                                             media_type_p))
+          {
+            ACE_DEBUG ((LM_ERROR,
+                        ACE_TEXT ("failed to Stream_MediaFramework_MediaFoundation_Tools::setInputFormat(), aborting\n")));
+            goto error;
+          } // end IF
+          ACE_ASSERT (media_type_p);
+          if (!Stream_MediaFramework_MediaFoundation_Tools::setInputFormat (topology_in,
+                                                                            node_id,
+                                                                            const_cast<IMFMediaType*> (mediaType_in)))
+          {
+            ACE_DEBUG ((LM_ERROR,
+                        ACE_TEXT ("failed to Stream_MediaFramework_MediaFoundation_Tools::setInputFormat(), aborting\n")));
+            goto error;
+          } // end IF
+          if (!Stream_MediaFramework_MediaFoundation_Tools::setOutputFormat (topology_in,
+                                                                             node_id,
+                                                                             media_type_p))
+          {
+            ACE_DEBUG ((LM_ERROR,
+                        ACE_TEXT ("failed to Stream_MediaFramework_MediaFoundation_Tools::setOutputFormat(), aborting\n")));
+            goto error;
+          } // end IF
+          media_type_p->Release (); media_type_p = NULL;
+          next_path_b = true;
           break;
         }
         case MF_TOPOLOGY_TEE_NODE:
@@ -5821,6 +5837,8 @@ Stream_Module_Decoder_Tools::updateRendererTopology (IMFTopology* topology_in,
   return true;
 
 error:
+  if (media_type_p)
+    media_type_p->Release ();
   Stream_MediaFramework_MediaFoundation_Tools::clean (paths_s);
 
   return false;
