@@ -490,7 +490,7 @@ Test_U_AudioEffect_EventHandler::notify (Stream_SessionId_t sessionId_in,
 
 #if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
-  guint event_source_id = 0;
+//  guint event_source_id = 0;
 #endif // GTK_USE
   if (CBData_)
   {

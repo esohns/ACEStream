@@ -52,14 +52,16 @@ class Stream_MediaFramework_ALSA_Tools
 
   static void dump (struct _snd_pcm*); // device handle
 
-  static bool getCaptureVolumeLevels (const std::string&, // card name
-                                      const std::string&, // selem name
-                                      long&,              // return value: min level
-                                      long&,              // return value: max level
-                                      long&);             // return value: current level
-  static bool setCaptureVolumeLevel (const std::string&, // card name
-                                     const std::string&, // selem name
-                                     long);              // level
+  static bool getVolumeLevels (const std::string&, // card name
+                               const std::string&, // selem name
+                               bool,               // capture ? : playback
+                               long&,              // return value: min level
+                               long&,              // return value: max level
+                               long&);             // return value: current level
+  static bool setVolumeLevel (const std::string&, // card name
+                              const std::string&, // selem name
+                              bool,               // capture ? : playback
+                              long);              // level
 
 #if defined (SOX_SUPPORT)
   static void ALSAToSoX (enum _snd_pcm_format,       // format

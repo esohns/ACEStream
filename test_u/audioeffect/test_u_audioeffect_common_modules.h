@@ -268,12 +268,12 @@ typedef Stream_Decoder_MP3Decoder_T<ACE_MT_SYNCH,
                                     Common_Timer_Manager_t,
                                     struct Stream_UserData,
                                     struct Stream_MediaFramework_ALSA_MediaType> Test_U_Dec_MP3Decoder_ALSA;
-DATASTREAM_MODULE_INPUT_ONLY (Test_U_AudioEffect_MediaFoundation_SessionData,                  // session data type
-                              enum Stream_SessionMessageType,                                  // session event type
-                              struct Test_U_AudioEffect_MediaFoundation_ModuleHandlerConfiguration, // module handler configuration type
+DATASTREAM_MODULE_INPUT_ONLY (Test_U_AudioEffect_SessionData,                            // session data type
+                              enum Stream_SessionMessageType,                            // session event type
+                              struct Test_U_AudioEffect_ALSA_ModuleHandlerConfiguration, // module handler configuration type
                               libacestream_default_dec_mp3_decoder_module_name_string,
-                              Stream_INotify_t,                                                // stream notification interface type
-                              Test_U_Dec_MP3Decoder_ALSA);                                     // writer type
+                              Stream_INotify_t,                                          // stream notification interface type
+                              Test_U_Dec_MP3Decoder_ALSA);                               // writer type
 
 typedef Stream_Dec_Noise_Source_T<ACE_MT_SYNCH,
                                   Stream_ControlMessage_t,

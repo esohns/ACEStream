@@ -1460,9 +1460,9 @@ do_work (
   modulehandler_configuration_3 = modulehandler_configuration;
   modulehandler_configuration_3.fileIdentifier.clear ();
   if (!targetFilename_in.empty ())
-    modulehandler_configuration.fileIdentifier.identifier =
+    modulehandler_configuration_3.fileIdentifier.identifier =
       targetFilename_in;
-  configuration_in.streamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (STREAM_FILE_SINK_DEFAULT_NAME_STRING),
+  configuration_in.streamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_ENCODER_WAV_DEFAULT_NAME_STRING),
                                                                std::make_pair (&module_configuration,
                                                                                &modulehandler_configuration_3)));
 #endif // ACE_WIN32 || ACE_WIN64

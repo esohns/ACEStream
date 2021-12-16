@@ -966,9 +966,7 @@ int Stream_Dev_Target_ALSA_T<ACE_SYNCH_USE,
           return -1;
         } // end IF
         else if (unlikely (result == 0)) // timeout --> try again
-          ACE_DEBUG ((LM_WARNING,
-                      ACE_TEXT ("%s: failed to snd_pcm_wait(): timed out, continuing\n"),
-                      inherited::mod_->name ()));
+          ;
         continue;
       } // end IF
 

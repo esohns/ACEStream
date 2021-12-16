@@ -36,7 +36,7 @@
 //#define STREAM_LIB_ALSA_DEFAULT_DEVICE_NAME                       "hw:0,0"
 #define STREAM_LIB_ALSA_DEFAULT_FORMAT                            SND_PCM_FORMAT_S16
 #define STREAM_LIB_ALSA_DEFAULT_LOG_FILE                          "alsa.log"
-#define STREAM_LIB_ALSA_DEFAULT_WAIT_TIMEOUT_MS                   100 // ms
+#define STREAM_LIB_ALSA_DEFAULT_WAIT_TIMEOUT_MS                   30 // ms
 
 // capture stream
 #define STREAM_LIB_ALSA_CAPTURE_DEFAULT_ASYNCH                    true
@@ -70,5 +70,7 @@
 #define STREAM_LIB_ALSA_PLAYBACK_DEFAULT_PERIOD_SIZE              4096 // frames
 #define STREAM_LIB_ALSA_PLAYBACK_DEFAULT_PERIOD_TIME              21333 // us
 #define STREAM_LIB_ALSA_PLAYBACK_DEFAULT_PERIODS                  3
+
+#define STREAM_LIB_ALSA_PLAYBACK_DEFAULT_SELEM_VOLUME_NAME        "Playback"
 
 #endif

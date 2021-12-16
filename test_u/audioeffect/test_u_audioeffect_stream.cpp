@@ -1753,7 +1753,7 @@ Test_U_AudioEffect_ALSA_Stream::load (Stream_ILayout* layout_in,
       inherited::configuration_->find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (iterator != inherited::configuration_->end ());
   typename inherited::CONFIGURATION_T::ITERATOR_T iterator_3 =
-    inherited::configuration_->find (ACE_TEXT_ALWAYS_CHAR (STREAM_FILE_SINK_DEFAULT_NAME_STRING));
+    inherited::configuration_->find (ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_ENCODER_WAV_DEFAULT_NAME_STRING));
   ACE_ASSERT (iterator_3 != inherited::configuration_->end ());
 
   Stream_Module_t* module_p = NULL;
