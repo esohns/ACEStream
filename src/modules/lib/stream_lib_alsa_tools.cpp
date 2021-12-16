@@ -1061,7 +1061,7 @@ Stream_MediaFramework_ALSA_Tools::getVolumeLevels (const std::string& cardName_i
   if (!simple_elem_p)
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to snd_mixer_find_selem(0x%@,\"%s\"): \"%m\", aborting\n"),
+                ACE_TEXT ("failed to snd_mixer_find_selem(%@,\"%s\"): \"%m\", aborting\n"),
                 handle_p, ACE_TEXT (simpleElementName_in.c_str ())));
     goto error;
   } // end IF
@@ -1182,7 +1182,7 @@ Stream_MediaFramework_ALSA_Tools::setVolumeLevel (const std::string& cardName_in
   if (!simple_elem_p)
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to snd_mixer_find_selem(0x%@,\"%s\"): \"%m\", aborting\n"),
+                ACE_TEXT ("failed to snd_mixer_find_selem(%@,\"%s\"): \"%m\", aborting\n"),
                 handle_p, ACE_TEXT (simpleElementName_in.c_str ())));
     goto error;
   } // end IF
