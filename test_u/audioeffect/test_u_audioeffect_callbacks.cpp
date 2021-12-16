@@ -3805,6 +3805,8 @@ idle_initialize_UI_cb (gpointer userData_in)
   Test_U_AudioEffect_MediaFoundation_StreamConfiguration_t::ITERATOR_T mediafoundation_modulehandler_configuration_iterator;
   Test_U_AudioEffect_DirectShow_StreamConfiguration_t::ITERATOR_T directshow_modulehandler_configuration_iterator_2; // file writer
   Test_U_AudioEffect_MediaFoundation_StreamConfiguration_t::ITERATOR_T mediafoundation_modulehandler_configuration_iterator_2; // file writer
+  Test_U_AudioEffect_DirectShow_StreamConfiguration_t::ITERATOR_T directshow_modulehandler_configuration_iterator_3; // renderer
+  Test_U_AudioEffect_MediaFoundation_StreamConfiguration_t::ITERATOR_T mediafoundation_modulehandler_configuration_iterator_3; // renderer
   switch (ui_cb_data_base_p->mediaFramework)
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
@@ -3813,14 +3815,15 @@ idle_initialize_UI_cb (gpointer userData_in)
       directshow_ui_cb_data_p =
         static_cast<struct Test_U_AudioEffect_DirectShow_UI_CBData*> (userData_in);
       ACE_ASSERT (directshow_ui_cb_data_p);
-
       directshow_modulehandler_configuration_iterator =
         directshow_ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
       ACE_ASSERT (directshow_modulehandler_configuration_iterator != directshow_ui_cb_data_p->configuration->streamConfiguration.end ());
       directshow_modulehandler_configuration_iterator_2 =
         directshow_ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (STREAM_FILE_SINK_DEFAULT_NAME_STRING));
       ACE_ASSERT (directshow_modulehandler_configuration_iterator_2 != directshow_ui_cb_data_p->configuration->streamConfiguration.end ());
-
+      directshow_modulehandler_configuration_iterator_3 =
+        directshow_ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_WASAPI_RENDER_DEFAULT_NAME_STRING));
+      ACE_ASSERT (directshow_modulehandler_configuration_iterator_3 != directshow_ui_cb_data_p->configuration->streamConfiguration.end ());
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
@@ -3829,14 +3832,15 @@ idle_initialize_UI_cb (gpointer userData_in)
       mediafoundation_ui_cb_data_p =
         static_cast<struct Test_U_AudioEffect_MediaFoundation_UI_CBData*> (userData_in);
       ACE_ASSERT (mediafoundation_ui_cb_data_p);
-
       mediafoundation_modulehandler_configuration_iterator =
         mediafoundation_ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
       ACE_ASSERT (mediafoundation_modulehandler_configuration_iterator != mediafoundation_ui_cb_data_p->configuration->streamConfiguration.end ());
       mediafoundation_modulehandler_configuration_iterator_2 =
         mediafoundation_ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (STREAM_FILE_SINK_DEFAULT_NAME_STRING));
       ACE_ASSERT (mediafoundation_modulehandler_configuration_iterator_2 != mediafoundation_ui_cb_data_p->configuration->streamConfiguration.end ());
-
+      mediafoundation_modulehandler_configuration_iterator_3 =
+        mediafoundation_ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_WASAPI_RENDER_DEFAULT_NAME_STRING));
+      ACE_ASSERT (mediafoundation_modulehandler_configuration_iterator_3 != mediafoundation_ui_cb_data_p->configuration->streamConfiguration.end ());
       break;
     }
     default:
@@ -4415,7 +4419,73 @@ idle_initialize_UI_cb (gpointer userData_in)
     return G_SOURCE_REMOVE;
   } // end IF
 
+  // get/set render volume level
+  hscale_p =
+    GTK_HSCALE (gtk_builder_get_object ((*iterator).second.second,
+                                        ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_HSCALE_VOLUME_NAME)));
+  ACE_ASSERT (hscale_p);
   // *TODO*: select output device
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  struct _GUID GUID_s = GUID_NULL;
+  switch (ui_cb_data_base_p->mediaFramework)
+  {
+    case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
+    { ACE_ASSERT ((*directshow_modulehandler_configuration_iterator_3).second.second->deviceIdentifier.identifierDiscriminator == Stream_Device_Identifier::GUID);
+      GUID_s =
+        (*directshow_modulehandler_configuration_iterator_3).second.second->deviceIdentifier.identifier._guid;
+      break;
+    }
+    case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
+    { ACE_ASSERT ((*mediafoundation_modulehandler_configuration_iterator_3).second.second->deviceIdentifier.identifierDiscriminator == Stream_Device_Identifier::GUID);
+      GUID_s =
+        (*mediafoundation_modulehandler_configuration_iterator_3).second.second->deviceIdentifier.identifier._guid;
+      break;
+    }
+    default:
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("invalid/unknown media framework (was: %d), aborting\n"),
+                  ui_cb_data_base_p->mediaFramework));
+      return G_SOURCE_REMOVE;
+    }
+  } // end SWITCH
+  IAudioEndpointVolume* i_audio_endpoint_volume_p =
+    Stream_MediaFramework_DirectSound_Tools::getVolumeControl (GUID_s);
+  if (!i_audio_endpoint_volume_p)
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to Stream_MediaFramework_DirectSound_Tools::getVolumeControl(\"%s\"), aborting\n"),
+                ACE_TEXT (Common_Tools::GUIDToString (GUID_s).c_str ())));
+    return G_SOURCE_REMOVE;
+  } // end IF
+  switch (ui_cb_data_base_p->mediaFramework)
+  {
+    case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
+    {
+      directshow_ui_cb_data_p->renderVolumeControl = i_audio_endpoint_volume_p;
+      break;
+    }
+    case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
+    {
+      mediafoundation_ui_cb_data_p->renderVolumeControl = i_audio_endpoint_volume_p;
+      break;
+    }
+    default:
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("invalid/unknown media framework (was: %d), aborting\n"),
+                  ui_cb_data_base_p->mediaFramework));
+      return G_SOURCE_REMOVE;
+    }
+  } // end SWITCH
+  float volume_level_f = 0.0;
+  HRESULT result_3 =
+    i_audio_endpoint_volume_p->GetMasterVolumeLevelScalar (&volume_level_f);
+  ACE_ASSERT (SUCCEEDED (result_3));
+  gtk_range_set_value (GTK_RANGE (hscale_p),
+                       static_cast<gdouble> (volume_level_f) * 100.0);
+#else
+#endif // ACE_WIN32 || ACE_WIN64
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   switch (ui_cb_data_base_p->mediaFramework)
@@ -5496,7 +5566,7 @@ idle_session_end_cb (gpointer userData_in)
     GTK_FRAME (gtk_builder_get_object ((*iterator).second.second,
                                        ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_FRAME_FILE_NAME)));
   ACE_ASSERT (frame_p);
-  gtk_widget_set_sensitive (GTK_WIDGET (frame_p), FALSE);
+  gtk_widget_set_sensitive (GTK_WIDGET (frame_p), TRUE);
 
   button_p =
     GTK_BUTTON (gtk_builder_get_object ((*iterator).second.second,
@@ -6685,10 +6755,10 @@ hscale_device_volume_value_changed_cb (GtkRange* range_in,
       directshow_ui_cb_data_p =
         static_cast<struct Test_U_AudioEffect_DirectShow_UI_CBData*> (userData_in);
       ACE_ASSERT (directshow_ui_cb_data_p);
-      ACE_ASSERT (directshow_ui_cb_data_p->volumeControl);
+      ACE_ASSERT (directshow_ui_cb_data_p->captureVolumeControl);
       HRESULT result =
-        directshow_ui_cb_data_p->volumeControl->SetMasterVolumeLevelScalar (static_cast<float> (gtk_range_get_value (range_in) / 100.0),
-                                                                            NULL);
+        directshow_ui_cb_data_p->captureVolumeControl->SetMasterVolumeLevelScalar (static_cast<float> (gtk_range_get_value (range_in) / 100.0),
+                                                                                   NULL);
       ACE_ASSERT (SUCCEEDED (result));
       break;
     }
@@ -6698,10 +6768,10 @@ hscale_device_volume_value_changed_cb (GtkRange* range_in,
       mediafoundation_ui_cb_data_p =
         static_cast<struct Test_U_AudioEffect_MediaFoundation_UI_CBData*> (userData_in);
       ACE_ASSERT (mediafoundation_ui_cb_data_p);
-      ACE_ASSERT (mediafoundation_ui_cb_data_p->volumeControl);
+      ACE_ASSERT (mediafoundation_ui_cb_data_p->captureVolumeControl);
       HRESULT result =
-        mediafoundation_ui_cb_data_p->volumeControl->SetMasterVolumeLevelScalar (static_cast<float> (gtk_range_get_value (range_in) / 100.0),
-                                                                                 NULL);
+        mediafoundation_ui_cb_data_p->captureVolumeControl->SetMasterVolumeLevelScalar (static_cast<float> (gtk_range_get_value (range_in) / 100.0),
+                                                                                        NULL);
       ACE_ASSERT (SUCCEEDED (result));
       break;
     }
@@ -7021,11 +7091,11 @@ hscale_volume_value_changed_cb (GtkRange* range_in,
       directshow_ui_cb_data_p =
         static_cast<struct Test_U_AudioEffect_DirectShow_UI_CBData*> (userData_in);
       ACE_ASSERT (directshow_ui_cb_data_p);
-      //ACE_ASSERT (directshow_ui_cb_data_p->volumeControl);
-      //HRESULT result =
-      //  directshow_ui_cb_data_p->volumeControl->SetMasterVolumeLevelScalar (static_cast<float> (gtk_range_get_value (range_in) / 100.0),
-      //                                                                      NULL);
-      //ACE_ASSERT (SUCCEEDED (result));
+      ACE_ASSERT (directshow_ui_cb_data_p->renderVolumeControl);
+      HRESULT result =
+        directshow_ui_cb_data_p->renderVolumeControl->SetMasterVolumeLevelScalar (static_cast<float> (gtk_range_get_value (range_in) / 100.0),
+                                                                                  NULL);
+      ACE_ASSERT (SUCCEEDED (result));
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
@@ -7034,11 +7104,11 @@ hscale_volume_value_changed_cb (GtkRange* range_in,
       mediafoundation_ui_cb_data_p =
         static_cast<struct Test_U_AudioEffect_MediaFoundation_UI_CBData*> (userData_in);
       ACE_ASSERT (mediafoundation_ui_cb_data_p);
-      //ACE_ASSERT (mediafoundation_ui_cb_data_p->volumeControl);
-      //HRESULT result =
-      //  mediafoundation_ui_cb_data_p->volumeControl->SetMasterVolumeLevelScalar (static_cast<float> (gtk_range_get_value (range_in) / 100.0),
-      //                                                                           NULL);
-      //ACE_ASSERT (SUCCEEDED (result));
+      ACE_ASSERT (mediafoundation_ui_cb_data_p->renderVolumeControl);
+      HRESULT result =
+        mediafoundation_ui_cb_data_p->renderVolumeControl->SetMasterVolumeLevelScalar (static_cast<float> (gtk_range_get_value (range_in) / 100.0),
+                                                                                       NULL);
+      ACE_ASSERT (SUCCEEDED (result));
       break;
     }
     default:
@@ -9268,7 +9338,7 @@ continue_:
   ACE_ASSERT (toggle_button_p);
   gtk_widget_set_sensitive (GTK_WIDGET (toggle_button_p), TRUE);
 
-  // get/set volume / boost levels
+  // get/set capture volume / boost levels
   hscale_p =
         GTK_HSCALE (gtk_builder_get_object ((*iterator).second.second,
                                             ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_HSCALE_DEVICE_VOLUME_NAME)));
@@ -9284,74 +9354,29 @@ continue_:
     Stream_MediaFramework_DirectSound_Tools::waveDeviceIdToDirectSoundGUID (card_id_i,
                                                                             true); // capture
   ACE_ASSERT (!InlineIsEqualGUID (GUID_s, GUID_NULL));
-  IMMDeviceEnumerator* enumerator_p = NULL;
-  result =
-    CoCreateInstance (__uuidof (MMDeviceEnumerator), NULL, CLSCTX_INPROC_SERVER,
-                      IID_PPV_ARGS (&enumerator_p));
-  ACE_ASSERT (SUCCEEDED (result));
-  IMMDeviceCollection* devices_p = NULL;
-  result =
-    enumerator_p->EnumAudioEndpoints (eCapture, DEVICE_STATEMASK_ALL, &devices_p);
-  ACE_ASSERT (SUCCEEDED (result));
-  enumerator_p->Release (); enumerator_p = NULL;
-  IMMDevice* device_p = NULL;
-  UINT num_devices_i = 0;
-  result = devices_p->GetCount (&num_devices_i);
-  ACE_ASSERT (SUCCEEDED (result));
-  IPropertyStore* property_store_p = NULL;
-  PROPVARIANT property_s;
-  PropVariantInit (&property_s);
-  struct _GUID GUID_2 = GUID_NULL;
-  IAudioEndpointVolume* i_audio_endpoint_volume_p = NULL;
-  IAudioVolumeLevel* i_audio_volume_level_p = NULL;
-  for (UINT i = 0;
-       i < num_devices_i;
-       ++i)
-  {
-    ACE_ASSERT (!device_p);
-    result = devices_p->Item (i,
-                              &device_p);
-    ACE_ASSERT (SUCCEEDED (result) && device_p);
-    result = device_p->OpenPropertyStore (STGM_READ,
-                                          &property_store_p);
-    ACE_ASSERT (SUCCEEDED (result) && property_store_p);
-    result = property_store_p->GetValue (PKEY_AudioEndpoint_GUID,
-                                         &property_s);
-    ACE_ASSERT (SUCCEEDED (result));
-    property_store_p->Release (); property_store_p = NULL;
-    ACE_ASSERT (property_s.vt == VT_LPWSTR);
-    GUID_2 =
-      Common_Tools::StringToGUID (ACE_TEXT_ALWAYS_CHAR (ACE_TEXT_WCHAR_TO_TCHAR (property_s.pwszVal)));
-    if (InlineIsEqualGUID (GUID_2, GUID_s))
-      break;
-    PropVariantClear (&property_s);
-    device_p->Release (); device_p = NULL;
-  } // end FOR
-  PropVariantClear (&property_s);
-  devices_p->Release (); devices_p = NULL;
-  if (!device_p)
+  IAudioEndpointVolume* i_audio_endpoint_volume_p =
+    Stream_MediaFramework_DirectSound_Tools::getVolumeControl (GUID_s);
+  if (!i_audio_endpoint_volume_p)
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to retrieve volume control handle for waveIn device (id was: %d), returning\n"),
+                ACE_TEXT ("failed to Stream_MediaFramework_DirectSound_Tools::getVolumeControl(\"%s\") (waveIn card id was: %u), returning\n"),
+                ACE_TEXT (Common_Tools::GUIDToString (GUID_s).c_str ()),
                 card_id_i));
     goto error_2;
   } // end IF
-  result =
-    device_p->Activate (__uuidof (IAudioEndpointVolume), CLSCTX_INPROC_SERVER, NULL,
-                        (LPVOID*)&i_audio_endpoint_volume_p);
-  ACE_ASSERT (SUCCEEDED (result) && i_audio_endpoint_volume_p);
   float volume_level_f = 0.0;
   result =
     i_audio_endpoint_volume_p->GetMasterVolumeLevelScalar (&volume_level_f);
   ACE_ASSERT (SUCCEEDED (result));
 
   float min_level_f = 0.0F, max_level_f = 0.0F, stepping_f = 0.0F, boost_f = 0.0F;
-  i_audio_volume_level_p =
-    Stream_MediaFramework_DirectSound_Tools::getMicrophoneBoostControl (device_p);
+  IAudioVolumeLevel* i_audio_volume_level_p =
+    Stream_MediaFramework_DirectSound_Tools::getMicrophoneBoostControl (GUID_s);
   if (!i_audio_volume_level_p)
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to retrieve boost control handle for wave device (id was: %d), returning\n"),
+                ACE_TEXT ("failed to Stream_MediaFramework_DirectSound_Tools::getMicrophoneBoostControl(\"%s\") (waveIn card id was: %u), returning\n"),
+                ACE_TEXT (Common_Tools::GUIDToString (GUID_s).c_str ()),
                 card_id_i));
     goto error_2;
   } // end IF
@@ -9382,15 +9407,10 @@ continue_:
   } // end FOR
   result = i_audio_volume_level_p->GetLevel (0, &boost_f);
   ACE_ASSERT (SUCCEEDED (result));
-  device_p->Release (); device_p = NULL;
 
   goto continue_2;
 
 error_2:
-  if (device_p)
-  {
-    device_p->Release (); device_p = NULL;
-  } // end IF
   if (i_audio_endpoint_volume_p)
   {
     i_audio_endpoint_volume_p->Release (); i_audio_endpoint_volume_p = NULL;
@@ -9404,11 +9424,11 @@ continue_2:
     {
       (*directshow_modulehandler_configuration_iterator).second.second->deviceIdentifier.identifier._guid =
         GUID_s;
-      if (directshow_ui_cb_data_p->volumeControl)
+      if (directshow_ui_cb_data_p->captureVolumeControl)
       {
-        directshow_ui_cb_data_p->volumeControl->Release (); directshow_ui_cb_data_p->volumeControl = NULL;
+        directshow_ui_cb_data_p->captureVolumeControl->Release (); directshow_ui_cb_data_p->captureVolumeControl = NULL;
       } // end IF
-      directshow_ui_cb_data_p->volumeControl = i_audio_endpoint_volume_p;
+      directshow_ui_cb_data_p->captureVolumeControl = i_audio_endpoint_volume_p;
       if (directshow_ui_cb_data_p->boostControl)
       {
         directshow_ui_cb_data_p->boostControl->Release (); directshow_ui_cb_data_p->boostControl = NULL;
@@ -9420,11 +9440,11 @@ continue_2:
     {
       (*mediafoundation_modulehandler_configuration_iterator).second.second->deviceIdentifier.identifier._guid =
         GUID_s;
-      if (mediafoundation_ui_cb_data_p->volumeControl)
+      if (mediafoundation_ui_cb_data_p->captureVolumeControl)
       {
-        mediafoundation_ui_cb_data_p->volumeControl->Release (); mediafoundation_ui_cb_data_p->volumeControl = NULL;
+        mediafoundation_ui_cb_data_p->captureVolumeControl->Release (); mediafoundation_ui_cb_data_p->captureVolumeControl = NULL;
       } // end IF
-      mediafoundation_ui_cb_data_p->volumeControl = i_audio_endpoint_volume_p;
+      mediafoundation_ui_cb_data_p->captureVolumeControl = i_audio_endpoint_volume_p;
       if (mediafoundation_ui_cb_data_p->boostControl)
       {
         mediafoundation_ui_cb_data_p->boostControl->Release (); mediafoundation_ui_cb_data_p->boostControl = NULL;

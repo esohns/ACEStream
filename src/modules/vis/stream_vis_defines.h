@@ -81,7 +81,7 @@
 // spectrum analyzer
 // *NOTE*: process this many samples in one 'sweep'
 // *IMPORTANT NOTE*: must be a power of 2
-#define STREAM_VIS_SPECTRUMANALYZER_DEFAULT_BUFFER_SIZE                   1024 // samples
+#define STREAM_VIS_SPECTRUMANALYZER_DEFAULT_BUFFER_SIZE                   2048 // samples
 // *NOTE*: needed for computation; these need to correspond with the input data
 // *TODO*: remove ASAP
 #define STREAM_VIS_SPECTRUMANALYZER_DEFAULT_CHANNELS                      STREAM_DEV_MIC_DEFAULT_CHANNELS

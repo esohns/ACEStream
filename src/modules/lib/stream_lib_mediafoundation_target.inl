@@ -522,10 +522,10 @@ error:
       {
         if (manageMediaSession_)
         {
-          //ACE_Time_Value timeout =
-          //  ACE_Time_Value (STREAM_LIB_MEDIAFOUNDATION_MEDIASESSION_STOP_TIMEOUT_S, 0);
-          //ACE_Time_Value deadline = timeout;
-          //int error = 0;
+          ACE_Time_Value timeout =
+            ACE_Time_Value (STREAM_LIB_MEDIAFOUNDATION_MEDIASESSION_STOP_TIMEOUT_S, 0);
+          ACE_Time_Value deadline = timeout;
+          int error = 0;
 
           { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, inherited::lock_);
             inherited4::end ();
@@ -544,25 +544,27 @@ error:
             } // end IF
           } // end lock scope
           
-          //{ ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, inherited::lock_);
+          { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, inherited::lock_);
           //  result_2 = mediaSession_->Stop ();
           //  if (FAILED (result_2))
           //    ACE_DEBUG ((LM_ERROR,
           //                ACE_TEXT ("failed to IMFMediaSession::Stop(): \"%s\", continuing\n"),
           //                ACE_TEXT (Common_Error_Tools::errorToString (result_2).c_str ())));
 
-          //  // wait for MESessionClosed event
-          //  result = condition_.wait (&deadline);
-          //  if (unlikely (result == -1))
-          //  {
-          //    int error = ACE_OS::last_error ();
-          //    if (error != ETIME) // 137: timed out
-          //      ACE_DEBUG ((LM_ERROR,
-          //                  ACE_TEXT ("%s: failed to ACE_Condition::wait(%#T): \"%m\", continuing\n"),
-          //                  inherited::mod_->name (),
-          //                  &deadline));
-          //  } // end IF
-          //} // end lock scope
+            // wait for MESessionClosed event
+            //deadline += COMMON_TIME_NOW;
+            //result = condition_.wait (&deadline);
+            result = condition_.wait ();
+            if (unlikely (result == -1))
+            { //error = ACE_OS::last_error ();
+              //if (error != ETIME) // 137: timed out
+                ACE_DEBUG ((LM_ERROR,
+                            ACE_TEXT ("%s: failed to ACE_Condition::wait(): \"%m\", continuing\n"),
+                            //ACE_TEXT ("%s: failed to ACE_Condition::wait(%#T): \"%m\", continuing\n"),
+                            inherited::mod_->name ()));//,
+                            //&deadline));
+            } // end IF
+          } // end lock scope
 
           //Stream_MediaFramework_MediaFoundation_Tools::shutdown (mediaSession_);
           finalizeMediaSession ();

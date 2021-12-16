@@ -875,14 +875,16 @@ struct Test_U_AudioEffect_DirectShow_UI_CBData
    , streamConfiguration (NULL)
    , subscribers ()
    , boostControl (NULL)
-   , volumeControl (NULL)
+   , captureVolumeControl (NULL)
+   , renderVolumeControl (NULL)
   {}
 
   struct Test_U_AudioEffect_DirectShow_Configuration* configuration;
   IAMStreamConfig*                                    streamConfiguration;
   Test_U_AudioEffect_DirectShow_Subscribers_t         subscribers;
   IAudioVolumeLevel*                                  boostControl;
-  IAudioEndpointVolume*                               volumeControl;
+  IAudioEndpointVolume*                               captureVolumeControl;
+  IAudioEndpointVolume*                               renderVolumeControl;
 };
 
 struct Test_U_AudioEffect_MediaFoundation_UI_CBData
@@ -893,13 +895,15 @@ struct Test_U_AudioEffect_MediaFoundation_UI_CBData
    , configuration (NULL)
    , subscribers ()
    , boostControl (NULL)
-   , volumeControl (NULL)
+   , captureVolumeControl (NULL)
+   , renderVolumeControl (NULL)
   {}
 
   struct Test_U_AudioEffect_MediaFoundation_Configuration* configuration;
   Test_U_AudioEffect_MediaFoundation_Subscribers_t         subscribers;
   IAudioVolumeLevel*                                       boostControl;
-  IAudioEndpointVolume*                                    volumeControl;
+  IAudioEndpointVolume*                                    captureVolumeControl;
+  IAudioEndpointVolume*                                    renderVolumeControl;
 };
 #else
 struct Test_U_AudioEffect_UI_CBData

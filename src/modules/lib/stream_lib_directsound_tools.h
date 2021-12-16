@@ -32,6 +32,7 @@
 
 // forward declarations
 enum _AUDCLNT_SHAREMODE;
+struct IAudioEndpointVolume;
 struct IAudioVolumeLevel;
 struct IPart;
 
@@ -67,7 +68,8 @@ class Stream_MediaFramework_DirectSound_Tools
   // *TODO*: what about exclusive mode ?
   static void getAudioEngineMixFormat (REFGUID,                // device identifier
                                        struct tWAVEFORMATEX&); // return value: 'mix' format
-  static IAudioVolumeLevel* getMicrophoneBoostControl (IMMDevice*); // device handle
+  static IAudioEndpointVolume* getVolumeControl (REFGUID); // device identifier
+  static IAudioVolumeLevel* getMicrophoneBoostControl (REFGUID); // device identifier
 
  private:
   ACE_UNIMPLEMENTED_FUNC (Stream_MediaFramework_DirectSound_Tools ())
@@ -79,6 +81,7 @@ class Stream_MediaFramework_DirectSound_Tools
   typedef WORD_TO_STRING_MAP_T::const_iterator WORD_TO_STRING_MAP_ITERATOR_T;
 
   // helper methods
+  static IMMDevice* getDevice (REFGUID); // device identifier [GUID_NULL ? default render device]
   // *IMPORTANT NOTE*: fire-and-forget the first argument
   static IAudioVolumeLevel* walkDeviceTreeFromPart (IPart*,              // part handle
                                                     const std::string&); // (volume-)control name
