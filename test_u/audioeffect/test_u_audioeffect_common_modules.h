@@ -60,6 +60,7 @@
 #endif // GTK_SUPPORT
 #endif // GUI_SUPPORT
 #endif // ACE_WIN32 || ACE_WIN64
+#include "stream_misc_delay.h"
 #include "stream_misc_distributor.h"
 
 #include "stream_file_sink.h"
@@ -313,6 +314,21 @@ DATASTREAM_MODULE_INPUT_ONLY (Test_U_AudioEffect_SessionData,                   
                               libacestream_default_dev_mic_source_alsa_module_name_string,
                               Stream_INotify_t,                                     // stream notification interface type
                               Test_U_Dev_Mic_Source_ALSA);                          // writer type
+
+typedef Stream_Module_Delay_T<ACE_MT_SYNCH,
+                              Common_TimePolicy_t,
+                              struct Test_U_AudioEffect_ALSA_ModuleHandlerConfiguration,
+                              Stream_ControlMessage_t,
+                              Test_U_AudioEffect_Message,
+                              Test_U_AudioEffect_SessionMessage,
+                              struct Stream_MediaFramework_ALSA_MediaType,
+                              struct Stream_UserData> Test_U_ALSA_Delay;
+DATASTREAM_MODULE_INPUT_ONLY (Test_U_AudioEffect_SessionData,                       // session data type
+                              enum Stream_SessionMessageType,                       // session event type
+                              struct Test_U_AudioEffect_ALSA_ModuleHandlerConfiguration, // module handler configuration type
+                              libacestream_default_misc_delay_module_name_string,
+                              Stream_INotify_t,                                     // stream notification interface type
+                              Test_U_ALSA_Delay);                                   // writer type
 #endif // ACE_WIN32 || ACE_WIN64
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)

@@ -169,13 +169,25 @@ typedef Stream_Visualization_ImageMagickResize1_T<ACE_MT_SYNCH,
 #endif // ACE_WIN32 || ACE_WIN64
 #endif // IMAGEMAGICK_SUPPORT
 
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
 typedef Stream_Module_Delay_T<ACE_MT_SYNCH,
                               Common_TimePolicy_t,
                               struct Stream_ImageScreen_ModuleHandlerConfiguration,
                               Stream_ControlMessage_t,
                               Stream_ImageScreen_Message_t,
                               Stream_ImageScreen_SessionMessage_t,
-                              Stream_UserData> Stream_ImageScreen_Delay;
+                              struct _AMMediaType,
+                              struct Stream_UserData> Stream_ImageScreen_Delay;
+#else
+typedef Stream_Module_Delay_T<ACE_MT_SYNCH,
+                              Common_TimePolicy_t,
+                              struct Stream_ImageScreen_ModuleHandlerConfiguration,
+                              Stream_ControlMessage_t,
+                              Stream_ImageScreen_Message_t,
+                              Stream_ImageScreen_SessionMessage_t,
+                              struct Stream_MediaFramework_FFMPEG_VideoMediaType,
+                              struct Stream_UserData> Stream_ImageScreen_Delay;
+#endif // ACE_WIN32 || ACE_WIN64
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 typedef Stream_Vis_Target_Direct3D_T<ACE_MT_SYNCH,

@@ -365,11 +365,14 @@ do_work (int argc_in,
   STREAM_TRACE (ACE_TEXT ("::do_work"));
 
   struct Stream_ImageScreen_Configuration configuration;
+  configuration.delayConfiguration.interval = ACE_Time_Value (5, 0);
+  configuration.delayConfiguration.mode =
+    STREAM_MISCELLANEOUS_DELAY_MODE_MESSAGES;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   //configuration.direct3DConfiguration.presentationParameters.BackBufferFormat =
   //  D3DFMT_X8R8G8B8;
 #endif // ACE_WIN32 || ACE_WIN64
-    struct Stream_ImageScreen_UI_CBData ui_cb_data;
+  struct Stream_ImageScreen_UI_CBData ui_cb_data;
 
   // initialize stream
   struct Stream_AllocatorConfiguration allocator_configuration;

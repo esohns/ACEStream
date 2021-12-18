@@ -36,6 +36,58 @@
 #include "stream_istreamcontrol.h"
 #include "stream_macros.h"
 
+ACE_Message_Block*
+Stream_Tools::get (ACE_UINT64 bytes_in,
+                   ACE_Message_Block* messageBlock_in,
+                   ACE_Message_Block*& messageBlock_out)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Tools::get"));
+
+  // sanity check(s)
+  ACE_ASSERT (messageBlock_in);
+//  ACE_ASSERT (!messageBlock_out);
+  ACE_UINT64 total_bytes_i = messageBlock_in->total_length ();
+  if (bytes_in >= total_bytes_i)
+    return messageBlock_in;
+
+  // bytes_in < total_bytes_i
+
+  ACE_UINT64 skipped_bytes_i = 0, bytes_to_skip_i = 0;
+  ACE_Message_Block* message_block_p = messageBlock_in, *message_block_2 = NULL;
+
+  while (skipped_bytes_i < bytes_in)
+  {
+    skipped_bytes_i += message_block_p->length ();
+    message_block_2 = message_block_p;
+    message_block_p = message_block_p->cont ();
+  } // end WHILE
+
+  // skipped_bytes_i >= bytes_in
+
+  if (skipped_bytes_i == bytes_in)
+  {
+    message_block_2->cont (NULL);
+    messageBlock_out = message_block_p;
+    return messageBlock_in;
+  } // end IF
+
+  // skipped_bytes_i > bytes_in
+
+  bytes_to_skip_i = message_block_2->length () - (skipped_bytes_i - bytes_in);
+  messageBlock_out = message_block_2->duplicate ();
+  if (unlikely (!messageBlock_out))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to ACE_Message_Block::duplicate(): \"%m\", aborting\n")));
+    return NULL;
+  } // end IF
+  message_block_2->cont (NULL);
+  message_block_2->length (bytes_to_skip_i);
+  messageBlock_out->rd_ptr (bytes_to_skip_i);
+
+  return messageBlock_in;
+}
+
 void
 Stream_Tools::crunch (ACE_Message_Block*& messageBlock_inout,
                       Stream_IAllocator* allocator_in)
@@ -52,7 +104,7 @@ Stream_Tools::crunch (ACE_Message_Block*& messageBlock_inout,
   if (total_length > messageBlock_inout->capacity ())
   {
     ACE_DEBUG ((LM_DEBUG,
-                ACE_TEXT ("required %d byte(s) (available: %d): allocating a new message\n"),
+                ACE_TEXT ("required %u byte(s) (available: %u): allocating a new message\n"),
                 total_length,
                 messageBlock_inout->capacity ()));
 
@@ -64,13 +116,9 @@ allocate:
           static_cast<ACE_Message_Block*> (allocator_in->malloc (total_length));
       } catch (...) {
         ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("caught exception in Stream_IAllocator::malloc(%u), aborting\n"),
+                    ACE_TEXT ("caught exception in Stream_IAllocator::malloc(%u), returning\n"),
                     total_length));
-
-        // clean up
-        messageBlock_inout->release ();
-        messageBlock_inout = NULL;
-
+        messageBlock_inout->release (); messageBlock_inout = NULL;
         return;
       }
 
@@ -91,86 +139,66 @@ allocate:
                                            ACE_Time_Value::max_time,
                                            NULL,
                                            NULL));
-    if (!message_block_p)
+    if (unlikely (!message_block_p))
     {
       if (allocator_in)
       {
         if (allocator_in->block ())
           ACE_DEBUG ((LM_CRITICAL,
-                      ACE_TEXT ("failed to allocate ACE_Message_Block: \"%m\", aborting\n")));
+                      ACE_TEXT ("failed to allocate ACE_Message_Block: \"%m\", returning\n")));
       } // end IF
       else
         ACE_DEBUG ((LM_CRITICAL,
-                    ACE_TEXT ("failed to allocate ACE_Message_Block: \"%m\", aborting\n")));
-
-      // clean up
-      messageBlock_inout->release ();
-      messageBlock_inout = NULL;
-
+                    ACE_TEXT ("failed to allocate ACE_Message_Block: \"%m\", returning\n")));
+      messageBlock_inout->release (); messageBlock_inout = NULL;
       return;
     } // end IF
   } // end IF
   else
   {
     result = messageBlock_inout->crunch ();
-    if (result == -1)
+    if (unlikely (result == -1))
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to ACE_Message_Block::crunch(): \"%m\", returning\n")));
-
-      // clean up
-      messageBlock_inout->release ();
-      messageBlock_inout = NULL;
-
+      messageBlock_inout->release (); messageBlock_inout = NULL;
       return;
     } // end IF
 
     for (message_block_p = messageBlock_inout->cont ();
          message_block_p;
          message_block_p = message_block_p->cont ())
-    {
-      ACE_ASSERT (message_block_p->length () <= messageBlock_inout->space ());
+    { ACE_ASSERT (message_block_p->length () <= messageBlock_inout->space ());
       result = messageBlock_inout->copy (message_block_p->rd_ptr (),
                                          message_block_p->length ());
-      if (result == -1)
+      if (unlikely (result == -1))
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("failed to ACE_Message_Block::copy(): \"%m\", returning\n")));
-
-        // clean up
-        messageBlock_inout->release ();
-        messageBlock_inout = NULL;
-
+        messageBlock_inout->release (); messageBlock_inout = NULL;
         return;
       } // end IF
     } // end FOR
-
     return;
   } // end ELSE
 
   for (ACE_Message_Block* message_block_2 = messageBlock_inout;
        message_block_2;
        message_block_2 = message_block_2->cont ())
-  {
-    ACE_ASSERT (message_block_2->length () <= message_block_p->space ());
+  { ACE_ASSERT (message_block_2->length () <= message_block_p->space ());
     result = message_block_p->copy (message_block_2->rd_ptr (),
                                     message_block_2->length ());
-    if (result == -1)
+    if (unlikely (result == -1))
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to ACE_Message_Block::copy(): \"%m\", returning\n")));
-
-      // clean up
       message_block_p->release ();
-      messageBlock_inout->release ();
-      messageBlock_inout = NULL;
-
+      messageBlock_inout->release (); messageBlock_inout = NULL;
       return;
     } // end IF
   } // end FOR
 
-  messageBlock_inout->release ();
-  messageBlock_inout = message_block_p;
+  messageBlock_inout->release (); messageBlock_inout = message_block_p;
 }
 
 void

@@ -29,9 +29,11 @@
 #include "common_timer_resetcounterhandler.h"
 
 #include "stream_common.h"
-#include "stream_task_base_synch.h"
+#include "stream_task_base_asynch.h"
 
-#include "stream_file_sink.h"
+#include "stream_misc_common.h"
+
+#include "stream_lib_mediatype_converter.h"
 
 extern const char libacestream_default_misc_delay_module_name_string[];
 
@@ -44,28 +46,32 @@ template <ACE_SYNCH_DECL,
           typename DataMessageType,
           typename SessionMessageType,
           ///////////////////////////////
+          typename MediaType,
+          ///////////////////////////////
           typename UserDataType>
 class Stream_Module_Delay_T
- : public Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
-                                 TimePolicyType,
-                                 ConfigurationType,
-                                 ControlMessageType,
-                                 DataMessageType,
-                                 SessionMessageType,
-                                 enum Stream_ControlType,
-                                 enum Stream_SessionMessageType,
-                                 UserDataType>
+ : public Stream_TaskBaseAsynch_T<ACE_SYNCH_USE,
+                                  TimePolicyType,
+                                  ConfigurationType,
+                                  ControlMessageType,
+                                  DataMessageType,
+                                  SessionMessageType,
+                                  enum Stream_ControlType,
+                                  enum Stream_SessionMessageType,
+                                  UserDataType>
+ , public Stream_MediaFramework_MediaTypeConverter_T<MediaType>
  , public Common_ICounter
 {
-  typedef Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
-                                 TimePolicyType,
-                                 ConfigurationType,
-                                 ControlMessageType,
-                                 DataMessageType,
-                                 SessionMessageType,
-                                 enum Stream_ControlType,
-                                 enum Stream_SessionMessageType,
-                                 UserDataType> inherited;
+  typedef Stream_TaskBaseAsynch_T<ACE_SYNCH_USE,
+                                  TimePolicyType,
+                                  ConfigurationType,
+                                  ControlMessageType,
+                                  DataMessageType,
+                                  SessionMessageType,
+                                  enum Stream_ControlType,
+                                  enum Stream_SessionMessageType,
+                                  UserDataType> inherited;
+  typedef Stream_MediaFramework_MediaTypeConverter_T<MediaType> inherited2;
 
  public:
   // *TODO*: on MSVC 2015u3 the accurate declaration does not compile
@@ -73,8 +79,12 @@ class Stream_Module_Delay_T
   Stream_Module_Delay_T (ISTREAM_T*); // stream handle
 #else
   Stream_Module_Delay_T (typename inherited::ISTREAM_T*); // stream handle
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
   inline virtual ~Stream_Module_Delay_T () {}
+
+  // override (part of) Stream_IModuleHandler_T
+  virtual bool initialize (const ConfigurationType&,
+                           Stream_IAllocator* = NULL); // report cache usage ?
 
   // implement (part of) Stream_ITaskBase_T
   virtual void handleDataMessage (DataMessageType*&, // data message handle
@@ -90,8 +100,11 @@ class Stream_Module_Delay_T
   // implement Common_ICounter
   virtual void reset ();
 
-  Common_Timer_ResetCounterHandler resetTimeoutHandler_;
-  long                             resetTimeoutHandlerId_;
+  ACE_UINT64                                     availableTokens_;
+  ACE_SYNCH_CONDITION                            condition_;
+  struct Stream_Miscellaneous_DelayConfiguration delayConfiguration_;
+  Common_Timer_ResetCounterHandler               resetTimeoutHandler_;
+  long                                           resetTimeoutHandlerId_;
 };
 
 // include template definition

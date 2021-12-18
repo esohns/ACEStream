@@ -783,13 +783,14 @@ template <ACE_SYNCH_DECL,
           typename DataMessageType,
           typename SessionMessageType,
           typename SessionDataType>
-void Stream_Dev_Target_ALSA_T<ACE_SYNCH_USE,
-                              TimePolicyType,
-                              ConfigurationType,
-                              ControlMessageType,
-                              DataMessageType,
-                              SessionMessageType,
-                              SessionDataType>::stop (bool waitForCompletion_in, bool highPriority_in)
+void
+Stream_Dev_Target_ALSA_T<ACE_SYNCH_USE,
+                         TimePolicyType,
+                         ConfigurationType,
+                         ControlMessageType,
+                         DataMessageType,
+                         SessionMessageType,
+                         SessionDataType>::stop (bool waitForCompletion_in, bool highPriority_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Dev_Target_ALSA_T::stop"));
 
@@ -849,13 +850,14 @@ template <ACE_SYNCH_DECL,
           typename DataMessageType,
           typename SessionMessageType,
           typename SessionDataType>
-int Stream_Dev_Target_ALSA_T<ACE_SYNCH_USE,
-                             TimePolicyType,
-                             ConfigurationType,
-                             ControlMessageType,
-                             DataMessageType,
-                             SessionMessageType,
-                             SessionDataType>::svc (void)
+int
+Stream_Dev_Target_ALSA_T<ACE_SYNCH_USE,
+                         TimePolicyType,
+                         ConfigurationType,
+                         ControlMessageType,
+                         DataMessageType,
+                         SessionMessageType,
+                         SessionDataType>::svc (void)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Dev_Target_ALSA_T::svc"));
 

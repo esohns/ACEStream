@@ -173,7 +173,8 @@ set (source_files
      stream_task_base_synch.h
      stream_task_base_synch.inl
      stream_tools.cpp
-     stream_tools.h)
+     stream_tools.h
+     stream_tools.inl)
 set (source_files
      ${CMAKE_CURRENT_BINARY_DIR}/../${PROJECT_NAME}_config.h
      ${source_files})
@@ -307,6 +308,7 @@ install (FILES
          stream_task_base_synch.h
          stream_task_base_synch.inl
          stream_tools.h
+         stream_tools.inl
          DESTINATION "${INSTALL_INCLUDE_DIR}/${PROJECT_NAME}"
          COMPONENT include)
 if (WIN32)
@@ -323,3 +325,4 @@ install (TARGETS ${PROJECT_NAME}
 ##########################################
 
 add_subdirectory (modules)
+

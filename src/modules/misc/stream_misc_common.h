@@ -21,8 +21,29 @@
 #ifndef STREAM_MISC_COMMON_H
 #define STREAM_MISC_COMMON_H
 
-//#include "ace/config-lite.h"
-//
-//#include "stream_misc_defines.h"
+#include "ace/Basic_Types.h"
+#include "ace/Time_Value.h"
+
+enum Stream_Miscellaneous_DelayModeType
+{
+  STREAM_MISCELLANEOUS_DELAY_MODE_BYTES = 0,
+  STREAM_MISCELLANEOUS_DELAY_MODE_MESSAGES,
+  ////////////////////////////////////////
+  STREAM_MISCELLANEOUS_DELAY_MODE_MAX,
+  STREAM_MISCELLANEOUS_DELAY_MODE_INVALID
+};
+
+struct Stream_Miscellaneous_DelayConfiguration
+{
+  Stream_Miscellaneous_DelayConfiguration ()
+   : averageBytesPerInterval (0)
+   , interval (ACE_Time_Value::zero)
+   , mode (STREAM_MISCELLANEOUS_DELAY_MODE_INVALID)
+  {}
+
+  ACE_UINT64                              averageBytesPerInterval;
+  ACE_Time_Value                          interval;
+  enum Stream_Miscellaneous_DelayModeType mode;
+};
 
 #endif

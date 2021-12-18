@@ -76,13 +76,73 @@ template <ACE_SYNCH_DECL,
           typename TimePolicyType>
 int
 Stream_MessageQueueBase_T<ACE_SYNCH_USE,
+                          TimePolicyType>::dequeue_head_i (ACE_Message_Block*& message_out,
+                                                           ACE_Time_Value* timeout_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_MessageQueueBase_T::dequeue_head_i"));
+
+//  ACE_GUARD_RETURN (ACE_SYNCH_MUTEX_T, aGuard, inherited::lock (), -1);
+
+  if (unlikely (inherited::state_ == ACE_Message_Queue_Base::DEACTIVATED))
+  {
+    errno = ESHUTDOWN;
+    return -1;
+  } // end IF
+
+  if (unlikely (inherited::wait_not_empty_cond (timeout_in) == -1))
+    return -1;
+
+  message_out = this->head_;
+  this->head_ = this->head_->next ();
+
+  if (this->head_ == 0)
+    this->tail_ = 0;
+  else
+    // The prev pointer of first message block must point to 0...
+    this->head_->prev (0);
+
+  size_t mb_bytes = 0;
+  size_t mb_length = 0;
+  message_out->total_size_and_length (mb_bytes,
+                                      mb_length);
+  // Subtract off all of the bytes associated with this message.
+  this->cur_bytes_ -= mb_bytes;
+  this->cur_length_ -= mb_length;
+  --this->cur_count_;
+
+  if (this->cur_count_ == 0 && this->head_ == this->tail_)
+    this->head_ = this->tail_ = 0;
+
+  // Make sure that the prev and next fields are 0!
+  message_out->prev (0);
+  message_out->next (0);
+
+#if defined (ACE_HAS_MONITOR_POINTS) && (ACE_HAS_MONITOR_POINTS == 1)
+  this->monitor_->receive (this->cur_length_);
+#endif
+
+  // Only signal enqueueing threads if we've fallen below the low
+  // water mark.
+  if (this->cur_bytes_ <= this->low_water_mark_
+       && this->signal_enqueue_waiters () == -1)
+    return -1;
+
+  if (unlikely (message_out->msg_type () == ACE_Message_Block::MB_STOP))
+    isShuttingDown_ = true;
+
+  return ACE_Utils::truncate_cast<int> (this->cur_count_);
+}
+
+template <ACE_SYNCH_DECL,
+          typename TimePolicyType>
+int
+Stream_MessageQueueBase_T<ACE_SYNCH_USE,
                           TimePolicyType>::enqueue_head_i (ACE_Message_Block* messageBlock_in,
                                                            ACE_Time_Value* timeout_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MessageQueueBase_T::enqueue_head_i"));
 
   int queue_count = 0;
-  ACE_Notification_Strategy *notifier = 0;
   {
 //    ACE_GUARD_RETURN (ACE_SYNCH_MUTEX_T, aGuard, inherited::lock_, -1);
 
@@ -102,11 +162,10 @@ Stream_MessageQueueBase_T<ACE_SYNCH_USE,
 #if defined (ACE_HAS_MONITOR_POINTS) && (ACE_HAS_MONITOR_POINTS == 1)
     inherited::monitor_->receive (inherited::cur_length_);
 #endif
-    notifier = inherited::notification_strategy_;
   }
 
-  if (0 != notifier)
-    notifier->notify ();
+  if (inherited::notification_strategy_)
+    inherited::notification_strategy_->notify ();
   return queue_count;
 }
 

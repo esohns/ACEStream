@@ -133,7 +133,7 @@ struct Stream_ImageScreen_ModuleHandlerConfiguration
    , codecFormat (AV_PIX_FMT_NONE)
 #endif // FFMPEG_SUPPORT
 #endif // ACE_WIN32 || ACE_WIN64
-   , delay (5, 0)
+   , delayConfiguration (NULL)
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
    , direct3DConfiguration (NULL)
 #endif // ACE_WIN32 || ACE_WIN64
@@ -165,7 +165,7 @@ struct Stream_ImageScreen_ModuleHandlerConfiguration
   enum AVPixelFormat                            codecFormat; // preferred output-
 #endif // FFMPEG_SUPPORT
 #endif // ACE_WIN32 || ACE_WIN64
-  ACE_Time_Value                                delay;
+  struct Stream_Miscellaneous_DelayConfiguration* delayConfiguration;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   struct Stream_MediaFramework_Direct3D_Configuration* direct3DConfiguration;
 #endif // ACE_WIN32 || ACE_WIN64
@@ -250,13 +250,15 @@ struct Stream_ImageScreen_Configuration
 #else
    : Test_U_Configuration ()
 #endif // GTK_USE
+   , delayConfiguration ()
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  , direct3DConfiguration ()
+   , direct3DConfiguration ()
 #endif // ACE_WIN32 || ACE_WIN64
-  , timerConfiguration ()
-  , streamConfiguration ()
+   , timerConfiguration ()
+   , streamConfiguration ()
   {}
 
+  struct Stream_Miscellaneous_DelayConfiguration      delayConfiguration;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   struct Stream_MediaFramework_Direct3D_Configuration direct3DConfiguration;
 #endif // ACE_WIN32 || ACE_WIN64

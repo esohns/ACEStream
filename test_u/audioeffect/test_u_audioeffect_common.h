@@ -126,6 +126,8 @@ extern "C"
 #include "stream_lib_mediafoundation_common.h"
 #endif // ACE_WIN32 || ACE_WIN64
 
+#include "stream_misc_common.h"
+
 #include "stream_stat_common.h"
 
 #include "stream_vis_common.h"
@@ -346,9 +348,8 @@ struct Test_U_AudioEffect_ModuleHandlerConfiguration
 {
   Test_U_AudioEffect_ModuleHandlerConfiguration ()
    : Test_U_ModuleHandlerConfiguration ()
-   //, audioInput (0)
-   //, audioOutput (0)
    , deviceIdentifier ()
+   , delayConfiguration (NULL)
    , dispatch (NULL)
    , fps (STREAM_VIS_SPECTRUMANALYZER_DEFAULT_FRAME_RATE)
    , generatorConfiguration (NULL)
@@ -380,6 +381,7 @@ struct Test_U_AudioEffect_ModuleHandlerConfiguration
   {}
 
   struct Stream_Device_Identifier                   deviceIdentifier; // capture/render
+  struct Stream_Miscellaneous_DelayConfiguration*   delayConfiguration;
   Test_U_AudioEffect_IDispatch_t*                   dispatch;
   unsigned int                                      fps;
   struct Stream_MediaFramework_SoundGeneratorConfiguration* generatorConfiguration;

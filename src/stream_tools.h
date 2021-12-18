@@ -24,12 +24,12 @@
 #include <string>
 
 #include "ace/Global_Macros.h"
+#include "ace/Message_Block.h"
+#include "ace/Message_Queue_T.h"
 #include "ace/Time_Value.h"
 
-// forward declarations
-class ACE_Message_Block;
-enum Stream_MessageType;
-class Stream_IAllocator;
+#include "stream_common.h"
+#include "stream_iallocator.h"
 
 // definitions
 #define STREAM_TOOLS_STRFTIME_FORMAT "%Y_%m_%d_%H_%M_%S"
@@ -39,6 +39,18 @@ class Stream_IAllocator;
 class Stream_Tools
 {
  public:
+  // *WARNING*: simply returns the second argument if its'
+  //            total_length() <= the first argument
+  // *NOTE*: ACE_Message_Block::duplicate(s) partial buffers
+  static ACE_Message_Block* get (ACE_UINT64,           // #bytes
+                                 ACE_Message_Block*,   // message block handle
+                                 ACE_Message_Block*&); // return value: any remainder
+  // *NOTE*: ACE_Message_Block::duplicate(s) partial buffers
+  template <ACE_SYNCH_DECL,
+            typename TimePolicy>
+  static ACE_Message_Block* get (ACE_UINT64,                      // #bytes
+                                 ACE_Message_Queue<ACE_SYNCH_USE,
+                                                   TimePolicy>*); // queue
   static void crunch (ACE_Message_Block*&,        // data buffer(s)
                       Stream_IAllocator* = NULL); // allocator (NULL: use new)
 
@@ -66,5 +78,8 @@ class Stream_Tools
   ACE_UNIMPLEMENTED_FUNC (Stream_Tools (const Stream_Tools&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Tools& operator= (const Stream_Tools&))
 };
+
+// include template definition
+#include "stream_tools.inl"
 
 #endif

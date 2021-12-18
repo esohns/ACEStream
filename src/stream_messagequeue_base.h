@@ -48,11 +48,15 @@ class Stream_MessageQueueBase_T
   inline virtual ~Stream_MessageQueueBase_T () {}
 
   // override (part of) ACE_Message_Queue_T
-  virtual int dequeue_head (ACE_Message_Block*&,
-                            ACE_Time_Value* = 0);
-  // *WARNING*: caller needs to hold lock_ !
-  virtual int enqueue_head_i (ACE_Message_Block*,
-                              ACE_Time_Value* = 0);
+  virtual int dequeue_head (ACE_Message_Block*&,  // return value: first item
+                            ACE_Time_Value* = 0); // timeout [NULL: block]
+
+  // *WARNING*: caller needs to hold inherited::lock_ !
+  virtual int enqueue_head_i (ACE_Message_Block*,   // message block handle
+                              ACE_Time_Value* = 0); // timeout [NULL: block]
+  // *WARNING*: caller needs to hold inherited::lock_ !
+  virtual int dequeue_head_i (ACE_Message_Block*&,  // return value: first item
+                              ACE_Time_Value* = 0); // timeout [NULL: block]
 
   // implement Stream_IMessageQueue
   virtual unsigned int flush (bool = false); // flush session messages ?

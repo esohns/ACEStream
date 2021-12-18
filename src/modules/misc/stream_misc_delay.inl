@@ -18,12 +18,27 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
+#include <algorithm>
+
 #include "ace/Log_Msg.h"
 
 #include "common_time_common.h"
 #include "common_timer_manager_common.h"
 
+#include "stream_defines.h"
 #include "stream_macros.h"
+#include "stream_tools.h"
+
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#else
+#define ALSA_PCM_NEW_HW_PARAMS_API
+extern "C"
+{
+#include "alsa/asoundlib.h"
+}
+
+#include "stream_lib_alsa_common.h"
+#endif // ACE_WIN32 || ACE_WIN64
 
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,
@@ -31,6 +46,7 @@ template <ACE_SYNCH_DECL,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType,
+          typename MediaType,
           typename UserDataType>
 Stream_Module_Delay_T<ACE_SYNCH_USE,
                       TimePolicyType,
@@ -38,12 +54,16 @@ Stream_Module_Delay_T<ACE_SYNCH_USE,
                       ControlMessageType,
                       DataMessageType,
                       SessionMessageType,
+                      MediaType,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
                       UserDataType>::Stream_Module_Delay_T (ISTREAM_T* stream_in)
 #else
                       UserDataType>::Stream_Module_Delay_T (typename inherited::ISTREAM_T* stream_in)
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
  : inherited (stream_in)
+ , availableTokens_ (0)
+ , condition_ (inherited::lock_)
+ , delayConfiguration_ ()
  , resetTimeoutHandler_ (this)
  , resetTimeoutHandlerId_ (-1)
 {
@@ -57,36 +77,27 @@ template <ACE_SYNCH_DECL,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType,
+          typename MediaType,
           typename UserDataType>
-void
+bool
 Stream_Module_Delay_T<ACE_SYNCH_USE,
                       TimePolicyType,
                       ConfigurationType,
                       ControlMessageType,
                       DataMessageType,
                       SessionMessageType,
-                      UserDataType>::handleDataMessage (DataMessageType*& message_inout,
-                                                        bool& passMessageDownstream_out)
+                      MediaType,
+                      UserDataType>::initialize (const ConfigurationType& configuration_in,
+                                                 Stream_IAllocator* allocator_in)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_Module_Delay_T::handleDataMessage"));
+  STREAM_TRACE (ACE_TEXT ("Stream_Module_Delay_T::initialize"));
 
-  // don't care (implies yes per default, if part of a stream)
-  ACE_UNUSED_ARG (passMessageDownstream_out);
+  // *TODO*: remove type inference
+  if (configuration_in.delayConfiguration)
+    delayConfiguration_ = *configuration_in.delayConfiguration;
 
-  if (unlikely (resetTimeoutHandlerId_ == -1))
-    return; // no delay
-
-  int result = inherited::msg_queue_->enqueue_tail (message_inout);
-  if (result == -1)
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: failed to ACE_Message_Queue::enqueue_tail(): \"%m\", returning\n"),
-                inherited::mod_->name ()));
-    message_inout->release ();
-  } // end IF
-
-  passMessageDownstream_out = false;
-  message_inout = NULL;
+  return inherited::initialize (configuration_in,
+                                allocator_in);
 }
 
 template <ACE_SYNCH_DECL,
@@ -95,6 +106,7 @@ template <ACE_SYNCH_DECL,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType,
+          typename MediaType,
           typename UserDataType>
 void
 Stream_Module_Delay_T<ACE_SYNCH_USE,
@@ -103,6 +115,141 @@ Stream_Module_Delay_T<ACE_SYNCH_USE,
                       ControlMessageType,
                       DataMessageType,
                       SessionMessageType,
+                      MediaType,
+                      UserDataType>::handleDataMessage (DataMessageType*& message_inout,
+                                                        bool& passMessageDownstream_out)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Module_Delay_T::handleDataMessage"));
+
+  passMessageDownstream_out = false;
+
+  int result = -1;
+  ACE_UINT64 available_tokens_i = 0;
+  unsigned int total_length_i = 0;
+  ACE_Message_Block* message_block_p = message_inout;
+  message_inout = NULL;
+
+continue_:
+  { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, inherited::lock_);
+    while (!availableTokens_)
+    {
+      result = condition_.wait (NULL);
+      if (unlikely (result == -1))
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("%s: failed to ACE_SYNCH_CONDITION::wait(): \"%m\", returning\n"),
+                    inherited::mod_->name ()));
+        message_block_p->release ();
+        return;
+      } // end IF
+    } // end WHILE
+
+    switch (delayConfiguration_.mode)
+    {
+      case STREAM_MISCELLANEOUS_DELAY_MODE_BYTES:
+      {
+        total_length_i = message_block_p->total_length ();
+        available_tokens_i = std::min (static_cast<ACE_UINT64> (total_length_i),
+                                       availableTokens_);
+        availableTokens_ -= available_tokens_i;
+        break;
+      }
+      case STREAM_MISCELLANEOUS_DELAY_MODE_MESSAGES:
+      {
+        available_tokens_i = 1;
+        --availableTokens_;
+        break;
+      }
+      default:
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("%s: invalid/unknown delay mode (was: %d), returning\n"),
+                    inherited::mod_->name (),
+                    delayConfiguration_.mode));
+        message_block_p->release ();
+        return;
+      }
+    } // end SWITCH
+  } // end lock scope
+
+  switch (delayConfiguration_.mode)
+  {
+    case STREAM_MISCELLANEOUS_DELAY_MODE_BYTES:
+    {
+      ACE_Message_Block* message_block_2 = message_block_p;
+      if (available_tokens_i < total_length_i)
+      {
+        message_block_2 = Stream_Tools::get (available_tokens_i,
+                                             message_block_p,
+                                             message_block_p);
+        if (!message_block_2)
+        {
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("%s: failed to Stream_Tools::get(%u), returning\n"),
+                      inherited::mod_->name (),
+                      available_tokens_i));
+          message_block_p->release ();
+          return;
+        } // end IF
+      } // end IF
+
+      result = inherited::put_next (message_block_2, NULL);
+      if (unlikely (result == -1))
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("%s: failed to ACE_Task::put_next(): \"%m\", returning\n"),
+                    inherited::mod_->name ()));
+        message_block_2->release ();
+        message_block_p->release ();
+        return;
+      } // end IF
+
+      if (available_tokens_i < total_length_i)
+        goto continue_;
+
+      break;
+    }
+    case STREAM_MISCELLANEOUS_DELAY_MODE_MESSAGES:
+    {
+      result = inherited::put_next (message_block_p, NULL);
+      if (unlikely (result == -1))
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("%s: failed to ACE_Task::put_next(): \"%m\", returning\n"),
+                    inherited::mod_->name ()));
+        message_block_p->release ();
+        return;
+      } // end IF
+      break;
+    }
+    default:
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("%s: invalid/unknown delay mode (was: %d), returning\n"),
+                  inherited::mod_->name (),
+                  delayConfiguration_.mode));
+      message_block_p->release ();
+      return;
+    }
+  } // end SWITCH
+}
+
+template <ACE_SYNCH_DECL,
+          typename TimePolicyType,
+          typename ConfigurationType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
+          typename MediaType,
+          typename UserDataType>
+void
+Stream_Module_Delay_T<ACE_SYNCH_USE,
+                      TimePolicyType,
+                      ConfigurationType,
+                      ControlMessageType,
+                      DataMessageType,
+                      SessionMessageType,
+                      MediaType,
                       UserDataType>::handleSessionMessage (SessionMessageType*& message_inout,
                                                            bool& passMessageDownstream_out)
 {
@@ -124,29 +271,46 @@ Stream_Module_Delay_T<ACE_SYNCH_USE,
   {
     case STREAM_SESSION_MESSAGE_BEGIN:
     {
-      inherited::msg_queue_->activate ();
+      // sanity check(s)
+      ACE_ASSERT (inherited::sessionData_);
+
+      typename SessionMessageType::DATA_T::DATA_T& session_data_r =
+        const_cast<typename SessionMessageType::DATA_T::DATA_T&> (inherited::sessionData_->getR ());
+      ACE_UINT64 average_bytes_per_second_i = 0;
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+      ACE_ASSERT (false); // *TODO*
+#else
+      struct Stream_MediaFramework_ALSA_MediaType media_type_s;
+      inherited2::getMediaType (session_data_r.formats.back (),
+                                media_type_s);
+      average_bytes_per_second_i = media_type_s.rate                                *
+                                   (snd_pcm_format_width (media_type_s.format) / 8) *
+                                   media_type_s.channels;
+#endif // ACE_WIN32 || ACE_WIN64
+      availableTokens_ = average_bytes_per_second_i;
+      delayConfiguration_.averageBytesPerInterval = average_bytes_per_second_i;
+      delayConfiguration_.interval = ACE_Time_Value (1, 0);
+      delayConfiguration_.mode = STREAM_MISCELLANEOUS_DELAY_MODE_BYTES;
 
       // schedule the delay interval timer
       resetTimeoutHandlerId_ =
-        itimer_p->schedule_timer (&resetTimeoutHandler_,                              // event handler handle
-                                  NULL,                                               // asynchronous completion token
-                                  COMMON_TIME_NOW + inherited::configuration_->delay, // first wakeup time
-                                  inherited::configuration_->delay);                  // interval
+        itimer_p->schedule_timer (&resetTimeoutHandler_,                          // event handler handle
+                                  NULL,                                           // asynchronous completion token
+                                  COMMON_TIME_NOW + delayConfiguration_.interval, // first wakeup time
+                                  delayConfiguration_.interval);                  // interval
       if (unlikely (resetTimeoutHandlerId_ == -1))
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: failed to Common_ITimerCBBase::schedule_timer(%#T): \"%m\", aborting\n"),
                     inherited::mod_->name (),
-                    &inherited::configuration_->delay));
+                    &delayConfiguration_.interval));
         goto error;
       } // end IF
-#if defined (_DEBUG)
       ACE_DEBUG ((LM_DEBUG,
                   ACE_TEXT ("%s: scheduled interval timer (%#T, id: %d)\n"),
                   inherited::mod_->name (),
-                  &inherited::configuration_->delay,
+                  &delayConfiguration_.interval,
                   resetTimeoutHandlerId_));
-#endif // _DEBUG
 
       break;
 
@@ -157,9 +321,6 @@ error:
     }
     case STREAM_SESSION_MESSAGE_END:
     {
-      while (!inherited::msg_queue_->is_empty ())
-        ACE_OS::sleep (inherited::configuration_->delay);
-
       if (likely (resetTimeoutHandlerId_ != -1))
       {
         const void* act_p = NULL;
@@ -170,18 +331,13 @@ error:
                       ACE_TEXT ("%s: failed to Common_ITimerCBBase::cancel_timer(%d): \"%m\", continuing\n"),
                       inherited::mod_->name (),
                       resetTimeoutHandlerId_));
-#if defined (_DEBUG)
         else
           ACE_DEBUG ((LM_DEBUG,
                       ACE_TEXT ("%s: cancelled interval timer (id was: %d)\n"),
                       inherited::mod_->name (),
                       resetTimeoutHandlerId_));
-#endif // _DEBUG
         resetTimeoutHandlerId_ = -1;
       } // end IF
-
-      // *TODO*: empty queue first
-      inherited::msg_queue_->deactivate ();
 
       break;
     }
@@ -196,6 +352,7 @@ template <ACE_SYNCH_DECL,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType,
+          typename MediaType,
           typename UserDataType>
 void
 Stream_Module_Delay_T<ACE_SYNCH_USE,
@@ -204,34 +361,40 @@ Stream_Module_Delay_T<ACE_SYNCH_USE,
                       ControlMessageType,
                       DataMessageType,
                       SessionMessageType,
+                      MediaType,
                       UserDataType>::reset ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Delay_T::reset"));
 
-  ACE_Message_Block* message_block_p = NULL;
-  ACE_Time_Value no_wait = COMMON_TIME_NOW;
+  int result = -1;
 
-  int result = inherited::msg_queue_->dequeue_head (message_block_p,
-                                                    &no_wait);
-  if (result == -1)
-  {
-    int error = ACE_OS::last_error ();
-    if (unlikely (error != EWOULDBLOCK))
+  { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, inherited::lock_);
+    switch (delayConfiguration_.mode)
+    {
+      case STREAM_MISCELLANEOUS_DELAY_MODE_BYTES:
+      {
+        availableTokens_ = delayConfiguration_.averageBytesPerInterval;
+        return;
+      }
+      case STREAM_MISCELLANEOUS_DELAY_MODE_MESSAGES:
+      {
+        availableTokens_ = 1;
+        break;
+      }
+      default:
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("%s: invalid/unknown delay mode (was: %d), returning\n"),
+                    inherited::mod_->name (),
+                    delayConfiguration_.mode));
+        return;
+      }
+    } // end SWITCH
+
+    result = condition_.broadcast ();
+    if (unlikely (result == -1))
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("%s: failed to ACE_Message_Queue::dequeue_head(): \"%m\", returning\n"),
+                  ACE_TEXT ("%s: failed to ACE_SYNCH_CONDITION::broadcast(): \"%m\", returning\n"),
                   inherited::mod_->name ()));
-    return;
-  } // end IF
-  ACE_ASSERT (message_block_p);
-
-  result = inherited::put_next (message_block_p,
-                                NULL);
-  if (unlikely (result == -1))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: failed to ACE_Task::put_next(): \"%m\", returning\n"),
-                inherited::mod_->name ()));
-    message_block_p->release (); message_block_p = NULL;
-    return;
-  } // end IF
+  } // end lock scope
 }
