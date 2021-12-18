@@ -522,6 +522,36 @@ DATASTREAM_MODULE_INPUT_ONLY (Test_U_AudioEffect_SessionData,                   
 #endif // ACE_WIN32 || ACE_WIN64
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
+typedef Stream_Module_Delay_T<ACE_MT_SYNCH,
+                              Common_TimePolicy_t,
+                              struct Test_U_AudioEffect_DirectShow_ModuleHandlerConfiguration,
+                              Stream_ControlMessage_t,
+                              Test_U_AudioEffect_DirectShow_Message,
+                              Test_U_AudioEffect_DirectShow_SessionMessage,
+                              struct _AMMediaType,
+                              struct Stream_UserData> Test_U_AudioEffect_DirectShow_Delay;
+DATASTREAM_MODULE_INPUT_ONLY (Test_U_AudioEffect_DirectShow_SessionData,                       // session data type
+                              enum Stream_SessionMessageType,                                  // session event type
+                              struct Test_U_AudioEffect_DirectShow_ModuleHandlerConfiguration, // module handler configuration type
+                              libacestream_default_misc_delay_module_name_string,
+                              Stream_INotify_t,                                                // stream notification interface type
+                              Test_U_AudioEffect_DirectShow_Delay);                            // writer type
+
+typedef Stream_Module_Delay_T<ACE_MT_SYNCH,
+                              Common_TimePolicy_t,
+                              struct Test_U_AudioEffect_MediaFoundation_ModuleHandlerConfiguration,
+                              Stream_ControlMessage_t,
+                              Test_U_AudioEffect_MediaFoundation_Message,
+                              Test_U_AudioEffect_MediaFoundation_SessionMessage,
+                              IMFMediaType*,
+                              struct Stream_UserData> Test_U_AudioEffect_MediaFoundation_Delay;
+DATASTREAM_MODULE_INPUT_ONLY (Test_U_AudioEffect_MediaFoundation_SessionData,                       // session data type
+                              enum Stream_SessionMessageType,                                       // session event type
+                              struct Test_U_AudioEffect_MediaFoundation_ModuleHandlerConfiguration, // module handler configuration type
+                              libacestream_default_misc_delay_module_name_string,
+                              Stream_INotify_t,                                                     // stream notification interface type
+                              Test_U_AudioEffect_MediaFoundation_Delay);                            // writer type
+
 #if defined (GUI_SUPPORT)
 #if defined (GTK_SUPPORT)
 typedef Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_MT_SYNCH,

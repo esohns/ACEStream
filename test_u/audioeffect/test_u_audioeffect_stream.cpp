@@ -612,7 +612,7 @@ Test_U_AudioEffect_MediaFoundation_Stream::start ()
   PropVariantInit (&property_s);
   property_s.vt = VT_EMPTY;
 
-  // start receiving media session events ?
+  // start receiving media session events/media session ?
   switch (inherited::configuration_->configuration_->sourceType)
   {
     case AUDIOEFFECT_SOURCE_DEVICE:
@@ -701,6 +701,28 @@ Test_U_AudioEffect_MediaFoundation_Stream::stop (bool waitForCompletion_in,
 {
   STREAM_TRACE (ACE_TEXT ("Test_U_AudioEffect_MediaFoundation_Stream::stop"));
 
+  // stop media session ?
+  switch (inherited::configuration_->configuration_->sourceType)
+  {
+    case AUDIOEFFECT_SOURCE_DEVICE:
+    case AUDIOEFFECT_SOURCE_NOISE:
+      break;
+    case AUDIOEFFECT_SOURCE_FILE:
+    {
+      // *NOTE*: the source media type(s) is/are unknown at this stage; let the
+      //         mediafoundation target module update and manage the media
+      //         session
+      goto continue_;
+    }
+    default:
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("invalid/unknown source type (was: %d), returning\n"),
+                  inherited::configuration_->configuration_->sourceType));
+      return;
+    }
+  } // end SWITCH
+
 #if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
   if (mediaSession_)
   {
@@ -713,6 +735,7 @@ Test_U_AudioEffect_MediaFoundation_Stream::stop (bool waitForCompletion_in,
   } // end IF
 #endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
 
+continue_:
   inherited::stop (waitForCompletion_in,
                    recurseUpstream_in,
                    highPriority_in);
@@ -743,9 +766,7 @@ Test_U_AudioEffect_MediaFoundation_Stream::load (Stream_ILayout* layout_in,
   Stream_Module_t* module_p = NULL;
   bool device_can_render_format_b = false;
   HRESULT result = E_FAIL;
-  bool has_mediafoundation_source_b =
-    (!InlineIsEqualGUID ((*iterator).second.second->effect, GUID_NULL) && !(*iterator_3).second.second->fileIdentifier.empty ()) ||
-    (!(*iterator).second.second->mute && (inherited::configuration_->configuration_->renderer != STREAM_DEVICE_RENDERER_MEDIAFOUNDATION) && !device_can_render_format_b);
+  bool has_mediafoundation_source_b = true;
 
   switch (inherited::configuration_->configuration_->sourceType)
   {
@@ -797,27 +818,6 @@ Test_U_AudioEffect_MediaFoundation_Stream::load (Stream_ILayout* layout_in,
   //ACE_ASSERT (module_p);
   //layout_in->append (module_p, NULL, 0);
   //module_p = NULL;
-#if defined (GUI_SUPPORT)
-#if defined (GTK_USE)
-  if (!has_mediafoundation_source_b)
-  {
-    ACE_NEW_RETURN (module_p,
-                    Test_U_AudioEffect_MediaFoundation_StatisticAnalysis_Module (this,
-                                                                                 ACE_TEXT_ALWAYS_CHAR (MODULE_STAT_ANALYSIS_DEFAULT_NAME_STRING)),
-                    false);
-    ACE_ASSERT (module_p);
-    layout_in->append (module_p, NULL, 0);
-    module_p = NULL;
-    ACE_NEW_RETURN (module_p,
-                    Test_U_AudioEffect_MediaFoundation_Vis_SpectrumAnalyzer_Module (this,
-                                                                                    ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_GTK_SPECTRUM_ANALYZER_DEFAULT_NAME_STRING)),
-                    false);
-    ACE_ASSERT (module_p);
-    layout_in->append (module_p, NULL, 0);
-    module_p = NULL;
-  } // end IF
-#endif // GTK_USE
-#endif // GUI_SUPPORT
 
   switch (inherited::configuration_->configuration_->renderer)
   {
@@ -865,6 +865,32 @@ Test_U_AudioEffect_MediaFoundation_Stream::load (Stream_ILayout* layout_in,
       return false;
     }
   } // end SWITCH
+
+  has_mediafoundation_source_b =
+    (!InlineIsEqualGUID ((*iterator).second.second->effect, GUID_NULL) && !(*iterator_3).second.second->fileIdentifier.empty ())                                       ||
+    (!(*iterator).second.second->mute && (inherited::configuration_->configuration_->renderer != STREAM_DEVICE_RENDERER_MEDIAFOUNDATION) && !device_can_render_format_b);
+#if defined (GUI_SUPPORT)
+#if defined (GTK_USE)
+  if (!has_mediafoundation_source_b)
+  {
+    ACE_NEW_RETURN (module_p,
+                    Test_U_AudioEffect_MediaFoundation_StatisticAnalysis_Module (this,
+                                                                                 ACE_TEXT_ALWAYS_CHAR (MODULE_STAT_ANALYSIS_DEFAULT_NAME_STRING)),
+                    false);
+    ACE_ASSERT (module_p);
+    layout_in->append (module_p, NULL, 0);
+    module_p = NULL;
+    ACE_NEW_RETURN (module_p,
+                    Test_U_AudioEffect_MediaFoundation_Vis_SpectrumAnalyzer_Module (this,
+                                                                                    ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_GTK_SPECTRUM_ANALYZER_DEFAULT_NAME_STRING)),
+                    false);
+    ACE_ASSERT (module_p);
+    layout_in->append (module_p, NULL, 0);
+    module_p = NULL;
+  } // end IF
+#endif // GTK_USE
+#endif // GUI_SUPPORT
+
   if (!InlineIsEqualGUID ((*iterator).second.second->effect, GUID_NULL)                                                                                                   ||
       (!(*iterator).second.second->mute && (inherited::configuration_->configuration_->renderer == STREAM_DEVICE_RENDERER_MEDIAFOUNDATION))                               ||
       (!(*iterator).second.second->mute && (inherited::configuration_->configuration_->renderer != STREAM_DEVICE_RENDERER_MEDIAFOUNDATION) && !device_can_render_format_b))
@@ -947,6 +973,16 @@ Test_U_AudioEffect_MediaFoundation_Stream::load (Stream_ILayout* layout_in,
     } // end SWITCH
   if (module_p)
   {
+    if (!has_mediafoundation_source_b)
+    {
+      Stream_Module_t* module_2 = NULL;
+      ACE_NEW_RETURN (module_2,
+                      Test_U_AudioEffect_MediaFoundation_Delay_Module (this,
+                                                                       ACE_TEXT_ALWAYS_CHAR (STREAM_MISC_DELAY_DEFAULT_NAME_STRING)),
+                      false);
+      layout_in->append (module_2, branch_p, index_i);
+    } // end IF
+
     layout_in->append (module_p, branch_p, index_i);
     ++index_i;
     module_p = NULL;

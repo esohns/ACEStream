@@ -278,7 +278,16 @@ Stream_Module_Delay_T<ACE_SYNCH_USE,
         const_cast<typename SessionMessageType::DATA_T::DATA_T&> (inherited::sessionData_->getR ());
       ACE_UINT64 average_bytes_per_second_i = 0;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-      ACE_ASSERT (false); // *TODO*
+      struct _AMMediaType media_type_s;
+      ACE_OS::memset (&media_type_s, 0, sizeof (struct _AMMediaType));
+      inherited2::getMediaType (session_data_r.formats.back (),
+                                media_type_s);
+      ACE_ASSERT (InlineIsEqualGUID (media_type_s.formattype, FORMAT_WaveFormatEx));
+      struct tWAVEFORMATEX* waveformatex_p =
+        reinterpret_cast<struct tWAVEFORMATEX*> (media_type_s.pbFormat);
+      ACE_ASSERT (waveformatex_p);
+      average_bytes_per_second_i = waveformatex_p->nAvgBytesPerSec;
+      Stream_MediaFramework_DirectShow_Tools::free (media_type_s);
 #else
       struct Stream_MediaFramework_ALSA_MediaType media_type_s;
       inherited2::getMediaType (session_data_r.formats.back (),

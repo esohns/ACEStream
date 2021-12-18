@@ -364,18 +364,12 @@ Stream_Decoder_MP3Decoder_T<ACE_SYNCH_USE,
           if (!finished)
           {
             finished = true;
-            // *NOTE*: (if active,) this enqueues STREAM_SESSION_END
+            // *NOTE*: (if active||passive,) this enqueues STREAM_SESSION_END
             //         --> continue
             inherited::STATE_MACHINE_T::finished ();
-            // *NOTE*: (if passive,) STREAM_SESSION_END has been processed
-            //         --> done
-            if (inherited::thr_count_ == 0)
-              goto done; // finished processing
-
             continue;
           } // end IF
 
-done:
           result_2 = 0;
 
           goto continue_; // STREAM_SESSION_END has been processed
