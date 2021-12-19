@@ -234,11 +234,9 @@ Test_U_AudioEffect_MediaFoundation_Message::duplicate (void) const
                       Test_U_AudioEffect_MediaFoundation_Message (*this));
   else // otherwise, use the existing message_block_allocator
   {
-    // *NOTE*: the argument to alloc() does not really matter, as this creates
-    //         a shallow copy of the existing data block
     ACE_NEW_MALLOC_NORETURN (message_p,
-                             static_cast<Test_U_AudioEffect_MediaFoundation_Message*> (inherited::message_block_allocator_->calloc (inherited::capacity (),
-                                                                                                                 '\0')),
+                             static_cast<Test_U_AudioEffect_MediaFoundation_Message*> (inherited::message_block_allocator_->calloc (sizeof (Test_U_AudioEffect_MediaFoundation_Message),
+                                                                                                                                    '\0')),
                              Test_U_AudioEffect_MediaFoundation_Message (*this));
   } // end ELSE
   if (!message_p)

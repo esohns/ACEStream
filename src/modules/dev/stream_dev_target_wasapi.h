@@ -83,6 +83,7 @@ class Stream_Dev_Target_WASAPI_T
                            Stream_IAllocator* = NULL);
 
   // implement (part of) Stream_ITaskBase
+  virtual void handleControlMessage (ControlMessageType&); // control message handle
   virtual void handleDataMessage (DataMessageType*&, // data message handle
                                   bool&);            // return value: pass message downstream ?
   virtual void handleSessionMessage (SessionMessageType*&, // session message handle

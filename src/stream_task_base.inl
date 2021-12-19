@@ -571,14 +571,24 @@ Stream_TaskBase_T<ACE_SYNCH_USE,
   // initialize return value(s)
   DataMessageType* message_p = NULL;
 
+  // sanity check(s)
+  ACE_ASSERT (requestedSize_in);
+
+  const typename SessionMessageType::DATA_T::DATA_T* session_data_p =
+    (sessionData_ ? &sessionData_->getR () : NULL);
+  if (unlikely (!session_data_p))
+    ACE_DEBUG ((LM_WARNING,
+                ACE_TEXT ("%s: no session data, cannot set session id, continuing\n"),
+                inherited::mod_->name ()));
+
   // *TODO*: remove type inference
   if (likely (allocator_))
   {
-allocate:
+retry:
     try {
       // *TODO*: remove type inference
-      message_p =
-          static_cast<DataMessageType*> (allocator_->malloc (requestedSize_in));
+      ACE_ALLOCATOR_NORETURN (message_p,
+                              static_cast<DataMessageType*> (allocator_->malloc (requestedSize_in)));
     } catch (...) {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: caught exception in Stream_IAllocator::malloc(%u), continuing\n"),
@@ -588,8 +598,8 @@ allocate:
     }
 
     // keep retrying ?
-    if (!message_p && !allocator_->block ())
-      goto allocate;
+    if (unlikely (!message_p && !allocator_->block ()))
+      goto retry;
   } // end IF
   else
     ACE_NEW_NORETURN (message_p,
@@ -606,6 +616,9 @@ allocate:
                   inherited::mod_->name (),
                   requestedSize_in));
   } // end IF
+  // *TODO*: remove type inference
+  message_p->initialize ((session_data_p ? session_data_p->sessionId : -1),
+                         NULL);
 
   return message_p;
 }
@@ -851,9 +864,9 @@ Stream_TaskBase_T<ACE_SYNCH_USE,
   {
 retry:
     try {
-      ACE_NEW_MALLOC_NORETURN (control_message_p,
-                               static_cast<ControlMessageType*> (allocator_->calloc ()),
-                               ControlMessageType (messageType_in));
+      // *IMPORTANT NOTE*: calloc() --> control message !
+      ACE_ALLOCATOR_NORETURN (control_message_p,
+                              static_cast<ControlMessageType*> (allocator_->calloc ()));
     } catch (...) {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: caught exception in Stream_IAllocator::calloc(), aborting\n"),
@@ -884,6 +897,16 @@ retry:
                   inherited::mod_->name ()));
     return false;
   } // end IF
+  if (likely (allocator_))
+    if (unlikely (!control_message_p->initialize (messageType_in)))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("%s: failed to Stream_ControlMessage_T::initialize(%d), aborting\n"),
+                  inherited::mod_->name (),
+                  messageType_in));
+      control_message_p->release ();
+      return false;
+    } // end IF
 
   result = (sendUpStream_in ? inherited::reply (control_message_p, NULL)
                             : put (control_message_p, NULL));
@@ -925,9 +948,8 @@ Stream_TaskBase_T<ACE_SYNCH_USE,
   STREAM_TRACE (ACE_TEXT ("Stream_TaskBase_T::putSessionMessage"));
 
   // sanity check(s)
-  typename SessionMessageType::DATA_T::DATA_T* session_data_p =
-    (sessionData_inout ? &const_cast<typename SessionMessageType::DATA_T::DATA_T&> (sessionData_inout->getR ())
-                       : NULL);
+  const typename SessionMessageType::DATA_T::DATA_T* session_data_p =
+    (sessionData_inout ? &sessionData_inout->getR () : NULL);
   if (unlikely (!session_data_p))
     ACE_DEBUG ((LM_WARNING,
                 ACE_TEXT ("%s: no session data, cannot set session id, continuing\n"),

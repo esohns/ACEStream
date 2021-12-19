@@ -210,13 +210,13 @@ Stream_MessageBase_T<//AllocatorConfigurationType,
   STREAM_TRACE (ACE_TEXT ("Stream_MessageBase_T::initialize"));
 
   // sanity check(s)
-//  ACE_ASSERT (sessionId_in);
+  ACE_ASSERT (sessionId_in);
   // *NOTE*: messages may be initialized more than once (see: stream_net_io.inl::374)
   // *TODO*: work around each case and reactivate this test
   //ACE_ASSERT (!isInitialized_);
 
   if (dataBlock_in)
-  { ACE_ASSERT (!inherited::data_block_);
+  { ACE_ASSERT (inherited::data_block_ != dataBlock_in);
     inherited::data_block (dataBlock_in);
   } // end IF
   ACE_ASSERT (inherited::data_block_);

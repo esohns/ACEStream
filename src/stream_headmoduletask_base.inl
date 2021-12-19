@@ -220,6 +220,7 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
         {
           if (likely (!isHighPriorityStop_))
             break;
+          isHighPriorityStop_ = false;
 
           // *IMPORTANT NOTE*: make sure the message is actually processed
           { ACE_GUARD_RETURN (ACE_SYNCH_MUTEX_T, aGuard, queue_.lock (), -1);
@@ -232,7 +233,7 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
           //                   synchronous downstream-) task(s)
           //                   --> do it manually
           control (STREAM_CONTROL_ABORT,
-                   false);
+                   false); // forward upstream ?
           messageBlock_in->release ();
           return 0;
         }

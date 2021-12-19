@@ -76,6 +76,10 @@ class Stream_ControlMessage_T
                            ACE_Allocator*); // message allocator
   virtual ~Stream_ControlMessage_T ();
 
+  // overload from ACE_Message_Block
+  // *WARNING*: derived classes need to overload this
+  virtual ACE_Message_Block* duplicate () const;
+
   // implement Common_IInitialize_T
   virtual bool initialize (const ControlType&);
 
@@ -93,10 +97,6 @@ class Stream_ControlMessage_T
  private:
   ACE_UNIMPLEMENTED_FUNC (Stream_ControlMessage_T ())
   ACE_UNIMPLEMENTED_FUNC (Stream_ControlMessage_T& operator= (const Stream_ControlMessage_T&))
-
-  // overload from ACE_Message_Block
-  // *WARNING*: derived classes need to overload this
-  virtual ACE_Message_Block* duplicate (void) const;
 };
 
 // include template definition

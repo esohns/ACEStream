@@ -89,7 +89,7 @@ class Stream_Miscellaneous_Distributor_T
   inline virtual void waitForIdleState () const { OWN_TYPE_T* this_p = const_cast<OWN_TYPE_T*> (this); this_p->idle (); }
 
   // implement (part of) Stream_ITaskBase_T
-  inline virtual void handleControlMessage (ControlMessageType& message_in) { forward (&message_in, false, false); }
+  virtual void handleControlMessage (ControlMessageType&); // control message handle
   inline virtual void handleDataMessage (DataMessageType*& message_inout, bool& passMessageDownstream_out) { ACE_UNUSED_ARG (passMessageDownstream_out); forward (message_inout, false, false); }
   virtual void handleSessionMessage (SessionMessageType*&, // session message handle
                                      bool&);               // return value: pass message downstream ?
@@ -109,15 +109,14 @@ class Stream_Miscellaneous_Distributor_T
   // convenient types
   typedef std::map<ACE_thread_t,
                    Stream_Queue_t*> THREAD_TO_QUEUE_MAP_T;
-  typedef typename THREAD_TO_QUEUE_MAP_T::const_iterator THREAD_TO_QUEUE_ITERATOR_T;
+  typedef typename THREAD_TO_QUEUE_MAP_T::const_iterator THREAD_TO_QUEUE_CONST_ITERATOR_T;
   typedef ACE_Module<ACE_SYNCH_USE,
                      TimePolicyType> MODULE_T;
   typedef std::map<ACE_Message_Queue_Base*,
                    MODULE_T*> QUEUE_TO_MODULE_MAP_T;
-  typedef typename QUEUE_TO_MODULE_MAP_T::const_iterator QUEUE_TO_MODULE_ITERATOR_T;
+  typedef typename QUEUE_TO_MODULE_MAP_T::const_iterator QUEUE_TO_MODULE_CONST_ITERATOR_T;
   typedef std::map<std::string,
                    MODULE_T*> BRANCH_TO_HEAD_MAP_T;
-  typedef typename BRANCH_TO_HEAD_MAP_T::iterator BRANCH_TO_HEAD_ITERATOR_T;
   typedef typename BRANCH_TO_HEAD_MAP_T::const_iterator BRANCH_TO_HEAD_CONST_ITERATOR_T;
   typedef std::pair<std::string, MODULE_T*> BRANCH_TO_HEAD_PAIR_T;
   struct BRANCH_TO_HEAD_MAP_FIND_S
@@ -145,7 +144,8 @@ class Stream_Miscellaneous_Distributor_T
   typedef std::map<MODULE_T*,
                    typename SessionMessageType::DATA_T*> HEAD_TO_SESSIONDATA_MAP_T;
   typedef typename HEAD_TO_SESSIONDATA_MAP_T::iterator HEAD_TO_SESSIONDATA_ITERATOR_T;
-//  typedef typename HEAD_TO_SESSIONDATA_MAP_T::const_iterator HEAD_TO_SESSIONDATA_CONST_ITERATOR_T;
+  //typedef typename HEAD_TO_SESSIONDATA_MAP_T::const_iterator HEAD_TO_SESSIONDATA_CONST_ITERATOR_T;
+  typedef typename BRANCH_TO_HEAD_MAP_T::iterator BRANCH_TO_HEAD_ITERATOR_T;
 
   ACE_UNIMPLEMENTED_FUNC (Stream_Miscellaneous_Distributor_T ())
   ACE_UNIMPLEMENTED_FUNC (Stream_Miscellaneous_Distributor_T (const Stream_Miscellaneous_Distributor_T&))

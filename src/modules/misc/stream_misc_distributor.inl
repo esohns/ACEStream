@@ -83,7 +83,7 @@ Stream_Miscellaneous_Distributor_T<ACE_SYNCH_USE,
   ACE_Message_Block* message_block_p = NULL;
 
   { ACE_GUARD (ACE_Thread_Mutex, aGuard, inherited::lock_);
-    for (THREAD_TO_QUEUE_ITERATOR_T iterator = queues_.begin ();
+    for (THREAD_TO_QUEUE_CONST_ITERATOR_T iterator = queues_.begin ();
          iterator != queues_.end ();
          ++iterator)
     { ACE_ASSERT ((*iterator).second);
@@ -108,7 +108,7 @@ Stream_Miscellaneous_Distributor_T<ACE_SYNCH_USE,
         case STREAM_MESSAGE_SESSION:
         {
           // retrieve branch session data
-          QUEUE_TO_MODULE_ITERATOR_T iterator_2 =
+          QUEUE_TO_MODULE_CONST_ITERATOR_T iterator_2 =
               modules_.find ((*iterator).second);
           ACE_ASSERT (iterator_2 != modules_.end ());
           ACE_ASSERT ((*iterator_2).second);
@@ -161,6 +161,69 @@ Stream_Miscellaneous_Distributor_T<ACE_SYNCH_USE,
 continue_:
   if (unlikely (dispose_in))
     messageBlock_in->release ();
+}
+
+template <ACE_SYNCH_DECL,
+          typename TimePolicyType,
+          typename ConfigurationType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
+          typename SessionDataType>
+void
+Stream_Miscellaneous_Distributor_T<ACE_SYNCH_USE,
+                                   TimePolicyType,
+                                   ConfigurationType,
+                                   ControlMessageType,
+                                   DataMessageType,
+                                   SessionMessageType,
+                                   SessionDataType>::handleControlMessage (ControlMessageType& message_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Miscellaneous_Distributor_T::handleControlMessage"));
+
+  bool is_high_priority_b = false;
+  switch (message_in.type ())
+  {
+    case STREAM_CONTROL_MESSAGE_ABORT:
+    {
+      QUEUE_TO_MODULE_CONST_ITERATOR_T iterator_2;
+      BRANCH_TO_HEAD_CONST_ITERATOR_T iterator_3;
+      Stream_IMessageQueue* iqueue_p = NULL;
+      unsigned int flushed_messages_i = 0;
+      { ACE_GUARD (ACE_Thread_Mutex, aGuard, inherited::lock_);
+        for (THREAD_TO_QUEUE_CONST_ITERATOR_T iterator = queues_.begin ();
+             iterator != queues_.end ();
+             ++iterator)
+        { // retrieve branch name
+          iterator_2 = modules_.find ((*iterator).second);
+          ACE_ASSERT (iterator_2 != modules_.end ());
+          iterator_3 =
+            std::find_if (heads_.begin (), heads_.end (),
+                          std::bind2nd (BRANCH_TO_HEAD_MAP_FIND_S (),
+                                        (*iterator_2).second));
+          ACE_ASSERT (iterator_3 != heads_.end ());
+
+          // flush data messages
+          ACE_ASSERT ((*iterator).second);
+          iqueue_p = dynamic_cast<Stream_IMessageQueue*> ((*iterator).second);
+          ACE_ASSERT (iqueue_p);
+          flushed_messages_i = iqueue_p->flush (false); // flush session messages ?
+          ACE_DEBUG ((LM_DEBUG,
+                      ACE_TEXT ("%s/%s: aborting: flushed %u data messages\n"),
+                      inherited::mod_->name (), ACE_TEXT ((*iterator_3).first.c_str ()),
+                      flushed_messages_i));
+        } // end FOR
+      } // end lock scope
+      is_high_priority_b = true;
+      break;
+    }
+    default:
+      break;
+  } // end SWITCH
+
+  forward (&message_in,
+           false,               // dispose original ?
+           is_high_priority_b); // high priority ?
 }
 
 template <ACE_SYNCH_DECL,
@@ -649,7 +712,7 @@ Stream_Miscellaneous_Distributor_T<ACE_SYNCH_USE,
 
 retry:
   { ACE_GUARD (ACE_Thread_Mutex, aGuard, inherited::lock_);
-    for (THREAD_TO_QUEUE_ITERATOR_T iterator = queues_.begin ();
+    for (THREAD_TO_QUEUE_CONST_ITERATOR_T iterator = queues_.begin ();
          iterator != queues_.end ();
          ++iterator)
     { ACE_ASSERT ((*iterator).second);
@@ -739,8 +802,13 @@ Stream_Miscellaneous_Distributor_T<ACE_SYNCH_USE,
   STREAM_TRACE (ACE_TEXT ("Stream_Miscellaneous_Distributor_T::svc"));
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
+#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0A00) // _WIN32_WINNT_WIN10
+  Common_Error_Tools::setThreadName (inherited::threadName_,
+                                     NULL);
+#else
   Common_Error_Tools::setThreadName (inherited::threadName_,
                                      0);
+#endif // _WIN32_WINNT_WIN10
 #endif // ACE_WIN32 || ACE_WIN64
 
   ACE_Message_Block*      message_block_p = NULL;
@@ -752,9 +820,9 @@ Stream_Miscellaneous_Distributor_T<ACE_SYNCH_USE,
   ACE_Task_Base*          task_p          = NULL;
 
   // sanity check(s)
-  THREAD_TO_QUEUE_ITERATOR_T iterator;
-  QUEUE_TO_MODULE_ITERATOR_T iterator_2;
-  BRANCH_TO_HEAD_ITERATOR_T iterator_3;
+  THREAD_TO_QUEUE_CONST_ITERATOR_T iterator;
+  QUEUE_TO_MODULE_CONST_ITERATOR_T iterator_2;
+  BRANCH_TO_HEAD_CONST_ITERATOR_T iterator_3;
   { ACE_GUARD_RETURN (ACE_Thread_Mutex, aGuard, inherited::lock_, -1);
     iterator = queues_.find (ACE_OS::thr_self ());
     ACE_ASSERT (iterator != queues_.end ());

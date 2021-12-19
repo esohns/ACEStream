@@ -80,6 +80,7 @@ Stream_MessageAllocatorHeapBase_T<ACE_SYNCH_USE,
   STREAM_TRACE (ACE_TEXT ("Stream_MessageAllocatorHeapBase_T::calloc"));
 
   int result = -1;
+
   // step0: wait for an empty slot ?
   if (block_)
     result = freeMessageCounter_.acquire ();
@@ -111,13 +112,13 @@ Stream_MessageAllocatorHeapBase_T<ACE_SYNCH_USE,
     freeMessageCounter_.release ();
     return NULL;
   } // end IF
+  // *NOTE*: must release() data_block_p beyond this point !
 
-  // *NOTE*: must release data block beyond this point !
-
-  // step2: allocate a message
-  ACE_Message_Block* message_block_p = NULL;
+  // step2: allocate a control message
+  // *NOTE*: fire-and-forget data_block_p if this is successful
+  ControlMessageType* message_p = NULL;
   try {
-    ACE_NEW_MALLOC_NORETURN (message_block_p,
+    ACE_NEW_MALLOC_NORETURN (message_p,
                              static_cast<ControlMessageType*> (inherited::malloc (sizeof (ControlMessageType))),
                              ControlMessageType (data_block_p,
                                                  this)); // message allocator
@@ -125,7 +126,7 @@ Stream_MessageAllocatorHeapBase_T<ACE_SYNCH_USE,
     ACE_DEBUG ((LM_CRITICAL,
                 ACE_TEXT ("caught exception in ACE_NEW_MALLOC_NORETURN(ControlMessageType(), continuing\n")));
   }
-  if (unlikely (!message_block_p))
+  if (unlikely (!message_p))
   {
     ACE_DEBUG ((LM_CRITICAL,
                 ACE_TEXT ("failed to allocate control message, aborting\n")));
@@ -134,10 +135,10 @@ Stream_MessageAllocatorHeapBase_T<ACE_SYNCH_USE,
     freeMessageCounter_.release ();
     return NULL;
   } // end IF
-  message_block_p->data_block (data_block_p);
 
-  return message_block_p;
+  return message_p;
 }
+
 template <ACE_SYNCH_DECL,
           typename ConfigurationType,
           typename ControlMessageType,
@@ -244,6 +245,11 @@ Stream_MessageAllocatorHeapBase_T<ACE_SYNCH_USE,
 
   ACE_UNUSED_ARG (initialValue_in);
 
+  // sanity check(s)
+  ACE_ASSERT ((bytes_in == sizeof (ControlMessageType)) ||
+              (bytes_in == sizeof (DataMessageType))    ||
+              (bytes_in == sizeof (SessionMessageType)));
+
   int result = -1;
   // step0: wait for an empty slot ?
   if (likely (block_))
@@ -262,28 +268,23 @@ Stream_MessageAllocatorHeapBase_T<ACE_SYNCH_USE,
   // step1: allocate free message
   void* message_p = NULL;
   try {
-    message_p = inherited::malloc ((bytes_in ? sizeof (DataMessageType)
-                                             : sizeof (SessionMessageType)));
+    message_p = inherited::malloc (bytes_in);
   } catch (...) {
     ACE_DEBUG ((LM_CRITICAL,
                 ACE_TEXT ("caught exception in ACE_New_Allocator::malloc(%u), continuing\n"),
-                (bytes_in ? sizeof (DataMessageType)
-                          : sizeof (SessionMessageType))));
+                bytes_in));
   }
   if (unlikely (!message_p))
   {
     ACE_DEBUG ((LM_CRITICAL,
                 ACE_TEXT ("failed to allocate (Session)MessageType(%u), aborting\n"),
-                (bytes_in ? sizeof (DataMessageType)
-                          : sizeof (SessionMessageType))));
+                bytes_in));
     poolSize_--;
     freeMessageCounter_.release ();
     return NULL;
   } // end IF
 
-  // ... and return the result
-  // *NOTE*: the caller knows what to expect (either MessageType ||
-  //         SessionMessageType)
+  // *NOTE*: the caller knows what to expect
   return message_p;
 }
 

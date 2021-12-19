@@ -180,6 +180,53 @@ Stream_Dev_Target_WASAPI_T<ACE_SYNCH_USE,
                            SessionControlType,
                            SessionEventType,
                            UserDataType,
+                           MediaType>::handleControlMessage (ControlMessageType& message_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Dev_Target_WASAPI_T::handleControlMessage"));
+
+  switch (message_in.type ())
+  {
+    case STREAM_CONTROL_MESSAGE_ABORT:
+    {
+      unsigned int result = queue_.flush (false); // flush all data messages
+      if (unlikely (result == static_cast<unsigned int> (-1)))
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("%s: failed to Stream_MessageQueue_T::flush(false): \"%m\", returning\n"),
+                    inherited::mod_->name ()));
+        return;
+      } // end IF
+      ACE_DEBUG ((LM_DEBUG,
+                  ACE_TEXT ("%s: aborting: flushed %u data messages\n"),
+                  inherited::mod_->name (),
+                  result));
+      break;
+    }
+    default:
+      break;
+  } // end SWITCH
+}
+
+template <ACE_SYNCH_DECL,
+          typename TimePolicyType,
+          typename ConfigurationType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
+          typename SessionControlType,
+          typename SessionEventType,
+          typename UserDataType,
+          typename MediaType>
+void
+Stream_Dev_Target_WASAPI_T<ACE_SYNCH_USE,
+                           TimePolicyType,
+                           ConfigurationType,
+                           ControlMessageType,
+                           DataMessageType,
+                           SessionMessageType,
+                           SessionControlType,
+                           SessionEventType,
+                           UserDataType,
                            MediaType>::handleDataMessage (DataMessageType*& message_inout,
                                                           bool& passMessageDownstream_out)
 {

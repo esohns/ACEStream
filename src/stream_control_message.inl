@@ -84,7 +84,7 @@ Stream_ControlMessage_T<ControlType,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_ControlMessage_T::Stream_ControlMessage_T"));
 
-  inherited::msg_type (message_in.msg_type ());
+  //inherited::msg_type (message_in.msg_type ());
 
   // set read/write pointers
   inherited::rd_ptr (message_in.rd_ptr ());
@@ -158,15 +158,15 @@ template <typename ControlType,
           typename MessageType>
 ACE_Message_Block*
 Stream_ControlMessage_T<ControlType,
-                        MessageType>::duplicate (void) const
+                        MessageType>::duplicate () const
 {
   STREAM_TRACE (ACE_TEXT ("Stream_ControlMessage_T::duplicate"));
 
   OWN_TYPE_T* message_p = NULL;
 
-  // create a new <Stream_ControlMessage_T> that contains unique copies of
+  // create a new Stream_ControlMessage_T that contains unique copies of
   // the message block fields, but a reference counted duplicate of
-  // the <ACE_sessionData_Block>
+  // the ACE_Data_Block
 
   // if there is no allocator, use the standard new and delete calls
   if (!inherited::message_block_allocator_)
@@ -174,14 +174,12 @@ Stream_ControlMessage_T<ControlType,
                       OWN_TYPE_T (*this));
   else
   {
-    // *NOTE*: instruct the allocator to return a control message by invoking
-    //         calloc()
     ACE_NEW_MALLOC_NORETURN (message_p,
-                             static_cast<OWN_TYPE_T*> (inherited::message_block_allocator_->calloc (0,
+                             static_cast<OWN_TYPE_T*> (inherited::message_block_allocator_->calloc (sizeof (OWN_TYPE_T),
                                                                                                     '\0')),
                              OWN_TYPE_T (*this));
   }
-  if (!message_p)
+  if (unlikely (!message_p))
   {
     Stream_IAllocator* allocator_p =
       dynamic_cast<Stream_IAllocator*> (inherited::message_block_allocator_);
