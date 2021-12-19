@@ -1976,8 +1976,8 @@ Test_U_AudioEffect_ALSA_Stream::initialize (const typename inherited::CONFIGURAT
       const_cast<typename inherited::CONFIGURATION_T&> (configuration_in).find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (iterator != configuration_in.end ());
   iterator_2 =
-    const_cast<typename inherited::CONFIGURATION_T&> (configuration_in).find (ACE_TEXT_ALWAYS_CHAR (STREAM_FILE_SINK_DEFAULT_NAME_STRING));
-  ACE_ASSERT (iterator != configuration_in.end ());
+    const_cast<typename inherited::CONFIGURATION_T&> (configuration_in).find (ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_ENCODER_WAV_DEFAULT_NAME_STRING));
+  ACE_ASSERT (iterator_2 != configuration_in.end ());
   (*iterator).second.second->outputFormat =
     configuration_in.configuration_->format;
   if (inherited::configuration_->configuration_->sourceType != AUDIOEFFECT_SOURCE_FILE)

@@ -71,6 +71,7 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
               // *TODO*: this looks dodgy, but seems to work nonetheless...
               &queue_) // queue handle
  , inherited2 (NULL)
+ , abortSent_ (false)
  , isHighPriorityStop_ (false)
  , queue_ (STREAM_QUEUE_MAX_SLOTS, // max # slots
            NULL)                   // notification handle
@@ -91,7 +92,6 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
   STREAM_TRACE (ACE_TEXT ("Stream_HeadModuleTaskBase_T::Stream_HeadModuleTaskBase_T"));
 
   inherited::threadCount_ = STREAM_MODULE_DEFAULT_HEAD_THREADS;
-  inherited::msg_queue (&queue_);
 
   if (unlikely (!inherited2::initialize (stateMachineLock_)))
   {
@@ -700,9 +700,9 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
     {
       case ACE_Message_Block::MB_STOP:
       {
-        if (unlikely (isHighPriorityStop_))
+        if (unlikely (isHighPriorityStop_ && !abortSent_))
           control (STREAM_CONTROL_ABORT,
-                   false);
+                   false); // forward upstream ?
 
         // *IMPORTANT NOTE*: when close()d manually (i.e. on a user abort),
         //                   the stream may not have finish()ed
@@ -793,36 +793,14 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
         // finished ?
         if (unlikely (stop_processing_b)) // <-- SESSION_END has been processed || serious error
         { stop_processing_b = false; // reset, just in case...
-          { ACE_GUARD_RETURN (ACE_Thread_Mutex, aGuard, inherited::lock_, -1);
+//          { ACE_GUARD_RETURN (ACE_Thread_Mutex, aGuard, inherited::lock_, -1);
             if (likely (inherited2::current () != STREAM_STATE_FINISHED))
             {
               inherited2::finished (); // *NOTE*: enqueues SESSION_END --> continue
               continue;
             } // end IF
-          } // end lock scope
+//          } // end lock scope
         } // end IF
-
-        //// iff STREAM_SESSION_END has been processed: flush data ?
-        //// --> flush all (session-)data; process remaining control messages only
-        //// *TODO*: stop_processing is set when STREAM_SESSION_END is processed;
-        ////         this section is currently not being reached
-        //// *TODO*: an alternative strategy could be to 'lock the queue' (i.e.
-        ////         modify put()), and 'filter-sort' the remaining messages when
-        ////         enqueueing the session end message; there would be no need
-        ////         to 'flush'
-        //if (unlikely (sessionEndProcessed_))
-        //{
-        //  result_2 = queue_.flush (true); // flush session messages ?
-        //  if (unlikely (result_2 == -1))
-        //    ACE_DEBUG ((LM_ERROR,
-        //                ACE_TEXT ("%s: failed to Stream_IMessageQueue::flush(true): \"%m\", aborting\n"),
-        //                inherited::mod_->name ()));
-        //  else if (unlikely (result_2))
-        //    ACE_DEBUG ((LM_WARNING,
-        //                ACE_TEXT ("%s: session has ended, flushed %u message(s)\n"),
-        //                inherited::mod_->name (),
-        //                result_2));
-        //} // end IF
 
         break;
       }
@@ -837,7 +815,7 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
       // *TODO*: remove type inferences
       if (unlikely (session_data_p->aborted))
       {
-        { ACE_GUARD_RETURN (ACE_Thread_Mutex, aGuard, inherited::lock_, -1);
+//        { ACE_GUARD_RETURN (ACE_Thread_Mutex, aGuard, inherited::lock_, -1);
           if (likely (inherited2::current () != STREAM_STATE_FINISHED))
           {
             // *TODO*: remove type inferences
@@ -848,7 +826,7 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
             inherited2::finished (); // *NOTE*: enqueues SESSION_END --> continue
             continue;
           } // end IF
-        } // end lock scope
+//        } // end lock scope
       } // end IF
     } // end lock scope
   } while (true);
@@ -1023,6 +1001,11 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_HeadModuleTaskBase_T::stop"));
 
+  // sanity check(s)
+  // *NOTE*: inherited::control() ignores highPriority_in, but invokes
+  //         this->put(), which re-evaluates isHighPriorityStop_
+//  ACE_ASSERT (!highPriority_in);
+
   inherited::control (ACE_Message_Block::MB_STOP,
                       highPriority_in);
 
@@ -1103,7 +1086,7 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
                       ACE_TEXT ("%s: failed to Common_ITimer::schedule_timer(%#T): \"%m\", returning\n"),
                       inherited::mod_->name (),
                       &interval));
-          goto error_i;
+          goto error;
         } // end IF
         ACE_DEBUG ((LM_DEBUG,
                     ACE_TEXT ("%s: scheduled statistic collecting timer (id: %d) for interval %#T\n"),
@@ -1122,13 +1105,13 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
 //          ACE_DEBUG ((LM_ERROR,
 //                      ACE_TEXT ("%s: failed to ACE_Task_Base::open(): \"%m\", aborting\n"),
 //                      inherited::mod_->name ()));
-//          goto error_i;
+//          goto error;
 //        } // end IF
 //      } // end IF
 
       break;
 
-error_i:
+error:
       inherited::notify (STREAM_SESSION_MESSAGE_ABORT);
 
       break;
@@ -1219,7 +1202,10 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
 
   if (unlikely (inherited::isInitialized_))
   {
+    abortSent_ = false;
+    isHighPriorityStop_ = false;
     // *NOTE*: sessionEndProcessed_ and sessionEndSent_ are reset in onChange()
+
     typename inherited::ISTREAM_T* istream_p =
       const_cast<typename inherited::ISTREAM_T*> (inherited::getP ());
     ACE_ASSERT (istream_p);
@@ -1251,7 +1237,6 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
 //        delete act_p; act_p = NULL;
 //      } // end IF
     } // end IF
-    isHighPriorityStop_ = false;
   } // end IF
 
   result = inherited::msg_queue_->activate ();
@@ -1331,6 +1316,8 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
                     ACE_TEXT ("%s: failed to Stream_TaskBase_T::putControlMessage(%d), continuing\n"),
                     inherited::mod_->name (),
                     control_in));
+      else if (control_in == STREAM_CONTROL_ABORT)
+        abortSent_ = true;
       break;
     }
     // session notification

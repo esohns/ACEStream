@@ -41,6 +41,9 @@ struct sox_signalinfo_t;
 class Stream_MediaFramework_ALSA_Tools
 {
  public:
+  static bool canRender (struct _snd_pcm*,                                    // device handle
+                         const struct Stream_MediaFramework_ALSA_MediaType&); // media type
+
   static bool setFormat (struct _snd_pcm*,                                        // device handle
                          const struct Stream_MediaFramework_ALSA_Configuration&); // configuration
   static bool getFormat (struct _snd_pcm*,                                  // device handle

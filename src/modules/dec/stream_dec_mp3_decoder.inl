@@ -242,8 +242,8 @@ Stream_Decoder_MP3Decoder_T<ACE_SYNCH_USE,
   ACE_Time_Value no_wait = COMMON_TIME_NOW;
   int message_type = -1;
   DataMessageType* message_p = NULL;
-  bool finished = false;
-  bool stop_processing = false;
+  bool done_b = false;
+  bool stop_processing_b = false;
   std::string file_path_string;
   unsigned int file_size_i = 0;
   int encoding_i = 0, channels_i = 0;
@@ -277,7 +277,7 @@ Stream_Decoder_MP3Decoder_T<ACE_SYNCH_USE,
               ACE_TEXT (file_path_string.c_str ()),
               file_size_i));
   error_i = mpg123_open (handle_, file_path_string.c_str ());
-  if (error_i != MPG123_OK)
+  if (unlikely (error_i != MPG123_OK))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to  mpg123_open(\"%s\"): \"%s\", aborting\n"),
@@ -290,7 +290,7 @@ Stream_Decoder_MP3Decoder_T<ACE_SYNCH_USE,
                               &rate_l,
                               &channels_i,
                               &encoding_i);
-  if (error_i != MPG123_OK)
+  if (unlikely (error_i != MPG123_OK))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to  mpg123_getformat(\"%s\"): \"%s\", aborting\n"),
@@ -344,104 +344,119 @@ Stream_Decoder_MP3Decoder_T<ACE_SYNCH_USE,
   do
   {
     message_block_p = NULL;
-    result = inherited::getq (message_block_p,
-                              &no_wait);
-    if (result >= 0)
-    {
-      ACE_ASSERT (message_block_p);
-      message_type = message_block_p->msg_type ();
-      switch (message_type)
-      {
-        case ACE_Message_Block::MB_STOP:
-        {
-          // clean up
-          message_block_p->release (); message_block_p = NULL;
-
-          // *NOTE*: when close()d manually (i.e. user abort), 'finished' will not
-          //         have been set at this stage
-
-          // signal the controller ?
-          if (!finished)
-          {
-            finished = true;
-            // *NOTE*: (if active||passive,) this enqueues STREAM_SESSION_END
-            //         --> continue
-            inherited::STATE_MACHINE_T::finished ();
-            continue;
-          } // end IF
-
-          result_2 = 0;
-
-          goto continue_; // STREAM_SESSION_END has been processed
-        }
-        default:
-          break;
-      } // end SWITCH
-
-      // process manually
-      inherited::handleMessage (message_block_p,
-                                stop_processing);
-      if (stop_processing)
-      {
-        // *IMPORTANT NOTE*: message_block_p has already been released() !
-
-        finished = true;
-        // *NOTE*: (if active,) this enqueues STREAM_SESSION_END
-        //         --> continue
-        inherited::STATE_MACHINE_T::finished ();
-
-        continue;
-      } // end IF
-    } // end IF
-    else if (result == -1)
-    {
-      error = ACE_OS::last_error ();
-      if (error != EWOULDBLOCK) // Win32: 10035
+    result_2 = inherited::getq (message_block_p,
+                                &no_wait);
+    if (result_2 == -1)
+    { error = ACE_OS::last_error ();
+      if (unlikely (error != EWOULDBLOCK)) // Win32: 10035
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: failed to ACE_Task::getq(): \"%m\", aborting\n"),
                     inherited::mod_->name ()));
 
-        if (!finished)
+        if (unlikely (inherited::current () != STREAM_STATE_FINISHED))
         {
-          finished = true;
-          // *NOTE*: (if active,) this enqueues STREAM_SESSION_END
-          //         --> continue
-          inherited::STATE_MACHINE_T::finished ();
+          inherited::finished (); // *NOTE*: enqueues SESSION_END --> continue
+          message_block_p->release (); message_block_p = NULL;
+          continue;
         } // end IF
 
         break;
       } // end IF
-    } // end ELSE IF
+    } // end IF
+
+    if (message_block_p)
+    {
+      message_type = message_block_p->msg_type ();
+      switch (message_type)
+      {
+        case ACE_Message_Block::MB_STOP:
+        {
+          if (unlikely (inherited::isHighPriorityStop_ && !inherited::abortSent_))
+            inherited::control (STREAM_CONTROL_ABORT,
+                                false); // forward upstream ?
+
+          // *IMPORTANT NOTE*: when close()d manually (i.e. on a user abort),
+          //                   the stream may not have finish()ed
+          if (unlikely (inherited::current () != STREAM_STATE_FINISHED))
+          {
+            inherited::finished (); // *NOTE*: enqueues SESSION_END --> continue
+            message_block_p->release (); message_block_p = NULL;
+            continue;
+          } // end IF
+
+          // *NOTE*: this is racy; the penultimate thread may have left svc() and
+          //         not have decremented thr_count_ yet. In this case, the
+          //         stop-message might remain in the queue during shutdown (or,
+          //         even worse-) during re-initialization...
+          // *TODO*: ward against this scenario
+          if (unlikely (inherited::thr_count_ > 1))
+          {
+            result_2 =
+              (inherited::isHighPriorityStop_ ? inherited::ungetq (message_block_p, NULL)
+                                              : inherited::putq (message_block_p, NULL));
+            if (unlikely (result_2 == -1))
+            {
+              ACE_DEBUG ((LM_ERROR,
+                          ACE_TEXT ("%s: worker thread (id: %t) failed to ACE_Task::putq(): \"%m\", aborting\n"),
+                          inherited::mod_->name ()));
+              message_block_p->release (); message_block_p = NULL;
+              done_b = true;
+              break;
+            } // end IF
+          } // end IF
+          else
+          {
+            message_block_p->release (); message_block_p = NULL;
+          } // end ELSE
+
+          // --> SESSION_END has been processed; leave
+          done_b = true;
+          break;
+        }
+        default:
+          break;
+      } // end SWITCH
+      // sanity check(s)
+      if (unlikely (done_b))
+        break;
+
+      // process manually
+      inherited::handleMessage (message_block_p,
+                                stop_processing_b);
+      if (unlikely (stop_processing_b)) // <-- SESSION_END has been processed || serious error
+      { stop_processing_b = false; // reset, just in case...
+        // *IMPORTANT NOTE*: message_block_p has already been released() !
+
+        if (likely (inherited::current () != STREAM_STATE_FINISHED))
+        {
+          inherited::finished (); // *NOTE*: enqueues SESSION_END --> continue
+          continue;
+        } // end IF
+      } // end IF
+    } // end IF
 
     // session aborted ?
-    if (session_data_r.aborted)
+    if (unlikely (session_data_r.aborted &&
+                  (inherited::current () != STREAM_STATE_FINISHED)))
     {
       ACE_DEBUG ((LM_DEBUG,
-                  ACE_TEXT ("session aborted\n")));
-
-      finished = true;
-      // *NOTE*: (if active,) this enqueues STREAM_SESSION_END
-      //         --> continue
-      inherited::STATE_MACHINE_T::finished ();
-
+                  ACE_TEXT ("%s: session (id was: %u) aborted\n"),
+                  inherited::mod_->name (),
+                  session_data_r.sessionId));
+      inherited::finished (); // *NOTE*: enqueues SESSION_END --> continue
       continue;
     } // end IF
 
     // *TODO*: remove type inference
     message_p = inherited::allocateMessage (bufferSize_);
-    if (!message_p)
+    if (unlikely (!message_p))
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: failed to Stream_TaskBase_T::allocateMessage(%u), aborting\n"),
                   inherited::mod_->name (),
                   bufferSize_));
-
-      finished = true;
-      // *NOTE*: (if active,) this enqueues STREAM_SESSION_END
-      //         --> continue
-      inherited::STATE_MACHINE_T::finished ();
-
+      inherited::finished (); // *NOTE*: enqueues SESSION_END --> continue
       continue;
     } // end IF
 
@@ -456,29 +471,24 @@ Stream_Decoder_MP3Decoder_T<ACE_SYNCH_USE,
       case MPG123_DONE:
       { //ACE_ASSERT (done_u);
         message_p->wr_ptr (done_u);
-        result = inherited::put_next (message_p, NULL);
-        if (result == -1)
+        result_2 = inherited::put_next (message_p, NULL);
+        if (unlikely (result_2 == -1))
         {
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("%s: failed to ACE_Task::put_next(): \"%m\", aborting\n"),
                       inherited::mod_->name ()));
-
           message_p->release (); message_p = NULL;
-
-          finished = true;
-          // *NOTE*: (if active,) this enqueues STREAM_SESSION_END
-          //         --> continue
-          inherited::STATE_MACHINE_T::finished ();
+          inherited::finished (); // *NOTE*: enqueues SESSION_END --> continue
+          continue;
         } // end IF
+        message_p = NULL;
 
         if (unlikely (error_i == MPG123_DONE))
         {
-          result_2 = 0;
+          result = 0;
 
-          finished = true;
-          // *NOTE*: (if active,) this enqueues STREAM_SESSION_END
-          //         --> continue
-          inherited::STATE_MACHINE_T::finished ();
+          inherited::finished (); // *NOTE*: enqueues SESSION_END --> continue
+          continue;
         } // end IF
 
         break;
@@ -490,18 +500,11 @@ Stream_Decoder_MP3Decoder_T<ACE_SYNCH_USE,
                     inherited::mod_->name (),
                     ACE_TEXT (file_path_string.c_str ()),
                     ACE_TEXT (mpg123_plain_strerror (error_i))));
-
         message_p->release (); message_p = NULL;
-
-        finished = true;
-        // *NOTE*: (if active,) this enqueues STREAM_SESSION_END
-        //         --> continue
-        inherited::STATE_MACHINE_T::finished ();
-
-        break;
+        inherited::finished (); // *NOTE*: enqueues SESSION_END --> continue
+        continue;
       }
     } // end SWITCH
-    message_p = NULL;
   } while (true);
 
 continue_:
@@ -513,5 +516,5 @@ continue_:
                 ACE_TEXT (mpg123_plain_strerror (error_i))));
   mpg123_delete (handle_); handle_ = NULL;
 
-  return result_2;
+  return result;
 }

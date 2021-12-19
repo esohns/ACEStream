@@ -190,11 +190,11 @@ Stream_Dev_Target_ALSA_T<ACE_SYNCH_USE,
   if (asynch_)
   {
     result = queue_.deactivate ();
-    if (result == -1)
+    if (unlikely (result == -1))
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to ACE_Message_Queue::deactivate(): \"%m\", continuing\n")));
     result = queue_.flush ();
-    if (result == -1)
+    if (unlikely (result == -1))
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to ACE_Message_Queue::flush(): \"%m\", continuing\n")));
 
@@ -206,7 +206,7 @@ Stream_Dev_Target_ALSA_T<ACE_SYNCH_USE,
   if (debugOutput_)
   {
     result = snd_output_close (debugOutput_);
-    if (result < 0)
+    if (unlikely (result < 0))
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to snd_output_close(): \"%s\", continuing\n"),
                   ACE_TEXT (snd_strerror (result))));
@@ -217,7 +217,7 @@ Stream_Dev_Target_ALSA_T<ACE_SYNCH_USE,
       deviceHandle_)
   {
     result = snd_pcm_close (deviceHandle_);
-    if (result < 0)
+    if (unlikely (result < 0))
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to snd_pcm_close(): \"%s\", continuing\n"),
                   ACE_TEXT (snd_strerror (result))));
@@ -258,14 +258,14 @@ Stream_Dev_Target_ALSA_T<ACE_SYNCH_USE,
     } // end IF
 
     result = queue_.deactivate ();
-    if (result == -1)
+    if (unlikely (result == -1))
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to ACE_Message_Queue::deactivate(): \"%m\", aborting\n")));
       return false;
     } // end IF
     result = queue_.flush ();
-    if (result == -1)
+    if (unlikely (result == -1))
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to ACE_Message_Queue::flush(): \"%m\", aborting\n")));
@@ -276,7 +276,7 @@ Stream_Dev_Target_ALSA_T<ACE_SYNCH_USE,
     if (debugOutput_)
     {
       result = snd_output_close (debugOutput_);
-      if (result < 0)
+      if (unlikely (result < 0))
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("failed to snd_output_close(): \"%s\", continuing\n"),
                     ACE_TEXT (snd_strerror (result))));
@@ -288,7 +288,7 @@ Stream_Dev_Target_ALSA_T<ACE_SYNCH_USE,
         deviceHandle_)
     {
       result = snd_pcm_close (deviceHandle_);
-      if (result < 0)
+      if (unlikely (result < 0))
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("failed to snd_pcm_close(): \"%s\", continuing\n"),
                     ACE_TEXT (snd_strerror (result))));
@@ -300,7 +300,7 @@ Stream_Dev_Target_ALSA_T<ACE_SYNCH_USE,
   ACE_ASSERT (configuration_in.ALSAConfiguration);
   asynch_ = configuration_in.ALSAConfiguration->asynch;
   result = queue_.activate ();
-  if (result == -1)
+  if (unlikely (result == -1))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to ACE_Message_Queue::activate(): \"%m\", aborting\n")));
@@ -315,7 +315,7 @@ Stream_Dev_Target_ALSA_T<ACE_SYNCH_USE,
     snd_output_stdio_open (&debugOutput_,
                            ACE_TEXT_ALWAYS_CHAR (STREAM_LIB_ALSA_DEFAULT_LOG_FILE),
                            ACE_TEXT_ALWAYS_CHAR ("w"));
-  if (result < 0)
+  if (unlikely (result < 0))
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to snd_output_stdio_open(): \"%s\", continuing\n"),
                 ACE_TEXT (snd_strerror (result))));
@@ -496,7 +496,7 @@ open:
                                device_identifier_string.c_str (),
                                SND_PCM_STREAM_PLAYBACK,
                                mode);
-        if (result < 0)
+        if (unlikely (result < 0))
         {
           if ((result == -EBUSY) &&
               (device_identifier_string == inherited::configuration_->deviceIdentifier.identifier) &&
@@ -529,8 +529,8 @@ open:
 
         ACE_ASSERT (!inherited::configuration_->ALSAConfiguration->format);
         inherited::configuration_->ALSAConfiguration->format = &media_type_r;
-        if (!Stream_MediaFramework_ALSA_Tools::setFormat (deviceHandle_,
-                                                          *inherited::configuration_->ALSAConfiguration))
+        if (unlikely (!Stream_MediaFramework_ALSA_Tools::setFormat (deviceHandle_,
+                                                                    *inherited::configuration_->ALSAConfiguration)))
         {
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("%s: failed to Stream_MediaFramework_ALSA_Tools::setFormat(\"%s\"), aborting\n"),
@@ -556,7 +556,7 @@ open:
       ACE_ASSERT (debugOutput_);
       result = snd_pcm_dump (deviceHandle_,
                              debugOutput_);
-      if (result < 0)
+      if (unlikely (result < 0))
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: failed to snd_pcm_dump(\"%s\"): \"%s\", aborting\n"),
@@ -629,13 +629,14 @@ open:
           stop_device = true;
 
           ACE_DEBUG ((LM_DEBUG,
-                      ACE_TEXT ("buffer underrun, recovering\n")));
+                      ACE_TEXT ("%s: buffer underrun, recovering\n"),
+                      ACE_TEXT (inherited::mod_->name ())));
 
 //           result = snd_pcm_prepare (handle_p);
           result = snd_pcm_recover (deviceHandle_,
                                     -EPIPE,
                                     1);
-          if (result < 0)
+          if (unlikely (result < 0))
           {
             ACE_DEBUG ((LM_ERROR,
                         ACE_TEXT ("%s: failed to snd_pcm_recover(): \"%s\", aborting\n"),
@@ -665,7 +666,7 @@ error:
       if (stop_device)
       {
         result =  snd_pcm_drop (deviceHandle_);
-        if (result < 0)
+        if (unlikely (result < 0))
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("%s: failed to snd_pcm_drop(): \"%s\", continuing\n"),
                       ACE_TEXT (inherited::mod_->name ()),
@@ -684,10 +685,16 @@ error:
         stop (true,   // wait ?
               false); // high priority ?
 
-      if (deviceHandle_)
+      if (likely (deviceHandle_))
       {
+        result = snd_pcm_nonblock (deviceHandle_, 0);
+        if (unlikely (result < 0))
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("%s: failed to snd_pcm_nonblock(): \"%s\", continuing\n"),
+                      ACE_TEXT (inherited::mod_->name ()),
+                      ACE_TEXT (snd_strerror (result))));
         result = snd_pcm_drain (deviceHandle_);
-        if (result < 0)
+        if (unlikely (result < 0))
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("%s: failed to snd_pcm_drain(): \"%s\", continuing\n"),
                       ACE_TEXT (inherited::mod_->name ()),
@@ -710,7 +717,7 @@ error:
           asynchHandler_)
       {
         result = snd_async_del_handler (asynchHandler_);
-        if (result < 0)
+        if (unlikely (result < 0))
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("failed to snd_async_del_handler(): \"%s\", continuing\n"),
                       ACE_TEXT (snd_strerror (result))));
@@ -724,13 +731,13 @@ error:
           deviceHandle_)
       {
         result = snd_pcm_hw_free (deviceHandle_);
-        if (result < 0)
+        if (unlikely (result < 0))
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("failed to snd_pcm_hw_free(): \"%s\", continuing\n"),
                       ACE_TEXT (snd_strerror (result))));
 
         result = snd_pcm_close (deviceHandle_);
-        if (result < 0)
+        if (unlikely (result < 0))
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("failed to snd_pcm_close(): \"%s\", continuing\n"),
                       ACE_TEXT (snd_strerror (result))));
@@ -745,12 +752,12 @@ error:
       if (debugOutput_)
       {
         result = snd_output_flush (debugOutput_);
-        if (result)
+        if (unlikely (result))
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("failed to snd_output_flush(): \"%s\", continuing\n"),
                       ACE_TEXT (snd_strerror (result))));
         result = snd_output_close (debugOutput_);
-        if (result < 0)
+        if (unlikely (result < 0))
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("failed to snd_output_close(): \"%s\", continuing\n"),
                       ACE_TEXT (snd_strerror (result))));
@@ -759,12 +766,12 @@ error:
 #endif // _DEBUG
 
       result = queue_.deactivate ();
-      if (result == -1)
+      if (unlikely (result == -1))
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: failed to ACE_Message_Queue::deactivate(): \"%m\", continuing\n"),
                     inherited::mod_->name ()));
       result = queue_.flush ();
-      if (result == -1)
+      if (unlikely (result == -1))
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: failed to ACE_Message_Queue::flush(): \"%m\", continuing\n"),
                     inherited::mod_->name ()));
@@ -790,7 +797,8 @@ Stream_Dev_Target_ALSA_T<ACE_SYNCH_USE,
                          ControlMessageType,
                          DataMessageType,
                          SessionMessageType,
-                         SessionDataType>::stop (bool waitForCompletion_in, bool highPriority_in)
+                         SessionDataType>::stop (bool waitForCompletion_in,
+                                                 bool highPriority_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Dev_Target_ALSA_T::stop"));
 

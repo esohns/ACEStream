@@ -45,7 +45,6 @@ Stream_Miscellaneous_Distributor_T<ACE_SYNCH_USE,
                                    SessionDataType>::Stream_Miscellaneous_Distributor_T (typename inherited::ISTREAM_T* stream_in)
 #endif // ACE_WIN32 || ACE_WIN64
  : inherited (stream_in)
-// , lock_ ()
  , branches_ ()
  , heads_ ()
  , modules_ ()
@@ -235,8 +234,8 @@ Stream_Miscellaneous_Distributor_T<ACE_SYNCH_USE,
       } // end lock scope
 
       forward (message_inout,
-               false,
-               false);
+               false,         // dispose original ?
+               false);        // high priority ?
 
       break;
 
@@ -248,8 +247,8 @@ error:
     case STREAM_SESSION_MESSAGE_END:
     {
       forward (message_inout,
-               false,
-               false);
+               false,         // dispose original ?
+               false);        // high priority ?
 
       stop (true,   // wait ?
             false); // high priority ?

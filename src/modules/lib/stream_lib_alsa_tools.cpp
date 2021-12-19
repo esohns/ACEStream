@@ -35,6 +35,20 @@
 #include "stream_lib_defines.h"
 
 bool
+Stream_MediaFramework_ALSA_Tools::canRender (struct _snd_pcm* deviceHandle_in,
+                                             const struct Stream_MediaFramework_ALSA_MediaType& mediaType_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_ALSA_Tools::canRender"));
+
+  // sanity check(s)
+  ACE_ASSERT (deviceHandle_in);
+
+  ACE_ASSERT (false); // *TODO*
+  ACE_NOTSUP_RETURN (false);
+  ACE_NOTREACHED (return false;)
+}
+
+bool
 Stream_MediaFramework_ALSA_Tools::setFormat (struct _snd_pcm* deviceHandle_in,
                                              const struct Stream_MediaFramework_ALSA_Configuration& configuration_in)
 {

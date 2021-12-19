@@ -383,7 +383,7 @@ Stream_Module_Delay_T<ACE_SYNCH_USE,
       case STREAM_MISCELLANEOUS_DELAY_MODE_BYTES:
       {
         availableTokens_ = delayConfiguration_.averageBytesPerInterval;
-        return;
+        break;
       }
       case STREAM_MISCELLANEOUS_DELAY_MODE_MESSAGES:
       {

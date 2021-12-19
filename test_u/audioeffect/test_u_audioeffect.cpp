@@ -1194,15 +1194,16 @@ do_work (
   Test_U_AudioEffect_Module_EventHandler_Module event_handler (istream_p,
                                                                ACE_TEXT_ALWAYS_CHAR (STREAM_MISC_MESSAGEHANDLER_DEFAULT_NAME_STRING));
   Test_U_AudioEffect_ALSA_StreamConfiguration_t::ITERATOR_T modulehandler_iterator;
-  struct Stream_MediaFramework_ALSA_Configuration ALSA_configuration;
+  struct Stream_MediaFramework_ALSA_Configuration ALSA_configuration; // capture
   ALSA_configuration.asynch = STREAM_LIB_ALSA_CAPTURE_DEFAULT_ASYNCH;
   ALSA_configuration.bufferSize = STREAM_LIB_ALSA_CAPTURE_DEFAULT_BUFFER_SIZE;
   ALSA_configuration.bufferTime = STREAM_LIB_ALSA_CAPTURE_DEFAULT_BUFFER_TIME;
   ALSA_configuration.periods = STREAM_LIB_ALSA_CAPTURE_DEFAULT_PERIODS;
   ALSA_configuration.periodSize = STREAM_LIB_ALSA_CAPTURE_DEFAULT_PERIOD_SIZE;
   ALSA_configuration.periodTime = STREAM_LIB_ALSA_CAPTURE_DEFAULT_PERIOD_TIME;
-  struct Stream_MediaFramework_ALSA_Configuration ALSA_configuration_2;
+  struct Stream_MediaFramework_ALSA_Configuration ALSA_configuration_2; // playback
 //  ALSA_configuration_2.asynch = false;
+  ALSA_configuration_2.rateResample = true;
   struct Test_U_AudioEffect_ALSA_ModuleHandlerConfiguration modulehandler_configuration;
   struct Test_U_AudioEffect_ALSA_ModuleHandlerConfiguration modulehandler_configuration_2; // renderer module
   struct Test_U_AudioEffect_ALSA_ModuleHandlerConfiguration modulehandler_configuration_3; // file writer module

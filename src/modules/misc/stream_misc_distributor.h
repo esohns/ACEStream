@@ -82,19 +82,18 @@ class Stream_Miscellaneous_Distributor_T
   Stream_Miscellaneous_Distributor_T (ISTREAM_T*);                     // stream handle
 #else
   Stream_Miscellaneous_Distributor_T (typename inherited::ISTREAM_T*); // stream handle
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
   inline virtual ~Stream_Miscellaneous_Distributor_T () {}
-
-  // override some ACE_Task_Base members
-//  inline virtual int open (void* = NULL) { return 0; }
 
   // override (part of) Common_ITask_T
   inline virtual void waitForIdleState () const { OWN_TYPE_T* this_p = const_cast<OWN_TYPE_T*> (this); this_p->idle (); }
 
   // implement (part of) Stream_ITaskBase_T
-  inline virtual void handleDataMessage (DataMessageType*& message_inout, bool& passMessageDownstream_out) { ACE_UNUSED_ARG (passMessageDownstream_out); forward (message_inout, false); }
+  inline virtual void handleControlMessage (ControlMessageType& message_in) { forward (&message_in, false, false); }
+  inline virtual void handleDataMessage (DataMessageType*& message_inout, bool& passMessageDownstream_out) { ACE_UNUSED_ARG (passMessageDownstream_out); forward (message_inout, false, false); }
   virtual void handleSessionMessage (SessionMessageType*&, // session message handle
                                      bool&);               // return value: pass message downstream ?
+  inline virtual void handleUserMessage (ACE_Message_Block*& message_inout, bool& passMessageDownstream_out) { ACE_UNUSED_ARG (passMessageDownstream_out); forward (message_inout, false, false); }
 
   // implement Stream_IDistributorModule
   virtual bool initialize (const Stream_Branches_t&);

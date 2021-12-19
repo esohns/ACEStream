@@ -6010,18 +6010,19 @@ togglebutton_record_toggled_cb (GtkToggleButton* toggleButton_in,
   struct _GUID GUID_s = GUID_NULL;
 #endif // ACE_WIN32 || ACE_WIN64
 #if GTK_CHECK_VERSION(2,30,0)
-    GValue value = G_VALUE_INIT;
+  GValue value = G_VALUE_INIT;
 #else
-    GValue value;
-    ACE_OS::memset (&value, 0, sizeof (struct _GValue));
+  GValue value;
+  ACE_OS::memset (&value, 0, sizeof (struct _GValue));
 #endif // GTK_CHECK_VERSION (2,30,0)
 #if GTK_CHECK_VERSION(2,30,0)
-    GValue value_2 = G_VALUE_INIT;
+  GValue value_2 = G_VALUE_INIT;
 #else
-    GValue value_2;
-    ACE_OS::memset (&value_2, 0, sizeof (struct _GValue));
+  GValue value_2;
+  ACE_OS::memset (&value_2, 0, sizeof (struct _GValue));
 #endif // GTK_CHECK_VERSION (2,30,0)
-    Stream_IStreamControlBase* stream_p = NULL;
+  Stream_IStreamControlBase* stream_p = NULL;
+  bool is_file_source_b = false;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   struct Test_U_AudioEffect_DirectShow_UI_CBData* directshow_ui_cb_data_p = NULL;
   struct Test_U_AudioEffect_MediaFoundation_UI_CBData* mediafoundation_ui_cb_data_p =
@@ -6046,6 +6047,8 @@ togglebutton_record_toggled_cb (GtkToggleButton* toggleButton_in,
       stream_p = directshow_ui_cb_data_p->stream;
       use_framework_source_b =
         directshow_ui_cb_data_p->configuration->streamConfiguration.configuration_->useFrameworkSource;
+      is_file_source_b =
+        (directshow_ui_cb_data_p->configuration->streamConfiguration.configuration_->sourceType == AUDIOEFFECT_SOURCE_FILE);
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
@@ -6063,6 +6066,8 @@ togglebutton_record_toggled_cb (GtkToggleButton* toggleButton_in,
       stream_p = mediafoundation_ui_cb_data_p->stream;
       use_framework_source_b =
         mediafoundation_ui_cb_data_p->configuration->streamConfiguration.configuration_->useFrameworkSource;
+      is_file_source_b =
+        (mediafoundation_ui_cb_data_p->configuration->streamConfiguration.configuration_->sourceType == AUDIOEFFECT_SOURCE_FILE);
       break;
     }
     default:
@@ -6084,6 +6089,8 @@ togglebutton_record_toggled_cb (GtkToggleButton* toggleButton_in,
   ACE_ASSERT (modulehandler_configuration_iterator != ui_cb_data_p->configuration->streamConfiguration.end ());
 
   stream_p = ui_cb_data_p->stream;
+  is_file_source_b =
+    (ui_cb_data_p->configuration->streamConfiguration.configuration_->sourceType == AUDIOEFFECT_SOURCE_FILE);
 #endif // ACE_WIN32 || ACE_WIN64
   ACE_ASSERT (stream_p);
 
@@ -6097,9 +6104,9 @@ togglebutton_record_toggled_cb (GtkToggleButton* toggleButton_in,
     gtk_widget_set_sensitive (GTK_WIDGET (toggleButton_in), FALSE);
 
     // step1: stop stream
-    stream_p->stop (false,
-                    false,
-                    false);
+    stream_p->stop (false,             // wait for completion ?
+                    false,             // recurse upstream ?
+                    is_file_source_b); // high priority ?
 
     return;
   } // end IF
