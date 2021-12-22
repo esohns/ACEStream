@@ -49,6 +49,7 @@ class Stream_MediaFramework_DirectSound_Tools
   static ULONG directSoundGUIDTowaveDeviceId (REFGUID); // device identifier
 
   // format
+  static bool isFloat (const struct tWAVEFORMATEX&); // format
   static std::string toString (const struct tWAVEFORMATEX&, // format
                                bool = false);               // condensed version ?
 
@@ -66,8 +67,8 @@ class Stream_MediaFramework_DirectSound_Tools
                          const struct tWAVEFORMATEX&); // format
   // *NOTE*: "...In shared mode, the audio engine always supports the mix format..."
   // *TODO*: what about exclusive mode ?
-  static void getAudioEngineMixFormat (REFGUID,                // device identifier
-                                       struct tWAVEFORMATEX&); // return value: 'mix' format
+  // *IMPORTANT NOTE*: callers must 'CoTaskMemFree' any return values
+  static struct tWAVEFORMATEX* getAudioEngineMixFormat (REFGUID); // device identifier
   static IAudioEndpointVolume* getVolumeControl (REFGUID); // device identifier
   static IAudioVolumeLevel* getMicrophoneBoostControl (REFGUID); // device identifier
 

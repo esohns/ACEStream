@@ -142,16 +142,16 @@ struct Test_I_MP3Player_ModuleHandlerConfiguration
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
    , ALSAConfiguration (NULL)
-   , deviceIdentifier ()
 #endif // ACE_WIN32 || ACE_WIN64
+   , deviceIdentifier ()
    , pushStatisticMessages (true)
   {}
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
   struct Stream_MediaFramework_ALSA_Configuration* ALSAConfiguration;
-  struct Stream_Device_Identifier                  deviceIdentifier;
 #endif // ACE_WIN32 || ACE_WIN64
+  struct Stream_Device_Identifier                  deviceIdentifier;
   bool                                             pushStatisticMessages;
 };
 

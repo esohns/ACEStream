@@ -205,14 +205,16 @@ class Stream_MediaFramework_DirectShow_Tools
   static unsigned int toBitrate (const struct _AMMediaType&); // media type
   static unsigned int toFrameBits (const struct _AMMediaType&); // media type
   static unsigned int toChannels (const struct _AMMediaType&); // media type
-  // *IMPORTANT NOTE*: callers must 'DeleteMediaType' any return values
-  inline static DMO_MEDIA_TYPE* toDMOMediaType (const struct _AMMediaType& mediaType_in) { return reinterpret_cast<DMO_MEDIA_TYPE*> (Stream_MediaFramework_DirectShow_Tools::copy (mediaType_in)); }
   static unsigned int toFramerate (const struct _AMMediaType&); // media type
   static unsigned int toFramesize (const struct _AMMediaType&); // media type
   static Common_Image_Resolution_t toResolution (const struct _AMMediaType&); // media type
   static unsigned int toRowStride (const struct _AMMediaType&); // media type
   // *IMPORTANT NOTE*: callers must 'free' return values
   static struct _AMMediaType toRGB (const struct _AMMediaType&); // media type
+  // *IMPORTANT NOTE*: callers must 'DeleteMediaType' any return values
+  inline static DMO_MEDIA_TYPE* toDMOMediaType (const struct _AMMediaType& mediaType_in) { return reinterpret_cast<DMO_MEDIA_TYPE*> (Stream_MediaFramework_DirectShow_Tools::copy (mediaType_in)); }
+  // *IMPORTANT NOTE*: callers must 'CoTaskMemFree' any return values
+  static struct tWAVEFORMATEX* toWaveFormatEx (const struct _AMMediaType&); // media type
   static std::string toString (const struct _AMMediaType&, // media type
                                bool = false);              // condensed version ?
 

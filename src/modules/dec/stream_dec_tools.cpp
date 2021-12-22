@@ -1235,8 +1235,9 @@ Stream_Module_Decoder_Tools::AVPixelFormatToOpenCVFormat (enum AVPixelFormat for
 bool
 Stream_Module_Decoder_Tools::loadAudioRendererGraph (REFGUID deviceCategory_in,
                                                      const struct _AMMediaType& mediaType_in,
+                                                     const struct _AMMediaType& outputMediaType_in,
                                                      bool grabSamples_in,
-                                                     const int audioOutput_in,
+                                                     int audioOutput_in,
                                                      IGraphBuilder* IGraphBuilder_in,
                                                      REFGUID effect_in,
                                                      const union Stream_MediaFramework_DirectSound_AudioEffectOptions& effectOptions_in,
@@ -1250,6 +1251,9 @@ Stream_Module_Decoder_Tools::loadAudioRendererGraph (REFGUID deviceCategory_in,
   IBaseFilter* filter_p = NULL;
   IDMOWrapperFilter* wrapper_filter_p = NULL;
   IMediaObject* media_object_p = NULL;
+  struct tWAVEFORMATEX* waveformatex_p = NULL;
+  WAVEFORMATEXTENSIBLE* waveformatextensible_p = NULL;
+  bool has_resampler_b = false;
 
   // initialize return value(s)
   graphConfiguration_out.clear ();
@@ -1307,16 +1311,20 @@ Stream_Module_Decoder_Tools::loadAudioRendererGraph (REFGUID deviceCategory_in,
     filter_p->Release (); filter_p = NULL;
     enumerator_p->Release ();
   } // end ELSE IF
-  graph_entry.mediaType = Stream_MediaFramework_DirectShow_Tools::copy (mediaType_in);
+  graph_entry.mediaType =
+    Stream_MediaFramework_DirectShow_Tools::copy (mediaType_in);
+  ACE_ASSERT (graph_entry.mediaType);
   graphConfiguration_out.push_back (graph_entry);
+  graph_entry.mediaType = NULL;
 
-  // step0: add resampler ?
+  // step0: add resampler ? (effects require PCM @ 44100 samples/sec)
   ACE_ASSERT (InlineIsEqualGUID (mediaType_in.majortype, MEDIATYPE_Audio));
   ACE_ASSERT (InlineIsEqualGUID (mediaType_in.subtype, MEDIASUBTYPE_PCM));
-  ACE_ASSERT (mediaType_in.cbFormat == sizeof (struct tWAVEFORMATEX));
-  struct tWAVEFORMATEX* waveformatex_p =
+  ACE_ASSERT (InlineIsEqualGUID (mediaType_in.formattype, FORMAT_WaveFormatEx));
+  ACE_ASSERT (mediaType_in.cbFormat >= sizeof (struct tWAVEFORMATEX));
+  waveformatex_p =
     reinterpret_cast<struct tWAVEFORMATEX*> (mediaType_in.pbFormat);
-  if ((waveformatex_p->nSamplesPerSec == 44100) || // effects require 44100 sample rate
+  if ((waveformatex_p->nSamplesPerSec == 44100) ||
       InlineIsEqualGUID (effect_in, GUID_NULL))
     goto continue_;
 
@@ -1344,7 +1352,9 @@ Stream_Module_Decoder_Tools::loadAudioRendererGraph (REFGUID deviceCategory_in,
   } // end IF
   graph_entry.connectDirect = true;
   graph_entry.filterName = STREAM_LIB_DIRECTSHOW_FILTER_NAME_RESAMPLER;
-  graph_entry.mediaType = Stream_MediaFramework_DirectShow_Tools::copy (mediaType_in);
+  graph_entry.mediaType =
+    Stream_MediaFramework_DirectShow_Tools::copy (mediaType_in);
+  ACE_ASSERT (graph_entry.mediaType);
   //// *NOTE*: this effects seems to require lSampleSize of 1 to connect
   //graph_entry.mediaType->lSampleSize = 1;
   waveformatex_p =
@@ -1354,8 +1364,11 @@ Stream_Module_Decoder_Tools::loadAudioRendererGraph (REFGUID deviceCategory_in,
     (waveformatex_p->nSamplesPerSec * waveformatex_p->nBlockAlign);
   graphConfiguration_out.push_back (graph_entry);
   graph_entry.connectDirect = false;
-  graph_entry.mediaType = NULL;
+  graph_entry.mediaType =
+    Stream_MediaFramework_DirectShow_Tools::copy (*graph_entry.mediaType);
+  ACE_ASSERT (graph_entry.mediaType);
   filter_p->Release (); filter_p = NULL;
+  has_resampler_b = true;
   ACE_DEBUG ((LM_DEBUG,
               ACE_TEXT ("added \"%s\"\n"),
               ACE_TEXT_WCHAR_TO_TCHAR (graph_entry.filterName.c_str ())));
@@ -1750,14 +1763,137 @@ continue_:
   } // end IF
   graph_entry.filterName = STREAM_DEC_DIRECTSHOW_FILTER_NAME_EFFECT_AUDIO;
   graphConfiguration_out.push_back (graph_entry);
+  graph_entry.mediaType = NULL;
   filter_p->Release (); filter_p = NULL;
   ACE_DEBUG ((LM_DEBUG,
               ACE_TEXT ("added \"%s\"\n"),
               ACE_TEXT_WCHAR_TO_TCHAR (graph_entry.filterName.c_str ())));
 
 continue_2:
+  // step2: add sample grabber ?
   if (!grabSamples_in)
     goto continue_3;
+
+  // step2a: add resampler ?
+  if (InlineIsEqualGUID (outputMediaType_in.majortype, GUID_NULL))
+    goto continue_4;
+
+  result = CoCreateInstance (CLSID_ACMWrapper, NULL,
+                             CLSCTX_INPROC_SERVER,
+                             IID_PPV_ARGS (&filter_p));
+  if (FAILED (result))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to CoCreateInstance(\"%s\"): \"%s\", aborting\n"),
+                ACE_TEXT (Common_Tools::GUIDToString (CLSID_ACMWrapper).c_str ()),
+                ACE_TEXT (Common_Error_Tools::errorToString (result, false).c_str ())));
+    goto error;
+  } // end IF
+  ACE_ASSERT (filter_p);
+  result =
+    IGraphBuilder_in->AddFilter (filter_p,
+                                 (has_resampler_b ? STREAM_LIB_DIRECTSHOW_FILTER_NAME_RESAMPLER_2
+                                                  : STREAM_LIB_DIRECTSHOW_FILTER_NAME_RESAMPLER));
+  if (FAILED (result))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to IGraphBuilder::AddFilter(): \"%s\", aborting\n"),
+                ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ())));
+    goto error;
+  } // end IF
+  graph_entry.filterName =
+    (has_resampler_b ? STREAM_LIB_DIRECTSHOW_FILTER_NAME_RESAMPLER_2
+                     : STREAM_LIB_DIRECTSHOW_FILTER_NAME_RESAMPLER);
+  ACE_ASSERT (!graph_entry.mediaType);
+  graph_entry.mediaType = Stream_MediaFramework_DirectShow_Tools::copy (outputMediaType_in);
+  ACE_ASSERT (graph_entry.mediaType);
+  // *NOTE*: "...Decompression is only to PCM audio. ..."
+  ACE_ASSERT (InlineIsEqualGUID (graph_entry.mediaType->majortype, MEDIATYPE_Audio));
+  ACE_ASSERT (InlineIsEqualGUID (graph_entry.mediaType->formattype, FORMAT_WaveFormatEx));
+  ACE_ASSERT (graph_entry.mediaType->cbFormat >= sizeof (struct tWAVEFORMATEX));
+  waveformatex_p =
+    reinterpret_cast<struct tWAVEFORMATEX*> (graph_entry.mediaType->pbFormat);
+  ACE_ASSERT (waveformatex_p);
+  if (waveformatex_p->wFormatTag == WAVE_FORMAT_EXTENSIBLE)
+    waveformatextensible_p =
+      reinterpret_cast<WAVEFORMATEXTENSIBLE*> (graph_entry.mediaType->pbFormat);
+  if (((waveformatex_p->wFormatTag != WAVE_FORMAT_EXTENSIBLE) && (waveformatex_p->wFormatTag != WAVE_FORMAT_PCM)) ||
+      ((waveformatex_p->wFormatTag == WAVE_FORMAT_EXTENSIBLE) && (!InlineIsEqualGUID (waveformatextensible_p->SubFormat, KSDATAFORMAT_SUBTYPE_PCM))))
+  {
+    switch (waveformatex_p->wFormatTag)
+    {
+      case WAVE_FORMAT_IEEE_FLOAT:
+      { ACE_ASSERT (waveformatex_p->wBitsPerSample == 32);
+        waveformatex_p->wBitsPerSample = 16;
+        waveformatex_p->nBlockAlign =
+          (waveformatex_p->wBitsPerSample / 8) * waveformatex_p->nChannels;
+        waveformatex_p->nAvgBytesPerSec =
+          waveformatex_p->nBlockAlign * waveformatex_p->nSamplesPerSec;
+        ACE_DEBUG ((LM_WARNING,
+                    ACE_TEXT ("%s: adjusted output resolution (was: 32 bits) to 16 bits\n"),
+                    ACE_TEXT_WCHAR_TO_TCHAR (graph_entry.filterName.c_str ())));
+        waveformatex_p->wFormatTag = WAVE_FORMAT_PCM;
+        ACE_DEBUG ((LM_WARNING,
+                    ACE_TEXT ("%s: adjusted output format (was: %d) to %d\n"),
+                    ACE_TEXT_WCHAR_TO_TCHAR (graph_entry.filterName.c_str ()),
+                    WAVE_FORMAT_IEEE_FLOAT, WAVE_FORMAT_PCM));
+        graph_entry.mediaType->subtype = MEDIASUBTYPE_PCM;
+        graph_entry.mediaType->lSampleSize = waveformatex_p->nBlockAlign;
+        break;
+      }
+      case WAVE_FORMAT_EXTENSIBLE:
+      {
+        if (InlineIsEqualGUID (waveformatextensible_p->SubFormat, KSDATAFORMAT_SUBTYPE_IEEE_FLOAT))
+        { ACE_ASSERT (waveformatextensible_p->Format.wBitsPerSample == 32);
+          ACE_ASSERT (waveformatextensible_p->Samples.wValidBitsPerSample == 32);
+          waveformatextensible_p->Format.wBitsPerSample = 16;
+          waveformatextensible_p->Format.nBlockAlign =
+              (waveformatextensible_p->Format.wBitsPerSample / 8) * waveformatextensible_p->Format.nChannels;
+          waveformatextensible_p->Format.nAvgBytesPerSec =
+            waveformatextensible_p->Format.nBlockAlign * waveformatextensible_p->Format.nSamplesPerSec;
+          ACE_DEBUG ((LM_WARNING,
+                      ACE_TEXT ("%s: adjusted output resolution (was: 32 bits) to 16 bits\n"),
+                      ACE_TEXT_WCHAR_TO_TCHAR (graph_entry.filterName.c_str ())));
+          waveformatextensible_p->Samples.wValidBitsPerSample = 16;
+          waveformatextensible_p->SubFormat = KSDATAFORMAT_SUBTYPE_PCM;
+          waveformatextensible_p->Format.wFormatTag = WAVE_FORMAT_PCM;
+          ACE_DEBUG ((LM_WARNING,
+                      ACE_TEXT ("%s: adjusted output format (was: \"%s\") to \"%s\"\n"),
+                      ACE_TEXT_WCHAR_TO_TCHAR (graph_entry.filterName.c_str ()),
+                      ACE_TEXT (Common_Tools::GUIDToString (KSDATAFORMAT_SUBTYPE_IEEE_FLOAT).c_str ()),
+                      ACE_TEXT (Common_Tools::GUIDToString (KSDATAFORMAT_SUBTYPE_PCM).c_str ())));
+          graph_entry.mediaType->subtype = MEDIASUBTYPE_PCM;
+          graph_entry.mediaType->lSampleSize =
+            waveformatextensible_p->Format.nBlockAlign;
+        } // end IF
+        else
+        {
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("%s: invalid/unknown output sub-format (was: \"%s\"), aborting\n"),
+                      ACE_TEXT_WCHAR_TO_TCHAR (graph_entry.filterName.c_str ()),
+                      ACE_TEXT (Common_Tools::GUIDToString (waveformatextensible_p->SubFormat).c_str ())));
+          goto error;
+        } // end ELSE
+        break;
+      }
+      default:
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("%s: invalid/unknown output format (was: %d), aborting\n"),
+                    ACE_TEXT_WCHAR_TO_TCHAR (graph_entry.filterName.c_str ()),
+                    waveformatex_p->wFormatTag));
+        goto error;
+      }
+    } // end SWITCH
+  } // end IF
+  graphConfiguration_out.push_back (graph_entry);
+  graph_entry.mediaType = NULL;
+  filter_p->Release (); filter_p = NULL;
+  ACE_DEBUG ((LM_DEBUG,
+              ACE_TEXT ("added \"%s\"\n"),
+              ACE_TEXT_WCHAR_TO_TCHAR (graph_entry.filterName.c_str ())));
+
+continue_4:
   result = CoCreateInstance (CLSID_SampleGrabber, NULL,
                              CLSCTX_INPROC_SERVER,
                              IID_PPV_ARGS (&filter_p));

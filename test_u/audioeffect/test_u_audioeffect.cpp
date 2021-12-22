@@ -702,9 +702,12 @@ continue_3:
   } // end IF
 
 continue_4:
+  struct _AMMediaType media_type_s;
+  ACE_OS::memset (&media_type_s, 0, sizeof (struct _AMMediaType));
   union Stream_MediaFramework_DirectSound_AudioEffectOptions effect_options;
   if (!Stream_Module_Decoder_Tools::loadAudioRendererGraph ((useDirectShowSource_in ? CLSID_AudioInputDeviceCategory : GUID_NULL),
                                                             captureMediaType_out,
+                                                            media_type_s,
                                                             false,
                                                             (mute_in ? -1 : 0),
                                                             IGraphBuilder_out,
@@ -1120,7 +1123,7 @@ do_work (
         useFrameworkSource_in;
       directshow_stream_configuration.renderer =
         (useFrameworkRenderer_in ? STREAM_DEVICE_RENDERER_DIRECTSHOW
-                                 : STREAM_DEV_AUDIO_DEFAULT_RENDERER);
+                                 : STREAM_DEVICE_RENDERER_WAVEOUT);
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
@@ -1272,18 +1275,44 @@ do_work (
         Stream_Device_Identifier::ID;
       directshow_modulehandler_configuration_2.deviceIdentifier.identifier._id =
         (mute_in ? -1 : 0);
-      directshow_modulehandler_configuration_2.passData = false;
+      //directshow_modulehandler_configuration_2.passData = false;
       directShowConfiguration_in.streamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (STREAM_LIB_DIRECTSHOW_TARGET_DEFAULT_NAME_STRING),
                                                                              std::make_pair (&module_configuration,
                                                                                              &directshow_modulehandler_configuration_2)));
 
       directshow_modulehandler_configuration_3 =
         directshow_modulehandler_configuration;
-      directshow_modulehandler_configuration_3.deviceIdentifier.identifierDiscriminator =
-        Stream_Device_Identifier::ID;
-      directshow_modulehandler_configuration_3.deviceIdentifier.identifier._id =
-        (mute_in ? -1 : 0);
-      directShowConfiguration_in.streamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_WASAPI_RENDER_DEFAULT_NAME_STRING),
+      switch (directshow_stream_configuration.renderer)
+      {
+        case STREAM_DEVICE_RENDERER_WAVEOUT:
+        {
+          directshow_modulehandler_configuration_3.deviceIdentifier.identifierDiscriminator =
+            Stream_Device_Identifier::ID;
+          directshow_modulehandler_configuration_3.deviceIdentifier.identifier._id =
+            (mute_in ? -1 : 0); // *TODO*: -1 means WAVE_MAPPER
+          break;
+        }
+        case STREAM_DEVICE_RENDERER_WASAPI:
+        case STREAM_DEVICE_RENDERER_DIRECTSHOW:
+        {
+          directshow_modulehandler_configuration_3.deviceIdentifier.identifierDiscriminator =
+            Stream_Device_Identifier::GUID;
+          directshow_modulehandler_configuration_3.deviceIdentifier.identifier._guid =
+            (mute_in ? GUID_NULL
+                     : Stream_MediaFramework_DirectSound_Tools::waveDeviceIdToDirectSoundGUID (0,
+                                                                                               false)); // playback
+          break;
+        }
+        default:
+        {
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("invalid/unknown renderer type (was: %d), returning\n"),
+                      directshow_stream_configuration.renderer));
+          goto error;
+        }
+      } // end SWITCH
+      directShowConfiguration_in.streamConfiguration.insert (std::make_pair (//ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_WASAPI_RENDER_DEFAULT_NAME_STRING),
+                                                                             ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_WAVEOUT_RENDER_DEFAULT_NAME_STRING),
                                                                              std::make_pair (&module_configuration,
                                                                                              &directshow_modulehandler_configuration_3)));
 
@@ -1293,7 +1322,6 @@ do_work (
       if (!targetFilename_in.empty ())
         directshow_modulehandler_configuration_4.fileIdentifier.identifier =
           targetFilename_in;
-
       directShowConfiguration_in.streamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (STREAM_FILE_SINK_DEFAULT_NAME_STRING),
                                                                              std::make_pair (&module_configuration,
                                                                                              &directshow_modulehandler_configuration_4)));
@@ -1393,7 +1421,6 @@ do_work (
       if (!targetFilename_in.empty ())
         mediafoundation_modulehandler_configuration_4.fileIdentifier.identifier =
           targetFilename_in;
-
       mediaFoundationConfiguration_in.streamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (STREAM_FILE_SINK_DEFAULT_NAME_STRING),
                                                                                   std::make_pair (&module_configuration,
                                                                                                   &mediafoundation_modulehandler_configuration_4)));

@@ -755,9 +755,9 @@ error_2:
       //ACE_ASSERT (inherited::mod_);
       if (unlikely ((this == inherited::mod_->writer ()) &&
                     !sessionData_))
-      { 
+      {
         ACE_DEBUG ((LM_WARNING,
-                    ACE_TEXT ("%s: no session data (yet): dropping early data message, continuing\n"),
+                    ACE_TEXT ("%s: no session data (yet): dropping early/late data message, continuing\n"),
                     inherited::mod_->name ()));
         goto error_3;
       } // end IF

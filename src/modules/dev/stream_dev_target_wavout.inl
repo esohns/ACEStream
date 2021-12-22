@@ -155,8 +155,18 @@ Stream_Dev_Target_WavOut_T<ACE_SYNCH_USE,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Dev_Target_WavOut_T::Stream_Dev_Target_WavOut_T"));
 
+  lock_ = CreateSemaphore (NULL, 1, 1, NULL);
+  if (unlikely (lock_ == NULL))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s: failed to CreateSemaphore(): \"%m\", returning\n"),
+                inherited::mod_->name ()));
+    return;
+  } // end IF
+
   CBData_.done = false;
   CBData_.inFlightBuffers = 0;
+  CBData_.lock = lock_;
 
   ACE_OS::memset (&header_, 0, sizeof (struct wavehdr_tag));
 }
@@ -180,7 +190,7 @@ Stream_Dev_Target_WavOut_T<ACE_SYNCH_USE,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Dev_Target_WavOut_T::~Stream_Dev_Target_WavOut_T"));
 
-  if (lock_)
+  if (likely (lock_))
     CloseHandle (lock_);
 }
 
@@ -205,27 +215,8 @@ Stream_Dev_Target_WavOut_T<ACE_SYNCH_USE,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Dev_Target_WavOut_T::initialize"));
 
-  if (likely (!lock_))
-  {
-    lock_ = CreateSemaphore (NULL, 1, 1, NULL);
-    if (unlikely (lock_ == NULL))
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("%s: failed to CreateSemaphore(): \"%m\", aborting\n"),
-                  inherited::mod_->name ()));
-      return false;
-    } // end IF
-    CBData_.lock = lock_;
-  } // end IF
-
-  bool result = inherited::initialize (configuration_in,
-                                       allocator_in);
-  if (unlikely (!result))
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: failed to Stream_TaskBaseSynch_T::initialize(): \"%m\", aborting\n"),
-                inherited::mod_->name ()));
-
-  return result;
+  return inherited::initialize (configuration_in,
+                                allocator_in);
 }
 
 template <ACE_SYNCH_DECL,
@@ -344,6 +335,7 @@ Stream_Dev_Target_WavOut_T<ACE_SYNCH_USE,
   {
     case STREAM_SESSION_MESSAGE_BEGIN:
     {
+      ACE_ASSERT (inherited::configuration_->deviceIdentifier.identifierDiscriminator == Stream_Device_Identifier::ID);
       ACE_ASSERT (inherited::sessionData_);
       SessionDataType& session_data_r =
           const_cast<SessionDataType&> (inherited::sessionData_->getR ());
@@ -357,12 +349,12 @@ Stream_Dev_Target_WavOut_T<ACE_SYNCH_USE,
       struct tWAVEFORMATEX* waveformatex_p =
         reinterpret_cast<struct tWAVEFORMATEX*> (media_type_s.pbFormat);
       ACE_ASSERT (waveformatex_p);
-      DWORD flags_u = CALLBACK_FUNCTION                        |
-                      WAVE_MAPPED_DEFAULT_COMMUNICATION_DEVICE |
-                      WAVE_FORMAT_DIRECT;
+      DWORD flags_u = CALLBACK_FUNCTION;// |
+                      //WAVE_MAPPED_DEFAULT_COMMUNICATION_DEVICE |
+                      //WAVE_FORMAT_DIRECT;
       MMRESULT result =
         waveOutOpen (&handle_,
-                     WAVE_MAPPER,
+                     inherited::configuration_->deviceIdentifier.identifier._id,
                      waveformatex_p,
                      reinterpret_cast<DWORD_PTR> (stream_dev_target_wavout_async_callback),
                      reinterpret_cast<DWORD_PTR> (&CBData_),
@@ -370,8 +362,10 @@ Stream_Dev_Target_WavOut_T<ACE_SYNCH_USE,
       if (unlikely (result != MMSYSERR_NOERROR))
       {
         ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("%s: failed to waveOutOpen(): \"%s\", aborting\n"),
+                    ACE_TEXT ("%s: failed to waveOutOpen(%u,0x%x): \"%s\", aborting\n"),
                     inherited::mod_->name (),
+                    inherited::configuration_->deviceIdentifier.identifier._id,
+                    flags_u,
                     Common_Error_Tools::errorToString (result, true, false)));
         goto error;
       } // end IF

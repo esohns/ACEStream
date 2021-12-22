@@ -642,12 +642,14 @@ Stream_MediaFramework_DirectSound_Tools::canRender (ULONG deviceId_in,
     return false; // *TODO*: false negative !
   } // end IF
 
+  if (Stream_MediaFramework_DirectSound_Tools::isFloat (format_in))
+    goto continue_;
+
   // check in turn:
   // - sample rate
   // - channels
   // - bits/sample
   // - value format
-
   switch (format_in.nSamplesPerSec)
   {
     case 11025:
@@ -949,6 +951,8 @@ Stream_MediaFramework_DirectSound_Tools::canRender (ULONG deviceId_in,
     }
   } // end SWITCH
 
+continue_:
+  // double-check
   result = waveOutOpen (NULL,
                         deviceId_in,
                         &format_in,
@@ -983,9 +987,10 @@ Stream_MediaFramework_DirectSound_Tools::getBestFormat (ULONG deviceId_in,
   format_out.nSamplesPerSec =
     STREAM_LIB_DIRECTSOUND_WAVEOUT_BEST_DEFAULT_SAMPLES_PER_SECOND;
   format_out.wBitsPerSample =
-    STREAM_LIB_DIRECTSOUND_WAVEOUT_BEST_DEFAULT_BITS_PER_SAMPLE;
+    ((format_out.wFormatTag == WAVE_FORMAT_IEEE_FLOAT) ? sizeof (float) * 8
+                                                       : STREAM_LIB_DIRECTSOUND_WAVEOUT_BEST_DEFAULT_BITS_PER_SAMPLE);
   format_out.nBlockAlign =
-    (format_out.nChannels * (format_out.wBitsPerSample / 8));
+    (format_out.wBitsPerSample / 8) * format_out.nChannels;
   format_out.nAvgBytesPerSec =
     (format_out.nSamplesPerSec * format_out.nBlockAlign);
 
@@ -1095,23 +1100,22 @@ Stream_MediaFramework_DirectSound_Tools::canRender (REFGUID deviceIdentifier_in,
   return true;
 }
 
-void
-Stream_MediaFramework_DirectSound_Tools::getAudioEngineMixFormat (REFGUID deviceIdentifier_in,
-                                                                  struct tWAVEFORMATEX& format_out)
+struct tWAVEFORMATEX*
+Stream_MediaFramework_DirectSound_Tools::getAudioEngineMixFormat (REFGUID deviceIdentifier_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_DirectSound_Tools::getAudioEngineMixFormat"));
 
   // initialize return value(s)
-  ACE_OS::memset (&format_out, 0, sizeof (struct tWAVEFORMATEX));
+  struct tWAVEFORMATEX* result_p = NULL;
 
   IMMDevice* device_p =
     Stream_MediaFramework_DirectSound_Tools::getDevice (deviceIdentifier_in);
   if (unlikely (!device_p))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to retrieve device handle (id was: \"%s\"), returning\n"),
+                ACE_TEXT ("failed to retrieve device handle (id was: \"%s\"), aborting\n"),
                 ACE_TEXT (Common_Tools::GUIDToString (deviceIdentifier_in).c_str ())));
-    return;
+    return NULL;
   } // end IF
 
   IAudioClient* audio_client_p = NULL;
@@ -1119,12 +1123,11 @@ Stream_MediaFramework_DirectSound_Tools::getAudioEngineMixFormat (REFGUID device
                                        NULL, (void**)&audio_client_p);
   ACE_ASSERT (SUCCEEDED (result) && audio_client_p);
   device_p->Release (); device_p = NULL;
-  struct tWAVEFORMATEX* audio_info_p = NULL;
-  result = audio_client_p->GetMixFormat (&audio_info_p);
-  ACE_ASSERT (SUCCEEDED (result) && audio_info_p);
+  result = audio_client_p->GetMixFormat (&result_p);
+  ACE_ASSERT (SUCCEEDED (result) && result_p);
   audio_client_p->Release (); audio_client_p = NULL;
-  format_out = *audio_info_p;
-  CoTaskMemFree (audio_info_p); audio_info_p = NULL;
+
+  return result_p;
 }
 
 IMMDevice*
@@ -1298,6 +1301,28 @@ continue_:
   return result;
 }
 
+bool
+Stream_MediaFramework_DirectSound_Tools::isFloat (const struct tWAVEFORMATEX& format_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_DirectSound_Tools::isFloat"));
+
+  switch (format_in.wFormatTag)
+  {
+    case WAVE_FORMAT_IEEE_FLOAT:
+      return true;
+    case WAVE_FORMAT_EXTENSIBLE:
+    {
+      const WAVEFORMATEXTENSIBLE* waveformatextensible_p =
+        reinterpret_cast<const WAVEFORMATEXTENSIBLE*> (&format_in);
+      return InlineIsEqualGUID (waveformatextensible_p->SubFormat, KSDATAFORMAT_SUBTYPE_IEEE_FLOAT);
+    }
+    default:
+      break;
+  } // end SWITCH
+
+  return false; // *TODO*: possibly a false negative !
+}
+
 std::string
 Stream_MediaFramework_DirectSound_Tools::toString (const struct tWAVEFORMATEX& format_in,
                                                    bool condensed_in)
@@ -1363,8 +1388,8 @@ Stream_MediaFramework_DirectSound_Tools::toString (const struct tWAVEFORMATEX& f
 
   if (format_in.wFormatTag == WAVE_FORMAT_EXTENSIBLE)
   {
-    WAVEFORMATEXTENSIBLE* waveformatextensible_p =
-      (WAVEFORMATEXTENSIBLE*)&format_in;
+    const WAVEFORMATEXTENSIBLE* waveformatextensible_p =
+      reinterpret_cast<const WAVEFORMATEXTENSIBLE*> (&format_in);
 
     result +=
       (!format_in.wBitsPerSample ? ACE_TEXT_ALWAYS_CHAR ("\nwSamplesPerBlock: ")

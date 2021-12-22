@@ -101,6 +101,7 @@ class Stream_Module_Decoder_Tools
   // *NOTE*: loads a filter graph (source side)
   static bool loadAudioRendererGraph (REFGUID,                                                           // device category (GUID_NULL: retain first filter w/o input pins)
                                       const struct _AMMediaType&,                                        // media type
+                                      const struct _AMMediaType&,                                        // (sample grabber-) output media type
                                       bool,                                                              // add sample grabber ?
                                       int,                                                               // output handle [-1: null renderer]
                                       IGraphBuilder*,                                                    // graph handle

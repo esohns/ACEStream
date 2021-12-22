@@ -91,10 +91,8 @@ Test_U_AudioEffect_DirectShow_Message::duplicate (void) const
                       Test_U_AudioEffect_DirectShow_Message (*this));
   else // otherwise, use the existing message_block_allocator
   {
-    // *NOTE*: the argument to alloc() does not really matter, as this creates
-    //         a shallow copy of the existing data block
     ACE_NEW_MALLOC_NORETURN (message_p,
-                             static_cast<Test_U_AudioEffect_DirectShow_Message*> (inherited::message_block_allocator_->calloc (inherited::capacity (),
+                             static_cast<Test_U_AudioEffect_DirectShow_Message*> (inherited::message_block_allocator_->calloc (sizeof (Test_U_AudioEffect_DirectShow_Message),
                                                                                                                                '\0')),
                              Test_U_AudioEffect_DirectShow_Message (*this));
   } // end ELSE
@@ -103,7 +101,7 @@ Test_U_AudioEffect_DirectShow_Message::duplicate (void) const
     Stream_IAllocator* allocator_p =
       dynamic_cast<Stream_IAllocator*> (inherited::message_block_allocator_);
     if ((allocator_p && allocator_p->block ()) ||
-         !allocator_p)
+        !allocator_p)
       ACE_DEBUG ((LM_CRITICAL,
                   ACE_TEXT ("failed to allocate Test_U_AudioEffect_DirectShow_Message: \"%m\", aborting\n")));
     return NULL;
@@ -243,8 +241,8 @@ Test_U_AudioEffect_MediaFoundation_Message::duplicate (void) const
   {
     Stream_IAllocator* allocator_p =
       dynamic_cast<Stream_IAllocator*> (inherited::message_block_allocator_);
-    ACE_ASSERT (allocator_p);
-    if (allocator_p->block ())
+    if ((allocator_p && allocator_p->block ()) ||
+        !allocator_p)
       ACE_DEBUG ((LM_CRITICAL,
                   ACE_TEXT ("failed to allocate Stream_MessageBase: \"%m\", aborting\n")));
     return NULL;
@@ -258,10 +256,7 @@ Test_U_AudioEffect_MediaFoundation_Message::duplicate (void) const
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to Stream_MessageBase::duplicate(): \"%m\", aborting\n")));
-
-      // clean up
       message_p->release ();
-
       return NULL;
     } // end IF
   } // end IF

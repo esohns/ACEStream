@@ -96,8 +96,8 @@ struct Stream_MediaFramework_DirectShow_GraphConfigurationEntry
   //         connect to their downstream peer 'direct'ly
   bool                 connectDirect; // use IGraphBuilder::ConnectDirect() ? : IPin::Connect()
   std::wstring         filterName;
-  struct _AMMediaType* mediaType; // ? media type to connect to the
-                                  //   folowing input pin with
+  struct _AMMediaType* mediaType; // ? media type to connect to the downstream
+                                  //   input pin with : use input media type
 };
 typedef std::list<struct Stream_MediaFramework_DirectShow_GraphConfigurationEntry> Stream_MediaFramework_DirectShow_GraphConfiguration_t;
 typedef Stream_MediaFramework_DirectShow_GraphConfiguration_t::iterator Stream_MediaFramework_DirectShow_GraphConfigurationIterator_t;
