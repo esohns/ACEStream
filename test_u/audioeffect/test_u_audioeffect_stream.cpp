@@ -406,6 +406,12 @@ Test_U_AudioEffect_DirectShow_Stream::initialize (const inherited::CONFIGURATION
   int render_device_id_i = -1;
   Stream_Module_t* module_p = NULL;
 
+  if ((*iterator).second.second->builder)
+  {
+    Stream_MediaFramework_DirectShow_Tools::shutdown ((*iterator).second.second->builder);
+    (*iterator).second.second->builder->Release (); (*iterator).second.second->builder = NULL;
+  } // end IF
+
   if (!configuration_in.configuration_->useFrameworkSource)
   { ACE_ASSERT (!(*iterator).second.second->builder);
     Test_U_AudioEffect_DirectShowFilter_t* filter_p = NULL;
@@ -597,55 +603,6 @@ Test_U_AudioEffect_DirectShow_Stream::initialize (const inherited::CONFIGURATION
     pin_p->Release (); pin_p = NULL;
     filter_p->Release (); filter_p = NULL;
   } // end IF
-
-  //if (!InlineIsEqualGUID ((*iterator).second.second->effect, GUID_NULL))
-  //{
-  //  result_2 =
-  //    (*iterator).second.second->builder->FindFilterByName (STREAM_LIB_DIRECTSHOW_FILTER_NAME_GRAB,
-  //                                                          &filter_p);
-  //  if (FAILED (result_2))
-  //  {
-  //    ACE_DEBUG ((LM_ERROR,
-  //                ACE_TEXT ("%s: failed to IGraphBuilder::FindFilterByName(\"%s\"): \"%s\", aborting\n"),
-  //                ACE_TEXT (stream_name_string_),
-  //                ACE_TEXT_WCHAR_TO_TCHAR (STREAM_LIB_DIRECTSHOW_FILTER_NAME_GRAB),
-  //                ACE_TEXT (Common_Error_Tools::errorToString (result_2).c_str ())));
-  //    goto error;
-  //  } // end IF
-  //  ACE_ASSERT (filter_p);
-  //  result_2 = filter_p->QueryInterface (IID_ISampleGrabber,
-  //                                       (void**)&isample_grabber_p);
-  //  if (FAILED (result_2))
-  //  {
-  //    ACE_DEBUG ((LM_ERROR,
-  //                ACE_TEXT ("%s: failed to IBaseFilter::QueryInterface(IID_ISampleGrabber): \"%s\", aborting\n"),
-  //                ACE_TEXT (stream_name_string_),
-  //                ACE_TEXT (Common_Error_Tools::errorToString (result_2).c_str ())));
-  //    goto error;
-  //  } // end IF
-  //  ACE_ASSERT (isample_grabber_p);
-  //  filter_p->Release (); filter_p = NULL;
-
-  //  result_2 = isample_grabber_p->SetBufferSamples (false);
-  //  if (FAILED (result_2))
-  //  {
-  //    ACE_DEBUG ((LM_ERROR,
-  //                ACE_TEXT ("%s: failed to ISampleGrabber::SetBufferSamples(false): \"%s\", aborting\n"),
-  //                ACE_TEXT (stream_name_string_),
-  //                ACE_TEXT (Common_Error_Tools::errorToString (result_2).c_str ())));
-  //    goto error;
-  //  } // end IF
-  ////  result_2 = isample_grabber_p->SetCallback (source_impl_p, 0);
-  ////  if (FAILED (result_2))
-  ////  {
-  ////    ACE_DEBUG ((LM_ERROR,
-  ////                ACE_TEXT ("%s: failed to ISampleGrabber::SetCallback(): \"%s\", aborting\n"),
-  ////                ACE_TEXT (stream_name_string_),
-  ////                ACE_TEXT (Common_Error_Tools::errorToString (result_2).c_str ())));
-  ////    goto error;
-  ////  } // end IF
-  //  isample_grabber_p->Release (); isample_grabber_p = NULL;
-  //} // end IF
 
   result_2 =
     (*iterator).second.second->builder->QueryInterface (IID_PPV_ARGS (&graph_streams_p));

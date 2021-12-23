@@ -52,82 +52,15 @@ stream_dev_target_wavout_async_callback (HWAVEOUT  hwo,
         reinterpret_cast<struct wavehdr_tag*> (dwParam1);
       ACE_ASSERT (wave_hdr_p);
       //ACE_ASSERT (!dwParam2);
-      ACE_Message_Block* message_block_p =
-        reinterpret_cast<ACE_Message_Block*> (wave_hdr_p->dwUser);
-      ACE_ASSERT (message_block_p);
+      //ACE_Message_Block* message_block_p =
+      //  reinterpret_cast<ACE_Message_Block*> (wave_hdr_p->dwUser);
+      //ACE_ASSERT (message_block_p);
 
-      // step1: unprepare header
-      MMRESULT result = waveOutUnprepareHeader (hwo,
-                                                wave_hdr_p,
-                                                sizeof (struct wavehdr_tag));
-      if (unlikely (result != MMSYSERR_NOERROR))
-      { char error_msg_a[BUFSIZ];
-        waveOutGetErrorText (result, error_msg_a, BUFSIZ - 1);
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("failed to waveOutUnprepareHeader(): \"%s\", returning\n"),
-                    ACE_TEXT (error_msg_a)));
-        message_block_p->release ();
-        ReleaseSemaphore (cb_data_p->lock, 1, NULL);
-        return;
-      } // end IF
-
-      // step2: more data ?
-      ACE_Message_Block* message_block_2 = message_block_p->cont ();
-      if (unlikely (message_block_2))
-      {
-        // step2a: release data
-        // *TODO*: the message block is a shallow copy; manipulating the buffer
-        //         chain is not allowed, as it breaks consistency
-        //         of the data for all downstream modules !
-        message_block_p->cont (NULL);
-        message_block_p->release (); message_block_p = NULL;
-
-        // step2b: prepare header
-        wave_hdr_p->lpData = message_block_2->rd_ptr ();
-        wave_hdr_p->dwBufferLength = message_block_2->length ();
-        wave_hdr_p->dwUser = reinterpret_cast<DWORD_PTR> (message_block_2);
-        wave_hdr_p->dwFlags = 0;
-        result = waveOutPrepareHeader (hwo,
-                                       wave_hdr_p,
-                                       sizeof (struct wavehdr_tag));
-        if (unlikely (result != MMSYSERR_NOERROR))
-        { char error_msg_a[BUFSIZ];
-          waveOutGetErrorText (result, error_msg_a, BUFSIZ - 1);
-          ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("failed to waveOutPrepareHeader(): \"%s\", returning\n"),
-                      ACE_TEXT (error_msg_a)));
-          message_block_2->release ();
-          ReleaseSemaphore (cb_data_p->lock, 1, NULL);
-          return;
-        } // end IF
-
-        // step2c: write to device
-        result = waveOutWrite (hwo,
-                               wave_hdr_p,
-                               sizeof (struct wavehdr_tag));
-        if (unlikely (result != MMSYSERR_NOERROR))
-        { char error_msg_a[BUFSIZ];
-          waveOutGetErrorText (result, error_msg_a, BUFSIZ - 1);
-          ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("failed to waveOutWrite(): \"%s\", returning\n"),
-                      ACE_TEXT (error_msg_a)));
-          waveOutUnprepareHeader (hwo,
-                                  wave_hdr_p,
-                                  sizeof (struct wavehdr_tag));
-          message_block_2->release ();
-          ReleaseSemaphore (cb_data_p->lock, 1, NULL);
-          return;
-        } // end IF
-
-        return;
-      } // end IF
-
-      // step3: release data
-      message_block_p->release (); message_block_p = NULL;
+      // step1: update state
       --cb_data_p->inFlightBuffers;
       cb_data_p->done = !cb_data_p->inFlightBuffers;
 
-      // step4: get more data
+      // step2: get more data
       if (!ReleaseSemaphore (cb_data_p->lock, 1, NULL))
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("failed to ReleaseSemaphore(): \"%m\", returning\n")));
@@ -168,7 +101,7 @@ Stream_Dev_Target_WavOut_T<ACE_SYNCH_USE,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Dev_Target_WavOut_T::Stream_Dev_Target_WavOut_T"));
 
-  lock_ = CreateSemaphore (NULL, 1, 1, NULL);
+  lock_ = CreateSemaphore (NULL, 0, 1, NULL);
   if (unlikely (lock_ == NULL))
   {
     ACE_DEBUG ((LM_ERROR,
@@ -267,52 +200,36 @@ Stream_Dev_Target_WavOut_T<ACE_SYNCH_USE,
   if (unlikely (!handle_))
     return;
 
-  // step0: retain handle to data
-  // *TODO*: this ought to be DataMessageType::clone() (see above)
-  ACE_Message_Block* message_block_p = message_inout->duplicate ();
-  if (unlikely (!message_block_p))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: failed to DataMessageType::duplicate(): \"%m\", returning\n"),
-                inherited::mod_->name ()));
-    return;
-  } // end IF
+  ACE_Message_Block* message_block_p = message_inout;
+  MMRESULT result = MMSYSERR_ERROR;
+  DWORD result_2 = 0;
 
-  // step1: wait for buffer
-  DWORD result = WaitForSingleObject (lock_, INFINITE);
-  if (unlikely (result != WAIT_OBJECT_0))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: failed to WaitForSingleObject(): \"%m\", returning\n"),
-                inherited::mod_->name ()));
-    return;
-  } // end IF
-
-  // step2: prepare header
+continue_:
+  // step1: prepare header
   header_.lpData = message_block_p->rd_ptr ();
   header_.dwBufferLength = message_block_p->length ();
   header_.dwFlags = 0;
-  header_.dwUser = reinterpret_cast<DWORD_PTR> (message_block_p);
-  MMRESULT result_2 = waveOutPrepareHeader (handle_,
-                                            &header_,
-                                            sizeof (struct wavehdr_tag));
-  if (unlikely (result_2 != MMSYSERR_NOERROR))
+  //header_.dwUser = reinterpret_cast<DWORD_PTR> (message_block_p);
+  result = waveOutPrepareHeader (handle_,
+                                 &header_,
+                                 sizeof (struct wavehdr_tag));
+  if (unlikely (result != MMSYSERR_NOERROR))
   { char error_msg_a[BUFSIZ];
-    waveOutGetErrorText (result_2, error_msg_a, BUFSIZ - 1);
+    waveOutGetErrorText (result, error_msg_a, BUFSIZ - 1);
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to waveOutPrepareHeader(): \"%s\", returning\n"),
                 inherited::mod_->name (),
                 ACE_TEXT (error_msg_a)));
-    ReleaseSemaphore (lock_, 1, NULL);
-    message_block_p->release (); message_block_p = NULL;
     return;
   } // end IF
-  result_2 = waveOutWrite (handle_,
-                           &header_,
-                           sizeof (struct wavehdr_tag));
-  if (unlikely (result_2 != MMSYSERR_NOERROR))
+
+  // step2: send buffer
+  result = waveOutWrite (handle_,
+                         &header_,
+                         sizeof (struct wavehdr_tag));
+  if (unlikely (result != MMSYSERR_NOERROR))
   { char error_msg_a[BUFSIZ];
-    waveOutGetErrorText (result_2, error_msg_a, BUFSIZ - 1);
+    waveOutGetErrorText (result, error_msg_a, BUFSIZ - 1);
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to waveOutWrite(): \"%s\", returning\n"),
                 inherited::mod_->name (),
@@ -320,11 +237,39 @@ Stream_Dev_Target_WavOut_T<ACE_SYNCH_USE,
     waveOutUnprepareHeader (handle_,
                             &header_,
                             sizeof (struct wavehdr_tag));
-    ReleaseSemaphore (lock_, 1, NULL);
-    message_block_p->release (); message_block_p = NULL;
     return;
   } // end IF
   ++CBData_.inFlightBuffers;
+
+  // step3: wait for buffer
+  result_2 = WaitForSingleObject (lock_, INFINITE);
+  if (unlikely (result_2 != WAIT_OBJECT_0))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s: failed to WaitForSingleObject(): \"%s\", returning\n"),
+                inherited::mod_->name (),
+                ACE_TEXT (Common_Error_Tools::errorToString (result_2, false, false).c_str ())));
+    return;
+  } // end IF
+
+  // step4: unprepare header
+  result = waveOutUnprepareHeader (handle_,
+                                   &header_,
+                                   sizeof (struct wavehdr_tag));
+  if (unlikely (result != MMSYSERR_NOERROR))
+  {
+    char error_msg_a[BUFSIZ];
+    waveOutGetErrorText (result, error_msg_a, BUFSIZ - 1);
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s: failed to waveOutUnprepareHeader(): \"%s\", returning\n"),
+                inherited::mod_->name (),
+                ACE_TEXT (error_msg_a)));
+    return;
+  } // end IF
+
+  message_block_p = message_block_p->cont ();
+  if (unlikely (message_block_p))
+    goto continue_;
 }
 
 template <ACE_SYNCH_DECL,
@@ -359,6 +304,11 @@ Stream_Dev_Target_WavOut_T<ACE_SYNCH_USE,
 
   switch (message_inout->type ())
   {
+    case STREAM_SESSION_MESSAGE_ABORT:
+    {
+      CBData_.done = true;
+      break;
+    }
     case STREAM_SESSION_MESSAGE_BEGIN:
     {
       // sanity check(s)
@@ -377,9 +327,9 @@ Stream_Dev_Target_WavOut_T<ACE_SYNCH_USE,
         reinterpret_cast<struct tWAVEFORMATEX*> (media_type_s.pbFormat);
       ACE_ASSERT (waveformatex_p);
 
-      DWORD flags_u = CALLBACK_FUNCTION;// |
+      DWORD flags_u = CALLBACK_FUNCTION |
                       //WAVE_MAPPED_DEFAULT_COMMUNICATION_DEVICE |
-                      //WAVE_FORMAT_DIRECT;
+                      WAVE_FORMAT_DIRECT;
       result =
         waveOutOpen (&handle_,
                      inherited::configuration_->deviceIdentifier.identifier._id,
@@ -410,7 +360,7 @@ Stream_Dev_Target_WavOut_T<ACE_SYNCH_USE,
 error:
       Stream_MediaFramework_DirectShow_Tools::free (media_type_s);
 
-      this->notify (STREAM_SESSION_MESSAGE_ABORT);
+      notify (STREAM_SESSION_MESSAGE_ABORT);
 
       break;
     }
@@ -420,15 +370,36 @@ error:
       while (!CBData_.done)
         ACE_OS::sleep (ACE_Time_Value (1, 0));
 
-      result = waveOutClose (handle_);
-      if (unlikely (result != MMSYSERR_NOERROR))
-      { char error_msg_a[BUFSIZ];
-        waveOutGetErrorText (result, error_msg_a, BUFSIZ - 1);
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("%s: failed to waveOutClose(): \"%s\", continuing\n"),
-                    inherited::mod_->name (),
-                    ACE_TEXT (error_msg_a)));
+      if (likely (handle_))
+      {
+        result = waveOutReset (handle_);
+        if (unlikely (result != MMSYSERR_NOERROR))
+        {
+          char error_msg_a[BUFSIZ];
+          waveOutGetErrorText (result, error_msg_a, BUFSIZ - 1);
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("%s: failed to waveOutReset(): \"%s\", continuing\n"),
+                      inherited::mod_->name (),
+                      ACE_TEXT (error_msg_a)));
+        } // end IF
+
+        result = waveOutClose (handle_);
+        if (unlikely (result != MMSYSERR_NOERROR))
+        {
+          char error_msg_a[BUFSIZ];
+          waveOutGetErrorText (result, error_msg_a, BUFSIZ - 1);
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("%s: failed to waveOutClose(): \"%s\", continuing\n"),
+                      inherited::mod_->name (),
+                      ACE_TEXT (error_msg_a)));
+        } // end IF
+        else
+          ACE_DEBUG ((LM_DEBUG,
+                      ACE_TEXT ("%s: closed device (id: %u)...\n"),
+                      inherited::mod_->name (),
+                      inherited::configuration_->deviceIdentifier.identifier._id));
       } // end IF
+
       break;
     }
     default:

@@ -483,18 +483,24 @@ continue_:
       struct _AMMediaType media_type_s;
       ACE_OS::memset (&media_type_s, 0, sizeof (struct _AMMediaType));
       unsigned char* wave_header_p = NULL;
-      unsigned int wave_header_size = 0;
+      unsigned int wave_header_size = (sizeof (struct _rifflist)  +
+                                       sizeof (struct _riffchunk) +
+                                       16                         +
+                                       sizeof (struct _riffchunk));
       ssize_t result_2 = -1;
       struct _rifflist* RIFF_wave_p = NULL;
       struct _riffchunk* RIFF_chunk_fmt_p = NULL;
       struct _riffchunk* RIFF_chunk_data_p = NULL;
       unsigned int file_size = 0;
 
+      // sanity check(s)
       if (session_data_r.targetFileName.empty ())
         goto continue_2;
-
       file_size =
         Common_File_Tools::size (session_data_r.targetFileName);
+      if (unlikely (!file_size || (file_size < wave_header_size)))
+        goto continue_2;
+
       if (unlikely (!Common_File_Tools::open (session_data_r.targetFileName, // FQ file name
                                               O_RDWR | O_BINARY,             // flags
                                               file_IO)))                     // return value: stream
@@ -513,11 +519,6 @@ continue_:
                                media_type_s);
       ACE_ASSERT (InlineIsEqualGUID (media_type_s.formattype, FORMAT_WaveFormatEx));
 
-      wave_header_size =
-        (sizeof (struct _rifflist)  +
-         sizeof (struct _riffchunk) +
-         16                         +
-         sizeof (struct _riffchunk));
       ACE_NEW_NORETURN (wave_header_p,
                         unsigned char[wave_header_size]);
       if (unlikely (!wave_header_p))

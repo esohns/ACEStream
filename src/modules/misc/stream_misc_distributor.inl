@@ -388,7 +388,7 @@ Stream_Miscellaneous_Distributor_T<ACE_SYNCH_USE,
   // sanity check(s)
   ACE_ASSERT (module_in);
 
-  Stream_Queue_t* queue_p = NULL;
+  typename inherited::MESSAGE_QUEUE_T* queue_p = NULL;
   ACE_NEW_NORETURN (queue_p,
                     typename inherited::MESSAGE_QUEUE_T (STREAM_QUEUE_MAX_SLOTS, // max # slots
                                                          NULL));                 // notification handle
@@ -707,33 +707,14 @@ Stream_Miscellaneous_Distributor_T<ACE_SYNCH_USE,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Miscellaneous_Distributor_T::idle"));
 
-  int result = -1;
-  ACE_Time_Value one_second (1, 0);
-
-retry:
   { ACE_GUARD (ACE_Thread_Mutex, aGuard, inherited::lock_);
     for (THREAD_TO_QUEUE_CONST_ITERATOR_T iterator = queues_.begin ();
          iterator != queues_.end ();
          ++iterator)
     { ACE_ASSERT ((*iterator).second);
-      if ((*iterator).second->message_count ())
-        goto wait;
-    } // end lock scope
+      (*iterator).second->waitForIdleState ();
+    } // end FOR
   } // end lock scope
-
-  return;
-
-wait:
-  result = ACE_OS::sleep (one_second);
-  if (unlikely (result == -1))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: failed to ACE_OS::sleep(%#T), returning\n"),
-                inherited::mod_->name (),
-                &one_second));
-    return;
-  } // end IF
-  goto retry;
 }
 
 template <ACE_SYNCH_DECL,
@@ -811,13 +792,13 @@ Stream_Miscellaneous_Distributor_T<ACE_SYNCH_USE,
 #endif // _WIN32_WINNT_WIN10
 #endif // ACE_WIN32 || ACE_WIN64
 
-  ACE_Message_Block*      message_block_p = NULL;
-  int                     result          = 0;
-  int                     result_2        = -1;
-  ACE_Message_Queue_Base* message_queue_p = NULL;
-  MODULE_T*               module_p        = NULL;
-  std::string             branch_string;
-  ACE_Task_Base*          task_p          = NULL;
+  ACE_Message_Block* message_block_p = NULL;
+  int result = 0;
+  int result_2 = -1;
+  typename inherited::MESSAGE_QUEUE_T* message_queue_p = NULL;
+  MODULE_T* module_p = NULL;
+  std::string branch_string;
+  ACE_Task_Base* task_p = NULL;
 
   // sanity check(s)
   THREAD_TO_QUEUE_CONST_ITERATOR_T iterator;

@@ -245,9 +245,8 @@ Stream_Dev_Mic_Source_WASAPI_T<ACE_SYNCH_USE,
       } // end IF
 
       ACE_ASSERT (!session_data_r.formats.empty ());
-      struct _AMMediaType media_type_s, media_type_2;
+      struct _AMMediaType media_type_s;
       ACE_OS::memset (&media_type_s, 0, sizeof (struct _AMMediaType));
-      ACE_OS::memset (&media_type_2, 0, sizeof (struct _AMMediaType));
       inherited2::getMediaType (session_data_r.formats.back (),
                                 media_type_s);
       ACE_ASSERT (media_type_s.majortype == MEDIATYPE_Audio);
@@ -264,7 +263,7 @@ Stream_Dev_Mic_Source_WASAPI_T<ACE_SYNCH_USE,
       HRESULT result_2 =
         CoCreateInstance (__uuidof (MMDeviceEnumerator), NULL, CLSCTX_ALL,
                           IID_PPV_ARGS (&enumerator_p));
-      ACE_ASSERT (SUCCEEDED (result_2));
+      ACE_ASSERT (SUCCEEDED (result_2) && enumerator_p);
       IMMDeviceCollection* devices_p = NULL;
       UINT num_devices_i = 0;
       enum _AUDCLNT_SHAREMODE share_mode_e =
@@ -302,10 +301,10 @@ Stream_Dev_Mic_Source_WASAPI_T<ACE_SYNCH_USE,
       { ACE_ASSERT (!device_p);
         result_2 = devices_p->Item (i,
                                     &device_p);
-        ACE_ASSERT (SUCCEEDED (result_2));
+        ACE_ASSERT (SUCCEEDED (result_2) && device_p);
         result_2 = device_p->OpenPropertyStore (STGM_READ,
                                                 &property_store_p);
-        ACE_ASSERT (SUCCEEDED (result_2));
+        ACE_ASSERT (SUCCEEDED (result_2) && property_store_p);
         result_2 = property_store_p->GetValue (PKEY_AudioEndpoint_GUID,
                                                &property_s);
         ACE_ASSERT (SUCCEEDED (result_2));
@@ -319,7 +318,7 @@ Stream_Dev_Mic_Source_WASAPI_T<ACE_SYNCH_USE,
         device_p->Release (); device_p = NULL;
       } // end FOR
       devices_p->Release (); devices_p = NULL;
-      if (!device_p)
+      if (unlikely (!device_p))
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: failed to retrieve capture device handle (id was: \"%s\"), aborting\n"),
@@ -348,17 +347,19 @@ continue_:
         device_p->Release (); device_p = NULL;
         goto error;
       } // end IF
-      if ((result_2 == S_FALSE) && audio_info_2)
+      if (unlikely ((result_2 == S_FALSE) && audio_info_2))
       {
         ACE_DEBUG ((LM_WARNING,
                     ACE_TEXT ("%s: closest format matched is: \"%s\" (was: \"%s\"), continuing\n"),
                     inherited::mod_->name (),
                     ACE_TEXT (Stream_MediaFramework_DirectSound_Tools::toString (*audio_info_2, true).c_str ()),
                     ACE_TEXT (Stream_MediaFramework_DirectSound_Tools::toString (*audio_info_p, true).c_str ())));
+        struct _AMMediaType media_type_2;
+        ACE_OS::memset (&media_type_2, 0, sizeof (struct _AMMediaType));
         result_2 = CreateAudioMediaType (audio_info_2,
                                          &media_type_2,
                                          TRUE);
-        if (FAILED (result_2))
+        if (unlikely (FAILED (result_2)))
         {
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("%s: failed to CreateAudioMediaType(): \"%s\", aborting\n"),
@@ -432,7 +433,7 @@ retry:
                             FALSE, // bManualReset
                             FALSE, // bInitialState
                             NULL); // lpName
-      if (!event_)
+      if (unlikely (!event_))
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: failed to CreateEvent(): \"%m\", aborting\n"),
@@ -450,7 +451,7 @@ retry:
       task_ =
         AvSetMmThreadCharacteristics (TEXT (STREAM_LIB_WASAPI_CAPTURE_DEFAULT_TASKNAME),
                                       &task_index_i);
-      if (!task_)
+      if (unlikely (!task_))
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: failed to AvSetMmThreadCharacteristics(): \"%m\", aborting\n"),
@@ -466,9 +467,23 @@ retry:
       break;
 
 error:
+      if (audioClient_)
+        audioClient_->Stop ();
+      if (event_)
+      {
+        CloseHandle (event_); event_ = NULL;
+      } // end IF
+      if (audioCaptureClient_)
+      {
+        audioCaptureClient_->Release (); audioCaptureClient_ = NULL;
+      } // end IF
+      if (audioClient_)
+      {
+        audioClient_->Release (); audioClient_ = NULL;
+      } // end IF
       Stream_MediaFramework_DirectShow_Tools::free (media_type_s);
 
-      this->notify (STREAM_SESSION_MESSAGE_ABORT);
+      notify (STREAM_SESSION_MESSAGE_ABORT);
 
       break;
     }
@@ -681,7 +696,7 @@ Stream_Dev_Mic_Source_WASAPI_T<ACE_SYNCH_USE,
     message_block_p = NULL;
     result = inherited::getq (message_block_p,
                               &no_wait);
-    if (unlikely (result == -1))
+    if (likely (result == -1))
     {
       error = ACE_OS::last_error ();
       if (error != EWOULDBLOCK) // Linux: 11 | Win32: 10035
@@ -825,17 +840,22 @@ continue_:
     // *TODO*: remove type inferences
     { ACE_ASSERT (session_data_p->lock);
       ACE_GUARD_RETURN (ACE_SYNCH_MUTEX_T, aGuard, *session_data_p->lock, result);
-      if (unlikely (session_data_p->aborted &&
-                    !has_finished))
-      { // *TODO*: remove type inferences
-        ACE_DEBUG ((LM_DEBUG,
-                    ACE_TEXT ("%s: session (id was: %u) aborted\n"),
-                    inherited::mod_->name (),
-                    session_data_p->sessionId));
+      if (unlikely (session_data_p->aborted))
+      {
+        if (!has_finished)
+        {
+          // *TODO*: remove type inferences
+          ACE_DEBUG ((LM_DEBUG,
+                      ACE_TEXT ("%s: session (id was: %u) aborted\n"),
+                      inherited::mod_->name (),
+                      session_data_p->sessionId));
 
-        has_finished = true;
-        // enqueue(/process) STREAM_SESSION_END
-        inherited::finished ();
+          has_finished = true;
+          // enqueue(/process) STREAM_SESSION_END
+          inherited::finished ();
+        } // end IF
+
+        continue; // continue processing until STREAM_SESSION_END
       } // end IF
     } // end lock scope
 
@@ -844,8 +864,9 @@ continue_:
     if (unlikely (result_3 != WAIT_OBJECT_0))
     {
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("%s: failed to WaitForSingleObject(), aborting\n"),
-                  inherited::mod_->name ()));
+                  ACE_TEXT ("%s: failed to WaitForSingleObject(): \"%s\", aborting\n"),
+                  inherited::mod_->name (),
+                  ACE_TEXT (Common_Error_Tools::errorToString (result, false, false).c_str ())));
       goto error;
     } // end IF
 
@@ -859,7 +880,7 @@ continue_:
                                                  &flags_i,
                                                  NULL,
                                                  NULL);
-      ACE_ASSERT (SUCCEEDED (result_4));
+      ACE_ASSERT (SUCCEEDED (result_4) && data_p);
 
       bytes_to_read_i = frameSize_ * num_frames_available_i;
       try {

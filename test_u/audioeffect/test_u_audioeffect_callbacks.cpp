@@ -5599,9 +5599,14 @@ idle_session_end_cb (gpointer userData_in)
 
   button_p =
     GTK_BUTTON (gtk_builder_get_object ((*iterator).second.second,
-                                        ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_BUTTON_PROPERTIES_NAME)));
+                                        ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_BUTTON_DEVICE_SETTINGS_NAME)));
   ACE_ASSERT (button_p);
   gtk_widget_set_sensitive (GTK_WIDGET (button_p), FALSE);
+  button_p =
+    GTK_BUTTON (gtk_builder_get_object ((*iterator).second.second,
+                                        ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_BUTTON_DEVICE_RESET_NAME)));
+  ACE_ASSERT (button_p);
+  gtk_widget_set_sensitive (GTK_WIDGET (button_p), TRUE);
 
   GtkVBox* vbox_p =
     GTK_VBOX (gtk_builder_get_object ((*iterator).second.second,
@@ -5620,6 +5625,11 @@ idle_session_end_cb (gpointer userData_in)
                                                ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_TOGGLEBUTTON_MUTE_NAME)));
   ACE_ASSERT (toggle_button_p);
   gtk_widget_set_sensitive (GTK_WIDGET (toggle_button_p), TRUE);
+  button_p =
+    GTK_BUTTON (gtk_builder_get_object ((*iterator).second.second,
+                                        ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_BUTTON_PROPERTIES_NAME)));
+  ACE_ASSERT (button_p);
+  gtk_widget_set_sensitive (GTK_WIDGET (button_p), FALSE);
 
   frame_p =
     GTK_FRAME (gtk_builder_get_object ((*iterator).second.second,
@@ -6291,9 +6301,14 @@ togglebutton_record_toggled_cb (GtkToggleButton* toggleButton_in,
 
   button_p =
     GTK_BUTTON (gtk_builder_get_object ((*iterator).second.second,
-                                        ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_BUTTON_PROPERTIES_NAME)));
+                                        ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_BUTTON_DEVICE_SETTINGS_NAME)));
   ACE_ASSERT (button_p);
   gtk_widget_set_sensitive (GTK_WIDGET (button_p), TRUE);
+  button_p =
+    GTK_BUTTON (gtk_builder_get_object ((*iterator).second.second,
+                                        ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_BUTTON_DEVICE_RESET_NAME)));
+  ACE_ASSERT (button_p);
+  gtk_widget_set_sensitive (GTK_WIDGET (button_p), FALSE);
 
   GtkCheckButton* check_button_p =
     GTK_CHECK_BUTTON (gtk_builder_get_object ((*iterator).second.second,
@@ -6306,6 +6321,11 @@ togglebutton_record_toggled_cb (GtkToggleButton* toggleButton_in,
                                                ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_TOGGLEBUTTON_MUTE_NAME)));
   ACE_ASSERT (toggle_button_p);
   gtk_widget_set_sensitive (GTK_WIDGET (toggle_button_p), FALSE);
+  button_p =
+    GTK_BUTTON (gtk_builder_get_object ((*iterator).second.second,
+                                        ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_BUTTON_PROPERTIES_NAME)));
+  ACE_ASSERT (button_p);
+  gtk_widget_set_sensitive (GTK_WIDGET (button_p), TRUE);
 
   frame_p =
     GTK_FRAME (gtk_builder_get_object ((*iterator).second.second,

@@ -36,6 +36,7 @@
 //            definition of IKsPropertySet is used by the compiler. ..."
 //#include <dsound.h>
 //#include <dxva.h>
+#include "control.h"
 #undef GetObject
 #include "evr.h"
 #include "fourcc.h"
@@ -44,9 +45,7 @@
 #include "dmoreg.h"
 #include "Dmodshow.h"
 #include "dvdmedia.h"
-//#include "ksuuids.h"
 #include "mfapi.h"
-//#include "mmreg.h"
 #include "mtype.h"
 #include "oleauto.h"
 #include "qedit.h"
@@ -252,8 +251,8 @@ Stream_MediaFramework_DirectShow_Tools::debug (IGraphBuilder* builder_in,
 
   // sanity check(s)
   ACE_ASSERT (builder_in);
-  if (Stream_MediaFramework_DirectShow_Tools::logFileHandle != ACE_INVALID_HANDLE)
-    goto continue_;
+
+  HRESULT result = E_FAIL;
 
   if (!fileName_in.empty ())
   {
@@ -275,34 +274,29 @@ Stream_MediaFramework_DirectShow_Tools::debug (IGraphBuilder* builder_in,
     } // end IF
   } // end IF
 
-continue_:
-  HRESULT result =
-    builder_in->SetLogFile (((Stream_MediaFramework_DirectShow_Tools::logFileHandle != ACE_INVALID_HANDLE) ? reinterpret_cast<DWORD_PTR> (Stream_MediaFramework_DirectShow_Tools::logFileHandle)
-                                                                                                           : NULL));
+  result =
+    builder_in->SetLogFile (((Stream_MediaFramework_DirectShow_Tools::logFileHandle != ACE_INVALID_HANDLE) && !fileName_in.empty () ? reinterpret_cast<DWORD_PTR> (Stream_MediaFramework_DirectShow_Tools::logFileHandle)
+                                                                                                                                    : NULL));
   if (FAILED (result))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IGraphBuilder::SetLogFile(\"%s\"): \"%s\", returning\n"),
                 ACE_TEXT (fileName_in.c_str ()),
                 ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ())));
-
-    // clean up
-    if (!CloseHandle (Stream_MediaFramework_DirectShow_Tools::logFileHandle))
+    if ((Stream_MediaFramework_DirectShow_Tools::logFileHandle != ACE_INVALID_HANDLE) &&
+        !CloseHandle (Stream_MediaFramework_DirectShow_Tools::logFileHandle))
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to CloseHandle(): \"%s\", continuing\n"),
-                  ACE_TEXT (Common_Error_Tools::errorToString (::GetLastError (), false).c_str ())));
-
+                  ACE_TEXT (Common_Error_Tools::errorToString (::GetLastError (), false, false).c_str ())));
     return;
   } // end IF
 
   if (fileName_in.empty () &&
       (Stream_MediaFramework_DirectShow_Tools::logFileHandle != ACE_INVALID_HANDLE))
-  {
     if (!CloseHandle (Stream_MediaFramework_DirectShow_Tools::logFileHandle))
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to CloseHandle(): \"%s\", continuing\n"),
-                  ACE_TEXT (Common_Error_Tools::errorToString (::GetLastError (), false).c_str ())));
-  } // end IF
+                  ACE_TEXT (Common_Error_Tools::errorToString (::GetLastError (), false, false).c_str ())));
 }
 
 void
@@ -2089,6 +2083,46 @@ Stream_MediaFramework_DirectShow_Tools::has (const Stream_MediaFramework_DirectS
       return true;
 
   return false;
+}
+
+void
+Stream_MediaFramework_DirectShow_Tools::shutdown (IGraphBuilder* builder_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_DirectShow_Tools::shutdown"));
+
+  // sanity check(s)
+  ACE_ASSERT (builder_in);
+
+  HRESULT result = E_FAIL;
+  IMediaControl* media_control_p = NULL;
+  OAFilterState filter_state_e = 0;
+
+  //result = builder_in->Abort ();
+  //if (FAILED (result))
+  //  ACE_DEBUG ((LM_ERROR,
+  //              ACE_TEXT ("failed to IGraphBuilder::Abort(): \"%s\", continuing\n"),
+  //              ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ())));
+
+  result = builder_in->QueryInterface (IID_PPV_ARGS (&media_control_p));
+  ACE_ASSERT (SUCCEEDED (result) && media_control_p);
+  result = media_control_p->GetState (INFINITE,
+                                      &filter_state_e);
+  ACE_ASSERT (SUCCEEDED (result));
+  if ((filter_state_e == State_Paused) ||
+      (filter_state_e == State_Running))
+  {
+    result = media_control_p->Stop ();
+    ACE_ASSERT (SUCCEEDED (result));
+  } // end IF
+  media_control_p->Release (); media_control_p = NULL;
+
+  if (!Stream_MediaFramework_DirectShow_Tools::disconnect (builder_in))
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to Stream_MediaFramework_DirectShow_Tools::disconnect(), continuing\n")));
+
+  if (!Stream_MediaFramework_DirectShow_Tools::clear (builder_in))
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to Stream_MediaFramework_DirectShow_Tools::clear(), continuing\n")));
 }
 
 bool

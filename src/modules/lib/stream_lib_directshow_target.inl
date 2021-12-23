@@ -287,7 +287,13 @@ Stream_MediaFramework_DirectShow_Target_T<ACE_SYNCH_USE,
   // don't care (implies yes per default, if part of a stream)
   ACE_UNUSED_ARG (passMessageDownstream_out);
 
-  ACE_Message_Block* message_block_p = message_inout->duplicate ();
+  // sanity check(s)
+  ACE_ASSERT (inherited::msg_queue_);
+
+  int result = -1;
+  ACE_Message_Block* message_block_p = NULL;
+  
+  message_block_p = message_inout->duplicate ();
   if (unlikely (!message_block_p))
   {
     ACE_DEBUG ((LM_ERROR,
@@ -295,17 +301,14 @@ Stream_MediaFramework_DirectShow_Target_T<ACE_SYNCH_USE,
                 inherited::mod_->name ()));
     return;
   } // end IF
-  ACE_ASSERT (inherited::msg_queue_);
-  int result = inherited::msg_queue_->enqueue_tail (message_block_p, NULL);
+  
+  result = inherited::msg_queue_->enqueue_tail (message_block_p, NULL);
   if (unlikely (result == -1))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to ACE_Message_Queue::enqueue_tail(): \"%m\", returning\n"),
                 inherited::mod_->name ()));
-
-    // clean up
     message_block_p->release ();
-
     return;
   } // end IF
 }
@@ -422,11 +425,11 @@ Stream_MediaFramework_DirectShow_Target_T<ACE_SYNCH_USE,
 
       result_2 =
         IGraphBuilder_->QueryInterface (IID_PPV_ARGS (&IMediaControl_));
-      if (FAILED (result_2))
+      if (unlikely (FAILED (result_2)))
         goto error_2;
       result_2 =
         IGraphBuilder_->QueryInterface (IID_PPV_ARGS (&IMediaEventEx_));
-      if (FAILED (result_2))
+      if (unlikely (FAILED (result_2)))
         goto error_2;
       ACE_ASSERT (IMediaControl_);
       ACE_ASSERT (IMediaEventEx_);
@@ -466,7 +469,7 @@ do_run:
       // start forwarding data
       // *NOTE*: this may query the source filter for IMediaSeeking, IMediaPosition
       result_2 = IMediaControl_->Run ();
-      if (FAILED (result_2))
+      if (unlikely (FAILED (result_2)))
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: failed to IMediaControl::Run(): \"%s\", aborting\n"),
@@ -478,8 +481,8 @@ do_run:
 
       // register graph in the ROT (so graphedt.exe can see it)
       ACE_ASSERT (!ROTID_);
-      if (!Stream_MediaFramework_DirectShow_Tools::addToROT (IGraphBuilder_,
-                                                             ROTID_))
+      if (unlikely (!Stream_MediaFramework_DirectShow_Tools::addToROT (IGraphBuilder_,
+                                                                       ROTID_)))
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: failed to Stream_MediaFramework_DirectShow_Tools::addToROT(), aborting\n"),
@@ -529,9 +532,9 @@ error:
       bool COM_initialized = Common_Tools::initializeCOM ();
 
       // deregister graph from the ROT ?
-      if (ROTID_)
+      if (likely (ROTID_))
       {
-        if (!Stream_MediaFramework_DirectShow_Tools::removeFromROT (ROTID_))
+        if (unlikely (!Stream_MediaFramework_DirectShow_Tools::removeFromROT (ROTID_)))
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("%s: failed to Stream_MediaFramework_DirectShow_Tools::removeFromROT(%d), continuing\n"),
                       inherited::mod_->name (),
@@ -539,11 +542,10 @@ error:
         ROTID_ = 0;
       } // end IF
 
-//continue_:
-      if (IMediaEventEx_)
+      if (likely (IMediaEventEx_))
       {
         result_2 = IMediaEventEx_->SetNotifyWindow (NULL, 0, 0);
-        if (FAILED (result_2))
+        if (unlikely (FAILED (result_2)))
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("%s: failed to IMediaEventEx::SetNotifyWindow(): \"%s\", continuing\n"),
                       inherited::mod_->name (),
@@ -551,14 +553,14 @@ error:
         IMediaEventEx_->Release (); IMediaEventEx_ = NULL;
       } // end IF
 
-      stop (false,
-            false);
+      stop (false,  // wait for completion ?
+            false); // high priority ?
 
-      if (IMediaControl_)
+      if (likely (IMediaControl_))
       {
         // stop previewing video data (blocks)
         result_2 = IMediaControl_->Stop ();
-        if (FAILED (result_2))
+        if (unlikely (FAILED (result_2)))
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("%s: failed to IMediaControl::Stop(): \"%s\", continuing\n"),
                       inherited::mod_->name (),
@@ -572,8 +574,13 @@ error:
                     ACE_TEXT ("%s: failed to ACE_Mesage_Queue::flush(): \"%m\", continuing\n"),
                     inherited::mod_->name ()));
 
-      if (IGraphBuilder_)
+      if (likely (IGraphBuilder_))
       {
+#if defined (_DEBUG)
+        std::string log_file_name;
+        Stream_MediaFramework_DirectShow_Tools::debug (IGraphBuilder_,
+                                                       log_file_name);
+#endif // _DEBUG
         IGraphBuilder_->Release (); IGraphBuilder_ = NULL;
       } // end IF
 

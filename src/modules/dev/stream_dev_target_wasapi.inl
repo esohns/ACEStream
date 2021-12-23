@@ -232,7 +232,13 @@ Stream_Dev_Target_WASAPI_T<ACE_SYNCH_USE,
   // don't care (implies yes per default, if part of a stream)
   ACE_UNUSED_ARG (passMessageDownstream_out);
 
-  ACE_Message_Block* message_block_p = message_inout->duplicate ();
+  // sanity check(s)
+  ACE_ASSERT (inherited::msg_queue_);
+
+  int result = -1;
+  ACE_Message_Block* message_block_p = NULL;
+  
+  message_block_p = message_inout->duplicate ();
   if (unlikely (!message_block_p))
   {
     ACE_DEBUG ((LM_ERROR,
@@ -240,17 +246,14 @@ Stream_Dev_Target_WASAPI_T<ACE_SYNCH_USE,
                 inherited::mod_->name ()));
     return;
   } // end IF
-  ACE_ASSERT (inherited::msg_queue_);
-  int result = inherited::msg_queue_->enqueue_tail (message_block_p, NULL);
+
+  result = inherited::msg_queue_->enqueue_tail (message_block_p, NULL);
   if (unlikely (result == -1))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to ACE_Message_Queue::enqueue_tail(): \"%m\", returning\n"),
                 inherited::mod_->name ()));
-
-    // clean up
     message_block_p->release ();
-
     return;
   } // end IF
 }
@@ -280,8 +283,6 @@ Stream_Dev_Target_WASAPI_T<ACE_SYNCH_USE,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Dev_Target_WASAPI_T::handleSessionMessage"));
 
-  int result = -1;
-
   // don't care (implies yes per default, if part of a stream)
   ACE_UNUSED_ARG (passMessageDownstream_out);
 
@@ -298,10 +299,11 @@ Stream_Dev_Target_WASAPI_T<ACE_SYNCH_USE,
   {
     case STREAM_SESSION_MESSAGE_BEGIN:
     {
+      // sanity check(s)
       ACE_ASSERT (!session_data_r.formats.empty ());
-      struct _AMMediaType media_type_s, media_type_2;
+
+      struct _AMMediaType media_type_s;
       ACE_OS::memset (&media_type_s, 0, sizeof (struct _AMMediaType));
-      ACE_OS::memset (&media_type_2, 0, sizeof (struct _AMMediaType));
       inherited2::getMediaType (session_data_r.formats.back (),
                                 media_type_s);
       ACE_ASSERT (media_type_s.majortype == MEDIATYPE_Audio);
@@ -381,10 +383,10 @@ Stream_Dev_Target_WASAPI_T<ACE_SYNCH_USE,
       { ACE_ASSERT (!device_p);
         result_2 = devices_p->Item (i,
                                     &device_p);
-        ACE_ASSERT (SUCCEEDED (result_2));
+        ACE_ASSERT (SUCCEEDED (result_2) && device_p);
         result_2 = device_p->OpenPropertyStore (STGM_READ,
                                                 &property_store_p);
-        ACE_ASSERT (SUCCEEDED (result_2));
+        ACE_ASSERT (SUCCEEDED (result_2) && property_store_p);
         result_2 = property_store_p->GetValue (PKEY_AudioEndpoint_GUID,
                                                &property_s);
         ACE_ASSERT (SUCCEEDED (result_2));
@@ -398,7 +400,7 @@ Stream_Dev_Target_WASAPI_T<ACE_SYNCH_USE,
         device_p->Release (); device_p = NULL;
       } // end FOR
       devices_p->Release (); devices_p = NULL;
-      if (!device_p)
+      if (unlikely (!device_p))
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: failed to retrieve render device handle (id was: \"%s\"), aborting\n"),
@@ -412,7 +414,6 @@ continue_:
       result_2 = device_p->Activate (__uuidof (IAudioClient), CLSCTX_ALL,
                                      NULL, (void**)&audioClient_);
       ACE_ASSERT (SUCCEEDED (result_2) && audioClient_);
-      // sanity check(s)
       result_2 =
         audioClient_->IsFormatSupported (share_mode_e,
                                          audio_info_p,
@@ -508,7 +509,7 @@ retry:
 
       ACE_ASSERT (!audioRenderClient_);
       result_2 = audioClient_->GetService (IID_PPV_ARGS (&audioRenderClient_));
-      ACE_ASSERT (SUCCEEDED (result_2));
+      ACE_ASSERT (SUCCEEDED (result_2) && audioRenderClient_);
 
       result_2 = audioClient_->Start ();
       ACE_ASSERT (SUCCEEDED (result_2));
@@ -522,15 +523,29 @@ retry:
       break;
 
 error:
+      if (audioClient_)
+        audioClient_->Stop ();
+      if (event_)
+      {
+        CloseHandle (event_); event_ = NULL;
+      } // end IF
+      if (audioRenderClient_)
+      {
+        audioRenderClient_->Release (); audioRenderClient_ = NULL;
+      } // end IF
+      if (audioClient_)
+      {
+        audioClient_->Release (); audioClient_ = NULL;
+      } // end IF
       Stream_MediaFramework_DirectShow_Tools::free (media_type_s);
 
-      this->notify (STREAM_SESSION_MESSAGE_ABORT);
+      notify (STREAM_SESSION_MESSAGE_ABORT);
 
       break;
     }
     case STREAM_SESSION_MESSAGE_END:
     {
-      if (inherited::thr_count_ > 0)
+      if (likely (inherited::thr_count_ > 0))
       {
         Common_ITask* itask_p = this;
         itask_p->stop (true,   // wait ?
@@ -548,6 +563,14 @@ error:
                       ACE_TEXT (Common_Error_Tools::errorToString (result_2, true, false).c_str ())));
       } // end IF
 
+      if (likely (event_))
+      {
+        if (!CloseHandle (event_))
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("%s: failed to CloseHandle(): \"%m\", continuing\n"),
+                      inherited::mod_->name ()));
+        event_ = NULL;
+      } // end IF
       if (likely (audioRenderClient_))
       {
         audioRenderClient_->Release (); audioRenderClient_ = NULL;
@@ -875,6 +898,7 @@ Stream_Dev_Target_WASAPI_T<ACE_SYNCH_USE,
 
   int result = -1;
   ACE_Message_Block* message_block_p = NULL;
+
   ACE_NEW_NORETURN (message_block_p,
                     ACE_Message_Block (0,                                  // size
                                        ACE_Message_Block::MB_STOP,         // type
@@ -962,6 +986,10 @@ Stream_Dev_Target_WASAPI_T<ACE_SYNCH_USE,
       break;
     default:
     {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("%s: invalid/unknown message type (was: %d), continuing\n"),
+                  inherited::mod_->name (),
+                  message_block_p->msg_type ()));
       message_block_p->release (); message_block_p = NULL;
       break;
     }
@@ -1013,7 +1041,7 @@ Stream_Dev_Target_WASAPI_T<ACE_SYNCH_USE,
   task_ =
     AvSetMmThreadCharacteristics (TEXT (STREAM_LIB_WASAPI_RENDER_DEFAULT_TASKNAME),
                                   &task_index_i);
-  if (!task_)
+  if (unlikely (!task_))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to AvSetMmThreadCharacteristics(): \"%m\", aborting\n"),
@@ -1043,7 +1071,7 @@ retry:
     result_3 = audioRenderClient_->GetBuffer (buffer_size_i,
                                               &data_p);
     //AUDCLNT_E_BUFFER_TOO_LARGE: 0x88890006
-    if (FAILED (result_3))
+    if (unlikely (FAILED (result_3)))
     {
       if (result_3 == AUDCLNT_E_BUFFER_TOO_LARGE)
       {
@@ -1070,7 +1098,7 @@ retry:
 
 next_buffer_2:
     message_block_p = get ();
-    if (!message_block_p)
+    if (unlikely (!message_block_p))
     {
       result_3 = audioRenderClient_->ReleaseBuffer (buffer_size_i - num_frames_available_i,
                                                     /*flags_i*/0);
@@ -1079,18 +1107,18 @@ next_buffer_2:
     } // end IF
 
 continue_:
-    bytes_to_write_i =
-      std::min (message_block_p->length (), (num_frames_available_i * frameSize_));
+    bytes_to_write_i = std::min (message_block_p->length (),
+                                 (num_frames_available_i * frameSize_));
     ACE_ASSERT ((bytes_to_write_i % frameSize_) == 0);
     ACE_OS::memcpy (data_p + offset_i, message_block_p->rd_ptr (),
                     bytes_to_write_i);
-    num_frames_available_i -= bytes_to_write_i / frameSize_;
+    num_frames_available_i -= (bytes_to_write_i / frameSize_);
     offset_i += bytes_to_write_i;
 
     message_block_p->rd_ptr (bytes_to_write_i);
     if (!message_block_p->length ())
     {
-      if (message_block_p->cont ())
+      if (unlikely (message_block_p->cont ()))
       {
         ACE_Message_Block* message_block_2 = message_block_p->cont ();
         message_block_p->cont (NULL);
