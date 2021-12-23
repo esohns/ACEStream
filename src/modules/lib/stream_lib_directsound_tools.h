@@ -33,6 +33,7 @@
 // forward declarations
 enum _AUDCLNT_SHAREMODE;
 struct IAudioEndpointVolume;
+struct ISimpleAudioVolume;
 struct IAudioVolumeLevel;
 struct IPart;
 
@@ -69,7 +70,9 @@ class Stream_MediaFramework_DirectSound_Tools
   // *TODO*: what about exclusive mode ?
   // *IMPORTANT NOTE*: callers must 'CoTaskMemFree' any return values
   static struct tWAVEFORMATEX* getAudioEngineMixFormat (REFGUID); // device identifier
-  static IAudioEndpointVolume* getVolumeControl (REFGUID); // device identifier
+  static IAudioEndpointVolume* getMasterVolumeControl (REFGUID); // device identifier
+  static ISimpleAudioVolume* getSessionVolumeControl (REFGUID,  // device identifier
+                                                      REFGUID); // session identifier [GUID_NULL ? default session]
   static IAudioVolumeLevel* getMicrophoneBoostControl (REFGUID); // device identifier
 
  private:

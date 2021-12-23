@@ -1187,7 +1187,7 @@ Stream_MediaFramework_DirectShow_Source_Filter_OutputPin_T<ConfigurationType>::D
     //  inherited::m_pAllocator->Release ();
     //inherited::m_pAllocator = *allocator_out;
     ACE_DEBUG ((LM_DEBUG,
-                ACE_TEXT ("%s/%s: configuring allocator from %s/%s\n"),
+                ACE_TEXT ("%s/%s: configuring allocator from \"%s\"/%s\n"),
                 ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::name (inherited::m_pFilter).c_str ()),
                 ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::name (this).c_str ()),
                 ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::name (filter_p).c_str ()),

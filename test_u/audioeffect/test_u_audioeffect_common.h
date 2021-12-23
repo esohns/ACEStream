@@ -28,7 +28,9 @@
 
 #include "ace/config-lite.h"
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
+#include "devicetopology.h"
 #include "endpointvolume.h"
+#include "Audioclient.h"
 #include "mfapi.h"
 #undef GetObject
 #include "mfidl.h"
@@ -356,22 +358,15 @@ struct Test_U_AudioEffect_ModuleHandlerConfiguration
    , mute (false)
 #if defined (GUI_SUPPORT)
 #if defined (GTK_SUPPORT)
-   , surfaceLock (NULL)
-//#if GTK_CHECK_VERSION(3,11,0)
-//   , cairoSurface2D (NULL)
-//#else
-//   , pixelBuffer2D (NULL)
-//#endif /* GTK_CHECK_VERSION(3,11,0) */
 #if defined (GTKGL_SUPPORT)
    , OpenGLInstructions (NULL)
    , OpenGLInstructionsLock (NULL)
    , OpenGLTextureId (0)
 #endif /* GTKGL_SUPPORT */
-   //, sampleIsSignedQuantity (true)
+#endif // GTK_SUPPORT
    , spectrumAnalyzer2DMode (STREAM_VIS_SPECTRUMANALYZER_DEFAULT_2DMODE)
    , spectrumAnalyzer3DMode (STREAM_VIS_SPECTRUMANALYZER_DEFAULT_3DMODE)
    , spectrumAnalyzerResolution (STREAM_VIS_SPECTRUMANALYZER_DEFAULT_BUFFER_SIZE)
-#endif // GTK_SUPPORT
 #endif // GUI_SUPPORT
 #if defined (GUI_SUPPORT)
 #if defined (GTK_SUPPORT)
@@ -388,22 +383,15 @@ struct Test_U_AudioEffect_ModuleHandlerConfiguration
   bool                                              mute;
 #if defined (GUI_SUPPORT)
 #if defined (GTK_SUPPORT)
-  ACE_SYNCH_MUTEX*                                  surfaceLock;
-//#if GTK_CHECK_VERSION(3,11,0)
-//  cairo_surface_t*                                  cairoSurface2D;
-//#else
-//  GdkPixbuf*                                        pixelBuffer2D;
-//#endif /* GTK_CHECK_VERSION(3,11,0) */
 #if defined (GTKGL_SUPPORT)
   Stream_Visualization_OpenGL_Instructions_t*       OpenGLInstructions;
   ACE_SYNCH_MUTEX*                                  OpenGLInstructionsLock;
   GLuint                                            OpenGLTextureId;
 #endif /* GTKGL_SUPPORT */
-  //bool                                              sampleIsSignedQuantity;
+#endif // GTK_SUPPORT
   enum Stream_Visualization_SpectrumAnalyzer_2DMode spectrumAnalyzer2DMode;
   enum Stream_Visualization_SpectrumAnalyzer_3DMode spectrumAnalyzer3DMode;
   unsigned int                                      spectrumAnalyzerResolution;
-#endif // GTK_SUPPORT
 #endif // GUI_SUPPORT
 #if defined (GUI_SUPPORT)
 #if defined (GTK_SUPPORT)
@@ -790,19 +778,17 @@ struct Test_U_AudioEffect_ProgressData
 #else
    : Test_U_UI_ProgressData ()
 #endif // GTK_USE
+   , bytesPerFrame (0)
    , statistic ()
   {}
 
+  ACE_UINT32                          bytesPerFrame;
   struct Test_U_AudioEffect_Statistic statistic;
 };
 
-#if defined (GTK_USE)
-#if GTK_CHECK_VERSION(3,10,0)
-typedef Common_ISetP_T<cairo_surface_t> Test_U_Common_ISet_t;
-#else
-typedef Common_ISetP_T<GdkPixbuf> Test_U_Common_ISet_t;
-#endif // GTK_CHECK_VERSION(3,10,0)
-#endif // GTK_USE
+#if defined (GTK_SUPPORT)
+typedef Common_ISetP_T<GdkWindow> Test_U_Common_ISet_t;
+#endif // GTK_SUPPORT
 struct Test_U_AudioEffect_UI_CBDataBase
 #if defined (GTK_USE)
  : Test_U_GTK_CBData
@@ -815,14 +801,6 @@ struct Test_U_AudioEffect_UI_CBDataBase
    : Test_U_GTK_CBData ()
 #else
    : Test_U_UI_CBData ()
-#endif // GTK_USE
-   , surfaceLock ()
-#if defined (GTK_USE)
-#if GTK_CHECK_VERSION(3,10,0)
-   , cairoSurface2D (NULL)
-#else
-   , pixelBuffer2D (NULL)
-#endif // GTK_CHECK_VERSION(3,10,0)
 #endif // GTK_USE
 #if defined (GTK_USE)
 #if defined (GTKGL_SUPPORT)
@@ -842,14 +820,6 @@ struct Test_U_AudioEffect_UI_CBDataBase
    , stream (NULL)
   {}
 
-  ACE_SYNCH_MUTEX                            surfaceLock;
-#if defined (GTK_USE)
-#if GTK_CHECK_VERSION(3,10,0)
-  cairo_surface_t*                           cairoSurface2D;
-#else
-  GdkPixbuf*                                 pixelBuffer2D;
-#endif // GTK_CHECK_VERSION(3,10,0)
-#endif // GTK_USE
 #if defined (GTK_USE)
 #if defined (GTKGL_SUPPORT)
   Stream_Visualization_OpenGL_Instructions_t OpenGLInstructions;
@@ -886,7 +856,7 @@ struct Test_U_AudioEffect_DirectShow_UI_CBData
   Test_U_AudioEffect_DirectShow_Subscribers_t         subscribers;
   IAudioVolumeLevel*                                  boostControl;
   IAudioEndpointVolume*                               captureVolumeControl;
-  IAudioEndpointVolume*                               renderVolumeControl;
+  ISimpleAudioVolume*                                 renderVolumeControl;
 };
 
 struct Test_U_AudioEffect_MediaFoundation_UI_CBData
@@ -905,7 +875,7 @@ struct Test_U_AudioEffect_MediaFoundation_UI_CBData
   Test_U_AudioEffect_MediaFoundation_Subscribers_t         subscribers;
   IAudioVolumeLevel*                                       boostControl;
   IAudioEndpointVolume*                                    captureVolumeControl;
-  IAudioEndpointVolume*                                    renderVolumeControl;
+  ISimpleAudioVolume*                                      renderVolumeControl;
 };
 #else
 struct Test_U_AudioEffect_UI_CBData

@@ -20,15 +20,11 @@
 
 #include "ace/Log_Msg.h"
 
-#include "common_file_tools.h"
-#include "common_timer_manager_common.h"
-
 #include "stream_defines.h"
 #include "stream_macros.h"
-#include "stream_session_message_base.h"
 
-#include "stream_dev_defines.h"
-#include "stream_dev_tools.h"
+#include "stream_lib_directshow_tools.h"
+#include "stream_lib_directsound_tools.h"
 
 static void CALLBACK
 stream_dev_target_wavout_async_callback (HWAVEOUT  hwo,
@@ -37,6 +33,13 @@ stream_dev_target_wavout_async_callback (HWAVEOUT  hwo,
                                          DWORD_PTR dwParam1,
                                          DWORD_PTR dwParam2)
 {
+  //STREAM_TRACE (ACE_TEXT ("::stream_dev_target_wavout_async_callback"));
+
+  // sanity check(s)
+  struct Stream_Device_WavOut_Playback_AsynchCBData* cb_data_p =
+    reinterpret_cast<struct Stream_Device_WavOut_Playback_AsynchCBData*> (dwInstance);
+  ACE_ASSERT (cb_data_p);
+
   switch (uMsg)
   {
     case WOM_CLOSE:
@@ -45,10 +48,8 @@ stream_dev_target_wavout_async_callback (HWAVEOUT  hwo,
     case WOM_DONE:
     {
       // sanity check(s)
-      struct Stream_Device_WavOut_Playback_AsynchCBData* cb_data_p =
-        reinterpret_cast<struct Stream_Device_WavOut_Playback_AsynchCBData*> (dwInstance);
-      ACE_ASSERT (cb_data_p);
-      struct wavehdr_tag* wave_hdr_p = reinterpret_cast<struct wavehdr_tag*> (dwParam1);
+      struct wavehdr_tag* wave_hdr_p =
+        reinterpret_cast<struct wavehdr_tag*> (dwParam1);
       ACE_ASSERT (wave_hdr_p);
       //ACE_ASSERT (!dwParam2);
       ACE_Message_Block* message_block_p =
@@ -59,7 +60,16 @@ stream_dev_target_wavout_async_callback (HWAVEOUT  hwo,
       MMRESULT result = waveOutUnprepareHeader (hwo,
                                                 wave_hdr_p,
                                                 sizeof (struct wavehdr_tag));
-      ACE_ASSERT (result == MMSYSERR_NOERROR);
+      if (unlikely (result != MMSYSERR_NOERROR))
+      { char error_msg_a[BUFSIZ];
+        waveOutGetErrorText (result, error_msg_a, BUFSIZ - 1);
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("failed to waveOutUnprepareHeader(): \"%s\", returning\n"),
+                    ACE_TEXT (error_msg_a)));
+        message_block_p->release ();
+        ReleaseSemaphore (cb_data_p->lock, 1, NULL);
+        return;
+      } // end IF
 
       // step2: more data ?
       ACE_Message_Block* message_block_2 = message_block_p->cont ();
@@ -76,15 +86,17 @@ stream_dev_target_wavout_async_callback (HWAVEOUT  hwo,
         wave_hdr_p->lpData = message_block_2->rd_ptr ();
         wave_hdr_p->dwBufferLength = message_block_2->length ();
         wave_hdr_p->dwUser = reinterpret_cast<DWORD_PTR> (message_block_2);
-        MMRESULT result = waveOutPrepareHeader (hwo,
-                                                wave_hdr_p,
-                                                sizeof (struct wavehdr_tag));
+        wave_hdr_p->dwFlags = 0;
+        result = waveOutPrepareHeader (hwo,
+                                       wave_hdr_p,
+                                       sizeof (struct wavehdr_tag));
         if (unlikely (result != MMSYSERR_NOERROR))
-        {
+        { char error_msg_a[BUFSIZ];
+          waveOutGetErrorText (result, error_msg_a, BUFSIZ - 1);
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("failed to waveOutPrepareHeader(): \"%s\", returning\n"),
-                      Common_Error_Tools::errorToString (result, true, false)));
-          message_block_2->release (); message_block_2 = NULL;
+                      ACE_TEXT (error_msg_a)));
+          message_block_2->release ();
           ReleaseSemaphore (cb_data_p->lock, 1, NULL);
           return;
         } // end IF
@@ -94,14 +106,15 @@ stream_dev_target_wavout_async_callback (HWAVEOUT  hwo,
                                wave_hdr_p,
                                sizeof (struct wavehdr_tag));
         if (unlikely (result != MMSYSERR_NOERROR))
-        {
+        { char error_msg_a[BUFSIZ];
+          waveOutGetErrorText (result, error_msg_a, BUFSIZ - 1);
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("failed to waveOutWrite(): \"%s\", returning\n"),
-                      Common_Error_Tools::errorToString (result, true, false)));
+                      ACE_TEXT (error_msg_a)));
           waveOutUnprepareHeader (hwo,
                                   wave_hdr_p,
                                   sizeof (struct wavehdr_tag));
-          message_block_2->release (); message_block_2 = NULL;
+          message_block_2->release ();
           ReleaseSemaphore (cb_data_p->lock, 1, NULL);
           return;
         } // end IF
@@ -110,7 +123,7 @@ stream_dev_target_wavout_async_callback (HWAVEOUT  hwo,
       } // end IF
 
       // step3: release data
-      message_block_p->release ();
+      message_block_p->release (); message_block_p = NULL;
       --cb_data_p->inFlightBuffers;
       cb_data_p->done = !cb_data_p->inFlightBuffers;
 
@@ -149,7 +162,7 @@ Stream_Dev_Target_WavOut_T<ACE_SYNCH_USE,
                            MediaType>::Stream_Dev_Target_WavOut_T (ISTREAM_T* stream_in)
  : inherited (stream_in)
  , CBData_ ()
- , handle_ ()
+ , handle_ (NULL)
  , header_ ()
  , lock_ (NULL)
 {
@@ -190,6 +203,8 @@ Stream_Dev_Target_WavOut_T<ACE_SYNCH_USE,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Dev_Target_WavOut_T::~Stream_Dev_Target_WavOut_T"));
 
+  if (unlikely (handle_))
+    waveOutClose (handle_);
   if (likely (lock_))
     CloseHandle (lock_);
 }
@@ -214,6 +229,14 @@ Stream_Dev_Target_WavOut_T<ACE_SYNCH_USE,
                                                    Stream_IAllocator* allocator_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Dev_Target_WavOut_T::initialize"));
+
+  if (inherited::isInitialized_)
+  {
+    if (unlikely (handle_))
+    {
+      waveOutClose (handle_); handle_ = NULL;
+    } // end IF
+  } // end IF
 
   return inherited::initialize (configuration_in,
                                 allocator_in);
@@ -268,16 +291,18 @@ Stream_Dev_Target_WavOut_T<ACE_SYNCH_USE,
   // step2: prepare header
   header_.lpData = message_block_p->rd_ptr ();
   header_.dwBufferLength = message_block_p->length ();
+  header_.dwFlags = 0;
   header_.dwUser = reinterpret_cast<DWORD_PTR> (message_block_p);
   MMRESULT result_2 = waveOutPrepareHeader (handle_,
                                             &header_,
                                             sizeof (struct wavehdr_tag));
   if (unlikely (result_2 != MMSYSERR_NOERROR))
-  {
+  { char error_msg_a[BUFSIZ];
+    waveOutGetErrorText (result_2, error_msg_a, BUFSIZ - 1);
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to waveOutPrepareHeader(): \"%s\", returning\n"),
                 inherited::mod_->name (),
-                Common_Error_Tools::errorToString (result_2, true, false)));
+                ACE_TEXT (error_msg_a)));
     ReleaseSemaphore (lock_, 1, NULL);
     message_block_p->release (); message_block_p = NULL;
     return;
@@ -286,11 +311,12 @@ Stream_Dev_Target_WavOut_T<ACE_SYNCH_USE,
                            &header_,
                            sizeof (struct wavehdr_tag));
   if (unlikely (result_2 != MMSYSERR_NOERROR))
-  {
+  { char error_msg_a[BUFSIZ];
+    waveOutGetErrorText (result_2, error_msg_a, BUFSIZ - 1);
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to waveOutWrite(): \"%s\", returning\n"),
                 inherited::mod_->name (),
-                Common_Error_Tools::errorToString (result_2, true, false)));
+                ACE_TEXT (error_msg_a)));
     waveOutUnprepareHeader (handle_,
                             &header_,
                             sizeof (struct wavehdr_tag));
@@ -322,7 +348,7 @@ Stream_Dev_Target_WavOut_T<ACE_SYNCH_USE,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Dev_Target_WavOut_T::handleSessionMessage"));
 
-  int result = -1;
+  MMRESULT result = MMSYSERR_ERROR;
 
   // don't care (implies yes per default, if part of a stream)
   ACE_UNUSED_ARG (passMessageDownstream_out);
@@ -335,6 +361,7 @@ Stream_Dev_Target_WavOut_T<ACE_SYNCH_USE,
   {
     case STREAM_SESSION_MESSAGE_BEGIN:
     {
+      // sanity check(s)
       ACE_ASSERT (inherited::configuration_->deviceIdentifier.identifierDiscriminator == Stream_Device_Identifier::ID);
       ACE_ASSERT (inherited::sessionData_);
       SessionDataType& session_data_r =
@@ -349,10 +376,11 @@ Stream_Dev_Target_WavOut_T<ACE_SYNCH_USE,
       struct tWAVEFORMATEX* waveformatex_p =
         reinterpret_cast<struct tWAVEFORMATEX*> (media_type_s.pbFormat);
       ACE_ASSERT (waveformatex_p);
+
       DWORD flags_u = CALLBACK_FUNCTION;// |
                       //WAVE_MAPPED_DEFAULT_COMMUNICATION_DEVICE |
                       //WAVE_FORMAT_DIRECT;
-      MMRESULT result =
+      result =
         waveOutOpen (&handle_,
                      inherited::configuration_->deviceIdentifier.identifier._id,
                      waveformatex_p,
@@ -360,19 +388,28 @@ Stream_Dev_Target_WavOut_T<ACE_SYNCH_USE,
                      reinterpret_cast<DWORD_PTR> (&CBData_),
                      flags_u);
       if (unlikely (result != MMSYSERR_NOERROR))
-      {
+      { char error_msg_a[BUFSIZ];
+        waveOutGetErrorText (result, error_msg_a, BUFSIZ - 1);
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: failed to waveOutOpen(%u,0x%x): \"%s\", aborting\n"),
                     inherited::mod_->name (),
                     inherited::configuration_->deviceIdentifier.identifier._id,
                     flags_u,
-                    Common_Error_Tools::errorToString (result, true, false)));
+                    ACE_TEXT (error_msg_a)));
         goto error;
       } // end IF
+      ACE_DEBUG ((LM_DEBUG,
+                  ACE_TEXT ("%s: opened device (id: %u, format: %s)...\n"),
+                  inherited::mod_->name (),
+                  inherited::configuration_->deviceIdentifier.identifier._id,
+                  ACE_TEXT (Stream_MediaFramework_DirectSound_Tools::toString (*waveformatex_p, true).c_str ())));
+      Stream_MediaFramework_DirectShow_Tools::free (media_type_s);
 
       break;
 
 error:
+      Stream_MediaFramework_DirectShow_Tools::free (media_type_s);
+
       this->notify (STREAM_SESSION_MESSAGE_ABORT);
 
       break;
@@ -383,13 +420,15 @@ error:
       while (!CBData_.done)
         ACE_OS::sleep (ACE_Time_Value (1, 0));
 
-      MMRESULT result = waveOutClose (handle_);
+      result = waveOutClose (handle_);
       if (unlikely (result != MMSYSERR_NOERROR))
+      { char error_msg_a[BUFSIZ];
+        waveOutGetErrorText (result, error_msg_a, BUFSIZ - 1);
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: failed to waveOutClose(): \"%s\", continuing\n"),
                     inherited::mod_->name (),
-                    Common_Error_Tools::errorToString (result, true, false)));
-
+                    ACE_TEXT (error_msg_a)));
+      } // end IF
       break;
     }
     default:

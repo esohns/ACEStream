@@ -467,9 +467,16 @@ Stream_Decoder_MP3Decoder_T<ACE_SYNCH_USE,
                            &done_u);
     switch (error_i)
     {
-      case MPG123_OK:
       case MPG123_DONE:
-      { //ACE_ASSERT (done_u);
+      { ACE_ASSERT (!done_u);
+        message_p->release (); message_p = NULL;
+        result = 0;
+
+        inherited::finished (); // *NOTE*: enqueues SESSION_END --> continue
+        continue;
+      }
+      case MPG123_OK:
+      { ACE_ASSERT (done_u);
         message_p->wr_ptr (done_u);
         result_2 = inherited::put_next (message_p, NULL);
         if (unlikely (result_2 == -1))
@@ -482,15 +489,6 @@ Stream_Decoder_MP3Decoder_T<ACE_SYNCH_USE,
           continue;
         } // end IF
         message_p = NULL;
-
-        if (unlikely (error_i == MPG123_DONE))
-        {
-          result = 0;
-
-          inherited::finished (); // *NOTE*: enqueues SESSION_END --> continue
-          continue;
-        } // end IF
-
         break;
       }
       default:

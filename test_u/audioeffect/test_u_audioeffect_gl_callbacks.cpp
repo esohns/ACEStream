@@ -1405,15 +1405,12 @@ glarea_expose_event_cb (GtkWidget* widget_in,
 {
   STREAM_TRACE (ACE_TEXT ("::glarea_expose_event_cb"));
 
+  ACE_UNUSED_ARG (event_in);
+
   // sanity check(s)
   ACE_ASSERT (widget_in);
-  ACE_UNUSED_ARG (event_in);
-  ACE_ASSERT (userData_in);
-
   struct Test_U_AudioEffect_UI_CBDataBase* ui_cb_data_base_p =
     static_cast<struct Test_U_AudioEffect_UI_CBDataBase*> (userData_in);
-
-  // sanity check(s)
   ACE_ASSERT (ui_cb_data_base_p);
 
   GLuint* texture_id_p = NULL;
@@ -1428,29 +1425,26 @@ glarea_expose_event_cb (GtkWidget* widget_in,
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
     {
+      // sanity check(s)
       directshow_ui_cb_data_p =
         static_cast<struct Test_U_AudioEffect_DirectShow_UI_CBData*> (userData_in);
-      // sanity check(s)
       ACE_ASSERT (directshow_ui_cb_data_p);
       ACE_ASSERT (directshow_ui_cb_data_p->configuration);
-
       directshow_modulehandler_configuration_iterator =
         directshow_ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
       ACE_ASSERT (directshow_modulehandler_configuration_iterator != directshow_ui_cb_data_p->configuration->streamConfiguration.end ());
 
       texture_id_p =
         &(*directshow_modulehandler_configuration_iterator).second.second->OpenGLTextureId;
-
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
     {
+      // sanity check(s)
       mediafoundation_ui_cb_data_p =
         static_cast<struct Test_U_AudioEffect_MediaFoundation_UI_CBData*> (userData_in);
-      // sanity check(s)
       ACE_ASSERT (mediafoundation_ui_cb_data_p);
       ACE_ASSERT (mediafoundation_ui_cb_data_p->configuration);
-
       mediafoundation_modulehandler_configuration_iterator =
         mediafoundation_ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
       ACE_ASSERT (mediafoundation_modulehandler_configuration_iterator != mediafoundation_ui_cb_data_p->configuration->streamConfiguration.end ());
@@ -1468,13 +1462,11 @@ glarea_expose_event_cb (GtkWidget* widget_in,
     }
   } // end SWITCH
 #else
+  // sanity check(s)
   struct Test_U_AudioEffect_UI_CBData* data_p =
     static_cast<struct Test_U_AudioEffect_UI_CBData*> (userData_in);
-
-  // sanity check(s)
   ACE_ASSERT (data_p);
   ACE_ASSERT (data_p->configuration);
-
   Test_U_AudioEffect_ALSA_StreamConfiguration_t::ITERATOR_T modulehandler_configuration_iterator =
     data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (modulehandler_configuration_iterator != data_p->configuration->streamConfiguration.end ());
@@ -1484,10 +1476,7 @@ glarea_expose_event_cb (GtkWidget* widget_in,
 #endif // ACE_WIN32 || ACE_WIN64
   ACE_ASSERT (texture_id_p);
 
-  // sanity check(s)
-  ACE_ASSERT (widget_in);
-
-  if (!gtk_gl_area_make_current (GTK_GL_AREA (widget_in)))
+  if (!gtk_gl_area_begingl (GTK_GL_AREA (widget_in)))
     return FALSE;
 
   processInstructions (ui_cb_data_base_p);

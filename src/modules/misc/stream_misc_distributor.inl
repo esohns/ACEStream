@@ -681,12 +681,12 @@ Stream_Miscellaneous_Distributor_T<ACE_SYNCH_USE,
   } // end IF
 
   forward (message_block_p,
-           true,
+           true, // dispose of message ?
            highPriority_in);
   message_block_p = NULL;
 
   if (waitForCompletion_in)
-    wait (true);
+    wait (true); // wait for message queue(s) ?
 }
 
 template <ACE_SYNCH_DECL,

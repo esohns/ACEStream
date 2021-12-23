@@ -92,7 +92,7 @@ Test_U_AudioEffect_DirectShow_Stream::load (Stream_ILayout* layout_in,
   ACE_ASSERT (iterator_4 != inherited::configuration_->end ());
   ACE_ASSERT ((*iterator).second.second->generatorConfiguration);
 
-  Stream_Module_t* module_p = NULL;
+  Stream_Module_t* module_p = NULL, *module_2 = NULL;
   bool device_can_render_format_b = false;
   HRESULT result = E_FAIL;
   bool has_directshow_source_b = true;
@@ -185,31 +185,6 @@ Test_U_AudioEffect_DirectShow_Stream::load (Stream_ILayout* layout_in,
     }
   } // end SWITCH
 
-  has_directshow_source_b =
-    (!InlineIsEqualGUID ((*iterator).second.second->effect, GUID_NULL) && !(*iterator_4).second.second->fileIdentifier.empty ()) ||
-    (!(*iterator).second.second->mute && (inherited::configuration_->configuration_->renderer != STREAM_DEVICE_RENDERER_DIRECTSHOW) && !device_can_render_format_b);
-#if defined (GUI_SUPPORT)
-#if defined (GTK_USE)
-  if (!has_directshow_source_b)
-  {
-    ACE_NEW_RETURN (module_p,
-                    Test_U_AudioEffect_DirectShow_StatisticAnalysis_Module (this,
-                                                                            ACE_TEXT_ALWAYS_CHAR (MODULE_STAT_ANALYSIS_DEFAULT_NAME_STRING)),
-                    false);
-    ACE_ASSERT (module_p);
-    layout_in->append (module_p, NULL, 0);
-    module_p = NULL;
-    ACE_NEW_RETURN (module_p,
-                    Test_U_AudioEffect_DirectShow_Vis_SpectrumAnalyzer_Module (this,
-                                                                               ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_GTK_SPECTRUM_ANALYZER_DEFAULT_NAME_STRING)),
-                    false);
-    ACE_ASSERT (module_p);
-    layout_in->append (module_p, NULL, 0);
-    module_p = NULL;
-  } // end IF
-#endif // GTK_USE
-#endif // GUI_SUPPORT
-
   if (!InlineIsEqualGUID ((*iterator).second.second->effect, GUID_NULL) ||
       (!(*iterator).second.second->mute && (inherited::configuration_->configuration_->renderer == STREAM_DEVICE_RENDERER_DIRECTSHOW)) ||
       (!(*iterator).second.second->mute && (inherited::configuration_->configuration_->renderer != STREAM_DEVICE_RENDERER_DIRECTSHOW) && !device_can_render_format_b))
@@ -223,6 +198,9 @@ Test_U_AudioEffect_DirectShow_Stream::load (Stream_ILayout* layout_in,
     module_p = NULL;
   } // end IF
 
+  has_directshow_source_b =
+    (!InlineIsEqualGUID ((*iterator).second.second->effect, GUID_NULL) && !(*iterator_4).second.second->fileIdentifier.empty ()) ||
+    (!(*iterator).second.second->mute && (inherited::configuration_->configuration_->renderer != STREAM_DEVICE_RENDERER_DIRECTSHOW) && !device_can_render_format_b);
   if (has_directshow_source_b)
   {
     ACE_NEW_RETURN (module_p,
@@ -232,25 +210,6 @@ Test_U_AudioEffect_DirectShow_Stream::load (Stream_ILayout* layout_in,
     ACE_ASSERT (module_p);
     layout_in->append (module_p, NULL, 0);
     module_p = NULL;
-
-#if defined (GUI_SUPPORT)
-#if defined (GTK_USE)
-    ACE_NEW_RETURN (module_p,
-                    Test_U_AudioEffect_DirectShow_StatisticAnalysis_Module (this,
-                                                                            ACE_TEXT_ALWAYS_CHAR (MODULE_STAT_ANALYSIS_DEFAULT_NAME_STRING)),
-                    false);
-    ACE_ASSERT (module_p);
-    layout_in->append (module_p, NULL, 0);
-    module_p = NULL;
-    ACE_NEW_RETURN (module_p,
-                    Test_U_AudioEffect_DirectShow_Vis_SpectrumAnalyzer_Module (this,
-                                                                               ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_GTK_SPECTRUM_ANALYZER_DEFAULT_NAME_STRING)),
-                    false);
-    ACE_ASSERT (module_p);
-    layout_in->append (module_p, NULL, 0);
-    module_p = NULL;
-#endif // GTK_USE
-#endif // GUI_SUPPORT
   } // end IF
 
   typename inherited::MODULE_T* branch_p = NULL; // NULL: 'main' branch
@@ -306,7 +265,7 @@ Test_U_AudioEffect_DirectShow_Stream::load (Stream_ILayout* layout_in,
     } // end SWITCH
   if (module_p)
   {
-    if (!has_directshow_source_b)
+    if (!has_directshow_source_b && !device_can_render_format_b)
     {
       Stream_Module_t* module_2 = NULL;
       ACE_NEW_RETURN (module_2,
@@ -315,6 +274,25 @@ Test_U_AudioEffect_DirectShow_Stream::load (Stream_ILayout* layout_in,
                       false);
       layout_in->append (module_2, branch_p, index_i);
     } // end IF
+
+#if defined (GUI_SUPPORT)
+#if defined (GTK_USE)
+    ACE_NEW_RETURN (module_2,
+                    Test_U_AudioEffect_DirectShow_StatisticAnalysis_Module (this,
+                                                                            ACE_TEXT_ALWAYS_CHAR (MODULE_STAT_ANALYSIS_DEFAULT_NAME_STRING)),
+                    false);
+    ACE_ASSERT (module_2);
+    layout_in->append (module_2, branch_p, index_i);
+    module_2 = NULL;
+    ACE_NEW_RETURN (module_2,
+                    Test_U_AudioEffect_DirectShow_Vis_SpectrumAnalyzer_Module (this,
+                                                                               ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_GTK_SPECTRUM_ANALYZER_DEFAULT_NAME_STRING)),
+                    false);
+    ACE_ASSERT (module_2);
+    layout_in->append (module_2, branch_p, index_i);
+    module_2 = NULL;
+#endif // GTK_USE
+#endif // GUI_SUPPORT
 
     layout_in->append (module_p, branch_p, index_i);
     ++index_i;
@@ -500,14 +478,14 @@ Test_U_AudioEffect_DirectShow_Stream::initialize (const inherited::CONFIGURATION
       {
         case STREAM_DEVICE_RENDERER_WAVEOUT:
         {
-          struct tWAVEFORMATEX waveformatex_s;
-          ACE_ASSERT ((*iterator_3).second.second->deviceIdentifier.identifierDiscriminator == Stream_Device_Identifier::ID);
-          Stream_MediaFramework_DirectSound_Tools::getBestFormat ((*iterator_3).second.second->deviceIdentifier.identifier._id,
-                                                                  waveformatex_s);
-          result_2 = CreateAudioMediaType (&waveformatex_s,
-                                           &media_type_s,
-                                           TRUE);
-          ACE_ASSERT (SUCCEEDED (result_2));
+          //struct tWAVEFORMATEX waveformatex_s;
+          //ACE_ASSERT ((*iterator_3).second.second->deviceIdentifier.identifierDiscriminator == Stream_Device_Identifier::ID);
+          //Stream_MediaFramework_DirectSound_Tools::getBestFormat ((*iterator_3).second.second->deviceIdentifier.identifier._id,
+          //                                                        waveformatex_s);
+          //result_2 = CreateAudioMediaType (&waveformatex_s,
+          //                                 &media_type_s,
+          //                                 TRUE);
+          //ACE_ASSERT (SUCCEEDED (result_2));
           break;
         }
         case STREAM_DEVICE_RENDERER_WASAPI:

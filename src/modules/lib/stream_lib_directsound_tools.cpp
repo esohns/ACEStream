@@ -21,6 +21,7 @@
 
 #include "stream_lib_directsound_tools.h"
 
+#include "audiopolicy.h"
 #include "Audioclient.h"
 #define INITGUID
 #include "guiddef.h"
@@ -52,7 +53,6 @@
 #include "stream_macros.h"
 
 #include "stream_lib_defines.h"
-
 #include "stream_lib_directshow_tools.h"
 
 // initialize statics
@@ -557,9 +557,9 @@ Stream_MediaFramework_DirectSound_Tools::directSoundGUIDTowaveDeviceId (REFGUID 
 }
 
 IAudioEndpointVolume*
-Stream_MediaFramework_DirectSound_Tools::getVolumeControl (REFGUID deviceIdentifier_in)
+Stream_MediaFramework_DirectSound_Tools::getMasterVolumeControl (REFGUID deviceIdentifier_in)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_DirectSound_Tools::getVolumeControl"));
+  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_DirectSound_Tools::getMasterVolumeControl"));
 
   // initialize return value(s)
   IAudioEndpointVolume* result_p = NULL;
@@ -579,6 +579,41 @@ Stream_MediaFramework_DirectSound_Tools::getVolumeControl (REFGUID deviceIdentif
                         (LPVOID*)&result_p);
   ACE_ASSERT (SUCCEEDED (result) && result_p);
   device_p->Release (); device_p = NULL;
+
+  return result_p;
+}
+
+ISimpleAudioVolume*
+Stream_MediaFramework_DirectSound_Tools::getSessionVolumeControl (REFGUID deviceIdentifier_in,
+                                                                  REFGUID sessionIdentifier_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_DirectSound_Tools::getMasterVolumeControl"));
+
+  // initialize return value(s)
+  ISimpleAudioVolume* result_p = NULL;
+
+  IMMDevice* device_p =
+    Stream_MediaFramework_DirectSound_Tools::getDevice (deviceIdentifier_in);
+  if (unlikely (!device_p))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to retrieve device handle (id was: \"%s\"), aborting\n"),
+                ACE_TEXT (Common_Tools::GUIDToString (deviceIdentifier_in).c_str ())));
+    return NULL;
+  } // end IF
+
+  IAudioSessionManager* audio_session_manager_p = NULL;
+  HRESULT result =
+    device_p->Activate (__uuidof (IAudioSessionManager), CLSCTX_INPROC_SERVER, NULL,
+                        (LPVOID*)&audio_session_manager_p);
+  ACE_ASSERT (SUCCEEDED (result) && audio_session_manager_p);
+  device_p->Release (); device_p = NULL;
+  result =
+    audio_session_manager_p->GetSimpleAudioVolume (&sessionIdentifier_in,
+                                                   FALSE,
+                                                   &result_p);
+  ACE_ASSERT (SUCCEEDED (result) && result_p);
+  audio_session_manager_p->Release (); audio_session_manager_p = NULL;
 
   return result_p;
 }

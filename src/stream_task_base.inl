@@ -771,12 +771,12 @@ error_2:
                     inherited::mod_->name ()));
         goto error_3;
       }
-      if (unlikely (forward_b &&
-                    !configuration_->passData)) // *TODO*: remove type inference
-      {
-        messageBlock_in->release ();
-        forward_b = false;
-      } // end IF
+      //if (unlikely (forward_b &&
+      //              !configuration_->passData)) // *TODO*: remove type inference
+      //{
+      //  messageBlock_in->release ();
+      //  forward_b = false;
+      //} // end IF
 
       break;
 

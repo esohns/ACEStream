@@ -23,14 +23,11 @@
 
 #include "ace/Log_Msg.h"
 
-#include "common_log_tools.h"
-
-#include "common_timer_manager_common.h"
-
 #include "stream_defines.h"
 #include "stream_macros.h"
 
 #include "stream_lib_directsound_tools.h"
+#include "stream_lib_guids.h"
 
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,

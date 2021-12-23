@@ -1239,9 +1239,6 @@ do_work (
 
 #if defined (GUI_SUPPORT)
 #if defined (GTK_SUPPORT)
-      directshow_modulehandler_configuration.surfaceLock =
-        &directShowCBData_in.surfaceLock;
-
 #if defined (GTKGL_SUPPORT)
       directshow_modulehandler_configuration.OpenGLInstructions =
         &directShowCBData_in.OpenGLInstructions;
@@ -1340,9 +1337,6 @@ do_work (
 
 #if defined (GUI_SUPPORT)
 #if defined (GTK_SUPPORT)
-      mediafoundation_modulehandler_configuration.surfaceLock =
-        &mediaFoundationCBData_in.surfaceLock;
-
 #if defined (GTKGL_SUPPORT)
       mediafoundation_modulehandler_configuration.OpenGLInstructions =
         &mediaFoundationCBData_in.OpenGLInstructions;

@@ -4429,6 +4429,7 @@ idle_initialize_UI_cb (gpointer userData_in)
   // *TODO*: select output device
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   struct _GUID GUID_s = GUID_NULL;
+  struct _GUID GUID_2 = CLSID_ACEStream_MediaFramework_WASAPI_AudioSession;
   switch (ui_cb_data_base_p->mediaFramework)
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
@@ -4436,6 +4437,7 @@ idle_initialize_UI_cb (gpointer userData_in)
       GUID_s =
         Stream_MediaFramework_DirectSound_Tools::waveDeviceIdToDirectSoundGUID ((*directshow_modulehandler_configuration_iterator_3).second.second->deviceIdentifier.identifier._id,
                                                                                 false); // playback
+      GUID_2 = GUID_NULL; // *NOTE*: waveOut devices join the default audio session --> GUID_NULL
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
@@ -4452,25 +4454,27 @@ idle_initialize_UI_cb (gpointer userData_in)
       return G_SOURCE_REMOVE;
     }
   } // end SWITCH
-  IAudioEndpointVolume* i_audio_endpoint_volume_p =
-    Stream_MediaFramework_DirectSound_Tools::getVolumeControl (GUID_s);
-  if (!i_audio_endpoint_volume_p)
+  ISimpleAudioVolume* i_simple_audio_volume_p =
+    Stream_MediaFramework_DirectSound_Tools::getSessionVolumeControl (GUID_s,
+                                                                      GUID_2);
+  if (!i_simple_audio_volume_p)
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to Stream_MediaFramework_DirectSound_Tools::getVolumeControl(\"%s\"), aborting\n"),
-                ACE_TEXT (Common_Tools::GUIDToString (GUID_s).c_str ())));
+                ACE_TEXT ("failed to Stream_MediaFramework_DirectSound_Tools::getSessionVolumeControl(\"%s\",\"%s\"), aborting\n"),
+                ACE_TEXT (Common_Tools::GUIDToString (GUID_s).c_str ()),
+                ACE_TEXT (Common_Tools::GUIDToString (GUID_2).c_str ())));
     return G_SOURCE_REMOVE;
   } // end IF
   switch (ui_cb_data_base_p->mediaFramework)
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
     {
-      directshow_ui_cb_data_p->renderVolumeControl = i_audio_endpoint_volume_p;
+      directshow_ui_cb_data_p->renderVolumeControl = i_simple_audio_volume_p;
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
     {
-      mediafoundation_ui_cb_data_p->renderVolumeControl = i_audio_endpoint_volume_p;
+      mediafoundation_ui_cb_data_p->renderVolumeControl = i_simple_audio_volume_p;
       break;
     }
     default:
@@ -4483,7 +4487,7 @@ idle_initialize_UI_cb (gpointer userData_in)
   } // end SWITCH
   float volume_level_f = 0.0;
   HRESULT result_3 =
-    i_audio_endpoint_volume_p->GetMasterVolumeLevelScalar (&volume_level_f);
+    i_simple_audio_volume_p->GetMasterVolume (&volume_level_f);
   ACE_ASSERT (SUCCEEDED (result_3));
   gtk_range_set_value (GTK_RANGE (hscale_p),
                        static_cast<gdouble> (volume_level_f) * 100.0);
@@ -5398,10 +5402,10 @@ continue_:
       g_timeout_add (COMMON_UI_GTK_REFRESH_DEFAULT_OPENGL_MS,
                      idle_update_display_cb,
                      userData_in);
-        //g_idle_add_full (G_PRIORITY_DEFAULT_IDLE, // _LOW doesn't work (on Win32)
-        //                 idle_update_display_cb,
-        //                 userData_in,
-        //                 NULL);
+    //g_idle_add_full (G_PRIORITY_DEFAULT_IDLE, // _LOW doesn't work (on Win32)
+    //                 idle_update_display_cb,
+    //                 userData_in,
+    //                 NULL);
     if (event_source_id > 0)
       state_r.eventSourceIds.insert (event_source_id);
     else
@@ -5841,39 +5845,42 @@ idle_update_progress_cb (gpointer userData_in)
 {
   STREAM_TRACE (ACE_TEXT ("::idle_update_progress_cb"));
 
+  // sanity check(s)
   struct Test_U_AudioEffect_ProgressData* data_p =
       static_cast<struct Test_U_AudioEffect_ProgressData*> (userData_in);
-
-  // sanity check(s)
   ACE_ASSERT (data_p);
   ACE_ASSERT (data_p->state);
-
-  // synch access
-  ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, data_p->state->lock, G_SOURCE_REMOVE);
-
-  int result = -1;
   Common_UI_GTK_BuildersConstIterator_t iterator =
     data_p->state->builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN));
-  // sanity check(s)
   ACE_ASSERT (iterator != data_p->state->builders.end ());
+  ACE_Thread_Manager* thread_manager_p = ACE_Thread_Manager::instance ();
+  ACE_ASSERT (thread_manager_p);
 
+  int result = -1;
+  ACE_THR_FUNC_RETURN exit_status;
+  Common_UI_GTK_PendingActionsIterator_t iterator_2;
+  bool done_b = false;
+  std::ostringstream converter;
+  ACE_Time_Value elapsed, now = COMMON_TIME_NOW;
+  ACE_UINT32 bytes_per_second_i = 0;
   GtkProgressBar* progress_bar_p =
     GTK_PROGRESS_BAR (gtk_builder_get_object ((*iterator).second.second,
                                               ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_PROGRESSBAR_NAME)));
   ACE_ASSERT (progress_bar_p);
+  static ACE_Time_Value previous_timestamp = now;
+  static ACE_UINT64 previous_bytes_i = 0;
 
-  ACE_THR_FUNC_RETURN exit_status;
-  ACE_Thread_Manager* thread_manager_p = ACE_Thread_Manager::instance ();
-  ACE_ASSERT (thread_manager_p);
-  Common_UI_GTK_PendingActionsIterator_t iterator_2;
+  ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, data_p->state->lock, G_SOURCE_REMOVE);
+
   for (Common_UI_GTK_CompletedActionsIterator_t iterator_3 = data_p->completedActions.begin ();
        iterator_3 != data_p->completedActions.end ();
        ++iterator_3)
   {
     iterator_2 = data_p->pendingActions.find (*iterator_3);
     ACE_ASSERT (iterator_2 != data_p->pendingActions.end ());
-    result = thread_manager_p->join ((*iterator_2).second.id (), &exit_status);
-    if (result == -1)
+    result = thread_manager_p->join ((*iterator_2).second.id (),
+                                     &exit_status);
+    if (unlikely (result == -1))
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to ACE_Thread_Manager::join(%u): \"%m\", continuing\n"),
                   (*iterator_2).second.id ()));
@@ -5897,8 +5904,7 @@ idle_update_progress_cb (gpointer userData_in)
   } // end FOR
   data_p->completedActions.clear ();
 
-  bool done = false;
-  if (data_p->pendingActions.empty ())
+  if (unlikely (data_p->pendingActions.empty ()))
   {
     //if (data_p->cursorType != GDK_LAST_CURSOR)
     //{
@@ -5920,24 +5926,30 @@ idle_update_progress_cb (gpointer userData_in)
     //  data_p->cursorType = GDK_LAST_CURSOR;
     //} // end IF
 
-    done = true;
+    done_b = true;
 
     result = data_p->state->condition.broadcast ();
-    if (result == -1)
+    if (unlikely (result == -1))
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to ACE_Condition::broadcast(): \"%m\", continuing\n")));
   } // end IF
 
-  std::ostringstream converter;
-  converter << data_p->statistic.messagesPerSecond;
+  // calculate fps
+  elapsed = now - previous_timestamp;
+  bytes_per_second_i =
+    static_cast<ACE_UINT32> ((double)(data_p->statistic.bytes - previous_bytes_i) * (MILLISECONDS / (double)elapsed.msec ()));
+  previous_timestamp = now;
+  previous_bytes_i = data_p->statistic.bytes;
+  converter <<
+    static_cast<ACE_UINT32> (bytes_per_second_i / (double)data_p->bytesPerFrame);
   converter << ACE_TEXT_ALWAYS_CHAR (" fps");
   gtk_progress_bar_set_text (progress_bar_p,
-                             (done ? ACE_TEXT_ALWAYS_CHAR ("")
-                                   : converter.str ().c_str ()));
+                             (done_b ? ACE_TEXT_ALWAYS_CHAR ("")
+                                     : converter.str ().c_str ()));
   gtk_progress_bar_pulse (progress_bar_p);
 
   // reschedule ?
-  return (done ? G_SOURCE_REMOVE : G_SOURCE_CONTINUE);
+  return (done_b ? G_SOURCE_REMOVE : G_SOURCE_CONTINUE);
 }
 
 gboolean
@@ -6045,6 +6057,7 @@ togglebutton_record_toggled_cb (GtkToggleButton* toggleButton_in,
       directshow_modulehandler_configuration_iterator =
         directshow_ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
       ACE_ASSERT (directshow_modulehandler_configuration_iterator != directshow_ui_cb_data_p->configuration->streamConfiguration.end ());
+      ACE_ASSERT (directshow_ui_cb_data_p->configuration->streamConfiguration.configuration_);
 
       stream_p = directshow_ui_cb_data_p->stream;
       use_framework_source_b =
@@ -6064,6 +6077,7 @@ togglebutton_record_toggled_cb (GtkToggleButton* toggleButton_in,
       mediafoundation_modulehandler_configuration_iterator =
         mediafoundation_ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
       ACE_ASSERT (mediafoundation_modulehandler_configuration_iterator != mediafoundation_ui_cb_data_p->configuration->streamConfiguration.end ());
+      ACE_ASSERT (mediafoundation_ui_cb_data_p->configuration->streamConfiguration.configuration_);
 
       stream_p = mediafoundation_ui_cb_data_p->stream;
       use_framework_source_b =
@@ -6127,7 +6141,8 @@ togglebutton_record_toggled_cb (GtkToggleButton* toggleButton_in,
   ACE_Thread_Manager* thread_manager_p = NULL;
 
   GtkSpinButton* spin_button_p = NULL;
-  gint value_i = 0;
+  unsigned int value_i = 0;
+  ACE_UINT32 bytes_per_frame_i = 0;
 
   if (ui_cb_data_base_p->isFirst)
     ui_cb_data_base_p->isFirst = false;
@@ -6137,7 +6152,8 @@ togglebutton_record_toggled_cb (GtkToggleButton* toggleButton_in,
     GTK_SPIN_BUTTON (gtk_builder_get_object ((*iterator).second.second,
                                              ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_SPINBUTTON_BUFFERSIZE_NAME)));
   ACE_ASSERT (spin_button_p);
-  value_i = gtk_spin_button_get_value_as_int (spin_button_p);
+  value_i =
+    static_cast<unsigned int> (gtk_spin_button_get_value_as_int (spin_button_p));
   ACE_ASSERT (value_i);
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   switch (ui_cb_data_base_p->mediaFramework)
@@ -6145,7 +6161,7 @@ togglebutton_record_toggled_cb (GtkToggleButton* toggleButton_in,
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
     {
       directshow_ui_cb_data_p->configuration->allocatorProperties.cbBuffer =
-        value_i;
+        static_cast<long> (value_i);
       directshow_ui_cb_data_p->configuration->streamConfiguration.configuration_->allocatorConfiguration->defaultBufferSize =
         value_i;
       break;
@@ -6166,13 +6182,55 @@ togglebutton_record_toggled_cb (GtkToggleButton* toggleButton_in,
   } // end SWITCH
 #else
   ui_cb_data_p->configuration->streamConfiguration.configuration_->allocatorConfiguration->defaultBufferSize =
-    static_cast<unsigned int> (value_i);
+    value_i;
 #endif // ACE_WIN32 || ACE_WIN64
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
+  switch (ui_cb_data_base_p->mediaFramework)
+  {
+    case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
+    { ACE_ASSERT (InlineIsEqualGUID (directshow_ui_cb_data_p->configuration->streamConfiguration.configuration_->format.formattype, FORMAT_WaveFormatEx));
+      struct tWAVEFORMATEX* audio_info_header_p =
+        reinterpret_cast<struct tWAVEFORMATEX*> (directshow_ui_cb_data_p->configuration->streamConfiguration.configuration_->format.pbFormat);
+      bytes_per_frame_i =
+        (audio_info_header_p->wBitsPerSample / 8) * audio_info_header_p->nChannels;
+      break;
+    }
+    case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
+    { ACE_ASSERT (mediafoundation_ui_cb_data_p->configuration->streamConfiguration.configuration_->format);
+      UINT32 bits_per_sample_i = 0, channels_i = 0;
+      HRESULT result =
+        mediafoundation_ui_cb_data_p->configuration->streamConfiguration.configuration_->format->GetUINT32 (MF_MT_AUDIO_BITS_PER_SAMPLE,
+                                                                                                            &bits_per_sample_i);
+      if (FAILED (result))
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("failed to IMFMediaType::GetUINT32(MF_MT_AUDIO_BITS_PER_SAMPLE): \"%s\", returning\n"),
+                    ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
+        return;
+      } // end IF
+      result =
+        mediafoundation_ui_cb_data_p->configuration->streamConfiguration.configuration_->format->GetUINT32 (MF_MT_AUDIO_NUM_CHANNELS,
+                                                                                                            &channels_i);
+      if (FAILED (result))
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("failed to IMFMediaType::GetUINT32(MF_MT_AUDIO_NUM_CHANNELS): \"%s\", returning\n"),
+                    ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
+        return;
+      } // end IF
+      bytes_per_frame_i = (bits_per_sample_i / 8) * channels_i;
+      break;
+    }
+    default:
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("invalid/unknown media framework (was: %d), returning\n"),
+                  ui_cb_data_base_p->mediaFramework));
+      return;
+    }
+  } // end SWITCH
 #else
-  //ui_cb_data_p->configuration->streamConfiguration.configuration_->format.channels =
-  //  g_value_get_uint (&value);
   ACE_ASSERT (ui_cb_data_p->handle);
   ACE_ASSERT ((*modulehandler_configuration_iterator).second.second->ALSAConfiguration);
   ACE_ASSERT (!(*modulehandler_configuration_iterator).second.second->ALSAConfiguration->format);
@@ -6187,6 +6245,10 @@ togglebutton_record_toggled_cb (GtkToggleButton* toggleButton_in,
     return;
   } // end IF
   (*modulehandler_configuration_iterator).second.second->ALSAConfiguration->format = NULL;
+
+  bytes_per_frame_i =
+    (snd_pcm_format_width (ui_cb_data_p->configuration->streamConfiguration.configuration_->format.format) / 8) *
+    ui_cb_data_p->configuration->streamConfiguration.configuration_->format.channels;
 #endif // ACE_WIN32 || ACE_WIN64
 
   // step2: modify widgets
@@ -6252,15 +6314,14 @@ togglebutton_record_toggled_cb (GtkToggleButton* toggleButton_in,
   gtk_widget_set_sensitive (GTK_WIDGET (frame_p), FALSE);
 
   // step1: set up progress reporting
+  ui_cb_data_base_p->progressData.bytesPerFrame = bytes_per_frame_i;
   ui_cb_data_base_p->progressData.statistic = Test_U_AudioEffect_Statistic ();
   GtkProgressBar* progress_bar_p =
     GTK_PROGRESS_BAR (gtk_builder_get_object ((*iterator).second.second,
                                               ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_PROGRESSBAR_NAME)));
   ACE_ASSERT (progress_bar_p);
-  gint width, height;
-  gtk_widget_get_size_request (GTK_WIDGET (progress_bar_p), &width, &height);
   gtk_progress_bar_set_pulse_step (progress_bar_p,
-                                   1.0 / static_cast<double> (width));
+                                   1.0 / static_cast<double> (GTK_WIDGET (progress_bar_p)->allocation.width));
   //gtk_progress_bar_set_fraction (progress_bar_p, 0.0);
 
   // step3: start processing thread
@@ -7128,8 +7189,8 @@ hscale_volume_value_changed_cb (GtkRange* range_in,
       ACE_ASSERT (directshow_ui_cb_data_p);
       ACE_ASSERT (directshow_ui_cb_data_p->renderVolumeControl);
       HRESULT result =
-        directshow_ui_cb_data_p->renderVolumeControl->SetMasterVolumeLevelScalar (static_cast<float> (gtk_range_get_value (range_in) / 100.0),
-                                                                                  NULL);
+        directshow_ui_cb_data_p->renderVolumeControl->SetMasterVolume (static_cast<float> (gtk_range_get_value (range_in) / 100.0),
+                                                                       NULL);
       ACE_ASSERT (SUCCEEDED (result));
       break;
     }
@@ -7141,8 +7202,8 @@ hscale_volume_value_changed_cb (GtkRange* range_in,
       ACE_ASSERT (mediafoundation_ui_cb_data_p);
       ACE_ASSERT (mediafoundation_ui_cb_data_p->renderVolumeControl);
       HRESULT result =
-        mediafoundation_ui_cb_data_p->renderVolumeControl->SetMasterVolumeLevelScalar (static_cast<float> (gtk_range_get_value (range_in) / 100.0),
-                                                                                       NULL);
+        mediafoundation_ui_cb_data_p->renderVolumeControl->SetMasterVolume (static_cast<float> (gtk_range_get_value (range_in) / 100.0),
+                                                                            NULL);
       ACE_ASSERT (SUCCEEDED (result));
       break;
     }
@@ -9241,11 +9302,11 @@ continue_:
                                                                             true); // capture
   ACE_ASSERT (!InlineIsEqualGUID (GUID_s, GUID_NULL));
   IAudioEndpointVolume* i_audio_endpoint_volume_p =
-    Stream_MediaFramework_DirectSound_Tools::getVolumeControl (GUID_s);
+    Stream_MediaFramework_DirectSound_Tools::getMasterVolumeControl (GUID_s);
   if (!i_audio_endpoint_volume_p)
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to Stream_MediaFramework_DirectSound_Tools::getVolumeControl(\"%s\") (waveIn card id was: %u), returning\n"),
+                ACE_TEXT ("failed to Stream_MediaFramework_DirectSound_Tools::getMasterVolumeControl(\"%s\") (waveIn card id was: %u), returning\n"),
                 ACE_TEXT (Common_Tools::GUIDToString (GUID_s).c_str ()),
                 card_id_i));
     goto error_2;
@@ -10052,7 +10113,6 @@ combobox_frequency_changed_cb (GtkWidget* widget_in,
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("failed to IMFMediaType::GetUINT32(MF_MT_AUDIO_BITS_PER_SAMPLE): \"%s\", returning\n"),
-                    sample_rate,
                     ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
         return;
       } // end IF
@@ -11200,6 +11260,7 @@ drawingarea_size_allocate_cb (GtkWidget* widget_in,
     state_r.builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN));
   ACE_ASSERT (iterator != state_r.builders.end ());
 
+  Test_U_Common_ISet_t* notification_p = NULL;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   struct Test_U_AudioEffect_DirectShow_UI_CBData* directshow_ui_cb_data_p =
     NULL;
@@ -11215,10 +11276,12 @@ drawingarea_size_allocate_cb (GtkWidget* widget_in,
       directshow_ui_cb_data_p =
         static_cast<struct Test_U_AudioEffect_DirectShow_UI_CBData*> (userData_in);
       ACE_ASSERT (directshow_ui_cb_data_p);
-      ACE_ASSERT (directshow_ui_cb_data_p->configuration);
-      directshow_modulehandler_configuration_iterator =
-        directshow_ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
-      ACE_ASSERT (directshow_modulehandler_configuration_iterator != directshow_ui_cb_data_p->configuration->streamConfiguration.end ());
+      //ACE_ASSERT (directshow_ui_cb_data_p->configuration);
+      //directshow_modulehandler_configuration_iterator =
+      //  directshow_ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
+      //ACE_ASSERT (directshow_modulehandler_configuration_iterator != directshow_ui_cb_data_p->configuration->streamConfiguration.end ());
+
+      notification_p = directshow_ui_cb_data_p->resizeNotification;
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
@@ -11227,10 +11290,12 @@ drawingarea_size_allocate_cb (GtkWidget* widget_in,
       mediafoundation_ui_cb_data_p =
         static_cast<struct Test_U_AudioEffect_MediaFoundation_UI_CBData*> (userData_in);
       ACE_ASSERT (mediafoundation_ui_cb_data_p);
-      ACE_ASSERT (mediafoundation_ui_cb_data_p->configuration);
-      mediafoundation_modulehandler_configuration_iterator =
-        mediafoundation_ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
-      ACE_ASSERT (mediafoundation_modulehandler_configuration_iterator != mediafoundation_ui_cb_data_p->configuration->streamConfiguration.end ());
+      //ACE_ASSERT (mediafoundation_ui_cb_data_p->configuration);
+      //mediafoundation_modulehandler_configuration_iterator =
+      //  mediafoundation_ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
+      //ACE_ASSERT (mediafoundation_modulehandler_configuration_iterator != mediafoundation_ui_cb_data_p->configuration->streamConfiguration.end ());
+
+      notification_p = mediafoundation_ui_cb_data_p->resizeNotification;
       break;
     }
     default:
@@ -11246,195 +11311,22 @@ drawingarea_size_allocate_cb (GtkWidget* widget_in,
   struct Test_U_AudioEffect_UI_CBData* ui_cb_data_p =
     static_cast<struct Test_U_AudioEffect_UI_CBData*> (userData_in);
   ACE_ASSERT (ui_cb_data_p);
-  ACE_ASSERT (ui_cb_data_p->configuration);
-  Test_U_AudioEffect_ALSA_StreamConfiguration_t::ITERATOR_T streamconfiguration_iterator =
-      ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
-  ACE_ASSERT (streamconfiguration_iterator != ui_cb_data_p->configuration->streamConfiguration.end ());
-#endif // ACE_WIN32 || ACE_WIN64
+  //ACE_ASSERT (ui_cb_data_p->configuration);
+  //Test_U_AudioEffect_ALSA_StreamConfiguration_t::ITERATOR_T streamconfiguration_iterator =
+  //    ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
+  //ACE_ASSERT (streamconfiguration_iterator != ui_cb_data_p->configuration->streamConfiguration.end ());
 
-  ACE_SYNCH_MUTEX* lock_p = NULL;
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-  switch (ui_cb_data_base_p->mediaFramework)
-  {
-    case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
-    {
-      lock_p = &directshow_ui_cb_data_p->surfaceLock;
-      //(*directshow_modulehandler_configuration_iterator).second.second->area2D =
-      //  *allocation_in;
-      break;
-    }
-    case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
-    {
-      lock_p = &mediafoundation_ui_cb_data_p->surfaceLock;
-      //(*mediafoundation_modulehandler_configuration_iterator).second.second->area2D =
-      //  *allocation_in;
-      break;
-    }
-    default:
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("invalid/unknown media framework (was: %d), returning\n"),
-                  ui_cb_data_base_p->mediaFramework));
-      return;
-    }
-  } // end SWITCH
-#else
-  lock_p = &ui_cb_data_p->surfaceLock;
-//  (*streamconfiguration_iterator).second.second->area2D = *allocation_in;
+  notification_p = ui_cb_data_p->resizeNotification;
 #endif // ACE_WIN32 || ACE_WIN64
 
   GdkWindow* window_p = gtk_widget_get_window (widget_in);
   if (!window_p)
     return; // <-- not realized yet
-#if GTK_CHECK_VERSION(3,10,0)
-  cairo_surface_t* surface_p =
-      gdk_window_create_similar_image_surface (window_p,
-                                               CAIRO_FORMAT_RGB24,
-                                               allocation_in->width, allocation_in->height,
-                                               1);
-  if (!surface_p)
-  { // *NOTE*: most probable reason: window is not mapped
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to gdk_window_create_similar_image_surface(), returning\n")));
-    return;
-  } // end IF
-#else
-  GdkPixbuf* pixel_buffer_p =
-#if GTK_CHECK_VERSION(3,0,0)
-    gdk_pixbuf_get_from_window (window_p,
-                                0, 0, allocation_in->width, allocation_in->height);
-#else
-    gdk_pixbuf_get_from_drawable (NULL,                    // destination pixbuf --> create new
-                                  GDK_DRAWABLE (window_p), // source window
-                                  NULL,                    // colormap
-                                  0, 0,                    // source coordinates (of drawable)
-                                  0, 0,                    // destination coordinates
-                                  allocation_in->width, allocation_in->height);
-#endif // GTK_CHECK_VERSION(3,0,0)
-  if (!pixel_buffer_p)
-  { // *NOTE*: most probable reason: window hasn't been mapped yet
-//    ACE_DEBUG ((LM_ERROR,
-//                ACE_TEXT ("failed to gdk_pixbuf_get_from_drawable(), aborting\n")));
-    return;
-  } // end IF
-#endif // GTK_CHECK_VERSION(3,10,0)
-#if GTK_CHECK_VERSION(3,10,0)
-  ACE_ASSERT (surface_p);
-#else
-  ACE_ASSERT (pixel_buffer_p);
-#endif // GTK_CHECK_VERSION(3,10,0)
 
-  ACE_ASSERT (lock_p);
-  //{ ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, *lock_p);
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-    switch (ui_cb_data_base_p->mediaFramework)
-    {
-      case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
-      {
-#if GTK_CHECK_VERSION(3,10,0)
-        //if (directshow_ui_cb_data_p->cairoSurface2D)
-        //  cairo_surface_destroy (directshow_ui_cb_data_p->cairoSurface2D);
-        //directshow_ui_cb_data_p->cairoSurface2D = surface_p;
-        //(*directshow_modulehandler_configuration_iterator).second.second->cairoSurface2D =
-        //  surface_p;
-        //ACE_ASSERT (directshow_ui_cb_data_p->cairoSurface2D);
-#else
-        // *NOTE*: in Gtk2, the surface is first created in the "configure-event"
-        //         signal handler (see below)
-        //if (directshow_ui_cb_data_p->pixelBuffer2D)
-        //  g_object_unref (directshow_ui_cb_data_p->pixelBuffer2D);
-        //directshow_ui_cb_data_p->pixelBuffer2D = pixel_buffer_p;
-        //(*directshow_modulehandler_configuration_iterator).second.second->pixelBuffer2D =
-        //  pixel_buffer_p;
-        //ACE_ASSERT (directshow_ui_cb_data_p->pixelBuffer2D);
-#endif // GTK_CHECK_VERSION(3,10,0)
-        break;
-      }
-      case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
-      {
-#if GTK_CHECK_VERSION(3,10,0)
-        //if (mediafoundation_ui_cb_data_p->cairoSurface2D)
-        //  cairo_surface_destroy (mediafoundation_ui_cb_data_p->cairoSurface2D);
-        //mediafoundation_ui_cb_data_p->cairoSurface2D = surface_p;
-        //(*mediafoundation_modulehandler_configuration_iterator).second.second->cairoSurface2D =
-        //    surface_p;
-        //ACE_ASSERT (mediafoundation_ui_cb_data_p->cairoSurface2D);
-#else
-        // *NOTE*: in Gtk2, the surface is first created in the "configure-event"
-        //         signal handler (see below)
-        //if (mediafoundation_ui_cb_data_p->pixelBuffer2D)
-        //  g_object_unref (mediafoundation_ui_cb_data_p->pixelBuffer2D);
-        //mediafoundation_ui_cb_data_p->pixelBuffer2D = pixel_buffer_p;
-        //(*mediafoundation_modulehandler_configuration_iterator).second.second->pixelBuffer2D =
-        //    pixel_buffer_p;
-        //ACE_ASSERT (mediafoundation_ui_cb_data_p->pixelBuffer2D);
-#endif // GTK_CHECK_VERSION(3,10,0)
-        break;
-      }
-      default:
-      {
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("invalid/unknown media framework (was: %d), returning\n"),
-                    ui_cb_data_base_p->mediaFramework));
-        return;
-      }
-    } // end SWITCH
-#else
-#if GTK_CHECK_VERSION(3,10,0)
-    //if (ui_cb_data_p->cairoSurface2D)
-    //  cairo_surface_destroy (ui_cb_data_p->cairoSurface2D);
-    //ui_cb_data_p->cairoSurface2D = surface_p;
-    //(*streamconfiguration_iterator).second.second->cairoSurface2D =
-    //  surface_p;
-    //ACE_ASSERT (ui_cb_data_p->cairoSurface2D);
-#else
-    //if (ui_cb_data_p->pixelBuffer2D)
-    //  g_object_unref (ui_cb_data_p->pixelBuffer2D);
-    //ui_cb_data_p->pixelBuffer2D = pixel_buffer_p;
-    //(*streamconfiguration_iterator).second.second->pixelBuffer2D =
-    //  pixel_buffer_p;
-    //ACE_ASSERT (ui_cb_data_p->pixelBuffer2D);
-#endif // GTK_CHECK_VERSION(3,10,0)
-#endif // ACE_WIN32 || ACE_WIN64
-
-  Test_U_Common_ISet_t* notification_p = NULL;
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-  switch (ui_cb_data_base_p->mediaFramework)
-  {
-    case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
-    {
-      notification_p = directshow_ui_cb_data_p->resizeNotification;
-      break;
-    }
-    case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
-    {
-      notification_p = mediafoundation_ui_cb_data_p->resizeNotification;
-      break;
-    }
-    default:
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("invalid/unknown media framework (was: %d), returning\n"),
-                  ui_cb_data_base_p->mediaFramework));
-#if GTK_CHECK_VERSION(3,10,0)
-      cairo_surface_destroy (surface_p); surface_p = NULL;
-#else
-      g_object_unref (pixel_buffer_p); pixel_buffer_p = NULL;
-#endif // GTK_CHECK_VERSION(3,10,0)
-      return;
-    }
-  } // end SWITCH
-#else
-  notification_p = ui_cb_data_p->resizeNotification;
-#endif // ACE_WIN32 || ACE_WIN64
-  if (notification_p)
+  if (likely (notification_p))
   {
     try {
-#if GTK_CHECK_VERSION(3,10,0)
-      notification_p->setP (surface_p);
-#else
-      notification_p->setP (pixel_buffer_p);
-#endif // GTK_CHECK_VERSION(3,10,0)
+      notification_p->setP (window_p);
     } catch (...) {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("caught exception in Common_ISetP_T::setP(), continuing\n")));
@@ -11787,19 +11679,13 @@ drawingarea_draw_cb (GtkWidget* widget_in,
                      cairo_t* context_in,
                      gpointer userData_in)
 {
-  STREAM_TRACE (ACE_TEXT ("::drawingarea_2d_draw_cb"));
+  STREAM_TRACE (ACE_TEXT ("::drawingarea_draw_cb"));
 
   ACE_UNUSED_ARG (widget_in);
 
   // sanity check(s)
-  ACE_ASSERT (widget_in);
-  ACE_ASSERT (context_in);
-  ACE_ASSERT (userData_in);
-
   struct Test_U_AudioEffect_UI_CBDataBase* ui_cb_data_base_p =
     static_cast<struct Test_U_AudioEffect_UI_CBDataBase*> (userData_in);
-
-  // sanity check(s)
   ACE_ASSERT (ui_cb_data_base_p);
 
 //  bool destroy_context = false;
@@ -11811,6 +11697,7 @@ drawingarea_draw_cb (GtkWidget* widget_in,
 #endif // GTK_CHECK_VERSION(3,10,0)
     return FALSE; // --> widget has not been realized yet
 
+  ACE_ASSERT (context_in);
 #if GTK_CHECK_VERSION(3,10,0)
   ACE_ASSERT (ui_cb_data_base_p->cairoSurface2D);
   cairo_set_source_surface (context_in,
@@ -11818,6 +11705,8 @@ drawingarea_draw_cb (GtkWidget* widget_in,
                             0.0, 0.0);
                             //data_p->area2D->x, data_p->area2D->y);
 #else
+  ACE_UNUSED_ARG (context_in);
+
   ACE_ASSERT (ui_cb_data_base_p->pixelBuffer2D);
 
   // *TODO*: this currently segfaults on Linux, find out why
@@ -11871,32 +11760,28 @@ drawingarea_expose_event_cb (GtkWidget* widget_in,
     static_cast<struct Test_U_AudioEffect_UI_CBDataBase*> (userData_in);
   ACE_ASSERT (ui_cb_data_base_p);
 
-  // sanity check(s)
-  if (!ui_cb_data_base_p->pixelBuffer2D)
-    return FALSE; // --> widget has not been realized yet
+  //// sanity check(s)
+  //if (!ui_cb_data_base_p->pixelBuffer2D)
+  //  return FALSE; // --> widget has not been realized yet
 
-//  // *TODO*: this currently segfaults on Linux, find out why
-//  gdk_cairo_set_source_pixbuf (context_in,
-//                               data_p->pixelBuffer2D,
-//                               0.0, 0.0);
-  cairo_t* context_p =
-    gdk_cairo_create (GDK_DRAWABLE (gtk_widget_get_window (widget_in)));
-  if (unlikely (!context_p))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to gdk_cairo_create(), aborting\n")));
-    return FALSE;
-  } // end IF
-  gdk_cairo_set_source_pixbuf (context_p,
-                               ui_cb_data_base_p->pixelBuffer2D,
-                               0.0, 0.0);
+  //cairo_t* context_p =
+  //  gdk_cairo_create (GDK_DRAWABLE (gtk_widget_get_window (widget_in)));
+  //if (unlikely (!context_p))
+  //{
+  //  ACE_DEBUG ((LM_ERROR,
+  //              ACE_TEXT ("failed to gdk_cairo_create(), aborting\n")));
+  //  return FALSE;
+  //} // end IF
+  //gdk_cairo_set_source_pixbuf (context_p,
+  //                             ui_cb_data_base_p->pixelBuffer2D,
+  //                             0.0, 0.0);
 
-  cairo_paint (context_p);
+  //cairo_paint (context_p);
 
-  cairo_destroy (context_p); context_p = NULL;
+  //cairo_destroy (context_p); context_p = NULL;
 
   return TRUE;
-}
+} // drawingarea_expose_event_cb
 #endif // GTK_CHECK_VERSION(3,0,0)
 
 void

@@ -85,11 +85,7 @@ class Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T
  , public Common_Math_FFT
  , public Common_ICounter
  , public Common_IDispatch_T<enum Stream_Statistic_AnalysisEventType>
-#if GTK_CHECK_VERSION(3,10,0)
- , public Common_ISetP_T<cairo_surface_t>
-#else
- , public Common_ISetP_T<GdkPixbuf>
-#endif // GTK_CHECK_VERSION (3,10,0)
+ , public Common_ISetP_T<GdkWindow>
 {
   typedef Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
                                  TimePolicyType,
@@ -137,30 +133,15 @@ class Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T
                      bool = false); // high priority ? (i.e. do not wait for queued messages)
 
   bool initialize_Cairo (GdkWindow*,
-                         cairo_t*&,
-#if GTK_CHECK_VERSION(3,10,0)
-                         cairo_surface_t*&);
-#else
-                         GdkPixbuf*&);
-#endif // GTK_CHECK_VERSION (3,10,0)
+                         cairo_t*&);
   virtual void dispatch (const enum Stream_Statistic_AnalysisEventType&);
   // implement Common_ICounter (triggers frame rendering)
   virtual void reset ();
-#if GTK_CHECK_VERSION (3,10,0)
-  virtual void setP (cairo_surface_t*);
-#else
-  virtual void setP (GdkPixbuf*);
-#endif // GTK_CHECK_VERSION (3,10,0)
+  virtual void setP (GdkWindow*);
 
   void update ();
 
   cairo_t*                                           cairoContext_;
-  ACE_SYNCH_MUTEX_T*                                 surfaceLock_;
-#if GTK_CHECK_VERSION (3,10,0)
-  cairo_surface_t*                                   cairoSurface_;
-#else
-  GdkPixbuf*                                         pixelBuffer_;
-#endif /* GTK_CHECK_VERSION (3,10,0) */
 #if defined (GTKGL_SUPPORT)
 #if GTK_CHECK_VERSION(3,0,0)
   GdkRGBA                                            backgroundColor_;

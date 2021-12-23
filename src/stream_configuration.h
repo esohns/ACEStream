@@ -28,9 +28,9 @@
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 // *WORKAROUND*: mfobjects.h includes cguid.h, which requires this
 #define __CGUID_H__
-#include <ks.h>
+#include "ks.h"
 //#include <mfobjects.h>
-#include <strmif.h>
+#include "strmif.h"
 #endif // ACE_WIN32 || ACE_WIN64
 
 #include "ace/Synch_Traits.h"
@@ -114,7 +114,7 @@ struct Stream_ModuleHandlerConfiguration
    , messageAllocator (NULL)
    , outboundNotificationHandle (NULL)
    , parserConfiguration (NULL)
-   , passData (true)
+   //, passData (true)
    , passive (true)
    , printFinalReport (false)
    , reportingInterval (0)
@@ -177,7 +177,7 @@ struct Stream_ModuleHandlerConfiguration
   Stream_IAllocator*                          messageAllocator;
   Stream_IOutboundDataNotify*                 outboundNotificationHandle;           // IO module(s)
   struct Common_FlexBisonParserConfiguration* parserConfiguration;                  // parser module(s)
-  bool                                        passData;                             // renderer module(s)
+  //bool                                        passData;                             // renderer module(s)
   bool                                        passive;                              // network/device/... module(s)
   bool                                        printFinalReport;                     // statistic module(s)
   unsigned int                                reportingInterval;                    // (statistic) reporting interval (second(s)) [0: off]
