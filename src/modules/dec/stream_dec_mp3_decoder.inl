@@ -372,9 +372,12 @@ Stream_Decoder_MP3Decoder_T<ACE_SYNCH_USE,
       {
         case ACE_Message_Block::MB_STOP:
         {
-          if (unlikely (inherited::isHighPriorityStop_ && !inherited::abortSent_))
-            inherited::control (STREAM_CONTROL_ABORT,
-                                false); // forward upstream ?
+          if (unlikely (inherited::isHighPriorityStop_))
+          {
+            if (likely (!inherited::abortSent_))
+              inherited::control (STREAM_CONTROL_ABORT,
+                                  false); // forward upstream ?
+          } // end IF
 
           // *IMPORTANT NOTE*: when close()d manually (i.e. on a user abort),
           //                   the stream may not have finish()ed
@@ -409,6 +412,7 @@ Stream_Decoder_MP3Decoder_T<ACE_SYNCH_USE,
           {
             message_block_p->release (); message_block_p = NULL;
           } // end ELSE
+          inherited::isHighPriorityStop_ = false;
 
           // --> SESSION_END has been processed; leave
           done_b = true;

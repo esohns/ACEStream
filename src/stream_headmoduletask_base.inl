@@ -220,13 +220,13 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
         {
           if (likely (!isHighPriorityStop_))
             break;
-          isHighPriorityStop_ = false;
 
           // *IMPORTANT NOTE*: make sure the message is actually processed
           { ACE_GUARD_RETURN (ACE_SYNCH_MUTEX_T, aGuard, queue_.lock (), -1);
             if (likely (!inherited::threadIds_.empty ()))
               return queue_.enqueue_head_i (messageBlock_in, NULL);
           } // end lock scope
+          isHighPriorityStop_ = false;
 
           // *IMPORTANT NOTE*: it is either too early or too late to process
           //                   this message by this (and (!) subsequent
@@ -776,9 +776,12 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
     {
       case ACE_Message_Block::MB_STOP:
       {
-        if (unlikely (isHighPriorityStop_ && !abortSent_))
-          control (STREAM_CONTROL_ABORT,
-                   false); // forward upstream ?
+        if (unlikely (isHighPriorityStop_))
+        {
+          if (likely (!abortSent_))
+            control (STREAM_CONTROL_ABORT,
+                     false); // forward upstream ?
+        } // end IF
 
         // *IMPORTANT NOTE*: when close()d manually (i.e. on a user abort),
         //                   the stream may not have finish()ed
@@ -812,6 +815,7 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
         {
           message_block_p->release (); message_block_p = NULL;
         } // end ELSE
+        isHighPriorityStop_ = false;
 
         // --> SESSION_END has been processed; leave
         done_b = true;
@@ -2394,12 +2398,9 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
 
           result_2 = svc ();
           if (unlikely (result_2 == -1))
-          {
             ACE_DEBUG ((LM_ERROR,
-                        ACE_TEXT ("%s: failed to ACE_Task_Base::svc(): \"%m\", aborting\n"),
+                        ACE_TEXT ("%s: failed to ACE_Task_Base::svc(): \"%m\", continuing\n"),
                         inherited::mod_->name ()));
-            return false;
-          } // end IF
           result_2 = close (0);
           if (unlikely (result_2 == -1))
           {
