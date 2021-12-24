@@ -224,7 +224,7 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
 
           // *IMPORTANT NOTE*: make sure the message is actually processed
           { ACE_GUARD_RETURN (ACE_SYNCH_MUTEX_T, aGuard, queue_.lock (), -1);
-            if (likely (inherited::thr_count_))
+            if (likely (!inherited::threadIds_.empty ()))
               return queue_.enqueue_head_i (messageBlock_in, NULL);
           } // end lock scope
 
@@ -459,26 +459,74 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
   STREAM_TRACE (ACE_TEXT ("Stream_HeadModuleTaskBase_T::close"));
 
   int result = 0;
+  int result_2 = 0;
 
-  // sanity check(s)
-  ACE_ASSERT (inherited::msg_queue_);
-
-  // *NOTE*: arg_in may be:
-  //         - 1: an external thread closing down the active object; should
-  //              NEVER happen as a module
-  //         - 0: worker thread(s) returning from svc(); essentially a NOP. Note
-  //              that inherited::thr_count_ has already been decremented
+  // *NOTE*: this method may be invoked
+  //         - by external threads shutting down the active object (arg_in: 1)
+  //         - by worker thread(s) upon returning from svc() (arg_in: 0)
   switch (arg_in)
   {
     case 0:
     {
-      // inherited::thr_count_ has already been decremented at this stage
-      // --> there should not be a race condition
-      if (inherited::thr_count_ == 0) // last thread ?
+      // sanity check(s)
+      ACE_ASSERT (inherited::configuration_);
+      ACE_ASSERT (inherited::msg_queue_);
+
+      ACE_thread_t handle = ACE_OS::thr_self ();
+      bool is_last_thread_b = false;
+      switch (inherited::configuration_->concurrency)
       {
+        case STREAM_HEADMODULECONCURRENCY_ACTIVE:
+        {
+          is_last_thread_b = ACE_OS::thr_equal (handle,
+                                                inherited::last_thread ());
+          break;
+        }
+        case STREAM_HEADMODULECONCURRENCY_PASSIVE:
+        {
+          is_last_thread_b = true;
+          break;
+        }
+        case STREAM_HEADMODULECONCURRENCY_CONCURRENT:
+          break;
+        default:
+        {
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("%s: invalid/unknown concurrency type (was: %d), aborting\n"),
+                      inherited::mod_->name (),
+                      inherited::configuration_->concurrency));
+          return -1;
+        }
+      } // end SWITCH
+
+      if (is_last_thread_b) // last thread ?
+      {
+        { ACE_GUARD_RETURN (ACE_Thread_Mutex, aGuard, inherited::lock_, -1);
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+          ACE_hthread_t handle_2 = ACE_INVALID_HANDLE;
+          if (unlikely (inherited::closeHandles_))
+            for (THREAD_IDS_CONSTITERATOR_T iterator = inherited::threadIds_.begin ();
+                 iterator != inherited::threadIds_.end ();
+                 ++iterator)
+            {
+              handle_2 = (*iterator).handle ();
+              ACE_ASSERT (handle_2 != ACE_INVALID_HANDLE);
+              if (!::CloseHandle (handle_2))
+              {
+                ACE_DEBUG ((LM_ERROR,
+                            ACE_TEXT ("failed to CloseHandle(0x%@): \"%s\", continuing\n"),
+                            handle_2,
+                            ACE_TEXT (Common_Error_Tools::errorToString (::GetLastError ()).c_str ())));
+                result = -1;
+              } // end IF
+            } // end FOR
+#endif // ACE_WIN32 || ACE_WIN64
+          inherited::threadIds_.clear ();
+        } // end lock scope
+
         // *NOTE*: this deactivates the queue so it does not accept new data
         //         after the last (worker) thread has left
-        int result_2 = inherited::msg_queue_->deactivate ();
+        result_2 = inherited::msg_queue_->deactivate ();
         if (unlikely (result_2 == -1))
         {
           ACE_DEBUG ((LM_ERROR,
@@ -500,23 +548,50 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
                       inherited::mod_->name (),
                       result_2));
 
-        // clean up
         if (likely (inherited::sessionData_))
         {
           inherited::sessionData_->decrease (); inherited::sessionData_ = NULL;
         } // end IF
       } // end IF
-
+      else
+      {
+        { ACE_GUARD_RETURN (ACE_Thread_Mutex, aGuard, inherited::lock_, -1);
+          for (typename inherited::THREAD_IDS_ITERATOR_T iterator = inherited::threadIds_.begin ();
+               iterator != inherited::threadIds_.end ();
+               ++iterator)
+            if ((*iterator).id () == handle)
+            {
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+              ACE_hthread_t handle_2 = ACE_INVALID_HANDLE;
+              handle_2 = (*iterator).handle ();
+              ACE_ASSERT (handle_2 != ACE_INVALID_HANDLE);
+              if (unlikely (inherited::closeHandles_))
+                if (!::CloseHandle (handle_2))
+                {
+                  ACE_DEBUG ((LM_ERROR,
+                              ACE_TEXT ("failed to CloseHandle(0x%@): \"%s\", continuing\n"),
+                              handle_2,
+                              ACE_TEXT (Common_Error_Tools::errorToString (::GetLastError ()).c_str ())));
+                  result = -1;
+                } // end IF
+#endif // ACE_WIN32 || ACE_WIN64
+              inherited::threadIds_.erase (iterator);
+              break;
+            } // end IF
+        } // end lock scope
+      } // end ELSE
       break;
     }
     case 1:
-    { ACE_ASSERT (false); // *TODO*: should never get here
-      if (unlikely (inherited::thr_count_ == 0))
-        break; // nothing to do
+    {
+      { ACE_GUARD_RETURN (ACE_Thread_Mutex, aGuard, inherited::lock_, -1);
+        if (unlikely (inherited::threadIds_.empty ()))
+          break; // nothing to do
+      } // end lock scope
 
       Common_ITask* itask_p = this;
-      itask_p->stop (false, // wait for completion ?
-                     true); // N/A
+      itask_p->stop (false,  // wait for completion ?
+                     false); // high priority ?
 
       break;
     }
