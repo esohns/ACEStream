@@ -83,6 +83,7 @@ extern "C"
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #include "stream_lib_directdraw_tools.h"
+#include "stream_lib_directsound_tools.h"
 #endif // ACE_WIN32 || ACE_WIN64
 #include "stream_lib_tools.h"
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -121,6 +122,83 @@ v4l_device_dirent_comparator_cb (const dirent** d1,
 #endif // ACE_WIN32 || ACE_WIN64
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
+void
+Stream_Device_Tools::id (const struct Stream_Device_Identifier& deviceIdentifier_in,
+                         UINT& deviceIdentifier_out)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Device_Tools::id"));
+
+  // initialize return value(s)
+  deviceIdentifier_out = -1;
+
+  switch (deviceIdentifier_in.identifierDiscriminator)
+  {
+    case Stream_Device_Identifier::ID:
+    {
+      deviceIdentifier_out = deviceIdentifier_in.identifier._id;
+      break;
+    }
+    case Stream_Device_Identifier::GUID:
+    {
+      deviceIdentifier_out =
+        Stream_MediaFramework_DirectSound_Tools::directSoundGUIDTowaveDeviceId (deviceIdentifier_in.identifier._guid);
+      break;
+    }
+    case Stream_Device_Identifier::STRING:
+    {
+      ACE_ASSERT (false); // *TODO*
+      ACE_NOTSUP;
+      ACE_NOTREACHED (return;)
+    }
+    default:
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("invalid/unknown discriminator (was: %d), aborting\n"),
+                  deviceIdentifier_in.identifierDiscriminator));
+      return;
+    }
+  } // end SWITCH
+}
+
+void
+Stream_Device_Tools::id (const struct Stream_Device_Identifier& deviceIdentifier_in,
+                         struct _GUID& deviceIdentifier_out,
+                         bool isCapture_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Device_Tools::id"));
+
+  // initialize return value(s)
+  deviceIdentifier_out = GUID_NULL;
+
+  switch (deviceIdentifier_in.identifierDiscriminator)
+  {
+    case Stream_Device_Identifier::ID:
+    {
+      deviceIdentifier_out =
+        Stream_MediaFramework_DirectSound_Tools::waveDeviceIdToDirectSoundGUID (deviceIdentifier_in.identifier._id,
+                                                                                isCapture_in);
+      break;
+    }
+    case Stream_Device_Identifier::GUID:
+    {
+      deviceIdentifier_out = deviceIdentifier_in.identifier._guid;
+      break;
+    }
+    case Stream_Device_Identifier::STRING:
+    {
+      ACE_ASSERT (false); // *TODO*
+      ACE_NOTSUP;
+      ACE_NOTREACHED (return;)
+    }
+    default:
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("invalid/unknown discriminator (was: %d), aborting\n"),
+                  deviceIdentifier_in.identifierDiscriminator));
+      return;
+    }
+  } // end SWITCH
+}
 #else
 std::string
 Stream_Device_Tools::getDefaultVideoCaptureDevice (bool useLibCamera_in)

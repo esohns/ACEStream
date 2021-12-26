@@ -19,6 +19,7 @@
  ***************************************************************************/
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
+#include "avrt.h"
 #else
 #define ALSA_PCM_NEW_HW_PARAMS_API
 extern "C"
@@ -28,6 +29,10 @@ extern "C"
 #endif // ACE_WIN32 || ACE_WIN64
 
 #include "ace/Log_Msg.h"
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#else
+#include "ace/OS.h"
+#endif // ACE_WIN32 || ACE_WIN64
 
 #include "common_log_tools.h"
 
@@ -35,7 +40,11 @@ extern "C"
 
 #include "stream_defines.h"
 #include "stream_macros.h"
-#include "stream_session_message_base.h"
+
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#include "stream_lib_directshow_tools.h"
+#include "stream_lib_directsound_tools.h"
+#endif // ACE_WIN32 || ACE_WIN64
 
 #include "stream_dec_tools.h"
 
@@ -323,15 +332,7 @@ Stream_Dec_Noise_Source_T<ACE_SYNCH_USE,
       inherited::configuration_->generatorConfiguration->numberOfChannels =
         waveformatex_p->nChannels;
       inherited::configuration_->generatorConfiguration->isFloatFormat =
-        (waveformatex_p->wFormatTag == WAVE_FORMAT_IEEE_FLOAT);
-      if (waveformatex_p->wFormatTag == WAVE_FORMAT_EXTENSIBLE)
-      {
-        WAVEFORMATEXTENSIBLE* waveformatextensible_p =
-          reinterpret_cast<WAVEFORMATEXTENSIBLE*> (mediaType_.pbFormat);
-        inherited::configuration_->generatorConfiguration->isFloatFormat =
-          InlineIsEqualGUID (waveformatextensible_p->SubFormat, KSDATAFORMAT_SUBTYPE_IEEE_FLOAT);
-      } // end IF
-
+        Stream_MediaFramework_DirectSound_Tools::isFloat (*waveformatex_p);
       // *NOTE*: Microsoft(TM) uses signed little endian
       inherited::configuration_->generatorConfiguration->isLittleEndianFormat =
         true;
@@ -549,7 +550,7 @@ error:
       } // end IF
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-      if (unlikely (task_))
+      if (likely (task_))
       {
         AvRevertMmThreadCharacteristics (task_);
         task_ = NULL;

@@ -673,6 +673,7 @@ continue_2:
     delete filter_p; filter_p = NULL;
     goto error;
   } // end IF
+  filter_p = NULL;
   // *WARNING*: invokes IBaseFilter::GetBuffer
   result = IGraphBuilder_out->AddFilter (filter_2,
                                          filter_name.c_str ());
@@ -720,6 +721,15 @@ continue_4:
     goto error;
   } // end IF
 
+  if (!Stream_MediaFramework_DirectShow_Tools::connect (IGraphBuilder_out,
+                                                        graph_configuration))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to Stream_MediaFramework_DirectShow_Tools::connect(), aborting\n")));
+    goto error;
+  } // end IF
+  Stream_MediaFramework_DirectShow_Tools::clear (graph_configuration);
+
   result = IGraphBuilder_out->QueryInterface (IID_PPV_ARGS (&media_filter_p));
   if (FAILED (result))
   {
@@ -742,6 +752,7 @@ continue_4:
   return true;
 
 error:
+  Stream_MediaFramework_DirectShow_Tools::clear (graph_configuration);
   if (buffer_negotiation_p)
     buffer_negotiation_p->Release ();
   if (media_filter_p)
@@ -1816,12 +1827,18 @@ do_work (
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
     {
-      result = directshow_stream.remove (&directshow_event_handler);
+      result =
+        directshow_stream.remove (&directshow_event_handler,
+                                  true,   // lock ?
+                                  false); // reset ?
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
     {
-      result = mediafoundation_stream.remove (&mediafoundation_event_handler);
+      result =
+        mediafoundation_stream.remove (&mediafoundation_event_handler,
+                                       true,   // lock ?
+                                       false); // reset ?
       break;
     }
     default:
@@ -1833,7 +1850,9 @@ do_work (
     }
   } // end SWITCH
 #else
-  result = stream.remove (&event_handler);
+  result = stream.remove (&event_handler,
+                          true,   // lock ?
+                          false); // reset ?
 #endif // ACE_WIN32 || ACE_WIN64
   if (!result)
     ACE_DEBUG ((LM_ERROR,

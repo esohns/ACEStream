@@ -20,18 +20,16 @@
 
 #include "ace/Log_Msg.h"
 
-#include "common_log_tools.h"
-
 #include "common_timer_manager_common.h"
 
 #include "stream_defines.h"
 #include "stream_macros.h"
-#include "stream_session_message_base.h"
 
-#include "stream_dec_tools.h"
+#include "stream_lib_directshow_tools.h"
+#include "stream_lib_directsound_tools.h"
 
 #include "stream_dev_defines.h"
-#include "stream_dev_directshow_tools.h"
+#include "stream_dev_tools.h"
 
 template <ACE_SYNCH_DECL,
           typename ControlMessageType,
@@ -44,7 +42,8 @@ template <ACE_SYNCH_DECL,
           typename SessionDataType,
           typename SessionDataContainerType,
           typename StatisticContainerType,
-          typename TimerManagerType>
+          typename TimerManagerType,
+          typename MediaType>
 Stream_Dev_Mic_Source_WaveIn_T<ACE_SYNCH_USE,
                                ControlMessageType,
                                DataMessageType,
@@ -56,20 +55,21 @@ Stream_Dev_Mic_Source_WaveIn_T<ACE_SYNCH_USE,
                                SessionDataType,
                                SessionDataContainerType,
                                StatisticContainerType,
-                               TimerManagerType>::Stream_Dev_Mic_Source_WaveIn_T (ISTREAM_T* stream_in)
+                               TimerManagerType,
+                               MediaType>::Stream_Dev_Mic_Source_WaveIn_T (ISTREAM_T* stream_in)
  : inherited (stream_in,                            // stream handle
               false,                                // auto-start ?
               STREAM_HEADMODULECONCURRENCY_PASSIVE, // concurrency
               true)                                 // generate session messages ?
+ , inherited2 ()
  , bufferHeaders_ ()
  , CBData_ ()
- , closeContext_ (false)
- , context_ (NULL)
+ , handle_ (NULL)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Dev_Mic_Source_WaveIn_T::Stream_Dev_Mic_Source_WaveIn_T"));
 
   ACE_OS::memset (&bufferHeaders_, 0, sizeof (struct wavehdr_tag[STREAM_DEV_WAVEIN_DEFAULT_DEVICE_BUFFERS]));
-  ACE_OS::memset (&CBData_, 0, sizeof (struct libacestream_wave_in_cbdata));
+  ACE_OS::memset (&CBData_, 0, sizeof (struct stream_dev_wavein_cbdata));
   CBData_.task = this;
 }
 
@@ -84,7 +84,8 @@ template <ACE_SYNCH_DECL,
           typename SessionDataType,
           typename SessionDataContainerType,
           typename StatisticContainerType,
-          typename TimerManagerType>
+          typename TimerManagerType,
+          typename MediaType>
 Stream_Dev_Mic_Source_WaveIn_T<ACE_SYNCH_USE,
                                ControlMessageType,
                                DataMessageType,
@@ -96,18 +97,22 @@ Stream_Dev_Mic_Source_WaveIn_T<ACE_SYNCH_USE,
                                SessionDataType,
                                SessionDataContainerType,
                                StatisticContainerType,
-                               TimerManagerType>::~Stream_Dev_Mic_Source_WaveIn_T ()
+                               TimerManagerType,
+                               MediaType>::~Stream_Dev_Mic_Source_WaveIn_T ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Dev_Mic_Source_WaveIn_T::~Stream_Dev_Mic_Source_WaveIn_T"));
 
-  if (unlikely (closeContext_))
-  { ACE_ASSERT (context_);
-    MMRESULT result = waveInClose (context_);
+  if (unlikely (handle_))
+  {
+    MMRESULT result = waveInClose (handle_);
+    char error_msg_a[BUFSIZ];
     if (unlikely (result != MMSYSERR_NOERROR))
+    { waveInGetErrorText (result, error_msg_a, BUFSIZ - 1);
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("%s: failed to waveInClose(%@): %d, continuing\n"),
+                  ACE_TEXT ("%s: failed to waveInClose(%@): \"%s\", continuing\n"),
                   inherited::mod_->name (),
-                  result));
+                  ACE_TEXT (error_msg_a)));
+    } // end IF
   } // end IF
 }
 
@@ -122,7 +127,8 @@ template <ACE_SYNCH_DECL,
           typename SessionDataType,
           typename SessionDataContainerType,
           typename StatisticContainerType,
-          typename TimerManagerType>
+          typename TimerManagerType,
+          typename MediaType>
 bool
 Stream_Dev_Mic_Source_WaveIn_T<ACE_SYNCH_USE,
                                ControlMessageType,
@@ -135,43 +141,28 @@ Stream_Dev_Mic_Source_WaveIn_T<ACE_SYNCH_USE,
                                SessionDataType,
                                SessionDataContainerType,
                                StatisticContainerType,
-                               TimerManagerType>::initialize (const ConfigurationType& configuration_in,
-                                                              Stream_IAllocator* allocator_in)
+                               TimerManagerType,
+                               MediaType>::initialize (const ConfigurationType& configuration_in,
+                                                       Stream_IAllocator* allocator_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Dev_Mic_Source_WaveIn_T::initialize"));
 
   if (inherited::isInitialized_)
   {
-    if (unlikely (closeContext_))
-    { ACE_ASSERT (context_);
-      MMRESULT result = waveInClose (context_);
+    if (unlikely (handle_))
+    {
+      MMRESULT result = waveInClose (handle_);
+      char error_msg_a[BUFSIZ];
       if (unlikely (result != MMSYSERR_NOERROR))
+      { waveInGetErrorText (result, error_msg_a, BUFSIZ - 1);
         ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("%s: failed to waveInClose(%@): %d, continuing\n"),
+                    ACE_TEXT ("%s: failed to waveInClose(%@): \"%s\", continuing\n"),
                     inherited::mod_->name (),
-                    result));
-      closeContext_ = false;
-      context_ = NULL;
+                    ACE_TEXT (error_msg_a)));
+      } // end IF
+      handle_ = NULL;
     } // end IF
   } // end IF
-
-  //UINT n = waveInGetNumDevs ();
-  //printf ("%d\n", n);
-  //WAVEINCAPS capabilities_s;
-  //ACE_OS::memset (&capabilities_s, 0, sizeof (WAVEINCAPS));
-  //MMRESULT result = MMSYSERR_NOERROR;
-  //for (int c = 0;
-  //     c <= n - 1;
-  //     ++c)
-  //{
-  //  result = waveInGetDevCaps (c, &capabilities_s, sizeof (WAVEINCAPS));
-  //  ACE_ASSERT (result == MMSYSERR_NOERROR);
-  //  printf ("%d\n", capabilities_s.wMid);
-  //  printf ("%d\n", capabilities_s.wPid);
-  //  printf ("%s\n", capabilities_s.szPname);
-  //  printf ("%d\n", capabilities_s.dwFormats);
-  //  printf ("%d\n", capabilities_s.wChannels);
-  //};
 
   return inherited::initialize (configuration_in,
                                 allocator_in);
@@ -188,7 +179,8 @@ template <ACE_SYNCH_DECL,
           typename SessionDataType,
           typename SessionDataContainerType,
           typename StatisticContainerType,
-          typename TimerManagerType>
+          typename TimerManagerType,
+          typename MediaType>
 void
 Stream_Dev_Mic_Source_WaveIn_T<ACE_SYNCH_USE,
                                ControlMessageType,
@@ -201,12 +193,128 @@ Stream_Dev_Mic_Source_WaveIn_T<ACE_SYNCH_USE,
                                SessionDataType,
                                SessionDataContainerType,
                                StatisticContainerType,
-                               TimerManagerType>::handleSessionMessage (SessionMessageType*& message_inout,
-                                                                        bool& passMessageDownstream_out)
+                               TimerManagerType,
+                               MediaType>::handleDataMessage (DataMessageType*& message_inout,
+                                                              bool& passMessageDownstream_out)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Dev_Mic_Source_WaveIn_T::handleDataMessage"));
+
+  // sanity check(s)
+  ACE_ASSERT (inherited::configuration_);
+  ACE_ASSERT (inherited::configuration_->messageAllocator);
+  ACE_ASSERT (inherited::configuration_->allocatorConfiguration);
+  typename DataMessageType::DATA_T& data_r =
+    const_cast<typename DataMessageType::DATA_T&> (message_inout->getR ());
+  ACE_ASSERT (data_r.index < STREAM_DEV_WAVEIN_DEFAULT_DEVICE_BUFFERS);
+  ACE_ASSERT (CBData_.buffers[data_r.index] == message_inout);
+
+  MMRESULT result = waveInUnprepareHeader (handle_,
+                                           &bufferHeaders_[data_r.index],
+                                           sizeof (struct wavehdr_tag));
+  if (unlikely (result != MMSYSERR_NOERROR))
+  { char error_msg_a[BUFSIZ];
+    waveInGetErrorText (result, error_msg_a, BUFSIZ - 1);
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s: failed to waveInUnprepareHeader(%u): \"%s\", returning\n"),
+                inherited::mod_->name (),
+                data_r.index,
+                ACE_TEXT (error_msg_a)));
+    return;
+  } // end IF
+
+  CBData_.buffers[data_r.index] = NULL;
+  DataMessageType* message_p = NULL;
+  try {
+    message_p =
+      static_cast<DataMessageType*> (inherited::configuration_->messageAllocator->malloc (inherited::configuration_->allocatorConfiguration->defaultBufferSize));
+  } catch (...) {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s: caught exception in Stream_IAllocator::malloc(%u), returning\n"),
+                inherited::mod_->name (),
+                inherited::configuration_->allocatorConfiguration->defaultBufferSize));
+    return;
+  }
+  if (unlikely (!message_p))
+  {
+    ACE_DEBUG ((LM_CRITICAL,
+                ACE_TEXT ("%s: failed to allocate memory (was: %u bytes), returning\n"),
+                inherited::mod_->name (),
+                inherited::configuration_->allocatorConfiguration->defaultBufferSize));
+    return;
+  } // end IF
+  typename DataMessageType::DATA_T& data_2 =
+    const_cast<typename DataMessageType::DATA_T&> (message_p->getR ());
+  data_2.index = data_r.index;
+  CBData_.buffers[data_r.index] = message_p;
+  data_r.index = -1;
+
+  bufferHeaders_[data_2.index].lpData = message_p->wr_ptr ();
+  ACE_ASSERT (bufferHeaders_[data_2.index].dwBufferLength == inherited::configuration_->allocatorConfiguration->defaultBufferSize);
+  ACE_ASSERT (bufferHeaders_[data_2.index].dwUser == data_2.index);
+
+  result = waveInPrepareHeader (handle_,
+                                &bufferHeaders_[data_2.index],
+                                sizeof (struct wavehdr_tag));
+  if (unlikely (result != MMSYSERR_NOERROR))
+  { char error_msg_a[BUFSIZ];
+    waveInGetErrorText (result, error_msg_a, BUFSIZ - 1);
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s: failed to waveInPrepareHeader(%d): \"%s\", returning\n"),
+                inherited::mod_->name (),
+                data_2.index,
+                ACE_TEXT (error_msg_a)));
+    return;
+  } // end IF
+
+  result = waveInAddBuffer (handle_,
+                            &bufferHeaders_[data_2.index],
+                            sizeof (struct wavehdr_tag));
+  if (unlikely (result != MMSYSERR_NOERROR))
+  { char error_msg_a[BUFSIZ];
+    waveInGetErrorText (result, error_msg_a, BUFSIZ - 1);
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s: failed to waveInAddBuffer(%d): \"%s\", returning\n"),
+                inherited::mod_->name (),
+                data_2.index,
+                ACE_TEXT (error_msg_a)));
+    return;
+  } // end IF
+
+  ++CBData_.inFlightBuffers;
+}
+
+template <ACE_SYNCH_DECL,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
+          typename ConfigurationType,
+          typename StreamControlType,
+          typename StreamNotificationType,
+          typename StreamStateType,
+          typename SessionDataType,
+          typename SessionDataContainerType,
+          typename StatisticContainerType,
+          typename TimerManagerType,
+          typename MediaType>
+void
+Stream_Dev_Mic_Source_WaveIn_T<ACE_SYNCH_USE,
+                               ControlMessageType,
+                               DataMessageType,
+                               SessionMessageType,
+                               ConfigurationType,
+                               StreamControlType,
+                               StreamNotificationType,
+                               StreamStateType,
+                               SessionDataType,
+                               SessionDataContainerType,
+                               StatisticContainerType,
+                               TimerManagerType,
+                               MediaType>::handleSessionMessage (SessionMessageType*& message_inout,
+                                                                 bool& passMessageDownstream_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Dev_Mic_Source_WaveIn_T::handleSessionMessage"));
 
-  int result = -1;
+  MMRESULT result = MMSYSERR_ERROR;
 
   // don't care (implies yes per default, if part of a stream)
   ACE_UNUSED_ARG (passMessageDownstream_out);
@@ -215,10 +323,7 @@ Stream_Dev_Mic_Source_WaveIn_T<ACE_SYNCH_USE,
   ACE_ASSERT (inherited::configuration_);
   ACE_ASSERT (inherited::configuration_->allocatorConfiguration);
   ACE_ASSERT (inherited::isInitialized_);
-  ACE_ASSERT (inherited::sessionData_);
 
-  SessionDataType& session_data_r =
-    const_cast<SessionDataType&> (inherited::sessionData_->getR ());
   typename TimerManagerType::INTERFACE_T* itimer_manager_p =
     (inherited::configuration_->timerManager ? inherited::configuration_->timerManager
                                              : inherited::TIMER_MANAGER_SINGLETON_T::instance ());
@@ -230,9 +335,8 @@ Stream_Dev_Mic_Source_WaveIn_T<ACE_SYNCH_USE,
   {
     case STREAM_SESSION_MESSAGE_BEGIN:
     {
-#if defined (_DEBUG)
-      std::string log_file_name;
-#endif // _DEBUG
+      // sanity check(s)
+      ACE_ASSERT (inherited::sessionData_);
 
       if (inherited::configuration_->statisticCollectionInterval !=
           ACE_Time_Value::zero)
@@ -258,77 +362,54 @@ Stream_Dev_Mic_Source_WaveIn_T<ACE_SYNCH_USE,
 //                    &inherited::configuration_->statisticCollectionInterval));
       } // end IF
 
-      //WAVEINCAPS capabilities_s;
-      //struct tWAVEFORMATEX wave_format_ex_s;
-      //ACE_OS::memset (&wave_format_ex_s, 0, sizeof (struct tWAVEFORMATEX));
-      //MMRESULT result = waveInGetDevCaps (configuration_->audioInput,
-      //                                    &capabilities_s,
-      //                                    sizeof (WAVEINCAPS));
-      //if (unlikely (result != MMSYSERR_NOERROR))
-      //{
-      //  waveInGetErrorText (result, error_msg_a, BUFSIZ - 1);
-      //  ACE_DEBUG ((LM_ERROR,
-      //              ACE_TEXT ("%s: failed to waveInGetDevCaps(%d): \"%s\", aborting\n"),
-      //              inherited::mod_->name (),
-      //              configuration_->audioInput,
-      //              ACE_TEXT (error_msg_a)));
-      //  goto error;
-      //} // end IF
+      UINT device_id_i = -1;
+      Stream_Device_Tools::id (inherited::configuration_->deviceIdentifier,
+                               device_id_i);
 
-      //// attempt 44.1 kHz stereo if device is capable
-      //if (capabilities_s.dwFormats & WAVE_FORMAT_4S16)
-      //{
-      //  wave_format_ex_s.nChannels = 2;          // stereo
-      //  wave_format_ex_s.nSamplesPerSec = 44100; // 44.1 kHz (44.1 * 1000)
-      //} // end IF
-      //else
-      //{
-      //  wave_format_ex_s.nChannels = capabilities_s.wChannels; // use DevCaps # channels
-      //  wave_format_ex_s.nSamplesPerSec = 22050;               // 22.05 kHz (22.05 * 1000)
-      //} // end ELSE
-      //wave_format_ex_s.wFormatTag = WAVE_FORMAT_PCM;
-      //wave_format_ex_s.wBitsPerSample = 16;
-      //wave_format_ex_s.nBlockAlign =
-      //  wave_format_ex_s.nChannels * wave_format_ex_s.wBitsPerSample / 8;
-      //wave_format_ex_s.nAvgBytesPerSec =
-      //  wave_format_ex_s.nSamplesPerSec * wave_format_ex_s.nBlockAlign;
-      //wave_format_ex_s.cbSize = 0;
+      SessionDataType& session_data_r =
+        const_cast<SessionDataType&> (inherited::sessionData_->getR ());
       ACE_ASSERT (!session_data_r.formats.empty ());
-      struct _AMMediaType& media_type_r = session_data_r.formats.back ();
-      ACE_ASSERT (media_type_r.majortype == MEDIATYPE_Audio);
-      ACE_ASSERT (media_type_r.subtype == MEDIASUBTYPE_PCM);
-      ACE_ASSERT (media_type_r.formattype == FORMAT_WaveFormatEx);
+      struct _AMMediaType media_type_s;
+      ACE_OS::memset (&media_type_s, 0, sizeof (struct _AMMediaType));
+      inherited2::getMediaType (session_data_r.formats.back (),
+                                media_type_s);
+      ACE_ASSERT (media_type_s.majortype == MEDIATYPE_Audio);
+      //ACE_ASSERT (media_type_s.subtype == MEDIASUBTYPE_PCM);
+      ACE_ASSERT (media_type_s.formattype == FORMAT_WaveFormatEx);
       struct tWAVEFORMATEX* audio_info_p =
-        reinterpret_cast<struct tWAVEFORMATEX*> (media_type_r.pbFormat);
-      ACE_ASSERT (inherited::configuration_->deviceIdentifier.identifierDiscriminator == Stream_Device_Identifier::ID);
-      result = waveInOpen (&context_,
-                           inherited::configuration_->deviceIdentifier.identifier._id,
+        reinterpret_cast<struct tWAVEFORMATEX*> (media_type_s.pbFormat);
+      ACE_ASSERT (audio_info_p);
+
+      DWORD flags_u = CALLBACK_FUNCTION |
+                      //WAVE_ALLOWSYNC    |
+                      //WAVE_MAPPED_DEFAULT_COMMUNICATION_DEVICE |
+                      WAVE_FORMAT_DIRECT;
+                      //WAVE_MAPPED;
+      result = waveInOpen (&handle_,
+                           WAVE_MAPPER,
+                           //device_id_i,
                            audio_info_p,
-                           (DWORD)(VOID*)libacestream_wave_in_data_cb,
-                           (DWORD)&CBData_,
-                           CALLBACK_FUNCTION);
+                           reinterpret_cast<DWORD_PTR> (stream_dev_wavein_data_cb),
+                           reinterpret_cast<DWORD_PTR> (&CBData_),
+                           flags_u);
       if (unlikely (result != MMSYSERR_NOERROR))
-      {
-        waveInGetErrorText (result, error_msg_a, BUFSIZ - 1);
+      { waveInGetErrorText (result, error_msg_a, BUFSIZ - 1);
         ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("%s: failed to waveInOpen(%d): \"%s\", aborting\n"),
+                    ACE_TEXT ("%s: failed to waveInOpen(%u): \"%s\", aborting\n"),
                     inherited::mod_->name (),
-                    inherited::configuration_->deviceIdentifier.identifier._id,
+                    device_id_i,
                     ACE_TEXT (error_msg_a)));
         goto error;
       } // end IF
+      ACE_ASSERT (handle_);
       ACE_DEBUG ((LM_DEBUG,
-                  ACE_TEXT ("%s: opened capture device (id: %d, handle: %@)\n"),
+                  ACE_TEXT ("%s: opened device (id: %d, format: %s)...\n"),
                   inherited::mod_->name (),
-                  inherited::configuration_->deviceIdentifier.identifier._id,
-                  &context_));
+                  device_id_i,
+                  ACE_TEXT (Stream_MediaFramework_DirectSound_Tools::toString (*audio_info_p, true).c_str ())));
+      Stream_MediaFramework_DirectShow_Tools::free (media_type_s);
 
-      CBData_.channels = audio_info_p->nChannels;
-      CBData_.sampleRate = audio_info_p->nSamplesPerSec;
-      CBData_.sampleSize =
-        (CBData_.channels * (audio_info_p->wBitsPerSample / 8));
-
-      // prepare buffer blocks and add to input queue
+      // prepare buffer blocks / add to input queue
       if (!allocateBuffers (inherited::configuration_->messageAllocator,
                             inherited::configuration_->allocatorConfiguration->defaultBufferSize))
       {
@@ -343,12 +424,11 @@ Stream_Dev_Mic_Source_WaveIn_T<ACE_SYNCH_USE,
            i < STREAM_DEV_WAVEIN_DEFAULT_DEVICE_BUFFERS;
            ++i)
       {
-        result = waveInPrepareHeader (context_,
+        result = waveInPrepareHeader (handle_,
                                       &bufferHeaders_[i],
                                       sizeof (struct wavehdr_tag));
         if (unlikely (result != MMSYSERR_NOERROR))
-        {
-          waveInGetErrorText (result, error_msg_a, BUFSIZ - 1);
+        { waveInGetErrorText (result, error_msg_a, BUFSIZ - 1);
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("%s: failed to waveInPrepareHeader(%d): \"%s\", aborting\n"),
                       inherited::mod_->name (),
@@ -356,14 +436,13 @@ Stream_Dev_Mic_Source_WaveIn_T<ACE_SYNCH_USE,
                       ACE_TEXT (error_msg_a)));
           goto error;
         } // end IF
-        
-         // add buffers to the input queue
-         result = waveInAddBuffer (context_,
-                                   &bufferHeaders_[i],
-                                   sizeof (struct wavehdr_tag));
+
+        // add buffers to the input queue
+        result = waveInAddBuffer (handle_,
+                                  &bufferHeaders_[i],
+                                  sizeof (struct wavehdr_tag));
         if (unlikely (result != MMSYSERR_NOERROR))
-        {
-          waveInGetErrorText (result, error_msg_a, BUFSIZ - 1);
+        { waveInGetErrorText (result, error_msg_a, BUFSIZ - 1);
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("%s: failed to waveInAddBuffer(%d): \"%s\", aborting\n"),
                       inherited::mod_->name (),
@@ -371,9 +450,11 @@ Stream_Dev_Mic_Source_WaveIn_T<ACE_SYNCH_USE,
                       ACE_TEXT (error_msg_a)));
           goto error;
         } // end IF
+
+        ++CBData_.inFlightBuffers;
       } // end FOR
 
-      result = waveInStart (context_);
+      result = waveInStart (handle_);
       if (unlikely (result != MMSYSERR_NOERROR))
       { waveInGetErrorText (result, error_msg_a, BUFSIZ - 1);
         ACE_DEBUG ((LM_ERROR,
@@ -385,20 +466,18 @@ Stream_Dev_Mic_Source_WaveIn_T<ACE_SYNCH_USE,
       ACE_DEBUG ((LM_DEBUG,
                   ACE_TEXT ("%s: started audio capture (id: %u, handle: %@, %u buffer(s))\n"),
                   inherited::mod_->name (),
-                  inherited::configuration_->deviceIdentifier.identifier._id,
-                  &context_,
+                  device_id_i,
+                  &handle_,
                   STREAM_DEV_WAVEIN_DEFAULT_DEVICE_BUFFERS));
-
-      ACE_ASSERT (!session_data_r.formats.empty ());
-      ACE_DEBUG ((LM_DEBUG,
-                  ACE_TEXT ("%s: capture format: \"%s\"\n"),
-                  inherited::mod_->name (),
-                  ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::toString (session_data_r.formats.back (), true).c_str ())));
 
       break;
 
 error:
-      this->notify (STREAM_SESSION_MESSAGE_ABORT);
+      if (handle_)
+        waveInReset (handle_);
+      Stream_MediaFramework_DirectShow_Tools::free (media_type_s);
+
+      notify (STREAM_SESSION_MESSAGE_ABORT);
 
       break;
     }
@@ -414,9 +493,9 @@ error:
       if (likely (inherited::timerId_ != -1))
       {
         const void* act_p = NULL;
-        result = itimer_manager_p->cancel_timer (inherited::timerId_,
-                                                 &act_p);
-        if (unlikely (result == -1))
+        int result_2 = itimer_manager_p->cancel_timer (inherited::timerId_,
+                                                       &act_p);
+        if (unlikely (result_2 == -1))
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("%s: failed to Common_ITimer::cancel_timer(%d): \"%m\", continuing\n"),
                       inherited::mod_->name (),
@@ -424,46 +503,67 @@ error:
         inherited::timerId_ = -1;
       } // end IF
 
-      MMRESULT result = waveInReset (context_);
-      if (unlikely (result != MMSYSERR_NOERROR))
-      { waveInGetErrorText (result, error_msg_a, BUFSIZ - 1);
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("%s: failed to waveInReset(): \"%s\", continuing\n"),
-                    inherited::mod_->name (),
-                    ACE_TEXT (error_msg_a)));
+      if (likely (handle_))
+      {
+        result = waveInReset (handle_);
+        if (unlikely (result != MMSYSERR_NOERROR))
+        { waveInGetErrorText (result, error_msg_a, BUFSIZ - 1);
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("%s: failed to waveInReset(): \"%s\", continuing\n"),
+                      inherited::mod_->name (),
+                      ACE_TEXT (error_msg_a)));
+        } // end IF
+        else
+          ACE_DEBUG ((LM_DEBUG,
+                      ACE_TEXT ("%s: stopped audio capture (handle: %@)\n"),
+                      inherited::mod_->name (),
+                      &handle_));
       } // end IF
-      ACE_DEBUG ((LM_DEBUG,
-                  ACE_TEXT ("%s: stopped audio capture (handle: %@)\n"),
-                  inherited::mod_->name (),
-                  &context_));
+
+      while (CBData_.inFlightBuffers)
+        ACE_OS::sleep (ACE_Time_Value (1, 0));
+      unsigned int flushed_buffers_i = inherited::queue_.flush (false);
+      ACE_ASSERT (flushed_buffers_i == STREAM_DEV_WAVEIN_DEFAULT_DEVICE_BUFFERS);
 
       DataMessageType* message_p = NULL;
       for (unsigned int i = 0;
            i < STREAM_DEV_WAVEIN_DEFAULT_DEVICE_BUFFERS;
            ++i)
       {
-        result = waveInUnprepareHeader (context_,
-                                        &bufferHeaders_[i],
-                                        sizeof (struct wavehdr_tag));
+        if (likely (handle_))
+        {
+          result = waveInUnprepareHeader (handle_,
+                                          &bufferHeaders_[i],
+                                          sizeof (struct wavehdr_tag));
+          if (unlikely (result != MMSYSERR_NOERROR))
+          { waveInGetErrorText (result, error_msg_a, BUFSIZ - 1);
+            ACE_DEBUG ((LM_ERROR,
+                        ACE_TEXT ("%s: failed to waveInUnprepareHeader(%u): \"%s\", continuing\n"),
+                        inherited::mod_->name (),
+                        i,
+                        ACE_TEXT (error_msg_a)));
+          } // end IF
+        } // end IF
+
+        CBData_.buffers[i] = NULL;
+      } // end FOR
+
+      if (likely (handle_))
+      {
+        result = waveInClose (handle_);
         if (unlikely (result != MMSYSERR_NOERROR))
         { waveInGetErrorText (result, error_msg_a, BUFSIZ - 1);
           ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("%s: failed to waveInUnprepareHeader(%u): \"%s\", continuing\n"),
+                      ACE_TEXT ("%s: failed to waveInClose(): \"%s\", continuing\n"),
                       inherited::mod_->name (),
-                      i,
                       ACE_TEXT (error_msg_a)));
         } // end IF
-
-        if (likely (CBData_.buffers[i]))
-        {
-          message_p = static_cast<DataMessageType*> (CBData_.buffers[i]);
-          ACE_ASSERT (message_p);
-          typename DataMessageType::DATA_T& data_r =
-            const_cast<typename DataMessageType::DATA_T&> (message_p->getR ());
-          data_r.task = NULL;
-          CBData_.buffers[i] = NULL;
-        } // end IF
-      } // end FOR
+        else
+          ACE_DEBUG ((LM_DEBUG,
+                      ACE_TEXT ("%s: closed device...\n"),
+                      inherited::mod_->name ()));
+        handle_ = NULL;
+      } // end IF
 
       if (likely (inherited::configuration_->concurrency != STREAM_HEADMODULECONCURRENCY_CONCURRENT))
       { Common_ITask* itask_p = this; // *TODO*: is the no other way ?
@@ -489,7 +589,8 @@ template <ACE_SYNCH_DECL,
           typename SessionDataType,
           typename SessionDataContainerType,
           typename StatisticContainerType,
-          typename TimerManagerType>
+          typename TimerManagerType,
+          typename MediaType>
 bool
 Stream_Dev_Mic_Source_WaveIn_T<ACE_SYNCH_USE,
                                ControlMessageType,
@@ -502,7 +603,8 @@ Stream_Dev_Mic_Source_WaveIn_T<ACE_SYNCH_USE,
                                SessionDataType,
                                SessionDataContainerType,
                                StatisticContainerType,
-                               TimerManagerType>::collect (StatisticContainerType& data_out)
+                               TimerManagerType,
+                               MediaType>::collect (StatisticContainerType& data_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Dev_Mic_Source_WaveIn_T::collect"));
 
@@ -549,6 +651,56 @@ Stream_Dev_Mic_Source_WaveIn_T<ACE_SYNCH_USE,
 //  ACE_NOTREACHED (return;)
 //}
 
+//template <ACE_SYNCH_DECL,
+//          typename ControlMessageType,
+//          typename DataMessageType,
+//          typename SessionMessageType,
+//          typename ConfigurationType,
+//          typename StreamControlType,
+//          typename StreamNotificationType,
+//          typename StreamStateType,
+//          typename SessionDataType,
+//          typename SessionDataContainerType,
+//          typename StatisticContainerType,
+//          typename TimerManagerType,
+//          typename MediaType>
+//void
+//Stream_Dev_Mic_Source_WaveIn_T<ACE_SYNCH_USE,
+//                               ControlMessageType,
+//                               DataMessageType,
+//                               SessionMessageType,
+//                               ConfigurationType,
+//                               StreamControlType,
+//                               StreamNotificationType,
+//                               StreamStateType,
+//                               SessionDataType,
+//                               SessionDataContainerType,
+//                               StatisticContainerType,
+//                               TimerManagerType,
+//                               MediaType>::set (const unsigned int index_in)
+//{
+//  STREAM_TRACE (ACE_TEXT ("Stream_Dev_Mic_Source_WaveIn_T::set"));
+//
+//  // sanity check(s)
+//  ACE_ASSERT (index_in < STREAM_DEV_WAVEIN_DEFAULT_DEVICE_BUFFERS);
+//
+//  if (CBData_.buffers[index_in]) // *NOTE*: stream may have already finished
+//    CBData_.buffers[index_in]->reset ();
+//
+//  MMRESULT result = waveInAddBuffer (handle_,
+//                                     &bufferHeaders_[index_in],
+//                                     sizeof (struct wavehdr_tag));
+//  if (unlikely (result != MMSYSERR_NOERROR))
+//  { char error_msg_a[BUFSIZ];
+//    waveInGetErrorText (result, error_msg_a, BUFSIZ - 1);
+//    ACE_DEBUG ((LM_ERROR,
+//                ACE_TEXT ("%s: failed to waveInAddBuffer(%d): \"%s\", returning\n"),
+//                inherited::mod_->name (),
+//                index_in,
+//                ACE_TEXT (error_msg_a)));
+//  } // end IF
+//}
+
 template <ACE_SYNCH_DECL,
           typename ControlMessageType,
           typename DataMessageType,
@@ -560,56 +712,8 @@ template <ACE_SYNCH_DECL,
           typename SessionDataType,
           typename SessionDataContainerType,
           typename StatisticContainerType,
-          typename TimerManagerType>
-void
-Stream_Dev_Mic_Source_WaveIn_T<ACE_SYNCH_USE,
-                               ControlMessageType,
-                               DataMessageType,
-                               SessionMessageType,
-                               ConfigurationType,
-                               StreamControlType,
-                               StreamNotificationType,
-                               StreamStateType,
-                               SessionDataType,
-                               SessionDataContainerType,
-                               StatisticContainerType,
-                               TimerManagerType>::set (const unsigned int index_in)
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_Dev_Mic_Source_WaveIn_T::set"));
-
-  // sanity check(s)
-  ACE_ASSERT (index_in < STREAM_DEV_WAVEIN_DEFAULT_DEVICE_BUFFERS);
-
-  char         error_msg_a[BUFSIZ];
-
-  if (CBData_.buffers[index_in]) // *NOTE*: stream may have already finished
-    CBData_.buffers[index_in]->reset ();
-  MMRESULT result = waveInAddBuffer (context_,
-                                     &bufferHeaders_[index_in],
-                                     sizeof (struct wavehdr_tag));
-  if (unlikely (result != MMSYSERR_NOERROR))
-  { ACE_OS::memset (&error_msg_a, 0, sizeof (char[BUFSIZ]));
-    waveInGetErrorText (result, error_msg_a, BUFSIZ - 1);
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: failed to waveInAddBuffer(%d): \"%s\", returning\n"),
-                inherited::mod_->name (),
-                index_in,
-                ACE_TEXT (error_msg_a)));
-  } // end IF
-}
-
-template <ACE_SYNCH_DECL,
-          typename ControlMessageType,
-          typename DataMessageType,
-          typename SessionMessageType,
-          typename ConfigurationType,
-          typename StreamControlType,
-          typename StreamNotificationType,
-          typename StreamStateType,
-          typename SessionDataType,
-          typename SessionDataContainerType,
-          typename StatisticContainerType,
-          typename TimerManagerType>
+          typename TimerManagerType,
+          typename MediaType>
 bool
 Stream_Dev_Mic_Source_WaveIn_T<ACE_SYNCH_USE,
                                ControlMessageType,
@@ -622,8 +726,9 @@ Stream_Dev_Mic_Source_WaveIn_T<ACE_SYNCH_USE,
                                SessionDataType,
                                SessionDataContainerType,
                                StatisticContainerType,
-                               TimerManagerType>::allocateBuffers (Stream_IAllocator* allocator_in,
-                                                                   unsigned int bufferSize_in)
+                               TimerManagerType,
+                               MediaType>::allocateBuffers (Stream_IAllocator* allocator_in,
+                                                            unsigned int bufferSize_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Dev_Mic_Source_WaveIn_T::allocateBuffers"));
 
@@ -637,24 +742,33 @@ Stream_Dev_Mic_Source_WaveIn_T<ACE_SYNCH_USE,
        ++i)
   {
     try {
-      CBData_.buffers[i] = static_cast<DataMessageType*> (allocator_in->malloc (bufferSize_in));
+      message_p =
+        static_cast<DataMessageType*> (allocator_in->malloc (bufferSize_in));
     } catch (...) {
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("caught exception in Stream_IAllocator::malloc(%u), continuing\n"),
+                  ACE_TEXT ("%s: caught exception in Stream_IAllocator::malloc(%u), continuing\n"),
+                  inherited::mod_->name (),
                   bufferSize_in));
-      CBData_.buffers[i] = NULL;
       return false;
     }
-    bufferHeaders_[i].dwBufferLength = bufferSize_in;
-    bufferHeaders_[i].lpData = CBData_.buffers[i]->rd_ptr ();
+    if (unlikely (!message_p))
+    {
+      ACE_DEBUG ((LM_CRITICAL,
+                  ACE_TEXT ("%s: failed to allocate memory (was: %u bytes), aborting\n"),
+                  inherited::mod_->name (),
+                  bufferSize_in));
+      return false;
+    } // end IF
+    CBData_.buffers[i] = message_p;
 
+    bufferHeaders_[i].lpData = CBData_.buffers[i]->wr_ptr ();
+    bufferHeaders_[i].dwBufferLength = bufferSize_in;
     bufferHeaders_[i].dwUser = i;
 
     message_p = static_cast<DataMessageType*> (CBData_.buffers[i]);
     ACE_ASSERT (message_p);
     typename DataMessageType::DATA_T& data_r =
       const_cast<typename DataMessageType::DATA_T&> (message_p->getR ());
-    data_r.task = this;
     data_r.index = i;
   } // end FOR
 

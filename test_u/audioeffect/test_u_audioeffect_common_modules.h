@@ -227,7 +227,8 @@ typedef Stream_Dev_Mic_Source_WaveIn_T<ACE_MT_SYNCH,
                                        Test_U_AudioEffect_DirectShow_SessionData,
                                        Test_U_AudioEffect_DirectShow_SessionData_t,
                                        struct Test_U_AudioEffect_Statistic,
-                                       Common_Timer_Manager_t> Test_U_Dev_Mic_Source_WaveIn;
+                                       Common_Timer_Manager_t,
+                                       struct _AMMediaType> Test_U_Dev_Mic_Source_WaveIn;
 DATASTREAM_MODULE_INPUT_ONLY (Test_U_AudioEffect_DirectShow_SessionData,                       // session data type
                               enum Stream_SessionMessageType,                                  // session event type
                               struct Test_U_AudioEffect_DirectShow_ModuleHandlerConfiguration, // module handler configuration type

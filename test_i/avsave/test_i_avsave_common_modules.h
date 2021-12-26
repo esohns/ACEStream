@@ -99,7 +99,8 @@ typedef Stream_Dev_Mic_Source_WaveIn_T<ACE_MT_SYNCH,
                                        Stream_AVSave_DirectShow_SessionData,
                                        Stream_AVSave_DirectShow_SessionData_t,
                                        struct Stream_AVSave_StatisticData,
-                                       Common_Timer_Manager_t> Stream_AVSave_WaveIn_Source;
+                                       Common_Timer_Manager_t,
+                                       struct _AMMediaType> Stream_AVSave_WaveIn_Source;
 typedef Stream_Dev_Cam_Source_DirectShow_T<ACE_MT_SYNCH,
                                            Stream_ControlMessage_t,
                                            Stream_AVSave_DirectShow_Message_t,

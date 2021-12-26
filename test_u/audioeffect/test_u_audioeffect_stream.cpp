@@ -73,7 +73,7 @@ Test_U_AudioEffect_DirectShow_Stream::load (Stream_ILayout* layout_in,
   STREAM_TRACE (ACE_TEXT ("Test_U_AudioEffect_DirectShow_Stream::load"));
 
   // initialize return value(s)
-  delete_out = false;
+  delete_out = true;
 
   // sanity check(s)
   ACE_ASSERT (inherited::configuration_);
@@ -108,10 +108,10 @@ Test_U_AudioEffect_DirectShow_Stream::load (Stream_ILayout* layout_in,
                         false);
       else
         ACE_NEW_RETURN (module_p,
-                        //Test_U_Dev_Mic_Source_WaveIn_Module (this,
-                        //                                     ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_MIC_SOURCE_WAVEIN_DEFAULT_NAME_STRING)),
-                        Test_U_Dev_Mic_Source_WASAPI_Module (this,
-                                                             ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_WASAPI_CAPTURE_DEFAULT_NAME_STRING)),
+                        Test_U_Dev_Mic_Source_WaveIn_Module (this,
+                                                             ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_WAVEIN_CAPTURE_DEFAULT_NAME_STRING)),
+                        //Test_U_Dev_Mic_Source_WASAPI_Module (this,
+                        //                                     ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_WASAPI_CAPTURE_DEFAULT_NAME_STRING)),
                         false);
       break;
     }
@@ -267,12 +267,13 @@ Test_U_AudioEffect_DirectShow_Stream::load (Stream_ILayout* layout_in,
   {
     if (!has_directshow_source_b && !device_can_render_format_b)
     {
-      Stream_Module_t* module_2 = NULL;
       ACE_NEW_RETURN (module_2,
                       Test_U_AudioEffect_DirectShow_Delay_Module (this,
                                                                   ACE_TEXT_ALWAYS_CHAR (STREAM_MISC_DELAY_DEFAULT_NAME_STRING)),
                       false);
+      ACE_ASSERT (module_2);
       layout_in->append (module_2, branch_p, index_i);
+      module_2 = NULL;
     } // end IF
 
 #if defined (GUI_SUPPORT)
@@ -317,8 +318,6 @@ Test_U_AudioEffect_DirectShow_Stream::load (Stream_ILayout* layout_in,
     layout_in->append (module_p, branch_p, index_i);
     module_p = NULL;
   } // end IF
-
-  delete_out = true;
 
   return true;
 }
@@ -966,7 +965,7 @@ Test_U_AudioEffect_MediaFoundation_Stream::load (Stream_ILayout* layout_in,
   STREAM_TRACE (ACE_TEXT ("Test_U_AudioEffect_MediaFoundation_Stream::load"));
 
   // initialize return value(s)
-  delete_out = false;
+  delete_out = false; // *TODO*: leaks all allocated modules
 
   // sanity check(s)
   ACE_ASSERT (inherited::configuration_);

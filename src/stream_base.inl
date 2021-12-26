@@ -103,7 +103,7 @@ Stream_Base_T<ACE_SYNCH_USE,
                     MODULE_T (ACE_TEXT (STREAM_MODULE_HEAD_NAME),
                               writer_p, reader_p,
                               NULL,
-                              ACE_Module_Base::M_DELETE_NONE));
+                              ACE_Module_Base::M_DELETE));
   if (unlikely (!module_p))
   {
     ACE_DEBUG ((LM_CRITICAL,
@@ -130,7 +130,7 @@ Stream_Base_T<ACE_SYNCH_USE,
                     MODULE_T (ACE_TEXT (STREAM_MODULE_TAIL_NAME),
                               writer_2, reader_2,
                               NULL,
-                              ACE_Module_Base::M_DELETE_NONE));
+                              ACE_Module_Base::M_DELETE));
   if (unlikely (!module_2))
   {
     ACE_DEBUG ((LM_CRITICAL,
@@ -141,11 +141,11 @@ Stream_Base_T<ACE_SYNCH_USE,
     return;
   } // end IF
 
-  result = inherited::close ();
+  result = inherited::close (STREAM_T::M_DELETE);
   if (unlikely (result == -1))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: failed to ACE_Stream::close(): \"%m\", returning\n"),
+                ACE_TEXT ("%s: failed to ACE_Stream::close(M_DELETE): \"%m\", returning\n"),
                 ACE_TEXT (StreamName)));
     delete module_p; module_p = NULL;
     delete module_2; module_2 = NULL;
@@ -626,7 +626,6 @@ Stream_Base_T<ACE_SYNCH_USE,
 
   int result = -1;
 
-  // delegate this to base class close(ACE_Module_Base::M_DELETE_NONE)
   try {
     // *NOTE*: unwinds the stream, pop()ing all push()ed modules
     //         --> pop()ing a module will close() it
@@ -634,6 +633,8 @@ Stream_Base_T<ACE_SYNCH_USE,
     //             tasks
     //         --> flush()ing a task will close() its queue
     //         --> close()ing a queue will deactivate() and flush() it
+    // *IMPORTANT NOTE*: passing anything but M_DELETE_NONE will 'delete' the
+    //                   modules (see: Stream.cpp:219)
     result = inherited::close (ACE_Module_Base::M_DELETE_NONE);
   } catch (...) {
     ACE_DEBUG ((LM_ERROR,
@@ -3736,9 +3737,9 @@ Stream_Base_T<ACE_SYNCH_USE,
     } // end IF
   } // end IF
 
-  if (reset_in)
+  if (likely (reset_in))
   {
-    result = module_in->close (ACE_Module_Base::M_DELETE_NONE);
+    result = module_in->close (ACE_Module_Base::M_FLAGS_NOT_SET); // use the modules' set flags
     if (unlikely (result == -1))
     {
       ACE_DEBUG ((LM_ERROR,
@@ -3750,7 +3751,7 @@ Stream_Base_T<ACE_SYNCH_USE,
     // *NOTE*: ACE_Module::close() resets the modules' task handles
     //         --> call reset() so it can be reused
     imodule_p = dynamic_cast<IMODULE_T*> (module_in);
-    if (imodule_p)
+    if (likely (imodule_p))
       imodule_p->reset ();
   } // end IF
 //  ACE_DEBUG ((LM_DEBUG,

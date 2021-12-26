@@ -143,16 +143,9 @@ Test_U_AudioEffect_DirectShow_Message::release (void)
   if (inherited::data_.sample)
   {
     inherited::data_.sample->Release (); inherited::data_.sample = NULL;
-    return inherited::release ();
   } // end IF
-  // waveIn device buffer ?
-  if ((inherited::data_.index == -1) || // not a device data buffer (-clone)
-      !inherited::data_.task)           // clean up (device data)
-    return inherited::release ();
 
-  inherited::data_.task->set (inherited::data_.index);
-
-  return NULL;
+  return inherited::release ();
 }
 
 std::string

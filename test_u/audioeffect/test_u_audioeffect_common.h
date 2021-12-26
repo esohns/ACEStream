@@ -182,7 +182,6 @@ struct Test_U_AudioEffect_DirectShow_MessageData
    : sample (NULL)
    , sampleTime (0)
    , index (-1)
-   , task (NULL)
   {}
 
   // DirectShow
@@ -190,7 +189,6 @@ struct Test_U_AudioEffect_DirectShow_MessageData
   double                       sampleTime;
   // WaveIn
   unsigned int                 index;
-  Common_ISet_T<unsigned int>* task;
 };
 struct Test_U_AudioEffect_MediaFoundation_MessageData
 {

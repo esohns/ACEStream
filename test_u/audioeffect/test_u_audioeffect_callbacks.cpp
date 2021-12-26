@@ -11112,10 +11112,8 @@ drawingarea_query_tooltip_cb (GtkWidget*  widget_in,
   gtk_widget_get_allocation (widget_in,
                              &allocation);
   double half_height = allocation.height / 2.0;
-  uint64_t maximum_value = 0;
-  Common_Tools::max<uint64_t> (sample_size,
-                               is_signed_format,
-                               maximum_value);
+  uint64_t maximum_value = Common_Tools::max<uint64_t> (sample_size,
+                                                        is_signed_format);
   std::ostringstream converter;
   switch (mode)
   {

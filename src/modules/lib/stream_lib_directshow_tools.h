@@ -67,6 +67,7 @@ class Stream_MediaFramework_DirectShow_Tools
   // graph
   static void dump (const Stream_MediaFramework_DirectShow_Graph_t&); // graph layout
   static void dump (const Stream_MediaFramework_DirectShow_GraphConfiguration_t&); // graph configuration
+  static void clear (Stream_MediaFramework_DirectShow_GraphConfiguration_t&); // graph configuration
   // *NOTE*: close an existing log file by supplying an empty file name
   static void debug (IGraphBuilder*,      // graph handle
                      const std::string&); // log file name

@@ -46,7 +46,7 @@ class Stream_MediaFramework_DirectSound_Tools
 
   // devices
   static struct _GUID waveDeviceIdToDirectSoundGUID (ULONG,        // waveIn/Out device id
-                                                     bool = true); // capture ? : playback
+                                                     bool = true); // capture ? : render
   static ULONG directSoundGUIDTowaveDeviceId (REFGUID); // device identifier
 
   // format
@@ -63,11 +63,13 @@ class Stream_MediaFramework_DirectSound_Tools
                              struct tWAVEFORMATEX&); // return value: default format
 
   // WASAPI
+  static IMMDevice* getDevice (REFGUID); // device identifier [GUID_NULL ? default render (!) device]
   static bool canRender (REFGUID,                      // device identifier
                          enum _AUDCLNT_SHAREMODE,      // share mode
                          const struct tWAVEFORMATEX&); // format
+  // *IMPORTANT NOTE*: callers must 'CoTaskMemFree' any return values
+  static struct tWAVEFORMATEX* getDeviceDriverFormat (REFGUID); // device identifier
   // *NOTE*: "...In shared mode, the audio engine always supports the mix format..."
-  // *TODO*: what about exclusive mode ?
   // *IMPORTANT NOTE*: callers must 'CoTaskMemFree' any return values
   static struct tWAVEFORMATEX* getAudioEngineMixFormat (REFGUID); // device identifier
   static IAudioEndpointVolume* getMasterVolumeControl (REFGUID); // device identifier
@@ -85,7 +87,6 @@ class Stream_MediaFramework_DirectSound_Tools
   typedef WORD_TO_STRING_MAP_T::const_iterator WORD_TO_STRING_MAP_ITERATOR_T;
 
   // helper methods
-  static IMMDevice* getDevice (REFGUID); // device identifier [GUID_NULL ? default render device]
   // *IMPORTANT NOTE*: fire-and-forget the first argument
   static IAudioVolumeLevel* walkDeviceTreeFromPart (IPart*,              // part handle
                                                     const std::string&); // (volume-)control name

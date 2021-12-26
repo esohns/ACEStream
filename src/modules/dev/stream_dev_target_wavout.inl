@@ -26,57 +26,6 @@
 #include "stream_lib_directshow_tools.h"
 #include "stream_lib_directsound_tools.h"
 
-static void CALLBACK
-stream_dev_target_wavout_async_callback (HWAVEOUT  hwo,
-                                         UINT      uMsg,
-                                         DWORD_PTR dwInstance,
-                                         DWORD_PTR dwParam1,
-                                         DWORD_PTR dwParam2)
-{
-  //STREAM_TRACE (ACE_TEXT ("::stream_dev_target_wavout_async_callback"));
-
-  // sanity check(s)
-  struct Stream_Device_WavOut_Playback_AsynchCBData* cb_data_p =
-    reinterpret_cast<struct Stream_Device_WavOut_Playback_AsynchCBData*> (dwInstance);
-  ACE_ASSERT (cb_data_p);
-
-  switch (uMsg)
-  {
-    case WOM_CLOSE:
-    case WOM_OPEN:
-      break;
-    case WOM_DONE:
-    {
-      // sanity check(s)
-      struct wavehdr_tag* wave_hdr_p =
-        reinterpret_cast<struct wavehdr_tag*> (dwParam1);
-      ACE_ASSERT (wave_hdr_p);
-      //ACE_ASSERT (!dwParam2);
-      //ACE_Message_Block* message_block_p =
-      //  reinterpret_cast<ACE_Message_Block*> (wave_hdr_p->dwUser);
-      //ACE_ASSERT (message_block_p);
-
-      // step1: update state
-      --cb_data_p->inFlightBuffers;
-      cb_data_p->done = !cb_data_p->inFlightBuffers;
-
-      // step2: get more data
-      if (!ReleaseSemaphore (cb_data_p->lock, 1, NULL))
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("failed to ReleaseSemaphore(): \"%m\", returning\n")));
-
-      break;
-    }
-    default:
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("invalid message type (was: %u), returning\n"),
-                  uMsg));
-      break;
-    }
-  } // end SWITCH
-}
-
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ConfigurationType,
@@ -96,25 +45,13 @@ Stream_Dev_Target_WavOut_T<ACE_SYNCH_USE,
  : inherited (stream_in)
  , CBData_ ()
  , handle_ (NULL)
- , header_ ()
- , lock_ (NULL)
+ , queue_ (ACE_Message_Queue_Base::DEFAULT_HWM,
+           ACE_Message_Queue_Base::DEFAULT_LWM)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Dev_Target_WavOut_T::Stream_Dev_Target_WavOut_T"));
 
-  lock_ = CreateSemaphore (NULL, 0, 1, NULL);
-  if (unlikely (lock_ == NULL))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: failed to CreateSemaphore(): \"%m\", returning\n"),
-                inherited::mod_->name ()));
-    return;
-  } // end IF
-
-  CBData_.done = false;
   CBData_.inFlightBuffers = 0;
-  CBData_.lock = lock_;
-
-  ACE_OS::memset (&header_, 0, sizeof (struct wavehdr_tag));
+  CBData_.queue = &queue_;
 }
 
 template <ACE_SYNCH_DECL,
@@ -138,8 +75,6 @@ Stream_Dev_Target_WavOut_T<ACE_SYNCH_USE,
 
   if (unlikely (handle_))
     waveOutClose (handle_);
-  if (likely (lock_))
-    CloseHandle (lock_);
 }
 
 template <ACE_SYNCH_DECL,
@@ -202,16 +137,42 @@ Stream_Dev_Target_WavOut_T<ACE_SYNCH_USE,
 
   ACE_Message_Block* message_block_p = message_inout;
   MMRESULT result = MMSYSERR_ERROR;
-  DWORD result_2 = 0;
+  int result_2 = -1;
+  struct wavehdr_tag* header_p = NULL;
 
 continue_:
-  // step1: prepare header
-  header_.lpData = message_block_p->rd_ptr ();
-  header_.dwBufferLength = message_block_p->length ();
-  header_.dwFlags = 0;
-  //header_.dwUser = reinterpret_cast<DWORD_PTR> (message_block_p);
+  // step1: get next free header
+  result_2 = queue_.dequeue (header_p,
+                             NULL);
+  if (unlikely (result_2 == -1))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s: failed to ACE_Message_Queue_Ex::dequeue(): \"%m\", returning\n"),
+                inherited::mod_->name ()));
+    return;
+  } // end IF
+  ACE_ASSERT (header_p);
+
+  // step2: unprepare header
+  result = waveOutUnprepareHeader (handle_,
+                                   header_p,
+                                   sizeof (struct wavehdr_tag));
+  if (unlikely (result != MMSYSERR_NOERROR))
+  { char error_msg_a[BUFSIZ];
+    waveOutGetErrorText (result, error_msg_a, BUFSIZ - 1);
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s: failed to waveOutUnprepareHeader(): \"%s\", returning\n"),
+                inherited::mod_->name (),
+                ACE_TEXT (error_msg_a)));
+    goto error;
+  } // end IF
+
+  // step3: prepare header
+  header_p->lpData = message_block_p->rd_ptr ();
+  header_p->dwBufferLength = message_block_p->length ();
+  header_p->dwFlags = 0;
   result = waveOutPrepareHeader (handle_,
-                                 &header_,
+                                 header_p,
                                  sizeof (struct wavehdr_tag));
   if (unlikely (result != MMSYSERR_NOERROR))
   { char error_msg_a[BUFSIZ];
@@ -220,12 +181,12 @@ continue_:
                 ACE_TEXT ("%s: failed to waveOutPrepareHeader(): \"%s\", returning\n"),
                 inherited::mod_->name (),
                 ACE_TEXT (error_msg_a)));
-    return;
+    goto error;
   } // end IF
 
-  // step2: send buffer
+  // step4: send buffer
   result = waveOutWrite (handle_,
-                         &header_,
+                         header_p,
                          sizeof (struct wavehdr_tag));
   if (unlikely (result != MMSYSERR_NOERROR))
   { char error_msg_a[BUFSIZ];
@@ -235,41 +196,29 @@ continue_:
                 inherited::mod_->name (),
                 ACE_TEXT (error_msg_a)));
     waveOutUnprepareHeader (handle_,
-                            &header_,
+                            header_p,
                             sizeof (struct wavehdr_tag));
-    return;
+    goto error;
   } // end IF
+  header_p = NULL;
   ++CBData_.inFlightBuffers;
-
-  // step3: wait for buffer
-  result_2 = WaitForSingleObject (lock_, INFINITE);
-  if (unlikely (result_2 != WAIT_OBJECT_0))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: failed to WaitForSingleObject(): \"%s\", returning\n"),
-                inherited::mod_->name (),
-                ACE_TEXT (Common_Error_Tools::errorToString (result_2, false, false).c_str ())));
-    return;
-  } // end IF
-
-  // step4: unprepare header
-  result = waveOutUnprepareHeader (handle_,
-                                   &header_,
-                                   sizeof (struct wavehdr_tag));
-  if (unlikely (result != MMSYSERR_NOERROR))
-  {
-    char error_msg_a[BUFSIZ];
-    waveOutGetErrorText (result, error_msg_a, BUFSIZ - 1);
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: failed to waveOutUnprepareHeader(): \"%s\", returning\n"),
-                inherited::mod_->name (),
-                ACE_TEXT (error_msg_a)));
-    return;
-  } // end IF
 
   message_block_p = message_block_p->cont ();
   if (unlikely (message_block_p))
     goto continue_;
+
+  return;
+
+error:
+  if (header_p)
+  {
+    result_2 = queue_.enqueue (header_p,
+                               NULL);
+    if (unlikely (result_2 == -1))
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("%s: failed to ACE_Message_Queue_Ex::enqueue(): \"%m\", returning\n"),
+                  inherited::mod_->name ()));
+  } // end IF
 }
 
 template <ACE_SYNCH_DECL,
@@ -306,7 +255,7 @@ Stream_Dev_Target_WavOut_T<ACE_SYNCH_USE,
   {
     case STREAM_SESSION_MESSAGE_ABORT:
     {
-      CBData_.done = true;
+      CBData_.inFlightBuffers = 0; // *TODO*: remove this ASAP
       break;
     }
     case STREAM_SESSION_MESSAGE_BEGIN:
@@ -322,19 +271,29 @@ Stream_Dev_Target_WavOut_T<ACE_SYNCH_USE,
       inherited2::getMediaType (session_data_r.formats.back (),
                                 media_type_s);
       ACE_ASSERT (InlineIsEqualGUID (media_type_s.formattype, FORMAT_WaveFormatEx));
-      ACE_ASSERT (media_type_s.pbFormat);
       struct tWAVEFORMATEX* waveformatex_p =
         reinterpret_cast<struct tWAVEFORMATEX*> (media_type_s.pbFormat);
       ACE_ASSERT (waveformatex_p);
 
+      if (!allocateBuffers ())
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("%s: failed to Stream_Dev_Target_WavOut_T::allocateBuffers(), aborting\n"),
+                    inherited::mod_->name ()));
+        goto error;
+      } // end IF
+
       DWORD flags_u = CALLBACK_FUNCTION |
+                      //WAVE_ALLOWSYNC    |
                       //WAVE_MAPPED_DEFAULT_COMMUNICATION_DEVICE |
                       WAVE_FORMAT_DIRECT;
+                      //WAVE_MAPPED;
       result =
         waveOutOpen (&handle_,
-                     inherited::configuration_->deviceIdentifier.identifier._id,
+                     WAVE_MAPPER,
+                     //inherited::configuration_->deviceIdentifier.identifier._id,
                      waveformatex_p,
-                     reinterpret_cast<DWORD_PTR> (stream_dev_target_wavout_async_callback),
+                     reinterpret_cast<DWORD_PTR> (stream_dev_waveout_data_cb),
                      reinterpret_cast<DWORD_PTR> (&CBData_),
                      flags_u);
       if (unlikely (result != MMSYSERR_NOERROR))
@@ -367,7 +326,7 @@ error:
     case STREAM_SESSION_MESSAGE_END:
     {
       // render remaining data
-      while (!CBData_.done)
+      while (CBData_.inFlightBuffers)
         ACE_OS::sleep (ACE_Time_Value (1, 0));
 
       if (likely (handle_))
@@ -400,9 +359,81 @@ error:
                       inherited::configuration_->deviceIdentifier.identifier._id));
       } // end IF
 
+      int result_2 = -1;
+      struct wavehdr_tag* buffer_p = NULL;
+      for (unsigned int i = 0;
+           i < STREAM_DEV_WAVEOUT_DEFAULT_DEVICE_BUFFERS;
+           ++i)
+      {
+        result_2 = queue_.dequeue (buffer_p,
+                                   NULL);
+        if (unlikely (result_2 == -1))
+        {
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("%s: failed to ACE_Message_Queue_Ex::dequeue(): \"%m\", continuing\n"),
+                      inherited::mod_->name ()));
+          continue;
+        } // end IF
+        ACE_ASSERT (buffer_p);
+        delete buffer_p; buffer_p = NULL;
+      } // end FOR
+
       break;
     }
     default:
       break;
   } // end SWITCH
+}
+
+template <ACE_SYNCH_DECL,
+          typename TimePolicyType,
+          typename ConfigurationType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
+          typename SessionDataType,
+          typename MediaType>
+bool
+Stream_Dev_Target_WavOut_T<ACE_SYNCH_USE,
+                           TimePolicyType,
+                           ConfigurationType,
+                           ControlMessageType,
+                           DataMessageType,
+                           SessionMessageType,
+                           SessionDataType,
+                           MediaType>::allocateBuffers ()
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Dev_Target_WavOut_T::allocateBuffers"));
+
+  struct wavehdr_tag* buffer_p = NULL;
+  int result = -1;
+
+  for (unsigned int i = 0;
+       i < STREAM_DEV_WAVEOUT_DEFAULT_DEVICE_BUFFERS;
+       ++i)
+  {
+    ACE_NEW_NORETURN (buffer_p,
+                      struct wavehdr_tag ());
+    if (unlikely (!buffer_p))
+    {
+      ACE_DEBUG ((LM_CRITICAL,
+                  ACE_TEXT ("%s: failed to allocate memory, aborting\n"),
+                  inherited::mod_->name ()));
+      return false;
+    } // end IF
+    ACE_OS::memset (buffer_p, 0, sizeof (struct wavehdr_tag));
+
+    result = queue_.enqueue (buffer_p,
+                             NULL);
+    if (unlikely (result == -1))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("%s: failed to ACE_Message_Queue_Ex::enqueue(): \"%m\", aborting\n"),
+                  inherited::mod_->name ()));
+      delete buffer_p;
+      return false;
+    } // end IF
+  } // end FOR
+
+  return true;
 }

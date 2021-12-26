@@ -792,14 +792,11 @@ Stream_Module_Decoder_Tools::sinus (unsigned int sampleRate_in,
   static double maximum_phase_d = 2.0 * M_PI;
   double step_d =
     (maximum_phase_d * frequency_in) / static_cast<double> (sampleRate_in);
-  uint64_t maximum_value_i;
-  Common_Tools::max<uint64_t> (static_cast<uint8_t> (bytesPerSample_in),
-                               formatIsSigned_in,
-                               maximum_value_i);
-  long double maximum_value_d;
-  Common_Tools::max<long double> (static_cast<uint8_t> (bytesPerSample_in),
-                                  false,
-                                  maximum_value_d);
+  uint64_t maximum_value_i =
+    Common_Tools::max<uint64_t> (bytesPerSample_in,
+                                 formatIsSigned_in);
+  long double maximum_value_d =
+    Common_Tools::max<long double> (bytesPerSample_in);
   bool byte_swap_b =
     (formatIsLittleEndian_in ? (ACE_BYTE_ORDER != ACE_LITTLE_ENDIAN)
                              : (ACE_BYTE_ORDER == ACE_LITTLE_ENDIAN));
@@ -809,7 +806,8 @@ Stream_Module_Decoder_Tools::sinus (unsigned int sampleRate_in,
   {
     value_d =
       (formatIsFloat_in ? std::sin (phase_inout) * maximum_value_d
-                        : std::sin (phase_inout) * static_cast<long double> (maximum_value_i));
+                        : (formatIsSigned_in ? std::sin (phase_inout) * static_cast<long double> (maximum_value_i)
+                                             : (std::sin (phase_inout) + 1.0) * (static_cast<long double> (maximum_value_i) / 2.0)));
     for (unsigned int j = 0; j < channels_in; ++j, data_p += bytesPerSample_in)
       switch (bytesPerSample_in)
       {
@@ -1256,7 +1254,7 @@ Stream_Module_Decoder_Tools::loadAudioRendererGraph (REFGUID deviceCategory_in,
   bool has_resampler_b = false;
 
   // initialize return value(s)
-  graphConfiguration_out.clear ();
+  Stream_MediaFramework_DirectShow_Tools::clear (graphConfiguration_out);
 
   // sanity check(s)
   ACE_ASSERT (IGraphBuilder_in);
@@ -1985,6 +1983,7 @@ continue_3:
   return true;
 
 error:
+  Stream_MediaFramework_DirectShow_Tools::clear (graphConfiguration_out);
   if (filter_p)
     filter_p->Release ();
   if (wrapper_filter_p)
@@ -2018,12 +2017,7 @@ Stream_Module_Decoder_Tools::loadVideoRendererGraph (REFGUID deviceCategory_in,
   struct _AMMediaType* media_type_p = NULL;
 
   // initialize return value(s)
-  for (Stream_MediaFramework_DirectShow_GraphConfigurationIterator_t iterator = graphConfiguration_out.begin ();
-       iterator != graphConfiguration_out.end ();
-       ++iterator)
-    if ((*iterator).mediaType)
-      Stream_MediaFramework_DirectShow_Tools::delete_ ((*iterator).mediaType);
-  graphConfiguration_out.clear ();
+  Stream_MediaFramework_DirectShow_Tools::clear (graphConfiguration_out);
 
   // sanity check(s)
   ACE_ASSERT (IGraphBuilder_in);
@@ -2424,18 +2418,13 @@ render:
   return true;
 
 error:
-  for (Stream_MediaFramework_DirectShow_GraphConfigurationIterator_t iterator = graphConfiguration_out.begin ();
-       iterator != graphConfiguration_out.end ();
-       ++iterator)
-    if ((*iterator).mediaType)
-      Stream_MediaFramework_DirectShow_Tools::delete_ ((*iterator).mediaType);
-  graphConfiguration_out.clear ();
+  Stream_MediaFramework_DirectShow_Tools::clear (graphConfiguration_out);
   if (pin_p)
     pin_p->Release ();
   if (filter_p)
     filter_p->Release ();
   if (graph_entry.mediaType)
-    Stream_MediaFramework_DirectShow_Tools::delete_ (graph_entry.mediaType);
+    Stream_MediaFramework_DirectShow_Tools::delete_ (graph_entry.mediaType, false);
 
   return false;
 }
@@ -2475,12 +2464,7 @@ Stream_Module_Decoder_Tools::loadTargetRendererGraph (IBaseFilter* sourceFilter_
   struct tagVIDEOINFOHEADER2* video_info_header2_p = NULL;
 
   // initialize return value(s)
-  for (Stream_MediaFramework_DirectShow_GraphConfigurationIterator_t iterator = graphConfiguration_out.begin ();
-       iterator != graphConfiguration_out.end ();
-       ++iterator)
-    if ((*iterator).mediaType)
-      Stream_MediaFramework_DirectShow_Tools::delete_ ((*iterator).mediaType);
-  graphConfiguration_out.clear ();
+  Stream_MediaFramework_DirectShow_Tools::clear (graphConfiguration_out);
 
   if (!IGraphBuilder_out)
   {
@@ -3281,6 +3265,7 @@ grab:
   return true;
 
 error:
+  Stream_MediaFramework_DirectShow_Tools::clear (graphConfiguration_out);
   //if (filter_p)
   //  filter_p->Release ();
   if (filter_2)

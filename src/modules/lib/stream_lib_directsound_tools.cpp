@@ -1119,20 +1119,58 @@ Stream_MediaFramework_DirectSound_Tools::canRender (REFGUID deviceIdentifier_in,
   result = audio_client_p->IsFormatSupported (shareMode_in,
                                               &format_in,
                                               &audio_info_p);
+  audio_client_p->Release (); audio_client_p = NULL;
   if (FAILED (result))
   { ACE_ASSERT (!audio_info_p);
-    audio_client_p->Release (); audio_client_p = NULL;
     return false;
   } // end IF
-  if (result == S_FALSE)
+  else if (result == S_FALSE)
   {
-    audio_client_p->Release (); audio_client_p = NULL;
-    CoTaskMemFree (audio_info_p); audio_info_p = NULL;
+    if (audio_info_p)
+    {
+      CoTaskMemFree (audio_info_p); audio_info_p = NULL;
+    } // end IF
     return false;
-  } // end IF
-  audio_client_p->Release (); audio_client_p = NULL;
-  CoTaskMemFree (audio_info_p); audio_info_p = NULL;
+  } // end ELSE IF
+  ACE_ASSERT (!audio_info_p);
   return true;
+}
+
+struct tWAVEFORMATEX*
+Stream_MediaFramework_DirectSound_Tools::getDeviceDriverFormat (REFGUID deviceIdentifier_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_DirectSound_Tools::getDeviceDriverFormat"));
+
+  // initialize return value(s)
+  struct tWAVEFORMATEX* result_p = NULL;
+
+  IMMDevice* device_p =
+    Stream_MediaFramework_DirectSound_Tools::getDevice (deviceIdentifier_in);
+  if (unlikely (!device_p))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to retrieve device handle (id was: \"%s\"), aborting\n"),
+                ACE_TEXT (Common_Tools::GUIDToString (deviceIdentifier_in).c_str ())));
+    return NULL;
+  } // end IF
+
+  IPropertyStore* property_store_p = NULL;
+  HRESULT result = device_p->OpenPropertyStore (STGM_READ,
+                                                &property_store_p);
+  ACE_ASSERT (SUCCEEDED (result) && property_store_p);
+  device_p->Release (); device_p = NULL;
+  struct tagPROPVARIANT property_s;
+  PropVariantInit (&property_s);
+  result = property_store_p->GetValue (PKEY_AudioEngine_DeviceFormat,
+                                       &property_s);
+  ACE_ASSERT (SUCCEEDED (result) && (property_s.vt == VT_BLOB));
+  property_store_p->Release (); property_store_p = NULL;
+  result_p =
+    reinterpret_cast<struct tWAVEFORMATEX*> (property_s.blob.pBlobData);
+  //result = PropVariantClear (&property_s);
+  //ACE_ASSERT (SUCCEEDED (result));
+
+  return result_p;
 }
 
 struct tWAVEFORMATEX*
@@ -1183,7 +1221,7 @@ Stream_MediaFramework_DirectSound_Tools::getDevice (REFGUID deviceIdentifier_in)
   if (InlineIsEqualGUID (deviceIdentifier_in, GUID_NULL))
   {
     result =
-      enumerator_p->GetDefaultAudioEndpoint (eRender, eConsole, &result_p);
+      enumerator_p->GetDefaultAudioEndpoint (eRender, eMultimedia, &result_p);
     ACE_ASSERT (SUCCEEDED (result) && result_p);
     enumerator_p->Release (); enumerator_p = NULL;
     return result_p;

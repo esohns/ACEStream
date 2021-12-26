@@ -292,6 +292,7 @@ Stream_Dev_Target_WASAPI_T<ACE_SYNCH_USE,
   ACE_ASSERT (inherited::isInitialized_);
   ACE_ASSERT (inherited::sessionData_);
 
+  HRESULT result_2 = E_FAIL;
   typename SessionMessageType::DATA_T::DATA_T& session_data_r =
     const_cast<typename SessionMessageType::DATA_T::DATA_T&> (inherited::sessionData_->getR ());
 
@@ -339,81 +340,61 @@ Stream_Dev_Target_WASAPI_T<ACE_SYNCH_USE,
       } // end SWITCH
 
       REFERENCE_TIME requested_duration_i = 0;
-      IMMDeviceEnumerator* enumerator_p = NULL;
-      HRESULT result_2 =
-        CoCreateInstance (__uuidof (MMDeviceEnumerator), NULL, CLSCTX_ALL,
-                          IID_PPV_ARGS (&enumerator_p));
-      ACE_ASSERT (SUCCEEDED (result_2));
-      IMMDeviceCollection* devices_p = NULL;
-      UINT num_devices_i = 0;
       enum _AUDCLNT_SHAREMODE share_mode_e =
         STREAM_LIB_WASAPI_RENDER_DEFAULT_SHAREMODE;
       IMMDevice* device_p = NULL;
-      struct _GUID GUID_s = GUID_NULL;
-      IPropertyStore* property_store_p = NULL;
-      struct tagPROPVARIANT property_s;
       DWORD stream_flags_i =
         (AUDCLNT_STREAMFLAGS_EVENTCALLBACK           |
          //AUDCLNT_STREAMFLAGS_NOPERSIST             |
          /////////////////////////////////
          AUDCLNT_SESSIONFLAGS_EXPIREWHENUNOWNED      |
          AUDCLNT_SESSIONFLAGS_DISPLAY_HIDEWHENEXPIRED);
-      HANDLE task_h = NULL;
+      struct _GUID GUID_s = GUID_NULL;
+      //HANDLE task_h = NULL;
+      //DWORD task_index_i = 0;
       struct tWAVEFORMATEX* audio_info_2 = NULL;
       IAudioSessionControl* audio_session_control_p = NULL;
 
       if (InlineIsEqualGUID (device_identifier_s, GUID_NULL))
       {
+        IMMDeviceEnumerator* enumerator_p = NULL;
         result_2 =
-          enumerator_p->GetDefaultAudioEndpoint (eRender, eConsole, &device_p);
-        ACE_ASSERT (SUCCEEDED (result_2) && device_p);
+          CoCreateInstance (__uuidof (MMDeviceEnumerator), NULL, CLSCTX_ALL,
+                            IID_PPV_ARGS (&enumerator_p));
+        ACE_ASSERT (SUCCEEDED (result_2) && enumerator_p);
+        result_2 =
+          enumerator_p->GetDefaultAudioEndpoint (eRender, eMultimedia, &device_p);
+        if (FAILED (result_2))
+        {
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("%s: failed to IMMDeviceEnumerator::GetDefaultAudioEndpoint(): \"%s\", aborting\n"),
+                      inherited::mod_->name (),
+                      ACE_TEXT (Common_Error_Tools::errorToString (result_2, true, false).c_str ())));
+          enumerator_p->Release (); enumerator_p = NULL;
+          goto error;
+        } // end IF
+        ACE_ASSERT (device_p);
+        enumerator_p->Release (); enumerator_p = NULL;
         goto continue_;
       } // end IF
-      result_2 = enumerator_p->EnumAudioEndpoints (eRender,
-                                                   DEVICE_STATEMASK_ALL,
-                                                   &devices_p);
-      ACE_ASSERT (SUCCEEDED (result_2));
-      enumerator_p->Release (); enumerator_p = NULL;
-      result_2 = devices_p->GetCount (&num_devices_i);
-      ACE_ASSERT (SUCCEEDED (result_2));
-      PropVariantInit (&property_s);
-      for (UINT i = 0;
-           i < num_devices_i;
-           ++i)
-      { ACE_ASSERT (!device_p);
-        result_2 = devices_p->Item (i,
-                                    &device_p);
-        ACE_ASSERT (SUCCEEDED (result_2) && device_p);
-        result_2 = device_p->OpenPropertyStore (STGM_READ,
-                                                &property_store_p);
-        ACE_ASSERT (SUCCEEDED (result_2) && property_store_p);
-        result_2 = property_store_p->GetValue (PKEY_AudioEndpoint_GUID,
-                                               &property_s);
-        ACE_ASSERT (SUCCEEDED (result_2));
-        property_store_p->Release (); property_store_p = NULL;
-        ACE_ASSERT (property_s.vt == VT_LPWSTR);
-        GUID_s =
-          Common_Tools::StringToGUID (ACE_TEXT_ALWAYS_CHAR (ACE_TEXT_WCHAR_TO_TCHAR (property_s.pwszVal)));
-        PropVariantClear (&property_s);
-        if (InlineIsEqualGUID (GUID_s, device_identifier_s))
-          break;
-        device_p->Release (); device_p = NULL;
-      } // end FOR
-      devices_p->Release (); devices_p = NULL;
+      device_p = Stream_MediaFramework_DirectSound_Tools::getDevice (device_identifier_s);
       if (unlikely (!device_p))
       {
         ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("%s: failed to retrieve render device handle (id was: \"%s\"), aborting\n"),
+                    ACE_TEXT ("%s: failed to retrieve device handle (id was: \"%s\"), aborting\n"),
                     inherited::mod_->name (),
                     ACE_TEXT (Common_Tools::GUIDToString (device_identifier_s).c_str ())));
         goto error;
       } // end IF
 continue_:
       ACE_ASSERT (device_p);
+
       ACE_ASSERT (!audioClient_);
       result_2 = device_p->Activate (__uuidof (IAudioClient), CLSCTX_ALL,
                                      NULL, (void**)&audioClient_);
       ACE_ASSERT (SUCCEEDED (result_2) && audioClient_);
+
+      // sanity check(s)
       result_2 =
         audioClient_->IsFormatSupported (share_mode_e,
                                          audio_info_p,
@@ -428,7 +409,7 @@ continue_:
         device_p->Release (); device_p = NULL;
         goto error;
       } // end IF
-      if ((result_2 == S_FALSE) && audio_info_2)
+      else if (unlikely ((result_2 == S_FALSE) && audio_info_2))
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: format (was: %s) not supported; closest match: \"%s\", aborting\n"),
@@ -439,19 +420,17 @@ continue_:
         device_p->Release (); device_p = NULL;
         goto error;
       } // end IF
-      if (audio_info_2)
-      {
-        CoTaskMemFree (audio_info_2); audio_info_2 = NULL;
-      } // end IF
+      ACE_ASSERT (!audio_info_2);
+
       result_2 = audioClient_->GetDevicePeriod (NULL, &requested_duration_i);
-      ACE_ASSERT (SUCCEEDED (result_2));
+      ACE_ASSERT (SUCCEEDED (result_2) && requested_duration_i);
       GUID_s = CLSID_ACEStream_MediaFramework_WASAPI_AudioSession;
 retry:
       result_2 =
         audioClient_->Initialize (share_mode_e,
                                   stream_flags_i,
                                   requested_duration_i,
-                                  ((share_mode_e == AUDCLNT_SHAREMODE_EXCLUSIVE) ? requested_duration_i
+                                  ((share_mode_e == AUDCLNT_SHAREMODE_EXCLUSIVE) ? requested_duration_i 
                                                                                  : 0),
                                   audio_info_p,
                                   &GUID_s);
@@ -482,6 +461,8 @@ retry:
         goto error;
       } // end IF
       device_p->Release (); device_p = NULL;
+      Stream_MediaFramework_DirectShow_Tools::free (media_type_s);
+
       result_2 = audioClient_->GetBufferSize (&bufferSize_);
       ACE_ASSERT (SUCCEEDED (result_2) && bufferSize_);
       result_2 =
@@ -518,8 +499,6 @@ retry:
       inherited::start (NULL);
       inherited::threadCount_ = 0;
 
-      Stream_MediaFramework_DirectShow_Tools::free (media_type_s);
-
       break;
 
 error:
@@ -552,7 +531,6 @@ error:
                        false); // high priority ?
       } // end IF
 
-      HRESULT result_2 = E_FAIL;
       if (likely (audioClient_))
       {
         result_2 = audioClient_->Stop ();
@@ -567,8 +545,9 @@ error:
       {
         if (!CloseHandle (event_))
           ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("%s: failed to CloseHandle(): \"%m\", continuing\n"),
-                      inherited::mod_->name ()));
+                      ACE_TEXT ("%s: failed to CloseHandle(): \"%s\", continuing\n"),
+                      inherited::mod_->name (),
+                      ACE_TEXT (Common_Error_Tools::errorToString (GetLastError (), false, false).c_str ())));
         event_ = NULL;
       } // end IF
       if (likely (audioRenderClient_))

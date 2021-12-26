@@ -23,36 +23,32 @@
 
 #include "mmeapi.h"
 
-#include <string>
-
 #include "ace/Global_Macros.h"
 #include "ace/Synch_Traits.h"
 
-#include "common_iget.h"
-
-#include "common_time_common.h"
+//#include "common_iget.h"
 
 #include "stream_common.h"
 #include "stream_headmoduletask_base.h"
+
+#include "stream_lib_mediatype_converter.h"
 
 #include "stream_dev_defines.h"
 
 extern const char libacestream_default_dev_mic_source_wavein_module_name_string[];
 
-void CALLBACK libacestream_wave_in_data_cb (HWAVEIN,    // hwi: device context handle
-                                            UINT,       // uMsg: message type
-                                            DWORD_PTR,  // dwInstance: user instance data
-                                            DWORD_PTR,  // dwParam1: message parameter
-                                            DWORD_PTR); // dwParam2: message parameter
+extern void CALLBACK
+stream_dev_wavein_data_cb (HWAVEIN,    // hwi: device context handle
+                           UINT,       // uMsg: message type
+                           DWORD_PTR,  // dwInstance: user instance data
+                           DWORD_PTR,  // dwParam1: message parameter
+                           DWORD_PTR); // dwParam2: message parameter
 
-struct libacestream_wave_in_cbdata
+struct stream_dev_wavein_cbdata
 {
   ACE_Message_Block* buffers[STREAM_DEV_WAVEIN_DEFAULT_DEVICE_BUFFERS];
+  size_t             inFlightBuffers;
   Stream_Task_t*     task;
-
-  unsigned int       channels;
-  unsigned int       sampleRate;
-  unsigned int       sampleSize; // #bytes/(mono-)sample
 };
 
 template <ACE_SYNCH_DECL,
@@ -71,7 +67,9 @@ template <ACE_SYNCH_DECL,
           typename SessionDataContainerType,
           ////////////////////////////////
           typename StatisticContainerType,
-          typename TimerManagerType> // implements Common_ITimer
+          typename TimerManagerType, // implements Common_ITimer
+          ////////////////////////////////
+          typename MediaType>
 class Stream_Dev_Mic_Source_WaveIn_T
  : public Stream_HeadModuleTaskBase_T<ACE_MT_SYNCH,
                                       Common_TimePolicy_t,
@@ -87,7 +85,8 @@ class Stream_Dev_Mic_Source_WaveIn_T
                                       StatisticContainerType,
                                       TimerManagerType,
                                       struct Stream_UserData>
-  , Common_ISet_T<unsigned int>
+ , public Stream_MediaFramework_MediaTypeConverter_T<MediaType>
+ //, Common_ISet_T<unsigned int>
 {
   typedef Stream_HeadModuleTaskBase_T<ACE_MT_SYNCH,
                                       Common_TimePolicy_t,
@@ -103,6 +102,7 @@ class Stream_Dev_Mic_Source_WaveIn_T
                                       StatisticContainerType,
                                       TimerManagerType,
                                       struct Stream_UserData> inherited;
+  typedef Stream_MediaFramework_MediaTypeConverter_T<MediaType> inherited2;
 
  public:
   Stream_Dev_Mic_Source_WaveIn_T (ISTREAM_T*); // stream handle
@@ -138,13 +138,13 @@ class Stream_Dev_Mic_Source_WaveIn_T
   //virtual void report () const;
 
   // implement (part of) Stream_ITaskBase
-//  virtual void handleDataMessage (ProtocolMessageType*&, // data message handle
-//                                  bool&);                // return value: pass message downstream ?
+  virtual void handleDataMessage (DataMessageType*&, // data message handle
+                                  bool&);            // return value: pass message downstream ?
   virtual void handleSessionMessage (SessionMessageType*&, // session message handle
                                      bool&);               // return value: pass message downstream ?
 
   // implement Common_ISet_T
-  virtual void set (const unsigned int);
+  //virtual void set (const unsigned int);
 
  private:
   // convenient types
@@ -159,7 +159,8 @@ class Stream_Dev_Mic_Source_WaveIn_T
                                          SessionDataType,
                                          SessionDataContainerType,
                                          StatisticContainerType,
-                                         TimerManagerType> OWN_TYPE_T;
+                                         TimerManagerType,
+                                         MediaType> OWN_TYPE_T;
 
   //ACE_UNIMPLEMENTED_FUNC (Stream_Dev_Mic_Source_WaveIn_T ())
   ACE_UNIMPLEMENTED_FUNC (Stream_Dev_Mic_Source_WaveIn_T (const Stream_Dev_Mic_Source_WaveIn_T&))
@@ -168,10 +169,9 @@ class Stream_Dev_Mic_Source_WaveIn_T
   bool allocateBuffers (Stream_IAllocator*, // allocator handle
                         unsigned int);      // buffer size
 
-  struct wavehdr_tag          bufferHeaders_[STREAM_DEV_WAVEIN_DEFAULT_DEVICE_BUFFERS];
-  libacestream_wave_in_cbdata CBData_;
-  bool                        closeContext_;
-  HWAVEIN                     context_;
+  struct wavehdr_tag              bufferHeaders_[STREAM_DEV_WAVEIN_DEFAULT_DEVICE_BUFFERS];
+  struct stream_dev_wavein_cbdata CBData_;
+  HWAVEIN                         handle_;
 };
 
 // include template definition

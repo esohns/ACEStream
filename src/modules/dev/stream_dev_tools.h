@@ -82,6 +82,11 @@ class Stream_Device_Tools
 #endif // ACE_WIN32 || ACE_WIN64
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
+  static void id (const struct Stream_Device_Identifier&, // device identifier
+                  UINT&);                                 // return value: device identifier
+  static void id (const struct Stream_Device_Identifier&, // device identifier
+                  struct _GUID&,                          // return value: device identifier
+                  bool = true); // capture ? : render
 #else
   // v4l
   static Stream_Device_List_t getVideoCaptureDevices ();

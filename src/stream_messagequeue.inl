@@ -76,17 +76,20 @@ Stream_MessageQueue_T<ACE_SYNCH_USE,
           else
             message_block_p->prev ()->next (message_block_p->next ());
           if (unlikely (message_block_p == inherited::tail_))
-            inherited::tail_ = message_block_p->prev ();
-
-          temp_p = message_block_p;
-          message_block_p = message_block_p->next ();
+            inherited::tail_ =
+              ((inherited::cur_count_ == 1) ? NULL
+                                            : message_block_p->prev ());
 
           // clean up
-          temp_p->total_size_and_length (bytes,
-                                         length);
+          bytes = 0; length = 0;
+          message_block_p->total_size_and_length (bytes,
+                                                  length);
           inherited::cur_bytes_ -= bytes;
           inherited::cur_length_ -= length;
           --inherited::cur_count_;
+
+          temp_p = message_block_p;
+          message_block_p = message_block_p->next ();
           temp_p->release (); temp_p = NULL;
 
           ++result;
@@ -95,12 +98,7 @@ Stream_MessageQueue_T<ACE_SYNCH_USE,
         }
         case STREAM_MESSAGE_CONTROL:
         default:
-        {
-          ACE_DEBUG ((LM_DEBUG,
-                      ACE_TEXT ("retaining message (type was: %d)\n"),
-                      message_block_p->msg_type ()));
           break;
-        }
       } // end SWITCH
 
       message_block_p = message_block_p->next ();
@@ -108,7 +106,7 @@ Stream_MessageQueue_T<ACE_SYNCH_USE,
 
     // signal waiters ?
     if (unlikely (result &&
-                  (inherited::cur_bytes_ <= inherited::low_water_mark_)))
+                  (inherited::cur_count_ <= inherited::low_water_mark_)))
     {
       result_2 = inherited::signal_enqueue_waiters ();
       if (unlikely (result_2 == -1))

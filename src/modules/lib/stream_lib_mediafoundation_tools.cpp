@@ -2864,7 +2864,7 @@ Stream_MediaFramework_MediaFoundation_Tools::addRenderer (REFGUID majorMediaType
       ACE_ASSERT (SUCCEEDED (result));
     } // end ELSE
     //result = attributes_p->SetUINT32 (MF_AUDIO_RENDERER_ATTRIBUTE_ENDPOINT_ROLE,
-    //                                  eConsole);
+    //                                  eMultimedia);
     //ACE_ASSERT (SUCCEEDED (result));
     result = attributes_p->SetUINT32 (MF_AUDIO_RENDERER_ATTRIBUTE_FLAGS,
                                       MF_AUDIO_RENDERER_ATTRIBUTE_FLAGS_NOPERSIST);
@@ -2928,7 +2928,7 @@ continue_2:
                                     ACE_TEXT_ALWAYS_WCHAR (device_string.c_str ()));
     ACE_ASSERT (SUCCEEDED (result));
     //result = activate_p->SetUINT32 (MF_AUDIO_RENDERER_ATTRIBUTE_ENDPOINT_ROLE,
-    //                                eConsole);
+    //                                eMultimedia);
     //ACE_ASSERT (SUCCEEDED (result));
     result = activate_p->SetUINT32 (MF_AUDIO_RENDERER_ATTRIBUTE_FLAGS,
                                     MF_AUDIO_RENDERER_ATTRIBUTE_FLAGS_NOPERSIST);

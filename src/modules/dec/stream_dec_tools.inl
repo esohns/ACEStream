@@ -37,6 +37,11 @@ Stream_Module_Decoder_Tools::noise (unsigned int sampleRate_in,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Decoder_Tools::noise"));
 
+  // sanity check(s)
+  ACE_ASSERT (ACE_SIZEOF_FLOAT == 4);
+  ACE_ASSERT (ACE_SIZEOF_DOUBLE == 8);
+  //ACE_ASSERT (ACE_SIZEOF_LONG_DOUBLE == 16); // *TODO*: 8 on Win32
+
   bool byte_swap_b =
     (formatIsLittleEndian_in ? (ACE_BYTE_ORDER != ACE_LITTLE_ENDIAN)
                              : (ACE_BYTE_ORDER == ACE_LITTLE_ENDIAN));
@@ -45,7 +50,9 @@ Stream_Module_Decoder_Tools::noise (unsigned int sampleRate_in,
   for (unsigned int i = 0; i < samplesToWrite_in; ++i)
   {
     value = Common_Tools::getRandomNumber (distribution_inout);
-    for (unsigned int j = 0; j < channels_in; ++j, data_p += bytesPerSample_in)
+    for (unsigned int j = 0;
+         j < channels_in;
+         ++j, data_p += bytesPerSample_in)
       switch (bytesPerSample_in)
       {
         case 1:
@@ -100,7 +107,7 @@ Stream_Module_Decoder_Tools::noise (unsigned int sampleRate_in,
                         ACE_TEXT ("invalid/unknown value size (was: %u), returning\n"),
                         bytesPerSample_in));
             return;
-          }
+          } // end IF
           *reinterpret_cast<long double*> (data_p) =
             (byte_swap_b ? (long double)Common_Tools::byteSwap (static_cast<uint64_t> (value)) // *TODO*: uint64_t will not work
                          : static_cast<long double> (value));

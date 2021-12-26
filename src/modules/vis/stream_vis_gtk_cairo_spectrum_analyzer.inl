@@ -424,7 +424,6 @@ Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
       unsigned int channels, sample_rate;
       bool is_signed_format = false;
       int sample_byte_order = ACE_BYTE_ORDER;
-      ACE_UINT64 maximum_value_i = 0;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
       struct _AMMediaType media_type_s;
       ACE_OS::memset (&media_type_s, 0, sizeof (struct _AMMediaType));
@@ -490,10 +489,8 @@ Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
         width_ / static_cast<double> (inherited3::channels_ * inherited3::slots_);
       scaleFactorX_2 =
         width_ / static_cast<double> (inherited3::channels_ * ((inherited3::slots_ / 2) - 1));
-      Common_Tools::max<ACE_UINT64> (static_cast<uint8_t> (sound_sample_size),
-                                     false,
-                                     maximum_value_i);
-      scaleFactorY_ = height_ / static_cast<double> (maximum_value_i);
+      scaleFactorY_ =
+        height_ / static_cast<double> (Common_Tools::max<ACE_UINT64> (sound_sample_size, false));
 
       // schedule the renderer
       if (inherited::configuration_->fps)
@@ -1115,7 +1112,6 @@ Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
   bool release_lock = false;
   unsigned int data_sample_size = 0;
   unsigned int sound_sample_size = 0;
-  ACE_UINT64 maximum_value_i = 0;
   const SessionDataType& session_data_r = inherited::sessionData_->getR ();
   ACE_ASSERT (!session_data_r.formats.empty ());
 
@@ -1173,10 +1169,8 @@ Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
       width_ / static_cast<double> (inherited3::channels_ * inherited3::slots_);
     scaleFactorX_2 =
       width_ / static_cast<double> (inherited3::channels_ * ((inherited3::slots_ / 2) - 1));
-    Common_Tools::max<ACE_UINT64> (static_cast<uint8_t> (sound_sample_size),
-                                   false,
-                                   maximum_value_i);
-    scaleFactorY_ = height_ / static_cast<double> (maximum_value_i);
+    scaleFactorY_ =
+      height_ / static_cast<double> (Common_Tools::max<ACE_UINT64> (sound_sample_size, false));
   } // end lock scope
 }
 

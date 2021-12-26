@@ -21,11 +21,13 @@
 #ifndef STREAM_DEV_TARGET_WAVOUT_H
 #define STREAM_DEV_TARGET_WAVOUT_H
 
-#include "Mmeapi.h"
+#include "mmeapi.h"
 
 #include "ace/Global_Macros.h"
-#include "ace/Message_Block.h"
+#include "ace/Message_Queue_T.h"
 #include "ace/Synch_Traits.h"
+
+#include "common_time_common.h"
 
 #include "stream_common.h"
 #include "stream_task_base_synch.h"
@@ -34,18 +36,22 @@
 
 extern const char libacestream_default_dev_target_wavout_module_name_string[];
 
-struct Stream_Device_WavOut_Playback_AsynchCBData
+typedef ACE_Message_Queue_Ex<struct wavehdr_tag,
+                             ACE_MT_SYNCH,
+                             Common_TimePolicy_t> stream_dev_waveout_queue_t;
+
+extern void CALLBACK
+stream_dev_waveout_data_cb (HWAVEOUT,
+                            UINT,
+                            DWORD_PTR,
+                            DWORD_PTR,
+                            DWORD_PTR);
+
+struct stream_dev_waveout_cbdata
 {
-  bool   done;
-  size_t inFlightBuffers;
-  HANDLE lock;
+  size_t                      inFlightBuffers;
+  stream_dev_waveout_queue_t* queue;
 };
-static void
-CALLBACK stream_dev_target_wavout_async_callback (HWAVEOUT,
-                                                  UINT,
-                                                  DWORD_PTR,
-                                                  DWORD_PTR,
-                                                  DWORD_PTR);
 
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,
@@ -97,17 +103,19 @@ class Stream_Dev_Target_WavOut_T
 
  private:
   // convenient types
-  typedef ACE_Message_Queue<ACE_SYNCH_USE,
-                            TimePolicyType> QUEUE_T;
+  typedef ACE_Message_Queue_Ex<struct wavehdr_tag,
+                               ACE_SYNCH_USE,
+                               TimePolicyType> QUEUE_T;
 
   ACE_UNIMPLEMENTED_FUNC (Stream_Dev_Target_WavOut_T ())
   ACE_UNIMPLEMENTED_FUNC (Stream_Dev_Target_WavOut_T (const Stream_Dev_Target_WavOut_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Dev_Target_WavOut_T& operator= (const Stream_Dev_Target_WavOut_T&))
 
-  struct Stream_Device_WavOut_Playback_AsynchCBData CBData_;
-  HWAVEOUT                                          handle_;
-  struct wavehdr_tag                                header_;
-  HANDLE                                            lock_;
+  bool allocateBuffers ();
+
+  struct stream_dev_waveout_cbdata CBData_;
+  HWAVEOUT                         handle_;
+  QUEUE_T                          queue_;
 };
 
 // include template definition

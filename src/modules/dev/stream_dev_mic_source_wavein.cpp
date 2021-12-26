@@ -27,25 +27,31 @@ const char libacestream_default_dev_mic_source_wavein_module_name_string[] =
   ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_WAVEIN_CAPTURE_DEFAULT_NAME_STRING);
 
 void CALLBACK
-libacestream_wave_in_data_cb (HWAVEIN   hwi,
-                              UINT      uMsg,
-                              DWORD_PTR dwInstance,
-                              DWORD_PTR dwParam1,
-                              DWORD_PTR dwParam2)
+stream_dev_wavein_data_cb (HWAVEIN   hwi,
+                           UINT      uMsg,
+                           DWORD_PTR dwInstance,
+                           DWORD_PTR dwParam1,
+                           DWORD_PTR dwParam2)
 {
+  //STREAM_TRACE (ACE_TEXT ("::stream_dev_wavein_data_cb"));
+
   // sanity check(s)
-  struct libacestream_wave_in_cbdata* cb_data_p =
-    reinterpret_cast<struct libacestream_wave_in_cbdata*> (dwInstance);
+  struct stream_dev_wavein_cbdata* cb_data_p =
+    reinterpret_cast<struct stream_dev_wavein_cbdata*> (dwInstance);
   ACE_ASSERT (cb_data_p);
+  ACE_ASSERT (cb_data_p->task);
+  ACE_ASSERT (cb_data_p->task->mod_);
 
   struct wavehdr_tag* wavehdr_p = NULL;
+  int result = -1;
+
   switch (uMsg)
   {
     case WIM_CLOSE:
     {
-      ACE_DEBUG ((LM_DEBUG,
-                  ACE_TEXT ("closed capture device...\n"),
-                  cb_data_p->task->mod_->name ()));
+      //ACE_DEBUG ((LM_DEBUG,
+      //            ACE_TEXT ("%s: closed device...\n"),
+      //            cb_data_p->task->mod_->name ()));
       return;
     }
     case WIM_DATA:
@@ -55,9 +61,9 @@ libacestream_wave_in_data_cb (HWAVEIN   hwi,
     }
     case WIM_OPEN:
     {
-      ACE_DEBUG ((LM_DEBUG,
-                  ACE_TEXT ("%s: opened capture device...\n"),
-                  cb_data_p->task->mod_->name ()));
+      //ACE_DEBUG ((LM_DEBUG,
+      //            ACE_TEXT ("%s: opened device...\n"),
+      //            cb_data_p->task->mod_->name ()));
       return;
     }
     default:
@@ -71,15 +77,18 @@ libacestream_wave_in_data_cb (HWAVEIN   hwi,
   } // end SWITCH
   ACE_ASSERT (wavehdr_p);
   ACE_ASSERT (wavehdr_p->dwUser < STREAM_DEV_WAVEIN_DEFAULT_DEVICE_BUFFERS);
-  //cb_data_p->buffers[wavehdr_p->dwUser]->reset ();
+
   cb_data_p->buffers[wavehdr_p->dwUser]->wr_ptr (wavehdr_p->dwBytesRecorded);
-  ACE_ASSERT (cb_data_p->task);
-  int result =
-    cb_data_p->task->put_next (cb_data_p->buffers[wavehdr_p->dwUser], NULL);
+
+  result = cb_data_p->task->putq (cb_data_p->buffers[wavehdr_p->dwUser],
+                                  NULL);
   if (unlikely (result == -1))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: failed to ACE_Task::put_next(): \"%m\", continuing\n"),
+                ACE_TEXT ("%s: failed to ACE_Task::putq(): \"%m\", returning\n"),
                 cb_data_p->task->mod_->name ()));
+    return;
   } // end IF
+
+  --cb_data_p->inFlightBuffers;
 }

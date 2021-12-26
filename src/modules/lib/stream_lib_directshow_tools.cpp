@@ -325,6 +325,7 @@ Stream_MediaFramework_DirectShow_Tools::dump (const Stream_MediaFramework_Direct
               ACE_TEXT ("%s\n"),
               ACE_TEXT (graph_layout_string.c_str ())));
 }
+
 void
 Stream_MediaFramework_DirectShow_Tools::dump (const Stream_MediaFramework_DirectShow_GraphConfiguration_t& graphConfiguration_in)
 {
@@ -357,6 +358,20 @@ Stream_MediaFramework_DirectShow_Tools::dump (const Stream_MediaFramework_Direct
               ACE_TEXT ("%s\n"),
               ACE_TEXT (graph_layout_string.c_str ())));
 }
+
+void
+Stream_MediaFramework_DirectShow_Tools::clear (Stream_MediaFramework_DirectShow_GraphConfiguration_t& graphConfiguration_inout)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_DirectShow_Tools::clear"));
+
+  for (Stream_MediaFramework_DirectShow_GraphConfigurationIterator_t iterator = graphConfiguration_inout.begin ();
+       iterator != graphConfiguration_inout.end ();
+       ++iterator)
+    if ((*iterator).mediaType)
+      Stream_MediaFramework_DirectShow_Tools::delete_ ((*iterator).mediaType, false);
+  graphConfiguration_inout.clear ();
+}
+
 void
 Stream_MediaFramework_DirectShow_Tools::dump (IPin* pin_in)
 {
