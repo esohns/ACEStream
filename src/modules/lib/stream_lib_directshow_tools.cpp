@@ -3209,13 +3209,31 @@ Stream_MediaFramework_DirectShow_Tools::setFormat (REFGUID mediaSubType_in,
       WAVEFORMATEXTENSIBLE* waveformatextensible_p =
         (WAVEFORMATEXTENSIBLE*)mediaType_inout.pbFormat;
       waveformatextensible_p->SubFormat = mediaSubType_in;
+      if (InlineIsEqualGUID (mediaSubType_in, MEDIASUBTYPE_IEEE_FLOAT))
+      {
+        waveformatextensible_p->Format.wBitsPerSample = 32;
+        waveformatextensible_p->Format.nBlockAlign =
+          (waveformatextensible_p->Format.wBitsPerSample / 8) * waveformatextensible_p->Format.nChannels;
+        waveformatextensible_p->Format.nAvgBytesPerSec =
+          waveformatextensible_p->Format.nBlockAlign * waveformatextensible_p->Format.nSamplesPerSec;
+        mediaType_inout.lSampleSize =
+          waveformatextensible_p->Format.nBlockAlign;
+      } // end IF
     } // end IF
     else
     {
       if (InlineIsEqualGUID (mediaSubType_in, MEDIASUBTYPE_PCM))
         audio_info_header_p->wFormatTag = WAVE_FORMAT_PCM;
       else if (InlineIsEqualGUID (mediaSubType_in, MEDIASUBTYPE_IEEE_FLOAT))
+      {
         audio_info_header_p->wFormatTag = WAVE_FORMAT_IEEE_FLOAT;
+        audio_info_header_p->wBitsPerSample = 32;
+        audio_info_header_p->nBlockAlign =
+          (audio_info_header_p->wBitsPerSample / 8) * audio_info_header_p->nChannels;
+        audio_info_header_p->nAvgBytesPerSec =
+          audio_info_header_p->nBlockAlign * audio_info_header_p->nSamplesPerSec;
+        mediaType_inout.lSampleSize = audio_info_header_p->nBlockAlign;
+      } // end ELSE IF
       else
       {
         ACE_DEBUG ((LM_ERROR,

@@ -26,7 +26,6 @@
 #include "common_tools.h"
 
 #include "stream_macros.h"
-#include "stream_session_message_base.h"
 
 #include "stream_stat_defines.h"
 
@@ -263,13 +262,10 @@ Stream_Statistic_StatisticAnalysis_T<ACE_SYNCH_USE,
       // *NOTE*: apparently, all Win32 sound data is signed 16 bits
       struct tWAVEFORMATEX* waveformatex_p =
         reinterpret_cast<struct tWAVEFORMATEX*> (media_type_s.pbFormat);
-      ACE_ASSERT ((waveformatex_p->wFormatTag == WAVE_FORMAT_PCM) ||
-                  (waveformatex_p->wFormatTag == WAVE_FORMAT_EXTENSIBLE));
       num_channels = waveformatex_p->nChannels;
+      sub_sample_size = waveformatex_p->wBitsPerSample / 8;
       //sample_size = waveformatex_p->nBlockAlign;
-      sample_size =
-        (waveformatex_p->nChannels * (waveformatex_p->wBitsPerSample / 8));
-      sub_sample_size = (sample_size / waveformatex_p->nChannels);
+      sample_size = (waveformatex_p->nChannels * sub_sample_size);
       sample_rate = waveformatex_p->nSamplesPerSec;
       // *NOTE*: apparently, all Win32 sound data is little endian only
       sample_byte_order = ACE_LITTLE_ENDIAN;
@@ -286,10 +282,8 @@ Stream_Statistic_StatisticAnalysis_T<ACE_SYNCH_USE,
       inherited2::getMediaType (session_data_r.formats.back (),
                                 media_type_s);
       num_channels = media_type_s.channels;
-      sample_size =
-        ((snd_pcm_format_width (media_type_s.format) / 8) *
-         media_type_s.channels);
-      sub_sample_size = sample_size / media_type_s.channels;
+      sub_sample_size = snd_pcm_format_width (media_type_s.format) / 8;
+      sample_size = media_type_s.channels * sub_sample_size;
       sample_rate = media_type_s.rate;
       sample_byte_order =
           ((snd_pcm_format_little_endian (media_type_s.format) == 1) ? ACE_LITTLE_ENDIAN

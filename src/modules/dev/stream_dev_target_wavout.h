@@ -27,10 +27,8 @@
 #include "ace/Message_Queue_T.h"
 #include "ace/Synch_Traits.h"
 
-#include "common_time_common.h"
-
 #include "stream_common.h"
-#include "stream_task_base_synch.h"
+#include "stream_task_base_asynch.h"
 
 #include "stream_lib_mediatype_converter.h"
 
@@ -65,26 +63,26 @@ template <ACE_SYNCH_DECL,
           typename SessionDataType,
           typename MediaType>
 class Stream_Dev_Target_WavOut_T
- : public Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
-                                 TimePolicyType,
-                                 ConfigurationType,
-                                 ControlMessageType,
-                                 DataMessageType,
-                                 SessionMessageType,
-                                 enum Stream_ControlType,
-                                 enum Stream_SessionMessageType,
-                                 struct Stream_UserData>
+ : public Stream_TaskBaseAsynch_T<ACE_SYNCH_USE,
+                                  TimePolicyType,
+                                  ConfigurationType,
+                                  ControlMessageType,
+                                  DataMessageType,
+                                  SessionMessageType,
+                                  enum Stream_ControlType,
+                                  enum Stream_SessionMessageType,
+                                  struct Stream_UserData>
  , public Stream_MediaFramework_MediaTypeConverter_T<MediaType>
 {
-  typedef Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
-                                 TimePolicyType,
-                                 ConfigurationType,
-                                 ControlMessageType,
-                                 DataMessageType,
-                                 SessionMessageType,
-                                 enum Stream_ControlType,
-                                 enum Stream_SessionMessageType,
-                                 struct Stream_UserData> inherited;
+  typedef Stream_TaskBaseAsynch_T<ACE_SYNCH_USE,
+                                  TimePolicyType,
+                                  ConfigurationType,
+                                  ControlMessageType,
+                                  DataMessageType,
+                                  SessionMessageType,
+                                  enum Stream_ControlType,
+                                  enum Stream_SessionMessageType,
+                                  struct Stream_UserData> inherited;
   typedef Stream_MediaFramework_MediaTypeConverter_T<MediaType> inherited2;
 
  public:

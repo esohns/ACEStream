@@ -964,9 +964,9 @@ load_sample_rates (int deviceId_in,
   unsigned int sample_rate = 0;
   if (capabilities_s.dwFormats & 0x0000000F)
   { sample_rate = 11025;
-    ACE_DEBUG ((LM_DEBUG,
-                ACE_TEXT ("found device \"%s\" sample rate: %ukHz\n"),
-                ACE_TEXT (capabilities_s.szPname), sample_rate));
+    //ACE_DEBUG ((LM_DEBUG,
+    //            ACE_TEXT ("found device \"%s\" sample rate: %ukHz\n"),
+    //            ACE_TEXT (capabilities_s.szPname), sample_rate));
     converter.clear ();
     converter.str (ACE_TEXT_ALWAYS_CHAR (""));
     converter << sample_rate;
@@ -978,9 +978,9 @@ load_sample_rates (int deviceId_in,
   } // end IF
   if (capabilities_s.dwFormats & 0x000000F0)
   { sample_rate = 22050;
-    ACE_DEBUG ((LM_DEBUG,
-                ACE_TEXT ("found device \"%s\" sample rate: %ukHz\n"),
-                ACE_TEXT (capabilities_s.szPname), sample_rate));
+    //ACE_DEBUG ((LM_DEBUG,
+    //            ACE_TEXT ("found device \"%s\" sample rate: %ukHz\n"),
+    //            ACE_TEXT (capabilities_s.szPname), sample_rate));
     converter.clear ();
     converter.str (ACE_TEXT_ALWAYS_CHAR (""));
     converter << sample_rate;
@@ -992,9 +992,9 @@ load_sample_rates (int deviceId_in,
   } // end IF
   if (capabilities_s.dwFormats & 0x00000F00)
   { sample_rate = 44100;
-    ACE_DEBUG ((LM_DEBUG,
-                ACE_TEXT ("found device \"%s\" sample rate: %ukHz\n"),
-                ACE_TEXT (capabilities_s.szPname), sample_rate));
+    //ACE_DEBUG ((LM_DEBUG,
+    //            ACE_TEXT ("found device \"%s\" sample rate: %ukHz\n"),
+    //            ACE_TEXT (capabilities_s.szPname), sample_rate));
     converter.clear ();
     converter.str (ACE_TEXT_ALWAYS_CHAR (""));
     converter << sample_rate;
@@ -1006,9 +1006,9 @@ load_sample_rates (int deviceId_in,
   } // end IF
   if (capabilities_s.dwFormats & 0x0000F000)
   { sample_rate = 48000;
-    ACE_DEBUG ((LM_DEBUG,
-                ACE_TEXT ("found device \"%s\" sample rate: %ukHz\n"),
-                ACE_TEXT (capabilities_s.szPname), sample_rate));
+    //ACE_DEBUG ((LM_DEBUG,
+    //            ACE_TEXT ("found device \"%s\" sample rate: %ukHz\n"),
+    //            ACE_TEXT (capabilities_s.szPname), sample_rate));
     converter.clear ();
     converter.str (ACE_TEXT_ALWAYS_CHAR (""));
     converter << sample_rate;
@@ -1020,9 +1020,9 @@ load_sample_rates (int deviceId_in,
   } // end IF
   if (capabilities_s.dwFormats & 0x000F0000)
   { sample_rate = 96000;
-    ACE_DEBUG ((LM_DEBUG,
-                ACE_TEXT ("found device \"%s\" sample rate: %ukHz\n"),
-                ACE_TEXT (capabilities_s.szPname), sample_rate));
+    //ACE_DEBUG ((LM_DEBUG,
+    //            ACE_TEXT ("found device \"%s\" sample rate: %ukHz\n"),
+    //            ACE_TEXT (capabilities_s.szPname), sample_rate));
     converter.clear ();
     converter.str (ACE_TEXT_ALWAYS_CHAR (""));
     converter << sample_rate;
@@ -1308,8 +1308,6 @@ load_sample_resolutions (int deviceId_in,
 {
   STREAM_TRACE (ACE_TEXT ("::load_sample_resolutions"));
 
-  ACE_UNUSED_ARG (mediaSubType_in);
-
   // initialize result
   gtk_list_store_clear (listStore_in);
 
@@ -1317,7 +1315,12 @@ load_sample_resolutions (int deviceId_in,
   std::ostringstream converter;
   if (deviceId_in == -1)
   {
-    std::vector<unsigned int> resolutions_a = {8, 16, 32};
+    std::vector<unsigned int> resolutions_a = {8, 16};
+    if (InlineIsEqualGUID (mediaSubType_in, MEDIASUBTYPE_IEEE_FLOAT))
+    {
+      resolutions_a.clear ();
+      resolutions_a.push_back (32);
+    } // end IF
     for (std::vector<unsigned int>::const_iterator iterator_2 = resolutions_a.begin ();
          iterator_2 != resolutions_a.end ();
          ++iterator_2)
@@ -1346,6 +1349,19 @@ load_sample_resolutions (int deviceId_in,
                 ACE_TEXT ("failed to waveInGetDevCaps(%d): \"%s\", aborting\n"),
                 deviceId_in, ACE_TEXT (error_msg_a)));
     return false;
+  } // end IF
+
+  if (InlineIsEqualGUID (mediaSubType_in, MEDIASUBTYPE_IEEE_FLOAT))
+  {
+    converter.clear ();
+    converter.str (ACE_TEXT_ALWAYS_CHAR (""));
+    converter << 32;
+    gtk_list_store_append (listStore_in, &iterator);
+    gtk_list_store_set (listStore_in, &iterator,
+                        0, converter.str ().c_str (),
+                        1, 8,
+                        -1);
+    return true;
   } // end IF
 
   switch (sampleRate_in)
@@ -3669,20 +3685,16 @@ update_buffer_size (gpointer userData_in)
 {
   STREAM_TRACE (ACE_TEXT ("::update_buffer_size"));
 
+  // sanity check(s)
   struct Test_U_AudioEffect_UI_CBDataBase* data_base_p =
     static_cast<struct Test_U_AudioEffect_UI_CBDataBase*> (userData_in);
-
-  // sanity check(s)
   ACE_ASSERT (data_base_p);
-
   Common_UI_GTK_Manager_t* gtk_manager_p =
     COMMON_UI_GTK_MANAGER_SINGLETON::instance ();
   ACE_ASSERT (gtk_manager_p);
   const Common_UI_GTK_State_t& state_r = gtk_manager_p->getR ();
-
   Common_UI_GTK_BuildersConstIterator_t iterator =
     state_r.builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN));
-  // sanity check(s)
   ACE_ASSERT (iterator != state_r.builders.end ());
 
   GtkSpinButton* spin_button_p =

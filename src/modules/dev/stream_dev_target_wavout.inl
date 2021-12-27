@@ -135,7 +135,9 @@ Stream_Dev_Target_WavOut_T<ACE_SYNCH_USE,
   if (unlikely (!handle_))
     return;
 
-  ACE_Message_Block* message_block_p = message_inout;
+  passMessageDownstream_out = false;
+
+  ACE_Message_Block* message_block_p = message_inout, *message_block_2 = NULL;
   MMRESULT result = MMSYSERR_ERROR;
   int result_2 = -1;
   struct wavehdr_tag* header_p = NULL;
@@ -154,6 +156,10 @@ continue_:
   ACE_ASSERT (header_p);
 
   // step2: unprepare header
+  message_block_2 =
+    reinterpret_cast<ACE_Message_Block*> (header_p->dwUser);
+  if (likely (message_block_2))
+    message_block_2->release ();
   result = waveOutUnprepareHeader (handle_,
                                    header_p,
                                    sizeof (struct wavehdr_tag));
@@ -170,6 +176,7 @@ continue_:
   // step3: prepare header
   header_p->lpData = message_block_p->rd_ptr ();
   header_p->dwBufferLength = message_block_p->length ();
+  header_p->dwUser = reinterpret_cast<DWORD_PTR> (message_block_p);
   header_p->dwFlags = 0;
   result = waveOutPrepareHeader (handle_,
                                  header_p,

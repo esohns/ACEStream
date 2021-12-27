@@ -795,8 +795,6 @@ Stream_Module_Decoder_Tools::sinus (unsigned int sampleRate_in,
   uint64_t maximum_value_i =
     Common_Tools::max<uint64_t> (bytesPerSample_in,
                                  formatIsSigned_in);
-  long double maximum_value_d =
-    Common_Tools::max<long double> (bytesPerSample_in);
   bool byte_swap_b =
     (formatIsLittleEndian_in ? (ACE_BYTE_ORDER != ACE_LITTLE_ENDIAN)
                              : (ACE_BYTE_ORDER == ACE_LITTLE_ENDIAN));
@@ -805,7 +803,7 @@ Stream_Module_Decoder_Tools::sinus (unsigned int sampleRate_in,
   for (unsigned int i = 0; i < samplesToWrite_in; ++i)
   {
     value_d =
-      (formatIsFloat_in ? std::sin (phase_inout) * maximum_value_d
+      (formatIsFloat_in ? std::sin (phase_inout)
                         : (formatIsSigned_in ? std::sin (phase_inout) * static_cast<long double> (maximum_value_i)
                                              : (std::sin (phase_inout) + 1.0) * (static_cast<long double> (maximum_value_i) / 2.0)));
     for (unsigned int j = 0; j < channels_in; ++j, data_p += bytesPerSample_in)
@@ -829,28 +827,35 @@ Stream_Module_Decoder_Tools::sinus (unsigned int sampleRate_in,
         }
         case 4:
         {
-          *reinterpret_cast<uint32_t*> (data_p) =
-            (formatIsFloat_in ? (byte_swap_b ? Common_Tools::byteSwap (static_cast<float> (value_d))
-                                             : static_cast<float> (value_d))
-                              : (byte_swap_b ? Common_Tools::byteSwap (formatIsSigned_in ? (uint32_t)static_cast<int32_t> (value_d)
-                                                                                         : static_cast<uint32_t> (value_d))
-                                             : (formatIsSigned_in ? (uint32_t)static_cast<int32_t> (value_d)
-                                                                  : static_cast<uint32_t> (value_d))));
+          if (formatIsFloat_in)
+            *reinterpret_cast<float*> (data_p) =
+              (byte_swap_b ? Common_Tools::byteSwap (static_cast<float> (value_d))
+                           : static_cast<float> (value_d));
+          else
+            *reinterpret_cast<uint32_t*> (data_p) =
+              (byte_swap_b ? Common_Tools::byteSwap (formatIsSigned_in ? (uint32_t)static_cast<int32_t> (value_d)
+                                                                       : static_cast<uint32_t> (value_d))
+                           : (formatIsSigned_in ? (uint32_t)static_cast<int32_t> (value_d)
+                                                : static_cast<uint32_t> (value_d)));
           break;
         }
         case 8:
         {
-          *reinterpret_cast<uint64_t*> (data_p) =
-            (formatIsFloat_in ? (byte_swap_b ? Common_Tools::byteSwap (static_cast<double> (value_d))
-                                             : static_cast<double> (value_d))
-                              : (byte_swap_b ? Common_Tools::byteSwap (formatIsSigned_in ? (uint64_t)static_cast<int64_t> (value_d)
-                                                                                         : static_cast<uint64_t> (value_d))
-                                             : (formatIsSigned_in ? (uint64_t)static_cast<int64_t> (value_d)
-                                                                  : static_cast<uint64_t> (value_d))));
+          if (formatIsFloat_in)
+            *reinterpret_cast<double*> (data_p) =
+              (byte_swap_b ? Common_Tools::byteSwap (static_cast<double> (value_d))
+                           : static_cast<double> (value_d));
+          else
+            *reinterpret_cast<uint64_t*> (data_p) =
+              (byte_swap_b ? Common_Tools::byteSwap (formatIsSigned_in ? (uint64_t)static_cast<int64_t> (value_d)
+                                                                       : static_cast<uint64_t> (value_d))
+                           : (formatIsSigned_in ? (uint64_t)static_cast<int64_t> (value_d)
+                                                : static_cast<uint64_t> (value_d)));
           break;
         }
         case 16:
         { ACE_ASSERT (formatIsFloat_in);
+          ACE_ASSERT (ACE_SIZEOF_LONG_DOUBLE == 16);
           *reinterpret_cast<long double*> (data_p) =
             (byte_swap_b ? Common_Tools::byteSwap (value_d) : value_d);
           break;
@@ -1317,7 +1322,7 @@ Stream_Module_Decoder_Tools::loadAudioRendererGraph (REFGUID deviceCategory_in,
 
   // step0: add resampler ? (effects require PCM @ 44100 samples/sec)
   ACE_ASSERT (InlineIsEqualGUID (mediaType_in.majortype, MEDIATYPE_Audio));
-  ACE_ASSERT (InlineIsEqualGUID (mediaType_in.subtype, MEDIASUBTYPE_PCM));
+  //ACE_ASSERT (InlineIsEqualGUID (mediaType_in.subtype, MEDIASUBTYPE_PCM));
   ACE_ASSERT (InlineIsEqualGUID (mediaType_in.formattype, FORMAT_WaveFormatEx));
   ACE_ASSERT (mediaType_in.cbFormat >= sizeof (struct tWAVEFORMATEX));
   waveformatex_p =

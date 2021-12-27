@@ -32,10 +32,10 @@ extern "C"
 #include "common_tools.h"
 
 #include "stream_macros.h"
-#include "stream_session_message_base.h"
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-//#include "stream_dev_directshow_tools.h"
+#include "stream_lib_directshow_tools.h"
+#include "stream_lib_directsound_tools.h"
 #else
 #include "stream_lib_alsa_common.h"
 #endif // ACE_WIN32 || ACE_WIN64
@@ -422,8 +422,9 @@ Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
       unsigned int data_sample_size = 0;
       unsigned int sound_sample_size = 0;
       unsigned int channels, sample_rate;
-      bool is_signed_format = false;
       int sample_byte_order = ACE_BYTE_ORDER;
+      bool is_signed_format = false;
+      bool is_floating_point_format = false;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
       struct _AMMediaType media_type_s;
       ACE_OS::memset (&media_type_s, 0, sizeof (struct _AMMediaType));
@@ -433,12 +434,18 @@ Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
       struct tWAVEFORMATEX* waveformatex_p =
         reinterpret_cast<struct tWAVEFORMATEX*> (media_type_s.pbFormat);
       ACE_ASSERT (waveformatex_p);
-      data_sample_size = waveformatex_p->nBlockAlign;
-      sound_sample_size = (data_sample_size * 8) /
-                          waveformatex_p->wBitsPerSample;
-      // *NOTE*: Microsoft(TM) uses signed little endian
-      is_signed_format = true;
+      sound_sample_size = (waveformatex_p->wBitsPerSample / 8);
+      //data_sample_size = waveformatex_p->nBlockAlign;
+      data_sample_size = waveformatex_p->nChannels * sound_sample_size;
+      // *NOTE*: apparently, all Win32 sound data is little endian only
       sample_byte_order = ACE_LITTLE_ENDIAN;
+      // *NOTE*: "...If the audio contains 8 bits per sample, the audio samples
+      //         are unsigned values. (Each audio sample has the range 0–255.)
+      //         If the audio contains 16 bits per sample or higher, the audio
+      //         samples are signed values. ..."
+      is_signed_format = !(sound_sample_size == 1);
+      is_floating_point_format =
+        Stream_MediaFramework_DirectSound_Tools::isFloat (*waveformatex_p);
 
       channels = waveformatex_p->nChannels;
       sample_rate = waveformatex_p->nSamplesPerSec;
@@ -448,14 +455,14 @@ Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
       struct Stream_MediaFramework_ALSA_MediaType media_type_s;
       inherited2::getMediaType (session_data_r.formats.back (),
                                 media_type_s);
-      data_sample_size =
-        ((snd_pcm_format_width (media_type_s.format) / 8) *
-          media_type_s.channels);
-      sound_sample_size = data_sample_size / media_type_s.channels;
-      is_signed_format = snd_pcm_format_signed (media_type_s.format);
+      sound_sample_size = (snd_pcm_format_width (media_type_s.format) / 8);
+      data_sample_size = sound_sample_size * media_type_s.channels;
       sample_byte_order =
           ((snd_pcm_format_little_endian (media_type_s.format) == 1) ? ACE_LITTLE_ENDIAN
                                                                      : -1);
+      is_signed_format = snd_pcm_format_signed (media_type_s.format);
+      is_floating_point_format =
+        snd_pcm_format_real (media_type_s.format);
 
       channels = media_type_s.channels;
       sample_rate = media_type_s.rate;
@@ -463,6 +470,7 @@ Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
       result_2 = sampleIterator_.initialize (data_sample_size,
                                              sound_sample_size,
                                              is_signed_format,
+                                             is_floating_point_format,
                                              sample_byte_order);
       if (unlikely (!result_2))
       {
@@ -490,7 +498,8 @@ Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
       scaleFactorX_2 =
         width_ / static_cast<double> (inherited3::channels_ * ((inherited3::slots_ / 2) - 1));
       scaleFactorY_ =
-        height_ / static_cast<double> (Common_Tools::max<ACE_UINT64> (sound_sample_size, false));
+        (is_floating_point_format ? static_cast<double> (height_) / 2.0
+                                  : static_cast<double> (height_) / static_cast<double> (Common_Tools::max<ACE_UINT64> (sound_sample_size, false)));
 
       // schedule the renderer
       if (inherited::configuration_->fps)
@@ -1110,8 +1119,8 @@ Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
 
   int result = -1;
   bool release_lock = false;
-  unsigned int data_sample_size = 0;
   unsigned int sound_sample_size = 0;
+  bool is_floating_point_format = false;
   const SessionDataType& session_data_r = inherited::sessionData_->getR ();
   ACE_ASSERT (!session_data_r.formats.empty ());
 
@@ -1121,22 +1130,20 @@ Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
   inherited2::getMediaType (session_data_r.formats.back (),
                             media_type_s);
   ACE_ASSERT (InlineIsEqualGUID (media_type_s.formattype, FORMAT_WaveFormatEx));
-  ACE_ASSERT (media_type_s.pbFormat);
-  // *NOTE*: apparently, all Win32 sound data is signed 16 bits
   struct tWAVEFORMATEX* waveformatex_p =
     reinterpret_cast<struct tWAVEFORMATEX*> (media_type_s.pbFormat);
   ACE_ASSERT (waveformatex_p);
-  data_sample_size = waveformatex_p->nBlockAlign;
-  sound_sample_size = (data_sample_size * 8) / waveformatex_p->wBitsPerSample;
+  sound_sample_size = waveformatex_p->wBitsPerSample / 8;
+  is_floating_point_format =
+    Stream_MediaFramework_DirectSound_Tools::isFloat (*waveformatex_p);
   Stream_MediaFramework_DirectShow_Tools::free (media_type_s);
 #else
   MediaType media_type_s;
   inherited2::getMediaType (session_data_r.formats.back (),
                             media_type_s);
-  data_sample_size =
-    ((snd_pcm_format_width (media_type_s.format) / 8) *
-     media_type_s.channels);
-  sound_sample_size = data_sample_size / media_type_s.channels;
+  sound_sample_size = (snd_pcm_format_width (media_type_s.format) / 8);
+  is_floating_point_format =
+    (snd_pcm_format_real (media_type_s.format) == 1);
 #endif // ACE_WIN32 || ACE_WIN64
 
   { ACE_GUARD (ACE_Thread_Mutex, aGuard, inherited::lock_);
@@ -1170,7 +1177,8 @@ Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
     scaleFactorX_2 =
       width_ / static_cast<double> (inherited3::channels_ * ((inherited3::slots_ / 2) - 1));
     scaleFactorY_ =
-      height_ / static_cast<double> (Common_Tools::max<ACE_UINT64> (sound_sample_size, false));
+      (is_floating_point_format ? static_cast<double> (height_) / 2.0
+                                : static_cast<double> (height_) / static_cast<double> (Common_Tools::max<ACE_UINT64> (sound_sample_size, false)));
   } // end lock scope
 }
 

@@ -367,27 +367,19 @@ Stream_Dec_Noise_Source_T<ACE_SYNCH_USE,
       ACE_ASSERT (inherited::configuration_->allocatorConfiguration);
       bufferSize_ =
         static_cast<unsigned int> (inherited::configuration_->allocatorConfiguration->defaultBufferSize * 1.1);
-      bufferSize_ += frameSize_ - (bufferSize_ % frameSize_);
+      if (bufferSize_ % frameSize_)
+        bufferSize_ += frameSize_ - (bufferSize_ % frameSize_);
+      ACE_ASSERT ((bufferSize_ % frameSize_) == 0);
       buffer_time_us =
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-        static_cast<suseconds_t> ((inherited::configuration_->allocatorConfiguration->defaultBufferSize / static_cast<double> (waveformatex_p->nAvgBytesPerSec)) * 1000000.0);
+        static_cast<suseconds_t> ((inherited::configuration_->allocatorConfiguration->defaultBufferSize * 1000000.0) / static_cast<double> (waveformatex_p->nAvgBytesPerSec));
 #else
-        static_cast<suseconds_t> ((inherited::configuration_->allocatorConfiguration->defaultBufferSize / static_cast<double> (frameSize_ * mediaType_.rate)) * 1000000.0);
+        static_cast<suseconds_t> ((inherited::configuration_->allocatorConfiguration->defaultBufferSize * 1000000.0) / static_cast<double> (frameSize_ * mediaType_.rate));
 #endif // ACE_WIN32 || ACE_WIN64
 
       // initialize noise generator
       if (!inherited::configuration_->generatorConfiguration->isFloatFormat)
       {
-        //int64_t minimum_value_i =
-        //  ((bytesPerSample_in == 8) ? (formatIsSigned_in ? std::numeric_limits<int64_t>::min ()
-        //                                                 : 0)
-        //                            : (formatIsSigned_in ? ((1UL << ((sizeof (int64_t) * 8) - 1)) | ((1UL << ((bytesPerSample_in * 8) - 1)) - 1))
-        //                                                 : 0);
-        //uint64_t maximum_value_i =
-        //  ((bytesPerSample_in == 8) ? (formatIsSigned_in ? std::numeric_limits<int64_t>::max ()
-        //                                                 : std::numeric_limits<uint64_t>::max ())
-        //                            : (formatIsSigned_in ? (1UL << ((bytesPerSample_in * 8) - 1)) - 1
-        //                                                 : (1UL <<  (bytesPerSample_in * 8)) - 1));
         if (inherited::configuration_->generatorConfiguration->isSignedFormat)
           switch (inherited::configuration_->generatorConfiguration->bytesPerSample)
           {
@@ -469,6 +461,39 @@ Stream_Dec_Noise_Source_T<ACE_SYNCH_USE,
             }
           } // end SWITCH
       } // end IF
+      else
+        switch (inherited::configuration_->generatorConfiguration->bytesPerSample)
+        {
+          case 4:
+          { ACE_ASSERT (ACE_SIZEOF_FLOAT == 4);
+            REAL_DISTRIBUTION_T::param_type parameters_s (-1.0F,
+                                                          1.0F);
+            realDistribution_.param (parameters_s);
+            break;
+          }
+          case 8:
+          { ACE_ASSERT (ACE_SIZEOF_DOUBLE == 8);
+            REAL_DISTRIBUTION_T::param_type parameters_s (-1.0,
+                                                          1.0);
+            realDistribution_.param (parameters_s);
+            break;
+          }
+          case 16:
+          { ACE_ASSERT (ACE_SIZEOF_LONG_DOUBLE == 16);
+            REAL_DISTRIBUTION_T::param_type parameters_s (-1.0,
+                                                          1.0);
+            realDistribution_.param (parameters_s);
+            break;
+          }
+          default:
+          {
+            ACE_DEBUG ((LM_ERROR,
+                        ACE_TEXT ("%s: invalid/unknown sample size (was: %u), aborting\n"),
+                        inherited::mod_->name (),
+                        inherited::configuration_->generatorConfiguration->bytesPerSample));
+            goto error;
+          }
+        } // end SWITCH
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
       DWORD task_index_i = 0;
@@ -635,11 +660,6 @@ Stream_Dec_Noise_Source_T<ACE_SYNCH_USE,
   } // end IF
 
   // step2: write frames
-  //ACE_ASSERT ((inherited::configuration_->allocatorConfiguration->defaultBufferSize % frameSize_) == 0);
-  ACE_ASSERT ((bufferSize_ % frameSize_) == 0);
-  number_of_frames_i =
-    //inherited::configuration_->allocatorConfiguration->defaultBufferSize / frameSize_;
-    bufferSize_ / frameSize_;
   switch (inherited::configuration_->generatorConfiguration->type)
   {
     case STREAM_MEDIAFRAMEWORK_SOUNDGENERATOR_SAWTOOTH:
@@ -656,7 +676,7 @@ Stream_Dec_Noise_Source_T<ACE_SYNCH_USE,
                                           inherited::configuration_->generatorConfiguration->isSignedFormat,
                                           inherited::configuration_->generatorConfiguration->isLittleEndianFormat,
                                           reinterpret_cast<uint8_t*> (message_block_p->wr_ptr ()),
-                                          number_of_frames_i,
+                                          bufferSize_ / frameSize_,
                                           inherited::configuration_->generatorConfiguration->frequency, 
                                           phase_);
       break;
@@ -675,7 +695,7 @@ Stream_Dec_Noise_Source_T<ACE_SYNCH_USE,
                                             inherited::configuration_->generatorConfiguration->isSignedFormat,
                                             inherited::configuration_->generatorConfiguration->isLittleEndianFormat,
                                             reinterpret_cast<uint8_t*> (message_block_p->wr_ptr ()),
-                                            number_of_frames_i,
+                                            bufferSize_ / frameSize_,
                                             realDistribution_);
       else if (inherited::configuration_->generatorConfiguration->isSignedFormat)
         Stream_Module_Decoder_Tools::noise (inherited::configuration_->generatorConfiguration->samplesPerSecond,
@@ -684,7 +704,7 @@ Stream_Dec_Noise_Source_T<ACE_SYNCH_USE,
                                             inherited::configuration_->generatorConfiguration->isSignedFormat,
                                             inherited::configuration_->generatorConfiguration->isLittleEndianFormat,
                                             reinterpret_cast<uint8_t*> (message_block_p->wr_ptr ()),
-                                            number_of_frames_i,
+                                            bufferSize_ / frameSize_,
                                             signedIntegerDistribution_);
       else
         Stream_Module_Decoder_Tools::noise (inherited::configuration_->generatorConfiguration->samplesPerSecond,
@@ -693,7 +713,7 @@ Stream_Dec_Noise_Source_T<ACE_SYNCH_USE,
                                             inherited::configuration_->generatorConfiguration->isSignedFormat,
                                             inherited::configuration_->generatorConfiguration->isLittleEndianFormat,
                                             reinterpret_cast<uint8_t*> (message_block_p->wr_ptr ()),
-                                            number_of_frames_i,
+                                            bufferSize_ / frameSize_,
                                             integerDistribution_);
       break;
     }
@@ -706,7 +726,7 @@ Stream_Dec_Noise_Source_T<ACE_SYNCH_USE,
       goto error;
     }
   } // end SWITCH
-  message_block_p->wr_ptr (number_of_frames_i * frameSize_);
+  message_block_p->wr_ptr (bufferSize_);
 
   // step3: push data downstream
   result = inherited::put_next (message_block_p, NULL);
