@@ -588,8 +588,8 @@ do_initialize_directshow (const struct Stream_Device_Identifier& deviceIdentifie
   // initialize return value(s)
   Stream_MediaFramework_DirectShow_Tools::free (captureMediaType_out);
 
-  waveformatex_s.wFormatTag = WAVE_FORMAT_PCM;
-  waveformatex_s.nChannels = STREAM_DEV_MIC_DEFAULT_CHANNELS; // stereo
+  waveformatex_s.wFormatTag = STREAM_DEV_MIC_DEFAULT_FORMAT;
+  waveformatex_s.nChannels = STREAM_DEV_MIC_DEFAULT_CHANNELS;
   waveformatex_s.nSamplesPerSec = STREAM_DEV_MIC_DEFAULT_SAMPLE_RATE;
   waveformatex_s.wBitsPerSample = STREAM_DEV_MIC_DEFAULT_BITS_PER_SAMPLE;
   waveformatex_s.nBlockAlign =
@@ -1124,14 +1124,16 @@ do_work (
   struct Test_U_AudioEffect_MediaFoundation_StreamConfiguration mediafoundation_stream_configuration;
   Test_U_AudioEffect_DirectShow_Stream directshow_stream;
   Test_U_AudioEffect_MediaFoundation_Stream mediafoundation_stream;
+  std::string renderer_modulename_string;
   switch (mediaFramework_in)
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
     {
       istream_p = &directshow_stream;
       istream_control_p = &directshow_stream;
-      directshow_stream_configuration.useFrameworkSource =
-        useFrameworkSource_in;
+      directshow_stream_configuration.capturer =
+        (useFrameworkSource_in ? STREAM_DEVICE_CAPTURER_DIRECTSHOW
+                               : STREAM_DEVICE_CAPTURER_WAVEIN);
       directshow_stream_configuration.renderer =
         (useFrameworkRenderer_in ? STREAM_DEVICE_RENDERER_DIRECTSHOW
                                  : STREAM_DEVICE_RENDERER_WAVEOUT);
@@ -1141,8 +1143,9 @@ do_work (
     {
       istream_p = &mediafoundation_stream;
       istream_control_p = &mediafoundation_stream;
-      mediafoundation_stream_configuration.useFrameworkSource =
-        useFrameworkSource_in;
+      mediafoundation_stream_configuration.capturer =
+        (useFrameworkSource_in ? STREAM_DEVICE_CAPTURER_MEDIAFOUNDATION
+                               : STREAM_DEVICE_CAPTURER_WASAPI);
       mediafoundation_stream_configuration.renderer =
         (useFrameworkRenderer_in ? STREAM_DEVICE_RENDERER_MEDIAFOUNDATION
                                  : STREAM_DEV_AUDIO_DEFAULT_RENDERER);
@@ -1240,6 +1243,44 @@ do_work (
     {
       directshow_modulehandler_configuration.allocatorConfiguration =
         allocator_configuration_p;
+      switch (directshow_stream_configuration.capturer)
+      {
+        case STREAM_DEVICE_CAPTURER_WAVEIN:
+        {
+          directshow_modulehandler_configuration.deviceIdentifier.identifierDiscriminator =
+            Stream_Device_Identifier::ID;
+          directshow_modulehandler_configuration.deviceIdentifier.identifier._id =
+            (mute_in ? -1 : 0); // *TODO*: -1 means WAVE_MAPPER
+          break;
+        }
+        case STREAM_DEVICE_CAPTURER_WASAPI:
+        {
+          directshow_modulehandler_configuration.deviceIdentifier.identifierDiscriminator =
+            Stream_Device_Identifier::GUID;
+          directshow_modulehandler_configuration.deviceIdentifier.identifier._guid =
+            (mute_in ? GUID_NULL
+                     : Stream_MediaFramework_DirectSound_Tools::waveDeviceIdToDirectSoundGUID (0,
+                                                                                               true)); // capture
+          break;
+        }
+        case STREAM_DEVICE_CAPTURER_DIRECTSHOW:
+        {
+          directshow_modulehandler_configuration.deviceIdentifier.identifierDiscriminator =
+            Stream_Device_Identifier::GUID;
+          directshow_modulehandler_configuration.deviceIdentifier.identifier._guid =
+            (mute_in ? GUID_NULL
+                     : Stream_MediaFramework_DirectSound_Tools::waveDeviceIdToDirectSoundGUID (0,
+                                                                                               true)); // capture
+          break;
+        }
+        default:
+        {
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("invalid/unknown capturer type (was: %d), returning\n"),
+                      directshow_stream_configuration.capturer));
+          goto error;
+        }
+      } // end SWITCH
       directshow_modulehandler_configuration.filterConfiguration =
         &directShowConfiguration_in.filterConfiguration;
       directshow_modulehandler_configuration.generatorConfiguration =
@@ -1279,10 +1320,10 @@ do_work (
 
       directshow_modulehandler_configuration_2 =
         directshow_modulehandler_configuration;
-      directshow_modulehandler_configuration_2.deviceIdentifier.identifierDiscriminator =
-        Stream_Device_Identifier::ID;
-      directshow_modulehandler_configuration_2.deviceIdentifier.identifier._id =
-        (mute_in ? -1 : 0);
+      //directshow_modulehandler_configuration_2.deviceIdentifier.identifierDiscriminator =
+      //  Stream_Device_Identifier::ID;
+      //directshow_modulehandler_configuration_2.deviceIdentifier.identifier._id =
+      //  (mute_in ? -1 : 0);
       //directshow_modulehandler_configuration_2.passData = false;
       directShowConfiguration_in.streamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (STREAM_LIB_DIRECTSHOW_TARGET_DEFAULT_NAME_STRING),
                                                                              std::make_pair (&module_configuration,
@@ -1298,9 +1339,16 @@ do_work (
             Stream_Device_Identifier::ID;
           directshow_modulehandler_configuration_3.deviceIdentifier.identifier._id =
             (mute_in ? -1 : 0); // *TODO*: -1 means WAVE_MAPPER
+          renderer_modulename_string =
+            ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_WAVEOUT_RENDER_DEFAULT_NAME_STRING);
           break;
         }
         case STREAM_DEVICE_RENDERER_WASAPI:
+        {
+          renderer_modulename_string =
+            ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_WASAPI_RENDER_DEFAULT_NAME_STRING);
+          // *WARNING*: falls through !
+        }
         case STREAM_DEVICE_RENDERER_DIRECTSHOW:
         {
           directshow_modulehandler_configuration_3.deviceIdentifier.identifierDiscriminator =
@@ -1319,8 +1367,7 @@ do_work (
           goto error;
         }
       } // end SWITCH
-      directShowConfiguration_in.streamConfiguration.insert (std::make_pair (//ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_WASAPI_RENDER_DEFAULT_NAME_STRING),
-                                                                             ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_WAVEOUT_RENDER_DEFAULT_NAME_STRING),
+      directShowConfiguration_in.streamConfiguration.insert (std::make_pair (renderer_modulename_string,
                                                                              std::make_pair (&module_configuration,
                                                                                              &directshow_modulehandler_configuration_3)));
 
@@ -1340,6 +1387,44 @@ do_work (
     {
       mediafoundation_modulehandler_configuration.allocatorConfiguration =
         allocator_configuration_p;
+      switch (mediafoundation_stream_configuration.capturer)
+      {
+        case STREAM_DEVICE_CAPTURER_WAVEIN:
+        {
+          mediafoundation_modulehandler_configuration.deviceIdentifier.identifierDiscriminator =
+            Stream_Device_Identifier::ID;
+          mediafoundation_modulehandler_configuration.deviceIdentifier.identifier._id =
+            (mute_in ? -1 : 0); // *TODO*: -1 means WAVE_MAPPER
+          break;
+        }
+        case STREAM_DEVICE_CAPTURER_WASAPI:
+        {
+          mediafoundation_modulehandler_configuration.deviceIdentifier.identifierDiscriminator =
+            Stream_Device_Identifier::GUID;
+          mediafoundation_modulehandler_configuration.deviceIdentifier.identifier._guid =
+            (mute_in ? GUID_NULL
+                     : Stream_MediaFramework_DirectSound_Tools::waveDeviceIdToDirectSoundGUID (0,
+                                                                                               true)); // capture
+          break;
+        }
+        case STREAM_DEVICE_CAPTURER_MEDIAFOUNDATION:
+        {
+          mediafoundation_modulehandler_configuration.deviceIdentifier.identifierDiscriminator =
+            Stream_Device_Identifier::GUID;
+          mediafoundation_modulehandler_configuration.deviceIdentifier.identifier._guid =
+            (mute_in ? GUID_NULL
+                     : Stream_MediaFramework_DirectSound_Tools::waveDeviceIdToDirectSoundGUID (0,
+                                                                                               true)); // capture
+          break;
+        }
+        default:
+        {
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("invalid/unknown capturer type (was: %d), returning\n"),
+                      mediafoundation_stream_configuration.capturer));
+          goto error;
+        }
+      } // end SWITCH
       mediafoundation_modulehandler_configuration.generatorConfiguration =
         &mediaFoundationConfiguration_in.generatorConfiguration;
       mediafoundation_modulehandler_configuration.mediaFoundationConfiguration =
@@ -1376,10 +1461,10 @@ do_work (
 
       mediafoundation_modulehandler_configuration_2 =
         mediafoundation_modulehandler_configuration;
-      mediafoundation_modulehandler_configuration_2.deviceIdentifier.identifierDiscriminator =
-        Stream_Device_Identifier::ID;
-      mediafoundation_modulehandler_configuration_2.deviceIdentifier.identifier._id =
-        (mute_in ? -1 : 0);
+      //mediafoundation_modulehandler_configuration_2.deviceIdentifier.identifierDiscriminator =
+      //  Stream_Device_Identifier::ID;
+      //mediafoundation_modulehandler_configuration_2.deviceIdentifier.identifier._id =
+      //  (mute_in ? -1 : 0);
       //mediafoundation_modulehandler_configuration_2.passData = false;
       mediaFoundationConfiguration_in.streamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (STREAM_LIB_MEDIAFOUNDATION_TARGET_DEFAULT_NAME_STRING),
                                                                                   std::make_pair (&module_configuration,
@@ -1395,9 +1480,16 @@ do_work (
             Stream_Device_Identifier::ID;
           mediafoundation_modulehandler_configuration_3.deviceIdentifier.identifier._id =
             (mute_in ? -1 : 0); // *TODO*: -1 means WAVE_MAPPER
+          renderer_modulename_string =
+            ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_WAVEOUT_RENDER_DEFAULT_NAME_STRING);
           break;
         }
         case STREAM_DEVICE_RENDERER_WASAPI:
+        {
+          renderer_modulename_string =
+            ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_WASAPI_RENDER_DEFAULT_NAME_STRING);
+          // *WARNING*: falls through !
+        }
         case STREAM_DEVICE_RENDERER_MEDIAFOUNDATION:
         {
           mediafoundation_modulehandler_configuration_3.deviceIdentifier.identifierDiscriminator =
@@ -1416,7 +1508,7 @@ do_work (
           goto error;
         }
       } // end SWITCH
-      mediaFoundationConfiguration_in.streamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_WASAPI_RENDER_DEFAULT_NAME_STRING),
+      mediaFoundationConfiguration_in.streamConfiguration.insert (std::make_pair (renderer_modulename_string,
                                                                                   std::make_pair (&module_configuration,
                                                                                                   &mediafoundation_modulehandler_configuration_3)));
 

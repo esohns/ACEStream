@@ -101,18 +101,41 @@ Test_U_AudioEffect_DirectShow_Stream::load (Stream_ILayout* layout_in,
   {
     case AUDIOEFFECT_SOURCE_DEVICE:
     {
-      if (inherited::configuration_->configuration_->useFrameworkSource)
-        ACE_NEW_RETURN (module_p,
-                        Test_U_Dev_Mic_Source_DirectShow_Module (this,
-                                                                 ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_MIC_SOURCE_DIRECTSHOW_DEFAULT_NAME_STRING)),
-                        false);
-      else
-        ACE_NEW_RETURN (module_p,
-                        Test_U_Dev_Mic_Source_WaveIn_Module (this,
-                                                             ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_WAVEIN_CAPTURE_DEFAULT_NAME_STRING)),
-                        //Test_U_Dev_Mic_Source_WASAPI_Module (this,
-                        //                                     ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_WASAPI_CAPTURE_DEFAULT_NAME_STRING)),
-                        false);
+      switch (inherited::configuration_->configuration_->capturer)
+      {
+        case STREAM_DEVICE_CAPTURER_WAVEIN:
+        {
+          ACE_NEW_RETURN (module_p,
+                          Test_U_Dev_Mic_Source_WaveIn_Module (this,
+                                                               ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_WAVEIN_CAPTURE_DEFAULT_NAME_STRING)),
+                          false);
+          break;
+        }
+        case STREAM_DEVICE_CAPTURER_WASAPI:
+        {
+          ACE_NEW_RETURN (module_p,
+                          Test_U_Dev_Mic_Source_WASAPI_Module (this,
+                                                               ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_WASAPI_CAPTURE_DEFAULT_NAME_STRING)),
+                          false);
+          break;
+        }
+        case STREAM_DEVICE_CAPTURER_DIRECTSHOW:
+        {
+          ACE_NEW_RETURN (module_p,
+                          Test_U_Dev_Mic_Source_DirectShow_Module (this,
+                                                                   ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_MIC_SOURCE_DIRECTSHOW_DEFAULT_NAME_STRING)),
+                          false);
+          break;
+        }
+        default:
+        {
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("%s: invalid/unknown capturer (was: %d), aborting\n"),
+                      ACE_TEXT (stream_name_string_),
+                      inherited::configuration_->configuration_->capturer));
+          return false;
+        }
+      } // end SWITCH
       break;
     }
     case AUDIOEFFECT_SOURCE_NOISE:
@@ -134,7 +157,8 @@ Test_U_AudioEffect_DirectShow_Stream::load (Stream_ILayout* layout_in,
     default:
     {
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("invalid/unknown source type (was: %d), aborting\n"),
+                  ACE_TEXT ("%s: invalid/unknown source type (was: %d), aborting\n"),
+                  ACE_TEXT (stream_name_string_),
                   inherited::configuration_->configuration_->sourceType));
       return false;
     }
@@ -411,7 +435,7 @@ Test_U_AudioEffect_DirectShow_Stream::initialize (const inherited::CONFIGURATION
     (*iterator).second.second->builder->Release (); (*iterator).second.second->builder = NULL;
   } // end IF
 
-  if (!configuration_in.configuration_->useFrameworkSource)
+  if (configuration_in.configuration_->capturer != STREAM_DEVICE_CAPTURER_DIRECTSHOW)
   { ACE_ASSERT (!(*iterator).second.second->builder);
     Test_U_AudioEffect_DirectShowFilter_t* filter_p = NULL;
     IBaseFilter* filter_2 = NULL;
@@ -533,7 +557,7 @@ Test_U_AudioEffect_DirectShow_Stream::initialize (const inherited::CONFIGURATION
     {
       ACE_ASSERT ((*iterator_3).second.second->deviceIdentifier.identifierDiscriminator == Stream_Device_Identifier::GUID);
       render_device_id_i =
-        static_cast<int> (Stream_MediaFramework_DirectSound_Tools::directSoundGUIDTowaveDeviceId ((*iterator_3).second.second->deviceIdentifier.identifier._guid));
+        static_cast<int> (Stream_MediaFramework_DirectSound_Tools::directSoundGUIDToWaveDeviceId ((*iterator_3).second.second->deviceIdentifier.identifier._guid));
       break;
     }
     default:
@@ -545,8 +569,8 @@ Test_U_AudioEffect_DirectShow_Stream::initialize (const inherited::CONFIGURATION
       return false;
     }
   } // end SWITCH
-  if (!Stream_Module_Decoder_Tools::loadAudioRendererGraph ((configuration_in.configuration_->useFrameworkSource ? CLSID_AudioInputDeviceCategory
-                                                                                                                 : GUID_NULL),
+  if (!Stream_Module_Decoder_Tools::loadAudioRendererGraph (((configuration_in.configuration_->capturer == STREAM_DEVICE_CAPTURER_DIRECTSHOW) ? CLSID_AudioInputDeviceCategory
+                                                                                                                                              : GUID_NULL),
                                                             configuration_in.configuration_->format,
                                                             media_type_s,
                                                             (module_p != NULL),
@@ -568,7 +592,7 @@ Test_U_AudioEffect_DirectShow_Stream::initialize (const inherited::CONFIGURATION
     graph_configuration.front ().mediaType->lSampleSize = 1;
   } // end IF
 
-  if (!configuration_in.configuration_->useFrameworkSource)
+  if (configuration_in.configuration_->capturer == STREAM_DEVICE_CAPTURER_DIRECTSHOW)
   {
     result_2 =
       (*iterator).second.second->builder->FindFilterByName (STREAM_LIB_DIRECTSHOW_FILTER_NAME_SOURCE_L,
@@ -990,15 +1014,38 @@ Test_U_AudioEffect_MediaFoundation_Stream::load (Stream_ILayout* layout_in,
   {
     case AUDIOEFFECT_SOURCE_DEVICE:
     {
-      if (inherited::configuration_->configuration_->useFrameworkSource)
-        module_p = &frameworkSource_;
-      else
-        ACE_NEW_RETURN (module_p,
-                        //Test_U_Dev_Mic_Source_WaveIn2_Module (this,
-                        //                                      ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_MIC_SOURCE_WAVEIN_DEFAULT_NAME_STRING)),
-                        Test_U_Dev_Mic_Source_WASAPI2_Module (this,
-                                                              ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_WASAPI_CAPTURE_DEFAULT_NAME_STRING)),
-                        false);
+      switch (inherited::configuration_->configuration_->capturer)
+      {
+        case STREAM_DEVICE_CAPTURER_WAVEIN:
+        {
+          ACE_NEW_RETURN (module_p,
+                          Test_U_Dev_Mic_Source_WaveIn2_Module (this,
+                                                                ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_WAVEIN_CAPTURE_DEFAULT_NAME_STRING)),
+                          false);
+          break;
+        }
+        case STREAM_DEVICE_CAPTURER_WASAPI:
+        {
+          ACE_NEW_RETURN (module_p,
+                          Test_U_Dev_Mic_Source_WASAPI2_Module (this,
+                                                                ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_WASAPI_CAPTURE_DEFAULT_NAME_STRING)),
+                          false);
+          break;
+        }
+        case STREAM_DEVICE_CAPTURER_MEDIAFOUNDATION:
+        {
+          module_p = &frameworkSource_;
+          break;
+        }
+        default:
+        {
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("%s: invalid/unknown capturer (was: %d), aborting\n"),
+                      ACE_TEXT (stream_name_string_),
+                      inherited::configuration_->configuration_->capturer));
+          return false;
+        }
+      } // end SWITCH
       break;
     }
     case AUDIOEFFECT_SOURCE_NOISE:
@@ -1352,7 +1399,7 @@ Test_U_AudioEffect_MediaFoundation_Stream::initialize (const inherited::CONFIGUR
   } // end IF
 
   IMFMediaSource* media_source_p = NULL;
-  if (!configuration_in.configuration_->useFrameworkSource)
+  if (configuration_in.configuration_->capturer != STREAM_DEVICE_CAPTURER_MEDIAFOUNDATION)
   {
     Test_U_AudioEffect_MediaFoundation_Target* writer_p =
       &const_cast<Test_U_AudioEffect_MediaFoundation_Target&> (getR_3 ());
@@ -1446,7 +1493,7 @@ Test_U_AudioEffect_MediaFoundation_Stream::initialize (const inherited::CONFIGUR
   ACE_ASSERT (topology_p);
   media_source_p->Release (); media_source_p = NULL;
 
-  if (!configuration_in.configuration_->useFrameworkSource)
+  if (configuration_in.configuration_->capturer != STREAM_DEVICE_CAPTURER_MEDIAFOUNDATION)
     goto continue_3;
 
   if (!Stream_Device_MediaFoundation_Tools::setCaptureFormat (topology_p,
@@ -1473,7 +1520,7 @@ continue_3:
     {
       ACE_ASSERT ((*iterator_3).second.second->deviceIdentifier.identifierDiscriminator == Stream_Device_Identifier::GUID);
       render_device_id_i =
-        static_cast<int> (Stream_MediaFramework_DirectSound_Tools::directSoundGUIDTowaveDeviceId ((*iterator_3).second.second->deviceIdentifier.identifier._guid));
+        static_cast<int> (Stream_MediaFramework_DirectSound_Tools::directSoundGUIDToWaveDeviceId ((*iterator_3).second.second->deviceIdentifier.identifier._guid));
       break;
     }
     default:
@@ -1488,7 +1535,7 @@ continue_3:
   ACE_ASSERT ((*iterator).second.second->deviceIdentifier.identifierDiscriminator == Stream_Device_Identifier::GUID);
   if (!Stream_Module_Decoder_Tools::loadAudioRendererTopology ((*iterator).second.second->deviceIdentifier.identifier._guid,
                                                                MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE_AUDCAP_GUID,
-                                                               configuration_in.configuration_->useFrameworkSource,
+                                                               (configuration_in.configuration_->capturer == STREAM_DEVICE_CAPTURER_MEDIAFOUNDATION),
                                                                configuration_in.configuration_->format,
                                                                media_type_p,
                                                                sample_grabber_p,

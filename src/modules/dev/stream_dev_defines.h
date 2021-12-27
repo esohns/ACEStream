@@ -52,8 +52,12 @@
 #define STREAM_DEV_CAM_DEFAULT_CAPTURE_SIZE_WIDTH                 640
 #define STREAM_DEV_CAM_DEFAULT_CAPTURE_RATE                       30 // fps
 
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#define STREAM_DEV_MIC_DEFAULT_FORMAT                             WAVE_FORMAT_PCM
+#else
+#endif // ACE_WIN32 || ACE_WIN64
 #define STREAM_DEV_MIC_DEFAULT_BITS_PER_SAMPLE                    16
 #define STREAM_DEV_MIC_DEFAULT_CHANNELS                           2 // i.e. stereo
-#define STREAM_DEV_MIC_DEFAULT_SAMPLE_RATE                        44100 // Hz
+#define STREAM_DEV_MIC_DEFAULT_SAMPLE_RATE                        48000 // Hz
 
 #endif

@@ -3200,6 +3200,30 @@ Stream_MediaFramework_DirectShow_Tools::setFormat (REFGUID mediaSubType_in,
                                                        STREAM_MEDIAFRAMEWORK_DIRECTSHOW) ? fourcc_map.GetFOURCC ()
                                                                                          : BI_RGB);
   } // end ELSE IF
+  else if (InlineIsEqualGUID (mediaType_inout.formattype, FORMAT_WaveFormatEx))
+  {
+    struct tWAVEFORMATEX* audio_info_header_p =
+      (struct tWAVEFORMATEX*)mediaType_inout.pbFormat;
+    if (audio_info_header_p->wFormatTag == WAVE_FORMAT_EXTENSIBLE)
+    {
+      WAVEFORMATEXTENSIBLE* waveformatextensible_p =
+        (WAVEFORMATEXTENSIBLE*)mediaType_inout.pbFormat;
+      waveformatextensible_p->SubFormat = mediaSubType_in;
+    } // end IF
+    else
+    {
+      if (InlineIsEqualGUID (mediaSubType_in, MEDIASUBTYPE_PCM))
+        audio_info_header_p->wFormatTag = WAVE_FORMAT_PCM;
+      else if (InlineIsEqualGUID (mediaSubType_in, MEDIASUBTYPE_IEEE_FLOAT))
+        audio_info_header_p->wFormatTag = WAVE_FORMAT_IEEE_FLOAT;
+      else
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("invalid/unknown audio media format (was: \"%s\"), returning\n"),
+                    ACE_TEXT (Common_Tools::GUIDToString (mediaSubType_in).c_str ())));
+      } // end ELSE
+    } // end ELSE
+  } // end ELSE IF
   else
   {
     ACE_DEBUG ((LM_ERROR,
@@ -3439,6 +3463,44 @@ Stream_MediaFramework_DirectShow_Tools::toWaveFormatEx (const struct _AMMediaTyp
                   sizeof (struct tWAVEFORMATEX) + waveformatex_p->cbSize);
 
   return result_p;
+}
+
+struct _GUID
+Stream_MediaFramework_DirectShow_Tools::toSubType (const struct tWAVEFORMATEX& format_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_DirectShow_Tools::toSubType"));
+
+  struct _GUID result = GUID_NULL;
+
+  switch (format_in.wFormatTag)
+  {
+    case WAVE_FORMAT_PCM:
+    {
+      result = MEDIASUBTYPE_PCM;
+      break;
+    }
+    case WAVE_FORMAT_IEEE_FLOAT:
+    {
+      result = MEDIASUBTYPE_IEEE_FLOAT;
+      break;
+    }
+    case WAVE_FORMAT_EXTENSIBLE:
+    {
+      const WAVEFORMATEXTENSIBLE* waveformatextensible_p =
+        reinterpret_cast<const WAVEFORMATEXTENSIBLE*> (&format_in);
+      result = waveformatextensible_p->SubFormat;
+      break;
+    }
+    default:
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("invalid/unknown format type (was: %d), aborting\n"),
+                  format_in.wFormatTag));
+      return GUID_NULL;
+    }
+  } // end SWITCH
+
+  return result;
 }
 
 std::string
@@ -4161,7 +4223,7 @@ Stream_MediaFramework_DirectShow_Tools::mediaSubTypeToAVPixelFormat (REFGUID med
   /////////////////////////////////////// AUDIO
   // uncompressed audio
   if (mediaSubType_in == MEDIASUBTYPE_IEEE_FLOAT);
-  //MEDIASUBTYPE_PCM
+  else if (mediaSubType_in == MEDIASUBTYPE_PCM);
   // MPEG-4 and AAC
   //MEDIASUBTYPE_MPEG_ADTS_AAC
   //MEDIASUBTYPE_MPEG_HEAAC

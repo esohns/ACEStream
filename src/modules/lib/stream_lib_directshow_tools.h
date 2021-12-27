@@ -217,6 +217,7 @@ class Stream_MediaFramework_DirectShow_Tools
   inline static DMO_MEDIA_TYPE* toDMOMediaType (const struct _AMMediaType& mediaType_in) { return reinterpret_cast<DMO_MEDIA_TYPE*> (Stream_MediaFramework_DirectShow_Tools::copy (mediaType_in)); }
   // *IMPORTANT NOTE*: callers must 'CoTaskMemFree' any return values
   static struct tWAVEFORMATEX* toWaveFormatEx (const struct _AMMediaType&); // media type
+  static struct _GUID toSubType (const struct tWAVEFORMATEX&); // format
   static std::string toString (const struct _AMMediaType&, // media type
                                bool = false);              // condensed version ?
 

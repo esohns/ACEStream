@@ -216,6 +216,7 @@ DATASTREAM_MODULE_INPUT_ONLY (Test_U_AudioEffect_DirectShow_SessionData,        
                               libacestream_default_dev_mic_source_wasapi_module_name_string,
                               Stream_INotify_t,                                                // stream notification interface type
                               Test_U_Dev_Mic_Source_WASAPI);                                   // writer type
+
 typedef Stream_Dev_Mic_Source_WaveIn_T<ACE_MT_SYNCH,
                                        Stream_ControlMessage_t,
                                        Test_U_AudioEffect_DirectShow_Message,
@@ -255,6 +256,26 @@ DATASTREAM_MODULE_INPUT_ONLY (Test_U_AudioEffect_MediaFoundation_SessionData,   
                               libacestream_default_dev_mic_source_wasapi_module_name_string,
                               Stream_INotify_t,                                                // stream notification interface type
                               Test_U_Dev_Mic_Source_WASAPI2);                                  // writer type
+
+typedef Stream_Dev_Mic_Source_WaveIn_T<ACE_MT_SYNCH,
+                                       Stream_ControlMessage_t,
+                                       Test_U_AudioEffect_MediaFoundation_Message,
+                                       Test_U_AudioEffect_MediaFoundation_SessionMessage,
+                                       struct Test_U_AudioEffect_MediaFoundation_ModuleHandlerConfiguration,
+                                       enum Stream_ControlType,
+                                       enum Stream_SessionMessageType,
+                                       struct Test_U_AudioEffect_MediaFoundation_StreamState,
+                                       Test_U_AudioEffect_MediaFoundation_SessionData,
+                                       Test_U_AudioEffect_MediaFoundation_SessionData_t,
+                                       struct Test_U_AudioEffect_Statistic,
+                                       Common_Timer_Manager_t,
+                                       IMFMediaType*> Test_U_Dev_Mic_Source_WaveIn2;
+DATASTREAM_MODULE_INPUT_ONLY (Test_U_AudioEffect_MediaFoundation_SessionData,                       // session data type
+                              enum Stream_SessionMessageType,                                       // session event type
+                              struct Test_U_AudioEffect_MediaFoundation_ModuleHandlerConfiguration, // module handler configuration type
+                              libacestream_default_dev_mic_source_wavein_module_name_string,
+                              Stream_INotify_t,                                                     // stream notification interface type
+                              Test_U_Dev_Mic_Source_WaveIn2);                                       // writer type
 #else
 typedef Stream_Decoder_MP3Decoder_T<ACE_MT_SYNCH,
                                     Stream_ControlMessage_t,

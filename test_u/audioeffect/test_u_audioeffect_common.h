@@ -195,10 +195,14 @@ struct Test_U_AudioEffect_MediaFoundation_MessageData
   Test_U_AudioEffect_MediaFoundation_MessageData ()
    : sample (NULL)
    , sampleTime (0)
+   , index (-1)
   {}
 
-  IMFSample* sample;
-  LONGLONG   sampleTime;
+  // Media Foundation
+  IMFSample*   sample;
+  LONGLONG     sampleTime;
+  // WaveIn
+  unsigned int index;
 };
 #else
 struct Test_U_AudioEffect_MessageData
@@ -553,18 +557,14 @@ struct Test_U_AudioEffect_StreamConfiguration
 {
   Test_U_AudioEffect_StreamConfiguration ()
    : Stream_Configuration ()
+   , capturer (STREAM_DEVICE_CAPTURER_INVALID)
    , renderer (STREAM_DEVICE_RENDERER_INVALID)
    , sourceType (AUDIOEFFECT_SOURCE_INVALID)
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-   , useFrameworkSource (false)
-#endif // ACE_WIN32 || ACE_WIN64
   {}
 
+  enum Stream_Device_Capturer        capturer;
   enum Stream_Device_Renderer        renderer;
   enum Test_U_AudioEffect_SourceType sourceType;
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-  bool                               useFrameworkSource;
-#endif // ACE_WIN32 || ACE_WIN64
 };
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -576,6 +576,7 @@ struct Test_U_AudioEffect_DirectShow_StreamConfiguration
    , filterGraphConfiguration ()
    , format ()
   {
+    capturer = STREAM_DEVICE_CAPTURER_DIRECTSHOW;
     renderer = STREAM_DEVICE_RENDERER_DIRECTSHOW;
   }
 
@@ -590,6 +591,7 @@ struct Test_U_AudioEffect_MediaFoundation_StreamConfiguration
    : Test_U_AudioEffect_StreamConfiguration ()
    , format (NULL)
   {
+    capturer = STREAM_DEVICE_CAPTURER_MEDIAFOUNDATION;
     renderer = STREAM_DEVICE_RENDERER_MEDIAFOUNDATION;
   }
 
@@ -602,7 +604,10 @@ struct Test_U_AudioEffect_ALSA_StreamConfiguration
   Test_U_AudioEffect_ALSA_StreamConfiguration ()
    : Test_U_AudioEffect_StreamConfiguration ()
    , format ()
-  {}
+  {
+    capturer = STREAM_DEVICE_CAPTURER_ALSA;
+    renderer = STREAM_DEVICE_RENDERER_ALSA;
+  }
 
   struct Stream_MediaFramework_ALSA_MediaType format;
 };

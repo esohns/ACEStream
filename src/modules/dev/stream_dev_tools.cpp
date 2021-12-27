@@ -141,14 +141,14 @@ Stream_Device_Tools::id (const struct Stream_Device_Identifier& deviceIdentifier
     case Stream_Device_Identifier::GUID:
     {
       deviceIdentifier_out =
-        Stream_MediaFramework_DirectSound_Tools::directSoundGUIDTowaveDeviceId (deviceIdentifier_in.identifier._guid);
+        Stream_MediaFramework_DirectSound_Tools::directSoundGUIDToWaveDeviceId (deviceIdentifier_in.identifier._guid);
       break;
     }
     case Stream_Device_Identifier::STRING:
     {
-      ACE_ASSERT (false); // *TODO*
-      ACE_NOTSUP;
-      ACE_NOTREACHED (return;)
+      deviceIdentifier_out =
+        Stream_MediaFramework_DirectSound_Tools::directSoundGUIDToWaveDeviceId (Stream_MediaFramework_DirectSound_Tools::endpointIdToDirectSoundGUID (deviceIdentifier_in.identifier._string));
+      break;
     }
     default:
     {
@@ -186,9 +186,8 @@ Stream_Device_Tools::id (const struct Stream_Device_Identifier& deviceIdentifier
     }
     case Stream_Device_Identifier::STRING:
     {
-      ACE_ASSERT (false); // *TODO*
-      ACE_NOTSUP;
-      ACE_NOTREACHED (return;)
+      deviceIdentifier_out =
+        Stream_MediaFramework_DirectSound_Tools::endpointIdToDirectSoundGUID (deviceIdentifier_in.identifier._string);
     }
     default:
     {
