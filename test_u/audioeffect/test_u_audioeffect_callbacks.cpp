@@ -623,6 +623,127 @@ continue_:
   return result;
 }
 
+bool
+load_all_formats (GtkListStore* listStore_in)
+{
+  STREAM_TRACE (ACE_TEXT ("::load_all_formats"));
+
+  // initialize result
+  gtk_list_store_clear (listStore_in);
+
+  GtkTreeIter iterator;
+  gtk_list_store_append (listStore_in, &iterator);
+  gtk_list_store_set (listStore_in, &iterator,
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+                      0, Stream_MediaFramework_Tools::mediaSubTypeToString (MEDIASUBTYPE_PCM, STREAM_MEDIAFRAMEWORK_DIRECTSHOW).c_str (),
+                      1, ACE_TEXT_ALWAYS_CHAR (Common_Tools::GUIDToString (MEDIASUBTYPE_PCM).c_str ()),
+                      2, -1,
+#else
+                      0, Stream_MediaFramework_Tools::mediaSubTypeToString (MEDIASUBTYPE_PCM, STREAM_MEDIAFRAMEWORK_DIRECTSHOW).c_str (),
+                      1, ACE_TEXT_ALWAYS_CHAR (Common_Tools::GUIDToString (MEDIASUBTYPE_PCM).c_str ()),
+                      2, -1,
+#endif // ACE_WIN32 || ACE_WIN64
+                      -1);
+  gtk_list_store_append (listStore_in, &iterator);
+  gtk_list_store_set (listStore_in, &iterator,
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+                      0, Stream_MediaFramework_Tools::mediaSubTypeToString (MEDIASUBTYPE_IEEE_FLOAT, STREAM_MEDIAFRAMEWORK_DIRECTSHOW).c_str (),
+                      1, ACE_TEXT_ALWAYS_CHAR (Common_Tools::GUIDToString (MEDIASUBTYPE_IEEE_FLOAT).c_str ()),
+                      2, -1,
+#else
+#endif // ACE_WIN32 || ACE_WIN64
+                      -1);
+  return true;
+}
+
+bool
+load_all_sample_rates (GtkListStore* listStore_in)
+{
+  STREAM_TRACE (ACE_TEXT ("::load_all_sample_rates"));
+
+  // initialize result
+  gtk_list_store_clear (listStore_in);
+
+  std::vector<unsigned int> rates_a = {4000, 8000, 11025, 22050, 44100, 48000, 96000};
+  std::ostringstream converter;
+  GtkTreeIter iterator;
+  for (std::vector<unsigned int>::const_iterator iterator_2 = rates_a.begin ();
+        iterator_2 != rates_a.end ();
+        ++iterator_2)
+  {
+    converter << *iterator_2;
+    gtk_list_store_append (listStore_in, &iterator);
+    gtk_list_store_set (listStore_in, &iterator,
+                        0, converter.str ().c_str (),
+                        1, *iterator_2,
+                        -1);
+    converter.clear ();
+    converter.str (ACE_TEXT_ALWAYS_CHAR (""));
+  } // end FOR
+  return true;
+}
+
+bool
+load_all_sample_resolutions (GtkListStore* listStore_in)
+{
+  STREAM_TRACE (ACE_TEXT ("::load_all_sample_resolutions"));
+
+  // initialize result
+  gtk_list_store_clear (listStore_in);
+
+  std::vector<unsigned int> resolutions_a = {8, 16};
+  //if (InlineIsEqualGUID (mediaSubType_in, MEDIASUBTYPE_IEEE_FLOAT))
+  //{
+  //  resolutions_a.clear ();
+  //  resolutions_a.push_back (32);
+  //} // end IF
+  std::ostringstream converter;
+  GtkTreeIter iterator;
+  for (std::vector<unsigned int>::const_iterator iterator_2 = resolutions_a.begin ();
+        iterator_2 != resolutions_a.end ();
+        ++iterator_2)
+  {
+    converter << *iterator_2;
+    gtk_list_store_append (listStore_in, &iterator);
+    gtk_list_store_set (listStore_in, &iterator,
+                        0, converter.str ().c_str (),
+                        1, *iterator_2,
+                        -1);
+    converter.clear ();
+    converter.str (ACE_TEXT_ALWAYS_CHAR (""));
+  } // end FOR
+
+  return true;
+}
+
+bool
+load_all_channels (GtkListStore* listStore_in)
+{
+  STREAM_TRACE (ACE_TEXT ("::load_all_channels"));
+
+  // initialize result
+  gtk_list_store_clear (listStore_in);
+
+  std::vector<unsigned int> channels_a = {1, 2};
+  std::ostringstream converter;
+  GtkTreeIter iterator;
+  for (std::vector<unsigned int>::const_iterator iterator_2 = channels_a.begin ();
+        iterator_2 != channels_a.end ();
+        ++iterator_2)
+  {
+    converter << *iterator_2;
+    gtk_list_store_append (listStore_in, &iterator);
+    gtk_list_store_set (listStore_in, &iterator,
+                        0, converter.str ().c_str (),
+                        1, *iterator_2,
+                        -1);
+    converter.clear ();
+    converter.str (ACE_TEXT_ALWAYS_CHAR (""));
+  } // end FOR
+
+  return true;
+}
+
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 struct less_guid
 {
@@ -637,31 +758,13 @@ struct less_guid
 };
 
 bool
-load_formats (int deviceId_in,
+load_formats (UINT deviceId_in,
               GtkListStore* listStore_in)
 {
   STREAM_TRACE (ACE_TEXT ("::load_formats"));
 
   // initialize result
   gtk_list_store_clear (listStore_in);
-
-  GtkTreeIter iterator;
-  if (deviceId_in == -1)
-  {
-    gtk_list_store_append (listStore_in, &iterator);
-    gtk_list_store_set (listStore_in, &iterator,
-                        0, Stream_MediaFramework_Tools::mediaSubTypeToString (MEDIASUBTYPE_PCM, STREAM_MEDIAFRAMEWORK_DIRECTSHOW).c_str (),
-                        1, ACE_TEXT_ALWAYS_CHAR (Common_Tools::GUIDToString (MEDIASUBTYPE_PCM).c_str ()),
-                        2, -1,
-                        -1);
-    gtk_list_store_append (listStore_in, &iterator);
-    gtk_list_store_set (listStore_in, &iterator,
-                        0, Stream_MediaFramework_Tools::mediaSubTypeToString (MEDIASUBTYPE_IEEE_FLOAT, STREAM_MEDIAFRAMEWORK_DIRECTSHOW).c_str (),
-                        1, ACE_TEXT_ALWAYS_CHAR (Common_Tools::GUIDToString (MEDIASUBTYPE_IEEE_FLOAT).c_str ()),
-                        2, -1,
-                        -1);
-    return true;
-  } // end IF
 
   WAVEINCAPS capabilities_s;
   ACE_OS::memset (&capabilities_s, 0, sizeof (WAVEINCAPS));
@@ -680,6 +783,7 @@ load_formats (int deviceId_in,
     return false;
 
   // *TODO*: check format support
+  GtkTreeIter iterator;
   gtk_list_store_append (listStore_in, &iterator);
   gtk_list_store_set (listStore_in, &iterator,
                       0, Stream_MediaFramework_Tools::mediaSubTypeToString (MEDIASUBTYPE_PCM, STREAM_MEDIAFRAMEWORK_DIRECTSHOW).c_str (),
@@ -915,7 +1019,7 @@ load_formats (IMFMediaSource* IMFMediaSource_in,
 }
 
 bool
-load_sample_rates (int deviceId_in,
+load_sample_rates (UINT deviceId_in,
                    REFGUID mediaSubType_in,
                    GtkListStore* listStore_in)
 {
@@ -925,27 +1029,6 @@ load_sample_rates (int deviceId_in,
 
   // initialize result
   gtk_list_store_clear (listStore_in);
-
-  GtkTreeIter iterator;
-  std::ostringstream converter;
-  if (deviceId_in == -1)
-  {
-    std::vector<unsigned int> rates_a = { 4000, 8000, 11025, 22050, 44100, 48000, 96000 };
-    for (std::vector<unsigned int>::const_iterator iterator_2 = rates_a.begin ();
-         iterator_2 != rates_a.end ();
-         ++iterator_2)
-    {
-      converter << *iterator_2;
-      gtk_list_store_append (listStore_in, &iterator);
-      gtk_list_store_set (listStore_in, &iterator,
-                          0, converter.str ().c_str (),
-                          1, *iterator_2,
-                          -1);
-      converter.clear ();
-      converter.str (ACE_TEXT_ALWAYS_CHAR (""));
-    } // end FOR
-    return true;
-  } // end IF
 
   WAVEINCAPS capabilities_s;
   ACE_OS::memset (&capabilities_s, 0, sizeof (WAVEINCAPS));
@@ -962,6 +1045,8 @@ load_sample_rates (int deviceId_in,
   } // end IF
 
   unsigned int sample_rate = 0;
+  std::ostringstream converter;
+  GtkTreeIter iterator;
   if (capabilities_s.dwFormats & 0x0000000F)
   { sample_rate = 11025;
     //ACE_DEBUG ((LM_DEBUG,
@@ -1301,7 +1386,7 @@ load_sample_rates (IMFMediaSource* IMFMediaSource_in,
 }
 
 bool
-load_sample_resolutions (int deviceId_in,
+load_sample_resolutions (UINT deviceId_in,
                          REFGUID mediaSubType_in,
                          unsigned int sampleRate_in,
                          GtkListStore* listStore_in)
@@ -1310,32 +1395,6 @@ load_sample_resolutions (int deviceId_in,
 
   // initialize result
   gtk_list_store_clear (listStore_in);
-
-  GtkTreeIter iterator;
-  std::ostringstream converter;
-  if (deviceId_in == -1)
-  {
-    std::vector<unsigned int> resolutions_a = {8, 16};
-    if (InlineIsEqualGUID (mediaSubType_in, MEDIASUBTYPE_IEEE_FLOAT))
-    {
-      resolutions_a.clear ();
-      resolutions_a.push_back (32);
-    } // end IF
-    for (std::vector<unsigned int>::const_iterator iterator_2 = resolutions_a.begin ();
-         iterator_2 != resolutions_a.end ();
-         ++iterator_2)
-    {
-      converter << *iterator_2;
-      gtk_list_store_append (listStore_in, &iterator);
-      gtk_list_store_set (listStore_in, &iterator,
-                          0, converter.str ().c_str (),
-                          1, *iterator_2,
-                          -1);
-      converter.clear ();
-      converter.str (ACE_TEXT_ALWAYS_CHAR (""));
-    } // end FOR
-    return true;
-  } // end IF
 
   WAVEINCAPS capabilities_s;
   ACE_OS::memset (&capabilities_s, 0, sizeof (WAVEINCAPS));
@@ -1351,6 +1410,8 @@ load_sample_resolutions (int deviceId_in,
     return false;
   } // end IF
 
+  std::ostringstream converter;
+  GtkTreeIter iterator;
   if (InlineIsEqualGUID (mediaSubType_in, MEDIASUBTYPE_IEEE_FLOAT))
   {
     converter.clear ();
@@ -1842,7 +1903,7 @@ load_sample_resolutions (IMFMediaSource* IMFMediaSource_in,
 }
 
 bool
-load_channels (int deviceId_in,
+load_channels (UINT deviceId_in,
                REFGUID mediaSubType_in,
                unsigned int sampleRate_in,
                unsigned int bitsPerSample_in,
@@ -1854,27 +1915,6 @@ load_channels (int deviceId_in,
 
   // initialize result
   gtk_list_store_clear (listStore_in);
-
-  GtkTreeIter iterator;
-  std::ostringstream converter;
-  if (deviceId_in == -1)
-  {
-    std::vector<unsigned int> channels_a = {1, 2};
-    for (std::vector<unsigned int>::const_iterator iterator_2 = channels_a.begin ();
-         iterator_2 != channels_a.end ();
-         ++iterator_2)
-    {
-      converter << *iterator_2;
-      gtk_list_store_append (listStore_in, &iterator);
-      gtk_list_store_set (listStore_in, &iterator,
-                          0, converter.str ().c_str (),
-                          1, *iterator_2,
-                          -1);
-      converter.clear ();
-      converter.str (ACE_TEXT_ALWAYS_CHAR (""));
-    } // end FOR
-    return true;
-  } // end IF
 
   WAVEINCAPS capabilities_s;
   ACE_OS::memset (&capabilities_s, 0, sizeof (WAVEINCAPS));
@@ -1890,6 +1930,8 @@ load_channels (int deviceId_in,
     return false;
   } // end IF
 
+  std::ostringstream converter;
+  GtkTreeIter iterator;
   switch (sampleRate_in)
   {
     case 11025:
@@ -6092,8 +6134,8 @@ idle_update_info_display_cb (gpointer userData_in)
       ACE_ASSERT (directshow_ui_cb_data_p->configuration);
       ACE_ASSERT (directshow_ui_cb_data_p->stream);
       ACE_ASSERT (directshow_ui_cb_data_p->configuration->streamConfiguration.configuration_);
-      if (!directshow_ui_cb_data_p->stream->isRunning () ||
-          (directshow_ui_cb_data_p->configuration->streamConfiguration.configuration_->renderer != STREAM_DEVICE_RENDERER_DIRECTSHOW))
+      if ((directshow_ui_cb_data_p->configuration->streamConfiguration.configuration_->renderer != STREAM_DEVICE_RENDERER_DIRECTSHOW) ||
+          !directshow_ui_cb_data_p->stream->isRunning ())
         break;
       directshow_modulehandler_configuration_iterator =
         directshow_ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
@@ -6118,12 +6160,11 @@ idle_update_info_display_cb (gpointer userData_in)
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
     {
+      // sanity check(s)
       mediafoundation_ui_cb_data_p =
         static_cast<struct Test_U_AudioEffect_MediaFoundation_UI_CBData*> (userData_in);
-      // sanity check(s)
       ACE_ASSERT (mediafoundation_ui_cb_data_p);
       ACE_ASSERT (mediafoundation_ui_cb_data_p->configuration);
-
       mediafoundation_modulehandler_configuration_iterator =
         mediafoundation_ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
       ACE_ASSERT (mediafoundation_modulehandler_configuration_iterator != mediafoundation_ui_cb_data_p->configuration->streamConfiguration.end ());
@@ -9004,15 +9045,7 @@ combobox_source_changed_cb (GtkWidget* widget_in,
     GTK_LIST_STORE (gtk_builder_get_object ((*iterator).second.second,
                                             ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_LISTSTORE_FORMAT_NAME)));
   ACE_ASSERT (list_store_p);
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-  result_2 = load_formats (-1,
-                           list_store_p);
-#else
-  result_2 =
-    load_formats (NULL,
-                  (*modulehandler_configuration_iterator).second.second->ALSAConfiguration->access,
-                  list_store_p);
-#endif // ACE_WIN32 || ACE_WIN64
+  result_2 = load_all_formats (list_store_p);
   if (!result_2)
   {
     ACE_DEBUG ((LM_ERROR,
@@ -9025,29 +9058,27 @@ combobox_source_changed_cb (GtkWidget* widget_in,
   {
     gtk_widget_set_sensitive (GTK_WIDGET (combo_box_p), TRUE);
     gint index_i = 0;
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-#else
-#if GTK_CHECK_VERSION(2,30,0)
-    GValue value = G_VALUE_INIT;
-#else
-    GValue value;
-    ACE_OS::memset (&value, 0, sizeof (struct _GValue));
-    g_value_init (&value, G_TYPE_INT);
-#endif // GTK_CHECK_VERSION (2,30,0)
-    g_value_set_int (&value,
-                     ui_cb_data_p->configuration->streamConfiguration.configuration_->format.format);
-    index_i =
-        Common_UI_GTK_Tools::valueToIndex (gtk_combo_box_get_model (combo_box_p),
-                                           value,
-                                           2);
-    if (index_i == -1)
-    {
-      ACE_DEBUG ((LM_WARNING,
-                  ACE_TEXT ("invalid/unknown format (was: %d), continuing\n"),
-                  ui_cb_data_p->configuration->streamConfiguration.configuration_->format.format));
-      index_i = 0;
-    } // end IF
-#endif // ACE_WIN32 || ACE_WIN64
+//#if GTK_CHECK_VERSION(2,30,0)
+//    GValue value = G_VALUE_INIT;
+//#else
+//    GValue value;
+//    ACE_OS::memset (&value, 0, sizeof (struct _GValue));
+//    g_value_init (&value, G_TYPE_INT);
+//#endif // GTK_CHECK_VERSION (2,30,0)
+//    g_value_set_int (&value,
+//                     ui_cb_data_p->configuration->streamConfiguration.configuration_->format.format);
+//    index_i =
+//        Common_UI_GTK_Tools::valueToIndex (gtk_combo_box_get_model (combo_box_p),
+//                                           value,
+//                                           2);
+//    if (index_i == -1)
+//    {
+//      ACE_DEBUG ((LM_WARNING,
+//                  ACE_TEXT ("invalid/unknown format (was: %d), continuing\n"),
+//                  ui_cb_data_p->configuration->streamConfiguration.configuration_->format.format));
+//      index_i = 0;
+//    } // end IF
+//    g_value_unset (&value);
     gtk_combo_box_set_active (combo_box_p, index_i);
   } // end IF
 
@@ -9283,10 +9314,34 @@ combobox_device_changed_cb (GtkWidget* widget_in,
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
     { ACE_ASSERT (directshow_ui_cb_data_p->configuration);
       ACE_ASSERT (directshow_ui_cb_data_p->configuration->streamConfiguration.configuration_);
-      ACE_ASSERT ((*directshow_modulehandler_configuration_iterator).second.second->deviceIdentifier.identifierDiscriminator == Stream_Device_Identifier::ID);
 
-      (*directshow_modulehandler_configuration_iterator).second.second->deviceIdentifier.identifier._id =
-          card_id_i;
+      switch (directshow_ui_cb_data_p->configuration->streamConfiguration.configuration_->capturer)
+      {
+        case STREAM_DEVICE_CAPTURER_WAVEIN:
+        case STREAM_DEVICE_CAPTURER_DIRECTSHOW:
+        {
+          (*directshow_modulehandler_configuration_iterator).second.second->deviceIdentifier.identifierDiscriminator =
+            Stream_Device_Identifier::ID;
+          (*directshow_modulehandler_configuration_iterator).second.second->deviceIdentifier.identifier._id =
+            card_id_i;
+          break;
+        }
+        case STREAM_DEVICE_CAPTURER_WASAPI:
+        {
+          (*directshow_modulehandler_configuration_iterator).second.second->deviceIdentifier.identifierDiscriminator =
+            Stream_Device_Identifier::GUID;
+          (*directshow_modulehandler_configuration_iterator).second.second->deviceIdentifier.identifier._guid =
+            Common_Tools::StringToGUID (device_identifier_string);
+          break;
+        }
+        default:
+        {
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("invalid/unknown capturer (was: %d), returning\n"),
+                      directshow_ui_cb_data_p->configuration->streamConfiguration.configuration_->capturer));
+          return;
+        }
+      } // end SWITCH
 
       format_string =
         Common_Tools::GUIDToString (directshow_ui_cb_data_p->configuration->streamConfiguration.configuration_->format.subtype);
@@ -9630,6 +9685,7 @@ continue_:
 #endif // ACE_WIN32 || ACE_WIN64
       index_i = 0;
     } // end IF
+    g_value_unset (&value);
     gtk_combo_box_set_active (combo_box_p, index_i);
   } // end IF
 
@@ -9907,7 +9963,7 @@ combobox_format_changed_cb (GtkWidget* widget_in,
     GTK_LIST_STORE (gtk_builder_get_object ((*iterator).second.second,
                                             ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_LISTSTORE_FORMAT_NAME)));
   ACE_ASSERT (list_store_p);
-  bool device_selected_b = false;
+  bool load_all_formats_b = false;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   struct Test_U_AudioEffect_DirectShow_UI_CBData* directshow_ui_cb_data_p =
     NULL;
@@ -9929,8 +9985,8 @@ combobox_format_changed_cb (GtkWidget* widget_in,
         directshow_ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
       ACE_ASSERT (directshow_modulehandler_configuration_iterator != directshow_ui_cb_data_p->configuration->streamConfiguration.end ());
 
-      device_selected_b =
-        (directshow_ui_cb_data_p->configuration->streamConfiguration.configuration_->sourceType == AUDIOEFFECT_SOURCE_DEVICE);
+      load_all_formats_b =
+        (directshow_ui_cb_data_p->configuration->streamConfiguration.configuration_->sourceType != AUDIOEFFECT_SOURCE_DEVICE);
       use_framework_source_b =
         (directshow_ui_cb_data_p->configuration->streamConfiguration.configuration_->capturer == STREAM_DEVICE_CAPTURER_DIRECTSHOW);
       break;
@@ -9946,8 +10002,8 @@ combobox_format_changed_cb (GtkWidget* widget_in,
         mediafoundation_ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
       ACE_ASSERT (mediafoundation_modulehandler_configuration_iterator != mediafoundation_ui_cb_data_p->configuration->streamConfiguration.end ());
 
-      device_selected_b =
-        (mediafoundation_ui_cb_data_p->configuration->streamConfiguration.configuration_->sourceType == AUDIOEFFECT_SOURCE_DEVICE);
+      load_all_formats_b =
+        (mediafoundation_ui_cb_data_p->configuration->streamConfiguration.configuration_->sourceType != AUDIOEFFECT_SOURCE_DEVICE);
       use_framework_source_b =
         (mediafoundation_ui_cb_data_p->configuration->streamConfiguration.configuration_->capturer == STREAM_DEVICE_CAPTURER_MEDIAFOUNDATION);
       break;
@@ -9970,8 +10026,8 @@ combobox_format_changed_cb (GtkWidget* widget_in,
     ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (modulehandler_configuration_iterator != ui_cb_data_p->configuration->streamConfiguration.end ());
 
-  device_selected_b =
-    (ui_cb_data_p->configuration->streamConfiguration.configuration_->sourceType == AUDIOEFFECT_SOURCE_DEVICE);
+  load_all_formats_b =
+    (ui_cb_data_p->configuration->streamConfiguration.configuration_->sourceType != AUDIOEFFECT_SOURCE_DEVICE);
 #endif // ACE_WIN32 || ACE_WIN64
 
 #if GTK_CHECK_VERSION(2,30,0)
@@ -10068,18 +10124,24 @@ combobox_format_changed_cb (GtkWidget* widget_in,
                                                          directshow_ui_cb_data_p->configuration->streamConfiguration.configuration_->format);
       sample_rate_i = audio_info_header_p->nSamplesPerSec;
 
+      if (load_all_formats_b)
+      {
+        result_2 = load_all_sample_rates (list_store_p);
+        break;
+      } // end IF
+
       switch (directshow_ui_cb_data_p->configuration->streamConfiguration.configuration_->capturer)
       {
         case STREAM_DEVICE_CAPTURER_WAVEIN:
         {
-          result_2 = load_sample_rates ((device_selected_b ? index_i : -1),
+          result_2 = load_sample_rates (index_i,
                                         GUID_s,
                                         list_store_p);
           break;
         }
         case STREAM_DEVICE_CAPTURER_WASAPI:
         {
-          result_2 = load_sample_rates ((device_selected_b ? GUID_2 : GUID_NULL),
+          result_2 = load_sample_rates (GUID_2,
                                         GUID_s,
                                         list_store_p);
           break;
@@ -10087,7 +10149,7 @@ combobox_format_changed_cb (GtkWidget* widget_in,
         case STREAM_DEVICE_CAPTURER_DIRECTSHOW:
         {
           result_2 =
-            load_sample_rates ((device_selected_b ? directshow_ui_cb_data_p->streamConfiguration : NULL),
+            load_sample_rates (directshow_ui_cb_data_p->streamConfiguration,
                                GUID_s,
                                list_store_p);
           break;
@@ -10128,18 +10190,24 @@ combobox_format_changed_cb (GtkWidget* widget_in,
         return;
       } // end IF
 
+      if (load_all_formats_b)
+      {
+        result_2 = load_all_sample_rates (list_store_p);
+        break;
+      } // end IF
+
       switch (mediafoundation_ui_cb_data_p->configuration->streamConfiguration.configuration_->capturer)
       {
         case STREAM_DEVICE_CAPTURER_WAVEIN:
         {
-          result_2 = load_sample_rates ((device_selected_b ? index_i : -1),
+          result_2 = load_sample_rates (index_i,
                                         GUID_s,
                                         list_store_p);
           break;
         }
         case STREAM_DEVICE_CAPTURER_WASAPI:
         {
-          result_2 = load_sample_rates ((device_selected_b ? GUID_2 : GUID_NULL),
+          result_2 = load_sample_rates (GUID_2,
                                         GUID_s,
                                         list_store_p);
           break;
@@ -10192,10 +10260,13 @@ combobox_format_changed_cb (GtkWidget* widget_in,
   sample_rate_i =
     ui_cb_data_p->configuration->streamConfiguration.configuration_->format.rate;
 
-  result_2 =
-    load_sample_rates ((device_selected_b ? ui_cb_data_p->handle : NULL),
-                       ui_cb_data_p->configuration->streamConfiguration.configuration_->format,
-                       list_store_p);
+  if (load_all_formats_b)
+    result_2 = load_all_sample_rates (list_store_p);
+  else
+    result_2 =
+      load_sample_rates (ui_cb_data_p->handle,
+                         ui_cb_data_p->configuration->streamConfiguration.configuration_->format,
+                         list_store_p);
 #endif // ACE_WIN32 || ACE_WIN64
   if (!result_2)
   {
@@ -10241,6 +10312,7 @@ combobox_format_changed_cb (GtkWidget* widget_in,
                   sample_rate_i));
       index_i = 0;
     } // end IF
+    g_value_unset (&value);
     gtk_combo_box_set_active (combo_box_p, index_i);
   } // end IF
 
@@ -10310,7 +10382,7 @@ combobox_frequency_changed_cb (GtkWidget* widget_in,
     COMMON_UI_GTK_MANAGER_SINGLETON::instance ();
   ACE_ASSERT (gtk_manager_p);
   const Common_UI_GTK_State_t& state_r = gtk_manager_p->getR ();
-  bool device_selected_b = false;
+  bool load_all_formats_b = false;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   struct Test_U_AudioEffect_DirectShow_UI_CBData* directshow_ui_cb_data_p =
     NULL;
@@ -10332,8 +10404,8 @@ combobox_frequency_changed_cb (GtkWidget* widget_in,
         directshow_ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
       ACE_ASSERT (directshow_modulehandler_configuration_iterator != directshow_ui_cb_data_p->configuration->streamConfiguration.end ());
 
-      device_selected_b =
-        (directshow_ui_cb_data_p->configuration->streamConfiguration.configuration_->sourceType == AUDIOEFFECT_SOURCE_DEVICE);
+      load_all_formats_b =
+        (directshow_ui_cb_data_p->configuration->streamConfiguration.configuration_->sourceType != AUDIOEFFECT_SOURCE_DEVICE);
       use_framework_source_b =
         (directshow_ui_cb_data_p->configuration->streamConfiguration.configuration_->capturer == STREAM_DEVICE_CAPTURER_DIRECTSHOW);
       break;
@@ -10349,8 +10421,8 @@ combobox_frequency_changed_cb (GtkWidget* widget_in,
         mediafoundation_ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
       ACE_ASSERT (mediafoundation_modulehandler_configuration_iterator != mediafoundation_ui_cb_data_p->configuration->streamConfiguration.end ());
 
-      device_selected_b =
-        (mediafoundation_ui_cb_data_p->configuration->streamConfiguration.configuration_->sourceType == AUDIOEFFECT_SOURCE_DEVICE);
+      load_all_formats_b =
+        (mediafoundation_ui_cb_data_p->configuration->streamConfiguration.configuration_->sourceType != AUDIOEFFECT_SOURCE_DEVICE);
       use_framework_source_b =
         (mediafoundation_ui_cb_data_p->configuration->streamConfiguration.configuration_->capturer == STREAM_DEVICE_CAPTURER_MEDIAFOUNDATION);
       break;
@@ -10373,8 +10445,8 @@ combobox_frequency_changed_cb (GtkWidget* widget_in,
     ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (modulehandler_configuration_iterator != ui_cb_data_p->configuration->streamConfiguration.end ());
 
-  device_selected_b =
-    (ui_cb_data_p->configuration->streamConfiguration.configuration_->sourceType == AUDIOEFFECT_SOURCE_DEVICE);
+  load_all_formats_b =
+    (ui_cb_data_p->configuration->streamConfiguration.configuration_->sourceType != AUDIOEFFECT_SOURCE_DEVICE);
 #endif // ACE_WIN32 || ACE_WIN64
   Common_UI_GTK_BuildersConstIterator_t iterator =
     state_r.builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN));
@@ -10506,12 +10578,18 @@ combobox_frequency_changed_cb (GtkWidget* widget_in,
       audio_info_header_p->nSamplesPerSec = sample_rate;
       sample_bits_i = audio_info_header_p->wBitsPerSample;
 
+      if (load_all_formats_b)
+      {
+        result_2 = load_all_sample_resolutions (list_store_p);
+        break;
+      } // end IF
+
       switch (directshow_ui_cb_data_p->configuration->streamConfiguration.configuration_->capturer)
       {
         case STREAM_DEVICE_CAPTURER_WAVEIN:
         {
           result_2 =
-            load_sample_resolutions ((device_selected_b ? index_i : -1),
+            load_sample_resolutions (index_i,
                                      GUID_s,
                                      sample_rate,
                                      list_store_p);
@@ -10520,7 +10598,7 @@ combobox_frequency_changed_cb (GtkWidget* widget_in,
         case STREAM_DEVICE_CAPTURER_WASAPI:
         {
           result_2 =
-            load_sample_resolutions ((device_selected_b ? GUID_2 : GUID_NULL),
+            load_sample_resolutions (GUID_2,
                                      GUID_s,
                                      sample_rate,
                                      list_store_p);
@@ -10572,12 +10650,18 @@ combobox_frequency_changed_cb (GtkWidget* widget_in,
         return;
       } // end IF
 
+      if (load_all_formats_b)
+      {
+        result_2 = load_all_sample_resolutions (list_store_p);
+        break;
+      } // end IF
+
       switch (mediafoundation_ui_cb_data_p->configuration->streamConfiguration.configuration_->capturer)
       {
         case STREAM_DEVICE_CAPTURER_WAVEIN:
         {
           result_2 =
-            load_sample_resolutions ((device_selected_b ? index_i : -1),
+            load_sample_resolutions (index_i,
                                      GUID_s,
                                      sample_rate,
                                      list_store_p);
@@ -10586,7 +10670,7 @@ combobox_frequency_changed_cb (GtkWidget* widget_in,
         case STREAM_DEVICE_CAPTURER_WASAPI:
         {
           result_2 =
-            load_sample_resolutions ((device_selected_b ? GUID_2 : GUID_NULL),
+            load_sample_resolutions (GUID_2,
                                      GUID_s,
                                      sample_rate,
                                      list_store_p);
@@ -10640,10 +10724,13 @@ combobox_frequency_changed_cb (GtkWidget* widget_in,
   sample_bits_i =
     snd_pcm_format_width (ui_cb_data_p->configuration->streamConfiguration.configuration_->format.format);
 
-  result_2 =
-    load_sample_resolutions ((device_selected_b ? ui_cb_data_p->handle : NULL),
-                             ui_cb_data_p->configuration->streamConfiguration.configuration_->format,
-                             list_store_p);
+  if (load_all_formats_b)
+    result_2 = load_all_sample_resolutions (list_store_p);
+  else
+    result_2 =
+      load_sample_resolutions (ui_cb_data_p->handle,
+                               ui_cb_data_p->configuration->streamConfiguration.configuration_->format,
+                               list_store_p);
 #endif // ACE_WIN32 || ACE_WIN64
   if (!result_2)
   {
@@ -10692,6 +10779,7 @@ combobox_frequency_changed_cb (GtkWidget* widget_in,
                   sample_bits_i));
       index_i = 0;
     } // end IF
+    g_value_unset (&value);
     gtk_combo_box_set_active (combo_box_p, index_i);
   } // end IF
 
@@ -10763,7 +10851,7 @@ combobox_resolution_changed_cb (GtkWidget* widget_in,
     COMMON_UI_GTK_MANAGER_SINGLETON::instance ();
   ACE_ASSERT (gtk_manager_p);
   const Common_UI_GTK_State_t& state_r = gtk_manager_p->getR ();
-  bool device_selected_b = false;
+  bool load_all_formats_b = false;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   struct Test_U_AudioEffect_DirectShow_UI_CBData* directshow_ui_cb_data_p =
     NULL;
@@ -10786,8 +10874,8 @@ combobox_resolution_changed_cb (GtkWidget* widget_in,
         directshow_ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
       ACE_ASSERT (directshow_modulehandler_configuration_iterator != directshow_ui_cb_data_p->configuration->streamConfiguration.end ());
 
-      device_selected_b =
-        (directshow_ui_cb_data_p->configuration->streamConfiguration.configuration_->sourceType == AUDIOEFFECT_SOURCE_DEVICE);
+      load_all_formats_b =
+        (directshow_ui_cb_data_p->configuration->streamConfiguration.configuration_->sourceType != AUDIOEFFECT_SOURCE_DEVICE);
       use_framework_source_b =
         (directshow_ui_cb_data_p->configuration->streamConfiguration.configuration_->capturer == STREAM_DEVICE_CAPTURER_DIRECTSHOW);
       break;
@@ -10804,8 +10892,8 @@ combobox_resolution_changed_cb (GtkWidget* widget_in,
         mediafoundation_ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
       ACE_ASSERT (mediafoundation_modulehandler_configuration_iterator != mediafoundation_ui_cb_data_p->configuration->streamConfiguration.end ());
 
-      device_selected_b =
-        (mediafoundation_ui_cb_data_p->configuration->streamConfiguration.configuration_->sourceType == AUDIOEFFECT_SOURCE_DEVICE);
+      load_all_formats_b =
+        (mediafoundation_ui_cb_data_p->configuration->streamConfiguration.configuration_->sourceType != AUDIOEFFECT_SOURCE_DEVICE);
       use_framework_source_b =
         (mediafoundation_ui_cb_data_p->configuration->streamConfiguration.configuration_->capturer == STREAM_DEVICE_CAPTURER_MEDIAFOUNDATION);
       break;
@@ -10828,14 +10916,12 @@ combobox_resolution_changed_cb (GtkWidget* widget_in,
     ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (modulehandler_configuration_iterator != ui_cb_data_p->configuration->streamConfiguration.end ());
 
-  device_selected_b =
-    (ui_cb_data_p->configuration->streamConfiguration.configuration_->sourceType == AUDIOEFFECT_SOURCE_DEVICE);
+  load_all_formats_b =
+    (ui_cb_data_p->configuration->streamConfiguration.configuration_->sourceType != AUDIOEFFECT_SOURCE_DEVICE);
 #endif // ACE_WIN32 || ACE_WIN64
-
   Common_UI_GTK_BuildersConstIterator_t iterator =
     state_r.builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN));
   ACE_ASSERT (iterator != state_r.builders.end ());
-
   GtkComboBox* combo_box_p =
     GTK_COMBO_BOX (gtk_builder_get_object ((*iterator).second.second,
                                            ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_COMBOBOX_FORMAT_NAME)));
@@ -10985,11 +11071,17 @@ combobox_resolution_changed_cb (GtkWidget* widget_in,
       audio_info_header_p->wBitsPerSample = bits_per_sample;
       channels_i = audio_info_header_p->nChannels;
 
-            switch (directshow_ui_cb_data_p->configuration->streamConfiguration.configuration_->capturer)
+      if (load_all_formats_b)
+      {
+        result_2 = load_all_channels (list_store_p);
+        break;
+      } // end IF
+
+      switch (directshow_ui_cb_data_p->configuration->streamConfiguration.configuration_->capturer)
       {
         case STREAM_DEVICE_CAPTURER_WAVEIN:
         {
-          result_2 = load_channels ((device_selected_b ? index_i : -1),
+          result_2 = load_channels (index_i,
                                     GUID_s,
                                     sample_rate,
                                     bits_per_sample,
@@ -10998,7 +11090,7 @@ combobox_resolution_changed_cb (GtkWidget* widget_in,
         }
         case STREAM_DEVICE_CAPTURER_WASAPI:
         {
-          result_2 = load_channels ((device_selected_b ? GUID_2 : GUID_NULL),
+          result_2 = load_channels (GUID_2,
                                     GUID_s,
                                     sample_rate,
                                     bits_per_sample,
@@ -11052,11 +11144,17 @@ combobox_resolution_changed_cb (GtkWidget* widget_in,
         return;
       } // end IF
 
+      if (load_all_formats_b)
+      {
+        result_2 = load_all_channels (list_store_p);
+        break;
+      } // end IF
+
       switch (mediafoundation_ui_cb_data_p->configuration->streamConfiguration.configuration_->capturer)
       {
         case STREAM_DEVICE_CAPTURER_WAVEIN:
         {
-          result_2 = load_channels ((device_selected_b ? index_i : -1),
+          result_2 = load_channels (index_i,
                                     GUID_s,
                                     sample_rate,
                                     bits_per_sample,
@@ -11065,7 +11163,7 @@ combobox_resolution_changed_cb (GtkWidget* widget_in,
         }
         case STREAM_DEVICE_CAPTURER_WASAPI:
         {
-          result_2 = load_channels ((device_selected_b ? GUID_2 : GUID_NULL),
+          result_2 = load_channels (GUID_2,
                                     GUID_s,
                                     sample_rate,
                                     bits_per_sample,
@@ -11121,10 +11219,13 @@ combobox_resolution_changed_cb (GtkWidget* widget_in,
   channels_i =
     ui_cb_data_p->configuration->streamConfiguration.configuration_->format.channels;
 
-  result_2 =
-    load_channels ((device_selected_b ? ui_cb_data_p->handle : NULL),
-                   ui_cb_data_p->configuration->streamConfiguration.configuration_->format,
-                   list_store_p);
+  if (load_all_formats_b)
+    result_2 = load_all_channels (list_store_p);
+  else
+    result_2 =
+      load_channels (ui_cb_data_p->handle,
+                     ui_cb_data_p->configuration->streamConfiguration.configuration_->format,
+                     list_store_p);
 #endif // ACE_WIN32 || ACE_WIN64
   if (!result_2)
   {
@@ -11171,6 +11272,7 @@ combobox_resolution_changed_cb (GtkWidget* widget_in,
                   channels_i));
       index_i = 0;
     } // end IF
+    g_value_unset (&value);
     gtk_combo_box_set_active (combo_box_p, index_i);
   } // end IF
 

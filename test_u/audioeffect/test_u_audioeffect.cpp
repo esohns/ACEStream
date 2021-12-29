@@ -825,8 +825,8 @@ continue_2:
     captureMediaType_out->Release (); captureMediaType_out = NULL;
   } // end IF
 
-  waveformatex_s.wFormatTag = WAVE_FORMAT_PCM;
-  waveformatex_s.nChannels = STREAM_DEV_MIC_DEFAULT_CHANNELS; // stereo
+  waveformatex_s.wFormatTag = STREAM_DEV_MIC_DEFAULT_FORMAT;
+  waveformatex_s.nChannels = STREAM_DEV_MIC_DEFAULT_CHANNELS;
   waveformatex_s.nSamplesPerSec = STREAM_DEV_MIC_DEFAULT_SAMPLE_RATE;
   waveformatex_s.wBitsPerSample = STREAM_DEV_MIC_DEFAULT_BITS_PER_SAMPLE;
   waveformatex_s.nBlockAlign =
@@ -1133,7 +1133,8 @@ do_work (
       istream_control_p = &directshow_stream;
       directshow_stream_configuration.capturer =
         (useFrameworkSource_in ? STREAM_DEVICE_CAPTURER_DIRECTSHOW
-                               : STREAM_DEVICE_CAPTURER_WAVEIN);
+                               : STREAM_DEVICE_CAPTURER_WASAPI);
+                               //: STREAM_DEVICE_CAPTURER_WAVEIN);
       directshow_stream_configuration.renderer =
         (useFrameworkRenderer_in ? STREAM_DEVICE_RENDERER_DIRECTSHOW
                                  : STREAM_DEVICE_RENDERER_WAVEOUT);

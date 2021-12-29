@@ -707,14 +707,28 @@ Stream_Miscellaneous_Distributor_T<ACE_SYNCH_USE,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Miscellaneous_Distributor_T::idle"));
 
+  typename inherited::MESSAGE_QUEUE_T* queue_p = NULL;
+
+retry:
   { ACE_GUARD (ACE_Thread_Mutex, aGuard, inherited::lock_);
     for (THREAD_TO_QUEUE_CONST_ITERATOR_T iterator = queues_.begin ();
          iterator != queues_.end ();
          ++iterator)
     { ACE_ASSERT ((*iterator).second);
-      (*iterator).second->waitForIdleState ();
+      if (!(*iterator).second->is_empty ())
+      { // *NOTE*: wait outside of the lock scope
+        queue_p = (*iterator).second;
+        goto wait;
+      } // end IF
     } // end FOR
   } // end lock scope
+
+  return;
+
+wait:
+  ACE_ASSERT (queue_p);
+  queue_p->waitForIdleState ();
+  goto retry;
 }
 
 template <ACE_SYNCH_DECL,

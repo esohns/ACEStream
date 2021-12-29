@@ -297,8 +297,8 @@ Stream_Dev_Target_WavOut_T<ACE_SYNCH_USE,
                       //WAVE_MAPPED;
       result =
         waveOutOpen (&handle_,
-                     WAVE_MAPPER,
-                     //inherited::configuration_->deviceIdentifier.identifier._id,
+                     //WAVE_MAPPER,
+                     inherited::configuration_->deviceIdentifier.identifier._id,
                      waveformatex_p,
                      reinterpret_cast<DWORD_PTR> (stream_dev_waveout_data_cb),
                      reinterpret_cast<DWORD_PTR> (&CBData_),

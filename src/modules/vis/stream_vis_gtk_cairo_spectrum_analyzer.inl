@@ -1212,8 +1212,6 @@ Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
   ACE_ASSERT (cairoContext_);
   ACE_ASSERT (mode2D_);
 
-  int result = -1;
-  double x = 0.0;
 #define CAIRO_ERROR_WORKAROUND(X)                                        \
  if (cairo_status (X) != CAIRO_STATUS_SUCCESS) {                         \
    cairo_destroy (cairoContext_); cairoContext_ = NULL;                  \
@@ -1240,16 +1238,17 @@ Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
         // step2aa: draw a thin, green polyline
         cairo_set_source_rgb (cairoContext_, 0.0, 1.0, 0.0);
         cairo_move_to (cairoContext_,
-                       i * channelFactor_,
-                       halfHeight_);
+                       static_cast<double> (i) * channelFactor_,
+                       static_cast<double> (halfHeight_));
         for (unsigned int j = 0; j < inherited3::slots_; ++j)
           cairo_line_to (cairoContext_,
-                         (i * channelFactor_) + (j * scaleFactorX_),
-                         halfHeight_ - (inherited3::buffer_[i][j] * scaleFactorY_));
+                         (static_cast<double> (i) * channelFactor_) + (static_cast<double> (j) * scaleFactorX_),
+                         static_cast<double> (halfHeight_) - (inherited3::buffer_[i][j] * scaleFactorY_));
         break;
       }
       case STREAM_VISUALIZATION_SPECTRUMANALYZER_2DMODE_SPECTRUM:
       {
+        double x = 0.0;
         // step2aa: draw thin, white columns
         cairo_set_source_rgb (cairoContext_, 1.0, 1.0, 1.0);
         // *IMPORTANT NOTE*: - the first ('DC'-)slot does not contain frequency
@@ -1258,16 +1257,17 @@ Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
         //                     additional information
         //                     --> there are only N/2 - 1 meaningful values
         for (unsigned int j = 1; j < inherited3::halfSlots_; ++j)
-        //for (unsigned int j = 0; j < inherited3::slots_; ++j)
         {
-          x = (i * channelFactor_) + (j * scaleFactorX_2);
-          //x = (i * channelFactor_) + (j * scaleFactorX_);
+          x =
+            (static_cast<double> (i) * channelFactor_) + (static_cast<double> (j) * scaleFactorX_2);
           cairo_move_to (cairoContext_,
                          x,
-                         height_);
+                         static_cast<double> (height_));
+          // *NOTE*: it is 2x the scale factor for signed (!) values, because the
+          //         magnitudes are absolute values
           cairo_line_to (cairoContext_,
                          x,
-                         height_ - (inherited3::Amplitude (j, i) * scaleFactorY_));
+                         static_cast<double> (height_) - (inherited3::Magnitude (j, i, true) * 2.0 * scaleFactorY_));
         } // end FOR
         break;
       }
@@ -1299,9 +1299,9 @@ Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
   } // end FOR
 #if GTK_CHECK_VERSION(3,10,0)
   cairo_surface_mark_dirty (cairoSurface_);
-  ACE_ASSERT (cairo_status (cairoSurface_) == CAIRO_STATUS_SUCCESS);
+  //ACE_ASSERT (cairo_status (cairoSurface_) == CAIRO_STATUS_SUCCESS);
   cairo_surface_flush (cairoSurface_);
-  ACE_ASSERT (cairo_status (cairoSurface_) == CAIRO_STATUS_SUCCESS);
+  //ACE_ASSERT (cairo_status (cairoSurface_) == CAIRO_STATUS_SUCCESS);
 #endif // GTK_CHECK_VERSION(3,10,0)
   // *IMPORTANT NOTE*: this assert fails intermittently on Gtk2 Win32;
   //                   the result is CAIRO_STATUS_NO_MEMORY
