@@ -29,20 +29,12 @@
 #include "stream_base.h"
 #include "stream_common.h"
 
-//#include "stream_net_source.h"
-//
-//#include "http_module_parser.h"
-
-//#include "test_i_common.h"
 #include "test_i_modules.h"
 #include "test_i_message.h"
-//#include "test_i_module_htmlparser.h"
-//#include "test_i_module_htmlwriter.h"
 #include "test_i_session_message.h"
 
 // forward declarations
 class Stream_IAllocator;
-struct Test_I_SessionData;
 typedef Stream_SessionData_T<struct Test_I_SessionData> Test_I_SessionData_t;
 struct Test_I_MP3Player_StreamConfiguration;
 struct Test_I_MP3Player_ModuleHandlerConfiguration;

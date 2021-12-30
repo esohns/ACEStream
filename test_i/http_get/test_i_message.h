@@ -47,22 +47,22 @@ template <ACE_SYNCH_DECL,
           typename SessionMessageType> class Stream_MessageAllocatorHeapBase_T;
 
 class Test_I_Stream_MessageData
- : public Stream_DataBase_T<struct Test_I_MessageData>
+ : public Stream_DataBase_T<struct Test_I_HTTPGet_MessageData>
  , public Common_ISetPR_T<struct HTTP_Record>
 {
+  typedef Stream_DataBase_T<struct Test_I_HTTPGet_MessageData> inherited;
+
  public:
   Test_I_Stream_MessageData ();
   // *IMPORTANT NOTE*: fire-and-forget API
-  Test_I_Stream_MessageData (struct Test_I_MessageData*&, // data handle
-                             bool = true);                // delete in dtor ?
-  inline virtual ~Test_I_Stream_MessageData () {};
+  Test_I_Stream_MessageData (struct Test_I_HTTPGet_MessageData*&, // data handle
+                             bool = true);                        // delete in dtor ?
+  inline virtual ~Test_I_Stream_MessageData () {}
 
   // implement Common_ISetPR_T
   virtual void setPR (struct HTTP_Record*&);
 
  private:
-  typedef Stream_DataBase_T<struct Test_I_MessageData> inherited;
-
   ACE_UNIMPLEMENTED_FUNC (Test_I_Stream_MessageData (const Test_I_Stream_MessageData&))
   ACE_UNIMPLEMENTED_FUNC (Test_I_Stream_MessageData& operator= (const Test_I_Stream_MessageData&))
 };
@@ -71,12 +71,10 @@ class Test_I_Stream_MessageData
 
 class Test_I_Stream_Message
  : public Stream_DataMessageBase_2<Test_I_Stream_MessageData,
-//                                   struct Common_Parser_FlexAllocatorConfiguration,
                                    enum Stream_MessageType,
                                    HTTP_Method_t>
 {
   typedef Stream_DataMessageBase_2<Test_I_Stream_MessageData,
-//                                   struct Common_Parser_FlexAllocatorConfiguration,
                                    enum Stream_MessageType,
                                    HTTP_Method_t> inherited;
 

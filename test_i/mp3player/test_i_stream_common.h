@@ -164,10 +164,10 @@ struct Test_I_MP3Player_StreamConfiguration
 };
 
 struct Test_I_MP3Player_StreamState
- : Test_I_StreamState
+ : Stream_State
 {
   Test_I_MP3Player_StreamState ()
-   : Test_I_StreamState ()
+   : Stream_State ()
    , sessionData (NULL)
   {}
 

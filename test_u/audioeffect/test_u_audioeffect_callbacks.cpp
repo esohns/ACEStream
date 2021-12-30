@@ -7112,8 +7112,8 @@ continue_:
   struct Test_U_AudioEffect_DirectShow_UI_CBData* directshow_ui_cb_data_p = NULL;
   struct Test_U_AudioEffect_MediaFoundation_UI_CBData* mediafoundation_ui_cb_data_p =
     NULL;
-  Test_U_AudioEffect_MediaFoundation_StreamConfiguration_t::ITERATOR_T mediafoundation_modulehandler_configuration_iterator;
   Test_U_AudioEffect_DirectShow_StreamConfiguration_t::ITERATOR_T directshow_modulehandler_configuration_iterator;
+  Test_U_AudioEffect_MediaFoundation_StreamConfiguration_t::ITERATOR_T mediafoundation_modulehandler_configuration_iterator;
   switch (ui_cb_data_base_p->mediaFramework)
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
@@ -7123,7 +7123,6 @@ continue_:
         static_cast<struct Test_U_AudioEffect_DirectShow_UI_CBData*> (userData_in);
       ACE_ASSERT (directshow_ui_cb_data_p);
       ACE_ASSERT (directshow_ui_cb_data_p->configuration);
-
       directshow_modulehandler_configuration_iterator =
         directshow_ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
       ACE_ASSERT (directshow_modulehandler_configuration_iterator != directshow_ui_cb_data_p->configuration->streamConfiguration.end ());
@@ -7142,7 +7141,6 @@ continue_:
         static_cast<struct Test_U_AudioEffect_MediaFoundation_UI_CBData*> (userData_in);
       ACE_ASSERT (mediafoundation_ui_cb_data_p);
       ACE_ASSERT (mediafoundation_ui_cb_data_p->configuration);
-
       mediafoundation_modulehandler_configuration_iterator =
         mediafoundation_ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
       ACE_ASSERT (mediafoundation_modulehandler_configuration_iterator != mediafoundation_ui_cb_data_p->configuration->streamConfiguration.end ());
@@ -7540,6 +7538,8 @@ hscale_volume_value_changed_cb (GtkRange* range_in,
     NULL;
   struct Test_U_AudioEffect_MediaFoundation_UI_CBData* mediafoundation_ui_cb_data_p =
     NULL;
+  Test_U_AudioEffect_DirectShow_StreamConfiguration_t::ITERATOR_T directshow_modulehandler_configuration_iterator;
+  Test_U_AudioEffect_MediaFoundation_StreamConfiguration_t::ITERATOR_T mediafoundation_modulehandler_configuration_iterator;
   switch (ui_cb_data_base_p->mediaFramework)
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
@@ -7549,10 +7549,17 @@ hscale_volume_value_changed_cb (GtkRange* range_in,
         static_cast<struct Test_U_AudioEffect_DirectShow_UI_CBData*> (userData_in);
       ACE_ASSERT (directshow_ui_cb_data_p);
       ACE_ASSERT (directshow_ui_cb_data_p->renderVolumeControl);
+      directshow_modulehandler_configuration_iterator =
+        directshow_ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
+      ACE_ASSERT (directshow_modulehandler_configuration_iterator != directshow_ui_cb_data_p->configuration->streamConfiguration.end ());
+      ACE_ASSERT ((*directshow_modulehandler_configuration_iterator).second.second->generatorConfiguration);
+
       HRESULT result =
         directshow_ui_cb_data_p->renderVolumeControl->SetMasterVolume (static_cast<float> (gtk_range_get_value (range_in) / 100.0),
                                                                        NULL);
       ACE_ASSERT (SUCCEEDED (result));
+      (*directshow_modulehandler_configuration_iterator).second.second->generatorConfiguration->amplitude =
+        gtk_range_get_value (range_in) / 100.0;
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
@@ -7562,10 +7569,17 @@ hscale_volume_value_changed_cb (GtkRange* range_in,
         static_cast<struct Test_U_AudioEffect_MediaFoundation_UI_CBData*> (userData_in);
       ACE_ASSERT (mediafoundation_ui_cb_data_p);
       ACE_ASSERT (mediafoundation_ui_cb_data_p->renderVolumeControl);
+      mediafoundation_modulehandler_configuration_iterator =
+        mediafoundation_ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
+      ACE_ASSERT (mediafoundation_modulehandler_configuration_iterator != mediafoundation_ui_cb_data_p->configuration->streamConfiguration.end ());
+      ACE_ASSERT ((*mediafoundation_modulehandler_configuration_iterator).second.second->generatorConfiguration);
+
       HRESULT result =
         mediafoundation_ui_cb_data_p->renderVolumeControl->SetMasterVolume (static_cast<float> (gtk_range_get_value (range_in) / 100.0),
                                                                             NULL);
       ACE_ASSERT (SUCCEEDED (result));
+      (*mediafoundation_modulehandler_configuration_iterator).second.second->generatorConfiguration->amplitude =
+        gtk_range_get_value (range_in) / 100.0;
       break;
     }
     default:
@@ -7585,6 +7599,7 @@ hscale_volume_value_changed_cb (GtkRange* range_in,
   Test_U_AudioEffect_ALSA_StreamConfiguration_t::ITERATOR_T modulehandler_configuration_iterator =
       data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_TARGET_ALSA_DEFAULT_NAME_STRING));
   ACE_ASSERT (modulehandler_configuration_iterator != data_p->configuration->streamConfiguration.end ());
+  ACE_ASSERT ((*modulehandler_configuration_iterator).second.second->generatorConfiguration);
 
   if (!Stream_MediaFramework_ALSA_Tools::setVolumeLevel ((*modulehandler_configuration_iterator).second.second->deviceIdentifier.identifier,
                                                          ACE_TEXT_ALWAYS_CHAR (STREAM_LIB_ALSA_PLAYBACK_DEFAULT_SELEM_VOLUME_NAME),
@@ -7598,6 +7613,8 @@ hscale_volume_value_changed_cb (GtkRange* range_in,
                  static_cast<long> (gtk_range_get_value (range_in))));
     return;
   } // end IF
+  (*modulehandler_configuration_iterator).second.second->generatorConfiguration->amplitude =
+    gtk_range_get_value (range_in) / 100.0;
 #endif // ACE_WIN32 || ACE_WIN64
 } // hscale_volume_value_changed_cb
 

@@ -18,8 +18,8 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#ifndef TEST_I_SMTP_SEND_GTK_CALLBACKS_H
-#define TEST_I_SMTP_SEND_GTK_CALLBACKS_H
+#ifndef TEST_I_GTK_CALLBACKS_H
+#define TEST_I_GTK_CALLBACKS_H
 
 #include "gtk/gtk.h"
 
@@ -40,7 +40,7 @@ gboolean idle_update_progress_cb (gpointer);
 extern "C"
 {
 #endif /* __cplusplus */
-G_MODULE_EXPORT void action_send_activate_cb (GtkAction*, gpointer);
+G_MODULE_EXPORT void action_record_activate_cb (GtkAction*, gpointer);
 
 //G_MODULE_EXPORT gint button_clear_clicked_cb (GtkWidget*, gpointer);
 G_MODULE_EXPORT gint button_about_clicked_cb (GtkWidget*, gpointer);

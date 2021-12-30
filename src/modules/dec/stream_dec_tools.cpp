@@ -780,14 +780,16 @@ Stream_Module_Decoder_Tools::sinus (unsigned int sampleRate_in,
                                     bool formatIsSigned_in,
                                     bool formatIsLittleEndian_in,
                                     uint8_t* buffer_in,
-                                    unsigned int samplesToWrite_in, // #'data' samples
-                                    double frequency_in, 
+                                    unsigned int samplesToWrite_in,
+                                    double amplitude_in,
+                                    double frequency_in,
                                     double& phase_inout)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Decoder_Tools::sinus"));
 
   // sanity check(s)
-  ACE_ASSERT (bytesPerSample_in <= 8);
+  ACE_ASSERT (bytesPerSample_in <= 16);
+  ACE_ASSERT (amplitude_in >= 0.0 && amplitude_in <= 1.0);
 
   static double maximum_phase_d = 2.0 * M_PI;
   double step_d =
@@ -803,9 +805,9 @@ Stream_Module_Decoder_Tools::sinus (unsigned int sampleRate_in,
   for (unsigned int i = 0; i < samplesToWrite_in; ++i)
   {
     value_d =
-      (formatIsFloat_in ? std::sin (phase_inout)
-                        : (formatIsSigned_in ? std::sin (phase_inout) * static_cast<long double> (maximum_value_i)
-                                             : (std::sin (phase_inout) + 1.0) * (static_cast<long double> (maximum_value_i) / 2.0)));
+      (formatIsFloat_in ? std::sin (phase_inout) * amplitude_in
+                        : (formatIsSigned_in ? std::sin (phase_inout) * static_cast<long double> (maximum_value_i) * amplitude_in
+                                             : (std::sin (phase_inout) + 1.0) * (static_cast<long double> (maximum_value_i) / 2.0) * amplitude_in));
     for (unsigned int j = 0; j < channels_in; ++j, data_p += bytesPerSample_in)
       switch (bytesPerSample_in)
       {

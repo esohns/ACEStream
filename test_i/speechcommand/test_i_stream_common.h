@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C) 2010 by Erik Sohns   *
+ *   Copyright (C) 2009 by Erik Sohns   *
  *   erik.sohns@web.de   *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
@@ -18,37 +18,33 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#ifndef TEST_I_SMTP_SEND_GTK_CALLBACKS_H
-#define TEST_I_SMTP_SEND_GTK_CALLBACKS_H
+#ifndef TEST_I_STREAM_COMMON_H
+#define TEST_I_STREAM_COMMON_H
 
-#include "gtk/gtk.h"
+#include "stream_configuration.h"
 
-//------------------------------------------------------------------------------
+#include "test_i_configuration.h"
 
-// idle routines
-gboolean idle_initialize_UI_cb (gpointer);
-gboolean idle_finalize_UI_cb (gpointer);
-gboolean idle_session_end_cb (gpointer);
-gboolean idle_update_info_display_cb (gpointer);
-//gboolean idle_update_log_display_cb (gpointer);
-gboolean idle_update_progress_cb (gpointer);
-//gboolean idle_update_video_display_cb (gpointer);
+// forward declarations
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+struct Test_I_DirectShow_ModuleHandlerConfiguration;
+struct Test_I_MediaFoundation_ModuleHandlerConfiguration;
+#else
+struct Test_I_ALSA_ModuleHandlerConfiguration;
+#endif // ACE_WIN32 || ACE_WIN64
 
-//------------------------------------------------------------------------------
-
-#ifdef __cplusplus
-extern "C"
-{
-#endif /* __cplusplus */
-G_MODULE_EXPORT void action_send_activate_cb (GtkAction*, gpointer);
-
-//G_MODULE_EXPORT gint button_clear_clicked_cb (GtkWidget*, gpointer);
-G_MODULE_EXPORT gint button_about_clicked_cb (GtkWidget*, gpointer);
-G_MODULE_EXPORT gint button_quit_clicked_cb (GtkWidget*, gpointer);
-
-G_MODULE_EXPORT void textview_size_allocate_cb (GtkWidget*, GdkRectangle*, gpointer);
-#ifdef __cplusplus
-}
-#endif /* __cplusplus */
+//extern const char stream_name_string_[];
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+typedef Stream_Configuration_T<//stream_name_string_,
+                               struct Test_I_StreamConfiguration,
+                               struct Test_I_DirectShow_ModuleHandlerConfiguration> Test_I_DirectShow_StreamConfiguration_t;
+typedef Stream_Configuration_T<//stream_name_string_,
+                               struct Test_I_StreamConfiguration,
+                               struct Test_I_MediaFoundation_ModuleHandlerConfiguration> Test_I_MediaFoundation_StreamConfiguration_t;
+#else
+typedef Stream_Configuration_T<//stream_name_string_,
+                               struct Test_I_StreamConfiguration,
+                               struct Test_I_ALSA_ModuleHandlerConfiguration> Test_I_ALSA_StreamConfiguration_t;
+#endif // ACE_WIN32 || ACE_WIN64
 
 #endif

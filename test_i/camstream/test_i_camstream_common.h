@@ -107,10 +107,10 @@ typedef int Test_I_CommandType_t;
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 struct Test_I_CamStream_DirectShow_SessionData
- : Test_I_SessionData
+ : Test_I_DirectShow_SessionData
 {
   Test_I_CamStream_DirectShow_SessionData ()
-   : Test_I_SessionData ()
+   : Test_I_DirectShow_SessionData ()
    , direct3DDevice (NULL)
    , resetToken (0)
   {}
@@ -119,7 +119,7 @@ struct Test_I_CamStream_DirectShow_SessionData
   struct Test_I_CamStream_DirectShow_SessionData& operator+= (const struct Test_I_CamStream_DirectShow_SessionData& rhs_in)
   {
     // *NOTE*: the idea is to 'merge' the data
-    Test_I_SessionData::operator+= (rhs_in);
+    Test_I_DirectShow_SessionData::operator+= (rhs_in);
 
     // sanity check(s)
 //    ACE_ASSERT (rhs_in.inputFormat);
@@ -152,11 +152,10 @@ struct Test_I_CamStream_DirectShow_SessionData
 //typedef Stream_SessionData_T<Test_I_CamStream_DirectShow_SessionData> Test_I_CamStream_DirectShow_SessionData_t;
 
 struct Test_I_CamStream_MediaFoundation_SessionData
- : Test_I_SessionData
-
+ : Test_I_MediaFoundation_SessionData
 {
   Test_I_CamStream_MediaFoundation_SessionData ()
-   : Test_I_SessionData ()
+   : Test_I_MediaFoundation_SessionData ()
    , direct3DDevice (NULL)
    , direct3DManagerResetToken (0)
    , rendererNodeId (0)
@@ -167,7 +166,7 @@ struct Test_I_CamStream_MediaFoundation_SessionData
   struct Test_I_CamStream_MediaFoundation_SessionData& operator+= (const struct Test_I_CamStream_MediaFoundation_SessionData& rhs_in)
   {
     // *NOTE*: the idea is to 'merge' the data
-    Test_I_SessionData::operator+= (rhs_in);
+    Test_I_MediaFoundation_SessionData::operator+= (rhs_in);
 
     return *this;
   }

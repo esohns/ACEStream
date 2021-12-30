@@ -77,6 +77,7 @@ struct Stream_MediaFramework_SoundGeneratorConfiguration
   bool                                          isSignedFormat;
 
   // waveform generators
+  double                                        amplitude; // [0.0-1.0]
   double                                        frequency;
 
   enum Stream_MediaFramework_SoundGeneratorType type;

@@ -174,7 +174,7 @@ typedef Common_StatisticHandler_T<struct Test_I_StatisticData> Test_I_ImageSave_
 struct Test_I_ImageSave_StreamState;
 
 class Test_I_ImageSave_SessionData
- : public Stream_SessionDataMediaBase_T<struct Test_I_SessionData,
+ : public Stream_SessionDataMediaBase_T<struct Stream_SessionData,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
                                         struct _AMMediaType,
 #else
@@ -186,7 +186,7 @@ class Test_I_ImageSave_SessionData
                                         struct Test_I_StatisticData,
                                         struct Stream_UserData>
 {
-  typedef Stream_SessionDataMediaBase_T<struct Test_I_SessionData,
+  typedef Stream_SessionDataMediaBase_T<struct Stream_SessionData,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
                                         struct _AMMediaType,
 #else

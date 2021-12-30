@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C) 2010 by Erik Sohns   *
+ *   Copyright (C) 2009 by Erik Sohns   *
  *   erik.sohns@web.de   *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
@@ -18,37 +18,34 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#ifndef TEST_I_SMTP_SEND_GTK_CALLBACKS_H
-#define TEST_I_SMTP_SEND_GTK_CALLBACKS_H
+#ifndef TEST_I_SIGNALHANDLER_H
+#define TEST_I_SIGNALHANDLER_H
 
-#include "gtk/gtk.h"
+#include "ace/Global_Macros.h"
+#include "ace/Synch_Traits.h"
 
-//------------------------------------------------------------------------------
+#include "common_signal_common.h"
+#include "common_signal_handler.h"
 
-// idle routines
-gboolean idle_initialize_UI_cb (gpointer);
-gboolean idle_finalize_UI_cb (gpointer);
-gboolean idle_session_end_cb (gpointer);
-gboolean idle_update_info_display_cb (gpointer);
-//gboolean idle_update_log_display_cb (gpointer);
-gboolean idle_update_progress_cb (gpointer);
-//gboolean idle_update_video_display_cb (gpointer);
+#include "test_i_speechcommand_common.h"
 
-//------------------------------------------------------------------------------
-
-#ifdef __cplusplus
-extern "C"
+class Test_I_SignalHandler
+ : public Common_SignalHandler_T<struct Test_I_SignalHandlerConfiguration>
 {
-#endif /* __cplusplus */
-G_MODULE_EXPORT void action_send_activate_cb (GtkAction*, gpointer);
+  typedef Common_SignalHandler_T<struct Test_I_SignalHandlerConfiguration> inherited;
 
-//G_MODULE_EXPORT gint button_clear_clicked_cb (GtkWidget*, gpointer);
-G_MODULE_EXPORT gint button_about_clicked_cb (GtkWidget*, gpointer);
-G_MODULE_EXPORT gint button_quit_clicked_cb (GtkWidget*, gpointer);
+ public:
+  Test_I_SignalHandler (enum Common_SignalDispatchType, // dispatch mode
+                        ACE_SYNCH_RECURSIVE_MUTEX*);    // lock handle
+  inline virtual ~Test_I_SignalHandler () {}
 
-G_MODULE_EXPORT void textview_size_allocate_cb (GtkWidget*, GdkRectangle*, gpointer);
-#ifdef __cplusplus
-}
-#endif /* __cplusplus */
+  // implement Common_ISignal
+  virtual void handle (const struct Common_Signal&); // signal
+
+ private:
+  ACE_UNIMPLEMENTED_FUNC (Test_I_SignalHandler ())
+  ACE_UNIMPLEMENTED_FUNC (Test_I_SignalHandler (const Test_I_SignalHandler&))
+  ACE_UNIMPLEMENTED_FUNC (Test_I_SignalHandler& operator= (const Test_I_SignalHandler&))
+};
 
 #endif

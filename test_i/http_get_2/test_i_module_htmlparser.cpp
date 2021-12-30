@@ -112,8 +112,8 @@ Test_I_Stream_HTMLParser::handleDataMessage (Test_I_Stream_Message*& message_ino
   // sanity check(s)
   const Test_I_Stream_MessageData& message_data_container_r =
     message_inout->getR ();
-  Test_I_MessageData& message_data_r =
-    const_cast<Test_I_MessageData&> (message_data_container_r.getR ());
+  Test_I_HTTPGet_MessageData& message_data_r =
+    const_cast<Test_I_HTTPGet_MessageData&> (message_data_container_r.getR ());
   Test_I_StockItemsIterator_t iterator =
     inherited::configuration_->stockItems.find (message_data_r.stockItem);
   ACE_ASSERT (iterator != inherited::configuration_->stockItems.end ());

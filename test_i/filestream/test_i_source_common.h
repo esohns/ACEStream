@@ -67,10 +67,10 @@
 #include "test_i_message.h"
 
 struct Test_I_Source_SessionData
- : Test_I_SessionData
+ : Stream_SessionData
 {
   Test_I_Source_SessionData ()
-   : Test_I_SessionData ()
+   : Stream_SessionData ()
    , connection (NULL)
    , fileName ()
    , size (0)
@@ -80,7 +80,7 @@ struct Test_I_Source_SessionData
   struct Test_I_Source_SessionData& operator+= (const struct Test_I_Source_SessionData& rhs_in)
   {
     // *NOTE*: the idea is to 'merge' the data
-    Test_I_SessionData::operator+= (rhs_in);
+    Stream_SessionData::operator+= (rhs_in);
 
     fileName = (fileName.empty () ? rhs_in.fileName : fileName);
     size = ((size == 0) ? rhs_in.size : size);
@@ -99,10 +99,10 @@ struct Test_I_Source_SessionData
 typedef Stream_SessionData_T<struct Test_I_Source_SessionData> Test_I_Source_SessionData_t;
 
 struct Test_I_Source_StreamState
- : Test_I_StreamState
+ : Stream_State
 {
   Test_I_Source_StreamState ()
-   : Test_I_StreamState ()
+   : Stream_State ()
    , sessionData (NULL)
   {}
 

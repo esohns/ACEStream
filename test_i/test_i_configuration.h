@@ -52,12 +52,12 @@ struct Test_I_ModuleHandlerConfiguration
 {
   Test_I_ModuleHandlerConfiguration ()
    : Stream_ModuleHandlerConfiguration ()
-   , printProgressDot (false)
    , fileIdentifier ()
+   , printProgressDot (false)
   {}
 
-  bool                   printProgressDot;
-  Common_File_Identifier fileIdentifier; // source-/target-
+  struct Common_File_Identifier fileIdentifier; // source-/target-
+  bool                          printProgressDot;
 };
 
 struct Test_I_StreamConfiguration
@@ -68,7 +68,7 @@ struct Test_I_StreamConfiguration
    , fileIdentifier ()
   {}
 
-  Common_File_Identifier fileIdentifier; // target-
+  struct Common_File_Identifier fileIdentifier; // target-
 };
 
 struct Test_I_SignalHandlerConfiguration
@@ -92,14 +92,6 @@ struct Test_I_SignalHandlerConfiguration
   Stream_IStreamControlBase*      stream;
 };
 
-//struct Test_I_StreamConfiguration
-// : Stream_Configuration
-//{
-//  Test_I_StreamConfiguration ()
-//   : Stream_Configuration ()
-//  {}
-//};
-
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 struct Test_I_MediaFoundationConfiguration
  : Stream_MediaFramework_MediaFoundation_Configuration
@@ -113,21 +105,24 @@ struct Test_I_MediaFoundationConfiguration
 struct Test_I_Configuration
 {
   Test_I_Configuration ()
-   : /*allocatorConfiguration ()
-   ,*/ dispatchConfiguration ()
-   , signalHandlerConfiguration ()
+   : dispatchConfiguration ()
    , parserConfiguration ()
-   //, streamConfiguration ()
+   , timerConfiguration ()
+   , signalHandlerConfiguration ()
+   , allocatorConfiguration ()
    , userData ()
   {}
 
-//  struct Test_I_AllocatorConfiguration     allocatorConfiguration;
+  // **************************** event data **********************************
   struct Common_EventDispatchConfiguration   dispatchConfiguration;
+  // **************************** parser data **********************************
+  struct Common_FlexBisonParserConfiguration parserConfiguration;
+  // **************************** timer data **********************************
+  struct Common_TimerConfiguration           timerConfiguration;
   // **************************** signal data **********************************
   struct Test_I_SignalHandlerConfiguration   signalHandlerConfiguration;
   // **************************** stream data **********************************
-  struct Common_FlexBisonParserConfiguration parserConfiguration;
-  //struct Stream_Configuration              streamConfiguration;
+  struct Stream_AllocatorConfiguration       allocatorConfiguration;
 
   ////////////////////////////////////////
 

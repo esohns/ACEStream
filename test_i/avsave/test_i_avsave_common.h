@@ -247,7 +247,7 @@ typedef Common_StatisticHandler_T<struct Stream_AVSave_StatisticData> Test_I_AVS
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 struct Stream_AVSave_DirectShow_StreamState;
-typedef Stream_SessionDataMediaBase_T<struct Test_I_SessionData,
+typedef Stream_SessionDataMediaBase_T<Test_I_DirectShow_SessionData,
                                       struct _AMMediaType,
                                       struct Stream_AVSave_DirectShow_StreamState,
                                       struct Stream_AVSave_StatisticData,
@@ -256,7 +256,7 @@ typedef Stream_SessionData_T<Stream_AVSave_DirectShow_SessionData> Stream_AVSave
 
 struct Stream_AVSave_MediaFoundation_StreamState;
 class Stream_AVSave_MediaFoundation_SessionData
- : public Stream_SessionDataMediaBase_T<struct Test_I_SessionData,
+ : public Stream_SessionDataMediaBase_T<Test_I_MediaFoundation_SessionData,
                                         IMFMediaType*,
                                         struct Stream_AVSave_MediaFoundation_StreamState,
                                         struct Stream_AVSave_StatisticData,
@@ -264,7 +264,7 @@ class Stream_AVSave_MediaFoundation_SessionData
 {
  public:
   Stream_AVSave_MediaFoundation_SessionData ()
-   : Stream_SessionDataMediaBase_T<struct Test_I_SessionData,
+   : Stream_SessionDataMediaBase_T<Test_I_MediaFoundation_SessionData,
                                    IMFMediaType*,
                                    struct Stream_AVSave_MediaFoundation_StreamState,
                                    struct Stream_AVSave_StatisticData,
@@ -279,7 +279,7 @@ class Stream_AVSave_MediaFoundation_SessionData
   Stream_AVSave_MediaFoundation_SessionData& operator= (const Stream_AVSave_MediaFoundation_SessionData& rhs_in)
   {
     // *NOTE*: the idea is to 'merge' the data
-    Stream_SessionDataMediaBase_T<struct Test_I_SessionData,
+    Stream_SessionDataMediaBase_T<Test_I_MediaFoundation_SessionData,
                                   IMFMediaType*,
                                   struct Stream_AVSave_MediaFoundation_StreamState,
                                   struct Stream_AVSave_StatisticData,
@@ -298,7 +298,7 @@ class Stream_AVSave_MediaFoundation_SessionData
   Stream_AVSave_MediaFoundation_SessionData& operator+= (const Stream_AVSave_MediaFoundation_SessionData& rhs_in)
   {
     // *NOTE*: the idea is to 'merge' the data
-    Stream_SessionDataMediaBase_T<struct Test_I_SessionData,
+    Stream_SessionDataMediaBase_T<Test_I_MediaFoundation_SessionData,
                                   IMFMediaType*,
                                   struct Stream_AVSave_MediaFoundation_StreamState,
                                   struct Stream_AVSave_StatisticData,
@@ -329,7 +329,7 @@ typedef Stream_SessionData_T<Stream_AVSave_MediaFoundation_SessionData> Stream_A
 #else
 struct Stream_AVSave_V4L_StreamState;
 class Stream_AVSave_V4L_SessionData
- : public Stream_SessionDataMediaBase_T<struct Test_I_SessionData,
+ : public Stream_SessionDataMediaBase_T<Test_I_V4L_SessionData,
                                         struct Stream_MediaFramework_V4L_MediaType,
                                         struct Stream_AVSave_V4L_StreamState,
                                         struct Stream_AVSave_StatisticData,
@@ -337,7 +337,7 @@ class Stream_AVSave_V4L_SessionData
 {
  public:
   Stream_AVSave_V4L_SessionData ()
-   : Stream_SessionDataMediaBase_T<struct Test_I_SessionData,
+   : Stream_SessionDataMediaBase_T<Test_I_V4L_SessionData,
                                    struct Stream_MediaFramework_V4L_MediaType,
                                    struct Stream_AVSave_V4L_StreamState,
                                    struct Stream_AVSave_StatisticData,
@@ -350,7 +350,7 @@ class Stream_AVSave_V4L_SessionData
 typedef Stream_SessionData_T<Stream_AVSave_V4L_SessionData> Stream_AVSave_V4L_SessionData_t;
 
 class Stream_AVSave_ALSA_SessionData
- : public Stream_SessionDataMediaBase_T<struct Test_I_SessionData,
+ : public Stream_SessionDataMediaBase_T<Test_I_ALSA_SessionData,
                                         struct Stream_MediaFramework_ALSA_MediaType,
                                         struct Stream_AVSave_ALSA_StreamState,
                                         struct Stream_AVSave_StatisticData,
@@ -358,7 +358,7 @@ class Stream_AVSave_ALSA_SessionData
 {
  public:
   Stream_AVSave_ALSA_SessionData ()
-   : Stream_SessionDataMediaBase_T<struct Test_I_SessionData,
+   : Stream_SessionDataMediaBase_T<Test_I_ALSA_SessionData,
                                    struct Stream_MediaFramework_ALSA_MediaType,
                                    struct Stream_AVSave_ALSA_StreamState,
                                    struct Stream_AVSave_StatisticData,

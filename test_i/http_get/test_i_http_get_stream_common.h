@@ -65,20 +65,20 @@ class Test_I_Stream_SessionMessage;
 typedef int Stream_HeaderType_t;
 typedef int Stream_CommandType_t;
 
-struct Test_I_MessageData
+struct Test_I_HTTPGet_MessageData
  : HTTP_Record
 {
-  Test_I_MessageData ()
+  Test_I_HTTPGet_MessageData ()
    : HTTP_Record ()
    , HTMLDocument (NULL)
   {}
 
-  virtual ~Test_I_MessageData ()
+  virtual ~Test_I_HTTPGet_MessageData ()
   {
     if (HTMLDocument)
       xmlFreeDoc (HTMLDocument);
   }
- inline void operator+= (struct Test_I_MessageData rhs_in) { ACE_UNUSED_ARG (rhs_in); ACE_ASSERT (false); ACE_NOTSUP; ACE_NOTREACHED (return;) }
+ inline void operator+= (struct Test_I_HTTPGet_MessageData rhs_in) { ACE_UNUSED_ARG (rhs_in); ACE_ASSERT (false); ACE_NOTSUP; ACE_NOTREACHED (return;) }
 
   xmlDocPtr HTMLDocument;
 };
@@ -274,10 +274,10 @@ struct Test_I_HTTPGet_StreamConfiguration
 };
 
 struct Test_I_HTTPGet_StreamState
- : Test_I_StreamState
+ : Stream_State
 {
   Test_I_HTTPGet_StreamState ()
-   : Test_I_StreamState ()
+   : Stream_State ()
    , sessionData (NULL)
   {}
 

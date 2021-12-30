@@ -1267,7 +1267,8 @@ Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
           //         magnitudes are absolute values
           cairo_line_to (cairoContext_,
                          x,
-                         static_cast<double> (height_) - (inherited3::Magnitude (j, i, true) * 2.0 * scaleFactorY_));
+                         static_cast<double> (height_) - (sampleIterator_.isSignedSampleFormat_ ? (inherited3::Magnitude (j, i, true) * 2.0 * scaleFactorY_)
+                                                                                                : (inherited3::Magnitude (j, i, true) * scaleFactorY_)));
         } // end FOR
         break;
       }

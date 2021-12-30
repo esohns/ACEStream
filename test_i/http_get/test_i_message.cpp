@@ -19,9 +19,6 @@
  ***************************************************************************/
 #include "stdafx.h"
 
-//#include "stream_dec_common.h"
-
-//#include "ace/Synch.h"
 #include "test_i_message.h"
 
 #include "ace/Malloc_Base.h"
@@ -37,7 +34,7 @@ Test_I_Stream_MessageData::Test_I_Stream_MessageData ()
 
 }
 
-Test_I_Stream_MessageData::Test_I_Stream_MessageData (struct Test_I_MessageData*& messageData_in,
+Test_I_Stream_MessageData::Test_I_Stream_MessageData (struct Test_I_HTTPGet_MessageData*& messageData_in,
                                                       bool delete_in)
  : inherited (messageData_in,
               delete_in)
@@ -51,9 +48,9 @@ Test_I_Stream_MessageData::setPR (struct HTTP_Record*& record_inout)
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_Stream_MessageData::setPR"));
 
-  Test_I_MessageData* data_p = NULL;
+  Test_I_HTTPGet_MessageData* data_p = NULL;
   ACE_NEW_NORETURN (data_p,
-                    Test_I_MessageData ());
+                    Test_I_HTTPGet_MessageData ());
   if (!data_p)
   {
     ACE_DEBUG ((LM_CRITICAL,
@@ -177,7 +174,7 @@ Test_I_Stream_Message::command () const
     return HTTP_Codes::HTTP_METHOD_INVALID;
   ACE_ASSERT (inherited::data_);
 
-  const Test_I_MessageData& data_r = inherited::data_->getR ();
+  const Test_I_HTTPGet_MessageData& data_r = inherited::data_->getR ();
 
   return (data_r.method);
 }

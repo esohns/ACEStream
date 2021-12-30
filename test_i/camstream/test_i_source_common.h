@@ -75,6 +75,8 @@
 #include "stream_lib_v4l_common.h"
 #endif // ACE_WIN32 || ACE_WIN64
 
+#include "test_i_common.h"
+
 #include "test_i_camstream_common.h"
 #include "test_i_camstream_network.h"
 #include "test_i_connection_manager_common.h"

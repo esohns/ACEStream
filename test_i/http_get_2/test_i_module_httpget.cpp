@@ -64,8 +64,8 @@ Test_I_Stream_HTTPGet::handleDataMessage (Test_I_Stream_Message*& message_inout,
 
   const Test_I_Stream_MessageData& message_data_container_r =
       message_inout->getR ();
-  Test_I_MessageData& message_data_r =
-    const_cast<Test_I_MessageData&> (message_data_container_r.getR ());
+  Test_I_HTTPGet_MessageData& message_data_r =
+    const_cast<Test_I_HTTPGet_MessageData&> (message_data_container_r.getR ());
   message_data_r.stockItem = *iterator_;
 
   // send next request ?

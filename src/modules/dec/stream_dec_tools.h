@@ -202,11 +202,11 @@ class Stream_Module_Decoder_Tools
   static void noise (unsigned int,       // sample rate (Hz)
                      unsigned int,       // #bytes/(mono-)sample
                      unsigned int,       // #channels
-                     //bool,               // format is floating point ? : integer
                      bool,               // format is signed ? : unsigned
                      bool,               // format is little endian ? : big endian
                      uint8_t*,           // target buffer
                      unsigned int,       // #'data' samples to write
+                     double,             // amplitude [0.0-1.0]
                      DistributionType&); // in/out: float/integer distribution handle
   // *NOTE*: write a sine waveform into the target buffer in the specified
   //         audio format
@@ -218,6 +218,7 @@ class Stream_Module_Decoder_Tools
                      bool,         // format is little endian ? : big endian
                      uint8_t*,     // target buffer
                      unsigned int, // #'data' samples to write
+                     double,       // amplitude [0.0-1.0]
                      double,       // frequency (Hz)
                      double&);     // in/out: current phase
 

@@ -268,7 +268,7 @@ typedef Common_StatisticHandler_T<struct Stream_CamSave_StatisticData> Test_I_Ca
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 struct Stream_CamSave_DirectShow_StreamState;
 class Stream_CamSave_DirectShow_SessionData
- : public Stream_SessionDataMediaBase_T<struct Test_I_SessionData,
+ : public Stream_SessionDataMediaBase_T<struct Test_I_DirectShow_SessionData,
                                         struct _AMMediaType,
                                         struct Stream_CamSave_DirectShow_StreamState,
                                         struct Stream_CamSave_StatisticData,
@@ -276,7 +276,7 @@ class Stream_CamSave_DirectShow_SessionData
 {
  public:
   Stream_CamSave_DirectShow_SessionData ()
-   : Stream_SessionDataMediaBase_T<struct Test_I_SessionData,
+   : Stream_SessionDataMediaBase_T<struct Test_I_DirectShow_SessionData,
                                    struct _AMMediaType,
                                    struct Stream_CamSave_DirectShow_StreamState,
                                    struct Stream_CamSave_StatisticData,
@@ -288,7 +288,7 @@ class Stream_CamSave_DirectShow_SessionData
 
   Stream_CamSave_DirectShow_SessionData& operator= (const Stream_CamSave_DirectShow_SessionData& rhs_in)
   {
-    Stream_SessionDataMediaBase_T<struct Test_I_SessionData,
+    Stream_SessionDataMediaBase_T<struct Test_I_DirectShow_SessionData,
                                   struct _AMMediaType,
                                   struct Stream_CamSave_DirectShow_StreamState,
                                   struct Stream_CamSave_StatisticData,
@@ -305,7 +305,7 @@ class Stream_CamSave_DirectShow_SessionData
   Stream_CamSave_DirectShow_SessionData& operator+= (const Stream_CamSave_DirectShow_SessionData& rhs_in)
   {
     // *NOTE*: the idea is to 'merge' the data
-    Stream_SessionDataMediaBase_T<struct Test_I_SessionData,
+    Stream_SessionDataMediaBase_T<struct Test_I_DirectShow_SessionData,
                                   struct _AMMediaType,
                                   struct Stream_CamSave_DirectShow_StreamState,
                                   struct Stream_CamSave_StatisticData,
@@ -332,7 +332,7 @@ typedef Stream_SessionData_T<Stream_CamSave_DirectShow_SessionData> Stream_CamSa
 
 struct Stream_CamSave_MediaFoundation_StreamState;
 class Stream_CamSave_MediaFoundation_SessionData
- : public Stream_SessionDataMediaBase_T<struct Test_I_SessionData,
+ : public Stream_SessionDataMediaBase_T<struct Test_I_MediaFoundation_SessionData,
                                         IMFMediaType*,
                                         struct Stream_CamSave_MediaFoundation_StreamState,
                                         struct Stream_CamSave_StatisticData,
@@ -340,7 +340,7 @@ class Stream_CamSave_MediaFoundation_SessionData
 {
  public:
   Stream_CamSave_MediaFoundation_SessionData ()
-   : Stream_SessionDataMediaBase_T<struct Test_I_SessionData,
+   : Stream_SessionDataMediaBase_T<struct Test_I_MediaFoundation_SessionData,
                                    IMFMediaType*,
                                    struct Stream_CamSave_MediaFoundation_StreamState,
                                    struct Stream_CamSave_StatisticData,
@@ -354,7 +354,7 @@ class Stream_CamSave_MediaFoundation_SessionData
 
   Stream_CamSave_MediaFoundation_SessionData& operator= (const Stream_CamSave_MediaFoundation_SessionData& rhs_in)
   {
-    Stream_SessionDataMediaBase_T<struct Test_I_SessionData,
+    Stream_SessionDataMediaBase_T<struct Test_I_MediaFoundation_SessionData,
                                   IMFMediaType*,
                                   struct Stream_CamSave_MediaFoundation_StreamState,
                                   struct Stream_CamSave_StatisticData,
@@ -373,7 +373,7 @@ class Stream_CamSave_MediaFoundation_SessionData
   Stream_CamSave_MediaFoundation_SessionData& operator+= (const Stream_CamSave_MediaFoundation_SessionData& rhs_in)
   {
     // *NOTE*: the idea is to 'merge' the data
-    Stream_SessionDataMediaBase_T<struct Test_I_SessionData,
+    Stream_SessionDataMediaBase_T<struct Test_I_MediaFoundation_SessionData,
                                   IMFMediaType*,
                                   struct Stream_CamSave_MediaFoundation_StreamState,
                                   struct Stream_CamSave_StatisticData,
@@ -403,7 +403,7 @@ class Stream_CamSave_MediaFoundation_SessionData
 typedef Stream_SessionData_T<Stream_CamSave_MediaFoundation_SessionData> Stream_CamSave_MediaFoundation_SessionData_t;
 #else
 struct Stream_CamSave_V4L_StreamState;
-typedef Stream_SessionDataMediaBase_T<struct Test_I_SessionData,
+typedef Stream_SessionDataMediaBase_T<struct Test_I_V4L_SessionData,
                                       struct Stream_MediaFramework_V4L_MediaType,
                                       struct Stream_CamSave_V4L_StreamState,
                                       struct Stream_CamSave_StatisticData,
@@ -412,7 +412,7 @@ typedef Stream_SessionData_T<Stream_CamSave_V4L_SessionData> Stream_CamSave_V4L_
 
 #if defined (LIBCAMERA_SUPPORT)
 struct Stream_CamSave_LibCamera_StreamState;
-typedef Stream_SessionDataMediaBase_T<struct Test_I_SessionData,
+typedef Stream_SessionDataMediaBase_T<struct Test_I_LibCamera_SessionData,
                                       struct Stream_MediaFramework_LibCamera_MediaType,
                                       struct Stream_CamSave_LibCamera_StreamState,
                                       struct Stream_CamSave_StatisticData,

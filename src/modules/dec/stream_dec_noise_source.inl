@@ -631,11 +631,10 @@ Stream_Dec_Noise_Source_T<ACE_SYNCH_USE,
   // sanity check(s)
   ACE_ASSERT (inherited::configuration_);
   ACE_ASSERT (inherited::allocator_);
-  ACE_ASSERT (inherited::configuration_->allocatorConfiguration);
+  //ACE_ASSERT (inherited::configuration_->allocatorConfiguration);
   ACE_ASSERT (inherited::configuration_->generatorConfiguration);
 
   ACE_Message_Block* message_block_p = NULL;
-  unsigned int number_of_frames_i = 0;
   int result = -1;
 
   // step1: allocate buffer
@@ -677,6 +676,7 @@ Stream_Dec_Noise_Source_T<ACE_SYNCH_USE,
                                           inherited::configuration_->generatorConfiguration->isLittleEndianFormat,
                                           reinterpret_cast<uint8_t*> (message_block_p->wr_ptr ()),
                                           bufferSize_ / frameSize_,
+                                          inherited::configuration_->generatorConfiguration->amplitude,
                                           inherited::configuration_->generatorConfiguration->frequency, 
                                           phase_);
       break;
@@ -696,6 +696,7 @@ Stream_Dec_Noise_Source_T<ACE_SYNCH_USE,
                                             inherited::configuration_->generatorConfiguration->isLittleEndianFormat,
                                             reinterpret_cast<uint8_t*> (message_block_p->wr_ptr ()),
                                             bufferSize_ / frameSize_,
+                                            inherited::configuration_->generatorConfiguration->amplitude,
                                             realDistribution_);
       else if (inherited::configuration_->generatorConfiguration->isSignedFormat)
         Stream_Module_Decoder_Tools::noise (inherited::configuration_->generatorConfiguration->samplesPerSecond,
@@ -705,6 +706,7 @@ Stream_Dec_Noise_Source_T<ACE_SYNCH_USE,
                                             inherited::configuration_->generatorConfiguration->isLittleEndianFormat,
                                             reinterpret_cast<uint8_t*> (message_block_p->wr_ptr ()),
                                             bufferSize_ / frameSize_,
+                                            inherited::configuration_->generatorConfiguration->amplitude,
                                             signedIntegerDistribution_);
       else
         Stream_Module_Decoder_Tools::noise (inherited::configuration_->generatorConfiguration->samplesPerSecond,
@@ -714,6 +716,7 @@ Stream_Dec_Noise_Source_T<ACE_SYNCH_USE,
                                             inherited::configuration_->generatorConfiguration->isLittleEndianFormat,
                                             reinterpret_cast<uint8_t*> (message_block_p->wr_ptr ()),
                                             bufferSize_ / frameSize_,
+                                            inherited::configuration_->generatorConfiguration->amplitude,
                                             integerDistribution_);
       break;
     }

@@ -80,25 +80,25 @@ struct Test_I_StockRecord
   double                   value;
 };
 
-struct Test_I_MessageData
+struct Test_I_HTTPGet_MessageData
  : HTTP_Record
 {
-  Test_I_MessageData ()
+  Test_I_HTTPGet_MessageData ()
    : HTTP_Record ()
    , HTMLDocument (NULL)
    , stockItem ()
   {}
-  virtual ~Test_I_MessageData ()
+  virtual ~Test_I_HTTPGet_MessageData ()
   {
     if (HTMLDocument)
       xmlFreeDoc (HTMLDocument);
   }
-  inline void operator+= (Test_I_MessageData rhs_in) { ACE_UNUSED_ARG (rhs_in); ACE_ASSERT (false); ACE_NOTSUP; ACE_NOTREACHED (return;) }
+  inline void operator+= (Test_I_HTTPGet_MessageData rhs_in) { ACE_UNUSED_ARG (rhs_in); ACE_ASSERT (false); ACE_NOTSUP; ACE_NOTREACHED (return;) }
 
   xmlDocPtr               HTMLDocument;
   struct Test_I_StockItem stockItem;
 };
-//typedef Stream_DataBase_T<struct Test_I_MessageData> Test_I_MessageData_t;
+//typedef Stream_DataBase_T<struct Test_I_HTTPGet_MessageData> Test_I_HTTPGet_MessageData_t;
 
 struct less_stock_item
 {
@@ -111,10 +111,10 @@ typedef std::list<struct Test_I_StockRecord> Test_I_StockRecords_t;
 typedef Test_I_StockRecords_t::const_iterator Test_I_StockRecordsIterator_t;
 
 struct Test_I_HTTPGet_SessionData
- : Test_I_SessionData
+ : Stream_SessionData
 {
   Test_I_HTTPGet_SessionData ()
-   : Test_I_SessionData ()
+   : Stream_SessionData ()
    , connection (NULL)
    , data ()
    , format (STREAM_COMPRESSION_FORMAT_INVALID)
