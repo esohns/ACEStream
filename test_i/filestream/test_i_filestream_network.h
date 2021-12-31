@@ -65,9 +65,9 @@
 
 // forward declarations
 //struct Test_I_Source_Stream_Configuration;
-struct Test_I_StreamConfiguration;
+//struct Test_I_StreamConfiguration;
 //struct Test_I_Source_ModuleHandlerConfiguration;
-struct Test_I_ModuleHandlerConfiguration;
+//struct Test_I_ModuleHandlerConfiguration;
 //struct Test_I_Source_SessionData;
 //typedef Stream_SessionData_T<Test_I_Source_SessionData> Test_I_Source_SessionData_t;
 struct Test_I_Source_SessionData;

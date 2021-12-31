@@ -62,6 +62,18 @@
 
 #include "test_u_defines.h"
 
+#if defined (GUI_SUPPORT)
+#if defined (GTK_SUPPORT)
+#include "test_u_gtk_common.h"
+#endif // GTK_SUPPORT
+#if defined (QT_SUPPORT)
+#include "test_u_qt_common.h"
+#endif // QT_SUPPORT
+#if defined (WXWIDGETS_SUPPORT)
+#include "test_u_wxwidgets_common.h"
+#endif // WXWIDGETS_SUPPORT
+#endif // GUI_SUPPORT
+
 // forward declarations
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 struct IMediaSample;
@@ -116,7 +128,7 @@ struct Test_U_SessionData
 {
   Test_U_SessionData ()
    : Stream_SessionData ()
-   , targetFileName ()
+   , fileIdentifier ()
    , userData (NULL)
   {}
 
@@ -125,15 +137,15 @@ struct Test_U_SessionData
     // *NOTE*: the idea is to 'merge' the data
     Stream_SessionData::operator+= (rhs_in);
 
-    targetFileName =
-      (targetFileName.empty () ? rhs_in.targetFileName : targetFileName);
+    fileIdentifier =
+      (fileIdentifier.empty () ? rhs_in.fileIdentifier : fileIdentifier);
 
     userData = (userData ? userData : rhs_in.userData);
 
     return *this;
   }
 
-  std::string             targetFileName;
+  struct Common_File_Identifier fileIdentifier; // target-
 
   struct Stream_UserData* userData;
 };
@@ -152,7 +164,6 @@ class Test_U_DirectShow_SessionData
                                    struct Stream_State,
                                    struct Stream_Statistic,
                                    struct Stream_UserData> ()
-   , targetFileName ()
   {}
 
   Test_U_DirectShow_SessionData& operator+= (const Test_U_DirectShow_SessionData& rhs_in)
@@ -163,14 +174,8 @@ class Test_U_DirectShow_SessionData
                                   struct Stream_State,
                                   struct Stream_Statistic,
                                   struct Stream_UserData>::operator+= (rhs_in);
-
-    targetFileName =
-      (targetFileName.empty () ? rhs_in.targetFileName : targetFileName);
-
     return *this;
   }
-
-  std::string targetFileName;
 };
 typedef Stream_SessionData_T<Test_U_DirectShow_SessionData> Test_U_DirectShow_SessionData_t;
 
@@ -188,7 +193,6 @@ class Test_U_MediaFoundation_SessionData
                                    struct Stream_State,
                                    struct Stream_Statistic,
                                    struct Stream_UserData> ()
-   , targetFileName ()
   {}
 
   Test_U_MediaFoundation_SessionData& operator+= (const Test_U_MediaFoundation_SessionData& rhs_in)
@@ -199,14 +203,8 @@ class Test_U_MediaFoundation_SessionData
                                   struct Stream_State,
                                   struct Stream_Statistic,
                                   struct Stream_UserData>::operator+= (rhs_in);
-
-    targetFileName =
-      (targetFileName.empty () ? rhs_in.targetFileName : targetFileName);
-
     return *this;
   }
-
-  std::string targetFileName;
 };
 typedef Stream_SessionData_T<Test_U_MediaFoundation_SessionData> Test_U_MediaFoundation_SessionData_t;
 #else
@@ -224,7 +222,6 @@ class Test_U_ALSA_SessionData
                                    struct Stream_State,
                                    struct Stream_Statistic,
                                    struct Stream_UserData> ()
-   , targetFileName ()
   {}
 
   Test_U_ALSA_SessionData& operator+= (const Test_U_ALSA_SessionData& rhs_in)
@@ -235,18 +232,8 @@ class Test_U_ALSA_SessionData
                                   struct Stream_State,
                                   struct Stream_Statistic,
                                   struct Stream_UserData>::operator+= (rhs_in);
-
-    targetFileName =
-      (targetFileName.empty () ? rhs_in.targetFileName : targetFileName);
-
     return *this;
   }
-
-  std::string targetFileName;
-
-// private:
-//  ACE_UNIMPLEMENTED_FUNC (Test_U_ALSA_SessionData (const Test_U_ALSA_SessionData&))
-//  ACE_UNIMPLEMENTED_FUNC (Test_U_ALSA_SessionData& operator= (const Test_U_ALSA_SessionData&))
 };
 typedef Stream_SessionData_T<Test_U_ALSA_SessionData> Test_U_ALSA_SessionData_t;
 
@@ -264,7 +251,6 @@ class Test_U_V4L_SessionData
                                    struct Stream_State,
                                    struct Stream_Statistic,
                                    struct Stream_UserData> ()
-   , targetFileName ()
   {}
 
   Test_U_V4L_SessionData& operator+= (const Test_U_V4L_SessionData& rhs_in)
@@ -275,14 +261,8 @@ class Test_U_V4L_SessionData
                                   struct Stream_State,
                                   struct Stream_Statistic,
                                   struct Stream_UserData>::operator+= (rhs_in);
-
-    targetFileName =
-      (targetFileName.empty () ? rhs_in.targetFileName : targetFileName);
-
     return *this;
   }
-
-  std::string targetFileName;
 };
 typedef Stream_SessionData_T<Test_U_V4L_SessionData> Test_U_V4L_SessionData_t;
 #endif // ACE_WIN32 || ACE_WIN64
@@ -290,83 +270,98 @@ typedef Stream_SessionData_T<Test_U_V4L_SessionData> Test_U_V4L_SessionData_t;
 //typedef int Stream_HeaderType_t;
 typedef int Stream_CommandType_t;
 
-struct Test_U_ModuleHandlerConfiguration
- : Stream_ModuleHandlerConfiguration
-{
-  Test_U_ModuleHandlerConfiguration ()
-   : Stream_ModuleHandlerConfiguration ()
-   , fileIdentifier ()
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-   , manageCOM (false)
-#endif // ACE_WIN32 || ACE_WIN64
-   , printProgressDot (false)
-   , pushStatisticMessages (true)
-  {}
-
-  Common_File_Identifier          fileIdentifier;
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-  bool                            manageCOM;
-#endif // ACE_WIN32 || ACE_WIN64
-  bool                            printProgressDot;      // file writer module
-  bool                            pushStatisticMessages; // statistic module
-};
-
-//typedef Stream_ControlMessage_T<enum Stream_ControlType,
-//                                enum Stream_ControlMessageType,
-//                                struct Common_AllocatorConfiguration> Test_U_ControlMessage_t;
-
-struct Test_U_SignalHandlerConfiguration
- : Common_SignalHandlerConfiguration
-{
-  Test_U_SignalHandlerConfiguration ()
-   : Common_SignalHandlerConfiguration ()
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-   , mediaFramework (STREAM_LIB_DEFAULT_MEDIAFRAMEWORK)
-#endif // ACE_WIN32 || ACE_WIN64
-  {}
-
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-  enum Stream_MediaFramework_Type mediaFramework;
-#endif // ACE_WIN32 || ACE_WIN64
-};
-
-struct Test_U_Configuration
-{
-  Test_U_Configuration ()
-   : dispatchConfiguration ()
-   , signalHandlerConfiguration ()
-   , userData ()
-  {}
-
-  struct Common_EventDispatchConfiguration dispatchConfiguration;
-  struct Test_U_SignalHandlerConfiguration signalHandlerConfiguration;
-
-  ////////////////////////////////////////
-
-  struct Stream_UserData                   userData;
-};
-
 //////////////////////////////////////////
 
-#if defined (GUI_SUPPORT)
-struct Test_U_UI_ProgressData
+struct Test_U_ProgressData
 {
-  Test_U_UI_ProgressData ()
-   : state (NULL)
+  Test_U_ProgressData ()
+   : sessionId (0)
    , statistic ()
   {
     ACE_OS::memset (&statistic, 0, sizeof (struct Stream_Statistic));
   }
 
-  struct Common_UI_State* state;
+  Stream_SessionId_t      sessionId;
+  struct Stream_Statistic statistic;
+};
+
+struct Test_U_CBData
+{
+  Test_U_CBData ()
+   : allowUserRuntimeStatistic (true)
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+   , mediaFramework (STREAM_LIB_DEFAULT_MEDIAFRAMEWORK)
+#endif // ACE_WIN32 || ACE_WIN64
+   , progressData ()
+  {}
+
+  bool                            allowUserRuntimeStatistic;
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  enum Stream_MediaFramework_Type mediaFramework;
+#endif // ACE_WIN32 || ACE_WIN64
+  struct Test_U_ProgressData      progressData;
+};
+
+struct Test_U_ThreadData
+{
+  Test_U_ThreadData ()
+   : CBData (NULL)
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+   , mediaFramework (STREAM_LIB_DEFAULT_MEDIAFRAMEWORK)
+#endif // ACE_WIN32 || ACE_WIN64
+  {}
+
+  struct Test_U_CBData*           CBData;
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  enum Stream_MediaFramework_Type mediaFramework;
+#endif // ACE_WIN32 || ACE_WIN64
+};
+
+#if defined (GUI_SUPPORT)
+struct Test_U_UI_ProgressData
+#if defined (GTK_USE)
+ : Test_U_GTK_ProgressData
+#elif defined (QT_USE)
+ : Test_U_Qt_ProgressData
+#elif defined (WXWIDGETS_USE)
+ : Test_U_wxWidgets_ProgressData
+#endif // GTK_USE || QT_USE || WXWIDGETS_USE
+{
+  Test_U_UI_ProgressData ()
+#if defined (GTK_USE)
+   : Test_U_GTK_ProgressData ()
+#elif defined (QT_USE)
+   : Test_U_Qt_ProgressData ()
+#elif defined (WXWIDGETS_USE)
+   : Test_U_wxWidgets_ProgressData ()
+#endif // GTK_USE || QT_USE || WXWIDGETS_USE
+   , sessionId (0)
+   , statistic ()
+  {
+    ACE_OS::memset (&statistic, 0, sizeof (struct Stream_Statistic));
+  }
+
+  Stream_SessionId_t      sessionId;
   struct Stream_Statistic statistic;
 };
 
 struct Test_U_UI_CBData
- : Common_UI_CBData
+#if defined (GTK_USE)
+ : Test_U_GTK_CBData
+#elif defined (QT_USE)
+ : Test_U_Qt_CBData
+#elif defined (WXWIDGETS_USE)
+ : Test_U_wxWidgets_CBData
+#endif // GTK_USE || QT_USE || WXWIDGETS_USE
 {
   Test_U_UI_CBData ()
-   : Common_UI_CBData ()
+#if defined (GTK_USE)
+   : Test_U_GTK_CBData ()
+#elif defined (QT_USE)
+   : Test_U_Qt_CBData ()
+#elif defined (WXWIDGETS_USE)
+   : Test_U_wxWidgets_CBData ()
+#endif // GTK_USE || QT_USE || WXWIDGETS_USE
    , allowUserRuntimeStatistic (true)
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
    , mediaFramework (STREAM_LIB_DEFAULT_MEDIAFRAMEWORK)
@@ -384,20 +379,32 @@ struct Test_U_UI_CBData
 };
 
 struct Test_U_UI_ThreadData
+#if defined (GTK_USE)
+ : Test_U_GTK_ThreadData
+#elif defined (QT_USE)
+ : Test_U_Qt_ThreadData
+#elif defined (WXWIDGETS_USE)
+ : Test_U_wxWidgets_ThreadData
+#endif // GTK_USE || QT_USE || WXWIDGETS_USE
 {
   Test_U_UI_ThreadData ()
-   : CBData (NULL)
+#if defined (GTK_USE)
+   : Test_U_GTK_ThreadData ()
+#elif defined (QT_USE)
+   : Test_U_Qt_ThreadData ()
+#elif defined (WXWIDGETS_USE)
+   : Test_U_wxWidgets_ThreadData ()
+#endif // GTK_USE || QT_USE || WXWIDGETS_USE
+   , CBData (NULL)
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
    , mediaFramework (STREAM_LIB_DEFAULT_MEDIAFRAMEWORK)
 #endif // ACE_WIN32 || ACE_WIN64
-   , sessionId (0)
   {}
 
   struct Test_U_UI_CBData*        CBData;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   enum Stream_MediaFramework_Type mediaFramework;
 #endif // ACE_WIN32 || ACE_WIN64
-  size_t                          sessionId;
 };
 #endif // GUI_SUPPORT
 

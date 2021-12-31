@@ -7,7 +7,8 @@
 //////////////////////////////////////////
 
 void
-process_stream_events (struct Test_I_wxWidgets_CBData* CBData_in,
+process_stream_events (Common_UI_wxWidgets_IApplicationBase_t* iapplication_in,
+                       struct Stream_CamSave_UI_CBData* CBData_in,
                        bool& finished_out)
 {
   STREAM_TRACE (ACE_TEXT ("::process_stream_events"));
@@ -16,8 +17,8 @@ process_stream_events (struct Test_I_wxWidgets_CBData* CBData_in,
   finished_out = false;
 
   // sanity check(s)
+  ACE_ASSERT (iapplication_in);
   ACE_ASSERT (CBData_in);
-  ACE_ASSERT (CBData_in->UIState);
 
   enum Stream_Visualization_VideoRenderer renderer_e =
     STREAM_VISUALIZATION_VIDEORENDERER_INVALID;
@@ -71,11 +72,13 @@ process_stream_events (struct Test_I_wxWidgets_CBData* CBData_in,
   wxDialog* dialog_p = NULL;
   wxSpinCtrl* spin_control_p = NULL;
   int result = -1;
+  struct Common_UI_wxWidgets_State& state_r =
+    const_cast<struct Common_UI_wxWidgets_State&> (iapplication_in->getR ());
 
-  { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, CBData_in->UIState->lock);
+  { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, state_r.lock);
     iterator =
-      CBData_in->UIState->resources.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN));
-    ACE_ASSERT (iterator != CBData_in->UIState->resources.end ());
+      state_r.resources.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN));
+    ACE_ASSERT (iterator != state_r.resources.end ());
     dialog_p = dynamic_cast<wxDialog*> ((*iterator).second.second);
     ACE_ASSERT (dialog_p);
 
@@ -443,6 +446,7 @@ stream_processing_thread (void* arg_in)
   const Stream_CamSave_V4L_SessionData* session_data_p = NULL;
 #endif // ACE_WIN32 || ACE_WIN64
   Stream_IStreamControlBase* stream_p = NULL;
+  Stream_SessionId_t session_id = 0;
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   struct Stream_CamSave_DirectShow_UI_CBData* directshow_cb_data_p = NULL;
@@ -487,7 +491,7 @@ stream_processing_thread (void* arg_in)
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
     {
       Stream_CamSave_DirectShow_StreamConfiguration_t::ITERATOR_T iterator =
-        const_cast<Stream_CamSave_DirectShow_StreamConfiguration_t::ITERATOR_T&> (directshow_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR ("")));
+        directshow_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
       ACE_ASSERT (iterator != directshow_cb_data_p->configuration->streamConfiguration.end ());
 
       if (!directshow_cb_data_p->stream->initialize (directshow_cb_data_p->configuration->streamConfiguration))
@@ -502,7 +506,8 @@ stream_processing_thread (void* arg_in)
       ACE_ASSERT (directshow_session_data_container_p);
       directshow_session_data_p = &directshow_session_data_container_p->getR ();
       ACE_ASSERT (directshow_session_data_p);
-      thread_data_p->sessionId = directshow_session_data_p->sessionId;
+      session_id = directshow_session_data_p->sessionId;
+      directshow_cb_data_p->progressData.sessionId = session_id;
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
@@ -520,7 +525,8 @@ stream_processing_thread (void* arg_in)
       mediafoundation_session_data_p =
         &mediafoundation_session_data_container_p->getR ();
       ACE_ASSERT (mediafoundation_session_data_p);
-      thread_data_p->sessionId = mediafoundation_session_data_p->sessionId;
+      session_id = mediafoundation_session_data_p->sessionId;
+      mediafoundation_cb_data_p->progressData.sessionId = session_id;
       break;
     }
     default:
@@ -543,7 +549,8 @@ stream_processing_thread (void* arg_in)
   ACE_ASSERT (session_data_container_p);
   session_data_p = &session_data_container_p->getR ();
   ACE_ASSERT (session_data_p);
-  thread_data_p->sessionId = session_data_p->sessionId;
+  session_id = session_data_p->sessionId;
+  cb_data_p->progressData.sessionId = session_id;
 #endif // ACE_WIN32 || ACE_WIN64
 
   // *NOTE*: blocks until 'finished'
@@ -564,7 +571,7 @@ error:
 #else
   { ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, thread_data_p->CBData->UIState->lock, std::numeric_limits<void*>::max ());
 #endif // ACE_WIN32 || ACE_WIN64
-    thread_data_p->CBData->progressData.completedActions.insert (thread_data_p->sessionId);
+    thread_data_p->CBData->progressData.completedActions.insert (session_id);
   } // end lock scope
 
   // clean up

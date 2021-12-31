@@ -56,7 +56,7 @@
 
 #if defined (GUI_SUPPORT)
 #if defined (GTK_SUPPORT)
-#include "stream_vis_gtk_cairo.h"
+//#include "stream_vis_gtk_cairo.h"
 #endif // GTK_SUPPORT
 #endif // GUI_SUPPORT
 #endif // ACE_WIN32 || ACE_WIN64

@@ -28,7 +28,7 @@
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #include "Dmo.h"
-#include "functiondiscoverykeys.h"
+#include "functiondiscoverykeys_devpkey.h"
 #include "mfapi.h"
 #include "mferror.h"
 #undef GetObject
@@ -3758,6 +3758,7 @@ stream_processing_function (void* arg_in)
   ACE_DEBUG ((LM_DEBUG,
               ACE_TEXT ("processing thread (id was: %t) starting...\n")));
 
+  // initialize return value(s)
   ACE_THR_FUNC_RETURN result;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   result = std::numeric_limits<unsigned long>::max ();
@@ -3766,68 +3767,19 @@ stream_processing_function (void* arg_in)
   result = arg_in;
 #endif // ACE_WIN32 || ACE_WIN64
 
-  struct Test_U_GTK_ThreadData* data_base_p =
-      static_cast<struct Test_U_GTK_ThreadData*> (arg_in);
-
   // sanity check(s)
-  ACE_ASSERT (data_base_p);
+  struct Test_U_UI_ThreadData* thread_data_base_p =
+      static_cast<struct Test_U_UI_ThreadData*> (arg_in);
+  ACE_ASSERT (thread_data_base_p);
 
-  Common_UI_GTK_Manager_t* gtk_manager_p =
-    COMMON_UI_GTK_MANAGER_SINGLETON::instance ();
-  ACE_ASSERT (gtk_manager_p);
-  Common_UI_GTK_State_t& state_r =
-    const_cast<Common_UI_GTK_State_t&> (gtk_manager_p->getR ());
   Common_UI_GTK_BuildersConstIterator_t iterator;
+  Common_UI_GTK_State_t* state_p = NULL;
   std::ostringstream converter;
+  Test_U_AudioEffect_SessionData* session_data_p = NULL;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  struct Test_U_AudioEffect_DirectShow_ThreadData* directshow_ui_cb_data_p = NULL;
-  struct Test_U_AudioEffect_MediaFoundation_ThreadData* mediafoundation_ui_cb_data_p =
+  struct Test_U_AudioEffect_DirectShow_UI_CBData* directshow_ui_cb_data_p = NULL;
+  struct Test_U_AudioEffect_MediaFoundation_UI_CBData* mediafoundation_ui_cb_data_p =
     NULL;
-  switch (data_base_p->mediaFramework)
-  {
-    case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
-    {
-      directshow_ui_cb_data_p =
-        static_cast<Test_U_AudioEffect_DirectShow_ThreadData*> (arg_in);
-      // sanity check(s)
-      ACE_ASSERT (directshow_ui_cb_data_p);
-      ACE_ASSERT (directshow_ui_cb_data_p->CBData);
-      ACE_ASSERT (directshow_ui_cb_data_p->CBData->configuration);
-      ACE_ASSERT (directshow_ui_cb_data_p->CBData->stream);
-      data_base_p->CBData = directshow_ui_cb_data_p->CBData;
-      break;
-    }
-    case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
-    {
-      mediafoundation_ui_cb_data_p =
-        static_cast<Test_U_AudioEffect_MediaFoundation_ThreadData*> (arg_in);
-      // sanity check(s)
-      ACE_ASSERT (mediafoundation_ui_cb_data_p);
-      ACE_ASSERT (mediafoundation_ui_cb_data_p->CBData);
-      ACE_ASSERT (mediafoundation_ui_cb_data_p->CBData->configuration);
-      ACE_ASSERT (mediafoundation_ui_cb_data_p->CBData->stream);
-      data_base_p->CBData = mediafoundation_ui_cb_data_p->CBData;
-      break;
-    }
-    default:
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("invalid/unknown media framework (was: %d), aborting\n"),
-                  data_base_p->mediaFramework));
-      goto error;
-    }
-  } // end SWITCH
-#else
-  // sanity check(s)
-  struct Test_U_AudioEffect_ThreadData* data_p =
-    static_cast<struct Test_U_AudioEffect_ThreadData*> (arg_in);
-  ACE_ASSERT (data_p->CBData);
-  ACE_ASSERT (data_p->CBData->configuration);
-  ACE_ASSERT (data_p->CBData->stream);
-  data_base_p->CBData = data_p->CBData;
-#endif // ACE_WIN32 || ACE_WIN64
-
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
   const Test_U_AudioEffect_DirectShow_SessionData_t* directshow_session_data_container_p =
     NULL;
   Test_U_AudioEffect_DirectShow_SessionData* directshow_session_data_p =
@@ -3836,19 +3788,68 @@ stream_processing_function (void* arg_in)
     NULL;
   Test_U_AudioEffect_MediaFoundation_SessionData* mediafoundation_session_data_p =
     NULL;
+  switch (thread_data_base_p->mediaFramework)
+  {
+    case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
+    {
+      // sanity check(s)
+      struct Test_U_AudioEffect_DirectShow_ThreadData* thread_data_p =
+        static_cast<struct Test_U_AudioEffect_DirectShow_ThreadData*> (arg_in);
+      directshow_ui_cb_data_p = thread_data_p->CBData;
+      ACE_ASSERT (directshow_ui_cb_data_p);
+      ACE_ASSERT (directshow_ui_cb_data_p->configuration);
+      ACE_ASSERT (directshow_ui_cb_data_p->stream);
+      state_p = directshow_ui_cb_data_p->UIState;
+      ACE_ASSERT (state_p);
+      iterator =
+        state_p->builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN));
+      ACE_ASSERT (iterator != state_p->builders.end ());
+      break;
+    }
+    case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
+    {
+      // sanity check(s)
+      struct Test_U_AudioEffect_MediaFoundation_ThreadData* thread_data_p =
+        static_cast<struct Test_U_AudioEffect_MediaFoundation_ThreadData*> (arg_in);
+      mediafoundation_ui_cb_data_p = thread_data_p->CBData;
+      ACE_ASSERT (mediafoundation_ui_cb_data_p);
+      ACE_ASSERT (mediafoundation_ui_cb_data_p->configuration);
+      ACE_ASSERT (mediafoundation_ui_cb_data_p->stream);
+      state_p = mediafoundation_ui_cb_data_p->UIState;
+      ACE_ASSERT (state_p);
+      iterator =
+        state_p->builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN));
+      ACE_ASSERT (iterator != state_p->builders.end ());
+      break;
+    }
+    default:
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("invalid/unknown media framework (was: %d), aborting\n"),
+                  thread_data_base_p->mediaFramework));
+      goto error;
+    }
+  } // end SWITCH
 #else
+  struct Test_U_AudioEffect_UI_CBData* cb_data_p = NULL;
   const Test_U_AudioEffect_SessionData_t* session_data_container_p = NULL;
-  Test_U_AudioEffect_SessionData* session_data_p = NULL;
+
+  // sanity check(s)
+  struct Test_U_AudioEffect_ThreadData* thread_data_p =
+    static_cast<struct Test_U_AudioEffect_ThreadData*> (arg_in);
+  cb_data_p = thread_data_p->CBData;
+  ACE_ASSERT (cb_data_p);
+  ACE_ASSERT (cb_data_p->configuration);
+  ACE_ASSERT (cb_data_p->stream);
+  state_p = cb_data_p->UIState;
+  ACE_ASSERT (state_p);
+  iterator =
+    state_p->builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN));
+  ACE_ASSERT (iterator != state_p->builders.end ());
 #endif // ACE_WIN32 || ACE_WIN64
 
 //  GtkProgressBar* progress_bar_p = NULL;
   GtkStatusbar* statusbar_p = NULL;
-  //ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, data_p->CBData->lock);
-
-  iterator =
-    state_r.builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN));
-  // sanity check(s)
-  ACE_ASSERT (iterator != state_r.builders.end ());
 
   // retrieve progress bar handle
   gdk_threads_enter ();
@@ -3857,7 +3858,7 @@ stream_processing_function (void* arg_in)
 //                                                ACE_TEXT_ALWAYS_CHAR (TEST_USTREAM_UI_GTK_PROGRESSBAR_NAME)));
 //    ACE_ASSERT (progress_bar_p);
 
-  // generate context ID
+  // generate context id
   statusbar_p =
     GTK_STATUSBAR (gtk_builder_get_object ((*iterator).second.second,
                                             ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_STATUSBAR_NAME)));
@@ -3872,52 +3873,48 @@ stream_processing_function (void* arg_in)
   Test_U_Common_ISet_t* resize_notification_p = NULL;
   guint event_source_id = 0;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  switch (data_base_p->mediaFramework)
+  switch (thread_data_base_p->mediaFramework)
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
     {
       Test_U_AudioEffect_DirectShow_Stream::IINITIALIZE_T* iinitialize_p =
-        dynamic_cast<Test_U_AudioEffect_DirectShow_Stream::IINITIALIZE_T*> (directshow_ui_cb_data_p->CBData->stream);
+        dynamic_cast<Test_U_AudioEffect_DirectShow_Stream::IINITIALIZE_T*> (directshow_ui_cb_data_p->stream);
       ACE_ASSERT (iinitialize_p);
       result_2 =
-        iinitialize_p->initialize (directshow_ui_cb_data_p->CBData->configuration->streamConfiguration);
+        iinitialize_p->initialize (directshow_ui_cb_data_p->configuration->streamConfiguration);
       istream_p =
-        dynamic_cast<Stream_IStream_t*> (directshow_ui_cb_data_p->CBData->stream);
-      istream_control_p =
-        dynamic_cast<Stream_IStreamControlBase*> (directshow_ui_cb_data_p->CBData->stream);
+        dynamic_cast<Stream_IStream_t*> (directshow_ui_cb_data_p->stream);
+      istream_control_p = directshow_ui_cb_data_p->stream;
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
     {
       Test_U_AudioEffect_MediaFoundation_Stream::IINITIALIZE_T* iinitialize_p =
-        dynamic_cast<Test_U_AudioEffect_MediaFoundation_Stream::IINITIALIZE_T*> (mediafoundation_ui_cb_data_p->CBData->stream);
+        dynamic_cast<Test_U_AudioEffect_MediaFoundation_Stream::IINITIALIZE_T*> (mediafoundation_ui_cb_data_p->stream);
       ACE_ASSERT (iinitialize_p);
       result_2 =
-        iinitialize_p->initialize (mediafoundation_ui_cb_data_p->CBData->configuration->streamConfiguration);
+        iinitialize_p->initialize (mediafoundation_ui_cb_data_p->configuration->streamConfiguration);
       istream_p =
-        dynamic_cast<Stream_IStream_t*> (mediafoundation_ui_cb_data_p->CBData->stream);
-      istream_control_p =
-        dynamic_cast<Stream_IStreamControlBase*> (mediafoundation_ui_cb_data_p->CBData->stream);
+        dynamic_cast<Stream_IStream_t*> (mediafoundation_ui_cb_data_p->stream);
+      istream_control_p = mediafoundation_ui_cb_data_p->stream;
       break;
     }
     default:
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("invalid/unknown media framework (was: %d), aborting\n"),
-                  data_base_p->mediaFramework));
+                  thread_data_base_p->mediaFramework));
       goto error;
     }
   } // end SWITCH
 #else
   Test_U_AudioEffect_ALSA_Stream::IINITIALIZE_T* iinitialize_p =
-    dynamic_cast<Test_U_AudioEffect_ALSA_Stream::IINITIALIZE_T*> (data_p->CBData->stream);
+    dynamic_cast<Test_U_AudioEffect_ALSA_Stream::IINITIALIZE_T*> (cb_data_p->stream);
   ACE_ASSERT (iinitialize_p);
   result_2 =
-    iinitialize_p->initialize (data_p->CBData->configuration->streamConfiguration);
-  istream_p =
-    dynamic_cast<Stream_IStream_t*> (data_p->CBData->stream);
-  istream_control_p =
-    dynamic_cast<Stream_IStreamControlBase*> (data_p->CBData->stream);
+    iinitialize_p->initialize (cb_data_p->configuration->streamConfiguration);
+  istream_p = dynamic_cast<Stream_IStream_t*> (cb_data_p->stream);
+  istream_control_p = cb_data_p->stream;
   Common_IGetR_2_T<Test_U_AudioEffect_SessionData_t>* iget_p = NULL;
 #endif // ACE_WIN32 || ACE_WIN64
   if (!result_2)
@@ -3948,74 +3945,73 @@ stream_processing_function (void* arg_in)
     goto error;
   } // end IF
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  switch (data_base_p->mediaFramework)
+  switch (thread_data_base_p->mediaFramework)
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
     {
-      directshow_ui_cb_data_p->CBData->resizeNotification = resize_notification_p;
+      directshow_ui_cb_data_p->resizeNotification = resize_notification_p;
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
     {
-      mediafoundation_ui_cb_data_p->CBData->resizeNotification = resize_notification_p;
+      mediafoundation_ui_cb_data_p->resizeNotification = resize_notification_p;
       break;
     }
     default:
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("invalid/unknown media framework (was: %d), aborting\n"),
-                  data_base_p->mediaFramework));
+                  thread_data_base_p->mediaFramework));
       goto error;
     }
   } // end SWITCH
 #else
-  data_p->CBData->resizeNotification = resize_notification_p;
+  cb_data_p->resizeNotification = resize_notification_p;
 #endif // ACE_WIN32 || ACE_WIN64
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  struct Test_U_SessionData* session_data_p = NULL;
-  switch (data_base_p->mediaFramework)
+  switch (thread_data_base_p->mediaFramework)
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
     {
       Common_IGetR_2_T<Test_U_AudioEffect_DirectShow_SessionData_t>* iget_p =
-        dynamic_cast<Common_IGetR_2_T<Test_U_AudioEffect_DirectShow_SessionData_t>*> (directshow_ui_cb_data_p->CBData->stream);
+        dynamic_cast<Common_IGetR_2_T<Test_U_AudioEffect_DirectShow_SessionData_t>*> (directshow_ui_cb_data_p->stream);
       ACE_ASSERT (iget_p);
       directshow_session_data_container_p = &iget_p->getR_2 ();
       directshow_session_data_p =
         &const_cast<Test_U_AudioEffect_DirectShow_SessionData&> (directshow_session_data_container_p->getR ());
       session_data_p = directshow_session_data_p;
-      directshow_ui_cb_data_p->sessionId = session_data_p->sessionId;
+      directshow_ui_cb_data_p->progressData.sessionId = session_data_p->sessionId;
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
     {
       Common_IGetR_2_T<Test_U_AudioEffect_MediaFoundation_SessionData_t>* iget_p =
-        dynamic_cast<Common_IGetR_2_T<Test_U_AudioEffect_MediaFoundation_SessionData_t>*> (mediafoundation_ui_cb_data_p->CBData->stream);
+        dynamic_cast<Common_IGetR_2_T<Test_U_AudioEffect_MediaFoundation_SessionData_t>*> (mediafoundation_ui_cb_data_p->stream);
       ACE_ASSERT (iget_p);
       mediafoundation_session_data_container_p = &iget_p->getR_2 ();
       mediafoundation_session_data_p =
         &const_cast<Test_U_AudioEffect_MediaFoundation_SessionData&> (mediafoundation_session_data_container_p->getR ());
       session_data_p = mediafoundation_session_data_p;
-      mediafoundation_ui_cb_data_p->sessionId = session_data_p->sessionId;
+      mediafoundation_ui_cb_data_p->progressData.sessionId = session_data_p->sessionId;
       break;
     }
     default:
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("invalid/unknown media framework (was: %d), aborting\n"),
-                  data_base_p->mediaFramework));
+                  thread_data_base_p->mediaFramework));
       goto error;
     }
   } // end SWITCH
 #else
   iget_p =
-    dynamic_cast<Common_IGetR_2_T<Test_U_AudioEffect_SessionData_t>*> (data_p->CBData->stream);
+    dynamic_cast<Common_IGetR_2_T<Test_U_AudioEffect_SessionData_t>*> (cb_data_p->stream);
   ACE_ASSERT (iget_p);
   session_data_container_p = &iget_p->getR_2 ();
   session_data_p =
       &const_cast<Test_U_AudioEffect_SessionData&> (session_data_container_p->getR ());
-  data_p->sessionId = session_data_p->sessionId;
+  cb_data_p->progressData.sessionId = session_data_p->sessionId;
 #endif // ACE_WIN32 || ACE_WIN64
   converter.clear ();
   converter.str (ACE_TEXT_ALWAYS_CHAR (""));
@@ -4023,45 +4019,45 @@ stream_processing_function (void* arg_in)
 
   // generate context id
   gdk_threads_enter ();
-  state_r.contextIds.insert (std::make_pair (COMMON_UI_GTK_STATUSCONTEXT_INFORMATION,
-                                             gtk_statusbar_get_context_id (statusbar_p,
-                                                                           converter.str ().c_str ())));
+  state_p->contextIds.insert (std::make_pair (COMMON_UI_GTK_STATUSCONTEXT_INFORMATION,
+                                              gtk_statusbar_get_context_id (statusbar_p,
+                                                                            converter.str ().c_str ())));
   gdk_threads_leave ();
 
   istream_control_p->start ();
-  //if (!data_p->CBData->stream->isRunning ())
+  //if (!istream_control_p->isRunning ())
   //{
   //  ACE_DEBUG ((LM_ERROR,
   //              ACE_TEXT ("failed to Test_U_AudioEffect_Stream::start(): \"%m\", aborting\n")));
   //  goto done;
   //} // end IF
-  istream_control_p->wait (true,
-                           false,
-                           false);
+  istream_control_p->wait (true,   // wait for any worker thread(s) ?
+                           false,  // wait for upstream (if any) ?
+                           false); // wait for downstream (if any) ?
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  switch (data_base_p->mediaFramework)
+  switch (thread_data_base_p->mediaFramework)
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
     {
-      directshow_ui_cb_data_p->CBData->resizeNotification = NULL;
+      directshow_ui_cb_data_p->resizeNotification = NULL;
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
     {
-      mediafoundation_ui_cb_data_p->CBData->resizeNotification = NULL;
+      mediafoundation_ui_cb_data_p->resizeNotification = NULL;
       break;
     }
     default:
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("invalid/unknown media framework (was: %d), aborting\n"),
-                  data_base_p->mediaFramework));
+                  thread_data_base_p->mediaFramework));
       goto error;
     }
   } // end SWITCH
 #else
-  data_p->CBData->resizeNotification = NULL;
+  data_p->resizeNotification = NULL;
 #endif // ACE_WIN32 || ACE_WIN64
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -4074,45 +4070,47 @@ stream_processing_function (void* arg_in)
 
 error:
   event_source_id = g_idle_add (idle_session_end_cb,
-                                data_base_p->CBData);
+                                thread_data_base_p->CBData);
   if (event_source_id == 0)
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to g_idle_add(idle_session_end_cb): \"%m\", continuing\n")));
   else
-    state_r.eventSourceIds.insert (event_source_id);
+  { ACE_ASSERT (state_p);
+    state_p->eventSourceIds.insert (event_source_id);
+  } // end ELSE
 
 continue_:
   { // synch access
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-    ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, state_r.lock, std::numeric_limits<ACE_THR_FUNC_RETURN>::max ());
-    switch (data_base_p->mediaFramework)
+    ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, state_p->lock, std::numeric_limits<ACE_THR_FUNC_RETURN>::max ());
+    switch (thread_data_base_p->mediaFramework)
     {
       case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
       {
-        directshow_ui_cb_data_p->CBData->progressData.completedActions.insert (directshow_ui_cb_data_p->eventSourceId);
+        directshow_ui_cb_data_p->progressData.completedActions.insert (thread_data_base_p->eventSourceId);
         break;
       }
       case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
       {
-        mediafoundation_ui_cb_data_p->CBData->progressData.completedActions.insert (mediafoundation_ui_cb_data_p->eventSourceId);
+        mediafoundation_ui_cb_data_p->progressData.completedActions.insert (thread_data_base_p->eventSourceId);
         break;
       }
       default:
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("invalid/unknown media framework (was: %d), continuing\n"),
-                    data_base_p->mediaFramework));
+                    thread_data_base_p->mediaFramework));
         break;
       }
     } // end SWITCH
 #else
     ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, state_r.lock, arg_in);
-    data_p->CBData->progressData.completedActions.insert (data_p->eventSourceId);
+    data_p->progressData.completedActions.insert (thread_data_base_p->eventSourceId);
 #endif // ACE_WIN32 || ACE_WIN64
   } // end lock scope
 
   // clean up
-  delete data_base_p; data_base_p = NULL;
+  delete thread_data_base_p; thread_data_base_p = NULL;
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   if (COM_initialized) Common_Tools::finalizeCOM ();
@@ -4816,7 +4814,8 @@ idle_initialize_UI_cb (gpointer userData_in)
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
     {
-      mediafoundation_ui_cb_data_p->renderVolumeControl = i_simple_audio_volume_p;
+      mediafoundation_ui_cb_data_p->renderVolumeControl =
+        i_simple_audio_volume_p;
       break;
     }
     default:
@@ -5767,10 +5766,9 @@ idle_finalize_UI_cb (gpointer userData_in)
 {
   STREAM_TRACE (ACE_TEXT ("::idle_finalize_UI_cb"));
 
+  // sanity check(s)
   struct Test_U_AudioEffect_UI_CBDataBase* ui_cb_data_base_p =
     static_cast<struct Test_U_AudioEffect_UI_CBDataBase*> (userData_in);
-
-  // sanity check(s)
   ACE_ASSERT (ui_cb_data_base_p);
 
   Stream_IStreamControlBase* stream_p = NULL;
@@ -5818,7 +5816,7 @@ idle_finalize_UI_cb (gpointer userData_in)
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("invalid/unknown media framework (was: %d), aborting\n"),
                   ui_cb_data_base_p->mediaFramework));
-      return false;
+      return G_SOURCE_REMOVE;
     }
   } // end SWITCH
 #else
@@ -5842,7 +5840,8 @@ idle_finalize_UI_cb (gpointer userData_in)
 
   if (stream_p->isRunning ())
     stream_p->stop (true,  // wait for completion ?
-                    true); // locked access ?
+                    false, // recurse upstream ?
+                    true); // high priority ?
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   if (ui_cb_data_base_p->COMInitialized)
@@ -8427,9 +8426,9 @@ button_quit_clicked_cb (GtkButton* button_in,
 
   ACE_UNUSED_ARG (button_in);
 
+  // sanity check(s)
   struct Test_U_AudioEffect_UI_CBDataBase* ui_cb_data_base_p =
     static_cast<struct Test_U_AudioEffect_UI_CBDataBase*> (userData_in);
-  // sanity check(s)
   ACE_ASSERT (ui_cb_data_base_p);
 
   Stream_IStreamControlBase* stream_p = NULL;
@@ -8516,7 +8515,9 @@ button_quit_clicked_cb (GtkButton* button_in,
 
   if ((status_e == STREAM_STATE_RUNNING) ||
       (status_e == STREAM_STATE_PAUSED))
-    stream_p->stop (false, true, true);
+    stream_p->stop (false, // wait for completion ?
+                    false, // recurse upstream ?
+                    true); // high priority ?
 
   // wait for processing thread(s)
   { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, ui_cb_data_base_p->UIState->lock);

@@ -811,7 +811,8 @@ Stream_CamSave_WxWidgetsDialog_T<wxDialog_main,
   ACE_ASSERT (cb_data_r.stream);
   bool finished_b = false;
 
-  process_stream_events ((struct Test_I_wxWidgets_CBData*)&cb_data_r,
+  process_stream_events (application_,
+                         &cb_data_r,
                          finished_b);
   if (!finished_b &&
       cb_data_r.stream->isRunning ())

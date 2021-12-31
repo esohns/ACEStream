@@ -115,7 +115,7 @@ stream_processing_function (void* arg_in)
   stream_p = cb_data_p->stream;
   session_data_container_p = &cb_data_p->stream->getR_2 ();
   session_data_p = &session_data_container_p->getR ();
-  thread_data_p->sessionId = session_data_p->sessionId;
+  cb_data_p->progressData.sessionId = session_data_p->sessionId;
   converter << session_data_p->sessionId;
 
   // generate context id

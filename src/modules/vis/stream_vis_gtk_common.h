@@ -27,34 +27,27 @@
 
 #include "gtk/gtk.h"
 
+#include "stream_vis_common.h"
+
 #if defined (GTKGL_SUPPORT)
-enum Stream_Visualization_OpenGL_InstructionType
+struct Stream_Visualization_GTKGL_Instruction
 {
-  STREAM_VISUALIZATION_OPENGL_INSTRUCTION_CHANGE_ROTATION,
-  STREAM_VISUALIZATION_OPENGL_INSTRUCTION_SET_COLOR_BG,
-  STREAM_VISUALIZATION_OPENGL_INSTRUCTION_SET_COLOR_FG,
-  ////////////////////////////////////////
-  STREAM_VISUALIZATION_OPENGL_INSTRUCTION_MAX,
-  STREAM_VISUALIZATION_OPENGL_INSTRUCTION_INVALID
-};
-struct Stream_Visualization_OpenGL_Instruction
-{
-  Stream_Visualization_OpenGL_Instruction ()
-   : type (STREAM_VISUALIZATION_OPENGL_INSTRUCTION_INVALID)
+  Stream_Visualization_GTKGL_Instruction ()
+   : type (STREAM_VISUALIZATION_INSTRUCTION_INVALID)
    , color ()
   {}
 
-  enum Stream_Visualization_OpenGL_InstructionType type;
+  enum Stream_Visualization_InstructionType type;
   union {
 #if GTK_CHECK_VERSION(3,0,0)
-    struct _GdkRGBA                                color;
+    struct _GdkRGBA                         color;
 #else
-    GdkColor                                       color;
+    GdkColor                                color;
 #endif // GTK_CHECK_VERSION(3,0,0)
   };
 };
-typedef std::deque<struct Stream_Visualization_OpenGL_Instruction> Stream_Visualization_OpenGL_Instructions_t;
-typedef Stream_Visualization_OpenGL_Instructions_t::const_iterator Stream_Visualization_OpenGL_InstructionsIterator_t;
+typedef std::deque<struct Stream_Visualization_GTKGL_Instruction> Stream_Visualization_GTKGL_Instructions_t;
+typedef Stream_Visualization_GTKGL_Instructions_t::const_iterator Stream_Visualization_GTKGL_InstructionsIterator_t;
 #endif // GTKGL_SUPPORT
 
 #endif

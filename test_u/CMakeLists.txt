@@ -221,6 +221,7 @@ endif (GUI_SUPPORT)
 
 set (source_files
      test_u_common.h
+     test_u_configuration.h
      test_u_defines.h
      test_u_tools.cpp
      test_u_tools.h

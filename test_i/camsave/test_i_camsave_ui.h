@@ -14,7 +14,9 @@
 #include "camsave_wxwidgets_ui.h" // wxGlade
 
 // helper functions
-void process_stream_events (struct Test_I_wxWidgets_CBData*, bool&);
+void process_stream_events (Common_UI_wxWidgets_IApplicationBase_t*, // application handle
+                            struct Stream_CamSave_UI_CBData*,        // callback data handle
+                            bool&);                                  // return value: finished ?
 
 // thread functions
 //ACE_THR_FUNC_RETURN event_processing_thread (void*);

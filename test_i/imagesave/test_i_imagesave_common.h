@@ -397,26 +397,10 @@ typedef Test_I_EventHandler_T<Test_I_ISessionNotify_t,
 
 #if defined (GUI_SUPPORT)
 struct Test_I_ImageSave_ProgressData
-#if defined (GTK_USE)
- : Test_I_GTK_ProgressData
-#elif defined (QT_USE)
- : Test_I_Qt_ProgressData
-#elif defined (WXWIDGETS_USE)
- : Test_I_wxWidgets_ProgressData
-#else
  : Test_I_UI_ProgressData
-#endif
 {
   Test_I_ImageSave_ProgressData ()
-#if defined (GTK_USE)
-   : Test_I_GTK_ProgressData ()
-#elif defined (QT_USE)
-    : Test_I_Qt_ProgressData ()
-#elif defined (WXWIDGETS_USE)
-   : Test_I_wxWidgets_ProgressData ()
-#else
    : Test_I_UI_ProgressData ()
-#endif
    , statistic ()
   {}
 
@@ -425,26 +409,10 @@ struct Test_I_ImageSave_ProgressData
 
 class Test_I_Stream;
 struct Test_I_ImageSave_UI_CBData
-#if defined (GTK_USE)
- : Test_I_GTK_CBData
-#elif defined (QT_USE)
- : Test_I_Qt_CBData
-#elif defined (WXWIDGETS_USE)
- : Test_I_wxWidgets_CBData
-#else
  : Test_I_UI_CBData
-#endif
 {
   Test_I_ImageSave_UI_CBData ()
-#if defined (GTK_USE)
-   : Test_I_GTK_CBData ()
-#elif defined (QT_USE)
-   : Test_I_Qt_CBData ()
-#elif defined (WXWIDGETS_USE)
-   : Test_I_wxWidgets_CBData ()
-#else
    : Test_I_UI_CBData ()
-#endif
    , configuration (NULL)
    , progressData ()
    , stream (NULL)
@@ -460,34 +428,17 @@ struct Test_I_ImageSave_UI_CBData
 };
 
 struct Test_I_ImageSave_UI_ThreadData
-#if defined (GTK_USE)
- : Test_I_GTK_ThreadData
-#elif defined (QT_USE)
- : Test_I_Qt_ThreadData
-#elif defined (WXWIDGETS_USE)
- : Test_I_wxWidgets_ThreadData
-#else
  : Test_I_UI_ThreadData
-#endif
 {
   Test_I_ImageSave_UI_ThreadData ()
-#if defined (GTK_USE)
-   : Test_I_GTK_ThreadData ()
-#elif defined (QT_USE)
-   : Test_I_Qt_ThreadData ()
-#elif defined (WXWIDGETS_USE)
-   : Test_I_wxWidgets_ThreadData ()
-#else
    : Test_I_UI_ThreadData ()
-#endif
    , CBData (NULL)
   {}
 
   struct Test_I_ImageSave_UI_CBData* CBData;
 };
 
-#if defined (GTK_USE)
-#elif defined (WXWIDGETS_USE)
+#if defined (WXWIDGETS_USE)
 extern const char toplevel_widget_classname_string_[];
 typedef Common_UI_WxWidgetsXRCDefinition_T<struct Common_UI_wxWidgets_State,
                                            toplevel_widget_classname_string_> Test_I_WxWidgetsXRCDefinition_t;
@@ -499,7 +450,7 @@ typedef Comon_UI_WxWidgets_Application_T<Test_I_WxWidgetsXRCDefinition_t,
                                          struct Test_I_ImageSave_UI_CBData,
                                          Test_I_V4L_WxWidgetsDialog_t,
                                          wxGUIAppTraits> Test_I_WxWidgetsApplication_t;
-#endif
+#endif // WXWIDGETS_USE
 #endif // GUI_SUPPORT
 
 #endif

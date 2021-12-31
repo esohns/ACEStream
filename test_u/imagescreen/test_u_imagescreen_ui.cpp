@@ -337,10 +337,8 @@ stream_processing_thread (void* arg_in)
 {
   STREAM_TRACE (ACE_TEXT ("::stream_processing_thread"));
 
-#if defined (_DEBUG)
   ACE_DEBUG ((LM_DEBUG,
               ACE_TEXT ("stream processing thread (id: %t) starting\n")));
-#endif // _DEBUG
 
   ACE_THR_FUNC_RETURN result;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -359,6 +357,7 @@ stream_processing_thread (void* arg_in)
   const Stream_ImageScreen_SessionData_t* session_data_container_p = NULL;
   const Stream_ImageScreen_SessionData* session_data_p = NULL;
   Stream_IStreamControlBase* stream_p = NULL;
+  Stream_SessionId_t session_id = 0;
 
   Stream_ImageScreen_StreamConfiguration_t::ITERATOR_T iterator =
     thread_data_p->CBData->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
@@ -374,7 +373,7 @@ stream_processing_thread (void* arg_in)
   ACE_ASSERT (session_data_container_p);
   session_data_p = &session_data_container_p->getR ();
   ACE_ASSERT (session_data_p);
-  thread_data_p->sessionId = session_data_p->sessionId;
+  thread_data_p->CBData->progressData.sessionId = session_data_p->sessionId;
 
   // *NOTE*: blocks until 'finished'
   ACE_ASSERT (stream_p);
@@ -394,7 +393,7 @@ error:
 #else
   { ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, thread_data_p->CBData->UIState->lock, std::numeric_limits<void*>::max ());
 #endif // ACE_WIN32 || ACE_WIN64
-    thread_data_p->CBData->progressData.completedActions.insert (thread_data_p->sessionId);
+    thread_data_p->CBData->progressData.completedActions.insert (session_id);
   } // end lock scope
 
   // clean up

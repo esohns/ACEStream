@@ -502,7 +502,7 @@ Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
                                   : static_cast<double> (height_) / static_cast<double> (Common_Tools::max<ACE_UINT64> (sound_sample_size, false)));
 
       // schedule the renderer
-      if (inherited::configuration_->fps)
+      //if (inherited::configuration_->fps)
       {
         result = inherited::msg_queue_->activate ();
         if (unlikely (result == -1))
@@ -519,7 +519,9 @@ Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
                                                      : TIMER_MANAGER_SINGLETON_T::instance ());
         ACE_ASSERT (itimer_manager_p);
         // schedule the second-granularity timer
-        ACE_Time_Value refresh_interval (0, 1000000 / inherited::configuration_->fps);
+        //ACE_Time_Value refresh_interval (0, 1000000 / inherited::configuration_->fps);
+        ACE_Time_Value refresh_interval (0,
+                                         1000000 / STREAM_VIS_SPECTRUMANALYZER_DEFAULT_FRAME_RATE);
         renderHandlerTimerId_ =
           itimer_manager_p->schedule_timer (&renderHandler_,                    // event handler handle
                                             NULL,                               // asynchronous completion token
@@ -965,7 +967,7 @@ Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
   ACE_ASSERT (inherited::configuration_->OpenGLInstructionsLock);
   ACE_ASSERT (inherited::configuration_->OpenGLInstructions);
 
-  struct Stream_Visualization_OpenGL_Instruction opengl_instruction;
+  struct Stream_Visualization_GTKGL_Instruction visualization_instruction_s;
 
   switch (event_in)
   {
@@ -984,9 +986,9 @@ Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
 //#endif // GTK_CHECK_VERSION(3,0,0)
 //      opengl_instruction.color = foregroundColor_;
 //      opengl_instruction.type =
-//        STREAM_VISUALIZATION_OPENGL_INSTRUCTION_SET_COLOR_FG;
-      opengl_instruction.type =
-        STREAM_VISUALIZATION_OPENGL_INSTRUCTION_CHANGE_ROTATION;
+//        STREAM_VISUALIZATION_INSTRUCTION_SET_COLOR_FG;
+      visualization_instruction_s.type =
+        STREAM_VISUALIZATION_INSTRUCTION_CHANGE_ROTATION;
       break;
     }
     case STREAM_STATISTIC_ANALYSIS_EVENT_PEAK:
@@ -1002,9 +1004,9 @@ Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
       backgroundColor_.blue  = randomGenerator_ ();
       //backgroundColor_.alpha = ;
 #endif // GTK_CHECK_VERSION(3,0,0)
-      opengl_instruction.color = backgroundColor_;
-      opengl_instruction.type =
-        STREAM_VISUALIZATION_OPENGL_INSTRUCTION_SET_COLOR_BG;
+      visualization_instruction_s.color = backgroundColor_;
+      visualization_instruction_s.type =
+        STREAM_VISUALIZATION_INSTRUCTION_SET_COLOR_BG;
       break;
     }
     default:
@@ -1018,7 +1020,7 @@ Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
   } // end SWITCH
 
   { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, *inherited::configuration_->OpenGLInstructionsLock);
-    inherited::configuration_->OpenGLInstructions->push_back (opengl_instruction);
+    inherited::configuration_->OpenGLInstructions->push_back (visualization_instruction_s);
   } // end lock scope
 #endif // GTKGL_SUPPORT
 }

@@ -23,10 +23,14 @@
 
 #include "gtk/gtk.h"
 
+#include "ace/OS.h"
+
 #include "common_ui_gtk_common.h"
 #if defined (GTKGL_SUPPORT)
 #include "common_ui_gtk_gl_common.h"
 #endif // GTKGL_SUPPORT
+
+#include "stream_common.h"
 
 #include "test_i_configuration.h"
 
@@ -49,16 +53,18 @@ struct Test_I_GTK_ProgressData
   Test_I_GTK_ProgressData ()
    : Common_UI_GTK_ProgressData ()
    , statistic ()
-  {}
+  {
+    ACE_OS::memset (&statistic, 0, sizeof (struct Stream_Statistic));
+  }
 
   struct Stream_Statistic statistic;
 };
 
 struct Test_I_GTK_CBData
- : Test_I_UI_CBData
+ : Common_UI_GTK_CBData
 {
   Test_I_GTK_CBData ()
-   : Test_I_UI_CBData ()
+   : Common_UI_GTK_CBData ()
    , progressData ()
    , UIState (NULL)
   {
@@ -70,10 +76,10 @@ struct Test_I_GTK_CBData
 };
 
 struct Test_I_GTK_ThreadData
- : Test_I_UI_ThreadData
+ : Common_UI_GTK_ThreadData
 {
   Test_I_GTK_ThreadData ()
-   : Test_I_UI_ThreadData ()
+   : Common_UI_GTK_ThreadData ()
    , CBData (NULL)
    , eventSourceId (0)
   {}
@@ -82,4 +88,4 @@ struct Test_I_GTK_ThreadData
   guint                     eventSourceId;
 };
 
-#endif
+#endif // TEST_I_GTK_COMMON_H

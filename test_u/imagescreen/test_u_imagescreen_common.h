@@ -294,26 +294,10 @@ typedef Stream_ImageScreen_EventHandler_T<Stream_ImageScreen_ISessionNotify_t,
 
 #if defined (GUI_SUPPORT)
 struct Stream_ImageScreen_ProgressData
-#if defined (GTK_USE)
- : Test_U_GTK_ProgressData
-#elif defined (WXWIDGETS_USE)
- : Test_U_wxWidgets_ProgressData
-#elif defined (QT_USE)
- : Test_U_Qt_ProgressData
-#else
  : Test_U_UI_ProgressData
-#endif // GTK_USE || QT_USE || WXWIDGETS_USE
 {
   Stream_ImageScreen_ProgressData ()
-#if defined (GTK_USE)
-   : Test_U_GTK_ProgressData ()
-#elif defined (WXWIDGETS_USE)
-   : Test_U_wxWidgets_ProgressData ()
-#elif defined (QT_USE)
-   : Test_U_Qt_ProgressData ()
-#else
    : Test_U_UI_ProgressData ()
-#endif // GTK_USE || QT_USE || WXWIDGETS_USE
    , current (0)
    , total (0)
   {}
@@ -324,26 +308,10 @@ struct Stream_ImageScreen_ProgressData
 
 class Stream_ImageScreen_Stream;
 struct Stream_ImageScreen_UI_CBData
-#if defined (GTK_USE)
- : Test_U_GTK_CBData
-#elif defined (QT_USE)
- : Test_U_Qt_CBData
-#elif defined (WXWIDGETS_USE)
- : Test_U_wxWidgets_CBData
-#else
  : Test_U_UI_CBData
-#endif // GTK_USE || QT_USE || WXWIDGETS_USE
 {
   Stream_ImageScreen_UI_CBData ()
-#if defined (GTK_USE)
-   : Test_U_GTK_CBData ()
-#elif defined (QT_USE)
-   : Test_U_Qt_CBData ()
-#elif defined (WXWIDGETS_USE)
-   : Test_U_wxWidgets_CBData ()
-#else
    : Test_U_UI_CBData ()
-#endif // GTK_USE || QT_USE || WXWIDGETS_USE
    , configuration (NULL)
    , isFirst (true)
    , progressData ()
@@ -361,26 +329,10 @@ struct Stream_ImageScreen_UI_CBData
 };
 
 struct Stream_ImageScreen_UI_ThreadData
-#if defined (GTK_USE)
- : Test_U_GTK_ThreadData
-#elif defined (QT_USE)
- : Test_U_Qt_ThreadData
-#elif defined (WXWIDGETS_USE)
- : Test_U_wxWidgets_ThreadData
-#else
  : Test_U_UI_ThreadData
-#endif // GTK_USE || QT_USE || WXWIDGETS_USE
 {
   Stream_ImageScreen_UI_ThreadData ()
-#if defined (GTK_USE)
-   : Test_U_GTK_ThreadData ()
-#elif defined (QT_USE)
-   : Test_U_Qt_ThreadData ()
-#elif defined (WXWIDGETS_USE)
-   : Test_U_wxWidgets_ThreadData ()
-#else
    : Test_U_UI_ThreadData ()
-#endif // GTK_USE || QT_USE || WXWIDGETS_USE
    , CBData (NULL)
   {}
 

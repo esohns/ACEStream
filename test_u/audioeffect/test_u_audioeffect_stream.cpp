@@ -405,7 +405,8 @@ Test_U_AudioEffect_DirectShow_Stream::initialize (const inherited::CONFIGURATION
   Stream_Module_t* module_2 =
       const_cast<Stream_Module_t*> (inherited::find (ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_GTK_SPECTRUM_ANALYZER_DEFAULT_NAME_STRING)));
   ACE_ASSERT (module_2);
-  Test_U_AudioEffect_IDispatch_t* idispatch_p = dynamic_cast<Test_U_AudioEffect_IDispatch_t*> (module_2->writer ());
+  Stream_Statistic_IDispatch_t* idispatch_p =
+    dynamic_cast<Stream_Statistic_IDispatch_t*> (module_2->writer ());
   ACE_ASSERT (idispatch_p);
   (*iterator).second.second->dispatch = idispatch_p;
 #endif // GTK_USE
@@ -1368,7 +1369,8 @@ Test_U_AudioEffect_MediaFoundation_Stream::initialize (const inherited::CONFIGUR
   Stream_Module_t* module_p =
     const_cast<Stream_Module_t*> (inherited::find (ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_GTK_SPECTRUM_ANALYZER_DEFAULT_NAME_STRING)));
   ACE_ASSERT (module_p);
-  Test_U_AudioEffect_IDispatch_t* idispatch_p = dynamic_cast<Test_U_AudioEffect_IDispatch_t*> (module_p->writer ());
+  Stream_Statistic_IDispatch_t* idispatch_p =
+    dynamic_cast<Stream_Statistic_IDispatch_t*> (module_p->writer ());
   ACE_ASSERT (idispatch_p);
   (*iterator).second.second->dispatch = idispatch_p;
 #endif // GTK_SUPPORT

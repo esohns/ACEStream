@@ -30,7 +30,7 @@
 #include "common_ui_gtk_gl_common.h"
 #endif // GTKGL_SUPPORT
 
-#include "test_u_common.h"
+#include "test_u_configuration.h"
 
 struct Test_U_GTK_Configuration
  : Test_U_Configuration
@@ -59,25 +59,23 @@ struct Test_U_GTK_ProgressData
 };
 
 struct Test_U_GTK_CBData
- : Test_U_UI_CBData
+ : Common_UI_GTK_CBData
 {
   Test_U_GTK_CBData ()
-   : Test_U_UI_CBData ()
+   : Common_UI_GTK_CBData ()
    , progressData ()
-   , UIState (NULL)
   {
     progressData.state = UIState;
   }
 
   struct Test_U_GTK_ProgressData progressData;
-  Common_UI_GTK_State_t*         UIState;
 };
 
 struct Test_U_GTK_ThreadData
- : Test_U_UI_ThreadData
+ : Common_UI_GTK_ThreadData
 {
   Test_U_GTK_ThreadData ()
-   : Test_U_UI_ThreadData ()
+   : Common_UI_GTK_ThreadData ()
    , CBData (NULL)
    , eventSourceId (0)
   {}

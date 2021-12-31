@@ -26,6 +26,10 @@
 #include "stream_control_message.h"
 #include "stream_data_message_base.h"
 
+#include "test_i_common.h"
+
+#include "test_i_stream_common.h"
+
 // forward declaration(s)
 template <ACE_SYNCH_DECL,
           typename AllocatorConfigurationType,
@@ -35,34 +39,144 @@ template <ACE_SYNCH_DECL,
 
 //////////////////////////////////////////
 
-class Test_I_Message
- : public Stream_DataMessageBase_T<Test_I_MessageData_t,
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+struct Test_I_SpeechCommand_DirectShow_MessageData
+ : Test_I_DirectShow_MessageData
+{
+  Test_I_SpeechCommand_DirectShow_MessageData ()
+   : Test_I_DirectShow_MessageData ()
+   , index (-1)
+  {}
+
+  // WaveIn
+  unsigned int index;
+};
+//typedef Stream_DataBase_T<struct Test_I_SpeechCommand_DirectShow_MessageData> Test_I_SpeechCommand_DirectShow_MessageData_t;
+
+struct Test_I_SpeechCommand_MediaFoundation_MessageData
+ : Test_I_MediaFoundation_MessageData
+{
+  Test_I_SpeechCommand_MediaFoundation_MessageData ()
+   : Test_I_MediaFoundation_MessageData ()
+   , index (-1)
+  {}
+
+  // WaveIn
+  unsigned int index;
+};
+//typedef Stream_DataBase_T<struct Test_I_SpeechCommand_MediaFoundation_MessageData> Test_I_SpeechCommand_MediaFoundation_MessageData_t;
+#endif // ACE_WIN32 || ACE_WIN64
+
+//////////////////////////////////////////
+
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+class Test_I_DirectShow_Message
+ : public Stream_DataMessageBase_T<struct Test_I_SpeechCommand_DirectShow_MessageData,
                                    enum Stream_MessageType,
                                    int>
 {
-  typedef Stream_DataMessageBase_T<Test_I_MessageData_t,
+  typedef Stream_DataMessageBase_T<struct Test_I_SpeechCommand_DirectShow_MessageData,
                                    enum Stream_MessageType,
                                    int> inherited;
 
   // grant access to specific private ctors
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
   friend class Stream_MessageAllocatorHeapBase_T<ACE_MT_SYNCH,
                                                  struct Stream_AllocatorConfiguration,
                                                  Stream_ControlMessage_t,
-                                                 Test_I_Message,
+                                                 Test_I_DirectShow_Message,
                                                  Test_I_DirectShow_SessionMessage_t>;
+
+ public:
+  Test_I_DirectShow_Message (unsigned int); // size
+  inline virtual ~Test_I_DirectShow_Message () {}
+
+  // overrides from ACE_Message_Block
+  // --> create a "shallow" copy of ourselves that references the same packet
+  // *NOTE*: this uses our allocator (if any) to create a new message
+  virtual ACE_Message_Block* duplicate (void) const;
+
+  // implement Stream_MessageBase_T
+  //virtual int command () const; // return value: message type
+  //inline static std::string CommandTypeToString (HTTP_Method_t method_in) { return (method_in == HTTP_Codes::HTTP_METHOD_INVALID ? ACE_TEXT_ALWAYS_CHAR (HTTP_COMMAND_STRING_RESPONSE) : HTTP_Tools::MethodToString (method_in)); }
+
+ protected:
+  // copy ctor to be used by duplicate() and derived classes
+  // --> uses an (incremented refcount of) the same datablock ("shallow copy")
+  Test_I_DirectShow_Message (const Test_I_DirectShow_Message&);
+
+ private:
+  ACE_UNIMPLEMENTED_FUNC (Test_I_DirectShow_Message ())
+  // *NOTE*: to be used by message allocators
+  Test_I_DirectShow_Message (Stream_SessionId_t,
+                             ACE_Data_Block*, // data block to use
+                             ACE_Allocator*,  // message allocator
+                             bool = true);    // increment running message counter ?
+  Test_I_DirectShow_Message (Stream_SessionId_t,
+                             ACE_Allocator*); // message allocator
+  ACE_UNIMPLEMENTED_FUNC (Test_I_DirectShow_Message& operator= (const Test_I_DirectShow_Message&))
+};
+
+class Test_I_MediaFoundation_Message
+ : public Stream_DataMessageBase_T<struct Test_I_SpeechCommand_MediaFoundation_MessageData,
+                                   enum Stream_MessageType,
+                                   int>
+{
+  typedef Stream_DataMessageBase_T<struct Test_I_SpeechCommand_MediaFoundation_MessageData,
+                                   enum Stream_MessageType,
+                                   int> inherited;
+
+  // grant access to specific private ctors
   friend class Stream_MessageAllocatorHeapBase_T<ACE_MT_SYNCH,
                                                  struct Stream_AllocatorConfiguration,
                                                  Stream_ControlMessage_t,
-                                                 Test_I_Message,
+                                                 Test_I_MediaFoundation_Message,
                                                  Test_I_MediaFoundation_SessionMessage_t>;
+
+ public:
+  Test_I_MediaFoundation_Message (unsigned int); // size
+  inline virtual ~Test_I_MediaFoundation_Message () {}
+
+  // overrides from ACE_Message_Block
+  // --> create a "shallow" copy of ourselves that references the same packet
+  // *NOTE*: this uses our allocator (if any) to create a new message
+  virtual ACE_Message_Block* duplicate (void) const;
+
+  // implement Stream_MessageBase_T
+  //virtual int command () const; // return value: message type
+  //inline static std::string CommandTypeToString (HTTP_Method_t method_in) { return (method_in == HTTP_Codes::HTTP_METHOD_INVALID ? ACE_TEXT_ALWAYS_CHAR (HTTP_COMMAND_STRING_RESPONSE) : HTTP_Tools::MethodToString (method_in)); }
+
+ protected:
+  // copy ctor to be used by duplicate() and derived classes
+  // --> uses an (incremented refcount of) the same datablock ("shallow copy")
+  Test_I_MediaFoundation_Message (const Test_I_MediaFoundation_Message&);
+
+ private:
+  ACE_UNIMPLEMENTED_FUNC (Test_I_MediaFoundation_Message ())
+  // *NOTE*: to be used by message allocators
+  Test_I_MediaFoundation_Message (Stream_SessionId_t,
+                                  ACE_Data_Block*, // data block to use
+                                  ACE_Allocator*,  // message allocator
+                                  bool = true);    // increment running message counter ?
+  Test_I_MediaFoundation_Message (Stream_SessionId_t,
+                                  ACE_Allocator*); // message allocator
+  ACE_UNIMPLEMENTED_FUNC (Test_I_MediaFoundation_Message& operator= (const Test_I_MediaFoundation_Message&))
+};
 #else
+class Test_I_Message
+ : public Stream_DataMessageBase_T<struct Test_I_MessageData,
+                                   enum Stream_MessageType,
+                                   int>
+{
+  typedef Stream_DataMessageBase_T<struct Test_I_MessageData,
+                                   enum Stream_MessageType,
+                                   int> inherited;
+
+  // grant access to specific private ctors
   friend class Stream_MessageAllocatorHeapBase_T<ACE_MT_SYNCH,
                                                  struct Stream_AllocatorConfiguration,
                                                  Stream_ControlMessage_t,
                                                  Test_I_Message,
                                                  Test_I_ALSA_SessionMessage_t>;
-#endif // ACE_WIN32 || ACE_WIN64
 
  public:
   Test_I_Message (unsigned int); // size
@@ -93,5 +207,6 @@ class Test_I_Message
                   ACE_Allocator*); // message allocator
   ACE_UNIMPLEMENTED_FUNC (Test_I_Message& operator= (const Test_I_Message&))
 };
+#endif // ACE_WIN32 || ACE_WIN64
 
 #endif

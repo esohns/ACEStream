@@ -1,52 +1,86 @@
+if (UNIX)
+ include (ffmpeg) # AVI encoder
+endif (UNIX)
+
+if (UNIX)
+ pkg_check_modules (PKG_ALSA REQUIRED alsa)
+
+ set (CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_CURRENT_SOURCE_DIR}/../../src/modules/lib/scripts")
+ include (sox)
+endif (UNIX)
 
 string (REPLACE ${CMAKE_SOURCE_DIR} "" BUILD_PATH_SUFFIX ${CMAKE_BINARY_DIR})
 string (SUBSTRING ${BUILD_PATH_SUFFIX} 1 -1 BUILD_PATH_SUFFIX)
-find_package (Common ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_MICRO}
-              REQUIRED
-              CONFIG
-              PATHS ${CMAKE_CURRENT_SOURCE_DIR}/../modules ${CMAKE_CURRENT_SOURCE_DIR}/../..
-              PATH_SUFFIXES Common/${BUILD_PATH_SUFFIX}
-              NO_DEFAULT_PATH)
-if (NOT EXISTS ${Common_DIR})
- message (FATAL_ERROR "could not find package \"Common\", aborting")
-endif ()
-add_definitions (-DCOMMON_HAS_DLL)
+#find_package (Common ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_MICRO}
+#              REQUIRED
+#              CONFIG
+#              PATHS ${CMAKE_CURRENT_SOURCE_DIR}/../modules ${CMAKE_CURRENT_SOURCE_DIR}/../..
+#              PATH_SUFFIXES Common/${BUILD_PATH_SUFFIX}
+#              NO_DEFAULT_PATH)
+#if (NOT EXISTS ${Common_DIR})
+# message (FATAL_ERROR "could not find package \"Common\", aborting")
+#endif ()
+#add_definitions (-DCOMMON_HAS_DLL)
 
 if (UNIX)
+ include_directories (${PKG_ALSA_INCLUDE_DIRS})
+ include_directories (${SOX_INCLUDE_DIRS})
+
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../modules/Common/include)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../modules/Common/src)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../modules/Common/src/log)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../modules/Common/src/signal)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../modules/Common/src/timer)
- include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../modules/Common/src/ui)
  if (GUI_SUPPORT)
-  if (QT_USE)
-   include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../modules/Common/src/ui/qt)
-  endif (QT_USE)
+  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../modules/Common/src/ui)
+  if (GTK_SUPPORT)
+   include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../modules/Common/src/ui/gtk)
+   if (GTKGL_SUPPORT)
+    include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../modules/Common/src/gl)
+   endif (GTKGL_SUPPORT)
+  endif (GTK_SUPPORT)
  endif (GUI_SUPPORT)
-
-# include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../modules/ACENetwork/src/protocol/smtp)
 elseif (WIN32)
+ # *NOTE*: workaround
+# set (_PF86 "ProgramFiles(x86)")
+ set (DIRECTSHOW_BASECLASSES_DIRECTORY
+      $ENV{LIB_ROOT}/DShowBaseClasses)
+# message (STATUS "DirectShow baseclasses directory: \"${DIRECTSHOW_BASECLASSES_DIRECTORY}\"")
+
+# DirectShow
+# include_directories (${DIRECTSHOW_BASECLASSES_DIRECTORY})
+ include_directories (${DIRECTSHOW_BASECLASSES_DIRECTORY}/baseclasses)
+
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../3rd_party/msvc)
 
- include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../Common/include)
+ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../Common/${BUILD_PATH_SUFFIX})
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../Common/src)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../Common/src/log)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../Common/src/signal)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../Common/src/timer)
- include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../Common/src/ui)
-
-# include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../ACENetwork/src/protocol/smtp)
+ if (GUI_SUPPORT)
+  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../Common/src/ui)
+  if (GTK_SUPPORT)
+   include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../Common/src/ui/gtk)
+   if (GTKGL_SUPPORT)
+    include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../Common/src/gl)
+   endif (GTKGL_SUPPORT)
+  endif (GTK_SUPPORT)
+ endif (GUI_SUPPORT)
 endif ()
 
-include_directories (${CMAKE_CURRENT_BINARY_DIR}/../..)
-
+include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../include)
 include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../src)
+include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../src/modules/dev)
+include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../src/modules/file)
+include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../src/modules/lib)
 include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../src/modules/misc)
-include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../src/modules/net)
 include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../src/modules/stat)
+include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../src/modules/vis)
 
 include_directories (${CMAKE_CURRENT_SOURCE_DIR}/..)
+
+include_directories (${CMAKE_CURRENT_BINARY_DIR}/../..)
 
 ############## next target ################
 set (EXECUTABLE speechcommand)
@@ -73,35 +107,25 @@ set (${EXECUTABLE}_EXE_SRCS
      test_i_stream.h
      test_i_stream_common.h)
 if (GUI_SUPPORT)
- if (GTK_USE)
+ if (GTK_SUPPORT)
   set (${EXECUTABLE}_EXE_SRCS
        ${${EXECUTABLE}_EXE_SRCS}
        test_i_gtk_callbacks.cpp
        test_i_gtk_callbacks.h)
- elseif (WXWIDGETS_USE)
+ endif (GTK_SUPPORT)
+ if (WXWIDGETS_SUPPORT)
   set (${EXECUTABLE}_EXE_SRCS
        ${${EXECUTABLE}_EXE_SRCS})
- endif ()
+ endif (WXWIDGETS_SUPPORT)
 endif (GUI_SUPPORT)
 
-if (UNIX)
-# add_definitions (-D_GLIBCXX_INCLUDE_NEXT_C_HEADERS)
- if (GUI_SUPPORT)
-  if (GTK_USE)
-   if (CMAKE_BUILD_TYPE STREQUAL Debug)
-    add_definitions (-DG_ERRORCHECK_MUTEXES)
-   endif (CMAKE_BUILD_TYPE STREQUAL Debug)
-  endif (GTK_USE)
- endif (GUI_SUPPORT)
-elseif (WIN32)
-# if (WIN32 AND (CMAKE_BUILD_TYPE STREQUAL Debug))
-#  add_definitions (-DD3D_DEBUG_INFO)
+if (WIN32)
+ if (CMAKE_BUILD_TYPE STREQUAL Debug)
+  add_definitions (-DD3D_DEBUG_INFO)
   # *NOTE*: DirectShow uses 'DEBUG'
-#  add_definitions (-DDEBUG) # activate DirectShow debug logging
-# endif (WIN32 AND (CMAKE_BUILD_TYPE STREQUAL Debug))
+  add_definitions (-DDEBUG) # activate DirectShow debug logging
+ endif (CMAKE_BUILD_TYPE STREQUAL Debug)
 endif ()
-
-#cmake_policy (SET CMP0065 OLD) # do not add flags to export symbols from executables without the ENABLE_EXPORTS target property
 
 set (ui_definition_file "")
 if (GUI_SUPPORT)
@@ -112,12 +136,10 @@ if (GUI_SUPPORT)
    set (ui_definition_file etc/test_i.gtk2)
   endif ()
  elseif (WXWIDGETS_USE)
-  if (WIN32)
-   add_definitions(-DUNICODE -D_UNICODE)
-  endif (WIN32)
   set (ui_definition_file etc/test_i.xrc)
  endif ()
 endif (GUI_SUPPORT)
+cmake_policy (SET CMP0065 OLD) # do not add flags to export symbols from executables without the ENABLE_EXPORTS target property
 add_executable (${EXECUTABLE}
                 EXCLUDE_FROM_ALL
                 ${${EXECUTABLE}_EXE_SRCS}
@@ -128,59 +150,80 @@ if (WIN32 AND NOT BUILD_TEST_I)
  set_target_properties (${EXECUTABLE} PROPERTIES EXCLUDE_FROM_DEFAULT_BUILD TRUE)
 endif (WIN32 AND NOT BUILD_TEST_I)
 
+#add_dependencies (${EXECUTABLE} ACE)
+
 add_dependencies (${EXECUTABLE} Common)
+if (WIN32)
+ add_dependencies (${EXECUTABLE} CommonError)
+endif (WIN32)
+add_dependencies (${EXECUTABLE} CommonLog)
+add_dependencies (${EXECUTABLE} CommonMath)
+add_dependencies (${EXECUTABLE} CommonTimer)
+if (GUI_SUPPORT)
+ add_dependencies (${EXECUTABLE} CommonUI)
+ if (GTK_SUPPORT)
+  add_dependencies (${EXECUTABLE} CommonUI_GTK)
+ endif (GTK_SUPPORT)
+endif (GUI_SUPPORT)
 
 add_dependencies (${EXECUTABLE} ${PROJECT_NAME})
+add_dependencies (${EXECUTABLE} ${PROJECT_NAME}_Device)
 add_dependencies (${EXECUTABLE} ${PROJECT_NAME}_Miscellaneous)
-#add_dependencies (${EXECUTABLE} ${PROJECT_NAME}_Network)
+add_dependencies (${EXECUTABLE} ${PROJECT_NAME}_Visualization)
 
 add_dependencies (${EXECUTABLE} ${PROJECT_NAME}_Test_I)
 
-target_link_libraries (${EXECUTABLE} ${CMAKE_THREAD_LIBS_INIT})
-target_link_libraries (${EXECUTABLE} ${ACE_LIBRARY})
-
-target_link_libraries (${EXECUTABLE} Common)
-target_link_libraries (${EXECUTABLE} CommonLog)
-target_link_libraries (${EXECUTABLE} CommonSignal)
-target_link_libraries (${EXECUTABLE} CommonTimer)
-if (GUI_SUPPORT)
- target_link_libraries (${EXECUTABLE} CommonUI)
- if (GTK_USE)
-  target_link_libraries (${EXECUTABLE} CommonUI_GTK)
- elseif (WXWIDGETS_USE)
-  target_link_libraries (${EXECUTABLE} CommonUI_wxWidgets)
- endif ()
-endif (GUI_SUPPORT)
-#target_link_libraries (${EXECUTABLE} ACENetwork_Protocol_SMTP)
-
-target_link_libraries (${EXECUTABLE} ${PROJECT_NAME})
-target_link_libraries (${EXECUTABLE} ${PROJECT_NAME}_Miscellaneous)
-#target_link_libraries (${EXECUTABLE} ${PROJECT_NAME}_Network)
-target_link_libraries (${EXECUTABLE} ${PROJECT_NAME}_Statistic)
-
-target_link_libraries (${EXECUTABLE} ${PROJECT_NAME}_Test_I)
+target_link_libraries (${EXECUTABLE} PUBLIC ${CMAKE_THREAD_LIBS_INIT})
 
 if (UNIX)
- if (GUI_SUPPORT)
-  if (WXWIDGETS_USE)
-   target_link_libraries (${EXECUTABLE} ${wxWidgets_LIBRARIES})
-  endif (WXWIDGETS_USE)
- endif (GUI_SUPPORT)
+ target_link_libraries (${EXECUTABLE} PUBLIC ${PKG_ALSA_LIBRARIES})
+ target_link_libraries (${EXECUTABLE} PUBLIC ${SOX_LIBRARIES})
 endif (UNIX)
 
+target_link_libraries (${EXECUTABLE} PUBLIC ${ACE_LIBRARY})
+
+target_link_libraries (${EXECUTABLE} PUBLIC Common)
+target_link_libraries (${EXECUTABLE} PUBLIC CommonLog)
+target_link_libraries (${EXECUTABLE} PUBLIC CommonMath)
+target_link_libraries (${EXECUTABLE} PUBLIC CommonSignal)
+target_link_libraries (${EXECUTABLE} PUBLIC CommonTimer)
+if (GUI_SUPPORT)
+ target_link_libraries (${EXECUTABLE} PUBLIC CommonUI)
+ if (GTK_USE)
+  target_link_libraries (${EXECUTABLE} PUBLIC CommonUI_GTK)
+ elseif (WXWIDGETS_USE)
+  target_link_libraries (${EXECUTABLE} PUBLIC CommonUI_wxWidgets)
+ endif ()
+endif (GUI_SUPPORT)
+
+target_link_libraries (${EXECUTABLE} PUBLIC ${PROJECT_NAME})
+target_link_libraries (${EXECUTABLE} PUBLIC ${PROJECT_NAME}_Device)
+target_link_libraries (${EXECUTABLE} PUBLIC ${PROJECT_NAME}_File)
+target_link_libraries (${EXECUTABLE} PUBLIC ${PROJECT_NAME}_MediaFramework)
+target_link_libraries (${EXECUTABLE} PUBLIC ${PROJECT_NAME}_Miscellaneous)
+target_link_libraries (${EXECUTABLE} PUBLIC ${PROJECT_NAME}_Statistic)
+target_link_libraries (${EXECUTABLE} PUBLIC ${PROJECT_NAME}_Visualization)
+
+target_link_libraries (${EXECUTABLE} PUBLIC ${PROJECT_NAME}_Test_I)
+
+#if (UNIX)
+# if (GUI_SUPPORT)
+#  if (WXWIDGETS_USE)
+#   target_link_libraries (${EXECUTABLE} PUBLIC ${wxWidgets_LIBRARIES})
+#  endif (WXWIDGETS_USE)
+# endif (GUI_SUPPORT)
+#endif (UNIX)
+
 # add PCH
-#set_target_properties (${EXECUTABLE} PROPERTIES COTIRE_CXX_PREFIX_HEADER_INIT "stdafx.h")
-#cotire (${EXECUTABLE})
 target_precompile_headers (${EXECUTABLE}
                            PUBLIC stdafx.h)
 
 install (TARGETS ${EXECUTABLE}
          EXPORT ${PROJECT_NAME}Targets
          RUNTIME DESTINATION ${INSTALL_BIN_DIR} COMPONENT test_i)
-if (UNIX)
- install (FILES ${ui_definition_file}
-          DESTINATION "${INSTALL_SHARE_DIR}/${PROJECT_NAME}/${EXECUTABLE}" COMPONENT config)
-elseif (WIN32)
+install (FILES ${ui_definition_file}
+         DESTINATION "${INSTALL_SHARE_DIR}/${PROJECT_NAME}/${EXECUTABLE}" COMPONENT config)
+if (WIN32)
  get_filename_component (ACE_LIB_PATH ${ACE_LIBRARY}
                          DIRECTORY)
  set (ACE_DLL_FILE ACE${LIB_FILE_SUFFIX}.dll)
@@ -223,59 +266,57 @@ endif ()
 
 ##########################################
 
-set (ARGS "-l")
-if (CMAKE_BUILD_TYPE STREQUAL Debug)
- set (ARGS "${ARGS} -t")
-endif (CMAKE_BUILD_TYPE STREQUAL Debug)
+if (CMAKE_BUILD_TYPE STREQUAL "Debug" OR
+    CMAKE_BUILD_TYPE STREQUAL "RelWithDebInfo")
+ set (ARGS "-l -t")
+else ()
+ set (ARGS "")
+endif ()
 if (UNIX)
+ file (TO_NATIVE_PATH "${CMAKE_CURRENT_BINARY_DIR}/${EXECUTABLE}" COMMAND)
  if (GUI_SUPPORT)
-  if (GTK_USE)
+  if (GTK_USE OR WXWIDGETS_USE)
    set (ARGS "${ARGS} -g./${ui_definition_file}")
+  endif (GTK_USE OR WXWIDGETS_USE)
+  if (GTK_USE)
   elseif (WXWIDGETS_USE)
    set (ENVIRONMENT "DISPLAY=:0")
   endif ()
  else ()
   set (ARGS "-g ${ARGS}")
  endif (GUI_SUPPORT)
-
- set (RUNTIME_LIBRARY_DIRS ${PROJECT_SOURCE_DIR}/modules/ATCD/ACE/lib)
+ set (RUNTIME_LIBRARY_DIRS ${PROJECT_SOURCE_DIR}/modules/ACE/lib)
 # set (ENVIRONMENT "GDK_BACKEND=x11")
 elseif (WIN32)
+ set (ARGS "-m ${ARGS}") # use mediafoundation
+ file (TO_NATIVE_PATH "${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_BUILD_TYPE}/${EXECUTABLE}.exe" COMMAND)
+ string (REPLACE "\\" "\\\\" COMMAND ${COMMAND})
  if (GUI_SUPPORT)
   file (TO_NATIVE_PATH "${ui_definition_file}" ui_definition_file)
-#  message (STATUS "ui_definition_file: ${ui_definition_file}")
   string (REGEX REPLACE "\\\\" "\\\\\\\\" ui_definition_file "${ui_definition_file}")
-#  message (STATUS "ui_definition_file: ${ui_definition_file}")
   set (ARGS " ${ARGS} -g.\\\\${ui_definition_file}")
 
   if (GTK_USE)
-   if (GTK3_USE)
-    file (TO_CMAKE_PATH $ENV{LIB_ROOT}/gtk3/bin GTK_LIB_PATH)
-    set (RUNTIME_LIBRARY_DIRS ${RUNTIME_LIBRARY_DIRS}
-                              G:/software/Development/dll
-                              ${GTK_LIB_PATH})
-   elseif (GTK2_USE)
-    file (TO_CMAKE_PATH $ENV{LIB_ROOT}/gtk2/bin GTK_LIB_PATH)
-    set (RUNTIME_LIBRARY_DIRS ${RUNTIME_LIBRARY_DIRS}
-                              G:/software/Development/dll
-                              ${GTK_LIB_PATH})
-   endif ()
-  elseif (WXWIDGETS_USE)
+   file (TO_CMAKE_PATH "${GTK_LIB_DIRS}" GTK_PATH)
    set (RUNTIME_LIBRARY_DIRS ${RUNTIME_LIBRARY_DIRS}
-                             ${wxWidgets_LIB_DIR})
+                             G:/software/Development/dll
+                             ${GTK_PATH})
+  elseif (WXWIDGETS_USE)
+   file (TO_CMAKE_PATH "${wxWidgets_LIB_DIR}" WXWIDGETS_PATH)
+   set (RUNTIME_LIBRARY_DIRS ${RUNTIME_LIBRARY_DIRS}
+                             ${WXWIDGETS_PATH})
   endif ()
  else ()
   set (ARGS "-g ${ARGS}")
  endif (GUI_SUPPORT)
- file (TO_CMAKE_PATH $ENV{LIB_ROOT}/openssl OPENSSL_PATH)
- #file (TO_CMAKE_PATH $ENV{LIB_ROOT}/ffmpeg/bin FFMPEG_PATH)
- #file (TO_CMAKE_PATH $ENV{LIB_ROOT}/ImageMagick IMAGEMAGICK_PATH)
- file (TO_CMAKE_PATH $ENV{LIB_ROOT}/ACE_TAO/ACE/lib ACE_PATH)
+ file (TO_CMAKE_PATH $ENV{LIB_ROOT}/ffmpeg/bin FFMPEG_PATH)
+ file (TO_CMAKE_PATH "${ACE_LIB_DIR}" ACE_LIBRARY_PATH)
  set (RUNTIME_LIBRARY_DIRS ${RUNTIME_LIBRARY_DIRS}
-                           ${OPENSSL_PATH}
-                           ${ACE_PATH})
+                           ${FFMPEG_PATH}
+                           ${ACE_LIBRARY_PATH})
 endif ()
 create_target_launcher (${EXECUTABLE}
+                        COMMAND ${COMMAND}
                         ARGS ${ARGS}
 #                        FORWARD_ARGS
                         RUNTIME_LIBRARY_DIRS ${RUNTIME_LIBRARY_DIRS}

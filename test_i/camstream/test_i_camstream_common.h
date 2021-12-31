@@ -310,18 +310,10 @@ struct Test_I_CamStream_Configuration
 
 #if defined (GUI_SUPPORT)
 struct Test_I_CamStream_UI_ProgressData
-#if defined (GTK_USE)
- : Test_I_GTK_ProgressData
-#else
  : Test_I_UI_ProgressData
-#endif // GTK_USE
 {
   Test_I_CamStream_UI_ProgressData ()
-#if defined (GTK_USE)
-   : Test_I_GTK_ProgressData ()
-#else
    : Test_I_UI_ProgressData ()
-#endif // GTK_USE
    , transferred (0)
   {}
 
@@ -329,23 +321,15 @@ struct Test_I_CamStream_UI_ProgressData
 };
 
 struct Test_I_CamStream_UI_CBData
-#if defined (GTK_USE)
- : Test_I_GTK_CBData
-#else
  : Test_I_UI_CBData
-#endif // GTK_USE
 {
   Test_I_CamStream_UI_CBData ()
-#if defined (GTK_USE)
-   : Test_I_GTK_CBData ()
-#else
    : Test_I_UI_CBData ()
-#endif // GTK_USE
    , configuration (NULL)
    , isFirst (true)
- #if defined (GTK_USE)
+#if defined (GTK_USE)
    , pixelBuffer (NULL)
- #endif // GTK_USE
+#endif // GTK_USE
    , progressData ()
   {}
 
@@ -358,18 +342,10 @@ struct Test_I_CamStream_UI_CBData
 };
 
 struct Test_I_CamStream_ThreadData
-#if defined (GTK_USE)
- : Test_I_GTK_ThreadData
-#else
  : Test_I_UI_ThreadData
-#endif // GTK_USE
 {
   Test_I_CamStream_ThreadData ()
-#if defined (GTK_USE)
-   : Test_I_GTK_ThreadData ()
-#else
    : Test_I_UI_ThreadData ()
-#endif // GTK_USE
    , CBData (NULL)
   {}
 

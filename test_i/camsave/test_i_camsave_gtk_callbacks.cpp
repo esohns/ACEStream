@@ -2111,7 +2111,7 @@ stream_processing_function (void* arg_in)
     } // end IF
     session_data_container_p = &libcamera_cb_data_p->stream->getR_2 ();
     session_data_p = &session_data_container_p->getR ();
-    thread_data_p->sessionId = session_data_p->sessionId;
+    libcamera_cb_data_p->progressData.sessionId = session_data_p->sessionId;
     converter << session_data_p->sessionId;
 #else
     ACE_DEBUG ((LM_ERROR,
@@ -2136,7 +2136,7 @@ stream_processing_function (void* arg_in)
     } // end IF
     session_data_container_p = &v4l_cb_data_p->stream->getR_2 ();
     session_data_p = &session_data_container_p->getR ();
-    thread_data_p->sessionId = session_data_p->sessionId;
+    v4l_cb_data_p->progressData.sessionId = session_data_p->sessionId;
     converter << session_data_p->sessionId;
   } // end ELSE
 #endif // ACE_WIN32 || ACE_WIN64
@@ -2167,7 +2167,7 @@ stream_processing_function (void* arg_in)
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
     {
       Stream_CamSave_DirectShow_StreamConfiguration_t::ITERATOR_T iterator =
-        const_cast<Stream_CamSave_DirectShow_StreamConfiguration_t::ITERATOR_T&> (directshow_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR ("")));
+        directshow_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
       ACE_ASSERT (iterator != directshow_cb_data_p->configuration->streamConfiguration.end ());
 
       // *NOTE*: let the display output module handle the Direct3D device
@@ -2186,7 +2186,8 @@ stream_processing_function (void* arg_in)
       directshow_session_data_container_p =
         &directshow_cb_data_p->stream->getR_2 ();
       directshow_session_data_p = &directshow_session_data_container_p->getR ();
-      thread_data_p->sessionId = directshow_session_data_p->sessionId;
+      directshow_cb_data_p->progressData.sessionId =
+        directshow_session_data_p->sessionId;
       converter << directshow_session_data_p->sessionId;
       break;
     }
@@ -2203,7 +2204,8 @@ stream_processing_function (void* arg_in)
         &mediafoundation_cb_data_p->stream->getR_2 ();
       mediafoundation_session_data_p =
         &mediafoundation_session_data_container_p->getR ();
-      thread_data_p->sessionId = mediafoundation_session_data_p->sessionId;
+      mediafoundation_cb_data_p->progressData.sessionId =
+        mediafoundation_session_data_p->sessionId;
       converter << mediafoundation_session_data_p->sessionId;
       break;
     }

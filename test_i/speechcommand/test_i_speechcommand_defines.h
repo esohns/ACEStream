@@ -21,55 +21,48 @@
 #ifndef TEST_I_SPEECHCOMMAND_DEFINES_H
 #define TEST_I_SPEECHCOMMAND_DEFINES_H
 
-#if defined (GUI_SUPPORT)
-#if defined (GTK_USE)
-#if defined (GTK3_USE)
-#define TEST_I_UI_DEFINITION_FILE              "test_i.gtk3"
-#elif defined (GTK2_USE)
-#define TEST_I_UI_DEFINITION_FILE              "test_i.gtk2"
-#endif
-#elif defined (QT_USE)
-#define TEST_I_UI_DEFINITION_FILE              "mainwindow.ui"
-#elif defined (WXWIDGETS_USE)
-#define TEST_I_UI_DEFINITION_FILE              "test_i.xrc"
-#else
-#define TEST_I_UI_DEFINITION_FILE              ""
-#endif // WXWIDGETS_USE
-#define TEST_I_UI_CSS_FILE                     "test_i.css"
+#define TEST_I_DEFAULT_OUTPUT_FILE                     "output.wav"
 
 //---------------------------------------
+
+#if defined (GUI_SUPPORT)
 #if defined (GTK_SUPPORT)
 #define TEST_I_UI_GTK_ACTION_RECORD_NAME               "action_record"
 #define TEST_I_UI_GTK_SCROLLEDWINDOW_ADJUSTMENT_V_NAME "adjustment_sw_v"
 #define TEST_I_UI_GTK_BUTTON_ABOUT_NAME                "about"
-#define TEST_I_UI_GTK_BUTTON_SEND_NAME                 "button_send"
+#define TEST_I_UI_GTK_BUTTON_DEVICE_SETTINGS_NAME      "button_device_settings"
 #define TEST_I_UI_GTK_BUTTON_QUIT_NAME                 "quit"
+#define TEST_I_UI_GTK_CHECKBUTTON_SAVE_NAME            "checkbutton_save"
+#define TEST_I_UI_GTK_CHECKBUTTON_VISUALIZATION_NAME   "checkbutton_visualization"
+#define TEST_I_UI_GTK_COMBOBOX_DEVICE_NAME             "combobox_device"
 #define TEST_I_UI_GTK_DIALOG_ABOUT_NAME                "dialog_about"
 #define TEST_I_UI_GTK_DIALOG_MAIN_NAME                 "dialog_main"
-#define TEST_I_UI_GTK_ENTRY_FROM_NAME                  "entry_from"
-#define TEST_I_UI_GTK_ENTRY_SERVER_NAME                "entry_server"
-#define TEST_I_UI_GTK_ENTRY_TO_NAME                    "entry_to"
-#define TEST_I_UI_GTK_ENTRY_USERNAME_NAME              "entry_username"
-#define TEST_I_UI_GTK_ENTRY_PASSWORD_NAME              "entry_password"
+#define TEST_I_UI_GTK_DRAWINGAREA_NAME                 "drawingarea"
+#define TEST_I_UI_GTK_FILECHOOSERBUTTON_SAVE_NAME      "filechooserbutton_save"
+#define TEST_I_UI_GTK_FILECHOOSERDIALOG_SAVE_NAME      "filechooserdialog_save"
+#define TEST_I_UI_GTK_FILEFILTER_WAV_NAME              "filefilter_wav"
+#define TEST_I_UI_GTK_FRAME_SAVE_NAME                  "frame_save"
+#define TEST_I_UI_GTK_HSCALE_VOLUME_NAME               "hscale_volume"
+#define TEST_I_UI_GTK_LISTSTORE_DEVICE_NAME            "liststore_device"
 //#define TEST_I_UI_GTK_FRAME_CONFIGURATION_NAME         "frame_configuration"
 #define TEST_I_UI_GTK_PANGO_LOG_FONT_DESCRIPTION       "Monospace 8"
 #define TEST_I_UI_GTK_PANGO_LOG_COLOR_BASE             "#FFFFFF" // white
 #define TEST_I_UI_GTK_PANGO_LOG_COLOR_TEXT             "#000000" // black
 #define TEST_I_UI_GTK_PROGRESSBAR_NAME                 "progressbar"
+#define TEST_I_UI_GTK_RADIOBUTTON_OSCILLOSCOPE_NAME    "radiobutton_oscilloscope"
+#define TEST_I_UI_GTK_RADIOBUTTON_SPECTRUM_NAME        "radiobutton_spectrum"
 #define TEST_I_UI_GTK_SPINBUTTON_DATA_NAME             "spinbutton_data"
 #define TEST_I_UI_GTK_SPINBUTTON_DATAMESSAGES_NAME     "spinbutton_data_messages"
 #define TEST_I_UI_GTK_SPINBUTTON_PORT_NAME             "spinbutton_port"
 #define TEST_I_UI_GTK_SPINBUTTON_SESSIONMESSAGES_NAME  "spinbutton_session_messages"
 #define TEST_I_UI_GTK_SCROLLEDWINDOW_NAME              "scrolledwindow"
+#define TEST_I_UI_GTK_TOGGLEBUTTON_MUTE_NAME           "togglebutton_mute"
+#define TEST_I_UI_GTK_TOGGLEBUTTON_RECORD_NAME         "togglebutton_record"
 #define TEST_I_UI_GTK_SCROLLMARK_NAME                  "insert"
 #define TEST_I_UI_GTK_STATUSBAR_NAME                   "statusbar"
 #define TEST_I_UI_GTK_TEXTBUFFER_NAME                  "textbuffer"
 #define TEST_I_UI_GTK_TEXTVIEW_NAME                    "textview"
 #endif // GTK_SUPPORT
-#if defined (WXWIDGETS_SUPPORT)
-#define TEST_I_UI_WXWIDGETS_TOPLEVEL_WIDGET_NAME       "dialog_main"
-#define TEST_I_UI_WXWIDGETS_TOPLEVEL_WIDGET_CLASS_NAME "wxDialog"
-#endif // WXWIDGETS_SUPPORT
 #endif // GUI_SUPPORT
 
 #endif

@@ -26,6 +26,7 @@
 #include "ace/Global_Macros.h"
 #include "ace/Synch_Traits.h"
 
+#include "common_iget.h"
 #include "common_time_common.h"
 
 #include "stream_base.h"
@@ -38,9 +39,9 @@
 #include "stream_stat_statistic_report.h"
 
 #include "test_i_message.h"
-#include "test_i_modules.h"
 #include "test_i_session_message.h"
 #include "test_i_speechcommand_common.h"
+#include "test_i_modules.h"
 
 extern const char stream_name_string_[];
 
@@ -53,13 +54,13 @@ class Test_I_DirectShow_Stream
                         enum Stream_SessionMessageType,
                         enum Stream_StateMachine_ControlState,
                         struct Stream_State,
-                        struct Test_I_StreamConfiguration,
+                        struct Test_I_DirectShow_StreamConfiguration,
                         struct Stream_Statistic,
-                        struct Test_I_DirectShow_ModuleHandlerConfiguration,
-                        Test_I_DirectShow_SessionData,
-                        Test_I_DirectShow_SessionData_t,
+                        struct Test_I_SpeechCommand_DirectShow_ModuleHandlerConfiguration,
+                        Test_I_SpeechCommand_DirectShow_SessionData,
+                        Test_I_SpeechCommand_DirectShow_SessionData_t,
                         Stream_ControlMessage_t,
-                        Test_I_Message,
+                        Test_I_DirectShow_Message,
                         Test_I_DirectShow_SessionMessage_t>
 {
   typedef Stream_Base_T<ACE_MT_SYNCH,
@@ -69,13 +70,13 @@ class Test_I_DirectShow_Stream
                         enum Stream_SessionMessageType,
                         enum Stream_StateMachine_ControlState,
                         struct Stream_State,
-                        struct Test_I_StreamConfiguration,
+                        struct Test_I_DirectShow_StreamConfiguration,
                         struct Stream_Statistic,
-                        struct Test_I_DirectShow_ModuleHandlerConfiguration,
-                        Test_I_DirectShow_SessionData,
-                        Test_I_DirectShow_SessionData_t,
+                        struct Test_I_SpeechCommand_DirectShow_ModuleHandlerConfiguration,
+                        Test_I_SpeechCommand_DirectShow_SessionData,
+                        Test_I_SpeechCommand_DirectShow_SessionData_t,
                         Stream_ControlMessage_t,
-                        Test_I_Message,
+                        Test_I_DirectShow_Message,
                         Test_I_DirectShow_SessionMessage_t> inherited;
 
  public:
@@ -88,57 +89,11 @@ class Test_I_DirectShow_Stream
 
   // implement Common_IInitialize_T
   // *TODO*: on MSVC 2015u3 the accurate declaration does not compile
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
   virtual bool initialize (const CONFIGURATION_T&); // configuration
-#else
-  virtual bool initialize (const typename inherited::CONFIGURATION_T&); // configuration
-#endif // ACE_WIN32 || ACE_WIN64
-
-  // implement Common_IStatistic_T
-  // *NOTE*: delegate this to rntimeStatistic_
-  virtual bool collect (struct Stream_Statistic&); // return value: statistic data
-  // this is just a dummy (use statisticsReportingInterval instead)
-  virtual void report () const;
 
  private:
-  typedef Stream_Statistic_StatisticReport_ReaderTask_T<ACE_MT_SYNCH,
-                                                        Common_TimePolicy_t,
-                                                        struct Test_I_DirectShow_ModuleHandlerConfiguration,
-                                                        Stream_ControlMessage_t,
-                                                        Test_I_Message,
-                                                        Test_I_DirectShow_SessionMessage_t,
-                                                        int,
-                                                        struct Stream_Statistic,
-                                                        Common_Timer_Manager_t,
-                                                        Test_I_DirectShow_SessionData,
-                                                        Test_I_DirectShow_SessionData_t> STATISTIC_READER_T;
-  typedef Stream_Statistic_StatisticReport_WriterTask_T<ACE_MT_SYNCH,
-                                                        Common_TimePolicy_t,
-                                                        struct Test_I_DirectShow_ModuleHandlerConfiguration,
-                                                        Stream_ControlMessage_t,
-                                                        Test_I_Message,
-                                                        Test_I_DirectShow_SessionMessage_t,
-                                                        int,
-                                                        struct Stream_Statistic,
-                                                        Common_Timer_Manager_t,
-                                                        Test_I_DirectShow_SessionData,
-                                                        Test_I_DirectShow_SessionData_t> STATISTIC_WRITER_T;
-  typedef Stream_StreamModule_T<ACE_MT_SYNCH,
-                                Common_TimePolicy_t,
-                                Test_I_DirectShow_SessionData,        // session data type
-                                enum Stream_SessionMessageType,       // session event type
-                                struct Stream_ModuleConfiguration,
-                                struct Test_I_DirectShow_ModuleHandlerConfiguration,
-                                libacestream_default_stat_report_module_name_string,
-                                Stream_INotify_t,                     // stream notification interface type
-                                STATISTIC_READER_T,
-                                STATISTIC_WRITER_T> MODULE_STATISTIC_T;
-
   ACE_UNIMPLEMENTED_FUNC (Test_I_DirectShow_Stream (const Test_I_DirectShow_Stream&))
   ACE_UNIMPLEMENTED_FUNC (Test_I_DirectShow_Stream& operator= (const Test_I_DirectShow_Stream&))
-
-  // modules
-  MODULE_STATISTIC_T statistic_;
 };
 
 class Test_I_MediaFoundation_Stream
@@ -149,14 +104,18 @@ class Test_I_MediaFoundation_Stream
                         enum Stream_SessionMessageType,
                         enum Stream_StateMachine_ControlState,
                         struct Stream_State,
-                        struct Test_I_StreamConfiguration,
+                        struct Test_I_MediaFoundation_StreamConfiguration,
                         struct Stream_Statistic,
-                        struct Test_I_MediaFoundation_ModuleHandlerConfiguration,
-                        Test_I_MediaFoundation_SessionData,
-                        Test_I_MediaFoundation_SessionData_t,
+                        struct Test_I_SpeechCommand_MediaFoundation_ModuleHandlerConfiguration,
+                        Test_I_SpeechCommand_MediaFoundation_SessionData,
+                        Test_I_SpeechCommand_MediaFoundation_SessionData_t,
                         Stream_ControlMessage_t,
-                        Test_I_Message,
+                        Test_I_MediaFoundation_Message,
                         Test_I_MediaFoundation_SessionMessage_t>
+ , public Common_IGetR_3_T<Test_I_MediaFoundation_Target>
+ , public Common_IGetR_4_T<Test_I_MediaFoundation_Source>
+ , public Common_IGetR_5_T<Test_I_Mic_Source_MediaFoundation>
+ , public IMFAsyncCallback
 {
   typedef Stream_Base_T<ACE_MT_SYNCH,
                         Common_TimePolicy_t,
@@ -165,18 +124,24 @@ class Test_I_MediaFoundation_Stream
                         enum Stream_SessionMessageType,
                         enum Stream_StateMachine_ControlState,
                         struct Stream_State,
-                        struct Test_I_StreamConfiguration,
+                        struct Test_I_MediaFoundation_StreamConfiguration,
                         struct Stream_Statistic,
-                        struct Test_I_MediaFoundation_ModuleHandlerConfiguration,
-                        Test_I_MediaFoundation_SessionData,
-                        Test_I_MediaFoundation_SessionData_t,
+                        struct Test_I_SpeechCommand_MediaFoundation_ModuleHandlerConfiguration,
+                        Test_I_SpeechCommand_MediaFoundation_SessionData,
+                        Test_I_SpeechCommand_MediaFoundation_SessionData_t,
                         Stream_ControlMessage_t,
-                        Test_I_Message,
+                        Test_I_MediaFoundation_Message,
                         Test_I_MediaFoundation_SessionMessage_t> inherited;
 
  public:
   Test_I_MediaFoundation_Stream ();
-  inline virtual ~Test_I_MediaFoundation_Stream () { inherited::shutdown (); }
+  virtual ~Test_I_MediaFoundation_Stream ();
+
+  // override (part of) Stream_IStreamControl_T
+  virtual void start ();
+  virtual void stop (bool = true,   // wait for completion ?
+                     bool = true,   // recurse upstream ?
+                     bool = false); // high priority ?
 
   // implement (part of) Stream_IStreamControlBase
   virtual bool load (Stream_ILayout*, // return value: layout
@@ -184,57 +149,35 @@ class Test_I_MediaFoundation_Stream
 
   // implement Common_IInitialize_T
   // *TODO*: on MSVC 2015u3 the accurate declaration does not compile
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
   virtual bool initialize (const CONFIGURATION_T&); // configuration
-#else
-  virtual bool initialize (const typename inherited::CONFIGURATION_T&); // configuration
-#endif // ACE_WIN32 || ACE_WIN64
 
-  // implement Common_IStatistic_T
-  // *NOTE*: delegate this to rntimeStatistic_
-  virtual bool collect (struct Stream_Statistic&); // return value: statistic data
-  // this is just a dummy (use statisticsReportingInterval instead)
-  virtual void report () const;
+  virtual const Test_I_MediaFoundation_Target& getR_3 () const; // return value: type
+  virtual const Test_I_MediaFoundation_Source& getR_4 () const; // return value: type
+  virtual const Test_I_Mic_Source_MediaFoundation& getR_5 () const; // return value: type
+
+  // implement IMFAsyncCallback
+  virtual STDMETHODIMP QueryInterface (REFIID,
+                                       void**);
+  inline virtual STDMETHODIMP_ (ULONG) AddRef () { return InterlockedIncrement (&referenceCount_); }
+  inline virtual STDMETHODIMP_ (ULONG) Release () { ULONG count = InterlockedDecrement (&referenceCount_); return count; }
+  // *NOTE*: "...If you want default values for both parameters, return
+  //         E_NOTIMPL. ..."
+  inline virtual STDMETHODIMP GetParameters (DWORD* flags_out, DWORD* queue_out) { ACE_UNUSED_ARG (flags_out); ACE_UNUSED_ARG (queue_out); return E_NOTIMPL; }
+  virtual STDMETHODIMP Invoke (IMFAsyncResult*); // asynchronous result handle
 
  private:
-  typedef Stream_Statistic_StatisticReport_ReaderTask_T<ACE_MT_SYNCH,
-                                                        Common_TimePolicy_t,
-                                                        struct Test_I_MediaFoundation_ModuleHandlerConfiguration,
-                                                        Stream_ControlMessage_t,
-                                                        Test_I_Message,
-                                                        Test_I_MediaFoundation_SessionMessage_t,
-                                                        int,
-                                                        struct Stream_Statistic,
-                                                        Common_Timer_Manager_t,
-                                                        Test_I_MediaFoundation_SessionData,
-                                                        Test_I_MediaFoundation_SessionData_t> STATISTIC_READER_T;
-  typedef Stream_Statistic_StatisticReport_WriterTask_T<ACE_MT_SYNCH,
-                                                        Common_TimePolicy_t,
-                                                        struct Test_I_MediaFoundation_ModuleHandlerConfiguration,
-                                                        Stream_ControlMessage_t,
-                                                        Test_I_Message,
-                                                        Test_I_MediaFoundation_SessionMessage_t,
-                                                        int,
-                                                        struct Stream_Statistic,
-                                                        Common_Timer_Manager_t,
-                                                        Test_I_MediaFoundation_SessionData,
-                                                        Test_I_MediaFoundation_SessionData_t> STATISTIC_WRITER_T;
-  typedef Stream_StreamModule_T<ACE_MT_SYNCH,
-                                Common_TimePolicy_t,
-                                Test_I_MediaFoundation_SessionData,   // session data type
-                                enum Stream_SessionMessageType,       // session event type
-                                struct Stream_ModuleConfiguration,
-                                struct Test_I_MediaFoundation_ModuleHandlerConfiguration,
-                                libacestream_default_stat_report_module_name_string,
-                                Stream_INotify_t,                     // stream notification interface type
-                                STATISTIC_READER_T,
-                                STATISTIC_WRITER_T> MODULE_STATISTIC_T;
-
   ACE_UNIMPLEMENTED_FUNC (Test_I_MediaFoundation_Stream (const Test_I_MediaFoundation_Stream&))
   ACE_UNIMPLEMENTED_FUNC (Test_I_MediaFoundation_Stream& operator= (const Test_I_MediaFoundation_Stream&))
 
-  // modules
-  MODULE_STATISTIC_T statistic_;
+  ACE_SYNCH_RECURSIVE_CONDITION            condition_;
+#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
+  IMFMediaSession*                         mediaSession_;
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
+  Test_I_Mic_Source_MediaFoundation_Module frameworkSource_;
+  Test_I_MediaFoundation_Source_Module     mediaFoundationSource_;
+  Test_I_MediaFoundation_Target_Module     mediaFoundationTarget_;
+  ULONG                                    referenceCount_;
+  bool                                     topologyIsReady_;
 };
 #else
 class Test_I_ALSA_Stream
@@ -245,11 +188,11 @@ class Test_I_ALSA_Stream
                         enum Stream_SessionMessageType,
                         enum Stream_StateMachine_ControlState,
                         struct Stream_State,
-                        struct Test_I_StreamConfiguration,
+                        struct Test_I_ALSA_StreamConfiguration,
                         struct Stream_Statistic,
-                        struct Test_I_ALSA_ModuleHandlerConfiguration,
-                        Test_I_ALSA_SessionData,
-                        Test_I_ALSA_SessionData_t,
+                        struct Test_I_SpeechCommand_ALSA_ModuleHandlerConfiguration,
+                        Test_I_SpeechCommand_ALSA_SessionData,
+                        Test_I_SpeechCommand_ALSA_SessionData_t,
                         Stream_ControlMessage_t,
                         Test_I_Message,
                         Test_I_ALSA_SessionMessage_t>
@@ -261,11 +204,11 @@ class Test_I_ALSA_Stream
                         enum Stream_SessionMessageType,
                         enum Stream_StateMachine_ControlState,
                         struct Stream_State,
-                        struct Test_I_StreamConfiguration,
+                        struct Test_I_ALSA_StreamConfiguration,
                         struct Stream_Statistic,
-                        struct Test_I_ALSA_ModuleHandlerConfiguration,
-                        Test_I_ALSA_SessionData,
-                        Test_I_ALSA_SessionData_t,
+                        struct Test_I_SpeechCommand_ALSA_ModuleHandlerConfiguration,
+                        Test_I_SpeechCommand_ALSA_SessionData,
+                        Test_I_SpeechCommand_ALSA_SessionData_t,
                         Stream_ControlMessage_t,
                         Test_I_Message,
                         Test_I_ALSA_SessionMessage_t> inherited;
@@ -279,58 +222,11 @@ class Test_I_ALSA_Stream
                      bool&);          // return value: delete modules ?
 
   // implement Common_IInitialize_T
-  // *TODO*: on MSVC 2015u3 the accurate declaration does not compile
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-  virtual bool initialize (const CONFIGURATION_T&); // configuration
-#else
   virtual bool initialize (const typename inherited::CONFIGURATION_T&); // configuration
-#endif // ACE_WIN32 || ACE_WIN64
-
-  // implement Common_IStatistic_T
-  // *NOTE*: delegate this to rntimeStatistic_
-  virtual bool collect (struct Stream_Statistic&); // return value: statistic data
-  // this is just a dummy (use statisticsReportingInterval instead)
-  virtual void report () const;
 
  private:
-  typedef Stream_Statistic_StatisticReport_ReaderTask_T<ACE_MT_SYNCH,
-                                                        Common_TimePolicy_t,
-                                                        struct Test_I_ALSA_ModuleHandlerConfiguration,
-                                                        Stream_ControlMessage_t,
-                                                        Test_I_Message,
-                                                        Test_I_ALSA_SessionMessage_t,
-                                                        int,
-                                                        struct Stream_Statistic,
-                                                        Common_Timer_Manager_t,
-                                                        Test_I_ALSA_SessionData,
-                                                        Test_I_ALSA_SessionData_t> STATISTIC_READER_T;
-  typedef Stream_Statistic_StatisticReport_WriterTask_T<ACE_MT_SYNCH,
-                                                        Common_TimePolicy_t,
-                                                        struct Test_I_ALSA_ModuleHandlerConfiguration,
-                                                        Stream_ControlMessage_t,
-                                                        Test_I_Message,
-                                                        Test_I_ALSA_SessionMessage_t,
-                                                        int,
-                                                        struct Stream_Statistic,
-                                                        Common_Timer_Manager_t,
-                                                        Test_I_ALSA_SessionData,
-                                                        Test_I_ALSA_SessionData_t> STATISTIC_WRITER_T;
-  typedef Stream_StreamModule_T<ACE_MT_SYNCH,
-                                Common_TimePolicy_t,
-                                Test_I_ALSA_SessionData,              // session data type
-                                enum Stream_SessionMessageType,       // session event type
-                                struct Stream_ModuleConfiguration,
-                                struct Test_I_ALSA_ModuleHandlerConfiguration,
-                                libacestream_default_stat_report_module_name_string,
-                                Stream_INotify_t,                     // stream notification interface type
-                                STATISTIC_READER_T,
-                                STATISTIC_WRITER_T> MODULE_STATISTIC_T;
-
   ACE_UNIMPLEMENTED_FUNC (Test_I_ALSA_Stream (const Test_I_ALSA_Stream&))
   ACE_UNIMPLEMENTED_FUNC (Test_I_ALSA_Stream& operator= (const Test_I_ALSA_Stream&))
-
-  // modules
-  MODULE_STATISTIC_T statistic_;
 };
 #endif // ACE_WIN32 || ACE_WIN64
 

@@ -89,7 +89,7 @@ stream_processing_function (void* arg_in)
     ACE_ASSERT (statusbar_p);
 
     std::ostringstream converter;
-    converter << data_p->sessionId;
+    converter << data_p->CBData->progressData.sessionId;
     state_r.contextIds.insert (std::make_pair (COMMON_UI_GTK_STATUSCONTEXT_INFORMATION,
                                                gtk_statusbar_get_context_id (statusbar_p,
                                                                              converter.str ().c_str ())));
@@ -988,7 +988,7 @@ action_start_activate_cb (GtkAction* action_in,
   ACE_ASSERT (session_data_container_p);
   const struct Stream_Filecopy_SessionData& session_data_r =
     session_data_container_p->getR ();
-  thread_data_p->sessionId = session_data_r.sessionId;
+  data_p->progressData.sessionId = session_data_r.sessionId;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   ACE_thread_t thread_id = std::numeric_limits<unsigned long>::max ();
 #else

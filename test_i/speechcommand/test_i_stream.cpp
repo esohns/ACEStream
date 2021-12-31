@@ -29,13 +29,9 @@
 
 #include "stream_stat_defines.h"
 
-#include "test_i_modules.h"
-
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 Test_I_DirectShow_Stream::Test_I_DirectShow_Stream ()
  : inherited ()
- , statistic_ (this,
-               ACE_TEXT_ALWAYS_CHAR (MODULE_STAT_REPORT_DEFAULT_NAME_STRING))
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_DirectShow_Stream::Test_I_DirectShow_Stream"));
 
@@ -57,8 +53,6 @@ Test_I_DirectShow_Stream::load (Stream_ILayout* layout_inout,
   inherited::CONFIGURATION_T::ITERATOR_T iterator =
     inherited::configuration_->find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (iterator != inherited::configuration_->end ());
-
-  layout_inout->append (&statistic_, NULL, 0);
 
   return true;
 }
@@ -87,61 +81,189 @@ Test_I_DirectShow_Stream::initialize (const CONFIGURATION_T& configuration_in)
   return true;
 }
 
-bool
-Test_I_DirectShow_Stream::collect (struct Stream_Statistic& data_out)
-{
-  STREAM_TRACE (ACE_TEXT ("Test_I_DirectShow_Stream::collect"));
-
-  STATISTIC_WRITER_T* statistic_report_impl_p =
-    dynamic_cast<STATISTIC_WRITER_T*> (statistic_.writer ());
-  if (!statistic_report_impl_p)
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("dynamic_cast<Stream_Statistic_StatisticReport_WriterTask_T> failed, aborting\n")));
-    return false;
-  } // end IF
-
-  // delegate to this module
-  return statistic_report_impl_p->collect (data_out);
-}
-
-void
-Test_I_DirectShow_Stream::report () const
-{
-  STREAM_TRACE (ACE_TEXT ("Test_I_DirectShow_Stream::report"));
-
-//   RPG_Net_Module_RuntimeStatistic* runtimeStatistic_impl = NULL;
-//   runtimeStatistic_impl = dynamic_cast<RPG_Net_Module_RuntimeStatistic*> (//                                            myRuntimeStatistic.writer());
-//   if (!runtimeStatistic_impl)
-//   {
-//     ACE_DEBUG((LM_ERROR,
-//                ACE_TEXT("dynamic_cast<RPG_Net_Module_RuntimeStatistic) failed> (aborting\n")));
-//
-//     return;
-//   } // end IF
-//
-//   // delegate to this module
-//   return (runtimeStatistic_impl->report());
-
-  ACE_ASSERT (false);
-  ACE_NOTSUP;
-  ACE_NOTREACHED (return;)
-}
-
 //////////////////////////////////////////
 
 Test_I_MediaFoundation_Stream::Test_I_MediaFoundation_Stream ()
  : inherited ()
- , statistic_ (this,
-               ACE_TEXT_ALWAYS_CHAR (MODULE_STAT_REPORT_DEFAULT_NAME_STRING))
+ , condition_ (inherited::lock_)
+#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
+ , mediaSession_ (NULL)
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
+ , frameworkSource_ (this,
+                     ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_MIC_SOURCE_MEDIAFOUNDATION_DEFAULT_NAME_STRING))
+ , mediaFoundationSource_ (this,
+                           ACE_TEXT_ALWAYS_CHAR (STREAM_LIB_MEDIAFOUNDATION_SOURCE_DEFAULT_NAME_STRING))
+ , mediaFoundationTarget_ (this,
+                           ACE_TEXT_ALWAYS_CHAR (STREAM_LIB_MEDIAFOUNDATION_TARGET_DEFAULT_NAME_STRING))
+ , referenceCount_ (0)
+ , topologyIsReady_ (false)
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_MediaFoundation_Stream::Test_I_MediaFoundation_Stream"));
 
 }
 
+Test_I_MediaFoundation_Stream::~Test_I_MediaFoundation_Stream ()
+{
+  STREAM_TRACE (ACE_TEXT ("Test_I_MediaFoundation_Stream::~Test_I_MediaFoundation_Stream"));
+
+#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
+  HRESULT result = E_FAIL;
+  if (mediaSession_)
+  {
+    result = mediaSession_->Shutdown ();
+    if (FAILED (result) && (result != MF_E_SHUTDOWN)) // already shut down...
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("%s: failed to IMFMediaSession::Shutdown(): \"%s\", continuing\n"),
+                  ACE_TEXT (stream_name_string_),
+                  ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
+    mediaSession_->Release ();
+  } // end IF
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
+
+  if (inherited::find (ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_MIC_SOURCE_MEDIAFOUNDATION_DEFAULT_NAME_STRING),
+                       false,
+                       false) &&
+      !inherited::remove (&frameworkSource_,
+                          true,   // lock ?
+                          false)) // reset ?
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s: failed to Stream_Base_T::remove(%s): \"%m\", continuing\n"),
+                ACE_TEXT (stream_name_string_),
+                frameworkSource_.name ()));
+  if (inherited::find (ACE_TEXT_ALWAYS_CHAR (STREAM_LIB_MEDIAFOUNDATION_TARGET_DEFAULT_NAME_STRING),
+                       false,
+                       false) &&
+      !inherited::remove (&mediaFoundationTarget_,
+                          true,   // lock ?
+                          false)) // reset ?
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s: failed to Stream_Base_T::remove(%s): \"%m\", continuing\n"),
+                ACE_TEXT (stream_name_string_),
+                mediaFoundationTarget_.name ()));
+  if (inherited::find (ACE_TEXT_ALWAYS_CHAR (STREAM_LIB_MEDIAFOUNDATION_SOURCE_DEFAULT_NAME_STRING),
+                       false,
+                       false) &&
+      !inherited::remove (&mediaFoundationSource_,
+                          true,   // lock ?
+                          false)) // reset ?
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s: failed to Stream_Base_T::remove(%s): \"%m\", continuing\n"),
+                ACE_TEXT (stream_name_string_),
+                mediaFoundationSource_.name ()));
+
+  // *NOTE*: this implements an ordered shutdown on destruction
+  inherited::shutdown ();
+}
+
+void
+Test_I_MediaFoundation_Stream::start ()
+{
+  STREAM_TRACE (ACE_TEXT ("Test_I_MediaFoundation_Stream::start"));
+
+  // sanity check(s)
+#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
+  ACE_ASSERT (mediaSession_);
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
+  ACE_ASSERT (inherited::configuration_);
+  ACE_ASSERT (inherited::configuration_->configuration_);
+  ACE_ASSERT (!topologyIsReady_);
+
+  HRESULT result = E_FAIL;
+  int result_2 = -1;
+  ACE_Time_Value deadline =
+    ACE_Time_Value (STREAM_LIB_MEDIAFOUNDATION_MEDIASESSION_READY_TIMEOUT_S, 0);
+  int error = 0;
+  struct _GUID GUID_s = GUID_NULL;
+  struct tagPROPVARIANT property_s;
+  PropVariantInit (&property_s);
+  property_s.vt = VT_EMPTY;
+
+  { ACE_GUARD (ACE_SYNCH_RECURSIVE_MUTEX, aGuard, inherited::lock_);
+#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
+    result = mediaSession_->BeginGetEvent (this, NULL);
+    if (FAILED (result))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("%s: failed to IMFMediaSession::BeginGetEvent(): \"%s\", returning\n"),
+                  ACE_TEXT (stream_name_string_),
+                  ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
+      goto error;
+    } // end IF
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
+
+    // wait for MF_TOPOSTATUS_READY event
+    deadline = COMMON_TIME_NOW + deadline;
+    result_2 = condition_.wait (&deadline);
+    if (unlikely (result_2 == -1))
+    { error = ACE_OS::last_error ();
+      if (error != ETIME) // 137: timed out
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("%s: failed to ACE_Condition::wait(%#T): \"%m\", aborting\n"),
+                    ACE_TEXT (stream_name_string_),
+                    &deadline));
+      goto continue_;
+    } // end IF
+  } // end lock scope
+continue_:
+  if (!topologyIsReady_)
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s: topology not ready%s, returning\n"),
+                ACE_TEXT (stream_name_string_),
+                (error == ETIME) ? ACE_TEXT (" (timed out)") : ACE_TEXT ("")));
+    goto error;
+  } // end IF
+
+#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
+  result = mediaSession_->Start (&GUID_s,      // time format
+                                 &property_s); // start position
+  if (FAILED (result))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s: failed to IMFMediaSession::Start(): \"%s\", returning\n"),
+                ACE_TEXT (stream_name_string_),
+                ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
+    goto error;
+  } // end IF
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
+
+  PropVariantClear (&property_s);
+
+  inherited::start ();
+
+  return;
+
+error:
+  PropVariantClear (&property_s);
+}
+
+void
+Test_I_MediaFoundation_Stream::stop (bool waitForCompletion_in,
+                                     bool recurseUpstream_in,
+                                     bool highPriority_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Test_I_MediaFoundation_Stream::stop"));
+
+#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
+  if (mediaSession_)
+  {
+    HRESULT result = mediaSession_->Stop ();
+    if (FAILED (result))
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("%s: failed to IMFMediaSession::Stop(): \"%s\", continuing\n"),
+                  ACE_TEXT (stream_name_string_),
+                  ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
+  } // end IF
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
+
+  inherited::stop (waitForCompletion_in,
+                   recurseUpstream_in,
+                   highPriority_in);
+}
+
 bool
 Test_I_MediaFoundation_Stream::load (Stream_ILayout* layout_inout,
-                                bool& deleteModules_out)
+                                     bool& deleteModules_out)
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_MediaFoundation_Stream::load"));
 
@@ -155,8 +277,6 @@ Test_I_MediaFoundation_Stream::load (Stream_ILayout* layout_inout,
   inherited::CONFIGURATION_T::ITERATOR_T iterator =
     inherited::configuration_->find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (iterator != inherited::configuration_->end ());
-
-  layout_inout->append (&statistic_, NULL, 0);
 
   return true;
 }
@@ -184,52 +304,9 @@ Test_I_MediaFoundation_Stream::initialize (const CONFIGURATION_T& configuration_
 
   return true;
 }
-
-bool
-Test_I_MediaFoundation_Stream::collect (struct Stream_Statistic& data_out)
-{
-  STREAM_TRACE (ACE_TEXT ("Test_I_MediaFoundation_Stream::collect"));
-
-  STATISTIC_WRITER_T* statistic_report_impl_p =
-    dynamic_cast<STATISTIC_WRITER_T*> (statistic_.writer ());
-  if (!statistic_report_impl_p)
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("dynamic_cast<Stream_Statistic_StatisticReport_WriterTask_T> failed, aborting\n")));
-    return false;
-  } // end IF
-
-  // delegate to this module
-  return statistic_report_impl_p->collect (data_out);
-}
-
-void
-Test_I_MediaFoundation_Stream::report () const
-{
-  STREAM_TRACE (ACE_TEXT ("Test_I_MediaFoundation_Stream::report"));
-
-//   RPG_Net_Module_RuntimeStatistic* runtimeStatistic_impl = NULL;
-//   runtimeStatistic_impl = dynamic_cast<RPG_Net_Module_RuntimeStatistic*> (//                                            myRuntimeStatistic.writer());
-//   if (!runtimeStatistic_impl)
-//   {
-//     ACE_DEBUG((LM_ERROR,
-//                ACE_TEXT("dynamic_cast<RPG_Net_Module_RuntimeStatistic) failed> (aborting\n")));
-//
-//     return;
-//   } // end IF
-//
-//   // delegate to this module
-//   return (runtimeStatistic_impl->report());
-
-  ACE_ASSERT (false);
-  ACE_NOTSUP;
-  ACE_NOTREACHED (return;)
-}
 #else
 Test_I_ALSA_Stream::Test_I_ALSA_Stream ()
   : inherited ()
-  , statistic_ (this,
-                ACE_TEXT_ALWAYS_CHAR (MODULE_STAT_REPORT_DEFAULT_NAME_STRING))
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_ALSA_Stream::Test_I_ALSA_Stream"));
 
@@ -237,7 +314,7 @@ Test_I_ALSA_Stream::Test_I_ALSA_Stream ()
 
 bool
 Test_I_ALSA_Stream::load (Stream_ILayout* layout_inout,
-                                     bool& deleteModules_out)
+                          bool& deleteModules_out)
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_ALSA_Stream::load"));
 
@@ -251,8 +328,6 @@ Test_I_ALSA_Stream::load (Stream_ILayout* layout_inout,
   inherited::CONFIGURATION_T::ITERATOR_T iterator =
     inherited::configuration_->find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (iterator != inherited::configuration_->end ());
-
-  layout_inout->append (&statistic_, NULL, 0);
 
   return true;
 }
@@ -279,46 +354,5 @@ Test_I_ALSA_Stream::initialize (const CONFIGURATION_T& configuration_in)
   inherited::isInitialized_ = true;
 
   return true;
-}
-
-bool
-Test_I_ALSA_Stream::collect (struct Stream_Statistic& data_out)
-{
-  STREAM_TRACE (ACE_TEXT ("Test_I_ALSA_Stream::collect"));
-
-  STATISTIC_WRITER_T* statistic_report_impl_p =
-    dynamic_cast<STATISTIC_WRITER_T*> (statistic_.writer ());
-  if (!statistic_report_impl_p)
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("dynamic_cast<Stream_Statistic_StatisticReport_WriterTask_T> failed, aborting\n")));
-    return false;
-  } // end IF
-
-  // delegate to this module
-  return statistic_report_impl_p->collect (data_out);
-}
-
-void
-Test_I_ALSA_Stream::report () const
-{
-  STREAM_TRACE (ACE_TEXT ("Test_I_ALSA_Stream::report"));
-
-  //   RPG_Net_Module_RuntimeStatistic* runtimeStatistic_impl = NULL;
-  //   runtimeStatistic_impl = dynamic_cast<RPG_Net_Module_RuntimeStatistic*> (//                                            myRuntimeStatistic.writer());
-  //   if (!runtimeStatistic_impl)
-  //   {
-  //     ACE_DEBUG((LM_ERROR,
-  //                ACE_TEXT("dynamic_cast<RPG_Net_Module_RuntimeStatistic) failed> (aborting\n")));
-  //
-  //     return;
-  //   } // end IF
-  //
-  //   // delegate to this module
-  //   return (runtimeStatistic_impl->report());
-
-  ACE_ASSERT (false);
-  ACE_NOTSUP;
-  ACE_NOTREACHED (return;)
 }
 #endif // ACE_WIN32 || ACE_WIN64

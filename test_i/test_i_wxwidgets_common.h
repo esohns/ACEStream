@@ -25,10 +25,7 @@
 
 #include "common_ui_wxwidgets_common.h"
 
-#include "test_i_common.h"
-
-// forward declarations
-struct Test_I_Configuration;
+#include "stream_common.h"
 
 struct Test_I_wxWidgets_ProgressData
  : Common_UI_wxWidgets_ProgressData
@@ -44,10 +41,10 @@ struct Test_I_wxWidgets_ProgressData
 };
 
 struct Test_I_wxWidgets_CBData
- : Test_I_UI_CBData
+ : Common_UI_wxWidgets_CBData
 {
   Test_I_wxWidgets_CBData ()
-   : Test_I_UI_CBData ()
+   : Common_UI_wxWidgets_CBData ()
    , progressData ()
    , UIState (NULL)
   {
@@ -59,14 +56,14 @@ struct Test_I_wxWidgets_CBData
 };
 
 struct Test_I_wxWidgets_ThreadData
- : Test_I_UI_ThreadData
+ : Common_UI_wxWidgets_ThreadData
 {
   Test_I_wxWidgets_ThreadData ()
-   : Test_I_UI_ThreadData ()
+   : Common_UI_wxWidgets_ThreadData ()
    , CBData (NULL)
   {}
 
   struct Test_I_wxWidgets_CBData* CBData;
 };
 
-#endif
+#endif // TEST_I_WXWIDGETS_COMMON_H

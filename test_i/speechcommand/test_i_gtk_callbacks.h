@@ -42,11 +42,13 @@ extern "C"
 #endif /* __cplusplus */
 G_MODULE_EXPORT void action_record_activate_cb (GtkAction*, gpointer);
 
-//G_MODULE_EXPORT gint button_clear_clicked_cb (GtkWidget*, gpointer);
-G_MODULE_EXPORT gint button_about_clicked_cb (GtkWidget*, gpointer);
-G_MODULE_EXPORT gint button_quit_clicked_cb (GtkWidget*, gpointer);
+G_MODULE_EXPORT void button_clear_clicked_cb (GtkWidget*, gpointer);
+G_MODULE_EXPORT void button_about_clicked_cb (GtkWidget*, gpointer);
+G_MODULE_EXPORT void button_quit_clicked_cb (GtkWidget*, gpointer);
 
 G_MODULE_EXPORT void textview_size_allocate_cb (GtkWidget*, GdkRectangle*, gpointer);
+
+G_MODULE_EXPORT void togglebutton_save_toggled_cb (GtkToggleButton*, gpointer);
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */

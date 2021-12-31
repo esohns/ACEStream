@@ -43,7 +43,7 @@ class Stream_ISession
 
 //////////////////////////////////////////
 
-template <typename SessionDataType,
+template <typename SessionDataType, // not (!) reference-counted
           typename SessionEventType>
 class Stream_ISessionNotify_T
 {
@@ -55,7 +55,7 @@ class Stream_ISessionNotify_T
   virtual void end (Stream_SessionId_t) = 0;         // session id
 };
 
-template <typename SessionDataType,
+template <typename SessionDataType, // not (!) reference-counted
           typename SessionEventType,
           typename MessageType,
           typename SessionMessageType>

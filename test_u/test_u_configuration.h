@@ -18,8 +18,8 @@
 *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
 ***************************************************************************/
 
-#ifndef TEST_I_CONFIGURATION_H
-#define TEST_I_CONFIGURATION_H
+#ifndef TEST_U_CONFIGURATION_H
+#define TEST_U_CONFIGURATION_H
 
 #include <string>
 
@@ -41,34 +41,39 @@
 #include "stream_lib_mediafoundation_common.h"
 #endif // ACE_WIN32 || ACE_WIN64
 
-#include "stream_dev_common.h"
-
-#include "test_i_defines.h"
+#include "test_u_defines.h"
 
 // forward declarations
 class Stream_IStreamControlBase;
 
-struct Test_I_ModuleHandlerConfiguration
+struct Test_U_ModuleHandlerConfiguration
  : virtual Stream_ModuleHandlerConfiguration
 {
-  Test_I_ModuleHandlerConfiguration ()
+  Test_U_ModuleHandlerConfiguration ()
    : Stream_ModuleHandlerConfiguration ()
    , fileIdentifier ()
+//#if defined (ACE_WIN32) || defined (ACE_WIN64)
+//   , manageCOM (false)
+//#endif // ACE_WIN32 || ACE_WIN64
    , printProgressDot (false)
+   , pushStatisticMessages (true)
   {}
 
   struct Common_File_Identifier fileIdentifier; // source-/target-
+//#if defined (ACE_WIN32) || defined (ACE_WIN64)
+//  bool                          manageCOM;
+//#endif // ACE_WIN32 || ACE_WIN64
   bool                          printProgressDot;
+  bool                          pushStatisticMessages; // statistic module
 };
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-struct Test_I_DirectShow_ModuleHandlerConfiguration
- : Test_I_ModuleHandlerConfiguration
+struct Test_U_DirectShow_ModuleHandlerConfiguration
+ : Test_U_ModuleHandlerConfiguration
 {
-  Test_I_DirectShow_ModuleHandlerConfiguration ()
-   : Test_I_ModuleHandlerConfiguration ()
+  Test_U_DirectShow_ModuleHandlerConfiguration ()
+   : Test_U_ModuleHandlerConfiguration ()
    , builder (NULL)
-   , deviceIdentifier ()
    , filterConfiguration (NULL)
    , filterCLSID (GUID_NULL)
    , push (STREAM_LIB_DIRECTSHOW_FILTER_SOURCE_DEFAULT_PUSH)
@@ -76,7 +81,6 @@ struct Test_I_DirectShow_ModuleHandlerConfiguration
   {}
 
   IGraphBuilder*                                               builder;
-  struct Stream_Device_Identifier                              deviceIdentifier;
   struct Stream_MediaFramework_DirectShow_FilterConfiguration* filterConfiguration;
   CLSID                                                        filterCLSID;
   // *IMPORTANT NOTE*: 'asynchronous' filters implement IAsyncReader (downstream
@@ -87,29 +91,26 @@ struct Test_I_DirectShow_ModuleHandlerConfiguration
   bool                                                         sampleIsDataMessage;
 };
 
-struct Test_I_MediaFoundation_ModuleHandlerConfiguration
- : Test_I_ModuleHandlerConfiguration
+struct Test_U_MediaFoundation_ModuleHandlerConfiguration
+ : Test_U_ModuleHandlerConfiguration
 {
-  Test_I_MediaFoundation_ModuleHandlerConfiguration ()
-   : Test_I_ModuleHandlerConfiguration ()
-   , deviceIdentifier ()
+  Test_U_MediaFoundation_ModuleHandlerConfiguration ()
+   : Test_U_ModuleHandlerConfiguration ()
    , manageMediaSession (false)
    , mediaFoundationConfiguration (NULL)
    , session (NULL)
   {}
 
-  struct Stream_Device_Identifier                             deviceIdentifier;
   bool                                                        manageMediaSession;
   struct Stream_MediaFramework_MediaFoundation_Configuration* mediaFoundationConfiguration;
   IMFMediaSession*                                            session;
 };
 #else
-struct Test_I_ALSA_ModuleHandlerConfiguration
- : Test_I_ModuleHandlerConfiguration
+struct Test_U_ALSA_ModuleHandlerConfiguration
+ : Test_U_ModuleHandlerConfiguration
 {
-  Test_I_ALSA_ModuleHandlerConfiguration ()
-   : Test_I_ModuleHandlerConfiguration ()
-   , deviceIdentifier ()
+  Test_U_ALSA_ModuleHandlerConfiguration ()
+   : Test_U_ModuleHandlerConfiguration ()
    , ALSAConfiguration (NULL)
    , manageSoX (false)
   {
@@ -117,16 +118,15 @@ struct Test_I_ALSA_ModuleHandlerConfiguration
         ACE_TEXT_ALWAYS_CHAR (STREAM_LIB_ALSA_CAPTURE_DEFAULT_DEVICE_NAME);
   }
 
-  struct Stream_Device_Identifier                  deviceIdentifier;
   struct Stream_MediaFramework_ALSA_Configuration* ALSAConfiguration;
   bool                                             manageSoX;
 };
 #endif // ACE_WIN32 || ACE_WIN64
 
-struct Test_I_StreamConfiguration
+struct Test_U_StreamConfiguration
  : Stream_Configuration
 {
-  Test_I_StreamConfiguration ()
+  Test_U_StreamConfiguration ()
    : Stream_Configuration ()
    , fileIdentifier ()
   {}
@@ -134,10 +134,10 @@ struct Test_I_StreamConfiguration
   struct Common_File_Identifier fileIdentifier; // target-
 };
 
-struct Test_I_SignalHandlerConfiguration
+struct Test_U_SignalHandlerConfiguration
  : Common_SignalHandlerConfiguration
 {
-  Test_I_SignalHandlerConfiguration ()
+  Test_U_SignalHandlerConfiguration ()
    : Common_SignalHandlerConfiguration ()
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
    , mediaFramework (STREAM_LIB_DEFAULT_MEDIAFRAMEWORK)
@@ -155,19 +155,19 @@ struct Test_I_SignalHandlerConfiguration
   Stream_IStreamControlBase*      stream;
 };
 
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-struct Test_I_MediaFoundationConfiguration
- : Stream_MediaFramework_MediaFoundation_Configuration
-{
-  Test_I_MediaFoundationConfiguration ()
-   : Stream_MediaFramework_MediaFoundation_Configuration ()
-  {}
-};
-#endif // ACE_WIN32 || ACE_WIN64
+//#if defined (ACE_WIN32) || defined (ACE_WIN64)
+//struct Test_U_MediaFoundationConfiguration
+// : Stream_MediaFramework_MediaFoundation_Configuration
+//{
+//  Test_U_MediaFoundationConfiguration ()
+//   : Stream_MediaFramework_MediaFoundation_Configuration ()
+//  {}
+//};
+//#endif // ACE_WIN32 || ACE_WIN64
 
-struct Test_I_Configuration
+struct Test_U_Configuration
 {
-  Test_I_Configuration ()
+  Test_U_Configuration ()
    : dispatchConfiguration ()
    , parserConfiguration ()
    , timerConfiguration ()
@@ -183,7 +183,7 @@ struct Test_I_Configuration
   // **************************** timer data **********************************
   struct Common_TimerConfiguration           timerConfiguration;
   // **************************** signal data **********************************
-  struct Test_I_SignalHandlerConfiguration   signalHandlerConfiguration;
+  struct Test_U_SignalHandlerConfiguration   signalHandlerConfiguration;
   // **************************** stream data **********************************
   struct Stream_AllocatorConfiguration       allocatorConfiguration;
 

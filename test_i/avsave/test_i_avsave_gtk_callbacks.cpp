@@ -1958,7 +1958,8 @@ stream_processing_function (void* arg_in)
       directshow_session_data_container_p =
         &directshow_cb_data_p->videoStream->getR_2 ();
       directshow_session_data_p = &directshow_session_data_container_p->getR ();
-      thread_data_p->sessionId = directshow_session_data_p->sessionId;
+      directshow_cb_data_p->progressData.sessionId =
+        directshow_session_data_p->sessionId;
       converter << directshow_session_data_p->sessionId;
       break;
     }
@@ -1975,7 +1976,8 @@ stream_processing_function (void* arg_in)
         &mediafoundation_cb_data_p->videoStream->getR_2 ();
       mediafoundation_session_data_p =
         &mediafoundation_session_data_container_p->getR ();
-      thread_data_p->sessionId = mediafoundation_session_data_p->sessionId;
+      mediafoundation_cb_data_p->progressData.sessionId =
+        mediafoundation_session_data_p->sessionId;
       converter << mediafoundation_session_data_p->sessionId;
       break;
     }
@@ -2004,7 +2006,7 @@ stream_processing_function (void* arg_in)
   stream_2 = cb_data_p->audioStream;
   session_data_container_p = &cb_data_p->videoStream->getR_2 ();
   session_data_p = &session_data_container_p->getR ();
-  thread_data_p->sessionId = session_data_p->sessionId;
+  cb_data_p->progressData.sessionId = session_data_p->sessionId;
   converter << session_data_p->sessionId;
 #endif // ACE_WIN32 || ACE_WIN64
 

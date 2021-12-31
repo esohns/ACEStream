@@ -346,7 +346,6 @@ typedef Stream_ISessionDataNotify_T<Test_U_AudioEffect_SessionData,
 typedef std::list<Test_U_AudioEffect_ISessionNotify_t*> Test_U_AudioEffect_Subscribers_t;
 typedef Test_U_AudioEffect_Subscribers_t::iterator Test_U_AudioEffect_SubscribersIterator_t;
 #endif // ACE_WIN32 || ACE_WIN64
-typedef Common_IDispatch_T<enum Stream_Statistic_AnalysisEventType> Test_U_AudioEffect_IDispatch_t;
 struct Test_U_AudioEffect_ModuleHandlerConfiguration
  : Test_U_ModuleHandlerConfiguration
 {
@@ -379,14 +378,14 @@ struct Test_U_AudioEffect_ModuleHandlerConfiguration
 
   struct Stream_Device_Identifier                   deviceIdentifier; // capture/render
   struct Stream_Miscellaneous_DelayConfiguration*   delayConfiguration;
-  Test_U_AudioEffect_IDispatch_t*                   dispatch;
+  Stream_Statistic_IDispatch_t*                     dispatch;
   unsigned int                                      fps;
   struct Stream_MediaFramework_SoundGeneratorConfiguration* generatorConfiguration;
   bool                                              mute;
 #if defined (GUI_SUPPORT)
 #if defined (GTK_SUPPORT)
 #if defined (GTKGL_SUPPORT)
-  Stream_Visualization_OpenGL_Instructions_t*       OpenGLInstructions;
+  Stream_Visualization_GTKGL_Instructions_t*        OpenGLInstructions;
   ACE_SYNCH_MUTEX*                                  OpenGLInstructionsLock;
   GLuint                                            OpenGLTextureId;
 #endif /* GTKGL_SUPPORT */
@@ -578,6 +577,7 @@ struct Test_U_AudioEffect_DirectShow_StreamConfiguration
   {
     capturer = STREAM_DEVICE_CAPTURER_DIRECTSHOW;
     renderer = STREAM_DEVICE_RENDERER_DIRECTSHOW;
+    ACE_OS::memset (&format, 0, sizeof (struct _AMMediaType));
   }
 
   Stream_MediaFramework_DirectShow_Graph_t filterGraphConfiguration;
@@ -769,18 +769,10 @@ typedef Common_ISubscribe_T<Test_U_AudioEffect_ISessionNotify_t> Test_U_AudioEff
 
 #if defined (GUI_SUPPORT)
 struct Test_U_AudioEffect_ProgressData
-#if defined (GTK_USE)
- : Test_U_GTK_ProgressData
-#else
  : Test_U_UI_ProgressData
-#endif // GTK_USE
 {
   Test_U_AudioEffect_ProgressData ()
-#if defined (GTK_USE)
-   : Test_U_GTK_ProgressData ()
-#else
    : Test_U_UI_ProgressData ()
-#endif // GTK_USE
    , bytesPerFrame (0)
    , statistic ()
   {}
@@ -793,18 +785,10 @@ struct Test_U_AudioEffect_ProgressData
 typedef Common_ISetP_T<GdkWindow> Test_U_Common_ISet_t;
 #endif // GTK_SUPPORT
 struct Test_U_AudioEffect_UI_CBDataBase
-#if defined (GTK_USE)
- : Test_U_GTK_CBData
-#else
  : Test_U_UI_CBData
-#endif // GTK_USE
 {
   Test_U_AudioEffect_UI_CBDataBase ()
-#if defined (GTK_USE)
-   : Test_U_GTK_CBData ()
-#else
    : Test_U_UI_CBData ()
-#endif // GTK_USE
 #if defined (GTK_USE)
 #if defined (GTKGL_SUPPORT)
    , OpenGLInstructions ()
@@ -825,7 +809,7 @@ struct Test_U_AudioEffect_UI_CBDataBase
 
 #if defined (GTK_USE)
 #if defined (GTKGL_SUPPORT)
-  Stream_Visualization_OpenGL_Instructions_t OpenGLInstructions;
+  Stream_Visualization_GTKGL_Instructions_t  OpenGLInstructions;
 #endif // GTKGL_SUPPORT
 #endif // GTK_USE
   bool                                       isFirst; // first activation ?
@@ -899,18 +883,10 @@ struct Test_U_AudioEffect_UI_CBData
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 struct Test_U_AudioEffect_DirectShow_ThreadData
-#if defined (GTK_USE)
- : Test_U_GTK_ThreadData
-#else
  : Test_U_UI_ThreadData
-#endif // GTK_USE
 {
   Test_U_AudioEffect_DirectShow_ThreadData ()
-#if defined (GTK_USE)
-   : Test_U_GTK_ThreadData ()
-#else
    : Test_U_UI_ThreadData ()
-#endif // GTK_USE
    , CBData (NULL)
   {
     mediaFramework = STREAM_MEDIAFRAMEWORK_DIRECTSHOW;
@@ -920,18 +896,10 @@ struct Test_U_AudioEffect_DirectShow_ThreadData
 };
 
 struct Test_U_AudioEffect_MediaFoundation_ThreadData
-#if defined (GTK_USE)
- : Test_U_GTK_ThreadData
-#else
  : Test_U_UI_ThreadData
-#endif // GTK_USE
 {
   Test_U_AudioEffect_MediaFoundation_ThreadData ()
-#if defined (GTK_USE)
-   : Test_U_GTK_ThreadData ()
-#else
    : Test_U_UI_ThreadData ()
-#endif // GTK_USE
    , CBData (NULL)
   {
     mediaFramework = STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION;
@@ -941,18 +909,10 @@ struct Test_U_AudioEffect_MediaFoundation_ThreadData
 };
 #else
 struct Test_U_AudioEffect_ThreadData
-#if defined (GTK_USE)
- : Test_U_GTK_ThreadData
-#else
  : Test_U_UI_ThreadData
-#endif // GTK_USE
 {
   Test_U_AudioEffect_ThreadData ()
-#if defined (GTK_USE)
-   : Test_U_GTK_ThreadData ()
-#else
    : Test_U_UI_ThreadData ()
-#endif // GTK_USE
    , CBData (NULL)
   {}
 

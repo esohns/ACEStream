@@ -268,7 +268,7 @@ typedef Common_StatisticHandler_T<struct Stream_CamSave_StatisticData> Test_I_Ca
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 struct Stream_CamSave_DirectShow_StreamState;
 class Stream_CamSave_DirectShow_SessionData
- : public Stream_SessionDataMediaBase_T<struct Test_I_DirectShow_SessionData,
+ : public Stream_SessionDataMediaBase_T<struct Stream_SessionData,
                                         struct _AMMediaType,
                                         struct Stream_CamSave_DirectShow_StreamState,
                                         struct Stream_CamSave_StatisticData,
@@ -276,7 +276,7 @@ class Stream_CamSave_DirectShow_SessionData
 {
  public:
   Stream_CamSave_DirectShow_SessionData ()
-   : Stream_SessionDataMediaBase_T<struct Test_I_DirectShow_SessionData,
+   : Stream_SessionDataMediaBase_T<struct Stream_SessionData,
                                    struct _AMMediaType,
                                    struct Stream_CamSave_DirectShow_StreamState,
                                    struct Stream_CamSave_StatisticData,
@@ -288,7 +288,7 @@ class Stream_CamSave_DirectShow_SessionData
 
   Stream_CamSave_DirectShow_SessionData& operator= (const Stream_CamSave_DirectShow_SessionData& rhs_in)
   {
-    Stream_SessionDataMediaBase_T<struct Test_I_DirectShow_SessionData,
+    Stream_SessionDataMediaBase_T<struct Stream_SessionData,
                                   struct _AMMediaType,
                                   struct Stream_CamSave_DirectShow_StreamState,
                                   struct Stream_CamSave_StatisticData,
@@ -305,7 +305,7 @@ class Stream_CamSave_DirectShow_SessionData
   Stream_CamSave_DirectShow_SessionData& operator+= (const Stream_CamSave_DirectShow_SessionData& rhs_in)
   {
     // *NOTE*: the idea is to 'merge' the data
-    Stream_SessionDataMediaBase_T<struct Test_I_DirectShow_SessionData,
+    Stream_SessionDataMediaBase_T<struct Stream_SessionData,
                                   struct _AMMediaType,
                                   struct Stream_CamSave_DirectShow_StreamState,
                                   struct Stream_CamSave_StatisticData,
@@ -332,7 +332,7 @@ typedef Stream_SessionData_T<Stream_CamSave_DirectShow_SessionData> Stream_CamSa
 
 struct Stream_CamSave_MediaFoundation_StreamState;
 class Stream_CamSave_MediaFoundation_SessionData
- : public Stream_SessionDataMediaBase_T<struct Test_I_MediaFoundation_SessionData,
+ : public Stream_SessionDataMediaBase_T<struct Stream_SessionData,
                                         IMFMediaType*,
                                         struct Stream_CamSave_MediaFoundation_StreamState,
                                         struct Stream_CamSave_StatisticData,
@@ -340,7 +340,7 @@ class Stream_CamSave_MediaFoundation_SessionData
 {
  public:
   Stream_CamSave_MediaFoundation_SessionData ()
-   : Stream_SessionDataMediaBase_T<struct Test_I_MediaFoundation_SessionData,
+   : Stream_SessionDataMediaBase_T<struct Stream_SessionData,
                                    IMFMediaType*,
                                    struct Stream_CamSave_MediaFoundation_StreamState,
                                    struct Stream_CamSave_StatisticData,
@@ -354,7 +354,7 @@ class Stream_CamSave_MediaFoundation_SessionData
 
   Stream_CamSave_MediaFoundation_SessionData& operator= (const Stream_CamSave_MediaFoundation_SessionData& rhs_in)
   {
-    Stream_SessionDataMediaBase_T<struct Test_I_MediaFoundation_SessionData,
+    Stream_SessionDataMediaBase_T<struct Stream_SessionData,
                                   IMFMediaType*,
                                   struct Stream_CamSave_MediaFoundation_StreamState,
                                   struct Stream_CamSave_StatisticData,
@@ -373,7 +373,7 @@ class Stream_CamSave_MediaFoundation_SessionData
   Stream_CamSave_MediaFoundation_SessionData& operator+= (const Stream_CamSave_MediaFoundation_SessionData& rhs_in)
   {
     // *NOTE*: the idea is to 'merge' the data
-    Stream_SessionDataMediaBase_T<struct Test_I_MediaFoundation_SessionData,
+    Stream_SessionDataMediaBase_T<struct Stream_SessionData,
                                   IMFMediaType*,
                                   struct Stream_CamSave_MediaFoundation_StreamState,
                                   struct Stream_CamSave_StatisticData,
@@ -403,7 +403,7 @@ class Stream_CamSave_MediaFoundation_SessionData
 typedef Stream_SessionData_T<Stream_CamSave_MediaFoundation_SessionData> Stream_CamSave_MediaFoundation_SessionData_t;
 #else
 struct Stream_CamSave_V4L_StreamState;
-typedef Stream_SessionDataMediaBase_T<struct Test_I_V4L_SessionData,
+typedef Stream_SessionDataMediaBase_T<struct Stream_SessionData,
                                       struct Stream_MediaFramework_V4L_MediaType,
                                       struct Stream_CamSave_V4L_StreamState,
                                       struct Stream_CamSave_StatisticData,
@@ -412,7 +412,7 @@ typedef Stream_SessionData_T<Stream_CamSave_V4L_SessionData> Stream_CamSave_V4L_
 
 #if defined (LIBCAMERA_SUPPORT)
 struct Stream_CamSave_LibCamera_StreamState;
-typedef Stream_SessionDataMediaBase_T<struct Test_I_LibCamera_SessionData,
+typedef Stream_SessionDataMediaBase_T<struct Stream_SessionData,
                                       struct Stream_MediaFramework_LibCamera_MediaType,
                                       struct Stream_CamSave_LibCamera_StreamState,
                                       struct Stream_CamSave_StatisticData,
@@ -1084,26 +1084,10 @@ typedef Stream_CamSave_EventHandler_T<Stream_CamSave_LibCamera_ISessionNotify_t,
 
 #if defined (GUI_SUPPORT)
 struct Stream_CamSave_ProgressData
-#if defined (GTK_USE)
- : Test_I_GTK_ProgressData
-#elif defined (QT_USE)
- : Test_I_Qt_ProgressData
-#elif defined (WXWIDGETS_USE)
- : Test_I_wxWidgets_ProgressData
-#else
  : Test_I_UI_ProgressData
-#endif
 {
   Stream_CamSave_ProgressData ()
-#if defined (GTK_USE)
-   : Test_I_GTK_ProgressData ()
-#elif defined (QT_USE)
-    : Test_I_Qt_ProgressData ()
-#elif defined (WXWIDGETS_USE)
-   : Test_I_wxWidgets_ProgressData ()
-#else
    : Test_I_UI_ProgressData ()
-#endif
    , statistic ()
   {}
 
@@ -1111,26 +1095,10 @@ struct Stream_CamSave_ProgressData
 };
 
 struct Stream_CamSave_UI_CBData
-#if defined (GTK_USE)
- : Test_I_GTK_CBData
-#elif defined (QT_USE)
- : Test_I_Qt_CBData
-#elif defined (WXWIDGETS_USE)
- : Test_I_wxWidgets_CBData
-#else
  : Test_I_UI_CBData
-#endif // GTK_USE || QT_USE || WXWIDGETS_USE
 {
   Stream_CamSave_UI_CBData ()
-#if defined (GTK_USE)
-   : Test_I_GTK_CBData ()
-#elif defined (QT_USE)
-   : Test_I_Qt_CBData ()
-#elif defined (WXWIDGETS_USE)
-   : Test_I_wxWidgets_CBData ()
-#else
    : Test_I_UI_CBData ()
-#endif // GTK_USE || QT_USE || WXWIDGETS_USE
    , isFirst (true)
    , progressData ()
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -1250,34 +1218,17 @@ struct Stream_CamSave_LibCamera_UI_CBData
 #endif // ACE_WIN32 || ACE_WIN64
 
 struct Stream_CamSave_UI_ThreadData
-#if defined (GTK_USE)
- : Test_I_GTK_ThreadData
-#elif defined (QT_USE)
- : Test_I_Qt_ThreadData
-#elif defined (WXWIDGETS_USE)
- : Test_I_wxWidgets_ThreadData
-#else
  : Test_I_UI_ThreadData
-#endif
 {
   Stream_CamSave_UI_ThreadData ()
-#if defined (GTK_USE)
-   : Test_I_GTK_ThreadData ()
-#elif defined (QT_USE)
-   : Test_I_Qt_ThreadData ()
-#elif defined (WXWIDGETS_USE)
-   : Test_I_wxWidgets_ThreadData ()
-#else
    : Test_I_UI_ThreadData ()
-#endif
    , CBData (NULL)
   {}
 
   struct Stream_CamSave_UI_CBData* CBData;
 };
 
-#if defined (GTK_USE)
-#elif defined (WXWIDGETS_USE)
+#if defined (WXWIDGETS_USE)
 extern const char toplevel_widget_classname_string_[];
 typedef Common_UI_WxWidgetsXRCDefinition_T<struct Common_UI_wxWidgets_State,
                                            toplevel_widget_classname_string_> Stream_CamSave_WxWidgetsXRCDefinition_t;
@@ -1306,7 +1257,7 @@ typedef Comon_UI_WxWidgets_Application_T<Stream_CamSave_WxWidgetsXRCDefinition_t
                                          Stream_CamSave_V4L_WxWidgetsDialog_t,
                                          wxGUIAppTraits> Stream_CamSave_V4L_WxWidgetsApplication_t;
 #endif // ACE_WIN32 || ACE_WIN64
-#endif
+#endif // WXWIDGETS_USE
 #endif // GUI_SUPPORT
 
 #endif

@@ -47,7 +47,7 @@ processInstructions (struct Test_U_AudioEffect_UI_CBDataBase* CBDataBase_in)
   ACE_ASSERT (CBDataBase_in);
   ACE_ASSERT (CBDataBase_in->UIState);
 
-  struct Stream_Visualization_OpenGL_Instruction* instruction_p = NULL;
+  struct Stream_Visualization_GTKGL_Instruction* instruction_p = NULL;
 
   { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, CBDataBase_in->UIState->lock);
     if (CBDataBase_in->OpenGLInstructions.empty ())
@@ -58,12 +58,12 @@ processInstructions (struct Test_U_AudioEffect_UI_CBDataBase* CBDataBase_in)
       instruction_p = &CBDataBase_in->OpenGLInstructions.front ();
       switch (instruction_p->type)
       {
-        case STREAM_VISUALIZATION_OPENGL_INSTRUCTION_CHANGE_ROTATION:
+        case STREAM_VISUALIZATION_INSTRUCTION_CHANGE_ROTATION:
         {
           CBDataBase_in->objectRotation *= -1;
           break;
         }
-        case STREAM_VISUALIZATION_OPENGL_INSTRUCTION_SET_COLOR_BG:
+        case STREAM_VISUALIZATION_INSTRUCTION_SET_COLOR_BG:
         {
           glClearColor ((float)instruction_p->color.red   / (float)std::numeric_limits<guint16>::max (),
                         (float)instruction_p->color.green / (float)std::numeric_limits<guint16>::max (),
@@ -71,7 +71,7 @@ processInstructions (struct Test_U_AudioEffect_UI_CBDataBase* CBDataBase_in)
                         1.0F);
           break;
         }
-        case STREAM_VISUALIZATION_OPENGL_INSTRUCTION_SET_COLOR_FG:
+        case STREAM_VISUALIZATION_INSTRUCTION_SET_COLOR_FG:
         {
           glColor4f ((float)instruction_p->color.red   / (float)std::numeric_limits<guint16>::max (),
                      (float)instruction_p->color.green / (float)std::numeric_limits<guint16>::max (),

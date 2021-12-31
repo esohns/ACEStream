@@ -241,26 +241,10 @@ typedef Stream_SMTPSend_EventHandler_T<SMTP_ISessionNotify_t,
 
 #if defined (GUI_SUPPORT)
 struct Stream_SMTPSend_ProgressData
-#if defined (GTK_USE)
- : Test_I_GTK_ProgressData
-#elif defined (QT_USE)
- : Test_I_Qt_ProgressData
-#elif defined (WXWIDGETS_USE)
- : Test_I_wxWidgets_ProgressData
-#else
  : Test_I_UI_ProgressData
-#endif
 {
   Stream_SMTPSend_ProgressData ()
-#if defined (GTK_USE)
-   : Test_I_GTK_ProgressData ()
-#elif defined (QT_USE)
-    : Test_I_Qt_ProgressData ()
-#elif defined (WXWIDGETS_USE)
-   : Test_I_wxWidgets_ProgressData ()
-#else
    : Test_I_UI_ProgressData ()
-#endif
    , statistic ()
   {}
 
@@ -269,26 +253,10 @@ struct Stream_SMTPSend_ProgressData
 
 class Test_I_SMTPSend_Stream;
 struct Stream_SMTPSend_UI_CBData
-#if defined (GTK_USE)
- : Test_I_GTK_CBData
-#elif defined (QT_USE)
- : Test_I_Qt_CBData
-#elif defined (WXWIDGETS_USE)
- : Test_I_wxWidgets_CBData
-#else
  : Test_I_UI_CBData
-#endif
 {
   Stream_SMTPSend_UI_CBData ()
-#if defined (GTK_USE)
-   : Test_I_GTK_CBData ()
-#elif defined (QT_USE)
-   : Test_I_Qt_CBData ()
-#elif defined (WXWIDGETS_USE)
-   : Test_I_wxWidgets_CBData ()
-#else
    : Test_I_UI_CBData ()
-#endif
    , configuration (NULL)
    , progressData ()
    , stream (NULL)
@@ -304,34 +272,17 @@ struct Stream_SMTPSend_UI_CBData
 };
 
 struct Stream_SMTPSend_UI_ThreadData
-#if defined (GTK_USE)
- : Test_I_GTK_ThreadData
-#elif defined (QT_USE)
- : Test_I_Qt_ThreadData
-#elif defined (WXWIDGETS_USE)
- : Test_I_wxWidgets_ThreadData
-#else
  : Test_I_UI_ThreadData
-#endif
 {
   Stream_SMTPSend_UI_ThreadData ()
-#if defined (GTK_USE)
-   : Test_I_GTK_ThreadData ()
-#elif defined (QT_USE)
-   : Test_I_Qt_ThreadData ()
-#elif defined (WXWIDGETS_USE)
-   : Test_I_wxWidgets_ThreadData ()
-#else
    : Test_I_UI_ThreadData ()
-#endif
    , CBData (NULL)
   {}
 
   struct Stream_SMTPSend_UI_CBData* CBData;
 };
 
-#if defined (GTK_USE)
-#elif defined (WXWIDGETS_USE)
+#if defined (WXWIDGETS_USE)
 extern const char toplevel_widget_classname_string_[];
 typedef Common_UI_WxWidgetsXRCDefinition_T<struct Common_UI_wxWidgets_State,
                                            toplevel_widget_classname_string_> Stream_SMTPSend_WxWidgetsXRCDefinition_t;
@@ -343,7 +294,7 @@ typedef Comon_UI_WxWidgets_Application_T<Stream_SMTPSend_WxWidgetsXRCDefinition_
                                          struct Stream_SMTPSend_UI_CBData,
                                          Stream_SMTPSend_WxWidgetsDialog_t,
                                          wxGUIAppTraits> Stream_SMTPSend_WxWidgetsApplication_t;
-#endif
+#endif // WXWIDGETS_USE
 #endif // GUI_SUPPORT
 
 #endif

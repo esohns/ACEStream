@@ -445,6 +445,7 @@ stream_processing_thread (void* arg_in)
   const Stream_AVSave_V4L_SessionData* session_data_p = NULL;
 #endif // ACE_WIN32 || ACE_WIN64
   Stream_IStreamControlBase* stream_p = NULL, *stream_2 = NULL;
+  Stream_SessionId_t session_id = 0;
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   struct Stream_AVSave_DirectShow_UI_CBData* directshow_cb_data_p = NULL;
@@ -514,7 +515,8 @@ stream_processing_thread (void* arg_in)
       ACE_ASSERT (directshow_session_data_container_p);
       directshow_session_data_p = &directshow_session_data_container_p->getR ();
       ACE_ASSERT (directshow_session_data_p);
-      thread_data_p->sessionId = directshow_session_data_p->sessionId;
+      session_id = directshow_session_data_p->sessionId;
+      directshow_cb_data_p->progressData.sessionId = session_id;
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
@@ -539,7 +541,8 @@ stream_processing_thread (void* arg_in)
       mediafoundation_session_data_p =
         &mediafoundation_session_data_container_p->getR ();
       ACE_ASSERT (mediafoundation_session_data_p);
-      thread_data_p->sessionId = mediafoundation_session_data_p->sessionId;
+      session_id = mediafoundation_session_data_p->sessionId;
+      mediafoundation_cb_data_p->progressData.sessionId = session_id;
       break;
     }
     default:
@@ -569,7 +572,8 @@ stream_processing_thread (void* arg_in)
   ACE_ASSERT (session_data_container_p);
   session_data_p = &session_data_container_p->getR ();
   ACE_ASSERT (session_data_p);
-  thread_data_p->sessionId = session_data_p->sessionId;
+  session_id = session_data_p->sessionId;
+  cb_data_p->progressData.sessionId = session_id;
 #endif // ACE_WIN32 || ACE_WIN64
 
   // *NOTE*: blocks until 'finished'
@@ -593,7 +597,7 @@ error:
 #else
   { ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, thread_data_p->CBData->UIState->lock, std::numeric_limits<void*>::max ());
 #endif // ACE_WIN32 || ACE_WIN64
-    thread_data_p->CBData->progressData.completedActions.insert (thread_data_p->sessionId);
+    thread_data_p->CBData->progressData.completedActions.insert (session_id);
   } // end lock scope
 
   // clean up

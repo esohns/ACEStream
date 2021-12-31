@@ -25,10 +25,7 @@
 
 #include "common_ui_qt_common.h"
 
-#include "test_i_common.h"
-
-// forward declarations
-struct Test_I_Configuration;
+#include "stream_common.h"
 
 struct Test_I_Qt_ProgressData
  : Common_UI_Qt_ProgressData
@@ -44,10 +41,10 @@ struct Test_I_Qt_ProgressData
 };
 
 struct Test_I_Qt_CBData
- : Test_I_UI_CBData
+ : Common_UI_Qt_CBData
 {
   Test_I_Qt_CBData ()
-   : Test_I_UI_CBData ()
+   : Common_UI_Qt_CBData ()
    , progressData ()
    , UIState (NULL)
   {
@@ -59,14 +56,14 @@ struct Test_I_Qt_CBData
 };
 
 struct Test_I_Qt_ThreadData
- : Test_I_UI_ThreadData
+ : Common_UI_Qt_ThreadData
 {
   Test_I_Qt_ThreadData ()
-   : Test_I_UI_ThreadData ()
+   : Common_UI_Qt_ThreadData ()
    , CBData (NULL)
   {}
 
   struct Test_I_Qt_CBData* CBData;
 };
 
-#endif
+#endif // TEST_I_QT_COMMON_H

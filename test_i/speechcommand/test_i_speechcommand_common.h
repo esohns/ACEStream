@@ -21,7 +21,11 @@
 #ifndef TEST_I_SPEECHCOMMAND_COMMON_H
 #define TEST_I_SPEECHCOMMAND_COMMON_H
 
-#include <list>
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#include "Audioclient.h"
+#include "devicetopology.h"
+#include "endpointvolume.h"
+#endif // ACE_WIN32 || ACE_WIN64
 
 #if defined (GUI_SUPPORT)
 #if defined (GTK_SUPPORT)
@@ -59,20 +63,13 @@
 #include "stream_messageallocatorheap_base.h"
 #include "stream_session_data.h"
 
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#include "stream_lib_directshow_common.h"
+#endif // ACE_WIN32 || ACE_WIN64
+
 #include "test_i_common.h"
 #include "test_i_configuration.h"
-#if defined (GUI_SUPPORT)
-#if defined (GTK_SUPPORT)
-#include "test_i_gtk_common.h"
-#endif // GTK_SUPPORT
-#if defined (QT_SUPPORT)
-#include "test_i_qt_common.h"
-#endif // QT_SUPPORT
-#if defined (WXWIDGETS_SUPPORT)
-#include "test_i_wxwidgets_common.h"
-#endif // WXWIDGETS_SUPPORT
-#endif // GUI_SUPPORT
-#include "test_i_session_message.h"
+
 #include "test_i_stream_common.h"
 
 // forward declarations
@@ -94,103 +91,6 @@ template <typename WidgetBaseClassType,
 class Test_I_WxWidgetsDialog_T;
 #endif // WXWIDGETS_SUPPORT
 #endif // GUI_SUPPORT
-
-class Test_I_Message;
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-typedef Test_I_SessionMessage_T<Test_I_DirectShow_SessionData_t,
-                                struct Stream_UserData> Test_I_DirectShow_SessionMessage_t;
-typedef Test_I_SessionMessage_T<Test_I_MediaFoundation_SessionData_t,
-                                struct Stream_UserData> Test_I_MediaFoundation_SessionMessage_t;
-
-typedef Stream_MessageAllocatorHeapBase_T<ACE_MT_SYNCH,
-                                          struct Stream_AllocatorConfiguration,
-                                          Stream_ControlMessage_t,
-                                          Test_I_Message,
-                                          Test_I_DirectShow_SessionMessage_t> Test_I_DirectShow_MessageAllocator_t;
-typedef Stream_MessageAllocatorHeapBase_T<ACE_MT_SYNCH,
-                                          struct Stream_AllocatorConfiguration,
-                                          Stream_ControlMessage_t,
-                                          Test_I_Message,
-                                          Test_I_MediaFoundation_SessionMessage_t> Test_I_MediaFoundation_MessageAllocator_t;
-
-typedef Stream_ISessionDataNotify_T<Test_I_DirectShow_SessionData,
-                                    enum Stream_SessionMessageType,
-                                    Test_I_Message,
-                                    Test_I_DirectShow_SessionMessage_t> Test_I_DirectShow_ISessionNotify_t;
-typedef Stream_ISessionDataNotify_T<Test_I_MediaFoundation_SessionData,
-                                    enum Stream_SessionMessageType,
-                                    Test_I_Message,
-                                    Test_I_MediaFoundation_SessionMessage_t> Test_I_MediaFoundation_ISessionNotify_t;
-
-typedef std::list<Test_I_DirectShow_ISessionNotify_t*> Test_I_DirectShow_Subscribers_t;
-typedef Test_I_DirectShow_Subscribers_t::iterator Test_I_DirectShow_SubscribersIterator_t;
-typedef std::list<Test_I_MediaFoundation_ISessionNotify_t*> Test_I_MediaFoundation_Subscribers_t;
-typedef Test_I_MediaFoundation_Subscribers_t::iterator Test_I_MediaFoundation_SubscribersIterator_t;
-#else
-typedef Test_I_SessionMessage_T<Test_I_ALSA_SessionData_t,
-                                struct Stream_UserData> Test_I_ALSA_SessionMessage_t;
-
-typedef Stream_MessageAllocatorHeapBase_T<ACE_MT_SYNCH,
-                                          struct Stream_AllocatorConfiguration,
-                                          Stream_ControlMessage_t,
-                                          Test_I_Message,
-                                          Test_I_ALSA_SessionMessage_t> Test_I_ALSA_MessageAllocator_t;
-
-typedef Stream_ISessionDataNotify_T<Test_I_ALSA_SessionData,
-                                    enum Stream_SessionMessageType,
-                                    Test_I_Message,
-                                    Test_I_ALSA_SessionMessage_t> Test_I_ALSA_ISessionNotify_t;
-
-typedef std::list<Test_I_ALSA_ISessionNotify_t*> Test_I_ALSA_Subscribers_t;
-typedef Test_I_ALSA_Subscribers_t::iterator Test_I_ALSA_SubscribersIterator_t;
-#endif // ACE_WIN32 || ACE_WIN64
-
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-struct Test_I_DirectShow_ModuleHandlerConfiguration
- : Test_I_ModuleHandlerConfiguration
-{
-  Test_I_DirectShow_ModuleHandlerConfiguration ()
-   : Test_I_ModuleHandlerConfiguration ()
-   , subscriber (NULL)
-   , subscribers (NULL)
-  {
-    concurrency = STREAM_HEADMODULECONCURRENCY_PASSIVE;
-  }
-
-  Test_I_DirectShow_ISessionNotify_t* subscriber;
-  Test_I_DirectShow_Subscribers_t*    subscribers;
-};
-
-struct Test_I_MediaFoundation_ModuleHandlerConfiguration
- : Test_I_ModuleHandlerConfiguration
-{
-  Test_I_MediaFoundation_ModuleHandlerConfiguration ()
-   : Test_I_ModuleHandlerConfiguration ()
-   , subscriber (NULL)
-   , subscribers (NULL)
-  {
-    concurrency = STREAM_HEADMODULECONCURRENCY_PASSIVE;
-  }
-
-  Test_I_MediaFoundation_ISessionNotify_t* subscriber;
-  Test_I_MediaFoundation_Subscribers_t*    subscribers;
-};
-#else
-struct Test_I_ALSA_ModuleHandlerConfiguration
- : Test_I_ModuleHandlerConfiguration
-{
-  Test_I_ALSA_ModuleHandlerConfiguration ()
-   : Test_I_ModuleHandlerConfiguration ()
-   , subscriber (NULL)
-   , subscribers (NULL)
-  {
-    concurrency = STREAM_HEADMODULECONCURRENCY_PASSIVE;
-  }
-
-  Test_I_ALSA_ISessionNotify_t* subscriber;
-  Test_I_ALSA_Subscribers_t*    subscribers;
-};
-#endif // ACE_WIN32 || ACE_WIN64
 
 struct Test_I_SpeechCommand_Configuration
 #if defined (GUI_SUPPORT)
@@ -215,28 +115,58 @@ struct Test_I_SpeechCommand_Configuration
 #endif // GUI_SUPPORT
   {}
 };
+
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 struct Test_I_DirectShow_Configuration
  : Test_I_SpeechCommand_Configuration
 {
   Test_I_DirectShow_Configuration ()
    : Test_I_SpeechCommand_Configuration ()
+   , allocatorProperties ()
+   , filterConfiguration ()
+   , pinConfiguration ()
    , streamConfiguration ()
-  {}
+  {
+    ACE_OS::memset (&allocatorProperties, 0, sizeof (struct _AllocatorProperties));
+    //allocatorProperties_.cBuffers = -1; // <-- use default
+    allocatorProperties.cBuffers =
+      STREAM_LIB_DIRECTSHOW_AUDIO_DEFAULT_SOURCE_BUFFERS;
+    allocatorProperties.cbBuffer = -1; // <-- use default
+    // *TODO*: IMemAllocator::SetProperties returns VFW_E_BADALIGN (0x8004020e)
+    //         if this is -1/0 (why ?)
+    //allocatorProperties_.cbAlign = -1;  // <-- use default
+    allocatorProperties.cbAlign = 1;
+    // *TODO*: IMemAllocator::SetProperties returns E_INVALIDARG (0x80070057)
+    //         if this is -1/0 (why ?)
+    //allocatorProperties.cbPrefix = -1; // <-- use default
+    allocatorProperties.cbPrefix = 0;
 
+    filterConfiguration.allocatorProperties = &allocatorProperties;
+    filterConfiguration.pinConfiguration = &pinConfiguration;
+    pinConfiguration.allocatorProperties = &allocatorProperties;
+  }
+
+  // **************************** framework data *******************************
+  struct _AllocatorProperties                                    allocatorProperties; // IMediaSample-
+  struct Stream_MediaFramework_DirectShow_FilterConfiguration    filterConfiguration;
+  struct Stream_MediaFramework_DirectShow_FilterPinConfiguration pinConfiguration;
   // **************************** stream data **********************************
-  Test_I_DirectShow_StreamConfiguration_t streamConfiguration;
+  Test_I_DirectShow_StreamConfiguration_t                        streamConfiguration;
 };
+
 struct Test_I_MediaFoundation_Configuration
  : Test_I_SpeechCommand_Configuration
 {
   Test_I_MediaFoundation_Configuration ()
    : Test_I_SpeechCommand_Configuration ()
+   , mediaFoundationConfiguration ()
    , streamConfiguration ()
   {}
 
+  // **************************** framework data *******************************
+  struct Stream_MediaFramework_MediaFoundation_Configuration mediaFoundationConfiguration;
   // **************************** stream data **********************************
-  Test_I_MediaFoundation_StreamConfiguration_t streamConfiguration;
+  Test_I_MediaFoundation_StreamConfiguration_t               streamConfiguration;
 };
 #else
 struct Test_I_ALSA_Configuration
@@ -262,7 +192,7 @@ typedef Common_UI_wxWidgets_IApplication_T<struct Common_UI_wxWidgets_State,
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 typedef Test_I_EventHandler_T<Test_I_DirectShow_ISessionNotify_t,
-                              Test_I_Message,
+                              Test_I_DirectShow_Message,
 #if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
                               Common_UI_GTK_State_t,
@@ -277,7 +207,7 @@ typedef Test_I_EventHandler_T<Test_I_DirectShow_ISessionNotify_t,
 #endif // GUI_SUPPORT
                               Test_I_DirectShow_SessionMessage_t> Test_I_DirectShow_EventHandler_t;
 typedef Test_I_EventHandler_T<Test_I_MediaFoundation_ISessionNotify_t,
-                              Test_I_Message,
+                              Test_I_MediaFoundation_Message,
 #if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
                               Common_UI_GTK_State_t,
@@ -312,123 +242,111 @@ typedef Test_I_EventHandler_T<Test_I_ALSA_ISessionNotify_t,
 //////////////////////////////////////////
 
 #if defined (GUI_SUPPORT)
-struct Test_I_ProgressData
-#if defined (GTK_USE)
- : Test_I_GTK_ProgressData
-#elif defined (QT_USE)
- : Test_I_Qt_ProgressData
-#elif defined (WXWIDGETS_USE)
- : Test_I_wxWidgets_ProgressData
-#else
- : Test_I_UI_ProgressData
-#endif // GTK_USE || QT_USE || WXWIDGETS_USE
-{
-  Test_I_ProgressData ()
-#if defined (GTK_USE)
-   : Test_I_GTK_ProgressData ()
-#elif defined (QT_USE)
-    : Test_I_Qt_ProgressData ()
-#elif defined (WXWIDGETS_USE)
-   : Test_I_wxWidgets_ProgressData ()
-#else
-   : Test_I_UI_ProgressData ()
-#endif // GTK_USE || QT_USE || WXWIDGETS_USE
-  {}
-};
-
-class Test_I_Stream;
 struct Test_I_SpeechCommand_UI_CBData
-#if defined (GTK_USE)
- : Test_I_GTK_CBData
-#elif defined (QT_USE)
- : Test_I_Qt_CBData
-#elif defined (WXWIDGETS_USE)
- : Test_I_wxWidgets_CBData
-#else
  : Test_I_UI_CBData
-#endif // GTK_USE || QT_USE || WXWIDGETS_USE
 {
   Test_I_SpeechCommand_UI_CBData ()
-#if defined (GTK_USE)
-   : Test_I_GTK_CBData ()
-#elif defined (QT_USE)
-   : Test_I_Qt_CBData ()
-#elif defined (WXWIDGETS_USE)
-   : Test_I_wxWidgets_CBData ()
-#else
    : Test_I_UI_CBData ()
-#endif // GTK_USE || QT_USE || WXWIDGETS_USE
-   , configuration (NULL)
-   , progressData ()
+#if defined (GTK_USE)
+#if defined (GTKGL_SUPPORT)
+   , OpenGLInstructions ()
+#endif // GTKGL_SUPPORT
+#endif // GTK_USE
    , stream (NULL)
-  {
-    progressData.state = UIState;
-  }
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+   , boostControl (NULL)
+   , captureVolumeControl (NULL)
+   , renderVolumeControl (NULL)
+#endif // ACE_WIN32 || ACE_WIN64
+  {}
 
-  struct Test_I_Configuration* configuration;
-  struct Test_I_ProgressData   progressData;
-  Test_I_Stream*               stream;
+#if defined (GTK_USE)
+#if defined (GTKGL_SUPPORT)
+  Stream_Visualization_GTKGL_Instructions_t OpenGLInstructions;
+#endif // GTKGL_SUPPORT
+#endif // GTK_USE
+  Stream_IStreamControlBase*                stream;
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  IAudioVolumeLevel*                        boostControl;
+  IAudioEndpointVolume*                     captureVolumeControl;
+  ISimpleAudioVolume*                       renderVolumeControl;
+#endif // ACE_WIN32 || ACE_WIN64
 };
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 struct Test_I_DirectShow_UI_CBData
- : Test_I_UI_CBData
+ : Test_I_SpeechCommand_UI_CBData
 {
   Test_I_DirectShow_UI_CBData ()
-   : Test_I_UI_CBData ()
+   : Test_I_SpeechCommand_UI_CBData ()
+   , configuration (NULL)
+   , streamConfiguration (NULL)
    , subscribers ()
   {}
 
-  Test_I_DirectShow_Subscribers_t subscribers;
+  struct Test_I_DirectShow_Configuration* configuration;
+  IAMStreamConfig*                        streamConfiguration;
+  Test_I_DirectShow_Subscribers_t         subscribers;
 };
+
 struct Test_I_MediaFoundation_UI_CBData
- : Test_I_UI_CBData
+ : Test_I_SpeechCommand_UI_CBData
 {
   Test_I_MediaFoundation_UI_CBData ()
-   : Test_I_UI_CBData ()
+   : Test_I_SpeechCommand_UI_CBData ()
+   , configuration (NULL)
    , subscribers ()
   {}
 
-  Test_I_MediaFoundation_Subscribers_t subscribers;
+  struct Test_I_MediaFoundation_Configuration* configuration;
+  Test_I_MediaFoundation_Subscribers_t         subscribers;
 };
-#else
-struct Test_I_ALSA_UI_CBData
- : Test_I_UI_CBData
-{
-  Test_I_ALSA_UI_CBData ()
-   : Test_I_UI_CBData ()
-   , subscribers ()
-  {}
 
-  Test_I_ALSA_Subscribers_t subscribers;
-};
-#endif // ACE_WIN32 || ACE_WIN64
-
-struct Test_I_SpeechCommand_UI_ThreadData
-#if defined (GTK_USE)
- : Test_I_GTK_ThreadData
-#elif defined (QT_USE)
- : Test_I_Qt_ThreadData
-#elif defined (WXWIDGETS_USE)
- : Test_I_wxWidgets_ThreadData
-#else
+struct Test_I_DirectShow_UI_ThreadData
  : Test_I_UI_ThreadData
-#endif // GTK_USE || QT_USE || WXWIDGETS_USE
 {
-  Test_I_SpeechCommand_UI_ThreadData ()
-#if defined (GTK_USE)
-   : Test_I_GTK_ThreadData ()
-#elif defined (QT_USE)
-   : Test_I_Qt_ThreadData ()
-#elif defined (WXWIDGETS_USE)
-   : Test_I_wxWidgets_ThreadData ()
-#else
+  Test_I_DirectShow_UI_ThreadData ()
    : Test_I_UI_ThreadData ()
-#endif // GTK_USE || QT_USE || WXWIDGETS_USE
    , CBData (NULL)
   {}
 
-  struct Test_I_SpeechCommand_UI_CBData* CBData;
+  struct Test_I_DirectShow_UI_CBData* CBData;
 };
+
+struct Test_I_MediaFoundation_UI_ThreadData
+ : Test_I_UI_ThreadData
+{
+  Test_I_MediaFoundation_UI_ThreadData ()
+   : Test_I_UI_ThreadData ()
+   , CBData (NULL)
+  {}
+
+  struct Test_I_MediaFoundation_UI_CBData* CBData;
+};
+#else
+struct Test_I_ALSA_UI_CBData
+ : Test_I_SpeechCommand_UI_CBData
+{
+  Test_I_ALSA_UI_CBData ()
+   : Test_I_SpeechCommand_UI_CBData ()
+   , configuration (NULL)
+   , subscribers ()
+  {}
+
+  struct Test_I_ALSA_Configuration* configuration;
+  Test_I_ALSA_Subscribers_t         subscribers;
+};
+
+struct Test_I_ALSA_UI_ThreadData
+ : Test_I_UI_ThreadData
+{
+  Test_I_ALSA_UI_ThreadData ()
+   : Test_I_UI_ThreadData ()
+   , CBData (NULL)
+  {}
+
+  struct Test_I_ALSA_UI_CBData* CBData;
+};
+#endif // ACE_WIN32 || ACE_WIN64
 
 #if defined (WXWIDGETS_USE)
 extern const char toplevel_widget_classname_string_[];

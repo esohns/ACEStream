@@ -1007,26 +1007,10 @@ typedef Stream_AVSave_EventHandler_T<Stream_AVSave_V4L_ISessionNotify_t,
 
 #if defined (GUI_SUPPORT)
 struct Stream_AVSave_ProgressData
-#if defined (GTK_USE)
- : Test_I_GTK_ProgressData
-#elif defined (QT_USE)
- : Test_I_Qt_ProgressData
-#elif defined (WXWIDGETS_USE)
- : Test_I_wxWidgets_ProgressData
-#else
  : Test_I_UI_ProgressData
-#endif
 {
   Stream_AVSave_ProgressData ()
-#if defined (GTK_USE)
-   : Test_I_GTK_ProgressData ()
-#elif defined (QT_USE)
-    : Test_I_Qt_ProgressData ()
-#elif defined (WXWIDGETS_USE)
-   : Test_I_wxWidgets_ProgressData ()
-#else
    : Test_I_UI_ProgressData ()
-#endif
    , statistic ()
   {}
 
@@ -1034,26 +1018,10 @@ struct Stream_AVSave_ProgressData
 };
 
 struct Stream_AVSave_UI_CBData
-#if defined (GTK_USE)
- : Test_I_GTK_CBData
-#elif defined (QT_USE)
- : Test_I_Qt_CBData
-#elif defined (WXWIDGETS_USE)
- : Test_I_wxWidgets_CBData
-#else
  : Test_I_UI_CBData
-#endif
 {
   Stream_AVSave_UI_CBData ()
-#if defined (GTK_USE)
-   : Test_I_GTK_CBData ()
-#elif defined (QT_USE)
-   : Test_I_Qt_CBData ()
-#elif defined (WXWIDGETS_USE)
-   : Test_I_wxWidgets_CBData ()
-#else
    : Test_I_UI_CBData ()
-#endif
    , isFirst (true)
    , progressData ()
   {
@@ -1141,26 +1109,10 @@ struct Stream_AVSave_V4L_UI_CBData
 #endif // ACE_WIN32 || ACE_WIN64
 
 struct Stream_AVSave_UI_ThreadData
-#if defined (GTK_USE)
- : Test_I_GTK_ThreadData
-#elif defined (QT_USE)
- : Test_I_Qt_ThreadData
-#elif defined (WXWIDGETS_USE)
- : Test_I_wxWidgets_ThreadData
-#else
  : Test_I_UI_ThreadData
-#endif
 {
   Stream_AVSave_UI_ThreadData ()
-#if defined (GTK_USE)
-   : Test_I_GTK_ThreadData ()
-#elif defined (QT_USE)
-   : Test_I_Qt_ThreadData ()
-#elif defined (WXWIDGETS_USE)
-   : Test_I_wxWidgets_ThreadData ()
-#else
    : Test_I_UI_ThreadData ()
-#endif
    , CBData (NULL)
   {}
 

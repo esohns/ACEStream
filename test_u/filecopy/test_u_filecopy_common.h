@@ -180,20 +180,16 @@ typedef Common_ISubscribe_T<Stream_Filecopy_ISessionNotify_t> Stream_Filecopy_IS
 
 struct Stream_Filecopy_ProgressData
 #if defined (GUI_SUPPORT)
-#if defined (GTK_USE)
- : Test_U_GTK_ProgressData
-#else
  : Test_U_UI_ProgressData
-#endif // GTK_USE
+#else
+ : Test_U_ProgressData
 #endif // GUI_SUPPORT
 {
   Stream_Filecopy_ProgressData ()
 #if defined (GUI_SUPPORT)
-#if defined (GTK_USE)
-   : Test_U_GTK_ProgressData ()
-#else
    : Test_U_UI_ProgressData ()
-#endif // GTK_USE
+#else
+   : Test_U_ProgressData ()
 #endif // GUI_SUPPORT
    , copied (0)
    , size (0)
@@ -205,20 +201,16 @@ struct Stream_Filecopy_ProgressData
 
 struct Stream_Filecopy_UI_CBData
 #if defined (GUI_SUPPORT)
-#if defined (GTK_USE)
- : Test_U_GTK_CBData
-#else
  : Test_U_UI_CBData
-#endif // GTK_USE
+#else
+ : Test_U_CBData
 #endif // GUI_SUPPORT
 {
   Stream_Filecopy_UI_CBData ()
 #if defined (GUI_SUPPORT)
-#if defined (GTK_USE)
-   : Test_U_GTK_CBData ()
-#else
    : Test_U_UI_CBData ()
-#endif // GTK_USE
+#else
+   : Test_U_CBData ()
 #endif // GUI_SUPPORT
    , configuration (NULL)
    , progressData ()
@@ -234,21 +226,17 @@ struct Stream_Filecopy_UI_CBData
 
 struct Stream_Filecopy_ThreadData
 #if defined (GUI_SUPPORT)
-#if defined (GTK_USE)
- : Test_U_GTK_ThreadData
-#else
  : Test_U_UI_ThreadData
-#endif // GTK_USE
+#else
+ : Test_U_ThreadData
 #endif // GUI_SUPPORT
 {
   Stream_Filecopy_ThreadData ()
 #if defined (GUI_SUPPORT)
-#if defined (GTK_USE)
-   : Test_U_GTK_ThreadData ()
-#else
    : Test_U_UI_ThreadData ()
-#endif // GTK_USE
    , CBData (NULL)
+#else
+   : Test_U_ThreadData ()
 #endif // GUI_SUPPORT
   {}
 

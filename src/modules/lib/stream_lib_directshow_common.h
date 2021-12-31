@@ -73,11 +73,13 @@ struct Stream_MediaFramework_DirectShow_FilterConfiguration
   Stream_MediaFramework_DirectShow_FilterConfiguration ()
    : allocator (NULL)
    , allocatorProperties (NULL)
+   , module (NULL)
    , pinConfiguration (NULL)
   {}
 
   Stream_IAllocator*                                              allocator; // message-
   struct _AllocatorProperties*                                    allocatorProperties; // IMediaSample-
+  Stream_Module_t*                                                module;
   struct Stream_MediaFramework_DirectShow_FilterPinConfiguration* pinConfiguration;
 };
 

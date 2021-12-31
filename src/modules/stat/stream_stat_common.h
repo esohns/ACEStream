@@ -21,6 +21,7 @@
 #ifndef STREAM_STAT_COMMON_H
 #define STREAM_STAT_COMMON_H
 
+#include "common_inotify.h"
 #include "common_statistic_handler.h"
 
 #include "stream_common.h"
@@ -41,6 +42,7 @@ enum Stream_Statistic_AnalysisEventType
   STREAM_STATISTIC_ANALYSIS_EVENT_MAX,
   STREAM_STATISTIC_ANALYSIS_EVENT_INVALID
 };
+typedef Common_IDispatch_T<enum Stream_Statistic_AnalysisEventType> Stream_Statistic_IDispatch_t;
 
 //////////////////////////////////////////
 
