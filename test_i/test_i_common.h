@@ -47,6 +47,8 @@
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #include "stream_lib_common.h"
 #include "stream_lib_defines.h"
+#else
+#include "stream_lib_v4l_defines.h"
 #endif // ACE_WIN32 || ACE_WIN64
 
 #if defined (GUI_SUPPORT)
@@ -255,11 +257,40 @@ class Test_I_ALSA_SessionData
                                   struct Stream_MediaFramework_ALSA_MediaType,
                                   struct Stream_State,
                                   struct Stream_Statistic,
-                                  struct Test_I_UserData>::operator+= (rhs_in);
+                                  struct Stream_UserData>::operator+= (rhs_in);
     return *this;
   }
 };
 typedef Stream_SessionData_T<Test_I_ALSA_SessionData> Test_I_ALSA_SessionData_t;
+
+class Test_I_V4L_SessionData
+ : public Stream_SessionDataMediaBase_T<struct Test_I_SessionData,
+                                        struct Stream_MediaFramework_V4L_MediaType,
+                                        struct Stream_State,
+                                        struct Stream_Statistic,
+                                        struct Stream_UserData>
+{
+ public:
+  Test_I_V4L_SessionData ()
+   : Stream_SessionDataMediaBase_T<struct Test_I_SessionData,
+                                   struct Stream_MediaFramework_V4L_MediaType,
+                                   struct Stream_State,
+                                   struct Stream_Statistic,
+                                   struct Stream_UserData> ()
+  {}
+
+  Test_I_V4L_SessionData& operator+= (const Test_I_V4L_SessionData& rhs_in)
+  {
+    // *NOTE*: the idea is to 'merge' the data
+    Stream_SessionDataMediaBase_T<struct Test_I_SessionData,
+                                  struct Stream_MediaFramework_V4L_MediaType,
+                                  struct Stream_State,
+                                  struct Stream_Statistic,
+                                  struct Stream_UserData>::operator+= (rhs_in);
+    return *this;
+  }
+};
+typedef Stream_SessionData_T<Test_I_V4L_SessionData> Test_I_V4L_SessionData_t;
 #endif // ACE_WIN32 || ACE_WIN64
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)

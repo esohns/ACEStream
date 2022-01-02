@@ -37,11 +37,8 @@
 
 #include "stream_macros.h"
 
-Test_I_SignalHandler::Test_I_SignalHandler (enum Common_SignalDispatchType dispatchMode_in,
-                                            ACE_SYNCH_RECURSIVE_MUTEX* lock_in)
-: inherited (dispatchMode_in,
-             lock_in,
-             this) // event handler handle
+Test_I_SignalHandler::Test_I_SignalHandler ()
+: inherited (this) // event handler handle
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_SignalHandler::Test_I_SignalHandler"));
 

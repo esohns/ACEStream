@@ -35,6 +35,11 @@
 #include "stream_common.h"
 #include "stream_configuration.h"
 
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#else
+#include "stream_dev_common.h"
+#endif // ACE_WIN32 || ACE_WIN64
+
 #include "stream_lib_common.h"
 #include "stream_lib_defines.h"
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -119,6 +124,7 @@ struct Test_U_ALSA_ModuleHandlerConfiguration
   }
 
   struct Stream_MediaFramework_ALSA_Configuration* ALSAConfiguration;
+  struct Stream_Device_Identifier                  deviceIdentifier;
   bool                                             manageSoX;
 };
 #endif // ACE_WIN32 || ACE_WIN64

@@ -36,11 +36,8 @@
 #include "test_i_connection_manager_common.h"
 #include "test_i_session_message.h"
 
-Test_I_Source_SignalHandler::Test_I_Source_SignalHandler (enum Common_SignalDispatchType dispatchMode_in,
-                                                          ACE_SYNCH_RECURSIVE_MUTEX* lock_in)
- : inherited (dispatchMode_in,
-              lock_in,
-              this) // event handler handle
+Test_I_Source_SignalHandler::Test_I_Source_SignalHandler ()
+ : inherited (this) // event handler handle
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_Source_SignalHandler::Test_I_Source_SignalHandler"));
 

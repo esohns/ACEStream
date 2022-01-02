@@ -125,6 +125,16 @@ do_printUsage (const std::string& programName_in)
             << std::endl;
   std::cout << ACE_TEXT_ALWAYS_CHAR ("currently available options:")
             << std::endl;
+  std::string path = configuration_path;
+  path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
+  path += ACE_TEXT_ALWAYS_CHAR (COMMON_LOCATION_CONFIGURATION_SUBDIRECTORY);
+  std::string scorer_file = path;
+  scorer_file += ACE_DIRECTORY_SEPARATOR_CHAR_A;
+  scorer_file += ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_SCORER_FILE);
+  std::cout << ACE_TEXT_ALWAYS_CHAR ("-c [STRING] : scorer file [\"")
+            << scorer_file
+            << ACE_TEXT_ALWAYS_CHAR ("\"]")
+            << std::endl;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
   std::cout << ACE_TEXT_ALWAYS_CHAR ("-d [STRING] : device [\"")
@@ -132,9 +142,13 @@ do_printUsage (const std::string& programName_in)
             << ACE_TEXT_ALWAYS_CHAR ("\"]")
             << std::endl;
 #endif // ACE_WIN32 || ACE_WIN64
-  std::string path = configuration_path;
-  path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
-  path += ACE_TEXT_ALWAYS_CHAR (COMMON_LOCATION_CONFIGURATION_SUBDIRECTORY);
+  std::string model_file = path;
+  model_file += ACE_DIRECTORY_SEPARATOR_CHAR_A;
+  model_file += ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_MODEL_FILE);
+  std::cout << ACE_TEXT_ALWAYS_CHAR ("-f [STRING] : model file [\"")
+            << model_file
+            << ACE_TEXT_ALWAYS_CHAR ("\"]")
+            << std::endl;
 #if defined (GUI_SUPPORT)
 #if defined (GTK_SUPPORT) || defined (WXWIDGETS_SUPPORT)
   std::string UI_file = path;
@@ -203,10 +217,12 @@ do_printUsage (const std::string& programName_in)
 bool
 do_processArguments (int argc_in,
                      ACE_TCHAR** argv_in, // cannot be const...
+                     std::string& scorerFile_out,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
                      std::string& deviceIdentifier_out,
 #endif // ACE_WIN32 || ACE_WIN64
+                     std::string& modelFile_out,
 #if defined (GUI_SUPPORT)
                      std::string& UIFile_out,
 #if defined (GTK_SUPPORT)
@@ -237,6 +253,9 @@ do_processArguments (int argc_in,
     ACE_TEXT_ALWAYS_CHAR (COMMON_LOCATION_CONFIGURATION_SUBDIRECTORY);
 
   // initialize results
+  scorerFile_out = configuration_path;
+  scorerFile_out += ACE_DIRECTORY_SEPARATOR_CHAR_A;
+  scorerFile_out += ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_SCORER_FILE);
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
 //  deviceIdentifier_out = ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_DEVICE_DIRECTORY);
@@ -244,6 +263,9 @@ do_processArguments (int argc_in,
   deviceIdentifier_out =
     ACE_TEXT_ALWAYS_CHAR (STREAM_LIB_ALSA_CAPTURE_DEFAULT_DEVICE_NAME);
 #endif // ACE_WIN32 || ACE_WIN64
+  modelFile_out = configuration_path;
+  modelFile_out += ACE_DIRECTORY_SEPARATOR_CHAR_A;
+  modelFile_out += ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_MODEL_FILE);
 #if defined (GUI_SUPPORT)
   UIFile_out = configuration_path;
   UIFile_out += ACE_DIRECTORY_SEPARATOR_CHAR_A;
@@ -270,7 +292,7 @@ do_processArguments (int argc_in,
   useFrameworkRenderer_out = false;
 #endif // ACE_WIN32 || ACE_WIN64
 
-  std::string options_string = ACE_TEXT_ALWAYS_CHAR ("lo::s:tuv");
+  std::string options_string = ACE_TEXT_ALWAYS_CHAR ("c:f:lo::s:tuv");
 #if defined (GUI_SUPPORT)
 #if defined (GTK_SUPPORT) || defined (WXWIDGETS_SUPPORT)
   options_string += ACE_TEXT_ALWAYS_CHAR ("g::");
@@ -307,6 +329,11 @@ do_processArguments (int argc_in,
   {
     switch (option)
     {
+      case 'c':
+      {
+        scorerFile_out = ACE_TEXT_ALWAYS_CHAR (argument_parser.opt_arg ());
+        break;
+      }
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
       case 'd':
@@ -316,6 +343,11 @@ do_processArguments (int argc_in,
         break;
       }
 #endif // ACE_WIN32 || ACE_WIN64
+      case 'f':
+      {
+        modelFile_out = ACE_TEXT_ALWAYS_CHAR (argument_parser.opt_arg ());
+        break;
+      }
 #if defined (GUI_SUPPORT)
 #if defined (GTK_SUPPORT) || defined (WXWIDGETS_SUPPORT)
       case 'g':
@@ -1004,42 +1036,43 @@ do_finalize_mediafoundation ()
 #endif // ACE_WIN32 || ACE_WIN64
 
 void
-do_work (
+do_work (const std::string& scorerFile_in,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
-  const std::string& deviceIdentifier_in,
+         const std::string& deviceIdentifier_in,
 #endif // ACE_WIN32 || ACE_WIN64
+         const std::string& modelFile_in,
 #if defined (GUI_SUPPORT)
-  const std::string& UIDefinitionFile_in,
+         const std::string& UIDefinitionFile_in,
 #endif // GUI_SUPPORT
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  enum Stream_MediaFramework_Type mediaFramework_in,
+         enum Stream_MediaFramework_Type mediaFramework_in,
 #endif // ACE_WIN32 || ACE_WIN64
-  const std::string& targetFilename_in,
-  unsigned int statisticReportingInterval_in,
-  bool mute_in,
+         const std::string& targetFilename_in,
+         unsigned int statisticReportingInterval_in,
+         bool mute_in,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  bool useFrameworkSource_in,
-  bool useFrameworkRenderer_in,
+         bool useFrameworkSource_in,
+         bool useFrameworkRenderer_in,
 #endif // ACE_WIN32 || ACE_WIN64
 #if defined (GUI_SUPPORT)
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  struct Test_I_DirectShow_UI_CBData& directShowCBData_in,
-  struct Test_I_MediaFoundation_UI_CBData& mediaFoundationCBData_in,
+         struct Test_I_DirectShow_UI_CBData& directShowCBData_in,
+         struct Test_I_MediaFoundation_UI_CBData& mediaFoundationCBData_in,
 #else
-  struct Test_I_ALSA_UI_CBData& CBData_in,
+         struct Test_I_ALSA_UI_CBData& CBData_in,
 #endif // ACE_WIN32 || ACE_WIN64
 #endif // GUI_SUPPORT
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  struct Test_I_DirectShow_Configuration& directShowConfiguration_in,
-  struct Test_I_MediaFoundation_Configuration& mediaFoundationConfiguration_in,
+         struct Test_I_DirectShow_Configuration& directShowConfiguration_in,
+         struct Test_I_MediaFoundation_Configuration& mediaFoundationConfiguration_in,
 #else
-  struct Test_I_ALSA_Configuration& configuration_in,
+         struct Test_I_ALSA_Configuration& configuration_in,
 #endif // ACE_WIN32 || ACE_WIN64
-  const ACE_Sig_Set& signalSet_in,
-  const ACE_Sig_Set& ignoredSignalSet_in,
-  Common_SignalActions_t& previousSignalActions_inout,
-  Test_I_SignalHandler& signalHandler_in)
+         const ACE_Sig_Set& signalSet_in,
+         const ACE_Sig_Set& ignoredSignalSet_in,
+         Common_SignalActions_t& previousSignalActions_inout,
+         Test_I_SignalHandler& signalHandler_in)
 {
   STREAM_TRACE (ACE_TEXT ("::do_work"));
 
@@ -1158,14 +1191,19 @@ do_work (
   Test_I_MediaFoundation_StreamConfiguration_t::ITERATOR_T mediafoundation_modulehandler_iterator;
   Test_I_DirectShow_StreamConfiguration_t::ITERATOR_T directshow_modulehandler_iterator;
 #else
-  Test_I_EventHandler_t ui_event_handler (
+  Test_I_ALSA_EventHandler_t ui_event_handler (
 #if defined (GUI_SUPPORT)
-                                          &CBData_in
+                                               &CBData_in
 #endif // GUI_SUPPORT
-                                          );
-  Test_I_MessageHandler_Module event_handler (istream_p,
-                                              ACE_TEXT_ALWAYS_CHAR (STREAM_MISC_MESSAGEHANDLER_DEFAULT_NAME_STRING));
+                                               );
+  Test_I_ALSA_MessageHandler_Module event_handler (istream_p,
+                                                   ACE_TEXT_ALWAYS_CHAR (STREAM_MISC_MESSAGEHANDLER_DEFAULT_NAME_STRING));
   Test_I_ALSA_StreamConfiguration_t::ITERATOR_T modulehandler_iterator;
+  struct Test_I_ALSA_StreamConfiguration stream_configuration;
+  // *NOTE*: DeepSpeech requires PCM mono signed 16 bits at 44100Hz
+  stream_configuration.format.channels = 1;
+  stream_configuration.format.format = SND_PCM_FORMAT_S16;
+  stream_configuration.format.rate = 44100;
   struct Stream_MediaFramework_ALSA_Configuration ALSA_configuration; // capture
   ALSA_configuration.asynch = STREAM_LIB_ALSA_CAPTURE_DEFAULT_ASYNCH;
   ALSA_configuration.bufferSize = STREAM_LIB_ALSA_CAPTURE_DEFAULT_BUFFER_SIZE;
@@ -1173,13 +1211,13 @@ do_work (
   ALSA_configuration.periods = STREAM_LIB_ALSA_CAPTURE_DEFAULT_PERIODS;
   ALSA_configuration.periodSize = STREAM_LIB_ALSA_CAPTURE_DEFAULT_PERIOD_SIZE;
   ALSA_configuration.periodTime = STREAM_LIB_ALSA_CAPTURE_DEFAULT_PERIOD_TIME;
+  ALSA_configuration.format = &stream_configuration.format;
   struct Stream_MediaFramework_ALSA_Configuration ALSA_configuration_2; // playback
 //  ALSA_configuration_2.asynch = false;
   ALSA_configuration_2.rateResample = true;
-  struct Test_I_ALSA_ModuleHandlerConfiguration modulehandler_configuration;
-  struct Test_I_ALSA_ModuleHandlerConfiguration modulehandler_configuration_2; // renderer module
-  struct Test_I_ALSA_ModuleHandlerConfiguration modulehandler_configuration_3; // file writer module
-  struct Test_I_ALSA_StreamConfiguration stream_configuration;
+  struct Test_I_SpeechCommand_ALSA_ModuleHandlerConfiguration modulehandler_configuration;
+  struct Test_I_SpeechCommand_ALSA_ModuleHandlerConfiguration modulehandler_configuration_2; // renderer module
+  struct Test_I_SpeechCommand_ALSA_ModuleHandlerConfiguration modulehandler_configuration_3; // file writer module
 #endif // ACE_WIN32 || ACE_WIN64
 
   ACE_ASSERT (allocator_configuration_p);
@@ -1483,16 +1521,8 @@ do_work (
   modulehandler_configuration.ALSAConfiguration = &ALSA_configuration;
   stream_configuration.allocatorConfiguration = allocator_configuration_p;
   modulehandler_configuration.deviceIdentifier.identifier = deviceIdentifier_in;
-  modulehandler_configuration.effect = effectName_in;
-  modulehandler_configuration.generatorConfiguration =
-    &configuration_in.generatorConfiguration;
   modulehandler_configuration.messageAllocator = &message_allocator;
   modulehandler_configuration.mute = mute_in;
-#if defined (GUI_SUPPORT)
-#if defined (GTK_SUPPORT)
-  modulehandler_configuration.surfaceLock = &CBData_in.surfaceLock;
-#endif // GTK_SUPPORT
-#endif // GUI_SUPPORT
 #if defined (GUI_SUPPORT)
 #if defined (GTK_SUPPORT)
 #if defined (GTKGL_SUPPORT)
@@ -1505,8 +1535,6 @@ do_work (
   modulehandler_configuration.printProgressDot = UIDefinitionFile_in.empty ();
   modulehandler_configuration.statisticReportingInterval =
     ACE_Time_Value (statisticReportingInterval_in, 0);
-  modulehandler_configuration.streamConfiguration =
-    &configuration_in.streamConfiguration;
   modulehandler_configuration.subscriber = &ui_event_handler;
 
   configuration_in.streamConfiguration.initialize (module_configuration,
@@ -1670,12 +1698,9 @@ do_work (
     }
   } // end SWITCH
 #else
-  configuration_in.signalHandlerConfiguration.messageAllocator =
-    &message_allocator;
   signalHandler_in.initialize (configuration_in.signalHandlerConfiguration);
 #endif // ACE_WIN32 || ACE_WIN64
-  if (unlikely (!Common_Signal_Tools::initialize (((COMMON_EVENT_DEFAULT_DISPATCH == COMMON_EVENT_DISPATCH_REACTOR) ? COMMON_SIGNAL_DISPATCH_REACTOR
-                                                                                                                    : COMMON_SIGNAL_DISPATCH_PROACTOR),
+  if (unlikely (!Common_Signal_Tools::initialize (COMMON_SIGNAL_DEFAULT_DISPATCH_MODE,
                                                   signalSet_in,
                                                   ignoredSignalSet_in,
                                                   &signalHandler_in,
@@ -1962,9 +1987,14 @@ ACE_TMAIN (int argc_in,
 
   std::string configuration_path =
     Common_File_Tools::getWorkingDirectory ();
+  std::string path = configuration_path;
+  path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
+  path += ACE_TEXT_ALWAYS_CHAR (COMMON_LOCATION_CONFIGURATION_SUBDIRECTORY);
 
   // step1a set defaults
-  //unsigned int buffer_size = TEST_U_STREAM_AUDIOEFFECT_DEFAULT_BUFFER_SIZE;
+  std::string scorer_file = path;
+  scorer_file += ACE_DIRECTORY_SEPARATOR_CHAR_A;
+  scorer_file += ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_SCORER_FILE);
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
   std::string device_identifier_string =
@@ -1972,13 +2002,11 @@ ACE_TMAIN (int argc_in,
     //  device_identifier_string += ACE_DIRECTORY_SEPARATOR_CHAR_A;
     //  device_identifier_string +=
     ACE_TEXT_ALWAYS_CHAR (STREAM_LIB_ALSA_CAPTURE_DEFAULT_DEVICE_NAME);
-  std::string effect_name;
 #endif // ACE_WIN32 || ACE_WIN64
-  std::string path;
+  std::string model_file = path;
+  model_file += ACE_DIRECTORY_SEPARATOR_CHAR_A;
+  model_file += ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_MODEL_FILE);
 #if defined (GUI_SUPPORT)
-  path = configuration_path;
-  path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
-  path += ACE_TEXT_ALWAYS_CHAR (COMMON_LOCATION_CONFIGURATION_SUBDIRECTORY);
   std::string UI_definition_file = path;
   UI_definition_file += ACE_DIRECTORY_SEPARATOR_CHAR_A;
   UI_definition_file += ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_DEFINITION_FILE);
@@ -2005,13 +2033,52 @@ ACE_TMAIN (int argc_in,
   bool use_framework_renderer = false;
 #endif // ACE_WIN32 || ACE_WIN64
 
+  ACE_High_Res_Timer timer;
+  ACE_Time_Value working_time;
+  ACE_Time_Value user_time;
+  ACE_Time_Value system_time;
+
+  Common_MessageStack_t* logstack_p = NULL;
+  ACE_SYNCH_MUTEX* lock_p = NULL;
+  Common_Logger_t logger (NULL, NULL);
+  std::string log_file_name;
+  ACE_Sig_Set signal_set (false); // fill ?
+  ACE_Sig_Set ignored_signal_set (false); // fill ?
+  Common_SignalActions_t previous_signal_actions;
+  sigset_t previous_signal_mask;
+  Test_I_SignalHandler signal_handler;
+
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#else
+  struct Test_I_ALSA_Configuration configuration;
+#if defined(GUI_SUPPORT)
+  struct Test_I_ALSA_UI_CBData ui_cb_data;
+#endif // GUI_SUPPORT
+#endif // ACE_WIN32 || ACE_WIN64
+
+#if defined(GUI_SUPPORT)
+#if defined(GTK_SUPPORT)
+  Common_UI_GtkBuilderDefinition_t gtk_ui_definition;
+#if defined(GTKGL_SUPPORT)
+  struct Common_UI_GTK_GLConfiguration* gtk_configuration_p = NULL;
+#else
+  struct Common_UI_GTK_Configuration* gtk_configuration_p = NULL;
+#endif // GTKGL_SUPPORT
+  Common_UI_GTK_Manager_t* gtk_manager_p = NULL;
+  Common_UI_GTK_State_t* state_p = NULL;
+#endif // GTK_SUPPORT
+  struct Test_I_UI_CBData* cb_data_base_p = NULL;
+#endif // GUI_SUPPORT
+
   // step1b: parse/process/validate configuration
   if (unlikely (!do_processArguments (argc_in,
                                       argv_in,
+                                      scorer_file,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
                                       device_identifier_string,
 #endif // ACE_WIN32 || ACE_WIN64
+                                      model_file,
 #if defined (GUI_SUPPORT)
                                       UI_definition_file,
 #if defined (GTK_SUPPORT)
@@ -2047,8 +2114,10 @@ ACE_TMAIN (int argc_in,
     ACE_DEBUG ((LM_WARNING,
                 ACE_TEXT ("limiting the number of message buffers could (!) lead to deadlocks --> make sure you know what you are doing...\n")));
 #if defined (GUI_SUPPORT)
-  if ((!UI_definition_file.empty () &&
-       !Common_File_Tools::isReadable (UI_definition_file))
+  if (!Common_File_Tools::isReadable (scorer_file)
+      || !Common_File_Tools::isReadable (model_file)
+      || (!UI_definition_file.empty () &&
+          !Common_File_Tools::isReadable (UI_definition_file))
 #if defined (GTK_SUPPORT)
       || (!UI_CSS_file.empty () &&
           !Common_File_Tools::isReadable (UI_CSS_file))
@@ -2070,19 +2139,14 @@ ACE_TMAIN (int argc_in,
 #if defined (GUI_SUPPORT)
   Common_UI_Tools::initialize ();
 #if defined (GTK_SUPPORT)
-  Common_UI_GtkBuilderDefinition_t gtk_ui_definition;
 #if defined (GTKGL_SUPPORT)
-  struct Common_UI_GTK_GLConfiguration* gtk_configuration_p = NULL;
 #else
-  struct Common_UI_GTK_Configuration* gtk_configuration_p = NULL;
 #endif // GTKGL_SUPPORT
-  Common_UI_GTK_Manager_t* gtk_manager_p =
+  gtk_manager_p =
     COMMON_UI_GTK_MANAGER_SINGLETON::instance ();
   ACE_ASSERT (gtk_manager_p);
-  Common_UI_GTK_State_t& state_r =
-    const_cast<Common_UI_GTK_State_t&> (gtk_manager_p->getR ());
+  state_p = &const_cast<Common_UI_GTK_State_t&> (gtk_manager_p->getR ());
 #endif // GTK_SUPPORT
-  struct Test_I_UI_CBData* cb_data_base_p = NULL;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   struct Test_I_DirectShow_Configuration directshow_configuration;
   directshow_configuration.filterConfiguration.pinConfiguration =
@@ -2155,12 +2219,10 @@ ACE_TMAIN (int argc_in,
     }
   } // end SWITCH
 #else
-  struct Test_I_ALSA_Configuration configuration;
-  struct Test_I_ALSA_UI_CBData ui_cb_data;
   ui_cb_data.configuration = &configuration;
 
 #if defined (GTK_SUPPORT)
-  ui_cb_data.progressData.state = &state_r;
+  ui_cb_data.progressData.state = state_p;
 
   configuration.GTKConfiguration.argc = argc_in;
   configuration.GTKConfiguration.argv = argv_in;
@@ -2181,20 +2243,22 @@ ACE_TMAIN (int argc_in,
   ACE_ASSERT (cb_data_base_p);
 #endif // GUI_SUPPORT
 
-  Common_MessageStack_t* logstack_p = NULL;
-  ACE_SYNCH_MUTEX* lock_p = NULL;
 #if defined (GUI_SUPPORT)
 #if defined (GTK_SUPPORT)
-  cb_data_base_p->UIState = &state_r;
-  logstack_p = &state_r.logStack;
-  lock_p = &state_r.logStackLock;
+  cb_data_base_p->UIState = state_p;
+  logstack_p = &state_p->logStack;
+  lock_p = &state_p->logStackLock;
 #endif // GTK_SUPPORT
 #endif // GUI_SUPPORT
 
   // step1d: initialize logging and/or tracing
-  Common_Logger_t logger (logstack_p,
-                          lock_p);
-  std::string log_file_name;
+  if (unlikely (!logger.initialize (logstack_p,
+                                    lock_p)))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to Common_Logger_T::initialize(), aborting\n")));
+    goto error;
+  } // end IF
   if (log_to_file)
     log_file_name =
       Common_Log_Tools::getLogFilename (ACE_TEXT_ALWAYS_CHAR (ACEStream_PACKAGE_NAME),
@@ -2213,12 +2277,8 @@ ACE_TMAIN (int argc_in,
   } // end IF
 
   // step1e: pre-initialize signal handling
-  ACE_Sig_Set signal_set (false); // fill ?
-  ACE_Sig_Set ignored_signal_set (false); // fill ?
   do_initializeSignals (signal_set,
                         ignored_signal_set);
-  Common_SignalActions_t previous_signal_actions;
-  sigset_t previous_signal_mask;
   result = ACE_OS::sigemptyset (&previous_signal_mask);
   if (unlikely (result == -1))
   {
@@ -2235,14 +2295,6 @@ ACE_TMAIN (int argc_in,
                 ACE_TEXT ("failed to Common_Signal_Tools::preInitialize(), aborting\n")));
     goto error;
   } // end IF
-  ACE_SYNCH_RECURSIVE_MUTEX* lock_2 = NULL;
-#if defined (GUI_SUPPORT)
-#if defined (GTK_SUPPORT)
-  lock_2 = &state_r.subscribersLock;
-#endif // GTK_SUPPORT
-#endif // GUI_SUPPORT
-  Test_I_SignalHandler signal_handler (COMMON_SIGNAL_DEFAULT_DISPATCH_MODE,
-                                       lock_2);
 
   // step1f: handle specific program modes
   if (unlikely (print_version_and_exit))
@@ -2291,14 +2343,14 @@ ACE_TMAIN (int argc_in,
 #endif // GTK_SUPPORT
 #endif // GUI_SUPPORT
 
-  ACE_High_Res_Timer timer;
   timer.start ();
   // step2: do actual work
-  do_work (
+  do_work (scorer_file,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
            device_identifier_string,
 #endif // ACE_WIN32 || ACE_WIN64
+           model_file,
 #if defined (GUI_SUPPORT)
            UI_definition_file,
 #endif // GUI_SUPPORT
@@ -2332,7 +2384,6 @@ ACE_TMAIN (int argc_in,
            signal_handler);
   timer.stop ();
 
-  ACE_Time_Value working_time;
   timer.elapsed_time (working_time);
   ACE_DEBUG ((LM_DEBUG,
               ACE_TEXT ("total working time (h:m:s.us): \"%s\"\n"),
@@ -2356,8 +2407,8 @@ ACE_TMAIN (int argc_in,
   ACE_Profile_Timer::Rusage elapsed_rusage;
   ACE_OS::memset (&elapsed_rusage, 0, sizeof (elapsed_rusage));
   process_profile.elapsed_rusage (elapsed_rusage);
-  ACE_Time_Value user_time (elapsed_rusage.ru_utime);
-  ACE_Time_Value system_time (elapsed_rusage.ru_stime);
+  user_time.set (elapsed_rusage.ru_utime);
+  system_time.set (elapsed_rusage.ru_stime);
 
   // debug info
 #if defined (ACE_WIN32) || defined (ACE_WIN64)

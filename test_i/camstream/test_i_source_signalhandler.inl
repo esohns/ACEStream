@@ -29,11 +29,8 @@
 #include "stream_macros.h"
 
 template <typename ConfigurationType>
-Test_I_Source_SignalHandler_T<ConfigurationType>::Test_I_Source_SignalHandler_T (enum Common_SignalDispatchType dispatchMode_in,
-                                                                                 ACE_SYNCH_RECURSIVE_MUTEX* lock_in)
- : inherited (dispatchMode_in,
-              lock_in,
-              this) // event handler handle
+Test_I_Source_SignalHandler_T<ConfigurationType>::Test_I_Source_SignalHandler_T ()
+ : inherited (this) // event handler handle
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_Source_SignalHandler_T::Test_I_Source_SignalHandler_T"));
 

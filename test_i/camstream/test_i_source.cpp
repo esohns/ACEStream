@@ -1425,9 +1425,7 @@ do_work (const struct Stream_Device_Identifier& deviceIdentifier_in,
     }
   } // end SWITCH
 #else
-  Test_I_Source_V4L_SignalHandler_t signal_handler ((useReactor_in ? COMMON_SIGNAL_DISPATCH_REACTOR
-                                                                   : COMMON_SIGNAL_DISPATCH_PROACTOR),
-                                                     &v4l2CBData_in.subscribersLock);
+  Test_I_Source_V4L_SignalHandler_t signal_handler;
   event_handler_p =
     dynamic_cast<Test_I_Source_V4L_Module_EventHandler*> (event_handler_module.writer ());
 #endif // ACE_WIN32 || ACE_WIN64

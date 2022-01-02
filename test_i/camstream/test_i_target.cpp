@@ -2587,7 +2587,7 @@ ACE_TMAIN (int argc_in,
 
   Common_MessageStack_t* logstack_p = NULL;
   ACE_SYNCH_MUTEX* lock_p = NULL;
-  ACE_SYNCH_RECURSIVE_MUTEX* lock_2 = NULL;
+//  ACE_SYNCH_RECURSIVE_MUTEX* lock_2 = NULL;
 #if defined (GUI_SUPPORT)
   struct Test_I_CamStream_UI_CBData* ui_cb_data_p = NULL;
 #if defined (GTK_USE)
@@ -2598,7 +2598,7 @@ ACE_TMAIN (int argc_in,
     const_cast<Common_UI_GTK_State_t&> (gtk_manager_p->getR ());
   logstack_p = &state_r.logStack;
   lock_p = &state_r.logStackLock;
-  lock_2 = &state_r.subscribersLock;
+//  lock_2 = &state_r.subscribersLock;
 #endif // GTK_USE
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   struct Test_I_Target_DirectShow_UI_CBData directshow_ui_cb_data;
@@ -2726,9 +2726,7 @@ ACE_TMAIN (int argc_in,
                                                                                              : COMMON_SIGNAL_DISPATCH_PROACTOR),
                                                                                 lock_2);
 #else
-  Test_I_Target_SignalHandler_t signal_handler ((use_reactor ? COMMON_SIGNAL_DISPATCH_REACTOR
-                                                             : COMMON_SIGNAL_DISPATCH_PROACTOR),
-                                                lock_2);
+  Test_I_Target_SignalHandler_t signal_handler;
 #endif // ACE_WIN32 || ACE_WIN64
   ACE_Sig_Set signal_set (false);
   ACE_Sig_Set ignored_signal_set (false);

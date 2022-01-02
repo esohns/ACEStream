@@ -632,27 +632,32 @@ load_all_formats (GtkListStore* listStore_in)
   gtk_list_store_clear (listStore_in);
 
   GtkTreeIter iterator;
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
   gtk_list_store_append (listStore_in, &iterator);
   gtk_list_store_set (listStore_in, &iterator,
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
                       0, Stream_MediaFramework_Tools::mediaSubTypeToString (MEDIASUBTYPE_PCM, STREAM_MEDIAFRAMEWORK_DIRECTSHOW).c_str (),
                       1, ACE_TEXT_ALWAYS_CHAR (Common_Tools::GUIDToString (MEDIASUBTYPE_PCM).c_str ()),
                       2, -1,
-#else
-                      0, Stream_MediaFramework_Tools::mediaSubTypeToString (MEDIASUBTYPE_PCM, STREAM_MEDIAFRAMEWORK_DIRECTSHOW).c_str (),
-                      1, ACE_TEXT_ALWAYS_CHAR (Common_Tools::GUIDToString (MEDIASUBTYPE_PCM).c_str ()),
-                      2, -1,
-#endif // ACE_WIN32 || ACE_WIN64
                       -1);
   gtk_list_store_append (listStore_in, &iterator);
   gtk_list_store_set (listStore_in, &iterator,
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
                       0, Stream_MediaFramework_Tools::mediaSubTypeToString (MEDIASUBTYPE_IEEE_FLOAT, STREAM_MEDIAFRAMEWORK_DIRECTSHOW).c_str (),
                       1, ACE_TEXT_ALWAYS_CHAR (Common_Tools::GUIDToString (MEDIASUBTYPE_IEEE_FLOAT).c_str ()),
                       2, -1,
-#else
-#endif // ACE_WIN32 || ACE_WIN64
                       -1);
+#else
+  for (int i = 0;
+       i <= static_cast<int> (SND_PCM_FORMAT_LAST);
+       ++i)
+  {
+    gtk_list_store_append (listStore_in, &iterator);
+    gtk_list_store_set (listStore_in, &iterator,
+                        0, snd_pcm_format_description (static_cast<enum _snd_pcm_format> (i)),
+                        1, snd_pcm_format_name (static_cast<enum _snd_pcm_format> (i)),
+                        2, i,
+                        -1);
+  } // end FOR
+#endif // ACE_WIN32 || ACE_WIN64
   return true;
 }
 
@@ -2661,6 +2666,7 @@ load_formats (struct _snd_pcm* handle_in,
   STREAM_TRACE (ACE_TEXT ("::load_formats"));
 
   // sanity check(s)
+  ACE_ASSERT (handle_in);
   ACE_ASSERT (listStore_in);
 
   // initialize result
@@ -2668,23 +2674,6 @@ load_formats (struct _snd_pcm* handle_in,
 
   GtkTreeIter iterator;
   enum _snd_pcm_format format_e = SND_PCM_FORMAT_UNKNOWN;
-  if (!handle_in)
-  {
-    for (int i = 0;
-          i <= static_cast<int> (SND_PCM_FORMAT_LAST);
-          ++i)
-    {
-      format_e = static_cast<enum _snd_pcm_format> (i);
-      gtk_list_store_append (listStore_in, &iterator);
-      gtk_list_store_set (listStore_in, &iterator,
-                          0, snd_pcm_format_description (format_e),
-                          1, snd_pcm_format_name (format_e),
-                          2, format_e,
-                          -1);
-    } // end FOR
-    return true;
-  } // end IF
-
   struct _snd_pcm_hw_params* format_p = NULL;
   snd_pcm_format_mask_t* format_mask_p = NULL;
   std::set<snd_pcm_format_t> formats_supported;
@@ -3831,17 +3820,17 @@ stream_processing_function (void* arg_in)
     }
   } // end SWITCH
 #else
-  struct Test_U_AudioEffect_UI_CBData* cb_data_p = NULL;
+  struct Test_U_AudioEffect_UI_CBData* ui_cb_data_p = NULL;
   const Test_U_AudioEffect_SessionData_t* session_data_container_p = NULL;
 
   // sanity check(s)
   struct Test_U_AudioEffect_ThreadData* thread_data_p =
     static_cast<struct Test_U_AudioEffect_ThreadData*> (arg_in);
-  cb_data_p = thread_data_p->CBData;
-  ACE_ASSERT (cb_data_p);
-  ACE_ASSERT (cb_data_p->configuration);
-  ACE_ASSERT (cb_data_p->stream);
-  state_p = cb_data_p->UIState;
+  ui_cb_data_p = thread_data_p->CBData;
+  ACE_ASSERT (ui_cb_data_p);
+  ACE_ASSERT (ui_cb_data_p->configuration);
+  ACE_ASSERT (ui_cb_data_p->stream);
+  state_p = ui_cb_data_p->UIState;
   ACE_ASSERT (state_p);
   iterator =
     state_p->builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN));
@@ -3909,12 +3898,12 @@ stream_processing_function (void* arg_in)
   } // end SWITCH
 #else
   Test_U_AudioEffect_ALSA_Stream::IINITIALIZE_T* iinitialize_p =
-    dynamic_cast<Test_U_AudioEffect_ALSA_Stream::IINITIALIZE_T*> (cb_data_p->stream);
+    dynamic_cast<Test_U_AudioEffect_ALSA_Stream::IINITIALIZE_T*> (ui_cb_data_p->stream);
   ACE_ASSERT (iinitialize_p);
   result_2 =
-    iinitialize_p->initialize (cb_data_p->configuration->streamConfiguration);
-  istream_p = dynamic_cast<Stream_IStream_t*> (cb_data_p->stream);
-  istream_control_p = cb_data_p->stream;
+    iinitialize_p->initialize (ui_cb_data_p->configuration->streamConfiguration);
+  istream_p = dynamic_cast<Stream_IStream_t*> (ui_cb_data_p->stream);
+  istream_control_p = ui_cb_data_p->stream;
   Common_IGetR_2_T<Test_U_AudioEffect_SessionData_t>* iget_p = NULL;
 #endif // ACE_WIN32 || ACE_WIN64
   if (!result_2)
@@ -3966,7 +3955,7 @@ stream_processing_function (void* arg_in)
     }
   } // end SWITCH
 #else
-  cb_data_p->resizeNotification = resize_notification_p;
+  ui_cb_data_p->resizeNotification = resize_notification_p;
 #endif // ACE_WIN32 || ACE_WIN64
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -4006,12 +3995,12 @@ stream_processing_function (void* arg_in)
   } // end SWITCH
 #else
   iget_p =
-    dynamic_cast<Common_IGetR_2_T<Test_U_AudioEffect_SessionData_t>*> (cb_data_p->stream);
+    dynamic_cast<Common_IGetR_2_T<Test_U_AudioEffect_SessionData_t>*> (ui_cb_data_p->stream);
   ACE_ASSERT (iget_p);
   session_data_container_p = &iget_p->getR_2 ();
   session_data_p =
       &const_cast<Test_U_AudioEffect_SessionData&> (session_data_container_p->getR ());
-  cb_data_p->progressData.sessionId = session_data_p->sessionId;
+  ui_cb_data_p->progressData.sessionId = session_data_p->sessionId;
 #endif // ACE_WIN32 || ACE_WIN64
   converter.clear ();
   converter.str (ACE_TEXT_ALWAYS_CHAR (""));
@@ -4057,7 +4046,7 @@ stream_processing_function (void* arg_in)
     }
   } // end SWITCH
 #else
-  data_p->resizeNotification = NULL;
+  ui_cb_data_p->resizeNotification = NULL;
 #endif // ACE_WIN32 || ACE_WIN64
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -4104,8 +4093,8 @@ continue_:
       }
     } // end SWITCH
 #else
-    ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, state_r.lock, arg_in);
-    data_p->progressData.completedActions.insert (thread_data_base_p->eventSourceId);
+    ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, state_p->lock, arg_in);
+    ui_cb_data_p->progressData.completedActions.insert (thread_data_base_p->eventSourceId);
 #endif // ACE_WIN32 || ACE_WIN64
   } // end lock scope
 
@@ -6287,11 +6276,11 @@ idle_update_progress_cb (gpointer userData_in)
   // calculate fps
   elapsed = now - previous_timestamp;
   bytes_per_second_i =
-    static_cast<ACE_UINT32> ((double)(data_p->statistic.bytes - previous_bytes_i) * (MILLISECONDS / (double)elapsed.msec ()));
+    static_cast<ACE_UINT32> (static_cast<double> (data_p->statistic.bytes - previous_bytes_i) * (1000 / (double)elapsed.msec ()));
   previous_timestamp = now;
   previous_bytes_i = data_p->statistic.bytes;
   converter <<
-    static_cast<ACE_UINT32> (bytes_per_second_i / (double)data_p->bytesPerFrame);
+    static_cast<ACE_UINT32> (bytes_per_second_i / static_cast<double> (data_p->bytesPerFrame));
   converter << ACE_TEXT_ALWAYS_CHAR (" fps");
   gtk_progress_bar_set_text (progress_bar_p,
                              (done_b ? ACE_TEXT_ALWAYS_CHAR ("")

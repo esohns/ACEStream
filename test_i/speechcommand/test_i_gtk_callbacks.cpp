@@ -634,16 +634,17 @@ stream_processing_function (void* arg_in)
   } // end SWITCH
 #else
   struct Test_I_ALSA_UI_ThreadData* thread_data_p = NULL;
-  const Test_I_ALSA_SessionData_t* session_data_container_p = NULL;
+  const Test_I_SpeechCommand_ALSA_SessionData_t* session_data_container_p =
+    NULL;
 
   // sanity check(s)
   thread_data_p =
     static_cast<struct Test_I_ALSA_UI_ThreadData*> (arg_in);
-  struct Test_I_ALSA_UI_CBData* cb_data_p = thread_data_p->CBData;
-  ACE_ASSERT (cb_data_p);
-  ACE_ASSERT (cb_data_p->configuration);
-  ACE_ASSERT (cb_data_p->stream);
-  state_p = cb_data_p->UIState;
+  struct Test_I_ALSA_UI_CBData* ui_cb_data_p = thread_data_p->CBData;
+  ACE_ASSERT (ui_cb_data_p);
+  ACE_ASSERT (ui_cb_data_p->configuration);
+  ACE_ASSERT (ui_cb_data_p->stream);
+  state_p = ui_cb_data_p->UIState;
   ACE_ASSERT (state_p);
   iterator =
     state_p->builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN));
@@ -718,21 +719,21 @@ stream_processing_function (void* arg_in)
   } // end SWITCH
 #else
   Test_I_ALSA_Stream::IINITIALIZE_T* iinitialize_p =
-    dynamic_cast<Test_I_ALSA_Stream::IINITIALIZE_T*> (cb_data_p->stream);
+    dynamic_cast<Test_I_ALSA_Stream::IINITIALIZE_T*> (ui_cb_data_p->stream);
   ACE_ASSERT (iinitialize_p);
   result_2 =
-    iinitialize_p->initialize (cb_data_p->configuration->streamConfiguration);
-  istream_p = dynamic_cast<Stream_IStream_t*> (cb_data_p->stream);
-  istream_control_p = cb_data_p->stream;
-  Common_IGetR_2_T<Test_I_ALSA_SessionData_t>* iget_p =
-    dynamic_cast<Common_IGetR_2_T<Test_I_ALSA_SessionData_t>*> (cb_data_p->stream);
+    iinitialize_p->initialize (ui_cb_data_p->configuration->streamConfiguration);
+  istream_p = dynamic_cast<Stream_IStream_t*> (ui_cb_data_p->stream);
+  istream_control_p = ui_cb_data_p->stream;
+  Common_IGetR_2_T<Test_I_SpeechCommand_ALSA_SessionData_t>* iget_p =
+    dynamic_cast<Common_IGetR_2_T<Test_I_SpeechCommand_ALSA_SessionData_t>*> (ui_cb_data_p->stream);
   ACE_ASSERT (iget_p);
   session_data_container_p = &iget_p->getR_2 ();
   session_data_p =
-    &const_cast<Test_I_SessionData&> (session_data_container_p->getR ());
-  cb_data_p->progressData.sessionId = session_data_p->sessionId;
+    &const_cast<Test_I_SpeechCommand_ALSA_SessionData&> (session_data_container_p->getR ());
+  ui_cb_data_p->progressData.sessionId = session_data_p->sessionId;
 #endif // ACE_WIN32 || ACE_WIN64
-  if (!result_2)
+  if (unlikely (!result_2))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to initialize processing stream: \"%m\", aborting\n")));
@@ -800,8 +801,8 @@ continue_:
       }
     } // end SWITCH
 #else
-    ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, state_r.lock, arg_in);
-    data_p->progressData.completedActions.insert (thread_data_base_p->eventSourceId);
+    ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, state_p->lock, arg_in);
+    ui_cb_data_p->progressData.completedActions.insert (thread_data_base_p->eventSourceId);
 #endif // ACE_WIN32 || ACE_WIN64
   } // end lock scope
 
@@ -902,8 +903,8 @@ idle_initialize_UI_cb (gpointer userData_in)
   } // end SWITCH
 #else
   // sanity check(s)
-  struct Test_I_UI_ALSA_CBData* ui_cb_data_p =
-    static_cast<struct Test_I_UI_ALSA_CBData*> (userData_in);
+  struct Test_I_ALSA_UI_CBData* ui_cb_data_p =
+    static_cast<struct Test_I_ALSA_UI_CBData*> (userData_in);
   ACE_ASSERT (ui_cb_data_p);
   ACE_ASSERT (ui_cb_data_p->configuration);
   ACE_ASSERT (ui_cb_data_p->UIState);
@@ -912,13 +913,13 @@ idle_initialize_UI_cb (gpointer userData_in)
   ACE_ASSERT (iterator != ui_cb_data_p->UIState->builders.end ());
   Test_I_ALSA_StreamConfiguration_t::ITERATOR_T modulehandler_configuration_iterator =
     ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
-  ACE_ASSERT (modulehandler_configuration_iterator != data_p->configuration->streamConfiguration.end ());
+  ACE_ASSERT (modulehandler_configuration_iterator != ui_cb_data_p->configuration->streamConfiguration.end ());
   Test_I_ALSA_StreamConfiguration_t::ITERATOR_T modulehandler_configuration_iterator_2 = // renderer
     ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_TARGET_ALSA_DEFAULT_NAME_STRING));
-  ACE_ASSERT (modulehandler_configuration_iterator_2 != data_p->configuration->streamConfiguration.end ());
+  ACE_ASSERT (modulehandler_configuration_iterator_2 != ui_cb_data_p->configuration->streamConfiguration.end ());
   Test_I_ALSA_StreamConfiguration_t::ITERATOR_T modulehandler_configuration_iterator_3 = // file writer
     ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_ENCODER_WAV_DEFAULT_NAME_STRING));
-  ACE_ASSERT (modulehandler_configuration_iterator_3 != data_p->configuration->streamConfiguration.end ());
+  ACE_ASSERT (modulehandler_configuration_iterator_3 != ui_cb_data_p->configuration->streamConfiguration.end ());
 #endif // ACE_WIN32 || ACE_WIN64
 
   // step1: initialize widgets
@@ -1370,7 +1371,6 @@ idle_initialize_UI_cb (gpointer userData_in)
   gtk_widget_show_all (GTK_WIDGET (dialog_p));
 
   // step11: activate some widgets
-  gint n_rows = 0;
   combo_box_p =
     GTK_COMBO_BOX (gtk_builder_get_object ((*iterator).second.second,
                                            ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_COMBOBOX_DEVICE_NAME)));
@@ -1560,8 +1560,8 @@ idle_finalize_UI_cb (gpointer userData_in)
   } // end SWITCH
 #else
   // sanity check(s)
-  struct Test_I_UI_CBData* ui_cb_data_p =
-    static_cast<struct Test_I_UI_CBData*> (userData_in);
+  struct Test_I_ALSA_UI_CBData* ui_cb_data_p =
+    static_cast<struct Test_I_ALSA_UI_CBData*> (userData_in);
   ACE_ASSERT (ui_cb_data_p);
   ACE_ASSERT (ui_cb_data_p->configuration);
   Test_I_ALSA_StreamConfiguration_t::ITERATOR_T modulehandler_configuration_iterator =
@@ -1588,7 +1588,7 @@ idle_finalize_UI_cb (gpointer userData_in)
   if (ui_cb_data_p->handle)
   {
     result = snd_pcm_close (ui_cb_data_p->handle);
-    if (result < 0)
+    if (unlikely (result < 0))
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to snd_pcm_close(): \"%s\", continuing\n"),
                   ACE_TEXT (snd_strerror (result))));
@@ -1929,7 +1929,7 @@ action_record_activate_cb (GtkAction* action_in,
 #else
   // sanity check(s)
   struct Test_I_ALSA_UI_CBData* ui_cb_data_p =
-    static_cast<struct Test_I_ALSA_UI_ThreadData*> (userData_in);
+    static_cast<struct Test_I_ALSA_UI_CBData*> (userData_in);
   ACE_ASSERT (ui_cb_data_p);
   state_p = ui_cb_data_p->UIState;
 #endif // ACE_WIN32 || ACE_WIN64
@@ -2189,10 +2189,9 @@ continue_:
   } // end SWITCH
 #else
   // sanity check(s)
-  struct Test_I_UI_CBData* ui_cb_data_p =
-    static_cast<struct Test_I_UI_CBData*> (userData_in);
+  struct Test_I_ALSA_UI_CBData* ui_cb_data_p =
+    static_cast<struct Test_I_ALSA_UI_CBData*> (userData_in);
   ACE_ASSERT (ui_cb_data_p->configuration);
-
   Test_I_ALSA_StreamConfiguration_t::ITERATOR_T modulehandler_configuration_iterator =
     ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (modulehandler_configuration_iterator != ui_cb_data_p->configuration->streamConfiguration.end ());
@@ -2345,8 +2344,8 @@ button_quit_clicked_cb (GtkWidget* widget_in,
   } // end SWITCH
 #else
   // sanity check(s)
-  struct Test_I_UI_CBData* ui_cb_data_p =
-    static_cast<struct Test_I_UI_CBData*> (userData_in);
+  struct Test_I_ALSA_UI_CBData* ui_cb_data_p =
+    static_cast<struct Test_I_ALSA_UI_CBData*> (userData_in);
   ACE_ASSERT (ui_cb_data_p);
   ACE_ASSERT (ui_cb_data_p->configuration);
   Test_I_ALSA_StreamConfiguration_t::ITERATOR_T modulehandler_configuration_iterator =
@@ -2358,7 +2357,7 @@ button_quit_clicked_cb (GtkWidget* widget_in,
     dynamic_cast<Stream_IStreamControlBase_t*> (ui_cb_data_p->stream);
   ACE_ASSERT (istream_control_p);
   status_e = istream_control_p->status ();
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
   ACE_ASSERT (stream_p);
 
   if ((status_e == STREAM_STATE_RUNNING) ||

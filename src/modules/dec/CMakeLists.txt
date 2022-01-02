@@ -4,6 +4,7 @@ include (ImageMagick)
 set (CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_CURRENT_SOURCE_DIR}/../lib/scripts")
 include (sox)
 set (CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_CURRENT_SOURCE_DIR}/scripts")
+include (deepspeech)
 include (mpg123)
 include (opencv)
 include (zlib)
@@ -35,6 +36,10 @@ if (SOX_SUPPORT)
  target_include_directories (${PROJECT_NAME}_Decoder PUBLIC
                              $<BUILD_INTERFACE:${SOX_INCLUDE_DIRS}>)
 endif (SOX_SUPPORT)
+if (DEEPSPEECH_SUPPORT)
+ target_include_directories (${PROJECT_NAME}_Decoder PUBLIC
+                             $<BUILD_INTERFACE:${DEEPSPEECH_INCLUDE_DIRS}>)
+endif (DEEPSPEECH_SUPPORT)
 if (MPG123_SUPPORT)
  target_include_directories (${PROJECT_NAME}_Decoder PUBLIC
                              $<BUILD_INTERFACE:${MPG123_INCLUDE_DIRS}>)
@@ -200,6 +205,13 @@ if (SOX_SUPPORT)
       stream_dec_sox_effect.h
       stream_dec_sox_effect.inl)
 endif (SOX_SUPPORT)
+if (DEEPSPEECH_SUPPORT)
+ set (source_files
+      ${source_files}
+      stream_dec_deepspeech_decoder.cpp
+      stream_dec_deepspeech_decoder.h
+      stream_dec_deepspeech_decoder.inl)
+endif (DEEPSPEECH_SUPPORT)
 if (MPG123_SUPPORT)
  set (source_files
       ${source_files}
@@ -257,6 +269,9 @@ if (WIN32)
  source_group (scripts FILES ${PROJECT_NAME}_Decoder_LIB_SCRIPTS)
 endif (WIN32)
 
+#set_target_properties (${PROJECT_NAME}_Decoder PROPERTIES DEFINE_SYMBOL STREAM_DEC_BUILD_DLL)
+#set_target_properties (${PROJECT_NAME}_Decoder PROPERTIES VERSION ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_MICRO} SOVERSION 1)
+
 set_property (TARGET ${PROJECT_NAME}_Decoder PROPERTY FOLDER "modules")
 
 add_dependencies (${PROJECT_NAME}_Decoder Common)
@@ -274,6 +289,9 @@ endif (SOX_SUPPORT)
 if (OPENCV_SUPPORT)
  target_link_libraries (${PROJECT_NAME}_Decoder PUBLIC ${OPENCV_LIBRARIES})
 endif (OPENCV_SUPPORT)
+if (DEEPSPEECH_SUPPORT)
+ target_link_libraries (${PROJECT_NAME}_Decoder PUBLIC ${DEEPSPEECH_LIBRARIES})
+endif (DEEPSPEECH_SUPPORT)
 if (MPG123_SUPPORT)
  target_link_libraries (${PROJECT_NAME}_Decoder PUBLIC ${MPG123_LIBRARIES})
 endif (MPG123_SUPPORT)
@@ -310,13 +328,6 @@ target_link_libraries (${PROJECT_NAME}_Decoder PUBLIC ${PROJECT_NAME})
 target_link_libraries (${PROJECT_NAME}_Decoder PUBLIC ${PROJECT_NAME}_Device)
 target_link_libraries (${PROJECT_NAME}_Decoder PUBLIC ${PROJECT_NAME}_HTML)
 target_link_libraries (${PROJECT_NAME}_Decoder PUBLIC ${PROJECT_NAME}_MediaFramework)
-
-#set_target_properties (${PROJECT_NAME}_Decoder PROPERTIES DEFINE_SYMBOL STREAM_DEC_BUILD_DLL)
-#set_target_properties (${PROJECT_NAME}_Decoder PROPERTIES VERSION ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_MICRO} SOVERSION 1)
-
-# add PCH
-#set_target_properties (${PROJECT_NAME}_Decoder PROPERTIES COTIRE_CXX_PREFIX_HEADER_INIT "stdafx.h")
-#cotire (${PROJECT_NAME}_Decoder)
 
 # add all targets to the build-tree export set
 export (TARGETS ${PROJECT_NAME}_Decoder
@@ -377,6 +388,12 @@ if (IMAGEMAGICK_SUPPORT)
       stream_dec_imagemagick_decoder.h
       stream_dec_imagemagick_decoder.inl)
 endif (IMAGEMAGICK_SUPPORT)
+if (DEEPSPEECH_SUPPORT)
+ set (${PROJECT_NAME}_Decoder_LIB_HDRS
+      ${${PROJECT_NAME}_Decoder_LIB_HDRS}
+      stream_dec_deepspeech_decoder.h
+      stream_dec_deepspeech_decoder.inl)
+endif (DEEPSPEECH_SUPPORT)
 if (MPG123_SUPPORT)
  set (${PROJECT_NAME}_Decoder_LIB_HDRS
       ${${PROJECT_NAME}_Decoder_LIB_HDRS}

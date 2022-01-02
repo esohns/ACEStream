@@ -19,18 +19,14 @@
  ***************************************************************************/
 #include "stdafx.h"
 
-//#include "ace/Synch.h"
 #include "test_u_filecopy_signalhandler.h"
 
 #include "ace/Log_Msg.h"
 
 #include "stream_macros.h"
 
-Stream_Filecopy_SignalHandler::Stream_Filecopy_SignalHandler (enum Common_SignalDispatchType dispatchMode_in,
-                                                              ACE_SYNCH_RECURSIVE_MUTEX* lock_in)
- : inherited (dispatchMode_in,
-              lock_in,
-              this) // event handler handle
+Stream_Filecopy_SignalHandler::Stream_Filecopy_SignalHandler ()
+ : inherited (this) // event handler handle
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Filecopy_SignalHandler::Stream_Filecopy_SignalHandler"));
 

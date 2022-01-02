@@ -2215,7 +2215,7 @@ Test_U_AudioEffect_ALSA_Stream::initialize (const typename inherited::CONFIGURAT
   typename inherited::CONFIGURATION_T::ITERATOR_T iterator;
   typename inherited::CONFIGURATION_T::ITERATOR_T iterator_2;
   typename inherited::ISTREAM_T::MODULE_T* module_p = NULL;
-  Test_U_AudioEffect_IDispatch_t* idispatch_p = NULL;
+  Stream_Statistic_IDispatch_t* idispatch_p = NULL;
 
   // allocate a new session state, reset stream
   const_cast<typename inherited::CONFIGURATION_T&> (configuration_in).configuration_->setupPipeline =
@@ -2257,7 +2257,7 @@ Test_U_AudioEffect_ALSA_Stream::initialize (const typename inherited::CONFIGURAT
       const_cast<typename inherited::ISTREAM_T::MODULE_T*> (inherited::find (ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_GTK_SPECTRUM_ANALYZER_DEFAULT_NAME_STRING)));
   ACE_ASSERT (module_p);
   idispatch_p =
-      dynamic_cast<Test_U_AudioEffect_IDispatch_t*> (const_cast<Stream_Module_t*> (module_p)->writer ());
+      dynamic_cast<Stream_Statistic_IDispatch_t*> (const_cast<Stream_Module_t*> (module_p)->writer ());
   ACE_ASSERT (idispatch_p);
   (*iterator).second.second->dispatch = idispatch_p;
 

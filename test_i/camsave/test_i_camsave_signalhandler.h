@@ -31,18 +31,16 @@
 class Stream_CamSave_SignalHandler
  : public Common_SignalHandler_T<struct Stream_CamSave_SignalHandlerConfiguration>
 {
+  typedef Common_SignalHandler_T<struct Stream_CamSave_SignalHandlerConfiguration> inherited;
+
  public:
-  Stream_CamSave_SignalHandler (enum Common_SignalDispatchType, // dispatch mode
-                                ACE_SYNCH_RECURSIVE_MUTEX*);    // lock handle
+  Stream_CamSave_SignalHandler ();
   inline virtual ~Stream_CamSave_SignalHandler () {}
 
   // implement Common_ISignal
   virtual void handle (const struct Common_Signal&); // signal
 
  private:
-  typedef Common_SignalHandler_T<struct Stream_CamSave_SignalHandlerConfiguration> inherited;
-
-  ACE_UNIMPLEMENTED_FUNC (Stream_CamSave_SignalHandler ())
   ACE_UNIMPLEMENTED_FUNC (Stream_CamSave_SignalHandler (const Stream_CamSave_SignalHandler&))
   ACE_UNIMPLEMENTED_FUNC (Stream_CamSave_SignalHandler& operator= (const Stream_CamSave_SignalHandler&))
 };

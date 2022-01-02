@@ -574,8 +574,7 @@ ACE_TMAIN (int argc_in,
   ACE_Sig_Set ignored_signal_set (false);
   Common_SignalActions_t previous_signal_actions;
   sigset_t previous_signal_mask;
-  Stream_ImageScreen_SignalHandler signal_handler (COMMON_SIGNAL_DISPATCH_SIGNAL,
-                                                   NULL);
+  Stream_ImageScreen_SignalHandler signal_handler;
 
   ACE_High_Res_Timer timer;
   ACE_Time_Value working_time;

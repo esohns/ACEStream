@@ -329,10 +329,12 @@ struct Test_I_ALSA_UI_CBData
   Test_I_ALSA_UI_CBData ()
    : Test_I_SpeechCommand_UI_CBData ()
    , configuration (NULL)
+   , handle (NULL)
    , subscribers ()
   {}
 
   struct Test_I_ALSA_Configuration* configuration;
+  struct _snd_pcm*                  handle; // (capture) device handle
   Test_I_ALSA_Subscribers_t         subscribers;
 };
 

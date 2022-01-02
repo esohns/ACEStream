@@ -19,9 +19,9 @@
  ***************************************************************************/
 #include "stdafx.h"
 
-#include "stream_dec_opencv_decoder.h"
+#include "stream_dec_deepspeech_decoder.h"
 
 #include "stream_dec_defines.h"
 
-const char libacestream_default_dec_opencv_decoder_module_name_string[] =
-  ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_OPENCV_DECODER_DEFAULT_NAME_STRING);
+const char libacestream_default_dec_deepspeech_decoder_module_name_string[] =
+  ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_DEEPSPEECH_DECODER_DEFAULT_NAME_STRING);

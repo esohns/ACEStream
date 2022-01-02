@@ -24,8 +24,7 @@
 #include "ace/Global_Macros.h"
 #include "ace/Synch_Traits.h"
 
-#include "common.h"
-
+#include "common_signal_common.h"
 #include "common_signal_handler.h"
 
 #include "test_i_target_common.h"
@@ -36,15 +35,13 @@ class Stream_Target_SignalHandler
   typedef Common_SignalHandler_T<struct Test_I_Target_SignalHandlerConfiguration> inherited;
 
  public:
-  Stream_Target_SignalHandler (enum Common_SignalDispatchType, // dispatch mode
-                               ACE_SYNCH_RECURSIVE_MUTEX*);    // lock handle
+  Stream_Target_SignalHandler ();
   inline virtual ~Stream_Target_SignalHandler () {}
 
   // implement Common_ISignal
   virtual void handle (const struct Common_Signal&); // signal
 
  private:
-  ACE_UNIMPLEMENTED_FUNC (Stream_Target_SignalHandler ())
   ACE_UNIMPLEMENTED_FUNC (Stream_Target_SignalHandler (const Stream_Target_SignalHandler&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Target_SignalHandler& operator= (const Stream_Target_SignalHandler&))
 };

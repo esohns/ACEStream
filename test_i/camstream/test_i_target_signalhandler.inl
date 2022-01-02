@@ -38,11 +38,8 @@ template <typename ConfigurationType,
           typename UDPConnectionManagerType>
 Test_I_Target_SignalHandler_T<ConfigurationType,
                               TCPConnectionManagerType,
-                              UDPConnectionManagerType>::Test_I_Target_SignalHandler_T (enum Common_SignalDispatchType dispatchMode_in,
-                                                                                        ACE_SYNCH_RECURSIVE_MUTEX* lock_in)
- : inherited (dispatchMode_in,
-              lock_in,
-              this) // event handler handle
+                              UDPConnectionManagerType>::Test_I_Target_SignalHandler_T ()
+ : inherited (this) // event handler handle
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_Target_SignalHandler_T::Test_I_Target_SignalHandler_T"));
 

@@ -61,6 +61,8 @@
 #include "stream_stat_statistic_analysis.h"
 #include "stream_stat_statistic_report.h"
 
+#include "stream_dec_deepspeech_decoder.h"
+
 #if defined (GUI_SUPPORT)
 #if defined (GTK_SUPPORT)
 #include "stream_vis_gtk_cairo_spectrum_analyzer.h"
@@ -317,6 +319,8 @@ typedef Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_MT_SYNCH,
 #endif // GTK_SUPPORT
 #endif // GUI_SUPPORT
 
+//////////////////////////////////////////
+
 typedef Stream_Dev_Target_WavOut_T<ACE_MT_SYNCH,
                                    Common_TimePolicy_t,
                                    struct Test_I_SpeechCommand_DirectShow_ModuleHandlerConfiguration,
@@ -416,14 +420,14 @@ typedef Stream_Module_MessageHandler_T<ACE_MT_SYNCH,
 typedef Stream_Dev_Mic_Source_ALSA_T<ACE_MT_SYNCH,
                                      Stream_ControlMessage_t,
                                      Test_I_Message,
-                                     Test_I_SessionMessage,
+                                     Test_I_ALSA_SessionMessage_t,
                                      struct Test_I_SpeechCommand_ALSA_ModuleHandlerConfiguration,
                                      enum Stream_ControlType,
                                      enum Stream_SessionMessageType,
-                                     struct Test_I_StreamState,
+                                     struct Test_I_SpeechCommand_ALSA_StreamState,
                                      Test_I_SpeechCommand_ALSA_SessionData,
                                      Test_I_SpeechCommand_ALSA_SessionData_t,
-                                     struct Stream_Statistic,
+                                     struct Test_I_Statistic,
                                      Common_Timer_Manager_t> Test_I_Mic_Source_ALSA;
 
 //////////////////////////////////////////
@@ -433,8 +437,8 @@ typedef Stream_Statistic_StatisticAnalysis_T<ACE_MT_SYNCH,
                                              struct Test_I_SpeechCommand_ALSA_ModuleHandlerConfiguration,
                                              Stream_ControlMessage_t,
                                              Test_I_Message,
-                                             Test_I_SpeechCommand_ALSA_SessionMessage_t,
-                                             struct Stream_Statistic,
+                                             Test_I_ALSA_SessionMessage_t,
+                                             struct Test_I_Statistic,
                                              Test_I_SpeechCommand_ALSA_SessionData,
                                              Test_I_SpeechCommand_ALSA_SessionData_t,
                                              struct Stream_MediaFramework_ALSA_MediaType,
@@ -445,9 +449,9 @@ typedef Stream_Statistic_StatisticReport_ReaderTask_T<ACE_MT_SYNCH,
                                                       struct Test_I_SpeechCommand_ALSA_ModuleHandlerConfiguration,
                                                       ACE_Message_Block,
                                                       Test_I_Message,
-                                                      Test_I_SpeechCommand_ALSA_SessionMessage_t,
+                                                      Test_I_ALSA_SessionMessage_t,
                                                       Stream_CommandType_t,
-                                                      struct Stream_Statistic,
+                                                      struct Test_I_Statistic,
                                                       Common_Timer_Manager_t,
                                                       Test_I_SpeechCommand_ALSA_SessionData,
                                                       Test_I_SpeechCommand_ALSA_SessionData_t> Test_I_ALSA_Statistic_ReaderTask_t;
@@ -456,9 +460,9 @@ typedef Stream_Statistic_StatisticReport_WriterTask_T<ACE_MT_SYNCH,
                                                       struct Test_I_SpeechCommand_ALSA_ModuleHandlerConfiguration,
                                                       Stream_ControlMessage_t,
                                                       Test_I_Message,
-                                                      Test_I_SpeechCommand_ALSA_SessionMessage,
+                                                      Test_I_ALSA_SessionMessage_t,
                                                       Stream_CommandType_t,
-                                                      struct Stream_Statistic,
+                                                      struct Test_I_Statistic,
                                                       Common_Timer_Manager_t,
                                                       Test_I_SpeechCommand_ALSA_SessionData,
                                                       Test_I_SpeechCommand_ALSA_SessionData_t> Test_I_ALSA_Statistic_WriterTask_t;
@@ -470,7 +474,7 @@ typedef Stream_Miscellaneous_Distributor_T<ACE_MT_SYNCH,
                                            struct Test_I_SpeechCommand_ALSA_ModuleHandlerConfiguration,
                                            Stream_ControlMessage_t,
                                            Test_I_Message,
-                                           Test_I_SpeechCommand_ALSA_SessionMessage_t,
+                                           Test_I_ALSA_SessionMessage_t,
                                            Test_I_SpeechCommand_ALSA_SessionData_t> Test_I_ALSA_Distributor;
 
 //////////////////////////////////////////
@@ -482,7 +486,7 @@ typedef Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_MT_SYNCH,
                                                           struct Test_I_SpeechCommand_ALSA_ModuleHandlerConfiguration,
                                                           Stream_ControlMessage_t,
                                                           Test_I_Message,
-                                                          Test_I_SpeechCommand_ALSA_SessionMessage_t,
+                                                          Test_I_ALSA_SessionMessage_t,
                                                           Test_I_SpeechCommand_ALSA_SessionData,
                                                           Test_I_SpeechCommand_ALSA_SessionData_t,
                                                           Common_Timer_Manager_t,
@@ -492,12 +496,23 @@ typedef Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_MT_SYNCH,
 
 //////////////////////////////////////////
 
+typedef Stream_Decoder_DeepSpeechDecoder_T<ACE_MT_SYNCH,
+                                           Common_TimePolicy_t,
+                                           struct Test_I_SpeechCommand_ALSA_ModuleHandlerConfiguration,
+                                           Stream_ControlMessage_t,
+                                           Test_I_Message,
+                                           Test_I_ALSA_SessionMessage_t,
+                                           Test_I_SpeechCommand_ALSA_SessionData_t,
+                                           struct Stream_MediaFramework_ALSA_MediaType> Test_I_ALSA_DeepSpeechDecoder;
+
+//////////////////////////////////////////
+
 typedef Stream_Decoder_WAVEncoder_T<ACE_MT_SYNCH,
                                     Common_TimePolicy_t,
                                     struct Test_I_SpeechCommand_ALSA_ModuleHandlerConfiguration,
                                     Stream_ControlMessage_t,
                                     Test_I_Message,
-                                    Test_I_SpeechCommand_ALSA_SessionMessage_t,
+                                    Test_I_ALSA_SessionMessage_t,
                                     Test_I_SpeechCommand_ALSA_SessionData_t,
                                     Test_I_SpeechCommand_ALSA_SessionData,
                                     struct Stream_MediaFramework_ALSA_MediaType,
@@ -510,7 +525,7 @@ typedef Stream_Module_MessageHandler_T<ACE_MT_SYNCH,
                                        struct Test_I_SpeechCommand_ALSA_ModuleHandlerConfiguration,
                                        Stream_ControlMessage_t,
                                        Test_I_Message,
-                                       Test_I_SpeechCommand_ALSA_SessionMessage_t,
+                                       Test_I_ALSA_SessionMessage_t,
                                        Test_I_SpeechCommand_ALSA_SessionData,
                                        struct Stream_UserData> Test_I_ALSA_MessageHandler;
 
@@ -521,7 +536,7 @@ typedef Stream_Dev_Target_ALSA_T<ACE_MT_SYNCH,
                                  struct Test_I_SpeechCommand_ALSA_ModuleHandlerConfiguration,
                                  Stream_ControlMessage_t,
                                  Test_I_Message,
-                                 Test_I_SpeechCommand_ALSA_SessionMessage_t,
+                                 Test_I_ALSA_SessionMessage_t,
                                  Test_I_SpeechCommand_ALSA_SessionData> Test_I_Target_ALSA;
 #endif // ACE_WIN32 || ACE_WIN64
 
@@ -774,6 +789,15 @@ DATASTREAM_MODULE_INPUT_ONLY (Test_I_SpeechCommand_ALSA_SessionData,            
                               Test_I_ALSA_Vis_SpectrumAnalyzer);                             // writer type
 #endif // GTK_SUPPORT
 #endif // GUI_SUPPORT
+
+//////////////////////////////////////////
+
+DATASTREAM_MODULE_INPUT_ONLY (Test_I_SpeechCommand_ALSA_SessionData,                         // session data type
+                              enum Stream_SessionMessageType,                                // session event type
+                              struct Test_I_SpeechCommand_ALSA_ModuleHandlerConfiguration,   // module handler configuration type
+                              libacestream_default_dec_deepspeech_decoder_module_name_string,
+                              Stream_INotify_t,                                              // stream notification interface type
+                              Test_I_ALSA_DeepSpeechDecoder);                                // writer type
 
 //////////////////////////////////////////
 

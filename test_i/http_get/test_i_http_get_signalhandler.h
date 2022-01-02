@@ -24,8 +24,7 @@
 #include "ace/Global_Macros.h"
 #include "ace/Synch_Traits.h"
 
-#include "common.h"
-
+#include "common_signal_common.h"
 #include "common_signal_handler.h"
 
 #include "test_i_http_get_common.h"
@@ -36,15 +35,13 @@ class Stream_Source_SignalHandler
   typedef Common_SignalHandler_T<struct Test_I_HTTPGet_SignalHandlerConfiguration> inherited;
 
  public:
-  Stream_Source_SignalHandler (enum Common_SignalDispatchType, // dispatch mode
-                               ACE_SYNCH_RECURSIVE_MUTEX*);    // lock handle
+  Stream_Source_SignalHandler ();
   inline virtual ~Stream_Source_SignalHandler () {}
 
   // implement Common_ISignal
   virtual void handle (const struct Common_Signal&); // signal
 
  private:
-  ACE_UNIMPLEMENTED_FUNC (Stream_Source_SignalHandler ())
   ACE_UNIMPLEMENTED_FUNC (Stream_Source_SignalHandler (const Stream_Source_SignalHandler&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Source_SignalHandler& operator= (const Stream_Source_SignalHandler&))
 };

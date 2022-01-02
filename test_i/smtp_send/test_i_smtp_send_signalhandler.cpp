@@ -27,11 +27,8 @@
 
 #include "test_i_smtp_send_network.h"
 
-Stream_SMTPSend_SignalHandler::Stream_SMTPSend_SignalHandler (enum Common_SignalDispatchType dispatchMode_in,
-                                                              ACE_SYNCH_RECURSIVE_MUTEX* lock_in)
-: inherited (dispatchMode_in,
-             lock_in,
-             this) // event handler handle
+Stream_SMTPSend_SignalHandler::Stream_SMTPSend_SignalHandler ()
+: inherited (this) // event handler handle
 {
   STREAM_TRACE (ACE_TEXT ("Stream_SMTPSend_SignalHandler::Stream_SMTPSend_SignalHandler"));
 

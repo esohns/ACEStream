@@ -70,3 +70,5 @@ CMakeLists.txt.user*
 
 # data
 test_u/imagescreen/data/
+test_i/speechcommand/etc/deepspeech-0.9.3-models.pbmm
+test_i/speechcommand/etc/deepspeech-0.9.3-models.scorer

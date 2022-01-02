@@ -2,11 +2,12 @@ add_library (${PROJECT_NAME}_Network STATIC "")
 
 string (REPLACE ${CMAKE_SOURCE_DIR} "" BUILD_PATH_SUFFIX ${CMAKE_BINARY_DIR})
 string (SUBSTRING ${BUILD_PATH_SUFFIX} 1 -1 BUILD_PATH_SUFFIX)
+message (STATUS "BUILD_PATH_SUFFIX: ${BUILD_PATH_SUFFIX}")
 find_package (ACENetwork ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_MICRO}
               REQUIRED
               CONFIG
               PATHS ${CMAKE_CURRENT_SOURCE_DIR}/../../../modules ${CMAKE_CURRENT_SOURCE_DIR}/../../../..
-              PATH_SUFFIXES ACENetwork/${BUILD_PATH_SUFFIX}
+              PATH_SUFFIXES ACENetwork/${BUILD_PATH_SUFFIX}/${CMAKE_BUILD_TYPE}
               NO_DEFAULT_PATH)
 if (NOT EXISTS ${ACENetwork_DIR})
  message (FATAL_ERROR "could not find ACENetwork, aborting")

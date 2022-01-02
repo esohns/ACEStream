@@ -19,7 +19,6 @@
  ***************************************************************************/
 #include "stdafx.h"
 
-//#include "ace/Synch.h"
 #include "test_i_target_signalhandler.h"
 
 #include "ace/Log_Msg.h"
@@ -31,11 +30,8 @@
 
 #include "test_i_connection_manager_common.h"
 
-Stream_Target_SignalHandler::Stream_Target_SignalHandler (enum Common_SignalDispatchType dispatchMode_in,
-                                                          ACE_SYNCH_RECURSIVE_MUTEX* lock_in)
- : inherited (dispatchMode_in,
-              lock_in,
-              this) // event handler handle
+Stream_Target_SignalHandler::Stream_Target_SignalHandler ()
+ : inherited (this) // event handler handle
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Target_SignalHandler::Stream_Target_SignalHandler"));
 

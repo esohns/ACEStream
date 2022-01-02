@@ -458,11 +458,11 @@ Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
       sound_sample_size = (snd_pcm_format_width (media_type_s.format) / 8);
       data_sample_size = sound_sample_size * media_type_s.channels;
       sample_byte_order =
-          ((snd_pcm_format_little_endian (media_type_s.format) == 1) ? ACE_LITTLE_ENDIAN
-                                                                     : -1);
-      is_signed_format = snd_pcm_format_signed (media_type_s.format);
+        ((snd_pcm_format_little_endian (media_type_s.format) == 1) ? ACE_LITTLE_ENDIAN
+                                                                   : -1);
+      is_signed_format = (snd_pcm_format_signed (media_type_s.format) == 1);
       is_floating_point_format =
-        snd_pcm_format_real (media_type_s.format);
+        (snd_pcm_format_linear (media_type_s.format) == 0);
 
       channels = media_type_s.channels;
       sample_rate = media_type_s.rate;
@@ -1145,7 +1145,7 @@ Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
                             media_type_s);
   sound_sample_size = (snd_pcm_format_width (media_type_s.format) / 8);
   is_floating_point_format =
-    (snd_pcm_format_real (media_type_s.format) == 1);
+    (snd_pcm_format_linear (media_type_s.format) == 0);
 #endif // ACE_WIN32 || ACE_WIN64
 
   { ACE_GUARD (ACE_Thread_Mutex, aGuard, inherited::lock_);

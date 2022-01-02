@@ -1146,7 +1146,7 @@ ACE_TMAIN (int argc_in,
 
   Common_MessageStack_t* logstack_p = NULL;
   ACE_SYNCH_MUTEX* lock_p = NULL;
-  ACE_SYNCH_RECURSIVE_MUTEX* lock_2 = NULL;
+//  ACE_SYNCH_RECURSIVE_MUTEX* lock_2 = NULL;
   struct Test_I_Target_Configuration configuration;
 #if defined (GUI_SUPPORT)
 //  struct Common_UI_CBData* ui_cb_data_p = NULL;
@@ -1158,7 +1158,7 @@ ACE_TMAIN (int argc_in,
     const_cast<Common_UI_GTK_State_t&> (gtk_manager_p->getR ());
   logstack_p = &state_r.logStack;
   lock_p = &state_r.logStackLock;
-  lock_2 = &state_r.subscribersLock;
+//  lock_2 = &state_r.subscribersLock;
 #endif // GTK_USE
   struct Test_I_Target_UI_CBData ui_cb_data;
   ui_cb_data.configuration = &configuration;
@@ -1238,9 +1238,7 @@ ACE_TMAIN (int argc_in,
 #endif
     return EXIT_FAILURE;
   } // end IF
-  Stream_Target_SignalHandler signal_handler ((use_reactor ? COMMON_SIGNAL_DISPATCH_REACTOR
-                                                           : COMMON_SIGNAL_DISPATCH_PROACTOR),
-                                              lock_2);
+  Stream_Target_SignalHandler signal_handler;
 
   // step1f: handle specific program modes
   if (print_version_and_exit)

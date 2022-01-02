@@ -948,7 +948,7 @@ ACE_TMAIN (int argc_in,
   struct HTTPGet_UI_CBData ui_cb_data;
   //Common_Logger_t logger (&ui_cb_data.UIState.logStack,
   //                        &ui_cb_data.UIState.lock);
-  ACE_SYNCH_RECURSIVE_MUTEX* lock_p = NULL;
+//  ACE_SYNCH_RECURSIVE_MUTEX* lock_p = NULL;
 #if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
   Common_UI_GTK_Manager_t* gtk_manager_p =
@@ -956,13 +956,12 @@ ACE_TMAIN (int argc_in,
   ACE_ASSERT (gtk_manager_p);
   Common_UI_GTK_State_t& state_r =
     const_cast<Common_UI_GTK_State_t&> (gtk_manager_p->getR ());
-  lock_p = &state_r.subscribersLock;
+//  lock_p = &state_r.subscribersLock;
   Common_UI_GtkBuilderDefinition_t gtk_ui_definition;
 #endif // GTK_USE
 #endif // GUI_SUPPORT
   struct HTTPGet_Configuration configuration;
-  HTTPGet_SignalHandler signal_handler (COMMON_SIGNAL_DISPATCH_SIGNAL,
-                                        lock_p);
+  HTTPGet_SignalHandler signal_handler;
   ACE_Profile_Timer process_profile;
   ACE_High_Res_Timer timer;
   std::string working_time_string;

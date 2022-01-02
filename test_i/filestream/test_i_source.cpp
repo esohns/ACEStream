@@ -1027,7 +1027,7 @@ ACE_TMAIN (int argc_in,
 
   Common_MessageStack_t* logstack_p = NULL;
   ACE_SYNCH_MUTEX* lock_p = NULL;
-  ACE_SYNCH_RECURSIVE_MUTEX* lock_2 = NULL;
+//  ACE_SYNCH_RECURSIVE_MUTEX* lock_2 = NULL;
   struct Test_I_Source_Configuration configuration;
 
 #if defined (GUI_SUPPORT)
@@ -1042,7 +1042,7 @@ ACE_TMAIN (int argc_in,
     const_cast<Common_UI_GTK_State_t&> (gtk_manager_p->getR ());
   logstack_p = &state_r.logStack;
   lock_p = &state_r.logStackLock;
-  lock_2 = &state_r.subscribersLock;
+//  lock_2 = &state_r.subscribersLock;
 #endif // GTK_USE
 #endif // GUI_SUPPORT
   // step1d: initialize logging and/or tracing
@@ -1117,9 +1117,7 @@ ACE_TMAIN (int argc_in,
 #endif
     return EXIT_FAILURE;
   } // end IF
-  Test_I_Source_SignalHandler signal_handler ((use_reactor ? COMMON_SIGNAL_DISPATCH_REACTOR
-                                                           : COMMON_SIGNAL_DISPATCH_PROACTOR),
-                                              lock_2);
+  Test_I_Source_SignalHandler signal_handler;
 
   // step1f: handle specific program modes
   if (print_version_and_exit)

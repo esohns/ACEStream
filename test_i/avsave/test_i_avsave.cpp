@@ -2509,14 +2509,13 @@ ACE_TMAIN (int argc_in,
 #endif // ACE_WIN32 || ACE_WIN64
     return EXIT_FAILURE;
   } // end IF
-  ACE_SYNCH_RECURSIVE_MUTEX* lock_2 = NULL;
+//  ACE_SYNCH_RECURSIVE_MUTEX* lock_2 = NULL;
 #if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
-  lock_2 = &state_r.subscribersLock;
+//  lock_2 = &state_r.subscribersLock;
 #endif // GTK_USE
 #endif // GUI_SUPPORT
-  Stream_AVSave_SignalHandler signal_handler (COMMON_SIGNAL_DISPATCH_SIGNAL,
-                                               lock_2);
+  Stream_AVSave_SignalHandler signal_handler;
 
   // step1g: set process resource limits
   // *NOTE*: settings will be inherited by any child processes

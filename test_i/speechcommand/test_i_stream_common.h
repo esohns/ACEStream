@@ -158,10 +158,22 @@ class Test_I_SpeechCommand_MediaFoundation_SessionData
 };
 typedef Stream_SessionData_T<Test_I_SpeechCommand_MediaFoundation_SessionData> Test_I_SpeechCommand_MediaFoundation_SessionData_t;
 #else
+class Test_I_SpeechCommand_ALSA_SessionData;
+struct Test_I_SpeechCommand_ALSA_StreamState
+ : Stream_State
+{
+    Test_I_SpeechCommand_ALSA_StreamState ()
+     : Stream_State ()
+     , sessionData (NULL)
+    {}
+
+    Test_I_SpeechCommand_ALSA_SessionData* sessionData;
+};
+
 class Test_I_SpeechCommand_ALSA_SessionData
  : public Stream_SessionDataMediaBase_T<struct Test_I_SessionData,
                                         struct Stream_MediaFramework_ALSA_MediaType,
-                                        struct Stream_State,
+                                        struct Test_I_SpeechCommand_ALSA_StreamState,
                                         struct Test_I_Statistic,
                                         struct Stream_UserData>
 {
@@ -169,7 +181,7 @@ class Test_I_SpeechCommand_ALSA_SessionData
   Test_I_SpeechCommand_ALSA_SessionData ()
    : Stream_SessionDataMediaBase_T<struct Test_I_SessionData,
                                    struct Stream_MediaFramework_ALSA_MediaType,
-                                   struct Stream_State,
+                                   struct Test_I_SpeechCommand_ALSA_StreamState,
                                    struct Test_I_Statistic,
                                    struct Stream_UserData> ()
   {}
@@ -179,7 +191,7 @@ class Test_I_SpeechCommand_ALSA_SessionData
     // *NOTE*: the idea is to 'merge' the data
     Stream_SessionDataMediaBase_T<struct Test_I_SessionData,
                                   struct Stream_MediaFramework_ALSA_MediaType,
-                                  struct Stream_State,
+                                  struct Test_I_SpeechCommand_ALSA_StreamState,
                                   struct Test_I_Statistic,
                                   struct Stream_UserData>::operator+= (rhs_in);
     return *this;
@@ -351,7 +363,9 @@ struct Test_I_SpeechCommand_ALSA_ModuleHandlerConfiguration
    : Test_I_ALSA_ModuleHandlerConfiguration ()
    , deviceIdentifier ()
    , dispatch (NULL)
+   , modelFile ()
    , mute (false)
+   , scorerFile ()
 #if defined (GUI_SUPPORT)
 #if defined (GTK_SUPPORT)
 #if defined (GTKGL_SUPPORT)
@@ -376,7 +390,9 @@ struct Test_I_SpeechCommand_ALSA_ModuleHandlerConfiguration
 
   struct Stream_Device_Identifier                   deviceIdentifier; // capture/render
   Stream_Statistic_IDispatch_t*                     dispatch;
+  std::string                                       modelFile;
   bool                                              mute;
+  std::string                                       scorerFile;
 #if defined (GUI_SUPPORT)
 #if defined (GTK_SUPPORT)
 #if defined (GTKGL_SUPPORT)

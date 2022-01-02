@@ -1045,10 +1045,8 @@ ACE_TMAIN (int argc_in,
 #endif // ACE_WIN32 || ACE_WIN64
     return EXIT_FAILURE;
   } // end IF
-  ACE_SYNCH_RECURSIVE_MUTEX signal_lock;
-  Stream_Source_SignalHandler signal_handler ((use_reactor ? COMMON_SIGNAL_DISPATCH_REACTOR
-                                                           : COMMON_SIGNAL_DISPATCH_PROACTOR),
-                                              &signal_lock);
+//  ACE_SYNCH_RECURSIVE_MUTEX signal_lock;
+  Stream_Source_SignalHandler signal_handler;
 
   // step1f: handle specific program modes
   if (print_version_and_exit)

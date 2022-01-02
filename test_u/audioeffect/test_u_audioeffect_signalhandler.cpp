@@ -25,10 +25,8 @@
 
 #include "stream_macros.h"
 
-Test_U_AudioEffect_SignalHandler::Test_U_AudioEffect_SignalHandler (ACE_SYNCH_RECURSIVE_MUTEX* lock_in)
- : inherited (COMMON_SIGNAL_DEFAULT_DISPATCH_MODE,
-              lock_in,
-              this) // event handler handle
+Test_U_AudioEffect_SignalHandler::Test_U_AudioEffect_SignalHandler ()
+ : inherited (this) // event handler handle
 {
   STREAM_TRACE (ACE_TEXT ("Test_U_AudioEffect_SignalHandler::Test_U_AudioEffect_SignalHandler"));
 

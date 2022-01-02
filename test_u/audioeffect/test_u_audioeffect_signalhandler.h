@@ -31,17 +31,16 @@
 class Test_U_AudioEffect_SignalHandler
  : public Common_SignalHandler_T<struct Test_U_AudioEffect_SignalHandlerConfiguration>
 {
+  typedef Common_SignalHandler_T<struct Test_U_AudioEffect_SignalHandlerConfiguration> inherited;
+
  public:
-  Test_U_AudioEffect_SignalHandler (ACE_SYNCH_RECURSIVE_MUTEX*); // lock handle
+  Test_U_AudioEffect_SignalHandler ();
   inline virtual ~Test_U_AudioEffect_SignalHandler () {}
 
   // implement Common_ISignal
   virtual void handle (const struct Common_Signal&); // signal
 
  private:
-  typedef Common_SignalHandler_T<struct Test_U_AudioEffect_SignalHandlerConfiguration> inherited;
-
-  ACE_UNIMPLEMENTED_FUNC (Test_U_AudioEffect_SignalHandler ())
   ACE_UNIMPLEMENTED_FUNC (Test_U_AudioEffect_SignalHandler (const Test_U_AudioEffect_SignalHandler&))
   ACE_UNIMPLEMENTED_FUNC (Test_U_AudioEffect_SignalHandler& operator= (const Test_U_AudioEffect_SignalHandler&))
 };

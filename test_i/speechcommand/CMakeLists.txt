@@ -127,18 +127,6 @@ if (WIN32)
  endif (CMAKE_BUILD_TYPE STREQUAL Debug)
 endif ()
 
-set (ui_definition_file "")
-if (GUI_SUPPORT)
- if (GTK_USE)
-  if (GTK3_USE)
-   set (ui_definition_file etc/test_i.gtk3)
-  elseif (GTK2_USE)
-   set (ui_definition_file etc/test_i.gtk2)
-  endif ()
- elseif (WXWIDGETS_USE)
-  set (ui_definition_file etc/test_i.xrc)
- endif ()
-endif (GUI_SUPPORT)
 cmake_policy (SET CMP0065 OLD) # do not add flags to export symbols from executables without the ENABLE_EXPORTS target property
 add_executable (${EXECUTABLE}
                 EXCLUDE_FROM_ALL
@@ -218,14 +206,32 @@ target_link_libraries (${EXECUTABLE} PUBLIC ${PROJECT_NAME}_Test_I)
 target_precompile_headers (${EXECUTABLE}
                            PUBLIC stdafx.h)
 
+set (model_file "etc/deepspeech-0.9.3-models.pbmm")
+set (scorer_file "etc/deepspeech-0.9.3-models.scorer")
+set (ui_definition_file "")
+if (GUI_SUPPORT)
+ if (GTK_USE)
+  if (GTK3_USE)
+   set (ui_definition_file etc/test_i.gtk3)
+  elseif (GTK2_USE)
+   set (ui_definition_file etc/test_i.gtk2)
+  endif ()
+ elseif (WXWIDGETS_USE)
+  set (ui_definition_file etc/test_i.xrc)
+ endif ()
+endif (GUI_SUPPORT)
+
 install (TARGETS ${EXECUTABLE}
          EXPORT ${PROJECT_NAME}Targets
          RUNTIME DESTINATION ${INSTALL_BIN_DIR} COMPONENT test_i)
-install (FILES ${ui_definition_file}
-         DESTINATION "${INSTALL_SHARE_DIR}/${PROJECT_NAME}/${EXECUTABLE}" COMPONENT config)
+install (FILES ${model_file} ${scorer_file}
+         DESTINATION "${INSTALL_SHARE_DIR}/${PROJECT_NAME}/${EXECUTABLE}" COMPONENT data)
+if (GUI_SUPPORT)
+ install (FILES ${ui_definition_file}
+          DESTINATION "${INSTALL_SHARE_DIR}/${PROJECT_NAME}/${EXECUTABLE}" COMPONENT config)
+endif (GUI_SUPPORT)
 if (WIN32)
- get_filename_component (ACE_LIB_PATH ${ACE_LIBRARY}
-                         DIRECTORY)
+ get_filename_component (ACE_LIB_PATH ${ACE_LIBRARY} DIRECTORY)
  set (ACE_DLL_FILE ACE${LIB_FILE_SUFFIX}.dll)
  set (ACE_DLL_FQPATH ${ACE_LIB_PATH}/${ACE_DLL_FILE})
  install (FILES ${ACE_DLL_FQPATH}
@@ -266,12 +272,12 @@ endif ()
 
 ##########################################
 
+set (ARGS "-c ${scorer_file} -f ${model_file}")
 if (CMAKE_BUILD_TYPE STREQUAL "Debug" OR
     CMAKE_BUILD_TYPE STREQUAL "RelWithDebInfo")
- set (ARGS "-l -t")
-else ()
- set (ARGS "")
-endif ()
+ set (ARGS "${ARGS} -l -t")
+endif (CMAKE_BUILD_TYPE STREQUAL "Debug" OR
+       CMAKE_BUILD_TYPE STREQUAL "RelWithDebInfo")
 if (UNIX)
  file (TO_NATIVE_PATH "${CMAKE_CURRENT_BINARY_DIR}/${EXECUTABLE}" COMMAND)
  if (GUI_SUPPORT)

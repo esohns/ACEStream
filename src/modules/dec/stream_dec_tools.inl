@@ -54,50 +54,101 @@ Stream_Module_Decoder_Tools::noise (unsigned int sampleRate_in,
       {
         case 1:
         {
-          *data_p =
-            (formatIsSigned_in ? *reinterpret_cast<uint8_t*> (&static_cast<int8_t> (value))
-                               : static_cast<uint8_t> (value));
+          if (formatIsSigned_in)
+            *reinterpret_cast<int8_t*> (data_p) = static_cast<int8_t> (value);
+          else
+            *data_p = static_cast<uint8_t> (value);
           break;
         }
         case 2:
         {
-          *reinterpret_cast<int16_t*> (data_p) =
-            (byte_swap_b ? (formatIsSigned_in ? Common_Tools::byteSwap (static_cast<int16_t> (value))
-                                              : Common_Tools::byteSwap (static_cast<uint16_t> (value)))
-                         : (formatIsSigned_in ? static_cast<int16_t> (value)
-                                              : *reinterpret_cast<int16_t*> (&static_cast<uint16_t> (value))));
-
+          if (formatIsSigned_in)
+          {
+            if (byte_swap_b)
+              *reinterpret_cast<int16_t*> (data_p) =
+                Common_Tools::byteSwap (static_cast<int16_t> (value));
+            else
+              *reinterpret_cast<int16_t*> (data_p) =
+                static_cast<int16_t> (value);
+          } // end IF
+          else
+          {
+            if (byte_swap_b)
+              *reinterpret_cast<uint16_t*> (data_p) =
+                Common_Tools::byteSwap (static_cast<uint16_t> (value));
+            else
+              *reinterpret_cast<uint16_t*> (data_p) =
+                static_cast<uint16_t> (value);
+          } // end ELSE
           break;
         }
         case 4:
         {
           if (std::is_integral<typename DistributionType::result_type>::value)
-            *reinterpret_cast<int32_t*> (data_p) =
-              (byte_swap_b ? (formatIsSigned_in ? Common_Tools::byteSwap (static_cast<int32_t> (value))
-                                                : Common_Tools::byteSwap (static_cast<uint32_t> (value)))
-                           : (formatIsSigned_in ? static_cast<int32_t> (value)
-                                                : *reinterpret_cast<int32_t*> (&static_cast<uint32_t> (value))));
+          {
+            if (formatIsSigned_in)
+            {
+              if (byte_swap_b)
+                *reinterpret_cast<int32_t*> (data_p) =
+                  Common_Tools::byteSwap (static_cast<int32_t> (value));
+              else
+                *reinterpret_cast<int32_t*> (data_p) =
+                  static_cast<int32_t> (value);
+            } // end IF
+            else
+            {
+              if (byte_swap_b)
+                *reinterpret_cast<uint32_t*> (data_p) =
+                  Common_Tools::byteSwap (static_cast<uint32_t> (value));
+              else
+                *reinterpret_cast<uint32_t*> (data_p) =
+                  static_cast<uint32_t> (value);
+            } // end ELSE
+          } // end IF
           else
           { ACE_ASSERT (ACE_SIZEOF_FLOAT == 4);
-            *reinterpret_cast<int32_t*> (data_p) =
-              (byte_swap_b ? Common_Tools::byteSwap (*reinterpret_cast<int32_t*> (&static_cast<float> (value)))
-                           : *reinterpret_cast<int32_t*> (&static_cast<float> (value)));
+            float value_d = static_cast<float> (value);
+            if (byte_swap_b)
+              *reinterpret_cast<int32_t*> (data_p) =
+                Common_Tools::byteSwap (*reinterpret_cast<int32_t*> (&value_d));
+            else
+              *reinterpret_cast<int32_t*> (data_p) =
+                *reinterpret_cast<int32_t*> (&value_d);
           } // end ELSE
           break;
         }
         case 8:
         {
           if (std::is_integral<typename DistributionType::result_type>::value)
-            *reinterpret_cast<int64_t*> (data_p) =
-              (byte_swap_b ? (formatIsSigned_in ? Common_Tools::byteSwap (static_cast<int64_t> (value))
-                                                : Common_Tools::byteSwap (static_cast<uint64_t> (value)))
-                           : (formatIsSigned_in ? static_cast<int64_t> (value)
-                                                : *reinterpret_cast<int64_t*> (&static_cast<uint64_t> (value))));
+          {
+            if (formatIsSigned_in)
+            {
+              if (byte_swap_b)
+                *reinterpret_cast<int64_t*> (data_p) =
+                  Common_Tools::byteSwap (static_cast<int64_t> (value));
+              else
+                *reinterpret_cast<int64_t*> (data_p) =
+                  static_cast<int64_t> (value);
+            } // end IF
+            else
+            {
+              if (byte_swap_b)
+                *reinterpret_cast<uint64_t*> (data_p) =
+                  Common_Tools::byteSwap (static_cast<uint64_t> (value));
+              else
+                *reinterpret_cast<uint64_t*> (data_p) =
+                  static_cast<uint64_t> (value);
+            } // end ELSE
+          } // end IF
           else
           { ACE_ASSERT (ACE_SIZEOF_DOUBLE == 8);
-            *reinterpret_cast<int64_t*> (data_p) =
-              (byte_swap_b ? Common_Tools::byteSwap (*reinterpret_cast<int64_t*> (&static_cast<double> (value)))
-                           : *reinterpret_cast<int64_t*> (&static_cast<double> (value)));
+            double value_d = static_cast<double> (value);
+            if (byte_swap_b)
+              *reinterpret_cast<int64_t*> (data_p) =
+                Common_Tools::byteSwap (*reinterpret_cast<int64_t*> (&value_d));
+            else
+              *reinterpret_cast<int64_t*> (data_p) =
+                *reinterpret_cast<int64_t*> (&value_d);
           } // end ELSE
           break;
         }
@@ -105,9 +156,13 @@ Stream_Module_Decoder_Tools::noise (unsigned int sampleRate_in,
         { ACE_ASSERT (!std::is_integral<typename DistributionType::result_type>::value);
           ACE_ASSERT (ACE_SIZEOF_LONG_DOUBLE == 16);
           ACE_ASSERT (false); // *TODO*: int64_t will not work here
-          *reinterpret_cast<int64_t*> (data_p) =
-            (byte_swap_b ? Common_Tools::byteSwap (*reinterpret_cast<int64_t*> (&static_cast<long double> (value)))
-                         : *reinterpret_cast<int64_t*> (&static_cast<long double> (value)));
+          long double value_d = static_cast<long double> (value);
+          if (byte_swap_b)
+            *reinterpret_cast<int64_t*> (data_p) =
+              Common_Tools::byteSwap (*reinterpret_cast<int64_t*> (&value_d));
+          else
+            *reinterpret_cast<int64_t*> (data_p) =
+              *reinterpret_cast<int64_t*> (&value_d);
           break;
         }
         default:
