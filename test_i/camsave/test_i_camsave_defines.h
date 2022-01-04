@@ -26,6 +26,7 @@
 #define TEST_I_DEFAULT_OUTPUT_FILE             "output.avi"
 
 #if defined (GUI_SUPPORT)
+#undef TEST_I_UI_DEFINITION_FILE
 #if defined (GTK_USE)
 #if defined (GTK3_USE)
 #define TEST_I_UI_DEFINITION_FILE              "camsave.gtk3"
@@ -39,7 +40,8 @@
 #else
 #define TEST_I_UI_DEFINITION_FILE              ""
 #endif // WXWIDGETS_USE
-#define TEST_I_UI_CSS_FILE                     "camsave.css"
+#undef TEST_I_UI_CSS_FILE
+#define TEST_I_UI_CSS_FILE "camsave.css"
 
 //---------------------------------------
 #if defined (GTK_USE)

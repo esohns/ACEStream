@@ -31,7 +31,12 @@
 
 // forward declaration(s)
 class ACE_Allocator;
+#if defined(ACE_WIN32) || defined(ACE_WIN64)
+class Test_I_DirectShow_Message;
+class Test_I_MediaFoundation_Message;
+#else
 class Test_I_Message;
+#endif // ACE_WIN32 || ACE_WIN64
 template <ACE_SYNCH_DECL,
           typename AllocatorConfigurationType,
           typename ControlMessageType,
@@ -51,12 +56,27 @@ class Test_I_SessionMessage_T
                                       UserDataType> inherited;
 
   // grant access to specific private ctors
+#if defined(ACE_WIN32) || defined(ACE_WIN64)
+  friend class Stream_MessageAllocatorHeapBase_T<ACE_MT_SYNCH,
+                                                 struct Stream_AllocatorConfiguration,
+                                                 Stream_ControlMessage_t,
+                                                 Test_I_DirectShow_Message,
+                                                 Test_I_SessionMessage_T<SessionDataType,
+                                                                         UserDataType> >;
+  friend class Stream_MessageAllocatorHeapBase_T<ACE_MT_SYNCH,
+                                                 struct Stream_AllocatorConfiguration,
+                                                 Stream_ControlMessage_t,
+                                                 Test_I_MediaFoundation_Message,
+                                                 Test_I_SessionMessage_T<SessionDataType,
+                                                                         UserDataType> >;
+#else
   friend class Stream_MessageAllocatorHeapBase_T<ACE_MT_SYNCH,
                                                  struct Stream_AllocatorConfiguration,
                                                  Stream_ControlMessage_t,
                                                  Test_I_Message,
                                                  Test_I_SessionMessage_T<SessionDataType,
                                                                          UserDataType> >;
+#endif // ACE_WIN32 || ACE_WIN64
 
  public:
   // *NOTE*: assumes responsibility for the third argument !

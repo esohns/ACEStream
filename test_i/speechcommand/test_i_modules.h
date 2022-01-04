@@ -321,6 +321,26 @@ typedef Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_MT_SYNCH,
 
 //////////////////////////////////////////
 
+typedef Stream_Decoder_DeepSpeechDecoder_T<ACE_MT_SYNCH,
+                                           Common_TimePolicy_t,
+                                           struct Test_I_SpeechCommand_DirectShow_ModuleHandlerConfiguration,
+                                           Stream_ControlMessage_t,
+                                           Test_I_DirectShow_Message,
+                                           Test_I_DirectShow_SessionMessage_t,
+                                           Test_I_SpeechCommand_DirectShow_SessionData_t,
+                                           struct _AMMediaType> Test_I_DirectShow_DeepSpeechDecoder;
+
+typedef Stream_Decoder_DeepSpeechDecoder_T<ACE_MT_SYNCH,
+                                           Common_TimePolicy_t,
+                                           struct Test_I_SpeechCommand_MediaFoundation_ModuleHandlerConfiguration,
+                                           Stream_ControlMessage_t,
+                                           Test_I_MediaFoundation_Message,
+                                           Test_I_MediaFoundation_SessionMessage_t,
+                                           Test_I_SpeechCommand_MediaFoundation_SessionData_t,
+                                           IMFMediaType*> Test_I_MediaFoundation_DeepSpeechDecoder;
+
+//////////////////////////////////////////
+
 typedef Stream_Dev_Target_WavOut_T<ACE_MT_SYNCH,
                                    Common_TimePolicy_t,
                                    struct Test_I_SpeechCommand_DirectShow_ModuleHandlerConfiguration,
@@ -674,6 +694,23 @@ DATASTREAM_MODULE_INPUT_ONLY (Test_I_SpeechCommand_MediaFoundation_SessionData, 
                               Test_I_MediaFoundation_Vis_SpectrumAnalyzer);                  // writer type
 #endif // GTK_SUPPORT
 #endif // GUI_SUPPORT
+
+//////////////////////////////////////////
+
+DATASTREAM_MODULE_INPUT_ONLY (Test_I_SpeechCommand_DirectShow_SessionData,                         // session data type
+                              enum Stream_SessionMessageType,                                // session event type
+                              struct Test_I_SpeechCommand_DirectShow_ModuleHandlerConfiguration,   // module handler configuration type
+                              libacestream_default_dec_deepspeech_decoder_module_name_string,
+                              Stream_INotify_t,                                              // stream notification interface type
+                              Test_I_DirectShow_DeepSpeechDecoder);                                // writer type
+DATASTREAM_MODULE_INPUT_ONLY (Test_I_SpeechCommand_MediaFoundation_SessionData,                         // session data type
+                              enum Stream_SessionMessageType,                                // session event type
+                              struct Test_I_SpeechCommand_MediaFoundation_ModuleHandlerConfiguration,   // module handler configuration type
+                              libacestream_default_dec_deepspeech_decoder_module_name_string,
+                              Stream_INotify_t,                                              // stream notification interface type
+                              Test_I_MediaFoundation_DeepSpeechDecoder);                                // writer type
+
+//////////////////////////////////////////
 
 DATASTREAM_MODULE_INPUT_ONLY (Test_I_SpeechCommand_DirectShow_SessionData,                             // session data type
                               enum Stream_SessionMessageType,                            // session event type

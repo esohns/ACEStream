@@ -37,9 +37,9 @@ elseif (WIN32)
   endif (deepspeech_FOUND)
  endif (VCPKG_SUPPORT)
  if (NOT deepspeech_FOUND)
-  set (DEEPSPEECH_LIB_FILE "deepspeech${LIB_FILE_SUFFIX}.lib")
+  set (DEEPSPEECH_LIB_FILE "libdeepspeech.so.if.lib")
   find_library (DEEPSPEECH_LIBRARY ${DEEPSPEECH_LIB_FILE}
-                PATHS $ENV{LIB_ROOT}/DeepSpeech/native_client
+                PATHS $ENV{LIB_ROOT}/DeepSpeech/native_client/windows/bin
 #                PATH_SUFFIXES ${CMAKE_BUILD_TYPE}
                 DOC "searching for ${DEEPSPEECH_LIB_FILE}"
                 NO_DEFAULT_PATH)
@@ -50,7 +50,7 @@ elseif (WIN32)
    set (DEEPSPEECH_FOUND TRUE)
    set (DEEPSPEECH_INCLUDE_DIRS "$ENV{LIB_ROOT}/DeepSpeech/native_client")
    set (DEEPSPEECH_LIBRARIES "${DEEPSPEECH_LIBRARY}")
-   set (DEEPSPEECH_LIB_DIR "$ENV{LIB_ROOT}/DeepSpeech/native_client")
+   set (DEEPSPEECH_LIB_DIR "$ENV{LIB_ROOT}/DeepSpeech/native_client/windows/bin")
   endif (NOT DEEPSPEECH_LIBRARY)
  endif (NOT deepspeech_FOUND)
 endif ()

@@ -224,19 +224,9 @@ Stream_Decoder_DeepSpeechDecoder_T<ACE_SYNCH_USE,
   const char* last_p = NULL, *prev_p = NULL, *partial_p = NULL;
   while (message_block_p)
   {
-    result = DS_FeedAudioContent (context2_,
-                                  reinterpret_cast<short int*> (message_block_p->rd_ptr ()),
-                                  message_block_p->length () / 2);
-    if (unlikely (result != DS_ERR_OK))
-    { char* string_p = DS_ErrorCodeToErrorMessage (result);
-      ACE_ASSERT (string_p);
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("%s: failed to DS_FeedAudioContent(): \"%s\", returning\n"),
-                  inherited::mod_->name (),
-                  ACE_TEXT (string_p)));
-      DS_FreeString (string_p);
-      return;
-    } // end IF
+    DS_FeedAudioContent (context2_,
+                         reinterpret_cast<short int*> (message_block_p->rd_ptr ()),
+                         message_block_p->length () / 2);
 
     partial_p = DS_IntermediateDecode (context2_);
     if (!last_p || ACE_OS::strcmp (last_p, partial_p))

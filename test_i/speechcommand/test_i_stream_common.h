@@ -42,6 +42,8 @@
 #include "stream_common.h"
 #include "stream_configuration.h"
 
+#include "stream_dec_common.h"
+
 #include "stream_dev_common.h"
 
 #include "stream_stat_common.h"
@@ -257,7 +259,10 @@ struct Test_I_SpeechCommand_DirectShow_ModuleHandlerConfiguration
    : Test_I_DirectShow_ModuleHandlerConfiguration ()
    , deviceIdentifier ()
    , dispatch (NULL)
+   , hotWords ()
+   , modelFile ()
    , mute (false)
+   , scorerFile ()
 #if defined (GUI_SUPPORT)
 #if defined (GTK_SUPPORT)
 #if defined (GTKGL_SUPPORT)
@@ -282,7 +287,10 @@ struct Test_I_SpeechCommand_DirectShow_ModuleHandlerConfiguration
 
   struct Stream_Device_Identifier                   deviceIdentifier; // capture/render
   Stream_Statistic_IDispatch_t*                     dispatch;
+  Stream_Decoder_DeepSpeech_HotWords_t              hotWords;
+  std::string                                       modelFile;
   bool                                              mute;
+  std::string                                       scorerFile;
 #if defined (GUI_SUPPORT)
 #if defined (GTK_SUPPORT)
 #if defined (GTKGL_SUPPORT)
@@ -310,8 +318,11 @@ struct Test_I_SpeechCommand_MediaFoundation_ModuleHandlerConfiguration
    : Test_I_MediaFoundation_ModuleHandlerConfiguration ()
    , deviceIdentifier ()
    , dispatch (NULL)
+   , hotWords ()
+   , modelFile ()
    , mute (false)
-#if defined (GUI_SUPPORT)
+   , scorerFile ()
+#if defined(GUI_SUPPORT)
 #if defined (GTK_SUPPORT)
 #if defined (GTKGL_SUPPORT)
    , OpenGLInstructions (NULL)
@@ -335,7 +346,10 @@ struct Test_I_SpeechCommand_MediaFoundation_ModuleHandlerConfiguration
 
   struct Stream_Device_Identifier                   deviceIdentifier; // capture/render
   Stream_Statistic_IDispatch_t*                     dispatch;
+  Stream_Decoder_DeepSpeech_HotWords_t              hotWords;
+  std::string                                       modelFile;
   bool                                              mute;
+  std::string                                       scorerFile;
 #if defined (GUI_SUPPORT)
 #if defined (GTK_SUPPORT)
 #if defined (GTKGL_SUPPORT)

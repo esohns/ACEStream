@@ -1397,15 +1397,9 @@ do_work (const struct Stream_Device_Identifier& deviceIdentifier_in,
                                             NULL,
                                             false);
   ACE_Event_Handler* event_handler_p = NULL;
-//  struct Net_SocketHandlerConfiguration* socket_handler_configuration_p = NULL;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  Test_I_Source_DirectShow_SignalHandler_t directshow_signal_handler ((useReactor_in ? COMMON_SIGNAL_DISPATCH_REACTOR
-                                                                                     : COMMON_SIGNAL_DISPATCH_PROACTOR),
-                                                                      &directShowCBData_in.subscribersLock);
-  Test_I_Source_MediaFoundation_SignalHandler_t mediafoundation_signal_handler ((useReactor_in ? COMMON_SIGNAL_DISPATCH_REACTOR
-                                                                                               : COMMON_SIGNAL_DISPATCH_PROACTOR),
-                                                                                &mediaFoundationCBData_in.subscribersLock);
-
+  Test_I_Source_DirectShow_SignalHandler_t directshow_signal_handler;
+  Test_I_Source_MediaFoundation_SignalHandler_t mediafoundation_signal_handler;
   switch (mediaFramework_in)
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:

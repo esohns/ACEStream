@@ -2049,9 +2049,15 @@ ACE_TMAIN (int argc_in,
   Test_I_SignalHandler signal_handler;
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
+  struct Test_I_DirectShow_Configuration directshow_configuration;
+  struct Test_I_MediaFoundation_Configuration mediafoundation_configuration;
+#if defined (GUI_SUPPORT)
+  struct Test_I_DirectShow_UI_CBData directshow_ui_cb_data;
+  struct Test_I_MediaFoundation_UI_CBData mediafoundation_ui_cb_data;
+#endif // GUI_SUPPORT
 #else
   struct Test_I_ALSA_Configuration configuration;
-#if defined(GUI_SUPPORT)
+#if defined (GUI_SUPPORT)
   struct Test_I_ALSA_UI_CBData ui_cb_data;
 #endif // GUI_SUPPORT
 #endif // ACE_WIN32 || ACE_WIN64
@@ -2071,34 +2077,34 @@ ACE_TMAIN (int argc_in,
 #endif // GUI_SUPPORT
 
   // step1b: parse/process/validate configuration
-  if (unlikely (!do_processArguments (argc_in,
-                                      argv_in,
-                                      scorer_file,
+  if (!do_processArguments (argc_in,
+                            argv_in,
+                            scorer_file,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
-                                      device_identifier_string,
+                            device_identifier_string,
 #endif // ACE_WIN32 || ACE_WIN64
-                                      model_file,
+                            model_file,
 #if defined (GUI_SUPPORT)
-                                      UI_definition_file,
+                            UI_definition_file,
 #if defined (GTK_SUPPORT)
-                                      UI_CSS_file,
+                            UI_CSS_file,
 #endif // GTK_SUPPORT
 #endif // GUI_SUPPORT
-                                      log_to_file,
+                            log_to_file,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-                                      media_framework_e,
+                            media_framework_e,
 #endif // ACE_WIN32 || ACE_WIN64
-                                      target_filename,
-                                      statistic_reporting_interval,
-                                      trace_information,
-                                      mute,
-                                      print_version_and_exit
+                            target_filename,
+                            statistic_reporting_interval,
+                            trace_information,
+                            mute,
+                            print_version_and_exit
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-                                      ,use_framework_source,
-                                      use_framework_renderer)))
+                            ,use_framework_source,
+                            use_framework_renderer))
 #else
-                                      )))
+                            ))
 #endif // ACE_WIN32 || ACE_WIN64
   {
     do_printUsage (ACE_TEXT_ALWAYS_CHAR (ACE::basename (argv_in[0])));
@@ -2148,19 +2154,15 @@ ACE_TMAIN (int argc_in,
   state_p = &const_cast<Common_UI_GTK_State_t&> (gtk_manager_p->getR ());
 #endif // GTK_SUPPORT
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  struct Test_I_DirectShow_Configuration directshow_configuration;
   directshow_configuration.filterConfiguration.pinConfiguration =
     &directshow_configuration.pinConfiguration;
-  struct Test_I_DirectShow_UI_CBData directshow_ui_cb_data;
-  struct Test_I_MediaFoundation_Configuration mediafoundation_configuration;
-  struct Test_I_MediaFoundation_UI_CBData mediafoundation_ui_cb_data;
   switch (media_framework_e)
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
     {
       directshow_ui_cb_data.configuration = &directshow_configuration;
 #if defined (GTK_SUPPORT)
-      directshow_ui_cb_data.progressData.state = &state_r;
+      directshow_ui_cb_data.progressData.state = state_p;
 
       directshow_configuration.GTKConfiguration.argc = argc_in;
       directshow_configuration.GTKConfiguration.argv = argv_in;
@@ -2186,7 +2188,7 @@ ACE_TMAIN (int argc_in,
     {
       mediafoundation_ui_cb_data.configuration = &mediafoundation_configuration;
 #if defined (GTK_SUPPORT)
-      mediafoundation_ui_cb_data.progressData.state = &state_r;
+      mediafoundation_ui_cb_data.progressData.state = state_p;
 
       mediafoundation_configuration.GTKConfiguration.argc = argc_in;
       mediafoundation_configuration.GTKConfiguration.argv = argv_in;

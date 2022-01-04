@@ -1,13 +1,14 @@
 if (UNIX)
+ pkg_check_modules (PKG_ALSA REQUIRED alsa)
+
  include (ffmpeg) # AVI encoder
 endif (UNIX)
 
-if (UNIX)
- pkg_check_modules (PKG_ALSA REQUIRED alsa)
+set (CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_CURRENT_SOURCE_DIR}/../../src/modules/lib/scripts")
+include (sox)
 
- set (CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_CURRENT_SOURCE_DIR}/../../src/modules/lib/scripts")
- include (sox)
-endif (UNIX)
+set (CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_CURRENT_SOURCE_DIR}/../../src/modules/dec/scripts")
+include (deepspeech)
 
 string (REPLACE ${CMAKE_SOURCE_DIR} "" BUILD_PATH_SUFFIX ${CMAKE_BINARY_DIR})
 string (SUBSTRING ${BUILD_PATH_SUFFIX} 1 -1 BUILD_PATH_SUFFIX)
@@ -125,6 +126,7 @@ if (WIN32)
   # *NOTE*: DirectShow uses 'DEBUG'
   add_definitions (-DDEBUG) # activate DirectShow debug logging
  endif (CMAKE_BUILD_TYPE STREQUAL Debug)
+# add_definitions (-DSWIG) # *WORKAROUND*
 endif ()
 
 cmake_policy (SET CMP0065 OLD) # do not add flags to export symbols from executables without the ENABLE_EXPORTS target property
@@ -185,6 +187,7 @@ if (GUI_SUPPORT)
 endif (GUI_SUPPORT)
 
 target_link_libraries (${EXECUTABLE} PUBLIC ${PROJECT_NAME})
+target_link_libraries (${EXECUTABLE} PUBLIC ${PROJECT_NAME}_Decoder)
 target_link_libraries (${EXECUTABLE} PUBLIC ${PROJECT_NAME}_Device)
 target_link_libraries (${EXECUTABLE} PUBLIC ${PROJECT_NAME}_File)
 target_link_libraries (${EXECUTABLE} PUBLIC ${PROJECT_NAME}_MediaFramework)

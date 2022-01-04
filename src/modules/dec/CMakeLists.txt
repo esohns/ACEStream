@@ -15,11 +15,15 @@ if (UNIX)
  pkg_check_modules (PKG_ALSA REQUIRED alsa)
 endif (UNIX)
 
+add_library (${PROJECT_NAME}_Decoder STATIC "")
+
 if (WIN32)
  add_definitions (-D_USE_MATH_DEFINES)
-endif (WIN32)
 
-add_library (${PROJECT_NAME}_Decoder STATIC "")
+# set_property (TARGET ${PROJECT_NAME}_Decoder
+#               PROPERTY VS_PACKAGE_REFERENCES "DeepSpeech_0.9.3")
+# add_definitions (-DDEEPSPEECH_SUPPORT)
+endif (WIN32)
 
 string (REPLACE ${CMAKE_SOURCE_DIR} "" BUILD_PATH_SUFFIX ${CMAKE_BINARY_DIR})
 string (SUBSTRING ${BUILD_PATH_SUFFIX} 1 -1 BUILD_PATH_SUFFIX)

@@ -1530,7 +1530,7 @@ continue_3:
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: invalid/unknown renderer type (was: %d), aborting\n"),
                   ACE_TEXT (stream_name_string_),
-                  inherited::configuration_->configuration_->sourceType));
+                  inherited::configuration_->configuration_->renderer));
       return false;
     }
   } // end SWITCH
