@@ -21,27 +21,28 @@ elseif (WIN32)
     set (SOX_LIB_DIR "${VCPKG_ROOT}/installed/${VCPKG_TARGET_TRIPLET}/bin")
    endif ()
   endif (sox_FOUND)
- else ()
-  find_library (SOX_LIBRARY sox.lib
-                PATHS $ENV{LIB_ROOT}/sox
-                PATH_SUFFIXES lib
+ endif (VCPKG_SUPPORT)
+ if (NOT SOX_FOUND)
+  set (CMAKE_FIND_LIBRARY_SUFFIXES .lib .dll.a)
+  find_library (SOX_LIBRARY libsox.dll.a
+                PATHS $ENV{LIB_ROOT}/sox/src
+                PATH_SUFFIXES .libs
                 DOC "searching for sox.lib"
                 NO_DEFAULT_PATH)
   if (NOT SOX_LIBRARY)
    message (WARNING "could not find sox.lib, continuing")
   else ()
-   message (STATUS "Found sox.lib library \"${SOX_LIBRARY}\"")
+   message (STATUS "Found libsox.dll.a library \"${SOX_LIBRARY}\"")
    set (SOX_FOUND TRUE)
-   set (SOX_INCLUDE_DIRS "$ENV{LIB_ROOT}/sox/include")
+   set (SOX_INCLUDE_DIRS "$ENV{LIB_ROOT}/sox/src")
    set (SOX_LIBRARIES "${SOX_LIBRARY}")
-   set (SOX_LIB_DIR "$ENV{LIB_ROOT}/sox/bin")
+   set (SOX_LIB_DIR "$ENV{LIB_ROOT}/sox/src/.libs")
   endif (NOT SOX_LIBRARY)
- endif (VCPKG_SUPPORT)
+ endif (NOT SOX_FOUND)
 endif ()
 if (SOX_FOUND)
  option (SOX_SUPPORT "enable sox support" ${SOX_SUPPORT_DEFAULT})
  if (SOX_SUPPORT)
   add_definitions (-DSOX_SUPPORT)
-#  include_directories (${sox_INCLUDE_DIRS})
  endif (SOX_SUPPORT)
 endif (SOX_FOUND)

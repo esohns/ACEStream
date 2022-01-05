@@ -41,18 +41,18 @@ template <ACE_SYNCH_DECL,
           typename SessionDataContainerType,
           typename SessionDataType,
           typename MediaType>
-Stream_Decoder_SoXEffect_T<ACE_SYNCH_USE,
-                           TimePolicyType,
-                           ConfigurationType,
-                           ControlMessageType,
-                           DataMessageType,
-                           SessionMessageType,
-                           SessionDataContainerType,
-                           SessionDataType,
+Stream_Decoder_SoXResampler_T<ACE_SYNCH_USE,
+                              TimePolicyType,
+                              ConfigurationType,
+                              ControlMessageType,
+                              DataMessageType,
+                              SessionMessageType,
+                              SessionDataContainerType,
+                              SessionDataType,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-                           MediaType>::Stream_Decoder_SoXEffect_T (ISTREAM_T* stream_in)
+                              MediaType>::Stream_Decoder_SoXResampler_T (ISTREAM_T* stream_in)
 #else
-                           MediaType>::Stream_Decoder_SoXEffect_T (typename inherited::ISTREAM_T* stream_in)
+                              MediaType>::Stream_Decoder_SoXResampler_T (typename inherited::ISTREAM_T* stream_in)
 #endif // ACE_WIN32 || ACE_WIN64
  : inherited (stream_in)
  , inherited2 ()
@@ -63,7 +63,7 @@ Stream_Decoder_SoXEffect_T<ACE_SYNCH_USE,
  , output_ (NULL)
  , signalInfo_ ()
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_Decoder_SoXEffect_T::Stream_Decoder_SoXEffect_T"));
+  STREAM_TRACE (ACE_TEXT ("Stream_Decoder_SoXResampler_T::Stream_Decoder_SoXResampler_T"));
 
   ACE_OS::memset (&encodingInfo_, 0, sizeof (struct sox_encodinginfo_t));
   ACE_OS::memset (&signalInfo_, 0, sizeof (struct sox_signalinfo_t));
@@ -78,17 +78,17 @@ template <ACE_SYNCH_DECL,
           typename SessionDataContainerType,
           typename SessionDataType,
           typename MediaType>
-Stream_Decoder_SoXEffect_T<ACE_SYNCH_USE,
-                           TimePolicyType,
-                           ConfigurationType,
-                           ControlMessageType,
-                           DataMessageType,
-                           SessionMessageType,
-                           SessionDataContainerType,
-                           SessionDataType,
-                           MediaType>::~Stream_Decoder_SoXEffect_T ()
+Stream_Decoder_SoXResampler_T<ACE_SYNCH_USE,
+                              TimePolicyType,
+                              ConfigurationType,
+                              ControlMessageType,
+                              DataMessageType,
+                              SessionMessageType,
+                              SessionDataContainerType,
+                              SessionDataType,
+                              MediaType>::~Stream_Decoder_SoXResampler_T ()
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_Decoder_SoXEffect_T::~Stream_Decoder_SoXEffect_T"));
+  STREAM_TRACE (ACE_TEXT ("Stream_Decoder_SoXResampler_T::~Stream_Decoder_SoXResampler_T"));
 
   int result = -1;
 
@@ -119,18 +119,18 @@ template <ACE_SYNCH_DECL,
           typename SessionDataType,
           typename MediaType>
 bool
-Stream_Decoder_SoXEffect_T<ACE_SYNCH_USE,
-                           TimePolicyType,
-                           ConfigurationType,
-                           ControlMessageType,
-                           DataMessageType,
-                           SessionMessageType,
-                           SessionDataContainerType,
-                           SessionDataType,
-                           MediaType>::initialize (const ConfigurationType& configuration_in,
-                                                   Stream_IAllocator* allocator_in)
+Stream_Decoder_SoXResampler_T<ACE_SYNCH_USE,
+                              TimePolicyType,
+                              ConfigurationType,
+                              ControlMessageType,
+                              DataMessageType,
+                              SessionMessageType,
+                              SessionDataContainerType,
+                              SessionDataType,
+                              MediaType>::initialize (const ConfigurationType& configuration_in,
+                                                      Stream_IAllocator* allocator_in)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_Decoder_SoXEffect_T::initialize"));
+  STREAM_TRACE (ACE_TEXT ("Stream_Decoder_SoXResampler_T::initialize"));
 
   int result = -1;
 
@@ -193,22 +193,22 @@ template <ACE_SYNCH_DECL,
           typename SessionDataType,
           typename MediaType>
 void
-Stream_Decoder_SoXEffect_T<ACE_SYNCH_USE,
-                            TimePolicyType,
-                            ConfigurationType,
-                            ControlMessageType,
-                            DataMessageType,
-                            SessionMessageType,
-                            SessionDataContainerType,
-                            SessionDataType,
-                            MediaType>::handleDataMessage (DataMessageType*& message_inout,
-                                                           bool& passMessageDownstream_out)
+Stream_Decoder_SoXResampler_T<ACE_SYNCH_USE,
+                              TimePolicyType,
+                              ConfigurationType,
+                              ControlMessageType,
+                              DataMessageType,
+                              SessionMessageType,
+                              SessionDataContainerType,
+                              SessionDataType,
+                              MediaType>::handleDataMessage (DataMessageType*& message_inout,
+                                                             bool& passMessageDownstream_out)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_Decoder_SoXEffect_T::handleDataMessage"));
+  STREAM_TRACE (ACE_TEXT ("Stream_Decoder_SoXResampler_T::handleDataMessage"));
 
   // sanity check(s)
   ACE_ASSERT (inherited::configuration_);
-  ACE_ASSERT (inherited::configuration_->streamConfiguration);
+  ACE_ASSERT (inherited::configuration_->allocatorConfiguration);
   if (inherited::configuration_->effect.empty ())
     return;
 
@@ -248,20 +248,20 @@ Stream_Decoder_SoXEffect_T<ACE_SYNCH_USE,
   if (unlikely (!buffer_))
   {
     buffer_ =
-        inherited::allocateMessage (inherited::configuration_->streamConfiguration->configuration_->allocatorConfiguration->defaultBufferSize);
+        inherited::allocateMessage (inherited::configuration_->allocatorConfiguration->defaultBufferSize);
     if (unlikely (!buffer_))
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: allocateMessage(%d) failed: \"%m\", returning\n"),
                   inherited::mod_->name (),
-                  inherited::configuration_->streamConfiguration->configuration_->allocatorConfiguration->defaultBufferSize));
+                  inherited::configuration_->allocatorConfiguration->defaultBufferSize));
       goto error;
     } // end IF
   } // end IF
   message_block_p = buffer_;
   output_buffer_p =
       sox_open_mem_write (message_block_p->wr_ptr (),
-                          inherited::configuration_->streamConfiguration->configuration_->allocatorConfiguration->defaultBufferSize,
+                          inherited::configuration_->allocatorConfiguration->defaultBufferSize,
                           &signalInfo_,
                           &encodingInfo_,
                           ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_SOX_FORMAT_RAW_STRING),
@@ -302,18 +302,18 @@ Stream_Decoder_SoXEffect_T<ACE_SYNCH_USE,
 
     // output buffer is full --> (dispatch and- ?) allocate another one
 //    ACE_ASSERT (output_buffer_p->tell_off <= inherited::configuration_->streamConfiguration->bufferSize);
-    message_block_p->wr_ptr ((output_buffer_p->tell_off <= inherited::configuration_->streamConfiguration->configuration_->allocatorConfiguration->defaultBufferSize) ? output_buffer_p->tell_off
-                                                                                                                                                                      : inherited::configuration_->streamConfiguration->configuration_->allocatorConfiguration->defaultBufferSize);
+    message_block_p->wr_ptr ((output_buffer_p->tell_off <= inherited::configuration_->allocatorConfiguration->defaultBufferSize) ? output_buffer_p->tell_off
+                                                                                                                                 : inherited::configuration_->allocatorConfiguration->defaultBufferSize);
 
     message_block_2 = NULL;
     message_block_2 =
-        inherited::allocateMessage (inherited::configuration_->streamConfiguration->configuration_->allocatorConfiguration->defaultBufferSize);
+        inherited::allocateMessage (inherited::configuration_->allocatorConfiguration->defaultBufferSize);
     if (unlikely (!message_block_2))
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: allocateMessage(%d) failed: \"%m\", returning\n"),
                   inherited::mod_->name (),
-                  inherited::configuration_->streamConfiguration->configuration_->allocatorConfiguration->defaultBufferSize));
+                  inherited::configuration_->allocatorConfiguration->defaultBufferSize));
       goto error;
     } // end IF
     message_block_p->cont (message_block_2);
@@ -328,7 +328,7 @@ Stream_Decoder_SoXEffect_T<ACE_SYNCH_USE,
     output_buffer_p = NULL;
     output_buffer_p =
         sox_open_mem_write (message_block_p->wr_ptr (),
-                            inherited::configuration_->streamConfiguration->configuration_->allocatorConfiguration->defaultBufferSize,
+                            inherited::configuration_->allocatorConfiguration->defaultBufferSize,
                             &signalInfo_,
                             &encodingInfo_,
                             ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_SOX_FORMAT_RAW_STRING),
@@ -352,8 +352,8 @@ Stream_Decoder_SoXEffect_T<ACE_SYNCH_USE,
     } // end IF
   } while (true);
 //  ACE_ASSERT (output_buffer_p->tell_off <= inherited::configuration_->streamConfiguration->bufferSize);
-  message_block_p->wr_ptr ((output_buffer_p->tell_off <= inherited::configuration_->streamConfiguration->configuration_->allocatorConfiguration->defaultBufferSize) ? output_buffer_p->tell_off
-                                                                                                                                                                    : inherited::configuration_->streamConfiguration->configuration_->allocatorConfiguration->defaultBufferSize);
+  message_block_p->wr_ptr ((output_buffer_p->tell_off <= inherited::configuration_->allocatorConfiguration->defaultBufferSize) ? output_buffer_p->tell_off
+                                                                                                                               : inherited::configuration_->allocatorConfiguration->defaultBufferSize);
 
   result = inherited::put_next (buffer_, NULL);
   if (unlikely (result == -1))
@@ -422,18 +422,18 @@ template <ACE_SYNCH_DECL,
           typename SessionDataType,
           typename MediaType>
 void
-Stream_Decoder_SoXEffect_T<ACE_SYNCH_USE,
-                           TimePolicyType,
-                           ConfigurationType,
-                           ControlMessageType,
-                           DataMessageType,
-                           SessionMessageType,
-                           SessionDataContainerType,
-                           SessionDataType,
-                           MediaType>::handleSessionMessage (SessionMessageType*& message_inout,
-                                                             bool& passMessageDownstream_out)
+Stream_Decoder_SoXResampler_T<ACE_SYNCH_USE,
+                              TimePolicyType,
+                              ConfigurationType,
+                              ControlMessageType,
+                              DataMessageType,
+                              SessionMessageType,
+                              SessionDataContainerType,
+                              SessionDataType,
+                              MediaType>::handleSessionMessage (SessionMessageType*& message_inout,
+                                                                bool& passMessageDownstream_out)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_Decoder_SoXEffect_T::handleSessionMessage"));
+  STREAM_TRACE (ACE_TEXT ("Stream_Decoder_SoXResampler_T::handleSessionMessage"));
 
   // don't care (implies yes per default, if part of a stream)
   ACE_UNUSED_ARG (passMessageDownstream_out);

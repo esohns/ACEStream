@@ -111,7 +111,6 @@ struct Test_I_ALSA_ModuleHandlerConfiguration
    : Test_I_ModuleHandlerConfiguration ()
    , deviceIdentifier ()
    , ALSAConfiguration (NULL)
-   , manageSoX (false)
   {
     deviceIdentifier.identifier =
         ACE_TEXT_ALWAYS_CHAR (STREAM_LIB_ALSA_CAPTURE_DEFAULT_DEVICE_NAME);
@@ -119,7 +118,6 @@ struct Test_I_ALSA_ModuleHandlerConfiguration
 
   struct Stream_Device_Identifier                  deviceIdentifier;
   struct Stream_MediaFramework_ALSA_Configuration* ALSAConfiguration;
-  bool                                             manageSoX;
 };
 #endif // ACE_WIN32 || ACE_WIN64
 

@@ -1,8 +1,7 @@
 if (UNIX)
  pkg_check_modules (PKG_ALSA REQUIRED alsa)
-
- include (ffmpeg) # AVI encoder
 endif (UNIX)
+include (ffmpeg) # AVI encoder
 
 set (CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_CURRENT_SOURCE_DIR}/../../src/modules/lib/scripts")
 include (sox)
@@ -304,33 +303,34 @@ elseif (WIN32)
   file (TO_NATIVE_PATH "${ui_definition_file}" ui_definition_file)
   string (REGEX REPLACE "\\\\" "\\\\\\\\" ui_definition_file "${ui_definition_file}")
   set (ARGS " ${ARGS} -g.\\\\${ui_definition_file}")
-  message (STATUS "ui_definition_file: ${ui_definition_file}")
-  message (STATUS "ARGS: ${ARGS}")
-  if (GTK_USE)
+  if (GTK_SUPPORT)
    file (TO_CMAKE_PATH "${GTK_LIB_DIRS}" GTK_PATH)
    set (RUNTIME_LIBRARY_DIRS ${RUNTIME_LIBRARY_DIRS}
                              G:/software/Development/dll
                              ${GTK_PATH})
-  elseif (WXWIDGETS_USE)
+  endif (GTK_SUPPORT)
+  if (WXWIDGETS_SUPPORT)
    file (TO_CMAKE_PATH "${wxWidgets_LIB_DIR}" WXWIDGETS_PATH)
    set (RUNTIME_LIBRARY_DIRS ${RUNTIME_LIBRARY_DIRS}
                              ${WXWIDGETS_PATH})
-  endif ()
+  endif (WXWIDGETS_SUPPORT)
  else ()
   set (ARGS "-g ${ARGS}")
  endif (GUI_SUPPORT)
- file (TO_CMAKE_PATH $ENV{LIB_ROOT}/ffmpeg/bin FFMPEG_PATH)
  file (TO_CMAKE_PATH "${ACE_LIB_DIR}" ACE_LIBRARY_PATH)
+ file (TO_CMAKE_PATH "${DEEPSPEECH_LIB_DIR}" DEEPSPEECH_LIBRARY_PATH)
+ file (TO_CMAKE_PATH "${ffmpeg_LIB_DIR}" FFMPEG_PATH)
  set (RUNTIME_LIBRARY_DIRS ${RUNTIME_LIBRARY_DIRS}
-                           ${FFMPEG_PATH}
-                           ${ACE_LIBRARY_PATH})
+                           ${ACE_LIBRARY_PATH}
+                           ${DEEPSPEECH_LIBRARY_PATH}
+                           ${FFMPEG_PATH})
 endif ()
 create_target_launcher (${EXECUTABLE}
                         COMMAND ${COMMAND}
                         ARGS ${ARGS}
 #                        FORWARD_ARGS
                         RUNTIME_LIBRARY_DIRS ${RUNTIME_LIBRARY_DIRS}
-                        WORKING_DIRECTORY ${PROJECT_BINARY_DIR}/../test_i/${EXECUTABLE}
+                        WORKING_DIRECTORY ${PROJECT_BINARY_DIR}/../../test_i/${EXECUTABLE}
                         ENVIRONMENT ${ENVIRONMENT})
 
 ##########################################

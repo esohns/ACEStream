@@ -50,10 +50,11 @@
 #if defined (FFMPEG_SUPPORT)
 #define STREAM_DEC_ENCODER_AVI_DEFAULT_NAME_STRING                   "AVI_Encoder"
 #endif // FFMPEG_SUPPORT
-#if defined (SOX_SUPPORT)
-#define STREAM_DEC_ENCODER_SOX_EFFECT_DEFAULT_NAME_STRING            "SoX_Effect"
-#endif // SOX_SUPPORT
 #endif // ACE_WIN32 || ACE_WIN64
+#if defined(SOX_SUPPORT)
+#define STREAM_DEC_ENCODER_SOX_EFFECT_DEFAULT_NAME_STRING            "SoX_Effect"
+#define STREAM_DEC_ENCODER_SOX_RESAMPLER_DEFAULT_NAME_STRING         "SoX_Resampler"
+#endif // SOX_SUPPORT
 #define STREAM_DEC_ENCODER_NOISE_SOURCE_DEFAULT_NAME_STRING          "Noise_Source"
 #define STREAM_DEC_ENCODER_WAV_DEFAULT_NAME_STRING                   "WAV_Encoder"
 
@@ -121,8 +122,6 @@
 
 // ---------------------------------------
 
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-#else
 #if defined (SOX_SUPPORT)
 // SoX
 #define STREAM_DEC_SOX_BUFFER_SIZE                                   32768 // bytes (default: 8192)
@@ -130,6 +129,5 @@
 #define STREAM_DEC_SOX_FORMAT_WAV_STRING                             "waveaudio"
 #define STREAM_DEC_SOX_SAMPLE_BUFFERS                                8192
 #endif // SOX_SUPPORT
-#endif // ACE_WIN32 || ACE_WIN64
 
 #endif

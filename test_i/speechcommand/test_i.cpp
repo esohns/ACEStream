@@ -578,7 +578,8 @@ do_initialize_directshow (const struct Stream_Device_Identifier& deviceIdentifie
 
   waveformatex_s.wFormatTag = STREAM_DEV_MIC_DEFAULT_FORMAT;
   waveformatex_s.nChannels = STREAM_DEV_MIC_DEFAULT_CHANNELS;
-  waveformatex_s.nSamplesPerSec = STREAM_DEV_MIC_DEFAULT_SAMPLE_RATE;
+  // *NOTE*: DeepSpeech requires PCM mono signed 16 bits at 16000Hz
+  waveformatex_s.nSamplesPerSec = 16000;
   waveformatex_s.wBitsPerSample = STREAM_DEV_MIC_DEFAULT_BITS_PER_SAMPLE;
   waveformatex_s.nBlockAlign =
     (waveformatex_s.nChannels * (waveformatex_s.wBitsPerSample / 8));
@@ -815,7 +816,8 @@ continue_2:
 
   waveformatex_s.wFormatTag = STREAM_DEV_MIC_DEFAULT_FORMAT;
   waveformatex_s.nChannels = STREAM_DEV_MIC_DEFAULT_CHANNELS;
-  waveformatex_s.nSamplesPerSec = STREAM_DEV_MIC_DEFAULT_SAMPLE_RATE;
+  // *NOTE*: DeepSpeech requires PCM mono signed 16 bits at 16000Hz
+  waveformatex_s.nSamplesPerSec = 16000;
   waveformatex_s.wBitsPerSample = STREAM_DEV_MIC_DEFAULT_BITS_PER_SAMPLE;
   waveformatex_s.nBlockAlign =
     (waveformatex_s.nChannels * (waveformatex_s.wBitsPerSample / 8));
@@ -1200,10 +1202,10 @@ do_work (const std::string& scorerFile_in,
                                                    ACE_TEXT_ALWAYS_CHAR (STREAM_MISC_MESSAGEHANDLER_DEFAULT_NAME_STRING));
   Test_I_ALSA_StreamConfiguration_t::ITERATOR_T modulehandler_iterator;
   struct Test_I_ALSA_StreamConfiguration stream_configuration;
-  // *NOTE*: DeepSpeech requires PCM mono signed 16 bits at 44100Hz
+  // *NOTE*: DeepSpeech requires PCM mono signed 16 bits at 16000Hz
   stream_configuration.format.channels = 1;
   stream_configuration.format.format = SND_PCM_FORMAT_S16;
-  stream_configuration.format.rate = 44100;
+  stream_configuration.format.rate = 16000;
   struct Stream_MediaFramework_ALSA_Configuration ALSA_configuration; // capture
   ALSA_configuration.asynch = STREAM_LIB_ALSA_CAPTURE_DEFAULT_ASYNCH;
   ALSA_configuration.bufferSize = STREAM_LIB_ALSA_CAPTURE_DEFAULT_BUFFER_SIZE;

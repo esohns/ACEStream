@@ -18,8 +18,8 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#ifndef STREAM_DEC_SOX_EFFECT_H
-#define STREAM_DEC_SOX_EFFECT_H
+#ifndef STREAM_DEC_SOX_RESAMPLER_H
+#define STREAM_DEC_SOX_RESAMPLER_H
 
 #include "sox.h"
 
@@ -30,7 +30,7 @@
 
 #include "stream_lib_mediatype_converter.h"
 
-extern const char libacestream_default_dec_sox_effect_module_name_string[];
+extern const char libacestream_default_dec_sox_resampler_module_name_string[];
 
 // forward declarations
 class ACE_Message_Block;
@@ -49,7 +49,7 @@ template <ACE_SYNCH_DECL,
           typename SessionDataType,
           ////////////////////////////////
           typename MediaType>
-class Stream_Decoder_SoXEffect_T
+class Stream_Decoder_SoXResampler_T
  : public Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
                                  TimePolicyType,
                                  ConfigurationType,
@@ -75,11 +75,11 @@ class Stream_Decoder_SoXEffect_T
  public:
   // *TODO*: on MSVC 2015u3 the accurate declaration does not compile
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  Stream_Decoder_SoXEffect_T (ISTREAM_T*); // stream handle
+  Stream_Decoder_SoXResampler_T (ISTREAM_T*); // stream handle
 #else
-  Stream_Decoder_SoXEffect_T (typename inherited::ISTREAM_T*); // stream handle
+  Stream_Decoder_SoXResampler_T (typename inherited::ISTREAM_T*); // stream handle
 #endif // ACE_WIN32 || ACE_WIN64
-  virtual ~Stream_Decoder_SoXEffect_T ();
+  virtual ~Stream_Decoder_SoXResampler_T ();
 
   // override (part of) Stream_IModuleHandler_T
   virtual bool initialize (const ConfigurationType&,
@@ -92,8 +92,8 @@ class Stream_Decoder_SoXEffect_T
                                      bool&);               // return value: pass message downstream ?
 
  private:
-  ACE_UNIMPLEMENTED_FUNC (Stream_Decoder_SoXEffect_T (const Stream_Decoder_SoXEffect_T&))
-  ACE_UNIMPLEMENTED_FUNC (Stream_Decoder_SoXEffect_T& operator= (const Stream_Decoder_SoXEffect_T&))
+  ACE_UNIMPLEMENTED_FUNC (Stream_Decoder_SoXResampler_T (const Stream_Decoder_SoXResampler_T&))
+  ACE_UNIMPLEMENTED_FUNC (Stream_Decoder_SoXResampler_T& operator= (const Stream_Decoder_SoXResampler_T&))
 
   ACE_Message_Block*          buffer_;
   struct sox_effects_chain_t* chain_;
@@ -104,6 +104,6 @@ class Stream_Decoder_SoXEffect_T
 };
 
 // include template definition
-#include "stream_dec_sox_effect.inl"
+#include "stream_dec_sox_resampler.inl"
 
 #endif

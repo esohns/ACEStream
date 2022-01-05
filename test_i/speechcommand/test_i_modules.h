@@ -32,6 +32,9 @@
 #include "stream_misc_defines.h"
 #include "stream_misc_messagehandler.h"
 
+#if defined (SOX_SUPPORT)
+#include "stream_dec_sox_resampler.h"
+#endif // SOX_SUPPORT
 #include "stream_dec_wav_encoder.h"
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #include "stream_dev_mic_source_directshow.h"
@@ -53,7 +56,6 @@
 #include "stream_dev_mic_source_alsa.h"
 #include "stream_dev_target_alsa.h"
 #endif // ACE_WIN32 || ACE_WIN64
-//#include "stream_misc_delay.h"
 #include "stream_misc_distributor.h"
 
 #include "stream_file_sink.h"
@@ -80,10 +82,10 @@ typedef Stream_Dev_Mic_Source_WaveIn_T<ACE_MT_SYNCH,
                                        struct Test_I_SpeechCommand_DirectShow_ModuleHandlerConfiguration,
                                        enum Stream_ControlType,
                                        enum Stream_SessionMessageType,
-                                       struct Test_I_DirectShow_StreamState,
+                                       struct Test_I_SpeechCommand_DirectShow_StreamState,
                                        Test_I_SpeechCommand_DirectShow_SessionData,
                                        Test_I_SpeechCommand_DirectShow_SessionData_t,
-                                       struct Stream_Statistic,
+                                       struct Test_I_Statistic,
                                        Common_Timer_Manager_t,
                                        struct _AMMediaType> Test_I_Mic_Source_DirectShow_WaveIn;
 typedef Stream_Dev_Mic_Source_DirectShow_T<ACE_MT_SYNCH,
@@ -93,10 +95,10 @@ typedef Stream_Dev_Mic_Source_DirectShow_T<ACE_MT_SYNCH,
                                            struct Test_I_SpeechCommand_DirectShow_ModuleHandlerConfiguration,
                                            enum Stream_ControlType,
                                            enum Stream_SessionMessageType,
-                                           struct Test_I_DirectShow_StreamState,
+                                           struct Test_I_SpeechCommand_DirectShow_StreamState,
                                            Test_I_SpeechCommand_DirectShow_SessionData,
                                            Test_I_SpeechCommand_DirectShow_SessionData_t,
-                                           struct Stream_Statistic,
+                                           struct Test_I_Statistic,
                                            Common_Timer_Manager_t> Test_I_Mic_Source_DirectShow;
 typedef Stream_Dev_Mic_Source_WASAPI_T<ACE_MT_SYNCH,
                                        Stream_ControlMessage_t,
@@ -105,10 +107,10 @@ typedef Stream_Dev_Mic_Source_WASAPI_T<ACE_MT_SYNCH,
                                        struct Test_I_SpeechCommand_DirectShow_ModuleHandlerConfiguration,
                                        enum Stream_ControlType,
                                        enum Stream_SessionMessageType,
-                                       struct Test_I_DirectShow_StreamState,
+                                       struct Test_I_SpeechCommand_DirectShow_StreamState,
                                        Test_I_SpeechCommand_DirectShow_SessionData,
                                        Test_I_SpeechCommand_DirectShow_SessionData_t,
-                                       struct Stream_Statistic,
+                                       struct Test_I_Statistic,
                                        Common_Timer_Manager_t,
                                        struct _AMMediaType> Test_I_Mic_Source_DirectShow_WASAPI;
 
@@ -119,10 +121,10 @@ typedef Stream_Dev_Mic_Source_WaveIn_T<ACE_MT_SYNCH,
                                        struct Test_I_SpeechCommand_MediaFoundation_ModuleHandlerConfiguration,
                                        enum Stream_ControlType,
                                        enum Stream_SessionMessageType,
-                                       struct Test_I_MediaFoundation_StreamState,
+                                       struct Test_I_SpeechCommand_MediaFoundation_StreamState,
                                        Test_I_SpeechCommand_MediaFoundation_SessionData,
                                        Test_I_SpeechCommand_MediaFoundation_SessionData_t,
-                                       struct Stream_Statistic,
+                                       struct Test_I_Statistic,
                                        Common_Timer_Manager_t,
                                        IMFMediaType*> Test_I_Mic_Source_MediaFoundation_WaveIn;
 typedef Stream_Dev_Mic_Source_MediaFoundation_T<ACE_MT_SYNCH,
@@ -132,10 +134,10 @@ typedef Stream_Dev_Mic_Source_MediaFoundation_T<ACE_MT_SYNCH,
                                                 struct Test_I_SpeechCommand_MediaFoundation_ModuleHandlerConfiguration,
                                                 enum Stream_ControlType,
                                                 enum Stream_SessionMessageType,
-                                                Test_I_MediaFoundation_StreamState,
+                                                Test_I_SpeechCommand_MediaFoundation_StreamState,
                                                 Test_I_SpeechCommand_MediaFoundation_SessionData,
                                                 Test_I_SpeechCommand_MediaFoundation_SessionData_t,
-                                                struct Stream_Statistic,
+                                                struct Test_I_Statistic,
                                                 Common_Timer_Manager_t> Test_I_Mic_Source_MediaFoundation;
 typedef Stream_Dev_Mic_Source_WASAPI_T<ACE_MT_SYNCH,
                                        Stream_ControlMessage_t,
@@ -144,12 +146,33 @@ typedef Stream_Dev_Mic_Source_WASAPI_T<ACE_MT_SYNCH,
                                        struct Test_I_SpeechCommand_MediaFoundation_ModuleHandlerConfiguration,
                                        enum Stream_ControlType,
                                        enum Stream_SessionMessageType,
-                                       struct Test_I_MediaFoundation_StreamState,
+                                       struct Test_I_SpeechCommand_MediaFoundation_StreamState,
                                        Test_I_SpeechCommand_MediaFoundation_SessionData,
                                        Test_I_SpeechCommand_MediaFoundation_SessionData_t,
-                                       struct Stream_Statistic,
+                                       struct Test_I_Statistic,
                                        Common_Timer_Manager_t,
                                        IMFMediaType*> Test_I_Mic_Source_MediaFoundation_WASAPI;
+
+//////////////////////////////////////////
+
+typedef Stream_Decoder_SoXResampler_T<ACE_MT_SYNCH,
+                                      Common_TimePolicy_t,
+                                      struct Test_I_SpeechCommand_DirectShow_ModuleHandlerConfiguration,
+                                      Stream_ControlMessage_t,
+                                      Test_I_DirectShow_Message,
+                                      Test_I_DirectShow_SessionMessage_t,
+                                      Test_I_SpeechCommand_DirectShow_SessionData_t,
+                                      Test_I_SpeechCommand_DirectShow_SessionData,
+                                      struct _AMMediaType> Test_I_DirectShow_SoXResampler;
+typedef Stream_Decoder_SoXResampler_T<ACE_MT_SYNCH,
+                                      Common_TimePolicy_t,
+                                      struct Test_I_SpeechCommand_MediaFoundation_ModuleHandlerConfiguration,
+                                      Stream_ControlMessage_t,
+                                      Test_I_DirectShow_Message,
+                                      Test_I_MediaFoundation_SessionMessage_t,
+                                      Test_I_SpeechCommand_MediaFoundation_SessionData_t,
+                                      Test_I_SpeechCommand_MediaFoundation_SessionData,
+                                      IMFMediaType*> Test_I_MediaFoundation_SoXResampler;
 
 //////////////////////////////////////////
 
@@ -159,7 +182,7 @@ typedef Stream_Statistic_StatisticAnalysis_T<ACE_MT_SYNCH,
                                              Stream_ControlMessage_t,
                                              Test_I_DirectShow_Message,
                                              Test_I_DirectShow_SessionMessage_t,
-                                             struct Stream_Statistic,
+                                             struct Test_I_Statistic,
                                              Test_I_SpeechCommand_DirectShow_SessionData,
                                              Test_I_SpeechCommand_DirectShow_SessionData_t,
                                              struct _AMMediaType,
@@ -170,7 +193,7 @@ typedef Stream_Statistic_StatisticAnalysis_T<ACE_MT_SYNCH,
                                              Stream_ControlMessage_t,
                                              Test_I_DirectShow_Message,
                                              Test_I_MediaFoundation_SessionMessage_t,
-                                             struct Stream_Statistic,
+                                             struct Test_I_Statistic,
                                              Test_I_SpeechCommand_MediaFoundation_SessionData,
                                              Test_I_SpeechCommand_MediaFoundation_SessionData_t,
                                              IMFMediaType*,
@@ -183,7 +206,7 @@ typedef Stream_Statistic_StatisticReport_ReaderTask_T<ACE_MT_SYNCH,
                                                       Test_I_DirectShow_Message,
                                                       Test_I_DirectShow_SessionMessage_t,
                                                       Stream_CommandType_t,
-                                                      struct Stream_Statistic,
+                                                      struct Test_I_Statistic,
                                                       Common_Timer_Manager_t,
                                                       Test_I_SpeechCommand_DirectShow_SessionData,
                                                       Test_I_SpeechCommand_DirectShow_SessionData_t> Test_I_DirectShow_Statistic_ReaderTask_t;
@@ -206,7 +229,7 @@ typedef Stream_Statistic_StatisticReport_ReaderTask_T<ACE_MT_SYNCH,
                                                       Test_I_MediaFoundation_Message,
                                                       Test_I_MediaFoundation_SessionMessage_t,
                                                       Stream_CommandType_t,
-                                                      struct Stream_Statistic,
+                                                      struct Test_I_Statistic,
                                                       Common_Timer_Manager_t,
                                                       Test_I_SpeechCommand_MediaFoundation_SessionData,
                                                       Test_I_SpeechCommand_MediaFoundation_SessionData_t> Test_I_MediaFoundation_Statistic_ReaderTask_t;
@@ -217,7 +240,7 @@ typedef Stream_Statistic_StatisticReport_WriterTask_T<ACE_MT_SYNCH,
                                                       Test_I_MediaFoundation_Message,
                                                       Test_I_MediaFoundation_SessionMessage_t,
                                                       Stream_CommandType_t,
-                                                      struct Stream_Statistic,
+                                                      struct Test_I_Statistic,
                                                       Common_Timer_Manager_t,
                                                       Test_I_SpeechCommand_MediaFoundation_SessionData,
                                                       Test_I_SpeechCommand_MediaFoundation_SessionData_t> Test_I_MediaFoundation_Statistic_WriterTask_t;
@@ -452,6 +475,18 @@ typedef Stream_Dev_Mic_Source_ALSA_T<ACE_MT_SYNCH,
 
 //////////////////////////////////////////
 
+typedef Stream_Decoder_SoXResampler_T<ACE_MT_SYNCH,
+                                      Common_TimePolicy_t,
+                                      struct Test_I_SpeechCommand_ALSA_ModuleHandlerConfiguration,
+                                      Stream_ControlMessage_t,
+                                      Test_I_Message,
+                                      Test_I_ALSA_SessionMessage_t,
+                                      Test_I_SpeechCommand_ALSA_SessionData_t,
+                                      Test_I_SpeechCommand_ALSA_SessionData,
+                                      struct Stream_MediaFramework_ALSA_MediaType> Test_I_ALSA_SoXResampler;
+
+//////////////////////////////////////////
+
 typedef Stream_Statistic_StatisticAnalysis_T<ACE_MT_SYNCH,
                                              Common_TimePolicy_t,
                                              struct Test_I_SpeechCommand_ALSA_ModuleHandlerConfiguration,
@@ -600,6 +635,22 @@ DATASTREAM_MODULE_INPUT_ONLY (Test_I_SpeechCommand_MediaFoundation_SessionData, 
                               libacestream_default_dev_mic_source_wasapi_module_name_string,
                               Stream_INotify_t,                                            // stream notification interface type
                               Test_I_Mic_Source_MediaFoundation_WASAPI);                   // writer type
+
+//////////////////////////////////////////
+
+DATASTREAM_MODULE_INPUT_ONLY (Test_I_SpeechCommand_DirectShow_SessionData,                       // session data type
+                              enum Stream_SessionMessageType,                                    // session event type
+                              struct Test_I_SpeechCommand_DirectShow_ModuleHandlerConfiguration, // module handler configuration type
+                              libacestream_default_dec_sox_resampler_module_name_string,
+                              Stream_INotify_t,                                                  // stream notification interface type
+                              Test_I_DirectShow_SoXResampler);                                   // name
+
+DATASTREAM_MODULE_INPUT_ONLY (Test_I_SpeechCommand_MediaFoundation_SessionData,                       // session data type
+                              enum Stream_SessionMessageType,                                    // session event type
+                              struct Test_I_SpeechCommand_MediaFoundation_ModuleHandlerConfiguration, // module handler configuration type
+                              libacestream_default_dec_sox_resampler_module_name_string,
+                              Stream_INotify_t,                                                  // stream notification interface type
+                              Test_I_MediaFoundation_SoXResampler);                                   // name
 
 //////////////////////////////////////////
 
@@ -787,6 +838,15 @@ DATASTREAM_MODULE_INPUT_ONLY (Test_I_SpeechCommand_ALSA_SessionData,            
                               libacestream_default_dev_mic_source_alsa_module_name_string,
                               Stream_INotify_t,                                          // stream notification interface type
                               Test_I_Mic_Source_ALSA);                                   // writer type
+
+//////////////////////////////////////////
+
+DATASTREAM_MODULE_INPUT_ONLY (Test_I_SpeechCommand_ALSA_SessionData,                       // session data type
+                              enum Stream_SessionMessageType,                                    // session event type
+                              struct Test_I_SpeechCommand_ALSA_ModuleHandlerConfiguration, // module handler configuration type
+                              libacestream_default_dec_sox_resampler_module_name_string,
+                              Stream_INotify_t,                                                  // stream notification interface type
+                              Test_I_ALSA_SoXResampler);                                   // name
 
 //////////////////////////////////////////
 

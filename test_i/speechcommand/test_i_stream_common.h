@@ -97,10 +97,22 @@ struct Test_I_Statistic
 typedef Common_StatisticHandler_T<struct Test_I_Statistic> Test_I_StatisticHandler_t;
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
+class Test_I_SpeechCommand_DirectShow_SessionData;
+struct Test_I_SpeechCommand_DirectShow_StreamState
+ : Stream_State
+{
+  Test_I_SpeechCommand_DirectShow_StreamState ()
+   : Stream_State ()
+   , sessionData (NULL)
+  {}
+
+  Test_I_SpeechCommand_DirectShow_SessionData* sessionData;
+};
+
 class Test_I_SpeechCommand_DirectShow_SessionData
  : public Stream_SessionDataMediaBase_T<struct Test_I_SessionData,
                                         struct _AMMediaType,
-                                        struct Stream_State,
+                                        struct Test_I_SpeechCommand_DirectShow_StreamState,
                                         struct Test_I_Statistic,
                                         struct Stream_UserData>
 {
@@ -108,7 +120,7 @@ class Test_I_SpeechCommand_DirectShow_SessionData
   Test_I_SpeechCommand_DirectShow_SessionData ()
    : Stream_SessionDataMediaBase_T<struct Test_I_SessionData,
                                    struct _AMMediaType,
-                                   struct Stream_State,
+                                   struct Test_I_SpeechCommand_DirectShow_StreamState,
                                    struct Test_I_Statistic,
                                    struct Stream_UserData> ()
   {}
@@ -118,7 +130,7 @@ class Test_I_SpeechCommand_DirectShow_SessionData
     // *NOTE*: the idea is to 'merge' the data
     Stream_SessionDataMediaBase_T<struct Test_I_SessionData,
                                   struct _AMMediaType,
-                                  struct Stream_State,
+                                  struct Test_I_SpeechCommand_DirectShow_StreamState,
                                   struct Test_I_Statistic,
                                   struct Stream_UserData>::operator+= (rhs_in);
     return *this;
@@ -126,10 +138,22 @@ class Test_I_SpeechCommand_DirectShow_SessionData
 };
 typedef Stream_SessionData_T<Test_I_SpeechCommand_DirectShow_SessionData> Test_I_SpeechCommand_DirectShow_SessionData_t;
 
+class Test_I_SpeechCommand_MediaFoundation_SessionData;
+struct Test_I_SpeechCommand_MediaFoundation_StreamState
+ : Stream_State
+{
+  Test_I_SpeechCommand_MediaFoundation_StreamState ()
+   : Stream_State ()
+   , sessionData (NULL)
+  {}
+
+  Test_I_SpeechCommand_MediaFoundation_SessionData* sessionData;
+};
+
 class Test_I_SpeechCommand_MediaFoundation_SessionData
  : public Stream_SessionDataMediaBase_T<struct Test_I_SessionData,
                                         IMFMediaType*,
-                                        struct Stream_State,
+                                        struct Test_I_SpeechCommand_MediaFoundation_StreamState,
                                         struct Test_I_Statistic,
                                         struct Stream_UserData>
 {
@@ -137,7 +161,7 @@ class Test_I_SpeechCommand_MediaFoundation_SessionData
   Test_I_SpeechCommand_MediaFoundation_SessionData ()
    : Stream_SessionDataMediaBase_T<struct Test_I_SessionData,
                                    IMFMediaType*,
-                                   struct Stream_State,
+                                   struct Test_I_SpeechCommand_MediaFoundation_StreamState,
                                    struct Test_I_Statistic,
                                    struct Stream_UserData> ()
    , rendererNodeId (0)
@@ -149,7 +173,7 @@ class Test_I_SpeechCommand_MediaFoundation_SessionData
     // *NOTE*: the idea is to 'merge' the data
     Stream_SessionDataMediaBase_T<struct Test_I_SessionData,
                                   IMFMediaType*,
-                                  struct Stream_State,
+                                  struct Test_I_SpeechCommand_MediaFoundation_StreamState,
                                   struct Test_I_Statistic,
                                   struct Stream_UserData>::operator+= (rhs_in);
     return *this;
@@ -260,6 +284,7 @@ struct Test_I_SpeechCommand_DirectShow_ModuleHandlerConfiguration
    , deviceIdentifier ()
    , dispatch (NULL)
    , hotWords ()
+   , manageSoX (false)
    , modelFile ()
    , mute (false)
    , scorerFile ()
@@ -288,6 +313,7 @@ struct Test_I_SpeechCommand_DirectShow_ModuleHandlerConfiguration
   struct Stream_Device_Identifier                   deviceIdentifier; // capture/render
   Stream_Statistic_IDispatch_t*                     dispatch;
   Stream_Decoder_DeepSpeech_HotWords_t              hotWords;
+  bool                                              manageSoX;
   std::string                                       modelFile;
   bool                                              mute;
   std::string                                       scorerFile;
@@ -319,6 +345,7 @@ struct Test_I_SpeechCommand_MediaFoundation_ModuleHandlerConfiguration
    , deviceIdentifier ()
    , dispatch (NULL)
    , hotWords ()
+   , manageSoX (false)
    , modelFile ()
    , mute (false)
    , scorerFile ()
@@ -347,6 +374,7 @@ struct Test_I_SpeechCommand_MediaFoundation_ModuleHandlerConfiguration
   struct Stream_Device_Identifier                   deviceIdentifier; // capture/render
   Stream_Statistic_IDispatch_t*                     dispatch;
   Stream_Decoder_DeepSpeech_HotWords_t              hotWords;
+  bool                                              manageSoX;
   std::string                                       modelFile;
   bool                                              mute;
   std::string                                       scorerFile;
@@ -377,6 +405,7 @@ struct Test_I_SpeechCommand_ALSA_ModuleHandlerConfiguration
    : Test_I_ALSA_ModuleHandlerConfiguration ()
    , deviceIdentifier ()
    , dispatch (NULL)
+   , manageSoX (false)
    , modelFile ()
    , mute (false)
    , scorerFile ()
@@ -404,6 +433,7 @@ struct Test_I_SpeechCommand_ALSA_ModuleHandlerConfiguration
 
   struct Stream_Device_Identifier                   deviceIdentifier; // capture/render
   Stream_Statistic_IDispatch_t*                     dispatch;
+  bool                                              manageSoX;
   std::string                                       modelFile;
   bool                                              mute;
   std::string                                       scorerFile;
@@ -499,8 +529,8 @@ typedef Stream_Configuration_T<//stream_name_string_,
 
 //////////////////////////////////////////
 
-typedef Stream_IStreamControlBase_T<enum Stream_ControlType,
-                                    enum Stream_StateMachine_ControlState,
-                                    struct Stream_State> Stream_IStreamControlBase_t;
+//typedef Stream_IStreamControlBase_T<enum Stream_ControlType,
+//                                    enum Stream_StateMachine_ControlState,
+//                                    struct Stream_State> Stream_IStreamControlBase_t;
 
 #endif

@@ -207,7 +207,10 @@ if (SOX_SUPPORT)
       ${source_files}
       stream_dec_sox_effect.cpp
       stream_dec_sox_effect.h
-      stream_dec_sox_effect.inl)
+      stream_dec_sox_effect.inl
+      stream_dec_sox_resampler.cpp
+      stream_dec_sox_resampler.h
+      stream_dec_sox_resampler.inl)
 endif (SOX_SUPPORT)
 if (DEEPSPEECH_SUPPORT)
  set (source_files
@@ -413,7 +416,9 @@ endif (OPENCV_SUPPORT)
 if (SOX_SUPPORT)
  set (${PROJECT_NAME}_Decoder_LIB_HDRS ${${PROJECT_NAME}_Decoder_LIB_HDRS}
       stream_dec_sox_effect.h
-      stream_dec_sox_effect.inl)
+      stream_dec_sox_effect.inl
+      stream_dec_sox_resampler.h
+      stream_dec_sox_resampler.inl)
 endif (SOX_SUPPORT)
 if (ZLIB_SUPPORT)
  set (${PROJECT_NAME}_Decoder_LIB_HDRS
