@@ -65,7 +65,7 @@ class Stream_AllocatorHeap_T
   ACE_UNIMPLEMENTED_FUNC (Stream_AllocatorHeap_T (const Stream_AllocatorHeap_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_AllocatorHeap_T& operator= (const Stream_AllocatorHeap_T&))
 
-  ACE_Atomic_Op<ACE_SYNCH_MUTEX_T, long> poolSize_;
+  ACE_Atomic_Op<ACE_SYNCH_MUTEX_T, unsigned long> poolSize_;
 };
 
 // include template definition

@@ -22,20 +22,21 @@ elseif (WIN32)
   endif (mpg123_FOUND)
  endif (VCPKG_SUPPORT)
  if (NOT MPG123_FOUND)
-  set (MPG123_LIB_FILE libmpg123-0.lib)
-  find_library (MPG123_LIBRARY ${MPG123_LIB_FILE}
-                PATHS $ENV{LIB_ROOT}/mpg123
-                PATH_SUFFIXES lib
+  set (CMAKE_FIND_LIBRARY_SUFFIXES .lib .dll.a)
+  find_library (MPG123_LIBRARY
+                NAMES libmpg123
+                PATHS $ENV{LIB_ROOT}/mpg123/src/libmpg123
+                PATH_SUFFIXES .libs
                 DOC "searching for ${MPG123_LIB_FILE}"
                 NO_DEFAULT_PATH)
   if (NOT MPG123_LIBRARY)
    message (WARNING "could not find ${MPG123_LIB_FILE}, continuing")
   else ()
-   message (STATUS "Found ${MPG123_LIB_FILE} library \"${MPG123_LIBRARY}\"")
+   message (STATUS "Found mpg123 library \"${MPG123_LIBRARY}\"")
    set (MPG123_FOUND TRUE)
-   set (MPG123_INCLUDE_DIRS "$ENV{LIB_ROOT}/mpg123")
+   set (MPG123_INCLUDE_DIRS "$ENV{LIB_ROOT}/mpg123/src/libmpg123")
    set (MPG123_LIBRARIES "${MPG123_LIBRARY}")
-   set (MPG123_LIB_DIR "$ENV{LIB_ROOT}/mpg123")
+   set (MPG123_LIB_DIR "$ENV{LIB_ROOT}/mpg123/src/libmpg123/.libs")
   endif (NOT MPG123_LIBRARY)
  endif (NOT MPG123_FOUND)
 endif ()

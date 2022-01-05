@@ -20,23 +20,24 @@ elseif (WIN32)
     set (ZLIB_LIB_DIR "${VCPKG_ROOT}/installed/${VCPKG_TARGET_TRIPLET}/bin")
    endif ()
   endif (zlib_FOUND)
- else ()
-  set (ZLIB_LIB_FILE "opencv_core${OPENCV_VERSION}${LIB_FILE_SUFFIX}.lib")
+ endif (VCPKG_SUPPORT)
+ if (NOT zlib_FOUND)
+  set (ZLIB_LIB_FILE "zlib${LIB_FILE_SUFFIX}.lib")
   find_library (ZLIB_LIBRARY ${ZLIB_LIB_FILE}
-                PATHS $ENV{LIB_ROOT}/zlib/cmake
+                PATHS $ENV{LIB_ROOT}/zlib/build
                 PATH_SUFFIXES ${CMAKE_BUILD_TYPE}
-                DOC "searching for ${ZLIB_CORE_LIB_FILE}"
+                DOC "searching for ${ZLIB_LIB_FILE}"
                 NO_DEFAULT_PATH)
   if (NOT ZLIB_LIBRARY)
    message (WARNING "could not find ${ZLIB_LIB_FILE}, continuing")
   else ()
    message (STATUS "Found ${ZLIB_FILE} library \"${ZLIB_LIBRARY}\"")
    set (ZLIB_FOUND TRUE)
-   set (ZLIB_INCLUDE_DIRS "$ENV{LIB_ROOT}/zlib;$ENV{LIB_ROOT}/zlib/cmake")
+   set (ZLIB_INCLUDE_DIRS "$ENV{LIB_ROOT}/zlib;$ENV{LIB_ROOT}/zlib/build")
    set (ZLIB_LIBRARIES "${ZLIB_LIBRARY}")
-   set (ZLIB_LIB_DIR "$ENV{LIB_ROOT}/zlib/cmake/${CMAKE_BUILD_TYPE}")
+   set (ZLIB_LIB_DIR "$ENV{LIB_ROOT}/zlib/build/${CMAKE_BUILD_TYPE}")
   endif (NOT ZLIB_LIBRARY)
- endif (VCPKG_SUPPORT)
+ endif (NOT zlib_FOUND)
 endif ()
 if (ZLIB_FOUND)
  option (ZLIB_SUPPORT "enable zlib support" ${ZLIB_SUPPORT_DEFAULT})

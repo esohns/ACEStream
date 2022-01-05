@@ -181,7 +181,7 @@ Stream_ImageScreen_Stream::initialize (const typename inherited::CONFIGURATION_T
 #if defined (IMAGEMAGICK_SUPPORT)
     static_cast<Stream_ImageScreen_ImageMagick_Source*> (imagemagick_source_.writer ());
 #else
-    static_cast<Stream_ImageScreen_Source*> (ffmpeg_source_.writer ());
+    static_cast<Stream_ImageScreen_Source*> (source_.writer ());
 #endif // IMAGEMAGICK_SUPPORT
   ACE_ASSERT (source_impl_p);
   source_impl_p->setP (&(inherited::state_));

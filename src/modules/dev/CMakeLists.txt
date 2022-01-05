@@ -195,7 +195,7 @@ elseif (WIN32)
  target_link_libraries (${PROJECT_NAME}_Device PUBLIC winmm.lib)
  target_link_libraries (${PROJECT_NAME}_Device PUBLIC Wmcodecdspuuid.lib)
 
- target_link_libraries (${PROJECT_NAME}_Device PUBLIC ${DIRECTSHOW_BASECLASSES_DIRECTORY}/cmake/baseclasses/${CMAKE_BUILD_TYPE}/BaseClasses${LIB_FILE_SUFFIX}.lib)
+ target_link_libraries (${PROJECT_NAME}_Device PUBLIC ${DIRECTSHOW_BASECLASSES_DIRECTORY}/build/msvc/baseclasses/${CMAKE_BUILD_TYPE}/BaseClasses${LIB_FILE_SUFFIX}.lib)
 
  target_link_libraries (${PROJECT_NAME}_Device PUBLIC ${ACE_LIBRARY})
 

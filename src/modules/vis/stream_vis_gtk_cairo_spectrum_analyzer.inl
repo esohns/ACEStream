@@ -259,12 +259,20 @@ Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
     return false;
   } // end IF
 
+#if GTK_CHECK_VERSION(3,0,0)
+  gdk_window_get_geometry (configuration_in.window,
+                           NULL,
+                           NULL,
+                           &width_,
+                           &height_);
+#elif GTK_CHECK_VERSION(2,0,0)
   gdk_window_get_geometry (configuration_in.window,
                            NULL,
                            NULL,
                            &width_,
                            &height_,
                            NULL);
+#endif /* GTK_CHECK_VERSION (x,0,0) */
   ACE_ASSERT (height_); ACE_ASSERT (width_);
   halfHeight_ = height_ / 2;
 
@@ -1164,12 +1172,20 @@ Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
     } // end IF
     ACE_ASSERT (cairoContext_);
 
-    gdk_window_get_geometry (window_in,
-                             NULL,
-                             NULL,
-                             &width_,
-                             &height_,
-                             NULL);
+#if GTK_CHECK_VERSION(3,0,0)
+  gdk_window_get_geometry (window_in,
+                           NULL,
+                           NULL,
+                           &width_,
+                           &height_);
+#elif GTK_CHECK_VERSION(2,0,0)
+  gdk_window_get_geometry (window_in,
+                           NULL,
+                           NULL,
+                           &width_,
+                           &height_,
+                           NULL);
+#endif /* GTK_CHECK_VERSION (x,0,0) */
     ACE_ASSERT (height_); ACE_ASSERT (width_);
     halfHeight_ = height_ / 2;
 

@@ -553,7 +553,8 @@ Stream_Miscellaneous_Distributor_T<ACE_SYNCH_USE,
       std::find (branches_.begin (), branches_.end (), branchName_in);
   if (iterator != branches_.end ())
   {
-    index_out = std::distance (branches_.begin (), iterator);
+    index_out =
+      static_cast<unsigned int> (std::distance (branches_.begin (), iterator));
     return true;
   } // end IF
   ACE_DEBUG ((LM_WARNING,

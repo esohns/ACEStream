@@ -1418,13 +1418,13 @@ idle_initialize_UI_cb (gpointer userData_in)
       GTK_TOGGLE_BUTTON (gtk_builder_get_object ((*iterator).second.second,
                                                  ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_CHECKBUTTON_SAVE_NAME)));
     ACE_ASSERT (toggle_button_p);
-    gtk_signal_handler_block_by_func (GTK_OBJECT (toggle_button_p),
-                                      G_CALLBACK (togglebutton_save_toggled_cb),
-                                      userData_in);
+    g_signal_handlers_block_by_func (G_OBJECT (toggle_button_p),
+                                     G_CALLBACK (togglebutton_save_toggled_cb),
+                                     userData_in);
     gtk_toggle_button_set_active (toggle_button_p, TRUE);
-    gtk_signal_handler_unblock_by_func (GTK_OBJECT (toggle_button_p),
-                                        G_CALLBACK (togglebutton_save_toggled_cb),
-                                        userData_in);
+    g_signal_handlers_unblock_by_func (G_OBJECT (toggle_button_p),
+                                       G_CALLBACK (togglebutton_save_toggled_cb),
+                                       userData_in);
   } // end IF
 
   GtkRadioButton* radio_button_p = NULL;

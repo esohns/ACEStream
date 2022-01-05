@@ -228,6 +228,7 @@ if (GUI_SUPPORT)
 endif (GUI_SUPPORT)
 
 target_link_libraries (${EXECUTABLE} PUBLIC ${PROJECT_NAME})
+target_link_libraries (${EXECUTABLE} PUBLIC ${PROJECT_NAME}_Decoder)
 target_link_libraries (${EXECUTABLE} PUBLIC ${PROJECT_NAME}_Device)
 target_link_libraries (${EXECUTABLE} PUBLIC ${PROJECT_NAME}_File)
 target_link_libraries (${EXECUTABLE} PUBLIC ${PROJECT_NAME}_MediaFramework)

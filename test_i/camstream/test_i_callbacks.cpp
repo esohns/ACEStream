@@ -2729,7 +2729,7 @@ idle_initialize_source_UI_cb (gpointer userData_in)
       ACE_ASSERT (!(*mediafoundation_modulehandler_iterator).second.second->window);
       (*mediafoundation_modulehandler_iterator).second.second->window =
         gdk_win32_window_get_impl_hwnd (window_p);
-      static_cast<HWND> (GDK_WINDOW_HWND (GDK_DRAWABLE (window_p)));
+      //static_cast<HWND> (GDK_WINDOW_HWND (GDK_DRAWABLE (window_p)));
       ACE_ASSERT (IsWindow ((*mediafoundation_modulehandler_iterator).second.second->window));
       ACE_DEBUG ((LM_DEBUG,
         ACE_TEXT ("drawing area window handle: 0x%@\n"),

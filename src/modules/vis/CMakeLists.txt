@@ -1,5 +1,5 @@
 set (CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_CURRENT_SOURCE_DIR}/../../../modules/Common/src/gl/scripts;${CMAKE_CURRENT_SOURCE_DIR}/../../../../Common/src/gl/scripts")
-include (OpenGL)
+include (glut)
 
 include (ffmpeg)
 include (ImageMagick)
@@ -31,10 +31,10 @@ endif (WIN32)
 
 add_library (${PROJECT_NAME}_Visualization STATIC "")
 
-if (OPENGL_SUPPORT)
+if (GLUT_SUPPORT)
  target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
-                             "$<BUILD_INTERFACE:${OPENGL_INCLUDE_DIR}>")
-endif (OPENGL_SUPPORT)
+                             $<BUILD_INTERFACE:${GLUT_INCLUDE_DIRS}>)
+endif (GLUT_SUPPORT)
 if (FFMPEG_SUPPORT)
  target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
                              $<BUILD_INTERFACE:${ffmpeg_INCLUDE_DIRS}>)

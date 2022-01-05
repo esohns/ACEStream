@@ -64,7 +64,9 @@
 //#include "stream_vis_wayland_window.h"
 #include "stream_vis_x11_window.h"
 #endif // ACE_WIN32 || ACE_WIN64
+#if defined (GLUT_SUPPORT)
 #include "stream_vis_opengl_glut.h"
+#endif // GLUT_SUPPORT
 
 #include "test_u_camerascreen_common.h"
 #include "test_u_camerascreen_message.h"
@@ -216,15 +218,6 @@ typedef Stream_Vis_Target_Direct3D_T<ACE_MT_SYNCH,
                                      Stream_CameraScreen_DirectShow_SessionData,
                                      Stream_CameraScreen_DirectShow_SessionData_t,
                                      struct _AMMediaType> Stream_CameraScreen_DirectShow_Direct3DDisplay;
-typedef Stream_Vis_Target_Direct3D_T<ACE_MT_SYNCH,
-                                     Common_TimePolicy_t,
-                                     struct Stream_CameraScreen_MediaFoundation_ModuleHandlerConfiguration,
-                                     Stream_ControlMessage_t,
-                                     Stream_CameraScreen_MediaFoundation_Message_t,
-                                     Stream_CameraScreen_MediaFoundation_SessionMessage_t,
-                                     Stream_CameraScreen_MediaFoundation_SessionData,
-                                     Stream_CameraScreen_MediaFoundation_SessionData_t,
-                                     IMFMediaType*> Stream_CameraScreen_MediaFoundation_Direct3DDisplay;
 
 struct Stream_CameraScreen_DirectShow_FilterConfiguration
  : Stream_MediaFramework_DirectShow_FilterConfiguration
@@ -256,6 +249,7 @@ typedef Stream_Vis_Target_DirectShow_T<ACE_MT_SYNCH,
                                        struct Stream_CameraScreen_DirectShow_PinConfiguration,
                                        Stream_CameraScreen_DirectShowFilter_t> Stream_CameraScreen_DirectShow_Display;
 
+#if defined (GLUT_SUPPORT)
 typedef Stream_Visualization_OpenGL_GLUT_T<ACE_MT_SYNCH,
                                            Common_TimePolicy_t,
                                            struct Stream_CameraScreen_DirectShow_ModuleHandlerConfiguration,
@@ -263,7 +257,8 @@ typedef Stream_Visualization_OpenGL_GLUT_T<ACE_MT_SYNCH,
                                            Stream_CameraScreen_DirectShow_Message_t,
                                            Stream_CameraScreen_DirectShow_SessionMessage_t,
                                            Stream_CameraScreen_DirectShow_SessionData_t,
-                                           struct _AMMediaType> Stream_CameraScreen_OpenGL_Display;
+                                           struct _AMMediaType> Stream_CameraScreen_DirectShow_OpenGL_Display;
+#endif // GLUT_SUPPORT
 
 typedef Stream_Vis_Target_GDI_T<ACE_MT_SYNCH,
                                 Common_TimePolicy_t,
@@ -273,7 +268,17 @@ typedef Stream_Vis_Target_GDI_T<ACE_MT_SYNCH,
                                 Stream_CameraScreen_DirectShow_SessionMessage_t,
                                 Stream_CameraScreen_DirectShow_SessionData,
                                 Stream_CameraScreen_DirectShow_SessionData_t,
-                                struct _AMMediaType> Stream_CameraScreen_GDI_Display;
+                                struct _AMMediaType> Stream_CameraScreen_DirectShow_GDI_Display;
+
+typedef Stream_Vis_Target_Direct3D_T<ACE_MT_SYNCH,
+                                     Common_TimePolicy_t,
+                                     struct Stream_CameraScreen_MediaFoundation_ModuleHandlerConfiguration,
+                                     Stream_ControlMessage_t,
+                                     Stream_CameraScreen_MediaFoundation_Message_t,
+                                     Stream_CameraScreen_MediaFoundation_SessionMessage_t,
+                                     Stream_CameraScreen_MediaFoundation_SessionData,
+                                     Stream_CameraScreen_MediaFoundation_SessionData_t,
+                                     IMFMediaType*> Stream_CameraScreen_MediaFoundation_Direct3DDisplay;
 
 typedef Stream_Vis_Target_MediaFoundation_T<ACE_MT_SYNCH,
                                             Common_TimePolicy_t,
@@ -293,6 +298,27 @@ typedef Stream_Vis_Target_MediaFoundation_2<ACE_MT_SYNCH,
                                             Stream_CameraScreen_MediaFoundation_SessionData,
                                             Stream_CameraScreen_MediaFoundation_SessionData_t,
                                             IMFMediaType*> Stream_CameraScreen_MediaFoundation_DisplayNull;
+
+#if defined (GLUT_SUPPORT)
+typedef Stream_Visualization_OpenGL_GLUT_T<ACE_MT_SYNCH,
+                                           Common_TimePolicy_t,
+                                           struct Stream_CameraScreen_MediaFoundation_ModuleHandlerConfiguration,
+                                           Stream_ControlMessage_t,
+                                           Stream_CameraScreen_MediaFoundation_Message_t,
+                                           Stream_CameraScreen_MediaFoundation_SessionMessage_t,
+                                           Stream_CameraScreen_MediaFoundation_SessionData_t,
+                                           IMFMediaType*> Stream_CameraScreen_MediaFoundation_OpenGL_Display;
+#endif // GLUT_SUPPORT
+
+typedef Stream_Vis_Target_GDI_T<ACE_MT_SYNCH,
+                                Common_TimePolicy_t,
+                                struct Stream_CameraScreen_MediaFoundation_ModuleHandlerConfiguration,
+                                Stream_ControlMessage_t,
+                                Stream_CameraScreen_MediaFoundation_Message_t,
+                                Stream_CameraScreen_MediaFoundation_SessionMessage_t,
+                                Stream_CameraScreen_MediaFoundation_SessionData,
+                                Stream_CameraScreen_MediaFoundation_SessionData_t,
+                                IMFMediaType*> Stream_CameraScreen_MediaFoundation_GDI_Display;
 #else
 typedef Stream_Module_Vis_GTK_Window_T<ACE_MT_SYNCH,
                                        Common_TimePolicy_t,
@@ -434,13 +460,6 @@ DATASTREAM_MODULE_INPUT_ONLY (Stream_CameraScreen_DirectShow_SessionData,       
                               Stream_INotify_t,                                 // stream notification interface type
                               Stream_CameraScreen_DirectShow_Direct3DDisplay);       // writer type
 
-DATASTREAM_MODULE_INPUT_ONLY (Stream_CameraScreen_MediaFoundation_SessionData,                // session data type
-                              enum Stream_SessionMessageType,                   // session event type
-                              struct Stream_CameraScreen_MediaFoundation_ModuleHandlerConfiguration, // module handler configuration type
-                              libacestream_default_vis_mediafoundation_module_name_string,
-                              Stream_INotify_t,                                 // stream notification interface type
-                              Stream_CameraScreen_MediaFoundation_Direct3DDisplay);  // writer type
-
 DATASTREAM_MODULE_INPUT_ONLY (Stream_CameraScreen_DirectShow_SessionData,                // session data type
                               enum Stream_SessionMessageType,                   // session event type
                               struct Stream_CameraScreen_DirectShow_ModuleHandlerConfiguration, // module handler configuration type
@@ -448,12 +467,28 @@ DATASTREAM_MODULE_INPUT_ONLY (Stream_CameraScreen_DirectShow_SessionData,       
                               Stream_INotify_t,                                 // stream notification interface type
                               Stream_CameraScreen_DirectShow_Display);     // writer type
 
+#if defined (GLUT_SUPPORT)
 DATASTREAM_MODULE_INPUT_ONLY (Stream_CameraScreen_DirectShow_SessionData,       // session data type
                               enum Stream_SessionMessageType,                   // session event type
                               struct Stream_CameraScreen_DirectShow_ModuleHandlerConfiguration, // module handler configuration type
                               libacestream_default_vis_opengl_glut_module_name_string,
                               Stream_INotify_t,                                 // stream notification interface type
-                              Stream_CameraScreen_OpenGL_Display);              // writer type
+                              Stream_CameraScreen_DirectShow_OpenGL_Display);   // writer type
+#endif // GLUT_SUPPORT
+
+DATASTREAM_MODULE_INPUT_ONLY (Stream_CameraScreen_DirectShow_SessionData,       // session data type
+                              enum Stream_SessionMessageType,                   // session event type
+                              struct Stream_CameraScreen_DirectShow_ModuleHandlerConfiguration, // module handler configuration type
+                              libacestream_default_vis_gdi_module_name_string,
+                              Stream_INotify_t,                                 // stream notification interface type
+                              Stream_CameraScreen_DirectShow_GDI_Display);                 // writer type
+
+DATASTREAM_MODULE_INPUT_ONLY (Stream_CameraScreen_MediaFoundation_SessionData,                // session data type
+                              enum Stream_SessionMessageType,                   // session event type
+                              struct Stream_CameraScreen_MediaFoundation_ModuleHandlerConfiguration, // module handler configuration type
+                              libacestream_default_vis_mediafoundation_module_name_string,
+                              Stream_INotify_t,                                 // stream notification interface type
+                              Stream_CameraScreen_MediaFoundation_Direct3DDisplay);  // writer type
 
 DATASTREAM_MODULE_INPUT_ONLY (Stream_CameraScreen_MediaFoundation_SessionData,                      // session data type
                               enum Stream_SessionMessageType,                         // session event type
@@ -468,12 +503,21 @@ DATASTREAM_MODULE_INPUT_ONLY (Stream_CameraScreen_MediaFoundation_SessionData,  
                               Stream_INotify_t,                                           // stream notification interface type
                               Stream_CameraScreen_MediaFoundation_DisplayNull); // writer type
 
-DATASTREAM_MODULE_INPUT_ONLY (Stream_CameraScreen_DirectShow_SessionData,       // session data type
+#if defined (GLUT_SUPPORT)
+DATASTREAM_MODULE_INPUT_ONLY (Stream_CameraScreen_MediaFoundation_SessionData,       // session data type
                               enum Stream_SessionMessageType,                   // session event type
-                              struct Stream_CameraScreen_DirectShow_ModuleHandlerConfiguration, // module handler configuration type
+                              struct Stream_CameraScreen_MediaFoundation_ModuleHandlerConfiguration, // module handler configuration type
+                              libacestream_default_vis_opengl_glut_module_name_string,
+                              Stream_INotify_t,                                 // stream notification interface type
+                              Stream_CameraScreen_MediaFoundation_OpenGL_Display);   // writer type
+#endif // GLUT_SUPPORT
+
+DATASTREAM_MODULE_INPUT_ONLY (Stream_CameraScreen_MediaFoundation_SessionData,       // session data type
+                              enum Stream_SessionMessageType,                   // session event type
+                              struct Stream_CameraScreen_MediaFoundation_ModuleHandlerConfiguration, // module handler configuration type
                               libacestream_default_vis_gdi_module_name_string,
                               Stream_INotify_t,                                 // stream notification interface type
-                              Stream_CameraScreen_GDI_Display);                 // writer type
+                              Stream_CameraScreen_MediaFoundation_GDI_Display); // writer type
 #else
 DATASTREAM_MODULE_INPUT_ONLY (Stream_CameraScreen_V4L_SessionData,                   // session data type
                               enum Stream_SessionMessageType,                   // session event type

@@ -7,7 +7,7 @@ find_package (ACENetwork ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_MICRO}
               REQUIRED
               CONFIG
               PATHS ${CMAKE_CURRENT_SOURCE_DIR}/../../../modules ${CMAKE_CURRENT_SOURCE_DIR}/../../../..
-              PATH_SUFFIXES ACENetwork/${BUILD_PATH_SUFFIX}/${CMAKE_BUILD_TYPE}
+              PATH_SUFFIXES ACENetwork/${BUILD_PATH_SUFFIX}
               NO_DEFAULT_PATH)
 if (NOT EXISTS ${ACENetwork_DIR})
  message (FATAL_ERROR "could not find ACENetwork, aborting")

@@ -2439,32 +2439,27 @@ Stream_Base_T<ACE_SYNCH_USE,
   //         --> work around these inconsistencies
   // *TODO*: submit a bug report/patch
   ACE_recursive_thread_mutex_t& mutex_r = lock_.lock ();
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  ACE_thread_t thread_id = lock_.get_thread_id ();
+#if defined(ACE_WIN32) || defined(ACE_WIN64)
   if (!ACE_OS::thr_equal (reinterpret_cast<ACE_thread_t> (mutex_r.OwningThread),
                           ACE_OS::thr_self ()))
-#elif !defined (ACE_HAS_RECURSIVE_MUTEXES)
-  // IMPORTANT NOTE*: currently, ACE_Recursive_Thread_Mutex::get_thread_id() is
-  //                  not supported on non-Win32 platforms (returns
-  //                  ACE_OS::NULL_thread), see: Recursive_Thread_Mutex.cpp:70)
-  ACE_thread_t thread_id = lock_.get_thread_id ();
+#else
+#if !defined (ACE_HAS_RECURSIVE_MUTEXES)
   if (!ACE_OS::thr_equal (thread_id, ACE_OS::NULL_thread) &&
       !ACE_OS::thr_equal (thread_id, ACE_OS::thr_self ()))
 #else
-  goto continue_;
-#endif
+  if (!ACE_OS::thr_equal (thread_id, ACE_OS::thr_self ()))
+#endif // !ACE_HAS_RECURSIVE_MUTEXES
+#endif // ACE_WIN32 || ACE_WIN64
   {
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
     //ACE_DEBUG ((LM_DEBUG,
     //            ACE_TEXT ("[%T][%t]: unlock held by %d --> -1\n"),
     //            mutex_r.OwningThread));
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
     return -1;
   } // end IF
 
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-#else
-continue_:
-#endif
   // *NOTE*: currently, ACE_Recursive_Thread_Mutex::get_nesting_level() is not
   //         supported on some UNIX (Linux in particular) and Win64 platforms
   //         (returns -1, see: Recursive_Thread_Mutex.cpp:96)
@@ -2512,12 +2507,12 @@ continue_:
       break;
 //  } while (lock_.get_nesting_level () > 0);
   } while (mutex_r.__data.__count > 0);
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
   //ACE_DEBUG ((LM_DEBUG,
-  //            ACE_TEXT ("[%T][%t]: unlock %s%d --> %d\n"),
-  //            (unlock_in ? ACE_TEXT ("(full) ") : ACE_TEXT ("")),
-  //            lock_.get_nesting_level (),
-  //            result));
+  //          ACE_TEXT ("[%T][%t]: unlock %s%d --> %d\n"),
+  //          (unlock_in ? ACE_TEXT ("(full) ") : ACE_TEXT ("")),
+  //          lock_.get_nesting_level (),
+  //          result));
 
   return result;
 }
@@ -2662,15 +2657,16 @@ Stream_Base_T<ACE_SYNCH_USE,
   //         data type 'struct _RTL_CRITICAL_SECTION' contains the necessary
   //         information ('OwningThread')
   //         --> submit a bug report
+  ACE_thread_t thread_id = lock_.get_thread_id ();
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   ACE_recursive_thread_mutex_t& mutex_r = lock_.lock ();
   return (ACE_OS::thr_equal (reinterpret_cast<ACE_thread_t> (mutex_r.OwningThread),
                              ACE_OS::thr_self ()) &&
           (lock_.get_nesting_level () > 0));
 #else
-  return ((result == -1) ? ACE_OS::thr_equal (lock_.get_thread_id (), ACE_OS::thr_self ())
-                         : (ACE_OS::thr_equal (lock_.get_thread_id (), ACE_OS::thr_self ()) && (result > 0)));
-#endif
+  return ((result == -1) ? ACE_OS::thr_equal (thread_id, ACE_OS::thr_self ())
+                         : (ACE_OS::thr_equal (thread_id, ACE_OS::thr_self ()) && (result > 0)));
+#endif // ACE_WIN32 || ACE_WIN64
 }
 
 template <ACE_SYNCH_DECL,

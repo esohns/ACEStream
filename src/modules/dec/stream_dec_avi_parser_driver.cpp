@@ -466,14 +466,14 @@ Stream_Decoder_AVIParserDriver::scan_begin ()
   {
     bufferState_ =
       RIFF_Scanner__scan_buffer (fragment_->rd_ptr (),
-                                 fragment_->length () + COMMON_PARSER_FLEX_BUFFER_BOUNDARY_SIZE,
+                                 static_cast<int> (fragment_->length () + COMMON_PARSER_FLEX_BUFFER_BOUNDARY_SIZE),
                                  scannerState_);
   } // end IF
   else
   {
     bufferState_ =
       RIFF_Scanner__scan_bytes (fragment_->rd_ptr (),
-                                fragment_->length (),
+                                static_cast<int> (fragment_->length ()),
                                 scannerState_);
   } // end ELSE
   if (!bufferState_)

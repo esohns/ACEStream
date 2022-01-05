@@ -969,7 +969,7 @@ button_quit_clicked_cb (GtkWidget* widget_in,
       // *IMPORTANT NOTE*: cannot wait on the UI condition here, as it is
       //                   signal()ed by the current thread !
       //                   --> emit a signal to come back
-      gtk_signal_emit_by_name (GTK_OBJECT (widget_in), "clicked");
+      g_signal_emit_by_name (G_OBJECT (widget_in), "clicked");
     } // end IF
   } // end lock scope
 

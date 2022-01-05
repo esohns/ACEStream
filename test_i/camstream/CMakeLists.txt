@@ -22,7 +22,7 @@ string (SUBSTRING ${BUILD_PATH_SUFFIX} 1 -1 BUILD_PATH_SUFFIX)
 find_package (ACENetwork ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_MICRO}
               REQUIRED
               CONFIG
-              PATHS ${CMAKE_CURRENT_SOURCE_DIR}/modules ${CMAKE_CURRENT_SOURCE_DIR}/../../..
+              PATHS ${CMAKE_CURRENT_SOURCE_DIR}/../../modules ${CMAKE_CURRENT_SOURCE_DIR}/../../..
               PATH_SUFFIXES ACENetwork/${BUILD_PATH_SUFFIX}
               NO_DEFAULT_PATH)
 if (NOT EXISTS ${ACENetwork_DIR})
@@ -172,9 +172,6 @@ if (FFMPEG_SUPPORT)
  target_link_libraries (${EXECUTABLE_SOURCE} ${ffmpeg_LIBRARIES})
 endif (FFMPEG_SUPPORT)
 if (UNIX)
-# target_link_libraries (${EXECUTABLE_SOURCE} rt)
-# target_link_libraries (${EXECUTABLE_SOURCE} ${PKG_CAP_LIBRARIES})
-
  target_link_libraries (${EXECUTABLE_SOURCE} ${PKG_V4L2_LIBRARIES})
 elseif (WIN32)
 # set (CMAKE_EXE_LINKER_FLAGS /NODEFAULTLIB:\"libcmt.lib\")
@@ -211,7 +208,6 @@ target_link_libraries (${EXECUTABLE_SOURCE} ${PROJECT_NAME}_Statistic)
 target_link_libraries (${EXECUTABLE_SOURCE} ${PROJECT_NAME}_Visualization)
 
 target_link_libraries (${EXECUTABLE_SOURCE} ACENetwork)
-#target_link_libraries (${EXECUTABLE_SOURCE} ACENetwork_Client)
 
 target_link_libraries (${EXECUTABLE_SOURCE} ${PROJECT_NAME}_Test_I)
 
@@ -325,11 +321,11 @@ if (WIN32)
  target_link_libraries (${LIBRARY_DS} winmm.lib)
  if (CMAKE_BUILD_TYPE STREQUAL Debug)
 #  link_directories (${DIRECTSHOW_BASECLASSES_DIRECTORY}/Debug)
-  target_link_libraries (${LIBRARY_DS} ${DIRECTSHOW_BASECLASSES_DIRECTORY}/cmake/baseclasses/Debug/BaseClassesd.lib)
+  target_link_libraries (${LIBRARY_DS} ${DIRECTSHOW_BASECLASSES_DIRECTORY}/build/msvc/baseclasses/Debug/BaseClassesd.lib)
 #  target_link_libraries (${LIBRARY_DS} ${DIRECTSHOW_BASECLASSES_DIRECTORY}/Debug/strmbasd.lib)
  else ()
 #  link_directories (${DIRECTSHOW_BASECLASSES_DIRECTORY}/Release)
-  target_link_libraries (${LIBRARY_DS} ${DIRECTSHOW_BASECLASSES_DIRECTORY}/cmake/baseclasses/Release/BaseClasses.lib)
+  target_link_libraries (${LIBRARY_DS} ${DIRECTSHOW_BASECLASSES_DIRECTORY}/build/msvc/baseclasses/Release/BaseClasses.lib)
  endif (CMAKE_BUILD_TYPE STREQUAL Debug)
  target_link_libraries (${LIBRARY_DS} ${ACE_LIBRARY})
 

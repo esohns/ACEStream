@@ -1878,12 +1878,17 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
   ACE_thread_mutex_t& mutex_r = lock_r.lock ();
 
   // sanity check(s)
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  // *TODO*: on Windows platforms, the current ACE implementation does not
+  //         support ACE_Thread_Mutex::get_thread_id(), although the
+  //         data type 'struct _RTL_CRITICAL_SECTION' contains the necessary
+  //         information ('OwningThread')
+  //         --> submit a bug report
+  //ACE_thread_t thread_id = lock_r.get_thread_id ();
+#if defined(ACE_WIN32) || defined(ACE_WIN64)
   if (unlikely (!ACE_OS::thr_equal (reinterpret_cast<ACE_thread_t> (mutex_r.OwningThread),
                                     ACE_OS::thr_self ())))
 #else
-  if (unlikely (!ACE_OS::thr_equal (static_cast<ACE_thread_t> (mutex_r.__data.__owner),
-                                    ACE_OS::thr_self ())))
+  if (unlikely (!ACE_OS::thr_equal (mutex_r.__data.__owner, ACE_OS::thr_self ())))
 #endif // ACE_WIN32 || ACE_WIN64
   {
     ACE_OS::last_error (EACCES);

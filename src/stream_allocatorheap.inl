@@ -52,7 +52,7 @@ Stream_AllocatorHeap_T<ACE_SYNCH_USE,
 
   // update allocation counter
   if (result)
-    poolSize_ += bytes_in;
+    poolSize_ += static_cast<unsigned long> (bytes_in);
 
   return result;
 }
@@ -74,7 +74,8 @@ Stream_AllocatorHeap_T<ACE_SYNCH_USE,
 
   // update allocation counter
   if (result)
-    poolSize_ += (numberOfElements_in * sizePerElement_in);
+    poolSize_ +=
+      static_cast<unsigned long> (numberOfElements_in * sizePerElement_in);
 
   return result;
 }
@@ -111,7 +112,7 @@ Stream_AllocatorHeap_T<ACE_SYNCH_USE,
 
   // update allocation counter
   if (likely (result))
-    poolSize_ += bytes_in;
+    poolSize_ += static_cast<unsigned long> (bytes_in);
 
   return result;
 }

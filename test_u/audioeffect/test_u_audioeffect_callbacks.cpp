@@ -5632,13 +5632,13 @@ continue_:
           GTK_TOGGLE_BUTTON (gtk_builder_get_object ((*iterator).second.second,
                                                      ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_CHECKBUTTON_SAVE_NAME)));
     ACE_ASSERT (toggle_button_p);
-    gtk_signal_handler_block_by_func (GTK_OBJECT (toggle_button_p),
-                                      G_CALLBACK (togglebutton_save_toggled_cb),
-                                      userData_in);
+    g_signal_handlers_block_by_func (G_OBJECT (toggle_button_p),
+                                     G_CALLBACK (togglebutton_save_toggled_cb),
+                                     userData_in);
     gtk_toggle_button_set_active (toggle_button_p, TRUE);
-    gtk_signal_handler_unblock_by_func (GTK_OBJECT (toggle_button_p),
-                                        G_CALLBACK (togglebutton_save_toggled_cb),
-                                        userData_in);
+    g_signal_handlers_unblock_by_func (G_OBJECT (toggle_button_p),
+                                       G_CALLBACK (togglebutton_save_toggled_cb),
+                                       userData_in);
   } // end IF
 
   GtkRadioButton* radio_button_p = NULL;
@@ -6669,8 +6669,11 @@ togglebutton_record_toggled_cb (GtkToggleButton* toggleButton_in,
     GTK_PROGRESS_BAR (gtk_builder_get_object ((*iterator).second.second,
                                               ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_PROGRESSBAR_NAME)));
   ACE_ASSERT (progress_bar_p);
+  GtkAllocation allocation_s;
+  gtk_widget_get_allocation (GTK_WIDGET (progress_bar_p),
+                             &allocation_s);
   gtk_progress_bar_set_pulse_step (progress_bar_p,
-                                   1.0 / static_cast<double> (GTK_WIDGET (progress_bar_p)->allocation.width));
+                                   1.0 / static_cast<double> (allocation_s.width));
   //gtk_progress_bar_set_fraction (progress_bar_p, 0.0);
 
   // step3: start processing thread
@@ -9164,9 +9167,9 @@ continue_:
         }
       } // end SWITCH
       ACE_ASSERT (radio_button_p);
-      gtk_signal_emit_by_name (GTK_OBJECT (radio_button_p),
-                               ACE_TEXT_ALWAYS_CHAR ("toggled"),
-                               userData_in);
+      g_signal_emit_by_name (G_OBJECT (radio_button_p),
+                             ACE_TEXT_ALWAYS_CHAR ("toggled"),
+                             userData_in);
       //gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (radio_button_p), TRUE);
       break;
     }
@@ -12003,7 +12006,7 @@ drawingarea_configure_event_cb (GtkWidget* widget_in,
   Common_UI_GTK_Manager_t* gtk_manager_p =
     COMMON_UI_GTK_MANAGER_SINGLETON::instance ();
   ACE_ASSERT (gtk_manager_p);
-  const Common_UI_GTK_State_t& state_r = gtk_manager_p->getR_2 ();
+  const Common_UI_GTK_State_t& state_r = gtk_manager_p->getR ();
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   struct Test_U_AudioEffect_DirectShow_UI_CBData* directshow_ui_cb_data_p =
     NULL;
@@ -12015,12 +12018,11 @@ drawingarea_configure_event_cb (GtkWidget* widget_in,
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
     {
+      // sanity check(s)
       directshow_ui_cb_data_p =
         static_cast<struct Test_U_AudioEffect_DirectShow_UI_CBData*> (userData_in);
-      // sanity check(s)
       ACE_ASSERT (directshow_ui_cb_data_p);
       ACE_ASSERT (directshow_ui_cb_data_p->configuration);
-
       directshow_modulehandler_configuration_iterator =
         directshow_ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
       ACE_ASSERT (directshow_modulehandler_configuration_iterator != directshow_ui_cb_data_p->configuration->streamConfiguration.end ());
@@ -12028,12 +12030,11 @@ drawingarea_configure_event_cb (GtkWidget* widget_in,
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
     {
+      // sanity check(s)
       mediafoundation_ui_cb_data_p =
         static_cast<struct Test_U_AudioEffect_MediaFoundation_UI_CBData*> (userData_in);
-      // sanity check(s)
       ACE_ASSERT (mediafoundation_ui_cb_data_p);
       ACE_ASSERT (mediafoundation_ui_cb_data_p->configuration);
-
       mediafoundation_modulehandler_configuration_iterator =
         mediafoundation_ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
       ACE_ASSERT (mediafoundation_modulehandler_configuration_iterator != mediafoundation_ui_cb_data_p->configuration->streamConfiguration.end ());
@@ -12048,237 +12049,25 @@ drawingarea_configure_event_cb (GtkWidget* widget_in,
     }
   } // end SWITCH
 #else
-  struct Test_U_AudioEffect_UI_CBData* data_p =
-    static_cast<struct Test_U_AudioEffect_UI_CBData*> (userData_in);
-
   // sanity check(s)
-  ACE_ASSERT (data_p);
-
+  struct Test_U_AudioEffect_UI_CBData* ui_cb_data_p =
+    static_cast<struct Test_U_AudioEffect_UI_CBData*> (userData_in);
+  ACE_ASSERT (ui_cb_data_p);
   Test_U_AudioEffect_ALSA_StreamConfiguration_t::ITERATOR_T modulehandler_configuration_iterator =
-      data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
-  ACE_ASSERT (modulehandler_configuration_iterator != data_p->configuration->streamConfiguration.end ());
+    ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
+  ACE_ASSERT (modulehandler_configuration_iterator != ui_cb_data_p->configuration->streamConfiguration.end ());
 #endif // ACE_WIN32 || ACE_WIN64
-
   Common_UI_GTK_BuildersConstIterator_t iterator =
     state_r.builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN));
   ACE_ASSERT (iterator != state_r.builders.end ());
-
   GtkDrawingArea* drawing_area_p =
     GTK_DRAWING_AREA (gtk_builder_get_object ((*iterator).second.second,
                                               ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_DRAWINGAREA_NAME)));
   ACE_ASSERT (drawing_area_p);
-
-  GdkRectangle* area_p = NULL;
-  ACE_SYNCH_MUTEX* lock_p = NULL;
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-  switch (ui_cb_data_base_p->mediaFramework)
-  {
-    case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
-    {
-      lock_p = &directshow_ui_cb_data_p->surfaceLock;
-      if (widget_in == GTK_WIDGET (drawing_area_p))
-        area_p = &directshow_ui_cb_data_p->area2D;
-#if defined (GTKGL_SUPPORT)
-      else
-        area_p = &directshow_ui_cb_data_p->area3D;
-#endif // GTKGL_SUPPORT
-      break;
-    }
-    case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
-    {
-      lock_p = &mediafoundation_ui_cb_data_p->surfaceLock;
-      if (widget_in == GTK_WIDGET (drawing_area_p))
-        area_p = &mediafoundation_ui_cb_data_p->area2D;
-#if defined (GTKGL_SUPPORT)
-      else
-        area_p = &mediafoundation_ui_cb_data_p->area3D;
-#endif // GTKGL_SUPPORT
-      break;
-    }
-    default:
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("invalid/unknown media framework (was: %d), aborting\n"),
-                  ui_cb_data_base_p->mediaFramework));
-      return false;
-    }
-  } // end SWITCH
-#else
-  lock_p = &data_p->surfaceLock;
-  if (widget_in == GTK_WIDGET (drawing_area_p))
-    area_p = &data_p->area2D;
-#if defined (GTKGL_SUPPORT)
-  else
-    area_p = &data_p->area3D;
-#endif // GTKGL_SUPPORT
-#endif // ACE_WIN32 || ACE_WIN64
-  ACE_ASSERT (lock_p);
-  ACE_ASSERT (area_p);
-  ACE_ASSERT (event_in->type == GDK_CONFIGURE);
-  area_p->x = event_in->configure.x;
-  area_p->y = event_in->configure.y;
-  area_p->height = event_in->configure.height;
-  area_p->width = event_in->configure.width;
-
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-  switch (ui_cb_data_base_p->mediaFramework)
-  {
-    case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
-    {
-      if (widget_in == GTK_WIDGET (drawing_area_p))
-        (*directshow_modulehandler_configuration_iterator).second.second->area2D =
-          *area_p;
-#if defined (GTKGL_SUPPORT)
-      else
-        (*directshow_modulehandler_configuration_iterator).second.second->area3D =
-          *area_p;
-#endif /* GTKGL_SUPPORT */
-      break;
-    }
-    case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
-    {
-      if (widget_in == GTK_WIDGET (drawing_area_p))
-        (*mediafoundation_modulehandler_configuration_iterator).second.second->area2D =
-          *area_p;
-#if defined (GTKGL_SUPPORT)
-      else
-        (*mediafoundation_modulehandler_configuration_iterator).second.second->area3D =
-          *area_p;
-#endif /* GTKGL_SUPPORT */
-      break;
-    }
-    default:
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("invalid/unknown media framework (was: %d), aborting\n"),
-                  ui_cb_data_base_p->mediaFramework));
-      return false;
-    }
-  } // end SWITCH
-#else
-  if (widget_in == GTK_WIDGET (drawing_area_p))
-    (*modulehandler_configuration_iterator).second.second->area2D = *area_p;
-#if defined (GTKGL_SUPPORT)
-  else
-    (*modulehandler_configuration_iterator).second.second->area3D = *area_p;
-#endif /* GTKGL_SUPPORT */
-#endif // ACE_WIN32 || ACE_WIN64
-
   if (widget_in != GTK_WIDGET (drawing_area_p))
     return TRUE;
-
   GdkWindow* window_p = gtk_widget_get_window (widget_in);
   ACE_ASSERT (window_p);
-#if GTK_CHECK_VERSION(3,10,0)
-  cairo_surface_t* surface_p =
-      gdk_window_create_similar_image_surface (window_p,
-                                               CAIRO_FORMAT_RGB24,
-                                               event_in->configure.width, event_in->configure.height,
-                                               1);
-  if (!surface_p)
-  { // *NOTE*: most probable reason: window is not mapped
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to gdk_window_create_similar_image_surface(), aborting\n")));
-    return FALSE;
-  } // end IF
-#else
-  GdkPixbuf* pixel_buffer_p =
-#if GTK_CHECK_VERSION(3,0,0)
-    gdk_pixbuf_get_from_window (window_p,
-                                0, 0, event_in->configure.width, event_in->configure.height);
-#else
-    gdk_pixbuf_get_from_drawable (NULL,                    // destination pixbuf --> create new
-                                  GDK_DRAWABLE (window_p), // source window
-                                  NULL,                    // colormap
-                                  0, 0,                    // source coordinates (of drawable)
-                                  0, 0,                    // destination coordinates
-                                  event_in->configure.width, event_in->configure.height);
-#endif // GTK_CHECK_VERSION(3,0,0)
-  if (!pixel_buffer_p)
-  { // *NOTE*: most probable reason: window hasn't been mapped yet
-//    ACE_DEBUG ((LM_ERROR,
-//                ACE_TEXT ("failed to gdk_pixbuf_get_from_drawable(), aborting\n")));
-    return TRUE;
-  } // end IF
-#endif // GTK_CHECK_VERSION(3,10,0)
-#if GTK_CHECK_VERSION(3,10,0)
-  ACE_ASSERT (surface_p);
-#else
-  ACE_ASSERT (pixel_buffer_p);
-#endif // GTK_CHECK_VERSION(3,10,0)
-
-  { ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, *lock_p, FALSE);
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-    switch (ui_cb_data_base_p->mediaFramework)
-    {
-      case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
-      {
-#if GTK_CHECK_VERSION(3,10,0)
-        if (directshow_ui_cb_data_p->cairoSurface2D)
-          cairo_surface_destroy (directshow_ui_cb_data_p->cairoSurface2D);
-        directshow_ui_cb_data_p->cairoSurface2D = surface_p;
-        (*directshow_modulehandler_configuration_iterator).second.second->cairoSurface2D =
-          surface_p;
-        ACE_ASSERT (directshow_ui_cb_data_p->cairoSurface2D);
-#else
-        // *NOTE*: in Gtk2, the surface is first created in the "configure-event"
-        //         signal handler (see below)
-        if (directshow_ui_cb_data_p->pixelBuffer2D)
-          g_object_unref (directshow_ui_cb_data_p->pixelBuffer2D);
-        directshow_ui_cb_data_p->pixelBuffer2D = pixel_buffer_p;
-        (*directshow_modulehandler_configuration_iterator).second.second->pixelBuffer2D =
-          pixel_buffer_p;
-        ACE_ASSERT (directshow_ui_cb_data_p->pixelBuffer2D);
-#endif // GTK_CHECK_VERSION(3,10,0)
-        break;
-      }
-      case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
-      {
-#if GTK_CHECK_VERSION(3,10,0)
-        if (mediafoundation_ui_cb_data_p->cairoSurface2D)
-          cairo_surface_destroy (mediafoundation_ui_cb_data_p->cairoSurface2D);
-        mediafoundation_ui_cb_data_p->cairoSurface2D = surface_p;
-        (*mediafoundation_modulehandler_configuration_iterator).second.second->cairoSurface2D =
-          surface_p;
-        ACE_ASSERT (mediafoundation_ui_cb_data_p->cairoSurface2D);
-#else
-        // *NOTE*: in Gtk2, the surface is first created in the "configure-event"
-        //         signal handler (see below)
-        if (mediafoundation_ui_cb_data_p->pixelBuffer2D)
-          g_object_unref (mediafoundation_ui_cb_data_p->pixelBuffer2D);
-        mediafoundation_ui_cb_data_p->pixelBuffer2D = pixel_buffer_p;
-        (*mediafoundation_modulehandler_configuration_iterator).second.second->pixelBuffer2D =
-          pixel_buffer_p;
-        ACE_ASSERT (mediafoundation_ui_cb_data_p->pixelBuffer2D);
-#endif // GTK_CHECK_VERSION(3,10,0)
-        break;
-      }
-      default:
-      {
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("invalid/unknown media framework (was: %d), aborting\n"),
-                    ui_cb_data_base_p->mediaFramework));
-        return false;
-      }
-    } // end SWITCH
-#else
-#if GTK_CHECK_VERSION(3,10,0)
-    if (data_p->cairoSurface2D)
-      cairo_surface_destroy (data_p->cairoSurface2D);
-    data_p->cairoSurface2D = surface_p;
-    (*modulehandler_configuration_iterator).second.second->cairoSurface2D =
-      surface_p;
-    ACE_ASSERT (data_p->cairoSurface2D);
-#else
-    if (data_p->pixelBuffer2D)
-      g_object_unref (data_p->pixelBuffer2D);
-    data_p->pixelBuffer2D = pixel_buffer_p;
-    (*modulehandler_configuration_iterator).second.second->pixelBuffer2D =
-      pixel_buffer_p;
-    ACE_ASSERT (data_p->pixelBuffer2D);
-#endif // GTK_CHECK_VERSION(3,10,0)
-#endif // ACE_WIN32 || ACE_WIN64
-  } // end lock scope
 
   Test_U_Common_ISet_t* notification_p = NULL;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -12308,11 +12097,7 @@ drawingarea_configure_event_cb (GtkWidget* widget_in,
   if (notification_p)
   {
     try {
-#if GTK_CHECK_VERSION(3,10,0)
-      notification_p->setP (surface_p);
-#else
-      notification_p->setP (pixel_buffer_p);
-#endif // GTK_CHECK_VERSION(3,10,0)
+      notification_p->setP (window_p);
     } catch (...) {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("caught exception in Common_ISetP_T::setP(), continuing\n")));
@@ -12336,59 +12121,8 @@ drawingarea_draw_cb (GtkWidget* widget_in,
     static_cast<struct Test_U_AudioEffect_UI_CBDataBase*> (userData_in);
   ACE_ASSERT (ui_cb_data_base_p);
 
-//  bool destroy_context = false;
-  // sanity check(s)
-#if GTK_CHECK_VERSION(3,10,0)
-  if (!ui_cb_data_base_p->cairoSurface2D)
-#else
-  if (!ui_cb_data_base_p->pixelBuffer2D)
-#endif // GTK_CHECK_VERSION(3,10,0)
-    return FALSE; // --> widget has not been realized yet
-
   ACE_ASSERT (context_in);
-#if GTK_CHECK_VERSION(3,10,0)
-  ACE_ASSERT (ui_cb_data_base_p->cairoSurface2D);
-  cairo_set_source_surface (context_in,
-                            ui_cb_data_base_p->cairoSurface2D,
-                            0.0, 0.0);
-                            //data_p->area2D->x, data_p->area2D->y);
-#else
-  ACE_UNUSED_ARG (context_in);
-
-  ACE_ASSERT (ui_cb_data_base_p->pixelBuffer2D);
-
-  // *TODO*: this currently segfaults on Linux, find out why
-//  gdk_cairo_set_source_pixbuf (context_in,
-//                               data_p->pixelBuffer2D,
-//                               data_p->area2D.x, data_p->area2D.y);
-  cairo_t* context_p =
-    gdk_cairo_create (gtk_widget_get_window (widget_in));
-  if (!context_p)
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to gdk_cairo_create(), aborting\n")));
-    return FALSE;
-  } // end IF
-  gdk_cairo_set_source_pixbuf (context_p,
-                               ui_cb_data_base_p->pixelBuffer2D,
-                               ui_cb_data_base_p->area2D.x, ui_cb_data_base_p->area2D.y);
-#endif // GTK_CHECK_VERSION(3,10,0)
-
-#if GTK_CHECK_VERSION(3,0,0)
-//  { ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, data_p->cairoSurfaceLock, FALSE);
-//#else
-//  { ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, data_p->pixelBufferLock, FALSE);
-//#endif
-    cairo_paint (context_in);
-#else
-    cairo_paint (context_p);
-//  } // end lock scope
-#endif // GTK_CHECK_VERSION(3,0,0)
-
-#if GTK_CHECK_VERSION(3,0,0)
-#else
-  cairo_destroy (context_p);
-#endif // GTK_CHECK_VERSION(3,0,0)
+  cairo_paint (context_in);
 
   return TRUE;
 }
