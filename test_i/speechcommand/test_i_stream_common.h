@@ -466,6 +466,7 @@ struct Test_I_DirectShow_StreamConfiguration
   Test_I_DirectShow_StreamConfiguration ()
    : Test_I_StreamConfiguration ()
    , capturer (STREAM_DEVICE_CAPTURER_INVALID)
+   , filterGraphConfiguration ()
    , renderer (STREAM_DEVICE_RENDERER_INVALID)
    , format ()
   {
@@ -474,9 +475,10 @@ struct Test_I_DirectShow_StreamConfiguration
     ACE_OS::memset (&format, 0, sizeof (struct _AMMediaType));
   }
 
-  enum Stream_Device_Capturer capturer;
-  enum Stream_Device_Renderer renderer;
-  struct _AMMediaType         format;
+  enum Stream_Device_Capturer              capturer;
+  Stream_MediaFramework_DirectShow_Graph_t filterGraphConfiguration;
+  enum Stream_Device_Renderer              renderer;
+  struct _AMMediaType                      format;
 };
 
 struct Test_I_MediaFoundation_StreamConfiguration
@@ -500,9 +502,16 @@ struct Test_I_MediaFoundation_StreamConfiguration
 typedef Stream_Configuration_T<//stream_name_string_,
                                struct Test_I_DirectShow_StreamConfiguration,
                                struct Test_I_SpeechCommand_DirectShow_ModuleHandlerConfiguration> Test_I_DirectShow_StreamConfiguration_t;
+typedef Stream_IStreamControlBase_T<enum Stream_ControlType,
+                                    enum Stream_StateMachine_ControlState,
+                                    struct Test_I_SpeechCommand_DirectShow_StreamState> Test_I_DirectShow_IStreamControlBase_t;
+
 typedef Stream_Configuration_T<//stream_name_string_,
                                struct Test_I_MediaFoundation_StreamConfiguration,
                                struct Test_I_SpeechCommand_MediaFoundation_ModuleHandlerConfiguration> Test_I_MediaFoundation_StreamConfiguration_t;
+typedef Stream_IStreamControlBase_T<enum Stream_ControlType,
+                                    enum Stream_StateMachine_ControlState,
+                                    struct Test_I_SpeechCommand_MediaFoundation_StreamState> Test_I_MediaFoundation_IStreamControlBase_t;
 #else
 struct Test_I_ALSA_StreamConfiguration
  : Test_I_StreamConfiguration
@@ -525,12 +534,10 @@ struct Test_I_ALSA_StreamConfiguration
 typedef Stream_Configuration_T<//stream_name_string_,
                                struct Test_I_ALSA_StreamConfiguration,
                                struct Test_I_SpeechCommand_ALSA_ModuleHandlerConfiguration> Test_I_ALSA_StreamConfiguration_t;
+
+typedef Stream_IStreamControlBase_T<enum Stream_ControlType,
+                                    enum Stream_StateMachine_ControlState,
+                                    struct Test_I_SpeechCommand_ALSA_StreamState> Test_I_ALSA_IStreamControlBase_t;
 #endif // ACE_WIN32 || ACE_WIN64
-
-//////////////////////////////////////////
-
-//typedef Stream_IStreamControlBase_T<enum Stream_ControlType,
-//                                    enum Stream_StateMachine_ControlState,
-//                                    struct Stream_State> Stream_IStreamControlBase_t;
 
 #endif

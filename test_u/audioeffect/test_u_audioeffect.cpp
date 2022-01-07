@@ -1808,7 +1808,7 @@ do_work (
     ACE_ASSERT (itask_p);
     itask_p->start (NULL);
     ACE_Time_Value timeout (0,
-                            COMMON_UI_GTK_TIMEOUT_DEFAULT_MANAGER_INITIALIZATION * 1000);
+                            COMMON_UI_GTK_TIMEOUT_DEFAULT_MANAGER_INITIALIZATION_MS * 1000);
     result_2 = ACE_OS::sleep (timeout);
     if (result_2 == -1)
       ACE_DEBUG ((LM_ERROR,

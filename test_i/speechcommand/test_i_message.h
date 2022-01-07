@@ -26,6 +26,8 @@
 #include "stream_control_message.h"
 #include "stream_data_message_base.h"
 
+#include "stream_dec_common.h"
+
 #include "test_i_common.h"
 
 #include "test_i_stream_common.h"
@@ -46,10 +48,13 @@ struct Test_I_SpeechCommand_DirectShow_MessageData
   Test_I_SpeechCommand_DirectShow_MessageData ()
    : Test_I_DirectShow_MessageData ()
    , index (-1)
+   , words ()
   {}
 
   // WaveIn
-  unsigned int index;
+  unsigned int                       index;
+
+  Stream_Decoder_DeepSpeech_Result_t words;
 };
 //typedef Stream_DataBase_T<struct Test_I_SpeechCommand_DirectShow_MessageData> Test_I_SpeechCommand_DirectShow_MessageData_t;
 
@@ -59,12 +64,27 @@ struct Test_I_SpeechCommand_MediaFoundation_MessageData
   Test_I_SpeechCommand_MediaFoundation_MessageData ()
    : Test_I_MediaFoundation_MessageData ()
    , index (-1)
+   , words ()
   {}
 
   // WaveIn
-  unsigned int index;
+  unsigned int                       index;
+
+  Stream_Decoder_DeepSpeech_Result_t words;
 };
 //typedef Stream_DataBase_T<struct Test_I_SpeechCommand_MediaFoundation_MessageData> Test_I_SpeechCommand_MediaFoundation_MessageData_t;
+#else
+struct Test_I_SpeechCommand_ALSA_MessageData
+ : Test_I_ALSA_MessageData
+{
+  Test_I_SpeechCommand_ALSA_MessageData ()
+   : Test_I_ALSA_MessageData ()
+   , words ()
+  {}
+
+  Stream_Decoder_DeepSpeech_Result_t words;
+};
+//typedef Stream_DataBase_T<struct Test_I_SpeechCommand_ALSA_MessageData> Test_I_SpeechCommand_ALSA_MessageData_t;
 #endif // ACE_WIN32 || ACE_WIN64
 
 //////////////////////////////////////////
@@ -163,11 +183,11 @@ class Test_I_MediaFoundation_Message
 };
 #else
 class Test_I_Message
- : public Stream_DataMessageBase_T<struct Test_I_MessageData,
+ : public Stream_DataMessageBase_T<struct Test_I_SpeechCommand_ALSA_MessageData,
                                    enum Stream_MessageType,
                                    int>
 {
-  typedef Stream_DataMessageBase_T<struct Test_I_MessageData,
+  typedef Stream_DataMessageBase_T<struct Test_I_SpeechCommand_ALSA_MessageData,
                                    enum Stream_MessageType,
                                    int> inherited;
 

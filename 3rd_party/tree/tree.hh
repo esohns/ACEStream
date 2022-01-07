@@ -2755,7 +2755,7 @@ typename tree<T, tree_node_allocator>::breadth_first_queued_iterator& tree<T, tr
 
 template <class T, class tree_node_allocator>
 tree<T, tree_node_allocator>::fixed_depth_iterator::fixed_depth_iterator()
-	: iterator_base()
+	: iterator_base(), top_node(0)
 	{
 	}
 

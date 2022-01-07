@@ -1,3 +1,9 @@
+include (OpenGL)
+
+set (CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_CURRENT_SOURCE_DIR}/../../modules/Common/src/gl/scripts;${CMAKE_CURRENT_SOURCE_DIR}/../../../Common/src/gl/scripts")
+include (assimp)
+include (png)
+
 if (UNIX)
  pkg_check_modules (PKG_ALSA REQUIRED alsa)
 endif (UNIX)
@@ -112,6 +118,12 @@ if (GUI_SUPPORT)
        ${${EXECUTABLE}_EXE_SRCS}
        test_i_gtk_callbacks.cpp
        test_i_gtk_callbacks.h)
+  if (GTKGL_SUPPORT)
+   set (${EXECUTABLE}_EXE_SRCS
+        ${${EXECUTABLE}_EXE_SRCS}
+        test_i_gl_callbacks.cpp
+        test_i_gl_callbacks.h)
+  endif (GTKGL_SUPPORT)
  endif (GTK_SUPPORT)
  if (WXWIDGETS_SUPPORT)
   set (${EXECUTABLE}_EXE_SRCS
@@ -167,7 +179,22 @@ target_link_libraries (${EXECUTABLE} PUBLIC ${CMAKE_THREAD_LIBS_INIT})
 if (UNIX)
  target_link_libraries (${EXECUTABLE} PUBLIC ${PKG_ALSA_LIBRARIES})
  target_link_libraries (${EXECUTABLE} PUBLIC ${SOX_LIBRARIES})
-endif (UNIX)
+elseif (WIN32)
+ target_link_libraries (${EXECUTABLE} PUBLIC mfplat.lib)
+ target_link_libraries (${EXECUTABLE} PUBLIC mfuuid.lib)
+ target_link_libraries (${EXECUTABLE} PUBLIC Dmoguids.lib)
+ target_link_libraries (${EXECUTABLE} PUBLIC Msdmo.lib)
+ target_link_libraries (${EXECUTABLE} PUBLIC strmiids.lib)
+
+ if (GUI_SUPPORT)
+  if (GTK_SUPPORT)
+   if (GTKGL_SUPPORT)
+    target_link_libraries (${EXECUTABLE} PUBLIC OpenGL32.lib)
+    target_link_libraries (${EXECUTABLE} PUBLIC GlU32.lib)
+   endif (GTKGL_SUPPORT)
+  endif (GTK_SUPPORT)
+ endif (GUI_SUPPORT)
+endif ()
 
 target_link_libraries (${EXECUTABLE} PUBLIC ${ACE_LIBRARY})
 
@@ -287,6 +314,7 @@ if (UNIX)
    set (ARGS "${ARGS} -g./${ui_definition_file}")
   endif (GTK_USE OR WXWIDGETS_USE)
   if (GTK_USE)
+   set (ENVIRONMENT "GTK_DEBUG=interactive")
   elseif (WXWIDGETS_USE)
    set (ENVIRONMENT "DISPLAY=:0")
   endif ()
@@ -304,6 +332,7 @@ elseif (WIN32)
   string (REGEX REPLACE "\\\\" "\\\\\\\\" ui_definition_file "${ui_definition_file}")
   set (ARGS " ${ARGS} -g.\\\\${ui_definition_file}")
   if (GTK_SUPPORT)
+#   set (ENVIRONMENT "GTK_DEBUG=interactive$<COMMA>size-request")
    file (TO_CMAKE_PATH "${GTK_LIB_DIRS}" GTK_PATH)
    set (RUNTIME_LIBRARY_DIRS ${RUNTIME_LIBRARY_DIRS}
                              G:/software/Development/dll
@@ -318,12 +347,21 @@ elseif (WIN32)
   set (ARGS "-g ${ARGS}")
  endif (GUI_SUPPORT)
  file (TO_CMAKE_PATH "${ACE_LIB_DIR}" ACE_LIBRARY_PATH)
+ file (TO_CMAKE_PATH "${ASSIMP_LIB_DIR}" ASSIMP_PATH)
+ file (TO_CMAKE_PATH "${PNG_LIB_DIR}" LIBPNG_PATH)
  file (TO_CMAKE_PATH "${DEEPSPEECH_LIB_DIR}" DEEPSPEECH_LIBRARY_PATH)
  file (TO_CMAKE_PATH "${ffmpeg_LIB_DIR}" FFMPEG_PATH)
  set (RUNTIME_LIBRARY_DIRS ${RUNTIME_LIBRARY_DIRS}
                            ${ACE_LIBRARY_PATH}
+                           ${ASSIMP_PATH}
+                           ${LIBPNG_PATH}
                            ${DEEPSPEECH_LIBRARY_PATH}
                            ${FFMPEG_PATH})
+ if (SOX_SUPPORT)
+  file (TO_CMAKE_PATH "${SOX_LIB_DIR}" SOX_PATH)
+  set (RUNTIME_LIBRARY_DIRS ${RUNTIME_LIBRARY_DIRS}
+                            ${SOX_PATH})
+ endif (SOX_SUPPORT)
 endif ()
 create_target_launcher (${EXECUTABLE}
                         COMMAND ${COMMAND}

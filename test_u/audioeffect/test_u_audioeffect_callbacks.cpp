@@ -5002,17 +5002,17 @@ idle_initialize_UI_cb (gpointer userData_in)
                                               ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_DRAWINGAREA_NAME)));
   ACE_ASSERT (drawing_area_p);
   gint tooltip_timeout =
-      COMMON_UI_GTK_TIMEOUT_DEFAULT_WIDGET_TOOLTIP_DELAY; // ms
+      COMMON_UI_GTK_TIMEOUT_DEFAULT_WIDGET_TOOLTIP_DELAY_MS;
 #if GTK_CHECK_VERSION(3,0,0)
 //#if GTK_CHECK_VERSION(3,10,0)
 //#else
-//  g_object_set (GTK_WIDGET (drawing_area_p),
-//                ACE_TEXT_ALWAYS_CHAR ("gtk-tooltip-timeout"), &tooltip_timeout,
-//                NULL);
+  g_object_set (G_OBJECT (drawing_area_p),
+                ACE_TEXT_ALWAYS_CHAR ("gtk-tooltip-timeout"), &tooltip_timeout,
+                NULL);
 //#endif // GTK_CHECK_VERSION (3,10,0)
 #else
 #if GTK_CHECK_VERSION(2,12,0) // *TODO*: this seems to be wrong
-  g_object_set (GTK_WIDGET (drawing_area_p),
+  g_object_set (G_OBJECT (drawing_area_p),
                 ACE_TEXT_ALWAYS_CHAR ("gtk-tooltip-timeout"), &tooltip_timeout,
                 NULL);
 #endif // GTK_CHECK_VERSION (2,12,0)

@@ -1010,7 +1010,7 @@ Stream_ImageScreen_WxWidgetsDialog_T<wxDialog_main,
   //unsigned int framerate_i = 0;
   //converter >> framerate_i;
 
-  Common_UI_Resolution_t resolution_2;
+  Common_UI_Resolution_t resolution_2 = {0, 0};
   //  Stream_MediaFramework_DirectShow_Tools::toResolution (cb_data_r.configuration->streamConfiguration.configuration_->format);
   //bool reset_device_b =
   //  ((resolution_s.cx != resolution_2.cx) || (resolution_s.cy != resolution_2.cy));
@@ -1661,7 +1661,7 @@ Stream_ImageScreen_WxWidgetsDialog_T<wxDialog_main,
 
   std::ostringstream converter;
   std::string resolution_string;
-  Common_UI_Resolution_t resolution_s;
+  Common_UI_Resolution_t resolution_s = {0, 0};
   //  Stream_MediaFramework_DirectShow_Tools::toResolution (*media_type_p);
   converter << resolution_s.cx;
   converter << ACE_TEXT_ALWAYS_CHAR (" ");

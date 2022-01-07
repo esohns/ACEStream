@@ -25,6 +25,9 @@ enum Stream_Decoder_CompressionFormatType : int
 #if defined (DEEPSPEECH_SUPPORT)
 typedef std::vector <std::pair<std::string, float> > Stream_Decoder_DeepSpeech_HotWords_t;
 typedef Stream_Decoder_DeepSpeech_HotWords_t::const_iterator Stream_Decoder_DeepSpeech_HotWordsConstIterator_t;
+
+typedef std::vector <std::string> Stream_Decoder_DeepSpeech_Result_t;
+typedef Stream_Decoder_DeepSpeech_Result_t::iterator Stream_Decoder_DeepSpeech_ResultIterator_t;
 #endif // DEEPSPEECH_SUPPORT
 
 #endif

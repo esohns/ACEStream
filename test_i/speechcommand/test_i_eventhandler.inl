@@ -59,7 +59,7 @@ Test_I_EventHandler_T<NotificationType,
 #endif // WXWIDGETS_USE
 #endif // GUI_SUPPORT
 #if defined (GUI_SUPPORT)
-                      SessionMessageType>::Test_I_EventHandler_T (struct Test_I_UI_CBData* CBData_in
+                      SessionMessageType>::Test_I_EventHandler_T (struct Test_I_SpeechCommand_UI_CBData* CBData_in
 #if defined (GTK_USE)
                                                                   )
 #elif defined (QT_USE)
@@ -269,6 +269,7 @@ Test_I_EventHandler_T<NotificationType,
   // sanity check(s)
 #if defined (GUI_SUPPORT)
   ACE_ASSERT (CBData_);
+  const typename DataMessageType::DATA_T& data_r = message_in.getR ();
 #if defined (GTK_USE)
   Common_UI_GTK_Manager_t* gtk_manager_p =
     COMMON_UI_GTK_MANAGER_SINGLETON::instance ();
@@ -293,6 +294,9 @@ Test_I_EventHandler_T<NotificationType,
   { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, state_r.lock);
     CBData_->progressData.statistic.bytes += message_in.total_length ();
     state_r.eventStack.push (COMMON_UI_EVENT_DATA);
+
+    CBData_->progressData.words.insert (CBData_->progressData.words.end (),
+                                        data_r.words.begin (), data_r.words.end ());
   } // end lock scope
 #endif // GTK_USE || WXWIDGETS_USE
 #endif // GUI_SUPPORT

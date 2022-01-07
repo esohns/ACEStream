@@ -1885,8 +1885,10 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
   //         --> submit a bug report
   //ACE_thread_t thread_id = lock_r.get_thread_id ();
 #if defined(ACE_WIN32) || defined(ACE_WIN64)
-  if (unlikely (!ACE_OS::thr_equal (reinterpret_cast<ACE_thread_t> (mutex_r.OwningThread),
-                                    ACE_OS::thr_self ())))
+  ACE_hthread_t thread_h = NULL;
+  ACE_OS::thr_self (thread_h);
+  ACE_ASSERT (thread_h);
+  if (unlikely (!ACE_OS::thr_cmp (mutex_r.OwningThread, thread_h)))
 #else
   if (unlikely (!ACE_OS::thr_equal (mutex_r.__data.__owner, ACE_OS::thr_self ())))
 #endif // ACE_WIN32 || ACE_WIN64

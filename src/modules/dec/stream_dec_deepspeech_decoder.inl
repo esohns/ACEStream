@@ -171,7 +171,7 @@ Stream_Decoder_DeepSpeechDecoder_T<ACE_SYNCH_USE,
 //    return false;
 //  } // end IF
 
-  for (std::vector<std::pair<std::string, float> >::const_iterator iterator = configuration_in.hotWords.begin ();
+  for (Stream_Decoder_DeepSpeech_HotWordsConstIterator_t iterator = configuration_in.hotWords.begin ();
        iterator != configuration_in.hotWords.end ();
        ++iterator)
   {
@@ -220,6 +220,8 @@ Stream_Decoder_DeepSpeechDecoder_T<ACE_SYNCH_USE,
   ACE_ASSERT (context2_);
 
   int result = -1;
+  typename DataMessageType::DATA_T& data_r =
+    const_cast<typename DataMessageType::DATA_T&> (message_inout->getR ());
   ACE_Message_Block* message_block_p = message_inout;
   const char* last_p = NULL, *prev_p = NULL, *partial_p = NULL;
   while (message_block_p)
@@ -235,6 +237,8 @@ Stream_Decoder_DeepSpeechDecoder_T<ACE_SYNCH_USE,
                   ACE_TEXT ("%s: \"%s\"\n"),
                   inherited::mod_->name (),
                   ACE_TEXT (partial_p)));
+      // *TODO*: remove type inference
+      data_r.words.push_back (ACE_TEXT_ALWAYS_CHAR (partial_p));
       last_p = partial_p;
     } // end IF
     else

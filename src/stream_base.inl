@@ -2441,8 +2441,10 @@ Stream_Base_T<ACE_SYNCH_USE,
   ACE_recursive_thread_mutex_t& mutex_r = lock_.lock ();
   ACE_thread_t thread_id = lock_.get_thread_id ();
 #if defined(ACE_WIN32) || defined(ACE_WIN64)
-  if (!ACE_OS::thr_equal (reinterpret_cast<ACE_thread_t> (mutex_r.OwningThread),
-                          ACE_OS::thr_self ()))
+  ACE_hthread_t thread_h = NULL;
+  ACE_OS::thr_self (thread_h);
+  ACE_ASSERT (thread_h);
+  if (unlikely (!ACE_OS::thr_cmp (mutex_r.OwningThread, thread_h)))
 #else
 #if !defined (ACE_HAS_RECURSIVE_MUTEXES)
   if (!ACE_OS::thr_equal (thread_id, ACE_OS::NULL_thread) &&
@@ -2660,12 +2662,14 @@ Stream_Base_T<ACE_SYNCH_USE,
   ACE_thread_t thread_id = lock_.get_thread_id ();
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   ACE_recursive_thread_mutex_t& mutex_r = lock_.lock ();
-  return (ACE_OS::thr_equal (reinterpret_cast<ACE_thread_t> (mutex_r.OwningThread),
-                             ACE_OS::thr_self ()) &&
-          (lock_.get_nesting_level () > 0));
+  ACE_hthread_t thread_h = NULL;
+  ACE_OS::thr_self (thread_h);
+  ACE_ASSERT (thread_h);
+  return ((result == -1) ? ACE_OS::thr_cmp (mutex_r.OwningThread, thread_h)
+                         : static_cast<bool> (ACE_OS::thr_cmp (mutex_r.OwningThread, thread_h)) && (result > 0));
 #else
   return ((result == -1) ? ACE_OS::thr_equal (thread_id, ACE_OS::thr_self ())
-                         : (ACE_OS::thr_equal (thread_id, ACE_OS::thr_self ()) && (result > 0)));
+                         : static_cast<bool> (ACE_OS::thr_equal (thread_id, ACE_OS::thr_self ())) && (result > 0));
 #endif // ACE_WIN32 || ACE_WIN64
 }
 

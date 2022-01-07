@@ -4933,8 +4933,8 @@ Stream_MediaFramework_MediaFoundation_Tools::getOutputFormat (IMFTopology* topol
   ACE_ASSERT (SUCCEEDED (result));
   if (number_of_nodes <= 0)
   {
-    ACE_DEBUG ((LM_DEBUG,
-                ACE_TEXT ("topology contains no output nodes, continuing\n")));
+    //ACE_DEBUG ((LM_DEBUG,
+    //            ACE_TEXT ("topology contains no output nodes, continuing\n")));
     collection_p->Release (); collection_p = NULL;
     result = topology_in->GetSourceNodeCollection (&collection_p);
     ACE_ASSERT (SUCCEEDED (result) && collection_p);

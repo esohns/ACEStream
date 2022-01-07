@@ -242,35 +242,59 @@ typedef Test_I_EventHandler_T<Test_I_ALSA_ISessionNotify_t,
 //////////////////////////////////////////
 
 #if defined (GUI_SUPPORT)
+struct Test_I_SpeechCommand_UI_ProgressData
+ : Test_I_UI_ProgressData
+{
+  Test_I_SpeechCommand_UI_ProgressData ()
+   : Test_I_UI_ProgressData ()
+   , words ()
+  {}
+
+  Stream_Decoder_DeepSpeech_Result_t words;
+};
+
+#if defined (GTK_SUPPORT)
+typedef Common_ISetP_T<GdkWindow> Test_I_Common_ISet_t;
+#endif // GTK_SUPPORT
 struct Test_I_SpeechCommand_UI_CBData
  : Test_I_UI_CBData
 {
   Test_I_SpeechCommand_UI_CBData ()
    : Test_I_UI_CBData ()
-#if defined (GTK_USE)
+#if defined (GTK_SUPPORT)
 #if defined (GTKGL_SUPPORT)
    , OpenGLInstructions ()
+   , objectRotation (1)
 #endif // GTKGL_SUPPORT
-#endif // GTK_USE
+#endif // GTK_SUPPORT
+#if defined (GTK_SUPPORT)
+   , resizeNotification (NULL)
+#endif // GTK_SUPPORT
    , stream (NULL)
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
    , boostControl (NULL)
    , captureVolumeControl (NULL)
-   , renderVolumeControl (NULL)
+   //, renderVolumeControl (NULL)
 #endif // ACE_WIN32 || ACE_WIN64
+   , progressData ()
   {}
 
-#if defined (GTK_USE)
+#if defined (GTK_SUPPORT)
 #if defined (GTKGL_SUPPORT)
-  Stream_Visualization_GTKGL_Instructions_t OpenGLInstructions;
+  Stream_Visualization_GTKGL_Instructions_t   OpenGLInstructions;
+  int                                         objectRotation;
 #endif // GTKGL_SUPPORT
-#endif // GTK_USE
-  Stream_IStreamControlBase*                stream;
+#endif // GTK_SUPPORT
+#if defined (GTK_SUPPORT)
+  Test_I_Common_ISet_t*                       resizeNotification;
+#endif // GTK_SUPPORT
+  Stream_IStreamControlBase*                  stream;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  IAudioVolumeLevel*                        boostControl;
-  IAudioEndpointVolume*                     captureVolumeControl;
-  ISimpleAudioVolume*                       renderVolumeControl;
+  IAudioVolumeLevel*                          boostControl;
+  IAudioEndpointVolume*                       captureVolumeControl;
+  //ISimpleAudioVolume*                       renderVolumeControl;
 #endif // ACE_WIN32 || ACE_WIN64
+  struct Test_I_SpeechCommand_UI_ProgressData progressData;
 };
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 struct Test_I_DirectShow_UI_CBData

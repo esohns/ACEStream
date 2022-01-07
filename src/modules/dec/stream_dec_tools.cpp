@@ -4028,7 +4028,7 @@ continue_4:
                                                                  GUID_s,
                                                                  topology_inout,
                                                                  node_id,
-                                                                 false)) // set input format manually
+                                                                 true))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Stream_MediaFramework_MediaFoundation_Tools::addRenderer(), aborting\n")));

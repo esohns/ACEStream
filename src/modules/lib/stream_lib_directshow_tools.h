@@ -37,13 +37,16 @@
 #include "strmif.h"
 #include "mediaobj.h"
 
+#if defined(SOX_SUPPORT)
+#include "sox.h"
+#endif // SOX_SUPPORT
+
 #include "ace/Global_Macros.h"
 
 #include "common_image_common.h"
 
 #include "stream_lib_common.h"
 #include "stream_lib_directshow_common.h"
-
 #if defined (FFMPEG_SUPPORT)
 #include "stream_lib_ffmpeg_common.h"
 #endif // FFMPEG_SUPPORT
@@ -230,6 +233,11 @@ class Stream_MediaFramework_DirectShow_Tools
   static struct _AMMediaType* to (const struct Stream_MediaFramework_FFMPEG_VideoMediaType&); // media type
   static enum AVPixelFormat mediaSubTypeToAVPixelFormat (REFGUID); // media foundation subtype
 #endif // FFMPEG_SUPPORT
+#if defined (SOX_SUPPORT)
+  static void to (const struct _AMMediaType&, // media type
+                  struct sox_encodinginfo_t&, // return value: encoding
+                  struct sox_signalinfo_t&);  // return value: signal info
+#endif // SOX_SUPPORT
 
  private:
   ACE_UNIMPLEMENTED_FUNC (Stream_MediaFramework_DirectShow_Tools ())

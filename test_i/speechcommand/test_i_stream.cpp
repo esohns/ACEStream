@@ -882,7 +882,7 @@ Test_I_MediaFoundation_Stream::initialize (const CONFIGURATION_T& configuration_
 #else
   IMFSampleGrabberSinkCallback* sample_grabber_p = NULL;
 #endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0601)
-  IMFMediaType* media_type_p = NULL;
+  IMFMediaType* media_type_p = NULL, *media_type_2 = NULL; // capture-
   bool use_framework_renderer_b = false;
   int render_device_id_i = -1;
   std::string effect_options; // *TODO*
@@ -1003,9 +1003,7 @@ Test_I_MediaFoundation_Stream::initialize (const CONFIGURATION_T& configuration_
   } // end IF
 continue_3:
 #endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
-  use_framework_renderer_b =
-    ((configuration_in.configuration_->renderer == STREAM_DEVICE_RENDERER_MEDIAFOUNDATION) &&
-     !(*iterator).second.second->mute);
+  use_framework_renderer_b = false;
   switch (inherited::configuration_->configuration_->renderer)
   {
     case STREAM_DEVICE_RENDERER_WAVEOUT:
@@ -1021,6 +1019,14 @@ continue_3:
         static_cast<int> (Stream_MediaFramework_DirectSound_Tools::directSoundGUIDToWaveDeviceId ((*iterator_3).second.second->deviceIdentifier.identifier._guid));
       break;
     }
+    case STREAM_DEVICE_RENDERER_MEDIAFOUNDATION:
+    {
+      ACE_ASSERT ((*iterator_3).second.second->deviceIdentifier.identifierDiscriminator == Stream_Device_Identifier::GUID);
+      render_device_id_i =
+        static_cast<int> (Stream_MediaFramework_DirectSound_Tools::directSoundGUIDToWaveDeviceId ((*iterator_3).second.second->deviceIdentifier.identifier._guid));
+      use_framework_renderer_b = !(*iterator).second.second->mute;
+      break;
+    }
     default:
     {
       ACE_DEBUG ((LM_ERROR,
@@ -1031,10 +1037,13 @@ continue_3:
     }
   } // end SWITCH
   ACE_ASSERT ((*iterator).second.second->deviceIdentifier.identifierDiscriminator == Stream_Device_Identifier::GUID);
+  media_type_2 =
+    ((configuration_in.configuration_->capturer == STREAM_DEVICE_CAPTURER_MEDIAFOUNDATION) ? Stream_MediaFramework_MediaFoundation_Tools::copy (configuration_in.configuration_->format)
+                                                                                           : NULL); // use preset source format
   if (!Stream_Module_Decoder_Tools::loadAudioRendererTopology ((*iterator).second.second->deviceIdentifier.identifier._guid,
                                                                MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE_AUDCAP_GUID,
                                                                (configuration_in.configuration_->capturer == STREAM_DEVICE_CAPTURER_MEDIAFOUNDATION),
-                                                               configuration_in.configuration_->format,
+                                                               media_type_2,
                                                                media_type_p,
                                                                sample_grabber_p,
                                                                (use_framework_renderer_b ? render_device_id_i : -1),
@@ -1048,7 +1057,7 @@ continue_3:
                 ACE_TEXT (Common_Tools::GUIDToString ((*iterator).second.second->deviceIdentifier.identifier._guid).c_str ())));
     goto error;
   } // end IF
-  ACE_ASSERT (topology_p);
+  ACE_ASSERT (media_type_2 && topology_p);
   graph_loaded = true;
 
 #if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
@@ -1094,8 +1103,13 @@ continue_3:
   {
     media_type_p->Release (); media_type_p = NULL;
   } // end IF
+  if (media_type_2)
+  {
+    media_type_2->Release (); media_type_2 = NULL;
+  } // end IF
   media_type_p =
     Stream_MediaFramework_MediaFoundation_Tools::copy (configuration_in.configuration_->format);
+  ACE_ASSERT (media_type_p);
   session_data_r.formats.push_back (media_type_p);
 
   if (configuration_in.configuration_->setupPipeline)
@@ -1120,6 +1134,8 @@ error:
       setup_pipeline;
   if (media_type_p)
     media_type_p->Release ();
+  if (media_type_2)
+    media_type_2->Release ();
   if (topology_p)
     topology_p->Release ();
   //session_data_r.resetToken = 0;

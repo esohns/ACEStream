@@ -18,6 +18,8 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
+#include <utility>
+
 #include "ace/Log_Msg.h"
 #include "ace/OS.h"
 
@@ -59,14 +61,18 @@ Stream_Decoder_SoXResampler_T<ACE_SYNCH_USE,
  , buffer_ (NULL)
  , chain_ (NULL)
  , encodingInfo_ ()
+ , encodingInfoOut_ ()
  , input_ (NULL)
  , output_ (NULL)
  , signalInfo_ ()
+ , signalInfoOut_ ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Decoder_SoXResampler_T::Stream_Decoder_SoXResampler_T"));
 
   ACE_OS::memset (&encodingInfo_, 0, sizeof (struct sox_encodinginfo_t));
+  ACE_OS::memset (&encodingInfoOut_, 0, sizeof (struct sox_encodinginfo_t));
   ACE_OS::memset (&signalInfo_, 0, sizeof (struct sox_signalinfo_t));
+  ACE_OS::memset (&signalInfoOut_, 0, sizeof (struct sox_signalinfo_t));
 }
 
 template <ACE_SYNCH_DECL,
@@ -147,6 +153,11 @@ Stream_Decoder_SoXResampler_T<ACE_SYNCH_USE,
     } // end IF
     input_ = NULL; output_ = NULL;
 
+    ACE_OS::memset (&encodingInfo_, 0, sizeof (struct sox_encodinginfo_t));
+    ACE_OS::memset (&encodingInfoOut_, 0, sizeof (struct sox_encodinginfo_t));
+    ACE_OS::memset (&signalInfo_, 0, sizeof (struct sox_signalinfo_t));
+    ACE_OS::memset (&signalInfoOut_, 0, sizeof (struct sox_signalinfo_t));
+
     ACE_ASSERT (inherited::configuration_);
     if (inherited::configuration_->manageSoX)
     {
@@ -207,17 +218,16 @@ Stream_Decoder_SoXResampler_T<ACE_SYNCH_USE,
   STREAM_TRACE (ACE_TEXT ("Stream_Decoder_SoXResampler_T::handleDataMessage"));
 
   // sanity check(s)
+  if (unlikely (!chain_))
+    return;
   ACE_ASSERT (inherited::configuration_);
   ACE_ASSERT (inherited::configuration_->allocatorConfiguration);
-  if (inherited::configuration_->effect.empty ())
-    return;
 
   // initialize return value(s)
   passMessageDownstream_out = false;
 
   int result = -1;
-  ACE_Message_Block* message_block_p = NULL;
-  ACE_Message_Block* message_block_2 = NULL;
+  ACE_Message_Block* message_block_p = NULL, *message_block_2 = NULL;
   char* effect_options[1];
   struct sox_format_t* input_buffer_p = NULL, *output_buffer_p = NULL;
 
@@ -262,14 +272,14 @@ Stream_Decoder_SoXResampler_T<ACE_SYNCH_USE,
   output_buffer_p =
       sox_open_mem_write (message_block_p->wr_ptr (),
                           inherited::configuration_->allocatorConfiguration->defaultBufferSize,
-                          &signalInfo_,
-                          &encodingInfo_,
+                          &signalInfoOut_,
+                          &encodingInfoOut_,
                           ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_SOX_FORMAT_RAW_STRING),
                           NULL);
   if (unlikely (!output_buffer_p))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: failed to sox_open_mem_write(): \"%m\", aborting\n"),
+                ACE_TEXT ("%s: failed to sox_open_mem_write(): \"%m\", returning\n"),
                 inherited::mod_->name ()));
     goto error;
   } // end IF
@@ -300,10 +310,9 @@ Stream_Decoder_SoXResampler_T<ACE_SYNCH_USE,
       goto error;
     } // end IF
 
-    // output buffer is full --> (dispatch and- ?) allocate another one
+    // output buffer is full --> allocate another one
 //    ACE_ASSERT (output_buffer_p->tell_off <= inherited::configuration_->streamConfiguration->bufferSize);
-    message_block_p->wr_ptr ((output_buffer_p->tell_off <= inherited::configuration_->allocatorConfiguration->defaultBufferSize) ? output_buffer_p->tell_off
-                                                                                                                                 : inherited::configuration_->allocatorConfiguration->defaultBufferSize);
+    message_block_p->wr_ptr (std::min (output_buffer_p->tell_off, static_cast<uint64_t> (inherited::configuration_->allocatorConfiguration->defaultBufferSize)));
 
     message_block_2 = NULL;
     message_block_2 =
@@ -321,25 +330,29 @@ Stream_Decoder_SoXResampler_T<ACE_SYNCH_USE,
 
     result = sox_close (output_buffer_p);
     if (unlikely (result != SOX_SUCCESS))
+    {
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("%s: failed to sox_close(): \"%s\", continuing\n"),
+                  ACE_TEXT ("%s: failed to sox_close(): \"%s\", returning\n"),
                   inherited::mod_->name (),
                   ACE_TEXT (sox_strerror (result))));
+      goto error;
+    } // end IF
     output_buffer_p = NULL;
     output_buffer_p =
         sox_open_mem_write (message_block_p->wr_ptr (),
                             inherited::configuration_->allocatorConfiguration->defaultBufferSize,
-                            &signalInfo_,
-                            &encodingInfo_,
+                            &signalInfoOut_,
+                            &encodingInfoOut_,
                             ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_SOX_FORMAT_RAW_STRING),
                             NULL);
     if (unlikely (!output_buffer_p))
     {
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("%s: failed to sox_open_mem_write(): \"%m\", aborting\n"),
+                  ACE_TEXT ("%s: failed to sox_open_mem_write(): \"%m\", returning\n"),
                   inherited::mod_->name ()));
       goto error;
     } // end IF
+
     effect_options[0] = reinterpret_cast<char*> (output_buffer_p);
     result = sox_effect_options (output_, 1, effect_options);
     if (unlikely (result != SOX_SUCCESS))
@@ -352,8 +365,7 @@ Stream_Decoder_SoXResampler_T<ACE_SYNCH_USE,
     } // end IF
   } while (true);
 //  ACE_ASSERT (output_buffer_p->tell_off <= inherited::configuration_->streamConfiguration->bufferSize);
-  message_block_p->wr_ptr ((output_buffer_p->tell_off <= inherited::configuration_->allocatorConfiguration->defaultBufferSize) ? output_buffer_p->tell_off
-                                                                                                                               : inherited::configuration_->allocatorConfiguration->defaultBufferSize);
+  message_block_p->wr_ptr (std::min (output_buffer_p->tell_off, static_cast<uint64_t> (inherited::configuration_->allocatorConfiguration->defaultBufferSize)));
 
   result = inherited::put_next (buffer_, NULL);
   if (unlikely (result == -1))
@@ -367,16 +379,22 @@ Stream_Decoder_SoXResampler_T<ACE_SYNCH_USE,
 
   result = sox_close (input_buffer_p);
   if (unlikely (result != SOX_SUCCESS))
+  {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: failed to sox_close(): \"%s\", continuing\n"),
+                ACE_TEXT ("%s: failed to sox_close(): \"%s\", returning\n"),
                 inherited::mod_->name (),
                 ACE_TEXT (sox_strerror (result))));
+    goto error;
+  } // end IF
   result = sox_close (output_buffer_p);
   if (unlikely (result != SOX_SUCCESS))
+  {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: failed to sox_close(): \"%s\", continuing\n"),
+                ACE_TEXT ("%s: failed to sox_close(): \"%s\", returning\n"),
                 inherited::mod_->name (),
                 ACE_TEXT (sox_strerror (result))));
+    goto error;
+  } // end IF
 
   // clean up
   message_inout->release (); message_inout = NULL;
@@ -449,36 +467,53 @@ Stream_Decoder_SoXResampler_T<ACE_SYNCH_USE,
     {
       // sanity check(s)
       ACE_ASSERT (inherited::sessionData_);
-      if (inherited::configuration_->effect.empty ())
-        break;
       SessionDataType& session_data_r =
           const_cast<SessionDataType&> (inherited::sessionData_->getR ());
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-      struct _AMMediaType media_type_s;
-      ACE_OS::memset (&media_type_s, 0, sizeof (struct _AMMediaType));
-      inherited2::getMediaType (session_data_r.formats.back (),
-                                media_type_s);
-#else
-      struct Stream_MediaFramework_ALSA_MediaType media_type_s;
-      inherited2::getMediaType (session_data_r.formats.back (),
-                                media_type_s);
-      Stream_MediaFramework_ALSA_Tools::ALSAToSoX (media_type_r.format,
-                                                   media_type_r.rate,
-                                                   media_type_r.channels,
-                                                   encodingInfo_,
-                                                   signalInfo_);
-#endif // ACE_WIN32 || ACE_WIN64
-
       const struct sox_effect_handler_t* effect_handler_p = NULL;
       struct sox_effect_t* effect_p = NULL;
-      char* effect_options[256]; // *TODO*: should be dynamic
-      int index = 0;
-      sox_signalinfo_t intermediate_signal;
-      std::string effect_options_string;
+      struct sox_signalinfo_t intermediate_signal_s, target_signal_s;
+      MediaType media_type_3;
+      ACE_OS::memset (&media_type_3, 0, sizeof (MediaType));
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+      struct _AMMediaType media_type_s, media_type_2;
+      ACE_OS::memset (&media_type_s, 0, sizeof (struct _AMMediaType));
+      ACE_OS::memset (&media_type_2, 0, sizeof (struct _AMMediaType));
+      inherited2::getMediaType (session_data_r.formats.back (),
+                                media_type_s);
+      Stream_MediaFramework_DirectShow_Tools::to (media_type_s,
+                                                  encodingInfo_,
+                                                  signalInfo_);
+      inherited2::getMediaType (inherited::configuration_->outputFormat,
+                                media_type_2);
+      Stream_MediaFramework_DirectShow_Tools::to (media_type_2,
+                                                  encodingInfoOut_,
+                                                  signalInfoOut_);
+#else
+      struct Stream_MediaFramework_ALSA_MediaType media_type_s, media_type_2;
+      inherited2::getMediaType (session_data_r.formats.back (),
+                                media_type_s);
+      Stream_MediaFramework_ALSA_Tools::to (media_type_s,
+                                            encodingInfo_,
+                                            signalInfo_);
+      inherited2::getMediaType (inherited::configuration_->outputFormat,
+                                media_type_2);
+      Stream_MediaFramework_DirectShow_Tools::to (media_type_2,
+                                                  encodingInfoOut_,
+                                                  signalInfoOut_);
+#endif // ACE_WIN32 || ACE_WIN64
+      if (unlikely ((signalInfo_.channels == signalInfoOut_.channels)   &&
+                    (signalInfo_.precision == signalInfoOut_.precision) &&
+                    (signalInfo_.rate == signalInfoOut_.rate)))
+      {
+        ACE_DEBUG ((LM_WARNING,
+                    ACE_TEXT ("%s: output format is input format, continuing\n"),
+                    inherited::mod_->name ()));
+        goto continue_2;
+      } // end IF
 
       ACE_ASSERT (!chain_);
       chain_ = sox_create_effects_chain (&encodingInfo_,
-                                         &encodingInfo_);
+                                         &encodingInfoOut_);
       if (unlikely (!chain_))
       {
         ACE_DEBUG ((LM_ERROR,
@@ -487,7 +522,7 @@ Stream_Decoder_SoXResampler_T<ACE_SYNCH_USE,
         goto error;
       } // end IF
 
-      // add input and output 'effects'
+      // add input,output and conversion 'effects'
       effect_handler_p =
           sox_find_effect (ACE_TEXT_ALWAYS_CHAR ("input"));
       if (unlikely (!effect_handler_p))
@@ -505,10 +540,10 @@ Stream_Decoder_SoXResampler_T<ACE_SYNCH_USE,
                     inherited::mod_->name ()));
         goto error;
       } // end IF
-      intermediate_signal = signalInfo_;
+      intermediate_signal_s = signalInfo_;
       result = sox_add_effect (chain_,
                                input_,
-                               &intermediate_signal,
+                               &intermediate_signal_s,
                                &signalInfo_);
       if (unlikely (result != SOX_SUCCESS))
       {
@@ -519,66 +554,146 @@ Stream_Decoder_SoXResampler_T<ACE_SYNCH_USE,
         goto error;
       } // end IF
 
-      effect_handler_p =
-          sox_find_effect (inherited::configuration_->effect.c_str ());
-      if (unlikely (!effect_handler_p))
+      if (signalInfo_.rate != signalInfoOut_.rate)
       {
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("%s: failed to sox_find_effect(\"%s\"), aborting\n"),
-                    inherited::mod_->name (),
-                    ACE_TEXT (inherited::configuration_->effect.c_str ())));
-        goto error;
-      } // end IF
-      effect_p = sox_create_effect (effect_handler_p);
-      if (unlikely (!effect_p))
-      {
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("%s: failed to sox_create_effect(\"%s\"), aborting\n"),
-                    inherited::mod_->name (),
-                    ACE_TEXT (inherited::configuration_->effect.c_str ())));
-        goto error;
-      } // end IF
-      if (!inherited::configuration_->effectOptions.empty ())
-      {
-        for (std::vector<std::string>::const_iterator iterator = inherited::configuration_->effectOptions.begin ();
-             iterator != inherited::configuration_->effectOptions.end ();
-             ++iterator, ++index)
+        effect_handler_p = sox_find_effect (ACE_TEXT_ALWAYS_CHAR ("rate"));
+        if (unlikely (!effect_handler_p))
         {
-          effect_options[index] = const_cast<char*> ((*iterator).c_str ());
-          effect_options_string += *iterator;
-          effect_options_string += ACE_TEXT_ALWAYS_CHAR (" ");
-        } // end FOR
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("%s: failed to sox_find_effect(\"rate\"), aborting\n"),
+                      inherited::mod_->name ()));
+          goto error;
+        } // end IF
+        effect_p = sox_create_effect (effect_handler_p);
+        if (unlikely (!effect_p))
+        {
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("%s: failed to sox_create_effect(\"rate\"), aborting\n"),
+                      inherited::mod_->name ()));
+          goto error;
+        } // end IF
+        const char* args[] = {"-h", "-b", "99,7"};
         result = sox_effect_options (effect_p,
-                                     index,
-                                     effect_options);
+                                     3, (char**)args);
         if (unlikely (result != SOX_SUCCESS))
         {
           ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("%s: failed to sox_effect_options(\"%s\"): \"%s\", aborting\n"),
+                      ACE_TEXT ("%s: failed to sox_effect_options(\"rate\"): \"%s\", aborting\n"),
                       inherited::mod_->name (),
-                      ACE_TEXT (inherited::configuration_->effect.c_str ()),
                       ACE_TEXT (sox_strerror (result))));
           goto error;
         } // end IF
+        target_signal_s = intermediate_signal_s;
+        target_signal_s.rate = signalInfoOut_.rate;
+        result = sox_add_effect (chain_,
+                                 effect_p,
+                                 &intermediate_signal_s,
+                                 &target_signal_s);
+        if (unlikely (result != SOX_SUCCESS))
+        {
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("%s: failed to sox_add_effect(\"rate\"): \"%s\", aborting\n"),
+                      inherited::mod_->name (),
+                      ACE_TEXT (sox_strerror (result))));
+          goto error;
+        } // end IF
+        ACE_DEBUG ((LM_DEBUG,
+                    ACE_TEXT ("%s: added SoX effect \"rate\"\n"),
+                    inherited::mod_->name ()));
       } // end IF
-      result = sox_add_effect (chain_,
-                               effect_p,
-                               &intermediate_signal,
-                               &signalInfo_);
-      if (unlikely (result != SOX_SUCCESS))
+      if (signalInfo_.channels != signalInfoOut_.channels)
       {
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("%s: failed to sox_add_effect(\"%s\"): \"%s\", aborting\n"),
-                    inherited::mod_->name (),
-                    ACE_TEXT (inherited::configuration_->effect.c_str ()),
-                    ACE_TEXT (sox_strerror (result))));
-        goto error;
+        effect_handler_p = sox_find_effect (ACE_TEXT_ALWAYS_CHAR ("channels"));
+        if (unlikely (!effect_handler_p))
+        {
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("%s: failed to sox_find_effect(\"channels\"), aborting\n"),
+                      inherited::mod_->name ()));
+          goto error;
+        } // end IF
+        effect_p = sox_create_effect (effect_handler_p);
+        if (unlikely (!effect_p))
+        {
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("%s: failed to sox_create_effect(\"channels\"), aborting\n"),
+                      inherited::mod_->name ()));
+          goto error;
+        } // end IF
+        result = sox_effect_options (effect_p,
+                                     0, NULL);
+        if (unlikely (result != SOX_SUCCESS))
+        {
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("%s: failed to sox_effect_options(\"channels\"): \"%s\", aborting\n"),
+                      inherited::mod_->name (),
+                      ACE_TEXT (sox_strerror (result))));
+          goto error;
+        } // end IF
+        target_signal_s = intermediate_signal_s;
+        target_signal_s.channels = signalInfoOut_.channels;
+        result = sox_add_effect (chain_,
+                                 effect_p,
+                                 &intermediate_signal_s,
+                                 &target_signal_s);
+        if (unlikely (result != SOX_SUCCESS))
+        {
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("%s: failed to sox_add_effect(\"channels\"): \"%s\", aborting\n"),
+                      inherited::mod_->name (),
+                      ACE_TEXT (sox_strerror (result))));
+          goto error;
+        } // end IF
+        ACE_DEBUG ((LM_DEBUG,
+                    ACE_TEXT ("%s: added SoX effect \"channels\"\n"),
+                    inherited::mod_->name ()));
       } // end IF
-      ACE_DEBUG ((LM_DEBUG,
-                  ACE_TEXT ("%s: added SoX effect \"%s\" (options: \"%s\")\n"),
-                  inherited::mod_->name (),
-                  ACE_TEXT (inherited::configuration_->effect.c_str ()),
-                  ACE_TEXT (effect_options_string.c_str ())));
+      if (signalInfo_.precision != signalInfoOut_.precision)
+      {
+        effect_handler_p = sox_find_effect (ACE_TEXT_ALWAYS_CHAR ("precision"));
+        if (unlikely (!effect_handler_p))
+        {
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("%s: failed to sox_find_effect(\"precision\"), aborting\n"),
+                      inherited::mod_->name ()));
+          goto error;
+        } // end IF
+        effect_p = sox_create_effect (effect_handler_p);
+        if (unlikely (!effect_p))
+        {
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("%s: failed to sox_create_effect(\"precision\"), aborting\n"),
+                      inherited::mod_->name ()));
+          goto error;
+        } // end IF
+        result = sox_effect_options (effect_p,
+                                     0, NULL);
+        if (unlikely (result != SOX_SUCCESS))
+        {
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("%s: failed to sox_effect_options(\"precision\"): \"%s\", aborting\n"),
+                      inherited::mod_->name (),
+                      ACE_TEXT (sox_strerror (result))));
+          goto error;
+        } // end IF
+        target_signal_s = intermediate_signal_s;
+        target_signal_s.precision = signalInfoOut_.precision;
+        result = sox_add_effect (chain_,
+                                 effect_p,
+                                 &intermediate_signal_s,
+                                 &target_signal_s);
+        if (unlikely (result != SOX_SUCCESS))
+        {
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("%s: failed to sox_add_effect(\"precision\"): \"%s\", aborting\n"),
+                      inherited::mod_->name (),
+                      ACE_TEXT (sox_strerror (result))));
+          goto error;
+        } // end IF
+        ACE_DEBUG ((LM_DEBUG,
+                    ACE_TEXT ("%s: added SoX effect \"precision\"\n"),
+                    inherited::mod_->name ()));
+      } // end IF
+
       effect_handler_p =
           sox_find_effect (ACE_TEXT_ALWAYS_CHAR ("output"));
       if (unlikely (!effect_handler_p))
@@ -598,8 +713,8 @@ Stream_Decoder_SoXResampler_T<ACE_SYNCH_USE,
       } // end IF
       result = sox_add_effect (chain_,
                                output_,
-                               &intermediate_signal,
-                               &signalInfo_);
+                               &intermediate_signal_s,
+                               &signalInfoOut_);
       if (unlikely (result != SOX_SUCCESS))
       {
         ACE_DEBUG ((LM_ERROR,
@@ -609,11 +724,17 @@ Stream_Decoder_SoXResampler_T<ACE_SYNCH_USE,
         goto error;
       } // end IF
       // *NOTE*: SoX effects work on 32-bit integer samples
-      //         --> convert back to input format
-      output_->out_signal.precision = signalInfo_.precision;
+      //         --> convert back to output format
+      output_->out_signal.precision = signalInfoOut_.precision;
 
+      inherited2::getMediaType (inherited::configuration_->outputFormat,
+                                media_type_3);
+      session_data_r.formats.push_back (media_type_3);
+
+continue_2:
 #if defined(ACE_WIN32) || defined(ACE_WIN64)
       Stream_MediaFramework_DirectShow_Tools::free (media_type_s);
+      Stream_MediaFramework_DirectShow_Tools::free (media_type_2);
 #endif // ACE_WIN32 || ACE_WIN64
 
       goto continue_;
@@ -621,6 +742,7 @@ Stream_Decoder_SoXResampler_T<ACE_SYNCH_USE,
 error:
 #if defined(ACE_WIN32) || defined(ACE_WIN64)
       Stream_MediaFramework_DirectShow_Tools::free (media_type_s);
+      Stream_MediaFramework_DirectShow_Tools::free (media_type_2);
 #endif // ACE_WIN32 || ACE_WIN64
 
       this->notify (STREAM_SESSION_MESSAGE_ABORT);

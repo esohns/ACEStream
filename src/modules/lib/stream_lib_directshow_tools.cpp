@@ -4566,3 +4566,77 @@ Stream_MediaFramework_DirectShow_Tools::mediaSubTypeToAVPixelFormat (REFGUID med
   return AV_PIX_FMT_NONE;
 }
 #endif // FFMPEG_SUPPORT
+
+#if defined(SOX_SUPPORT)
+void
+Stream_MediaFramework_DirectShow_Tools::to (const struct _AMMediaType& mediaType_in,
+                                            struct sox_encodinginfo_t& encoding_inout,
+                                            struct sox_signalinfo_t& signalInfo_inout)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_DirectShow_Tools::to"));
+
+  // initialize return value(s)
+  ACE_OS::memset (&encoding_inout, 0, sizeof (struct sox_encodinginfo_t));
+  ACE_OS::memset (&signalInfo_inout, 0, sizeof (struct sox_signalinfo_t));
+
+  // sanit check(s)
+  if (!InlineIsEqualGUID (mediaType_in.formattype, FORMAT_WaveFormatEx))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("invalid format type (was: \"%s\"), returning\n"),
+                ACE_TEXT (Common_Tools::GUIDToString (mediaType_in.formattype).c_str ())));
+    return;
+  } // end IF
+  struct tWAVEFORMATEX* waveformatex_p =
+    reinterpret_cast<struct tWAVEFORMATEX*> (mediaType_in.pbFormat);
+  ACE_ASSERT (waveformatex_p);
+
+  encoding_inout.bits_per_sample = waveformatex_p->wBitsPerSample;
+  switch (waveformatex_p->wFormatTag)
+  {
+    case WAVE_FORMAT_PCM:
+    {
+      encoding_inout.encoding =
+        (waveformatex_p->wBitsPerSample == 8 ? SOX_ENCODING_UNSIGNED
+                                             : SOX_ENCODING_SIGN2);
+      break;
+    }
+    case WAVE_FORMAT_IEEE_FLOAT:
+    {
+      encoding_inout.encoding = SOX_ENCODING_FLOAT;
+      break;
+    }
+    case WAVE_FORMAT_EXTENSIBLE:
+    {
+      WAVEFORMATEXTENSIBLE* waveformatextensible_p =
+        reinterpret_cast<WAVEFORMATEXTENSIBLE*> (mediaType_in.pbFormat);
+      ACE_ASSERT (waveformatextensible_p);
+      if (InlineIsEqualGUID (waveformatextensible_p->SubFormat, MEDIASUBTYPE_PCM))
+        encoding_inout.encoding =
+          (waveformatex_p->wBitsPerSample == 8 ? SOX_ENCODING_UNSIGNED
+                                               : SOX_ENCODING_SIGN2);
+      else if (InlineIsEqualGUID (waveformatextensible_p->SubFormat, MEDIASUBTYPE_IEEE_FLOAT))
+        encoding_inout.encoding = SOX_ENCODING_FLOAT;
+      else
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("invalid/unknown subformat (was: \"%s\"), returning\n"),
+                    ACE_TEXT (Common_Tools::GUIDToString (waveformatextensible_p->SubFormat).c_str ())));
+        return;
+      } // end ELSE
+      break;
+    }
+    default:
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("invalid/unknown format tag (was: %d), returning\n"),
+                  waveformatex_p->wFormatTag));
+      return;
+    } // end IF
+  } // end SWITCH
+
+  signalInfo_inout.channels = waveformatex_p->nChannels;
+  signalInfo_inout.precision = waveformatex_p->wBitsPerSample;
+  signalInfo_inout.rate = waveformatex_p->nSamplesPerSec;
+}
+#endif // SOX_SUPPORT

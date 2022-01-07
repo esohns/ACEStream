@@ -71,14 +71,18 @@ struct Test_I_DirectShow_ModuleHandlerConfiguration
    , deviceIdentifier ()
    , filterConfiguration (NULL)
    , filterCLSID (GUID_NULL)
+   , outputFormat ()
    , push (STREAM_LIB_DIRECTSHOW_FILTER_SOURCE_DEFAULT_PUSH)
    , sampleIsDataMessage (false)
-  {}
+  {
+    ACE_OS::memset (&outputFormat, 0, sizeof (struct _AMMediaType));
+  }
 
   IGraphBuilder*                                               builder;
   struct Stream_Device_Identifier                              deviceIdentifier;
   struct Stream_MediaFramework_DirectShow_FilterConfiguration* filterConfiguration;
   CLSID                                                        filterCLSID;
+  struct _AMMediaType                                          outputFormat;
   // *IMPORTANT NOTE*: 'asynchronous' filters implement IAsyncReader (downstream
   //                   filters 'pull' media samples), 'synchronous' filters
   //                   implement IMemInputPin and 'push' media samples to
@@ -95,12 +99,14 @@ struct Test_I_MediaFoundation_ModuleHandlerConfiguration
    , deviceIdentifier ()
    , manageMediaSession (false)
    , mediaFoundationConfiguration (NULL)
+   , outputFormat (NULL)
    , session (NULL)
   {}
 
   struct Stream_Device_Identifier                             deviceIdentifier;
   bool                                                        manageMediaSession;
   struct Stream_MediaFramework_MediaFoundation_Configuration* mediaFoundationConfiguration;
+  IMFMediaType*                                               outputFormat;
   IMFMediaSession*                                            session;
 };
 #else
@@ -109,15 +115,17 @@ struct Test_I_ALSA_ModuleHandlerConfiguration
 {
   Test_I_ALSA_ModuleHandlerConfiguration ()
    : Test_I_ModuleHandlerConfiguration ()
-   , deviceIdentifier ()
    , ALSAConfiguration (NULL)
+   , deviceIdentifier ()
+   , outputFormat ()
   {
     deviceIdentifier.identifier =
         ACE_TEXT_ALWAYS_CHAR (STREAM_LIB_ALSA_CAPTURE_DEFAULT_DEVICE_NAME);
   }
 
-  struct Stream_Device_Identifier                  deviceIdentifier;
   struct Stream_MediaFramework_ALSA_Configuration* ALSAConfiguration;
+  struct Stream_Device_Identifier                  deviceIdentifier;
+  struct Stream_MediaFramework_ALSA_MediaType      outputFormat;
 };
 #endif // ACE_WIN32 || ACE_WIN64
 

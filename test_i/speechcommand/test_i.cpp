@@ -551,6 +551,7 @@ do_initialize_directshow (const struct Stream_Device_Identifier& deviceIdentifie
                           IGraphBuilder*& IGraphBuilder_out,
                           IAMStreamConfig*& IAMStreamConfig_out,
                           struct _AMMediaType& captureMediaType_out,
+                          struct _AMMediaType& targetMediaType_out,
                           bool useDirectShowSource_in,
                           bool mute_in)
 {
@@ -575,21 +576,42 @@ do_initialize_directshow (const struct Stream_Device_Identifier& deviceIdentifie
 
   // initialize return value(s)
   Stream_MediaFramework_DirectShow_Tools::free (captureMediaType_out);
+  Stream_MediaFramework_DirectShow_Tools::free (targetMediaType_out);
 
   waveformatex_s.wFormatTag = STREAM_DEV_MIC_DEFAULT_FORMAT;
   waveformatex_s.nChannels = STREAM_DEV_MIC_DEFAULT_CHANNELS;
-  // *NOTE*: DeepSpeech requires PCM mono signed 16 bits at 16000Hz
-  waveformatex_s.nSamplesPerSec = 16000;
+  waveformatex_s.nSamplesPerSec = STREAM_DEV_MIC_DEFAULT_SAMPLE_RATE;
   waveformatex_s.wBitsPerSample = STREAM_DEV_MIC_DEFAULT_BITS_PER_SAMPLE;
   waveformatex_s.nBlockAlign =
     (waveformatex_s.nChannels * (waveformatex_s.wBitsPerSample / 8));
   waveformatex_s.nAvgBytesPerSec =
     (waveformatex_s.nSamplesPerSec * waveformatex_s.nBlockAlign);
   //waveformatex_s.cbSize = 0;
-
   result = CreateAudioMediaType (&waveformatex_s,
                                  &captureMediaType_out,
-                                 TRUE);
+                                 TRUE); // set format ?
+  if (unlikely (FAILED (result)))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to CreateAudioMediaType(): \"%s\", aborting\n"),
+                ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
+    goto error;
+  } // end IF
+
+  ACE_OS::memset (&waveformatex_s, 0, sizeof (struct tWAVEFORMATEX));
+  // *NOTE*: DeepSpeech requires PCM mono signed 16 bits at 16000Hz
+  waveformatex_s.wFormatTag = WAVE_FORMAT_PCM;
+  waveformatex_s.nChannels = 1;
+  waveformatex_s.nSamplesPerSec = 16000;
+  waveformatex_s.wBitsPerSample = 16;
+  waveformatex_s.nBlockAlign =
+    (waveformatex_s.nChannels * (waveformatex_s.wBitsPerSample / 8));
+  waveformatex_s.nAvgBytesPerSec =
+    (waveformatex_s.nSamplesPerSec * waveformatex_s.nBlockAlign);
+  // waveformatex_s.cbSize = 0;
+  result = CreateAudioMediaType (&waveformatex_s,
+                                 &targetMediaType_out,
+                                 TRUE); // set format ?
   if (unlikely (FAILED (result)))
   {
     ACE_DEBUG ((LM_ERROR,
@@ -644,7 +666,7 @@ continue_2:
 
   ACE_ASSERT (!configuration_in.filterConfiguration.pinConfiguration->format);
   configuration_in.filterConfiguration.pinConfiguration->format =
-    &captureMediaType_out;
+    &targetMediaType_out;
   if (unlikely (!filter_p->initialize (configuration_in.filterConfiguration)))
   {
     ACE_DEBUG ((LM_ERROR,
@@ -696,7 +718,7 @@ continue_4:
   ACE_OS::memset (&media_type_s, 0, sizeof (struct _AMMediaType));
   union Stream_MediaFramework_DirectSound_AudioEffectOptions effect_options;
   if (unlikely (!Stream_Module_Decoder_Tools::loadAudioRendererGraph ((useDirectShowSource_in ? CLSID_AudioInputDeviceCategory : GUID_NULL),
-                                                                      captureMediaType_out,
+                                                                      targetMediaType_out,
                                                                       media_type_s,
                                                                       false,
                                                                       (mute_in ? -1 : 0),
@@ -756,6 +778,7 @@ error:
     IAMStreamConfig_out->Release (); IAMStreamConfig_out = NULL;
   } // end IF
   Stream_MediaFramework_DirectShow_Tools::free (captureMediaType_out);
+  Stream_MediaFramework_DirectShow_Tools::free (targetMediaType_out);
 
   return false;
 }
@@ -765,6 +788,7 @@ do_initialize_mediafoundation (const struct Stream_Device_Identifier& deviceIden
                                struct Test_I_MediaFoundation_Configuration& configuration_in,
                                IMFMediaSession*& session_out,
                                IMFMediaType*& captureMediaType_out,
+                               IMFMediaType*& targetMediaType_out,
                                bool initializeMediaFoundation_in,
                                bool useMediaFoundationSource_in,
                                bool mute_in,
@@ -806,25 +830,64 @@ do_initialize_mediafoundation (const struct Stream_Device_Identifier& deviceIden
 continue_2:
   Stream_MediaFramework_Tools::initialize (STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION);
   Stream_MediaFramework_Tools::initialize (STREAM_MEDIAFRAMEWORK_DIRECTSHOW);
-  //Stream_Module_Device_Tools::initialize (true);
 
   // initialize return value(s)
   if (unlikely (captureMediaType_out))
   {
     captureMediaType_out->Release (); captureMediaType_out = NULL;
   } // end IF
+  if (unlikely (targetMediaType_out))
+  {
+    targetMediaType_out->Release (); targetMediaType_out = NULL;
+  } // end IF
 
+  // *NOTE*: DeepSpeech requires PCM mono signed 16 bits at 16000Hz
+  waveformatex_s.wFormatTag = WAVE_FORMAT_PCM;
+  waveformatex_s.nChannels = 1;
+  waveformatex_s.nSamplesPerSec = 16000;
+  waveformatex_s.wBitsPerSample = 16;
+  waveformatex_s.nBlockAlign =
+    (waveformatex_s.nChannels * (waveformatex_s.wBitsPerSample / 8));
+  waveformatex_s.nAvgBytesPerSec =
+    (waveformatex_s.nSamplesPerSec * waveformatex_s.nBlockAlign);
+  // waveformatex_s.cbSize = 0;
+  result = CreateAudioMediaType (&waveformatex_s,
+                                 &media_type_s,
+                                 TRUE); // set format ?
+  if (unlikely (FAILED (result)))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to CreateAudioMediaType(): \"%s\", aborting\n"),
+                ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
+    goto error;
+  } // end IF
+  result = MFCreateMediaTypeFromRepresentation (AM_MEDIA_TYPE_REPRESENTATION,
+                                                &media_type_s,
+                                                &targetMediaType_out);
+  if (unlikely (FAILED (result) || !targetMediaType_out))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to MFCreateMediaTypeFromRepresentation(): \"%s\", aborting\n"),
+                ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
+    goto error;
+  } // end IF
+  result = targetMediaType_out->SetUINT32 (MF_MT_AUDIO_CHANNEL_MASK,
+                                           SPEAKER_FRONT_LEFT);
+  ACE_ASSERT (SUCCEEDED (result));
+  result = targetMediaType_out->DeleteItem (MF_MT_AUDIO_PREFER_WAVEFORMATEX);
+  ACE_ASSERT (SUCCEEDED (result));
+
+  Stream_MediaFramework_DirectShow_Tools::free (media_type_s);
+  ACE_OS::memset (&waveformatex_s, 0, sizeof (struct tWAVEFORMATEX));
   waveformatex_s.wFormatTag = STREAM_DEV_MIC_DEFAULT_FORMAT;
   waveformatex_s.nChannels = STREAM_DEV_MIC_DEFAULT_CHANNELS;
-  // *NOTE*: DeepSpeech requires PCM mono signed 16 bits at 16000Hz
-  waveformatex_s.nSamplesPerSec = 16000;
+  waveformatex_s.nSamplesPerSec = STREAM_DEV_MIC_DEFAULT_SAMPLE_RATE;
   waveformatex_s.wBitsPerSample = STREAM_DEV_MIC_DEFAULT_BITS_PER_SAMPLE;
   waveformatex_s.nBlockAlign =
     (waveformatex_s.nChannels * (waveformatex_s.wBitsPerSample / 8));
   waveformatex_s.nAvgBytesPerSec =
     (waveformatex_s.nSamplesPerSec * waveformatex_s.nBlockAlign);
   //waveformatex_s.cbSize = 0;
-
   result = CreateAudioMediaType (&waveformatex_s,
                                  &media_type_s,
                                  TRUE);
@@ -838,23 +901,23 @@ continue_2:
   result = MFCreateMediaTypeFromRepresentation (AM_MEDIA_TYPE_REPRESENTATION,
                                                 &media_type_s,
                                                 &captureMediaType_out);
-  if (unlikely (FAILED (result)))
+  if (unlikely (FAILED (result) || !captureMediaType_out))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to MFCreateMediaTypeFromRepresentation(): \"%s\", aborting\n"),
                 ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
     goto error;
   } // end IF
-  ACE_ASSERT (captureMediaType_out);
   result = captureMediaType_out->SetUINT32 (MF_MT_AUDIO_CHANNEL_MASK,
                                             channel_mask_i);
   ACE_ASSERT (SUCCEEDED (result));
-  //result = captureMediaType_out->DeleteItem (MF_MT_AUDIO_PREFER_WAVEFORMATEX);
-  //ACE_ASSERT (SUCCEEDED (result));
+  result = captureMediaType_out->DeleteItem (MF_MT_AUDIO_PREFER_WAVEFORMATEX);
+  ACE_ASSERT (SUCCEEDED (result));
   Stream_MediaFramework_DirectShow_Tools::free (media_type_s);
+
   ACE_ASSERT (!configuration_in.mediaFoundationConfiguration.mediaType);
   configuration_in.mediaFoundationConfiguration.mediaType =
-    Stream_MediaFramework_MediaFoundation_Tools::copy (captureMediaType_out);
+    Stream_MediaFramework_MediaFoundation_Tools::copy (targetMediaType_out);
   ACE_ASSERT (configuration_in.mediaFoundationConfiguration.mediaType);
 
   if (!makeSession_in)
@@ -911,7 +974,7 @@ continue_3:
   if (unlikely (!Stream_Module_Decoder_Tools::loadAudioRendererTopology (deviceIdentifier_in.identifier._guid,
                                                                          MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE_AUDCAP_GUID,
                                                                          useMediaFoundationSource_in,
-                                                                         captureMediaType_out,
+                                                                         targetMediaType_out,
                                                                          NULL,
                                                                          NULL,
                                                                          (mute_in ? -1 : 0),
@@ -982,6 +1045,10 @@ error:
   if (captureMediaType_out)
   {
     captureMediaType_out->Release (); captureMediaType_out = NULL;
+  } // end IF
+  if (targetMediaType_out)
+  {
+    targetMediaType_out->Release (); targetMediaType_out = NULL;
   } // end IF
   if (media_source_p)
     media_source_p->Release ();
@@ -1631,7 +1698,8 @@ do_work (const std::string& scorerFile_in,
                                   (*directshow_modulehandler_iterator).second.second->builder,
                                   directShowCBData_in.streamConfiguration,
                                   directshow_stream_configuration.format,
-                                  useFrameworkSource_in, // use DirectShow source ? : WASAPI
+                                  directshow_modulehandler_configuration.outputFormat,
+                                  useFrameworkSource_in, // use DirectShow source ?
                                   mute_in);
       if (unlikely (!result))
         break;
@@ -1648,8 +1716,9 @@ do_work (const std::string& scorerFile_in,
                                        *mediaFoundationCBData_in.configuration,
                                        (*mediafoundation_modulehandler_iterator).second.second->session,
                                        mediafoundation_stream_configuration.format,
+                                       mediafoundation_modulehandler_configuration.outputFormat,
                                        true, // initialize MediaFoundation framework ?
-                                       useFrameworkSource_in, // use MediaFoundation source ? : WASAPI
+                                       useFrameworkSource_in, // use MediaFoundation source ?
                                        mute_in,
                                        mediafoundation_stream,
                                        UIDefinitionFile_in.empty ()); // make session ?
@@ -1664,6 +1733,7 @@ do_work (const std::string& scorerFile_in,
     }
   } // end SWITCH
 #else
+  modulehandler_configuration.outputFormat.;
   result = true;
 #endif // ACE_WIN32 || ACE_WIN64
   if (unlikely (!result))
@@ -1773,7 +1843,7 @@ do_work (const std::string& scorerFile_in,
     ACE_ASSERT (itask_p);
     itask_p->start (NULL);
     ACE_Time_Value timeout (0,
-                            COMMON_UI_GTK_TIMEOUT_DEFAULT_MANAGER_INITIALIZATION * 1000);
+                            COMMON_UI_GTK_TIMEOUT_DEFAULT_MANAGER_INITIALIZATION_MS * 1000);
     result_2 = ACE_OS::sleep (timeout);
     if (unlikely (result_2 == -1))
       ACE_DEBUG ((LM_ERROR,

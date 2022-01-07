@@ -44,13 +44,13 @@ class Test_I_EventHandler_T
 {
  public:
 #if defined (GUI_SUPPORT)
-   Test_I_EventHandler_T (struct Test_I_UI_CBData* // UI callback data
+   Test_I_EventHandler_T (struct Test_I_SpeechCommand_UI_CBData* // UI callback data
 #if defined (GTK_USE)
                           );
 #elif defined (QT_USE)
                           );
 #elif defined (WXWIDGETS_USE)
-                          ,InterfaceType*);                // wxWidgets application handle
+                          ,InterfaceType*);                      // wxWidgets application handle
 #else
                           );
 #endif // GTK_USE || QT_USE || WXWIDGETS_USE
@@ -78,7 +78,7 @@ class Test_I_EventHandler_T
   ACE_UNIMPLEMENTED_FUNC (Test_I_EventHandler_T& operator= (const Test_I_EventHandler_T&))
 
 #if defined (GUI_SUPPORT)
-  struct Test_I_UI_CBData*                     CBData_;
+  struct Test_I_SpeechCommand_UI_CBData*       CBData_;
 #if defined (WXWIDGETS_USE)
   InterfaceType*                               interface_;
 #endif // WXWIDGETS_USE

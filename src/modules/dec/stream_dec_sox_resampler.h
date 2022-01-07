@@ -98,9 +98,11 @@ class Stream_Decoder_SoXResampler_T
   ACE_Message_Block*          buffer_;
   struct sox_effects_chain_t* chain_;
   struct sox_encodinginfo_t   encodingInfo_;
+  struct sox_encodinginfo_t   encodingInfoOut_;
   struct sox_effect_t*        input_;
   struct sox_effect_t*        output_;
   struct sox_signalinfo_t     signalInfo_;
+  struct sox_signalinfo_t     signalInfoOut_;
 };
 
 // include template definition

@@ -26,6 +26,7 @@
 #if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
 #if defined (GTK3_USE)
+#undef TEST_I_UI_DEFINITION_FILE
 #define TEST_I_UI_DEFINITION_FILE              "imagesave.gtk3"
 #elif defined (GTK2_USE)
 #define TEST_I_UI_DEFINITION_FILE              "imagesave.gtk2"
