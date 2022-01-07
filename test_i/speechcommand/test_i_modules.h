@@ -155,6 +155,7 @@ typedef Stream_Dev_Mic_Source_WASAPI_T<ACE_MT_SYNCH,
 
 //////////////////////////////////////////
 
+#if defined (SOX_SUPPORT)
 typedef Stream_Decoder_SoXResampler_T<ACE_MT_SYNCH,
                                       Common_TimePolicy_t,
                                       struct Test_I_SpeechCommand_DirectShow_ModuleHandlerConfiguration,
@@ -173,6 +174,7 @@ typedef Stream_Decoder_SoXResampler_T<ACE_MT_SYNCH,
                                       Test_I_SpeechCommand_MediaFoundation_SessionData_t,
                                       Test_I_SpeechCommand_MediaFoundation_SessionData,
                                       IMFMediaType*> Test_I_MediaFoundation_SoXResampler;
+#endif // SOX_SUPPORT
 
 //////////////////////////////////////////
 
@@ -475,6 +477,7 @@ typedef Stream_Dev_Mic_Source_ALSA_T<ACE_MT_SYNCH,
 
 //////////////////////////////////////////
 
+#if defined (SOX_SUPPORT)
 typedef Stream_Decoder_SoXResampler_T<ACE_MT_SYNCH,
                                       Common_TimePolicy_t,
                                       struct Test_I_SpeechCommand_ALSA_ModuleHandlerConfiguration,
@@ -484,6 +487,7 @@ typedef Stream_Decoder_SoXResampler_T<ACE_MT_SYNCH,
                                       Test_I_SpeechCommand_ALSA_SessionData_t,
                                       Test_I_SpeechCommand_ALSA_SessionData,
                                       struct Stream_MediaFramework_ALSA_MediaType> Test_I_ALSA_SoXResampler;
+#endif // SOX_SUPPORT
 
 //////////////////////////////////////////
 
@@ -638,6 +642,7 @@ DATASTREAM_MODULE_INPUT_ONLY (Test_I_SpeechCommand_MediaFoundation_SessionData, 
 
 //////////////////////////////////////////
 
+#if defined (SOX_SUPPORT)
 DATASTREAM_MODULE_INPUT_ONLY (Test_I_SpeechCommand_DirectShow_SessionData,                       // session data type
                               enum Stream_SessionMessageType,                                    // session event type
                               struct Test_I_SpeechCommand_DirectShow_ModuleHandlerConfiguration, // module handler configuration type
@@ -651,6 +656,7 @@ DATASTREAM_MODULE_INPUT_ONLY (Test_I_SpeechCommand_MediaFoundation_SessionData, 
                               libacestream_default_dec_sox_resampler_module_name_string,
                               Stream_INotify_t,                                                  // stream notification interface type
                               Test_I_MediaFoundation_SoXResampler);                                   // name
+#endif // SOX_SUPPORT
 
 //////////////////////////////////////////
 
@@ -841,12 +847,14 @@ DATASTREAM_MODULE_INPUT_ONLY (Test_I_SpeechCommand_ALSA_SessionData,            
 
 //////////////////////////////////////////
 
+#if defined (SOX_SUPPORT)
 DATASTREAM_MODULE_INPUT_ONLY (Test_I_SpeechCommand_ALSA_SessionData,                       // session data type
                               enum Stream_SessionMessageType,                                    // session event type
                               struct Test_I_SpeechCommand_ALSA_ModuleHandlerConfiguration, // module handler configuration type
                               libacestream_default_dec_sox_resampler_module_name_string,
                               Stream_INotify_t,                                                  // stream notification interface type
                               Test_I_ALSA_SoXResampler);                                   // name
+#endif // SOX_SUPPORT
 
 //////////////////////////////////////////
 

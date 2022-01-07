@@ -405,6 +405,7 @@ struct Test_I_SpeechCommand_ALSA_ModuleHandlerConfiguration
    : Test_I_ALSA_ModuleHandlerConfiguration ()
    , deviceIdentifier ()
    , dispatch (NULL)
+   , hotWords ()
    , manageSoX (false)
    , modelFile ()
    , mute (false)
@@ -433,6 +434,7 @@ struct Test_I_SpeechCommand_ALSA_ModuleHandlerConfiguration
 
   struct Stream_Device_Identifier                   deviceIdentifier; // capture/render
   Stream_Statistic_IDispatch_t*                     dispatch;
+  Stream_Decoder_DeepSpeech_HotWords_t              hotWords;
   bool                                              manageSoX;
   std::string                                       modelFile;
   bool                                              mute;

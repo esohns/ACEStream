@@ -27,16 +27,13 @@ extern "C"
 #include "alsa/asoundlib.h"
 }
 
+#if defined (SOX_SUPPORT)
+#include "sox.h"
+#endif // SOX_SUPPORT
+
 #include "ace/Global_Macros.h"
 
 #include "stream_lib_alsa_common.h"
-
-// forward declarations
-#if defined (SOX_SUPPORT)
-typedef double sox_rate_t;
-struct sox_encodinginfo_t;
-struct sox_signalinfo_t;
-#endif // SOX_SUPPORT
 
 class Stream_MediaFramework_ALSA_Tools
 {
@@ -67,11 +64,10 @@ class Stream_MediaFramework_ALSA_Tools
                               long);              // level
 
 #if defined (SOX_SUPPORT)
-  static void ALSAToSoX (enum _snd_pcm_format,       // format
-                         sox_rate_t,                 // sample rate
-                         unsigned int,               // channels
-                         struct sox_encodinginfo_t&, // return value: format
-                         struct sox_signalinfo_t&);  // return value: format
+  static enum sox_encoding_t to (enum _snd_pcm_format); // format
+  static void to (const struct Stream_MediaFramework_ALSA_MediaType&, // media type
+                  struct sox_encodinginfo_t&,                         // return value: format
+                  struct sox_signalinfo_t&);                          // return value: format
 #endif // SOX_SUPPORT
 
  private:

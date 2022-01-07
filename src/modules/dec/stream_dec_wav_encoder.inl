@@ -423,11 +423,9 @@ Stream_Decoder_WAVEncoder_T<ACE_SYNCH_USE,
 //      oob_data.comments = comments;
 //      oob_data.instr;
 //      oob_data.loops;
-      Stream_MediaFramework_ALSA_Tools::ALSAToSoX (media_type_r.format,
-                                                   media_type_r.rate,
-                                                   media_type_r.channels,
-                                                   encodingInfo_,
-                                                   signalInfo_);
+      Stream_MediaFramework_ALSA_Tools::to (media_type_r,
+                                            encodingInfo_,
+                                            signalInfo_);
       ACE_ASSERT (!outputFile_);
       outputFile_ =
           sox_open_write (inherited::configuration_->fileIdentifier.identifier.c_str (),

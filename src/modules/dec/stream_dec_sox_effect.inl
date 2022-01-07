@@ -462,11 +462,9 @@ Stream_Decoder_SoXEffect_T<ACE_SYNCH_USE,
       struct Stream_MediaFramework_ALSA_MediaType media_type_s;
       inherited2::getMediaType (session_data_r.formats.back (),
                                 media_type_s);
-      Stream_MediaFramework_ALSA_Tools::ALSAToSoX (media_type_r.format,
-                                                   media_type_r.rate,
-                                                   media_type_r.channels,
-                                                   encodingInfo_,
-                                                   signalInfo_);
+      Stream_MediaFramework_ALSA_Tools::to (media_type_s,
+                                            encodingInfo_,
+                                            signalInfo_);
 #endif // ACE_WIN32 || ACE_WIN64
 
       const struct sox_effect_handler_t* effect_handler_p = NULL;
@@ -574,6 +572,7 @@ Stream_Decoder_SoXEffect_T<ACE_SYNCH_USE,
                     ACE_TEXT (sox_strerror (result))));
         goto error;
       } // end IF
+      free (effect_p); effect_p = NULL;
       ACE_DEBUG ((LM_DEBUG,
                   ACE_TEXT ("%s: added SoX effect \"%s\" (options: \"%s\")\n"),
                   inherited::mod_->name (),
@@ -641,7 +640,8 @@ continue_:
       {
         sox_delete_effects_chain (chain_); chain_ = NULL;
       } // end IF
-      input_ = NULL; output_ = NULL;
+      free (input_); input_ = NULL;
+      free (output_); output_ = NULL;
 
       break;
     }

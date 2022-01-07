@@ -1644,11 +1644,19 @@ idle_initialize_UI_cb (gpointer userData_in)
   ACE_ASSERT (toggle_button_p);
   if (!filename_string.empty ())
   {
+#if GTK_CHECK_VERSION(3,0,0)
     g_signal_handlers_block_by_func (G_OBJECT (toggle_button_p),
+#elif GTK_CHECK_VERSION(2,0,0)
+    gtk_signal_handler_block_by_func (GTK_OBJECT (toggle_button_p),
+#endif // GTK_CHECK_VERSION(x,0,0)
                                      G_CALLBACK (togglebutton_save_toggled_cb),
                                      userData_in);
     gtk_toggle_button_set_active (toggle_button_p, TRUE);
+#if GTK_CHECK_VERSION(3,0,0)
     g_signal_handlers_unblock_by_func (G_OBJECT (toggle_button_p),
+#elif GTK_CHECK_VERSION(2,0,0)
+    gtk_signal_handler_unblock_by_func (GTK_OBJECT (toggle_button_p),
+#endif // GTK_CHECK_VERSION(x,0,0)
                                        G_CALLBACK (togglebutton_save_toggled_cb),
                                        userData_in);
   } // end IF
@@ -2317,8 +2325,8 @@ togglebutton_record_toggled_cb (GtkToggleButton* toggleButton_in,
   } // end SWITCH
 #else
   // sanity check(s)
-  struct Test_I_UI_CBData* ui_cb_data_p =
-    static_cast<struct Test_I_UI_CBData*> (userData_in);
+  struct Test_I_ALSA_UI_CBData* ui_cb_data_p =
+    static_cast<struct Test_I_ALSA_UI_CBData*> (userData_in);
   ACE_ASSERT (ui_cb_data_p->configuration);
   ACE_ASSERT (ui_cb_data_p->stream);
   Test_I_ALSA_StreamConfiguration_t::ITERATOR_T modulehandler_configuration_iterator =

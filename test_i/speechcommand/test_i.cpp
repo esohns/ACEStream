@@ -33,6 +33,10 @@
 #define INITGUID
 #endif // ACE_WIN32 || ACE_WIN64
 
+#if defined (SOX_SUPPORT)
+#include "sox.h"
+#endif // SOX_SUPPORT
+
 #include "ace/Get_Opt.h"
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #include "ace/Init_ACE.h"
@@ -572,6 +576,17 @@ do_initialize_directshow (const struct Stream_Device_Identifier& deviceIdentifie
   ACE_ASSERT (!IGraphBuilder_out);
   ACE_ASSERT (!IAMStreamConfig_out);
 
+#if defined (SOX_SUPPORT)
+  int result_2 = sox_init ();
+  if (unlikely (result_2 != SOX_SUCCESS))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to sox_init(): \"%s\", aborting\n"),
+                ACE_TEXT (sox_strerror (result_2))));
+    return false;
+  } // end IF
+#endif // SOX_SUPPORT
+
   Stream_MediaFramework_Tools::initialize (STREAM_MEDIAFRAMEWORK_DIRECTSHOW);
 
   // initialize return value(s)
@@ -814,6 +829,17 @@ do_initialize_mediafoundation (const struct Stream_Device_Identifier& deviceIden
   UINT32 channel_mask_i = (SPEAKER_FRONT_LEFT |
                            SPEAKER_FRONT_RIGHT);
 
+#if defined (SOX_SUPPORT)
+  int result_2 = sox_init ();
+  if (unlikely (result_2 != SOX_SUCCESS))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to sox_init(): \"%s\", aborting\n"),
+                ACE_TEXT (sox_strerror (result_2))));
+    return false;
+  } // end IF
+#endif // SOX_SUPPORT
+
   if (!initializeMediaFoundation_in)
     goto continue_2;
 
@@ -880,7 +906,7 @@ continue_2:
   Stream_MediaFramework_DirectShow_Tools::free (media_type_s);
   ACE_OS::memset (&waveformatex_s, 0, sizeof (struct tWAVEFORMATEX));
   waveformatex_s.wFormatTag = STREAM_DEV_MIC_DEFAULT_FORMAT;
-  waveformatex_s.nChannels = STREAM_DEV_MIC_DEFAULT_CHANNELS;
+  waveformatex_s.nChannels = 1;// STREAM_DEV_MIC_DEFAULT_CHANNELS;
   waveformatex_s.nSamplesPerSec = STREAM_DEV_MIC_DEFAULT_SAMPLE_RATE;
   waveformatex_s.wBitsPerSample = STREAM_DEV_MIC_DEFAULT_BITS_PER_SAMPLE;
   waveformatex_s.nBlockAlign =
@@ -1089,6 +1115,14 @@ do_finalize_directshow (struct Test_I_DirectShow_UI_CBData& CBData_in)
   {
     (*iterator).second.second->builder->Release (); (*iterator).second.second->builder = NULL;
   } // end IF
+
+#if defined (SOX_SUPPORT)
+  int result_2 = sox_quit ();
+  if (unlikely (result_2 != SOX_SUCCESS))
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to sox_quit(): \"%s\", continuing\n"),
+                ACE_TEXT (sox_strerror (result_2))));
+#endif // SOX_SUPPORT
 }
 
 void
@@ -1101,6 +1135,14 @@ do_finalize_mediafoundation ()
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to MFShutdown(): \"%s\", continuing\n"),
                 ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
+
+#if defined (SOX_SUPPORT)
+  int result_2 = sox_quit ();
+  if (unlikely (result_2 != SOX_SUCCESS))
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to sox_quit(): \"%s\", continuing\n"),
+                ACE_TEXT (sox_strerror (result_2))));
+#endif // SOX_SUPPORT
 }
 #endif // ACE_WIN32 || ACE_WIN64
 
@@ -1733,7 +1775,21 @@ do_work (const std::string& scorerFile_in,
     }
   } // end SWITCH
 #else
-  modulehandler_configuration.outputFormat.;
+#if defined (SOX_SUPPORT)
+  result_2 = sox_init ();
+  if (unlikely (result_2 != SOX_SUCCESS))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to sox_init(): \"%s\", returning\n"),
+                ACE_TEXT (sox_strerror (result_2))));
+    goto error;
+  } // end IF
+#endif // SOX_SUPPORT
+
+  // *NOTE*: DeepSpeech requires PCM mono signed 16 bits at 16000Hz
+  modulehandler_configuration.outputFormat.format = SND_PCM_FORMAT_S16_LE;
+  modulehandler_configuration.outputFormat.channels = 1;
+  modulehandler_configuration.outputFormat.rate = 16000;
   result = true;
 #endif // ACE_WIN32 || ACE_WIN64
   if (unlikely (!result))
@@ -1963,6 +2019,17 @@ do_work (const std::string& scorerFile_in,
   result = stream.remove (&event_handler,
                           true,   // lock ?
                           false); // reset ?
+
+#if defined (SOX_SUPPORT)
+  result_2 = sox_quit ();
+  if (unlikely (result_2 != SOX_SUCCESS))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to sox_quit(): \"%s\", returning\n"),
+                ACE_TEXT (sox_strerror (result_2))));
+    goto error;
+  } // end IF
+#endif // SOX_SUPPORT
 #endif // ACE_WIN32 || ACE_WIN64
   if (unlikely (!result))
     ACE_DEBUG ((LM_ERROR,

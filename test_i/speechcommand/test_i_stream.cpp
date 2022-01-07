@@ -115,6 +115,7 @@ Test_I_DirectShow_Stream::load (Stream_ILayout* layout_in,
   //layout_in->append (module_p, NULL, 0);
   //module_p = NULL;
 
+#if defined (SOX_SUPPORT)
    ACE_NEW_RETURN (module_p,
                    Test_I_DirectShow_SoXResampler_Module (this,
                                                           ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_ENCODER_SOX_RESAMPLER_DEFAULT_NAME_STRING)),
@@ -122,6 +123,7 @@ Test_I_DirectShow_Stream::load (Stream_ILayout* layout_in,
    ACE_ASSERT (module_p);
    layout_in->append (module_p, NULL, 0);
    module_p = NULL;
+#endif // SOX_SUPPORT
 
   // sanity check(s)
   ACE_ASSERT (InlineIsEqualGUID (inherited::configuration_->configuration_->format.formattype, FORMAT_WaveFormatEx));
@@ -575,6 +577,7 @@ Test_I_MediaFoundation_Stream::load (Stream_ILayout* layout_in,
   //layout_in->append (module_p, NULL, 0);
   //module_p = NULL;
 
+#if defined (SOX_SUPPORT)
    ACE_NEW_RETURN (module_p,
                    Test_I_MediaFoundation_SoXResampler_Module (this,
                                                                ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_ENCODER_SOX_RESAMPLER_DEFAULT_NAME_STRING)),
@@ -582,6 +585,7 @@ Test_I_MediaFoundation_Stream::load (Stream_ILayout* layout_in,
    ACE_ASSERT (module_p);
    layout_in->append (module_p, NULL, 0);
    module_p = NULL;
+#endif // SOX_SUPPORT
 
   switch (inherited::configuration_->configuration_->renderer)
   {
@@ -1544,6 +1548,7 @@ Test_I_ALSA_Stream::load (Stream_ILayout* layout_in,
   //  layout_in->append (module_p, NULL, 0);
   //  module_p = NULL;
 
+#if defined (SOX_SUPPORT)
   ACE_NEW_RETURN (module_p,
                   Test_I_ALSA_SoXResampler_Module (this,
                                                    ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_ENCODER_SOX_RESAMPLER_DEFAULT_NAME_STRING)),
@@ -1551,6 +1556,7 @@ Test_I_ALSA_Stream::load (Stream_ILayout* layout_in,
   ACE_ASSERT (module_p);
   layout_in->append (module_p, NULL, 0);
   module_p = NULL;
+#endif // SOX_SUPPORT
 
   ACE_NEW_RETURN (module_p,
                   Test_I_ALSA_StatisticAnalysis_Module (this,

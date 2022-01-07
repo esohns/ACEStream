@@ -325,6 +325,8 @@ struct Test_U_UI_ProgressData
  : Test_U_Qt_ProgressData
 #elif defined (WXWIDGETS_USE)
  : Test_U_wxWidgets_ProgressData
+#else
+ : Test_U_ProgressData
 #endif // GTK_USE || QT_USE || WXWIDGETS_USE
 {
   Test_U_UI_ProgressData ()
@@ -334,6 +336,8 @@ struct Test_U_UI_ProgressData
    : Test_U_Qt_ProgressData ()
 #elif defined (WXWIDGETS_USE)
    : Test_U_wxWidgets_ProgressData ()
+#else
+   : Test_U_ProgressData ()
 #endif // GTK_USE || QT_USE || WXWIDGETS_USE
    , sessionId (0)
    , statistic ()
@@ -352,6 +356,8 @@ struct Test_U_UI_CBData
  : Test_U_Qt_CBData
 #elif defined (WXWIDGETS_USE)
  : Test_U_wxWidgets_CBData
+#else
+ : Test_U_CBData
 #endif // GTK_USE || QT_USE || WXWIDGETS_USE
 {
   Test_U_UI_CBData ()
@@ -361,6 +367,8 @@ struct Test_U_UI_CBData
    : Test_U_Qt_CBData ()
 #elif defined (WXWIDGETS_USE)
    : Test_U_wxWidgets_CBData ()
+#else
+   : Test_U_CBData ()
 #endif // GTK_USE || QT_USE || WXWIDGETS_USE
    , allowUserRuntimeStatistic (true)
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -368,7 +376,9 @@ struct Test_U_UI_CBData
 #endif // ACE_WIN32 || ACE_WIN64
    , progressData ()
   {
+#if defined (GTK_USE) || defined (QT_USE) || defined (WXWIDGETS_USE)
     progressData.state = UIState;
+#endif // GTK_USE || QT_USE || WXWIDGETS_USE
   }
 
   bool                            allowUserRuntimeStatistic;
@@ -385,6 +395,8 @@ struct Test_U_UI_ThreadData
  : Test_U_Qt_ThreadData
 #elif defined (WXWIDGETS_USE)
  : Test_U_wxWidgets_ThreadData
+#else
+ : Test_U_ThreadData
 #endif // GTK_USE || QT_USE || WXWIDGETS_USE
 {
   Test_U_UI_ThreadData ()
@@ -394,6 +406,8 @@ struct Test_U_UI_ThreadData
    : Test_U_Qt_ThreadData ()
 #elif defined (WXWIDGETS_USE)
    : Test_U_wxWidgets_ThreadData ()
+#else
+   : Test_U_ThreadData ()
 #endif // GTK_USE || QT_USE || WXWIDGETS_USE
    , CBData (NULL)
 #if defined (ACE_WIN32) || defined (ACE_WIN64)

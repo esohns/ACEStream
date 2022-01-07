@@ -497,11 +497,10 @@ glarea_render_cb (GtkGLArea* GLArea_in,
   ACE_ASSERT (userData_in);
 
   // sanity check(s)
-  struct Test_I_UI_CBData* ui_cb_data_base_p =
-    static_cast<struct Test_I_UI_CBData*> (userData_in);
-  struct Stream_Visualization_OpenGL_Instruction* instruction_p = NULL;
+  struct Test_I_SpeechCommand_UI_CBData* ui_cb_data_base_p =
+    static_cast<struct Test_I_SpeechCommand_UI_CBData*> (userData_in);
   ACE_ASSERT (ui_cb_data_base_p);
-
+//  struct Stream_Visualization_OpenGL_Instruction* instruction_p = NULL;
   GLuint* texture_id_p = NULL;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   struct Test_I_DirectShow_UI_CBData* directshow_ui_cb_data_p =
@@ -1413,8 +1412,8 @@ glarea_expose_event_cb (GtkWidget* widget_in,
 
   // sanity check(s)
   ACE_ASSERT (widget_in);
-  struct Test_I_UI_CBData* ui_cb_data_base_p =
-    static_cast<struct Test_I_UI_CBData*> (userData_in);
+  struct Test_I_SpeechCommand_UI_CBData* ui_cb_data_base_p =
+    static_cast<struct Test_I_SpeechCommand_UI_CBData*> (userData_in);
   ACE_ASSERT (ui_cb_data_base_p);
   GLuint* texture_id_p = NULL;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)

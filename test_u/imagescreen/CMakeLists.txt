@@ -5,13 +5,6 @@ set (CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_CURRENT_SOURCE_DIR}/../../m
 include (assimp)
 include (png)
 
-if (UNIX)
-# *NOTE*: Common requires libcap
-# include (FindPkgConfig)
-# pkg_check_modules (PKG_CAP REQUIRED libcap)
-# pkg_check_modules (PKG_V4L2 REQUIRED libv4l2)
-endif (UNIX)
-
 get_filename_component (BUILD_PATH ${CMAKE_CURRENT_BINARY_DIR}/../.. REALPATH)
 get_filename_component (BUILD_PATH_SUFFIX ${BUILD_PATH} NAME)
 
@@ -19,7 +12,8 @@ if (FFMPEG_SUPPORT)
  include_directories (${ffmpeg_INCLUDE_DIRS})
 endif (FFMPEG_SUPPORT)
 if (IMAGEMAGICK_SUPPORT)
- include_directories (${ImageMagick_INCLUDE_DIRS})
+  add_definitions (${MAGICK_CXX_FLAGS})
+  include_directories (${ImageMagick_INCLUDE_DIRS})
 endif (IMAGEMAGICK_SUPPORT)
 if (UNIX)
 # include_directories (${PKG_CAP_INCLUDE_DIRS})
@@ -154,6 +148,8 @@ if (FFMPEG_SUPPORT)
  target_link_libraries (${EXECUTABLE} PUBLIC ${ffmpeg_LIBRARIES})
 endif (FFMPEG_SUPPORT)
 if (IMAGEMAGICK_SUPPORT)
+ add_link_options (${MAGICK_LD_FLAGS})
+
  target_link_libraries (${EXECUTABLE} PUBLIC ${ImageMagick_LIBRARIES})
 endif (IMAGEMAGICK_SUPPORT)
 if (UNIX)

@@ -650,7 +650,8 @@ typedef Stream_Decoder_SoXEffect_T<ACE_MT_SYNCH,
                                    Test_U_AudioEffect_Message,
                                    Test_U_AudioEffect_SessionMessage,
                                    Test_U_AudioEffect_SessionData_t,
-                                   Test_U_AudioEffect_SessionData> Test_U_AudioEffect_SoXEffect;
+                                   Test_U_AudioEffect_SessionData,
+                                   struct Stream_MediaFramework_ALSA_MediaType> Test_U_AudioEffect_SoXEffect;
 DATASTREAM_MODULE_INPUT_ONLY (Test_U_AudioEffect_SessionData,                         // session data type
                               enum Stream_SessionMessageType,                         // session event type
                               struct Test_U_AudioEffect_ALSA_ModuleHandlerConfiguration,   // module handler configuration type

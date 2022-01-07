@@ -330,6 +330,51 @@ struct Test_I_ALSA_StreamState
 
 //////////////////////////////////////////
 
+struct Test_I_ProgressData
+{
+  Test_I_ProgressData ()
+   : sessionId (0)
+   , statistic ()
+  {
+    ACE_OS::memset (&statistic, 0, sizeof (struct Stream_Statistic));
+  }
+
+  Stream_SessionId_t      sessionId;
+  struct Stream_Statistic statistic;
+};
+
+struct Test_I_CBData
+{
+  Test_I_CBData ()
+   : allowUserRuntimeStatistic (true)
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+   , mediaFramework (STREAM_LIB_DEFAULT_MEDIAFRAMEWORK)
+#endif // ACE_WIN32 || ACE_WIN64
+   , progressData ()
+  {}
+
+  bool                            allowUserRuntimeStatistic;
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  enum Stream_MediaFramework_Type mediaFramework;
+#endif // ACE_WIN32 || ACE_WIN64
+  struct Test_I_ProgressData      progressData;
+};
+
+struct Test_I_ThreadData
+{
+  Test_I_ThreadData ()
+   : CBData (NULL)
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+   , mediaFramework (STREAM_LIB_DEFAULT_MEDIAFRAMEWORK)
+#endif // ACE_WIN32 || ACE_WIN64
+  {}
+
+  struct Test_I_CBData*           CBData;
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  enum Stream_MediaFramework_Type mediaFramework;
+#endif // ACE_WIN32 || ACE_WIN64
+};
+
 #if defined (GUI_SUPPORT)
 struct Test_I_UI_ProgressData
 #if defined (GTK_USE)
@@ -385,7 +430,9 @@ struct Test_I_UI_CBData
 #endif // ACE_WIN32 || ACE_WIN64
    , progressData ()
   {
+#if defined (GTK_USE) || defined (QT_USE) || defined (WXWIDGETS_USE)
     progressData.state = UIState;
+#endif // GTK_USE || QT_USE || WXWIDGETS_USE
   }
 
   bool                            allowUserRuntimeStatistic;

@@ -1,5 +1,5 @@
 set (CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_CURRENT_SOURCE_DIR}/../../../modules/Common/src/xml/scripts;${CMAKE_CURRENT_SOURCE_DIR}/../../../../Common/src/xml/scripts")
-include (PreXMLImplementation)
+include (libxml2)
 
 add_library (${PROJECT_NAME}_HTML STATIC "")
 

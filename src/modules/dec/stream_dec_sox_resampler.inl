@@ -311,7 +311,18 @@ Stream_Decoder_SoXResampler_T<ACE_SYNCH_USE,
     } // end IF
 
     // output buffer is full --> allocate another one
-//    ACE_ASSERT (output_buffer_p->tell_off <= inherited::configuration_->streamConfiguration->bufferSize);
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+    // *IMPORTANT NOTE*: SoX cannot write to the message block directly
+    // (Win32/MinGW does not currently support fmemopen())
+    // --> copy the data out of the tmpfile() manually
+    FILE* file_p = reinterpret_cast<FILE*> (output_buffer_p->fp);
+    ACE_OS::rewind (file_p);
+    size_t bytes_read_i = ACE_OS::fread (message_block_p->wr_ptr (),
+                                         1,
+                                         inherited::configuration_->allocatorConfiguration->defaultBufferSize,
+                                         file_p);
+    ACE_ASSERT (bytes_read_i == inherited::configuration_->allocatorConfiguration->defaultBufferSize);
+#endif // ACE_WIN32 || ACE_WIN64
     message_block_p->wr_ptr (std::min (output_buffer_p->tell_off, static_cast<uint64_t> (inherited::configuration_->allocatorConfiguration->defaultBufferSize)));
 
     message_block_2 = NULL;
@@ -497,9 +508,9 @@ Stream_Decoder_SoXResampler_T<ACE_SYNCH_USE,
                                             signalInfo_);
       inherited2::getMediaType (inherited::configuration_->outputFormat,
                                 media_type_2);
-      Stream_MediaFramework_DirectShow_Tools::to (media_type_2,
-                                                  encodingInfoOut_,
-                                                  signalInfoOut_);
+      Stream_MediaFramework_ALSA_Tools::to (media_type_2,
+                                            encodingInfoOut_,
+                                            signalInfoOut_);
 #endif // ACE_WIN32 || ACE_WIN64
       if (unlikely ((signalInfo_.channels == signalInfoOut_.channels)   &&
                     (signalInfo_.precision == signalInfoOut_.precision) &&
@@ -572,9 +583,10 @@ Stream_Decoder_SoXResampler_T<ACE_SYNCH_USE,
                       inherited::mod_->name ()));
           goto error;
         } // end IF
-        const char* args[] = {"-h", "-b", "99,7"};
+        //const char* args[] = {"-h", "-b", "99,7"};
         result = sox_effect_options (effect_p,
-                                     3, (char**)args);
+                                     //3, (char**)args);
+                                     0, NULL);
         if (unlikely (result != SOX_SUCCESS))
         {
           ACE_DEBUG ((LM_ERROR,
@@ -597,6 +609,7 @@ Stream_Decoder_SoXResampler_T<ACE_SYNCH_USE,
                       ACE_TEXT (sox_strerror (result))));
           goto error;
         } // end IF
+        free (effect_p); effect_p = NULL;
         ACE_DEBUG ((LM_DEBUG,
                     ACE_TEXT ("%s: added SoX effect \"rate\"\n"),
                     inherited::mod_->name ()));
@@ -643,6 +656,7 @@ Stream_Decoder_SoXResampler_T<ACE_SYNCH_USE,
                       ACE_TEXT (sox_strerror (result))));
           goto error;
         } // end IF
+        free (effect_p); effect_p = NULL;
         ACE_DEBUG ((LM_DEBUG,
                     ACE_TEXT ("%s: added SoX effect \"channels\"\n"),
                     inherited::mod_->name ()));
@@ -689,6 +703,7 @@ Stream_Decoder_SoXResampler_T<ACE_SYNCH_USE,
                       ACE_TEXT (sox_strerror (result))));
           goto error;
         } // end IF
+        free (effect_p); effect_p = NULL;
         ACE_DEBUG ((LM_DEBUG,
                     ACE_TEXT ("%s: added SoX effect \"precision\"\n"),
                     inherited::mod_->name ()));
@@ -763,7 +778,8 @@ continue_:
       {
         sox_delete_effects_chain (chain_); chain_ = NULL;
       } // end IF
-      input_ = NULL; output_ = NULL;
+      free (input_); input_ = NULL;
+      free (output_); output_ = NULL;
 
       break;
     }

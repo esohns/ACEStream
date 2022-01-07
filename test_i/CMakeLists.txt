@@ -282,17 +282,18 @@ add_subdirectory (camstream)
 add_subdirectory (filestream)
 add_subdirectory (http_get)
 add_subdirectory (http_get_2)
+add_subdirectory (smtp_send)
+# *IMPORTANT NOTE* /END
 add_subdirectory (imagesave)
 add_subdirectory (mp3player)
 add_subdirectory (speechcommand)
-add_subdirectory (smtp_send)
 
 add_custom_target (test_i ALL
                    COMMENT "building test_i...")
 add_dependencies (test_i avsave camsave imagesave mp3player speechcommand)
 # *IMPORTANT NOTE*: comment temporarily to disambiguate ACEStream <-> ACENetwork
 #                   interdependencies
-add_dependencies (test_i camsource camtarget filesource filetarget HTTP_get_1 HTTP_get_2 SMTP_send)
+#add_dependencies (test_i camsource camtarget filesource filetarget HTTP_get_1 HTTP_get_2 SMTP_send)
 if (WIN32)
  add_dependencies (test_i camtarget_source camtarget_source_mf)
 endif (WIN32)

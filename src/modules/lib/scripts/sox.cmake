@@ -23,20 +23,20 @@ elseif (WIN32)
   endif (sox_FOUND)
  endif (VCPKG_SUPPORT)
  if (NOT SOX_FOUND)
-  set (CMAKE_FIND_LIBRARY_SUFFIXES .lib .dll.a)
-  find_library (SOX_LIBRARY libsox.dll.a
-                PATHS $ENV{LIB_ROOT}/sox/src
-                PATH_SUFFIXES .libs
-                DOC "searching for sox.lib"
+#  set (CMAKE_FIND_LIBRARY_SUFFIXES .lib .dll.a)
+  find_library (SOX_LIBRARY libsox.lib
+                PATHS $ENV{LIB_ROOT}/sox/build/src
+                PATH_SUFFIXES ${CMAKE_BUILD_TYPE}
+                DOC "searching for libsox.lib"
                 NO_DEFAULT_PATH)
   if (NOT SOX_LIBRARY)
-   message (WARNING "could not find sox.lib, continuing")
+   message (WARNING "could not find libsox.lib, continuing")
   else ()
-   message (STATUS "Found libsox.dll.a library \"${SOX_LIBRARY}\"")
+   message (STATUS "Found libsox.lib library \"${SOX_LIBRARY}\"")
    set (SOX_FOUND TRUE)
    set (SOX_INCLUDE_DIRS "$ENV{LIB_ROOT}/sox/src")
    set (SOX_LIBRARIES "${SOX_LIBRARY}")
-   set (SOX_LIB_DIR "$ENV{LIB_ROOT}/sox/src/.libs")
+   set (SOX_LIB_DIR "$ENV{LIB_ROOT}/sox/build/src/${CMAKE_BUILD_TYPE}")
   endif (NOT SOX_LIBRARY)
  endif (NOT SOX_FOUND)
 endif ()
