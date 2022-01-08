@@ -1311,12 +1311,9 @@ do_work (const std::string& scorerFile_in,
                                                    ACE_TEXT_ALWAYS_CHAR (STREAM_MISC_MESSAGEHANDLER_DEFAULT_NAME_STRING));
   Test_I_ALSA_StreamConfiguration_t::ITERATOR_T modulehandler_iterator;
   struct Test_I_ALSA_StreamConfiguration stream_configuration;
-  // *NOTE*: DeepSpeech requires PCM mono signed 16 bits at 16000Hz
-  stream_configuration.format.channels = 1;
-  stream_configuration.format.format = SND_PCM_FORMAT_S16;
-  stream_configuration.format.rate = 16000;
   struct Stream_MediaFramework_ALSA_Configuration ALSA_configuration; // capture
-  ALSA_configuration.asynch = STREAM_LIB_ALSA_CAPTURE_DEFAULT_ASYNCH;
+//  ALSA_configuration.asynch = STREAM_LIB_ALSA_CAPTURE_DEFAULT_ASYNCH;
+  ALSA_configuration.asynch = false;
   ALSA_configuration.bufferSize = STREAM_LIB_ALSA_CAPTURE_DEFAULT_BUFFER_SIZE;
   ALSA_configuration.bufferTime = STREAM_LIB_ALSA_CAPTURE_DEFAULT_BUFFER_TIME;
   ALSA_configuration.periods = STREAM_LIB_ALSA_CAPTURE_DEFAULT_PERIODS;
@@ -1347,6 +1344,10 @@ do_work (const std::string& scorerFile_in,
     {
       directshow_modulehandler_configuration.allocatorConfiguration =
         allocator_configuration_p;
+      directshow_modulehandler_configuration.scorerFile =
+        scorerFile_in;
+      directshow_modulehandler_configuration.modelFile =
+        modelFile_in;
       switch (directshow_stream_configuration.capturer)
       {
         case STREAM_DEVICE_CAPTURER_WAVEIN:
@@ -1486,6 +1487,10 @@ do_work (const std::string& scorerFile_in,
     {
       mediafoundation_modulehandler_configuration.allocatorConfiguration =
         allocator_configuration_p;
+      mediafoundation_modulehandler_configuration.scorerFile =
+        scorerFile_in;
+      mediafoundation_modulehandler_configuration.modelFile =
+        modelFile_in;
       switch (mediafoundation_stream_configuration.capturer)
       {
         case STREAM_DEVICE_CAPTURER_WAVEIN:
@@ -1630,6 +1635,9 @@ do_work (const std::string& scorerFile_in,
   modulehandler_configuration.allocatorConfiguration =
     allocator_configuration_p;
   modulehandler_configuration.ALSAConfiguration = &ALSA_configuration;
+  modulehandler_configuration.scorerFile = scorerFile_in;
+  modulehandler_configuration.modelFile = modelFile_in;
+
   stream_configuration.allocatorConfiguration = allocator_configuration_p;
   modulehandler_configuration.deviceIdentifier.identifier = deviceIdentifier_in;
   modulehandler_configuration.messageAllocator = &message_allocator;
@@ -1684,8 +1692,7 @@ do_work (const std::string& scorerFile_in,
       directshow_stream_configuration.messageAllocator =
         &directshow_message_allocator;
       directshow_stream_configuration.module =
-        (!UIDefinitionFile_in.empty () ? &directshow_event_handler
-                                       : NULL);
+        &directshow_event_handler;
       directshow_stream_configuration.printFinalReport = true;
       break;
     }
@@ -1696,8 +1703,7 @@ do_work (const std::string& scorerFile_in,
       mediafoundation_stream_configuration.messageAllocator =
         &mediafoundation_message_allocator;
       mediafoundation_stream_configuration.module =
-        (!UIDefinitionFile_in.empty () ? &mediafoundation_event_handler
-                                       : NULL);
+        &mediafoundation_event_handler;
       mediafoundation_stream_configuration.printFinalReport = true;
       break;
     }
@@ -1711,9 +1717,7 @@ do_work (const std::string& scorerFile_in,
   } // end SWITCH
 #else
   stream_configuration.messageAllocator = &message_allocator;
-  stream_configuration.module =
-    (!UIDefinitionFile_in.empty () ? &event_handler
-                                   : NULL);
+  stream_configuration.module = &event_handler;
   stream_configuration.printFinalReport = true;
 #endif // ACE_WIN32 || ACE_WIN64
 

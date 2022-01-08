@@ -6478,7 +6478,7 @@ togglebutton_record_toggled_cb (GtkToggleButton* toggleButton_in,
   // --> user pressed record
 
   struct Test_U_GTK_ThreadData* thread_data_p = NULL;
-  ACE_TCHAR thread_name[BUFSIZ];
+  char thread_name[BUFSIZ];
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   ACE_thread_t thread_id = std::numeric_limits<unsigned long>::max ();
 #else
@@ -6735,7 +6735,7 @@ togglebutton_record_toggled_cb (GtkToggleButton* toggleButton_in,
                 ACE_TEXT ("failed to allocate memory: \"%m\", returning\n")));
     return;
   } // end IF
-  ACE_OS::memset (thread_name, 0, sizeof (thread_name));
+  ACE_OS::memset (thread_name, 0, sizeof (char[BUFSIZ]));
 //  char* thread_name_p = NULL;
 //  ACE_NEW_NORETURN (thread_name_p,
 //                    ACE_TCHAR[BUFSIZ]);
@@ -6753,8 +6753,16 @@ togglebutton_record_toggled_cb (GtkToggleButton* toggleButton_in,
 //  ACE_OS::strcpy (thread_name_p,
 //                  ACE_TEXT (TEST_U_Test_U_AudioEffect_THREAD_NAME));
 //  const char* thread_name_2 = thread_name_p;
-  ACE_OS::strcpy (thread_name,
-                  ACE_TEXT (TEST_U_STREAM_THREAD_NAME));
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+    ACE_OS::strncpy (thread_name,
+                     ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_THREAD_NAME),
+                     std::min (static_cast<size_t> (BUFSIZ - 1), static_cast<size_t> (ACE_OS::strlen (ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_THREAD_NAME)))));
+#else
+  ACE_ASSERT (COMMON_THREAD_PTHREAD_NAME_MAX_LENGTH <= BUFSIZ);
+  ACE_OS::strncpy (thread_name,
+                   ACE_TEXT (TEST_U_STREAM_THREAD_NAME),
+                   std::min (static_cast<size_t> (COMMON_THREAD_PTHREAD_NAME_MAX_LENGTH - 1), static_cast<size_t> (ACE_OS::strlen (ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_THREAD_NAME)))));
+#endif // ACE_WIN32 || ACE_WIN64
   thread_name_2 = thread_name;
   thread_manager_p = ACE_Thread_Manager::instance ();
   ACE_ASSERT (thread_manager_p);
@@ -11649,7 +11657,7 @@ drawingarea_query_tooltip_cb (GtkWidget*  widget_in,
       sample_size = waveformatex_p->wBitsPerSample / 8;
       channels = waveformatex_p->nChannels;
       // *NOTE*: "...If the audio contains 8 bits per sample, the audio samples
-      //         are unsigned values. (Each audio sample has the range 0–255.)
+      //         are unsigned values. (Each audio sample has the range 0Â–255.)
       //         If the audio contains 16 bits per sample or higher, the audio
       //         samples are signed values. ..."
       is_signed_format = !(sample_size == 1);
@@ -11693,7 +11701,7 @@ drawingarea_query_tooltip_cb (GtkWidget*  widget_in,
         return FALSE;
       } // end IF
       // *NOTE*: "...If the audio contains 8 bits per sample, the audio samples
-      //         are unsigned values. (Each audio sample has the range 0–255.)
+      //         are unsigned values. (Each audio sample has the range 0Â–255.)
       //         If the audio contains 16 bits per sample or higher, the audio
       //         samples are signed values. ..."
       is_signed_format = !(sample_size == 1);

@@ -2370,8 +2370,8 @@ togglebutton_record_toggled_cb (GtkToggleButton* toggleButton_in,
   const char* thread_name_2 = NULL;
   ACE_Thread_Manager* thread_manager_p = NULL;
   struct Test_I_SpeechCommand_UI_ProgressData* progress_data_p = NULL;
-  GtkSpinButton* spin_button_p = NULL;
-  unsigned int value_i = 0;
+//  GtkSpinButton* spin_button_p = NULL;
+//  unsigned int value_i = 0;
 
   // step2: modify widgets
   gtk_button_set_label (GTK_BUTTON (toggleButton_in), GTK_STOCK_MEDIA_STOP);
@@ -2678,7 +2678,7 @@ combobox_source_changed_cb (GtkWidget* widget_in,
   card_id_i = g_value_get_uint (&value_2);
   g_value_unset (&value_2);
 
-  gint n_rows = 0;
+//  gint n_rows = 0;
   GtkToggleButton* toggle_button_p = NULL;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #if defined (_WIN32_WINNT) && (_WIN32_WINNT >= 0x0602) // _WIN32_WINNT_WIN8
@@ -2811,7 +2811,7 @@ combobox_source_changed_cb (GtkWidget* widget_in,
       device_identifier_string;
 #endif // ACE_WIN32 || ACE_WIN64
 
-  bool result_2 = false;
+//  bool result_2 = false;
   GtkScale* hscale_p = NULL, *hscale_2 = NULL;
   std::ostringstream converter;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)

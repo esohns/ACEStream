@@ -32,9 +32,6 @@
 
 #include "stream_lib_mediatype_converter.h"
 
-// forward declarations
-struct SwsContext;
-
 extern const char libacestream_default_vis_gtk_window_module_name_string[];
 
 template <ACE_SYNCH_DECL,
@@ -92,6 +89,15 @@ class Stream_Module_Vis_GTK_Window_T
   // implement Common_UI_IFullscreen
   virtual void toggle ();
 
+ protected:
+  GMainLoop* mainLoop_;
+  GdkWindow* window_;
+
+  // *WARNING*: this calls into gtk --> enclose in gdk_threads_enter/leave
+  bool initialize_GTK (const Common_Image_Resolution_t&); // window size
+
+  virtual int svc (void);
+
  private:
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_Vis_GTK_Window_T ())
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_Vis_GTK_Window_T (const Stream_Module_Vis_GTK_Window_T&))
@@ -99,11 +105,6 @@ class Stream_Module_Vis_GTK_Window_T
 
   // helper methods
   inline unsigned char clamp (int value_in) { return ((value_in > 255) ? 255 : ((value_in < 0) ? 0 : static_cast<unsigned char> (value_in))); }
-
-  virtual int svc (void);
-
-  GMainLoop* mainLoop_;
-  GdkWindow* window_;
 };
 
 // include template definition

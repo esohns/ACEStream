@@ -27,19 +27,19 @@
 
 #if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
-#if defined (GTK3_USE)
 #undef TEST_I_UI_DEFINITION_FILE
+#if defined (GTK3_USE)
 #define TEST_I_UI_DEFINITION_FILE              "avsave.gtk3"
 #elif defined (GTK2_USE)
 #define TEST_I_UI_DEFINITION_FILE              "avsave.gtk2"
-#endif
+#endif // GTK3_USE || GTK2_USE
 #elif defined (QT_USE)
 #define TEST_I_UI_DEFINITION_FILE              "mainwindow.ui"
 #elif defined (WXWIDGETS_USE)
 #define TEST_I_UI_DEFINITION_FILE              "avsave.xrc"
 #else
 #define TEST_I_UI_DEFINITION_FILE              ""
-#endif // WXWIDGETS_USE
+#endif // GTK_USE || QT_USE || WXWIDGETS_USE
 #undef TEST_I_UI_CSS_FILE
 #define TEST_I_UI_CSS_FILE                     "avsave.css"
 

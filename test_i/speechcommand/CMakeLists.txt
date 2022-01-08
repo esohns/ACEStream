@@ -235,8 +235,15 @@ target_link_libraries (${EXECUTABLE} PUBLIC ${PROJECT_NAME}_Test_I)
 target_precompile_headers (${EXECUTABLE}
                            PUBLIC stdafx.h)
 
-set (model_file "etc/deepspeech-0.9.3-models.pbmm")
-set (scorer_file "etc/deepspeech-0.9.3-models.scorer")
+set (model_file "deepspeech-0.9.3-models.pbmm")
+set (scorer_file "deepspeech-0.9.3-models.scorer")
+if (UNIX)
+ set (model_file "./etc/${model_file}")
+ set (scorer_file "./etc/${scorer_file}")
+elseif (WIN32)
+  set (model_file ".\\etc\\${model_file}")
+  set (scorer_file ".\\etc\\${scorer_file}")
+endif ()
 set (ui_definition_file "")
 if (GUI_SUPPORT)
  if (GTK_USE)
@@ -368,7 +375,7 @@ create_target_launcher (${EXECUTABLE}
                         ARGS ${ARGS}
 #                        FORWARD_ARGS
                         RUNTIME_LIBRARY_DIRS ${RUNTIME_LIBRARY_DIRS}
-                        WORKING_DIRECTORY ${PROJECT_BINARY_DIR}/../../test_i/${EXECUTABLE}
+                        WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/test_i/${EXECUTABLE}
                         ENVIRONMENT ${ENVIRONMENT})
 
 ##########################################

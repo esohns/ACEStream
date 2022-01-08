@@ -309,7 +309,7 @@ add_custom_target (test_u ALL
 add_dependencies (test_u audioeffect branch camerascreen document filecopy imagescreen parser RIFF_decoder)
 # *IMPORTANT NOTE*: comment temporarily to disambiguate ACEStream <-> ACENetwork
 #                   interdependencies
-#add_dependencies (test_u HTTP_GET)
+add_dependencies (test_u HTTP_GET)
 
 cmake_policy (SET CMP0012 NEW)
 if (NOT BUILD_TEST_U)

@@ -101,9 +101,9 @@ class Stream_Dev_Mic_Source_ALSA_T
                                 enum Stream_HeadModuleConcurrency = STREAM_HEADMODULECONCURRENCY_PASSIVE); // concurrency mode
   virtual ~Stream_Dev_Mic_Source_ALSA_T ();
 
-  // *PORTABILITY*: for some reason, this base class member is not exposed
-  //                (MSVC/gcc)
-  using inherited::initialize;
+//  // *PORTABILITY*: for some reason, this base class member is not exposed
+//  //                (MSVC/gcc)
+//  using inherited::initialize;
 
   // override (part of) Stream_IModuleHandler_T
   virtual bool initialize (const ConfigurationType&,
@@ -138,18 +138,18 @@ class Stream_Dev_Mic_Source_ALSA_T
   ACE_UNIMPLEMENTED_FUNC (Stream_Dev_Mic_Source_ALSA_T (const Stream_Dev_Mic_Source_ALSA_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Dev_Mic_Source_ALSA_T& operator= (const Stream_Dev_Mic_Source_ALSA_T&))
 
-  // helper methods
-  template <typename MediaType> struct Stream_MediaFramework_ALSA_MediaType getMediaType (const MediaType& mediaType_in) { return getMediaType_impl (mediaType_in); }
-  inline struct Stream_MediaFramework_ALSA_MediaType getMediaType_impl (const struct Stream_MediaFramework_ALSA_MediaType& mediaType_in) { return const_cast<struct Stream_MediaFramework_ALSA_MediaType&> (mediaType_in); }
-//  inline struct Stream_MediaFramework_ALSA_MediaType getMediaType_impl (const struct _snd_pcm& format_in) { struct Stream_MediaFramework_ALSA_MediaType return_value; return_value.format = format_in.fmt.pix; return return_value; }
+  virtual int svc (void);
 
-  struct Stream_Device_ALSA_Capture_AsynchCBData asynchCBData_;
-  struct _snd_async_handler*                     asynchHandler_;
-#if defined(_DEBUG)
-  struct _snd_output*                            debugOutput_;
-#endif // _DEBUG
-  struct _snd_pcm*                               deviceHandle_;
+  struct Stream_Device_ALSA_Capture_AsynchCBData CBData_;
+  struct _snd_pcm*                               handle_;
+  struct _snd_async_handler*                     handler_;
+  unsigned int                                   frameSize_;
   bool                                           isPassive_;
+#if defined (_DEBUG)
+  struct _snd_output*                            output_;
+#endif // _DEBUG
+  struct pollfd*                                 pollFds_;
+  unsigned int                                   pollFdCount_;
   typename inherited::MESSAGE_QUEUE_T            queue_;
 };
 

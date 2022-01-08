@@ -76,7 +76,10 @@
 ////          transparent red is 0x80800000, not 0x80ff0000.) ..."
 //#define STREAM_VIS_DEFAULT_CAIRO_FORMAT      CAIRO_FORMAT_ARGB32
 
-#define STREAM_VIS_DEFAULT_SCREENSHOT_FILENAME_STRING                     "screenshot"
+#define STREAM_VIS_DEFAULT_SCREENSHOT_FILENAME_PREFIX_STRING              "screenshot"
+
+#define STREAM_VIS_DEFAULT_WINDOW_HEIGHT                                  320
+#define STREAM_VIS_DEFAULT_WINDOW_WIDTH                                   240
 
 // spectrum analyzer
 // *NOTE*: process this many samples in one 'sweep'

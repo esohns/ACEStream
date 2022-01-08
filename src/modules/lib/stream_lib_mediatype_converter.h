@@ -97,6 +97,8 @@ class Stream_MediaFramework_MediaTypeConverter_T
   inline void getMediaType (const struct Stream_MediaFramework_ALSA_MediaType&, struct Stream_MediaFramework_FFMPEG_VideoMediaType&) { ACE_ASSERT (false); ACE_NOTSUP; ACE_NOTREACHED (return;) }
 #endif // FFMPEG_SUPPORT
 
+  inline Common_Image_Resolution_t getResolution (const struct Stream_MediaFramework_ALSA_MediaType& mediaType_in) { Common_Image_Resolution_t result; return result; }
+
 #if defined (FFMPEG_SUPPORT)
   // ffmpeg
   void getMediaType (const struct Stream_MediaFramework_FFMPEG_VideoMediaType&, struct Stream_MediaFramework_V4L_MediaType&);

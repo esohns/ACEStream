@@ -262,7 +262,7 @@ Stream_Decoder_SoXResampler_T<ACE_SYNCH_USE,
     if (unlikely (!buffer_))
     {
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("%s: allocateMessage(%d) failed: \"%m\", returning\n"),
+                  ACE_TEXT ("%s: allocateMessage(%u) failed: \"%m\", returning\n"),
                   inherited::mod_->name (),
                   inherited::configuration_->allocatorConfiguration->defaultBufferSize));
       goto error;
@@ -271,7 +271,7 @@ Stream_Decoder_SoXResampler_T<ACE_SYNCH_USE,
   message_block_p = buffer_;
   output_buffer_p =
       sox_open_mem_write (message_block_p->wr_ptr (),
-                          inherited::configuration_->allocatorConfiguration->defaultBufferSize,
+                          message_block_p->space (),
                           &signalInfoOut_,
                           &encodingInfoOut_,
                           ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_SOX_FORMAT_RAW_STRING),
@@ -323,7 +323,7 @@ Stream_Decoder_SoXResampler_T<ACE_SYNCH_USE,
                                          file_p);
     ACE_ASSERT (bytes_read_i == inherited::configuration_->allocatorConfiguration->defaultBufferSize);
 #endif // ACE_WIN32 || ACE_WIN64
-    message_block_p->wr_ptr (std::min (output_buffer_p->tell_off, static_cast<uint64_t> (inherited::configuration_->allocatorConfiguration->defaultBufferSize)));
+    message_block_p->wr_ptr (output_buffer_p->tell_off);
 
     message_block_2 = NULL;
     message_block_2 =
@@ -375,18 +375,19 @@ Stream_Decoder_SoXResampler_T<ACE_SYNCH_USE,
       goto error;
     } // end IF
   } while (true);
-//  ACE_ASSERT (output_buffer_p->tell_off <= inherited::configuration_->streamConfiguration->bufferSize);
-  message_block_p->wr_ptr (std::min (output_buffer_p->tell_off, static_cast<uint64_t> (inherited::configuration_->allocatorConfiguration->defaultBufferSize)));
-
-  result = inherited::put_next (buffer_, NULL);
-  if (unlikely (result == -1))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: failed to ACE_Task::put_next(): \"%m\", returning\n"),
-                inherited::mod_->name ()));
-    goto error;
-  } // end IF
-  buffer_ = NULL;
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  // *IMPORTANT NOTE*: SoX cannot write to the message block directly
+  // (Win32/MinGW does not currently support fmemopen())
+  // --> copy the data out of the tmpfile() manually
+  FILE* file_p = reinterpret_cast<FILE*> (output_buffer_p->fp);
+  ACE_OS::rewind (file_p);
+  size_t bytes_read_i = ACE_OS::fread (message_block_p->wr_ptr (),
+                                       1,
+                                       output_buffer_p->tell_off,
+                                       file_p);
+  ACE_ASSERT (bytes_read_i == output_buffer_p->tell_off);
+#endif // ACE_WIN32 || ACE_WIN64
+  message_block_p->wr_ptr (output_buffer_p->tell_off);
 
   result = sox_close (input_buffer_p);
   if (unlikely (result != SOX_SUCCESS))
@@ -406,6 +407,16 @@ Stream_Decoder_SoXResampler_T<ACE_SYNCH_USE,
                 ACE_TEXT (sox_strerror (result))));
     goto error;
   } // end IF
+
+  result = inherited::put_next (buffer_, NULL);
+  if (unlikely (result == -1))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s: failed to ACE_Task::put_next(): \"%m\", returning\n"),
+                inherited::mod_->name ()));
+    goto error;
+  } // end IF
+  buffer_ = NULL;
 
   // clean up
   message_inout->release (); message_inout = NULL;

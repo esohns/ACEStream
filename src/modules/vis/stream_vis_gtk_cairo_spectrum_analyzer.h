@@ -29,14 +29,6 @@
 #include "ace/Synch_Traits.h"
 
 #include "gtk/gtk.h"
-#if GTK_CHECK_VERSION(3,16,0)
-#else
-#if defined (GTKGL_SUPPORT)
-#if defined (GTKGLAREA_SUPPORT)
-#include "gtkgl/gtkglarea.h"
-#endif // GTKGLAREA_SUPPORT
-#endif // GTKGL_SUPPORT
-#endif // GTK_CHECK_VERSION (3,16,0)
 
 #include "common_icounter.h"
 #include "common_iget.h"
@@ -46,13 +38,10 @@
 
 #include "common_timer_resetcounterhandler.h"
 
-#include "stream_task_base_synch.h"
-
-#include "stream_lib_mediatype_converter.h"
-
 #include "stream_stat_common.h"
 
 #include "stream_vis_gtk_common.h"
+#include "stream_vis_gtk_window.h"
 
 extern const char libacestream_default_vis_spectrum_analyzer_module_name_string[];
 
@@ -72,32 +61,26 @@ template <ACE_SYNCH_DECL,
           ////////////////////////////////
           typename MediaType>
 class Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T
- : public Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
-                                 TimePolicyType,
-                                 ConfigurationType,
-                                 ControlMessageType,
-                                 DataMessageType,
-                                 SessionMessageType,
-                                 enum Stream_ControlType,
-                                 enum Stream_SessionMessageType,
-                                 struct Stream_UserData>
- , public Stream_MediaFramework_MediaTypeConverter_T<MediaType>
+ : public Stream_Module_Vis_GTK_Window_T<ACE_SYNCH_USE,
+                                         TimePolicyType,
+                                         ConfigurationType,
+                                         ControlMessageType,
+                                         DataMessageType,
+                                         SessionMessageType,
+                                         MediaType>
  , public Common_Math_FFT
  , public Common_ICounter
  , public Common_IDispatch_T<enum Stream_Statistic_AnalysisEventType>
  , public Common_ISetP_T<GdkWindow>
 {
-  typedef Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
-                                 TimePolicyType,
-                                 ConfigurationType,
-                                 ControlMessageType,
-                                 DataMessageType,
-                                 SessionMessageType,
-                                 enum Stream_ControlType,
-                                 enum Stream_SessionMessageType,
-                                 struct Stream_UserData> inherited;
-  typedef Stream_MediaFramework_MediaTypeConverter_T<MediaType> inherited2;
-  typedef Common_Math_FFT inherited3;
+  typedef Stream_Module_Vis_GTK_Window_T<ACE_SYNCH_USE,
+                                         TimePolicyType,
+                                         ConfigurationType,
+                                         ControlMessageType,
+                                         DataMessageType,
+                                         SessionMessageType,
+                                         MediaType> inherited;
+  typedef Common_Math_FFT inherited2;
 
  public:
   // *TODO*: on MSVC 2015u3 the accurate declaration does not compile

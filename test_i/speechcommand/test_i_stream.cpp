@@ -1558,11 +1558,34 @@ Test_I_ALSA_Stream::load (Stream_ILayout* layout_in,
   module_p = NULL;
 #endif // SOX_SUPPORT
 
+  typename inherited::MODULE_T* branch_p = NULL; // NULL: 'main' branch
+  unsigned int index_i = 0;
+  ACE_NEW_RETURN (module_p,
+                  Test_I_ALSA_Distributor_Module (this,
+                                                  ACE_TEXT_ALWAYS_CHAR (STREAM_MISC_DISTRIBUTOR_DEFAULT_NAME_STRING)),
+                  false);
+  ACE_ASSERT (module_p);
+  branch_p = module_p;
+  inherited::configuration_->configuration_->branches.push_back (ACE_TEXT_ALWAYS_CHAR (STREAM_SUBSTREAM_DISPLAY_NAME));
+//    inherited::configuration_->configuration_->branches.push_back (ACE_TEXT_ALWAYS_CHAR (STREAM_SUBSTREAM_SAVE_NAME));
+  Stream_IDistributorModule* idistributor_p =
+    dynamic_cast<Stream_IDistributorModule*> (module_p->writer ());
+  ACE_ASSERT (idistributor_p);
+  if (!idistributor_p->initialize (inherited::configuration_->configuration_->branches))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s: failed to Stream_Miscellaneous_Distributor_T::initialize(), aborting\n"),
+                ACE_TEXT (stream_name_string_)));
+    return false;
+  } // end IF
+  layout_in->append (module_p, NULL, 0);
+  module_p = NULL;
+
   ACE_NEW_RETURN (module_p,
                   Test_I_ALSA_StatisticAnalysis_Module (this,
                                                         ACE_TEXT_ALWAYS_CHAR (MODULE_STAT_ANALYSIS_DEFAULT_NAME_STRING)),
                   false);
-  layout_in->append (module_p, NULL, 0);
+  layout_in->append (module_p, branch_p, index_i);
   module_p = NULL;
 #if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
@@ -1570,7 +1593,7 @@ Test_I_ALSA_Stream::load (Stream_ILayout* layout_in,
                   Test_I_ALSA_Vis_SpectrumAnalyzer_Module (this,
                                                            ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_GTK_SPECTRUM_ANALYZER_DEFAULT_NAME_STRING)),
                   false);
-  layout_in->append (module_p, NULL, 0);
+  layout_in->append (module_p, branch_p, index_i);
   module_p = NULL;
 #endif // GTK_USE
 #endif // GUI_SUPPORT

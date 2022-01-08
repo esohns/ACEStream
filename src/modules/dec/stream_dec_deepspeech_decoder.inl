@@ -219,11 +219,10 @@ Stream_Decoder_DeepSpeechDecoder_T<ACE_SYNCH_USE,
   // sanity check(s)
   ACE_ASSERT (context2_);
 
-  int result = -1;
   typename DataMessageType::DATA_T& data_r =
     const_cast<typename DataMessageType::DATA_T&> (message_inout->getR ());
   ACE_Message_Block* message_block_p = message_inout;
-  const char* last_p = NULL, *prev_p = NULL, *partial_p = NULL;
+  const char* partial_p = NULL;
   while (message_block_p)
   {
     DS_FeedAudioContent (context2_,
@@ -231,32 +230,20 @@ Stream_Decoder_DeepSpeechDecoder_T<ACE_SYNCH_USE,
                          message_block_p->length () / 2);
 
     partial_p = DS_IntermediateDecode (context2_);
-    if (!last_p || ACE_OS::strcmp (last_p, partial_p))
+    ACE_ASSERT (partial_p);
+    if (ACE_OS::strlen (partial_p))
     {
       ACE_DEBUG ((LM_DEBUG,
                   ACE_TEXT ("%s: \"%s\"\n"),
                   inherited::mod_->name (),
                   ACE_TEXT (partial_p)));
       // *TODO*: remove type inference
-      data_r.words.push_back (ACE_TEXT_ALWAYS_CHAR (partial_p));
-      last_p = partial_p;
+      data_r.words.push_back (partial_p);
     } // end IF
-    else
-    {
-      DS_FreeString (const_cast<char*> (partial_p));
-    } // end ELSE
-    if (prev_p && prev_p != last_p)
-    {
-      DS_FreeString (const_cast<char*> (prev_p));
-    } // end IF
+    DS_FreeString (const_cast<char*> (partial_p)); partial_p = NULL;
 
     message_block_p = message_block_p->cont ();
   } // end WHILE
-
-  if (last_p)
-  {
-    DS_FreeString (const_cast<char*> (last_p));
-  } // end IF
 }
 
 template <ACE_SYNCH_DECL,
@@ -309,7 +296,7 @@ Stream_Decoder_DeepSpeechDecoder_T<ACE_SYNCH_USE,
                     ACE_TEXT (snd_pcm_format_name (SND_PCM_FORMAT_S16_LE)), ACE_TEXT (snd_pcm_format_name (media_type_s.format))));
         goto error;
       } // end IF
-      if (unlikely (media_type_s.rate != DS_GetModelSampleRate (context_)))
+      if (unlikely (media_type_s.rate != static_cast<unsigned int> (DS_GetModelSampleRate (context_))))
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: invalid sample rate (expected %d; was: %u), aborting\n"),

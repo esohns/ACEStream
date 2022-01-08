@@ -64,7 +64,7 @@ struct Stream_MediaFramework_ALSA_Configuration
   {}
 
   enum _snd_pcm_access                         access;
-  bool                                         asynch;
+  bool                                         asynch; // ? : poll || write
   snd_pcm_uframes_t                            bufferSize;
   unsigned int                                 bufferTime;
   struct Stream_MediaFramework_ALSA_MediaType* format; // capture-/playback-

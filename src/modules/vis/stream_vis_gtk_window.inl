@@ -144,7 +144,8 @@ Stream_Module_Vis_GTK_Window_T<ACE_SYNCH_USE,
   if (!buffer_p)
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to gdk_pixbuf_get_from_window(), aborting\n")));
+                ACE_TEXT ("%s: failed to gdk_pixbuf_get_from_window(), aborting\n"),
+                inherited::mod_->name ()));
     return;
   } // end IF
   ACE_ASSERT (gdk_pixbuf_get_colorspace (buffer_p) == GDK_COLORSPACE_RGB);
@@ -208,27 +209,16 @@ Stream_Module_Vis_GTK_Window_T<ACE_SYNCH_USE,
 
       gdk_threads_enter ();
 
-      GdkWindowAttr attributes_a;
-      gint attributes_mask;
-      attributes_a.window_type = GDK_WINDOW_TOPLEVEL;
-      attributes_a.width = resolution_s.width;
-      attributes_a.height = resolution_s.height;
-      attributes_a.wclass = GDK_INPUT_OUTPUT;
-#if GTK_CHECK_VERSION (3,0,0)
-#else
-      attributes_a.colormap = gdk_rgb_get_cmap ();
-
-      attributes_mask = GDK_WA_COLORMAP;
-#endif // GTK_CHECK_VERSION (3,0,0)
-
-      window_ = gdk_window_new (NULL,
-                                &attributes_a, attributes_mask);
-      ACE_ASSERT (window_);
+      if (unlikely (!initialize_GTK (resolution_s)))
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("%s: failed to Stream_Module_Vis_GTK_Window_T::initialize_GTK(), aborting\n"),
+                    inherited::mod_->name ()));
+        gdk_threads_leave ();
+        goto error;
+      } // end IF
 
       gdk_window_show (window_);
-
-      mainLoop_ = g_main_new (TRUE);
-      ACE_ASSERT (mainLoop_);
 
       gdk_threads_leave ();
 
@@ -236,22 +226,23 @@ Stream_Module_Vis_GTK_Window_T<ACE_SYNCH_USE,
 
       break;
 
-//error:
+error:
       this->notify (STREAM_SESSION_MESSAGE_ABORT);
 
       break;
     }
     case STREAM_SESSION_MESSAGE_END:
     {
-      if (window_)
+      if (likely (window_))
       {
         gdk_window_destroy (window_); window_ = NULL;
       } // end IF
 
-      ACE_ASSERT (g_main_loop_is_running (mainLoop_));
-      g_main_loop_quit (mainLoop_);
+      if (likely (mainLoop_ &&
+                  g_main_loop_is_running (mainLoop_)))
+        g_main_loop_quit (mainLoop_);
 
-      if (mainLoop_)
+      if (likely (mainLoop_))
       {
         g_main_loop_unref (mainLoop_); mainLoop_ = NULL;
       } // end IF
@@ -284,6 +275,10 @@ Stream_Module_Vis_GTK_Window_T<ACE_SYNCH_USE,
 
   if (inherited::isInitialized_)
   {
+    if (mainLoop_)
+    {
+      g_main_loop_unref (mainLoop_); mainLoop_ = NULL;
+    } // end IF
     if (window_)
     {
       gdk_window_destroy (window_); window_ = NULL;
@@ -324,6 +319,65 @@ template <ACE_SYNCH_DECL,
           typename DataMessageType,
           typename SessionMessageType,
           typename MediaType>
+bool
+Stream_Module_Vis_GTK_Window_T<ACE_SYNCH_USE,
+                               TimePolicyType,
+                               ConfigurationType,
+                               ControlMessageType,
+                               DataMessageType,
+                               SessionMessageType,
+                               MediaType>::initialize_GTK (const Common_Image_Resolution_t& resolution_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Module_Vis_GTK_Window_T::initialize_GTK"));
+
+  // sanity check(s)
+  ACE_ASSERT (Common_UI_GTK_Tools::GTKInitialized);
+  ACE_ASSERT (!mainLoop_);
+  ACE_ASSERT (!window_);
+
+  mainLoop_ = g_main_new (FALSE); // is running ?
+  if (unlikely (!mainLoop_))
+  {
+    ACE_DEBUG ((LM_CRITICAL,
+                ACE_TEXT ("%s: failed to g_main_new(FALSE), aborting\n"),
+                inherited::mod_->name ()));
+    return false;
+  } // end IF
+
+  GdkWindowAttr attributes_a;
+  gint attributes_mask = 0;
+  attributes_a.window_type = GDK_WINDOW_TOPLEVEL;
+  attributes_a.width = resolution_in.width;
+  attributes_a.height = resolution_in.height;
+  attributes_a.wclass = GDK_INPUT_OUTPUT;
+#if GTK_CHECK_VERSION (3,0,0)
+#else
+  attributes_a.colormap = gdk_rgb_get_cmap ();
+  attributes_mask = GDK_WA_COLORMAP;
+#endif // GTK_CHECK_VERSION (3,0,0)
+
+  window_ = gdk_window_new (NULL,
+                            &attributes_a,
+                            attributes_mask);
+  if (unlikely (!window_))
+  {
+    ACE_DEBUG ((LM_CRITICAL,
+                ACE_TEXT ("%s: failed to gdk_window_new(), aborting\n"),
+                inherited::mod_->name ()));
+    g_main_loop_unref (mainLoop_); mainLoop_ = NULL;
+    return false;
+  } // end IF
+
+  return true;
+}
+
+template <ACE_SYNCH_DECL,
+          typename TimePolicyType,
+          typename ConfigurationType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
+          typename MediaType>
 int
 Stream_Module_Vis_GTK_Window_T<ACE_SYNCH_USE,
                                TimePolicyType,
@@ -336,7 +390,6 @@ Stream_Module_Vis_GTK_Window_T<ACE_SYNCH_USE,
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Vis_GTK_Window_T::svc"));
 
   // sanity check(s)
-//  ACE_ASSERT (Common_UI_GTK_Tools::GTKInitialized);
   ACE_ASSERT (mainLoop_);
 
   g_main_loop_run (mainLoop_);
