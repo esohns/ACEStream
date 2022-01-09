@@ -306,7 +306,7 @@ Stream_Statistic_StatisticAnalysis_T<ACE_SYNCH_USE,
 
       result_2 =
         inherited3::Initialize (num_channels,
-                                inherited::configuration_->spectrumAnalyzerResolution,
+                                inherited::configuration_->bufferSize,
                                 sample_rate);
       if (unlikely (!result_2))
       {

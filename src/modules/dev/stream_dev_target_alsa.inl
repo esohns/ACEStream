@@ -445,9 +445,6 @@ Stream_Dev_Target_ALSA_T<ACE_SYNCH_USE,
   STREAM_TRACE (ACE_TEXT ("Stream_Dev_Target_ALSA_T::handleSessionMessage"));
 
   int result = -1;
-#if defined (_DEBUG)
-  struct _snd_pcm_hw_params* snd_pcm_hw_params_p = NULL;
-#endif // _DEBUG
 
   // don't care (implies yes per default, if part of a stream)
   ACE_UNUSED_ARG (passMessageDownstream_out);
@@ -472,6 +469,10 @@ Stream_Dev_Target_ALSA_T<ACE_SYNCH_USE,
       bool stop_device = false;
       size_t initial_buffer_size = 0;
       void* buffer_p = NULL;
+#if defined (_DEBUG)
+      snd_pcm_status_t* status_p = NULL;
+#endif // _DEBUG
+
       if (!isPassive_)
       { ACE_ASSERT (!deviceHandle_);
 //        std::string device_name_string =
@@ -540,31 +541,18 @@ open:
           goto error;
         } // end IF
         inherited::configuration_->ALSAConfiguration->format = NULL;
-
-#if defined (_DEBUG)
-        Stream_MediaFramework_ALSA_Tools::dump (deviceHandle_);
-        snd_pcm_hw_params_malloc (&snd_pcm_hw_params_p);
-        ACE_ASSERT (snd_pcm_hw_params_p);
-        snd_pcm_hw_params_current (deviceHandle_, snd_pcm_hw_params_p);
-        snd_pcm_hw_params_dump (snd_pcm_hw_params_p, debugOutput_);
-        snd_pcm_hw_params_free (snd_pcm_hw_params_p); snd_pcm_hw_params_p = NULL;
-#endif // _DEBUG
       } // end IF
       ACE_ASSERT (deviceHandle_);
 
 #if defined (_DEBUG)
-      ACE_ASSERT (debugOutput_);
-      result = snd_pcm_dump (deviceHandle_,
-                             debugOutput_);
-      if (unlikely (result < 0))
-      {
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("%s: failed to snd_pcm_dump(\"%s\"): \"%s\", aborting\n"),
-                    ACE_TEXT (inherited::mod_->name ()),
-                    ACE_TEXT (inherited::configuration_->deviceIdentifier.identifier.c_str ()),
-                    ACE_TEXT (snd_strerror (result))));
-        goto error;
-      } // end IF
+      snd_pcm_dump (deviceHandle_, debugOutput_);
+      snd_pcm_dump_setup (deviceHandle_, debugOutput_);
+      snd_pcm_status_malloc (&status_p);
+      ACE_ASSERT (status_p);
+      snd_pcm_status (deviceHandle_, status_p);
+      snd_pcm_status_dump (status_p, debugOutput_);
+      snd_pcm_status_free (status_p); status_p = NULL;
+      Stream_MediaFramework_ALSA_Tools::dump (deviceHandle_, true); // current-
 #endif // _DEBUG
 
       if (asynch_)

@@ -21,6 +21,8 @@
 #ifndef STREAM_DEV_MIC_SOURCE_ALSA_H
 #define STREAM_DEV_MIC_SOURCE_ALSA_H
 
+#include "poll.h"
+
 #include <string>
 
 #define ALSA_PCM_NEW_HW_PARAMS_API

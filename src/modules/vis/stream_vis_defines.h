@@ -82,8 +82,9 @@
 #define STREAM_VIS_DEFAULT_WINDOW_WIDTH                                   240
 
 // spectrum analyzer
-// *NOTE*: process this many samples in one 'sweep'
-// *IMPORTANT NOTE*: must be a power of 2
+// *IMPORTANT NOTE*: must be a power of 2 (FFT-specific)
+// *IMPORTANT NOTE*: only half of the buffer (-1) contains meaningful results
+//                   (FFT-specific)
 #define STREAM_VIS_SPECTRUMANALYZER_DEFAULT_BUFFER_SIZE                   2048 // samples
 // *NOTE*: needed for computation; these need to correspond with the input data
 // *TODO*: remove ASAP

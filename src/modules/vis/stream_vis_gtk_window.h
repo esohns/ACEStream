@@ -90,7 +90,7 @@ class Stream_Module_Vis_GTK_Window_T
   virtual void toggle ();
 
  protected:
-  GMainLoop* mainLoop_;
+//  GMainLoop* mainLoop_;
   GdkWindow* window_;
 
   // *WARNING*: this calls into gtk --> enclose in gdk_threads_enter/leave

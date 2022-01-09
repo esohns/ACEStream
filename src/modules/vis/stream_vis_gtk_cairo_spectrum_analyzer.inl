@@ -612,11 +612,11 @@ error:
       if (likely (inherited::window_))
       {
         gdk_window_destroy (inherited::window_); inherited::window_ = NULL;
+        gtk_main_quit ();
       } // end IF
-
-      if (likely (inherited::mainLoop_ &&
-                  g_main_loop_is_running (inherited::mainLoop_)))
-        g_main_loop_quit (inherited::mainLoop_);
+//      if (likely (inherited::mainLoop_ &&
+//                  g_main_loop_is_running (inherited::mainLoop_)))
+//        g_main_loop_quit (inherited::mainLoop_);
 
       // *IMPORTANT NOTE*: at this stage no new data should be arriving
       //                   --> join with the renderer thread
@@ -635,10 +635,10 @@ error:
         cairo_destroy (cairoContext_); cairoContext_ = NULL;
       } // end IF
 
-      if (likely (inherited::mainLoop_))
-      {
-        g_main_loop_unref (inherited::mainLoop_); inherited::mainLoop_ = NULL;
-      } // end IF
+//      if (likely (inherited::mainLoop_))
+//      {
+//        g_main_loop_unref (inherited::mainLoop_); inherited::mainLoop_ = NULL;
+//      } // end IF
 
       break;
     }

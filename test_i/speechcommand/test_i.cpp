@@ -1182,8 +1182,7 @@ do_work (const std::string& scorerFile_in,
 #endif // ACE_WIN32 || ACE_WIN64
          const ACE_Sig_Set& signalSet_in,
          const ACE_Sig_Set& ignoredSignalSet_in,
-         Common_SignalActions_t& previousSignalActions_inout,
-         Test_I_SignalHandler& signalHandler_in)
+         Common_SignalActions_t& previousSignalActions_inout)
 {
   STREAM_TRACE (ACE_TEXT ("::do_work"));
 
@@ -1327,6 +1326,7 @@ do_work (const std::string& scorerFile_in,
   struct Test_I_SpeechCommand_ALSA_ModuleHandlerConfiguration modulehandler_configuration_2; // renderer module
   struct Test_I_SpeechCommand_ALSA_ModuleHandlerConfiguration modulehandler_configuration_3; // file writer module
 #endif // ACE_WIN32 || ACE_WIN64
+  Test_I_SignalHandler signal_handler;
 
   ACE_ASSERT (allocator_configuration_p);
   if (unlikely (!heap_allocator.initialize (*allocator_configuration_p)))
@@ -1635,10 +1635,25 @@ do_work (const std::string& scorerFile_in,
   modulehandler_configuration.allocatorConfiguration =
     allocator_configuration_p;
   modulehandler_configuration.ALSAConfiguration = &ALSA_configuration;
+  modulehandler_configuration.bufferSize = 512;
+#if defined (_DEBUG)
+  modulehandler_configuration.debug = true;
+#endif // _DEBUG
   modulehandler_configuration.scorerFile = scorerFile_in;
+  modulehandler_configuration.spectrumAnalyzerResolution = 512;
   modulehandler_configuration.modelFile = modelFile_in;
 
   stream_configuration.allocatorConfiguration = allocator_configuration_p;
+  if (unlikely (!Stream_MediaFramework_ALSA_Tools::getDefaultFormat (deviceIdentifier_in,
+                                                                     true, // capture
+                                                                     stream_configuration.format)))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to Stream_MediaFramework_ALSA_Tools::getDefaultFormat(\"%s\"), returning\n"),
+                ACE_TEXT (deviceIdentifier_in.c_str ())));
+    goto error;
+  } // end IF
+
   modulehandler_configuration.deviceIdentifier.identifier = deviceIdentifier_in;
   modulehandler_configuration.messageAllocator = &message_allocator;
   modulehandler_configuration.mute = mute_in;
@@ -1811,14 +1826,18 @@ do_work (const std::string& scorerFile_in,
     {
       //directShowConfiguration_in.signalHandlerConfiguration.messageAllocator =
       //  &directshow_message_allocator;
-      signalHandler_in.initialize (directShowConfiguration_in.signalHandlerConfiguration);
+      directShowConfiguration_in.signalHandlerConfiguration.stream =
+        istream_control_p;
+      signal_handler.initialize (directShowConfiguration_in.signalHandlerConfiguration);
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
     {
       //mediaFoundationConfiguration_in.signalHandlerConfiguration.messageAllocator =
       //  &mediafoundation_message_allocator;
-      signalHandler_in.initialize (mediaFoundationConfiguration_in.signalHandlerConfiguration);
+      mediaFoundationConfiguration_in.signalHandlerConfiguration.stream =
+        istream_control_p;
+      signal_handler.initialize (mediaFoundationConfiguration_in.signalHandlerConfiguration);
       break;
     }
     default:
@@ -1830,12 +1849,14 @@ do_work (const std::string& scorerFile_in,
     }
   } // end SWITCH
 #else
-  signalHandler_in.initialize (configuration_in.signalHandlerConfiguration);
+  configuration_in.signalHandlerConfiguration.stream =
+    istream_control_p;
+  signal_handler.initialize (configuration_in.signalHandlerConfiguration);
 #endif // ACE_WIN32 || ACE_WIN64
   if (unlikely (!Common_Signal_Tools::initialize (COMMON_SIGNAL_DEFAULT_DISPATCH_MODE,
                                                   signalSet_in,
                                                   ignoredSignalSet_in,
-                                                  &signalHandler_in,
+                                                  &signal_handler,
                                                   previousSignalActions_inout)))
   {
     ACE_DEBUG ((LM_ERROR,
@@ -2189,7 +2210,6 @@ ACE_TMAIN (int argc_in,
   ACE_Sig_Set ignored_signal_set (false); // fill ?
   Common_SignalActions_t previous_signal_actions;
   sigset_t previous_signal_mask;
-  Test_I_SignalHandler signal_handler;
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   struct Test_I_DirectShow_Configuration directshow_configuration;
@@ -2525,8 +2545,7 @@ ACE_TMAIN (int argc_in,
 #endif // ACE_WIN32 || ACE_WIN64
            signal_set,
            ignored_signal_set,
-           previous_signal_actions,
-           signal_handler);
+           previous_signal_actions);
   timer.stop ();
 
   timer.elapsed_time (working_time);

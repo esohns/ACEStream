@@ -2678,7 +2678,6 @@ load_formats (struct _snd_pcm* handle_in,
   snd_pcm_format_mask_t* format_mask_p = NULL;
   std::set<snd_pcm_format_t> formats_supported;
 
-  //    snd_pcm_hw_params_alloca (&format_p);
   snd_pcm_hw_params_malloc (&format_p);
   if (!format_p)
   {
@@ -2803,7 +2802,6 @@ load_sample_rates (struct _snd_pcm* handle_in,
   int subunit_direction = 0;
   std::set<unsigned int> sample_rates_supported;
 
-//    snd_pcm_hw_params_alloca (&format_p);
   snd_pcm_hw_params_malloc (&format_p);
   if (!format_p)
   {
@@ -2942,7 +2940,6 @@ load_sample_resolutions (struct _snd_pcm* handle_in,
   struct _snd_pcm_hw_params* format_p = NULL;
   std::set<int> resolutions_supported;
 
-//    snd_pcm_hw_params_alloca (&format_p);
   snd_pcm_hw_params_malloc (&format_p);
   if (!format_p)
   {
@@ -3070,7 +3067,6 @@ load_channels (struct _snd_pcm* handle_in,
   unsigned int channels_min, channels_max;
   std::set<unsigned int> channels_supported;
 
-//    snd_pcm_hw_params_alloca (&format_p);
   snd_pcm_hw_params_malloc (&format_p);
   if (!format_p)
   {

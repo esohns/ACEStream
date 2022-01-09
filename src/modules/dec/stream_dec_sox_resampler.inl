@@ -672,53 +672,6 @@ Stream_Decoder_SoXResampler_T<ACE_SYNCH_USE,
                     ACE_TEXT ("%s: added SoX effect \"channels\"\n"),
                     inherited::mod_->name ()));
       } // end IF
-      if (signalInfo_.precision != signalInfoOut_.precision)
-      {
-        effect_handler_p = sox_find_effect (ACE_TEXT_ALWAYS_CHAR ("precision"));
-        if (unlikely (!effect_handler_p))
-        {
-          ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("%s: failed to sox_find_effect(\"precision\"), aborting\n"),
-                      inherited::mod_->name ()));
-          goto error;
-        } // end IF
-        effect_p = sox_create_effect (effect_handler_p);
-        if (unlikely (!effect_p))
-        {
-          ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("%s: failed to sox_create_effect(\"precision\"), aborting\n"),
-                      inherited::mod_->name ()));
-          goto error;
-        } // end IF
-        result = sox_effect_options (effect_p,
-                                     0, NULL);
-        if (unlikely (result != SOX_SUCCESS))
-        {
-          ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("%s: failed to sox_effect_options(\"precision\"): \"%s\", aborting\n"),
-                      inherited::mod_->name (),
-                      ACE_TEXT (sox_strerror (result))));
-          goto error;
-        } // end IF
-        target_signal_s = intermediate_signal_s;
-        target_signal_s.precision = signalInfoOut_.precision;
-        result = sox_add_effect (chain_,
-                                 effect_p,
-                                 &intermediate_signal_s,
-                                 &target_signal_s);
-        if (unlikely (result != SOX_SUCCESS))
-        {
-          ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("%s: failed to sox_add_effect(\"precision\"): \"%s\", aborting\n"),
-                      inherited::mod_->name (),
-                      ACE_TEXT (sox_strerror (result))));
-          goto error;
-        } // end IF
-        free (effect_p); effect_p = NULL;
-        ACE_DEBUG ((LM_DEBUG,
-                    ACE_TEXT ("%s: added SoX effect \"precision\"\n"),
-                    inherited::mod_->name ()));
-      } // end IF
 
       effect_handler_p =
           sox_find_effect (ACE_TEXT_ALWAYS_CHAR ("output"));

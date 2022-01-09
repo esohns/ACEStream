@@ -43,7 +43,7 @@
 #define STREAM_LIB_ALSA_CAPTURE_DEFAULT_BUFFER_SIZE               1024 // bytes (== periodsize * #period)
 #define STREAM_LIB_ALSA_CAPTURE_DEFAULT_BUFFER_TIME               10000 // us
 #define STREAM_LIB_ALSA_CAPTURE_DEFAULT_DEVICE_NAME               STREAM_LIB_ALSA_DEVICE_CAPTURE_PREFIX
-#define STREAM_LIB_ALSA_CAPTURE_DEFAULT_MODE                      SND_PCM_NO_SOFTVOL
+#define STREAM_LIB_ALSA_CAPTURE_DEFAULT_MODE                      SND_PCM_NONBLOCK | SND_PCM_NO_AUTO_RESAMPLE | SND_PCM_NO_AUTO_CHANNELS | SND_PCM_NO_AUTO_FORMAT | SND_PCM_NO_SOFTVOL
 // *IMPORTANT NOTE*: "...Latency is directly proportional with the buffer size
 //                    on playback devices or the period size on capture devices..."
 // *TODO*: number of frames between each interrupt

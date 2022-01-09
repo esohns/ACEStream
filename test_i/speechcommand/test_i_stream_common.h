@@ -47,6 +47,7 @@
 #include "stream_dev_common.h"
 
 #include "stream_stat_common.h"
+#include "stream_stat_defines.h"
 
 #include "stream_vis_common.h"
 #include "stream_vis_defines.h"
@@ -281,6 +282,7 @@ struct Test_I_SpeechCommand_DirectShow_ModuleHandlerConfiguration
 {
   Test_I_SpeechCommand_DirectShow_ModuleHandlerConfiguration ()
    : Test_I_DirectShow_ModuleHandlerConfiguration ()
+   , bufferSize (MODULE_STAT_ANALYSIS_DEFAULT_BUFFER_SIZE)
    , deviceIdentifier ()
    , dispatch (NULL)
    , hotWords ()
@@ -310,6 +312,7 @@ struct Test_I_SpeechCommand_DirectShow_ModuleHandlerConfiguration
     concurrency = STREAM_HEADMODULECONCURRENCY_PASSIVE;
   }
 
+  unsigned int                                      bufferSize; // statistic analysis
   struct Stream_Device_Identifier                   deviceIdentifier; // capture/render
   Stream_Statistic_IDispatch_t*                     dispatch;
   Stream_Decoder_DeepSpeech_HotWords_t              hotWords;
@@ -342,6 +345,7 @@ struct Test_I_SpeechCommand_MediaFoundation_ModuleHandlerConfiguration
 {
   Test_I_SpeechCommand_MediaFoundation_ModuleHandlerConfiguration ()
    : Test_I_MediaFoundation_ModuleHandlerConfiguration ()
+   , bufferSize (MODULE_STAT_ANALYSIS_DEFAULT_BUFFER_SIZE)
    , deviceIdentifier ()
    , dispatch (NULL)
    , hotWords ()
@@ -371,6 +375,7 @@ struct Test_I_SpeechCommand_MediaFoundation_ModuleHandlerConfiguration
     concurrency = STREAM_HEADMODULECONCURRENCY_PASSIVE;
   }
 
+  unsigned int                                      bufferSize; // statistic analysis
   struct Stream_Device_Identifier                   deviceIdentifier; // capture/render
   Stream_Statistic_IDispatch_t*                     dispatch;
   Stream_Decoder_DeepSpeech_HotWords_t              hotWords;
@@ -403,6 +408,7 @@ struct Test_I_SpeechCommand_ALSA_ModuleHandlerConfiguration
 {
   Test_I_SpeechCommand_ALSA_ModuleHandlerConfiguration ()
    : Test_I_ALSA_ModuleHandlerConfiguration ()
+   , bufferSize (MODULE_STAT_ANALYSIS_DEFAULT_BUFFER_SIZE)
    , deviceIdentifier ()
    , dispatch (NULL)
    , hotWords ()
@@ -432,6 +438,7 @@ struct Test_I_SpeechCommand_ALSA_ModuleHandlerConfiguration
     concurrency = STREAM_HEADMODULECONCURRENCY_PASSIVE;
   }
 
+  unsigned int                                      bufferSize; // statistic analysis
   struct Stream_Device_Identifier                   deviceIdentifier; // capture/render
   Stream_Statistic_IDispatch_t*                     dispatch;
   Stream_Decoder_DeepSpeech_HotWords_t              hotWords;

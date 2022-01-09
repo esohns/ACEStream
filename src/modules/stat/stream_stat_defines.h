@@ -38,6 +38,4 @@
 //             'peak' candidates
 #define MODULE_STAT_ANALYSIS_PEAK_DETECTION_DEVIATION_RANGE     3.0 // sigma
 
-#define MODULE_STAT_SPECTRUMANALYSIS_DEFAULT_SAMPLE_RATE        44100
-
 #endif

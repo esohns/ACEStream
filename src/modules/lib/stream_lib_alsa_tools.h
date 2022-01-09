@@ -21,6 +21,8 @@
 #ifndef STREAM_LIB_ALSA_TOOLS_H
 #define STREAM_LIB_ALSA_TOOLS_H
 
+#include <string>
+
 #define ALSA_PCM_NEW_HW_PARAMS_API
 extern "C"
 {
@@ -40,6 +42,9 @@ class Stream_MediaFramework_ALSA_Tools
  public:
   static bool canRender (struct _snd_pcm*,                                    // device handle
                          const struct Stream_MediaFramework_ALSA_MediaType&); // media type
+  static bool getDefaultFormat (const std::string&,                            // card name
+                                bool,                                          // capture ? : playback
+                                struct Stream_MediaFramework_ALSA_MediaType&); // return value: media type
 
   static bool setFormat (struct _snd_pcm*,                                        // device handle
                          const struct Stream_MediaFramework_ALSA_Configuration&); // configuration
@@ -50,7 +55,8 @@ class Stream_MediaFramework_ALSA_Tools
   static std::string formatToString (const struct _snd_pcm*,            // device handle
                                      const struct _snd_pcm_hw_params*); // format
 
-  static void dump (struct _snd_pcm*); // device handle
+  static void dump (struct _snd_pcm*, // device handle
+                    bool);            // current- ? : any
 
   static bool getVolumeLevels (const std::string&, // card name
                                const std::string&, // selem name

@@ -199,10 +199,7 @@ Stream_MessageQueueBase_T<ACE_SYNCH_USE,
   STREAM_TRACE (ACE_TEXT ("Stream_MessageQueueBase_T::waitForIdleState"));
 
   ACE_Time_Value one_second (1, 0);
-#if defined (_GNU_SOURCE)
-#else
   int result = -1;
-#endif // _GNU_SOURCE
   size_t count = 0;
   bool has_waited = false;
   OWN_TYPE_T* this_p = const_cast<OWN_TYPE_T*> (this);
@@ -218,14 +215,14 @@ Stream_MessageQueueBase_T<ACE_SYNCH_USE,
                 count));
 
 #if defined (_GNU_SOURCE)
-    TEMP_FAILURE_RETRY(ACE_OS::sleep (one_second));
+    result = TEMP_FAILURE_RETRY (ACE_OS::sleep (one_second));
 #else
     result = ACE_OS::sleep (one_second);
+#endif // _GNU_SOURCE
     if (unlikely (result == -1))
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to ACE_OS::sleep(%#T): \"%m\", continuing\n"),
                   &one_second));
-#endif // _GNU_SOURCE
   } while (true);
 
   if (has_waited)

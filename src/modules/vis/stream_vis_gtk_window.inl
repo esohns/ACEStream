@@ -46,7 +46,7 @@ Stream_Module_Vis_GTK_Window_T<ACE_SYNCH_USE,
 #endif // ACE_WIN32 || ACE_WIN64
  : inherited (stream_in)
  , inherited2 ()
- , mainLoop_ (NULL)
+// , mainLoop_ (NULL)
  , window_ (NULL)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Vis_GTK_Window_T::Stream_Module_Vis_GTK_Window_T"));
@@ -72,8 +72,8 @@ Stream_Module_Vis_GTK_Window_T<ACE_SYNCH_USE,
 
   if (window_)
     gdk_window_destroy (window_);
-  if (mainLoop_)
-    g_main_loop_unref (mainLoop_);
+//  if (mainLoop_)
+//    g_main_loop_unref (mainLoop_);
 }
 
 template <ACE_SYNCH_DECL,
@@ -166,7 +166,7 @@ Stream_Module_Vis_GTK_Window_T<ACE_SYNCH_USE,
                    GDK_RGB_DITHER_NONE, 0, 0);
 #endif // GTK_CHECK_VERSION (3,0,0)
 
-    g_object_unref (buffer_p); buffer_p = NULL;
+  g_object_unref (buffer_p); buffer_p = NULL;
 
   if (likely (leave_gdk))
   {
@@ -203,7 +203,7 @@ Stream_Module_Vis_GTK_Window_T<ACE_SYNCH_USE,
       // sanity check(s)
       // *TODO*: remove type inference
       ACE_ASSERT (inherited::configuration_);
-      ACE_ASSERT (!window_ && !mainLoop_);
+      ACE_ASSERT (!window_);// && !mainLoop_);
       Common_Image_Resolution_t resolution_s =
         inherited2::getResolution (inherited::configuration_->outputFormat);
 
@@ -238,14 +238,16 @@ error:
         gdk_window_destroy (window_); window_ = NULL;
       } // end IF
 
-      if (likely (mainLoop_ &&
-                  g_main_loop_is_running (mainLoop_)))
-        g_main_loop_quit (mainLoop_);
+//      if (likely (mainLoop_ &&
+//                  g_main_loop_is_running (mainLoop_)))
+//        g_main_loop_quit (mainLoop_);
+      if (inherited::thr_count_ > 0)
+        gtk_main_quit ();
 
-      if (likely (mainLoop_))
-      {
-        g_main_loop_unref (mainLoop_); mainLoop_ = NULL;
-      } // end IF
+//      if (likely (mainLoop_))
+//      {
+//        g_main_loop_unref (mainLoop_); mainLoop_ = NULL;
+//      } // end IF
 
       break;
     }
@@ -275,10 +277,10 @@ Stream_Module_Vis_GTK_Window_T<ACE_SYNCH_USE,
 
   if (inherited::isInitialized_)
   {
-    if (mainLoop_)
-    {
-      g_main_loop_unref (mainLoop_); mainLoop_ = NULL;
-    } // end IF
+//    if (mainLoop_)
+//    {
+//      g_main_loop_unref (mainLoop_); mainLoop_ = NULL;
+//    } // end IF
     if (window_)
     {
       gdk_window_destroy (window_); window_ = NULL;
@@ -332,17 +334,18 @@ Stream_Module_Vis_GTK_Window_T<ACE_SYNCH_USE,
 
   // sanity check(s)
   ACE_ASSERT (Common_UI_GTK_Tools::GTKInitialized);
-  ACE_ASSERT (!mainLoop_);
+//  ACE_ASSERT (!mainLoop_);
   ACE_ASSERT (!window_);
 
-  mainLoop_ = g_main_new (FALSE); // is running ?
-  if (unlikely (!mainLoop_))
-  {
-    ACE_DEBUG ((LM_CRITICAL,
-                ACE_TEXT ("%s: failed to g_main_new(FALSE), aborting\n"),
-                inherited::mod_->name ()));
-    return false;
-  } // end IF
+//  mainLoop_ = g_main_loop_new (NULL,
+//                               FALSE); // is running ?
+//  if (unlikely (!mainLoop_))
+//  {
+//    ACE_DEBUG ((LM_CRITICAL,
+//                ACE_TEXT ("%s: failed to g_main_loop_new(NULL,FALSE), aborting\n"),
+//                inherited::mod_->name ()));
+//    return false;
+//  } // end IF
 
   GdkWindowAttr attributes_a;
   gint attributes_mask = 0;
@@ -364,7 +367,7 @@ Stream_Module_Vis_GTK_Window_T<ACE_SYNCH_USE,
     ACE_DEBUG ((LM_CRITICAL,
                 ACE_TEXT ("%s: failed to gdk_window_new(), aborting\n"),
                 inherited::mod_->name ()));
-    g_main_loop_unref (mainLoop_); mainLoop_ = NULL;
+//    g_main_loop_unref (mainLoop_); mainLoop_ = NULL;
     return false;
   } // end IF
 
@@ -390,9 +393,10 @@ Stream_Module_Vis_GTK_Window_T<ACE_SYNCH_USE,
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Vis_GTK_Window_T::svc"));
 
   // sanity check(s)
-  ACE_ASSERT (mainLoop_);
+//  ACE_ASSERT (mainLoop_);
 
-  g_main_loop_run (mainLoop_);
+//  g_main_loop_run (mainLoop_);
+  gtk_main ();
 
   return 0;
 }

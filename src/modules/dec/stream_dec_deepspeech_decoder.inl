@@ -352,8 +352,7 @@ error:
       {
         char* string_p = DS_FinishStream (context2_);
         if (likely (string_p))
-        {
-          ACE_ASSERT (false); // *TODO*: send downstream
+        { // *TODO*: send final results downstream
           DS_FreeString (string_p); string_p = NULL;
         } // end IF
         context2_ = NULL;
