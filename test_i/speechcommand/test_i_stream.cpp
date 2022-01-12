@@ -1548,15 +1548,15 @@ Test_I_ALSA_Stream::load (Stream_ILayout* layout_in,
   //  layout_in->append (module_p, NULL, 0);
   //  module_p = NULL;
 
-#if defined (SOX_SUPPORT)
-  ACE_NEW_RETURN (module_p,
-                  Test_I_ALSA_SoXResampler_Module (this,
-                                                   ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_ENCODER_SOX_RESAMPLER_DEFAULT_NAME_STRING)),
-                  false);
-  ACE_ASSERT (module_p);
-  layout_in->append (module_p, NULL, 0);
-  module_p = NULL;
-#endif // SOX_SUPPORT
+//#if defined (SOX_SUPPORT)
+//  ACE_NEW_RETURN (module_p,
+//                  Test_I_ALSA_SoXResampler_Module (this,
+//                                                   ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_ENCODER_SOX_RESAMPLER_DEFAULT_NAME_STRING)),
+//                  false);
+//  ACE_ASSERT (module_p);
+//  layout_in->append (module_p, NULL, 0);
+//  module_p = NULL;
+//#endif // SOX_SUPPORT
 
   typename inherited::MODULE_T* branch_p = NULL; // NULL: 'main' branch
   unsigned int index_i = 0;
@@ -1567,7 +1567,8 @@ Test_I_ALSA_Stream::load (Stream_ILayout* layout_in,
   ACE_ASSERT (module_p);
   branch_p = module_p;
   inherited::configuration_->configuration_->branches.push_back (ACE_TEXT_ALWAYS_CHAR (STREAM_SUBSTREAM_DISPLAY_NAME));
-//    inherited::configuration_->configuration_->branches.push_back (ACE_TEXT_ALWAYS_CHAR (STREAM_SUBSTREAM_SAVE_NAME));
+  if (!(*iterator_3).second.second->fileIdentifier.empty ())
+    inherited::configuration_->configuration_->branches.push_back (ACE_TEXT_ALWAYS_CHAR (STREAM_SUBSTREAM_SAVE_NAME));
   Stream_IDistributorModule* idistributor_p =
     dynamic_cast<Stream_IDistributorModule*> (module_p->writer ());
   ACE_ASSERT (idistributor_p);
@@ -1593,10 +1594,23 @@ Test_I_ALSA_Stream::load (Stream_ILayout* layout_in,
                   Test_I_ALSA_Vis_SpectrumAnalyzer_Module (this,
                                                            ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_GTK_SPECTRUM_ANALYZER_DEFAULT_NAME_STRING)),
                   false);
+  ACE_ASSERT (module_p);
   layout_in->append (module_p, branch_p, index_i);
   module_p = NULL;
 #endif // GTK_USE
 #endif // GUI_SUPPORT
+
+  ++index_i;
+  if (!(*iterator_3).second.second->fileIdentifier.empty ())
+  {
+    ACE_NEW_RETURN (module_p,
+                    Test_I_ALSA_WAVEncoder_Module (this,
+                                                   ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_ENCODER_WAV_DEFAULT_NAME_STRING)),
+                    false);
+    ACE_ASSERT (module_p);
+    layout_in->append (module_p, branch_p, index_i);
+    module_p = NULL;
+  } // end IF
 
 #if defined (DEEPSPEECH_SUPPORT)
   ACE_NEW_RETURN (module_p,
@@ -1606,62 +1620,6 @@ Test_I_ALSA_Stream::load (Stream_ILayout* layout_in,
   layout_in->append (module_p, NULL, 0);
   module_p = NULL;
 #endif // DEEPSPEECH_SUPPORT
-
-//  // *NOTE*: this processing stream may have branches, depending on:
-//  //         - whether the output is muted
-//  //         - whether the output is saved to file
-//  if (!(*iterator).second.second->mute ||
-//      !(*iterator_3).second.second->fileIdentifier.empty ())
-//  {
-//    typename inherited::MODULE_T* branch_p = NULL; // NULL: 'main' branch
-//    unsigned int index_i = 0;
-//    if (!(*iterator).second.second->mute &&
-//        !(*iterator_3).second.second->fileIdentifier.empty ())
-//    {
-//      ACE_NEW_RETURN (module_p,
-//                      Test_I_ALSA_Distributor_Module (this,
-//                                                      ACE_TEXT_ALWAYS_CHAR (STREAM_MISC_DISTRIBUTOR_DEFAULT_NAME_STRING)),
-//                      false);
-//      branch_p = module_p;
-//      inherited::configuration_->configuration_->branches.push_back (ACE_TEXT_ALWAYS_CHAR (STREAM_SUBSTREAM_PLAYBACK_NAME));
-//      inherited::configuration_->configuration_->branches.push_back (ACE_TEXT_ALWAYS_CHAR (STREAM_SUBSTREAM_SAVE_NAME));
-//      Stream_IDistributorModule* idistributor_p =
-//        dynamic_cast<Stream_IDistributorModule*> (module_p->writer ());
-//      ACE_ASSERT (idistributor_p);
-//      idistributor_p->initialize (inherited::configuration_->configuration_->branches);
-//      layout_in->append (module_p, NULL, 0);
-//      module_p = NULL;
-//    } // end IF
-
-//    if (!(*iterator).second.second->mute)
-//    {
-//      ACE_NEW_RETURN (module_p,
-//                      Test_I_Target_ALSA_Module (this,
-//                                                 ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_TARGET_ALSA_DEFAULT_NAME_STRING)),
-//                      false);
-//      layout_in->append (module_p, branch_p, index_i);
-//      ++index_i;
-//      module_p = NULL;
-//    } // end IF
-//    if (!(*iterator_3).second.second->fileIdentifier.empty ())
-//    {
-//      ACE_NEW_RETURN (module_p,
-//                      Test_I_ALSA_WAVEncoder_Module (this,
-//                                                     ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_ENCODER_WAV_DEFAULT_NAME_STRING)),
-//                      false);
-//      layout_in->append (module_p, branch_p, index_i);
-//      ++index_i;
-//      module_p = NULL;
-//      // *NOTE*: currently, on UNIX systems, the WAV encoder writes the WAV file
-//      //         itself
-//      //  ACE_NEW_RETURN (module_p,
-//      //                  Test_I_ALSA_FileWriter_Module (this,
-//      //                                                 ACE_TEXT_ALWAYS_CHAR (MODULE_FILE_SINK_DEFAULT_NAME_STRING)),
-//      //                  false);
-//      //  modules_out.push_back (module_p);
-//      //  module_p = NULL;
-//    } // end IF
-//  } // end ELSE
 
   return true;
 }

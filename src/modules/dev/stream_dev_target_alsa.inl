@@ -485,18 +485,15 @@ Stream_Dev_Target_ALSA_T<ACE_SYNCH_USE,
 //          goto error;
 //        } // end IF
 
-        int mode = 0;
-        // *TODO*: remove type inference
-//         if (inherited::configuration_->ALSAConfiguration->asynch)
-//           mode |= SND_PCM_ASYNC;
-        //    snd_spcm_init();
+//        snd_spcm_init();
         std::string device_identifier_string =
           inherited::configuration_->deviceIdentifier.identifier;
 open:
-        result = snd_pcm_open (&deviceHandle_,
-                               device_identifier_string.c_str (),
-                               SND_PCM_STREAM_PLAYBACK,
-                               mode);
+        result =
+          snd_pcm_open (&deviceHandle_,
+                        device_identifier_string.c_str (),
+                        SND_PCM_STREAM_PLAYBACK,
+                        inherited::configuration_->ALSAConfiguration->mode);
         if (unlikely (result < 0))
         {
           if ((result == -EBUSY) &&
@@ -507,7 +504,7 @@ open:
                         ACE_TEXT ("%s: failed to snd_pcm_open(\"%s\",%d) for playback: \"%s\", falling back\n"),
                         inherited::mod_->name (),
                         ACE_TEXT (device_identifier_string.c_str ()),
-                        mode,
+                        inherited::configuration_->ALSAConfiguration->mode,
                         ACE_TEXT (snd_strerror (result))));
             device_identifier_string =
               ACE_TEXT_ALWAYS_CHAR (STREAM_LIB_ALSA_DEVICE_DEFAULT);
@@ -519,7 +516,7 @@ open:
                       ACE_TEXT ("%s: failed to snd_pcm_open(\"%s\",%d) for playback: \"%s\", aborting\n"),
                       inherited::mod_->name (),
                       ACE_TEXT (device_identifier_string.c_str ()),
-                      mode,
+                      inherited::configuration_->ALSAConfiguration->mode,
                       ACE_TEXT (snd_strerror (result))));
           goto error;
         } // end IF

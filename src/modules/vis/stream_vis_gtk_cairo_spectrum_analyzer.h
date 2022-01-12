@@ -124,6 +124,7 @@ class Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T
 
   void update ();
 
+  unsigned int                                       bufferedSamples_;
   cairo_t*                                           cairoContext_;
 #if defined (GTKGL_SUPPORT)
 #if GTK_CHECK_VERSION(3,0,0)

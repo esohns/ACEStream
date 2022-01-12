@@ -174,14 +174,18 @@ Stream_Decoder_WAVEncoder_T<ACE_SYNCH_USE,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
 #if defined (SOX_SUPPORT)
-    result = sox_quit ();
-    if (unlikely (result != SOX_SUCCESS))
+    ACE_ASSERT (inherited::configuration_);
+    if (inherited::configuration_->manageSoX)
     {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("%s: failed to sox_quit(): \"%s\", aborting\n"),
-                  inherited::mod_->name (),
-                  ACE_TEXT (sox_strerror (result))));
-      return false;
+      result = sox_quit ();
+      if (unlikely (result != SOX_SUCCESS))
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("%s: failed to sox_quit(): \"%s\", aborting\n"),
+                    inherited::mod_->name (),
+                    ACE_TEXT (sox_strerror (result))));
+        return false;
+      } // end IF
     } // end IF
 #endif // SOX_SUPPORT
 #endif // ACE_WIN32 || ACE_WIN64
@@ -190,14 +194,17 @@ Stream_Decoder_WAVEncoder_T<ACE_SYNCH_USE,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
 #if defined (SOX_SUPPORT)
-  result = sox_init ();
-  if (unlikely (result != SOX_SUCCESS))
+  if (configuration_in.manageSoX)
   {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: failed to sox_init(): \"%s\", aborting\n"),
-                inherited::mod_->name (),
-                ACE_TEXT (sox_strerror (result))));
-    return false;
+    result = sox_init ();
+    if (unlikely (result != SOX_SUCCESS))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("%s: failed to sox_init(): \"%s\", aborting\n"),
+                  inherited::mod_->name (),
+                  ACE_TEXT (sox_strerror (result))));
+      return false;
+    } // end IF
   } // end IF
 #endif // SOX_SUPPORT
 #endif // ACE_WIN32 || ACE_WIN64

@@ -1095,6 +1095,7 @@ ACE_TMAIN (int argc_in,
   } // end IF
   if (!Common_Signal_Tools::preInitialize (signal_set,
                                            COMMON_SIGNAL_DEFAULT_DISPATCH_MODE,
+                                           false, // do not use networking
                                            previous_signal_actions,
                                            previous_signal_mask))
   {

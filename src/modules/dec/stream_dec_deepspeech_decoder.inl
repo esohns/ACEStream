@@ -28,6 +28,8 @@
 #include "stream_lib_alsa_common.h"
 #endif // ACE_WIN32 || ACE_WIN64
 
+#include "stream_dec_defines.h"
+
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ConfigurationType,
@@ -49,8 +51,11 @@ Stream_Decoder_DeepSpeechDecoder_T<ACE_SYNCH_USE,
                                    MediaType>::Stream_Decoder_DeepSpeechDecoder_T (typename inherited::ISTREAM_T* stream_in)
 #endif // ACE_WIN32 || ACE_WIN64
  : inherited (stream_in)
+ , bufferedMs_ (0)
  , context_ (NULL)
  , context2_ (NULL)
+ , decodedWords_ (0)
+ , sampleSize_ (0)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Decoder_DeepSpeechDecoder_T::Stream_Decoder_DeepSpeechDecoder_T"));
 
@@ -106,6 +111,7 @@ Stream_Decoder_DeepSpeechDecoder_T<ACE_SYNCH_USE,
 
   if (inherited::isInitialized_)
   {
+    bufferedMs_ = 0;
     if (unlikely (context2_))
     {
       DS_FinishStream (context2_); context2_ = NULL;
@@ -114,6 +120,8 @@ Stream_Decoder_DeepSpeechDecoder_T<ACE_SYNCH_USE,
     {
       DS_FreeModel (context_); context_ = NULL;
     } // end IF
+    decodedWords_ = 0;
+    sampleSize_ = 0;
   } // end IF
 
   result = DS_CreateModel (configuration_in.modelFile.c_str (),
@@ -129,18 +137,29 @@ Stream_Decoder_DeepSpeechDecoder_T<ACE_SYNCH_USE,
     DS_FreeString (string_p);
     return false;
   } // end IF
-
-//  result = DS_SetModelBeamWidth (context_, 0);
-//  if (unlikely (result))
-//  { char* string_p = DS_ErrorCodeToErrorMessage (result);
-//    ACE_ASSERT (string_p);
-//    ACE_DEBUG ((LM_ERROR,
-//                ACE_TEXT ("%s: failed to DS_SetModelBeamWidth(): \"%s\", aborting\n"),
-//                inherited::mod_->name (),
-//                ACE_TEXT (string_p)));
-//    DS_FreeString (string_p);
-//    return false;
-//  } // end IF
+//  ACE_DEBUG ((LM_DEBUG,
+//              ACE_TEXT ("%s: default beam width: %u\n"),
+//              inherited::mod_->name (),
+//              DS_GetModelBeamWidth (context_)));
+  if (DS_GetModelBeamWidth (context_) != STREAM_DEC_DEEPSPEECH_DEFAULT_BEAM_WIDTH)
+  {
+    result = DS_SetModelBeamWidth (context_, STREAM_DEC_DEEPSPEECH_DEFAULT_BEAM_WIDTH);
+    if (unlikely (result))
+    { char* string_p = DS_ErrorCodeToErrorMessage (result);
+      ACE_ASSERT (string_p);
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("%s: failed to DS_SetModelBeamWidth(%u): \"%s\", aborting\n"),
+                  inherited::mod_->name (),
+                  STREAM_DEC_DEEPSPEECH_DEFAULT_BEAM_WIDTH,
+                  ACE_TEXT (string_p)));
+      DS_FreeString (string_p);
+      return false;
+    } // end IF
+    ACE_DEBUG ((LM_DEBUG,
+                ACE_TEXT ("%s: set beam width: %u\n"),
+                inherited::mod_->name (),
+                STREAM_DEC_DEEPSPEECH_DEFAULT_BEAM_WIDTH));
+  } // end IF
 
   if (!configuration_in.scorerFile.empty ())
   {
@@ -223,27 +242,90 @@ Stream_Decoder_DeepSpeechDecoder_T<ACE_SYNCH_USE,
     const_cast<typename DataMessageType::DATA_T&> (message_inout->getR ());
   ACE_Message_Block* message_block_p = message_inout;
   const char* partial_p = NULL;
+  unsigned int number_of_samples_i = 0;
+  int result = -1;
+
   while (message_block_p)
   {
+    number_of_samples_i = message_block_p->length () / sampleSize_;
     DS_FeedAudioContent (context2_,
                          reinterpret_cast<short int*> (message_block_p->rd_ptr ()),
-                         message_block_p->length () / 2);
-
+                         number_of_samples_i);
+    bufferedMs_ +=
+      static_cast<unsigned int> ((number_of_samples_i * 1000.0) / static_cast<double> (DS_GetModelSampleRate (context_)));
+    if (bufferedMs_ < STREAM_DEC_DEEPSPEECH_DECODE_BUFFER_LENGTH_MS)
+      goto continue_;
+    bufferedMs_ -= STREAM_DEC_DEEPSPEECH_DECODE_BUFFER_LENGTH_MS;
     partial_p = DS_IntermediateDecode (context2_);
-    ACE_ASSERT (partial_p);
-    if (ACE_OS::strlen (partial_p))
+    decodedWords_ += processWords (partial_p,
+                                   data_r.words); // *TODO*: remove type inference
+    if (likely (partial_p))
     {
-      ACE_DEBUG ((LM_DEBUG,
-                  ACE_TEXT ("%s: \"%s\"\n"),
-                  inherited::mod_->name (),
-                  ACE_TEXT (partial_p)));
-      // *TODO*: remove type inference
-      data_r.words.push_back (partial_p);
+      DS_FreeString (const_cast<char*> (partial_p)); partial_p = NULL;
     } // end IF
-    DS_FreeString (const_cast<char*> (partial_p)); partial_p = NULL;
-
+    if (decodedWords_ < STREAM_DEC_DEEPSPEECH_RESTREAM_WORD_LIMIT)
+      goto continue_;
+    partial_p = DS_FinishStream (context2_);
+    if (likely (partial_p))
+    {
+      DS_FreeString (const_cast<char*> (partial_p)); partial_p = NULL;
+    } // end IF
+    context2_ = NULL;
+    result = DS_CreateStream (context_, &context2_);
+    if (unlikely ((result != DS_ERR_OK) || !context2_))
+    { char* string_p = DS_ErrorCodeToErrorMessage (result);
+      ACE_ASSERT (string_p);
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("%s: failed to DS_CreateStream(): \"%s\", aborting\n"),
+                  inherited::mod_->name (),
+                  ACE_TEXT (string_p)));
+      DS_FreeString (string_p);
+      goto error;
+    } // end IF
+    decodedWords_ -= STREAM_DEC_DEEPSPEECH_RESTREAM_WORD_LIMIT;
+    bufferedMs_ = 0;
+continue_:
     message_block_p = message_block_p->cont ();
   } // end WHILE
+
+  return;
+
+error:
+  this->notify (STREAM_SESSION_MESSAGE_ABORT);
+}
+
+template <ACE_SYNCH_DECL,
+          typename TimePolicyType,
+          typename ConfigurationType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
+          typename SessionDataContainerType,
+          typename MediaType>
+unsigned int
+Stream_Decoder_DeepSpeechDecoder_T<ACE_SYNCH_USE,
+                                   TimePolicyType,
+                                   ConfigurationType,
+                                   ControlMessageType,
+                                   DataMessageType,
+                                   SessionMessageType,
+                                   SessionDataContainerType,
+                                   MediaType>::processWords (const char* inputString_in,
+                                                             Stream_Decoder_DeepSpeech_Result_t& result_out)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Decoder_DeepSpeechDecoder_T::processWords"));
+
+  // sanity check(s)
+  if (!inputString_in)
+    return 0;
+
+  unsigned int prev_size_i = result_out.size ();
+  std::stringstream string_stream (inputString_in);
+  std::string token_string;
+  while (std::getline (string_stream, token_string, ' '))
+    result_out.push_back (token_string);
+
+  return result_out.size () - prev_size_i;
 }
 
 template <ACE_SYNCH_DECL,
@@ -320,6 +402,8 @@ Stream_Decoder_DeepSpeechDecoder_T<ACE_SYNCH_USE,
                     1, media_type_s.channels));
         goto error;
       } // end IF
+
+      sampleSize_ = (snd_pcm_format_width (media_type_s.format) / 8);
 #endif // ACE_WIN32 || ACE_WIN64
       ACE_ASSERT(!context2_);
 

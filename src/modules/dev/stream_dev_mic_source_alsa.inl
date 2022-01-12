@@ -20,17 +20,15 @@
 
 #include "ace/Log_Msg.h"
 #include "ace/Message_Block.h"
-#include "ace/Message_Queue.h"
-#include "ace/Signal.h"
 
 #include "common_configuration.h"
-#include "common_file_tools.h"
 
 #include "common_timer_manager_common.h"
 
+#include "common_task_tools.h"
+
 #include "stream_defines.h"
 #include "stream_macros.h"
-#include "stream_session_message_base.h"
 
 #include "stream_lib_alsa_tools.h"
 
@@ -413,21 +411,18 @@ Stream_Dev_Mic_Source_ALSA_T<ACE_SYNCH_USE,
 
       if (!isPassive_)
       { ACE_ASSERT (!handle_);
-        int mode_i = STREAM_LIB_ALSA_CAPTURE_DEFAULT_MODE;
-        if (inherited::configuration_->ALSAConfiguration->asynch)
-          mode_i |= SND_PCM_ASYNC;
         result =
             snd_pcm_open (&handle_,
                           inherited::configuration_->deviceIdentifier.identifier.c_str (),
                           SND_PCM_STREAM_CAPTURE,
-                          mode_i);
+                          inherited::configuration_->ALSAConfiguration->mode);
         if (unlikely (result < 0))
         {
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("%s: failed to snd_pcm_open(\"%s\",%d) for capture: \"%s\", aborting\n"),
                       inherited::mod_->name (),
                       ACE_TEXT (inherited::configuration_->deviceIdentifier.identifier.c_str ()),
-                      mode_i,
+                      inherited::configuration_->ALSAConfiguration->mode,
                       ACE_TEXT (snd_strerror (result))));
           goto error;
         } // end IF
@@ -780,6 +775,15 @@ Stream_Dev_Mic_Source_ALSA_T<ACE_SYNCH_USE,
     return inherited::svc ();
   ACE_ASSERT (inherited::sessionData_);
 
+  if (unlikely (!Common_Task_Tools::setThreadPriority (0,
+                                                       std::numeric_limits<int>::min ())))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s: failed to Common_Task_Tools::setThreadPriority(), aborting\n"),
+                inherited::mod_->name ()));
+    return -1;
+  } // end IF
+
   ACE_DEBUG ((LM_DEBUG,
               ACE_TEXT ("%s: worker thread (id: %t, group: %d) starting\n"),
               inherited::mod_->name (),
@@ -813,7 +817,7 @@ Stream_Dev_Mic_Source_ALSA_T<ACE_SYNCH_USE,
       if (error != EWOULDBLOCK) // Linux: 11 | Win32: 10035
       {
         ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("%s: worker thread (id: %t) failed to ACE_Task::getq(): \"%m\", aborting\n"),
+                    ACE_TEXT ("%s: failed to ACE_Task::getq(): \"%m\", aborting\n"),
                     inherited::mod_->name ()));
         break;
       } // end IF
@@ -1089,5 +1093,14 @@ recover_xrun:
   result = -1;
 
 done:
+  if (unlikely (!Common_Task_Tools::setThreadPriority (0,
+                                                       0)))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s: failed to Common_Task_Tools::setThreadPriority(), aborting\n"),
+                inherited::mod_->name ()));
+    return -1;
+  } // end IF
+
   return result;
 }

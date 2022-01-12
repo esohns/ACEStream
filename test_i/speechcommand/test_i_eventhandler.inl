@@ -18,6 +18,8 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
+#include <iostream>
+
 #if defined (GUI_SUPPORT)
 #if defined (GTK_SUPPORT)
 #include "gtk/gtk.h"
@@ -109,7 +111,6 @@ Test_I_EventHandler_T<NotificationType,
 
   // sanity check(s)
 #if defined (GUI_SUPPORT)
-  ACE_ASSERT (CBData_);
 #if defined (GTK_USE)
   Common_UI_GTK_Manager_t* gtk_manager_p =
     COMMON_UI_GTK_MANAGER_SINGLETON::instance ();
@@ -195,7 +196,6 @@ Test_I_EventHandler_T<NotificationType,
 
   // sanity check(s)
 #if defined (GUI_SUPPORT)
-  ACE_ASSERT (CBData_);
 #if defined (GTK_USE)
   Common_UI_GTK_Manager_t* gtk_manager_p =
     COMMON_UI_GTK_MANAGER_SINGLETON::instance ();
@@ -221,6 +221,7 @@ Test_I_EventHandler_T<NotificationType,
 #endif // GTK_USE
 #endif // GUI_SUPPORT
 #if defined (GUI_SUPPORT)
+  if (likely (CBData_))
 #if defined (GTK_USE) || defined (WXWIDGETS_USE)
   { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, state_r.lock);
 #if defined (GTK_USE)
@@ -233,7 +234,7 @@ Test_I_EventHandler_T<NotificationType,
       state_r.eventSourceIds.insert (event_source_id);
 #endif // GTK_USE
     state_r.eventStack.push (COMMON_UI_EVENT_FINISHED);
-  } // end lock scope
+  } // end IF/lock scope
 #endif // GTK_USE || WXWIDGETS_USE
 #endif // GUI_SUPPORT
 
@@ -268,8 +269,6 @@ Test_I_EventHandler_T<NotificationType,
 
   // sanity check(s)
 #if defined (GUI_SUPPORT)
-  ACE_ASSERT (CBData_);
-  const typename DataMessageType::DATA_T& data_r = message_in.getR ();
 #if defined (GTK_USE)
   Common_UI_GTK_Manager_t* gtk_manager_p =
     COMMON_UI_GTK_MANAGER_SINGLETON::instance ();
@@ -279,6 +278,9 @@ Test_I_EventHandler_T<NotificationType,
 #endif
 #endif // GUI_SUPPORT
 
+  typename DataMessageType::DATA_T& data_r =
+    const_cast<typename DataMessageType::DATA_T&> (message_in.getR ());
+  const DataMessageType* message_p = &message_in;
 #if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
   UIStateType& state_r =
@@ -289,31 +291,36 @@ Test_I_EventHandler_T<NotificationType,
 #endif // GTK_USE
 #endif // GUI_SUPPORT
 
+  do
+  {
 #if defined (GUI_SUPPORT)
+    if (likely (CBData_))
 #if defined (GTK_USE) || defined (WXWIDGETS_USE)
-  { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, state_r.lock);
-    CBData_->progressData.statistic.bytes += message_in.total_length ();
-    state_r.eventStack.push (COMMON_UI_EVENT_DATA);
+    { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, state_r.lock);
+      CBData_->progressData.statistic.bytes += message_in.total_length ();
+      state_r.eventStack.push (COMMON_UI_EVENT_DATA);
 
-    CBData_->progressData.words.insert (CBData_->progressData.words.end (),
-                                        data_r.words.begin (), data_r.words.end ());
-  } // end lock scope
+      CBData_->progressData.words.insert (CBData_->progressData.words.end (),
+                                          data_r.words.begin (), data_r.words.end ());
+      goto continue_;
+    } // end IF/lock scope
+#else
+      goto continue_;
 #endif // GTK_USE || WXWIDGETS_USE
 #endif // GUI_SUPPORT
+    for (Stream_Decoder_DeepSpeech_ResultConstIterator_t iterator = data_r.words.begin ();
+         iterator != data_r.words.end ();
+         ++iterator)
+      std::cout << *iterator << ACE_TEXT_ALWAYS_CHAR (" ");
+    if (!data_r.words.empty ())
+      std::cout.flush ();
 
-#if defined (GUI_SUPPORT)
-#if defined (GTK_USE)
-//  guint event_source_id = g_idle_add (idle_update_video_display_cb,
-//                                      CBData_);
-//  if (event_source_id == 0)
-//  {
-//    ACE_DEBUG ((LM_ERROR,
-//                ACE_TEXT ("failed to g_idle_add(idle_update_video_display_cb): \"%m\", returning\n")));
-//    return;
-//  } // end IF
-//  CBData_->UIState.eventSourceIds.insert (event_source_id);
-#endif // GTK_USE
-#endif // GUI_SUPPORT
+continue_:
+    message_p = static_cast<DataMessageType*> (message_p->cont ());
+    if (message_p)
+      data_r =
+        const_cast<typename DataMessageType::DATA_T&> (message_p->getR ());
+  } while (message_p);
 }
 
 template <typename NotificationType,
@@ -343,7 +350,6 @@ Test_I_EventHandler_T<NotificationType,
 
   // sanity check(s)
 #if defined (GUI_SUPPORT)
-  ACE_ASSERT (CBData_);
 #if defined (GTK_USE)
   Common_UI_GTK_Manager_t* gtk_manager_p =
     COMMON_UI_GTK_MANAGER_SINGLETON::instance ();
@@ -364,7 +370,9 @@ Test_I_EventHandler_T<NotificationType,
 #endif // GUI_SUPPORT
 
   int result = -1;
+#if defined (GUI_SUPPORT)
   enum Common_UI_EventType event_e = COMMON_UI_EVENT_INVALID;
+#endif // GUI_SUPPORT
   switch (sessionMessage_in.type ())
   {
     case STREAM_SESSION_MESSAGE_STATISTIC:
@@ -382,21 +390,26 @@ Test_I_EventHandler_T<NotificationType,
         if (sessionData_->lock)
         {
           result = sessionData_->lock->acquire ();
-          if (result == -1)
+          if (unlikely (result == -1))
             ACE_DEBUG ((LM_ERROR,
                         ACE_TEXT ("failed to ACE_SYNCH_MUTEX::acquire(): \"%m\", continuing\n")));
         } // end IF
 
         // *NOTE*: the byte counter is more current than what is received here
         //         (see above) --> do not update
-        current_bytes = CBData_->progressData.statistic.bytes;
-        CBData_->progressData.statistic = sessionData_->statistic;
-        CBData_->progressData.statistic.bytes = current_bytes;
+#if defined (GUI_SUPPORT)
+        if (likely (CBData_))
+        {
+          current_bytes = CBData_->progressData.statistic.bytes;
+          CBData_->progressData.statistic = sessionData_->statistic;
+          CBData_->progressData.statistic.bytes = current_bytes;
+        } // end IF
+#endif // GUI_SUPPORT
 
         if (sessionData_->lock)
         {
           result = sessionData_->lock->release ();
-          if (result == -1)
+          if (unlikely (result == -1))
             ACE_DEBUG ((LM_ERROR,
                         ACE_TEXT ("failed to ACE_SYNCH_MUTEX::release(): \"%m\", continuing\n")));
         } // end IF
@@ -406,7 +419,9 @@ Test_I_EventHandler_T<NotificationType,
 #endif // GUI_SUPPORT
 
 continue_:
+#if defined (GUI_SUPPORT)
       event_e = COMMON_UI_EVENT_STATISTIC;
+#endif // GUI_SUPPORT
       break;
     }
     default:

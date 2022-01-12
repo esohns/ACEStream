@@ -71,6 +71,7 @@ Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
  , inherited2 (STREAM_VIS_SPECTRUMANALYZER_DEFAULT_CHANNELS,
                STREAM_VIS_SPECTRUMANALYZER_DEFAULT_BUFFER_SIZE,
                STREAM_VIS_SPECTRUMANALYZER_DEFAULT_SAMPLE_RATE)
+ , bufferedSamples_ (0)
  , cairoContext_ (NULL)
 #if defined (GTKGL_SUPPORT)
  , backgroundColor_ ()
@@ -183,6 +184,7 @@ Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
     //         (re-)activate()d (see below)
     inherited::msg_queue (NULL);
 
+    bufferedSamples_ = 0;
     if (cairoContext_)
     {
       cairo_destroy (cairoContext_); cairoContext_ = NULL;
@@ -335,17 +337,22 @@ Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
   //ACE_ASSERT (!(message_inout->length () % sampleIterator_.dataSampleSize_));
   //ACE_ASSERT (!(message_inout->length () % sampleIterator_.soundSampleSize_));
 
-  unsigned int number_of_samples =
-    message_inout->length () / sampleIterator_.dataSampleSize_;
+  unsigned int number_of_samples = 0;
   unsigned int samples_to_write = 0;
   unsigned int offset = 0;
   unsigned int tail_slot = 0;
-  //sampleIterator_.buffer_ = NULL;
+  ACE_Message_Block* message_block_p = message_inout;
+
+next:
+  number_of_samples =
+    message_block_p->length () / sampleIterator_.dataSampleSize_;
 
   do
   {
     samples_to_write = std::min (inherited2::slots_, number_of_samples);
-    sampleIterator_.buffer_ = message_inout->rd_ptr () + offset;
+    bufferedSamples_ += samples_to_write;
+    sampleIterator_.buffer_ =
+      reinterpret_cast<uint8_t*> (message_block_p->rd_ptr ()) + offset;
     for (unsigned int i = 0; i < inherited2::channels_; ++i)
     {
       // step1a: copy the inbound sample data into the buffer array
@@ -362,10 +369,10 @@ Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
       // copy the sample data to the tail end of the buffer, transform to double
       for (unsigned int j = 0; j < samples_to_write; ++j)
         inherited2::buffer_[i][tail_slot + j] = sampleIterator_.get (j, i);
-      offset += (sampleIterator_.soundSampleSize_ * samples_to_write);
 
       // step1b: process sample data
-      if (*mode2D_ > STREAM_VISUALIZATION_SPECTRUMANALYZER_2DMODE_OSCILLOSCOPE)
+      if ((*mode2D_ > STREAM_VISUALIZATION_SPECTRUMANALYZER_2DMODE_OSCILLOSCOPE) &&
+          (bufferedSamples_ >= inherited2::slots_))
       {
         // initialize the FFT working set buffer, transform to complex
         for (unsigned int j = 0; j < inherited2::slots_; ++j)
@@ -373,12 +380,20 @@ Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
 
         // compute FFT
         inherited2::Compute (i);
+
+        if (i == (inherited2::channels_ - 1))
+          bufferedSamples_ -= inherited2::slots_;
       } // end IF
     } // end FOR
+    offset += (sampleIterator_.dataSampleSize_ * samples_to_write);
     number_of_samples -= samples_to_write;
     if (!number_of_samples)
-      break; // done
-  } while (true);
+    {
+      message_block_p = message_block_p->cont ();
+      if (message_block_p)
+        goto next;
+    } // end IF
+  } while (message_block_p);
 }
 
 template <ACE_SYNCH_DECL,
@@ -1243,7 +1258,7 @@ Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T::update"));
 
-  ACE_GUARD (ACE_Thread_Mutex, aGuard, inherited::lock_);
+//  ACE_GUARD (ACE_Thread_Mutex, aGuard, inherited::lock_);
 
   // sanity check(s)
   ACE_ASSERT (cairoContext_);
@@ -1346,12 +1361,12 @@ Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
   //ACE_ASSERT (cairo_status (cairoContext_) == CAIRO_STATUS_SUCCESS);
   CAIRO_ERROR_WORKAROUND (cairoContext_);
 
-//  if (inherited::window_)
-//  {
-//    gdk_threads_enter ();
-//    gdk_window_invalidate_rect (inherited::window_,
-//                                NULL,   // whole window
-//                                false); // invaliddate children ?
-//    gdk_threads_leave ();
-//  } // end IF
+  if (inherited::window_)
+  {
+    gdk_threads_enter ();
+    gdk_window_invalidate_rect (inherited::window_,
+                                NULL,   // whole window
+                                FALSE); // invaliddate children ?
+    gdk_threads_leave ();
+  } // end IF
 }

@@ -57,6 +57,7 @@ struct Stream_MediaFramework_ALSA_Configuration
    , bufferTime (STREAM_LIB_ALSA_PLAYBACK_DEFAULT_BUFFER_TIME)
    , format (NULL)
    , handle (NULL)
+   , mode (STREAM_LIB_ALSA_PLAYBACK_DEFAULT_MODE)
    , periods (STREAM_LIB_ALSA_PLAYBACK_DEFAULT_PERIODS)
    , periodSize (STREAM_LIB_ALSA_PLAYBACK_DEFAULT_PERIOD_SIZE)
    , periodTime (STREAM_LIB_ALSA_PLAYBACK_DEFAULT_PERIOD_TIME)
@@ -69,6 +70,7 @@ struct Stream_MediaFramework_ALSA_Configuration
   unsigned int                                 bufferTime;
   struct Stream_MediaFramework_ALSA_MediaType* format; // capture-/playback-
   struct _snd_pcm*                             handle;
+  int                                          mode;
   unsigned int                                 periods;
   snd_pcm_uframes_t                            periodSize;
   unsigned int                                 periodTime;

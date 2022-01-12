@@ -96,8 +96,15 @@ class Stream_Decoder_DeepSpeechDecoder_T
   ACE_UNIMPLEMENTED_FUNC (Stream_Decoder_DeepSpeechDecoder_T (const Stream_Decoder_DeepSpeechDecoder_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Decoder_DeepSpeechDecoder_T& operator= (const Stream_Decoder_DeepSpeechDecoder_T&))
 
+  // helper methods
+  unsigned int processWords (const char*,                          // input string
+                             Stream_Decoder_DeepSpeech_Result_t&); // return value: result
+
+  unsigned int           bufferedMs_;
   struct ModelState*     context_;
   struct StreamingState* context2_;
+  unsigned int           decodedWords_;
+  unsigned int           sampleSize_; // mono-
 };
 
 // include template definition

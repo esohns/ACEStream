@@ -228,19 +228,18 @@ Stream_MediaFramework_ALSA_Tools::setFormat (struct _snd_pcm* handle_in,
                 ACE_TEXT (snd_strerror (result))));
     goto error;
   } // end IF
-  if (!configuration_in.rateResample) // *NOTE*: the default is 'on'
+  result =
+    snd_pcm_hw_params_set_rate_resample (handle_in,
+                                         snd_pcm_hw_params_p,
+                                         (configuration_in.rateResample ? 1 : 0));
+  if (unlikely (result < 0))
   {
-    result = snd_pcm_hw_params_set_rate_resample (handle_in,
-                                                  snd_pcm_hw_params_p,
-                                                  0);
-    if (unlikely (result < 0))
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("%s: failed to snd_pcm_hw_params_set_rate_resample(0): \"%s\", aborting\n"),
-                  ACE_TEXT (snd_pcm_name (handle_in)),
-                  ACE_TEXT (snd_strerror (result))));
-      goto error;
-    } // end IF
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s: failed to snd_pcm_hw_params_set_rate_resample(%d): \"%s\", aborting\n"),
+                ACE_TEXT (snd_pcm_name (handle_in)),
+                (configuration_in.rateResample ? 1 : 0),
+                ACE_TEXT (snd_strerror (result))));
+    goto error;
   } // end IF
   result = snd_pcm_hw_params_set_rate (handle_in, snd_pcm_hw_params_p,
                                        configuration_in.format->rate,

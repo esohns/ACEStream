@@ -1303,7 +1303,7 @@ do_work (const std::string& scorerFile_in,
 #else
   Test_I_ALSA_EventHandler_t ui_event_handler (
 #if defined (GUI_SUPPORT)
-                                               &CBData_in
+                                               (UIDefinitionFile_in.empty () ? NULL : &CBData_in)
 #endif // GUI_SUPPORT
                                                );
   Test_I_ALSA_MessageHandler_Module event_handler (istream_p,
@@ -1311,14 +1311,15 @@ do_work (const std::string& scorerFile_in,
   Test_I_ALSA_StreamConfiguration_t::ITERATOR_T modulehandler_iterator;
   struct Test_I_ALSA_StreamConfiguration stream_configuration;
   struct Stream_MediaFramework_ALSA_Configuration ALSA_configuration; // capture
-//  ALSA_configuration.asynch = STREAM_LIB_ALSA_CAPTURE_DEFAULT_ASYNCH;
   ALSA_configuration.asynch = false;
+  ALSA_configuration.mode = SND_PCM_NONBLOCK;
   ALSA_configuration.bufferSize = STREAM_LIB_ALSA_CAPTURE_DEFAULT_BUFFER_SIZE;
   ALSA_configuration.bufferTime = STREAM_LIB_ALSA_CAPTURE_DEFAULT_BUFFER_TIME;
+  ALSA_configuration.format = &stream_configuration.format;
   ALSA_configuration.periods = STREAM_LIB_ALSA_CAPTURE_DEFAULT_PERIODS;
   ALSA_configuration.periodSize = STREAM_LIB_ALSA_CAPTURE_DEFAULT_PERIOD_SIZE;
   ALSA_configuration.periodTime = STREAM_LIB_ALSA_CAPTURE_DEFAULT_PERIOD_TIME;
-  ALSA_configuration.format = &stream_configuration.format;
+  ALSA_configuration.rateResample = true;
   struct Stream_MediaFramework_ALSA_Configuration ALSA_configuration_2; // playback
 //  ALSA_configuration_2.asynch = false;
   ALSA_configuration_2.rateResample = true;
@@ -1687,10 +1688,7 @@ do_work (const std::string& scorerFile_in,
                                                                                &modulehandler_configuration_2)));
 
   modulehandler_configuration_3 = modulehandler_configuration;
-  modulehandler_configuration_3.fileIdentifier.clear ();
-  if (!targetFilename_in.empty ())
-    modulehandler_configuration_3.fileIdentifier.identifier =
-      targetFilename_in;
+  modulehandler_configuration_3.fileIdentifier.identifier = targetFilename_in;
   configuration_in.streamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_ENCODER_WAV_DEFAULT_NAME_STRING),
                                                                std::make_pair (&module_configuration,
                                                                                &modulehandler_configuration_3)));
@@ -1809,6 +1807,7 @@ do_work (const std::string& scorerFile_in,
   modulehandler_configuration.outputFormat.format = SND_PCM_FORMAT_S16_LE;
   modulehandler_configuration.outputFormat.channels = 1;
   modulehandler_configuration.outputFormat.rate = 16000;
+  stream_configuration.format = modulehandler_configuration.outputFormat;
   result = true;
 #endif // ACE_WIN32 || ACE_WIN64
   if (unlikely (!result))
@@ -2453,6 +2452,7 @@ ACE_TMAIN (int argc_in,
   } // end IF
   if (unlikely (!Common_Signal_Tools::preInitialize (signal_set,
                                                      COMMON_SIGNAL_DEFAULT_DISPATCH_MODE,
+                                                     false, // do not use networking
                                                      previous_signal_actions,
                                                      previous_signal_mask)))
   {

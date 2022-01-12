@@ -131,6 +131,7 @@ extern "C"
 #include "stream_misc_common.h"
 
 #include "stream_stat_common.h"
+#include "stream_stat_defines.h"
 
 #include "stream_vis_common.h"
 #include "stream_vis_defines.h"
@@ -351,6 +352,7 @@ struct Test_U_AudioEffect_ModuleHandlerConfiguration
 {
   Test_U_AudioEffect_ModuleHandlerConfiguration ()
    : Test_U_ModuleHandlerConfiguration ()
+   , bufferSize (MODULE_STAT_ANALYSIS_DEFAULT_BUFFER_SIZE)
    , deviceIdentifier ()
    , delayConfiguration (NULL)
    , dispatch (NULL)
@@ -376,6 +378,7 @@ struct Test_U_AudioEffect_ModuleHandlerConfiguration
 #endif // GUI_SUPPORT
   {}
 
+  unsigned int                                      bufferSize; // statistic analysis
   struct Stream_Device_Identifier                   deviceIdentifier; // capture/render
   struct Stream_Miscellaneous_DelayConfiguration*   delayConfiguration;
   Stream_Statistic_IDispatch_t*                     dispatch;
