@@ -132,12 +132,16 @@ Stream_Decoder_WAVEncoder_T<ACE_SYNCH_USE,
                   ACE_TEXT (sox_strerror (result))));
   } // end IF
 
-  result = sox_quit ();
-  if (unlikely (result != SOX_SUCCESS))
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: failed to sox_quit(): \"%s\", continuing\n"),
-                inherited::mod_->name (),
-                ACE_TEXT (sox_strerror (result))));
+  if (inherited::configuration_ &&
+      inherited::configuration_->manageSoX)
+  {
+    result = sox_quit ();
+    if (unlikely (result != SOX_SUCCESS))
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("%s: failed to sox_quit(): \"%s\", continuing\n"),
+                  inherited::mod_->name (),
+                  ACE_TEXT (sox_strerror (result))));
+  } // end IF
 #endif // SOX_SUPPORT
 #endif // ACE_WIN32 || ACE_WIN64
 }

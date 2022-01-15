@@ -788,7 +788,7 @@ do_work (const struct Stream_Device_Identifier& deviceIdentifier_in,
          const ACE_Sig_Set& signalSet_in,
          const ACE_Sig_Set& ignoredSignalSet_in,
          Common_SignalActions_t& previousSignalActions_inout,
-         const sigset_t& previousSignalMask_in)
+         const ACE_Sig_Set& previousSignalMask_in)
 {
   STREAM_TRACE (ACE_TEXT ("::do_work"));
 
@@ -1905,7 +1905,6 @@ clean:
 
   Common_Signal_Tools::finalize ((useReactor_in ? COMMON_SIGNAL_DISPATCH_REACTOR
                                                 : COMMON_SIGNAL_DISPATCH_PROACTOR),
-                                 signalSet_in,
                                  previousSignalActions_inout,
                                  previousSignalMask_in);
 
@@ -1996,8 +1995,8 @@ ACE_TMAIN (int argc_in,
 {
   STREAM_TRACE (ACE_TEXT ("::main"));
 
-  int result = -1;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
+  int result = -1;
   bool COM_initialized = false;
 #endif // ACE_WIN32 || ACE_WIN64
 
@@ -2300,25 +2299,7 @@ ACE_TMAIN (int argc_in,
                         signal_set,
                         ignored_signal_set);
   Common_SignalActions_t previous_signal_actions;
-  sigset_t previous_signal_mask;
-  result = ACE_OS::sigemptyset (&previous_signal_mask);
-  if (result == -1)
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to ACE_OS::sigemptyset(): \"%m\", aborting\n")));
-
-    Common_Log_Tools::finalizeLogging ();
-    Common_Tools::finalize ();
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-    if (COM_initialized) Common_Tools::finalizeCOM ();
-    // *PORTABILITY*: on Windows, finalize ACE...
-    result = ACE::fini ();
-    if (result == -1)
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to ACE::fini(): \"%m\", continuing\n")));
-#endif // ACE_WIN32 || ACE_WIN64
-    return EXIT_FAILURE;
-  } // end IF
+  ACE_Sig_Set previous_signal_mask (false); // fill ?
   if (!Common_Signal_Tools::preInitialize (signal_set,
                                            (use_reactor ? COMMON_SIGNAL_DISPATCH_REACTOR
                                                         : COMMON_SIGNAL_DISPATCH_PROACTOR),
@@ -2349,7 +2330,6 @@ ACE_TMAIN (int argc_in,
 
     Common_Signal_Tools::finalize ((use_reactor ? COMMON_SIGNAL_DISPATCH_REACTOR
                                                 : COMMON_SIGNAL_DISPATCH_PROACTOR),
-                                   signal_set,
                                    previous_signal_actions,
                                    previous_signal_mask);
     Common_Log_Tools::finalizeLogging ();
@@ -2376,7 +2356,6 @@ ACE_TMAIN (int argc_in,
 
     Common_Signal_Tools::finalize ((use_reactor ? COMMON_SIGNAL_DISPATCH_REACTOR
                                                 : COMMON_SIGNAL_DISPATCH_PROACTOR),
-                                   signal_set,
                                    previous_signal_actions,
                                    previous_signal_mask);
     Common_Log_Tools::finalizeLogging ();
@@ -2407,7 +2386,6 @@ ACE_TMAIN (int argc_in,
 
       Common_Signal_Tools::finalize ((use_reactor ? COMMON_SIGNAL_DISPATCH_REACTOR
                                                   : COMMON_SIGNAL_DISPATCH_PROACTOR),
-                                     signal_set,
                                      previous_signal_actions,
                                      previous_signal_mask);
       Common_Log_Tools::finalizeLogging ();
@@ -2485,7 +2463,6 @@ ACE_TMAIN (int argc_in,
 
     Common_Signal_Tools::finalize ((use_reactor ? COMMON_SIGNAL_DISPATCH_REACTOR
                                                 : COMMON_SIGNAL_DISPATCH_PROACTOR),
-                                   signal_set,
                                    previous_signal_actions,
                                    previous_signal_mask);
     Common_Log_Tools::finalizeLogging ();
@@ -2545,7 +2522,6 @@ ACE_TMAIN (int argc_in,
 
   Common_Signal_Tools::finalize ((use_reactor ? COMMON_SIGNAL_DISPATCH_REACTOR
                                               : COMMON_SIGNAL_DISPATCH_PROACTOR),
-                                 signal_set,
                                  previous_signal_actions,
                                  previous_signal_mask);
   Common_Log_Tools::finalizeLogging ();

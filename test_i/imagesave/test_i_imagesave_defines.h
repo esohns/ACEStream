@@ -25,19 +25,20 @@
 
 #if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
-#if defined (GTK3_USE)
 #undef TEST_I_UI_DEFINITION_FILE
+#if defined (GTK3_USE)
 #define TEST_I_UI_DEFINITION_FILE              "imagesave.gtk3"
 #elif defined (GTK2_USE)
 #define TEST_I_UI_DEFINITION_FILE              "imagesave.gtk2"
-#endif
+#endif // GTK3_USE || GTK2_USE
 #elif defined (QT_USE)
 #define TEST_I_UI_DEFINITION_FILE              "mainwindow.ui"
 #elif defined (WXWIDGETS_USE)
 #define TEST_I_UI_DEFINITION_FILE              "imagesave.xrc"
 #else
 #define TEST_I_UI_DEFINITION_FILE              ""
-#endif
+#endif // GTK_USE || QT_USE || WXWIDGETS_USE
+#undef TEST_I_UI_CSS_FILE
 #define TEST_I_UI_CSS_FILE                     "imagesave.css"
 
 //---------------------------------------
@@ -82,7 +83,7 @@
 #elif defined (WXWIDGETS_USE)
 #define TEST_I_UI_WXWIDGETS_TOPLEVEL_WIDGET_NAME       "dialog_main"
 #define TEST_I_UI_WXWIDGETS_TOPLEVEL_WIDGET_CLASS_NAME "wxDialog"
-#endif
+#endif // GTK_USE || WXWIDGETS_USE
 #endif // GUI_SUPPORT
 
 #endif

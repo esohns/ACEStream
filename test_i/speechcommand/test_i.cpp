@@ -523,28 +523,6 @@ do_initializeSignals (ACE_Sig_Set& signals_out,
                 ACE_TEXT ("failed to ACE_Sig_Set::fill_set(): \"%m\", returning\n")));
     return;
   } // end IF
-  // *NOTE*: cannot handle some signals --> registration fails for these...
-  result = signals_out.sig_del (SIGKILL);           // 9       /* Kill signal */
-  ACE_ASSERT (result == 0);
-  result = signals_out.sig_del (SIGSTOP);           // 19      /* Stop process */
-  ACE_ASSERT (result == 0);
-  // ---------------------------------------------------------------------------
-  // *NOTE* core dump on SIGSEGV
-  result = signals_out.sig_del (SIGSEGV);           // 11      /* Segmentation fault: Invalid memory reference */
-  ACE_ASSERT (result == 0);
-  // *NOTE* don't care about SIGPIPE
-  result = signals_out.sig_del (SIGPIPE);           // 12      /* Broken pipe: write to pipe with no readers */
-  ACE_ASSERT (result == 0);
-
-#if defined (VALGRIND_SUPPORT)
-  // *NOTE*: valgrind uses SIGRT32 (--> SIGRTMAX ?) and apparently will not work
-  // if the application installs its own handler (see documentation)
-  if (unlikely (RUNNING_ON_VALGRIND))
-  {
-    result = signals_out.sig_del (SIGRTMAX);        // 64
-    ACE_ASSERT (result == 0);
-  } // end IF
-#endif // VALGRIND_SUPPORT
 #endif // ACE_WIN32 || ACE_WIN64
 }
 
@@ -1182,7 +1160,8 @@ do_work (const std::string& scorerFile_in,
 #endif // ACE_WIN32 || ACE_WIN64
          const ACE_Sig_Set& signalSet_in,
          const ACE_Sig_Set& ignoredSignalSet_in,
-         Common_SignalActions_t& previousSignalActions_inout)
+         Common_SignalActions_t& previousSignalActions_inout,
+         const ACE_Sig_Set& previousSignalMask_in)
 {
   STREAM_TRACE (ACE_TEXT ("::do_work"));
 
@@ -1731,6 +1710,8 @@ do_work (const std::string& scorerFile_in,
 #else
   stream_configuration.messageAllocator = &message_allocator;
   stream_configuration.module = &event_handler;
+  stream_configuration.moduleBranch =
+    ACE_TEXT_ALWAYS_CHAR (STREAM_SUBSTREAM_DECODE_NAME);
   stream_configuration.printFinalReport = true;
 #endif // ACE_WIN32 || ACE_WIN64
 
@@ -1993,24 +1974,10 @@ do_work (const std::string& scorerFile_in,
 #endif // GUI_SUPPORT
 
   // step3: clean up
-  //		{ // synch access
-  //			ACE_Guard<ACE_Recursive_Thread_Mutex> aGuard(CBData_in.lock);
-
-  //			for (Net_GTK_EventSourceIDsIterator_t iterator = CBData_in.event_source_ids.begin();
-  //					 iterator != CBData_in.event_source_ids.end();
-  //					 iterator++)
-  //				g_source_remove(*iterator);
-  //		} // end lock scope
   timer_manager_p->stop ();
-
-  //  { // synch access
-  //    ACE_Guard<ACE_Recursive_Thread_Mutex> aGuard(CBData_in.lock);
-
-  //		for (Net_GTK_EventSourceIDsIterator_t iterator = CBData_in.event_source_ids.begin();
-  //				 iterator != CBData_in.event_source_ids.end();
-  //				 iterator++)
-  //			g_source_remove(*iterator);
-  //	} // end lock scope
+  Common_Signal_Tools::finalize (COMMON_SIGNAL_DEFAULT_DISPATCH_MODE,
+                                 previousSignalActions_inout,
+                                 previousSignalMask_in);
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   switch (mediaFramework_in)
@@ -2071,6 +2038,9 @@ error:
                    true); // high priority ?
 #endif // GUI_SUPPORT
   timer_manager_p->stop ();
+  Common_Signal_Tools::finalize (COMMON_SIGNAL_DEFAULT_DISPATCH_MODE,
+                                 previousSignalActions_inout,
+                                 previousSignalMask_in);
 }
 
 void
@@ -2208,7 +2178,7 @@ ACE_TMAIN (int argc_in,
   ACE_Sig_Set signal_set (false); // fill ?
   ACE_Sig_Set ignored_signal_set (false); // fill ?
   Common_SignalActions_t previous_signal_actions;
-  sigset_t previous_signal_mask;
+  ACE_Sig_Set previous_signal_mask (false); // fill ?
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   struct Test_I_DirectShow_Configuration directshow_configuration;
@@ -2443,13 +2413,6 @@ ACE_TMAIN (int argc_in,
   // step1e: pre-initialize signal handling
   do_initializeSignals (signal_set,
                         ignored_signal_set);
-  result = ACE_OS::sigemptyset (&previous_signal_mask);
-  if (unlikely (result == -1))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to ACE_OS::sigemptyset(): \"%m\", aborting\n")));
-    goto error;
-  } // end IF
   if (unlikely (!Common_Signal_Tools::preInitialize (signal_set,
                                                      COMMON_SIGNAL_DEFAULT_DISPATCH_MODE,
                                                      false, // do not use networking
@@ -2467,7 +2430,6 @@ ACE_TMAIN (int argc_in,
     do_printVersion (ACE_TEXT_ALWAYS_CHAR (ACE::basename (argv_in[0])));
 
     Common_Signal_Tools::finalize (COMMON_SIGNAL_DEFAULT_DISPATCH_MODE,
-                                   signal_set,
                                    previous_signal_actions,
                                    previous_signal_mask);
     Common_Log_Tools::finalizeLogging ();
@@ -2545,7 +2507,8 @@ ACE_TMAIN (int argc_in,
 #endif // ACE_WIN32 || ACE_WIN64
            signal_set,
            ignored_signal_set,
-           previous_signal_actions);
+           previous_signal_actions,
+           previous_signal_mask);
   timer.stop ();
 
   timer.elapsed_time (working_time);
@@ -2608,7 +2571,6 @@ ACE_TMAIN (int argc_in,
 #endif // ACE_WIN32 || ACE_WIN64
 
   Common_Signal_Tools::finalize (COMMON_SIGNAL_DEFAULT_DISPATCH_MODE,
-                                 signal_set,
                                  previous_signal_actions,
                                  previous_signal_mask);
   Common_Log_Tools::finalizeLogging ();
@@ -2625,7 +2587,6 @@ ACE_TMAIN (int argc_in,
 
 error:
   Common_Signal_Tools::finalize (COMMON_SIGNAL_DEFAULT_DISPATCH_MODE,
-                                 signal_set,
                                  previous_signal_actions,
                                  previous_signal_mask);
   Common_Log_Tools::finalizeLogging ();

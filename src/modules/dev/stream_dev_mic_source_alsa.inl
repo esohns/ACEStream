@@ -200,12 +200,9 @@ Stream_Dev_Mic_Source_ALSA_T<ACE_SYNCH_USE,
 #endif // _DEBUG
  , pollFds_ (NULL)
  , pollFdCount_ (0)
- , queue_ (STREAM_QUEUE_MAX_SLOTS, // max # slots
-           NULL)                   // notification handle
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Dev_Mic_Source_ALSA_T::Stream_Dev_Mic_Source_ALSA_T"));
 
-  inherited::msg_queue (&queue_);
 }
 
 template <ACE_SYNCH_DECL,
@@ -489,7 +486,7 @@ Stream_Dev_Mic_Source_ALSA_T<ACE_SYNCH_USE,
         //  CBData_.areas = areas;
         //      CBData_.format = media_type_r;
         CBData_.frameSize = frameSize_;
-        CBData_.queue = inherited::msg_queue ();
+        CBData_.queue = inherited::msg_queue_;
         CBData_.statistic = &session_data_r.statistic;
 
         result =

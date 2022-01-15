@@ -68,8 +68,7 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
                                                                         enum Stream_HeadModuleConcurrency concurrency_in,
                                                                         bool generateSessionMessages_in)
  : inherited (stream_in,
-              // *TODO*: this looks dodgy, but seems to work nonetheless...
-              &queue_) // queue handle
+              NULL) // queue handle
  , inherited2 (NULL)
  , abortSent_ (false)
  , isHighPriorityStop_ (false)
@@ -91,6 +90,7 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_HeadModuleTaskBase_T::Stream_HeadModuleTaskBase_T"));
 
+  inherited::msg_queue (&queue_);
   inherited::threadCount_ = STREAM_MODULE_DEFAULT_HEAD_THREADS;
 
   if (unlikely (!inherited2::initialize (stateMachineLock_)))
@@ -221,8 +221,11 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
           if (likely (!isHighPriorityStop_))
             break;
 
+          // sanity check(s)
+          ACE_ASSERT (inherited::msg_queue_);
+
           // *IMPORTANT NOTE*: make sure the message is actually processed
-          { ACE_GUARD_RETURN (ACE_SYNCH_MUTEX_T, aGuard, queue_.lock (), -1);
+          { ACE_GUARD_RETURN (ACE_SYNCH_MUTEX_T, aGuard, inherited::msg_queue_->lock (), -1);
             if (likely (!inherited::threadIds_.empty ()))
               return queue_.enqueue_head_i (messageBlock_in, NULL);
           } // end lock scope
@@ -247,7 +250,7 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
             case STREAM_CONTROL_MESSAGE_ABORT:
             {
               // *IMPORTANT NOTE*: make sure the message is actually processed
-              { ACE_GUARD_RETURN (ACE_SYNCH_MUTEX_T, aGuard, queue_.lock (), -1);
+              { ACE_GUARD_RETURN (ACE_SYNCH_MUTEX_T, aGuard, inherited::msg_queue_->lock (), -1);
                 if (likely (inherited::thr_count_ &&
                             !queue_.isShuttingDown ()))
                   return queue_.enqueue_head_i (messageBlock_in, NULL);
@@ -382,6 +385,7 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
   int result = -1;
 
   // sanity check(s)
+  ACE_ASSERT (inherited::msg_queue_);
   ACE_ASSERT (!inherited::sessionData_);
   ACE_ASSERT (arg_in);
 
@@ -397,7 +401,7 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
   //         the queue will have been deactivate()d in the process, and getq()
   //         (see svc()) would fail (ESHUTDOWN)
   //         --> (re-)activate() the queue
-  result = queue_.activate ();
+  result = inherited::msg_queue_->activate ();
   if (unlikely (result == -1))
   {
     ACE_DEBUG ((LM_ERROR,
@@ -1084,7 +1088,6 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
   // sanity check(s)
   // *NOTE*: inherited::control() ignores highPriority_in, but invokes
   //         this->put(), which re-evaluates isHighPriorityStop_
-//  ACE_ASSERT (!highPriority_in);
 
   inherited::control (ACE_Message_Block::MB_STOP,
                       highPriority_in);
@@ -1667,7 +1670,7 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
       return true;
     case STREAM_STATE_STOPPED:
     case STREAM_STATE_FINISHED:
-      break;
+      break; // left to check: still processing data ?
     default:
     {
       ACE_DEBUG ((LM_ERROR,
@@ -1677,6 +1680,12 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
       return false; // <-- *TODO*: false negative
     }
   } // end SWITCH
+
+  { ACE_GUARD_RETURN (ACE_Thread_Mutex, aGuard, inherited::lock_, false); // <-- *TODO*: false negative
+    if (!inherited::threadIds_.empty () &&
+        !inherited::msg_queue_->is_empty ())
+     return true;
+  } // end lock scope
 
   for (Stream_Task_t* task_p = inherited::next_;
        task_p;
@@ -1825,8 +1834,11 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
 
   ACE_UNUSED_ARG (forwardUpstream_in);
 
+  // sanity check(s)
+  ACE_ASSERT (inherited::msg_queue_);
+
   int result = -1;
-  ACE_SYNCH_MUTEX_T& lock_r = queue_.lock ();
+  ACE_SYNCH_MUTEX_T& lock_r = inherited::msg_queue_->lock ();
 
   result = (block_in ? lock_r.acquire () : lock_r.tryacquire ());
   if (unlikely (result == -1))
@@ -1873,8 +1885,11 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
 
   ACE_UNUSED_ARG (forwardUpstream_in);
 
+  // sanity check(s)
+  ACE_ASSERT (inherited::msg_queue_);
+
   int result = -1;
-  ACE_SYNCH_MUTEX_T& lock_r = queue_.lock ();
+  ACE_SYNCH_MUTEX_T& lock_r = inherited::msg_queue_->lock ();
   ACE_thread_mutex_t& mutex_r = lock_r.lock ();
 
   // sanity check(s)

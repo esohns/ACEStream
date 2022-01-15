@@ -943,7 +943,7 @@ ACE_TMAIN (int argc_in,
   ACE_Sig_Set signal_set (false);
   ACE_Sig_Set ignored_signal_set (false);
   Common_SignalActions_t previous_signal_actions;
-  sigset_t previous_signal_mask;
+  ACE_Sig_Set previous_signal_mask (false); // fill ?
   std::string log_file_name;
   struct HTTPGet_UI_CBData ui_cb_data;
   //Common_Logger_t logger (&ui_cb_data.UIState.logStack,
@@ -1113,15 +1113,6 @@ ACE_TMAIN (int argc_in,
                         true, // allow SIGUSR1/SIGBREAK
                         signal_set,
                         ignored_signal_set);
-  result = ACE_OS::sigemptyset (&previous_signal_mask);
-  if (result == -1)
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to ACE_OS::sigemptyset(): \"%m\", aborting\n")));
-
-    Common_Log_Tools::finalizeLogging ();
-    goto error;
-  } // end IF
   if (!Common_Signal_Tools::preInitialize (signal_set,
                                            (use_reactor ? COMMON_SIGNAL_DISPATCH_REACTOR
                                                         : COMMON_SIGNAL_DISPATCH_PROACTOR),
@@ -1147,7 +1138,6 @@ ACE_TMAIN (int argc_in,
 
     Common_Signal_Tools::finalize ((use_reactor ? COMMON_SIGNAL_DISPATCH_REACTOR
                                                 : COMMON_SIGNAL_DISPATCH_PROACTOR),
-                                   signal_set,
                                    previous_signal_actions,
                                    previous_signal_mask);
     Common_Log_Tools::finalizeLogging ();
@@ -1225,7 +1215,6 @@ done:
 
     Common_Signal_Tools::finalize ((use_reactor ? COMMON_SIGNAL_DISPATCH_REACTOR
                                                 : COMMON_SIGNAL_DISPATCH_PROACTOR),
-                                   signal_set,
                                    previous_signal_actions,
                                    previous_signal_mask);
     Common_Log_Tools::finalizeLogging ();
@@ -1271,7 +1260,6 @@ done:
   // step9: clean up
   Common_Signal_Tools::finalize ((use_reactor ? COMMON_SIGNAL_DISPATCH_REACTOR
                                               : COMMON_SIGNAL_DISPATCH_PROACTOR),
-                                 signal_set,
                                  previous_signal_actions,
                                  previous_signal_mask);
   Common_Log_Tools::finalizeLogging ();

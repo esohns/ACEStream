@@ -573,7 +573,7 @@ ACE_TMAIN (int argc_in,
   ACE_Sig_Set signal_set (false);
   ACE_Sig_Set ignored_signal_set (false);
   Common_SignalActions_t previous_signal_actions;
-  sigset_t previous_signal_mask;
+  ACE_Sig_Set previous_signal_mask (false); // fill ?
   Stream_ImageScreen_SignalHandler signal_handler;
 
   ACE_High_Res_Timer timer;
@@ -649,13 +649,6 @@ ACE_TMAIN (int argc_in,
   // step1d: pre-initialize signal handling
   do_initialize_signals (signal_set,
                          ignored_signal_set);
-  result = ACE_OS::sigemptyset (&previous_signal_mask);
-  if (result == -1)
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to ACE_OS::sigemptyset(): \"%m\", aborting\n")));
-    goto clean;
-  } // end IF
   if (!Common_Signal_Tools::preInitialize (signal_set,
                                            COMMON_SIGNAL_DEFAULT_DISPATCH_MODE,
                                            false, // do not use networking
@@ -742,7 +735,6 @@ ACE_TMAIN (int argc_in,
 
 clean:
   Common_Signal_Tools::finalize (COMMON_SIGNAL_DISPATCH_SIGNAL,
-                                 signal_set,
                                  previous_signal_actions,
                                  previous_signal_mask);
   Common_Log_Tools::finalizeLogging ();

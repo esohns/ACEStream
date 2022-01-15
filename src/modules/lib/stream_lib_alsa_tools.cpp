@@ -360,6 +360,32 @@ Stream_MediaFramework_ALSA_Tools::setFormat (struct _snd_pcm* handle_in,
                 ACE_TEXT (snd_pcm_name (handle_in)),
                 configuration_in.bufferTime, buffer_time_i));
 
+  if (snd_pcm_stream (handle_in) == SND_PCM_STREAM_CAPTURE)
+  {
+    // *NOTE*: "...For playback, the buffer size determines the latency. For
+    //         capture, it does not; ..."
+    result = snd_pcm_hw_params_get_buffer_size_max (snd_pcm_hw_params_p,
+                                                    &buffer_size_i);
+    if (unlikely (result < 0))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("%s: failed to snd_pcm_hw_params_get_buffer_size_max(): \"%s\", aborting\n"),
+                  ACE_TEXT (snd_pcm_name (handle_in)),
+                  ACE_TEXT (snd_strerror (result))));
+      goto error;
+    } // end IF
+    result = snd_pcm_hw_params_set_buffer_size_max (handle_in, snd_pcm_hw_params_p,
+                                                    &buffer_size_i);
+    if (unlikely (result < 0))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("%s: failed to snd_pcm_hw_params_set_buffer_time_max(%u): \"%s\", aborting\n"),
+                  ACE_TEXT (snd_pcm_name (handle_in)), buffer_size_i,
+                  ACE_TEXT (snd_strerror (result))));
+      goto error;
+    } // end IF
+  } // end IF
+
   result = snd_pcm_hw_params (handle_in,
                               snd_pcm_hw_params_p);
   if (result < 0)

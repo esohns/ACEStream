@@ -1569,6 +1569,7 @@ Test_I_ALSA_Stream::load (Stream_ILayout* layout_in,
   inherited::configuration_->configuration_->branches.push_back (ACE_TEXT_ALWAYS_CHAR (STREAM_SUBSTREAM_DISPLAY_NAME));
   if (!(*iterator_3).second.second->fileIdentifier.empty ())
     inherited::configuration_->configuration_->branches.push_back (ACE_TEXT_ALWAYS_CHAR (STREAM_SUBSTREAM_SAVE_NAME));
+  inherited::configuration_->configuration_->branches.push_back (ACE_TEXT_ALWAYS_CHAR (STREAM_SUBSTREAM_DECODE_NAME));
   Stream_IDistributorModule* idistributor_p =
     dynamic_cast<Stream_IDistributorModule*> (module_p->writer ());
   ACE_ASSERT (idistributor_p);
@@ -1613,11 +1614,12 @@ Test_I_ALSA_Stream::load (Stream_ILayout* layout_in,
   } // end IF
 
 #if defined (DEEPSPEECH_SUPPORT)
+  ++index_i;
   ACE_NEW_RETURN (module_p,
                   Test_I_ALSA_DeepSpeechDecoder_Module (this,
                                                         ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_DEEPSPEECH_DECODER_DEFAULT_NAME_STRING)),
                   false);
-  layout_in->append (module_p, NULL, 0);
+  layout_in->append (module_p, branch_p, index_i);
   module_p = NULL;
 #endif // DEEPSPEECH_SUPPORT
 

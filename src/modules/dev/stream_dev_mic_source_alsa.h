@@ -152,7 +152,6 @@ class Stream_Dev_Mic_Source_ALSA_T
 #endif // _DEBUG
   struct pollfd*                                 pollFds_;
   unsigned int                                   pollFdCount_;
-  typename inherited::MESSAGE_QUEUE_T            queue_;
 };
 
 // include template definition
