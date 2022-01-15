@@ -350,8 +350,13 @@ Stream_Module_Vis_GTK_Window_T<ACE_SYNCH_USE,
   GdkWindowAttr attributes_a;
   gint attributes_mask = 0;
   attributes_a.window_type = GDK_WINDOW_TOPLEVEL;
+#if defined(ACE_WIN32) || defined(ACE_WIN64)
+  attributes_a.width = resolution_in.cx;
+  attributes_a.height = resolution_in.cy;
+#else
   attributes_a.width = resolution_in.width;
   attributes_a.height = resolution_in.height;
+#endif // ACE_WIN32 || ACE_WIN64
   attributes_a.wclass = GDK_INPUT_OUTPUT;
 #if GTK_CHECK_VERSION (3,0,0)
 #else

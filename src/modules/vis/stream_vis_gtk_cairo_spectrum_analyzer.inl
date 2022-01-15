@@ -240,8 +240,13 @@ Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
     } // end IF
 
     Common_Image_Resolution_t resolution_s;
+#if defined(ACE_WIN32) || defined(ACE_WIN64)
+    resolution_s.cy = STREAM_VIS_DEFAULT_WINDOW_HEIGHT;
+    resolution_s.cx = STREAM_VIS_DEFAULT_WINDOW_WIDTH;
+#else
     resolution_s.height = STREAM_VIS_DEFAULT_WINDOW_HEIGHT;
     resolution_s.width = STREAM_VIS_DEFAULT_WINDOW_WIDTH;
+#endif // ACE_WIN32 || ACE_WIN64
     gdk_threads_enter ();
     if (unlikely (!inherited::initialize_GTK (resolution_s)))
     {
@@ -462,8 +467,8 @@ Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
       struct _AMMediaType media_type_s;
       ACE_OS::memset (&media_type_s, 0, sizeof (struct _AMMediaType));
-      inherited2::getMediaType (session_data_r.formats.back (),
-                                media_type_s);
+      inherited::getMediaType (session_data_r.formats.back (),
+                               media_type_s);
       ACE_ASSERT (InlineIsEqualGUID (media_type_s.formattype, FORMAT_WaveFormatEx));
       struct tWAVEFORMATEX* waveformatex_p =
         reinterpret_cast<struct tWAVEFORMATEX*> (media_type_s.pbFormat);
@@ -1195,8 +1200,8 @@ Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   struct _AMMediaType media_type_s;
   ACE_OS::memset (&media_type_s, 0, sizeof (struct _AMMediaType));
-  inherited2::getMediaType (session_data_r.formats.back (),
-                            media_type_s);
+  inherited::getMediaType (session_data_r.formats.back (),
+                           media_type_s);
   ACE_ASSERT (InlineIsEqualGUID (media_type_s.formattype, FORMAT_WaveFormatEx));
   struct tWAVEFORMATEX* waveformatex_p =
     reinterpret_cast<struct tWAVEFORMATEX*> (media_type_s.pbFormat);

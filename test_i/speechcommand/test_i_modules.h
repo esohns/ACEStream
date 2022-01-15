@@ -329,7 +329,8 @@ typedef Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_MT_SYNCH,
                                                           Test_I_SpeechCommand_DirectShow_SessionData,
                                                           Test_I_SpeechCommand_DirectShow_SessionData_t,
                                                           Common_Timer_Manager_t,
-                                                          struct _AMMediaType> Test_I_DirectShow_Vis_SpectrumAnalyzer;
+                                                          struct _AMMediaType,
+                                                          double> Test_I_DirectShow_Vis_SpectrumAnalyzer;
 
 typedef Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_MT_SYNCH,
                                                           Common_TimePolicy_t,
@@ -340,7 +341,8 @@ typedef Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_MT_SYNCH,
                                                           Test_I_SpeechCommand_MediaFoundation_SessionData,
                                                           Test_I_SpeechCommand_MediaFoundation_SessionData_t,
                                                           Common_Timer_Manager_t,
-                                                          IMFMediaType*> Test_I_MediaFoundation_Vis_SpectrumAnalyzer;
+                                                          IMFMediaType*,
+                                                          double> Test_I_MediaFoundation_Vis_SpectrumAnalyzer;
 #endif // GTK_SUPPORT
 #endif // GUI_SUPPORT
 

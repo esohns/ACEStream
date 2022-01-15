@@ -2881,7 +2881,6 @@ ACE_TMAIN (int argc_in,
                     media_framework_e));
 
         Common_Signal_Tools::finalize (COMMON_SIGNAL_DISPATCH_SIGNAL,
-                                       signal_set,
                                        previous_signal_actions,
                                        previous_signal_mask);
         Common_Log_Tools::finalizeLogging ();

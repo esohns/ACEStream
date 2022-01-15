@@ -25,15 +25,16 @@
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
  // *WORKAROUND*: mfobjects.h includes cguid.h, which requires this
 #define __CGUID_H__
-#include <ks.h>
-#include <mfobjects.h>
-#include <strmif.h>
+#include "ks.h"
+#include "mfobjects.h"
+#include "strmif.h"
 #endif // ACE_WIN32 || ACE_WIN64
 
 #include "ace/Global_Macros.h"
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #include "stream_lib_directshow_tools.h"
+#include "stream_lib_mediafoundation_tools.h"
 #else
 #include "stream_lib_alsa_common.h"
 #include "stream_lib_v4l_common.h"
@@ -82,6 +83,7 @@ class Stream_MediaFramework_MediaTypeConverter_T
 #endif // FFMPEG_SUPPORT
 
   inline Common_Image_Resolution_t getResolution (const struct _AMMediaType& mediaType_in) { return Stream_MediaFramework_DirectShow_Tools::toResolution (mediaType_in); }
+  inline Common_Image_Resolution_t getResolution (const IMFMediaType* mediaType_in) { return Stream_MediaFramework_MediaFoundation_Tools::toResolution (mediaType_in); }
 
   inline void setFormat (REFGUID format_in, struct _AMMediaType& mediaType_inout) { Stream_MediaFramework_DirectShow_Tools::setFormat (format_in, mediaType_inout); }
   inline void setResolution (const Common_Image_Resolution_t resolution_in, struct _AMMediaType& mediaType_inout) { Stream_MediaFramework_DirectShow_Tools::setResolution (resolution_in, mediaType_inout); }

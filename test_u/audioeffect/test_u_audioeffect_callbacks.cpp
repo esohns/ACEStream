@@ -3670,7 +3670,7 @@ update_media_type (gpointer userData_in)
       } // end IF
       (*mediafoundation_modulehandler_configuration_iterator).second.second->outputFormat =
         Stream_MediaFramework_MediaFoundation_Tools::copy (mediafoundation_ui_cb_data_p->configuration->streamConfiguration.configuration_->format);
-      ACE_ASSERT (SUCCEEDED ((*mediafoundation_modulehandler_configuration_iterator).second.second->outputFormat));
+      ACE_ASSERT ((*mediafoundation_modulehandler_configuration_iterator).second.second->outputFormat);
 
       if (mediafoundation_ui_cb_data_p->configuration->mediaFoundationConfiguration.mediaType)
       {
@@ -3678,7 +3678,7 @@ update_media_type (gpointer userData_in)
       } // end IF
       mediafoundation_ui_cb_data_p->configuration->mediaFoundationConfiguration.mediaType =
         Stream_MediaFramework_MediaFoundation_Tools::copy (mediafoundation_ui_cb_data_p->configuration->streamConfiguration.configuration_->format);
-      ACE_ASSERT (SUCCEEDED (mediafoundation_ui_cb_data_p->configuration->mediaFoundationConfiguration.mediaType));
+      ACE_ASSERT (mediafoundation_ui_cb_data_p->configuration->mediaFoundationConfiguration.mediaType);
 
       break;
     }
@@ -5631,19 +5631,23 @@ continue_:
 
 #if GTK_CHECK_VERSION(3,0,0)
     g_signal_handlers_block_by_func (G_OBJECT (toggle_button_p),
-#elif GTK_CHECK_VERSION(2,0,0)
+                                     G_CALLBACK (togglebutton_save_toggled_cb),
+                                     userData_in);
+#elif GTK_CHECK_VERSION(2, 0, 0)
     gtk_signal_handler_block_by_func (GTK_OBJECT (toggle_button_p),
-#endif // GTK_CHECK_VERSION(x,0,0)
                                       G_CALLBACK (togglebutton_save_toggled_cb),
                                       userData_in);
+#endif // GTK_CHECK_VERSION(x,0,0)
     gtk_toggle_button_set_active (toggle_button_p, TRUE);
 #if GTK_CHECK_VERSION(3,0,0)
     g_signal_handlers_unblock_by_func (G_OBJECT (toggle_button_p),
+                                       G_CALLBACK (togglebutton_save_toggled_cb),
+                                       userData_in);
 #elif GTK_CHECK_VERSION(2,0,0)
     gtk_signal_handler_unblock_by_func (GTK_OBJECT (toggle_button_p),
-#endif // GTK_CHECK_VERSION(x,0,0)
                                         G_CALLBACK (togglebutton_save_toggled_cb),
                                         userData_in);
+#endif // GTK_CHECK_VERSION(x,0,0)
   } // end IF
 
   GtkRadioButton* radio_button_p = NULL;

@@ -1646,19 +1646,23 @@ idle_initialize_UI_cb (gpointer userData_in)
   {
 #if GTK_CHECK_VERSION(3,0,0)
     g_signal_handlers_block_by_func (G_OBJECT (toggle_button_p),
-#elif GTK_CHECK_VERSION(2,0,0)
-    gtk_signal_handler_block_by_func (GTK_OBJECT (toggle_button_p),
-#endif // GTK_CHECK_VERSION(x,0,0)
                                      G_CALLBACK (togglebutton_save_toggled_cb),
                                      userData_in);
+#elif GTK_CHECK_VERSION(2, 0, 0)
+    gtk_signal_handler_block_by_func (GTK_OBJECT (toggle_button_p),
+                                      G_CALLBACK (togglebutton_save_toggled_cb),
+                                      userData_in);
+#endif // GTK_CHECK_VERSION(x,0,0)
     gtk_toggle_button_set_active (toggle_button_p, TRUE);
 #if GTK_CHECK_VERSION(3,0,0)
     g_signal_handlers_unblock_by_func (G_OBJECT (toggle_button_p),
-#elif GTK_CHECK_VERSION(2,0,0)
-    gtk_signal_handler_unblock_by_func (GTK_OBJECT (toggle_button_p),
-#endif // GTK_CHECK_VERSION(x,0,0)
                                        G_CALLBACK (togglebutton_save_toggled_cb),
                                        userData_in);
+#elif GTK_CHECK_VERSION(2,0,0)
+    gtk_signal_handler_unblock_by_func (GTK_OBJECT (toggle_button_p),
+                                        G_CALLBACK (togglebutton_save_toggled_cb),
+                                        userData_in);
+#endif // GTK_CHECK_VERSION(x,0,0)
   } // end IF
 
   GtkRadioButton* radio_button_p = NULL;
