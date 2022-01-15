@@ -50,7 +50,7 @@ template <ACE_SYNCH_DECL,
           typename SessionDataContainerType,
           ////////////////////////////////
           typename MediaType,
-          typename ValueType>
+          typename ValueType> // buffer value-
 class Stream_Statistic_StatisticAnalysis_T
  : public Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
                                  TimePolicyType,

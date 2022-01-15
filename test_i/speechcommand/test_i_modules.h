@@ -549,7 +549,8 @@ typedef Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_MT_SYNCH,
                                                           Test_I_SpeechCommand_ALSA_SessionData,
                                                           Test_I_SpeechCommand_ALSA_SessionData_t,
                                                           Common_Timer_Manager_t,
-                                                          struct Stream_MediaFramework_ALSA_MediaType> Test_I_ALSA_Vis_SpectrumAnalyzer;
+                                                          struct Stream_MediaFramework_ALSA_MediaType,
+                                                          double> Test_I_ALSA_Vis_SpectrumAnalyzer;
 #endif // GTK_SUPPORT
 #endif // GUI_SUPPORT
 

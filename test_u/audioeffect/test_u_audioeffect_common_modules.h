@@ -683,7 +683,8 @@ typedef Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_MT_SYNCH,
                                                           Test_U_AudioEffect_SessionData,
                                                           Test_U_AudioEffect_SessionData_t,
                                                           Common_Timer_Manager_t,
-                                                          struct Stream_MediaFramework_ALSA_MediaType> Test_U_AudioEffect_Vis_SpectrumAnalyzer;
+                                                          struct Stream_MediaFramework_ALSA_MediaType,
+                                                          double> Test_U_AudioEffect_Vis_SpectrumAnalyzer;
 DATASTREAM_MODULE_INPUT_ONLY (Test_U_AudioEffect_SessionData,                                // session data type
                               enum Stream_SessionMessageType,                                // session event type
                               struct Test_U_AudioEffect_ALSA_ModuleHandlerConfiguration,     // module handler configuration type

@@ -52,7 +52,8 @@ template <ACE_SYNCH_DECL,
           typename SessionDataType,
           typename SessionDataContainerType,
           typename TimerManagerType,
-          typename MediaType>
+          typename MediaType,
+          typename ValueType>
 Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
                                                   TimePolicyType,
                                                   ConfigurationType,
@@ -62,10 +63,11 @@ Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
                                                   SessionDataType,
                                                   SessionDataContainerType,
                                                   TimerManagerType,
+                                                  MediaType,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-                                                  MediaType>::Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T (ISTREAM_T* stream_in)
+                                                  ValueType>::Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T (ISTREAM_T* stream_in)
 #else
-                                                  MediaType>::Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T (typename inherited::ISTREAM_T* stream_in)
+                                                  ValueType>::Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T (typename inherited::ISTREAM_T* stream_in)
 #endif // ACE_WIN32 || ACE_WIN64
  : inherited (stream_in)
  , inherited2 (STREAM_VIS_SPECTRUMANALYZER_DEFAULT_CHANNELS,
@@ -134,7 +136,8 @@ template <ACE_SYNCH_DECL,
           typename SessionDataType,
           typename SessionDataContainerType,
           typename TimerManagerType,
-          typename MediaType>
+          typename MediaType,
+          typename ValueType>
 Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
                                                   TimePolicyType,
                                                   ConfigurationType,
@@ -144,7 +147,8 @@ Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
                                                   SessionDataType,
                                                   SessionDataContainerType,
                                                   TimerManagerType,
-                                                  MediaType>::~Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T ()
+                                                  MediaType,
+                                                  ValueType>::~Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T::~Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T"));
 
@@ -161,7 +165,8 @@ template <ACE_SYNCH_DECL,
           typename SessionDataType,
           typename SessionDataContainerType,
           typename TimerManagerType,
-          typename MediaType>
+          typename MediaType,
+          typename ValueType>
 bool
 Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
                                                   TimePolicyType,
@@ -172,7 +177,8 @@ Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
                                                   SessionDataType,
                                                   SessionDataContainerType,
                                                   TimerManagerType,
-                                                  MediaType>::initialize (const ConfigurationType& configuration_in,
+                                                  MediaType,
+                                                  ValueType>::initialize (const ConfigurationType& configuration_in,
                                                                           Stream_IAllocator* allocator_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T::initialize"));
@@ -302,7 +308,8 @@ template <ACE_SYNCH_DECL,
           typename SessionDataType,
           typename SessionDataContainerType,
           typename TimerManagerType,
-          typename MediaType>
+          typename MediaType,
+          typename ValueType>
 void
 Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
                                                   TimePolicyType,
@@ -313,7 +320,8 @@ Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
                                                   SessionDataType,
                                                   SessionDataContainerType,
                                                   TimerManagerType,
-                                                  MediaType>::handleDataMessage (DataMessageType*& message_inout,
+                                                  MediaType,
+                                                  ValueType>::handleDataMessage (DataMessageType*& message_inout,
                                                                                  bool& passMessageDownstream_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T::handleDataMessage"));
@@ -364,9 +372,9 @@ next:
       tail_slot = inherited2::slots_ - samples_to_write;
       ACE_OS::memmove (&(inherited2::buffer_[i][0]),
                        &(inherited2::buffer_[i][samples_to_write]),
-                       tail_slot * sizeof (double));
+                       tail_slot * sizeof (ValueType));
 
-      // copy the sample data to the tail end of the buffer, transform to double
+      // copy the sample data to the tail end of the buffer as ValueType
       for (unsigned int j = 0; j < samples_to_write; ++j)
         inherited2::buffer_[i][tail_slot + j] = sampleIterator_.get (j, i);
 
@@ -376,7 +384,8 @@ next:
       {
         // initialize the FFT working set buffer, transform to complex
         for (unsigned int j = 0; j < inherited2::slots_; ++j)
-          X_[i][bitReverseMap_[j]] = std::complex<double> (buffer_[i][j], 0.0);
+          inherited2::X_[i][inherited2::bitReverseMap_[j]] =
+            std::complex<ValueType> (inherited2::buffer_[i][j], 0.0);
 
         // compute FFT
         inherited2::Compute (i);
@@ -405,7 +414,8 @@ template <ACE_SYNCH_DECL,
           typename SessionDataType,
           typename SessionDataContainerType,
           typename TimerManagerType,
-          typename MediaType>
+          typename MediaType,
+          typename ValueType>
 void
 Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
                                                   TimePolicyType,
@@ -416,7 +426,8 @@ Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
                                                   SessionDataType,
                                                   SessionDataContainerType,
                                                   TimerManagerType,
-                                                  MediaType>::handleSessionMessage (SessionMessageType*& message_inout,
+                                                  MediaType,
+                                                  ValueType>::handleSessionMessage (SessionMessageType*& message_inout,
                                                                                     bool& passMessageDownstream_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T::handleSessionMessage"));
@@ -671,7 +682,8 @@ template <ACE_SYNCH_DECL,
           typename SessionDataType,
           typename SessionDataContainerType,
           typename TimerManagerType,
-          typename MediaType>
+          typename MediaType,
+          typename ValueType>
 int
 Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
                                                   TimePolicyType,
@@ -682,7 +694,8 @@ Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
                                                   SessionDataType,
                                                   SessionDataContainerType,
                                                   TimerManagerType,
-                                                  MediaType>::svc (void)
+                                                  MediaType,
+                                                  ValueType>::svc (void)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T::svc"));
 
@@ -781,7 +794,8 @@ template <ACE_SYNCH_DECL,
           typename SessionDataType,
           typename SessionDataContainerType,
           typename TimerManagerType,
-          typename MediaType>
+          typename MediaType,
+          typename ValueType>
 void
 Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
                                                   TimePolicyType,
@@ -792,7 +806,8 @@ Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
                                                   SessionDataType,
                                                   SessionDataContainerType,
                                                   TimerManagerType,
-                                                  MediaType>::stop (bool waitForCompletion_in,
+                                                  MediaType,
+                                                  ValueType>::stop (bool waitForCompletion_in,
                                                                     bool highPriority_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T::stop"));
@@ -849,7 +864,8 @@ template <ACE_SYNCH_DECL,
           typename SessionDataType,
           typename SessionDataContainerType,
           typename TimerManagerType,
-          typename MediaType>
+          typename MediaType,
+          typename ValueType>
 bool
 Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
                                                   TimePolicyType,
@@ -860,7 +876,8 @@ Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
                                                   SessionDataType,
                                                   SessionDataContainerType,
                                                   TimerManagerType,
-                                                  MediaType>::initialize_Cairo (GdkWindow* window_in,
+                                                  MediaType,
+                                                  ValueType>::initialize_Cairo (GdkWindow* window_in,
                                                                                 cairo_t*& cairoContext_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T::initialize_Cairo"));
@@ -987,7 +1004,8 @@ template <ACE_SYNCH_DECL,
           typename SessionDataType,
           typename SessionDataContainerType,
           typename TimerManagerType,
-          typename MediaType>
+          typename MediaType,
+          typename ValueType>
 void
 Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
                                                   TimePolicyType,
@@ -998,7 +1016,8 @@ Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
                                                   SessionDataType,
                                                   SessionDataContainerType,
                                                   TimerManagerType,
-                                                  MediaType>::dispatch (const enum Stream_Statistic_AnalysisEventType& event_in)
+                                                  MediaType,
+                                                  ValueType>::dispatch (const enum Stream_Statistic_AnalysisEventType& event_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T::dispatch"));
 
@@ -1077,7 +1096,8 @@ template <ACE_SYNCH_DECL,
           typename SessionDataType,
           typename SessionDataContainerType,
           typename TimerManagerType,
-          typename MediaType>
+          typename MediaType,
+          typename ValueType>
 void
 Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
                                                   TimePolicyType,
@@ -1088,7 +1108,8 @@ Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
                                                   SessionDataType,
                                                   SessionDataContainerType,
                                                   TimerManagerType,
-                                                  MediaType>::reset ()
+                                                  MediaType,
+                                                  ValueType>::reset ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T::reset"));
 
@@ -1141,7 +1162,8 @@ template <ACE_SYNCH_DECL,
           typename SessionDataType,
           typename SessionDataContainerType,
           typename TimerManagerType,
-          typename MediaType>
+          typename MediaType,
+          typename ValueType>
 void
 Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
                                                   TimePolicyType,
@@ -1152,7 +1174,8 @@ Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
                                                   SessionDataType,
                                                   SessionDataContainerType,
                                                   TimerManagerType,
-                                                  MediaType>::setP (GdkWindow* window_in)
+                                                  MediaType,
+                                                  ValueType>::setP (GdkWindow* window_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T::setP"));
 
@@ -1243,7 +1266,8 @@ template <ACE_SYNCH_DECL,
           typename SessionDataType,
           typename SessionDataContainerType,
           typename TimerManagerType,
-          typename MediaType>
+          typename MediaType,
+          typename ValueType>
 void
 Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
                                                   TimePolicyType,
@@ -1254,7 +1278,8 @@ Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
                                                   SessionDataType,
                                                   SessionDataContainerType,
                                                   TimerManagerType,
-                                                  MediaType>::update ()
+                                                  MediaType,
+                                                  ValueType>::update ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T::update"));
 

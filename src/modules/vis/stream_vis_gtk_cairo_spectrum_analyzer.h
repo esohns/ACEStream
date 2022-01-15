@@ -45,6 +45,8 @@
 
 extern const char libacestream_default_vis_spectrum_analyzer_module_name_string[];
 
+typedef Common_Math_FFT_T<double> Common_Math_FFT_Double_t;
+
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           ////////////////////////////////
@@ -59,7 +61,8 @@ template <ACE_SYNCH_DECL,
           ////////////////////////////////
           typename TimerManagerType, // implements Common_ITimer
           ////////////////////////////////
-          typename MediaType>
+          typename MediaType,
+          typename ValueType> // buffer value-
 class Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T
  : public Stream_Module_Vis_GTK_Window_T<ACE_SYNCH_USE,
                                          TimePolicyType,
@@ -68,7 +71,7 @@ class Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T
                                          DataMessageType,
                                          SessionMessageType,
                                          MediaType>
- , public Common_Math_FFT
+ , public Common_Math_FFT_T<ValueType>
  , public Common_ICounter
  , public Common_IDispatch_T<enum Stream_Statistic_AnalysisEventType>
  , public Common_ISetP_T<GdkWindow>
@@ -80,7 +83,7 @@ class Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T
                                          DataMessageType,
                                          SessionMessageType,
                                          MediaType> inherited;
-  typedef Common_Math_FFT inherited2;
+  typedef Common_Math_FFT_T<ValueType> inherited2;
 
  public:
   // *TODO*: on MSVC 2015u3 the accurate declaration does not compile

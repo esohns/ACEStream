@@ -11744,12 +11744,12 @@ drawingarea_query_tooltip_cb (GtkWidget*  widget_in,
                 ACE_TEXT (STREAM_VIS_GTK_SPECTRUM_ANALYZER_DEFAULT_NAME_STRING)));
     return FALSE;
   } // end IF
-  Common_Math_FFT* math_fft_p =
-    dynamic_cast<Common_Math_FFT*> (const_cast<Stream_Module_t*> (module_p)->writer ());
+  Common_Math_FFT_Double_t* math_fft_p =
+    dynamic_cast<Common_Math_FFT_Double_t*> (const_cast<Stream_Module_t*> (module_p)->writer ());
   if (!math_fft_p)
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to dynamic_cast<Common_Math_FFT*>(%@), returning\n"),
+                ACE_TEXT ("failed to dynamic_cast<Common_Math_FFT_T<double>*>(%@), returning\n"),
                 const_cast<Stream_Module_t*> (module_p)->writer ()));
     return FALSE;
   } // end IF

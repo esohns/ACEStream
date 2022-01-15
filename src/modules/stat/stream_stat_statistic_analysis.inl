@@ -171,7 +171,8 @@ Stream_Statistic_StatisticAnalysis_T<ACE_SYNCH_USE,
 
   do
   {
-    iterator_.buffer_ = message_inout->rd_ptr () + offset;
+    iterator_.buffer_ =
+      reinterpret_cast<uint8_t*> (message_inout->rd_ptr ()) + offset;
     for (unsigned int i = 0; i < inherited3::channels_; ++i)
     {
       samples_to_write =
