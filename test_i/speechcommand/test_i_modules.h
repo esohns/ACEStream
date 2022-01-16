@@ -590,6 +590,16 @@ typedef Stream_Module_MessageHandler_T<ACE_MT_SYNCH,
                                        Test_I_ALSA_SessionMessage_t,
                                        Test_I_SpeechCommand_ALSA_SessionData,
                                        struct Stream_UserData> Test_I_ALSA_MessageHandler;
+typedef Stream_Module_MessageHandler_T<ACE_MT_SYNCH,
+                                       Common_TimePolicy_t,
+                                       struct Stream_Input_ModuleHandlerConfiguration,
+                                       Stream_ControlMessage_t,
+                                       ACE_Message_Block,
+                                       Stream_SessionMessageBase_T<enum Stream_SessionMessageType,
+                                                                   Stream_SessionData_T<struct Stream_SessionData>,
+                                                                   struct Stream_UserData>,
+                                       struct Stream_SessionData,
+                                       struct Stream_UserData> Test_I_ALSA_InputMessageHandler;
 
 //////////////////////////////////////////
 
@@ -918,12 +928,18 @@ DATASTREAM_MODULE_INPUT_ONLY (Test_I_SpeechCommand_ALSA_SessionData,            
 
 //////////////////////////////////////////
 
-DATASTREAM_MODULE_INPUT_ONLY (Test_I_SpeechCommand_ALSA_SessionData,                                   // session data type
+DATASTREAM_MODULE_INPUT_ONLY (Test_I_SpeechCommand_ALSA_SessionData,                     // session data type
                               enum Stream_SessionMessageType,                            // session event type
-                              struct Test_I_SpeechCommand_ALSA_ModuleHandlerConfiguration,             // module handler configuration type
+                              struct Test_I_SpeechCommand_ALSA_ModuleHandlerConfiguration, // module handler configuration type
                               libacestream_default_misc_messagehandler_module_name_string,
                               Stream_INotify_t,                                          // stream notification interface type
                               Test_I_ALSA_MessageHandler);                               // writer type
+DATASTREAM_MODULE_INPUT_ONLY (struct Stream_SessionData,                                   // session data type
+                              enum Stream_SessionMessageType,                              // session event type
+                              struct Stream_Input_ModuleHandlerConfiguration,              // module handler configuration type
+                              libacestream_default_misc_messagehandler_module_name_string,
+                              Stream_INotify_t,                                            // stream notification interface type
+                              Test_I_ALSA_InputMessageHandler);                            // writer type
 
 //////////////////////////////////////////
 

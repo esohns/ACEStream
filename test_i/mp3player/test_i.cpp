@@ -424,8 +424,11 @@ ACE_TMAIN (int argc_in,
 {
   STREAM_TRACE (ACE_TEXT ("::main"));
 
-  // step0: initialize
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
   int result = -1;
+#endif // ACE_WIN32 || ACE_WIN64
+
+  // step0: initialize
   // *PORTABILITY*: on Windows, initialize ACE...
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   result = ACE::init ();

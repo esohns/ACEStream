@@ -55,7 +55,9 @@ extern "C"
 
 #include "common_tools.h"
 
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
 #include "common_error_tools.h"
+#endif // ACE_WIN32 || ACE_WIN64
 
 #include "stream_macros.h"
 

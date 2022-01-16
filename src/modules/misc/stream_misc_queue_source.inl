@@ -36,7 +36,7 @@ template <ACE_SYNCH_DECL,
           typename SessionDataType,
           typename SessionDataContainerType,
           typename StatisticContainerType,
-          typename StatisticHandlerType,
+          typename TimerManagerType,
           typename UserDataType>
 Stream_Module_QueueReader_T<ACE_SYNCH_USE,
                             ControlMessageType,
@@ -49,7 +49,7 @@ Stream_Module_QueueReader_T<ACE_SYNCH_USE,
                             SessionDataType,
                             SessionDataContainerType,
                             StatisticContainerType,
-                            StatisticHandlerType,
+                            TimerManagerType,
   #if defined (ACE_WIN32) || defined (ACE_WIN64)
                             UserDataType>::Stream_Module_QueueReader_T (ISTREAM_T* stream_in)
 #else
@@ -76,7 +76,7 @@ template <ACE_SYNCH_DECL,
           typename SessionDataType,
           typename SessionDataContainerType,
           typename StatisticContainerType,
-          typename StatisticHandlerType,
+          typename TimerManagerType,
           typename UserDataType>
 bool
 Stream_Module_QueueReader_T<ACE_SYNCH_USE,
@@ -90,7 +90,7 @@ Stream_Module_QueueReader_T<ACE_SYNCH_USE,
                             SessionDataType,
                             SessionDataContainerType,
                             StatisticContainerType,
-                            StatisticHandlerType,
+                            TimerManagerType,
                             UserDataType>::initialize (const ConfigurationType& configuration_in,
                                                        Stream_IAllocator* allocator_in)
 {
@@ -118,7 +118,7 @@ template <ACE_SYNCH_DECL,
           typename SessionDataType,
           typename SessionDataContainerType,
           typename StatisticContainerType,
-          typename StatisticHandlerType,
+          typename TimerManagerType,
           typename UserDataType>
 void
 Stream_Module_QueueReader_T<ACE_SYNCH_USE,
@@ -132,7 +132,7 @@ Stream_Module_QueueReader_T<ACE_SYNCH_USE,
                             SessionDataType,
                             SessionDataContainerType,
                             StatisticContainerType,
-                            StatisticHandlerType,
+                            TimerManagerType,
                             UserDataType>::handleSessionMessage (SessionMessageType*& message_inout,
                                                                  bool& passMessageDownstream_out)
 {
@@ -195,7 +195,7 @@ template <ACE_SYNCH_DECL,
           typename SessionDataType,
           typename SessionDataContainerType,
           typename StatisticContainerType,
-          typename StatisticHandlerType,
+          typename TimerManagerType,
           typename UserDataType>
 int
 Stream_Module_QueueReader_T<ACE_SYNCH_USE,
@@ -209,7 +209,7 @@ Stream_Module_QueueReader_T<ACE_SYNCH_USE,
                             SessionDataType,
                             SessionDataContainerType,
                             StatisticContainerType,
-                            StatisticHandlerType,
+                            TimerManagerType,
                             UserDataType>::svc (void)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_QueueReader_T::svc"));
@@ -268,7 +268,7 @@ template <ACE_SYNCH_DECL,
           typename SessionDataType,
           typename SessionDataContainerType,
           typename StatisticContainerType,
-          typename StatisticHandlerType,
+          typename TimerManagerType,
           typename UserDataType>
 void
 Stream_Module_QueueReader_T<ACE_SYNCH_USE,
@@ -282,7 +282,7 @@ Stream_Module_QueueReader_T<ACE_SYNCH_USE,
                             SessionDataType,
                             SessionDataContainerType,
                             StatisticContainerType,
-                            StatisticHandlerType,
+                            TimerManagerType,
                             UserDataType>::stop ()
 {
   COMMON_TRACE (ACE_TEXT ("Stream_Module_QueueReader_T::stop"));

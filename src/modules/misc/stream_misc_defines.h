@@ -23,6 +23,7 @@
 
 #include "ace/config-lite.h"
 
+// module
 #define STREAM_MISC_DISTRIBUTOR_DEFAULT_NAME_STRING                 "Distributor"
 #define STREAM_MISC_DELAY_DEFAULT_NAME_STRING                       "Delay"
 #define STREAM_MISC_DUMP_DEFAULT_NAME_STRING                        "Dump"
@@ -32,6 +33,9 @@
 #define STREAM_MISC_PARSER_DEFAULT_NAME_STRING                      "Parser"
 #define STREAM_MISC_QUEUE_DEFAULT_NAME_STRING                       "Queue"
 #define STREAM_MISC_SPLITTER_DEFAULT_NAME_STRING                    "Splitter"
+
+// stream
+#define STREAM_MISC_DEFAULT_INPUT_STREAM_NAME_STRING                "InputStream"
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 // DirectShow
@@ -60,6 +64,6 @@
 
 #define STREAM_MISC_MF_WIN32_BYTESTREAMHANDLER_DESCRIPTION          "ACEStream Source ByteStreamHandler"
 #define STREAM_MISC_MF_WIN32_REG_BYTESTREAMHANDLERS_KEY             "Software\\Microsoft\\Windows Media Foundation\\ByteStreamHandlers"
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
 
 #endif

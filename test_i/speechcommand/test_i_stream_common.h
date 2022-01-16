@@ -41,6 +41,7 @@
 
 #include "stream_common.h"
 #include "stream_configuration.h"
+#include "stream_messagequeue.h"
 
 #include "stream_dec_common.h"
 

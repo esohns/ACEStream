@@ -3080,12 +3080,12 @@ Stream_Base_T<ACE_SYNCH_USE,
                 ACE_TEXT (MODULE_STAT_REPORT_DEFAULT_NAME_STRING)));
     return false;
   } // end IF
-  STATISTIC_REPORT_MODULE_WRITER_T* statistic_impl_p =
-    dynamic_cast<STATISTIC_REPORT_MODULE_WRITER_T*> (module_p->writer ());
+  ISTATISTIC_T* statistic_impl_p =
+    dynamic_cast<ISTATISTIC_T*> (module_p->writer ());
   if (unlikely (!statistic_impl_p))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: dynamic_cast<Stream_Statistic_StatisticReport_WriterTask_T> failed, aborting\n"),
+                ACE_TEXT ("%s: dynamic_cast<Common_IStatistic_T> failed, aborting\n"),
                 ACE_TEXT (StreamName)));
     return false;
   } // end IF
@@ -3162,12 +3162,12 @@ Stream_Base_T<ACE_SYNCH_USE,
                 ACE_TEXT (MODULE_STAT_REPORT_DEFAULT_NAME_STRING)));
     return;
   } // end IF
-  STATISTIC_REPORT_MODULE_WRITER_T* statistic_impl_p =
-    dynamic_cast<STATISTIC_REPORT_MODULE_WRITER_T*> (module_p->writer ());
+  ISTATISTIC_T* statistic_impl_p =
+    dynamic_cast<ISTATISTIC_T*> (module_p->writer ());
   if (unlikely (!statistic_impl_p))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: dynamic_cast<Stream_Statistic_StatisticReport_WriterTask_T> failed, returning\n"),
+                ACE_TEXT ("%s: dynamic_cast<Common_IStatistic_T> failed, returning\n"),
                 ACE_TEXT (StreamName)));
     return;
   } // end IF
@@ -3228,12 +3228,12 @@ Stream_Base_T<ACE_SYNCH_USE,
                 ACE_TEXT (MODULE_STAT_REPORT_DEFAULT_NAME_STRING)));
     return;
   } // end IF
-  STATISTIC_REPORT_MODULE_WRITER_T* statistic_impl_p =
-    dynamic_cast<STATISTIC_REPORT_MODULE_WRITER_T*> (module_p->writer ());
+  ISTATISTIC_T* statistic_impl_p =
+    dynamic_cast<ISTATISTIC_T*> (module_p->writer ());
   if (unlikely (!statistic_impl_p))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: dynamic_cast<Stream_Statistic_StatisticReport_WriterTask_T> failed, returning\n"),
+                ACE_TEXT ("%s: dynamic_cast<Common_IStatistic_T> failed, returning\n"),
                 ACE_TEXT (StreamName)));
     return;
   } // end IF

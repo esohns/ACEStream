@@ -436,3 +436,190 @@ continue_:
 #endif // GTK_USE || WXWIDGETS_USE
 #endif // GUI_SUPPORT
 }
+
+//////////////////////////////////////////
+
+template <typename NotificationType,
+          typename DataMessageType,
+#if defined (GUI_SUPPORT)
+          typename UIStateType,
+#if defined (WXWIDGETS_USE)
+          typename InterfaceType,
+#endif // WXWIDGETS_USE
+#endif // GUI_SUPPORT
+          typename SessionMessageType>
+Test_I_InputHandler_T<NotificationType,
+                      DataMessageType,
+#if defined (GUI_SUPPORT)
+                      UIStateType,
+#if defined (WXWIDGETS_USE)
+                      InterfaceType,
+#endif // WXWIDGETS_USE
+#endif // GUI_SUPPORT
+#if defined (GUI_SUPPORT)
+                      SessionMessageType>::Test_I_InputHandler_T (struct Test_I_SpeechCommand_UI_CBData* CBData_in
+#if defined (GTK_USE)
+                                                                  )
+#elif defined (QT_USE)
+                                                                  )
+#elif defined (WXWIDGETS_USE)
+                                                                  ,InterfaceType* interface_in)
+#else
+                                                                  )
+#endif // GTK_USE || QT_USE || WXWIDGETS_USE
+#else
+                      SessionMessageType>::Test_I_InputHandler_T ()
+#endif // GUI_SUPPORT
+#if defined (GUI_SUPPORT)
+ : CBData_ (CBData_in)
+#if defined (WXWIDGETS_USE)
+ , interface_ (interface_in)
+#endif // WXWIDGETS_USE
+#endif // GUI_SUPPORT
+ , sessionData_ (NULL)
+{
+  STREAM_TRACE (ACE_TEXT ("Test_I_InputHandler_T::Test_I_InputHandler_T"));
+
+}
+
+template <typename NotificationType,
+          typename DataMessageType,
+#if defined (GUI_SUPPORT)
+          typename UIStateType,
+#if defined (WXWIDGETS_USE)
+          typename InterfaceType,
+#endif // WXWIDGETS_USE
+#endif // GUI_SUPPORT
+          typename SessionMessageType>
+void
+Test_I_InputHandler_T<NotificationType,
+                      DataMessageType,
+#if defined (GUI_SUPPORT)
+                      UIStateType,
+#if defined (WXWIDGETS_USE)
+                      InterfaceType,
+#endif // WXWIDGETS_USE
+#endif // GUI_SUPPORT
+                      SessionMessageType>::start (Stream_SessionId_t sessionId_in,
+                                                  const typename SessionMessageType::DATA_T::DATA_T& sessionData_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Test_I_InputHandler_T::start"));
+
+  ACE_UNUSED_ARG (sessionId_in);
+
+  sessionData_ =
+    &const_cast<typename SessionMessageType::DATA_T::DATA_T&> (sessionData_in);
+}
+
+template <typename NotificationType,
+          typename DataMessageType,
+#if defined (GUI_SUPPORT)
+          typename UIStateType,
+#if defined (WXWIDGETS_USE)
+          typename InterfaceType,
+#endif // WXWIDGETS_USE
+#endif // GUI_SUPPORT
+          typename SessionMessageType>
+void
+Test_I_InputHandler_T<NotificationType,
+                      DataMessageType,
+#if defined (GUI_SUPPORT)
+                      UIStateType,
+#if defined (WXWIDGETS_USE)
+                      InterfaceType,
+#endif // WXWIDGETS_USE
+#endif // GUI_SUPPORT
+                      SessionMessageType>::notify (Stream_SessionId_t sessionId_in,
+                                                   const enum Stream_SessionMessageType& sessionEvent_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Test_I_InputHandler_T::notify"));
+
+  ACE_UNUSED_ARG (sessionId_in);
+  ACE_UNUSED_ARG (sessionEvent_in);
+}
+
+template <typename NotificationType,
+          typename DataMessageType,
+#if defined (GUI_SUPPORT)
+          typename UIStateType,
+#if defined (WXWIDGETS_USE)
+          typename InterfaceType,
+#endif // WXWIDGETS_USE
+#endif // GUI_SUPPORT
+          typename SessionMessageType>
+void
+Test_I_InputHandler_T<NotificationType,
+                      DataMessageType,
+#if defined (GUI_SUPPORT)
+                      UIStateType,
+#if defined (WXWIDGETS_USE)
+                      InterfaceType,
+#endif // WXWIDGETS_USE
+#endif // GUI_SUPPORT
+                      SessionMessageType>::end (Stream_SessionId_t sessionId_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Test_I_InputHandler_T::end"));
+
+  ACE_UNUSED_ARG (sessionId_in);
+
+  sessionData_ = NULL;
+}
+
+template <typename NotificationType,
+          typename DataMessageType,
+#if defined (GUI_SUPPORT)
+          typename UIStateType,
+#if defined (WXWIDGETS_USE)
+          typename InterfaceType,
+#endif // WXWIDGETS_USE
+#endif // GUI_SUPPORT
+          typename SessionMessageType>
+void
+Test_I_InputHandler_T<NotificationType,
+                      DataMessageType,
+#if defined (GUI_SUPPORT)
+                      UIStateType,
+#if defined (WXWIDGETS_USE)
+                      InterfaceType,
+#endif // WXWIDGETS_USE
+#endif // GUI_SUPPORT
+                      SessionMessageType>::notify (Stream_SessionId_t sessionId_in,
+                                                   const DataMessageType& message_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Test_I_InputHandler_T::notify"));
+
+  ACE_UNUSED_ARG (sessionId_in);
+
+  DataMessageType* message_p = &const_cast<DataMessageType&> (message_in);
+  do
+  {
+    message_p = static_cast<DataMessageType*> (message_p->cont ());
+  } while (message_p);
+}
+
+template <typename NotificationType,
+          typename DataMessageType,
+#if defined (GUI_SUPPORT)
+          typename UIStateType,
+#if defined (WXWIDGETS_USE)
+          typename InterfaceType,
+#endif // WXWIDGETS_USE
+#endif // GUI_SUPPORT
+          typename SessionMessageType>
+void
+Test_I_InputHandler_T<NotificationType,
+                      DataMessageType,
+#if defined (GUI_SUPPORT)
+                      UIStateType,
+#if defined (WXWIDGETS_USE)
+                      InterfaceType,
+#endif // WXWIDGETS_USE
+#endif // GUI_SUPPORT
+                      SessionMessageType>::notify (Stream_SessionId_t sessionId_in,
+                                                   const SessionMessageType& sessionMessage_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Test_I_InputHandler_T::notify"));
+
+  ACE_UNUSED_ARG (sessionId_in);
+  ACE_UNUSED_ARG (sessionMessage_in);
+}

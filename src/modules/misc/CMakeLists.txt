@@ -62,6 +62,9 @@ set (source_files
      stream_misc_dump.h
      stream_misc_dump.inl
 #     stream_misc_exports.h
+     stream_misc_input_stream.cpp
+     stream_misc_input_stream.h
+     stream_misc_input_stream.inl
      stream_misc_messagehandler.cpp
      stream_misc_messagehandler.h
      stream_misc_messagehandler.inl
@@ -107,10 +110,6 @@ target_link_libraries (${PROJECT_NAME}_Miscellaneous PUBLIC ${PROJECT_NAME})
 #set_target_properties (${PROJECT_NAME}_Miscellaneous PROPERTIES DEFINE_SYMBOL STREAM_MISC_BUILD_DLL)
 #set_target_properties (${PROJECT_NAME}_Miscellaneous PROPERTIES VERSION ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_MICRO} SOVERSION 1)
 
-# add PCH
-#set_target_properties (${PROJECT_NAME}_Miscellaneous PROPERTIES COTIRE_CXX_PREFIX_HEADER_INIT "stdafx.h")
-#cotire (${PROJECT_NAME}_Miscellaneous)
-
 # add all targets to the build-tree export set
 export (TARGETS ${PROJECT_NAME}_Miscellaneous
         APPEND FILE "${PROJECT_BINARY_DIR}/${PROJECT_NAME}Targets.cmake")
@@ -127,6 +126,8 @@ install (FILES
          stream_misc_distributor.inl
          stream_misc_dump.h
          stream_misc_dump.inl
+         stream_misc_input_stream.h
+         stream_misc_input_stream.inl
 #         stream_misc_exports.h
          stream_misc_messagehandler.h
          stream_misc_messagehandler.inl

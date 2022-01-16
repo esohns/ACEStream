@@ -50,7 +50,7 @@ template <ACE_SYNCH_DECL,
           typename SessionDataContainerType, // session message payload (reference counted)
           ////////////////////////////////
           typename StatisticContainerType,
-          typename StatisticHandlerType,
+          typename TimerManagerType,
           ////////////////////////////////
           typename UserDataType>
 class Stream_Module_QueueReader_T
@@ -66,7 +66,7 @@ class Stream_Module_QueueReader_T
                                       SessionDataType,
                                       SessionDataContainerType,
                                       StatisticContainerType,
-                                      StatisticHandlerType,
+                                      TimerManagerType,
                                       UserDataType>
 {
   typedef Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
@@ -81,7 +81,7 @@ class Stream_Module_QueueReader_T
                                       SessionDataType,
                                       SessionDataContainerType,
                                       StatisticContainerType,
-                                      StatisticHandlerType,
+                                      TimerManagerType,
                                       UserDataType> inherited;
 
  public:
@@ -108,7 +108,7 @@ class Stream_Module_QueueReader_T
                                     SessionDataType,
                                     SessionDataContainerType,
                                     StatisticContainerType,
-                                    StatisticHandlerType,
+                                    TimerManagerType,
                                     UserDataType>::initialize;
 #endif // __GNUG__ || _MSC_VER
 

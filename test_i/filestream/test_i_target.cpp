@@ -1000,7 +1000,9 @@ ACE_TMAIN (int argc_in,
 {
   STREAM_TRACE (ACE_TEXT ("::main"));
 
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
   int result = -1;
+#endif // ACE_WIN32 || ACE_WIN64
 
   // step0: initialize
   // *PORTABILITY*: on Windows, initialize ACE
@@ -1012,7 +1014,7 @@ ACE_TMAIN (int argc_in,
                 ACE_TEXT ("failed to ACE::init(): \"%m\", aborting\n")));
     return EXIT_FAILURE;
   } // end IF
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
   Common_Tools::initialize ();
 
   // *PROCESS PROFILE*

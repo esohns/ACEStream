@@ -49,8 +49,6 @@
 
 #include "stream_misc_distributor.h"
 
-#include "stream_stat_statistic_report.h"
-
 // forward declaration(s)
 class ACE_Notification_Strategy;
 class Stream_IAllocator;
@@ -306,17 +304,7 @@ class Stream_Base_T
   typedef Stream_IModuleHandler_T<ACE_SYNCH_USE,
                                   TimePolicyType,
                                   HandlerConfigurationType> IMODULE_HANDLER_T;
-  typedef Stream_Statistic_StatisticReport_WriterTask_T<ACE_SYNCH_USE,
-                                                        TimePolicyType,
-                                                        HandlerConfigurationType,
-                                                        ControlMessageType,
-                                                        DataMessageType,
-                                                        SessionMessageType,
-                                                        typename DataMessageType::COMMAND_T,
-                                                        StatisticContainerType,
-                                                        Common_Timer_Manager_t,
-                                                        SessionDataType,
-                                                        SessionDataContainerType> STATISTIC_REPORT_MODULE_WRITER_T;
+  typedef Common_IStatistic_T<StatisticContainerType> ISTATISTIC_T;
 
   Stream_Base_T ();
 

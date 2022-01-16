@@ -57,6 +57,8 @@
 
 #include "common_error_tools.h"
 
+#include "common_input_manager.h"
+
 #include "common_log_tools.h"
 #include "common_logger.h"
 
@@ -1185,7 +1187,7 @@ do_work (const std::string& scorerFile_in,
                                                     true);               // block ?
 #endif // ACE_WIN32 || ACE_WIN64
   bool result = false;
-  Stream_IStream_t* istream_p = NULL;
+  Stream_IStream_t* istream_p = NULL, *istream_2 = NULL;
   Stream_IStreamControlBase* istream_control_p = NULL;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   struct Test_I_SpeechCommand_DirectShow_ModuleHandlerConfiguration directshow_modulehandler_configuration;
@@ -1237,6 +1239,12 @@ do_work (const std::string& scorerFile_in,
     }
   } // end SWITCH
 #else
+  Test_I_ALSA_InputManager_t* input_manager_p =
+    Test_I_ALSA_InputManager_t::SINGLETON_T::instance ();
+  ACE_ASSERT (input_manager_p);
+  Test_I_ALSA_InputStream_t& stream_2_r =
+    const_cast<Test_I_ALSA_InputStream_t&> (input_manager_p->getR ());
+  istream_2 = &stream_2_r;
   Test_I_ALSA_Stream stream;
   istream_p = &stream;
   istream_control_p = &stream;
@@ -1280,15 +1288,23 @@ do_work (const std::string& scorerFile_in,
   Test_I_MediaFoundation_StreamConfiguration_t::ITERATOR_T mediafoundation_modulehandler_iterator;
   Test_I_DirectShow_StreamConfiguration_t::ITERATOR_T directshow_modulehandler_iterator;
 #else
-  Test_I_ALSA_EventHandler_t ui_event_handler (
+  Test_I_ALSA_EventHandler_t event_handler (
 #if defined (GUI_SUPPORT)
-                                               (UIDefinitionFile_in.empty () ? NULL : &CBData_in)
+                                            (UIDefinitionFile_in.empty () ? NULL : &CBData_in)
 #endif // GUI_SUPPORT
-                                               );
-  Test_I_ALSA_MessageHandler_Module event_handler (istream_p,
-                                                   ACE_TEXT_ALWAYS_CHAR (STREAM_MISC_MESSAGEHANDLER_DEFAULT_NAME_STRING));
+                                           );
+  Test_I_ALSA_MessageHandler_Module event_handler_module (istream_p,
+                                                          ACE_TEXT_ALWAYS_CHAR (STREAM_MISC_MESSAGEHANDLER_DEFAULT_NAME_STRING));
+  Test_I_ALSA_InputHandler_t input_handler (
+#if defined (GUI_SUPPORT)
+                                            (UIDefinitionFile_in.empty () ? NULL : &CBData_in)
+#endif // GUI_SUPPORT
+                                           );
+  Test_I_ALSA_MessageHandler_Module input_handler_module (istream_2,
+                                                          ACE_TEXT_ALWAYS_CHAR (STREAM_MISC_MESSAGEHANDLER_DEFAULT_NAME_STRING));
   Test_I_ALSA_StreamConfiguration_t::ITERATOR_T modulehandler_iterator;
   struct Test_I_ALSA_StreamConfiguration stream_configuration;
+  struct Stream_Configuration stream_configuration_2; // input-
   struct Stream_MediaFramework_ALSA_Configuration ALSA_configuration; // capture
   ALSA_configuration.asynch = false;
   ALSA_configuration.mode = SND_PCM_NONBLOCK;
@@ -1305,6 +1321,7 @@ do_work (const std::string& scorerFile_in,
   struct Test_I_SpeechCommand_ALSA_ModuleHandlerConfiguration modulehandler_configuration;
   struct Test_I_SpeechCommand_ALSA_ModuleHandlerConfiguration modulehandler_configuration_2; // renderer module
   struct Test_I_SpeechCommand_ALSA_ModuleHandlerConfiguration modulehandler_configuration_3; // file writer module
+  struct Stream_Input_ModuleHandlerConfiguration modulehandler_configuration_i; // input-
 #endif // ACE_WIN32 || ACE_WIN64
   Test_I_SignalHandler signal_handler;
 
@@ -1649,7 +1666,7 @@ do_work (const std::string& scorerFile_in,
   modulehandler_configuration.printProgressDot = UIDefinitionFile_in.empty ();
   modulehandler_configuration.statisticReportingInterval =
     ACE_Time_Value (statisticReportingInterval_in, 0);
-  modulehandler_configuration.subscriber = &ui_event_handler;
+  modulehandler_configuration.subscriber = &event_handler;
 
   configuration_in.streamConfiguration.initialize (module_configuration,
                                                    modulehandler_configuration,
@@ -1709,7 +1726,7 @@ do_work (const std::string& scorerFile_in,
   } // end SWITCH
 #else
   stream_configuration.messageAllocator = &message_allocator;
-  stream_configuration.module = &event_handler;
+  stream_configuration.module = &event_handler_module;
   stream_configuration.moduleBranch =
     ACE_TEXT_ALWAYS_CHAR (STREAM_SUBSTREAM_DECODE_NAME);
   stream_configuration.printFinalReport = true;
@@ -1844,6 +1861,46 @@ do_work (const std::string& scorerFile_in,
     goto error;
   } // end IF
 
+   // step0f: initialize input handling
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  switch (mediaFramework_in)
+  {
+    case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
+    {
+      break;
+    }
+    case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
+    {
+      break;
+    }
+    default:
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("invalid/unknown media framework (was: %d), returning\n"),
+                  mediaFramework_in));
+      goto error;
+    }
+  } // end SWITCH
+#else
+  configuration_in.inputConfiguration.messageAllocator = &message_allocator;
+  configuration_in.inputConfiguration.queue = &configuration_in.inputQueue;
+
+  modulehandler_configuration_i.queue = &configuration_in.inputQueue;
+  modulehandler_configuration_i.subscriber = &input_handler;
+
+  stream_configuration_2 = stream_configuration;
+  configuration_in.streamConfiguration_2.initialize (module_configuration,
+                                                     modulehandler_configuration_i,
+                                                     stream_configuration_2);
+
+  if (unlikely (!input_manager_p->initialize (configuration_in.inputManagerConfiguration)))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to Common_Input_Manager_T::initialize(), returning\n")));
+    goto error;
+  } // end IF
+#endif // ACE_WIN32 || ACE_WIN64
+
 #if defined (GUI_SUPPORT)
   // step1a: start ui event loop ?
   if (!UIDefinitionFile_in.empty ())
@@ -1950,6 +2007,13 @@ do_work (const std::string& scorerFile_in,
     } // end SWITCH
     if (unlikely (!success_b))
 #else
+    if (unlikely (!input_manager_p->start ()))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to Common_Input_Manager_T::start(), returning\n")));
+      goto error;
+    } // end IF
+
     if (unlikely (!stream.initialize (configuration_in.streamConfiguration)))
 #endif // ACE_WIN32 || ACE_WIN64
     {
@@ -1974,6 +2038,7 @@ do_work (const std::string& scorerFile_in,
 #endif // GUI_SUPPORT
 
   // step3: clean up
+  input_manager_p->stop ();
   timer_manager_p->stop ();
   Common_Signal_Tools::finalize (COMMON_SIGNAL_DEFAULT_DISPATCH_MODE,
                                  previousSignalActions_inout,
@@ -2032,6 +2097,9 @@ do_work (const std::string& scorerFile_in,
   return;
 
 error:
+  if (input_manager_p)
+    input_manager_p->stop ();
+
 #if defined (GUI_SUPPORT)
   if (!UIDefinitionFile_in.empty () && itask_p)
     itask_p->stop (true,  // wait ?
