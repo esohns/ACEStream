@@ -40,8 +40,6 @@
 #include "common_idumpstate.h"
 #include "common_iinitialize.h"
 
-#include "common_input_common.h"
-
 #include "common_timer_common.h"
 
 #include "common_signal_common.h"
@@ -223,30 +221,6 @@ struct Stream_V4L_ModuleHandlerConfiguration
 };
 #endif // ACE_WIN32 || ACE_WIN64
 
-typedef Stream_ISessionDataNotify_T<struct Stream_SessionData,
-                                    enum Stream_SessionMessageType,
-                                    ACE_Message_Block,
-                                    Stream_SessionMessageBase_T<enum Stream_SessionMessageType,
-                                                                Stream_SessionData_T<struct Stream_SessionData>,
-                                                                struct Stream_UserData> > Stream_IInputSessionNotify_t;
-typedef std::list<Stream_IInputSessionNotify_t*> Stream_InputSessionSubscribers_t;
-typedef Stream_InputSessionSubscribers_t::iterator Stream_InputSessionSubscribersIterator_t;
-
-struct Stream_Input_ModuleHandlerConfiguration
- : Stream_ModuleHandlerConfiguration
-{
-  Stream_Input_ModuleHandlerConfiguration ()
-   : Stream_ModuleHandlerConfiguration ()
-   , queue (NULL)
-   , subscriber (NULL)
-   , subscribers (NULL)
-  {}
-
-  ACE_Message_Queue_Base*           queue; // input
-  Stream_IInputSessionNotify_t*     subscriber;
-  Stream_InputSessionSubscribers_t* subscribers;
-};
-
 struct Stream_Configuration;
 struct Stream_ModuleConfiguration
 {
@@ -356,9 +330,5 @@ class Stream_Configuration_T
 typedef Stream_Configuration_T<//empty_string_,
                                struct Stream_Configuration,
                                struct Stream_ModuleHandlerConfiguration> Stream_Configuration_t;
-typedef Stream_Configuration_T<//empty_string_,
-                               struct Stream_Configuration,
-                               struct Stream_Input_ModuleHandlerConfiguration> Stream_Input_Configuration_t;
-typedef Common_Input_Manager_Configuration_T<Stream_Input_Configuration_t> Common_Input_Manager_Configuration_t;
 
 #endif

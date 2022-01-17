@@ -40,9 +40,6 @@
 #include "common_isubscribe.h"
 #include "common_tools.h"
 
-#include "common_input_common.h"
-#include "common_input_manager.h"
-
 #if defined (GUI_SUPPORT)
 #include "common_ui_common.h"
 #if defined (GTK_SUPPORT)
@@ -70,6 +67,8 @@
 #include "stream_lib_directshow_common.h"
 #endif // ACE_WIN32 || ACE_WIN64
 
+#include "stream_misc_common.h"
+#include "stream_misc_input_manager.h"
 #include "stream_misc_input_stream.h"
 
 #include "test_i_common.h"
@@ -142,7 +141,7 @@ struct Test_I_SpeechCommand_Configuration
   struct Common_Input_Configuration    inputConfiguration;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
-  Common_Input_Manager_Configuration_t inputManagerConfiguration;
+  Stream_Input_Manager_Configuration_t inputManagerConfiguration;
 #endif // ACE_WIN32 || ACE_WIN64
 };
 
@@ -312,8 +311,8 @@ typedef Stream_Miscellaneous_Input_Stream_T<ACE_MT_SYNCH,
                                                                         Stream_SessionData_T<struct Stream_SessionData>,
                                                                         struct Stream_UserData>,
                                             struct Stream_UserData> Test_I_ALSA_InputStream_t;
-typedef Common_Input_Manager_T<ACE_MT_SYNCH,
-                               Common_Input_Manager_Configuration_t,
+typedef Stream_Input_Manager_T<ACE_MT_SYNCH,
+                               Stream_Input_Manager_Configuration_t,
                                Common_InputHandler_t,
                                Test_I_ALSA_InputStream_t> Test_I_ALSA_InputManager_t;
 

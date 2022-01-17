@@ -352,7 +352,8 @@ Stream_Base_T<ACE_SYNCH_USE,
                     ACE_TEXT ("%s/%s: applying dedicated configuration\n"),
                     ACE_TEXT (StreamName), (*iterator)->name ()));
       ACE_ASSERT (iterator_2 != configuration_->end ());
-      if (unlikely (!imodule_p->initialize (*(*iterator_2).second.first)))
+      if (unlikely (imodule_p &&
+                    !imodule_p->initialize (*(*iterator_2).second.first)))
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s/%s: failed to Common_IInitialize_T::initialize(), aborting\n"),

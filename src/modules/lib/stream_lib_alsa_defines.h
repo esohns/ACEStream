@@ -21,11 +21,14 @@
 #ifndef STREAM_LIB_ALSA_DEFINES_H
 #define STREAM_LIB_ALSA_DEFINES_H
 
+#include "common_macros.h"
+
 // device names
 //#define STREAM_LIB_ALSA_DEVICE_CAPTURE_PREFIX                     "hw"
 #define STREAM_LIB_ALSA_DEVICE_CAPTURE_PREFIX                     "sysdefault"
 // *NOTE*: 'sysdefault' references the hardware device --> no simultaneous playback
 #define STREAM_LIB_ALSA_DEVICE_PLAYBACK_PREFIX                    "sysdefault"
+#define STREAM_LIB_ALSA_DEVICE_SUFFIX                             0 // == card index, see: "arecord -l"
 //#define STREAM_LIB_ALSA_DEVICE_DMIX                               "plug:dmix"
 #define STREAM_LIB_ALSA_DEVICE_DEFAULT                            "default"
 //#define STREAM_LIB_ALSA_DEVICE_PLUGHW                             "plug:hw"
@@ -42,7 +45,7 @@
 #define STREAM_LIB_ALSA_CAPTURE_DEFAULT_ASYNCH                    true
 #define STREAM_LIB_ALSA_CAPTURE_DEFAULT_BUFFER_SIZE               1024 // bytes (== periodsize * #period)
 #define STREAM_LIB_ALSA_CAPTURE_DEFAULT_BUFFER_TIME               10000 // us
-#define STREAM_LIB_ALSA_CAPTURE_DEFAULT_DEVICE_NAME               STREAM_LIB_ALSA_DEVICE_CAPTURE_PREFIX
+#define STREAM_LIB_ALSA_CAPTURE_DEFAULT_DEVICE_NAME               STREAM_LIB_ALSA_DEVICE_CAPTURE_PREFIX ":" COMMON_STRINGIZE(STREAM_LIB_ALSA_DEVICE_SUFFIX)
 #define STREAM_LIB_ALSA_CAPTURE_DEFAULT_MODE                      SND_PCM_NONBLOCK | SND_PCM_NO_AUTO_RESAMPLE | SND_PCM_NO_AUTO_CHANNELS | SND_PCM_NO_AUTO_FORMAT | SND_PCM_NO_SOFTVOL
 // *IMPORTANT NOTE*: "...Latency is directly proportional with the buffer size
 //                    on playback devices or the period size on capture devices..."
@@ -64,7 +67,7 @@
 //                    on playback devices or the period siz on capture devices..."
 #define STREAM_LIB_ALSA_PLAYBACK_DEFAULT_BUFFER_SIZE              12288 // bytes (== periodsize * #period)
 #define STREAM_LIB_ALSA_PLAYBACK_DEFAULT_BUFFER_TIME              100000 // us
-#define STREAM_LIB_ALSA_PLAYBACK_DEFAULT_DEVICE_NAME              STREAM_LIB_ALSA_DEVICE_DEFAULT
+#define STREAM_LIB_ALSA_PLAYBACK_DEFAULT_DEVICE_NAME              STREAM_LIB_ALSA_DEVICE_PLAYBACK_PREFIX ":" COMMON_STRINGIZE(STREAM_LIB_ALSA_DEVICE_SUFFIX)
 #define STREAM_LIB_ALSA_PLAYBACK_DEFAULT_MODE                     0
 // *TODO*: number of frames between each interrupt
 #define STREAM_LIB_ALSA_PLAYBACK_DEFAULT_PERIOD_SIZE              4096 // frames

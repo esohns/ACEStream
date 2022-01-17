@@ -1300,8 +1300,8 @@ do_work (const std::string& scorerFile_in,
                                             (UIDefinitionFile_in.empty () ? NULL : &CBData_in)
 #endif // GUI_SUPPORT
                                            );
-  Test_I_ALSA_MessageHandler_Module input_handler_module (istream_2,
-                                                          ACE_TEXT_ALWAYS_CHAR (STREAM_MISC_MESSAGEHANDLER_DEFAULT_NAME_STRING));
+  Test_I_ALSA_InputMessageHandler_Module input_handler_module (istream_2,
+                                                               ACE_TEXT_ALWAYS_CHAR (STREAM_MISC_MESSAGEHANDLER_DEFAULT_NAME_STRING));
   Test_I_ALSA_StreamConfiguration_t::ITERATOR_T modulehandler_iterator;
   struct Test_I_ALSA_StreamConfiguration stream_configuration;
   struct Stream_Configuration stream_configuration_2; // input-
@@ -1889,14 +1889,17 @@ do_work (const std::string& scorerFile_in,
   modulehandler_configuration_i.subscriber = &input_handler;
 
   stream_configuration_2 = stream_configuration;
+  stream_configuration_2.module = &input_handler_module;
+  stream_configuration_2.moduleBranch.clear ();
   configuration_in.streamConfiguration_2.initialize (module_configuration,
                                                      modulehandler_configuration_i,
                                                      stream_configuration_2);
-
+  configuration_in.inputManagerConfiguration.streamConfiguration =
+    &configuration_in.streamConfiguration_2;
   if (unlikely (!input_manager_p->initialize (configuration_in.inputManagerConfiguration)))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to Common_Input_Manager_T::initialize(), returning\n")));
+                ACE_TEXT ("failed to Stream_Input_Manager_T::initialize(), returning\n")));
     goto error;
   } // end IF
 #endif // ACE_WIN32 || ACE_WIN64
@@ -2072,7 +2075,7 @@ do_work (const std::string& scorerFile_in,
     }
   } // end SWITCH
 #else
-  result = stream.remove (&event_handler,
+  result = stream.remove (&event_handler_module,
                           true,   // lock ?
                           false); // reset ?
 
@@ -2099,13 +2102,13 @@ do_work (const std::string& scorerFile_in,
 error:
   if (input_manager_p)
     input_manager_p->stop ();
-
 #if defined (GUI_SUPPORT)
   if (!UIDefinitionFile_in.empty () && itask_p)
     itask_p->stop (true,  // wait ?
                    true); // high priority ?
 #endif // GUI_SUPPORT
-  timer_manager_p->stop ();
+  if (timer_manager_p)
+    timer_manager_p->stop ();
   Common_Signal_Tools::finalize (COMMON_SIGNAL_DEFAULT_DISPATCH_MODE,
                                  previousSignalActions_inout,
                                  previousSignalMask_in);
