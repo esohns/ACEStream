@@ -131,7 +131,11 @@ struct Test_I_SpeechCommand_Configuration
    , inputManagerConfiguration ()
   {
     dispatchConfiguration.dispatch = COMMON_EVENT_DISPATCH_REACTOR;
+    dispatchConfiguration.numberOfProactorThreads = 0;
+    dispatchConfiguration.numberOfReactorThreads = 0;
     inputConfiguration.allocatorConfiguration = &allocatorConfiguration;
+    inputConfiguration.eventDispatchConfiguration =
+      &dispatchConfiguration;
     inputManagerConfiguration.eventDispatchConfiguration =
       &dispatchConfiguration;
     inputManagerConfiguration.handlerConfiguration = &inputConfiguration;

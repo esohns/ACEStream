@@ -208,9 +208,10 @@ Stream_Module_MessageHandler_T<ACE_SYNCH_USE,
   ACE_UNUSED_ARG (passMessageDownstream_out);
 
   // sanity check(s)
+  ACE_ASSERT (inherited::sessionData_);
   ACE_ASSERT (lock_ && subscribers_);
 
-  // synch access
+  const SessionDataType& session_data_r = inherited::sessionData_->getR ();
   { ACE_GUARD (typename ACE_SYNCH_USE::RECURSIVE_MUTEX, aGuard, *lock_);
     // *WARNING* callees unsubscribe()ing within the callback invalidate the
     //           iterator
@@ -223,7 +224,7 @@ Stream_Module_MessageHandler_T<ACE_SYNCH_USE,
     {
       try {
         // *TODO*: remove type inference
-        (*iterator++)->notify (message_inout->sessionId (),
+        (*iterator++)->notify (session_data_r.sessionId,
                                *message_inout);
       } catch (...) {
         ACE_DEBUG ((LM_ERROR,
@@ -261,12 +262,11 @@ Stream_Module_MessageHandler_T<ACE_SYNCH_USE,
   // sanity check(s)
   ACE_ASSERT (lock_ && subscribers_);
 
-  const SessionDataType* session_data_p = NULL;
   switch (message_inout->type ())
   {
     case STREAM_SESSION_MESSAGE_BEGIN:
     { ACE_ASSERT (inherited::sessionData_);
-      session_data_p = &inherited::sessionData_->getR ();
+      const SessionDataType& session_data_r = inherited::sessionData_->getR ();
 
       { ACE_GUARD (typename ACE_SYNCH_USE::RECURSIVE_MUTEX, aGuard, *lock_);
         // *NOTE*: this works because the lock is recursive
@@ -281,7 +281,7 @@ Stream_Module_MessageHandler_T<ACE_SYNCH_USE,
           try {
             // *TODO*: remove type inference
             (*iterator++)->start (message_inout->sessionId (),
-                                  *session_data_p);
+                                  session_data_r);
           } catch (...) {
             ACE_DEBUG ((LM_ERROR,
                         ACE_TEXT ("%s: caught exception in Common_INotify_T::start(), continuing\n"),
@@ -447,27 +447,16 @@ Stream_Module_MessageHandler_T<ACE_SYNCH_USE,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_MessageHandler_T::postClone"));
 
-  if (!initialize_in)
-    return true;
-
   // sanity check(s)
   ACE_ASSERT (original_in);
-
+  if (!initialize_in)
+    return true;
   OWN_TYPE_T* message_handler_impl_p =
-    dynamic_cast<OWN_TYPE_T*> (original_in->writer ());
-  if (!message_handler_impl_p)
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: dynamic_cast<Stream_Module_MessageHandler_T> failed, aborting\n"),
-                inherited::mod_->name ()));
-    return false;
-  } // end IF
-
-  // sanity check(s)
+    static_cast<OWN_TYPE_T*> (original_in->writer ());
   ACE_ASSERT (message_handler_impl_p->configuration_);
 
-  if (!inherited::initialize (*message_handler_impl_p->configuration_,
-                               message_handler_impl_p->allocator_))
+  if (!initialize (*message_handler_impl_p->configuration_,
+                   message_handler_impl_p->allocator_))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to Stream_Module_MessageHandler_T::initialize(), aborting\n"),
@@ -710,10 +699,19 @@ Stream_Module_MessageHandlerA_T<ACE_SYNCH_USE,
   enum Stream_SessionMessageType message_type_e =
       message_inout->type ();
   Stream_SessionId_t session_id = message_inout->sessionId ();
+  const typename SessionMessageType::DATA_T* session_data_container_p = NULL;
+  const SessionDataType* session_data_p = NULL;
+
   // the base class release()s all messages --> create duplicates
   SessionMessageType* message_p =
-    dynamic_cast<SessionMessageType*> (message_inout->duplicate ());
-  ACE_ASSERT (message_p);
+    static_cast<SessionMessageType*> (message_inout->duplicate ());
+  if (unlikely (!message_p))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s: failed to SessionMessageType::duplicate(): \"%m\", aborting\n"),
+                inherited::mod_->name ()));
+    goto error;
+  } // end IF
   inherited::handleSessionMessage (message_p,
                                    passMessageDownstream_out);
   ACE_ASSERT (!passMessageDownstream_out);
@@ -724,9 +722,8 @@ Stream_Module_MessageHandlerA_T<ACE_SYNCH_USE,
     {
       // *NOTE*: the module may be handling multiple sessions in parallel
       //         --> use the messages' session data reference
-      const typename SessionMessageType::DATA_T& session_data_container_r =
-          message_inout->getR ();
-      const SessionDataType& session_data_r = session_data_container_r.getR ();
+      session_data_container_p = &message_inout->getR ();
+      session_data_p = &session_data_container_p->getR ();
 
       { ACE_GUARD (typename ACE_SYNCH_USE::RECURSIVE_MUTEX, aGuard, *subscribersLock_);
         // *WARNING* callees unsubscribe()ing within the callback invalidate the
@@ -741,7 +738,7 @@ Stream_Module_MessageHandlerA_T<ACE_SYNCH_USE,
           try {
             // *TODO*: remove type inference
             (*iterator++)->start (session_id,
-                                  session_data_r);
+                                  *session_data_p);
           } catch (...) {
             ACE_DEBUG ((LM_ERROR,
                         ACE_TEXT ("%s: caught exception in Common_INotify_T::start(), continuing\n"),
@@ -933,27 +930,16 @@ Stream_Module_MessageHandlerA_T<ACE_SYNCH_USE,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_MessageHandlerA_T::postClone"));
 
-  if (!initialize_in)
-    return true;
-
   // sanity check(s)
   ACE_ASSERT (original_in);
-
+  if (!initialize_in)
+    return true;
   OWN_TYPE_T* message_handler_impl_p =
-    dynamic_cast<OWN_TYPE_T*> (original_in->writer ());
-  if (!message_handler_impl_p)
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: dynamic_cast<Stream_Module_MessageHandlerA_T> failed, aborting\n"),
-                inherited::mod_->name ()));
-    return false;
-  } // end IF
-
-  // sanity check(s)
+    static_cast<OWN_TYPE_T*> (original_in->writer ());
   ACE_ASSERT (message_handler_impl_p->configuration_);
 
-  if (!inherited::initialize (*message_handler_impl_p->configuration_,
-                              message_handler_impl_p->allocator_))
+  if (!initialize (*message_handler_impl_p->configuration_,
+                   message_handler_impl_p->allocator_))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to Stream_Module_MessageHandlerA_T::initialize(), aborting\n"),

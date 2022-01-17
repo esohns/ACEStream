@@ -1885,6 +1885,8 @@ do_work (const std::string& scorerFile_in,
   configuration_in.inputConfiguration.messageAllocator = &message_allocator;
   configuration_in.inputConfiguration.queue = &configuration_in.inputQueue;
 
+  modulehandler_configuration_i.concurrency =
+    STREAM_HEADMODULECONCURRENCY_ACTIVE;
   modulehandler_configuration_i.queue = &configuration_in.inputQueue;
   modulehandler_configuration_i.subscriber = &input_handler;
 
