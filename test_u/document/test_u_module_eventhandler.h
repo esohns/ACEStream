@@ -39,7 +39,7 @@
 class Test_U_Module_EventHandler
  : public Stream_Module_MessageHandler_T<ACE_MT_SYNCH,
                                          Common_TimePolicy_t,
-                                         struct Test_U_ModuleHandlerConfiguration,
+                                         struct Test_U_Document_ModuleHandlerConfiguration,
                                          Stream_ControlMessage_t,
                                          Test_U_Message,
                                          Test_U_SessionMessage,
@@ -48,7 +48,7 @@ class Test_U_Module_EventHandler
 {
   typedef Stream_Module_MessageHandler_T<ACE_MT_SYNCH,
                                          Common_TimePolicy_t,
-                                         struct Test_U_ModuleHandlerConfiguration,
+                                         struct Test_U_Document_ModuleHandlerConfiguration,
                                          Stream_ControlMessage_t,
                                          Test_U_Message,
                                          Test_U_SessionMessage,

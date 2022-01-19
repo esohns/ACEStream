@@ -3,7 +3,7 @@
 //      are changed infrequently
 //
 #if defined (_MSC_VER)
-#define WIN32_LEAN_AND_MEAN		// Exclude rarely-used stuff from Windows headers
+#define WIN32_LEAN_AND_MEAN // Exclude rarely-used stuff from Windows headers
 
 // *NOTE*: work around quirky MSVC...
 #define NOMINMAX
@@ -11,19 +11,18 @@
 #include "targetver.h"
 
 // Windows Header Files
-#include <windows.h>
+#include "windows.h"
 
 #include <strmif.h>
 // *NOTE*: uuids.h doesn't have double include protection
 #if defined (UUIDS_H)
 #else
 #define UUIDS_H
-#include <uuids.h>
+#include "uuids.h"
 #endif // UUIDS_H
 #endif // _MSC_VER
 
 // C RunTime Header Files
-//#include <sstream>
 #include <string>
 
 // System Library Header Files
@@ -31,15 +30,22 @@
 #include "ace/Global_Macros.h"
 #include "ace/Log_Msg.h"
 
-//#if defined (LIBACESTREAM_ENABLE_VALGRIND_SUPPORT)
-#if defined (VALGRIND_SUPPORT)
+#if defined (VALGRIND_USE)
 #include "valgrind/valgrind.h"
-#endif
+#endif // VALGRIND_USE
 
 // Local Header Files
+#if defined (HAVE_CONFIG_H)
+#include "Common_config.h"
+#endif // HAVE_CONFIG_H
+
 #include "common.h"
 #include "common_macros.h"
 #include "common_pragmas.h"
+
+#if defined (HAVE_CONFIG_H)
+#include "ACEStream_config.h"
+#endif // HAVE_CONFIG_H
 
 #include "stream_common.h"
 #include "stream_macros.h"

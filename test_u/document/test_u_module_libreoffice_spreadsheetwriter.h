@@ -70,7 +70,7 @@ class Test_U_LibreOffice_DocumentHandler
 class Test_U_LibreOffice_SpreadsheetWriter
  : public Stream_Module_LibreOffice_Document_Writer_T<ACE_MT_SYNCH,
                                                       Common_TimePolicy_t,
-                                                      struct Test_U_ModuleHandlerConfiguration,
+                                                      struct Test_U_Document_ModuleHandlerConfiguration,
                                                       Stream_ControlMessage_t,
                                                       Test_U_Message,
                                                       Test_U_SessionMessage,
@@ -79,7 +79,7 @@ class Test_U_LibreOffice_SpreadsheetWriter
 {
   typedef Stream_Module_LibreOffice_Document_Writer_T<ACE_MT_SYNCH,
                                                       Common_TimePolicy_t,
-                                                      struct Test_U_ModuleHandlerConfiguration,
+                                                      struct Test_U_Document_ModuleHandlerConfiguration,
                                                       Stream_ControlMessage_t,
                                                       Test_U_Message,
                                                       Test_U_SessionMessage,
@@ -106,7 +106,7 @@ class Test_U_LibreOffice_SpreadsheetWriter
 // declare module
 DATASTREAM_MODULE_INPUT_ONLY (struct Test_U_SessionData,                 // session data type
                               enum Stream_SessionMessageType,            // session event type
-                              struct Test_U_ModuleHandlerConfiguration,  // module handler configuration type
+                              struct Test_U_Document_ModuleHandlerConfiguration,  // module handler configuration type
                               libacestream_default_doc_libreoffice_writer_module_name_string,
                               Stream_INotify_t,                          // stream notification interface type
                               Test_U_LibreOffice_SpreadsheetWriter);     // writer type

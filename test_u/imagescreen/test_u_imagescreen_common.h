@@ -68,6 +68,8 @@ extern "C"
 #endif // FFMPEG_SUPPORT
 #endif // ACE_WIN32 || ACE_WIN64
 
+#include "stream_misc_common.h"
+
 #include "stream_vis_common.h"
 #include "stream_vis_defines.h"
 

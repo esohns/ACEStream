@@ -217,9 +217,6 @@ Stream_Module_QueueReader_T<ACE_SYNCH_USE,
   // sanity check(s)
   ACE_ASSERT (queue_);
 
-  // increment thread count
-  ++inherited::thr_count_;
-
   int result = -1;
   ACE_Message_Block* message_block_p = NULL;
 

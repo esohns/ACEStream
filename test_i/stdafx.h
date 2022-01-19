@@ -3,7 +3,7 @@
 //      are changed infrequently
 //
 #if defined (_MSC_VER)
-#define WIN32_LEAN_AND_MEAN		// Exclude rarely-used stuff from Windows headers
+#define WIN32_LEAN_AND_MEAN // Exclude rarely-used stuff from Windows headers
 
 // *NOTE*: work around quirky MSVC...
 #define NOMINMAX
@@ -11,11 +11,10 @@
 #include "targetver.h"
 
 // Windows Header Files
-#include <windows.h>
+#include "windows.h"
 #endif // _MSC_VER
 
 // C RunTime Header Files
-//#include <sstream>
 #include <string>
 
 // System Library Header Files
@@ -23,11 +22,11 @@
 #include "ace/Global_Macros.h"
 #include "ace/Log_Msg.h"
 
-//#if defined (LIBACESTREAM_ENABLE_VALGRIND_SUPPORT)
-#if defined (VALGRIND_SUPPORT)
+#if defined (VALGRIND_USE)
 #include "valgrind/valgrind.h"
-#endif
+#endif // VALGRIND_USE
 
+// Local Header Files
 #if defined (HAVE_CONFIG_H)
 #include "Common_config.h"
 #endif // HAVE_CONFIG_H
@@ -36,7 +35,6 @@
 #include "common_macros.h"
 #include "common_pragmas.h"
 
-// Local Header Files
 #if defined (HAVE_CONFIG_H)
 #include "ACEStream_config.h"
 #endif // HAVE_CONFIG_H
@@ -46,9 +44,13 @@
 
 #include "test_i_common.h"
 #if defined (GUI_SUPPORT)
-#if defined (GTK_USE)
+#if defined (GTK_SUPPORT)
 #include "test_i_gtk_common.h"
-#elif defined (WXWIDGETS_USE)
+#endif // GTK_SUPPORT
+#if defined (QT_SUPPORT)
+#include "test_i_qt_common.h"
+#endif // QT_SUPPORT
+#if defined (WXWIDGETS_SUPPORT)
 #include "test_i_wxwidgets_common.h"
-#endif
+#endif // WXWIDGETS_SUPPORT
 #endif // GUI_SUPPORT

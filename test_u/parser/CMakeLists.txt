@@ -17,6 +17,7 @@ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../Common/src/image)
 include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../Common/src/log)
 include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../Common/src/parser)
 include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../Common/src/timer)
+include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../Common/src/ui)
 
 include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../3rd_party/tree)
 include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../src)
@@ -51,10 +52,10 @@ set (parser_EXE_SRCS
      parser_stream.cpp
      parser_stream.h
      parser_stream_common.h
-     stdafx.cpp
+#     stdafx.cpp
      stdafx.h
-#     ../test_i_common.h
-#     ../test_i_defines.h
+#     ../test_u_common.h
+#     ../test_u_defines.h
      test_u.cpp)
 
 #cmake_policy (SET CMP0065 OLD) # do not add flags to export symbols from executables without the ENABLE_EXPORTS target property
@@ -77,6 +78,8 @@ target_link_libraries (${EXECUTABLE} PUBLIC CommonTimer)
 
 target_link_libraries (${EXECUTABLE} PUBLIC ACEStream)
 target_link_libraries (${EXECUTABLE} PUBLIC ACEStream_Statistic)
+
+target_link_libraries (${EXECUTABLE} PUBLIC ACEStream_Test_U)
 
 # add PCH
 target_precompile_headers (${EXECUTABLE}

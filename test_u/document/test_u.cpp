@@ -170,7 +170,7 @@ do_work (int argc_in,
   int result = -1;
   Test_U_Message* message_p = NULL;
   //struct Common_ParserConfiguration parser_configuration;
-  struct Test_U_ModuleHandlerConfiguration modulehandler_configuration;
+  struct Test_U_Document_ModuleHandlerConfiguration modulehandler_configuration;
   struct Common_AllocatorConfiguration allocator_configuration;
   struct Stream_ModuleConfiguration module_configuration;
   struct Stream_Configuration stream_configuration;

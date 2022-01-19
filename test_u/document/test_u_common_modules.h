@@ -41,7 +41,7 @@ typedef Stream_Module_QueueReader_T <ACE_MT_SYNCH,
                                      Stream_ControlMessage_t,
                                      Test_U_Message,
                                      Test_U_SessionMessage,
-                                     struct Test_U_ModuleHandlerConfiguration,
+                                     struct Test_U_Document_ModuleHandlerConfiguration,
                                      enum Stream_ControlType,
                                      enum Stream_SessionMessageType,
                                      struct Test_U_StreamState,
@@ -52,7 +52,7 @@ typedef Stream_Module_QueueReader_T <ACE_MT_SYNCH,
                                      struct Stream_UserData> Test_U_Source;
 DATASTREAM_MODULE_INPUT_ONLY (struct Test_U_SessionData,                 // session data type
                               enum Stream_SessionMessageType,            // session event type
-                              struct Test_U_ModuleHandlerConfiguration,  // module handler configuration type
+                              struct Test_U_Document_ModuleHandlerConfiguration,  // module handler configuration type
                               libacestream_default_misc_queue_module_name_string,
                               Stream_INotify_t,                          // stream notification interface type
                               Test_U_Source);                            // writer type

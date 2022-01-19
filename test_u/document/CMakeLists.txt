@@ -22,6 +22,7 @@ endif (LIBREOFFICE_SUPPORT)
 include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../Common/src)
 include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../Common/src/log)
 include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../Common/src/timer)
+include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../Common/src/ui)
 
 include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../3rd_party/tree)
 include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../src)
@@ -48,7 +49,7 @@ set (document_EXE_SRCS
      test_u_stream.cpp
      test_u_stream.h
      test_u_stream_common.h
-     stdafx.cpp
+#     stdafx.cpp
      stdafx.h
 #     ../test_u_common.h
 #     ../test_u_defines.h
@@ -79,6 +80,8 @@ target_link_libraries (${EXECUTABLE} PUBLIC CommonTimer)
 
 target_link_libraries (${EXECUTABLE} PUBLIC ACEStream)
 target_link_libraries (${EXECUTABLE} PUBLIC ACEStream_Document)
+
+target_link_libraries (${EXECUTABLE} PUBLIC ACEStream_Test_U)
 
 # add PCH
 target_precompile_headers (${EXECUTABLE}

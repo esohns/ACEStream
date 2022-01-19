@@ -149,6 +149,7 @@ struct Test_U_SessionData
 
   struct Stream_UserData* userData;
 };
+typedef Stream_SessionData_T<struct Test_U_SessionData> Test_U_SessionData_t;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 class Test_U_DirectShow_SessionData
  : public Stream_SessionDataMediaBase_T<struct Test_U_SessionData,

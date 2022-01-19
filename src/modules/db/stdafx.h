@@ -15,7 +15,6 @@
 #endif // _MSC_VER
 
 // C RunTime Header Files
-//#include <sstream>
 #include <string>
 
 // System Library Header Files
@@ -23,28 +22,34 @@
 #include "ace/Global_Macros.h"
 #include "ace/Log_Msg.h"
 
-//#if defined (LIBACESTREAM_ENABLE_VALGRIND_SUPPORT)
-#if defined (VALGRIND_SUPPORT)
+#if defined (VALGRIND_USE)
 #include "valgrind/valgrind.h"
-#endif // VALGRIND_SUPPORT
+#endif // VALGRIND_USE
 
 #if defined (MYSQL_SUPPORT)
-#if defined (_MSC_VER)
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
 #define uint unsigned int
 #define ulong unsigned long
 #include "mysql.h"
 #else
 #include "mysql/mysql.h"
-#endif // _MSC_VER
+#endif // ACE_WIN32 || ACE_WIN64
 #endif // MYSQL_SUPPORT
 
 // Local Header Files
+#if defined (HAVE_CONFIG_H)
+#include "Common_config.h"
+#endif // HAVE_CONFIG_H
+
 #include "common.h"
 #include "common_macros.h"
 #include "common_pragmas.h"
 
+#if defined (HAVE_CONFIG_H)
+#include "ACEStream_config.h"
+#endif // HAVE_CONFIG_H
+
 #include "stream_common.h"
 #include "stream_macros.h"
 
-//#include "stream_db_exports.h"
 #include "stream_module_db_common.h"

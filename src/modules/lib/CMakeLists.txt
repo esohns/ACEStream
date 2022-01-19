@@ -46,9 +46,9 @@ if (UNIX)
                              $<BUILD_INTERFACE:${PKG_V4L_INCLUDE_DIRS}>)
 
  target_include_directories (${PROJECT_NAME}_MediaFramework PUBLIC
+                             "$<BUILD_INTERFACE:${Common_INCLUDE_DIRS}>")
+ target_include_directories (${PROJECT_NAME}_MediaFramework PUBLIC
                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../modules/Common/src>)
-# target_include_directories (${PROJECT_NAME}_MediaFramework PUBLIC
-#                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../modules/Common/src/error>)
  target_include_directories (${PROJECT_NAME}_MediaFramework PUBLIC
                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../modules/Common/src/input>)
  target_include_directories (${PROJECT_NAME}_MediaFramework PUBLIC
@@ -105,6 +105,7 @@ elseif (WIN32)
  target_include_directories (${PROJECT_NAME}_MediaFramework PUBLIC
                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../Common/src/ui>)
 endif ()
+include_directories (${CMAKE_BINARY_DIR})
 target_include_directories (${PROJECT_NAME}_MediaFramework PUBLIC
                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../3rd_party/tree>)
 target_include_directories (${PROJECT_NAME}_MediaFramework PUBLIC

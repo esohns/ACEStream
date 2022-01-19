@@ -59,6 +59,8 @@ target_link_libraries (${EXECUTABLE} PUBLIC CommonTimer)
 target_link_libraries (${EXECUTABLE} PUBLIC ACEStream)
 target_link_libraries (${EXECUTABLE} PUBLIC ACEStream_Statistic)
 
+target_link_libraries (${EXECUTABLE} PUBLIC ACEStream_Test_U)
+
 # add PCH
 target_precompile_headers (${EXECUTABLE}
                            PUBLIC stdafx.h)

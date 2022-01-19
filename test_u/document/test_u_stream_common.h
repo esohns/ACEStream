@@ -57,22 +57,22 @@ struct Test_U_MessageData
 };
 typedef Stream_DataBase_T<struct Test_U_MessageData> Test_U_MessageData_t;
 
-struct Test_U_SessionData
- : Stream_SessionData
-{
-  Test_U_SessionData ()
-   : Stream_SessionData ()
-  {}
+//struct Test_U_SessionData
+// : Stream_SessionData
+//{
+//  Test_U_SessionData ()
+//   : Stream_SessionData ()
+//  {}
 
-  struct Test_U_SessionData& operator+= (const struct Test_U_SessionData& rhs_in)
-  {
-    // *NOTE*: the idea is to 'merge' the data
-    Stream_SessionData::operator+= (rhs_in);
+//  struct Test_U_SessionData& operator+= (const struct Test_U_SessionData& rhs_in)
+//  {
+//    // *NOTE*: the idea is to 'merge' the data
+//    Stream_SessionData::operator+= (rhs_in);
 
-    return *this;
-  }
-};
-typedef Stream_SessionData_T<struct Test_U_SessionData> Test_U_SessionData_t;
+//    return *this;
+//  }
+//};
+//typedef Stream_SessionData_T<struct Test_U_SessionData> Test_U_SessionData_t;
 
 typedef Stream_ISessionDataNotify_T<struct Test_U_SessionData,
                                     enum Stream_SessionMessageType,
@@ -83,10 +83,10 @@ typedef Test_U_Subscribers_t::iterator Test_U_SubscribersIterator_t;
 
 // forward declarations
 //extern const char stream_name_string_[];
-struct Test_U_ModuleHandlerConfiguration;
+struct Test_U_Document_ModuleHandlerConfiguration;
 typedef Stream_Configuration_T<//stream_name_string_,
                                struct Stream_Configuration,
-                               struct Test_U_ModuleHandlerConfiguration> Test_U_StreamConfiguration_t;
+                               struct Test_U_Document_ModuleHandlerConfiguration> Test_U_StreamConfiguration_t;
 //typedef Net_ConnectionConfiguration_T<struct Common_AllocatorConfiguration,
 //                                      Branch_StreamConfiguration_t,
 //                                      NET_TRANSPORTLAYER_TCP> Branch_ConnectionConfiguration_t;
@@ -100,11 +100,11 @@ typedef Stream_Configuration_T<//stream_name_string_,
 //                                 struct Net_StreamConnectionState,
 //                                 Net_StreamStatistic_t,
 //                                 struct Net_UserData> Branch_ConnectionManager_t;
-struct Test_U_ModuleHandlerConfiguration
- : Stream_ModuleHandlerConfiguration
+struct Test_U_Document_ModuleHandlerConfiguration
+ : Test_U_ModuleHandlerConfiguration
 {
-  Test_U_ModuleHandlerConfiguration ()
-   : Stream_ModuleHandlerConfiguration ()
+  Test_U_Document_ModuleHandlerConfiguration ()
+   : Test_U_ModuleHandlerConfiguration ()
    , fileIdentifier ()
    , fileName ()
    , libreOfficeHost (STREAM_DOCUMENT_DEFAULT_LIBREOFFICE_SERVER_PORT,
