@@ -102,10 +102,17 @@ Stream_MediaFramework_ALSA_Tools::getDefaultFormat (const std::string& cardName_
                                            &mediaType_out.format);
   if (unlikely (result_2 < 0))
   {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to snd_pcm_hw_params_get_format(): \"%s\", aborting\n"),
-                ACE_TEXT (snd_strerror (result_2))));
-    goto error;
+    if (unlikely (result_2 != -EINVAL))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to snd_pcm_hw_params_get_format(): \"%s\", aborting\n"),
+                  ACE_TEXT (snd_strerror (result_2))));
+      goto error;
+    } // end IF
+    ACE_DEBUG ((LM_WARNING,
+                ACE_TEXT ("format not set, setting to default: \"%s\", continuing\n"),
+                ACE_TEXT (snd_pcm_format_name (STREAM_LIB_ALSA_DEFAULT_FORMAT))));
+    mediaType_out.format = STREAM_LIB_ALSA_DEFAULT_FORMAT;
   } // end IF
   result_2 = snd_pcm_hw_params_get_subformat (snd_pcm_hw_params_p,
                                               &mediaType_out.subFormat);
@@ -121,28 +128,46 @@ Stream_MediaFramework_ALSA_Tools::getDefaultFormat (const std::string& cardName_
                                              &mediaType_out.channels);
   if (unlikely (result_2 < 0))
   {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to snd_pcm_hw_params_get_channels(): \"%s\", aborting\n"),
-                ACE_TEXT (snd_strerror (result_2))));
-    goto error;
+    if (unlikely (result_2 != -EINVAL))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to snd_pcm_hw_params_get_channels(): \"%s\", aborting\n"),
+                  ACE_TEXT (snd_strerror (result_2))));
+      goto error;
+    } // end IF
+    ACE_DEBUG ((LM_WARNING,
+                ACE_TEXT ("#channels not set, setting to default: %u, continuing\n"),
+                STREAM_LIB_ALSA_DEFAULT_CHANNELS));
+    mediaType_out.channels = STREAM_LIB_ALSA_DEFAULT_CHANNELS;
   } // end IF
   result_2 = snd_pcm_hw_params_get_rate_numden (snd_pcm_hw_params_p,
                                                 &mediaType_out.rate,
                                                 &sample_rate_denominator_i);
   if (unlikely (result_2 < 0))
   {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to snd_pcm_hw_params_get_rate_numden(): \"%s\", aborting\n"),
-                ACE_TEXT (snd_strerror (result_2))));
-    goto error;
+    if (unlikely (result_2 != -EINVAL))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to snd_pcm_hw_params_get_rate_numden(): \"%s\", aborting\n"),
+                  ACE_TEXT (snd_strerror (result_2))));
+      goto error;
+    } // end IF
+    ACE_DEBUG ((LM_WARNING,
+                ACE_TEXT ("sample rate not set, setting to default: %u, continuing\n"),
+                STREAM_LIB_ALSA_DEFAULT_SAMPLE_RATE));
+    mediaType_out.rate = STREAM_LIB_ALSA_DEFAULT_SAMPLE_RATE;
   } // end IF
-  ACE_ASSERT (sample_rate_denominator_i == 1); // *TODO*
+//  ACE_ASSERT (sample_rate_denominator_i == 1); // *TODO*
 
   result = true;
 
 error:
   if (snd_pcm_hw_params_p)
+  { ACE_ASSERT (handle_p);
+    Stream_MediaFramework_ALSA_Tools::dump (handle_p,
+                                            false); // any
     snd_pcm_hw_params_free (snd_pcm_hw_params_p);
+  } // end IF
   if (handle_p)
   {
     result_2 = snd_pcm_close (handle_p);

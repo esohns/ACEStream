@@ -143,13 +143,14 @@ struct Test_I_SpeechCommand_Configuration
   }
 
   struct Common_Input_Configuration    inputConfiguration;
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-#else
   Stream_Input_Manager_Configuration_t inputManagerConfiguration;
-#endif // ACE_WIN32 || ACE_WIN64
 };
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
+typedef Stream_MessageQueue_T<ACE_MT_SYNCH,
+                              Common_TimePolicy_t,
+                              Test_I_DirectShow_SessionMessage_t> Test_I_DirectShow_InputQueue_t;
+
 struct Test_I_DirectShow_Configuration
  : Test_I_SpeechCommand_Configuration
 {
@@ -158,7 +159,10 @@ struct Test_I_DirectShow_Configuration
    , allocatorProperties ()
    , filterConfiguration ()
    , pinConfiguration ()
+   , inputQueue (STREAM_QUEUE_MAX_SLOTS, // max # slots
+                 NULL)                   // notification handle
    , streamConfiguration ()
+   , streamConfiguration_2 ()
   {
     ACE_OS::memset (&allocatorProperties, 0, sizeof (struct _AllocatorProperties));
     //allocatorProperties_.cBuffers = -1; // <-- use default
@@ -184,8 +188,14 @@ struct Test_I_DirectShow_Configuration
   struct Stream_MediaFramework_DirectShow_FilterConfiguration    filterConfiguration;
   struct Stream_MediaFramework_DirectShow_FilterPinConfiguration pinConfiguration;
   // **************************** stream data **********************************
+  Test_I_DirectShow_InputQueue_t                                 inputQueue;
   Test_I_DirectShow_StreamConfiguration_t                        streamConfiguration;
+  Stream_Input_Configuration_t                                   streamConfiguration_2; // input-
 };
+
+typedef Stream_MessageQueue_T<ACE_MT_SYNCH,
+                              Common_TimePolicy_t,
+                              Test_I_MediaFoundation_SessionMessage_t> Test_I_MediaFoundation_InputQueue_t;
 
 struct Test_I_MediaFoundation_Configuration
  : Test_I_SpeechCommand_Configuration
@@ -193,13 +203,18 @@ struct Test_I_MediaFoundation_Configuration
   Test_I_MediaFoundation_Configuration ()
    : Test_I_SpeechCommand_Configuration ()
    , mediaFoundationConfiguration ()
+   , inputQueue (STREAM_QUEUE_MAX_SLOTS, // max # slots
+                 NULL)                   // notification handle
    , streamConfiguration ()
+   , streamConfiguration_2 ()
   {}
 
   // **************************** framework data *******************************
   struct Stream_MediaFramework_MediaFoundation_Configuration mediaFoundationConfiguration;
   // **************************** stream data **********************************
+  Test_I_MediaFoundation_InputQueue_t                        inputQueue;
   Test_I_MediaFoundation_StreamConfiguration_t               streamConfiguration;
+  Stream_Input_Configuration_t                               streamConfiguration_2; // input-
 };
 #else
 typedef Stream_MessageQueue_T<ACE_MT_SYNCH,
@@ -279,7 +294,7 @@ typedef Test_I_EventHandler_T<Test_I_ALSA_ISessionNotify_t,
 #endif // GTK_USE || WXWIDGETS_USE || QT_USE
 #endif // GUI_SUPPORT
                               Test_I_ALSA_SessionMessage_t> Test_I_ALSA_EventHandler_t;
-
+#endif // ACE_WIN32 || ACE_WIN64
 typedef Test_I_InputHandler_T<Stream_IInputSessionNotify_t,
                               ACE_Message_Block,
 #if defined (GUI_SUPPORT)
@@ -296,7 +311,7 @@ typedef Test_I_InputHandler_T<Stream_IInputSessionNotify_t,
 #endif // GUI_SUPPORT
                               Stream_SessionMessageBase_T<enum Stream_SessionMessageType,
                                                           Stream_SessionData_T<struct Stream_SessionData>,
-                                                          struct Stream_UserData> > Test_I_ALSA_InputHandler_t;
+                                                          struct Stream_UserData> > Test_I_InputHandler_t;
 typedef Stream_Miscellaneous_Input_Stream_T<ACE_MT_SYNCH,
                                             Common_TimePolicy_t,
                                             enum Stream_ControlType,
@@ -314,13 +329,11 @@ typedef Stream_Miscellaneous_Input_Stream_T<ACE_MT_SYNCH,
                                             Stream_SessionMessageBase_T<enum Stream_SessionMessageType,
                                                                         Stream_SessionData_T<struct Stream_SessionData>,
                                                                         struct Stream_UserData>,
-                                            struct Stream_UserData> Test_I_ALSA_InputStream_t;
+                                            struct Stream_UserData> Test_I_InputStream_t;
 typedef Stream_Input_Manager_T<ACE_MT_SYNCH,
                                Stream_Input_Manager_Configuration_t,
                                Common_InputHandler_t,
-                               Test_I_ALSA_InputStream_t> Test_I_ALSA_InputManager_t;
-
-#endif // ACE_WIN32 || ACE_WIN64
+                               Test_I_InputStream_t> Test_I_InputManager_t;
 
 //////////////////////////////////////////
 

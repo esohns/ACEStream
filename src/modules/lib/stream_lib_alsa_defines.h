@@ -37,7 +37,9 @@
 
 #define STREAM_LIB_ALSA_DEFAULT_ACCESS                            SND_PCM_ACCESS_RW_INTERLEAVED
 //#define STREAM_LIB_ALSA_DEFAULT_DEVICE_NAME                       "hw:0,0"
+#define STREAM_LIB_ALSA_DEFAULT_CHANNELS                          2 // i.e. stereo
 #define STREAM_LIB_ALSA_DEFAULT_FORMAT                            SND_PCM_FORMAT_S16
+#define STREAM_LIB_ALSA_DEFAULT_SAMPLE_RATE                       48000 // Hz
 #define STREAM_LIB_ALSA_DEFAULT_LOG_FILE                          "alsa.log"
 #define STREAM_LIB_ALSA_DEFAULT_WAIT_TIMEOUT_MS                   30 // ms
 
@@ -53,10 +55,6 @@
 #define STREAM_LIB_ALSA_CAPTURE_DEFAULT_PERIOD_SIZE               512 // frames
 #define STREAM_LIB_ALSA_CAPTURE_DEFAULT_PERIOD_TIME               21333 // us
 #define STREAM_LIB_ALSA_CAPTURE_DEFAULT_PERIODS                   2
-
-// *TODO*: these belong somewhere else
-#define STREAM_LIB_ALSA_CAPTURE_DEFAULT_CHANNELS                  2 // i.e. stereo
-#define STREAM_LIB_ALSA_CAPTURE_DEFAULT_SAMPLE_RATE               48000 // Hz
 
 #define STREAM_LIB_ALSA_CAPTURE_DEFAULT_SELEM_BOOST_NAME         "Mic Boost"
 #define STREAM_LIB_ALSA_CAPTURE_DEFAULT_SELEM_VOLUME_NAME        "Capture"

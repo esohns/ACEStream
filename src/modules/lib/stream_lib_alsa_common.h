@@ -36,8 +36,8 @@ struct Stream_MediaFramework_ALSA_MediaType
   Stream_MediaFramework_ALSA_MediaType ()
    : format (STREAM_LIB_ALSA_DEFAULT_FORMAT)
    , subFormat (SND_PCM_SUBFORMAT_STD)
-   , channels (STREAM_LIB_ALSA_CAPTURE_DEFAULT_CHANNELS)
-   , rate (STREAM_LIB_ALSA_CAPTURE_DEFAULT_SAMPLE_RATE)
+   , channels (STREAM_LIB_ALSA_DEFAULT_CHANNELS)
+   , rate (STREAM_LIB_ALSA_DEFAULT_SAMPLE_RATE)
   {}
 
   enum _snd_pcm_format    format;
