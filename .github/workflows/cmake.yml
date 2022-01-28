@@ -107,7 +107,9 @@ jobs:
           cd ${{github.workspace}}
 
    - name: Apply Patch To (Temporarily) Remove Dependency on ACENetwork
-     run: git apply -C3 --verbose scripts/github_repo_build.patch
+#     run: git apply -C3 --verbose scripts/github_repo_build.patch
+     if: ${{ matrix.os=='ubuntu-latest' }}
+     run: patch -f -p1 < scripts/github_repo_build.patch
 
    - name: Configure CMake
      run: cmake -B ${{github.workspace}}/build -DCommon_DIR=modules/Common/build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
