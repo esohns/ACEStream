@@ -1816,7 +1816,16 @@ do_work (const std::string& scorerFile_in,
   modulehandler_configuration.outputFormat.format = SND_PCM_FORMAT_S16_LE;
   modulehandler_configuration.outputFormat.channels = 1;
   modulehandler_configuration.outputFormat.rate = 16000;
-  stream_configuration.format = modulehandler_configuration.outputFormat;
+
+  if (unlikely (!Stream_MediaFramework_ALSA_Tools::getDefaultFormat (deviceIdentifier_in,
+                                                                     true, // capture
+                                                                     stream_configuration.format)))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to Stream_MediaFramework_ALSA_Tools::getDefaultFormat(\"%s\"), returning\n"),
+                ACE_TEXT (deviceIdentifier_in.c_str ())));
+    goto error;
+  } // end IF
   result = true;
 #endif // ACE_WIN32 || ACE_WIN64
   if (unlikely (!result))
