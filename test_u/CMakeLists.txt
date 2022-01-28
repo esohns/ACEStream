@@ -301,7 +301,7 @@ add_subdirectory (document)
 add_subdirectory (filecopy)
 # *IMPORTANT NOTE*: comment temporarily to disambiguate ACEStream <-> ACENetwork
 #                   interdependencies
-#add_subdirectory (http_get)
+add_subdirectory (http_get)
 # *IMPORTANT NOTE* /END
 add_subdirectory (imagescreen)
 add_subdirectory (parser)
