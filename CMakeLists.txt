@@ -176,19 +176,6 @@ cmake_policy (SET CMP0011 NEW)
 cmake_policy (SET CMP0074 NEW)
 
 ################################################################################
-if (DEFINED ENV{LIB_ROOT})
- file (TO_CMAKE_PATH "$ENV{LIB_ROOT}/cotire/CMake" COTIRE_PATH)
-else ()
-  set (COTIRE_PATH "modules/cotire/CMake")
-endif (DEFINED ENV{LIB_ROOT})
-list (APPEND CMAKE_MODULE_PATH "${COTIRE_PATH}")
-cmake_policy (SET CMP0011 NEW)
-include (cotire)
-set_directory_properties (PROPERTIES COTIRE_ADD_UNITY_BUILD FALSE)
-#list (APPEND CMAKE_MODULE_PATH "$ENV{LIB_ROOT}/cmake-precompiled-header")
-#include (PrecompiledHeader)
-
-################################################################################
 
 # configuration files
 # Export the package for use from the build-tree
