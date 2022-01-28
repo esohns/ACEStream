@@ -34,7 +34,8 @@
 *~
 
 # Patches
-*.patch
+*.orig
+*.rej
 
 # Log files
 *.log
