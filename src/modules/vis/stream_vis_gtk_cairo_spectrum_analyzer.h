@@ -46,6 +46,11 @@
 extern const char libacestream_default_vis_spectrum_analyzer_module_name_string[];
 
 typedef Common_Math_FFT_T<double> Common_Math_FFT_Double_t;
+struct acestream_visualization_gtk_cairo_cbdata
+{
+  cairo_t*   context;
+  GdkWindow* window;
+};
 
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,
@@ -73,6 +78,7 @@ class Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T
                                          MediaType>
  , public Common_Math_FFT_T<ValueType>
  , public Common_ICounter
+ , public Common_IDispatch
  , public Common_IDispatch_T<enum Stream_Statistic_AnalysisEventType>
  , public Common_ISetP_T<GdkWindow>
 {
@@ -103,6 +109,16 @@ class Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T
   virtual void handleSessionMessage (SessionMessageType*&, // session message handle
                                      bool&);               // return value: pass message downstream ?
 
+  // implement Common_IDispatch
+  // *IMPORTANT NOTE*: argument is acestream_visualization_gtk_cairo_cbdata
+  virtual void dispatch (void*);
+
+  // implement Common_IDispatch_T
+  virtual void dispatch (const enum Stream_Statistic_AnalysisEventType&);
+
+  // implement Common_ISetP_T
+  virtual void setP (GdkWindow*); // target window
+
  private:
   // convenient types
   typedef ACE_Singleton<TimerManagerType,
@@ -118,17 +134,14 @@ class Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T
   virtual void stop (bool = true,   // wait for completion ?
                      bool = false); // high priority ? (i.e. do not wait for queued messages)
 
-  bool initialize_Cairo (GdkWindow*,
-                         cairo_t*&);
-  virtual void dispatch (const enum Stream_Statistic_AnalysisEventType&);
   // implement Common_ICounter (triggers frame rendering)
   virtual void reset ();
-  virtual void setP (GdkWindow*);
 
-  void update ();
+  bool initialize_Cairo (GdkWindow*, // target window
+                         cairo_t*&); // return value: cairo context
 
   unsigned int                                       bufferedSamples_;
-  cairo_t*                                           cairoContext_;
+  struct acestream_visualization_gtk_cairo_cbdata    CBData_;
 #if defined (GTKGL_SUPPORT)
 #if GTK_CHECK_VERSION(3,0,0)
   GdkRGBA                                            backgroundColor_;

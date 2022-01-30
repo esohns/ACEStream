@@ -162,7 +162,7 @@ Test_I_EventHandler_T<NotificationType,
 #endif // WXWIDGETS_USE
 #endif // GUI_SUPPORT
                       SessionMessageType>::notify (Stream_SessionId_t sessionId_in,
-                                                  const enum Stream_SessionMessageType& sessionEvent_in)
+                                                   const enum Stream_SessionMessageType& sessionEvent_in)
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_EventHandler_T::notify"));
 

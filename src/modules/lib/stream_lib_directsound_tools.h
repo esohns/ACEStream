@@ -28,6 +28,7 @@
 
 #include "ace/Global_Macros.h"
 
+#include "stream_lib_common.h"
 #include "stream_lib_directsound_common.h"
 
 // forward declarations

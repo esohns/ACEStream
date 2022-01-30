@@ -71,6 +71,8 @@
 #include "stream_misc_input_manager.h"
 #include "stream_misc_input_stream.h"
 
+#include "stream_vis_gtk_cairo_spectrum_analyzer.h"
+
 #include "test_i_common.h"
 #include "test_i_configuration.h"
 
@@ -365,6 +367,8 @@ struct Test_I_SpeechCommand_UI_CBData
 #endif // GTK_SUPPORT
 #if defined (GTK_SUPPORT)
    , resizeNotification (NULL)
+   , spectrumAnalyzer (NULL)
+   , spectrumAnalyzerCBData ()
 #endif // GTK_SUPPORT
    , stream (NULL)
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -373,24 +377,28 @@ struct Test_I_SpeechCommand_UI_CBData
    //, renderVolumeControl (NULL)
 #endif // ACE_WIN32 || ACE_WIN64
    , progressData ()
-  {}
+  {
+    ACE_OS::memset (&spectrumAnalyzerCBData, 0, sizeof (struct acestream_visualization_gtk_cairo_cbdata));
+  }
 
 #if defined (GTK_SUPPORT)
 #if defined (GTKGL_SUPPORT)
-  Stream_Visualization_GTKGL_Instructions_t   OpenGLInstructions;
-  int                                         objectRotation;
+  Stream_Visualization_GTKGL_Instructions_t       OpenGLInstructions;
+  int                                             objectRotation;
 #endif // GTKGL_SUPPORT
 #endif // GTK_SUPPORT
 #if defined (GTK_SUPPORT)
-  Test_I_Common_ISet_t*                       resizeNotification;
+  Test_I_Common_ISet_t*                           resizeNotification;
+  Common_IDispatch*                               spectrumAnalyzer;
+  struct acestream_visualization_gtk_cairo_cbdata spectrumAnalyzerCBData;
 #endif // GTK_SUPPORT
-  Stream_IStreamControlBase*                  stream;
+  Stream_IStreamControlBase*                      stream;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  IAudioVolumeLevel*                          boostControl;
-  IAudioEndpointVolume*                       captureVolumeControl;
+  IAudioVolumeLevel*                              boostControl;
+  IAudioEndpointVolume*                           captureVolumeControl;
   //ISimpleAudioVolume*                       renderVolumeControl;
 #endif // ACE_WIN32 || ACE_WIN64
-  struct Test_I_SpeechCommand_UI_ProgressData progressData;
+  struct Test_I_SpeechCommand_UI_ProgressData     progressData;
 };
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 struct Test_I_DirectShow_UI_CBData

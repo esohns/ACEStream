@@ -142,6 +142,10 @@ do_printUsage (const std::string& programName_in)
             << ACE_TEXT_ALWAYS_CHAR ("\"]")
             << std::endl;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
+  std::cout << ACE_TEXT_ALWAYS_CHAR ("-d [INTEGER]: device id [")
+            << 0
+            << ACE_TEXT_ALWAYS_CHAR ("]")
+            << std::endl;
 #else
   std::cout << ACE_TEXT_ALWAYS_CHAR ("-d [STRING] : device [\"")
             << ACE_TEXT_ALWAYS_CHAR (STREAM_LIB_ALSA_CAPTURE_DEFAULT_DEVICE_NAME)
@@ -225,6 +229,7 @@ do_processArguments (int argc_in,
                      ACE_TCHAR** argv_in, // cannot be const...
                      std::string& scorerFile_out,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
+                     unsigned int deviceIdentifier_out,
 #else
                      std::string& deviceIdentifier_out,
 #endif // ACE_WIN32 || ACE_WIN64
@@ -263,9 +268,8 @@ do_processArguments (int argc_in,
   scorerFile_out += ACE_DIRECTORY_SEPARATOR_CHAR_A;
   scorerFile_out += ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_SCORER_FILE);
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
+  deviceIdentifier_out = 0;
 #else
-//  deviceIdentifier_out = ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_DEVICE_DIRECTORY);
-//  deviceIdentifier_out += ACE_DIRECTORY_SEPARATOR_CHAR_A;
   deviceIdentifier_out =
     ACE_TEXT_ALWAYS_CHAR (STREAM_LIB_ALSA_CAPTURE_DEFAULT_DEVICE_NAME);
 #endif // ACE_WIN32 || ACE_WIN64
@@ -298,7 +302,7 @@ do_processArguments (int argc_in,
   useFrameworkRenderer_out = false;
 #endif // ACE_WIN32 || ACE_WIN64
 
-  std::string options_string = ACE_TEXT_ALWAYS_CHAR ("c:f:lo::s:tuv");
+  std::string options_string = ACE_TEXT_ALWAYS_CHAR ("c:d:f:lo::s:tuv");
 #if defined (GUI_SUPPORT)
 #if defined (GTK_SUPPORT) || defined (WXWIDGETS_SUPPORT)
   options_string += ACE_TEXT_ALWAYS_CHAR ("g::");
@@ -309,8 +313,6 @@ do_processArguments (int argc_in,
 #endif // GUI_SUPPORT
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   options_string += ACE_TEXT_ALWAYS_CHAR ("mxy");
-#else
-  options_string += ACE_TEXT_ALWAYS_CHAR ("d:");
 #endif // ACE_WIN32 || ACE_WIN64
   ACE_Get_Opt argument_parser (argc_in,
                                argv_in,
@@ -340,15 +342,19 @@ do_processArguments (int argc_in,
         scorerFile_out = ACE_TEXT_ALWAYS_CHAR (argument_parser.opt_arg ());
         break;
       }
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-#else
       case 'd':
       {
+#if defined(ACE_WIN32) || defined(ACE_WIN64)
+        converter.clear ();
+        converter.str (ACE_TEXT_ALWAYS_CHAR (""));
+        converter << ACE_TEXT_ALWAYS_CHAR (argument_parser.opt_arg ());
+        converter >> deviceIdentifier_out;
+#else
         deviceIdentifier_out =
           ACE_TEXT_ALWAYS_CHAR (argument_parser.opt_arg ());
+#endif // ACE_WIN32 || ACE_WIN64
         break;
       }
-#endif // ACE_WIN32 || ACE_WIN64
       case 'f':
       {
         modelFile_out = ACE_TEXT_ALWAYS_CHAR (argument_parser.opt_arg ());
@@ -410,7 +416,7 @@ do_processArguments (int argc_in,
       {
         converter.clear ();
         converter.str (ACE_TEXT_ALWAYS_CHAR (""));
-        converter << argument_parser.opt_arg ();
+        converter << ACE_TEXT_ALWAYS_CHAR (argument_parser.opt_arg ());
         converter >> statisticReportingInterval_out;
         break;
       }
@@ -511,6 +517,8 @@ do_initializeSignals (ACE_Sig_Set& signals_out,
   ACE_ASSERT (result == 0);
   //result = signals_out.sig_add (SIGSEGV);           // 11      /* segment violation */
   //ACE_ASSERT (result == 0);
+  result = signals_out.sig_add (SIGTERM);           // 15      /* Software termination signal from kill */
+  ACE_ASSERT (result == 0);
   result = signals_out.sig_add (SIGBREAK);          // 21      /* Ctrl-Break sequence */
   ACE_ASSERT (result == 0);
   result = signals_out.sig_add (SIGABRT);           // 22      /* abnormal termination triggered by abort call */
@@ -884,34 +892,50 @@ continue_2:
   ACE_ASSERT (SUCCEEDED (result));
 
   Stream_MediaFramework_DirectShow_Tools::free (media_type_s);
+  ACE_OS::memset (&media_type_s, 0, sizeof (struct _AMMediaType));
   ACE_OS::memset (&waveformatex_s, 0, sizeof (struct tWAVEFORMATEX));
-  waveformatex_s.wFormatTag = STREAM_DEV_MIC_DEFAULT_FORMAT;
-  waveformatex_s.nChannels = 1;// STREAM_DEV_MIC_DEFAULT_CHANNELS;
-  waveformatex_s.nSamplesPerSec = STREAM_DEV_MIC_DEFAULT_SAMPLE_RATE;
-  waveformatex_s.wBitsPerSample = STREAM_DEV_MIC_DEFAULT_BITS_PER_SAMPLE;
-  waveformatex_s.nBlockAlign =
-    (waveformatex_s.nChannels * (waveformatex_s.wBitsPerSample / 8));
-  waveformatex_s.nAvgBytesPerSec =
-    (waveformatex_s.nSamplesPerSec * waveformatex_s.nBlockAlign);
+  switch (configuration_in.streamConfiguration.configuration_->capturer)
+  {
+    case STREAM_DEVICE_CAPTURER_WAVEIN:
+    case STREAM_DEVICE_CAPTURER_DIRECTSHOW:
+    {
+      Stream_MediaFramework_DirectSound_Tools::getBestFormat (deviceIdentifier_in,
+                                                              waveformatex_s);
+      break;
+    }
+    case STREAM_DEVICE_CAPTURER_MEDIAFOUNDATION:
+    case STREAM_DEVICE_CAPTURER_WASAPI:
+    {
+      struct tWAVEFORMATEX* waveformatex_p =
+        Stream_MediaFramework_DirectSound_Tools::getDeviceDriverFormat (deviceIdentifier_in);
+      ACE_ASSERT (waveformatex_p);
+      waveformatex_s = *waveformatex_p;
+      CoTaskMemFree (waveformatex_p);
+      break;
+    }
+    default:
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("invalid/unknown capturer (was: %d), aborting\n"),
+                  configuration_in.streamConfiguration.configuration_->capturer));
+      goto error;
+    }
+  } // end SWITCH
+  //waveformatex_s.wFormatTag = STREAM_DEV_MIC_DEFAULT_FORMAT;
+  //waveformatex_s.nChannels = STREAM_DEV_MIC_DEFAULT_CHANNELS;
+  //waveformatex_s.nSamplesPerSec = STREAM_DEV_MIC_DEFAULT_SAMPLE_RATE;
+  //waveformatex_s.wBitsPerSample = STREAM_DEV_MIC_DEFAULT_BITS_PER_SAMPLE;
+  //waveformatex_s.nBlockAlign =
+  //  (waveformatex_s.nChannels * (waveformatex_s.wBitsPerSample / 8));
+  //waveformatex_s.nAvgBytesPerSec =
+  //  (waveformatex_s.nSamplesPerSec * waveformatex_s.nBlockAlign);
   //waveformatex_s.cbSize = 0;
-  result = CreateAudioMediaType (&waveformatex_s,
-                                 &media_type_s,
-                                 TRUE);
-  if (unlikely (FAILED (result)))
+  captureMediaType_out =
+    Stream_MediaFramework_MediaFoundation_Tools::to (waveformatex_s);
+  if (unlikely (!captureMediaType_out))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to CreateAudioMediaType(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
-    goto error;
-  } // end IF
-  result = MFCreateMediaTypeFromRepresentation (AM_MEDIA_TYPE_REPRESENTATION,
-                                                &media_type_s,
-                                                &captureMediaType_out);
-  if (unlikely (FAILED (result) || !captureMediaType_out))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to MFCreateMediaTypeFromRepresentation(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
+                ACE_TEXT ("failed to Stream_MediaFramework_MediaFoundation_Tools::to(), aborting\n")));
     goto error;
   } // end IF
   result = captureMediaType_out->SetUINT32 (MF_MT_AUDIO_CHANNEL_MASK,
@@ -1129,6 +1153,7 @@ do_finalize_mediafoundation ()
 void
 do_work (const std::string& scorerFile_in,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
+         unsigned int deviceId_in,
 #else
          const std::string& deviceIdentifier_in,
 #endif // ACE_WIN32 || ACE_WIN64
@@ -1283,9 +1308,9 @@ do_work (const std::string& scorerFile_in,
                                                                     ACE_TEXT_ALWAYS_CHAR (STREAM_MISC_MESSAGEHANDLER_DEFAULT_NAME_STRING));
   Test_I_InputHandler_t directshow_input_handler (
 #if defined (GUI_SUPPORT)
-                                       (UIDefinitionFile_in.empty () ? NULL : &directShowCBData_in)
+                                                  (UIDefinitionFile_in.empty () ? NULL : &directShowCBData_in)
 #endif // GUI_SUPPORT
-                                      );
+                                                 );
   Test_I_MediaFoundation_EventHandler_t mediafoundation_ui_event_handler (
 #if defined (GUI_SUPPORT)
                                                                           (UIDefinitionFile_in.empty () ? NULL : &mediaFoundationCBData_in)
@@ -1363,7 +1388,7 @@ do_work (const std::string& scorerFile_in,
           directshow_modulehandler_configuration.deviceIdentifier.identifierDiscriminator =
             Stream_Device_Identifier::ID;
           directshow_modulehandler_configuration.deviceIdentifier.identifier._id =
-            (mute_in ? -1 : 0); // *TODO*: -1 means WAVE_MAPPER
+            (mute_in ? -1 : deviceId_in); // *TODO*: -1 means WAVE_MAPPER
           break;
         }
         case STREAM_DEVICE_CAPTURER_WASAPI:
@@ -1372,7 +1397,7 @@ do_work (const std::string& scorerFile_in,
             Stream_Device_Identifier::GUID;
           directshow_modulehandler_configuration.deviceIdentifier.identifier._guid =
             (mute_in ? GUID_NULL
-                     : Stream_MediaFramework_DirectSound_Tools::waveDeviceIdToDirectSoundGUID (0,
+                     : Stream_MediaFramework_DirectSound_Tools::waveDeviceIdToDirectSoundGUID (deviceId_in,
                                                                                                true)); // capture
           break;
         }
@@ -1382,7 +1407,7 @@ do_work (const std::string& scorerFile_in,
             Stream_Device_Identifier::GUID;
           directshow_modulehandler_configuration.deviceIdentifier.identifier._guid =
             (mute_in ? GUID_NULL
-                     : Stream_MediaFramework_DirectSound_Tools::waveDeviceIdToDirectSoundGUID (0,
+                     : Stream_MediaFramework_DirectSound_Tools::waveDeviceIdToDirectSoundGUID (deviceId_in,
                                                                                                true)); // capture
           break;
         }
@@ -1724,6 +1749,8 @@ do_work (const std::string& scorerFile_in,
         &mediafoundation_message_allocator;
       mediafoundation_stream_configuration.module =
         &mediafoundation_event_handler;
+      mediafoundation_stream_configuration.moduleBranch =
+        ACE_TEXT_ALWAYS_CHAR (STREAM_SUBSTREAM_DECODE_NAME);
       mediafoundation_stream_configuration.printFinalReport = true;
       break;
     }
@@ -2114,8 +2141,20 @@ do_work (const std::string& scorerFile_in,
 #endif // GUI_SUPPORT
 
   // step3: clean up
-  input_manager_p->stop ();
-  timer_manager_p->stop ();
+  input_manager_p->stop (true,   // wait ?
+                         false); // N/A
+  result = stream_2_r.remove (&input_handler_module,
+                              true,   // lock ?
+                              false); // reset ?
+  if (unlikely (result == -1))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to Stream_Base_T::remove(\"%s\"), aborting\n"),
+                input_handler_module.name ()));
+    goto error;
+  } // end IF
+  timer_manager_p->stop (true,   // wait ?
+                         false); // N/A
   Common_Signal_Tools::finalize (COMMON_SIGNAL_DEFAULT_DISPATCH_MODE,
                                  previousSignalActions_inout,
                                  previousSignalMask_in);
@@ -2174,7 +2213,11 @@ do_work (const std::string& scorerFile_in,
 
 error:
   if (input_manager_p)
-    input_manager_p->stop ();
+    input_manager_p->stop (true,   // wait ?
+                           false); // N/A
+  stream_2_r.remove (&input_handler_module,
+                     true,   // lock ?
+                     false); // reset ?
 #if defined (GUI_SUPPORT)
   if (!UIDefinitionFile_in.empty () && itask_p)
     itask_p->stop (true,  // wait ?
@@ -2273,11 +2316,9 @@ ACE_TMAIN (int argc_in,
   scorer_file += ACE_DIRECTORY_SEPARATOR_CHAR_A;
   scorer_file += ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_SCORER_FILE);
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
+  unsigned int device_id = 0;
 #else
   std::string device_identifier_string =
-    //    ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_DEVICE_DIRECTORY);
-    //  device_identifier_string += ACE_DIRECTORY_SEPARATOR_CHAR_A;
-    //  device_identifier_string +=
     ACE_TEXT_ALWAYS_CHAR (STREAM_LIB_ALSA_CAPTURE_DEFAULT_DEVICE_NAME);
 #endif // ACE_WIN32 || ACE_WIN64
   std::string model_file = path;
@@ -2357,6 +2398,7 @@ ACE_TMAIN (int argc_in,
                             argv_in,
                             scorer_file,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
+                            device_id,
 #else
                             device_identifier_string,
 #endif // ACE_WIN32 || ACE_WIN64
@@ -2618,6 +2660,7 @@ ACE_TMAIN (int argc_in,
   // step2: do actual work
   do_work (scorer_file,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
+           device_id,
 #else
            device_identifier_string,
 #endif // ACE_WIN32 || ACE_WIN64

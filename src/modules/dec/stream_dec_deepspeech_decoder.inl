@@ -365,7 +365,50 @@ Stream_Decoder_DeepSpeechDecoder_T<ACE_SYNCH_USE,
       ACE_ASSERT (!session_data_r.formats.empty ());
       ACE_ASSERT (context_);
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-      ACE_ASSERT (false); // *TODO*
+      struct _AMMediaType media_type_s;
+      ACE_OS::memset (&media_type_s, 0, sizeof (struct _AMMediaType));
+      inherited2::getMediaType (session_data_r.formats.back (),
+                                media_type_s);
+      struct tWAVEFORMATEX* waveformatex_p =
+        Stream_MediaFramework_DirectShow_Tools::toWaveFormatEx (media_type_s);
+      ACE_ASSERT (waveformatex_p);
+      if (unlikely (Stream_MediaFramework_DirectSound_Tools::isFloat (*waveformatex_p)))
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("%s: invalid sample format, aborting\n"),
+                    inherited::mod_->name ()));
+        CoTaskMemFree (waveformatex_p); waveformatex_p = NULL;
+        goto error;
+      } // end IF
+      if (unlikely (waveformatex_p->nSamplesPerSec != static_cast<unsigned int> (DS_GetModelSampleRate (context_))))
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("%s: invalid sample rate (expected %d; was: %u), aborting\n"),
+                    inherited::mod_->name (),
+                    DS_GetModelSampleRate (context_), waveformatex_p->nSamplesPerSec));
+        CoTaskMemFree (waveformatex_p); waveformatex_p = NULL;
+        goto error;
+      } // end IF
+      if (unlikely (waveformatex_p->wBitsPerSample != 16))
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("%s: invalid sample resolution (expected %d; was: %u), aborting\n"),
+                    inherited::mod_->name (),
+                    16, waveformatex_p->wBitsPerSample));
+        CoTaskMemFree (waveformatex_p); waveformatex_p = NULL;
+        goto error;
+      } // end IF
+      if (unlikely (waveformatex_p->nChannels != 1))
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("%s: invalid channels (expected %d; was: %u), aborting\n"),
+                    inherited::mod_->name (),
+                    1, waveformatex_p->nChannels));
+        CoTaskMemFree (waveformatex_p); waveformatex_p = NULL;
+        goto error;
+      } // end IF
+      sampleSize_ = (waveformatex_p->wBitsPerSample / 8);
+      CoTaskMemFree (waveformatex_p); waveformatex_p = NULL;
 #else
       struct Stream_MediaFramework_ALSA_MediaType media_type_s;
       inherited2::getMediaType (session_data_r.formats.back (),

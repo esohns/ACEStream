@@ -30,14 +30,14 @@ extern "C"
 {
 #endif /* __cplusplus */
   G_MODULE_EXPORT void glarea_realize_cb (GtkWidget*, gpointer);
-#if GTK_CHECK_VERSION(3,0,0)
-#if GTK_CHECK_VERSION(3,16,0)
+#if GTK_CHECK_VERSION (3,0,0)
+#if GTK_CHECK_VERSION (3,16,0)
   G_MODULE_EXPORT GdkGLContext* glarea_create_context_cb (GtkGLArea*, gpointer);
   G_MODULE_EXPORT gboolean glarea_render_cb (GtkGLArea*, GdkGLContext*, gpointer);
   G_MODULE_EXPORT void glarea_resize_cb (GtkGLArea*, gint, gint, gpointer);
 #else
 #if defined (GTKGLAREA_SUPPORT)
-  G_MODULE_EXPORT void glarea_configure_event_cb (GtkWidget*, GdkEvent*, gpointer);
+  G_MODULE_EXPORT gboolean glarea_configure_event_cb (GtkWidget*, GdkEvent*, gpointer);
   G_MODULE_EXPORT gboolean glarea_expose_event_cb (GtkWidget*, GdkEvent*, gpointer);
 #else
   G_MODULE_EXPORT void glarea_size_allocate_event_cb (GtkWidget*, GdkRectangle*, gpointer);

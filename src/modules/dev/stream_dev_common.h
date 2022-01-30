@@ -43,6 +43,8 @@ extern "C"
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #include "ace/Log_Msg.h"
 #include "ace/OS.h"
+
+#include "stream_lib_directsound_tools.h"
 #else
 #include "stream_lib_common.h"
 #include "stream_lib_alsa_common.h"
@@ -169,6 +171,49 @@ struct Stream_Device_Identifier
     } // end SWITCH
     return false; // *TODO*: false negative !
   }
+  inline operator ULONG () const
+  {
+    switch (identifierDiscriminator)
+    {
+      case ID:
+        return identifier._id;
+      case GUID:
+        return Stream_MediaFramework_DirectSound_Tools::directSoundGUIDToWaveDeviceId (identifier._guid);
+      case STRING:
+        ACE_ASSERT (false); // *TODO*
+        break;
+      default:
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("invalid/unknown type discriminator (was: %d), aborting\n"),
+                    identifierDiscriminator));
+        break;
+      }
+    } // end SWITCH
+    return -1;
+  }
+  inline operator struct _GUID () const
+  {
+    switch (identifierDiscriminator)
+    {
+      case ID:
+        return Stream_MediaFramework_DirectSound_Tools::waveDeviceIdToDirectSoundGUID (identifier._id,
+                                                                                       true); // *TODO*: this may be wrong!
+      case GUID:
+        return identifier._guid;
+      case STRING:
+        ACE_ASSERT (false); // *TODO*
+        break;
+      default:
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("invalid/unknown type discriminator (was: %d), aborting\n"),
+                    identifierDiscriminator));
+        break;
+      }
+    } // end SWITCH
+    return GUID_NULL;
+  }
 #else
   inline void clear () { ACE_OS::close (fileDescriptor); fileDescriptor = -1; identifier.clear (); }
   inline bool empty () { return ((fileDescriptor >= 0) || !identifier.empty ()); }
@@ -178,7 +223,7 @@ struct Stream_Device_Identifier
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   union identifierType
   {
-    int          _id;
+    ULONG        _id;
     struct _GUID _guid;
     char         _string[BUFSIZ];
 

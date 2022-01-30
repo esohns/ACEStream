@@ -309,6 +309,7 @@ Stream_Decoder_SoXResampler_T<ACE_SYNCH_USE,
                   ACE_TEXT (sox_strerror (result))));
       goto error;
     } // end IF
+    ACE_ASSERT (output_buffer_p->tell_off == inherited::configuration_->allocatorConfiguration->defaultBufferSize);
 
     // output buffer is full --> allocate another one
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -317,11 +318,12 @@ Stream_Decoder_SoXResampler_T<ACE_SYNCH_USE,
     // --> copy the data out of the tmpfile() manually
     FILE* file_p = reinterpret_cast<FILE*> (output_buffer_p->fp);
     ACE_OS::rewind (file_p);
-    size_t bytes_read_i = ACE_OS::fread (message_block_p->wr_ptr (),
-                                         1,
-                                         inherited::configuration_->allocatorConfiguration->defaultBufferSize,
-                                         file_p);
-    ACE_ASSERT (bytes_read_i == inherited::configuration_->allocatorConfiguration->defaultBufferSize);
+    size_t bytes_read_i =
+      ACE_OS::fread (message_block_p->wr_ptr (),
+                     inherited::configuration_->allocatorConfiguration->defaultBufferSize,
+                     1,
+                     file_p);
+    ACE_ASSERT (bytes_read_i == 1);
 #endif // ACE_WIN32 || ACE_WIN64
     message_block_p->wr_ptr (output_buffer_p->tell_off);
 
@@ -375,6 +377,8 @@ Stream_Decoder_SoXResampler_T<ACE_SYNCH_USE,
       goto error;
     } // end IF
   } while (true);
+  if (unlikely (!output_buffer_p->tell_off))
+    goto continue_;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   // *IMPORTANT NOTE*: SoX cannot write to the message block directly
   // (Win32/MinGW does not currently support fmemopen())
@@ -382,13 +386,14 @@ Stream_Decoder_SoXResampler_T<ACE_SYNCH_USE,
   FILE* file_p = reinterpret_cast<FILE*> (output_buffer_p->fp);
   ACE_OS::rewind (file_p);
   size_t bytes_read_i = ACE_OS::fread (message_block_p->wr_ptr (),
-                                       1,
                                        output_buffer_p->tell_off,
+                                       1,
                                        file_p);
-  ACE_ASSERT (bytes_read_i == output_buffer_p->tell_off);
+  ACE_ASSERT (bytes_read_i == 1);
 #endif // ACE_WIN32 || ACE_WIN64
   message_block_p->wr_ptr (output_buffer_p->tell_off);
 
+continue_:
   result = sox_close (input_buffer_p);
   if (unlikely (result != SOX_SUCCESS))
   {
@@ -408,6 +413,8 @@ Stream_Decoder_SoXResampler_T<ACE_SYNCH_USE,
     goto error;
   } // end IF
 
+  if (unlikely (!buffer_->total_length ()))
+    goto continue_2;
   result = inherited::put_next (buffer_, NULL);
   if (unlikely (result == -1))
   {
@@ -418,6 +425,7 @@ Stream_Decoder_SoXResampler_T<ACE_SYNCH_USE,
   } // end IF
   buffer_ = NULL;
 
+continue_2:
   // clean up
   message_inout->release (); message_inout = NULL;
 

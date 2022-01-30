@@ -829,7 +829,7 @@ glarea_resize_cb (GtkGLArea* GLArea_in,
 }
 #else
 #if defined (GTKGLAREA_SUPPORT)
-void
+gboolean
 glarea_configure_event_cb (GtkWidget* widget_in,
                            GdkEvent* event_in,
                            gpointer userData_in)
@@ -869,7 +869,7 @@ glarea_configure_event_cb (GtkWidget* widget_in,
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("invalid/unknown media framework (was: %d), returning\n"),
                   ui_cb_data_base_p->mediaFramework));
-      return;
+      return FALSE;
     }
   } // end SWITCH
 #else
@@ -884,7 +884,7 @@ glarea_configure_event_cb (GtkWidget* widget_in,
 #endif // ACE_WIN32 || ACE_WIN64
   ACE_ASSERT (widget_in);
   if (!ggla_area_make_current (GGLA_AREA (widget_in)))
-    return;
+    return FALSE;
 
   glViewport (0, 0,
               event_in->configure.width, event_in->configure.height);
@@ -915,6 +915,8 @@ glarea_configure_event_cb (GtkWidget* widget_in,
 
   glMatrixMode (GL_MODELVIEW);
   COMMON_GL_ASSERT;
+
+  return FALSE;
 }
 
 gboolean
@@ -924,9 +926,10 @@ glarea_expose_event_cb (GtkWidget* widget_in,
 {
   STREAM_TRACE (ACE_TEXT ("::glarea_expose_event_cb"));
 
+  ACE_UNUSED_ARG (event_in);
+
   // sanity check(s)
   ACE_ASSERT (widget_in);
-  ACE_UNUSED_ARG (event_in);
   ACE_ASSERT (userData_in);
 
   // sanity check(s)

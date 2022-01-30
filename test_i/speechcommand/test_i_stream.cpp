@@ -587,173 +587,51 @@ Test_I_MediaFoundation_Stream::load (Stream_ILayout* layout_in,
    module_p = NULL;
 #endif // SOX_SUPPORT
 
-  switch (inherited::configuration_->configuration_->renderer)
-  {
-    case STREAM_DEVICE_RENDERER_WAVEOUT:
-    {
-      struct tWAVEFORMATEX* waveformatex_p = NULL;
-      UINT32 cbSize = 0;
-      result = MFCreateWaveFormatExFromMFMediaType (inherited::configuration_->configuration_->format,
-                                                    &waveformatex_p,
-                                                    &cbSize,
-                                                    MFWaveFormatExConvertFlag_Normal);
-      ACE_ASSERT (SUCCEEDED (result) && waveformatex_p);
-      ACE_ASSERT ((*iterator_3).second.second->deviceIdentifier.identifierDiscriminator == Stream_Device_Identifier::ID);
-      device_can_render_format_b =
-        Stream_MediaFramework_DirectSound_Tools::canRender ((*iterator_3).second.second->deviceIdentifier.identifier._id,
-                                                            *waveformatex_p);
-      CoTaskMemFree (waveformatex_p); waveformatex_p = NULL;
-      break;
-    }
-    case STREAM_DEVICE_RENDERER_WASAPI:
-    {
-      struct tWAVEFORMATEX* waveformatex_p = NULL;
-      UINT32 cbSize = 0;
-      result = MFCreateWaveFormatExFromMFMediaType (inherited::configuration_->configuration_->format,
-                                                    &waveformatex_p,
-                                                    &cbSize,
-                                                    MFWaveFormatExConvertFlag_Normal);
-      ACE_ASSERT (SUCCEEDED (result) && waveformatex_p);
-      ACE_ASSERT ((*iterator_3).second.second->deviceIdentifier.identifierDiscriminator == Stream_Device_Identifier::GUID);
-      device_can_render_format_b =
-        Stream_MediaFramework_DirectSound_Tools::canRender ((*iterator_3).second.second->deviceIdentifier.identifier._guid,
-                                                            STREAM_LIB_WASAPI_RENDER_DEFAULT_SHAREMODE,
-                                                            *waveformatex_p);
-      CoTaskMemFree (waveformatex_p); waveformatex_p = NULL;
-      break;
-    }
-    case STREAM_DEVICE_RENDERER_MEDIAFOUNDATION:
-      break;
-    default:
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("%s: invalid/unknown renderer type (was: %d), aborting\n"),
-                  ACE_TEXT (stream_name_string_),
-                  inherited::configuration_->configuration_->renderer));
-      return false;
-    }
-  } // end SWITCH
-
-  has_mediafoundation_source_b =
-    (!(*iterator).second.second->mute && (inherited::configuration_->configuration_->renderer != STREAM_DEVICE_RENDERER_MEDIAFOUNDATION) && !device_can_render_format_b);
-#if defined (GUI_SUPPORT)
-#if defined (GTK_USE)
-  if (!has_mediafoundation_source_b)
-  {
-    ACE_NEW_RETURN (module_p,
-                    Test_I_MediaFoundation_StatisticAnalysis_Module (this,
-                                                                     ACE_TEXT_ALWAYS_CHAR (MODULE_STAT_ANALYSIS_DEFAULT_NAME_STRING)),
-                    false);
-    ACE_ASSERT (module_p);
-    layout_in->append (module_p, NULL, 0);
-    module_p = NULL;
-    ACE_NEW_RETURN (module_p,
-                    Test_I_MediaFoundation_Vis_SpectrumAnalyzer_Module (this,
-                                                                        ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_GTK_SPECTRUM_ANALYZER_DEFAULT_NAME_STRING)),
-                    false);
-    ACE_ASSERT (module_p);
-    layout_in->append (module_p, NULL, 0);
-    module_p = NULL;
-  } // end IF
-#endif // GTK_USE
-#endif // GUI_SUPPORT
-
-  if ((!(*iterator).second.second->mute && (inherited::configuration_->configuration_->renderer == STREAM_DEVICE_RENDERER_MEDIAFOUNDATION))                               ||
-      (!(*iterator).second.second->mute && (inherited::configuration_->configuration_->renderer != STREAM_DEVICE_RENDERER_MEDIAFOUNDATION) && !device_can_render_format_b))
-    layout_in->append (&mediaFoundationTarget_, NULL, 0);
-
-  if (has_mediafoundation_source_b)
-  {
-    layout_in->append (&mediaFoundationSource_, NULL, 0);
-
-#if defined (GUI_SUPPORT)
-#if defined (GTK_USE)
-    ACE_NEW_RETURN (module_p,
-                    Test_I_MediaFoundation_StatisticAnalysis_Module (this,
-                                                                     ACE_TEXT_ALWAYS_CHAR (MODULE_STAT_ANALYSIS_DEFAULT_NAME_STRING)),
-                    false);
-    ACE_ASSERT (module_p);
-    layout_in->append (module_p, NULL, 0);
-    module_p = NULL;
-    ACE_NEW_RETURN (module_p,
-                    Test_I_MediaFoundation_Vis_SpectrumAnalyzer_Module (this,
-                                                                        ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_GTK_SPECTRUM_ANALYZER_DEFAULT_NAME_STRING)),
-                    false);
-    ACE_ASSERT (module_p);
-    layout_in->append (module_p, NULL, 0);
-    module_p = NULL;
-#endif // GTK_USE
-#endif // GUI_SUPPORT
-  } // end IF
-
   typename inherited::MODULE_T* branch_p = NULL; // NULL: 'main' branch
   unsigned int index_i = 0;
-  if ((!(*iterator).second.second->mute && (inherited::configuration_->configuration_->renderer != STREAM_DEVICE_RENDERER_MEDIAFOUNDATION)) &&
-      !(*iterator_3).second.second->fileIdentifier.empty ())
-  {
-    ACE_NEW_RETURN (module_p,
-                    Test_I_MediaFoundation_Distributor_Module (this,
-                                                                           ACE_TEXT_ALWAYS_CHAR (STREAM_MISC_DISTRIBUTOR_DEFAULT_NAME_STRING)),
-                    false);
-    ACE_ASSERT (module_p);
-    branch_p = module_p;
-    inherited::configuration_->configuration_->branches.push_back (ACE_TEXT_ALWAYS_CHAR (STREAM_SUBSTREAM_PLAYBACK_NAME));
+  ACE_NEW_RETURN (module_p,
+                  Test_I_MediaFoundation_Distributor_Module (this,
+                                                             ACE_TEXT_ALWAYS_CHAR (STREAM_MISC_DISTRIBUTOR_DEFAULT_NAME_STRING)),
+                  false);
+  ACE_ASSERT (module_p);
+  branch_p = module_p;
+  inherited::configuration_->configuration_->branches.push_back (ACE_TEXT_ALWAYS_CHAR (STREAM_SUBSTREAM_DISPLAY_NAME));
+  if (!(*iterator_3).second.second->fileIdentifier.empty ())
     inherited::configuration_->configuration_->branches.push_back (ACE_TEXT_ALWAYS_CHAR (STREAM_SUBSTREAM_SAVE_NAME));
-    Stream_IDistributorModule* idistributor_p =
-      dynamic_cast<Stream_IDistributorModule*> (module_p->writer ());
-    ACE_ASSERT (idistributor_p);
-    idistributor_p->initialize (inherited::configuration_->configuration_->branches);
-    layout_in->append (module_p, NULL, 0);
-    module_p = NULL;
-  } // end IF
-
-  if (!(*iterator).second.second->mute)
-    switch (inherited::configuration_->configuration_->renderer)
-    {
-      case STREAM_DEVICE_RENDERER_WAVEOUT:
-      {
-        ACE_NEW_RETURN (module_p,
-                        Test_I_MediaFoundation_Target_WaveOut_Module (this,
-                                                                      ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_WAVEOUT_RENDER_DEFAULT_NAME_STRING)),
-                        false);
-        break;
-      }
-      case STREAM_DEVICE_RENDERER_WASAPI:
-      {
-        ACE_NEW_RETURN (module_p,
-                        Test_I_MediaFoundation_Target_WASAPI_Module (this,
-                                                                     ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_WASAPI_RENDER_DEFAULT_NAME_STRING)),
-                        false);
-        break;
-      }
-      case STREAM_DEVICE_RENDERER_MEDIAFOUNDATION:
-        break;
-      default:
-      {
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("%s: invalid/unknown renderer type (was: %d), aborting\n"),
-                    ACE_TEXT (stream_name_string_),
-                    inherited::configuration_->configuration_->renderer));
-        return false;
-      }
-    } // end SWITCH
-  if (module_p)
+  inherited::configuration_->configuration_->branches.push_back (ACE_TEXT_ALWAYS_CHAR (STREAM_SUBSTREAM_DECODE_NAME));
+  Stream_IDistributorModule* idistributor_p =
+    dynamic_cast<Stream_IDistributorModule*> (module_p->writer ());
+  ACE_ASSERT (idistributor_p);
+  if (!idistributor_p->initialize (inherited::configuration_->configuration_->branches))
   {
-    //if (!has_mediafoundation_source_b)
-    //{
-    //  Stream_Module_t* module_2 = NULL;
-    //  ACE_NEW_RETURN (module_2,
-    //                  Test_I_MediaFoundation_Delay_Module (this,
-    //                                                       ACE_TEXT_ALWAYS_CHAR (STREAM_MISC_DELAY_DEFAULT_NAME_STRING)),
-    //                  false);
-    //  layout_in->append (module_2, branch_p, index_i);
-    //} // end IF
-
-    layout_in->append (module_p, branch_p, index_i);
-    ++index_i;
-    module_p = NULL;
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s: failed to Stream_Miscellaneous_Distributor_T::initialize(), aborting\n"),
+                ACE_TEXT (stream_name_string_)));
+    return false;
   } // end IF
+  layout_in->append (module_p, NULL, 0);
+  module_p = NULL;
 
+#if defined (GUI_SUPPORT)
+#if defined (GTK_USE)
+  //ACE_NEW_RETURN (module_p,
+  //                Test_I_MediaFoundation_StatisticAnalysis_Module (this,
+  //                                                                 ACE_TEXT_ALWAYS_CHAR (MODULE_STAT_ANALYSIS_DEFAULT_NAME_STRING)),
+  //                false);
+  //ACE_ASSERT (module_p);
+  //layout_in->append (module_p, branch_p, index_i);
+  //module_p = NULL;
+  ACE_NEW_RETURN (module_p,
+                  Test_I_MediaFoundation_Vis_SpectrumAnalyzer_Module (this,
+                                                                      ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_GTK_SPECTRUM_ANALYZER_DEFAULT_NAME_STRING)),
+                  false);
+  ACE_ASSERT (module_p);
+  layout_in->append (module_p, branch_p, index_i);
+  module_p = NULL;
+#endif // GTK_USE
+#endif // GUI_SUPPORT
+
+  ++index_i;
   if (!(*iterator_3).second.second->fileIdentifier.empty ())
   {
     ACE_NEW_RETURN (module_p,
@@ -772,6 +650,16 @@ Test_I_MediaFoundation_Stream::load (Stream_ILayout* layout_in,
     layout_in->append (module_p, branch_p, index_i);
     module_p = NULL;
   } // end IF
+
+#if defined (DEEPSPEECH_SUPPORT)
+  ++index_i;
+  ACE_NEW_RETURN (module_p,
+                  Test_I_MediaFoundation_DeepSpeechDecoder_Module (this,
+                                                                   ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_DEEPSPEECH_DECODER_DEFAULT_NAME_STRING)),
+                  false);
+  layout_in->append (module_p, branch_p, index_i);
+  module_p = NULL;
+#endif // DEEPSPEECH_SUPPORT
 
   return true;
 }
@@ -941,8 +829,7 @@ Test_I_MediaFoundation_Stream::initialize (const CONFIGURATION_T& configuration_
         case STREAM_DEVICE_RENDERER_WAVEOUT:
         {
           struct tWAVEFORMATEX waveformatex_s;
-          ACE_ASSERT ((*iterator_3).second.second->deviceIdentifier.identifierDiscriminator == Stream_Device_Identifier::ID);
-          Stream_MediaFramework_DirectSound_Tools::getBestFormat ((*iterator_3).second.second->deviceIdentifier.identifier._id,
+          Stream_MediaFramework_DirectSound_Tools::getBestFormat ((*iterator_3).second.second->deviceIdentifier,
                                                                   waveformatex_s);
           media_type_p = Stream_MediaFramework_MediaFoundation_Tools::to (waveformatex_s);
           ACE_ASSERT (media_type_p);
@@ -950,9 +837,8 @@ Test_I_MediaFoundation_Stream::initialize (const CONFIGURATION_T& configuration_
         }
         case STREAM_DEVICE_RENDERER_WASAPI:
         {
-          ACE_ASSERT ((*iterator_3).second.second->deviceIdentifier.identifierDiscriminator == Stream_Device_Identifier::GUID);
           struct tWAVEFORMATEX* waveformatex_p =
-            Stream_MediaFramework_DirectSound_Tools::getAudioEngineMixFormat ((*iterator_3).second.second->deviceIdentifier.identifier._guid);
+            Stream_MediaFramework_DirectSound_Tools::getAudioEngineMixFormat ((*iterator_3).second.second->deviceIdentifier);
           media_type_p = Stream_MediaFramework_MediaFoundation_Tools::to (*waveformatex_p);
           ACE_ASSERT (media_type_p);
           CoTaskMemFree (waveformatex_p);
@@ -1012,22 +898,19 @@ continue_3:
   {
     case STREAM_DEVICE_RENDERER_WAVEOUT:
     {
-      ACE_ASSERT ((*iterator_3).second.second->deviceIdentifier.identifierDiscriminator == Stream_Device_Identifier::ID);
-      render_device_id_i = (*iterator_3).second.second->deviceIdentifier.identifier._id;
+      render_device_id_i = (*iterator_3).second.second->deviceIdentifier;
       break;
     }
     case STREAM_DEVICE_RENDERER_WASAPI:
     {
-      ACE_ASSERT ((*iterator_3).second.second->deviceIdentifier.identifierDiscriminator == Stream_Device_Identifier::GUID);
       render_device_id_i =
-        static_cast<int> (Stream_MediaFramework_DirectSound_Tools::directSoundGUIDToWaveDeviceId ((*iterator_3).second.second->deviceIdentifier.identifier._guid));
+        static_cast<int> (Stream_MediaFramework_DirectSound_Tools::directSoundGUIDToWaveDeviceId ((*iterator_3).second.second->deviceIdentifier));
       break;
     }
     case STREAM_DEVICE_RENDERER_MEDIAFOUNDATION:
     {
-      ACE_ASSERT ((*iterator_3).second.second->deviceIdentifier.identifierDiscriminator == Stream_Device_Identifier::GUID);
       render_device_id_i =
-        static_cast<int> (Stream_MediaFramework_DirectSound_Tools::directSoundGUIDToWaveDeviceId ((*iterator_3).second.second->deviceIdentifier.identifier._guid));
+        static_cast<int> (Stream_MediaFramework_DirectSound_Tools::directSoundGUIDToWaveDeviceId ((*iterator_3).second.second->deviceIdentifier));
       use_framework_renderer_b = !(*iterator).second.second->mute;
       break;
     }
@@ -1040,11 +923,10 @@ continue_3:
       goto error;
     }
   } // end SWITCH
-  ACE_ASSERT ((*iterator).second.second->deviceIdentifier.identifierDiscriminator == Stream_Device_Identifier::GUID);
   media_type_2 =
     ((configuration_in.configuration_->capturer == STREAM_DEVICE_CAPTURER_MEDIAFOUNDATION) ? Stream_MediaFramework_MediaFoundation_Tools::copy (configuration_in.configuration_->format)
                                                                                            : NULL); // use preset source format
-  if (!Stream_Module_Decoder_Tools::loadAudioRendererTopology ((*iterator).second.second->deviceIdentifier.identifier._guid,
+  if (!Stream_Module_Decoder_Tools::loadAudioRendererTopology ((*iterator).second.second->deviceIdentifier,
                                                                MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE_AUDCAP_GUID,
                                                                (configuration_in.configuration_->capturer == STREAM_DEVICE_CAPTURER_MEDIAFOUNDATION),
                                                                media_type_2,
@@ -1058,7 +940,7 @@ continue_3:
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to Stream_Module_Decoder_Tools::loadAudioRendererTopology(\"%s\"), aborting\n"),
                 ACE_TEXT (stream_name_string_),
-                ACE_TEXT (Common_Tools::GUIDToString ((*iterator).second.second->deviceIdentifier.identifier._guid).c_str ())));
+                ACE_TEXT (Common_Tools::GUIDToString ((*iterator).second.second->deviceIdentifier).c_str ())));
     goto error;
   } // end IF
   ACE_ASSERT (media_type_2 && topology_p);

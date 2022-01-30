@@ -76,7 +76,7 @@ stream_directshow_device_enumeration_a_cb (LPGUID lpGuid,
     static_cast<struct stream_directshow_device_enumeration_cbdata*> (lpContext);
   ACE_ASSERT (cbdata_p);
   ACE_ASSERT (cbdata_p->IPropertySet);
-  if (!lpGuid)
+  if (!lpGuid) // skip default
     return TRUE;
 
   DSPROPERTY_DIRECTSOUNDDEVICE_DESCRIPTION_DATA directsound_device_description_s;
@@ -1231,7 +1231,7 @@ Stream_MediaFramework_DirectSound_Tools::getDeviceDriverFormat (REFGUID deviceId
   device_p->Release (); device_p = NULL;
   struct tagPROPVARIANT property_s;
   PropVariantInit (&property_s);
-  result = property_store_p->GetValue (PKEY_AudioEngine_DeviceFormat,
+  result = property_store_p->GetValue (PKEY_AudioEngine_OEMFormat,
                                        &property_s);
   ACE_ASSERT (SUCCEEDED (result) && (property_s.vt == VT_BLOB));
   property_store_p->Release (); property_store_p = NULL;

@@ -70,10 +70,18 @@ Stream_Module_Vis_GTK_Window_T<ACE_SYNCH_USE,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Vis_GTK_Window_T::~Stream_Module_Vis_GTK_Window_T"));
 
+#if GTK_CHECK_VERSION (3,6,0)
+#else
+  GDK_THREADS_ENTER ();
+#endif // GTK_CHECK_VERSION (3,6,0)
   if (window_)
     gdk_window_destroy (window_);
 //  if (mainLoop_)
 //    g_main_loop_unref (mainLoop_);
+#if GTK_CHECK_VERSION (3,6,0)
+#else
+  GDK_THREADS_LEAVE ();
+#endif // GTK_CHECK_VERSION (3,6,0)
 }
 
 template <ACE_SYNCH_DECL,
@@ -113,13 +121,14 @@ Stream_Module_Vis_GTK_Window_T<ACE_SYNCH_USE,
     return;
   }
 
-//  int result = -1;
-  bool leave_gdk = false;
   GdkPixbuf* buffer_p = NULL;
   gint width_i, height_i;
-
-  gdk_threads_enter ();
+#if GTK_CHECK_VERSION (3,6,0)
+#else
+  bool leave_gdk = false;
+  GDK_THREADS_ENTER ();
   leave_gdk = true;
+#endif // GTK_CHECK_VERSION (3,6,0)
 
 #if GTK_CHECK_VERSION (3,0,0)
   width_i = gdk_window_get_width (window_);
@@ -141,7 +150,7 @@ Stream_Module_Vis_GTK_Window_T<ACE_SYNCH_USE,
                                     0, 0,
                                     0, 0, width_i, height_i);
 #endif // GTK_CHECK_VERSION (3,0,0)
-  if (!buffer_p)
+  if (unlikely (!buffer_p))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to gdk_pixbuf_get_from_window(), aborting\n"),
@@ -168,11 +177,14 @@ Stream_Module_Vis_GTK_Window_T<ACE_SYNCH_USE,
 
   g_object_unref (buffer_p); buffer_p = NULL;
 
+#if GTK_CHECK_VERSION (3,6,0)
+#else
   if (likely (leave_gdk))
   {
-    gdk_threads_leave ();
+    GDK_THREADS_LEAVE ();
     leave_gdk = false;
   } // end IF
+#endif // GTK_CHECK_VERSION (3,6,0)
 }
 
 template <ACE_SYNCH_DECL,
@@ -207,32 +219,55 @@ Stream_Module_Vis_GTK_Window_T<ACE_SYNCH_USE,
       Common_Image_Resolution_t resolution_s =
         inherited2::getResolution (inherited::configuration_->outputFormat);
 
-      gdk_threads_enter ();
-
+#if GTK_CHECK_VERSION(3, 6, 0)
+#else
+      bool leave_gdk = false;
+      GDK_THREADS_ENTER ();
+      leave_gdk = true;
+#endif // GTK_CHECK_VERSION (3,6,0)
       if (unlikely (!initialize_GTK (resolution_s)))
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: failed to Stream_Module_Vis_GTK_Window_T::initialize_GTK(), aborting\n"),
                     inherited::mod_->name ()));
-        gdk_threads_leave ();
         goto error;
       } // end IF
 
+      // *TODO*: subscribe to signals (realize, configure, expose, ...)
+
       gdk_window_show (window_);
 
-      gdk_threads_leave ();
+#if GTK_CHECK_VERSION (3,6,0)
+#else
+      GDK_THREADS_LEAVE ();
+      leave_gdk = false;
+#endif // GTK_CHECK_VERSION (3,6,0)
 
       inherited::start (NULL);
 
       break;
 
 error:
+#if GTK_CHECK_VERSION (3,6,0)
+#else
+      if (likely (leave_gdk))
+      {
+        GDK_THREADS_LEAVE ();
+        leave_gdk = false;
+      } // end IF
+#endif // GTK_CHECK_VERSION (3,6,0)
+
       this->notify (STREAM_SESSION_MESSAGE_ABORT);
 
       break;
     }
     case STREAM_SESSION_MESSAGE_END:
     {
+#if GTK_CHECK_VERSION (3,6,0)
+#else
+      GDK_THREADS_ENTER ();
+#endif // GTK_CHECK_VERSION (3,6,0)
+
       if (likely (window_))
       {
         gdk_window_destroy (window_); window_ = NULL;
@@ -248,6 +283,11 @@ error:
 //      {
 //        g_main_loop_unref (mainLoop_); mainLoop_ = NULL;
 //      } // end IF
+
+#if GTK_CHECK_VERSION (3,6,0)
+#else
+      GDK_THREADS_LEAVE ();
+#endif // GTK_CHECK_VERSION (3,6,0)
 
       break;
     }
@@ -277,6 +317,11 @@ Stream_Module_Vis_GTK_Window_T<ACE_SYNCH_USE,
 
   if (inherited::isInitialized_)
   {
+#if GTK_CHECK_VERSION (3,6,0)
+#else
+    GDK_THREADS_ENTER ();
+#endif // GTK_CHECK_VERSION (3,6,0)
+
 //    if (mainLoop_)
 //    {
 //      g_main_loop_unref (mainLoop_); mainLoop_ = NULL;
@@ -285,6 +330,11 @@ Stream_Module_Vis_GTK_Window_T<ACE_SYNCH_USE,
     {
       gdk_window_destroy (window_); window_ = NULL;
     } // end IF
+
+#if GTK_CHECK_VERSION (3,6,0)
+#else
+    GDK_THREADS_LEAVE ();
+#endif // GTK_CHECK_VERSION (3,6,0)
   } // end IF
 
   return inherited::initialize (configuration_in,
@@ -400,8 +450,18 @@ Stream_Module_Vis_GTK_Window_T<ACE_SYNCH_USE,
   // sanity check(s)
 //  ACE_ASSERT (mainLoop_);
 
+#if GTK_CHECK_VERSION (3,6,0)
+#else
+  GDK_THREADS_ENTER ();
+#endif // GTK_CHECK_VERSION (3,6,0)
+
 //  g_main_loop_run (mainLoop_);
   gtk_main ();
+
+#if GTK_CHECK_VERSION (3,6,0)
+#else
+  GDK_THREADS_LEAVE ();
+#endif // GTK_CHECK_VERSION (3,6,0)
 
   return 0;
 }
