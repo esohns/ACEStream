@@ -36,12 +36,49 @@ class Stream_IMessageQueue;
 
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,
-          typename ConfigurationType,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType,
           typename SessionEventType>
-class Stream_HeadTask_T
+class Stream_HeadReaderTask_T
+// *TODO*: figure out how to use ACE_NULL_SYNCH in this case
+ : public ACE_Thru_Task<ACE_SYNCH_USE,
+                        TimePolicyType>
+{
+  typedef ACE_Thru_Task<ACE_SYNCH_USE,
+                        TimePolicyType> inherited;
+
+ public:
+  // convenient types
+  typedef Stream_INotify_T<SessionEventType> NOTIFY_T;
+
+  Stream_HeadReaderTask_T (NOTIFY_T*,                     // stream handle
+                           Stream_IMessageQueue* = NULL); // message queue handle
+  inline virtual ~Stream_HeadReaderTask_T () {}
+
+  // override some task-based members
+  virtual int put (ACE_Message_Block*, // data chunk
+                   ACE_Time_Value*);   // timeout value
+
+ private:
+  ACE_UNIMPLEMENTED_FUNC (Stream_HeadReaderTask_T ())
+  ACE_UNIMPLEMENTED_FUNC (Stream_HeadReaderTask_T (const Stream_HeadReaderTask_T&))
+  ACE_UNIMPLEMENTED_FUNC (Stream_HeadReaderTask_T& operator= (const Stream_HeadReaderTask_T&))
+
+  // convenient types
+  typedef ACE_Message_Queue<ACE_SYNCH_USE,
+                            TimePolicyType> MESSAGE_QUEUE_T;
+
+  NOTIFY_T* notify_;
+};
+
+template <ACE_SYNCH_DECL,
+          typename TimePolicyType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
+          typename SessionEventType>
+class Stream_HeadWriterTask_T
 // *TODO*: figure out how to use ACE_NULL_SYNCH in this case
  : public ACE_Stream_Head<ACE_SYNCH_USE,
                           TimePolicyType>
@@ -50,23 +87,23 @@ class Stream_HeadTask_T
                           TimePolicyType> inherited;
 
  public:
-  Stream_HeadTask_T (Stream_IMessageQueue* = NULL); // message queue handle
-  virtual ~Stream_HeadTask_T ();
+  // convenient types
+  typedef Stream_INotify_T<SessionEventType> NOTIFY_T;
+
+  Stream_HeadWriterTask_T (NOTIFY_T*); // stream handle
+  virtual ~Stream_HeadWriterTask_T ();
 
   // override some task-based members
   virtual int put (ACE_Message_Block*, // data chunk
                    ACE_Time_Value*);   // timeout value
 
  private:
-  ACE_UNIMPLEMENTED_FUNC (Stream_HeadTask_T ())
-  ACE_UNIMPLEMENTED_FUNC (Stream_HeadTask_T (const Stream_HeadTask_T&))
-  ACE_UNIMPLEMENTED_FUNC (Stream_HeadTask_T& operator= (const Stream_HeadTask_T&))
-
-  // convenient types
-  typedef ACE_Message_Queue<ACE_SYNCH_USE,
-                            TimePolicyType> MESSAGE_QUEUE_T;
+  ACE_UNIMPLEMENTED_FUNC (Stream_HeadWriterTask_T ())
+  ACE_UNIMPLEMENTED_FUNC (Stream_HeadWriterTask_T (const Stream_HeadWriterTask_T&))
+  ACE_UNIMPLEMENTED_FUNC (Stream_HeadWriterTask_T& operator= (const Stream_HeadWriterTask_T&))
 
   bool                                 isLinked_;
+  NOTIFY_T*                            notify_;
   typename SessionMessageType::DATA_T* sessionData_;
 };
 
@@ -74,12 +111,11 @@ class Stream_HeadTask_T
 
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,
-          typename ConfigurationType,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType,
           typename SessionEventType>
-class Stream_TailTask_T
+class Stream_TailWriterTask_T
 // *TODO*: figure out how to use ACE_NULL_SYNCH in this case
  : public ACE_Stream_Tail<ACE_SYNCH_USE,
                           TimePolicyType>
@@ -88,29 +124,16 @@ class Stream_TailTask_T
                           TimePolicyType> inherited;
 
  public:
-  Stream_TailTask_T (Stream_IAllocator* = NULL);
-  virtual ~Stream_TailTask_T ();
+  Stream_TailWriterTask_T ();
+  inline virtual ~Stream_TailWriterTask_T () {}
 
   // override some task-based members
   virtual int put (ACE_Message_Block*, // data chunk
                    ACE_Time_Value*);   // timeout value
 
- protected:
-  // convenient types
-  typedef ACE_Task<ACE_SYNCH_USE,
-                   TimePolicyType> TASK_T;
-
  private:
-  ACE_UNIMPLEMENTED_FUNC (Stream_TailTask_T ())
-  ACE_UNIMPLEMENTED_FUNC (Stream_TailTask_T (const Stream_TailTask_T&))
-  ACE_UNIMPLEMENTED_FUNC (Stream_TailTask_T& operator= (const Stream_TailTask_T&))
-
-  // helper methods
-  bool reply (typename ControlMessageType::CONTROL_T,              // control type
-              const typename SessionMessageType::DATA_T::DATA_T&); // session data
-
-  Stream_IAllocator*                   allocator_;
-  typename SessionMessageType::DATA_T* sessionData_;
+  ACE_UNIMPLEMENTED_FUNC (Stream_TailWriterTask_T (const Stream_TailWriterTask_T&))
+  ACE_UNIMPLEMENTED_FUNC (Stream_TailWriterTask_T& operator= (const Stream_TailWriterTask_T&))
 };
 
 // include template definition

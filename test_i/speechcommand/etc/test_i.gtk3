@@ -144,21 +144,28 @@
   <object class="GtkDialog" id="dialog_main">
     <property name="visible">True</property>
     <property name="can-focus">False</property>
+    <property name="hexpand">True</property>
+    <property name="vexpand">True</property>
     <property name="icon-name">widget-gtk-arrow</property>
     <property name="type-hint">normal</property>
     <property name="deletable">False</property>
+    <property name="has-resize-grip">True</property>
     <child internal-child="vbox">
       <object class="GtkBox" id="vbox_main">
         <property name="visible">True</property>
         <property name="can-focus">False</property>
         <property name="halign">start</property>
         <property name="valign">start</property>
+        <property name="hexpand">True</property>
+        <property name="vexpand">True</property>
         <property name="orientation">vertical</property>
         <child internal-child="action_area">
           <object class="GtkButtonBox" id="buttonbox_main">
             <property name="visible">True</property>
             <property name="can-focus">False</property>
-            <property name="layout-style">end</property>
+            <property name="hexpand">True</property>
+            <property name="homogeneous">True</property>
+            <property name="layout-style">start</property>
             <child>
               <object class="GtkButton" id="button_about">
                 <property name="label">gtk-about</property>
@@ -171,6 +178,7 @@
                 <property name="relief">half</property>
                 <property name="use-underline">True</property>
                 <property name="use-stock">True</property>
+                <property name="always-show-image">True</property>
                 <signal name="clicked" handler="button_about_clicked_cb" swapped="no"/>
               </object>
               <packing>
@@ -191,12 +199,14 @@
                 <property name="relief">half</property>
                 <property name="use-underline">True</property>
                 <property name="use-stock">True</property>
+                <property name="always-show-image">True</property>
                 <signal name="clicked" handler="button_quit_clicked_cb" swapped="no"/>
               </object>
               <packing>
                 <property name="expand">False</property>
                 <property name="fill">False</property>
                 <property name="position">1</property>
+                <property name="secondary">True</property>
               </packing>
             </child>
           </object>
@@ -210,6 +220,8 @@
           <object class="GtkBox" id="hbox_main">
             <property name="visible">True</property>
             <property name="can-focus">False</property>
+            <property name="hexpand">True</property>
+            <property name="vexpand">True</property>
             <child>
               <object class="GtkBox" id="vbox_controls">
                 <property name="visible">True</property>
@@ -252,6 +264,7 @@
                                     <property name="relief">half</property>
                                     <property name="use-underline">True</property>
                                     <property name="use-stock">True</property>
+                                    <property name="always-show-image">True</property>
                                     <signal name="toggled" handler="togglebutton_record_toggled_cb" swapped="no"/>
                                   </object>
                                   <packing>
@@ -272,6 +285,7 @@
                                     <property name="relief">half</property>
                                     <property name="use-underline">True</property>
                                     <property name="use-stock">True</property>
+                                    <property name="always-show-image">True</property>
                                     <signal name="clicked" handler="button_cut_clicked_cb" swapped="no"/>
                                   </object>
                                   <packing>
@@ -292,6 +306,7 @@
                                     <property name="relief">half</property>
                                     <property name="use-underline">True</property>
                                     <property name="use-stock">True</property>
+                                    <property name="always-show-image">True</property>
                                     <signal name="clicked" handler="button_report_clicked_cb" swapped="no"/>
                                   </object>
                                   <packing>
@@ -541,6 +556,7 @@
                                     <property name="relief">half</property>
                                     <property name="use-underline">True</property>
                                     <property name="use-stock">True</property>
+                                    <property name="always-show-image">True</property>
                                     <signal name="clicked" handler="button_settings_clicked_cb" swapped="no"/>
                                   </object>
                                   <packing>
@@ -561,6 +577,7 @@
                                     <property name="relief">half</property>
                                     <property name="use-underline">True</property>
                                     <property name="use-stock">True</property>
+                                    <property name="always-show-image">True</property>
                                     <signal name="clicked" handler="button_reset_clicked_cb" swapped="no"/>
                                   </object>
                                   <packing>
@@ -701,6 +718,7 @@
                                             <property name="relief">half</property>
                                             <property name="use-underline">True</property>
                                             <property name="use-stock">True</property>
+                                            <property name="always-show-image">True</property>
                                             <property name="draw-indicator">False</property>
                                             <signal name="toggled" handler="togglebutton_save_toggled_cb" swapped="no"/>
                                           </object>
@@ -920,24 +938,30 @@
               <object class="GtkFrame" id="frame_display">
                 <property name="visible">True</property>
                 <property name="can-focus">False</property>
+                <property name="hexpand">True</property>
+                <property name="vexpand">True</property>
                 <property name="label-xalign">0</property>
                 <child>
                   <object class="GtkAlignment" id="alignment_display">
                     <property name="visible">True</property>
                     <property name="can-focus">False</property>
+                    <property name="hexpand">True</property>
+                    <property name="vexpand">True</property>
                     <child>
                       <object class="GtkBox" id="vbox_display">
                         <property name="visible">True</property>
                         <property name="can-focus">False</property>
+                        <property name="hexpand">True</property>
+                        <property name="vexpand">True</property>
                         <property name="orientation">vertical</property>
                         <property name="homogeneous">True</property>
                         <child>
                           <object class="GtkScrolledWindow" id="scrolledwindow">
-                            <property name="width-request">320</property>
-                            <property name="height-request">240</property>
                             <property name="visible">True</property>
                             <property name="can-focus">False</property>
                             <property name="tooltip-text" translatable="yes">text</property>
+                            <property name="hexpand">True</property>
+                            <property name="vexpand">True</property>
                             <property name="hadjustment">adjustment_sw_h</property>
                             <property name="vadjustment">adjustment_sw_v</property>
                             <property name="shadow-type">etched-in</property>
@@ -946,6 +970,8 @@
                                 <property name="visible">True</property>
                                 <property name="can-focus">False</property>
                                 <property name="tooltip-text" translatable="yes">text</property>
+                                <property name="hexpand">True</property>
+                                <property name="vexpand">True</property>
                                 <property name="wrap-mode">word</property>
                                 <property name="cursor-visible">False</property>
                                 <property name="buffer">textbuffer</property>
@@ -969,6 +995,8 @@
                             <property name="app-paintable">True</property>
                             <property name="can-focus">False</property>
                             <property name="double-buffered">False</property>
+                            <property name="hexpand">True</property>
+                            <property name="vexpand">True</property>
                             <signal name="configure-event" handler="drawingarea_configure_event_cb" swapped="no"/>
                             <signal name="draw" handler="drawingarea_draw_cb" swapped="no"/>
                             <signal name="query-tooltip" handler="drawingarea_query_tooltip_cb" swapped="no"/>
@@ -1009,12 +1037,12 @@
           <object class="GtkBox" id="hbox_status">
             <property name="visible">True</property>
             <property name="can-focus">False</property>
+            <property name="hexpand">True</property>
             <child>
               <object class="GtkProgressBar" id="progressbar">
                 <property name="width-request">150</property>
                 <property name="visible">True</property>
                 <property name="can-focus">False</property>
-                <property name="show-text">True</property>
               </object>
               <packing>
                 <property name="expand">False</property>

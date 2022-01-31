@@ -106,11 +106,11 @@ stream_directshow_device_enumeration_a_cb (LPGUID lpGuid,
   if ((cbdata_p->deviceId != std::numeric_limits<ULONG>::max ()) &&
       (directsound_device_description_p->WaveDeviceId == cbdata_p->deviceId))
   {
-    ACE_DEBUG ((LM_DEBUG,
-                ACE_TEXT ("found device (id: %u): \"%s\"; GUID: \"%s\"\n"),
-                cbdata_p->deviceId,
-                ACE_TEXT (directsound_device_description_p->Description),
-                ACE_TEXT (Common_Tools::GUIDToString (*lpGuid).c_str ())));
+    //ACE_DEBUG ((LM_DEBUG,
+    //            ACE_TEXT ("found device (id: %u): \"%s\"; GUID: \"%s\"\n"),
+    //            cbdata_p->deviceId,
+    //            ACE_TEXT (directsound_device_description_p->Description),
+    //            ACE_TEXT (Common_Tools::GUIDToString (*lpGuid).c_str ())));
     cbdata_p->deviceGUID = *lpGuid;
     delete [] directsound_device_description_p; directsound_device_description_p = NULL;
     return FALSE; // done
@@ -118,11 +118,11 @@ stream_directshow_device_enumeration_a_cb (LPGUID lpGuid,
   else if (!InlineIsEqualGUID (cbdata_p->deviceGUID, GUID_NULL) &&
            InlineIsEqualGUID (cbdata_p->deviceGUID, *lpGuid))
   {
-    ACE_DEBUG ((LM_DEBUG,
-                ACE_TEXT ("found device (GUID: \"%s\"): \"%s\"; id: %u\n"),
-                ACE_TEXT (Common_Tools::GUIDToString (*lpGuid).c_str ()),
-                ACE_TEXT (directsound_device_description_p->Description),
-                directsound_device_description_p->WaveDeviceId));
+    //ACE_DEBUG ((LM_DEBUG,
+    //            ACE_TEXT ("found device (GUID: \"%s\"): \"%s\"; id: %u\n"),
+    //            ACE_TEXT (Common_Tools::GUIDToString (*lpGuid).c_str ()),
+    //            ACE_TEXT (directsound_device_description_p->Description),
+    //            directsound_device_description_p->WaveDeviceId));
     cbdata_p->deviceId = directsound_device_description_p->WaveDeviceId;
     delete[] directsound_device_description_p; directsound_device_description_p = NULL;
     return FALSE; // done

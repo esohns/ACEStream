@@ -83,25 +83,28 @@ Stream_Base_T<ACE_SYNCH_USE,
   //         task; this will become the 'outbound' queue
 
   int result = -1;
-  HEAD_T* writer_p = NULL, *reader_p = NULL;
-  TAIL_T* writer_2 = NULL, *reader_2 = NULL;
+  HEAD_WRITER_T* head_writer_p = NULL;
+  HEAD_READER_T* head_reader_p = NULL;
+  TAIL_WRITER_T* tail_writer_p = NULL;
+  TAIL_READER_T* tail_reader_p = NULL;
   MODULE_T* module_p = NULL, *module_2 = NULL;
-  ACE_NEW_NORETURN (writer_p,
-                    HEAD_T (NULL));
-  ACE_NEW_NORETURN (reader_p,
-                    HEAD_T (&messageQueue_));
-  if (unlikely (!writer_p || !reader_p))
+  ACE_NEW_NORETURN (head_writer_p,
+                    HEAD_WRITER_T (this));
+  ACE_NEW_NORETURN (head_reader_p,
+                    HEAD_READER_T (this,
+                                   &messageQueue_));
+  if (unlikely (!head_writer_p || !head_reader_p))
   {
     ACE_DEBUG ((LM_CRITICAL,
                 ACE_TEXT ("%s: failed to allocate memory: \"%m\", returning\n"),
                 ACE_TEXT (StreamName)));
-    delete writer_p; writer_p = NULL;
-    delete reader_p; reader_p = NULL;
+    delete head_writer_p; head_writer_p = NULL;
+    delete head_reader_p; head_reader_p = NULL;
     return;
   } // end IF
   ACE_NEW_NORETURN (module_p,
                     MODULE_T (ACE_TEXT (STREAM_MODULE_HEAD_NAME),
-                              writer_p, reader_p,
+                              head_writer_p, head_reader_p,
                               NULL,
                               ACE_Module_Base::M_DELETE));
   if (unlikely (!module_p))
@@ -109,26 +112,28 @@ Stream_Base_T<ACE_SYNCH_USE,
     ACE_DEBUG ((LM_CRITICAL,
                 ACE_TEXT ("%s: failed to allocate memory: \"%m\", returning\n"),
                 ACE_TEXT (StreamName)));
-    delete writer_p; writer_p = NULL;
-    delete reader_p; reader_p = NULL;
+    delete head_writer_p; head_writer_p = NULL;
+    delete head_reader_p; head_reader_p = NULL;
     return;
   } // end IF
 
-  ACE_NEW_NORETURN (writer_2,
-                    TAIL_T (NULL));
-  ACE_NEW_NORETURN (reader_2,
-                    TAIL_T (NULL));
-  if (unlikely (!writer_2 || !reader_2))
+  ACE_NEW_NORETURN (tail_writer_p,
+                    TAIL_WRITER_T ());
+  ACE_NEW_NORETURN (tail_reader_p,
+                    TAIL_READER_T ());
+  if (unlikely (!tail_writer_p || !tail_reader_p))
   {
     ACE_DEBUG ((LM_CRITICAL,
                 ACE_TEXT ("%s: failed to allocate memory: \"%m\", returning\n"),
                 ACE_TEXT (StreamName)));
+    delete tail_writer_p; tail_writer_p = NULL;
+    delete tail_reader_p; tail_reader_p = NULL;
     delete module_p; module_p = NULL;
     return;
   } // end IF
   ACE_NEW_NORETURN (module_2,
                     MODULE_T (ACE_TEXT (STREAM_MODULE_TAIL_NAME),
-                              writer_2, reader_2,
+                              tail_writer_p, tail_reader_p,
                               NULL,
                               ACE_Module_Base::M_DELETE));
   if (unlikely (!module_2))
@@ -136,8 +141,9 @@ Stream_Base_T<ACE_SYNCH_USE,
     ACE_DEBUG ((LM_CRITICAL,
                 ACE_TEXT ("%s: failed to allocate memory: \"%m\", returning\n"),
                 ACE_TEXT (StreamName)));
-    delete writer_2; writer_2 = NULL;
-    delete reader_2; reader_2 = NULL;
+    delete tail_writer_p; tail_writer_p = NULL;
+    delete tail_reader_p; tail_reader_p = NULL;
+    delete module_p; module_p = NULL;
     return;
   } // end IF
 
@@ -1165,27 +1171,6 @@ Stream_Base_T<ACE_SYNCH_USE,
     return;
   } // end IF
 
-  // send control ?
-  // *TODO*: this is strategy and needs to be traited ASAP
-//  bool send_control = false;
-  //ControlType control_type = STREAM_CONTROL_INVALID;
-  //switch (notification_in)
-  //{
-  //  case STREAM_SESSION_MESSAGE_ABORT:
-  //  {
-  //    control_type = STREAM_CONTROL_FLUSH;
-  //    break;
-  //  }
-  //  case STREAM_SESSION_MESSAGE_DISCONNECT:
-  //  {
-  //    control_type = STREAM_CONTROL_DISCONNECT;
-  //    break;
-  //  }
-  //  default:
-  //    break;
-  //} // end SWITCH
-  //ACE_UNUSED_ARG (control_type);
-
   MODULE_T* module_p = NULL;
   result = inherited::top (module_p);
   if (unlikely ((result == -1) ||
@@ -1197,6 +1182,49 @@ Stream_Base_T<ACE_SYNCH_USE,
     return;
   } // end IF
   ACE_ASSERT (module_p);
+
+  ISTATE_MACHINE_T* istatemachine_p =
+    dynamic_cast<ISTATE_MACHINE_T*> (module_p->writer ());
+  if (unlikely (!istatemachine_p))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s/%s: dynamic_cast<Common_IStateMachine_2> failed, returning\n"),
+                ACE_TEXT (StreamName),
+                module_p->name ()));
+    return;
+  } // end IF
+  switch (notification_in)
+  {
+    case STREAM_SESSION_MESSAGE_BEGIN:
+    {
+      try {
+        istatemachine_p->change (STREAM_STATE_RUNNING);
+      } catch (...) {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("%s/%s: caught exception in Common_IStateMachine_2::change(), returning\n"),
+                    ACE_TEXT (StreamName),
+                    module_p->name ()));
+        return;
+      }
+      break;
+    }
+    case STREAM_SESSION_MESSAGE_END:
+    {
+      try {
+        istatemachine_p->change (STREAM_STATE_FINISHED);
+      } catch (...) {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("%s/%s: caught exception in Common_IStateMachine_2::change(), returning\n"),
+                    ACE_TEXT (StreamName),
+                    module_p->name ()));
+        return;
+      }
+      break;
+    }
+    default:
+      break;
+  } // end SWITCH
+
   istreamcontrol_p = dynamic_cast<ISTREAM_CONTROL_T*> (module_p->writer ());
   if (unlikely (!istreamcontrol_p))
   {

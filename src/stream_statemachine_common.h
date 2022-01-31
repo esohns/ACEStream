@@ -25,12 +25,12 @@
 enum Stream_StateMachine_ControlState
 {
   STREAM_STATE_INVALID = -1,
-  // *NOTE*: currently, this simply means that the 'head' module has been
-  //         initialize()d (which doesn't say very much).
-  // *TODO*: implementations should support logic to auto-initialize() all
-  //         push()ed modules when switching to this state
+  // *TODO*: currently, this simply means that the 'head' module has been
+  //         initialize()d (which isn't saying very much).
   STREAM_STATE_INITIALIZED = 0,
+  STREAM_STATE_SESSION_STARTING,
   STREAM_STATE_RUNNING,
+  STREAM_STATE_SESSION_STOPPING,
   STREAM_STATE_PAUSED,
   STREAM_STATE_STOPPED,
   STREAM_STATE_FINISHED,

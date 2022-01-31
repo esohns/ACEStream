@@ -286,20 +286,26 @@ class Stream_Base_T
   // convenient types
   typedef ACE_Message_Queue<ACE_SYNCH_USE,
                             TimePolicyType> QUEUE_T;
-  typedef Stream_HeadTask_T<ACE_SYNCH_USE,
-                            TimePolicyType,
-                            struct Stream_ModuleConfiguration,
-                            ControlMessageType,
-                            DataMessageType,
-                            SessionMessageType,
-                            enum Stream_SessionMessageType> HEAD_T;
-  typedef Stream_TailTask_T<ACE_SYNCH_USE,
-                            TimePolicyType,
-                            struct Stream_ModuleConfiguration,
-                            ControlMessageType,
-                            DataMessageType,
-                            SessionMessageType,
-                            enum Stream_SessionMessageType> TAIL_T;
+  typedef Stream_HeadReaderTask_T<ACE_SYNCH_USE,
+                                  TimePolicyType,
+                                  ControlMessageType,
+                                  DataMessageType,
+                                  SessionMessageType,
+                                  enum Stream_SessionMessageType> HEAD_READER_T;
+  typedef Stream_HeadWriterTask_T<ACE_SYNCH_USE,
+                                  TimePolicyType,
+                                  ControlMessageType,
+                                  DataMessageType,
+                                  SessionMessageType,
+                                  enum Stream_SessionMessageType> HEAD_WRITER_T;
+  typedef ACE_Thru_Task<ACE_SYNCH_USE,
+                        TimePolicyType> TAIL_READER_T;
+  typedef Stream_TailWriterTask_T<ACE_SYNCH_USE,
+                                  TimePolicyType,
+                                  ControlMessageType,
+                                  DataMessageType,
+                                  SessionMessageType,
+                                  enum Stream_SessionMessageType> TAIL_WRITER_T;
   typedef Common_IGetR_T<SessionDataContainerType> ISESSION_DATA_T;
   typedef Stream_IModuleHandler_T<ACE_SYNCH_USE,
                                   TimePolicyType,
@@ -361,6 +367,7 @@ class Stream_Base_T
   typedef Stream_ITask_T<ControlMessageType,
                          DataMessageType,
                          SessionMessageType> ITASK_T;
+  typedef Common_IStateMachine_2<enum Stream_StateMachine_ControlState> ISTATE_MACHINE_T;
   typedef Stream_StateMachine_Control_T<ACE_SYNCH_USE> STATE_MACHINE_CONTROL_T;
   typedef Common_IGetP_T<ISTREAM_T> IGET_T;
   typedef Common_ISetP_T<StateType> ISET_T;

@@ -1881,7 +1881,7 @@ Test_U_AudioEffect_MediaFoundation_Stream::Invoke (IMFAsyncResult* result_in)
     case MESessionStopped:
     { // status MF_E_INVALIDREQUEST: 0xC00D36B2
       ACE_DEBUG ((LM_DEBUG,
-                  ACE_TEXT ("%s: received MESessionStopped, closing sesion\n"),
+                  ACE_TEXT ("%s: received MESessionStopped, closing session\n"),
                   ACE_TEXT (stream_name_string_)));
 #if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
       result = mediaSession_->Close ();

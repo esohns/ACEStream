@@ -2146,7 +2146,7 @@ do_work (const std::string& scorerFile_in,
   result = stream_2_r.remove (&input_handler_module,
                               true,   // lock ?
                               false); // reset ?
-  if (unlikely (result == -1))
+  if (unlikely (!result))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Stream_Base_T::remove(\"%s\"), aborting\n"),

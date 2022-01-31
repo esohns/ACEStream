@@ -208,7 +208,7 @@ class Stream_HeadModuleTaskBase_T
                      bool = false); // high priority ? (i.e. do not wait for queued messages)
 
   // implement/hide (part of) Stream_IStreamControl_T
-  inline virtual void finished (bool = true) { inherited2::finished (); }
+  virtual void finished (bool = true); // recurse upstream (if any) ?
 
   // disambiguate Stream_TaskBase_T and Common_StateMachine_Base_T
   using inherited::isInitialized_;

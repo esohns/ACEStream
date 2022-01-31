@@ -4161,14 +4161,14 @@ button_quit_clicked_cb (GtkWidget* widget_in,
 
   // step1: remove event sources
   { ACE_GUARD (ACE_Thread_Mutex, aGuard, ui_cb_data_base_p->UIState->lock);
-  for (Common_UI_GTK_EventSourceIdsIterator_t iterator = ui_cb_data_base_p->UIState->eventSourceIds.begin ();
-       iterator != ui_cb_data_base_p->UIState->eventSourceIds.end ();
-       iterator++)
-    if (!g_source_remove (*iterator))
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to g_source_remove(%u), continuing\n"),
-                  *iterator));
-  ui_cb_data_base_p->UIState->eventSourceIds.clear ();
+    for (Common_UI_GTK_EventSourceIdsIterator_t iterator = ui_cb_data_base_p->UIState->eventSourceIds.begin ();
+         iterator != ui_cb_data_base_p->UIState->eventSourceIds.end ();
+         iterator++)
+      if (!g_source_remove (*iterator))
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("failed to g_source_remove(%u), continuing\n"),
+                    *iterator));
+    ui_cb_data_base_p->UIState->eventSourceIds.clear ();
   } // end lock scope
 
   // step2: initiate shutdown sequence
@@ -4600,6 +4600,53 @@ drawingarea_draw_cb (GtkWidget* widget_in,
   if (!ui_cb_data_base_p->spectrumAnalyzerCBData.window)
     return FALSE; // not realized yet
   if (!ui_cb_data_base_p->spectrumAnalyzer)
+    return FALSE; // stream not running (yet)
+  Stream_IStreamControlBase* stream_p = NULL;
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  struct Test_I_DirectShow_UI_CBData* directshow_ui_cb_data_p =
+    NULL;
+  struct Test_I_MediaFoundation_UI_CBData* mediafoundation_ui_cb_data_p =
+    NULL;
+  switch (ui_cb_data_base_p->mediaFramework)
+  {
+    case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
+    {
+      // sanity check(s)
+      directshow_ui_cb_data_p =
+        static_cast<struct Test_I_DirectShow_UI_CBData*> (userData_in);
+      ACE_ASSERT (directshow_ui_cb_data_p);
+      ACE_ASSERT (directshow_ui_cb_data_p->stream);
+      stream_p = directshow_ui_cb_data_p->stream;
+      break;
+    }
+    case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
+    {
+      // sanity check(s)
+      mediafoundation_ui_cb_data_p =
+        static_cast<struct Test_I_MediaFoundation_UI_CBData*> (userData_in);
+      ACE_ASSERT (mediafoundation_ui_cb_data_p);
+      ACE_ASSERT (mediafoundation_ui_cb_data_p->stream);
+      stream_p = mediafoundation_ui_cb_data_p->stream;
+      break;
+    }
+    default:
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("invalid/unknown media framework (was: %d), returning\n"),
+                  ui_cb_data_base_p->mediaFramework));
+      return FALSE;
+    }
+  } // end SWITCH
+#else
+  // sanity check(s)
+  struct Test_I_ALSA_UI_CBData* ui_cb_data_p =
+    static_cast<struct Test_I_ALSA_UI_CBData*> (userData_in);
+  ACE_ASSERT (ui_cb_data_p);
+  ACE_ASSERT (ui_cb_data_p->stream);
+  stream_p = ui_cb_data_p->stream;
+#endif // ACE_WIN32 || ACE_WIN64
+  ACE_ASSERT (stream_p);
+  if (!stream_p->isRunning ())
     return FALSE; // stream not running (yet)
 
   try {
