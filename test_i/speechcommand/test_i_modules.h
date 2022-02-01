@@ -300,21 +300,35 @@ typedef Stream_MediaFramework_MediaFoundation_Source_T<ACE_MT_SYNCH,
 
 //////////////////////////////////////////
 
-typedef Stream_Miscellaneous_Distributor_T<ACE_MT_SYNCH,
-                                           Common_TimePolicy_t,
-                                           struct Test_I_SpeechCommand_DirectShow_ModuleHandlerConfiguration,
-                                           Stream_ControlMessage_t,
-                                           Test_I_DirectShow_Message,
-                                           Test_I_DirectShow_SessionMessage_t,
-                                           Test_I_SpeechCommand_DirectShow_SessionData_t> Test_I_DirectShow_Distributor;
+typedef Stream_Miscellaneous_Distributor_ReaderTask_T<ACE_MT_SYNCH,
+                                                      Common_TimePolicy_t,
+                                                      struct Test_I_SpeechCommand_DirectShow_ModuleHandlerConfiguration,
+                                                      Stream_ControlMessage_t,
+                                                      Test_I_DirectShow_Message,
+                                                      Test_I_DirectShow_SessionMessage_t,
+                                                      Test_I_SpeechCommand_DirectShow_SessionData_t> Test_I_DirectShow_Distributor_Reader_t;
+typedef Stream_Miscellaneous_Distributor_WriterTask_T<ACE_MT_SYNCH,
+                                                      Common_TimePolicy_t,
+                                                      struct Test_I_SpeechCommand_DirectShow_ModuleHandlerConfiguration,
+                                                      Stream_ControlMessage_t,
+                                                      Test_I_DirectShow_Message,
+                                                      Test_I_DirectShow_SessionMessage_t,
+                                                      Test_I_SpeechCommand_DirectShow_SessionData_t> Test_I_DirectShow_Distributor_Writer_t;
 
-typedef Stream_Miscellaneous_Distributor_T<ACE_MT_SYNCH,
-                                           Common_TimePolicy_t,
-                                           struct Test_I_SpeechCommand_MediaFoundation_ModuleHandlerConfiguration,
-                                           Stream_ControlMessage_t,
-                                           Test_I_MediaFoundation_Message,
-                                           Test_I_MediaFoundation_SessionMessage_t,
-                                           Test_I_SpeechCommand_MediaFoundation_SessionData_t> Test_I_MediaFoundation_Distributor;
+typedef Stream_Miscellaneous_Distributor_ReaderTask_T<ACE_MT_SYNCH,
+                                                      Common_TimePolicy_t,
+                                                      struct Test_I_SpeechCommand_MediaFoundation_ModuleHandlerConfiguration,
+                                                      Stream_ControlMessage_t,
+                                                      Test_I_MediaFoundation_Message,
+                                                      Test_I_MediaFoundation_SessionMessage_t,
+                                                      Test_I_SpeechCommand_MediaFoundation_SessionData_t> Test_I_MediaFoundation_Distributor_Reader_t;
+typedef Stream_Miscellaneous_Distributor_WriterTask_T<ACE_MT_SYNCH,
+                                                      Common_TimePolicy_t,
+                                                      struct Test_I_SpeechCommand_MediaFoundation_ModuleHandlerConfiguration,
+                                                      Stream_ControlMessage_t,
+                                                      Test_I_MediaFoundation_Message,
+                                                      Test_I_MediaFoundation_SessionMessage_t,
+                                                      Test_I_SpeechCommand_MediaFoundation_SessionData_t> Test_I_MediaFoundation_Distributor_Writer_t;
 
 //////////////////////////////////////////
 
@@ -734,18 +748,22 @@ DATASTREAM_MODULE_INPUT_ONLY (Test_I_SpeechCommand_MediaFoundation_SessionData, 
 
 //////////////////////////////////////////
 
-DATASTREAM_MODULE_INPUT_ONLY (Test_I_SpeechCommand_DirectShow_SessionData,                            // session data type
-                              enum Stream_SessionMessageType,                           // session event type
-                              struct Test_I_SpeechCommand_DirectShow_ModuleHandlerConfiguration,      // module handler configuration type
-                              libacestream_default_misc_distributor_module_name_string,
-                              Stream_INotify_t,                                         // stream notification interface type
-                              Test_I_DirectShow_Distributor);                           // name
-DATASTREAM_MODULE_INPUT_ONLY (Test_I_SpeechCommand_MediaFoundation_SessionData,                       // session data type
-                              enum Stream_SessionMessageType,                           // session event type
-                              struct Test_I_SpeechCommand_MediaFoundation_ModuleHandlerConfiguration, // module handler configuration type
-                              libacestream_default_misc_distributor_module_name_string,
-                              Stream_INotify_t,                                         // stream notification interface type
-                              Test_I_MediaFoundation_Distributor);                      // name
+DATASTREAM_MODULE_DUPLEX (Test_I_SpeechCommand_DirectShow_SessionData,                            // session data type
+                          enum Stream_SessionMessageType,                           // session event type
+                          struct Test_I_SpeechCommand_DirectShow_ModuleHandlerConfiguration,      // module handler configuration type
+                          libacestream_default_misc_distributor_module_name_string,
+                          Stream_INotify_t,                                         // stream notification interface type
+                          Test_I_DirectShow_Distributor_Reader_t,                   // reader task
+                          Test_I_DirectShow_Distributor_Writer_t,                   // writer task
+                          Test_I_DirectShow_Distributor);                           // name
+DATASTREAM_MODULE_DUPLEX (Test_I_SpeechCommand_MediaFoundation_SessionData,                       // session data type
+                          enum Stream_SessionMessageType,                           // session event type
+                          struct Test_I_SpeechCommand_MediaFoundation_ModuleHandlerConfiguration, // module handler configuration type
+                          libacestream_default_misc_distributor_module_name_string,
+                          Stream_INotify_t,                                         // stream notification interface type
+                          Test_I_MediaFoundation_Distributor_Reader_t,              // reader type
+                          Test_I_MediaFoundation_Distributor_Writer_t,              // writer type
+                          Test_I_MediaFoundation_Distributor);                      // name
 
 //////////////////////////////////////////
 

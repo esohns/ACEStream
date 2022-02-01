@@ -22,6 +22,7 @@
 #define STREAM_MISC_DISTRIBUTOR_H
 
 #include <map>
+#include <list>
 #include <string>
 #include <utility>
 #include <vector>
@@ -36,10 +37,18 @@
 #include "stream_ilink.h"
 #include "stream_task_base_synch.h"
 
-extern const char libacestream_default_misc_distributor_module_name_string[];
-
 // forward declarations
 class ACE_Message_Queue_Base;
+template <ACE_SYNCH_DECL,
+          typename TimePolicyType,
+          typename ConfigurationType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
+          typename SessionDataType>
+class Stream_Miscellaneous_Distributor_WriterTask_T;
+
+extern const char libacestream_default_misc_distributor_module_name_string[];
 
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,
@@ -51,7 +60,67 @@ template <ACE_SYNCH_DECL,
           typename SessionMessageType,
           ////////////////////////////////
           typename SessionDataType> // reference counted-
-class Stream_Miscellaneous_Distributor_T
+class Stream_Miscellaneous_Distributor_ReaderTask_T
+ : public ACE_Thru_Task<ACE_SYNCH_USE,
+                        TimePolicyType>
+{
+  friend class Stream_Miscellaneous_Distributor_WriterTask_T<ACE_SYNCH_USE,
+                                                             TimePolicyType,
+                                                             ConfigurationType,
+                                                             ControlMessageType,
+                                                             DataMessageType,
+                                                             SessionMessageType,
+                                                             SessionDataType>;
+
+  typedef ACE_Thru_Task<ACE_SYNCH_USE,
+                        TimePolicyType> inherited;
+
+ public:
+  // convenient types
+  typedef Stream_IStream_T<ACE_SYNCH_USE,
+                           TimePolicyType> ISTREAM_T;
+
+  Stream_Miscellaneous_Distributor_ReaderTask_T (ISTREAM_T*); // stream handle
+  virtual ~Stream_Miscellaneous_Distributor_ReaderTask_T ();
+
+  virtual int put (ACE_Message_Block*,      // message
+                   ACE_Time_Value* = NULL); // time
+
+ private:
+  // convenient types
+  typedef Stream_Miscellaneous_Distributor_WriterTask_T<ACE_SYNCH_USE,
+                                                        TimePolicyType,
+                                                        ConfigurationType,
+                                                        ControlMessageType,
+                                                        DataMessageType,
+                                                        SessionMessageType,
+                                                        SessionDataType> WRITER_TASK_T;
+  typedef std::list<ACE_Message_Block*> MESSAGE_LIST_T;
+  typedef typename MESSAGE_LIST_T::iterator MESSAGE_LIST_ITERATOR_T;
+  typedef std::map<enum Stream_ControlMessageType, MESSAGE_LIST_T> CONTROL_MESSAGES_T;
+  typedef typename CONTROL_MESSAGES_T::iterator CONTROL_MESSAGES_ITERATOR_T;
+  typedef std::map<enum Stream_SessionMessageType, MESSAGE_LIST_T> SESSION_MESSAGES_T;
+  typedef typename SESSION_MESSAGES_T::iterator SESSION_MESSAGES_ITERATOR_T;
+
+  ACE_UNIMPLEMENTED_FUNC (Stream_Miscellaneous_Distributor_ReaderTask_T ())
+  ACE_UNIMPLEMENTED_FUNC (Stream_Miscellaneous_Distributor_ReaderTask_T (const Stream_Miscellaneous_Distributor_ReaderTask_T&))
+  ACE_UNIMPLEMENTED_FUNC (Stream_Miscellaneous_Distributor_ReaderTask_T& operator= (const Stream_Miscellaneous_Distributor_ReaderTask_T&))
+
+  CONTROL_MESSAGES_T controlMessages_;
+  SESSION_MESSAGES_T sessionMessages_;
+};
+
+template <ACE_SYNCH_DECL,
+          typename TimePolicyType,
+          ////////////////////////////////
+          typename ConfigurationType,
+          ////////////////////////////////
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
+          ////////////////////////////////
+          typename SessionDataType> // reference counted-
+class Stream_Miscellaneous_Distributor_WriterTask_T
  : public Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
                                  TimePolicyType,
                                  ConfigurationType,
@@ -66,6 +135,14 @@ class Stream_Miscellaneous_Distributor_T
 // , public Common_IGetP_2_T<ACE_Module<ACE_SYNCH_USE,
 //                                      TimePolicyType> >
 {
+  friend class Stream_Miscellaneous_Distributor_ReaderTask_T<ACE_SYNCH_USE,
+                                                             TimePolicyType,
+                                                             ConfigurationType,
+                                                             ControlMessageType,
+                                                             DataMessageType,
+                                                             SessionMessageType,
+                                                             SessionDataType>;
+
   typedef Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
                                  TimePolicyType,
                                  ConfigurationType,
@@ -79,11 +156,11 @@ class Stream_Miscellaneous_Distributor_T
  public:
   // *TODO*: on MSVC 2015u3 the accurate declaration does not compile
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  Stream_Miscellaneous_Distributor_T (ISTREAM_T*);                     // stream handle
+  Stream_Miscellaneous_Distributor_WriterTask_T (ISTREAM_T*); // stream handle
 #else
-  Stream_Miscellaneous_Distributor_T (typename inherited::ISTREAM_T*); // stream handle
+  Stream_Miscellaneous_Distributor_WriterTask_T (typename inherited::ISTREAM_T*); // stream handle
 #endif // ACE_WIN32 || ACE_WIN64
-  inline virtual ~Stream_Miscellaneous_Distributor_T () {}
+  inline virtual ~Stream_Miscellaneous_Distributor_WriterTask_T () {}
 
   // override (part of) Common_ITask_T
   inline virtual void waitForIdleState () const { OWN_TYPE_T* this_p = const_cast<OWN_TYPE_T*> (this); this_p->idle (); }
@@ -134,22 +211,22 @@ class Stream_Miscellaneous_Distributor_T
 
  private:
   // convenient types
-  typedef Stream_Miscellaneous_Distributor_T<ACE_SYNCH_USE,
-                                             TimePolicyType,
-                                             ConfigurationType,
-                                             ControlMessageType,
-                                             DataMessageType,
-                                             SessionMessageType,
-                                             SessionDataType> OWN_TYPE_T;
+  typedef Stream_Miscellaneous_Distributor_WriterTask_T<ACE_SYNCH_USE,
+                                                        TimePolicyType,
+                                                        ConfigurationType,
+                                                        ControlMessageType,
+                                                        DataMessageType,
+                                                        SessionMessageType,
+                                                        SessionDataType> OWN_TYPE_T;
   typedef std::map<MODULE_T*,
                    typename SessionMessageType::DATA_T*> HEAD_TO_SESSIONDATA_MAP_T;
   typedef typename HEAD_TO_SESSIONDATA_MAP_T::iterator HEAD_TO_SESSIONDATA_ITERATOR_T;
   //typedef typename HEAD_TO_SESSIONDATA_MAP_T::const_iterator HEAD_TO_SESSIONDATA_CONST_ITERATOR_T;
   typedef typename BRANCH_TO_HEAD_MAP_T::iterator BRANCH_TO_HEAD_ITERATOR_T;
 
-  ACE_UNIMPLEMENTED_FUNC (Stream_Miscellaneous_Distributor_T ())
-  ACE_UNIMPLEMENTED_FUNC (Stream_Miscellaneous_Distributor_T (const Stream_Miscellaneous_Distributor_T&))
-  ACE_UNIMPLEMENTED_FUNC (Stream_Miscellaneous_Distributor_T& operator= (const Stream_Miscellaneous_Distributor_T&))
+  ACE_UNIMPLEMENTED_FUNC (Stream_Miscellaneous_Distributor_WriterTask_T ())
+  ACE_UNIMPLEMENTED_FUNC (Stream_Miscellaneous_Distributor_WriterTask_T (const Stream_Miscellaneous_Distributor_WriterTask_T&))
+  ACE_UNIMPLEMENTED_FUNC (Stream_Miscellaneous_Distributor_WriterTask_T& operator= (const Stream_Miscellaneous_Distributor_WriterTask_T&))
 
   // helper methods
   void forward (ACE_Message_Block*, // message handle

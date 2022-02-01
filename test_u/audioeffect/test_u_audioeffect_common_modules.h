@@ -452,32 +452,50 @@ DATASTREAM_MODULE_DUPLEX (Test_U_AudioEffect_MediaFoundation_SessionData,       
                           Test_U_AudioEffect_MediaFoundation_Statistic_WriterTask_t,            // writer type
                           Test_U_AudioEffect_MediaFoundation_StatisticReport);                  // name
 
-typedef Stream_Miscellaneous_Distributor_T<ACE_MT_SYNCH,
-                                           Common_TimePolicy_t,
-                                           struct Test_U_AudioEffect_DirectShow_ModuleHandlerConfiguration,
-                                           Stream_ControlMessage_t,
-                                           Test_U_AudioEffect_DirectShow_Message,
-                                           Test_U_AudioEffect_DirectShow_SessionMessage,
-                                           Test_U_AudioEffect_DirectShow_SessionData_t> Test_U_AudioEffect_DirectShow_Distributor;
-DATASTREAM_MODULE_INPUT_ONLY (Test_U_AudioEffect_DirectShow_SessionData,                       // session data type
-                              enum Stream_SessionMessageType,                                  // session event type
-                              struct Test_U_AudioEffect_DirectShow_ModuleHandlerConfiguration, // module handler configuration type
-                              libacestream_default_misc_distributor_module_name_string,
-                              Stream_INotify_t,                                                // stream notification interface type
-                              Test_U_AudioEffect_DirectShow_Distributor);                      // name
-typedef Stream_Miscellaneous_Distributor_T<ACE_MT_SYNCH,
-                                           Common_TimePolicy_t,
-                                           struct Test_U_AudioEffect_MediaFoundation_ModuleHandlerConfiguration,
-                                           Stream_ControlMessage_t,
-                                           Test_U_AudioEffect_MediaFoundation_Message,
-                                           Test_U_AudioEffect_MediaFoundation_SessionMessage,
-                                           Test_U_AudioEffect_MediaFoundation_SessionData_t> Test_U_AudioEffect_MediaFoundation_Distributor;
-DATASTREAM_MODULE_INPUT_ONLY (Test_U_AudioEffect_MediaFoundation_SessionData,                       // session data type
-                              enum Stream_SessionMessageType,                                       // session event type
-                              struct Test_U_AudioEffect_MediaFoundation_ModuleHandlerConfiguration, // module handler configuration type
-                              libacestream_default_misc_distributor_module_name_string,
-                              Stream_INotify_t,                                                     // stream notification interface type
-                              Test_U_AudioEffect_MediaFoundation_Distributor);                      // name
+typedef Stream_Miscellaneous_Distributor_ReaderTask_T<ACE_MT_SYNCH,
+                                                      Common_TimePolicy_t,
+                                                      struct Test_U_AudioEffect_DirectShow_ModuleHandlerConfiguration,
+                                                      Stream_ControlMessage_t,
+                                                      Test_U_AudioEffect_DirectShow_Message,
+                                                      Test_U_AudioEffect_DirectShow_SessionMessage,
+                                                      Test_U_AudioEffect_DirectShow_SessionData_t> Test_U_AudioEffect_DirectShow_Distributor_Reader_t;
+typedef Stream_Miscellaneous_Distributor_WriterTask_T<ACE_MT_SYNCH,
+                                                      Common_TimePolicy_t,
+                                                      struct Test_U_AudioEffect_DirectShow_ModuleHandlerConfiguration,
+                                                      Stream_ControlMessage_t,
+                                                      Test_U_AudioEffect_DirectShow_Message,
+                                                      Test_U_AudioEffect_DirectShow_SessionMessage,
+                                                      Test_U_AudioEffect_DirectShow_SessionData_t> Test_U_AudioEffect_DirectShow_Distributor_Writer_t;
+DATASTREAM_MODULE_DUPLEX (Test_U_AudioEffect_DirectShow_SessionData,                       // session data type
+                          enum Stream_SessionMessageType,                                  // session event type
+                          struct Test_U_AudioEffect_DirectShow_ModuleHandlerConfiguration, // module handler configuration type
+                          libacestream_default_misc_distributor_module_name_string,
+                          Stream_INotify_t,                                                // stream notification interface type
+                          Test_U_AudioEffect_DirectShow_Distributor_Reader_t,              // reader task
+                          Test_U_AudioEffect_DirectShow_Distributor_Writer_t,              // writer task
+                          Test_U_AudioEffect_DirectShow_Distributor);                      // name
+typedef Stream_Miscellaneous_Distributor_ReaderTask_T<ACE_MT_SYNCH,
+                                                      Common_TimePolicy_t,
+                                                      struct Test_U_AudioEffect_MediaFoundation_ModuleHandlerConfiguration,
+                                                      Stream_ControlMessage_t,
+                                                      Test_U_AudioEffect_MediaFoundation_Message,
+                                                      Test_U_AudioEffect_MediaFoundation_SessionMessage,
+                                                      Test_U_AudioEffect_MediaFoundation_SessionData_t> Test_U_AudioEffect_MediaFoundation_Distributor_Reader_t;
+typedef Stream_Miscellaneous_Distributor_WriterTask_T<ACE_MT_SYNCH,
+                                                      Common_TimePolicy_t,
+                                                      struct Test_U_AudioEffect_MediaFoundation_ModuleHandlerConfiguration,
+                                                      Stream_ControlMessage_t,
+                                                      Test_U_AudioEffect_MediaFoundation_Message,
+                                                      Test_U_AudioEffect_MediaFoundation_SessionMessage,
+                                                      Test_U_AudioEffect_MediaFoundation_SessionData_t> Test_U_AudioEffect_MediaFoundation_Distributor_Writer_t;
+DATASTREAM_MODULE_DUPLEX (Test_U_AudioEffect_MediaFoundation_SessionData,                       // session data type
+                          enum Stream_SessionMessageType,                                       // session event type
+                          struct Test_U_AudioEffect_MediaFoundation_ModuleHandlerConfiguration, // module handler configuration type
+                          libacestream_default_misc_distributor_module_name_string,
+                          Stream_INotify_t,                                                     // stream notification interface type
+                          Test_U_AudioEffect_MediaFoundation_Distributor_Reader_t,              // reader task
+                          Test_U_AudioEffect_MediaFoundation_Distributor_Writer_t,              // writer task
+                          Test_U_AudioEffect_MediaFoundation_Distributor);                      // name
 #else
 typedef Stream_Statistic_StatisticAnalysis_T<ACE_MT_SYNCH,
                                              Common_TimePolicy_t,

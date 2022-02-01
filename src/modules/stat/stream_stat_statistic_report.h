@@ -90,6 +90,9 @@ class Stream_Statistic_StatisticReport_ReaderTask_T
                                                              SessionDataType,
                                                              SessionDataContainerType>;
 
+  typedef ACE_Thru_Task<ACE_SYNCH_USE,
+                        TimePolicyType> inherited;
+
  public:
   // convenient types
   typedef Stream_IStream_T<ACE_SYNCH_USE,
@@ -102,8 +105,7 @@ class Stream_Statistic_StatisticReport_ReaderTask_T
                    ACE_Time_Value* = NULL); // time
 
  private:
-  typedef ACE_Thru_Task<ACE_SYNCH_USE,
-                        TimePolicyType> inherited;
+  // convenient types
   typedef Stream_Statistic_StatisticReport_WriterTask_T<ACE_SYNCH_USE,
                                                         TimePolicyType,
                                                         ConfigurationType,
@@ -214,13 +216,10 @@ class Stream_Statistic_StatisticReport_WriterTask_T
   size_t                     lastBytesPerSecondCount_;
   unsigned int               lastDataMessagesPerSecondCount_;
 
-  // *IMPORTANT NOTE*: data messages == (messageCounter_ - sessionMessages_)
-  // *IMPORTANT NOTE*: data messages == (xxboundMessages_ - sessionMessages_)
-  // *TODO*: currently, session messages travel only downstream
-  unsigned int               sessionMessages_;
-
   unsigned int               controlMessages_;
-  unsigned int               outboundControlMessages_;
+  // *IMPORTANT NOTE*: data messages == (messageCounter_ - sessionMessages_ - controlMessages_)
+  // *IMPORTANT NOTE*: data messages == (xxboundMessages_ - sessionMessages_ - controlMessages_)
+  unsigned int               sessionMessages_;
 
  private:
   // convenient types

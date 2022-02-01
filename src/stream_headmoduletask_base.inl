@@ -1655,13 +1655,15 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
   {
     case STREAM_STATE_INVALID:
     case STREAM_STATE_INITIALIZED:
+    case STREAM_STATE_SESSION_STARTING:
       return false;
     case STREAM_STATE_RUNNING:
     case STREAM_STATE_PAUSED:
       return true;
+    case STREAM_STATE_SESSION_STOPPING:
     case STREAM_STATE_STOPPED:
     case STREAM_STATE_FINISHED:
-      break; // left to check: still processing data ?
+      break; // left to check: (still) processing data ?
     default:
     {
       ACE_DEBUG ((LM_ERROR,
@@ -2320,11 +2322,10 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
           // *NOTE*: if the object is 'passive', the whole operation pertaining
           //         to newState_in is processed 'inline' by the calling thread,
           //         i.e. would complete 'before' the state has transitioned to
-          //         'running'
-          //         --> set the state early
+          //         'running' --> set the state early
           result = false; // <-- caller will not set the state
           { ACE_GUARD_RETURN (ACE_SYNCH_MUTEX_T, aGuard, *inherited2::stateLock_, false);
-            inherited2::state_ = STREAM_STATE_RUNNING;
+            inherited2::state_ = STREAM_STATE_SESSION_STARTING;
           } // end lock scope
 
           { ACE_GUARD_RETURN (ACE_Thread_Mutex, aGuard_2, inherited::lock_, false);

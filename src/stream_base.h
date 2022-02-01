@@ -137,22 +137,30 @@ class Stream_Base_T
                            TimePolicyType,
                            struct Stream_ModuleConfiguration,
                            HandlerConfigurationType> IMODULE_T;
-  typedef Stream_Miscellaneous_Distributor_T<ACE_SYNCH_USE,
-                                             TimePolicyType,
-                                             HandlerConfigurationType,
-                                             ControlMessageType,
-                                             DataMessageType,
-                                             SessionMessageType,
-                                             SessionDataType> DISTRIBUTOR_TASK_T;
-  typedef Stream_StreamModuleInputOnly_T<ACE_SYNCH_USE,
-                                         TimePolicyType,
-                                         SessionDataType,
-                                         NotificationType,
-                                         struct Stream_ModuleConfiguration,
-                                         HandlerConfigurationType,
-                                         libacestream_default_misc_distributor_module_name_string,
-                                         Stream_INotify_T<NotificationType>,
-                                         DISTRIBUTOR_TASK_T> DISTRIBUTOR_MODULE_T;
+  typedef Stream_Miscellaneous_Distributor_ReaderTask_T<ACE_SYNCH_USE,
+                                                        TimePolicyType,
+                                                        HandlerConfigurationType,
+                                                        ControlMessageType,
+                                                        DataMessageType,
+                                                        SessionMessageType,
+                                                        SessionDataType> DISTRIBUTOR_READER_TASK_T;
+  typedef Stream_Miscellaneous_Distributor_WriterTask_T<ACE_SYNCH_USE,
+                                                        TimePolicyType,
+                                                        HandlerConfigurationType,
+                                                        ControlMessageType,
+                                                        DataMessageType,
+                                                        SessionMessageType,
+                                                        SessionDataType> DISTRIBUTOR_WRITER_TASK_T;
+  typedef Stream_StreamModule_T<ACE_SYNCH_USE,
+                                TimePolicyType,
+                                SessionDataType,
+                                NotificationType,
+                                struct Stream_ModuleConfiguration,
+                                HandlerConfigurationType,
+                                libacestream_default_misc_distributor_module_name_string,
+                                Stream_INotify_T<NotificationType>,
+                                DISTRIBUTOR_READER_TASK_T,
+                                DISTRIBUTOR_WRITER_TASK_T> DISTRIBUTOR_MODULE_T;
   typedef Stream_Layout_T<ACE_SYNCH_USE,
                           TimePolicyType,
                           DISTRIBUTOR_MODULE_T> LAYOUT_T;
@@ -230,7 +238,7 @@ class Stream_Base_T
   virtual bool hasLock (bool = true); // recurse upstream (if any) ?
 
   inline virtual const typename ISTREAM_T::STREAM_T& getR () const { return *this; }; // return value: type
-  inline virtual void setP (typename ISTREAM_T::STREAM_T* upstream_in) { ACE_ASSERT (!upstream_); upstream_ = upstream_in; }
+  inline virtual void setP (typename ISTREAM_T::STREAM_T* upstream_in) { ACE_ASSERT (!inherited::linked_us_); inherited::linked_us_ = upstream_in; }
   // *WARNING*: this API is not thread-safe
   //            --> grab the lock() first and/or really know what you are doing
   virtual const typename ISTREAM_T::MODULE_T* find (const std::string&,  // module name
@@ -268,8 +276,12 @@ class Stream_Base_T
   virtual void report () const;
 
   // override ACE_Stream method(s)
+  // *NOTE*: behaves like inherited::close(), but does not delete the head/tail
+  //         modules unless the argument is M_DELETE
+  virtual int close (int flags = M_DELETE);
+  // *NOTE*: returns: the last module (if any), inherited::tail() otherwise
   virtual ACE_Module<ACE_SYNCH_USE, TimePolicyType>* tail ();
-  inline virtual int get (ACE_Message_Block*& messageBlock_inout, ACE_Time_Value* timeout_in) { return (upstream_ ? upstream_->get (messageBlock_inout, timeout_in) : inherited::get (messageBlock_inout, timeout_in)); }
+  inline virtual int get (ACE_Message_Block*& messageBlock_inout, ACE_Time_Value* timeout_in) { return (inherited::linked_us_ ? inherited::linked_us_->get (messageBlock_inout, timeout_in) : inherited::get (messageBlock_inout, timeout_in)); }
 
   // *NOTE*: the ACE implementation close(s) the removed module. This is not the
   //         intended behavior when the module is being used by several streams
@@ -338,14 +350,12 @@ class Stream_Base_T
   //         close()ing the modules
   bool                              isInitialized_;
   LAYOUT_T                          layout_;
+  // *TODO*: use inherited::lock_ instead
   mutable ACE_SYNCH_RECURSIVE_MUTEX lock_;
   MESSAGE_QUEUE_T                   messageQueue_; // 'outbound' queue
   SessionDataContainerType*         sessionData_;
   ACE_SYNCH_MUTEX_T                 sessionDataLock_;
   StateType                         state_;
-  // *NOTE*: cannot currently reach ACE_Stream::linked_us_
-  //         --> use this instead
-  STREAM_T*                         upstream_;
 
  private:
   // convenient types

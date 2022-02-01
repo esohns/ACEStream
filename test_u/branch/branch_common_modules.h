@@ -88,18 +88,27 @@ DATASTREAM_MODULE_DUPLEX (struct Branch_SessionData,                // session d
                           Branch_StatisticReport_WriterTask_t,      // writer type
                           Branch_StatisticReport);                  // name
 
-typedef Stream_Miscellaneous_Distributor_T<ACE_MT_SYNCH,
-                                           Common_TimePolicy_t,
-                                           Branch_ModuleHandlerConfiguration,
-                                           Stream_ControlMessage_t,
-                                           Branch_Message,
-                                           Branch_SessionMessage,
-                                           Branch_SessionData_t> Branch_Distributor;
-DATASTREAM_MODULE_INPUT_ONLY (struct Branch_SessionData,                 // session data type
-                              enum Stream_SessionMessageType,            // session event type
-                              struct Branch_ModuleHandlerConfiguration,  // module handler configuration type
-                              libacestream_default_misc_distributor_module_name_string,
-                              Stream_INotify_t,                          // stream notification interface type
-                              Branch_Distributor);                       // writer type
+typedef Stream_Miscellaneous_Distributor_ReaderTask_T<ACE_MT_SYNCH,
+                                                      Common_TimePolicy_t,
+                                                      Branch_ModuleHandlerConfiguration,
+                                                      Stream_ControlMessage_t,
+                                                      Branch_Message,
+                                                      Branch_SessionMessage,
+                                                      Branch_SessionData_t> Branch_Distributor_Reader_t;
+typedef Stream_Miscellaneous_Distributor_WriterTask_T<ACE_MT_SYNCH,
+                                                      Common_TimePolicy_t,
+                                                      Branch_ModuleHandlerConfiguration,
+                                                      Stream_ControlMessage_t,
+                                                      Branch_Message,
+                                                      Branch_SessionMessage,
+                                                      Branch_SessionData_t> Branch_Distributor_Writer_t;
+DATASTREAM_MODULE_DUPLEX (struct Branch_SessionData,                 // session data type
+                          enum Stream_SessionMessageType,            // session event type
+                          struct Branch_ModuleHandlerConfiguration,  // module handler configuration type
+                          libacestream_default_misc_distributor_module_name_string,
+                          Stream_INotify_t,                          // stream notification interface type
+                          Branch_Distributor_Reader_t,               // reader type
+                          Branch_Distributor_Writer_t,               // writer type
+                          Branch_Distributor);                       // name
 
 #endif

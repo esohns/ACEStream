@@ -119,13 +119,20 @@ typedef Stream_Dev_Cam_Source_MediaFoundation_T<ACE_MT_SYNCH,
                                                 Common_Timer_Manager_t,
                                                 struct Stream_UserData> Stream_CamSave_MediaFoundation_Source;
 
-typedef Stream_Miscellaneous_Distributor_T<ACE_MT_SYNCH,
-                                           Common_TimePolicy_t,
-                                           struct Stream_CamSave_DirectShow_ModuleHandlerConfiguration,
-                                           Stream_ControlMessage_t,
-                                           Stream_CamSave_DirectShow_Message_t,
-                                           Stream_CamSave_DirectShow_SessionMessage_t,
-                                           Stream_CamSave_DirectShow_SessionData> Stream_CamSave_DirectShow_Distributor;
+typedef Stream_Miscellaneous_Distributor_ReaderTask_T<ACE_MT_SYNCH,
+                                                      Common_TimePolicy_t,
+                                                      struct Stream_CamSave_DirectShow_ModuleHandlerConfiguration,
+                                                      Stream_ControlMessage_t,
+                                                      Stream_CamSave_DirectShow_Message_t,
+                                                      Stream_CamSave_DirectShow_SessionMessage_t,
+                                                      Stream_CamSave_DirectShow_SessionData> Stream_CamSave_DirectShow_Distributor_Reader_t;
+typedef Stream_Miscellaneous_Distributor_WriterTask_T<ACE_MT_SYNCH,
+                                                      Common_TimePolicy_t,
+                                                      struct Stream_CamSave_DirectShow_ModuleHandlerConfiguration,
+                                                      Stream_ControlMessage_t,
+                                                      Stream_CamSave_DirectShow_Message_t,
+                                                      Stream_CamSave_DirectShow_SessionMessage_t,
+                                                      Stream_CamSave_DirectShow_SessionData> Stream_CamSave_DirectShow_Distributor_Writer_t;
 
 #if defined (FFMPEG_SUPPORT)
 typedef Stream_Decoder_LibAVConverter_T<ACE_MT_SYNCH,
@@ -664,12 +671,14 @@ DATASTREAM_MODULE_INPUT_ONLY (Stream_CamSave_MediaFoundation_SessionData,       
                               Stream_INotify_t,                                 // stream notification interface type
                               Stream_CamSave_MediaFoundation_Source);           // writer type
 
-DATASTREAM_MODULE_INPUT_ONLY (Stream_CamSave_DirectShow_SessionData,            // session data type
-                              enum Stream_SessionMessageType,                   // session event type
-                              struct Stream_CamSave_DirectShow_ModuleHandlerConfiguration, // module handler configuration type
-                              libacestream_default_misc_distributor_module_name_string,
-                              Stream_INotify_t,                                 // stream notification interface type
-                              Stream_CamSave_DirectShow_Distributor);           // writer type
+DATASTREAM_MODULE_DUPLEX (Stream_CamSave_DirectShow_SessionData,            // session data type
+                          enum Stream_SessionMessageType,                   // session event type
+                          struct Stream_CamSave_DirectShow_ModuleHandlerConfiguration, // module handler configuration type
+                          libacestream_default_misc_distributor_module_name_string,
+                          Stream_INotify_t,                                 // stream notification interface type
+                          Stream_CamSave_DirectShow_Distributor_Reader_t,   // reader type
+                          Stream_CamSave_DirectShow_Distributor_Writer_t,   // writer type
+                          Stream_CamSave_DirectShow_Distributor);           // name
 
 #if defined (FFMPEG_SUPPORT)
 DATASTREAM_MODULE_INPUT_ONLY (Stream_CamSave_DirectShow_SessionData,            // session data type

@@ -64,21 +64,11 @@ Stream_Layout_T<ACE_SYNCH_USE,
   ACE_ASSERT (istream_p);
 
   // step1: reset stream
-  result = stream_in.close (STREAM_T::M_DELETE);
+  result = stream_in.close (0); // <-- retain head/tail modules
   if (unlikely (result == -1))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to ACE_Stream::close(%d): \"%m\", aborting\n"),
-                STREAM_T::M_DELETE));
-    return false;
-  } // end IF
-  result = stream_in.open (NULL,  // arg
-                           NULL,  // head
-                           NULL); // tail
-  if (unlikely (result == -1))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to ACE_Stream::open(): \"%m\", aborting\n")));
+                ACE_TEXT ("failed to ACE_Stream::close(0): \"%m\", aborting\n")));
     return false;
   } // end IF
 
@@ -122,11 +112,10 @@ Stream_Layout_T<ACE_SYNCH_USE,
   return true;
 
 error:
-  result = stream_in.close (STREAM_T::M_DELETE);
+  result = stream_in.close (0);
   if (unlikely (result == -1))
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to ACE_Stream::close(%d): \"%m\", aborting\n"),
-                STREAM_T::M_DELETE));
+                ACE_TEXT ("failed to ACE_Stream::close(0): \"%m\", aborting\n")));
 
   inherited::clear ();
 
@@ -592,6 +581,11 @@ Stream_Layout_T<ACE_SYNCH_USE,
 
     // associate all direct children to the distributor
     idistributor_p->push (*iterator);
+
+    // link sub-stream head to its' distributor
+    // *WARNING*: link reader-side only !
+    //node_in.data->link (*iterator);
+    (*iterator)->reader ()->next (node_in.data->reader ());
 
     // link sub-branch, retain any sub-distributors
     prev_p = *iterator;

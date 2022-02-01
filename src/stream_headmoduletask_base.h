@@ -124,7 +124,7 @@ class Stream_HeadModuleTaskBase_T
                            Stream_IAllocator* = NULL);
 
   // implement (part of) Stream_IStreamControl_T
-  inline virtual void start () { inherited2::change (STREAM_STATE_RUNNING); }
+  inline virtual void start () { inherited2::change (STREAM_STATE_SESSION_STARTING); }
   virtual void stop (bool = true,   // wait for completion ?
                      bool = true,   // N/A
                      bool = false); // high priority ?
@@ -152,9 +152,9 @@ class Stream_HeadModuleTaskBase_T
                      bool = true); // N/A
   virtual int unlock (bool = false, // unblock ?
                       bool = true); // N/A
-  inline virtual ACE_SYNCH_RECURSIVE_MUTEX& getLock (bool = true) { static ACE_SYNCH_RECURSIVE_MUTEX dummy;  ACE_ASSERT (false); ACE_NOTSUP_RETURN (dummy); ACE_NOTREACHED (return dummy;) }
+  inline virtual ACE_SYNCH_RECURSIVE_MUTEX& getLock (bool = true) { static ACE_SYNCH_RECURSIVE_MUTEX dummy;  ACE_ASSERT (false); ACE_NOTSUP_RETURN (dummy); ACE_NOTREACHED (return dummy;) } // forward upstream (if any) ?
   // *TODO*: this isn't nearly accurate enough
-  inline virtual bool hasLock (bool = true) { ACE_ASSERT (false); ACE_ASSERT (inherited::configuration_); return !inherited::configuration_->hasReentrantSynchronousSubDownstream; }
+  inline virtual bool hasLock (bool = true) { ACE_ASSERT (false); ACE_ASSERT (inherited::configuration_); return !inherited::configuration_->hasReentrantSynchronousSubDownstream; } // forward upstream (if any) ?
 
   // implement Common_ISet_T
   inline virtual void setP (StreamStateType* streamState_in) { streamState_ = streamState_in; }

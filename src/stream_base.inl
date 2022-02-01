@@ -73,7 +73,6 @@ Stream_Base_T<ACE_SYNCH_USE,
  , sessionData_ (NULL)
  , sessionDataLock_ ()
  , state_ ()
- , upstream_ (NULL)
  /////////////////////////////////////////
  , delete_ (false)
 {
@@ -835,11 +834,11 @@ Stream_Base_T<ACE_SYNCH_USE,
   ISTREAM_CONTROL_T* istreamcontrol_p = NULL;
 
   // stop upstream ?
-  if (upstream_ &&
+  if (inherited::linked_us_ &&
       recurseUpstream_in)
   {
-    ISTREAM_T* istream_p = dynamic_cast<ISTREAM_T*> (upstream_);
-    istreamcontrol_p = dynamic_cast<ISTREAM_CONTROL_T*> (upstream_);
+    ISTREAM_T* istream_p = dynamic_cast<ISTREAM_T*> (inherited::linked_us_);
+    istreamcontrol_p = dynamic_cast<ISTREAM_CONTROL_T*> (inherited::linked_us_);
     if (unlikely (!istreamcontrol_p))
     {
       ACE_DEBUG ((LM_ERROR,
@@ -1008,7 +1007,7 @@ Stream_Base_T<ACE_SYNCH_USE,
               ControlMessageType,
               DataMessageType,
               SessionMessageType>::control (ControlType control_in,
-                                            bool recurseupstream_in)
+                                            bool recurseUpstream_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Base_T::control"));
 
@@ -1016,24 +1015,23 @@ Stream_Base_T<ACE_SYNCH_USE,
   ISTREAM_CONTROL_T* istreamcontrol_p = NULL;
 
   // forward upstream ?
-  if (upstream_ &&
-      recurseupstream_in)
+  if (inherited::linked_us_ && recurseUpstream_in)
   {
-    istreamcontrol_p = dynamic_cast<ISTREAM_CONTROL_T*> (upstream_);
+    istreamcontrol_p = dynamic_cast<ISTREAM_CONTROL_T*> (inherited::linked_us_);
     if (unlikely (!istreamcontrol_p))
     {
-      ISTREAM_T* istream_p = dynamic_cast<ISTREAM_T*> (upstream_);
+      ISTREAM_T* istream_p = dynamic_cast<ISTREAM_T*> (inherited::linked_us_);
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: failed to dynamic_cast<Stream_IStreamControl_T>(0x%@), returning\n"),
                   (istream_p ? ACE_TEXT (istream_p->name ().c_str ()) : ACE_TEXT ("")),
-                  upstream_));
+                  inherited::linked_us_));
       return;
     } // end IF
     try {
       istreamcontrol_p->control (control_in,
-                                 recurseupstream_in);
+                                 recurseUpstream_in);
     } catch (...) {
-      ISTREAM_T* istream_p = dynamic_cast<ISTREAM_T*> (upstream_);
+      ISTREAM_T* istream_p = dynamic_cast<ISTREAM_T*> (inherited::linked_us_);
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: caught exception in Stream_IStreamControl_T::control(%d), returning\n"),
                   (istream_p ? ACE_TEXT (istream_p->name ().c_str ()) : ACE_TEXT ("")),
@@ -1144,24 +1142,24 @@ Stream_Base_T<ACE_SYNCH_USE,
   ISTREAM_CONTROL_T* istreamcontrol_p = NULL;
 
   // forward upstream ?
-  if (upstream_ &&
+  if (inherited::linked_us_ &&
       recurseUpstream_in)
   {
-    istreamcontrol_p = dynamic_cast<ISTREAM_CONTROL_T*> (upstream_);
+    istreamcontrol_p = dynamic_cast<ISTREAM_CONTROL_T*> (inherited::linked_us_);
     if (unlikely (!istreamcontrol_p))
     {
-      ISTREAM_T* istream_p = dynamic_cast<ISTREAM_T*> (upstream_);
+      ISTREAM_T* istream_p = dynamic_cast<ISTREAM_T*> (inherited::linked_us_);
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: failed to dynamic_cast<Stream_IStreamControl_T>(0x%@), returning\n"),
                   (istream_p ? ACE_TEXT (istream_p->name ().c_str ()) : ACE_TEXT ("")),
-                  upstream_));
+                  inherited::linked_us_));
       return;
     } // end IF
     try {
       istreamcontrol_p->notify (notification_in,
                                 recurseUpstream_in);
     } catch (...) {
-      ISTREAM_T* istream_p = dynamic_cast<ISTREAM_T*> (upstream_);
+      ISTREAM_T* istream_p = dynamic_cast<ISTREAM_T*> (inherited::linked_us_);
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: caught exception in Stream_IStreamControl_T::notify(%d), continuing\n"),
                   (istream_p ? ACE_TEXT (istream_p->name ().c_str ()) : ACE_TEXT ("")),
@@ -1206,7 +1204,7 @@ Stream_Base_T<ACE_SYNCH_USE,
                     module_p->name ()));
         return;
       }
-      break;
+      return; // done
     }
     case STREAM_SESSION_MESSAGE_END:
     {
@@ -1219,7 +1217,7 @@ Stream_Base_T<ACE_SYNCH_USE,
                     module_p->name ()));
         return;
       }
-      break;
+      return; // done
     }
     default:
       break;
@@ -1286,18 +1284,18 @@ Stream_Base_T<ACE_SYNCH_USE,
   unsigned int result = 0;
 
   // forward upstream ?
-  if (unlikely (upstream_ &&
+  if (unlikely (inherited::linked_us_ &&
                 flushUpstream_in))
   {
     ISTREAM_CONTROL_T* istreamcontrol_p =
-        dynamic_cast<ISTREAM_CONTROL_T*> (upstream_);
+        dynamic_cast<ISTREAM_CONTROL_T*> (inherited::linked_us_);
     if (unlikely (!istreamcontrol_p))
     {
-      ISTREAM_T* istream_p = dynamic_cast<ISTREAM_T*> (upstream_);
+      ISTREAM_T* istream_p = dynamic_cast<ISTREAM_T*> (inherited::linked_us_);
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: failed to dynamic_cast<Stream_IStreamControl_T>(0x%@), returning\n"),
                   (istream_p ? ACE_TEXT (istream_p->name ().c_str ()) : ACE_TEXT ("")),
-                  upstream_));
+                  inherited::linked_us_));
       return 0;
     } // end IF
     try {
@@ -1305,7 +1303,7 @@ Stream_Base_T<ACE_SYNCH_USE,
                                       flushSessionMessages_in,
                                       flushUpstream_in);
     } catch (...) {
-      ISTREAM_T* istream_p = dynamic_cast<ISTREAM_T*> (upstream_);
+      ISTREAM_T* istream_p = dynamic_cast<ISTREAM_T*> (inherited::linked_us_);
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: caught exception in Stream_IStreamControl_T::flush(), returning\n"),
                   (istream_p ? ACE_TEXT (istream_p->name ().c_str ()) : ACE_TEXT (""))));
@@ -1646,15 +1644,15 @@ Stream_Base_T<ACE_SYNCH_USE,
 
   // *NOTE*: if this stream has been linked (e.g. connection is part of another
   //         stream), make sure to wait for the whole pipeline
-  if (upstream_)
+  if (inherited::linked_us_)
   {
     Stream_IStreamControlBase* istreamcontrol_p =
-      dynamic_cast<Stream_IStreamControlBase*> (upstream_);
+      dynamic_cast<Stream_IStreamControlBase*> (inherited::linked_us_);
     if (unlikely (!istreamcontrol_p))
     {
       ACE_DEBUG ((LM_DEBUG,
                   ACE_TEXT ("failed to dynamic_cast<Stream_IStreamControlBase>(0x%@), returning\n"),
-                  upstream_));
+                  inherited::linked_us_));
       return;
     } // end IF
     try {
@@ -1764,17 +1762,17 @@ Stream_Base_T<ACE_SYNCH_USE,
   OWN_TYPE_T* this_p = const_cast<OWN_TYPE_T*> (this);
 
   // forward upstream ?
-  if (upstream_ &&
+  if (inherited::linked_us_ &&
       waitForUpstream_in)
   {
-    istreamcontrol_p = dynamic_cast<ISTREAM_CONTROL_T*> (upstream_);
+    istreamcontrol_p = dynamic_cast<ISTREAM_CONTROL_T*> (inherited::linked_us_);
     if (unlikely (!istreamcontrol_p))
     {
-      ISTREAM_T* istream_p = dynamic_cast<ISTREAM_T*> (upstream_);
+      ISTREAM_T* istream_p = dynamic_cast<ISTREAM_T*> (inherited::linked_us_);
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: failed to dynamic_cast<Stream_IStreamControl_T>(0x%@), returning\n"),
                   (istream_p ? ACE_TEXT (istream_p->name ().c_str ()) : ACE_TEXT ("")),
-                  upstream_));
+                  inherited::linked_us_));
       return;
     } // end IF
     try {
@@ -1782,7 +1780,7 @@ Stream_Base_T<ACE_SYNCH_USE,
                               waitForUpstream_in,
                               waitForDownStream_in);
     } catch (...) {
-      ISTREAM_T* istream_p = dynamic_cast<ISTREAM_T*> (upstream_);
+      ISTREAM_T* istream_p = dynamic_cast<ISTREAM_T*> (inherited::linked_us_);
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: caught exception in Stream_IStreamControl_T::wait(), returning\n"),
                   (istream_p ? ACE_TEXT (istream_p->name ().c_str ()) : ACE_TEXT (""))));
@@ -2018,10 +2016,10 @@ Stream_Base_T<ACE_SYNCH_USE,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Base_T::find"));
 
-  if (upstream_ &&
+  if (inherited::linked_us_ &&
       recurseUpstream_in)
   {
-    ISTREAM_T* istream_p = dynamic_cast<ISTREAM_T*> (upstream_);
+    ISTREAM_T* istream_p = dynamic_cast<ISTREAM_T*> (inherited::linked_us_);
     if (istream_p)
       return istream_p->find (name_in,
                               sanitizeModuleNames_in,
@@ -2072,15 +2070,15 @@ Stream_Base_T<ACE_SYNCH_USE,
   ACE_ASSERT (upstream_in);
 
   ISTREAM_T* istream_p = NULL;
-  if (upstream_)
+  if (inherited::linked_us_)
   {
-    istream_p = dynamic_cast<ISTREAM_T*> (upstream_);
+    istream_p = dynamic_cast<ISTREAM_T*> (inherited::linked_us_);
     if (unlikely (!istream_p))
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: failed to dynamic_cast<Stream_IStream_T>(0x%@) upstream, aborting\n"),
                   ACE_TEXT (StreamName),
-                  upstream_));
+                  inherited::linked_us_));
       return false;
     } // end IF
     try {
@@ -2141,7 +2139,7 @@ Stream_Base_T<ACE_SYNCH_USE,
   STREAM_TRACE (ACE_TEXT ("Stream_Base_T::_unlink"));
 
   // sanity check(s)
-  if (!upstream_)
+  if (!inherited::linked_us_)
   { // *TODO*: consider all scenarios where this might happen
     ACE_DEBUG ((LM_DEBUG,
                 ACE_TEXT ("%s: no upstream; cannot unlink, returning\n"),
@@ -2284,19 +2282,19 @@ Stream_Base_T<ACE_SYNCH_USE,
 
   // sanity check(s)
   if (!recurse_in)
-    return upstream_;
+    return inherited::linked_us_;
 
   // break recursion
-  if (!upstream_)
+  if (!inherited::linked_us_)
     return const_cast<OWN_TYPE_T*> (this);
 
-  ISTREAM_T* istream_p = dynamic_cast<ISTREAM_T*> (upstream_);
+  ISTREAM_T* istream_p = dynamic_cast<ISTREAM_T*> (inherited::linked_us_);
   if (!istream_p)
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to dynamic_cast<Stream_IStream_T>(0x%@), aborting\n"),
                 ACE_TEXT (StreamName),
-                upstream_));
+                inherited::linked_us_));
     return const_cast<OWN_TYPE_T*> (this); // *TODO*: potential false positive
   } // end IF
 
@@ -2334,30 +2332,29 @@ Stream_Base_T<ACE_SYNCH_USE,
               ControlMessageType,
               DataMessageType,
               SessionMessageType>::lock (bool block_in,
-                                         bool recurseupstream_in)
+                                         bool recurseUpstream_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Base_T::lock"));
 
   int result = -1;
 
-  if (upstream_ &&
-      recurseupstream_in)
+  if (inherited::linked_us_ && recurseUpstream_in)
   {
-    ILOCK_T* ilock_p = dynamic_cast<ILOCK_T*> (upstream_);
+    ILOCK_T* ilock_p = dynamic_cast<ILOCK_T*> (inherited::linked_us_);
     if (!ilock_p)
     {
-      ISTREAM_T* istream_p = dynamic_cast<ISTREAM_T*> (upstream_);
+      ISTREAM_T* istream_p = dynamic_cast<ISTREAM_T*> (inherited::linked_us_);
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: failed to dynamic_cast<Stream_ILock_T>(0x%@), aborting\n"),
                   (istream_p ? ACE_TEXT (istream_p->name ().c_str ()) : ACE_TEXT ("")),
-                  upstream_));
+                  inherited::linked_us_));
       return false;
     } // end IF
     try {
       return ilock_p->lock (block_in,
-                            recurseupstream_in);
+                            recurseUpstream_in);
     } catch (...) {
-      ISTREAM_T* istream_p = dynamic_cast<ISTREAM_T*> (upstream_);
+      ISTREAM_T* istream_p = dynamic_cast<ISTREAM_T*> (inherited::linked_us_);
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: caught exception in Stream_ILock_T::lock(), aborting\n"),
                   (istream_p ? ACE_TEXT (istream_p->name ().c_str ()) : ACE_TEXT (""))));
@@ -2428,7 +2425,7 @@ Stream_Base_T<ACE_SYNCH_USE,
               ControlMessageType,
               DataMessageType,
               SessionMessageType>::unlock (bool unlock_in,
-                                           bool recurseupstream_in)
+                                           bool recurseUpstream_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Base_T::unlock"));
 
@@ -2436,24 +2433,23 @@ Stream_Base_T<ACE_SYNCH_USE,
   int result_2 = -1;
   int previous_nesting_level = -1;
 
-  if (upstream_ &&
-      recurseupstream_in)
+  if (inherited::linked_us_ && recurseUpstream_in)
   {
-    ILOCK_T* ilock_p = dynamic_cast<ILOCK_T*> (upstream_);
+    ILOCK_T* ilock_p = dynamic_cast<ILOCK_T*> (inherited::linked_us_);
     if (!ilock_p)
     {
-      ISTREAM_T* istream_p = dynamic_cast<ISTREAM_T*> (upstream_);
+      ISTREAM_T* istream_p = dynamic_cast<ISTREAM_T*> (inherited::linked_us_);
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: failed to dynamic_cast<Stream_ILock_T>(0x%@), aborting\n"),
                   (istream_p ? ACE_TEXT (istream_p->name ().c_str ()) : ACE_TEXT ("")),
-                  upstream_));
+                  inherited::linked_us_));
       return -1;
     } // end IF
     try {
       return ilock_p->unlock (unlock_in,
-                              recurseupstream_in);
+                              recurseUpstream_in);
     } catch (...) {
-      ISTREAM_T* istream_p = dynamic_cast<ISTREAM_T*> (upstream_);
+      ISTREAM_T* istream_p = dynamic_cast<ISTREAM_T*> (inherited::linked_us_);
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: caught exception in Stream_ILock_T::unlock(), aborting\n"),
                   (istream_p ? ACE_TEXT (istream_p->name ().c_str ()) : ACE_TEXT (""))));
@@ -2582,24 +2578,24 @@ Stream_Base_T<ACE_SYNCH_USE,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Base_T::getLock"));
 
-  if (upstream_ &&
+  if (inherited::linked_us_ &&
       recurseUpstream_in)
   {
-    ILOCK_T* ilock_p = dynamic_cast<ILOCK_T*> (upstream_);
+    ILOCK_T* ilock_p = dynamic_cast<ILOCK_T*> (inherited::linked_us_);
     if (!ilock_p)
     {
-      ISTREAM_T* istream_p = dynamic_cast<ISTREAM_T*> (upstream_);
+      ISTREAM_T* istream_p = dynamic_cast<ISTREAM_T*> (inherited::linked_us_);
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%: failed to dynamic_cast<Stream_ILock_T>(0x%@), aborting\n"),
                   (istream_p ? ACE_TEXT (istream_p->name ().c_str ()) : ACE_TEXT ("")),
-                  upstream_));
+                  inherited::linked_us_));
       static ACE_SYNCH_RECURSIVE_MUTEX dummy;
       return dummy;
     } // end IF
     try {
       return ilock_p->getLock (recurseUpstream_in);
     } catch (...) {
-      ISTREAM_T* istream_p = dynamic_cast<ISTREAM_T*> (upstream_);
+      ISTREAM_T* istream_p = dynamic_cast<ISTREAM_T*> (inherited::linked_us_);
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: caught exception in Stream_ILock_T::getLock(), aborting\n"),
                   (istream_p ? ACE_TEXT (istream_p->name ().c_str ()) : ACE_TEXT (""))));
@@ -2639,25 +2635,25 @@ Stream_Base_T<ACE_SYNCH_USE,
               SessionDataContainerType,
               ControlMessageType,
               DataMessageType,
-              SessionMessageType>::hasLock (bool recurseupstream_in)
+              SessionMessageType>::hasLock (bool recurseUpstream_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Base_T::hasLock"));
 
   int result = -1;
 
-  if (upstream_)
+  if (inherited::linked_us_)
   {
     typename ISTREAM_T::MODULE_T* module_p = NULL;
     TASK_T* task_p = NULL;
     ILOCK_T* ilock_p = NULL;
 
-    result = upstream_->top (module_p);
+    result = inherited::linked_us_->top (module_p);
     if (unlikely ((result == -1) ||
                   !module_p))
     {
       //ACE_DEBUG ((LM_ERROR,
       //            ACE_TEXT ("%s: no head module found: \"%m\", aborting\n"),
-      //            ACE_TEXT (upstream_->name ().c_str ())));
+      //            ACE_TEXT (inherited::linked_us_->name ().c_str ())));
       return false; // *WARNING*: false negative
     } // end IF
     task_p = module_p->writer ();
@@ -2666,7 +2662,7 @@ Stream_Base_T<ACE_SYNCH_USE,
     ilock_p = dynamic_cast<ILOCK_T*> (task_p);
     if (!ilock_p)
     {
-      ISTREAM_T* istream_p = dynamic_cast<ISTREAM_T*> (upstream_);
+      ISTREAM_T* istream_p = dynamic_cast<ISTREAM_T*> (inherited::linked_us_);
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s/%s: failed to dynamic_cast<Stream_ILock_T>(0x%@), aborting\n"),
                   (istream_p ? ACE_TEXT (istream_p->name ().c_str ()) : ACE_TEXT ("")),
@@ -2674,7 +2670,7 @@ Stream_Base_T<ACE_SYNCH_USE,
                   task_p));
       return false; // *WARNING*: false negative
     } // end IF
-    return ilock_p->hasLock (recurseupstream_in);
+    return ilock_p->hasLock (recurseUpstream_in);
   } // end IF
 
   // *IMPORTANT NOTE*: currently,
@@ -2736,16 +2732,16 @@ Stream_Base_T<ACE_SYNCH_USE,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Base_T::dump_state"));
 
-  if (upstream_)
+  if (inherited::linked_us_)
   {
     Common_IDumpState* idump_state_p =
-        dynamic_cast<Common_IDumpState*> (upstream_);
+        dynamic_cast<Common_IDumpState*> (inherited::linked_us_);
     if (idump_state_p)
     {
       try {
         idump_state_p->dump_state ();
       } catch (...) {
-        ISTREAM_T* istream_p = dynamic_cast<ISTREAM_T*> (upstream_);
+        ISTREAM_T* istream_p = dynamic_cast<ISTREAM_T*> (inherited::linked_us_);
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: caught exception in Common_IDumpState(), continuing\n"),
                     (istream_p ? ACE_TEXT (istream_p->name ().c_str ()) : ACE_TEXT (""))));
@@ -3300,6 +3296,59 @@ template <ACE_SYNCH_DECL,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType>
+int
+Stream_Base_T<ACE_SYNCH_USE,
+              TimePolicyType,
+              StreamName,
+              ControlType,
+              NotificationType,
+              StatusType,
+              StateType,
+              ConfigurationType,
+              StatisticContainerType,
+              HandlerConfigurationType,
+              SessionDataType,
+              SessionDataContainerType,
+              ControlMessageType,
+              DataMessageType,
+              SessionMessageType>::close (int flags_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Base_T::close"));
+
+  if (likely (flags_in == M_DELETE))
+    return inherited::close (flags_in);
+
+  // sanity check(s)
+  ACE_ASSERT (inherited::stream_head_);
+  ACE_ASSERT (inherited::stream_tail_);
+
+  int result = 0;
+
+  { ACE_GUARD_RETURN (ACE_SYNCH_MUTEX_T, ace_mon, inherited::lock_, -1);
+    // Remove and cleanup all the intermediate modules.
+    while (inherited::stream_head_->next () != inherited::stream_tail_)
+      if (pop (delete_ ? M_DELETE : 0) == -1)
+        result = -1;
+  } // end lock scope
+
+  return result;
+}
+
+template <ACE_SYNCH_DECL,
+          typename TimePolicyType,
+          const char* StreamName,
+          typename ControlType,
+          typename NotificationType,
+          typename StatusType,
+          typename StateType,
+          typename ConfigurationType,
+          typename StatisticContainerType,
+          typename HandlerConfigurationType,
+          typename SessionDataType,
+          typename SessionDataContainerType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType>
 ACE_Module<ACE_SYNCH_USE, TimePolicyType>*
 Stream_Base_T<ACE_SYNCH_USE,
               TimePolicyType,
@@ -3364,7 +3413,7 @@ Stream_Base_T<ACE_SYNCH_USE,
   // *TODO*: submit change request to the ACE maintainers
 
   // sanity check(s)
-  if (unlikely (upstream_))
+  if (unlikely (inherited::linked_us_))
   {
     ACE_DEBUG ((LM_DEBUG,
                 ACE_TEXT ("%s: already linked, aborting\n"),
@@ -3402,7 +3451,7 @@ Stream_Base_T<ACE_SYNCH_USE,
     // *NOTE*: ACE_Stream::linked_us_ is currently private
     //         --> retain another handle
     // *TODO*: modify ACE to make this a protected member
-    upstream_ = &upstream_in;
+    inherited::linked_us_ = &upstream_in;
   } // end lock scope
   reset_upstream = true;
 
@@ -3475,13 +3524,13 @@ Stream_Base_T<ACE_SYNCH_USE,
 continue_:
     // (try to) merge upstream state data
     ISTREAM_CONTROL_T* istreamcontrol_p =
-        dynamic_cast<ISTREAM_CONTROL_T*> (&upstream_in);
+      dynamic_cast<ISTREAM_CONTROL_T*> (&upstream_in);
     if (!istreamcontrol_p)
     {
 //      ACE_DEBUG ((LM_DEBUG,
 //                  ACE_TEXT ("%s: upstream (was: 0x%@) does not implement Stream_IStreamControl_T, cannot update state, continuing\n"),
 //                  ACE_TEXT (StreamName),
-//                  upstream_in));
+//                  inherited::linked_us_in));
       goto continue_2;
     } // end IF
 
@@ -3506,7 +3555,7 @@ continue_2:
 //      ACE_DEBUG ((LM_DEBUG,
 //                  ACE_TEXT ("%s: upstream (was: 0x%@) does not implement Common_IGetR_T<SessionDataContainerType>, cannot update session data, continuing\n"),
 //                  ACE_TEXT (StreamName),
-//                  upstream_in));
+//                  inherited::linked_us_in));
       goto continue_3;
     } // end IF
     session_data_container_p =
@@ -3558,7 +3607,7 @@ error:
   } // end IF
   if (reset_upstream)
   { ACE_GUARD_RETURN (ACE_SYNCH_RECURSIVE_MUTEX, aGuard, lock_, -1);
-    upstream_ = NULL;
+    inherited::linked_us_ = NULL;
   } // end IF
 
   return -1;
@@ -3602,7 +3651,7 @@ Stream_Base_T<ACE_SYNCH_USE,
   // *TODO*: submit change request to the ACE maintainers
 
   // sanity check(s)
-  if (unlikely (!upstream_))
+  if (unlikely (!inherited::linked_us_))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: no upstream; cannot unlink, aborting\n"),
@@ -3613,8 +3662,8 @@ Stream_Base_T<ACE_SYNCH_USE,
   int result = -1;
   // locate the module just above the upstreams' tail and this' 'top' module
   // (i.e. the module just below the head)
-  MODULE_T* upstream_tail_module_p = upstream_->STREAM_T::tail ();
-  MODULE_T* trailing_module_p = upstream_->head ();
+  MODULE_T* upstream_tail_module_p = inherited::linked_us_->STREAM_T::tail ();
+  MODULE_T* trailing_module_p = inherited::linked_us_->head ();
   MODULE_T* heading_module_p = NULL;
 
   result = inherited::top (heading_module_p);
@@ -3661,7 +3710,7 @@ Stream_Base_T<ACE_SYNCH_USE,
 
 //  int nesting_level = unlock (true);
   { ACE_GUARD_RETURN (ACE_SYNCH_RECURSIVE_MUTEX, aGuard, lock_, -1);
-    upstream_ = NULL;
+    inherited::linked_us_ = NULL;
 
 //    // update configuration
 //    // *TODO*: remove type inference
@@ -3821,7 +3870,7 @@ Stream_Base_T<ACE_SYNCH_USE,
               SessionDataContainerType,
               ControlMessageType,
               DataMessageType,
-              SessionMessageType>::finished (bool recurseupstream_in)
+              SessionMessageType>::finished (bool recurseUpstream_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Base_T::finished"));
 
@@ -3831,11 +3880,10 @@ Stream_Base_T<ACE_SYNCH_USE,
   ISTREAM_CONTROL_T* istreamcontrol_p = NULL;
 
   // foward upstream ?
-  if (upstream_ &&
-      recurseupstream_in)
+  if (inherited::linked_us_ && recurseUpstream_in)
   {
     // delegate to the head module
-    result = upstream_->top (module_p);
+    result = inherited::linked_us_->top (module_p);
     if (unlikely ((result == -1) ||
                   !module_p))
       goto _continue;
@@ -3844,7 +3892,7 @@ Stream_Base_T<ACE_SYNCH_USE,
       dynamic_cast<ISTREAM_CONTROL_T*> (module_p->writer ());
     if (!istreamcontrol_p)
     {
-      ISTREAM_T* istream_p = dynamic_cast<ISTREAM_T*> (upstream_);
+      ISTREAM_T* istream_p = dynamic_cast<ISTREAM_T*> (inherited::linked_us_);
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s/%s: dynamic_cast<Stream_ISTREAM_CONTROL_T> failed, continuing\n"),
                   (istream_p ? ACE_TEXT (istream_p->name ().c_str ()) : ACE_TEXT ("")),
@@ -3855,7 +3903,7 @@ Stream_Base_T<ACE_SYNCH_USE,
     try {
       istreamcontrol_p->finished ();
     } catch (...) {
-      ISTREAM_T* istream_p = dynamic_cast<ISTREAM_T*> (upstream_);
+      ISTREAM_T* istream_p = dynamic_cast<ISTREAM_T*> (inherited::linked_us_);
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s/%s: caught exception in Stream_ISTREAM_CONTROL_T::finished(), continuing\n"),
                   (istream_p ? ACE_TEXT (istream_p->name ().c_str ()) : ACE_TEXT ("")),

@@ -33,16 +33,16 @@ template <ACE_SYNCH_DECL,
           typename DataMessageType,
           typename SessionMessageType,
           typename SessionDataType>
-Stream_Miscellaneous_Distributor_T<ACE_SYNCH_USE,
-                                   TimePolicyType,
-                                   ConfigurationType,
-                                   ControlMessageType,
-                                   DataMessageType,
-                                   SessionMessageType,
+Stream_Miscellaneous_Distributor_WriterTask_T<ACE_SYNCH_USE,
+                                              TimePolicyType,
+                                              ConfigurationType,
+                                              ControlMessageType,
+                                              DataMessageType,
+                                              SessionMessageType,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-                                   SessionDataType>::Stream_Miscellaneous_Distributor_T (ISTREAM_T* stream_in)
+                                              SessionDataType>::Stream_Miscellaneous_Distributor_WriterTask_T (ISTREAM_T* stream_in)
 #else
-                                   SessionDataType>::Stream_Miscellaneous_Distributor_T (typename inherited::ISTREAM_T* stream_in)
+                                              SessionDataType>::Stream_Miscellaneous_Distributor_WriterTask_T (typename inherited::ISTREAM_T* stream_in)
 #endif // ACE_WIN32 || ACE_WIN64
  : inherited (stream_in)
  , branches_ ()
@@ -51,7 +51,7 @@ Stream_Miscellaneous_Distributor_T<ACE_SYNCH_USE,
  , queues_ ()
  , data_ ()
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_Miscellaneous_Distributor_T::Stream_Miscellaneous_Distributor_T"));
+  STREAM_TRACE (ACE_TEXT ("Stream_Miscellaneous_Distributor_WriterTask_T::Stream_Miscellaneous_Distributor_WriterTask_T"));
 
   inherited::threadCount_ = 0;
 }
@@ -64,17 +64,17 @@ template <ACE_SYNCH_DECL,
           typename SessionMessageType,
           typename SessionDataType>
 void
-Stream_Miscellaneous_Distributor_T<ACE_SYNCH_USE,
-                                   TimePolicyType,
-                                   ConfigurationType,
-                                   ControlMessageType,
-                                   DataMessageType,
-                                   SessionMessageType,
-                                   SessionDataType>::forward (ACE_Message_Block* messageBlock_in,
-                                                              bool dispose_in,
-                                                              bool highPriority_in)
+Stream_Miscellaneous_Distributor_WriterTask_T<ACE_SYNCH_USE,
+                                              TimePolicyType,
+                                              ConfigurationType,
+                                              ControlMessageType,
+                                              DataMessageType,
+                                              SessionMessageType,
+                                              SessionDataType>::forward (ACE_Message_Block* messageBlock_in,
+                                                                         bool dispose_in,
+                                                                         bool highPriority_in)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_Miscellaneous_Distributor_T::forward"));
+  STREAM_TRACE (ACE_TEXT ("Stream_Miscellaneous_Distributor_WriterTask_T::forward"));
 
   // sanity check(s)
   ACE_ASSERT (messageBlock_in);
@@ -171,15 +171,15 @@ template <ACE_SYNCH_DECL,
           typename SessionMessageType,
           typename SessionDataType>
 void
-Stream_Miscellaneous_Distributor_T<ACE_SYNCH_USE,
-                                   TimePolicyType,
-                                   ConfigurationType,
-                                   ControlMessageType,
-                                   DataMessageType,
-                                   SessionMessageType,
-                                   SessionDataType>::handleControlMessage (ControlMessageType& message_in)
+Stream_Miscellaneous_Distributor_WriterTask_T<ACE_SYNCH_USE,
+                                              TimePolicyType,
+                                              ConfigurationType,
+                                              ControlMessageType,
+                                              DataMessageType,
+                                              SessionMessageType,
+                                              SessionDataType>::handleControlMessage (ControlMessageType& message_in)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_Miscellaneous_Distributor_T::handleControlMessage"));
+  STREAM_TRACE (ACE_TEXT ("Stream_Miscellaneous_Distributor_WriterTask_T::handleControlMessage"));
 
   bool is_high_priority_b = false;
   switch (message_in.type ())
@@ -234,16 +234,16 @@ template <ACE_SYNCH_DECL,
           typename SessionMessageType,
           typename SessionDataType>
 void
-Stream_Miscellaneous_Distributor_T<ACE_SYNCH_USE,
-                                   TimePolicyType,
-                                   ConfigurationType,
-                                   ControlMessageType,
-                                   DataMessageType,
-                                   SessionMessageType,
-                                   SessionDataType>::handleSessionMessage (SessionMessageType*& message_inout,
-                                                                           bool& passMessageDownstream_out)
+Stream_Miscellaneous_Distributor_WriterTask_T<ACE_SYNCH_USE,
+                                              TimePolicyType,
+                                              ConfigurationType,
+                                              ControlMessageType,
+                                              DataMessageType,
+                                              SessionMessageType,
+                                              SessionDataType>::handleSessionMessage (SessionMessageType*& message_inout,
+                                                                                      bool& passMessageDownstream_out)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_Miscellaneous_Distributor_T::handleSessionMessage"));
+  STREAM_TRACE (ACE_TEXT ("Stream_Miscellaneous_Distributor_WriterTask_T::handleSessionMessage"));
 
   // don't care (implies yes per default, if part of a stream)
   ACE_UNUSED_ARG (passMessageDownstream_out);
@@ -347,15 +347,15 @@ template <ACE_SYNCH_DECL,
           typename SessionMessageType,
           typename SessionDataType>
 bool
-Stream_Miscellaneous_Distributor_T<ACE_SYNCH_USE,
-                                   TimePolicyType,
-                                   ConfigurationType,
-                                   ControlMessageType,
-                                   DataMessageType,
-                                   SessionMessageType,
-                                   SessionDataType>::initialize (const Stream_Branches_t& branches_in)
+Stream_Miscellaneous_Distributor_WriterTask_T<ACE_SYNCH_USE,
+                                              TimePolicyType,
+                                              ConfigurationType,
+                                              ControlMessageType,
+                                              DataMessageType,
+                                              SessionMessageType,
+                                              SessionDataType>::initialize (const Stream_Branches_t& branches_in)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_Miscellaneous_Distributor_T::initialize"));
+  STREAM_TRACE (ACE_TEXT ("Stream_Miscellaneous_Distributor_WriterTask_T::initialize"));
 
   // sanity check(s)
   ACE_ASSERT (!branches_in.empty ());
@@ -375,15 +375,15 @@ template <ACE_SYNCH_DECL,
           typename SessionMessageType,
           typename SessionDataType>
 bool
-Stream_Miscellaneous_Distributor_T<ACE_SYNCH_USE,
-                                   TimePolicyType,
-                                   ConfigurationType,
-                                   ControlMessageType,
-                                   DataMessageType,
-                                   SessionMessageType,
-                                   SessionDataType>::push (Stream_Module_t* module_in)
+Stream_Miscellaneous_Distributor_WriterTask_T<ACE_SYNCH_USE,
+                                              TimePolicyType,
+                                              ConfigurationType,
+                                              ControlMessageType,
+                                              DataMessageType,
+                                              SessionMessageType,
+                                              SessionDataType>::push (Stream_Module_t* module_in)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_Miscellaneous_Distributor_T::push"));
+  STREAM_TRACE (ACE_TEXT ("Stream_Miscellaneous_Distributor_WriterTask_T::push"));
 
   // sanity check(s)
   ACE_ASSERT (module_in);
@@ -445,15 +445,15 @@ template <ACE_SYNCH_DECL,
           typename SessionMessageType,
           typename SessionDataType>
 bool
-Stream_Miscellaneous_Distributor_T<ACE_SYNCH_USE,
-                                   TimePolicyType,
-                                   ConfigurationType,
-                                   ControlMessageType,
-                                   DataMessageType,
-                                   SessionMessageType,
-                                   SessionDataType>::pop (Stream_Module_t* module_in)
+Stream_Miscellaneous_Distributor_WriterTask_T<ACE_SYNCH_USE,
+                                              TimePolicyType,
+                                              ConfigurationType,
+                                              ControlMessageType,
+                                              DataMessageType,
+                                              SessionMessageType,
+                                              SessionDataType>::pop (Stream_Module_t* module_in)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_Miscellaneous_Distributor_T::pop"));
+  STREAM_TRACE (ACE_TEXT ("Stream_Miscellaneous_Distributor_WriterTask_T::pop"));
 
   ACE_GUARD_RETURN (ACE_Thread_Mutex, aGuard, inherited::lock_, false);
 
@@ -470,15 +470,15 @@ template <ACE_SYNCH_DECL,
           typename SessionMessageType,
           typename SessionDataType>
 Stream_Module_t*
-Stream_Miscellaneous_Distributor_T<ACE_SYNCH_USE,
-                                   TimePolicyType,
-                                   ConfigurationType,
-                                   ControlMessageType,
-                                   DataMessageType,
-                                   SessionMessageType,
-                                   SessionDataType>::head (const std::string& branchName_in) const
+Stream_Miscellaneous_Distributor_WriterTask_T<ACE_SYNCH_USE,
+                                              TimePolicyType,
+                                              ConfigurationType,
+                                              ControlMessageType,
+                                              DataMessageType,
+                                              SessionMessageType,
+                                              SessionDataType>::head (const std::string& branchName_in) const
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_Miscellaneous_Distributor_T::head"));
+  STREAM_TRACE (ACE_TEXT ("Stream_Miscellaneous_Distributor_WriterTask_T::head"));
 
   BRANCH_TO_HEAD_CONST_ITERATOR_T iterator;
   { ACE_GUARD_RETURN (ACE_Thread_Mutex, aGuard, inherited::lock_, NULL);
@@ -496,15 +496,15 @@ template <ACE_SYNCH_DECL,
           typename SessionMessageType,
           typename SessionDataType>
 std::string
-Stream_Miscellaneous_Distributor_T<ACE_SYNCH_USE,
-                                   TimePolicyType,
-                                   ConfigurationType,
-                                   ControlMessageType,
-                                   DataMessageType,
-                                   SessionMessageType,
-                                   SessionDataType>::branch (Stream_Module_t* headModule_in) const
+Stream_Miscellaneous_Distributor_WriterTask_T<ACE_SYNCH_USE,
+                                              TimePolicyType,
+                                              ConfigurationType,
+                                              ControlMessageType,
+                                              DataMessageType,
+                                              SessionMessageType,
+                                              SessionDataType>::branch (Stream_Module_t* headModule_in) const
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_Miscellaneous_Distributor_T::branch"));
+  STREAM_TRACE (ACE_TEXT ("Stream_Miscellaneous_Distributor_WriterTask_T::branch"));
 
   // initialize return value(s)
   std::string return_value;
@@ -533,16 +533,16 @@ template <ACE_SYNCH_DECL,
           typename SessionMessageType,
           typename SessionDataType>
 bool
-Stream_Miscellaneous_Distributor_T<ACE_SYNCH_USE,
-                                   TimePolicyType,
-                                   ConfigurationType,
-                                   ControlMessageType,
-                                   DataMessageType,
-                                   SessionMessageType,
-                                   SessionDataType>::has (const std::string& branchName_in,
-                                                          unsigned int& index_out) const
+Stream_Miscellaneous_Distributor_WriterTask_T<ACE_SYNCH_USE,
+                                              TimePolicyType,
+                                              ConfigurationType,
+                                              ControlMessageType,
+                                              DataMessageType,
+                                              SessionMessageType,
+                                              SessionDataType>::has (const std::string& branchName_in,
+                                                                     unsigned int& index_out) const
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_Miscellaneous_Distributor_T::has"));
+  STREAM_TRACE (ACE_TEXT ("Stream_Miscellaneous_Distributor_WriterTask_T::has"));
 
   // initialize return value(s)
   index_out = 0;
@@ -574,15 +574,15 @@ template <ACE_SYNCH_DECL,
           typename SessionMessageType,
           typename SessionDataType>
 Stream_ModuleList_t
-Stream_Miscellaneous_Distributor_T<ACE_SYNCH_USE,
-                                   TimePolicyType,
-                                   ConfigurationType,
-                                   ControlMessageType,
-                                   DataMessageType,
-                                   SessionMessageType,
-                                   SessionDataType>::next () const
+Stream_Miscellaneous_Distributor_WriterTask_T<ACE_SYNCH_USE,
+                                              TimePolicyType,
+                                              ConfigurationType,
+                                              ControlMessageType,
+                                              DataMessageType,
+                                              SessionMessageType,
+                                              SessionDataType>::next () const
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_Miscellaneous_Distributor_T::next"));
+  STREAM_TRACE (ACE_TEXT ("Stream_Miscellaneous_Distributor_WriterTask_T::next"));
 
   // initialize return value(s)
   Stream_ModuleList_t return_value;
@@ -605,15 +605,15 @@ template <ACE_SYNCH_DECL,
           typename SessionMessageType,
           typename SessionDataType>
 void
-Stream_Miscellaneous_Distributor_T<ACE_SYNCH_USE,
-                                   TimePolicyType,
-                                   ConfigurationType,
-                                   ControlMessageType,
-                                   DataMessageType,
-                                   SessionMessageType,
-                                   SessionDataType>::onLink (ACE_Module_Base* module_in)
+Stream_Miscellaneous_Distributor_WriterTask_T<ACE_SYNCH_USE,
+                                              TimePolicyType,
+                                              ConfigurationType,
+                                              ControlMessageType,
+                                              DataMessageType,
+                                              SessionMessageType,
+                                              SessionDataType>::onLink (ACE_Module_Base* module_in)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_Miscellaneous_Distributor_T::onLink"));
+  STREAM_TRACE (ACE_TEXT ("Stream_Miscellaneous_Distributor_WriterTask_T::onLink"));
 
   ACE_UNUSED_ARG (module_in);
 }
@@ -626,15 +626,15 @@ template <ACE_SYNCH_DECL,
           typename SessionMessageType,
           typename SessionDataType>
 void
-Stream_Miscellaneous_Distributor_T<ACE_SYNCH_USE,
-                                   TimePolicyType,
-                                   ConfigurationType,
-                                   ControlMessageType,
-                                   DataMessageType,
-                                   SessionMessageType,
-                                   SessionDataType>::onUnlink (ACE_Module_Base* module_in)
+Stream_Miscellaneous_Distributor_WriterTask_T<ACE_SYNCH_USE,
+                                              TimePolicyType,
+                                              ConfigurationType,
+                                              ControlMessageType,
+                                              DataMessageType,
+                                              SessionMessageType,
+                                              SessionDataType>::onUnlink (ACE_Module_Base* module_in)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_Miscellaneous_Distributor_T::onUnlink"));
+  STREAM_TRACE (ACE_TEXT ("Stream_Miscellaneous_Distributor_WriterTask_T::onUnlink"));
 
   ACE_UNUSED_ARG (module_in);
 }
@@ -647,16 +647,16 @@ template <ACE_SYNCH_DECL,
           typename SessionMessageType,
           typename SessionDataType>
 void
-Stream_Miscellaneous_Distributor_T<ACE_SYNCH_USE,
-                                   TimePolicyType,
-                                   ConfigurationType,
-                                   ControlMessageType,
-                                   DataMessageType,
-                                   SessionMessageType,
-                                   SessionDataType>::stop (bool waitForCompletion_in,
-                                                           bool highPriority_in)
+Stream_Miscellaneous_Distributor_WriterTask_T<ACE_SYNCH_USE,
+                                              TimePolicyType,
+                                              ConfigurationType,
+                                              ControlMessageType,
+                                              DataMessageType,
+                                              SessionMessageType,
+                                              SessionDataType>::stop (bool waitForCompletion_in,
+                                                                      bool highPriority_in)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_Miscellaneous_Distributor_T::stop"));
+  STREAM_TRACE (ACE_TEXT ("Stream_Miscellaneous_Distributor_WriterTask_T::stop"));
 
   ACE_Message_Block* message_block_p = NULL;
 
@@ -698,15 +698,15 @@ template <ACE_SYNCH_DECL,
           typename SessionMessageType,
           typename SessionDataType>
 void
-Stream_Miscellaneous_Distributor_T<ACE_SYNCH_USE,
-                                   TimePolicyType,
-                                   ConfigurationType,
-                                   ControlMessageType,
-                                   DataMessageType,
-                                   SessionMessageType,
-                                   SessionDataType>::idle ()
+Stream_Miscellaneous_Distributor_WriterTask_T<ACE_SYNCH_USE,
+                                              TimePolicyType,
+                                              ConfigurationType,
+                                              ControlMessageType,
+                                              DataMessageType,
+                                              SessionMessageType,
+                                              SessionDataType>::idle ()
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_Miscellaneous_Distributor_T::idle"));
+  STREAM_TRACE (ACE_TEXT ("Stream_Miscellaneous_Distributor_WriterTask_T::idle"));
 
   typename inherited::MESSAGE_QUEUE_T* queue_p = NULL;
 
@@ -740,15 +740,15 @@ template <ACE_SYNCH_DECL,
           typename SessionMessageType,
           typename SessionDataType>
 void
-Stream_Miscellaneous_Distributor_T<ACE_SYNCH_USE,
-                                   TimePolicyType,
-                                   ConfigurationType,
-                                   ControlMessageType,
-                                   DataMessageType,
-                                   SessionMessageType,
-                                   SessionDataType>::wait (bool waitForMessageQueues_in) const
+Stream_Miscellaneous_Distributor_WriterTask_T<ACE_SYNCH_USE,
+                                              TimePolicyType,
+                                              ConfigurationType,
+                                              ControlMessageType,
+                                              DataMessageType,
+                                              SessionMessageType,
+                                              SessionDataType>::wait (bool waitForMessageQueues_in) const
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_Miscellaneous_Distributor_T::wait"));
+  STREAM_TRACE (ACE_TEXT ("Stream_Miscellaneous_Distributor_WriterTask_T::wait"));
 
   int result = -1;
   ACE_Time_Value one_second (1, 0);
@@ -787,15 +787,15 @@ template <ACE_SYNCH_DECL,
           typename SessionMessageType,
           typename SessionDataType>
 int
-Stream_Miscellaneous_Distributor_T<ACE_SYNCH_USE,
-                                   TimePolicyType,
-                                   ConfigurationType,
-                                   ControlMessageType,
-                                   DataMessageType,
-                                   SessionMessageType,
-                                   SessionDataType>::svc (void)
+Stream_Miscellaneous_Distributor_WriterTask_T<ACE_SYNCH_USE,
+                                              TimePolicyType,
+                                              ConfigurationType,
+                                              ControlMessageType,
+                                              DataMessageType,
+                                              SessionMessageType,
+                                              SessionDataType>::svc (void)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_Miscellaneous_Distributor_T::svc"));
+  STREAM_TRACE (ACE_TEXT ("Stream_Miscellaneous_Distributor_WriterTask_T::svc"));
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #if COMMON_OS_WIN32_TARGET_PLATFORM(0x0A00) // _WIN32_WINNT_WIN10
@@ -906,4 +906,167 @@ done:
               inherited::mod_->name ()));
 
   return result;
+}
+
+// -----------------------------------------------------------------------------
+
+template <ACE_SYNCH_DECL,
+          typename TimePolicyType,
+          typename ConfigurationType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
+          typename SessionDataType>
+Stream_Miscellaneous_Distributor_ReaderTask_T<ACE_SYNCH_USE,
+                                              TimePolicyType,
+                                              ConfigurationType,
+                                              ControlMessageType,
+                                              DataMessageType,
+                                              SessionMessageType,
+                                              SessionDataType>::Stream_Miscellaneous_Distributor_ReaderTask_T (ISTREAM_T* stream_in)
+ : inherited ()
+ , controlMessages_ ()
+ , sessionMessages_ ()
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Miscellaneous_Distributor_ReaderTask_T::Stream_Miscellaneous_Distributor_ReaderTask_T"));
+
+  ACE_UNUSED_ARG (stream_in);
+
+  inherited::flags_ |= ACE_Task_Flags::ACE_READER;
+}
+
+template <ACE_SYNCH_DECL,
+          typename TimePolicyType,
+          typename ConfigurationType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
+          typename SessionDataType>
+Stream_Miscellaneous_Distributor_ReaderTask_T<ACE_SYNCH_USE,
+                                              TimePolicyType,
+                                              ConfigurationType,
+                                              ControlMessageType,
+                                              DataMessageType,
+                                              SessionMessageType,
+                                              SessionDataType>::~Stream_Miscellaneous_Distributor_ReaderTask_T ()
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Miscellaneous_Distributor_ReaderTask_T::~Stream_Miscellaneous_Distributor_ReaderTask_T"));
+
+  for (CONTROL_MESSAGES_ITERATOR_T iterator = controlMessages_.begin ();
+       iterator != controlMessages_.end ();
+       ++iterator)
+    for (MESSAGE_LIST_ITERATOR_T iterator2 = (*iterator).second.begin ();
+         iterator2 != (*iterator).second.end ();
+         ++iterator2)
+      (*iterator2)->release ();
+  for (SESSION_MESSAGES_ITERATOR_T iterator = sessionMessages_.begin ();
+       iterator != sessionMessages_.end ();
+       ++iterator)
+    for (MESSAGE_LIST_ITERATOR_T iterator2 = (*iterator).second.begin ();
+         iterator2 != (*iterator).second.end ();
+         ++iterator2)
+      (*iterator2)->release ();
+}
+
+template <ACE_SYNCH_DECL,
+          typename TimePolicyType,
+          typename ConfigurationType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
+          typename SessionDataType>
+int
+Stream_Miscellaneous_Distributor_ReaderTask_T<ACE_SYNCH_USE,
+                                              TimePolicyType,
+                                              ConfigurationType,
+                                              ControlMessageType,
+                                              DataMessageType,
+                                              SessionMessageType,
+                                              SessionDataType>::put (ACE_Message_Block* messageBlock_in,
+                                                                     ACE_Time_Value* timeValue_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Miscellaneous_Distributor_ReaderTask_T::put"));
+
+  ACE_Message_Block* message_p = messageBlock_in;
+
+  // sanity check(s)
+  ACE_Task_Base* task_base_p = inherited::sibling ();
+  ACE_ASSERT (task_base_p);
+  WRITER_TASK_T* writer_p = static_cast<WRITER_TASK_T*> (task_base_p);
+  if (unlikely (writer_p->heads_.size () <= 1))
+    goto continue_;
+
+  switch (messageBlock_in->msg_type ())
+  {
+    case STREAM_MESSAGE_CONTROL:
+    {
+      ControlMessageType* message_2 =
+        static_cast<ControlMessageType*> (messageBlock_in);
+      { ACE_GUARD_RETURN (ACE_Thread_Mutex, aGuard, writer_p->lock_, -1);
+        CONTROL_MESSAGES_ITERATOR_T iterator =
+          controlMessages_.find (message_2->type ());
+        if (iterator == controlMessages_.end ())
+        { // retain the message until all of its' copies have arrived
+          MESSAGE_LIST_T list_a;
+          list_a.push_back (messageBlock_in);
+          controlMessages_.insert (std::make_pair (message_2->type (),
+                                                   list_a));
+          return 0;
+        } // end IF
+
+        (*iterator).second.push_back (messageBlock_in);
+        if ((*iterator).second.size () < writer_p->heads_.size ())
+          return 0;
+        ACE_ASSERT ((*iterator).second.size () == writer_p->heads_.size ());
+
+        message_p = (*iterator).second.front ();
+        (*iterator).second.pop_front ();
+        for (MESSAGE_LIST_ITERATOR_T iterator2 = (*iterator).second.begin ();
+             iterator2 != (*iterator).second.end ();
+             ++iterator2)
+          (*iterator2)->release ();
+        controlMessages_.erase (iterator);
+      } // end lock scope
+      break;
+    }
+    case STREAM_MESSAGE_SESSION:
+    {
+      SessionMessageType* message_2 =
+        static_cast<SessionMessageType*> (messageBlock_in);
+      { ACE_GUARD_RETURN (ACE_Thread_Mutex, aGuard, writer_p->lock_, -1);
+        SESSION_MESSAGES_ITERATOR_T iterator =
+          sessionMessages_.find (message_2->type ());
+        if (iterator == sessionMessages_.end ())
+        { // retain the message until all of its' copies have arrived
+          MESSAGE_LIST_T list_a;
+          list_a.push_back (messageBlock_in);
+          sessionMessages_.insert (std::make_pair (message_2->type (),
+                                                   list_a));
+          return 0;
+        } // end IF
+
+        (*iterator).second.push_back (messageBlock_in);
+        if ((*iterator).second.size () < writer_p->heads_.size ())
+          return 0;
+        ACE_ASSERT ((*iterator).second.size () == writer_p->heads_.size ());
+
+        message_p = (*iterator).second.front ();
+        (*iterator).second.pop_front ();
+        for (MESSAGE_LIST_ITERATOR_T iterator2 = (*iterator).second.begin ();
+             iterator2 != (*iterator).second.end ();
+             ++iterator2)
+          (*iterator2)->release ();
+        sessionMessages_.erase (iterator);
+      } // end lock scope
+      break;
+    }
+    case STREAM_MESSAGE_DATA:
+    case STREAM_MESSAGE_OBJECT:
+      break;
+    default:
+      break;
+  } // end SWITCH
+
+continue_:
+  return inherited::put_next (message_p, timeValue_in);
 }

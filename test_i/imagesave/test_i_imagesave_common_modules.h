@@ -127,13 +127,20 @@ typedef Stream_Decoder_LibAVDecoder_T<ACE_MT_SYNCH,
 //                                                      Test_I_DirectShow_SessionData,
 //                                                      Test_I_DirectShow_SessionData_t> Test_I_Statistic_WriterTask_t;
 
-typedef Stream_Miscellaneous_Distributor_T<ACE_MT_SYNCH,
-                                           Common_TimePolicy_t,
-                                           struct Test_I_ImageSave_ModuleHandlerConfiguration,
-                                           Stream_ControlMessage_t,
-                                           Test_I_Message,
-                                           Test_I_SessionMessage_t,
-                                           Test_I_ImageSave_SessionData> Test_I_Distributor;
+typedef Stream_Miscellaneous_Distributor_ReaderTask_T<ACE_MT_SYNCH,
+                                                      Common_TimePolicy_t,
+                                                      struct Test_I_ImageSave_ModuleHandlerConfiguration,
+                                                      Stream_ControlMessage_t,
+                                                      Test_I_Message,
+                                                      Test_I_SessionMessage_t,
+                                                      Test_I_ImageSave_SessionData> Test_I_Distributor_Reader_t;
+typedef Stream_Miscellaneous_Distributor_WriterTask_T<ACE_MT_SYNCH,
+                                                      Common_TimePolicy_t,
+                                                      struct Test_I_ImageSave_ModuleHandlerConfiguration,
+                                                      Stream_ControlMessage_t,
+                                                      Test_I_Message,
+                                                      Test_I_SessionMessage_t,
+                                                      Test_I_ImageSave_SessionData> Test_I_Distributor_Writer_t;
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
@@ -236,12 +243,14 @@ DATASTREAM_MODULE_INPUT_ONLY (Test_I_ImageSave_SessionData,                     
                               Test_I_LibAVDecoder);                                      // writer type
 #endif // FFMPEG_SUPPORT
 
-DATASTREAM_MODULE_INPUT_ONLY (Test_I_ImageSave_SessionData,                             // session data type
-                              enum Stream_SessionMessageType,                           // session event type
-                              struct Test_I_ImageSave_ModuleHandlerConfiguration,       // module handler configuration type
-                              libacestream_default_misc_distributor_module_name_string,
-                              Stream_INotify_t,                                         // stream notification interface type
-                              Test_I_Distributor);                                      // writer type
+DATASTREAM_MODULE_DUPLEX (Test_I_ImageSave_SessionData,                             // session data type
+                          enum Stream_SessionMessageType,                           // session event type
+                          struct Test_I_ImageSave_ModuleHandlerConfiguration,       // module handler configuration type
+                          libacestream_default_misc_distributor_module_name_string,
+                          Stream_INotify_t,                                         // stream notification interface type
+                          Test_I_Distributor_Reader_t,                              // reader type
+                          Test_I_Distributor_Writer_t,                              // writer type
+                          Test_I_Distributor);                                      // name
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else

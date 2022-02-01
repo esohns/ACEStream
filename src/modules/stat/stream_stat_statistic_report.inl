@@ -60,11 +60,9 @@ Stream_Statistic_StatisticReport_WriterTask_T<ACE_SYNCH_USE,
  , outboundMessages_ (0)
  , lastBytesPerSecondCount_ (0)
  , lastDataMessagesPerSecondCount_ (0)
- , sessionMessages_ (0)
  , controlMessages_ (0)
- , outboundControlMessages_ (0)
+ , sessionMessages_ (0)
  /////////////////////////////////////////
- //, inbound_ (true)
  , localReportingHandler_ (COMMON_STATISTIC_ACTION_REPORT,
                            this,
                            false)
@@ -128,9 +126,6 @@ Stream_Statistic_StatisticReport_WriterTask_T<ACE_SYNCH_USE,
       lastDataMessagesPerSecondCount_ = 0;
       sessionMessages_ = 0;
       controlMessages_ = 0;
-      outboundControlMessages_ = 0;
-
-      //inbound_ = true;
 
       byteCounter_ = 0;
       fragmentCounter_ = 0;
@@ -492,8 +487,7 @@ Stream_Statistic_StatisticReport_WriterTask_T<ACE_SYNCH_USE,
     // *TODO*: remove type inferences
     data_out.bytes = inboundBytes_ + outboundBytes_;
     data_out.dataMessages =
-      (inboundMessages_ - sessionMessages_ - (controlMessages_ - outboundControlMessages_)) +
-      (outboundMessages_ - outboundControlMessages_);
+      inboundMessages_ + outboundMessages_ - sessionMessages_ - controlMessages_;
   } // end lock scope
 
   return true;
@@ -542,17 +536,7 @@ Stream_Statistic_StatisticReport_WriterTask_T<ACE_SYNCH_USE,
     // *TODO*: remove type inferences
     session_data_p->statistic.bytes = inboundBytes_ + outboundBytes_;
     session_data_p->statistic.dataMessages =
-    (inboundMessages_ - sessionMessages_ - (controlMessages_ - outboundControlMessages_)) +
-     (outboundMessages_ - outboundControlMessages_);
-    // *NOTE*: iff this is an 'outbound' stream, which means that the data (!)
-    //         will eventually turn around and travel back upstream for
-    //         dispatch, account for it only once
-    //if (!inbound_)
-    //{
-    //  session_data_p->statistic.bytes -= outboundBytes_;
-    //  session_data_p->statistic.dataMessages -=
-    //    (outboundMessages_ - outboundControlMessages_);
-    //} // end IF
+      inboundMessages_ + outboundMessages_ - sessionMessages_ - controlMessages_;
     //session_data_r.statistic.droppedMessages = 0;
     session_data_p->statistic.bytesPerSecond =
       static_cast<float> (lastBytesPerSecondCount_);
@@ -617,8 +601,7 @@ Stream_Statistic_StatisticReport_WriterTask_T<ACE_SYNCH_USE,
     } // end IF
 
   data_messages_i =
-    (inboundMessages_ - sessionMessages_ - (controlMessages_ - outboundControlMessages_)) +
-    (outboundMessages_ - outboundControlMessages_);
+    inboundMessages_ + outboundMessages_ - sessionMessages_ - controlMessages_;
   total_messages_i = inboundMessages_ + outboundMessages_;
 
   // *TODO*: remove type inferences
@@ -693,17 +676,11 @@ Stream_Statistic_StatisticReport_WriterTask_T<ACE_SYNCH_USE,
     ACE_DEBUG ((LM_INFO,
                 ACE_TEXT ("*** [session: %d] STATISTIC ***\n\ttotal # data message(s) [in/out]: %u/%u\n --> Protocol Info <--\n"),
                 (session_data_p ? static_cast<int> (session_data_p->sessionId) : -1),
-                inboundMessages_ - sessionMessages_ - (controlMessages_ - outboundControlMessages_),
-                outboundMessages_ - outboundControlMessages_));
+                inboundMessages_ - sessionMessages_ - controlMessages_,
+                outboundMessages_ - sessionMessages_ - controlMessages_));
 
-    // *NOTE*: if this is an 'outbound' stream, which means that the data (!)
-    //         will eventually turn around and travel back upstream for
-    //         dispatch - account for it only once
     unsigned int data_messages =
-        (inboundMessages_ - sessionMessages_ - (controlMessages_ - outboundControlMessages_)) +
-        (outboundMessages_ - outboundControlMessages_);
-    //if (!inherited::configuration_->inbound)
-    //  data_messages -= (outboundMessages_ - outboundControlMessages_);
+      inboundMessages_ + outboundMessages_ - sessionMessages_ - controlMessages_;
     for (STATISTIC_ITERATOR_T iterator = messageTypeStatistic_.begin ();
          iterator != messageTypeStatistic_.end ();
          iterator++)
@@ -971,19 +948,12 @@ Stream_Statistic_StatisticReport_ReaderTask_T<ACE_SYNCH_USE,
 
   ACE_Task_Base* task_base_p = inherited::sibling ();
   ACE_ASSERT (task_base_p);
-  WRITER_TASK_T* writer_p = dynamic_cast<WRITER_TASK_T*> (task_base_p);
-  if (unlikely (!writer_p))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: failed to dynamic_cast<Stream_Statistic_StatisticReport_WriterTask_T>: \"%m\", aborting\n"),
-                inherited::mod_->name ()));
-    return -1;
-  } // end IF
+  WRITER_TASK_T* writer_p = static_cast<WRITER_TASK_T*> (task_base_p);
 
   switch (messageBlock_in->msg_type ())
   {
-    case ACE_Message_Block::MB_DATA:
-    case ACE_Message_Block::MB_PROTO:
+    case STREAM_MESSAGE_DATA:
+    case STREAM_MESSAGE_OBJECT:
     {
       DataMessageType* message_p =
         static_cast<DataMessageType*> (messageBlock_in);
@@ -998,42 +968,14 @@ Stream_Statistic_StatisticReport_ReaderTask_T<ACE_SYNCH_USE,
 
       { ACE_GUARD_RETURN (ACE_SYNCH_MUTEX_T, aGuard, writer_p->lock_, -1);
         // update counters
-        //if (!writer_p->inbound_)
-        //{ // --> data has already been accounted for
-        //  writer_p->outboundBytes_ = writer_p->inboundBytes_;
-        //  writer_p->outboundMessages_ =
-        //    writer_p->inboundMessages_ + writer_p->outboundControlMessages_;
-        //  goto continue_;
-        //} // end IF
-
         writer_p->outboundBytes_ += messageBlock_in->total_length ();
-        writer_p->outboundMessages_++;
+        ++writer_p->outboundMessages_;
 
         writer_p->byteCounter_ += messageBlock_in->total_length ();
-        // *TODO*: count fragment(s)
-        writer_p->messageCounter_++;
+        // *TODO*: count fragment(s) as well
+        ++writer_p->messageCounter_;
         // add message to statistic
         writer_p->messageTypeStatistic_[message_p->command ()]++;
-      } // end lock scope
-
-      break;
-    }
-    case ACE_Message_Block::MB_BREAK:
-    case ACE_Message_Block::MB_FLUSH:
-    case ACE_Message_Block::MB_HANGUP:
-    case ACE_Message_Block::MB_NORMAL: // undifferentiated
-    case STREAM_CONTROL_CONNECT:
-    case STREAM_CONTROL_LINK:
-    case STREAM_CONTROL_STEP:
-    {
-      { ACE_GUARD_RETURN (ACE_SYNCH_MUTEX_T, aGuard, writer_p->lock_, -1);
-        // update counters
-        writer_p->controlMessages_++;
-        writer_p->outboundMessages_++;
-        writer_p->outboundControlMessages_++;
-
-        writer_p->messageCounter_++;
-        writer_p->controlMessageCounter_++;
       } // end lock scope
 
       break;
@@ -1042,6 +984,5 @@ Stream_Statistic_StatisticReport_ReaderTask_T<ACE_SYNCH_USE,
       break;
   } // end SWITCH
 
-//continue_:
   return inherited::put_next (messageBlock_in, timeValue_in);
 }
