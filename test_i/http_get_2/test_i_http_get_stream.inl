@@ -127,9 +127,9 @@ Test_I_HTTPGet_Stream_T<ConnectorType>::initialize (const Test_I_HTTPGet_StreamC
 
   if (inherited::isInitialized_)
   {
-    if (!inherited::finalize ())
+    if (!inherited::reset ())
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("%s: failed to Stream_Base_T::finalize(): \"%m\", continuing\n"),
+                  ACE_TEXT ("%s: failed to Stream_Base_T::reset(): \"%m\", continuing\n"),
                   ACE_TEXT (stream_name_string_)));
   } // end IF
 

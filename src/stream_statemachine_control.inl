@@ -52,10 +52,10 @@ Stream_StateMachine_Control_T<ACE_SYNCH_USE>::change (Stream_StateMachine_Contro
       {
         switch (newState_in)
         {
-          // good case
+          // good case(s)
           case STREAM_STATE_INITIALIZED:
             goto continue_;
-          // error case
+          // error case(s)
           default:
             break;
         } // end SWITCH
@@ -69,7 +69,7 @@ Stream_StateMachine_Control_T<ACE_SYNCH_USE>::change (Stream_StateMachine_Contro
           case STREAM_STATE_SESSION_STARTING:
           case STREAM_STATE_INITIALIZED:
             goto continue_;
-          // error case
+          // error case(s)
           default:
             break;
         } // end SWITCH
@@ -82,7 +82,10 @@ Stream_StateMachine_Control_T<ACE_SYNCH_USE>::change (Stream_StateMachine_Contro
           // good case(s)
           case STREAM_STATE_RUNNING:
             goto continue_;
-          // error case
+          // bad case(s)
+          case STREAM_STATE_SESSION_STOPPING: // session initialization failed
+            goto continue_;
+          // error case(s)
           default:
             break;
         } // end SWITCH
@@ -92,11 +95,11 @@ Stream_StateMachine_Control_T<ACE_SYNCH_USE>::change (Stream_StateMachine_Contro
       {
         switch (newState_in)
         {
-          // good case
+          // good case(s)
           case STREAM_STATE_PAUSED:
           case STREAM_STATE_SESSION_STOPPING:
             goto continue_;
-          // error case
+          // error case(s)
           default:
             break;
         } // end SWITCH
@@ -106,7 +109,7 @@ Stream_StateMachine_Control_T<ACE_SYNCH_USE>::change (Stream_StateMachine_Contro
       {
         switch (newState_in)
         {
-          // good case
+          // good case(s)
           case STREAM_STATE_PAUSED:  // behave like a tape recorder...
           case STREAM_STATE_RUNNING: // ...but allow resume
           case STREAM_STATE_SESSION_STOPPING:
@@ -124,7 +127,7 @@ Stream_StateMachine_Control_T<ACE_SYNCH_USE>::change (Stream_StateMachine_Contro
             } // end lock scope
             goto continue_;
           }
-          // error case
+          // error case(s)
           default:
             break;
         } // end SWITCH
@@ -134,10 +137,10 @@ Stream_StateMachine_Control_T<ACE_SYNCH_USE>::change (Stream_StateMachine_Contro
       {
         switch (newState_in)
         {
-          // good case
+          // good case(s)
           case STREAM_STATE_STOPPED:
             goto continue_;
-          // error case
+          // error case(s)
           default:
             break;
         } // end SWITCH
@@ -147,13 +150,14 @@ Stream_StateMachine_Control_T<ACE_SYNCH_USE>::change (Stream_StateMachine_Contro
       {
         switch (newState_in)
         {
-          // good cases
+          // good case(s)
           case STREAM_STATE_INITIALIZED:
           case STREAM_STATE_SESSION_STARTING:
-          case STREAM_STATE_STOPPED: // *NOTE*: allow STOPPED --> STOPPED
+          // *IMPORTANT NOTE*: the head module is responsible for the transition
+          //                   to FINISHED after stopping the session
           case STREAM_STATE_FINISHED:
             goto continue_;
-          // error cases
+          // error case(s)
           default:
             break;
         } // end SWITCH
@@ -163,17 +167,11 @@ Stream_StateMachine_Control_T<ACE_SYNCH_USE>::change (Stream_StateMachine_Contro
       {
         switch (newState_in)
         {
-          // good case
+          // good case(s)
           case STREAM_STATE_INITIALIZED:
           case STREAM_STATE_SESSION_STARTING:
-          case STREAM_STATE_STOPPED:  // *NOTE*: allow FINISHED --> (STOPPED) --> FINISHED
             goto continue_;
-          case STREAM_STATE_FINISHED: // *NOTE*: disregard FINISHED --> FINISHED
-          {
-            result = true;
-            goto continue_;
-          }
-          // error case
+          // error case(s)
           default:
             break;
         } // end SWITCH

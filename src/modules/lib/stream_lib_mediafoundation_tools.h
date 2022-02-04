@@ -68,6 +68,7 @@ class Stream_MediaFramework_MediaFoundation_Tools
   static bool merge (const IMFMediaType*, // source
                      IMFMediaType*,       // target
                      bool = true);        // reconfigure ?
+  static bool reconfigure (IMFMediaType*); // media type handle
   // *IMPORTANT NOTE*: make sure to Release() the return value
   static IMFMediaType* to (const struct tWAVEFORMATEX&); // media type
   static struct _GUID toFormat (const IMFMediaType*);
@@ -271,7 +272,6 @@ class Stream_MediaFramework_MediaFoundation_Tools
   ////         will automatically load the decoder. ..."
   //static bool setOutputFormat (IMFSourceReader*,     // source handle
   //                             const IMFMediaType*); // media type
-  static bool reconfigure (IMFMediaType*); // media type handle
 
   static void expand (const TOPOLOGY_PATH_T&,    // input/return value: topology path
                       TOPOLOGY_PATH_ITERATOR_T&, // iterator

@@ -74,11 +74,11 @@ class Test_U_RIFFDecoder_Stream
 
  public:
   Test_U_RIFFDecoder_Stream ();
-  virtual ~Test_U_RIFFDecoder_Stream ();
+  inline virtual ~Test_U_RIFFDecoder_Stream () { inherited::shutdown (); }
 
   // implement (part of) Stream_IStreamControlBase
-  virtual bool load (Stream_ModuleList_t&, // return value: module list
-                     bool&);               // return value: delete modules ?
+  virtual bool load (Stream_ILayout*, // layout handle
+                     bool&);          // return value: delete modules ?
 
   // implement Common_IInitialize_T
   virtual bool initialize (const inherited::CONFIGURATION_T&); // configuration

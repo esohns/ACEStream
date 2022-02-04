@@ -19,47 +19,40 @@
  ***************************************************************************/
 #include "stdafx.h"
 
-//#include "ace/Synch.h"
 #include "test_u_riffdecoder_stream.h"
 
 #include "ace/Log_Msg.h"
 
 #include "stream_macros.h"
 
+#include "stream_dec_defines.h"
+#include "stream_file_defines.h"
+#include "stream_stat_defines.h"
+
 Test_U_RIFFDecoder_Stream::Test_U_RIFFDecoder_Stream ()
  : inherited ()
  , source_ (this,
-            ACE_TEXT_ALWAYS_CHAR ("FileSource"))
+            ACE_TEXT_ALWAYS_CHAR (STREAM_FILE_SOURCE_DEFAULT_NAME_STRING))
  , decoder_ (this,
-             ACE_TEXT_ALWAYS_CHAR ("Decoder"))
+             ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_AVI_DEFAULT_NAME_STRING))
  , statistic_ (this,
-               ACE_TEXT_ALWAYS_CHAR ("StatisticReport"))
+               ACE_TEXT_ALWAYS_CHAR (MODULE_STAT_REPORT_DEFAULT_NAME_STRING))
 {
   STREAM_TRACE (ACE_TEXT ("Test_U_RIFFDecoder_Stream::Test_U_RIFFDecoder_Stream"));
 
 }
 
-Test_U_RIFFDecoder_Stream::~Test_U_RIFFDecoder_Stream ()
-{
-  STREAM_TRACE (ACE_TEXT ("Test_U_RIFFDecoder_Stream::~Test_U_RIFFDecoder_Stream"));
-
-  // *NOTE*: this implements an ordered shutdown on destruction
-  inherited::shutdown ();
-}
-
 bool
-Test_U_RIFFDecoder_Stream::load (Stream_ModuleList_t& modules_out,
+Test_U_RIFFDecoder_Stream::load (Stream_ILayout* layout_inout,
                                  bool& delete_out)
 {
   STREAM_TRACE (ACE_TEXT ("Test_U_RIFFDecoder_Stream::load"));
 
-  // initialize return value(s)
-  modules_out.clear ();
-  delete_out = false;
+  layout_inout->append (&source_, NULL, 0);
+  layout_inout->append (&decoder_, NULL, 0);
+  layout_inout->append (&statistic_, NULL, 0);
 
-  modules_out.push_back (&statistic_);
-  modules_out.push_back (&decoder_);
-  modules_out.push_back (&source_);
+  delete_out = false;
 
   return true;
 }
@@ -106,76 +99,6 @@ Test_U_RIFFDecoder_Stream::initialize (const inherited::CONFIGURATION_T& configu
   // - initialize modules
   // - push them onto the stream (tail-first) !
   // ------------------------------------
-
-//  int result = -1;
-//  inherited::MODULE_T* module_p = NULL;
-//  if (configuration_in.notificationStrategy)
-//  {
-//    module_p = inherited::head ();
-//    if (!module_p)
-//    {
-//      ACE_DEBUG ((LM_ERROR,
-//                  ACE_TEXT ("no head module found, aborting\n")));
-//      return false;
-//    } // end IF
-//    inherited::TASK_T* task_p = module_p->reader ();
-//    if (!task_p)
-//    {
-//      ACE_DEBUG ((LM_ERROR,
-//                  ACE_TEXT ("no head module reader task found, aborting\n")));
-//      return false;
-//    } // end IF
-//    inherited::QUEUE_T* queue_p = task_p->msg_queue ();
-//    if (!queue_p)
-//    {
-//      ACE_DEBUG ((LM_ERROR,
-//                  ACE_TEXT ("no head module reader task queue found, aborting\n")));
-//      return false;
-//    } // end IF
-//    queue_p->notification_strategy (configuration_in.notificationStrategy);
-//  } // end IF
-//  configuration_in.moduleConfiguration.streamState = &state_;
-
-  // ---------------------------------------------------------------------------
-
-  // ******************* Runtime Statistic ************************
-  //runtimeStatistic_.initialize (*configuration_in.moduleConfiguration);
-  //Test_U_RIFFDecoder_Module_Statistic_WriterTask_t* runtimeStatistic_impl_p =
-  //    dynamic_cast<Test_U_RIFFDecoder_Module_Statistic_WriterTask_t*> (runtimeStatistic_.writer ());
-  //if (!runtimeStatistic_impl_p)
-  //{
-  //  ACE_DEBUG ((LM_ERROR,
-  //              ACE_TEXT ("dynamic_cast<Test_U_RIFFDecoder_Module_RuntimeStatistic> failed, aborting\n")));
-  //  return false;
-  //} // end IF
-  //if (!runtimeStatistic_impl_p->initialize (configuration_in.statisticReportingInterval, // reporting interval (seconds)
-  //                                          true,                                        // push 1-second interval statistic messages downstream ?
-  //                                          configuration_in.printFinalReport,           // print final report ?
-  //                                          configuration_in.messageAllocator))          // message allocator handle
-  //{
-  //  ACE_DEBUG ((LM_ERROR,
-  //              ACE_TEXT ("failed to initialize module: \"%s\", aborting\n"),
-  //              runtimeStatistic_.name ()));
-  //  return false;
-  //} // end IF
-
-  // ******************* Decoder ************************
-  //decoder_.initialize (*configuration_in.moduleConfiguration);
-  //Test_U_RIFFDecoder_Module_Decoder* decoder_impl_p =
-  //  dynamic_cast<Test_U_RIFFDecoder_Module_Decoder*> (decoder_.writer ());
-  //if (!decoder_impl_p)
-  //{
-  //  ACE_DEBUG ((LM_ERROR,
-  //              ACE_TEXT ("dynamic_cast<Test_U_RIFFDecoder_Module_Decoder> failed, aborting\n")));
-  //  return false;
-  //} // end IF
-  //if (!decoder_impl_p->initialize (*configuration_in.moduleHandlerConfiguration))
-  //{
-  //  ACE_DEBUG ((LM_ERROR,
-  //              ACE_TEXT ("failed to initialize module: \"%s\", aborting\n"),
-  //              decoder_.name ()));
-  //  return false;
-  //} // end IF
 
   // ******************* File Source ************************
   source_impl_p =

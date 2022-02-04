@@ -3988,17 +3988,29 @@ continue_4:
       !Stream_MediaFramework_MediaFoundation_Tools::canRender (media_type_p,
                                                                media_type_2))
   {
-    if (Stream_MediaFramework_MediaFoundation_Tools::isPartial (media_type_2))
+    if (Stream_MediaFramework_MediaFoundation_Tools::isPartial (media_type_2) &&
+        !Stream_MediaFramework_MediaFoundation_Tools::merge (media_type_p,
+                                                             media_type_2,
+                                                             true)) // reconfigure ?
     {
-      if (!Stream_MediaFramework_MediaFoundation_Tools::merge (media_type_p,
-                                                               media_type_2,
-                                                               true)) // reconfigure ?
-      {
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("failed to Stream_MediaFramework_MediaFoundation_Tools::merge(), aborting\n")));
-        media_type_2->Release (); media_type_2 = NULL;
-        goto error;
-      } // end IF
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to Stream_MediaFramework_MediaFoundation_Tools::merge(), aborting\n")));
+      media_type_2->Release (); media_type_2 = NULL;
+      goto error;
+    } // end IF
+    UINT32 value_i = 0;
+    result = media_type_2->GetUINT32 (MF_MT_AUDIO_NUM_CHANNELS,
+                                      &value_i);
+    ACE_ASSERT (SUCCEEDED (result) && value_i);
+    if (unlikely (value_i != 2))
+    {
+      result = media_type_2->SetUINT32 (MF_MT_AUDIO_NUM_CHANNELS,
+                                        2);
+      ACE_ASSERT (SUCCEEDED (result));
+      Stream_MediaFramework_MediaFoundation_Tools::reconfigure (media_type_2);
+      ACE_DEBUG ((LM_WARNING,
+                  ACE_TEXT ("modified output media type to stereo (#channels was: %d), continuing\n"),
+                  value_i));
     } // end IF
 
     node_id = 0;

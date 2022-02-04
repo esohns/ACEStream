@@ -840,20 +840,25 @@ Stream_MediaFramework_MediaFoundation_Tools::to (const struct tWAVEFORMATEX& for
 
   HRESULT result_2 = MFCreateMediaType (&result_p);
   ACE_ASSERT (SUCCEEDED (result_2) && result_p);
-  //struct _AMMediaType media_type_s;
-  //ACE_OS::memset (&media_type_s, 0, sizeof (struct _AMMediaType));
-  //result_2 = CreateAudioMediaType (&waveformatex_s,
-  //                                 &media_type_s,
-  //                                 TRUE);
-  //ACE_ASSERT (SUCCEEDED (result_2));
-  //result_2 = MFInitMediaTypeFromAMMediaType (media_type_p,
-  //                                           &media_type_s);
-  //ACE_ASSERT (SUCCEEDED (result_2));
-  //Stream_MediaFramework_DirectShow_Tools::free (media_type_s);
   result_2 = MFInitMediaTypeFromWaveFormatEx (result_p,
                                               &format_in,
                                               sizeof (struct tWAVEFORMATEX) + format_in.cbSize);
   ACE_ASSERT (SUCCEEDED (result_2));
+
+  // validate subtype
+  struct _GUID GUID_s = GUID_NULL;
+  result_2 = result_p->GetGUID (MF_MT_SUBTYPE,
+                                &GUID_s);
+  ACE_ASSERT (SUCCEEDED (result_2));
+  if (unlikely (!InlineIsEqualGUID (GUID_s, MFAudioFormat_PCM) &&
+                !InlineIsEqualGUID (GUID_s, MFAudioFormat_Float)))
+  {
+    GUID_s = Stream_MediaFramework_DirectShow_Tools::toSubType (format_in);
+    result_2 = result_p->SetGUID (MF_MT_SUBTYPE,
+                                  GUID_s);
+    ACE_ASSERT (SUCCEEDED (result_2));
+    Stream_MediaFramework_MediaFoundation_Tools::reconfigure (result_p);
+  } // end IF
 
   return result_p;
 }

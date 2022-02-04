@@ -264,7 +264,6 @@ Stream_Dev_Mic_Source_WASAPI_T<ACE_SYNCH_USE,
       inherited2::getMediaType (session_data_r.formats.back (),
                                 media_type_s);
       ACE_ASSERT (media_type_s.majortype == MEDIATYPE_Audio);
-      //ACE_ASSERT (media_type_s.subtype == MEDIASUBTYPE_PCM);
       ACE_ASSERT (media_type_s.formattype == FORMAT_WaveFormatEx);
       struct tWAVEFORMATEX* audio_info_p =
         reinterpret_cast<struct tWAVEFORMATEX*> (media_type_s.pbFormat);
@@ -414,9 +413,9 @@ retry:
         goto error;
       } // end IF
       ACE_DEBUG ((LM_DEBUG,
-                  ACE_TEXT ("%s: opened device (id: %s, format: %s)...\n"),
+                  ACE_TEXT ("%s: opened device \"%s\": format: %s...\n"),
                   inherited::mod_->name (),
-                  ACE_TEXT (Common_Tools::GUIDToString (inherited::configuration_->deviceIdentifier.identifier._guid).c_str ()),
+                  ACE_TEXT (Stream_MediaFramework_DirectSound_Tools::directSoundGUIDToString (inherited::configuration_->deviceIdentifier.identifier._guid).c_str ()),
                   ACE_TEXT (Stream_MediaFramework_DirectSound_Tools::toString (*audio_info_p, true).c_str ())));
       if (audio_info_2)
       {
@@ -934,7 +933,14 @@ continue_:
       } // end IF
 
       result_4 = audioCaptureClient_->GetNextPacketSize (&packet_length_i);
-      ACE_ASSERT (SUCCEEDED (result_4));
+      if (unlikely (FAILED (result_4)))
+      { // AUDCLNT_E_RESOURCES_INVALIDATED: 0x88890026
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("%s: failed to IAudioCaptureClient::GetNextPacketSize(): \"%s\", aborting\n"),
+                    inherited::mod_->name (),
+                    ACE_TEXT (Common_Error_Tools::errorToString (result_4, false, false).c_str ())));
+        goto error;
+      } // end IF
     } // end WHILE
 
     continue;

@@ -42,18 +42,18 @@ template <ACE_SYNCH_DECL,
           typename SessionEventType>
 class Stream_HeadReaderTask_T
 // *TODO*: figure out how to use ACE_NULL_SYNCH in this case
- : public ACE_Thru_Task<ACE_SYNCH_USE,
-                        TimePolicyType>
+ : public ACE_Stream_Head<ACE_SYNCH_USE,
+                          TimePolicyType>
 {
-  typedef ACE_Thru_Task<ACE_SYNCH_USE,
-                        TimePolicyType> inherited;
+  typedef ACE_Stream_Head<ACE_SYNCH_USE,
+                          TimePolicyType> inherited;
 
  public:
   // convenient types
   typedef Stream_INotify_T<SessionEventType> NOTIFY_T;
 
   Stream_HeadReaderTask_T (NOTIFY_T*,                     // stream handle
-                           Stream_IMessageQueue* = NULL); // message queue handle
+                           Stream_IMessageQueue* = NULL); // message queue handle {NULL: do not enqueue}
   inline virtual ~Stream_HeadReaderTask_T () {}
 
   // override some task-based members
@@ -69,6 +69,7 @@ class Stream_HeadReaderTask_T
   typedef ACE_Message_Queue<ACE_SYNCH_USE,
                             TimePolicyType> MESSAGE_QUEUE_T;
 
+  bool      enqueue_;
   NOTIFY_T* notify_;
 };
 

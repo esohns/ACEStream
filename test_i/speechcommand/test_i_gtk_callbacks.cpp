@@ -2782,7 +2782,7 @@ combobox_source_changed_cb (GtkWidget* widget_in,
 #else
   IMFMediaSource* media_source_p = NULL;
 #endif // _WIN32_WINNT && (_WIN32_WINNT >= 0x0602)
-  std::string format_string;
+  //std::string format_string;
   switch (ui_cb_data_base_p->mediaFramework)
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
@@ -2818,8 +2818,8 @@ combobox_source_changed_cb (GtkWidget* widget_in,
         }
       } // end SWITCH
 
-      format_string =
-        Common_Tools::GUIDToString (directshow_ui_cb_data_p->configuration->streamConfiguration.configuration_->format.subtype);
+      //format_string =
+      //  Common_Tools::GUIDToString (directshow_ui_cb_data_p->configuration->streamConfiguration.configuration_->format.subtype);
 
       if (directshow_ui_cb_data_p->streamConfiguration)
       {
@@ -2874,7 +2874,7 @@ combobox_source_changed_cb (GtkWidget* widget_in,
           } // end IF
           mediafoundation_ui_cb_data_p->configuration->streamConfiguration.configuration_->format =
             Stream_MediaFramework_MediaFoundation_Tools::to (*waveformatex_p);
-          CoTaskMemFree (waveformatex_p);
+          CoTaskMemFree (waveformatex_p); waveformatex_p = NULL;
 
           break;
         }
@@ -2893,18 +2893,18 @@ combobox_source_changed_cb (GtkWidget* widget_in,
         return;
       } // end IF
 
-      struct _GUID GUID_2 = GUID_NULL;
-      HRESULT result_3 =
-        mediafoundation_ui_cb_data_p->configuration->streamConfiguration.configuration_->format->GetGUID (MF_MT_SUBTYPE,
-                                                                                                          &GUID_2);
-      if (FAILED (result_3))
-      {
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("failed to IMFMediaType::GetGUID(MF_MT_SUBTYPE): \"%s\", returning\n"),
-                    ACE_TEXT (Common_Error_Tools::errorToString (result_3).c_str ())));
-        return;
-      } // end IF
-      format_string = Common_Tools::GUIDToString (GUID_2);
+      //struct _GUID GUID_2 = GUID_NULL;
+      //HRESULT result_3 =
+      //  mediafoundation_ui_cb_data_p->configuration->streamConfiguration.configuration_->format->GetGUID (MF_MT_SUBTYPE,
+      //                                                                                                    &GUID_2);
+      //if (FAILED (result_3))
+      //{
+      //  ACE_DEBUG ((LM_ERROR,
+      //              ACE_TEXT ("failed to IMFMediaType::GetGUID(MF_MT_SUBTYPE): \"%s\", returning\n"),
+      //              ACE_TEXT (Common_Error_Tools::errorToString (result_3).c_str ())));
+      //  return;
+      //} // end IF
+      //format_string = Common_Tools::GUIDToString (GUID_2);
 
       if ((*mediafoundation_modulehandler_configuration_iterator).second.second->session)
       {

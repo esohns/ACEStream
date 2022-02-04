@@ -303,8 +303,6 @@ Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
   } // end IF
   ACE_ASSERT (CBData_.window);
 
-#if GTK_CHECK_VERSION (3,0,0)
-#else
   GDK_THREADS_ENTER ();
   if (unlikely (!initialize_Cairo (CBData_.window,
                                    CBData_.context)))
@@ -315,7 +313,6 @@ Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
     GDK_THREADS_LEAVE ();
     return false;
   } // end IF
-#endif /* GTK_CHECK_VERSION (3,0,0) */
 
 #if GTK_CHECK_VERSION (3,0,0)
   gdk_window_get_geometry (CBData_.window,
@@ -600,10 +597,7 @@ Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
 
       // schedule the renderer
       if (likely (mode2D_))
-      {
-#if GTK_CHECK_VERSION (3,0,0)
-#else
-        ACE_ASSERT (renderHandlerTimerId_ == -1);
+      { ACE_ASSERT (renderHandlerTimerId_ == -1);
         itimer_manager_p =
             (inherited::configuration_->timerManager ? inherited::configuration_->timerManager
                                                      : TIMER_MANAGER_SINGLETON_T::instance ());
@@ -629,14 +623,9 @@ Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
                     ACE_TEXT ("%s: scheduled renderer dispatch (timer id: %d)\n"),
                     inherited::mod_->name (),
                     renderHandlerTimerId_));
-#endif /* GTK_CHECK_VERSION (3,0,0) */
 
         inherited::threadCount_ =
-#if GTK_CHECK_VERSION (3,0,0)
-          (inherited::window_ ? 1 : 0); // mainloop only : none
-#else
           (inherited::window_ ? 2 : 1); // mainloop + renderer : renderer only
-#endif /* GTK_CHECK_VERSION (3,0,0) */
         if (inherited::threadCount_)
           inherited::start (NULL);
         inherited::threadCount_ = 0;
@@ -646,8 +635,6 @@ Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
       break;
 
 error:
-#if GTK_CHECK_VERSION (3,0,0)
-#else
       if (renderHandlerTimerId_ != -1)
       {
         // sanity check(s)
@@ -668,7 +655,7 @@ error:
                       renderHandlerTimerId_));
         renderHandlerTimerId_ = -1;
       } // end IF
-#endif /* GTK_CHECK_VERSION (3,0,0) */
+
       if (shutdown)
         inherited::control (ACE_Message_Block::MB_STOP);
 
@@ -678,8 +665,6 @@ error:
     }
     case STREAM_SESSION_MESSAGE_END:
     {
-#if GTK_CHECK_VERSION (3,0,0)
-#else
       if (likely (renderHandlerTimerId_ != -1))
       {
         typename TimerManagerType::INTERFACE_T* itimer_manager_p =
@@ -701,7 +686,6 @@ error:
                       renderHandlerTimerId_));
         renderHandlerTimerId_ = -1;
       } // end IF
-#endif /* GTK_CHECK_VERSION (3,0,0) */
 
       if (inherited::window_)
       {
@@ -1286,11 +1270,11 @@ Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
     cairo_set_line_width (cbdata_p->context, 1.0);               \
   } // end IF
 
-#if GTK_CHECK_VERSION (3,0,0)
+#if GTK_CHECK_VERSION (3,6,0)
 #else
   if (inherited::window_)
     GDK_THREADS_ENTER ();
-#endif // GTK_CHECK_VERSION (3,0,0)
+#endif // GTK_CHECK_VERSION (3,6,0)
 
   // step1: clear the window(s)
   if (*mode2D_ < STREAM_VISUALIZATION_SPECTRUMANALYZER_2DMODE_MAX)
@@ -1386,10 +1370,10 @@ Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
                               FALSE); // invaliddate children ?
 
 error:
-#if GTK_CHECK_VERSION (3,0,0)
+#if GTK_CHECK_VERSION (3,6,0)
   ;
 #else
   if (inherited::window_)
     GDK_THREADS_LEAVE ();
-#endif // GTK_CHECK_VERSION (3,0,0)
+#endif // GTK_CHECK_VERSION (3,6,0)
 }

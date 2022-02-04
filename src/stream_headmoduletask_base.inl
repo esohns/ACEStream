@@ -1610,7 +1610,52 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
 
   isHighPriorityStop_ = highPriority_in;
 
-  inherited2::change (STREAM_STATE_STOPPED);
+  int result = -1;
+  enum Stream_StateMachine_ControlState next_state_e = STREAM_STATE_INVALID;
+  { ACE_GUARD (ACE_Thread_Mutex, aGuard, stateMachineLock_);
+retry:
+    switch (inherited2::state_)
+    {
+      case STREAM_STATE_INVALID:
+      case STREAM_STATE_INITIALIZED:
+        return; // nothing to do
+      case STREAM_STATE_SESSION_STARTING:
+        goto wait;
+      case STREAM_STATE_RUNNING:
+      case STREAM_STATE_PAUSED:
+        next_state_e = STREAM_STATE_SESSION_STOPPING;
+        break;
+      case STREAM_STATE_SESSION_STOPPING:
+      case STREAM_STATE_STOPPED:
+      case STREAM_STATE_FINISHED:
+        return; // nothing to do
+      default:
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("%s: invalid/unknown state (was: %d), returning\n"),
+                    inherited::mod_->name (),
+                    inherited2::state_));
+        return;
+      }
+    } // end SWITCH
+    goto continue_;
+
+wait:
+    while (inherited2::state_ < STREAM_STATE_RUNNING)
+    { ACE_ASSERT (inherited2::condition_);
+      result = inherited2::condition_->wait (NULL);
+      if (unlikely (result == -1))
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("%s: failed to ACE_Condition::wait(): \"%m\", returning\n"),
+                    inherited::mod_->name ()));
+        return;
+      } // end IF
+    } // end WHILE
+    goto retry;
+  } // end lock scope
+continue_:
+  inherited2::change (next_state_e);
 
   if (wait_in)
     wait (true,   // wait for worker thread(s) ?
@@ -2548,15 +2593,17 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
           default:
             break;
         } // end SWITCH
-      } // end lock scope
 
-      if (likely (result))
-      {
-        result = false; // <-- caller will not set the state
-        // *IMPORTANT NOTE*: iff running the transition STOPPING --> STOPPED
-        //                   is automatic
-        change (STREAM_STATE_STOPPED);
-      } // end IF
+        if (likely (result))
+        {
+          result = false; // <-- caller will not set the state
+          // *IMPORTANT NOTE*: iff running the transition STOPPING --> STOPPED
+          //                   is automatic --> set state early to facilitate
+          //                   this transition
+          inherited2::state_ = STREAM_STATE_SESSION_STOPPING;
+          change (STREAM_STATE_STOPPED);
+        } // end IF
+      } // end lock scope
       break;
     }
     case STREAM_STATE_PAUSED:
@@ -2785,8 +2832,7 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_HeadModuleTaskBase_T::finished"));
 
-  // sanity check(s)
-  ACE_ASSERT (!recurseUpstream_in); // *TODO*
+  ACE_UNUSED_ARG (recurseUpstream_in);
 
   // send final session message downstream ?
   // *IMPORTANT NOTE*: the transition STOPPED --> FINISHED is automatic

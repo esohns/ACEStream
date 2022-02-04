@@ -40,6 +40,7 @@ Stream_HeadReaderTask_T<ACE_SYNCH_USE,
                         SessionEventType>::Stream_HeadReaderTask_T (NOTIFY_T* notify_in,
                                                                     Stream_IMessageQueue* messageQueue_in)
  : inherited ()
+ , enqueue_ (messageQueue_in != NULL)
  , notify_ (notify_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_HeadReaderTask_T::Stream_HeadReaderTask_T"));
@@ -135,7 +136,13 @@ Stream_HeadReaderTask_T<ACE_SYNCH_USE,
     }
   } // end SWITCH
 
-  return inherited::put (messageBlock_in, timeValue_in);
+  if (unlikely (enqueue_))
+    return inherited::put (messageBlock_in, timeValue_in);
+  if (unlikely (inherited::next_))
+    return inherited::put_next (messageBlock_in, timeValue_in);
+
+  messageBlock_in->release ();
+  return 0;
 }
 
 template <ACE_SYNCH_DECL,

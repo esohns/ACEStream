@@ -61,6 +61,7 @@ Stream_MediaFramework_GUIDToStringMap_t Stream_MediaFramework_DirectSound_Tools:
 
 struct stream_directshow_device_enumeration_cbdata
 {
+  std::string     description;
   struct _GUID    deviceGUID;
   ULONG           deviceId;
   IKsPropertySet* IPropertySet;
@@ -106,11 +107,12 @@ stream_directshow_device_enumeration_a_cb (LPGUID lpGuid,
   if ((cbdata_p->deviceId != std::numeric_limits<ULONG>::max ()) &&
       (directsound_device_description_p->WaveDeviceId == cbdata_p->deviceId))
   {
-    //ACE_DEBUG ((LM_DEBUG,
-    //            ACE_TEXT ("found device (id: %u): \"%s\"; GUID: \"%s\"\n"),
-    //            cbdata_p->deviceId,
-    //            ACE_TEXT (directsound_device_description_p->Description),
-    //            ACE_TEXT (Common_Tools::GUIDToString (*lpGuid).c_str ())));
+    cbdata_p->description =
+#if defined (UNICODE)
+      ACE_TEXT_ALWAYS_CHAR (ACE_TEXT_WCHAR_TO_TCHAR (directsound_device_description_p->Description));
+#else
+      directsound_device_description_p->Description;
+#endif // UNICODE
     cbdata_p->deviceGUID = *lpGuid;
     delete [] directsound_device_description_p; directsound_device_description_p = NULL;
     return FALSE; // done
@@ -118,11 +120,12 @@ stream_directshow_device_enumeration_a_cb (LPGUID lpGuid,
   else if (!InlineIsEqualGUID (cbdata_p->deviceGUID, GUID_NULL) &&
            InlineIsEqualGUID (cbdata_p->deviceGUID, *lpGuid))
   {
-    //ACE_DEBUG ((LM_DEBUG,
-    //            ACE_TEXT ("found device (GUID: \"%s\"): \"%s\"; id: %u\n"),
-    //            ACE_TEXT (Common_Tools::GUIDToString (*lpGuid).c_str ()),
-    //            ACE_TEXT (directsound_device_description_p->Description),
-    //            directsound_device_description_p->WaveDeviceId));
+    cbdata_p->description =
+#if defined (UNICODE)
+      ACE_TEXT_ALWAYS_CHAR (ACE_TEXT_WCHAR_TO_TCHAR (directsound_device_description_p->Description));
+#else
+      directsound_device_description_p->Description;
+#endif // UNICODE
     cbdata_p->deviceId = directsound_device_description_p->WaveDeviceId;
     delete[] directsound_device_description_p; directsound_device_description_p = NULL;
     return FALSE; // done
@@ -478,6 +481,63 @@ Stream_MediaFramework_DirectSound_Tools::initialize ()
   Stream_MediaFramework_DirectSound_Tools::Stream_WaveFormatSubTypeToStringMap.insert (std::make_pair (KSDATAFORMAT_SUBTYPE_SDDS_AUDIO, ACE_TEXT_ALWAYS_CHAR ("SDDS_AUDIO")));
 }
 
+std::string
+Stream_MediaFramework_DirectSound_Tools::waveDeviceIdToString (ULONG waveDeviceId_in,
+                                                               bool capture_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_DirectSound_Tools::waveDeviceIdToString"));
+
+  std::string result;
+
+  MMRESULT result_2 = MMSYSERR_NOERROR;
+  if (capture_in)
+  {
+    WAVEINCAPS capabilities_s;
+    result_2 = waveInGetDevCaps (waveDeviceId_in,
+                                 &capabilities_s,
+                                 sizeof (WAVEINCAPS));
+    if (unlikely (result_2 != MMSYSERR_NOERROR))
+    { char error_msg_a[BUFSIZ];
+      waveInGetErrorText (result_2, error_msg_a, BUFSIZ - 1);
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to waveInGetDevCaps(%d): \"%s\", aborting\n"),
+                  waveDeviceId_in,
+                  ACE_TEXT (error_msg_a)));
+      return result;
+    } // end IF
+    result =
+#if defined (UNICODE)
+      ACE_TEXT_ALWAYS_CHAR (ACE_TEXT_WCHAR_TO_TCHAR (capabilities_s.szPname));
+#else
+      capabilities_s.szPname;
+#endif // UNICODE
+  } // end IF
+  else
+  {
+    WAVEOUTCAPS capabilities_s;
+    result_2 = waveOutGetDevCaps (waveDeviceId_in,
+                                  &capabilities_s,
+                                  sizeof (WAVEOUTCAPS));
+    if (unlikely (result_2 != MMSYSERR_NOERROR))
+    { char error_msg_a[BUFSIZ];
+      waveOutGetErrorText (result_2, error_msg_a, BUFSIZ - 1);
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to waveOutGetDevCaps(%d): \"%s\", aborting\n"),
+                  waveDeviceId_in,
+                  ACE_TEXT (error_msg_a)));
+      return result;
+    } // end IF
+    result =
+#if defined (UNICODE)
+      ACE_TEXT_ALWAYS_CHAR (ACE_TEXT_WCHAR_TO_TCHAR (capabilities_s.szPname));
+#else
+      capabilities_s.szPname;
+#endif // UNICODE
+  } // end ELSE
+
+  return result;
+}
+
 struct _GUID
 Stream_MediaFramework_DirectSound_Tools::waveDeviceIdToDirectSoundGUID (ULONG waveDeviceId_in,
                                                                         bool capture_in)
@@ -513,6 +573,47 @@ Stream_MediaFramework_DirectSound_Tools::waveDeviceIdToDirectSoundGUID (ULONG wa
   FreeLibrary (library_h);
 
   return cb_data_s.deviceGUID;
+}
+
+std::string
+Stream_MediaFramework_DirectSound_Tools::directSoundGUIDToString (REFGUID GUID_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_DirectSound_Tools::directSoundGUIDToString"));
+
+  HRESULT result = E_FAIL;
+  HMODULE library_h = LoadLibrary (ACE_TEXT ("dsound.dll"));
+  ACE_ASSERT (library_h);
+  LPFNGETCLASSOBJECT pDllGetClassObject =
+    (LPFNGETCLASSOBJECT)GetProcAddress (library_h, ACE_TEXT_ALWAYS_CHAR ("DllGetClassObject"));
+  ACE_ASSERT (pDllGetClassObject);
+  LPCLASSFACTORY class_factory_p = NULL;
+  result =
+    pDllGetClassObject (CLSID_DirectSoundPrivate, IID_PPV_ARGS (&class_factory_p));
+  ACE_ASSERT (!FAILED (result));
+  //LPKSPROPERTYSET property_set_p = NULL;
+  struct stream_directshow_device_enumeration_cbdata cb_data_s;
+  cb_data_s.deviceGUID = GUID_in;
+  cb_data_s.deviceId = std::numeric_limits<ULONG>::max ();
+  result =
+    class_factory_p->CreateInstance (NULL, IID_IKsPropertySet, (void**)(&cb_data_s.IPropertySet));
+  ACE_ASSERT (!FAILED (result));
+  class_factory_p->Release (); class_factory_p = NULL;
+  result =
+    DirectSoundCaptureEnumerate (stream_directshow_device_enumeration_a_cb, &cb_data_s);
+  ACE_ASSERT (!FAILED (result));
+  if (cb_data_s.deviceId != std::numeric_limits<ULONG>::max ())
+  {
+    cb_data_s.IPropertySet->Release (); cb_data_s.IPropertySet = NULL;
+    FreeLibrary (library_h);
+    return cb_data_s.description;
+  } // end IF
+  result =
+    DirectSoundEnumerate (stream_directshow_device_enumeration_a_cb, &cb_data_s);
+  ACE_ASSERT (!FAILED (result));
+  cb_data_s.IPropertySet->Release (); cb_data_s.IPropertySet = NULL;
+  FreeLibrary (library_h);
+
+  return cb_data_s.description;
 }
 
 ULONG
@@ -1440,6 +1541,35 @@ continue_:
   } // end FOR
   parts_p->Release (); parts_p = NULL;
   part_in->Release ();
+
+  return result;
+}
+
+struct tWAVEFORMATEX
+Stream_MediaFramework_DirectSound_Tools::extensibleTo (const struct tWAVEFORMATEX& format_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_DirectSound_Tools::extensibleTo"));
+
+  struct tWAVEFORMATEX result;
+  ACE_OS::memcpy (&result, &format_in, sizeof (struct tWAVEFORMATEX));
+  result.cbSize = 0;
+
+  if (likely (format_in.wFormatTag == WAVE_FORMAT_EXTENSIBLE))
+  {
+    const WAVEFORMATEXTENSIBLE* waveformatextensible_p =
+      reinterpret_cast<const WAVEFORMATEXTENSIBLE*> (&format_in);
+    if (InlineIsEqualGUID (waveformatextensible_p->SubFormat, KSDATAFORMAT_SUBTYPE_PCM))
+      result.wFormatTag = WAVE_FORMAT_PCM;
+    else if (InlineIsEqualGUID (waveformatextensible_p->SubFormat, KSDATAFORMAT_SUBTYPE_IEEE_FLOAT))
+      result.wFormatTag = WAVE_FORMAT_IEEE_FLOAT;
+    else
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("invalid/unknown sub-format (was: \"%s\"), aborting\n"),
+                  ACE_TEXT (Common_Tools::GUIDToString (waveformatextensible_p->SubFormat).c_str ())));
+      ACE_OS::memset (&result, 0, sizeof (struct tWAVEFORMATEX));
+    } // end IF
+  } // end IF
 
   return result;
 }

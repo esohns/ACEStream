@@ -56,7 +56,11 @@ Stream_Input_Manager_T<ACE_SYNCH_USE,
   STREAM_TRACE (ACE_TEXT ("Stream_Input_Manager_T::initialize"));
 
   // sanity check(s)
+  ACE_ASSERT (configuration_in.handlerConfiguration);
+  ACE_ASSERT (!configuration_in.handlerConfiguration->queue);
   ACE_ASSERT (configuration_in.streamConfiguration);
+
+  configuration_in.handlerConfiguration->queue = &stream_.queue_;
 
   if (unlikely (!stream_.initialize (*configuration_in.streamConfiguration)))
   {
@@ -135,10 +139,12 @@ Stream_Input_Manager_T<ACE_SYNCH_USE,
       } // end IF
 
 continue_:
-      if (likely (inherited::handler_))
-      { // *NOTE*: handler_ cleans itself up
-        inherited::handler_->deregister (); inherited::handler_ = NULL;
-      } // end IF
+      { ACE_GUARD_RETURN (ACE_Thread_Mutex, aGuard, inherited::lock_, -1);
+        if (likely (inherited::handler_))
+        { // *NOTE*: handler_ cleans itself up [WIN32: eventually]
+          inherited::handler_->deregister (); inherited::handler_ = NULL;
+        } // end IF
+      } // end lock scope
 
 continue_2:
       stream_.stop (true); // wait ?

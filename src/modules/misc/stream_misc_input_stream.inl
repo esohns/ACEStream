@@ -58,9 +58,65 @@ Stream_Miscellaneous_Input_Stream_T<ACE_SYNCH_USE,
                                     SessionMessageType,
                                     UserDataType>::Stream_Miscellaneous_Input_Stream_T ()
  : inherited ()
+ , queue_ (STREAM_QUEUE_MAX_SLOTS, // max # slots
+           NULL)                   // notification handle
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Miscellaneous_Input_Stream_T::Stream_Miscellaneous_Input_Stream_T"));
 
+}
+
+template <ACE_SYNCH_DECL,
+          typename TimePolicyType,
+          typename ControlType,
+          typename NotificationType,
+          typename StatusType,
+          typename StateType,
+          typename ConfigurationType,
+          typename StatisticContainerType,
+          typename StatisticHandlerType,
+          typename HandlerConfigurationType,
+          typename SessionDataType,
+          typename SessionDataContainerType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
+          typename UserDataType>
+Stream_Miscellaneous_Input_Stream_T<ACE_SYNCH_USE,
+                                    TimePolicyType,
+                                    ControlType,
+                                    NotificationType,
+                                    StatusType,
+                                    StateType,
+                                    ConfigurationType,
+                                    StatisticContainerType,
+                                    StatisticHandlerType,
+                                    HandlerConfigurationType,
+                                    SessionDataType,
+                                    SessionDataContainerType,
+                                    ControlMessageType,
+                                    DataMessageType,
+                                    SessionMessageType,
+                                    UserDataType>::~Stream_Miscellaneous_Input_Stream_T ()
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Miscellaneous_Input_Stream_T::~Stream_Miscellaneous_Input_Stream_T"));
+
+  // get the head ('queue'-) module
+  MODULE_T* module_p = NULL;
+  int result = inherited::top (module_p);
+  if (unlikely ((result == -1) || !module_p))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s: failed to ACE_Stream::top(): \"%m\", continuing\n"),
+                ACE_TEXT (libacestream_default_misc_input_stream_name_string)));
+    goto continue_;
+  } // end IF
+  // reset the queue; it gets deallocated earlier than the task
+  TASK_T* task_p = module_p->writer ();
+  ACE_ASSERT (task_p);
+  task_p->msg_queue (NULL);
+
+continue_:
+  inherited::shutdown ();
 }
 
 template <ACE_SYNCH_DECL,

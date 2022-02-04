@@ -46,12 +46,18 @@ class Stream_MediaFramework_DirectSound_Tools
   static void initialize ();
 
   // devices
+  static std::string waveDeviceIdToString (ULONG,        // waveIn/Out device id
+                                           bool = true); // capture ? : render
   static struct _GUID waveDeviceIdToDirectSoundGUID (ULONG,        // waveIn/Out device id
                                                      bool = true); // capture ? : render
-  static ULONG directSoundGUIDToWaveDeviceId (REFGUID); // device identifier
+
+  static std::string directSoundGUIDToString (REFGUID); // device identifier [GUID_NULL ? default render (!) device]
+  static ULONG directSoundGUIDToWaveDeviceId (REFGUID); // device identifier [GUID_NULL ? default render (!) device]
+
   static struct _GUID endpointIdToDirectSoundGUID (const std::string&); // device endpoint id
 
   // format
+  static struct tWAVEFORMATEX extensibleTo (const struct tWAVEFORMATEX&); // format
   static bool isFloat (const struct tWAVEFORMATEX&); // format
   static std::string toString (const struct tWAVEFORMATEX&, // format
                                bool = false);               // condensed version ?

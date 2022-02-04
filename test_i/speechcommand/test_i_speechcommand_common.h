@@ -149,10 +149,6 @@ struct Test_I_SpeechCommand_Configuration
 };
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-typedef Stream_MessageQueue_T<ACE_MT_SYNCH,
-                              Common_TimePolicy_t,
-                              Test_I_DirectShow_SessionMessage_t> Test_I_DirectShow_InputQueue_t;
-
 struct Test_I_DirectShow_Configuration
  : Test_I_SpeechCommand_Configuration
 {
@@ -161,8 +157,6 @@ struct Test_I_DirectShow_Configuration
    , allocatorProperties ()
    , filterConfiguration ()
    , pinConfiguration ()
-   , inputQueue (STREAM_QUEUE_MAX_SLOTS, // max # slots
-                 NULL)                   // notification handle
    , streamConfiguration ()
    , streamConfiguration_2 ()
   {
@@ -190,14 +184,9 @@ struct Test_I_DirectShow_Configuration
   struct Stream_MediaFramework_DirectShow_FilterConfiguration    filterConfiguration;
   struct Stream_MediaFramework_DirectShow_FilterPinConfiguration pinConfiguration;
   // **************************** stream data **********************************
-  Test_I_DirectShow_InputQueue_t                                 inputQueue;
   Test_I_DirectShow_StreamConfiguration_t                        streamConfiguration;
   Stream_Input_Configuration_t                                   streamConfiguration_2; // input-
 };
-
-typedef Stream_MessageQueue_T<ACE_MT_SYNCH,
-                              Common_TimePolicy_t,
-                              Test_I_MediaFoundation_SessionMessage_t> Test_I_MediaFoundation_InputQueue_t;
 
 struct Test_I_MediaFoundation_Configuration
  : Test_I_SpeechCommand_Configuration
@@ -205,8 +194,6 @@ struct Test_I_MediaFoundation_Configuration
   Test_I_MediaFoundation_Configuration ()
    : Test_I_SpeechCommand_Configuration ()
    , mediaFoundationConfiguration ()
-   , inputQueue (STREAM_QUEUE_MAX_SLOTS, // max # slots
-                 NULL)                   // notification handle
    , streamConfiguration ()
    , streamConfiguration_2 ()
   {}
@@ -214,28 +201,20 @@ struct Test_I_MediaFoundation_Configuration
   // **************************** framework data *******************************
   struct Stream_MediaFramework_MediaFoundation_Configuration mediaFoundationConfiguration;
   // **************************** stream data **********************************
-  Test_I_MediaFoundation_InputQueue_t                        inputQueue;
   Test_I_MediaFoundation_StreamConfiguration_t               streamConfiguration;
   Stream_Input_Configuration_t                               streamConfiguration_2; // input-
 };
 #else
-typedef Stream_MessageQueue_T<ACE_MT_SYNCH,
-                              Common_TimePolicy_t,
-                              Test_I_ALSA_SessionMessage_t> Test_I_ALSA_InputQueue_t;
-
 struct Test_I_ALSA_Configuration
  : Test_I_SpeechCommand_Configuration
 {
   Test_I_ALSA_Configuration ()
    : Test_I_SpeechCommand_Configuration ()
-   , inputQueue (STREAM_QUEUE_MAX_SLOTS, // max # slots
-                 NULL)                   // notification handle
    , streamConfiguration ()
    , streamConfiguration_2 ()
   {}
 
   // **************************** stream data **********************************
-  Test_I_ALSA_InputQueue_t          inputQueue;
   Test_I_ALSA_StreamConfiguration_t streamConfiguration;
   Stream_Input_Configuration_t      streamConfiguration_2; // input-
 };

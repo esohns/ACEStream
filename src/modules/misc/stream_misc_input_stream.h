@@ -92,6 +92,9 @@ class Stream_Miscellaneous_Input_Stream_T
 
  public:
   // convenient types
+  typedef Stream_MessageQueue_T<ACE_SYNCH_USE,
+                                TimePolicyType,
+                                SessionMessageType> MESSAGE_QUEUE_T;
   typedef Stream_Base_T<ACE_SYNCH_USE,
                         TimePolicyType,
                         libacestream_default_misc_input_stream_name_string,
@@ -109,11 +112,13 @@ class Stream_Miscellaneous_Input_Stream_T
                         SessionMessageType> STREAM_BASE_T;
 
   Stream_Miscellaneous_Input_Stream_T ();
-  inline virtual ~Stream_Miscellaneous_Input_Stream_T () { inherited::shutdown (); }
+  virtual ~Stream_Miscellaneous_Input_Stream_T ();
 
   // override (part of) Stream_IStream_T
   virtual bool load (Stream_ILayout*, // return value: layout
                      bool&);          // return value: delete modules ?
+
+  MESSAGE_QUEUE_T queue_; // input-
 
  protected:
   // convenient types

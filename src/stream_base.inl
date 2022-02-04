@@ -78,94 +78,11 @@ Stream_Base_T<ACE_SYNCH_USE,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Base_T::Stream_Base_T"));
 
-  // *NOTE*: pass a handle to the message queue member to the head module reader
-  //         task; this will become the 'outbound' queue
-
-  int result = -1;
-  HEAD_WRITER_T* head_writer_p = NULL;
-  HEAD_READER_T* head_reader_p = NULL;
-  TAIL_WRITER_T* tail_writer_p = NULL;
-  TAIL_READER_T* tail_reader_p = NULL;
-  MODULE_T* module_p = NULL, *module_2 = NULL;
-  ACE_NEW_NORETURN (head_writer_p,
-                    HEAD_WRITER_T (this));
-  ACE_NEW_NORETURN (head_reader_p,
-                    HEAD_READER_T (this,
-                                   &messageQueue_));
-  if (unlikely (!head_writer_p || !head_reader_p))
-  {
-    ACE_DEBUG ((LM_CRITICAL,
-                ACE_TEXT ("%s: failed to allocate memory: \"%m\", returning\n"),
-                ACE_TEXT (StreamName)));
-    delete head_writer_p; head_writer_p = NULL;
-    delete head_reader_p; head_reader_p = NULL;
-    return;
-  } // end IF
-  ACE_NEW_NORETURN (module_p,
-                    MODULE_T (ACE_TEXT (STREAM_MODULE_HEAD_NAME),
-                              head_writer_p, head_reader_p,
-                              NULL,
-                              ACE_Module_Base::M_DELETE));
-  if (unlikely (!module_p))
-  {
-    ACE_DEBUG ((LM_CRITICAL,
-                ACE_TEXT ("%s: failed to allocate memory: \"%m\", returning\n"),
-                ACE_TEXT (StreamName)));
-    delete head_writer_p; head_writer_p = NULL;
-    delete head_reader_p; head_reader_p = NULL;
-    return;
-  } // end IF
-
-  ACE_NEW_NORETURN (tail_writer_p,
-                    TAIL_WRITER_T ());
-  ACE_NEW_NORETURN (tail_reader_p,
-                    TAIL_READER_T ());
-  if (unlikely (!tail_writer_p || !tail_reader_p))
-  {
-    ACE_DEBUG ((LM_CRITICAL,
-                ACE_TEXT ("%s: failed to allocate memory: \"%m\", returning\n"),
-                ACE_TEXT (StreamName)));
-    delete tail_writer_p; tail_writer_p = NULL;
-    delete tail_reader_p; tail_reader_p = NULL;
-    delete module_p; module_p = NULL;
-    return;
-  } // end IF
-  ACE_NEW_NORETURN (module_2,
-                    MODULE_T (ACE_TEXT (STREAM_MODULE_TAIL_NAME),
-                              tail_writer_p, tail_reader_p,
-                              NULL,
-                              ACE_Module_Base::M_DELETE));
-  if (unlikely (!module_2))
-  {
-    ACE_DEBUG ((LM_CRITICAL,
-                ACE_TEXT ("%s: failed to allocate memory: \"%m\", returning\n"),
-                ACE_TEXT (StreamName)));
-    delete tail_writer_p; tail_writer_p = NULL;
-    delete tail_reader_p; tail_reader_p = NULL;
-    delete module_p; module_p = NULL;
-    return;
-  } // end IF
-
-  result = inherited::close (STREAM_T::M_DELETE);
-  if (unlikely (result == -1))
+  if (unlikely (!initializeHeadTail ()))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: failed to ACE_Stream::close(M_DELETE): \"%m\", returning\n"),
+                ACE_TEXT ("%s: failed to Stream_Base_T::initializeHeadTail(), returning\n"),
                 ACE_TEXT (StreamName)));
-    delete module_p; module_p = NULL;
-    delete module_2; module_2 = NULL;
-    return;
-  } // end IF
-  result = inherited::open (NULL,      // argument passed to module open()
-                            module_p,  // head module handle
-                            module_2); // tail module handle
-  if (unlikely (result == -1))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: failed to ACE_Stream::open(): \"%m\", returning\n"),
-                ACE_TEXT (StreamName)));
-    delete module_p; module_p = NULL;
-    delete module_2; module_2 = NULL;
     return;
   } // end IF
 }
@@ -203,16 +120,14 @@ Stream_Base_T<ACE_SYNCH_USE,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Base_T::~Stream_Base_T"));
 
-  //{ ACE_GUARD (ACE_SYNCH_RECURSIVE_MUTEX, aGuard, lock_);
-  //  if (unlikely (state_.module && !state_.moduleIsClone))
-  //    if (unlikely (!remove (state_.module,
-  //                           false,   // lock ?
-  //                           false))) // reset ? (see above)
-  //      ACE_DEBUG ((LM_ERROR,
-  //                  ACE_TEXT ("%s: failed to Stream_Base_T::remove(\"%s\"): \"%m\", continuing\n"),
-  //                  ACE_TEXT (StreamName),
-  //                  state_.module->name ()));
-  //} // end lock scope
+  // deregister messageQueue_; it falls off the stack before
+  // inherited::stream_head_
+  if (likely (inherited::stream_head_))
+  {
+    TASK_T* task_p = inherited::stream_head_->reader ();
+    ACE_ASSERT (task_p);
+    task_p->msg_queue (NULL);
+  } // end IF
 
   if (unlikely (sessionData_))
     sessionData_->decrease ();
@@ -632,31 +547,30 @@ Stream_Base_T<ACE_SYNCH_USE,
 
   int result = -1;
 
-  try {
-    // *NOTE*: unwinds the stream, pop()ing all push()ed modules
-    //         --> pop()ing a module will close() it
-    //         --> close()ing a module will module_closed() and flush() its
-    //             tasks
-    //         --> flush()ing a task will close() its queue
-    //         --> close()ing a queue will deactivate() and flush() it
-    // *IMPORTANT NOTE*: passing anything but M_DELETE_NONE will 'delete' the
-    //                   modules (see: Stream.cpp:219)
-    result = inherited::close (ACE_Module_Base::M_DELETE_NONE);
-  } catch (...) {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: caught exception in ACE_Stream::close(M_DELETE_NONE), continuing\n"),
-                ACE_TEXT (StreamName)));
-    result = -1;
-  }
+  unsigned int flushed_messages_i = messageQueue_.flush (true); // flush session messages ?
+  ACE_UNUSED_ARG (flushed_messages_i);
+
+  // *NOTE*: unwinds the stream, pop()ing all push()ed modules
+  //         --> pop()ing a module will close() it
+  //         --> close()ing a module will module_closed() and flush()/wait() and
+  //             delete its' tasks
+  //         --> flush()ing a task will close() its queue
+  //         --> close()ing a queue will deactivate() and flush() it
+  // *IMPORTANT NOTE*: passing anything but M_DELETE_NONE will 'delete' the
+  //                   modules (see: Stream.cpp:219); do this below instead
+  result = inherited::close (ACE_Module_Base::M_DELETE_NONE);
   if (unlikely (result == -1))
+  {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to ACE_Stream::close(M_DELETE_NONE): \"%m\", aborting\n"),
                 ACE_TEXT (StreamName)));
+    return false;
+  } // end IF
 
   IMODULE_T* imodule_p = NULL;
   { ACE_GUARD_RETURN (ACE_SYNCH_RECURSIVE_MUTEX, aGuard, lock_, false);
     // *NOTE*: ACE_Stream::close() resets the task handles of all modules
-    //         --> reset them manually
+    //         --> reset them manually so they can be deleted below
     for (LAYOUT_ITERATOR_T iterator = layout_.begin ();
          iterator != layout_.end ();
          iterator++)
@@ -690,7 +604,142 @@ Stream_Base_T<ACE_SYNCH_USE,
     layout_.clear ();
   } // end lock scope
 
-  return (result == 0);
+  if (unlikely (!initializeHeadTail ()))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s: failed to Stream_Base_T::initializeHeadTail(), aborting\n"),
+                ACE_TEXT (StreamName)));
+    return false;
+  } // end IF
+
+  return true;
+}
+
+template <ACE_SYNCH_DECL,
+          typename TimePolicyType,
+          const char* StreamName,
+          typename ControlType,
+          typename NotificationType,
+          typename StatusType,
+          typename StateType,
+          typename ConfigurationType,
+          typename StatisticContainerType,
+          typename HandlerConfigurationType,
+          typename SessionDataType,
+          typename SessionDataContainerType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType>
+bool
+Stream_Base_T<ACE_SYNCH_USE,
+              TimePolicyType,
+              StreamName,
+              ControlType,
+              NotificationType,
+              StatusType,
+              StateType,
+              ConfigurationType,
+              StatisticContainerType,
+              HandlerConfigurationType,
+              SessionDataType,
+              SessionDataContainerType,
+              ControlMessageType,
+              DataMessageType,
+              SessionMessageType>::initializeHeadTail ()
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Base_T::initializeHeadTail"));
+
+  int result = -1;
+  HEAD_WRITER_T* head_writer_p = NULL;
+  HEAD_READER_T* head_reader_p = NULL;
+  TAIL_WRITER_T* tail_writer_p = NULL;
+  TAIL_READER_T* tail_reader_p = NULL;
+  MODULE_T* module_p = NULL, *module_2 = NULL;
+  ACE_NEW_NORETURN (head_writer_p,
+                    HEAD_WRITER_T (this));
+  // *NOTE*: pass a handle to the message queue member to the head module reader
+  //         task; this will become the 'outbound' queue
+  ACE_NEW_NORETURN (head_reader_p,
+                    HEAD_READER_T (this,
+                                   &messageQueue_));
+  if (unlikely (!head_writer_p || !head_reader_p))
+  {
+    ACE_DEBUG ((LM_CRITICAL,
+                ACE_TEXT ("%s: failed to allocate memory: \"%m\", aborting\n"),
+                ACE_TEXT (StreamName)));
+    delete head_writer_p; head_writer_p = NULL;
+    delete head_reader_p; head_reader_p = NULL;
+    return false;
+  } // end IF
+  ACE_NEW_NORETURN (module_p,
+                    MODULE_T (ACE_TEXT (STREAM_MODULE_HEAD_NAME),
+                              head_writer_p, head_reader_p,
+                              NULL,
+                              ACE_Module_Base::M_DELETE));
+  if (unlikely (!module_p))
+  {
+    ACE_DEBUG ((LM_CRITICAL,
+                ACE_TEXT ("%s: failed to allocate memory: \"%m\", aborting\n"),
+                ACE_TEXT (StreamName)));
+    delete head_writer_p; head_writer_p = NULL;
+    delete head_reader_p; head_reader_p = NULL;
+    return false;
+  } // end IF
+
+  ACE_NEW_NORETURN (tail_writer_p,
+                    TAIL_WRITER_T ());
+  ACE_NEW_NORETURN (tail_reader_p,
+                    TAIL_READER_T ());
+  if (unlikely (!tail_writer_p || !tail_reader_p))
+  {
+    ACE_DEBUG ((LM_CRITICAL,
+                ACE_TEXT ("%s: failed to allocate memory: \"%m\", aborting\n"),
+                ACE_TEXT (StreamName)));
+    delete tail_writer_p; tail_writer_p = NULL;
+    delete tail_reader_p; tail_reader_p = NULL;
+    delete module_p; module_p = NULL;
+    return false;
+  } // end IF
+  ACE_NEW_NORETURN (module_2,
+                    MODULE_T (ACE_TEXT (STREAM_MODULE_TAIL_NAME),
+                              tail_writer_p, tail_reader_p,
+                              NULL,
+                              ACE_Module_Base::M_DELETE));
+  if (unlikely (!module_2))
+  {
+    ACE_DEBUG ((LM_CRITICAL,
+                ACE_TEXT ("%s: failed to allocate memory: \"%m\", aborting\n"),
+                ACE_TEXT (StreamName)));
+    delete tail_writer_p; tail_writer_p = NULL;
+    delete tail_reader_p; tail_reader_p = NULL;
+    delete module_p; module_p = NULL;
+    return false;
+  } // end IF
+
+  result = inherited::close (STREAM_T::M_DELETE);
+  if (unlikely (result == -1))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s: failed to ACE_Stream::close(M_DELETE): \"%m\", aborting\n"),
+                ACE_TEXT (StreamName)));
+    delete module_p; module_p = NULL;
+    delete module_2; module_2 = NULL;
+    return false;
+  } // end IF
+  result = inherited::open (NULL,      // argument passed to module open()
+                            module_p,  // head module handle
+                            module_2); // tail module handle
+  if (unlikely (result == -1))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s: failed to ACE_Stream::open(): \"%m\", aborting\n"),
+                ACE_TEXT (StreamName)));
+    delete module_p; module_p = NULL;
+    delete module_2; module_2 = NULL;
+    return false;
+  } // end IF
+
+  return true;
 }
 
 template <ACE_SYNCH_DECL,
@@ -3989,11 +4038,11 @@ Stream_Base_T<ACE_SYNCH_USE,
   if (!isInitialized_)
   {
     // sanity check: successfully pushed() ANY modules ?
-    module_p = inherited::head ();
+    module_p = inherited::stream_head_;
     if (module_p)
     {
       module_p = module_p->next ();
-      if (module_p && (module_p != inherited::tail ()))
+      if (module_p && (module_p != inherited::stream_tail_))
       {
         ACE_DEBUG ((LM_WARNING,
                     ACE_TEXT ("%s: not initialized - deactivating module(s)...\n"),

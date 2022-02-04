@@ -204,9 +204,10 @@ class Stream_Miscellaneous_Distributor_WriterTask_T
     inline bool operator() (const BRANCH_TO_HEAD_PAIR_T& entry_in, MODULE_T* module_in) const { return !ACE_OS::strcmp (entry_in.second->name (), module_in->name ()); }
   };
 
-  Stream_Branches_t         branches_;
+  Stream_Branches_t         branches_; // FIFO
   BRANCH_TO_HEAD_MAP_T      heads_;
   QUEUE_TO_MODULE_MAP_T     modules_;
+  unsigned int              numberOfBranches_;
   THREAD_TO_QUEUE_MAP_T     queues_;
 
  private:

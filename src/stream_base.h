@@ -252,7 +252,7 @@ class Stream_Base_T
   virtual typename ISTREAM_T::STREAM_T* downstream () const;
   virtual typename ISTREAM_T::STREAM_T* upstream (bool = false) const; // recurse (if any) ?
 
-  virtual bool load (Stream_ILayout*, bool&) { ACE_ASSERT (false); ACE_NOTSUP_RETURN (false); ACE_NOTREACHED (return false;) }
+  //virtual bool load (Stream_ILayout*, bool&) { ACE_ASSERT (false); ACE_NOTSUP_RETURN (false); ACE_NOTREACHED (return false;) }
 
   // implement Stream_ILinkCB
   inline virtual void onLink () {}
@@ -326,23 +326,13 @@ class Stream_Base_T
 
   Stream_Base_T ();
 
-  bool finalize ();
-  // *NOTE*: derived classes should call this prior to module reinitialization
-  //         (i.e. in their own initialize()); this function
-  //         - pop/close()s push()ed modules, remove default head/tail modules
-  //         - reset reader/writer tasks for all modules
-  //         - generate new default head/tail modules
   // *WARNING*: calling this while isRunning() == true blocks until the stream
   //            finishes (because close() of a module waits for its worker
   //            thread(s))
   bool reset ();
-  bool setup (ACE_Notification_Strategy* = NULL); // head module (reader task)
-                                                  // notification handle
-
-//  bool putSessionMessage (enum Stream_SessionMessageType); // session message type
-
   // *NOTE*: derived classes must call this in their dtor
   void shutdown ();
+  bool setup (ACE_Notification_Strategy* = NULL); // head module reader task' queue notification handle
 
   CONFIGURATION_T*                  configuration_;
   // *NOTE*: derived classes set this iff (!) their initialization succeeded;
@@ -382,10 +372,6 @@ class Stream_Base_T
   typedef Common_IGetP_T<ISTREAM_T> IGET_T;
   typedef Common_ISetP_T<StateType> ISET_T;
 
-//  // make friends between ourselves; instances need to access the session data
-//  // lock during (un)link() calls
-//  friend class OWN_TYPE_T;
-
   ACE_UNIMPLEMENTED_FUNC (Stream_Base_T (const Stream_Base_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Base_T& operator= (const Stream_Base_T&))
 
@@ -422,8 +408,12 @@ class Stream_Base_T
   virtual int unlink (void);
 
   // helper methods
-  // wrap inherited::open/close() calls
-  void deactivateModules (); // put() SESSION_END
+  bool finalize ();
+  // calling ACE_Stream::close() deletes the head and tail modules
+  // invoke this to re-create them (invokes ACE_Stream::open(NULL, head, tail))
+  bool initializeHeadTail ();
+
+  void deactivateModules ();
   void unlinkModules ();
 
   bool                              delete_; // delete modules ?

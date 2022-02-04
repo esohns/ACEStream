@@ -229,7 +229,7 @@ do_processArguments (int argc_in,
                      ACE_TCHAR** argv_in, // cannot be const...
                      std::string& scorerFile_out,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-                     unsigned int deviceIdentifier_out,
+                     unsigned int& deviceIdentifier_out,
 #else
                      std::string& deviceIdentifier_out,
 #endif // ACE_WIN32 || ACE_WIN64
@@ -803,8 +803,6 @@ do_initialize_mediafoundation (const struct Stream_Device_Identifier& deviceIden
   HRESULT result = E_FAIL;
   struct tWAVEFORMATEX waveformatex_s;
   ACE_OS::memset (&waveformatex_s, 0, sizeof (struct tWAVEFORMATEX));
-  struct _AMMediaType media_type_s;
-  ACE_OS::memset (&media_type_s, 0, sizeof (struct _AMMediaType));
 #if COMMON_OS_WIN32_TARGET_PLATFORM(0x0602) // _WIN32_WINNT_WIN8
   IMFMediaSourceEx* media_source_p = NULL;
 #else
@@ -842,8 +840,8 @@ do_initialize_mediafoundation (const struct Stream_Device_Identifier& deviceIden
   } // end IF
 
 continue_2:
-  Stream_MediaFramework_Tools::initialize (STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION);
   Stream_MediaFramework_Tools::initialize (STREAM_MEDIAFRAMEWORK_DIRECTSHOW);
+  Stream_MediaFramework_Tools::initialize (STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION);
 
   // initialize return value(s)
   if (unlikely (captureMediaType_out))
@@ -865,34 +863,14 @@ continue_2:
   waveformatex_s.nAvgBytesPerSec =
     (waveformatex_s.nSamplesPerSec * waveformatex_s.nBlockAlign);
   // waveformatex_s.cbSize = 0;
-  result = CreateAudioMediaType (&waveformatex_s,
-                                 &media_type_s,
-                                 TRUE); // set format ?
-  if (unlikely (FAILED (result)))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to CreateAudioMediaType(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
-    goto error;
-  } // end IF
-  result = MFCreateMediaTypeFromRepresentation (AM_MEDIA_TYPE_REPRESENTATION,
-                                                &media_type_s,
-                                                &targetMediaType_out);
-  if (unlikely (FAILED (result) || !targetMediaType_out))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to MFCreateMediaTypeFromRepresentation(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
-    goto error;
-  } // end IF
+  targetMediaType_out =
+    Stream_MediaFramework_MediaFoundation_Tools::to (waveformatex_s);
   result = targetMediaType_out->SetUINT32 (MF_MT_AUDIO_CHANNEL_MASK,
                                            SPEAKER_FRONT_LEFT);
   ACE_ASSERT (SUCCEEDED (result));
   result = targetMediaType_out->DeleteItem (MF_MT_AUDIO_PREFER_WAVEFORMATEX);
   ACE_ASSERT (SUCCEEDED (result));
 
-  Stream_MediaFramework_DirectShow_Tools::free (media_type_s);
-  ACE_OS::memset (&media_type_s, 0, sizeof (struct _AMMediaType));
   ACE_OS::memset (&waveformatex_s, 0, sizeof (struct tWAVEFORMATEX));
   switch (configuration_in.streamConfiguration.configuration_->capturer)
   {
@@ -909,7 +887,8 @@ continue_2:
       struct tWAVEFORMATEX* waveformatex_p =
         Stream_MediaFramework_DirectSound_Tools::getDeviceDriverFormat (deviceIdentifier_in);
       ACE_ASSERT (waveformatex_p);
-      waveformatex_s = *waveformatex_p;
+      waveformatex_s =
+        Stream_MediaFramework_DirectSound_Tools::extensibleTo (*waveformatex_p);
       CoTaskMemFree (waveformatex_p);
       break;
     }
@@ -921,15 +900,6 @@ continue_2:
       goto error;
     }
   } // end SWITCH
-  //waveformatex_s.wFormatTag = STREAM_DEV_MIC_DEFAULT_FORMAT;
-  //waveformatex_s.nChannels = STREAM_DEV_MIC_DEFAULT_CHANNELS;
-  //waveformatex_s.nSamplesPerSec = STREAM_DEV_MIC_DEFAULT_SAMPLE_RATE;
-  //waveformatex_s.wBitsPerSample = STREAM_DEV_MIC_DEFAULT_BITS_PER_SAMPLE;
-  //waveformatex_s.nBlockAlign =
-  //  (waveformatex_s.nChannels * (waveformatex_s.wBitsPerSample / 8));
-  //waveformatex_s.nAvgBytesPerSec =
-  //  (waveformatex_s.nSamplesPerSec * waveformatex_s.nBlockAlign);
-  //waveformatex_s.cbSize = 0;
   captureMediaType_out =
     Stream_MediaFramework_MediaFoundation_Tools::to (waveformatex_s);
   if (unlikely (!captureMediaType_out))
@@ -938,12 +908,17 @@ continue_2:
                 ACE_TEXT ("failed to Stream_MediaFramework_MediaFoundation_Tools::to(), aborting\n")));
     goto error;
   } // end IF
-  result = captureMediaType_out->SetUINT32 (MF_MT_AUDIO_CHANNEL_MASK,
-                                            channel_mask_i);
-  ACE_ASSERT (SUCCEEDED (result));
+  //result = captureMediaType_out->SetUINT32 (MF_MT_AUDIO_CHANNEL_MASK,
+  //                                          channel_mask_i);
+  //ACE_ASSERT (SUCCEEDED (result));
+  //result = captureMediaType_out->SetUINT32 (MF_MT_FIXED_SIZE_SAMPLES,
+  //                                          1);
+  //ACE_ASSERT (SUCCEEDED (result));
+  //result = captureMediaType_out->SetUINT32 (MF_MT_COMPRESSED,
+  //                                          0);
+  //ACE_ASSERT (SUCCEEDED (result));
   result = captureMediaType_out->DeleteItem (MF_MT_AUDIO_PREFER_WAVEFORMATEX);
   ACE_ASSERT (SUCCEEDED (result));
-  Stream_MediaFramework_DirectShow_Tools::free (media_type_s);
 
   ACE_ASSERT (!configuration_in.mediaFoundationConfiguration.mediaType);
   configuration_in.mediaFoundationConfiguration.mediaType =
@@ -1071,7 +1046,6 @@ continue_4:
   return true;
 
 error:
-  Stream_MediaFramework_DirectShow_Tools::free (media_type_s);
   if (captureMediaType_out)
   {
     captureMediaType_out->Release (); captureMediaType_out = NULL;
@@ -1436,8 +1410,8 @@ do_work (const std::string& scorerFile_in,
 #endif // GTK_SUPPORT
 #endif // GUI_SUPPORT
 
-      directshow_modulehandler_configuration.printProgressDot =
-        UIDefinitionFile_in.empty ();
+      //directshow_modulehandler_configuration.printProgressDot =
+      //  UIDefinitionFile_in.empty ();
       directshow_modulehandler_configuration.statisticReportingInterval =
         ACE_Time_Value (statisticReportingInterval_in, 0);
       directshow_modulehandler_configuration.subscriber =
@@ -1531,7 +1505,7 @@ do_work (const std::string& scorerFile_in,
           mediafoundation_modulehandler_configuration.deviceIdentifier.identifierDiscriminator =
             Stream_Device_Identifier::ID;
           mediafoundation_modulehandler_configuration.deviceIdentifier.identifier._id =
-            (mute_in ? -1 : 0); // *TODO*: -1 means WAVE_MAPPER
+            (mute_in ? -1 : deviceId_in); // *TODO*: -1 means WAVE_MAPPER
           break;
         }
         case STREAM_DEVICE_CAPTURER_WASAPI:
@@ -1540,7 +1514,7 @@ do_work (const std::string& scorerFile_in,
             Stream_Device_Identifier::GUID;
           mediafoundation_modulehandler_configuration.deviceIdentifier.identifier._guid =
             (mute_in ? GUID_NULL
-                     : Stream_MediaFramework_DirectSound_Tools::waveDeviceIdToDirectSoundGUID (0,
+                     : Stream_MediaFramework_DirectSound_Tools::waveDeviceIdToDirectSoundGUID (deviceId_in,
                                                                                                true)); // capture
           break;
         }
@@ -1550,7 +1524,7 @@ do_work (const std::string& scorerFile_in,
             Stream_Device_Identifier::GUID;
           mediafoundation_modulehandler_configuration.deviceIdentifier.identifier._guid =
             (mute_in ? GUID_NULL
-                     : Stream_MediaFramework_DirectSound_Tools::waveDeviceIdToDirectSoundGUID (0,
+                     : Stream_MediaFramework_DirectSound_Tools::waveDeviceIdToDirectSoundGUID (deviceId_in,
                                                                                                true)); // capture
           break;
         }
@@ -1577,8 +1551,8 @@ do_work (const std::string& scorerFile_in,
 #endif // GTK_SUPPORT
 #endif // GUI_SUPPORT
 
-      mediafoundation_modulehandler_configuration.printProgressDot =
-        UIDefinitionFile_in.empty ();
+      //mediafoundation_modulehandler_configuration.printProgressDot =
+      //  UIDefinitionFile_in.empty ();
       mediafoundation_modulehandler_configuration.statisticReportingInterval =
         ACE_Time_Value (statisticReportingInterval_in, 0);
       mediafoundation_modulehandler_configuration.subscriber =
@@ -1699,7 +1673,7 @@ do_work (const std::string& scorerFile_in,
 #endif // GTKGL_SUPPORT
 #endif // GTK_SUPPORT
 #endif // GUI_SUPPORT
-  modulehandler_configuration.printProgressDot = UIDefinitionFile_in.empty ();
+  //modulehandler_configuration.printProgressDot = UIDefinitionFile_in.empty ();
   modulehandler_configuration.statisticReportingInterval =
     ACE_Time_Value (statisticReportingInterval_in, 0);
   modulehandler_configuration.subscriber = &event_handler;
@@ -1909,20 +1883,21 @@ do_work (const std::string& scorerFile_in,
   } // end IF
 
   // step0f: initialize input handling
+  Test_I_InputStream_t& input_stream_r =
+    const_cast<Test_I_InputStream_t&> (input_manager_p->getR ());
+  modulehandler_configuration_i.concurrency =
+    STREAM_HEADMODULECONCURRENCY_ACTIVE;
+  modulehandler_configuration_i.queue = &input_stream_r.queue_;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   switch (mediaFramework_in)
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
     {
+      directShowConfiguration_in.inputConfiguration.manager =
+        input_manager_p;
       directShowConfiguration_in.inputConfiguration.messageAllocator =
         &directshow_message_allocator;
-      directShowConfiguration_in.inputConfiguration.queue =
-        &directShowConfiguration_in.inputQueue;
 
-      modulehandler_configuration_i.concurrency =
-        STREAM_HEADMODULECONCURRENCY_ACTIVE;
-      modulehandler_configuration_i.queue =
-        &directShowConfiguration_in.inputQueue;
       modulehandler_configuration_i.subscriber = &directshow_input_handler;
 
       stream_configuration_2 = directshow_stream_configuration;
@@ -1944,15 +1919,11 @@ do_work (const std::string& scorerFile_in,
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
     {
+      mediaFoundationConfiguration_in.inputConfiguration.manager =
+        input_manager_p;
       mediaFoundationConfiguration_in.inputConfiguration.messageAllocator =
         &mediafoundation_message_allocator;
-      mediaFoundationConfiguration_in.inputConfiguration.queue =
-        &mediaFoundationConfiguration_in.inputQueue;
 
-      modulehandler_configuration_i.concurrency =
-        STREAM_HEADMODULECONCURRENCY_ACTIVE;
-      modulehandler_configuration_i.queue =
-        &mediaFoundationConfiguration_in.inputQueue;
       modulehandler_configuration_i.subscriber = &mediafoundation_input_handler;
 
       stream_configuration_2 = mediafoundation_stream_configuration;
@@ -1981,12 +1952,9 @@ do_work (const std::string& scorerFile_in,
     }
   } // end SWITCH
 #else
+  configuration_in.inputConfiguration.manager = input_manager_p;
   configuration_in.inputConfiguration.messageAllocator = &message_allocator;
-  configuration_in.inputConfiguration.queue = &configuration_in.inputQueue;
 
-  modulehandler_configuration_i.concurrency =
-    STREAM_HEADMODULECONCURRENCY_ACTIVE;
-  modulehandler_configuration_i.queue = &configuration_in.inputQueue;
   modulehandler_configuration_i.subscriber = &input_handler;
 
   stream_configuration_2 = stream_configuration;
