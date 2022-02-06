@@ -1358,8 +1358,8 @@ do_work (const std::string& scorerFile_in,
                 ACE_TEXT ("failed to intialize heap allocator, returning\n")));
     goto error;
   } // end IF
-  // ********************** module configuration data **************************
 
+  // ********************** module configuration data **************************
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   switch (mediaFramework_in)
   {
@@ -1938,11 +1938,9 @@ do_work (const std::string& scorerFile_in,
   } // end IF
 
   // step0f: initialize input handling
-  Test_I_InputStream_t& input_stream_r =
-    const_cast<Test_I_InputStream_t&> (input_manager_p->getR ());
   modulehandler_configuration_i.concurrency =
     STREAM_HEADMODULECONCURRENCY_ACTIVE;
-  modulehandler_configuration_i.queue = &input_stream_r.queue_;
+  modulehandler_configuration_i.queue = &stream_2_r.queue_;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   switch (mediaFramework_in)
   {

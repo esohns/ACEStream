@@ -51,13 +51,8 @@ Stream_Module_CamSource_V4L_T<ACE_SYNCH_USE,
                               SessionDataContainerType,
                               StatisticContainerType,
                               StatisticHandlerType,
-                              UserDataType>::Stream_Module_CamSource_V4L_T (ISTREAM_T* stream_in,
-                                                                            bool autoStart_in,
-                                                                            enum Stream_HeadModuleConcurrency concurrency_in)
- : inherited (stream_in,      // stream handle
-              autoStart_in,   // auto-start ?
-              concurrency_in, // concurrency
-              true)           // generate sesssion messages ?
+                              UserDataType>::Stream_Module_CamSource_V4L_T (ISTREAM_T* stream_in)
+ : inherited (stream_in) // stream handle
  , captureFileDescriptor_ (-1)
  , overlayFileDescriptor_ (-1)
  , bufferMap_ ()

@@ -98,14 +98,8 @@ class Stream_Dev_Mic_Source_ALSA_T
   typedef Stream_IStream_T<ACE_SYNCH_USE,
                            Common_TimePolicy_t> ISTREAM_T;
 
-  Stream_Dev_Mic_Source_ALSA_T (ISTREAM_T* = NULL,                                                         // stream handle
-                                bool = false,                                                              // auto-start ?
-                                enum Stream_HeadModuleConcurrency = STREAM_HEADMODULECONCURRENCY_PASSIVE); // concurrency mode
+  Stream_Dev_Mic_Source_ALSA_T (ISTREAM_T* = NULL); // stream handle
   virtual ~Stream_Dev_Mic_Source_ALSA_T ();
-
-//  // *PORTABILITY*: for some reason, this base class member is not exposed
-//  //                (MSVC/gcc)
-//  using inherited::initialize;
 
   // override (part of) Stream_IModuleHandler_T
   virtual bool initialize (const ConfigurationType&,

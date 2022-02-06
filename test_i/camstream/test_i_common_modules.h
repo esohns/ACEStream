@@ -483,13 +483,20 @@ typedef Stream_Vis_MediaFoundation_Target_Direct3D_T<ACE_MT_SYNCH,
 #else
 #if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
-typedef Stream_Miscellaneous_Distributor_T<ACE_MT_SYNCH,
-                                           Common_TimePolicy_t,
-                                           Test_I_Source_V4L_ModuleHandlerConfiguration,
-                                           Stream_ControlMessage_t,
-                                           Test_I_Source_V4L_Stream_Message,
-                                           Test_I_Source_V4L_SessionMessage,
-                                           Test_I_Source_V4L_SessionData_t> Test_I_Source_V4L_Distributor;
+typedef Stream_Miscellaneous_Distributor_ReaderTask_T<ACE_MT_SYNCH,
+                                                      Common_TimePolicy_t,
+                                                      struct Test_I_Source_V4L_ModuleHandlerConfiguration,
+                                                      Stream_ControlMessage_t,
+                                                      Test_I_Source_V4L_Stream_Message,
+                                                      Test_I_Source_V4L_SessionMessage,
+                                                      Test_I_Source_V4L_SessionData_t> Test_I_Source_V4L_Distributor_Reader_t;
+typedef Stream_Miscellaneous_Distributor_WriterTask_T<ACE_MT_SYNCH,
+                                                      Common_TimePolicy_t,
+                                                      struct Test_I_Source_V4L_ModuleHandlerConfiguration,
+                                                      Stream_ControlMessage_t,
+                                                      Test_I_Source_V4L_Stream_Message,
+                                                      Test_I_Source_V4L_SessionMessage,
+                                                      Test_I_Source_V4L_SessionData_t> Test_I_Source_V4L_Distributor_Writer_t;
 #if defined (FFMPEG_SUPPORT)
 typedef Stream_Visualization_LibAVResize_T<ACE_MT_SYNCH,
                                            Common_TimePolicy_t,
@@ -855,12 +862,14 @@ DATASTREAM_MODULE_INPUT_ONLY (Test_I_Source_MediaFoundation_SessionData,        
 #else
 #if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
-DATASTREAM_MODULE_INPUT_ONLY (Test_I_Source_V4L_SessionData,                  // session data type
-                              enum Stream_SessionMessageType,                         // session event type
-                              struct Test_I_Source_V4L_ModuleHandlerConfiguration,   // module handler configuration type
-                              libacestream_default_misc_distributor_module_name_string,
-                              Stream_INotify_t,                                       // stream notification interface type
-                              Test_I_Source_V4L_Distributor);                 // writer type
+DATASTREAM_MODULE_DUPLEX (Test_I_Source_V4L_SessionData,                          // session data type
+                          enum Stream_SessionMessageType,                         // session event type
+                          struct Test_I_Source_V4L_ModuleHandlerConfiguration,    // module handler configuration type
+                          libacestream_default_misc_distributor_module_name_string,
+                          Stream_INotify_t,                                       // stream notification interface type
+                          Test_I_Source_V4L_Distributor_Reader_t,                 // reader type
+                          Test_I_Source_V4L_Distributor_Writer_t,                 // writer type
+                          Test_I_Source_V4L_Distributor);                         // module name prefix
 #if defined (FFMPEG_SUPPORT)
 DATASTREAM_MODULE_INPUT_ONLY (Test_I_Source_V4L_SessionData,                  // session data type
                               enum Stream_SessionMessageType,                         // session event type

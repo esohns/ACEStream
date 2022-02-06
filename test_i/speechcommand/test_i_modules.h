@@ -573,13 +573,20 @@ typedef Stream_Statistic_StatisticReport_WriterTask_T<ACE_MT_SYNCH,
 
 //////////////////////////////////////////
 
-typedef Stream_Miscellaneous_Distributor_T<ACE_MT_SYNCH,
-                                           Common_TimePolicy_t,
-                                           struct Test_I_SpeechCommand_ALSA_ModuleHandlerConfiguration,
-                                           Stream_ControlMessage_t,
-                                           Test_I_Message,
-                                           Test_I_ALSA_SessionMessage_t,
-                                           Test_I_SpeechCommand_ALSA_SessionData_t> Test_I_ALSA_Distributor;
+typedef Stream_Miscellaneous_Distributor_ReaderTask_T<ACE_MT_SYNCH,
+                                                      Common_TimePolicy_t,
+                                                      struct Test_I_SpeechCommand_ALSA_ModuleHandlerConfiguration,
+                                                      Stream_ControlMessage_t,
+                                                      Test_I_Message,
+                                                      Test_I_ALSA_SessionMessage_t,
+                                                      Test_I_SpeechCommand_ALSA_SessionData_t> Test_I_ALSA_Distributor_Reader_t;
+typedef Stream_Miscellaneous_Distributor_WriterTask_T<ACE_MT_SYNCH,
+                                                      Common_TimePolicy_t,
+                                                      struct Test_I_SpeechCommand_ALSA_ModuleHandlerConfiguration,
+                                                      Stream_ControlMessage_t,
+                                                      Test_I_Message,
+                                                      Test_I_ALSA_SessionMessage_t,
+                                                      Test_I_SpeechCommand_ALSA_SessionData_t> Test_I_ALSA_Distributor_Writer_t;
 
 //////////////////////////////////////////
 
@@ -956,12 +963,14 @@ DATASTREAM_MODULE_DUPLEX (Test_I_SpeechCommand_ALSA_SessionData,                
 
 //////////////////////////////////////////
 
-DATASTREAM_MODULE_INPUT_ONLY (Test_I_SpeechCommand_ALSA_SessionData,                                 // session data type
-                              enum Stream_SessionMessageType,                          // session event type
-                              struct Test_I_SpeechCommand_ALSA_ModuleHandlerConfiguration,           // module handler configuration type
-                              libacestream_default_misc_distributor_module_name_string,
-                              Stream_INotify_t,                                        // stream notification interface type
-                              Test_I_ALSA_Distributor);                                // name
+DATASTREAM_MODULE_DUPLEX (Test_I_SpeechCommand_ALSA_SessionData,                   // session data type
+                          enum Stream_SessionMessageType,                          // session event type
+                          struct Test_I_SpeechCommand_ALSA_ModuleHandlerConfiguration, // module handler configuration type
+                          libacestream_default_misc_distributor_module_name_string,
+                          Stream_INotify_t,                                        // stream notification interface type
+                          Test_I_ALSA_Distributor_Reader_t,                        // reader type
+                          Test_I_ALSA_Distributor_Writer_t,                        // writer type
+                          Test_I_ALSA_Distributor);                                // module name prefix
 
 //////////////////////////////////////////
 

@@ -442,8 +442,8 @@ Stream_Base_T<ACE_SYNCH_USE,
 
   // step2: load modules
   { ACE_GUARD (ACE_SYNCH_RECURSIVE_MUTEX, aGuard, lock_);
-    if (unlikely (!load (&layout_,
-                         delete_)))
+    if (unlikely (!this->load (&layout_,
+                               delete_)))
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: failed to Stream_IStreamLayout_T::load(), returning\n"),
@@ -3367,7 +3367,7 @@ Stream_Base_T<ACE_SYNCH_USE,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Base_T::close"));
 
-  if (likely (flags_in == M_DELETE))
+  if (likely (flags_in == STREAM_T::M_DELETE))
     return inherited::close (flags_in);
 
   // sanity check(s)
@@ -3379,7 +3379,7 @@ Stream_Base_T<ACE_SYNCH_USE,
   { ACE_GUARD_RETURN (ACE_SYNCH_MUTEX_T, ace_mon, inherited::lock_, -1);
     // Remove and cleanup all the intermediate modules.
     while (inherited::stream_head_->next () != inherited::stream_tail_)
-      if (pop (delete_ ? M_DELETE : 0) == -1)
+      if (this->pop (delete_ ? STREAM_T::M_DELETE : 0) == -1)
         result = -1;
   } // end lock scope
 

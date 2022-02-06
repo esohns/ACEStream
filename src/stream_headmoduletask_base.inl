@@ -2587,7 +2587,7 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
           //                   is automatic --> set state early to facilitate
           //                   this transition
           inherited2::state_ = STREAM_STATE_SESSION_STOPPING;
-          change (STREAM_STATE_STOPPED);
+          this->change (STREAM_STATE_STOPPED);
         } // end IF
       } // end lock scope
       break;

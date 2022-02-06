@@ -169,14 +169,14 @@ Stream_Module_QueueReader_T<ACE_SYNCH_USE,
       { ACE_ASSERT (inherited::timerId_ == -1);
         typename TimerManagerType::INTERFACE_T* itimer_manager_p =
             (inherited::configuration_->timerManager ? inherited::configuration_->timerManager
-                                                     : TIMER_MANAGER_SINGLETON_T::instance ());
+                                                     : inherited::TIMER_MANAGER_SINGLETON_T::instance ());
         ACE_ASSERT (itimer_manager_p);
         ACE_Time_Value interval (0, STREAM_DEFAULT_STATISTIC_COLLECTION_INTERVAL_MS * 1000);
         inherited::timerId_ =
-          itimer_manager_p->schedule_timer (&statisticHandler_, // event handler
-                                            NULL,                         // asynchronous completion token
-                                            COMMON_TIME_NOW + interval,   // first wakeup time
-                                            interval);                    // interval
+          itimer_manager_p->schedule_timer (&(inherited::statisticHandler_), // event handler
+                                            NULL,                            // asynchronous completion token
+                                            COMMON_TIME_NOW + interval,      // first wakeup time
+                                            interval);                       // interval
         if (unlikely (inherited::timerId_ == -1))
         {
           ACE_DEBUG ((LM_ERROR,
@@ -203,16 +203,16 @@ error:
     {
       // *NOTE*: only process the first 'session end' message (see above: 2566)
       { ACE_GUARD (ACE_Thread_Mutex, aGuard, inherited::lock_);
-        if (unlikely (sessionEndProcessed_))
+        if (unlikely (inherited::sessionEndProcessed_))
           break; // done
-        sessionEndProcessed_ = true;
+        inherited::sessionEndProcessed_ = true;
       } // end lock scope
 
       if (inherited::timerId_ != -1)
       {
         typename TimerManagerType::INTERFACE_T* itimer_manager_p =
             (inherited::configuration_->timerManager ? inherited::configuration_->timerManager
-                                                     : TIMER_MANAGER_SINGLETON_T::instance ());
+                                                     : inherited::TIMER_MANAGER_SINGLETON_T::instance ());
         ACE_ASSERT (itimer_manager_p);
         const void* act_p = NULL;
         result = itimer_manager_p->cancel_timer (inherited::timerId_,
@@ -348,8 +348,8 @@ Stream_Module_QueueReader_T<ACE_SYNCH_USE,
         if (unlikely (inherited::isHighPriorityStop_))
         {
           if (likely (!inherited::abortSent_))
-            control (STREAM_CONTROL_ABORT,
-                     false); // forward upstream ?
+            this->control (STREAM_CONTROL_ABORT,
+                           false); // forward upstream ?
         } // end IF
 
         // *IMPORTANT NOTE*: when close()d manually (i.e. on a user abort),
@@ -449,7 +449,7 @@ Stream_Module_QueueReader_T<ACE_SYNCH_USE,
             if (likely (inherited::current () != STREAM_STATE_FINISHED))
             {
               // enqueue(/process) STREAM_SESSION_END
-              finished (false); // recurse upstream ?
+              inherited::finished (false); // recurse upstream ?
               continue;
             } // end IF
 //          } // end lock scope
@@ -477,7 +477,7 @@ Stream_Module_QueueReader_T<ACE_SYNCH_USE,
                         inherited::mod_->name (),
                         session_data_p->sessionId));
             // enqueue(/process) STREAM_SESSION_END
-            finished (false); // recurse upstream ?
+            inherited::finished (false); // recurse upstream ?
             continue;
           } // end IF
 //        } // end lock scope

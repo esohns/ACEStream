@@ -183,13 +183,8 @@ Stream_Dev_Mic_Source_ALSA_T<ACE_SYNCH_USE,
                              SessionDataType,
                              SessionDataContainerType,
                              StatisticContainerType,
-                             StatisticHandlerType>::Stream_Dev_Mic_Source_ALSA_T (ISTREAM_T* stream_in,
-                                                                                  bool autoStart_in,
-                                                                                  enum Stream_HeadModuleConcurrency concurrency_in)
- : inherited (stream_in,
-              autoStart_in,
-              concurrency_in,
-              true)
+                             StatisticHandlerType>::Stream_Dev_Mic_Source_ALSA_T (ISTREAM_T* stream_in)
+ : inherited (stream_in)
  , CBData_ ()
  , handle_ (NULL)
  , handler_ (NULL)

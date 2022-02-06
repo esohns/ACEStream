@@ -247,8 +247,6 @@ Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
     height_ = width_ = 0;
 
     mode2D_ = NULL;
-
-    window_ = NULL;
   } // end IF
 
   // *TODO*: remove type inferences

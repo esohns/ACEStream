@@ -278,7 +278,7 @@ class Stream_Base_T
   // override ACE_Stream method(s)
   // *NOTE*: behaves like inherited::close(), but does not delete the head/tail
   //         modules unless the argument is M_DELETE
-  virtual int close (int flags = M_DELETE);
+  virtual int close (int flags = STREAM_T::M_DELETE);
   // *NOTE*: returns: the last module (if any), inherited::tail() otherwise
   virtual ACE_Module<ACE_SYNCH_USE, TimePolicyType>* tail ();
   inline virtual int get (ACE_Message_Block*& messageBlock_inout, ACE_Time_Value* timeout_in) { return (inherited::linked_us_ ? inherited::linked_us_->get (messageBlock_inout, timeout_in) : inherited::get (messageBlock_inout, timeout_in)); }

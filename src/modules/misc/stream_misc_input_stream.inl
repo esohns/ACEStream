@@ -101,7 +101,8 @@ Stream_Miscellaneous_Input_Stream_T<ACE_SYNCH_USE,
   STREAM_TRACE (ACE_TEXT ("Stream_Miscellaneous_Input_Stream_T::~Stream_Miscellaneous_Input_Stream_T"));
 
   // get the head ('queue'-) module
-  MODULE_T* module_p = NULL;
+  typename inherited::MODULE_T* module_p = NULL;
+  typename inherited::TASK_T* task_p = NULL;
   int result = inherited::top (module_p);
   if (unlikely ((result == -1) || !module_p))
   {
@@ -111,7 +112,7 @@ Stream_Miscellaneous_Input_Stream_T<ACE_SYNCH_USE,
     goto continue_;
   } // end IF
   // reset the queue; it gets deallocated earlier than the task
-  TASK_T* task_p = module_p->writer ();
+  task_p = module_p->writer ();
   ACE_ASSERT (task_p);
   task_p->msg_queue (NULL);
 

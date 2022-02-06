@@ -669,7 +669,7 @@ error:
       Stream_MediaFramework_DirectShow_Tools::free (media_type_s);
 #endif // ACE_WIN32 || ACE_WIN64
 
-      notify (STREAM_SESSION_MESSAGE_ABORT);
+      this->notify (STREAM_SESSION_MESSAGE_ABORT);
 
       break;
 
