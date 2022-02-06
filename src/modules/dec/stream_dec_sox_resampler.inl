@@ -633,6 +633,7 @@ Stream_Decoder_SoXResampler_T<ACE_SYNCH_USE,
                     ACE_TEXT ("%s: added SoX effect \"rate\"\n"),
                     inherited::mod_->name ()));
       } // end IF
+
       if (signalInfo_.channels != signalInfoOut_.channels)
       {
         effect_handler_p = sox_find_effect (ACE_TEXT_ALWAYS_CHAR ("channels"));
@@ -732,7 +733,7 @@ error:
       Stream_MediaFramework_DirectShow_Tools::free (media_type_2);
 #endif // ACE_WIN32 || ACE_WIN64
 
-      this->notify (STREAM_SESSION_MESSAGE_ABORT);
+      notify (STREAM_SESSION_MESSAGE_ABORT);
 
       break;
 

@@ -55,17 +55,11 @@ Stream_Module_FileReaderH_T<ACE_SYNCH_USE,
                             StatisticContainerType,
                             TimerManagerType,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-                            UserDataType>::Stream_Module_FileReaderH_T (ISTREAM_T* stream_in,
+                            UserDataType>::Stream_Module_FileReaderH_T (ISTREAM_T* stream_in)
 #else
-                            UserDataType>::Stream_Module_FileReaderH_T (typename inherited::ISTREAM_T* stream_in,
-#endif
-                                                                        bool autoStart_in,
-                                                                        enum Stream_HeadModuleConcurrency concurrency_in,
-                                                                        bool generateSessionMessages_in)
- : inherited (stream_in,
-              autoStart_in,
-              concurrency_in,
-              generateSessionMessages_in)
+                            UserDataType>::Stream_Module_FileReaderH_T (typename inherited::ISTREAM_T* stream_in)
+#endif // ACE_WIN32 || ACE_WIN64
+ : inherited (stream_in)
  , directory_ ()
  , isOpen_ (false)
  , stream_ ()

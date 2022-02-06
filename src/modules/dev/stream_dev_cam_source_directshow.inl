@@ -80,10 +80,7 @@ Stream_Dev_Cam_Source_DirectShow_T<ACE_SYNCH_USE,
                                    TimerManagerType,
                                    UserDataType,
                                    MediaSampleIsDataMessage>::Stream_Dev_Cam_Source_DirectShow_T (ISTREAM_T* stream_in)
- : inherited (stream_in,                               // stream handle
-              false,                                   // auto-start ? (active mode only)
-              STREAM_HEADMODULECONCURRENCY_CONCURRENT, // concurrency mode
-              true)                                    // generate session messages ?
+ : inherited (stream_in) // stream handle
  , isFirst_ (true)
  , IAMVideoControl_ (NULL)
  , IAMDroppedFrames_ (NULL)

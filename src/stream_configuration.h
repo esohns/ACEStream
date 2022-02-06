@@ -95,6 +95,7 @@ struct Stream_ModuleHandlerConfiguration
 {
   Stream_ModuleHandlerConfiguration ()
    : allocatorConfiguration (NULL)
+   , autoStart (false)
    , computeThroughput (false)
    , concurrency (STREAM_HEADMODULECONCURRENCY_PASSIVE)
    , crunchMessages (STREAM_MODULE_DEFAULT_CRUNCH_MESSAGES)
@@ -104,6 +105,7 @@ struct Stream_ModuleHandlerConfiguration
    , demultiplex (false)
 //   , dispatchConfiguration (NULL)
    , finishOnDisconnect (false)
+   , generateSessionMessages (true)
    , hasReentrantSynchronousSubDownstream (true)
    , inbound (true)
    , lock (NULL)
@@ -125,6 +127,7 @@ struct Stream_ModuleHandlerConfiguration
   {}
 
   struct Common_AllocatorConfiguration*       allocatorConfiguration;
+  bool                                        autoStart;                            // head module(s)
   bool                                        computeThroughput;                    // statistic/... module(s)
   // *NOTE*: valid operating modes (see also: put()):
   //         active    : dedicated worker thread(s) running svc()
@@ -143,7 +146,8 @@ struct Stream_ModuleHandlerConfiguration
 #endif // _DEBUG
   bool                                        demultiplex;                          // message handler module
 //  struct Common_EventDispatchConfiguration*   dispatchConfiguration;
-  bool                                        finishOnDisconnect;                   // header module(s)
+  bool                                        finishOnDisconnect;                   // head module(s)
+  bool                                        generateSessionMessages;              // head module(s)
   // *WARNING*: when false, this 'locks down' the pipeline head module; i.e. it
   //            will hold the 'stream lock' during all message processing to
   //            support (down)stream synchronization. This really only makes
@@ -164,11 +168,11 @@ struct Stream_ModuleHandlerConfiguration
   //         Note that this overhead is not negligible
   //         --> disable only if absolutely necessary
   bool                                        hasReentrantSynchronousSubDownstream; // head module(s)
-  //// *NOTE*: if this is an 'outbound' (i.e. data travels in two directions;
-  ////         e.g. network connection-) stream, any 'inbound' (i.e. writer-
-  ////         side) data [!] may (!) 'turn around' and travel back upstream for
-  ////         dispatch --> account for it only once
-  bool                                        inbound;                              // statistic[/IO] module(s)
+  // *NOTE*: if this is an 'outbound' (i.e. data travels in two directions;
+  //         e.g. network connection-) stream, any 'inbound' (i.e. writer-
+  //         side) data [!] may (!) 'turn around' and travel back upstream for
+  //         dispatch --> account for it only once
+  bool                                        inbound;                              // statistic[/network IO] module(s)
   ACE_SYNCH_RECURSIVE_MUTEX*                  lock;                                 // display/message handler module(s)
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   enum Stream_MediaFramework_Type             mediaFramework;

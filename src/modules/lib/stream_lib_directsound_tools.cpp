@@ -1558,8 +1558,19 @@ Stream_MediaFramework_DirectSound_Tools::extensibleTo (const struct tWAVEFORMATE
   {
     const WAVEFORMATEXTENSIBLE* waveformatextensible_p =
       reinterpret_cast<const WAVEFORMATEXTENSIBLE*> (&format_in);
-    if (InlineIsEqualGUID (waveformatextensible_p->SubFormat, KSDATAFORMAT_SUBTYPE_PCM))
+    if (InlineIsEqualGUID (waveformatextensible_p->SubFormat,
+                           KSDATAFORMAT_SUBTYPE_PCM))
+    {
       result.wFormatTag = WAVE_FORMAT_PCM;
+      if ((format_in.wBitsPerSample == 32) &&
+          (waveformatextensible_p->Samples.wValidBitsPerSample == 24))
+      {
+        ACE_DEBUG ((LM_WARNING,
+                    ACE_TEXT ("reducing bits/sample to 16 (was: 32; valid: 24), continuing\n")));
+        result.wBitsPerSample = 16;
+        Stream_MediaFramework_DirectSound_Tools::reconfigure (result);
+      } // end IF
+    }
     else if (InlineIsEqualGUID (waveformatextensible_p->SubFormat, KSDATAFORMAT_SUBTYPE_IEEE_FLOAT))
       result.wFormatTag = WAVE_FORMAT_IEEE_FLOAT;
     else
@@ -1594,6 +1605,21 @@ Stream_MediaFramework_DirectSound_Tools::isFloat (const struct tWAVEFORMATEX& fo
   } // end SWITCH
 
   return false; // *TODO*: possibly a false negative !
+}
+
+void
+Stream_MediaFramework_DirectSound_Tools::reconfigure (struct tWAVEFORMATEX& format_inout)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_DirectSound_Tools::reconfigure"));
+
+  // sanity check(s)
+  ACE_ASSERT (format_inout.nChannels);
+  ACE_ASSERT ((format_inout.wBitsPerSample % 8) == 0);
+
+  format_inout.nBlockAlign =
+    (format_inout.wBitsPerSample / 8) * format_inout.nChannels;
+  format_inout.nAvgBytesPerSec =
+    format_inout.nBlockAlign * format_inout.nSamplesPerSec;
 }
 
 std::string

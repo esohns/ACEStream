@@ -87,10 +87,6 @@ class Test_I_DirectShow_Stream
   virtual bool load (Stream_ILayout*, // return value: layout
                      bool&);          // return value: delete modules ?
 
-  // implement Common_IInitialize_T
-  // *TODO*: on MSVC 2015u3 the accurate declaration does not compile
-  virtual bool initialize (const CONFIGURATION_T&); // configuration
-
  private:
   ACE_UNIMPLEMENTED_FUNC (Test_I_DirectShow_Stream (const Test_I_DirectShow_Stream&))
   ACE_UNIMPLEMENTED_FUNC (Test_I_DirectShow_Stream& operator= (const Test_I_DirectShow_Stream&))

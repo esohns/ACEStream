@@ -70,17 +70,11 @@ template <ACE_SYNCH_DECL,
                             TimerManagerType,
                             UserDataType,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-                            MediaType>::Stream_Decoder_MP3Decoder_T (ISTREAM_T* stream_in,
+                            MediaType>::Stream_Decoder_MP3Decoder_T (ISTREAM_T* stream_in)
 #else
-                            MediaType>::Stream_Decoder_MP3Decoder_T (typename inherited::ISTREAM_T* stream_in,
+                            MediaType>::Stream_Decoder_MP3Decoder_T (typename inherited::ISTREAM_T* stream_in)
 #endif // ACE_WIN32 || ACE_WIN64
-                                                                     bool autoStart_in,
-                                                                     enum Stream_HeadModuleConcurrency concurrency_in,
-                                                                     bool generateSessionMessages_in)
- : inherited (stream_in,
-              autoStart_in,
-              concurrency_in,
-              generateSessionMessages_in)
+ : inherited (stream_in)
  , bufferSize_ (0)
  , handle_ (NULL)
 {

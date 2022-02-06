@@ -661,7 +661,8 @@ Stream_Base_T<ACE_SYNCH_USE,
   //         task; this will become the 'outbound' queue
   ACE_NEW_NORETURN (head_reader_p,
                     HEAD_READER_T (this,
-                                   &messageQueue_));
+                                   &messageQueue_,
+                                   false)); // enqueue incoming messages ? : release()
   if (unlikely (!head_writer_p || !head_reader_p))
   {
     ACE_DEBUG ((LM_CRITICAL,
@@ -1923,26 +1924,28 @@ Stream_Base_T<ACE_SYNCH_USE,
     task_p = const_cast<MODULE_T*> (*iterator_2)->writer ();
     if (unlikely (!task_p))
       continue; // close()d already ?
-    ACE_ASSERT (task_p->msg_queue_);
-    do
+    if (likely (task_p->msg_queue_))
     {
-      message_count = task_p->msg_queue_->message_count ();
-      if (likely (!message_count))
-        break;
-      ACE_DEBUG ((LM_DEBUG,
-                  ACE_TEXT ("%s/%s writer: waiting to process %d byte(s) in %u message(s)...\n"),
-                  ACE_TEXT (StreamName), (*iterator_2)->name (),
-                  task_p->msg_queue_->message_bytes (), message_count));
-
-      { //ACE_GUARD (ACE_Reverse_Lock<ACE_SYNCH_RECURSIVE_MUTEX>, aGuard2, reverse_lock);
-        result = ACE_OS::sleep (one_second);
-      } // end lock scope
-      if (unlikely (result == -1))
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("%s/%s writer: failed to ACE_OS::sleep(%#T): \"%m\", continuing\n"),
+      do
+      {
+        message_count = task_p->msg_queue_->message_count ();
+        if (likely (!message_count))
+          break;
+        ACE_DEBUG ((LM_DEBUG,
+                    ACE_TEXT ("%s/%s writer: waiting to process %d byte(s) in %u message(s)...\n"),
                     ACE_TEXT (StreamName), (*iterator_2)->name (),
-                    &one_second));
-    } while (true);
+                    task_p->msg_queue_->message_bytes (), message_count));
+
+        { //ACE_GUARD (ACE_Reverse_Lock<ACE_SYNCH_RECURSIVE_MUTEX>, aGuard2, reverse_lock);
+          result = ACE_OS::sleep (one_second);
+        } // end lock scope
+        if (unlikely (result == -1))
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("%s/%s writer: failed to ACE_OS::sleep(%#T): \"%m\", continuing\n"),
+                      ACE_TEXT (StreamName), (*iterator_2)->name (),
+                      &one_second));
+      } while (true);
+    } // end IF
 
     if (waitForThreads_in)
     {

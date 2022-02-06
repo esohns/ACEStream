@@ -153,6 +153,7 @@ Stream_StateMachine_Control_T<ACE_SYNCH_USE>::change (Stream_StateMachine_Contro
           // good case(s)
           case STREAM_STATE_INITIALIZED:
           case STREAM_STATE_SESSION_STARTING:
+          case STREAM_STATE_SESSION_STOPPING: // *TODO*: remove this ASAP
           // *IMPORTANT NOTE*: the head module is responsible for the transition
           //                   to FINISHED after stopping the session
           case STREAM_STATE_FINISHED:

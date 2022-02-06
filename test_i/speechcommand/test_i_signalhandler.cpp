@@ -122,11 +122,14 @@ Test_I_SignalHandler::handle (const struct Common_Signal& signal_in)
     // - leave event loop(s) handling signals, sockets, (maintenance) timers,
     //   exception handlers, ...
     // - activation timers (connection attempts, ...)
-    // [- UI dispatch]
 
     ACE_ASSERT (inherited::configuration_->stream);
     inherited::configuration_->stream->stop (false, // wait for completion ?
                                              false, // recurse upstream ?
                                              true); // high priority ?
+
+    if (inherited::configuration_->stopEventDispatchOnShutdown)
+      Common_Tools::finalizeEventDispatch (*inherited::configuration_->dispatchState,
+                                           false); // wait for completion ?
   } // end IF
 }

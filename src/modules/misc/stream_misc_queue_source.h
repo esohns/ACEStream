@@ -120,17 +120,16 @@ class Stream_Module_QueueReader_T
                                      bool&);               // return value: pass message downstream ?
 
  private:
+  // convenient types
+  typedef ACE_Message_Queue<ACE_SYNCH_USE,
+                            Common_TimePolicy_t> MESSAGE_QUEUE_BASE_T;
+
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_QueueReader_T ())
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_QueueReader_T (const Stream_Module_QueueReader_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_QueueReader_T& operator= (const Stream_Module_QueueReader_T&))
 
   // helper methods
   virtual int svc (void);
-
-  // *NOTE*: this enqueues the STOP message at the tail end...
-  void stop ();
-
-  ACE_Message_Queue_Base* queue_;
 };
 
 // include template definition

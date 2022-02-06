@@ -152,6 +152,10 @@ do_printUsage (const std::string& programName_in)
             << ACE_TEXT_ALWAYS_CHAR ("\"]")
             << std::endl;
 #endif // ACE_WIN32 || ACE_WIN64
+  std::cout << ACE_TEXT_ALWAYS_CHAR ("-e [FLOAT]  : modify input gain [")
+            << 0.0
+            << ACE_TEXT_ALWAYS_CHAR (" dB] {\"0\" --> no change}")
+            << std::endl;
   std::string model_file = path;
   model_file += ACE_DIRECTORY_SEPARATOR_CHAR_A;
   model_file += ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_MODEL_FILE);
@@ -233,6 +237,7 @@ do_processArguments (int argc_in,
 #else
                      std::string& deviceIdentifier_out,
 #endif // ACE_WIN32 || ACE_WIN64
+                     double& gain_out,
                      std::string& modelFile_out,
 #if defined (GUI_SUPPORT)
                      std::string& UIFile_out,
@@ -273,6 +278,7 @@ do_processArguments (int argc_in,
   deviceIdentifier_out =
     ACE_TEXT_ALWAYS_CHAR (STREAM_LIB_ALSA_CAPTURE_DEFAULT_DEVICE_NAME);
 #endif // ACE_WIN32 || ACE_WIN64
+  gain_out = 0.0;
   modelFile_out = configuration_path;
   modelFile_out += ACE_DIRECTORY_SEPARATOR_CHAR_A;
   modelFile_out += ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_MODEL_FILE);
@@ -302,7 +308,7 @@ do_processArguments (int argc_in,
   useFrameworkRenderer_out = false;
 #endif // ACE_WIN32 || ACE_WIN64
 
-  std::string options_string = ACE_TEXT_ALWAYS_CHAR ("c:d:f:lo::s:tuv");
+  std::string options_string = ACE_TEXT_ALWAYS_CHAR ("c:d:e:f:lo::s:tuv");
 #if defined (GUI_SUPPORT)
 #if defined (GTK_SUPPORT) || defined (WXWIDGETS_SUPPORT)
   options_string += ACE_TEXT_ALWAYS_CHAR ("g::");
@@ -353,6 +359,14 @@ do_processArguments (int argc_in,
         deviceIdentifier_out =
           ACE_TEXT_ALWAYS_CHAR (argument_parser.opt_arg ());
 #endif // ACE_WIN32 || ACE_WIN64
+        break;
+      }
+      case 'e':
+      {
+        converter.clear ();
+        converter.str (ACE_TEXT_ALWAYS_CHAR (""));
+        converter << ACE_TEXT_ALWAYS_CHAR (argument_parser.opt_arg ());
+        converter >> gain_out;
         break;
       }
       case 'f':
@@ -865,9 +879,9 @@ continue_2:
   // waveformatex_s.cbSize = 0;
   targetMediaType_out =
     Stream_MediaFramework_MediaFoundation_Tools::to (waveformatex_s);
-  result = targetMediaType_out->SetUINT32 (MF_MT_AUDIO_CHANNEL_MASK,
-                                           SPEAKER_FRONT_LEFT);
-  ACE_ASSERT (SUCCEEDED (result));
+  //result = targetMediaType_out->SetUINT32 (MF_MT_AUDIO_CHANNEL_MASK,
+  //                                         SPEAKER_FRONT_LEFT);
+  //ACE_ASSERT (SUCCEEDED (result));
   result = targetMediaType_out->DeleteItem (MF_MT_AUDIO_PREFER_WAVEFORMATEX);
   ACE_ASSERT (SUCCEEDED (result));
 
@@ -1131,6 +1145,7 @@ do_work (const std::string& scorerFile_in,
 #else
          const std::string& deviceIdentifier_in,
 #endif // ACE_WIN32 || ACE_WIN64
+         double gain_in,
          const std::string& modelFile_in,
 #if defined (GUI_SUPPORT)
          const std::string& UIDefinitionFile_in,
@@ -1334,6 +1349,7 @@ do_work (const std::string& scorerFile_in,
   Test_I_InputMessageHandler_Module input_handler_module (istream_2,
                                                           ACE_TEXT_ALWAYS_CHAR (STREAM_MISC_MESSAGEHANDLER_DEFAULT_NAME_STRING));
   Test_I_SignalHandler signal_handler;
+  struct Common_EventDispatchState dispatch_state_s;
 
   ACE_ASSERT (allocator_configuration_p);
   if (unlikely (!heap_allocator.initialize (*allocator_configuration_p)))
@@ -1393,6 +1409,14 @@ do_work (const std::string& scorerFile_in,
           goto error;
         }
       } // end SWITCH
+      if (gain_in != 0.0)
+      {
+        directshow_modulehandler_configuration.effect =
+          ACE_TEXT_ALWAYS_CHAR ("gain");
+        std::ostringstream converter;
+        converter << gain_in;
+        directshow_modulehandler_configuration.effectOptions.push_back (converter.str ());
+      } // end IF
       directshow_modulehandler_configuration.filterConfiguration =
         &directShowConfiguration_in.filterConfiguration;
       directshow_modulehandler_configuration.messageAllocator =
@@ -1536,6 +1560,14 @@ do_work (const std::string& scorerFile_in,
           goto error;
         }
       } // end SWITCH
+      if (gain_in != 0.0)
+      {
+        mediafoundation_modulehandler_configuration.effect =
+          ACE_TEXT_ALWAYS_CHAR ("gain");
+        std::ostringstream converter;
+        converter << gain_in;
+        mediafoundation_modulehandler_configuration.effectOptions.push_back (converter.str ());
+      } // end IF
       mediafoundation_modulehandler_configuration.mediaFoundationConfiguration =
         &mediaFoundationConfiguration_in.mediaFoundationConfiguration;
       mediafoundation_modulehandler_configuration.mute = mute_in;
@@ -1646,8 +1678,15 @@ do_work (const std::string& scorerFile_in,
 #if defined (_DEBUG)
   modulehandler_configuration.debug = true;
 #endif // _DEBUG
+  if (gain_in != 0.0)
+  {
+    modulehandler_configuration.effect = ACE_TEXT_ALWAYS_CHAR ("gain");
+    std::ostringstream converter;
+    converter << gain_in;
+    modulehandler_configuration.effectOptions.push_back (converter.str ());
+  } // end IF
   modulehandler_configuration.scorerFile = scorerFile_in;
-  modulehandler_configuration.spectrumAnalyzerResolution = 512;
+  //modulehandler_configuration.spectrumAnalyzerResolution = 512;
   modulehandler_configuration.modelFile = modelFile_in;
 
   stream_configuration.allocatorConfiguration = allocator_configuration_p;
@@ -1842,19 +1881,29 @@ do_work (const std::string& scorerFile_in,
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
     {
-      //directShowConfiguration_in.signalHandlerConfiguration.messageAllocator =
-      //  &directshow_message_allocator;
+      dispatch_state_s.configuration =
+        &directShowConfiguration_in.dispatchConfiguration;
+
+      directShowConfiguration_in.signalHandlerConfiguration.dispatchState =
+        &dispatch_state_s;
       directShowConfiguration_in.signalHandlerConfiguration.stream =
         istream_control_p;
+      directShowConfiguration_in.signalHandlerConfiguration.stopEventDispatchOnShutdown =
+        true;
       signal_handler.initialize (directShowConfiguration_in.signalHandlerConfiguration);
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
     {
-      //mediaFoundationConfiguration_in.signalHandlerConfiguration.messageAllocator =
-      //  &mediafoundation_message_allocator;
+      dispatch_state_s.configuration =
+        &mediaFoundationConfiguration_in.dispatchConfiguration;
+
+      mediaFoundationConfiguration_in.signalHandlerConfiguration.dispatchState =
+        &dispatch_state_s;
       mediaFoundationConfiguration_in.signalHandlerConfiguration.stream =
         istream_control_p;
+      mediaFoundationConfiguration_in.signalHandlerConfiguration.stopEventDispatchOnShutdown =
+        true;
       signal_handler.initialize (mediaFoundationConfiguration_in.signalHandlerConfiguration);
       break;
     }
@@ -1867,8 +1916,14 @@ do_work (const std::string& scorerFile_in,
     }
   } // end SWITCH
 #else
+  dispatch_state_s.configuration = &configuration_in.dispatchConfiguration;
+
+  configuration_in.signalHandlerConfiguration.dispatchState =
+    &dispatch_state_s;
   configuration_in.signalHandlerConfiguration.stream =
     istream_control_p;
+  configuration_in.signalHandlerConfiguration.stopEventDispatchOnShutdown =
+    true;
   signal_handler.initialize (configuration_in.signalHandlerConfiguration);
 #endif // ACE_WIN32 || ACE_WIN64
   if (unlikely (!Common_Signal_Tools::initialize (COMMON_SIGNAL_DEFAULT_DISPATCH_MODE,
@@ -1906,6 +1961,8 @@ do_work (const std::string& scorerFile_in,
       directShowConfiguration_in.streamConfiguration_2.initialize (module_configuration,
                                                                    modulehandler_configuration_i,
                                                                    stream_configuration_2);
+      directShowConfiguration_in.inputManagerConfiguration.eventDispatchState =
+        &dispatch_state_s;
       directShowConfiguration_in.inputManagerConfiguration.streamConfiguration =
         &directShowConfiguration_in.streamConfiguration_2;
       if (unlikely (!input_manager_p->initialize (directShowConfiguration_in.inputManagerConfiguration)))
@@ -1932,6 +1989,8 @@ do_work (const std::string& scorerFile_in,
       mediaFoundationConfiguration_in.streamConfiguration_2.initialize (module_configuration,
                                                                         modulehandler_configuration_i,
                                                                         stream_configuration_2);
+      mediaFoundationConfiguration_in.inputManagerConfiguration.eventDispatchState =
+        &dispatch_state_s;
       mediaFoundationConfiguration_in.inputManagerConfiguration.streamConfiguration =
         &mediaFoundationConfiguration_in.streamConfiguration_2;
       if (unlikely (!input_manager_p->initialize (mediaFoundationConfiguration_in.inputManagerConfiguration)))
@@ -1963,6 +2022,8 @@ do_work (const std::string& scorerFile_in,
   configuration_in.streamConfiguration_2.initialize (module_configuration,
                                                      modulehandler_configuration_i,
                                                      stream_configuration_2);
+  configuration_in.inputManagerConfiguration.eventDispatchState =
+    &dispatch_state_s;
   configuration_in.inputManagerConfiguration.streamConfiguration =
     &configuration_in.streamConfiguration_2;
   if (unlikely (!input_manager_p->initialize (configuration_in.inputManagerConfiguration)))
@@ -2289,6 +2350,7 @@ ACE_TMAIN (int argc_in,
   std::string device_identifier_string =
     ACE_TEXT_ALWAYS_CHAR (STREAM_LIB_ALSA_CAPTURE_DEFAULT_DEVICE_NAME);
 #endif // ACE_WIN32 || ACE_WIN64
+  double gain_d = 0.0;
   std::string model_file = path;
   model_file += ACE_DIRECTORY_SEPARATOR_CHAR_A;
   model_file += ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_MODEL_FILE);
@@ -2370,6 +2432,7 @@ ACE_TMAIN (int argc_in,
 #else
                             device_identifier_string,
 #endif // ACE_WIN32 || ACE_WIN64
+                            gain_d,
                             model_file,
 #if defined (GUI_SUPPORT)
                             UI_definition_file,
@@ -2632,6 +2695,7 @@ ACE_TMAIN (int argc_in,
 #else
            device_identifier_string,
 #endif // ACE_WIN32 || ACE_WIN64
+           gain_d,
            model_file,
 #if defined (GUI_SUPPORT)
            UI_definition_file,

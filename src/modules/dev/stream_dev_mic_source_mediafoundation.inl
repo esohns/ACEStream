@@ -59,13 +59,8 @@ Stream_Dev_Mic_Source_MediaFoundation_T<ACE_SYNCH_USE,
                                         SessionDataType,
                                         SessionDataContainerType,
                                         StatisticContainerType,
-                                        TimerManagerType>::Stream_Dev_Mic_Source_MediaFoundation_T (ISTREAM_T* stream_in,
-                                                                                                    bool autoStart_in,
-                                                                                                    enum Stream_HeadModuleConcurrency concurrency_in)
- : inherited (stream_in,
-              autoStart_in,
-              concurrency_in,
-              true)
+                                        TimerManagerType>::Stream_Dev_Mic_Source_MediaFoundation_T (ISTREAM_T* stream_in)
+ : inherited (stream_in) // stream handle
  , baseTimeStamp_ (0)
  , hasFinished_ (false)
  , isFirst_ (true)

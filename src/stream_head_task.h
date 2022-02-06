@@ -28,6 +28,8 @@
 #include "ace/Module.h"
 #include "ace/Stream_Modules.h"
 
+#include "common_iget.h"
+
 // forward declaration(s)
 class ACE_Message_Block;
 class ACE_Time_Value;
@@ -44,6 +46,7 @@ class Stream_HeadReaderTask_T
 // *TODO*: figure out how to use ACE_NULL_SYNCH in this case
  : public ACE_Stream_Head<ACE_SYNCH_USE,
                           TimePolicyType>
+ , public Common_ISet_T<bool> // enqueue incoming messages ? : release()
 {
   typedef ACE_Stream_Head<ACE_SYNCH_USE,
                           TimePolicyType> inherited;
@@ -52,9 +55,13 @@ class Stream_HeadReaderTask_T
   // convenient types
   typedef Stream_INotify_T<SessionEventType> NOTIFY_T;
 
-  Stream_HeadReaderTask_T (NOTIFY_T*,                     // stream handle
-                           Stream_IMessageQueue* = NULL); // message queue handle {NULL: do not enqueue}
+  Stream_HeadReaderTask_T (NOTIFY_T*,             // stream handle
+                           Stream_IMessageQueue*, // message queue handle
+                           bool);                 // queue incoming messages ? : release()
   inline virtual ~Stream_HeadReaderTask_T () {}
+
+  // implement Common_ISet_T
+  inline virtual void set (const bool enqueue_in) { enqueue_ = enqueue_in; }
 
   // override some task-based members
   virtual int put (ACE_Message_Block*, // data chunk

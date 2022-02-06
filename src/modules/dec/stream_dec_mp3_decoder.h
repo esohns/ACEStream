@@ -95,13 +95,10 @@ class Stream_Decoder_MP3Decoder_T
  public:
   // *TODO*: on MSVC 2015u3 the accurate declaration does not compile
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  Stream_Decoder_MP3Decoder_T (ISTREAM_T*, // stream handle
+  Stream_Decoder_MP3Decoder_T (ISTREAM_T*); // stream handle
 #else
-  Stream_Decoder_MP3Decoder_T (typename inherited::ISTREAM_T*, // stream handle
+  Stream_Decoder_MP3Decoder_T (typename inherited::ISTREAM_T*); // stream handle
 #endif // ACE_WIN32 || ACE_WIN64
-                               bool = false,                                                             // auto-start ? (active mode only)
-                               enum Stream_HeadModuleConcurrency = STREAM_HEADMODULECONCURRENCY_PASSIVE, // concurrency mode
-                               bool = true);                                                             // generate session messages ?
   virtual ~Stream_Decoder_MP3Decoder_T ();
 
   // override (part of) Stream_IModuleHandler_T

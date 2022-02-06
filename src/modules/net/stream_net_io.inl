@@ -64,7 +64,7 @@ Stream_Module_Net_IOReader_T<ACE_SYNCH_USE,
                              UserDataType>::Stream_Module_Net_IOReader_T (ISTREAM_T* stream_in)
 #else
                              UserDataType>::Stream_Module_Net_IOReader_T (typename inherited::ISTREAM_T* stream_in)
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
  : inherited (stream_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Net_IOReader_T::Stream_Module_Net_IOReader_T"));
@@ -254,15 +254,11 @@ Stream_Module_Net_IOWriter_T<ACE_SYNCH_USE,
                              AddressType,
                              ConnectionManagerType,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-                             UserDataType>::Stream_Module_Net_IOWriter_T (ISTREAM_T* stream_in,
+                             UserDataType>::Stream_Module_Net_IOWriter_T (ISTREAM_T* stream_in)
 #else
-                             UserDataType>::Stream_Module_Net_IOWriter_T (typename inherited::ISTREAM_T* stream_in,
-#endif
-                                                                          bool generateSessionMessages_in)
- : inherited (stream_in,                               // stream handle
-              false,                                   // auto-start ? (active mode only)
-              STREAM_HEADMODULECONCURRENCY_CONCURRENT, // concurrency mode
-              generateSessionMessages_in)              // generate session messages ?
+                             UserDataType>::Stream_Module_Net_IOWriter_T (typename inherited::ISTREAM_T* stream_in)
+#endif // ACE_WIN32 || ACE_WIN64
+ : inherited (stream_in) // stream handle
  , inbound_ (true)
  , outboundNotificationHandle_ (NULL)
 {
@@ -316,6 +312,7 @@ Stream_Module_Net_IOWriter_T<ACE_SYNCH_USE,
   } // end IF
 
   // *TODO*: remove type inferences
+  inbound_ = configuration_in.inbound;
   outboundNotificationHandle_ = configuration_in.outboundNotificationHandle;
 
   concurrency_e = configuration_in.concurrency;
@@ -387,37 +384,39 @@ Stream_Module_Net_IOWriter_T<ACE_SYNCH_USE,
       ACE_DEBUG ((LM_WARNING, // *TODO*
                   ACE_TEXT ("%s: cannot initialize inbound data message; there is no session data, continuing\n"),
                   inherited::mod_->name ()));
-  } // end IF
-  else
-  {
-    // *IMPORTANT NOTE*: this module dispatches outbound data: route message
-    //                   to the siblings' queue; it is forwarded to the
-    //                   (sub-)streams' head and notify()d to the
-    //                   reactor/proactor from there
-    int result = -1;
 
-    // sanity check(s)
-    ACE_ASSERT (message_inout);
-    ACE_Message_Block* message_block_p = message_inout->duplicate ();
-    if (unlikely (!message_block_p))
-    {
+    return;
+  } // end IF
+
+  // *IMPORTANT NOTE*: this module dispatches outbound data: route message to
+  //                   the siblings' queue; it is forwarded to the
+  //                   (sub-)streams' head and notify()d to the (network-) event
+  //                   dispatch from there
+  int result = -1;
+
+  // sanity check(s)
+  ACE_ASSERT (message_inout);
+
+  ACE_Message_Block* message_block_p = message_inout->duplicate ();
+  if (unlikely (!message_block_p))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s: failed to DataMessageType::duplicate(): \"%m\", returning\n"),
+                inherited::mod_->name ()));
+    return;
+  } // end IF
+
+  result = inherited::reply (message_block_p, NULL);
+  if (unlikely (result == -1))
+  {
+    int error = ACE_OS::last_error ();
+    if (error != ESHUTDOWN) // 108,10058: connection/stream has/is shut/ting
+                            //            down
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("%s: failed to DataMessageType::duplicate(): \"%m\", returning\n"),
+                  ACE_TEXT ("%s: failed to ACE_Task::reply(): \"%m\", returning\n"),
                   inherited::mod_->name ()));
-      return;
-    } // end IF
-    result = inherited::reply (message_block_p, NULL);
-    if (unlikely (result == -1))
-    {
-      int error = ACE_OS::last_error ();
-      if (error != ESHUTDOWN) // 108,10058: connection/stream has/is shut/ting
-                              //            down
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("%s: failed to ACE_Task::reply(): \"%m\", returning\n"),
-                    inherited::mod_->name ()));
-      message_block_p->release (); message_block_p = NULL;
-      return;
-    } // end IF
+    message_block_p->release (); message_block_p = NULL;
+    return;
   } // end IF
 }
 

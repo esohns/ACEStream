@@ -286,6 +286,8 @@ struct Test_I_SpeechCommand_DirectShow_ModuleHandlerConfiguration
    , bufferSize (MODULE_STAT_ANALYSIS_DEFAULT_BUFFER_SIZE)
    , deviceIdentifier ()
    , dispatch (NULL)
+   , effect ()
+   , effectOptions ()
    , hotWords ()
    , manageSoX (false)
    , modelFile ()
@@ -316,6 +318,8 @@ struct Test_I_SpeechCommand_DirectShow_ModuleHandlerConfiguration
   unsigned int                                      bufferSize; // statistic analysis
   struct Stream_Device_Identifier                   deviceIdentifier; // capture/render
   Stream_Statistic_IDispatch_t*                     dispatch;
+  std::string                                       effect;
+  std::vector<std::string>                          effectOptions;
   Stream_Decoder_DeepSpeech_HotWords_t              hotWords;
   bool                                              manageSoX;
   std::string                                       modelFile;
@@ -349,6 +353,8 @@ struct Test_I_SpeechCommand_MediaFoundation_ModuleHandlerConfiguration
    , bufferSize (MODULE_STAT_ANALYSIS_DEFAULT_BUFFER_SIZE)
    , deviceIdentifier ()
    , dispatch (NULL)
+   , effect ()
+   , effectOptions ()
    , hotWords ()
    , manageSoX (false)
    , modelFile ()
@@ -379,6 +385,8 @@ struct Test_I_SpeechCommand_MediaFoundation_ModuleHandlerConfiguration
   unsigned int                                      bufferSize; // statistic analysis
   struct Stream_Device_Identifier                   deviceIdentifier; // capture/render
   Stream_Statistic_IDispatch_t*                     dispatch;
+  std::string                                       effect;
+  std::vector<std::string>                          effectOptions;
   Stream_Decoder_DeepSpeech_HotWords_t              hotWords;
   bool                                              manageSoX;
   std::string                                       modelFile;
@@ -412,6 +420,8 @@ struct Test_I_SpeechCommand_ALSA_ModuleHandlerConfiguration
    , bufferSize (MODULE_STAT_ANALYSIS_DEFAULT_BUFFER_SIZE)
    , deviceIdentifier ()
    , dispatch (NULL)
+   , effect ()
+   , effectOptions ()
    , hotWords ()
    , manageSoX (false)
    , modelFile ()
@@ -442,6 +452,8 @@ struct Test_I_SpeechCommand_ALSA_ModuleHandlerConfiguration
   unsigned int                                      bufferSize; // statistic analysis
   struct Stream_Device_Identifier                   deviceIdentifier; // capture/render
   Stream_Statistic_IDispatch_t*                     dispatch;
+  std::string                                       effect;
+  std::vector<std::string>                          effectOptions;
   Stream_Decoder_DeepSpeech_HotWords_t              hotWords;
   bool                                              manageSoX;
   std::string                                       modelFile;

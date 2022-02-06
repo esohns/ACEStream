@@ -78,10 +78,7 @@ Stream_Dec_Noise_Source_T<ACE_SYNCH_USE,
 #else
                           MediaType>::Stream_Dec_Noise_Source_T (typename inherited::ISTREAM_T* stream_in)
 #endif // ACE_WIN32 || ACE_WIN64
- : inherited (stream_in,                            // stream handle
-              false,                                // auto-start ?
-              STREAM_HEADMODULECONCURRENCY_PASSIVE, // concurrency
-              true)                                 // generate session messages ?
+ : inherited (stream_in) // stream handle
  , inherited2 ()
  , phase_ (0.0)
  , realDistribution_ ()

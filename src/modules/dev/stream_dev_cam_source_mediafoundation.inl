@@ -69,13 +69,8 @@ Stream_Dev_Cam_Source_MediaFoundation_T<ACE_SYNCH_USE,
                                         SessionDataContainerType,
                                         StatisticContainerType,
                                         TimerManagerType,
-                                        UserDataType>::Stream_Dev_Cam_Source_MediaFoundation_T (ISTREAM_T* stream_in,
-                                                                                                bool autoStart_in,
-                                                                                                enum Stream_HeadModuleConcurrency concurrency_in)
- : inherited (stream_in,      // stream handle
-              autoStart_in,   // auto-start ? (active mode only)
-              concurrency_in, // concurrency mode
-              true)           // generate session messages ?
+                                        UserDataType>::Stream_Dev_Cam_Source_MediaFoundation_T (ISTREAM_T* stream_in)
+ : inherited (stream_in) // stream handle
  , baseTimeStamp_ (0)
  , hasFinished_ (false)
  , isFirst_ (true)

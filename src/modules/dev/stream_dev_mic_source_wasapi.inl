@@ -59,10 +59,7 @@ Stream_Dev_Mic_Source_WASAPI_T<ACE_SYNCH_USE,
                                StatisticContainerType,
                                TimerManagerType,
                                MediaType>::Stream_Dev_Mic_Source_WASAPI_T (ISTREAM_T* stream_in)
- : inherited (stream_in,                            // stream handle
-              false,                                // auto-start ?
-              STREAM_HEADMODULECONCURRENCY_PASSIVE, // concurrency
-              true)                                 // generate session messages ?
+ : inherited (stream_in) // stream handle
  , inherited2 ()
  , audioClient_ (NULL)
  , audioCaptureClient_ (NULL)
@@ -687,8 +684,7 @@ Stream_Dev_Mic_Source_WASAPI_T<ACE_SYNCH_USE,
   const SessionDataType*         session_data_p           =
     &inherited::sessionData_->getR ();
   bool                           stop_processing          = false;
-  ACE_Time_Value                 no_wait                  =
-    ACE_OS::gettimeofday ();
+  ACE_Time_Value                 no_wait                  = ACE_OS::gettimeofday ();
   DWORD                          result_3                 = 0;
   HRESULT                        result_4                 = E_FAIL;
   UINT32                         packet_length_i          = 0;
@@ -708,7 +704,7 @@ Stream_Dev_Mic_Source_WASAPI_T<ACE_SYNCH_USE,
       if (error != EWOULDBLOCK) // Linux: 11 | Win32: 10035
       {
         ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("%s: worker thread (id: %t) failed to ACE_Task::getq(): \"%m\", aborting\n"),
+                    ACE_TEXT ("%s: failed to ACE_Task::getq(): \"%m\", aborting\n"),
                     inherited::mod_->name ()));
         break;
       } // end IF
@@ -728,7 +724,7 @@ Stream_Dev_Mic_Source_WASAPI_T<ACE_SYNCH_USE,
         {
           has_finished = true;
           // enqueue(/process) STREAM_SESSION_END
-          inherited::finished ();
+          inherited::finished (false); // recurse upstream ?
         } // end IF
 
         if (inherited::thr_count_ > 1)
@@ -806,7 +802,7 @@ Stream_Dev_Mic_Source_WASAPI_T<ACE_SYNCH_USE,
           {
             has_finished = true;
             // enqueue(/process) STREAM_SESSION_END
-            inherited::finished ();
+            inherited::finished (false); // recurse upstream ?
           } // end IF
 
           continue; // continue processing until STREAM_SESSION_END
@@ -858,7 +854,7 @@ continue_:
 
           has_finished = true;
           // enqueue(/process) STREAM_SESSION_END
-          inherited::finished ();
+          inherited::finished (false); // recurse upstream ?
         } // end IF
 
         continue; // continue processing until STREAM_SESSION_END

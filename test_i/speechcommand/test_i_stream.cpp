@@ -123,6 +123,14 @@ Test_I_DirectShow_Stream::load (Stream_ILayout* layout_in,
    ACE_ASSERT (module_p);
    layout_in->append (module_p, NULL, 0);
    module_p = NULL;
+
+   ACE_NEW_RETURN (module_p,
+                   Test_I_DirectShow_SoXEffect_Module (this,
+                                                       ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_ENCODER_SOX_EFFECT_DEFAULT_NAME_STRING)),
+                   false);
+   ACE_ASSERT (module_p);
+   layout_in->append (module_p, NULL, 0);
+   module_p = NULL;
 #endif // SOX_SUPPORT
 
   // sanity check(s)
@@ -300,29 +308,6 @@ Test_I_DirectShow_Stream::load (Stream_ILayout* layout_in,
     layout_in->append (module_p, branch_p, index_i);
     module_p = NULL;
   } // end IF
-
-  return true;}
-
-bool
-Test_I_DirectShow_Stream::initialize (const CONFIGURATION_T& configuration_in)
-{
-  STREAM_TRACE (ACE_TEXT ("Test_I_DirectShow_Stream::initialize"));
-
-  // sanity check(s)
-  ACE_ASSERT (!inherited::isInitialized_);
-  ACE_ASSERT (!inherited::isRunning ());
-  ACE_ASSERT (configuration_in.configuration_);
-
-  // allocate a new session state, reset stream
-  if (!inherited::initialize (configuration_in))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to Stream_Base_T::initialize(), aborting\n")));
-    return false;
-  } // end IF
-  ACE_ASSERT (inherited::sessionData_);
-
-  inherited::isInitialized_ = true;
 
   return true;
 }
@@ -578,13 +563,21 @@ Test_I_MediaFoundation_Stream::load (Stream_ILayout* layout_in,
   //module_p = NULL;
 
 #if defined (SOX_SUPPORT)
-   ACE_NEW_RETURN (module_p,
-                   Test_I_MediaFoundation_SoXResampler_Module (this,
-                                                               ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_ENCODER_SOX_RESAMPLER_DEFAULT_NAME_STRING)),
-                   false);
-   ACE_ASSERT (module_p);
-   layout_in->append (module_p, NULL, 0);
-   module_p = NULL;
+  ACE_NEW_RETURN (module_p,
+                  Test_I_MediaFoundation_SoXResampler_Module (this,
+                                                              ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_ENCODER_SOX_RESAMPLER_DEFAULT_NAME_STRING)),
+                  false);
+  ACE_ASSERT (module_p);
+  layout_in->append (module_p, NULL, 0);
+  module_p = NULL;
+
+  ACE_NEW_RETURN (module_p,
+                  Test_I_MediaFoundation_SoXEffect_Module (this,
+                                                           ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_ENCODER_SOX_EFFECT_DEFAULT_NAME_STRING)),
+                  false);
+  ACE_ASSERT (module_p);
+  layout_in->append (module_p, NULL, 0);
+  module_p = NULL;
 #endif // SOX_SUPPORT
 
   typename inherited::MODULE_T* branch_p = NULL; // NULL: 'main' branch
@@ -1434,6 +1427,14 @@ Test_I_ALSA_Stream::load (Stream_ILayout* layout_in,
   ACE_NEW_RETURN (module_p,
                   Test_I_ALSA_SoXResampler_Module (this,
                                                    ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_ENCODER_SOX_RESAMPLER_DEFAULT_NAME_STRING)),
+                  false);
+  ACE_ASSERT (module_p);
+  layout_in->append (module_p, NULL, 0);
+  module_p = NULL;
+
+  ACE_NEW_RETURN (module_p,
+                  Test_I_ALSA_SoXEffect_Module (this,
+                                                ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_ENCODER_SOX_EFFECT_DEFAULT_NAME_STRING)),
                   false);
   ACE_ASSERT (module_p);
   layout_in->append (module_p, NULL, 0);

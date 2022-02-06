@@ -72,7 +72,7 @@ class Stream_Module_Net_Source_Reader_T
   //         passive: use an existing connection (handle passed in initialize())
   // *TODO*: on MSVC 2015u3 the accurate declaration does not compile
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  Stream_Module_Net_Source_Reader_T (ISTREAM_T*); // stream handle
+  Stream_Module_Net_Source_Reader_T (ISTREAM_T*);                     // stream handle
 #else
   Stream_Module_Net_Source_Reader_T (typename inherited::ISTREAM_T*); // stream handle
 #endif // ACE_WIN32 || ACE_WIN64
@@ -128,7 +128,7 @@ class Stream_Module_Net_Source_Writer_T
   //         passive: use an existing connection (handle passed in initialize())
   // *TODO*: on MSVC 2015u3 the accurate declaration does not compile
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-   Stream_Module_Net_Source_Writer_T (ISTREAM_T*); // stream handle
+   Stream_Module_Net_Source_Writer_T (ISTREAM_T*);                     // stream handle
 #else
    Stream_Module_Net_Source_Writer_T (typename inherited::ISTREAM_T*); // stream handle
 #endif // ACE_WIN32 || ACE_WIN64
@@ -139,8 +139,7 @@ class Stream_Module_Net_Source_Writer_T
                            Stream_IAllocator* = NULL);
 
   // implement (part of) Stream_ITaskBase
-  inline virtual void handleDataMessage (DataMessageType*&, // data message handle
-                                         bool&) {};         // return value: pass message downstream ?
+  inline virtual void handleDataMessage (DataMessageType*&, bool&) {}
   virtual void handleSessionMessage (SessionMessageType*&, // session message handle
                                      bool&);               // return value: pass message downstream ?
 
@@ -215,10 +214,7 @@ class Stream_Module_Net_SourceH_T
   // *NOTE*: this module has two modes of operation:
   //         active:  establish and manage a connection
   //         passive: use an existing connection (handle passed in initialize())
-  Stream_Module_Net_SourceH_T (typename inherited::ISTREAM_T*, // stream handle
-                               bool = true,                    // generate session messages ?
-                               ///////////
-                               bool = false);                  // passive ?
+  Stream_Module_Net_SourceH_T (typename inherited::ISTREAM_T*); // stream handle
   virtual ~Stream_Module_Net_SourceH_T ();
 
 #if defined (__GNUG__) || defined (_MSC_VER)

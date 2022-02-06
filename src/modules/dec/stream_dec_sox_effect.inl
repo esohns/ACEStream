@@ -147,6 +147,9 @@ Stream_Decoder_SoXEffect_T<ACE_SYNCH_USE,
     } // end IF
     input_ = NULL; output_ = NULL;
 
+    ACE_OS::memset (&encodingInfo_, 0, sizeof (struct sox_encodinginfo_t));
+    ACE_OS::memset (&signalInfo_, 0, sizeof (struct sox_signalinfo_t));
+
     ACE_ASSERT (inherited::configuration_);
     if (inherited::configuration_->manageSoX)
     {
@@ -207,17 +210,16 @@ Stream_Decoder_SoXEffect_T<ACE_SYNCH_USE,
   STREAM_TRACE (ACE_TEXT ("Stream_Decoder_SoXEffect_T::handleDataMessage"));
 
   // sanity check(s)
-  ACE_ASSERT (inherited::configuration_);
-  ACE_ASSERT (inherited::configuration_->streamConfiguration);
-  if (inherited::configuration_->effect.empty ())
+  if (unlikely (!chain_))
     return;
+  ACE_ASSERT (inherited::configuration_);
+  ACE_ASSERT (inherited::configuration_->allocatorConfiguration);
 
   // initialize return value(s)
   passMessageDownstream_out = false;
 
   int result = -1;
-  ACE_Message_Block* message_block_p = NULL;
-  ACE_Message_Block* message_block_2 = NULL;
+  ACE_Message_Block* message_block_p = NULL, *message_block_2 = NULL;
   char* effect_options[1];
   struct sox_format_t* input_buffer_p = NULL, *output_buffer_p = NULL;
 
@@ -248,20 +250,20 @@ Stream_Decoder_SoXEffect_T<ACE_SYNCH_USE,
   if (unlikely (!buffer_))
   {
     buffer_ =
-        inherited::allocateMessage (inherited::configuration_->streamConfiguration->configuration_->allocatorConfiguration->defaultBufferSize);
+        inherited::allocateMessage (inherited::configuration_->allocatorConfiguration->defaultBufferSize);
     if (unlikely (!buffer_))
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: allocateMessage(%d) failed: \"%m\", returning\n"),
                   inherited::mod_->name (),
-                  inherited::configuration_->streamConfiguration->configuration_->allocatorConfiguration->defaultBufferSize));
+                  inherited::configuration_->allocatorConfiguration->defaultBufferSize));
       goto error;
     } // end IF
   } // end IF
   message_block_p = buffer_;
   output_buffer_p =
       sox_open_mem_write (message_block_p->wr_ptr (),
-                          inherited::configuration_->streamConfiguration->configuration_->allocatorConfiguration->defaultBufferSize,
+                          message_block_p->space (),
                           &signalInfo_,
                           &encodingInfo_,
                           ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_SOX_FORMAT_RAW_STRING),
@@ -269,7 +271,7 @@ Stream_Decoder_SoXEffect_T<ACE_SYNCH_USE,
   if (unlikely (!output_buffer_p))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: failed to sox_open_mem_write(): \"%m\", aborting\n"),
+                ACE_TEXT ("%s: failed to sox_open_mem_write(): \"%m\", returning\n"),
                 inherited::mod_->name ()));
     goto error;
   } // end IF
@@ -299,21 +301,33 @@ Stream_Decoder_SoXEffect_T<ACE_SYNCH_USE,
                   ACE_TEXT (sox_strerror (result))));
       goto error;
     } // end IF
+    ACE_ASSERT (output_buffer_p->tell_off == inherited::configuration_->allocatorConfiguration->defaultBufferSize);
 
     // output buffer is full --> (dispatch and- ?) allocate another one
-//    ACE_ASSERT (output_buffer_p->tell_off <= inherited::configuration_->streamConfiguration->bufferSize);
-    message_block_p->wr_ptr ((output_buffer_p->tell_off <= inherited::configuration_->streamConfiguration->configuration_->allocatorConfiguration->defaultBufferSize) ? output_buffer_p->tell_off
-                                                                                                                                                                      : inherited::configuration_->streamConfiguration->configuration_->allocatorConfiguration->defaultBufferSize);
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+    // *IMPORTANT NOTE*: SoX cannot write to the message block directly
+    // (Win32/MinGW does not currently support fmemopen())
+    // --> copy the data out of the tmpfile() manually
+    FILE* file_p = reinterpret_cast<FILE*> (output_buffer_p->fp);
+    ACE_OS::rewind (file_p);
+    size_t bytes_read_i =
+      ACE_OS::fread (message_block_p->wr_ptr (),
+                     inherited::configuration_->allocatorConfiguration->defaultBufferSize,
+                     1,
+                     file_p);
+    ACE_ASSERT (bytes_read_i == 1);
+#endif // ACE_WIN32 || ACE_WIN64
+    message_block_p->wr_ptr (output_buffer_p->tell_off);
 
     message_block_2 = NULL;
     message_block_2 =
-        inherited::allocateMessage (inherited::configuration_->streamConfiguration->configuration_->allocatorConfiguration->defaultBufferSize);
+        inherited::allocateMessage (inherited::configuration_->allocatorConfiguration->defaultBufferSize);
     if (unlikely (!message_block_2))
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: allocateMessage(%d) failed: \"%m\", returning\n"),
                   inherited::mod_->name (),
-                  inherited::configuration_->streamConfiguration->configuration_->allocatorConfiguration->defaultBufferSize));
+                  inherited::configuration_->allocatorConfiguration->defaultBufferSize));
       goto error;
     } // end IF
     message_block_p->cont (message_block_2);
@@ -321,14 +335,17 @@ Stream_Decoder_SoXEffect_T<ACE_SYNCH_USE,
 
     result = sox_close (output_buffer_p);
     if (unlikely (result != SOX_SUCCESS))
+    {
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("%s: failed to sox_close(): \"%s\", continuing\n"),
+                  ACE_TEXT ("%s: failed to sox_close(): \"%s\", returning\n"),
                   inherited::mod_->name (),
                   ACE_TEXT (sox_strerror (result))));
+      goto error;
+    } // end IF
     output_buffer_p = NULL;
     output_buffer_p =
         sox_open_mem_write (message_block_p->wr_ptr (),
-                            inherited::configuration_->streamConfiguration->configuration_->allocatorConfiguration->defaultBufferSize,
+                            inherited::configuration_->allocatorConfiguration->defaultBufferSize,
                             &signalInfo_,
                             &encodingInfo_,
                             ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_SOX_FORMAT_RAW_STRING),
@@ -336,7 +353,7 @@ Stream_Decoder_SoXEffect_T<ACE_SYNCH_USE,
     if (unlikely (!output_buffer_p))
     {
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("%s: failed to sox_open_mem_write(): \"%m\", aborting\n"),
+                  ACE_TEXT ("%s: failed to sox_open_mem_write(): \"%m\", returning\n"),
                   inherited::mod_->name ()));
       goto error;
     } // end IF
@@ -351,10 +368,44 @@ Stream_Decoder_SoXEffect_T<ACE_SYNCH_USE,
       goto error;
     } // end IF
   } while (true);
-//  ACE_ASSERT (output_buffer_p->tell_off <= inherited::configuration_->streamConfiguration->bufferSize);
-  message_block_p->wr_ptr ((output_buffer_p->tell_off <= inherited::configuration_->streamConfiguration->configuration_->allocatorConfiguration->defaultBufferSize) ? output_buffer_p->tell_off
-                                                                                                                                                                    : inherited::configuration_->streamConfiguration->configuration_->allocatorConfiguration->defaultBufferSize);
+  if (unlikely (!output_buffer_p->tell_off))
+    goto continue_;
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  // *IMPORTANT NOTE*: SoX cannot write to the message block directly
+  // (Win32/MinGW does not currently support fmemopen())
+  // --> copy the data out of the tmpfile() manually
+  FILE* file_p = reinterpret_cast<FILE*> (output_buffer_p->fp);
+  ACE_OS::rewind (file_p);
+  size_t bytes_read_i = ACE_OS::fread (message_block_p->wr_ptr (),
+                                       output_buffer_p->tell_off,
+                                       1,
+                                       file_p);
+  ACE_ASSERT (bytes_read_i == 1);
+#endif // ACE_WIN32 || ACE_WIN64
+  message_block_p->wr_ptr (output_buffer_p->tell_off);
 
+continue_:
+  result = sox_close (input_buffer_p);
+  if (unlikely (result != SOX_SUCCESS))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s: failed to sox_close(): \"%s\", returning\n"),
+                inherited::mod_->name (),
+                ACE_TEXT (sox_strerror (result))));
+    goto error;
+  } // end IF
+  result = sox_close (output_buffer_p);
+  if (unlikely (result != SOX_SUCCESS))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s: failed to sox_close(): \"%s\", returning\n"),
+                inherited::mod_->name (),
+                ACE_TEXT (sox_strerror (result))));
+    goto error;
+  } // end IF
+
+  if (unlikely (!buffer_->total_length ()))
+    goto continue_2;
   result = inherited::put_next (buffer_, NULL);
   if (unlikely (result == -1))
   {
@@ -365,19 +416,7 @@ Stream_Decoder_SoXEffect_T<ACE_SYNCH_USE,
   } // end IF
   buffer_ = NULL;
 
-  result = sox_close (input_buffer_p);
-  if (unlikely (result != SOX_SUCCESS))
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: failed to sox_close(): \"%s\", continuing\n"),
-                inherited::mod_->name (),
-                ACE_TEXT (sox_strerror (result))));
-  result = sox_close (output_buffer_p);
-  if (unlikely (result != SOX_SUCCESS))
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: failed to sox_close(): \"%s\", continuing\n"),
-                inherited::mod_->name (),
-                ACE_TEXT (sox_strerror (result))));
-
+continue_2:
   // clean up
   message_inout->release (); message_inout = NULL;
 
@@ -450,7 +489,15 @@ Stream_Decoder_SoXEffect_T<ACE_SYNCH_USE,
       // sanity check(s)
       ACE_ASSERT (inherited::sessionData_);
       if (inherited::configuration_->effect.empty ())
+      {
+        ACE_DEBUG ((LM_WARNING,
+                    ACE_TEXT ("%s: no effect specified, continuing\n"),
+                    inherited::mod_->name ()));
         break;
+      } // end IF
+      const struct sox_effect_handler_t* effect_handler_p = NULL;
+      struct sox_effect_t* effect_p = NULL;
+      sox_signalinfo_t intermediate_signal_s;
       SessionDataType& session_data_r =
           const_cast<SessionDataType&> (inherited::sessionData_->getR ());
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -458,6 +505,9 @@ Stream_Decoder_SoXEffect_T<ACE_SYNCH_USE,
       ACE_OS::memset (&media_type_s, 0, sizeof (struct _AMMediaType));
       inherited2::getMediaType (session_data_r.formats.back (),
                                 media_type_s);
+      Stream_MediaFramework_DirectShow_Tools::to (media_type_s,
+                                                  encodingInfo_,
+                                                  signalInfo_);
 #else
       struct Stream_MediaFramework_ALSA_MediaType media_type_s;
       inherited2::getMediaType (session_data_r.formats.back (),
@@ -466,12 +516,8 @@ Stream_Decoder_SoXEffect_T<ACE_SYNCH_USE,
                                             encodingInfo_,
                                             signalInfo_);
 #endif // ACE_WIN32 || ACE_WIN64
-
-      const struct sox_effect_handler_t* effect_handler_p = NULL;
-      struct sox_effect_t* effect_p = NULL;
-      char* effect_options[256]; // *TODO*: should be dynamic
+      char* effect_options_a[128]; // *TODO*: should be dynamic
       int index = 0;
-      sox_signalinfo_t intermediate_signal;
       std::string effect_options_string;
 
       ACE_ASSERT (!chain_);
@@ -503,10 +549,10 @@ Stream_Decoder_SoXEffect_T<ACE_SYNCH_USE,
                     inherited::mod_->name ()));
         goto error;
       } // end IF
-      intermediate_signal = signalInfo_;
+      intermediate_signal_s = signalInfo_;
       result = sox_add_effect (chain_,
                                input_,
-                               &intermediate_signal,
+                               &intermediate_signal_s,
                                &signalInfo_);
       if (unlikely (result != SOX_SUCCESS))
       {
@@ -542,13 +588,13 @@ Stream_Decoder_SoXEffect_T<ACE_SYNCH_USE,
              iterator != inherited::configuration_->effectOptions.end ();
              ++iterator, ++index)
         {
-          effect_options[index] = const_cast<char*> ((*iterator).c_str ());
+          effect_options_a[index] = const_cast<char*> ((*iterator).c_str ());
           effect_options_string += *iterator;
           effect_options_string += ACE_TEXT_ALWAYS_CHAR (" ");
         } // end FOR
         result = sox_effect_options (effect_p,
                                      index,
-                                     effect_options);
+                                     effect_options_a);
         if (unlikely (result != SOX_SUCCESS))
         {
           ACE_DEBUG ((LM_ERROR,
@@ -561,7 +607,7 @@ Stream_Decoder_SoXEffect_T<ACE_SYNCH_USE,
       } // end IF
       result = sox_add_effect (chain_,
                                effect_p,
-                               &intermediate_signal,
+                               &intermediate_signal_s,
                                &signalInfo_);
       if (unlikely (result != SOX_SUCCESS))
       {
@@ -578,6 +624,7 @@ Stream_Decoder_SoXEffect_T<ACE_SYNCH_USE,
                   inherited::mod_->name (),
                   ACE_TEXT (inherited::configuration_->effect.c_str ()),
                   ACE_TEXT (effect_options_string.c_str ())));
+
       effect_handler_p =
           sox_find_effect (ACE_TEXT_ALWAYS_CHAR ("output"));
       if (unlikely (!effect_handler_p))
@@ -597,7 +644,7 @@ Stream_Decoder_SoXEffect_T<ACE_SYNCH_USE,
       } // end IF
       result = sox_add_effect (chain_,
                                output_,
-                               &intermediate_signal,
+                               &intermediate_signal_s,
                                &signalInfo_);
       if (unlikely (result != SOX_SUCCESS))
       {
@@ -622,7 +669,7 @@ error:
       Stream_MediaFramework_DirectShow_Tools::free (media_type_s);
 #endif // ACE_WIN32 || ACE_WIN64
 
-      this->notify (STREAM_SESSION_MESSAGE_ABORT);
+      notify (STREAM_SESSION_MESSAGE_ABORT);
 
       break;
 

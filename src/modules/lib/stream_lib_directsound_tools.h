@@ -59,6 +59,7 @@ class Stream_MediaFramework_DirectSound_Tools
   // format
   static struct tWAVEFORMATEX extensibleTo (const struct tWAVEFORMATEX&); // format
   static bool isFloat (const struct tWAVEFORMATEX&); // format
+  static void reconfigure (struct tWAVEFORMATEX&); // format
   static std::string toString (const struct tWAVEFORMATEX&, // format
                                bool = false);               // condensed version ?
 

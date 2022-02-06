@@ -100,9 +100,7 @@ class Stream_Dev_Cam_Source_MediaFoundation_T
   typedef Stream_IStream_T<ACE_SYNCH_USE,
                            Common_TimePolicy_t> ISTREAM_T;
 
-  Stream_Dev_Cam_Source_MediaFoundation_T (ISTREAM_T* = NULL,                                                         // stream handle
-                                           bool = false,                                                              // auto-start ? (active mode only)
-                                           enum Stream_HeadModuleConcurrency = STREAM_HEADMODULECONCURRENCY_PASSIVE); // concurrency mode
+  Stream_Dev_Cam_Source_MediaFoundation_T (ISTREAM_T* = NULL); // stream handle
   virtual ~Stream_Dev_Cam_Source_MediaFoundation_T ();
 
   // *PORTABILITY*: for some reason, this base class member is not exposed

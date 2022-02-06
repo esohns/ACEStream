@@ -590,9 +590,79 @@ Test_I_InputHandler_T<NotificationType,
 
   ACE_UNUSED_ARG (sessionId_in);
 
-  DataMessageType* message_p = &const_cast<DataMessageType&> (message_in);
+  enum Test_I_SpeechCommand_InputCommand command_e =
+    TEST_I_INPUT_COMMAND_INVALID;
+  DataMessageType* message_p = const_cast<DataMessageType*> (&message_in);
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  struct _KEY_EVENT_RECORD* key_event_record_p = NULL;
+#else
+  char* data_p = NULL;
+#endif // ACE_WIN32 || ACE_WIN64
   do
   {
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+    key_event_record_p =
+      reinterpret_cast<struct _KEY_EVENT_RECORD*> (message_p->rd_ptr ());
+    switch (key_event_record_p->wVirtualKeyCode)
+    {
+      case VK_UP:
+      {
+        command_e = TEST_I_INPUT_COMMAND_GAIN_INCREASE;
+        break;
+      }
+      case VK_DOWN:
+      {
+        command_e = TEST_I_INPUT_COMMAND_GAIN_DECREASE;
+        break;
+      }
+      default:
+        break;
+    } // end SWITCH
+#else
+    data_p = message_p->rd_ptr ();
+    do
+    {
+      switch (*data_p)
+      {
+        case 72: // up
+        {
+          command_e = TEST_I_INPUT_COMMAND_GAIN_INCREASE;
+          break;
+        }
+        case 80: // down
+        {
+          command_e = TEST_I_INPUT_COMMAND_GAIN_DECREASE;
+          break;
+        }
+        default:
+          break;
+      } // end SWITCH
+      ++data_p;
+    } while (*data_p);
+#endif // ACE_WIN32 || ACE_WIN64
+
+    // process input command
+    switch (command_e)
+    {
+      case TEST_I_INPUT_COMMAND_GAIN_DECREASE:
+      {
+        ACE_DEBUG ((LM_DEBUG, ACE_TEXT ("decreasing gain\n")));
+        break;
+      }
+      case TEST_I_INPUT_COMMAND_GAIN_INCREASE:
+      {
+        ACE_DEBUG ((LM_DEBUG, ACE_TEXT ("increasing gain\n")));
+        break;
+      }
+      default:
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("invalid/unknown command (was: %d), continuing\n"),
+                    command_e));
+        break;
+      }
+    } // end SWITCH
+
     message_p = static_cast<DataMessageType*> (message_p->cont ());
   } while (message_p);
 }

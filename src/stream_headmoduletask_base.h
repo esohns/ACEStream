@@ -188,13 +188,10 @@ class Stream_HeadModuleTaskBase_T
 
   // *TODO*: on MSVC 2015u3 the accurate declaration does not compile
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  Stream_HeadModuleTaskBase_T (ISTREAM_T*,                                                               // stream handle
+  Stream_HeadModuleTaskBase_T (ISTREAM_T*);                     // stream handle
 #else
-  Stream_HeadModuleTaskBase_T (typename inherited::ISTREAM_T*,                                           // stream handle
+  Stream_HeadModuleTaskBase_T (typename inherited::ISTREAM_T*); // stream handle
 #endif // ACE_WIN32 || ACE_WIN64
-                               bool = false,                                                             // auto-start ? (active mode only)
-                               enum Stream_HeadModuleConcurrency = STREAM_HEADMODULECONCURRENCY_PASSIVE, // concurrency mode
-                               bool = true);                                                             // generate session messages ?
 
   // helper methods
   bool putStatisticMessage (const StatisticContainerType&); // statistic information
@@ -260,10 +257,6 @@ class Stream_HeadModuleTaskBase_T
   inline virtual Stream_SessionId_t id () const { ACE_ASSERT (false); ACE_NOTSUP_RETURN (static_cast<Stream_SessionId_t> (-1)); ACE_NOTREACHED (return static_cast<Stream_SessionId_t> (-1);) }
   inline virtual unsigned int flush (bool = true, bool = false, bool = false) { inherited::putControlMessage (STREAM_CONTROL_FLUSH); return 0; }
   inline virtual void rewind () { ACE_ASSERT (false); ACE_NOTSUP; ACE_NOTREACHED (return;) }
-
-  // *NOTE*: starts a worker thread in open (), i.e. when push()ed onto a stream
-  bool                                autoStart_;
-  bool                                generateSessionMessages_;
 };
 
 // include template definition

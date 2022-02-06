@@ -57,10 +57,7 @@ Stream_Dev_Mic_Source_WaveIn_T<ACE_SYNCH_USE,
                                StatisticContainerType,
                                TimerManagerType,
                                MediaType>::Stream_Dev_Mic_Source_WaveIn_T (ISTREAM_T* stream_in)
- : inherited (stream_in,                            // stream handle
-              false,                                // auto-start ?
-              STREAM_HEADMODULECONCURRENCY_PASSIVE, // concurrency
-              true)                                 // generate session messages ?
+ : inherited (stream_in) // stream handle
  , inherited2 ()
  , bufferHeaders_ ()
  , CBData_ ()

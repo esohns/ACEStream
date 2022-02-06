@@ -318,6 +318,17 @@ typedef Stream_Input_Manager_T<ACE_MT_SYNCH,
 
 //////////////////////////////////////////
 
+enum Test_I_SpeechCommand_InputCommand
+{
+  TEST_I_INPUT_COMMAND_INVALID = -1,
+  TEST_I_INPUT_COMMAND_GAIN_DECREASE = 0,
+  TEST_I_INPUT_COMMAND_GAIN_INCREASE,
+  ////////////////////////////////////////
+  TEST_I_INPUT_COMMAND_MAX,
+};
+
+//////////////////////////////////////////
+
 #if defined (GUI_SUPPORT)
 struct Test_I_SpeechCommand_UI_ProgressData
  : Test_I_UI_ProgressData
