@@ -105,7 +105,7 @@
 // *NOTE*: feed this much sample data between DS_IntermediateDecode calls
 #define STREAM_DEC_DEEPSPEECH_DECODE_BUFFER_LENGTH_MS                500 // ms
 // *NOTE*: make a new stream after this many decoded words
-#define STREAM_DEC_DEEPSPEECH_RESTREAM_WORD_LIMIT                    5 // #words
+#define STREAM_DEC_DEEPSPEECH_RESTREAM_WORD_LIMIT                    7 // #words
 // *NOTE*: higher values lead to better inference at the cost of computation
 #define STREAM_DEC_DEEPSPEECH_DEFAULT_BEAM_WIDTH                     512
 

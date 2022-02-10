@@ -1683,7 +1683,7 @@ do_work (const std::string& scorerFile_in,
     modulehandler_configuration.effect = ACE_TEXT_ALWAYS_CHAR ("gain");
     std::ostringstream converter;
     converter << gain_in;
-    modulehandler_configuration.effectOptions.push_back (converter.str ());
+    modulehandler_configuration.effectOptions.push_back (converter.str ()); // gain-dB
   } // end IF
   modulehandler_configuration.scorerFile = scorerFile_in;
   //modulehandler_configuration.spectrumAnalyzerResolution = 512;

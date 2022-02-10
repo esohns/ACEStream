@@ -18,6 +18,10 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
+#include <algorithm>
+#include <iterator>
+#include <strstream>
+
 #include "ace/Log_Msg.h"
 #include "ace/OS.h"
 
@@ -266,6 +270,8 @@ Stream_Decoder_DeepSpeechDecoder_T<ACE_SYNCH_USE,
     if (decodedWords_ < STREAM_DEC_DEEPSPEECH_RESTREAM_WORD_LIMIT)
       goto continue_;
     partial_p = DS_FinishStream (context2_);
+    decodedWords_ += processWords (partial_p,
+                                   data_r.words); // *TODO*: remove type inference
     if (likely (partial_p))
     {
       DS_FreeString (const_cast<char*> (partial_p)); partial_p = NULL;
@@ -282,7 +288,7 @@ Stream_Decoder_DeepSpeechDecoder_T<ACE_SYNCH_USE,
       DS_FreeString (string_p);
       goto error;
     } // end IF
-    decodedWords_ -= STREAM_DEC_DEEPSPEECH_RESTREAM_WORD_LIMIT;
+    decodedWords_ = 0;
     bufferedMs_ = 0;
 continue_:
     message_block_p = message_block_p->cont ();
@@ -316,14 +322,63 @@ Stream_Decoder_DeepSpeechDecoder_T<ACE_SYNCH_USE,
   STREAM_TRACE (ACE_TEXT ("Stream_Decoder_DeepSpeechDecoder_T::processWords"));
 
   // sanity check(s)
-  if (!inputString_in)
+  if (!inputString_in ||
+      !ACE_OS::strlen (inputString_in))
     return 0;
 
   unsigned int prev_size_i = result_out.size ();
-  std::stringstream string_stream (inputString_in);
   std::string token_string;
+//  std::istringstream string_stream (inputString_in); // *NOTE*: avoid this copy
+  std::istrstream string_stream (const_cast<char*> (inputString_in),
+                                 ACE_OS::strlen (inputString_in));
+#if 0
   while (std::getline (string_stream, token_string, ' '))
     result_out.push_back (token_string);
+#else
+  // step1: retrieve new words
+  Stream_Decoder_DeepSpeech_Result_t result;
+  while (std::getline (string_stream, token_string, ' '))
+    result.push_back (token_string);
+
+  // step2: crop any trailing/beginning duplicates
+  Stream_Decoder_DeepSpeech_ResultIterator_t start_iterator =
+    result_out.begin ();
+  Stream_Decoder_DeepSpeech_ResultDifference_t index_i = 0, index_2 = 0;
+  Stream_Decoder_DeepSpeech_ResultIterator_t iterator_2;
+continue_:
+  for (Stream_Decoder_DeepSpeech_ResultIterator_t iterator = start_iterator;
+       iterator != result_out.end ();
+       ++iterator)
+  {
+continue_2:
+    index_i = std::distance (start_iterator, iterator);
+    iterator_2 = std::find (result.begin (), result.end (), *iterator);
+    if (iterator_2 == result.end ())
+    { // no overlap at this index --> increment start_iterator and continue
+      std::advance (start_iterator, 1);
+      if (start_iterator == result_out.end ())
+        goto continue_3; // done; append
+      goto continue_;
+    } // end IF
+    index_2 = std::distance (result.begin (), iterator_2);
+    if (index_i != index_2)
+    { // no overlap at this index --> increment start_iterator and continue
+      std::advance (start_iterator, 1);
+      if (start_iterator == result_out.end ())
+        goto continue_3; // done; append
+      goto continue_;
+    } // end IF
+    std::advance (iterator, 1);
+    if (iterator == result_out.end ())
+    { // found matching trailing sequence: it starts at start_iterator
+      result_out.erase (start_iterator, result_out.end ());
+continue_3:
+      result_out.insert (result_out.end (), result.begin (), result.end ());
+      break;
+    } // end IF
+    goto continue_2;
+  } // end FOR
+#endif // 0
 
   return result_out.size () - prev_size_i;
 }

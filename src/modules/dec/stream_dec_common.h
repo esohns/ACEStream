@@ -28,6 +28,7 @@ typedef Stream_Decoder_DeepSpeech_HotWords_t::const_iterator Stream_Decoder_Deep
 
 typedef std::vector <std::string> Stream_Decoder_DeepSpeech_Result_t;
 typedef Stream_Decoder_DeepSpeech_Result_t::iterator Stream_Decoder_DeepSpeech_ResultIterator_t;
+typedef std::iterator_traits<Stream_Decoder_DeepSpeech_ResultIterator_t>::difference_type Stream_Decoder_DeepSpeech_ResultDifference_t;
 typedef Stream_Decoder_DeepSpeech_Result_t::const_iterator Stream_Decoder_DeepSpeech_ResultConstIterator_t;
 #endif // DEEPSPEECH_SUPPORT
 

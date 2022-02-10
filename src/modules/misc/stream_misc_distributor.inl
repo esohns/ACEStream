@@ -363,7 +363,7 @@ Stream_Miscellaneous_Distributor_WriterTask_T<ACE_SYNCH_USE,
 
   { ACE_GUARD_RETURN (ACE_Thread_Mutex, aGuard, inherited::lock_, false);
     branches_ = branches_in;
-    numberOfBranches_ = branches_in.size ();
+    numberOfBranches_ = static_cast<unsigned int> (branches_in.size ());
   } // end lock scope
 
   return true;
