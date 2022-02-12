@@ -637,8 +637,6 @@ Test_I_InputHandler_T<NotificationType,
         default:
           break;
       } // end SWITCH
-      ++data_p;
-    } while (*data_p);
 #endif // ACE_WIN32 || ACE_WIN64
 
     // process input command
@@ -662,6 +660,12 @@ Test_I_InputHandler_T<NotificationType,
         break;
       }
     } // end SWITCH
+
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#else
+      ++data_p;
+    } while (*data_p);
+#endif // ACE_WIN32 || ACE_WIN64
 
     message_p = static_cast<DataMessageType*> (message_p->cont ());
   } while (message_p);

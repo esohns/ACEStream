@@ -2284,6 +2284,15 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
       //         this session message...
       if (likely (inherited::configuration_->generateSessionMessages))
       {
+        // *NOTE*: if the object is 'active', the session-begin message may be
+        //         processed earlier than 'this' returns, i.e. the transition
+        //         'starting' --> 'running' would fail
+        //         --> set the state early
+        result = false; // <-- caller will not set the state
+        { ACE_GUARD_RETURN (ACE_SYNCH_MUTEX_T, aGuard, *inherited2::stateLock_, false);
+          inherited2::state_ = STREAM_STATE_SESSION_STARTING;
+        } // end lock scope
+
         // *NOTE*: in 'concurrent' (server-side-)scenarios there is a race
         //         condition when the connection is close()d asynchronously
         //         --> see below: line 2015
@@ -2305,12 +2314,6 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
         inherited::sessionData_->increase ();
         SessionDataContainerType* session_data_container_p =
           inherited::sessionData_;
-//        else if (streamState_)
-//        {
-//          if (streamState_->sessionData)
-//            ACE_NEW_NORETURN (session_data_container_p,
-//                              SessionDataContainerType (streamState_->sessionData));
-//        } // end ELSE IF
         // *NOTE*: "fire-and-forget" the second argument
         ACE_ASSERT (streamState_);
         if (unlikely (!inherited::putSessionMessage (STREAM_SESSION_MESSAGE_BEGIN, // session message type
@@ -2354,9 +2357,12 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
           //         to newState_in is processed 'inline' by the calling thread,
           //         i.e. would complete 'before' the state has transitioned to
           //         'running' --> set the state early
-          result = false; // <-- caller will not set the state
           { ACE_GUARD_RETURN (ACE_SYNCH_MUTEX_T, aGuard, *inherited2::stateLock_, false);
-            inherited2::state_ = STREAM_STATE_SESSION_STARTING;
+            if (result)
+            {
+              result = false; // <-- caller will not set the state
+              inherited2::state_ = STREAM_STATE_SESSION_STARTING;
+            } // end IF
           } // end lock scope
 
           { ACE_GUARD_RETURN (ACE_Thread_Mutex, aGuard_2, inherited::lock_, false);

@@ -58,6 +58,7 @@
 #include "common_error_tools.h"
 
 #include "common_input_manager.h"
+#include "common_input_tools.h"
 
 #include "common_log_tools.h"
 #include "common_logger.h"
@@ -1257,6 +1258,14 @@ do_work (const std::string& scorerFile_in,
   istream_p = &stream;
   istream_control_p = &stream;
 #endif // ACE_WIN32 || ACE_WIN64
+  if (unlikely (UIDefinitionFile_in.empty () &&
+                !Common_Input_Tools::initialize ()))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to Common_Input_Tools::initialize(), returning\n")));
+    return;
+  } // end IF
+
   Test_I_InputManager_t* input_manager_p =
     Test_I_InputManager_t::SINGLETON_T::instance ();
   ACE_ASSERT (input_manager_p);
@@ -2182,6 +2191,8 @@ do_work (const std::string& scorerFile_in,
   } // end IF
   timer_manager_p->stop (true,   // wait ?
                          false); // N/A
+  if (UIDefinitionFile_in.empty ())
+    Common_Input_Tools::finalize ();
   Common_Signal_Tools::finalize (COMMON_SIGNAL_DEFAULT_DISPATCH_MODE,
                                  previousSignalActions_inout,
                                  previousSignalMask_in);

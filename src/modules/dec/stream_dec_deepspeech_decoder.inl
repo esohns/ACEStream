@@ -128,6 +128,10 @@ Stream_Decoder_DeepSpeechDecoder_T<ACE_SYNCH_USE,
     sampleSize_ = 0;
   } // end IF
 
+  ACE_DEBUG ((LM_DEBUG,
+              ACE_TEXT ("%s: using model file: \"%s\"\n"),
+              inherited::mod_->name (),
+              ACE_TEXT (configuration_in.modelFile.c_str ())));
   result = DS_CreateModel (configuration_in.modelFile.c_str (),
                            &context_);
   if (unlikely (result || !context_))
@@ -167,6 +171,10 @@ Stream_Decoder_DeepSpeechDecoder_T<ACE_SYNCH_USE,
 
   if (!configuration_in.scorerFile.empty ())
   {
+    ACE_DEBUG ((LM_DEBUG,
+                ACE_TEXT ("%s: using scorer file: \"%s\"\n"),
+                inherited::mod_->name (),
+                ACE_TEXT (configuration_in.scorerFile.c_str ())));
     result = DS_EnableExternalScorer (context_,
                                       configuration_in.scorerFile.c_str ());
     if (unlikely (result))
@@ -341,6 +349,11 @@ Stream_Decoder_DeepSpeechDecoder_T<ACE_SYNCH_USE,
     result.push_back (token_string);
 
   // step2: crop any trailing/beginning duplicates
+  if (!prev_size_i)
+  {
+    result_out = result;
+    return result_out.size ();
+  } // end IF
   Stream_Decoder_DeepSpeech_ResultIterator_t start_iterator =
     result_out.begin ();
   Stream_Decoder_DeepSpeech_ResultDifference_t index_i = 0, index_2 = 0;
@@ -378,8 +391,9 @@ continue_3:
     } // end IF
     goto continue_2;
   } // end FOR
-#endif // 0
 
+continue_4:
+#endif // 0
   return result_out.size () - prev_size_i;
 }
 
