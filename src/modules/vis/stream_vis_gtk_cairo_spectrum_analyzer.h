@@ -21,9 +21,6 @@
 #ifndef STREAM_VISUALIZATION_GTK_CAIRO_SPECTRUM_ANALYZER_H
 #define STREAM_VISUALIZATION_GTK_CAIRO_SPECTRUM_ANALYZER_H
 
-#include <functional>
-#include <random>
-
 #include "ace/Global_Macros.h"
 #include "ace/Singleton.h"
 #include "ace/Synch_Traits.h"
@@ -37,8 +34,6 @@
 #include "common_math_fft.h"
 
 #include "common_timer_resetcounterhandler.h"
-
-#include "stream_stat_common.h"
 
 #include "stream_vis_gtk_common.h"
 #include "stream_vis_gtk_window.h"
@@ -79,7 +74,6 @@ class Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T
  , public Common_Math_FFT_T<ValueType>
  , public Common_ICounter
  , public Common_IDispatch
- , public Common_IDispatch_T<enum Stream_Statistic_AnalysisEventType>
  , public Common_ISetP_T<GdkWindow>
 {
   typedef Stream_Module_Vis_GTK_Window_T<ACE_SYNCH_USE,
@@ -113,9 +107,6 @@ class Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T
   // *IMPORTANT NOTE*: argument is acestream_visualization_gtk_cairo_cbdata
   virtual void dispatch (void*);
 
-  // implement Common_IDispatch_T
-  virtual void dispatch (const enum Stream_Statistic_AnalysisEventType&);
-
   // implement Common_ISetP_T
   virtual void setP (GdkWindow*); // target window
 
@@ -142,15 +133,6 @@ class Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T
 
   unsigned int                                       bufferedSamples_;
   struct acestream_visualization_gtk_cairo_cbdata    CBData_;
-#if defined (GTKGL_SUPPORT)
-#if GTK_CHECK_VERSION(3,0,0)
-  GdkRGBA                                            backgroundColor_;
-  GdkRGBA                                            foregroundColor_;
-#else
-  GdkColor                                           backgroundColor_;
-  GdkColor                                           foregroundColor_;
-#endif /* GTK_CHECK_VERSION (3,0,0) */
-#endif /* GTKGL_SUPPORT */
   double                                             channelFactor_;
   double                                             scaleFactorX_;
   // *NOTE*: there are only (N/2)-1 meaningful values for real-valued data
@@ -161,20 +143,12 @@ class Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T
   int                                                width_;
 
   enum Stream_Visualization_SpectrumAnalyzer_2DMode* mode2D_;
-//#if defined (GTKGL_SUPPORT)
-//  enum Stream_Visualization_SpectrumAnalyzer_3DMode* mode3D_;
-//#endif // GTKGL_SUPPORT
   typename inherited::MESSAGE_QUEUE_T                queue_;
 
   Common_Timer_ResetCounterHandler                   renderHandler_;
   long                                               renderHandlerTimerId_;
 
   Common_Math_FFT_SampleIterator                     sampleIterator_;
-
-  // random number generator
-  std::uniform_int_distribution<int>                 randomDistribution_;
-  std::default_random_engine                         randomEngine_;
-  std::function<int ()>                              randomGenerator_;
 };
 
 // include template definition

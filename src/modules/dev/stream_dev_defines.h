@@ -47,6 +47,7 @@
 #define STREAM_DEV_DEFAULT_VIDEO_DEVICE                           "video0"
 #endif // ACE_WIN32 || ACE_WIN64
 
+// *TODO*: move all of this somewhere else ASAP
 // general
 #define STREAM_DEV_CAM_DEFAULT_CAPTURE_SIZE_HEIGHT                480
 #define STREAM_DEV_CAM_DEFAULT_CAPTURE_SIZE_WIDTH                 640

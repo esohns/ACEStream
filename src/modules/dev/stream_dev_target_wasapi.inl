@@ -20,6 +20,7 @@
 
 #include "avrt.h"
 #include "mmdeviceapi.h"
+#include "Shlwapi.h"
 
 #include "ace/Log_Msg.h"
 

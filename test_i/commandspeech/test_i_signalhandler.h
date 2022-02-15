@@ -17,36 +17,33 @@
  *   Free Software Foundation, Inc.,                                       *
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
-#include "stdafx.h"
 
-#include "stream_file_source.h"
+#ifndef TEST_I_SIGNALHANDLER_H
+#define TEST_I_SIGNALHANDLER_H
 
-#include "ace/OS.h"
+#include "ace/Global_Macros.h"
+#include "ace/Synch_Traits.h"
 
-#include "stream_file_defines.h"
+#include "common_signal_common.h"
+#include "common_signal_handler.h"
 
-//STREAM_FILE_Export const char libacestream_default_file_source_module_name_string[] =
-const char libacestream_default_file_source_module_name_string[] =
-  ACE_TEXT_ALWAYS_CHAR (STREAM_FILE_SOURCE_DEFAULT_NAME_STRING);
+#include "test_i_commandspeech_common.h"
 
-int
-stream_file_dirent_selector_all_cb (const dirent* dirEntry_in)
+class Test_I_SignalHandler
+ : public Common_SignalHandler_T<struct Test_I_SignalHandlerConfiguration>
 {
-  // *IMPORTANT NOTE*: select all files
+  typedef Common_SignalHandler_T<struct Test_I_SignalHandlerConfiguration> inherited;
 
-  // sanity check --> ignore dot/double-dot
-  if (ACE_OS::strncmp (dirEntry_in->d_name,
-                       ACE_TEXT_ALWAYS_CHAR ("."),
-                       ACE_OS::strlen (ACE_TEXT_ALWAYS_CHAR ("."))) != 0)
-    return 0;
+ public:
+  Test_I_SignalHandler ();
+  inline virtual ~Test_I_SignalHandler () {}
 
-  return 1;
-}
+  // implement Common_ISignal
+  virtual void handle (const struct Common_Signal&); // signal
 
-int
-stream_file_dirent_comparator_strcmp_cb (const dirent** d1,
-                                         const dirent** d2)
-{
-  return ACE_OS::strcmp ((*d1)->d_name,
-                         (*d2)->d_name);
-}
+ private:
+  ACE_UNIMPLEMENTED_FUNC (Test_I_SignalHandler (const Test_I_SignalHandler&))
+  ACE_UNIMPLEMENTED_FUNC (Test_I_SignalHandler& operator= (const Test_I_SignalHandler&))
+};
+
+#endif

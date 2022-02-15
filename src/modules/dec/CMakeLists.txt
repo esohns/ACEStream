@@ -5,6 +5,7 @@ set (CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_CURRENT_SOURCE_DIR}/../lib/
 include (sox)
 set (CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_CURRENT_SOURCE_DIR}/scripts")
 include (deepspeech)
+include (festival)
 include (mpg123)
 include (opencv)
 include (zlib)
@@ -44,6 +45,10 @@ if (DEEPSPEECH_SUPPORT)
  target_include_directories (${PROJECT_NAME}_Decoder PUBLIC
                              $<BUILD_INTERFACE:${DEEPSPEECH_INCLUDE_DIRS}>)
 endif (DEEPSPEECH_SUPPORT)
+if (FESTIVAL_SUPPORT)
+ target_include_directories (${PROJECT_NAME}_Decoder PUBLIC
+                             "$<BUILD_INTERFACE:${FESTIVAL_INCLUDE_DIRS}>")
+endif (FESTIVAL_SUPPORT)
 if (MPG123_SUPPORT)
  target_include_directories (${PROJECT_NAME}_Decoder PUBLIC
                              $<BUILD_INTERFACE:${MPG123_INCLUDE_DIRS}>)
@@ -219,6 +224,13 @@ if (DEEPSPEECH_SUPPORT)
       stream_dec_deepspeech_decoder.h
       stream_dec_deepspeech_decoder.inl)
 endif (DEEPSPEECH_SUPPORT)
+if (FESTIVAL_SUPPORT)
+ set (source_files
+      ${source_files}
+      stream_dec_festival_decoder.cpp
+      stream_dec_festival_decoder.h
+      stream_dec_festival_decoder.inl)
+endif (FESTIVAL_SUPPORT)
 if (MPG123_SUPPORT)
  set (source_files
       ${source_files}
@@ -299,6 +311,9 @@ endif (OPENCV_SUPPORT)
 if (DEEPSPEECH_SUPPORT)
  target_link_libraries (${PROJECT_NAME}_Decoder PUBLIC ${DEEPSPEECH_LIBRARIES})
 endif (DEEPSPEECH_SUPPORT)
+if (FESTIVAL_SUPPORT)
+# target_link_libraries (${PROJECT_NAME}_Decoder PUBLIC ${FESTIVAL_LIBRARIES})
+endif (FESTIVAL_SUPPORT)
 if (MPG123_SUPPORT)
  target_link_libraries (${PROJECT_NAME}_Decoder PUBLIC ${MPG123_LIBRARIES})
 endif (MPG123_SUPPORT)
@@ -335,6 +350,13 @@ target_link_libraries (${PROJECT_NAME}_Decoder PUBLIC ${PROJECT_NAME})
 target_link_libraries (${PROJECT_NAME}_Decoder PUBLIC ${PROJECT_NAME}_Device)
 target_link_libraries (${PROJECT_NAME}_Decoder PUBLIC ${PROJECT_NAME}_HTML)
 target_link_libraries (${PROJECT_NAME}_Decoder PUBLIC ${PROJECT_NAME}_MediaFramework)
+
+if (WIN32)
+ if (FESTIVAL_SUPPORT)
+  # *WARNING*: linking libFestival.lib requires "/FORCE:MULTIPLE"
+#  target_link_options (${PROJECT_NAME}_Decoder PUBLIC "$<$<CXX_COMPILER_ID:MSVC>:-FORCE:MULTIPLE>")
+ endif (FESTIVAL_SUPPORT)
+endif (WIN32)
 
 # add all targets to the build-tree export set
 export (TARGETS ${PROJECT_NAME}_Decoder
@@ -401,6 +423,12 @@ if (DEEPSPEECH_SUPPORT)
       stream_dec_deepspeech_decoder.h
       stream_dec_deepspeech_decoder.inl)
 endif (DEEPSPEECH_SUPPORT)
+if (FESTIVAL_SUPPORT)
+ set (${PROJECT_NAME}_Decoder_LIB_HDRS
+      ${${PROJECT_NAME}_Decoder_LIB_HDRS}
+      stream_dec_festival_decoder.h
+      stream_dec_festival_decoder.inl)
+endif (FESTIVAL_SUPPORT)
 if (MPG123_SUPPORT)
  set (${PROJECT_NAME}_Decoder_LIB_HDRS
       ${${PROJECT_NAME}_Decoder_LIB_HDRS}

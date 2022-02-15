@@ -146,13 +146,15 @@ set (source_files
      stream_vis_iresize.h
      stream_vis_tools.cpp
      stream_vis_tools.h)
-if (GLUT_SUPPORT)
- set (source_files
-      ${source_files}
-      stream_vis_opengl_glut.cpp
-      stream_vis_opengl_glut.h
-      stream_vis_opengl_glut.inl)
-endif (GLUT_SUPPORT)
+if (OPENGL_SUPPORT)
+ if (GLUT_SUPPORT)
+  set (source_files
+       ${source_files}
+       stream_vis_opengl_glut.cpp
+       stream_vis_opengl_glut.h
+       stream_vis_opengl_glut.inl)
+ endif (GLUT_SUPPORT)
+endif (OPENGL_SUPPORT)
 if (FFMPEG_SUPPORT)
  set (source_files
       ${source_files}
@@ -183,6 +185,12 @@ if (GTK_SUPPORT)
       stream_vis_gtk_window.cpp
       stream_vis_gtk_window.h
       stream_vis_gtk_window.inl)
+ if (GTKGL_SUPPORT)
+  set (source_files
+       ${source_files}
+       stream_vis_gtk_cairo_gl.cpp
+       stream_vis_gtk_cairo_gl.h)
+ endif (GTKGL_SUPPORT)
 endif (GTK_SUPPORT)
 if (OPENCV_SUPPORT)
  set (source_files
@@ -307,12 +315,14 @@ set (header_files
      stream_vis_defines.h
      stream_vis_iresize.h
      stream_vis_tools.h)
-if (GLUT_SUPPORT)
- set (header_files
-      ${header_files}
-      stream_vis_opengl_glut.h
-      stream_vis_opengl_glut.inl)
-endif (GLUT_SUPPORT)
+if (OPENGL_SUPPORT)
+ if (GLUT_SUPPORT)
+  set (header_files
+       ${header_files}
+       stream_vis_opengl_glut.h
+       stream_vis_opengl_glut.inl)
+ endif (GLUT_SUPPORT)
+endif (OPENGL_SUPPORT)
 if (FFMPEG_SUPPORT)
  set (header_files
       ${header_files}
@@ -337,6 +347,11 @@ if (GTK_SUPPORT)
       stream_vis_gtk_pixbuf.inl
       stream_vis_gtk_window.h
       stream_vis_gtk_window.inl)
+ if (GTKGL_SUPPORT)
+  set (header_files
+       ${header_files}
+       stream_vis_gtk_cairo_gl.h)
+ endif (GTKGL_SUPPORT)
 endif (GTK_SUPPORT)
 if (OPENCV_SUPPORT)
  set (header_files

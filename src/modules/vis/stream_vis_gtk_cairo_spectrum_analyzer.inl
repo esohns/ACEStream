@@ -75,10 +75,6 @@ Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
                STREAM_VIS_SPECTRUMANALYZER_DEFAULT_SAMPLE_RATE)
  , bufferedSamples_ (0)
  , CBData_ ()
-#if defined (GTKGL_SUPPORT)
- , backgroundColor_ ()
- , foregroundColor_ ()
-#endif /* GTKGL_SUPPORT */
  , channelFactor_ (0.0)
  , scaleFactorX_ (0.0)
  , scaleFactorX_2 (0.0)
@@ -87,57 +83,19 @@ Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
  , height_ (0)
  , width_ (0)
  , mode2D_ (NULL)
-//#if defined (GTKGL_SUPPORT)
-// , mode3D_ (NULL)
-//#endif // GTKGL_SUPPORT
  , queue_ (STREAM_QUEUE_MAX_SLOTS, // max # slots
            NULL)                   // notification handle
  , renderHandler_ (this)
  , renderHandlerTimerId_ (-1)
  , sampleIterator_ (NULL)
-#if GTK_CHECK_VERSION(3,0,0)
- , randomDistribution_ (0, 255)
-#else
- , randomDistribution_ (0, 65535)
-#endif // GTK_CHECK_VERSION(3,0,0)
- , randomEngine_ ()
- , randomGenerator_ ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T::Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T"));
 
   ACE_OS::memset (&CBData_, 0, sizeof (struct acestream_visualization_gtk_cairo_cbdata));
-
-#if defined (GTKGL_SUPPORT)
-#if GTK_CHECK_VERSION (3,0,0)
-#if GTK_CHECK_VERSION (3,6,0)
-#else
-  GDK_THREADS_ENTER ();
-#endif // GTK_CHECK_VERSION (3,6,0)
-  gboolean result_2 =
-    gdk_rgba_parse (&backgroundColor_,
-                    ACE_TEXT_ALWAYS_CHAR ("rgba (0, 0, 0, 1.0)"));       // opaque black
-  ACE_ASSERT (result_2);
-  result_2 =
-    gdk_rgba_parse (&foregroundColor_,
-                    ACE_TEXT_ALWAYS_CHAR ("rgba (255, 255, 255, 1.0)")); // opaque white
-  ACE_ASSERT (result_2);
-#if GTK_CHECK_VERSION (3,6,0)
-#else
-  GDK_THREADS_LEAVE ();
-#endif // GTK_CHECK_VERSION (3,6,0)
-#else
-  ACE_OS::memset (&backgroundColor_, 0, sizeof (struct _GdkColor));                            // opaque black
-  foregroundColor_.pixel = 0;
-  foregroundColor_.red = 65535; foregroundColor_.green = 65535; foregroundColor_.blue = 65535; // opaque white
-#endif // GTK_CHECK_VERSION (3,0,0)
-#endif // GTKGL_SUPPORT
-
 #if GTK_CHECK_VERSION (3,0,0)
 #else
   inherited::msg_queue (&queue_);
 #endif // GTK_CHECK_VERSION (3,0,0)
-
-  randomGenerator_ = std::bind (randomDistribution_, randomEngine_);
 }
 
 template <ACE_SYNCH_DECL,
@@ -214,30 +172,6 @@ Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
     if (unlikely (CBData_.context))
       cairo_destroy (CBData_.context);
     ACE_OS::memset (&CBData_, 0, sizeof (struct acestream_visualization_gtk_cairo_cbdata));
-#if defined (GTKGL_SUPPORT)
-#if GTK_CHECK_VERSION (3,0,0)
-#if GTK_CHECK_VERSION (3,6,0)
-#else
-    GDK_THREADS_ENTER ();
-#endif // GTK_CHECK_VERSION (3,6,0)
-    gboolean result_2 =
-      gdk_rgba_parse (&backgroundColor_,
-                      ACE_TEXT_ALWAYS_CHAR ("rgba (0, 0, 0, 1.0)"));       // opaque black
-    ACE_ASSERT (result_2);
-    result_2 =
-      gdk_rgba_parse (&foregroundColor_,
-                      ACE_TEXT_ALWAYS_CHAR ("rgba (255, 255, 255, 1.0)")); // opaque white
-    ACE_ASSERT (result_2);
-#if GTK_CHECK_VERSION (3,6,0)
-#else
-    GDK_THREADS_LEAVE ();
-#endif // GTK_CHECK_VERSION (3,6,0)
-#else
-    ACE_OS::memset (&backgroundColor_, 0, sizeof (struct _GdkColor));                            // opaque black
-    foregroundColor_.pixel = 0;
-    foregroundColor_.red = 65535; foregroundColor_.green = 65535; foregroundColor_.blue = 65535; // opaque white
-#endif /* GTK_CHECK_VERSION (3,0,0) */
-#endif /* GTKGL_SUPPORT */
 
     channelFactor_ = 0.0;
     scaleFactorX_ = 0.0;
@@ -961,98 +895,6 @@ Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
   //cairo_set_dash (cairoContext_out, NULL, 0, 0.0);
 
   return true;
-}
-
-template <ACE_SYNCH_DECL,
-          typename TimePolicyType,
-          typename ConfigurationType,
-          typename ControlMessageType,
-          typename DataMessageType,
-          typename SessionMessageType,
-          typename SessionDataType,
-          typename SessionDataContainerType,
-          typename TimerManagerType,
-          typename MediaType,
-          typename ValueType>
-void
-Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
-                                                  TimePolicyType,
-                                                  ConfigurationType,
-                                                  ControlMessageType,
-                                                  DataMessageType,
-                                                  SessionMessageType,
-                                                  SessionDataType,
-                                                  SessionDataContainerType,
-                                                  TimerManagerType,
-                                                  MediaType,
-                                                  ValueType>::dispatch (const enum Stream_Statistic_AnalysisEventType& event_in)
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T::dispatch"));
-
-  // sanity check(s)
-  ACE_ASSERT (inherited::configuration_);
-
-#if defined (GTKGL_SUPPORT)
-  // sanity check(s)
-  ACE_ASSERT (inherited::configuration_->OpenGLInstructionsLock);
-  ACE_ASSERT (inherited::configuration_->OpenGLInstructions);
-
-  struct Stream_Visualization_GTKGL_Instruction visualization_instruction_s;
-
-  switch (event_in)
-  {
-    case STREAM_STATISTIC_ANALYSIS_EVENT_ACTIVITY:
-    {
-//#if GTK_CHECK_VERSION(3,0,0)
-//      foregroundColor_.red   = randomGenerator_ () / 255.0;
-//      foregroundColor_.green = randomGenerator_ () / 255.0;
-//      foregroundColor_.blue  = randomGenerator_ () / 255.0;
-//      //foregroundColor_.alpha = ;
-//#else
-//      foregroundColor_.red   = randomGenerator_ ();
-//      foregroundColor_.green = randomGenerator_ ();
-//      foregroundColor_.blue  = randomGenerator_ ();
-//      //foregroundColor_.alpha = ;
-//#endif // GTK_CHECK_VERSION(3,0,0)
-//      opengl_instruction.color = foregroundColor_;
-//      opengl_instruction.type =
-//        STREAM_VISUALIZATION_INSTRUCTION_SET_COLOR_FG;
-      visualization_instruction_s.type =
-        STREAM_VISUALIZATION_INSTRUCTION_CHANGE_ROTATION;
-      break;
-    }
-    case STREAM_STATISTIC_ANALYSIS_EVENT_PEAK:
-    {
-#if GTK_CHECK_VERSION(3,0,0)
-      backgroundColor_.red   = randomGenerator_ () / 255.0;
-      backgroundColor_.green = randomGenerator_ () / 255.0;
-      backgroundColor_.blue  = randomGenerator_ () / 255.0;
-      //backgroundColor_.alpha = ;
-#else
-      backgroundColor_.red   = randomGenerator_ ();
-      backgroundColor_.green = randomGenerator_ ();
-      backgroundColor_.blue  = randomGenerator_ ();
-      //backgroundColor_.alpha = ;
-#endif // GTK_CHECK_VERSION(3,0,0)
-      visualization_instruction_s.color = backgroundColor_;
-      visualization_instruction_s.type =
-        STREAM_VISUALIZATION_INSTRUCTION_SET_COLOR_BG;
-      break;
-    }
-    default:
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("%s: invalid/unknown event (was: %d), returning\n"),
-                  inherited::mod_->name (),
-                  event_in));
-      return;
-    }
-  } // end SWITCH
-
-  { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, *inherited::configuration_->OpenGLInstructionsLock);
-    inherited::configuration_->OpenGLInstructions->push_back (visualization_instruction_s);
-  } // end lock scope
-#endif // GTKGL_SUPPORT
 }
 
 template <ACE_SYNCH_DECL,

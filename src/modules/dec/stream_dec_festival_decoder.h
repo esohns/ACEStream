@@ -18,10 +18,10 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#ifndef STREAM_DEC_DEEPSPEECH_DECODER_T_H
-#define STREAM_DEC_DEEPSPEECH_DECODER_T_H
+#ifndef STREAM_DEC_FESTIVAL_DECODER_T_H
+#define STREAM_DEC_FESTIVAL_DECODER_T_H
 
-#include "deepspeech.h"
+#include "festival.h"
 
 #include "ace/Global_Macros.h"
 #include "ace/Synch_Traits.h"
@@ -32,13 +32,11 @@
 
 #include "stream_lib_mediatype_converter.h"
 
-#include "stream_dec_common.h"
-
 // forward declaration(s)
 class ACE_Message_Block;
 class Stream_IAllocator;
 
-extern const char libacestream_default_dec_deepspeech_decoder_module_name_string[];
+extern const char libacestream_default_dec_festival_decoder_module_name_string[];
 
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,
@@ -51,7 +49,7 @@ template <ACE_SYNCH_DECL,
           ////////////////////////////////
           typename SessionDataContainerType,
           typename MediaType> // session data-
-class Stream_Decoder_DeepSpeechDecoder_T
+class Stream_Decoder_FestivalDecoder_T
  : public Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
                                  TimePolicyType,
                                  ConfigurationType,
@@ -77,11 +75,11 @@ class Stream_Decoder_DeepSpeechDecoder_T
  public:
   // *TODO*: on MSVC 2015u3 the accurate declaration does not compile
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  Stream_Decoder_DeepSpeechDecoder_T (ISTREAM_T*); // stream handle
+  Stream_Decoder_FestivalDecoder_T (ISTREAM_T*); // stream handle
 #else
-  Stream_Decoder_DeepSpeechDecoder_T (typename inherited::ISTREAM_T*); // stream handle
+  Stream_Decoder_FestivalDecoder_T (typename inherited::ISTREAM_T*); // stream handle
 #endif // ACE_WIN32 || ACE_WIN64
-  virtual ~Stream_Decoder_DeepSpeechDecoder_T ();
+  virtual ~Stream_Decoder_FestivalDecoder_T ();
 
   // override (part of) Stream_IModuleHandler_T
   virtual bool initialize (const ConfigurationType&,
@@ -94,22 +92,12 @@ class Stream_Decoder_DeepSpeechDecoder_T
                                      bool&);               // return value: pass message downstream ?
 
  private:
-  ACE_UNIMPLEMENTED_FUNC (Stream_Decoder_DeepSpeechDecoder_T ())
-  ACE_UNIMPLEMENTED_FUNC (Stream_Decoder_DeepSpeechDecoder_T (const Stream_Decoder_DeepSpeechDecoder_T&))
-  ACE_UNIMPLEMENTED_FUNC (Stream_Decoder_DeepSpeechDecoder_T& operator= (const Stream_Decoder_DeepSpeechDecoder_T&))
-
-  // helper methods
-  unsigned int processWords (const char*,                          // input string
-                             Stream_Decoder_DeepSpeech_Result_t&); // return value: result
-
-  unsigned int           bufferedMs_;
-  struct ModelState*     context_;
-  struct StreamingState* context2_;
-  unsigned int           decodedWords_;
-  unsigned int           sampleSize_; // mono-
+  ACE_UNIMPLEMENTED_FUNC (Stream_Decoder_FestivalDecoder_T ())
+  ACE_UNIMPLEMENTED_FUNC (Stream_Decoder_FestivalDecoder_T (const Stream_Decoder_FestivalDecoder_T&))
+  ACE_UNIMPLEMENTED_FUNC (Stream_Decoder_FestivalDecoder_T& operator= (const Stream_Decoder_FestivalDecoder_T&))
 };
 
 // include template definition
-#include "stream_dec_deepspeech_decoder.inl"
+#include "stream_dec_festival_decoder.inl"
 
 #endif
