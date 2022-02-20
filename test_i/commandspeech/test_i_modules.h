@@ -59,7 +59,12 @@
 
 #include "stream_stat_statistic_report.h"
 
-#include "stream_dec_festival_decoder.h"
+//#if defined (FESTIVAL_SUPPORT)
+//#include "stream_dec_festival_decoder.h"
+//#endif // FESTIVAL_SUPPORT
+#if defined (FLITE_SUPPORT)
+#include "stream_dec_flite_decoder.h"
+#endif // FLITE_SUPPORT
 
 #if defined (GUI_SUPPORT)
 #if defined (GTK_SUPPORT)
@@ -149,22 +154,42 @@ typedef Stream_Statistic_StatisticReport_WriterTask_T<ACE_MT_SYNCH,
 
 //////////////////////////////////////////
 
-typedef Stream_Decoder_FestivalDecoder_T<ACE_MT_SYNCH,
-                                         Common_TimePolicy_t,
-                                         struct Test_I_CommandSpeech_DirectShow_ModuleHandlerConfiguration,
-                                         Stream_ControlMessage_t,
-                                         Test_I_DirectShow_Message,
-                                         Test_I_DirectShow_SessionMessage_t,
-                                         Test_I_CommandSpeech_DirectShow_SessionData_t,
-                                         struct _AMMediaType> Test_I_DirectShow_Festival;
-typedef Stream_Decoder_FestivalDecoder_T<ACE_MT_SYNCH,
-                                         Common_TimePolicy_t,
-                                         struct Test_I_CommandSpeech_MediaFoundation_ModuleHandlerConfiguration,
-                                         Stream_ControlMessage_t,
-                                         Test_I_DirectShow_Message,
-                                         Test_I_MediaFoundation_SessionMessage_t,
-                                         Test_I_CommandSpeech_MediaFoundation_SessionData_t,
-                                         IMFMediaType*> Test_I_MediaFoundation_Festival;
+//#if defined (FESTIVAL_SUPPORT)
+//typedef Stream_Decoder_FestivalDecoder_T<ACE_MT_SYNCH,
+//                                         Common_TimePolicy_t,
+//                                         struct Test_I_CommandSpeech_DirectShow_ModuleHandlerConfiguration,
+//                                         Stream_ControlMessage_t,
+//                                         Test_I_DirectShow_Message,
+//                                         Test_I_DirectShow_SessionMessage_t,
+//                                         Test_I_CommandSpeech_DirectShow_SessionData_t,
+//                                         struct _AMMediaType> Test_I_DirectShow_Festival;
+//typedef Stream_Decoder_FestivalDecoder_T<ACE_MT_SYNCH,
+//                                         Common_TimePolicy_t,
+//                                         struct Test_I_CommandSpeech_MediaFoundation_ModuleHandlerConfiguration,
+//                                         Stream_ControlMessage_t,
+//                                         Test_I_DirectShow_Message,
+//                                         Test_I_MediaFoundation_SessionMessage_t,
+//                                         Test_I_CommandSpeech_MediaFoundation_SessionData_t,
+//                                         IMFMediaType*> Test_I_MediaFoundation_Festival;
+//#endif // FESTIVAL_SUPPORT
+#if defined (FLITE_SUPPORT)
+typedef Stream_Decoder_FliteDecoder_T<ACE_MT_SYNCH,
+                                      Common_TimePolicy_t,
+                                      struct Test_I_CommandSpeech_DirectShow_ModuleHandlerConfiguration,
+                                      Stream_ControlMessage_t,
+                                      Test_I_DirectShow_Message,
+                                      Test_I_DirectShow_SessionMessage_t,
+                                      Test_I_CommandSpeech_DirectShow_SessionData_t,
+                                      struct _AMMediaType> Test_I_DirectShow_Flite;
+typedef Stream_Decoder_FliteDecoder_T<ACE_MT_SYNCH,
+                                      Common_TimePolicy_t,
+                                      struct Test_I_CommandSpeech_MediaFoundation_ModuleHandlerConfiguration,
+                                      Stream_ControlMessage_t,
+                                      Test_I_DirectShow_Message,
+                                      Test_I_MediaFoundation_SessionMessage_t,
+                                      Test_I_CommandSpeech_MediaFoundation_SessionData_t,
+                                      IMFMediaType*> Test_I_MediaFoundation_Flite;
+#endif // FLITE_SUPPORT
 
 //////////////////////////////////////////
 
@@ -460,14 +485,26 @@ typedef Stream_Statistic_StatisticReport_WriterTask_T<ACE_MT_SYNCH,
 
 //////////////////////////////////////////
 
-typedef Stream_Decoder_FestivalDecoder_T<ACE_MT_SYNCH,
-                                         Common_TimePolicy_t,
-                                         struct Test_I_CommandSpeech_ALSA_ModuleHandlerConfiguration,
-                                         Stream_ControlMessage_t,
-                                         Test_I_Message,
-                                         Test_I_ALSA_SessionMessage_t,
-                                         Test_I_CommandSpeech_ALSA_SessionData_t,
-                                         struct Stream_MediaFramework_ALSA_MediaType> Test_I_ALSA_Festival;
+//#if defined (FESTIVAL_SUPPORT)
+//typedef Stream_Decoder_FestivalDecoder_T<ACE_MT_SYNCH,
+//                                         Common_TimePolicy_t,
+//                                         struct Test_I_CommandSpeech_ALSA_ModuleHandlerConfiguration,
+//                                         Stream_ControlMessage_t,
+//                                         Test_I_Message,
+//                                         Test_I_ALSA_SessionMessage_t,
+//                                         Test_I_CommandSpeech_ALSA_SessionData_t,
+//                                         struct Stream_MediaFramework_ALSA_MediaType> Test_I_ALSA_Festival;
+//#endif // FESTIVAL_SUPPORT
+#if defined (FLITE_SUPPORT)
+typedef Stream_Decoder_FliteDecoder_T<ACE_MT_SYNCH,
+                                      Common_TimePolicy_t,
+                                      struct Test_I_CommandSpeech_ALSA_ModuleHandlerConfiguration,
+                                      Stream_ControlMessage_t,
+                                      Test_I_Message,
+                                      Test_I_ALSA_SessionMessage_t,
+                                      Test_I_CommandSpeech_ALSA_SessionData_t,
+                                      struct Stream_MediaFramework_ALSA_MediaType> Test_I_ALSA_Flite;
+#endif // FLITE_SUPPORT
 
 //////////////////////////////////////////
 
@@ -612,18 +649,34 @@ DATASTREAM_MODULE_DUPLEX (Test_I_CommandSpeech_MediaFoundation_SessionData,     
 
 //////////////////////////////////////////
 
+//#if defined (FESTIVAL_SUPPORT)
+//DATASTREAM_MODULE_INPUT_ONLY (Test_I_CommandSpeech_DirectShow_SessionData,                       // session data type
+//                              enum Stream_SessionMessageType,                                    // session event type
+//                              struct Test_I_CommandSpeech_DirectShow_ModuleHandlerConfiguration, // module handler configuration type
+//                              libacestream_default_dec_festival_decoder_module_name_string,
+//                              Stream_INotify_t,                                                  // stream notification interface type
+//                              Test_I_DirectShow_Festival);                                       // writer type
+//DATASTREAM_MODULE_INPUT_ONLY (Test_I_CommandSpeech_MediaFoundation_SessionData,                       // session data type
+//                              enum Stream_SessionMessageType,                                         // session event type
+//                              struct Test_I_CommandSpeech_MediaFoundation_ModuleHandlerConfiguration, // module handler configuration type
+//                              libacestream_default_dec_festival_decoder_module_name_string,
+//                              Stream_INotify_t,                                                       // stream notification interface type
+//                              Test_I_MediaFoundation_Festival);                                       // writer type
+//#endif // FESTIVAL_SUPPORT
+#if defined (FLITE_SUPPORT)
 DATASTREAM_MODULE_INPUT_ONLY (Test_I_CommandSpeech_DirectShow_SessionData,                       // session data type
                               enum Stream_SessionMessageType,                                    // session event type
                               struct Test_I_CommandSpeech_DirectShow_ModuleHandlerConfiguration, // module handler configuration type
-                              libacestream_default_dec_festival_decoder_module_name_string,
+                              libacestream_default_dec_flite_decoder_module_name_string,
                               Stream_INotify_t,                                                  // stream notification interface type
-                              Test_I_DirectShow_Festival);                                       // writer type
+                              Test_I_DirectShow_Flite);                                          // writer type
 DATASTREAM_MODULE_INPUT_ONLY (Test_I_CommandSpeech_MediaFoundation_SessionData,                       // session data type
                               enum Stream_SessionMessageType,                                         // session event type
                               struct Test_I_CommandSpeech_MediaFoundation_ModuleHandlerConfiguration, // module handler configuration type
-                              libacestream_default_dec_festival_decoder_module_name_string,
+                              libacestream_default_dec_flite_decoder_module_name_string,
                               Stream_INotify_t,                                                       // stream notification interface type
-                              Test_I_MediaFoundation_Festival);                                       // writer type
+                              Test_I_MediaFoundation_Flite);                                          // writer type
+#endif // FLITE_SUPPORT
 
 //////////////////////////////////////////
 
@@ -814,12 +867,22 @@ DATASTREAM_MODULE_DUPLEX (Test_I_CommandSpeech_ALSA_SessionData,                
 
 //////////////////////////////////////////
 
-DATASTREAM_MODULE_INPUT_ONLY (Test_I_CommandSpeech_ALSA_SessionData,                         // session data type
-                              enum Stream_SessionMessageType,                                // session event type
-                              struct Test_I_CommandSpeech_ALSA_ModuleHandlerConfiguration,   // module handler configuration type
-                              libacestream_default_dec_festival_decoder_module_name_string,
-                              Stream_INotify_t,                                              // stream notification interface type
-                              Test_I_ALSA_Festival);                                         // writer type
+//#if defined (FESTIVAL_SUPPORT)
+//DATASTREAM_MODULE_INPUT_ONLY (Test_I_CommandSpeech_ALSA_SessionData,                        // session data type
+//                              enum Stream_SessionMessageType,                               // session event type
+//                              struct Test_I_CommandSpeech_ALSA_ModuleHandlerConfiguration,  // module handler configuration type
+//                              libacestream_default_dec_festival_decoder_module_name_string,
+//                              Stream_INotify_t,                                             // stream notification interface type
+//                              Test_I_ALSA_Festival);                                        // writer type
+//#endif // FESTIVAL_SUPPORT
+#if defined (FLITE_SUPPORT)
+DATASTREAM_MODULE_INPUT_ONLY (Test_I_CommandSpeech_ALSA_SessionData,                        // session data type
+                              enum Stream_SessionMessageType,                               // session event type
+                              struct Test_I_CommandSpeech_ALSA_ModuleHandlerConfiguration,  // module handler configuration type
+                              libacestream_default_dec_flite_decoder_module_name_string,
+                              Stream_INotify_t,                                             // stream notification interface type
+                              Test_I_ALSA_Flite);                                           // writer type
+#endif // FLITE_SUPPORT
 
 //////////////////////////////////////////
 

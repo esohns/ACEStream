@@ -21,9 +21,13 @@
 #ifndef TEST_I_COMMANDSPEECH_DEFINES_H
 #define TEST_I_COMMANDSPEECH_DEFINES_H
 
+#if defined (FESTIVAL_SUPPORT) || defined (FLITE_SUPPORT)
+#define TEST_I_DEFAULT_VOICE_DIRECTORY                 ""
+#define TEST_I_DEFAULT_VOICE                           "cmu_us_slt"
+#endif // FESTIVAL_SUPPORT || FLITE_SUPPORT
 #define TEST_I_DEFAULT_OUTPUT_FILE                     "output.wav"
 
-//---------------------------------------
+//----------------------------------------
 
 #if defined (GUI_SUPPORT)
 #if defined (GTK_SUPPORT)

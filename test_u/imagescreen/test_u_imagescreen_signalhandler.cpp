@@ -22,9 +22,11 @@
 #include "test_u_imagescreen_signalhandler.h"
 
 #if defined (GUI_SUPPORT)
-#if defined (WXWIDGETS_SUPPORT)
+#if defined (WXWIDGETS_USE)
+#undef DrawText
+#undef SIZEOF_SIZE_T
 #include "wx/wx.h"
-#endif // WXWIDGETS_SUPPORT
+#endif // WXWIDGETS_USE
 #endif // GUI_SUPPORT
 
 #include "ace/Log_Msg.h"

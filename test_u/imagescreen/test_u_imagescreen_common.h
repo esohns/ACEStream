@@ -40,6 +40,7 @@ extern "C"
 #if defined (GUI_SUPPORT)
 #if defined (WXWIDGETS_SUPPORT)
 #undef DrawText
+#undef SIZEOF_SIZE_T
 #include "wx/wx.h"
 #include "wx/apptrait.h"
 #endif // WXWIDGETS_SUPPORT

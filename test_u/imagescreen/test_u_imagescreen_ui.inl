@@ -1043,7 +1043,7 @@ Stream_ImageScreen_WxWidgetsDialog_T<wxDialog_main,
   ACE_ASSERT (Common_File_Tools::isDirectory (filename_string));
   ACE_ASSERT (Common_File_Tools::isWriteable (filename_string));
   filename_string += ACE_DIRECTORY_SEPARATOR_STR;
-  filename_string += textctrl_filename->GetValue ();
+  filename_string += textctrl_filename->GetValue ().ToAscii ();
   ACE_ASSERT (Common_File_Tools::isValidPath (filename_string));
 continue_:
   (*stream_iterator).second.second->fileIdentifier.identifier = filename_string;

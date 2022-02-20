@@ -1,6 +1,8 @@
 #ifndef TEST_U_IMAGESCREEN_UI_H
 #define TEST_U_IMAGESCREEN_UI_H
 
+#undef DrawText
+#undef SIZEOF_SIZE_T
 #include "wx/wx.h"
 
 #include "ace/config-macros.h"

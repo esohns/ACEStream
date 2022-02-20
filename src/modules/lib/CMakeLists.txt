@@ -39,28 +39,12 @@ if (SOX_SUPPORT)
  target_include_directories (${PROJECT_NAME}_MediaFramework PUBLIC
                              $<BUILD_INTERFACE:${SOX_INCLUDE_DIRS}>)
 endif (SOX_SUPPORT)
+
 if (UNIX)
  target_include_directories (${PROJECT_NAME}_MediaFramework PUBLIC
                              $<BUILD_INTERFACE:${PKG_ALSA_INCLUDE_DIRS}>)
  target_include_directories (${PROJECT_NAME}_MediaFramework PUBLIC
                              $<BUILD_INTERFACE:${PKG_V4L_INCLUDE_DIRS}>)
-
- target_include_directories (${PROJECT_NAME}_MediaFramework PUBLIC
-                             "$<BUILD_INTERFACE:${Common_INCLUDE_DIRS}>")
- target_include_directories (${PROJECT_NAME}_MediaFramework PUBLIC
-                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../modules/Common/src>)
- target_include_directories (${PROJECT_NAME}_MediaFramework PUBLIC
-                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../modules/Common/src/input>)
- target_include_directories (${PROJECT_NAME}_MediaFramework PUBLIC
-                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../modules/Common/src/image>)
- target_include_directories (${PROJECT_NAME}_MediaFramework PUBLIC
-                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../modules/Common/src/log>)
- target_include_directories (${PROJECT_NAME}_MediaFramework PUBLIC
-                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../modules/Common/src/signal>)
- target_include_directories (${PROJECT_NAME}_MediaFramework PUBLIC
-                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../modules/Common/src/task>)
- target_include_directories (${PROJECT_NAME}_MediaFramework PUBLIC
-                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../modules/Common/src/timer>)
 elseif (WIN32)
  if (DEFINED ENV{DXSDK_DIR})
   target_include_directories (${PROJECT_NAME}_MediaFramework PUBLIC
@@ -82,7 +66,29 @@ elseif (WIN32)
 
  target_include_directories (${PROJECT_NAME}_MediaFramework PUBLIC
                              $<BUILD_INTERFACE:${DIRECTSHOW_BASECLASSES_DIRECTORY}/baseclasses>)
+endif ()
 
+target_include_directories (${PROJECT_NAME}_MediaFramework PUBLIC
+                            $<BUILD_INTERFACE:${ACE_INCLUDE_DIR}>)
+
+if (UNIX)
+ target_include_directories (${PROJECT_NAME}_MediaFramework PUBLIC
+                             "$<BUILD_INTERFACE:${Common_INCLUDE_DIRS}>")
+ target_include_directories (${PROJECT_NAME}_MediaFramework PUBLIC
+                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../modules/Common/src>)
+ target_include_directories (${PROJECT_NAME}_MediaFramework PUBLIC
+                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../modules/Common/src/input>)
+ target_include_directories (${PROJECT_NAME}_MediaFramework PUBLIC
+                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../modules/Common/src/image>)
+ target_include_directories (${PROJECT_NAME}_MediaFramework PUBLIC
+                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../modules/Common/src/log>)
+ target_include_directories (${PROJECT_NAME}_MediaFramework PUBLIC
+                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../modules/Common/src/signal>)
+ target_include_directories (${PROJECT_NAME}_MediaFramework PUBLIC
+                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../modules/Common/src/task>)
+ target_include_directories (${PROJECT_NAME}_MediaFramework PUBLIC
+                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../modules/Common/src/timer>)
+elseif (WIN32)
  target_include_directories (${PROJECT_NAME}_MediaFramework PUBLIC
                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../3rd_party/msvc>)
 
@@ -237,9 +243,9 @@ if (UNIX)
  target_link_libraries (${PROJECT_NAME}_MediaFramework PUBLIC X11)
 elseif (WIN32)
  if (DEFINED ENV{DXSDK_DIR})
-  target_link_libraries (${PROJECT_NAME}_MediaFramework PUBLIC $ENV{DXSDK_DIR}/Lib/x86/D3dx9.lib)
+  target_link_libraries (${PROJECT_NAME}_MediaFramework PUBLIC $ENV{DXSDK_DIR}/Lib/${CMAKE_VS_PLATFORM_NAME}/D3dx9.lib)
  else ()
-  target_link_libraries (${PROJECT_NAME}_MediaFramework PUBLIC $ENV{LIB_ROOT}/DXSDK/Lib/x86/D3dx9.lib)
+  target_link_libraries (${PROJECT_NAME}_MediaFramework PUBLIC $ENV{LIB_ROOT}/DXSDK/Lib/${CMAKE_VS_PLATFORM_NAME}/D3dx9.lib)
  endif (DEFINED ENV{DXSDK_DIR})
  target_link_libraries (${PROJECT_NAME}_MediaFramework PUBLIC dsound.lib)
  target_link_libraries (${PROJECT_NAME}_MediaFramework PUBLIC mfuuid.lib)

@@ -87,14 +87,22 @@ Test_I_DirectShow_Stream::load (Stream_ILayout* layout_in,
   //layout_in->append (module_p, NULL, 0);
   //module_p = NULL;
 
-#if defined (FESTIVAL_SUPPORT)
+//#if defined (FESTIVAL_SUPPORT)
+//  ACE_NEW_RETURN (module_p,
+//                  Test_I_DirectShow_Festival_Module (this,
+//                                                     ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_FESTIVAL_DECODER_DEFAULT_NAME_STRING)),
+//                  false);
+//  layout_in->append (module_p, NULL, 0);
+//  module_p = NULL;
+//#endif // FESTIVAL_SUPPORT
+#if defined (FLITE_SUPPORT)
   ACE_NEW_RETURN (module_p,
-                  Test_I_DirectShow_Festival_Module (this,
-                                                     ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_FESTIVAL_DECODER_DEFAULT_NAME_STRING)),
+                  Test_I_DirectShow_Flite_Module (this,
+                                                  ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_FLITE_DECODER_DEFAULT_NAME_STRING)),
                   false);
   layout_in->append (module_p, NULL, 0);
   module_p = NULL;
-#endif // FESTIVAL_SUPPORT
+#endif // FLITE_SUPPORT
 
 #if defined (SOX_SUPPORT)
    ACE_NEW_RETURN (module_p,
@@ -465,14 +473,22 @@ Test_I_MediaFoundation_Stream::load (Stream_ILayout* layout_in,
   //layout_in->append (module_p, NULL, 0);
   //module_p = NULL;
 
-#if defined (FESTIVAL_SUPPORT)
+//#if defined (FESTIVAL_SUPPORT)
+//  ACE_NEW_RETURN (module_p,
+//                  Test_I_MediaFoundation_Festival_Module (this,
+//                                                          ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_FESTIVAL_DECODER_DEFAULT_NAME_STRING)),
+//                  false);
+//  layout_in->append (module_p, NULL, 0);
+//  module_p = NULL;
+//#endif // FESTIVAL_SUPPORT
+#if defined (FLITE_SUPPORT)
   ACE_NEW_RETURN (module_p,
-                  Test_I_MediaFoundation_Festival_Module (this,
-                                                          ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_FESTIVAL_DECODER_DEFAULT_NAME_STRING)),
+                  Test_I_MediaFoundation_Flite_Module (this,
+                                                       ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_FLITE_DECODER_DEFAULT_NAME_STRING)),
                   false);
   layout_in->append (module_p, NULL, 0);
   module_p = NULL;
-#endif // FESTIVAL_SUPPORT
+#endif // FLITE_SUPPORT
 
 #if defined (SOX_SUPPORT)
   ACE_NEW_RETURN (module_p,

@@ -28,7 +28,10 @@
 #if defined (FESTIVAL_SUPPORT)
 #define STREAM_DEC_DECODER_FESTIVAL_DECODER_DEFAULT_NAME_STRING      "Festival"
 #endif // FESTIVAL_SUPPORT
-#if defined (IMAGEMAGICK_SUPPORT)
+#if defined(FLITE_SUPPORT)
+#define STREAM_DEC_DECODER_FLITE_DECODER_DEFAULT_NAME_STRING         "Flite"
+#endif // FLITE_SUPPORT
+#if defined(IMAGEMAGICK_SUPPORT)
 #define STREAM_DEC_DECODER_IMAGEMAGICK_DECODER_DEFAULT_NAME_STRING   "ImageMagick_ImageDecoder"
 #endif // IMAGEMAGICK_SUPPORT
 #if defined (FFMPEG_SUPPORT)
@@ -104,13 +107,17 @@
 // AVI
 #define STREAM_DEC_AVI_JUNK_CHUNK_ALIGN                              2048 // bytes
 
-// DeepSpeech TTS
+// DeepSpeech STT
 // *NOTE*: feed this much sample data between DS_IntermediateDecode calls
 #define STREAM_DEC_DEEPSPEECH_DECODE_BUFFER_LENGTH_MS                500 // ms
 // *NOTE*: make a new stream after this many decoded words
 #define STREAM_DEC_DEEPSPEECH_RESTREAM_WORD_LIMIT                    7 // #words
 // *NOTE*: higher values lead to better inference at the cost of computation
 #define STREAM_DEC_DEEPSPEECH_DEFAULT_BEAM_WIDTH                     512
+
+// flite TTS
+// *NOTE*: feed this much sample data between DS_IntermediateDecode calls
+#define STREAM_DEC_FLITE_VOICE_FILENAME_EXTENSION_STRING             ".flitevox"
 
 // MPEG
 #define STREAM_DEC_MPEG_TS_PACKET_ID_PAT                             0

@@ -76,7 +76,7 @@ include_directories (${CMAKE_CURRENT_BINARY_DIR}/../..)
 ############## next target ################
 set (EXECUTABLE commandspeech)
 set (${EXECUTABLE}_EXE_SRCS
-     stdafx.cpp
+#     stdafx.cpp
      stdafx.h
      ../test_i_common.h
      ../test_i_defines.h
@@ -130,6 +130,14 @@ if (WIN32 AND NOT BUILD_TEST_I)
  set_target_properties (${EXECUTABLE} PROPERTIES EXCLUDE_FROM_DEFAULT_BUILD TRUE)
 endif (WIN32 AND NOT BUILD_TEST_I)
 
+if (WIN32)
+ if (FESTIVAL_SUPPORT)
+# at this point festival only supports static linking on win32 platforms
+#  set_property (TARGET ${EXECUTABLE} PROPERTY
+#                MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
+ endif (FESTIVAL_SUPPORT)
+endif (WIN32)
+
 #add_dependencies (${EXECUTABLE} ACE)
 
 add_dependencies (${EXECUTABLE} Common)
@@ -157,7 +165,6 @@ target_link_libraries (${EXECUTABLE} PUBLIC ${CMAKE_THREAD_LIBS_INIT})
 
 if (UNIX)
  target_link_libraries (${EXECUTABLE} PUBLIC ${PKG_ALSA_LIBRARIES})
- target_link_libraries (${EXECUTABLE} PUBLIC ${SOX_LIBRARIES})
 elseif (WIN32)
  target_link_libraries (${EXECUTABLE} PUBLIC mfplat.lib)
  target_link_libraries (${EXECUTABLE} PUBLIC mfuuid.lib)
@@ -165,21 +172,31 @@ elseif (WIN32)
  target_link_libraries (${EXECUTABLE} PUBLIC Msdmo.lib)
  target_link_libraries (${EXECUTABLE} PUBLIC strmiids.lib)
 
- if (GUI_SUPPORT)
-  if (GTK_SUPPORT)
-   if (GTKGL_SUPPORT)
-    target_link_libraries (${EXECUTABLE} PUBLIC OpenGL32.lib)
-    target_link_libraries (${EXECUTABLE} PUBLIC GlU32.lib)
-   endif (GTKGL_SUPPORT)
-  endif (GTK_SUPPORT)
- endif (GUI_SUPPORT)
+# if (GUI_SUPPORT)
+#  if (GTK_SUPPORT)
+#   if (GTKGL_SUPPORT)
+#    target_link_libraries (${EXECUTABLE} PUBLIC OpenGL32.lib)
+#    target_link_libraries (${EXECUTABLE} PUBLIC GlU32.lib)
+#   endif (GTKGL_SUPPORT)
+#  endif (GTK_SUPPORT)
+# endif (GUI_SUPPORT)
 
  if (FESTIVAL_SUPPORT)
-  target_link_libraries (${EXECUTABLE} PUBLIC ${FESTIVAL_LIBRARIES})
+#  target_link_libraries (${EXECUTABLE} PUBLIC ${FESTIVAL_LIBRARIES})
 # *WARNING*: linking libFestival.lib requires "/FORCE:MULTIPLE"
-  target_link_options (${EXECUTABLE} PUBLIC "$<$<CXX_COMPILER_ID:MSVC>:-FORCE:MULTIPLE>")
+#  target_link_options (${EXECUTABLE} PUBLIC "$<$<CXX_COMPILER_ID:MSVC>:-FORCE:MULTIPLE>")
  endif (FESTIVAL_SUPPORT)
+ if (FLITE_SUPPORT)
+# *WARNING*: linking libflite.lib requires "/FORCE:MULTIPLE"
+  target_link_options (${EXECUTABLE} PUBLIC "$<$<CXX_COMPILER_ID:MSVC>:-FORCE:MULTIPLE>")
+ endif (FLITE_SUPPORT)
 endif ()
+if (FLITE_SUPPORT)
+ target_link_libraries (${EXECUTABLE} PUBLIC ${FLITE_LIBRARIES})
+endif (FLITE_SUPPORT)
+if (SOX_SUPPORT)
+ target_link_libraries (${EXECUTABLE} PUBLIC ${SOX_LIBRARIES})
+endif (SOX_SUPPORT)
 
 target_link_libraries (${EXECUTABLE} PUBLIC ${ACE_LIBRARY})
 
@@ -222,10 +239,6 @@ target_link_libraries (${EXECUTABLE} PUBLIC ${PROJECT_NAME}_Test_I)
 target_precompile_headers (${EXECUTABLE}
                            PUBLIC stdafx.h)
 
-set (model_file "deepspeech-0.9.3-models.pbmm")
-set (scorer_file "deepspeech-0.9.3-models.scorer")
-set (model_file "etc/${model_file}")
-set (scorer_file "etc/${scorer_file}")
 set (ui_definition_file "")
 if (GUI_SUPPORT)
  if (GTK_USE)
@@ -290,15 +303,16 @@ endif ()
 
 ##########################################
 
-if (UNIX)
- set (ARGS "-c ./${scorer_file} -f ./${model_file}")
-endif (UNIX)
-if (CMAKE_BUILD_TYPE STREQUAL "Debug" OR
-    CMAKE_BUILD_TYPE STREQUAL "RelWithDebInfo")
+set (VOICE_DIRECTORY "$ENV{LIB_ROOT}/flite/voices")
+file (TO_NATIVE_PATH "${VOICE_DIRECTORY}" VOICE_DIRECTORY)
+set (VOICE "cmu_us_slt")
+if ($<CONFIG> STREQUAL "Debug" OR
+    $<CONFIG> STREQUAL "RelWithDebInfo")
  set (ARGS "${ARGS} -l -t")
-endif (CMAKE_BUILD_TYPE STREQUAL "Debug" OR
-       CMAKE_BUILD_TYPE STREQUAL "RelWithDebInfo")
+endif ($<CONFIG> STREQUAL "Debug" OR
+       $<CONFIG> STREQUAL "RelWithDebInfo")
 if (UNIX)
+ set (ARGS "${ARGS} -c ${VOICE_DIRECTORY} -f ${VOICE}")
  file (TO_NATIVE_PATH "${CMAKE_CURRENT_BINARY_DIR}/${EXECUTABLE}" COMMAND)
  if (GUI_SUPPORT)
   if (GTK_USE OR WXWIDGETS_USE)
@@ -315,12 +329,9 @@ if (UNIX)
  set (RUNTIME_LIBRARY_DIRS ${PROJECT_SOURCE_DIR}/modules/ACE/lib)
 # set (ENVIRONMENT "GDK_BACKEND=x11")
 elseif (WIN32)
- file (TO_NATIVE_PATH ".\\${scorer_file}" scorer_file)
- string (REPLACE "\\" "\\\\" scorer_file ${scorer_file})
- message (STATUS "scorer_file: \"${scorer_file}\"")
- file (TO_NATIVE_PATH ".\\${model_file}" model_file)
- string (REPLACE "\\" "\\\\" model_file ${model_file})
- set (ARGS "${ARGS} -c ${scorer_file} -f ${model_file}")
+ string (REPLACE "\\" "\\\\" VOICE_DIRECTORY ${VOICE_DIRECTORY})
+ message (STATUS "voice directory: \"${VOICE_DIRECTORY}\"")
+ set (ARGS "${ARGS} -c ${VOICE_DIRECTORY} -f ${VOICE}")
  set (ARGS "-m ${ARGS}") # use mediafoundation
  file (TO_NATIVE_PATH "${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_BUILD_TYPE}/${EXECUTABLE}.exe" COMMAND)
  string (REPLACE "\\" "\\\\" COMMAND ${COMMAND})
@@ -330,7 +341,7 @@ elseif (WIN32)
   else ()
    file (TO_NATIVE_PATH ".\\${ui_definition_file}" ui_definition_file)
    string (REPLACE "\\" "\\\\" ui_definition_file "${ui_definition_file}")
-   message (STATUS "ui_definition_file: \"${ui_definition_file}\"")
+#   message (STATUS "ui_definition_file: \"${ui_definition_file}\"")
    set (ARGS " ${ARGS} -g${ui_definition_file}")
   endif ("${ui_definition_file}" STREQUAL "")
   if (GTK_SUPPORT)
@@ -351,13 +362,13 @@ elseif (WIN32)
  file (TO_CMAKE_PATH "${ACE_LIB_DIR}" ACE_LIBRARY_PATH)
  file (TO_CMAKE_PATH "${ASSIMP_LIB_DIR}" ASSIMP_PATH)
  file (TO_CMAKE_PATH "${PNG_LIB_DIR}" LIBPNG_PATH)
- file (TO_CMAKE_PATH "${DEEPSPEECH_LIB_DIR}" DEEPSPEECH_LIBRARY_PATH)
+ file (TO_CMAKE_PATH "${FLITE_LIB_DIR}" FLITE_LIBRARY_PATH)
  file (TO_CMAKE_PATH "${ffmpeg_LIB_DIR}" FFMPEG_PATH)
  set (RUNTIME_LIBRARY_DIRS ${RUNTIME_LIBRARY_DIRS}
                            ${ACE_LIBRARY_PATH}
                            ${ASSIMP_PATH}
                            ${LIBPNG_PATH}
-                           ${DEEPSPEECH_LIBRARY_PATH}
+                           ${FLITE_LIBRARY_PATH}
                            ${FFMPEG_PATH})
  if (SOX_SUPPORT)
   file (TO_CMAKE_PATH "${SOX_LIB_DIR}" SOX_PATH)

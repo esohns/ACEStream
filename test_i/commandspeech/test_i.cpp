@@ -136,13 +136,15 @@ do_printUsage (const std::string& programName_in)
   std::string path = configuration_path;
   path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
   path += ACE_TEXT_ALWAYS_CHAR (COMMON_LOCATION_CONFIGURATION_SUBDIRECTORY);
-  std::string scorer_file = path;
-  scorer_file += ACE_DIRECTORY_SEPARATOR_CHAR_A;
-  //scorer_file += ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_SCORER_FILE);
-  std::cout << ACE_TEXT_ALWAYS_CHAR ("-c [STRING] : scorer file [\"")
-            << scorer_file
+#if defined (FESTIVAL_SUPPORT) || defined (FLITE_SUPPORT)
+  std::string voice_directory = path;
+  voice_directory += ACE_DIRECTORY_SEPARATOR_CHAR_A;
+  voice_directory += ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_VOICE_DIRECTORY);
+  std::cout << ACE_TEXT_ALWAYS_CHAR ("-c [STRING] : voice directory [\"")
+            << voice_directory
             << ACE_TEXT_ALWAYS_CHAR ("\"]")
             << std::endl;
+#endif // FESTIVAL_SUPPORT || FLITE_SUPPORT
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   std::cout << ACE_TEXT_ALWAYS_CHAR ("-d [INTEGER]: device id [")
             << 0
@@ -154,17 +156,13 @@ do_printUsage (const std::string& programName_in)
             << ACE_TEXT_ALWAYS_CHAR ("\"]")
             << std::endl;
 #endif // ACE_WIN32 || ACE_WIN64
-  std::cout << ACE_TEXT_ALWAYS_CHAR ("-e [FLOAT]  : modify input gain [")
-            << 0.0
-            << ACE_TEXT_ALWAYS_CHAR (" dB] {\"0\" --> no change}")
-            << std::endl;
-  std::string model_file = path;
-  model_file += ACE_DIRECTORY_SEPARATOR_CHAR_A;
-  //model_file += ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_MODEL_FILE);
-  std::cout << ACE_TEXT_ALWAYS_CHAR ("-f [STRING] : model file [\"")
-            << model_file
+#if defined (FESTIVAL_SUPPORT) || defined (FLITE_SUPPORT)
+  std::string voice = ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_VOICE);
+  std::cout << ACE_TEXT_ALWAYS_CHAR ("-f [STRING] : voice [\"")
+            << voice
             << ACE_TEXT_ALWAYS_CHAR ("\"]")
             << std::endl;
+#endif // FESTIVAL_SUPPORT || FLITE_SUPPORT
 #if defined (GUI_SUPPORT)
 #if defined (GTK_SUPPORT) || defined (WXWIDGETS_SUPPORT)
   std::string UI_file = path;
@@ -233,14 +231,17 @@ do_printUsage (const std::string& programName_in)
 bool
 do_processArguments (int argc_in,
                      ACE_TCHAR** argv_in, // cannot be const...
-                     std::string& scorerFile_out,
+#if defined (FESTIVAL_SUPPORT) || defined (FLITE_SUPPORT)
+                     std::string& voiceDirectory_out,
+#endif // FESTIVAL_SUPPORT || FLITE_SUPPORT
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
                      unsigned int& deviceIdentifier_out,
 #else
                      std::string& deviceIdentifier_out,
 #endif // ACE_WIN32 || ACE_WIN64
-                     double& gain_out,
-                     std::string& modelFile_out,
+#if defined (FESTIVAL_SUPPORT) || defined (FLITE_SUPPORT)
+                     std::string& voice_out,
+#endif // FESTIVAL_SUPPORT || FLITE_SUPPORT
 #if defined (GUI_SUPPORT)
                      std::string& UIFile_out,
 #if defined (GTK_SUPPORT)
@@ -271,19 +272,20 @@ do_processArguments (int argc_in,
     ACE_TEXT_ALWAYS_CHAR (COMMON_LOCATION_CONFIGURATION_SUBDIRECTORY);
 
   // initialize results
-  scorerFile_out = configuration_path;
-  scorerFile_out += ACE_DIRECTORY_SEPARATOR_CHAR_A;
-  //scorerFile_out += ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_SCORER_FILE);
+  voiceDirectory_out = configuration_path;
+  voiceDirectory_out += ACE_DIRECTORY_SEPARATOR_CHAR_A;
+#if defined (FESTIVAL_SUPPORT) || defined (FLITE_SUPPORT)
+  voiceDirectory_out += ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_VOICE_DIRECTORY);
+#endif // FESTIVAL_SUPPORT || FLITE_SUPPORT
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   deviceIdentifier_out = 0;
 #else
   deviceIdentifier_out =
     ACE_TEXT_ALWAYS_CHAR (STREAM_LIB_ALSA_CAPTURE_DEFAULT_DEVICE_NAME);
 #endif // ACE_WIN32 || ACE_WIN64
-  gain_out = 0.0;
-  modelFile_out = configuration_path;
-  modelFile_out += ACE_DIRECTORY_SEPARATOR_CHAR_A;
-  //modelFile_out += ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_MODEL_FILE);
+#if defined (FESTIVAL_SUPPORT) || defined (FLITE_SUPPORT)
+  voice_out += ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_VOICE);
+#endif // FESTIVAL_SUPPORT || FLITE_SUPPORT
 #if defined (GUI_SUPPORT)
   UIFile_out = configuration_path;
   UIFile_out += ACE_DIRECTORY_SEPARATOR_CHAR_A;
@@ -310,7 +312,10 @@ do_processArguments (int argc_in,
   useFrameworkRenderer_out = false;
 #endif // ACE_WIN32 || ACE_WIN64
 
-  std::string options_string = ACE_TEXT_ALWAYS_CHAR ("c:d:e:f:lo::s:tuv");
+  std::string options_string = ACE_TEXT_ALWAYS_CHAR ("d:lo::s:tuv");
+#if defined (FESTIVAL_SUPPORT) || defined (FLITE_SUPPORT)
+  options_string += ACE_TEXT_ALWAYS_CHAR ("c:f:");
+#endif // FESTIVAL_SUPPORT || FLITE_SUPPORT
 #if defined (GUI_SUPPORT)
 #if defined (GTK_SUPPORT) || defined (WXWIDGETS_SUPPORT)
   options_string += ACE_TEXT_ALWAYS_CHAR ("g::");
@@ -345,14 +350,16 @@ do_processArguments (int argc_in,
   {
     switch (option)
     {
+#if defined (FESTIVAL_SUPPORT) || defined (FLITE_SUPPORT)
       case 'c':
       {
-        scorerFile_out = ACE_TEXT_ALWAYS_CHAR (argument_parser.opt_arg ());
+        voiceDirectory_out = ACE_TEXT_ALWAYS_CHAR (argument_parser.opt_arg ());
         break;
       }
+#endif // FESTIVAL_SUPPORT || FLITE_SUPPORT
       case 'd':
       {
-#if defined(ACE_WIN32) || defined(ACE_WIN64)
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
         converter.clear ();
         converter.str (ACE_TEXT_ALWAYS_CHAR (""));
         converter << ACE_TEXT_ALWAYS_CHAR (argument_parser.opt_arg ());
@@ -363,19 +370,13 @@ do_processArguments (int argc_in,
 #endif // ACE_WIN32 || ACE_WIN64
         break;
       }
-      case 'e':
-      {
-        converter.clear ();
-        converter.str (ACE_TEXT_ALWAYS_CHAR (""));
-        converter << ACE_TEXT_ALWAYS_CHAR (argument_parser.opt_arg ());
-        converter >> gain_out;
-        break;
-      }
+#if defined (FESTIVAL_SUPPORT) || defined (FLITE_SUPPORT)
       case 'f':
       {
-        modelFile_out = ACE_TEXT_ALWAYS_CHAR (argument_parser.opt_arg ());
+        voice_out = ACE_TEXT_ALWAYS_CHAR (argument_parser.opt_arg ());
         break;
       }
+#endif // FESTIVAL_SUPPORT || FLITE_SUPPORT
 #if defined (GUI_SUPPORT)
 #if defined (GTK_SUPPORT) || defined (WXWIDGETS_SUPPORT)
       case 'g':
@@ -1040,14 +1041,18 @@ do_finalize_mediafoundation ()
 #endif // ACE_WIN32 || ACE_WIN64
 
 void
-do_work (//const std::string& scorerFile_in,
+do_work (
+#if defined (FESTIVAL_SUPPORT) || defined (FLITE_SUPPORT)
+         const std::string& voiceDirectory_in,
+#endif // FESTIVAL_SUPPORT || FLITE_SUPPORT
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
          unsigned int deviceId_in,
 #else
          const std::string& deviceIdentifier_in,
 #endif // ACE_WIN32 || ACE_WIN64
-         //double gain_in,
-         //const std::string& modelFile_in,
+#if defined (FESTIVAL_SUPPORT) || defined (FLITE_SUPPORT)
+         const std::string& voice_in,
+#endif // FESTIVAL_SUPPORT || FLITE_SUPPORT
 #if defined (GUI_SUPPORT)
          const std::string& UIDefinitionFile_in,
 #endif // GUI_SUPPORT
@@ -1268,26 +1273,21 @@ do_work (//const std::string& scorerFile_in,
     {
       directshow_modulehandler_configuration.allocatorConfiguration =
         allocator_configuration_p;
-      //if (gain_in != 0.0)
-      //{
-      //  directshow_modulehandler_configuration.effect =
-      //    ACE_TEXT_ALWAYS_CHAR ("gain");
-      //  std::ostringstream converter;
-      //  converter << gain_in;
-      //  directshow_modulehandler_configuration.effectOptions.push_back (converter.str ());
-      //} // end IF
       directshow_modulehandler_configuration.filterConfiguration =
         &directShowConfiguration_in.filterConfiguration;
       directshow_modulehandler_configuration.messageAllocator =
         &directshow_message_allocator;
       directshow_modulehandler_configuration.mute = mute_in;
-
-      //directshow_modulehandler_configuration.printProgressDot =
-      //  UIDefinitionFile_in.empty ();
       directshow_modulehandler_configuration.statisticReportingInterval =
         ACE_Time_Value (statisticReportingInterval_in, 0);
       directshow_modulehandler_configuration.subscriber =
         &directshow_ui_event_handler;
+#if defined (FESTIVAL_SUPPORT) || defined (FLITE_SUPPORT)
+      directshow_modulehandler_configuration.voice =
+        voice_in;
+      directshow_modulehandler_configuration.voiceDirectory =
+        voiceDirectory_in;
+#endif // FESTIVAL_SUPPORT || FLITE_SUPPORT
 
       directShowConfiguration_in.streamConfiguration.initialize (module_configuration,
                                                                  directshow_modulehandler_configuration,
@@ -1366,24 +1366,19 @@ do_work (//const std::string& scorerFile_in,
     {
       mediafoundation_modulehandler_configuration.allocatorConfiguration =
         allocator_configuration_p;
-      //if (gain_in != 0.0)
-      //{
-      //  mediafoundation_modulehandler_configuration.effect =
-      //    ACE_TEXT_ALWAYS_CHAR ("gain");
-      //  std::ostringstream converter;
-      //  converter << gain_in;
-      //  mediafoundation_modulehandler_configuration.effectOptions.push_back (converter.str ());
-      //} // end IF
       mediafoundation_modulehandler_configuration.mediaFoundationConfiguration =
         &mediaFoundationConfiguration_in.mediaFoundationConfiguration;
       mediafoundation_modulehandler_configuration.mute = mute_in;
-
-      //mediafoundation_modulehandler_configuration.printProgressDot =
-      //  UIDefinitionFile_in.empty ();
       mediafoundation_modulehandler_configuration.statisticReportingInterval =
         ACE_Time_Value (statisticReportingInterval_in, 0);
       mediafoundation_modulehandler_configuration.subscriber =
         &mediafoundation_ui_event_handler;
+#if defined (FESTIVAL_SUPPORT) || defined (FLITE_SUPPORT)
+      mediafoundation_modulehandler_configuration.voice =
+        voice_in;
+      mediafoundation_modulehandler_configuration.voiceDirectory =
+        voiceDirectory_in;
+#endif // FESTIVAL_SUPPORT || FLITE_SUPPORT
 
       mediaFoundationConfiguration_in.streamConfiguration.initialize (module_configuration,
                                                                       mediafoundation_modulehandler_configuration,
@@ -1473,16 +1468,11 @@ do_work (//const std::string& scorerFile_in,
 #if defined (_DEBUG)
   modulehandler_configuration.debug = true;
 #endif // _DEBUG
-  //if (gain_in != 0.0)
-  //{
-  //  modulehandler_configuration.effect = ACE_TEXT_ALWAYS_CHAR ("gain");
-  //  std::ostringstream converter;
-  //  converter << gain_in;
-  //  modulehandler_configuration.effectOptions.push_back (converter.str ()); // gain-dB
-  //} // end IF
-  modulehandler_configuration.scorerFile = scorerFile_in;
+#if defined (FESTIVAL_SUPPORT) || defined (FLITE_SUPPORT)
+  modulehandler_configuration.voice = voice_in;
+  modulehandler_configuration.voiceDirectory = voiceDirectory_in;
+#endif // FESTIVAL_SUPPORT || FLITE_SUPPORT
   //modulehandler_configuration.spectrumAnalyzerResolution = 512;
-  modulehandler_configuration.modelFile = modelFile_in;
 
   stream_configuration.allocatorConfiguration = allocator_configuration_p;
   if (unlikely (!Stream_MediaFramework_ALSA_Tools::getDefaultFormat (deviceIdentifier_in,
@@ -2125,19 +2115,20 @@ ACE_TMAIN (int argc_in,
   path += ACE_TEXT_ALWAYS_CHAR (COMMON_LOCATION_CONFIGURATION_SUBDIRECTORY);
 
   // step1a set defaults
-  std::string scorer_file = path;
-  scorer_file += ACE_DIRECTORY_SEPARATOR_CHAR_A;
-  //scorer_file += ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_SCORER_FILE);
+#if defined (FESTIVAL_SUPPORT) || defined (FLITE_SUPPORT)
+  std::string voice_directory = path;
+  voice_directory += ACE_DIRECTORY_SEPARATOR_CHAR_A;
+  voice_directory += ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_VOICE_DIRECTORY);
+#endif // FESTIVAL_SUPPORT || FLITE_SUPPORT
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   unsigned int device_id = 0;
 #else
   std::string device_identifier_string =
     ACE_TEXT_ALWAYS_CHAR (STREAM_LIB_ALSA_CAPTURE_DEFAULT_DEVICE_NAME);
 #endif // ACE_WIN32 || ACE_WIN64
-  double gain_d = 0.0;
-  std::string model_file = path;
-  model_file += ACE_DIRECTORY_SEPARATOR_CHAR_A;
-  //model_file += ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_MODEL_FILE);
+#if defined (FESTIVAL_SUPPORT) || defined (FLITE_SUPPORT)
+  std::string voice_string = ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_VOICE);
+#endif // FESTIVAL_SUPPORT || FLITE_SUPPORT
 #if defined (GUI_SUPPORT)
   std::string UI_definition_file = path;
   UI_definition_file += ACE_DIRECTORY_SEPARATOR_CHAR_A;
@@ -2210,14 +2201,17 @@ ACE_TMAIN (int argc_in,
   // step1b: parse/process/validate configuration
   if (!do_processArguments (argc_in,
                             argv_in,
-                            scorer_file,
+#if defined (FESTIVAL_SUPPORT) || defined (FLITE_SUPPORT)
+                            voice_directory,
+#endif // FESTIVAL_SUPPORT || FLITE_SUPPORT
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
                             device_id,
 #else
                             device_identifier_string,
 #endif // ACE_WIN32 || ACE_WIN64
-                            gain_d,
-                            model_file,
+#if defined (FESTIVAL_SUPPORT) || defined (FLITE_SUPPORT)
+                            voice_string,
+#endif // FESTIVAL_SUPPORT || FLITE_SUPPORT
 #if defined (GUI_SUPPORT)
                             UI_definition_file,
 #if defined (GTK_SUPPORT)
@@ -2252,17 +2246,19 @@ ACE_TMAIN (int argc_in,
   if (TEST_I_MAX_MESSAGES)
     ACE_DEBUG ((LM_WARNING,
                 ACE_TEXT ("limiting the number of message buffers could (!) lead to deadlocks --> make sure you know what you are doing...\n")));
+  if (
+#if defined (FESTIVAL_SUPPORT) || defined (FLITE_SUPPORT)
+      !Common_File_Tools::isDirectory (voice_directory)
+#endif // FESTIVAL_SUPPORT || FLITE_SUPPORT
 #if defined (GUI_SUPPORT)
-  if (!Common_File_Tools::isReadable (scorer_file)
-      || !Common_File_Tools::isReadable (model_file)
       || (!UI_definition_file.empty () &&
           !Common_File_Tools::isReadable (UI_definition_file))
 #if defined (GTK_SUPPORT)
       || (!UI_CSS_file.empty () &&
           !Common_File_Tools::isReadable (UI_CSS_file))
 #endif // GTK_SUPPORT
-      )
 #endif // GUI_SUPPORT
+      )
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("invalid arguments, aborting\n")));
@@ -2473,14 +2469,18 @@ ACE_TMAIN (int argc_in,
 
   timer.start ();
   // step2: do actual work
-  do_work (//scorer_file,
+  do_work (
+#if defined (FESTIVAL_SUPPORT) || defined (FLITE_SUPPORT)
+           voice_directory,
+#endif // FESTIVAL_SUPPORT || FLITE_SUPPORT
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
            device_id,
 #else
            device_identifier_string,
 #endif // ACE_WIN32 || ACE_WIN64
-           //gain_d,
-           //model_file,
+#if defined (FESTIVAL_SUPPORT) || defined (FLITE_SUPPORT)
+           voice_string,
+#endif // FESTIVAL_SUPPORT || FLITE_SUPPORT
 #if defined (GUI_SUPPORT)
            UI_definition_file,
 #endif // GUI_SUPPORT

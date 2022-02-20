@@ -49,6 +49,10 @@ if (FESTIVAL_SUPPORT)
  target_include_directories (${PROJECT_NAME}_Decoder PUBLIC
                              "$<BUILD_INTERFACE:${FESTIVAL_INCLUDE_DIRS}>")
 endif (FESTIVAL_SUPPORT)
+if (FLITE_SUPPORT)
+ target_include_directories (${PROJECT_NAME}_Decoder PUBLIC
+                             "$<BUILD_INTERFACE:${FLITE_INCLUDE_DIRS}>")
+endif (FLITE_SUPPORT)
 if (MPG123_SUPPORT)
  target_include_directories (${PROJECT_NAME}_Decoder PUBLIC
                              $<BUILD_INTERFACE:${MPG123_INCLUDE_DIRS}>)
@@ -231,6 +235,13 @@ if (FESTIVAL_SUPPORT)
       stream_dec_festival_decoder.h
       stream_dec_festival_decoder.inl)
 endif (FESTIVAL_SUPPORT)
+if (FLITE_SUPPORT)
+ set (source_files
+      ${source_files}
+      stream_dec_flite_decoder.cpp
+      stream_dec_flite_decoder.h
+      stream_dec_flite_decoder.inl)
+endif (FLITE_SUPPORT)
 if (MPG123_SUPPORT)
  set (source_files
       ${source_files}
@@ -314,6 +325,9 @@ endif (DEEPSPEECH_SUPPORT)
 if (FESTIVAL_SUPPORT)
 # target_link_libraries (${PROJECT_NAME}_Decoder PUBLIC ${FESTIVAL_LIBRARIES})
 endif (FESTIVAL_SUPPORT)
+if (FLITE_SUPPORT)
+ target_link_libraries (${PROJECT_NAME}_Decoder PUBLIC ${FLITE_LIBRARIES})
+endif (FLITE_SUPPORT)
 if (MPG123_SUPPORT)
  target_link_libraries (${PROJECT_NAME}_Decoder PUBLIC ${MPG123_LIBRARIES})
 endif (MPG123_SUPPORT)
@@ -429,6 +443,12 @@ if (FESTIVAL_SUPPORT)
       stream_dec_festival_decoder.h
       stream_dec_festival_decoder.inl)
 endif (FESTIVAL_SUPPORT)
+if (FLITE_SUPPORT)
+ set (${PROJECT_NAME}_Decoder_LIB_HDRS
+      ${${PROJECT_NAME}_Decoder_LIB_HDRS}
+      stream_dec_flite_decoder.h
+      stream_dec_flite_decoder.inl)
+endif (FLITE_SUPPORT)
 if (MPG123_SUPPORT)
  set (${PROJECT_NAME}_Decoder_LIB_HDRS
       ${${PROJECT_NAME}_Decoder_LIB_HDRS}

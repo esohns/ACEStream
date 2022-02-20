@@ -2,6 +2,7 @@
 #define TEST_I_AVSAVE_UI_H
 
 #undef DrawText
+#undef SIZEOF_SIZE_T
 #include "wx/wx.h"
 
 #include "ace/config-macros.h"

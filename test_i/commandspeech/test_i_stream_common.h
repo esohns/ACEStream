@@ -252,7 +252,7 @@ struct Test_I_CommandSpeech_DirectShow_ModuleHandlerConfiguration
    , deviceIdentifier ()
    , effect ()
    , effectOptions ()
-   , manageFestival (false)
+   , manageFlite (false)
    , manageSoX (false)
    , mute (false)
 #if defined (GUI_SUPPORT)
@@ -261,6 +261,8 @@ struct Test_I_CommandSpeech_DirectShow_ModuleHandlerConfiguration
 #endif // GUI_SUPPORT
    , subscriber (NULL)
    , subscribers (NULL)
+   , voice ()
+   , voiceDirectory ()
 #if defined (GUI_SUPPORT)
 #if defined (GTK_SUPPORT)
    , window (NULL)
@@ -273,7 +275,7 @@ struct Test_I_CommandSpeech_DirectShow_ModuleHandlerConfiguration
   struct Stream_Device_Identifier                   deviceIdentifier; // render-
   std::string                                       effect;
   std::vector<std::string>                          effectOptions;
-  bool                                              manageFestival;
+  bool                                              manageFlite;
   bool                                              manageSoX;
   bool                                              mute;
 #if defined (GUI_SUPPORT)
@@ -282,6 +284,8 @@ struct Test_I_CommandSpeech_DirectShow_ModuleHandlerConfiguration
 #endif // GUI_SUPPORT
   Test_I_DirectShow_ISessionNotify_t*               subscriber;
   Test_I_DirectShow_Subscribers_t*                  subscribers;
+  std::string                                       voice;
+  std::string                                       voiceDirectory;
 #if defined (GUI_SUPPORT)
 #if defined (GTK_SUPPORT)
   GdkWindow*                                        window;
@@ -297,7 +301,7 @@ struct Test_I_CommandSpeech_MediaFoundation_ModuleHandlerConfiguration
    , deviceIdentifier ()
    , effect ()
    , effectOptions ()
-   , manageFestival (false)
+   , manageFlite (false)
    , manageSoX (false)
    , mute (false)
 #if defined(GUI_SUPPORT)
@@ -306,7 +310,9 @@ struct Test_I_CommandSpeech_MediaFoundation_ModuleHandlerConfiguration
 #endif // GUI_SUPPORT
    , subscriber (NULL)
    , subscribers (NULL)
-#if defined (GUI_SUPPORT)
+   , voice ()
+   , voiceDirectory ()
+#if defined(GUI_SUPPORT)
 #if defined (GTK_SUPPORT)
    , window (NULL)
 #endif // GTK_SUPPORT
@@ -318,7 +324,7 @@ struct Test_I_CommandSpeech_MediaFoundation_ModuleHandlerConfiguration
   struct Stream_Device_Identifier                   deviceIdentifier; // render-
   std::string                                       effect;
   std::vector<std::string>                          effectOptions;
-  bool                                              manageFestival;
+  bool                                              manageFlite;
   bool                                              manageSoX;
   bool                                              mute;
 #if defined (GUI_SUPPORT)
@@ -327,6 +333,8 @@ struct Test_I_CommandSpeech_MediaFoundation_ModuleHandlerConfiguration
 #endif // GUI_SUPPORT
   Test_I_MediaFoundation_ISessionNotify_t*          subscriber;
   Test_I_MediaFoundation_Subscribers_t*             subscribers;
+  std::string                                       voice;
+  std::string                                       voiceDirectory;
 #if defined (GUI_SUPPORT)
 #if defined (GTK_SUPPORT)
   GdkWindow*                                        window;
@@ -342,7 +350,7 @@ struct Test_I_CommandSpeech_ALSA_ModuleHandlerConfiguration
    , deviceIdentifier ()
    , effect ()
    , effectOptions ()
-   , manageFestival (false)
+   , manageFlite (false)
    , manageSoX (false)
    , mute (false)
 #if defined (GUI_SUPPORT)
@@ -351,7 +359,9 @@ struct Test_I_CommandSpeech_ALSA_ModuleHandlerConfiguration
 #endif // GUI_SUPPORT
    , subscriber (NULL)
    , subscribers (NULL)
-#if defined (GUI_SUPPORT)
+   , voice ()
+   , voiceDirectory ()
+#if defined(GUI_SUPPORT)
 #if defined (GTK_SUPPORT)
    , window (NULL)
 #endif // GTK_SUPPORT
@@ -363,7 +373,7 @@ struct Test_I_CommandSpeech_ALSA_ModuleHandlerConfiguration
   struct Stream_Device_Identifier                   deviceIdentifier; // render-
   std::string                                       effect;
   std::vector<std::string>                          effectOptions;
-  bool                                              manageFestival;
+  bool                                              manageFlite;
   bool                                              manageSoX;
   bool                                              mute;
 #if defined (GUI_SUPPORT)
@@ -372,6 +382,8 @@ struct Test_I_CommandSpeech_ALSA_ModuleHandlerConfiguration
 #endif // GUI_SUPPORT
   Test_I_ALSA_ISessionNotify_t*                     subscriber;
   Test_I_ALSA_Subscribers_t*                        subscribers;
+  std::string                                       voice;
+  std::string                                       voiceDirectory;
 #if defined (GUI_SUPPORT)
 #if defined (GTK_SUPPORT)
   GdkWindow*                                        window;

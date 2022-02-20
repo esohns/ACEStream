@@ -23,6 +23,8 @@
 
 #if defined (GUI_SUPPORT)
 #if defined (WXWIDGETS_USE)
+#undef DrawText
+#undef SIZEOF_SIZE_T
 #include "wx/wx.h"
 #endif // WXWIDGETS_USE
 #endif // GUI_SUPPORT

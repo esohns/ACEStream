@@ -28,6 +28,9 @@ endif (UNIX)
 
 add_library (${PROJECT_NAME} STATIC "")
 
+target_include_directories (${PROJECT_NAME} PUBLIC
+                            $<BUILD_INTERFACE:${ACE_INCLUDE_DIR}>)
+
 if (UNIX)
  target_include_directories (${PROJECT_NAME} PUBLIC
                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../modules/Common/${BUILD_PATH_SUFFIX}>)
