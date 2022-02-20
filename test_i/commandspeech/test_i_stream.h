@@ -38,10 +38,10 @@
 #include "stream_stat_common.h"
 #include "stream_stat_statistic_report.h"
 
+#include "test_i_commandspeech_common.h"
 #include "test_i_message.h"
-#include "test_i_session_message.h"
-#include "Test_I_CommandSpeech_common.h"
 #include "test_i_modules.h"
+#include "test_i_session_message.h"
 
 extern const char stream_name_string_[];
 

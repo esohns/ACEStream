@@ -51,6 +51,8 @@
 #include "test_i_common.h"
 #include "test_i_configuration.h"
 
+#include "test_i_session_message.h"
+
 // forward declarations
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 class Test_I_DirectShow_Message;
@@ -58,9 +60,6 @@ class Test_I_MediaFoundation_Message;
 #else
 class Test_I_Message;
 #endif // ACE_WIN32 || ACE_WIN64
-template <typename SessionDataType,
-          typename UserDataType>
-class Test_I_SessionMessage_T;
 
 //////////////////////////////////////////
 

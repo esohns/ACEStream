@@ -1176,10 +1176,10 @@ do_work (
   Common_UI_GTK_Manager_t* gtk_manager_p =
     COMMON_UI_GTK_MANAGER_SINGLETON::instance ();
   ACE_ASSERT (gtk_manager_p);
-#if defined (GTKGL_SUPPORT)
-  Common_UI_GTK_State_t& state_r =
-    const_cast<Common_UI_GTK_State_t&> (gtk_manager_p->getR ());
-#endif // GTKGL_SUPPORT
+//#if defined (GTKGL_SUPPORT)
+//  Common_UI_GTK_State_t& state_r =
+//    const_cast<Common_UI_GTK_State_t&> (gtk_manager_p->getR ());
+//#endif // GTKGL_SUPPORT
   int result_2 = -1;
 #endif // GTK_SUPPORT
 #endif // GUI_SUPPORT
@@ -1240,7 +1240,6 @@ do_work (
   ALSA_configuration.mode = SND_PCM_NONBLOCK;
   ALSA_configuration.bufferSize = STREAM_LIB_ALSA_CAPTURE_DEFAULT_BUFFER_SIZE;
   ALSA_configuration.bufferTime = STREAM_LIB_ALSA_CAPTURE_DEFAULT_BUFFER_TIME;
-  ALSA_configuration.format = &stream_configuration.format;
   ALSA_configuration.periods = STREAM_LIB_ALSA_CAPTURE_DEFAULT_PERIODS;
   ALSA_configuration.periodSize = STREAM_LIB_ALSA_CAPTURE_DEFAULT_PERIOD_SIZE;
   ALSA_configuration.periodTime = STREAM_LIB_ALSA_CAPTURE_DEFAULT_PERIOD_TIME;
@@ -1249,6 +1248,7 @@ do_work (
 //  ALSA_configuration_2.asynch = false;
   ALSA_configuration_2.rateResample = true;
   struct Test_I_CommandSpeech_ALSA_ModuleHandlerConfiguration modulehandler_configuration;
+  ALSA_configuration.format = &modulehandler_configuration.outputFormat;
   struct Test_I_CommandSpeech_ALSA_ModuleHandlerConfiguration modulehandler_configuration_2; // renderer module
   struct Test_I_CommandSpeech_ALSA_ModuleHandlerConfiguration modulehandler_configuration_3; // file writer module
 #endif // ACE_WIN32 || ACE_WIN64
@@ -1464,7 +1464,7 @@ do_work (
   modulehandler_configuration.allocatorConfiguration =
     allocator_configuration_p;
   modulehandler_configuration.ALSAConfiguration = &ALSA_configuration;
-  modulehandler_configuration.bufferSize = 512;
+//  modulehandler_configuration.bufferSize = 512;
 #if defined (_DEBUG)
   modulehandler_configuration.debug = true;
 #endif // _DEBUG
@@ -1477,7 +1477,7 @@ do_work (
   stream_configuration.allocatorConfiguration = allocator_configuration_p;
   if (unlikely (!Stream_MediaFramework_ALSA_Tools::getDefaultFormat (deviceIdentifier_in,
                                                                      true, // capture
-                                                                     stream_configuration.format)))
+                                                                     modulehandler_configuration.outputFormat)))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Stream_MediaFramework_ALSA_Tools::getDefaultFormat(\"%s\"), returning\n"),
@@ -1626,20 +1626,6 @@ do_work (
   } // end IF
 #endif // SOX_SUPPORT
 
-  // *NOTE*: DeepSpeech requires PCM mono signed 16 bits at 16000Hz
-  modulehandler_configuration.outputFormat.format = SND_PCM_FORMAT_S16_LE;
-  modulehandler_configuration.outputFormat.channels = 1;
-  modulehandler_configuration.outputFormat.rate = 16000;
-
-  if (unlikely (!Stream_MediaFramework_ALSA_Tools::getDefaultFormat (deviceIdentifier_in,
-                                                                     true, // capture
-                                                                     stream_configuration.format)))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to Stream_MediaFramework_ALSA_Tools::getDefaultFormat(\"%s\"), returning\n"),
-                ACE_TEXT (deviceIdentifier_in.c_str ())));
-    goto error;
-  } // end IF
   result = true;
 #endif // ACE_WIN32 || ACE_WIN64
   if (unlikely (!result))

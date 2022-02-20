@@ -77,7 +77,11 @@ elseif (WIN32)
  endif (GUI_SUPPORT)
 endif ()
 
-include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../include)
+include_directories (${CMAKE_BINARY_DIR})
+
+if (WIN32)
+ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../include)
+endif (WIN32)
 include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../src)
 include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../src/modules/dev)
 include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../src/modules/file)
@@ -87,8 +91,6 @@ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../src/modules/stat)
 include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../src/modules/vis)
 
 include_directories (${CMAKE_CURRENT_SOURCE_DIR}/..)
-
-include_directories (${CMAKE_CURRENT_BINARY_DIR}/../..)
 
 ############## next target ################
 set (EXECUTABLE speechcommand)

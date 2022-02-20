@@ -1626,18 +1626,18 @@ idle_initialize_UI_cb (gpointer userData_in)
 #endif // GTK_CHECK_VERSION(3,16,0)
 #else
 #if defined (GTKGLAREA_SUPPORT)
-  result_2 =
-    g_signal_connect (G_OBJECT ((*opengl_contexts_iterator).first),
-                      ACE_TEXT_ALWAYS_CHAR ("configure-event"),
-                      G_CALLBACK (glarea_configure_event_cb),
-                      userData_in);
-  ACE_ASSERT (result_2);
-  result_2 =
-    g_signal_connect (G_OBJECT ((*opengl_contexts_iterator).first),
-                      ACE_TEXT_ALWAYS_CHAR ("expose-event"),
-                      G_CALLBACK (glarea_expose_event_cb),
-                      userData_in);
-  ACE_ASSERT (result_2);
+//  result_2 =
+//    g_signal_connect (G_OBJECT ((*opengl_contexts_iterator).first),
+//                      ACE_TEXT_ALWAYS_CHAR ("configure-event"),
+//                      G_CALLBACK (glarea_configure_event_cb),
+//                      userData_in);
+//  ACE_ASSERT (result_2);
+//  result_2 =
+//    g_signal_connect (G_OBJECT ((*opengl_contexts_iterator).first),
+//                      ACE_TEXT_ALWAYS_CHAR ("expose-event"),
+//                      G_CALLBACK (glarea_expose_event_cb),
+//                      userData_in);
+//  ACE_ASSERT (result_2);
 #else
   result_2 =
     g_signal_connect (G_OBJECT ((*opengl_contexts_iterator).first),
@@ -4075,11 +4075,11 @@ drawingarea_query_tooltip_cb (GtkWidget*  widget_in,
   mode =
     (*modulehandler_configuration_iterator).second.second->spectrumAnalyzer2DMode;
   is_signed_format =
-      snd_pcm_format_signed (ui_cb_data_p->configuration->streamConfiguration.configuration_->format.format);
+      snd_pcm_format_signed ((*modulehandler_configuration_iterator).second.second->outputFormat.format);
   sample_size =
-      (snd_pcm_format_width (ui_cb_data_p->configuration->streamConfiguration.configuration_->format.format) / 8);
+      (snd_pcm_format_width ((*modulehandler_configuration_iterator).second.second->outputFormat.format) / 8);
   channels =
-    ui_cb_data_p->configuration->streamConfiguration.configuration_->format.channels;
+    (*modulehandler_configuration_iterator).second.second->outputFormat.channels;
 #endif // ACE_WIN32 || ACE_WIN64
   ACE_ASSERT (istream_p);
 

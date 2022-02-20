@@ -128,19 +128,50 @@ if (UNIX)
  else ()
   set (FLITE_LIB_FILE "libflite.a")
   find_library (FLITE_LIBRARY ${FLITE_LIB_FILE}
-                PATHS $ENV{LIB_ROOT}/flite/build/x86_64-mingw32
+                PATHS $ENV{LIB_ROOT}/flite/build/x86_64-linux-gnu
                 PATH_SUFFIXES lib
                 DOC "searching for ${FLITE_LIB_FILE}")
   if (NOT FLITE_LIBRARY)
    message (WARNING "could not find ${FLITE_LIB_FILE}, continuing")
   endif (NOT FLITE_LIBRARY)
-  if (FLITE_LIBRARY)
-   message (STATUS "Found ${FLITE_LIB_FILE} library \"${FLITE_LIBRARY}\"")
+  set (CMU_LEX_LIB_FILE "libflite_cmulex.a")
+  find_library (CMU_LEX_LIBRARY ${CMU_LEX_LIB_FILE}
+                PATHS $ENV{LIB_ROOT}/flite/build/x86_64-linux-gnu
+                PATH_SUFFIXES lib
+                DOC "searching for ${CMU_LEX_LIB_FILE}")
+  if (NOT CMU_LEX_LIBRARY)
+   message (WARNING "could not find ${CMU_LEX_LIB_FILE}, continuing")
+  endif (NOT CMU_LEX_LIBRARY)
+  set (USENGLISH_LIB_FILE "libflite_usenglish.a")
+  find_library (USENGLISH_LIBRARY ${USENGLISH_LIB_FILE}
+                PATHS $ENV{LIB_ROOT}/flite/build/x86_64-linux-gnu
+                PATH_SUFFIXES lib
+                DOC "searching for ${USENGLISH_LIB_FILE}")
+  if (NOT USENGLISH_LIBRARY)
+   message (WARNING "could not find ${USENGLISH_LIB_FILE}, continuing")
+  endif (NOT USENGLISH_LIBRARY)
+  set (CMU_GRAPHEME_LANG_LIB_FILE "libflite_cmu_grapheme_lang.a")
+  find_library (CMU_GRAPHEME_LANG_LIBRARY ${CMU_GRAPHEME_LANG_LIB_FILE}
+                PATHS $ENV{LIB_ROOT}/flite/build/x86_64-linux-gnu
+                PATH_SUFFIXES lib
+                DOC "searching for ${CMU_GRAPHEME_LANG_LIB_FILE}")
+  if (NOT CMU_GRAPHEME_LANG_LIBRARY)
+   message (WARNING "could not find ${CMU_GRAPHEME_LANG_LIB_FILE}, continuing")
+  endif (NOT CMU_GRAPHEME_LANG_LIBRARY)
+  set (CMU_GRAPHEME_LEX_LIB_FILE "libflite_cmu_grapheme_lex.a")
+  find_library (CMU_GRAPHEME_LEX_LIBRARY ${CMU_GRAPHEME_LEX_LIB_FILE}
+                PATHS $ENV{LIB_ROOT}/flite/build/x86_64-linux-gnu
+                PATH_SUFFIXES lib
+                DOC "searching for ${CMU_GRAPHEME_LEX_LIB_FILE}")
+  if (NOT CMU_GRAPHEME_LEX_LIBRARY)
+   message (WARNING "could not find ${CMU_GRAPHEME_LEX_LIB_FILE}, continuing")
+  endif (NOT CMU_GRAPHEME_LEX_LIBRARY)
+  if (FLITE_LIBRARY AND CMU_LEX_LIBRARY AND USENGLISH_LIBRARY AND CMU_GRAPHEME_LANG_LIBRARY AND CMU_GRAPHEME_LEX_LIBRARY)
    set (FLITE_FOUND TRUE)
-   set (FLITE_INCLUDE_DIRS "$ENV{LIB_ROOT}/flite/include")
-   set (FLITE_LIBRARIES "${FLITE_LIBRARY}")
+   set (FLITE_INCLUDE_DIRS "$ENV{LIB_ROOT}/flite/include;$ENV{LIB_ROOT}/flite/lang")
+   set (FLITE_LIBRARIES "${FLITE_LIBRARY};${CMU_LEX_LIBRARY};${USENGLISH_LIBRARY};${CMU_GRAPHEME_LANG_LIBRARY};${CMU_GRAPHEME_LEX_LIBRARY}")
 #   set (FLITE_LIB_DIR "$ENV{LIB_ROOT}/flite/bin")
-  endif (FLITE_LIBRARY) 
+  endif (FLITE_LIBRARY AND CMU_LEX_LIBRARY AND USENGLISH_LIBRARY AND CMU_GRAPHEME_LANG_LIBRARY AND CMU_GRAPHEME_LEX_LIBRARY)
  endif (PKG_FLITE_FOUND)
 elseif (WIN32)
  if (VCPKG_SUPPORT)

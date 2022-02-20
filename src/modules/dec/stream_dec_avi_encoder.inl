@@ -417,7 +417,9 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
  , format_ ()
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
+#if defined (FFMPEG_SUPPORT)
  , formatContext_ (NULL)
+#endif // FFMPEG_SUPPORT
 #endif // ACE_WIN32 || ACE_WIN64
  , frameSize_ (0)
  , currentFrameOffset_ (0)
@@ -1726,9 +1728,9 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
 #else
   // sanity check(s)
   ACE_UNUSED_ARG (indexType_in);
+#if defined (FFMPEG_SUPPORT)
   ACE_ASSERT (formatContext_);
 
-#if defined (FFMPEG_SUPPORT)
   result = av_write_trailer (formatContext_);
   if (unlikely (result == -1))
     ACE_DEBUG ((LM_ERROR,

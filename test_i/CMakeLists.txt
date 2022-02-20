@@ -64,6 +64,9 @@ if (GUI_SUPPORT)
  endif (WXWIDGETS_SUPPORT)
 endif (GUI_SUPPORT)
 
+target_include_directories (${PROJECT_NAME}_Test_I PUBLIC
+                            $<BUILD_INTERFACE:${ACE_INCLUDE_DIR}>)
+
 if (UNIX)
  target_include_directories (${PROJECT_NAME}_Test_I PUBLIC
                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../modules/Common/${BUILD_PATH_SUFFIX}>)

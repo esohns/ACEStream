@@ -36,7 +36,9 @@
 // forward declaration(s)
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
+#if defined (FFMPEG_SUPPORT)
 struct AVFormatContext;
+#endif // FFMPEG_SUPPORT
 #endif // ACE_WIN32 || ACE_WIN64
 class ACE_Message_Block;
 class ACE_Time_Value;
@@ -216,7 +218,9 @@ class Stream_Decoder_AVIEncoder_WriterTask_T
   MediaType               format_;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
+#if defined (FFMPEG_SUPPORT)
   struct AVFormatContext* formatContext_;
+#endif // FFMPEG_SUPPORT
 #endif // ACE_WIN32 || ACE_WIN64
   unsigned int            frameSize_; // output-
 

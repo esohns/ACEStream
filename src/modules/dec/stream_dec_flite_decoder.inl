@@ -23,8 +23,8 @@
 
 #include "cmu_grapheme_lang/cmu_grapheme_lang.h"
 #include "cmu_grapheme_lex/cmu_grapheme_lex.h"
-#include "cmu_indic_lang/cmu_indic_lang.h"
-#include "cmu_indic_lex/cmu_indic_lex.h"
+//#include "cmu_indic_lang/cmu_indic_lang.h"
+//#include "cmu_indic_lex/cmu_indic_lex.h"
 
 #include "ace/Log_Msg.h"
 
@@ -335,7 +335,7 @@ Stream_Decoder_FliteDecoder_T<ACE_SYNCH_USE,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Decoder_FliteDecoder_T::handleSessionMessage"));
 
-  int result = -1;
+//  int result = -1;
 
   // don't care (implies yes per default, if part of a stream)
   ACE_UNUSED_ARG (passMessageDownstream_out);
