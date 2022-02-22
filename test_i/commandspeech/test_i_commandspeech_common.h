@@ -40,6 +40,8 @@
 #include "common_isubscribe.h"
 #include "common_tools.h"
 
+#include "common_input_manager.h"
+
 #if defined (GUI_SUPPORT)
 #include "common_ui_common.h"
 #if defined (GTK_SUPPORT)
@@ -68,14 +70,15 @@
 #endif // ACE_WIN32 || ACE_WIN64
 
 #include "stream_misc_common.h"
-#include "stream_misc_input_manager.h"
-#include "stream_misc_input_stream.h"
+//#include "stream_misc_input_manager.h"
+//#include "stream_misc_input_stream.h"
 
 #include "stream_vis_gtk_cairo_spectrum_analyzer.h"
 
 #include "test_i_common.h"
 #include "test_i_configuration.h"
 
+#include "test_i_input_handler.h"
 #include "test_i_stream_common.h"
 
 // forward declarations
@@ -89,16 +92,16 @@ template <typename NotificationType,
 #endif // GUI_SUPPORT
           typename SessionMessageType>
 class Test_I_EventHandler_T;
-template <typename NotificationType,
-          typename DataMessageType,
-#if defined (GUI_SUPPORT)
-          typename UIStateType,
-#if defined (WXWIDGETS_USE)
-          typename InterfaceType, // implements Common_UI_wxWidgets_IApplicationBase_T
-#endif // WXWIDGETS_USE
-#endif // GUI_SUPPORT
-          typename SessionMessageType>
-class Test_I_InputHandler_T;
+//template <typename NotificationType,
+//          typename DataMessageType,
+//#if defined (GUI_SUPPORT)
+//          typename UIStateType,
+//#if defined (WXWIDGETS_USE)
+//          typename InterfaceType, // implements Common_UI_wxWidgets_IApplicationBase_T
+//#endif // WXWIDGETS_USE
+//#endif // GUI_SUPPORT
+//          typename SessionMessageType>
+//class Test_I_InputHandler_T;
 #if defined (GUI_SUPPORT)
 #if defined (WXWIDGETS_SUPPORT)
 template <typename WidgetBaseClassType,
@@ -144,8 +147,9 @@ struct Test_I_CommandSpeech_Configuration
     inputManagerConfiguration.manageEventDispatch = true;
   }
 
-  struct Common_Input_Configuration    inputConfiguration;
-  Stream_Input_Manager_Configuration_t inputManagerConfiguration;
+  struct Common_Input_Configuration         inputConfiguration;
+//  Stream_Input_Manager_Configuration_t      inputManagerConfiguration;
+  struct Common_Input_Manager_Configuration inputManagerConfiguration;
 };
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -211,12 +215,12 @@ struct Test_I_ALSA_Configuration
   Test_I_ALSA_Configuration ()
    : Test_I_CommandSpeech_Configuration ()
    , streamConfiguration ()
-   , streamConfiguration_2 ()
+//   , streamConfiguration_2 ()
   {}
 
   // **************************** stream data **********************************
   Test_I_ALSA_StreamConfiguration_t streamConfiguration;
-  Stream_Input_Configuration_t      streamConfiguration_2; // input-
+//  Stream_Input_Configuration_t      streamConfiguration_2; // input-
 };
 #endif // ACE_WIN32 || ACE_WIN64
 
@@ -276,56 +280,57 @@ typedef Test_I_EventHandler_T<Test_I_ALSA_ISessionNotify_t,
 #endif // GUI_SUPPORT
                               Test_I_ALSA_SessionMessage_t> Test_I_ALSA_EventHandler_t;
 #endif // ACE_WIN32 || ACE_WIN64
-typedef Test_I_InputHandler_T<Stream_IInputSessionNotify_t,
-                              ACE_Message_Block,
-#if defined (GUI_SUPPORT)
-#if defined (GTK_USE)
-                              Common_UI_GTK_State_t,
-#elif defined (WXWIDGETS_USE)
-                              struct Common_UI_wxWidgets_State,
-                              Common_UI_wxWidgets_IApplicationBase_t,
-#elif defined (QT_USE)
-                              struct Common_UI_Qt_State,
-#else
-                              struct Common_UI_State,
-#endif // GTK_USE || WXWIDGETS_USE || QT_USE
-#endif // GUI_SUPPORT
-                              Stream_SessionMessageBase_T<enum Stream_SessionMessageType,
-                                                          Stream_SessionData_T<struct Stream_SessionData>,
-                                                          struct Stream_UserData> > Test_I_InputHandler_t;
-typedef Stream_Miscellaneous_Input_Stream_T<ACE_MT_SYNCH,
-                                            Common_TimePolicy_t,
-                                            enum Stream_ControlType,
-                                            enum Stream_SessionMessageType,
-                                            enum Stream_StateMachine_ControlState,
-                                            struct Stream_State,
-                                            struct Stream_Configuration,
-                                            struct Stream_Statistic,
-                                            Common_Timer_Manager_t,
-                                            struct Stream_Input_ModuleHandlerConfiguration,
-                                            struct Stream_SessionData,
-                                            Stream_SessionData_T<struct Stream_SessionData>,
-                                            Stream_ControlMessage_t,
-                                            ACE_Message_Block,
-                                            Stream_SessionMessageBase_T<enum Stream_SessionMessageType,
-                                                                        Stream_SessionData_T<struct Stream_SessionData>,
-                                                                        struct Stream_UserData>,
-                                            struct Stream_UserData> Test_I_InputStream_t;
-typedef Stream_Input_Manager_T<ACE_MT_SYNCH,
-                               Stream_Input_Manager_Configuration_t,
-                               Common_InputHandler_t,
-                               Test_I_InputStream_t> Test_I_InputManager_t;
+//typedef Test_I_InputHandler_T<Stream_IInputSessionNotify_t,
+//                              ACE_Message_Block,
+//#if defined (GUI_SUPPORT)
+//#if defined (GTK_USE)
+//                              Common_UI_GTK_State_t,
+//#elif defined (WXWIDGETS_USE)
+//                              struct Common_UI_wxWidgets_State,
+//                              Common_UI_wxWidgets_IApplicationBase_t,
+//#elif defined (QT_USE)
+//                              struct Common_UI_Qt_State,
+//#else
+//                              struct Common_UI_State,
+//#endif // GTK_USE || WXWIDGETS_USE || QT_USE
+//#endif // GUI_SUPPORT
+//                              Stream_SessionMessageBase_T<enum Stream_SessionMessageType,
+//                                                          Stream_SessionData_T<struct Stream_SessionData>,
+//                                                          struct Stream_UserData> > Test_I_InputHandler_t;
+//typedef Stream_Miscellaneous_Input_Stream_T<ACE_MT_SYNCH,
+//                                            Common_TimePolicy_t,
+//                                            enum Stream_ControlType,
+//                                            enum Stream_SessionMessageType,
+//                                            enum Stream_StateMachine_ControlState,
+//                                            struct Stream_State,
+//                                            struct Stream_Configuration,
+//                                            struct Stream_Statistic,
+//                                            Common_Timer_Manager_t,
+//                                            struct Stream_Input_ModuleHandlerConfiguration,
+//                                            struct Stream_SessionData,
+//                                            Stream_SessionData_T<struct Stream_SessionData>,
+//                                            Stream_ControlMessage_t,
+//                                            ACE_Message_Block,
+//                                            Stream_SessionMessageBase_T<enum Stream_SessionMessageType,
+//                                                                        Stream_SessionData_T<struct Stream_SessionData>,
+//                                                                        struct Stream_UserData>,
+//                                            struct Stream_UserData> Test_I_InputStream_t;
+typedef Test_I_InputHandler_T<struct Common_Input_Configuration,
+                              Test_I_Message> Test_I_InputHandler_t;
+typedef Common_Input_Manager_T<ACE_MT_SYNCH,
+                               struct Common_Input_Manager_Configuration,
+                               Test_I_InputHandler_t> Test_I_InputManager_t;
 
-//////////////////////////////////////////
+////////////////////////////////////////////
 
-enum Test_I_CommandSpeech_InputCommand
-{
-  TEST_I_INPUT_COMMAND_INVALID = -1,
-  TEST_I_INPUT_COMMAND_GAIN_DECREASE = 0,
-  TEST_I_INPUT_COMMAND_GAIN_INCREASE,
-  ////////////////////////////////////////
-  TEST_I_INPUT_COMMAND_MAX,
-};
+//enum Test_I_CommandSpeech_InputCommand
+//{
+//  TEST_I_INPUT_COMMAND_INVALID = -1,
+//  TEST_I_INPUT_COMMAND_GAIN_DECREASE = 0,
+//  TEST_I_INPUT_COMMAND_GAIN_INCREASE,
+//  ////////////////////////////////////////
+//  TEST_I_INPUT_COMMAND_MAX,
+//};
 
 //////////////////////////////////////////
 

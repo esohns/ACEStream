@@ -133,6 +133,13 @@ do_printUsage (const std::string& programName_in)
             << std::endl;
   std::cout << ACE_TEXT_ALWAYS_CHAR ("currently available options:")
             << std::endl;
+#if defined (FESTIVAL_SUPPORT) || defined (FLITE_SUPPORT)
+  std::string voice = ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_VOICE);
+  std::cout << ACE_TEXT_ALWAYS_CHAR ("-b [STRING] : voice [\"")
+            << voice
+            << ACE_TEXT_ALWAYS_CHAR ("\"]")
+            << std::endl;
+#endif // FESTIVAL_SUPPORT || FLITE_SUPPORT
   std::string path = configuration_path;
   path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
   path += ACE_TEXT_ALWAYS_CHAR (COMMON_LOCATION_CONFIGURATION_SUBDIRECTORY);
@@ -152,17 +159,12 @@ do_printUsage (const std::string& programName_in)
             << std::endl;
 #else
   std::cout << ACE_TEXT_ALWAYS_CHAR ("-d [STRING] : device [\"")
-            << ACE_TEXT_ALWAYS_CHAR (STREAM_LIB_ALSA_CAPTURE_DEFAULT_DEVICE_NAME)
+            << ACE_TEXT_ALWAYS_CHAR (STREAM_LIB_ALSA_DEVICE_DEFAULT)
             << ACE_TEXT_ALWAYS_CHAR ("\"]")
             << std::endl;
 #endif // ACE_WIN32 || ACE_WIN64
-#if defined (FESTIVAL_SUPPORT) || defined (FLITE_SUPPORT)
-  std::string voice = ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_VOICE);
-  std::cout << ACE_TEXT_ALWAYS_CHAR ("-f [STRING] : voice [\"")
-            << voice
-            << ACE_TEXT_ALWAYS_CHAR ("\"]")
+  std::cout << ACE_TEXT_ALWAYS_CHAR ("-f [STRING] : text file {\"\" --> stdin}")
             << std::endl;
-#endif // FESTIVAL_SUPPORT || FLITE_SUPPORT
 #if defined (GUI_SUPPORT)
 #if defined (GTK_SUPPORT) || defined (WXWIDGETS_SUPPORT)
   std::string UI_file = path;
@@ -196,9 +198,9 @@ do_printUsage (const std::string& programName_in)
   path = Common_File_Tools::getTempDirectory ();
   path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
   path += ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_OUTPUT_FILE);
-  std::cout << ACE_TEXT_ALWAYS_CHAR ("-o[[STRING]]: target filename [")
+  std::cout << ACE_TEXT_ALWAYS_CHAR ("-o[[STRING]]: target filename {\"\" --> ")
             << path
-            << ACE_TEXT_ALWAYS_CHAR ("] {\"\" --> do not save}")
+            << ACE_TEXT_ALWAYS_CHAR ("}")
             << std::endl;
   std::cout << ACE_TEXT_ALWAYS_CHAR ("-s [VALUE]  : statistic reporting interval (second(s)) [")
             << STREAM_DEFAULT_STATISTIC_REPORTING_INTERVAL_S
@@ -232,6 +234,7 @@ bool
 do_processArguments (int argc_in,
                      ACE_TCHAR** argv_in, // cannot be const...
 #if defined (FESTIVAL_SUPPORT) || defined (FLITE_SUPPORT)
+                     std::string& voice_out,
                      std::string& voiceDirectory_out,
 #endif // FESTIVAL_SUPPORT || FLITE_SUPPORT
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -240,7 +243,7 @@ do_processArguments (int argc_in,
                      std::string& deviceIdentifier_out,
 #endif // ACE_WIN32 || ACE_WIN64
 #if defined (FESTIVAL_SUPPORT) || defined (FLITE_SUPPORT)
-                     std::string& voice_out,
+                     std::string& sourceFileName_out,
 #endif // FESTIVAL_SUPPORT || FLITE_SUPPORT
 #if defined (GUI_SUPPORT)
                      std::string& UIFile_out,
@@ -272,20 +275,19 @@ do_processArguments (int argc_in,
     ACE_TEXT_ALWAYS_CHAR (COMMON_LOCATION_CONFIGURATION_SUBDIRECTORY);
 
   // initialize results
+#if defined (FESTIVAL_SUPPORT) || defined (FLITE_SUPPORT)
+  voice_out += ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_VOICE);
   voiceDirectory_out = configuration_path;
   voiceDirectory_out += ACE_DIRECTORY_SEPARATOR_CHAR_A;
-#if defined (FESTIVAL_SUPPORT) || defined (FLITE_SUPPORT)
   voiceDirectory_out += ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_VOICE_DIRECTORY);
 #endif // FESTIVAL_SUPPORT || FLITE_SUPPORT
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   deviceIdentifier_out = 0;
 #else
-  deviceIdentifier_out =
-    ACE_TEXT_ALWAYS_CHAR (STREAM_LIB_ALSA_CAPTURE_DEFAULT_DEVICE_NAME);
+  deviceIdentifier_out = ACE_TEXT_ALWAYS_CHAR (STREAM_LIB_ALSA_DEVICE_DEFAULT);
+//    ACE_TEXT_ALWAYS_CHAR (STREAM_LIB_ALSA_PLAYBACK_DEFAULT_DEVICE_NAME);
 #endif // ACE_WIN32 || ACE_WIN64
-#if defined (FESTIVAL_SUPPORT) || defined (FLITE_SUPPORT)
-  voice_out += ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_VOICE);
-#endif // FESTIVAL_SUPPORT || FLITE_SUPPORT
+  sourceFileName_out.clear ();
 #if defined (GUI_SUPPORT)
   UIFile_out = configuration_path;
   UIFile_out += ACE_DIRECTORY_SEPARATOR_CHAR_A;
@@ -298,10 +300,7 @@ do_processArguments (int argc_in,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   mediaFramework_out = STREAM_LIB_DEFAULT_MEDIAFRAMEWORK;
 #endif // ACE_WIN32 || ACE_WIN64
-  std::string path = Common_File_Tools::getTempDirectory ();
-  path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
-  path += ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_OUTPUT_FILE);
-  targetFileName_out = path;
+  targetFileName_out.clear ();
   statisticReportingInterval_out =
     STREAM_DEFAULT_STATISTIC_REPORTING_INTERVAL_S;
   traceInformation_out = false;
@@ -312,9 +311,9 @@ do_processArguments (int argc_in,
   useFrameworkRenderer_out = false;
 #endif // ACE_WIN32 || ACE_WIN64
 
-  std::string options_string = ACE_TEXT_ALWAYS_CHAR ("d:lo::s:tuv");
+  std::string options_string = ACE_TEXT_ALWAYS_CHAR ("d:f:lo::s:tuv");
 #if defined (FESTIVAL_SUPPORT) || defined (FLITE_SUPPORT)
-  options_string += ACE_TEXT_ALWAYS_CHAR ("c:f:");
+  options_string += ACE_TEXT_ALWAYS_CHAR ("b:c:");
 #endif // FESTIVAL_SUPPORT || FLITE_SUPPORT
 #if defined (GUI_SUPPORT)
 #if defined (GTK_SUPPORT) || defined (WXWIDGETS_SUPPORT)
@@ -351,6 +350,11 @@ do_processArguments (int argc_in,
     switch (option)
     {
 #if defined (FESTIVAL_SUPPORT) || defined (FLITE_SUPPORT)
+      case 'b':
+      {
+        voice_out = ACE_TEXT_ALWAYS_CHAR (argument_parser.opt_arg ());
+        break;
+      }
       case 'c':
       {
         voiceDirectory_out = ACE_TEXT_ALWAYS_CHAR (argument_parser.opt_arg ());
@@ -370,13 +374,11 @@ do_processArguments (int argc_in,
 #endif // ACE_WIN32 || ACE_WIN64
         break;
       }
-#if defined (FESTIVAL_SUPPORT) || defined (FLITE_SUPPORT)
       case 'f':
       {
-        voice_out = ACE_TEXT_ALWAYS_CHAR (argument_parser.opt_arg ());
+        sourceFileName_out = ACE_TEXT_ALWAYS_CHAR (argument_parser.opt_arg ());
         break;
       }
-#endif // FESTIVAL_SUPPORT || FLITE_SUPPORT
 #if defined (GUI_SUPPORT)
 #if defined (GTK_SUPPORT) || defined (WXWIDGETS_SUPPORT)
       case 'g':
@@ -426,7 +428,12 @@ do_processArguments (int argc_in,
         if (opt_arg)
           targetFileName_out = ACE_TEXT_ALWAYS_CHAR (opt_arg);
         else
-          targetFileName_out.clear ();
+        {
+          std::string path = Common_File_Tools::getTempDirectory ();
+          path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
+          path += ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_OUTPUT_FILE);
+          targetFileName_out = path;
+        } // end ELSE
         break;
       }
       case 's':
@@ -1043,6 +1050,7 @@ do_finalize_mediafoundation ()
 void
 do_work (
 #if defined (FESTIVAL_SUPPORT) || defined (FLITE_SUPPORT)
+         const std::string& voice_in,
          const std::string& voiceDirectory_in,
 #endif // FESTIVAL_SUPPORT || FLITE_SUPPORT
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -1051,7 +1059,7 @@ do_work (
          const std::string& deviceIdentifier_in,
 #endif // ACE_WIN32 || ACE_WIN64
 #if defined (FESTIVAL_SUPPORT) || defined (FLITE_SUPPORT)
-         const std::string& voice_in,
+         const std::string& sourceFileName_in,
 #endif // FESTIVAL_SUPPORT || FLITE_SUPPORT
 #if defined (GUI_SUPPORT)
          const std::string& UIDefinitionFile_in,
@@ -1059,7 +1067,7 @@ do_work (
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
          enum Stream_MediaFramework_Type mediaFramework_in,
 #endif // ACE_WIN32 || ACE_WIN64
-         const std::string& targetFilename_in,
+         const std::string& targetFileName_in,
          unsigned int statisticReportingInterval_in,
          bool mute_in,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -1106,7 +1114,7 @@ do_work (
                                                     true);               // block ?
 #endif // ACE_WIN32 || ACE_WIN64
   bool result = false;
-  Stream_IStream_t* istream_p = NULL, *istream_2 = NULL;
+  Stream_IStream_t* istream_p = NULL;
   Stream_IStreamControlBase* istream_control_p = NULL;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   struct Test_I_CommandSpeech_DirectShow_ModuleHandlerConfiguration directshow_modulehandler_configuration;
@@ -1156,7 +1164,7 @@ do_work (
   istream_control_p = &stream;
 #endif // ACE_WIN32 || ACE_WIN64
   if (unlikely (UIDefinitionFile_in.empty () &&
-                !Common_Input_Tools::initialize ()))
+                !Common_Input_Tools::initialize (true))) // keep line mode
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Common_Input_Tools::initialize(), returning\n")));
@@ -1166,9 +1174,6 @@ do_work (
   Test_I_InputManager_t* input_manager_p =
     Test_I_InputManager_t::SINGLETON_T::instance ();
   ACE_ASSERT (input_manager_p);
-  Test_I_InputStream_t& stream_2_r =
-    const_cast<Test_I_InputStream_t&> (input_manager_p->getR ());
-  istream_2 = &stream_2_r;
 
   ACE_Time_Value one_second (1, 0);
 #if defined (GUI_SUPPORT)
@@ -1191,8 +1196,8 @@ do_work (
   allocator_configuration_p = &allocator_configuration;
   ACE_ASSERT (allocator_configuration_p);
 
-  struct Stream_Input_ModuleHandlerConfiguration modulehandler_configuration_i; // input-
-  struct Stream_Configuration stream_configuration_2; // input-
+//  struct Stream_Input_ModuleHandlerConfiguration modulehandler_configuration_i; // input-
+//  struct Stream_Configuration stream_configuration_2; // input-
 #if defined(ACE_WIN32) || defined(ACE_WIN64)
   Test_I_DirectShow_EventHandler_t directshow_ui_event_handler (
 #if defined (GUI_SUPPORT)
@@ -1228,32 +1233,20 @@ do_work (
                                            );
   Test_I_ALSA_MessageHandler_Module event_handler_module (istream_p,
                                                           ACE_TEXT_ALWAYS_CHAR (STREAM_MISC_MESSAGEHANDLER_DEFAULT_NAME_STRING));
-  Test_I_InputHandler_t input_handler (
-#if defined (GUI_SUPPORT)
-                                       (UIDefinitionFile_in.empty () ? NULL : &CBData_in)
-#endif // GUI_SUPPORT
-                                      );
+  Test_I_InputHandler_t input_handler;
   Test_I_ALSA_StreamConfiguration_t::ITERATOR_T modulehandler_iterator;
   struct Test_I_ALSA_StreamConfiguration stream_configuration;
-  struct Stream_MediaFramework_ALSA_Configuration ALSA_configuration; // capture
+  struct Stream_MediaFramework_ALSA_Configuration ALSA_configuration; // playback
   ALSA_configuration.asynch = false;
-  ALSA_configuration.mode = SND_PCM_NONBLOCK;
-  ALSA_configuration.bufferSize = STREAM_LIB_ALSA_CAPTURE_DEFAULT_BUFFER_SIZE;
-  ALSA_configuration.bufferTime = STREAM_LIB_ALSA_CAPTURE_DEFAULT_BUFFER_TIME;
-  ALSA_configuration.periods = STREAM_LIB_ALSA_CAPTURE_DEFAULT_PERIODS;
-  ALSA_configuration.periodSize = STREAM_LIB_ALSA_CAPTURE_DEFAULT_PERIOD_SIZE;
-  ALSA_configuration.periodTime = STREAM_LIB_ALSA_CAPTURE_DEFAULT_PERIOD_TIME;
-  ALSA_configuration.rateResample = true;
-  struct Stream_MediaFramework_ALSA_Configuration ALSA_configuration_2; // playback
-//  ALSA_configuration_2.asynch = false;
-  ALSA_configuration_2.rateResample = true;
+//  ALSA_configuration.mode = SND_PCM_NONBLOCK;
+//  ALSA_configuration.rateResample = true;
   struct Test_I_CommandSpeech_ALSA_ModuleHandlerConfiguration modulehandler_configuration;
   ALSA_configuration.format = &modulehandler_configuration.outputFormat;
   struct Test_I_CommandSpeech_ALSA_ModuleHandlerConfiguration modulehandler_configuration_2; // renderer module
   struct Test_I_CommandSpeech_ALSA_ModuleHandlerConfiguration modulehandler_configuration_3; // file writer module
 #endif // ACE_WIN32 || ACE_WIN64
-  Test_I_InputMessageHandler_Module input_handler_module (istream_2,
-                                                          ACE_TEXT_ALWAYS_CHAR (STREAM_MISC_MESSAGEHANDLER_DEFAULT_NAME_STRING));
+//  Test_I_InputMessageHandler_Module input_handler_module (istream_2,
+//                                                          ACE_TEXT_ALWAYS_CHAR (STREAM_MISC_MESSAGEHANDLER_DEFAULT_NAME_STRING));
   Test_I_SignalHandler signal_handler;
   struct Common_EventDispatchState dispatch_state_s;
 
@@ -1355,7 +1348,7 @@ do_work (
       directshow_modulehandler_configuration_4.fileIdentifier.clear ();
       if (!targetFilename_in.empty ())
         directshow_modulehandler_configuration_4.fileIdentifier.identifier =
-        targetFilename_in;
+          targetFilename_in;
       directShowConfiguration_in.streamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (STREAM_FILE_SINK_DEFAULT_NAME_STRING),
                                                                              std::make_pair (&module_configuration,
                                                                                              &directshow_modulehandler_configuration_4)));
@@ -1445,7 +1438,7 @@ do_work (
       mediafoundation_modulehandler_configuration_4.fileIdentifier.clear ();
       if (!targetFilename_in.empty ())
         mediafoundation_modulehandler_configuration_4.fileIdentifier.identifier =
-        targetFilename_in;
+          targetFilename_in;
       mediaFoundationConfiguration_in.streamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (STREAM_FILE_SINK_DEFAULT_NAME_STRING),
                                                                                   std::make_pair (&module_configuration,
                                                                                                   &mediafoundation_modulehandler_configuration_4)));
@@ -1464,10 +1457,13 @@ do_work (
   modulehandler_configuration.allocatorConfiguration =
     allocator_configuration_p;
   modulehandler_configuration.ALSAConfiguration = &ALSA_configuration;
-//  modulehandler_configuration.bufferSize = 512;
 #if defined (_DEBUG)
   modulehandler_configuration.debug = true;
 #endif // _DEBUG
+  modulehandler_configuration.queue =
+    &const_cast<Stream_MessageQueue_T<ACE_MT_SYNCH,
+                                      Common_TimePolicy_t,
+                                      Test_I_ALSA_SessionMessage_t>&> (stream.getR_3 ());
 #if defined (FESTIVAL_SUPPORT) || defined (FLITE_SUPPORT)
   modulehandler_configuration.voice = voice_in;
   modulehandler_configuration.voiceDirectory = voiceDirectory_in;
@@ -1476,7 +1472,7 @@ do_work (
 
   stream_configuration.allocatorConfiguration = allocator_configuration_p;
   if (unlikely (!Stream_MediaFramework_ALSA_Tools::getDefaultFormat (deviceIdentifier_in,
-                                                                     true, // capture
+                                                                     false, // playback
                                                                      modulehandler_configuration.outputFormat)))
   {
     ACE_DEBUG ((LM_ERROR,
@@ -1485,10 +1481,8 @@ do_work (
     goto error;
   } // end IF
 
-  modulehandler_configuration.deviceIdentifier.identifier = deviceIdentifier_in;
+  modulehandler_configuration.fileIdentifier.identifier = sourceFileName_in;
   modulehandler_configuration.messageAllocator = &message_allocator;
-  modulehandler_configuration.mute = mute_in;
-  //modulehandler_configuration.printProgressDot = UIDefinitionFile_in.empty ();
   modulehandler_configuration.statisticReportingInterval =
     ACE_Time_Value (statisticReportingInterval_in, 0);
   modulehandler_configuration.subscriber = &event_handler;
@@ -1501,15 +1495,16 @@ do_work (
   ACE_ASSERT (modulehandler_iterator != configuration_in.streamConfiguration.end ());
 
   modulehandler_configuration_2 = modulehandler_configuration;
-  modulehandler_configuration_2.ALSAConfiguration = &ALSA_configuration_2;
+  modulehandler_configuration_2.ALSAConfiguration = &ALSA_configuration;
   modulehandler_configuration_2.deviceIdentifier.identifier =
-    ACE_TEXT_ALWAYS_CHAR (STREAM_LIB_ALSA_DEVICE_PLAYBACK_PREFIX);
+    deviceIdentifier_in;
+  modulehandler_configuration_2.mute = mute_in;
   configuration_in.streamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_TARGET_ALSA_DEFAULT_NAME_STRING),
                                                                std::make_pair (&module_configuration,
                                                                                &modulehandler_configuration_2)));
 
   modulehandler_configuration_3 = modulehandler_configuration;
-  modulehandler_configuration_3.fileIdentifier.identifier = targetFilename_in;
+  modulehandler_configuration_3.fileIdentifier.identifier = targetFileName_in;
   configuration_in.streamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_ENCODER_WAV_DEFAULT_NAME_STRING),
                                                                std::make_pair (&module_configuration,
                                                                                &modulehandler_configuration_3)));
@@ -1538,8 +1533,8 @@ do_work (
         &mediafoundation_message_allocator;
       mediafoundation_stream_configuration.module =
         &mediafoundation_event_handler;
-      mediafoundation_stream_configuration.moduleBranch =
-        ACE_TEXT_ALWAYS_CHAR (STREAM_SUBSTREAM_DECODE_NAME);
+//      mediafoundation_stream_configuration.moduleBranch =
+//        ACE_TEXT_ALWAYS_CHAR (STREAM_SUBSTREAM_PLAYBACK_NAME);
       mediafoundation_stream_configuration.printFinalReport = true;
       break;
     }
@@ -1554,8 +1549,8 @@ do_work (
 #else
   stream_configuration.messageAllocator = &message_allocator;
   stream_configuration.module = &event_handler_module;
-  stream_configuration.moduleBranch =
-    ACE_TEXT_ALWAYS_CHAR (STREAM_SUBSTREAM_DECODE_NAME);
+//  stream_configuration.moduleBranch =
+//    ACE_TEXT_ALWAYS_CHAR (STREAM_SUBSTREAM_PLAYBACK_NAME);
   stream_configuration.printFinalReport = true;
 #endif // ACE_WIN32 || ACE_WIN64
 
@@ -1698,9 +1693,9 @@ do_work (
   } // end IF
 
   // step0f: initialize input handling
-  modulehandler_configuration_i.concurrency =
-    STREAM_HEADMODULECONCURRENCY_ACTIVE;
-  modulehandler_configuration_i.queue = &stream_2_r.queue_;
+//  modulehandler_configuration_i.concurrency =
+//    STREAM_HEADMODULECONCURRENCY_ACTIVE;
+//  modulehandler_configuration_i.queue = &stream_2_r.queue_;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   switch (mediaFramework_in)
   {
@@ -1771,19 +1766,23 @@ do_work (
 #else
   configuration_in.inputConfiguration.manager = input_manager_p;
   configuration_in.inputConfiguration.messageAllocator = &message_allocator;
+  configuration_in.inputConfiguration.queue =
+    &const_cast<Stream_MessageQueue_T<ACE_MT_SYNCH,
+                                      Common_TimePolicy_t,
+                                      Test_I_ALSA_SessionMessage_t>&> (stream.getR_3 ());
 
-  modulehandler_configuration_i.subscriber = &input_handler;
+//  modulehandler_configuration_i.subscriber = &input_handler;
 
-  stream_configuration_2 = stream_configuration;
-  stream_configuration_2.module = &input_handler_module;
-  stream_configuration_2.moduleBranch.clear ();
-  configuration_in.streamConfiguration_2.initialize (module_configuration,
-                                                     modulehandler_configuration_i,
-                                                     stream_configuration_2);
+//  stream_configuration_2 = stream_configuration;
+//  stream_configuration_2.module = &input_handler_module;
+//  stream_configuration_2.moduleBranch.clear ();
+//  configuration_in.streamConfiguration_2.initialize (module_configuration,
+//                                                     modulehandler_configuration_i,
+//                                                     stream_configuration_2);
   configuration_in.inputManagerConfiguration.eventDispatchState =
     &dispatch_state_s;
-  configuration_in.inputManagerConfiguration.streamConfiguration =
-    &configuration_in.streamConfiguration_2;
+//  configuration_in.inputManagerConfiguration.streamConfiguration =
+//    &configuration_in.streamConfiguration_2;
   if (unlikely (!input_manager_p->initialize (configuration_in.inputManagerConfiguration)))
   {
     ACE_DEBUG ((LM_ERROR,
@@ -1930,16 +1929,16 @@ do_work (
   // step3: clean up
   input_manager_p->stop (true,   // wait ?
                          false); // N/A
-  result = stream_2_r.remove (&input_handler_module,
-                              true,   // lock ?
-                              false); // reset ?
-  if (unlikely (!result))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to Stream_Base_T::remove(\"%s\"), aborting\n"),
-                input_handler_module.name ()));
-    goto error;
-  } // end IF
+//  result = stream_2_r.remove (&input_handler_module,
+//                              true,   // lock ?
+//                              false); // reset ?
+//  if (unlikely (!result))
+//  {
+//    ACE_DEBUG ((LM_ERROR,
+//                ACE_TEXT ("failed to Stream_Base_T::remove(\"%s\"), aborting\n"),
+//                input_handler_module.name ()));
+//    goto error;
+//  } // end IF
   timer_manager_p->stop (true,   // wait ?
                          false); // N/A
   if (UIDefinitionFile_in.empty ())
@@ -2004,9 +2003,9 @@ error:
   if (input_manager_p)
     input_manager_p->stop (true,   // wait ?
                            false); // N/A
-  stream_2_r.remove (&input_handler_module,
-                     true,   // lock ?
-                     false); // reset ?
+//  stream_2_r.remove (&input_handler_module,
+//                     true,   // lock ?
+//                     false); // reset ?
 #if defined (GUI_SUPPORT)
   if (!UIDefinitionFile_in.empty () && itask_p)
     itask_p->stop (true,  // wait ?
@@ -2102,6 +2101,7 @@ ACE_TMAIN (int argc_in,
 
   // step1a set defaults
 #if defined (FESTIVAL_SUPPORT) || defined (FLITE_SUPPORT)
+  std::string voice_string = ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_VOICE);
   std::string voice_directory = path;
   voice_directory += ACE_DIRECTORY_SEPARATOR_CHAR_A;
   voice_directory += ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_VOICE_DIRECTORY);
@@ -2110,11 +2110,10 @@ ACE_TMAIN (int argc_in,
   unsigned int device_id = 0;
 #else
   std::string device_identifier_string =
-    ACE_TEXT_ALWAYS_CHAR (STREAM_LIB_ALSA_CAPTURE_DEFAULT_DEVICE_NAME);
+    ACE_TEXT_ALWAYS_CHAR (STREAM_LIB_ALSA_DEVICE_DEFAULT);
+//    ACE_TEXT_ALWAYS_CHAR (STREAM_LIB_ALSA_PLAYBACK_DEFAULT_DEVICE_NAME);
 #endif // ACE_WIN32 || ACE_WIN64
-#if defined (FESTIVAL_SUPPORT) || defined (FLITE_SUPPORT)
-  std::string voice_string = ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_VOICE);
-#endif // FESTIVAL_SUPPORT || FLITE_SUPPORT
+  std::string source_filename;
 #if defined (GUI_SUPPORT)
   std::string UI_definition_file = path;
   UI_definition_file += ACE_DIRECTORY_SEPARATOR_CHAR_A;
@@ -2128,10 +2127,7 @@ ACE_TMAIN (int argc_in,
   enum Stream_MediaFramework_Type media_framework_e =
     STREAM_LIB_DEFAULT_MEDIAFRAMEWORK;
 #endif // ACE_WIN32 || ACE_WIN64
-  path = Common_File_Tools::getTempDirectory ();
-  path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
-  path += ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_OUTPUT_FILE);
-  std::string target_filename = path;
+  std::string target_filename;
   unsigned int statistic_reporting_interval =
     STREAM_DEFAULT_STATISTIC_REPORTING_INTERVAL_S;
   bool trace_information = false;
@@ -2188,6 +2184,7 @@ ACE_TMAIN (int argc_in,
   if (!do_processArguments (argc_in,
                             argv_in,
 #if defined (FESTIVAL_SUPPORT) || defined (FLITE_SUPPORT)
+                            voice_string,
                             voice_directory,
 #endif // FESTIVAL_SUPPORT || FLITE_SUPPORT
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -2195,9 +2192,7 @@ ACE_TMAIN (int argc_in,
 #else
                             device_identifier_string,
 #endif // ACE_WIN32 || ACE_WIN64
-#if defined (FESTIVAL_SUPPORT) || defined (FLITE_SUPPORT)
-                            voice_string,
-#endif // FESTIVAL_SUPPORT || FLITE_SUPPORT
+                            source_filename,
 #if defined (GUI_SUPPORT)
                             UI_definition_file,
 #if defined (GTK_SUPPORT)
@@ -2236,6 +2231,8 @@ ACE_TMAIN (int argc_in,
 #if defined (FESTIVAL_SUPPORT) || defined (FLITE_SUPPORT)
       !Common_File_Tools::isDirectory (voice_directory)
 #endif // FESTIVAL_SUPPORT || FLITE_SUPPORT
+      || (!source_filename.empty () &&
+          !Common_File_Tools::isReadable (source_filename))
 #if defined (GUI_SUPPORT)
       || (!UI_definition_file.empty () &&
           !Common_File_Tools::isReadable (UI_definition_file))
@@ -2457,6 +2454,7 @@ ACE_TMAIN (int argc_in,
   // step2: do actual work
   do_work (
 #if defined (FESTIVAL_SUPPORT) || defined (FLITE_SUPPORT)
+           voice_string,
            voice_directory,
 #endif // FESTIVAL_SUPPORT || FLITE_SUPPORT
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -2464,9 +2462,7 @@ ACE_TMAIN (int argc_in,
 #else
            device_identifier_string,
 #endif // ACE_WIN32 || ACE_WIN64
-#if defined (FESTIVAL_SUPPORT) || defined (FLITE_SUPPORT)
-           voice_string,
-#endif // FESTIVAL_SUPPORT || FLITE_SUPPORT
+           source_filename,
 #if defined (GUI_SUPPORT)
            UI_definition_file,
 #endif // GUI_SUPPORT

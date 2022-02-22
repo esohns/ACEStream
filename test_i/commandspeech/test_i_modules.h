@@ -31,6 +31,7 @@
 
 #include "stream_misc_defines.h"
 #include "stream_misc_messagehandler.h"
+#include "stream_misc_queue_source.h"
 
 #if defined (SOX_SUPPORT)
 #include "stream_dec_sox_effect.h"
@@ -444,6 +445,20 @@ typedef Stream_Module_MessageHandler_T<ACE_MT_SYNCH,
                                        Test_I_CommandSpeech_MediaFoundation_SessionData,
                                        struct Stream_UserData> Test_I_MediaFoundation_MessageHandler;
 #else
+typedef Stream_Module_QueueReader_T<ACE_MT_SYNCH,
+                                    Stream_ControlMessage_t,
+                                    Test_I_Message,
+                                    Test_I_ALSA_SessionMessage_t,
+                                    struct Test_I_CommandSpeech_ALSA_ModuleHandlerConfiguration,
+                                    enum Stream_ControlType,
+                                    enum Stream_SessionMessageType,
+                                    struct Test_I_CommandSpeech_ALSA_StreamState,
+                                    Test_I_CommandSpeech_ALSA_SessionData,
+                                    Test_I_CommandSpeech_ALSA_SessionData_t,
+                                    struct Stream_Statistic,
+                                    Common_Timer_Manager_t,
+                                    struct Stream_UserData> Test_I_ALSA_QueueReader;
+
 typedef Stream_Module_FileReaderH_T<ACE_MT_SYNCH,
                                     Stream_ControlMessage_t,
                                     Test_I_Message,
@@ -847,12 +862,19 @@ DATASTREAM_MODULE_INPUT_ONLY (Test_I_CommandSpeech_MediaFoundation_SessionData, 
                               Stream_INotify_t,                                          // stream notification interface type
                               Test_I_MediaFoundation_MessageHandler);                    // writer type
 #else
-DATASTREAM_MODULE_INPUT_ONLY (Test_I_CommandSpeech_ALSA_SessionData,                                   // session data type
-                              enum Stream_SessionMessageType,                            // session event type
-                              struct Test_I_CommandSpeech_ALSA_ModuleHandlerConfiguration,             // module handler configuration type
+DATASTREAM_MODULE_INPUT_ONLY (Test_I_CommandSpeech_ALSA_SessionData,                       // session data type
+                              enum Stream_SessionMessageType,                              // session event type
+                              struct Test_I_CommandSpeech_ALSA_ModuleHandlerConfiguration, // module handler configuration type
+                              libacestream_default_misc_queue_module_name_string,
+                              Stream_INotify_t,                                            // stream notification interface type
+                              Test_I_ALSA_QueueReader);                                    // writer type
+
+DATASTREAM_MODULE_INPUT_ONLY (Test_I_CommandSpeech_ALSA_SessionData,                       // session data type
+                              enum Stream_SessionMessageType,                              // session event type
+                              struct Test_I_CommandSpeech_ALSA_ModuleHandlerConfiguration, // module handler configuration type
                               libacestream_default_file_source_module_name_string,
-                              Stream_INotify_t,                                          // stream notification interface type
-                              Test_I_ALSA_FileReader);                                   // writer type
+                              Stream_INotify_t,                                            // stream notification interface type
+                              Test_I_ALSA_FileReader);                                     // writer type
 
 //////////////////////////////////////////
 

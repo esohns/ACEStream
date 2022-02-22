@@ -36,6 +36,8 @@ libacestream_flite_audio_stream_chunk_cb (const cst_wave* wave_in,
   //STREAM_TRACE (ACE_TEXT ("::libacestream_flite_audio_stream_chunk_cb"));
 
   // sanity check(s)
+  if (!size_in)
+    return 0; // nothing to do
   ACE_ASSERT (asi_in);
   struct libacestream_flite_audio_stream_chunk_cbdata* cbdata_p =
     static_cast<struct libacestream_flite_audio_stream_chunk_cbdata*> (asi_in->userdata);
@@ -48,7 +50,7 @@ libacestream_flite_audio_stream_chunk_cb (const cst_wave* wave_in,
 
   // step1: allocate message block
   message_block_p =
-    static_cast<ACE_Message_Block*> (cbdata_p->allocator->malloc (size_in));
+    static_cast<ACE_Message_Block*> (cbdata_p->allocator->malloc (size_in * sizeof (short)));
   if (unlikely (!message_block_p))
   {
     ACE_DEBUG ((LM_ERROR,
@@ -59,8 +61,8 @@ libacestream_flite_audio_stream_chunk_cb (const cst_wave* wave_in,
 
   // step2: copy data into message buffer
   result =
-    message_block_p->copy (reinterpret_cast<char*> (wave_in->samples) + start_in,
-                           size_in);
+    message_block_p->copy (reinterpret_cast<char*> (&wave_in->samples[start_in]),
+                           size_in * sizeof (short));
   if (unlikely (result == -1))
   {
     ACE_DEBUG ((LM_ERROR,

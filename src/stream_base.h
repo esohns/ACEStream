@@ -115,9 +115,9 @@ class Stream_Base_T
  , public Common_IStatistic_T<StatisticContainerType>
  , public Common_IGetR_2_T<SessionDataContainerType>
  , public Common_ISetPR_T<SessionDataContainerType>
- //, public Common_IGetR_2_T<Stream_MessageQueue_T<ACE_SYNCH_USE,
- //                                                TimePolicyType,
- //                                                SessionMessageType> >
+ , public Common_IGetR_3_T<Stream_MessageQueue_T<ACE_SYNCH_USE,
+                                                 TimePolicyType,
+                                                 SessionMessageType> >
 {
   typedef ACE_Stream<ACE_SYNCH_USE,
                      TimePolicyType> inherited;
@@ -265,6 +265,9 @@ class Stream_Base_T
   inline virtual const SessionDataContainerType& getR_2 () const { ACE_ASSERT (sessionData_); return *sessionData_; }
   // *IMPORTANT NOTE*: this is a 'fire-and-forget' API
   virtual void setPR (SessionDataContainerType*&);
+  inline virtual const Stream_MessageQueue_T<ACE_SYNCH_USE,
+                                             TimePolicyType,
+                                             SessionMessageType>& getR_3 () const { return messageQueue_; }
 
   // implement Common_IInitialize_T
   virtual bool initialize (const CONFIGURATION_T&);
@@ -342,7 +345,7 @@ class Stream_Base_T
   LAYOUT_T                          layout_;
   // *TODO*: use inherited::lock_ instead
   mutable ACE_SYNCH_RECURSIVE_MUTEX lock_;
-  MESSAGE_QUEUE_T                   messageQueue_; // 'outbound' queue
+  MESSAGE_QUEUE_T                   messageQueue_; // ('outbound'-) queue
   SessionDataContainerType*         sessionData_;
   ACE_SYNCH_MUTEX_T                 sessionDataLock_;
   StateType                         state_;

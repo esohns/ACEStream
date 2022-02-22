@@ -87,6 +87,9 @@ set (${EXECUTABLE}_EXE_SRCS
      test_i_eventhandler.cpp
      test_i_eventhandler.h
      test_i_eventhandler.inl
+     test_i_input_handler.cpp
+     test_i_input_handler.h
+     test_i_input_handler.inl
      test_i_message.cpp
      test_i_message.h
      test_i_modules.h

@@ -97,7 +97,6 @@ class Stream_Dev_Target_ALSA_T
   // override (part of) ACE_Task_Base
   virtual int svc (void);
 
-  bool                                            asynch_; // using- ?
   struct Stream_Device_ALSA_Playback_AsynchCBData asynchCBData_;
   struct _snd_async_handler*                      asynchHandler_;
 #if defined(_DEBUG)

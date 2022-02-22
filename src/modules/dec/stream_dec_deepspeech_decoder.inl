@@ -391,9 +391,8 @@ continue_3:
     } // end IF
     goto continue_2;
   } // end FOR
-
-continue_4:
 #endif // 0
+
   return result_out.size () - prev_size_i;
 }
 
@@ -478,6 +477,7 @@ Stream_Decoder_DeepSpeechDecoder_T<ACE_SYNCH_USE,
       } // end IF
       sampleSize_ = (waveformatex_p->wBitsPerSample / 8);
       CoTaskMemFree (waveformatex_p); waveformatex_p = NULL;
+      Stream_MediaFramework_DirectShow_Tools::free (media_type_s);
 #else
       struct Stream_MediaFramework_ALSA_MediaType media_type_s;
       inherited2::getMediaType (session_data_r.formats.back (),
@@ -534,6 +534,10 @@ Stream_Decoder_DeepSpeechDecoder_T<ACE_SYNCH_USE,
       break;
 
 error:
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+      Stream_MediaFramework_DirectShow_Tools::free (media_type_s);
+#endif // ACE_WIN32 || ACE_WIN64
+
       this->notify (STREAM_SESSION_MESSAGE_ABORT);
 
       break;

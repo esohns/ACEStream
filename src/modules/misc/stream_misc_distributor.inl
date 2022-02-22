@@ -995,7 +995,7 @@ Stream_Miscellaneous_Distributor_ReaderTask_T<ACE_SYNCH_USE,
   ACE_Task_Base* task_base_p = inherited::sibling ();
   ACE_ASSERT (task_base_p);
   WRITER_TASK_T* writer_p = static_cast<WRITER_TASK_T*> (task_base_p);
-  if (unlikely (writer_p->numberOfBranches_ <= 1))
+  if (unlikely (!writer_p->numberOfBranches_))
     goto continue_;
 
   switch (messageBlock_in->msg_type ())
@@ -1017,9 +1017,10 @@ Stream_Miscellaneous_Distributor_ReaderTask_T<ACE_SYNCH_USE,
         } // end IF
 
         (*iterator).second.push_back (messageBlock_in);
-        if ((*iterator).second.size () < writer_p->numberOfBranches_)
+        // *IMPORTANT NOTE*: account for 'main' branch
+        if ((*iterator).second.size () < (writer_p->numberOfBranches_ + 1))
           return 0;
-        ACE_ASSERT ((*iterator).second.size () == writer_p->numberOfBranches_);
+        ACE_ASSERT ((*iterator).second.size () == (writer_p->numberOfBranches_ + 1));
 
         message_p = (*iterator).second.front ();
         (*iterator).second.pop_front ();
@@ -1048,9 +1049,10 @@ Stream_Miscellaneous_Distributor_ReaderTask_T<ACE_SYNCH_USE,
         } // end IF
 
         (*iterator).second.push_back (messageBlock_in);
-        if ((*iterator).second.size () < writer_p->numberOfBranches_)
+        // *IMPORTANT NOTE*: account for 'main' branch
+        if ((*iterator).second.size () < (writer_p->numberOfBranches_ + 1))
           return 0;
-        ACE_ASSERT ((*iterator).second.size () == writer_p->numberOfBranches_);
+        ACE_ASSERT ((*iterator).second.size () == (writer_p->numberOfBranches_ + 1));
 
         message_p = (*iterator).second.front ();
         (*iterator).second.pop_front ();

@@ -431,261 +431,261 @@ continue_:
 
 //////////////////////////////////////////
 
-template <typename NotificationType,
-          typename DataMessageType,
-#if defined (GUI_SUPPORT)
-          typename UIStateType,
-#if defined (WXWIDGETS_USE)
-          typename InterfaceType,
-#endif // WXWIDGETS_USE
-#endif // GUI_SUPPORT
-          typename SessionMessageType>
-Test_I_InputHandler_T<NotificationType,
-                      DataMessageType,
-#if defined (GUI_SUPPORT)
-                      UIStateType,
-#if defined (WXWIDGETS_USE)
-                      InterfaceType,
-#endif // WXWIDGETS_USE
-#endif // GUI_SUPPORT
-#if defined (GUI_SUPPORT)
-                      SessionMessageType>::Test_I_InputHandler_T (struct Test_I_CommandSpeech_UI_CBData* CBData_in
-#if defined (GTK_USE)
-                                                                  )
-#elif defined (QT_USE)
-                                                                  )
-#elif defined (WXWIDGETS_USE)
-                                                                  ,InterfaceType* interface_in)
-#else
-                                                                  )
-#endif // GTK_USE || QT_USE || WXWIDGETS_USE
-#else
-                      SessionMessageType>::Test_I_InputHandler_T ()
-#endif // GUI_SUPPORT
-#if defined (GUI_SUPPORT)
- : CBData_ (CBData_in)
-#if defined (WXWIDGETS_USE)
- , interface_ (interface_in)
-#endif // WXWIDGETS_USE
-#endif // GUI_SUPPORT
- , sessionData_ (NULL)
-{
-  STREAM_TRACE (ACE_TEXT ("Test_I_InputHandler_T::Test_I_InputHandler_T"));
+//template <typename NotificationType,
+//          typename DataMessageType,
+//#if defined (GUI_SUPPORT)
+//          typename UIStateType,
+//#if defined (WXWIDGETS_USE)
+//          typename InterfaceType,
+//#endif // WXWIDGETS_USE
+//#endif // GUI_SUPPORT
+//          typename SessionMessageType>
+//Test_I_InputHandler_T<NotificationType,
+//                      DataMessageType,
+//#if defined (GUI_SUPPORT)
+//                      UIStateType,
+//#if defined (WXWIDGETS_USE)
+//                      InterfaceType,
+//#endif // WXWIDGETS_USE
+//#endif // GUI_SUPPORT
+//#if defined (GUI_SUPPORT)
+//                      SessionMessageType>::Test_I_InputHandler_T (struct Test_I_CommandSpeech_UI_CBData* CBData_in
+//#if defined (GTK_USE)
+//                                                                  )
+//#elif defined (QT_USE)
+//                                                                  )
+//#elif defined (WXWIDGETS_USE)
+//                                                                  ,InterfaceType* interface_in)
+//#else
+//                                                                  )
+//#endif // GTK_USE || QT_USE || WXWIDGETS_USE
+//#else
+//                      SessionMessageType>::Test_I_InputHandler_T ()
+//#endif // GUI_SUPPORT
+//#if defined (GUI_SUPPORT)
+// : CBData_ (CBData_in)
+//#if defined (WXWIDGETS_USE)
+// , interface_ (interface_in)
+//#endif // WXWIDGETS_USE
+//#endif // GUI_SUPPORT
+// , sessionData_ (NULL)
+//{
+//  STREAM_TRACE (ACE_TEXT ("Test_I_InputHandler_T::Test_I_InputHandler_T"));
 
-}
+//}
 
-template <typename NotificationType,
-          typename DataMessageType,
-#if defined (GUI_SUPPORT)
-          typename UIStateType,
-#if defined (WXWIDGETS_USE)
-          typename InterfaceType,
-#endif // WXWIDGETS_USE
-#endif // GUI_SUPPORT
-          typename SessionMessageType>
-void
-Test_I_InputHandler_T<NotificationType,
-                      DataMessageType,
-#if defined (GUI_SUPPORT)
-                      UIStateType,
-#if defined (WXWIDGETS_USE)
-                      InterfaceType,
-#endif // WXWIDGETS_USE
-#endif // GUI_SUPPORT
-                      SessionMessageType>::start (Stream_SessionId_t sessionId_in,
-                                                  const typename SessionMessageType::DATA_T::DATA_T& sessionData_in)
-{
-  STREAM_TRACE (ACE_TEXT ("Test_I_InputHandler_T::start"));
+//template <typename NotificationType,
+//          typename DataMessageType,
+//#if defined (GUI_SUPPORT)
+//          typename UIStateType,
+//#if defined (WXWIDGETS_USE)
+//          typename InterfaceType,
+//#endif // WXWIDGETS_USE
+//#endif // GUI_SUPPORT
+//          typename SessionMessageType>
+//void
+//Test_I_InputHandler_T<NotificationType,
+//                      DataMessageType,
+//#if defined (GUI_SUPPORT)
+//                      UIStateType,
+//#if defined (WXWIDGETS_USE)
+//                      InterfaceType,
+//#endif // WXWIDGETS_USE
+//#endif // GUI_SUPPORT
+//                      SessionMessageType>::start (Stream_SessionId_t sessionId_in,
+//                                                  const typename SessionMessageType::DATA_T::DATA_T& sessionData_in)
+//{
+//  STREAM_TRACE (ACE_TEXT ("Test_I_InputHandler_T::start"));
 
-  ACE_UNUSED_ARG (sessionId_in);
+//  ACE_UNUSED_ARG (sessionId_in);
 
-  sessionData_ =
-    &const_cast<typename SessionMessageType::DATA_T::DATA_T&> (sessionData_in);
-}
+//  sessionData_ =
+//    &const_cast<typename SessionMessageType::DATA_T::DATA_T&> (sessionData_in);
+//}
 
-template <typename NotificationType,
-          typename DataMessageType,
-#if defined (GUI_SUPPORT)
-          typename UIStateType,
-#if defined (WXWIDGETS_USE)
-          typename InterfaceType,
-#endif // WXWIDGETS_USE
-#endif // GUI_SUPPORT
-          typename SessionMessageType>
-void
-Test_I_InputHandler_T<NotificationType,
-                      DataMessageType,
-#if defined (GUI_SUPPORT)
-                      UIStateType,
-#if defined (WXWIDGETS_USE)
-                      InterfaceType,
-#endif // WXWIDGETS_USE
-#endif // GUI_SUPPORT
-                      SessionMessageType>::notify (Stream_SessionId_t sessionId_in,
-                                                   const enum Stream_SessionMessageType& sessionEvent_in)
-{
-  STREAM_TRACE (ACE_TEXT ("Test_I_InputHandler_T::notify"));
+//template <typename NotificationType,
+//          typename DataMessageType,
+//#if defined (GUI_SUPPORT)
+//          typename UIStateType,
+//#if defined (WXWIDGETS_USE)
+//          typename InterfaceType,
+//#endif // WXWIDGETS_USE
+//#endif // GUI_SUPPORT
+//          typename SessionMessageType>
+//void
+//Test_I_InputHandler_T<NotificationType,
+//                      DataMessageType,
+//#if defined (GUI_SUPPORT)
+//                      UIStateType,
+//#if defined (WXWIDGETS_USE)
+//                      InterfaceType,
+//#endif // WXWIDGETS_USE
+//#endif // GUI_SUPPORT
+//                      SessionMessageType>::notify (Stream_SessionId_t sessionId_in,
+//                                                   const enum Stream_SessionMessageType& sessionEvent_in)
+//{
+//  STREAM_TRACE (ACE_TEXT ("Test_I_InputHandler_T::notify"));
 
-  ACE_UNUSED_ARG (sessionId_in);
-  ACE_UNUSED_ARG (sessionEvent_in);
-}
+//  ACE_UNUSED_ARG (sessionId_in);
+//  ACE_UNUSED_ARG (sessionEvent_in);
+//}
 
-template <typename NotificationType,
-          typename DataMessageType,
-#if defined (GUI_SUPPORT)
-          typename UIStateType,
-#if defined (WXWIDGETS_USE)
-          typename InterfaceType,
-#endif // WXWIDGETS_USE
-#endif // GUI_SUPPORT
-          typename SessionMessageType>
-void
-Test_I_InputHandler_T<NotificationType,
-                      DataMessageType,
-#if defined (GUI_SUPPORT)
-                      UIStateType,
-#if defined (WXWIDGETS_USE)
-                      InterfaceType,
-#endif // WXWIDGETS_USE
-#endif // GUI_SUPPORT
-                      SessionMessageType>::end (Stream_SessionId_t sessionId_in)
-{
-  STREAM_TRACE (ACE_TEXT ("Test_I_InputHandler_T::end"));
+//template <typename NotificationType,
+//          typename DataMessageType,
+//#if defined (GUI_SUPPORT)
+//          typename UIStateType,
+//#if defined (WXWIDGETS_USE)
+//          typename InterfaceType,
+//#endif // WXWIDGETS_USE
+//#endif // GUI_SUPPORT
+//          typename SessionMessageType>
+//void
+//Test_I_InputHandler_T<NotificationType,
+//                      DataMessageType,
+//#if defined (GUI_SUPPORT)
+//                      UIStateType,
+//#if defined (WXWIDGETS_USE)
+//                      InterfaceType,
+//#endif // WXWIDGETS_USE
+//#endif // GUI_SUPPORT
+//                      SessionMessageType>::end (Stream_SessionId_t sessionId_in)
+//{
+//  STREAM_TRACE (ACE_TEXT ("Test_I_InputHandler_T::end"));
 
-  ACE_UNUSED_ARG (sessionId_in);
+//  ACE_UNUSED_ARG (sessionId_in);
 
-  sessionData_ = NULL;
-}
+//  sessionData_ = NULL;
+//}
 
-template <typename NotificationType,
-          typename DataMessageType,
-#if defined (GUI_SUPPORT)
-          typename UIStateType,
-#if defined (WXWIDGETS_USE)
-          typename InterfaceType,
-#endif // WXWIDGETS_USE
-#endif // GUI_SUPPORT
-          typename SessionMessageType>
-void
-Test_I_InputHandler_T<NotificationType,
-                      DataMessageType,
-#if defined (GUI_SUPPORT)
-                      UIStateType,
-#if defined (WXWIDGETS_USE)
-                      InterfaceType,
-#endif // WXWIDGETS_USE
-#endif // GUI_SUPPORT
-                      SessionMessageType>::notify (Stream_SessionId_t sessionId_in,
-                                                   const DataMessageType& message_in)
-{
-  STREAM_TRACE (ACE_TEXT ("Test_I_InputHandler_T::notify"));
+//template <typename NotificationType,
+//          typename DataMessageType,
+//#if defined (GUI_SUPPORT)
+//          typename UIStateType,
+//#if defined (WXWIDGETS_USE)
+//          typename InterfaceType,
+//#endif // WXWIDGETS_USE
+//#endif // GUI_SUPPORT
+//          typename SessionMessageType>
+//void
+//Test_I_InputHandler_T<NotificationType,
+//                      DataMessageType,
+//#if defined (GUI_SUPPORT)
+//                      UIStateType,
+//#if defined (WXWIDGETS_USE)
+//                      InterfaceType,
+//#endif // WXWIDGETS_USE
+//#endif // GUI_SUPPORT
+//                      SessionMessageType>::notify (Stream_SessionId_t sessionId_in,
+//                                                   const DataMessageType& message_in)
+//{
+//  STREAM_TRACE (ACE_TEXT ("Test_I_InputHandler_T::notify"));
 
-  ACE_UNUSED_ARG (sessionId_in);
+//  ACE_UNUSED_ARG (sessionId_in);
 
-  enum Test_I_CommandSpeech_InputCommand command_e =
-    TEST_I_INPUT_COMMAND_INVALID;
-  DataMessageType* message_p = const_cast<DataMessageType*> (&message_in);
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-  struct _KEY_EVENT_RECORD* key_event_record_p = NULL;
-#else
-  char* data_p = NULL;
-#endif // ACE_WIN32 || ACE_WIN64
-  do
-  {
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-    key_event_record_p =
-      reinterpret_cast<struct _KEY_EVENT_RECORD*> (message_p->rd_ptr ());
-    switch (key_event_record_p->wVirtualKeyCode)
-    {
-      case VK_UP:
-      {
-        command_e = TEST_I_INPUT_COMMAND_GAIN_INCREASE;
-        break;
-      }
-      case VK_DOWN:
-      {
-        command_e = TEST_I_INPUT_COMMAND_GAIN_DECREASE;
-        break;
-      }
-      default:
-        break;
-    } // end SWITCH
-#else
-    data_p = message_p->rd_ptr ();
-    do
-    {
-      switch (*data_p)
-      {
-        case 72: // up
-        {
-          command_e = TEST_I_INPUT_COMMAND_GAIN_INCREASE;
-          break;
-        }
-        case 80: // down
-        {
-          command_e = TEST_I_INPUT_COMMAND_GAIN_DECREASE;
-          break;
-        }
-        default:
-          break;
-      } // end SWITCH
-#endif // ACE_WIN32 || ACE_WIN64
+//  enum Test_I_CommandSpeech_InputCommand command_e =
+//    TEST_I_INPUT_COMMAND_INVALID;
+//  DataMessageType* message_p = const_cast<DataMessageType*> (&message_in);
+//#if defined (ACE_WIN32) || defined (ACE_WIN64)
+//  struct _KEY_EVENT_RECORD* key_event_record_p = NULL;
+//#else
+//  char* data_p = NULL;
+//#endif // ACE_WIN32 || ACE_WIN64
+//  do
+//  {
+//#if defined (ACE_WIN32) || defined (ACE_WIN64)
+//    key_event_record_p =
+//      reinterpret_cast<struct _KEY_EVENT_RECORD*> (message_p->rd_ptr ());
+//    switch (key_event_record_p->wVirtualKeyCode)
+//    {
+//      case VK_UP:
+//      {
+//        command_e = TEST_I_INPUT_COMMAND_GAIN_INCREASE;
+//        break;
+//      }
+//      case VK_DOWN:
+//      {
+//        command_e = TEST_I_INPUT_COMMAND_GAIN_DECREASE;
+//        break;
+//      }
+//      default:
+//        break;
+//    } // end SWITCH
+//#else
+//    data_p = message_p->rd_ptr ();
+//    do
+//    {
+//      switch (*data_p)
+//      {
+//        case 72: // up
+//        {
+//          command_e = TEST_I_INPUT_COMMAND_GAIN_INCREASE;
+//          break;
+//        }
+//        case 80: // down
+//        {
+//          command_e = TEST_I_INPUT_COMMAND_GAIN_DECREASE;
+//          break;
+//        }
+//        default:
+//          break;
+//      } // end SWITCH
+//#endif // ACE_WIN32 || ACE_WIN64
 
-    // process input command
-    switch (command_e)
-    {
-      case TEST_I_INPUT_COMMAND_GAIN_DECREASE:
-      {
-        ACE_DEBUG ((LM_DEBUG, ACE_TEXT ("decreasing gain\n")));
-        break;
-      }
-      case TEST_I_INPUT_COMMAND_GAIN_INCREASE:
-      {
-        ACE_DEBUG ((LM_DEBUG, ACE_TEXT ("increasing gain\n")));
-        break;
-      }
-      default:
-      {
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("invalid/unknown command (was: %d), continuing\n"),
-                    command_e));
-        break;
-      }
-    } // end SWITCH
+//    // process input command
+//    switch (command_e)
+//    {
+//      case TEST_I_INPUT_COMMAND_GAIN_DECREASE:
+//      {
+//        ACE_DEBUG ((LM_DEBUG, ACE_TEXT ("decreasing gain\n")));
+//        break;
+//      }
+//      case TEST_I_INPUT_COMMAND_GAIN_INCREASE:
+//      {
+//        ACE_DEBUG ((LM_DEBUG, ACE_TEXT ("increasing gain\n")));
+//        break;
+//      }
+//      default:
+//      {
+//        ACE_DEBUG ((LM_ERROR,
+//                    ACE_TEXT ("invalid/unknown command (was: %d), continuing\n"),
+//                    command_e));
+//        break;
+//      }
+//    } // end SWITCH
 
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-#else
-      ++data_p;
-    } while (*data_p);
-#endif // ACE_WIN32 || ACE_WIN64
+//#if defined (ACE_WIN32) || defined (ACE_WIN64)
+//#else
+//      ++data_p;
+//    } while (*data_p);
+//#endif // ACE_WIN32 || ACE_WIN64
 
-    message_p = static_cast<DataMessageType*> (message_p->cont ());
-  } while (message_p);
-}
+//    message_p = static_cast<DataMessageType*> (message_p->cont ());
+//  } while (message_p);
+//}
 
-template <typename NotificationType,
-          typename DataMessageType,
-#if defined (GUI_SUPPORT)
-          typename UIStateType,
-#if defined (WXWIDGETS_USE)
-          typename InterfaceType,
-#endif // WXWIDGETS_USE
-#endif // GUI_SUPPORT
-          typename SessionMessageType>
-void
-Test_I_InputHandler_T<NotificationType,
-                      DataMessageType,
-#if defined (GUI_SUPPORT)
-                      UIStateType,
-#if defined (WXWIDGETS_USE)
-                      InterfaceType,
-#endif // WXWIDGETS_USE
-#endif // GUI_SUPPORT
-                      SessionMessageType>::notify (Stream_SessionId_t sessionId_in,
-                                                   const SessionMessageType& sessionMessage_in)
-{
-  STREAM_TRACE (ACE_TEXT ("Test_I_InputHandler_T::notify"));
+//template <typename NotificationType,
+//          typename DataMessageType,
+//#if defined (GUI_SUPPORT)
+//          typename UIStateType,
+//#if defined (WXWIDGETS_USE)
+//          typename InterfaceType,
+//#endif // WXWIDGETS_USE
+//#endif // GUI_SUPPORT
+//          typename SessionMessageType>
+//void
+//Test_I_InputHandler_T<NotificationType,
+//                      DataMessageType,
+//#if defined (GUI_SUPPORT)
+//                      UIStateType,
+//#if defined (WXWIDGETS_USE)
+//                      InterfaceType,
+//#endif // WXWIDGETS_USE
+//#endif // GUI_SUPPORT
+//                      SessionMessageType>::notify (Stream_SessionId_t sessionId_in,
+//                                                   const SessionMessageType& sessionMessage_in)
+//{
+//  STREAM_TRACE (ACE_TEXT ("Test_I_InputHandler_T::notify"));
 
-  ACE_UNUSED_ARG (sessionId_in);
-  ACE_UNUSED_ARG (sessionMessage_in);
-}
+//  ACE_UNUSED_ARG (sessionId_in);
+//  ACE_UNUSED_ARG (sessionMessage_in);
+//}

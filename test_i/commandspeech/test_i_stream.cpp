@@ -1284,10 +1284,16 @@ Test_I_ALSA_Stream::load (Stream_ILayout* layout_in,
   ACE_ASSERT (iterator_3 != inherited::configuration_->end ());
 
   Stream_Module_t* module_p = NULL;
-  ACE_NEW_RETURN (module_p,
-                  Test_I_ALSA_FileReader_Module (this,
-                                                 ACE_TEXT_ALWAYS_CHAR (STREAM_FILE_SOURCE_DEFAULT_NAME_STRING)),
-                  false);
+  if ((*iterator).second.second->fileIdentifier.empty ())
+    ACE_NEW_RETURN (module_p,
+                    Test_I_ALSA_QueueReader_Module (this,
+                                                    ACE_TEXT_ALWAYS_CHAR (STREAM_MISC_QUEUE_DEFAULT_NAME_STRING)),
+                    false);
+  else
+    ACE_NEW_RETURN (module_p,
+                    Test_I_ALSA_FileReader_Module (this,
+                                                   ACE_TEXT_ALWAYS_CHAR (STREAM_FILE_SOURCE_DEFAULT_NAME_STRING)),
+                    false);
   ACE_ASSERT (module_p);
   layout_in->append (module_p, NULL, 0);
   module_p = NULL;
@@ -1405,8 +1411,8 @@ Test_I_ALSA_Stream::initialize (const CONFIGURATION_T& configuration_in)
   Test_I_CommandSpeech_ALSA_SessionData* session_data_p = NULL;
   typename inherited::CONFIGURATION_T::ITERATOR_T iterator;
   typename inherited::CONFIGURATION_T::ITERATOR_T iterator_2;
-  typename inherited::ISTREAM_T::MODULE_T* module_p = NULL;
-  Stream_Statistic_IDispatch_t* idispatch_p = NULL;
+//  typename inherited::ISTREAM_T::MODULE_T* module_p = NULL;
+//  Stream_Statistic_IDispatch_t* idispatch_p = NULL;
 
   // allocate a new session state, reset stream
   const_cast<typename inherited::CONFIGURATION_T&> (configuration_in).configuration_->setupPipeline =
