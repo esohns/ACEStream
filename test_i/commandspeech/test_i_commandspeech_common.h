@@ -79,6 +79,7 @@
 #include "test_i_configuration.h"
 
 #include "test_i_input_handler.h"
+//#include "test_i_message.h"
 #include "test_i_stream_common.h"
 
 // forward declarations
@@ -162,7 +163,7 @@ struct Test_I_DirectShow_Configuration
    , filterConfiguration ()
    , pinConfiguration ()
    , streamConfiguration ()
-   , streamConfiguration_2 ()
+   //, streamConfiguration_2 ()
   {
     ACE_OS::memset (&allocatorProperties, 0, sizeof (struct _AllocatorProperties));
     //allocatorProperties_.cBuffers = -1; // <-- use default
@@ -189,7 +190,7 @@ struct Test_I_DirectShow_Configuration
   struct Stream_MediaFramework_DirectShow_FilterPinConfiguration pinConfiguration;
   // **************************** stream data **********************************
   Test_I_DirectShow_StreamConfiguration_t                        streamConfiguration;
-  Stream_Input_Configuration_t                                   streamConfiguration_2; // input-
+  //Stream_Input_Configuration_t                                   streamConfiguration_2; // input-
 };
 
 struct Test_I_MediaFoundation_Configuration
@@ -199,14 +200,14 @@ struct Test_I_MediaFoundation_Configuration
    : Test_I_CommandSpeech_Configuration ()
    , mediaFoundationConfiguration ()
    , streamConfiguration ()
-   , streamConfiguration_2 ()
+   //, streamConfiguration_2 ()
   {}
 
   // **************************** framework data *******************************
   struct Stream_MediaFramework_MediaFoundation_Configuration mediaFoundationConfiguration;
   // **************************** stream data **********************************
   Test_I_MediaFoundation_StreamConfiguration_t               streamConfiguration;
-  Stream_Input_Configuration_t                               streamConfiguration_2; // input-
+  //Stream_Input_Configuration_t                               streamConfiguration_2; // input-
 };
 #else
 struct Test_I_ALSA_Configuration
@@ -315,8 +316,7 @@ typedef Test_I_EventHandler_T<Test_I_ALSA_ISessionNotify_t,
 //                                                                        Stream_SessionData_T<struct Stream_SessionData>,
 //                                                                        struct Stream_UserData>,
 //                                            struct Stream_UserData> Test_I_InputStream_t;
-typedef Test_I_InputHandler_T<struct Common_Input_Configuration,
-                              Test_I_Message> Test_I_InputHandler_t;
+typedef Test_I_InputHandler_T<struct Common_Input_Configuration> Test_I_InputHandler_t;
 typedef Common_Input_Manager_T<ACE_MT_SYNCH,
                                struct Common_Input_Manager_Configuration,
                                Test_I_InputHandler_t> Test_I_InputManager_t;

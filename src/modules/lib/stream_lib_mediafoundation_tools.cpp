@@ -771,6 +771,8 @@ Stream_MediaFramework_MediaFoundation_Tools::reconfigure (IMFMediaType* mediaTyp
                     value_i));
       } // end IF
     } // end IF
+    //else if (InlineIsEqualGUID (GUID_s, MFAudioFormat_PCM))
+    //{} // end ELSE IF
 
     // reset MF_MT_AUDIO_BLOCK_ALIGNMENT
     result = mediaType_in->GetUINT32 (MF_MT_AUDIO_BITS_PER_SAMPLE,

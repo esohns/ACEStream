@@ -316,7 +316,7 @@ if ($<CONFIG> STREQUAL "Debug" OR
 endif ($<CONFIG> STREQUAL "Debug" OR
        $<CONFIG> STREQUAL "RelWithDebInfo")
 if (UNIX)
- set (ARGS "${ARGS} -c ${VOICE_DIRECTORY} -f ${VOICE}")
+ set (ARGS "${ARGS} -b ${VOICE} -c ${VOICE_DIRECTORY}")
  file (TO_NATIVE_PATH "${CMAKE_CURRENT_BINARY_DIR}/${EXECUTABLE}" COMMAND)
  if (GUI_SUPPORT)
   if (GTK_USE OR WXWIDGETS_USE)
@@ -334,8 +334,7 @@ if (UNIX)
 # set (ENVIRONMENT "GDK_BACKEND=x11")
 elseif (WIN32)
  string (REPLACE "\\" "\\\\" VOICE_DIRECTORY ${VOICE_DIRECTORY})
- message (STATUS "voice directory: \"${VOICE_DIRECTORY}\"")
- set (ARGS "${ARGS} -c ${VOICE_DIRECTORY} -f ${VOICE}")
+ set (ARGS "${ARGS} -b ${VOICE} -c ${VOICE_DIRECTORY}")
  set (ARGS "-m ${ARGS}") # use mediafoundation
  file (TO_NATIVE_PATH "${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_BUILD_TYPE}/${EXECUTABLE}.exe" COMMAND)
  string (REPLACE "\\" "\\\\" COMMAND ${COMMAND})

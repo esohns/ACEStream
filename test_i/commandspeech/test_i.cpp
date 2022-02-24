@@ -835,25 +835,24 @@ continue_2:
     targetMediaType_out->Release (); targetMediaType_out = NULL;
   } // end IF
 
-  // *NOTE*: DeepSpeech requires PCM mono signed 16 bits at 16000Hz
-  waveformatex_s.wFormatTag = WAVE_FORMAT_PCM;
-  waveformatex_s.nChannels = 1;
-  waveformatex_s.nSamplesPerSec = 16000;
-  waveformatex_s.wBitsPerSample = 16;
-  waveformatex_s.nBlockAlign =
-    (waveformatex_s.nChannels * (waveformatex_s.wBitsPerSample / 8));
-  waveformatex_s.nAvgBytesPerSec =
-    (waveformatex_s.nSamplesPerSec * waveformatex_s.nBlockAlign);
-  // waveformatex_s.cbSize = 0;
+  struct tWAVEFORMATEX* waveformatex_p =
+    Stream_MediaFramework_DirectSound_Tools::getAudioEngineMixFormat (deviceIdentifier_in);
   targetMediaType_out =
-    Stream_MediaFramework_MediaFoundation_Tools::to (waveformatex_s);
-  //result = targetMediaType_out->SetUINT32 (MF_MT_AUDIO_CHANNEL_MASK,
-  //                                         SPEAKER_FRONT_LEFT);
+    Stream_MediaFramework_MediaFoundation_Tools::to (*waveformatex_p);
+  ACE_ASSERT (targetMediaType_out);
+  CoTaskMemFree (waveformatex_p);
+  // *TODO*: remove ASAP
+  //result = targetMediaType_out->SetGUID (MF_MT_SUBTYPE,
+  //                                       MFAudioFormat_Float);
   //ACE_ASSERT (SUCCEEDED (result));
-  result = targetMediaType_out->DeleteItem (MF_MT_AUDIO_PREFER_WAVEFORMATEX);
-  ACE_ASSERT (SUCCEEDED (result));
-
-  ACE_OS::memset (&waveformatex_s, 0, sizeof (struct tWAVEFORMATEX));
+  //result = targetMediaType_out->SetUINT32 (MF_MT_AUDIO_CHANNEL_MASK,
+  //                                         channel_mask_i);
+  //ACE_ASSERT (SUCCEEDED (result));
+  //result =
+  //  targetMediaType_out->DeleteItem (MF_MT_AUDIO_VALID_BITS_PER_SAMPLE);
+  //ACE_ASSERT (SUCCEEDED (result));
+  //result = targetMediaType_out->DeleteItem (MF_MT_AUDIO_PREFER_WAVEFORMATEX);
+  //ACE_ASSERT (SUCCEEDED (result));
 
   ACE_ASSERT (!configuration_in.mediaFoundationConfiguration.mediaType);
   configuration_in.mediaFoundationConfiguration.mediaType =
@@ -866,7 +865,7 @@ continue_2:
   if (!useFrameworkRenderer_in)
   {
     Test_I_MediaFoundation_Target* writer_p =
-      &const_cast<Test_I_MediaFoundation_Target&> (stream_in.getR_3 ());
+      &const_cast<Test_I_MediaFoundation_Target&> (stream_in.getR_4 ());
     if (!writer_p->initialize (configuration_in.mediaFoundationConfiguration))
     {
       ACE_DEBUG ((LM_ERROR,
@@ -1206,11 +1205,11 @@ do_work (
                                                                 );
   Test_I_DirectShow_MessageHandler_Module directshow_event_handler (istream_p,
                                                                     ACE_TEXT_ALWAYS_CHAR (STREAM_MISC_MESSAGEHANDLER_DEFAULT_NAME_STRING));
-  Test_I_InputHandler_t directshow_input_handler (
-#if defined (GUI_SUPPORT)
-                                                  (UIDefinitionFile_in.empty () ? NULL : &directShowCBData_in)
-#endif // GUI_SUPPORT
-                                                 );
+//  Test_I_InputHandler_t directshow_input_handler (
+//#if defined (GUI_SUPPORT)
+//                                                  (UIDefinitionFile_in.empty () ? NULL : &directShowCBData_in)
+//#endif // GUI_SUPPORT
+//                                                 );
   Test_I_MediaFoundation_EventHandler_t mediafoundation_ui_event_handler (
 #if defined (GUI_SUPPORT)
                                                                           (UIDefinitionFile_in.empty () ? NULL : &mediaFoundationCBData_in)
@@ -1218,11 +1217,11 @@ do_work (
                                                                           );
   Test_I_MediaFoundation_MessageHandler_Module mediafoundation_event_handler (istream_p,
                                                                               ACE_TEXT_ALWAYS_CHAR (STREAM_MISC_MESSAGEHANDLER_DEFAULT_NAME_STRING));
-  Test_I_InputHandler_t mediafoundation_input_handler (
-#if defined (GUI_SUPPORT)
-                                                       (UIDefinitionFile_in.empty () ? NULL : &mediaFoundationCBData_in)
-#endif // GUI_SUPPORT
-                                                      );
+//  Test_I_InputHandler_t mediafoundation_input_handler (
+//#if defined (GUI_SUPPORT)
+//                                                       (UIDefinitionFile_in.empty () ? NULL : &mediaFoundationCBData_in)
+//#endif // GUI_SUPPORT
+//                                                      );
   Test_I_MediaFoundation_StreamConfiguration_t::ITERATOR_T mediafoundation_modulehandler_iterator;
   Test_I_DirectShow_StreamConfiguration_t::ITERATOR_T directshow_modulehandler_iterator;
 #else
@@ -1264,6 +1263,8 @@ do_work (
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
     {
+      directshow_modulehandler_configuration.fileIdentifier.identifier =
+        sourceFileName_in;
       directshow_modulehandler_configuration.allocatorConfiguration =
         allocator_configuration_p;
       directshow_modulehandler_configuration.filterConfiguration =
@@ -1271,6 +1272,10 @@ do_work (
       directshow_modulehandler_configuration.messageAllocator =
         &directshow_message_allocator;
       directshow_modulehandler_configuration.mute = mute_in;
+      directshow_modulehandler_configuration.queue =
+        &const_cast<Stream_MessageQueue_T<ACE_MT_SYNCH,
+                                          Common_TimePolicy_t,
+                                          Test_I_DirectShow_SessionMessage_t>&> (directshow_stream.getR_3 ());
       directshow_modulehandler_configuration.statisticReportingInterval =
         ACE_Time_Value (statisticReportingInterval_in, 0);
       directshow_modulehandler_configuration.subscriber =
@@ -1345,10 +1350,8 @@ do_work (
 
       directshow_modulehandler_configuration_4 =
         directshow_modulehandler_configuration;
-      directshow_modulehandler_configuration_4.fileIdentifier.clear ();
-      if (!targetFilename_in.empty ())
-        directshow_modulehandler_configuration_4.fileIdentifier.identifier =
-          targetFilename_in;
+      directshow_modulehandler_configuration_4.fileIdentifier.identifier =
+        targetFileName_in;
       directShowConfiguration_in.streamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (STREAM_FILE_SINK_DEFAULT_NAME_STRING),
                                                                              std::make_pair (&module_configuration,
                                                                                              &directshow_modulehandler_configuration_4)));
@@ -1357,11 +1360,17 @@ do_work (
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
     {
+      mediafoundation_modulehandler_configuration.fileIdentifier.identifier =
+        sourceFileName_in;
       mediafoundation_modulehandler_configuration.allocatorConfiguration =
         allocator_configuration_p;
       mediafoundation_modulehandler_configuration.mediaFoundationConfiguration =
         &mediaFoundationConfiguration_in.mediaFoundationConfiguration;
       mediafoundation_modulehandler_configuration.mute = mute_in;
+      mediafoundation_modulehandler_configuration.queue =
+        &const_cast<Stream_MessageQueue_T<ACE_MT_SYNCH,
+                                          Common_TimePolicy_t,
+                                          Test_I_MediaFoundation_SessionMessage_t>&> (mediafoundation_stream.getR_3 ());
       mediafoundation_modulehandler_configuration.statisticReportingInterval =
         ACE_Time_Value (statisticReportingInterval_in, 0);
       mediafoundation_modulehandler_configuration.subscriber =
@@ -1435,10 +1444,8 @@ do_work (
 
       mediafoundation_modulehandler_configuration_4 =
         mediafoundation_modulehandler_configuration;
-      mediafoundation_modulehandler_configuration_4.fileIdentifier.clear ();
-      if (!targetFilename_in.empty ())
-        mediafoundation_modulehandler_configuration_4.fileIdentifier.identifier =
-          targetFilename_in;
+      mediafoundation_modulehandler_configuration_4.fileIdentifier.identifier =
+        targetFileName_in;
       mediaFoundationConfiguration_in.streamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (STREAM_FILE_SINK_DEFAULT_NAME_STRING),
                                                                                   std::make_pair (&module_configuration,
                                                                                                   &mediafoundation_modulehandler_configuration_4)));
@@ -1533,8 +1540,6 @@ do_work (
         &mediafoundation_message_allocator;
       mediafoundation_stream_configuration.module =
         &mediafoundation_event_handler;
-//      mediafoundation_stream_configuration.moduleBranch =
-//        ACE_TEXT_ALWAYS_CHAR (STREAM_SUBSTREAM_PLAYBACK_NAME);
       mediafoundation_stream_configuration.printFinalReport = true;
       break;
     }
@@ -1549,8 +1554,6 @@ do_work (
 #else
   stream_configuration.messageAllocator = &message_allocator;
   stream_configuration.module = &event_handler_module;
-//  stream_configuration.moduleBranch =
-//    ACE_TEXT_ALWAYS_CHAR (STREAM_SUBSTREAM_PLAYBACK_NAME);
   stream_configuration.printFinalReport = true;
 #endif // ACE_WIN32 || ACE_WIN64
 
@@ -1705,19 +1708,23 @@ do_work (
         input_manager_p;
       directShowConfiguration_in.inputConfiguration.messageAllocator =
         &directshow_message_allocator;
+      directShowConfiguration_in.inputConfiguration.queue =
+        &const_cast<Stream_MessageQueue_T<ACE_MT_SYNCH,
+                                          Common_TimePolicy_t,
+                                          Test_I_DirectShow_SessionMessage_t>&> (directshow_stream.getR_3 ());
 
-      modulehandler_configuration_i.subscriber = &directshow_input_handler;
+      //modulehandler_configuration_i.subscriber = &directshow_input_handler;
 
-      stream_configuration_2 = directshow_stream_configuration;
-      stream_configuration_2.module = &input_handler_module;
-      stream_configuration_2.moduleBranch.clear ();
-      directShowConfiguration_in.streamConfiguration_2.initialize (module_configuration,
-                                                                   modulehandler_configuration_i,
-                                                                   stream_configuration_2);
+      //stream_configuration_2 = directshow_stream_configuration;
+      //stream_configuration_2.module = &input_handler_module;
+      //stream_configuration_2.moduleBranch.clear ();
+      //directShowConfiguration_in.streamConfiguration_2.initialize (module_configuration,
+      //                                                             modulehandler_configuration_i,
+      //                                                             stream_configuration_2);
       directShowConfiguration_in.inputManagerConfiguration.eventDispatchState =
         &dispatch_state_s;
-      directShowConfiguration_in.inputManagerConfiguration.streamConfiguration =
-        &directShowConfiguration_in.streamConfiguration_2;
+      //directShowConfiguration_in.inputManagerConfiguration.streamConfiguration =
+      //  &directShowConfiguration_in.streamConfiguration_2;
       if (unlikely (!input_manager_p->initialize (directShowConfiguration_in.inputManagerConfiguration)))
       {
         ACE_DEBUG ((LM_ERROR,
@@ -1733,19 +1740,23 @@ do_work (
         input_manager_p;
       mediaFoundationConfiguration_in.inputConfiguration.messageAllocator =
         &mediafoundation_message_allocator;
+      mediaFoundationConfiguration_in.inputConfiguration.queue =
+        &const_cast<Stream_MessageQueue_T<ACE_MT_SYNCH,
+                                          Common_TimePolicy_t,
+                                          Test_I_MediaFoundation_SessionMessage_t>&> (mediafoundation_stream.getR_3 ());
 
-      modulehandler_configuration_i.subscriber = &mediafoundation_input_handler;
+      //modulehandler_configuration_i.subscriber = &mediafoundation_input_handler;
 
-      stream_configuration_2 = mediafoundation_stream_configuration;
-      stream_configuration_2.module = &input_handler_module;
-      stream_configuration_2.moduleBranch.clear ();
-      mediaFoundationConfiguration_in.streamConfiguration_2.initialize (module_configuration,
-                                                                        modulehandler_configuration_i,
-                                                                        stream_configuration_2);
+      //stream_configuration_2 = mediafoundation_stream_configuration;
+      //stream_configuration_2.module = &input_handler_module;
+      //stream_configuration_2.moduleBranch.clear ();
+      //mediaFoundationConfiguration_in.streamConfiguration_2.initialize (module_configuration,
+      //                                                                  modulehandler_configuration_i,
+      //                                                                  stream_configuration_2);
       mediaFoundationConfiguration_in.inputManagerConfiguration.eventDispatchState =
         &dispatch_state_s;
-      mediaFoundationConfiguration_in.inputManagerConfiguration.streamConfiguration =
-        &mediaFoundationConfiguration_in.streamConfiguration_2;
+      //mediaFoundationConfiguration_in.inputManagerConfiguration.streamConfiguration =
+      //  &mediaFoundationConfiguration_in.streamConfiguration_2;
       if (unlikely (!input_manager_p->initialize (mediaFoundationConfiguration_in.inputManagerConfiguration)))
       {
         ACE_DEBUG ((LM_ERROR,

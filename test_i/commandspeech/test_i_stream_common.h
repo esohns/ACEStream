@@ -254,7 +254,8 @@ struct Test_I_CommandSpeech_DirectShow_ModuleHandlerConfiguration
    , manageFlite (false)
    , manageSoX (false)
    , mute (false)
-#if defined (GUI_SUPPORT)
+   , queue (NULL)
+#if defined(GUI_SUPPORT)
    , spectrumAnalyzer2DMode (STREAM_VIS_SPECTRUMANALYZER_DEFAULT_2DMODE)
    , spectrumAnalyzerResolution (STREAM_VIS_SPECTRUMANALYZER_DEFAULT_BUFFER_SIZE)
 #endif // GUI_SUPPORT
@@ -277,6 +278,7 @@ struct Test_I_CommandSpeech_DirectShow_ModuleHandlerConfiguration
   bool                                              manageFlite;
   bool                                              manageSoX;
   bool                                              mute;
+  ACE_Message_Queue_Base*                           queue;
 #if defined (GUI_SUPPORT)
   enum Stream_Visualization_SpectrumAnalyzer_2DMode spectrumAnalyzer2DMode;
   unsigned int                                      spectrumAnalyzerResolution;
@@ -303,6 +305,7 @@ struct Test_I_CommandSpeech_MediaFoundation_ModuleHandlerConfiguration
    , manageFlite (false)
    , manageSoX (false)
    , mute (false)
+   , queue (NULL)
 #if defined(GUI_SUPPORT)
    , spectrumAnalyzer2DMode (STREAM_VIS_SPECTRUMANALYZER_DEFAULT_2DMODE)
    , spectrumAnalyzerResolution (STREAM_VIS_SPECTRUMANALYZER_DEFAULT_BUFFER_SIZE)
@@ -326,6 +329,7 @@ struct Test_I_CommandSpeech_MediaFoundation_ModuleHandlerConfiguration
   bool                                              manageFlite;
   bool                                              manageSoX;
   bool                                              mute;
+  ACE_Message_Queue_Base*                           queue;
 #if defined (GUI_SUPPORT)
   enum Stream_Visualization_SpectrumAnalyzer_2DMode spectrumAnalyzer2DMode;
   unsigned int                                      spectrumAnalyzerResolution;

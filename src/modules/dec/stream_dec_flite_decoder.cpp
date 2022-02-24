@@ -36,7 +36,7 @@ libacestream_flite_audio_stream_chunk_cb (const cst_wave* wave_in,
   //STREAM_TRACE (ACE_TEXT ("::libacestream_flite_audio_stream_chunk_cb"));
 
   // sanity check(s)
-  if (!size_in)
+  if (unlikely (!size_in))
     return 0; // nothing to do
   ACE_ASSERT (asi_in);
   struct libacestream_flite_audio_stream_chunk_cbdata* cbdata_p =

@@ -53,12 +53,13 @@ elseif (WIN32)
   find_package (festival CONFIG)
   if (festival_FOUND)
    set (FESTIVAL_FOUND TRUE)
-   if (CMAKE_BUILD_TYPE STREQUAL "Debug" OR
-       CMAKE_BUILD_TYPE STREQUAL "RelWithDebInfo")
+   if ($<CONFIG> STREQUAL "Debug" OR
+       $<CONFIG> STREQUAL "RelWithDebInfo")
     set (FESTIVAL_LIB_DIR "${VCPKG_ROOT}/installed/${VCPKG_TARGET_TRIPLET}/debug/bin")
    else ()
     set (FESTIVAL_LIB_DIR "${VCPKG_ROOT}/installed/${VCPKG_TARGET_TRIPLET}/bin")
-   endif ()
+   endif ($<CONFIG> STREQUAL "Debug" OR
+          $<CONFIG> STREQUAL "RelWithDebInfo")
   endif (festival_FOUND)
  endif (VCPKG_SUPPORT)
  if (NOT festival_FOUND)
@@ -191,40 +192,40 @@ elseif (WIN32)
  if (NOT FLITE_FOUND)
   set (FLITE_LIB_FILE "libflite.lib")
   find_library (FLITE_LIBRARY ${FLITE_LIB_FILE}
-                PATHS $ENV{LIB_ROOT}/flite/build/x86_64-mingw32
-                PATH_SUFFIXES lib
+                PATHS $ENV{LIB_ROOT}/flite/${CMAKE_VS_PLATFORM_TOOLSET_HOST_ARCHITECTURE}
+                PATH_SUFFIXES Debug
                 DOC "searching for ${FLITE_LIB_FILE}")
   if (NOT FLITE_LIBRARY)
    message (WARNING "could not find ${FLITE_LIB_FILE}, continuing")
   endif (NOT FLITE_LIBRARY)
   set (CMU_LEX_LIB_FILE "libflite_cmulex.lib")
   find_library (CMU_LEX_LIBRARY ${CMU_LEX_LIB_FILE}
-                PATHS $ENV{LIB_ROOT}/flite/build/x86_64-mingw32
-                PATH_SUFFIXES lib
+                PATHS $ENV{LIB_ROOT}/flite/${CMAKE_VS_PLATFORM_TOOLSET_HOST_ARCHITECTURE}
+                PATH_SUFFIXES Debug
                 DOC "searching for ${CMU_LEX_LIB_FILE}")
   if (NOT CMU_LEX_LIBRARY)
    message (WARNING "could not find ${CMU_LEX_LIB_FILE}, continuing")
   endif (NOT CMU_LEX_LIBRARY)
   set (USENGLISH_LIB_FILE "libflite_usenglish.lib")
   find_library (USENGLISH_LIBRARY ${USENGLISH_LIB_FILE}
-                PATHS $ENV{LIB_ROOT}/flite/build/x86_64-mingw32
-                PATH_SUFFIXES lib
+                PATHS $ENV{LIB_ROOT}/flite/${CMAKE_VS_PLATFORM_TOOLSET_HOST_ARCHITECTURE}
+                PATH_SUFFIXES Debug
                 DOC "searching for ${USENGLISH_LIB_FILE}")
   if (NOT USENGLISH_LIBRARY)
    message (WARNING "could not find ${USENGLISH_LIB_FILE}, continuing")
   endif (NOT USENGLISH_LIBRARY)
   set (CMU_GRAPHEME_LANG_LIB_FILE "libflite_cmu_grapheme_lang.lib")
   find_library (CMU_GRAPHEME_LANG_LIBRARY ${CMU_GRAPHEME_LANG_LIB_FILE}
-                PATHS $ENV{LIB_ROOT}/flite/build/x86_64-mingw32
-                PATH_SUFFIXES lib
+                PATHS $ENV{LIB_ROOT}/flite/${CMAKE_VS_PLATFORM_TOOLSET_HOST_ARCHITECTURE}
+                PATH_SUFFIXES Debug
                 DOC "searching for ${CMU_GRAPHEME_LANG_LIB_FILE}")
   if (NOT CMU_GRAPHEME_LANG_LIBRARY)
    message (WARNING "could not find ${CMU_GRAPHEME_LANG_LIB_FILE}, continuing")
   endif (NOT CMU_GRAPHEME_LANG_LIBRARY)
   set (CMU_GRAPHEME_LEX_LIB_FILE "libflite_cmu_grapheme_lex.lib")
   find_library (CMU_GRAPHEME_LEX_LIBRARY ${CMU_GRAPHEME_LEX_LIB_FILE}
-                PATHS $ENV{LIB_ROOT}/flite/build/x86_64-mingw32
-                PATH_SUFFIXES lib
+                PATHS $ENV{LIB_ROOT}/flite/${CMAKE_VS_PLATFORM_TOOLSET_HOST_ARCHITECTURE}
+                PATH_SUFFIXES Debug
                 DOC "searching for ${CMU_GRAPHEME_LEX_LIB_FILE}")
   if (NOT CMU_GRAPHEME_LEX_LIBRARY)
    message (WARNING "could not find ${CMU_GRAPHEME_LEX_LIB_FILE}, continuing")

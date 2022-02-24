@@ -23,8 +23,7 @@
 
 #include "common_input_handler_base.h"
 
-template <typename ConfigurationType, // implements Common_Input_Configuration
-          typename MessageType>       // implements ACE_Message_Block
+template <typename ConfigurationType> // implements Common_Input_Configuration
 class Test_I_InputHandler_T
  : public Common_InputHandler_Base_T<ConfigurationType>
 {

@@ -108,8 +108,8 @@ class Test_I_MediaFoundation_Stream
                         Stream_ControlMessage_t,
                         Test_I_MediaFoundation_Message,
                         Test_I_MediaFoundation_SessionMessage_t>
- , public Common_IGetR_3_T<Test_I_MediaFoundation_Target>
- , public Common_IGetR_4_T<Test_I_MediaFoundation_Source>
+ , public Common_IGetR_4_T<Test_I_MediaFoundation_Target>
+ , public Common_IGetR_5_T<Test_I_MediaFoundation_Source>
  , public IMFAsyncCallback
 {
   typedef Stream_Base_T<ACE_MT_SYNCH,
@@ -146,8 +146,8 @@ class Test_I_MediaFoundation_Stream
   // *TODO*: on MSVC 2015u3 the accurate declaration does not compile
   virtual bool initialize (const CONFIGURATION_T&); // configuration
 
-  virtual const Test_I_MediaFoundation_Target& getR_3 () const; // return value: type
-  virtual const Test_I_MediaFoundation_Source& getR_4 () const; // return value: type
+  virtual const Test_I_MediaFoundation_Target& getR_4 () const; // return value: type
+  virtual const Test_I_MediaFoundation_Source& getR_5 () const; // return value: type
 
   // implement IMFAsyncCallback
   virtual STDMETHODIMP QueryInterface (REFIID,

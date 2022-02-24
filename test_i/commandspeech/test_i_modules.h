@@ -78,6 +78,33 @@
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 
+typedef Stream_Module_QueueReader_T<ACE_MT_SYNCH,
+                                    Stream_ControlMessage_t,
+                                    Test_I_DirectShow_Message,
+                                    Test_I_DirectShow_SessionMessage_t,
+                                    struct Test_I_CommandSpeech_DirectShow_ModuleHandlerConfiguration,
+                                    enum Stream_ControlType,
+                                    enum Stream_SessionMessageType,
+                                    struct Test_I_CommandSpeech_DirectShow_StreamState,
+                                    Test_I_CommandSpeech_DirectShow_SessionData,
+                                    Test_I_CommandSpeech_DirectShow_SessionData_t,
+                                    struct Stream_Statistic,
+                                    Common_Timer_Manager_t,
+                                    struct Stream_UserData> Test_I_DirectShow_QueueReader;
+typedef Stream_Module_QueueReader_T<ACE_MT_SYNCH,
+                                    Stream_ControlMessage_t,
+                                    Test_I_MediaFoundation_Message,
+                                    Test_I_MediaFoundation_SessionMessage_t,
+                                    struct Test_I_CommandSpeech_MediaFoundation_ModuleHandlerConfiguration,
+                                    enum Stream_ControlType,
+                                    enum Stream_SessionMessageType,
+                                    struct Test_I_CommandSpeech_MediaFoundation_StreamState,
+                                    Test_I_CommandSpeech_MediaFoundation_SessionData,
+                                    Test_I_CommandSpeech_MediaFoundation_SessionData_t,
+                                    struct Stream_Statistic,
+                                    Common_Timer_Manager_t,
+                                    struct Stream_UserData> Test_I_MediaFoundation_QueueReader;
+
 typedef Stream_Module_FileReaderH_T<ACE_MT_SYNCH,
                                     Stream_ControlMessage_t,
                                     Test_I_DirectShow_Message,
@@ -85,7 +112,7 @@ typedef Stream_Module_FileReaderH_T<ACE_MT_SYNCH,
                                     struct Test_I_CommandSpeech_DirectShow_ModuleHandlerConfiguration,
                                     enum Stream_ControlType,
                                     enum Stream_SessionMessageType,
-                                    struct Stream_State,
+                                    struct Test_I_CommandSpeech_DirectShow_StreamState,
                                     Test_I_CommandSpeech_DirectShow_SessionData,
                                     Test_I_CommandSpeech_DirectShow_SessionData_t,
                                     struct Stream_Statistic,
@@ -98,7 +125,7 @@ typedef Stream_Module_FileReaderH_T<ACE_MT_SYNCH,
                                     struct Test_I_CommandSpeech_MediaFoundation_ModuleHandlerConfiguration,
                                     enum Stream_ControlType,
                                     enum Stream_SessionMessageType,
-                                    struct Stream_State,
+                                    struct Test_I_CommandSpeech_MediaFoundation_StreamState,
                                     Test_I_CommandSpeech_MediaFoundation_SessionData,
                                     Test_I_CommandSpeech_MediaFoundation_SessionData_t,
                                     struct Stream_Statistic,
@@ -628,6 +655,20 @@ typedef Stream_Module_MessageHandler_T<ACE_MT_SYNCH,
 //////////////////////////////////////////
 // declare module(s)
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
+DATASTREAM_MODULE_INPUT_ONLY (Test_I_CommandSpeech_DirectShow_SessionData,                       // session data type
+                              enum Stream_SessionMessageType,                                    // session event type
+                              struct Test_I_CommandSpeech_DirectShow_ModuleHandlerConfiguration, // module handler configuration type
+                              libacestream_default_misc_queue_module_name_string,
+                              Stream_INotify_t,                                                  // stream notification interface type
+                              Test_I_DirectShow_QueueReader);                                    // writer type
+
+DATASTREAM_MODULE_INPUT_ONLY (Test_I_CommandSpeech_MediaFoundation_SessionData,                       // session data type
+                              enum Stream_SessionMessageType,                                         // session event type
+                              struct Test_I_CommandSpeech_MediaFoundation_ModuleHandlerConfiguration, // module handler configuration type
+                              libacestream_default_misc_queue_module_name_string,
+                              Stream_INotify_t,                                                       // stream notification interface type
+                              Test_I_MediaFoundation_QueueReader);                                    // writer type
+
 DATASTREAM_MODULE_INPUT_ONLY (Test_I_CommandSpeech_DirectShow_SessionData,                       // session data type
                               enum Stream_SessionMessageType,                                    // session event type
                               struct Test_I_CommandSpeech_DirectShow_ModuleHandlerConfiguration, // module handler configuration type

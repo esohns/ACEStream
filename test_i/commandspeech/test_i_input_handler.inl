@@ -27,21 +27,17 @@
 #include "common_defines.h"
 #include "common_macros.h"
 
-template <typename ConfigurationType,
-          typename MessageType>
-Test_I_InputHandler_T<ConfigurationType,
-                      MessageType>::Test_I_InputHandler_T ()
+template <typename ConfigurationType>
+Test_I_InputHandler_T<ConfigurationType>::Test_I_InputHandler_T ()
  : inherited ()
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_InputHandler_T::Test_I_InputHandler_T"));
 
 }
 
-template <typename ConfigurationType,
-          typename MessageType>
+template <typename ConfigurationType>
 bool
-Test_I_InputHandler_T<ConfigurationType,
-                      MessageType>::handle_input (ACE_Message_Block* messageBlock_in)
+Test_I_InputHandler_T<ConfigurationType>::handle_input (ACE_Message_Block* messageBlock_in)
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_InputHandler_T::handle_input"));
 

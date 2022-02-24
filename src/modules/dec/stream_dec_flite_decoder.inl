@@ -379,6 +379,7 @@ Stream_Decoder_FliteDecoder_T<ACE_SYNCH_USE,
                     ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
         goto error;
       } // end IF
+      ACE_OS::memset (&media_type, 0, sizeof (MediaType));
 #else
       struct Stream_MediaFramework_ALSA_MediaType media_type_2;
       media_type_2.format = SND_PCM_FORMAT_S16;

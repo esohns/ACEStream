@@ -74,10 +74,16 @@ Test_I_DirectShow_Stream::load (Stream_ILayout* layout_in,
   bool device_can_render_format_b = false;
   HRESULT result = E_FAIL;
 
-  ACE_NEW_RETURN (module_p,
-                  Test_I_DirectShow_FileReader_Module (this,
-                                                       ACE_TEXT_ALWAYS_CHAR (STREAM_FILE_SOURCE_DEFAULT_NAME_STRING)),
-                  false);
+  if ((*iterator).second.second->fileIdentifier.empty ())
+    ACE_NEW_RETURN (module_p,
+                    Test_I_DirectShow_QueueReader_Module (this,
+                                                          ACE_TEXT_ALWAYS_CHAR (STREAM_MISC_QUEUE_DEFAULT_NAME_STRING)),
+                    false);
+  else
+    ACE_NEW_RETURN (module_p,
+                    Test_I_DirectShow_FileReader_Module (this,
+                                                         ACE_TEXT_ALWAYS_CHAR (STREAM_FILE_SOURCE_DEFAULT_NAME_STRING)),
+                    false);
   ACE_ASSERT (module_p);
   layout_in->append (module_p, NULL, 0);
   module_p = NULL;
@@ -460,10 +466,16 @@ Test_I_MediaFoundation_Stream::load (Stream_ILayout* layout_in,
   HRESULT result = E_FAIL;
   bool has_mediafoundation_source_b = true;
 
-  ACE_NEW_RETURN (module_p,
-                  Test_I_MediaFoundation_FileReader_Module (this,
-                                                            ACE_TEXT_ALWAYS_CHAR (STREAM_FILE_SOURCE_DEFAULT_NAME_STRING)),
-                  false);
+  if ((*iterator).second.second->fileIdentifier.empty ())
+    ACE_NEW_RETURN (module_p,
+                    Test_I_MediaFoundation_QueueReader_Module (this,
+                                                               ACE_TEXT_ALWAYS_CHAR (STREAM_MISC_QUEUE_DEFAULT_NAME_STRING)),
+                    false);
+  else
+    ACE_NEW_RETURN (module_p,
+                    Test_I_MediaFoundation_FileReader_Module (this,
+                                                              ACE_TEXT_ALWAYS_CHAR (STREAM_FILE_SOURCE_DEFAULT_NAME_STRING)),
+                    false);
   ACE_ASSERT (module_p);
   layout_in->append (module_p, NULL, 0);
   module_p = NULL;
@@ -693,7 +705,7 @@ Test_I_MediaFoundation_Stream::initialize (const CONFIGURATION_T& configuration_
 
   IMFMediaSource* media_source_p = NULL;
   Test_I_MediaFoundation_Target* writer_p =
-    &const_cast<Test_I_MediaFoundation_Target&> (getR_3 ());
+    &const_cast<Test_I_MediaFoundation_Target&> (getR_4 ());
   if (!writer_p->initialize (*(*iterator).second.second->mediaFoundationConfiguration))
   {
     ACE_DEBUG ((LM_ERROR,
@@ -746,7 +758,7 @@ Test_I_MediaFoundation_Stream::initialize (const CONFIGURATION_T& configuration_
           result_2 = media_type_p->SetGUID (MF_MT_SUBTYPE,
                                             MFAudioFormat_Float);
           ACE_ASSERT (SUCCEEDED (result_2));
-          DWORD channel_mask_i = (SPEAKER_FRONT_LEFT |
+          UINT32 channel_mask_i = (SPEAKER_FRONT_LEFT |
                                   SPEAKER_FRONT_RIGHT);
           result_2 = media_type_p->SetUINT32 (MF_MT_AUDIO_CHANNEL_MASK,
                                               channel_mask_i);
@@ -921,9 +933,9 @@ error:
 }
 
 const Test_I_MediaFoundation_Target&
-Test_I_MediaFoundation_Stream::getR_3 () const
+Test_I_MediaFoundation_Stream::getR_4 () const
 {
-  STREAM_TRACE (ACE_TEXT ("Test_I_MediaFoundation_Stream::getR_3"));
+  STREAM_TRACE (ACE_TEXT ("Test_I_MediaFoundation_Stream::getR_4"));
 
   Test_I_MediaFoundation_Target* writer_p =
     static_cast<Test_I_MediaFoundation_Target*> (const_cast<Test_I_MediaFoundation_Target_Module&> (mediaFoundationTarget_).writer ());
@@ -933,9 +945,9 @@ Test_I_MediaFoundation_Stream::getR_3 () const
 }
 
 const Test_I_MediaFoundation_Source&
-Test_I_MediaFoundation_Stream::getR_4 () const
+Test_I_MediaFoundation_Stream::getR_5 () const
 {
-  STREAM_TRACE (ACE_TEXT ("Test_I_MediaFoundation_Stream::getR_4"));
+  STREAM_TRACE (ACE_TEXT ("Test_I_MediaFoundation_Stream::getR_5"));
 
   Test_I_MediaFoundation_Source* writer_p =
     static_cast<Test_I_MediaFoundation_Source*> (const_cast<Test_I_MediaFoundation_Source_Module&> (mediaFoundationSource_).writer ());
