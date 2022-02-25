@@ -1529,7 +1529,7 @@ do_work (
         &directshow_message_allocator;
       directshow_stream_configuration.module =
         &directshow_event_handler;
-      directshow_stream_configuration.printFinalReport = true;
+      //directshow_stream_configuration.printFinalReport = true;
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
@@ -1540,7 +1540,7 @@ do_work (
         &mediafoundation_message_allocator;
       mediafoundation_stream_configuration.module =
         &mediafoundation_event_handler;
-      mediafoundation_stream_configuration.printFinalReport = true;
+      //mediafoundation_stream_configuration.printFinalReport = true;
       break;
     }
     default:
@@ -1704,6 +1704,7 @@ do_work (
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
     {
+      directShowConfiguration_in.inputConfiguration.lineMode = true;
       directShowConfiguration_in.inputConfiguration.manager =
         input_manager_p;
       directShowConfiguration_in.inputConfiguration.messageAllocator =
@@ -1736,9 +1737,10 @@ do_work (
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
     {
+      mediaFoundationConfiguration_in.inputConfiguration.lineMode = true;
       mediaFoundationConfiguration_in.inputConfiguration.manager =
         input_manager_p;
-      mediaFoundationConfiguration_in.inputConfiguration.messageAllocator =
+        mediaFoundationConfiguration_in.inputConfiguration.messageAllocator =
         &mediafoundation_message_allocator;
       mediaFoundationConfiguration_in.inputConfiguration.queue =
         &const_cast<Stream_MessageQueue_T<ACE_MT_SYNCH,
@@ -1775,6 +1777,7 @@ do_work (
     }
   } // end SWITCH
 #else
+  configuration_in.inputConfiguration.lineMode = true;
   configuration_in.inputConfiguration.manager = input_manager_p;
   configuration_in.inputConfiguration.messageAllocator = &message_allocator;
   configuration_in.inputConfiguration.queue =
