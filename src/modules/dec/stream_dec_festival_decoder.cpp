@@ -17,8 +17,7 @@
  *   Free Software Foundation, Inc.,                                       *
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
-#include "EST.h"
-//#include "stdafx.h"
+#include "stdafx.h"
 
 #include "stream_dec_festival_decoder.h"
 

@@ -1529,7 +1529,6 @@ do_work (
         &directshow_message_allocator;
       directshow_stream_configuration.module =
         &directshow_event_handler;
-      //directshow_stream_configuration.printFinalReport = true;
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
@@ -1540,7 +1539,6 @@ do_work (
         &mediafoundation_message_allocator;
       mediafoundation_stream_configuration.module =
         &mediafoundation_event_handler;
-      //mediafoundation_stream_configuration.printFinalReport = true;
       break;
     }
     default:
@@ -1552,9 +1550,10 @@ do_work (
     }
   } // end SWITCH
 #else
+  stream_configuration.allocatorConfiguration =
+    &allocator_configuration;
   stream_configuration.messageAllocator = &message_allocator;
   stream_configuration.module = &event_handler_module;
-  stream_configuration.printFinalReport = true;
 #endif // ACE_WIN32 || ACE_WIN64
 
   // intialize timers
