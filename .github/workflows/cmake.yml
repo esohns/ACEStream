@@ -84,10 +84,21 @@ jobs:
           cd ${{github.workspace}}
      shell: cmd
 
-   - name: Configure CMake (Common)
+   - name: Reset ACE link [UNIX]
+     if: ${{ matrix.os=='ubuntu-latest' }}
+     run: |
+          sudo rm -f modules/Common/modules/ACE
+          sudo ln -s /usr/include modules/Common/modules/ACE
+
+   - name: Update git sub-modules (Common)
      run: |
           cd modules/Common
           git submodule update --init --recursive
+          cd ${{github.workspace}}
+
+   - name: Configure CMake (Common)
+     run: |
+          cd modules/Common
           cmake -B ${{github.workspace}}/modules/Common/build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
           cd ${{github.workspace}}
 
@@ -106,7 +117,7 @@ jobs:
           .\\make_oo_headers.bat
           cd ${{github.workspace}}
 
-   - name: Apply Patch To (Temporarily) Remove Dependency on ACENetwork
+   - name: Apply Patch To (Temporarily) Remove Dependency on ACENetwork [UNIX]
 #     run: git apply -C3 --verbose scripts/github_repo_build.patch
      if: ${{ matrix.os=='ubuntu-latest' }}
      run: patch -f -p1 < scripts/github_repo_build.patch
