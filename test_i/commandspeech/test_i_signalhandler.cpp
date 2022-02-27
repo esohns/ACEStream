@@ -25,6 +25,8 @@
 
 #include "stream_macros.h"
 
+#include "test_i_commandspeech_common.h"
+
 Test_I_SignalHandler::Test_I_SignalHandler ()
 : inherited (this) // event handler handle
 {
@@ -122,6 +124,11 @@ Test_I_SignalHandler::handle (const struct Common_Signal& signal_in)
     // - leave event loop(s) handling signals, sockets, (maintenance) timers,
     //   exception handlers, ...
     // - activation timers (connection attempts, ...)
+
+    Test_I_InputManager_t* input_manager_p =
+      Test_I_InputManager_t::SINGLETON_T::instance ();
+    input_manager_p->stop (false,  // wait for completion ?
+                           false); // N/A
 
     ACE_ASSERT (inherited::configuration_->stream);
     inherited::configuration_->stream->stop (false, // wait for completion ?

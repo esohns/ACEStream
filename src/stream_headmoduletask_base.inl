@@ -221,7 +221,13 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
           // *IMPORTANT NOTE*: make sure the message is actually processed
           { ACE_GUARD_RETURN (ACE_SYNCH_MUTEX_T, aGuard, inherited::msg_queue_->lock (), -1);
             if (likely (!inherited::threadIds_.empty ()))
-              return queue_.enqueue_head_i (messageBlock_in, NULL);
+            {
+              Stream_IMessageQueue* imessage_queue_p =
+                dynamic_cast<Stream_IMessageQueue*> (inherited::msg_queue_);
+              ACE_ASSERT (imessage_queue_p);
+              return imessage_queue_p->enqueue_head_i (messageBlock_in,
+                                                       NULL);
+            } // end IF
           } // end lock scope
           isHighPriorityStop_ = false;
 

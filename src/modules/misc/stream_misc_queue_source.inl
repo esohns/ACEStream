@@ -358,8 +358,7 @@ Stream_Module_QueueReader_T<ACE_SYNCH_USE,
         {
           // enqueue(/process) STREAM_SESSION_END
           inherited::finished (false); // recurse upstream ?
-          message_block_p->release ();
-          message_block_p = NULL;
+          message_block_p->release (); message_block_p = NULL;
           continue;
         } // end IF
 

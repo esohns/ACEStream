@@ -21,10 +21,18 @@
 #ifndef STREAM_IMESSAGEQUEUE_H
 #define STREAM_IMESSAGEQUEUE_H
 
+// forward declarations
+class ACE_Message_Block;
+class ACE_Time_Value;
+
 class Stream_IMessageQueue
 {
  public:
-  // *NOTE*: returns #flushed messages
+  // *WARNING*: caller needs to hold inherited::lock_ !
+  virtual int enqueue_head_i (ACE_Message_Block*,       // message block handle
+                              ACE_Time_Value* = 0) = 0; // timeout [NULL: block]
+   
+   // *NOTE*: returns #flushed messages
   virtual unsigned int flush (bool = false) = 0; // flush session messages ?
 
   // *NOTE*: resets the 'shutting down' state

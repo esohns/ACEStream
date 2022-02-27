@@ -1646,7 +1646,7 @@ do_work (
       directShowConfiguration_in.signalHandlerConfiguration.stream =
         istream_control_p;
       directShowConfiguration_in.signalHandlerConfiguration.stopEventDispatchOnShutdown =
-        true;
+        false; // the input manager manages event handling
       signal_handler.initialize (directShowConfiguration_in.signalHandlerConfiguration);
       break;
     }
@@ -1660,7 +1660,7 @@ do_work (
       mediaFoundationConfiguration_in.signalHandlerConfiguration.stream =
         istream_control_p;
       mediaFoundationConfiguration_in.signalHandlerConfiguration.stopEventDispatchOnShutdown =
-        true;
+        false; // the input manager manages event handling
       signal_handler.initialize (mediaFoundationConfiguration_in.signalHandlerConfiguration);
       break;
     }
@@ -1680,7 +1680,7 @@ do_work (
   configuration_in.signalHandlerConfiguration.stream =
     istream_control_p;
   configuration_in.signalHandlerConfiguration.stopEventDispatchOnShutdown =
-    true;
+    false; // the input manager manages event handling
   signal_handler.initialize (configuration_in.signalHandlerConfiguration);
 #endif // ACE_WIN32 || ACE_WIN64
   if (unlikely (!Common_Signal_Tools::initialize (COMMON_SIGNAL_DEFAULT_DISPATCH_MODE,
@@ -1940,8 +1940,8 @@ do_work (
 #endif // GUI_SUPPORT
 
   // step3: clean up
-  input_manager_p->stop (true,   // wait ?
-                         false); // N/A
+  //input_manager_p->stop (true,   // wait ?
+  //                        false); // N/A
 //  result = stream_2_r.remove (&input_handler_module,
 //                              true,   // lock ?
 //                              false); // reset ?
@@ -2567,9 +2567,9 @@ ACE_TMAIN (int argc_in,
               elapsed_rusage.ru_nivcsw));
 #endif // ACE_WIN32 || ACE_WIN64
 
-  Common_Signal_Tools::finalize (COMMON_SIGNAL_DEFAULT_DISPATCH_MODE,
-                                 previous_signal_actions,
-                                 previous_signal_mask);
+  //Common_Signal_Tools::finalize (COMMON_SIGNAL_DEFAULT_DISPATCH_MODE,
+  //                               previous_signal_actions,
+  //                               previous_signal_mask);
   Common_Log_Tools::finalizeLogging ();
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   if (COM_initialized) Common_Tools::finalizeCOM ();
@@ -2583,9 +2583,9 @@ ACE_TMAIN (int argc_in,
   return EXIT_SUCCESS;
 
 error:
-  Common_Signal_Tools::finalize (COMMON_SIGNAL_DEFAULT_DISPATCH_MODE,
-                                 previous_signal_actions,
-                                 previous_signal_mask);
+  //Common_Signal_Tools::finalize (COMMON_SIGNAL_DEFAULT_DISPATCH_MODE,
+  //                               previous_signal_actions,
+  //                               previous_signal_mask);
   Common_Log_Tools::finalizeLogging ();
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   if (COM_initialized) Common_Tools::finalizeCOM ();

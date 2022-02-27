@@ -86,7 +86,7 @@ class Stream_Module_Net_IO_Stream_T
                         ControlMessageType,
                         DataMessageType,
                         SessionMessageType>
- , public Stream_IMessageQueue
+ //, public Stream_IMessageQueue
  , public Stream_IOutboundDataNotify
  , public Common_ISetR_T<std::string>
 {
@@ -151,12 +151,13 @@ class Stream_Module_Net_IO_Stream_T
                        bool = false);    // recurse upstream (if any) ?
   //inline virtual const SessionDataContainerType& getR_2 () const { ACE_ASSERT (inherited::sessionData_); return *inherited::sessionData_; }
 
-  // implement Stream_IMessageQueue
-  // *IMPORTANT NOTE*: these manipulate the 'outbound' queue only
-  inline virtual unsigned int flush (bool flushSessionMessages_in = false) { return inherited::messageQueue_.flush (flushSessionMessages_in); }
-  inline virtual void reset () { ACE_ASSERT (false); ACE_NOTSUP; }
-  inline virtual bool isShuttingDown () const { ACE_ASSERT (false); ACE_NOTSUP_RETURN (false); }
-  inline virtual void waitForIdleState () const { inherited::messageQueue_.waitForIdleState (); }
+  //// implement Stream_IMessageQueue
+  //// *IMPORTANT NOTE*: these manipulate the 'outbound' queue only
+  //inline virtual int enqueue_head_i (ACE_Message_Block*, ACE_Time_Value* = 0) { ACE_ASSERT (false); ACE_NOTSUP_RETURN (-1); }
+  //inline virtual unsigned int flush (bool flushSessionMessages_in = false) { return inherited::messageQueue_.flush (flushSessionMessages_in); }
+  //inline virtual void reset () { ACE_ASSERT (false); ACE_NOTSUP; }
+  //inline virtual bool isShuttingDown () const { ACE_ASSERT (false); ACE_NOTSUP_RETURN (false); }
+  //inline virtual void waitForIdleState () const { inherited::messageQueue_.waitForIdleState (); }
 
   // implement Stream_IOutboundDataNotify
   virtual const ACE_Notification_Strategy* const getP (bool = false) const; // recurse upstream ?

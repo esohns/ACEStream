@@ -88,6 +88,8 @@ Stream_HeadReaderTask_T<ACE_SYNCH_USE,
 
   switch (messageBlock_in->msg_type ())
   {
+    case STREAM_MESSAGE_CONTROL:
+      break;
     case STREAM_MESSAGE_SESSION:
     {
       SessionMessageType* session_message_p =

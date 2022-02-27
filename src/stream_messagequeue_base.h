@@ -52,14 +52,14 @@ class Stream_MessageQueueBase_T
                             ACE_Time_Value* = 0); // timeout [NULL: block]
 
   // *WARNING*: caller needs to hold inherited::lock_ !
-  virtual int enqueue_head_i (ACE_Message_Block*,   // message block handle
-                              ACE_Time_Value* = 0); // timeout [NULL: block]
-  // *WARNING*: caller needs to hold inherited::lock_ !
   virtual int dequeue_head_i (ACE_Message_Block*&,  // return value: first item
                               ACE_Time_Value* = 0); // timeout [NULL: block]
 
   // implement Stream_IMessageQueue
-  virtual unsigned int flush (bool = false); // flush session messages ?
+  // *WARNING*: caller needs to hold inherited::lock_ !
+  virtual int enqueue_head_i (ACE_Message_Block*,   // message block handle
+                              ACE_Time_Value* = 0); // timeout [NULL: block]
+  virtual unsigned int flush (bool = false);        // flush session messages ?
   inline virtual void reset () { isShuttingDown_ = false; }
   inline virtual bool isShuttingDown () const { return isShuttingDown_; }
   virtual void waitForIdleState () const;

@@ -310,11 +310,13 @@ endif ()
 set (VOICE_DIRECTORY "$ENV{LIB_ROOT}/flite/voices")
 file (TO_NATIVE_PATH "${VOICE_DIRECTORY}" VOICE_DIRECTORY)
 set (VOICE "cmu_us_slt")
-if ($<CONFIG> STREQUAL "Debug" OR
-    $<CONFIG> STREQUAL "RelWithDebInfo")
+#if ("$<CONFIG>" STREQUAL "Debug" OR
+#    "$<CONFIG>" STREQUAL "RelWithDebInfo")
+if (${CMAKE_BUILD_TYPE} STREQUAL "Debug" OR
+    ${CMAKE_BUILD_TYPE} STREQUAL "RelWithDebInfo")
  set (ARGS "${ARGS} -l -t")
-endif ($<CONFIG> STREQUAL "Debug" OR
-       $<CONFIG> STREQUAL "RelWithDebInfo")
+endif (${CMAKE_BUILD_TYPE} STREQUAL "Debug" OR
+       ${CMAKE_BUILD_TYPE} STREQUAL "RelWithDebInfo")
 if (UNIX)
  set (ARGS "${ARGS} -b ${VOICE} -c ${VOICE_DIRECTORY}")
  file (TO_NATIVE_PATH "${CMAKE_CURRENT_BINARY_DIR}/${EXECUTABLE}" COMMAND)
