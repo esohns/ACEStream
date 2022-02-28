@@ -625,8 +625,11 @@ error:
 #else
         GDK_THREADS_ENTER ();
 #endif // GTK_CHECK_VERSION (3,6,0)
-        gdk_window_destroy (inherited::window_); inherited::window_ = NULL;
-        gtk_main_quit ();
+        if (inherited::thr_count_ == 2)
+        {
+          gdk_window_destroy (inherited::window_); inherited::window_ = NULL;
+          gtk_main_quit ();
+        } // end IF
 #if GTK_CHECK_VERSION (3,6,0)
 #else
         GDK_THREADS_LEAVE ();

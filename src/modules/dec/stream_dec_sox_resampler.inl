@@ -496,6 +496,7 @@ Stream_Decoder_SoXResampler_T<ACE_SYNCH_USE,
     case STREAM_SESSION_MESSAGE_BEGIN:
     {
       // sanity check(s)
+      //ACE_ASSERT (inherited::configuration_->outputFormat);
       ACE_ASSERT (inherited::sessionData_);
       SessionDataType& session_data_r =
           const_cast<SessionDataType&> (inherited::sessionData_->getR ());

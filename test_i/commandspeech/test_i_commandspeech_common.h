@@ -149,7 +149,6 @@ struct Test_I_CommandSpeech_Configuration
   }
 
   struct Common_Input_Configuration         inputConfiguration;
-//  Stream_Input_Manager_Configuration_t      inputManagerConfiguration;
   struct Common_Input_Manager_Configuration inputManagerConfiguration;
 };
 
@@ -353,20 +352,13 @@ struct Test_I_CommandSpeech_UI_CBData
   Test_I_CommandSpeech_UI_CBData ()
    : Test_I_UI_CBData ()
 #if defined (GTK_SUPPORT)
-#if defined (GTKGL_SUPPORT)
-   , OpenGLInstructions ()
-   , objectRotation (1)
-#endif // GTKGL_SUPPORT
-#endif // GTK_SUPPORT
-#if defined (GTK_SUPPORT)
    , resizeNotification (NULL)
    , spectrumAnalyzer (NULL)
    , spectrumAnalyzerCBData ()
 #endif // GTK_SUPPORT
    , stream (NULL)
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-   , boostControl (NULL)
-   , captureVolumeControl (NULL)
+   , volumeControl (NULL)
    //, renderVolumeControl (NULL)
 #endif // ACE_WIN32 || ACE_WIN64
    , progressData ()
@@ -375,20 +367,13 @@ struct Test_I_CommandSpeech_UI_CBData
   }
 
 #if defined (GTK_SUPPORT)
-#if defined (GTKGL_SUPPORT)
-  Stream_Visualization_GTKGL_Instructions_t       OpenGLInstructions;
-  int                                             objectRotation;
-#endif // GTKGL_SUPPORT
-#endif // GTK_SUPPORT
-#if defined (GTK_SUPPORT)
   Test_I_Common_ISet_t*                           resizeNotification;
   Common_IDispatch*                               spectrumAnalyzer;
   struct acestream_visualization_gtk_cairo_cbdata spectrumAnalyzerCBData;
 #endif // GTK_SUPPORT
   Stream_IStreamControlBase*                      stream;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  IAudioVolumeLevel*                              boostControl;
-  IAudioEndpointVolume*                           captureVolumeControl;
+  IAudioEndpointVolume*                           volumeControl;
   //ISimpleAudioVolume*                       renderVolumeControl;
 #endif // ACE_WIN32 || ACE_WIN64
   struct Test_I_CommandSpeech_UI_ProgressData     progressData;

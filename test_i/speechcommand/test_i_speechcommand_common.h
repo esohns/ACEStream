@@ -364,7 +364,7 @@ struct Test_I_SpeechCommand_UI_CBData
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
    , boostControl (NULL)
    , captureVolumeControl (NULL)
-   //, renderVolumeControl (NULL)
+  //, renderVolumeControl (NULL)
 #endif // ACE_WIN32 || ACE_WIN64
    , progressData ()
   {

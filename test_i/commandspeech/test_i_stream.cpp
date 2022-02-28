@@ -546,17 +546,17 @@ Test_I_MediaFoundation_Stream::load (Stream_ILayout* layout_in,
   layout_in->append (module_p, NULL, 0);
   module_p = NULL;
 
-//#if defined (GUI_SUPPORT)
-//#if defined (GTK_USE)
-//  ACE_NEW_RETURN (module_p,
-//                  Test_I_MediaFoundation_Vis_SpectrumAnalyzer_Module (this,
-//                                                                      ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_GTK_SPECTRUM_ANALYZER_DEFAULT_NAME_STRING)),
-//                  false);
-//  ACE_ASSERT (module_p);
-//  layout_in->append (module_p, branch_p, index_i);
-//  module_p = NULL;
-//#endif // GTK_USE
-//#endif // GUI_SUPPORT
+#if defined (GUI_SUPPORT)
+#if defined (GTK_USE)
+  ACE_NEW_RETURN (module_p,
+                  Test_I_MediaFoundation_Vis_SpectrumAnalyzer_Module (this,
+                                                                      ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_GTK_SPECTRUM_ANALYZER_DEFAULT_NAME_STRING)),
+                  false);
+  ACE_ASSERT (module_p);
+  layout_in->append (module_p, branch_p, index_i);
+  module_p = NULL;
+#endif // GTK_USE
+#endif // GUI_SUPPORT
   ACE_NEW_RETURN (module_p,
                   Test_I_MediaFoundation_Target_WASAPI_Module (this,
                                                                ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_WASAPI_RENDER_DEFAULT_NAME_STRING)),

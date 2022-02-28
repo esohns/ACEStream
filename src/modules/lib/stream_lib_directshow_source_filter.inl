@@ -1965,8 +1965,8 @@ Stream_MediaFramework_DirectShow_Source_Filter_OutputPin_T<ConfigurationType>::N
     /*frameInterval_ = defaultFrameInterval_*/;
   else
   {
-    frameInterval_ =
-      (REFERENCE_TIME)(frameInterval_ * (1000.0F / (float)quality_in.Proportion));
+    frameInterval_ *=
+      static_cast<REFERENCE_TIME> (1000.0F / (float)quality_in.Proportion);
     //if (frameInterval_ > 1000)
     //  frameInterval_ = 1000;    // We don't go slower than 1 per second
     //else if (frameInterval_ < 10)

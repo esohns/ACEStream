@@ -1859,17 +1859,30 @@ do_work (
     CBData_in.stream = &stream;
     //CBData_in.userData = &CBData_in;
 #endif // ACE_WIN32 || ACE_WIN64
+
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+    HWND window_p = GetConsoleWindow ();
+    if (unlikely (!window_p))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to ::GetConsoleWindow(), returning\n")));
+      goto error;
+    } // end IF
+    BOOL was_visible_b = ShowWindow (window_p, SW_HIDE);
+    ACE_UNUSED_ARG (was_visible_b);
+#endif // ACE_WIN32 || ACE_WIN64
+
 #if defined (GTK_USE)
     itask_p = gtk_manager_p;
     ACE_ASSERT (itask_p);
     itask_p->start (NULL);
-    ACE_Time_Value timeout (0,
-                            COMMON_UI_GTK_TIMEOUT_DEFAULT_MANAGER_INITIALIZATION_MS * 1000);
-    result_2 = ACE_OS::sleep (timeout);
-    if (unlikely (result_2 == -1))
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to ACE_OS::sleep(%#T): \"%m\", continuing\n"),
-                  &timeout));
+    //ACE_Time_Value timeout (0,
+    //                        COMMON_UI_GTK_TIMEOUT_DEFAULT_MANAGER_INITIALIZATION_MS * 1000);
+    //result_2 = ACE_OS::sleep (timeout);
+    //if (unlikely (result_2 == -1))
+    //  ACE_DEBUG ((LM_ERROR,
+    //              ACE_TEXT ("failed to ACE_OS::sleep(%#T): \"%m\", continuing\n"),
+    //              &timeout));
     if (unlikely (!itask_p->isRunning ()))
     {
       ACE_DEBUG ((LM_ERROR,
