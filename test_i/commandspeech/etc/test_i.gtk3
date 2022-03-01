@@ -206,11 +206,9 @@ along with commandspeech.  If not, see <http://www.gnu.org/licenses/>.
   <object class="GtkDialog" id="dialog_main">
     <property name="visible">True</property>
     <property name="can-focus">False</property>
-    <property name="events">GDK_KEY_PRESS_MASK | GDK_KEY_RELEASE_MASK | GDK_STRUCTURE_MASK</property>
     <property name="type-hint">normal</property>
     <property name="deletable">False</property>
     <property name="has-resize-grip">True</property>
-    <signal name="key-press-event" handler="dialog_main_key_press_event_cb" swapped="no"/>
     <child internal-child="vbox">
       <object class="GtkBox" id="box_dialog">
         <property name="visible">True</property>
@@ -272,12 +270,12 @@ along with commandspeech.  If not, see <http://www.gnu.org/licenses/>.
           <object class="GtkBox" id="box_main">
             <property name="visible">True</property>
             <property name="can-focus">False</property>
+            <property name="hexpand">True</property>
+            <property name="vexpand">True</property>
             <child>
               <object class="GtkBox" id="box_controls">
                 <property name="visible">True</property>
                 <property name="can-focus">False</property>
-                <property name="halign">start</property>
-                <property name="valign">start</property>
                 <property name="orientation">vertical</property>
                 <child>
                   <object class="GtkBox" id="box_actions_information">
@@ -320,7 +318,7 @@ along with commandspeech.  If not, see <http://www.gnu.org/licenses/>.
                                   </object>
                                   <packing>
                                     <property name="expand">False</property>
-                                    <property name="fill">True</property>
+                                    <property name="fill">False</property>
                                     <property name="position">0</property>
                                   </packing>
                                 </child>
@@ -339,7 +337,7 @@ along with commandspeech.  If not, see <http://www.gnu.org/licenses/>.
                                   </object>
                                   <packing>
                                     <property name="expand">False</property>
-                                    <property name="fill">True</property>
+                                    <property name="fill">False</property>
                                     <property name="position">1</property>
                                   </packing>
                                 </child>
@@ -353,7 +351,7 @@ along with commandspeech.  If not, see <http://www.gnu.org/licenses/>.
                       </object>
                       <packing>
                         <property name="expand">False</property>
-                        <property name="fill">True</property>
+                        <property name="fill">False</property>
                         <property name="position">0</property>
                       </packing>
                     </child>
@@ -412,8 +410,8 @@ along with commandspeech.  If not, see <http://www.gnu.org/licenses/>.
                                         <property name="numeric">True</property>
                                       </object>
                                       <packing>
-                                        <property name="expand">True</property>
-                                        <property name="fill">True</property>
+                                        <property name="expand">False</property>
+                                        <property name="fill">False</property>
                                         <property name="position">0</property>
                                       </packing>
                                     </child>
@@ -432,8 +430,8 @@ along with commandspeech.  If not, see <http://www.gnu.org/licenses/>.
                                         <property name="numeric">True</property>
                                       </object>
                                       <packing>
-                                        <property name="expand">True</property>
-                                        <property name="fill">True</property>
+                                        <property name="expand">False</property>
+                                        <property name="fill">False</property>
                                         <property name="position">1</property>
                                       </packing>
                                     </child>
@@ -441,6 +439,8 @@ along with commandspeech.  If not, see <http://www.gnu.org/licenses/>.
                                   <packing>
                                     <property name="left-attach">1</property>
                                     <property name="right-attach">2</property>
+                                    <property name="x-options">GTK_FILL</property>
+                                    <property name="y-options">GTK_FILL</property>
                                   </packing>
                                 </child>
                                 <child>
@@ -477,6 +477,8 @@ along with commandspeech.  If not, see <http://www.gnu.org/licenses/>.
                                     <property name="right-attach">2</property>
                                     <property name="top-attach">1</property>
                                     <property name="bottom-attach">2</property>
+                                    <property name="x-options">GTK_FILL</property>
+                                    <property name="y-options">GTK_FILL</property>
                                   </packing>
                                 </child>
                               </object>
@@ -488,15 +490,15 @@ along with commandspeech.  If not, see <http://www.gnu.org/licenses/>.
                         </child>
                       </object>
                       <packing>
-                        <property name="expand">True</property>
-                        <property name="fill">True</property>
+                        <property name="expand">False</property>
+                        <property name="fill">False</property>
                         <property name="position">1</property>
                       </packing>
                     </child>
                   </object>
                   <packing>
                     <property name="expand">False</property>
-                    <property name="fill">True</property>
+                    <property name="fill">False</property>
                     <property name="position">0</property>
                   </packing>
                 </child>
@@ -551,8 +553,8 @@ along with commandspeech.  If not, see <http://www.gnu.org/licenses/>.
                                                 <signal name="file-set" handler="filechooserbutton_voice_file_set_cb" swapped="no"/>
                                               </object>
                                               <packing>
-                                                <property name="expand">True</property>
-                                                <property name="fill">True</property>
+                                                <property name="expand">False</property>
+                                                <property name="fill">False</property>
                                                 <property name="position">0</property>
                                               </packing>
                                             </child>
@@ -572,8 +574,8 @@ along with commandspeech.  If not, see <http://www.gnu.org/licenses/>.
                                                 <signal name="changed" handler="combobox_voice_changed_cb" swapped="no"/>
                                               </object>
                                               <packing>
-                                                <property name="expand">True</property>
-                                                <property name="fill">True</property>
+                                                <property name="expand">False</property>
+                                                <property name="fill">False</property>
                                                 <property name="position">1</property>
                                               </packing>
                                             </child>
@@ -607,7 +609,7 @@ along with commandspeech.  If not, see <http://www.gnu.org/licenses/>.
                                               </object>
                                               <packing>
                                                 <property name="expand">False</property>
-                                                <property name="fill">True</property>
+                                                <property name="fill">False</property>
                                                 <property name="position">3</property>
                                               </packing>
                                             </child>
@@ -621,7 +623,7 @@ along with commandspeech.  If not, see <http://www.gnu.org/licenses/>.
                                   </object>
                                   <packing>
                                     <property name="expand">False</property>
-                                    <property name="fill">True</property>
+                                    <property name="fill">False</property>
                                     <property name="position">0</property>
                                   </packing>
                                 </child>
@@ -635,7 +637,7 @@ along with commandspeech.  If not, see <http://www.gnu.org/licenses/>.
                       </object>
                       <packing>
                         <property name="expand">False</property>
-                        <property name="fill">True</property>
+                        <property name="fill">False</property>
                         <property name="position">0</property>
                       </packing>
                     </child>
@@ -666,8 +668,8 @@ along with commandspeech.  If not, see <http://www.gnu.org/licenses/>.
                                     <signal name="toggled" handler="togglebutton_playback_toggled_cb" swapped="no"/>
                                   </object>
                                   <packing>
-                                    <property name="expand">True</property>
-                                    <property name="fill">True</property>
+                                    <property name="expand">False</property>
+                                    <property name="fill">False</property>
                                     <property name="position">0</property>
                                   </packing>
                                 </child>
@@ -697,8 +699,8 @@ along with commandspeech.  If not, see <http://www.gnu.org/licenses/>.
                                             <signal name="changed" handler="combobox_target_changed_cb" swapped="no"/>
                                           </object>
                                           <packing>
-                                            <property name="expand">True</property>
-                                            <property name="fill">True</property>
+                                            <property name="expand">False</property>
+                                            <property name="fill">False</property>
                                             <property name="position">0</property>
                                           </packing>
                                         </child>
@@ -719,14 +721,14 @@ along with commandspeech.  If not, see <http://www.gnu.org/licenses/>.
                                           </object>
                                           <packing>
                                             <property name="expand">False</property>
-                                            <property name="fill">True</property>
+                                            <property name="fill">False</property>
                                             <property name="position">1</property>
                                           </packing>
                                         </child>
                                       </object>
                                       <packing>
                                         <property name="expand">False</property>
-                                        <property name="fill">True</property>
+                                        <property name="fill">False</property>
                                         <property name="position">0</property>
                                       </packing>
                                     </child>
@@ -740,15 +742,15 @@ along with commandspeech.  If not, see <http://www.gnu.org/licenses/>.
                                         <property name="draw-value">False</property>
                                       </object>
                                       <packing>
-                                        <property name="expand">True</property>
-                                        <property name="fill">True</property>
+                                        <property name="expand">False</property>
+                                        <property name="fill">False</property>
                                         <property name="position">1</property>
                                       </packing>
                                     </child>
                                   </object>
                                   <packing>
                                     <property name="expand">False</property>
-                                    <property name="fill">True</property>
+                                    <property name="fill">False</property>
                                     <property name="position">1</property>
                                   </packing>
                                 </child>
@@ -762,7 +764,7 @@ along with commandspeech.  If not, see <http://www.gnu.org/licenses/>.
                       </object>
                       <packing>
                         <property name="expand">False</property>
-                        <property name="fill">True</property>
+                        <property name="fill">False</property>
                         <property name="position">1</property>
                       </packing>
                     </child>
@@ -795,8 +797,8 @@ along with commandspeech.  If not, see <http://www.gnu.org/licenses/>.
                                     <signal name="toggled" handler="togglebutton_save_toggled_cb" swapped="no"/>
                                   </object>
                                   <packing>
-                                    <property name="expand">True</property>
-                                    <property name="fill">True</property>
+                                    <property name="expand">False</property>
+                                    <property name="fill">False</property>
                                     <property name="position">0</property>
                                   </packing>
                                 </child>
@@ -828,8 +830,8 @@ along with commandspeech.  If not, see <http://www.gnu.org/licenses/>.
                                         <property name="secondary-icon-sensitive">False</property>
                                       </object>
                                       <packing>
-                                        <property name="expand">True</property>
-                                        <property name="fill">True</property>
+                                        <property name="expand">False</property>
+                                        <property name="fill">False</property>
                                         <property name="position">0</property>
                                       </packing>
                                     </child>
@@ -852,19 +854,18 @@ along with commandspeech.  If not, see <http://www.gnu.org/licenses/>.
                                         <property name="use-preview-label">False</property>
                                         <property name="dialog">filechooserdialog_save</property>
                                         <property name="title" translatable="yes">choose a folder</property>
-                                        <signal name="current-folder-changed" handler="filechooserbutton_cb" swapped="no"/>
                                         <signal name="file-set" handler="filechooserbutton_save_file_set_cb" swapped="no"/>
                                       </object>
                                       <packing>
                                         <property name="expand">False</property>
-                                        <property name="fill">True</property>
+                                        <property name="fill">False</property>
                                         <property name="position">1</property>
                                       </packing>
                                     </child>
                                   </object>
                                   <packing>
                                     <property name="expand">False</property>
-                                    <property name="fill">True</property>
+                                    <property name="fill">False</property>
                                     <property name="position">1</property>
                                   </packing>
                                 </child>
@@ -878,7 +879,7 @@ along with commandspeech.  If not, see <http://www.gnu.org/licenses/>.
                       </object>
                       <packing>
                         <property name="expand">False</property>
-                        <property name="fill">True</property>
+                        <property name="fill">False</property>
                         <property name="position">2</property>
                       </packing>
                     </child>
@@ -907,8 +908,8 @@ along with commandspeech.  If not, see <http://www.gnu.org/licenses/>.
                                     <signal name="toggled" handler="togglebutton_display_toggled_cb" swapped="no"/>
                                   </object>
                                   <packing>
-                                    <property name="expand">True</property>
-                                    <property name="fill">True</property>
+                                    <property name="expand">False</property>
+                                    <property name="fill">False</property>
                                     <property name="position">0</property>
                                   </packing>
                                 </child>
@@ -922,8 +923,8 @@ along with commandspeech.  If not, see <http://www.gnu.org/licenses/>.
                                     <signal name="changed" handler="combobox_adapter_changed_cb" swapped="no"/>
                                   </object>
                                   <packing>
-                                    <property name="expand">True</property>
-                                    <property name="fill">True</property>
+                                    <property name="expand">False</property>
+                                    <property name="fill">False</property>
                                     <property name="position">1</property>
                                   </packing>
                                 </child>
@@ -940,8 +941,8 @@ along with commandspeech.  If not, see <http://www.gnu.org/licenses/>.
                                         <signal name="changed" handler="combobox_display_changed_cb" swapped="no"/>
                                       </object>
                                       <packing>
-                                        <property name="expand">True</property>
-                                        <property name="fill">True</property>
+                                        <property name="expand">False</property>
+                                        <property name="fill">False</property>
                                         <property name="position">0</property>
                                       </packing>
                                     </child>
@@ -961,14 +962,14 @@ along with commandspeech.  If not, see <http://www.gnu.org/licenses/>.
                                       </object>
                                       <packing>
                                         <property name="expand">False</property>
-                                        <property name="fill">True</property>
+                                        <property name="fill">False</property>
                                         <property name="position">1</property>
                                       </packing>
                                     </child>
                                   </object>
                                   <packing>
                                     <property name="expand">False</property>
-                                    <property name="fill">True</property>
+                                    <property name="fill">False</property>
                                     <property name="position">2</property>
                                   </packing>
                                 </child>
@@ -994,7 +995,7 @@ along with commandspeech.  If not, see <http://www.gnu.org/licenses/>.
                                       </object>
                                       <packing>
                                         <property name="expand">False</property>
-                                        <property name="fill">True</property>
+                                        <property name="fill">False</property>
                                         <property name="position">0</property>
                                       </packing>
                                     </child>
@@ -1011,14 +1012,14 @@ along with commandspeech.  If not, see <http://www.gnu.org/licenses/>.
                                       </object>
                                       <packing>
                                         <property name="expand">False</property>
-                                        <property name="fill">True</property>
+                                        <property name="fill">False</property>
                                         <property name="position">1</property>
                                       </packing>
                                     </child>
                                   </object>
                                   <packing>
-                                    <property name="expand">True</property>
-                                    <property name="fill">True</property>
+                                    <property name="expand">False</property>
+                                    <property name="fill">False</property>
                                     <property name="position">3</property>
                                   </packing>
                                 </child>
@@ -1032,21 +1033,21 @@ along with commandspeech.  If not, see <http://www.gnu.org/licenses/>.
                       </object>
                       <packing>
                         <property name="expand">False</property>
-                        <property name="fill">True</property>
+                        <property name="fill">False</property>
                         <property name="position">3</property>
                       </packing>
                     </child>
                   </object>
                   <packing>
                     <property name="expand">False</property>
-                    <property name="fill">True</property>
+                    <property name="fill">False</property>
                     <property name="position">1</property>
                   </packing>
                 </child>
               </object>
               <packing>
                 <property name="expand">False</property>
-                <property name="fill">True</property>
+                <property name="fill">False</property>
                 <property name="position">0</property>
               </packing>
             </child>
@@ -1173,7 +1174,7 @@ along with commandspeech.  If not, see <http://www.gnu.org/licenses/>.
             </child>
           </object>
           <packing>
-            <property name="expand">True</property>
+            <property name="expand">False</property>
             <property name="fill">True</property>
             <property name="position">0</property>
           </packing>

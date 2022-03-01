@@ -1113,11 +1113,7 @@ Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
     cairo_set_line_width (cbdata_p->context, 1.0);               \
   } // end IF
 
-#if GTK_CHECK_VERSION (3,6,0)
-#else
-  if (inherited::window_)
-    GDK_THREADS_ENTER ();
-#endif // GTK_CHECK_VERSION (3,6,0)
+  GDK_THREADS_ENTER ();
 
   // step1: clear the window(s)
   if (*mode2D_ < STREAM_VISUALIZATION_SPECTRUMANALYZER_2DMODE_MAX)
@@ -1210,13 +1206,8 @@ Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
 
   gdk_window_invalidate_rect (cbdata_p->window,
                               NULL,   // whole window
-                              FALSE); // invaliddate children ?
+                              FALSE); // invalidate children ?
 
 error:
-#if GTK_CHECK_VERSION (3,6,0)
-  ;
-#else
-  if (inherited::window_)
-    GDK_THREADS_LEAVE ();
-#endif // GTK_CHECK_VERSION (3,6,0)
+  GDK_THREADS_LEAVE ();
 }

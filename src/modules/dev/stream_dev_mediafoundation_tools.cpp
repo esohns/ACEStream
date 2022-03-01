@@ -27,26 +27,21 @@
 
 #include "dmoreg.h"
 #include "dshow.h"
-//#include <dsound.h>
 #include "dvdmedia.h"
 #include "Dmodshow.h"
 #undef GetObject
 #include "evr.h"
-//#include <fourcc.h>
 #include "ks.h"
 #include "ksmedia.h"
- //#include <ksuuids.h>
 #include "qedit.h"
 
 #include "mfapi.h"
 #include "mferror.h"
-//#include <mftransform.h>
 
 #include "wmcodecdsp.h"
 
 #include "ace/Log_Msg.h"
 #include "ace/OS.h"
-//#include "ace/Synch.h"
 
 #include "common_time_common.h"
 #include "common_tools.h"

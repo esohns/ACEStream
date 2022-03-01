@@ -61,9 +61,9 @@ class Stream_Device_MediaFoundation_Tools
   static bool loadDeviceTopology (const struct Stream_Device_Identifier&, // device identifier
                                   REFGUID,                                // device category
 #if COMMON_OS_WIN32_TARGET_PLATFORM(0x0602) // _WIN32_WINNT_WIN8
-                                  IMFMediaSourceEx*&,                     // input/return value: (capture) media source handle
+                                  IMFMediaSourceEx*&,                     // input/return value: media source handle
 #else
-                                  IMFMediaSource*&,                       // input/return value: (capture) media source handle
+                                  IMFMediaSource*&,                       // input/return value: media source handle
 #endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0602)
 #if COMMON_OS_WIN32_TARGET_PLATFORM(0x0601) // _WIN32_WINNT_WIN7
                                   IMFSampleGrabberSinkCallback2*,         // sample grabber sink callback handle [NULL: use null-renderer]

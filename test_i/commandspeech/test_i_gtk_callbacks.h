@@ -40,6 +40,7 @@ extern "C"
 {
 #endif /* __cplusplus */
 G_MODULE_EXPORT void button_about_clicked_cb (GtkWidget*, gpointer);
+G_MODULE_EXPORT void button_clear_clicked_cb (GtkWidget*, gpointer);
 G_MODULE_EXPORT void button_display_reset_clicked_cb (GtkWidget*, gpointer);
 G_MODULE_EXPORT void button_display_settings_clicked_cb (GtkWidget*, gpointer);
 G_MODULE_EXPORT void button_hw_settings_clicked_cb (GtkWidget*, gpointer);
@@ -57,12 +58,12 @@ G_MODULE_EXPORT void drawingarea_size_allocate_cb (GtkWidget*, GdkRectangle*, gp
 G_MODULE_EXPORT gboolean drawingarea_configure_event_cb (GtkWidget*, GdkEvent*, gpointer);
 G_MODULE_EXPORT gboolean drawingarea_expose_event_cb (GtkWidget*, GdkEvent*, gpointer);
 #endif // GTK_CHECK_VERSION(3,0,0)
-G_MODULE_EXPORT gboolean drawingarea_key_press_event (GtkWidget*, GdkEventKey, gpointer);
+G_MODULE_EXPORT gboolean drawingarea_key_press_event_cb (GtkWidget*, GdkEventKey, gpointer);
 G_MODULE_EXPORT gboolean drawingarea_query_tooltip_cb (GtkWidget*, gint, gint, gboolean, GtkTooltip*, gpointer);
 G_MODULE_EXPORT void filechooserbutton_save_file_set_cb (GtkFileChooserButton*, gpointer);
 G_MODULE_EXPORT void filechooserbutton_voice_file_set_cb (GtkFileChooserButton*, gpointer);
 G_MODULE_EXPORT void hscale_volume_value_changed_cb (GtkRange*, gpointer);
-G_MODULE_EXPORT gboolean textview_key_press_event (GtkWidget*, GdkEventKey, gpointer);
+G_MODULE_EXPORT gboolean textview_key_press_event_cb (GtkWidget*, GdkEventKey, gpointer);
 G_MODULE_EXPORT void textview_size_allocate_cb (GtkWidget*, GdkRectangle*, gpointer);
 G_MODULE_EXPORT void togglebutton_display_toggled_cb (GtkToggleButton*, gpointer);
 G_MODULE_EXPORT void togglebutton_fullscreen_toggled_cb (GtkToggleButton*, gpointer);

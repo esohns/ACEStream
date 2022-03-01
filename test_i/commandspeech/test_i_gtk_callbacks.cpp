@@ -1459,24 +1459,22 @@ idle_initialize_UI_cb (gpointer userData_in)
       return G_SOURCE_REMOVE;
     } // end ELSE
 
-#if defined (GTKGL_SUPPORT)
-    event_source_id =
-      g_timeout_add (COMMON_UI_GTK_REFRESH_DEFAULT_OPENGL_MS,
-                     idle_update_display_cb,
-                     userData_in);
-      //g_idle_add_full (G_PRIORITY_DEFAULT_IDLE, // _LOW doesn't work (on Win32)
-      //                 idle_update_display_cb,
-      //                 userData_in,
-      //                 NULL);
-    if (event_source_id > 0)
-      ui_cb_data_base_p->UIState->eventSourceIds.insert (event_source_id);
-    else
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to g_timeout_add(): \"%m\", aborting\n")));
-      return G_SOURCE_REMOVE;
-    } // end ELSE
-#endif // GTKGL_SUPPORT
+    //event_source_id =
+    //  g_timeout_add (COMMON_UI_GTK_REFRESH_DEFAULT_OPENGL_MS,
+    //                 idle_update_display_cb,
+    //                 userData_in);
+    //  //g_idle_add_full (G_PRIORITY_DEFAULT_IDLE, // _LOW doesn't work (on Win32)
+    //  //                 idle_update_display_cb,
+    //  //                 userData_in,
+    //  //                 NULL);
+    //if (event_source_id > 0)
+    //  ui_cb_data_base_p->UIState->eventSourceIds.insert (event_source_id);
+    //else
+    //{
+    //  ACE_DEBUG ((LM_ERROR,
+    //              ACE_TEXT ("failed to g_timeout_add(): \"%m\", aborting\n")));
+    //  return G_SOURCE_REMOVE;
+    //} // end ELSE
   } // end lock scope
 
   return G_SOURCE_REMOVE;
@@ -1916,9 +1914,6 @@ idle_update_display_cb (gpointer userData_in)
   ACE_ASSERT (iterator != state_r.builders.end ());
 
   GdkWindow* window_p = NULL;
-//#if defined (GTKGL_SUPPORT)
-//  Common_UI_GTK_GLContextsIterator_t iterator_2;
-//#endif /* GTKGL_SUPPORT */
 
   // trigger refresh of the 2D area
   GtkDrawingArea* drawing_area_p =
@@ -1933,18 +1928,6 @@ idle_update_display_cb (gpointer userData_in)
                               NULL,   // whole window
                               FALSE); // invaliddate children ?
 
-//#if defined (GTKGL_SUPPORT)
-//  // trigger refresh of the 3D OpenGL area
-//  ACE_ASSERT (!state_r.OpenGLContexts.empty ());
-//  iterator_2 = state_r.OpenGLContexts.begin ();
-//  window_p = gtk_widget_get_window (GTK_WIDGET (&(*iterator_2).first->darea));
-//  if (unlikely (!window_p))
-//    goto continue_2; // <-- not realized yet
-//
-//  gdk_window_invalidate_rect (window_p,
-//                              NULL,   // whole window
-//                              FALSE); // invaliddate children ?
-//#endif /* GTKGL_SUPPORT */
 continue_2:
   return G_SOURCE_CONTINUE;
 }
@@ -2290,8 +2273,15 @@ combobox_target_changed_cb (GtkWidget* widget_in,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   struct Test_I_DirectShow_UI_CBData* directshow_ui_cb_data_p = NULL;
   struct Test_I_MediaFoundation_UI_CBData* mediafoundation_ui_cb_data_p = NULL;
-  Test_I_MediaFoundation_StreamConfiguration_t::ITERATOR_T mediafoundation_modulehandler_configuration_iterator;
   Test_I_DirectShow_StreamConfiguration_t::ITERATOR_T directshow_modulehandler_configuration_iterator;
+  Test_I_DirectShow_StreamConfiguration_t::ITERATOR_T directshow_modulehandler_configuration_iterator_2; // renderer
+  Test_I_MediaFoundation_StreamConfiguration_t::ITERATOR_T mediafoundation_modulehandler_configuration_iterator;
+  Test_I_MediaFoundation_StreamConfiguration_t::ITERATOR_T mediafoundation_modulehandler_configuration_iterator_2; // renderer
+  std::string renderer_modulename_string;
+  enum Stream_Device_Renderer renderer_e = STREAM_DEVICE_RENDERER_INVALID;
+  HRESULT result = E_FAIL;
+  IMFMediaSource* media_source_p = NULL;
+  bool make_topology_b = false;
   switch (ui_cb_data_base_p->mediaFramework)
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
@@ -2306,6 +2296,8 @@ combobox_target_changed_cb (GtkWidget* widget_in,
         directshow_ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
       ACE_ASSERT (directshow_modulehandler_configuration_iterator != directshow_ui_cb_data_p->configuration->streamConfiguration.end ());
 
+      renderer_e =
+        directshow_ui_cb_data_p->configuration->streamConfiguration.configuration_->renderer;
       stream_p = directshow_ui_cb_data_p->stream;
       break;
     }
@@ -2321,6 +2313,8 @@ combobox_target_changed_cb (GtkWidget* widget_in,
         mediafoundation_ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
       ACE_ASSERT (mediafoundation_modulehandler_configuration_iterator != mediafoundation_ui_cb_data_p->configuration->streamConfiguration.end ());
 
+      renderer_e =
+        mediafoundation_ui_cb_data_p->configuration->streamConfiguration.configuration_->renderer;
       stream_p = mediafoundation_ui_cb_data_p->stream;
       break;
     }
@@ -2329,6 +2323,55 @@ combobox_target_changed_cb (GtkWidget* widget_in,
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("invalid/unknown media framework (was: %d), returning\n"),
                   ui_cb_data_base_p->mediaFramework));
+      return;
+    }
+  } // end SWITCH
+
+  switch (renderer_e)
+  {
+    case STREAM_DEVICE_RENDERER_WAVEOUT:
+    {
+      renderer_modulename_string =
+        ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_WAVEOUT_RENDER_DEFAULT_NAME_STRING);
+      break;
+    }
+    case STREAM_DEVICE_RENDERER_WASAPI:
+    {
+      renderer_modulename_string =
+        ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_WASAPI_RENDER_DEFAULT_NAME_STRING);
+      break;
+    }
+    case STREAM_DEVICE_RENDERER_DIRECTSHOW:
+    {
+      renderer_modulename_string =
+        ACE_TEXT_ALWAYS_CHAR (STREAM_LIB_DIRECTSHOW_TARGET_DEFAULT_NAME_STRING);
+      break;
+    }
+    case STREAM_DEVICE_RENDERER_MEDIAFOUNDATION:
+    {
+      renderer_modulename_string =
+        ACE_TEXT_ALWAYS_CHAR (STREAM_LIB_MEDIAFOUNDATION_TARGET_DEFAULT_NAME_STRING);
+
+      Test_I_MediaFoundation_Stream* stream_2 =
+        dynamic_cast<Test_I_MediaFoundation_Stream*> (mediafoundation_ui_cb_data_p->stream);
+      ACE_ASSERT (stream_2);
+      Test_I_MediaFoundation_Target* target_p =
+        &const_cast<Test_I_MediaFoundation_Target&> (stream_2->getR_4 ());
+      if (!target_p->initialize (mediafoundation_ui_cb_data_p->configuration->mediaFoundationConfiguration))
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("failed to Stream_MediaFramework_MediaFoundation_MediaSource_T::initialize(), returning\n")));
+        return;
+      } // end IF
+      media_source_p = target_p;
+      make_topology_b = true;
+      break;
+    }
+    default:
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("invalid/unknown renderer type (was: %d), returning\n"),
+                  renderer_e));
       return;
     }
   } // end SWITCH
@@ -2351,7 +2394,7 @@ combobox_target_changed_cb (GtkWidget* widget_in,
                                             ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_LISTSTORE_TARGET_NAME)));
   ACE_ASSERT (list_store_p);
   std::string device_identifier_string;
-  unsigned int card_id_i = std::numeric_limits<unsigned int>::max ();
+  gint card_id_i = std::numeric_limits<int>::max ();
 #if GTK_CHECK_VERSION(2,30,0)
   GValue value = G_VALUE_INIT;
   GValue value_2 = G_VALUE_INIT;
@@ -2364,7 +2407,7 @@ combobox_target_changed_cb (GtkWidget* widget_in,
                             &iterator_2,
                             1, &value);
   ACE_ASSERT (G_VALUE_TYPE (&value) == G_TYPE_INT);
-  card_id_i = g_value_get_uint (&value);
+  card_id_i = g_value_get_int (&value);
   g_value_unset (&value);
   gtk_tree_model_get_value (GTK_TREE_MODEL (list_store_p),
                             &iterator_2,
@@ -2376,63 +2419,35 @@ combobox_target_changed_cb (GtkWidget* widget_in,
 //  gint n_rows = 0;
   GtkToggleButton* toggle_button_p = NULL;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-#if defined (_WIN32_WINNT) && (_WIN32_WINNT >= 0x0602) // _WIN32_WINNT_WIN8
-  IMFMediaSourceEx* media_source_p = NULL;
-#else
-  IMFMediaSource* media_source_p = NULL;
-#endif // _WIN32_WINNT && (_WIN32_WINNT >= 0x0602)
   switch (ui_cb_data_base_p->mediaFramework)
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
     {
-      if (directshow_ui_cb_data_p->streamConfiguration)
-      {
-        directshow_ui_cb_data_p->streamConfiguration->Release (); directshow_ui_cb_data_p->streamConfiguration = NULL;
-      } // end IF
-      if ((*directshow_modulehandler_configuration_iterator).second.second->builder)
-      {
-        Stream_MediaFramework_DirectShow_Tools::shutdown ((*directshow_modulehandler_configuration_iterator).second.second->builder);
-        (*directshow_modulehandler_configuration_iterator).second.second->builder->Release (); (*directshow_modulehandler_configuration_iterator).second.second->builder = NULL;
-      } // end IF
+      // sanity check(s)
+      directshow_modulehandler_configuration_iterator_2 =
+        directshow_ui_cb_data_p->configuration->streamConfiguration.find (renderer_modulename_string);
+      ACE_ASSERT (directshow_modulehandler_configuration_iterator_2 != directshow_ui_cb_data_p->configuration->streamConfiguration.end ());
+
+      Stream_Device_Identifier device_identifier;
+      device_identifier.identifier._id = card_id_i;
+      device_identifier.identifierDiscriminator = Stream_Device_Identifier::ID;
+      (*directshow_modulehandler_configuration_iterator_2).second.second->deviceIdentifier =
+        device_identifier;
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
     {
-      if ((*mediafoundation_modulehandler_configuration_iterator).second.second->session)
-      {
-        Stream_MediaFramework_MediaFoundation_Tools::shutdown ((*mediafoundation_modulehandler_configuration_iterator).second.second->session);
-        (*mediafoundation_modulehandler_configuration_iterator).second.second->session->Release (); (*mediafoundation_modulehandler_configuration_iterator).second.second->session = NULL;
-      } // end IF
+      // sanity check(s)
+      mediafoundation_modulehandler_configuration_iterator_2 =
+        mediafoundation_ui_cb_data_p->configuration->streamConfiguration.find (renderer_modulename_string);
+      ACE_ASSERT (mediafoundation_modulehandler_configuration_iterator_2 != mediafoundation_ui_cb_data_p->configuration->streamConfiguration.end ());
 
-      //if (mediafoundation_ui_cb_data_p->configuration->moduleHandlerConfiguration.sourceReader)
-      //{
-      //  mediafoundation_ui_cb_data_p->configuration->moduleHandlerConfiguration.sourceReader->Release ();
-      //  mediafoundation_ui_cb_data_p->configuration->moduleHandlerConfiguration.sourceReader =
-      //    NULL;
-      //} // end IF
-      //if (mediafoundation_ui_cb_data_p->configuration->moduleHandlerConfiguration.mediaSource)
-      //{
-      //  mediafoundation_ui_cb_data_p->configuration->moduleHandlerConfiguration.mediaSource->Release ();
-      //  mediafoundation_ui_cb_data_p->configuration->moduleHandlerConfiguration.mediaSource =
-      //    NULL;
-      //} // end IF
-
-#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0601) // _WIN32_WINNT_WIN7
-      if (!Stream_MediaFramework_MediaFoundation_Tools::getMediaSource ((*mediafoundation_modulehandler_configuration_iterator).second.second->deviceIdentifier.identifier._guid,
-                                                                        MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE_AUDCAP_GUID,
-                                                                        media_source_p))
-      {
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("failed to Stream_MediaFramework_MediaFoundation_Tools::getMediaSource(\"%s\"), returning\n"),
-                    ACE_TEXT (Common_Tools::GUIDToString ((*mediafoundation_modulehandler_configuration_iterator).second.second->deviceIdentifier.identifier._guid).c_str ())));
-        return;
-      } // end IF
-#else
-      ACE_ASSERT (false);
-      ACE_NOTSUP;
-      ACE_NOTREACHED (return;)
-#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0601)
-      ACE_ASSERT (media_source_p);
+      Stream_Device_Identifier device_identifier;
+      device_identifier.identifier._guid =
+        Common_Tools::StringToGUID (device_identifier_string);
+      device_identifier.identifierDiscriminator = Stream_Device_Identifier::GUID;
+      (*mediafoundation_modulehandler_configuration_iterator_2).second.second->deviceIdentifier =
+        device_identifier;
       break;
     }
     default:
@@ -2449,7 +2464,6 @@ combobox_target_changed_cb (GtkWidget* widget_in,
       device_identifier_string;
 #endif // ACE_WIN32 || ACE_WIN64
 
-//  bool result_2 = false;
   GtkScale* hscale_p = NULL, *hscale_2 = NULL;
   std::ostringstream converter;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -2460,18 +2474,13 @@ combobox_target_changed_cb (GtkWidget* widget_in,
   IMFSampleGrabberSinkCallback* sample_grabber_p = NULL;
 #endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0601)
   IMFTopology* topology_p = NULL;
-  HRESULT result = E_FAIL;
  
   switch (ui_cb_data_base_p->mediaFramework)
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
     {
-      Stream_Device_Identifier device_identifier;
-      device_identifier.identifier._id = static_cast<int> (card_id_i);
-      device_identifier.identifierDiscriminator = Stream_Device_Identifier::ID;
       IAMBufferNegotiation* buffer_negotiation_p = NULL;
-
-      if (!Stream_Device_DirectShow_Tools::loadDeviceGraph (device_identifier,
+      if (!Stream_Device_DirectShow_Tools::loadDeviceGraph ((*directshow_modulehandler_configuration_iterator_2).second.second->deviceIdentifier,
                                                             CLSID_AudioInputDeviceCategory,
                                                             (*directshow_modulehandler_configuration_iterator).second.second->builder,
                                                             buffer_negotiation_p,
@@ -2490,10 +2499,13 @@ combobox_target_changed_cb (GtkWidget* widget_in,
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
-    {
-      struct _MFRatio pixel_aspect_ratio = { 1, 1 };
+    { 
+      if (!make_topology_b)
+        break;
+      
+      ACE_ASSERT (media_source_p);
 #if COMMON_OS_WIN32_TARGET_PLATFORM(0x0601) // _WIN32_WINNT_WIN7
-      if (!Stream_Device_MediaFoundation_Tools::loadDeviceTopology ((*mediafoundation_modulehandler_configuration_iterator).second.second->deviceIdentifier,
+      if (!Stream_Device_MediaFoundation_Tools::loadDeviceTopology ((*mediafoundation_modulehandler_configuration_iterator_2).second.second->deviceIdentifier,
                                                                     MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE_AUDCAP_GUID,
                                                                     media_source_p,
                                                                     sample_grabber_p,
@@ -2591,9 +2603,7 @@ combobox_target_changed_cb (GtkWidget* widget_in,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   // retrieve volume control handle
   // step1: retrieve DirectSound device GUID from wave device id
-  struct _GUID GUID_s =
-    Stream_MediaFramework_DirectSound_Tools::waveDeviceIdToDirectSoundGUID (card_id_i,
-                                                                            true); // capture
+  struct _GUID GUID_s = Common_Tools::StringToGUID (device_identifier_string);
   ACE_ASSERT (!InlineIsEqualGUID (GUID_s, GUID_NULL));
   IAudioEndpointVolume* i_audio_endpoint_volume_p =
     Stream_MediaFramework_DirectSound_Tools::getMasterVolumeControl (GUID_s);
@@ -2624,8 +2634,6 @@ continue_2:
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
     {
-      (*directshow_modulehandler_configuration_iterator).second.second->deviceIdentifier.identifier._guid =
-        GUID_s;
       if (directshow_ui_cb_data_p->volumeControl)
       {
         directshow_ui_cb_data_p->volumeControl->Release (); directshow_ui_cb_data_p->volumeControl = NULL;
@@ -2635,8 +2643,6 @@ continue_2:
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
     {
-      (*mediafoundation_modulehandler_configuration_iterator).second.second->deviceIdentifier.identifier._guid =
-        GUID_s;
       if (mediafoundation_ui_cb_data_p->volumeControl)
       {
         mediafoundation_ui_cb_data_p->volumeControl->Release (); mediafoundation_ui_cb_data_p->volumeControl = NULL;
@@ -2941,11 +2947,11 @@ drawingarea_expose_event_cb (GtkWidget* widget_in,
 #endif // GTK_CHECK_VERSION(3,0,0)
 
 gboolean
-drawingarea_key_press_event (GtkWidget* widget_in,
-                             GdkEventKey keyEvent_in,
-                             gpointer userData_in)
+drawingarea_key_press_event_cb (GtkWidget* widget_in,
+                                GdkEventKey keyEvent_in,
+                                gpointer userData_in)
 {
-  STREAM_TRACE (ACE_TEXT ("::drawingarea_key_press_event"));
+  STREAM_TRACE (ACE_TEXT ("::drawingarea_key_press_event_cb"));
 
   ACE_UNUSED_ARG (widget_in);
 
@@ -3047,7 +3053,7 @@ drawingarea_key_press_event (GtkWidget* widget_in,
 #endif // ACE_WIN32 || ACE_WIN64
 
   return TRUE; // <-- stop propagation
-} // drawingarea_key_press_event
+} // drawingarea_key_press_event_cb
 
 //void
 //drawingarea_realize_cb (GtkWidget* widget_in,
@@ -3613,11 +3619,11 @@ hscale_volume_value_changed_cb (GtkRange* range_in,
 } // hscale_volume_value_changed_cb
 
 gboolean
-textview_key_press_event (GtkWidget* widget_in,
-                          GdkEventKey keyEvent_in,
-                          gpointer userData_in)
+textview_key_press_event_cb (GtkWidget* widget_in,
+                             GdkEventKey keyEvent_in,
+                             gpointer userData_in)
 {
-  STREAM_TRACE (ACE_TEXT ("::textview_key_press_event"));
+  STREAM_TRACE (ACE_TEXT ("::textview_key_press_event_cb"));
 
   ACE_UNUSED_ARG (widget_in);
 
@@ -3631,7 +3637,7 @@ textview_key_press_event (GtkWidget* widget_in,
   ACE_ASSERT (iterator != ui_cb_data_base_p->UIState->builders.end ());
 
   return FALSE; // <-- propagate event
-} // textview_key_press_event
+} // textview_key_press_event_cb
 
 void
 textview_size_allocate_cb (GtkWidget* widget_in,

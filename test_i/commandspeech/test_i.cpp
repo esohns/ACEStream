@@ -862,24 +862,21 @@ continue_2:
   if (!makeSession_in)
     goto continue_4;
 
-  if (!useFrameworkRenderer_in)
+  Test_I_MediaFoundation_Target* writer_p =
+    &const_cast<Test_I_MediaFoundation_Target&> (stream_in.getR_4 ());
+  if (!writer_p->initialize (configuration_in.mediaFoundationConfiguration))
   {
-    Test_I_MediaFoundation_Target* writer_p =
-      &const_cast<Test_I_MediaFoundation_Target&> (stream_in.getR_4 ());
-    if (!writer_p->initialize (configuration_in.mediaFoundationConfiguration))
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to Stream_MediaFramework_MediaFoundation_MediaSource_T::initialize(), aborting\n")));
-      goto error;
-    } // end IF
-    result = stream_in.QueryInterface (IID_PPV_ARGS (&media_source_p));
-    if (unlikely (FAILED (result) || !media_source_p))
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to Test_I_MediaFoundation_Stream::QueryInterface(): \"%s\", aborting\n"),
-                  ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
-      goto error;
-    } // end IF
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to Stream_MediaFramework_MediaFoundation_MediaSource_T::initialize(), aborting\n")));
+    goto error;
+  } // end IF
+  result = stream_in.QueryInterface (IID_PPV_ARGS (&media_source_p));
+  if (unlikely (FAILED (result) || !media_source_p))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to Test_I_MediaFoundation_Stream::QueryInterface(): \"%s\", aborting\n"),
+                ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
+    goto error;
   } // end IF
 
   if (unlikely (!Stream_Device_MediaFoundation_Tools::loadDeviceTopology (deviceIdentifier_in,
@@ -897,18 +894,16 @@ continue_2:
   ACE_ASSERT (topology_p);
   media_source_p->Release (); media_source_p = NULL;
 
-  if (!useFrameworkRenderer_in)
-    goto continue_3;
-
-continue_3:
   ACE_ASSERT (deviceIdentifier_in.identifierDiscriminator == Stream_Device_Identifier::GUID);
+  int device_id =
+    Stream_MediaFramework_DirectSound_Tools::directSoundGUIDToWaveDeviceId (deviceIdentifier_in.identifier._guid);
   if (unlikely (!Stream_Module_Decoder_Tools::loadAudioRendererTopology (deviceIdentifier_in.identifier._guid,
                                                                          MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE_AUDCAP_GUID,
                                                                          useFrameworkRenderer_in,
                                                                          targetMediaType_out,
                                                                          NULL,
                                                                          NULL,
-                                                                         (mute_in ? -1 : 0),
+                                                                         (mute_in ? -1 : device_id),
                                                                          GUID_NULL,
                                                                          effect_options,
                                                                          topology_p)))
