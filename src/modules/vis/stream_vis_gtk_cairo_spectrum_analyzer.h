@@ -38,14 +38,22 @@
 #include "stream_vis_gtk_common.h"
 #include "stream_vis_gtk_window.h"
 
-extern const char libacestream_default_vis_spectrum_analyzer_module_name_string[];
+//////////////////////////////////////////
 
-typedef Common_Math_FFT_T<double> Common_Math_FFT_Double_t;
 struct acestream_visualization_gtk_cairo_cbdata
 {
-  cairo_t*   context;
-  GdkWindow* window;
+  cairo_t*          context;
+  Common_IDispatch* dispatch;
+  GdkWindow*        window;
 };
+
+gboolean acestream_visualization_gtk_cairo_idle_update_cb (gpointer);
+
+typedef Common_Math_FFT_T<double> Common_Math_FFT_Double_t;
+
+extern const char libacestream_default_vis_spectrum_analyzer_module_name_string[];
+
+//////////////////////////////////////////
 
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,
@@ -72,7 +80,7 @@ class Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T
                                          SessionMessageType,
                                          MediaType>
  , public Common_Math_FFT_T<ValueType>
- , public Common_ICounter
+ //, public Common_ICounter
  , public Common_IDispatch
  , public Common_ISetP_T<GdkWindow>
 {
@@ -119,20 +127,20 @@ class Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T
   ACE_UNIMPLEMENTED_FUNC (Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T (const Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T& operator= (const Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T&))
 
-  // override ACE_Task_Base members
-  virtual int svc (void);
-  // override Stream_TaskBaseSynch_T members
-  virtual void stop (bool = true,   // wait for completion ?
-                     bool = false); // high priority ? (i.e. do not wait for queued messages)
+  //// override ACE_Task_Base members
+  //virtual int svc (void);
+  //// override Stream_TaskBaseSynch_T members
+  //virtual void stop (bool = true,   // wait for completion ?
+  //                   bool = false); // high priority ? (i.e. do not wait for queued messages)
 
-  // implement Common_ICounter (triggers frame rendering)
-  virtual void reset ();
+  //// implement Common_ICounter (triggers frame rendering)
+  //virtual void reset ();
 
-  bool initialize_Cairo (GdkWindow*, // target window
-                         cairo_t*&); // return value: cairo context
+  //bool initialize_Cairo (GdkWindow*, // target window
+  //                       cairo_t*&); // return value: cairo context
 
   unsigned int                                       bufferedSamples_;
-  struct acestream_visualization_gtk_cairo_cbdata    CBData_;
+  //struct acestream_visualization_gtk_cairo_cbdata    CBData_;
   double                                             channelFactor_;
   double                                             scaleFactorX_;
   // *NOTE*: there are only (N/2)-1 meaningful values for real-valued data
@@ -143,10 +151,10 @@ class Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T
   int                                                width_;
 
   enum Stream_Visualization_SpectrumAnalyzer_2DMode* mode2D_;
-  typename inherited::MESSAGE_QUEUE_T                queue_;
+  //typename inherited::MESSAGE_QUEUE_T                queue_;
 
-  Common_Timer_ResetCounterHandler                   renderHandler_;
-  long                                               renderHandlerTimerId_;
+  //Common_Timer_ResetCounterHandler                   renderHandler_;
+  //long                                               renderHandlerTimerId_;
 
   Common_Math_FFT_SampleIterator                     sampleIterator_;
 };

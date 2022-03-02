@@ -65,6 +65,7 @@
 #define TEST_I_UI_GTK_SPINBUTTON_SESSIONMESSAGES_NAME  "spinbutton_session_messages"
 #define TEST_I_UI_GTK_SCROLLEDWINDOW_NAME              "scrolledwindow"
 #define TEST_I_UI_GTK_TEXTBUFFER_NAME                  "textbuffer"
+#define TEST_I_UI_GTK_TEXTMARK_BEGIN_NAME              "begin"
 #define TEST_I_UI_GTK_TEXTVIEW_NAME                    "textview"
 #define TEST_I_UI_GTK_TOGGLEBUTTON_VISUALIZATION_NAME  "togglebutton_display"
 #define TEST_I_UI_GTK_TOGGLEBUTTON_RECORD_NAME         "togglebutton_record"

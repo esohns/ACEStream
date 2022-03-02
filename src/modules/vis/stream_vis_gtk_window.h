@@ -32,7 +32,11 @@
 
 #include "stream_lib_mediatype_converter.h"
 
+//////////////////////////////////////////
+
 extern const char libacestream_default_vis_gtk_window_module_name_string[];
+
+//////////////////////////////////////////
 
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,

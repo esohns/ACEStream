@@ -1838,7 +1838,7 @@ Test_U_AudioEffect_MediaFoundation_Stream::Invoke (IMFAsyncResult* result_in)
                                          &session_capabilities_delta_i);
       ACE_ASSERT (SUCCEEDED (result));
       ACE_DEBUG ((LM_DEBUG,
-                  ACE_TEXT ("%s: received MESessionCapabilitiesChanged: %u/%u\n"),
+                  ACE_TEXT ("%s: received MESessionCapabilitiesChanged (now/delta): 0x%x/0x%x\n"),
                   ACE_TEXT (stream_name_string_),
                   session_capabilities_i, session_capabilities_delta_i));
       break;

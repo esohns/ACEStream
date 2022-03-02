@@ -1818,21 +1818,21 @@ do_work (
         //  std::make_pair (UIDefinitionFile_in, static_cast<GladeXML*> (NULL));
         state_r.builders[ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN)] =
           std::make_pair (UIDefinitionFile_in, static_cast<GtkBuilder*> (NULL));
+        //directShowCBData_in.UIState = &state_r;
 #endif // GTK_USE
         directShowCBData_in.stream = &directshow_stream;
-        //directShowCBData_in.userData = &directShowCBData_in;
         break;
       }
       case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
       {
 #if defined (GTK_USE)
-        //CBData_in.gladeXML[ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN)] =
+        //mediaFoundationCBData_in.gladeXML[ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN)] =
         //  std::make_pair (UIDefinitionFile_in, static_cast<GladeXML*> (NULL));
         state_r.builders[ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN)] =
           std::make_pair (UIDefinitionFile_in, static_cast<GtkBuilder*> (NULL));
+        //mediaFoundationCBData_in.UIState = &state_r;
 #endif // GTK_USE
         mediaFoundationCBData_in.stream = &mediafoundation_stream;
-        //mediaFoundationCBData_in.UIState.userData = &mediaFoundationCBData_in;
         break;
       }
       default:
@@ -1852,7 +1852,6 @@ do_work (
     CBData_in.UIState = &state_r;
 #endif // GTK_USE
     CBData_in.stream = &stream;
-    //CBData_in.userData = &CBData_in;
 #endif // ACE_WIN32 || ACE_WIN64
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)

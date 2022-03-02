@@ -864,7 +864,7 @@ Stream_MediaFramework_MediaFoundation_Source_T<ACE_SYNCH_USE,
                                          &session_capabilities_delta_i);
       ACE_ASSERT (SUCCEEDED (result));
       ACE_DEBUG ((LM_DEBUG,
-                  ACE_TEXT ("%s: received MESessionCapabilitiesChanged: %u/%u\n"),
+                  ACE_TEXT ("%s: received MESessionCapabilitiesChanged (now/delta): 0x%x/0x%x\n"),
                   inherited::mod_->name (),
                   session_capabilities_i, session_capabilities_delta_i));
       break;

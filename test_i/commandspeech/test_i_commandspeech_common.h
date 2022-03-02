@@ -353,7 +353,6 @@ struct Test_I_CommandSpeech_UI_CBData
    : Test_I_UI_CBData ()
 #if defined (GTK_SUPPORT)
    , resizeNotification (NULL)
-   , spectrumAnalyzer (NULL)
    , spectrumAnalyzerCBData ()
 #endif // GTK_SUPPORT
    , stream (NULL)
@@ -368,7 +367,6 @@ struct Test_I_CommandSpeech_UI_CBData
 
 #if defined (GTK_SUPPORT)
   Test_I_Common_ISet_t*                           resizeNotification;
-  Common_IDispatch*                               spectrumAnalyzer;
   struct acestream_visualization_gtk_cairo_cbdata spectrumAnalyzerCBData;
 #endif // GTK_SUPPORT
   Stream_IStreamControlBase*                      stream;

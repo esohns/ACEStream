@@ -59,6 +59,7 @@ G_MODULE_EXPORT gboolean drawingarea_configure_event_cb (GtkWidget*, GdkEvent*, 
 G_MODULE_EXPORT gboolean drawingarea_expose_event_cb (GtkWidget*, GdkEvent*, gpointer);
 #endif // GTK_CHECK_VERSION(3,0,0)
 G_MODULE_EXPORT gboolean drawingarea_key_press_event_cb (GtkWidget*, GdkEventKey, gpointer);
+G_MODULE_EXPORT void drawingarea_realize_cb (GtkWidget*, gpointer);
 G_MODULE_EXPORT gboolean drawingarea_query_tooltip_cb (GtkWidget*, gint, gint, gboolean, GtkTooltip*, gpointer);
 G_MODULE_EXPORT void filechooserbutton_save_file_set_cb (GtkFileChooserButton*, gpointer);
 G_MODULE_EXPORT void filechooserbutton_voice_file_set_cb (GtkFileChooserButton*, gpointer);
