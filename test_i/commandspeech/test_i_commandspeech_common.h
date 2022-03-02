@@ -189,7 +189,6 @@ struct Test_I_DirectShow_Configuration
   struct Stream_MediaFramework_DirectShow_FilterPinConfiguration pinConfiguration;
   // **************************** stream data **********************************
   Test_I_DirectShow_StreamConfiguration_t                        streamConfiguration;
-  //Stream_Input_Configuration_t                                   streamConfiguration_2; // input-
 };
 
 struct Test_I_MediaFoundation_Configuration
@@ -376,6 +375,19 @@ struct Test_I_CommandSpeech_UI_CBData
 #endif // ACE_WIN32 || ACE_WIN64
   struct Test_I_CommandSpeech_UI_ProgressData     progressData;
 };
+
+struct Test_I_CommandSpeech_UI_ThreadData
+ : Test_I_UI_ThreadData
+{
+  Test_I_CommandSpeech_UI_ThreadData ()
+   : Test_I_UI_ThreadData ()
+   , displayEventSourceId (-1)
+   , infoEventSourceId (-1)
+  {}
+
+  guint displayEventSourceId;
+  guint infoEventSourceId;
+};
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 struct Test_I_DirectShow_UI_CBData
  : Test_I_CommandSpeech_UI_CBData
@@ -406,10 +418,10 @@ struct Test_I_MediaFoundation_UI_CBData
 };
 
 struct Test_I_DirectShow_UI_ThreadData
- : Test_I_UI_ThreadData
+ : Test_I_CommandSpeech_UI_ThreadData
 {
   Test_I_DirectShow_UI_ThreadData ()
-   : Test_I_UI_ThreadData ()
+   : Test_I_CommandSpeech_UI_ThreadData ()
    , CBData (NULL)
   {}
 
@@ -417,10 +429,10 @@ struct Test_I_DirectShow_UI_ThreadData
 };
 
 struct Test_I_MediaFoundation_UI_ThreadData
- : Test_I_UI_ThreadData
+ : Test_I_CommandSpeech_UI_ThreadData
 {
   Test_I_MediaFoundation_UI_ThreadData ()
-   : Test_I_UI_ThreadData ()
+   : Test_I_CommandSpeech_UI_ThreadData ()
    , CBData (NULL)
   {}
 
@@ -443,7 +455,7 @@ struct Test_I_ALSA_UI_CBData
 };
 
 struct Test_I_ALSA_UI_ThreadData
- : Test_I_UI_ThreadData
+ : Test_I_CommandSpeech_UI_ThreadData
 {
   Test_I_ALSA_UI_ThreadData ()
    : Test_I_UI_ThreadData ()
