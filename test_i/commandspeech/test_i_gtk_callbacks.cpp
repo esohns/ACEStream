@@ -1602,28 +1602,9 @@ idle_initialize_UI_cb (gpointer userData_in)
     GTK_TOGGLE_BUTTON (gtk_builder_get_object ((*iterator).second.second,
                                                ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_TOGGLEBUTTON_SAVE_NAME)));
   ACE_ASSERT (toggle_button_p);
-  if (!filename_string.empty ())
-  {
-#if GTK_CHECK_VERSION(3,0,0)
-    g_signal_handlers_block_by_func (G_OBJECT (toggle_button_p),
-                                     G_CALLBACK (togglebutton_save_toggled_cb),
-                                     userData_in);
-#elif GTK_CHECK_VERSION(2, 0, 0)
-    gtk_signal_handler_block_by_func (GTK_OBJECT (toggle_button_p),
-                                      G_CALLBACK (togglebutton_save_toggled_cb),
-                                      userData_in);
-#endif // GTK_CHECK_VERSION(x,0,0)
-    gtk_toggle_button_set_active (toggle_button_p, TRUE);
-#if GTK_CHECK_VERSION(3,0,0)
-    g_signal_handlers_unblock_by_func (G_OBJECT (toggle_button_p),
-                                       G_CALLBACK (togglebutton_save_toggled_cb),
-                                       userData_in);
-#elif GTK_CHECK_VERSION(2,0,0)
-    gtk_signal_handler_unblock_by_func (GTK_OBJECT (toggle_button_p),
-                                        G_CALLBACK (togglebutton_save_toggled_cb),
-                                        userData_in);
-#endif // GTK_CHECK_VERSION(x,0,0)
-  } // end IF
+  gtk_toggle_button_set_active (toggle_button_p, TRUE);
+  if (filename_string.empty ())
+    gtk_toggle_button_set_active (toggle_button_p, FALSE);
 
   toggle_button_p =
     GTK_TOGGLE_BUTTON (gtk_builder_get_object ((*iterator).second.second,
@@ -3788,6 +3769,7 @@ textview_key_press_event_cb (GtkWidget* widget_in,
                                             TRUE); // include hidden chars
   ACE_ASSERT (text_p);
   std::string text_string = Common_UI_GTK_Tools::UTF8ToLocale (text_p, -1);
+  g_free (text_p); text_p = NULL;
   gtk_text_buffer_insert (text_buffer_p,
                           &text_iterator_2,
                           keyEvent_in.string,
@@ -4019,13 +4001,14 @@ togglebutton_record_toggled_cb (GtkToggleButton* toggleButton_in,
   ACE_OS::memset (&value_2, 0, sizeof (struct _GValue));
 #endif // GTK_CHECK_VERSION (2,30,0)
   Stream_IStreamControlBase* stream_p = NULL;
-  //bool is_file_source_b = false;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   struct Test_I_DirectShow_UI_CBData* directshow_ui_cb_data_p = NULL;
   struct Test_I_MediaFoundation_UI_CBData* mediafoundation_ui_cb_data_p =
     NULL;
-  Test_I_MediaFoundation_StreamConfiguration_t::ITERATOR_T mediafoundation_modulehandler_configuration_iterator;
   Test_I_DirectShow_StreamConfiguration_t::ITERATOR_T directshow_modulehandler_configuration_iterator;
+  Test_I_MediaFoundation_StreamConfiguration_t::ITERATOR_T mediafoundation_modulehandler_configuration_iterator;
+  Test_I_DirectShow_StreamConfiguration_t::ITERATOR_T directshow_modulehandler_configuration_iterator_2; // file writer
+  Test_I_MediaFoundation_StreamConfiguration_t::ITERATOR_T mediafoundation_modulehandler_configuration_iterator_2; // file writer
   switch (ui_cb_data_base_p->mediaFramework)
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
@@ -4039,6 +4022,9 @@ togglebutton_record_toggled_cb (GtkToggleButton* toggleButton_in,
       directshow_modulehandler_configuration_iterator =
         directshow_ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
       ACE_ASSERT (directshow_modulehandler_configuration_iterator != directshow_ui_cb_data_p->configuration->streamConfiguration.end ());
+      directshow_modulehandler_configuration_iterator_2 =
+        directshow_ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (STREAM_FILE_SINK_DEFAULT_NAME_STRING));
+      ACE_ASSERT (directshow_modulehandler_configuration_iterator_2 != directshow_ui_cb_data_p->configuration->streamConfiguration.end ());
       ACE_ASSERT (directshow_ui_cb_data_p->configuration->streamConfiguration.configuration_);
 
       stream_p = directshow_ui_cb_data_p->stream;
@@ -4055,6 +4041,9 @@ togglebutton_record_toggled_cb (GtkToggleButton* toggleButton_in,
       mediafoundation_modulehandler_configuration_iterator =
         mediafoundation_ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
       ACE_ASSERT (mediafoundation_modulehandler_configuration_iterator != mediafoundation_ui_cb_data_p->configuration->streamConfiguration.end ());
+      mediafoundation_modulehandler_configuration_iterator_2 =
+        mediafoundation_ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (STREAM_FILE_SINK_DEFAULT_NAME_STRING));
+      ACE_ASSERT (mediafoundation_modulehandler_configuration_iterator_2 != mediafoundation_ui_cb_data_p->configuration->streamConfiguration.end ());
       ACE_ASSERT (mediafoundation_ui_cb_data_p->configuration->streamConfiguration.configuration_);
 
       stream_p = mediafoundation_ui_cb_data_p->stream;
@@ -4077,10 +4066,11 @@ togglebutton_record_toggled_cb (GtkToggleButton* toggleButton_in,
   Test_I_ALSA_StreamConfiguration_t::ITERATOR_T modulehandler_configuration_iterator =
     ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (modulehandler_configuration_iterator != ui_cb_data_p->configuration->streamConfiguration.end ());
+  Test_I_ALSA_StreamConfiguration_t::ITERATOR_T modulehandler_configuration_iterator_2 =
+    ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (STREAM_FILE_SINK_DEFAULT_NAME_STRING));
+  ACE_ASSERT (modulehandler_configuration_iterator_2 != ui_cb_data_p->configuration->streamConfiguration.end ());
 
   stream_p = ui_cb_data_p->stream;
-  //is_file_source_b =
-  //  (ui_cb_data_p->configuration->streamConfiguration.configuration_->sourceType == AUDIOEFFECT_SOURCE_FILE);
 #endif // ACE_WIN32 || ACE_WIN64
   ACE_ASSERT (stream_p);
 
@@ -4115,8 +4105,58 @@ togglebutton_record_toggled_cb (GtkToggleButton* toggleButton_in,
   const char* thread_name_2 = NULL;
   ACE_Thread_Manager* thread_manager_p = NULL;
   struct Test_I_CommandSpeech_UI_ProgressData* progress_data_p = NULL;
-//  GtkSpinButton* spin_button_p = NULL;
-//  unsigned int value_i = 0;
+
+  GtkToggleButton* toggle_button_p =
+    GTK_TOGGLE_BUTTON (gtk_builder_get_object ((*iterator).second.second,
+                                               ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_TOGGLEBUTTON_SAVE_NAME)));
+  ACE_ASSERT (toggle_button_p);
+  std::string filename_string;
+  if (gtk_toggle_button_get_active (toggle_button_p))
+  {
+    GtkEntry* entry_p =
+      GTK_ENTRY (gtk_builder_get_object ((*iterator).second.second,
+                                         ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_ENTRY_SAVE_NAME)));
+    ACE_ASSERT (entry_p);
+    GtkFileChooserButton* file_chooser_button_p =
+      GTK_FILE_CHOOSER_BUTTON (gtk_builder_get_object ((*iterator).second.second,
+                                                       ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_FILECHOOSERBUTTON_SAVE_NAME)));
+    ACE_ASSERT (file_chooser_button_p);
+    gchar* text_2 =
+      gtk_file_chooser_get_current_folder (GTK_FILE_CHOOSER (file_chooser_button_p));
+    filename_string =
+      Common_UI_GTK_Tools::UTF8ToLocale (ACE_TEXT_ALWAYS_CHAR (text_2));
+    g_free (text_2); text_2 = NULL;
+    filename_string += ACE_DIRECTORY_SEPARATOR_CHAR;
+    filename_string +=
+      Common_UI_GTK_Tools::UTF8ToLocale (ACE_TEXT_ALWAYS_CHAR (gtk_entry_get_text (entry_p)));
+  } // end IF
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  switch (ui_cb_data_base_p->mediaFramework)
+  {
+    case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
+    {
+      (*directshow_modulehandler_configuration_iterator_2).second.second->fileIdentifier.identifier =
+        filename_string;
+      break;
+    }
+    case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
+    {
+      (*mediafoundation_modulehandler_configuration_iterator_2).second.second->fileIdentifier.identifier =
+        filename_string;
+      break;
+    }
+    default:
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("invalid/unknown media framework (was: %d), returning\n"),
+                  ui_cb_data_base_p->mediaFramework));
+      return;
+    }
+  } // end SWITCH
+#else
+  (*modulehandler_configuration_iterator_2).second.second->fileIdentifier.identifier =
+    filename_string;
+#endif // ACE_WIN32 || ACE_WIN64
 
   // step2: modify widgets
   gtk_button_set_label (GTK_BUTTON (toggleButton_in), GTK_STOCK_MEDIA_STOP);
@@ -4373,107 +4413,12 @@ togglebutton_save_toggled_cb (GtkToggleButton* toggleButton_in,
     ui_cb_data_base_p->UIState->builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN));
   ACE_ASSERT (iterator != ui_cb_data_base_p->UIState->builders.end ());
 
-  bool is_active = gtk_toggle_button_get_active (toggleButton_in);
-  GtkFileChooserDialog* file_chooser_dialog_p =
-    GTK_FILE_CHOOSER_DIALOG (gtk_builder_get_object ((*iterator).second.second,
-                                                     ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_FILECHOOSERDIALOG_SAVE_NAME)));
-  ACE_ASSERT (file_chooser_dialog_p);
-  char* filename_p = NULL;
-  GFile* file_p =
-    gtk_file_chooser_get_file (GTK_FILE_CHOOSER (file_chooser_dialog_p));
-  if (!file_p)
-    goto continue_;
-  filename_p = g_file_get_path (file_p);
-  if (!filename_p)
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to g_file_get_path(): \"%m\", returning\n")));
-    g_object_unref (file_p); file_p = NULL;
-    return;
-  } // end IF
-  g_object_unref (file_p); file_p = NULL;
-continue_:
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-  struct Test_I_DirectShow_UI_CBData* directshow_ui_cb_data_p = NULL;
-  struct Test_I_MediaFoundation_UI_CBData* mediafoundation_ui_cb_data_p =
-    NULL;
-  Test_I_DirectShow_StreamConfiguration_t::ITERATOR_T directshow_modulehandler_configuration_iterator;
-  Test_I_MediaFoundation_StreamConfiguration_t::ITERATOR_T mediafoundation_modulehandler_configuration_iterator;
-  switch (ui_cb_data_base_p->mediaFramework)
-  {
-    case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
-    {
-      // sanity check(s)
-      directshow_ui_cb_data_p =
-        static_cast<struct Test_I_DirectShow_UI_CBData*> (userData_in);
-      ACE_ASSERT (directshow_ui_cb_data_p);
-      ACE_ASSERT (directshow_ui_cb_data_p->configuration);
-      directshow_modulehandler_configuration_iterator =
-        directshow_ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
-      ACE_ASSERT (directshow_modulehandler_configuration_iterator != directshow_ui_cb_data_p->configuration->streamConfiguration.end ());
-
-      if (is_active)
-        (*directshow_modulehandler_configuration_iterator).second.second->fileIdentifier.identifier =
-          Common_UI_GTK_Tools::UTF8ToLocale ((filename_p ? filename_p : ACE_TEXT_ALWAYS_CHAR ("")), -1);
-      else
-        (*directshow_modulehandler_configuration_iterator).second.second->fileIdentifier.clear ();
-      break;
-    }
-    case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
-    {
-      // sanity check(s)
-      mediafoundation_ui_cb_data_p =
-        static_cast<struct Test_I_MediaFoundation_UI_CBData*> (userData_in);
-      ACE_ASSERT (mediafoundation_ui_cb_data_p);
-      ACE_ASSERT (mediafoundation_ui_cb_data_p->configuration);
-      mediafoundation_modulehandler_configuration_iterator =
-        mediafoundation_ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
-      ACE_ASSERT (mediafoundation_modulehandler_configuration_iterator != mediafoundation_ui_cb_data_p->configuration->streamConfiguration.end ());
-
-      if (is_active)
-        (*mediafoundation_modulehandler_configuration_iterator).second.second->fileIdentifier.identifier =
-          Common_UI_GTK_Tools::UTF8ToLocale ((filename_p ? filename_p : ACE_TEXT_ALWAYS_CHAR ("")), -1);
-      else
-        (*mediafoundation_modulehandler_configuration_iterator).second.second->fileIdentifier.clear ();
-      break;
-    }
-    default:
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("invalid/unknown media framework (was: %d), returning\n"),
-                  ui_cb_data_base_p->mediaFramework));
-      break;
-    }
-  } // end SWITCH
-#else
-  // sanity check(s)
-  struct Test_I_ALSA_UI_CBData* ui_cb_data_p =
-    static_cast<struct Test_I_ALSA_UI_CBData*> (userData_in);
-  ACE_ASSERT (ui_cb_data_p->configuration);
-  Test_I_ALSA_StreamConfiguration_t::ITERATOR_T modulehandler_configuration_iterator =
-    ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
-  ACE_ASSERT (modulehandler_configuration_iterator != ui_cb_data_p->configuration->streamConfiguration.end ());
-
-  if (is_active)
-    (*modulehandler_configuration_iterator).second.second->fileIdentifier.identifier =
-      Common_UI_GTK_Tools::UTF8ToLocale ((filename_p ? filename_p : ACE_TEXT_ALWAYS_CHAR ("")), -1);
-  else
-    (*modulehandler_configuration_iterator).second.second->fileIdentifier.clear ();
-#endif // ACE_WIN32 || ACE_WIN64
-  g_free (filename_p);
-
-  GtkEntry* entry_p =
-    GTK_ENTRY (gtk_builder_get_object ((*iterator).second.second,
-                                       ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_ENTRY_SAVE_NAME)));
-  ACE_ASSERT (entry_p);
-  gtk_widget_set_sensitive (GTK_WIDGET (entry_p),
-                            is_active);
-  GtkFileChooserButton* file_chooser_button_p =
-    GTK_FILE_CHOOSER_BUTTON (gtk_builder_get_object ((*iterator).second.second,
-                                                     ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_FILECHOOSERBUTTON_SAVE_NAME)));
-  ACE_ASSERT (file_chooser_button_p);
-  gtk_widget_set_sensitive (GTK_WIDGET (file_chooser_button_p),
-                            is_active);
+  GtkBox* box_p =
+    GTK_BOX (gtk_builder_get_object ((*iterator).second.second,
+                                     ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_BOX_SAVE_2_NAME)));
+  ACE_ASSERT (box_p);
+  gtk_widget_set_sensitive (GTK_WIDGET (box_p),
+                            gtk_toggle_button_get_active (toggleButton_in));
 } // togglebutton_save_toggled_cb
 #ifdef __cplusplus
 }

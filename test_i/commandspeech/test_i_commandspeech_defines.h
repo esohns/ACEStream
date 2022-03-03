@@ -34,6 +34,7 @@
 #define TEST_I_UI_GTK_ACTION_RECORD_NAME               "action_record"
 #define TEST_I_UI_GTK_SCROLLEDWINDOW_ADJUSTMENT_V_NAME "adjustment_sw_v"
 #define TEST_I_UI_GTK_BOX_DISPLAY_2_NAME               "box_display_2"
+#define TEST_I_UI_GTK_BOX_SAVE_2_NAME                  "box_save_2"
 #define TEST_I_UI_GTK_BOX_TARGET_2_NAME                "box_target_2"
 #define TEST_I_UI_GTK_BUTTON_ABOUT_NAME                "button_about"
 #define TEST_I_UI_GTK_BUTTON_HW_SETTINGS_NAME          "button_hw_settings"

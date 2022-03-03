@@ -116,7 +116,6 @@ along with commandspeech.  If not, see <http://www.gnu.org/licenses/>.
       </object>
     </child>
   </object>
-  <object class="GtkFileFilter" id="filefilter_txt"/>
   <object class="GtkFileFilter" id="filefilter_wav"/>
   <object class="GtkFileChooserDialog" id="filechooserdialog_save">
     <property name="can-focus">False</property>
@@ -733,6 +732,7 @@ along with commandspeech.  If not, see <http://www.gnu.org/licenses/>.
                                         <property name="visible">True</property>
                                         <property name="can-focus">True</property>
                                         <property name="adjustment">hscale_volume_adjustment</property>
+                                        <property name="restrict-to-fill-level">False</property>
                                         <property name="fill-level">0</property>
                                         <property name="round-digits">0</property>
                                         <property name="draw-value">False</property>
@@ -811,11 +811,9 @@ along with commandspeech.  If not, see <http://www.gnu.org/licenses/>.
                                         <property name="has-tooltip">True</property>
                                         <property name="tooltip-markup" translatable="yes">destination file</property>
                                         <property name="tooltip-text" translatable="yes">destination file</property>
-                                        <property name="editable">False</property>
                                         <property name="has-frame">False</property>
                                         <property name="invisible-char">●</property>
                                         <property name="text" translatable="yes">output.wav</property>
-                                        <property name="truncate-multiline">True</property>
                                         <property name="shadow-type">etched-in</property>
                                         <property name="caps-lock-warning">False</property>
                                         <property name="primary-icon-stock">gtk-save</property>
