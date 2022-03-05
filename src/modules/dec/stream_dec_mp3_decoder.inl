@@ -422,15 +422,16 @@ Stream_Decoder_MP3Decoder_T<ACE_SYNCH_USE,
       // process manually
       inherited::handleMessage (message_block_p,
                                 stop_processing_b);
-      if (unlikely (stop_processing_b)) // <-- SESSION_END has been processed || serious error
+      if (unlikely (stop_processing_b)) // <-- SESSION_END has been processed || finished || serious error
       { stop_processing_b = false; // reset, just in case...
-        // *IMPORTANT NOTE*: message_block_p has already been released() !
-
-        if (likely (inherited::current () != STREAM_STATE_FINISHED))
-        {
-          inherited::finished (); // *NOTE*: enqueues SESSION_END --> continue
-          continue;
-        } // end IF
+        { ACE_GUARD_RETURN (ACE_Thread_Mutex, aGuard, inherited::lock_, -1);
+          if (unlikely (!sessionEndSent_ && !sessionEndProcessed_))
+          {
+            // enqueue(/process) STREAM_SESSION_END
+            inherited::finished ();
+            continue;
+          } // end IF
+        } // end lock scope
       } // end IF
     } // end IF
 

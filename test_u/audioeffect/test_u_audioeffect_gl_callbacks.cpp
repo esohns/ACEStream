@@ -45,17 +45,18 @@ processInstructions (struct Test_U_AudioEffect_UI_CBDataBase* CBDataBase_in)
 
   // sanity check(s)
   ACE_ASSERT (CBDataBase_in);
-  ACE_ASSERT (CBDataBase_in->UIState);
+  ACE_ASSERT (CBDataBase_in->OpenGLInstructions);
+  ACE_ASSERT (CBDataBase_in->OpenGLInstructionsLock);
 
   struct Stream_Visualization_GTKGL_Instruction* instruction_p = NULL;
 
-  { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, CBDataBase_in->UIState->lock);
-    if (CBDataBase_in->OpenGLInstructions.empty ())
+  { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, *CBDataBase_in->OpenGLInstructionsLock);
+    if (CBDataBase_in->OpenGLInstructions->empty ())
       return;
 
     do
     {
-      instruction_p = &CBDataBase_in->OpenGLInstructions.front ();
+      instruction_p = &CBDataBase_in->OpenGLInstructions->front ();
       switch (instruction_p->type)
       {
         case STREAM_VISUALIZATION_INSTRUCTION_CHANGE_ROTATION:
@@ -87,8 +88,8 @@ processInstructions (struct Test_U_AudioEffect_UI_CBDataBase* CBDataBase_in)
           break;
         }
       } // end SWITCH
-      CBDataBase_in->OpenGLInstructions.pop_front ();
-    } while (!CBDataBase_in->OpenGLInstructions.empty ());
+      CBDataBase_in->OpenGLInstructions->pop_front ();
+    } while (!CBDataBase_in->OpenGLInstructions->empty ());
   } // end lock scope
 }
 

@@ -53,6 +53,9 @@
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 Test_U_AudioEffect_DirectShow_Stream::Test_U_AudioEffect_DirectShow_Stream ()
  : inherited ()
+#if defined (GTKGL_SUPPORT)
+ , inherited2 ()
+#endif // GTKGL_SUPPORT
 {
   STREAM_TRACE (ACE_TEXT ("Test_U_AudioEffect_DirectShow_Stream::Test_U_AudioEffect_DirectShow_Stream"));
 
@@ -399,18 +402,10 @@ Test_U_AudioEffect_DirectShow_Stream::initialize (const inherited::CONFIGURATION
 
   // ---------------------------------------------------------------------------
 
-  // ********************** Spectrum Analyzer *****************
-#if defined (GUI_SUPPORT)
-#if defined (GTK_USE)
-  Stream_Module_t* module_2 =
-      const_cast<Stream_Module_t*> (inherited::find (ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_GTK_SPECTRUM_ANALYZER_DEFAULT_NAME_STRING)));
-  ACE_ASSERT (module_2);
-  Stream_Statistic_IDispatch_t* idispatch_p =
-    dynamic_cast<Stream_Statistic_IDispatch_t*> (module_2->writer ());
-  ACE_ASSERT (idispatch_p);
-  (*iterator).second.second->dispatch = idispatch_p;
-#endif // GTK_USE
-#endif // GUI_SUPPORT
+  // ********************** Statistic Analysis *****************
+#if defined (GTKGL_SUPPORT)
+  (*iterator).second.second->dispatch = this;
+#endif // GTKGL_SUPPORT
 
   IAMBufferNegotiation* buffer_negotiation_p = NULL;
   //bool COM_initialized = false;
@@ -747,6 +742,9 @@ error:
 
 Test_U_AudioEffect_MediaFoundation_Stream::Test_U_AudioEffect_MediaFoundation_Stream ()
  : inherited ()
+#if defined (GTKGL_SUPPORT)
+ , inherited2 ()
+#endif // GTKGL_SUPPORT
  , condition_ (inherited::lock_)
 #if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
  , mediaSession_ (NULL)
@@ -1363,18 +1361,10 @@ Test_U_AudioEffect_MediaFoundation_Stream::initialize (const inherited::CONFIGUR
 
   // ---------------------------------------------------------------------------
 
-  // ********************** Spectrum Analyzer *****************
-#if defined (GUI_SUPPORT)
-#if defined (GTK_USE)
-  Stream_Module_t* module_p =
-    const_cast<Stream_Module_t*> (inherited::find (ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_GTK_SPECTRUM_ANALYZER_DEFAULT_NAME_STRING)));
-  ACE_ASSERT (module_p);
-  Stream_Statistic_IDispatch_t* idispatch_p =
-    dynamic_cast<Stream_Statistic_IDispatch_t*> (module_p->writer ());
-  ACE_ASSERT (idispatch_p);
-  (*iterator).second.second->dispatch = idispatch_p;
-#endif // GTK_SUPPORT
-#endif // GUI_USE
+  // ********************** Statistic Analysis *****************
+#if defined (GTKGL_SUPPORT)
+  (*iterator).second.second->dispatch = this;
+#endif // GTKGL_SUPPORT
 
   bool graph_loaded = false;
   HRESULT result_2 = E_FAIL;
@@ -1421,7 +1411,7 @@ Test_U_AudioEffect_MediaFoundation_Stream::initialize (const inherited::CONFIGUR
     } // end IF
   } // end IF
 
-  module_p =
+  Stream_Module_t* module_p =
     const_cast<Stream_Module_t*> (inherited::find (ACE_TEXT_ALWAYS_CHAR (STREAM_LIB_MEDIAFOUNDATION_SOURCE_DEFAULT_NAME_STRING)));
   if (module_p)
   {
@@ -2026,6 +2016,9 @@ error:
 #else
 Test_U_AudioEffect_ALSA_Stream::Test_U_AudioEffect_ALSA_Stream ()
  : inherited ()
+#if defined (GTKGL_SUPPORT)
+ , inherited2 ()
+#endif // GTKGL_SUPPORT
 {
   STREAM_TRACE (ACE_TEXT ("Test_U_AudioEffect_ALSA_Stream::Test_U_AudioEffect_ALSA_Stream"));
 
@@ -2250,16 +2243,10 @@ Test_U_AudioEffect_ALSA_Stream::initialize (const typename inherited::CONFIGURAT
   session_data_p->targetFileName =
     (*iterator_2).second.second->fileIdentifier.identifier;
 
-  // ---------------------------------------------------------------------------
-
-  // ********************** Spectrum Analyzer *****************
-  module_p =
-      const_cast<typename inherited::ISTREAM_T::MODULE_T*> (inherited::find (ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_GTK_SPECTRUM_ANALYZER_DEFAULT_NAME_STRING)));
-  ACE_ASSERT (module_p);
-  idispatch_p =
-      dynamic_cast<Stream_Statistic_IDispatch_t*> (const_cast<Stream_Module_t*> (module_p)->writer ());
-  ACE_ASSERT (idispatch_p);
-  (*iterator).second.second->dispatch = idispatch_p;
+  // ********************** Statistic Analysis *****************
+#if defined (GTKGL_SUPPORT)
+  (*iterator).second.second->dispatch = this;
+#endif // GTKGL_SUPPORT
 
   // ---------------------------------------------------------------------------
 

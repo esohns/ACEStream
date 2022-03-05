@@ -654,7 +654,113 @@ Stream_MediaFramework_DirectSound_Tools::directSoundGUIDToWaveDeviceId (REFGUID 
   cb_data_s.IPropertySet->Release (); cb_data_s.IPropertySet = NULL;
   FreeLibrary (library_h);
 
+  // sanity check(s)
+  if (cb_data_s.deviceId == std::numeric_limits<ULONG>::max ())
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to retrieve device id (GUID was: \"%s\"), aborting\n"),
+                ACE_TEXT (Common_Tools::GUIDToString (GUID_in).c_str ())));
+
   return cb_data_s.deviceId;
+}
+
+struct _GUID
+Stream_MediaFramework_DirectSound_Tools::getDefaultDevice (bool capture_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_DirectSound_Tools::getDefaultDevice"));
+
+  struct _GUID result = GUID_NULL;
+
+  IMMDeviceEnumerator* enumerator_p = NULL;
+  HRESULT result_2 =
+    CoCreateInstance (__uuidof (MMDeviceEnumerator), NULL,
+                      CLSCTX_INPROC_SERVER,
+                      IID_PPV_ARGS (&enumerator_p));
+  ACE_ASSERT (SUCCEEDED (result_2) && enumerator_p);
+  IMMDevice* device_p = NULL;
+  result_2 =
+    enumerator_p->GetDefaultAudioEndpoint ((capture_in ? eCapture : eRender),
+                                           eMultimedia,
+                                           &device_p);
+  ACE_ASSERT (SUCCEEDED (result_2) && device_p);
+  enumerator_p->Release (); enumerator_p = NULL;
+  IPropertyStore* property_store_p = NULL;
+  struct tagPROPVARIANT property_s;
+  PropVariantInit (&property_s);
+  result_2 = device_p->OpenPropertyStore (STGM_READ,
+                                          &property_store_p);
+  ACE_ASSERT (SUCCEEDED (result_2) && property_store_p);
+  device_p->Release (); device_p = NULL;
+  result_2 = property_store_p->GetValue (PKEY_AudioEndpoint_GUID,
+                                         &property_s);
+  ACE_ASSERT (SUCCEEDED (result_2));
+  property_store_p->Release (); property_store_p = NULL;
+  ACE_ASSERT (property_s.vt == VT_LPWSTR);
+  result =
+    Common_Tools::StringToGUID (ACE_TEXT_ALWAYS_CHAR (ACE_TEXT_WCHAR_TO_TCHAR (property_s.pwszVal)));
+  PropVariantClear (&property_s);
+
+  return result;
+}
+
+Common_Identifiers_t
+Stream_MediaFramework_DirectSound_Tools::getDevices (bool capture_in,
+                                                     bool active_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_DirectSound_Tools::getDevices"));
+
+  Common_Identifiers_t result;
+
+  IMMDeviceEnumerator* enumerator_p = NULL;
+  HRESULT result_2 =
+    CoCreateInstance (__uuidof (MMDeviceEnumerator), NULL,
+                      CLSCTX_INPROC_SERVER,
+                      IID_PPV_ARGS (&enumerator_p));
+  ACE_ASSERT (SUCCEEDED (result_2) && enumerator_p);
+  IMMDeviceCollection* devices_p = NULL;
+  result_2 =
+    enumerator_p->EnumAudioEndpoints ((capture_in ? eCapture : eRender),
+                                      (active_in ? DEVICE_STATE_ACTIVE : DEVICE_STATEMASK_ALL),
+                                      &devices_p);
+  ACE_ASSERT (SUCCEEDED (result_2) && devices_p);
+  enumerator_p->Release (); enumerator_p = NULL;
+  UINT num_devices_i = 0;
+  result_2 = devices_p->GetCount (&num_devices_i);
+  ACE_ASSERT (SUCCEEDED (result_2));
+  IMMDevice* device_p = NULL;
+  struct _GUID GUID_s = GUID_NULL;
+  IPropertyStore* property_store_p = NULL;
+  struct tagPROPVARIANT property_s;
+  PropVariantInit (&property_s);
+  for (UINT i = 0;
+        i < num_devices_i;
+        ++i)
+  { ACE_ASSERT (!device_p);
+    result_2 = devices_p->Item (i,
+                                &device_p);
+    ACE_ASSERT (SUCCEEDED (result_2) && device_p);
+    result_2 = device_p->OpenPropertyStore (STGM_READ,
+                                            &property_store_p);
+    ACE_ASSERT (SUCCEEDED (result_2) && property_store_p);
+    device_p->Release (); device_p = NULL;
+    result_2 = property_store_p->GetValue (PKEY_AudioEndpoint_GUID,
+                                           &property_s);
+    ACE_ASSERT (SUCCEEDED (result_2));
+    property_store_p->Release (); property_store_p = NULL;
+    ACE_ASSERT (property_s.vt == VT_LPWSTR);
+    GUID_s =
+      Common_Tools::StringToGUID (ACE_TEXT_ALWAYS_CHAR (ACE_TEXT_WCHAR_TO_TCHAR (property_s.pwszVal)));
+    PropVariantClear (&property_s);
+    ACE_DEBUG ((LM_DEBUG,
+                ACE_TEXT ("found %s device: \"%s\": GUID: \"%s\", id: %u\n"),
+                (capture_in ? ACE_TEXT ("capture") : ACE_TEXT ("render")),
+                ACE_TEXT (Stream_MediaFramework_DirectSound_Tools::directSoundGUIDToString (GUID_s).c_str ()),
+                ACE_TEXT (Common_Tools::GUIDToString (GUID_s).c_str ()),
+                Stream_MediaFramework_DirectSound_Tools::directSoundGUIDToWaveDeviceId (GUID_s)));
+    result.push_back (GUID_s);
+  } // end FOR
+  devices_p->Release (); devices_p = NULL;
+
+  return result;
 }
 
 struct _GUID

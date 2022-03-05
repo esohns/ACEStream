@@ -4266,7 +4266,7 @@ drawingarea_query_tooltip_cb (GtkWidget*  widget_in,
       sample_size = waveformatex_p->wBitsPerSample / 8;
       channels = waveformatex_p->nChannels;
       // *NOTE*: "...If the audio contains 8 bits per sample, the audio samples
-      //         are unsigned values. (Each audio sample has the range 0–255.)
+      //         are unsigned values. (Each audio sample has the range 0Â–255.)
       //         If the audio contains 16 bits per sample or higher, the audio
       //         samples are signed values. ..."
       is_signed_format = !(sample_size == 1);
@@ -4309,7 +4309,7 @@ drawingarea_query_tooltip_cb (GtkWidget*  widget_in,
         return FALSE;
       } // end IF
       // *NOTE*: "...If the audio contains 8 bits per sample, the audio samples
-      //         are unsigned values. (Each audio sample has the range 0–255.)
+      //         are unsigned values. (Each audio sample has the range 0Â–255.)
       //         If the audio contains 16 bits per sample or higher, the audio
       //         samples are signed values. ..."
       is_signed_format = !(sample_size == 1);

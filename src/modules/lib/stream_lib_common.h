@@ -29,6 +29,8 @@
 #include "guiddef.h"
 #endif // ACE_WIN32 || ACE_WIN64
 
+#include <set>
+
 enum Stream_MediaType_Type
 {
   STREAM_MEDIATYPE_AUDIO = 0,
@@ -94,5 +96,8 @@ typedef std::map<struct _GUID,
 typedef Stream_MediaFramework_GUIDToStringMap_t::iterator Stream_MediaFramework_GUIDToStringMapIterator_t;
 typedef Stream_MediaFramework_GUIDToStringMap_t::const_iterator Stream_MediaFramework_GUIDToStringMapConstIterator_t;
 #endif // ACE_WIN32 || ACE_WIN64
+
+typedef std::set<uint8_t> Stream_MediaFramework_Sound_SampleResolutions_t;
+typedef Stream_MediaFramework_Sound_SampleResolutions_t::const_iterator Stream_MediaFramework_Sound_SampleResolutionsIterator_t;
 
 #endif

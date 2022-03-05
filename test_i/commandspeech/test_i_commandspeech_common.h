@@ -458,7 +458,7 @@ struct Test_I_ALSA_UI_ThreadData
  : Test_I_CommandSpeech_UI_ThreadData
 {
   Test_I_ALSA_UI_ThreadData ()
-   : Test_I_UI_ThreadData ()
+   : Test_I_CommandSpeech_UI_ThreadData ()
    , CBData (NULL)
   {}
 

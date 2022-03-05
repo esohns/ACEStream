@@ -869,17 +869,16 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
                         inherited::mod_->name ()));
         } // end IF
 
-        // finished ?
-        if (unlikely (stop_processing_b)) // <-- SESSION_END has been processed || serious error
+        if (unlikely (stop_processing_b)) // <-- SESSION_END has been processed || finished || serious error
         { stop_processing_b = false; // reset, just in case...
-//          { ACE_GUARD_RETURN (ACE_Thread_Mutex, aGuard, inherited::lock_, -1);
-            if (likely (inherited2::current () != STREAM_STATE_FINISHED))
+          { ACE_GUARD_RETURN (ACE_Thread_Mutex, aGuard, inherited::lock_, -1);
+            if (unlikely (!sessionEndSent_ && !sessionEndProcessed_))
             {
               // enqueue(/process) STREAM_SESSION_END
               finished (false); // recurse upstream ?
               continue;
             } // end IF
-//          } // end lock scope
+          } // end lock scope
         } // end IF
 
         break;
@@ -895,8 +894,8 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
       // *TODO*: remove type inferences
       if (unlikely (session_data_p->aborted))
       {
-//        { ACE_GUARD_RETURN (ACE_Thread_Mutex, aGuard, inherited::lock_, -1);
-          if (likely (inherited2::current () != STREAM_STATE_FINISHED))
+        { ACE_GUARD_RETURN (ACE_Thread_Mutex, aGuard, inherited::lock_, -1);
+          if (!sessionEndSent_ && !sessionEndProcessed_)
           {
             // *TODO*: remove type inferences
             ACE_DEBUG ((LM_DEBUG,
@@ -907,7 +906,7 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
             finished (false); // recurse upstream ?
             continue;
           } // end IF
-//        } // end lock scope
+        } // end lock scope
       } // end IF
     } // end lock scope
   } while (true);

@@ -172,6 +172,7 @@ Stream_Device_MediaFoundation_Tools::getCaptureDevices (REFGUID deviceCategory_i
                   ACE_TEXT (Common_Error_Tools::errorToString (result_2).c_str ())));
       goto error_2;
     } // end IF
+    ACE_ASSERT (length < BUFSIZ);
     ACE_OS::strcpy (device_identifier_s.identifier._string,
                     ACE_TEXT_ALWAYS_CHAR (ACE_TEXT_WCHAR_TO_TCHAR (buffer_a)));
 #else

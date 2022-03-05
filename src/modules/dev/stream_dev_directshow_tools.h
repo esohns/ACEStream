@@ -23,10 +23,11 @@
 
 #include <string>
 
-#include "winnt.h"
 #include "guiddef.h"
 #include "ks.h"
+#include "minwindef.h"
 #include "strmif.h"
+#include "winnt.h"
 
 #include "ace/Global_Macros.h"
 

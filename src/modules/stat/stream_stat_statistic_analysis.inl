@@ -345,9 +345,6 @@ error:
       break;
     }
     case STREAM_SESSION_MESSAGE_END:
-    {
-      break;
-    }
     default:
       break;
   } // end SWITCH

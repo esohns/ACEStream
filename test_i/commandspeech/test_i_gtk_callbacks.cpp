@@ -2088,8 +2088,8 @@ idle_update_display_cb (gpointer userData_in)
   ACE_ASSERT (gtk_manager_p);
   Common_UI_GTK_State_t& state_r =
     const_cast<Common_UI_GTK_State_t&> (gtk_manager_p->getR ());
-  Common_UI_GTK_BuildersConstIterator_t iterator = state_r.builders.find (
-    ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN));
+  Common_UI_GTK_BuildersConstIterator_t iterator =
+    state_r.builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN));
   ACE_ASSERT (iterator != state_r.builders.end ());
 
   GdkWindow* window_p = NULL;
@@ -2643,7 +2643,7 @@ combobox_target_changed_cb (GtkWidget* widget_in,
       device_identifier_string;
 #endif // ACE_WIN32 || ACE_WIN64
 
-  GtkScale* hscale_p = NULL, *hscale_2 = NULL;
+  GtkScale* hscale_p = NULL;
   std::ostringstream converter;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   Test_I_DirectShow_Source* directshow_source_impl_2 = NULL;
@@ -3312,7 +3312,7 @@ drawingarea_query_tooltip_cb (GtkWidget*  widget_in,
       sample_size = waveformatex_p->wBitsPerSample / 8;
       channels = waveformatex_p->nChannels;
       // *NOTE*: "...If the audio contains 8 bits per sample, the audio samples
-      //         are unsigned values. (Each audio sample has the range 0–255.)
+      //         are unsigned values. (Each audio sample has the range 0Â–255.)
       //         If the audio contains 16 bits per sample or higher, the audio
       //         samples are signed values. ..."
       is_signed_format = !(sample_size == 1);
@@ -3355,7 +3355,7 @@ drawingarea_query_tooltip_cb (GtkWidget*  widget_in,
         return FALSE;
       } // end IF
       // *NOTE*: "...If the audio contains 8 bits per sample, the audio samples
-      //         are unsigned values. (Each audio sample has the range 0–255.)
+      //         are unsigned values. (Each audio sample has the range 0Â–255.)
       //         If the audio contains 16 bits per sample or higher, the audio
       //         samples are signed values. ..."
       is_signed_format = !(sample_size == 1);

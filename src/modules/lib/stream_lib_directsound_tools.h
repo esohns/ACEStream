@@ -1,6 +1,6 @@
 /***************************************************************************
- *   Copyright (C) 2009 by Erik Sohns   *
- *   erik.sohns@web.de   *
+ *   Copyright (C) 2009 by Erik Sohns                                      *
+ *   erik.sohns@web.de                                                     *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -53,8 +53,13 @@ class Stream_MediaFramework_DirectSound_Tools
 
   static std::string directSoundGUIDToString (REFGUID); // device identifier [GUID_NULL ? default render (!) device]
   static ULONG directSoundGUIDToWaveDeviceId (REFGUID); // device identifier [GUID_NULL ? default render (!) device]
+  static struct _GUID getDefaultDevice (bool = true); // capture ? : render
+  static Common_Identifiers_t getDevices (bool = true,  // capture ? : render
+                                          bool = true); // active ? : all
 
   static struct _GUID endpointIdToDirectSoundGUID (const std::string&); // device endpoint id
+
+  
 
   // format
   static struct tWAVEFORMATEX extensibleTo (const struct tWAVEFORMATEX&); // format

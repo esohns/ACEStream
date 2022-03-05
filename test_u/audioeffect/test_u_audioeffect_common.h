@@ -360,13 +360,9 @@ struct Test_U_AudioEffect_ModuleHandlerConfiguration
    , generatorConfiguration (NULL)
    , mute (false)
 #if defined (GUI_SUPPORT)
-#if defined (GTK_SUPPORT)
 #if defined (GTKGL_SUPPORT)
-   , OpenGLInstructions (NULL)
-   , OpenGLInstructionsLock (NULL)
    , OpenGLTextureId (0)
 #endif /* GTKGL_SUPPORT */
-#endif // GTK_SUPPORT
    , spectrumAnalyzer2DMode (STREAM_VIS_SPECTRUMANALYZER_DEFAULT_2DMODE)
    , spectrumAnalyzer3DMode (STREAM_VIS_SPECTRUMANALYZER_DEFAULT_3DMODE)
    , spectrumAnalyzerResolution (STREAM_VIS_SPECTRUMANALYZER_DEFAULT_BUFFER_SIZE)
@@ -386,13 +382,9 @@ struct Test_U_AudioEffect_ModuleHandlerConfiguration
   struct Stream_MediaFramework_SoundGeneratorConfiguration* generatorConfiguration;
   bool                                              mute;
 #if defined (GUI_SUPPORT)
-#if defined (GTK_SUPPORT)
 #if defined (GTKGL_SUPPORT)
-  Stream_Visualization_GTKGL_Instructions_t*        OpenGLInstructions;
-  ACE_SYNCH_MUTEX*                                  OpenGLInstructionsLock;
   GLuint                                            OpenGLTextureId;
 #endif /* GTKGL_SUPPORT */
-#endif // GTK_SUPPORT
   enum Stream_Visualization_SpectrumAnalyzer_2DMode spectrumAnalyzer2DMode;
   enum Stream_Visualization_SpectrumAnalyzer_3DMode spectrumAnalyzer3DMode;
   unsigned int                                      spectrumAnalyzerResolution;
@@ -792,40 +784,36 @@ struct Test_U_AudioEffect_UI_CBDataBase
 {
   Test_U_AudioEffect_UI_CBDataBase ()
    : Test_U_UI_CBData ()
-#if defined (GTK_SUPPORT)
 #if defined (GTKGL_SUPPORT)
-   , OpenGLInstructions ()
+   , OpenGLInstructions (NULL)
+   , OpenGLInstructionsLock (NULL)
 #endif // GTKGL_SUPPORT
-#endif // GTK_SUPPORT
    , isFirst (true)
-#if defined (GTK_SUPPORT)
 #if defined (GTKGL_SUPPORT)
    , objectRotation (1)
 #endif // GTKGL_SUPPORT
-#endif // GTK_SUPPORT
    , progressData ()
 #if defined (GTK_SUPPORT)
    , resizeNotification (NULL)
+   , spectrumAnalyzerCBData ()
 #endif // GTK_SUPPORT
    , stream (NULL)
   {}
 
-#if defined (GTK_SUPPORT)
 #if defined (GTKGL_SUPPORT)
-  Stream_Visualization_GTKGL_Instructions_t  OpenGLInstructions;
+  Stream_Visualization_GTKGL_Instructions_t*      OpenGLInstructions;
+  ACE_Thread_Mutex*                               OpenGLInstructionsLock;
 #endif // GTKGL_SUPPORT
-#endif // GTK_SUPPORT
-  bool                                       isFirst; // first activation ?
-#if defined (GTK_SUPPORT)
+  bool                                            isFirst; // first activation ?
 #if defined (GTKGL_SUPPORT)
-  int                                        objectRotation;
+  int                                             objectRotation;
 #endif // GTKGL_SUPPORT
-#endif // GTK_SUPPORT
-  struct Test_U_AudioEffect_ProgressData     progressData;
+  struct Test_U_AudioEffect_ProgressData          progressData;
 #if defined (GTK_SUPPORT)
-  Test_U_Common_ISet_t*                      resizeNotification;
+  Test_U_Common_ISet_t*                           resizeNotification;
+  struct acestream_visualization_gtk_cairo_cbdata spectrumAnalyzerCBData;
 #endif // GTK_SUPPORT
-  Stream_IStreamControlBase*                 stream;
+  Stream_IStreamControlBase*                      stream;
 };
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 struct Test_U_AudioEffect_DirectShow_UI_CBData

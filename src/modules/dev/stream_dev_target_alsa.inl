@@ -458,7 +458,7 @@ Stream_Dev_Target_ALSA_T<ACE_SYNCH_USE,
 
       bool stop_device = false;
 //      size_t initial_buffer_size = 0;
-      void* buffer_p = NULL;
+//      void* buffer_p = NULL;
 #if defined (_DEBUG)
       snd_pcm_status_t* status_p = NULL;
 #endif // _DEBUG

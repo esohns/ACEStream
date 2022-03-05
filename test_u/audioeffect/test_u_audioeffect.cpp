@@ -785,10 +785,8 @@ do_initialize_mediafoundation (const struct Stream_Device_Identifier& deviceIden
   STREAM_TRACE (ACE_TEXT ("::do_initialize_mediafoundation"));
 
   HRESULT result = E_FAIL;
-  struct tWAVEFORMATEX waveformatex_s;
-  ACE_OS::memset (&waveformatex_s, 0, sizeof (struct tWAVEFORMATEX));
-  struct _AMMediaType media_type_s;
-  ACE_OS::memset (&media_type_s, 0, sizeof (struct _AMMediaType));
+  struct tWAVEFORMATEX* waveformatex_p = NULL;
+  IMFAudioMediaType* media_type_p = NULL;
 #if COMMON_OS_WIN32_TARGET_PLATFORM(0x0602) // _WIN32_WINNT_WIN8
   IMFMediaSourceEx* media_source_p = NULL;
 #else
@@ -798,8 +796,9 @@ do_initialize_mediafoundation (const struct Stream_Device_Identifier& deviceIden
   TOPOID sample_grabber_id = 0, renderer_id = 0;
   IMFAttributes* attributes_p = NULL;
   std::string effect_options; // *TODO*
-  UINT32 channel_mask_i = (SPEAKER_FRONT_LEFT |
-                           SPEAKER_FRONT_RIGHT);
+
+  // sanity check(s)
+  ACE_ASSERT (deviceIdentifier_in.identifierDiscriminator == Stream_Device_Identifier::GUID);
 
   if (!initializeMediaFoundation_in)
     goto continue_2;
@@ -825,43 +824,27 @@ continue_2:
     captureMediaType_out->Release (); captureMediaType_out = NULL;
   } // end IF
 
-  waveformatex_s.wFormatTag = STREAM_DEV_MIC_DEFAULT_FORMAT;
-  waveformatex_s.nChannels = STREAM_DEV_MIC_DEFAULT_CHANNELS;
-  waveformatex_s.nSamplesPerSec = STREAM_DEV_MIC_DEFAULT_SAMPLE_RATE;
-  waveformatex_s.wBitsPerSample = STREAM_DEV_MIC_DEFAULT_BITS_PER_SAMPLE;
-  waveformatex_s.nBlockAlign =
-    (waveformatex_s.nChannels * (waveformatex_s.wBitsPerSample / 8));
-  waveformatex_s.nAvgBytesPerSec =
-    (waveformatex_s.nSamplesPerSec * waveformatex_s.nBlockAlign);
-  //waveformatex_s.cbSize = 0;
-
-  result = CreateAudioMediaType (&waveformatex_s,
-                                 &media_type_s,
-                                 TRUE);
-  if (FAILED (result))
+  waveformatex_p =
+    Stream_MediaFramework_DirectSound_Tools::getDeviceDriverFormat (deviceIdentifier_in.identifier._guid);
+  if (unlikely (!waveformatex_p))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to CreateAudioMediaType(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
+                ACE_TEXT ("failed to Stream_MediaFramework_DirectSound_Tools::getDeviceDriverFormat(%s), aborting\n"),
+                ACE_TEXT (Common_Tools::GUIDToString (deviceIdentifier_in.identifier._guid).c_str ())));
     goto error;
   } // end IF
-  result = MFCreateMediaTypeFromRepresentation (AM_MEDIA_TYPE_REPRESENTATION,
-                                                &media_type_s,
-                                                &captureMediaType_out);
-  if (FAILED (result))
+  result = MFCreateAudioMediaType (waveformatex_p,
+                                   &media_type_p);
+  if (FAILED (result) || !media_type_p)
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to MFCreateMediaTypeFromRepresentation(): \"%s\", aborting\n"),
                 ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
+    CoTaskMemFree (waveformatex_p); waveformatex_p = NULL;
     goto error;
   } // end IF
-  ACE_ASSERT (captureMediaType_out);
-  result = captureMediaType_out->SetUINT32 (MF_MT_AUDIO_CHANNEL_MASK,
-                                            channel_mask_i);
-  ACE_ASSERT (SUCCEEDED (result));
-  //result = captureMediaType_out->DeleteItem (MF_MT_AUDIO_PREFER_WAVEFORMATEX);
-  //ACE_ASSERT (SUCCEEDED (result));
-  Stream_MediaFramework_DirectShow_Tools::free (media_type_s);
+  CoTaskMemFree (waveformatex_p); waveformatex_p = NULL;
+  captureMediaType_out = media_type_p;
   ACE_ASSERT (!configuration_in.mediaFoundationConfiguration.mediaType);
   configuration_in.mediaFoundationConfiguration.mediaType =
     Stream_MediaFramework_MediaFoundation_Tools::copy (captureMediaType_out);
@@ -917,7 +900,6 @@ continue_2:
   } // end IF
 
 continue_3:
-  ACE_ASSERT (deviceIdentifier_in.identifierDiscriminator == Stream_Device_Identifier::GUID);
   if (!Stream_Module_Decoder_Tools::loadAudioRendererTopology (deviceIdentifier_in.identifier._guid,
                                                                MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE_AUDCAP_GUID,
                                                                useMediaFoundationSource_in,
@@ -988,7 +970,6 @@ continue_4:
   return true;
 
 error:
-  Stream_MediaFramework_DirectShow_Tools::free (media_type_s);
   if (captureMediaType_out)
   {
     captureMediaType_out->Release (); captureMediaType_out = NULL;
@@ -1138,6 +1119,11 @@ do_work (
       directshow_stream_configuration.renderer =
         (useFrameworkRenderer_in ? STREAM_DEVICE_RENDERER_DIRECTSHOW
                                  : STREAM_DEVICE_RENDERER_WAVEOUT);
+#if defined (GTKGL_SUPPORT)
+      directShowCBData_in.OpenGLInstructions = &directshow_stream.instructions_;
+      directShowCBData_in.OpenGLInstructionsLock =
+        &directshow_stream.instructionsLock_;
+#endif // GTKGL_SUPPORT
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
@@ -1150,6 +1136,12 @@ do_work (
       mediafoundation_stream_configuration.renderer =
         (useFrameworkRenderer_in ? STREAM_DEVICE_RENDERER_MEDIAFOUNDATION
                                  : STREAM_DEV_AUDIO_DEFAULT_RENDERER);
+#if defined (GTKGL_SUPPORT)
+      mediaFoundationCBData_in.OpenGLInstructions =
+        &mediafoundation_stream.instructions_;
+      mediaFoundationCBData_in.OpenGLInstructionsLock =
+        &mediafoundation_stream.instructionsLock_;
+#endif // GTKGL_SUPPORT
       break;
     }
     default:
@@ -1164,6 +1156,10 @@ do_work (
   Test_U_AudioEffect_ALSA_Stream stream;
   istream_p = &stream;
   istream_control_p = &stream;
+#if defined (GTKGL_SUPPORT)
+  CBData_in.OpenGLInstructions = &stream.instructions_;
+  CBData_in.OpenGLInstructionsLock = &stream.instructionsLock_;
+#endif // GTKGL_SUPPORT
 #endif // ACE_WIN32 || ACE_WIN64
   ACE_Time_Value one_second (1, 0);
 #if defined (GUI_SUPPORT)
@@ -1171,10 +1167,6 @@ do_work (
   Common_UI_GTK_Manager_t* gtk_manager_p =
       COMMON_UI_GTK_MANAGER_SINGLETON::instance ();
   ACE_ASSERT (gtk_manager_p);
-#if defined (GTKGL_SUPPORT)
-  Common_UI_GTK_State_t& state_r =
-    const_cast<Common_UI_GTK_State_t&> (gtk_manager_p->getR ());
-#endif // GTKGL_SUPPORT
   int result_2 = -1;
 #endif // GTK_SUPPORT
 #endif // GUI_SUPPORT
@@ -1289,18 +1281,6 @@ do_work (
       directshow_modulehandler_configuration.messageAllocator =
         &directshow_message_allocator;
       directshow_modulehandler_configuration.mute = mute_in;
-
-#if defined (GUI_SUPPORT)
-#if defined (GTK_SUPPORT)
-#if defined (GTKGL_SUPPORT)
-      directshow_modulehandler_configuration.OpenGLInstructions =
-        &directShowCBData_in.OpenGLInstructions;
-      directshow_modulehandler_configuration.OpenGLInstructionsLock =
-        &state_r.lock;
-#endif // GTKGL_SUPPORT
-#endif // GTK_SUPPORT
-#endif // GUI_SUPPORT
-
       directshow_modulehandler_configuration.printProgressDot =
         UIDefinitionFile_in.empty ();
       directshow_modulehandler_configuration.statisticReportingInterval =
@@ -1395,7 +1375,7 @@ do_work (
           mediafoundation_modulehandler_configuration.deviceIdentifier.identifierDiscriminator =
             Stream_Device_Identifier::ID;
           mediafoundation_modulehandler_configuration.deviceIdentifier.identifier._id =
-            (mute_in ? -1 : 0); // *TODO*: -1 means WAVE_MAPPER
+            0;
           break;
         }
         case STREAM_DEVICE_CAPTURER_WASAPI:
@@ -1403,19 +1383,13 @@ do_work (
           mediafoundation_modulehandler_configuration.deviceIdentifier.identifierDiscriminator =
             Stream_Device_Identifier::GUID;
           mediafoundation_modulehandler_configuration.deviceIdentifier.identifier._guid =
-            (mute_in ? GUID_NULL
-                     : Stream_MediaFramework_DirectSound_Tools::waveDeviceIdToDirectSoundGUID (0,
-                                                                                               true)); // capture
+            Stream_MediaFramework_DirectSound_Tools::getDefaultDevice (true); // capture
           break;
         }
         case STREAM_DEVICE_CAPTURER_MEDIAFOUNDATION:
         {
-          mediafoundation_modulehandler_configuration.deviceIdentifier.identifierDiscriminator =
-            Stream_Device_Identifier::GUID;
-          mediafoundation_modulehandler_configuration.deviceIdentifier.identifier._guid =
-            (mute_in ? GUID_NULL
-                     : Stream_MediaFramework_DirectSound_Tools::waveDeviceIdToDirectSoundGUID (0,
-                                                                                               true)); // capture
+          mediafoundation_modulehandler_configuration.deviceIdentifier =
+            Stream_Device_MediaFoundation_Tools::getDefaultCaptureDevice (MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE_AUDCAP_GUID);
           break;
         }
         default:
@@ -1431,18 +1405,6 @@ do_work (
       mediafoundation_modulehandler_configuration.mediaFoundationConfiguration =
         &mediaFoundationConfiguration_in.mediaFoundationConfiguration;
       mediafoundation_modulehandler_configuration.mute = mute_in;
-
-#if defined (GUI_SUPPORT)
-#if defined (GTK_SUPPORT)
-#if defined (GTKGL_SUPPORT)
-      mediafoundation_modulehandler_configuration.OpenGLInstructions =
-        &mediaFoundationCBData_in.OpenGLInstructions;
-      mediafoundation_modulehandler_configuration.OpenGLInstructionsLock =
-        &state_r.lock;
-#endif // GTKGL_SUPPORT
-#endif // GTK_SUPPORT
-#endif // GUI_SUPPORT
-
       mediafoundation_modulehandler_configuration.printProgressDot =
         UIDefinitionFile_in.empty ();
       mediafoundation_modulehandler_configuration.statisticReportingInterval =
@@ -1544,15 +1506,6 @@ do_work (
     &configuration_in.generatorConfiguration;
   modulehandler_configuration.messageAllocator = &message_allocator;
   modulehandler_configuration.mute = mute_in;
-#if defined (GUI_SUPPORT)
-#if defined (GTK_SUPPORT)
-#if defined (GTKGL_SUPPORT)
-  modulehandler_configuration.OpenGLInstructions =
-    &CBData_in.OpenGLInstructions;
-  modulehandler_configuration.OpenGLInstructionsLock = &state_r.lock;
-#endif // GTKGL_SUPPORT
-#endif // GTK_SUPPORT
-#endif // GUI_SUPPORT
   modulehandler_configuration.printProgressDot = UIDefinitionFile_in.empty ();
   modulehandler_configuration.statisticReportingInterval =
     ACE_Time_Value (statisticReportingInterval_in, 0);
@@ -2196,12 +2149,14 @@ ACE_TMAIN (int argc_in,
   struct Test_U_AudioEffect_DirectShow_Configuration directshow_configuration;
   directshow_configuration.filterConfiguration.pinConfiguration =
     &directshow_configuration.pinConfiguration;
+  directshow_configuration.generatorConfiguration.amplitude = 1.0;
   directshow_configuration.generatorConfiguration.frequency =
     TEST_U_STREAM_AUDIOEFFECT_NOISE_DEFAULT_FREQUENCY_D;
   directshow_configuration.generatorConfiguration.type =
     TEST_U_STREAM_AUDIOEFFECT_NOISE_DEFAULT_TYPE;
   struct Test_U_AudioEffect_DirectShow_UI_CBData directshow_ui_cb_data;
   struct Test_U_AudioEffect_MediaFoundation_Configuration mediafoundation_configuration;
+  mediafoundation_configuration.generatorConfiguration.amplitude = 1.0;
   mediafoundation_configuration.generatorConfiguration.frequency =
     TEST_U_STREAM_AUDIOEFFECT_NOISE_DEFAULT_FREQUENCY_D;
   mediafoundation_configuration.generatorConfiguration.type =
@@ -2280,6 +2235,7 @@ ACE_TMAIN (int argc_in,
   } // end SWITCH
 #else
   struct Test_U_AudioEffect_Configuration configuration;
+  configuration.generatorConfiguration.amplitude = 1.0;
   configuration.generatorConfiguration.frequency =
     TEST_U_STREAM_AUDIOEFFECT_NOISE_DEFAULT_FREQUENCY_D;
   configuration.generatorConfiguration.type =

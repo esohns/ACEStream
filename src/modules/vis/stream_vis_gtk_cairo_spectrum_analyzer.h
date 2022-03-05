@@ -127,20 +127,20 @@ class Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T
   ACE_UNIMPLEMENTED_FUNC (Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T (const Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T& operator= (const Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T&))
 
-  //// override ACE_Task_Base members
-  //virtual int svc (void);
-  //// override Stream_TaskBaseSynch_T members
-  //virtual void stop (bool = true,   // wait for completion ?
-  //                   bool = false); // high priority ? (i.e. do not wait for queued messages)
+  // override ACE_Task_Base members
+  virtual int svc (void);
+//  // override Stream_TaskBaseSynch_T members
+//  virtual void stop (bool = true,   // wait for completion ?
+//                     bool = false); // high priority ? (i.e. do not wait for queued messages)
 
   //// implement Common_ICounter (triggers frame rendering)
   //virtual void reset ();
 
-  //bool initialize_Cairo (GdkWindow*, // target window
-  //                       cairo_t*&); // return value: cairo context
+  bool initialize_Cairo (GdkWindow*, // target window
+                         cairo_t*&); // return value: cairo context
 
   unsigned int                                       bufferedSamples_;
-  //struct acestream_visualization_gtk_cairo_cbdata    CBData_;
+  struct acestream_visualization_gtk_cairo_cbdata    CBData_;
   double                                             channelFactor_;
   double                                             scaleFactorX_;
   // *NOTE*: there are only (N/2)-1 meaningful values for real-valued data

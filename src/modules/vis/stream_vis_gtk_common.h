@@ -21,9 +21,7 @@
 #ifndef STREAM_VISUALIZATION_GTK_COMMON_H
 #define STREAM_VISUALIZATION_GTK_COMMON_H
 
-#if defined (GTKGL_SUPPORT)
 #include <deque>
-#endif // GTKGL_SUPPORT
 
 #include "gtk/gtk.h"
 

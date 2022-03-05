@@ -39,9 +39,6 @@
 static void
 stream_dev_mic_source_alsa_async_callback (snd_async_handler_t* handler_in)
 {
-  // never wait for the queue
-  static ACE_Time_Value no_wait = ACE_OS::gettimeofday ();
-
   // sanity check(s)
   ACE_ASSERT (handler_in);
   struct Stream_Device_ALSA_Capture_AsynchCBData* data_p =
@@ -124,8 +121,8 @@ stream_dev_mic_source_alsa_async_callback (snd_async_handler_t* handler_in)
     data_p->statistic->capturedFrames += frames_read;
 
     result = data_p->queue->enqueue_tail (message_block_p,
-                                          &no_wait);
-    if (unlikely (result < 0))
+                                          NULL);
+    if (unlikely (result == -1))
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: failed to ACE_Message_Queue_Base::enqueue_tail(): \"%m\", returning\n"),

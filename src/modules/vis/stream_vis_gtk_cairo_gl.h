@@ -42,6 +42,9 @@ class Stream_Visualization_GTK_Cairo_OpenGL
   // implement Common_IDispatch_T
   virtual void dispatch (const enum Stream_Statistic_AnalysisEventType&);
 
+  Stream_Visualization_GTKGL_Instructions_t          instructions_;
+  ACE_Thread_Mutex                                   instructionsLock_;
+
  private:
   ACE_UNIMPLEMENTED_FUNC (Stream_Visualization_GTK_Cairo_OpenGL (const Stream_Visualization_GTK_Cairo_OpenGL&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Visualization_GTK_Cairo_OpenGL& operator= (const Stream_Visualization_GTK_Cairo_OpenGL&))
@@ -53,9 +56,7 @@ class Stream_Visualization_GTK_Cairo_OpenGL
   GdkColor                                           backgroundColor_;
   GdkColor                                           foregroundColor_;
 #endif /* GTK_CHECK_VERSION (3,0,0) */
-//#if defined (GTKGL_SUPPORT)
-//  enum Stream_Visualization_SpectrumAnalyzer_3DMode* mode3D_;
-//#endif // GTKGL_SUPPORT
+  enum Stream_Visualization_SpectrumAnalyzer_3DMode* mode3D_;
 
   // random number generator
   std::uniform_int_distribution<int>                 randomDistribution_;

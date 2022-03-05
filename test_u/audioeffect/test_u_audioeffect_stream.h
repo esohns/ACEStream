@@ -31,6 +31,8 @@
 #include "stream_base.h"
 #include "stream_common.h"
 
+#include "stream_vis_gtk_cairo_gl.h"
+
 #include "test_u_audioeffect_common.h"
 #include "test_u_audioeffect_common_modules.h"
 #include "test_u_audioeffect_message.h"
@@ -61,6 +63,9 @@ class Test_U_AudioEffect_DirectShow_Stream
                         Stream_ControlMessage_t,
                         Test_U_AudioEffect_DirectShow_Message,
                         Test_U_AudioEffect_DirectShow_SessionMessage>
+#if defined (GTKGL_SUPPORT)
+ , public Stream_Visualization_GTK_Cairo_OpenGL
+#endif // GTKGL_SUPPORT
 {
   typedef Stream_Base_T<ACE_MT_SYNCH,
                         Common_TimePolicy_t,
@@ -77,6 +82,9 @@ class Test_U_AudioEffect_DirectShow_Stream
                         Stream_ControlMessage_t,
                         Test_U_AudioEffect_DirectShow_Message,
                         Test_U_AudioEffect_DirectShow_SessionMessage> inherited;
+#if defined (GTKGL_SUPPORT)
+  typedef Stream_Visualization_GTK_Cairo_OpenGL inherited2;
+#endif // GTKGL_SUPPORT
 
  public:
   Test_U_AudioEffect_DirectShow_Stream ();
@@ -112,6 +120,9 @@ class Test_U_AudioEffect_MediaFoundation_Stream
                         Stream_ControlMessage_t,
                         Test_U_AudioEffect_MediaFoundation_Message,
                         Test_U_AudioEffect_MediaFoundation_SessionMessage>
+#if defined (GTKGL_SUPPORT)
+ , public Stream_Visualization_GTK_Cairo_OpenGL
+#endif // GTKGL_SUPPORT
  , public Common_IGetR_4_T<Test_U_AudioEffect_MediaFoundation_Target>
  , public Common_IGetR_5_T<Test_U_AudioEffect_MediaFoundation_Source>
  , public Common_IGetR_6_T<Test_U_Dev_Mic_Source_MediaFoundation>
@@ -132,6 +143,9 @@ class Test_U_AudioEffect_MediaFoundation_Stream
                         Stream_ControlMessage_t,
                         Test_U_AudioEffect_MediaFoundation_Message,
                         Test_U_AudioEffect_MediaFoundation_SessionMessage> inherited;
+#if defined (GTKGL_SUPPORT)
+  typedef Stream_Visualization_GTK_Cairo_OpenGL inherited2;
+#endif // GTKGL_SUPPORT
 
  public:
   Test_U_AudioEffect_MediaFoundation_Stream ();
@@ -196,6 +210,9 @@ class Test_U_AudioEffect_ALSA_Stream
                         Stream_ControlMessage_t,
                         Test_U_AudioEffect_Message,
                         Test_U_AudioEffect_SessionMessage>
+#if defined (GTKGL_SUPPORT)
+ , public Stream_Visualization_GTK_Cairo_OpenGL
+#endif // GTKGL_SUPPORT
 {
   typedef Stream_Base_T<ACE_MT_SYNCH,
                         Common_TimePolicy_t,
@@ -212,6 +229,9 @@ class Test_U_AudioEffect_ALSA_Stream
                         Stream_ControlMessage_t,
                         Test_U_AudioEffect_Message,
                         Test_U_AudioEffect_SessionMessage> inherited;
+#if defined (GTKGL_SUPPORT)
+  typedef Stream_Visualization_GTK_Cairo_OpenGL inherited2;
+#endif // GTKGL_SUPPORT
 
  public:
   Test_U_AudioEffect_ALSA_Stream ();

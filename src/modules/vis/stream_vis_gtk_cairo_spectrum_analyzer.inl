@@ -31,6 +31,8 @@ extern "C"
 
 #include "common_tools.h"
 
+#include "common_ui_defines.h"
+
 #include "stream_macros.h"
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -74,7 +76,7 @@ Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
                STREAM_VIS_SPECTRUMANALYZER_DEFAULT_BUFFER_SIZE,
                STREAM_VIS_SPECTRUMANALYZER_DEFAULT_SAMPLE_RATE)
  , bufferedSamples_ (0)
- //, CBData_ ()
+ , CBData_ ()
  , channelFactor_ (0.0)
  , scaleFactorX_ (0.0)
  , scaleFactorX_2 (0.0)
@@ -91,7 +93,7 @@ Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T::Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T"));
 
-  //ACE_OS::memset (&CBData_, 0, sizeof (struct acestream_visualization_gtk_cairo_cbdata));
+  ACE_OS::memset (&CBData_, 0, sizeof (struct acestream_visualization_gtk_cairo_cbdata));
   //inherited::msg_queue (&queue_);
 }
 
@@ -120,11 +122,8 @@ Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T::~Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T"));
 
-//#if GTK_CHECK_VERSION (3,0,0)
-//#else
-//  if (unlikely (CBData_.context))
-//    cairo_destroy (CBData_.context);
-//#endif // GTK_CHECK_VERSION (3,0,0)
+  if (unlikely (CBData_.context))
+    cairo_destroy (CBData_.context);
 }
 
 template <ACE_SYNCH_DECL,
@@ -159,16 +158,13 @@ Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
     // (re-)activate() the message queue
     // *NOTE*: as this is a 'passive' object, the queue needs to be explicitly
     //         (re-)activate()d (see below)
-#if GTK_CHECK_VERSION (3,0,0)
-#else
-    ACE_ASSERT (inherited::msg_queue_);
-    inherited::msg_queue_->deactivate ();
-#endif // GTK_CHECK_VERSION (3,0,0)
+//    ACE_ASSERT (inherited::msg_queue_);
+//    inherited::msg_queue_->deactivate ();
 
     bufferedSamples_ = 0;
-    //if (unlikely (CBData_.context))
-    //  cairo_destroy (CBData_.context);
-    //ACE_OS::memset (&CBData_, 0, sizeof (struct acestream_visualization_gtk_cairo_cbdata));
+    if (unlikely (CBData_.context))
+      cairo_destroy (CBData_.context);
+    ACE_OS::memset (&CBData_, 0, sizeof (struct acestream_visualization_gtk_cairo_cbdata));
 
     channelFactor_ = 0.0;
     scaleFactorX_ = 0.0;
@@ -186,7 +182,6 @@ Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
 
   // initialize cairo context
   // *TODO*: remove type inferences
-  //CBData_.window = configuration_in.window;
   if (!configuration_in.window)
   {
     // sanity check(s)
@@ -207,43 +202,34 @@ Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
     resolution_s.height = STREAM_VIS_DEFAULT_WINDOW_HEIGHT;
     resolution_s.width = STREAM_VIS_DEFAULT_WINDOW_WIDTH;
 #endif // ACE_WIN32 || ACE_WIN64
-#if GTK_CHECK_VERSION (3,6,0)
-#else
     GDK_THREADS_ENTER ();
-#endif // GTK_CHECK_VERSION (3,6,0)
     if (unlikely (!inherited::initialize_GTK (resolution_s)))
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: failed to Stream_Module_Vis_GTK_Window_T::initialize_GTK(), aborting\n"),
                   inherited::mod_->name ()));
-#if GTK_CHECK_VERSION (3,6,0)
-#else
       GDK_THREADS_LEAVE ();
-#endif // GTK_CHECK_VERSION (3,6,0)
       return false;
     } // end IF
-#if GTK_CHECK_VERSION(3, 6, 0)
-#else
-    GDK_THREADS_LEAVE ();
-#endif // GTK_CHECK_VERSION (3,6,0)
     ACE_ASSERT (inherited::window_);
+    CBData_.dispatch = this;
+    CBData_.window = inherited::window_;
+    if (unlikely (!initialize_Cairo (CBData_.window,
+                                     CBData_.context)))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("%s: failed to Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T::initialize_Cairo(), aborting\n"),
+                  inherited::mod_->name ()));
+      GDK_THREADS_LEAVE ();
+      return false;
+    } // end IF
+    GDK_THREADS_LEAVE ();
     gdk_window_show (inherited::window_);
     const_cast<ConfigurationType&> (configuration_in).window =
       inherited::window_;
   } // end IF
-  //ACE_ASSERT (CBData_.window);
 
   GDK_THREADS_ENTER ();
-  //if (unlikely (!initialize_Cairo (CBData_.window,
-  //                                 CBData_.context)))
-  //{
-  //  ACE_DEBUG ((LM_ERROR,
-  //              ACE_TEXT ("%s: failed to Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T::initialize_Cairo(), aborting\n"),
-  //              inherited::mod_->name ()));
-  //  GDK_THREADS_LEAVE ();
-  //  return false;
-  //} // end IF
-
 #if GTK_CHECK_VERSION (3,0,0)
   gdk_window_get_geometry (configuration_in.window,
                            NULL,
@@ -516,7 +502,7 @@ Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
       scaleFactorX_2 =
         width_ / static_cast<double> (inherited2::channels_ * ((inherited2::slots_ / 2) - 1));
       scaleFactorY_ =
-        (is_floating_point_format ? static_cast<double> (height_) / 2.0
+        (is_floating_point_format ? static_cast<double> (height_)
                                   : static_cast<double> (height_) / static_cast<double> (Common_Tools::max<ACE_UINT64> (sound_sample_size, false)));
 
       // schedule the renderer
@@ -615,20 +601,14 @@ error:
 
       if (inherited::window_)
       {
-#if GTK_CHECK_VERSION (3,6,0)
-#else
         GDK_THREADS_ENTER ();
-#endif // GTK_CHECK_VERSION (3,6,0)
         //if (inherited::thr_count_ == 2)
         if (inherited::thr_count_ > 0)
         {
           gdk_window_destroy (inherited::window_); inherited::window_ = NULL;
           gtk_main_quit ();
         } // end IF
-#if GTK_CHECK_VERSION (3,6,0)
-#else
         GDK_THREADS_LEAVE ();
-#endif // GTK_CHECK_VERSION (3,6,0)
       } // end IF
 //      if (likely (inherited::mainLoop_ &&
 //                  g_main_loop_is_running (inherited::mainLoop_)))
@@ -651,9 +631,9 @@ error:
 //        g_main_loop_unref (inherited::mainLoop_); inherited::mainLoop_ = NULL;
 //      } // end IF
 
-      //if (likely (CBData_.context))
-      //  cairo_destroy (CBData_.context);
-      //ACE_OS::memset (&CBData_, 0, sizeof (struct acestream_visualization_gtk_cairo_cbdata));
+      if (likely (CBData_.context))
+        cairo_destroy (CBData_.context);
+      ACE_OS::memset (&CBData_, 0, sizeof (struct acestream_visualization_gtk_cairo_cbdata));
 
       break;
     }
@@ -662,117 +642,107 @@ error:
   } // end SWITCH
 }
 
-//template <ACE_SYNCH_DECL,
-//          typename TimePolicyType,
-//          typename ConfigurationType,
-//          typename ControlMessageType,
-//          typename DataMessageType,
-//          typename SessionMessageType,
-//          typename SessionDataType,
-//          typename SessionDataContainerType,
-//          typename TimerManagerType,
-//          typename MediaType,
-//          typename ValueType>
-//int
-//Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
-//                                                  TimePolicyType,
-//                                                  ConfigurationType,
-//                                                  ControlMessageType,
-//                                                  DataMessageType,
-//                                                  SessionMessageType,
-//                                                  SessionDataType,
-//                                                  SessionDataContainerType,
-//                                                  TimerManagerType,
-//                                                  MediaType,
-//                                                  ValueType>::svc (void)
-//{
-//  STREAM_TRACE (ACE_TEXT ("Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T::svc"));
-//
-//#if defined (ACE_WIN32) || defined (ACE_WIN64)
-//#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0A00) // _WIN32_WINNT_WIN10
-//  Common_Error_Tools::setThreadName (inherited::threadName_,
-//                                     NULL);
-//#else
-//  Common_Error_Tools::setThreadName (inherited::threadName_,
-//                                     0);
-//#endif // _WIN32_WINNT_WIN10
-//#endif // ACE_WIN32 || ACE_WIN64
-//
-//  static bool is_first_b = true;
-//  bool is_first_2 = false;
-//  int result = 0;
-//  int result_2 = -1;
-//  ACE_Message_Block* message_block_p = NULL;
-//  int error = 0;
-//
-//  { ACE_GUARD_RETURN (ACE_Thread_Mutex, aGuard, inherited::lock_, -1);
-//    if (is_first_b)
-//    {
-//      is_first_b = false;
-//      is_first_2 = true; // *TODO*: there must be a better way to do this...
-//    } // end IF
-//  } // end lock scope
-//  if (is_first_2 && inherited::window_)
-//  {
-//    ACE_DEBUG ((LM_DEBUG,
-//                ACE_TEXT ("%s: gtk dispatch thread (id: %t, group: %d) starting\n"),
-//                inherited::mod_->name (),
-//                inherited::grp_id_));
-//
-//    result = inherited::svc ();
-//
-//    goto done;
-//  } // end IF
-//
-//  ACE_DEBUG ((LM_DEBUG,
-//              ACE_TEXT ("%s: renderer thread (id: %t, group: %d) starting\n"),
-//              inherited::mod_->name (),
-//              inherited::grp_id_));
-//
-//  // process update events
-//  do
-//  {
-//    message_block_p = NULL;
-//    result_2 = inherited::getq (message_block_p, NULL);
-//    if (unlikely (result_2 == -1))
-//    {
-//      error = ACE_OS::last_error ();
-//      if (error != EWOULDBLOCK) // Win32: 10035
-//        ACE_DEBUG ((LM_ERROR,
-//                    ACE_TEXT ("%s: failed to ACE_Task::getq(): \"%m\", aborting\n"),
-//                    inherited::mod_->name ()));
-//      break;
-//    } // end IF
-//    ACE_ASSERT (message_block_p);
-//
-//    switch (message_block_p->msg_type ())
-//    {
-//      case ACE_Message_Block::MB_STOP:
-//      {
-//        message_block_p->release (); message_block_p = NULL;
-//        goto done;
-//      }
-//      case ACE_Message_Block::MB_EVENT:
-//        dispatch (&CBData_);
-//      // *WARNING*: control falls through
-//      default:
-//      {
-//        message_block_p->release (); message_block_p = NULL;
-//        break;
-//      }
-//    } // end SWITCH
-//  } while (true);
-//  result = -1;
-//
-//done:
-//  ACE_DEBUG ((LM_DEBUG,
-//              ACE_TEXT ("%s: %s thread (id: %t, group: %d) leaving\n"),
-//              ((is_first_2 && inherited::window_) ? ACE_TEXT ("gtk dispatch") : ACE_TEXT ("renderer")),
-//              inherited::mod_->name (),
-//              inherited::grp_id_));
-//
-//  return result;
-//}
+template <ACE_SYNCH_DECL, typename TimePolicyType, typename ConfigurationType,
+          typename ControlMessageType, typename DataMessageType,
+          typename SessionMessageType, typename SessionDataType,
+          typename SessionDataContainerType, typename TimerManagerType,
+          typename MediaType, typename ValueType>
+int Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<
+  ACE_SYNCH_USE, TimePolicyType, ConfigurationType, ControlMessageType,
+  DataMessageType, SessionMessageType, SessionDataType,
+  SessionDataContainerType, TimerManagerType, MediaType, ValueType>::svc (void)
+{
+  STREAM_TRACE (
+    ACE_TEXT ("Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T::svc"));
+
+#if defined(ACE_WIN32) || defined(ACE_WIN64)
+#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0A00) // _WIN32_WINNT_WIN10
+  Common_Error_Tools::setThreadName (inherited::threadName_, NULL);
+#else
+  Common_Error_Tools::setThreadName (inherited::threadName_, 0);
+#endif // _WIN32_WINNT_WIN10
+#endif // ACE_WIN32 || ACE_WIN64
+
+  static bool is_first_b = true;
+  bool is_first_2 = false;
+  int result = 0;
+  int result_2 = -1;
+  ACE_Message_Block* message_block_p = NULL;
+  int error = 0;
+
+  {
+    ACE_GUARD_RETURN (ACE_Thread_Mutex, aGuard, inherited::lock_, -1);
+    if (is_first_b)
+    {
+      is_first_b = false;
+      is_first_2 = true; // *TODO*: there must be a better way to do this...
+    } // end IF
+  } // end lock scope
+  if (is_first_2 && inherited::window_)
+  {
+    ACE_DEBUG ((LM_DEBUG,
+                ACE_TEXT ("%s: gtk dispatch thread (id: %t, group: %d) starting\n"),
+                inherited::mod_->name (),
+                inherited::grp_id_));
+
+    g_timeout_add (COMMON_UI_REFRESH_DEFAULT_WIDGET_MS,
+                   acestream_visualization_gtk_cairo_idle_update_cb,
+                   &CBData_);
+
+    result = inherited::svc ();
+
+    goto done;
+  } // end IF
+
+  ACE_DEBUG ((LM_DEBUG,
+              ACE_TEXT ("%s: renderer thread (id: %t, group: %d) starting\n"),
+              inherited::mod_->name (),
+              inherited::grp_id_));
+
+  // process update events
+  do
+  {
+    message_block_p = NULL;
+    result_2 = inherited::getq (message_block_p, NULL);
+    if (unlikely (result_2 == -1))
+    {
+      error = ACE_OS::last_error ();
+      if (error != EWOULDBLOCK) // Win32: 10035
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("%s: failed to ACE_Task::getq(): \"%m\", aborting\n"),
+                    inherited::mod_->name ()));
+      break;
+    } // end IF
+    ACE_ASSERT (message_block_p);
+
+    switch (message_block_p->msg_type ())
+    {
+      case ACE_Message_Block::MB_STOP:
+      {
+        message_block_p->release (); message_block_p = NULL;
+        goto done;
+      }
+      case ACE_Message_Block::MB_EVENT:
+        dispatch (&CBData_);
+      // *WARNING*: control falls through
+      default:
+      {
+        message_block_p->release (); message_block_p = NULL;
+        break;
+      }
+    } // end SWITCH
+  } while (true);
+  result = -1;
+
+done:
+  ACE_DEBUG ((LM_DEBUG,
+              ACE_TEXT ("%s: %s thread (id: %t, group: %d) leaving\n"),
+              ((is_first_2 && inherited::window_) ? ACE_TEXT ("gtk dispatch") : ACE_TEXT ("renderer")),
+              inherited::mod_->name (),
+              inherited::grp_id_));
+
+  return result;
+}
 
 //template <ACE_SYNCH_DECL,
 //          typename TimePolicyType,
@@ -844,53 +814,53 @@ error:
 //  } // end IF
 //}
 
-//template <ACE_SYNCH_DECL,
-//          typename TimePolicyType,
-//          typename ConfigurationType,
-//          typename ControlMessageType,
-//          typename DataMessageType,
-//          typename SessionMessageType,
-//          typename SessionDataType,
-//          typename SessionDataContainerType,
-//          typename TimerManagerType,
-//          typename MediaType,
-//          typename ValueType>
-//bool
-//Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
-//                                                  TimePolicyType,
-//                                                  ConfigurationType,
-//                                                  ControlMessageType,
-//                                                  DataMessageType,
-//                                                  SessionMessageType,
-//                                                  SessionDataType,
-//                                                  SessionDataContainerType,
-//                                                  TimerManagerType,
-//                                                  MediaType,
-//                                                  ValueType>::initialize_Cairo (GdkWindow* window_in,
-//                                                                                cairo_t*& cairoContext_out)
-//{
-//  STREAM_TRACE (ACE_TEXT ("Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T::initialize_Cairo"));
-//
-//  // sanity check(s)
-//  ACE_ASSERT (window_in);
-//  ACE_ASSERT (!cairoContext_out);
-//
-//  cairoContext_out = gdk_cairo_create (window_in);
-//  if (unlikely (!cairoContext_out))
-//  {
-//    ACE_DEBUG ((LM_ERROR,
-//                ACE_TEXT ("%s: failed to gdk_cairo_create(), aborting\n"),
-//                inherited::mod_->name ()));
-//    return false;
-//  } // end IF
-//
-//  //cairo_set_line_cap (cairoContext_out, CAIRO_LINE_CAP_BUTT);
-//  cairo_set_line_width (cairoContext_out, 1.0);
-//  //cairo_set_line_join (cairoContext_out, CAIRO_LINE_JOIN_MITER);
-//  //cairo_set_dash (cairoContext_out, NULL, 0, 0.0);
-//
-//  return true;
-//}
+template <ACE_SYNCH_DECL,
+          typename TimePolicyType,
+          typename ConfigurationType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
+          typename SessionDataType,
+          typename SessionDataContainerType,
+          typename TimerManagerType,
+          typename MediaType,
+          typename ValueType>
+bool
+Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
+                                                  TimePolicyType,
+                                                  ConfigurationType,
+                                                  ControlMessageType,
+                                                  DataMessageType,
+                                                  SessionMessageType,
+                                                  SessionDataType,
+                                                  SessionDataContainerType,
+                                                  TimerManagerType,
+                                                  MediaType,
+                                                  ValueType>::initialize_Cairo (GdkWindow* window_in,
+                                                                                cairo_t*& cairoContext_out)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T::initialize_Cairo"));
+
+  // sanity check(s)
+  ACE_ASSERT (window_in);
+  ACE_ASSERT (!cairoContext_out);
+
+  cairoContext_out = gdk_cairo_create (window_in);
+  if (unlikely (!cairoContext_out))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s: failed to gdk_cairo_create(), aborting\n"),
+                inherited::mod_->name ()));
+    return false;
+  } // end IF
+
+  //cairo_set_line_cap (cairoContext_out, CAIRO_LINE_CAP_BUTT);
+  cairo_set_line_width (cairoContext_out, 1.0);
+  //cairo_set_line_join (cairoContext_out, CAIRO_LINE_JOIN_MITER);
+  //cairo_set_dash (cairoContext_out, NULL, 0, 0.0);
+
+  return true;
+}
 
 //template <ACE_SYNCH_DECL,
 //          typename TimePolicyType,
@@ -1058,7 +1028,7 @@ Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
     scaleFactorX_2 =
       width_ / static_cast<double> (inherited2::channels_ * ((inherited2::slots_ / 2) - 1));
     scaleFactorY_ =
-      (is_floating_point_format ? static_cast<double> (height_) / 2.0
+      (is_floating_point_format ? static_cast<double> (height_)
                                 : static_cast<double> (height_) / static_cast<double> (Common_Tools::max<ACE_UINT64> (sound_sample_size, false)));
 //} // end lock scope
 }
@@ -1095,7 +1065,7 @@ Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
   ACE_ASSERT (cbdata_p);
   ACE_ASSERT (cbdata_p->context);
   ACE_ASSERT (cbdata_p->window);
-  ACE_ASSERT (mode2D_);
+  ACE_ASSERT (mode2D_ != NULL);
 
 #define CAIRO_ERROR_WORKAROUND(X)                                \
   if (cairo_status (X) != CAIRO_STATUS_SUCCESS) {                \
@@ -1104,8 +1074,6 @@ Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
     ACE_ASSERT (cbdata_p->context);                              \
     cairo_set_line_width (cbdata_p->context, 1.0);               \
   } // end IF
-
-  //GDK_THREADS_ENTER ();
 
   // step1: clear the window(s)
   if (*mode2D_ < STREAM_VISUALIZATION_SPECTRUMANALYZER_2DMODE_MAX)
@@ -1126,11 +1094,13 @@ Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
         cairo_set_source_rgb (cbdata_p->context, 0.0, 1.0, 0.0);
         cairo_move_to (cbdata_p->context,
                        static_cast<double> (i) * channelFactor_,
-                       static_cast<double> (halfHeight_));
+                       (sampleIterator_.isSignedSampleFormat_ ? static_cast<double> (halfHeight_)
+                                                              : static_cast<double> (height_)));
         for (unsigned int j = 0; j < inherited2::slots_; ++j)
           cairo_line_to (cbdata_p->context,
                          (static_cast<double> (i) * channelFactor_) + (static_cast<double> (j) * scaleFactorX_),
-                         static_cast<double> (halfHeight_) - (inherited2::buffer_[i][j] * scaleFactorY_));
+                         (sampleIterator_.isSignedSampleFormat_ ? static_cast<double> (halfHeight_) - (inherited2::buffer_[i][j] * scaleFactorY_)
+                                                                : static_cast<double> (height_) - (inherited2::buffer_[i][j] * scaleFactorY_)));
         break;
       }
       case STREAM_VISUALIZATION_SPECTRUMANALYZER_2DMODE_SPECTRUM:
@@ -1197,5 +1167,5 @@ Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
   CAIRO_ERROR_WORKAROUND (cbdata_p->context);
 
 error:
-  /*GDK_THREADS_LEAVE ()*/;
+  ;
 }

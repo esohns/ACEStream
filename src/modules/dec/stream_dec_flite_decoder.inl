@@ -396,8 +396,8 @@ Stream_Decoder_FliteDecoder_T<ACE_SYNCH_USE,
 #endif // ACE_WIN32 || ACE_WIN64
       break;
 
-error:
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
+error:
       Stream_MediaFramework_DirectShow_Tools::free (media_type_2);
 #endif // ACE_WIN32 || ACE_WIN64
 

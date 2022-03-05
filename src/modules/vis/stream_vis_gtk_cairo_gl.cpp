@@ -36,11 +36,11 @@
 #include "stream_vis_tools.h"
 
 Stream_Visualization_GTK_Cairo_OpenGL::Stream_Visualization_GTK_Cairo_OpenGL ()
- : backgroundColor_ ()
+ : instructions_ ()
+ , instructionsLock_ ()
+ , backgroundColor_ ()
  , foregroundColor_ ()
-//#if defined (GTKGL_SUPPORT)
-// , mode3D_ (NULL)
-//#endif // GTKGL_SUPPORT
+ , mode3D_ (NULL)
 #if GTK_CHECK_VERSION(3,0,0)
  , randomDistribution_ (0, 255)
 #else
@@ -51,12 +51,7 @@ Stream_Visualization_GTK_Cairo_OpenGL::Stream_Visualization_GTK_Cairo_OpenGL ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Visualization_GTK_Cairo_OpenGL::Stream_Visualization_GTK_Cairo_OpenGL"));
 
-#if defined (GTKGL_SUPPORT)
 #if GTK_CHECK_VERSION (3,0,0)
-#if GTK_CHECK_VERSION (3,6,0)
-#else
-  GDK_THREADS_ENTER ();
-#endif // GTK_CHECK_VERSION (3,6,0)
   gboolean result_2 =
     gdk_rgba_parse (&backgroundColor_,
                     ACE_TEXT_ALWAYS_CHAR ("rgba (0, 0, 0, 1.0)"));       // opaque black
@@ -65,64 +60,20 @@ Stream_Visualization_GTK_Cairo_OpenGL::Stream_Visualization_GTK_Cairo_OpenGL ()
     gdk_rgba_parse (&foregroundColor_,
                     ACE_TEXT_ALWAYS_CHAR ("rgba (255, 255, 255, 1.0)")); // opaque white
   ACE_ASSERT (result_2);
-#if GTK_CHECK_VERSION (3,6,0)
-#else
-  GDK_THREADS_LEAVE ();
-#endif // GTK_CHECK_VERSION (3,6,0)
 #else
   ACE_OS::memset (&backgroundColor_, 0, sizeof (struct _GdkColor));                            // opaque black
   foregroundColor_.pixel = 0;
   foregroundColor_.red = 65535; foregroundColor_.green = 65535; foregroundColor_.blue = 65535; // opaque white
 #endif // GTK_CHECK_VERSION (3,0,0)
-#endif // GTKGL_SUPPORT
 
   randomGenerator_ = std::bind (randomDistribution_, randomEngine_);
 }
-
-//bool
-//Stream_Visualization_GTK_Cairo_OpenGL::initialize (const ConfigurationType& configuration_in,
-//                                                   Stream_IAllocator* allocator_in)
-//{
-//  STREAM_TRACE (ACE_TEXT ("Stream_Visualization_GTK_Cairo_OpenGL::initialize"));
-//
-//  if (unlikely (inherited::isInitialized_))
-//  {
-//#if defined (GTKGL_SUPPORT)
-//#if GTK_CHECK_VERSION (3,0,0)
-//#if GTK_CHECK_VERSION (3,6,0)
-//#else
-//    GDK_THREADS_ENTER ();
-//#endif // GTK_CHECK_VERSION (3,6,0)
-//    gboolean result_2 =
-//      gdk_rgba_parse (&backgroundColor_,
-//                      ACE_TEXT_ALWAYS_CHAR ("rgba (0, 0, 0, 1.0)"));       // opaque black
-//    ACE_ASSERT (result_2);
-//    result_2 =
-//      gdk_rgba_parse (&foregroundColor_,
-//                      ACE_TEXT_ALWAYS_CHAR ("rgba (255, 255, 255, 1.0)")); // opaque white
-//    ACE_ASSERT (result_2);
-//#if GTK_CHECK_VERSION (3,6,0)
-//#else
-//    GDK_THREADS_LEAVE ();
-//#endif // GTK_CHECK_VERSION (3,6,0)
-//#else
-//    ACE_OS::memset (&backgroundColor_, 0, sizeof (struct _GdkColor));                            // opaque black
-//    foregroundColor_.pixel = 0;
-//    foregroundColor_.red = 65535; foregroundColor_.green = 65535; foregroundColor_.blue = 65535; // opaque white
-//#endif /* GTK_CHECK_VERSION (3,0,0) */
-//#endif /* GTKGL_SUPPORT */
-//  } // end IF
-//
-//  return inherited::initialize (configuration_in,
-//                                allocator_in);
-//}
 
 void
 Stream_Visualization_GTK_Cairo_OpenGL::dispatch (const enum Stream_Statistic_AnalysisEventType& event_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Visualization_GTK_Cairo_OpenGL::dispatch"));
 
-#if defined (GTKGL_SUPPORT)
   // sanity check(s)
   //ACE_ASSERT (inherited::configuration_->OpenGLInstructionsLock);
   //ACE_ASSERT (inherited::configuration_->OpenGLInstructions);
@@ -178,8 +129,7 @@ Stream_Visualization_GTK_Cairo_OpenGL::dispatch (const enum Stream_Statistic_Ana
     }
   } // end SWITCH
 
-  //{ ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, *inherited::configuration_->OpenGLInstructionsLock);
-  //  inherited::configuration_->OpenGLInstructions->push_back (visualization_instruction_s);
-  //} // end lock scope
-#endif // GTKGL_SUPPORT
+  { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, instructionsLock_);
+    instructions_.push_back (visualization_instruction_s);
+  } // end lock scope
 }

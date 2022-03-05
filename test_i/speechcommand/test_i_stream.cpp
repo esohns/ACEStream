@@ -743,19 +743,6 @@ Test_I_MediaFoundation_Stream::initialize (const CONFIGURATION_T& configuration_
 
   // ---------------------------------------------------------------------------
 
-  // ********************** Spectrum Analyzer *****************
-#if defined (GUI_SUPPORT)
-#if defined (GTK_USE)
-  Stream_Module_t* module_p =
-    const_cast<Stream_Module_t*> (inherited::find (ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_GTK_SPECTRUM_ANALYZER_DEFAULT_NAME_STRING)));
-  ACE_ASSERT (module_p);
-  Stream_Statistic_IDispatch_t* idispatch_p =
-    dynamic_cast<Stream_Statistic_IDispatch_t*> (module_p->writer ());
-  ACE_ASSERT (idispatch_p);
-  (*iterator).second.second->dispatch = idispatch_p;
-#endif // GTK_SUPPORT
-#endif // GUI_USE
-
   bool graph_loaded = false;
   HRESULT result_2 = E_FAIL;
   IMFTopology* topology_p = NULL;
@@ -802,7 +789,7 @@ Test_I_MediaFoundation_Stream::initialize (const CONFIGURATION_T& configuration_
     } // end IF
   } // end IF
 
-  module_p =
+  Stream_Module_t* module_p =
     const_cast<Stream_Module_t*> (inherited::find (ACE_TEXT_ALWAYS_CHAR (STREAM_LIB_MEDIAFOUNDATION_SOURCE_DEFAULT_NAME_STRING)));
   if (module_p)
   {
@@ -1522,8 +1509,6 @@ Test_I_ALSA_Stream::initialize (const CONFIGURATION_T& configuration_in)
   Test_I_SpeechCommand_ALSA_SessionData* session_data_p = NULL;
   typename inherited::CONFIGURATION_T::ITERATOR_T iterator;
   typename inherited::CONFIGURATION_T::ITERATOR_T iterator_2;
-  typename inherited::ISTREAM_T::MODULE_T* module_p = NULL;
-  Stream_Statistic_IDispatch_t* idispatch_p = NULL;
 
   // allocate a new session state, reset stream
   const_cast<typename inherited::CONFIGURATION_T&> (configuration_in).configuration_->setupPipeline =
@@ -1553,17 +1538,6 @@ Test_I_ALSA_Stream::initialize (const CONFIGURATION_T& configuration_in)
   session_data_p->formats.push_back (configuration_in.configuration_->format);
   session_data_p->targetFileName =
     (*iterator_2).second.second->fileIdentifier.identifier;
-
-  // ---------------------------------------------------------------------------
-
-  // **************************** Spectrum Analyzer ****************************
-  module_p =
-    const_cast<typename inherited::ISTREAM_T::MODULE_T*> (inherited::find (ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_GTK_SPECTRUM_ANALYZER_DEFAULT_NAME_STRING)));
-  ACE_ASSERT (module_p);
-  idispatch_p =
-    dynamic_cast<Stream_Statistic_IDispatch_t*> (const_cast<Stream_Module_t*> (module_p)->writer ());
-  ACE_ASSERT (idispatch_p);
-  (*iterator).second.second->dispatch = idispatch_p;
 
   // ---------------------------------------------------------------------------
 

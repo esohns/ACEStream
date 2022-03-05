@@ -193,7 +193,6 @@ elseif (WIN32)
  target_link_libraries (${EXECUTABLE} PUBLIC Msdmo.lib)
  target_link_libraries (${EXECUTABLE} PUBLIC strmiids.lib)
 
-# message (STATUS "DirectX SDK directory: \"${DIRECTX_SDK_DIRECTORY}\"")
  #link_directories ("${DIRECTX_SDK_DIRECTORY}/Lib/x86")
  target_link_libraries (${EXECUTABLE} PUBLIC "$ENV{LIB_ROOT}/DXSDK/Lib/x86/dxguid.lib")
 
@@ -291,17 +290,19 @@ elseif (WIN32)
    file (TO_CMAKE_PATH "${wxWidgets_LIB_DIR}" WXWIDGETS_PATH)
   endif (WXWIDGETS_SUPPORT)
  endif (GUI_SUPPORT)
- file (TO_CMAKE_PATH "${MPG123_LIB_DIR}" MPG123_PATH)
- file (TO_CMAKE_PATH "${ImageMagick_LIB_DIR}" IMAGEMAGICK_PATH)
  file (TO_CMAKE_PATH "${ASSIMP_LIB_DIR}" ASSIMP_PATH)
+ file (TO_CMAKE_PATH "${ffmpeg_LIB_DIR}" FFMPEG_PATH)
+ file (TO_CMAKE_PATH "${ImageMagick_LIB_DIR}" IMAGEMAGICK_PATH)
+ file (TO_CMAKE_PATH "${MPG123_LIB_DIR}" MPG123_PATH)
  file (TO_CMAKE_PATH "${PNG_LIB_DIR}" LIBPNG_PATH)
  file (TO_CMAKE_PATH "$ENV{LIB_ROOT}/zlib/build/${CMAKE_BUILD_TYPE}" ZLIB_PATH)
  file (TO_CMAKE_PATH "${ACE_LIB_DIR}" ACE_LIBRARY_PATH)
  set (RUNTIME_LIBRARY_DIR ${ASSIMP_PATH}
-                          ${MPG123_PATH}
-                          ${LIBPNG_PATH}
-                          ${ZLIB_PATH}
+                          ${FFMPEG_PATH}
                           ${IMAGEMAGICK_PATH}
+                          ${LIBPNG_PATH}
+                          ${MPG123_PATH}
+                          ${ZLIB_PATH}
                           ${ACE_LIBRARY_PATH})
  if (GUI_SUPPORT)
   if (GTK_SUPPORT)
