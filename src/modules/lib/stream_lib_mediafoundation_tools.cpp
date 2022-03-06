@@ -1867,6 +1867,14 @@ Stream_MediaFramework_MediaFoundation_Tools::getMediaSource (REFGUID deviceIdent
     bool found = false;
     for (UINT32 i = 0; i < count; i++)
     {
+#if defined (_DEBUG)
+      // sanity check(s)
+      length = 0;
+      result_2 =
+        devices_pp[index]->GetStringLength (GUID_s,
+                                            &length);
+      ACE_ASSERT (SUCCEEDED (result_2) && (length < sizeof (WCHAR[BUFSIZ])));
+#endif // _DEBUG
       ACE_OS::memset (buffer_a, 0, sizeof (WCHAR[BUFSIZ]));
       length = 0;
       result_2 =
@@ -5628,10 +5636,21 @@ Stream_MediaFramework_MediaFoundation_Tools::toString (IMFActivate* activate_in)
 
   HRESULT result_2 = E_FAIL;
   WCHAR buffer_a[BUFSIZ];
+  UINT32 length;
 #if COMMON_OS_WIN32_TARGET_PLATFORM(0x0601) // _WIN32_WINNT_WIN7
+#if defined (_DEBUG)
+  // sanity check(s)
+  length = 0;
+  result_2 = activate_in->GetStringLength (MFT_FRIENDLY_NAME_Attribute,
+                                           &length);
+  ACE_ASSERT (SUCCEEDED (result_2) && (length < sizeof (WCHAR[BUFSIZ])));
+#endif // _DEBUG
+  ACE_OS::memset (buffer_a, 0, sizeof (WCHAR[BUFSIZ]));
+  length = 0;
   result_2 = activate_in->GetString (MFT_FRIENDLY_NAME_Attribute,
-                                     buffer_a, sizeof (WCHAR[BUFSIZ]),
-                                     NULL);
+                                     buffer_a,
+                                     sizeof (WCHAR[BUFSIZ]),
+                                     &length);
 #else
   ACE_ASSERT (false);
   ACE_NOTSUP_RETURN (result);
@@ -5787,10 +5806,22 @@ Stream_MediaFramework_MediaFoundation_Tools::toString (IMFTransform* IMFTransfor
     return ACE_TEXT_ALWAYS_CHAR ("");
   } // end IF
   ACE_ASSERT (attributes_p);
+
   WCHAR buffer_a[BUFSIZ];
+  UINT32 length;
+#if defined (_DEBUG)
+  // sanity check(s)
+  length = 0;
+  result_2 = attributes_p->GetStringLength (MFT_FRIENDLY_NAME_Attribute,
+                                            &length);
+  ACE_ASSERT (SUCCEEDED (result_2) && (length < sizeof (WCHAR[BUFSIZ])));
+#endif // _DEBUG
+  ACE_OS::memset (buffer_a, 0, sizeof (WCHAR[BUFSIZ]));
+  length = 0;
   result_2 = attributes_p->GetString (MFT_FRIENDLY_NAME_Attribute,
-                                      buffer_a, sizeof (WCHAR[BUFSIZ]),
-                                      NULL);
+                                      buffer_a,
+                                      sizeof (WCHAR[BUFSIZ]),
+                                      &length);
   if (FAILED (result_2)) // MF_E_ATTRIBUTENOTFOUND: 0xC00D36E6L
   {
     ACE_DEBUG ((((result_2 != MF_E_ATTRIBUTENOTFOUND) ? LM_ERROR : LM_DEBUG),

@@ -220,8 +220,8 @@ Stream_Decoder_SoXResampler_T<ACE_SYNCH_USE,
   // sanity check(s)
   if (unlikely (!chain_))
     return;
-  ACE_ASSERT (inherited::configuration_);
-  ACE_ASSERT (inherited::configuration_->allocatorConfiguration);
+  //ACE_ASSERT (inherited::configuration_);
+  //ACE_ASSERT (inherited::configuration_->allocatorConfiguration);
 
   // initialize return value(s)
   passMessageDownstream_out = false;
@@ -230,6 +230,9 @@ Stream_Decoder_SoXResampler_T<ACE_SYNCH_USE,
   ACE_Message_Block* message_block_p = NULL, *message_block_2 = NULL;
   char* effect_options[1];
   struct sox_format_t* input_buffer_p = NULL, *output_buffer_p = NULL;
+  size_t buffer_size_i =
+    //inherited::configuration_->allocatorConfiguration->defaultBufferSize;
+    STREAM_MESSAGE_DEFAULT_DATA_BUFFER_SIZE;
 
   input_buffer_p =
       sox_open_mem_read (message_inout->rd_ptr (),
@@ -257,14 +260,13 @@ Stream_Decoder_SoXResampler_T<ACE_SYNCH_USE,
 
   if (unlikely (!buffer_))
   {
-    buffer_ =
-        inherited::allocateMessage (inherited::configuration_->allocatorConfiguration->defaultBufferSize);
+    buffer_ = inherited::allocateMessage (buffer_size_i);
     if (unlikely (!buffer_))
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: allocateMessage(%u) failed: \"%m\", returning\n"),
                   inherited::mod_->name (),
-                  inherited::configuration_->allocatorConfiguration->defaultBufferSize));
+                  buffer_size_i));
       goto error;
     } // end IF
   } // end IF
@@ -309,33 +311,26 @@ Stream_Decoder_SoXResampler_T<ACE_SYNCH_USE,
                   ACE_TEXT (sox_strerror (result))));
       goto error;
     } // end IF
-    ACE_ASSERT (output_buffer_p->tell_off == inherited::configuration_->allocatorConfiguration->defaultBufferSize);
+    ACE_ASSERT (output_buffer_p->tell_off == buffer_size_i);
 
     // output buffer is full --> allocate another one
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
     // *IMPORTANT NOTE*: SoX cannot write to the message block directly
     // (Win32/MinGW does not currently support fmemopen())
     // --> copy the data out of the tmpfile() manually
-    FILE* file_p = reinterpret_cast<FILE*> (output_buffer_p->fp);
-    ACE_OS::rewind (file_p);
-    size_t bytes_read_i =
-      ACE_OS::fread (message_block_p->wr_ptr (),
-                     inherited::configuration_->allocatorConfiguration->defaultBufferSize,
-                     1,
-                     file_p);
-    ACE_ASSERT (bytes_read_i == 1);
-#endif // ACE_WIN32 || ACE_WIN64
+    extractBuffer (output_buffer_p);
+#else
     message_block_p->wr_ptr (output_buffer_p->tell_off);
+#endif // ACE_WIN32 || ACE_WIN64
 
     message_block_2 = NULL;
-    message_block_2 =
-        inherited::allocateMessage (inherited::configuration_->allocatorConfiguration->defaultBufferSize);
+    message_block_2 = inherited::allocateMessage (buffer_size_i);
     if (unlikely (!message_block_2))
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: allocateMessage(%d) failed: \"%m\", returning\n"),
                   inherited::mod_->name (),
-                  inherited::configuration_->allocatorConfiguration->defaultBufferSize));
+                  buffer_size_i));
       goto error;
     } // end IF
     message_block_p->cont (message_block_2);
@@ -352,12 +347,12 @@ Stream_Decoder_SoXResampler_T<ACE_SYNCH_USE,
     } // end IF
     output_buffer_p = NULL;
     output_buffer_p =
-        sox_open_mem_write (message_block_p->wr_ptr (),
-                            inherited::configuration_->allocatorConfiguration->defaultBufferSize,
-                            &signalInfoOut_,
-                            &encodingInfoOut_,
-                            ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_SOX_FORMAT_RAW_STRING),
-                            NULL);
+      sox_open_mem_write (message_block_p->wr_ptr (),
+                          buffer_size_i,
+                          &signalInfoOut_,
+                          &encodingInfoOut_,
+                          ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_SOX_FORMAT_RAW_STRING),
+                          NULL);
     if (unlikely (!output_buffer_p))
     {
       ACE_DEBUG ((LM_ERROR,
@@ -383,15 +378,11 @@ Stream_Decoder_SoXResampler_T<ACE_SYNCH_USE,
   // *IMPORTANT NOTE*: SoX cannot write to the message block directly
   // (Win32/MinGW does not currently support fmemopen())
   // --> copy the data out of the tmpfile() manually
-  FILE* file_p = reinterpret_cast<FILE*> (output_buffer_p->fp);
-  ACE_OS::rewind (file_p);
-  size_t bytes_read_i = ACE_OS::fread (message_block_p->wr_ptr (),
-                                       output_buffer_p->tell_off,
-                                       1,
-                                       file_p);
-  ACE_ASSERT (bytes_read_i == 1);
-#endif // ACE_WIN32 || ACE_WIN64
+  extractBuffer (output_buffer_p);
+#else
+  ACE_ASSERT (output_buffer_p->tell_off <= message_block_p->space ());
   message_block_p->wr_ptr (output_buffer_p->tell_off);
+#endif // ACE_WIN32 || ACE_WIN64
 
 continue_:
   result = sox_close (input_buffer_p);
@@ -761,3 +752,76 @@ continue_:
       break;
   } // end SWITCH
 }
+
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+template <ACE_SYNCH_DECL,
+          typename TimePolicyType,
+          typename ConfigurationType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
+          typename SessionDataContainerType,
+          typename SessionDataType,
+          typename MediaType>
+void
+Stream_Decoder_SoXResampler_T<ACE_SYNCH_USE,
+                              TimePolicyType,
+                              ConfigurationType,
+                              ControlMessageType,
+                              DataMessageType,
+                              SessionMessageType,
+                              SessionDataContainerType,
+                              SessionDataType,
+                              MediaType>::extractBuffer (sox_format_t* outputBuffer_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Decoder_SoXResampler_T::extractBuffer"));
+
+  // sanity check(s)
+  //ACE_ASSERT (inherited::configuration_);
+  //ACE_ASSERT (inherited::configuration_->allocatorConfiguration);
+  ACE_ASSERT (buffer_);
+  ACE_ASSERT (!buffer_->cont ());
+  ACE_ASSERT (outputBuffer_in);
+  ACE_ASSERT (outputBuffer_in->fp);
+  ACE_ASSERT (outputBuffer_in->tell_off);
+
+  size_t buffer_size_i =
+    // inherited::configuration_->allocatorConfiguration->defaultBufferSize;
+    STREAM_MESSAGE_DEFAULT_DATA_BUFFER_SIZE;
+
+  // step1: rewind file
+  FILE* file_p = reinterpret_cast<FILE*> (outputBuffer_in->fp);
+  ACE_OS::rewind (file_p);
+
+  ACE_Message_Block* message_block_p = buffer_, *message_block_2 = NULL;
+  size_t total_bytes_to_read_i = outputBuffer_in->tell_off;
+  size_t blocks_read_i = 0, bytes_to_read_i = 0;
+  do
+  { ACE_ASSERT (message_block_p);
+    bytes_to_read_i =
+      std::min (total_bytes_to_read_i, message_block_p->space ());
+    blocks_read_i = ACE_OS::fread (message_block_p->wr_ptr (),
+                                   bytes_to_read_i,
+                                   1,
+                                   file_p);
+    ACE_ASSERT (blocks_read_i == 1);
+    message_block_p->wr_ptr (bytes_to_read_i);
+    total_bytes_to_read_i -= bytes_to_read_i;
+    if (!total_bytes_to_read_i)
+      break;
+
+    message_block_2 = inherited::allocateMessage (buffer_size_i);
+    if (unlikely (!message_block_2))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("%s: allocateMessage(%u) failed: \"%m\", returning\n"),
+                  inherited::mod_->name (),
+                  buffer_size_i));
+      return;
+    } // end IF
+
+    message_block_p->cont (message_block_2);
+    message_block_p = message_block_2;
+  } while (true);
+}
+#endif // ACE_WIN32 || ACE_WIN64

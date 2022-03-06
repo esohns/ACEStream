@@ -22,7 +22,7 @@
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #include "amvideo.h"
-#include "MMSystem.h"
+#include "mmsystem.h"
 #include "aviriff.h"
 #include "dvdmedia.h"
 #include "fourcc.h"

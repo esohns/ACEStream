@@ -1242,8 +1242,7 @@ do_work (
         {
           directshow_modulehandler_configuration.deviceIdentifier.identifierDiscriminator =
             Stream_Device_Identifier::ID;
-          directshow_modulehandler_configuration.deviceIdentifier.identifier._id =
-            (mute_in ? -1 : 0); // *TODO*: -1 means WAVE_MAPPER
+          directshow_modulehandler_configuration.deviceIdentifier.identifier._id = 0; // *TODO*: -1 means WAVE_MAPPER; 0 may not be the default device id
           break;
         }
         case STREAM_DEVICE_CAPTURER_WASAPI:
@@ -1251,9 +1250,7 @@ do_work (
           directshow_modulehandler_configuration.deviceIdentifier.identifierDiscriminator =
             Stream_Device_Identifier::GUID;
           directshow_modulehandler_configuration.deviceIdentifier.identifier._guid =
-            (mute_in ? GUID_NULL
-                     : Stream_MediaFramework_DirectSound_Tools::waveDeviceIdToDirectSoundGUID (0,
-                                                                                               true)); // capture
+            Stream_MediaFramework_DirectSound_Tools::getDefaultDevice (true); // capture
           break;
         }
         case STREAM_DEVICE_CAPTURER_DIRECTSHOW:
@@ -1261,9 +1258,8 @@ do_work (
           directshow_modulehandler_configuration.deviceIdentifier.identifierDiscriminator =
             Stream_Device_Identifier::GUID;
           directshow_modulehandler_configuration.deviceIdentifier.identifier._guid =
-            (mute_in ? GUID_NULL
-                     : Stream_MediaFramework_DirectSound_Tools::waveDeviceIdToDirectSoundGUID (0,
-                                                                                               true)); // capture
+            Stream_MediaFramework_DirectSound_Tools::waveDeviceIdToDirectSoundGUID (0,
+                                                                                    true); // capture
           break;
         }
         default:
@@ -1280,6 +1276,9 @@ do_work (
         &directShowConfiguration_in.generatorConfiguration;
       directshow_modulehandler_configuration.messageAllocator =
         &directshow_message_allocator;
+#if defined (SOX_SUPPORT)
+      directshow_modulehandler_configuration.manageSoX = true;
+#endif // SOX_SUPPORT
       directshow_modulehandler_configuration.mute = mute_in;
       directshow_modulehandler_configuration.printProgressDot =
         UIDefinitionFile_in.empty ();
@@ -1374,8 +1373,7 @@ do_work (
         {
           mediafoundation_modulehandler_configuration.deviceIdentifier.identifierDiscriminator =
             Stream_Device_Identifier::ID;
-          mediafoundation_modulehandler_configuration.deviceIdentifier.identifier._id =
-            0;
+          mediafoundation_modulehandler_configuration.deviceIdentifier.identifier._id = 0; // *TODO*: 0 may not be the default device id
           break;
         }
         case STREAM_DEVICE_CAPTURER_WASAPI:
@@ -1404,6 +1402,9 @@ do_work (
         &mediaFoundationConfiguration_in.generatorConfiguration;
       mediafoundation_modulehandler_configuration.mediaFoundationConfiguration =
         &mediaFoundationConfiguration_in.mediaFoundationConfiguration;
+#if defined (SOX_SUPPORT)
+      mediafoundation_modulehandler_configuration.manageSoX = true;
+#endif // SOX_SUPPORT
       mediafoundation_modulehandler_configuration.mute = mute_in;
       mediafoundation_modulehandler_configuration.printProgressDot =
         UIDefinitionFile_in.empty ();
@@ -1637,6 +1638,9 @@ do_work (
                                        mute_in,
                                        mediafoundation_stream,
                                        UIDefinitionFile_in.empty ()); // make session ?
+      (*mediafoundation_modulehandler_iterator).second.second->outputFormat =
+        Stream_MediaFramework_MediaFoundation_Tools::copy (mediafoundation_stream_configuration.format);
+      ACE_ASSERT ((*mediafoundation_modulehandler_iterator).second.second->outputFormat);
       break;
     }
     default:

@@ -96,9 +96,9 @@ Test_U_AudioEffect_DirectShow_Stream::load (Stream_ILayout* layout_in,
   ACE_ASSERT ((*iterator).second.second->generatorConfiguration);
 
   Stream_Module_t* module_p = NULL, *module_2 = NULL;
-  bool device_can_render_format_b = false;
   HRESULT result = E_FAIL;
   bool has_directshow_source_b = true;
+  bool add_resampler_b = false;
 
   switch (inherited::configuration_->configuration_->sourceType)
   {
@@ -155,6 +155,7 @@ Test_U_AudioEffect_DirectShow_Stream::load (Stream_ILayout* layout_in,
                       Test_U_Dec_MP3Decoder_DirectShow_Module (this,
                                                                ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_MPEG_1LAYER3_DEFAULT_NAME_STRING)),
                       false);
+      add_resampler_b = true;
       break;
     }
     default:
@@ -187,17 +188,17 @@ Test_U_AudioEffect_DirectShow_Stream::load (Stream_ILayout* layout_in,
   {
     case STREAM_DEVICE_RENDERER_WAVEOUT:
     { ACE_ASSERT ((*iterator_3).second.second->deviceIdentifier.identifierDiscriminator == Stream_Device_Identifier::ID);
-      device_can_render_format_b =
-        Stream_MediaFramework_DirectSound_Tools::canRender ((*iterator_3).second.second->deviceIdentifier.identifier._id,
-                                                            *waveformatex_p);
+      add_resampler_b |=
+        !Stream_MediaFramework_DirectSound_Tools::canRender ((*iterator_3).second.second->deviceIdentifier.identifier._id,
+                                                             *waveformatex_p);
       break;
     }
     case STREAM_DEVICE_RENDERER_WASAPI:
     { ACE_ASSERT ((*iterator_3).second.second->deviceIdentifier.identifierDiscriminator == Stream_Device_Identifier::GUID);
-      device_can_render_format_b =
-        Stream_MediaFramework_DirectSound_Tools::canRender ((*iterator_3).second.second->deviceIdentifier.identifier._guid,
-                                                            STREAM_LIB_WASAPI_RENDER_DEFAULT_SHAREMODE,
-                                                            *waveformatex_p);
+      add_resampler_b |=
+        !Stream_MediaFramework_DirectSound_Tools::canRender ((*iterator_3).second.second->deviceIdentifier.identifier._guid,
+                                                             STREAM_LIB_WASAPI_RENDER_DEFAULT_SHAREMODE,
+                                                             *waveformatex_p);
       break;
     }
     case STREAM_DEVICE_RENDERER_DIRECTSHOW:
@@ -213,8 +214,8 @@ Test_U_AudioEffect_DirectShow_Stream::load (Stream_ILayout* layout_in,
   } // end SWITCH
 
   if (!InlineIsEqualGUID ((*iterator).second.second->effect, GUID_NULL) ||
-      (!(*iterator).second.second->mute && (inherited::configuration_->configuration_->renderer == STREAM_DEVICE_RENDERER_DIRECTSHOW)) ||
-      (!(*iterator).second.second->mute && (inherited::configuration_->configuration_->renderer != STREAM_DEVICE_RENDERER_DIRECTSHOW) && !device_can_render_format_b))
+      (!(*iterator).second.second->mute &&
+       (inherited::configuration_->configuration_->renderer == STREAM_DEVICE_RENDERER_DIRECTSHOW)))
   {
     ACE_NEW_RETURN (module_p,
                     Test_U_AudioEffect_DirectShow_Target_Module (this,
@@ -226,8 +227,9 @@ Test_U_AudioEffect_DirectShow_Stream::load (Stream_ILayout* layout_in,
   } // end IF
 
   has_directshow_source_b =
-    (!InlineIsEqualGUID ((*iterator).second.second->effect, GUID_NULL) && !(*iterator_4).second.second->fileIdentifier.empty ()) ||
-    (!(*iterator).second.second->mute && (inherited::configuration_->configuration_->renderer != STREAM_DEVICE_RENDERER_DIRECTSHOW) && !device_can_render_format_b);
+    (!InlineIsEqualGUID ((*iterator).second.second->effect, GUID_NULL) ||
+     ((inherited::configuration_->configuration_->renderer == STREAM_DEVICE_RENDERER_DIRECTSHOW) &&
+      !(*iterator_4).second.second->fileIdentifier.empty ()));
   if (has_directshow_source_b)
   {
     ACE_NEW_RETURN (module_p,
@@ -261,6 +263,38 @@ Test_U_AudioEffect_DirectShow_Stream::load (Stream_ILayout* layout_in,
   } // end IF
 
   if (!(*iterator).second.second->mute)
+  {
+#if defined (GUI_SUPPORT)
+#if defined (GTK_USE)
+    ACE_NEW_RETURN (module_p,
+                    Test_U_AudioEffect_DirectShow_StatisticAnalysis_Module (this,
+                                                                            ACE_TEXT_ALWAYS_CHAR (MODULE_STAT_ANALYSIS_DEFAULT_NAME_STRING)),
+                    false);
+    ACE_ASSERT (module_p);
+    layout_in->append (module_p, branch_p, index_i);
+    module_p = NULL;
+    ACE_NEW_RETURN (module_p,
+                    Test_U_AudioEffect_DirectShow_Vis_SpectrumAnalyzer_Module (this,
+                                                                               ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_GTK_SPECTRUM_ANALYZER_DEFAULT_NAME_STRING)),
+                    false);
+    ACE_ASSERT (module_p);
+    layout_in->append (module_p, branch_p, index_i);
+    module_p = NULL;
+#endif // GTK_USE
+#endif // GUI_SUPPORT
+
+    if (add_resampler_b)
+    {
+#if defined (SOX_SUPPORT)
+      ACE_NEW_RETURN (module_p,
+                      Test_U_AudioEffect_DirectShow_SoXResampler_Module (this,
+                                                                         ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_ENCODER_SOX_RESAMPLER_DEFAULT_NAME_STRING)),
+                      false);
+      layout_in->append (module_p, branch_p, index_i);
+      module_p = NULL;
+#endif // SOX_SUPPORT
+    } // end IF
+
     switch (inherited::configuration_->configuration_->renderer)
     {
       case STREAM_DEVICE_RENDERER_WAVEOUT:
@@ -290,18 +324,19 @@ Test_U_AudioEffect_DirectShow_Stream::load (Stream_ILayout* layout_in,
         return false;
       }
     } // end SWITCH
+  } // end IF
   if (module_p)
   {
-    if (!has_directshow_source_b && !device_can_render_format_b)
-    {
-      ACE_NEW_RETURN (module_2,
-                      Test_U_AudioEffect_DirectShow_Delay_Module (this,
-                                                                  ACE_TEXT_ALWAYS_CHAR (STREAM_MISC_DELAY_DEFAULT_NAME_STRING)),
-                      false);
-      ACE_ASSERT (module_2);
-      layout_in->append (module_2, branch_p, index_i);
-      module_2 = NULL;
-    } // end IF
+    //if (!has_directshow_source_b && !device_can_render_format_b)
+    //{
+    //  ACE_NEW_RETURN (module_2,
+    //                  Test_U_AudioEffect_DirectShow_Delay_Module (this,
+    //                                                              ACE_TEXT_ALWAYS_CHAR (STREAM_MISC_DELAY_DEFAULT_NAME_STRING)),
+    //                  false);
+    //  ACE_ASSERT (module_2);
+    //  layout_in->append (module_2, branch_p, index_i);
+    //  module_2 = NULL;
+    //} // end IF
 
 #if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
@@ -1005,9 +1040,9 @@ Test_U_AudioEffect_MediaFoundation_Stream::load (Stream_ILayout* layout_in,
   ACE_ASSERT (iterator_3 != inherited::configuration_->end ());
 
   Stream_Module_t* module_p = NULL;
-  bool device_can_render_format_b = false;
   HRESULT result = E_FAIL;
   bool has_mediafoundation_source_b = true;
+  bool add_resampler_b = false;
 
   switch (inherited::configuration_->configuration_->sourceType)
   {
@@ -1061,6 +1096,7 @@ Test_U_AudioEffect_MediaFoundation_Stream::load (Stream_ILayout* layout_in,
                       Test_U_Dec_MP3Decoder_MediaFoundation_Module (this,
                                                                     ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_MPEG_1LAYER3_DEFAULT_NAME_STRING)),
                       false);
+      add_resampler_b = true;
       break;
     }
     default:
@@ -1095,9 +1131,9 @@ Test_U_AudioEffect_MediaFoundation_Stream::load (Stream_ILayout* layout_in,
                                                     MFWaveFormatExConvertFlag_Normal);
       ACE_ASSERT (SUCCEEDED (result) && waveformatex_p);
       ACE_ASSERT ((*iterator_3).second.second->deviceIdentifier.identifierDiscriminator == Stream_Device_Identifier::ID);
-      device_can_render_format_b =
-        Stream_MediaFramework_DirectSound_Tools::canRender ((*iterator_3).second.second->deviceIdentifier.identifier._id,
-                                                            *waveformatex_p);
+      add_resampler_b |=
+        !Stream_MediaFramework_DirectSound_Tools::canRender ((*iterator_3).second.second->deviceIdentifier.identifier._id,
+                                                             *waveformatex_p);
       CoTaskMemFree (waveformatex_p); waveformatex_p = NULL;
       break;
     }
@@ -1111,10 +1147,10 @@ Test_U_AudioEffect_MediaFoundation_Stream::load (Stream_ILayout* layout_in,
                                                     MFWaveFormatExConvertFlag_Normal);
       ACE_ASSERT (SUCCEEDED (result) && waveformatex_p);
       ACE_ASSERT ((*iterator_3).second.second->deviceIdentifier.identifierDiscriminator == Stream_Device_Identifier::GUID);
-      device_can_render_format_b =
-        Stream_MediaFramework_DirectSound_Tools::canRender ((*iterator_3).second.second->deviceIdentifier.identifier._guid,
-                                                            STREAM_LIB_WASAPI_RENDER_DEFAULT_SHAREMODE,
-                                                            *waveformatex_p);
+      add_resampler_b |=
+        !Stream_MediaFramework_DirectSound_Tools::canRender ((*iterator_3).second.second->deviceIdentifier.identifier._guid,
+                                                             STREAM_LIB_WASAPI_RENDER_DEFAULT_SHAREMODE,
+                                                             *waveformatex_p);
       CoTaskMemFree (waveformatex_p); waveformatex_p = NULL;
       break;
     }
@@ -1130,59 +1166,17 @@ Test_U_AudioEffect_MediaFoundation_Stream::load (Stream_ILayout* layout_in,
     }
   } // end SWITCH
 
-  has_mediafoundation_source_b =
-    (!InlineIsEqualGUID ((*iterator).second.second->effect, GUID_NULL) && !(*iterator_3).second.second->fileIdentifier.empty ())                                       ||
-    (!(*iterator).second.second->mute && (inherited::configuration_->configuration_->renderer != STREAM_DEVICE_RENDERER_MEDIAFOUNDATION) && !device_can_render_format_b);
-#if defined (GUI_SUPPORT)
-#if defined (GTK_USE)
-  if (!has_mediafoundation_source_b)
-  {
-    ACE_NEW_RETURN (module_p,
-                    Test_U_AudioEffect_MediaFoundation_StatisticAnalysis_Module (this,
-                                                                                 ACE_TEXT_ALWAYS_CHAR (MODULE_STAT_ANALYSIS_DEFAULT_NAME_STRING)),
-                    false);
-    ACE_ASSERT (module_p);
-    layout_in->append (module_p, NULL, 0);
-    module_p = NULL;
-    ACE_NEW_RETURN (module_p,
-                    Test_U_AudioEffect_MediaFoundation_Vis_SpectrumAnalyzer_Module (this,
-                                                                                    ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_GTK_SPECTRUM_ANALYZER_DEFAULT_NAME_STRING)),
-                    false);
-    ACE_ASSERT (module_p);
-    layout_in->append (module_p, NULL, 0);
-    module_p = NULL;
-  } // end IF
-#endif // GTK_USE
-#endif // GUI_SUPPORT
-
   if (!InlineIsEqualGUID ((*iterator).second.second->effect, GUID_NULL)                                                                                                   ||
-      (!(*iterator).second.second->mute && (inherited::configuration_->configuration_->renderer == STREAM_DEVICE_RENDERER_MEDIAFOUNDATION))                               ||
-      (!(*iterator).second.second->mute && (inherited::configuration_->configuration_->renderer != STREAM_DEVICE_RENDERER_MEDIAFOUNDATION) && !device_can_render_format_b))
-    layout_in->append (&mediaFoundationTarget_, NULL, 0);
+      (!(*iterator).second.second->mute &&
+       (inherited::configuration_->configuration_->renderer == STREAM_DEVICE_RENDERER_MEDIAFOUNDATION)))
+  layout_in->append (&mediaFoundationTarget_, NULL, 0);
 
+  has_mediafoundation_source_b =
+    (!InlineIsEqualGUID ((*iterator).second.second->effect, GUID_NULL) ||
+     ((inherited::configuration_->configuration_->renderer == STREAM_DEVICE_RENDERER_MEDIAFOUNDATION) &&
+      !(*iterator_3).second.second->fileIdentifier.empty ()));
   if (has_mediafoundation_source_b)
-  {
     layout_in->append (&mediaFoundationSource_, NULL, 0);
-
-#if defined (GUI_SUPPORT)
-#if defined (GTK_USE)
-    ACE_NEW_RETURN (module_p,
-                    Test_U_AudioEffect_MediaFoundation_StatisticAnalysis_Module (this,
-                                                                                 ACE_TEXT_ALWAYS_CHAR (MODULE_STAT_ANALYSIS_DEFAULT_NAME_STRING)),
-                    false);
-    ACE_ASSERT (module_p);
-    layout_in->append (module_p, NULL, 0);
-    module_p = NULL;
-    ACE_NEW_RETURN (module_p,
-                    Test_U_AudioEffect_MediaFoundation_Vis_SpectrumAnalyzer_Module (this,
-                                                                                    ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_GTK_SPECTRUM_ANALYZER_DEFAULT_NAME_STRING)),
-                    false);
-    ACE_ASSERT (module_p);
-    layout_in->append (module_p, NULL, 0);
-    module_p = NULL;
-#endif // GTK_USE
-#endif // GUI_SUPPORT
-  } // end IF
 
   typename inherited::MODULE_T* branch_p = NULL; // NULL: 'main' branch
   unsigned int index_i = 0;
@@ -1206,6 +1200,38 @@ Test_U_AudioEffect_MediaFoundation_Stream::load (Stream_ILayout* layout_in,
   } // end IF
 
   if (!(*iterator).second.second->mute)
+  {
+#if defined (GUI_SUPPORT)
+#if defined (GTK_USE)
+    ACE_NEW_RETURN (module_p,
+                    Test_U_AudioEffect_MediaFoundation_StatisticAnalysis_Module (this,
+                                                                                 ACE_TEXT_ALWAYS_CHAR (MODULE_STAT_ANALYSIS_DEFAULT_NAME_STRING)),
+                    false);
+    ACE_ASSERT (module_p);
+    layout_in->append (module_p, branch_p, index_i);
+    module_p = NULL;
+    ACE_NEW_RETURN (module_p,
+                    Test_U_AudioEffect_MediaFoundation_Vis_SpectrumAnalyzer_Module (this,
+                                                                                    ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_GTK_SPECTRUM_ANALYZER_DEFAULT_NAME_STRING)),
+                    false);
+    ACE_ASSERT (module_p);
+    layout_in->append (module_p, branch_p, index_i);
+    module_p = NULL;
+#endif // GTK_USE
+#endif // GUI_SUPPORT
+
+    if (add_resampler_b)
+    {
+#if defined (SOX_SUPPORT)
+      ACE_NEW_RETURN (module_p,
+                      Test_U_AudioEffect_MediaFoundation_SoXResampler_Module (this,
+                                                                              ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_ENCODER_SOX_RESAMPLER_DEFAULT_NAME_STRING)),
+                      false);
+      layout_in->append (module_p, branch_p, index_i);
+      module_p = NULL;
+#endif // SOX_SUPPORT
+    } // end IF
+
     switch (inherited::configuration_->configuration_->renderer)
     {
       case STREAM_DEVICE_RENDERER_WAVEOUT:
@@ -1235,17 +1261,18 @@ Test_U_AudioEffect_MediaFoundation_Stream::load (Stream_ILayout* layout_in,
         return false;
       }
     } // end SWITCH
+  } // end IF
   if (module_p)
   {
-    if (!has_mediafoundation_source_b)
-    {
-      Stream_Module_t* module_2 = NULL;
-      ACE_NEW_RETURN (module_2,
-                      Test_U_AudioEffect_MediaFoundation_Delay_Module (this,
-                                                                       ACE_TEXT_ALWAYS_CHAR (STREAM_MISC_DELAY_DEFAULT_NAME_STRING)),
-                      false);
-      layout_in->append (module_2, branch_p, index_i);
-    } // end IF
+    //if (!has_mediafoundation_source_b)
+    //{
+    //  Stream_Module_t* module_2 = NULL;
+    //  ACE_NEW_RETURN (module_2,
+    //                  Test_U_AudioEffect_MediaFoundation_Delay_Module (this,
+    //                                                                   ACE_TEXT_ALWAYS_CHAR (STREAM_MISC_DELAY_DEFAULT_NAME_STRING)),
+    //                  false);
+    //  layout_in->append (module_2, branch_p, index_i);
+    //} // end IF
 
     layout_in->append (module_p, branch_p, index_i);
     ++index_i;

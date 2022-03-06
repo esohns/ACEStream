@@ -11,12 +11,11 @@ endif (UNIX)
 
 set (CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_CURRENT_SOURCE_DIR}/../../src/modules/dec/scripts")
 include (mpg123)
+set (CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_CURRENT_SOURCE_DIR}/../../src/modules/lib/scripts")
+include (sox)
 
 if (UNIX)
  pkg_check_modules (PKG_ALSA REQUIRED alsa)
-
- set (CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_CURRENT_SOURCE_DIR}/../../src/modules/lib/scripts")
- include (sox)
 endif (UNIX)
 
 string (REPLACE ${CMAKE_SOURCE_DIR} "" BUILD_PATH_SUFFIX ${CMAKE_BINARY_DIR})
@@ -25,9 +24,11 @@ string (SUBSTRING ${BUILD_PATH_SUFFIX} 1 -1 BUILD_PATH_SUFFIX)
 if (MPG123_SUPPORT)
  include_directories (${MPG123_INCLUDE_DIRS})
 endif (MPG123_SUPPORT)
+if (SOX_SUPPORT)
+ include_directories (${SOX_INCLUDE_DIRS})
+endif (SOX_SUPPORT)
 if (UNIX)
  include_directories (${PKG_ALSA_INCLUDE_DIRS})
- include_directories (${SOX_INCLUDE_DIRS})
 
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../modules/Common/src)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../modules/Common/src/image)
@@ -93,7 +94,7 @@ include_directories (${CMAKE_CURRENT_BINARY_DIR}/../..)
 ############## next target ################
 set (EXECUTABLE audioeffect)
 set (${EXECUTABLE}_EXE_SRCS
-     stdafx.cpp
+#     stdafx.cpp
      stdafx.h
      test_u_audioeffect.cpp
      test_u_audioeffect_common.h
@@ -181,9 +182,11 @@ target_link_libraries (${EXECUTABLE} PUBLIC ${CMAKE_THREAD_LIBS_INIT})
 if (MPG123_SUPPORT)
  target_link_libraries (${EXECUTABLE} PUBLIC ${MPG123_LIBRARY})
 endif (MPG123_SUPPORT)
+if (SOX_SUPPORT)
+ target_link_libraries (${EXECUTABLE} PUBLIC ${SOX_LIBRARIES})
+endif (SOX_SUPPORT)
 if (UNIX)
  target_link_libraries (${EXECUTABLE} PUBLIC ${PKG_ALSA_LIBRARIES})
- target_link_libraries (${EXECUTABLE} PUBLIC ${SOX_LIBRARIES})
 elseif (WIN32)
 # set (DIRECTX_SDK_DIRECTORY $ENV{DXSDK_DIR})
 
@@ -293,7 +296,12 @@ elseif (WIN32)
  file (TO_CMAKE_PATH "${ASSIMP_LIB_DIR}" ASSIMP_PATH)
  file (TO_CMAKE_PATH "${ffmpeg_LIB_DIR}" FFMPEG_PATH)
  file (TO_CMAKE_PATH "${ImageMagick_LIB_DIR}" IMAGEMAGICK_PATH)
- file (TO_CMAKE_PATH "${MPG123_LIB_DIR}" MPG123_PATH)
+ if (MPG123_SUPPORT)
+  file (TO_CMAKE_PATH "${MPG123_LIB_DIR}" MPG123_PATH)
+ endif (MPG123_SUPPORT)
+ if (SOX_SUPPORT)
+  file (TO_CMAKE_PATH "${SOX_LIB_DIR}" SOX_PATH)
+ endif (SOX_SUPPORT)
  file (TO_CMAKE_PATH "${PNG_LIB_DIR}" LIBPNG_PATH)
  file (TO_CMAKE_PATH "$ENV{LIB_ROOT}/zlib/build/${CMAKE_BUILD_TYPE}" ZLIB_PATH)
  file (TO_CMAKE_PATH "${ACE_LIB_DIR}" ACE_LIBRARY_PATH)
@@ -302,6 +310,7 @@ elseif (WIN32)
                           ${IMAGEMAGICK_PATH}
                           ${LIBPNG_PATH}
                           ${MPG123_PATH}
+                          ${SOX_PATH}
                           ${ZLIB_PATH}
                           ${ACE_LIBRARY_PATH})
  if (GUI_SUPPORT)

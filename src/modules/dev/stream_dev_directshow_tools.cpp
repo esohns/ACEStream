@@ -1060,7 +1060,7 @@ Stream_Device_DirectShow_Tools::getVideoCaptureFormat (IGraphBuilder* builder_in
     ACE_ASSERT (media_type_p);
     if (!InlineIsEqualGUID (mediaSubType_in, media_type_p->subtype))
     {
-      Stream_MediaFramework_DirectShow_Tools::delete_ (media_type_p);
+      Stream_MediaFramework_DirectShow_Tools::delete_ (media_type_p, true);
       continue;
     } // end IF
     resolution_s =
@@ -1068,21 +1068,24 @@ Stream_Device_DirectShow_Tools::getVideoCaptureFormat (IGraphBuilder* builder_in
     if ((width_in  && (resolution_s.cx != width_in)) ||
         (height_in && (resolution_s.cy != height_in)))
     {
-      Stream_MediaFramework_DirectShow_Tools::delete_ (media_type_p);
+      Stream_MediaFramework_DirectShow_Tools::delete_ (media_type_p, true);
       continue;
     } // end IF
     framerate_i =
       Stream_MediaFramework_DirectShow_Tools::toFramerate (*media_type_p);
     if (frameRate_in && (framerate_i != frameRate_in))
     {
-      Stream_MediaFramework_DirectShow_Tools::delete_ (media_type_p);
+      Stream_MediaFramework_DirectShow_Tools::delete_ (media_type_p, true);
       continue;
     } // end IF
     break; // --> found a match
   } // end FOR
   stream_config_p->Release (); stream_config_p = NULL;
 
+  ACE_ASSERT (media_type_p);
   mediaType_inout = *media_type_p;
+  // *WARNING*: as the assignment operator was used (see previous line), do NOT use
+  //            DeleteMediaType() here
   CoTaskMemFree (media_type_p); media_type_p = NULL;
 
   return true;

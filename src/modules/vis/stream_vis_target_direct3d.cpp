@@ -171,7 +171,7 @@ __forceinline void libacestream_vis_transform_image_NV12 (BYTE* pDst,
                                                           DWORD dwHeightInPixels)
 {
   const BYTE* lpBitsY = pSrc;
-  const BYTE* lpBitsCb = lpBitsY + (dwHeightInPixels * srcStride);;
+  const BYTE* lpBitsCb = lpBitsY + (dwHeightInPixels * srcStride);
   const BYTE* lpBitsCr = lpBitsCb + 1;
 
   for (UINT y = 0; y < dwHeightInPixels; y += 2)

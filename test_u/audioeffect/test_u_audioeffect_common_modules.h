@@ -31,6 +31,9 @@
 
 #include "stream_dec_mp3_decoder.h"
 #include "stream_dec_noise_source.h"
+#if defined (SOX_SUPPORT)
+#include "stream_dec_sox_resampler.h"
+#endif // SOX_SUPPORT
 #include "stream_dec_wav_encoder.h"
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #include "stream_dev_mic_source_directshow.h"
@@ -49,7 +52,9 @@
 #include "stream_lib_mediafoundation_source.h"
 #include "stream_lib_mediafoundation_target.h"
 #else
+#if defined (SOX_SUPPORT)
 #include "stream_dec_sox_effect.h"
+#endif // SOX_SUPPORT
 
 #include "stream_dev_mic_source_alsa.h"
 #include "stream_dev_target_alsa.h"
@@ -639,6 +644,41 @@ DATASTREAM_MODULE_INPUT_ONLY (Test_U_AudioEffect_MediaFoundation_SessionData,   
                               Test_U_AudioEffect_MediaFoundation_Vis_SpectrumAnalyzer);             // writer type
 #endif // GTK_SUPPORT
 #endif // GUI_SUPPORT
+
+#if defined (SOX_SUPPORT)
+typedef Stream_Decoder_SoXResampler_T<ACE_MT_SYNCH,
+                                      Common_TimePolicy_t,
+                                      struct Test_U_AudioEffect_DirectShow_ModuleHandlerConfiguration,
+                                      Stream_ControlMessage_t,
+                                      Test_U_AudioEffect_DirectShow_Message,
+                                      Test_U_AudioEffect_DirectShow_SessionMessage,
+                                      Test_U_AudioEffect_DirectShow_SessionData_t,
+                                      Test_U_AudioEffect_DirectShow_SessionData,
+                                      struct _AMMediaType> Test_U_AudioEffect_DirectShow_SoXResampler;
+typedef Stream_Decoder_SoXResampler_T<ACE_MT_SYNCH,
+                                      Common_TimePolicy_t,
+                                      struct Test_U_AudioEffect_MediaFoundation_ModuleHandlerConfiguration,
+                                      Stream_ControlMessage_t,
+                                      Test_U_AudioEffect_MediaFoundation_Message,
+                                      Test_U_AudioEffect_MediaFoundation_SessionMessage,
+                                      Test_U_AudioEffect_MediaFoundation_SessionData_t,
+                                      Test_U_AudioEffect_MediaFoundation_SessionData,
+                                      IMFMediaType*> Test_U_AudioEffect_MediaFoundation_SoXResampler;
+
+DATASTREAM_MODULE_INPUT_ONLY (Test_U_AudioEffect_DirectShow_SessionData,                       // session data type
+                              enum Stream_SessionMessageType,                                  // session event type
+                              struct Test_U_AudioEffect_DirectShow_ModuleHandlerConfiguration, // module handler configuration type
+                              libacestream_default_dec_sox_resampler_module_name_string,
+                              Stream_INotify_t,                                                // stream notification interface type
+                              Test_U_AudioEffect_DirectShow_SoXResampler);                     // writer type
+DATASTREAM_MODULE_INPUT_ONLY (Test_U_AudioEffect_MediaFoundation_SessionData,                       // session data type
+                              enum Stream_SessionMessageType,                                       // session event type
+                              struct Test_U_AudioEffect_MediaFoundation_ModuleHandlerConfiguration, // module handler configuration type
+                              libacestream_default_dec_sox_resampler_module_name_string,
+                              Stream_INotify_t,                                                     // stream notification interface type
+                              Test_U_AudioEffect_MediaFoundation_SoXResampler);                     // writer type
+#endif // SOX_SUPPORT
+
 typedef Stream_Decoder_WAVEncoder_T<ACE_MT_SYNCH,
                                     Common_TimePolicy_t,
                                     struct Test_U_AudioEffect_DirectShow_ModuleHandlerConfiguration,
@@ -672,6 +712,7 @@ DATASTREAM_MODULE_INPUT_ONLY (Test_U_AudioEffect_MediaFoundation_SessionData,   
                               Stream_INotify_t,                                                     // stream notification interface type
                               Test_U_AudioEffect_MediaFoundation_WAVEncoder);                       // writer type
 #else
+#if defined (SOX_SUPPORT)
 typedef Stream_Decoder_SoXEffect_T<ACE_MT_SYNCH,
                                    Common_TimePolicy_t,
                                    struct Test_U_AudioEffect_ALSA_ModuleHandlerConfiguration,
@@ -687,6 +728,7 @@ DATASTREAM_MODULE_INPUT_ONLY (Test_U_AudioEffect_SessionData,                   
                               libacestream_default_dec_sox_effect_module_name_string,
                               Stream_INotify_t,                                       // stream notification interface type
                               Test_U_AudioEffect_SoXEffect);                          // writer type
+#endif // SOX_SUPPORT
 
 typedef Stream_Dev_Target_ALSA_T<ACE_MT_SYNCH,
                                  Common_TimePolicy_t,

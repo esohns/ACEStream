@@ -191,6 +191,8 @@ Stream_Decoder_MP3Decoder_T<ACE_SYNCH_USE,
                 ACE_TEXT (mpg123_plain_strerror (error_i))));
     return false;
   } // end IF
+  mpg123_param (handle_, MPG123_VERBOSE, 0, 0.0);
+  mpg123_param (handle_, MPG123_ADD_FLAGS, MPG123_QUIET, 0.0);
   bufferSize_ = mpg123_outblock (handle_);
 
   return inherited::initialize (configuration_in,
@@ -375,12 +377,14 @@ Stream_Decoder_MP3Decoder_T<ACE_SYNCH_USE,
 
           // *IMPORTANT NOTE*: when close()d manually (i.e. on a user abort),
           //                   the stream may not have finish()ed
-          if (unlikely (inherited::current () != STREAM_STATE_FINISHED))
-          {
-            inherited::finished (); // *NOTE*: enqueues SESSION_END --> continue
-            message_block_p->release (); message_block_p = NULL;
-            continue;
-          } // end IF
+          { ACE_GUARD_RETURN (ACE_Thread_Mutex, aGuard, inherited::lock_, -1);
+            if (!inherited::sessionEndSent_ && !inherited::sessionEndProcessed_)
+            {
+              inherited::finished (); // *NOTE*: enqueues SESSION_END --> continue
+              message_block_p->release (); message_block_p = NULL;
+              continue;
+            } // end IF
+          } // end lock scope
 
           // *NOTE*: this is racy; the penultimate thread may have left svc() and
           //         not have decremented thr_count_ yet. In this case, the
@@ -433,18 +437,24 @@ Stream_Decoder_MP3Decoder_T<ACE_SYNCH_USE,
           } // end IF
         } // end lock scope
       } // end IF
+
+      continue; // there was a message --> retry until idle
     } // end IF
 
     // session aborted ?
-    if (unlikely (session_data_r.aborted &&
-                  (inherited::current () != STREAM_STATE_FINISHED)))
+    if (unlikely (session_data_r.aborted))
     {
-      ACE_DEBUG ((LM_DEBUG,
-                  ACE_TEXT ("%s: session (id was: %u) aborted\n"),
-                  inherited::mod_->name (),
-                  session_data_r.sessionId));
-      inherited::finished (); // *NOTE*: enqueues SESSION_END --> continue
-      continue;
+      { ACE_GUARD_RETURN (ACE_Thread_Mutex, aGuard, inherited::lock_, -1);
+        if (!inherited::sessionEndSent_ && !inherited::sessionEndProcessed_)
+        {
+          ACE_DEBUG ((LM_DEBUG,
+                      ACE_TEXT ("%s: session (id was: %u) aborted\n"),
+                      inherited::mod_->name (),
+                      session_data_r.sessionId));
+          inherited::finished (); // *NOTE*: enqueues SESSION_END --> continue
+          continue;
+        } // end IF
+      } // end lock scope
     } // end IF
 
     // *TODO*: remove type inference

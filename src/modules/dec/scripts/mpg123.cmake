@@ -22,11 +22,19 @@ elseif (WIN32)
   endif (mpg123_FOUND)
  endif (VCPKG_SUPPORT)
  if (NOT MPG123_FOUND)
-  set (CMAKE_FIND_LIBRARY_SUFFIXES .lib .dll.a)
+#  set (CMAKE_FIND_LIBRARY_SUFFIXES .lib .dll.a)
+  set (MPG123_VERSION "1.29.4")
+  set (MPG123_DIR "mpg123-${MPG123_VERSION}-x86-64")
+#  if (CMAKE_BUILD_TYPE STREQUAL "Debug" OR
+#      CMAKE_BUILD_TYPE STREQUAL "RelWithDebInfo")
+#   set (MPG123_DIR "${MPG123_DIR}-debug")
+#  endif ()
+  set (MPG123_LIB_FILE "libmpg123-0")
   find_library (MPG123_LIBRARY
-                NAMES libmpg123
-                PATHS $ENV{LIB_ROOT}/mpg123/src/libmpg123
-                PATH_SUFFIXES .libs
+                NAMES ${MPG123_LIB_FILE}
+#               PATHS $ENV{LIB_ROOT}/mpg123/src/libmpg123
+#               PATH_SUFFIXES .libs
+                PATHS $ENV{LIB_ROOT}/mpg123/releases/${MPG123_DIR}
                 DOC "searching for ${MPG123_LIB_FILE}"
                 NO_DEFAULT_PATH)
   if (NOT MPG123_LIBRARY)
@@ -36,7 +44,8 @@ elseif (WIN32)
    set (MPG123_FOUND TRUE)
    set (MPG123_INCLUDE_DIRS "$ENV{LIB_ROOT}/mpg123/src/libmpg123")
    set (MPG123_LIBRARIES "${MPG123_LIBRARY}")
-   set (MPG123_LIB_DIR "$ENV{LIB_ROOT}/mpg123/src/libmpg123/.libs")
+#   set (MPG123_LIB_DIR "$ENV{LIB_ROOT}/mpg123/src/libmpg123/.libs")
+   set (MPG123_LIB_DIR "$ENV{LIB_ROOT}/mpg123/releases/${MPG123_DIR}")
   endif (NOT MPG123_LIBRARY)
  endif (NOT MPG123_FOUND)
 endif ()

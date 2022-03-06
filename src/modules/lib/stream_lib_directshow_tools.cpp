@@ -3366,11 +3366,11 @@ Stream_MediaFramework_DirectShow_Tools::toRGB (const struct _AMMediaType& mediaT
     struct tagVIDEOINFOHEADER* video_info_header_p =
       reinterpret_cast<struct tagVIDEOINFOHEADER*> (result_s.pbFormat);
     // *NOTE*: empty --> use entire video
-    result_2 = SetRectEmpty (&video_info_header_p->rcSource);
-    ACE_ASSERT (SUCCEEDED (result_2));
-    result_2 = SetRectEmpty (&video_info_header_p->rcTarget);
+    BOOL result_3 = SetRectEmpty (&video_info_header_p->rcSource);
+    ACE_ASSERT (result_3);
+    result_3 = SetRectEmpty (&video_info_header_p->rcTarget);
     // *NOTE*: empty --> fill entire buffer
-    ACE_ASSERT (SUCCEEDED (result_2));
+    ACE_ASSERT (result_3);
     //ACE_ASSERT (video_info_header_p->dwBitRate);
     ACE_ASSERT (video_info_header_p->dwBitErrorRate == 0);
     //ACE_ASSERT (video_info_header_p->AvgTimePerFrame);
@@ -3405,11 +3405,11 @@ Stream_MediaFramework_DirectShow_Tools::toRGB (const struct _AMMediaType& mediaT
     struct tagVIDEOINFOHEADER2* video_info_header_p =
       reinterpret_cast<struct tagVIDEOINFOHEADER2*> (result_s.pbFormat);
     // *NOTE*: empty --> use entire video
-    result_2 = SetRectEmpty (&video_info_header_p->rcSource);
-    ACE_ASSERT (SUCCEEDED (result_2));
-    result_2 = SetRectEmpty (&video_info_header_p->rcTarget);
+    BOOL result_3 = SetRectEmpty (&video_info_header_p->rcSource);
+    ACE_ASSERT (result_3);
+    result_3 = SetRectEmpty (&video_info_header_p->rcTarget);
     // *NOTE*: empty --> fill entire buffer
-    ACE_ASSERT (SUCCEEDED (result_2));
+    ACE_ASSERT (result_3);
     //ACE_ASSERT (video_info_header_p->dwBitRate);
     ACE_ASSERT (video_info_header_p->dwBitErrorRate == 0);
     //ACE_ASSERT (video_info_header_p->AvgTimePerFrame);
@@ -4195,10 +4195,10 @@ Stream_MediaFramework_DirectShow_Tools::to (const struct Stream_MediaFramework_F
     reinterpret_cast<struct tagVIDEOINFOHEADER*> (result_p->pbFormat);
   // *NOTE*: empty --> use entire video
   result_2 = SetRectEmpty (&video_info_header_p->rcSource);
-  ACE_ASSERT (SUCCEEDED (result_2));
+  ACE_ASSERT (result_2);
   result_2 = SetRectEmpty (&video_info_header_p->rcTarget);
   // *NOTE*: empty --> fill entire buffer
-  ACE_ASSERT (SUCCEEDED (result_2));
+  ACE_ASSERT (result_2);
   //video_info_header_p->dwBitRate = ;
   video_info_header_p->dwBitErrorRate = 0;
   //video_info_header_p->AvgTimePerFrame = ;

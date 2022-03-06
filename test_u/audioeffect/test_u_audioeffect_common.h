@@ -358,40 +358,42 @@ struct Test_U_AudioEffect_ModuleHandlerConfiguration
    , dispatch (NULL)
    , fps (STREAM_VIS_SPECTRUMANALYZER_DEFAULT_FRAME_RATE)
    , generatorConfiguration (NULL)
+#if defined (SOX_SUPPORT)
+   , manageSoX (false)
+#endif // SOX_SUPPORT
    , mute (false)
 #if defined (GUI_SUPPORT)
+   , spectrumAnalyzer2DMode (STREAM_VIS_SPECTRUMANALYZER_DEFAULT_2DMODE)
+   , spectrumAnalyzerResolution (STREAM_VIS_SPECTRUMANALYZER_DEFAULT_BUFFER_SIZE)
 #if defined (GTKGL_SUPPORT)
    , OpenGLTextureId (0)
-#endif /* GTKGL_SUPPORT */
-   , spectrumAnalyzer2DMode (STREAM_VIS_SPECTRUMANALYZER_DEFAULT_2DMODE)
    , spectrumAnalyzer3DMode (STREAM_VIS_SPECTRUMANALYZER_DEFAULT_3DMODE)
-   , spectrumAnalyzerResolution (STREAM_VIS_SPECTRUMANALYZER_DEFAULT_BUFFER_SIZE)
-#endif // GUI_SUPPORT
-#if defined (GUI_SUPPORT)
+#endif // GTKGL_SUPPORT
 #if defined (GTK_SUPPORT)
    , window (NULL)
 #endif // GTK_SUPPORT
 #endif // GUI_SUPPORT
   {}
 
-  unsigned int                                      bufferSize; // statistic analysis
-  struct Stream_Device_Identifier                   deviceIdentifier; // capture/render
-  struct Stream_Miscellaneous_DelayConfiguration*   delayConfiguration;
-  Stream_Statistic_IDispatch_t*                     dispatch;
-  unsigned int                                      fps;
+  unsigned int                                              bufferSize; // statistic analysis
+  struct Stream_Device_Identifier                           deviceIdentifier; // capture/render
+  struct Stream_Miscellaneous_DelayConfiguration*           delayConfiguration;
+  Stream_Statistic_IDispatch_t*                             dispatch;
+  unsigned int                                              fps;
   struct Stream_MediaFramework_SoundGeneratorConfiguration* generatorConfiguration;
-  bool                                              mute;
+#if defined (SOX_SUPPORT)
+  bool                                                      manageSoX;
+#endif // SOX_SUPPORT
+  bool                                                      mute;
 #if defined (GUI_SUPPORT)
+  enum Stream_Visualization_SpectrumAnalyzer_2DMode         spectrumAnalyzer2DMode;
+  unsigned int                                              spectrumAnalyzerResolution;
 #if defined (GTKGL_SUPPORT)
-  GLuint                                            OpenGLTextureId;
+  GLuint                                                    OpenGLTextureId;
+  enum Stream_Visualization_SpectrumAnalyzer_3DMode         spectrumAnalyzer3DMode;
 #endif /* GTKGL_SUPPORT */
-  enum Stream_Visualization_SpectrumAnalyzer_2DMode spectrumAnalyzer2DMode;
-  enum Stream_Visualization_SpectrumAnalyzer_3DMode spectrumAnalyzer3DMode;
-  unsigned int                                      spectrumAnalyzerResolution;
-#endif // GUI_SUPPORT
-#if defined (GUI_SUPPORT)
 #if defined (GTK_SUPPORT)
-  GdkWindow*                                        window;
+  GdkWindow*                                                window;
 #endif // GTK_SUPPORT
 #endif // GUI_SUPPORT
 };
@@ -458,11 +460,11 @@ struct Test_U_AudioEffect_MediaFoundation_ModuleHandlerConfiguration
    , subscriber (NULL)
    , subscribers (NULL)
   {
-    HRESULT result = MFCreateMediaType (&outputFormat);
-    if (FAILED (result))
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to MFCreateMediaType(): \"%s\", continuing\n"),
-                  ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
+    //HRESULT result = MFCreateMediaType (&outputFormat);
+    //if (FAILED (result))
+    //  ACE_DEBUG ((LM_ERROR,
+    //              ACE_TEXT ("failed to MFCreateMediaType(): \"%s\", continuing\n"),
+    //              ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
   }
 
   CLSID                                                       effect;
@@ -490,7 +492,6 @@ struct Test_U_AudioEffect_ALSA_ModuleHandlerConfiguration
    , ALSAConfiguration (NULL)
    , effect ()
    , effectOptions ()
-   , manageSoX (false)
    , outputFormat ()
    , streamConfiguration (NULL)
    , subscriber (NULL)
@@ -503,7 +504,6 @@ struct Test_U_AudioEffect_ALSA_ModuleHandlerConfiguration
   struct Stream_MediaFramework_ALSA_Configuration* ALSAConfiguration;
   std::string                                      effect;
   std::vector<std::string>                         effectOptions;
-  bool                                             manageSoX;
   struct Stream_MediaFramework_ALSA_MediaType      outputFormat;
   Test_U_AudioEffect_ALSA_StreamConfiguration_t*   streamConfiguration;
   Test_U_AudioEffect_ISessionNotify_t*             subscriber;

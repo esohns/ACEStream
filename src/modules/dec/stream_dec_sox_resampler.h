@@ -95,6 +95,11 @@ class Stream_Decoder_SoXResampler_T
   ACE_UNIMPLEMENTED_FUNC (Stream_Decoder_SoXResampler_T (const Stream_Decoder_SoXResampler_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Decoder_SoXResampler_T& operator= (const Stream_Decoder_SoXResampler_T&))
 
+#if defined(ACE_WIN32) || defined(ACE_WIN64)
+  // helper methods
+  void extractBuffer (sox_format_t*); // output buffer
+#endif // ACE_WIN32 || ACE_WIN64
+
   ACE_Message_Block*          buffer_;
   struct sox_effects_chain_t* chain_;
   struct sox_encodinginfo_t   encodingInfo_;
