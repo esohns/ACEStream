@@ -7408,7 +7408,8 @@ hscale_device_boost_change_value_cb (GtkRange* range_in,
       mediafoundation_ui_cb_data_p =
         static_cast<struct Test_U_AudioEffect_MediaFoundation_UI_CBData*> (userData_in);
       ACE_ASSERT (mediafoundation_ui_cb_data_p);
-      ACE_ASSERT (mediafoundation_ui_cb_data_p->boostControl);
+      if (!mediafoundation_ui_cb_data_p->boostControl)
+        break;
       float min_level_f = 0.0F, max_level_f = 0.0F, stepping_f = 0.0F;
       HRESULT result =
         mediafoundation_ui_cb_data_p->boostControl->GetLevelRange (0,

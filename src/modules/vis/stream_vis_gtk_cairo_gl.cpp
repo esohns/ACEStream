@@ -54,11 +54,11 @@ Stream_Visualization_GTK_Cairo_OpenGL::Stream_Visualization_GTK_Cairo_OpenGL ()
 #if GTK_CHECK_VERSION (3,0,0)
   gboolean result_2 =
     gdk_rgba_parse (&backgroundColor_,
-                    ACE_TEXT_ALWAYS_CHAR ("rgba (0, 0, 0, 1.0)"));       // opaque black
+                    ACE_TEXT_ALWAYS_CHAR ("rgba (0.0, 0.0, 0.0, 1.0)")); // opaque black
   ACE_ASSERT (result_2);
   result_2 =
     gdk_rgba_parse (&foregroundColor_,
-                    ACE_TEXT_ALWAYS_CHAR ("rgba (255, 255, 255, 1.0)")); // opaque white
+                    ACE_TEXT_ALWAYS_CHAR ("rgba (1.0, 1.0, 1.0, 1.0)")); // opaque white
   ACE_ASSERT (result_2);
 #else
   ACE_OS::memset (&backgroundColor_, 0, sizeof (struct _GdkColor));                            // opaque black
@@ -105,9 +105,9 @@ Stream_Visualization_GTK_Cairo_OpenGL::dispatch (const enum Stream_Statistic_Ana
     case STREAM_STATISTIC_ANALYSIS_EVENT_PEAK:
     {
 #if GTK_CHECK_VERSION(3,0,0)
-      backgroundColor_.red   = randomGenerator_ () / 255.0;
-      backgroundColor_.green = randomGenerator_ () / 255.0;
-      backgroundColor_.blue  = randomGenerator_ () / 255.0;
+      backgroundColor_.red   = (double)randomGenerator_ () / 255.0;
+      backgroundColor_.green = (double)randomGenerator_ () / 255.0;
+      backgroundColor_.blue  = (double)randomGenerator_ () / 255.0;
       //backgroundColor_.alpha = ;
 #else
       backgroundColor_.red   = randomGenerator_ ();

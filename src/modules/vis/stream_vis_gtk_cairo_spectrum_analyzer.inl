@@ -349,21 +349,23 @@ next:
         inherited2::buffer_[i][tail_slot + j] = sampleIterator_.get (j, i);
 
       // step1b: process sample data
-      if ((*mode2D_ > STREAM_VISUALIZATION_SPECTRUMANALYZER_2DMODE_OSCILLOSCOPE) &&
-          (bufferedSamples_ >= inherited2::slots_))
+      if (*mode2D_ > STREAM_VISUALIZATION_SPECTRUMANALYZER_2DMODE_OSCILLOSCOPE)
       {
         // initialize the FFT working set buffer, transform to complex
         for (unsigned int j = 0; j < inherited2::slots_; ++j)
           inherited2::X_[i][inherited2::bitReverseMap_[j]] =
             std::complex<ValueType> (inherited2::buffer_[i][j], 0.0);
 
-        // compute FFT
-        inherited2::Compute (i);
-
-        if (i == (inherited2::channels_ - 1))
-          bufferedSamples_ -= inherited2::slots_;
+        if (bufferedSamples_ >= inherited2::slots_)
+        {
+          // compute FFT
+          inherited2::Compute (i);
+        } // end IF
       } // end IF
     } // end FOR
+    if (bufferedSamples_ >= inherited2::slots_)
+      bufferedSamples_ -= inherited2::slots_;
+
     offset += (sampleIterator_.dataSampleSize_ * samples_to_write);
     number_of_samples -= samples_to_write;
     if (!number_of_samples)

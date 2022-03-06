@@ -66,18 +66,32 @@ processInstructions (struct Test_U_AudioEffect_UI_CBDataBase* CBDataBase_in)
         }
         case STREAM_VISUALIZATION_INSTRUCTION_SET_COLOR_BG:
         {
+#if GTK_CHECK_VERSION(3,0,0)
+          glClearColor ((float)instruction_p->color.red,
+                        (float)instruction_p->color.green,
+                        (float)instruction_p->color.blue,
+                        1.0F);
+#else
           glClearColor ((float)instruction_p->color.red   / (float)std::numeric_limits<guint16>::max (),
                         (float)instruction_p->color.green / (float)std::numeric_limits<guint16>::max (),
                         (float)instruction_p->color.blue  / (float)std::numeric_limits<guint16>::max (),
                         1.0F);
+#endif // GTK_CHECK_VERSION(3,0,0)
           break;
         }
         case STREAM_VISUALIZATION_INSTRUCTION_SET_COLOR_FG:
         {
+#if GTK_CHECK_VERSION(3,0,0)
+          glColor4f ((float)instruction_p->color.red,
+                     (float)instruction_p->color.green,
+                     (float)instruction_p->color.blue,
+                     1.0F);
+#else
           glColor4f ((float)instruction_p->color.red   / (float)std::numeric_limits<guint16>::max (),
                      (float)instruction_p->color.green / (float)std::numeric_limits<guint16>::max (),
                      (float)instruction_p->color.blue  / (float)std::numeric_limits<guint16>::max (),
                      1.0F);
+#endif // GTK_CHECK_VERSION(3,0,0)
           break;
         }
         default:
@@ -649,8 +663,8 @@ glarea_render_cb (GtkGLArea* GLArea_in,
   glTranslatef (0.0f, 0.0f, -5.0f);		// Move back into the screen 7
   COMMON_GL_ASSERT;
 
-  static GLfloat cube_rotation = 0.0f;
-  glRotatef (cube_rotation, 1.0f, 1.0f, 1.0f);		// Rotate The Cube On X, Y, and Z
+  glRotatef (ui_cb_data_base_p->objectRotation,
+             1.0f, 1.0f, 1.0f); // Rotate The Cube On X, Y, and Z
   COMMON_GL_ASSERT;
 
   //static GLfloat rot_x = 0.0f;
@@ -696,7 +710,7 @@ glarea_render_cb (GtkGLArea* GLArea_in,
   glEnd ();
   COMMON_GL_ASSERT;
 
-  cube_rotation -= 1.0f;					// Decrease The Rotation Variable For The Cube
+  ui_cb_data_base_p->objectRotation -= 1.0f; // Decrease The Rotation Variable For The Cube
 
   processInstructions (ui_cb_data_base_p);
 
@@ -1010,8 +1024,9 @@ glarea_expose_event_cb (GtkWidget* widget_in,
 //  glRotatef (rot_x, 1.0f, 0.0f, 0.0f); // Rotate On The X Axis
 //  glRotatef (rot_y, 0.0f, 1.0f, 0.0f); // Rotate On The Y Axis
 //  glRotatef (rot_z, 0.0f, 0.0f, 1.0f); // Rotate On The Z Axis
-  static GLfloat rotation = 0.0F;
-  glRotatef (rotation, 1.0F, 1.0F, 1.0F); // Rotate On The X,Y,Z Axis
+
+  glRotatef (ui_cb_data_base_p->objectRotation,
+             1.0F, 1.0F, 1.0F); // Rotate On The X,Y,Z Axis
   ACE_ASSERT (glGetError () == GL_NO_ERROR);
 
 //  glBegin (GL_QUADS);
@@ -1045,36 +1060,9 @@ glarea_expose_event_cb (GtkWidget* widget_in,
 //  rot_x += 0.3f;
 //  rot_y += 0.20f;
 //  rot_z += 0.4f;
-  rotation -= 1.0f; // Decrease The Rotation Variable For The Cube
+  ui_cb_data_base_p->objectRotation -= 1.0f; // Decrease The Rotation Variable For The Cube
 
-  //GLuint vertex_array_id = 0;
-  //glGenVertexArrays (1, &vertex_array_id);
-  //glBindVertexArray (vertex_array_id);
-
-  //static const GLfloat vertex_buffer_data[] = {
-  //  -1.0f, -1.0f, 0.0f,
-  //  1.0f, -1.0f, 0.0f,
-  //  -1.0f,  1.0f, 0.0f,
-  //  -1.0f,  1.0f, 0.0f,
-  //  1.0f, -1.0f, 0.0f,
-  //  1.0f,  1.0f, 0.0f,
-  //};
-
-  //GLuint vertex_buffer;
-  //glGenBuffers (1, &vertex_buffer);
-  //glBindBuffer (GL_ARRAY_BUFFER, vertex_buffer);
-  //glBufferData (GL_ARRAY_BUFFER,
-  //              sizeof (vertex_buffer_data), vertex_buffer_data,
-  //              GL_STATIC_DRAW);
-
-  ////GLuint program_id = LoadShaders ("Passthrough.vertexshader",
-  ////                                 "SimpleTexture.fragmentshader");
-  ////GLuint tex_id = glGetUniformLocation (program_id, "renderedTexture");
-  ////GLuint time_id = glGetUniformLocation (program_id, "time");
-
-  //glBindFramebuffer (GL_FRAMEBUFFER, 0);
-  //glViewport (0, 0,
-  //            data_p->area3D.width, data_p->area3D.height);
+  processInstructions (ui_cb_data_base_p);
 
   ggla_area_swap_buffers (GGLA_AREA (widget_in));
 
