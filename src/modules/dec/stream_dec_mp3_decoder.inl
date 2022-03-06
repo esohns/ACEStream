@@ -429,7 +429,7 @@ Stream_Decoder_MP3Decoder_T<ACE_SYNCH_USE,
       if (unlikely (stop_processing_b)) // <-- SESSION_END has been processed || finished || serious error
       { stop_processing_b = false; // reset, just in case...
         { ACE_GUARD_RETURN (ACE_Thread_Mutex, aGuard, inherited::lock_, -1);
-          if (unlikely (!sessionEndSent_ && !sessionEndProcessed_))
+          if (unlikely (!inherited::sessionEndSent_ && !inherited::sessionEndProcessed_))
           {
             // enqueue(/process) STREAM_SESSION_END
             inherited::finished ();

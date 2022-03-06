@@ -75,7 +75,14 @@ Stream_Module_Vis_GTK_Window_T<ACE_SYNCH_USE,
   GDK_THREADS_ENTER ();
 #endif // GTK_CHECK_VERSION (3,6,0)
   if (window_)
-    gdk_window_destroy (window_);
+  {
+#if GTK_CHECK_VERSION (3,10,0)
+    gtk_window_close (window_); window_ = NULL;
+#else
+    gtk_widget_destroy (GTK_WIDGET (window_)); window_ = NULL;
+#endif // GTK_CHECK_VERSION (3,10,0)
+  } // end IF
+
 //  if (mainLoop_)
 //    g_main_loop_unref (mainLoop_);
 #if GTK_CHECK_VERSION (3,6,0)
@@ -235,7 +242,7 @@ Stream_Module_Vis_GTK_Window_T<ACE_SYNCH_USE,
 
       // *TODO*: subscribe to signals (realize, configure, expose, ...)
 
-      gdk_window_show (window_);
+      gtk_widget_show_all (GTK_WIDGET (window_));
 
 #if GTK_CHECK_VERSION (3,6,0)
 #else
@@ -270,7 +277,11 @@ error:
 
       if (likely (window_))
       {
-        gdk_window_destroy (window_); window_ = NULL;
+#if GTK_CHECK_VERSION (3,10,0)
+        gtk_window_close (window_); window_ = NULL;
+#else
+        gtk_widget_destroy (GTK_WIDGET (window_)); window_ = NULL;
+#endif // GTK_CHECK_VERSION (3,10,0)
       } // end IF
 
 //      if (likely (mainLoop_ &&
@@ -328,7 +339,11 @@ Stream_Module_Vis_GTK_Window_T<ACE_SYNCH_USE,
 //    } // end IF
     if (window_)
     {
-      gdk_window_destroy (window_); window_ = NULL;
+#if GTK_CHECK_VERSION (3,10,0)
+      gtk_window_close (window_); window_ = NULL;
+#else
+      gtk_widget_destroy (GTK_WIDGET (window_)); window_ = NULL;
+#endif // GTK_CHECK_VERSION (3,10,0)
     } // end IF
 
 #if GTK_CHECK_VERSION (3,6,0)
@@ -397,34 +412,25 @@ Stream_Module_Vis_GTK_Window_T<ACE_SYNCH_USE,
 //    return false;
 //  } // end IF
 
-  GdkWindowAttr attributes_a;
-  gint attributes_mask = 0;
-  attributes_a.window_type = GDK_WINDOW_TOPLEVEL;
+  gint width_i, height_i;
 #if defined(ACE_WIN32) || defined(ACE_WIN64)
-  attributes_a.width = resolution_in.cx;
-  attributes_a.height = resolution_in.cy;
+  width_i = resolution_in.cx;
+  height_i = resolution_in.cy;
 #else
-  attributes_a.width = resolution_in.width;
-  attributes_a.height = resolution_in.height;
+  width_i = resolution_in.width;
+  height_i = resolution_in.height;
 #endif // ACE_WIN32 || ACE_WIN64
-  attributes_a.wclass = GDK_INPUT_OUTPUT;
-#if GTK_CHECK_VERSION (3,0,0)
-#else
-  attributes_a.colormap = gdk_rgb_get_cmap ();
-  attributes_mask = GDK_WA_COLORMAP;
-#endif // GTK_CHECK_VERSION (3,0,0)
-
-  window_ = gdk_window_new (NULL,
-                            &attributes_a,
-                            attributes_mask);
+  window_ = GTK_WINDOW (gtk_window_new (GTK_WINDOW_TOPLEVEL));
   if (unlikely (!window_))
   {
     ACE_DEBUG ((LM_CRITICAL,
-                ACE_TEXT ("%s: failed to gdk_window_new(), aborting\n"),
+                ACE_TEXT ("%s: failed to gtk_window_new(), aborting\n"),
                 inherited::mod_->name ()));
 //    g_main_loop_unref (mainLoop_); mainLoop_ = NULL;
     return false;
   } // end IF
+  gtk_window_set_default_size (window_,
+                               width_i, height_i);
 
   return true;
 }

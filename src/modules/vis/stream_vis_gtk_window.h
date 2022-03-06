@@ -95,7 +95,7 @@ class Stream_Module_Vis_GTK_Window_T
 
  protected:
 //  GMainLoop* mainLoop_;
-  GdkWindow* window_;
+  GtkWindow* window_;
 
   // *WARNING*: this calls into gtk --> enclose in gdk_threads_enter/leave
   bool initialize_GTK (const Common_Image_Resolution_t&); // window size

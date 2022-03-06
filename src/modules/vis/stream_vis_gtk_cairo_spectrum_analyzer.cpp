@@ -27,9 +27,14 @@ const char libacestream_default_vis_spectrum_analyzer_module_name_string[] =
   ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_GTK_SPECTRUM_ANALYZER_DEFAULT_NAME_STRING);
 
 gboolean
-acestream_visualization_gtk_cairo_idle_update_cb (gpointer userData_in)
+acestream_visualization_gtk_cairo_expose_event_cb (GtkWidget* widget_in,
+                                                   GdkEvent* event_in,
+                                                   gpointer userData_in)
 {
-  STREAM_TRACE (ACE_TEXT ("::acestream_visualization_gtk_cairo_idle_update_cb"));
+  STREAM_TRACE (ACE_TEXT ("::acestream_visualization_gtk_cairo_expose_event_cb"));
+
+  ACE_UNUSED_ARG (widget_in);
+  ACE_UNUSED_ARG (event_in);
 
   // sanity check(s)
   struct acestream_visualization_gtk_cairo_cbdata* cbdata_p =
@@ -42,8 +47,26 @@ acestream_visualization_gtk_cairo_idle_update_cb (gpointer userData_in)
   } catch (...) {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("caught exception in Common_IDispatch::dispatch(), aborting\n")));
-    return G_SOURCE_REMOVE;
+    return FALSE;
   }
+
+  return TRUE; // do NOT propagate the event
+}
+
+gboolean
+acestream_visualization_gtk_cairo_idle_update_cb (gpointer userData_in)
+{
+  STREAM_TRACE (ACE_TEXT ("::acestream_visualization_gtk_cairo_idle_update_cb"));
+
+  // sanity check(s)
+  struct acestream_visualization_gtk_cairo_cbdata* cbdata_p =
+    static_cast<struct acestream_visualization_gtk_cairo_cbdata*> (userData_in);
+  ACE_ASSERT (cbdata_p);
+  ACE_ASSERT (cbdata_p->window);
+
+  gdk_window_invalidate_rect (cbdata_p->window,
+                              NULL,   // whole window
+                              FALSE); // invalidate children ?
 
   return G_SOURCE_CONTINUE;
 }

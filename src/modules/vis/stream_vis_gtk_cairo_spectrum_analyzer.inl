@@ -213,40 +213,29 @@ Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
     } // end IF
     ACE_ASSERT (inherited::window_);
     CBData_.dispatch = this;
-    CBData_.window = inherited::window_;
-    if (unlikely (!initialize_Cairo (CBData_.window,
-                                     CBData_.context)))
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("%s: failed to Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T::initialize_Cairo(), aborting\n"),
-                  inherited::mod_->name ()));
-      GDK_THREADS_LEAVE ();
-      return false;
-    } // end IF
     GDK_THREADS_LEAVE ();
-    gdk_window_show (inherited::window_);
-    const_cast<ConfigurationType&> (configuration_in).window =
-      inherited::window_;
   } // end IF
-
-  GDK_THREADS_ENTER ();
+  else
+  {
+    GDK_THREADS_ENTER ();
 #if GTK_CHECK_VERSION (3,0,0)
-  gdk_window_get_geometry (configuration_in.window,
-                           NULL,
-                           NULL,
-                           &width_,
-                           &height_);
+    gdk_window_get_geometry (configuration_in.window,
+                             NULL,
+                             NULL,
+                             &width_,
+                             &height_);
 #elif GTK_CHECK_VERSION (2,0,0)
-  gdk_window_get_geometry (configuration_in.window,
-                           NULL,
-                           NULL,
-                           &width_,
-                           &height_,
-                           NULL);
+    gdk_window_get_geometry (configuration_in.window,
+                             NULL,
+                             NULL,
+                             &width_,
+                             &height_,
+                             NULL);
 #endif /* GTK_CHECK_VERSION (x,0,0) */
-  GDK_THREADS_LEAVE ();
-  ACE_ASSERT (height_); ACE_ASSERT (width_);
-  halfHeight_ = height_ / 2;
+    GDK_THREADS_LEAVE ();
+    ACE_ASSERT (height_ && width_);
+    halfHeight_ = height_ / 2;
+  } // end ELSE
 
   if (unlikely (!mode2D_))
   {
@@ -328,7 +317,7 @@ next:
   do
   {
     samples_to_write = std::min (inherited2::slots_, number_of_samples);
-    bufferedSamples_ += samples_to_write;
+//    bufferedSamples_ += samples_to_write;
     sampleIterator_.buffer_ =
       reinterpret_cast<uint8_t*> (message_block_p->rd_ptr ()) + offset;
     for (unsigned int i = 0; i < inherited2::channels_; ++i)
@@ -356,15 +345,15 @@ next:
           inherited2::X_[i][inherited2::bitReverseMap_[j]] =
             std::complex<ValueType> (inherited2::buffer_[i][j], 0.0);
 
-        if (bufferedSamples_ >= inherited2::slots_)
-        {
+//        if (bufferedSamples_ >= inherited2::slots_)
+//        {
           // compute FFT
           inherited2::Compute (i);
-        } // end IF
+//        } // end IF
       } // end IF
     } // end FOR
-    if (bufferedSamples_ >= inherited2::slots_)
-      bufferedSamples_ -= inherited2::slots_;
+//    if (bufferedSamples_ >= inherited2::slots_)
+//      bufferedSamples_ -= inherited2::slots_;
 
     offset += (sampleIterator_.dataSampleSize_ * samples_to_write);
     number_of_samples -= samples_to_write;
@@ -607,7 +596,11 @@ error:
         //if (inherited::thr_count_ == 2)
         if (inherited::thr_count_ > 0)
         {
-          gdk_window_destroy (inherited::window_); inherited::window_ = NULL;
+#if GTK_CHECK_VERSION (3,10,0)
+          gtk_window_close (inherited::window_); inherited::window_ = NULL;
+#else
+          gtk_widget_destroy (GTK_WIDGET (inherited::window_)); inherited::window_ = NULL;
+#endif // GTK_CHECK_VERSION (3,10,0)
           gtk_main_quit ();
         } // end IF
         GDK_THREADS_LEAVE ();
@@ -644,20 +637,33 @@ error:
   } // end SWITCH
 }
 
-template <ACE_SYNCH_DECL, typename TimePolicyType, typename ConfigurationType,
-          typename ControlMessageType, typename DataMessageType,
-          typename SessionMessageType, typename SessionDataType,
-          typename SessionDataContainerType, typename TimerManagerType,
-          typename MediaType, typename ValueType>
-int Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<
-  ACE_SYNCH_USE, TimePolicyType, ConfigurationType, ControlMessageType,
-  DataMessageType, SessionMessageType, SessionDataType,
-  SessionDataContainerType, TimerManagerType, MediaType, ValueType>::svc (void)
+template <ACE_SYNCH_DECL,
+          typename TimePolicyType,
+          typename ConfigurationType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
+          typename SessionDataType,
+          typename SessionDataContainerType,
+          typename TimerManagerType,
+          typename MediaType,
+          typename ValueType>
+int
+Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
+                                                  TimePolicyType,
+                                                  ConfigurationType,
+                                                  ControlMessageType,
+                                                  DataMessageType,
+                                                  SessionMessageType,
+                                                  SessionDataType,
+                                                  SessionDataContainerType,
+                                                  TimerManagerType,
+                                                  MediaType,
+                                                  ValueType>::svc (void)
 {
-  STREAM_TRACE (
-    ACE_TEXT ("Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T::svc"));
+  STREAM_TRACE (ACE_TEXT ("Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T::svc"));
 
-#if defined(ACE_WIN32) || defined(ACE_WIN64)
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
 #if COMMON_OS_WIN32_TARGET_PLATFORM(0x0A00) // _WIN32_WINNT_WIN10
   Common_Error_Tools::setThreadName (inherited::threadName_, NULL);
 #else
@@ -672,8 +678,7 @@ int Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<
   ACE_Message_Block* message_block_p = NULL;
   int error = 0;
 
-  {
-    ACE_GUARD_RETURN (ACE_Thread_Mutex, aGuard, inherited::lock_, -1);
+  { ACE_GUARD_RETURN (ACE_Thread_Mutex, aGuard, inherited::lock_, -1);
     if (is_first_b)
     {
       is_first_b = false;
@@ -687,9 +692,45 @@ int Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<
                 inherited::mod_->name (),
                 inherited::grp_id_));
 
+    GDK_THREADS_ENTER ();
+//    GtkWidget* box_p = gtk_vbox_new (FALSE, 0);
+//    gtk_container_add (GTK_CONTAINER (inherited::window_), box_p);
+//    GtkWidget* drawing_area_p = gtk_drawing_area_new ();
+//    gtk_widget_set_app_paintable (drawing_area_p, TRUE);
+//    gtk_widget_set_double_buffered (drawing_area_p, FALSE);
+//    gtk_box_pack_start (GTK_BOX (box_p), drawing_area_p, TRUE, TRUE, 0);
+    gtk_widget_set_app_paintable (GTK_WIDGET (inherited::window_), TRUE);
+    gtk_widget_set_double_buffered (GTK_WIDGET (inherited::window_), FALSE);
+    gtk_widget_show_all (GTK_WIDGET (inherited::window_));
+
+    CBData_.window =
+      gtk_widget_get_window (GTK_WIDGET (inherited::window_));
+//      gtk_widget_get_window (GTK_WIDGET (drawing_area_p));
+    ACE_ASSERT (CBData_.window);
+    if (unlikely (!initialize_Cairo (CBData_.window,
+                                     CBData_.context)))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("%s: failed to Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T::initialize_Cairo(), aborting\n"),
+                  inherited::mod_->name ()));
+      GDK_THREADS_LEAVE ();
+      result = -1;
+      goto done;
+    } // end IF
+    setP (CBData_.window);
+
+    gulong result_3 =
+      g_signal_connect (G_OBJECT (inherited::window_),
+                        //G_OBJECT (drawing_area_p),
+                        ACE_TEXT_ALWAYS_CHAR ("expose-event"),
+                        G_CALLBACK (acestream_visualization_gtk_cairo_expose_event_cb),
+                        &CBData_);
+    ACE_ASSERT (result_3);
+
     g_timeout_add (COMMON_UI_REFRESH_DEFAULT_WIDGET_MS,
                    acestream_visualization_gtk_cairo_idle_update_cb,
                    &CBData_);
+    GDK_THREADS_LEAVE ();
 
     result = inherited::svc ();
 

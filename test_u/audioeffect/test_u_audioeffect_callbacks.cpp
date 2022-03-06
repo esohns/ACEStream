@@ -3859,6 +3859,8 @@ stream_processing_function (void* arg_in)
   Test_U_Common_ISet_t* resize_notification_p = NULL;
   Common_IDispatch* dispatch_p = NULL;
   guint event_source_id = 0;
+  struct Test_U_AudioEffect_UI_CBDataBase* ui_data_base_p = NULL;
+
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   switch (thread_data_base_p->mediaFramework)
   {
@@ -4057,7 +4059,6 @@ stream_processing_function (void* arg_in)
   goto continue_;
 
 error:
-  struct Test_U_AudioEffect_UI_CBDataBase* ui_data_base_p = NULL;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   switch (thread_data_base_p->mediaFramework)
   {
@@ -4175,9 +4176,9 @@ idle_initialize_UI_cb (gpointer userData_in)
   GtkDrawingArea* drawing_area_p = NULL;
   gint tooltip_timeout = COMMON_UI_GTK_TIMEOUT_DEFAULT_WIDGET_TOOLTIP_DELAY_MS;
 #if defined (GTKGL_SUPPORT)
-#if GTK_CHECK_VERSION(3,0,0)
   GtkBox* box_p = NULL;
   Common_UI_GTK_GLContextsIterator_t opengl_contexts_iterator;
+#if GTK_CHECK_VERSION(3,0,0)
 #else
 #if defined (GTKGLAREA_SUPPORT)
   /* Attribute list for gtkglarea widget. Specifies a
@@ -4924,13 +4925,13 @@ idle_initialize_UI_cb (gpointer userData_in)
                 ACE_TEXT (STREAM_LIB_ALSA_PLAYBACK_DEFAULT_SELEM_VOLUME_NAME)));
     goto error;
   } // end IF
-  gtk_range_set_range (GTK_RANGE (hscale_p),
+  gtk_range_set_range (GTK_RANGE (scale_p),
                        static_cast<gdouble> (min_level_i),
                        static_cast<gdouble> (max_level_i));
-  gtk_range_set_increments (GTK_RANGE (hscale_p),
+  gtk_range_set_increments (GTK_RANGE (scale_p),
                             static_cast<gdouble> (1),
                             static_cast<gdouble> (1));
-  gtk_range_set_value (GTK_RANGE (hscale_p),
+  gtk_range_set_value (GTK_RANGE (scale_p),
                        static_cast<gdouble> (current_level_i));
 #endif // ACE_WIN32 || ACE_WIN64
 
@@ -9396,10 +9397,10 @@ combobox_device_changed_cb (GtkWidget* widget_in,
   ACE_OS::memset (&value, 0, sizeof (struct _GValue));
   ACE_OS::memset (&value_2, 0, sizeof (struct _GValue));
 #endif // GTK_CHECK_VERSION (2,30,0)
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-  std::ostringstream converter;
-  std::string format_string;
   std::string device_identifier_string;
+  std::ostringstream converter;
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  std::string format_string;
   struct Test_U_AudioEffect_DirectShow_UI_CBData* directshow_ui_cb_data_p = NULL;
   struct Test_U_AudioEffect_MediaFoundation_UI_CBData* mediafoundation_ui_cb_data_p = NULL;
   Test_U_AudioEffect_MediaFoundation_StreamConfiguration_t::ITERATOR_T mediafoundation_modulehandler_configuration_iterator;
@@ -10038,13 +10039,13 @@ continue_2:
                 ACE_TEXT (STREAM_LIB_ALSA_CAPTURE_DEFAULT_SELEM_VOLUME_NAME)));
     return;
   } // end IF
-  gtk_range_set_range (GTK_RANGE (hscale_p),
+  gtk_range_set_range (GTK_RANGE (scale_p),
                        static_cast<gdouble> (min_level_i),
                        static_cast<gdouble> (max_level_i));
-  gtk_range_set_increments (GTK_RANGE (hscale_p),
+  gtk_range_set_increments (GTK_RANGE (scale_p),
                             static_cast<gdouble> (1),
                             static_cast<gdouble> (1));
-  gtk_range_set_value (GTK_RANGE (hscale_p),
+  gtk_range_set_value (GTK_RANGE (scale_p),
                        static_cast<gdouble> (current_level_i));
 
   if (!Stream_MediaFramework_ALSA_Tools::getVolumeLevels (device_identifier_string,
@@ -10060,10 +10061,10 @@ continue_2:
                  ACE_TEXT (STREAM_LIB_ALSA_CAPTURE_DEFAULT_SELEM_BOOST_NAME)));
       return;
   } // end IF
-  gtk_range_set_range (GTK_RANGE (hscale_2),
+  gtk_range_set_range (GTK_RANGE (scale_2),
                        static_cast<gdouble> (min_level_i),
                        static_cast<gdouble> (max_level_i));
-  gtk_range_set_increments (GTK_RANGE (hscale_2),
+  gtk_range_set_increments (GTK_RANGE (scale_2),
                             static_cast<gdouble> (1),
                             static_cast<gdouble> (1));
   for (long i = min_level_i;
@@ -10073,12 +10074,12 @@ continue_2:
     converter.str (ACE_TEXT_ALWAYS_CHAR (""));
     converter.clear ();
     converter << i;
-    gtk_scale_add_mark (GTK_SCALE (hscale_2),
+    gtk_scale_add_mark (GTK_SCALE (scale_2),
                         static_cast<gdouble> (i),
                         GTK_POS_TOP,
                         converter.str ().c_str ());
   } // end FOR
-  gtk_range_set_value (GTK_RANGE (hscale_2),
+  gtk_range_set_value (GTK_RANGE (scale_2),
                        static_cast<gdouble> (current_level_i));
 #endif // ACE_WIN32 || ACE_WIN64
 
