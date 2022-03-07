@@ -27,6 +27,7 @@
 #endif // GUI_SUPPORT
 
 #include "ace/Guard_T.h"
+#include "ace/OS.h"
 #include "ace/Synch_Traits.h"
 
 #if defined (GUI_SUPPORT)
@@ -593,6 +594,8 @@ Test_I_InputHandler_T<NotificationType,
   enum Test_I_SpeechCommand_InputCommand command_e =
     TEST_I_INPUT_COMMAND_INVALID;
   DataMessageType* message_p = const_cast<DataMessageType*> (&message_in);
+  int result = -1;
+
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   struct _KEY_EVENT_RECORD* key_event_record_p = NULL;
 #else
@@ -615,6 +618,11 @@ Test_I_InputHandler_T<NotificationType,
         command_e = TEST_I_INPUT_COMMAND_GAIN_DECREASE;
         break;
       }
+      case VK_Q:
+      {
+        command_e = TEST_I_INPUT_COMMAND_SHUTDOWN;
+        break;
+      }
       default:
         break;
     } // end SWITCH
@@ -634,6 +642,11 @@ Test_I_InputHandler_T<NotificationType,
           command_e = TEST_I_INPUT_COMMAND_GAIN_DECREASE;
           break;
         }
+        case 113: // 'q'
+        {
+          command_e = TEST_I_INPUT_COMMAND_SHUTDOWN;
+          break;
+        }
         default:
           break;
       } // end SWITCH
@@ -642,14 +655,27 @@ Test_I_InputHandler_T<NotificationType,
     // process input command
     switch (command_e)
     {
+      case TEST_I_INPUT_COMMAND_SHUTDOWN:
+      {
+        ACE_DEBUG ((LM_DEBUG,
+                    ACE_TEXT ("shutting down...\n")));
+        // *NOTE*: let the signal handler do the work
+        result = ACE_OS::raise (SIGINT);
+        if (unlikely (result == -1))
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("failed to raise(SIGINT): \"%m\", continuing\n")));
+        break;
+      }
       case TEST_I_INPUT_COMMAND_GAIN_DECREASE:
       {
-        ACE_DEBUG ((LM_DEBUG, ACE_TEXT ("decreasing gain\n")));
+        ACE_DEBUG ((LM_DEBUG,
+                    ACE_TEXT ("decreasing gain\n")));
         break;
       }
       case TEST_I_INPUT_COMMAND_GAIN_INCREASE:
       {
-        ACE_DEBUG ((LM_DEBUG, ACE_TEXT ("increasing gain\n")));
+        ACE_DEBUG ((LM_DEBUG,
+                    ACE_TEXT ("increasing gain\n")));
         break;
       }
       default:

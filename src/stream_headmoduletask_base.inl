@@ -2600,7 +2600,9 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
           //                   is automatic --> set state early to facilitate
           //                   this transition
           inherited2::state_ = STREAM_STATE_SESSION_STOPPING;
-          this->change (STREAM_STATE_STOPPED);
+          { ACE_GUARD_RETURN (ACE_Reverse_Lock<ACE_Thread_Mutex>, aGuard_2, reverse_lock, false);
+            this->change (STREAM_STATE_STOPPED);
+          } // end lock scope
         } // end IF
       } // end lock scope
       break;

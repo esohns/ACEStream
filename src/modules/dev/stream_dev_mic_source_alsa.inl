@@ -826,7 +826,7 @@ Stream_Dev_Mic_Source_ALSA_T<ACE_SYNCH_USE,
         {
           has_finished = true;
           // enqueue(/process) STREAM_SESSION_END
-          inherited::STATE_MACHINE_T::finished ();
+          inherited::finished (false); // recurse upstream ?
         } // end IF
 
         if (inherited::thr_count_ > 1)
@@ -879,7 +879,7 @@ Stream_Dev_Mic_Source_ALSA_T<ACE_SYNCH_USE,
           {
             has_finished = true;
             // enqueue(/process) STREAM_SESSION_END
-            inherited::STATE_MACHINE_T::finished ();
+            inherited::finished (false); // recurse upstream ?
           } // end IF
 
           continue;
@@ -904,7 +904,7 @@ continue_:
                     session_data_r.sessionId));
         has_finished = true;
         // enqueue(/process) STREAM_SESSION_END
-        inherited::STATE_MACHINE_T::finished ();
+        inherited::finished (false); // recurse upstream ?
       } // end IF
     } // end lock scope
 
