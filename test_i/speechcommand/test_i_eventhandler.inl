@@ -618,7 +618,12 @@ Test_I_InputHandler_T<NotificationType,
         command_e = TEST_I_INPUT_COMMAND_GAIN_DECREASE;
         break;
       }
-      case VK_Q:
+      default:
+        break;
+    } // end SWITCH
+    switch (key_event_record_p->uChar.AsciiChar)
+    {
+      case 113: // 'q'
       {
         command_e = TEST_I_INPUT_COMMAND_SHUTDOWN;
         break;

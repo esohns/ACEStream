@@ -47,7 +47,11 @@ struct acestream_visualization_gtk_cairo_cbdata
   GdkWindow*        window;
 };
 
+#if GTK_CHECK_VERSION(3,0,0)
+gboolean acestream_visualization_gtk_cairo_draw_cb (GtkWidget*, cairo_t*, gpointer);
+#else
 gboolean acestream_visualization_gtk_cairo_expose_event_cb (GtkWidget*, GdkEvent*, gpointer);
+#endif // GTK_CHECK_VERSION(3,0,0)
 gboolean acestream_visualization_gtk_cairo_idle_update_cb (gpointer);
 
 typedef Common_Math_FFT_T<double> Common_Math_FFT_Double_t;

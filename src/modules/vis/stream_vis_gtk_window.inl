@@ -137,22 +137,20 @@ Stream_Module_Vis_GTK_Window_T<ACE_SYNCH_USE,
   leave_gdk = true;
 #endif // GTK_CHECK_VERSION (3,6,0)
 
-#if GTK_CHECK_VERSION (3,0,0)
-  width_i = gdk_window_get_width (window_);
-  height_i = gdk_window_get_height (window_);
-#else
-  gdk_drawable_get_size (GDK_DRAWABLE (window_),
-                         &width_i, &height_i);
-#endif // GTK_CHECK_VERSION (3,0,0)
+  GtkAllocation allocation_s;
+  gtk_widget_get_allocation (GTK_WIDGET (window_),
+                             &allocation_s);
+  width_i = allocation_s.width;
+  height_i = allocation_s.height;
 
   buffer_p =
 #if GTK_CHECK_VERSION (3,0,0)
-      gdk_pixbuf_get_from_window (window_,
+      gdk_pixbuf_get_from_window (gtk_widget_get_window (GTK_WIDGET (window_)),
                                   0, 0,
                                   width_i, height_i);
 #else
       gdk_pixbuf_get_from_drawable (NULL,
-                                    GDK_DRAWABLE (window_),
+                                    GDK_DRAWABLE (gtk_widget_get_window (GTK_WIDGET (window_))),
                                     NULL,
                                     0, 0,
                                     0, 0, width_i, height_i);

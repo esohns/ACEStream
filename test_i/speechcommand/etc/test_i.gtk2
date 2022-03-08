@@ -73,7 +73,7 @@
     </child>
   </object>
   <object class="GtkFileFilter" id="filefilter_txt"/>
-  <object class="GtkFileChooserDialog" id="filechooserdialog">
+  <object class="GtkFileChooserDialog" id="filechooserdialog_save">
     <property name="can_focus">False</property>
     <property name="border_width">5</property>
     <property name="role">GtkFileChooserDialog</property>
@@ -328,10 +328,12 @@
                                 <property name="can_focus">False</property>
                                 <child>
                                   <object class="GtkToggleButton" id="togglebutton_save">
-                                    <property name="label" translatable="yes">togglebutton</property>
+                                    <property name="label">gtk-save</property>
                                     <property name="visible">True</property>
                                     <property name="can_focus">True</property>
                                     <property name="receives_default">True</property>
+                                    <property name="relief">half</property>
+                                    <property name="use_stock">True</property>
                                     <signal name="toggled" handler="togglebutton_save_toggled_cb" swapped="no"/>
                                   </object>
                                   <packing>
@@ -341,7 +343,7 @@
                                   </packing>
                                 </child>
                                 <child>
-                                  <object class="GtkFileChooserButton" id="filechooserbutton">
+                                  <object class="GtkFileChooserButton" id="filechooserbutton_save">
                                     <property name="visible">True</property>
                                     <property name="can_focus">False</property>
                                     <property name="tooltip_markup">save to file</property>
@@ -350,7 +352,7 @@
                                     <property name="local_only">False</property>
                                     <property name="preview_widget_active">False</property>
                                     <property name="show_hidden">True</property>
-                                    <property name="dialog">filechooserdialog</property>
+                                    <property name="dialog">filechooserdialog_save</property>
                                     <property name="focus_on_click">False</property>
                                     <signal name="file-set" handler="filechooserbutton_file_set_cb" swapped="no"/>
                                   </object>

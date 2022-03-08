@@ -96,7 +96,9 @@ Stream_Input_Manager_T<ACE_SYNCH_USE,
   return true;
 
 error:
-  stream_.stop (true); // wait ?
+  stream_.stop (true,   // wait ?
+                false,  // recurse upstream ?
+                false); // high priority ?
 
   return false;
 }
@@ -113,6 +115,8 @@ Stream_Input_Manager_T<ACE_SYNCH_USE,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Input_Manager_T::close"));
 
+  int result = inherited::close (arg_in);
+
   // *NOTE*: this method may be invoked
   //         - by an external thread closing down the active object
   //           (arg_in == 1 !)
@@ -121,34 +125,12 @@ Stream_Input_Manager_T<ACE_SYNCH_USE,
   switch (arg_in)
   {
     case 0:
-    { ACE_ASSERT (ACE_OS::thr_equal (ACE_Thread::self (), inherited::last_thread ()));
       break;
-    }
     case 1:
     {
-      // sanity check(s)
-      if (unlikely (!inherited::configuration_))
-        goto continue_2; // nothing to do
-      if (unlikely (inherited::configuration_->manageEventDispatch))
-      {
-        if (unlikely (inherited::thr_count_ == 0))
-          goto continue_; // nothing to do
-        ACE_ASSERT (inherited::configuration_->eventDispatchState);
-        Common_Tools::finalizeEventDispatch (*inherited::configuration_->eventDispatchState,
-                                             false); // wait ?
-      } // end IF
-
-continue_:
-      { ACE_GUARD_RETURN (ACE_Thread_Mutex, aGuard, inherited::lock_, -1);
-        if (likely (inherited::handler_))
-        { // *NOTE*: handler_ cleans itself up [WIN32: eventually]
-          inherited::handler_->deregister (); inherited::handler_ = NULL;
-        } // end IF
-      } // end lock scope
-
-continue_2:
-      stream_.stop (true); // wait ?
-
+      stream_.stop (true,   // wait ?
+                    false,  // recurse upstream ?
+                    false); // high priority ?
       break;
     }
     default:
@@ -160,5 +142,5 @@ continue_2:
     }
   } // end SWITCH
 
-  return 0;
+  return result;
 }

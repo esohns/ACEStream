@@ -128,7 +128,7 @@ load_capture_devices (GtkListStore* listStore_in)
       ACE_ASSERT (SUCCEEDED (result_2) && enumerator_p);
       IMMDeviceCollection* devices_p = NULL;
       result_2 = enumerator_p->EnumAudioEndpoints (eCapture,
-                                                   DEVICE_STATEMASK_ALL,
+                                                   DEVICE_STATE_ACTIVE,
                                                    &devices_p);
       ACE_ASSERT (SUCCEEDED (result_2) && devices_p);
       enumerator_p->Release (); enumerator_p = NULL;
@@ -1089,20 +1089,14 @@ idle_initialize_UI_cb (gpointer userData_in)
 
   GtkFileFilter* file_filter_p =
     GTK_FILE_FILTER (gtk_builder_get_object ((*iterator).second.second,
-                                             ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_FILEFILTER_WAV_NAME)));
+                                             ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_FILEFILTER_TXT_NAME)));
   ACE_ASSERT (file_filter_p);
   gtk_file_filter_add_mime_type (file_filter_p,
-                                 ACE_TEXT ("application/x-troff-msaudio"));
-  gtk_file_filter_add_mime_type (file_filter_p,
-                                 ACE_TEXT ("audio/wav"));
-  gtk_file_filter_add_mime_type (file_filter_p,
-                                 ACE_TEXT ("audio/msaudio"));
-  gtk_file_filter_add_mime_type (file_filter_p,
-                                 ACE_TEXT ("audio/x-msaudio"));
+                                 ACE_TEXT ("text/plain"));
   gtk_file_filter_add_pattern (file_filter_p,
-                               ACE_TEXT ("*.wav"));
+                               ACE_TEXT ("*.txt"));
   gtk_file_filter_set_name (file_filter_p,
-                            ACE_TEXT ("WAV files"));
+                            ACE_TEXT ("TXT files"));
 
   std::string filename_string;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -1269,231 +1263,6 @@ idle_initialize_UI_cb (gpointer userData_in)
                 NULL);
 #endif // GTK_CHECK_VERSION (3,0,0) || GTK_CHECK_VERSION (2,12,0)
 
-#if defined (GTKGL_SUPPORT)
-  GtkBox* box_p =
-    GTK_BOX (gtk_builder_get_object ((*iterator).second.second,
-                                     ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_BOX_DISPLAY_NAME)));
-  ACE_ASSERT (box_p);
-  Common_UI_GTK_GLContextsIterator_t opengl_contexts_iterator;
-#if GTK_CHECK_VERSION(3,0,0)
-#if GTK_CHECK_VERSION(3,16,0)
-  GtkGLArea* gl_area_p =
-    GTK_GL_AREA (gtk_builder_get_object ((*iterator).second.second,
-                                         ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_GLAREA_NAME)));
-  ACE_ASSERT (gl_area_p);
-  gtk_widget_realize (GTK_WIDGET (gl_area_p));
-  GdkGLContext* context_p = gtk_gl_area_get_context (gl_area_p);
-  ACE_ASSERT (context_p);
-  ACE_ASSERT (ui_cb_data_base_p->UIState);
-  ui_cb_data_base_p->UIState->OpenGLContexts.insert (std::make_pair (gl_area_p, context_p));
-  opengl_contexts_iterator =
-      ui_cb_data_base_p->UIState->OpenGLContexts.find (gl_area_p);
-  ACE_ASSERT (opengl_contexts_iterator != ui_cb_data_base_p->UIState->OpenGLContexts.end ());
-
-  gint major_version, minor_version;
-  gtk_gl_area_get_required_version (gl_area_p,
-                                    &major_version,
-                                    &minor_version);
-#else
-#if defined (GTKGLAREA_SUPPORT)
-  /* Attribute list for gtkglarea widget. Specifies a
-     list of Boolean attributes and enum/integer
-     attribute/value pairs. The last attribute must be
-     GGLA_NONE. See glXChooseVisual manpage for further
-     explanation.
-  */
-  int attribute_list[] = {
-    GGLA_USE_GL,
-// GGLA_BUFFER_SIZE
-// GGLA_LEVEL
-    GGLA_RGBA,
-    GGLA_DOUBLEBUFFER,
-//    GGLA_STEREO
-//    GGLA_AUX_BUFFERS
-    GGLA_RED_SIZE,   1,
-    GGLA_GREEN_SIZE, 1,
-    GGLA_BLUE_SIZE,  1,
-    GGLA_ALPHA_SIZE, 1,
-//    GGLA_DEPTH_SIZE
-//    GGLA_STENCIL_SIZE
-//    GGLA_ACCUM_RED_SIZE
-//    GGLA_ACCUM_GREEN_SIZE
-//    GGLA_ACCUM_BLUE_SIZE
-//    GGLA_ACCUM_ALPHA_SIZE
-//
-//    GGLA_X_VISUAL_TYPE_EXT
-//    GGLA_TRANSPARENT_TYPE_EXT
-//    GGLA_TRANSPARENT_INDEX_VALUE_EXT
-//    GGLA_TRANSPARENT_RED_VALUE_EXT
-//    GGLA_TRANSPARENT_GREEN_VALUE_EXT
-//    GGLA_TRANSPARENT_BLUE_VALUE_EXT
-//    GGLA_TRANSPARENT_ALPHA_VALUE_EXT
-    GGLA_NONE
-  };
-
-  GglaArea* gl_area_p = GGLA_AREA (ggla_area_new (attribute_list));
-  if (!gl_area_p)
-  {
-    ACE_DEBUG ((LM_CRITICAL,
-                ACE_TEXT ("failed to ggla_area_new(), aborting\n")));
-    return G_SOURCE_REMOVE;
-  } // end IF
-  ui_cb_data_base_p->UIState->OpenGLContexts.insert (std::make_pair (gl_area_p,
-                                                                     gl_area_p->glcontext));
-  opengl_contexts_iterator =
-    ui_cb_data_base_p->UIState->OpenGLContexts.find (gl_area_p);
-#else
-  ACE_ASSERT (false);
-  ACE_NOTSUP_RETURN (G_SOURCE_REMOVE);
-  ACE_NOTREACHED (return G_SOURCE_REMOVE;)
-#endif // GTKGLAREA_SUPPORT
-#endif /* GTK_CHECK_VERSION (3,16,0) */
-#else
-#if defined (GTKGLAREA_SUPPORT)
-  /* Attribute list for gtkglarea widget. Specifies a
-     list of Boolean attributes and enum/integer
-     attribute/value pairs. The last attribute must be
-     GDK_GL_NONE. See glXChooseVisual manpage for further
-     explanation.
-  */
-  int gl_attributes_a[] = {
-    GDK_GL_USE_GL,
-// GDK_GL_BUFFER_SIZE
-// GDK_GL_LEVEL
-    GDK_GL_RGBA,
-    GDK_GL_DOUBLEBUFFER,
-//    GDK_GL_STEREO
-//    GDK_GL_AUX_BUFFERS
-    GDK_GL_RED_SIZE,   1,
-    GDK_GL_GREEN_SIZE, 1,
-    GDK_GL_BLUE_SIZE,  1,
-    GDK_GL_ALPHA_SIZE, 1,
-//    GDK_GL_DEPTH_SIZE
-//    GDK_GL_STENCIL_SIZE
-//    GDK_GL_ACCUM_RED_SIZE
-//    GDK_GL_ACCUM_GREEN_SIZE
-//    GDK_GL_ACCUM_BLUE_SIZE
-//    GDK_GL_ACCUM_ALPHA_SIZE
-//
-//    GDK_GL_X_VISUAL_TYPE_EXT
-//    GDK_GL_TRANSPARENT_TYPE_EXT
-//    GDK_GL_TRANSPARENT_INDEX_VALUE_EXT
-//    GDK_GL_TRANSPARENT_RED_VALUE_EXT
-//    GDK_GL_TRANSPARENT_GREEN_VALUE_EXT
-//    GDK_GL_TRANSPARENT_BLUE_VALUE_EXT
-//    GDK_GL_TRANSPARENT_ALPHA_VALUE_EXT
-    GDK_GL_NONE
-  };
-
-  GtkGLArea* gl_area_p = GTK_GL_AREA (gtk_gl_area_new (gl_attributes_a));
-  if (!gl_area_p)
-  {
-    ACE_DEBUG ((LM_CRITICAL,
-                ACE_TEXT ("failed to gtk_gl_area_new(), aborting\n")));
-    return G_SOURCE_REMOVE;
-  } // end IF
-
-  ui_cb_data_base_p->UIState->OpenGLContexts.insert (std::make_pair (gl_area_p,
-                                                                     gl_area_p->glcontext));
-  opengl_contexts_iterator =
-    ui_cb_data_base_p->UIState->OpenGLContexts.find (gl_area_p);
-#else
-  GdkGLConfigMode features = static_cast<GdkGLConfigMode> (GDK_GL_MODE_DOUBLE  |
-                                                           GDK_GL_MODE_ALPHA   |
-                                                           GDK_GL_MODE_DEPTH   |
-                                                           GDK_GL_MODE_STENCIL |
-                                                           GDK_GL_MODE_ACCUM);
-  GdkGLConfigMode configuration_mode =
-    static_cast<GdkGLConfigMode> (GDK_GL_MODE_RGBA | features);
-  GdkGLConfig* gl_config_p = gdk_gl_config_new_by_mode (configuration_mode);
-  if (!gl_config_p)
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to gdk_gl_config_new_by_mode(): \"%m\", aborting\n")));
-    return G_SOURCE_REMOVE;
-  } // end IF
-
-  if (!gtk_widget_set_gl_capability (GTK_WIDGET (drawing_area_2), // widget
-                                     gl_config_p,                 // configuration
-                                     NULL,                        // share list
-                                     true,                        // direct
-                                     GDK_GL_RGBA_TYPE))           // render type
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to gtk_widget_set_gl_capability(): \"%m\", aborting\n")));
-    return G_SOURCE_REMOVE;
-  } // end IF
-  state_r.OpenGLContexts.insert (std::make_pair (gtk_widget_get_window (GTK_WIDGET (drawing_area_2)),
-                                                 gl_config_p));
-  opengl_contexts_iterator = ui_cb_data_base_p->UIState.OpenGLContexts.find (gl_area_p);
-#endif /* GTKGLAREA_SUPPORT */
-#endif /* GTK_CHECK_VERSION(3,0,0) */
-  ACE_ASSERT (opengl_contexts_iterator != ui_cb_data_base_p->UIState->OpenGLContexts.end ());
-
-#if GTK_CHECK_VERSION (3,0,0)
-#if GTK_CHECK_VERSION (3,16,0)
-  gtk_widget_set_events (GTK_WIDGET (gl_area_p),
-                         GDK_EXPOSURE_MASK |
-                         GDK_BUTTON_PRESS_MASK);
-#else
-#if defined (GTKGLAREA_SUPPORT)
-  gtk_widget_set_events (GTK_WIDGET (gl_area_p),
-                         GDK_EXPOSURE_MASK    |
-                         GDK_BUTTON_PRESS_MASK);
-#endif // GTKGLAREA_SUPPORT
-#endif /* GTK_CHECK_VERSION (3,16,0) */
-#elif GTK_CHECK_VERSION (2,0,0)
-#if defined (GTKGLAREA_SUPPORT)
-  gtk_widget_set_events (GTK_WIDGET ((*opengl_contexts_iterator).first),
-                         GDK_EXPOSURE_MASK    |
-                         GDK_BUTTON_PRESS_MASK);
-#endif // GTKGLAREA_SUPPORT
-#endif /* GTK_CHECK_VERSION (x,0,0) */
-
-#if GTK_CHECK_VERSION (3,0,0)
-#if GTK_CHECK_VERSION (3,16,0)
-  // *NOTE*: (try to) enable legacy mode on Win32
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-  gtk_gl_area_set_required_version ((*opengl_contexts_iterator).first, 2, 1);
-#endif // ACE_WIN32 || ACE_WIN64
-  gtk_gl_area_set_use_es ((*opengl_contexts_iterator).first, FALSE);
-  // *WARNING*: the 'renderbuffer' (in place of 'texture') image attachment
-  //            concept appears to be broken; setting this to 'false' gives
-  //            "fb setup not supported" (see: gtkglarea.c:734)
-  // *TODO*: more specifically, glCheckFramebufferStatusEXT() returns
-  //         GL_FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT_EXT; find out what is
-  //         going on
-  // *TODO*: the depth buffer feature is broken on Win32
-  gtk_gl_area_set_has_alpha ((*opengl_contexts_iterator).first, TRUE);
-  gtk_gl_area_set_has_depth_buffer ((*opengl_contexts_iterator).first, TRUE);
-  gtk_gl_area_set_has_stencil_buffer ((*opengl_contexts_iterator).first, FALSE);
-  gtk_gl_area_set_auto_render ((*opengl_contexts_iterator).first, TRUE);
-  gtk_widget_set_can_focus (GTK_WIDGET ((*opengl_contexts_iterator).first), FALSE);
-  gtk_widget_set_hexpand (GTK_WIDGET ((*opengl_contexts_iterator).first), TRUE);
-  gtk_widget_set_vexpand (GTK_WIDGET ((*opengl_contexts_iterator).first), TRUE);
-  //gtk_widget_set_visible (GTK_WIDGET ((*opengl_contexts_iterator).first), TRUE);
-#endif /* GTK_CHECK_VERSION (3,16,0) */
-#endif /* GTK_CHECK_VERSION (3,0,0) */
-  gtk_widget_set_size_request (GTK_WIDGET ((*opengl_contexts_iterator).first),
-                               320, 240);
-
-  g_signal_connect (G_OBJECT ((*opengl_contexts_iterator).first),
-                    ACE_TEXT_ALWAYS_CHAR ("realize"),
-                    G_CALLBACK (glarea_realize_cb),
-                    userData_in);
-
-  //gtk_box_pack_start (box_p,
-  //                    GTK_WIDGET ((*opengl_contexts_iterator).first),
-  //                    TRUE, // expand
-  //                    TRUE, // fill
-  //                    0);   // padding
-#if GTK_CHECK_VERSION (3,8,0)
-//  gtk_builder_expose_object ((*iterator).second.second,
-//                             ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_GLAREA_3D_NAME),
-//                             G_OBJECT ((*opengl_contexts_iterator).first));
-#endif /* GTK_CHECK_VERSION (3,8,0) */
-#endif /* GTKGL_SUPPORT */
-
   GtkProgressBar* progress_bar_p =
     GTK_PROGRESS_BAR (gtk_builder_get_object ((*iterator).second.second,
                                               ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_PROGRESSBAR_NAME)));
@@ -1578,86 +1347,6 @@ idle_initialize_UI_cb (gpointer userData_in)
                                        about_dialog_p);
   ACE_ASSERT (result_2);
 
-#if defined (GTKGL_SUPPORT)
-#if GTK_CHECK_VERSION(3,0,0)
-#if GTK_CHECK_VERSION(3,16,0)
-//  result_2 =
-//    g_signal_connect (G_OBJECT ((*opengl_contexts_iterator).first),
-//                      ACE_TEXT_ALWAYS_CHAR ("create-context"),
-//                      G_CALLBACK (glarea_create_context_cb),
-//                      userData_in);
-//  ACE_ASSERT (result_2);
-//  result_2 =
-//    g_signal_connect (G_OBJECT ((*opengl_contexts_iterator).first),
-//                      ACE_TEXT_ALWAYS_CHAR ("render"),
-//                      G_CALLBACK (glarea_render_cb),
-//                      userData_in);
-//  ACE_ASSERT (result_2);
-//  result_2 =
-//    g_signal_connect (G_OBJECT ((*opengl_contexts_iterator).first),
-//                      ACE_TEXT_ALWAYS_CHAR ("resize"),
-//                      G_CALLBACK (glarea_resize_cb),
-//                      userData_in);
-#else
-#if defined (GTKGLAREA_SUPPORT)
-  result_2 =
-    g_signal_connect (G_OBJECT ((*opengl_contexts_iterator).first),
-                      ACE_TEXT_ALWAYS_CHAR ("configure-event"),
-                      G_CALLBACK (glarea_configure_event_cb),
-                      userData_in);
-  ACE_ASSERT (result_2);
-  result_2 =
-    g_signal_connect (G_OBJECT ((*opengl_contexts_iterator).first),
-                      ACE_TEXT_ALWAYS_CHAR ("draw"),
-                      G_CALLBACK (glarea_expose_event_cb),
-                      userData_in);
-  ACE_ASSERT (result_2);
-#else
-  result_2 =
-    g_signal_connect (G_OBJECT ((*opengl_contexts_iterator).first),
-                      ACE_TEXT_ALWAYS_CHAR ("size-allocate"),
-                      G_CALLBACK (glarea_size_allocate_event_cb),
-                      userData_in);
-  ACE_ASSERT (result_2);
-  result_2 =
-    g_signal_connect (G_OBJECT ((*opengl_contexts_iterator).first),
-                      ACE_TEXT_ALWAYS_CHAR ("draw"),
-                      G_CALLBACK (glarea_draw_cb),
-                      userData_in);
-  ACE_ASSERT (result_2);
-#endif // GTKGLAREA_SUPPORT
-#endif // GTK_CHECK_VERSION(3,16,0)
-#else
-#if defined (GTKGLAREA_SUPPORT)
-  result_2 =
-    g_signal_connect (G_OBJECT ((*opengl_contexts_iterator).first),
-                      ACE_TEXT_ALWAYS_CHAR ("configure-event"),
-                      G_CALLBACK (glarea_configure_event_cb),
-                      userData_in);
-  ACE_ASSERT (result_2);
-  result_2 =
-    g_signal_connect (G_OBJECT ((*opengl_contexts_iterator).first),
-                      ACE_TEXT_ALWAYS_CHAR ("expose-event"),
-                      G_CALLBACK (glarea_expose_event_cb),
-                      userData_in);
-  ACE_ASSERT (result_2);
-#else
-  result_2 =
-    g_signal_connect (G_OBJECT ((*opengl_contexts_iterator).first),
-                      ACE_TEXT_ALWAYS_CHAR ("configure-event"),
-                      G_CALLBACK (glarea_configure_event_cb),
-                      userData_in);
-  ACE_ASSERT (result_2);
-  result_2 =
-    g_signal_connect (G_OBJECT ((*opengl_contexts_iterator).first),
-                      ACE_TEXT_ALWAYS_CHAR ("expose-event"),
-                      G_CALLBACK (glarea_expose_event_cb),
-                      userData_in);
-  ACE_ASSERT (result_2);
-#endif // GTKGLAREA_SUPPORT
-#endif // GTK_CHECK_VERSION(3,0,0)
-#endif // GTKGL_SUPPORT
-
   //--------------------------------------
 
   // step9: draw main dialog
@@ -1673,41 +1362,10 @@ idle_initialize_UI_cb (gpointer userData_in)
   gtk_combo_box_set_active (combo_box_p, index_i);
 
   bool is_active_b = false;
-//#if defined (ACE_WIN32) || defined (ACE_WIN64)
-//  switch (ui_cb_data_base_p->mediaFramework)
-//  {
-//    case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
-//    {
-//      is_active_b =
-//        (*directshow_modulehandler_configuration_iterator).second.second->mute;
-//      break;
-//    }
-//    case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
-//    {
-//      is_active_b =
-//        (*mediafoundation_modulehandler_configuration_iterator).second.second->mute;
-//      break;
-//    }
-//    default:
-//    {
-//      ACE_DEBUG ((LM_ERROR,
-//                  ACE_TEXT ("invalid/unknown media framework (was: %d), aborting\n"),
-//                  ui_cb_data_base_p->mediaFramework));
-//      return G_SOURCE_REMOVE;
-//    }
-//  } // end SWITCH
-//#else
-//  is_active_b = (*modulehandler_configuration_iterator).second.second->mute;
-//#endif // ACE_WIN32 || ACE_WIN64
-  //GtkToggleButton* toggle_button_p =
-  //  GTK_TOGGLE_BUTTON (gtk_builder_get_object ((*iterator).second.second,
-  //                                             ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_TOGGLEBUTTON_MUTE_NAME)));
-  //ACE_ASSERT (toggle_button_p);
-  //gtk_toggle_button_set_active (toggle_button_p, is_active_b);
 
   GtkToggleButton* toggle_button_p =
     GTK_TOGGLE_BUTTON (gtk_builder_get_object ((*iterator).second.second,
-                                               ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_CHECKBUTTON_SAVE_NAME)));
+                                               ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_TOGGLEBUTTON_SAVE_NAME)));
   ACE_ASSERT (toggle_button_p);
   if (!filename_string.empty ())
   {
@@ -2278,9 +1936,6 @@ idle_update_display_cb (gpointer userData_in)
   ACE_ASSERT (iterator != state_r.builders.end ());
 
   GdkWindow* window_p = NULL;
-#if defined (GTKGL_SUPPORT)
-  Common_UI_GTK_GLContextsIterator_t iterator_2;
-#endif /* GTKGL_SUPPORT */
 
   // trigger refresh of the 2D area
   GtkDrawingArea* drawing_area_p =
@@ -2295,18 +1950,6 @@ idle_update_display_cb (gpointer userData_in)
                               NULL,   // whole window
                               FALSE); // invaliddate children ?
 
-#if defined (GTKGL_SUPPORT)
-  // trigger refresh of the 3D OpenGL area
-  ACE_ASSERT (!state_r.OpenGLContexts.empty ());
-  iterator_2 = state_r.OpenGLContexts.begin ();
-  window_p = gtk_widget_get_window (GTK_WIDGET (&(*iterator_2).first->darea));
-  if (unlikely (!window_p))
-    goto continue_2; // <-- not realized yet
-
-  gdk_window_invalidate_rect (window_p,
-                              NULL,   // whole window
-                              FALSE); // invaliddate children ?
-#endif /* GTKGL_SUPPORT */
 continue_2:
   return G_SOURCE_CONTINUE;
 }
@@ -2472,17 +2115,6 @@ togglebutton_record_toggled_cb (GtkToggleButton* toggleButton_in,
   // step2: modify widgets
   gtk_button_set_label (GTK_BUTTON (toggleButton_in), GTK_STOCK_MEDIA_STOP);
 
-  GtkButton* button_p =
-    GTK_BUTTON (gtk_builder_get_object ((*iterator).second.second,
-                                        ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_BUTTON_CUT_NAME)));
-  ACE_ASSERT (button_p);
-  gtk_widget_set_sensitive (GTK_WIDGET (button_p), TRUE);
-  button_p =
-    GTK_BUTTON (gtk_builder_get_object ((*iterator).second.second,
-                                        ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_BUTTON_REPORT_NAME)));
-  ACE_ASSERT (button_p);
-  gtk_widget_set_sensitive (GTK_WIDGET (button_p), TRUE);
-
   GtkComboBox* combo_box_p =
     GTK_COMBO_BOX (gtk_builder_get_object ((*iterator).second.second,
                                            ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_COMBOBOX_SOURCE_NAME)));
@@ -2495,7 +2127,7 @@ togglebutton_record_toggled_cb (GtkToggleButton* toggleButton_in,
   ACE_ASSERT (frame_p);
   gtk_widget_set_sensitive (GTK_WIDGET (frame_p), FALSE);
 
-  button_p =
+  GtkButton* button_p =
     GTK_BUTTON (gtk_builder_get_object ((*iterator).second.second,
                                         ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_BUTTON_SETTINGS_NAME)));
   ACE_ASSERT (button_p);

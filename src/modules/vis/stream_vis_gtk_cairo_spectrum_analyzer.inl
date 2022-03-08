@@ -720,11 +720,19 @@ Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
     setP (CBData_.window);
 
     gulong result_3 =
+#if GTK_CHECK_VERSION(3,0,0)
+      g_signal_connect (G_OBJECT (inherited::window_),
+                        //G_OBJECT (drawing_area_p),
+                        ACE_TEXT_ALWAYS_CHAR ("draw"),
+                        G_CALLBACK (acestream_visualization_gtk_cairo_draw_cb),
+                        &CBData_);
+#else
       g_signal_connect (G_OBJECT (inherited::window_),
                         //G_OBJECT (drawing_area_p),
                         ACE_TEXT_ALWAYS_CHAR ("expose-event"),
                         G_CALLBACK (acestream_visualization_gtk_cairo_expose_event_cb),
                         &CBData_);
+#endif // GTK_CHECK_VERSION(3,0,0)
     ACE_ASSERT (result_3);
 
     g_timeout_add (COMMON_UI_REFRESH_DEFAULT_WIDGET_MS,
