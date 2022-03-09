@@ -81,6 +81,7 @@ Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
  , scaleFactorX_ (0.0)
  , scaleFactorX_2 (0.0)
  , scaleFactorY_ (0.0)
+ , scaleFactorY_2 (0.0)
  , halfHeight_ (0)
  , height_ (0)
  , width_ (0)
@@ -170,6 +171,7 @@ Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
     scaleFactorX_ = 0.0;
     scaleFactorX_2 = 0.0;
     scaleFactorY_ = 0.0;
+    scaleFactorY_2 = 0.0;
     halfHeight_ = 0;
     height_ = width_ = 0;
 
@@ -212,8 +214,9 @@ Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
       return false;
     } // end IF
     ACE_ASSERT (inherited::window_);
-    CBData_.dispatch = this;
     GDK_THREADS_LEAVE ();
+    CBData_.dispatch = this;
+    CBData_.resizeNotification = this;
   } // end IF
   else
   {
@@ -495,6 +498,7 @@ Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
       scaleFactorY_ =
         (is_floating_point_format ? static_cast<double> (height_)
                                   : static_cast<double> (height_) / static_cast<double> (Common_Tools::max<ACE_UINT64> (sound_sample_size, false)));
+      scaleFactorY_2 = scaleFactorY_ * 2.0;
 
       // schedule the renderer
       if (likely (mode2D_))
@@ -560,7 +564,21 @@ error:
       //} // end IF
 
       if (shutdown)
-        inherited::control (ACE_Message_Block::MB_STOP);
+      {
+        //inherited::control (ACE_Message_Block::MB_STOP);
+        if (inherited::window_)
+        {
+          GDK_THREADS_ENTER ();
+          //if (inherited::thr_count_ == 2)
+#if GTK_CHECK_VERSION (3,10,0)
+          gtk_window_close (inherited::window_); inherited::window_ = NULL;
+#else
+          gtk_widget_destroy (GTK_WIDGET (inherited::window_)); inherited::window_ = NULL;
+#endif // GTK_CHECK_VERSION (3,10,0)
+          gtk_main_quit ();
+          GDK_THREADS_LEAVE ();
+        } // end IF
+      } // end IF
 
       this->notify (STREAM_SESSION_MESSAGE_ABORT);
 
@@ -611,15 +629,15 @@ error:
 
       // *IMPORTANT NOTE*: at this stage no new data should be arriving
       //                   --> join with the renderer thread
-      if (inherited::thr_count_ > 0)
-      {
-        Common_ITask* itask_p = this;
-        itask_p->stop (true,   // wait ?
-                       false); // high priority ?
-        ACE_DEBUG ((LM_DEBUG,
-                    ACE_TEXT ("%s: joined renderer thread\n"),
-                    inherited::mod_->name ()));
-      } // end IF
+      //if (inherited::thr_count_ > 0)
+      //{
+      //  Common_ITask* itask_p = this;
+      //  itask_p->stop (true,   // wait ?
+      //                 false); // high priority ?
+      //  ACE_DEBUG ((LM_DEBUG,
+      //              ACE_TEXT ("%s: joined renderer thread\n"),
+      //              inherited::mod_->name ()));
+      //} // end IF
 
 //      if (likely (inherited::mainLoop_))
 //      {
@@ -693,19 +711,22 @@ Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
                 inherited::grp_id_));
 
     GDK_THREADS_ENTER ();
-//    GtkWidget* box_p = gtk_vbox_new (FALSE, 0);
-//    gtk_container_add (GTK_CONTAINER (inherited::window_), box_p);
-//    GtkWidget* drawing_area_p = gtk_drawing_area_new ();
-//    gtk_widget_set_app_paintable (drawing_area_p, TRUE);
-//    gtk_widget_set_double_buffered (drawing_area_p, FALSE);
-//    gtk_box_pack_start (GTK_BOX (box_p), drawing_area_p, TRUE, TRUE, 0);
-    gtk_widget_set_app_paintable (GTK_WIDGET (inherited::window_), TRUE);
-    gtk_widget_set_double_buffered (GTK_WIDGET (inherited::window_), FALSE);
+    GtkWidget* widget_p = GTK_WIDGET (inherited::window_);
+
+    // *NOTE*: GTK3 seems not to support drawing on a window itself
+    //         --> draw into a drawing area
+#if GTK_CHECK_VERSION(3,0,0)
+    GtkWidget* box_p = gtk_vbox_new (FALSE, 0);
+    gtk_container_add (GTK_CONTAINER (inherited::window_), box_p);
+    GtkWidget* drawing_area_p = gtk_drawing_area_new ();
+    gtk_box_pack_start (GTK_BOX (box_p), drawing_area_p, TRUE, TRUE, 0);
+    widget_p = drawing_area_p;
+#endif // GTK_CHECK_VERSION(3,0,0)
+    gtk_widget_set_app_paintable (widget_p, TRUE);
+    gtk_widget_set_double_buffered (widget_p, FALSE);
     gtk_widget_show_all (GTK_WIDGET (inherited::window_));
 
-    CBData_.window =
-      gtk_widget_get_window (GTK_WIDGET (inherited::window_));
-//      gtk_widget_get_window (GTK_WIDGET (drawing_area_p));
+    CBData_.window = gtk_widget_get_window (widget_p);
     ACE_ASSERT (CBData_.window);
     if (unlikely (!initialize_Cairo (CBData_.window,
                                      CBData_.context)))
@@ -721,18 +742,22 @@ Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
 
     gulong result_3 =
 #if GTK_CHECK_VERSION(3,0,0)
-      g_signal_connect (G_OBJECT (inherited::window_),
-                        //G_OBJECT (drawing_area_p),
+      g_signal_connect (G_OBJECT (widget_p),
                         ACE_TEXT_ALWAYS_CHAR ("draw"),
                         G_CALLBACK (acestream_visualization_gtk_cairo_draw_cb),
                         &CBData_);
 #else
-      g_signal_connect (G_OBJECT (inherited::window_),
-                        //G_OBJECT (drawing_area_p),
+      g_signal_connect (G_OBJECT (widget_p),
                         ACE_TEXT_ALWAYS_CHAR ("expose-event"),
                         G_CALLBACK (acestream_visualization_gtk_cairo_expose_event_cb),
                         &CBData_);
 #endif // GTK_CHECK_VERSION(3,0,0)
+    ACE_ASSERT (result_3);
+    result_3 =
+      g_signal_connect (G_OBJECT (widget_p),
+                        ACE_TEXT_ALWAYS_CHAR ("size-allocate"),
+                        G_CALLBACK (acestream_visualization_gtk_cairo_size_allocate_cb),
+                        &CBData_);
     ACE_ASSERT (result_3);
 
     g_timeout_add (COMMON_UI_REFRESH_DEFAULT_WIDGET_MS,
@@ -1081,6 +1106,7 @@ Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
     scaleFactorY_ =
       (is_floating_point_format ? static_cast<double> (height_)
                                 : static_cast<double> (height_) / static_cast<double> (Common_Tools::max<ACE_UINT64> (sound_sample_size, false)));
+    scaleFactorY_2 = scaleFactorY_ * 2.0;
 //} // end lock scope
 }
 
@@ -1175,7 +1201,7 @@ Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
           //         magnitudes are absolute values
           cairo_line_to (cbdata_p->context,
                          x,
-                         static_cast<double> (height_) - (sampleIterator_.isSignedSampleFormat_ ? (inherited2::Magnitude (j, i, true) * 2.0 * scaleFactorY_)
+                         static_cast<double> (height_) - (sampleIterator_.isSignedSampleFormat_ ? (inherited2::Magnitude (j, i, true) * scaleFactorY_2)
                                                                                                 : (inherited2::Magnitude (j, i, true) * scaleFactorY_)));
         } // end FOR
         break;

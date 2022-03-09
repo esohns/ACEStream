@@ -78,8 +78,8 @@
 
 #define STREAM_VIS_DEFAULT_SCREENSHOT_FILENAME_PREFIX_STRING              "screenshot"
 
-#define STREAM_VIS_DEFAULT_WINDOW_HEIGHT                                  320
-#define STREAM_VIS_DEFAULT_WINDOW_WIDTH                                   240
+#define STREAM_VIS_DEFAULT_WINDOW_HEIGHT                                  240
+#define STREAM_VIS_DEFAULT_WINDOW_WIDTH                                   320
 
 // spectrum analyzer
 // *IMPORTANT NOTE*: must be a power of 2 (FFT-specific)

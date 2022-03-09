@@ -42,9 +42,10 @@
 
 struct acestream_visualization_gtk_cairo_cbdata
 {
-  cairo_t*          context;
-  Common_IDispatch* dispatch;
-  GdkWindow*        window;
+  cairo_t*                   context;
+  Common_IDispatch*          dispatch;
+  Common_ISetP_T<GdkWindow>* resizeNotification;
+  GdkWindow*                 window;
 };
 
 #if GTK_CHECK_VERSION(3,0,0)
@@ -52,6 +53,8 @@ gboolean acestream_visualization_gtk_cairo_draw_cb (GtkWidget*, cairo_t*, gpoint
 #else
 gboolean acestream_visualization_gtk_cairo_expose_event_cb (GtkWidget*, GdkEvent*, gpointer);
 #endif // GTK_CHECK_VERSION(3,0,0)
+void acestream_visualization_gtk_cairo_size_allocate_cb (GtkWidget*, GdkRectangle*, gpointer);
+
 gboolean acestream_visualization_gtk_cairo_idle_update_cb (gpointer);
 
 typedef Common_Math_FFT_T<double> Common_Math_FFT_Double_t;
@@ -149,8 +152,9 @@ class Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T
   double                                             channelFactor_;
   double                                             scaleFactorX_;
   // *NOTE*: there are only (N/2)-1 meaningful values for real-valued data
-  double                                             scaleFactorX_2; // for spectrum
+  double                                             scaleFactorX_2; // /2 for spectrum
   double                                             scaleFactorY_;
+  double                                             scaleFactorY_2; // *2 for spectrum
   int                                                halfHeight_;
   int                                                height_;
   int                                                width_;
