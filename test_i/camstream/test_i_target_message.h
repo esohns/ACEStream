@@ -38,12 +38,6 @@
 class ACE_Allocator;
 class ACE_Data_Block;
 class ACE_Message_Block;
-//template <ACE_SYNCH_DECL,
-//          typename AllocatorConfigurationType,
-//          typename ControlMessageType,
-//          typename DataMessageType,
-//          typename SessionMessageType>
-//class Stream_MessageAllocatorHeapBase_T;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 class Test_I_Target_DirectShow_SessionMessage;
 class Test_I_Target_MediaFoundation_SessionMessage;
@@ -69,7 +63,8 @@ class Test_I_Target_DirectShow_Stream_Message
                                                  Test_I_Target_DirectShow_SessionMessage>;
 
  public:
-  Test_I_Target_DirectShow_Stream_Message (unsigned int); // size
+  Test_I_Target_DirectShow_Stream_Message (Stream_SessionId_t, // session id
+                                           unsigned int);      // size
   inline virtual ~Test_I_Target_DirectShow_Stream_Message () {}
 
   // overrides from ACE_Message_Block
@@ -116,7 +111,8 @@ class Test_I_Target_MediaFoundation_Stream_Message
                                                  Test_I_Target_MediaFoundation_SessionMessage>;
 
  public:
-  Test_I_Target_MediaFoundation_Stream_Message (unsigned int); // size
+  Test_I_Target_MediaFoundation_Stream_Message (Stream_SessionId_t, // session id
+                                                unsigned int);      // size
   inline virtual ~Test_I_Target_MediaFoundation_Stream_Message () {}
 
   // overrides from ACE_Message_Block
@@ -163,7 +159,8 @@ class Test_I_Target_Stream_Message
                                                  Test_I_Target_SessionMessage>;
 
  public:
-  Test_I_Target_Stream_Message (unsigned int); // size
+  Test_I_Target_Stream_Message (Stream_SessionId_t, // session id
+                                unsigned int);      // size
   inline virtual ~Test_I_Target_Stream_Message () {}
 
   // overrides from ACE_Message_Block

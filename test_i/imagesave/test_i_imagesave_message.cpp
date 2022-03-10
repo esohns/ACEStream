@@ -26,8 +26,10 @@
 #include "stream_control_message.h"
 #include "stream_macros.h"
 
-Test_I_Message::Test_I_Message (unsigned int size_in)
- : inherited (size_in)
+Test_I_Message::Test_I_Message (Stream_SessionId_t sessionId_in,
+                                unsigned int size_in)
+ : inherited (sessionId_in,
+              size_in)
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_Message::Test_I_Message"));
 

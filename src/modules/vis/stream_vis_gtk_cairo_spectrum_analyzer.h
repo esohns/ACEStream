@@ -52,6 +52,7 @@ struct acestream_visualization_gtk_cairo_cbdata
 gboolean acestream_visualization_gtk_cairo_draw_cb (GtkWidget*, cairo_t*, gpointer);
 #else
 gboolean acestream_visualization_gtk_cairo_expose_event_cb (GtkWidget*, GdkEvent*, gpointer);
+//gboolean acestream_visualization_gtk_cairo_configure_event_cb (GtkWidget*, GdkEvent*, gpointer);
 #endif // GTK_CHECK_VERSION(3,0,0)
 void acestream_visualization_gtk_cairo_size_allocate_cb (GtkWidget*, GdkRectangle*, gpointer);
 

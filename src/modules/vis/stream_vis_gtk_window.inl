@@ -26,6 +26,8 @@
 
 #include "stream_macros.h"
 
+#include "stream_vis_defines.h"
+
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ConfigurationType,
@@ -427,8 +429,11 @@ Stream_Module_Vis_GTK_Window_T<ACE_SYNCH_USE,
 //    g_main_loop_unref (mainLoop_); mainLoop_ = NULL;
     return false;
   } // end IF
-  gtk_window_set_default_size (window_,
-                               width_i, height_i);
+  gtk_window_set_title (window_,
+                        ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_DEFAULT_WINDOW_TITLE));
+  //  gtk_widget_set_size_request (GTK_WIDGET (window_),
+  gtk_window_resize (window_,
+                     width_i, height_i);
 
   return true;
 }

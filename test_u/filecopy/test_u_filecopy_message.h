@@ -52,7 +52,8 @@ class Stream_Filecopy_Message
                                                  Stream_Filecopy_SessionMessage>;
 
  public:
-  Stream_Filecopy_Message (unsigned int); // size
+  Stream_Filecopy_Message (Stream_SessionId_t, // session id
+                           unsigned int);      // size
   inline virtual ~Stream_Filecopy_Message () {}
 
   // overrides from ACE_Message_Block

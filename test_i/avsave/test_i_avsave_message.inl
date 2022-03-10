@@ -21,7 +21,6 @@
 #include "ace/Malloc_Base.h"
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-//#include <DShow.h>
 #else
 #include "libv4l2.h"
 #include "linux/videodev2.h"
@@ -31,8 +30,10 @@
 #include "stream_macros.h"
 
 template <typename DataType>
-Stream_AVSave_Message_T<DataType>::Stream_AVSave_Message_T (unsigned int size_in)
- : inherited (size_in)
+Stream_AVSave_Message_T<DataType>::Stream_AVSave_Message_T (Stream_SessionId_t sessionId_in,
+                                                            unsigned int size_in)
+ : inherited (sessionId_in,
+              size_in)
  , mediaType_ (STREAM_MEDIATYPE_INVALID)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_AVSave_Message_T::Stream_AVSave_Message_T"));
@@ -97,7 +98,8 @@ Stream_AVSave_Message_T<DataType>::duplicate (void) const
 
   // if there is no allocator, use the standard new and delete calls.
   ACE_NEW_NORETURN (message_p,
-                    OWN_TYPE_T (this->length ()));
+                    OWN_TYPE_T (this->sessionId (),
+                                this->length ()));
   if (unlikely (!message_p))
   {
     ACE_DEBUG ((LM_CRITICAL,

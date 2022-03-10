@@ -26,8 +26,10 @@
 template <typename MessageType,
           typename SessionMessageType>
 Test_I_Message_T<MessageType,
-                 SessionMessageType>::Test_I_Message_T (unsigned int size_in)
- : inherited (size_in)
+                 SessionMessageType>::Test_I_Message_T (Stream_SessionId_t sessionId_in,
+                                                        unsigned int size_in)
+ : inherited (sessionId_in,
+              size_in)
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_Message_T::Test_I_Message_T"));
 

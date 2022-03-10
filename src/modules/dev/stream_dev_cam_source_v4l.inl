@@ -643,6 +643,7 @@ Stream_Module_CamSource_V4L_T<ACE_SYNCH_USE,
   int error = 0;
   bool has_finished = false;
   ACE_Message_Block* message_block_p = NULL;
+  DataMessageType* message_p = NULL;
   ACE_Time_Value no_wait = COMMON_TIME_NOW;
   bool release_lock = false;
   int result = -1;
@@ -691,7 +692,7 @@ Stream_Module_CamSource_V4L_T<ACE_SYNCH_USE,
         {
           has_finished = true;
           // enqueue(/process) STREAM_SESSION_END
-          inherited::STATE_MACHINE_T::finished ();
+          inherited::finished (false); // recurse upstream ?
         } // end IF
 
         if (inherited::thr_count_ > 1)
@@ -743,7 +744,7 @@ Stream_Module_CamSource_V4L_T<ACE_SYNCH_USE,
           {
             has_finished = true;
             // enqueue(/process) STREAM_SESSION_END
-            inherited::STATE_MACHINE_T::finished ();
+            inherited::finished (false); // recurse upstream ?
           } // end IF
 
           continue;
@@ -768,7 +769,7 @@ continue_:
                     session_data_r.sessionId));
         has_finished = true;
         // enqueue(/process) STREAM_SESSION_END
-        inherited::STATE_MACHINE_T::finished ();
+        inherited::finished (false); // recurse upstream ?
       } // end IF
     } // end lock scope
 
@@ -844,6 +845,9 @@ continue_:
     message_block_p = (*iterator).second;
     message_block_p->reset ();
     message_block_p->wr_ptr (buffer_s.bytesused);
+    message_p = static_cast<DataMessageType*> (message_block_p);
+    message_p->initialize (session_data_r.sessionId,
+                           NULL);
 
     result_2 = inherited::put_next (message_block_p, NULL);
     if (unlikely (result_2 == -1))

@@ -30,7 +30,6 @@
 #include "stream_control_message.h"
 #include "stream_data_base.h"
 #include "stream_data_message_base.h"
-//#include "stream_messageallocatorheap_base.h"
 
 #include "http_codes.h"
 #include "http_common.h"
@@ -92,14 +91,15 @@ class HTTPGet_Message
                                                  HTTP_SessionMessage>;
 
  public:
-  HTTPGet_Message (unsigned int); // size
+  HTTPGet_Message (Stream_SessionId_t, // session id
+                   unsigned int);      // size
   // *NOTE*: to be used by message allocators
   // *TODO*: --> make this private
-  HTTPGet_Message (Stream_SessionId_t,
+  HTTPGet_Message (Stream_SessionId_t, // session id
                    ACE_Data_Block*,    // data block to use
                    ACE_Allocator*,     // message allocator
                    bool = true);       // increment running message counter ?
-  inline virtual ~HTTPGet_Message () {};
+  inline virtual ~HTTPGet_Message () {}
 
   // overrides from ACE_Message_Block
   // --> create a "shallow" copy of ourselves that references the same packet

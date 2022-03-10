@@ -99,7 +99,8 @@ class Stream_MessageBase_T
   Stream_MessageBase_T (Stream_SessionId_t, // session id
                         MessageType);       // message type
   // ctor(s) for MB_STREAM_DATA
-  explicit Stream_MessageBase_T (unsigned int); // size
+  explicit Stream_MessageBase_T (Stream_SessionId_t, // session id
+                                 unsigned int);      // size
   // copy ctor, to be used by derivates
   Stream_MessageBase_T (const OWN_TYPE_T&);
 
@@ -161,13 +162,19 @@ class Stream_MessageBase_2
   virtual HeaderType get () const;
 
  protected:
+  // convenient types
+  typedef Stream_MessageBase_2<MessageType,
+                               HeaderType,
+                               CommandType> OWN_TYPE_T;
+
   Stream_MessageBase_2 (Stream_SessionId_t, // session id
                         MessageType);       // message type
-  explicit Stream_MessageBase_2 (unsigned int); // size
+  explicit Stream_MessageBase_2 (Stream_SessionId_t, // session id
+                                 unsigned int);      // size
 
   // copy ctor to be used by duplicate() and child classes
   // --> uses an (incremented refcount of) the same datablock ("shallow copy")
-  Stream_MessageBase_2 (const Stream_MessageBase_2&);
+  Stream_MessageBase_2 (const OWN_TYPE_T&);
   // *NOTE*: to be used by allocators
   Stream_MessageBase_2 (Stream_SessionId_t, // session id
                         ACE_Data_Block*,    // data block to use

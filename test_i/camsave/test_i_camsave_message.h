@@ -66,7 +66,8 @@ class Stream_CamSave_Message_T
                                                                                  SessionDataType> >;
 
  public:
-  Stream_CamSave_Message_T (unsigned int); // size
+  Stream_CamSave_Message_T (Stream_SessionId_t, // session id
+                            unsigned int);      // size
   virtual ~Stream_CamSave_Message_T ();
 
   // overrides from ACE_Message_Block
@@ -129,7 +130,8 @@ class Stream_CamSave_LibCamera_Message_T
                                                                                  SessionDataType> >;
 
  public:
-  Stream_CamSave_LibCamera_Message_T (unsigned int); // size
+  Stream_CamSave_LibCamera_Message_T (Stream_SessionId_t, // session id
+                                      unsigned int);      // size
   virtual ~Stream_CamSave_LibCamera_Message_T ();
 
   // overrides from ACE_Message_Block
@@ -156,12 +158,12 @@ class Stream_CamSave_LibCamera_Message_T
  private:
   ACE_UNIMPLEMENTED_FUNC (Stream_CamSave_LibCamera_Message_T ())
   // *NOTE*: to be used by message allocators
-  Stream_CamSave_LibCamera_Message_T (Stream_SessionId_t,
-                                      ACE_Data_Block*, // data block to use
-                                      ACE_Allocator*,  // message allocator
-                                      bool = true);    // increment running message counter ?
-  Stream_CamSave_LibCamera_Message_T (Stream_SessionId_t,
-                                      ACE_Allocator*); // message allocator
+  Stream_CamSave_LibCamera_Message_T (Stream_SessionId_t, // session id
+                                      ACE_Data_Block*,    // data block to use
+                                      ACE_Allocator*,     // message allocator
+                                      bool = true);       // increment running message counter ?
+  Stream_CamSave_LibCamera_Message_T (Stream_SessionId_t, // session id
+                                      ACE_Allocator*);    // message allocator
   ACE_UNIMPLEMENTED_FUNC (Stream_CamSave_LibCamera_Message_T& operator= (const Stream_CamSave_LibCamera_Message_T&))
 };
 #endif // ACE_WIN32 || ACE_WIN64

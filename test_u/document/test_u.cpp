@@ -184,9 +184,11 @@ do_work (int argc_in,
                                                                 NULL);
 
   ACE_NEW_NORETURN (message_p,
-                    Test_U_Message (STREAM_MESSAGE_DEFAULT_DATA_BUFFER_SIZE));
+                    Test_U_Message (1,                                         // session id
+                                    STREAM_MESSAGE_DEFAULT_DATA_BUFFER_SIZE)); // size
   ACE_ASSERT (message_p);
-  message_p->initialize (1, NULL);
+  message_p->initialize (1,     // session id
+                         NULL); // data block (NULL --> do not change)
 
   // step2: initialize stream
   Stream_AllocatorHeap_T<ACE_MT_SYNCH,

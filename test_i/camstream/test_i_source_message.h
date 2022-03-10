@@ -25,8 +25,6 @@
 
 #include "stream_data_message_base.h"
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-//#include "stream_directshow_message_base.h"
-//#include "stream_mediafoundation_message_base.h"
 #else
 #include "common_referencecounter.h"
 #endif // ACE_WIN32 || ACE_WIN64
@@ -64,7 +62,8 @@ class Test_I_Source_DirectShow_Stream_Message
                                    Test_I_CommandType_t> inherited;
 
  public:
-  Test_I_Source_DirectShow_Stream_Message (unsigned int); // size
+  Test_I_Source_DirectShow_Stream_Message (Stream_SessionId_t, // session id
+                                           unsigned int);      // size
   virtual ~Test_I_Source_DirectShow_Stream_Message ();
 
   // overrides from ACE_Message_Block
@@ -85,12 +84,12 @@ class Test_I_Source_DirectShow_Stream_Message
  private:
   ACE_UNIMPLEMENTED_FUNC (Test_I_Source_DirectShow_Stream_Message ())
   // *NOTE*: to be used by message allocators
-  Test_I_Source_DirectShow_Stream_Message (Stream_SessionId_t,
-                                           ACE_Data_Block*, // data block to use
-                                           ACE_Allocator*,  // message allocator
-                                           bool = true);    // increment running message counter ?
-  Test_I_Source_DirectShow_Stream_Message (Stream_SessionId_t,
-                                           ACE_Allocator*); // message allocator
+  Test_I_Source_DirectShow_Stream_Message (Stream_SessionId_t, // session id
+                                           ACE_Data_Block*,    // data block to use
+                                           ACE_Allocator*,     // message allocator
+                                           bool = true);       // increment running message counter ?
+  Test_I_Source_DirectShow_Stream_Message (Stream_SessionId_t, // session id
+                                           ACE_Allocator*);    // message allocator
   ACE_UNIMPLEMENTED_FUNC (Test_I_Source_DirectShow_Stream_Message& operator= (const Test_I_Source_DirectShow_Stream_Message&))
 };
 
@@ -111,7 +110,8 @@ class Test_I_Source_MediaFoundation_Stream_Message
                                    Test_I_CommandType_t> inherited;
   
  public:
-  Test_I_Source_MediaFoundation_Stream_Message (unsigned int); // size
+  Test_I_Source_MediaFoundation_Stream_Message (Stream_SessionId_t, // session id
+                                                unsigned int);      // size
   virtual ~Test_I_Source_MediaFoundation_Stream_Message ();
 
   // overrides from ACE_Message_Block
@@ -132,12 +132,12 @@ class Test_I_Source_MediaFoundation_Stream_Message
  private:
   ACE_UNIMPLEMENTED_FUNC (Test_I_Source_MediaFoundation_Stream_Message ())
   // *NOTE*: to be used by message allocators
-  Test_I_Source_MediaFoundation_Stream_Message (Stream_SessionId_t,
-                                                ACE_Data_Block*, // data block to use
-                                                ACE_Allocator*,  // message allocator
-                                                bool = true);    // increment running message counter ?
-  Test_I_Source_MediaFoundation_Stream_Message (Stream_SessionId_t,
-                                                ACE_Allocator*); // message allocator
+  Test_I_Source_MediaFoundation_Stream_Message (Stream_SessionId_t, // session id
+                                                ACE_Data_Block*,    // data block to use
+                                                ACE_Allocator*,     // message allocator
+                                                bool = true);       // increment running message counter ?
+  Test_I_Source_MediaFoundation_Stream_Message (Stream_SessionId_t, // session id
+                                                ACE_Allocator*);    // message allocator
   ACE_UNIMPLEMENTED_FUNC (Test_I_Source_MediaFoundation_Stream_Message& operator= (const Test_I_Source_MediaFoundation_Stream_Message&))
 };
 #else
@@ -160,7 +160,8 @@ class Test_I_Source_V4L_Stream_Message
                                                  Test_I_Source_V4L_SessionMessage>;
 
  public:
-  Test_I_Source_V4L_Stream_Message (unsigned int); // size
+  Test_I_Source_V4L_Stream_Message (Stream_SessionId_t, // session id
+                                    unsigned int);      // size
   inline virtual ~Test_I_Source_V4L_Stream_Message () {}
 
   // overrides from ACE_Message_Block
@@ -181,14 +182,14 @@ class Test_I_Source_V4L_Stream_Message
  private:
   ACE_UNIMPLEMENTED_FUNC (Test_I_Source_V4L_Stream_Message ())
   // *NOTE*: to be used by message allocators
-  Test_I_Source_V4L_Stream_Message (Stream_SessionId_t,
-                                    ACE_Data_Block*, // data block
-                                    ACE_Allocator*,  // message allocator
-                                    bool = true);    // increment running message counter ?
-  Test_I_Source_V4L_Stream_Message (Stream_SessionId_t,
-                                    ACE_Allocator*); // message allocator
+  Test_I_Source_V4L_Stream_Message (Stream_SessionId_t, // session id
+                                    ACE_Data_Block*,    // data block
+                                    ACE_Allocator*,     // message allocator
+                                    bool = true);       // increment running message counter ?
+  Test_I_Source_V4L_Stream_Message (Stream_SessionId_t, // session id
+                                    ACE_Allocator*);    // message allocator
   ACE_UNIMPLEMENTED_FUNC (Test_I_Source_V4L_Stream_Message& operator= (const Test_I_Source_V4L_Stream_Message&))
 };
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
 
 #endif

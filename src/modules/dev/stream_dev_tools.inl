@@ -96,7 +96,8 @@ Stream_Device_Tools::initializeBuffers (int fd_in,
         } // end IF
         else
           ACE_NEW_NORETURN (message_block_p,
-                            MessageType (format.fmt.pix.sizeimage));
+                            MessageType (0,                          // session id
+                                         format.fmt.pix.sizeimage)); // size
         if (!message_block_p)
         {
           ACE_DEBUG ((LM_CRITICAL,
@@ -183,7 +184,8 @@ Stream_Device_Tools::initializeBuffers (int fd_in,
         } // end IF
         else
           ACE_NEW_NORETURN (message_block_p,
-                            MessageType (buffer_size_i));
+                            MessageType (0,               // session id
+                                         buffer_size_i)); // size
         if (!message_block_p)
         {
           ACE_DEBUG ((LM_CRITICAL,

@@ -714,7 +714,9 @@ Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
     GtkWidget* widget_p = GTK_WIDGET (inherited::window_);
 
     // *NOTE*: GTK3 seems not to support drawing on a window itself
-    //         --> draw into a drawing area
+    //         --> draw into a drawing area instead
+    // *TODO*: GTK2 does support drawing on a window, but resizing it does not
+    //         extend the canvas...
 #if GTK_CHECK_VERSION(3,0,0)
     GtkWidget* box_p = gtk_vbox_new (FALSE, 0);
     gtk_container_add (GTK_CONTAINER (inherited::window_), box_p);
@@ -746,13 +748,20 @@ Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
                         ACE_TEXT_ALWAYS_CHAR ("draw"),
                         G_CALLBACK (acestream_visualization_gtk_cairo_draw_cb),
                         &CBData_);
+    ACE_ASSERT (result_3);
 #else
       g_signal_connect (G_OBJECT (widget_p),
                         ACE_TEXT_ALWAYS_CHAR ("expose-event"),
                         G_CALLBACK (acestream_visualization_gtk_cairo_expose_event_cb),
                         &CBData_);
-#endif // GTK_CHECK_VERSION(3,0,0)
     ACE_ASSERT (result_3);
+//    result_3 =
+//      g_signal_connect (G_OBJECT (widget_p),
+//                        ACE_TEXT_ALWAYS_CHAR ("configure-event"),
+//                        G_CALLBACK (acestream_visualization_gtk_cairo_configure_event_cb),
+//                        &CBData_);
+//    ACE_ASSERT (result_3);
+#endif // GTK_CHECK_VERSION(3,0,0)
     result_3 =
       g_signal_connect (G_OBJECT (widget_p),
                         ACE_TEXT_ALWAYS_CHAR ("size-allocate"),

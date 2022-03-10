@@ -62,7 +62,8 @@ class Test_U_AudioEffect_DirectShow_Message
                                                  Test_U_AudioEffect_DirectShow_SessionMessage>;
 
  public:
-  Test_U_AudioEffect_DirectShow_Message (unsigned int); // size
+  Test_U_AudioEffect_DirectShow_Message (Stream_SessionId_t, // session id
+                                         unsigned int);      // size
   virtual ~Test_U_AudioEffect_DirectShow_Message ();
 
   // overrides from ACE_Message_Block
@@ -111,7 +112,8 @@ class Test_U_AudioEffect_MediaFoundation_Message
                                                  Test_U_AudioEffect_MediaFoundation_SessionMessage>;
 
  public:
-  Test_U_AudioEffect_MediaFoundation_Message (unsigned int); // size
+  Test_U_AudioEffect_MediaFoundation_Message (Stream_SessionId_t, // session id
+                                              unsigned int);      // size
   virtual ~Test_U_AudioEffect_MediaFoundation_Message ();
 
   // overrides from ACE_Message_Block
@@ -154,7 +156,8 @@ class Test_U_AudioEffect_Message
                                                  Test_U_AudioEffect_SessionMessage>;
 
  public:
-  Test_U_AudioEffect_Message (unsigned int); // size
+  Test_U_AudioEffect_Message (Stream_SessionId_t, // session id
+                              unsigned int);      // size
   inline virtual ~Test_U_AudioEffect_Message () {}
 
   // overrides from ACE_Message_Block

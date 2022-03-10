@@ -159,13 +159,7 @@ Stream_Decoder_AVIEncoder_ReaderTask_T<ACE_SYNCH_USE,
       break;
     }
     default:
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("%s: invalid/unknown message type (was: %d), aborting\n"),
-                  inherited::mod_->name (),
-                  messageBlock_in->msg_type ()));
-      return -1;
-    }
+      break;
   } // end SWITCH
 
   return 0;

@@ -211,7 +211,8 @@ do_work (int argc_in,
   ACE_ASSERT (data_p);
 
   ACE_NEW_NORETURN (message_p,
-                    Parser_Message (file_size_i + COMMON_PARSER_FLEX_BUFFER_BOUNDARY_SIZE));
+                    Parser_Message (0,                                                       // session id
+                                    file_size_i + COMMON_PARSER_FLEX_BUFFER_BOUNDARY_SIZE)); // size
   ACE_ASSERT (message_p);
   message_p->base (reinterpret_cast<char*> (data_p),
                    file_size_i + COMMON_PARSER_FLEX_BUFFER_BOUNDARY_SIZE,
@@ -232,7 +233,8 @@ do_work (int argc_in,
   ACE_ASSERT (data_2);
 
   ACE_NEW_NORETURN (message_2,
-                    Parser_Message (file_size_i + COMMON_PARSER_FLEX_BUFFER_BOUNDARY_SIZE));
+                    Parser_Message (0,                                                       // session id
+                                    file_size_i + COMMON_PARSER_FLEX_BUFFER_BOUNDARY_SIZE)); // size
   ACE_ASSERT (message_2);
   message_2->base (reinterpret_cast<char*> (data_2),
                    file_size_i + COMMON_PARSER_FLEX_BUFFER_BOUNDARY_SIZE,
@@ -245,8 +247,10 @@ do_work (int argc_in,
   parser_configuration.debugParser = debugParser_in;
   parser_configuration.debugScanner = debugScanner_in;
   parser_configuration.messageQueue = NULL;
-  parser_configuration.useYYScanBuffer = COMMON_PARSER_DEFAULT_FLEX_USE_YY_SCAN_BUFFER;
-  modulehandler_configuration.concurrency = STREAM_HEADMODULECONCURRENCY_CONCURRENT;
+  parser_configuration.useYYScanBuffer =
+    COMMON_PARSER_DEFAULT_FLEX_USE_YY_SCAN_BUFFER;
+  modulehandler_configuration.concurrency =
+    STREAM_HEADMODULECONCURRENCY_CONCURRENT;
   modulehandler_configuration.parserConfiguration = &parser_configuration;
   modulehandler_configuration.queue = &message_queue;
   modulehandler_configuration.subscriber = &event_handler;

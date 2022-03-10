@@ -19,15 +19,16 @@
  ***************************************************************************/
 #include "stdafx.h"
 
-//#include "ace/Synch.h"
 #include "test_u_filecopy_message.h"
 
 #include "ace/Malloc_Base.h"
 
 #include "stream_macros.h"
 
-Stream_Filecopy_Message::Stream_Filecopy_Message (unsigned int size_in)
- : inherited (size_in)
+Stream_Filecopy_Message::Stream_Filecopy_Message (Stream_SessionId_t sessionId_in,
+                                                  unsigned int size_in)
+ : inherited (sessionId_in,
+              size_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Filecopy_Message::Stream_Filecopy_Message"));
 

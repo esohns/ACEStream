@@ -78,8 +78,10 @@ HTTPGet_MessageDataContainer::setPR (struct HTTP_Record*& record_inout)
 
 //////////////////////////////////////////
 
-HTTPGet_Message::HTTPGet_Message (unsigned int size_in)
- : inherited (size_in)
+HTTPGet_Message::HTTPGet_Message (Stream_SessionId_t sessionId_in,
+                                  unsigned int size_in)
+ : inherited (sessionId_in,
+              size_in)
 {
   STREAM_TRACE (ACE_TEXT ("HTTPGet_Message::HTTPGet_Message"));
 

@@ -429,11 +429,11 @@ Stream_Miscellaneous_Distributor_WriterTask_T<ACE_SYNCH_USE,
                                        module_in));
     ACE_ASSERT (result_s.second);
     branches_.pop_front ();
-    //ACE_DEBUG ((LM_DEBUG,
-    //            ACE_TEXT ("%s: pushed branch \"%s\" head module \"%s\"\n"),
-    //            inherited::mod_->name (),
-    //            ACE_TEXT ((*(result_s.first)).first.c_str ()),
-    //            module_in->name ()));
+//    ACE_DEBUG ((LM_DEBUG,
+//                ACE_TEXT ("%s: pushed branch \"%s\" head module \"%s\"\n"),
+//                inherited::mod_->name (),
+//                ACE_TEXT ((*(result_s.first)).first.c_str ()),
+//                module_in->name ()));
   } // end lock scope
 
   return true;

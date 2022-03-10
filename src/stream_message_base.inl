@@ -72,7 +72,8 @@ template <//typename AllocatorConfigurationType,
           typename CommandType>
 Stream_MessageBase_T<//AllocatorConfigurationType,
                      MessageType,
-                     CommandType>::Stream_MessageBase_T (unsigned int requestedSize_in)
+                     CommandType>::Stream_MessageBase_T (Stream_SessionId_t sessionId_in,
+                                                         unsigned int requestedSize_in)
  : inherited (requestedSize_in,
               ACE_Message_Block::MB_DATA,
               NULL,
@@ -86,7 +87,7 @@ Stream_MessageBase_T<//AllocatorConfigurationType,
               NULL)
  , id_ (++OWN_TYPE_T::currentId)
  , isInitialized_ (false)
- , sessionId_ (0)
+ , sessionId_ (sessionId_in)
  , type_ (static_cast<MessageType> (STREAM_MESSAGE_DATA))
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MessageBase_T::Stream_MessageBase_T"));
@@ -499,8 +500,10 @@ template <//typename AllocatorConfigurationType,
 Stream_MessageBase_2<//AllocatorConfigurationType,
                      MessageType,
                      HeaderType,
-                     CommandType>::Stream_MessageBase_2 (unsigned int requestedSize_in)
- : inherited (requestedSize_in)
+                     CommandType>::Stream_MessageBase_2 (Stream_SessionId_t sessionId_in,
+                                                         unsigned int requestedSize_in)
+ : inherited (sessionId_in,
+              requestedSize_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MessageBase_2::Stream_MessageBase_2"));
 
@@ -514,7 +517,7 @@ template <//typename AllocatorConfigurationType,
 Stream_MessageBase_2<//AllocatorConfigurationType,
                      MessageType,
                      HeaderType,
-                     CommandType>::Stream_MessageBase_2 (const Stream_MessageBase_2& message_in)
+                     CommandType>::Stream_MessageBase_2 (const OWN_TYPE_T& message_in)
  : inherited (message_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MessageBase_2::Stream_MessageBase_2"));

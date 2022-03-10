@@ -1550,25 +1550,26 @@ Stream_CamSave_V4L_Stream::load (Stream_ILayout* layout_in,
   //         - whether the output is displayed on a screen
   //         - whether the output is saved to file
   typename inherited::MODULE_T* branch_p = NULL; // NULL: 'main' branch
-  unsigned int index_i = 1;
+  unsigned int index_i = 0;
 
   layout_in->append (&source_, NULL, 0);
 //  layout_inout.append (&statisticReport_, NULL, 0);
   layout_in->append (&decoder_, NULL, 0); // output is uncompressed RGB
+
+  if (display_b && save_to_file_b)
+  {
+    layout_in->append (&distributor_, NULL, 0);
+    branch_p = &distributor_;
+    configuration_->configuration_->branches.push_back (ACE_TEXT_ALWAYS_CHAR (STREAM_SUBSTREAM_DISPLAY_NAME));
+    configuration_->configuration_->branches.push_back (ACE_TEXT_ALWAYS_CHAR (STREAM_SUBSTREAM_SAVE_NAME));
+    Stream_IDistributorModule* idistributor_p =
+      dynamic_cast<Stream_IDistributorModule*> (distributor_.writer ());
+    ACE_ASSERT (idistributor_p);
+    idistributor_p->initialize (configuration_->configuration_->branches);
+  } // end IF
+
   if (display_b || save_to_file_b)
   {
-    if (display_b && save_to_file_b)
-    {
-      layout_in->append (&distributor_, NULL, 0);
-      branch_p = &distributor_;
-      configuration_->configuration_->branches.push_back (ACE_TEXT_ALWAYS_CHAR (STREAM_SUBSTREAM_DISPLAY_NAME));
-      configuration_->configuration_->branches.push_back (ACE_TEXT_ALWAYS_CHAR (STREAM_SUBSTREAM_SAVE_NAME));
-      Stream_IDistributorModule* idistributor_p =
-          dynamic_cast<Stream_IDistributorModule*> (distributor_.writer ());
-      ACE_ASSERT (idistributor_p);
-      idistributor_p->initialize (configuration_->configuration_->branches);
-    } // end IF
-
     if (display_b)
     {
       layout_in->append (&converter_, branch_p, index_i); // output is uncompressed 24-bit RGB

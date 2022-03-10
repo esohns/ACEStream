@@ -28,12 +28,10 @@
 #include "common_iget.h"
 
 #include "common_parser_common.h"
-//#include "common_parser_bencoding_common.h"
 
 #include "stream_control_message.h"
 #include "stream_data_base.h"
 #include "stream_data_message_base.h"
-//#include "stream_messageallocatorheap_base.h"
 
 #include "parser_stream_common.h"
 
@@ -70,10 +68,11 @@ class Parser_Message
                                                  Parser_SessionMessage>;
 
  public:
-  Parser_Message (unsigned int); // size
+  Parser_Message (Stream_SessionId_t, // session id
+                  unsigned int);      // size
   // *NOTE*: to be used by message allocators
   // *TODO*: --> make this private
-  Parser_Message (Stream_SessionId_t,
+  Parser_Message (Stream_SessionId_t, // session id
                   ACE_Data_Block*,    // data block to use
                   ACE_Allocator*,     // message allocator
                   bool = true);       // increment running message counter ?

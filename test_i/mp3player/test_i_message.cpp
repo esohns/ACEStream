@@ -67,8 +67,10 @@
 
 //////////////////////////////////////////
 
-Test_I_Stream_Message::Test_I_Stream_Message (unsigned int size_in)
- : inherited (size_in)
+Test_I_Stream_Message::Test_I_Stream_Message (Stream_SessionId_t sessionId_in,
+                                              unsigned int size_in)
+ : inherited (sessionId_in,
+              size_in)
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_Stream_Message::Test_I_Stream_Message"));
 

@@ -34,8 +34,10 @@
 #include "stream_macros.h"
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-Test_I_Source_DirectShow_Stream_Message::Test_I_Source_DirectShow_Stream_Message (unsigned int size_in)
- : inherited (size_in)
+Test_I_Source_DirectShow_Stream_Message::Test_I_Source_DirectShow_Stream_Message (Stream_SessionId_t sessionId_in,
+                                                                                  unsigned int size_in)
+ : inherited (sessionId_in,
+              size_in)
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_Source_DirectShow_Stream_Message::Test_I_Source_DirectShow_Stream_Message"));
 
@@ -166,8 +168,10 @@ Test_I_Source_DirectShow_Stream_Message::CommandTypeToString (Test_I_CommandType
 
 //////////////////////////////////////////
 
-Test_I_Source_MediaFoundation_Stream_Message::Test_I_Source_MediaFoundation_Stream_Message (unsigned int size_in)
- : inherited (size_in)
+Test_I_Source_MediaFoundation_Stream_Message::Test_I_Source_MediaFoundation_Stream_Message (Stream_SessionId_t sessionId_in,
+                                                                                            unsigned int size_in)
+ : inherited (sessionId_in,
+              size_in)
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_Source_MediaFoundation_Stream_Message::Test_I_Source_MediaFoundation_Stream_Message"));
 
@@ -297,8 +301,10 @@ Test_I_Source_MediaFoundation_Stream_Message::CommandTypeToString (Test_I_Comman
   return ACE_TEXT_ALWAYS_CHAR ("MB_DATA");
 }
 #else
-Test_I_Source_V4L_Stream_Message::Test_I_Source_V4L_Stream_Message (unsigned int size_in)
- : inherited (size_in)
+Test_I_Source_V4L_Stream_Message::Test_I_Source_V4L_Stream_Message (Stream_SessionId_t sessionId_in,
+                                                                    unsigned int size_in)
+ : inherited (sessionId_in,
+              size_in)
  , inherited2 (1, false)
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_Source_V4L_Stream_Message::Test_I_Source_V4L_Stream_Message"));
@@ -314,9 +320,9 @@ Test_I_Source_V4L_Stream_Message::Test_I_Source_V4L_Stream_Message (const Test_I
 }
 
 Test_I_Source_V4L_Stream_Message::Test_I_Source_V4L_Stream_Message (Stream_SessionId_t sessionId_in,
-                                                                      ACE_Data_Block* dataBlock_in,
-                                                                      ACE_Allocator* messageAllocator_in,
-                                                                      bool incrementMessageCounter_in)
+                                                                    ACE_Data_Block* dataBlock_in,
+                                                                    ACE_Allocator* messageAllocator_in,
+                                                                    bool incrementMessageCounter_in)
  : inherited (sessionId_in,
               dataBlock_in,               // use (don't own (!) memory of-) this data block
               messageAllocator_in,        // message block allocator

@@ -55,7 +55,8 @@ class Test_U_RIFFDecoder_Message
                                                  Test_U_RIFFDecoder_SessionMessage>;
 
  public:
-  Test_U_RIFFDecoder_Message (unsigned int); // size
+  Test_U_RIFFDecoder_Message (Stream_SessionId_t, // session id
+                              unsigned int);      // size
   inline virtual ~Test_U_RIFFDecoder_Message () {}
 
   // overrides from ACE_Message_Block

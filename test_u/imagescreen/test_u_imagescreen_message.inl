@@ -32,8 +32,10 @@
 #include "stream_macros.h"
 
 template <typename SessionDataType>
-Stream_ImageScreen_Message_T<SessionDataType>::Stream_ImageScreen_Message_T (unsigned int size_in)
- : inherited (size_in)
+Stream_ImageScreen_Message_T<SessionDataType>::Stream_ImageScreen_Message_T (Stream_SessionId_t sessionId_in,
+                                                                             unsigned int size_in)
+ : inherited (sessionId_in,
+              size_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_ImageScreen_Message_T::Stream_ImageScreen_Message_T"));
 

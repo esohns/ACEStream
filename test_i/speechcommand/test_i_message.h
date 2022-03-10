@@ -107,7 +107,8 @@ class Test_I_DirectShow_Message
                                                  Test_I_DirectShow_SessionMessage_t>;
 
  public:
-  Test_I_DirectShow_Message (unsigned int); // size
+  Test_I_DirectShow_Message (Stream_SessionId_t, // session id
+                             unsigned int);      // size
   inline virtual ~Test_I_DirectShow_Message () {}
 
   // overrides from ACE_Message_Block
@@ -127,12 +128,12 @@ class Test_I_DirectShow_Message
  private:
   ACE_UNIMPLEMENTED_FUNC (Test_I_DirectShow_Message ())
   // *NOTE*: to be used by message allocators
-  Test_I_DirectShow_Message (Stream_SessionId_t,
-                             ACE_Data_Block*, // data block to use
-                             ACE_Allocator*,  // message allocator
-                             bool = true);    // increment running message counter ?
-  Test_I_DirectShow_Message (Stream_SessionId_t,
-                             ACE_Allocator*); // message allocator
+  Test_I_DirectShow_Message (Stream_SessionId_t, // session id
+                             ACE_Data_Block*,    // data block to use
+                             ACE_Allocator*,     // message allocator
+                             bool = true);       // increment running message counter ?
+  Test_I_DirectShow_Message (Stream_SessionId_t, // session id
+                             ACE_Allocator*);    // message allocator
   ACE_UNIMPLEMENTED_FUNC (Test_I_DirectShow_Message& operator= (const Test_I_DirectShow_Message&))
 };
 
@@ -153,7 +154,8 @@ class Test_I_MediaFoundation_Message
                                                  Test_I_MediaFoundation_SessionMessage_t>;
 
  public:
-  Test_I_MediaFoundation_Message (unsigned int); // size
+  Test_I_MediaFoundation_Message (Stream_SessionId_t, // session id
+                                  unsigned int);      // size
   inline virtual ~Test_I_MediaFoundation_Message () {}
 
   // overrides from ACE_Message_Block
@@ -173,12 +175,12 @@ class Test_I_MediaFoundation_Message
  private:
   ACE_UNIMPLEMENTED_FUNC (Test_I_MediaFoundation_Message ())
   // *NOTE*: to be used by message allocators
-  Test_I_MediaFoundation_Message (Stream_SessionId_t,
-                                  ACE_Data_Block*, // data block to use
-                                  ACE_Allocator*,  // message allocator
-                                  bool = true);    // increment running message counter ?
-  Test_I_MediaFoundation_Message (Stream_SessionId_t,
-                                  ACE_Allocator*); // message allocator
+  Test_I_MediaFoundation_Message (Stream_SessionId_t, // session id
+                                  ACE_Data_Block*,    // data block to use
+                                  ACE_Allocator*,     // message allocator
+                                  bool = true);       // increment running message counter ?
+  Test_I_MediaFoundation_Message (Stream_SessionId_t, // session id
+                                  ACE_Allocator*);    // message allocator
   ACE_UNIMPLEMENTED_FUNC (Test_I_MediaFoundation_Message& operator= (const Test_I_MediaFoundation_Message&))
 };
 #else
@@ -199,7 +201,8 @@ class Test_I_Message
                                                  Test_I_ALSA_SessionMessage_t>;
 
  public:
-  Test_I_Message (unsigned int); // size
+  Test_I_Message (Stream_SessionId_t, // session id
+                  unsigned int);      // size
   inline virtual ~Test_I_Message () {}
 
   // overrides from ACE_Message_Block
@@ -219,12 +222,12 @@ class Test_I_Message
  private:
   ACE_UNIMPLEMENTED_FUNC (Test_I_Message ())
   // *NOTE*: to be used by message allocators
-  Test_I_Message (Stream_SessionId_t,
-                  ACE_Data_Block*, // data block to use
-                  ACE_Allocator*,  // message allocator
-                  bool = true);    // increment running message counter ?
-  Test_I_Message (Stream_SessionId_t,
-                  ACE_Allocator*); // message allocator
+  Test_I_Message (Stream_SessionId_t, // session id
+                  ACE_Data_Block*,    // data block to use
+                  ACE_Allocator*,     // message allocator
+                  bool = true);       // increment running message counter ?
+  Test_I_Message (Stream_SessionId_t, // session id
+                  ACE_Allocator*);    // message allocator
   ACE_UNIMPLEMENTED_FUNC (Test_I_Message& operator= (const Test_I_Message&))
 };
 #endif // ACE_WIN32 || ACE_WIN64

@@ -26,8 +26,10 @@
 #include "stream_macros.h"
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-Test_I_Target_DirectShow_Stream_Message::Test_I_Target_DirectShow_Stream_Message (unsigned int size_in)
- : inherited (size_in)
+Test_I_Target_DirectShow_Stream_Message::Test_I_Target_DirectShow_Stream_Message (Stream_SessionId_t sessionId_in,
+                                                                                  unsigned int size_in)
+ : inherited (sessionId_in,
+              size_in)
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_Target_DirectShow_Stream_Message::Test_I_Target_DirectShow_Stream_Message"));
 
@@ -141,8 +143,10 @@ Test_I_Target_DirectShow_Stream_Message::CommandTypeToString (Test_I_CommandType
   return ACE_TEXT_ALWAYS_CHAR ("MB_DATA");
 }
 
-Test_I_Target_MediaFoundation_Stream_Message::Test_I_Target_MediaFoundation_Stream_Message (unsigned int size_in)
- : inherited (size_in)
+Test_I_Target_MediaFoundation_Stream_Message::Test_I_Target_MediaFoundation_Stream_Message (Stream_SessionId_t sessionId_in,
+                                                                                            unsigned int size_in)
+ : inherited (sessionId_in,
+              size_in)
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_Target_MediaFoundation_Stream_Message::Test_I_Target_MediaFoundation_Stream_Message"));
 
@@ -256,8 +260,10 @@ Test_I_Target_MediaFoundation_Stream_Message::CommandTypeToString (Test_I_Comman
   return ACE_TEXT_ALWAYS_CHAR ("MB_DATA");
 }
 #else
-Test_I_Target_Stream_Message::Test_I_Target_Stream_Message (unsigned int size_in)
- : inherited (size_in)
+Test_I_Target_Stream_Message::Test_I_Target_Stream_Message (Stream_SessionId_t sessionId_in,
+                                                            unsigned int size_in)
+ : inherited (sessionId_in,
+              size_in)
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_Target_Stream_Message::Test_I_Target_Stream_Message"));
 

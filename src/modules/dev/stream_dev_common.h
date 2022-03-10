@@ -216,7 +216,7 @@ struct Stream_Device_Identifier
   }
 #else
   inline void clear () { ACE_OS::close (fileDescriptor); fileDescriptor = -1; identifier.clear (); }
-  inline bool empty () { return ((fileDescriptor >= 0) || !identifier.empty ()); }
+  inline bool empty () { return ((fileDescriptor == -1) && identifier.empty ()); }
 #endif // ACE_WIN32 || ACE_WIN64
 
   std::string            description;

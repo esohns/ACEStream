@@ -26,8 +26,10 @@
 #include "stream_macros.h"
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-Test_U_AudioEffect_DirectShow_Message::Test_U_AudioEffect_DirectShow_Message (unsigned int size_in)
- : inherited (size_in)
+Test_U_AudioEffect_DirectShow_Message::Test_U_AudioEffect_DirectShow_Message (Stream_SessionId_t sessionId_in,
+                                                                              unsigned int size_in)
+ : inherited (sessionId_in,
+              size_in)
 {
   STREAM_TRACE (ACE_TEXT ("Test_U_AudioEffect_DirectShow_Message::Test_U_AudioEffect_DirectShow_Message"));
 
@@ -160,8 +162,10 @@ Test_U_AudioEffect_DirectShow_Message::CommandTypeToString (Stream_CommandType_t
 
 //////////////////////////////////////////
 
-Test_U_AudioEffect_MediaFoundation_Message::Test_U_AudioEffect_MediaFoundation_Message (unsigned int size_in)
- : inherited (size_in)
+Test_U_AudioEffect_MediaFoundation_Message::Test_U_AudioEffect_MediaFoundation_Message (Stream_SessionId_t sessionId_in,
+                                                                                        unsigned int size_in)
+ : inherited (sessionId_in,
+              size_in)
 {
   STREAM_TRACE (ACE_TEXT ("Test_U_AudioEffect_MediaFoundation_Message::Test_U_AudioEffect_MediaFoundation_Message"));
 
@@ -280,8 +284,10 @@ Test_U_AudioEffect_MediaFoundation_Message::CommandTypeToString (Stream_CommandT
   return ACE_TEXT_ALWAYS_CHAR ("MB_DATA");
 }
 #else
-Test_U_AudioEffect_Message::Test_U_AudioEffect_Message (unsigned int size_in)
- : inherited (size_in)
+Test_U_AudioEffect_Message::Test_U_AudioEffect_Message (Stream_SessionId_t sessionId_in,
+                                                        unsigned int size_in)
+ : inherited (sessionId_in,
+              size_in)
 {
   STREAM_TRACE (ACE_TEXT ("Test_U_AudioEffect_Message::Test_U_AudioEffect_Message"));
 

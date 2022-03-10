@@ -25,8 +25,10 @@
 
 #include "stream_macros.h"
 
-Test_U_Message::Test_U_Message (unsigned int size_in)
- : inherited (size_in)
+Test_U_Message::Test_U_Message (Stream_SessionId_t sessionId_in,
+                                unsigned int size_in)
+ : inherited (sessionId_in,
+              size_in)
 {
   STREAM_TRACE (ACE_TEXT ("Test_U_Message::Test_U_Message"));
 

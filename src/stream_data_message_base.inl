@@ -53,13 +53,14 @@ template <typename DataType,
 Stream_DataMessageBase_T<DataType,
 //                         AllocatorConfigurationType,
                          MessageType,
-                         CommandType>::Stream_DataMessageBase_T (unsigned int requestedSize_in)
- : inherited (requestedSize_in)
+                         CommandType>::Stream_DataMessageBase_T (Stream_SessionId_t sessionId_in,
+                                                                 unsigned int requestedSize_in)
+ : inherited (sessionId_in,
+              requestedSize_in)
  , data_ ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_DataMessageBase_T::Stream_DataMessageBase_T"));
 
-  inherited::type_ = static_cast<MessageType> (STREAM_MESSAGE_OBJECT);
 }
 
 template <typename DataType,
@@ -95,8 +96,6 @@ Stream_DataMessageBase_T<DataType,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_DataMessageBase_T::Stream_DataMessageBase_T"));
 
-  inherited::type_ = static_cast<MessageType> (STREAM_MESSAGE_OBJECT);
-
   // reset read/write pointers
   this->reset ();
 }
@@ -121,7 +120,6 @@ Stream_DataMessageBase_T<DataType,
   STREAM_TRACE (ACE_TEXT ("Stream_DataMessageBase_T::Stream_DataMessageBase_T"));
 
   inherited::isInitialized_ = false;
-  inherited::type_ = static_cast<MessageType> (STREAM_MESSAGE_OBJECT);
 
   // reset read/write pointers
   this->reset ();
@@ -315,14 +313,16 @@ template <typename DataType,
 Stream_DataMessageBase_2<DataType,
 //                         AllocatorConfigurationType,
                          MessageType,
-                         CommandType>::Stream_DataMessageBase_2 (unsigned int requestedSize_in)
- : inherited (requestedSize_in)
+                         CommandType>::Stream_DataMessageBase_2 (Stream_SessionId_t sessionId_in,
+                                                                 unsigned int requestedSize_in)
+ : inherited (sessionId_in,
+              requestedSize_in)
  , data_ (NULL)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_DataMessageBase_2::Stream_DataMessageBase_2"));
 
   inherited::isInitialized_ = false;
-  inherited::type_ = static_cast<MessageType> (STREAM_MESSAGE_OBJECT);
+  inherited::type_ = static_cast<MessageType> (STREAM_MESSAGE_DATA);
 }
 
 template <typename DataType,
@@ -373,7 +373,7 @@ Stream_DataMessageBase_2<DataType,
   STREAM_TRACE (ACE_TEXT ("Stream_DataMessageBase_2::Stream_DataMessageBase_2"));
 
   inherited::isInitialized_ = false;
-  inherited::type_ = static_cast<MessageType> (STREAM_MESSAGE_OBJECT);
+  inherited::type_ = static_cast<MessageType> (STREAM_MESSAGE_DATA);
 
   // reset read/write pointers
   this->reset ();
@@ -399,7 +399,7 @@ Stream_DataMessageBase_2<DataType,
   STREAM_TRACE (ACE_TEXT ("Stream_DataMessageBase_2::Stream_DataMessageBase_2"));
 
   inherited::isInitialized_ = false;
-  inherited::type_ = static_cast<MessageType> (STREAM_MESSAGE_OBJECT);
+  inherited::type_ = static_cast<MessageType> (STREAM_MESSAGE_DATA);
 
   // reset read/write pointers
   this->reset ();

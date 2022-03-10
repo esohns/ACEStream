@@ -19,7 +19,6 @@
  ***************************************************************************/
 #include "stdafx.h"
 
-//#include "ace/Synch.h"
 #include "test_u_riffdecoder_message.h"
 
 #include "ace/Log_Msg.h"
@@ -27,8 +26,10 @@
 
 #include "stream_macros.h"
 
-Test_U_RIFFDecoder_Message::Test_U_RIFFDecoder_Message (unsigned int size_in)
- : inherited (size_in)
+Test_U_RIFFDecoder_Message::Test_U_RIFFDecoder_Message (Stream_SessionId_t sessionId_in,
+                                                        unsigned int size_in)
+ : inherited (sessionId_in,
+              size_in)
 {
   STREAM_TRACE (ACE_TEXT ("Test_U_RIFFDecoder_Message::Test_U_RIFFDecoder_Message"));
 

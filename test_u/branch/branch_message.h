@@ -27,9 +27,6 @@
 
 #include "common_iget.h"
 
-//#include "common_branch_common.h"
-//#include "common_Branch_bencoding_common.h"
-
 #include "stream_control_message.h"
 #include "stream_data_base.h"
 #include "stream_message_base.h"
@@ -42,12 +39,6 @@ class ACE_Allocator;
 class ACE_Data_Block;
 class ACE_Message_Block;
 class Branch_SessionMessage;
-//template <ACE_SYNCH_DECL,
-//          typename AllocatorConfigurationType,
-//          typename ControlMessageType,
-//          typename DataMessageType,
-//          typename SessionMessageType>
-//class Stream_MessageAllocatorHeapBase_T;
 
 //////////////////////////////////////////
 
@@ -68,10 +59,11 @@ class Branch_Message
                                                  Branch_SessionMessage>;
 
  public:
-  Branch_Message (unsigned int); // size
+  Branch_Message (Stream_SessionId_t, // session id
+                  unsigned int);      // size
   // *NOTE*: to be used by message allocators
   // *TODO*: --> make this private
-  Branch_Message (Stream_SessionId_t,
+  Branch_Message (Stream_SessionId_t, // session id
                   ACE_Data_Block*,    // data block to use
                   ACE_Allocator*,     // message allocator
                   bool = true);       // increment running message counter ?

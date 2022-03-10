@@ -84,9 +84,37 @@ acestream_visualization_gtk_cairo_expose_event_cb (GtkWidget* widget_in,
   }
 
   return TRUE; // do NOT propagate the event
-}
-#endif // GTK_CHECK_VERSION(3,0,0)
+} // acestream_visualization_gtk_cairo_expose_event_cb
 
+//gboolean
+//acestream_visualization_gtk_cairo_configure_event_cb (GtkWidget* widget_in,
+//                                                      GdkEvent* event_in,
+//                                                      gpointer userData_in)
+//{
+//  STREAM_TRACE (ACE_TEXT ("::acestream_visualization_gtk_cairo_configure_event_cb"));
+
+//  // sanity check(s)
+//  ACE_ASSERT (event_in->configure.type == GDK_CONFIGURE);
+//  struct acestream_visualization_gtk_cairo_cbdata* cbdata_p =
+//    static_cast<struct acestream_visualization_gtk_cairo_cbdata*> (userData_in);
+//  ACE_ASSERT (cbdata_p);
+//  ACE_ASSERT (cbdata_p->resizeNotification);
+
+//  GdkWindow* window_p = gtk_widget_get_window (widget_in);
+//  if (!window_p)
+//    return FALSE; // <-- not realized yet
+
+//  try
+//  {
+//    cbdata_p->resizeNotification->setP (window_p);
+//  } catch (...) {
+//    ACE_DEBUG ((LM_ERROR,
+//                ACE_TEXT ("caught exception in Common_ISetP_T::setP(), continuing\n")));
+//  }
+
+//  return FALSE; // propagate event
+//} // acestream_visualization_gtk_cairo_configure_event_cb
+#endif // GTK_CHECK_VERSION(3,0,0)
 void
 acestream_visualization_gtk_cairo_size_allocate_cb (GtkWidget* widget_in,
                                                     GdkRectangle* allocation_in,
@@ -94,7 +122,7 @@ acestream_visualization_gtk_cairo_size_allocate_cb (GtkWidget* widget_in,
 {
   STREAM_TRACE (ACE_TEXT ("::acestream_visualization_gtk_cairo_size_allocate_cb"));
 
-  // sanity check(s)
+     // sanity check(s)
   struct acestream_visualization_gtk_cairo_cbdata* cbdata_p =
     static_cast<struct acestream_visualization_gtk_cairo_cbdata*> (userData_in);
   ACE_ASSERT (cbdata_p);

@@ -27,8 +27,10 @@
 #include "stream_macros.h"
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-Test_I_DirectShow_Message::Test_I_DirectShow_Message (unsigned int size_in)
- : inherited (size_in)
+Test_I_DirectShow_Message::Test_I_DirectShow_Message (Stream_SessionId_t sessionId_in,
+                                                      unsigned int size_in)
+ : inherited (sessionId_in,
+              size_in)
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_DirectShow_Message::Test_I_DirectShow_Message"));
 
@@ -84,7 +86,7 @@ Test_I_DirectShow_Message::duplicate (void) const
     //         a shallow copy which just references the same data block
     ACE_NEW_MALLOC_NORETURN (message_p,
                              static_cast<Test_I_DirectShow_Message*> (inherited::message_block_allocator_->calloc (inherited::capacity (),
-                                                                                                               '\0')),
+                                                                                                                   '\0')),
                              Test_I_DirectShow_Message (*this));
   } // end ELSE
   if (unlikely (!message_p))
@@ -116,8 +118,10 @@ Test_I_DirectShow_Message::duplicate (void) const
   return message_p;
 }
 
-Test_I_MediaFoundation_Message::Test_I_MediaFoundation_Message (unsigned int size_in)
- : inherited (size_in)
+Test_I_MediaFoundation_Message::Test_I_MediaFoundation_Message (Stream_SessionId_t sessionId_in,
+                                                                unsigned int size_in)
+ : inherited (sessionId_in,
+              size_in)
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_MediaFoundation_Message::Test_I_MediaFoundation_Message"));
 
@@ -205,8 +209,10 @@ Test_I_MediaFoundation_Message::duplicate (void) const
   return message_p;
 }
 #else
-Test_I_Message::Test_I_Message (unsigned int size_in)
- : inherited (size_in)
+Test_I_Message::Test_I_Message (Stream_SessionId_t sessionId_in,
+                                unsigned int size_in)
+ : inherited (sessionId_in,
+              size_in)
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_Message::Test_I_Message"));
 

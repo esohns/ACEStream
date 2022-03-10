@@ -21,11 +21,10 @@
 #include "ace/Malloc_Base.h"
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-//#include <DShow.h>
 #else
 #include "libv4l2.h"
 #include "linux/videodev2.h"
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
 
 #include "stream_control_message.h"
 #include "stream_macros.h"
@@ -33,8 +32,10 @@
 template <typename DataType,
           typename SessionDataType>
 Stream_CameraScreen_Message_T<DataType,
-                              SessionDataType>::Stream_CameraScreen_Message_T (unsigned int size_in)
- : inherited (size_in)
+                              SessionDataType>::Stream_CameraScreen_Message_T (Stream_SessionId_t sessionId_in,
+                                                                               unsigned int size_in)
+ : inherited (sessionId_in,
+              size_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_CameraScreen_Message_T::Stream_CameraScreen_Message_T"));
 

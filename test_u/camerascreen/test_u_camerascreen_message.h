@@ -67,7 +67,8 @@ class Stream_CameraScreen_Message_T
                                                                                       SessionDataType> >;
 
  public:
-  Stream_CameraScreen_Message_T (unsigned int); // size
+  Stream_CameraScreen_Message_T (Stream_SessionId_t, // session id
+                                 unsigned int);      // size
   virtual ~Stream_CameraScreen_Message_T ();
 
   // overrides from ACE_Message_Block

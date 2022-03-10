@@ -603,7 +603,8 @@ retry:
   } // end IF
   else
     ACE_NEW_NORETURN (message_p,
-                      DataMessageType (requestedSize_in));
+                      DataMessageType ((session_data_p ? session_data_p->sessionId : 0), // session id
+                                       requestedSize_in));                               // size
   if (unlikely (!message_p))
   {
     if (allocator_)
@@ -617,8 +618,8 @@ retry:
                   requestedSize_in));
   } // end IF
   // *TODO*: remove type inference
-  message_p->initialize ((session_data_p ? session_data_p->sessionId : -1),
-                         NULL);
+  message_p->initialize ((session_data_p ? session_data_p->sessionId : 0), // session id
+                         NULL);                                            // data block [NULL --> do not change]
 
   return message_p;
 }

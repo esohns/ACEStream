@@ -1699,7 +1699,6 @@ set_capture_format (struct Stream_CamSave_UI_CBData* CBData_in)
   GValue value;
   ACE_OS::memset (&value, 0, sizeof (struct _GValue));
 #endif // GTK_CHECK_VERSION (2,30,0)
-//  g_value_init (&value, G_TYPE_STRING);
   gtk_tree_model_get_value (GTK_TREE_MODEL (list_store_p),
                             &iterator_3,
                             1, &value);
@@ -1734,7 +1733,6 @@ set_capture_format (struct Stream_CamSave_UI_CBData* CBData_in)
   GValue value_2;
   ACE_OS::memset (&value_2, 0, sizeof (struct _GValue));
 #endif // GTK_CHECK_VERSION (2,30,0)
-//  g_value_init (&value_2, G_TYPE_UINT);
   gtk_tree_model_get_value (GTK_TREE_MODEL (list_store_p),
                             &iterator_3,
                             1, &value);
@@ -3127,16 +3125,14 @@ idle_initialize_UI_cb (gpointer userData_in)
                         device_identifier_string.c_str ());
 #endif // ACE_WIN32 || ACE_WIN64
     if (!device_identifier_string.empty ())
-    {
-      index_i =
-          Common_UI_GTK_Tools::valueToIndex (GTK_TREE_MODEL (list_store_p),
-                                             value,
-                                             1);
-      ACE_ASSERT (index_i != std::numeric_limits<unsigned int>::max ());
-    } // end IF
+      Common_UI_GTK_Tools::selectValue (combo_box_p,
+                                        value,
+                                        1);
     else
+    {
       index_i = 0; // *NOTE*: should be the 'default' camera device
-    gtk_combo_box_set_active (combo_box_p, static_cast<gint> (index_i));
+      gtk_combo_box_set_active (combo_box_p, static_cast<gint> (index_i));
+    } // end ELSE
   } // end IF
 
   // pre-select default capture format
@@ -3182,12 +3178,9 @@ idle_initialize_UI_cb (gpointer userData_in)
   g_value_set_string (&value,
                       converter.str ().c_str ());
 #endif // ACE_WIN32 || ACE_WIN64
-  index_i =
-      Common_UI_GTK_Tools::valueToIndex (GTK_TREE_MODEL (list_store_p),
-                                         value,
-                                         1);
-  //ACE_ASSERT (index_i != std::numeric_limits<unsigned int>::max ());
-  gtk_combo_box_set_active (combo_box_p, static_cast<gint> (index_i));
+  Common_UI_GTK_Tools::selectValue (combo_box_p,
+                                    value,
+                                    1);
 
   combo_box_p =
     GTK_COMBO_BOX (gtk_builder_get_object ((*iterator).second.second,
@@ -3214,11 +3207,9 @@ idle_initialize_UI_cb (gpointer userData_in)
 #endif // ACE_WIN32 || ACE_WIN64
   g_value_set_string (&value,
                       converter.str ().c_str ());
-  index_i = Common_UI_GTK_Tools::valueToIndex (GTK_TREE_MODEL (list_store_p),
-                                               value,
-                                               0);
-//  ACE_ASSERT (index_i != std::numeric_limits<unsigned int>::max ());
-  gtk_combo_box_set_active (combo_box_p, static_cast<gint> (index_i));
+  Common_UI_GTK_Tools::selectValue (combo_box_p,
+                                    value,
+                                    0);
 
   combo_box_p =
     GTK_COMBO_BOX (gtk_builder_get_object ((*iterator).second.second,
@@ -3236,12 +3227,9 @@ idle_initialize_UI_cb (gpointer userData_in)
   std::string framerate_string = converter.str ();
   g_value_set_string (&value,
                       framerate_string.c_str ());
-  index_i = Common_UI_GTK_Tools::valueToIndex (GTK_TREE_MODEL (list_store_p),
-                                               value,
-                                               0);
-  //ACE_ASSERT (index_i != std::numeric_limits<unsigned int>::max ());
-  gtk_combo_box_set_active (combo_box_p, static_cast<gint> (index_i));
-  g_value_unset (&value);
+  Common_UI_GTK_Tools::selectValue (combo_box_p,
+                                    value,
+                                    0);
   ui_cb_data_base_p->isFirst = false; // change the actual configuration
 
   combo_box_p =
@@ -4011,22 +3999,15 @@ continue_:
   thread_data_p->CBData = ui_cb_data_base_p;
   ACE_TCHAR thread_name[BUFSIZ];
   ACE_OS::memset (thread_name, 0, sizeof (thread_name));
-//  char* thread_name_p = NULL;
-//  ACE_NEW_NORETURN (thread_name_p,
-//                    ACE_TCHAR[BUFSIZ]);
-//  if (!thread_name_p)
-//  {
-//    ACE_DEBUG ((LM_CRITICAL,
-//                ACE_TEXT ("failed to allocate memory: \"%m\", returning\n")));
-//    delete thread_data_p; thread_data_p = NULL;
-//    goto error;
-//  } // end IF
-//  ACE_OS::memset (thread_name_p, 0, sizeof (thread_name_p));
-//  ACE_OS::strcpy (thread_name_p,
-//                  ACE_TEXT (TEST_I_CamSave_THREAD_NAME));
-//  const char* thread_name_2 = thread_name_p;
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
   ACE_OS::strcpy (thread_name,
                   ACE_TEXT (TEST_I_STREAM_THREAD_NAME));
+#else
+  ACE_ASSERT (COMMON_THREAD_PTHREAD_NAME_MAX_LENGTH <= BUFSIZ);
+  ACE_OS::strncpy (thread_name,
+                   ACE_TEXT (TEST_I_STREAM_THREAD_NAME),
+                   std::min (static_cast<size_t> (COMMON_THREAD_PTHREAD_NAME_MAX_LENGTH - 1), static_cast<size_t> (ACE_OS::strlen (ACE_TEXT (TEST_I_STREAM_THREAD_NAME)))));
+#endif // ACE_WIN32 || ACE_WIN64
   thread_name_2 = thread_name;
   thread_manager_p = ACE_Thread_Manager::instance ();
   ACE_ASSERT (thread_manager_p);
@@ -4410,7 +4391,6 @@ togglebutton_display_toggled_cb (GtkToggleButton* toggleButton_in,
 #else
   GValue value;
   ACE_OS::memset (&value, 0, sizeof (struct _GValue));
-  g_value_init (&value, G_TYPE_STRING);
 #endif // GTK_CHECK_VERSION (2,30,0)
   gtk_tree_model_get_value (GTK_TREE_MODEL (list_store_p),
                             &iterator_3,
@@ -5065,7 +5045,6 @@ combobox_source_changed_cb (GtkWidget* widget_in,
 #else
   GValue value;
   ACE_OS::memset (&value, 0, sizeof (struct _GValue));
-  g_value_init (&value, G_TYPE_STRING);
 #endif // GTK_CHECK_VERSION (2,30,0)
   gtk_tree_model_get_value (GTK_TREE_MODEL (list_store_p),
                             &iterator_3,
@@ -5451,7 +5430,6 @@ combobox_format_changed_cb (GtkWidget* widget_in,
 #else
   GValue value;
   ACE_OS::memset (&value, 0, sizeof (struct _GValue));
-  g_value_init (&value, G_TYPE_STRING);
 #endif // GTK_CHECK_VERSION (2,30,0)
   gtk_tree_model_get_value (GTK_TREE_MODEL (list_store_p),
                             &iterator_3,
@@ -5475,7 +5453,6 @@ combobox_format_changed_cb (GtkWidget* widget_in,
   value = G_VALUE_INIT;
 #else
   ACE_OS::memset (&value, 0, sizeof (struct _GValue));
-  g_value_init (&value, G_TYPE_STRING);
 #endif // GTK_CHECK_VERSION (2,30,0)
   gtk_tree_model_get_value (GTK_TREE_MODEL (list_store_p),
                             &iterator_3,
@@ -5731,7 +5708,6 @@ combobox_resolution_changed_cb (GtkWidget* widget_in,
 #else
   GValue value;
   ACE_OS::memset (&value, 0, sizeof (struct _GValue));
-  g_value_init (&value, G_TYPE_STRING);
 #endif // GTK_CHECK_VERSION (2,30,0)
   gtk_tree_model_get_value (GTK_TREE_MODEL (list_store_p),
                             &iterator_3,
@@ -5759,7 +5735,6 @@ combobox_resolution_changed_cb (GtkWidget* widget_in,
   value = G_VALUE_INIT;
 #else
   ACE_OS::memset (&value, 0, sizeof (struct _GValue));
-  g_value_init (&value, G_TYPE_STRING);
 #endif // GTK_CHECK_VERSION (2,30,0)
   gtk_tree_model_get_value (GTK_TREE_MODEL (list_store_p),
                             &iterator_3,
@@ -5793,7 +5768,6 @@ combobox_resolution_changed_cb (GtkWidget* widget_in,
 #else
   GValue value_2;
   ACE_OS::memset (&value_2, 0, sizeof (struct _GValue));
-  g_value_init (&value_2, G_TYPE_UINT);
 #endif // GTK_CHECK_VERSION (2,30,0)
   gtk_tree_model_get_value (GTK_TREE_MODEL (list_store_p),
                             &iterator_3,
@@ -6087,10 +6061,8 @@ combobox_rate_changed_cb (GtkWidget* widget_in,
 #else
   GValue value;
   ACE_OS::memset (&value, 0, sizeof (struct _GValue));
-  g_value_init (&value, G_TYPE_UINT);
   GValue value_2;
   ACE_OS::memset (&value_2, 0, sizeof (struct _GValue));
-  g_value_init (&value_2, G_TYPE_UINT);
 #endif // GTK_CHECK_VERSION (2,30,0)
   gtk_tree_model_get_value (GTK_TREE_MODEL (list_store_p),
                             &iterator_3,
@@ -6265,7 +6237,6 @@ combobox_display_changed_cb (GtkWidget* widget_in,
 #else
   GValue value;
   ACE_OS::memset (&value, 0, sizeof (struct _GValue));
-  g_value_init (&value, G_TYPE_STRING);
 #endif // GTK_CHECK_VERSION (2,30,0)
   gtk_tree_model_get_value (GTK_TREE_MODEL (list_store_p),
                             &iterator_4,

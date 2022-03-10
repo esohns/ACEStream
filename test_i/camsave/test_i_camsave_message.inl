@@ -21,7 +21,6 @@
 #include "ace/Malloc_Base.h"
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-//#include <DShow.h>
 #else
 #include "libv4l2.h"
 #include "linux/videodev2.h"
@@ -33,8 +32,10 @@
 template <typename DataType,
           typename SessionDataType>
 Stream_CamSave_Message_T<DataType,
-                         SessionDataType>::Stream_CamSave_Message_T (unsigned int size_in)
- : inherited (size_in)
+                         SessionDataType>::Stream_CamSave_Message_T (Stream_SessionId_t sessionId_in,
+                                                                     unsigned int size_in)
+ : inherited (sessionId_in,
+              size_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_CamSave_Message_T::Stream_CamSave_Message_T"));
 
@@ -233,7 +234,8 @@ Stream_CamSave_Message_T<DataType,
 
   // if there is no allocator, use the standard new and delete calls.
   ACE_NEW_NORETURN (message_p,
-                    OWN_TYPE_T (this->length ()));
+                    OWN_TYPE_T (this->sessionId (),
+                                this->length ()));
   if (unlikely (!message_p))
   {
     ACE_DEBUG ((LM_CRITICAL,
@@ -348,8 +350,10 @@ Stream_CamSave_Message_T<DataType,
 template <typename DataType,
           typename SessionDataType>
 Stream_CamSave_LibCamera_Message_T<DataType,
-                                   SessionDataType>::Stream_CamSave_LibCamera_Message_T (unsigned int size_in)
- : inherited (size_in)
+                                   SessionDataType>::Stream_CamSave_LibCamera_Message_T (Stream_SessionId_t sessionId_in,
+                                                                                         unsigned int size_in)
+ : inherited (sessionId_in,
+              size_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_CamSave_LibCamera_Message_T::Stream_CamSave_LibCamera_Message_T"));
 
@@ -544,7 +548,8 @@ Stream_CamSave_LibCamera_Message_T<DataType,
 
   // if there is no allocator, use the standard new and delete calls.
   ACE_NEW_NORETURN (message_p,
-                    OWN_TYPE_T (this->length ()));
+                    OWN_TYPE_T (this->sessionId (),
+                                this->length ()));
   if (unlikely (!message_p))
   {
     ACE_DEBUG ((LM_CRITICAL,
