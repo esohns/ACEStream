@@ -88,7 +88,6 @@ target_include_directories (${PROJECT_NAME}_Device PUBLIC
 ############## next target ################
 unset (source_files)
 set (source_files
-#     stream_dev_exports.h
      stream_dev_common.h
      stream_dev_defines.h
      stream_dev_tools.cpp
@@ -159,9 +158,9 @@ foreach (source_file ${source_files})
 endforeach ()
 #message (STATUS "absolute_source_files: ${absolute_source_files}")
 target_sources (${PROJECT_NAME}_Device
-                PRIVATE stdafx.cpp
+#                PRIVATE stdafx.cpp
                 PRIVATE stdafx.h
-                ${absolute_source_files})
+                PRIVATE ${absolute_source_files})
 target_precompile_headers (${PROJECT_NAME}_Device
                            PUBLIC stdafx.h)
 

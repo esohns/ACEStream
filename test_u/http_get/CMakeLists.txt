@@ -68,7 +68,7 @@ include_directories (${CMAKE_CURRENT_BINARY_DIR}/../..)
 ############## next target ################
 set (EXECUTABLE HTTP_GET)
 set (${EXECUTABLE}_EXE_SRCS
-     stdafx.cpp
+#     stdafx.cpp
      stdafx.h
      http_get.cpp
      http_get_common.h

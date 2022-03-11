@@ -35,7 +35,7 @@ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/..)
 ############## next target ################
 set (EXECUTABLE RIFF_decoder)
 set (${EXECUTABLE}_EXE_SRCS
-     stdafx.cpp
+#     stdafx.cpp
      stdafx.h
      test_u_riffdecoder.cpp
      test_u_riffdecoder_common.h

@@ -95,7 +95,7 @@ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/..)
 ############## next target ################
 set (EXECUTABLE speechcommand)
 set (${EXECUTABLE}_EXE_SRCS
-     stdafx.cpp
+#     stdafx.cpp
      stdafx.h
      ../test_i_common.h
      ../test_i_defines.h

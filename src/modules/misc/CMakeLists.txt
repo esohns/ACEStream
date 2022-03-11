@@ -61,7 +61,6 @@ set (source_files
      stream_misc_dump.cpp
      stream_misc_dump.h
      stream_misc_dump.inl
-#     stream_misc_exports.h
      stream_misc_input_manager.cpp
      stream_misc_input_manager.h
      stream_misc_input_manager.inl
@@ -93,9 +92,9 @@ foreach (source_file ${source_files})
 #       $<INSTALL_INTERFACE:${INCLUDE_DIR}/${source_file}>)
 endforeach ()
 target_sources (${PROJECT_NAME}_Miscellaneous
-                PRIVATE stdafx.cpp
+#                PRIVATE stdafx.cpp
                 PRIVATE stdafx.h
-                ${absolute_source_files})
+                PRIVATE ${absolute_source_files})
 target_precompile_headers (${PROJECT_NAME}_Miscellaneous
                            PUBLIC stdafx.h)
 

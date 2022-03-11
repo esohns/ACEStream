@@ -35,7 +35,6 @@ target_include_directories (${PROJECT_NAME}_HTML PUBLIC
 
 ############## next target ################
 set (source_files
-#     stream_html_exports.h
      stream_html_tools.cpp
      stream_html_tools.h)
 if (LIBXML2_SUPPORT)
@@ -64,9 +63,9 @@ foreach (source_file ${source_files})
  #       $<INSTALL_INTERFACE:${INCLUDE_DIR}/${source_file}>)
 endforeach ()
 target_sources (${PROJECT_NAME}_HTML
-                PRIVATE stdafx.cpp
+#                PRIVATE stdafx.cpp
                 PRIVATE stdafx.h
-                ${absolute_source_files})
+                PRIVATE ${absolute_source_files})
 target_precompile_headers (${PROJECT_NAME}_HTML
                            PUBLIC stdafx.h)
 

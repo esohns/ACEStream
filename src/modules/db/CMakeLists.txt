@@ -33,7 +33,6 @@ target_include_directories (${PROJECT_NAME}_Database PUBLIC
 
 ############## next target ################
 set (source_files
-#     stream_db_exports.h
      stream_module_db_common.h
      stream_module_db_defines.h
      stream_module_db_tools.cpp
@@ -61,9 +60,9 @@ foreach (source_file ${source_files})
 #       $<INSTALL_INTERFACE:${INCLUDE_DIR}/${source_file}>)
 endforeach ()
 target_sources (${PROJECT_NAME}_Database
-                PRIVATE stdafx.cpp
+#                PRIVATE stdafx.cpp
                 PRIVATE stdafx.h
-                ${absolute_source_files})
+                PRIVATE ${absolute_source_files})
 target_precompile_headers (${PROJECT_NAME}_Database
                            PUBLIC stdafx.h)
 

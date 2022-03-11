@@ -75,7 +75,7 @@ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/..)
 ############## next target ################
 set (EXECUTABLE HTTP_get_1)
 set (${EXECUTABLE}_EXE_SRCS
-     stdafx.cpp
+#     stdafx.cpp
      stdafx.h
      test_i_common_modules.h
      test_i_connection_manager_common.h

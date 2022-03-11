@@ -33,7 +33,7 @@ set (branch_EXE_SRCS
      branch_stream.cpp
      branch_stream.h
      branch_stream_common.h
-     stdafx.cpp
+#     stdafx.cpp
      stdafx.h
 #     ../test_i_common.h
 #     ../test_i_defines.h

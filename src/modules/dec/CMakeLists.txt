@@ -286,7 +286,7 @@ foreach (script_file ${script_files})
        ${absolute_script_file})
 endforeach ()
 target_sources (${PROJECT_NAME}_Decoder
-                PRIVATE stdafx.cpp
+#                PRIVATE stdafx.cpp
                 PRIVATE stdafx.h
                 PRIVATE ${absolute_source_files}
                 INTERFACE ${absolute_script_files})

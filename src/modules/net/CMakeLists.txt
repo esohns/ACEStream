@@ -49,7 +49,6 @@ target_include_directories (${PROJECT_NAME}_Network PUBLIC
 set (source_files
      stream_net_common.h
      stream_net_defines.h
-#     stream_net_exports.h
      stream_net_io.cpp
      stream_net_io.h
      stream_net_io.inl
@@ -75,9 +74,9 @@ foreach (source_file ${source_files})
  #       $<INSTALL_INTERFACE:${INCLUDE_DIR}/${source_file}>)
 endforeach ()
 target_sources (${PROJECT_NAME}_Network
-                PRIVATE stdafx.cpp
+#                PRIVATE stdafx.cpp
                 PRIVATE stdafx.h
-                ${absolute_source_files})
+                PRIVATE ${absolute_source_files})
 target_precompile_headers (${PROJECT_NAME}_Network
                            PUBLIC stdafx.h)
 

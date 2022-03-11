@@ -38,7 +38,6 @@ target_include_directories (${PROJECT_NAME}_Statistic PUBLIC
 set (source_files
      stream_stat_common.h
      stream_stat_defines.h
-#     stream_stat_exports.h
      stream_stat_statistic_analysis.cpp
      stream_stat_statistic_analysis.h
      stream_stat_statistic_analysis.inl
@@ -62,9 +61,9 @@ foreach (source_file ${source_files})
  #       $<INSTALL_INTERFACE:${INCLUDE_DIR}/${source_file}>)
 endforeach ()
 target_sources (${PROJECT_NAME}_Statistic
-                PRIVATE stdafx.cpp
+#                PRIVATE stdafx.cpp
                 PRIVATE stdafx.h
-                ${absolute_source_files})
+                PRIVATE ${absolute_source_files})
 target_precompile_headers (${PROJECT_NAME}_Statistic
                            PUBLIC stdafx.h)
 

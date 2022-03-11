@@ -62,7 +62,7 @@ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/..)
 ############## next target ################
 set (EXECUTABLE_SOURCE filesource)
 set (${EXECUTABLE_SOURCE}_EXE_SRCS
-     stdafx.cpp
+#     stdafx.cpp
      stdafx.h
      test_i_common_modules.h
      test_i_connection_manager_common.h
@@ -225,7 +225,7 @@ set_tests_properties (filestream_source
 ############## next target ################
 set (EXECUTABLE_TARGET filetarget)
 set (${EXECUTABLE_TARGET}_EXE_SRCS
-     stdafx.cpp
+#     stdafx.cpp
      stdafx.h
      test_i_common_modules.h
      test_i_connection_manager_common.h

@@ -89,7 +89,7 @@ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/..)
 ############## next target ################
 set (EXECUTABLE_SOURCE camsource)
 set (${EXECUTABLE_SOURCE}_EXE_SRCS
-     stdafx.cpp
+#     stdafx.cpp
      stdafx.h
      test_i_camstream_common.h
      test_i_camstream_defines.h
@@ -295,7 +295,7 @@ set_tests_properties (${EXECUTABLE_SOURCE}_test
 if (WIN32)
  set (LIBRARY_DS camtarget_source)
  set (${LIBRARY_DS}_LIB_SRCS
-      stdafx.cpp
+#      stdafx.cpp
       stdafx.h
       camtarget_source.cpp
       test_i_target_message.cpp
