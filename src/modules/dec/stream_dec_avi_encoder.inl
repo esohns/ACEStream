@@ -162,7 +162,7 @@ Stream_Decoder_AVIEncoder_ReaderTask_T<ACE_SYNCH_USE,
       break;
   } // end SWITCH
 
-  return 0;
+  return inherited::put_next (messageBlock_in, timeout_in);
 }
 
 template <ACE_SYNCH_DECL,

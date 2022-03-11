@@ -99,9 +99,6 @@
 #include "test_i_camsave_defines.h"
 #include "test_i_camsave_stream.h"
 
-// global variables
-bool un_toggling_stream = false;
-
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 struct less_guid
 {
@@ -3299,10 +3296,6 @@ idle_session_end_cb (gpointer userData_in)
 
   struct Stream_CamSave_UI_CBData* ui_cb_data_p =
     static_cast<struct Stream_CamSave_UI_CBData*> (userData_in);
-
-  // synch access
-  ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, ui_cb_data_p->UIState->lock, G_SOURCE_REMOVE);
-
   Common_UI_GTK_BuildersIterator_t iterator =
     ui_cb_data_p->UIState->builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN));
   ACE_ASSERT (iterator != ui_cb_data_p->UIState->builders.end ());
@@ -3317,12 +3310,9 @@ idle_session_end_cb (gpointer userData_in)
   ACE_ASSERT (toggle_button_p);
   gtk_button_set_label (GTK_BUTTON (toggle_button_p),
                         GTK_STOCK_MEDIA_RECORD);
-  if (gtk_toggle_button_get_active (toggle_button_p))
-  {
-    un_toggling_stream = true;
-    gtk_toggle_button_set_active (toggle_button_p,
-                                  FALSE);
-  } // end IF
+  gtk_widget_set_sensitive (GTK_WIDGET (toggle_button_p),
+                            TRUE);
+
   GtkButton* button_p =
     GTK_BUTTON (gtk_builder_get_object ((*iterator).second.second,
                                         ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_BUTTON_CUT_NAME)));
@@ -3730,13 +3720,6 @@ togglebutton_record_toggled_cb (GtkToggleButton* toggleButton_in,
 {
   STREAM_TRACE (ACE_TEXT ("::toggleaction_record_toggled_cb"));
 
-  // handle untoggle --> PLAY
-  if (un_toggling_stream)
-  {
-    un_toggling_stream = false;
-    return; // done
-  } // end IF
-
   bool is_active_b = gtk_toggle_button_get_active (toggleButton_in);
 
   // --> user pressed play/pause/stop
@@ -3807,9 +3790,13 @@ togglebutton_record_toggled_cb (GtkToggleButton* toggleButton_in,
   {
     // --> user pressed pause/stop
 
+    gtk_widget_set_sensitive (GTK_WIDGET (toggleButton_in),
+                              FALSE);
+
     // stop stream
-    stream_p->stop (false, // wait ?
-                    true); // locked access ?
+    stream_p->stop (false,  // wait ?
+                    false,  // recurse upstream ?
+                    false); // high priority ?
 
     return;
   } // end IF
@@ -4311,7 +4298,7 @@ togglebutton_display_toggled_cb (GtkToggleButton* toggleButton_in,
       static_cast<struct Stream_CamSave_LibCamera_UI_CBData*> (ui_cb_data_base_p);
     ACE_ASSERT (cb_data_p->configuration);
     libcamera_iterator_2 =
-      cb_data_p->configuration->libCamera_streamConfiguration.find (Stream_Visualization_Tools::rendererToModuleName (STREAM_VISUALIZATION_VIDEORENDERER_X11));
+      cb_data_p->configuration->libCamera_streamConfiguration.find (Stream_Visualization_Tools::rendererToModuleName (STREAM_VISUALIZATION_VIDEORENDERER_GTK_PIXBUF));
     ACE_ASSERT (libcamera_iterator_2 != cb_data_p->configuration->libCamera_streamConfiguration.end ());
 #else
     ACE_DEBUG ((LM_ERROR,
@@ -4325,7 +4312,7 @@ togglebutton_display_toggled_cb (GtkToggleButton* toggleButton_in,
       static_cast<struct Stream_CamSave_V4L_UI_CBData*> (ui_cb_data_base_p);
     ACE_ASSERT (cb_data_p->configuration);
     v4l_iterator_2 =
-      cb_data_p->configuration->v4l_streamConfiguration.find (Stream_Visualization_Tools::rendererToModuleName (STREAM_VISUALIZATION_VIDEORENDERER_X11));
+      cb_data_p->configuration->v4l_streamConfiguration.find (Stream_Visualization_Tools::rendererToModuleName (STREAM_VISUALIZATION_VIDEORENDERER_GTK_PIXBUF));
     ACE_ASSERT (v4l_iterator_2 != cb_data_p->configuration->v4l_streamConfiguration.end ());
   } // end ELSE
 #endif // ACE_WIN32 || ACE_WIN64
@@ -4554,7 +4541,7 @@ togglebutton_fullscreen_toggled_cb (GtkToggleButton* toggleButton_in,
   } // end SWITCH
 #else
   module_p =
-      stream_p->find (ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_GTK_CAIRO_DEFAULT_NAME_STRING));
+      stream_p->find (ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_GTK_PIXBUF_DEFAULT_NAME_STRING));
 #endif // ACE_WIN32 || ACE_WIN64
   if (!module_p)
   {

@@ -1666,7 +1666,7 @@ error:
 #if defined (LIBCAMERA_SUPPORT)
   libcamera_display_modulehandler_configuration = libcamera_modulehandler_configuration;
   libcamera_display_modulehandler_configuration.display = displayDevice_in;
-  configuration_in.libCamera_streamConfiguration.insert (std::make_pair (Stream_Visualization_Tools::rendererToModuleName (STREAM_VISUALIZATION_VIDEORENDERER_X11),
+  configuration_in.libCamera_streamConfiguration.insert (std::make_pair (Stream_Visualization_Tools::rendererToModuleName (STREAM_VISUALIZATION_VIDEORENDERER_GTK_PIXBUF),
                                                                          std::make_pair (&module_configuration,
                                                                                          &libcamera_display_modulehandler_configuration)));
 

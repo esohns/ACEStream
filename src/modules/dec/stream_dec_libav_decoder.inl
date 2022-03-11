@@ -809,6 +809,10 @@ continue_:
     }
     case STREAM_SESSION_MESSAGE_RESIZE:
     {
+      // sanity check(s)
+      if (unlikely (!context_))
+        break;
+
       unsigned int decode_width = 0;
       const SessionDataContainerType& session_data_container_r =
         message_inout->getR ();
@@ -833,9 +837,6 @@ continue_:
       formatHeight_ = media_type_s.resolution.height;
       decode_width = media_type_s.resolution.width;
 #endif // ACE_WIN32 || ACE_WIN64
-
-      // sanity check(s)
-      ACE_ASSERT (context_);
 
       frameSize_ =
         av_image_get_buffer_size (context_->pix_fmt,
