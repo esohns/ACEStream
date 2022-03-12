@@ -190,7 +190,7 @@
           </object>
           <packing>
             <property name="expand">False</property>
-            <property name="fill">True</property>
+            <property name="fill">False</property>
             <property name="pack-type">end</property>
             <property name="position">3</property>
           </packing>
@@ -345,7 +345,7 @@
                                   <packing>
                                     <property name="left-attach">1</property>
                                     <property name="right-attach">2</property>
-                                    <property name="x-options">GTK_SHRINK | GTK_FILL</property>
+                                    <property name="x-options">GTK_EXPAND | GTK_SHRINK | GTK_FILL</property>
                                     <property name="y-options">GTK_SHRINK | GTK_FILL</property>
                                   </packing>
                                 </child>
@@ -386,9 +386,6 @@
                                     <property name="x-options">GTK_SHRINK | GTK_FILL</property>
                                     <property name="y-options">GTK_SHRINK | GTK_FILL</property>
                                   </packing>
-                                </child>
-                                <child>
-                                  <placeholder/>
                                 </child>
                               </object>
                             </child>
@@ -893,7 +890,7 @@
             </child>
           </object>
           <packing>
-            <property name="expand">False</property>
+            <property name="expand">True</property>
             <property name="fill">True</property>
             <property name="position">0</property>
           </packing>
@@ -912,7 +909,7 @@
               </object>
               <packing>
                 <property name="expand">False</property>
-                <property name="fill">True</property>
+                <property name="fill">False</property>
                 <property name="position">0</property>
               </packing>
             </child>
@@ -930,7 +927,7 @@
           </object>
           <packing>
             <property name="expand">False</property>
-            <property name="fill">True</property>
+            <property name="fill">False</property>
             <property name="position">1</property>
           </packing>
         </child>
