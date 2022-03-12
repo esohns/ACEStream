@@ -2104,6 +2104,14 @@ stream_processing_function (void* arg_in)
                   ACE_TEXT ("failed to Stream_CamSave_Stream::initialize(), aborting\n")));
       goto error;
     } // end IF
+
+    Stream_Module_t* module_p =
+      const_cast<Stream_Module_t*> (libcamera_cb_data_p->stream->find (ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_GTK_CAIRO_DEFAULT_NAME_STRING)));
+    ACE_ASSERT (module_p);
+    libcamera_cb_data_p->dispatch =
+      dynamic_cast<Common_IDispatch*> (module_p->writer ());
+    ACE_ASSERT (libcamera_cb_data_p->dispatch);
+
     session_data_container_p = &libcamera_cb_data_p->stream->getR_2 ();
     session_data_p = &session_data_container_p->getR ();
     libcamera_cb_data_p->progressData.sessionId = session_data_p->sessionId;
@@ -2129,6 +2137,14 @@ stream_processing_function (void* arg_in)
                   ACE_TEXT ("failed to Stream_CamSave_Stream::initialize(), aborting\n")));
       goto error;
     } // end IF
+
+    Stream_Module_t* module_p =
+      const_cast<Stream_Module_t*> (v4l_cb_data_p->stream->find (ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_GTK_CAIRO_DEFAULT_NAME_STRING)));
+    ACE_ASSERT (module_p);
+    v4l_cb_data_p->dispatch =
+      dynamic_cast<Common_IDispatch*> (module_p->writer ());
+    ACE_ASSERT (v4l_cb_data_p->dispatch);
+
     session_data_container_p = &v4l_cb_data_p->stream->getR_2 ();
     session_data_p = &session_data_container_p->getR ();
     v4l_cb_data_p->progressData.sessionId = session_data_p->sessionId;
@@ -2177,6 +2193,14 @@ stream_processing_function (void* arg_in)
                     ACE_TEXT ("failed to initialize stream, aborting\n")));
         goto error;
       } // end IF
+
+      Stream_Module_t* module_p =
+        const_cast<Stream_Module_t*> (directshow_cb_data_p->stream->find (ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_GTK_CAIRO_DEFAULT_NAME_STRING)));
+      ACE_ASSERT (module_p);
+      directshow_cb_data_p->dispatch =
+        dynamic_cast<Common_IDispatch*> (module_p->writer ());
+      ACE_ASSERT (directshow_cb_data_p->dispatch);
+
       stream_p = directshow_cb_data_p->stream;
       directshow_session_data_container_p =
         &directshow_cb_data_p->stream->getR_2 ();
@@ -2194,6 +2218,14 @@ stream_processing_function (void* arg_in)
                     ACE_TEXT ("failed to initialize stream, aborting\n")));
         goto error;
       } // end IF
+
+      Stream_Module_t* module_p =
+        const_cast<Stream_Module_t*> (mediafoundation_cb_data_p->stream->find (ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_GTK_CAIRO_DEFAULT_NAME_STRING)));
+      ACE_ASSERT (module_p);
+      mediafoundation_cb_data_p->dispatch =
+        dynamic_cast<Common_IDispatch*> (module_p->writer ());
+      ACE_ASSERT (mediafoundation_cb_data_p->dispatch);
+
       stream_p = mediafoundation_cb_data_p->stream;
       mediafoundation_session_data_container_p =
         &mediafoundation_cb_data_p->stream->getR_2 ();
@@ -2221,8 +2253,8 @@ stream_processing_function (void* arg_in)
                                                                                                    converter.str ().c_str ())));
   gdk_threads_leave ();
 
-  // *NOTE*: blocks until 'finished'
   ACE_ASSERT (stream_p);
+  // *NOTE*: blocks until 'finished'
   stream_p->start ();
   //ACE_ASSERT (!stream_p->isRunning ());
   stream_p->wait (true, false, false);
@@ -2234,14 +2266,6 @@ stream_processing_function (void* arg_in)
 #endif // ACE_WIN32 || ACE_WIN64
 
 error:
-  //guint event_source_id = g_idle_add (idle_session_end_cb,
-  //                                    data_p->CBData);
-  //if (event_source_id == 0)
-  //  ACE_DEBUG ((LM_ERROR,
-  //              ACE_TEXT ("failed to g_idle_add(idle_session_end_cb): \"%m\", continuing\n")));
-  //else
-  //  data_p->CBData->eventSourceIds.insert (event_source_id);
-
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   { ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, thread_data_p->CBData->UIState->lock, -1);
 #else
@@ -2249,6 +2273,13 @@ error:
 #endif // ACE_WIN32 || ACE_WIN64
     thread_data_p->CBData->progressData.completedActions.insert (thread_data_p->eventSourceId);
   } // end lock scope
+
+  thread_data_p->CBData->dispatch = NULL;
+  if (unlikely (!g_source_remove (thread_data_p->CBData->eventSourceId)))
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to g_source_remove(%u), continuing\n"),
+                thread_data_p->CBData->eventSourceId));
+  thread_data_p->CBData->eventSourceId = 0;
 
   // clean up
   delete thread_data_p; thread_data_p = NULL;
@@ -2299,14 +2330,14 @@ idle_initialize_UI_cb (gpointer userData_in)
   ACE_ASSERT (spin_button_p);
   gtk_spin_button_set_range (spin_button_p,
                              0.0,
-                             std::numeric_limits<double>::max ());
+                             std::numeric_limits<uint32_t>::max ());
   spin_button_p =
     GTK_SPIN_BUTTON (gtk_builder_get_object ((*iterator).second.second,
                                              ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_SPINBUTTON_SESSIONMESSAGES_NAME)));
   ACE_ASSERT (spin_button_p);
   gtk_spin_button_set_range (spin_button_p,
                              0.0,
-                             std::numeric_limits<double>::max ());
+                             std::numeric_limits<uint32_t>::max ());
 
   spin_button_p =
     GTK_SPIN_BUTTON (gtk_builder_get_object ((*iterator).second.second,
@@ -2314,7 +2345,7 @@ idle_initialize_UI_cb (gpointer userData_in)
   ACE_ASSERT (spin_button_p);
   gtk_spin_button_set_range (spin_button_p,
                              0.0,
-                             std::numeric_limits<double>::max ());
+                             std::numeric_limits<uint64_t>::max ());
 
   //spin_button_p =
   //  GTK_SPIN_BUTTON (gtk_builder_get_object ((*iterator).second.second,
@@ -2425,7 +2456,7 @@ idle_initialize_UI_cb (gpointer userData_in)
         directshow_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
       ACE_ASSERT (directshow_stream_iterator != directshow_cb_data_p->configuration->streamConfiguration.end ());
       directshow_stream_iterator_2 =
-        directshow_cb_data_p->configuration->streamConfiguration.find (Stream_Visualization_Tools::rendererToModuleName (STREAM_VISUALIZATION_VIDEORENDERER_GTK_PIXBUF));
+        directshow_cb_data_p->configuration->streamConfiguration.find (Stream_Visualization_Tools::rendererToModuleName (STREAM_VISUALIZATION_VIDEORENDERER_GTK_CAIRO));
       ACE_ASSERT (directshow_stream_iterator_2 != directshow_cb_data_p->configuration->streamConfiguration.end ());
 #if defined (FFMPEG_SUPPORT)
       directshow_stream_iterator_3 =
@@ -3304,6 +3335,10 @@ idle_session_end_cb (gpointer userData_in)
   //                   mutually exclusive, so there could be a race:
   //                   - user pressed stop
   //                   - there was an asynchronous error on the stream
+
+  ACE_ASSERT (ui_cb_data_p->dispatch);
+  ACE_ASSERT (ui_cb_data_p->eventSourceId);
+
   GtkToggleButton* toggle_button_p =
     GTK_TOGGLE_BUTTON (gtk_builder_get_object ((*iterator).second.second,
                                                ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_TOGGLEBUTTON_RECORD_NAME)));
@@ -3336,12 +3371,12 @@ idle_session_end_cb (gpointer userData_in)
   gtk_widget_set_sensitive (GTK_WIDGET (frame_p), TRUE);
   frame_p =
     GTK_FRAME (gtk_builder_get_object ((*iterator).second.second,
-                                       ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_FRAME_SAVE_NAME)));
+                                       ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_FRAME_OPTIONS_NAME)));
   ACE_ASSERT (frame_p);
   gtk_widget_set_sensitive (GTK_WIDGET (frame_p), TRUE);
   frame_p =
     GTK_FRAME (gtk_builder_get_object ((*iterator).second.second,
-                                       ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_FRAME_DISPLAY_NAME)));
+                                       ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_FRAME_SAVE_NAME)));
   ACE_ASSERT (frame_p);
   gtk_widget_set_sensitive (GTK_WIDGET (frame_p), TRUE);
 
@@ -3461,9 +3496,9 @@ idle_update_info_display_cb (gpointer userData_in)
   STREAM_TRACE (ACE_TEXT ("::idle_update_info_display_cb"));
 
   // sanity check(s)
-  ACE_ASSERT (userData_in);
   struct Stream_CamSave_UI_CBData* ui_cb_data_base_p =
       static_cast<struct Stream_CamSave_UI_CBData*> (userData_in);
+  ACE_ASSERT (userData_in);
   Common_UI_GTK_BuildersIterator_t iterator =
     ui_cb_data_base_p->UIState->builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN));
   ACE_ASSERT (iterator != ui_cb_data_base_p->UIState->builders.end ());
@@ -3569,6 +3604,33 @@ idle_update_info_display_cb (gpointer userData_in)
                     ACE_TEXT ("failed to ACE_Unbounded_Stack::pop(): \"%m\", continuing\n")));
     } // end WHILE
   } // end lock scope
+
+  return G_SOURCE_CONTINUE;
+}
+
+gboolean
+idle_update_display_cb (gpointer userData_in)
+{
+  STREAM_TRACE (ACE_TEXT ("::idle_update_display_cb"));
+
+  // sanity check(s)
+  struct Stream_CamSave_UI_CBData* ui_cb_data_base_p =
+      static_cast<struct Stream_CamSave_UI_CBData*> (userData_in);
+  ACE_ASSERT (userData_in);
+  Common_UI_GTK_BuildersIterator_t iterator =
+    ui_cb_data_base_p->UIState->builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN));
+  ACE_ASSERT (iterator != ui_cb_data_base_p->UIState->builders.end ());
+
+  GdkWindow* window_p = NULL;
+
+  // trigger refresh of the 2D area
+  GtkDrawingArea* drawing_area_p =
+    GTK_DRAWING_AREA (gtk_builder_get_object ((*iterator).second.second,
+                                              ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_DRAWINGAREA_NAME)));
+  ACE_ASSERT (drawing_area_p);
+  gdk_window_invalidate_rect (gtk_widget_get_window (GTK_WIDGET (drawing_area_p)),
+                              NULL,   // whole window
+                              FALSE); // invalidate children ?
 
   return G_SOURCE_CONTINUE;
 }
@@ -4054,6 +4116,12 @@ continue_:
     //                event_source_id));
     ui_cb_data_base_p->UIState->eventSourceIds.insert (ui_cb_data_base_p->progressData.eventSourceId);
   } // end lock scope
+  // step4: start display updates
+  ui_cb_data_base_p->eventSourceId =
+    g_timeout_add (COMMON_UI_REFRESH_DEFAULT_VIDEO_MS, // ms
+                   idle_update_display_cb,
+                   userData_in);
+  ACE_ASSERT (ui_cb_data_base_p->eventSourceId);
 
   frame_p =
     GTK_FRAME (gtk_builder_get_object ((*iterator).second.second,
@@ -4062,12 +4130,12 @@ continue_:
   gtk_widget_set_sensitive (GTK_WIDGET (frame_p), FALSE);
   frame_p =
     GTK_FRAME (gtk_builder_get_object ((*iterator).second.second,
-                                       ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_FRAME_SAVE_NAME)));
+                                       ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_FRAME_OPTIONS_NAME)));
   ACE_ASSERT (frame_p);
   gtk_widget_set_sensitive (GTK_WIDGET (frame_p), FALSE);
   frame_p =
     GTK_FRAME (gtk_builder_get_object ((*iterator).second.second,
-                                       ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_FRAME_DISPLAY_NAME)));
+                                       ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_FRAME_SAVE_NAME)));
   ACE_ASSERT (frame_p);
   gtk_widget_set_sensitive (GTK_WIDGET (frame_p), FALSE);
 
@@ -5072,7 +5140,7 @@ combobox_source_changed_cb (GtkWidget* widget_in,
       ACE_OS::strcpy ((*directshow_stream_iterator).second.second->deviceIdentifier.identifier._string,
                       device_identifier_string.c_str ());
       (*directshow_stream_iterator).second.second->deviceIdentifier.identifierDiscriminator =
-        Stream_Device_Identifier::GUID;
+        Stream_Device_Identifier::STRING;
       if (!Stream_Device_DirectShow_Tools::loadDeviceGraph ((*directshow_stream_iterator).second.second->deviceIdentifier,
                                                             CLSID_VideoInputDeviceCategory,
                                                             (*directshow_stream_iterator).second.second->builder,
@@ -6313,78 +6381,24 @@ drawingarea_draw_cb (GtkWidget* widget_in,
 {
   STREAM_TRACE (ACE_TEXT ("::drawingarea_draw_cb"));
 
-  // sanity check(s)
   ACE_UNUSED_ARG (widget_in);
-  ACE_UNUSED_ARG (context_in);
-  ACE_ASSERT (userData_in);
 
+  // sanity check(s)
   struct Stream_CamSave_UI_CBData* ui_cb_data_base_p =
     static_cast<struct Stream_CamSave_UI_CBData*> (userData_in);
-
-  // sanity check(s)
   ACE_ASSERT (ui_cb_data_base_p);
+  if (!ui_cb_data_base_p->dispatch)
+    return FALSE; // propagate event
 
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-#else
-  struct Stream_CamSave_V4L_UI_CBData* ui_cb_data_p =
-    static_cast<struct Stream_CamSave_V4L_UI_CBData*> (ui_cb_data_base_p);
-  ACE_ASSERT (ui_cb_data_p);
-
-  GdkWindow* window_p = gtk_widget_get_window (widget_in);
-
-  // sanity check(s)
-//  ACE_ASSERT (ui_cb_data_p->pixelBufferLock);
-//  ACE_ASSERT (context_in);
-//  if (!ui_cb_data_p->pixelBuffer)
-//    return TRUE; // --> widget has not been realized yet
-  ACE_ASSERT (window_p);
-
-//  XLockDisplay (GDK_WINDOW_XDISPLAY (window_p));
-
-//  { ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, *ui_cb_data_p->pixelBufferLock, FALSE);
-//#if GTK_CHECK_VERSION(3,0,0)
-//    cairo_set_source_surface (context_in,
-//                              ui_cb_data_p->pixelBuffer,
-//                              0.0, 0.0);
-//#elif GTK_CHECK_VERSION(2,0,0)
-//    gdk_cairo_set_source_pixbuf (context_in,
-//                                 ui_cb_data_p->pixelBuffer,
-//                                 0.0, 0.0);
-//#endif // GTK_CHECK_VERSION
-
-//#if defined (ACE_WIN32) || defined (ACE_WIN64)
-//  // *NOTE*: media foundation capture frames are v-flipped
-//  cairo_rotate (context_p, 180.0 * M_PI / 180.0);
-//#endif
-//    cairo_fill (context_in);
-//  } // end lock scope
-
-  int result = True;
-//  result = XClearWindow (GDK_WINDOW_XDISPLAY (window_p),
-//                         GDK_WINDOW_XID (window_p));
-  if (unlikely (result != True))
-  {
+  try {
+    ui_cb_data_base_p->dispatch->dispatch (context_in);
+  } catch (...) {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to XClearWindow(0x%@,%u): \"%m\", returning\n"),
-                GDK_WINDOW_XDISPLAY (window_p),
-                GDK_WINDOW_XID (window_p)));
-    goto unlock;
-  } // end IF
-//  result = XFlush (GDK_WINDOW_XDISPLAY (window_p));
-  if (unlikely (result != True))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to XFlush(0x%@,%u): \"%m\", returning\n"),
-                GDK_WINDOW_XDISPLAY (window_p),
-                GDK_WINDOW_XID (window_p)));
-    goto unlock;
-  } // end IF
+                ACE_TEXT ("caught exception in Common_IDispatch::dispatch(), continuing\n")));
+    return FALSE; // propagate event
+  }
 
-unlock:
-//  XUnlockDisplay (GDK_WINDOW_XDISPLAY (window_p));
-#endif // ACE_WIN32 || ACE_WIN64
-
-  return TRUE;
+  return TRUE; // do not propagate
 }
 
 //void
@@ -6458,21 +6472,18 @@ drawing_area_resize_end (gpointer userData_in)
 {
   STREAM_TRACE (ACE_TEXT ("::drawing_area_resize_end"));
 
+  // sanity check(s)
   struct Stream_CamSave_UI_CBData* ui_cb_data_base_p =
     static_cast<struct Stream_CamSave_UI_CBData*> (userData_in);
-
-  // sanity check(s)
   ACE_ASSERT (ui_cb_data_base_p);
-
   Common_UI_GTK_BuildersIterator_t iterator =
     ui_cb_data_base_p->UIState->builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN));
-  // sanity check(s)
   ACE_ASSERT (iterator != ui_cb_data_base_p->UIState->builders.end ());
-
   GtkDrawingArea* drawing_area_p =
     GTK_DRAWING_AREA (gtk_builder_get_object ((*iterator).second.second,
                                               ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_DRAWINGAREA_NAME)));
   ACE_ASSERT (drawing_area_p);
+
   GtkAllocation allocation_s;
   gtk_widget_get_allocation (GTK_WIDGET (drawing_area_p),
                              &allocation_s);
@@ -6502,7 +6513,7 @@ drawing_area_resize_end (gpointer userData_in)
       ACE_ASSERT (directshow_cb_data_p->configuration);
       stream_p = directshow_cb_data_p->stream;
       directshow_stream_iterator =
-        directshow_cb_data_p->configuration->streamConfiguration.find (Stream_Visualization_Tools::rendererToModuleName (STREAM_VISUALIZATION_VIDEORENDERER_GTK_PIXBUF));
+        directshow_cb_data_p->configuration->streamConfiguration.find (Stream_Visualization_Tools::rendererToModuleName (STREAM_VISUALIZATION_VIDEORENDERER_GTK_CAIRO));
       ACE_ASSERT (directshow_stream_iterator != directshow_cb_data_p->configuration->streamConfiguration.end ());
 #if defined (FFMPEG_SUPPORT)
       iterator_4 =
@@ -6572,7 +6583,7 @@ drawing_area_resize_end (gpointer userData_in)
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
       module_name =
-        ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_GTK_PIXBUF_DEFAULT_NAME_STRING);
+        ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_GTK_CAIRO_DEFAULT_NAME_STRING);
       break;
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
       module_name =

@@ -102,7 +102,8 @@ class Stream_MediaFramework_DirectShow_MessageBase_T
   virtual void dump_state () const;
 
  protected:
-  Stream_MediaFramework_DirectShow_MessageBase_T (unsigned int); // size
+  Stream_MediaFramework_DirectShow_MessageBase_T (Stream_SessionId_t, // session id
+                                                  unsigned int);      // size
   // copy ctor, to be used by derivates
   Stream_MediaFramework_DirectShow_MessageBase_T (const OWN_TYPE_T&);
 

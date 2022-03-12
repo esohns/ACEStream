@@ -33,8 +33,10 @@ template <//typename AllocatorConfigurationType,
           typename CommandType>
 Stream_MediaFramework_DirectShow_MessageBase_T<//AllocatorConfigurationType,
                                                MessageType,
-                                               CommandType>::Stream_MediaFramework_DirectShow_MessageBase_T (unsigned int requestedSize_in)
- : inherited (requestedSize_in)
+                                               CommandType>::Stream_MediaFramework_DirectShow_MessageBase_T (Stream_SessionId_t sessionId_in,
+                                                                                                             unsigned int requestedSize_in)
+ : inherited (sessionId_in,
+              requestedSize_in)
  , timeStamp_ (0.0)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_DirectShow_MessageBase_T::Stream_MediaFramework_DirectShow_MessageBase_T"));

@@ -33,8 +33,10 @@ template <//typename AllocatorConfigurationType,
           typename DataType>
 Stream_MediaFramework_MediaFoundation_MessageBase_T<//AllocatorConfigurationType,
                                                     MessageType,
-                                                    DataType>::Stream_MediaFramework_MediaFoundation_MessageBase_T (unsigned int requestedSize_in)
- : inherited (requestedSize_in)
+                                                    DataType>::Stream_MediaFramework_MediaFoundation_MessageBase_T (Stream_SessionId_t sessionId_in,
+                                                                                                                    unsigned int requestedSize_in)
+ : inherited (sessionId_in,
+              requestedSize_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_MediaFoundation_MessageBase_T::Stream_MediaFramework_MediaFoundation_MessageBase_T"));
 

@@ -2583,28 +2583,36 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
             } // end SWITCH
             break;
           }
-          case STREAM_STATE_STOPPED:
-          case STREAM_STATE_FINISHED:
-          {
-            result = false; // <-- caller will not set the state
-            break;
-          }
           default:
             break;
         } // end SWITCH
 
-        if (likely (result))
-        {
-          result = false; // <-- caller will not set the state
-          // *IMPORTANT NOTE*: iff running the transition STOPPING --> STOPPED
-          //                   is automatic --> set state early to facilitate
-          //                   this transition
-          inherited2::state_ = STREAM_STATE_SESSION_STOPPING;
-          { ACE_GUARD_RETURN (ACE_Reverse_Lock<ACE_Thread_Mutex>, aGuard_2, reverse_lock, false);
-            this->change (STREAM_STATE_STOPPED);
-          } // end lock scope
-        } // end IF
+        result = false; // <-- caller will not set the state
+        inherited2::state_ = STREAM_STATE_SESSION_STOPPING;
       } // end lock scope
+
+      switch (inherited::configuration_->concurrency)
+      {
+        case STREAM_HEADMODULECONCURRENCY_ACTIVE:
+        case STREAM_HEADMODULECONCURRENCY_PASSIVE:
+        { Common_ITask* itask_p = this;
+          itask_p->stop (false,                // wait ?
+                         isHighPriorityStop_); // high priority ?
+          break;
+        }
+        case STREAM_HEADMODULECONCURRENCY_CONCURRENT:
+        { // *TODO*: this is incorrect
+          finished (false); // recurse upstream ?
+          break;
+        }
+        default:
+        {
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("%s: invalid/unknown concurrency mode (was: %d), aborting\n"),
+                      inherited::configuration_->concurrency));
+          return false;
+        }
+      } // end SWITCH
       break;
     }
     case STREAM_STATE_PAUSED:
@@ -2657,28 +2665,14 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
     }
     case STREAM_STATE_STOPPED:
     {
-      switch (inherited::configuration_->concurrency)
-      {
-        case STREAM_HEADMODULECONCURRENCY_ACTIVE:
-        case STREAM_HEADMODULECONCURRENCY_PASSIVE:
-        { Common_ITask* itask_p = this;
-          itask_p->stop (false,                // wait ?
-                         isHighPriorityStop_); // high priority ?
-          break;
-        }
-        case STREAM_HEADMODULECONCURRENCY_CONCURRENT:
-        { // *TODO*: this is incorrect
-          finished (false); // recurse upstream ?
-          break;
-        }
-        default:
-        {
-          ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("%s: invalid/unknown concurrency mode (was: %d), aborting\n"),
-                      inherited::configuration_->concurrency));
-          return false;
-        }
-      } // end SWITCH
+      // *IMPORTANT NOTE*: the transition STOPPED --> FINISHED is automatic; set
+      //                   state early to facilitate this transition
+      { ACE_GUARD_RETURN (ACE_SYNCH_MUTEX_T, aGuard, *inherited2::stateLock_, false);
+        result = false; // <-- caller will not set the state
+        inherited2::state_ = STREAM_STATE_STOPPED;
+      } // end lock scope
+
+      inherited2::change (STREAM_STATE_FINISHED);
       break;
     }
     case STREAM_STATE_FINISHED:

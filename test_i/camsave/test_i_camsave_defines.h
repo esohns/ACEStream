@@ -66,6 +66,7 @@
 //#define TEST_I_UI_GTK_FILECHOOSERDIALOG_SAVE_NAME     "filechooserdialog_save"
 #define TEST_I_UI_GTK_FILEFILTER_AVI_NAME              "filefilter_avi"
 #define TEST_I_UI_GTK_FRAME_DISPLAY_NAME               "frame_display"
+#define TEST_I_UI_GTK_FRAME_OPTIONS_NAME               "frame_options"
 #define TEST_I_UI_GTK_FRAME_SAVE_NAME                  "frame_save"
 #define TEST_I_UI_GTK_FRAME_SOURCE_NAME                "frame_source"
 #define TEST_I_UI_GTK_LISTSTORE_ADAPTER_NAME           "liststore_adapter"

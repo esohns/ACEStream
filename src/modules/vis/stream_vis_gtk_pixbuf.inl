@@ -46,10 +46,10 @@ Stream_Module_Vis_GTK_Pixbuf_T<ACE_SYNCH_USE,
 #endif // ACE_WIN32 || ACE_WIN64
  : inherited (stream_in)
  , inherited2 ()
- , buffer_ (NULL)
 #if GTK_CHECK_VERSION (3,0,0)
  , context_ (NULL)
 #endif // GTK_CHECK_VERSION (3,0,0)
+ , sourceResolution_ ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Vis_GTK_Pixbuf_T::Stream_Module_Vis_GTK_Pixbuf_T"));
 
@@ -74,13 +74,56 @@ Stream_Module_Vis_GTK_Pixbuf_T<ACE_SYNCH_USE,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Vis_GTK_Pixbuf_T::~Stream_Module_Vis_GTK_Pixbuf_T"));
 
-  if (buffer_)
-    g_object_unref (buffer_);
-
 #if GTK_CHECK_VERSION (3,0,0)
  if (context_)
    cairo_destroy (context_);
 #endif // GTK_CHECK_VERSION (3,0,0)
+}
+
+template <ACE_SYNCH_DECL,
+          typename TimePolicyType,
+          typename ConfigurationType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
+          typename SessionDataContainerType,
+          typename MediaType>
+bool
+Stream_Module_Vis_GTK_Pixbuf_T<ACE_SYNCH_USE,
+                               TimePolicyType,
+                               ConfigurationType,
+                               ControlMessageType,
+                               DataMessageType,
+                               SessionMessageType,
+                               SessionDataContainerType,
+                               MediaType>::initialize (const ConfigurationType& configuration_in,
+                                                       Stream_IAllocator* allocator_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Module_Vis_GTK_Pixbuf_T::initialize"));
+
+  if (inherited::isInitialized_)
+  {
+#if GTK_CHECK_VERSION (3,0,0)
+    if (context_)
+    {
+      cairo_destroy (context_); context_ = NULL;
+    } // end IF
+#endif // GTK_CHECK_VERSION (3,0,0)
+  } // end IF
+
+  // sanity check(s)
+  ACE_ASSERT (configuration_in.window);
+
+#if GTK_CHECK_VERSION (3,0,0)
+  context_ = gdk_cairo_create (configuration_in.window);
+  ACE_ASSERT (context_);
+#endif // GTK_CHECK_VERSION (3,0,0)
+
+  sourceResolution_.cx = gdk_window_get_width (configuration_in.window);
+  sourceResolution_.cy = gdk_window_get_height (configuration_in.window);
+
+  return inherited::initialize (configuration_in,
+                                allocator_in);
 }
 
 template <ACE_SYNCH_DECL,
@@ -108,9 +151,10 @@ Stream_Module_Vis_GTK_Pixbuf_T<ACE_SYNCH_USE,
 
   // sanity check(s)
   ACE_ASSERT (inherited::configuration_);
-  if (!inherited::configuration_->window)
+  if (unlikely (!inherited::configuration_->window))
     return; // done
-  ACE_ASSERT (buffer_);
+  if (unlikely (inherited2::resizing_))
+    return; // done
 
   // *NOTE*: 'crunching' the message data simplifies the data transformation
   //         algorithms, at the cost of (several) memory copies. This is a
@@ -125,17 +169,29 @@ Stream_Module_Vis_GTK_Pixbuf_T<ACE_SYNCH_USE,
   }
 
   bool leave_gdk = false;
-
   gdk_threads_enter ();
   leave_gdk = true;
 
-  // resizing ? --> discard frame
-  if (unlikely (inherited2::resizing_))
+  GdkPixbuf* pixbuf_p =
+    gdk_pixbuf_new_from_data (reinterpret_cast<guchar*> (message_inout->rd_ptr ()),
+                              GDK_COLORSPACE_RGB,
+                              FALSE,
+                              8,
+                              sourceResolution_.cx, sourceResolution_.cy,
+                              sourceResolution_.cx * 3,
+                              NULL, NULL);
+  if (!pixbuf_p)
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s: failed to gdk_pixbuf_new_from_data(), continuing\n"),
+                inherited::mod_->name ()));
     goto continue_;
-
-  ACE_OS::memcpy (gdk_pixbuf_get_pixels (buffer_),
-                  message_inout->rd_ptr (),
-                  message_inout->length ());
+  } // end IF
+  ACE_ASSERT (GDK_IS_PIXBUF (pixbuf_p));
+  ACE_ASSERT (gdk_pixbuf_get_colorspace (pixbuf_p) == GDK_COLORSPACE_RGB);
+  ACE_ASSERT (gdk_pixbuf_get_bits_per_sample (pixbuf_p) == 8);
+  ACE_ASSERT (gdk_pixbuf_get_n_channels (pixbuf_p) == 3);
+  ACE_ASSERT (gdk_pixbuf_get_has_alpha (pixbuf_p) == FALSE);
 
   // *IMPORTANT NOTE*: this potentially involves transfer of image data to an X
   //                   server running on a different host. Also, X servers don't
@@ -144,20 +200,17 @@ Stream_Module_Vis_GTK_Pixbuf_T<ACE_SYNCH_USE,
   //                       refresh, which takes care of that
 #if GTK_CHECK_VERSION (3,0,0)
   ACE_ASSERT (context_);
-//  gdk_cairo_set_source_pixbuf (context_, buffer_,
-//                               0, 0);
+  gdk_cairo_set_source_pixbuf (context_, pixbuf_p,
+                               0, 0);
   cairo_paint (context_);
-  cairo_fill (context_);
 #else
-  //    gint width_i, height_i;
-  //    gdk_drawable_get_size (GDK_DRAWABLE (inherited::configuration_->window),
-  //                           &width_i, &height_i);
   gdk_draw_pixbuf (GDK_DRAWABLE (inherited::configuration_->window),
                    NULL,
-                   buffer_,
+                   pixbuf_p,
                    0, 0, 0, 0, -1, -1,
                    GDK_RGB_DITHER_NONE, 0, 0);
 #endif // GTK_CHECK_VERSION (3,0,0)
+  g_object_unref (pixbuf_p); pixbuf_p = NULL;
 
 continue_:
   if (likely (leave_gdk))
@@ -198,7 +251,6 @@ Stream_Module_Vis_GTK_Pixbuf_T<ACE_SYNCH_USE,
       // *TODO*: remove type inference
       if (!inherited::configuration_->window)
         goto continue_;
-      ACE_ASSERT (!buffer_);
 
       gint width_i, height_i;
 
@@ -211,40 +263,8 @@ Stream_Module_Vis_GTK_Pixbuf_T<ACE_SYNCH_USE,
       gdk_drawable_get_size (GDK_DRAWABLE (inherited::configuration_->window),
                              &width_i, &height_i);
 #endif // GTK_CHECK_VERSION (3,0,0)
-      buffer_ =
-#if GTK_CHECK_VERSION (3,0,0)
-          gdk_pixbuf_get_from_window (inherited::configuration_->window,
-                                      0, 0,
-                                      width_i, height_i);
-#else
-          gdk_pixbuf_get_from_drawable (NULL,
-                                        GDK_DRAWABLE (inherited::configuration_->window),
-                                        NULL,
-                                        0, 0,
-                                        0, 0, width_i, height_i);
-#endif // GTK_CHECK_VERSION (3,0,0)
-      if (!buffer_)
-      { // *NOTE*: most probable reason: window is not mapped
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("%s: failed to gdk_pixbuf_get_from_window(), aborting\n"),
-                    inherited::mod_->name ()));
-        gdk_threads_leave ();
-        goto error;
-      } // end IF
-
-      // sanity check(s)
-      ACE_ASSERT (GDK_IS_PIXBUF (buffer_));
-      ACE_ASSERT (gdk_pixbuf_get_colorspace (buffer_) == GDK_COLORSPACE_RGB);
-      ACE_ASSERT (gdk_pixbuf_get_bits_per_sample (buffer_) == 8);
-      ACE_ASSERT (gdk_pixbuf_get_n_channels (buffer_) == 3);
-//      ACE_ASSERT (gdk_pixbuf_get_n_channels (buffer_) == 4);
-//      ACE_ASSERT (gdk_pixbuf_get_has_alpha (buffer_));
-
-#if GTK_CHECK_VERSION (3,0,0)
-      ACE_ASSERT (context_);
-      gdk_cairo_set_source_pixbuf (context_, buffer_,
-                                   0, 0);
-#endif // GTK_CHECK_VERSION (3,0,0)
+      sourceResolution_.cx = width_i;
+      sourceResolution_.cy = height_i;
 
       gdk_threads_leave ();
 
@@ -262,13 +282,17 @@ error:
       // *TODO*: remove type inferences
       if (!inherited::configuration_->window)
         break;
-      ACE_ASSERT (buffer_);
 
       gint width_i = 0, height_i = 0;
 
       gdk_threads_enter ();
 
-      g_object_unref (buffer_); buffer_ = NULL;
+#if GTK_CHECK_VERSION(3, 0, 0)
+      if (context_)
+      {
+        cairo_destroy (context_); context_ = NULL;
+      } // end IF
+#endif  // GTK_CHECK_VERSION (3,0,0)
 
 #if GTK_CHECK_VERSION (3,0,0)
       width_i = gdk_window_get_width (inherited::configuration_->window);
@@ -277,30 +301,18 @@ error:
       gdk_drawable_get_size (GDK_DRAWABLE (inherited::configuration_->window),
                              &width_i, &height_i);
 #endif // GTK_CHECK_VERSION (3,0,0)
-      buffer_ =
-#if GTK_CHECK_VERSION (3,0,0)
-          gdk_pixbuf_get_from_window (inherited::configuration_->window,
-                                      0, 0,
-                                      width_i, height_i);
-#else
-          gdk_pixbuf_get_from_drawable (NULL,
-                                        GDK_DRAWABLE (inherited::configuration_->window),
-                                        NULL,
-                                        0, 0,
-                                        0, 0, width_i, height_i);
-#endif // GTK_CHECK_VERSION (3,0,0)
-      if (!buffer_)
-      { // *NOTE*: most probable reason: window is not mapped
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("%s: failed to gdk_pixbuf_get_from_window(), aborting\n"),
-                    inherited::mod_->name ()));
-        gdk_threads_leave ();
-        goto error_2;
-      } // end IF
 
-      inherited2::resizing_ = false;
+      sourceResolution_.cx = width_i;
+      sourceResolution_.cy = height_i;
+
+#if GTK_CHECK_VERSION (3,0,0)
+      context_ = gdk_cairo_create (inherited::configuration_->window);
+      ACE_ASSERT (context_);
+#endif // GTK_CHECK_VERSION (3,0,0)
 
       gdk_threads_leave ();
+
+      inherited2::resizing_ = false;
 
       break;
 
@@ -311,64 +323,18 @@ error_2:
     }
     case STREAM_SESSION_MESSAGE_END:
     {
-      if (buffer_)
+#if GTK_CHECK_VERSION(3, 0, 0)
+      if (context_)
       {
-        g_object_unref (buffer_); buffer_ = NULL;
+        cairo_destroy (context_); context_ = NULL;
       } // end IF
+#endif  // GTK_CHECK_VERSION (3,0,0)
 
       break;
     }
     default:
       break;
   } // end SWITCH
-}
-
-template <ACE_SYNCH_DECL,
-          typename TimePolicyType,
-          typename ConfigurationType,
-          typename ControlMessageType,
-          typename DataMessageType,
-          typename SessionMessageType,
-          typename SessionDataContainerType,
-          typename MediaType>
-bool
-Stream_Module_Vis_GTK_Pixbuf_T<ACE_SYNCH_USE,
-                               TimePolicyType,
-                               ConfigurationType,
-                               ControlMessageType,
-                               DataMessageType,
-                               SessionMessageType,
-                               SessionDataContainerType,
-                               MediaType>::initialize (const ConfigurationType& configuration_in,
-                                                       Stream_IAllocator* allocator_in)
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_Module_Vis_GTK_Pixbuf_T::initialize"));
-
-  if (inherited::isInitialized_)
-  {
-    if (buffer_)
-    {
-      g_object_unref (buffer_);
-      buffer_ = NULL;
-    } // end IF
-
-#if GTK_CHECK_VERSION (3,0,0)
-    if (context_)
-    {
-      cairo_destroy (context_);
-      context_ = NULL;
-    } // end IF
-#endif // GTK_CHECK_VERSION (3,0,0)
-  } // end IF
-
-#if GTK_CHECK_VERSION (3,0,0)
-  ACE_ASSERT (configuration_in.window);
-  context_ = gdk_cairo_create (configuration_in.window);
-  ACE_ASSERT (context_);
-#endif // GTK_CHECK_VERSION (3,0,0)
-
-  return inherited::initialize (configuration_in,
-                                allocator_in);
 }
 
 template <ACE_SYNCH_DECL,

@@ -1259,7 +1259,7 @@ Stream_Base_T<ACE_SYNCH_USE,
     case STREAM_SESSION_MESSAGE_END:
     {
       try {
-        istatemachine_p->change (STREAM_STATE_FINISHED);
+        istatemachine_p->change (STREAM_STATE_STOPPED);
       } catch (...) {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s/%s: caught exception in Common_IStateMachine_2::change(), returning\n"),

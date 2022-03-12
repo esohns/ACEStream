@@ -129,7 +129,7 @@ struct Stream_Device_Identifier
     {
       case ID:
       {
-        identifier._id = -1;
+        identifier._id = std::numeric_limits<ULONG>::max ();
         break;
       }
       case GUID:
@@ -156,11 +156,11 @@ struct Stream_Device_Identifier
     switch (identifierDiscriminator)
     {
       case ID:
-        return (identifier._id < 0);
+        return (identifier._id == std::numeric_limits<ULONG>::max ());
       case GUID:
-        return !InlineIsEqualGUID (identifier._guid, GUID_NULL);
+        return InlineIsEqualGUID (identifier._guid, GUID_NULL);
       case STRING:
-        return (ACE_OS::strlen (identifier._string) > 0);
+        return (!ACE_OS::strlen (identifier._string));
       default:
       {
         ACE_DEBUG ((LM_ERROR,

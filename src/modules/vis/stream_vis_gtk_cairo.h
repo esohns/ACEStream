@@ -26,11 +26,16 @@
 #include "ace/Global_Macros.h"
 #include "ace/Synch_Traits.h"
 
+#include "common_iget.h"
+#include "common_inotify.h"
+
 #include "common_ui_ifullscreen.h"
 
 #include "stream_task_base_synch.h"
 
 #include "stream_lib_mediatype_converter.h"
+
+#include "stream_vis_base.h"
 
 extern const char libacestream_default_vis_gtk_cairo_module_name_string[];
 
@@ -57,8 +62,10 @@ class Stream_Module_Vis_GTK_Cairo_T
                                  enum Stream_ControlType,
                                  enum Stream_SessionMessageType,
                                  struct Stream_UserData>
+ , public Stream_Visualization_Base
  , public Stream_MediaFramework_MediaTypeConverter_T<MediaType>
- , public Common_UI_IFullscreen
+ , public Common_IDispatch
+ //, public Common_ISetP_T<GdkWindow>
 {
   typedef Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
                                  TimePolicyType,
@@ -69,7 +76,8 @@ class Stream_Module_Vis_GTK_Cairo_T
                                  enum Stream_ControlType,
                                  enum Stream_SessionMessageType,
                                  struct Stream_UserData> inherited;
-  typedef Stream_MediaFramework_MediaTypeConverter_T<MediaType> inherited2;
+  typedef Stream_Visualization_Base inherited2;
+  typedef Stream_MediaFramework_MediaTypeConverter_T<MediaType> inherited3;
 
  public:
   // *TODO*: on MSVC 2015u3 the accurate declaration does not compile
@@ -89,6 +97,13 @@ class Stream_Module_Vis_GTK_Cairo_T
   virtual void handleSessionMessage (SessionMessageType*&, // session message handle
                                      bool&);               // return value: pass message downstream ?
 
+  // implement Common_IDispatch
+  // *IMPORTANT NOTE*: argument is always NULL
+  virtual void dispatch (void*);
+
+  // implement Common_ISetP_T
+  //virtual void setP (GdkWindow*); // target window
+
   // implement Common_UI_IFullscreen
   virtual void toggle ();
 
@@ -97,17 +112,13 @@ class Stream_Module_Vis_GTK_Cairo_T
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_Vis_GTK_Cairo_T (const Stream_Module_Vis_GTK_Cairo_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_Vis_GTK_Cairo_T& operator= (const Stream_Module_Vis_GTK_Cairo_T&))
 
-  // helper methods
-  inline unsigned char clamp (int value_in) { return ((value_in > 255) ? 255 : ((value_in < 0) ? 0 : static_cast<unsigned char> (value_in))); }
-
-#if GTK_CHECK_VERSION(3,10,0)
-  cairo_surface_t*                         buffer_; // target-
+  cairo_t*         context_;
+#if GTK_CHECK_VERSION (3,10,0)
+  cairo_surface_t* surface_; // target-
 #else
-  GdkPixbuf*                               buffer_; // target-
+  GdkPixbuf*       surface_; // target-
 #endif // GTK_CHECK_VERSION
-  cairo_t*                                 context_;
-  bool                                     isFirst_;
-  typename ACE_SYNCH_USE::RECURSIVE_MUTEX* lock_; // surface-
+  ACE_Thread_Mutex surfaceLock_;
 };
 
 // include template definition

@@ -71,6 +71,7 @@ extern "C"
 #include "ace/Singleton.h"
 #include "ace/Synch_Traits.h"
 
+#include "common_inotify.h"
 #include "common_isubscribe.h"
 #include "common_tools.h"
 
@@ -505,11 +506,7 @@ struct Stream_CamSave_ModuleHandlerConfiguration
 #endif // GUI_SUPPORT
    , targetFileName ()
   {
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-    concurrency = STREAM_HEADMODULECONCURRENCY_CONCURRENT;
-#else
-    concurrency = STREAM_HEADMODULECONCURRENCY_ACTIVE;
-#endif // ACE_WIN32 || ACE_WIN64
+    concurrency = STREAM_HEADMODULECONCURRENCY_PASSIVE;
   }
 
   struct Stream_Device_Identifier deviceIdentifier; // source/renderer module
@@ -1099,6 +1096,8 @@ struct Stream_CamSave_UI_CBData
 {
   Stream_CamSave_UI_CBData ()
    : Test_I_UI_CBData ()
+   , dispatch (NULL)
+   , eventSourceId (0)
    , isFirst (true)
    , progressData ()
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -1109,6 +1108,8 @@ struct Stream_CamSave_UI_CBData
     progressData.state = UIState;
   }
 
+  Common_IDispatch*                  dispatch;
+  guint                              eventSourceId; // display update-
   bool                               isFirst; // first activation ?
   struct Stream_CamSave_ProgressData progressData;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)

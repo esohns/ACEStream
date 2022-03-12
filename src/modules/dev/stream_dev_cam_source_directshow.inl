@@ -304,7 +304,6 @@ Stream_Dev_Cam_Source_DirectShow_T<ACE_SYNCH_USE,
   {
     case STREAM_SESSION_MESSAGE_ABORT:
     {
-      inherited::change (STREAM_STATE_FINISHED);
       break;
     }
     case STREAM_SESSION_MESSAGE_BEGIN:

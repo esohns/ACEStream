@@ -3186,19 +3186,31 @@ Stream_MediaFramework_DirectShow_Tools::setFormat (REFGUID mediaSubType_in,
   {
     struct tagVIDEOINFOHEADER* video_info_header_p =
       (struct tagVIDEOINFOHEADER*)mediaType_inout.pbFormat;
+    video_info_header_p->bmiHeader.biBitCount =
+      Stream_MediaFramework_Tools::toBitCount (mediaType_inout.subtype,
+                                               STREAM_MEDIAFRAMEWORK_DIRECTSHOW);
     video_info_header_p->bmiHeader.biCompression =
       (Stream_MediaFramework_Tools::isCompressedVideo (mediaType_inout.subtype,
                                                        STREAM_MEDIAFRAMEWORK_DIRECTSHOW) ? fourcc_map.GetFOURCC ()
                                                                                          : BI_RGB);
+    video_info_header_p->bmiHeader.biSizeImage =
+      DIBSIZE (video_info_header_p->bmiHeader);
+    mediaType_inout.lSampleSize = video_info_header_p->bmiHeader.biSizeImage;
   } // end IF
   else if (InlineIsEqualGUID (mediaType_inout.formattype, FORMAT_VideoInfo2))
   {
     struct tagVIDEOINFOHEADER2* video_info_header2_p =
       (struct tagVIDEOINFOHEADER2*)mediaType_inout.pbFormat;
+    video_info_header2_p->bmiHeader.biBitCount =
+      Stream_MediaFramework_Tools::toBitCount (mediaType_inout.subtype,
+                                               STREAM_MEDIAFRAMEWORK_DIRECTSHOW);
     video_info_header2_p->bmiHeader.biCompression =
       (Stream_MediaFramework_Tools::isCompressedVideo (mediaType_inout.subtype,
                                                        STREAM_MEDIAFRAMEWORK_DIRECTSHOW) ? fourcc_map.GetFOURCC ()
                                                                                          : BI_RGB);
+    video_info_header2_p->bmiHeader.biSizeImage =
+      DIBSIZE (video_info_header2_p->bmiHeader);
+    mediaType_inout.lSampleSize = video_info_header2_p->bmiHeader.biSizeImage;
   } // end ELSE IF
   else if (InlineIsEqualGUID (mediaType_inout.formattype, FORMAT_WaveFormatEx))
   {
@@ -3248,8 +3260,6 @@ Stream_MediaFramework_DirectShow_Tools::setFormat (REFGUID mediaSubType_in,
                 ACE_TEXT ("invalid/unknown media formattype (was: \"%s\"), returning\n"),
                 ACE_TEXT (Common_Tools::GUIDToString (mediaType_inout.formattype).c_str ())));
   } // end ELSE
-  // *TOOD*: update lSampleSize, dwBitRate, biBitCount, biCompression and
-  //         biSizeImage accordingly
 }
 
 void
@@ -4041,12 +4051,34 @@ Stream_MediaFramework_DirectShow_Tools::toFrameBits (const struct _AMMediaType& 
   STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_DirectShow_Tools::toFrameBits"));
 
   // sanity check(s)
-  ACE_ASSERT (InlineIsEqualGUID (mediaType_in.formattype, FORMAT_WaveFormatEx));
   ACE_ASSERT (mediaType_in.pbFormat);
-  struct tWAVEFORMATEX* waveformatex_p =
-    (struct tWAVEFORMATEX*)mediaType_in.pbFormat;
 
-  return waveformatex_p->wBitsPerSample;
+  if (InlineIsEqualGUID (mediaType_in.formattype, FORMAT_VideoInfo))
+  {
+    struct tagVIDEOINFOHEADER* video_info_header_p =
+      (struct tagVIDEOINFOHEADER*)mediaType_in.pbFormat;
+    return video_info_header_p->bmiHeader.biBitCount;
+  } // end IF
+  else if (InlineIsEqualGUID (mediaType_in.formattype, FORMAT_VideoInfo2))
+  {
+    struct tagVIDEOINFOHEADER2* video_info_header2_p =
+      (struct tagVIDEOINFOHEADER2*)mediaType_in.pbFormat;
+    return video_info_header2_p->bmiHeader.biBitCount;
+  } // end ELSE IF
+  else if (InlineIsEqualGUID (mediaType_in.formattype, FORMAT_WaveFormatEx))
+  {
+    struct tWAVEFORMATEX* waveformatex_p =
+      (struct tWAVEFORMATEX*)mediaType_in.pbFormat;
+    return waveformatex_p->wBitsPerSample;
+  } // end IF
+  else
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("invalid/unknown media format type (was: \"%s\"), aborting\n"),
+                ACE_TEXT (Stream_MediaFramework_Tools::mediaFormatTypeToString (mediaType_in.formattype).c_str ())));
+  } // end ELSE
+
+  return 0;
 }
 
 unsigned int

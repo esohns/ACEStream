@@ -104,7 +104,7 @@ Stream_CamSave_DirectShow_Stream::load (Stream_ILayout* layout_in,
   iterator =
     inherited::configuration_->find (ACE_TEXT_ALWAYS_CHAR (""));
   iterator_2 =
-    inherited::configuration_->find (Stream_Visualization_Tools::rendererToModuleName (STREAM_VISUALIZATION_VIDEORENDERER_GTK_PIXBUF));
+    inherited::configuration_->find (Stream_Visualization_Tools::rendererToModuleName (STREAM_VISUALIZATION_VIDEORENDERER_GTK_CAIRO));
   // sanity check(s)
   ACE_ASSERT (iterator != inherited::configuration_->end ());
   ACE_ASSERT (iterator_2 != inherited::configuration_->end ());
@@ -151,8 +151,8 @@ Stream_CamSave_DirectShow_Stream::load (Stream_ILayout* layout_in,
       //layout_in->append (&direct3DDisplay_, NULL, 0);
       //layout_in->append (&directShowDisplay_, NULL, 0);
 #if (GTK_SUPPORT)
-      layout_in->append (&GTKPixbufDisplay_, branch_p, index_i);
-//      layout_in->append (&GTKCairoDisplay_, branch_p, index_i);
+      //layout_in->append (&GTKPixbufDisplay_, branch_p, index_i);
+      layout_in->append (&GTKCairoDisplay_, branch_p, index_i);
 #endif // GTK_SUPPORT
 #elif defined (WXWIDGETS_USE)
       layout_in->append (&display_, branch_p, index_i);
@@ -208,7 +208,7 @@ Stream_CamSave_DirectShow_Stream::initialize (const inherited::CONFIGURATION_T& 
   iterator =
     const_cast<inherited::CONFIGURATION_T&> (configuration_in).find (ACE_TEXT_ALWAYS_CHAR (""));
   iterator_2 =
-    const_cast<inherited::CONFIGURATION_T&> (configuration_in).find (Stream_Visualization_Tools::rendererToModuleName (STREAM_VISUALIZATION_VIDEORENDERER_GTK_PIXBUF));
+    const_cast<inherited::CONFIGURATION_T&> (configuration_in).find (Stream_Visualization_Tools::rendererToModuleName (STREAM_VISUALIZATION_VIDEORENDERER_GTK_CAIRO));
   // sanity check(s)
   ACE_ASSERT (iterator != const_cast<inherited::CONFIGURATION_T&> (configuration_in).end ());
   ACE_ASSERT (iterator_2 != const_cast<inherited::CONFIGURATION_T&> (configuration_in).end ());

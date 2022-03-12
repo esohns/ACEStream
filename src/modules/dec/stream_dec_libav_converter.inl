@@ -21,7 +21,6 @@
 #ifdef __cplusplus
 extern "C"
 {
-//#include "libavcodec/avcodec.h"
 #include "libavutil/frame.h"
 #include "libavutil/imgutils.h"
 }
@@ -66,7 +65,6 @@ Stream_Decoder_LibAVConverter_T<ACE_SYNCH_USE,
  , frame_ (NULL)
  , frameSize_ (0)
  , inputFormat_ (AV_PIX_FMT_NONE)
- , outputFormat_ ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Decoder_LibAVConverter_T::Stream_Decoder_LibAVConverter_T"));
 
@@ -151,9 +149,6 @@ Stream_Decoder_LibAVConverter_T<ACE_SYNCH_USE,
   // *NOTE*: this level logs all messages
 //  av_log_set_level (std::numeric_limits<int>::max ());
 #endif // _DEBUG
-
-  inherited2::getMediaType (configuration_in.outputFormat,
-                            outputFormat_);
 
 //continue_:
   return inherited::initialize (configuration_in,
@@ -334,6 +329,7 @@ Stream_Decoder_LibAVConverter_T<ACE_SYNCH_USE,
       ACE_ASSERT (!Stream_Module_Decoder_Tools::isCompressedVideo (media_type_s.format));
 
       MediaType media_type_2;
+      ACE_OS::memset (&media_type_2, 0, sizeof (MediaType));
       inherited2::getMediaType (session_data_r.formats.back (),
                                 media_type_2);
       int flags = 0;
@@ -454,17 +450,18 @@ error:
       int result = -1;
 
       // sanity check(s)
-      // update configuration
       ACE_ASSERT (inherited::configuration_);
+
+      struct Stream_MediaFramework_FFMPEG_VideoMediaType media_type_s;
       inherited2::getMediaType (inherited::configuration_->outputFormat,
-                                outputFormat_);
+                                media_type_s);
       if (!frame_ ||
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-          ((static_cast<unsigned int> (frame_->height) == outputFormat_.resolution.cy) &&
-           (static_cast<unsigned int> (frame_->width) == outputFormat_.resolution.cx)))
+          ((static_cast<unsigned int> (frame_->height) == media_type_s.resolution.cy) &&
+           (static_cast<unsigned int> (frame_->width) == media_type_s.resolution.cx)))
 #else
-          ((static_cast<unsigned int> (frame_->height) == outputFormat_.resolution.height) &&
-           (static_cast<unsigned int> (frame_->width) == outputFormat_.resolution.width)))
+          ((static_cast<unsigned int> (frame_->height) == media_type_s.resolution.height) &&
+           (static_cast<unsigned int> (frame_->width) == media_type_s.resolution.width)))
 #endif // ACE_WIN32 || ACE_WIN64
         break; // does not concern 'this'
 
@@ -475,11 +472,11 @@ error:
 
       //  frame_->format = session_data_r.format;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-      frame_->height = outputFormat_.resolution.cy;
-      frame_->width = outputFormat_.resolution.cx;
+      frame_->height = media_type_s.resolution.cy;
+      frame_->width = media_type_s.resolution.cx;
 #else
-      frame_->height = outputFormat_.resolution.height;
-      frame_->width = outputFormat_.resolution.width;
+      frame_->height = media_type_s.resolution.height;
+      frame_->width = media_type_s.resolution.width;
 #endif // ACE_WIN32 || ACE_WIN64
 
       frameSize_ =

@@ -24,4 +24,4 @@
 #include "stream_vis_defines.h"
 
 const char libacestream_default_vis_gtk_cairo_module_name_string[] =
-  ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_GTK_PIXBUF_DEFAULT_NAME_STRING);
+  ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_GTK_CAIRO_DEFAULT_NAME_STRING);

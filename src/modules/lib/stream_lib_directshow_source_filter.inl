@@ -512,7 +512,8 @@ allocate:
   } // end IF
   else
     ACE_NEW_NORETURN (message_p,
-                      MessageType (message_size));
+                      MessageType (0,              // session id
+                                   message_size)); // size
   if (unlikely (!message_p))
   {
     if (configuration_->allocator &&
@@ -529,7 +530,7 @@ allocate:
     return E_OUTOFMEMORY;
   } // end IF
   *mediaSample_out = dynamic_cast<IMediaSample*> (message_p);
-  if (!*mediaSample_out)
+  if (unlikely (!*mediaSample_out))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to dynamic_cast<IMediaSample*>(%@), aborting\n"),
