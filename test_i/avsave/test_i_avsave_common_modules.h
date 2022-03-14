@@ -45,9 +45,6 @@
 #include "stream_dev_cam_source_v4l.h"
 #include "stream_dev_mic_source_alsa.h"
 #endif // ACE_WIN32 || ACE_WIN64
-#if defined (FFMPEG_SUPPORT)
-#include "stream_dec_libav_encoder.h"
-#endif // FFMPEG_SUPPORT
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #include "stream_lib_directshow_asynch_source_filter.h"
@@ -83,6 +80,7 @@
 #endif // GUI_SUPPORT
 
 #include "test_i_avsave_common.h"
+#include "test_i_avsave_encoder.h"
 #include "test_i_avsave_message.h"
 #include "test_i_avsave_session_message.h"
 
@@ -100,7 +98,7 @@ typedef Stream_Dev_Mic_Source_WaveIn_T<ACE_MT_SYNCH,
                                        Stream_AVSave_DirectShow_SessionData_t,
                                        struct Stream_AVSave_StatisticData,
                                        Common_Timer_Manager_t,
-                                       struct _AMMediaType> Stream_AVSave_WaveIn_Source;
+                                       struct Stream_MediaFramework_DirectShow_AudioVideoFormat> Stream_AVSave_DirectShow_WaveIn_Source;
 typedef Stream_Dev_Cam_Source_DirectShow_T<ACE_MT_SYNCH,
                                            Stream_ControlMessage_t,
                                            Stream_AVSave_DirectShow_Message_t,
@@ -113,8 +111,23 @@ typedef Stream_Dev_Cam_Source_DirectShow_T<ACE_MT_SYNCH,
                                            Stream_AVSave_DirectShow_SessionData_t,
                                            struct Stream_AVSave_StatisticData,
                                            Common_Timer_Manager_t,
-                                           struct Stream_UserData> Stream_AVSave_DirectShow_Source;
+                                           struct Stream_UserData,
+                                           struct Stream_MediaFramework_DirectShow_AudioVideoFormat,
+                                           false> Stream_AVSave_DirectShow_Source;
 
+typedef Stream_Dev_Mic_Source_WaveIn_T<ACE_MT_SYNCH,
+                                       Stream_ControlMessage_t,
+                                       Stream_AVSave_MediaFoundation_Message_t,
+                                       Stream_AVSave_MediaFoundation_SessionMessage_t,
+                                       struct Stream_AVSave_MediaFoundation_ModuleHandlerConfiguration,
+                                       enum Stream_ControlType,
+                                       enum Stream_SessionMessageType,
+                                       struct Stream_AVSave_MediaFoundation_StreamState,
+                                       Stream_AVSave_MediaFoundation_SessionData,
+                                       Stream_AVSave_MediaFoundation_SessionData_t,
+                                       struct Stream_AVSave_StatisticData,
+                                       Common_Timer_Manager_t,
+                                       struct Stream_MediaFramework_MediaFoundation_AudioVideoFormat> Stream_AVSave_MediaFoundation_WaveIn_Source;
 typedef Stream_Dev_Cam_Source_MediaFoundation_T<ACE_MT_SYNCH,
                                                 Stream_ControlMessage_t,
                                                 Stream_AVSave_MediaFoundation_Message_t,
@@ -127,7 +140,8 @@ typedef Stream_Dev_Cam_Source_MediaFoundation_T<ACE_MT_SYNCH,
                                                 Stream_AVSave_MediaFoundation_SessionData_t,
                                                 struct Stream_AVSave_StatisticData,
                                                 Common_Timer_Manager_t,
-                                                struct Stream_UserData> Stream_AVSave_MediaFoundation_Source;
+                                                struct Stream_UserData,
+                                                struct Stream_MediaFramework_MediaFoundation_AudioVideoFormat> Stream_AVSave_MediaFoundation_Source;
 #else
 typedef Stream_Dev_Mic_Source_ALSA_T<ACE_MT_SYNCH,
                                      Stream_ControlMessage_t,
@@ -263,7 +277,7 @@ typedef Stream_Module_Tagger_T<ACE_MT_SYNCH,
                                Stream_AVSave_DirectShow_Message_t,
                                Stream_AVSave_DirectShow_SessionMessage_t,
                                STREAM_MEDIATYPE_AUDIO,
-                               struct _AMMediaType> Stream_AVSave_WaveIn_Tagger;
+                               struct Stream_MediaFramework_DirectShow_AudioVideoFormat> Stream_AVSave_DirectShow_Audio_Tagger;
 typedef Stream_Module_Tagger_T<ACE_MT_SYNCH,
                                Common_TimePolicy_t,
                                struct Stream_AVSave_DirectShow_ModuleHandlerConfiguration,
@@ -271,18 +285,35 @@ typedef Stream_Module_Tagger_T<ACE_MT_SYNCH,
                                Stream_AVSave_DirectShow_Message_t,
                                Stream_AVSave_DirectShow_SessionMessage_t,
                                STREAM_MEDIATYPE_VIDEO,
-                               struct _AMMediaType> Stream_AVSave_DirectShow_Video_Tagger;
+                               struct Stream_MediaFramework_DirectShow_AudioVideoFormat> Stream_AVSave_DirectShow_Video_Tagger;
 
-#if defined (FFMPEG_SUPPORT)
-typedef Stream_Decoder_LibAVEncoder_T<ACE_MT_SYNCH,
-                                      Common_TimePolicy_t,
-                                      struct Stream_AVSave_DirectShow_ModuleHandlerConfiguration,
-                                      Stream_ControlMessage_t,
-                                      Stream_AVSave_DirectShow_Message_t,
-                                      Stream_AVSave_DirectShow_SessionMessage_t,
-                                      Stream_AVSave_DirectShow_SessionData_t,
-                                      struct _AMMediaType> Stream_AVSave_DirectShow_Encoder;
-#endif // FFMPEG_SUPPORT
+typedef Stream_Module_Tagger_T<ACE_MT_SYNCH,
+                               Common_TimePolicy_t,
+                               struct Stream_AVSave_MediaFoundation_ModuleHandlerConfiguration,
+                               Stream_ControlMessage_t,
+                               Stream_AVSave_MediaFoundation_Message_t,
+                               Stream_AVSave_MediaFoundation_SessionMessage_t,
+                               STREAM_MEDIATYPE_AUDIO,
+                               struct Stream_MediaFramework_MediaFoundation_AudioVideoFormat> Stream_AVSave_MediaFoundation_Audio_Tagger;
+typedef Stream_Module_Tagger_T<ACE_MT_SYNCH,
+                               Common_TimePolicy_t,
+                               struct Stream_AVSave_MediaFoundation_ModuleHandlerConfiguration,
+                               Stream_ControlMessage_t,
+                               Stream_AVSave_MediaFoundation_Message_t,
+                               Stream_AVSave_MediaFoundation_SessionMessage_t,
+                               STREAM_MEDIATYPE_VIDEO,
+                               struct Stream_MediaFramework_MediaFoundation_AudioVideoFormat> Stream_AVSave_MediaFoundation_Video_Tagger;
+
+//#if defined (FFMPEG_SUPPORT)
+//typedef Stream_Decoder_LibAVEncoder_T<ACE_MT_SYNCH,
+//                                      Common_TimePolicy_t,
+//                                      struct Stream_AVSave_DirectShow_ModuleHandlerConfiguration,
+//                                      Stream_ControlMessage_t,
+//                                      Stream_AVSave_DirectShow_Message_t,
+//                                      Stream_AVSave_DirectShow_SessionMessage_t,
+//                                      Stream_AVSave_DirectShow_SessionData_t,
+//                                      struct Stream_MediaFramework_DirectShow_AudioVideoFormat> Stream_AVSave_DirectShow_Encoder;
+//#endif // FFMPEG_SUPPORT
 #else
 typedef Stream_Module_Tagger_T<ACE_MT_SYNCH,
                                Common_TimePolicy_t,
@@ -301,16 +332,16 @@ typedef Stream_Module_Tagger_T<ACE_MT_SYNCH,
                                STREAM_MEDIATYPE_VIDEO,
                                struct Stream_MediaFramework_V4L_MediaType> Stream_AVSave_V4L_Tagger;
 
-#if defined (FFMPEG_SUPPORT)
-typedef Stream_Decoder_LibAVEncoder_T<ACE_MT_SYNCH,
-                                      Common_TimePolicy_t,
-                                      struct Stream_AVSave_V4L_ModuleHandlerConfiguration,
-                                      Stream_ControlMessage_t,
-                                      Stream_AVSave_Message_t,
-                                      Stream_AVSave_V4L_SessionMessage_t,
-                                      Stream_AVSave_V4L_SessionData_t,
-                                      struct Stream_MediaFramework_V4L_MediaType> Stream_AVSave_V4L_Encoder;
-#endif // FFMPEG_SUPPORT
+//#if defined (FFMPEG_SUPPORT)
+//typedef Stream_Decoder_LibAVEncoder_T<ACE_MT_SYNCH,
+//                                      Common_TimePolicy_t,
+//                                      struct Stream_AVSave_V4L_ModuleHandlerConfiguration,
+//                                      Stream_ControlMessage_t,
+//                                      Stream_AVSave_Message_t,
+//                                      Stream_AVSave_V4L_SessionMessage_t,
+//                                      Stream_AVSave_V4L_SessionData_t,
+//                                      struct Stream_MediaFramework_V4L_MediaType> Stream_AVSave_V4L_Encoder;
+//#endif // FFMPEG_SUPPORT
 #endif // ACE_WIN32 || ACE_WIN64
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -380,7 +411,7 @@ typedef Stream_Vis_Target_MediaFoundation_2<ACE_MT_SYNCH,
                                             Stream_AVSave_MediaFoundation_SessionMessage_t,
                                             Stream_AVSave_MediaFoundation_SessionData,
                                             Stream_AVSave_MediaFoundation_SessionData_t,
-                                            IMFMediaType*> Stream_AVSave_MediaFoundation_MediaFoundationDisplayNull;
+                                            struct Stream_MediaFramework_MediaFoundation_AudioVideoFormat> Stream_AVSave_MediaFoundation_MediaFoundationDisplayNull;
 
 //typedef Stream_Module_Vis_GTK_Cairo_T<ACE_MT_SYNCH,
 //                                      Common_TimePolicy_t,
@@ -436,55 +467,62 @@ typedef Stream_Module_Vis_X11_Window_T<ACE_MT_SYNCH,
 #endif // ACE_WIN32 || ACE_WIN64
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-typedef Stream_Module_MessageHandlerA_T <ACE_MT_SYNCH,
-                                         Common_TimePolicy_t,
-                                         struct Stream_AVSave_DirectShow_ModuleHandlerConfiguration,
-                                         Stream_ControlMessage_t,
-                                         Stream_AVSave_DirectShow_Message_t,
-                                         Stream_AVSave_DirectShow_SessionMessage_t,
-                                         Stream_AVSave_DirectShow_SessionData,
-                                         struct Stream_UserData> Stream_AVSave_DirectShow_MessageHandler;
+typedef Stream_Module_MessageHandler_T <ACE_MT_SYNCH,
+                                        Common_TimePolicy_t,
+                                        struct Stream_AVSave_DirectShow_ModuleHandlerConfiguration,
+                                        Stream_ControlMessage_t,
+                                        Stream_AVSave_DirectShow_Message_t,
+                                        Stream_AVSave_DirectShow_SessionMessage_t,
+                                        Stream_AVSave_DirectShow_SessionData,
+                                        struct Stream_UserData> Stream_AVSave_DirectShow_MessageHandler;
 
-typedef Stream_Module_MessageHandlerA_T<ACE_MT_SYNCH,
-                                        Common_TimePolicy_t,
-                                        struct Stream_AVSave_MediaFoundation_ModuleHandlerConfiguration,
-                                        Stream_ControlMessage_t,
-                                        Stream_AVSave_MediaFoundation_Message_t,
-                                        Stream_AVSave_MediaFoundation_SessionMessage_t,
-                                        Stream_AVSave_MediaFoundation_SessionData,
-                                        struct Stream_UserData> Stream_AVSave_MediaFoundation_MessageHandler;
+typedef Stream_Module_MessageHandler_T<ACE_MT_SYNCH,
+                                       Common_TimePolicy_t,
+                                       struct Stream_AVSave_MediaFoundation_ModuleHandlerConfiguration,
+                                       Stream_ControlMessage_t,
+                                       Stream_AVSave_MediaFoundation_Message_t,
+                                       Stream_AVSave_MediaFoundation_SessionMessage_t,
+                                       Stream_AVSave_MediaFoundation_SessionData,
+                                       struct Stream_UserData> Stream_AVSave_MediaFoundation_MessageHandler;
 #else
-typedef Stream_Module_MessageHandlerA_T<ACE_MT_SYNCH,
-                                        Common_TimePolicy_t,
-                                        struct Stream_AVSave_V4L_ModuleHandlerConfiguration,
-                                        Stream_ControlMessage_t,
-                                        Stream_AVSave_Message_t,
-                                        Stream_AVSave_V4L_SessionMessage_t,
-                                        Stream_AVSave_V4L_SessionData,
-                                        struct Stream_UserData> Stream_AVSave_MessageHandler;
+typedef Stream_Module_MessageHandler_T<ACE_MT_SYNCH,
+                                       Common_TimePolicy_t,
+                                       struct Stream_AVSave_V4L_ModuleHandlerConfiguration,
+                                       Stream_ControlMessage_t,
+                                       Stream_AVSave_Message_t,
+                                       Stream_AVSave_V4L_SessionMessage_t,
+                                       Stream_AVSave_V4L_SessionData,
+                                       struct Stream_UserData> Stream_AVSave_MessageHandler;
 #endif // ACE_WIN32 || ACE_WIN64
 
 //////////////////////////////////////////
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-DATASTREAM_MODULE_INPUT_ONLY (Stream_AVSave_DirectShow_SessionData,                // session data type
-                              enum Stream_SessionMessageType,                   // session event type
-                              struct Stream_AVSave_DirectShow_ModuleHandlerConfiguration, // module handler configuration type
+DATASTREAM_MODULE_INPUT_ONLY (Stream_AVSave_DirectShow_SessionData,                          // session data type
+                              enum Stream_SessionMessageType,                                // session event type
+                              struct Stream_AVSave_DirectShow_ModuleHandlerConfiguration,    // module handler configuration type
                               libacestream_default_dev_mic_source_wavein_module_name_string,
-                              Stream_INotify_t,                                 // stream notification interface type
-                              Stream_AVSave_WaveIn_Source);                // writer type
-DATASTREAM_MODULE_INPUT_ONLY (Stream_AVSave_DirectShow_SessionData,                // session data type
-                              enum Stream_SessionMessageType,                   // session event type
-                              struct Stream_AVSave_DirectShow_ModuleHandlerConfiguration, // module handler configuration type
+                              Stream_INotify_t,                                              // stream notification interface type
+                              Stream_AVSave_DirectShow_WaveIn_Source);                       // writer type
+DATASTREAM_MODULE_INPUT_ONLY (Stream_AVSave_DirectShow_SessionData,                              // session data type
+                              enum Stream_SessionMessageType,                                    // session event type
+                              struct Stream_AVSave_DirectShow_ModuleHandlerConfiguration,        // module handler configuration type
                               libacestream_default_dev_cam_source_directshow_module_name_string,
-                              Stream_INotify_t,                                 // stream notification interface type
-                              Stream_AVSave_DirectShow_Source);                // writer type
-DATASTREAM_MODULE_INPUT_ONLY (Stream_AVSave_MediaFoundation_SessionData,                // session data type
-                              enum Stream_SessionMessageType,                   // session event type
+                              Stream_INotify_t,                                                  // stream notification interface type
+                              Stream_AVSave_DirectShow_Source);                                  // writer type
+
+DATASTREAM_MODULE_INPUT_ONLY (Stream_AVSave_MediaFoundation_SessionData,                       // session data type
+                              enum Stream_SessionMessageType,                                  // session event type
                               struct Stream_AVSave_MediaFoundation_ModuleHandlerConfiguration, // module handler configuration type
+                              libacestream_default_dev_mic_source_wavein_module_name_string,
+                              Stream_INotify_t,                                                // stream notification interface type
+                              Stream_AVSave_MediaFoundation_WaveIn_Source);                    // writer type
+DATASTREAM_MODULE_INPUT_ONLY (Stream_AVSave_MediaFoundation_SessionData,                              // session data type
+                              enum Stream_SessionMessageType,                                         // session event type
+                              struct Stream_AVSave_MediaFoundation_ModuleHandlerConfiguration,        // module handler configuration type
                               libacestream_default_dev_cam_source_mediafoundation_module_name_string,
-                              Stream_INotify_t,                                 // stream notification interface type
-                              Stream_AVSave_MediaFoundation_Source);           // writer type
+                              Stream_INotify_t,                                                       // stream notification interface type
+                              Stream_AVSave_MediaFoundation_Source);                                  // writer type
 #else
 DATASTREAM_MODULE_INPUT_ONLY (Stream_AVSave_ALSA_SessionData,                   // session data type
                               enum Stream_SessionMessageType,                   // session event type
@@ -557,7 +595,7 @@ DATASTREAM_MODULE_INPUT_ONLY (Stream_AVSave_DirectShow_SessionData,             
                               struct Stream_AVSave_DirectShow_ModuleHandlerConfiguration, // module handler configuration type
                               libacestream_default_lib_tagger_module_name_string,
                               Stream_INotify_t,                                 // stream notification interface type
-                              Stream_AVSave_WaveIn_Tagger);           // writer type
+                              Stream_AVSave_DirectShow_Audio_Tagger);           // writer type
 DATASTREAM_MODULE_INPUT_ONLY (Stream_AVSave_DirectShow_SessionData,                   // session data type
                               enum Stream_SessionMessageType,                   // session event type
                               struct Stream_AVSave_DirectShow_ModuleHandlerConfiguration, // module handler configuration type
@@ -565,14 +603,27 @@ DATASTREAM_MODULE_INPUT_ONLY (Stream_AVSave_DirectShow_SessionData,             
                               Stream_INotify_t,                                 // stream notification interface type
                               Stream_AVSave_DirectShow_Video_Tagger);           // writer type
 
-#if defined (FFMPEG_SUPPORT)
-DATASTREAM_MODULE_INPUT_ONLY (Stream_AVSave_DirectShow_SessionData,                   // session data type
+DATASTREAM_MODULE_INPUT_ONLY (Stream_AVSave_MediaFoundation_SessionData,                   // session data type
                               enum Stream_SessionMessageType,                   // session event type
-                              struct Stream_AVSave_DirectShow_ModuleHandlerConfiguration, // module handler configuration type
-                              libacestream_default_dec_libav_encoder_module_name_string,
+                              struct Stream_AVSave_MediaFoundation_ModuleHandlerConfiguration, // module handler configuration type
+                              libacestream_default_lib_tagger_module_name_string,
                               Stream_INotify_t,                                 // stream notification interface type
-                              Stream_AVSave_DirectShow_Encoder);                // writer type
-#endif // FFMPEG_SUPPORT
+                              Stream_AVSave_MediaFoundation_Audio_Tagger);           // writer type
+DATASTREAM_MODULE_INPUT_ONLY (Stream_AVSave_MediaFoundation_SessionData,                   // session data type
+                              enum Stream_SessionMessageType,                   // session event type
+                              struct Stream_AVSave_MediaFoundation_ModuleHandlerConfiguration, // module handler configuration type
+                              libacestream_default_lib_tagger_module_name_string,
+                              Stream_INotify_t,                                 // stream notification interface type
+                              Stream_AVSave_MediaFoundation_Video_Tagger);           // writer type
+
+//#if defined (FFMPEG_SUPPORT)
+//DATASTREAM_MODULE_INPUT_ONLY (Stream_AVSave_DirectShow_SessionData,                   // session data type
+//                              enum Stream_SessionMessageType,                   // session event type
+//                              struct Stream_AVSave_DirectShow_ModuleHandlerConfiguration, // module handler configuration type
+//                              libacestream_default_dec_libav_encoder_module_name_string,
+//                              Stream_INotify_t,                                 // stream notification interface type
+//                              Stream_AVSave_DirectShow_Encoder);                // writer type
+//#endif // FFMPEG_SUPPORT
 #else
 DATASTREAM_MODULE_INPUT_ONLY (Stream_AVSave_ALSA_SessionData,                   // session data type
                               enum Stream_SessionMessageType,                   // session event type
@@ -587,14 +638,14 @@ DATASTREAM_MODULE_INPUT_ONLY (Stream_AVSave_V4L_SessionData,                   /
                               Stream_INotify_t,                                 // stream notification interface type
                               Stream_AVSave_V4L_Tagger);                        // writer type
 
-#if defined (FFMPEG_SUPPORT)
-DATASTREAM_MODULE_INPUT_ONLY (Stream_AVSave_V4L_SessionData,                   // session data type
-                              enum Stream_SessionMessageType,                   // session event type
-                              struct Stream_AVSave_V4L_ModuleHandlerConfiguration, // module handler configuration type
-                              libacestream_default_dec_libav_encoder_module_name_string,
-                              Stream_INotify_t,                                 // stream notification interface type
-                              Stream_AVSave_V4L_Encoder);                       // writer type
-#endif // FFMPEG_SUPPORT
+//#if defined (FFMPEG_SUPPORT)
+//DATASTREAM_MODULE_INPUT_ONLY (Stream_AVSave_V4L_SessionData,                   // session data type
+//                              enum Stream_SessionMessageType,                   // session event type
+//                              struct Stream_AVSave_V4L_ModuleHandlerConfiguration, // module handler configuration type
+//                              libacestream_default_dec_libav_encoder_module_name_string,
+//                              Stream_INotify_t,                                 // stream notification interface type
+//                              Stream_AVSave_V4L_Encoder);                       // writer type
+//#endif // FFMPEG_SUPPORT
 #endif // ACE_WIN32 || ACE_WIN64
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -672,26 +723,26 @@ DATASTREAM_MODULE_INPUT_ONLY (Stream_AVSave_V4L_SessionData,                   /
 #endif // ACE_WIN32 || ACE_WIN64
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-DATASTREAM_MODULE_INPUT_ONLY_A (Stream_AVSave_DirectShow_SessionData,                // session data type
-                                enum Stream_SessionMessageType,                   // session event type
-                                struct Stream_AVSave_DirectShow_ModuleHandlerConfiguration, // module handler configuration type
-                                libacestream_default_misc_messagehandler_module_name_string,
-                                Stream_INotify_t,                                 // stream notification interface type
-                                Stream_AVSave_DirectShow_MessageHandler);        // writer type
+DATASTREAM_MODULE_INPUT_ONLY (Stream_AVSave_DirectShow_SessionData,                        // session data type
+                              enum Stream_SessionMessageType,                              // session event type
+                              struct Stream_AVSave_DirectShow_ModuleHandlerConfiguration,  // module handler configuration type
+                              libacestream_default_misc_messagehandler_module_name_string,
+                              Stream_INotify_t,                                            // stream notification interface type
+                              Stream_AVSave_DirectShow_MessageHandler);                    // writer type
 
-DATASTREAM_MODULE_INPUT_ONLY_A (Stream_AVSave_MediaFoundation_SessionData,                // session data type
-                                enum Stream_SessionMessageType,                   // session event type
-                                struct Stream_AVSave_MediaFoundation_ModuleHandlerConfiguration, // module handler configuration type
-                                libacestream_default_misc_messagehandler_module_name_string,
-                                Stream_INotify_t,                                 // stream notification interface type
-                                Stream_AVSave_MediaFoundation_MessageHandler);   // writer type
+DATASTREAM_MODULE_INPUT_ONLY (Stream_AVSave_MediaFoundation_SessionData,                       // session data type
+                              enum Stream_SessionMessageType,                                  // session event type
+                              struct Stream_AVSave_MediaFoundation_ModuleHandlerConfiguration, // module handler configuration type
+                              libacestream_default_misc_messagehandler_module_name_string,
+                              Stream_INotify_t,                                                // stream notification interface type
+                              Stream_AVSave_MediaFoundation_MessageHandler);                    // writer type
 #else
-DATASTREAM_MODULE_INPUT_ONLY_A (Stream_AVSave_V4L_SessionData,                           // session data type
-                                enum Stream_SessionMessageType,                       // session event type
-                                struct Stream_AVSave_V4L_ModuleHandlerConfiguration, // module handler configuration type
-                                libacestream_default_misc_messagehandler_module_name_string,
-                                Stream_INotify_t,                                     // stream notification interface type
-                                Stream_AVSave_MessageHandler);                       // writer type
+DATASTREAM_MODULE_INPUT_ONLY (Stream_AVSave_V4L_SessionData,                               // session data type
+                              enum Stream_SessionMessageType,                              // session event type
+                              struct Stream_AVSave_V4L_ModuleHandlerConfiguration,         // module handler configuration type
+                              libacestream_default_misc_messagehandler_module_name_string,
+                              Stream_INotify_t,                                            // stream notification interface type
+                              Stream_AVSave_MessageHandler);                               // writer type
 #endif // ACE_WIN32 || ACE_WIN64
 
 #endif

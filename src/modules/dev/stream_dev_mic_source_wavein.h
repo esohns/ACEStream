@@ -26,8 +26,6 @@
 #include "ace/Global_Macros.h"
 #include "ace/Synch_Traits.h"
 
-//#include "common_iget.h"
-
 #include "stream_common.h"
 #include "stream_headmoduletask_base.h"
 
@@ -128,9 +126,6 @@ class Stream_Dev_Mic_Source_WaveIn_T
   // override (part of) Stream_IModuleHandler_T
   virtual bool initialize (const ConfigurationType&,
                            Stream_IAllocator* = NULL);
-  //virtual void start ();
-  //virtual void stop (bool = true,   // wait for completion ?
-  //                   bool = false); // high priority ?
 
   // implement Common_IStatistic
   // *NOTE*: implements regular (timer-based) statistic collection
@@ -142,9 +137,6 @@ class Stream_Dev_Mic_Source_WaveIn_T
                                   bool&);            // return value: pass message downstream ?
   virtual void handleSessionMessage (SessionMessageType*&, // session message handle
                                      bool&);               // return value: pass message downstream ?
-
-  // implement Common_ISet_T
-  //virtual void set (const unsigned int);
 
  private:
   // convenient types

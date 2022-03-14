@@ -204,7 +204,7 @@ Stream_TaskBaseAsynch_T<ACE_SYNCH_USE,
   } // end IF
 
   // step2: spawn worker thread(s)
-  ACE_ASSERT (!inherited::thr_count_);
+  ACE_ASSERT (inherited::thr_count_ == 0);
   result = inherited::open (NULL);
   if (unlikely (result == -1))
   {

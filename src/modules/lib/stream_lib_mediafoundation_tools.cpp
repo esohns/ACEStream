@@ -5874,6 +5874,48 @@ clean:
   return (result == S_OK);
 }
 
+bool
+Stream_MediaFramework_MediaFoundation_Tools::copy (const struct Stream_MediaFramework_MediaFoundation_AudioVideoFormat& mediaType_in,
+                                                   struct Stream_MediaFramework_MediaFoundation_AudioVideoFormat& result_out)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_MediaFoundation_Tools::copy"));
+
+  // initialize return value(s)
+  Stream_MediaFramework_MediaFoundation_Tools::free (result_out);
+
+  result_out.audio =
+    Stream_MediaFramework_MediaFoundation_Tools::copy (mediaType_in.audio);
+  result_out.video =
+    Stream_MediaFramework_MediaFoundation_Tools::copy (mediaType_in.video);
+
+  return true;
+}
+
+void
+Stream_MediaFramework_MediaFoundation_Tools::free (struct Stream_MediaFramework_MediaFoundation_AudioVideoFormat& mediaType_inout)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_MediaFoundation_Tools::free"));
+
+  if (mediaType_inout.audio)
+    mediaType_inout.audio->Release ();
+  mediaType_inout.audio = NULL;
+  if (mediaType_inout.video)
+    mediaType_inout.video->Release ();
+  mediaType_inout.video = NULL;
+}
+
+void
+Stream_MediaFramework_MediaFoundation_Tools::free (Stream_MediaFramework_MediaFoundation_AudioVideoFormats_t& formats_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_MediaFoundation_Tools::free"));
+
+  for (Stream_MediaFramework_MediaFoundation_AudioVideoFormatsIterator_t iterator = formats_in.begin ();
+       iterator != formats_in.end ();
+       ++iterator)
+    Stream_MediaFramework_MediaFoundation_Tools::free (*iterator);
+  formats_in.clear ();
+}
+
 IMFMediaType*
 Stream_MediaFramework_MediaFoundation_Tools::copy (const IMFMediaType* mediaType_in)
 {
@@ -5903,6 +5945,18 @@ Stream_MediaFramework_MediaFoundation_Tools::copy (const IMFMediaType* mediaType
   } // end IF
 
   return result_p;
+}
+
+void
+Stream_MediaFramework_MediaFoundation_Tools::free (Stream_MediaFramework_MediaFoundation_Formats_t& formats_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_MediaFoundation_Tools::free"));
+
+  for (Stream_MediaFramework_MediaFoundation_FormatsIterator_t iterator = formats_in.begin ();
+       iterator != formats_in.end ();
+       ++iterator)
+    (*iterator)->Release ();
+  formats_in.clear ();
 }
 
 //std::string

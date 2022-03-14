@@ -171,7 +171,7 @@ template <ACE_SYNCH_DECL,
           typename DataMessageType,
           typename SessionMessageType,
           ////////////////////////////////
-          typename SessionDataType,
+          typename SessionDataType, // NOT reference counted-
           ////////////////////////////////
           typename UserDataType>
 class Stream_Module_MessageHandlerA_T
@@ -180,8 +180,7 @@ class Stream_Module_MessageHandlerA_T
                                                 ConfigurationType,
                                                 ControlMessageType,
                                                 DataMessageType,
-                                                SessionMessageType,
-                                                SessionDataType>
+                                                SessionMessageType>
  , public Common_ISubscribe_T<Stream_ISessionDataNotify_T<SessionDataType,
                                                           enum Stream_SessionMessageType,
                                                           DataMessageType,
@@ -195,8 +194,7 @@ class Stream_Module_MessageHandlerA_T
                                                 ConfigurationType,
                                                 ControlMessageType,
                                                 DataMessageType,
-                                                SessionMessageType,
-                                                SessionDataType> inherited;
+                                                SessionMessageType> inherited;
 
  public:
   // convenient types
@@ -207,13 +205,12 @@ class Stream_Module_MessageHandlerA_T
                                       DataMessageType,
                                       SessionMessageType> INOTIFY_T;
   typedef std::list<INOTIFY_T*> SUBSCRIBERS_T;
-  typedef Stream_Module_Aggregator_ReaderTask_T <ACE_SYNCH_USE,
-                                                 TimePolicyType,
-                                                 ConfigurationType,
-                                                 ControlMessageType,
-                                                 DataMessageType,
-                                                 SessionMessageType,
-                                                 SessionDataType> READER_T;
+  typedef Stream_Module_Aggregator_ReaderTask_T<ACE_SYNCH_USE,
+                                                TimePolicyType,
+                                                ConfigurationType,
+                                                ControlMessageType,
+                                                DataMessageType,
+                                                SessionMessageType> READER_T;
 
   // *TODO*: on MSVC 2015u3 the accurate declaration does not compile
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -261,6 +258,7 @@ class Stream_Module_MessageHandlerA_T
   typename ACE_SYNCH_USE::RECURSIVE_MUTEX* subscribersLock_;
 
  private:
+  // convenient types
   typedef Stream_Module_MessageHandlerA_T<ACE_SYNCH_USE,
                                           TimePolicyType,
                                           ConfigurationType,

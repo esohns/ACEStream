@@ -29,6 +29,8 @@
 #include "ace/Stream_Modules.h"
 #include "ace/Task_T.h"
 
+#include "common_iget.h"
+
 #include "stream_imodule.h"
 
 template <ACE_SYNCH_DECL,
@@ -162,6 +164,8 @@ class Stream_Module_BaseA_T
                                NotificationType,
                                ReaderTaskType,
                                WriterTaskType>
+ , public Common_ISetP_T<ACE_Stream<ACE_SYNCH_USE,
+                                    TimePolicyType> >
 {
   typedef Stream_Module_Base_T<ACE_SYNCH_USE,
                                TimePolicyType,
@@ -180,6 +184,9 @@ class Stream_Module_BaseA_T
   // override ACE_Module members
   inline virtual ACE_Module<ACE_SYNCH_USE, TimePolicyType>* next (void) { return NULL; }
   inline virtual void next (ACE_Module<ACE_SYNCH_USE, TimePolicyType>* module_in) { ACE_UNUSED_ARG (module_in); }
+
+  // implement Common_ISetP_T
+  inline virtual void setP (ACE_Stream<ACE_SYNCH_USE, TimePolicyType>* stream_in) { inherited::stream_ = stream_in; }
 
  protected:
   Stream_Module_BaseA_T (const std::string&,          // name

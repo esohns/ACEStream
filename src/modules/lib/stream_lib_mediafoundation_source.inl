@@ -1199,6 +1199,7 @@ continue_:
       topology_p->Release (); topology_p = NULL;
 
       inherited2::getMediaType (media_type_p,
+                                STREAM_MEDIATYPE_INVALID, // N/A
                                 media_type_2);
       session_data_r.formats.push_back (media_type_2);
       media_type_p->Release (); media_type_p = NULL;

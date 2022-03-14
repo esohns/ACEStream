@@ -315,6 +315,7 @@ Stream_Dec_Noise_Source_T<ACE_SYNCH_USE,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
       Stream_MediaFramework_DirectShow_Tools::free (mediaType_);
       inherited2::getMediaType (session_data_r.formats.back (),
+                                STREAM_MEDIATYPE_AUDIO,
                                 mediaType_);
       ACE_ASSERT (InlineIsEqualGUID (mediaType_.formattype, FORMAT_WaveFormatEx));
       struct tWAVEFORMATEX* waveformatex_p =

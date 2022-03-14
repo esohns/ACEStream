@@ -421,7 +421,13 @@ Stream_MediaFramework_MediaFoundation_Target_T<ACE_SYNCH_USE,
           goto continue_;
         } // end IF
 
-        if (!initializeMediaSession (session_data_r.formats.back (),
+        IMFMediaType* media_type_p = NULL;
+        inherited2::getMediaType (session_data_r.formats.back (),
+                                  STREAM_MEDIATYPE_INVALID, // N/A
+                                  media_type_p);
+        ACE_ASSERT (media_type_p);
+
+        if (!initializeMediaSession (media_type_p,
                                      NULL,
                                      node_id,
                                      mediaSession_))
@@ -429,8 +435,10 @@ Stream_MediaFramework_MediaFoundation_Target_T<ACE_SYNCH_USE,
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("%s: failed to Stream_MediaFramework_MediaFoundation_Target_T::initializeMediaSession(), aboring\n"),
                       inherited::mod_->name ()));
+          media_type_p->Release (); media_type_p = NULL;
           goto error;
         } // end IF
+        media_type_p->Release (); media_type_p = NULL;
       } // end IF
 continue_:
       ACE_ASSERT (mediaSession_);
@@ -587,30 +595,39 @@ error:
       const SessionDataType& session_data_r =
         session_data_container_r.getR ();
 
+      IMFMediaType* media_type_p = NULL;
+      inherited2::getMediaType (session_data_r.formats.back (),
+                                STREAM_MEDIATYPE_INVALID, // N/A
+                                media_type_p);
+      ACE_ASSERT (media_type_p);
+
       // step1: update media source
       if (inherited::configuration_->mediaFoundationConfiguration->mediaType)
       {
         inherited::configuration_->mediaFoundationConfiguration->mediaType->Release (); inherited::configuration_->mediaFoundationConfiguration->mediaType = NULL;
       } // end IF
-      inherited2::getMediaType (session_data_r.formats.back (),
-                                inherited::configuration_->mediaFoundationConfiguration->mediaType);
+      inherited::configuration_->mediaFoundationConfiguration->mediaType =
+        Stream_MediaFramework_MediaFoundation_Tools::copy (media_type_p);
       ACE_ASSERT (inherited::configuration_->mediaFoundationConfiguration->mediaType);
       if (!inherited4::initialize (*inherited::configuration_->mediaFoundationConfiguration))
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: failed to Stream_MediaFramework_MediaFoundation_MediaSource_T::initialize(), aborting\n"),
                     inherited::mod_->name ()));
+        media_type_p->Release (); media_type_p = NULL;
         goto error_2;
       } // end IF
 
       // step2: update topology
-      if (!updateMediaSession (session_data_r.formats.back ()))
+      if (!updateMediaSession (media_type_p))
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: failed to Stream_MediaFramework_MediaFoundation_Target_T::updateMediaSession(), aborting\n"),
                     inherited::mod_->name ()));
+        media_type_p->Release (); media_type_p = NULL;
         goto error_2;
       } // end IF
+      media_type_p->Release (); media_type_p = NULL;
 
       break;
 

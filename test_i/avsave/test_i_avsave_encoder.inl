@@ -57,32 +57,21 @@ template <ACE_SYNCH_DECL,
           typename SessionMessageType,
           typename SessionDataContainerType,
           typename MediaType>
-Stream_Decoder_LibAVEncoder_T<ACE_SYNCH_USE,
-                              TimePolicyType,
-                              ConfigurationType,
-                              ControlMessageType,
-                              DataMessageType,
-                              SessionMessageType,
-                              SessionDataContainerType,
+Test_I_AVSave_Encoder_T<ACE_SYNCH_USE,
+                        TimePolicyType,
+                        ConfigurationType,
+                        ControlMessageType,
+                        DataMessageType,
+                        SessionMessageType,
+                        SessionDataContainerType,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-                              MediaType>::Stream_Decoder_LibAVEncoder_T (ISTREAM_T* stream_in)
+                        MediaType>::Test_I_AVSave_Encoder_T (ISTREAM_T* stream_in)
 #else
-                              MediaType>::Stream_Decoder_LibAVEncoder_T (typename inherited::ISTREAM_T* stream_in)
+                        MediaType>::Test_I_AVSave_Encoder_T (typename inherited::ISTREAM_T* stream_in)
 #endif // ACE_WIN32 || ACE_WIN64
  : inherited (stream_in)
- , inherited2 ()
- , audioCodecContext_ (NULL)
- , audioFrame_ (NULL)
- , audioFrameSize_ (0)
- , audioStream_ (NULL)
- , formatContext_ (NULL)
- , headerWritten_ (false)
- , videoCodecContext_ (NULL)
- , videoFrame_ (NULL)
- , videoFrameSize_ (0)
- , videoStream_ (NULL)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_Decoder_LibAVEncoder_T::Stream_Decoder_LibAVEncoder_T"));
+  STREAM_TRACE (ACE_TEXT ("Test_I_AVSave_Encoder_T::Test_I_AVSave_Encoder_T"));
 
 }
 
@@ -94,29 +83,17 @@ template <ACE_SYNCH_DECL,
           typename SessionMessageType,
           typename SessionDataContainerType,
           typename MediaType>
-Stream_Decoder_LibAVEncoder_T<ACE_SYNCH_USE,
-                              TimePolicyType,
-                              ConfigurationType,
-                              ControlMessageType,
-                              DataMessageType,
-                              SessionMessageType,
-                              SessionDataContainerType,
-                              MediaType>::~Stream_Decoder_LibAVEncoder_T ()
+Test_I_AVSave_Encoder_T<ACE_SYNCH_USE,
+                        TimePolicyType,
+                        ConfigurationType,
+                        ControlMessageType,
+                        DataMessageType,
+                        SessionMessageType,
+                        SessionDataContainerType,
+                        MediaType>::~Test_I_AVSave_Encoder_T ()
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_Decoder_LibAVEncoder_T::~Stream_Decoder_LibAVEncoder_T"));
+  STREAM_TRACE (ACE_TEXT ("Test_I_AVSave_Encoder_T::~Test_I_AVSave_Encoder_T"));
 
-  if (formatContext_)
-    avformat_free_context (formatContext_);
-
-//  if (audioCodecContext_)
-//    avcodec_free_context (&audioCodecContext_);
-//  if (videoCodecContext_)
-//    avcodec_free_context (&videoCodecContext_);
-
-  if (audioFrame_)
-    av_frame_free (&audioFrame_);
-  if (videoFrame_)
-    av_frame_free (&videoFrame_);
 }
 
 template <ACE_SYNCH_DECL,
@@ -128,70 +105,21 @@ template <ACE_SYNCH_DECL,
           typename SessionDataContainerType,
           typename MediaType>
 bool
-Stream_Decoder_LibAVEncoder_T<ACE_SYNCH_USE,
-                              TimePolicyType,
-                              ConfigurationType,
-                              ControlMessageType,
-                              DataMessageType,
-                              SessionMessageType,
-                              SessionDataContainerType,
-                              MediaType>::initialize (const ConfigurationType& configuration_in,
-                                                      Stream_IAllocator* allocator_in)
+Test_I_AVSave_Encoder_T<ACE_SYNCH_USE,
+                        TimePolicyType,
+                        ConfigurationType,
+                        ControlMessageType,
+                        DataMessageType,
+                        SessionMessageType,
+                        SessionDataContainerType,
+                        MediaType>::initialize (const ConfigurationType& configuration_in,
+                                                Stream_IAllocator* allocator_in)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_Decoder_LibAVEncoder_T::initialize"));
+  STREAM_TRACE (ACE_TEXT ("Test_I_AVSave_Encoder_T::initialize"));
 
   if (inherited::isInitialized_)
   {
-    if (audioCodecContext_)
-      avcodec_free_context (&audioCodecContext_);
-    if (audioFrame_)
-    {
-      av_frame_free (&audioFrame_); ACE_ASSERT (!audioFrame_);
-    } // end IF
-    audioFrameSize_ = 0;
-    audioStream_ = NULL; // *TODO*: how are these freed ?
-    if (formatContext_)
-    {
-      avformat_free_context (formatContext_); formatContext_ = NULL;
-    } // end IF
-    headerWritten_ = false;
-    if (videoCodecContext_)
-      avcodec_free_context (&videoCodecContext_);
-    if (videoFrame_)
-    {
-      av_frame_free (&videoFrame_); ACE_ASSERT (!videoFrame_);
-    } // end IF
-    videoFrameSize_ = 0;
-    videoStream_ = NULL; // *TODO*: how are these freed ?
   } // end IF
-
-#if defined (_DEBUG)
-  //av_log_set_callback (Stream_Decoder_LibAVDecoder_LoggingCB);
-  // *NOTE*: this level logs all messages
-  //av_log_set_level (std::numeric_limits<int>::max ());
-#endif // _DEBUG
-  //av_register_all ();
-//  avcodec_register_all ();
-
-  audioFrame_ = av_frame_alloc ();
-  if (unlikely (!audioFrame_))
-  {
-    ACE_DEBUG ((LM_CRITICAL,
-                ACE_TEXT ("%s: av_frame_alloc() failed: \"%m\", aborting\n"),
-                inherited::mod_->name ()));
-    return false;
-  } // end IF
-  audioFrame_->pts = 0;
-
-  videoFrame_ = av_frame_alloc ();
-  if (unlikely (!videoFrame_))
-  {
-    ACE_DEBUG ((LM_CRITICAL,
-                ACE_TEXT ("%s: av_frame_alloc() failed: \"%m\", aborting\n"),
-                inherited::mod_->name ()));
-    return false;
-  } // end IF
-  videoFrame_->pts = 0;
 
   return inherited::initialize (configuration_in,
                                 allocator_in);
@@ -206,21 +134,23 @@ template <ACE_SYNCH_DECL,
           typename SessionDataContainerType,
           typename MediaType>
 void
-Stream_Decoder_LibAVEncoder_T<ACE_SYNCH_USE,
-                              TimePolicyType,
-                              ConfigurationType,
-                              ControlMessageType,
-                              DataMessageType,
-                              SessionMessageType,
-                              SessionDataContainerType,
-                              MediaType>::handleDataMessage (DataMessageType*& message_inout,
-                                                             bool& passMessageDownstream_out)
+Test_I_AVSave_Encoder_T<ACE_SYNCH_USE,
+                        TimePolicyType,
+                        ConfigurationType,
+                        ControlMessageType,
+                        DataMessageType,
+                        SessionMessageType,
+                        SessionDataContainerType,
+                        MediaType>::handleDataMessage (DataMessageType*& message_inout,
+                                                       bool& passMessageDownstream_out)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_Decoder_LibAVEncoder_T::handleDataMessage"));
+  STREAM_TRACE (ACE_TEXT ("Test_I_AVSave_Encoder_T::handleDataMessage"));
 
   // sanity check(s)
-  if (unlikely (!headerWritten_))
+  if (unlikely (!inherited::headerWritten_))
     return; // --> not fully initialized (yet)
+  if (unlikely (!inherited::formatContext_))
+    return; // --> disregard 'late' messages
 
   int result = -1;
   ACE_Message_Block* message_block_p = message_inout;
@@ -233,21 +163,23 @@ Stream_Decoder_LibAVEncoder_T<ACE_SYNCH_USE,
   {
     case STREAM_MEDIATYPE_AUDIO:
     {
-      codec_context_p = audioCodecContext_;
-      frame_p = audioFrame_;
-      frame_p->nb_samples = message_block_p->length () / audioFrameSize_;
+      codec_context_p = inherited::audioCodecContext_;
+      frame_p = inherited::audioFrame_;
+      frame_p->nb_samples =
+        message_block_p->length () / inherited::audioFrameSize_;
       frame_p->pts += frame_p->nb_samples;
-      stream_p = audioStream_;
+      stream_p = inherited::audioStream_;
       break;
     }
     case STREAM_MEDIATYPE_VIDEO:
     {
-      codec_context_p = videoCodecContext_;
-      frame_p = videoFrame_;
-      frame_p->nb_samples = message_block_p->length () / videoFrameSize_;
+      codec_context_p = inherited::videoCodecContext_;
+      frame_p = inherited::videoFrame_;
+      frame_p->nb_samples =
+        message_block_p->length () / inherited::videoFrameSize_;
       ACE_ASSERT (frame_p->nb_samples == 1);
       frame_p->pts += frame_p->nb_samples;
-      stream_p = videoStream_;
+      stream_p = inherited::videoStream_;
       break;
     }
     default:
@@ -299,7 +231,8 @@ Stream_Decoder_LibAVEncoder_T<ACE_SYNCH_USE,
 
       /* Write the frame to the media file. */
 //      result = av_write_frame (formatContext_, &packet_s);
-      result = av_interleaved_write_frame (formatContext_, &packet_s);
+      result = av_interleaved_write_frame (inherited::formatContext_,
+                                           &packet_s);
       av_packet_unref (&packet_s);
       if (result < 0)
       {
@@ -332,17 +265,17 @@ template <ACE_SYNCH_DECL,
           typename SessionDataContainerType,
           typename MediaType>
 void
-Stream_Decoder_LibAVEncoder_T<ACE_SYNCH_USE,
-                              TimePolicyType,
-                              ConfigurationType,
-                              ControlMessageType,
-                              DataMessageType,
-                              SessionMessageType,
-                              SessionDataContainerType,
-                              MediaType>::handleSessionMessage (SessionMessageType*& message_inout,
-                                                                bool& passMessageDownstream_out)
+Test_I_AVSave_Encoder_T<ACE_SYNCH_USE,
+                        TimePolicyType,
+                        ConfigurationType,
+                        ControlMessageType,
+                        DataMessageType,
+                        SessionMessageType,
+                        SessionDataContainerType,
+                        MediaType>::handleSessionMessage (SessionMessageType*& message_inout,
+                                                          bool& passMessageDownstream_out)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_Decoder_LibAVEncoder_T::handleSessionMessage"));
+  STREAM_TRACE (ACE_TEXT ("Test_I_AVSave_Encoder_T::handleSessionMessage"));
 
   // don't care (implies yes per default, if part of a stream)
   ACE_UNUSED_ARG (passMessageDownstream_out);
@@ -369,14 +302,15 @@ Stream_Decoder_LibAVEncoder_T<ACE_SYNCH_USE,
       enum AVCodecID video_coded_id = AV_CODEC_ID_RAWVIDEO;
       enum AVCodecID audio_coded_id = AV_CODEC_ID_PCM_S16LE;
 
-      inherited2::getMediaType (session_data_r.formats.back (),
-                                STREAM_MEDIATYPE_AUDIO,
-                                audio_media_type_s);
-      inherited2::getMediaType (session_data_r.formats.back (),
-                                STREAM_MEDIATYPE_VIDEO,
-                                video_media_type_s);
+      inherited::getMediaType (session_data_r.formats.back (),
+                               STREAM_MEDIATYPE_AUDIO,
+                               audio_media_type_s);
+      inherited::getMediaType (session_data_r.formats.back (),
+                               STREAM_MEDIATYPE_VIDEO,
+                               video_media_type_s);
 
-      if (formatContext_)
+      // *IMPORTANT NOTE*: only initialize the format/output context once
+      if (inherited::formatContext_)
         goto continue_;
 
       output_format_p =
@@ -390,11 +324,11 @@ Stream_Decoder_LibAVEncoder_T<ACE_SYNCH_USE,
                     inherited::mod_->name ()));
         goto error;
       } // end IF
-      result = avformat_alloc_output_context2 (&formatContext_,
+      result = avformat_alloc_output_context2 (&(inherited::formatContext_),
                                                output_format_p,
                                                NULL,
                                                NULL);
-      if (unlikely ((result < 0) || !formatContext_))
+      if (unlikely ((result < 0) || !inherited::formatContext_))
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: avformat_alloc_output_context2() failed: \"%m\", aborting\n"),
@@ -419,8 +353,8 @@ Stream_Decoder_LibAVEncoder_T<ACE_SYNCH_USE,
       } // end IF
 
 continue_:
-      ACE_ASSERT (formatContext_);
-      ACE_ASSERT (formatContext_->oformat);
+      ACE_ASSERT (inherited::formatContext_);
+      //ACE_ASSERT (inherited::formatContext_->oformat);
 
       switch (message_inout->getMediaType ())
       {
@@ -428,15 +362,15 @@ continue_:
           goto audio;
         case STREAM_MEDIATYPE_VIDEO:
         {
-          videoFrame_->format = video_media_type_s.format;
+          inherited::videoFrame_->format = video_media_type_s.format;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-          videoFrame_->height =
+          inherited::videoFrame_->height =
               static_cast<unsigned int> (std::abs (video_media_type_s.resolution.cy));
-          videoFrame_->width =
+          inherited::videoFrame_->width =
             static_cast<unsigned int> (video_media_type_s.resolution.cx);
 #else
-          videoFrame_->height = video_media_type_s.resolution.height;
-          videoFrame_->width = video_media_type_s.resolution.width;
+          inherited::videoFrame_->height = video_media_type_s.resolution.height;
+          inherited::videoFrame_->width = video_media_type_s.resolution.width;
 #endif // ACE_WIN32 || ACE_WIN64
 
           goto video;
@@ -452,8 +386,9 @@ continue_:
       } // end SWITCH
 
 audio:
-      formatContext_->audio_codec = avcodec_find_encoder (audio_coded_id);
-      if (unlikely (!formatContext_->audio_codec))
+      inherited::formatContext_->audio_codec =
+        avcodec_find_encoder (audio_coded_id);
+      if (unlikely (!inherited::formatContext_->audio_codec))
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: avcodec_find_encoder(%d) failed: \"%m\", aborting\n"),
@@ -461,42 +396,46 @@ audio:
                     audio_coded_id));
         goto error;
       } // end IF
-      formatContext_->audio_codec_id = audio_coded_id;
+      inherited::formatContext_->audio_codec_id = audio_coded_id;
 
-      audioStream_ = avformat_new_stream (formatContext_, formatContext_->audio_codec);
-      if (!audioStream_)
+      audioStream_ =
+        avformat_new_stream (inherited::formatContext_,
+                             inherited::formatContext_->audio_codec);
+      if (!inherited::audioStream_)
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: avformat_new_stream() failed, aborting\n"),
                     inherited::mod_->name ()));
         goto error;
       } // end IF
-      audioStream_->id = formatContext_->nb_streams - 1;
+      inherited::audioStream_->id = inherited::formatContext_->nb_streams - 1;
 
-      audioCodecContext_ = avcodec_alloc_context3 (formatContext_->audio_codec);
-      if (unlikely (!audioCodecContext_))
+      inherited::audioCodecContext_ =
+        avcodec_alloc_context3 (inherited::formatContext_->audio_codec);
+      if (unlikely (!inherited::audioCodecContext_))
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: avcodec_alloc_context3() failed: \"%m\", aborting\n"),
                     inherited::mod_->name ()));
         goto error;
       } // end IF
-      ACE_ASSERT (audioCodecContext_);
+      ACE_ASSERT (inherited::audioCodecContext_);
 
-      audioFrameSize_ =
+      inherited::audioFrameSize_ =
         (audio_media_type_s.channels * av_get_bytes_per_sample (audio_media_type_s.format));
-      audioCodecContext_->channels = audio_media_type_s.channels;
-      audioCodecContext_->sample_fmt = audio_media_type_s.format;
-      audioCodecContext_->bit_rate =
-        audioFrameSize_ * audio_media_type_s.sampleRate * 8;
-      audioCodecContext_->sample_rate = audio_media_type_s.sampleRate;
+      inherited::audioCodecContext_->channels = audio_media_type_s.channels;
+      inherited::audioCodecContext_->sample_fmt = audio_media_type_s.format;
+      inherited::audioCodecContext_->bit_rate =
+        inherited::audioFrameSize_ * audio_media_type_s.sampleRate * 8;
+      inherited::audioCodecContext_->sample_rate =
+        audio_media_type_s.sampleRate;
       switch (audio_media_type_s.channels)
       {
         case 1:
-          audioCodecContext_->channel_layout = AV_CH_LAYOUT_MONO;
+          inherited::audioCodecContext_->channel_layout = AV_CH_LAYOUT_MONO;
           break;
         case 2:
-          audioCodecContext_->channel_layout = AV_CH_LAYOUT_STEREO;
+          inherited::audioCodecContext_->channel_layout = AV_CH_LAYOUT_STEREO;
           break;
         default:
         {
@@ -507,16 +446,21 @@ audio:
           goto error;
         }
       } // end SWITCH
-      audioStream_->time_base.num = 1;
-      audioStream_->time_base.den = audioCodecContext_->sample_rate;
-      audioCodecContext_->time_base = audioStream_->time_base;
+      inherited::audioStream_->time_base.num = 1;
+      inherited::audioStream_->time_base.den =
+        inherited::audioCodecContext_->sample_rate;
+      inherited::audioCodecContext_->time_base =
+        inherited::audioStream_->time_base;
 
-      audioFrame_->format = audioCodecContext_->sample_fmt;
-      audioFrame_->channel_layout = audioCodecContext_->channel_layout;
-      audioFrame_->sample_rate = audioCodecContext_->sample_rate;
+      inherited::audioFrame_->format =
+        inherited::audioCodecContext_->sample_fmt;
+      inherited::audioFrame_->channel_layout =
+        inherited::audioCodecContext_->channel_layout;
+      inherited::audioFrame_->sample_rate =
+        inherited::audioCodecContext_->sample_rate;
 
-      result = avcodec_open2 (audioCodecContext_,
-                              audioCodecContext_->codec,
+      result = avcodec_open2 (inherited::audioCodecContext_,
+                              inherited::audioCodecContext_->codec,
                               NULL);
       if (unlikely (result < 0))
       {
@@ -529,18 +473,19 @@ audio:
       ACE_DEBUG ((LM_DEBUG,
                   ACE_TEXT ("%s: initialized codec %s; encoded audio format: %s\n"),
                   inherited::mod_->name (),
-                  ACE_TEXT (audioCodecContext_->codec->long_name),
-                  ACE_TEXT (Stream_Module_Decoder_Tools::audioFormatToString (audioCodecContext_->sample_fmt).c_str ())));
+                  ACE_TEXT (inherited::audioCodecContext_->codec->long_name),
+                  ACE_TEXT (Stream_Module_Decoder_Tools::audioFormatToString (inherited::audioCodecContext_->sample_fmt).c_str ())));
 
 //      audioStream_->codec = audioCodecContext_;
-      avcodec_parameters_from_context (audioStream_->codecpar,
-                                       audioCodecContext_);
+      avcodec_parameters_from_context (inherited::audioStream_->codecpar,
+                                       inherited::audioCodecContext_);
 
       goto continue_2;
 
 video:
-      formatContext_->video_codec = avcodec_find_encoder (video_coded_id);
-      if (unlikely (!formatContext_->video_codec))
+      inherited::formatContext_->video_codec =
+        avcodec_find_encoder (video_coded_id);
+      if (unlikely (!inherited::formatContext_->video_codec))
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: avcodec_find_encoder(%d) failed: \"%m\", aborting\n"),
@@ -548,56 +493,62 @@ video:
                     video_coded_id));
         goto error;
       } // end IF
-      formatContext_->video_codec_id = video_coded_id;
+      inherited::formatContext_->video_codec_id = video_coded_id;
 
-      videoStream_ = avformat_new_stream (formatContext_, formatContext_->video_codec);
-      if (!videoStream_)
+      inherited::videoStream_ =
+        avformat_new_stream (inherited::formatContext_,
+                             inherited::formatContext_->video_codec);
+      if (!inherited::videoStream_)
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: avformat_new_stream() failed, aborting\n"),
                     inherited::mod_->name ()));
         goto error;
       } // end IF
-      videoStream_->id = formatContext_->nb_streams - 1;
+      inherited::videoStream_->id = inherited::formatContext_->nb_streams - 1;
 
-      videoCodecContext_ = avcodec_alloc_context3 (formatContext_->video_codec);
-      if (unlikely (!videoCodecContext_))
+      inherited::videoCodecContext_ =
+        avcodec_alloc_context3 (inherited::formatContext_->video_codec);
+      if (unlikely (!inherited::videoCodecContext_))
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: avcodec_alloc_context3() failed: \"%m\", aborting\n"),
                     inherited::mod_->name ()));
         goto error;
       } // end IF
-      ACE_ASSERT (videoCodecContext_);
+      ACE_ASSERT (inherited::videoCodecContext_);
 
-      videoCodecContext_->codec_id = video_coded_id;
+      inherited::videoCodecContext_->codec_id = video_coded_id;
 
-      videoCodecContext_->pix_fmt =
+      inherited::videoCodecContext_->pix_fmt =
           static_cast<AVPixelFormat> (videoFrame_->format);
-      videoFrameSize_ =
-        av_image_get_buffer_size (videoCodecContext_->pix_fmt,
-                                  videoFrame_->width,
-                                  videoFrame_->height,
+      inherited::videoFrameSize_ =
+        av_image_get_buffer_size (inherited::videoCodecContext_->pix_fmt,
+                                  inherited::videoFrame_->width,
+                                  inherited::videoFrame_->height,
                                   1); // *TODO*: linesize alignment
 
-      videoStream_->time_base.num = 1;
-      videoStream_->time_base.den = video_media_type_s.frameRate.num;
-      videoStream_->avg_frame_rate.num = video_media_type_s.frameRate.num;
-      videoStream_->avg_frame_rate.den = video_media_type_s.frameRate.den;
+      inherited::videoStream_->time_base.num = 1;
+      inherited::videoStream_->time_base.den = video_media_type_s.frameRate.num;
+      inherited::videoStream_->avg_frame_rate.num =
+        video_media_type_s.frameRate.num;
+      inherited::videoStream_->avg_frame_rate.den =
+        video_media_type_s.frameRate.den;
 
-      videoCodecContext_->bit_rate =
-          videoFrameSize_ * videoStream_->time_base.den * 8;
+      inherited::videoCodecContext_->bit_rate =
+        inherited::videoFrameSize_ * inherited::videoStream_->time_base.den * 8;
       /* Resolution must be a multiple of two. */
-      videoCodecContext_->width    = videoFrame_->width;
-      videoCodecContext_->height   = videoFrame_->height;
+      inherited::videoCodecContext_->width = inherited::videoFrame_->width;
+      inherited::videoCodecContext_->height = inherited::videoFrame_->height;
       /* timebase: This is the fundamental unit of time (in seconds) in terms
        * of which frame timestamps are represented. For fixed-fps content,
        * timebase should be 1/framerate and timestamp increments should be
        * identical to 1. */
-      videoCodecContext_->time_base = videoStream_->time_base;
+      inherited::videoCodecContext_->time_base =
+        inherited::videoStream_->time_base;
 
-      result = avcodec_open2 (videoCodecContext_,
-                              videoCodecContext_->codec,
+      result = avcodec_open2 (inherited::videoCodecContext_,
+                              inherited::videoCodecContext_->codec,
                               NULL);
       if (unlikely (result < 0))
       {
@@ -610,16 +561,16 @@ video:
       ACE_DEBUG ((LM_DEBUG,
                   ACE_TEXT ("%s: initialized codec %s; encoded pixel format: %s\n"),
                   inherited::mod_->name (),
-                  ACE_TEXT (videoCodecContext_->codec->long_name),
-                  ACE_TEXT (Stream_MediaFramework_Tools::pixelFormatToString (videoCodecContext_->pix_fmt).c_str ())));
+                  ACE_TEXT (inherited::videoCodecContext_->codec->long_name),
+                  ACE_TEXT (Stream_MediaFramework_Tools::pixelFormatToString (inherited::videoCodecContext_->pix_fmt).c_str ())));
 
-//      videoStream_->codec = videoCodecContext_;
-      avcodec_parameters_from_context (videoStream_->codecpar,
-                                       videoCodecContext_);
+//      videoStream_->codec = inherited::videoCodecContext_;
+      avcodec_parameters_from_context (inherited::videoStream_->codecpar,
+                                       inherited::videoCodecContext_);
 
-      result = av_image_fill_linesizes (videoFrame_->linesize,
-                                        static_cast<AVPixelFormat> (videoFrame_->format),
-                                        static_cast<int> (videoFrame_->width));
+      result = av_image_fill_linesizes (inherited::videoFrame_->linesize,
+                                        static_cast<AVPixelFormat> (inherited::videoFrame_->format),
+                                        static_cast<int> (inherited::videoFrame_->width));
       ACE_ASSERT (result >= 0);
 
       goto continue_2;
@@ -635,9 +586,10 @@ error:
       break;
 
 continue_2:
-      if (!headerWritten_ && (formatContext_->nb_streams == 2))
+      if (!inherited::headerWritten_ &&
+          (inherited::formatContext_->nb_streams == 2))
       {
-        result = avformat_write_header (formatContext_, NULL);
+        result = avformat_write_header (inherited::formatContext_, NULL);
         if (unlikely (result < 0))
         {
           ACE_DEBUG ((LM_ERROR,
@@ -645,7 +597,7 @@ continue_2:
                       inherited::mod_->name ()));
           goto error;
         } // end IF
-        headerWritten_ = true;
+        inherited::headerWritten_ = true;
       } // end IF
 
       break;
@@ -656,20 +608,21 @@ continue_2:
 
       ACE_GUARD (ACE_Thread_Mutex, aGuard, inherited::lock_);
 
-      if (!formatContext_)
+      if (!inherited::formatContext_)
         goto continue_3;
 
-      if (headerWritten_)
+      if (inherited::headerWritten_)
       {
-        result = av_write_trailer (formatContext_);
+        result = av_write_trailer (inherited::formatContext_);
         if (unlikely (result < 0))
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("%s: av_write_trailer() failed: \"%s\", continuing\n"),
                       inherited::mod_->name (),
                       ACE_TEXT (Common_Image_Tools::errorToString (result).c_str ())));
-        if (!(formatContext_->oformat->flags & AVFMT_NOFILE) && formatContext_->pb)
+        if (!(inherited::formatContext_->oformat->flags & AVFMT_NOFILE) &&
+            inherited::formatContext_->pb)
         {
-          result = avio_close (formatContext_->pb);
+          result = avio_close (inherited::formatContext_->pb);
           if (unlikely (result < 0))
             ACE_DEBUG ((LM_ERROR,
                         ACE_TEXT ("%s: avio_close() failed: \"%s\", continuing\n"),
@@ -678,16 +631,16 @@ continue_2:
         } // end IF
       } // end IF
 
-      avformat_free_context (formatContext_); formatContext_ = NULL;
+      avformat_free_context (inherited::formatContext_); inherited::formatContext_ = NULL;
 
 continue_3:
-//      if (audioCodecContext_)
+//      if (inherited::audioCodecContext_)
 //      {
-//        avcodec_free_context (&audioCodecContext_); ACE_ASSERT (!audioCodecContext_);
+//        avcodec_free_context (&inherited::audioCodecContext_); ACE_ASSERT (!inherited::audioCodecContext_);
 //      } // end IF
-//      if (videoCodecContext_)
+//      if (inherited::videoCodecContext_)
 //      {
-//        avcodec_free_context (&videoCodecContext_); ACE_ASSERT (!videoCodecContext_);
+//        avcodec_free_context (&inherited::videoCodecContext_); ACE_ASSERT (!inherited::videoCodecContext_);
 //      } // end IF
 
       break;

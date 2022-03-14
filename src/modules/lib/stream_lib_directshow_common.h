@@ -30,6 +30,8 @@
 
 #include "strmif.h"
 
+#include "ace/OS.h"
+
 #include "stream_lib_defines.h"
 
 // forward declarations
@@ -38,6 +40,22 @@ class Stream_IAllocator;
 
 typedef std::deque<struct _AMMediaType> Stream_MediaFramework_DirectShow_Formats_t;
 typedef Stream_MediaFramework_DirectShow_Formats_t::iterator Stream_MediaFramework_DirectShow_FormatsIterator_t;
+
+struct Stream_MediaFramework_DirectShow_AudioVideoFormat
+{
+  Stream_MediaFramework_DirectShow_AudioVideoFormat ()
+   : audio ()
+   , video ()
+  {
+    ACE_OS::memset (&audio, 0, sizeof (struct _AMMediaType));
+    ACE_OS::memset (&video, 0, sizeof (struct _AMMediaType));
+  }
+
+  struct _AMMediaType audio;
+  struct _AMMediaType video;
+};
+typedef std::deque<struct Stream_MediaFramework_DirectShow_AudioVideoFormat> Stream_MediaFramework_DirectShow_AudioVideoFormats_t;
+typedef Stream_MediaFramework_DirectShow_AudioVideoFormats_t::iterator Stream_MediaFramework_DirectShow_AudioVideoFormatsIterator_t;
 
 struct Stream_MediaFramework_DirectShow_FilterPinConfiguration
 {

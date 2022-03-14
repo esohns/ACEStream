@@ -318,7 +318,6 @@ Stream_Dev_Mic_Source_WaveIn_T<ACE_SYNCH_USE,
 
   // sanity check(s)
   ACE_ASSERT (inherited::configuration_);
-  ACE_ASSERT (inherited::configuration_->allocatorConfiguration);
   ACE_ASSERT (inherited::isInitialized_);
 
   typename TimerManagerType::INTERFACE_T* itimer_manager_p =
@@ -333,6 +332,7 @@ Stream_Dev_Mic_Source_WaveIn_T<ACE_SYNCH_USE,
     case STREAM_SESSION_MESSAGE_BEGIN:
     {
       // sanity check(s)
+      ACE_ASSERT (inherited::configuration_->allocatorConfiguration);
       ACE_ASSERT (inherited::sessionData_);
 
       if (inherited::configuration_->statisticCollectionInterval !=
@@ -369,6 +369,7 @@ Stream_Dev_Mic_Source_WaveIn_T<ACE_SYNCH_USE,
       struct _AMMediaType media_type_s;
       ACE_OS::memset (&media_type_s, 0, sizeof (struct _AMMediaType));
       inherited2::getMediaType (session_data_r.formats.back (),
+                                STREAM_MEDIATYPE_AUDIO,
                                 media_type_s);
       ACE_ASSERT (media_type_s.majortype == MEDIATYPE_Audio);
       //ACE_ASSERT (media_type_s.subtype == MEDIASUBTYPE_PCM);

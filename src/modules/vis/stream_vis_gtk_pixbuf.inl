@@ -271,7 +271,7 @@ Stream_Module_Vis_GTK_Pixbuf_T<ACE_SYNCH_USE,
 continue_:
       break;
 
-error:
+//error:
       this->notify (STREAM_SESSION_MESSAGE_ABORT);
 
       break;
@@ -316,7 +316,7 @@ error:
 
       break;
 
-error_2:
+//error_2:
       this->notify (STREAM_SESSION_MESSAGE_ABORT);
 
       break;

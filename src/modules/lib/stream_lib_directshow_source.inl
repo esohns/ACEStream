@@ -325,6 +325,7 @@ Stream_MediaFramework_DirectShow_Source_T<ACE_SYNCH_USE,
       } // end IF
       sample_grabber_p->Release (); sample_grabber_p = NULL;
       inherited2::getMediaType (media_type_s,
+                                STREAM_MEDIATYPE_INVALID, // N/A
                                 media_type_2);
       session_data_r.formats.push_back (media_type_2);
 

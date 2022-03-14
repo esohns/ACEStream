@@ -1081,8 +1081,13 @@ Stream_Device_DirectShow_Tools::getVideoCaptureFormat (IGraphBuilder* builder_in
     break; // --> found a match
   } // end FOR
   stream_config_p->Release (); stream_config_p = NULL;
+  if (unlikely (!media_type_p))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to retrieve capture format, aborting\n")));
+    return false;
+  } // end IF
 
-  ACE_ASSERT (media_type_p);
   mediaType_inout = *media_type_p;
   // *WARNING*: as the assignment operator was used (see previous line), do NOT use
   //            DeleteMediaType() here

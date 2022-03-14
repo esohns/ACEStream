@@ -525,6 +525,7 @@ continue_:
       // sanity check(s)
       ACE_ASSERT (!session_data_r.formats.empty ());
       inherited::getMediaType (session_data_r.formats.back (),
+                               STREAM_MEDIATYPE_AUDIO,
                                media_type_s);
       ACE_ASSERT (InlineIsEqualGUID (media_type_s.formattype, FORMAT_WaveFormatEx));
 
@@ -662,6 +663,7 @@ Stream_Decoder_WAVEncoder_T<ACE_SYNCH_USE,
   struct _AMMediaType media_type_s;
   ACE_OS::memset (&media_type_s, 0, sizeof (struct _AMMediaType));
   inherited::getMediaType (session_data_r.formats.back (),
+                           STREAM_MEDIATYPE_AUDIO,
                            media_type_s);
   ACE_ASSERT (InlineIsEqualGUID (media_type_s.formattype, FORMAT_WaveFormatEx));
   ACE_ASSERT (media_type_s.pbFormat);

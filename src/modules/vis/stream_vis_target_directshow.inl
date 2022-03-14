@@ -452,6 +452,7 @@ Stream_Vis_Target_DirectShow_T<ACE_SYNCH_USE,
 
       ACE_ASSERT (!session_data_r.formats.empty ());
       inherited::getMediaType (session_data_r.formats.back (),
+                               STREAM_MEDIATYPE_VIDEO,
                                media_type_s);
       Stream_MediaFramework_DirectShow_Tools::setResolution (resolution_s,
                                                              media_type_s);

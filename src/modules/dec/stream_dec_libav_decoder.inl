@@ -210,6 +210,7 @@ Stream_Decoder_LibAVDecoder_T<ACE_SYNCH_USE,
 
   struct Stream_MediaFramework_FFMPEG_VideoMediaType media_type_s;
   inherited2::getMediaType (configuration_in.outputFormat,
+                            STREAM_MEDIATYPE_VIDEO,
                             media_type_s);
   outputFormat_ = media_type_s.format;
   if (unlikely (outputFormat_ == AV_PIX_FMT_NONE))
@@ -418,6 +419,7 @@ Stream_Decoder_LibAVDecoder_T<ACE_SYNCH_USE,
       ACE_ASSERT (!session_data_r.formats.empty ());
       struct Stream_MediaFramework_FFMPEG_VideoMediaType media_type_s;
       inherited2::getMediaType (session_data_r.formats.back (),
+                                STREAM_MEDIATYPE_VIDEO,
                                 media_type_s);
       MediaType media_type_2;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -430,6 +432,7 @@ Stream_Decoder_LibAVDecoder_T<ACE_SYNCH_USE,
       decode_width = media_type_s.resolution.width;
 #endif // ACE_WIN32 || ACE_WIN64
       inherited2::getMediaType (media_type_s,
+                                STREAM_MEDIATYPE_VIDEO,
                                 media_type_2);
 
       outputFrameSize_ =
@@ -821,6 +824,7 @@ continue_:
       ACE_ASSERT (!session_data_r.formats.empty ());
       struct Stream_MediaFramework_FFMPEG_VideoMediaType media_type_s;
       inherited2::getMediaType (session_data_r.formats.back (),
+                                STREAM_MEDIATYPE_VIDEO,
                                 media_type_s);
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 //      struct _AMMediaType media_type_2;

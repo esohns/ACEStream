@@ -388,6 +388,7 @@ Stream_Decoder_FliteDecoder_T<ACE_SYNCH_USE,
       media_type_2.rate = 16000;
 #endif // ACE_WIN32 || ACE_WIN64
       inherited2::getMediaType (media_type_2,
+                                STREAM_MEDIATYPE_AUDIO,
                                 media_type);
       session_data_r.formats.push_back (media_type);
 

@@ -135,7 +135,7 @@ Stream_AVSave_DirectShow_Stream::initialize (const inherited::CONFIGURATION_T& c
   IBaseFilter* filter_p = NULL;
   ISampleGrabber* isample_grabber_p = NULL;
   std::string log_file_name;
-  struct _AMMediaType media_type_s;
+  struct Stream_MediaFramework_DirectShow_AudioVideoFormat media_type_s;
 
   iterator =
     const_cast<inherited::CONFIGURATION_T&> (configuration_in).find (ACE_TEXT_ALWAYS_CHAR (""));
@@ -209,7 +209,7 @@ Stream_AVSave_DirectShow_Stream::initialize (const inherited::CONFIGURATION_T& c
 continue_:
   if (!Stream_Device_DirectShow_Tools::setCaptureFormat ((*iterator).second.second->builder,
                                                          CLSID_VideoInputDeviceCategory,
-                                                         configuration_in.configuration_->format))
+                                                         configuration_in.configuration_->format.video))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to Stream_Device_DirectShow_Tools::setCaptureFormat(), aborting\n"),
@@ -236,7 +236,7 @@ continue_:
   //direct3D_manager_p->Release (); direct3D_manager_p = NULL;
 
   if (!Stream_Module_Decoder_Tools::loadVideoRendererGraph (CLSID_VideoInputDeviceCategory,
-                                                            configuration_in.configuration_->format,
+                                                            configuration_in.configuration_->format.video,
                                                             (*iterator).second.second->outputFormat,
                                                             //(*iterator).second.second->direct3DConfiguration->presentationParameters.hDeviceWindow
                                                             NULL,
@@ -395,11 +395,6 @@ continue_:
   media_filter_p->Release (); media_filter_p = NULL;
 
   // ---------------------------------------------------------------------------
-  // step2: update stream module configuration(s)
-  (*iterator_2).second.second = (*iterator).second.second;
-  (*iterator_2).second.second->deviceIdentifier.clear ();
-
-  // ---------------------------------------------------------------------------
   // step3: allocate a new session state, reset stream
   const_cast<inherited::CONFIGURATION_T&> (configuration_in).configuration_->setupPipeline =
     false;
@@ -421,54 +416,10 @@ continue_:
 
   session_data_p =
     &const_cast<Stream_AVSave_DirectShow_SessionData&> (inherited::sessionData_->getR ());
-  // *TODO*: remove type inferences
-  //if ((*iterator).second.second->direct3DConfiguration->handle)
-  //{
-  //  (*iterator).second.second->direct3DConfiguration->handle->AddRef ();
-  //  session_data_p->direct3DDevice =
-  //    (*iterator).second.second->direct3DConfiguration->handle;
-  //} // end IF
-  session_data_p->targetFileName = (*iterator).second.second->targetFileName;
-
-  // ---------------------------------------------------------------------------
-  // step4: initialize module(s)
-
-  // ******************* Camera Source ************************
-  source_impl_p =
-    dynamic_cast<Stream_AVSave_DirectShow_Source*> (source_.writer ());
-  if (!source_impl_p)
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: dynamic_cast<Strean_CamSave_DirectShow_Source> failed, aborting\n"),
-                ACE_TEXT (stream_name_string_)));
-    goto error;
-  } // end IF
-
-  // ---------------------------------------------------------------------------
-  // step5: update session data
-  session_data_p->formats.push_back (configuration_in.configuration_->format);
-  ACE_OS::memset (&media_type_s, 0, sizeof (struct _AMMediaType));
-  if (!Stream_MediaFramework_DirectShow_Tools::getOutputFormat ((*iterator).second.second->builder,
-                                                                STREAM_LIB_DIRECTSHOW_FILTER_NAME_GRAB,
-                                                                media_type_s))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: failed to Stream_MediaFramework_DirectShow_Tools::getOutputFormat(\"%s\"), aborting\n"),
-                ACE_TEXT (stream_name_string_),
-                ACE_TEXT_WCHAR_TO_TCHAR (STREAM_LIB_DIRECTSHOW_FILTER_NAME_GRAB)));
-    goto error;
-  } // end IF
+  Stream_MediaFramework_DirectShow_Tools::copy (configuration_in.configuration_->format,
+                                                media_type_s);
   session_data_p->formats.push_back (media_type_s);
-  //ACE_ASSERT (Stream_MediaFramework_DirectShow_Tools::matchMediaType (*session_data_p->sourceFormat, *(*iterator).second.second->sourceFormat));
-
-  // ---------------------------------------------------------------------------
-  // step6: initialize head module
-  source_impl_p->setP (&(inherited::state_));
-  //fileReader_impl_p->reset ();
-  // *NOTE*: push()ing the module will open() it
-  //         --> set the argument that is passed along (head module expects a
-  //             handle to the session data)
-  source_.arg (inherited::sessionData_);
+  session_data_p->targetFileName = (*iterator).second.second->targetFileName;
 
   // step7: assemble stream
   if (configuration_in.configuration_->setupPipeline)
@@ -919,6 +870,14 @@ Stream_AVSave_MediaFoundation_Stream::initialize (const inherited::CONFIGURATION
   Stream_AVSave_MediaFoundation_SessionData* session_data_p = NULL;
   inherited::CONFIGURATION_T::ITERATOR_T iterator;
   Stream_AVSave_MediaFoundation_Source* source_impl_p = NULL;
+  bool graph_loaded = false;
+  bool COM_initialized = false;
+  HRESULT result_2 = E_FAIL;
+  IMFTopology* topology_p = NULL;
+  enum MFSESSION_GETFULLTOPOLOGY_FLAGS flags =
+    MFSESSION_GETFULLTOPOLOGY_CURRENT;
+  struct Stream_MediaFramework_MediaFoundation_AudioVideoFormat media_type_s;
+  TOPOID node_id = 0, node_id_2 = 0;
 
   // allocate a new session state, reset stream
   const_cast<inherited::CONFIGURATION_T&> (configuration_in).configuration_->setupPipeline =
@@ -960,15 +919,6 @@ Stream_AVSave_MediaFoundation_Stream::initialize (const inherited::CONFIGURATION
                 ACE_TEXT (stream_name_string_)));
     goto error;
   } // end IF
-
-  bool graph_loaded = false;
-  bool COM_initialized = false;
-  HRESULT result_2 = E_FAIL;
-  IMFTopology* topology_p = NULL;
-  enum MFSESSION_GETFULLTOPOLOGY_FLAGS flags =
-    MFSESSION_GETFULLTOPOLOGY_CURRENT;
-  IMFMediaType* media_type_p = NULL;
-  TOPOID node_id = 0, node_id_2 = 0;
 
   result_2 = CoInitializeEx (NULL,
                              (COINIT_MULTITHREADED    |
@@ -1040,7 +990,7 @@ Stream_AVSave_MediaFoundation_Stream::initialize (const inherited::CONFIGURATION
 
   ACE_ASSERT ((*iterator).second.second->deviceIdentifier.identifierDiscriminator == Stream_Device_Identifier::GUID);
   if (!Stream_Module_Decoder_Tools::loadVideoRendererTopology ((*iterator).second.second->deviceIdentifier.identifier._guid,
-                                                               configuration_in.configuration_->format,
+                                                               configuration_in.configuration_->format.video,
                                                                source_impl_p,
                                                                NULL,
                                                                //(*iterator).second.second->window,
@@ -1062,7 +1012,7 @@ Stream_AVSave_MediaFoundation_Stream::initialize (const inherited::CONFIGURATION
 
 continue_:
   if (!Stream_Device_MediaFoundation_Tools::setCaptureFormat (topology_p,
-                                                              configuration_in.configuration_->format))
+                                                              configuration_in.configuration_->format.video))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to Stream_Device_MediaFoundation_Tools::setCaptureFormat(), aborting\n"),
@@ -1073,34 +1023,13 @@ continue_:
   ACE_DEBUG ((LM_DEBUG,
               ACE_TEXT ("%s: capture format: \"%s\"\n"),
               ACE_TEXT (stream_name_string_),
-              ACE_TEXT (Stream_MediaFramework_MediaFoundation_Tools::toString (configuration_in.configuration_->format).c_str ())));
+              ACE_TEXT (Stream_MediaFramework_MediaFoundation_Tools::toString (configuration_in.configuration_->format.video).c_str ())));
 #endif // _DEBUG
 
   ACE_ASSERT (session_data_p->formats.empty ());
-  media_type_p =
-    Stream_MediaFramework_MediaFoundation_Tools::copy (configuration_in.configuration_->format);
-  if (!media_type_p)
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: failed to Stream_MediaFramework_MediaFoundation_Tools::copy(), aborting\n"),
-                ACE_TEXT (stream_name_string_)));
-    goto error;
-  } // end IF
-  session_data_p->formats.push_back (media_type_p);
-  media_type_p = NULL;
-
-  if (!Stream_MediaFramework_MediaFoundation_Tools::getOutputFormat (topology_p,
-                                                                     node_id,
-                                                                     media_type_p))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: failed to Stream_MediaFramework_MediaFoundation_Tools::getOutputFormat(), aborting\n"),
-                ACE_TEXT (stream_name_string_)));
-    goto error;
-  } // end IF
-  ACE_ASSERT (media_type_p);
-  session_data_p->formats.push_back (media_type_p);
-  media_type_p = NULL;
+  Stream_MediaFramework_MediaFoundation_Tools::copy (configuration_in.configuration_->format,
+                                                     media_type_s);
+  session_data_p->formats.push_back (media_type_s);
 
 #if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
   //HRESULT result = E_FAIL;
@@ -1162,8 +1091,7 @@ error:
   if (reset_setup_pipeline)
     const_cast<inherited::CONFIGURATION_T&> (configuration_in).configuration_->setupPipeline =
       setup_pipeline;
-  if (media_type_p)
-    media_type_p->Release ();
+  Stream_MediaFramework_MediaFoundation_Tools::free (media_type_s);
   if (topology_p)
     topology_p->Release ();
   if (session_data_p->direct3DDevice)
@@ -1189,7 +1117,9 @@ error:
   return false;
 }
 
-Stream_AVSave_WaveIn_Stream::Stream_AVSave_WaveIn_Stream ()
+//////////////////////////////////////////
+
+Stream_AVSave_DirectShow_Audio_Stream::Stream_AVSave_DirectShow_Audio_Stream ()
  : inherited ()
  , source_ (this,
             ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_WAVEIN_CAPTURE_DEFAULT_NAME_STRING))
@@ -1198,23 +1128,23 @@ Stream_AVSave_WaveIn_Stream::Stream_AVSave_WaveIn_Stream ()
  , tagger_ (this,
             ACE_TEXT_ALWAYS_CHAR (STREAM_LIB_TAGGER_DEFAULT_NAME_STRING))
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_AVSave_WaveIn_Stream::Stream_AVSave_WaveIn_Stream"));
+  STREAM_TRACE (ACE_TEXT ("Stream_AVSave_DirectShow_Audio_Stream::Stream_AVSave_DirectShow_Audio_Stream"));
 
 }
 
-Stream_AVSave_WaveIn_Stream::~Stream_AVSave_WaveIn_Stream ()
+Stream_AVSave_DirectShow_Audio_Stream::~Stream_AVSave_DirectShow_Audio_Stream ()
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_AVSave_WaveIn_Stream::~Stream_AVSave_WaveIn_Stream"));
+  STREAM_TRACE (ACE_TEXT ("Stream_AVSave_DirectShow_Audio_Stream::~Stream_AVSave_DirectShow_Audio_Stream"));
 
   // *NOTE*: this implements an ordered shutdown on destruction...
   inherited::shutdown ();
 }
 
 bool
-Stream_AVSave_WaveIn_Stream::load (Stream_ILayout* layout_in,
-                                   bool& delete_out)
+Stream_AVSave_DirectShow_Audio_Stream::load (Stream_ILayout* layout_in,
+                                              bool& delete_out)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_AVSave_WaveIn_Stream::load"));
+  STREAM_TRACE (ACE_TEXT ("Stream_AVSave_DirectShow_Audio_Stream::load"));
 
   // initialize return value(s)
   delete_out = false;
@@ -1236,9 +1166,9 @@ Stream_AVSave_WaveIn_Stream::load (Stream_ILayout* layout_in,
 }
 
 bool
-Stream_AVSave_WaveIn_Stream::initialize (const typename inherited::CONFIGURATION_T& configuration_in)
+Stream_AVSave_DirectShow_Audio_Stream::initialize (const typename inherited::CONFIGURATION_T& configuration_in)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_AVSave_WaveIn_Stream::initialize"));
+  STREAM_TRACE (ACE_TEXT ("Stream_AVSave_DirectShow_Audio_Stream::initialize"));
 
   // sanity check(s)
   ACE_ASSERT (!isRunning ());
@@ -1247,7 +1177,7 @@ Stream_AVSave_WaveIn_Stream::initialize (const typename inherited::CONFIGURATION
   bool reset_setup_pipeline = false;
   Stream_AVSave_DirectShow_SessionData* session_data_p = NULL;
   typename inherited::CONFIGURATION_T::ITERATOR_T iterator;
-  Stream_AVSave_WaveIn_Source* source_impl_p = NULL;
+  Stream_AVSave_DirectShow_WaveIn_Source* source_impl_p = NULL;
 
   // allocate a new session state, reset stream
   const_cast<typename inherited::CONFIGURATION_T&> (configuration_in).configuration_->setupPipeline =
@@ -1281,22 +1211,154 @@ Stream_AVSave_WaveIn_Stream::initialize (const typename inherited::CONFIGURATION
 
   // ---------------------------------------------------------------------------
 
-  // ******************* Camera Source ************************
-  source_impl_p =
-    dynamic_cast<Stream_AVSave_WaveIn_Source*> (source_.writer ());
-  if (!source_impl_p)
+  //// ******************* Camera Source ************************
+  //source_impl_p =
+  //  dynamic_cast<Stream_AVSave_WaveIn_Source*> (source_.writer ());
+  //if (!source_impl_p)
+  //{
+  //  ACE_DEBUG ((LM_ERROR,
+  //              ACE_TEXT ("%s: dynamic_cast<Strean_AVSave_WaveIn_Source> failed, aborting\n"),
+  //              ACE_TEXT (stream_name_string_)));
+  //  goto error;
+  //} // end IF
+  //source_impl_p->setP (&(inherited::state_));
+
+  //// *NOTE*: push()ing the module will open() it
+  ////         --> set the argument that is passed along (head module expects a
+  ////             handle to the session data)
+  //source_.arg (inherited::sessionData_);
+
+  if (configuration_in.configuration_->setupPipeline)
+    if (!inherited::setup (NULL))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("%s: failed to set up pipeline, aborting\n"),
+                  ACE_TEXT (stream_name_string_)));
+      goto error;
+    } // end IF
+
+  // -------------------------------------------------------------
+
+  inherited::isInitialized_ = true;
+
+  return true;
+
+error:
+  if (reset_setup_pipeline)
+    const_cast<typename inherited::CONFIGURATION_T&> (configuration_in).configuration_->setupPipeline =
+      setup_pipeline;
+
+  return false;
+}
+
+Stream_AVSave_MediaFoundation_Audio_Stream::Stream_AVSave_MediaFoundation_Audio_Stream ()
+ : inherited ()
+ , source_ (this,
+            ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_WAVEIN_CAPTURE_DEFAULT_NAME_STRING))
+// , statisticReport_ (this,
+//                     ACE_TEXT_ALWAYS_CHAR (MODULE_STAT_REPORT_DEFAULT_NAME_STRING))
+ , tagger_ (this,
+            ACE_TEXT_ALWAYS_CHAR (STREAM_LIB_TAGGER_DEFAULT_NAME_STRING))
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_AVSave_MediaFoundation_Audio_Stream::Stream_AVSave_MediaFoundation_Audio_Stream"));
+
+}
+
+Stream_AVSave_MediaFoundation_Audio_Stream::~Stream_AVSave_MediaFoundation_Audio_Stream ()
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_AVSave_MediaFoundation_Audio_Stream::~Stream_AVSave_MediaFoundation_Audio_Stream"));
+
+  // *NOTE*: this implements an ordered shutdown on destruction...
+  inherited::shutdown ();
+}
+
+bool
+Stream_AVSave_MediaFoundation_Audio_Stream::load (Stream_ILayout* layout_in,
+                                                  bool& delete_out)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_AVSave_MediaFoundation_Audio_Stream::load"));
+
+  // initialize return value(s)
+  delete_out = false;
+
+  // sanity check(s)
+//  ACE_ASSERT (layout_in->empty ());
+  ACE_ASSERT (configuration_);
+  //typename inherited::CONFIGURATION_T::ITERATOR_T iterator =
+  //    configuration_->find (ACE_TEXT_ALWAYS_CHAR (""));
+  //ACE_ASSERT (iterator != configuration_->end ());
+//  bool save_to_file_b = !(*iterator).second.second->targetFileName.empty ();
+
+  layout_in->append (&source_, NULL, 0);
+  layout_in->append (&tagger_, NULL, 0);
+  ACE_ASSERT (inherited::configuration_->configuration_->module_2);
+  layout_in->append (inherited::configuration_->configuration_->module_2, NULL, 0); // output is AVI
+
+  return true;
+}
+
+bool
+Stream_AVSave_MediaFoundation_Audio_Stream::initialize (const typename inherited::CONFIGURATION_T& configuration_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_AVSave_MediaFoundation_Audio_Stream::initialize"));
+
+  // sanity check(s)
+  ACE_ASSERT (!isRunning ());
+
+  bool setup_pipeline = configuration_in.configuration_->setupPipeline;
+  bool reset_setup_pipeline = false;
+  Stream_AVSave_MediaFoundation_SessionData* session_data_p = NULL;
+  typename inherited::CONFIGURATION_T::ITERATOR_T iterator;
+  Stream_AVSave_MediaFoundation_WaveIn_Source* source_impl_p = NULL;
+
+  // allocate a new session state, reset stream
+  const_cast<typename inherited::CONFIGURATION_T&> (configuration_in).configuration_->setupPipeline =
+    false;
+  reset_setup_pipeline = true;
+  if (!inherited::initialize (configuration_in))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: dynamic_cast<Strean_AVSave_WaveIn_Source> failed, aborting\n"),
+                ACE_TEXT ("%s: failed to Stream_Base_T::initialize(), aborting\n"),
                 ACE_TEXT (stream_name_string_)));
     goto error;
   } // end IF
-  source_impl_p->setP (&(inherited::state_));
+  const_cast<typename inherited::CONFIGURATION_T&> (configuration_in).configuration_->setupPipeline =
+    setup_pipeline;
+  reset_setup_pipeline = false;
 
-  // *NOTE*: push()ing the module will open() it
-  //         --> set the argument that is passed along (head module expects a
-  //             handle to the session data)
-  source_.arg (inherited::sessionData_);
+  // sanity check(s)
+  ACE_ASSERT (inherited::sessionData_);
+
+  session_data_p =
+    &const_cast<Stream_AVSave_MediaFoundation_SessionData&> (inherited::sessionData_->getR ());
+  iterator =
+      const_cast<typename inherited::CONFIGURATION_T&> (configuration_in).find (ACE_TEXT_ALWAYS_CHAR (""));
+
+  // sanity check(s)
+  ACE_ASSERT (iterator != configuration_in.end ());
+  // *TODO*: remove type inferences
+  ACE_ASSERT (session_data_p->formats.empty ());
+  session_data_p->formats.push_back (configuration_in.configuration_->format);
+  session_data_p->targetFileName = (*iterator).second.second->targetFileName;
+
+  // ---------------------------------------------------------------------------
+
+  //// ******************* Camera Source ************************
+  //source_impl_p =
+  //  dynamic_cast<Stream_AVSave_WaveIn_Source*> (source_.writer ());
+  //if (!source_impl_p)
+  //{
+  //  ACE_DEBUG ((LM_ERROR,
+  //              ACE_TEXT ("%s: dynamic_cast<Strean_AVSave_WaveIn_Source> failed, aborting\n"),
+  //              ACE_TEXT (stream_name_string_)));
+  //  goto error;
+  //} // end IF
+  //source_impl_p->setP (&(inherited::state_));
+
+  //// *NOTE*: push()ing the module will open() it
+  ////         --> set the argument that is passed along (head module expects a
+  ////             handle to the session data)
+  //source_.arg (inherited::sessionData_);
 
   if (configuration_in.configuration_->setupPipeline)
     if (!inherited::setup (NULL))

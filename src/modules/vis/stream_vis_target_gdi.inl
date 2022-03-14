@@ -199,6 +199,7 @@ Stream_Vis_Target_GDI_T<ACE_SYNCH_USE,
       // sanity check(s)
       ACE_ASSERT (!session_data_r.formats.empty ());
       inherited2::getMediaType (session_data_r.formats.back (),
+                                STREAM_MEDIATYPE_VIDEO,
                                 media_type_s);
       resolution_ =
         Stream_MediaFramework_DirectShow_Tools::toResolution (media_type_s);
@@ -359,6 +360,7 @@ Stream_Vis_Target_GDI_T<ACE_SYNCH_USE,
 
   struct _AMMediaType media_type_s;
   inherited2::getMediaType (session_data_r.formats.back (),
+                            STREAM_MEDIATYPE_VIDEO,
                             media_type_s);
   Common_Image_Resolution_t resolution_s =
     Stream_MediaFramework_DirectShow_Tools::toResolution (media_type_s);

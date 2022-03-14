@@ -183,6 +183,7 @@ Stream_Decoder_LibAV_ImageDecoder_T<ACE_SYNCH_USE,
 
   struct Stream_MediaFramework_FFMPEG_VideoMediaType media_type_s;
   inherited2::getMediaType (configuration_in.outputFormat,
+                            STREAM_MEDIATYPE_VIDEO,
                             outputFormat_);
   if (unlikely (outputFormat_.format == AV_PIX_FMT_NONE))
     ACE_DEBUG ((LM_WARNING,
@@ -290,6 +291,7 @@ Stream_Decoder_LibAV_ImageDecoder_T<ACE_SYNCH_USE,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   struct _AMMediaType media_type_s;
   inherited2::getMediaType (outputFormat_,
+                            STREAM_MEDIATYPE_VIDEO,
                             media_type_s);
   data_s.format = media_type_s;
 #else

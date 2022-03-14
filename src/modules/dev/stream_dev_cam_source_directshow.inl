@@ -65,6 +65,7 @@ template <ACE_SYNCH_DECL,
           typename StatisticContainerType,
           typename TimerManagerType,
           typename UserDataType,
+          typename MediaType,
           bool MediaSampleIsDataMessage>
 Stream_Dev_Cam_Source_DirectShow_T<ACE_SYNCH_USE,
                                    ControlMessageType,
@@ -79,8 +80,11 @@ Stream_Dev_Cam_Source_DirectShow_T<ACE_SYNCH_USE,
                                    StatisticContainerType,
                                    TimerManagerType,
                                    UserDataType,
+                                   MediaType,
                                    MediaSampleIsDataMessage>::Stream_Dev_Cam_Source_DirectShow_T (ISTREAM_T* stream_in)
  : inherited (stream_in) // stream handle
+ , inherited2 ()
+ , inherited3 ()
  , isFirst_ (true)
  , IAMVideoControl_ (NULL)
  , IAMDroppedFrames_ (NULL)
@@ -107,6 +111,7 @@ template <ACE_SYNCH_DECL,
           typename StatisticContainerType,
           typename TimerManagerType,
           typename UserDataType,
+          typename MediaType,
           bool MediaSampleIsDataMessage>
 Stream_Dev_Cam_Source_DirectShow_T<ACE_SYNCH_USE,
                                    ControlMessageType,
@@ -121,6 +126,7 @@ Stream_Dev_Cam_Source_DirectShow_T<ACE_SYNCH_USE,
                                    StatisticContainerType,
                                    TimerManagerType,
                                    UserDataType,
+                                   MediaType,
                                    MediaSampleIsDataMessage>::~Stream_Dev_Cam_Source_DirectShow_T ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Dev_Cam_Source_DirectShow_T::~Stream_Dev_Cam_Source_DirectShow_T"));
@@ -168,6 +174,7 @@ template <ACE_SYNCH_DECL,
           typename StatisticContainerType,
           typename TimerManagerType,
           typename UserDataType,
+          typename MediaType,
           bool MediaSampleIsDataMessage>
 bool
 Stream_Dev_Cam_Source_DirectShow_T<ACE_SYNCH_USE,
@@ -183,6 +190,7 @@ Stream_Dev_Cam_Source_DirectShow_T<ACE_SYNCH_USE,
                                    StatisticContainerType,
                                    TimerManagerType,
                                    UserDataType,
+                                   MediaType,
                                    MediaSampleIsDataMessage>::initialize (const ConfigurationType& configuration_in,
                                                                           Stream_IAllocator* allocator_in)
 {
@@ -262,6 +270,7 @@ template <ACE_SYNCH_DECL,
           typename StatisticContainerType,
           typename TimerManagerType,
           typename UserDataType,
+          typename MediaType,
           bool MediaSampleIsDataMessage>
 void
 Stream_Dev_Cam_Source_DirectShow_T<ACE_SYNCH_USE,
@@ -277,6 +286,7 @@ Stream_Dev_Cam_Source_DirectShow_T<ACE_SYNCH_USE,
                                    StatisticContainerType,
                                    TimerManagerType,
                                    UserDataType,
+                                   MediaType,
                                    MediaSampleIsDataMessage>::handleSessionMessage (SessionMessageType*& message_inout,
                                                                                     bool& passMessageDownstream_out)
 {
@@ -320,6 +330,8 @@ Stream_Dev_Cam_Source_DirectShow_T<ACE_SYNCH_USE,
       ACE_OS::memset (&media_type_s, 0, sizeof (struct _AMMediaType));
       bool release_media_type = false;
       bool set_capture_format_b = true;
+      HWND window_h = NULL;
+      MediaType media_type_2;
 
       if (inherited::configuration_->statisticCollectionInterval != ACE_Time_Value::zero)
       {
@@ -421,8 +433,7 @@ error_2:
 
       // *TODO*: remove type inferences
       ACE_ASSERT (inherited::configuration_->window);
-      HWND window_h = NULL;
-      inherited2::getWindowType (inherited::configuration_->window,
+      inherited3::getWindowType (inherited::configuration_->window,
                                  window_h);
       ACE_ASSERT (window_h);
       if (!initialize_DirectShow (inherited::configuration_->deviceIdentifier,
@@ -480,6 +491,7 @@ continue_:
         goto error;
       } // end IF
       release_media_type = true;
+
       if (Stream_Device_DirectShow_Tools::isMediaTypeBottomUp (media_type_s))
       {
         result_2 =
@@ -523,7 +535,15 @@ continue_:
                       ACE_TEXT (Stream_Device_DirectShow_Tools::devicePathToString (ACE_TEXT_ALWAYS_CHAR (inherited::configuration_->deviceIdentifier.identifier._string)).c_str ())));
         pin_p->Release (); pin_p = NULL;
       } // end IF
-      session_data_r.formats.push_back (media_type_s);
+
+      ACE_OS::memset (&media_type_2, 0, sizeof (MediaType));
+      ACE_ASSERT (!session_data_r.formats.empty ());
+      Stream_MediaFramework_DirectShow_Tools::copy (session_data_r.formats.back (),
+                                                    media_type_2);
+      inherited2::set (media_type_s,
+                       STREAM_MEDIATYPE_VIDEO,
+                       media_type_2);
+      session_data_r.formats.push_back (media_type_2);
       release_media_type = false;
 
       //ACE_DEBUG ((LM_DEBUG,
@@ -763,6 +783,7 @@ template <ACE_SYNCH_DECL,
           typename StatisticContainerType,
           typename TimerManagerType,
           typename UserDataType,
+          typename MediaType,
           bool MediaSampleIsDataMessage>
 bool
 Stream_Dev_Cam_Source_DirectShow_T<ACE_SYNCH_USE,
@@ -778,6 +799,7 @@ Stream_Dev_Cam_Source_DirectShow_T<ACE_SYNCH_USE,
                                    StatisticContainerType,
                                    TimerManagerType,
                                    UserDataType,
+                                   MediaType,
                                    MediaSampleIsDataMessage>::collect (StatisticContainerType& data_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Dev_Cam_Source_DirectShow_T::collect"));
@@ -845,6 +867,7 @@ template <ACE_SYNCH_DECL,
           typename StatisticContainerType,
           typename TimerManagerType,
           typename UserDataType,
+          typename MediaType,
           bool MediaSampleIsDataMessage>
 ULONG
 Stream_Dev_Cam_Source_DirectShow_T<ACE_SYNCH_USE,
@@ -860,6 +883,7 @@ Stream_Dev_Cam_Source_DirectShow_T<ACE_SYNCH_USE,
                                    StatisticContainerType,
                                    TimerManagerType,
                                    UserDataType,
+                                   MediaType,
                                    MediaSampleIsDataMessage>::Release ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Dev_Cam_Source_DirectShow_T::Release"));
@@ -871,6 +895,7 @@ Stream_Dev_Cam_Source_DirectShow_T<ACE_SYNCH_USE,
 
   return ulRefCount;
 }
+
 template <ACE_SYNCH_DECL,
           typename ControlMessageType,
           typename DataMessageType,
@@ -884,6 +909,7 @@ template <ACE_SYNCH_DECL,
           typename StatisticContainerType,
           typename TimerManagerType,
           typename UserDataType,
+          typename MediaType,
           bool MediaSampleIsDataMessage>
 HRESULT
 Stream_Dev_Cam_Source_DirectShow_T<ACE_SYNCH_USE,
@@ -899,6 +925,7 @@ Stream_Dev_Cam_Source_DirectShow_T<ACE_SYNCH_USE,
                                    StatisticContainerType,
                                    TimerManagerType,
                                    UserDataType,
+                                   MediaType,
                                    MediaSampleIsDataMessage>::QueryInterface (REFIID riid_in,
                                                                               LPVOID* interface_out)
 {
@@ -935,6 +962,7 @@ template <ACE_SYNCH_DECL,
           typename StatisticContainerType,
           typename TimerManagerType,
           typename UserDataType,
+          typename MediaType,
           bool MediaSampleIsDataMessage>
 HRESULT
 Stream_Dev_Cam_Source_DirectShow_T<ACE_SYNCH_USE,
@@ -950,6 +978,7 @@ Stream_Dev_Cam_Source_DirectShow_T<ACE_SYNCH_USE,
                                    StatisticContainerType,
                                    TimerManagerType,
                                    UserDataType,
+                                   MediaType,
                                    MediaSampleIsDataMessage>::SampleCB (double sampleTime_in,
                                                                         IMediaSample* sample_in)
 {
@@ -1045,6 +1074,7 @@ template <ACE_SYNCH_DECL,
           typename StatisticContainerType,
           typename TimerManagerType,
           typename UserDataType,
+          typename MediaType,
           bool MediaSampleIsDataMessage>
 bool
 Stream_Dev_Cam_Source_DirectShow_T<ACE_SYNCH_USE,
@@ -1060,6 +1090,7 @@ Stream_Dev_Cam_Source_DirectShow_T<ACE_SYNCH_USE,
                                    StatisticContainerType,
                                    TimerManagerType,
                                    UserDataType,
+                                   MediaType,
                                    MediaSampleIsDataMessage>::initialize_DirectShow (const struct Stream_Device_Identifier& deviceIdentifier_in,
                                                                                      HWND windowHandle_in,
                                                                                      ICaptureGraphBuilder2*& ICaptureGraphBuilder2_out,

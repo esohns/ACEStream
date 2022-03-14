@@ -501,11 +501,13 @@ Stream_Decoder_SoXResampler_T<ACE_SYNCH_USE,
       ACE_OS::memset (&media_type_s, 0, sizeof (struct _AMMediaType));
       ACE_OS::memset (&media_type_2, 0, sizeof (struct _AMMediaType));
       inherited2::getMediaType (session_data_r.formats.back (),
+                                STREAM_MEDIATYPE_AUDIO,
                                 media_type_s);
       Stream_MediaFramework_DirectShow_Tools::to (media_type_s,
                                                   encodingInfo_,
                                                   signalInfo_);
       inherited2::getMediaType (inherited::configuration_->outputFormat,
+                                STREAM_MEDIATYPE_AUDIO,
                                 media_type_2);
       Stream_MediaFramework_DirectShow_Tools::to (media_type_2,
                                                   encodingInfoOut_,
@@ -708,6 +710,7 @@ Stream_Decoder_SoXResampler_T<ACE_SYNCH_USE,
       output_->out_signal.precision = signalInfoOut_.precision;
 
       inherited2::getMediaType (inherited::configuration_->outputFormat,
+                                STREAM_MEDIATYPE_AUDIO,
                                 media_type_3);
       session_data_r.formats.push_back (media_type_3);
 

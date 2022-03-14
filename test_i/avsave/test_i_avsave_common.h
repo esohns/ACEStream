@@ -132,6 +132,8 @@ extern "C"
 #endif // WXWIDGETS_SUPPORT
 #endif // GUI_SUPPORT
 
+#include "test_i_avsave_session_message.h"
+
 // forward declarations
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 struct ISampleGrabber;
@@ -248,7 +250,7 @@ typedef Common_StatisticHandler_T<struct Stream_AVSave_StatisticData> Test_I_AVS
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 struct Stream_AVSave_DirectShow_StreamState;
 typedef Stream_SessionDataMediaBase_T<Test_I_SessionData,
-                                      struct _AMMediaType,
+                                      struct Stream_MediaFramework_DirectShow_AudioVideoFormat,
                                       struct Stream_AVSave_DirectShow_StreamState,
                                       struct Stream_AVSave_StatisticData,
                                       struct Stream_UserData> Stream_AVSave_DirectShow_SessionData;
@@ -257,7 +259,7 @@ typedef Stream_SessionData_T<Stream_AVSave_DirectShow_SessionData> Stream_AVSave
 struct Stream_AVSave_MediaFoundation_StreamState;
 class Stream_AVSave_MediaFoundation_SessionData
  : public Stream_SessionDataMediaBase_T<Test_I_SessionData,
-                                        IMFMediaType*,
+                                        struct Stream_MediaFramework_MediaFoundation_AudioVideoFormat,
                                         struct Stream_AVSave_MediaFoundation_StreamState,
                                         struct Stream_AVSave_StatisticData,
                                         struct Stream_UserData>
@@ -265,7 +267,7 @@ class Stream_AVSave_MediaFoundation_SessionData
  public:
   Stream_AVSave_MediaFoundation_SessionData ()
    : Stream_SessionDataMediaBase_T<Test_I_SessionData,
-                                   IMFMediaType*,
+                                   struct Stream_MediaFramework_MediaFoundation_AudioVideoFormat,
                                    struct Stream_AVSave_MediaFoundation_StreamState,
                                    struct Stream_AVSave_StatisticData,
                                    struct Stream_UserData> ()
@@ -280,7 +282,7 @@ class Stream_AVSave_MediaFoundation_SessionData
   {
     // *NOTE*: the idea is to 'merge' the data
     Stream_SessionDataMediaBase_T<Test_I_SessionData,
-                                  IMFMediaType*,
+                                  struct Stream_MediaFramework_MediaFoundation_AudioVideoFormat,
                                   struct Stream_AVSave_MediaFoundation_StreamState,
                                   struct Stream_AVSave_StatisticData,
                                   struct Stream_UserData>::operator= (rhs_in);
@@ -299,7 +301,7 @@ class Stream_AVSave_MediaFoundation_SessionData
   {
     // *NOTE*: the idea is to 'merge' the data
     Stream_SessionDataMediaBase_T<Test_I_SessionData,
-                                  IMFMediaType*,
+                                  struct Stream_MediaFramework_MediaFoundation_AudioVideoFormat,
                                   struct Stream_AVSave_MediaFoundation_StreamState,
                                   struct Stream_AVSave_StatisticData,
                                   struct Stream_UserData>::operator+= (rhs_in);
@@ -316,40 +318,41 @@ class Stream_AVSave_MediaFoundation_SessionData
   }
 
 #if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
-  IDirect3DDevice9Ex*                 direct3DDevice;
+  IDirect3DDevice9Ex* direct3DDevice;
 #else
-  IDirect3DDevice9*                   direct3DDevice;
+  IDirect3DDevice9*   direct3DDevice;
 #endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
-  UINT                                direct3DManagerResetToken;
-  TOPOID                              rendererNodeId;
-  UINT                                resetToken;
-  IMFMediaSession*                    session;
+  UINT                direct3DManagerResetToken;
+  TOPOID              rendererNodeId;
+  UINT                resetToken;
+  IMFMediaSession*    session;
 };
 typedef Stream_SessionData_T<Stream_AVSave_MediaFoundation_SessionData> Stream_AVSave_MediaFoundation_SessionData_t;
 #else
-struct Stream_AVSave_V4L_StreamState;
-class Stream_AVSave_V4L_SessionData
- : public Stream_SessionDataMediaBase_T<Test_I_SessionData,
-                                        struct Stream_MediaFramework_V4L_MediaType,
-                                        struct Stream_AVSave_V4L_StreamState,
-                                        struct Stream_AVSave_StatisticData,
-                                        struct Stream_UserData>
-{
- public:
-  Stream_AVSave_V4L_SessionData ()
-   : Stream_SessionDataMediaBase_T<Test_I_SessionData,
-                                   struct Stream_MediaFramework_V4L_MediaType,
-                                   struct Stream_AVSave_V4L_StreamState,
-                                   struct Stream_AVSave_StatisticData,
-                                   struct Stream_UserData> ()
-  {}
+//struct Stream_AVSave_V4L_StreamState;
+//class Stream_AVSave_V4L_SessionData
+// : public Stream_SessionDataMediaBase_T<Test_I_SessionData,
+//                                        struct Stream_MediaFramework_V4L_MediaType,
+//                                        struct Stream_AVSave_V4L_StreamState,
+//                                        struct Stream_AVSave_StatisticData,
+//                                        struct Stream_UserData>
+//{
+// public:
+//  Stream_AVSave_V4L_SessionData ()
+//   : Stream_SessionDataMediaBase_T<Test_I_SessionData,
+//                                   struct Stream_MediaFramework_V4L_MediaType,
+//                                   struct Stream_AVSave_V4L_StreamState,
+//                                   struct Stream_AVSave_StatisticData,
+//                                   struct Stream_UserData> ()
+//   , formats_2 ()
+//  {}
+//
+// private:
+//  ACE_UNIMPLEMENTED_FUNC (Stream_AVSave_V4L_SessionData& operator= (const Stream_AVSave_V4L_SessionData&))
+//};
+//typedef Stream_SessionData_T<Stream_AVSave_V4L_SessionData> Stream_AVSave_V4L_SessionData_t;
 
- private:
-  ACE_UNIMPLEMENTED_FUNC (Stream_AVSave_V4L_SessionData& operator= (const Stream_AVSave_V4L_SessionData&))
-};
-typedef Stream_SessionData_T<Stream_AVSave_V4L_SessionData> Stream_AVSave_V4L_SessionData_t;
-
-class Stream_AVSave_ALSA_SessionData
+class Stream_AVSave_ALSA_V4L_SessionData
  : public Stream_SessionDataMediaBase_T<Test_I_SessionData,
                                         struct Stream_MediaFramework_ALSA_MediaType,
                                         struct Stream_AVSave_ALSA_StreamState,
@@ -357,18 +360,21 @@ class Stream_AVSave_ALSA_SessionData
                                         struct Stream_UserData>
 {
  public:
-  Stream_AVSave_ALSA_SessionData ()
+  Stream_AVSave_ALSA_V4L_SessionData ()
    : Stream_SessionDataMediaBase_T<Test_I_SessionData,
                                    struct Stream_MediaFramework_ALSA_MediaType,
                                    struct Stream_AVSave_ALSA_StreamState,
                                    struct Stream_AVSave_StatisticData,
                                    struct Stream_UserData> ()
+   , formats_2 ()
   {}
 
+  std::deque<struct Stream_MediaFramework_V4L_MediaType> formats_2;
+
  private:
-  ACE_UNIMPLEMENTED_FUNC (Stream_AVSave_ALSA_SessionData& operator= (const Stream_AVSave_ALSA_SessionData&))
+  ACE_UNIMPLEMENTED_FUNC (Stream_AVSave_ALSA_V4L_SessionData& operator= (const Stream_AVSave_ALSA_V4L_SessionData&))
 };
-typedef Stream_SessionData_T<Stream_AVSave_ALSA_SessionData> Stream_AVSave_ALSA_SessionData_t;
+typedef Stream_SessionData_T<Stream_AVSave_ALSA_V4L_SessionData> Stream_AVSave_ALSA_V4L_SessionData_t;
 #endif // ACE_WIN32 || ACE_WIN64
 
 struct Stream_AVSave_SignalHandlerConfiguration
@@ -388,9 +394,9 @@ struct Stream_AVSave_SignalHandlerConfiguration
 
 template <typename DataType>
 class Stream_AVSave_Message_T;
-template <typename DataMessageType,
-          typename SessionDataType>
-class Stream_AVSave_SessionMessage_T;
+//template <typename DataMessageType,
+//          typename SessionDataType>
+//class Stream_AVSave_SessionMessage_T;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 typedef Stream_AVSave_Message_T<struct Stream_AVSave_DirectShow_MessageData> Stream_AVSave_DirectShow_Message_t;
 typedef Stream_AVSave_SessionMessage_T<Stream_AVSave_DirectShow_Message_t,
@@ -451,11 +457,7 @@ struct Stream_AVSave_ModuleHandlerConfiguration
 #endif // ACE_WIN32 || ACE_WIN64
    , targetFileName ()
   {
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-    concurrency = STREAM_HEADMODULECONCURRENCY_CONCURRENT;
-#else
     concurrency = STREAM_HEADMODULECONCURRENCY_ACTIVE;
-#endif // ACE_WIN32 || ACE_WIN64
   }
 
   struct Stream_Device_Identifier deviceIdentifier; // source module
@@ -492,7 +494,7 @@ struct Stream_AVSave_DirectShow_ModuleHandlerConfiguration
    , direct3DConfiguration (NULL)
    , filterConfiguration (NULL)
    , filterCLSID (GUID_NULL)
-   , outboundStreamName ()
+   //, outboundStreamName ()
    , outputFormat ()
    , push (STREAM_LIB_DIRECTSHOW_FILTER_SOURCE_DEFAULT_PUSH)
    //, sourceFormat ()
@@ -506,6 +508,8 @@ struct Stream_AVSave_DirectShow_ModuleHandlerConfiguration
 
   struct Stream_AVSave_DirectShow_ModuleHandlerConfiguration operator= (const struct Stream_AVSave_DirectShow_ModuleHandlerConfiguration& rhs_in)
   {
+    Stream_AVSave_ModuleHandlerConfiguration::operator= (rhs_in);
+
     area = rhs_in.area;
     if (builder)
     {
@@ -552,7 +556,7 @@ struct Stream_AVSave_DirectShow_ModuleHandlerConfiguration
   struct Stream_MediaFramework_Direct3D_Configuration*  direct3DConfiguration;
   struct Stream_AVSave_DirectShow_FilterConfiguration* filterConfiguration;
   CLSID                                                 filterCLSID;
-  std::string                                           outboundStreamName; // message handler
+  //std::string                                           outboundStreamName; // message handler
   struct _AMMediaType                                   outputFormat;
   bool                                                  push;
   //struct _AMMediaType                                   sourceFormat;
@@ -576,7 +580,7 @@ struct Stream_AVSave_MediaFoundation_ModuleHandlerConfiguration
    , direct3DConfiguration (NULL)
    , manageMediaSession (false)
    , mediaFoundationConfiguration (NULL)
-   , outboundStreamName ()
+   //, outboundStreamName ()
    , outputFormat (NULL)
    , session (NULL)
    , subscriber (NULL)
@@ -590,7 +594,7 @@ struct Stream_AVSave_MediaFoundation_ModuleHandlerConfiguration
   struct Stream_MediaFramework_Direct3D_Configuration*        direct3DConfiguration;
   bool                                                        manageMediaSession;
   struct Stream_MediaFramework_MediaFoundation_Configuration* mediaFoundationConfiguration;
-  std::string                                                 outboundStreamName; // message handler
+  //std::string                                                 outboundStreamName; // message handler
   IMFMediaType*                                               outputFormat;
   IMFMediaSession*                                            session;
   Stream_AVSave_MediaFoundation_ISessionNotify_t*             subscriber;
@@ -615,7 +619,7 @@ struct Stream_AVSave_V4L_ModuleHandlerConfiguration
    , codecFormat (AV_PIX_FMT_NONE)
    , codecId (AV_CODEC_ID_NONE)
    , method (STREAM_LIB_V4L_DEFAULT_IO_METHOD)
-   , outboundStreamName ()
+   //, outboundStreamName ()
    , outputFormat ()
    , subscriber (NULL)
    , subscribers (NULL)
@@ -638,7 +642,7 @@ struct Stream_AVSave_V4L_ModuleHandlerConfiguration
   enum AVPixelFormat                         codecFormat; // preferred output-
   enum AVCodecID                             codecId;
   enum v4l2_memory                           method; // v4l camera source
-  std::string                                outboundStreamName; // message handler
+  //std::string                                outboundStreamName; // message handler
   struct Stream_MediaFramework_V4L_MediaType outputFormat;
   Stream_AVSave_V4L_ISessionNotify_t*        subscriber;
   Stream_AVSave_V4L_Subscribers_t*           subscribers;
@@ -750,8 +754,8 @@ struct Stream_AVSave_DirectShow_StreamConfiguration
    , renderer (STREAM_VISUALIZATION_VIDEORENDERER_DIRECTDRAW_3D)
   {}
 
-  struct _AMMediaType                     format;
-  enum Stream_Visualization_VideoRenderer renderer;
+  struct Stream_MediaFramework_DirectShow_AudioVideoFormat format;
+  enum Stream_Visualization_VideoRenderer                  renderer;
 };
 
 typedef Stream_IStreamControl_T<enum Stream_ControlType,
@@ -764,12 +768,12 @@ struct Stream_AVSave_MediaFoundation_StreamConfiguration
 {
   Stream_AVSave_MediaFoundation_StreamConfiguration ()
    : Stream_AVSave_StreamConfiguration ()
-   , format (NULL)
+   , format ()
    , renderer (STREAM_VISUALIZATION_VIDEORENDERER_DIRECTDRAW_3D)
   {}
 
-  IMFMediaType*                           format;
-  enum Stream_Visualization_VideoRenderer renderer;
+  struct Stream_MediaFramework_MediaFoundation_AudioVideoFormat format;
+  enum Stream_Visualization_VideoRenderer                       renderer;
 };
 
 typedef Stream_IStreamControl_T<enum Stream_ControlType,
@@ -1032,7 +1036,7 @@ struct Stream_AVSave_UI_CBData
   struct Stream_AVSave_ProgressData progressData;
 };
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-class Stream_AVSave_WaveIn_Stream;
+class Stream_AVSave_DirectShow_Audio_Stream;
 class Stream_AVSave_DirectShow_Stream;
 struct Stream_AVSave_DirectShow_UI_CBData
  : Stream_AVSave_UI_CBData
@@ -1047,12 +1051,13 @@ struct Stream_AVSave_DirectShow_UI_CBData
   {}
 
   struct Stream_AVSave_DirectShow_Configuration* configuration;
-  Stream_AVSave_WaveIn_Stream*                   audioStream;
+  Stream_AVSave_DirectShow_Audio_Stream*         audioStream;
   Stream_AVSave_DirectShow_Stream*               videoStream;
   IAMStreamConfig*                               streamConfiguration;
   Stream_AVSave_DirectShow_Subscribers_t         subscribers;
 };
 
+class Stream_AVSave_MediaFoundation_Audio_Stream;
 class Stream_AVSave_MediaFoundation_Stream;
 struct Stream_AVSave_MediaFoundation_UI_CBData
  : Stream_AVSave_UI_CBData
@@ -1066,7 +1071,7 @@ struct Stream_AVSave_MediaFoundation_UI_CBData
   {}
 
   struct Stream_AVSave_MediaFoundation_Configuration* configuration;
-  Stream_AVSave_MediaFoundation_Stream*               audioStream;
+  Stream_AVSave_MediaFoundation_Audio_Stream*         audioStream;
   Stream_AVSave_MediaFoundation_Stream*               videoStream;
   Stream_AVSave_MediaFoundation_Subscribers_t         subscribers;
 };

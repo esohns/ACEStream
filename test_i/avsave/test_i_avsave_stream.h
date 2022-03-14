@@ -193,7 +193,9 @@ class Stream_AVSave_MediaFoundation_Stream
   ULONG                                                            referenceCount_;
 };
 
-class Stream_AVSave_WaveIn_Stream
+//////////////////////////////////////////
+
+class Stream_AVSave_DirectShow_Audio_Stream
  : public Stream_Base_T<ACE_MT_SYNCH,
                         Common_TimePolicy_t,
                         stream_name_string_2,
@@ -227,8 +229,8 @@ class Stream_AVSave_WaveIn_Stream
                         Stream_AVSave_DirectShow_SessionMessage_t> inherited;
 
  public:
-  Stream_AVSave_WaveIn_Stream ();
-  virtual ~Stream_AVSave_WaveIn_Stream ();
+  Stream_AVSave_DirectShow_Audio_Stream ();
+  virtual ~Stream_AVSave_DirectShow_Audio_Stream ();
 
   // implement (part of) Stream_IStreamControlBase
   virtual bool load (Stream_ILayout*, // i/o value: layout
@@ -238,13 +240,67 @@ class Stream_AVSave_WaveIn_Stream
   virtual bool initialize (const typename inherited::CONFIGURATION_T&); // configuration
 
  private:
-  ACE_UNIMPLEMENTED_FUNC (Stream_AVSave_WaveIn_Stream (const Stream_AVSave_WaveIn_Stream&))
-  ACE_UNIMPLEMENTED_FUNC (Stream_AVSave_WaveIn_Stream& operator= (const Stream_AVSave_WaveIn_Stream&))
+  ACE_UNIMPLEMENTED_FUNC (Stream_AVSave_DirectShow_Audio_Stream (const Stream_AVSave_DirectShow_Audio_Stream&))
+  ACE_UNIMPLEMENTED_FUNC (Stream_AVSave_DirectShow_Audio_Stream& operator= (const Stream_AVSave_DirectShow_Audio_Stream&))
 
   // modules
-  Stream_AVSave_WaveIn_Source_Module     source_;
-//  Stream_AVSave_StatisticReport_Module statisticReport_;
-  Stream_AVSave_WaveIn_Tagger_Module     tagger_;
+  Stream_AVSave_DirectShow_WaveIn_Source_Module source_;
+  //  Stream_AVSave_StatisticReport_Module statisticReport_;
+  Stream_AVSave_DirectShow_Audio_Tagger_Module  tagger_;
+};
+
+class Stream_AVSave_MediaFoundation_Audio_Stream
+ : public Stream_Base_T<ACE_MT_SYNCH,
+                        Common_TimePolicy_t,
+                        stream_name_string_2,
+                        enum Stream_ControlType,
+                        enum Stream_SessionMessageType,
+                        enum Stream_StateMachine_ControlState,
+                        struct Stream_AVSave_MediaFoundation_StreamState,
+                        struct Stream_AVSave_MediaFoundation_StreamConfiguration,
+                        struct Stream_AVSave_StatisticData,
+                        struct Stream_AVSave_MediaFoundation_ModuleHandlerConfiguration,
+                        Stream_AVSave_MediaFoundation_SessionData,
+                        Stream_AVSave_MediaFoundation_SessionData_t,
+                        Stream_ControlMessage_t,
+                        Stream_AVSave_MediaFoundation_Message_t,
+                        Stream_AVSave_MediaFoundation_SessionMessage_t>
+{
+  typedef Stream_Base_T<ACE_MT_SYNCH,
+                        Common_TimePolicy_t,
+                        stream_name_string_2,
+                        enum Stream_ControlType,
+                        enum Stream_SessionMessageType,
+                        enum Stream_StateMachine_ControlState,
+                        struct Stream_AVSave_MediaFoundation_StreamState,
+                        struct Stream_AVSave_MediaFoundation_StreamConfiguration,
+                        struct Stream_AVSave_StatisticData,
+                        struct Stream_AVSave_MediaFoundation_ModuleHandlerConfiguration,
+                        Stream_AVSave_MediaFoundation_SessionData,
+                        Stream_AVSave_MediaFoundation_SessionData_t,
+                        Stream_ControlMessage_t,
+                        Stream_AVSave_MediaFoundation_Message_t,
+                        Stream_AVSave_MediaFoundation_SessionMessage_t> inherited;
+
+ public:
+  Stream_AVSave_MediaFoundation_Audio_Stream ();
+  virtual ~Stream_AVSave_MediaFoundation_Audio_Stream ();
+
+  // implement (part of) Stream_IStreamControlBase
+  virtual bool load (Stream_ILayout*, // i/o value: layout
+                     bool&);          // return value: delete modules ?
+
+  // implement Common_IInitialize_T
+  virtual bool initialize (const typename inherited::CONFIGURATION_T&); // configuration
+
+ private:
+  ACE_UNIMPLEMENTED_FUNC (Stream_AVSave_MediaFoundation_Audio_Stream (const Stream_AVSave_MediaFoundation_Audio_Stream&))
+  ACE_UNIMPLEMENTED_FUNC (Stream_AVSave_MediaFoundation_Audio_Stream& operator= (const Stream_AVSave_MediaFoundation_Audio_Stream&))
+
+  // modules
+  Stream_AVSave_MediaFoundation_WaveIn_Source_Module source_;
+  //  Stream_AVSave_StatisticReport_Module statisticReport_;
+  Stream_AVSave_MediaFoundation_Audio_Tagger_Module  tagger_;
 };
 #else
 class Stream_AVSave_V4L_Stream

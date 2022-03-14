@@ -84,4 +84,18 @@ struct Stream_MediaFramework_FFMPEG_AudioMediaType
 };
 typedef std::deque<struct Stream_MediaFramework_FFMPEG_AudioMediaType> Stream_MediaFramework_FFMPEG_AudioFormats_t;
 typedef Stream_MediaFramework_FFMPEG_AudioFormats_t::iterator Stream_MediaFramework_FFMPEG_AudioFormatsIterator_t;
+
+struct Stream_MediaFramework_FFMPEG_MediaType
+{
+  Stream_MediaFramework_FFMPEG_MediaType ()
+   : audio ()
+   , video ()
+  {}
+
+  struct Stream_MediaFramework_FFMPEG_AudioMediaType audio;
+  struct Stream_MediaFramework_FFMPEG_VideoMediaType video;
+};
+typedef std::deque<struct Stream_MediaFramework_FFMPEG_MediaType> Stream_MediaFramework_FFMPEG_Formats_t;
+typedef Stream_MediaFramework_FFMPEG_Formats_t::iterator Stream_MediaFramework_FFMPEG_FormatsIterator_t;
+
 #endif

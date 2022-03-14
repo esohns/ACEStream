@@ -259,6 +259,7 @@ Stream_Dev_Mic_Source_WASAPI_T<ACE_SYNCH_USE,
       struct _AMMediaType media_type_s;
       ACE_OS::memset (&media_type_s, 0, sizeof (struct _AMMediaType));
       inherited2::getMediaType (session_data_r.formats.back (),
+                                STREAM_MEDIATYPE_AUDIO,
                                 media_type_s);
       ACE_ASSERT (media_type_s.majortype == MEDIATYPE_Audio);
       ACE_ASSERT (media_type_s.formattype == FORMAT_WaveFormatEx);
@@ -362,6 +363,7 @@ continue_:
         MediaType media_type_3;
         ACE_OS::memset (&media_type_3, 0, sizeof (MediaType));
         inherited2::getMediaType (media_type_2,
+                                  STREAM_MEDIATYPE_AUDIO,
                                   media_type_3);
         session_data_r.formats.push_back (media_type_3);
         Stream_MediaFramework_DirectShow_Tools::free (media_type_2);

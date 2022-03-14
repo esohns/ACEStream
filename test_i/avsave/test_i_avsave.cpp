@@ -534,8 +534,9 @@ do_initialize_directshow (const struct Stream_Device_Identifier& deviceIdentifie
                           bool hasUI_in,
                           IGraphBuilder*& IGraphBuilder_out,
                           IAMStreamConfig*& IAMStreamConfig_out,
-                          struct _AMMediaType& captureFormat_inout,
-                          struct _AMMediaType& outputFormat_inout) // directshow sample grabber-
+                          struct _AMMediaType& audioCaptureFormat_inout,
+                          struct _AMMediaType& videoCaptureFormat_inout,
+                          struct _AMMediaType& outputFormat_inout) // DirectShow (video-)sample grabber-
 {
   STREAM_TRACE (ACE_TEXT ("::do_initialize_directshow"));
 
@@ -570,9 +571,31 @@ do_initialize_directshow (const struct Stream_Device_Identifier& deviceIdentifie
   ACE_ASSERT (IAMStreamConfig_out);
   buffer_negotiation_p->Release (); buffer_negotiation_p = NULL;
 
+  struct tWAVEFORMATEX waveformatex_s;
+  ACE_OS::memset (&waveformatex_s, 0, sizeof (struct tWAVEFORMATEX));
+  waveformatex_s.wFormatTag = STREAM_DEV_MIC_DEFAULT_FORMAT;
+  waveformatex_s.nChannels = STREAM_DEV_MIC_DEFAULT_CHANNELS;
+  waveformatex_s.nSamplesPerSec = STREAM_DEV_MIC_DEFAULT_SAMPLE_RATE;
+  waveformatex_s.wBitsPerSample = STREAM_DEV_MIC_DEFAULT_BITS_PER_SAMPLE;
+  waveformatex_s.nBlockAlign =
+    (waveformatex_s.nChannels * (waveformatex_s.wBitsPerSample / 8));
+  waveformatex_s.nAvgBytesPerSec =
+    (waveformatex_s.nSamplesPerSec * waveformatex_s.nBlockAlign);
+  //waveformatex_s.cbSize = 0;
+  result = CreateAudioMediaType (&waveformatex_s,
+                                 &audioCaptureFormat_inout,
+                                 TRUE);
+  if (FAILED (result))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to CreateAudioMediaType(): \"%s\", aborting\n"),
+                ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
+    goto error;
+  } // end IF
+
   if (!Stream_Device_DirectShow_Tools::getCaptureFormat (IGraphBuilder_out,
                                                          CLSID_VideoInputDeviceCategory,
-                                                         captureFormat_inout))
+                                                         videoCaptureFormat_inout))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Stream_Device_DirectShow_Tools::getCaptureFormat(CLSID_VideoInputDeviceCategory), aborting\n")));
@@ -581,9 +604,9 @@ do_initialize_directshow (const struct Stream_Device_Identifier& deviceIdentifie
   ACE_DEBUG ((LM_DEBUG,
               ACE_TEXT ("\"%s\": default capture format: %s\n"),
               ACE_TEXT (Stream_Device_DirectShow_Tools::devicePathToString (deviceIdentifier_in.identifier._string).c_str ()),
-              ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::toString (captureFormat_inout, true).c_str ())));
+              ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::toString (videoCaptureFormat_inout, true).c_str ())));
   media_type_p =
-    Stream_MediaFramework_DirectShow_Tools::copy (captureFormat_inout);
+    Stream_MediaFramework_DirectShow_Tools::copy (videoCaptureFormat_inout);
   if (!media_type_p)
   {
     ACE_DEBUG ((LM_ERROR,
@@ -592,7 +615,7 @@ do_initialize_directshow (const struct Stream_Device_Identifier& deviceIdentifie
   } // end IF
   ACE_ASSERT (media_type_p);
   outputFormat_inout = *media_type_p;
-  CoTaskMemFree (media_type_p); media_type_p = NULL;
+  delete media_type_p; media_type_p = NULL;
 
   // *NOTE*: the default save format is ARGB32
   ACE_ASSERT (InlineIsEqualGUID (outputFormat_inout.majortype, MEDIATYPE_Video));
@@ -623,9 +646,8 @@ do_initialize_directshow (const struct Stream_Device_Identifier& deviceIdentifie
     ////video_info_header_p->bmiHeader.biClrImportant;
     ACE_ASSERT (video_info_header_p->AvgTimePerFrame);
     video_info_header_p->dwBitRate =
-      (video_info_header_p->bmiHeader.biSizeImage * 8) *                         // bits / frame
-      (NANOSECONDS / static_cast<DWORD> (video_info_header_p->AvgTimePerFrame)); // fps
-
+      (video_info_header_p->bmiHeader.biSizeImage * 8) *                      // bits / frame
+      (UNITS / static_cast<DWORD> (video_info_header_p->AvgTimePerFrame)); // fps
     outputFormat_inout.lSampleSize = video_info_header_p->bmiHeader.biSizeImage;
   } // end IF
   else if (InlineIsEqualGUID (outputFormat_inout.formattype, FORMAT_VideoInfo2))
@@ -645,9 +667,8 @@ do_initialize_directshow (const struct Stream_Device_Identifier& deviceIdentifie
     ////video_info_header_p->bmiHeader.biClrImportant;
     ACE_ASSERT (video_info_header_p->AvgTimePerFrame);
     video_info_header_p->dwBitRate =
-      (video_info_header_p->bmiHeader.biSizeImage * 8) *                         // bits / frame
-      (NANOSECONDS / static_cast<DWORD> (video_info_header_p->AvgTimePerFrame)); // fps
-
+      (video_info_header_p->bmiHeader.biSizeImage * 8) *                   // bits / frame
+      (UNITS / static_cast<DWORD> (video_info_header_p->AvgTimePerFrame)); // fps
     outputFormat_inout.lSampleSize = video_info_header_p->bmiHeader.biSizeImage;
   } // end IF
   else
@@ -666,7 +687,7 @@ do_initialize_directshow (const struct Stream_Device_Identifier& deviceIdentifie
   } // end IF
 
   if (!Stream_Module_Decoder_Tools::loadVideoRendererGraph (CLSID_VideoInputDeviceCategory,
-                                                            captureFormat_inout,
+                                                            videoCaptureFormat_inout,
                                                             outputFormat_inout,
                                                             NULL,
                                                             IGraphBuilder_out,
@@ -704,7 +725,7 @@ error:
   if (buffer_negotiation_p)
     buffer_negotiation_p->Release ();
   Stream_MediaFramework_DirectShow_Tools::free (outputFormat_inout);
-  Stream_MediaFramework_DirectShow_Tools::free (captureFormat_inout);
+  Stream_MediaFramework_DirectShow_Tools::free (videoCaptureFormat_inout);
   if (IAMStreamConfig_out)
   {
     IAMStreamConfig_out->Release (); IAMStreamConfig_out = NULL;
@@ -1065,6 +1086,7 @@ do_work (const struct Stream_Device_Identifier& deviceIdentifier_in,
   struct Stream_ModuleConfiguration module_configuration;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   struct Stream_AVSave_DirectShow_ModuleHandlerConfiguration directshow_modulehandler_configuration;
+  struct Stream_AVSave_DirectShow_ModuleHandlerConfiguration directshow_modulehandler_configuration_2; // wavein
   struct Stream_AVSave_DirectShow_StreamConfiguration directshow_stream_configuration;
 #if defined (GUI_SUPPORT)
   Stream_AVSave_DirectShow_EventHandler_t directshow_ui_event_handler (&directShowCBData_in
@@ -1105,8 +1127,8 @@ do_work (const struct Stream_Device_Identifier& deviceIdentifier_in,
 #endif // ACE_WIN32 || ACE_WIN64
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  Stream_AVSave_DirectShow_StreamConfiguration_t::ITERATOR_T directshow_stream_iterator;
-  Stream_AVSave_DirectShow_StreamConfiguration_t::ITERATOR_T directshow_stream_iterator_2;
+  Stream_AVSave_DirectShow_StreamConfiguration_t::ITERATOR_T directshow_video_stream_iterator;
+  Stream_AVSave_DirectShow_StreamConfiguration_t::ITERATOR_T directshow_video_stream_iterator_2;
   Stream_AVSave_MediaFoundation_StreamConfiguration_t::ITERATOR_T mediafoundation_stream_iterator;
   Stream_AVSave_MediaFoundation_StreamConfiguration_t::ITERATOR_T mediafoundation_stream_iterator_2;
   switch (mediaFramework_in)
@@ -1117,8 +1139,7 @@ do_work (const struct Stream_Device_Identifier& deviceIdentifier_in,
         &allocator_configuration;
       directshow_modulehandler_configuration.deviceIdentifier =
         deviceIdentifier_in;
-      //directshow_modulehandler_configuration.direct3DConfiguration =
-      //  &directShowConfiguration_in.direct3DConfiguration;
+      directshow_modulehandler_configuration.display = displayDevice_in;
       directshow_modulehandler_configuration.lock = &state_r.subscribersLock;
 
       if (statisticReportingInterval_in)
@@ -1221,9 +1242,10 @@ do_work (const struct Stream_Device_Identifier& deviceIdentifier_in,
   Stream_AVSave_DirectShow_Encoder_Module encoder (NULL,
                                                    ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_LIBAV_ENCODER_DEFAULT_NAME_STRING));
 #endif // FFMPEG_SUPPORT
-  Stream_AVSave_WaveIn_Stream wavein_stream;
-  Stream_AVSave_DirectShow_Stream directshow_stream;
-  Stream_AVSave_MediaFoundation_Stream mediafoundation_stream;
+  Stream_AVSave_DirectShow_Audio_Stream directshow_audio_stream;
+  Stream_AVSave_DirectShow_Stream directshow_video_stream;
+  Stream_AVSave_MediaFoundation_Audio_Stream mediafoundation_audio_stream;
+  Stream_AVSave_MediaFoundation_Stream mediafoundation_video_stream;
 
   Stream_AVSave_DirectShow_MessageAllocator_t directshow_message_allocator (TEST_I_MAX_MESSAGES, // maximum #buffers
                                                                              &heap_allocator,     // heap allocator handle
@@ -1235,53 +1257,56 @@ do_work (const struct Stream_Device_Identifier& deviceIdentifier_in,
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
     {
+      directshow_modulehandler_configuration.messageAllocator =
+        &directshow_message_allocator;
+
+      directshow_modulehandler_configuration_2 =
+        directshow_modulehandler_configuration;
+      directshow_modulehandler_configuration_2.deviceIdentifier.clear ();
+      directshow_modulehandler_configuration_2.deviceIdentifier.identifier._id =
+        0;
+      directshow_modulehandler_configuration_2.deviceIdentifier.identifierDiscriminator =
+        Stream_Device_Identifier::ID;
+
+
       directshow_stream_configuration.messageAllocator =
         &directshow_message_allocator;
-#if defined (GUI_SUPPORT)
       directshow_stream_configuration.module =
           (!UIDefinitionFilename_in.empty () ? &directshow_message_handler
                                              : NULL);
-#endif // GUI_SUPPORT
-      //directShowConfiguration_in.videoStreamConfiguration.configuration_.renderer =
-      //  renderer_in;
 
-      directshow_modulehandler_configuration.display = displayDevice_in;
-      directshow_modulehandler_configuration.messageAllocator = &directshow_message_allocator;
-
-      directshow_stream_configuration.allocatorConfiguration = &allocator_configuration;
+      directshow_stream_configuration.allocatorConfiguration =
+        &allocator_configuration;
 #if defined (FFMPEG_SUPPORT)
       directshow_stream_configuration.module_2 = &encoder;
 #endif // FFMPEG_SUPPORT
       directShowConfiguration_in.audioStreamConfiguration.initialize (module_configuration,
                                                                       directshow_modulehandler_configuration,
                                                                       directshow_stream_configuration);
+      directShowConfiguration_in.audioStreamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_WAVEIN_CAPTURE_DEFAULT_NAME_STRING),
+                                                                                  std::make_pair (&module_configuration,
+                                                                                                  &directshow_modulehandler_configuration_2)));
       directShowConfiguration_in.videoStreamConfiguration.initialize (module_configuration,
                                                                       directshow_modulehandler_configuration,
                                                                       directshow_stream_configuration);
-      //directshow_modulehandler_configuration.deviceIdentifier.identifierDiscriminator =
-      //  Stream_Device_Identifier::STRING;
-      //ACE_OS::strcpy (directshow_modulehandler_configuration.deviceIdentifier.identifier._string,
-      //                displayDevice_in.device.c_str ());
       directShowConfiguration_in.videoStreamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_DIRECT3D_DEFAULT_NAME_STRING),
                                                                                   std::make_pair (&module_configuration,
                                                                                                   &directshow_modulehandler_configuration)));
-      directshow_stream_iterator =
+      directshow_video_stream_iterator =
         directShowConfiguration_in.videoStreamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
-      ACE_ASSERT (directshow_stream_iterator != directShowConfiguration_in.videoStreamConfiguration.end ());
-      directshow_stream_iterator_2 =
+      ACE_ASSERT (directshow_video_stream_iterator != directShowConfiguration_in.videoStreamConfiguration.end ());
+      directshow_video_stream_iterator_2 =
         directShowConfiguration_in.videoStreamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_DIRECT3D_DEFAULT_NAME_STRING));
-      ACE_ASSERT (directshow_stream_iterator_2 != directShowConfiguration_in.videoStreamConfiguration.end ());
+      ACE_ASSERT (directshow_video_stream_iterator_2 != directShowConfiguration_in.videoStreamConfiguration.end ());
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
     {
       mediafoundation_stream_configuration.messageAllocator =
           &mediafoundation_message_allocator;
-#if defined (GUI_SUPPORT)
       mediafoundation_stream_configuration.module =
           (!UIDefinitionFilename_in.empty () ? &mediafoundation_message_handler
                                              : NULL);
-#endif // GUI_SUPPORT
       //mediaFoundationConfiguration_in.videoStreamConfiguration.configuration_.renderer =
       //  renderer_in;
       mediafoundation_stream_configuration.allocatorConfiguration = &allocator_configuration;
@@ -1320,11 +1345,6 @@ do_work (const struct Stream_Device_Identifier& deviceIdentifier_in,
 
   audio_stream_configuration.allocatorConfiguration = &allocator_configuration;
   audio_stream_configuration.messageAllocator = &audio_message_allocator;
-#if defined (GUI_SUPPORT)
-//  audio_stream_configuration.module =
-//      (!UIDefinitionFilename_in.empty () ? &message_handler
-//                                         : NULL);
-#endif // GUI_SUPPORT
   audio_stream_configuration.module_2 = &encoder;
 
   //if (bufferSize_in)
@@ -1332,11 +1352,9 @@ do_work (const struct Stream_Device_Identifier& deviceIdentifier_in,
   //      bufferSize_in;
   video_stream_configuration.allocatorConfiguration = &allocator_configuration;
   video_stream_configuration.messageAllocator = &video_message_allocator;
-#if defined (GUI_SUPPORT)
   video_stream_configuration.module =
       (!UIDefinitionFilename_in.empty () ? &message_handler
                                          : NULL);
-#endif // GUI_SUPPORT
   video_stream_configuration.module_2 = &encoder;
 
   if (!heap_allocator.initialize (allocator_configuration))
@@ -1367,10 +1385,11 @@ do_work (const struct Stream_Device_Identifier& deviceIdentifier_in,
       struct _AMMediaType* media_type_p = NULL;
       if (!do_initialize_directshow (deviceIdentifier_in,
                                      !UIDefinitionFilename_in.empty (), // has UI ?
-                                     (*directshow_stream_iterator).second.second->builder,
+                                     (*directshow_video_stream_iterator).second.second->builder,
                                      stream_config_p,
-                                     directshow_stream_configuration.format,
-                                     (*directshow_stream_iterator).second.second->outputFormat))
+                                     directshow_stream_configuration.format.audio,
+                                     directshow_stream_configuration.format.video,
+                                     (*directshow_video_stream_iterator).second.second->outputFormat))
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("failed to ::do_initialize_directshow(), returning\n")));
@@ -1381,18 +1400,18 @@ do_work (const struct Stream_Device_Identifier& deviceIdentifier_in,
         directShowCBData_in.streamConfiguration = stream_config_p;
       } // end IF
       media_type_p =
-        Stream_MediaFramework_DirectShow_Tools::copy ((*directshow_stream_iterator).second.second->outputFormat);
+        Stream_MediaFramework_DirectShow_Tools::copy ((*directshow_video_stream_iterator).second.second->outputFormat);
       ACE_ASSERT (media_type_p);
-      (*directshow_stream_iterator_2).second.second->outputFormat =
+      (*directshow_video_stream_iterator_2).second.second->outputFormat =
         *media_type_p;
-      CoTaskMemFree (media_type_p); media_type_p = NULL;
+      delete media_type_p; media_type_p = NULL;
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
     {
       if (!do_initialize_mediafoundation (deviceIdentifier_in,
                                           window_handle,
-                                          mediafoundation_stream_configuration.format
+                                          mediafoundation_stream_configuration.format.video
 #if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
                                           ,(*mediafoundation_stream_iterator).second.second->session
 #endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
@@ -1460,13 +1479,13 @@ do_work (const struct Stream_Device_Identifier& deviceIdentifier_in,
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
     {
       resolution_s =
-        Stream_MediaFramework_DirectShow_Tools::toResolution (directshow_stream_configuration.format);
+        Stream_MediaFramework_DirectShow_Tools::toResolution (directshow_stream_configuration.format.video);
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
     {
       resolution_s =
-        Stream_MediaFramework_MediaFoundation_Tools::toResolution (mediafoundation_stream_configuration.format);
+        Stream_MediaFramework_MediaFoundation_Tools::toResolution (mediafoundation_stream_configuration.format.video);
       break;
     }
     default:
@@ -1579,8 +1598,8 @@ do_work (const struct Stream_Device_Identifier& deviceIdentifier_in,
     {
       case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
       {
-        directShowCBData_in.audioStream = &wavein_stream;
-        directShowCBData_in.videoStream = &directshow_stream;
+        directShowCBData_in.audioStream = &directshow_audio_stream;
+        directShowCBData_in.videoStream = &directshow_video_stream;
 #if defined (GTK_USE)
         directShowCBData_in.UIState = &state_r;
         directShowCBData_in.progressData.state = &state_r;
@@ -1594,7 +1613,8 @@ do_work (const struct Stream_Device_Identifier& deviceIdentifier_in,
       }
       case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
       {
-        mediaFoundationCBData_in.videoStream = &mediafoundation_stream;
+        mediaFoundationCBData_in.audioStream = &mediafoundation_audio_stream;
+        mediaFoundationCBData_in.videoStream = &mediafoundation_video_stream;
 #if defined (GTK_USE)
         mediaFoundationCBData_in.UIState = &state_r;
         mediaFoundationCBData_in.progressData.state = &state_r;
@@ -1659,7 +1679,7 @@ do_work (const struct Stream_Device_Identifier& deviceIdentifier_in,
                   ACE_TEXT ("failed to start GTK event dispatch, returning\n")));
       goto clean;
     } // end IF
-    gtk_manager_p->wait ();
+    gtk_manager_p->wait (false); // wait for message queue ?
 #elif (WXWIDGETS_USE)
     if (unlikely (!iapplication_in->run ()))
     {
@@ -1681,13 +1701,13 @@ do_work (const struct Stream_Device_Identifier& deviceIdentifier_in,
         Common_UI_GTK_Tools::initialize (directShowCBData_in.configuration->GTKConfiguration.argc,
                                          directShowCBData_in.configuration->GTKConfiguration.argv);
 
-        if (!directshow_stream.initialize (directShowConfiguration_in.videoStreamConfiguration))
+        if (!directshow_video_stream.initialize (directShowConfiguration_in.videoStreamConfiguration))
         {
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("failed to initialize stream, returning\n")));
           goto clean;
         } // end IF
-        stream_p = &directshow_stream;
+        stream_p = &directshow_video_stream;
         break;
       }
       case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
@@ -1695,13 +1715,13 @@ do_work (const struct Stream_Device_Identifier& deviceIdentifier_in,
         Common_UI_GTK_Tools::initialize (mediaFoundationCBData_in.configuration->GTKConfiguration.argc,
                                          mediaFoundationCBData_in.configuration->GTKConfiguration.argv);
 
-        if (!mediafoundation_stream.initialize (mediaFoundationConfiguration_in.videoStreamConfiguration))
+        if (!mediafoundation_video_stream.initialize (mediaFoundationConfiguration_in.videoStreamConfiguration))
         {
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("failed to initialize stream, returning\n")));
           goto clean;
         } // end IF
-        stream_p = &mediafoundation_stream;
+        stream_p = &mediafoundation_video_stream;
         break;
       }
       default:
@@ -1752,11 +1772,6 @@ do_work (const struct Stream_Device_Identifier& deviceIdentifier_in,
 
   // step3: clean up
 clean:
-#if defined (GUI_SUPPORT)
-#if defined (GTK_USE)
-  gtk_manager_p->stop (true, true);
-#endif // GTK_USE
-#endif // GUI_SUPPORT
   timer_manager_p->stop ();
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)

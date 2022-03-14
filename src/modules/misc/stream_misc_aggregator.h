@@ -33,6 +33,7 @@
 
 #include "stream_common.h"
 #include "stream_ilink.h"
+#include "stream_task_base_asynch.h"
 #include "stream_task_base_synch.h"
 
 // forward declarations
@@ -41,9 +42,15 @@ template <ACE_SYNCH_DECL,
           typename ConfigurationType,
           typename ControlMessageType,
           typename DataMessageType,
-          typename SessionMessageType,
-          typename SessionDataType>
+          typename SessionMessageType>
 class Stream_Module_Aggregator_WriterTask_T;
+template <ACE_SYNCH_DECL,
+          typename TimePolicyType,
+          typename ConfigurationType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType>
+class Stream_Module_Aggregator_WriterTask_2;
 
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,
@@ -52,9 +59,7 @@ template <ACE_SYNCH_DECL,
           ////////////////////////////////
           typename ControlMessageType,
           typename DataMessageType,
-          typename SessionMessageType,
-          ////////////////////////////////
-          typename SessionDataType>
+          typename SessionMessageType>
 class Stream_Module_Aggregator_ReaderTask_T
  : public ACE_Thru_Task<ACE_SYNCH_USE,
                         TimePolicyType>
@@ -80,8 +85,7 @@ class Stream_Module_Aggregator_ReaderTask_T
                                                 ConfigurationType,
                                                 ControlMessageType,
                                                 DataMessageType,
-                                                SessionMessageType,
-                                                SessionDataType> WRITER_TASK_T;
+                                                SessionMessageType> WRITER_TASK_T;
   typedef DataMessageType MESSAGE_T;
   typedef ACE_Task<ACE_SYNCH_USE,
                    TimePolicyType> TASK_T;
@@ -91,6 +95,8 @@ class Stream_Module_Aggregator_ReaderTask_T
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_Aggregator_ReaderTask_T& operator= (const Stream_Module_Aggregator_ReaderTask_T&))
 };
 
+//////////////////////////////////////////
+
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           ////////////////////////////////
@@ -98,9 +104,52 @@ template <ACE_SYNCH_DECL,
           ////////////////////////////////
           typename ControlMessageType,
           typename DataMessageType,
-          typename SessionMessageType,
+          typename SessionMessageType>
+class Stream_Module_Aggregator_ReaderTask_2
+ : public ACE_Thru_Task<ACE_SYNCH_USE,
+                        TimePolicyType>
+{
+  typedef ACE_Thru_Task<ACE_SYNCH_USE,
+                        TimePolicyType> inherited;
+
+ public:
+  // convenient types
+  typedef Stream_IStream_T<ACE_SYNCH_USE,
+                           TimePolicyType> ISTREAM_T;
+
+  Stream_Module_Aggregator_ReaderTask_2 (ISTREAM_T*); // stream handle
+  inline virtual ~Stream_Module_Aggregator_ReaderTask_2 () {};
+
+  virtual int put (ACE_Message_Block*,      // message
+                   ACE_Time_Value* = NULL); // time
+
+ private:
+  // convenient types
+  typedef Stream_Module_Aggregator_WriterTask_2<ACE_SYNCH_USE,
+                                                TimePolicyType,
+                                                ConfigurationType,
+                                                ControlMessageType,
+                                                DataMessageType,
+                                                SessionMessageType> WRITER_TASK_T;
+  typedef DataMessageType MESSAGE_T;
+  typedef ACE_Task<ACE_SYNCH_USE,
+                   TimePolicyType> TASK_T;
+
+  ACE_UNIMPLEMENTED_FUNC (Stream_Module_Aggregator_ReaderTask_2 ())
+  ACE_UNIMPLEMENTED_FUNC (Stream_Module_Aggregator_ReaderTask_2 (const Stream_Module_Aggregator_ReaderTask_2&))
+  ACE_UNIMPLEMENTED_FUNC (Stream_Module_Aggregator_ReaderTask_2& operator= (const Stream_Module_Aggregator_ReaderTask_2&))
+};
+
+////////////////////////////////////////////////////////////////////////////////
+
+template <ACE_SYNCH_DECL,
+          typename TimePolicyType,
           ////////////////////////////////
-          typename SessionDataType>
+          typename ConfigurationType,
+          ////////////////////////////////
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType>
 class Stream_Module_Aggregator_WriterTask_T
  : public Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
                                  TimePolicyType,
@@ -128,8 +177,7 @@ class Stream_Module_Aggregator_WriterTask_T
                                                      ConfigurationType,
                                                      ControlMessageType,
                                                      DataMessageType,
-                                                     SessionMessageType,
-                                                     SessionDataType>;
+                                                     SessionMessageType>;
 
  public:
   // convenient types
@@ -140,8 +188,7 @@ class Stream_Module_Aggregator_WriterTask_T
                                                 ConfigurationType,
                                                 ControlMessageType,
                                                 DataMessageType,
-                                                SessionMessageType,
-                                                SessionDataType> READER_TASK_T;
+                                                SessionMessageType> READER_TASK_T;
 
   // *TODO*: on MSVC 2015u3 the accurate declaration does not compile
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -162,6 +209,7 @@ class Stream_Module_Aggregator_WriterTask_T
                            Stream_IAllocator* = NULL); // allocator handle
 
   // implement (part of) Stream_ITaskBase_T
+  // *IMPORTANT NOTE*: the default implementation release()s all messages !
   virtual void handleDataMessage (DataMessageType*&, // message handle
                                   bool&);            // return value: pass message downstream ?
   virtual void handleSessionMessage (SessionMessageType*&, // session message handle
@@ -193,18 +241,150 @@ class Stream_Module_Aggregator_WriterTask_T
                    typename SessionMessageType::DATA_T*> SESSION_DATA_T;
   typedef typename SESSION_DATA_T::iterator SESSION_DATA_ITERATOR_T;
 
-  ACE_SYNCH_MUTEX_T         lock_;
   LINKS_T                   readerLinks_;
   LINKS_T                   writerLinks_;
-  SESSION_DATA_T            sessionData_;
+  ACE_SYNCH_MUTEX_T         sessionLock_;
+  SESSION_DATA_T            sessionSessionData_;
   SESSIONID_TO_STREAM_MAP_T sessions_;
 
-  std::string               outboundStreamName_;
+  //std::string               outboundStreamName_;
 
  private:
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_Aggregator_WriterTask_T ())
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_Aggregator_WriterTask_T (const Stream_Module_Aggregator_WriterTask_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_Aggregator_WriterTask_T& operator= (const Stream_Module_Aggregator_WriterTask_T&))
+
+  // override (part of) Stream_TaskBase_T
+  virtual void handleMessage (ACE_Message_Block*, // message handle
+                              bool&);             // return value: stop processing ?
+
+  // implement Stream_IModuleLinkCB
+  virtual void onLink (ACE_Module_Base*);
+  virtual void onUnlink (ACE_Module_Base*);
+};
+
+//////////////////////////////////////////
+
+template <ACE_SYNCH_DECL,
+          typename TimePolicyType,
+          ////////////////////////////////
+          typename ConfigurationType,
+          ////////////////////////////////
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType>
+class Stream_Module_Aggregator_WriterTask_2
+ : public Stream_TaskBaseAsynch_T<ACE_SYNCH_USE,
+                                  TimePolicyType,
+                                  ConfigurationType,
+                                  ControlMessageType,
+                                  DataMessageType,
+                                  SessionMessageType,
+                                  enum Stream_ControlType,
+                                  enum Stream_SessionMessageType,
+                                  struct Stream_UserData>
+ , public Stream_IModuleLinkCB
+{
+  typedef Stream_TaskBaseAsynch_T<ACE_SYNCH_USE,
+                                  TimePolicyType,
+                                  ConfigurationType,
+                                  ControlMessageType,
+                                  DataMessageType,
+                                  SessionMessageType,
+                                  enum Stream_ControlType,
+                                  enum Stream_SessionMessageType,
+                                  struct Stream_UserData> inherited;
+
+  friend class Stream_Module_Aggregator_ReaderTask_2<ACE_SYNCH_USE,
+                                                     TimePolicyType,
+                                                     ConfigurationType,
+                                                     ControlMessageType,
+                                                     DataMessageType,
+                                                     SessionMessageType>;
+
+ public:
+  // convenient types
+  typedef ACE_Task<ACE_SYNCH_USE,
+                   TimePolicyType> TASK_T;
+  typedef Stream_Module_Aggregator_ReaderTask_2<ACE_SYNCH_USE,
+                                                TimePolicyType,
+                                                ConfigurationType,
+                                                ControlMessageType,
+                                                DataMessageType,
+                                                SessionMessageType> READER_TASK_T;
+
+  // *TODO*: on MSVC 2015u3 the accurate declaration does not compile
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  Stream_Module_Aggregator_WriterTask_2 (ISTREAM_T*);                     // stream handle
+#else
+  Stream_Module_Aggregator_WriterTask_2 (typename inherited::ISTREAM_T*); // stream handle
+#endif // ACE_WIN32 || ACE_WIN64
+  virtual ~Stream_Module_Aggregator_WriterTask_2 ();
+
+  // override ACE_Task_Base member(s)
+  virtual int open (void* = NULL);
+  virtual int put (ACE_Message_Block*,      // data chunk
+                   ACE_Time_Value* = NULL); // timeout value
+  // override ACE_Task member(s)
+  virtual TASK_T* next (void);
+
+  // override (part of) Stream_IModuleHandler_T
+  virtual bool initialize (const ConfigurationType&,   // configuration handle
+                           Stream_IAllocator* = NULL); // allocator handle
+
+  // implement (part of) Stream_ITaskBase_T
+  // *IMPORTANT NOTE*: the default implementation release()s all messages !
+  virtual void handleDataMessage (DataMessageType*&, // message handle
+                                  bool&);            // return value: pass message downstream ?
+  virtual void handleSessionMessage (SessionMessageType*&, // session message handle
+                                     bool&);               // return value: pass message downstream ?
+
+ protected:
+  // convenient types
+  typedef ACE_Module<ACE_SYNCH_USE,
+                     TimePolicyType> MODULE_T;
+  typedef ACE_Stream<ACE_SYNCH_USE,
+                     TimePolicyType> STREAM_T;
+  typedef ACE_Stream_Iterator<ACE_SYNCH_USE,
+                              TimePolicyType> STREAM_ITERATOR_T;
+  // *NOTE*: key: stream name, value: upstream predecessor/downstream successor
+  typedef std::map<std::string, MODULE_T*> LINKS_T;
+  typedef typename LINKS_T::const_iterator LINKS_ITERATOR_T;
+  typedef std::map<Stream_SessionId_t,
+                   typename inherited::TASK_BASE_T::ISTREAM_T*> SESSIONID_TO_STREAM_MAP_T;
+  typedef typename SESSIONID_TO_STREAM_MAP_T::iterator SESSIONID_TO_STREAM_MAP_ITERATOR_T;
+  typedef std::pair<Stream_SessionId_t, STREAM_T*> SESSIONID_TO_STREAM_PAIR_T;
+  struct SESSIONID_TO_STREAM_MAP_FIND_S
+   : public std::binary_function<SESSIONID_TO_STREAM_PAIR_T,
+                                 typename inherited::TASK_BASE_T::ISTREAM_T*,
+                                 bool>
+  {
+    inline bool operator() (const SESSIONID_TO_STREAM_PAIR_T& entry_in, typename inherited::TASK_BASE_T::ISTREAM_T* stream_in) const { return !ACE_OS::strcmp (entry_in.second->name (), stream_in->name ()); }
+  };
+  typedef std::map<Stream_SessionId_t,
+                   typename SessionMessageType::DATA_T*> SESSION_DATA_T;
+  typedef typename SESSION_DATA_T::iterator SESSION_DATA_ITERATOR_T;
+
+  LINKS_T                   readerLinks_;
+  LINKS_T                   writerLinks_;
+  ACE_SYNCH_MUTEX_T         sessionLock_;
+  SESSION_DATA_T            sessionSessionData_;
+  SESSIONID_TO_STREAM_MAP_T sessions_;
+
+  //std::string               outboundStreamName_;
+
+ private:
+  // convenient types
+  typedef Stream_Module_Aggregator_WriterTask_2<ACE_SYNCH_USE,
+                                                TimePolicyType,
+                                                ConfigurationType,
+                                                ControlMessageType,
+                                                DataMessageType,
+                                                SessionMessageType> OWN_TYPE_T;
+
+  ACE_UNIMPLEMENTED_FUNC (Stream_Module_Aggregator_WriterTask_2 ())
+  ACE_UNIMPLEMENTED_FUNC (Stream_Module_Aggregator_WriterTask_2 (const Stream_Module_Aggregator_WriterTask_2&))
+  ACE_UNIMPLEMENTED_FUNC (Stream_Module_Aggregator_WriterTask_2& operator= (const Stream_Module_Aggregator_WriterTask_2&))
 
   // override (part of) Stream_TaskBase_T
   virtual void handleMessage (ACE_Message_Block*, // message handle

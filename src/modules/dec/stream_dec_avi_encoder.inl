@@ -784,8 +784,10 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
 #endif // FFMPEG_SUPPORT
 #endif // ACE_WIN32 || ACE_WIN64
       inherited2:: getMediaType (session_data_r.formats.back (),
+                                 STREAM_MEDIATYPE_INVALID, // N/A
                                  media_type_s);
       inherited2::getMediaType (media_type_s,
+                                STREAM_MEDIATYPE_INVALID, // N/A
                                 format_);
       frameSize_ =
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -1165,6 +1167,7 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
   struct _AMMediaType media_type_s;
   ACE_OS::memset (&media_type_s, 0, sizeof (struct _AMMediaType));
   inherited2::getMediaType (session_data_r.formats.back (),
+                            STREAM_MEDIATYPE_INVALID, // N/A
                             media_type_s);
   struct _riffchunk RIFF_chunk;
   struct _rifflist RIFF_list;
@@ -1211,7 +1214,7 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
 //      //DIBSIZE (video_info_header_p->bmiHeader);
 //    video_info_header_p->dwBitRate =
 //      (frameSize_ * 8) *                                                      // bits / frame
-//      (10000000 / static_cast<DWORD> (video_info_header_p->AvgTimePerFrame)); // fps
+//      (UNITS / static_cast<DWORD> (video_info_header_p->AvgTimePerFrame)); // fps
 //  } // end IF
 //  else
 //  {
@@ -1221,8 +1224,8 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
 //    video_info_header2_p->bmiHeader.biSizeImage = frameSize_;
 //      //DIBSIZE (video_info_header_p->bmiHeader);
 //    video_info_header2_p->dwBitRate =
-//      (frameSize_ * 8) *                                                       // bits / frame
-//      (10000000 / static_cast<DWORD> (video_info_header2_p->AvgTimePerFrame)); // fps
+//      (frameSize_ * 8) *                                                    // bits / frame
+//      (UNITS / static_cast<DWORD> (video_info_header2_p->AvgTimePerFrame)); // fps
 //  } // end ELSE
 //
 //continue_:

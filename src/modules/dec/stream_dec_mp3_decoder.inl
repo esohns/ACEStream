@@ -322,6 +322,7 @@ Stream_Decoder_MP3Decoder_T<ACE_SYNCH_USE,
   media_type_2.rate = rate_l;
 #endif // ACE_WIN32 || ACE_WIN64
   inherited2::getMediaType (media_type_2,
+                            STREAM_MEDIATYPE_AUDIO,
                             media_type_s);
   session_data_r.formats.push_back (media_type_s);
   session_data_container_p = inherited::sessionData_->clone ();

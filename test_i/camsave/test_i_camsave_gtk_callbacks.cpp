@@ -993,7 +993,7 @@ load_rates (IAMStreamConfig* IAMStreamConfig_in,
       Stream_MediaFramework_DirectShow_Tools::delete_ (media_type_p);
       continue;
     } // end IF
-    frame_rates.insert (std::make_pair ((10000000 / frame_duration), 1));
+    frame_rates.insert (std::make_pair ((UNITS / frame_duration), 1));
     Stream_MediaFramework_DirectShow_Tools::delete_ (media_type_p);
   } // end WHILE
 
@@ -1822,8 +1822,8 @@ set_capture_format (struct Stream_CamSave_UI_CBData* CBData_in)
           DIBSIZE (video_info_header_p->bmiHeader);
         ACE_ASSERT (video_info_header_p->AvgTimePerFrame);
         video_info_header_p->dwBitRate =
-          (video_info_header_p->bmiHeader.biSizeImage * 8) *                      // bits / frame
-          (10000000 / static_cast<DWORD> (video_info_header_p->AvgTimePerFrame)); // fps
+          (video_info_header_p->bmiHeader.biSizeImage * 8) *                   // bits / frame
+          (UNITS / static_cast<DWORD> (video_info_header_p->AvgTimePerFrame)); // fps
 
         directshow_cb_data_p->configuration->streamConfiguration.configuration_->format.lSampleSize =
           video_info_header_p->bmiHeader.biSizeImage;
@@ -1838,8 +1838,8 @@ set_capture_format (struct Stream_CamSave_UI_CBData* CBData_in)
           DIBSIZE (video_info_header_p->bmiHeader);
         ACE_ASSERT (video_info_header_p->AvgTimePerFrame);
         video_info_header_p->dwBitRate =
-          (video_info_header_p->bmiHeader.biSizeImage * 8) *                      // bits / frame
-          (10000000 / static_cast<DWORD> (video_info_header_p->AvgTimePerFrame)); // fps
+          (video_info_header_p->bmiHeader.biSizeImage * 8) *                   // bits / frame
+          (UNITS / static_cast<DWORD> (video_info_header_p->AvgTimePerFrame)); // fps
 
         directshow_cb_data_p->configuration->streamConfiguration.configuration_->format.lSampleSize =
           video_info_header_p->bmiHeader.biSizeImage;

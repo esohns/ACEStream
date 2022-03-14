@@ -1013,7 +1013,7 @@ Stream_AVSave_WxWidgetsDialog_T<wxDialog_main,
   //converter >> framerate_i;
 
   Common_UI_Resolution_t resolution_2 =
-    Stream_MediaFramework_DirectShow_Tools::toResolution (cb_data_r.configuration->videoStreamConfiguration.configuration_->format);
+    Stream_MediaFramework_DirectShow_Tools::toResolution (cb_data_r.configuration->videoStreamConfiguration.configuration_->format.video);
   //bool reset_device_b =
   //  ((resolution_s.cx != resolution_2.cx) || (resolution_s.cy != resolution_2.cy));
   //ACE_ASSERT ((*stream_iterator).second.second->sourceFormat);
@@ -1023,7 +1023,7 @@ Stream_AVSave_WxWidgetsDialog_T<wxDialog_main,
   //{
     Stream_MediaFramework_DirectShow_Tools::free ((*stream_iterator).second.second->outputFormat);
     (*stream_iterator).second.second->outputFormat =
-      Stream_MediaFramework_DirectShow_Tools::toRGB (cb_data_r.configuration->videoStreamConfiguration.configuration_->format);
+      Stream_MediaFramework_DirectShow_Tools::toRGB (cb_data_r.configuration->videoStreamConfiguration.configuration_->format.video);
     Stream_MediaFramework_DirectShow_Tools::free ((*stream_iterator_2).second.second->outputFormat);
     media_type_p =
       Stream_MediaFramework_DirectShow_Tools::copy ((*stream_iterator).second.second->outputFormat);
@@ -1325,7 +1325,7 @@ Stream_AVSave_WxWidgetsDialog_T<wxDialog_main,
   filter_p->Release (); filter_p = NULL;
   choice_format->Enable (!subformats_a.empty ());
   index_i =
-    (initializing_ ? choice_format->FindString (Stream_MediaFramework_Tools::mediaSubTypeToString (cb_data_r.configuration->videoStreamConfiguration.configuration_->format.subtype, STREAM_MEDIAFRAMEWORK_DIRECTSHOW))
+    (initializing_ ? choice_format->FindString (Stream_MediaFramework_Tools::mediaSubTypeToString (cb_data_r.configuration->videoStreamConfiguration.configuration_->format.video.subtype, STREAM_MEDIAFRAMEWORK_DIRECTSHOW))
                    : 0);
   choice_format->Select (index_i);
   wxCommandEvent event_s (wxEVT_COMMAND_CHOICE_SELECTED,
@@ -1419,7 +1419,7 @@ Stream_AVSave_WxWidgetsDialog_T<wxDialog_main,
                                                            format_s);
   ACE_ASSERT (!resolutions_a.empty ());
   Common_UI_Resolution_t resolution_s =
-    Stream_MediaFramework_DirectShow_Tools::toResolution (cb_data_r.configuration->videoStreamConfiguration.configuration_->format);
+    Stream_MediaFramework_DirectShow_Tools::toResolution (cb_data_r.configuration->videoStreamConfiguration.configuration_->format.video);
 
   choice_resolution->SetSelection (wxNOT_FOUND);
   choice_resolution->Clear ();
@@ -1499,7 +1499,7 @@ Stream_AVSave_WxWidgetsDialog_T<wxDialog_main,
                                                           resolution_s);
   ACE_ASSERT (!framerates_a.empty ());
   unsigned int framerate_i =
-    Stream_MediaFramework_DirectShow_Tools::toFramerate (cb_data_r.configuration->videoStreamConfiguration.configuration_->format);
+    Stream_MediaFramework_DirectShow_Tools::toFramerate (cb_data_r.configuration->videoStreamConfiguration.configuration_->format.video);
 
   choice_framerate->Clear ();
   int index_i = wxNOT_FOUND;
@@ -1582,7 +1582,7 @@ Stream_AVSave_WxWidgetsDialog_T<wxDialog_main,
                                                               format_s,
                                                               resolution_s.cx, resolution_s.cy,
                                                               framerate_i,
-                                                              cb_data_r.configuration->videoStreamConfiguration.configuration_->format))
+                                                              cb_data_r.configuration->videoStreamConfiguration.configuration_->format.video))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Stream_Device_DirectShow_Tools::getVideoCaptureFormat(\"%s\",%s,%dx%d,%d), returning\n"),
@@ -1596,7 +1596,7 @@ Stream_AVSave_WxWidgetsDialog_T<wxDialog_main,
   // update controls
   if (initializing_)
     togglebutton_record->Enable (true);
-  spinctrl_framesize->SetValue (Stream_MediaFramework_DirectShow_Tools::toFramesize (cb_data_r.configuration->videoStreamConfiguration.configuration_->format));
+  spinctrl_framesize->SetValue (Stream_MediaFramework_DirectShow_Tools::toFramesize (cb_data_r.configuration->videoStreamConfiguration.configuration_->format.video));
   IBaseFilter* filter_p = NULL;
   HRESULT result =
     (*stream_iterator).second.second->builder->FindFilterByName (STREAM_LIB_DIRECTSHOW_FILTER_NAME_CAPTURE_VIDEO,
@@ -1613,7 +1613,7 @@ Stream_AVSave_WxWidgetsDialog_T<wxDialog_main,
     return;
   } // end IF
   filter_p->Release (); filter_p = NULL;
-  button_reset_camera->Enable (!Stream_MediaFramework_DirectShow_Tools::match (cb_data_r.configuration->videoStreamConfiguration.configuration_->format,
+  button_reset_camera->Enable (!Stream_MediaFramework_DirectShow_Tools::match (cb_data_r.configuration->videoStreamConfiguration.configuration_->format.video,
                                                                                *media_type_p));
   Stream_MediaFramework_DirectShow_Tools::delete_ (media_type_p);
 }
@@ -2096,7 +2096,7 @@ Stream_AVSave_WxWidgetsDialog_T<wxDialog_main,
   ACE_ASSERT (application_);
 
   // step1: make sure the stream has stopped
-  Stream_AVSave_WaveIn_Stream* stream_p = NULL;
+  Stream_AVSave_DirectShow_Audio_Stream* stream_p = NULL;
   Stream_AVSave_DirectShow_Stream* stream_2 = NULL;
   Stream_AVSave_DirectShow_WxWidgetsIApplication_t::CBDATA_T& cb_data_r =
     const_cast<Stream_AVSave_DirectShow_WxWidgetsIApplication_t::CBDATA_T&> (application_->getR_2 ());
@@ -2426,12 +2426,12 @@ Stream_AVSave_WxWidgetsDialog_T<wxDialog_main,
 #endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
   topology_p->Release (); topology_p = NULL;
 
-  if (cb_data_r.configuration->videoStreamConfiguration.configuration_->format)
+  if (cb_data_r.configuration->videoStreamConfiguration.configuration_->format.video)
   {
-    cb_data_r.configuration->videoStreamConfiguration.configuration_->format->Release (); cb_data_r.configuration->videoStreamConfiguration.configuration_->format = NULL;
+    cb_data_r.configuration->videoStreamConfiguration.configuration_->format.video->Release (); cb_data_r.configuration->videoStreamConfiguration.configuration_->format.video = NULL;
   } // end IF
   HRESULT result_2 =
-    MFCreateMediaType (&cb_data_r.configuration->videoStreamConfiguration.configuration_->format);
+    MFCreateMediaType (&cb_data_r.configuration->videoStreamConfiguration.configuration_->format.video);
   if (FAILED (result_2))
   {
     ACE_DEBUG ((LM_ERROR,
@@ -2439,17 +2439,17 @@ Stream_AVSave_WxWidgetsDialog_T<wxDialog_main,
                 ACE_TEXT (Common_Error_Tools::errorToString (result_2).c_str ())));
     return;
   } // end IF
-  ACE_ASSERT (cb_data_r.configuration->videoStreamConfiguration.configuration_->format);
+  ACE_ASSERT (cb_data_r.configuration->videoStreamConfiguration.configuration_->format.video);
   result_2 =
-    cb_data_r.configuration->videoStreamConfiguration.configuration_->format->SetGUID (MF_MT_MAJOR_TYPE,
-                                                                                       MFMediaType_Video);
+    cb_data_r.configuration->videoStreamConfiguration.configuration_->format.video->SetGUID (MF_MT_MAJOR_TYPE,
+                                                                                             MFMediaType_Video);
   ACE_ASSERT (SUCCEEDED (result_2));
   result_2 =
-    cb_data_r.configuration->videoStreamConfiguration.configuration_->format->SetUINT32 (MF_MT_INTERLACE_MODE,
-                                                                                         MFVideoInterlace_Unknown);
+    cb_data_r.configuration->videoStreamConfiguration.configuration_->format.video->SetUINT32 (MF_MT_INTERLACE_MODE,
+                                                                                               MFVideoInterlace_Unknown);
   ACE_ASSERT (SUCCEEDED (result_2));
   result_2 =
-    MFSetAttributeRatio (cb_data_r.configuration->videoStreamConfiguration.configuration_->format,
+    MFSetAttributeRatio (cb_data_r.configuration->videoStreamConfiguration.configuration_->format.video,
                          MF_MT_PIXEL_ASPECT_RATIO,
                          pixel_aspect_ratio.Numerator,
                          pixel_aspect_ratio.Denominator);
@@ -2604,7 +2604,7 @@ Stream_AVSave_WxWidgetsDialog_T<wxDialog_main,
   ACE_ASSERT (application_);
 
   // step1: make sure the stream has stopped
-  Stream_AVSave_MediaFoundation_Stream* stream_p = NULL;
+  Stream_AVSave_MediaFoundation_Audio_Stream* stream_p = NULL;
   Stream_AVSave_MediaFoundation_Stream* stream_2 = NULL;
   Stream_AVSave_MediaFoundation_WxWidgetsIApplication_t::CBDATA_T& cb_data_r =
     const_cast<Stream_AVSave_MediaFoundation_WxWidgetsIApplication_t::CBDATA_T&> (application_->getR_2 ());

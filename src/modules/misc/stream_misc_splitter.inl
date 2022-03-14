@@ -470,6 +470,7 @@ Stream_Module_Splitter_T<ACE_SYNCH_USE,
   struct _AMMediaType media_type_s;
   ACE_OS::memset (&media_type_s, 0, sizeof (struct _AMMediaType));
   inherited2::getMediaType (configuration_in.outputFormat,
+                            STREAM_MEDIATYPE_INVALID, // N/A
                             media_type_s);
   PDUSize_ = media_type_s.lSampleSize;
 
@@ -478,6 +479,7 @@ Stream_Module_Splitter_T<ACE_SYNCH_USE,
 #if defined (FFMPEG_SUPPORT)
   struct Stream_MediaFramework_FFMPEG_VideoMediaType media_type_s;
   inherited2::getMediaType (configuration_in.outputFormat,
+                            STREAM_MEDIATYPE_INVALID, // N/A
                             media_type_s);
   PDUSize_ =
       av_image_get_buffer_size (media_type_s.format,

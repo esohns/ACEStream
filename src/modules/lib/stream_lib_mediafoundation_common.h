@@ -35,6 +35,19 @@ class ACE_Message_Queue_Base;
 typedef std::deque<IMFMediaType*> Stream_MediaFramework_MediaFoundation_Formats_t;
 typedef Stream_MediaFramework_MediaFoundation_Formats_t::iterator Stream_MediaFramework_MediaFoundation_FormatsIterator_t;
 
+struct Stream_MediaFramework_MediaFoundation_AudioVideoFormat
+{
+  Stream_MediaFramework_MediaFoundation_AudioVideoFormat ()
+   : audio (NULL)
+   , video (NULL)
+  {}
+
+  IMFMediaType* audio;
+  IMFMediaType* video;
+};
+typedef std::deque<struct Stream_MediaFramework_MediaFoundation_AudioVideoFormat> Stream_MediaFramework_MediaFoundation_AudioVideoFormats_t;
+typedef Stream_MediaFramework_MediaFoundation_AudioVideoFormats_t::iterator Stream_MediaFramework_MediaFoundation_AudioVideoFormatsIterator_t;
+
 struct Stream_MediaFramework_MediaFoundation_Configuration
 {
   Stream_MediaFramework_MediaFoundation_Configuration ()

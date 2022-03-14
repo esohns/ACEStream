@@ -373,6 +373,7 @@ Stream_MediaFramework_DirectShow_Target_T<ACE_SYNCH_USE,
       ACE_OS::memset (&media_type_s, 0, sizeof (struct _AMMediaType));
 
       inherited2::getMediaType (session_data_r.formats.back (),
+                                STREAM_MEDIATYPE_INVALID, // N/A
                                 media_type_s);
 
       if (!IGraphBuilder_)

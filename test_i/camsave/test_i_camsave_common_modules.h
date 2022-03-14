@@ -103,7 +103,9 @@ typedef Stream_Dev_Cam_Source_DirectShow_T<ACE_MT_SYNCH,
                                            Stream_CamSave_DirectShow_SessionData_t,
                                            struct Stream_CamSave_StatisticData,
                                            Common_Timer_Manager_t,
-                                           struct Stream_UserData> Stream_CamSave_DirectShow_Source;
+                                           struct Stream_UserData,
+                                           struct _AMMediaType,
+                                           false> Stream_CamSave_DirectShow_Source;
 
 typedef Stream_Dev_Cam_Source_MediaFoundation_T<ACE_MT_SYNCH,
                                                 Stream_ControlMessage_t,
@@ -117,7 +119,8 @@ typedef Stream_Dev_Cam_Source_MediaFoundation_T<ACE_MT_SYNCH,
                                                 Stream_CamSave_MediaFoundation_SessionData_t,
                                                 struct Stream_CamSave_StatisticData,
                                                 Common_Timer_Manager_t,
-                                                struct Stream_UserData> Stream_CamSave_MediaFoundation_Source;
+                                                struct Stream_UserData,
+                                                IMFMediaType*> Stream_CamSave_MediaFoundation_Source;
 
 typedef Stream_Miscellaneous_Distributor_ReaderTask_T<ACE_MT_SYNCH,
                                                       Common_TimePolicy_t,

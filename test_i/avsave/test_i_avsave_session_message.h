@@ -30,9 +30,11 @@
 #include "stream_session_data.h"
 #include "stream_session_message_base.h"
 
+#include "stream_lib_common.h"
+
 #include "test_i_common.h"
 
-#include "test_i_avsave_common.h"
+//#include "test_i_avsave_common.h"
 
 // forward declaratation(s)
 struct Stream_UserData;

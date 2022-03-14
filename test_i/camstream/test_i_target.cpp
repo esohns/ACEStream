@@ -671,7 +671,7 @@ do_initialize_mediafoundation (IMFMediaType*& sourceMediaType_out,
                                  MF_MT_FRAME_RATE,
                                  STREAM_DEV_CAM_DEFAULT_CAPTURE_RATE, 1);
   ACE_ASSERT (SUCCEEDED (result_2));
-  //result_2 = sourceMediaType_out->SetUINT32 (MF_MT_AVG_BITRATE, 10000000);
+  //result_2 = sourceMediaType_out->SetUINT32 (MF_MT_AVG_BITRATE, UNITS);
   //ACE_ASSERT (SUCCEEDED (result_2));
   result_2 = MFSetAttributeSize (sourceMediaType_out,
                                  MF_MT_FRAME_SIZE,

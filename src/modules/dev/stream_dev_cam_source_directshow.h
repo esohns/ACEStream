@@ -23,7 +23,7 @@
 
 #include <string>
 
-#include "BaseTyps.h"
+#include "basetyps.h"
 #include "OAIdl.h"
 #include "control.h"
 #include "qedit.h"
@@ -43,6 +43,8 @@
 #include "stream_common.h"
 #include "stream_headmoduletask_base.h"
 
+#include "stream_lib_mediatype_converter.h"
+
 extern const char libacestream_default_dev_cam_source_directshow_module_name_string[];
 
 template <ACE_SYNCH_DECL,
@@ -59,6 +61,7 @@ template <ACE_SYNCH_DECL,
           typename TimerManagerType, // implements Common_ITimer
           typename UserDataType,
           ////////////////////////////////
+          typename MediaType,
           bool MediaSampleIsDataMessage = false>
 class Stream_Dev_Cam_Source_DirectShow_T
  : public Stream_HeadModuleTaskBase_T<ACE_MT_SYNCH,
@@ -75,6 +78,7 @@ class Stream_Dev_Cam_Source_DirectShow_T
                                       StatisticContainerType,
                                       TimerManagerType,
                                       UserDataType>
+ , public Stream_MediaFramework_MediaTypeConverter_T<MediaType>
  , public Common_UI_WindowTypeConverter_T<HWND>
  , public IMemAllocatorNotifyCallbackTemp
  , public ISampleGrabberCB
@@ -93,7 +97,8 @@ class Stream_Dev_Cam_Source_DirectShow_T
                                       StatisticContainerType,
                                       TimerManagerType,
                                       UserDataType> inherited;
-  typedef Common_UI_WindowTypeConverter_T<HWND> inherited2;
+  typedef Stream_MediaFramework_MediaTypeConverter_T<MediaType> inherited2;
+  typedef Common_UI_WindowTypeConverter_T<HWND> inherited3;
 
  public:
   // convenient types

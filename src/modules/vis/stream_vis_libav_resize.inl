@@ -273,12 +273,14 @@ Stream_Visualization_LibAVResize_T<ACE_SYNCH_USE,
       // remember input format
       struct Stream_MediaFramework_FFMPEG_VideoMediaType media_type_2;
       inherited::getMediaType (media_type_r,
+                               STREAM_MEDIATYPE_VIDEO,
                                media_type_2);
       inherited::inputFormat_ = media_type_2.format;
       sourceResolution_ = media_type_2.resolution;
 
       struct Stream_MediaFramework_FFMPEG_VideoMediaType media_type_3;
       inherited::getMediaType (inherited::configuration_->outputFormat,
+                               STREAM_MEDIATYPE_VIDEO,
                                media_type_3);
 
       // sanity check(s)
@@ -416,6 +418,7 @@ error:
       int flags_i = 0;
       struct Stream_MediaFramework_FFMPEG_VideoMediaType media_type_2;
       inherited::getMediaType (inherited::configuration_->outputFormat,
+                               STREAM_MEDIATYPE_VIDEO,
                                media_type_2);
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
       if ((sourceResolution_.cy == media_type_2.resolution.cy) &&
@@ -610,6 +613,7 @@ Stream_Visualization_LibAVResize1_T<ACE_SYNCH_USE,
       const_cast<typename DataMessageType::DATA_T&> (inherited::buffer_->getR ());
   struct Stream_MediaFramework_FFMPEG_VideoMediaType media_type_s;
   inherited::getMediaType (message_data_2.format,
+                           STREAM_MEDIATYPE_VIDEO,
                            media_type_s);
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   struct Stream_MediaFramework_FFMPEG_VideoMediaType media_type_2;
@@ -628,6 +632,7 @@ Stream_Visualization_LibAVResize1_T<ACE_SYNCH_USE,
   // sanity check(s)
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   inherited::getMediaType (inherited::configuration_->outputFormat,
+                           STREAM_MEDIATYPE_VIDEO,
                            media_type_2);
   ACE_ASSERT (media_type_s.format == media_type_2.format);
   if ((media_type_s.resolution.cx == media_type_2.resolution.cx) &&
@@ -830,6 +835,7 @@ Stream_Visualization_LibAVResize1_T<ACE_SYNCH_USE,
       // sanity check(s)
       struct Stream_MediaFramework_FFMPEG_VideoMediaType media_type_3;
       inherited::getMediaType (inherited::configuration_->outputFormat,
+                               STREAM_MEDIATYPE_VIDEO,
                                media_type_3);
 
       ACE_ASSERT (!inherited::frame_);
@@ -895,8 +901,10 @@ error:
       // update configuration
       ACE_ASSERT (inherited::configuration_);
       inherited::getMediaType (inherited::configuration_->outputFormat,
+                               STREAM_MEDIATYPE_VIDEO,
                                media_type_s);
       inherited::getMediaType (session_data_r.formats.back (),
+                               STREAM_MEDIATYPE_VIDEO,
                                media_type_2);
       ACE_ASSERT (inherited::frame_);
 #if defined (ACE_WIN32) || defined (ACE_WIN64)

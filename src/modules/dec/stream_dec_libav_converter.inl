@@ -325,18 +325,21 @@ Stream_Decoder_LibAVConverter_T<ACE_SYNCH_USE,
       // sanity check(s)
       struct Stream_MediaFramework_FFMPEG_VideoMediaType media_type_s;
       inherited2::getMediaType (session_data_r.formats.back (),
+                                STREAM_MEDIATYPE_VIDEO,
                                 media_type_s);
       ACE_ASSERT (!Stream_Module_Decoder_Tools::isCompressedVideo (media_type_s.format));
 
       MediaType media_type_2;
       ACE_OS::memset (&media_type_2, 0, sizeof (MediaType));
       inherited2::getMediaType (session_data_r.formats.back (),
+                                STREAM_MEDIATYPE_VIDEO,
                                 media_type_2);
       int flags = 0;
       int result = -1;
       inputFormat_ = media_type_s.format;
       struct Stream_MediaFramework_FFMPEG_VideoMediaType media_type_3;
       inherited2::getMediaType (inherited::configuration_->outputFormat,
+                                STREAM_MEDIATYPE_VIDEO,
                                 media_type_3);
       if (unlikely (inputFormat_ == media_type_3.format))
       {
@@ -454,6 +457,7 @@ error:
 
       struct Stream_MediaFramework_FFMPEG_VideoMediaType media_type_s;
       inherited2::getMediaType (inherited::configuration_->outputFormat,
+                                STREAM_MEDIATYPE_VIDEO,
                                 media_type_s);
       if (!frame_ ||
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -669,8 +673,10 @@ Stream_Decoder_LibAVConverter1_T<ACE_SYNCH_USE,
   ACE_ASSERT (!message_inout->cont ());
 
   inherited2::getMediaType (message_data_r.format,
+                            STREAM_MEDIATYPE_VIDEO,
                             media_type_s);
   inherited2::getMediaType (inherited::configuration_->outputFormat,
+                            STREAM_MEDIATYPE_VIDEO,
                             media_type_2);
   ACE_ASSERT (inherited::configuration_);
   size_i =

@@ -37,6 +37,8 @@
 #include "stream_common.h"
 #include "stream_headmoduletask_base.h"
 
+#include "stream_lib_mediatype_converter.h"
+
 extern const char libacestream_default_dev_cam_source_mediafoundation_module_name_string[];
 
 template <ACE_SYNCH_DECL,
@@ -57,7 +59,9 @@ template <ACE_SYNCH_DECL,
           typename StatisticContainerType,
           typename TimerManagerType, // implements Common_ITimer
           ////////////////////////////////
-          typename UserDataType>
+          typename UserDataType,
+          ////////////////////////////////
+          typename MediaType>
 class Stream_Dev_Cam_Source_MediaFoundation_T
  : public Stream_HeadModuleTaskBase_T<ACE_MT_SYNCH,
                                       Common_TimePolicy_t,
@@ -73,6 +77,7 @@ class Stream_Dev_Cam_Source_MediaFoundation_T
                                       StatisticContainerType,
                                       TimerManagerType,
                                       UserDataType>
+ , public Stream_MediaFramework_MediaTypeConverter_T<MediaType>
 #if COMMON_OS_WIN32_TARGET_PLATFORM(0x0601) // _WIN32_WINNT_WIN7
  , public IMFSampleGrabberSinkCallback2
 #else
@@ -94,6 +99,7 @@ class Stream_Dev_Cam_Source_MediaFoundation_T
                                       StatisticContainerType,
                                       TimerManagerType,
                                       UserDataType> inherited;
+  typedef Stream_MediaFramework_MediaTypeConverter_T<MediaType> inherited2;
 
  public:
   // convenient types
@@ -187,7 +193,8 @@ class Stream_Dev_Cam_Source_MediaFoundation_T
                                                   SessionDataContainerType, // session message payload (reference counted)
                                                   StatisticContainerType,
                                                   TimerManagerType,
-                                                  UserDataType> OWN_TYPE_T;
+                                                  UserDataType,
+                                                  MediaType> OWN_TYPE_T;
 
   ACE_UNIMPLEMENTED_FUNC (Stream_Dev_Cam_Source_MediaFoundation_T ())
   ACE_UNIMPLEMENTED_FUNC (Stream_Dev_Cam_Source_MediaFoundation_T (const Stream_Dev_Cam_Source_MediaFoundation_T&))

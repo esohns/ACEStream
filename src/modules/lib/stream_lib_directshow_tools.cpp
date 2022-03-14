@@ -49,6 +49,8 @@
 #include "mtype.h"
 #include "oleauto.h"
 #include "qedit.h"
+#include "winnt.h"
+//#include "reftime.h"
 #include "strsafe.h"
 // *NOTE*: uuids.h doesn't have double include protection
 #if defined (UUIDS_H)
@@ -2895,6 +2897,44 @@ continue_:
   return result;
 }
 
+bool
+Stream_MediaFramework_DirectShow_Tools::copy (const struct Stream_MediaFramework_DirectShow_AudioVideoFormat& mediaType_in,
+                                              struct Stream_MediaFramework_DirectShow_AudioVideoFormat& result_out)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_DirectShow_Tools::copy"));
+
+  // initialize return value(s)
+  Stream_MediaFramework_DirectShow_Tools::free (result_out.audio);
+  Stream_MediaFramework_DirectShow_Tools::free (result_out.video);
+
+  Stream_MediaFramework_DirectShow_Tools::copy (mediaType_in.audio,
+                                                result_out.audio);
+  Stream_MediaFramework_DirectShow_Tools::copy (mediaType_in.video,
+                                                result_out.video);
+
+  return true;
+}
+
+void
+Stream_MediaFramework_DirectShow_Tools::free (struct Stream_MediaFramework_DirectShow_AudioVideoFormat& mediaType_inout)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_DirectShow_Tools::free"));
+
+  Stream_MediaFramework_DirectShow_Tools::free (mediaType_inout.audio);
+  Stream_MediaFramework_DirectShow_Tools::free (mediaType_inout.video);
+}
+
+void
+Stream_MediaFramework_DirectShow_Tools::free (Stream_MediaFramework_DirectShow_AudioVideoFormats_t& mediaTypes_inout)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_DirectShow_Tools::free"));
+
+  for (Stream_MediaFramework_DirectShow_AudioVideoFormatsIterator_t iterator = mediaTypes_inout.begin ();
+       iterator != mediaTypes_inout.end ();
+       ++iterator)
+    Stream_MediaFramework_DirectShow_Tools::free (*iterator);
+}
+
 struct _AMMediaType*
 Stream_MediaFramework_DirectShow_Tools::copy (const struct _AMMediaType& mediaType_in)
 {
@@ -3182,6 +3222,7 @@ Stream_MediaFramework_DirectShow_Tools::setFormat (REFGUID mediaSubType_in,
   mediaType_inout.subtype = mediaSubType_in;
 
   FOURCCMap fourcc_map (&mediaType_inout.subtype);
+  unsigned int frames_per_second_i = 0;
   if (InlineIsEqualGUID (mediaType_inout.formattype, FORMAT_VideoInfo))
   {
     struct tagVIDEOINFOHEADER* video_info_header_p =
@@ -3195,6 +3236,10 @@ Stream_MediaFramework_DirectShow_Tools::setFormat (REFGUID mediaSubType_in,
                                                                                          : BI_RGB);
     video_info_header_p->bmiHeader.biSizeImage =
       DIBSIZE (video_info_header_p->bmiHeader);
+    frames_per_second_i =
+      /*UNITS*/10000000 / static_cast<unsigned int> (video_info_header_p->AvgTimePerFrame);
+    video_info_header_p->dwBitRate =
+      (video_info_header_p->bmiHeader.biSizeImage * frames_per_second_i) * 8;
     mediaType_inout.lSampleSize = video_info_header_p->bmiHeader.biSizeImage;
   } // end IF
   else if (InlineIsEqualGUID (mediaType_inout.formattype, FORMAT_VideoInfo2))
@@ -3210,6 +3255,10 @@ Stream_MediaFramework_DirectShow_Tools::setFormat (REFGUID mediaSubType_in,
                                                                                          : BI_RGB);
     video_info_header2_p->bmiHeader.biSizeImage =
       DIBSIZE (video_info_header2_p->bmiHeader);
+    frames_per_second_i =
+      /*UNITS*/10000000 / static_cast<unsigned int> (video_info_header2_p->AvgTimePerFrame);
+    video_info_header2_p->dwBitRate =
+      (video_info_header2_p->bmiHeader.biSizeImage * frames_per_second_i) * 8;
     mediaType_inout.lSampleSize = video_info_header2_p->bmiHeader.biSizeImage;
   } // end ELSE IF
   else if (InlineIsEqualGUID (mediaType_inout.formattype, FORMAT_WaveFormatEx))
@@ -3279,7 +3328,7 @@ Stream_MediaFramework_DirectShow_Tools::setResolution (const Common_Image_Resolu
     video_info_header_p->bmiHeader.biSizeImage =
       DIBSIZE (video_info_header_p->bmiHeader);
     frames_per_second_i =
-      10000000 / static_cast<unsigned int> (video_info_header_p->AvgTimePerFrame);
+      /*UNITS*/10000000 / static_cast<unsigned int> (video_info_header_p->AvgTimePerFrame);
     video_info_header_p->dwBitRate =
       (video_info_header_p->bmiHeader.biSizeImage * frames_per_second_i) * 8;
     frame_size_i = video_info_header_p->bmiHeader.biSizeImage;
@@ -3294,7 +3343,7 @@ Stream_MediaFramework_DirectShow_Tools::setResolution (const Common_Image_Resolu
     video_info_header2_p->bmiHeader.biSizeImage =
       DIBSIZE (video_info_header2_p->bmiHeader);
     frames_per_second_i =
-      10000000 / static_cast<unsigned int> (video_info_header2_p->AvgTimePerFrame);
+      /*UNITS*/10000000 / static_cast<unsigned int> (video_info_header2_p->AvgTimePerFrame);
     video_info_header2_p->dwBitRate =
       (video_info_header2_p->bmiHeader.biSizeImage * frames_per_second_i) * 8;
     frame_size_i = video_info_header2_p->bmiHeader.biSizeImage;
@@ -3306,7 +3355,7 @@ Stream_MediaFramework_DirectShow_Tools::setResolution (const Common_Image_Resolu
                 ACE_TEXT (Common_Tools::GUIDToString (mediaType_inout.formattype).c_str ())));
     return;
   } // end ELSE
-  ACE_ASSERT (frame_size_i);
+  //ACE_ASSERT (frame_size_i); // *NOTE*: biBitCount may not be set (i.e. 0) for compressed formats
   mediaType_inout.lSampleSize = frame_size_i;
 }
 
@@ -3320,7 +3369,7 @@ Stream_MediaFramework_DirectShow_Tools::setFramerate (const unsigned int& frameR
   {
     struct tagVIDEOINFOHEADER* video_info_header_p =
       (struct tagVIDEOINFOHEADER*)mediaType_inout.pbFormat;
-    video_info_header_p->AvgTimePerFrame = 10000000 / frameRate_in;
+    video_info_header_p->AvgTimePerFrame = /*UNITS*/ 10000000 / frameRate_in;
     video_info_header_p->dwBitRate =
       (video_info_header_p->bmiHeader.biSizeImage * frameRate_in) * 8;
   } // end IF
@@ -3328,7 +3377,7 @@ Stream_MediaFramework_DirectShow_Tools::setFramerate (const unsigned int& frameR
   {
     struct tagVIDEOINFOHEADER2* video_info_header2_p =
       (struct tagVIDEOINFOHEADER2*)mediaType_inout.pbFormat;
-    video_info_header2_p->AvgTimePerFrame = 10000000 / frameRate_in;
+    video_info_header2_p->AvgTimePerFrame = /*UNITS*/ 10000000 / frameRate_in;
     video_info_header2_p->dwBitRate =
       (video_info_header2_p->bmiHeader.biSizeImage * frameRate_in) * 8;
   } // end ELSE IFs
@@ -3960,6 +4009,9 @@ Stream_MediaFramework_DirectShow_Tools::toFramerate (const struct _AMMediaType& 
 
   unsigned int result = 0;
 
+  // sanity check(s)
+  ACE_ASSERT (mediaType_in.pbFormat);
+
   if (InlineIsEqualGUID (mediaType_in.formattype, FORMAT_VideoInfo))
   {
     struct tagVIDEOINFOHEADER* video_info_header_p =
@@ -3973,6 +4025,12 @@ Stream_MediaFramework_DirectShow_Tools::toFramerate (const struct _AMMediaType& 
       (struct tagVIDEOINFOHEADER2*)mediaType_in.pbFormat;
     result =
       (NANOSECONDS / static_cast<unsigned int> (video_info_header2_p->AvgTimePerFrame));
+  } // end ELSE IF
+  else if (InlineIsEqualGUID (mediaType_in.formattype, FORMAT_WaveFormatEx))
+  {
+    struct tWAVEFORMATEX* waveformatex_p =
+      (struct tWAVEFORMATEX*)mediaType_in.pbFormat;
+    result = waveformatex_p->nSamplesPerSec;
   } // end ELSE IF
   else
   {
@@ -4089,6 +4147,7 @@ Stream_MediaFramework_DirectShow_Tools::toChannels (const struct _AMMediaType& m
   // sanity check(s)
   ACE_ASSERT (InlineIsEqualGUID (mediaType_in.formattype, FORMAT_WaveFormatEx));
   ACE_ASSERT (mediaType_in.pbFormat);
+
   struct tWAVEFORMATEX* waveformatex_p =
     (struct tWAVEFORMATEX*)mediaType_in.pbFormat;
 
@@ -4262,6 +4321,53 @@ Stream_MediaFramework_DirectShow_Tools::to (const struct Stream_MediaFramework_F
   result_p->lSampleSize = video_info_header_p->bmiHeader.biSizeImage;
 
   return result_p;
+}
+
+enum AVSampleFormat
+Stream_MediaFramework_DirectShow_Tools::toAVSampleFormat (const struct _AMMediaType& mediaType_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_DirectShow_Tools::toAVSampleFormat"));
+
+  enum AVSampleFormat result = AV_SAMPLE_FMT_NONE;
+
+  // sanity check(s)
+  ACE_ASSERT (InlineIsEqualGUID (mediaType_in.formattype, FORMAT_WaveFormatEx));
+
+  struct tWAVEFORMATEX* waveformatex_p =
+    (struct tWAVEFORMATEX*)mediaType_in.pbFormat;
+  switch (waveformatex_p->wBitsPerSample)
+  {
+    case 8:
+      result = AV_SAMPLE_FMT_U8; break;
+    case 16:
+      result = AV_SAMPLE_FMT_S16; break;
+    case 32:
+    {
+      if (mediaType_in.subtype == MEDIASUBTYPE_PCM)
+        result = AV_SAMPLE_FMT_S32;
+      else if (mediaType_in.subtype == MEDIASUBTYPE_IEEE_FLOAT)
+        result = AV_SAMPLE_FMT_FLT;
+      else
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("invalid/unknown media subtype (was: \"%s\"), aborting\n"),
+                    ACE_TEXT (Common_Tools::GUIDToString (mediaType_in.subtype).c_str ())));
+      break;
+    }
+    case 64:
+    {
+      result = AV_SAMPLE_FMT_S64;
+      break;
+    }
+    default:
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("invalid/unknown bit/sample (was: %d), aborting\n"),
+                  waveformatex_p->wBitsPerSample));
+      break;
+    }
+  } // end SWITCH
+
+  return result;
 }
 
 enum AVPixelFormat

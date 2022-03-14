@@ -666,10 +666,6 @@ Stream_Module_MessageHandlerA_T<ACE_SYNCH_USE,
       }
     } // end FOR
   } // end lock scope
-
-  // clean up
-  passMessageDownstream_out = false;
-  message_inout->release (); message_inout = NULL;
 }
 
 template <ACE_SYNCH_DECL,
@@ -829,9 +825,6 @@ error:
       }
     } // end FOR
   } // end lock scope
-
-  // clean up
-  message_inout->release (); message_inout = NULL;
 }
 
 template <ACE_SYNCH_DECL,

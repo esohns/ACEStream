@@ -639,7 +639,7 @@ do_initialize_directshow (const struct Stream_Device_Identifier& deviceIdentifie
     ACE_ASSERT (video_info_header_p->AvgTimePerFrame);
     video_info_header_p->dwBitRate =
       (video_info_header_p->bmiHeader.biSizeImage * 8) *                         // bits / frame
-      (NANOSECONDS / static_cast<DWORD> (video_info_header_p->AvgTimePerFrame)); // fps
+      (UNITS / static_cast<DWORD> (video_info_header_p->AvgTimePerFrame)); // fps
     saveFormat_inout.lSampleSize = video_info_header_p->bmiHeader.biSizeImage;
   } // end IF
   else if (InlineIsEqualGUID (saveFormat_inout.formattype, FORMAT_VideoInfo2))
@@ -659,8 +659,8 @@ do_initialize_directshow (const struct Stream_Device_Identifier& deviceIdentifie
     ////video_info_header_p->bmiHeader.biClrImportant;
     ACE_ASSERT (video_info_header_p->AvgTimePerFrame);
     video_info_header_p->dwBitRate =
-      (video_info_header_p->bmiHeader.biSizeImage * 8) *                         // bits / frame
-      (NANOSECONDS / static_cast<DWORD> (video_info_header_p->AvgTimePerFrame)); // fps
+      (video_info_header_p->bmiHeader.biSizeImage * 8) *                   // bits / frame
+      (UNITS / static_cast<DWORD> (video_info_header_p->AvgTimePerFrame)); // fps
     saveFormat_inout.lSampleSize = video_info_header_p->bmiHeader.biSizeImage;
   } // end IF
   else

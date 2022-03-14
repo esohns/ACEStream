@@ -121,11 +121,6 @@ Stream_Module_Vis_GTK_Cairo_T<ACE_SYNCH_USE,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Vis_GTK_Cairo_T::initialize"));
 
-  int scale_i = 0, width_i = 0, height_i = 0;
-  int width_2 = 0, height_2 = 0, row_stride_i = 0, n_channels_i = 0;
-//  cairo_format_t format_e = CAIRO_FORMAT_INVALID;
-  GdkRectangle clip_area_s;
-
   if (inherited::isInitialized_)
   {
     if (unlikely (context_))
@@ -327,6 +322,7 @@ Stream_Module_Vis_GTK_Cairo_T<ACE_SYNCH_USE,
 #endif // FFMPEG_SUPPORT
 #endif // ACE_WIN32 || ACE_WIN64
       inherited3::getMediaType (session_data_r.formats.back (),
+                                STREAM_MEDIATYPE_VIDEO,
                                 media_type_s);
       unsigned int frame_size_i =
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -373,7 +369,7 @@ Stream_Module_Vis_GTK_Cairo_T<ACE_SYNCH_USE,
                     NULL);
 #endif // GTK_CHECK_VERSION
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-      ACE_ASSERT ((resolution_s.cx <= static_cast<unsigned int> (width_2)) && (resolution_s.cy <= static_cast<unsigned int> (height_2)));
+      ACE_ASSERT ((resolution_s.cx <= static_cast<LONG> (width_2)) && (resolution_s.cy <= static_cast<LONG> (height_2)));
 #else
 #if defined (FFMPEG_SUPPORT)
       ACE_ASSERT ((media_type_s.resolution.width == static_cast<unsigned int> (width_2)) && (media_type_s.resolution.height == static_cast<unsigned int> (height_2)));

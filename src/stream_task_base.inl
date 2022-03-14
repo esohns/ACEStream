@@ -498,6 +498,7 @@ error:
       { ACE_ASSERT (sessionData_);
         sessionData_->decrease (); sessionData_ = NULL;
         sessionDataLock_ = NULL;
+        freeSessionData_ = false; // *TODO*: why is this needed ?
       } // end IF
 
       break;

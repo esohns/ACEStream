@@ -504,6 +504,7 @@ Stream_Decoder_SoXEffect_T<ACE_SYNCH_USE,
       struct _AMMediaType media_type_s;
       ACE_OS::memset (&media_type_s, 0, sizeof (struct _AMMediaType));
       inherited2::getMediaType (session_data_r.formats.back (),
+                                STREAM_MEDIATYPE_AUDIO,
                                 media_type_s);
       Stream_MediaFramework_DirectShow_Tools::to (media_type_s,
                                                   encodingInfo_,

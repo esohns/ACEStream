@@ -31,11 +31,11 @@ extern "C"
 
 #include "ace/Global_Macros.h"
 
-//#include "common_time_common.h"
-
 #include "stream_task_base_asynch.h"
 
 #include "stream_lib_mediatype_converter.h"
+
+#include "stream_misc_aggregator.h"
 
 // forward declaration(s)
 struct AVFrame;
@@ -56,28 +56,22 @@ template <ACE_SYNCH_DECL,
           ////////////////////////////////
           typename SessionDataContainerType,
           ////////////////////////////////
-          typename MediaType>
+          typename MediaType> // audio/video !
 class Stream_Decoder_LibAVEncoder_T
- : public Stream_TaskBaseAsynch_T<ACE_SYNCH_USE,
-                                  TimePolicyType,
-                                  ConfigurationType,
-                                  ControlMessageType,
-                                  DataMessageType,
-                                  SessionMessageType,
-                                  enum Stream_ControlType,
-                                  enum Stream_SessionMessageType,
-                                  struct Stream_UserData>
+ : public Stream_Module_Aggregator_WriterTask_2<ACE_SYNCH_USE,
+                                                TimePolicyType,
+                                                ConfigurationType,
+                                                ControlMessageType,
+                                                DataMessageType,
+                                                SessionMessageType>
  , public Stream_MediaFramework_MediaTypeConverter_T<MediaType>
 {
-  typedef Stream_TaskBaseAsynch_T<ACE_SYNCH_USE,
-                                  TimePolicyType,
-                                  ConfigurationType,
-                                  ControlMessageType,
-                                  DataMessageType,
-                                  SessionMessageType,
-                                  enum Stream_ControlType,
-                                  enum Stream_SessionMessageType,
-                                  struct Stream_UserData> inherited;
+  typedef Stream_Module_Aggregator_WriterTask_2<ACE_SYNCH_USE,
+                                                TimePolicyType,
+                                                ConfigurationType,
+                                                ControlMessageType,
+                                                DataMessageType,
+                                                SessionMessageType> inherited;
   typedef Stream_MediaFramework_MediaTypeConverter_T<MediaType> inherited2;
 
  public:
@@ -99,6 +93,18 @@ class Stream_Decoder_LibAVEncoder_T
   virtual void handleSessionMessage (SessionMessageType*&, // session message handle
                                      bool&);               // return value: pass message downstream ?
 
+ protected:
+  struct AVCodecContext*  audioCodecContext_;
+  struct AVFrame*         audioFrame_;
+  unsigned int            audioFrameSize_;
+  struct AVStream*        audioStream_;
+  struct AVFormatContext* formatContext_;
+  bool                    headerWritten_;
+  struct AVCodecContext*  videoCodecContext_;
+  struct AVFrame*         videoFrame_;
+  unsigned int            videoFrameSize_;
+  struct AVStream*        videoStream_;
+
  private:
   // convenient types
   typedef Stream_Decoder_LibAVEncoder_T<ACE_SYNCH_USE,
@@ -113,17 +119,6 @@ class Stream_Decoder_LibAVEncoder_T
   ACE_UNIMPLEMENTED_FUNC (Stream_Decoder_LibAVEncoder_T ())
   ACE_UNIMPLEMENTED_FUNC (Stream_Decoder_LibAVEncoder_T (const Stream_Decoder_LibAVEncoder_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Decoder_LibAVEncoder_T& operator= (const Stream_Decoder_LibAVEncoder_T&))
-
-  struct AVCodecContext*  audioCodecContext_;
-  struct AVFrame*         audioFrame_;
-  unsigned int            audioFrameSize_;
-  struct AVStream*        audioStream_;
-  struct AVFormatContext* formatContext_;
-  bool                    headerWritten_;
-  struct AVCodecContext*  videoCodecContext_;
-  struct AVFrame*         videoFrame_;
-  unsigned int            videoFrameSize_;
-  struct AVStream*        videoStream_;
 };
 
 // include template definition

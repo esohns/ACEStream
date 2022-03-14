@@ -427,6 +427,7 @@ Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
       struct _AMMediaType media_type_s;
       ACE_OS::memset (&media_type_s, 0, sizeof (struct _AMMediaType));
       inherited::getMediaType (session_data_r.formats.back (),
+                               STREAM_MEDIATYPE_AUDIO,
                                media_type_s);
       ACE_ASSERT (InlineIsEqualGUID (media_type_s.formattype, FORMAT_WaveFormatEx));
       struct tWAVEFORMATEX* waveformatex_p =
@@ -1056,6 +1057,7 @@ Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
   struct _AMMediaType media_type_s;
   ACE_OS::memset (&media_type_s, 0, sizeof (struct _AMMediaType));
   inherited::getMediaType (session_data_r.formats.back (),
+                           STREAM_MEDIATYPE_AUDIO,
                            media_type_s);
   ACE_ASSERT (InlineIsEqualGUID (media_type_s.formattype, FORMAT_WaveFormatEx));
   struct tWAVEFORMATEX* waveformatex_p =

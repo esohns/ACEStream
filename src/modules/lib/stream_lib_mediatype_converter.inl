@@ -34,9 +34,32 @@ Stream_MediaFramework_MediaTypeConverter_T<MediaType>::Stream_MediaFramework_Med
 template <typename MediaType>
 void
 Stream_MediaFramework_MediaTypeConverter_T<MediaType>::getMediaType (const struct _AMMediaType& mediaType_in,
+                                                                     enum Stream_MediaType_Type type_in,
+                                                                     struct Stream_MediaFramework_FFMPEG_AudioMediaType& mediaType_out)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_MediaTypeConverter_T::getMediaType"));
+
+  ACE_UNUSED_ARG (type_in);
+
+  ACE_OS::memset (&mediaType_out, 0, sizeof (struct Stream_MediaFramework_FFMPEG_AudioMediaType));
+
+  mediaType_out.format =
+      Stream_MediaFramework_DirectShow_Tools::toAVSampleFormat (mediaType_in);
+  mediaType_out.channels =
+      Stream_MediaFramework_DirectShow_Tools::toChannels (mediaType_in);
+  mediaType_out.sampleRate =
+      Stream_MediaFramework_DirectShow_Tools::toFramerate (mediaType_in);
+}
+
+template <typename MediaType>
+void
+Stream_MediaFramework_MediaTypeConverter_T<MediaType>::getMediaType (const struct _AMMediaType& mediaType_in,
+                                                                     enum Stream_MediaType_Type type_in,
                                                                      struct Stream_MediaFramework_FFMPEG_VideoMediaType& mediaType_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_MediaTypeConverter_T::getMediaType"));
+
+  ACE_UNUSED_ARG (type_in);
 
   ACE_OS::memset (&mediaType_out, 0, sizeof (struct Stream_MediaFramework_FFMPEG_VideoMediaType));
 
@@ -53,10 +76,111 @@ Stream_MediaFramework_MediaTypeConverter_T<MediaType>::getMediaType (const struc
 
 template <typename MediaType>
 void
+Stream_MediaFramework_MediaTypeConverter_T<MediaType>::getMediaType (const struct Stream_MediaFramework_DirectShow_AudioVideoFormat& mediaType_in,
+                                                                     enum Stream_MediaType_Type type_in,
+                                                                     struct _AMMediaType& mediaType_out)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_MediaTypeConverter_T::getMediaType"));
+
+  switch (type_in)
+  {
+    case STREAM_MEDIATYPE_AUDIO:
+    {
+      Stream_MediaFramework_DirectShow_Tools::copy (mediaType_in.audio,
+                                                    mediaType_out);
+      break;
+    }
+    case STREAM_MEDIATYPE_VIDEO:
+    {
+      Stream_MediaFramework_DirectShow_Tools::copy (mediaType_in.video,
+                                                    mediaType_out);
+      break;
+    }
+    default:
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("invalid/unknown media type type (was: %d), returning\n"),
+                  type_in));
+      return;
+    }
+  } // end SWITCH
+}
+
+template <typename MediaType>
+void
+Stream_MediaFramework_MediaTypeConverter_T<MediaType>::set (struct _AMMediaType& mediaType_in,
+                                                            enum Stream_MediaType_Type type_in,
+                                                            struct Stream_MediaFramework_DirectShow_AudioVideoFormat& mediaType_out)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_MediaTypeConverter_T::set"));
+
+  switch (type_in)
+  {
+    case STREAM_MEDIATYPE_AUDIO:
+    {
+      Stream_MediaFramework_DirectShow_Tools::free (mediaType_out.audio);
+      mediaType_out.audio = mediaType_in;
+      break;
+    }
+    case STREAM_MEDIATYPE_VIDEO:
+    {
+      Stream_MediaFramework_DirectShow_Tools::free (mediaType_out.video);
+      mediaType_out.video = mediaType_in;
+      break;
+    }
+    default:
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("invalid/unknown media type type (was: %d), returning\n"),
+                  type_in));
+      return;
+    }
+  } // end SWITCH
+}
+
+template <typename MediaType>
+void
+Stream_MediaFramework_MediaTypeConverter_T<MediaType>::set (IMFMediaType* mediaType_in,
+                                                            enum Stream_MediaType_Type type_in,
+                                                            struct Stream_MediaFramework_MediaFoundation_AudioVideoFormat& mediaType_out)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_MediaTypeConverter_T::set"));
+
+  switch (type_in)
+  {
+    case STREAM_MEDIATYPE_AUDIO:
+    {
+      if (mediaType_out.audio)
+        mediaType_out.audio->Release ();
+      mediaType_out.audio = mediaType_in;
+      break;
+    }
+    case STREAM_MEDIATYPE_VIDEO:
+    {
+      if (mediaType_out.video)
+        mediaType_out.video->Release ();
+      mediaType_out.video = mediaType_in;
+      break;
+    }
+    default:
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("invalid/unknown media type type (was: %d), returning\n"),
+                  type_in));
+      return;
+    }
+  } // end SWITCH
+}
+
+template <typename MediaType>
+void
 Stream_MediaFramework_MediaTypeConverter_T<MediaType>::getMediaType (const struct _AMMediaType& mediaType_in,
+                                                                     enum Stream_MediaType_Type type_in,
                                                                      IMFMediaType*& mediaType_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_MediaTypeConverter_T::getMediaType"));
+
+  ACE_UNUSED_ARG (type_in);
 
   if (mediaType_out)
   {
@@ -67,7 +191,7 @@ Stream_MediaFramework_MediaTypeConverter_T<MediaType>::getMediaType (const struc
   if (unlikely (FAILED (result) || !mediaType_out))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to MFCreateMediaType(): \"%s\", aborting\n"),
+                ACE_TEXT ("failed to MFCreateMediaType(): \"%s\", returning\n"),
                 ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
     return;
   } // end IF
@@ -77,7 +201,7 @@ Stream_MediaFramework_MediaTypeConverter_T<MediaType>::getMediaType (const struc
   if (unlikely (FAILED (result)))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to MFInitMediaTypeFromAMMediaType(): \"%s\", aborting\n"),
+                ACE_TEXT ("failed to MFInitMediaTypeFromAMMediaType(): \"%s\", returning\n"),
                 ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
     mediaType_out->Release (); mediaType_out = NULL;
     return;
@@ -86,10 +210,71 @@ Stream_MediaFramework_MediaTypeConverter_T<MediaType>::getMediaType (const struc
 
 template <typename MediaType>
 void
-Stream_MediaFramework_MediaTypeConverter_T<MediaType>::getMediaType (const IMFMediaType* mediaType_in,
+Stream_MediaFramework_MediaTypeConverter_T<MediaType>::getMediaType (const struct Stream_MediaFramework_MediaFoundation_AudioVideoFormat& mediaType_in,
+                                                                     enum Stream_MediaType_Type type_in,
+                                                                     struct _AMMediaType& mediaType_out)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_MediaTypeConverter_T::getMediaType"));
+
+  IMFMediaType* media_type_p = NULL;
+  getMediaType (mediaType_in,
+                type_in,
+                media_type_p);
+  ACE_ASSERT (media_type_p);
+  getMediaType (media_type_p,
+                type_in,
+                mediaType_out);
+  media_type_p->Release ();
+}
+
+template <typename MediaType>
+void
+Stream_MediaFramework_MediaTypeConverter_T<MediaType>::getMediaType (const struct Stream_MediaFramework_MediaFoundation_AudioVideoFormat& mediaType_in,
+                                                                     enum Stream_MediaType_Type type_in,
                                                                      IMFMediaType*& mediaType_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_MediaTypeConverter_T::getMediaType"));
+
+  ACE_UNUSED_ARG (type_in);
+
+  if (mediaType_out)
+  {
+    mediaType_out->Release (); mediaType_out = NULL;
+  } // end IF
+
+  switch (type_in)
+  {
+    case STREAM_MEDIATYPE_AUDIO:
+    {
+      mediaType_out =
+        Stream_MediaFramework_MediaFoundation_Tools::copy (mediaType_in.audio);
+      break;
+    }
+    case STREAM_MEDIATYPE_VIDEO:
+    {
+      mediaType_out =
+        Stream_MediaFramework_MediaFoundation_Tools::copy (mediaType_in.video);
+      break;
+    }
+    default:
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("invalid/unknown media type type (was: %d), returning\n"),
+                  type_in));
+      return;
+    }
+  } // end SWITCH
+}
+
+template <typename MediaType>
+void
+Stream_MediaFramework_MediaTypeConverter_T<MediaType>::getMediaType (const IMFMediaType* mediaType_in,
+                                                                     enum Stream_MediaType_Type type_in,
+                                                                     IMFMediaType*& mediaType_out)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_MediaTypeConverter_T::getMediaType"));
+
+  ACE_UNUSED_ARG (type_in);
 
   // sanity check(s)
   ACE_ASSERT (mediaType_in);
@@ -123,9 +308,12 @@ Stream_MediaFramework_MediaTypeConverter_T<MediaType>::getMediaType (const IMFMe
 template <typename MediaType>
 void
 Stream_MediaFramework_MediaTypeConverter_T<MediaType>::getMediaType (const IMFMediaType* mediaType_in,
+                                                                     enum Stream_MediaType_Type type_in,
                                                                      struct _AMMediaType& mediaType_inout)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_MediaTypeConverter_T::getMediaType"));
+
+  ACE_UNUSED_ARG (type_in);
 
   // sanity check(s)
   ACE_ASSERT (mediaType_in);
@@ -155,6 +343,32 @@ Stream_MediaFramework_MediaTypeConverter_T<MediaType>::getMediaType (const IMFMe
 template <typename MediaType>
 void
 Stream_MediaFramework_MediaTypeConverter_T<MediaType>::getMediaType (const IMFMediaType* mediaType_in,
+                                                                     enum Stream_MediaType_Type type_in,
+                                                                     struct Stream_MediaFramework_FFMPEG_AudioMediaType& mediaType_out)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_MediaTypeConverter_T::getMediaType"));
+
+  ACE_OS::memset (&mediaType_out, 0, sizeof (struct Stream_MediaFramework_FFMPEG_VideoMediaType));
+
+  // sanity check(s)
+  ACE_ASSERT (mediaType_in);
+
+  struct _AMMediaType media_type_s;
+  ACE_OS::memset (&media_type_s, 0, sizeof (struct _AMMediaType));
+  getMediaType (mediaType_in,
+                type_in,
+                media_type_s);
+  getMediaType (media_type_s,
+                type_in,
+                mediaType_out);
+
+  Stream_MediaFramework_DirectShow_Tools::free (media_type_s);
+}
+
+template <typename MediaType>
+void
+Stream_MediaFramework_MediaTypeConverter_T<MediaType>::getMediaType (const IMFMediaType* mediaType_in,
+                                                                     enum Stream_MediaType_Type type_in,
                                                                      struct Stream_MediaFramework_FFMPEG_VideoMediaType& mediaType_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_MediaTypeConverter_T::getMediaType"));
@@ -167,8 +381,10 @@ Stream_MediaFramework_MediaTypeConverter_T<MediaType>::getMediaType (const IMFMe
   struct _AMMediaType media_type_s;
   ACE_OS::memset (&media_type_s, 0, sizeof (struct _AMMediaType));
   getMediaType (mediaType_in,
+                type_in,
                 media_type_s);
   getMediaType (media_type_s,
+                type_in,
                 mediaType_out);
 
   Stream_MediaFramework_DirectShow_Tools::free (media_type_s);
@@ -177,9 +393,12 @@ Stream_MediaFramework_MediaTypeConverter_T<MediaType>::getMediaType (const IMFMe
 template <typename MediaType>
 void
 Stream_MediaFramework_MediaTypeConverter_T<MediaType>::getMediaType (const struct Stream_MediaFramework_FFMPEG_VideoMediaType& mediaType_in,
+                                                                     enum Stream_MediaType_Type type_in,
                                                                      struct _AMMediaType& mediaType_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_MediaTypeConverter_T::getMediaType"));
+
+  ACE_UNUSED_ARG (type_in);
 
   Stream_MediaFramework_DirectShow_Tools::free (mediaType_out);
 
@@ -193,10 +412,31 @@ Stream_MediaFramework_MediaTypeConverter_T<MediaType>::getMediaType (const struc
 #if defined (FFMPEG_SUPPORT)
 template <typename MediaType>
 void
+Stream_MediaFramework_MediaTypeConverter_T<MediaType>::getMediaType (const struct Stream_MediaFramework_FFMPEG_AudioMediaType& mediaType_in,
+                                                                     enum Stream_MediaType_Type type_in,
+                                                                     struct Stream_MediaFramework_ALSA_MediaType& mediaType_out)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_MediaTypeConverter_T::getMediaType"));
+
+  ACE_UNUSED_ARG (type_in);
+
+  ACE_OS::memset (&mediaType_out, 0, sizeof (struct Stream_MediaFramework_V4L_MediaType));
+
+  mediaType_out.format =
+      Stream_MediaFramework_Tools::ffmpegFormatToALSAFormat (mediaType_in.format);
+  mediaType_out.channels = mediaType_in.channels;
+  mediaType_out.rate = mediaType_in.sampleRate;
+}
+
+template <typename MediaType>
+void
 Stream_MediaFramework_MediaTypeConverter_T<MediaType>::getMediaType (const struct Stream_MediaFramework_FFMPEG_VideoMediaType& mediaType_in,
+                                                                     enum Stream_MediaType_Type type_in,
                                                                      struct Stream_MediaFramework_V4L_MediaType& mediaType_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_MediaTypeConverter_T::getMediaType"));
+
+  ACE_UNUSED_ARG (type_in);
 
   ACE_OS::memset (&mediaType_out, 0, sizeof (struct Stream_MediaFramework_V4L_MediaType));
 
@@ -210,10 +450,31 @@ Stream_MediaFramework_MediaTypeConverter_T<MediaType>::getMediaType (const struc
 
 template <typename MediaType>
 void
+Stream_MediaFramework_MediaTypeConverter_T<MediaType>::getMediaType (const struct Stream_MediaFramework_ALSA_MediaType& mediaType_in,
+                                                                     enum Stream_MediaType_Type type_in,
+                                                                     struct Stream_MediaFramework_FFMPEG_AudioMediaType& mediaType_out)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_MediaTypeConverter_T::getMediaType"));
+
+  ACE_UNUSED_ARG (type_in);
+
+  ACE_OS::memset (&mediaType_out, 0, sizeof (struct Stream_MediaFramework_FFMPEG_VideoMediaType));
+
+  mediaType_out.format =
+      Stream_MediaFramework_Tools::ALSAFormatToffmpegFormat (mediaType_in.format);
+  mediaType_out.channels = mediaType_in.channels;
+  mediaType_out.sampleRate = mediaType_in.rate;
+}
+
+template <typename MediaType>
+void
 Stream_MediaFramework_MediaTypeConverter_T<MediaType>::getMediaType (const struct Stream_MediaFramework_V4L_MediaType& mediaType_in,
+                                                                     enum Stream_MediaType_Type type_in,
                                                                      struct Stream_MediaFramework_FFMPEG_VideoMediaType& mediaType_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_MediaTypeConverter_T::getMediaType"));
+
+  ACE_UNUSED_ARG (type_in);
 
   ACE_OS::memset (&mediaType_out, 0, sizeof (struct Stream_MediaFramework_FFMPEG_VideoMediaType));
 
@@ -231,9 +492,12 @@ Stream_MediaFramework_MediaTypeConverter_T<MediaType>::getMediaType (const struc
 template <typename MediaType>
 void
 Stream_MediaFramework_MediaTypeConverter_T<MediaType>::getMediaType (const struct Stream_MediaFramework_FFMPEG_VideoMediaType& mediaType_in,
+                                                                     enum Stream_MediaType_Type type_in,
                                                                      struct Stream_MediaFramework_LibCamera_MediaType& mediaType_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_MediaTypeConverter_T::getMediaType"));
+
+  ACE_UNUSED_ARG (type_in);
 
   mediaType_out.format =
       Stream_MediaFramework_Tools::ffmpegFormatToLibCameraFormat (mediaType_in.format);
@@ -246,9 +510,12 @@ Stream_MediaFramework_MediaTypeConverter_T<MediaType>::getMediaType (const struc
 template <typename MediaType>
 void
 Stream_MediaFramework_MediaTypeConverter_T<MediaType>::getMediaType (const struct Stream_MediaFramework_LibCamera_MediaType& mediaType_in,
+                                                                     enum Stream_MediaType_Type type_in,
                                                                      struct Stream_MediaFramework_FFMPEG_VideoMediaType& mediaType_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_MediaTypeConverter_T::getMediaType"));
+
+  ACE_UNUSED_ARG (type_in);
 
   ACE_OS::memset (&mediaType_out, 0, sizeof (struct Stream_MediaFramework_FFMPEG_VideoMediaType));
 
