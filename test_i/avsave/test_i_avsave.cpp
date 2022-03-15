@@ -1237,10 +1237,10 @@ do_work (const struct Stream_Device_Identifier& deviceIdentifier_in,
                                                                              ACE_TEXT_ALWAYS_CHAR (STREAM_MISC_MESSAGEHANDLER_DEFAULT_NAME_STRING));
   Stream_AVSave_MediaFoundation_MessageHandler_Module mediafoundation_message_handler (NULL,
                                                                                        ACE_TEXT_ALWAYS_CHAR (STREAM_MISC_MESSAGEHANDLER_DEFAULT_NAME_STRING));
-#if defined (FFMPEG_SUPPORT)
-  Stream_AVSave_DirectShow_Encoder_Module encoder (NULL,
-                                                   ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_LIBAV_ENCODER_DEFAULT_NAME_STRING));
-#endif // FFMPEG_SUPPORT
+  Stream_AVSave_DirectShow_Encoder_Module directshow_encoder (NULL,
+                                                              ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_LIBAV_ENCODER_DEFAULT_NAME_STRING));
+  Stream_AVSave_MediaFoundation_Encoder_Module mediafoundation_encoder (NULL,
+                                                                        ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_LIBAV_ENCODER_DEFAULT_NAME_STRING));
   Stream_AVSave_DirectShow_Audio_Stream directshow_audio_stream;
   Stream_AVSave_DirectShow_Stream directshow_video_stream;
   Stream_AVSave_MediaFoundation_Audio_Stream mediafoundation_audio_stream;
@@ -1278,9 +1278,7 @@ do_work (const struct Stream_Device_Identifier& deviceIdentifier_in,
 
       directshow_stream_configuration.allocatorConfiguration =
         &allocator_configuration;
-#if defined (FFMPEG_SUPPORT)
-      directshow_stream_configuration.module_2 = &encoder;
-#endif // FFMPEG_SUPPORT
+      directshow_stream_configuration.module_2 = &directshow_encoder;
       directShowConfiguration_in.audioStreamConfiguration.initialize (module_configuration,
                                                                       directshow_modulehandler_configuration,
                                                                       directshow_stream_configuration);
@@ -1791,7 +1789,13 @@ clean:
       result = directshow_audio_stream.remove (&directshow_message_handler,
                                                true,   // lock ?
                                                false); // reset ?
+      result = directshow_audio_stream.remove (&directshow_encoder,
+                                               true,   // lock ?
+                                               false); // reset ?
       result = directshow_video_stream.remove (&directshow_message_handler,
+                                               true,   // lock ?
+                                               false); // reset ?
+      result = directshow_video_stream.remove (&directshow_encoder,
                                                true,   // lock ?
                                                false); // reset ?
       break;
@@ -1807,10 +1811,16 @@ clean:
         mediafoundation_audio_stream.remove (&mediafoundation_message_handler,
                                              true,   // lock ?
                                              false); // reset ?
+      result = mediafoundation_audio_stream.remove (&mediafoundation_encoder,
+                                                    true,   // lock ?
+                                                    false); // reset ?
       result =
         mediafoundation_video_stream.remove (&mediafoundation_message_handler,
                                              true,   // lock ?
                                              false); // reset ?
+      result = mediafoundation_video_stream.remove (&mediafoundation_encoder,
+                                                    true,   // lock ?
+                                                    false); // reset ?
       break;
     }
     default:
@@ -1825,7 +1835,13 @@ clean:
   result = alsa_audio_stream.remove (&message_handler,
                                      true,   // lock ?
                                      false); // reset ?
+  result = alsa_audio_stream.remove (&encoder,
+                                     true,   // lock ?
+                                     false); // reset ?
   result = v4l_video_stream.remove (&message_handler,
+                                    true,   // lock ?
+                                    false); // reset ?
+  result = v4l_video_stream.remove (&encoder,
                                     true,   // lock ?
                                     false); // reset ?
 #endif // ACE_WIN32 || ACE_WIN64
