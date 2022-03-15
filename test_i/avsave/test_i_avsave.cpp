@@ -1070,9 +1070,8 @@ do_work (const struct Stream_Device_Identifier& deviceIdentifier_in,
 #endif // GUI_SUPPORT
 
   // ********************** module configuration data **************************
-  struct Stream_AllocatorConfiguration allocator_configuration;
-  //if (bufferSize_in)
-  //  allocator_configuration.defaultBufferSize = bufferSize_in;
+  struct Stream_AllocatorConfiguration allocator_configuration; // video
+  struct Stream_AllocatorConfiguration allocator_configuration_2; // audio
 
   Stream_AllocatorHeap_T<ACE_MT_SYNCH,
                          struct Common_AllocatorConfiguration> heap_allocator;
@@ -1086,7 +1085,7 @@ do_work (const struct Stream_Device_Identifier& deviceIdentifier_in,
   struct Stream_ModuleConfiguration module_configuration;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   struct Stream_AVSave_DirectShow_ModuleHandlerConfiguration directshow_modulehandler_configuration;
-  struct Stream_AVSave_DirectShow_ModuleHandlerConfiguration directshow_modulehandler_configuration_2; // wavein
+  struct Stream_AVSave_DirectShow_ModuleHandlerConfiguration directshow_modulehandler_configuration_2; // audio
   struct Stream_AVSave_DirectShow_StreamConfiguration directshow_stream_configuration;
 #if defined (GUI_SUPPORT)
   Stream_AVSave_DirectShow_EventHandler_t directshow_ui_event_handler (&directShowCBData_in
@@ -1262,6 +1261,8 @@ do_work (const struct Stream_Device_Identifier& deviceIdentifier_in,
 
       directshow_modulehandler_configuration_2 =
         directshow_modulehandler_configuration;
+      directshow_modulehandler_configuration_2.allocatorConfiguration =
+        &allocator_configuration_2;
       directshow_modulehandler_configuration_2.deviceIdentifier.clear ();
       directshow_modulehandler_configuration_2.deviceIdentifier.identifier._id =
         0;
@@ -1778,6 +1779,7 @@ clean:
   switch (mediaFramework_in)
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
+    {
 #if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
       do_finalize_directshow (directShowCBData_in.streamConfiguration);
@@ -1785,13 +1787,30 @@ clean:
       do_finalize_directshow (stream_config_p);
 #endif
 #endif // GUI_SUPPORT
+
+      result = directshow_audio_stream.remove (&directshow_message_handler,
+                                               true,   // lock ?
+                                               false); // reset ?
+      result = directshow_video_stream.remove (&directshow_message_handler,
+                                               true,   // lock ?
+                                               false); // reset ?
       break;
+    }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
     {
       Stream_AVSave_MediaFoundation_StreamConfiguration_t::ITERATOR_T iterator =
       mediaFoundationConfiguration_in.videoStreamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
       ACE_ASSERT (iterator != mediaFoundationConfiguration_in.videoStreamConfiguration.end ());
       do_finalize_mediafoundation ((*iterator).second.second->session);
+
+      result =
+        mediafoundation_audio_stream.remove (&mediafoundation_message_handler,
+                                             true,   // lock ?
+                                             false); // reset ?
+      result =
+        mediafoundation_video_stream.remove (&mediafoundation_message_handler,
+                                             true,   // lock ?
+                                             false); // reset ?
       break;
     }
     default:
@@ -1802,6 +1821,13 @@ clean:
       return;
     }
   } // end SWITCH
+#else
+  result = alsa_audio_stream.remove (&message_handler,
+                                     true,   // lock ?
+                                     false); // reset ?
+  result = v4l_video_stream.remove (&message_handler,
+                                    true,   // lock ?
+                                    false); // reset ?
 #endif // ACE_WIN32 || ACE_WIN64
 
   ACE_DEBUG ((LM_DEBUG,

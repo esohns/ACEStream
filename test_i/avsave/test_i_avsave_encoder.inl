@@ -233,15 +233,16 @@ Test_I_AVSave_Encoder_T<ACE_SYNCH_USE,
 //      result = av_write_frame (formatContext_, &packet_s);
       result = av_interleaved_write_frame (inherited::formatContext_,
                                            &packet_s);
-      av_packet_unref (&packet_s);
       if (result < 0)
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: failed to av_interleaved_write_frame(): \"%s\", returning\n"),
                     inherited::mod_->name (),
                     ACE_TEXT (Common_Image_Tools::errorToString (result).c_str ())));
+        av_packet_unref (&packet_s);
         goto error;
       } // end IF
+      av_packet_unref (&packet_s);
     } // end WHILE
 
     message_block_p = message_block_p->cont ();
@@ -452,12 +453,16 @@ audio:
       inherited::audioCodecContext_->time_base =
         inherited::audioStream_->time_base;
 
+      inherited::audioFrame_->channels =
+        inherited::audioCodecContext_->channels;
       inherited::audioFrame_->format =
         inherited::audioCodecContext_->sample_fmt;
       inherited::audioFrame_->channel_layout =
         inherited::audioCodecContext_->channel_layout;
       inherited::audioFrame_->sample_rate =
         inherited::audioCodecContext_->sample_rate;
+      inherited::audioFrame_->time_base =
+        inherited::audioCodecContext_->time_base;
 
       result = avcodec_open2 (inherited::audioCodecContext_,
                               inherited::audioCodecContext_->codec,

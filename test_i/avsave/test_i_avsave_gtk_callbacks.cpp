@@ -992,7 +992,7 @@ load_rates (IAMStreamConfig* IAMStreamConfig_in,
         continue;
       } // end IF
       frame_duration =
-        static_cast<unsigned int> (video_info_header_p->AvgTimePerFrame);
+        static_cast<unsigned int> (video_info_header2_p->AvgTimePerFrame);
     } // end ELSEIF
     else
     {
