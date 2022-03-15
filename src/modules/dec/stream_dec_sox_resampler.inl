@@ -515,11 +515,13 @@ Stream_Decoder_SoXResampler_T<ACE_SYNCH_USE,
 #else
       struct Stream_MediaFramework_ALSA_MediaType media_type_s, media_type_2;
       inherited2::getMediaType (session_data_r.formats.back (),
+                                STREAM_MEDIATYPE_AUDIO,
                                 media_type_s);
       Stream_MediaFramework_ALSA_Tools::to (media_type_s,
                                             encodingInfo_,
                                             signalInfo_);
       inherited2::getMediaType (inherited::configuration_->outputFormat,
+                                STREAM_MEDIATYPE_AUDIO,
                                 media_type_2);
       Stream_MediaFramework_ALSA_Tools::to (media_type_2,
                                             encodingInfoOut_,

@@ -146,25 +146,25 @@ typedef Stream_Dev_Cam_Source_MediaFoundation_T<ACE_MT_SYNCH,
 typedef Stream_Dev_Mic_Source_ALSA_T<ACE_MT_SYNCH,
                                      Stream_ControlMessage_t,
                                      Stream_AVSave_Message_t,
-                                     Stream_AVSave_ALSA_SessionMessage_t,
-                                     struct Stream_AVSave_ALSA_ModuleHandlerConfiguration,
+                                     Stream_AVSave_ALSA_V4L_SessionMessage_t,
+                                     struct Stream_AVSave_ALSA_V4L_ModuleHandlerConfiguration,
                                      enum Stream_ControlType,
                                      enum Stream_SessionMessageType,
-                                     struct Stream_AVSave_ALSA_StreamState,
-                                     Stream_AVSave_ALSA_SessionData,
-                                     Stream_AVSave_ALSA_SessionData_t,
+                                     struct Stream_AVSave_ALSA_V4L_StreamState,
+                                     Stream_AVSave_ALSA_V4L_SessionData,
+                                     Stream_AVSave_ALSA_V4L_SessionData_t,
                                      struct Stream_AVSave_StatisticData,
                                      Common_Timer_Manager_t> Stream_AVSave_ALSA_Source;
 typedef Stream_Module_CamSource_V4L_T<ACE_MT_SYNCH,
                                       Stream_ControlMessage_t,
                                       Stream_AVSave_Message_t,
-                                      Stream_AVSave_V4L_SessionMessage_t,
-                                      struct Stream_AVSave_V4L_ModuleHandlerConfiguration,
+                                      Stream_AVSave_ALSA_V4L_SessionMessage_t,
+                                      struct Stream_AVSave_ALSA_V4L_ModuleHandlerConfiguration,
                                       enum Stream_ControlType,
                                       enum Stream_SessionMessageType,
-                                      struct Stream_AVSave_V4L_StreamState,
-                                      Stream_AVSave_V4L_SessionData,
-                                      Stream_AVSave_V4L_SessionData_t,
+                                      struct Stream_AVSave_ALSA_V4L_StreamState,
+                                      Stream_AVSave_ALSA_V4L_SessionData,
+                                      Stream_AVSave_ALSA_V4L_SessionData_t,
                                       struct Stream_AVSave_StatisticData,
                                       Common_Timer_Manager_t,
                                       struct Stream_UserData> Stream_AVSave_V4L_Source;
@@ -172,29 +172,29 @@ typedef Stream_Module_CamSource_V4L_T<ACE_MT_SYNCH,
 #if defined (FFMPEG_SUPPORT)
 typedef Stream_Decoder_LibAVDecoder_T<ACE_MT_SYNCH,
                                       Common_TimePolicy_t,
-                                      struct Stream_AVSave_V4L_ModuleHandlerConfiguration,
+                                      struct Stream_AVSave_ALSA_V4L_ModuleHandlerConfiguration,
                                       Stream_ControlMessage_t,
                                       Stream_AVSave_Message_t,
-                                      Stream_AVSave_V4L_SessionMessage_t,
-                                      Stream_AVSave_V4L_SessionData_t,
-                                      struct Stream_MediaFramework_V4L_MediaType> Stream_AVSave_LibAVDecoder;
+                                      Stream_AVSave_ALSA_V4L_SessionMessage_t,
+                                      Stream_AVSave_ALSA_V4L_SessionData_t,
+                                      struct Stream_MediaFramework_ALSA_V4L_Format> Stream_AVSave_LibAVDecoder;
 typedef Stream_Decoder_LibAVConverter_T<ACE_MT_SYNCH,
                                         Common_TimePolicy_t,
-                                        struct Stream_AVSave_V4L_ModuleHandlerConfiguration,
+                                        struct Stream_AVSave_ALSA_V4L_ModuleHandlerConfiguration,
                                         Stream_ControlMessage_t,
                                         Stream_AVSave_Message_t,
-                                        Stream_AVSave_V4L_SessionMessage_t,
-                                        Stream_AVSave_V4L_SessionData_t,
-                                        struct Stream_MediaFramework_V4L_MediaType> Stream_AVSave_LibAVConverter;
+                                        Stream_AVSave_ALSA_V4L_SessionMessage_t,
+                                        Stream_AVSave_ALSA_V4L_SessionData_t,
+                                        struct Stream_MediaFramework_ALSA_V4L_Format> Stream_AVSave_LibAVConverter;
 
 //typedef Stream_Visualization_LibAVResize_T<ACE_MT_SYNCH,
 //                                           Common_TimePolicy_t,
 //                                           struct Stream_AVSave_V4L_ModuleHandlerConfiguration,
 //                                           Stream_ControlMessage_t,
 //                                           Stream_AVSave_Message_t,
-//                                           Stream_AVSave_V4L_SessionMessage_t,
-//                                           Stream_AVSave_V4L_SessionData_t,
-//                                           struct Stream_MediaFramework_V4L_MediaType> Stream_AVSave_LibAVResize;
+//                                           Stream_AVSave_ALSA_V4L_SessionMessage_t,
+//                                           Stream_AVSave_ALSA_V4L_SessionData_t,
+//                                           struct Stream_MediaFramework_ALSA_V4L_Format> Stream_AVSave_LibAVResize;
 #endif // FFMPEG_SUPPORT
 #endif // ACE_WIN32 || ACE_WIN64
 
@@ -303,45 +303,23 @@ typedef Stream_Module_Tagger_T<ACE_MT_SYNCH,
                                Stream_AVSave_MediaFoundation_SessionMessage_t,
                                STREAM_MEDIATYPE_VIDEO,
                                struct Stream_MediaFramework_MediaFoundation_AudioVideoFormat> Stream_AVSave_MediaFoundation_Video_Tagger;
-
-//#if defined (FFMPEG_SUPPORT)
-//typedef Stream_Decoder_LibAVEncoder_T<ACE_MT_SYNCH,
-//                                      Common_TimePolicy_t,
-//                                      struct Stream_AVSave_DirectShow_ModuleHandlerConfiguration,
-//                                      Stream_ControlMessage_t,
-//                                      Stream_AVSave_DirectShow_Message_t,
-//                                      Stream_AVSave_DirectShow_SessionMessage_t,
-//                                      Stream_AVSave_DirectShow_SessionData_t,
-//                                      struct Stream_MediaFramework_DirectShow_AudioVideoFormat> Stream_AVSave_DirectShow_Encoder;
-//#endif // FFMPEG_SUPPORT
 #else
 typedef Stream_Module_Tagger_T<ACE_MT_SYNCH,
                                Common_TimePolicy_t,
-                               struct Stream_AVSave_ALSA_ModuleHandlerConfiguration,
+                               struct Stream_AVSave_ALSA_V4L_ModuleHandlerConfiguration,
                                Stream_ControlMessage_t,
                                Stream_AVSave_Message_t,
-                               Stream_AVSave_ALSA_SessionMessage_t,
+                               Stream_AVSave_ALSA_V4L_SessionMessage_t,
                                STREAM_MEDIATYPE_AUDIO,
-                               struct Stream_MediaFramework_ALSA_MediaType> Stream_AVSave_ALSA_Tagger;
+                               struct Stream_MediaFramework_ALSA_V4L_Format> Stream_AVSave_ALSA_Tagger;
 typedef Stream_Module_Tagger_T<ACE_MT_SYNCH,
                                Common_TimePolicy_t,
-                               struct Stream_AVSave_V4L_ModuleHandlerConfiguration,
+                               struct Stream_AVSave_ALSA_V4L_ModuleHandlerConfiguration,
                                Stream_ControlMessage_t,
                                Stream_AVSave_Message_t,
-                               Stream_AVSave_V4L_SessionMessage_t,
+                               Stream_AVSave_ALSA_V4L_SessionMessage_t,
                                STREAM_MEDIATYPE_VIDEO,
-                               struct Stream_MediaFramework_V4L_MediaType> Stream_AVSave_V4L_Tagger;
-
-//#if defined (FFMPEG_SUPPORT)
-//typedef Stream_Decoder_LibAVEncoder_T<ACE_MT_SYNCH,
-//                                      Common_TimePolicy_t,
-//                                      struct Stream_AVSave_V4L_ModuleHandlerConfiguration,
-//                                      Stream_ControlMessage_t,
-//                                      Stream_AVSave_Message_t,
-//                                      Stream_AVSave_V4L_SessionMessage_t,
-//                                      Stream_AVSave_V4L_SessionData_t,
-//                                      struct Stream_MediaFramework_V4L_MediaType> Stream_AVSave_V4L_Encoder;
-//#endif // FFMPEG_SUPPORT
+                               struct Stream_MediaFramework_ALSA_V4L_Format> Stream_AVSave_V4L_Tagger;
 #endif // ACE_WIN32 || ACE_WIN64
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -458,12 +436,12 @@ typedef Stream_Vis_Target_MediaFoundation_2<ACE_MT_SYNCH,
 //                                       struct Stream_MediaFramework_V4L_MediaType> Stream_AVSave_Display_2;
 typedef Stream_Module_Vis_X11_Window_T<ACE_MT_SYNCH,
                                        Common_TimePolicy_t,
-                                       struct Stream_AVSave_V4L_ModuleHandlerConfiguration,
+                                       struct Stream_AVSave_ALSA_V4L_ModuleHandlerConfiguration,
                                        Stream_ControlMessage_t,
                                        Stream_AVSave_Message_t,
-                                       Stream_AVSave_V4L_SessionMessage_t,
-                                       Stream_AVSave_V4L_SessionData_t,
-                                       struct Stream_MediaFramework_V4L_MediaType> Stream_AVSave_Display;
+                                       Stream_AVSave_ALSA_V4L_SessionMessage_t,
+                                       Stream_AVSave_ALSA_V4L_SessionData_t,
+                                       struct Stream_MediaFramework_ALSA_V4L_Format> Stream_AVSave_Display;
 #endif // ACE_WIN32 || ACE_WIN64
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -487,11 +465,11 @@ typedef Stream_Module_MessageHandler_T<ACE_MT_SYNCH,
 #else
 typedef Stream_Module_MessageHandler_T<ACE_MT_SYNCH,
                                        Common_TimePolicy_t,
-                                       struct Stream_AVSave_V4L_ModuleHandlerConfiguration,
+                                       struct Stream_AVSave_ALSA_V4L_ModuleHandlerConfiguration,
                                        Stream_ControlMessage_t,
                                        Stream_AVSave_Message_t,
-                                       Stream_AVSave_V4L_SessionMessage_t,
-                                       Stream_AVSave_V4L_SessionData,
+                                       Stream_AVSave_ALSA_V4L_SessionMessage_t,
+                                       Stream_AVSave_ALSA_V4L_SessionData,
                                        struct Stream_UserData> Stream_AVSave_MessageHandler;
 #endif // ACE_WIN32 || ACE_WIN64
 
@@ -524,29 +502,29 @@ DATASTREAM_MODULE_INPUT_ONLY (Stream_AVSave_MediaFoundation_SessionData,        
                               Stream_INotify_t,                                                       // stream notification interface type
                               Stream_AVSave_MediaFoundation_Source);                                  // writer type
 #else
-DATASTREAM_MODULE_INPUT_ONLY (Stream_AVSave_ALSA_SessionData,                   // session data type
+DATASTREAM_MODULE_INPUT_ONLY (Stream_AVSave_ALSA_V4L_SessionData,                   // session data type
                               enum Stream_SessionMessageType,                   // session event type
-                              struct Stream_AVSave_ALSA_ModuleHandlerConfiguration, // module handler configuration type
+                              struct Stream_AVSave_ALSA_V4L_ModuleHandlerConfiguration, // module handler configuration type
                               libacestream_default_dev_mic_source_alsa_module_name_string,
                               Stream_INotify_t,                                 // stream notification interface type
                               Stream_AVSave_ALSA_Source);                       // writer type
-DATASTREAM_MODULE_INPUT_ONLY (Stream_AVSave_V4L_SessionData,                   // session data type
+DATASTREAM_MODULE_INPUT_ONLY (Stream_AVSave_ALSA_V4L_SessionData,                   // session data type
                               enum Stream_SessionMessageType,                   // session event type
-                              struct Stream_AVSave_V4L_ModuleHandlerConfiguration, // module handler configuration type
+                              struct Stream_AVSave_ALSA_V4L_ModuleHandlerConfiguration, // module handler configuration type
                               libacestream_default_dev_cam_source_v4l_module_name_string,
                               Stream_INotify_t,                                 // stream notification interface type
                               Stream_AVSave_V4L_Source);                       // writer type
 
 #if defined (FFMPEG_SUPPORT)
-DATASTREAM_MODULE_INPUT_ONLY (Stream_AVSave_V4L_SessionData,                   // session data type
+DATASTREAM_MODULE_INPUT_ONLY (Stream_AVSave_ALSA_V4L_SessionData,                   // session data type
                               enum Stream_SessionMessageType,                   // session event type
-                              struct Stream_AVSave_V4L_ModuleHandlerConfiguration, // module handler configuration type
+                              struct Stream_AVSave_ALSA_V4L_ModuleHandlerConfiguration, // module handler configuration type
                               libacestream_default_dec_libav_converter_module_name_string,
                               Stream_INotify_t,                                 // stream notification interface type
                               Stream_AVSave_LibAVDecoder);                     // writer type
-DATASTREAM_MODULE_INPUT_ONLY (Stream_AVSave_V4L_SessionData,                   // session data type
+DATASTREAM_MODULE_INPUT_ONLY (Stream_AVSave_ALSA_V4L_SessionData,                   // session data type
                               enum Stream_SessionMessageType,                   // session event type
-                              struct Stream_AVSave_V4L_ModuleHandlerConfiguration, // module handler configuration type
+                              struct Stream_AVSave_ALSA_V4L_ModuleHandlerConfiguration, // module handler configuration type
                               libacestream_default_dec_libav_converter_module_name_string,
                               Stream_INotify_t,                                 // stream notification interface type
                               Stream_AVSave_LibAVConverter);                   // writer type
@@ -625,27 +603,18 @@ DATASTREAM_MODULE_INPUT_ONLY (Stream_AVSave_MediaFoundation_SessionData,        
 //                              Stream_AVSave_DirectShow_Encoder);                // writer type
 //#endif // FFMPEG_SUPPORT
 #else
-DATASTREAM_MODULE_INPUT_ONLY (Stream_AVSave_ALSA_SessionData,                   // session data type
+DATASTREAM_MODULE_INPUT_ONLY (Stream_AVSave_ALSA_V4L_SessionData,                   // session data type
                               enum Stream_SessionMessageType,                   // session event type
-                              struct Stream_AVSave_ALSA_ModuleHandlerConfiguration, // module handler configuration type
+                              struct Stream_AVSave_ALSA_V4L_ModuleHandlerConfiguration, // module handler configuration type
                               libacestream_default_lib_tagger_module_name_string,
                               Stream_INotify_t,                                 // stream notification interface type
                               Stream_AVSave_ALSA_Tagger);                       // writer type
-DATASTREAM_MODULE_INPUT_ONLY (Stream_AVSave_V4L_SessionData,                   // session data type
+DATASTREAM_MODULE_INPUT_ONLY (Stream_AVSave_ALSA_V4L_SessionData,                   // session data type
                               enum Stream_SessionMessageType,                   // session event type
-                              struct Stream_AVSave_V4L_ModuleHandlerConfiguration, // module handler configuration type
+                              struct Stream_AVSave_ALSA_V4L_ModuleHandlerConfiguration, // module handler configuration type
                               libacestream_default_lib_tagger_module_name_string,
                               Stream_INotify_t,                                 // stream notification interface type
                               Stream_AVSave_V4L_Tagger);                        // writer type
-
-//#if defined (FFMPEG_SUPPORT)
-//DATASTREAM_MODULE_INPUT_ONLY (Stream_AVSave_V4L_SessionData,                   // session data type
-//                              enum Stream_SessionMessageType,                   // session event type
-//                              struct Stream_AVSave_V4L_ModuleHandlerConfiguration, // module handler configuration type
-//                              libacestream_default_dec_libav_encoder_module_name_string,
-//                              Stream_INotify_t,                                 // stream notification interface type
-//                              Stream_AVSave_V4L_Encoder);                       // writer type
-//#endif // FFMPEG_SUPPORT
 #endif // ACE_WIN32 || ACE_WIN64
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -714,9 +683,9 @@ DATASTREAM_MODULE_INPUT_ONLY (Stream_AVSave_MediaFoundation_SessionData,        
 //                              libacestream_default_vis_gtk_window_module_name_string,
 //                              Stream_INotify_t,                                 // stream notification interface type
 //                              Stream_AVSave_Display_2);                        // writer type
-DATASTREAM_MODULE_INPUT_ONLY (Stream_AVSave_V4L_SessionData,                   // session data type
+DATASTREAM_MODULE_INPUT_ONLY (Stream_AVSave_ALSA_V4L_SessionData,                   // session data type
                               enum Stream_SessionMessageType,                   // session event type
-                              struct Stream_AVSave_V4L_ModuleHandlerConfiguration, // module handler configuration type
+                              struct Stream_AVSave_ALSA_V4L_ModuleHandlerConfiguration, // module handler configuration type
                               libacestream_default_vis_x11_window_module_name_string,
                               Stream_INotify_t,                                 // stream notification interface type
                               Stream_AVSave_Display);                           // writer type
@@ -737,9 +706,9 @@ DATASTREAM_MODULE_INPUT_ONLY (Stream_AVSave_MediaFoundation_SessionData,        
                               Stream_INotify_t,                                                // stream notification interface type
                               Stream_AVSave_MediaFoundation_MessageHandler);                    // writer type
 #else
-DATASTREAM_MODULE_INPUT_ONLY (Stream_AVSave_V4L_SessionData,                               // session data type
+DATASTREAM_MODULE_INPUT_ONLY (Stream_AVSave_ALSA_V4L_SessionData,                               // session data type
                               enum Stream_SessionMessageType,                              // session event type
-                              struct Stream_AVSave_V4L_ModuleHandlerConfiguration,         // module handler configuration type
+                              struct Stream_AVSave_ALSA_V4L_ModuleHandlerConfiguration,         // module handler configuration type
                               libacestream_default_misc_messagehandler_module_name_string,
                               Stream_INotify_t,                                            // stream notification interface type
                               Stream_AVSave_MessageHandler);                               // writer type

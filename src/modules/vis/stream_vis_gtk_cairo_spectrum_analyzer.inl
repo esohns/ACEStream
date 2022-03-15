@@ -453,6 +453,7 @@ Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
 #else
       struct Stream_MediaFramework_ALSA_MediaType media_type_s;
       inherited::getMediaType (session_data_r.formats.back (),
+                               STREAM_MEDIATYPE_AUDIO,
                                media_type_s);
       sound_sample_size = (snd_pcm_format_width (media_type_s.format) / 8);
       data_sample_size = sound_sample_size * media_type_s.channels;
@@ -1070,6 +1071,7 @@ Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
 #else
   MediaType media_type_s;
   inherited::getMediaType (session_data_r.formats.back (),
+                           STREAM_MEDIATYPE_AUDIO,
                            media_type_s);
   sound_sample_size = (snd_pcm_format_width (media_type_s.format) / 8);
   is_floating_point_format =

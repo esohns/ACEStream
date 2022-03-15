@@ -379,10 +379,9 @@ Stream_Decoder_LibAVEncoder_T<ACE_SYNCH_USE,
       if (formatContext_)
         goto continue_;
 
-      output_format_p =
-          const_cast<struct AVOutputFormat*> (av_guess_format (ACE_TEXT_ALWAYS_CHAR ("avi"),
-                                                               NULL,
-                                                               NULL));
+      output_format_p = av_guess_format (ACE_TEXT_ALWAYS_CHAR ("avi"),
+                                         NULL,
+                                         NULL);
       if (unlikely (!output_format_p))
       {
         ACE_DEBUG ((LM_ERROR,
@@ -390,10 +389,11 @@ Stream_Decoder_LibAVEncoder_T<ACE_SYNCH_USE,
                     inherited::mod_->name ()));
         goto error;
       } // end IF
-      result = avformat_alloc_output_context2 (&formatContext_,
-                                               output_format_p,
-                                               NULL,
-                                               NULL);
+      result =
+        avformat_alloc_output_context2 (&formatContext_,
+                                        const_cast<struct AVOutputFormat*> (output_format_p),
+                                        NULL,
+                                        NULL);
       if (unlikely ((result < 0) || !formatContext_))
       {
         ACE_DEBUG ((LM_ERROR,

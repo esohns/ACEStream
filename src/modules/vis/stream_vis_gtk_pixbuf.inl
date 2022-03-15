@@ -119,8 +119,13 @@ Stream_Module_Vis_GTK_Pixbuf_T<ACE_SYNCH_USE,
   ACE_ASSERT (context_);
 #endif // GTK_CHECK_VERSION (3,0,0)
 
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
   sourceResolution_.cx = gdk_window_get_width (configuration_in.window);
   sourceResolution_.cy = gdk_window_get_height (configuration_in.window);
+#else
+  sourceResolution_.width = gdk_window_get_width (configuration_in.window);
+  sourceResolution_.height = gdk_window_get_height (configuration_in.window);
+#endif // ACE_WIN32 || ACE_WIN64
 
   return inherited::initialize (configuration_in,
                                 allocator_in);
@@ -177,8 +182,13 @@ Stream_Module_Vis_GTK_Pixbuf_T<ACE_SYNCH_USE,
                               GDK_COLORSPACE_RGB,
                               FALSE,
                               8,
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
                               sourceResolution_.cx, sourceResolution_.cy,
                               sourceResolution_.cx * 3,
+#else
+                              sourceResolution_.width, sourceResolution_.height,
+                              sourceResolution_.width * 3,
+#endif // ACE_WIN32 || ACE_WIN64
                               NULL, NULL);
   if (!pixbuf_p)
   {
@@ -263,8 +273,13 @@ Stream_Module_Vis_GTK_Pixbuf_T<ACE_SYNCH_USE,
       gdk_drawable_get_size (GDK_DRAWABLE (inherited::configuration_->window),
                              &width_i, &height_i);
 #endif // GTK_CHECK_VERSION (3,0,0)
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
       sourceResolution_.cx = width_i;
       sourceResolution_.cy = height_i;
+#else
+      sourceResolution_.width = width_i;
+      sourceResolution_.height = height_i;
+#endif // ACE_WIN32 || ACE_WIN64
 
       gdk_threads_leave ();
 
@@ -302,8 +317,13 @@ continue_:
                              &width_i, &height_i);
 #endif // GTK_CHECK_VERSION (3,0,0)
 
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
       sourceResolution_.cx = width_i;
       sourceResolution_.cy = height_i;
+#else
+      sourceResolution_.width = width_i;
+      sourceResolution_.height = height_i;
+#endif // ACE_WIN32 || ACE_WIN64
 
 #if GTK_CHECK_VERSION (3,0,0)
       context_ = gdk_cairo_create (inherited::configuration_->window);

@@ -162,11 +162,10 @@ typedef Test_I_AVSave_Encoder_T<ACE_MT_SYNCH,
                                 struct
                                 Stream_AVSave_ALSA_V4L_ModuleHandlerConfiguration,
                                 Stream_ControlMessage_t,
-                                Stream_AVSave_ALSA_V4L_Message_t,
+                                Stream_AVSave_Message_t,
                                 Stream_AVSave_ALSA_V4L_SessionMessage_t,
                                 Stream_AVSave_ALSA_V4L_SessionData_t,
-                                struct
-                                Stream_MediaFramework_ALSA_V4L_AudioVideoFormat> Stream_AVSave_ALSA_V4L_Encoder;
+                                struct Stream_MediaFramework_ALSA_V4L_Format> Stream_AVSave_ALSA_V4L_Encoder;
 
 DATASTREAM_MODULE_DUPLEX_A (Stream_AVSave_ALSA_V4L_SessionData,                        // session data type
                             enum Stream_SessionMessageType,                            // session event type

@@ -137,6 +137,7 @@ Stream_Decoder_ImageMagick_Decoder_T<ACE_SYNCH_USE,
 //  MagickSetImageColorspace (context_, sRGBColorspace);
 
   inherited2::getMediaType (configuration_in.outputFormat,
+                            STREAM_MEDIATYPE_VIDEO,
                             outputFormat_);
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   struct _AMMediaType media_type_s;
@@ -204,6 +205,7 @@ Stream_Decoder_ImageMagick_Decoder_T<ACE_SYNCH_USE,
 #endif // FFMPEG_SUPPORT
 #endif // ACE_WIN32 || ACE_WIN64
   inherited2::getMediaType (message_data_r.format,
+                            STREAM_MEDIATYPE_VIDEO,
                             media_type_s);
   size_i =
 #if defined (ACE_WIN32) || defined (ACE_WIN64)

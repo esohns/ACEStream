@@ -337,6 +337,7 @@ Stream_Module_Vis_X11_Window_T<ACE_SYNCH_USE,
       const MediaType& media_type_r = session_data_r.formats.back ();
       struct Stream_MediaFramework_FFMPEG_VideoMediaType media_type_2;
       inherited2::getMediaType (media_type_r,
+                                STREAM_MEDIATYPE_VIDEO,
                                 media_type_2);
       unsigned int depth_i =
           Stream_MediaFramework_Tools::ffmpegFormatToBitDepth (media_type_2.format);
@@ -601,6 +602,7 @@ Stream_Module_Vis_X11_Window_T<ACE_SYNCH_USE,
   {
     struct Stream_MediaFramework_V4L_MediaType media_type_s;
     inherited2::getMediaType (configuration_in.outputFormat,
+                              STREAM_MEDIATYPE_VIDEO,
                               media_type_s);
     unsigned int width_i =
         (configuration_in.fullScreen ? WidthOfScreen (DefaultScreenOfDisplay (display_))

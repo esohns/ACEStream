@@ -329,51 +329,11 @@ class Stream_AVSave_MediaFoundation_SessionData
 };
 typedef Stream_SessionData_T<Stream_AVSave_MediaFoundation_SessionData> Stream_AVSave_MediaFoundation_SessionData_t;
 #else
-//struct Stream_AVSave_V4L_StreamState;
-//class Stream_AVSave_V4L_SessionData
-// : public Stream_SessionDataMediaBase_T<Test_I_SessionData,
-//                                        struct Stream_MediaFramework_V4L_MediaType,
-//                                        struct Stream_AVSave_V4L_StreamState,
-//                                        struct Stream_AVSave_StatisticData,
-//                                        struct Stream_UserData>
-//{
-// public:
-//  Stream_AVSave_V4L_SessionData ()
-//   : Stream_SessionDataMediaBase_T<Test_I_SessionData,
-//                                   struct Stream_MediaFramework_V4L_MediaType,
-//                                   struct Stream_AVSave_V4L_StreamState,
-//                                   struct Stream_AVSave_StatisticData,
-//                                   struct Stream_UserData> ()
-//   , formats_2 ()
-//  {}
-//
-// private:
-//  ACE_UNIMPLEMENTED_FUNC (Stream_AVSave_V4L_SessionData& operator= (const Stream_AVSave_V4L_SessionData&))
-//};
-//typedef Stream_SessionData_T<Stream_AVSave_V4L_SessionData> Stream_AVSave_V4L_SessionData_t;
-
-class Stream_AVSave_ALSA_V4L_SessionData
- : public Stream_SessionDataMediaBase_T<Test_I_SessionData,
-                                        struct Stream_MediaFramework_ALSA_MediaType,
-                                        struct Stream_AVSave_ALSA_StreamState,
-                                        struct Stream_AVSave_StatisticData,
-                                        struct Stream_UserData>
-{
- public:
-  Stream_AVSave_ALSA_V4L_SessionData ()
-   : Stream_SessionDataMediaBase_T<Test_I_SessionData,
-                                   struct Stream_MediaFramework_ALSA_MediaType,
-                                   struct Stream_AVSave_ALSA_StreamState,
-                                   struct Stream_AVSave_StatisticData,
-                                   struct Stream_UserData> ()
-   , formats_2 ()
-  {}
-
-  std::deque<struct Stream_MediaFramework_V4L_MediaType> formats_2;
-
- private:
-  ACE_UNIMPLEMENTED_FUNC (Stream_AVSave_ALSA_V4L_SessionData& operator= (const Stream_AVSave_ALSA_V4L_SessionData&))
-};
+typedef Stream_SessionDataMediaBase_T<Test_I_SessionData,
+                                      struct Stream_MediaFramework_ALSA_V4L_Format,
+                                      struct Stream_AVSave_ALSA_V4L_StreamState,
+                                      struct Stream_AVSave_StatisticData,
+                                      struct Stream_UserData> Stream_AVSave_ALSA_V4L_SessionData;
 typedef Stream_SessionData_T<Stream_AVSave_ALSA_V4L_SessionData> Stream_AVSave_ALSA_V4L_SessionData_t;
 #endif // ACE_WIN32 || ACE_WIN64
 
@@ -421,24 +381,14 @@ typedef Stream_AVSave_MediaFoundation_Subscribers_t::iterator Stream_AVSave_Medi
 #else
 typedef Stream_AVSave_Message_T<struct Stream_AVSave_MessageData> Stream_AVSave_Message_t;
 typedef Stream_AVSave_SessionMessage_T<Stream_AVSave_Message_t,
-                                       Stream_AVSave_ALSA_SessionData_t> Stream_AVSave_ALSA_SessionMessage_t;
-typedef Stream_AVSave_SessionMessage_T<Stream_AVSave_Message_t,
-                                       Stream_AVSave_V4L_SessionData_t> Stream_AVSave_V4L_SessionMessage_t;
+                                       Stream_AVSave_ALSA_V4L_SessionData_t> Stream_AVSave_ALSA_V4L_SessionMessage_t;
 
-typedef Stream_ISessionDataNotify_T<Stream_AVSave_V4L_SessionData,
+typedef Stream_ISessionDataNotify_T<Stream_AVSave_ALSA_V4L_SessionData,
                                     enum Stream_SessionMessageType,
                                     Stream_AVSave_Message_t,
-                                    Stream_AVSave_V4L_SessionMessage_t> Stream_AVSave_V4L_ISessionNotify_t;
-typedef std::list<Stream_AVSave_V4L_ISessionNotify_t*> Stream_AVSave_V4L_Subscribers_t;
-typedef Stream_AVSave_V4L_Subscribers_t::iterator Stream_AVSave_V4L_SubscribersIterator_t;
-
-typedef Stream_ISessionDataNotify_T<Stream_AVSave_ALSA_SessionData,
-                                    enum Stream_SessionMessageType,
-                                    Stream_AVSave_Message_t,
-                                    Stream_AVSave_ALSA_SessionMessage_t> Stream_AVSave_ALSA_ISessionNotify_t;
-typedef std::list<Stream_AVSave_ALSA_ISessionNotify_t*> Stream_AVSave_ALSA_Subscribers_t;
-typedef Stream_AVSave_ALSA_Subscribers_t::iterator Stream_AVSave_ALSA_SubscribersIterator_t;
-
+                                    Stream_AVSave_ALSA_V4L_SessionMessage_t> Stream_AVSave_ALSA_V4L_ISessionNotify_t;
+typedef std::list<Stream_AVSave_ALSA_V4L_ISessionNotify_t*> Stream_AVSave_ALSA_V4L_Subscribers_t;
+typedef Stream_AVSave_ALSA_V4L_Subscribers_t::iterator Stream_AVSave_ALSA_V4L_SubscribersIterator_t;
 #endif // ACE_WIN32 || ACE_WIN64
 struct Stream_AVSave_ModuleHandlerConfiguration
  : Test_I_ModuleHandlerConfiguration
@@ -602,16 +552,17 @@ struct Stream_AVSave_MediaFoundation_ModuleHandlerConfiguration
   IMFVideoDisplayControl*                                     windowController;
 };
 #else
-struct Stream_AVSave_V4L_StreamConfiguration;
-struct Stream_AVSave_V4L_ModuleHandlerConfiguration;
+struct Stream_AVSave_ALSA_V4L_StreamConfiguration;
+struct Stream_AVSave_ALSA_V4L_ModuleHandlerConfiguration;
 typedef Stream_Configuration_T<//stream_name_string_,
-                               struct Stream_AVSave_V4L_StreamConfiguration,
-                               struct Stream_AVSave_V4L_ModuleHandlerConfiguration> Stream_AVSave_V4L_StreamConfiguration_t;
-struct Stream_AVSave_V4L_ModuleHandlerConfiguration
+                               struct Stream_AVSave_ALSA_V4L_StreamConfiguration,
+                               struct Stream_AVSave_ALSA_V4L_ModuleHandlerConfiguration> Stream_AVSave_ALSA_V4L_StreamConfiguration_t;
+struct Stream_AVSave_ALSA_V4L_ModuleHandlerConfiguration
  : Stream_AVSave_ModuleHandlerConfiguration
 {
-  Stream_AVSave_V4L_ModuleHandlerConfiguration ()
+  Stream_AVSave_ALSA_V4L_ModuleHandlerConfiguration ()
    : Stream_AVSave_ModuleHandlerConfiguration ()
+   , ALSAConfiguration (NULL)
 #if defined (GUI_SUPPORT)
    , area ()
 #endif // GUI_SUPPORT
@@ -628,55 +579,25 @@ struct Stream_AVSave_V4L_ModuleHandlerConfiguration
     ACE_OS::memset (&area, 0, sizeof (struct v4l2_rect));
 #endif // GUI_SUPPORT
 
+//    deviceIdentifier.identifier =
+//      ACE_TEXT_ALWAYS_CHAR (STREAM_LIB_ALSA_CAPTURE_DEFAULT_DEVICE_NAME);
     // *PORTABILITY*: v4l2: device path (e.g. "[/dev/]video0")
     deviceIdentifier.identifier =
         ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_DEFAULT_VIDEO_DEVICE);
-
-    ACE_OS::memset (&outputFormat, 0, sizeof (struct Stream_MediaFramework_V4L_MediaType));
-  }
-
-#if defined (GUI_SUPPORT)
-  struct v4l2_rect                           area;
-#endif // GUI_SUPPORT
-  __u32                                      buffers; // v4l device buffers
-  enum AVPixelFormat                         codecFormat; // preferred output-
-  enum AVCodecID                             codecId;
-  enum v4l2_memory                           method; // v4l camera source
-  //std::string                                outboundStreamName; // message handler
-  struct Stream_MediaFramework_V4L_MediaType outputFormat;
-  Stream_AVSave_V4L_ISessionNotify_t*        subscriber;
-  Stream_AVSave_V4L_Subscribers_t*           subscribers;
-};
-
-struct Stream_AVSave_ALSA_StreamConfiguration;
-struct Stream_AVSave_ALSA_ModuleHandlerConfiguration;
-typedef Stream_Configuration_T<//stream_name_string_,
-                               struct Stream_AVSave_ALSA_StreamConfiguration,
-                               struct Stream_AVSave_ALSA_ModuleHandlerConfiguration> Stream_AVSave_ALSA_StreamConfiguration_t;
-struct Stream_AVSave_ALSA_ModuleHandlerConfiguration
- : Stream_AVSave_ModuleHandlerConfiguration
-{
-  Stream_AVSave_ALSA_ModuleHandlerConfiguration ()
-   : Stream_AVSave_ModuleHandlerConfiguration ()
-   , ALSAConfiguration (NULL)
-   , outputFormat ()
-   , sinus (false)
-   , sinusFrequency (440.0)
-   , subscriber (NULL)
-   , subscribers (NULL)
-  {
-    deviceIdentifier.identifier =
-        ACE_TEXT_ALWAYS_CHAR (STREAM_LIB_ALSA_CAPTURE_DEFAULT_DEVICE_NAME);
-
-    ACE_OS::memset (&outputFormat, 0, sizeof (struct Stream_MediaFramework_ALSA_MediaType));
   }
 
   struct Stream_MediaFramework_ALSA_Configuration* ALSAConfiguration;
-  struct Stream_MediaFramework_ALSA_MediaType      outputFormat;
-  bool                                             sinus;
-  double                                           sinusFrequency;
-  Stream_AVSave_V4L_ISessionNotify_t*              subscriber;
-  Stream_AVSave_V4L_Subscribers_t*                 subscribers;
+#if defined (GUI_SUPPORT)
+  struct v4l2_rect                                 area;
+#endif // GUI_SUPPORT
+  __u32                                            buffers; // v4l device buffers
+  enum AVPixelFormat                               codecFormat; // preferred output-
+  enum AVCodecID                                   codecId;
+  enum v4l2_memory                                 method; // v4l camera source
+  //std::string                                outboundStreamName; // message handler
+  struct Stream_MediaFramework_ALSA_V4L_Format     outputFormat;
+  Stream_AVSave_ALSA_V4L_ISessionNotify_t*         subscriber;
+  Stream_AVSave_ALSA_V4L_Subscribers_t*            subscribers;
 };
 #endif // ACE_WIN32 || ACE_WIN64
 
@@ -709,26 +630,15 @@ struct Stream_AVSave_MediaFoundation_StreamState
   struct Stream_UserData*             userData;
 };
 #else
-struct Stream_AVSave_V4L_StreamState
+struct Stream_AVSave_ALSA_V4L_StreamState
  : Stream_State
 {
-  Stream_AVSave_V4L_StreamState ()
+  Stream_AVSave_ALSA_V4L_StreamState ()
    : Stream_State ()
    , sessionData (NULL)
   {}
 
-  Stream_AVSave_V4L_SessionData* sessionData;
-};
-
-struct Stream_AVSave_ALSA_StreamState
- : Stream_State
-{
-  Stream_AVSave_ALSA_StreamState ()
-   : Stream_State ()
-   , sessionData (NULL)
-  {}
-
-  Stream_AVSave_ALSA_SessionData* sessionData;
+  Stream_AVSave_ALSA_V4L_SessionData* sessionData;
 };
 #endif // ACE_WIN32 || ACE_WIN64
 
@@ -781,36 +691,21 @@ typedef Stream_IStreamControl_T<enum Stream_ControlType,
                                 enum Stream_StateMachine_ControlState,
                                 struct Stream_AVSave_MediaFoundation_StreamState> Stream_AVSave_MediaFoundation_IStreamControl_t;
 #else
-struct Stream_AVSave_V4L_StreamConfiguration
+struct Stream_AVSave_ALSA_V4L_StreamConfiguration
  : Stream_AVSave_StreamConfiguration
 {
-  Stream_AVSave_V4L_StreamConfiguration ()
+  Stream_AVSave_ALSA_V4L_StreamConfiguration ()
    : Stream_AVSave_StreamConfiguration ()
    , format ()
   {}
 
-  struct Stream_MediaFramework_V4L_MediaType format;
-};
-
-struct Stream_AVSave_ALSA_StreamConfiguration
- : Stream_AVSave_StreamConfiguration
-{
-  Stream_AVSave_ALSA_StreamConfiguration ()
-   : Stream_AVSave_StreamConfiguration ()
-   , format ()
-  {}
-
-  struct Stream_MediaFramework_ALSA_MediaType format;
+  struct Stream_MediaFramework_ALSA_V4L_Format format;
 };
 
 typedef Stream_IStreamControl_T<enum Stream_ControlType,
                                 enum Stream_SessionMessageType,
                                 enum Stream_StateMachine_ControlState,
-                                struct Stream_AVSave_V4L_StreamState> Stream_AVSave_V4L_IStreamControl_t;
-typedef Stream_IStreamControl_T<enum Stream_ControlType,
-                                enum Stream_SessionMessageType,
-                                enum Stream_StateMachine_ControlState,
-                                struct Stream_AVSave_ALSA_StreamState> Stream_AVSave_ALSA_IStreamControl_t;
+                                struct Stream_AVSave_ALSA_V4L_StreamState> Stream_AVSave_ALSA_V4L_IStreamControl_t;
 #endif // ACE_WIN32 || ACE_WIN64
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -911,8 +806,8 @@ struct Stream_AVSave_Configuration
   // **************************** signal data **********************************
   struct Stream_AVSave_SignalHandlerConfiguration signalHandlerConfiguration;
   // **************************** stream data **********************************
-  Stream_AVSave_ALSA_StreamConfiguration_t        audioStreamConfiguration;
-  Stream_AVSave_V4L_StreamConfiguration_t         videoStreamConfiguration;
+  Stream_AVSave_ALSA_V4L_StreamConfiguration_t    audioStreamConfiguration;
+  Stream_AVSave_ALSA_V4L_StreamConfiguration_t    videoStreamConfiguration;
 };
 #endif // ACE_WIN32 || ACE_WIN64
 
@@ -936,12 +831,7 @@ typedef Stream_MessageAllocatorHeapBase_T<ACE_MT_SYNCH,
                                           struct Common_AllocatorConfiguration,
                                           Stream_ControlMessage_t,
                                           Stream_AVSave_Message_t,
-                                          Stream_AVSave_ALSA_SessionMessage_t> Stream_AVSave_ALSA_MessageAllocator_t;
-typedef Stream_MessageAllocatorHeapBase_T<ACE_MT_SYNCH,
-                                          struct Common_AllocatorConfiguration,
-                                          Stream_ControlMessage_t,
-                                          Stream_AVSave_Message_t,
-                                          Stream_AVSave_V4L_SessionMessage_t> Stream_AVSave_V4L_MessageAllocator_t;
+                                          Stream_AVSave_ALSA_V4L_SessionMessage_t> Stream_AVSave_ALSA_V4L_MessageAllocator_t;
 #endif // ACE_WIN32 || ACE_WIN64
 
 #if defined (GUI_SUPPORT)
@@ -987,10 +877,9 @@ typedef Stream_AVSave_EventHandler_T<Stream_AVSave_MediaFoundation_ISessionNotif
 #endif // GUI_SUPPORT
                                       Stream_AVSave_MediaFoundation_SessionMessage_t> Stream_AVSave_MediaFoundation_EventHandler_t;
 #else
-typedef Common_ISubscribe_T<Stream_AVSave_ALSA_ISessionNotify_t> Stream_AVSave_ALSA_ISubscribe_t;
-typedef Common_ISubscribe_T<Stream_AVSave_V4L_ISessionNotify_t> Stream_AVSave_V4L_ISubscribe_t;
+typedef Common_ISubscribe_T<Stream_AVSave_ALSA_V4L_ISessionNotify_t> Stream_AVSave_ALSA_V4L_ISubscribe_t;
 
-typedef Stream_AVSave_EventHandler_T<Stream_AVSave_V4L_ISessionNotify_t,
+typedef Stream_AVSave_EventHandler_T<Stream_AVSave_ALSA_V4L_ISessionNotify_t,
                                      Stream_AVSave_Message_t,
 #if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
@@ -1004,7 +893,7 @@ typedef Stream_AVSave_EventHandler_T<Stream_AVSave_V4L_ISessionNotify_t,
                                       struct Common_UI_State,
 #endif
 #endif // GUI_SUPPORT
-                                      Stream_AVSave_V4L_SessionMessage_t> Stream_AVSave_V4L_EventHandler_t;
+                                      Stream_AVSave_ALSA_V4L_SessionMessage_t> Stream_AVSave_ALSA_V4L_EventHandler_t;
 #endif // ACE_WIN32 || ACE_WIN64
 
 //////////////////////////////////////////
@@ -1084,32 +973,15 @@ struct Stream_AVSave_V4L_UI_CBData
   Stream_AVSave_V4L_UI_CBData ()
    : Stream_AVSave_UI_CBData ()
    , configuration (NULL)
-#if defined (GTK_USE)
-//   , pixelBuffer (NULL)
-//   , pixelBufferLock (NULL)
-#endif // GTK_USE
    , audioStream (NULL)
    , videoStream (NULL)
    , subscribers ()
-  {
-#if defined (GTK_USE)
-//    pixelBufferLock = &UIState->lock;
-#endif // GTK_USE
-  }
+  {}
 
-  struct Stream_AVSave_Configuration* configuration;
-#if defined (GTK_USE)
-//#if GTK_CHECK_VERSION(3,0,0)
-//  cairo_surface_t*                     pixelBuffer;
-//#elif GTK_CHECK_VERSION(2,0,0)
-//  GdkPixbuf*                           pixelBuffer;
-//#endif // GTK_CHECK_VERSION
-//  ACE_SYNCH_MUTEX*                     pixelBufferLock;
-#endif // GTK_USE
-  Stream_AVSave_ALSA_Stream*          audioStream;
-  Stream_AVSave_V4L_Stream*           videoStream;
-//  Stream_AVSave_ALSA_Subscribers_t    subscribers;
-  Stream_AVSave_V4L_Subscribers_t     subscribers;
+  struct Stream_AVSave_Configuration*  configuration;
+  Stream_AVSave_ALSA_Stream*           audioStream;
+  Stream_AVSave_V4L_Stream*            videoStream;
+  Stream_AVSave_ALSA_V4L_Subscribers_t subscribers;
 };
 #endif // ACE_WIN32 || ACE_WIN64
 

@@ -988,7 +988,7 @@ Stream_Module_Aggregator_WriterTask_2<ACE_SYNCH_USE,
   //         will have been deactivated in the process, and getq() (see svc()
   //         below) will fail (ESHUTDOWN)
   //         --> (re-)activate() the queue
-  result = queue_.activate ();
+  result = inherited::queue_.activate ();
   if (unlikely (result == -1))
   {
     ACE_DEBUG ((LM_ERROR,
@@ -1038,8 +1038,8 @@ Stream_Module_Aggregator_WriterTask_2<ACE_SYNCH_USE,
   return 0;
 
 error:
-  result = queue_.deactivate ();
-  if (result == -1)
+  result = inherited::queue_.deactivate ();
+  if (unlikely (result == -1))
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to ACE_Message_Queue::deactivate(): \"%m\", aborting\n"),
                 inherited::mod_->name ()));

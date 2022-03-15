@@ -182,6 +182,7 @@ Stream_Dev_Mic_Source_ALSA_T<ACE_SYNCH_USE,
                              StatisticContainerType,
                              StatisticHandlerType>::Stream_Dev_Mic_Source_ALSA_T (ISTREAM_T* stream_in)
  : inherited (stream_in)
+ , inherited2 ()
  , CBData_ ()
  , handle_ (NULL)
  , handler_ (NULL)
@@ -390,13 +391,12 @@ Stream_Dev_Mic_Source_ALSA_T<ACE_SYNCH_USE,
       SessionDataType& session_data_r =
           const_cast<SessionDataType&> (inherited::sessionData_->getR ());
       ACE_ASSERT (!session_data_r.formats.empty ());
-      const struct Stream_MediaFramework_ALSA_MediaType& media_type_r =
-          session_data_r.formats.back ();
-
+      struct Stream_MediaFramework_ALSA_MediaType media_type_s;
+      inherited2::getMediaType (session_data_r.formats.back (),
+                                STREAM_MEDIATYPE_AUDIO,
+                                media_type_s);
       bool stop_device = false;
       int signal = 0;
-      const struct Stream_MediaFramework_ALSA_MediaType* media_type_p =
-        &media_type_r;
 
       if (!isPassive_)
       { ACE_ASSERT (!handle_);
@@ -421,10 +421,7 @@ Stream_Dev_Mic_Source_ALSA_T<ACE_SYNCH_USE,
                     ACE_TEXT (snd_pcm_name (handle_))));
 
         if (!inherited::configuration_->ALSAConfiguration->format)
-          inherited::configuration_->ALSAConfiguration->format =
-            const_cast<struct Stream_MediaFramework_ALSA_MediaType*> (media_type_p);
-        else
-          media_type_p = inherited::configuration_->ALSAConfiguration->format;
+          inherited::configuration_->ALSAConfiguration->format = &media_type_s;
         if (unlikely (!Stream_MediaFramework_ALSA_Tools::setFormat (handle_,
                                                                     *inherited::configuration_->ALSAConfiguration)))
         {
@@ -464,9 +461,8 @@ Stream_Dev_Mic_Source_ALSA_T<ACE_SYNCH_USE,
 //        goto error;
 //      } // end IF
 
-      frameSize_ =
-        (snd_pcm_format_width (media_type_r.format) / 8) *
-        media_type_r.channels;
+      frameSize_ = (snd_pcm_format_width (media_type_s.format) / 8) *
+                   media_type_s.channels;
 
       if (inherited::configuration_->ALSAConfiguration->asynch)
       {

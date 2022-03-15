@@ -27,9 +27,17 @@
 #include <string>
 
 #include "guiddef.h"
+#else
+#include <deque>
 #endif // ACE_WIN32 || ACE_WIN64
 
 #include <set>
+
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#else
+#include "stream_lib_alsa_common.h"
+#include "stream_lib_v4l_common.h"
+#endif // ACE_WIN32 || ACE_WIN64
 
 enum Stream_MediaType_Type
 {
@@ -99,5 +107,21 @@ typedef Stream_MediaFramework_GUIDToStringMap_t::const_iterator Stream_MediaFram
 
 typedef std::set<uint8_t> Stream_MediaFramework_Sound_SampleResolutions_t;
 typedef Stream_MediaFramework_Sound_SampleResolutions_t::const_iterator Stream_MediaFramework_Sound_SampleResolutionsIterator_t;
+
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#else
+struct Stream_MediaFramework_ALSA_V4L_Format
+{
+  Stream_MediaFramework_ALSA_V4L_Format ()
+   : audio ()
+   , video ()
+  {}
+
+  struct Stream_MediaFramework_ALSA_MediaType audio;
+  struct Stream_MediaFramework_V4L_MediaType video;
+};
+typedef std::deque<struct Stream_MediaFramework_ALSA_V4L_Format> Stream_MediaFramework_ALSA_V4L_Formats_t;
+typedef Stream_MediaFramework_ALSA_V4L_Formats_t::iterator Stream_MediaFramework_ALSA_V4L_FormatsIterator_t;
+#endif // ACE_WIN32 || ACE_WIN64
 
 #endif

@@ -331,10 +331,10 @@ Stream_Module_Vis_GTK_Cairo_T<ACE_SYNCH_USE,
         Stream_MediaFramework_DirectShow_Tools::toResolution (media_type_s);
 #else
 #if defined (FFMPEG_SUPPORT)
-        av_image_get_surface_size (media_type_s.format,
-                                   media_type_s.resolution.width,
-                                   media_type_s.resolution.height,
-                                   1); // *TODO*: linesize alignment
+        av_image_get_buffer_size (media_type_s.format,
+                                  media_type_s.resolution.width,
+                                  media_type_s.resolution.height,
+                                  1); // *TODO*: linesize alignment
 #endif // FFMPEG_SUPPORT
 #endif // ACE_WIN32 || ACE_WIN64
       ACE_UNUSED_ARG (frame_size_i);

@@ -1457,6 +1457,87 @@ error:
   return result;
 }
 
+#if defined(FFMPEG_SUPPORT)
+enum AVSampleFormat
+Stream_MediaFramework_ALSA_Tools::ALSAFormatToffmpegFormat (enum _snd_pcm_format format_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_ALSA_Tools::ALSAFormatToffmpegFormat"));
+
+  switch (format_in)
+  {
+    case SND_PCM_FORMAT_S8:
+      break;
+    case SND_PCM_FORMAT_S16_BE:
+    case SND_PCM_FORMAT_S16_LE:
+      return AV_SAMPLE_FMT_S16;
+    case SND_PCM_FORMAT_S18_3BE:
+    case SND_PCM_FORMAT_S18_3LE:
+    case SND_PCM_FORMAT_S20_3BE:
+    case SND_PCM_FORMAT_S20_3LE:
+    case SND_PCM_FORMAT_S20_BE:
+    case SND_PCM_FORMAT_S20_LE:
+    case SND_PCM_FORMAT_S24_BE:
+    case SND_PCM_FORMAT_S24_LE:
+    case SND_PCM_FORMAT_S24_3BE:
+    case SND_PCM_FORMAT_S24_3LE:
+      break;
+    case SND_PCM_FORMAT_S32_BE:
+    case SND_PCM_FORMAT_S32_LE:
+      return AV_SAMPLE_FMT_S32;
+    case SND_PCM_FORMAT_DSD_U8:
+    case SND_PCM_FORMAT_DSD_U16_BE:
+    case SND_PCM_FORMAT_DSD_U16_LE:
+    case SND_PCM_FORMAT_DSD_U32_BE:
+    case SND_PCM_FORMAT_DSD_U32_LE:
+      break;
+    case SND_PCM_FORMAT_U8:
+      return AV_SAMPLE_FMT_U8;
+    case SND_PCM_FORMAT_U16_BE:
+    case SND_PCM_FORMAT_U16_LE:
+    case SND_PCM_FORMAT_U18_3BE:
+    case SND_PCM_FORMAT_U18_3LE:
+    case SND_PCM_FORMAT_U20_3BE:
+    case SND_PCM_FORMAT_U20_3LE:
+    case SND_PCM_FORMAT_U20_BE:
+    case SND_PCM_FORMAT_U20_LE:
+    case SND_PCM_FORMAT_U24_3BE:
+    case SND_PCM_FORMAT_U24_3LE:
+    case SND_PCM_FORMAT_U24_BE:
+    case SND_PCM_FORMAT_U24_LE:
+    case SND_PCM_FORMAT_U32_BE:
+    case SND_PCM_FORMAT_U32_LE:
+      break;
+    case SND_PCM_FORMAT_FLOAT_BE:
+    case SND_PCM_FORMAT_FLOAT_LE:
+      return AV_SAMPLE_FMT_FLT;
+    case SND_PCM_FORMAT_FLOAT64_BE:
+    case SND_PCM_FORMAT_FLOAT64_LE:
+      return AV_SAMPLE_FMT_DBL;
+    case SND_PCM_FORMAT_MU_LAW:
+    case SND_PCM_FORMAT_A_LAW:
+    case SND_PCM_FORMAT_IMA_ADPCM:
+    case SND_PCM_FORMAT_GSM:
+    case SND_PCM_FORMAT_G723_24:
+    case SND_PCM_FORMAT_G723_24_1B:
+    case SND_PCM_FORMAT_G723_40:
+    case SND_PCM_FORMAT_G723_40_1B:
+    case SND_PCM_FORMAT_IEC958_SUBFRAME_LE:
+    case SND_PCM_FORMAT_IEC958_SUBFRAME_BE:
+    case SND_PCM_FORMAT_MPEG:
+    case SND_PCM_FORMAT_SPECIAL:
+    default:
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("invalid/unknown ALSA audio frame format (was: %d), aborting\n"),
+                  format_in));
+      break;
+    }
+  } // end SWITCH
+
+  return AV_SAMPLE_FMT_NONE;
+}
+#endif // FFMPEG_SUPPORT
+
 #if defined (SOX_SUPPORT)
 enum sox_encoding_t
 Stream_MediaFramework_ALSA_Tools::to (enum _snd_pcm_format format_in)

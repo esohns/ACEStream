@@ -325,10 +325,11 @@ Test_I_AVSave_Encoder_T<ACE_SYNCH_USE,
                     inherited::mod_->name ()));
         goto error;
       } // end IF
-      result = avformat_alloc_output_context2 (&(inherited::formatContext_),
-                                               output_format_p,
-                                               NULL,
-                                               NULL);
+      result =
+        avformat_alloc_output_context2 (&(inherited::formatContext_),
+                                        const_cast<struct AVOutputFormat*> (output_format_p),
+                                        NULL,
+                                        NULL);
       if (unlikely ((result < 0) || !inherited::formatContext_))
       {
         ACE_DEBUG ((LM_ERROR,
@@ -342,7 +343,7 @@ Test_I_AVSave_Encoder_T<ACE_SYNCH_USE,
       //output_format_p->audio_codec = audio_coded_id;
       //output_format_p->video_codec = video_coded_id;
 
-      result = avio_open (&formatContext_->pb,
+      result = avio_open (&inherited::formatContext_->pb,
                           ACE_TEXT_ALWAYS_CHAR (session_data_r.targetFileName.c_str ()),
                           AVIO_FLAG_WRITE);
       if (unlikely (result < 0))
@@ -399,7 +400,7 @@ audio:
       } // end IF
       inherited::formatContext_->audio_codec_id = audio_coded_id;
 
-      audioStream_ =
+      inherited::audioStream_ =
         avformat_new_stream (inherited::formatContext_,
                              inherited::formatContext_->audio_codec);
       if (!inherited::audioStream_)
@@ -461,8 +462,8 @@ audio:
         inherited::audioCodecContext_->channel_layout;
       inherited::audioFrame_->sample_rate =
         inherited::audioCodecContext_->sample_rate;
-      inherited::audioFrame_->time_base =
-        inherited::audioCodecContext_->time_base;
+//      inherited::audioFrame_->time_base =
+//        inherited::audioCodecContext_->time_base;
 
       result = avcodec_open2 (inherited::audioCodecContext_,
                               inherited::audioCodecContext_->codec,
@@ -526,7 +527,7 @@ video:
       inherited::videoCodecContext_->codec_id = video_coded_id;
 
       inherited::videoCodecContext_->pix_fmt =
-          static_cast<AVPixelFormat> (videoFrame_->format);
+          static_cast<AVPixelFormat> (inherited::videoFrame_->format);
       inherited::videoFrameSize_ =
         av_image_get_buffer_size (inherited::videoCodecContext_->pix_fmt,
                                   inherited::videoFrame_->width,

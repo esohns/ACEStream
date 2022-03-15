@@ -2121,6 +2121,42 @@ Stream_MediaFramework_Tools::isRGB (__u32 format_in)
 }
 
 #if defined (FFMPEG_SUPPORT)
+enum _snd_pcm_format
+Stream_MediaFramework_Tools::ffmpegFormatToALSAFormat (enum AVSampleFormat format_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_Tools::ffmpegFormatToALSAFormat"));
+
+  switch (format_in)
+  {
+    case AV_SAMPLE_FMT_U8:
+      return SND_PCM_FORMAT_U8;
+    case AV_SAMPLE_FMT_S16:
+      return SND_PCM_FORMAT_S16;
+    case AV_SAMPLE_FMT_S32:
+      return SND_PCM_FORMAT_S32;
+    case AV_SAMPLE_FMT_FLT:
+      return SND_PCM_FORMAT_FLOAT;
+    case AV_SAMPLE_FMT_DBL:
+      return SND_PCM_FORMAT_FLOAT64;
+    case AV_SAMPLE_FMT_U8P:
+    case AV_SAMPLE_FMT_S16P:
+    case AV_SAMPLE_FMT_S32P:
+    case AV_SAMPLE_FMT_FLTP:
+    case AV_SAMPLE_FMT_DBLP:
+    case AV_SAMPLE_FMT_S64:
+    case AV_SAMPLE_FMT_S64P:
+    default:
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("invalid/unknown ffmpeg sample format (was: %d), aborting\n"),
+                  format_in));
+      break;
+    }
+  } // end SWITCH
+
+  return SND_PCM_FORMAT_UNKNOWN;
+}
+
 __u32
 Stream_MediaFramework_Tools::ffmpegFormatToV4lFormat (enum AVPixelFormat format_in)
 {

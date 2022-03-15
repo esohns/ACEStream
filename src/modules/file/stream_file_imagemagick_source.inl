@@ -433,6 +433,7 @@ done:
     message_p->wr_ptr (file_size_i);
 #if defined (FFMPEG_SUPPORT)
     inherited2::getMediaType (media_type_s,
+                              STREAM_MEDIATYPE_VIDEO,
                               media_type_2);
 #endif // FFMPEG_SUPPORT
 #if defined (ACE_WIN32) || defined (ACE_WIN64)

@@ -292,6 +292,7 @@ Stream_Module_Delay_T<ACE_SYNCH_USE,
 #else
       struct Stream_MediaFramework_ALSA_MediaType media_type_s;
       inherited2::getMediaType (session_data_r.formats.back (),
+                                STREAM_MEDIATYPE_INVALID, // N/A
                                 media_type_s);
       average_bytes_per_second_i = media_type_s.rate                                *
                                    (snd_pcm_format_width (media_type_s.format) / 8) *

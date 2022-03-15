@@ -22,6 +22,11 @@
 
 #include "stream_macros.h"
 
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#else
+#include "stream_lib_alsa_tools.h"
+#endif // ACE_WIN32 || ACE_WIN64
+
 template <typename MediaType>
 Stream_MediaFramework_MediaTypeConverter_T<MediaType>::Stream_MediaFramework_MediaTypeConverter_T ()
 {
@@ -461,7 +466,7 @@ Stream_MediaFramework_MediaTypeConverter_T<MediaType>::getMediaType (const struc
   ACE_OS::memset (&mediaType_out, 0, sizeof (struct Stream_MediaFramework_FFMPEG_VideoMediaType));
 
   mediaType_out.format =
-      Stream_MediaFramework_Tools::ALSAFormatToffmpegFormat (mediaType_in.format);
+    Stream_MediaFramework_ALSA_Tools::ALSAFormatToffmpegFormat (mediaType_in.format);
   mediaType_out.channels = mediaType_in.channels;
   mediaType_out.sampleRate = mediaType_in.rate;
 }

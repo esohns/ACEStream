@@ -29,6 +29,10 @@ extern "C"
 #include "alsa/asoundlib.h"
 }
 
+#if defined (FFMPEG_SUPPORT)
+#include "libavutil/samplefmt.h"
+#endif // FFMPEG_SUPPORT
+
 #if defined (SOX_SUPPORT)
 #include "sox.h"
 #endif // SOX_SUPPORT
@@ -68,6 +72,10 @@ class Stream_MediaFramework_ALSA_Tools
                               const std::string&, // selem name
                               bool,               // capture ? : playback
                               long);              // level
+
+#if defined (FFMPEG_SUPPORT)
+  static enum AVSampleFormat ALSAFormatToffmpegFormat (enum _snd_pcm_format); // format
+#endif // FFMPEG_SUPPORT
 
 #if defined (SOX_SUPPORT)
   static enum sox_encoding_t to (enum _snd_pcm_format); // format

@@ -282,6 +282,7 @@ Stream_Statistic_StatisticAnalysis_T<ACE_SYNCH_USE,
 #else
       MediaType media_type_s;
       inherited2::getMediaType (session_data_r.formats.back (),
+                                STREAM_MEDIATYPE_AUDIO,
                                 media_type_s);
       num_channels = media_type_s.channels;
       sub_sample_size = snd_pcm_format_width (media_type_s.format) / 8;

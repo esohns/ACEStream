@@ -39,6 +39,8 @@ extern "C"
 #include "stream_common.h"
 #include "stream_headmoduletask_base.h"
 
+#include "stream_lib_mediatype_converter.h"
+
 #include "stream_dev_common.h"
 
 extern const char libacestream_default_dev_mic_source_alsa_module_name_string[];
@@ -77,6 +79,7 @@ class Stream_Dev_Mic_Source_ALSA_T
                                       StatisticContainerType,
                                       StatisticHandlerType,
                                       struct Stream_UserData>
+ , public Stream_MediaFramework_MediaTypeConverter_T<struct Stream_MediaFramework_ALSA_MediaType>
 {
   typedef Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
                                       Common_TimePolicy_t,
@@ -92,6 +95,7 @@ class Stream_Dev_Mic_Source_ALSA_T
                                       StatisticContainerType,
                                       StatisticHandlerType,
                                       struct Stream_UserData> inherited;
+  typedef Stream_MediaFramework_MediaTypeConverter_T<struct Stream_MediaFramework_ALSA_MediaType> inherited2;
 
  public:
   // convenient types

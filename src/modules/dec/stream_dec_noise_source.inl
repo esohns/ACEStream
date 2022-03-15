@@ -335,13 +335,14 @@ Stream_Dec_Noise_Source_T<ACE_SYNCH_USE,
       inherited::configuration_->generatorConfiguration->isLittleEndianFormat =
         true;
       // *NOTE*: "...If the audio contains 8 bits per sample, the audio samples
-      //         are unsigned values. (Each audio sample has the range 0–255.)
+      //         are unsigned values. (Each audio sample has the range 0Â–255.)
       //         If the audio contains 16 bits per sample or higher, the audio
       //         samples are signed values. ..."
       inherited::configuration_->generatorConfiguration->isSignedFormat =
         !(inherited::configuration_->generatorConfiguration->bytesPerSample == 1);
 #else
       inherited2::getMediaType (session_data_r.formats.back (),
+                                STREAM_MEDIATYPE_AUDIO,
                                 mediaType_);
       frameSize_ =
         (snd_pcm_format_width (mediaType_.format) / 8) * mediaType_.channels;

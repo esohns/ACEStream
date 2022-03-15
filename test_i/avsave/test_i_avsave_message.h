@@ -76,13 +76,7 @@ class Stream_AVSave_Message_T
                                                  Stream_ControlMessage_t,
                                                  Stream_AVSave_Message_T<DataType>,
                                                  Stream_AVSave_SessionMessage_T<Stream_AVSave_Message_T<DataType>,
-                                                                                Stream_AVSave_ALSA_SessionData_t> >;
-  friend class Stream_MessageAllocatorHeapBase_T<ACE_MT_SYNCH,
-                                                 struct Common_AllocatorConfiguration,
-                                                 Stream_ControlMessage_t,
-                                                 Stream_AVSave_Message_T<DataType>,
-                                                 Stream_AVSave_SessionMessage_T<Stream_AVSave_Message_T<DataType>,
-                                                                                Stream_AVSave_V4L_SessionData_t> >;
+                                                                                Stream_AVSave_ALSA_V4L_SessionData_t> >;
 #endif // ACE_WIN32 || ACE_WIN64
 
  public:

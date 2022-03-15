@@ -1508,7 +1508,7 @@ set_capture_format (struct Stream_AVSave_UI_CBData* CBData_in)
   struct Stream_AVSave_V4L_UI_CBData* cb_data_p =
     static_cast<struct Stream_AVSave_V4L_UI_CBData*> (CBData_in);
   ACE_ASSERT (cb_data_p->configuration);
-  Stream_AVSave_V4L_StreamConfiguration_t::ITERATOR_T iterator_2 =
+  Stream_AVSave_ALSA_V4L_StreamConfiguration_t::ITERATOR_T iterator_2 =
     cb_data_p->configuration->videoStreamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (iterator_2 != cb_data_p->configuration->videoStreamConfiguration.end ());
 #endif // ACE_WIN32 || ACE_WIN64
@@ -1763,7 +1763,7 @@ update_buffer_size (struct Stream_AVSave_UI_CBData* CBData_in)
   struct Stream_AVSave_V4L_UI_CBData* ui_cb_data_p =
     static_cast<struct Stream_AVSave_V4L_UI_CBData*> (CBData_in);
   ACE_ASSERT (ui_cb_data_p->configuration);
-  Stream_AVSave_V4L_StreamConfiguration_t::ITERATOR_T iterator_2 =
+  Stream_AVSave_ALSA_V4L_StreamConfiguration_t::ITERATOR_T iterator_2 =
     ui_cb_data_p->configuration->videoStreamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (iterator_2 != ui_cb_data_p->configuration->videoStreamConfiguration.end ());
 #endif
@@ -1826,7 +1826,7 @@ update_buffer_size (struct Stream_AVSave_UI_CBData* CBData_in)
   } // end SWITCH
 #else
   frame_size_i =
-      ui_cb_data_p->configuration->videoStreamConfiguration.configuration_->format.format.sizeimage;
+      ui_cb_data_p->configuration->videoStreamConfiguration.configuration_->format.video.format.sizeimage;
   (*iterator_2).second.second->allocatorConfiguration->defaultBufferSize = frame_size_i;
 #endif // ACE_WIN32 || ACE_WIN64
   //gtk_spin_button_set_value (spin_button_p,
@@ -1912,8 +1912,8 @@ stream_processing_function (void* arg_in)
   ACE_ASSERT (cb_data_p->configuration);
   ACE_ASSERT (cb_data_p->audioStream);
   ACE_ASSERT (cb_data_p->videoStream);
-  const Stream_AVSave_V4L_SessionData_t* session_data_container_p = NULL;
-  const Stream_AVSave_V4L_SessionData* session_data_p = NULL;
+  const Stream_AVSave_ALSA_V4L_SessionData_t* session_data_container_p = NULL;
+  const Stream_AVSave_ALSA_V4L_SessionData* session_data_p = NULL;
 #endif // ACE_WIN32 || ACE_WIN64
 
   iterator =
@@ -2328,19 +2328,19 @@ idle_initialize_UI_cb (gpointer userData_in)
   struct Stream_AVSave_V4L_UI_CBData* ui_cb_data_p =
     static_cast<struct Stream_AVSave_V4L_UI_CBData*> (ui_cb_data_base_p);
   ACE_ASSERT (ui_cb_data_p->configuration);
-  Stream_AVSave_V4L_StreamConfiguration_t::ITERATOR_T iterator_2 =
+  Stream_AVSave_ALSA_V4L_StreamConfiguration_t::ITERATOR_T iterator_2 =
     ui_cb_data_p->configuration->videoStreamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (iterator_2 != ui_cb_data_p->configuration->videoStreamConfiguration.end ());
 //  Stream_AVSave_V4L_StreamConfiguration_t::ITERATOR_T iterator_3 =
 //    ui_cb_data_p->configuration->videoStreamConfiguration.find (Stream_Visualization_Tools::rendererToModuleName (STREAM_VISUALIZATION_VIDEORENDERER_X11));
 //  ACE_ASSERT (iterator_3 != ui_cb_data_p->configuration->videoStreamConfiguration.end ());
   resolution_s.width =
-      ui_cb_data_p->configuration->videoStreamConfiguration.configuration_->format.format.width;
+      ui_cb_data_p->configuration->videoStreamConfiguration.configuration_->format.video.format.width;
   resolution_s.height =
-      ui_cb_data_p->configuration->videoStreamConfiguration.configuration_->format.format.height;
+      ui_cb_data_p->configuration->videoStreamConfiguration.configuration_->format.video.format.height;
   framerate_i =
-    ui_cb_data_p->configuration->videoStreamConfiguration.configuration_->format.frameRate.numerator;
-  ACE_ASSERT (ui_cb_data_p->configuration->videoStreamConfiguration.configuration_->format.frameRate.denominator == 1);
+    ui_cb_data_p->configuration->videoStreamConfiguration.configuration_->format.video.frameRate.numerator;
+  ACE_ASSERT (ui_cb_data_p->configuration->videoStreamConfiguration.configuration_->format.video.frameRate.denominator == 1);
   filename_string = (*iterator_2).second.second->targetFileName;
 #endif // ACE_WIN32 || ACE_WIN64
   gtk_entry_set_text (entry_p,
@@ -2883,10 +2883,10 @@ idle_initialize_UI_cb (gpointer userData_in)
 //  ACE_ASSERT ((*iterator_2).second.second->window);
 //  ACE_ASSERT ((*iterator_3).second.second->window);
 
-  (*iterator_2).second.second->outputFormat.format.height =
+  (*iterator_2).second.second->outputFormat.video.format.height =
 //      static_cast<__u32> (allocation.height);
       480;
-  (*iterator_2).second.second->outputFormat.format.width =
+  (*iterator_2).second.second->outputFormat.video.format.width =
       640;
 //      static_cast<__u32> (allocation.width);
 //  (*iterator_2).second.second->area =
@@ -2902,7 +2902,6 @@ idle_initialize_UI_cb (gpointer userData_in)
   ACE_OS::memset (&value, 0, sizeof (struct _GValue));
 #endif // GTK_CHECK_VERSION (2,30,0)
   g_value_init (&value, G_TYPE_STRING);
-  guint index_i =0;
 
   // step11: select default capture source (if any)
   //         --> populate the options comboboxes
@@ -2975,7 +2974,7 @@ idle_initialize_UI_cb (gpointer userData_in)
                       Common_Tools::GUIDToString (format_s).c_str ());
 #else
   converter.str (ACE_TEXT_ALWAYS_CHAR (""));
-  converter << ui_cb_data_p->configuration->videoStreamConfiguration.configuration_->format.format.pixelformat;
+  converter << ui_cb_data_p->configuration->videoStreamConfiguration.configuration_->format.video.format.pixelformat;
   g_value_set_string (&value,
                       converter.str ().c_str ());
 #endif // ACE_WIN32 || ACE_WIN64
@@ -3090,7 +3089,7 @@ idle_finalize_UI_cb (gpointer userData_in)
   struct Stream_AVSave_V4L_UI_CBData* ui_cb_data_p =
     static_cast<struct Stream_AVSave_V4L_UI_CBData*> (userData_in);
   ACE_ASSERT (ui_cb_data_p->configuration);
-  Stream_AVSave_V4L_StreamConfiguration_t::ITERATOR_T iterator_2 =
+  Stream_AVSave_ALSA_V4L_StreamConfiguration_t::ITERATOR_T iterator_2 =
     ui_cb_data_p->configuration->videoStreamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (iterator_2 != ui_cb_data_p->configuration->videoStreamConfiguration.end ());
 
@@ -3618,7 +3617,7 @@ togglebutton_record_toggled_cb (GtkToggleButton* toggleButton_in,
   stream_p = ui_cb_data_p->audioStream;
   stream_2 = ui_cb_data_p->videoStream;
   ACE_ASSERT (ui_cb_data_p->configuration);
-  Stream_AVSave_V4L_StreamConfiguration_t::ITERATOR_T iterator_2 =
+  Stream_AVSave_ALSA_V4L_StreamConfiguration_t::ITERATOR_T iterator_2 =
     ui_cb_data_p->configuration->videoStreamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (iterator_2 != ui_cb_data_p->configuration->videoStreamConfiguration.end ());
 #endif
@@ -3776,7 +3775,7 @@ continue_:
   //} // end SWITCH
 #else
   ui_cb_data_p->configuration->videoStreamConfiguration.configuration_->allocatorConfiguration->defaultBufferSize =
-    ui_cb_data_p->configuration->videoStreamConfiguration.configuration_->format.format.sizeimage;
+    ui_cb_data_p->configuration->videoStreamConfiguration.configuration_->format.video.format.sizeimage;
 #endif // ACE_WIN32 || ACE_WIN64
 
   // sanity check(s)
@@ -4006,7 +4005,7 @@ togglebutton_save_toggled_cb (GtkToggleButton* toggleButton_in,
   struct Stream_AVSave_V4L_UI_CBData* cb_data_p =
     static_cast<struct Stream_AVSave_V4L_UI_CBData*> (ui_cb_data_base_p);
   ACE_ASSERT (cb_data_p->configuration);
-  Stream_AVSave_V4L_StreamConfiguration_t::ITERATOR_T iterator_2 =
+  Stream_AVSave_ALSA_V4L_StreamConfiguration_t::ITERATOR_T iterator_2 =
     cb_data_p->configuration->videoStreamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (iterator_2 != cb_data_p->configuration->videoStreamConfiguration.end ());
 #endif
@@ -4129,7 +4128,7 @@ togglebutton_display_toggled_cb (GtkToggleButton* toggleButton_in,
   struct Stream_AVSave_V4L_UI_CBData* cb_data_p =
     static_cast<struct Stream_AVSave_V4L_UI_CBData*> (ui_cb_data_base_p);
   ACE_ASSERT (cb_data_p->configuration);
-  Stream_AVSave_V4L_StreamConfiguration_t::ITERATOR_T iterator_2 =
+  Stream_AVSave_ALSA_V4L_StreamConfiguration_t::ITERATOR_T iterator_2 =
     cb_data_p->configuration->videoStreamConfiguration.find (Stream_Visualization_Tools::rendererToModuleName (STREAM_VISUALIZATION_VIDEORENDERER_X11));
   ACE_ASSERT (iterator_2 != cb_data_p->configuration->videoStreamConfiguration.end ());
 #endif
@@ -4283,7 +4282,7 @@ togglebutton_fullscreen_toggled_cb (GtkToggleButton* toggleButton_in,
   stream_base_p = cb_data_p->videoStream;
   stream_p = cb_data_p->videoStream;
   ACE_ASSERT (cb_data_p->configuration);
-  Stream_AVSave_V4L_StreamConfiguration_t::ITERATOR_T iterator_2 =
+  Stream_AVSave_ALSA_V4L_StreamConfiguration_t::ITERATOR_T iterator_2 =
     cb_data_p->configuration->videoStreamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (iterator_2 != cb_data_p->configuration->videoStreamConfiguration.end ());
 //  (*iterator_2).second.second->fullScreen = is_active_b;
@@ -4717,7 +4716,7 @@ combobox_source_changed_cb (GtkWidget* widget_in,
     static_cast<struct Stream_AVSave_V4L_UI_CBData*> (ui_cb_data_base_p);
   stream_p = ui_cb_data_p->videoStream;
   ACE_ASSERT (ui_cb_data_p->configuration);
-  Stream_AVSave_V4L_StreamConfiguration_t::ITERATOR_T iterator_2 =
+  Stream_AVSave_ALSA_V4L_StreamConfiguration_t::ITERATOR_T iterator_2 =
     ui_cb_data_p->configuration->videoStreamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (iterator_2 != ui_cb_data_p->configuration->videoStreamConfiguration.end ());
 #endif
@@ -5133,7 +5132,7 @@ combobox_format_changed_cb (GtkWidget* widget_in,
   struct Stream_AVSave_V4L_UI_CBData* ui_cb_data_p =
     static_cast<struct Stream_AVSave_V4L_UI_CBData*> (ui_cb_data_base_p);
   ACE_ASSERT (ui_cb_data_p->configuration);
-  Stream_AVSave_V4L_StreamConfiguration_t::ITERATOR_T iterator_2 =
+  Stream_AVSave_ALSA_V4L_StreamConfiguration_t::ITERATOR_T iterator_2 =
     ui_cb_data_p->configuration->videoStreamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (iterator_2 != ui_cb_data_p->configuration->videoStreamConfiguration.end ());
 #endif
@@ -5240,7 +5239,7 @@ combobox_format_changed_cb (GtkWidget* widget_in,
     }
   } // end SWITCH
 #else
-  ui_cb_data_p->configuration->videoStreamConfiguration.configuration_->format.format.pixelformat =
+  ui_cb_data_p->configuration->videoStreamConfiguration.configuration_->format.video.format.pixelformat =
       format_i;
 #endif
 
@@ -5387,7 +5386,7 @@ combobox_resolution_changed_cb (GtkWidget* widget_in,
   struct Stream_AVSave_V4L_UI_CBData* ui_cb_data_p =
     static_cast<struct Stream_AVSave_V4L_UI_CBData*> (ui_cb_data_base_p);
   ACE_ASSERT (ui_cb_data_p->configuration);
-  Stream_AVSave_V4L_StreamConfiguration_t::ITERATOR_T iterator_2 =
+  Stream_AVSave_ALSA_V4L_StreamConfiguration_t::ITERATOR_T iterator_2 =
     ui_cb_data_p->configuration->videoStreamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (iterator_2 != ui_cb_data_p->configuration->videoStreamConfiguration.end ());
 #endif
@@ -5561,12 +5560,12 @@ combobox_resolution_changed_cb (GtkWidget* widget_in,
     }
   } // end SWITCH
 #else
-  ui_cb_data_p->configuration->videoStreamConfiguration.configuration_->format.format.height =
+  ui_cb_data_p->configuration->videoStreamConfiguration.configuration_->format.video.format.height =
       height;
-  ui_cb_data_p->configuration->videoStreamConfiguration.configuration_->format.format.width =
+  ui_cb_data_p->configuration->videoStreamConfiguration.configuration_->format.video.format.width =
       width;
-  (*iterator_2).second.second->outputFormat.format.height = height;
-  (*iterator_2).second.second->outputFormat.format.width = width;
+  (*iterator_2).second.second->outputFormat.video.format.height = height;
+  (*iterator_2).second.second->outputFormat.video.format.width = width;
 #endif // ACE_WIN32 || ACE_WIN64
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -5717,7 +5716,7 @@ combobox_rate_changed_cb (GtkWidget* widget_in,
   struct Stream_AVSave_V4L_UI_CBData* ui_cb_data_p =
     static_cast<struct Stream_AVSave_V4L_UI_CBData*> (ui_cb_data_base_p);
   ACE_ASSERT (ui_cb_data_p->configuration);
-  Stream_AVSave_V4L_StreamConfiguration_t::ITERATOR_T iterator_2 =
+  Stream_AVSave_ALSA_V4L_StreamConfiguration_t::ITERATOR_T iterator_2 =
     ui_cb_data_p->configuration->videoStreamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (iterator_2 != ui_cb_data_p->configuration->videoStreamConfiguration.end ());
 #endif // ACE_WIN32 || ACE_WIN64
@@ -5829,9 +5828,9 @@ combobox_rate_changed_cb (GtkWidget* widget_in,
 #else
   // *NOTE*: the frame rate is the reciprocal value of the time-per-frame
   //         interval
-  ui_cb_data_p->configuration->videoStreamConfiguration.configuration_->format.frameRate.numerator =
+  ui_cb_data_p->configuration->videoStreamConfiguration.configuration_->format.video.frameRate.numerator =
       frame_rate_numerator;
-  ui_cb_data_p->configuration->videoStreamConfiguration.configuration_->format.frameRate.denominator =
+  ui_cb_data_p->configuration->videoStreamConfiguration.configuration_->format.video.frameRate.denominator =
       frame_rate_denominator;
 #endif // ACE_WIN32 || ACE_WIN64
   set_capture_format (ui_cb_data_base_p);
@@ -5897,7 +5896,7 @@ combobox_display_changed_cb (GtkWidget* widget_in,
 //  Stream_AVSave_V4L_StreamConfiguration_t::ITERATOR_T iterator_2 =
 //    ui_cb_data_p->configuration->videoStreamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
 //  ACE_ASSERT (iterator_2 != ui_cb_data_p->configuration->videoStreamConfiguration.end ());
-  Stream_AVSave_V4L_StreamConfiguration_t::ITERATOR_T iterator_3 =
+  Stream_AVSave_ALSA_V4L_StreamConfiguration_t::ITERATOR_T iterator_3 =
     ui_cb_data_p->configuration->videoStreamConfiguration.find (Stream_Visualization_Tools::rendererToModuleName (STREAM_VISUALIZATION_VIDEORENDERER_X11));
   ACE_ASSERT (iterator_3 != ui_cb_data_p->configuration->videoStreamConfiguration.end ());
 #endif // ACE_WIN32 || ACE_WIN64
@@ -6205,10 +6204,10 @@ drawingarea_size_allocate_cb (GtkWidget* widget_in,
   struct Stream_AVSave_V4L_UI_CBData* ui_cb_data_p =
     static_cast<struct Stream_AVSave_V4L_UI_CBData*> (ui_cb_data_base_p);
   ACE_ASSERT (ui_cb_data_p->configuration);
-  Stream_AVSave_V4L_StreamConfiguration_t::ITERATOR_T iterator_2 =
+  Stream_AVSave_ALSA_V4L_StreamConfiguration_t::ITERATOR_T iterator_2 =
     ui_cb_data_p->configuration->videoStreamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (iterator_2 != ui_cb_data_p->configuration->videoStreamConfiguration.end ());
-  Stream_AVSave_V4L_StreamConfiguration_t::ITERATOR_T iterator_3 =
+  Stream_AVSave_ALSA_V4L_StreamConfiguration_t::ITERATOR_T iterator_3 =
     ui_cb_data_p->configuration->videoStreamConfiguration.find (Stream_Visualization_Tools::rendererToModuleName (STREAM_VISUALIZATION_VIDEORENDERER_X11));
   ACE_ASSERT (iterator_3 != ui_cb_data_p->configuration->videoStreamConfiguration.end ());
 #endif // ACE_WIN32 || ACE_WIN64
@@ -6287,7 +6286,7 @@ filechooserbutton_cb (GtkFileChooserButton* fileChooserButton_in,
   struct Stream_AVSave_V4L_UI_CBData* cb_data_p =
     static_cast<struct Stream_AVSave_V4L_UI_CBData*> (ui_cb_data_base_p);
   ACE_ASSERT (cb_data_p->configuration);
-  Stream_AVSave_V4L_StreamConfiguration_t::ITERATOR_T iterator_2 =
+  Stream_AVSave_ALSA_V4L_StreamConfiguration_t::ITERATOR_T iterator_2 =
     cb_data_p->configuration->videoStreamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (iterator_2 != cb_data_p->configuration->videoStreamConfiguration.end ());
 #endif

@@ -310,15 +310,15 @@ class Stream_AVSave_V4L_Stream
                         enum Stream_ControlType,
                         enum Stream_SessionMessageType,
                         enum Stream_StateMachine_ControlState,
-                        struct Stream_AVSave_V4L_StreamState,
-                        struct Stream_AVSave_V4L_StreamConfiguration,
+                        struct Stream_AVSave_ALSA_V4L_StreamState,
+                        struct Stream_AVSave_ALSA_V4L_StreamConfiguration,
                         struct Stream_AVSave_StatisticData,
-                        struct Stream_AVSave_V4L_ModuleHandlerConfiguration,
-                        Stream_AVSave_V4L_SessionData,
-                        Stream_AVSave_V4L_SessionData_t,
+                        struct Stream_AVSave_ALSA_V4L_ModuleHandlerConfiguration,
+                        Stream_AVSave_ALSA_V4L_SessionData,
+                        Stream_AVSave_ALSA_V4L_SessionData_t,
                         Stream_ControlMessage_t,
                         Stream_AVSave_Message_t,
-                        Stream_AVSave_V4L_SessionMessage_t>
+                        Stream_AVSave_ALSA_V4L_SessionMessage_t>
 {
   typedef Stream_Base_T<ACE_MT_SYNCH,
                         Common_TimePolicy_t,
@@ -326,15 +326,15 @@ class Stream_AVSave_V4L_Stream
                         enum Stream_ControlType,
                         enum Stream_SessionMessageType,
                         enum Stream_StateMachine_ControlState,
-                        struct Stream_AVSave_V4L_StreamState,
-                        struct Stream_AVSave_V4L_StreamConfiguration,
+                        struct Stream_AVSave_ALSA_V4L_StreamState,
+                        struct Stream_AVSave_ALSA_V4L_StreamConfiguration,
                         struct Stream_AVSave_StatisticData,
-                        struct Stream_AVSave_V4L_ModuleHandlerConfiguration,
-                        Stream_AVSave_V4L_SessionData,
-                        Stream_AVSave_V4L_SessionData_t,
+                        struct Stream_AVSave_ALSA_V4L_ModuleHandlerConfiguration,
+                        Stream_AVSave_ALSA_V4L_SessionData,
+                        Stream_AVSave_ALSA_V4L_SessionData_t,
                         Stream_ControlMessage_t,
                         Stream_AVSave_Message_t,
-                        Stream_AVSave_V4L_SessionMessage_t> inherited;
+                        Stream_AVSave_ALSA_V4L_SessionMessage_t> inherited;
 
  public:
   Stream_AVSave_V4L_Stream ();
@@ -387,15 +387,15 @@ class Stream_AVSave_ALSA_Stream
                         enum Stream_ControlType,
                         enum Stream_SessionMessageType,
                         enum Stream_StateMachine_ControlState,
-                        struct Stream_AVSave_ALSA_StreamState,
-                        struct Stream_AVSave_ALSA_StreamConfiguration,
+                        struct Stream_AVSave_ALSA_V4L_StreamState,
+                        struct Stream_AVSave_ALSA_V4L_StreamConfiguration,
                         struct Stream_AVSave_StatisticData,
-                        struct Stream_AVSave_ALSA_ModuleHandlerConfiguration,
-                        Stream_AVSave_ALSA_SessionData,
-                        Stream_AVSave_ALSA_SessionData_t,
+                        struct Stream_AVSave_ALSA_V4L_ModuleHandlerConfiguration,
+                        Stream_AVSave_ALSA_V4L_SessionData,
+                        Stream_AVSave_ALSA_V4L_SessionData_t,
                         Stream_ControlMessage_t,
                         Stream_AVSave_Message_t,
-                        Stream_AVSave_ALSA_SessionMessage_t>
+                        Stream_AVSave_ALSA_V4L_SessionMessage_t>
 {
   typedef Stream_Base_T<ACE_MT_SYNCH,
                         Common_TimePolicy_t,
@@ -403,15 +403,15 @@ class Stream_AVSave_ALSA_Stream
                         enum Stream_ControlType,
                         enum Stream_SessionMessageType,
                         enum Stream_StateMachine_ControlState,
-                        struct Stream_AVSave_ALSA_StreamState,
-                        struct Stream_AVSave_ALSA_StreamConfiguration,
+                        struct Stream_AVSave_ALSA_V4L_StreamState,
+                        struct Stream_AVSave_ALSA_V4L_StreamConfiguration,
                         struct Stream_AVSave_StatisticData,
-                        struct Stream_AVSave_ALSA_ModuleHandlerConfiguration,
-                        Stream_AVSave_ALSA_SessionData,
-                        Stream_AVSave_ALSA_SessionData_t,
+                        struct Stream_AVSave_ALSA_V4L_ModuleHandlerConfiguration,
+                        Stream_AVSave_ALSA_V4L_SessionData,
+                        Stream_AVSave_ALSA_V4L_SessionData_t,
                         Stream_ControlMessage_t,
                         Stream_AVSave_Message_t,
-                        Stream_AVSave_ALSA_SessionMessage_t> inherited;
+                        Stream_AVSave_ALSA_V4L_SessionMessage_t> inherited;
 
  public:
   Stream_AVSave_ALSA_Stream ();
@@ -436,4 +436,3 @@ class Stream_AVSave_ALSA_Stream
 #endif // ACE_WIN32 || ACE_WIN64
 
 #endif
-

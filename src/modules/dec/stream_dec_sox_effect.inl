@@ -512,6 +512,7 @@ Stream_Decoder_SoXEffect_T<ACE_SYNCH_USE,
 #else
       struct Stream_MediaFramework_ALSA_MediaType media_type_s;
       inherited2::getMediaType (session_data_r.formats.back (),
+                                STREAM_MEDIATYPE_AUDIO,
                                 media_type_s);
       Stream_MediaFramework_ALSA_Tools::to (media_type_s,
                                             encodingInfo_,

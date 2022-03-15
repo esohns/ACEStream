@@ -53,6 +53,7 @@ Stream_Module_CamSource_V4L_T<ACE_SYNCH_USE,
                               StatisticHandlerType,
                               UserDataType>::Stream_Module_CamSource_V4L_T (ISTREAM_T* stream_in)
  : inherited (stream_in) // stream handle
+ , inherited2 ()
  , captureFileDescriptor_ (-1)
  , overlayFileDescriptor_ (-1)
  , bufferMap_ ()
@@ -170,7 +171,9 @@ Stream_Module_CamSource_V4L_T<ACE_SYNCH_USE,
       // step1: set capture format ?
       ACE_ASSERT (captureFileDescriptor_ != -1);
       ACE_ASSERT (!session_data_r.formats.empty ());
-      media_type_s = getMediaType (session_data_r.formats.back ());
+      inherited2::getMediaType (session_data_r.formats.back (),
+                                STREAM_MEDIATYPE_VIDEO,
+                                media_type_s);
 
       if (unlikely (!Stream_Device_Tools::setFormat (captureFileDescriptor_,
                                                      media_type_s.format)))

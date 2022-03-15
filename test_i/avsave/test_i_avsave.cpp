@@ -1110,19 +1110,19 @@ do_work (const struct Stream_Device_Identifier& deviceIdentifier_in,
   Stream_AVSave_MediaFoundation_EventHandler_t mediafoundation_ui_event_handler;
 #endif // GUI_SUPPORT
 #else
-  struct Stream_AVSave_ALSA_ModuleHandlerConfiguration audio_modulehandler_configuration;
-  struct Stream_AVSave_ALSA_StreamConfiguration audio_stream_configuration;
-  struct Stream_AVSave_V4L_ModuleHandlerConfiguration video_modulehandler_configuration;
-  struct Stream_AVSave_V4L_StreamConfiguration video_stream_configuration;
-  Stream_AVSave_V4L_EventHandler_t ui_event_handler (
+  struct Stream_AVSave_ALSA_V4L_ModuleHandlerConfiguration audio_modulehandler_configuration;
+  struct Stream_AVSave_ALSA_V4L_StreamConfiguration audio_stream_configuration;
+  struct Stream_AVSave_ALSA_V4L_ModuleHandlerConfiguration video_modulehandler_configuration;
+  struct Stream_AVSave_ALSA_V4L_StreamConfiguration video_stream_configuration;
+  Stream_AVSave_ALSA_V4L_EventHandler_t ui_event_handler (
 #if defined (GUI_SUPPORT)
-                                                      &CBData_in
+                                                          &CBData_in
 #if defined (GTK_USE)
 #elif defined (WXWIDGETS_USE)
-                                                      ,iapplication_in
+                                                          ,iapplication_in
 #endif
 #endif // GUI_SUPPORT
-                                                     );
+                                                         );
 #endif // ACE_WIN32 || ACE_WIN64
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -1189,20 +1189,17 @@ do_work (const struct Stream_Device_Identifier& deviceIdentifier_in,
     }
   } // end SWITCH
 #else
-  Stream_AVSave_ALSA_MessageAllocator_t audio_message_allocator (TEST_I_MAX_MESSAGES, // maximum #buffers
-                                                                 &heap_allocator,     // heap allocator handle
-                                                                 true);               // block ?
-  Stream_AVSave_V4L_MessageAllocator_t video_message_allocator (TEST_I_MAX_MESSAGES, // maximum #buffers
-                                                                &heap_allocator,     // heap allocator handle
-                                                                true);               // block ?
+  Stream_AVSave_ALSA_V4L_MessageAllocator_t message_allocator (TEST_I_MAX_MESSAGES, // maximum #buffers
+                                                               &heap_allocator,     // heap allocator handle
+                                                               true);               // block ?
 
 //  Stream_AVSave_V4L_StreamConfiguration_t::ITERATOR_T v4l_stream_iterator;
 //  Stream_AVSave_V4L_StreamConfiguration_t::ITERATOR_T v4l_stream_iterator_2;
   audio_modulehandler_configuration.allocatorConfiguration = &allocator_configuration;
 //  audio_modulehandler_configuration.outputFormat.
-//  audio_modulehandler_configuration.deviceIdentifier.identifier =
-//    STREAM_DEV_MIC_ALSA_DEFAULT_DEVICE_NAME;
-  audio_modulehandler_configuration.messageAllocator = &audio_message_allocator;
+  audio_modulehandler_configuration.deviceIdentifier.identifier =
+    STREAM_LIB_ALSA_CAPTURE_DEFAULT_DEVICE_NAME;
+  audio_modulehandler_configuration.messageAllocator = &message_allocator;
 
   video_modulehandler_configuration.allocatorConfiguration = &allocator_configuration;
   video_modulehandler_configuration.buffers =
@@ -1215,9 +1212,9 @@ do_work (const struct Stream_Device_Identifier& deviceIdentifier_in,
 #endif // GUI_SUPPORT
 //  // *TODO*: turn these into an option
 //  modulehandler_configuration.method = STREAM_DEV_CAM_V4L_DEFAULT_IO_METHOD;
-  video_modulehandler_configuration.outputFormat =
+  video_modulehandler_configuration.outputFormat.video =
       Stream_Device_Tools::defaultCaptureFormat (deviceIdentifier_in.identifier);
-  video_modulehandler_configuration.outputFormat.format.pixelformat =
+  video_modulehandler_configuration.outputFormat.video.format.pixelformat =
     V4L2_PIX_FMT_BGR24;
 //  if (statisticReportingInterval_in)
 //  {
@@ -1339,18 +1336,18 @@ do_work (const struct Stream_Device_Identifier& deviceIdentifier_in,
   Stream_AVSave_V4L_Stream video_stream;
   Stream_AVSave_MessageHandler_Module message_handler (&video_stream,
                                                        ACE_TEXT_ALWAYS_CHAR (STREAM_MISC_MESSAGEHANDLER_DEFAULT_NAME_STRING));
-  Stream_AVSave_V4L_Encoder_Module encoder (&video_stream,
-                                            ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_LIBAV_ENCODER_DEFAULT_NAME_STRING));
+  Stream_AVSave_ALSA_V4L_Encoder_Module encoder (&video_stream,
+                                                 ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_LIBAV_ENCODER_DEFAULT_NAME_STRING));
 
   audio_stream_configuration.allocatorConfiguration = &allocator_configuration;
-  audio_stream_configuration.messageAllocator = &audio_message_allocator;
+  audio_stream_configuration.messageAllocator = &message_allocator;
   audio_stream_configuration.module_2 = &encoder;
 
   //if (bufferSize_in)
   //  CBData_in.configuration->streamConfiguration.allocatorConfiguration_.defaultBufferSize =
   //      bufferSize_in;
   video_stream_configuration.allocatorConfiguration = &allocator_configuration;
-  video_stream_configuration.messageAllocator = &video_message_allocator;
+  video_stream_configuration.messageAllocator = &message_allocator;
   video_stream_configuration.module =
       (!UIDefinitionFilename_in.empty () ? &message_handler
                                          : NULL);
@@ -1443,8 +1440,8 @@ do_work (const struct Stream_Device_Identifier& deviceIdentifier_in,
 
   if (!do_initialize_v4l (deviceIdentifier_in.identifier,
                           video_modulehandler_configuration.deviceIdentifier,
-                          configuration_in.videoStreamConfiguration.configuration_->format,
-                          video_modulehandler_configuration.outputFormat))
+                          configuration_in.videoStreamConfiguration.configuration_->format.video,
+                          video_modulehandler_configuration.outputFormat.video))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to ::do_initialize_v4l(), returning\n")));
@@ -1832,18 +1829,18 @@ clean:
     }
   } // end SWITCH
 #else
-  result = alsa_audio_stream.remove (&message_handler,
-                                     true,   // lock ?
-                                     false); // reset ?
-  result = alsa_audio_stream.remove (&encoder,
-                                     true,   // lock ?
-                                     false); // reset ?
-  result = v4l_video_stream.remove (&message_handler,
-                                    true,   // lock ?
-                                    false); // reset ?
-  result = v4l_video_stream.remove (&encoder,
-                                    true,   // lock ?
-                                    false); // reset ?
+  result = audio_stream.remove (&message_handler,
+                                true,   // lock ?
+                                false); // reset ?
+  result = audio_stream.remove (&encoder,
+                                true,   // lock ?
+                                false); // reset ?
+  result = video_stream.remove (&message_handler,
+                                true,   // lock ?
+                                false); // reset ?
+  result = video_stream.remove (&encoder,
+                                true,   // lock ?
+                                false); // reset ?
 #endif // ACE_WIN32 || ACE_WIN64
 
   ACE_DEBUG ((LM_DEBUG,

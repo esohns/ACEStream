@@ -1507,7 +1507,7 @@ Stream_AVSave_V4L_Stream::initialize (const typename inherited::CONFIGURATION_T&
 
   bool setup_pipeline = configuration_in.configuration_->setupPipeline;
   bool reset_setup_pipeline = false;
-  Stream_AVSave_V4L_SessionData* session_data_p = NULL;
+  Stream_AVSave_ALSA_V4L_SessionData* session_data_p = NULL;
   typename inherited::CONFIGURATION_T::ITERATOR_T iterator;
   Stream_AVSave_V4L_Source* source_impl_p = NULL;
 
@@ -1530,7 +1530,7 @@ Stream_AVSave_V4L_Stream::initialize (const typename inherited::CONFIGURATION_T&
   ACE_ASSERT (inherited::sessionData_);
 
   session_data_p =
-    &const_cast<Stream_AVSave_V4L_SessionData&> (inherited::sessionData_->getR ());
+    &const_cast<Stream_AVSave_ALSA_V4L_SessionData&> (inherited::sessionData_->getR ());
   iterator =
       const_cast<typename inherited::CONFIGURATION_T&> (configuration_in).find (ACE_TEXT_ALWAYS_CHAR (""));
 
@@ -1648,7 +1648,7 @@ Stream_AVSave_ALSA_Stream::initialize (const typename inherited::CONFIGURATION_T
 
   bool setup_pipeline = configuration_in.configuration_->setupPipeline;
   bool reset_setup_pipeline = false;
-  Stream_AVSave_ALSA_SessionData* session_data_p = NULL;
+  Stream_AVSave_ALSA_V4L_SessionData* session_data_p = NULL;
   typename inherited::CONFIGURATION_T::ITERATOR_T iterator;
   Stream_AVSave_ALSA_Source* source_impl_p = NULL;
 
@@ -1671,7 +1671,7 @@ Stream_AVSave_ALSA_Stream::initialize (const typename inherited::CONFIGURATION_T
   ACE_ASSERT (inherited::sessionData_);
 
   session_data_p =
-    &const_cast<Stream_AVSave_ALSA_SessionData&> (inherited::sessionData_->getR ());
+    &const_cast<Stream_AVSave_ALSA_V4L_SessionData&> (inherited::sessionData_->getR ());
   iterator =
       const_cast<typename inherited::CONFIGURATION_T&> (configuration_in).find (ACE_TEXT_ALWAYS_CHAR (""));
 
