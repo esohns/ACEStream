@@ -854,8 +854,8 @@ do_initialize_v4l (const std::string& deviceIdentifier_in,
     return false;
   } // end IF
 
-  captureFormat_out =
-      Stream_Device_Tools::defaultCaptureFormat (deviceIdentifier_in);
+  Stream_Device_Tools::getDefaultCaptureFormat (deviceIdentifier_in,
+                                                captureFormat_out);
   ACE_DEBUG ((LM_DEBUG,
               ACE_TEXT ("\"%s\" (%d): default capture format: \"%s\" (%d), resolution: %ux%u, framerate: %u/%u\n"),
               ACE_TEXT (deviceIdentifier_in.c_str ()), deviceIdentifier_out.fileDescriptor,
@@ -1032,8 +1032,8 @@ do_work (const struct Stream_Device_Identifier& deviceIdentifier_in,
   modulehandler_configuration.deviceIdentifier = deviceIdentifier_in;
 //  // *TODO*: turn these into an option
 //  modulehandler_configuration.method = STREAM_DEV_CAM_V4L_DEFAULT_IO_METHOD;
-  modulehandler_configuration.outputFormat =
-      Stream_Device_Tools::defaultCaptureFormat (deviceIdentifier_in.identifier);
+  Stream_Device_Tools::getDefaultCaptureFormat (deviceIdentifier_in.identifier,
+                                                modulehandler_configuration.outputFormat);
   modulehandler_configuration.subscriber = &ui_event_handler;
 
   struct Stream_CameraScreen_V4L_StreamConfiguration stream_configuration;

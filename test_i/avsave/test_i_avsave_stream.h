@@ -352,30 +352,30 @@ class Stream_AVSave_V4L_Stream
   ACE_UNIMPLEMENTED_FUNC (Stream_AVSave_V4L_Stream& operator= (const Stream_AVSave_V4L_Stream&))
 
   // modules
-  Stream_AVSave_V4L_Source_Module      source_;
+  Stream_AVSave_V4L_Source_Module       source_;
   //  Stream_AVSave_StatisticReport_Module statisticReport_;
 #if defined (FFMPEG_SUPPORT)
-  Stream_AVSave_LibAVDecoder_Module    decoder_; // --> RGB
+  Stream_AVSave_LibAVDecoder_Module     decoder_; // --> uncompress to RGB
 #endif // FFMPEG_SUPPORT
-//  Stream_AVSave_Distributor_Module     distributor_; // (sub-)branch ?
   ////////////////////////////////////////
 #if defined (FFMPEG_SUPPORT)
-  Stream_AVSave_LibAVConverter_Module  converter_; // --> 24-bit RGB (display format)
-//  Stream_AVSave_LibAVResize_Module     resizer_; // --> window size/fullscreen
+  Stream_AVSave_LibAVConverter_Module   converter_; // --> 24-bit RGB (display format)
+  Stream_AVSave_Distributor_Module      distributor_; // (sub-)branch ?
+  Stream_AVSave_LibAVResize_Module      resizer_; // --> window size/fullscreen
 #endif // FFMPEG_SUPPORT
 #if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
-//  Stream_AVSave_GTKCairoDisplay_Module GTKCairoDisplay_;
+  Stream_AVSave_GTKCairo_Display_Module GTKCairoDisplay_;
 //  Stream_AVSave_Display_2_Module       display_2_;
 #endif // GTK_USE
 //  Stream_AVSave_Display_2_Module       display_2_;
+  Stream_AVSave_X11_Display_Module      X11Display_;
 #endif // GUI_SUPPORT
   ////////////////////////////////////////
 #if defined (FFMPEG_SUPPORT)
-  Stream_AVSave_LibAVConverter_Module  converter_2; // --> 32-bit RGB (AVI format)
+  Stream_AVSave_LibAVConverter_Module   converter_2; // --> 32-bit RGB (AVI format)
 #endif // FFMPEG_SUPPORT
-  Stream_AVSave_V4L_Tagger_Module      tagger_;
-  Stream_AVSave_Display_Module         display_;
+  Stream_AVSave_V4L_Tagger_Module       tagger_;
 //  Stream_AVSave_V4L_AVIEncoder_Module  encoder_; // --> AVI
 //  Stream_AVSave_FileWriter_Module      fileWriter_;
 };

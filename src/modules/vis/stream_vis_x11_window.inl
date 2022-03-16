@@ -18,14 +18,6 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-//#ifdef __cplusplus
-//extern "C"
-//{
-//#include "libavutil/frame.h"
-//#include "libavutil/imgutils.h"
-//}
-//#endif /* __cplusplus */
-
 #include "X11/Xlib.h"
 #include "X11/Xutil.h"
 
@@ -61,6 +53,8 @@ Stream_Module_Vis_X11_Window_T<ACE_SYNCH_USE,
                                SessionDataContainerType,
                                MediaType>::Stream_Module_Vis_X11_Window_T (typename inherited::ISTREAM_T* stream_in)
  : inherited (stream_in)
+ , inherited2 ()
+ , inherited3 ()
  , closeDisplay_ (false)
  , closeWindow_ (false)
  , context_ (NULL)
@@ -133,6 +127,262 @@ Stream_Module_Vis_X11_Window_T<ACE_SYNCH_USE,
                   inherited::mod_->name (),
                   display_));
   } // end IF
+}
+
+template <ACE_SYNCH_DECL,
+          typename TimePolicyType,
+          typename ConfigurationType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
+          typename SessionDataContainerType,
+          typename MediaType>
+bool
+Stream_Module_Vis_X11_Window_T<ACE_SYNCH_USE,
+                               TimePolicyType,
+                               ConfigurationType,
+                               ControlMessageType,
+                               DataMessageType,
+                               SessionMessageType,
+                               SessionDataContainerType,
+                               MediaType>::initialize (const ConfigurationType& configuration_in,
+                                                       Stream_IAllocator* allocator_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Module_Vis_X11_Window_T::initialize"));
+
+  if (inherited::isInitialized_)
+  {
+    if (closeWindow_)
+    { ACE_ASSERT (display_ && window_);
+      int result = XUnmapWindow (display_, window_);
+      if (unlikely (result))
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("%s: failed to XUnmapWindow(0x%@,%u): \"%m\", continuing\n"),
+                    inherited::mod_->name (),
+                    display_, window_));
+    } // end IF
+    if (closeDisplay_)
+    { ACE_ASSERT (display_);
+      int result = XCloseDisplay (display_);
+      if (unlikely (result))
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("%s: failed to XCloseDisplay(0x%@): \"%m\", continuing\n"),
+                    inherited::mod_->name (),
+                    display_));
+    } // end IF
+    closeDisplay_ = false;
+    display_ = NULL;
+    isFirst_ = true;
+    window_ = 0;
+  } // end IF
+
+  XErrorHandler error_handler_p =
+    XSetErrorHandler (libacestream_vis_x11_error_handler_cb);
+  ACE_UNUSED_ARG (error_handler_p);
+  XIOErrorHandler io_error_handler_p =
+    XSetIOErrorHandler (libacestream_vis_x11_io_error_handler_cb);
+  ACE_UNUSED_ARG (io_error_handler_p);
+
+  ACE_ASSERT (!display_);
+  // *TODO*: remove type inferences
+  if (configuration_in.display.display)
+  {
+    display_ = configuration_in.display.display;
+    ACE_DEBUG ((LM_DEBUG,
+                ACE_TEXT ("%s: passive mode (display: %@, default depth: %d)\n"),
+                inherited::mod_->name (),
+                display_, DefaultDepth (display_, DefaultScreen (display_))));
+  } // end IF
+  else
+  {
+    std::string x11_display_name =
+      Common_UI_Tools::getX11DisplayName (configuration_in.display.device);
+    if (unlikely (x11_display_name.empty ()))
+      ACE_DEBUG ((LM_WARNING,
+                  ACE_TEXT ("%s: failed to Common_UI_Tools::getX11DisplayName(\"%s\"): using default, continuing\n"),
+                  inherited::mod_->name (),
+                  ACE_TEXT (configuration_in.display.device.c_str ())));
+    const char* display_name_p =
+      (x11_display_name.empty () ? NULL
+                                   : x11_display_name.c_str ());
+    display_ = XOpenDisplay (display_name_p);
+    if (unlikely (!display_))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("%s: failed to XOpenDisplay(\"%s\"): \"%m\", aborting\n"),
+                  inherited::mod_->name (),
+                  display_name_p));
+      return false;
+    } // end IF
+    ACE_DEBUG ((LM_DEBUG,
+                ACE_TEXT ("%s: opened X11 connection to \"%s\" (display: %@, default depth: %d)\n"),
+                inherited::mod_->name (),
+                display_name_p, display_,
+                DefaultDepth (display_, DefaultScreen (display_))));
+    closeDisplay_ = true;
+  } // end ELSE
+  ACE_ASSERT (display_);
+  if (configuration_in.debug)
+    XSync (display_, True);
+
+  int count_i = 0;
+  int* depths_p = XListDepths (display_, DefaultScreen (display_),
+                               &count_i);
+  for (unsigned int i = 0;
+       i < static_cast<unsigned int> (count_i);
+       ++i)
+  {
+    ACE_DEBUG ((LM_DEBUG,
+                ACE_TEXT ("%s: available depth #%u: %d\n"),
+                inherited::mod_->name (), i,
+                depths_p[i]));
+  } // end IF
+
+  int depth_i = 0;
+  XVisualInfo visual_info_s;
+  if (configuration_in.window)
+  {
+    inherited3::getWindowType (configuration_in.window,
+                               window_);
+    ACE_DEBUG ((LM_DEBUG,
+                ACE_TEXT ("%s: passive mode (display: %@, window: %u)\n"),
+                inherited::mod_->name (),
+                display_, window_));
+    XWindowAttributes attributes_s = Common_UI_Tools::get (*display_,
+                                                           window_);
+    depth_i = attributes_s.depth;
+
+    if (!XMatchVisualInfo (display_, DefaultScreen (display_),
+                           depth_i, TrueColor,
+                           &visual_info_s))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("%s: failed to XMatchVisualInfo(%d): \"%m\", aborting\n"),
+                  inherited::mod_->name (),
+                  depth_i));
+      return false;
+    } // end IF
+  } // end IF
+  else
+  {
+    struct Stream_MediaFramework_V4L_MediaType media_type_s;
+    inherited2::getMediaType (configuration_in.outputFormat,
+                              STREAM_MEDIATYPE_VIDEO,
+                              media_type_s);
+    unsigned int width_i =
+      (configuration_in.fullScreen ? WidthOfScreen (DefaultScreenOfDisplay (display_))
+                                     : media_type_s.format.width);
+    unsigned int height_i =
+      (configuration_in.fullScreen ? HeightOfScreen (DefaultScreenOfDisplay (display_))
+                                     : media_type_s.format.height);
+    int x =
+      (WidthOfScreen (DefaultScreenOfDisplay (display_)) - width_i) / 2;
+    int y =
+      (HeightOfScreen (DefaultScreenOfDisplay (display_)) - height_i) / 2;
+    depth_i =
+      static_cast<int> (Stream_MediaFramework_Tools::v4lFormatToBitDepth (media_type_s.format.pixelformat));
+
+    if (!XMatchVisualInfo (display_, DefaultScreen (display_),
+                           depth_i, TrueColor,
+                           &visual_info_s))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("%s: failed to XMatchVisualInfo(%d): \"%m\", aborting\n"),
+                  inherited::mod_->name (),
+                  depth_i));
+      return false;
+    } // end IF
+
+    unsigned long valuemask_i =
+      (CWBackPixel       |
+       CWBorderPixel     |
+       CWColormap        |
+       CWOverrideRedirect);
+    XSetWindowAttributes attributes_a;
+    ACE_OS::memset (&attributes_a, 0, sizeof (XSetWindowAttributes));
+    attributes_a.background_pixel  =
+      BlackPixel (display_, DefaultScreen (display_));
+    attributes_a.border_pixel =
+      BlackPixel (display_, DefaultScreen (display_));
+    attributes_a.colormap =
+      XCreateColormap (display_, XDefaultRootWindow (display_),
+                       visual_info_s.visual, AllocNone);
+    attributes_a.override_redirect = True;
+    window_ =
+      XCreateWindow (display_,
+                     DefaultRootWindow (display_),
+                     x, y,
+                     width_i, height_i,
+                     0,
+                     depth_i,
+                     InputOutput,
+                     visual_info_s.visual,
+                     valuemask_i,
+                     &attributes_a);
+    if (unlikely (!window_))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("%s: failed to XCreateWindow(0x%@): \"%m\", aborting\n"),
+                  inherited::mod_->name (),
+                  display_));
+      return false;
+    } // end IF
+    ACE_DEBUG ((LM_DEBUG,
+                ACE_TEXT ("%s: created X11 window (display: %@, id: %u, width: %u, height: %u, depth: %d)\n"),
+                inherited::mod_->name (),
+                display_,
+                window_,
+                width_i, height_i, depth_i));
+    closeWindow_ = true;
+    //    XSelectInput (display_,
+    //                  window_,
+    //                  (ExposureMask | ButtonPressMask | KeyPressMask));
+    int result = XMapRaised (display_, window_);
+    if (unlikely (!result))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("%s: failed to XMapRaised(%@,%u): \"%m\", aborting\n"),
+                  inherited::mod_->name (),
+                  display_, window_));
+      return false;
+    } // end IF
+
+    valuemask_i = (//GCFont       |
+      GCFunction   |
+      GCPlaneMask  |
+      GCForeground |
+      GCBackground);
+    XGCValues values_s; /* initial values for the GC */
+    //    XFontStruct* fontinfo_p = XLoadQueryFont (display_, "6x10");
+    //    ACE_ASSERT (fontinfo_p);
+    //    values_s.font =   fontinfo_p->fid;
+    values_s.function =   GXcopy;
+    values_s.plane_mask = AllPlanes;
+    values_s.foreground = BlackPixel (display_, DefaultScreen (display_));
+    values_s.background = WhitePixel (display_, DefaultScreen (display_));
+    context_ = XCreateGC (display_,
+                          window_,
+                          valuemask_i,
+                          &values_s);
+    if (unlikely (!context_))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("%s: failed to XCreateGC(0x%@,%u,%u): \"%m\", aborting\n"),
+                  inherited::mod_->name (),
+                  display_, window_,
+                  valuemask_i));
+      return false;
+    } // end IF
+  } // end ELSE
+  visual_ = visual_info_s.visual;
+  ACE_DEBUG ((LM_DEBUG,
+              ACE_TEXT ("%s: display %@ (window: %d, depth: %d, visual: %@)\n"),
+              inherited::mod_->name (),
+              display_, window_,
+              depth_i, visual_));
+
+  return inherited::initialize (configuration_in,
+                                allocator_in);
 }
 
 template <ACE_SYNCH_DECL,
@@ -463,259 +713,4 @@ Stream_Module_Vis_X11_Window_T<ACE_SYNCH_USE,
   ACE_ASSERT (false); // *TODO*
   ACE_NOTSUP;
   ACE_NOTREACHED (return;)
-}
-
-template <ACE_SYNCH_DECL,
-          typename TimePolicyType,
-          typename ConfigurationType,
-          typename ControlMessageType,
-          typename DataMessageType,
-          typename SessionMessageType,
-          typename SessionDataContainerType,
-          typename MediaType>
-bool
-Stream_Module_Vis_X11_Window_T<ACE_SYNCH_USE,
-                               TimePolicyType,
-                               ConfigurationType,
-                               ControlMessageType,
-                               DataMessageType,
-                               SessionMessageType,
-                               SessionDataContainerType,
-                               MediaType>::initialize (const ConfigurationType& configuration_in,
-                                                       Stream_IAllocator* allocator_in)
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_Module_Vis_X11_Window_T::initialize"));
-
-  if (inherited::isInitialized_)
-  {
-    if (closeWindow_)
-    { ACE_ASSERT (display_ && window_);
-      int result = XUnmapWindow (display_, window_);
-      if (unlikely (result))
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("%s: failed to XUnmapWindow(0x%@,%u): \"%m\", continuing\n"),
-                    inherited::mod_->name (),
-                    display_, window_));
-    } // end IF
-    if (closeDisplay_)
-    { ACE_ASSERT (display_);
-      int result = XCloseDisplay (display_);
-      if (unlikely (result))
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("%s: failed to XCloseDisplay(0x%@): \"%m\", continuing\n"),
-                    inherited::mod_->name (),
-                    display_));
-    } // end IF
-    closeDisplay_ = false;
-    display_ = NULL;
-    isFirst_ = true;
-    window_ = 0;
-  } // end IF
-
-  XErrorHandler error_handler_p =
-      XSetErrorHandler (libacestream_vis_x11_error_handler_cb);
-  ACE_UNUSED_ARG (error_handler_p);
-  XIOErrorHandler io_error_handler_p =
-      XSetIOErrorHandler (libacestream_vis_x11_io_error_handler_cb);
-  ACE_UNUSED_ARG (io_error_handler_p);
-
-  ACE_ASSERT (!display_);
-  // *TODO*: remove type inferences
-  if (configuration_in.display.display)
-  {
-    display_ = configuration_in.display.display;
-    ACE_DEBUG ((LM_DEBUG,
-                ACE_TEXT ("%s: passive mode (display: %@, default depth: %d)\n"),
-                inherited::mod_->name (),
-                display_, DefaultDepth (display_, DefaultScreen (display_))));
-  } // end IF
-  else
-  {
-    std::string x11_display_name =
-        Common_UI_Tools::getX11DisplayName (configuration_in.display.device);
-    if (unlikely (x11_display_name.empty ()))
-      ACE_DEBUG ((LM_WARNING,
-                  ACE_TEXT ("%s: failed to Common_UI_Tools::getX11DisplayName(\"%s\"): using default, continuing\n"),
-                  inherited::mod_->name (),
-                  ACE_TEXT (configuration_in.display.device.c_str ())));
-    const char* display_name_p =
-        (x11_display_name.empty () ? NULL
-                                   : x11_display_name.c_str ());
-    display_ = XOpenDisplay (display_name_p);
-    if (unlikely (!display_))
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("%s: failed to XOpenDisplay(\"%s\"): \"%m\", aborting\n"),
-                  inherited::mod_->name (),
-                  display_name_p));
-      return false;
-    } // end IF
-    ACE_DEBUG ((LM_DEBUG,
-                ACE_TEXT ("%s: opened X11 connection to \"%s\" (display: %@, default depth: %d)\n"),
-                inherited::mod_->name (),
-                display_name_p, display_,
-                DefaultDepth (display_, DefaultScreen (display_))));
-    closeDisplay_ = true;
-  } // end ELSE
-  ACE_ASSERT (display_);
-  if (configuration_in.debug)
-    XSync (display_, True);
-
-  int count_i = 0;
-  int* depths_p = XListDepths (display_, DefaultScreen (display_),
-                               &count_i);
-  for (unsigned int i = 0;
-       i < static_cast<unsigned int> (count_i);
-       ++i)
-  {
-    ACE_DEBUG ((LM_DEBUG,
-                ACE_TEXT ("%s: available depth #%u: %d\n"),
-                inherited::mod_->name (), i,
-                depths_p[i]));
-  } // end IF
-
-  int depth_i = 0;
-  XVisualInfo visual_info_s;
-  if (configuration_in.window)
-  {
-    window_ = configuration_in.window;
-    ACE_DEBUG ((LM_DEBUG,
-                ACE_TEXT ("%s: passive mode (display: %@, window: %u)\n"),
-                inherited::mod_->name (),
-                display_, window_));
-    XWindowAttributes attributes_s = Common_UI_Tools::get (*display_,
-                                                           window_);
-    depth_i = attributes_s.depth;
-
-    if (!XMatchVisualInfo (display_, DefaultScreen (display_),
-                           depth_i, TrueColor,
-                           &visual_info_s))
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("%s: failed to XMatchVisualInfo(%d): \"%m\", aborting\n"),
-                  inherited::mod_->name (),
-                  depth_i));
-      return false;
-    } // end IF
-  } // end IF
-  else
-  {
-    struct Stream_MediaFramework_V4L_MediaType media_type_s;
-    inherited2::getMediaType (configuration_in.outputFormat,
-                              STREAM_MEDIATYPE_VIDEO,
-                              media_type_s);
-    unsigned int width_i =
-        (configuration_in.fullScreen ? WidthOfScreen (DefaultScreenOfDisplay (display_))
-                                     : media_type_s.format.width);
-    unsigned int height_i =
-        (configuration_in.fullScreen ? HeightOfScreen (DefaultScreenOfDisplay (display_))
-                                     : media_type_s.format.height);
-    int x =
-        (WidthOfScreen (DefaultScreenOfDisplay (display_)) - width_i) / 2;
-    int y =
-        (HeightOfScreen (DefaultScreenOfDisplay (display_)) - height_i) / 2;
-    depth_i =
-        static_cast<int> (Stream_MediaFramework_Tools::v4lFormatToBitDepth (media_type_s.format.pixelformat));
-
-    if (!XMatchVisualInfo (display_, DefaultScreen (display_),
-                           depth_i, TrueColor,
-                           &visual_info_s))
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("%s: failed to XMatchVisualInfo(%d): \"%m\", aborting\n"),
-                  inherited::mod_->name (),
-                  depth_i));
-      return false;
-    } // end IF
-
-    unsigned long valuemask_i =
-        (CWBackPixel       |
-         CWBorderPixel     |
-         CWColormap        |
-         CWOverrideRedirect);
-    XSetWindowAttributes attributes_a;
-    ACE_OS::memset (&attributes_a, 0, sizeof (XSetWindowAttributes));
-    attributes_a.background_pixel  =
-        BlackPixel (display_, DefaultScreen (display_));
-    attributes_a.border_pixel =
-        BlackPixel (display_, DefaultScreen (display_));
-    attributes_a.colormap =
-        XCreateColormap (display_, XDefaultRootWindow (display_),
-                         visual_info_s.visual, AllocNone);
-    attributes_a.override_redirect = True;
-    window_ =
-        XCreateWindow (display_,
-                       DefaultRootWindow (display_),
-                       x, y,
-                       width_i, height_i,
-                       0,
-                       depth_i,
-                       InputOutput,
-                       visual_info_s.visual,
-                       valuemask_i,
-                       &attributes_a);
-    if (unlikely (!window_))
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("%s: failed to XCreateWindow(0x%@): \"%m\", aborting\n"),
-                  inherited::mod_->name (),
-                  display_));
-      return false;
-    } // end IF
-    ACE_DEBUG ((LM_DEBUG,
-                ACE_TEXT ("%s: created X11 window (display: %@, id: %u, width: %u, height: %u, depth: %d)\n"),
-                inherited::mod_->name (),
-                display_,
-                window_,
-                width_i, height_i, depth_i));
-    closeWindow_ = true;
-//    XSelectInput (display_,
-//                  window_,
-//                  (ExposureMask | ButtonPressMask | KeyPressMask));
-    int result = XMapRaised (display_, window_);
-    if (unlikely (!result))
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("%s: failed to XMapRaised(%@,%u): \"%m\", aborting\n"),
-                  inherited::mod_->name (),
-                  display_, window_));
-      return false;
-    } // end IF
-
-    valuemask_i = (//GCFont       |
-                   GCFunction   |
-                   GCPlaneMask  |
-                   GCForeground |
-                   GCBackground);
-    XGCValues values_s; /* initial values for the GC */
-//    XFontStruct* fontinfo_p = XLoadQueryFont (display_, "6x10");
-//    ACE_ASSERT (fontinfo_p);
-//    values_s.font =   fontinfo_p->fid;
-    values_s.function =   GXcopy;
-    values_s.plane_mask = AllPlanes;
-    values_s.foreground = BlackPixel (display_, DefaultScreen (display_));
-    values_s.background = WhitePixel (display_, DefaultScreen (display_));
-    context_ = XCreateGC (display_,
-                          window_,
-                          valuemask_i,
-                          &values_s);
-    if (unlikely (!context_))
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("%s: failed to XCreateGC(0x%@,%u,%u): \"%m\", aborting\n"),
-                  inherited::mod_->name (),
-                  display_, window_,
-                  valuemask_i));
-      return false;
-    } // end IF
-  } // end ELSE
-  visual_ = visual_info_s.visual;
-  ACE_DEBUG ((LM_DEBUG,
-              ACE_TEXT ("%s: display %@ (window: %d, depth: %d, visual: %@)\n"),
-              inherited::mod_->name (),
-              display_, window_,
-              depth_i, visual_));
-
-  return inherited::initialize (configuration_in,
-                                allocator_in);
 }

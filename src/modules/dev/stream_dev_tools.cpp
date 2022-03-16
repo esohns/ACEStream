@@ -838,13 +838,14 @@ Stream_Device_Tools::getCaptureFramerates (int fileDescriptor_in,
   return return_value;
 }
 
-struct Stream_MediaFramework_V4L_MediaType
-Stream_Device_Tools::defaultCaptureFormat (const std::string& deviceIdentifier_in)
+bool
+Stream_Device_Tools::getDefaultCaptureFormat (const std::string& deviceIdentifier_in,
+                                              struct Stream_MediaFramework_V4L_MediaType& format_out)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_Device_Tools::defaultCaptureFormat"));
+  STREAM_TRACE (ACE_TEXT ("Stream_Device_Tools::getDefaultCaptureFormat"));
 
   // initialize return value(s)
-  struct Stream_MediaFramework_V4L_MediaType return_value;
+  ACE_OS::memset (&format_out, 0, sizeof (struct Stream_MediaFramework_V4L_MediaType));
 
   // sanity check(s)
   ACE_ASSERT (!deviceIdentifier_in.empty ());
@@ -853,7 +854,8 @@ Stream_Device_Tools::defaultCaptureFormat (const std::string& deviceIdentifier_i
   //         (v4l2_poll()) for asynchronous operation
   // *TODO*: support O_NONBLOCK
   int open_mode = O_RDONLY;
-  int result = -1;
+  bool result = true;
+  int result_2 = -1;
   int file_descriptor = ACE_OS::open (deviceIdentifier_in.c_str (),
                                       open_mode);
   if (unlikely (file_descriptor == -1))
@@ -862,7 +864,7 @@ Stream_Device_Tools::defaultCaptureFormat (const std::string& deviceIdentifier_i
                 ACE_TEXT ("failed to ACE_OS::open(\"%s\",%u): \"%m\", aborting\n"),
                 ACE_TEXT (deviceIdentifier_in.c_str ()),
                 open_mode));
-    return return_value;
+    return false;
   } // end IF
 
   struct v4l2_format format_s;
@@ -873,28 +875,33 @@ Stream_Device_Tools::defaultCaptureFormat (const std::string& deviceIdentifier_i
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Stream_Device_Tools::getFormat(%d), aborting\n"),
                 file_descriptor));
+    result = false;
     goto close;
   } // end IF
   ACE_ASSERT (format_s.type == V4L2_BUF_TYPE_VIDEO_CAPTURE);
-  return_value.format = format_s.fmt.pix;
+  format_out.format = format_s.fmt.pix;
   if (unlikely (!Stream_Device_Tools::getFrameRate (file_descriptor,
-                                                    return_value.frameRate)))
+                                                    format_out.frameRate)))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Stream_Device_Tools::getFrameRate(%d), aborting\n"),
                 file_descriptor));
-    ACE_OS::memset (&return_value, 0, sizeof (struct Stream_MediaFramework_V4L_MediaType));
+    ACE_OS::memset (&format_out, 0, sizeof (struct Stream_MediaFramework_V4L_MediaType));
+    result = false;
     goto close;
   } // end IF
 
 close:
-  result = ACE_OS::close (file_descriptor);
-  if (unlikely (result == -1))
+  result_2 = ACE_OS::close (file_descriptor);
+  if (unlikely (result_2 == -1))
+  {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to ACE_OS::close(%d): \"%m\", continuing\n"),
+                ACE_TEXT ("failed to ACE_OS::close(%d): \"%m\", aborting\n"),
                 file_descriptor));
+    result = false;
+  } // end IF
 
-  return return_value;
+  return result;
 }
 
 #if defined (FFMPEG_SUPPORT)

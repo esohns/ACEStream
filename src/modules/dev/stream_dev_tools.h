@@ -101,7 +101,8 @@ class Stream_Device_Tools
                                                       __u32,                             // pixel format
                                                       const Common_Image_Resolution_t&); // resolution
 
-  static struct Stream_MediaFramework_V4L_MediaType defaultCaptureFormat (const std::string&); // device identifier
+  static bool getDefaultCaptureFormat (const std::string&,                           // device identifier
+                                       struct Stream_MediaFramework_V4L_MediaType&); // return value: format
 
 #if defined (FFMPEG_SUPPORT)
   static struct Stream_MediaFramework_FFMPEG_VideoMediaType convert (const struct Stream_MediaFramework_V4L_MediaType&);

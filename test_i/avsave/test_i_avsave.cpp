@@ -925,19 +925,21 @@ do_finalize_mediafoundation (IMFMediaSession*& mediaSession_inout)
 }
 #else
 bool
-do_initialize_v4l (const std::string& deviceIdentifier_in,
-                   struct Stream_Device_Identifier& deviceIdentifier_out,
-                   struct Stream_MediaFramework_V4L_MediaType& captureFormat_out,
-                   struct Stream_MediaFramework_V4L_MediaType& outputFormat_out)
+do_initialize_ALSA_V4L (const std::string& audioDeviceIdentifier_in,
+                        const std::string& videoDeviceIdentifier_in,
+                        struct Stream_Device_Identifier& deviceIdentifier_out,
+                        struct Stream_MediaFramework_ALSA_V4L_Format& captureFormat_out,
+                        struct Stream_MediaFramework_V4L_MediaType& outputFormat_out)
 {
-  STREAM_TRACE (ACE_TEXT ("::do_initialize_v4l"));
+  STREAM_TRACE (ACE_TEXT ("::do_initialize_ALSA_V4L"));
 
   // intialize return value(s)
-  ACE_OS::memset (&captureFormat_out, 0, sizeof (struct Stream_MediaFramework_V4L_MediaType));
-//  ACE_OS::memset (&outputFormat_out, 0, sizeof (struct Stream_MediaFramework_FFMPEG_VideoMediaType));
+  ACE_OS::memset (&captureFormat_out, 0, sizeof (struct Stream_MediaFramework_ALSA_V4L_Format));
+  ACE_OS::memset (&outputFormat_out, 0, sizeof (struct Stream_MediaFramework_V4L_MediaType));
 
   // sanity check(s)
-  ACE_ASSERT (!deviceIdentifier_in.empty ());
+  ACE_ASSERT (!audioDeviceIdentifier_in.empty ());
+  ACE_ASSERT (!videoDeviceIdentifier_in.empty ());
 
   // *NOTE*: use O_NONBLOCK with a reactor (v4l2_select()) or proactor
   //         (v4l2_poll()) for asynchronous operation
@@ -947,26 +949,26 @@ do_initialize_v4l (const std::string& deviceIdentifier_in,
                                                               : O_RDONLY);
   int result = -1;
   deviceIdentifier_out.fileDescriptor =
-      v4l2_open (deviceIdentifier_in.c_str (),
+      v4l2_open (videoDeviceIdentifier_in.c_str (),
                  open_mode);
   if (unlikely (deviceIdentifier_out.fileDescriptor == -1))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to v4l2_open(\"%s\",%u): \"%m\", aborting\n"),
-                ACE_TEXT (deviceIdentifier_in.c_str ()),
+                ACE_TEXT (videoDeviceIdentifier_in.c_str ()),
                 open_mode));
     return false;
   } // end IF
 
-  captureFormat_out =
-      Stream_Device_Tools::defaultCaptureFormat (deviceIdentifier_in);
+  Stream_Device_Tools::getDefaultCaptureFormat (videoDeviceIdentifier_in,
+                                                captureFormat_out.video);
   ACE_DEBUG ((LM_DEBUG,
               ACE_TEXT ("\"%s\" (%d): default capture format: \"%s\" (%d), resolution: %ux%u, framerate: %u/%u\n"),
-              ACE_TEXT (deviceIdentifier_in.c_str ()), deviceIdentifier_out.fileDescriptor,
-              ACE_TEXT (Stream_Device_Tools::formatToString (deviceIdentifier_out.fileDescriptor, captureFormat_out.format.pixelformat).c_str ()), captureFormat_out.format.pixelformat,
-              captureFormat_out.format.width, captureFormat_out.format.height,
-              captureFormat_out.frameRate.numerator, captureFormat_out.frameRate.denominator));
-  outputFormat_out = captureFormat_out;
+              ACE_TEXT (videoDeviceIdentifier_in.c_str ()), deviceIdentifier_out.fileDescriptor,
+              ACE_TEXT (Stream_Device_Tools::formatToString (deviceIdentifier_out.fileDescriptor, captureFormat_out.video.format.pixelformat).c_str ()), captureFormat_out.video.format.pixelformat,
+              captureFormat_out.video.format.width, captureFormat_out.video.format.height,
+              captureFormat_out.video.frameRate.numerator, captureFormat_out.video.frameRate.denominator));
+  outputFormat_out = captureFormat_out.video;
   // *NOTE*: Gtk 2 expects RGB24
   // *NOTE*: "...CAIRO_FORMAT_ARGB32: each pixel is a 32-bit quantity, with
   //         alpha in the upper 8 bits, then red, then green, then blue. The
@@ -981,6 +983,12 @@ do_initialize_v4l (const std::string& deviceIdentifier_in,
 #endif // GTK2_USE
 #endif // GTK_USE
 #endif // GUI_SUPPORT
+
+  Stream_MediaFramework_ALSA_Tools::getDefaultFormat (audioDeviceIdentifier_in,
+                                                      true, // capture
+                                                      captureFormat_out.audio);
+  // *TODO*: currently hard-coded into the encoder :-(
+  captureFormat_out.audio.format = SND_PCM_FORMAT_S16_LE;
 
   return true;
 
@@ -1111,6 +1119,9 @@ do_work (const struct Stream_Device_Identifier& deviceIdentifier_in,
   struct Stream_AVSave_ALSA_V4L_ModuleHandlerConfiguration audio_modulehandler_configuration;
   struct Stream_AVSave_ALSA_V4L_StreamConfiguration audio_stream_configuration;
   struct Stream_AVSave_ALSA_V4L_ModuleHandlerConfiguration video_modulehandler_configuration;
+  struct Stream_AVSave_ALSA_V4L_ModuleHandlerConfiguration video_modulehandler_configuration_2; // converter --> display
+  struct Stream_AVSave_ALSA_V4L_ModuleHandlerConfiguration video_modulehandler_configuration_3; // resizer --> display
+  struct Stream_AVSave_ALSA_V4L_ModuleHandlerConfiguration video_modulehandler_configuration_4; // converter_2 --> encoder
   struct Stream_AVSave_ALSA_V4L_StreamConfiguration video_stream_configuration;
   Stream_AVSave_ALSA_V4L_EventHandler_t ui_event_handler (
 #if defined (GUI_SUPPORT)
@@ -1210,10 +1221,6 @@ do_work (const struct Stream_Device_Identifier& deviceIdentifier_in,
 #endif // GUI_SUPPORT
 //  // *TODO*: turn these into an option
 //  modulehandler_configuration.method = STREAM_DEV_CAM_V4L_DEFAULT_IO_METHOD;
-  video_modulehandler_configuration.outputFormat.video =
-      Stream_Device_Tools::defaultCaptureFormat (deviceIdentifier_in.identifier);
-  video_modulehandler_configuration.outputFormat.video.format.pixelformat =
-    V4L2_PIX_FMT_BGR24;
 //  if (statisticReportingInterval_in)
 //  {
 //    video_modulehandler_configuration.statisticCollectionInterval.set (0,
@@ -1429,6 +1436,17 @@ do_work (const struct Stream_Device_Identifier& deviceIdentifier_in,
     }
   } // end SWITCH
 #else
+  if (!do_initialize_ALSA_V4L (audio_modulehandler_configuration.deviceIdentifier.identifier,
+                               deviceIdentifier_in.identifier,
+                               video_modulehandler_configuration.deviceIdentifier,
+                               video_stream_configuration.format,
+                               video_modulehandler_configuration.outputFormat.video))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to ::do_initialize_v4l(), returning\n")));
+    return;
+  } // end IF
+
   configuration_in.audioStreamConfiguration.initialize (module_configuration,
                                                         audio_modulehandler_configuration,
                                                         audio_stream_configuration);
@@ -1436,15 +1454,24 @@ do_work (const struct Stream_Device_Identifier& deviceIdentifier_in,
                                                         video_modulehandler_configuration,
                                                         video_stream_configuration);
 
-  if (!do_initialize_v4l (deviceIdentifier_in.identifier,
-                          video_modulehandler_configuration.deviceIdentifier,
-                          configuration_in.videoStreamConfiguration.configuration_->format.video,
-                          video_modulehandler_configuration.outputFormat.video))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to ::do_initialize_v4l(), returning\n")));
-    return;
-  } // end IF
+  video_modulehandler_configuration_2 = video_modulehandler_configuration;
+  configuration_in.videoStreamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_LIBAV_CONVERTER_DEFAULT_NAME_STRING),
+                                                                    std::make_pair (&module_configuration,
+                                                                                    &video_modulehandler_configuration_2)));
+  video_modulehandler_configuration_3 = video_modulehandler_configuration;
+  configuration_in.videoStreamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_LIBAV_RESIZE_DEFAULT_NAME_STRING),
+                                                                    std::make_pair (&module_configuration,
+                                                                                    &video_modulehandler_configuration_3)));
+  video_modulehandler_configuration_4 = video_modulehandler_configuration;
+  // *NOTE*: AVI expects BGR24
+  video_modulehandler_configuration_4.outputFormat.video.format.pixelformat =
+    V4L2_PIX_FMT_BGR24;
+  configuration_in.videoStreamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR ("LibAV_Converter_2"),
+                                                                    std::make_pair (&module_configuration,
+                                                                                    &video_modulehandler_configuration_4)));
+
+  configuration_in.audioStreamConfiguration.configuration_->format =
+    configuration_in.videoStreamConfiguration.configuration_->format;
 
   video_modulehandler_configuration.display.device = displayDevice_in.device;
 //  configuration_in.streamConfiguration.insert (std::make_pair (Stream_Visualization_Tools::rendererToModuleName (STREAM_VISUALIZATION_VIDEORENDERER_X11),

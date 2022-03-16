@@ -140,6 +140,8 @@ Stream_Module_Vis_GTK_Cairo_T<ACE_SYNCH_USE,
   if (!configuration_in.window)
     return true; // nothing to do
 
+  GDK_THREADS_ENTER ();
+
 #if GTK_CHECK_VERSION (2,8,0)
   context_ = gdk_cairo_create (configuration_in.window);
 #else
@@ -150,6 +152,7 @@ Stream_Module_Vis_GTK_Cairo_T<ACE_SYNCH_USE,
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to gdk_cairo_create(%@), aborting\n"),
                 configuration_in.window));
+    GDK_THREADS_LEAVE ();
     return false;
   } // end IF
 
@@ -165,6 +168,7 @@ Stream_Module_Vis_GTK_Cairo_T<ACE_SYNCH_USE,
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to gdk_window_create_similar_image_surface(%@), aborting\n"),
                 configuration_in.window));
+    GDK_THREADS_LEAVE ();
     goto error;
   } // end IF
 #elif GTK_CHECK_VERSION (3,0,0)
@@ -177,6 +181,7 @@ Stream_Module_Vis_GTK_Cairo_T<ACE_SYNCH_USE,
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to gdk_pixbuf_get_from_window(%@), aborting\n"),
                 configuration_in.window));
+    GDK_THREADS_LEAVE ();
     goto error;
   } // end IF
 #elif GTK_CHECK_VERSION(2,0,0)
@@ -192,6 +197,7 @@ Stream_Module_Vis_GTK_Cairo_T<ACE_SYNCH_USE,
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to gdk_pixbuf_get_from_drawable(%@), aborting\n"),
                 configuration_in.window));
+    GDK_THREADS_LEAVE ();
     goto error;
   } // end IF
 #else
@@ -200,6 +206,7 @@ Stream_Module_Vis_GTK_Cairo_T<ACE_SYNCH_USE,
   ACE_NOTSUP_RETURN (false);
   ACE_NOTREACHED (return false;)
 #endif // GTK_CHECK_VERSION
+  GDK_THREADS_LEAVE ();
 
   return inherited::initialize (configuration_in,
                                 allocator_in);
@@ -270,11 +277,11 @@ Stream_Module_Vis_GTK_Cairo_T<ACE_SYNCH_USE,
   cairo_surface_mark_dirty (surface_);
 #else
   // *TODO*: do this somewhere else (original flip happens in DirectShow
-  //         somewhere)
-  GdkPixbuf* pixbuf_p = gdk_pixbuf_flip (surface_, FALSE);
-  ACE_ASSERT (pixbuf_p);
-  g_object_unref (surface_);
-  surface_ = pixbuf_p;
+  //         somewhere; fix it there)
+//  GdkPixbuf* pixbuf_p = gdk_pixbuf_flip (surface_, FALSE);
+//  ACE_ASSERT (pixbuf_p);
+//  g_object_unref (surface_);
+//  surface_ = pixbuf_p;
 #endif // GTK_CHECK_VERSION(3,10,0)
 }
 
@@ -372,7 +379,7 @@ Stream_Module_Vis_GTK_Cairo_T<ACE_SYNCH_USE,
       ACE_ASSERT ((resolution_s.cx <= static_cast<LONG> (width_2)) && (resolution_s.cy <= static_cast<LONG> (height_2)));
 #else
 #if defined (FFMPEG_SUPPORT)
-      ACE_ASSERT ((media_type_s.resolution.width == static_cast<unsigned int> (width_2)) && (media_type_s.resolution.height == static_cast<unsigned int> (height_2)));
+      ACE_ASSERT ((media_type_s.resolution.width <= static_cast<unsigned int> (width_2)) && (media_type_s.resolution.height <= static_cast<unsigned int> (height_2)));
 #endif // FFMPEG_SUPPORT
 #endif // ACE_WIN32 || ACE_WIN64
       ACE_ASSERT (row_stride_i <= static_cast<unsigned int> (row_stride_2));

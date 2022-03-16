@@ -771,6 +771,7 @@ DATASTREAM_MODULE_INPUT_ONLY (Stream_CamSave_LibCamera_SessionData,             
                               Stream_CamSave_LibCamera_LibAVResize);            // writer type
 #endif // FFMPEG_SUPPORT
 #endif // LIBCAMERA_SUPPORT
+
 DATASTREAM_MODULE_DUPLEX (Stream_CamSave_V4L_SessionData,                   // session data type
                           enum Stream_SessionMessageType,                   // session event type
                           struct Stream_CamSave_V4L_ModuleHandlerConfiguration, // module handler configuration type

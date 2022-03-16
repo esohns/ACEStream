@@ -37,14 +37,14 @@
 
 #include "stream_dev_mic_source_wavein.h"
 #else
+#include "stream_dev_cam_source_v4l.h"
+#include "stream_dev_mic_source_alsa.h"
+#endif // ACE_WIN32 || ACE_WIN64
+
 #if defined (FFMPEG_SUPPORT)
 #include "stream_dec_libav_converter.h"
 #include "stream_dec_libav_decoder.h"
 #endif // FFMPEG_SUPPORT
-
-#include "stream_dev_cam_source_v4l.h"
-#include "stream_dev_mic_source_alsa.h"
-#endif // ACE_WIN32 || ACE_WIN64
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #include "stream_lib_directshow_asynch_source_filter.h"
@@ -63,20 +63,17 @@
 #include "stream_vis_target_direct3d.h"
 #include "stream_vis_target_directshow.h"
 #include "stream_vis_target_mediafoundation.h"
-
-#if defined (GTK_SUPPORT)
-#include "stream_vis_gtk_cairo.h"
-#endif // GTK_SUPPORT
 #else
+#include "stream_vis_x11_window.h"
+#endif // ACE_WIN32 || ACE_WIN64
 #if defined (FFMPEG_SUPPORT)
 #include "stream_vis_libav_resize.h"
 #endif // FFMPEG_SUPPORT
-
-#include "stream_vis_x11_window.h"
 #if defined (GTK_SUPPORT)
 #include "stream_vis_gtk_pixbuf.h"
+#include "stream_vis_gtk_cairo.h"
+#include "stream_vis_gtk_cairo_spectrum_analyzer.h"
 #endif // GTK_SUPPORT
-#endif // ACE_WIN32 || ACE_WIN64
 #endif // GUI_SUPPORT
 
 #include "test_i_avsave_common.h"
@@ -178,6 +175,7 @@ typedef Stream_Decoder_LibAVDecoder_T<ACE_MT_SYNCH,
                                       Stream_AVSave_ALSA_V4L_SessionMessage_t,
                                       Stream_AVSave_ALSA_V4L_SessionData_t,
                                       struct Stream_MediaFramework_ALSA_V4L_Format> Stream_AVSave_LibAVDecoder;
+
 typedef Stream_Decoder_LibAVConverter_T<ACE_MT_SYNCH,
                                         Common_TimePolicy_t,
                                         struct Stream_AVSave_ALSA_V4L_ModuleHandlerConfiguration,
@@ -187,15 +185,31 @@ typedef Stream_Decoder_LibAVConverter_T<ACE_MT_SYNCH,
                                         Stream_AVSave_ALSA_V4L_SessionData_t,
                                         struct Stream_MediaFramework_ALSA_V4L_Format> Stream_AVSave_LibAVConverter;
 
-//typedef Stream_Visualization_LibAVResize_T<ACE_MT_SYNCH,
-//                                           Common_TimePolicy_t,
-//                                           struct Stream_AVSave_V4L_ModuleHandlerConfiguration,
-//                                           Stream_ControlMessage_t,
-//                                           Stream_AVSave_Message_t,
-//                                           Stream_AVSave_ALSA_V4L_SessionMessage_t,
-//                                           Stream_AVSave_ALSA_V4L_SessionData_t,
-//                                           struct Stream_MediaFramework_ALSA_V4L_Format> Stream_AVSave_LibAVResize;
+typedef Stream_Visualization_LibAVResize_T<ACE_MT_SYNCH,
+                                           Common_TimePolicy_t,
+                                           struct Stream_AVSave_ALSA_V4L_ModuleHandlerConfiguration,
+                                           Stream_ControlMessage_t,
+                                           Stream_AVSave_Message_t,
+                                           Stream_AVSave_ALSA_V4L_SessionMessage_t,
+                                           Stream_AVSave_ALSA_V4L_SessionData_t,
+                                           struct Stream_MediaFramework_ALSA_V4L_Format> Stream_AVSave_LibAVResize;
 #endif // FFMPEG_SUPPORT
+
+typedef Stream_Miscellaneous_Distributor_ReaderTask_T<ACE_MT_SYNCH,
+                                                      Common_TimePolicy_t,
+                                                      struct Stream_AVSave_ALSA_V4L_ModuleHandlerConfiguration,
+                                                      Stream_ControlMessage_t,
+                                                      Stream_AVSave_Message_t,
+                                                      Stream_AVSave_ALSA_V4L_SessionMessage_t,
+                                                      Stream_AVSave_ALSA_V4L_SessionData> Stream_AVSave_ALSA_V4L_Distributor_Reader_t;
+typedef Stream_Miscellaneous_Distributor_WriterTask_T<ACE_MT_SYNCH,
+                                                      Common_TimePolicy_t,
+                                                      struct Stream_AVSave_ALSA_V4L_ModuleHandlerConfiguration,
+                                                      Stream_ControlMessage_t,
+                                                      Stream_AVSave_Message_t,
+                                                      Stream_AVSave_ALSA_V4L_SessionMessage_t,
+                                                      Stream_AVSave_ALSA_V4L_SessionData> Stream_AVSave_ALSA_V4L_Distributor_Writer_t;
+
 #endif // ACE_WIN32 || ACE_WIN64
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -410,15 +424,27 @@ typedef Stream_Vis_Target_MediaFoundation_2<ACE_MT_SYNCH,
 //                                      Stream_AVSave_MediaFoundation_SessionData_t,
 //                                      IMFMediaType*> Stream_AVSave_MediaFoundation_GTKCairoDisplay;
 #else
-//typedef Stream_Module_Vis_GTK_Cairo_T<ACE_MT_SYNCH,
-//                                      Common_TimePolicy_t,
-//                                      struct Stream_AVSave_V4L_ModuleHandlerConfiguration,
-//                                      Stream_ControlMessage_t,
-//                                      Stream_AVSave_Message_t,
-//                                      Stream_AVSave_V4L_SessionMessage_t,
-//                                      Stream_AVSave_V4L_SessionData,
-//                                      Stream_AVSave_V4L_SessionData_t,
-//                                      struct Stream_MediaFramework_V4L_MediaType> Stream_AVSave_Display;
+typedef Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_MT_SYNCH,
+                                                          Common_TimePolicy_t,
+                                                          struct Stream_AVSave_ALSA_V4L_ModuleHandlerConfiguration,
+                                                          Stream_ControlMessage_t,
+                                                          Stream_AVSave_Message_t,
+                                                          Stream_AVSave_ALSA_V4L_SessionMessage_t,
+                                                          Stream_AVSave_ALSA_V4L_SessionData,
+                                                          Stream_AVSave_ALSA_V4L_SessionData_t,
+                                                          Common_Timer_Manager_t,
+                                                          struct Stream_MediaFramework_ALSA_V4L_Format,
+                                                          double> Stream_AVSave_SpectrumAnalyzer;
+
+typedef Stream_Module_Vis_GTK_Cairo_T<ACE_MT_SYNCH,
+                                      Common_TimePolicy_t,
+                                      struct Stream_AVSave_ALSA_V4L_ModuleHandlerConfiguration,
+                                      Stream_ControlMessage_t,
+                                      Stream_AVSave_Message_t,
+                                      Stream_AVSave_ALSA_V4L_SessionMessage_t,
+                                      Stream_AVSave_ALSA_V4L_SessionData,
+                                      Stream_AVSave_ALSA_V4L_SessionData_t,
+                                      struct Stream_MediaFramework_ALSA_V4L_Format> Stream_AVSave_GTKCairo_Display;
 //typedef Stream_Module_Vis_GTK_Pixbuf_T<ACE_MT_SYNCH,
 //                                       Common_TimePolicy_t,
 //                                       struct Stream_AVSave_V4L_ModuleHandlerConfiguration,
@@ -441,7 +467,7 @@ typedef Stream_Module_Vis_X11_Window_T<ACE_MT_SYNCH,
                                        Stream_AVSave_Message_t,
                                        Stream_AVSave_ALSA_V4L_SessionMessage_t,
                                        Stream_AVSave_ALSA_V4L_SessionData_t,
-                                       struct Stream_MediaFramework_ALSA_V4L_Format> Stream_AVSave_Display;
+                                       struct Stream_MediaFramework_ALSA_V4L_Format> Stream_AVSave_X11_Display;
 #endif // ACE_WIN32 || ACE_WIN64
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -529,12 +555,12 @@ DATASTREAM_MODULE_INPUT_ONLY (Stream_AVSave_ALSA_V4L_SessionData,               
                               Stream_INotify_t,                                 // stream notification interface type
                               Stream_AVSave_LibAVConverter);                   // writer type
 
-//DATASTREAM_MODULE_INPUT_ONLY (Stream_AVSave_V4L_SessionData,                   // session data type
-//                              enum Stream_SessionMessageType,                   // session event type
-//                              struct Stream_AVSave_V4L_ModuleHandlerConfiguration, // module handler configuration type
-//                              libacestream_default_vis_libav_resize_module_name_string,
-//                              Stream_INotify_t,                                 // stream notification interface type
-//                              Stream_AVSave_LibAVResize);                      // writer type
+DATASTREAM_MODULE_INPUT_ONLY (Stream_AVSave_ALSA_V4L_SessionData,                   // session data type
+                              enum Stream_SessionMessageType,                   // session event type
+                              struct Stream_AVSave_ALSA_V4L_ModuleHandlerConfiguration, // module handler configuration type
+                              libacestream_default_vis_libav_resize_module_name_string,
+                              Stream_INotify_t,                                 // stream notification interface type
+                              Stream_AVSave_LibAVResize);                      // writer type
 #endif // FFMPEG_SUPPORT
 #endif // ACE_WIN32 || ACE_WIN64
 
@@ -565,6 +591,15 @@ DATASTREAM_MODULE_INPUT_ONLY (Stream_AVSave_ALSA_V4L_SessionData,               
 //                          Stream_AVSave_Statistic_ReaderTask_t,            // reader type
 //                          Stream_AVSave_Statistic_WriterTask_t,            // writer type
 //                          Stream_AVSave_StatisticReport);                  // name
+
+DATASTREAM_MODULE_DUPLEX (Stream_AVSave_ALSA_V4L_SessionData,                       // session data type
+                          enum Stream_SessionMessageType,                           // session event type
+                          struct Stream_AVSave_ALSA_V4L_ModuleHandlerConfiguration, // module handler configuration type
+                          libacestream_default_misc_distributor_module_name_string,
+                          Stream_INotify_t,                                         // stream notification interface type
+                          Stream_AVSave_ALSA_V4L_Distributor_Reader_t,              // reader type
+                          Stream_AVSave_ALSA_V4L_Distributor_Writer_t,              // writer type
+                          Stream_AVSave_Distributor);                               // module name prefix
 #endif // ACE_WIN32 || ACE_WIN64
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -593,15 +628,6 @@ DATASTREAM_MODULE_INPUT_ONLY (Stream_AVSave_MediaFoundation_SessionData,        
                               libacestream_default_lib_tagger_module_name_string,
                               Stream_INotify_t,                                 // stream notification interface type
                               Stream_AVSave_MediaFoundation_Video_Tagger);           // writer type
-
-//#if defined (FFMPEG_SUPPORT)
-//DATASTREAM_MODULE_INPUT_ONLY (Stream_AVSave_DirectShow_SessionData,                   // session data type
-//                              enum Stream_SessionMessageType,                   // session event type
-//                              struct Stream_AVSave_DirectShow_ModuleHandlerConfiguration, // module handler configuration type
-//                              libacestream_default_dec_libav_encoder_module_name_string,
-//                              Stream_INotify_t,                                 // stream notification interface type
-//                              Stream_AVSave_DirectShow_Encoder);                // writer type
-//#endif // FFMPEG_SUPPORT
 #else
 DATASTREAM_MODULE_INPUT_ONLY (Stream_AVSave_ALSA_V4L_SessionData,                   // session data type
                               enum Stream_SessionMessageType,                   // session event type
@@ -665,12 +691,19 @@ DATASTREAM_MODULE_INPUT_ONLY (Stream_AVSave_MediaFoundation_SessionData,        
 //                              Stream_INotify_t,                                 // stream notification interface type
 //                              Stream_AVSave_MediaFoundation_GTKCairoDisplay);  // writer type
 #else
-//DATASTREAM_MODULE_INPUT_ONLY (Stream_AVSave_V4L_SessionData,                       // session data type
-//                              enum Stream_SessionMessageType,                       // session event type
-//                              struct Stream_AVSave_V4L_ModuleHandlerConfiguration, // module handler configuration type
-//                              libacestream_default_vis_gtk_cairo_module_name_string,
-//                              Stream_INotify_t,                                     // stream notification interface type
-//                              Stream_AVSave_Display);                              // writer type
+DATASTREAM_MODULE_INPUT_ONLY (Stream_AVSave_ALSA_V4L_SessionData,                       // session data type
+                              enum Stream_SessionMessageType,                           // session event type
+                              struct Stream_AVSave_ALSA_V4L_ModuleHandlerConfiguration, // module handler configuration type
+                              libacestream_default_vis_spectrum_analyzer_module_name_string,
+                              Stream_INotify_t,                                         // stream notification interface type
+                              Stream_AVSave_SpectrumAnalyzer);                          // writer type
+
+DATASTREAM_MODULE_INPUT_ONLY (Stream_AVSave_ALSA_V4L_SessionData,                       // session data type
+                              enum Stream_SessionMessageType,                           // session event type
+                              struct Stream_AVSave_ALSA_V4L_ModuleHandlerConfiguration, // module handler configuration type
+                              libacestream_default_vis_gtk_cairo_module_name_string,
+                              Stream_INotify_t,                                         // stream notification interface type
+                              Stream_AVSave_GTKCairo_Display);                          // writer type
 //DATASTREAM_MODULE_INPUT_ONLY (Stream_AVSave_V4L_SessionData,                   // session data type
 //                              enum Stream_SessionMessageType,                   // session event type
 //                              struct Stream_AVSave_V4L_ModuleHandlerConfiguration, // module handler configuration type
@@ -688,7 +721,7 @@ DATASTREAM_MODULE_INPUT_ONLY (Stream_AVSave_ALSA_V4L_SessionData,               
                               struct Stream_AVSave_ALSA_V4L_ModuleHandlerConfiguration, // module handler configuration type
                               libacestream_default_vis_x11_window_module_name_string,
                               Stream_INotify_t,                                 // stream notification interface type
-                              Stream_AVSave_Display);                           // writer type
+                              Stream_AVSave_X11_Display);                       // writer type
 #endif // ACE_WIN32 || ACE_WIN64
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)

@@ -29,10 +29,9 @@
 gboolean idle_initialize_UI_cb (gpointer);
 gboolean idle_finalize_UI_cb (gpointer);
 gboolean idle_session_end_cb (gpointer);
+gboolean idle_update_display_cb (gpointer);
 gboolean idle_update_info_display_cb (gpointer);
-//gboolean idle_update_log_display_cb (gpointer);
 gboolean idle_update_progress_cb (gpointer);
-//gboolean idle_update_video_display_cb (gpointer);
 
 //------------------------------------------------------------------------------
 
@@ -60,6 +59,7 @@ G_MODULE_EXPORT void combobox_resolution_changed_cb (GtkWidget*, gpointer);
 G_MODULE_EXPORT void combobox_rate_changed_cb (GtkWidget*, gpointer);
 G_MODULE_EXPORT gboolean dialog_main_key_press_event_cb (GtkWidget*, GdkEventKey*, gpointer);
 //G_MODULE_EXPORT void drawingarea_configure_event_cb (GtkWindow*, GdkEvent*, gpointer);
+G_MODULE_EXPORT gboolean drawingarea_expose_event_cb (GtkWidget*, GdkEvent*, gpointer);
 G_MODULE_EXPORT gboolean drawingarea_draw_cb (GtkWidget*, cairo_t*, gpointer);
 G_MODULE_EXPORT void drawingarea_size_allocate_cb (GtkWidget*, GdkRectangle*, gpointer);
 G_MODULE_EXPORT gboolean drawingarea_key_press_event_cb (GtkWidget*, GdkEventKey*, gpointer);

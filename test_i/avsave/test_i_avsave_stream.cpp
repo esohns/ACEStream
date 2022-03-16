@@ -1393,24 +1393,26 @@ Stream_AVSave_V4L_Stream::Stream_AVSave_V4L_Stream ()
              ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_LIBAV_DECODER_DEFAULT_NAME_STRING))
  , converter_ (this,
                ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_LIBAV_CONVERTER_DEFAULT_NAME_STRING))
-// , resizer_ (this,
-//             ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_LIBAV_RESIZE_DEFAULT_NAME_STRING))
+ , distributor_ (this,
+                 ACE_TEXT_ALWAYS_CHAR (STREAM_MISC_DISTRIBUTOR_DEFAULT_NAME_STRING))
+ , resizer_ (this,
+             ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_LIBAV_RESIZE_DEFAULT_NAME_STRING))
 #if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
-// , GTKCairoDisplay_ (this,
-//                     ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_GTK_CAIRO_DEFAULT_NAME_STRING))
+ , GTKCairoDisplay_ (this,
+                     ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_GTK_CAIRO_DEFAULT_NAME_STRING))
 // , display_ (this,
 //             ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_GTK_PIXBUF_DEFAULT_NAME_STRING))
 // , display_2_ (this,
 //               ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_GTK_WINDOW_DEFAULT_NAME_STRING))
 #endif // GTK_USE
+ , X11Display_ (this,
+                ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_X11_WINDOW_DEFAULT_NAME_STRING))
 #endif // GUI_SUPPORT
  , converter_2 (this,
                 ACE_TEXT_ALWAYS_CHAR ("LibAV_Converter_2"))
  , tagger_ (this,
             ACE_TEXT_ALWAYS_CHAR (STREAM_LIB_TAGGER_DEFAULT_NAME_STRING))
- , display_ (this,
-             ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_X11_WINDOW_DEFAULT_NAME_STRING))
 // , encoder_ (this,
 //             ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_ENCODER_AVI_DEFAULT_NAME_STRING))
 // , fileWriter_ (this,
@@ -1435,64 +1437,68 @@ Stream_AVSave_V4L_Stream::load (Stream_ILayout* layout_in,
   typename inherited::CONFIGURATION_T::ITERATOR_T iterator =
       inherited::configuration_->find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (iterator != configuration_->end ());
-//  bool save_to_file_b = !(*iterator).second.second->targetFileName.empty ();
-//  typename inherited::CONFIGURATION_T::ITERATOR_T iterator_2 =
-//      configuration_->find (Stream_Visualization_Tools::rendererToModuleName (STREAM_VISUALIZATION_VIDEORENDERER_X11));
-//  ACE_ASSERT (iterator_2 != configuration_->end ());
-//  bool display_b = !(*iterator_2).second.second->display.device.empty ();
+  bool save_to_file_b = !(*iterator).second.second->targetFileName.empty ();
+  typename inherited::CONFIGURATION_T::ITERATOR_T iterator_2 =
+#if defined (GUI_SUPPORT)
+    configuration_->find (ACE_TEXT_ALWAYS_CHAR (""));
+#else
+      configuration_->find (Stream_Visualization_Tools::rendererToModuleName (STREAM_VISUALIZATION_VIDEORENDERER_X11));
+#endif // GUI_SUPPORT
+  ACE_ASSERT (iterator_2 != configuration_->end ());
+  bool display_b = !(*iterator_2).second.second->display.device.empty ();
 
   // *NOTE*: this processing stream may have branches, depending on:
   //         - whether the output is displayed on a screen
   //         - whether the output is saved to file
-//  typename inherited::MODULE_T* branch_p = NULL; // NULL: 'main' branch
-//  unsigned int index_i = 1;
+  typename inherited::MODULE_T* branch_p = NULL; // NULL: 'main' branch
+  unsigned int index_i = 0;
 
   layout_in->append (&source_, NULL, 0);
 //  layout_inout.append (&statisticReport_, NULL, 0);
-//  if (display_b || save_to_file_b)
-//  {
-    layout_in->append (&decoder_, NULL, 0); // output is uncompressed RGB
-//    if (display_b && save_to_file_b)
-//    {
-//      layout_in->append (&distributor_, NULL, 0);
-//      branch_p = &distributor_;
-//      configuration_->configuration->branches.push_back (ACE_TEXT_ALWAYS_CHAR (STREAM_SUBSTREAM_DISPLAY_NAME));
-//      configuration_->configuration->branches.push_back (ACE_TEXT_ALWAYS_CHAR (STREAM_SUBSTREAM_SAVE_NAME));
-//      Stream_IDistributorModule* idistributor_p =
-//          dynamic_cast<Stream_IDistributorModule*> (distributor_.writer ());
-//      ACE_ASSERT (idistributor_p);
-//      idistributor_p->initialize (configuration_->configuration->branches);
-//    } // end IF
+  layout_in->append (&decoder_, NULL, 0); // output is uncompressed RGB
+  if (display_b || save_to_file_b)
+  {
+    if (display_b && save_to_file_b)
+    {
+      layout_in->append (&distributor_, NULL, 0);
+      branch_p = &distributor_;
+      configuration_->configuration_->branches.push_back (ACE_TEXT_ALWAYS_CHAR (STREAM_SUBSTREAM_DISPLAY_NAME));
+//      configuration_->configuration_->branches.push_back (ACE_TEXT_ALWAYS_CHAR (STREAM_SUBSTREAM_SAVE_NAME));
+      Stream_IDistributorModule* idistributor_p =
+          dynamic_cast<Stream_IDistributorModule*> (distributor_.writer ());
+      ACE_ASSERT (idistributor_p);
+      idistributor_p->initialize (configuration_->configuration_->branches);
+    } // end IF
 
-//    if (display_b)
-//    { // *WARNING*: display modules must support uncompressed 24-bit RGB (at
-//      //            native endianness)
-//      layout_in->append (&converter_, branch_p, index_i); // output is uncompressed 24-bit RGB
-//      layout_in->append (&resizer_, branch_p, index_i); // output is window size/fullscreen
-//#if defined (GUI_SUPPORT)
-//#if defined (GTK_USE)
-////      if (configuration_->configuration->renderer != STREAM_VISUALIZATION_VIDEORENDERER_GTK_WINDOW)
-////        layout_in->append (&display_, branch_p, 0);
-////      else
+    if (display_b)
+    { // *WARNING*: display modules must support uncompressed 24-bit RGB (at
+      //            native endianness)
+      layout_in->append (&converter_, branch_p, index_i); // output is uncompressed 24-bit RGB
+      layout_in->append (&resizer_, branch_p, index_i); // output is window size/fullscreen
+#if defined (GUI_SUPPORT)
+#if defined (GTK_USE)
+//      if (configuration_->configuration->renderer != STREAM_VISUALIZATION_VIDEORENDERER_GTK_WINDOW)
+//        layout_in->append (&display_, branch_p, 0);
+//      else
 //        layout_in->append (&display_2_, branch_p, index_i);
-////      layout_in->append (&GTKCairoDisplay_, branch_p, 0);
-//#elif defined (WXWIDGETS_USE)
-//      layout_in->append (&display_, branch_p, index_i);
-//#endif
-//#else
-//      ACE_ASSERT ((*iterator).second.second->fullScreen && !(*iterator).second.second->display.identifier.empty ());
-//      ACE_ASSERT (false); // *TODO*
-//#endif // GUI_SUPPORT
-//      ++index_i;
-//    } // end IF
-//    if (save_to_file_b)
-//    { ACE_ASSERT (inherited::configuration_->configuration->module_2);
+      layout_in->append (&GTKCairoDisplay_, branch_p, index_i);
+#elif defined (WXWIDGETS_USE)
+      layout_in->append (&display_, branch_p, index_i);
+#endif // GTK_USE || WXWIDGETS_USE
+#else
+      ACE_ASSERT ((*iterator).second.second->fullScreen && !(*iterator).second.second->display.identifier.empty ());
+      ACE_ASSERT (false); // *TODO*
+#endif // GUI_SUPPORT
+      ++index_i;
+    } // end IF
+    if (save_to_file_b)
+    { ACE_ASSERT (inherited::configuration_->configuration_->module_2);
       layout_in->append (&converter_2, NULL, 0);
       layout_in->append (&tagger_, NULL, 0);
 //      layout_in->append (&display_, NULL, 0);
       layout_in->append (inherited::configuration_->configuration_->module_2, NULL, 0); // output is AVI
-//    } // end IF
-//  } // end IF
+    } // end IF
+  } // end IF
 
   return true;
 }

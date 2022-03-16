@@ -154,6 +154,7 @@ class Stream_MediaFramework_MediaTypeConverter_T
   inline void setFormat (enum AVPixelFormat format_in, struct Stream_MediaFramework_FFMPEG_VideoMediaType& mediaType_inout) { mediaType_inout.format = format_in; }
   inline void setResolution (const Common_Image_Resolution_t& resolution_in, struct Stream_MediaFramework_FFMPEG_VideoMediaType& mediaType_inout) { mediaType_inout.resolution = resolution_in; }
 #endif // FFMPEG_SUPPORT
+  inline void setResolution (const Common_Image_Resolution_t& resolution_in, struct Stream_MediaFramework_ALSA_V4L_Format& mediaType_inout) { mediaType_inout.video.format.width = resolution_in.width; mediaType_inout.video.format.height = resolution_in.height; }
   inline void setResolution (const Common_Image_Resolution_t& resolution_in, struct Stream_MediaFramework_V4L_MediaType& mediaType_inout) { mediaType_inout.format.width = resolution_in.width; mediaType_inout.format.height = resolution_in.height; }
 
 #if defined (LIBCAMERA_SUPPORT)

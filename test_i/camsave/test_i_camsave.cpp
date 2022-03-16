@@ -1106,8 +1106,8 @@ do_initialize_v4l (const std::string& deviceIdentifier_in,
     return false;
   } // end IF
 
-  captureFormat_out =
-      Stream_Device_Tools::defaultCaptureFormat (deviceIdentifier_in);
+  Stream_Device_Tools::getDefaultCaptureFormat (deviceIdentifier_in,
+                                                captureFormat_out);
   ACE_DEBUG ((LM_DEBUG,
               ACE_TEXT ("\"%s\" (%d): default capture format: \"%s\" (%d), resolution: %ux%u, framerate: %u/%u\n"),
               ACE_TEXT (deviceIdentifier_in.c_str ()), deviceIdentifier_out.fileDescriptor,
@@ -1408,8 +1408,8 @@ error:
     v4l_modulehandler_configuration.buffers =
       STREAM_LIB_V4L_DEFAULT_DEVICE_BUFFERS;
     v4l_modulehandler_configuration.deviceIdentifier = deviceIdentifier_in;
-    v4l_modulehandler_configuration.outputFormat =
-        Stream_Device_Tools::defaultCaptureFormat (deviceIdentifier_in.identifier);
+    Stream_Device_Tools::getDefaultCaptureFormat (deviceIdentifier_in.identifier,
+                                                  v4l_modulehandler_configuration.outputFormat);
     v4l_modulehandler_configuration.outputFormat.format.pixelformat =
         V4L2_PIX_FMT_RGB32;
     if (statisticReportingInterval_in)

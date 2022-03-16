@@ -26,6 +26,7 @@
 #include "ace/Global_Macros.h"
 #include "ace/Synch_Traits.h"
 
+#include "common_ui_windowtype_converter.h"
 #include "common_ui_ifullscreen.h"
 
 #include "stream_task_base_synch.h"
@@ -33,9 +34,6 @@
 #include "stream_dev_tools.h"
 
 #include "stream_lib_mediatype_converter.h"
-
-// forward declarations
-//struct _XDisplay;
 
 int libacestream_vis_x11_error_handler_cb (struct _XDisplay*, XErrorEvent*);
 int libacestream_vis_x11_io_error_handler_cb (struct _XDisplay*);
@@ -65,6 +63,7 @@ class Stream_Module_Vis_X11_Window_T
                                  enum Stream_SessionMessageType,
                                  struct Stream_UserData>
  , public Stream_MediaFramework_MediaTypeConverter_T<MediaType>
+ , public Common_UI_WindowTypeConverter_T<void>
  , public Common_UI_IFullscreen
 {
   typedef Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
@@ -77,6 +76,7 @@ class Stream_Module_Vis_X11_Window_T
                                  enum Stream_SessionMessageType,
                                  struct Stream_UserData> inherited;
   typedef Stream_MediaFramework_MediaTypeConverter_T<MediaType> inherited2;
+  typedef Common_UI_WindowTypeConverter_T<void> inherited3;
 
  public:
   Stream_Module_Vis_X11_Window_T (typename inherited::ISTREAM_T*); // stream handle

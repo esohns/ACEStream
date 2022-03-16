@@ -68,6 +68,7 @@ extern "C"
 #include "ace/Singleton.h"
 #include "ace/Synch_Traits.h"
 
+#include "common_inotify.h"
 #include "common_isubscribe.h"
 #include "common_tools.h"
 
@@ -400,11 +401,9 @@ struct Stream_AVSave_ModuleHandlerConfiguration
    , fullScreen (false)
    , sinus (false) // N/A
    , sinusFrequency (0.0) // N/A
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#if defined (GUI_SUPPORT)
    , window (NULL)
-#else
-   , window (0)
-#endif // ACE_WIN32 || ACE_WIN64
+#endif // GUI_SUPPORT
    , targetFileName ()
   {
     concurrency = STREAM_HEADMODULECONCURRENCY_ACTIVE;
@@ -419,11 +418,17 @@ struct Stream_AVSave_ModuleHandlerConfiguration
   bool                            fullScreen;
   bool                            sinus; // N/A
   double                          sinusFrequency; // N/A
+#if defined (GUI_SUPPORT)
+#if defined (GTK_USE)
+  GdkWindow*                      window;
+#endif // GTK_USE
+#else
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   HWND                            window;
 #else
   Window                          window;
 #endif // ACE_WIN32 || ACE_WIN64
+#endif // GUI_SUPPORT
   std::string                     targetFileName;
 };
 //extern const char stream_name_string_[];
@@ -917,13 +922,17 @@ struct Stream_AVSave_UI_CBData
 {
   Stream_AVSave_UI_CBData ()
    : Test_I_UI_CBData ()
+   , dispatch (NULL)
+   , eventSourceId (0)
    , isFirst (true)
    , progressData ()
   {
     progressData.state = UIState;
   }
 
-  bool                               isFirst; // first activation ?
+  Common_IDispatch*                 dispatch;
+  guint                             eventSourceId; // display update-
+  bool                              isFirst; // first activation ?
   struct Stream_AVSave_ProgressData progressData;
 };
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
