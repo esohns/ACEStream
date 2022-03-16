@@ -423,13 +423,13 @@ do_initializeSignals (bool allowUserRuntimeConnect_in,
   // *NOTE* don't care about SIGPIPE
   signals_out.sig_del (SIGPIPE);           // 12      /* Broken pipe: write to pipe with no readers */
 
-#if defined (VALGRIND_SUPPORT)
+#if defined (VALGRIND_USE)
   // *NOTE*: valgrind uses SIGRT32 (--> SIGRTMAX ?) and apparently will not work
   // if the application installs its own handler (see documentation)
   if (RUNNING_ON_VALGRIND)
     signals_out.sig_del (SIGRTMAX);        // 64
-#endif // VALGRIND_SUPPORT
-#endif
+#endif // VALGRIND_USE
+#endif // ACE_WIN32 || ACE_WIN64
 }
 
 void

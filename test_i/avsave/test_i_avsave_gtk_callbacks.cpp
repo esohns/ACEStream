@@ -907,7 +907,7 @@ load_resolutions (IMFMediaSource* IMFMediaSource_in,
     converter.clear ();
     converter.str (ACE_TEXT_ALWAYS_CHAR (""));
     converter << (*iterator_2).first;
-    converter << 'x';
+    converter << ACE_TEXT_ALWAYS_CHAR (" x ");
     converter << (*iterator_2).second;
     gtk_list_store_append (listStore_in, &iterator);
     gtk_list_store_set (listStore_in, &iterator,
@@ -1305,7 +1305,7 @@ load_resolutions (int fd_in,
     converter.clear ();
     converter.str (ACE_TEXT_ALWAYS_CHAR (""));
     converter << (*iterator_2).first;
-    converter << 'x';
+    converter << ACE_TEXT_ALWAYS_CHAR (" x ");
     converter << (*iterator_2).second;
     gtk_list_store_append (listStore_in, &iterator);
     gtk_list_store_set (listStore_in, &iterator,
@@ -1532,7 +1532,6 @@ set_capture_format (struct Stream_AVSave_UI_CBData* CBData_in)
   GValue value;
   ACE_OS::memset (&value, 0, sizeof (struct _GValue));
 #endif // GTK_CHECK_VERSION (2,30,0)
-//  g_value_init (&value, G_TYPE_STRING);
   gtk_tree_model_get_value (GTK_TREE_MODEL (list_store_p),
                             &iterator_3,
                             1, &value);
@@ -1566,7 +1565,6 @@ set_capture_format (struct Stream_AVSave_UI_CBData* CBData_in)
   GValue value_2;
   ACE_OS::memset (&value_2, 0, sizeof (struct _GValue));
 #endif // GTK_CHECK_VERSION (2,30,0)
-//  g_value_init (&value_2, G_TYPE_UINT);
   gtk_tree_model_get_value (GTK_TREE_MODEL (list_store_p),
                             &iterator_3,
                             1, &value);
@@ -1922,7 +1920,7 @@ stream_processing_function (void* arg_in)
   ACE_ASSERT (iterator != thread_data_p->CBData->UIState->builders.end ());
 
   // retrieve progress bar handle
-  gdk_threads_enter ();
+//  gdk_threads_enter ();
 //    progress_bar_p =
 //      GTK_PROGRESS_BAR (gtk_builder_get_object ((*iterator).second.second,
 //                                                ACE_TEXT_ALWAYS_CHAR (TEST_USTREAM_UI_GTK_PROGRESSBAR_NAME)));
@@ -1934,7 +1932,7 @@ stream_processing_function (void* arg_in)
                                             ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_STATUSBAR_NAME)));
   ACE_ASSERT (statusbar_p);
 
-  gdk_threads_leave ();
+//  gdk_threads_leave ();
 
   converter.clear ();
   converter.str (ACE_TEXT_ALWAYS_CHAR (""));
@@ -3063,8 +3061,7 @@ idle_initialize_UI_cb (gpointer userData_in)
   } // end SWITCH
 #else
   g_value_set_string (&value,
-//                      (*iterator_2).second.second->display.device.c_str ());
-                      ACE_TEXT_ALWAYS_CHAR (""));
+                      (*iterator_2).second.second->display.device.c_str ());
 #endif // ACE_WIN32 || ACE_WIN64
   Common_UI_GTK_Tools::selectValue (combo_box_p,
                                     value,
@@ -4179,7 +4176,6 @@ togglebutton_display_toggled_cb (GtkToggleButton* toggleButton_in,
 #else
   GValue value;
   ACE_OS::memset (&value, 0, sizeof (struct _GValue));
-  g_value_init (&value, G_TYPE_STRING);
 #endif // GTK_CHECK_VERSION (2,30,0)
   gtk_tree_model_get_value (GTK_TREE_MODEL (list_store_p),
                             &iterator_3,
@@ -4737,7 +4733,6 @@ combobox_source_changed_cb (GtkWidget* widget_in,
 #else
   GValue value;
   ACE_OS::memset (&value, 0, sizeof (struct _GValue));
-  g_value_init (&value, G_TYPE_STRING);
 #endif // GTK_CHECK_VERSION (2,30,0)
   gtk_tree_model_get_value (GTK_TREE_MODEL (list_store_p),
                             &iterator_3,
@@ -5019,7 +5014,7 @@ combobox_source_changed_cb (GtkWidget* widget_in,
   ACE_ASSERT ((*iterator_2).second.second->deviceIdentifier.fileDescriptor == -1);
   int open_mode =
       (((*iterator_2).second.second->method == V4L2_MEMORY_MMAP) ? O_RDWR
-                                                                : O_RDONLY);
+                                                                 : O_RDONLY);
   (*iterator_2).second.second->deviceIdentifier.fileDescriptor =
       v4l2_open (device_identifier_string.c_str (),
                  open_mode);
@@ -5030,14 +5025,13 @@ combobox_source_changed_cb (GtkWidget* widget_in,
                 ACE_TEXT (device_identifier_string.c_str ()), open_mode));
     return;
   } // end IF
-#if defined (_DEBUG)
   ACE_DEBUG ((LM_DEBUG,
               ACE_TEXT ("opened v4l2 device \"%s\" (fd: %d)\n"),
               ACE_TEXT (device_identifier_string.c_str ()),
               (*iterator_2).second.second->deviceIdentifier.fileDescriptor));
-#endif // _DEBUG
-  result = load_formats ((*iterator_2).second.second->deviceIdentifier.fileDescriptor,
-                         list_store_p);
+  result =
+    load_formats ((*iterator_2).second.second->deviceIdentifier.fileDescriptor,
+                  list_store_p);
 #endif // ACE_WIN32 || ACE_WIN64
   if (!result)
   {
@@ -5055,7 +5049,16 @@ combobox_source_changed_cb (GtkWidget* widget_in,
                                              ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_COMBOBOX_FORMAT_NAME)));
     ACE_ASSERT (combo_box_p);
     gtk_widget_set_sensitive (GTK_WIDGET (combo_box_p), TRUE);
-    gtk_combo_box_set_active (combo_box_p, 0);
+
+    g_value_init (&value, G_TYPE_STRING);
+    std::ostringstream converter;
+    converter << ui_cb_data_p->configuration->videoStreamConfiguration.configuration_->format.video.format.pixelformat;
+    g_value_set_string (&value,
+                        converter.str ().c_str ());
+    Common_UI_GTK_Tools::selectValue (combo_box_p,
+                                      value,
+                                      1);
+    g_value_unset (&value);
   } // end IF
 
   toggle_button_p =
@@ -5159,7 +5162,6 @@ combobox_format_changed_cb (GtkWidget* widget_in,
 #else
   GValue value;
   ACE_OS::memset (&value, 0, sizeof (struct _GValue));
-  g_value_init (&value, G_TYPE_STRING);
 #endif // GTK_CHECK_VERSION (2,30,0)
   gtk_tree_model_get_value (GTK_TREE_MODEL (list_store_p),
                             &iterator_3,
@@ -5183,7 +5185,6 @@ combobox_format_changed_cb (GtkWidget* widget_in,
   value = G_VALUE_INIT;
 #else
   ACE_OS::memset (&value, 0, sizeof (struct _GValue));
-  g_value_init (&value, G_TYPE_STRING);
 #endif // GTK_CHECK_VERSION (2,30,0)
   gtk_tree_model_get_value (GTK_TREE_MODEL (list_store_p),
                             &iterator_3,
@@ -5326,7 +5327,18 @@ combobox_format_changed_cb (GtkWidget* widget_in,
                                              ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_COMBOBOX_RESOLUTION_NAME)));
     ACE_ASSERT (combo_box_p);
     gtk_widget_set_sensitive (GTK_WIDGET (combo_box_p), TRUE);
-    gtk_combo_box_set_active (combo_box_p, 0);
+
+    g_value_init (&value, G_TYPE_STRING);
+    std::ostringstream converter;
+    converter << ui_cb_data_p->configuration->videoStreamConfiguration.configuration_->format.video.format.width;
+    converter << ACE_TEXT_ALWAYS_CHAR (" x ");
+    converter << ui_cb_data_p->configuration->videoStreamConfiguration.configuration_->format.video.format.height;
+    g_value_set_string (&value,
+                        converter.str ().c_str ());
+    Common_UI_GTK_Tools::selectValue (combo_box_p,
+                                      value,
+                                      0);
+    g_value_unset (&value);
   } // end IF
 } // combobox_format_changed_cb
 
@@ -5413,7 +5425,6 @@ combobox_resolution_changed_cb (GtkWidget* widget_in,
 #else
   GValue value;
   ACE_OS::memset (&value, 0, sizeof (struct _GValue));
-  g_value_init (&value, G_TYPE_STRING);
 #endif // GTK_CHECK_VERSION (2,30,0)
   gtk_tree_model_get_value (GTK_TREE_MODEL (list_store_p),
                             &iterator_3,
@@ -5441,7 +5452,6 @@ combobox_resolution_changed_cb (GtkWidget* widget_in,
   value = G_VALUE_INIT;
 #else
   ACE_OS::memset (&value, 0, sizeof (struct _GValue));
-  g_value_init (&value, G_TYPE_STRING);
 #endif // GTK_CHECK_VERSION (2,30,0)
   gtk_tree_model_get_value (GTK_TREE_MODEL (list_store_p),
                             &iterator_3,
@@ -5475,7 +5485,6 @@ combobox_resolution_changed_cb (GtkWidget* widget_in,
 #else
   GValue value_2;
   ACE_OS::memset (&value_2, 0, sizeof (struct _GValue));
-  g_value_init (&value_2, G_TYPE_UINT);
 #endif // GTK_CHECK_VERSION (2,30,0)
   gtk_tree_model_get_value (GTK_TREE_MODEL (list_store_p),
                             &iterator_3,
@@ -5656,7 +5665,14 @@ combobox_resolution_changed_cb (GtkWidget* widget_in,
                                              ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_COMBOBOX_RATE_NAME)));
     ACE_ASSERT (combo_box_p);
     gtk_widget_set_sensitive (GTK_WIDGET (combo_box_p), TRUE);
-    gtk_combo_box_set_active (combo_box_p, 0);
+
+    g_value_init (&value, G_TYPE_UINT);
+    g_value_set_uint (&value,
+                      ui_cb_data_p->configuration->videoStreamConfiguration.configuration_->format.video.frameRate.numerator);
+    Common_UI_GTK_Tools::selectValue (combo_box_p,
+                                      value,
+                                      1);
+    g_value_unset (&value);
   } // end IF
 } // combobox_resolution_changed_cb
 
@@ -5740,10 +5756,8 @@ combobox_rate_changed_cb (GtkWidget* widget_in,
 #else
   GValue value;
   ACE_OS::memset (&value, 0, sizeof (struct _GValue));
-  g_value_init (&value, G_TYPE_UINT);
   GValue value_2;
   ACE_OS::memset (&value_2, 0, sizeof (struct _GValue));
-  g_value_init (&value_2, G_TYPE_UINT);
 #endif // GTK_CHECK_VERSION (2,30,0)
   gtk_tree_model_get_value (GTK_TREE_MODEL (list_store_p),
                             &iterator_3,
@@ -5915,7 +5929,6 @@ combobox_display_changed_cb (GtkWidget* widget_in,
 #else
   GValue value;
   ACE_OS::memset (&value, 0, sizeof (struct _GValue));
-  g_value_init (&value, G_TYPE_STRING);
 #endif // GTK_CHECK_VERSION (2,30,0)
   gtk_tree_model_get_value (GTK_TREE_MODEL (list_store_p),
                             &iterator_4,

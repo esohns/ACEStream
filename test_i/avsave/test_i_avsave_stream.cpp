@@ -1650,7 +1650,7 @@ Stream_AVSave_ALSA_Stream::initialize (const typename inherited::CONFIGURATION_T
   bool reset_setup_pipeline = false;
   Stream_AVSave_ALSA_V4L_SessionData* session_data_p = NULL;
   typename inherited::CONFIGURATION_T::ITERATOR_T iterator;
-  Stream_AVSave_ALSA_Source* source_impl_p = NULL;
+//  Stream_AVSave_ALSA_Source* source_impl_p = NULL;
 
   // allocate a new session state, reset stream
   const_cast<typename inherited::CONFIGURATION_T&> (configuration_in).configuration_->setupPipeline =
@@ -1684,22 +1684,22 @@ Stream_AVSave_ALSA_Stream::initialize (const typename inherited::CONFIGURATION_T
 
   // ---------------------------------------------------------------------------
 
-  // ******************* Camera Source ************************
-  source_impl_p =
-    dynamic_cast<Stream_AVSave_ALSA_Source*> (source_.writer ());
-  if (!source_impl_p)
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: dynamic_cast<Strean_AVSave_ALSA_Source> failed, aborting\n"),
-                ACE_TEXT (stream_name_string_)));
-    goto error;
-  } // end IF
-  source_impl_p->setP (&(inherited::state_));
+//  // ******************* Camera Source ************************
+//  source_impl_p =
+//    dynamic_cast<Stream_AVSave_ALSA_Source*> (source_.writer ());
+//  if (!source_impl_p)
+//  {
+//    ACE_DEBUG ((LM_ERROR,
+//                ACE_TEXT ("%s: dynamic_cast<Strean_AVSave_ALSA_Source> failed, aborting\n"),
+//                ACE_TEXT (stream_name_string_)));
+//    goto error;
+//  } // end IF
+//  source_impl_p->setP (&(inherited::state_));
 
-  // *NOTE*: push()ing the module will open() it
-  //         --> set the argument that is passed along (head module expects a
-  //             handle to the session data)
-  source_.arg (inherited::sessionData_);
+//  // *NOTE*: push()ing the module will open() it
+//  //         --> set the argument that is passed along (head module expects a
+//  //             handle to the session data)
+//  source_.arg (inherited::sessionData_);
 
   if (configuration_in.configuration_->setupPipeline)
     if (!inherited::setup (NULL))

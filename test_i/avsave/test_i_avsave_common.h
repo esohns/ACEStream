@@ -799,6 +799,7 @@ struct Stream_AVSave_Configuration
    : Test_I_Configuration ()
 #endif // GUI_SUPPORT
    , signalHandlerConfiguration ()
+   , ALSAConfiguration ()
    , audioStreamConfiguration ()
    , videoStreamConfiguration ()
   {}
@@ -806,6 +807,7 @@ struct Stream_AVSave_Configuration
   // **************************** signal data **********************************
   struct Stream_AVSave_SignalHandlerConfiguration signalHandlerConfiguration;
   // **************************** stream data **********************************
+  struct Stream_MediaFramework_ALSA_Configuration ALSAConfiguration;
   Stream_AVSave_ALSA_V4L_StreamConfiguration_t    audioStreamConfiguration;
   Stream_AVSave_ALSA_V4L_StreamConfiguration_t    videoStreamConfiguration;
 };

@@ -960,14 +960,12 @@ do_initialize_v4l (const std::string& deviceIdentifier_in,
 
   captureFormat_out =
       Stream_Device_Tools::defaultCaptureFormat (deviceIdentifier_in);
-#if defined (_DEBUG)
   ACE_DEBUG ((LM_DEBUG,
               ACE_TEXT ("\"%s\" (%d): default capture format: \"%s\" (%d), resolution: %ux%u, framerate: %u/%u\n"),
               ACE_TEXT (deviceIdentifier_in.c_str ()), deviceIdentifier_out.fileDescriptor,
               ACE_TEXT (Stream_Device_Tools::formatToString (deviceIdentifier_out.fileDescriptor, captureFormat_out.format.pixelformat).c_str ()), captureFormat_out.format.pixelformat,
               captureFormat_out.format.width, captureFormat_out.format.height,
               captureFormat_out.frameRate.numerator, captureFormat_out.frameRate.denominator));
-#endif // _DEBUG
   outputFormat_out = captureFormat_out;
   // *NOTE*: Gtk 2 expects RGB24
   // *NOTE*: "...CAIRO_FORMAT_ARGB32: each pixel is a 32-bit quantity, with
@@ -1193,10 +1191,10 @@ do_work (const struct Stream_Device_Identifier& deviceIdentifier_in,
                                                                &heap_allocator,     // heap allocator handle
                                                                true);               // block ?
 
-//  Stream_AVSave_V4L_StreamConfiguration_t::ITERATOR_T v4l_stream_iterator;
-//  Stream_AVSave_V4L_StreamConfiguration_t::ITERATOR_T v4l_stream_iterator_2;
-  audio_modulehandler_configuration.allocatorConfiguration = &allocator_configuration;
-//  audio_modulehandler_configuration.outputFormat.
+  audio_modulehandler_configuration.allocatorConfiguration =
+    &allocator_configuration;
+  audio_modulehandler_configuration.ALSAConfiguration =
+    &configuration_in.ALSAConfiguration;
   audio_modulehandler_configuration.deviceIdentifier.identifier =
     STREAM_LIB_ALSA_CAPTURE_DEFAULT_DEVICE_NAME;
   audio_modulehandler_configuration.messageAllocator = &message_allocator;
@@ -1448,7 +1446,7 @@ do_work (const struct Stream_Device_Identifier& deviceIdentifier_in,
     return;
   } // end IF
 
-//  modulehandler_configuration.display = displayDevice_in;
+  video_modulehandler_configuration.display.device = displayDevice_in.device;
 //  configuration_in.streamConfiguration.insert (std::make_pair (Stream_Visualization_Tools::rendererToModuleName (STREAM_VISUALIZATION_VIDEORENDERER_X11),
 //                                                               std::make_pair (module_configuration,
 //                                                                               modulehandler_configuration)));

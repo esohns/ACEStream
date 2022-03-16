@@ -279,12 +279,12 @@ do_initializeSignals (ACE_Sig_Set& signals_out,
   signals_out.sig_del (SIGSEGV);           // 11      /* Segmentation fault: Invalid memory reference */
   // *NOTE* don't care about SIGPIPE
   signals_out.sig_del (SIGPIPE);           // 12      /* Broken pipe: write to pipe with no readers */
-#if defined (VALGRIND_SUPPORT)
+#if defined (VALGRIND_USE)
   // *NOTE*: valgrind uses SIGRT32 (--> SIGRTMAX ?) and apparently will not work
   // if the application installs its own handler (see documentation)
   if (RUNNING_ON_VALGRIND)
     signals_out.sig_del (SIGRTMAX);        // 64
-#endif // VALGRIND_SUPPORT
+#endif // VALGRIND_USE
   // *NOTE*: ALSA uses SIGIO
   signals_out.sig_del (SIGIO);             // 29      /* Pollable event occurred (System V). */
 #endif // ACE_WIN32 || ACE_WIN64

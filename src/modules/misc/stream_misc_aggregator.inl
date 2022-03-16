@@ -1002,6 +1002,8 @@ Stream_Module_Aggregator_WriterTask_2<ACE_SYNCH_USE,
     if (inherited::thr_count_ > 0)
       return 0;
 
+    bool lock_activate_b = inherited::lockActivate_;
+    inherited::lockActivate_ = false;
     // step2: spawn worker thread(s)
     ACE_ASSERT (inherited::thr_count_ == 0);
     result = inherited::open (NULL);
@@ -1010,8 +1012,10 @@ Stream_Module_Aggregator_WriterTask_2<ACE_SYNCH_USE,
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: failed to Common_TaskBase_T::open(): \"%m\", aborting\n"),
                   inherited::mod_->name ()));
+      inherited::lockActivate_ = lock_activate_b;
       goto error;
     } // end IF
+    inherited::lockActivate_ = lock_activate_b;
   } // end lock scope
 
   //for (unsigned int i = 0;
