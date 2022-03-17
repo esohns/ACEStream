@@ -1863,9 +1863,11 @@ stream_processing_function (void* arg_in)
   std::ostringstream converter;
   //ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, data_p->CBData->UIState->lock);
   Stream_IStreamControlBase* stream_p = NULL, *stream_2 = NULL;
-  Stream_Module_t* module_p = NULL;
+  Stream_Module_t* module_p = NULL, *module_2 = NULL;
   Common_ISetP_T<ACE_Stream<ACE_MT_SYNCH,
                             Common_TimePolicy_t> >* iset_p = NULL;
+  Common_ISetP_T<ACE_Stream<ACE_MT_SYNCH,
+                            Common_TimePolicy_t> >* iset_2 = NULL;
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   struct Stream_AVSave_DirectShow_UI_CBData* directshow_cb_data_p = NULL;
@@ -1967,6 +1969,10 @@ stream_processing_function (void* arg_in)
         const_cast<Stream_Module_t*> (directshow_cb_data_p->audioStream->find (ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_LIBAV_ENCODER_DEFAULT_NAME_STRING),
                                                                                false,  // do not sanitize module names
                                                                                false)); // do not recurse upstream
+      module_2 =
+        const_cast<Stream_Module_t*> (directshow_cb_data_p->audioStream->find (ACE_TEXT_ALWAYS_CHAR (STREAM_MISC_MESSAGEHANDLER_DEFAULT_NAME_STRING),
+                                                                               false,  // do not sanitize module names
+                                                                               false)); // do not recurse upstream
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
@@ -1995,6 +2001,10 @@ stream_processing_function (void* arg_in)
 
       module_p =
         const_cast<Stream_Module_t*> (mediafoundation_cb_data_p->audioStream->find (ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_LIBAV_ENCODER_DEFAULT_NAME_STRING),
+                                                                                    false,  // do not sanitize module names
+                                                                                    false)); // do not recurse upstream
+      module_2 =
+        const_cast<Stream_Module_t*> (mediafoundation_cb_data_p->audioStream->find (ACE_TEXT_ALWAYS_CHAR (STREAM_MISC_MESSAGEHANDLER_DEFAULT_NAME_STRING),
                                                                                     false,  // do not sanitize module names
                                                                                     false)); // do not recurse upstream
       break;
@@ -2032,6 +2042,10 @@ stream_processing_function (void* arg_in)
     const_cast<Stream_Module_t*> (cb_data_p->audioStream->find (ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_LIBAV_ENCODER_DEFAULT_NAME_STRING),
                                                                 false,  // do not sanitize module names
                                                                 false)); // do not recurse upstream
+  module_2 =
+    const_cast<Stream_Module_t*> (cb_data_p->audioStream->find (ACE_TEXT_ALWAYS_CHAR (STREAM_MISC_MESSAGEHANDLER_DEFAULT_NAME_STRING),
+                                                                false,  // do not sanitize module names
+                                                                false)); // do not recurse upstream
 #endif // ACE_WIN32 || ACE_WIN64
 
   // generate context id
@@ -2055,22 +2069,41 @@ stream_processing_function (void* arg_in)
   //         (see above), i.e. the aggregator module thinks it is 'owned' by the
   //         video stream, as that was initialize()d last. Note how that implies
   //         that the video stream HAS to be started first
-  ACE_ASSERT (module_p);
+  ACE_ASSERT (module_p && module_2);
   iset_p =
     dynamic_cast<Common_ISetP_T<ACE_Stream<ACE_MT_SYNCH,
                                            Common_TimePolicy_t> >*> (module_p);
-  ACE_ASSERT (iset_p);
+  iset_2 =
+    dynamic_cast<Common_ISetP_T<ACE_Stream<ACE_MT_SYNCH,
+                                           Common_TimePolicy_t> >*> (module_2);
+  ACE_ASSERT (iset_p && iset_2);
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   switch (thread_data_p->CBData->mediaFramework)
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
     {
       iset_p->setP (directshow_cb_data_p->audioStream);
+      iset_2->setP (directshow_cb_data_p->audioStream);
+
+      module_p =
+        const_cast<Stream_Module_t*> (directshow_cb_data_p->videoStream->find (ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_GTK_CAIRO_DEFAULT_NAME_STRING)));
+      ACE_ASSERT (module_p);
+      directshow_cb_data_p->dispatch =
+        dynamic_cast<Common_IDispatch*> (module_p->writer ());
+      ACE_ASSERT (directshow_cb_data_p->dispatch);
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
     {
       iset_p->setP (mediafoundation_cb_data_p->audioStream);
+      iset_2->setP (mediafoundation_cb_data_p->audioStream);
+
+      module_p =
+        const_cast<Stream_Module_t*> (mediafoundation_cb_data_p->videoStream->find (ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_GTK_CAIRO_DEFAULT_NAME_STRING)));
+      ACE_ASSERT (module_p);
+      mediafoundation_cb_data_p->dispatch =
+        dynamic_cast<Common_IDispatch*> (module_p->writer ());
+      ACE_ASSERT (mediafoundation_cb_data_p->dispatch);
       break;
     }
     default:
@@ -2083,6 +2116,7 @@ stream_processing_function (void* arg_in)
   } // end SWITCH
 #else
   iset_p->setP (cb_data_p->audioStream);
+  iset_2->setP (cb_data_p->audioStream);
 
   module_p =
     const_cast<Stream_Module_t*> (cb_data_p->videoStream->find (ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_GTK_CAIRO_DEFAULT_NAME_STRING)));
@@ -2278,7 +2312,7 @@ idle_initialize_UI_cb (gpointer userData_in)
   struct _GUID format_s = GUID_NULL;
   struct Stream_AVSave_DirectShow_UI_CBData* directshow_cb_data_p = NULL;
   Stream_AVSave_DirectShow_StreamConfiguration_t::ITERATOR_T directshow_stream_iterator;
-  Stream_AVSave_DirectShow_StreamConfiguration_t::ITERATOR_T directshow_stream_iterator_2;
+  //Stream_AVSave_DirectShow_StreamConfiguration_t::ITERATOR_T directshow_stream_iterator_2;
   struct Stream_AVSave_MediaFoundation_UI_CBData* mediafoundation_cb_data_p =
     NULL;
   Stream_AVSave_MediaFoundation_StreamConfiguration_t::ITERATOR_T mediafoundation_stream_iterator;
@@ -2293,9 +2327,9 @@ idle_initialize_UI_cb (gpointer userData_in)
       directshow_stream_iterator =
         directshow_cb_data_p->configuration->videoStreamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
       ACE_ASSERT (directshow_stream_iterator != directshow_cb_data_p->configuration->videoStreamConfiguration.end ());
-      directshow_stream_iterator_2 =
-        directshow_cb_data_p->configuration->videoStreamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_DIRECT3D_DEFAULT_NAME_STRING));
-      ACE_ASSERT (directshow_stream_iterator_2 != directshow_cb_data_p->configuration->videoStreamConfiguration.end ());
+      //directshow_stream_iterator_2 =
+      //  directshow_cb_data_p->configuration->videoStreamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_DIRECT3D_DEFAULT_NAME_STRING));
+      //ACE_ASSERT (directshow_stream_iterator_2 != directshow_cb_data_p->configuration->videoStreamConfiguration.end ());
 
       format_s =
         directshow_cb_data_p->configuration->videoStreamConfiguration.configuration_->format.video.subtype;
@@ -2794,12 +2828,18 @@ idle_initialize_UI_cb (gpointer userData_in)
       //directshow_cb_data_p->configuration->direct3DConfiguration.presentationParameters.hDeviceWindow =
       //  gdk_win32_window_get_impl_hwnd (window_p);
 
-      (*directshow_stream_iterator).second.second->area.bottom =
-        allocation.y + allocation.height;
-      (*directshow_stream_iterator).second.second->area.left = allocation.x;
-      (*directshow_stream_iterator).second.second->area.right =
-        allocation.x + allocation.width;
-      (*directshow_stream_iterator).second.second->area.top = allocation.y;
+      Common_Image_Resolution_t resolution_s;
+      resolution_s.cx = allocation.width;
+      resolution_s.cy = allocation.height;
+      Stream_MediaFramework_DirectShow_Tools::setResolution (resolution_s,
+                                                             (*directshow_stream_iterator).second.second->outputFormat);
+
+      //(*directshow_stream_iterator).second.second->area.bottom =
+      //  allocation.y + allocation.height;
+      //(*directshow_stream_iterator).second.second->area.left = allocation.x;
+      //(*directshow_stream_iterator).second.second->area.right =
+      //  allocation.x + allocation.width;
+      //(*directshow_stream_iterator).second.second->area.top = allocation.y;
 
       //(*directshow_stream_iterator).second.second->pixelBuffer =
       //  ui_cb_data_base_p->pixelBuffer;
@@ -2815,13 +2855,20 @@ idle_initialize_UI_cb (gpointer userData_in)
     { ACE_ASSERT (!(*mediafoundation_stream_iterator).second.second->window);
       ACE_ASSERT (gdk_win32_window_is_win32 (window_p));
       (*mediafoundation_stream_iterator).second.second->window = window_p;
-//        gdk_win32_window_get_impl_hwnd (window_p);
-      (*mediafoundation_stream_iterator).second.second->area.bottom =
-        allocation.y + allocation.height;
-      (*mediafoundation_stream_iterator).second.second->area.left = allocation.x;
-      (*mediafoundation_stream_iterator).second.second->area.right =
-        allocation.x + allocation.width;
-      (*mediafoundation_stream_iterator).second.second->area.top = allocation.y;
+      //        gdk_win32_window_get_impl_hwnd (window_p);
+
+      HRESULT result_3 =
+        MFSetAttributeSize ((*mediafoundation_stream_iterator).second.second->outputFormat,
+                            MF_MT_FRAME_SIZE,
+                            allocation.width, allocation.height);
+      ACE_ASSERT (SUCCEEDED (result_3));
+
+      //(*mediafoundation_stream_iterator).second.second->area.bottom =
+      //  allocation.y + allocation.height;
+      //(*mediafoundation_stream_iterator).second.second->area.left = allocation.x;
+      //(*mediafoundation_stream_iterator).second.second->area.right =
+      //  allocation.x + allocation.width;
+      //(*mediafoundation_stream_iterator).second.second->area.top = allocation.y;
 
       //(*mediafoundation_stream_iterator).second.second->pixelBuffer =
       //  ui_cb_data_base_p->pixelBuffer;
@@ -3592,7 +3639,7 @@ togglebutton_record_toggled_cb (GtkToggleButton* toggleButton_in,
     ui_cb_data_p->configuration->videoStreamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (iterator_2 != ui_cb_data_p->configuration->videoStreamConfiguration.end ());
 #endif
-  ACE_ASSERT (stream_p);
+  ACE_ASSERT (stream_p && stream_2);
 
   // toggle ?
   if (!is_active_b)
@@ -4938,13 +4985,19 @@ combobox_source_changed_cb (GtkWidget* widget_in,
   } // end SWITCH
 #endif // ACE_WIN32 || ACE_WIN64
 
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  std::ostringstream converter;
+#if defined(ACE_WIN32) || defined(ACE_WIN64)
+  struct _GUID GUID_s = GUID_NULL;
   switch (ui_cb_data_base_p->mediaFramework)
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
     {
       result = load_formats (directshow_cb_data_p->streamConfiguration,
                              list_store_p);
+
+      GUID_s =
+        directshow_cb_data_p->configuration->videoStreamConfiguration.configuration_->format.video.subtype;
+
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
@@ -4965,6 +5018,12 @@ combobox_source_changed_cb (GtkWidget* widget_in,
       result = load_formats (media_source_p,
                              list_store_p);
       media_source_p->Release (); media_source_p = NULL;
+
+      HRESULT result_2 =
+        mediafoundation_cb_data_p->configuration->videoStreamConfiguration.configuration_->format.video->GetGUID (MF_MT_SUBTYPE,
+                                                                                                                  &GUID_s);
+      ACE_ASSERT (SUCCEEDED (result_2));
+
       break;
     }
     default:
@@ -4975,6 +5034,7 @@ combobox_source_changed_cb (GtkWidget* widget_in,
       return;
     }
   } // end SWITCH
+  converter << Common_Tools::GUIDToString (GUID_s);
 #else
   int result_2 = -1;
   if ((*iterator_2).second.second->deviceIdentifier.fileDescriptor != -1)
@@ -5012,6 +5072,8 @@ combobox_source_changed_cb (GtkWidget* widget_in,
   result =
     load_formats ((*iterator_2).second.second->deviceIdentifier.fileDescriptor,
                   list_store_p);
+
+  converter << ui_cb_data_p->configuration->videoStreamConfiguration.configuration_->format.video.format.pixelformat;
 #endif // ACE_WIN32 || ACE_WIN64
   if (!result)
   {
@@ -5031,8 +5093,6 @@ combobox_source_changed_cb (GtkWidget* widget_in,
     gtk_widget_set_sensitive (GTK_WIDGET (combo_box_p), TRUE);
 
     g_value_init (&value, G_TYPE_STRING);
-    std::ostringstream converter;
-    converter << ui_cb_data_p->configuration->videoStreamConfiguration.configuration_->format.video.format.pixelformat;
     g_value_set_string (&value,
                         converter.str ().c_str ());
     Common_UI_GTK_Tools::selectValue (combo_box_p,
@@ -5224,6 +5284,7 @@ combobox_format_changed_cb (GtkWidget* widget_in,
       format_i;
 #endif
 
+  Common_Image_Resolution_t resolution_s;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   switch (ui_cb_data_base_p->mediaFramework)
   {
@@ -5232,6 +5293,10 @@ combobox_format_changed_cb (GtkWidget* widget_in,
       result = load_resolutions (directshow_cb_data_p->streamConfiguration,
                                  GUID_s,
                                  list_store_p);
+
+      resolution_s =
+        Stream_MediaFramework_DirectShow_Tools::toResolution (directshow_cb_data_p->configuration->videoStreamConfiguration.configuration_->format.video);
+
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
@@ -5267,6 +5332,10 @@ combobox_format_changed_cb (GtkWidget* widget_in,
                                  GUID_s,
                                  list_store_p);
       media_source_p->Release (); media_source_p = NULL;
+
+      resolution_s =
+        Stream_MediaFramework_MediaFoundation_Tools::toResolution (mediafoundation_cb_data_p->configuration->videoStreamConfiguration.configuration_->format.video);
+
       break;
     }
     default:
@@ -5282,7 +5351,12 @@ combobox_format_changed_cb (GtkWidget* widget_in,
       load_resolutions ((*iterator_2).second.second->deviceIdentifier.fileDescriptor,
                         format_i,
                         list_store_p);
-#endif
+
+  resolution.width =
+    ui_cb_data_p->configuration->videoStreamConfiguration.configuration_->format.video.format.width;
+  resolution.height =
+    ui_cb_data_p->configuration->videoStreamConfiguration.configuration_->format.video.format.height;
+#endif // ACE_WIN32 || ACE_WIN64
   if (!result)
   {
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -5294,7 +5368,7 @@ combobox_format_changed_cb (GtkWidget* widget_in,
                 ACE_TEXT ("failed to ::load_resolutions(%d,%u), returning\n"),
                 (*iterator_2).second.second->deviceIdentifier.fileDescriptor,
                 format_i));
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
     return;
   } // end IF
 
@@ -5310,9 +5384,19 @@ combobox_format_changed_cb (GtkWidget* widget_in,
 
     g_value_init (&value, G_TYPE_STRING);
     std::ostringstream converter;
-    converter << ui_cb_data_p->configuration->videoStreamConfiguration.configuration_->format.video.format.width;
+    converter <<
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+      resolution_s.cx;
+#else
+      resolution_s.width;
+#endif // ACE_WIN32 || ACE_WIN64
     converter << ACE_TEXT_ALWAYS_CHAR (" x ");
-    converter << ui_cb_data_p->configuration->videoStreamConfiguration.configuration_->format.video.format.height;
+    converter <<
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+      resolution_s.cy;
+#else
+      resolution_s.height;
+#endif // ACE_WIN32 || ACE_WIN64
     g_value_set_string (&value,
                         converter.str ().c_str ());
     Common_UI_GTK_Tools::selectValue (combo_box_p,
@@ -5538,6 +5622,7 @@ combobox_resolution_changed_cb (GtkWidget* widget_in,
                     ACE_TEXT (Common_Error_Tools::errorToString (result_2).c_str ())));
         return;
       } // end IF
+
       break;
     }
     default:
@@ -5557,6 +5642,7 @@ combobox_resolution_changed_cb (GtkWidget* widget_in,
   (*iterator_2).second.second->outputFormat.video.format.width = width;
 #endif // ACE_WIN32 || ACE_WIN64
 
+  unsigned int framerate_i = 0;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   switch (ui_cb_data_base_p->mediaFramework)
   {
@@ -5566,6 +5652,10 @@ combobox_resolution_changed_cb (GtkWidget* widget_in,
                            GUID_s,
                            width,
                            list_store_p);
+
+      framerate_i =
+        Stream_MediaFramework_DirectShow_Tools::toFramerate (directshow_cb_data_p->configuration->videoStreamConfiguration.configuration_->format.video);
+
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
@@ -5602,6 +5692,10 @@ combobox_resolution_changed_cb (GtkWidget* widget_in,
                            width,
                            list_store_p);
       media_source_p->Release (); media_source_p = NULL;
+
+      framerate_i =
+        Stream_MediaFramework_MediaFoundation_Tools::toFramerate (mediafoundation_cb_data_p->configuration->videoStreamConfiguration.configuration_->format.video);
+
       break;
     }
     default:
@@ -5618,6 +5712,9 @@ combobox_resolution_changed_cb (GtkWidget* widget_in,
                   format_i,
                   width, height,
                   list_store_p);
+
+  framerate_i =
+    ui_cb_data_p->configuration->videoStreamConfiguration.configuration_->format.video.frameRate.numerator;
 #endif // ACE_WIN32 || ACE_WIN64
   if (!result)
   {
@@ -5648,7 +5745,7 @@ combobox_resolution_changed_cb (GtkWidget* widget_in,
 
     g_value_init (&value, G_TYPE_UINT);
     g_value_set_uint (&value,
-                      ui_cb_data_p->configuration->videoStreamConfiguration.configuration_->format.video.frameRate.numerator);
+                      framerate_i);
     Common_UI_GTK_Tools::selectValue (combo_box_p,
                                       value,
                                       1);
@@ -5983,6 +6080,34 @@ combobox_display_changed_cb (GtkWidget* widget_in,
                                     1);
 } // combobox_display_changed_cb
 
+#if GTK_CHECK_VERSION (3,0,0)
+gboolean
+drawingarea_draw_cb (GtkWidget* widget_in,
+                     cairo_t* context_in,
+                     gpointer userData_in)
+{
+  STREAM_TRACE (ACE_TEXT ("::drawingarea_draw_cb"));
+
+  ACE_UNUSED_ARG (widget_in);
+
+  // sanity check(s)
+  struct Stream_AVSave_UI_CBData* ui_cb_data_base_p =
+    static_cast<struct Stream_AVSave_UI_CBData*> (userData_in);
+  ACE_ASSERT (ui_cb_data_base_p);
+  if (!ui_cb_data_base_p->dispatch)
+    return FALSE; // propagate event
+
+  try {
+    ui_cb_data_base_p->dispatch->dispatch (context_in);
+  } catch (...) {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("caught exception in Common_IDispatch::dispatch(), continuing\n")));
+    return FALSE; // propagate event
+  }
+
+  return TRUE; // do not propagate
+} // drawingarea_draw_cb
+#else
 gboolean
 drawingarea_expose_event_cb (GtkWidget* widget_in,
                              GdkEvent* event_in,
@@ -6020,33 +6145,7 @@ drawingarea_expose_event_cb (GtkWidget* widget_in,
 
   return TRUE; // do not propagate
 } // drawingarea_expose_event_cb
-
-gboolean
-drawingarea_draw_cb (GtkWidget* widget_in,
-                     cairo_t* context_in,
-                     gpointer userData_in)
-{
-  STREAM_TRACE (ACE_TEXT ("::drawingarea_draw_cb"));
-
-  ACE_UNUSED_ARG (widget_in);
-
-  // sanity check(s)
-  struct Stream_AVSave_UI_CBData* ui_cb_data_base_p =
-    static_cast<struct Stream_AVSave_UI_CBData*> (userData_in);
-  ACE_ASSERT (ui_cb_data_base_p);
-  if (!ui_cb_data_base_p->dispatch)
-    return FALSE; // propagate event
-
-  try {
-    ui_cb_data_base_p->dispatch->dispatch (context_in);
-  } catch (...) {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("caught exception in Common_IDispatch::dispatch(), continuing\n")));
-    return FALSE; // propagate event
-  }
-
-  return TRUE; // do not propagate
-} // drawingarea_draw_cb
+#endif // GTK_CHECK_VERSION (3,0,0)
 
 //void
 //drawingarea_configure_event_cb (GtkWindow* window_in,
@@ -6155,8 +6254,14 @@ drawingarea_size_allocate_cb (GtkWidget* widget_in,
         static_cast<struct Stream_AVSave_DirectShow_UI_CBData*> (ui_cb_data_base_p);
       ACE_ASSERT (directshow_cb_data_p->configuration);
       directshow_stream_iterator =
-        directshow_cb_data_p->configuration->videoStreamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_DIRECT3D_DEFAULT_NAME_STRING));
+        directshow_cb_data_p->configuration->videoStreamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_LIBAV_RESIZE_DEFAULT_NAME_STRING));
       ACE_ASSERT (directshow_stream_iterator != directshow_cb_data_p->configuration->videoStreamConfiguration.end ());
+
+      Common_Image_Resolution_t resolution_s;
+      resolution_s.cx = allocation_in->width;
+      resolution_s.cy = allocation_in->height;
+      Stream_MediaFramework_DirectShow_Tools::setResolution (resolution_s,
+                                                             (*directshow_stream_iterator).second.second->outputFormat);
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
@@ -6187,8 +6292,6 @@ drawingarea_size_allocate_cb (GtkWidget* widget_in,
   Stream_AVSave_ALSA_V4L_StreamConfiguration_t::ITERATOR_T iterator_3 =
     ui_cb_data_p->configuration->videoStreamConfiguration.find (Stream_Visualization_Tools::rendererToModuleName (STREAM_VISUALIZATION_VIDEORENDERER_X11));
   ACE_ASSERT (iterator_3 != ui_cb_data_p->configuration->videoStreamConfiguration.end ());
-#endif // ACE_WIN32 || ACE_WIN64
-  ACE_ASSERT (iterator != ui_cb_data_base_p->UIState->builders.end ());
 
 //  (*iterator_2).second.second->outputFormat.resolution.height =
 //      allocation_in->height;
@@ -6198,6 +6301,9 @@ drawingarea_size_allocate_cb (GtkWidget* widget_in,
 //      allocation_in->height;
 //  (*iterator_3).second.second->outputFormat.resolution.width =
 //      allocation_in->width;
+#endif // ACE_WIN32 || ACE_WIN64
+  ACE_ASSERT (iterator != ui_cb_data_base_p->UIState->builders.end ());
+
   ACE_DEBUG ((LM_DEBUG,
               ACE_TEXT ("window resized to %dx%d\n"),
               allocation_in->width, allocation_in->height));

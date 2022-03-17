@@ -396,6 +396,9 @@ struct Stream_AVSave_ModuleHandlerConfiguration
 {
   Stream_AVSave_ModuleHandlerConfiguration ()
    : Test_I_ModuleHandlerConfiguration ()
+#if defined (FFMPEG_SUPPORT)
+   , codecId (AV_CODEC_ID_NONE)
+#endif // FFMPEG_SUPPORT
    , deviceIdentifier ()
    , display ()
    , fullScreen (false)
@@ -409,6 +412,9 @@ struct Stream_AVSave_ModuleHandlerConfiguration
     concurrency = STREAM_HEADMODULECONCURRENCY_ACTIVE;
   }
 
+#if defined (FFMPEG_SUPPORT)
+  enum AVCodecID                  codecId;
+#endif // FFMPEG_SUPPORT
   struct Stream_Device_Identifier deviceIdentifier; // source module
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   struct Common_UI_DisplayDevice  display; // display module

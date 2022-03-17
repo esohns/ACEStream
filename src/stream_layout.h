@@ -27,6 +27,7 @@
 
 #include "ace/Global_Macros.h"
 #include "ace/Stream.h"
+#include "ace/Stream_Modules.h"
 
 #include "common_idumpstate.h"
 
@@ -83,9 +84,6 @@
 
 // forward declarations
 class Stream_IDistributorModule;
-template <ACE_SYNCH_DECL,
-          typename TimePolicyType>
-class Stream_IStream_T;
 
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,
@@ -146,17 +144,17 @@ class Stream_Layout_T
 
  private:
   // convenient types
-  typedef Stream_IStream_T<ACE_SYNCH_USE,
-                           TimePolicyType> ISTREAM_T;
+  typedef ACE_Thru_Task<ACE_SYNCH_USE, TimePolicyType> TAIL_READER_T;
+  typedef ACE_Stream_Tail<ACE_SYNCH_USE, TimePolicyType> TAIL_WRITER_T;
   typedef typename inherited::iterator_base BASE_ITERATOR_T;
 
   ACE_UNIMPLEMENTED_FUNC (Stream_Layout_T (const Stream_Layout_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Layout_T& operator= (const Stream_Layout_T&))
 
   // helper methods
-  bool setup (NODE_T&,    // distributor node
-              ISTREAM_T*, // stream handle
-              MODULE_T*); // stream tail handle
+  bool setup (NODE_T&); // distributor node
+
+  MODULE_T* makeSubStreamTail () const;
 
   void prev (NODE_T&,                     // distributor node
              const std::string&,          // module name

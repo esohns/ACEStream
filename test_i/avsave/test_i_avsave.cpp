@@ -1091,7 +1091,9 @@ do_work (const struct Stream_Device_Identifier& deviceIdentifier_in,
   struct Stream_ModuleConfiguration module_configuration;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   struct Stream_AVSave_DirectShow_ModuleHandlerConfiguration directshow_modulehandler_configuration;
-  struct Stream_AVSave_DirectShow_ModuleHandlerConfiguration directshow_modulehandler_configuration_2; // audio
+  struct Stream_AVSave_DirectShow_ModuleHandlerConfiguration directshow_modulehandler_configuration_2; // audio capture
+  struct Stream_AVSave_DirectShow_ModuleHandlerConfiguration directshow_modulehandler_configuration_3; // converter --> display
+  struct Stream_AVSave_DirectShow_ModuleHandlerConfiguration directshow_modulehandler_configuration_4; // resize --> display
   struct Stream_AVSave_DirectShow_StreamConfiguration directshow_stream_configuration;
 #if defined (GUI_SUPPORT)
   Stream_AVSave_DirectShow_EventHandler_t directshow_ui_event_handler (&directShowCBData_in
@@ -1290,14 +1292,17 @@ do_work (const struct Stream_Device_Identifier& deviceIdentifier_in,
       directShowConfiguration_in.videoStreamConfiguration.initialize (module_configuration,
                                                                       directshow_modulehandler_configuration,
                                                                       directshow_stream_configuration);
-      directShowConfiguration_in.videoStreamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_DIRECT3D_DEFAULT_NAME_STRING),
+      directShowConfiguration_in.videoStreamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_LIBAV_CONVERTER_DEFAULT_NAME_STRING),
                                                                                   std::make_pair (&module_configuration,
-                                                                                                  &directshow_modulehandler_configuration)));
+                                                                                                  &directshow_modulehandler_configuration_3)));
+      directShowConfiguration_in.videoStreamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_LIBAV_RESIZE_DEFAULT_NAME_STRING),
+                                                                                  std::make_pair (&module_configuration,
+                                                                                                  &directshow_modulehandler_configuration_4)));
       directshow_video_stream_iterator =
         directShowConfiguration_in.videoStreamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
       ACE_ASSERT (directshow_video_stream_iterator != directShowConfiguration_in.videoStreamConfiguration.end ());
       directshow_video_stream_iterator_2 =
-        directShowConfiguration_in.videoStreamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_DIRECT3D_DEFAULT_NAME_STRING));
+        directShowConfiguration_in.videoStreamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_LIBAV_CONVERTER_DEFAULT_NAME_STRING));
       ACE_ASSERT (directshow_video_stream_iterator_2 != directShowConfiguration_in.videoStreamConfiguration.end ());
       break;
     }
@@ -1346,6 +1351,9 @@ do_work (const struct Stream_Device_Identifier& deviceIdentifier_in,
 
   audio_stream_configuration.allocatorConfiguration = &allocator_configuration;
   audio_stream_configuration.messageAllocator = &message_allocator;
+  audio_stream_configuration.module =
+    (!UIDefinitionFilename_in.empty () ? &message_handler
+                                       : NULL);
   audio_stream_configuration.module_2 = &encoder;
 
   //if (bufferSize_in)
@@ -1390,7 +1398,7 @@ do_work (const struct Stream_Device_Identifier& deviceIdentifier_in,
                                      stream_config_p,
                                      directshow_stream_configuration.format.audio,
                                      directshow_stream_configuration.format.video,
-                                     (*directshow_video_stream_iterator).second.second->outputFormat))
+                                     directshow_modulehandler_configuration.outputFormat))
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("failed to ::do_initialize_directshow(), returning\n")));
@@ -1401,10 +1409,16 @@ do_work (const struct Stream_Device_Identifier& deviceIdentifier_in,
         directShowCBData_in.streamConfiguration = stream_config_p;
       } // end IF
       media_type_p =
-        Stream_MediaFramework_DirectShow_Tools::copy ((*directshow_video_stream_iterator).second.second->outputFormat);
+        Stream_MediaFramework_DirectShow_Tools::copy (directshow_modulehandler_configuration.outputFormat);
       ACE_ASSERT (media_type_p);
-      (*directshow_video_stream_iterator_2).second.second->outputFormat =
-        *media_type_p;
+      directshow_modulehandler_configuration_3.outputFormat = *media_type_p;
+      Stream_MediaFramework_DirectShow_Tools::setFormat (MEDIASUBTYPE_RGB24,
+                                                         directshow_modulehandler_configuration_3.outputFormat);
+      delete media_type_p; media_type_p = NULL;
+      media_type_p =
+        Stream_MediaFramework_DirectShow_Tools::copy (directshow_modulehandler_configuration_3.outputFormat);
+      directshow_modulehandler_configuration_4 = directshow_modulehandler_configuration_3;
+      directshow_modulehandler_configuration_4.outputFormat = *media_type_p;
       delete media_type_p; media_type_p = NULL;
       break;
     }

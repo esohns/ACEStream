@@ -103,13 +103,27 @@ class Stream_AVSave_DirectShow_Stream
   ACE_UNIMPLEMENTED_FUNC (Stream_AVSave_DirectShow_Stream& operator= (const Stream_AVSave_DirectShow_Stream&))
 
   // modules
-  Stream_AVSave_DirectShow_Source_Module            source_;
-  Stream_AVSave_DirectShow_Video_Tagger_Module      tagger_;
+  Stream_AVSave_DirectShow_Source_Module          source_;
   //Stream_AVSave_DirectShow_StatisticReport_Module   statisticReport_;
-  //Stream_AVSave_DirectShow_Direct3DDisplay_Module   display_;
-  //Stream_AVSave_DirectShow_DirectShowDisplay_Module directShowDisplay_;
-  //Stream_AVSave_DirectShow_GTKCairoDisplay_Module   GTKCairoDisplay_;
-  //Stream_AVSave_DirectShow_Encoder_Module           encoder_;
+#if defined (FFMPEG_SUPPORT)
+  Stream_AVSave_DirectShow_LibAVDecoder_Module    decoder_; // --> uncompress to RGB
+#endif // FFMPEG_SUPPORT
+  ////////////////////////////////////////
+#if defined (FFMPEG_SUPPORT)
+  Stream_AVSave_DirectShow_LibAVConverter_Module  converter_; // --> 24-bit RGB (display format)
+  Stream_AVSave_DirectShow_Distributor_Module     distributor_; // (sub-)branch ?
+  Stream_AVSave_DirectShow_LibAVResize_Module     resizer_; // --> window size/fullscreen
+#endif // FFMPEG_SUPPORT
+#if defined (GUI_SUPPORT)
+#if defined (GTK_USE)
+  Stream_AVSave_DirectShow_GTKCairoDisplay_Module GTKCairoDisplay_;
+#endif // GTK_USE
+#endif // GUI_SUPPORT
+  ////////////////////////////////////////
+#if defined (FFMPEG_SUPPORT)
+  Stream_AVSave_DirectShow_LibAVConverter_Module  converter_2; // --> 32-bit RGB (AVI format)
+#endif // FFMPEG_SUPPORT
+  Stream_AVSave_DirectShow_Video_Tagger_Module    tagger_;
 };
 
 class Stream_AVSave_MediaFoundation_Stream

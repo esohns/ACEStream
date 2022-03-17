@@ -47,16 +47,26 @@ Stream_AVSave_DirectShow_Stream::Stream_AVSave_DirectShow_Stream ()
  : inherited ()
  , source_ (this,
             ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_CAM_SOURCE_DIRECTSHOW_DEFAULT_NAME_STRING))
- , tagger_ (this,
-            ACE_TEXT_ALWAYS_CHAR (STREAM_LIB_TAGGER_DEFAULT_NAME_STRING))
  //, statisticReport_ (this,
  //                    ACE_TEXT_ALWAYS_CHAR (MODULE_STAT_REPORT_DEFAULT_NAME_STRING))
- //, display_ (this,
- //            ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_DIRECT3D_DEFAULT_NAME_STRING))
- //, directShowDisplay_ (this,
- //                      ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_DIRECTSHOW_DEFAULT_NAME_STRING))
- //, GTKCairoDisplay_ (this,
- //                    ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_GTK_CAIRO_DEFAULT_NAME_STRING))
+ , decoder_ (this,
+             ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_LIBAV_DECODER_DEFAULT_NAME_STRING))
+ , converter_ (this,
+               ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_LIBAV_CONVERTER_DEFAULT_NAME_STRING))
+ , distributor_ (this,
+                 ACE_TEXT_ALWAYS_CHAR (STREAM_MISC_DISTRIBUTOR_DEFAULT_NAME_STRING))
+ , resizer_ (this,
+             ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_LIBAV_RESIZE_DEFAULT_NAME_STRING))
+#if defined (GUI_SUPPORT)
+#if defined (GTK_USE)
+ , GTKCairoDisplay_ (this,
+                     ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_GTK_CAIRO_DEFAULT_NAME_STRING))
+#endif // GTK_USE
+#endif // GUI_SUPPORT
+ , converter_2 (this,
+                ACE_TEXT_ALWAYS_CHAR ("LibAV_Converter_2"))
+ , tagger_ (this,
+            ACE_TEXT_ALWAYS_CHAR (STREAM_LIB_TAGGER_DEFAULT_NAME_STRING))
  //, encoder_ (this,
  //            ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_LIBAV_ENCODER_DEFAULT_NAME_STRING))
 {
@@ -81,29 +91,71 @@ Stream_AVSave_DirectShow_Stream::load (Stream_ILayout* layout_in,
   // initialize return value(s)
   delete_out = false;
 
+  // sanity check(s)
   ACE_ASSERT (inherited::configuration_);
-  //inherited::CONFIGURATION_T::ITERATOR_T iterator, iterator_2;
-  //iterator =
-  //  const_cast<inherited::CONFIGURATION_T&> (configuration_in).find (ACE_TEXT_ALWAYS_CHAR (""));
-  //iterator_2 =
-  //  const_cast<inherited::CONFIGURATION_T&> (configuration_in).find (ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_DIRECTSHOW_DEFAULT_NAME_STRING));
-  //// sanity check(s)
-  //ACE_ASSERT (iterator != configuration_in.end ());
-  //ACE_ASSERT (iterator_2 != configuration_in.end ());
+  inherited::CONFIGURATION_T::ITERATOR_T iterator, iterator_2;
+  iterator = inherited::configuration_->find (ACE_TEXT_ALWAYS_CHAR (""));
+  iterator_2 = inherited::configuration_->find (ACE_TEXT_ALWAYS_CHAR (""));
+    //inherited::configuration_->find (ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_DIRECTSHOW_DEFAULT_NAME_STRING));
+  ACE_ASSERT (iterator != inherited::configuration_->end ());
+  ACE_ASSERT (iterator_2 != inherited::configuration_->end ());
+  bool display_b = !(*iterator_2).second.second->display.device.empty ();
+  bool save_to_file_b = !(*iterator).second.second->targetFileName.empty ();
 
-  // *NOTE*: one problem is that any module that was NOT enqueued onto the
-  //         stream (e.g. because initialize() failed) needs to be explicitly
-  //         close()d
+  // *NOTE*: this processing stream may have branches, depending on:
+  //         - whether the output is displayed on a screen
+  //         - whether the output is saved to file
+  typename inherited::MODULE_T* branch_p = NULL; // NULL: 'main' branch
+  unsigned int index_i = 0;
 
   layout_in->append (&source_, NULL, 0);
-  layout_in->append (&tagger_, NULL, 0);
   //layout_in->append (&statisticReport_, NULL, 0);
   //layout_in->append (&direct3DDisplay_, NULL, 0);
   //modules_out.push_back (&directShowDisplay_);
-  //modules_out.push_back (&GTKCairoDisplay_);
-  //layout_in->append (&encoder_, NULL, 0);
-  ACE_ASSERT (inherited::configuration_->configuration_->module_2);
-  layout_in->append (inherited::configuration_->configuration_->module_2, NULL, 0); // output is AVI
+  layout_in->append (&decoder_, NULL, 0); // output is uncompressed RGB
+  if (display_b || save_to_file_b)
+  {
+    if (display_b && save_to_file_b)
+    {
+      layout_in->append (&distributor_, NULL, 0);
+      branch_p = &distributor_;
+      configuration_->configuration_->branches.push_back (ACE_TEXT_ALWAYS_CHAR (STREAM_SUBSTREAM_DISPLAY_NAME));
+//      configuration_->configuration_->branches.push_back (ACE_TEXT_ALWAYS_CHAR (STREAM_SUBSTREAM_SAVE_NAME));
+      Stream_IDistributorModule* idistributor_p =
+          dynamic_cast<Stream_IDistributorModule*> (distributor_.writer ());
+      ACE_ASSERT (idistributor_p);
+      idistributor_p->initialize (configuration_->configuration_->branches);
+    } // end IF
+
+    if (display_b)
+    { // *WARNING*: display modules must support uncompressed 24-bit RGB (at
+      //            native endianness)
+      layout_in->append (&converter_, branch_p, index_i); // output is uncompressed 24-bit RGB
+      layout_in->append (&resizer_, branch_p, index_i); // output is window size/fullscreen
+#if defined (GUI_SUPPORT)
+#if defined (GTK_USE)
+//      if (configuration_->configuration->renderer != STREAM_VISUALIZATION_VIDEORENDERER_GTK_WINDOW)
+//        layout_in->append (&display_, branch_p, 0);
+//      else
+//        layout_in->append (&display_2_, branch_p, index_i);
+      layout_in->append (&GTKCairoDisplay_, branch_p, index_i);
+#elif defined (WXWIDGETS_USE)
+      layout_in->append (&display_, branch_p, index_i);
+#endif // GTK_USE || WXWIDGETS_USE
+#else
+      ACE_ASSERT ((*iterator).second.second->fullScreen && !(*iterator).second.second->display.identifier.empty ());
+      ACE_ASSERT (false); // *TODO*
+#endif // GUI_SUPPORT
+      ++index_i;
+    } // end IF
+    if (save_to_file_b)
+    { ACE_ASSERT (inherited::configuration_->configuration_->module_2);
+      layout_in->append (&converter_2, NULL, 0);
+      layout_in->append (&tagger_, NULL, 0);
+      ACE_ASSERT (inherited::configuration_->configuration_->module_2);
+      layout_in->append (inherited::configuration_->configuration_->module_2, NULL, 0); // output is AVI
+    } // end IF
+  } // end IF
 
   return true;
 }
@@ -137,13 +189,13 @@ Stream_AVSave_DirectShow_Stream::initialize (const inherited::CONFIGURATION_T& c
   std::string log_file_name;
   struct Stream_MediaFramework_DirectShow_AudioVideoFormat media_type_s;
 
+  // sanity check(s)
   iterator =
     const_cast<inherited::CONFIGURATION_T&> (configuration_in).find (ACE_TEXT_ALWAYS_CHAR (""));
-  iterator_2 =
-    const_cast<inherited::CONFIGURATION_T&> (configuration_in).find (ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_DIRECT3D_DEFAULT_NAME_STRING));
-  // sanity check(s)
+  //iterator_2 =
+  //  const_cast<inherited::CONFIGURATION_T&> (configuration_in).find (ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_DIRECT3D_DEFAULT_NAME_STRING));
   ACE_ASSERT (iterator != const_cast<inherited::CONFIGURATION_T&> (configuration_in).end ());
-  ACE_ASSERT (iterator_2 != const_cast<inherited::CONFIGURATION_T&> (configuration_in).end ());
+  //ACE_ASSERT (iterator_2 != const_cast<inherited::CONFIGURATION_T&> (configuration_in).end ());
 
   // ---------------------------------------------------------------------------
   // step1: set up directshow filter graph

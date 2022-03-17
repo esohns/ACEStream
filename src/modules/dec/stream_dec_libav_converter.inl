@@ -329,11 +329,7 @@ Stream_Decoder_LibAVConverter_T<ACE_SYNCH_USE,
                                 media_type_s);
       ACE_ASSERT (!Stream_Module_Decoder_Tools::isCompressedVideo (media_type_s.format));
 
-      MediaType media_type_2;
-      ACE_OS::memset (&media_type_2, 0, sizeof (MediaType));
-      inherited2::getMediaType (session_data_r.formats.back (),
-                                STREAM_MEDIATYPE_VIDEO,
-                                media_type_2);
+      MediaType media_type_2 = session_data_r.formats.back ();
       int flags = 0;
       int result = -1;
       inputFormat_ = media_type_s.format;

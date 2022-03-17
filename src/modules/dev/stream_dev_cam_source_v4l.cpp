@@ -19,7 +19,6 @@
  ***************************************************************************/
 #include "stdafx.h"
 
-//#include "ace/Synch.h"
 #include "stream_dev_cam_source_v4l.h"
 
 #include "stream_dev_defines.h"

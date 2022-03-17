@@ -290,14 +290,14 @@ Stream_Module_Aggregator_WriterTask_T<ACE_SYNCH_USE,
   SESSIONID_TO_STREAM_MAP_ITERATOR_T iterator;
   TASK_T* task_p = NULL;
   int result = 0, result_2 = -1;
+  bool stop_processing = false;
   ACE_Message_Block* message_block_p = NULL;
+  bool forward_b = true;
 
   // step1: handle message
-  bool stop_processing = false;
   handleMessage (messageBlock_in,
                  stop_processing);
-  if (unlikely (stop_processing))
-    goto continue_;
+  ACE_UNUSED_ARG (stop_processing);
 
   // step2: forward message to downstream module
   try {
@@ -365,12 +365,18 @@ Stream_Module_Aggregator_WriterTask_T<ACE_SYNCH_USE,
       } // end IF
       message_block_p = NULL;
 
+      forward_b = false;
+
       break;
     } // end FOR
   } // end lock scope
 
 continue_:
-  return inherited::put_next (messageBlock_in, timeValue_in);
+  if (forward_b)
+    return inherited::put_next (messageBlock_in, timeValue_in);
+
+  messageBlock_in->release ();
+  return 0;
 }
 
 template <ACE_SYNCH_DECL,
@@ -424,25 +430,9 @@ Stream_Module_Aggregator_WriterTask_T<ACE_SYNCH_USE,
 
   if (unlikely (inherited::isInitialized_))
   {
-    //{ ACE_GUARD_RETURN (ACE_SYNCH_MUTEX_T, aGuard, lock_, -1);
-      //for (SESSION_DATA_ITERATOR_T iterator = sessionData_.begin ();
-      //     iterator != sessionData_.end ();
-      //     ++iterator)
-      //  (*iterator).second->decrease ();
-      //sessionData_.clear ();
-
-    //// prevent duplicates
-    //  STREAMS_ITERATOR_T iterator = stream_.begin ();
-    //  for (;
-    //       iterator != stream_.end ();
-    //       ++iterator)
-    //    if (*iterator == configuration_in.stream)
-    //      break;
-    //  if (iterator != stream_.end ())
-    //    stream_.erase (iterator);
-    //} // end lock scope
-
-    //sessions_.clear ();
+    { ACE_GUARD_RETURN (ACE_SYNCH_MUTEX_T, aGuard, sessionLock_, -1);
+      sessions_.clear ();
+    } // end lock scope
 
     //outboundStreamName_.clear ();
   } // end IF
@@ -510,13 +500,19 @@ error:
                     (session_message_type == STREAM_SESSION_MESSAGE_END)))
         post_process_b = true;
       else
+      {
         inherited::TASK_BASE_T::handleSessionMessage (session_message_p,
                                                       forward_b);
+        ACE_ASSERT (session_message_p && forward_b);
+        OWN_TYPE_T::handleSessionMessage (session_message_p,
+                                          forward_b);
+        ACE_ASSERT (session_message_p && forward_b);
+      } // end ELSE
       ACE_ASSERT (session_message_p && forward_b);
       // process message
       try {
-        handleSessionMessage (session_message_p,
-                              forward_b);
+        this->handleSessionMessage (session_message_p,
+                                    forward_b);
       } catch (...) {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: caught an exception in handleSessionMessage(), aborting\n"),
@@ -540,6 +536,9 @@ error:
         { ACE_ASSERT (session_message_p);
           inherited::TASK_BASE_T::handleSessionMessage (session_message_p,
                                                         forward_b);
+          ACE_ASSERT (session_message_p && forward_b);
+          OWN_TYPE_T::handleSessionMessage (session_message_p,
+                                            forward_b);
           ACE_ASSERT (session_message_p && forward_b);
         } // end ELSE
       } // end IF
@@ -717,12 +716,14 @@ insert:
     }
     case STREAM_SESSION_MESSAGE_END:
     {
-      SESSIONID_TO_STREAM_MAP_ITERATOR_T iterator;
-      { ACE_GUARD (ACE_SYNCH_MUTEX_T, aGuard, sessionLock_);
-        iterator = sessions_.find (session_id);
-        if (likely (iterator != sessions_.end ()))
-          sessions_.erase (iterator);
-      } // end lock scope
+      // *IMPORTANT NOTE*: do not remove the session entries here; they are
+      //                   required for successful round-trip routing
+      //SESSIONID_TO_STREAM_MAP_ITERATOR_T iterator;
+      //{ ACE_GUARD (ACE_SYNCH_MUTEX_T, aGuard, sessionLock_);
+      //  iterator = sessions_.find (session_id);
+      //  if (likely (iterator != sessions_.end ()))
+      //    sessions_.erase (iterator);
+      //} // end lock scope
     } // *WARNING*: control falls through here
     case STREAM_SESSION_MESSAGE_UNLINK:
     {
@@ -741,10 +742,6 @@ insert:
     default:
       break;
   } // end SWITCH
-
-  // clean up
-  passMessageDownstream_out = false;
-  message_inout->release (); message_inout = NULL;
 }
 
 template <ACE_SYNCH_DECL,
@@ -1076,14 +1073,14 @@ Stream_Module_Aggregator_WriterTask_2<ACE_SYNCH_USE,
   SESSIONID_TO_STREAM_MAP_ITERATOR_T iterator;
   TASK_T* task_p = NULL;
   int result = 0, result_2 = -1;
+  bool stop_processing = false;
   ACE_Message_Block* message_block_p = NULL;
+  bool forward_b = true;
 
   // step1: handle message
-  bool stop_processing = false;
   handleMessage (messageBlock_in,
                  stop_processing);
-  if (unlikely (stop_processing))
-    goto continue_;
+  ACE_UNUSED_ARG (stop_processing);
 
   // step2: forward message to downstream module
   try {
@@ -1151,12 +1148,18 @@ Stream_Module_Aggregator_WriterTask_2<ACE_SYNCH_USE,
       } // end IF
       message_block_p = NULL;
 
+      forward_b = false;
+
       break;
     } // end FOR
   } // end lock scope
 
 continue_:
-  return inherited::put_next (messageBlock_in, timeValue_in);
+  if (forward_b)
+    return inherited::put_next (messageBlock_in, timeValue_in);
+
+  messageBlock_in->release ();
+  return 0;
 }
 
 template <ACE_SYNCH_DECL,

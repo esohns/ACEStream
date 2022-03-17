@@ -698,20 +698,6 @@ Stream_Module_MessageHandlerA_T<ACE_SYNCH_USE,
   const typename SessionMessageType::DATA_T* session_data_container_p = NULL;
   const SessionDataType* session_data_p = NULL;
 
-  // the base class release()s all messages --> create duplicates
-  SessionMessageType* message_p =
-    static_cast<SessionMessageType*> (message_inout->duplicate ());
-  if (unlikely (!message_p))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: failed to SessionMessageType::duplicate(): \"%m\", aborting\n"),
-                inherited::mod_->name ()));
-    goto error;
-  } // end IF
-  inherited::handleSessionMessage (message_p,
-                                   passMessageDownstream_out);
-  ACE_ASSERT (!passMessageDownstream_out);
-
   switch (message_type_e)
   {
     case STREAM_SESSION_MESSAGE_BEGIN:

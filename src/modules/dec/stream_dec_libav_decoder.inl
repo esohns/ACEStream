@@ -421,19 +421,15 @@ Stream_Decoder_LibAVDecoder_T<ACE_SYNCH_USE,
       inherited2::getMediaType (session_data_r.formats.back (),
                                 STREAM_MEDIATYPE_VIDEO,
                                 media_type_s);
-      MediaType media_type_2;
+      MediaType media_type_2 = session_data_r.formats.back ();
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
       formatHeight_ =
           static_cast<unsigned int> (std::abs (media_type_s.resolution.cy));
       decode_width = static_cast<unsigned int> (media_type_s.resolution.cx);
-      ACE_OS::memset (&media_type_2, 0, sizeof (MediaType));
 #else
       formatHeight_ = media_type_s.resolution.height;
       decode_width = media_type_s.resolution.width;
 #endif // ACE_WIN32 || ACE_WIN64
-      inherited2::getMediaType (media_type_s,
-                                STREAM_MEDIATYPE_VIDEO,
-                                media_type_2);
 
       outputFrameSize_ =
         av_image_get_buffer_size (outputFormat_,

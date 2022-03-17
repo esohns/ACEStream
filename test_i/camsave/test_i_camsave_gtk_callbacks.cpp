@@ -5878,7 +5878,7 @@ combobox_resolution_changed_cb (GtkWidget* widget_in,
     { ACE_ASSERT (mediafoundation_cb_data_p->configuration->streamConfiguration.configuration_->format);
       HRESULT result_2 =
         mediafoundation_cb_data_p->configuration->streamConfiguration.configuration_->format->SetUINT32 (MF_MT_SAMPLE_SIZE,
-                                                                                                        width * height * 3);
+                                                                                                         width * height * 3);
       if (FAILED (result_2))
       {
         ACE_DEBUG ((LM_ERROR,

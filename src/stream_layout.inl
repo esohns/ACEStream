@@ -28,6 +28,7 @@
 
 #include "common_macros.h"
 
+#include "stream_defines.h"
 #include "stream_ilink.h"
 #include "stream_macros.h"
 #include "stream_tools.h"
@@ -55,13 +56,8 @@ Stream_Layout_T<ACE_SYNCH_USE,
   STREAM_TRACE (ACE_TEXT ("Stream_Layout_T::setup"));
 
   int result = -1;
-  MODULE_T* module_p = NULL;
   Stream_ModuleList_t main_branch_a;
   std::vector<typename inherited::tree_node*> distributors_a;
-
-  // sanity check(s)
-  ISTREAM_T* istream_p = dynamic_cast<ISTREAM_T*> (&stream_in);
-  ACE_ASSERT (istream_p);
 
   // step1: reset stream
   result = stream_in.close (0); // <-- retain head/tail modules
@@ -99,14 +95,10 @@ Stream_Layout_T<ACE_SYNCH_USE,
   } // end FOR
 
   // step3: set up any sub-branches
-  module_p = stream_in.STREAM_T::tail ();
-  ACE_ASSERT (module_p);
   for (typename std::vector<typename inherited::tree_node*>::const_iterator iterator = distributors_a.begin ();
        iterator != distributors_a.end ();
        ++iterator)
-    if (unlikely (!setup (*(*iterator),
-                          istream_p,
-                          module_p)))
+    if (unlikely (!setup (*(*iterator))))
       goto error;
 
   return true;
@@ -534,17 +526,13 @@ template <ACE_SYNCH_DECL,
 bool
 Stream_Layout_T<ACE_SYNCH_USE,
                 TimePolicyType,
-                DistributorModuleType>::setup (NODE_T& node_in,
-                                               ISTREAM_T* istream_in,
-                                               MODULE_T* tail_in)
+                DistributorModuleType>::setup (NODE_T& node_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Layout_T::setup"));
 
   // sanity check(s)
   typename inherited::iterator_base base_iterator (&node_in);
   ACE_ASSERT (is_distributor (node_in.data));
-  ACE_ASSERT (istream_in);
-  ACE_ASSERT (tail_in);
 
   Stream_IDistributorModule* idistributor_p =
       dynamic_cast<Stream_IDistributorModule*> (node_in.data->writer ());
@@ -552,7 +540,7 @@ Stream_Layout_T<ACE_SYNCH_USE,
 
   int result = -1;
   TASK_T* task_p = NULL;
-  MODULE_T* prev_p = NULL;
+  MODULE_T* prev_p = NULL, *tail_p = NULL;
   std::vector<typename inherited::iterator_base> sub_distributors_a;
   for (typename inherited::sibling_iterator iterator = inherited::begin (&node_in);
        iterator != inherited::end (&node_in);
@@ -592,7 +580,7 @@ Stream_Layout_T<ACE_SYNCH_USE,
     for (typename inherited::sibling_iterator iterator_2 = inherited::begin (iterator);
          iterator_2 != inherited::end (iterator);
          ++iterator_2)
-    { 
+    {
       task_p = (*iterator_2)->reader ();
       ACE_ASSERT (task_p);
       result = task_p->open ((*iterator_2)->arg ());
@@ -622,19 +610,67 @@ Stream_Layout_T<ACE_SYNCH_USE,
         sub_distributors_a.push_back (iterator_2);
     } // end FOR
     ACE_ASSERT (prev_p);
-    prev_p->link (tail_in);
+
+    tail_p = makeSubStreamTail ();
+    if (unlikely (!tail_p))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to Stream_Layout_T::makeSubStreamTail(): \"%m\", aborting\n")));
+      return false;
+    } // end IF
+    prev_p->link (tail_p);
   } // end FOR
 
   // process any sub-distributors
   for (typename std::vector<typename inherited::iterator_base>::const_iterator iterator = sub_distributors_a.begin ();
        iterator != sub_distributors_a.end ();
        ++iterator)
-    if (unlikely (!setup (*((*iterator).node),
-                          istream_in,
-                          tail_in)))
+    if (unlikely (!setup (*((*iterator).node))))
       return false;
 
   return true;
+}
+
+template <ACE_SYNCH_DECL,
+          typename TimePolicyType,
+          typename DistributorModuleType>
+ACE_Module<ACE_SYNCH_USE, TimePolicyType>*
+Stream_Layout_T<ACE_SYNCH_USE,
+                TimePolicyType,
+                DistributorModuleType>::makeSubStreamTail () const
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Layout_T::makeSubStreamTail"));
+
+  TASK_T* tail_writer_p = NULL, *tail_reader_p = NULL;
+  MODULE_T* module_p = NULL;
+
+  ACE_NEW_NORETURN (tail_writer_p,
+                    TAIL_WRITER_T ());
+  ACE_NEW_NORETURN (tail_reader_p,
+                    TAIL_READER_T ());
+  if (unlikely (!tail_writer_p || !tail_reader_p))
+  {
+    ACE_DEBUG ((LM_CRITICAL,
+                ACE_TEXT ("failed to allocate memory: \"%m\", aborting\n")));
+    delete tail_writer_p; tail_writer_p = NULL;
+    delete tail_reader_p; tail_reader_p = NULL;
+    return NULL;
+  } // end IF
+  ACE_NEW_NORETURN (module_p,
+                    MODULE_T (ACE_TEXT (STREAM_MODULE_TAIL_NAME),
+                              tail_writer_p, tail_reader_p,
+                              NULL,
+                              ACE_Module_Base::M_DELETE));
+  if (unlikely (!module_p))
+  {
+    ACE_DEBUG ((LM_CRITICAL,
+                ACE_TEXT ("failed to allocate memory: \"%m\", aborting\n")));
+    delete tail_writer_p; tail_writer_p = NULL;
+    delete tail_reader_p; tail_reader_p = NULL;
+    return NULL;
+  } // end IF
+
+  return module_p;
 }
 
 template <ACE_SYNCH_DECL,

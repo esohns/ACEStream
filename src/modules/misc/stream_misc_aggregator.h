@@ -250,6 +250,14 @@ class Stream_Module_Aggregator_WriterTask_T
   //std::string               outboundStreamName_;
 
  private:
+  // convenient types
+  typedef Stream_Module_Aggregator_WriterTask_T<ACE_SYNCH_USE,
+                                                TimePolicyType,
+                                                ConfigurationType,
+                                                ControlMessageType,
+                                                DataMessageType,
+                                                SessionMessageType> OWN_TYPE_T;
+
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_Aggregator_WriterTask_T ())
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_Aggregator_WriterTask_T (const Stream_Module_Aggregator_WriterTask_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_Aggregator_WriterTask_T& operator= (const Stream_Module_Aggregator_WriterTask_T&))
