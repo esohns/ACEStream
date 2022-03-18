@@ -2204,7 +2204,7 @@ idle_initialize_UI_cb (gpointer userData_in)
 
   GtkSpinButton* spin_button_p =
     GTK_SPIN_BUTTON (gtk_builder_get_object ((*iterator).second.second,
-                                             ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_SPINBUTTON_VIDEO_DATAMESSAGES_NAME)));
+                                             ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_SPINBUTTON_VIDEO_MESSAGES_NAME)));
   ACE_ASSERT (spin_button_p);
   gtk_spin_button_set_range (spin_button_p,
                              0.0,
@@ -3312,7 +3312,7 @@ idle_update_info_display_cb (gpointer userData_in)
         {
           spin_button_p =
             GTK_SPIN_BUTTON (gtk_builder_get_object ((*iterator).second.second,
-                                                     ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_SPINBUTTON_VIDEO_DATAMESSAGES_NAME)));
+                                                     ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_SPINBUTTON_VIDEO_MESSAGES_NAME)));
           ACE_ASSERT (spin_button_p);
           gtk_spin_button_set_value (spin_button_p, 0.0);
           spin_button_p =
@@ -3334,7 +3334,7 @@ idle_update_info_display_cb (gpointer userData_in)
 
           spin_button_p =
             GTK_SPIN_BUTTON (gtk_builder_get_object ((*iterator).second.second,
-                                                     ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_SPINBUTTON_VIDEO_DATAMESSAGES_NAME)));
+                                                     ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_SPINBUTTON_VIDEO_MESSAGES_NAME)));
           ACE_ASSERT (spin_button_p);
           break;
         }
@@ -5987,9 +5987,9 @@ combobox_display_changed_cb (GtkWidget* widget_in,
 //  Stream_AVSave_V4L_StreamConfiguration_t::ITERATOR_T iterator_2 =
 //    ui_cb_data_p->configuration->videoStreamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
 //  ACE_ASSERT (iterator_2 != ui_cb_data_p->configuration->videoStreamConfiguration.end ());
-  Stream_AVSave_ALSA_V4L_StreamConfiguration_t::ITERATOR_T iterator_3 =
-    ui_cb_data_p->configuration->videoStreamConfiguration.find (Stream_Visualization_Tools::rendererToModuleName (STREAM_VISUALIZATION_VIDEORENDERER_X11));
-  ACE_ASSERT (iterator_3 != ui_cb_data_p->configuration->videoStreamConfiguration.end ());
+//  Stream_AVSave_ALSA_V4L_StreamConfiguration_t::ITERATOR_T iterator_3 =
+//    ui_cb_data_p->configuration->videoStreamConfiguration.find (Stream_Visualization_Tools::rendererToModuleName (STREAM_VISUALIZATION_VIDEORENDERER_X11));
+//  ACE_ASSERT (iterator_3 != ui_cb_data_p->configuration->videoStreamConfiguration.end ());
 #endif // ACE_WIN32 || ACE_WIN64
   ACE_ASSERT (iterator != ui_cb_data_base_p->UIState->builders.end ());
 
@@ -6082,9 +6082,9 @@ combobox_display_changed_cb (GtkWidget* widget_in,
 
 #if GTK_CHECK_VERSION (3,0,0)
 gboolean
-drawingarea_draw_cb (GtkWidget* widget_in,
-                     cairo_t* context_in,
-                     gpointer userData_in)
+drawingarea_video_draw_cb (GtkWidget* widget_in,
+                           cairo_t* context_in,
+                           gpointer userData_in)
 {
   STREAM_TRACE (ACE_TEXT ("::drawingarea_draw_cb"));
 
@@ -6106,14 +6106,14 @@ drawingarea_draw_cb (GtkWidget* widget_in,
   }
 
   return TRUE; // do not propagate
-} // drawingarea_draw_cb
+} // drawingarea_video_draw_cb
 #else
 gboolean
-drawingarea_expose_event_cb (GtkWidget* widget_in,
-                             GdkEvent* event_in,
-                             gpointer userData_in)
+drawingarea_video_expose_event_cb (GtkWidget* widget_in,
+                                   GdkEvent* event_in,
+                                   gpointer userData_in)
 {
-  STREAM_TRACE (ACE_TEXT ("::drawingarea_draw_cb"));
+  STREAM_TRACE (ACE_TEXT ("::drawingarea_video_expose_event_cb"));
 
   ACE_UNUSED_ARG (event_in);
 
@@ -6144,7 +6144,7 @@ drawingarea_expose_event_cb (GtkWidget* widget_in,
   cairo_destroy (context_p);
 
   return TRUE; // do not propagate
-} // drawingarea_expose_event_cb
+} // drawingarea_video_expose_event_cb
 #endif // GTK_CHECK_VERSION (3,0,0)
 
 //void
@@ -6213,28 +6213,22 @@ drawingarea_expose_event_cb (GtkWidget* widget_in,
 //#endif
 //} // drawingarea_configure_event_cb
 void
-drawingarea_size_allocate_cb (GtkWidget* widget_in,
-                              GdkRectangle* allocation_in,
-                              gpointer userData_in)
+drawingarea_video_size_allocate_cb (GtkWidget* widget_in,
+                                    GdkRectangle* allocation_in,
+                                    gpointer userData_in)
 {
-  STREAM_TRACE (ACE_TEXT ("::drawingarea_size_allocate_cb"));
+  STREAM_TRACE (ACE_TEXT ("::drawingarea_video_size_allocate_cb"));
 
   // sanity check(s)
   ACE_ASSERT (widget_in);
-
-  GdkWindow* window_p = gtk_widget_get_window (widget_in);
-
-  // sanity check(s)
   ACE_ASSERT (allocation_in);
   ACE_ASSERT (userData_in);
-  ACE_ASSERT (window_p);
-
+  GdkWindow* window_p = gtk_widget_get_window (widget_in);
+  if (!window_p)
+    return; // not realized yet
   struct Stream_AVSave_UI_CBData* ui_cb_data_base_p =
     static_cast<struct Stream_AVSave_UI_CBData*> (userData_in);
-
-  // sanity check(s)
   ACE_ASSERT (ui_cb_data_base_p);
-
   Common_UI_GTK_BuildersIterator_t iterator =
     ui_cb_data_base_p->UIState->builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN));
   // sanity check(s)
@@ -6311,7 +6305,7 @@ drawingarea_size_allocate_cb (GtkWidget* widget_in,
   ACE_DEBUG ((LM_DEBUG,
               ACE_TEXT ("window resized to %dx%d\n"),
               allocation_in->width, allocation_in->height));
-} // drawingarea_size_allocate_cb
+} // drawingarea_video_size_allocate_cb
 
 void
 filechooserbutton_cb (GtkFileChooserButton* fileChooserButton_in,
@@ -6510,16 +6504,18 @@ key_cb (GtkWidget* widget_in,
   } // end SWITCH
 
   return TRUE; // done (do not propagate further)
-}
+} // key_cb
+
 gboolean
-drawingarea_key_press_event_cb (GtkWidget* widget_in,
-                                GdkEventKey* eventKey_in,
-                                gpointer userData_in)
+drawingarea_audio_key_press_event_cb (GtkWidget* widget_in,
+                                      GdkEventKey* eventKey_in,
+                                      gpointer userData_in)
 {
-  STREAM_TRACE (ACE_TEXT ("::drawingarea_key_press_event_cb"));
+  STREAM_TRACE (ACE_TEXT ("::drawingarea_audio_key_press_event_cb"));
 
   return key_cb (widget_in, eventKey_in, userData_in);
-};
+} // drawingarea_audio_key_press_event_cb
+
 gboolean
 dialog_main_key_press_event_cb (GtkWidget* widget_in,
                                 GdkEventKey* eventKey_in,
@@ -6528,7 +6524,7 @@ dialog_main_key_press_event_cb (GtkWidget* widget_in,
   STREAM_TRACE (ACE_TEXT ("::dialog_main_key_press_event_cb"));
 
   return key_cb (widget_in, eventKey_in, userData_in);
-};
+} // dialog_main_key_press_event_cb
 
 #ifdef __cplusplus
 }
