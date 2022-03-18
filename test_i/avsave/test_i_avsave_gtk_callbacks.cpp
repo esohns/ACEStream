@@ -2060,7 +2060,8 @@ stream_processing_function (void* arg_in)
   // *NOTE*: make sure the video stream starts first so that it becomes stream 0
   //         in the AVI file (some players don't play the audio otherwise; might
   //         be a standards issue)
-//  ACE_OS::sleep (ACE_Time_Value (1, 0));
+  // *TODO*: this causes audio to trail be this amount !!
+  ACE_OS::sleep (ACE_Time_Value (0, 500000));
   // *IMPORTANT NOTE*: after (!) starting the first stream, inform the
   //                   aggregator module of its' new 'owner' before (!) starting
   //                   the second stream; otherwise, session messages cannot be

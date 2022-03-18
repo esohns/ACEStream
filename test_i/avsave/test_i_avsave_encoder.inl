@@ -294,6 +294,7 @@ Test_I_AVSave_Encoder_T<ACE_SYNCH_USE,
         const_cast<typename SessionDataContainerType::DATA_T&> (inherited::sessionData_->getR ());
       // *TODO*: remove type inferences
       ACE_ASSERT (!session_data_r.formats.empty ());
+      ACE_ASSERT (!session_data_r.targetFileName.empty ());
 
       int result = -1;
       struct Stream_MediaFramework_FFMPEG_AudioMediaType audio_media_type_s;
@@ -343,14 +344,16 @@ Test_I_AVSave_Encoder_T<ACE_SYNCH_USE,
       //output_format_p->audio_codec = audio_coded_id;
       //output_format_p->video_codec = video_coded_id;
 
-      result = avio_open (&inherited::formatContext_->pb,
-                          ACE_TEXT_ALWAYS_CHAR (session_data_r.targetFileName.c_str ()),
-                          AVIO_FLAG_WRITE);
+      result =
+        avio_open (&inherited::formatContext_->pb,
+                   ACE_TEXT_ALWAYS_CHAR (session_data_r.targetFileName.c_str ()),
+                   AVIO_FLAG_WRITE);
       if (unlikely (result < 0))
       {
         ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("%s: avio_open() failed: \"%m\", aborting\n"),
-                    inherited::mod_->name ()));
+                    ACE_TEXT ("%s: avio_open(\"%s\") failed: \"%m\", aborting\n"),
+                    inherited::mod_->name (),
+                    ACE_TEXT_ALWAYS_CHAR (session_data_r.targetFileName.c_str ())));
         goto error;
       } // end IF
 
@@ -546,6 +549,7 @@ video:
       /* Resolution must be a multiple of two. */
       inherited::videoCodecContext_->width = inherited::videoFrame_->width;
       inherited::videoCodecContext_->height = inherited::videoFrame_->height;
+      inherited::videoCodecContext_->framerate = video_media_type_s.frameRate;
       /* timebase: This is the fundamental unit of time (in seconds) in terms
        * of which frame timestamps are represented. For fixed-fps content,
        * timebase should be 1/framerate and timestamp increments should be

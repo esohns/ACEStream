@@ -1214,6 +1214,7 @@ do_work (const struct Stream_Device_Identifier& deviceIdentifier_in,
   audio_modulehandler_configuration.deviceIdentifier.identifier =
     STREAM_LIB_ALSA_CAPTURE_DEFAULT_DEVICE_NAME;
   audio_modulehandler_configuration.messageAllocator = &message_allocator;
+  audio_modulehandler_configuration.targetFileName = targetFilename_in;
 
   video_modulehandler_configuration.allocatorConfiguration = &allocator_configuration;
   video_modulehandler_configuration.buffers =
