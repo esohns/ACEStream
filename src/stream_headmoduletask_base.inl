@@ -736,6 +736,8 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
     &inherited::sessionData_->getR ();
   bool stop_processing_b = false;
   bool done_b = false;
+  bool finish_b = true;
+  bool aborted_b = false;
 
   do
   {
@@ -788,14 +790,16 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
         // *IMPORTANT NOTE*: when close()d manually (i.e. on a user abort),
         //                   the stream may not have finish()ed
         { ACE_GUARD_RETURN (ACE_Thread_Mutex, aGuard, inherited::lock_, -1);
-          if (!sessionEndSent_ && !sessionEndProcessed_)
-          {
-            // enqueue(/process) STREAM_SESSION_END
-            finished (false); // recurse upstream ?
-            message_block_p->release (); message_block_p = NULL;
-            continue;
-          } // end IF
+          if (unlikely (sessionEndSent_ || sessionEndProcessed_))
+            finish_b = false;
         } // end lock scope
+        if (likely (finish_b))
+        {
+          // enqueue(/process) STREAM_SESSION_END
+          finished (false); // recurse upstream ?
+          message_block_p->release (); message_block_p = NULL;
+          continue;
+        } // end IF
 
         // *NOTE*: this is racy; the penultimate thread may have left svc() and
         //         not have decremented thr_count_ yet. In this case, the
@@ -877,14 +881,17 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
 
         if (unlikely (stop_processing_b)) // <-- SESSION_END has been processed || finished || serious error
         { stop_processing_b = false; // reset, just in case...
+          finish_b = true;
           { ACE_GUARD_RETURN (ACE_Thread_Mutex, aGuard, inherited::lock_, -1);
-            if (unlikely (!sessionEndSent_ && !sessionEndProcessed_))
-            {
-              // enqueue(/process) STREAM_SESSION_END
-              finished (false); // recurse upstream ?
-              continue;
-            } // end IF
+            if (unlikely (sessionEndSent_ || sessionEndProcessed_))
+              finish_b = false;
           } // end lock scope
+          if (likely (finish_b))
+          {
+            // enqueue(/process) STREAM_SESSION_END
+            finished (false); // recurse upstream ?
+            continue;
+          } // end IF
         } // end IF
 
         break;
@@ -898,23 +905,27 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
     { ACE_ASSERT (session_data_p && session_data_p->lock);
       ACE_GUARD_RETURN (ACE_SYNCH_MUTEX_T, aGuard, *session_data_p->lock, -1);
       // *TODO*: remove type inferences
-      if (unlikely (session_data_p->aborted))
-      {
-        { ACE_GUARD_RETURN (ACE_Thread_Mutex, aGuard, inherited::lock_, -1);
-          if (!sessionEndSent_ && !sessionEndProcessed_)
-          {
-            // *TODO*: remove type inferences
-            ACE_DEBUG ((LM_DEBUG,
-                        ACE_TEXT ("%s: session (id was: %u) aborted\n"),
-                        inherited::mod_->name (),
-                        session_data_p->sessionId));
-            // enqueue(/process) STREAM_SESSION_END
-            finished (false); // recurse upstream ?
-            continue;
-          } // end IF
-        } // end lock scope
-      } // end IF
+      aborted_b = session_data_p->aborted;
+      if (unlikely (aborted_b))
+        ACE_DEBUG ((LM_DEBUG,
+                    ACE_TEXT ("%s: session (id was: %u) aborted\n"),
+                    inherited::mod_->name (),
+                    session_data_p->sessionId));
     } // end lock scope
+    if (unlikely (aborted_b))
+    {
+      finish_b = true;
+      { ACE_GUARD_RETURN (ACE_Thread_Mutex, aGuard, inherited::lock_, -1);
+        if (unlikely (sessionEndSent_ || sessionEndProcessed_))
+          finish_b = false;
+      } // end lock scope
+      if (likely (finish_b))
+      {
+        // enqueue(/process) STREAM_SESSION_END
+        finished (false); // recurse upstream ?
+        continue;
+      } // end IF
+    } // end IF
   } while (true);
 
   ACE_DEBUG ((LM_DEBUG,

@@ -289,9 +289,8 @@ Stream_Module_Aggregator_WriterTask_T<ACE_SYNCH_USE,
   Stream_SessionId_t session_id = 0;
   SESSIONID_TO_STREAM_MAP_ITERATOR_T iterator;
   TASK_T* task_p = NULL;
-  int result = 0, result_2 = -1;
+  int result = 0;
   bool stop_processing = false;
-  ACE_Message_Block* message_block_p = NULL;
   bool forward_b = true;
 
   // step1: handle message
@@ -337,33 +336,6 @@ Stream_Module_Aggregator_WriterTask_T<ACE_SYNCH_USE,
 
       ACE_ASSERT ((*iterator_2).second);
       task_p = (*iterator_2).second->writer ();
-      ACE_ASSERT (task_p);
-
-      ACE_ASSERT (!message_block_p);
-      message_block_p = messageBlock_in->duplicate ();
-      if (unlikely (!message_block_p))
-      {
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("%s: failed to ACE_Message_Block::duplicate(): \"%m\", aborting\n"),
-                    inherited::mod_->name ()));
-        result = -1;
-        break;
-      } // end IF
-
-      result_2 = task_p->put (message_block_p,
-                              timeValue_in);
-      if (unlikely (result_2 == -1))
-      {
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("%s: failed to ACE_Task::put(): \"%m\", continuing\n"),
-                    (*iterator_2).second->name ()));
-
-        // clean up
-        message_block_p->release ();
-
-        result = -1;
-      } // end IF
-      message_block_p = NULL;
 
       forward_b = false;
 
@@ -375,7 +347,17 @@ continue_:
   if (forward_b)
     return inherited::put_next (messageBlock_in, timeValue_in);
 
-  messageBlock_in->release ();
+  ACE_ASSERT (task_p);
+  result = task_p->put (messageBlock_in,
+                        timeValue_in);
+  if (unlikely (result == -1))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s: failed to ACE_Task::put(): \"%m\", continuing\n"),
+                inherited::mod_->name ()));
+    return -1;
+  } // end IF
+
   return 0;
 }
 
@@ -1072,9 +1054,8 @@ Stream_Module_Aggregator_WriterTask_2<ACE_SYNCH_USE,
   Stream_SessionId_t session_id = 0;
   SESSIONID_TO_STREAM_MAP_ITERATOR_T iterator;
   TASK_T* task_p = NULL;
-  int result = 0, result_2 = -1;
+  int result = 0;
   bool stop_processing = false;
-  ACE_Message_Block* message_block_p = NULL;
   bool forward_b = true;
 
   // step1: handle message
@@ -1120,33 +1101,6 @@ Stream_Module_Aggregator_WriterTask_2<ACE_SYNCH_USE,
 
       ACE_ASSERT ((*iterator_2).second);
       task_p = (*iterator_2).second->writer ();
-      ACE_ASSERT (task_p);
-
-      ACE_ASSERT (!message_block_p);
-      message_block_p = messageBlock_in->duplicate ();
-      if (unlikely (!message_block_p))
-      {
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("%s: failed to ACE_Message_Block::duplicate(): \"%m\", aborting\n"),
-                    inherited::mod_->name ()));
-        result = -1;
-        break;
-      } // end IF
-
-      result_2 = task_p->put (message_block_p,
-                              timeValue_in);
-      if (unlikely (result_2 == -1))
-      {
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("%s: failed to ACE_Task::put(): \"%m\", continuing\n"),
-                    (*iterator_2).second->name ()));
-
-        // clean up
-        message_block_p->release ();
-
-        result = -1;
-      } // end IF
-      message_block_p = NULL;
 
       forward_b = false;
 
@@ -1158,7 +1112,17 @@ continue_:
   if (forward_b)
     return inherited::put_next (messageBlock_in, timeValue_in);
 
-  messageBlock_in->release ();
+  ACE_ASSERT (task_p);
+  result = task_p->put (messageBlock_in,
+                        timeValue_in);
+  if (unlikely (result == -1))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s: failed to ACE_Task::put(): \"%m\", continuing\n"),
+                inherited::mod_->name ()));
+    return -1;
+  } // end IF
+
   return 0;
 }
 

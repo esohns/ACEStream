@@ -1069,7 +1069,7 @@ Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
     Stream_MediaFramework_DirectSound_Tools::isFloat (*waveformatex_p);
   Stream_MediaFramework_DirectShow_Tools::free (media_type_s);
 #else
-  MediaType media_type_s;
+  struct Stream_MediaFramework_ALSA_MediaType media_type_s;
   inherited::getMediaType (session_data_r.formats.back (),
                            STREAM_MEDIATYPE_AUDIO,
                            media_type_s);

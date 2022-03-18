@@ -443,9 +443,11 @@ class Stream_AVSave_ALSA_Stream
   ACE_UNIMPLEMENTED_FUNC (Stream_AVSave_ALSA_Stream& operator= (const Stream_AVSave_ALSA_Stream&))
 
   // modules
-  Stream_AVSave_ALSA_Source_Module     source_;
-//  Stream_AVSave_StatisticReport_Module statisticReport_;
-  Stream_AVSave_ALSA_Tagger_Module     tagger_;
+  Stream_AVSave_ALSA_Source_Module      source_;
+//  Stream_AVSave_StatisticReport_Module  statisticReport_;
+  Stream_AVSave_Distributor_Module      distributor_;
+  Stream_AVSave_SpectrumAnalyzer_Module analyzer_;
+  Stream_AVSave_ALSA_Tagger_Module      tagger_;
 };
 #endif // ACE_WIN32 || ACE_WIN64
 

@@ -221,10 +221,23 @@ Stream_Module_Vis_GTK_Window_T<ACE_SYNCH_USE,
     {
       // sanity check(s)
       // *TODO*: remove type inference
-      ACE_ASSERT (inherited::configuration_);
+      ACE_ASSERT (inherited::sessionData_);
       ACE_ASSERT (!window_);// && !mainLoop_);
+      const typename SessionMessageType::DATA_T::DATA_T& session_data_r =
+        inherited::sessionData_->getR ();
+      ACE_ASSERT (!session_data_r.formats.empty ());
+
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+      struct _AMMediaType media_type_s;
+      ACE_OS::memset (&media_type_s, 0, sizeof (struct _AMMediaType));
+#else
+      struct Stream_MediaFramework_V4L_MediaType media_type_s;
+#endif // ACE_WIN32 || ACE_WIN64
+      inherited2::getMediaType (session_data_r.formats.back (),
+                                STREAM_MEDIATYPE_VIDEO,
+                                media_type_s);
       Common_Image_Resolution_t resolution_s =
-        inherited2::getResolution (inherited::configuration_->outputFormat);
+        inherited2::getResolution (media_type_s);
 
 #if GTK_CHECK_VERSION(3, 6, 0)
 #else

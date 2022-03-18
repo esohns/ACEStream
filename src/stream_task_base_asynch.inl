@@ -111,7 +111,7 @@ Stream_TaskBaseAsynch_T<ACE_SYNCH_USE,
                 inherited::mod_->name (),
                 result));
   } // end ELSE IF
-  inherited::msg_queue (NULL);
+//  inherited::msg_queue (NULL);
 }
 
 template <ACE_SYNCH_DECL,

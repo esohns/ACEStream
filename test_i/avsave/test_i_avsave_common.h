@@ -405,28 +405,37 @@ struct Stream_AVSave_ModuleHandlerConfiguration
    , sinus (false) // N/A
    , sinusFrequency (0.0) // N/A
 #if defined (GUI_SUPPORT)
-   , window (NULL)
+   , spectrumAnalyzer2DMode (STREAM_VIS_SPECTRUMANALYZER_DEFAULT_2DMODE)
+   , spectrumAnalyzerResolution (STREAM_VIS_SPECTRUMANALYZER_DEFAULT_BUFFER_SIZE)
 #endif // GUI_SUPPORT
    , targetFileName ()
+#if defined (GUI_SUPPORT)
+   , window (NULL)
+#endif // GUI_SUPPORT
   {
     concurrency = STREAM_HEADMODULECONCURRENCY_ACTIVE;
   }
 
 #if defined (FFMPEG_SUPPORT)
-  enum AVCodecID                  codecId;
+  enum AVCodecID                                    codecId;
 #endif // FFMPEG_SUPPORT
-  struct Stream_Device_Identifier deviceIdentifier; // source module
+  struct Stream_Device_Identifier                   deviceIdentifier; // source module
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  struct Common_UI_DisplayDevice  display; // display module
+  struct Common_UI_DisplayDevice                    display; // display module
 #else
-  struct Common_UI_Display        display; // display module
+  struct Common_UI_Display                          display; // display module
 #endif // ACE_WIN32 || ACE_WIN64
-  bool                            fullScreen;
-  bool                            sinus; // N/A
-  double                          sinusFrequency; // N/A
+  bool                                              fullScreen;
+  bool                                              sinus; // N/A
+  double                                            sinusFrequency; // N/A
+#if defined (GUI_SUPPORT)
+  enum Stream_Visualization_SpectrumAnalyzer_2DMode spectrumAnalyzer2DMode;
+  unsigned int                                      spectrumAnalyzerResolution;
+#endif // GUI_SUPPORT
+  std::string                                       targetFileName;
 #if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
-  GdkWindow*                      window;
+  GdkWindow*                                        window;
 #endif // GTK_USE
 #else
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -435,7 +444,6 @@ struct Stream_AVSave_ModuleHandlerConfiguration
   Window                          window;
 #endif // ACE_WIN32 || ACE_WIN64
 #endif // GUI_SUPPORT
-  std::string                     targetFileName;
 };
 //extern const char stream_name_string_[];
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
