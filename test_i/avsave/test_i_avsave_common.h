@@ -116,6 +116,7 @@ extern "C"
 
 #include "stream_vis_common.h"
 #include "stream_vis_defines.h"
+#include "stream_vis_gtk_cairo_spectrum_analyzer.h"
 
 #include "test_i_common.h"
 #include "test_i_configuration.h"
@@ -937,17 +938,21 @@ struct Stream_AVSave_UI_CBData
   Stream_AVSave_UI_CBData ()
    : Test_I_UI_CBData ()
    , dispatch (NULL)
+   , dispatch_2 (NULL)
    , eventSourceId (0)
    , isFirst (true)
    , progressData ()
+   , spectrumAnalyzerCBData ()
   {
     progressData.state = UIState;
   }
 
-  Common_IDispatch*                 dispatch;
-  guint                             eventSourceId; // display update-
-  bool                              isFirst; // first activation ?
-  struct Stream_AVSave_ProgressData progressData;
+  Common_IDispatch*                               dispatch; // video
+  Common_IDispatch*                               dispatch_2; // audio
+  guint                                           eventSourceId; // display update-
+  bool                                            isFirst; // first activation ?
+  struct Stream_AVSave_ProgressData               progressData;
+  struct acestream_visualization_gtk_cairo_cbdata spectrumAnalyzerCBData;
 };
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 class Stream_AVSave_DirectShow_Audio_Stream;

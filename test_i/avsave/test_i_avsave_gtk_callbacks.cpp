@@ -2060,7 +2060,7 @@ stream_processing_function (void* arg_in)
   // *NOTE*: make sure the video stream starts first so that it becomes stream 0
   //         in the AVI file (some players don't play the audio otherwise; might
   //         be a standards issue)
-  ACE_OS::sleep (ACE_Time_Value (1, 0));
+//  ACE_OS::sleep (ACE_Time_Value (1, 0));
   // *IMPORTANT NOTE*: after (!) starting the first stream, inform the
   //                   aggregator module of its' new 'owner' before (!) starting
   //                   the second stream; otherwise, session messages cannot be
@@ -2121,9 +2121,13 @@ stream_processing_function (void* arg_in)
   module_p =
     const_cast<Stream_Module_t*> (cb_data_p->videoStream->find (ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_GTK_CAIRO_DEFAULT_NAME_STRING)));
   ACE_ASSERT (module_p);
-  cb_data_p->dispatch =
-    dynamic_cast<Common_IDispatch*> (module_p->writer ());
+  cb_data_p->dispatch = dynamic_cast<Common_IDispatch*> (module_p->writer ());
   ACE_ASSERT (cb_data_p->dispatch);
+  module_p =
+    const_cast<Stream_Module_t*> (cb_data_p->audioStream->find (ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_GTK_SPECTRUM_ANALYZER_DEFAULT_NAME_STRING)));
+  ACE_ASSERT (module_p);
+  cb_data_p->dispatch_2 = dynamic_cast<Common_IDispatch*> (module_p->writer ());
+  ACE_ASSERT (cb_data_p->dispatch_2);
 #endif // ACE_WIN32 || ACE_WIN64
   stream_2->start ();
   stream_p->wait (true, false, false);
@@ -2378,15 +2382,13 @@ idle_initialize_UI_cb (gpointer userData_in)
   Stream_AVSave_ALSA_V4L_StreamConfiguration_t::ITERATOR_T iterator_2 =
     ui_cb_data_p->configuration->videoStreamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (iterator_2 != ui_cb_data_p->configuration->videoStreamConfiguration.end ());
-#if defined (GUI_SUPPORT)
   Stream_AVSave_ALSA_V4L_StreamConfiguration_t::ITERATOR_T iterator_3 =
     ui_cb_data_p->configuration->videoStreamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_LIBAV_RESIZE_DEFAULT_NAME_STRING)); // resize --> display
   ACE_ASSERT (iterator_3 != ui_cb_data_p->configuration->videoStreamConfiguration.end ());
-#else
-  Stream_AVSave_V4L_StreamConfiguration_t::ITERATOR_T iterator_3 =
-    ui_cb_data_p->configuration->videoStreamConfiguration.find (Stream_Visualization_Tools::rendererToModuleName (STREAM_VISUALIZATION_VIDEORENDERER_X11));
-  ACE_ASSERT (iterator_3 != ui_cb_data_p->configuration->videoStreamConfiguration.end ());
-#endif // GUI_SUPPORT
+  Stream_AVSave_ALSA_V4L_StreamConfiguration_t::ITERATOR_T iterator_4 =
+    ui_cb_data_p->configuration->audioStreamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_GTK_SPECTRUM_ANALYZER_DEFAULT_NAME_STRING));
+  ACE_ASSERT (iterator_4 != ui_cb_data_p->configuration->audioStreamConfiguration.end ());
+
   resolution_s.width =
       ui_cb_data_p->configuration->videoStreamConfiguration.configuration_->format.video.format.width;
   resolution_s.height =
@@ -2710,6 +2712,10 @@ idle_initialize_UI_cb (gpointer userData_in)
     GTK_DRAWING_AREA (gtk_builder_get_object ((*iterator).second.second,
                                               ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_DRAWINGAREA_VIDEO_NAME)));
   ACE_ASSERT (drawing_area_p);
+  GtkDrawingArea* drawing_area_2 =
+    GTK_DRAWING_AREA (gtk_builder_get_object ((*iterator).second.second,
+                                              ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_DRAWINGAREA_AUDIO_NAME)));
+  ACE_ASSERT (drawing_area_2);
 
   // step5: initialize updates
   { ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, ui_cb_data_base_p->UIState->lock, G_SOURCE_REMOVE);
@@ -2812,7 +2818,9 @@ idle_initialize_UI_cb (gpointer userData_in)
   gtk_widget_get_allocation (GTK_WIDGET (drawing_area_p),
                              &allocation);
   GdkWindow* window_p = gtk_widget_get_window (GTK_WIDGET (drawing_area_p));
-  ACE_ASSERT (window_p);
+  GdkWindow* window_2 = gtk_widget_get_window (GTK_WIDGET (drawing_area_2));
+  ACE_ASSERT (window_p && window_2);
+  ui_cb_data_base_p->spectrumAnalyzerCBData.window = window_2;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   switch (ui_cb_data_base_p->mediaFramework)
   {
@@ -2894,6 +2902,7 @@ idle_initialize_UI_cb (gpointer userData_in)
 //  ACE_ASSERT ((*iterator_3).second.second->window);
 
   (*iterator_2).second.second->window = window_p;
+  (*iterator_4).second.second->window = window_2;
 
   (*iterator_3).second.second->outputFormat.video.format.height =
       static_cast<__u32> (allocation.height);
@@ -3414,14 +3423,19 @@ idle_update_display_cb (gpointer userData_in)
     ui_cb_data_base_p->UIState->builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN));
   ACE_ASSERT (iterator != ui_cb_data_base_p->UIState->builders.end ());
 
-  GdkWindow* window_p = NULL;
-
-     // trigger refresh of the 2D area
+  // trigger refresh of the 2D areas
   GtkDrawingArea* drawing_area_p =
     GTK_DRAWING_AREA (gtk_builder_get_object ((*iterator).second.second,
                                               ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_DRAWINGAREA_VIDEO_NAME)));
   ACE_ASSERT (drawing_area_p);
+  GtkDrawingArea* drawing_area_2 =
+    GTK_DRAWING_AREA (gtk_builder_get_object ((*iterator).second.second,
+                                              ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_DRAWINGAREA_AUDIO_NAME)));
+  ACE_ASSERT (drawing_area_2);
   gdk_window_invalidate_rect (gtk_widget_get_window (GTK_WIDGET (drawing_area_p)),
+                              NULL,   // whole window
+                              FALSE); // invalidate children ?
+  gdk_window_invalidate_rect (gtk_widget_get_window (GTK_WIDGET (drawing_area_2)),
                               NULL,   // whole window
                               FALSE); // invalidate children ?
 
@@ -5926,7 +5940,7 @@ combobox_video_framerate_changed_cb (GtkWidget* widget_in,
 #endif // ACE_WIN32 || ACE_WIN64
   set_capture_format (ui_cb_data_base_p);
   update_buffer_size (ui_cb_data_base_p);
-} // combobox_rate_changed_cb
+} // combobox_video_framerate_changed_cb
 
 void
 combobox_display_changed_cb (GtkWidget* widget_in,
@@ -6082,11 +6096,37 @@ combobox_display_changed_cb (GtkWidget* widget_in,
 
 #if GTK_CHECK_VERSION (3,0,0)
 gboolean
+drawingarea_audio_draw_cb (GtkWidget* widget_in,
+                           cairo_t* context_in,
+                           gpointer userData_in)
+{
+  STREAM_TRACE (ACE_TEXT ("::drawingarea_audio_draw_cb"));
+
+  ACE_UNUSED_ARG (widget_in);
+
+     // sanity check(s)
+  struct Stream_AVSave_UI_CBData* ui_cb_data_base_p =
+    static_cast<struct Stream_AVSave_UI_CBData*> (userData_in);
+  ACE_ASSERT (ui_cb_data_base_p);
+  if (!ui_cb_data_base_p->dispatch_2)
+    return FALSE; // propagate event
+
+  try {
+    ui_cb_data_base_p->dispatch_2->dispatch (context_in);
+  } catch (...) {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("caught exception in Common_IDispatch::dispatch(), continuing\n")));
+    return FALSE; // propagate event
+  }
+
+  return TRUE; // do not propagate
+} // drawingarea_audio_draw_cb
+gboolean
 drawingarea_video_draw_cb (GtkWidget* widget_in,
                            cairo_t* context_in,
                            gpointer userData_in)
 {
-  STREAM_TRACE (ACE_TEXT ("::drawingarea_draw_cb"));
+  STREAM_TRACE (ACE_TEXT ("::drawingarea_video_draw_cb"));
 
   ACE_UNUSED_ARG (widget_in);
 
@@ -6108,6 +6148,47 @@ drawingarea_video_draw_cb (GtkWidget* widget_in,
   return TRUE; // do not propagate
 } // drawingarea_video_draw_cb
 #else
+gboolean
+drawingarea_audio_expose_event_cb (GtkWidget* widget_in,
+                                   GdkEvent* event_in,
+                                   gpointer userData_in)
+{
+  STREAM_TRACE (ACE_TEXT ("::drawingarea_audio_expose_event_cb"));
+
+  ACE_UNUSED_ARG (event_in);
+
+  // sanity check(s)
+  struct Stream_AVSave_UI_CBData* ui_cb_data_base_p =
+    static_cast<struct Stream_AVSave_UI_CBData*> (userData_in);
+  ACE_ASSERT (ui_cb_data_base_p);
+  if (!ui_cb_data_base_p->dispatch_2)
+    return FALSE; // propagate event
+  ACE_ASSERT (!ui_cb_data_base_p->spectrumAnalyzerCBData.context);
+  ACE_ASSERT (ui_cb_data_base_p->spectrumAnalyzerCBData.window);
+
+  ui_cb_data_base_p->spectrumAnalyzerCBData.context =
+    gdk_cairo_create (GDK_DRAWABLE (gtk_widget_get_window (widget_in)));
+  if (unlikely (!ui_cb_data_base_p->spectrumAnalyzerCBData.context))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to gdk_cairo_create(), aborting\n")));
+    return FALSE; // propagate event
+  } // end IF
+
+  try {
+    ui_cb_data_base_p->dispatch_2->dispatch (&ui_cb_data_base_p->spectrumAnalyzerCBData);
+  } catch (...) {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("caught exception in Common_IDispatch::dispatch(), continuing\n")));
+    cairo_destroy (ui_cb_data_base_p->spectrumAnalyzerCBData.context);
+    ui_cb_data_base_p->spectrumAnalyzerCBData.context = NULL;
+    return FALSE; // propagate event
+  }
+  cairo_destroy (ui_cb_data_base_p->spectrumAnalyzerCBData.context);
+  ui_cb_data_base_p->spectrumAnalyzerCBData.context = NULL;
+
+  return TRUE; // do not propagate
+} // drawingarea_audio_expose_event_cb
 gboolean
 drawingarea_video_expose_event_cb (GtkWidget* widget_in,
                                    GdkEvent* event_in,

@@ -1121,6 +1121,7 @@ do_work (const struct Stream_Device_Identifier& deviceIdentifier_in,
 #endif // GUI_SUPPORT
 #else
   struct Stream_AVSave_ALSA_V4L_ModuleHandlerConfiguration audio_modulehandler_configuration;
+  struct Stream_AVSave_ALSA_V4L_ModuleHandlerConfiguration audio_modulehandler_configuration_2; // analyzer --> display
   struct Stream_AVSave_ALSA_V4L_StreamConfiguration audio_stream_configuration;
   struct Stream_AVSave_ALSA_V4L_ModuleHandlerConfiguration video_modulehandler_configuration;
   struct Stream_AVSave_ALSA_V4L_ModuleHandlerConfiguration video_modulehandler_configuration_2; // converter --> display
@@ -1466,10 +1467,14 @@ do_work (const struct Stream_Device_Identifier& deviceIdentifier_in,
   configuration_in.audioStreamConfiguration.initialize (module_configuration,
                                                         audio_modulehandler_configuration,
                                                         audio_stream_configuration);
+  audio_modulehandler_configuration_2 = audio_modulehandler_configuration;
+  configuration_in.audioStreamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_GTK_SPECTRUM_ANALYZER_DEFAULT_NAME_STRING),
+                                                                    std::make_pair (&module_configuration,
+                                                                                    &audio_modulehandler_configuration_2)));
+
   configuration_in.videoStreamConfiguration.initialize (module_configuration,
                                                         video_modulehandler_configuration,
                                                         video_stream_configuration);
-
   video_modulehandler_configuration_2 = video_modulehandler_configuration;
   configuration_in.videoStreamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_LIBAV_CONVERTER_DEFAULT_NAME_STRING),
                                                                     std::make_pair (&module_configuration,
