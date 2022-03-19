@@ -662,20 +662,21 @@ Stream_Module_Aggregator_WriterTask_T<ACE_SYNCH_USE,
   // sanity check(s)
   ACE_ASSERT (message_inout);
 
-  enum Stream_SessionMessageType message_type_e = message_inout->type ();
   Stream_SessionId_t session_id = message_inout->sessionId ();
+  typename SessionMessageType::DATA_T& session_data_container_r =
+    const_cast<typename SessionMessageType::DATA_T&> (message_inout->getR ());
 
-  switch (message_type_e)
+  switch (message_inout->type ())
   {
     case STREAM_SESSION_MESSAGE_BEGIN:
 insert:
     {
-      typename inherited::TASK_BASE_T::ISTREAM_T* istream_p =
-          const_cast<typename inherited::TASK_BASE_T::ISTREAM_T*> (inherited::getP ());
-      ACE_ASSERT (istream_p);
+      const typename SessionMessageType::DATA_T::DATA_T& session_data_r =
+        session_data_container_r.getR ();
+      ACE_ASSERT (session_data_r.stream);
       { ACE_GUARD (ACE_SYNCH_MUTEX_T, aGuard, sessionLock_);
         sessions_.insert (std::make_pair (session_id,
-                                          istream_p));
+                                          session_data_r.stream));
       } // end lock scope
     } // *WARNING*: control falls through here
     case STREAM_SESSION_MESSAGE_LINK:
@@ -688,10 +689,9 @@ insert:
         if (iterator == sessions_.end ())
           goto insert;
 
-        ACE_ASSERT (inherited::sessionData_);
-        inherited::sessionData_->increase ();
+        session_data_container_r.increase ();
         sessionSessionData_.insert (std::make_pair (session_id,
-                                                    inherited::sessionData_));
+                                                    &session_data_container_r));
       } // end lock scope
 
       break;
@@ -1440,7 +1440,6 @@ insert:
       ACE_ASSERT (session_data_r.stream);
       { ACE_GUARD (ACE_SYNCH_MUTEX_T, aGuard, sessionLock_);
         sessions_.insert (std::make_pair (session_id,
-//                                          istream_p));
                                           session_data_r.stream));
       } // end lock scope
     } // *WARNING*: control falls through here

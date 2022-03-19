@@ -164,7 +164,6 @@ Test_I_AVSave_Encoder_T<ACE_SYNCH_USE,
   AVCodecContext* codec_context_p = NULL;
   AVFrame* frame_p = NULL;
   AVStream* stream_p = NULL;
-//  unsigned int stream_frame_size_i = 0;
 
   switch (message_inout->getMediaType ())
   {
@@ -174,7 +173,11 @@ Test_I_AVSave_Encoder_T<ACE_SYNCH_USE,
       frame_p = inherited::audioFrame_;
       frame_p->nb_samples =
         message_block_p->length () / inherited::audioFrameSize_;
-      frame_p->pts += frame_p->nb_samples;
+      frame_p->pts =
+        av_rescale_q (inherited::audioSamples_,
+                      (AVRational){1, inherited::audioCodecContext_->sample_rate},
+                      inherited::audioCodecContext_->time_base);
+      inherited::audioSamples_ += frame_p->nb_samples;
       stream_p = inherited::audioStream_;
       break;
     }
@@ -183,9 +186,8 @@ Test_I_AVSave_Encoder_T<ACE_SYNCH_USE,
       codec_context_p = inherited::videoCodecContext_;
       frame_p = inherited::videoFrame_;
       frame_p->nb_samples = 1;
-//        message_block_p->length () / inherited::videoFrameSize_;
-//      ACE_ASSERT (frame_p->nb_samples == 1);
-      ++frame_p->pts;
+      ++inherited::videoSamples_;
+      frame_p->pts = inherited::videoSamples_;
       stream_p = inherited::videoStream_;
       break;
     }
@@ -231,9 +233,22 @@ Test_I_AVSave_Encoder_T<ACE_SYNCH_USE,
       } // end ELSE IF
 
       /* rescale output packet timestamp values from codec to stream timebase */
-      av_packet_rescale_ts (&packet_s,
-                            codec_context_p->time_base,
-                            stream_p->time_base);
+      packet_s.pts =
+        av_rescale_q_rnd (packet_s.pts,
+                          codec_context_p->time_base,
+                          stream_p->time_base,
+                          static_cast<enum AVRounding> (AV_ROUND_NEAR_INF|AV_ROUND_PASS_MINMAX));
+      packet_s.dts =
+        av_rescale_q_rnd (packet_s.dts,
+                          codec_context_p->time_base,
+                          stream_p->time_base,
+                          static_cast<enum AVRounding> (AV_ROUND_NEAR_INF|AV_ROUND_PASS_MINMAX));
+      packet_s.duration = av_rescale_q (packet_s.duration,
+                                        codec_context_p->time_base,
+                                        stream_p->time_base);
+//      av_packet_rescale_ts (&packet_s,
+//                            codec_context_p->time_base,
+//                            stream_p->time_base);
       packet_s.stream_index = stream_p->index;
 
       /* Write the frame to the media file. */
@@ -465,11 +480,13 @@ audio:
           goto error;
         }
       } // end SWITCH
-      inherited::audioStream_->time_base.num = 1;
-      inherited::audioStream_->time_base.den =
-        inherited::audioCodecContext_->sample_rate;
-      inherited::audioCodecContext_->time_base =
+//      inherited::audioStream_->time_base.num = 1;
+//      inherited::audioStream_->time_base.den =
+//        inherited::audioCodecContext_->sample_rate;
+      inherited::audioCodecContext_->time_base.num = 1;
         inherited::audioStream_->time_base;
+      inherited::audioCodecContext_->time_base.den =
+        inherited::audioCodecContext_->sample_rate;
 
       inherited::audioFrame_->channels =
         inherited::audioCodecContext_->channels;
@@ -564,8 +581,8 @@ video:
                                   inherited::videoFrame_->height,
                                   1); // *TODO*: linesize alignment
 
-      inherited::videoStream_->time_base.num = 1;
-      inherited::videoStream_->time_base.den = video_media_type_s.frameRate.num;
+//      inherited::videoStream_->time_base.num = 1;
+//      inherited::videoStream_->time_base.den = video_media_type_s.frameRate.num;
       inherited::videoStream_->avg_frame_rate.num =
         video_media_type_s.frameRate.num;
       inherited::videoStream_->avg_frame_rate.den =
@@ -581,8 +598,9 @@ video:
        * of which frame timestamps are represented. For fixed-fps content,
        * timebase should be 1/framerate and timestamp increments should be
        * identical to 1. */
-      inherited::videoCodecContext_->time_base =
-        inherited::videoStream_->time_base;
+      inherited::videoCodecContext_->time_base.num = 1;
+      inherited::videoCodecContext_->time_base.den =
+        video_media_type_s.frameRate.num;
       inherited::videoCodecContext_->pkt_timebase =
         inherited::videoStream_->time_base;
 

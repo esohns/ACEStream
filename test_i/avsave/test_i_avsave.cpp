@@ -1206,7 +1206,9 @@ do_work (const struct Stream_Device_Identifier& deviceIdentifier_in,
   Stream_AVSave_ALSA_V4L_MessageAllocator_t message_allocator (TEST_I_MAX_MESSAGES, // maximum #buffers
                                                                &heap_allocator,     // heap allocator handle
                                                                true);               // block ?
-
+#if defined (_DEBUG)
+  configuration_in.ALSAConfiguration.asynch = false;
+#endif // _DEBUG
   audio_modulehandler_configuration.allocatorConfiguration =
     &allocator_configuration;
   audio_modulehandler_configuration.ALSAConfiguration =

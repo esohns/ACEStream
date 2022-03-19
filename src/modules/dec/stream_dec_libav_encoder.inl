@@ -74,12 +74,14 @@ Stream_Decoder_LibAVEncoder_T<ACE_SYNCH_USE,
  , audioCodecContext_ (NULL)
  , audioFrame_ (NULL)
  , audioFrameSize_ (0)
+ , audioSamples_ (0)
  , audioStream_ (NULL)
  , formatContext_ (NULL)
  , headerWritten_ (false)
  , videoCodecContext_ (NULL)
  , videoFrame_ (NULL)
  , videoFrameSize_ (0)
+ , videoSamples_ (0)
  , videoStream_ (NULL)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Decoder_LibAVEncoder_T::Stream_Decoder_LibAVEncoder_T"));
@@ -149,6 +151,7 @@ Stream_Decoder_LibAVEncoder_T<ACE_SYNCH_USE,
       av_frame_free (&audioFrame_); ACE_ASSERT (!audioFrame_);
     } // end IF
     audioFrameSize_ = 0;
+    audioSamples_ = 0;
     audioStream_ = NULL; // *TODO*: how are these freed ?
     if (formatContext_)
     {
@@ -162,6 +165,7 @@ Stream_Decoder_LibAVEncoder_T<ACE_SYNCH_USE,
       av_frame_free (&videoFrame_); ACE_ASSERT (!videoFrame_);
     } // end IF
     videoFrameSize_ = 0;
+    videoSamples_ = 0;
     videoStream_ = NULL; // *TODO*: how are these freed ?
   } // end IF
 
