@@ -535,6 +535,10 @@ error:
     }
     case STREAM_SESSION_MESSAGE_END:
     {
+      if (buffer_)
+      {
+        buffer_->release (); buffer_ = NULL;
+      } // end IF
       if (context_)
       {
         sws_freeContext (context_); context_ = NULL;

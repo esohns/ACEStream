@@ -471,6 +471,7 @@ continue_:
   Stream_MediaFramework_DirectShow_Tools::copy (configuration_in.configuration_->format,
                                                 media_type_s);
   session_data_p->formats.push_back (media_type_s);
+  session_data_p->stream = this;
   session_data_p->targetFileName = (*iterator).second.second->targetFileName;
 
   // step7: assemble stream
@@ -1177,6 +1178,10 @@ Stream_AVSave_DirectShow_Audio_Stream::Stream_AVSave_DirectShow_Audio_Stream ()
             ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_WAVEIN_CAPTURE_DEFAULT_NAME_STRING))
 // , statisticReport_ (this,
 //                     ACE_TEXT_ALWAYS_CHAR (MODULE_STAT_REPORT_DEFAULT_NAME_STRING))
+ , distributor_ (this,
+                 ACE_TEXT_ALWAYS_CHAR (STREAM_MISC_DISTRIBUTOR_DEFAULT_NAME_STRING))
+ , analyzer_ (this,
+              ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_GTK_SPECTRUM_ANALYZER_DEFAULT_NAME_STRING))
  , tagger_ (this,
             ACE_TEXT_ALWAYS_CHAR (STREAM_LIB_TAGGER_DEFAULT_NAME_STRING))
 {
@@ -1210,6 +1215,7 @@ Stream_AVSave_DirectShow_Audio_Stream::load (Stream_ILayout* layout_in,
 //  bool save_to_file_b = !(*iterator).second.second->targetFileName.empty ();
 
   layout_in->append (&source_, NULL, 0);
+  layout_in->append (&analyzer_, NULL, 0);
   layout_in->append (&tagger_, NULL, 0);
   ACE_ASSERT (inherited::configuration_->configuration_->module_2);
   layout_in->append (inherited::configuration_->configuration_->module_2, NULL, 0); // output is AVI
@@ -1259,6 +1265,7 @@ Stream_AVSave_DirectShow_Audio_Stream::initialize (const typename inherited::CON
   // *TODO*: remove type inferences
   ACE_ASSERT (session_data_p->formats.empty ());
   session_data_p->formats.push_back (configuration_in.configuration_->format);
+  session_data_p->stream = this;
   session_data_p->targetFileName = (*iterator).second.second->targetFileName;
 
   // ---------------------------------------------------------------------------
@@ -1669,7 +1676,6 @@ Stream_AVSave_ALSA_Stream::load (Stream_ILayout* layout_in,
   delete_out = false;
 
   // sanity check(s)
-//  ACE_ASSERT (layout_in->empty ());
   ACE_ASSERT (configuration_);
   typename inherited::CONFIGURATION_T::ITERATOR_T iterator =
       configuration_->find (ACE_TEXT_ALWAYS_CHAR (""));

@@ -175,7 +175,7 @@ Test_I_AVSave_Encoder_T<ACE_SYNCH_USE,
         message_block_p->length () / inherited::audioFrameSize_;
       frame_p->pts =
         av_rescale_q (inherited::audioSamples_,
-                      (AVRational){1, inherited::audioCodecContext_->sample_rate},
+                      {1, inherited::audioCodecContext_->sample_rate},
                       inherited::audioCodecContext_->time_base);
       inherited::audioSamples_ += frame_p->nb_samples;
       stream_p = inherited::audioStream_;

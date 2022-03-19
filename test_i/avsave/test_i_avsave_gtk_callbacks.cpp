@@ -1961,14 +1961,6 @@ stream_processing_function (void* arg_in)
         directshow_session_data_p->sessionId;
       converter << directshow_session_data_p->sessionId;
 
-      module_p =
-        const_cast<Stream_Module_t*> (directshow_cb_data_p->audioStream->find (ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_LIBAV_ENCODER_DEFAULT_NAME_STRING),
-                                                                               false,  // do not sanitize module names
-                                                                               false)); // do not recurse upstream
-      module_2 =
-        const_cast<Stream_Module_t*> (directshow_cb_data_p->audioStream->find (ACE_TEXT_ALWAYS_CHAR (STREAM_MISC_MESSAGEHANDLER_DEFAULT_NAME_STRING),
-                                                                               false,  // do not sanitize module names
-                                                                               false)); // do not recurse upstream
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
@@ -1995,14 +1987,6 @@ stream_processing_function (void* arg_in)
         mediafoundation_session_data_p->sessionId;
       converter << mediafoundation_session_data_p->sessionId;
 
-      module_p =
-        const_cast<Stream_Module_t*> (mediafoundation_cb_data_p->audioStream->find (ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_LIBAV_ENCODER_DEFAULT_NAME_STRING),
-                                                                                    false,  // do not sanitize module names
-                                                                                    false)); // do not recurse upstream
-      module_2 =
-        const_cast<Stream_Module_t*> (mediafoundation_cb_data_p->audioStream->find (ACE_TEXT_ALWAYS_CHAR (STREAM_MISC_MESSAGEHANDLER_DEFAULT_NAME_STRING),
-                                                                                    false,  // do not sanitize module names
-                                                                                    false)); // do not recurse upstream
       break;
     }
     default:
@@ -2053,33 +2037,41 @@ stream_processing_function (void* arg_in)
 
   ACE_ASSERT (stream_p && stream_2);
   stream_p->start ();
+  stream_2->start ();
+
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   switch (thread_data_p->CBData->mediaFramework)
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
     {
-      iset_p->setP (directshow_cb_data_p->audioStream);
-      iset_2->setP (directshow_cb_data_p->audioStream);
-
       module_p =
         const_cast<Stream_Module_t*> (directshow_cb_data_p->videoStream->find (ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_GTK_CAIRO_DEFAULT_NAME_STRING)));
       ACE_ASSERT (module_p);
       directshow_cb_data_p->dispatch =
         dynamic_cast<Common_IDispatch*> (module_p->writer ());
       ACE_ASSERT (directshow_cb_data_p->dispatch);
+      module_p =
+        const_cast<Stream_Module_t*> (directshow_cb_data_p->audioStream->find (ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_GTK_SPECTRUM_ANALYZER_DEFAULT_NAME_STRING)));
+      ACE_ASSERT (module_p);
+      directshow_cb_data_p->dispatch_2 = dynamic_cast<Common_IDispatch*> (module_p->writer ());
+      ACE_ASSERT (directshow_cb_data_p->dispatch_2);
+
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
     {
-      iset_p->setP (mediafoundation_cb_data_p->audioStream);
-      iset_2->setP (mediafoundation_cb_data_p->audioStream);
-
       module_p =
         const_cast<Stream_Module_t*> (mediafoundation_cb_data_p->videoStream->find (ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_GTK_CAIRO_DEFAULT_NAME_STRING)));
       ACE_ASSERT (module_p);
       mediafoundation_cb_data_p->dispatch =
         dynamic_cast<Common_IDispatch*> (module_p->writer ());
       ACE_ASSERT (mediafoundation_cb_data_p->dispatch);
+      module_p =
+        const_cast<Stream_Module_t*> (mediafoundation_cb_data_p->audioStream->find (ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_GTK_SPECTRUM_ANALYZER_DEFAULT_NAME_STRING)));
+      ACE_ASSERT (module_p);
+      mediafoundation_cb_data_p->dispatch_2 = dynamic_cast<Common_IDispatch*> (module_p->writer ());
+      ACE_ASSERT (mediafoundation_cb_data_p->dispatch_2);
+
       break;
     }
     default:
@@ -2102,7 +2094,7 @@ stream_processing_function (void* arg_in)
   cb_data_p->dispatch_2 = dynamic_cast<Common_IDispatch*> (module_p->writer ());
   ACE_ASSERT (cb_data_p->dispatch_2);
 #endif // ACE_WIN32 || ACE_WIN64
-  stream_2->start ();
+
   stream_p->wait (true, false, false);
   stream_2->wait (true, false, false);
 
@@ -2289,7 +2281,7 @@ idle_initialize_UI_cb (gpointer userData_in)
   struct _GUID format_s = GUID_NULL;
   struct Stream_AVSave_DirectShow_UI_CBData* directshow_cb_data_p = NULL;
   Stream_AVSave_DirectShow_StreamConfiguration_t::ITERATOR_T directshow_stream_iterator;
-  //Stream_AVSave_DirectShow_StreamConfiguration_t::ITERATOR_T directshow_stream_iterator_2;
+  Stream_AVSave_DirectShow_StreamConfiguration_t::ITERATOR_T directshow_stream_iterator_2;
   struct Stream_AVSave_MediaFoundation_UI_CBData* mediafoundation_cb_data_p =
     NULL;
   Stream_AVSave_MediaFoundation_StreamConfiguration_t::ITERATOR_T mediafoundation_stream_iterator;
@@ -2307,6 +2299,9 @@ idle_initialize_UI_cb (gpointer userData_in)
       //directshow_stream_iterator_2 =
       //  directshow_cb_data_p->configuration->videoStreamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_DIRECT3D_DEFAULT_NAME_STRING));
       //ACE_ASSERT (directshow_stream_iterator_2 != directshow_cb_data_p->configuration->videoStreamConfiguration.end ());
+      directshow_stream_iterator_2 =
+        directshow_cb_data_p->configuration->audioStreamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_GTK_SPECTRUM_ANALYZER_DEFAULT_NAME_STRING));
+      ACE_ASSERT (directshow_stream_iterator_2 != directshow_cb_data_p->configuration->audioStreamConfiguration.end ());
 
       format_s =
         directshow_cb_data_p->configuration->videoStreamConfiguration.configuration_->format.video.subtype;
@@ -2808,6 +2803,7 @@ idle_initialize_UI_cb (gpointer userData_in)
       //  NULL;
       //directshow_cb_data_p->configuration->direct3DConfiguration.presentationParameters.hDeviceWindow =
       //  gdk_win32_window_get_impl_hwnd (window_p);
+      (*directshow_stream_iterator_2).second.second->window = window_2;
 
       Common_Image_Resolution_t resolution_s;
       resolution_s.cx = allocation.width;
@@ -6083,17 +6079,23 @@ drawingarea_audio_draw_cb (GtkWidget* widget_in,
   ACE_ASSERT (ui_cb_data_base_p);
   if (!ui_cb_data_base_p->dispatch_2)
     return FALSE; // propagate event
+  ACE_ASSERT (!ui_cb_data_base_p->spectrumAnalyzerCBData.context);
+  ACE_ASSERT (ui_cb_data_base_p->spectrumAnalyzerCBData.window);
 
+  ui_cb_data_base_p->spectrumAnalyzerCBData.context = context_in;
   try {
-    ui_cb_data_base_p->dispatch_2->dispatch (context_in);
+    ui_cb_data_base_p->dispatch_2->dispatch (&ui_cb_data_base_p->spectrumAnalyzerCBData);
   } catch (...) {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("caught exception in Common_IDispatch::dispatch(), continuing\n")));
+    ui_cb_data_base_p->spectrumAnalyzerCBData.context = NULL;
     return FALSE; // propagate event
   }
+  ui_cb_data_base_p->spectrumAnalyzerCBData.context = NULL;
 
   return TRUE; // do not propagate
 } // drawingarea_audio_draw_cb
+
 gboolean
 drawingarea_video_draw_cb (GtkWidget* widget_in,
                            cairo_t* context_in,
@@ -6162,6 +6164,7 @@ drawingarea_audio_expose_event_cb (GtkWidget* widget_in,
 
   return TRUE; // do not propagate
 } // drawingarea_audio_expose_event_cb
+
 gboolean
 drawingarea_video_expose_event_cb (GtkWidget* widget_in,
                                    GdkEvent* event_in,

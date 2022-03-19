@@ -450,6 +450,18 @@ typedef Stream_Vis_Target_MediaFoundation_2<ACE_MT_SYNCH,
 
 #if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
+typedef Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_MT_SYNCH,
+                                                          Common_TimePolicy_t,
+                                                          struct Stream_AVSave_DirectShow_ModuleHandlerConfiguration,
+                                                          Stream_ControlMessage_t,
+                                                          Stream_AVSave_DirectShow_Message_t,
+                                                          Stream_AVSave_DirectShow_SessionMessage_t,
+                                                          Stream_AVSave_DirectShow_SessionData,
+                                                          Stream_AVSave_DirectShow_SessionData_t,
+                                                          Common_Timer_Manager_t,
+                                                          struct Stream_MediaFramework_DirectShow_AudioVideoFormat,
+                                                          double> Stream_AVSave_DirectShow_SpectrumAnalyzer;
+
 typedef Stream_Module_Vis_GTK_Cairo_T<ACE_MT_SYNCH,
                                       Common_TimePolicy_t,
                                       struct Stream_AVSave_DirectShow_ModuleHandlerConfiguration,
@@ -755,6 +767,13 @@ DATASTREAM_MODULE_INPUT_ONLY (Stream_AVSave_MediaFoundation_SessionData,        
                               libacestream_default_vis_mediafoundation_module_name_string,
                               Stream_INotify_t,                                           // stream notification interface type
                               Stream_AVSave_MediaFoundation_MediaFoundationDisplayNull); // writer type
+
+DATASTREAM_MODULE_INPUT_ONLY (Stream_AVSave_DirectShow_SessionData,                       // session data type
+                              enum Stream_SessionMessageType,                           // session event type
+                              struct Stream_AVSave_DirectShow_ModuleHandlerConfiguration, // module handler configuration type
+                              libacestream_default_vis_spectrum_analyzer_module_name_string,
+                              Stream_INotify_t,                                         // stream notification interface type
+                              Stream_AVSave_DirectShow_SpectrumAnalyzer);               // writer type
 
 DATASTREAM_MODULE_INPUT_ONLY (Stream_AVSave_DirectShow_SessionData,                // session data type
                               enum Stream_SessionMessageType,                   // session event type

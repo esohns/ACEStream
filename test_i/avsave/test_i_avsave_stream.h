@@ -258,9 +258,11 @@ class Stream_AVSave_DirectShow_Audio_Stream
   ACE_UNIMPLEMENTED_FUNC (Stream_AVSave_DirectShow_Audio_Stream& operator= (const Stream_AVSave_DirectShow_Audio_Stream&))
 
   // modules
-  Stream_AVSave_DirectShow_WaveIn_Source_Module source_;
+  Stream_AVSave_DirectShow_WaveIn_Source_Module    source_;
   //  Stream_AVSave_StatisticReport_Module statisticReport_;
-  Stream_AVSave_DirectShow_Audio_Tagger_Module  tagger_;
+  Stream_AVSave_DirectShow_Distributor_Module      distributor_;
+  Stream_AVSave_DirectShow_SpectrumAnalyzer_Module analyzer_;
+  Stream_AVSave_DirectShow_Audio_Tagger_Module     tagger_;
 };
 
 class Stream_AVSave_MediaFoundation_Audio_Stream

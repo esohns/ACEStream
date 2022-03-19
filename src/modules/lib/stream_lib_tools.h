@@ -127,7 +127,6 @@ class Stream_MediaFramework_Tools
   // v4l
   static bool isRGB (__u32); // format (fourcc)
 #if defined (FFMPEG_SUPPORT)
-  static enum AVCodecID ffmpegFormatToffmpegCodecId (enum AVSampleFormat); // format
   static enum _snd_pcm_format ffmpegFormatToALSAFormat (enum AVSampleFormat); // format
   static __u32 ffmpegFormatToV4lFormat (enum AVPixelFormat); // format
   static enum AVPixelFormat v4lFormatToffmpegFormat (__u32); // format (fourcc)
@@ -147,6 +146,7 @@ class Stream_MediaFramework_Tools
 
 #if defined (FFMPEG_SUPPORT)
   // ffmpeg
+  static enum AVCodecID ffmpegFormatToffmpegCodecId (enum AVSampleFormat); // format
   inline static std::string pixelFormatToString (enum AVPixelFormat format_in) { std::string result = ((format_in == AV_PIX_FMT_NONE) ? ACE_TEXT_ALWAYS_CHAR ("") : av_get_pix_fmt_name (format_in)); return result; }
 #endif // FFMPEG_SUPPORT
 

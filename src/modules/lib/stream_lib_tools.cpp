@@ -2121,43 +2121,6 @@ Stream_MediaFramework_Tools::isRGB (__u32 format_in)
 }
 
 #if defined (FFMPEG_SUPPORT)
-enum AVCodecID
-Stream_MediaFramework_Tools::ffmpegFormatToffmpegCodecId (enum AVSampleFormat format_in)
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_Tools::ffmpegFormatToffmpegCodecId"));
-
-  switch (format_in)
-  {
-    case AV_SAMPLE_FMT_U8:
-      return AV_CODEC_ID_PCM_U8;
-    case AV_SAMPLE_FMT_S16:
-      return ((ACE_BYTE_ORDER == ACE_LITTLE_ENDIAN) ? AV_CODEC_ID_PCM_S16LE : AV_CODEC_ID_PCM_S16BE);
-    case AV_SAMPLE_FMT_S32:
-      return ((ACE_BYTE_ORDER == ACE_LITTLE_ENDIAN) ? AV_CODEC_ID_PCM_S32LE : AV_CODEC_ID_PCM_S32BE);
-    case AV_SAMPLE_FMT_S64:
-      return ((ACE_BYTE_ORDER == ACE_LITTLE_ENDIAN) ? AV_CODEC_ID_PCM_S64LE : AV_CODEC_ID_PCM_S64BE);
-    case AV_SAMPLE_FMT_FLT:
-      return ((ACE_BYTE_ORDER == ACE_LITTLE_ENDIAN) ? AV_CODEC_ID_PCM_F32LE : AV_CODEC_ID_PCM_F32BE);
-    case AV_SAMPLE_FMT_DBL:
-      return ((ACE_BYTE_ORDER == ACE_LITTLE_ENDIAN) ? AV_CODEC_ID_PCM_F64LE : AV_CODEC_ID_PCM_F64BE);
-    case AV_SAMPLE_FMT_U8P:
-    case AV_SAMPLE_FMT_S16P:
-    case AV_SAMPLE_FMT_S32P:
-    case AV_SAMPLE_FMT_FLTP:
-    case AV_SAMPLE_FMT_DBLP:
-    case AV_SAMPLE_FMT_S64P:
-    default:
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("invalid/unknown ffmpeg sample format (was: %d), aborting\n"),
-                  format_in));
-      break;
-    }
-  } // end SWITCH
-
-  return AV_CODEC_ID_NONE;
-}
-
 enum _snd_pcm_format
 Stream_MediaFramework_Tools::ffmpegFormatToALSAFormat (enum AVSampleFormat format_in)
 {
@@ -3156,3 +3119,40 @@ Stream_MediaFramework_Tools::libCameraFormatToffmpegFormat (const libcamera::Pix
 #endif // FFMPEG_SUPPORT
 #endif // LIBCAMERA_SUPPORT
 #endif // ACE_WIN32 || ACE_WIN64
+
+enum AVCodecID
+Stream_MediaFramework_Tools::ffmpegFormatToffmpegCodecId (enum AVSampleFormat format_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_Tools::ffmpegFormatToffmpegCodecId"));
+
+  switch (format_in)
+  {
+    case AV_SAMPLE_FMT_U8:
+      return AV_CODEC_ID_PCM_U8;
+    case AV_SAMPLE_FMT_S16:
+      return ((ACE_BYTE_ORDER == ACE_LITTLE_ENDIAN) ? AV_CODEC_ID_PCM_S16LE : AV_CODEC_ID_PCM_S16BE);
+    case AV_SAMPLE_FMT_S32:
+      return ((ACE_BYTE_ORDER == ACE_LITTLE_ENDIAN) ? AV_CODEC_ID_PCM_S32LE : AV_CODEC_ID_PCM_S32BE);
+    case AV_SAMPLE_FMT_S64:
+      return ((ACE_BYTE_ORDER == ACE_LITTLE_ENDIAN) ? AV_CODEC_ID_PCM_S64LE : AV_CODEC_ID_PCM_S64BE);
+    case AV_SAMPLE_FMT_FLT:
+      return ((ACE_BYTE_ORDER == ACE_LITTLE_ENDIAN) ? AV_CODEC_ID_PCM_F32LE : AV_CODEC_ID_PCM_F32BE);
+    case AV_SAMPLE_FMT_DBL:
+      return ((ACE_BYTE_ORDER == ACE_LITTLE_ENDIAN) ? AV_CODEC_ID_PCM_F64LE : AV_CODEC_ID_PCM_F64BE);
+    case AV_SAMPLE_FMT_U8P:
+    case AV_SAMPLE_FMT_S16P:
+    case AV_SAMPLE_FMT_S32P:
+    case AV_SAMPLE_FMT_FLTP:
+    case AV_SAMPLE_FMT_DBLP:
+    case AV_SAMPLE_FMT_S64P:
+    default:
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("invalid/unknown ffmpeg sample format (was: %d), aborting\n"),
+                  format_in));
+      break;
+    }
+  } // end SWITCH
+
+  return AV_CODEC_ID_NONE;
+}
