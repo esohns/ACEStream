@@ -45,6 +45,7 @@ extern "C"
 #ifdef __cplusplus
 extern "C"
 {
+#include "libavcodec/codec_id.h"
 #include "libavutil/pixdesc.h"
 #include "libavutil/pixfmt.h"
 #include "libavutil/samplefmt.h"
@@ -126,6 +127,7 @@ class Stream_MediaFramework_Tools
   // v4l
   static bool isRGB (__u32); // format (fourcc)
 #if defined (FFMPEG_SUPPORT)
+  static enum AVCodecID ffmpegFormatToffmpegCodecId (enum AVSampleFormat); // format
   static enum _snd_pcm_format ffmpegFormatToALSAFormat (enum AVSampleFormat); // format
   static __u32 ffmpegFormatToV4lFormat (enum AVPixelFormat); // format
   static enum AVPixelFormat v4lFormatToffmpegFormat (__u32); // format (fourcc)

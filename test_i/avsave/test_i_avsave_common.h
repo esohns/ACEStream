@@ -249,9 +249,30 @@ struct Stream_AVSave_StatisticData
 };
 typedef Common_StatisticHandler_T<struct Stream_AVSave_StatisticData> Test_I_AVSave_StatisticHandler_t;
 
+struct Stream_AVSave_SessionDataBase
+ : Test_I_SessionData
+{
+  Stream_AVSave_SessionDataBase ()
+   : Test_I_SessionData ()
+   , stream (NULL)
+  {}
+
+  struct Stream_AVSave_SessionDataBase& operator+= (const struct Stream_AVSave_SessionDataBase& rhs_in)
+  {
+    // *NOTE*: the idea is to 'merge' the data
+    Test_I_SessionData::operator+= (rhs_in);
+
+    stream = (stream ? stream : rhs_in.stream);
+
+    return *this;
+  }
+
+  Stream_IStream_T<ACE_MT_SYNCH,
+                   Common_TimePolicy_t>* stream; // used by aggregator modules
+};
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 struct Stream_AVSave_DirectShow_StreamState;
-typedef Stream_SessionDataMediaBase_T<Test_I_SessionData,
+typedef Stream_SessionDataMediaBase_T<struct Stream_AVSave_SessionDataBase,
                                       struct Stream_MediaFramework_DirectShow_AudioVideoFormat,
                                       struct Stream_AVSave_DirectShow_StreamState,
                                       struct Stream_AVSave_StatisticData,
@@ -260,7 +281,7 @@ typedef Stream_SessionData_T<Stream_AVSave_DirectShow_SessionData> Stream_AVSave
 
 struct Stream_AVSave_MediaFoundation_StreamState;
 class Stream_AVSave_MediaFoundation_SessionData
- : public Stream_SessionDataMediaBase_T<Test_I_SessionData,
+ : public Stream_SessionDataMediaBase_T<struct Stream_AVSave_SessionDataBase,
                                         struct Stream_MediaFramework_MediaFoundation_AudioVideoFormat,
                                         struct Stream_AVSave_MediaFoundation_StreamState,
                                         struct Stream_AVSave_StatisticData,
@@ -268,7 +289,7 @@ class Stream_AVSave_MediaFoundation_SessionData
 {
  public:
   Stream_AVSave_MediaFoundation_SessionData ()
-   : Stream_SessionDataMediaBase_T<Test_I_SessionData,
+   : Stream_SessionDataMediaBase_T<struct Stream_AVSave_SessionDataBase,
                                    struct Stream_MediaFramework_MediaFoundation_AudioVideoFormat,
                                    struct Stream_AVSave_MediaFoundation_StreamState,
                                    struct Stream_AVSave_StatisticData,
@@ -283,7 +304,7 @@ class Stream_AVSave_MediaFoundation_SessionData
   Stream_AVSave_MediaFoundation_SessionData& operator= (const Stream_AVSave_MediaFoundation_SessionData& rhs_in)
   {
     // *NOTE*: the idea is to 'merge' the data
-    Stream_SessionDataMediaBase_T<Test_I_SessionData,
+    Stream_SessionDataMediaBase_T<struct Stream_AVSave_SessionDataBase,
                                   struct Stream_MediaFramework_MediaFoundation_AudioVideoFormat,
                                   struct Stream_AVSave_MediaFoundation_StreamState,
                                   struct Stream_AVSave_StatisticData,
@@ -302,7 +323,7 @@ class Stream_AVSave_MediaFoundation_SessionData
   Stream_AVSave_MediaFoundation_SessionData& operator+= (const Stream_AVSave_MediaFoundation_SessionData& rhs_in)
   {
     // *NOTE*: the idea is to 'merge' the data
-    Stream_SessionDataMediaBase_T<Test_I_SessionData,
+    Stream_SessionDataMediaBase_T<struct Stream_AVSave_SessionDataBase,
                                   struct Stream_MediaFramework_MediaFoundation_AudioVideoFormat,
                                   struct Stream_AVSave_MediaFoundation_StreamState,
                                   struct Stream_AVSave_StatisticData,
@@ -331,7 +352,7 @@ class Stream_AVSave_MediaFoundation_SessionData
 };
 typedef Stream_SessionData_T<Stream_AVSave_MediaFoundation_SessionData> Stream_AVSave_MediaFoundation_SessionData_t;
 #else
-typedef Stream_SessionDataMediaBase_T<Test_I_SessionData,
+typedef Stream_SessionDataMediaBase_T<struct Stream_AVSave_SessionDataBase,
                                       struct Stream_MediaFramework_ALSA_V4L_Format,
                                       struct Stream_AVSave_ALSA_V4L_StreamState,
                                       struct Stream_AVSave_StatisticData,

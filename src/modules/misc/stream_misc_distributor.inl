@@ -171,6 +171,35 @@ template <ACE_SYNCH_DECL,
           typename DataMessageType,
           typename SessionMessageType,
           typename SessionDataType>
+bool
+Stream_Miscellaneous_Distributor_WriterTask_T<ACE_SYNCH_USE,
+                                              TimePolicyType,
+                                              ConfigurationType,
+                                              ControlMessageType,
+                                              DataMessageType,
+                                              SessionMessageType,
+                                              SessionDataType>::initialize (const Stream_Branches_t& branches_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Miscellaneous_Distributor_WriterTask_T::initialize"));
+
+  // sanity check(s)
+  ACE_ASSERT (!branches_in.empty ());
+
+  { ACE_GUARD_RETURN (ACE_Thread_Mutex, aGuard, inherited::lock_, false);
+    branches_ = branches_in;
+    numberOfBranches_ = static_cast<unsigned int> (branches_in.size ());
+  } // end lock scope
+
+  return true;
+}
+
+template <ACE_SYNCH_DECL,
+          typename TimePolicyType,
+          typename ConfigurationType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
+          typename SessionDataType>
 void
 Stream_Miscellaneous_Distributor_WriterTask_T<ACE_SYNCH_USE,
                                               TimePolicyType,
@@ -338,35 +367,6 @@ error:
       break;
     }
   } // end SWITCH
-}
-
-template <ACE_SYNCH_DECL,
-          typename TimePolicyType,
-          typename ConfigurationType,
-          typename ControlMessageType,
-          typename DataMessageType,
-          typename SessionMessageType,
-          typename SessionDataType>
-bool
-Stream_Miscellaneous_Distributor_WriterTask_T<ACE_SYNCH_USE,
-                                              TimePolicyType,
-                                              ConfigurationType,
-                                              ControlMessageType,
-                                              DataMessageType,
-                                              SessionMessageType,
-                                              SessionDataType>::initialize (const Stream_Branches_t& branches_in)
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_Miscellaneous_Distributor_WriterTask_T::initialize"));
-
-  // sanity check(s)
-  ACE_ASSERT (!branches_in.empty ());
-
-  { ACE_GUARD_RETURN (ACE_Thread_Mutex, aGuard, inherited::lock_, false);
-    branches_ = branches_in;
-    numberOfBranches_ = static_cast<unsigned int> (branches_in.size ());
-  } // end lock scope
-
-  return true;
 }
 
 template <ACE_SYNCH_DECL,

@@ -2306,14 +2306,15 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
       //         this session message...
       if (likely (inherited::configuration_->generateSessionMessages))
       {
-        // *NOTE*: if the object is 'active', the session-begin message may be
-        //         processed earlier than 'this' returns, i.e. the transition
-        //         'starting' --> 'running' would fail
+        // *NOTE*: if the object is 'passive/concurrent', the session-begin
+        //         message may be processed earlier than 'this' returns, i.e.
+        //         the transition 'starting' --> 'running' would fail
         //         --> set the state early
         result = false; // <-- caller will not set the state
         { ACE_GUARD_RETURN (ACE_SYNCH_MUTEX_T, aGuard, *inherited2::stateLock_, false);
           inherited2::state_ = STREAM_STATE_SESSION_STARTING;
         } // end lock scope
+        inherited2::signal ();
 
         // *NOTE*: in 'concurrent' (server-side-)scenarios there is a race
         //         condition when the connection is close()d asynchronously
@@ -2379,13 +2380,12 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
           //         to newState_in is processed 'inline' by the calling thread,
           //         i.e. would complete 'before' the state has transitioned to
           //         'running' --> set the state early
+          if (result)
           { ACE_GUARD_RETURN (ACE_SYNCH_MUTEX_T, aGuard, *inherited2::stateLock_, false);
-            if (result)
-            {
-              result = false; // <-- caller will not set the state
-              inherited2::state_ = STREAM_STATE_SESSION_STARTING;
-            } // end IF
-          } // end lock scope
+            result = false; // <-- caller will not set the state
+            inherited2::state_ = STREAM_STATE_SESSION_STARTING;
+          } // end IF/lock scope
+          inherited2::signal ();
 
           { ACE_GUARD_RETURN (ACE_Thread_Mutex, aGuard_2, inherited::lock_, false);
             // sanity check(s)
@@ -2440,9 +2440,6 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
           //                   dedicated: svc() is not used); data is processed
           //                   in-line in put() by dispatching threads
 
-          // *NOTE*: in 'concurrent' (e.g. server-side-)scenarios there is a race
-          //         condition when the connection is close()d asynchronously
-          //         --> see below: line 2015
           bool release_lock = false;
           ACE_ASSERT (streamLock_);
           try {
@@ -2605,6 +2602,7 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
         result = false; // <-- caller will not set the state
         inherited2::state_ = STREAM_STATE_SESSION_STOPPING;
       } // end lock scope
+      inherited2::signal ();
 
       switch (inherited::configuration_->concurrency)
       {
@@ -2686,6 +2684,7 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
         result = false; // <-- caller will not set the state
         inherited2::state_ = STREAM_STATE_STOPPED;
       } // end lock scope
+      inherited2::signal ();
 
       inherited2::change (STREAM_STATE_FINISHED);
       break;

@@ -1254,6 +1254,10 @@ Stream_Base_T<ACE_SYNCH_USE,
                     module_p->name ()));
         return;
       }
+      ACE_DEBUG ((LM_DEBUG,
+                  ACE_TEXT ("%s: started session (id: %u)\n"),
+                  ACE_TEXT (StreamName),
+                  state_.sessionData->sessionId));
       return; // done
     }
     case STREAM_SESSION_MESSAGE_END:
@@ -1267,6 +1271,10 @@ Stream_Base_T<ACE_SYNCH_USE,
                     module_p->name ()));
         return;
       }
+      ACE_DEBUG ((LM_DEBUG,
+                  ACE_TEXT ("%s: stopped session (id: %u)\n"),
+                  ACE_TEXT (StreamName),
+                  state_.sessionData->sessionId));
       return; // done
     }
     default:

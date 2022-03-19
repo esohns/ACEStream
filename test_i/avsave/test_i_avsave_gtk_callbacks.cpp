@@ -1863,11 +1863,7 @@ stream_processing_function (void* arg_in)
   std::ostringstream converter;
   //ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, data_p->CBData->UIState->lock);
   Stream_IStreamControlBase* stream_p = NULL, *stream_2 = NULL;
-  Stream_Module_t* module_p = NULL, *module_2 = NULL;
-  Common_ISetP_T<ACE_Stream<ACE_MT_SYNCH,
-                            Common_TimePolicy_t> >* iset_p = NULL;
-  Common_ISetP_T<ACE_Stream<ACE_MT_SYNCH,
-                            Common_TimePolicy_t> >* iset_2 = NULL;
+  Stream_Module_t* module_p = NULL;
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   struct Stream_AVSave_DirectShow_UI_CBData* directshow_cb_data_p = NULL;
@@ -2038,14 +2034,14 @@ stream_processing_function (void* arg_in)
   cb_data_p->progressData.sessionId = session_data_p->sessionId;
   converter << session_data_p->sessionId;
 
-  module_p =
-    const_cast<Stream_Module_t*> (cb_data_p->audioStream->find (ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_LIBAV_ENCODER_DEFAULT_NAME_STRING),
-                                                                false,  // do not sanitize module names
-                                                                false)); // do not recurse upstream
-  module_2 =
-    const_cast<Stream_Module_t*> (cb_data_p->audioStream->find (ACE_TEXT_ALWAYS_CHAR (STREAM_MISC_MESSAGEHANDLER_DEFAULT_NAME_STRING),
-                                                                false,  // do not sanitize module names
-                                                                false)); // do not recurse upstream
+//  module_p =
+//    const_cast<Stream_Module_t*> (cb_data_p->audioStream->find (ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_LIBAV_ENCODER_DEFAULT_NAME_STRING),
+//                                                                false,  // do not sanitize module names
+//                                                                false)); // do not recurse upstream
+//  module_2 =
+//    const_cast<Stream_Module_t*> (cb_data_p->audioStream->find (ACE_TEXT_ALWAYS_CHAR (STREAM_MISC_MESSAGEHANDLER_DEFAULT_NAME_STRING),
+//                                                                false,  // do not sanitize module names
+//                                                                false)); // do not recurse upstream
 #endif // ACE_WIN32 || ACE_WIN64
 
   // generate context id
@@ -2057,27 +2053,6 @@ stream_processing_function (void* arg_in)
 
   ACE_ASSERT (stream_p && stream_2);
   stream_p->start ();
-  // *NOTE*: make sure the video stream starts first so that it becomes stream 0
-  //         in the AVI file (some players don't play the audio otherwise; might
-  //         be a standards issue)
-  // *TODO*: this causes audio to trail be this amount !!
-  ACE_OS::sleep (ACE_Time_Value (0, 500000));
-  // *IMPORTANT NOTE*: after (!) starting the first stream, inform the
-  //                   aggregator module of its' new 'owner' before (!) starting
-  //                   the second stream; otherwise, session messages cannot be
-  //                   routed correctly
-  // *NOTE*: default 'ownership' is always established during initialization
-  //         (see above), i.e. the aggregator module thinks it is 'owned' by the
-  //         video stream, as that was initialize()d last. Note how that implies
-  //         that the video stream HAS to be started first
-  ACE_ASSERT (module_p && module_2);
-  iset_p =
-    dynamic_cast<Common_ISetP_T<ACE_Stream<ACE_MT_SYNCH,
-                                           Common_TimePolicy_t> >*> (module_p);
-  iset_2 =
-    dynamic_cast<Common_ISetP_T<ACE_Stream<ACE_MT_SYNCH,
-                                           Common_TimePolicy_t> >*> (module_2);
-  ACE_ASSERT (iset_p && iset_2);
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   switch (thread_data_p->CBData->mediaFramework)
   {
@@ -2116,9 +2091,6 @@ stream_processing_function (void* arg_in)
     }
   } // end SWITCH
 #else
-  iset_p->setP (cb_data_p->audioStream);
-  iset_2->setP (cb_data_p->audioStream);
-
   module_p =
     const_cast<Stream_Module_t*> (cb_data_p->videoStream->find (ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_GTK_CAIRO_DEFAULT_NAME_STRING)));
   ACE_ASSERT (module_p);
@@ -6294,6 +6266,101 @@ drawingarea_video_expose_event_cb (GtkWidget* widget_in,
 //    allocation;
 //#endif
 //} // drawingarea_configure_event_cb
+void
+drawingarea_audio_size_allocate_cb (GtkWidget* widget_in,
+                                    GdkRectangle* allocation_in,
+                                    gpointer userData_in)
+{
+  STREAM_TRACE (ACE_TEXT ("::drawingarea_audio_size_allocate_cb"));
+
+  // sanity check(s)
+  ACE_ASSERT (widget_in);
+  ACE_ASSERT (allocation_in);
+  ACE_ASSERT (userData_in);
+  GdkWindow* window_p = gtk_widget_get_window (widget_in);
+  if (!window_p)
+    return; // not realized yet
+  struct Stream_AVSave_UI_CBData* ui_cb_data_base_p =
+    static_cast<struct Stream_AVSave_UI_CBData*> (userData_in);
+  ACE_ASSERT (ui_cb_data_base_p);
+  Common_UI_GTK_BuildersIterator_t iterator =
+    ui_cb_data_base_p->UIState->builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN));
+  // sanity check(s)
+  ACE_ASSERT (iterator != ui_cb_data_base_p->UIState->builders.end ());
+
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+    struct Stream_AVSave_DirectShow_UI_CBData* directshow_cb_data_p = NULL;
+    Stream_AVSave_DirectShow_StreamConfiguration_t::ITERATOR_T directshow_stream_iterator;
+    struct Stream_AVSave_MediaFoundation_UI_CBData* mediafoundation_cb_data_p =
+      NULL;
+    Stream_AVSave_MediaFoundation_StreamConfiguration_t::ITERATOR_T mediafoundation_stream_iterator;
+    switch (ui_cb_data_base_p->mediaFramework)
+    {
+      case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
+      {
+        directshow_cb_data_p =
+          static_cast<struct Stream_AVSave_DirectShow_UI_CBData*> (ui_cb_data_base_p);
+        ACE_ASSERT (directshow_cb_data_p->configuration);
+        directshow_stream_iterator =
+          directshow_cb_data_p->configuration->audioStreamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_GTK_SPECTRUM_ANALYZER_DEFAULT_NAME_STRING));
+        ACE_ASSERT (directshow_stream_iterator != directshow_cb_data_p->configuration->audioStreamConfiguration.end ());
+
+        Common_Image_Resolution_t resolution_s;
+        resolution_s.cx = allocation_in->width;
+        resolution_s.cy = allocation_in->height;
+        Stream_MediaFramework_DirectShow_Tools::setResolution (resolution_s,
+                                                               (*directshow_stream_iterator).second.second->outputFormat);
+        break;
+      }
+      case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
+      {
+        mediafoundation_cb_data_p =
+          static_cast<struct Stream_AVSave_MediaFoundation_UI_CBData*> (ui_cb_data_base_p);
+        ACE_ASSERT (mediafoundation_cb_data_p->configuration);
+        mediafoundation_stream_iterator =
+          mediafoundation_cb_data_p->configuration->audioStreamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_GTK_SPECTRUM_ANALYZER_DEFAULT_NAME_STRING));
+        ACE_ASSERT (mediafoundation_stream_iterator != mediafoundation_cb_data_p->configuration->audioStreamConfiguration.end ());
+        break;
+      }
+      default:
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("invalid/unknown media framework (was: %d), returning\n"),
+                    ui_cb_data_base_p->mediaFramework));
+        return;
+      }
+    } // end SWITCH
+#else
+  struct Stream_AVSave_V4L_UI_CBData* ui_cb_data_p =
+    static_cast<struct Stream_AVSave_V4L_UI_CBData*> (ui_cb_data_base_p);
+  ACE_ASSERT (ui_cb_data_p->configuration);
+  Stream_AVSave_ALSA_V4L_StreamConfiguration_t::ITERATOR_T iterator_2 =
+    ui_cb_data_p->configuration->audioStreamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
+  ACE_ASSERT (iterator_2 != ui_cb_data_p->configuration->audioStreamConfiguration.end ());
+  Stream_AVSave_ALSA_V4L_StreamConfiguration_t::ITERATOR_T iterator_3 =
+#if defined (GUI_SUPPORT)
+    ui_cb_data_p->configuration->audioStreamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_GTK_SPECTRUM_ANALYZER_DEFAULT_NAME_STRING));
+#else
+    ui_cb_data_p->configuration->audioStreamConfiguration.find (Stream_Visualization_Tools::rendererToModuleName (STREAM_VISUALIZATION_VIDEORENDERER_X11));
+#endif // GUI_SUPPORT
+  ACE_ASSERT (iterator_3 != ui_cb_data_p->configuration->audioStreamConfiguration.end ());
+
+  //  (*iterator_2).second.second->outputFormat.resolution.height =
+  //      allocation_in->height;
+  //  (*iterator_2).second.second->outputFormat.resolution.width =
+  //      allocation_in->width;
+  (*iterator_3).second.second->outputFormat.video.format.height =
+    allocation_in->height;
+  (*iterator_3).second.second->outputFormat.video.format.width =
+    allocation_in->width;
+#endif // ACE_WIN32 || ACE_WIN64
+  ACE_ASSERT (iterator != ui_cb_data_base_p->UIState->builders.end ());
+
+  ACE_DEBUG ((LM_DEBUG,
+              ACE_TEXT ("window resized to %dx%d\n"),
+              allocation_in->width, allocation_in->height));
+} // drawingarea_audio_size_allocate_cb
+
 void
 drawingarea_video_size_allocate_cb (GtkWidget* widget_in,
                                     GdkRectangle* allocation_in,

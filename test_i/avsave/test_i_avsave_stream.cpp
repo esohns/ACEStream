@@ -1597,23 +1597,7 @@ Stream_AVSave_V4L_Stream::initialize (const typename inherited::CONFIGURATION_T&
   // *TODO*: remove type inferences
   ACE_ASSERT (session_data_p->formats.empty ());
   session_data_p->formats.push_back (configuration_in.configuration_->format);
-//  if (!Stream_Device_Tools::getFormat (configuration_in.moduleHandlerConfiguration->fileDescriptor,
-//                                       session_data_r.v4l2Format))
-//  {
-//    ACE_DEBUG ((LM_ERROR,
-//                ACE_TEXT ("failed to Stream_Device_Tools::getFormat(%d), aborting\n"),
-//                configuration_in.moduleHandlerConfiguration->fileDescriptor));
-//    return false;
-//  } // end IF
-//  if (!Stream_Device_Tools::getFrameRate (configuration_in.moduleHandlerConfiguration->fileDescriptor,
-//                                          session_data_r.v4l2FrameRate))
-//  {
-//    ACE_DEBUG ((LM_ERROR,
-//                ACE_TEXT ("failed to Stream_Device_Tools::getFrameRate(%d), aborting\n"),
-//                configuration_in.moduleHandlerConfiguration->fileDescriptor));
-//    return false;
-//  } // end IF
-//  session_data_p->format = (*iterator).second.second->inputFormat;
+  session_data_p->stream = this;
   session_data_p->targetFileName = (*iterator).second.second->targetFileName;
 
   // ---------------------------------------------------------------------------
@@ -1743,6 +1727,7 @@ Stream_AVSave_ALSA_Stream::initialize (const typename inherited::CONFIGURATION_T
   // *TODO*: remove type inferences
   ACE_ASSERT (session_data_p->formats.empty ());
   session_data_p->formats.push_back (configuration_in.configuration_->format);
+  session_data_p->stream = this;
   session_data_p->targetFileName = (*iterator).second.second->targetFileName;
 
   // ---------------------------------------------------------------------------

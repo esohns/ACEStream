@@ -70,6 +70,10 @@ Test_I_AVSave_Encoder_T<ACE_SYNCH_USE,
                         MediaType>::Test_I_AVSave_Encoder_T (typename inherited::ISTREAM_T* stream_in)
 #endif // ACE_WIN32 || ACE_WIN64
  : inherited (stream_in)
+ , condition_ (inherited::lock_)
+ , isFirst_ (true)
+ , isLast_ (false)
+ , numberOfStreamsInitialized_ (0)
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_AVSave_Encoder_T::Test_I_AVSave_Encoder_T"));
 
@@ -119,6 +123,9 @@ Test_I_AVSave_Encoder_T<ACE_SYNCH_USE,
 
   if (inherited::isInitialized_)
   {
+    isFirst_ = true;
+    isLast_ = false;
+    numberOfStreamsInitialized_ = 0;
   } // end IF
 
   return inherited::initialize (configuration_in,
@@ -175,10 +182,10 @@ Test_I_AVSave_Encoder_T<ACE_SYNCH_USE,
     {
       codec_context_p = inherited::videoCodecContext_;
       frame_p = inherited::videoFrame_;
-      frame_p->nb_samples =
-        message_block_p->length () / inherited::videoFrameSize_;
-      ACE_ASSERT (frame_p->nb_samples == 1);
-      frame_p->pts += frame_p->nb_samples;
+      frame_p->nb_samples = 1;
+//        message_block_p->length () / inherited::videoFrameSize_;
+//      ACE_ASSERT (frame_p->nb_samples == 1);
+      ++frame_p->pts;
       stream_p = inherited::videoStream_;
       break;
     }
@@ -300,9 +307,10 @@ Test_I_AVSave_Encoder_T<ACE_SYNCH_USE,
       struct Stream_MediaFramework_FFMPEG_AudioMediaType audio_media_type_s;
       struct Stream_MediaFramework_FFMPEG_VideoMediaType video_media_type_s;
       const struct AVOutputFormat* output_format_p = NULL;
-      // *TODO*: derive these from the specified output format !
+      // *NOTE*: derive these from the specified input formats
       enum AVCodecID video_coded_id = AV_CODEC_ID_RAWVIDEO;
-      enum AVCodecID audio_coded_id = AV_CODEC_ID_PCM_S16LE;
+      enum AVCodecID audio_coded_id = AV_CODEC_ID_NONE;
+      bool is_first_b = true;
 
       inherited::getMediaType (session_data_r.formats.back (),
                                STREAM_MEDIATYPE_AUDIO,
@@ -311,9 +319,15 @@ Test_I_AVSave_Encoder_T<ACE_SYNCH_USE,
                                STREAM_MEDIATYPE_VIDEO,
                                video_media_type_s);
 
-      // *IMPORTANT NOTE*: only initialize the format/output context once
-      if (inherited::formatContext_)
-        goto continue_;
+      // *IMPORTANT NOTE*: initialize the format/output context only once
+      { ACE_GUARD (ACE_Thread_Mutex, aGuard, inherited::lock_);
+        if (!isFirst_)
+        {
+          is_first_b = false;
+          goto continue_;
+        } // end IF
+        isFirst_ = false;
+      } // end lock scope
 
       output_format_p =
           const_cast<struct AVOutputFormat*> (av_guess_format (ACE_TEXT_ALWAYS_CHAR ("avi"),
@@ -345,7 +359,7 @@ Test_I_AVSave_Encoder_T<ACE_SYNCH_USE,
       //output_format_p->video_codec = video_coded_id;
 
       result =
-        avio_open (&inherited::formatContext_->pb,
+        avio_open (&(inherited::formatContext_->pb),
                    ACE_TEXT_ALWAYS_CHAR (session_data_r.targetFileName.c_str ()),
                    AVIO_FLAG_WRITE);
       if (unlikely (result < 0))
@@ -358,9 +372,6 @@ Test_I_AVSave_Encoder_T<ACE_SYNCH_USE,
       } // end IF
 
 continue_:
-      ACE_ASSERT (inherited::formatContext_);
-      //ACE_ASSERT (inherited::formatContext_->oformat);
-
       switch (message_inout->getMediaType ())
       {
         case STREAM_MEDIATYPE_AUDIO:
@@ -391,6 +402,8 @@ continue_:
       } // end SWITCH
 
 audio:
+      audio_coded_id =
+        Stream_MediaFramework_Tools::ffmpegFormatToffmpegCodecId (audio_media_type_s.format);
       inherited::formatContext_->audio_codec =
         avcodec_find_encoder (audio_coded_id);
       if (unlikely (!inherited::formatContext_->audio_codec))
@@ -413,7 +426,8 @@ audio:
                     inherited::mod_->name ()));
         goto error;
       } // end IF
-      inherited::audioStream_->id = inherited::formatContext_->nb_streams - 1;
+//      inherited::audioStream_->id = inherited::formatContext_->nb_streams - 1;
+      inherited::audioStream_->id = 1;
 
       inherited::audioCodecContext_ =
         avcodec_alloc_context3 (inherited::formatContext_->audio_codec);
@@ -489,6 +503,18 @@ audio:
       avcodec_parameters_from_context (inherited::audioStream_->codecpar,
                                        inherited::audioCodecContext_);
 
+      { ACE_GUARD (ACE_Thread_Mutex, aGuard, inherited::lock_);
+        ++numberOfStreamsInitialized_;
+        result = condition_.signal ();
+        if (unlikely (result == -1))
+        {
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("%s: failed to ACE_Thread_Condition::signal(): \"%m\", aborting\n"),
+                      inherited::mod_->name ()));
+          goto error;
+        } // end IF
+      } // end lock scope
+
       goto continue_2;
 
 video:
@@ -514,7 +540,8 @@ video:
                     inherited::mod_->name ()));
         goto error;
       } // end IF
-      inherited::videoStream_->id = inherited::formatContext_->nb_streams - 1;
+      inherited::videoStream_->id = 0;
+//      inherited::videoStream_->id = inherited::formatContext_->nb_streams - 1;
 
       inherited::videoCodecContext_ =
         avcodec_alloc_context3 (inherited::formatContext_->video_codec);
@@ -556,6 +583,8 @@ video:
        * identical to 1. */
       inherited::videoCodecContext_->time_base =
         inherited::videoStream_->time_base;
+      inherited::videoCodecContext_->pkt_timebase =
+        inherited::videoStream_->time_base;
 
       result = avcodec_open2 (inherited::videoCodecContext_,
                               inherited::videoCodecContext_->codec,
@@ -583,6 +612,18 @@ video:
                                         static_cast<int> (inherited::videoFrame_->width));
       ACE_ASSERT (result >= 0);
 
+      { ACE_GUARD (ACE_Thread_Mutex, aGuard, inherited::lock_);
+        ++numberOfStreamsInitialized_;
+        result = condition_.signal ();
+        if (unlikely (result == -1))
+        {
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("%s: failed to ACE_Thread_Condition::signal(): \"%m\", aborting\n"),
+                      inherited::mod_->name ()));
+          goto error;
+        } // end IF
+      } // end lock scope
+
       goto continue_2;
 
 error:
@@ -596,63 +637,82 @@ error:
       break;
 
 continue_2:
-      if (!inherited::headerWritten_ &&
-          (inherited::formatContext_->nb_streams == 2))
-      {
-        result = avformat_write_header (inherited::formatContext_, NULL);
-        if (unlikely (result < 0))
-        {
-          ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("%s: avformat_write_header() failed: \"%m\", aborting\n"),
-                      inherited::mod_->name ()));
-          goto error;
-        } // end IF
-        inherited::headerWritten_ = true;
-      } // end IF
+      if (!is_first_b)
+        goto continue_3;
 
+      { ACE_GUARD (ACE_Thread_Mutex, aGuard, inherited::lock_);
+        while (numberOfStreamsInitialized_ < 2)
+        {
+          result = condition_.wait ();
+          if (unlikely (result == -1))
+          {
+            ACE_DEBUG ((LM_ERROR,
+                        ACE_TEXT ("%s: failed to ACE_Thread_Condition::wait(): \"%m\", aborting\n"),
+                        inherited::mod_->name ()));
+            goto error;
+          } // end IF
+        } // end WHILE
+      } // end lock scope
+
+      result = avformat_write_header (inherited::formatContext_, NULL);
+      if (unlikely (result < 0))
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("%s: avformat_write_header() failed: \"%m\", aborting\n"),
+                    inherited::mod_->name ()));
+        goto error;
+      } // end IF
+      inherited::headerWritten_ = true;
+
+continue_3:
       break;
     }
     case STREAM_SESSION_MESSAGE_END:
     {
       int result = -1;
 
-      ACE_GUARD (ACE_Thread_Mutex, aGuard, inherited::lock_);
+      // *IMPORTANT NOTE*: finalize the format context only once
+      { ACE_GUARD (ACE_Thread_Mutex, aGuard, inherited::lock_);
+        if (!isLast_)
+        {
+          isLast_ = true;
+          goto continue_4;
+        } // end IF
+      } // end lock scope
 
-      if (!inherited::formatContext_)
-        goto continue_3;
+      if (!inherited::headerWritten_)
+        goto continue_5;
 
-      if (inherited::headerWritten_)
+      result = av_write_trailer (inherited::formatContext_);
+      if (unlikely (result < 0))
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("%s: av_write_trailer() failed: \"%s\", continuing\n"),
+                    inherited::mod_->name (),
+                    ACE_TEXT (Common_Image_Tools::errorToString (result).c_str ())));
+      if (!(inherited::formatContext_->oformat->flags & AVFMT_NOFILE) &&
+          inherited::formatContext_->pb)
       {
-        result = av_write_trailer (inherited::formatContext_);
+        result = avio_close (inherited::formatContext_->pb);
         if (unlikely (result < 0))
           ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("%s: av_write_trailer() failed: \"%s\", continuing\n"),
+                      ACE_TEXT ("%s: avio_close() failed: \"%s\", continuing\n"),
                       inherited::mod_->name (),
                       ACE_TEXT (Common_Image_Tools::errorToString (result).c_str ())));
-        if (!(inherited::formatContext_->oformat->flags & AVFMT_NOFILE) &&
-            inherited::formatContext_->pb)
-        {
-          result = avio_close (inherited::formatContext_->pb);
-          if (unlikely (result < 0))
-            ACE_DEBUG ((LM_ERROR,
-                        ACE_TEXT ("%s: avio_close() failed: \"%s\", continuing\n"),
-                        inherited::mod_->name (),
-                        ACE_TEXT (Common_Image_Tools::errorToString (result).c_str ())));
-        } // end IF
       } // end IF
 
       avformat_free_context (inherited::formatContext_); inherited::formatContext_ = NULL;
 
-continue_3:
-//      if (inherited::audioCodecContext_)
-//      {
-//        avcodec_free_context (&inherited::audioCodecContext_); ACE_ASSERT (!inherited::audioCodecContext_);
-//      } // end IF
-//      if (inherited::videoCodecContext_)
-//      {
-//        avcodec_free_context (&inherited::videoCodecContext_); ACE_ASSERT (!inherited::videoCodecContext_);
-//      } // end IF
+continue_5:
+      if (inherited::audioCodecContext_)
+      {
+        avcodec_free_context (&(inherited::audioCodecContext_)); ACE_ASSERT (!inherited::audioCodecContext_);
+      } // end IF
+      if (inherited::videoCodecContext_)
+      {
+        avcodec_free_context (&(inherited::videoCodecContext_)); ACE_ASSERT (!inherited::videoCodecContext_);
+      } // end IF
 
+continue_4:
       break;
     }
     default:

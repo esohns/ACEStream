@@ -273,6 +273,7 @@
                                 <property name="visible">True</property>
                                 <property name="can_focus">True</property>
                                 <property name="receives_default">True</property>
+                                <property name="tooltip_text" translatable="yes">start recording</property>
                                 <property name="relief">half</property>
                                 <property name="use_stock">True</property>
                                 <property name="focus_on_click">False</property>
@@ -290,6 +291,7 @@
                                 <property name="visible">True</property>
                                 <property name="can_focus">True</property>
                                 <property name="receives_default">True</property>
+                                <property name="tooltip_text" translatable="yes">spllit to a new file</property>
                                 <property name="relief">half</property>
                                 <property name="use_stock">True</property>
                                 <property name="focus_on_click">False</property>
@@ -307,6 +309,7 @@
                                 <property name="visible">True</property>
                                 <property name="can_focus">True</property>
                                 <property name="receives_default">True</property>
+                                <property name="tooltip_text" translatable="yes">take snapshot of current frame</property>
                                 <property name="relief">half</property>
                                 <property name="use_stock">True</property>
                                 <property name="focus_on_click">False</property>
@@ -330,13 +333,7 @@
                           <object class="GtkTable" id="table1">
                             <property name="visible">True</property>
                             <property name="can_focus">False</property>
-                            <property name="n_rows">4</property>
-                            <child>
-                              <placeholder/>
-                            </child>
-                            <child>
-                              <placeholder/>
-                            </child>
+                            <property name="n_rows">2</property>
                             <child>
                               <object class="GtkVBox" id="vbox4">
                                 <property name="visible">True</property>
@@ -345,6 +342,7 @@
                                   <object class="GtkSpinButton" id="spinbutton_audio_messages">
                                     <property name="visible">True</property>
                                     <property name="can_focus">True</property>
+                                    <property name="tooltip_text" translatable="yes">audio messages</property>
                                     <property name="editable">False</property>
                                     <property name="has_frame">False</property>
                                     <property name="invisible_char">●</property>
@@ -365,6 +363,7 @@
                                   <object class="GtkSpinButton" id="spinbutton_video_messages">
                                     <property name="visible">True</property>
                                     <property name="can_focus">True</property>
+                                    <property name="tooltip_text" translatable="yes">video messages</property>
                                     <property name="editable">False</property>
                                     <property name="has_frame">False</property>
                                     <property name="invisible_char">●</property>
@@ -385,6 +384,7 @@
                                   <object class="GtkSpinButton" id="spinbutton_session_messages">
                                     <property name="visible">True</property>
                                     <property name="can_focus">True</property>
+                                    <property name="tooltip_text" translatable="yes">session messages</property>
                                     <property name="editable">False</property>
                                     <property name="has_frame">False</property>
                                     <property name="invisible_char">●</property>
@@ -407,6 +407,7 @@
                               <object class="GtkSpinButton" id="spinbutton_data">
                                 <property name="visible">True</property>
                                 <property name="can_focus">True</property>
+                                <property name="tooltip_text" translatable="yes">data (bytes)</property>
                                 <property name="editable">False</property>
                                 <property name="has_frame">False</property>
                                 <property name="invisible_char">●</property>
@@ -453,6 +454,7 @@
                                   <object class="GtkComboBox" id="combobox_audio_source">
                                     <property name="visible">True</property>
                                     <property name="can_focus">False</property>
+                                    <property name="tooltip_text" translatable="yes">audio source</property>
                                     <property name="model">liststore_audio_source</property>
                                     <property name="has_frame">False</property>
                                     <property name="focus_on_click">False</property>
@@ -472,6 +474,7 @@
                                       <object class="GtkComboBox" id="combobox_audio_format">
                                         <property name="visible">True</property>
                                         <property name="can_focus">False</property>
+                                        <property name="tooltip_text" translatable="yes">audio format</property>
                                         <property name="model">liststore_audio_format</property>
                                         <property name="has_frame">False</property>
                                         <property name="focus_on_click">False</property>
@@ -487,6 +490,7 @@
                                       <object class="GtkComboBox" id="combobox_audio_samplerate">
                                         <property name="visible">True</property>
                                         <property name="can_focus">False</property>
+                                        <property name="tooltip_text" translatable="yes">audio samplerate</property>
                                         <property name="model">liststore_audio_samplerate</property>
                                         <property name="has_frame">False</property>
                                         <property name="focus_on_click">False</property>
@@ -502,6 +506,7 @@
                                       <object class="GtkComboBox" id="combobox_audio_resolution">
                                         <property name="visible">True</property>
                                         <property name="can_focus">False</property>
+                                        <property name="tooltip_text" translatable="yes">audio resolution</property>
                                         <property name="model">liststore_audio_resolution</property>
                                         <signal name="changed" handler="combobox_audio_resolution_changed_cb" swapped="no"/>
                                       </object>
@@ -543,6 +548,7 @@
                                   <object class="GtkComboBox" id="combobox_video_source">
                                     <property name="visible">True</property>
                                     <property name="can_focus">False</property>
+                                    <property name="tooltip_text" translatable="yes">video source</property>
                                     <property name="model">liststore_video_source</property>
                                     <signal name="changed" handler="combobox_video_source_changed_cb" swapped="no"/>
                                   </object>
@@ -560,6 +566,7 @@
                                       <object class="GtkComboBox" id="combobox_video_format">
                                         <property name="visible">True</property>
                                         <property name="can_focus">False</property>
+                                        <property name="tooltip_text" translatable="yes">video format</property>
                                         <property name="model">liststore_video_format</property>
                                         <signal name="changed" handler="combobox_video_format_changed_cb" swapped="no"/>
                                       </object>
@@ -573,6 +580,7 @@
                                       <object class="GtkComboBox" id="combobox_video_resolution">
                                         <property name="visible">True</property>
                                         <property name="can_focus">False</property>
+                                        <property name="tooltip_text" translatable="yes">video resolution</property>
                                         <property name="model">liststore_video_resolution</property>
                                         <signal name="changed" handler="combobox_video_resolution_changed_cb" swapped="no"/>
                                       </object>
@@ -586,6 +594,7 @@
                                       <object class="GtkComboBox" id="combobox_video_framerate">
                                         <property name="visible">True</property>
                                         <property name="can_focus">False</property>
+                                        <property name="tooltip_text" translatable="yes">video framerate</property>
                                         <property name="model">liststore_video_framerate</property>
                                         <signal name="changed" handler="combobox_video_framerate_changed_cb" swapped="no"/>
                                       </object>
@@ -629,6 +638,7 @@
                                     <property name="visible">True</property>
                                     <property name="can_focus">True</property>
                                     <property name="receives_default">True</property>
+                                    <property name="tooltip_text" translatable="yes">save to file ?</property>
                                     <property name="relief">half</property>
                                     <property name="use_stock">True</property>
                                     <property name="focus_on_click">False</property>
@@ -648,6 +658,7 @@
                                       <object class="GtkEntry" id="entry_save">
                                         <property name="visible">True</property>
                                         <property name="can_focus">True</property>
+                                        <property name="tooltip_text" translatable="yes">filename</property>
                                         <property name="has_frame">False</property>
                                         <property name="invisible_char">●</property>
                                         <property name="text" translatable="yes">output.avi</property>
@@ -667,6 +678,7 @@
                                       <object class="GtkFileChooserButton" id="filechooserbutton_save">
                                         <property name="visible">True</property>
                                         <property name="can_focus">False</property>
+                                        <property name="tooltip_text" translatable="yes">file directory</property>
                                         <property name="action">select-folder</property>
                                         <property name="filter">filefilter_avi</property>
                                         <property name="local_only">False</property>
@@ -718,6 +730,7 @@
                                     <property name="visible">True</property>
                                     <property name="can_focus">True</property>
                                     <property name="receives_default">True</property>
+                                    <property name="tooltip_text" translatable="yes">display ?</property>
                                     <property name="relief">half</property>
                                     <property name="use_underline">True</property>
                                     <property name="focus_on_click">False</property>
@@ -738,6 +751,7 @@
                                         <property name="visible">True</property>
                                         <property name="sensitive">False</property>
                                         <property name="can_focus">False</property>
+                                        <property name="tooltip_text" translatable="yes">display adapter</property>
                                         <property name="model">liststore_adapter</property>
                                         <property name="has_frame">False</property>
                                         <property name="focus_on_click">False</property>
@@ -753,6 +767,7 @@
                                       <object class="GtkComboBox" id="combobox_display">
                                         <property name="visible">True</property>
                                         <property name="can_focus">False</property>
+                                        <property name="tooltip_text" translatable="yes">display device</property>
                                         <property name="model">liststore_display</property>
                                         <signal name="changed" handler="combobox_display_changed_cb" swapped="no"/>
                                       </object>
@@ -772,6 +787,7 @@
                                             <property name="visible">True</property>
                                             <property name="can_focus">True</property>
                                             <property name="receives_default">True</property>
+                                            <property name="tooltip_text" translatable="yes">fullscreen ?</property>
                                             <property name="relief">half</property>
                                             <property name="use_stock">True</property>
                                             <property name="focus_on_click">False</property>

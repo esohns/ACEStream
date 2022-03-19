@@ -30,6 +30,8 @@ extern "C"
 #endif /* __cplusplus */
 
 #include "ace/Global_Macros.h"
+#include "ace/Condition_T.h"
+#include "ace/Thread_Mutex.h"
 
 #include "stream_task_base_asynch.h"
 
@@ -109,6 +111,11 @@ class Test_I_AVSave_Encoder_T
   ACE_UNIMPLEMENTED_FUNC (Test_I_AVSave_Encoder_T ())
   ACE_UNIMPLEMENTED_FUNC (Test_I_AVSave_Encoder_T (const Test_I_AVSave_Encoder_T&))
   ACE_UNIMPLEMENTED_FUNC (Test_I_AVSave_Encoder_T& operator= (const Test_I_AVSave_Encoder_T&))
+
+  ACE_Thread_Condition<ACE_Thread_Mutex> condition_;
+  bool                 isFirst_; // the first thread allocates the format context
+  bool                 isLast_; // the last thread deallocates the format context
+  unsigned int         numberOfStreamsInitialized_;
 };
 
 // include template definition
