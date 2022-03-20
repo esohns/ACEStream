@@ -107,6 +107,11 @@ class Stream_Decoder_LibAVEncoder_T
   unsigned int            videoSamples_;
   struct AVStream*        videoStream_;
 
+  ACE_Thread_Condition<ACE_Thread_Mutex> condition_;
+  bool                                   isFirst_; // the first thread allocates the format context
+  bool                                   isLast_;  // the last thread deallocates the format context
+  unsigned int                           numberOfStreamsInitialized_;
+
  private:
   // convenient types
   typedef Stream_Decoder_LibAVEncoder_T<ACE_SYNCH_USE,

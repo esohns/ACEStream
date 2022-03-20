@@ -85,7 +85,7 @@ class Test_I_AVSave_Encoder_T
 #else
   Test_I_AVSave_Encoder_T (typename inherited::ISTREAM_T*); // stream handle
 #endif // ACE_WIN32 || ACE_WIN64
-  virtual ~Test_I_AVSave_Encoder_T ();
+  inline virtual ~Test_I_AVSave_Encoder_T () {}
 
   // override (part of) Stream_IModuleHandler_T
   virtual bool initialize (const ConfigurationType&,
@@ -111,11 +111,6 @@ class Test_I_AVSave_Encoder_T
   ACE_UNIMPLEMENTED_FUNC (Test_I_AVSave_Encoder_T ())
   ACE_UNIMPLEMENTED_FUNC (Test_I_AVSave_Encoder_T (const Test_I_AVSave_Encoder_T&))
   ACE_UNIMPLEMENTED_FUNC (Test_I_AVSave_Encoder_T& operator= (const Test_I_AVSave_Encoder_T&))
-
-  ACE_Thread_Condition<ACE_Thread_Mutex> condition_;
-  bool                 isFirst_; // the first thread allocates the format context
-  bool                 isLast_; // the last thread deallocates the format context
-  unsigned int         numberOfStreamsInitialized_;
 };
 
 // include template definition

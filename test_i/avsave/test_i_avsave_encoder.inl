@@ -70,33 +70,8 @@ Test_I_AVSave_Encoder_T<ACE_SYNCH_USE,
                         MediaType>::Test_I_AVSave_Encoder_T (typename inherited::ISTREAM_T* stream_in)
 #endif // ACE_WIN32 || ACE_WIN64
  : inherited (stream_in)
- , condition_ (inherited::lock_)
- , isFirst_ (true)
- , isLast_ (false)
- , numberOfStreamsInitialized_ (0)
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_AVSave_Encoder_T::Test_I_AVSave_Encoder_T"));
-
-}
-
-template <ACE_SYNCH_DECL,
-          typename TimePolicyType,
-          typename ConfigurationType,
-          typename ControlMessageType,
-          typename DataMessageType,
-          typename SessionMessageType,
-          typename SessionDataContainerType,
-          typename MediaType>
-Test_I_AVSave_Encoder_T<ACE_SYNCH_USE,
-                        TimePolicyType,
-                        ConfigurationType,
-                        ControlMessageType,
-                        DataMessageType,
-                        SessionMessageType,
-                        SessionDataContainerType,
-                        MediaType>::~Test_I_AVSave_Encoder_T ()
-{
-  STREAM_TRACE (ACE_TEXT ("Test_I_AVSave_Encoder_T::~Test_I_AVSave_Encoder_T"));
 
 }
 
@@ -123,9 +98,6 @@ Test_I_AVSave_Encoder_T<ACE_SYNCH_USE,
 
   if (inherited::isInitialized_)
   {
-    isFirst_ = true;
-    isLast_ = false;
-    numberOfStreamsInitialized_ = 0;
   } // end IF
 
   return inherited::initialize (configuration_in,
@@ -336,18 +308,17 @@ Test_I_AVSave_Encoder_T<ACE_SYNCH_USE,
 
       // *IMPORTANT NOTE*: initialize the format/output context only once
       { ACE_GUARD (ACE_Thread_Mutex, aGuard, inherited::lock_);
-        if (!isFirst_)
+        if (!inherited::isFirst_)
         {
           is_first_b = false;
           goto continue_;
         } // end IF
-        isFirst_ = false;
+        inherited::isFirst_ = false;
       } // end lock scope
 
-      output_format_p =
-          const_cast<struct AVOutputFormat*> (av_guess_format (ACE_TEXT_ALWAYS_CHAR ("avi"),
-                                                               NULL,
-                                                               NULL));
+      output_format_p = av_guess_format (ACE_TEXT_ALWAYS_CHAR ("avi"),
+                                         NULL,
+                                         NULL);
       if (unlikely (!output_format_p))
       {
         ACE_DEBUG ((LM_ERROR,
@@ -521,8 +492,8 @@ audio:
                                        inherited::audioCodecContext_);
 
       { ACE_GUARD (ACE_Thread_Mutex, aGuard, inherited::lock_);
-        ++numberOfStreamsInitialized_;
-        result = condition_.signal ();
+        ++inherited::numberOfStreamsInitialized_;
+        result = inherited::condition_.signal ();
         if (unlikely (result == -1))
         {
           ACE_DEBUG ((LM_ERROR,
@@ -601,8 +572,8 @@ video:
       inherited::videoCodecContext_->time_base.num = 1;
       inherited::videoCodecContext_->time_base.den =
         video_media_type_s.frameRate.num;
-      inherited::videoCodecContext_->pkt_timebase =
-        inherited::videoStream_->time_base;
+      //inherited::videoCodecContext_->pkt_timebase =
+      //  inherited::videoStream_->time_base;
 
       result = avcodec_open2 (inherited::videoCodecContext_,
                               inherited::videoCodecContext_->codec,
@@ -631,8 +602,8 @@ video:
       ACE_ASSERT (result >= 0);
 
       { ACE_GUARD (ACE_Thread_Mutex, aGuard, inherited::lock_);
-        ++numberOfStreamsInitialized_;
-        result = condition_.signal ();
+        ++inherited::numberOfStreamsInitialized_;
+        result = inherited::condition_.signal ();
         if (unlikely (result == -1))
         {
           ACE_DEBUG ((LM_ERROR,
@@ -659,9 +630,9 @@ continue_2:
         goto continue_3;
 
       { ACE_GUARD (ACE_Thread_Mutex, aGuard, inherited::lock_);
-        while (numberOfStreamsInitialized_ < 2)
+        while (inherited::numberOfStreamsInitialized_ < 2)
         {
-          result = condition_.wait ();
+          result = inherited::condition_.wait ();
           if (unlikely (result == -1))
           {
             ACE_DEBUG ((LM_ERROR,
@@ -691,9 +662,9 @@ continue_3:
 
       // *IMPORTANT NOTE*: finalize the format context only once
       { ACE_GUARD (ACE_Thread_Mutex, aGuard, inherited::lock_);
-        if (!isLast_)
+        if (!inherited::isLast_)
         {
-          isLast_ = true;
+          inherited::isLast_ = true;
           goto continue_4;
         } // end IF
       } // end lock scope
@@ -728,6 +699,12 @@ continue_5:
       if (inherited::videoCodecContext_)
       {
         avcodec_free_context (&(inherited::videoCodecContext_)); ACE_ASSERT (!inherited::videoCodecContext_);
+      } // end IF
+
+      if (likely (inherited::configuration_->concurrency != STREAM_HEADMODULECONCURRENCY_CONCURRENT))
+      { Common_ITask* itask_p = this; // *TODO*: is the no other way ?
+        itask_p->stop (false,  // wait for completion ?
+                       false); // high priority ?
       } // end IF
 
 continue_4:
