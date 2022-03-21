@@ -2196,10 +2196,12 @@ stream_processing_function (void* arg_in)
 
       Stream_Module_t* module_p =
         const_cast<Stream_Module_t*> (directshow_cb_data_p->stream->find (ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_GTK_CAIRO_DEFAULT_NAME_STRING)));
-      ACE_ASSERT (module_p);
-      directshow_cb_data_p->dispatch =
-        dynamic_cast<Common_IDispatch*> (module_p->writer ());
-      ACE_ASSERT (directshow_cb_data_p->dispatch);
+      if (module_p) // display might be switched off
+      {
+        directshow_cb_data_p->dispatch =
+          dynamic_cast<Common_IDispatch*> (module_p->writer ());
+        ACE_ASSERT (directshow_cb_data_p->dispatch);
+      } // end IF
 
       stream_p = directshow_cb_data_p->stream;
       directshow_session_data_container_p =
@@ -3336,9 +3338,6 @@ idle_session_end_cb (gpointer userData_in)
   //                   - user pressed stop
   //                   - there was an asynchronous error on the stream
 
-  ACE_ASSERT (ui_cb_data_p->dispatch);
-  ACE_ASSERT (ui_cb_data_p->eventSourceId);
-
   GtkToggleButton* toggle_button_p =
     GTK_TOGGLE_BUTTON (gtk_builder_get_object ((*iterator).second.second,
                                                ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_TOGGLEBUTTON_RECORD_NAME)));
@@ -4332,7 +4331,11 @@ togglebutton_display_toggled_cb (GtkToggleButton* toggleButton_in,
         static_cast<struct Stream_CamSave_DirectShow_UI_CBData*> (ui_cb_data_base_p);
       ACE_ASSERT (directshow_cb_data_p->configuration);
       directshow_stream_iterator =
+#if defined (GTK_USE)
+        directshow_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_GTK_CAIRO_DEFAULT_NAME_STRING));
+#else
         directshow_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_DIRECT3D_DEFAULT_NAME_STRING));
+#endif // GTK_USE
       ACE_ASSERT (directshow_stream_iterator != directshow_cb_data_p->configuration->streamConfiguration.end ());
       break;
     }
@@ -6244,7 +6247,11 @@ combobox_display_changed_cb (GtkWidget* widget_in,
         static_cast<struct Stream_CamSave_DirectShow_UI_CBData*> (ui_cb_data_base_p);
       ACE_ASSERT (directshow_cb_data_p->configuration);
       directshow_stream_iterator =
+#if defined (GTK_USE)
+        directshow_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_GTK_CAIRO_DEFAULT_NAME_STRING));
+#else
         directshow_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_DIRECT3D_DEFAULT_NAME_STRING));
+#endif // GTK_USE
       ACE_ASSERT (directshow_stream_iterator != directshow_cb_data_p->configuration->streamConfiguration.end ());
       break;
     }

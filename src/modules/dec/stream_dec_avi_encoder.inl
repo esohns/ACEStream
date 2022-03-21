@@ -21,10 +21,7 @@
 #include <fstream>
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-//#include <xiosbase>
-
 #include "amvideo.h"
-//#include <mmiscapi.h>
 #include "mmsystem.h"
 #include "aviriff.h"
 #include "dvdmedia.h"
@@ -44,8 +41,6 @@ extern "C"
 #endif // __cplusplus
 #include "libavformat/avformat.h"
 #include "libavformat/avio.h"
-//#include "libavformat/raw.h"
-//#include "libavformat/riff.h"
 #include "libavutil/pixfmt.h"
 #include "libavutil/rational.h"
 #ifdef __cplusplus
@@ -792,6 +787,12 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
       frameSize_ =
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
         Stream_MediaFramework_DirectShow_Tools::toFramesize (media_type_s);
+
+      ACE_DEBUG ((LM_DEBUG,
+                  ACE_TEXT ("%s: saving AVI in format %s\n"),
+                  inherited::mod_->name (),
+                  ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::toString (media_type_s, true).c_str ())));
+      Stream_MediaFramework_DirectShow_Tools::free (media_type_s);
 #else
 #if defined (FFMPEG_SUPPORT)
         av_image_get_buffer_size (media_type_s.format,

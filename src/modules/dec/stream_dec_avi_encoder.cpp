@@ -48,4 +48,4 @@ stream_decoder_aviencoder_libav_write_cb (void* opaque_in,
 
   return 0;
 }
-#endif
+#endif // ACE_WIN32 || ACE_WIN64

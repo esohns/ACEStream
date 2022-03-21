@@ -477,6 +477,13 @@ error:
       } // end IF
       passive_ = false;
 
+      if (likely (inherited::configuration_->concurrency != STREAM_HEADMODULECONCURRENCY_CONCURRENT))
+      {
+        Common_ITask* itask_p = this; // *TODO*: is the no other way ?
+        itask_p->stop (false,         // wait for completion ?
+                       false);        // high priority ?
+      }                               // end IF
+
       break;
     }
     default:

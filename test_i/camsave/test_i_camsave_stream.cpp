@@ -183,9 +183,6 @@ Stream_CamSave_DirectShow_Stream::initialize (const inherited::CONFIGURATION_T& 
 {
   STREAM_TRACE (ACE_TEXT ("Stream_CamSave_DirectShow_Stream::initialize"));
 
-  // sanity check(s)
-  ACE_ASSERT (!isRunning ());
-
   bool result = false;
   bool setup_pipeline = configuration_in.configuration_->setupPipeline;
   bool reset_setup_pipeline = false;

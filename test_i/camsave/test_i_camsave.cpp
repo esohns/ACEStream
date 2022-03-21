@@ -1612,8 +1612,7 @@ error:
 #endif // FFMPEG_SUPPORT
       struct _AMMediaType& media_type_2 =
         (*directshow_stream_iterator).second.second->outputFormat;
-      if (!do_initialize_directshow (
-            deviceIdentifier_in,
+      if (!do_initialize_directshow (deviceIdentifier_in,
                                      !UIDefinitionFilename_in.empty (), // has UI ?
                                      directshow_modulehandler_configuration.builder,
                                      stream_config_p,

@@ -59,6 +59,7 @@ class Stream_MediaFramework_MediaTypeConverter_T
  protected:
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   // *IMPORTANT NOTE*: struct _AMMediaType return values need to be Stream_MediaFramework_DirectShow_Tools::free'd !
+  inline void getMediaType (const struct Stream_MediaFramework_DirectShow_AudioVideoFormat& mediaType_in, enum Stream_MediaType_Type, struct Stream_MediaFramework_DirectShow_AudioVideoFormat& mediaType_out) { Stream_MediaFramework_DirectShow_Tools::copy (mediaType_in, mediaType_out); }
   void getMediaType (const struct Stream_MediaFramework_DirectShow_AudioVideoFormat&, // media type
                      enum Stream_MediaType_Type,                                      // media type type
                      struct _AMMediaType&);
