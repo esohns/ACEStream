@@ -350,8 +350,8 @@ Stream_MediaFramework_DirectShow_Tools::dump (const Stream_MediaFramework_Direct
     {
       graph_layout_string += ACE_TEXT_ALWAYS_CHAR (" -- ");
       graph_layout_string +=
-        ((*iterator).mediaType ? Stream_MediaFramework_DirectShow_Tools::toString (*(*iterator).mediaType, true)
-                               : std::string (ACE_TEXT_ALWAYS_CHAR ("NULL")));
+        ((*iterator_2).mediaType ? Stream_MediaFramework_DirectShow_Tools::toString (*(*iterator_2).mediaType, true)
+                                 : std::string (ACE_TEXT_ALWAYS_CHAR ("NULL")));
       graph_layout_string += ACE_TEXT_ALWAYS_CHAR (" --> ");
     } // end IF
   } // end FOR
@@ -706,11 +706,13 @@ Stream_MediaFramework_DirectShow_Tools::defaultCaptureFormat (IBaseFilter* filte
   ACE_ASSERT (pin_p);
   if (!Stream_MediaFramework_DirectShow_Tools::getFirstFormat (pin_p,
                                                                GUID_NULL,
+                                                               true, // top-to-bottom
                                                                result_p))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to Stream_MediaFramework_DirectShow_Tools::getFirstFormat(\"%s\"), returning\n"),
-                ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::name (filter_in).c_str ())));
+                ACE_TEXT ("failed to Stream_MediaFramework_DirectShow_Tools::getFirstFormat(\"%s\":\"%s\"), returning\n"),
+                ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::name (filter_in).c_str ()),
+                ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::name (pin_p).c_str ())));
     pin_p->Release (); pin_p = NULL;
     return NULL;
   } // end IF
@@ -2743,8 +2745,38 @@ error:
 }
 
 bool
+Stream_MediaFramework_DirectShow_Tools::isMediaTypeBottomUp (const struct _AMMediaType& mediaType_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_DirectShow_Tools::isMediaTypeBottomUp"));
+
+  // initialize return value(s)
+  bool result = false;
+
+  struct tagVIDEOINFOHEADER* video_info_header_p = NULL;
+  struct tagVIDEOINFOHEADER2* video_info_header2_p = NULL;
+  if (InlineIsEqualGUID (mediaType_in.formattype, FORMAT_VideoInfo))
+  {
+    video_info_header_p = (struct tagVIDEOINFOHEADER*)mediaType_in.pbFormat;
+    result = video_info_header_p->bmiHeader.biHeight > 0;
+  } // end IF
+  else if (InlineIsEqualGUID (mediaType_in.formattype, FORMAT_VideoInfo2))
+  {
+    video_info_header2_p =
+      (struct tagVIDEOINFOHEADER2*)mediaType_in.pbFormat;
+    result = video_info_header2_p->bmiHeader.biHeight > 0;
+  } // end ELSE IF
+  else // *TODO*: prevent false negatives !
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("invalid/unknown media format type (was: \"%s\"), aborting\n"),
+                ACE_TEXT (Stream_MediaFramework_Tools::mediaFormatTypeToString (mediaType_in.formattype).c_str ())));
+  return result && Stream_MediaFramework_Tools::isRGB (mediaType_in.subtype,
+                                                       STREAM_MEDIAFRAMEWORK_DIRECTSHOW);
+}
+
+bool
 Stream_MediaFramework_DirectShow_Tools::getFirstFormat (IPin* pin_in,
                                                         REFGUID mediaSubType_in,
+                                                        bool top_to_bottom_RGB_in,
                                                         struct _AMMediaType*& mediaType_inout)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_DirectShow_Tools::getFirstFormat"));
@@ -2752,6 +2784,10 @@ Stream_MediaFramework_DirectShow_Tools::getFirstFormat (IPin* pin_in,
   // sanity check(s)
   ACE_ASSERT (pin_in);
   ACE_ASSERT (!mediaType_inout);
+
+  bool is_RGB_format_b =
+    Stream_MediaFramework_Tools::isRGB (mediaSubType_in,
+                                        STREAM_MEDIAFRAMEWORK_DIRECTSHOW);
 
   IEnumMediaTypes* enumerator_p = NULL;
   HRESULT result = pin_in->EnumMediaTypes (&enumerator_p);
@@ -2774,15 +2810,48 @@ Stream_MediaFramework_DirectShow_Tools::getFirstFormat (IPin* pin_in,
     if (FAILED (result) ||
         (result == S_FALSE)) // most probable reason: pin is not connected
       break;
-
-    // sanity check(s)
     ACE_ASSERT (media_types_a[0]);
 
-    if (InlineIsEqualGUID (mediaSubType_in, GUID_NULL) ||
-        InlineIsEqualGUID (mediaSubType_in, media_types_a[0]->subtype))
+    if (InlineIsEqualGUID (mediaSubType_in, GUID_NULL))
       break;
+    if (InlineIsEqualGUID (mediaSubType_in, media_types_a[0]->subtype))
+    {
+      if (!is_RGB_format_b)
+        break;
 
-    Stream_MediaFramework_DirectShow_Tools::delete_ (media_types_a[0]);
+      bool is_bottom_to_top_b =
+        Stream_MediaFramework_DirectShow_Tools::isMediaTypeBottomUp (*media_types_a[0]);
+      // *NOTE*: iff the requested subtype is RGB, retrieve top-to-bottom ? : bottom-to-top
+      //if ((is_bottom_to_top_b && !top_to_bottom_RGB_in) ||
+      //    (!is_bottom_to_top_b && top_to_bottom_RGB_in))
+      //  break;
+       if ((is_bottom_to_top_b  && top_to_bottom_RGB_in) ||
+           (!is_bottom_to_top_b && !top_to_bottom_RGB_in))
+      {
+        struct tagVIDEOINFOHEADER* video_info_header_p = NULL;
+        struct tagVIDEOINFOHEADER2* video_info_header2_p = NULL;
+        if (InlineIsEqualGUID (media_types_a[0]->formattype, FORMAT_VideoInfo))
+        {
+          video_info_header_p =
+            (struct tagVIDEOINFOHEADER*)media_types_a[0]->pbFormat;
+          video_info_header_p->bmiHeader.biHeight =
+            -video_info_header_p->bmiHeader.biHeight;
+        } // end IF
+        else if (InlineIsEqualGUID (media_types_a[0]->formattype, FORMAT_VideoInfo2))
+        {
+          video_info_header2_p =
+            (struct tagVIDEOINFOHEADER2*)media_types_a[0]->pbFormat;
+          video_info_header2_p->bmiHeader.biHeight =
+            -video_info_header2_p->bmiHeader.biHeight;
+        }    // end ELSE IF
+        else // *TODO*: prevent false negatives !
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("invalid/unknown media format type (was: \"%s\"), continuing\n"),
+                      ACE_TEXT (Stream_MediaFramework_Tools::mediaFormatTypeToString (media_types_a[0]->formattype).c_str ())));
+      } // end IF
+      break;
+    } // end IF
+    Stream_MediaFramework_DirectShow_Tools::delete_ (media_types_a[0], true);
   } while (true);
   enumerator_p->Release (); enumerator_p = NULL;
 
@@ -3540,6 +3609,34 @@ Stream_MediaFramework_DirectShow_Tools::toWaveFormatEx (const struct _AMMediaTyp
                   sizeof (struct tWAVEFORMATEX) + waveformatex_p->cbSize);
 
   return result_p;
+}
+
+void
+Stream_MediaFramework_DirectShow_Tools::toBitmapInfo (const struct _AMMediaType& mediaType_in,
+                                                      struct tagBITMAPINFO& bitmapInfo_out)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_DirectShow_Tools::toBitmapInfo"));
+
+  ACE_OS::memset (&bitmapInfo_out, 0, sizeof (struct tagBITMAPINFO));
+
+  if (InlineIsEqualGUID (mediaType_in.formattype, FORMAT_VideoInfo))
+  { ACE_ASSERT (mediaType_in.cbFormat == sizeof (struct tagVIDEOINFOHEADER));
+    struct tagVIDEOINFOHEADER* video_info_header_p =
+      reinterpret_cast<struct tagVIDEOINFOHEADER*> (mediaType_in.pbFormat);
+    bitmapInfo_out.bmiHeader = video_info_header_p->bmiHeader;
+  } // end IF
+  else if (InlineIsEqualGUID (mediaType_in.formattype, FORMAT_VideoInfo2))
+  { ACE_ASSERT (mediaType_in.cbFormat == sizeof (struct tagVIDEOINFOHEADER2));
+    struct tagVIDEOINFOHEADER2* video_info_header_p =
+      reinterpret_cast<struct tagVIDEOINFOHEADER2*> (mediaType_in.pbFormat);
+    bitmapInfo_out.bmiHeader = video_info_header_p->bmiHeader;
+  } // end IF
+  else
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("invalid/unknown media format type (was: \"%s\"), returning\n"),
+                ACE_TEXT (Stream_MediaFramework_Tools::mediaFormatTypeToString (mediaType_in.formattype).c_str ())));
+  } // end ELSE
 }
 
 struct _GUID

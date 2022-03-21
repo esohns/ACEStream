@@ -46,6 +46,7 @@
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 // *NOTE*: wxWidgets may have #defined __WXDEBUG__
 //#undef __WXDEBUG__
+#include "stream_dev_cam_source_vfw.h"
 #include "stream_dev_cam_source_directshow.h"
 #include "stream_dev_cam_source_mediafoundation.h"
 #else
@@ -91,6 +92,20 @@
 
 // declare module(s)
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
+typedef Stream_Dev_Cam_Source_VfW_T<ACE_MT_SYNCH,
+                                    Stream_ControlMessage_t,
+                                    Stream_CamSave_DirectShow_Message_t,
+                                    Stream_CamSave_DirectShow_SessionMessage_t,
+                                    struct Stream_CamSave_DirectShow_ModuleHandlerConfiguration,
+                                    enum Stream_ControlType,
+                                    enum Stream_SessionMessageType,
+                                    struct Stream_CamSave_DirectShow_StreamState,
+                                    Stream_CamSave_DirectShow_SessionData,
+                                    Stream_CamSave_DirectShow_SessionData_t,
+                                    struct Stream_CamSave_StatisticData,
+                                    Common_Timer_Manager_t,
+                                    struct Stream_UserData,
+                                    struct _AMMediaType> Stream_CamSave_VfW_Source;
 typedef Stream_Dev_Cam_Source_DirectShow_T<ACE_MT_SYNCH,
                                            Stream_ControlMessage_t,
                                            Stream_CamSave_DirectShow_Message_t,
@@ -677,7 +692,13 @@ typedef Stream_Module_MessageHandler_T<ACE_MT_SYNCH,
 DATASTREAM_MODULE_INPUT_ONLY (Stream_CamSave_DirectShow_SessionData,                // session data type
                               enum Stream_SessionMessageType,                   // session event type
                               struct Stream_CamSave_DirectShow_ModuleHandlerConfiguration, // module handler configuration type
-                              libacestream_default_dev_cam_source_mediafoundation_module_name_string,
+                              libacestream_default_dev_cam_source_vfw_module_name_string,
+                              Stream_INotify_t,                                 // stream notification interface type
+                              Stream_CamSave_VfW_Source);                                 // writer type
+DATASTREAM_MODULE_INPUT_ONLY (Stream_CamSave_DirectShow_SessionData,                // session data type
+                              enum Stream_SessionMessageType,                   // session event type
+                              struct Stream_CamSave_DirectShow_ModuleHandlerConfiguration, // module handler configuration type
+                              libacestream_default_dev_cam_source_directshow_module_name_string,
                               Stream_INotify_t,                                 // stream notification interface type
                               Stream_CamSave_DirectShow_Source);                // writer type
 

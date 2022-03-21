@@ -65,6 +65,9 @@ class Stream_MessageBase_T
   inline virtual MessageType type () const { return type_; }
   inline virtual CommandType command () const { ACE_ASSERT (inherited::data_block_); return static_cast<CommandType> (inherited::data_block_->msg_type ()); }
   virtual void defragment ();
+  virtual void initialize (Stream_SessionId_t,         // session id
+                           ACE_Data_Block*             // data block to use
+                           /*const ACE_Time_Value&*/); // scheduled execution time
 
   // implement Common_ISet_T
   inline virtual void set (const Stream_SessionId_t sessionId_in) { sessionId_ = sessionId_in; }
@@ -74,9 +77,6 @@ class Stream_MessageBase_T
   virtual void dump_state () const;
 
   // used for pre-allocated messages
-  virtual void initialize (Stream_SessionId_t,         // session id
-                           ACE_Data_Block*             // data block to use
-                           /*const ACE_Time_Value&*/); // scheduled execution time
   inline bool isInitialized () const { return isInitialized_; }
 
   // debug tools

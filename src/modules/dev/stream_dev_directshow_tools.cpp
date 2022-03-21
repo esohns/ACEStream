@@ -628,34 +628,6 @@ Stream_Device_DirectShow_Tools::getCaptureDevices (REFGUID deviceCategory_in)
   return result;
 }
 
-bool
-Stream_Device_DirectShow_Tools::isMediaTypeBottomUp (const struct _AMMediaType& mediaType_in)
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_Device_DirectShow_Tools::isMediaTypeBottomUp"));
-
-  // initialize return value(s)
-  bool result = false;
-
-  struct tagVIDEOINFOHEADER* video_info_header_p = NULL;
-  struct tagVIDEOINFOHEADER2* video_info_header2_p = NULL;
-  if (InlineIsEqualGUID (mediaType_in.formattype, FORMAT_VideoInfo))
-  {
-    video_info_header_p = (struct tagVIDEOINFOHEADER*)mediaType_in.pbFormat;
-    result = video_info_header_p->bmiHeader.biHeight > 0;
-  } // end IF
-  else if (InlineIsEqualGUID (mediaType_in.formattype, FORMAT_VideoInfo2))
-  {
-    video_info_header2_p =
-      (struct tagVIDEOINFOHEADER2*)mediaType_in.pbFormat;
-    result = video_info_header2_p->bmiHeader.biHeight > 0;
-  } // end ELSE IF
-  else
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("invalid/unknown media format type (was: \"%s\"), aborting\n"),
-                ACE_TEXT (Stream_MediaFramework_Tools::mediaFormatTypeToString (mediaType_in.formattype).c_str ())));
-  return result;
-}
-
 Common_Identifiers_t
 Stream_Device_DirectShow_Tools::getCaptureSubFormats (IAMStreamConfig* IAMStreamConfig_in)
 {
@@ -1220,17 +1192,53 @@ Stream_Device_DirectShow_Tools::setCaptureFormat (IGraphBuilder* builder_in,
   // sanity check(s)
   ACE_ASSERT (builder_in);
 
+  struct _AMMediaType media_type_s;
+  ACE_OS::memset (&media_type_s, 0, sizeof (struct _AMMediaType));
+  Stream_MediaFramework_DirectShow_Tools::copy (mediaType_in,
+                                                media_type_s);
   std::wstring filter_name;
   if (InlineIsEqualGUID (deviceCategory_in, CLSID_AudioInputDeviceCategory))
     filter_name = STREAM_LIB_DIRECTSHOW_FILTER_NAME_CAPTURE_AUDIO;
   else if (InlineIsEqualGUID (deviceCategory_in, CLSID_VideoInputDeviceCategory))
+  {
     filter_name = STREAM_LIB_DIRECTSHOW_FILTER_NAME_CAPTURE_VIDEO;
+
+    if (Stream_MediaFramework_DirectShow_Tools::isMediaTypeBottomUp (media_type_s))
+    {
+      struct tagVIDEOINFOHEADER* video_info_header_p = NULL;
+      struct tagVIDEOINFOHEADER2* video_info_header2_p = NULL;
+      if (InlineIsEqualGUID (media_type_s.formattype, FORMAT_VideoInfo))
+      {
+        video_info_header_p = (struct tagVIDEOINFOHEADER*)media_type_s.pbFormat;
+        ACE_ASSERT (video_info_header_p->bmiHeader.biHeight > 0);
+        video_info_header_p->bmiHeader.biHeight =
+          -video_info_header_p->bmiHeader.biHeight;
+      } // end IF
+      else if (InlineIsEqualGUID (media_type_s.formattype, FORMAT_VideoInfo2))
+      {
+        video_info_header2_p =
+          (struct tagVIDEOINFOHEADER2*)media_type_s.pbFormat;
+        ACE_ASSERT (video_info_header2_p->bmiHeader.biHeight > 0);
+        video_info_header2_p->bmiHeader.biHeight =
+          -video_info_header2_p->bmiHeader.biHeight;
+      } // end ELSE IF
+      else
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("invalid/unknown media format type (was: \"%s\"), aborting\n"),
+                    ACE_TEXT (Stream_MediaFramework_Tools::mediaFormatTypeToString (mediaType_in.formattype).c_str ())));
+        Stream_MediaFramework_DirectShow_Tools::free (media_type_s);
+        return false; // *TODO*: prevent false negatives
+      } // end ELSE
+    } // end IF
+  } // end ELSE IF
   else
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("invalid/unknown device category (was: %s), aborting\n"),
                 ACE_TEXT (Common_Tools::GUIDToString (deviceCategory_in).c_str ())));
-    return false;
+    Stream_MediaFramework_DirectShow_Tools::free (media_type_s);
+    return false; // *TODO*: prevent false negatives
   } // end ELSE
 
   IBaseFilter* filter_p = NULL;
@@ -1243,13 +1251,14 @@ Stream_Device_DirectShow_Tools::setCaptureFormat (IGraphBuilder* builder_in,
                 ACE_TEXT ("failed to IGraphBuilder::FindFilterByName(\"%s\"): \"%s\", aborting\n"),
                 ACE_TEXT_WCHAR_TO_TCHAR (filter_name.c_str ()),
                 ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ())));
-    return false;
+    Stream_MediaFramework_DirectShow_Tools::free (media_type_s);
+    return false; // *TODO*: prevent false negatives
   } // end IF
   ACE_ASSERT (filter_p);
 //#if defined (_DEBUG)
 //  Stream_Device_DirectShow_Tools::listCaptureFormats (filter_p,
-//                                                             mediaType_in.formattype);
-//#endif
+//                                                      mediaType_in.formattype);
+//#endif // _DEBUG
 
   IPin* pin_p = NULL;
   IAMStreamConfig* stream_config_p = NULL;
@@ -1261,7 +1270,8 @@ Stream_Device_DirectShow_Tools::setCaptureFormat (IGraphBuilder* builder_in,
                 ACE_TEXT ("%s: no capture pin found, aborting\n"),
                 ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::name (filter_p).c_str ())));
     filter_p->Release ();
-    return false;
+    Stream_MediaFramework_DirectShow_Tools::free (media_type_s);
+    return false; // *TODO*: prevent false negatives
   } // end IF
   filter_p->Release (); filter_p = NULL;
   result = pin_p->QueryInterface (IID_PPV_ARGS (&stream_config_p));
@@ -1271,29 +1281,31 @@ Stream_Device_DirectShow_Tools::setCaptureFormat (IGraphBuilder* builder_in,
                 ACE_TEXT ("failed to IPin::QueryInterface(IID_IAMStreamConfig): \"%s\", aborting\n"),
                 ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ())));
     pin_p->Release ();
-    return false;
+    Stream_MediaFramework_DirectShow_Tools::free (media_type_s);
+    return false; // *TODO*: prevent false negatives
   } // end IF
   ACE_ASSERT (stream_config_p);
   pin_p->Release (); pin_p = NULL;
   result =
-    stream_config_p->SetFormat (&const_cast<struct _AMMediaType&> (mediaType_in));
+    stream_config_p->SetFormat (&const_cast<struct _AMMediaType&> (media_type_s));
   if (FAILED (result)) // VFW_E_INVALIDMEDIATYPE: 0x80040200L
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IAMStreamConfig::SetFormat(): \"%s\" (0x%x) (media type was: %s), aborting\n"),
                 ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ()), result,
-                ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::toString (mediaType_in, false).c_str ())));
+                ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::toString (media_type_s, false).c_str ())));
     stream_config_p->Release (); stream_config_p = NULL;
-    return false;
+    Stream_MediaFramework_DirectShow_Tools::free (media_type_s);
+    return false; // *TODO*: prevent false negatives
   } // end IF
-  stream_config_p->Release (); stream_config_p = NULL;
-
 #if defined (_DEBUG)
   ACE_DEBUG ((LM_DEBUG,
               ACE_TEXT ("%s: set capture format: %s\n"),
               ACE_TEXT_WCHAR_TO_TCHAR (filter_name.c_str ()),
-              ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::toString (mediaType_in, true).c_str ())));
+              ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::toString (media_type_s, true).c_str ())));
 #endif // _DEBUG
+  stream_config_p->Release (); stream_config_p = NULL;
+  Stream_MediaFramework_DirectShow_Tools::free (media_type_s);
 
   return true;
 }

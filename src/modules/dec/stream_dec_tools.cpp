@@ -2059,7 +2059,7 @@ Stream_Module_Decoder_Tools::loadVideoRendererGraph (REFGUID deviceCategory_in,
                 ACE_TEXT ("failed to Stream_MediaFramework_DirectShow_Tools::copy(), aborting\n")));
     goto error;
   } // end IF
-  graphConfiguration_out.push_back (graph_entry);
+  graphConfiguration_out.push_back (graph_entry); // capture
   graph_entry.mediaType = NULL;
 
   // step1: decompress ?
@@ -2150,7 +2150,7 @@ decompress:
                 ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ())));
     goto error;
   } // end IF
-  graphConfiguration_out.push_back (graph_entry);
+  graphConfiguration_out.push_back (graph_entry); // decompressor
   graph_entry.mediaType = NULL;
 
   pin_p = Stream_MediaFramework_DirectShow_Tools::pin (filter_p,
@@ -2187,6 +2187,7 @@ decompress:
   { ACE_ASSERT (!graph_entry.mediaType);
     if (!Stream_MediaFramework_DirectShow_Tools::getFirstFormat (pin_p,
                                                                  GUID_NULL,
+                                                                 true, // top-to-bottom
                                                                  graph_entry.mediaType))
     {
       ACE_DEBUG ((LM_ERROR,
@@ -2272,7 +2273,7 @@ decode:
                 ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ())));
     goto error;
   } // end IF
-  graphConfiguration_out.push_back (graph_entry);
+  graphConfiguration_out.push_back (graph_entry); // decoder
   graph_entry.mediaType = NULL;
 
   pin_p = Stream_MediaFramework_DirectShow_Tools::pin (filter_p,
@@ -2304,6 +2305,7 @@ decode:
   } // end IF
   if (!Stream_MediaFramework_DirectShow_Tools::getFirstFormat (pin_p,
                                                                preferred_subtype,
+                                                               true, // top-to-bottom
                                                                graph_entry.mediaType))
   {
     ACE_DEBUG ((LM_ERROR,
@@ -2354,15 +2356,8 @@ grab:
     goto error;
   } // end IF
   filter_p->Release (); filter_p = NULL;
-  graphConfiguration_out.push_back (graph_entry);
-  graph_entry.mediaType =
-    Stream_MediaFramework_DirectShow_Tools::copy (outputFormat_in);
-  if (!graph_entry.mediaType)
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to Stream_MediaFramework_DirectShow_Tools::copy(), aborting\n")));
-    goto error;
-  } // end IF
+  graphConfiguration_out.push_back (graph_entry); // sample grabber
+  graph_entry.mediaType = NULL;
 
 render:
   if (windowHandle_in)
@@ -2416,7 +2411,7 @@ render:
     goto error;
   } // end IF
   filter_p->Release (); filter_p = NULL;
-  graphConfiguration_out.push_back (graph_entry);
+  graphConfiguration_out.push_back (graph_entry); // renderer
 
 #if defined (_DEBUG)
   Stream_MediaFramework_DirectShow_Tools::dump (graphConfiguration_out);
@@ -2557,6 +2552,7 @@ Stream_Module_Decoder_Tools::loadTargetRendererGraph (IBaseFilter* sourceFilter_
   } // end IF
   if (!Stream_MediaFramework_DirectShow_Tools::getFirstFormat (pin_p,
                                                                GUID_NULL,
+                                                               true, // top-to-bottom
                                                                graph_entry.mediaType))
   {
     ACE_DEBUG ((LM_ERROR,
@@ -2723,6 +2719,7 @@ decompress:
 
   if (!Stream_MediaFramework_DirectShow_Tools::getFirstFormat (pin_p,
                                                                preferred_subtype,
+                                                               true, // top-to-bottom
                                                                graph_entry.mediaType))
   {
     ACE_DEBUG ((LM_ERROR,
@@ -2938,6 +2935,7 @@ decode:
 
   if (!Stream_MediaFramework_DirectShow_Tools::getFirstFormat (pin_p,
                                                                preferred_subtype,
+                                                               true, // top-to-bottom
                                                                graph_entry.mediaType))
   {
     ACE_DEBUG ((LM_ERROR,

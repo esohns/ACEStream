@@ -56,7 +56,6 @@ class Stream_Device_DirectShow_Tools
   // -------------------------------------
 
   // format
-  static bool isMediaTypeBottomUp (const struct _AMMediaType&);
   static Common_Identifiers_t getCaptureSubFormats (IAMStreamConfig*);
   static Common_Image_Resolutions_t getCaptureResolutions (IAMStreamConfig*,
                                                            REFGUID = GUID_NULL); // media subtype {GUID_NULL: all}

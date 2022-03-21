@@ -492,7 +492,7 @@ continue_:
       } // end IF
       release_media_type = true;
 
-      if (Stream_Device_DirectShow_Tools::isMediaTypeBottomUp (media_type_s))
+      if (Stream_MediaFramework_DirectShow_Tools::isMediaTypeBottomUp (media_type_s))
       {
         result_2 =
           inherited::configuration_->builder->FindFilterByName (STREAM_LIB_DIRECTSHOW_FILTER_NAME_CAPTURE_VIDEO,

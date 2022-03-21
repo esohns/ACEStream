@@ -48,7 +48,9 @@
 Stream_CamSave_DirectShow_Stream::Stream_CamSave_DirectShow_Stream ()
  : inherited ()
  , source_ (this,
-            ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_CAM_SOURCE_DIRECTSHOW_DEFAULT_NAME_STRING))
+            ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_CAM_SOURCE_VIDEOFORWINDOW_DEFAULT_NAME_STRING))
+ //, source_ (this,
+ //           ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_CAM_SOURCE_DIRECTSHOW_DEFAULT_NAME_STRING))
  , statisticReport_ (this,
                      ACE_TEXT_ALWAYS_CHAR (MODULE_STAT_REPORT_DEFAULT_NAME_STRING))
  , distributor_ (this,
@@ -215,13 +217,13 @@ Stream_CamSave_DirectShow_Stream::initialize (const inherited::CONFIGURATION_T& 
 
   source_impl_p =
     dynamic_cast<Stream_CamSave_DirectShow_Source*> (source_.writer ());
-  if (!source_impl_p)
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: dynamic_cast<Strean_CamSave_DirectShow_Source> failed, aborting\n"),
-                ACE_TEXT (stream_name_string_)));
-    return false;
-  } // end IF
+  //if (!source_impl_p)
+  //{
+  //  ACE_DEBUG ((LM_ERROR,
+  //              ACE_TEXT ("%s: dynamic_cast<Strean_CamSave_DirectShow_Source> failed, aborting\n"),
+  //              ACE_TEXT (stream_name_string_)));
+  //  return false;
+  //} // end IF
 
   // ---------------------------------------------------------------------------
   // step1: set up directshow filter graph
@@ -362,14 +364,17 @@ continue_:
                 ACE_TEXT (Common_Error_Tools::errorToString (result_2).c_str ())));
     goto error;
   } // end IF
-  result_2 = isample_grabber_p->SetCallback (source_impl_p, 0);
-  if (FAILED (result_2))
+  if (source_impl_p)
   {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: failed to ISampleGrabber::SetCallback(): \"%s\", aborting\n"),
-                ACE_TEXT (stream_name_string_),
-                ACE_TEXT (Common_Error_Tools::errorToString (result_2).c_str ())));
-    goto error;
+    result_2 = isample_grabber_p->SetCallback (source_impl_p, 0);
+    if (FAILED (result_2))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("%s: failed to ISampleGrabber::SetCallback(): \"%s\", aborting\n"),
+                  ACE_TEXT (stream_name_string_),
+                  ACE_TEXT (Common_Error_Tools::errorToString (result_2).c_str ())));
+      goto error;
+    } // end IF
   } // end IF
   isample_grabber_p->Release (); isample_grabber_p = NULL;
 
@@ -524,29 +529,22 @@ continue_:
 
   // ---------------------------------------------------------------------------
   // step5: update session data
-  session_data_p->formats.push_back (configuration_in.configuration_->format);
   ACE_OS::memset (&media_type_s, 0, sizeof (struct _AMMediaType));
-  if (!Stream_MediaFramework_DirectShow_Tools::getOutputFormat ((*iterator).second.second->builder,
-                                                                STREAM_LIB_DIRECTSHOW_FILTER_NAME_GRAB,
-                                                                media_type_s))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: failed to Stream_MediaFramework_DirectShow_Tools::getOutputFormat(\"%s\"), aborting\n"),
-                ACE_TEXT (stream_name_string_),
-                ACE_TEXT_WCHAR_TO_TCHAR (STREAM_LIB_DIRECTSHOW_FILTER_NAME_GRAB)));
-    goto error;
-  } // end IF
+  Stream_MediaFramework_DirectShow_Tools::copy (configuration_in.configuration_->format,
+                                                media_type_s);
   session_data_p->formats.push_back (media_type_s);
-  //ACE_ASSERT (Stream_MediaFramework_DirectShow_Tools::matchMediaType (*session_data_p->sourceFormat, *(*iterator).second.second->sourceFormat));
-
-  // ---------------------------------------------------------------------------
-  // step6: initialize head module
-  source_impl_p->setP (&(inherited::state_));
-  //fileReader_impl_p->reset ();
-  // *NOTE*: push()ing the module will open() it
-  //         --> set the argument that is passed along (head module expects a
-  //             handle to the session data)
-  source_.arg (inherited::sessionData_);
+  //ACE_OS::memset (&media_type_s, 0, sizeof (struct _AMMediaType));
+  //if (!Stream_MediaFramework_DirectShow_Tools::getOutputFormat ((*iterator).second.second->builder,
+  //                                                              STREAM_LIB_DIRECTSHOW_FILTER_NAME_GRAB,
+  //                                                              media_type_s))
+  //{
+  //  ACE_DEBUG ((LM_ERROR,
+  //              ACE_TEXT ("%s: failed to Stream_MediaFramework_DirectShow_Tools::getOutputFormat(\"%s\"), aborting\n"),
+  //              ACE_TEXT (stream_name_string_),
+  //              ACE_TEXT_WCHAR_TO_TCHAR (STREAM_LIB_DIRECTSHOW_FILTER_NAME_GRAB)));
+  //  goto error;
+  //} // end IF
+  //session_data_p->formats.push_back (media_type_s);
 
   // step7: assemble stream
   if (configuration_in.configuration_->setupPipeline)

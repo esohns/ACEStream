@@ -893,6 +893,7 @@ typedef Common_UI_wxWidgets_IApplication_T<struct Common_UI_wxWidgets_State,
 #endif // ACE_WIN32 || ACE_WIN64
 #endif // WXWIDGETS_USE
 #endif // GUI_SUPPORT
+struct Stream_AVSave_UI_State;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 typedef Common_ISubscribe_T<Stream_AVSave_DirectShow_ISessionNotify_t> Stream_AVSave_DirectShow_ISubscribe_t;
 typedef Common_ISubscribe_T<Stream_AVSave_MediaFoundation_ISessionNotify_t> Stream_AVSave_MediaFoundation_ISubscribe_t;
@@ -901,7 +902,7 @@ typedef Stream_AVSave_EventHandler_T<Stream_AVSave_DirectShow_ISessionNotify_t,
                                       Stream_AVSave_DirectShow_Message_t,
 #if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
-                                      Common_UI_GTK_State_t,
+                                      struct Stream_AVSave_UI_State,
 #elif defined (WXWIDGETS_USE)
                                       struct Common_UI_wxWidgets_State,
                                       Common_UI_wxWidgets_IApplicationBase_t,
@@ -912,7 +913,7 @@ typedef Stream_AVSave_EventHandler_T<Stream_AVSave_MediaFoundation_ISessionNotif
                                       Stream_AVSave_MediaFoundation_Message_t,
 #if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
-                                      Common_UI_GTK_State_t,
+                                      struct Stream_AVSave_UI_State,
 #elif defined (WXWIDGETS_USE)
                                       struct Common_UI_wxWidgets_State,
                                       Common_UI_wxWidgets_IApplicationBase_t,
@@ -926,7 +927,7 @@ typedef Stream_AVSave_EventHandler_T<Stream_AVSave_ALSA_V4L_ISessionNotify_t,
                                      Stream_AVSave_Message_t,
 #if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
-                                      Common_UI_GTK_State_t,
+                                      struct Stream_AVSave_UI_State,
 #elif defined (WXWIDGETS_USE)
                                       struct Common_UI_wxWidgets_State,
                                       Common_UI_wxWidgets_IApplicationBase_t,
@@ -942,14 +943,46 @@ typedef Stream_AVSave_EventHandler_T<Stream_AVSave_ALSA_V4L_ISessionNotify_t,
 //////////////////////////////////////////
 
 #if defined (GUI_SUPPORT)
+enum Stream_AVSave_UI_EventType
+{
+  STREAM_AV_UI_EVENT_INVALID = COMMON_UI_EVENT_OTHER_USER_BASE,
+  // -------------------------------------
+  STREAM_AV_UI_EVENT_DATA_AUDIO,
+  STREAM_AV_UI_EVENT_DATA_VIDEO,
+  // -------------------------------------
+  STREAM_AV_UI_EVENT_MAX
+};
+typedef ACE_Unbounded_Stack<enum Stream_AVSave_UI_EventType> Stream_AVSave_UI_Events_t;
+typedef ACE_Unbounded_Stack<enum Stream_AVSave_UI_EventType>::ITERATOR Stream_AVSave_UI_EventsIterator_t;
+
+struct Stream_AVSave_UI_State
+ : Common_UI_GTK_State_t
+{
+  Stream_AVSave_UI_State ()
+   : Common_UI_GTK_State_t ()
+   , eventStack (NULL)
+  {}
+
+  Stream_AVSave_UI_Events_t eventStack;
+};
+
+typedef Common_UI_GTK_Manager_T<ACE_MT_SYNCH,
+                                Common_UI_GTK_Configuration_t,
+                                struct Stream_AVSave_UI_State,
+                                gpointer> Stream_AVSave_UI_GTK_Manager_t;
+typedef ACE_Singleton<Stream_AVSave_UI_GTK_Manager_t,
+                      ACE_MT_SYNCH::MUTEX> STREAM_AVSAVE_UI_GTK_MANAGER_SINGLETON;
+
 struct Stream_AVSave_ProgressData
  : Test_I_UI_ProgressData
 {
   Stream_AVSave_ProgressData ()
    : Test_I_UI_ProgressData ()
+   , state (NULL)
    , statistic ()
   {}
 
+  struct Stream_AVSave_UI_State*     state;
   struct Stream_AVSave_StatisticData statistic;
 };
 
@@ -974,6 +1007,7 @@ struct Stream_AVSave_UI_CBData
   bool                                            isFirst; // first activation ?
   struct Stream_AVSave_ProgressData               progressData;
   struct acestream_visualization_gtk_cairo_cbdata spectrumAnalyzerCBData;
+  struct Stream_AVSave_UI_State*                  UIState;
 };
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 class Stream_AVSave_DirectShow_Audio_Stream;

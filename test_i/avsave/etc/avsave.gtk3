@@ -377,7 +377,7 @@
                                         <property name="numeric">True</property>
                                       </object>
                                       <packing>
-                                        <property name="expand">True</property>
+                                        <property name="expand">False</property>
                                         <property name="fill">True</property>
                                         <property name="position">0</property>
                                       </packing>
@@ -387,7 +387,7 @@
                                         <property name="visible">True</property>
                                         <property name="sensitive">False</property>
                                         <property name="can-focus">False</property>
-                                        <property name="tooltip-text" translatable="yes">data messages</property>
+                                        <property name="tooltip-text" translatable="yes">audio data messages</property>
                                         <property name="editable">False</property>
                                         <property name="has-frame">False</property>
                                         <property name="xalign">1</property>
@@ -396,7 +396,7 @@
                                         <property name="numeric">True</property>
                                       </object>
                                       <packing>
-                                        <property name="expand">True</property>
+                                        <property name="expand">False</property>
                                         <property name="fill">True</property>
                                         <property name="position">1</property>
                                       </packing>
@@ -405,6 +405,7 @@
                                       <object class="GtkSpinButton" id="spinbutton_video_messages">
                                         <property name="visible">True</property>
                                         <property name="can-focus">True</property>
+                                        <property name="tooltip-text" translatable="yes">video data messages</property>
                                         <property name="editable">False</property>
                                         <property name="has-frame">False</property>
                                         <property name="xalign">1</property>
@@ -460,6 +461,8 @@
                                     <property name="right-attach">2</property>
                                     <property name="top-attach">2</property>
                                     <property name="bottom-attach">3</property>
+                                    <property name="x-options">GTK_SHRINK | GTK_FILL</property>
+                                    <property name="y-options">GTK_SHRINK | GTK_FILL</property>
                                   </packing>
                                 </child>
                                 <child>
@@ -494,7 +497,7 @@
                                         <property name="numeric">True</property>
                                       </object>
                                       <packing>
-                                        <property name="expand">True</property>
+                                        <property name="expand">False</property>
                                         <property name="fill">True</property>
                                         <property name="position">0</property>
                                       </packing>
@@ -513,7 +516,7 @@
                                         <property name="numeric">True</property>
                                       </object>
                                       <packing>
-                                        <property name="expand">True</property>
+                                        <property name="expand">False</property>
                                         <property name="fill">True</property>
                                         <property name="position">1</property>
                                       </packing>
@@ -548,6 +551,8 @@
                                     <property name="right-attach">2</property>
                                     <property name="top-attach">3</property>
                                     <property name="bottom-attach">4</property>
+                                    <property name="x-options">GTK_SHRINK | GTK_FILL</property>
+                                    <property name="y-options">GTK_SHRINK | GTK_FILL</property>
                                   </packing>
                                 </child>
                                 <child>

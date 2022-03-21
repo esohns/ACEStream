@@ -375,37 +375,37 @@ Stream_Module_Vis_GTK_Cairo_T<ACE_SYNCH_USE,
                     ACE_TEXT_ALWAYS_CHAR ("n-channels"), &n_channels_i,
                     NULL);
 #endif // GTK_CHECK_VERSION
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-      ACE_ASSERT ((resolution_s.cx <= static_cast<LONG> (width_2)) && (resolution_s.cy <= static_cast<LONG> (height_2)));
-#else
-#if defined (FFMPEG_SUPPORT)
-      ACE_ASSERT ((media_type_s.resolution.width <= static_cast<unsigned int> (width_2)) && (media_type_s.resolution.height <= static_cast<unsigned int> (height_2)));
-#endif // FFMPEG_SUPPORT
-#endif // ACE_WIN32 || ACE_WIN64
-      ACE_ASSERT (row_stride_i <= static_cast<unsigned int> (row_stride_2));
-#if GTK_CHECK_VERSION(3,10,0)
-      ACE_ASSERT ((format_e == CAIRO_FORMAT_RGB24) || (format_e == CAIRO_FORMAT_ARGB32));
-#else
-      ACE_ASSERT (gdk_pixbuf_get_colorspace (surface_) == GDK_COLORSPACE_RGB);
-      ACE_ASSERT (gdk_pixbuf_get_bits_per_sample (surface_) == 8);
-//      ACE_ASSERT (n_channels_i == 4);
-//      ACE_ASSERT (!gdk_pixbuf_get_has_alpha (surface_));
-#endif // GTK_CHECK_VERSION
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-      if (n_channels_i == 3)
-        ACE_ASSERT (Stream_MediaFramework_Tools::toBitCount (media_type_s.subtype, STREAM_MEDIAFRAMEWORK_DIRECTSHOW) == 24); // CAIRO_FORMAT_RGB24
-      else
-        ACE_ASSERT (Stream_MediaFramework_Tools::toBitCount (media_type_s.subtype, STREAM_MEDIAFRAMEWORK_DIRECTSHOW) == 32); // CAIRO_FORMAT_RGB32
-#else
-#if defined (FFMPEG_SUPPORT)
-      if (n_channels_i == 3)
-        ACE_ASSERT (media_type_s.format == AV_PIX_FMT_RGB24); // CAIRO_FORMAT_RGB24
-      else
-        ACE_ASSERT (media_type_s.format == AV_PIX_FMT_RGB32); // CAIRO_FORMAT_ARGB32
-#else
-      ACE_ASSERT (false); // *TODO*
-#endif // FFMPEG_SUPPORT
-#endif // ACE_WIN32 || ACE_WIN64
+//#if defined (ACE_WIN32) || defined (ACE_WIN64)
+//      ACE_ASSERT ((resolution_s.cx <= static_cast<LONG> (width_2)) && (resolution_s.cy <= static_cast<LONG> (height_2)));
+//#else
+//#if defined (FFMPEG_SUPPORT)
+//      ACE_ASSERT ((media_type_s.resolution.width <= static_cast<unsigned int> (width_2)) && (media_type_s.resolution.height <= static_cast<unsigned int> (height_2)));
+//#endif // FFMPEG_SUPPORT
+//#endif // ACE_WIN32 || ACE_WIN64
+//      ACE_ASSERT (row_stride_i <= static_cast<unsigned int> (row_stride_2));
+//#if GTK_CHECK_VERSION(3,10,0)
+//      ACE_ASSERT ((format_e == CAIRO_FORMAT_RGB24) || (format_e == CAIRO_FORMAT_ARGB32));
+//#else
+//      ACE_ASSERT (gdk_pixbuf_get_colorspace (surface_) == GDK_COLORSPACE_RGB);
+//      ACE_ASSERT (gdk_pixbuf_get_bits_per_sample (surface_) == 8);
+////      ACE_ASSERT (n_channels_i == 4);
+////      ACE_ASSERT (!gdk_pixbuf_get_has_alpha (surface_));
+//#endif // GTK_CHECK_VERSION
+//#if defined (ACE_WIN32) || defined (ACE_WIN64)
+//      if (n_channels_i == 3)
+//        ACE_ASSERT (Stream_MediaFramework_Tools::toBitCount (media_type_s.subtype, STREAM_MEDIAFRAMEWORK_DIRECTSHOW) == 24); // CAIRO_FORMAT_RGB24
+//      else
+//        ACE_ASSERT (Stream_MediaFramework_Tools::toBitCount (media_type_s.subtype, STREAM_MEDIAFRAMEWORK_DIRECTSHOW) == 32); // CAIRO_FORMAT_RGB32
+//#else
+//#if defined (FFMPEG_SUPPORT)
+//      if (n_channels_i == 3)
+//        ACE_ASSERT (media_type_s.format == AV_PIX_FMT_RGB24); // CAIRO_FORMAT_RGB24
+//      else
+//        ACE_ASSERT (media_type_s.format == AV_PIX_FMT_RGB32); // CAIRO_FORMAT_ARGB32
+//#else
+//      ACE_ASSERT (false); // *TODO*
+//#endif // FFMPEG_SUPPORT
+//#endif // ACE_WIN32 || ACE_WIN64
 
       break;
 
@@ -544,6 +544,8 @@ Stream_Module_Vis_GTK_Cairo_T<ACE_SYNCH_USE,
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Vis_GTK_Cairo_T::dispatch"));
 
   // sanity check(s)
+  if (unlikely (inherited2::resizing_))
+    return;
   cairo_t* context_p = static_cast<cairo_t*> (arg_in);
   ACE_ASSERT (context_p);
 

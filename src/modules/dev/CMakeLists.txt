@@ -113,6 +113,9 @@ if (WIN32)
       stream_dev_cam_source_mediafoundation.cpp
       stream_dev_cam_source_mediafoundation.h
       stream_dev_cam_source_mediafoundation.inl
+      stream_dev_cam_source_vfw.cpp
+      stream_dev_cam_source_vfw.h
+      stream_dev_cam_source_vfw.inl
       stream_dev_mic_source_directshow.cpp
       stream_dev_mic_source_directshow.h
       stream_dev_mic_source_directshow.inl
@@ -191,6 +194,7 @@ elseif (WIN32)
  target_link_libraries (${PROJECT_NAME}_Device PUBLIC mfuuid.lib)
  target_link_libraries (${PROJECT_NAME}_Device PUBLIC shlwapi.lib)
  target_link_libraries (${PROJECT_NAME}_Device PUBLIC strmiids.lib)
+ target_link_libraries (${PROJECT_NAME}_Device PUBLIC Vfw32.lib)
  target_link_libraries (${PROJECT_NAME}_Device PUBLIC winmm.lib)
  target_link_libraries (${PROJECT_NAME}_Device PUBLIC Wmcodecdspuuid.lib)
 
@@ -243,6 +247,8 @@ elseif (WIN32)
           stream_dev_cam_source_directshow.inl
           stream_dev_cam_source_mediafoundation.h
           stream_dev_cam_source_mediafoundation.inl
+          stream_dev_cam_source_vfw.h
+          stream_dev_cam_source_vfw.inl
           stream_dev_mic_source_directshow.h
           stream_dev_mic_source_directshow.inl
           stream_dev_mic_source_wasapi.h

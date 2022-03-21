@@ -32,6 +32,7 @@
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 // *NOTE*: wxWidgets may have #defined __WXDEBUG__
 //#undef __WXDEBUG__
+#include "stream_dev_cam_source_vfw.h"
 #include "stream_dev_cam_source_directshow.h"
 #include "stream_dev_cam_source_mediafoundation.h"
 
@@ -96,6 +97,21 @@ typedef Stream_Dev_Mic_Source_WaveIn_T<ACE_MT_SYNCH,
                                        struct Stream_AVSave_StatisticData,
                                        Common_Timer_Manager_t,
                                        struct Stream_MediaFramework_DirectShow_AudioVideoFormat> Stream_AVSave_DirectShow_WaveIn_Source;
+
+typedef Stream_Dev_Cam_Source_VfW_T<ACE_MT_SYNCH,
+                                    Stream_ControlMessage_t,
+                                    Stream_AVSave_DirectShow_Message_t,
+                                    Stream_AVSave_DirectShow_SessionMessage_t,
+                                    struct Stream_AVSave_DirectShow_ModuleHandlerConfiguration,
+                                    enum Stream_ControlType,
+                                    enum Stream_SessionMessageType,
+                                    struct Stream_AVSave_DirectShow_StreamState,
+                                    Stream_AVSave_DirectShow_SessionData,
+                                    Stream_AVSave_DirectShow_SessionData_t,
+                                    struct Stream_AVSave_StatisticData,
+                                    Common_Timer_Manager_t,
+                                    struct Stream_UserData,
+                                    struct Stream_MediaFramework_DirectShow_AudioVideoFormat> Stream_AVSave_VfW_Source;
 typedef Stream_Dev_Cam_Source_DirectShow_T<ACE_MT_SYNCH,
                                            Stream_ControlMessage_t,
                                            Stream_AVSave_DirectShow_Message_t,
@@ -567,6 +583,13 @@ DATASTREAM_MODULE_INPUT_ONLY (Stream_AVSave_DirectShow_SessionData,             
                               libacestream_default_dev_mic_source_wavein_module_name_string,
                               Stream_INotify_t,                                              // stream notification interface type
                               Stream_AVSave_DirectShow_WaveIn_Source);                       // writer type
+
+DATASTREAM_MODULE_INPUT_ONLY (Stream_AVSave_DirectShow_SessionData,                       // session data type
+                              enum Stream_SessionMessageType,                             // session event type
+                              struct Stream_AVSave_DirectShow_ModuleHandlerConfiguration, // module handler configuration type
+                              libacestream_default_dev_cam_source_vfw_module_name_string,
+                              Stream_INotify_t,                                           // stream notification interface type
+                              Stream_AVSave_VfW_Source);                                  // writer type
 DATASTREAM_MODULE_INPUT_ONLY (Stream_AVSave_DirectShow_SessionData,                              // session data type
                               enum Stream_SessionMessageType,                                    // session event type
                               struct Stream_AVSave_DirectShow_ModuleHandlerConfiguration,        // module handler configuration type

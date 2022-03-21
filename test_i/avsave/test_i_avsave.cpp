@@ -1065,15 +1065,15 @@ do_work (const struct Stream_Device_Identifier& deviceIdentifier_in,
 
 #if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
-  Common_UI_GTK_Manager_t* gtk_manager_p =
-      COMMON_UI_GTK_MANAGER_SINGLETON::instance ();
+  Stream_AVSave_UI_GTK_Manager_t* gtk_manager_p =
+    STREAM_AVSAVE_UI_GTK_MANAGER_SINGLETON::instance ();
   ACE_ASSERT (gtk_manager_p);
-    Common_UI_GTK_State_t& state_r =
-        const_cast<Common_UI_GTK_State_t&> (gtk_manager_p->getR ());
-    //CBData_in.UIState->gladeXML[ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN)] =
-    //  std::make_pair (UIDefinitionFile_in, static_cast<GladeXML*> (NULL));
-    state_r.builders[ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN)] =
-      std::make_pair (UIDefinitionFilename_in, static_cast<GtkBuilder*> (NULL));
+  struct Stream_AVSave_UI_State& state_r =
+    const_cast<struct Stream_AVSave_UI_State&> (gtk_manager_p->getR ());
+  //CBData_in.UIState->gladeXML[ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN)] =
+  //  std::make_pair (UIDefinitionFile_in, static_cast<GladeXML*> (NULL));
+  state_r.builders[ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN)] =
+    std::make_pair (UIDefinitionFilename_in, static_cast<GtkBuilder*> (NULL));
 #endif // GTK_USE
 #endif // GUI_SUPPORT
 
@@ -1094,13 +1094,14 @@ do_work (const struct Stream_Device_Identifier& deviceIdentifier_in,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   struct Stream_AVSave_DirectShow_ModuleHandlerConfiguration directshow_audio_modulehandler_configuration;
   struct Stream_AVSave_DirectShow_ModuleHandlerConfiguration directshow_audio_modulehandler_configuration_2; // audio capture
-  struct Stream_AVSave_DirectShow_ModuleHandlerConfiguration directshow_audio_modulehandler_configuration_3;
+  struct Stream_AVSave_DirectShow_ModuleHandlerConfiguration directshow_audio_modulehandler_configuration_3; // analyzer
   struct Stream_AVSave_DirectShow_StreamConfiguration directshow_audio_stream_configuration;
 
   struct Stream_AVSave_DirectShow_ModuleHandlerConfiguration directshow_video_modulehandler_configuration;
   struct Stream_AVSave_DirectShow_ModuleHandlerConfiguration directshow_video_modulehandler_configuration_2; // converter --> display
   struct Stream_AVSave_DirectShow_ModuleHandlerConfiguration directshow_video_modulehandler_configuration_3; // resize --> display
-  struct Stream_AVSave_DirectShow_ModuleHandlerConfiguration directshow_video_modulehandler_configuration_4; // converter --> encoder
+  struct Stream_AVSave_DirectShow_ModuleHandlerConfiguration directshow_video_modulehandler_configuration_4; // window --> display
+  struct Stream_AVSave_DirectShow_ModuleHandlerConfiguration directshow_video_modulehandler_configuration_5; // converter --> encoder
   struct Stream_AVSave_DirectShow_StreamConfiguration directshow_video_stream_configuration;
 #if defined (GUI_SUPPORT)
   Stream_AVSave_DirectShow_EventHandler_t directshow_ui_event_handler (&directShowCBData_in
@@ -1280,6 +1281,8 @@ do_work (const struct Stream_Device_Identifier& deviceIdentifier_in,
         directshow_video_modulehandler_configuration;
       directshow_video_modulehandler_configuration_4 =
         directshow_video_modulehandler_configuration;
+      directshow_video_modulehandler_configuration_5 =
+        directshow_video_modulehandler_configuration;
 
       // capture
       directshow_audio_modulehandler_configuration_2 =
@@ -1331,9 +1334,12 @@ do_work (const struct Stream_Device_Identifier& deviceIdentifier_in,
       directShowConfiguration_in.videoStreamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_LIBAV_RESIZE_DEFAULT_NAME_STRING),
                                                                                   std::make_pair (&module_configuration,
                                                                                                   &directshow_video_modulehandler_configuration_3)));
-      directShowConfiguration_in.videoStreamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR ("LibAV_Converter_2"),
+      directShowConfiguration_in.videoStreamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_GTK_CAIRO_DEFAULT_NAME_STRING),
                                                                                   std::make_pair (&module_configuration,
                                                                                                   &directshow_video_modulehandler_configuration_4)));
+      directShowConfiguration_in.videoStreamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR ("LibAV_Converter_2"),
+                                                                                  std::make_pair (&module_configuration,
+                                                                                                  &directshow_video_modulehandler_configuration_5)));
       directshow_video_stream_iterator =
         directShowConfiguration_in.videoStreamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
       ACE_ASSERT (directshow_video_stream_iterator != directShowConfiguration_in.videoStreamConfiguration.end ());
@@ -1449,6 +1455,13 @@ do_work (const struct Stream_Device_Identifier& deviceIdentifier_in,
       media_type_p =
         Stream_MediaFramework_DirectShow_Tools::copy (directshow_video_modulehandler_configuration.outputFormat);
       ACE_ASSERT (media_type_p);
+      directshow_audio_modulehandler_configuration_3.outputFormat =
+        *media_type_p;
+      delete media_type_p; media_type_p = NULL;
+
+      media_type_p =
+        Stream_MediaFramework_DirectShow_Tools::copy (directshow_video_modulehandler_configuration.outputFormat);
+      ACE_ASSERT (media_type_p);
       directshow_video_modulehandler_configuration_2.outputFormat =
         *media_type_p;
       Stream_MediaFramework_DirectShow_Tools::setFormat (MEDIASUBTYPE_RGB24,
@@ -1461,7 +1474,7 @@ do_work (const struct Stream_Device_Identifier& deviceIdentifier_in,
       delete media_type_p; media_type_p = NULL;
       media_type_p =
         Stream_MediaFramework_DirectShow_Tools::copy (directshow_video_modulehandler_configuration.outputFormat);
-      directshow_video_modulehandler_configuration_4.outputFormat =
+      directshow_video_modulehandler_configuration_5.outputFormat =
         *media_type_p;
       delete media_type_p; media_type_p = NULL;
       break;
@@ -1686,12 +1699,14 @@ do_work (const struct Stream_Device_Identifier& deviceIdentifier_in,
 #if defined (GTK_USE)
         directShowCBData_in.UIState = &state_r;
         directShowCBData_in.progressData.state = &state_r;
+
+        gtk_manager_p->initialize (directShowConfiguration_in.GTKConfiguration);
 #elif defined (WXWIDGETS_USE)
         struct Common_UI_wxWidgets_State& state_r =
           const_cast<struct Common_UI_wxWidgets_State&> (iapplication_in->getR ());
         state_r.resources[ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN)] =
           std::make_pair (UIDefinitionFilename_in, static_cast<wxObject*> (NULL));
-#endif
+#endif // GTK_USE || WXWIDGETS_USE
         break;
       }
       case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
@@ -1701,12 +1716,14 @@ do_work (const struct Stream_Device_Identifier& deviceIdentifier_in,
 #if defined (GTK_USE)
         mediaFoundationCBData_in.UIState = &state_r;
         mediaFoundationCBData_in.progressData.state = &state_r;
+
+        gtk_manager_p->initialize (mediaFoundationConfiguration_in.GTKConfiguration);
 #elif defined (WXWIDGETS_USE)
         struct Common_UI_wxWidgets_State& state_r =
           const_cast<struct Common_UI_wxWidgets_State&> (iapplication_in->getR ());
         state_r.resources[ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN)] =
           std::make_pair (UIDefinitionFilename_in, static_cast<wxObject*> (NULL));
-#endif
+#endif // GTK_USE || WXWIDGETS_USE
         break;
       }
       default:
@@ -1723,7 +1740,8 @@ do_work (const struct Stream_Device_Identifier& deviceIdentifier_in,
 #if defined (GTK_USE)
     CBData_in.UIState = &state_r;
     CBData_in.progressData.state = &state_r;
-//    CBData_in.pixelBufferLock = &state_r.lock;
+
+    gtk_manager_p->initialize (configuration_in.GTKConfiguration);
 #elif defined (WXWIDGETS_USE)
     struct Common_UI_wxWidgets_State& state_r =
       const_cast<struct Common_UI_wxWidgets_State&> (iapplication_in->getR ());

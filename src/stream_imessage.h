@@ -69,6 +69,10 @@ class Stream_IDataMessage_T
   // 3. adjusting the write pointer
   // 4. releasing any (obsoleted) continuations
   virtual void defragment () = 0;
+
+  virtual void initialize (Stream_SessionId_t,             // session id
+                           ACE_Data_Block*                 // data block to use
+                           /*const ACE_Time_Value&*/) = 0; // scheduled execution time
 };
 
 #endif

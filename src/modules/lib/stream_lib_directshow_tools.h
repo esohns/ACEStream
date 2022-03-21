@@ -140,6 +140,7 @@ class Stream_MediaFramework_DirectShow_Tools
   //         type was set for the filter's input pin. ..."
   static bool getFirstFormat (IPin*,                  // pin handle
                               REFGUID,                // subtype (GUID_NULL ? first format : first format of given subtype)
+                              bool,                   // return top-to-bottom RGB ? : bottom-to-top RGB
                               struct _AMMediaType*&); // return value: media type
   static bool hasUncompressedFormat (REFGUID,                // device category
                                      IPin*,                  // pin handle
@@ -204,6 +205,8 @@ class Stream_MediaFramework_DirectShow_Tools
   static void free (Stream_MediaFramework_DirectShow_Formats_t&);
   static bool match (const struct _AMMediaType&,  // media type
                      const struct _AMMediaType&); // media type
+  // *NOTE*: is RGB and height > 0
+  static bool isMediaTypeBottomUp (const struct _AMMediaType&); // media type
   static bool isVideoFormat (const struct _AMMediaType&); // ? : audio
   static void setFormat (REFGUID,               // media type
                          struct _AMMediaType&); // in/out: media type
@@ -224,6 +227,8 @@ class Stream_MediaFramework_DirectShow_Tools
   inline static DMO_MEDIA_TYPE* toDMOMediaType (const struct _AMMediaType& mediaType_in) { return reinterpret_cast<DMO_MEDIA_TYPE*> (Stream_MediaFramework_DirectShow_Tools::copy (mediaType_in)); }
   // *IMPORTANT NOTE*: callers must 'CoTaskMemFree' any return values
   static struct tWAVEFORMATEX* toWaveFormatEx (const struct _AMMediaType&); // media type
+  static void toBitmapInfo (const struct _AMMediaType&, // media type
+                            struct tagBITMAPINFO&);     // return value: media type
   static struct _GUID toSubType (const struct tWAVEFORMATEX&); // format
   static std::string toString (const struct _AMMediaType&, // media type
                                bool = false);              // condensed version ?

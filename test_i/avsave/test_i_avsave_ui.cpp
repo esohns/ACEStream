@@ -65,8 +65,8 @@ process_stream_events (struct Stream_AVSave_UI_CBData* CBData_in,
     cb_data_p->configuration->streamConfiguration.configuration_.renderer;
 #endif // ACE_WIN32 || ACE_WIN64
 
-  enum Common_UI_EventType* event_p = NULL;
-  enum Common_UI_EventType event_2;
+  enum Stream_AVSave_UI_EventType* event_p = NULL;
+  enum Stream_AVSave_UI_EventType event_2;
   Common_UI_wxWidgets_XmlResourcesIterator_t iterator;
   wxDialog* dialog_p = NULL;
   wxSpinCtrl* spin_control_p = NULL;
@@ -81,7 +81,7 @@ process_stream_events (struct Stream_AVSave_UI_CBData* CBData_in,
     dialog_p = dynamic_cast<wxDialog*> ((*iterator).second.second);
     ACE_ASSERT (dialog_p);
 
-    for (Common_UI_Events_t::ITERATOR iterator_2 (CBData_in->UIState->eventStack);
+    for (Stream_AVSave_UI_EventsIterator_t iterator_2 (CBData_in->UIState->eventStack);
          iterator_2.next (event_p);
          iterator_2.advance ())
     { ACE_ASSERT (event_p);

@@ -111,8 +111,8 @@ Stream_AVSave_EventHandler_T<NotificationType,
 #if defined (GUI_SUPPORT)
   ACE_ASSERT (CBData_);
 #if defined (GTK_USE)
-  Common_UI_GTK_Manager_t* gtk_manager_p =
-    COMMON_UI_GTK_MANAGER_SINGLETON::instance ();
+  Stream_AVSave_UI_GTK_Manager_t* gtk_manager_p =
+    STREAM_AVSAVE_UI_GTK_MANAGER_SINGLETON::instance ();
   ACE_ASSERT (gtk_manager_p);
 #elif defined (WXWIDGETS_USE)
   ACE_ASSERT (interface_);
@@ -136,7 +136,7 @@ Stream_AVSave_EventHandler_T<NotificationType,
 #if defined (GUI_SUPPORT)
 #if defined (GTK_USE) || defined (WXWIDGETS_USE)
   { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, state_r.lock);
-    state_r.eventStack.push (COMMON_UI_EVENT_STARTED);
+    state_r.eventStack.push (static_cast<enum Stream_AVSave_UI_EventType> (COMMON_UI_EVENT_STARTED));
   } // end lock scope
 #endif // GTK_USE || WXWIDGETS_USE
 #endif // GUI_SUPPORT
@@ -197,8 +197,8 @@ Stream_AVSave_EventHandler_T<NotificationType,
 #if defined (GUI_SUPPORT)
   ACE_ASSERT (CBData_);
 #if defined (GTK_USE)
-  Common_UI_GTK_Manager_t* gtk_manager_p =
-    COMMON_UI_GTK_MANAGER_SINGLETON::instance ();
+  Stream_AVSave_UI_GTK_Manager_t* gtk_manager_p =
+    STREAM_AVSAVE_UI_GTK_MANAGER_SINGLETON::instance ();
   ACE_ASSERT (gtk_manager_p);
 #elif defined (WXWIDGETS_USE)
   ACE_ASSERT (interface_);
@@ -232,7 +232,7 @@ Stream_AVSave_EventHandler_T<NotificationType,
     else
       state_r.eventSourceIds.insert (event_source_id);
 #endif // GTK_USE
-    state_r.eventStack.push (COMMON_UI_EVENT_FINISHED);
+    state_r.eventStack.push (static_cast<enum Stream_AVSave_UI_EventType> (COMMON_UI_EVENT_FINISHED));
   } // end lock scope
 #endif // GTK_USE || WXWIDGETS_USE
 #endif // GUI_SUPPORT
@@ -270,8 +270,8 @@ Stream_AVSave_EventHandler_T<NotificationType,
 #if defined (GUI_SUPPORT)
   ACE_ASSERT (CBData_);
 #if defined (GTK_USE)
-  Common_UI_GTK_Manager_t* gtk_manager_p =
-    COMMON_UI_GTK_MANAGER_SINGLETON::instance ();
+  Stream_AVSave_UI_GTK_Manager_t* gtk_manager_p =
+    STREAM_AVSAVE_UI_GTK_MANAGER_SINGLETON::instance ();
   ACE_ASSERT (gtk_manager_p);
 #elif defined (WXWIDGETS_USE)
   ACE_ASSERT (interface_);
@@ -279,6 +279,7 @@ Stream_AVSave_EventHandler_T<NotificationType,
 #endif // GUI_SUPPORT
 
 #if defined (GUI_SUPPORT)
+  enum Stream_AVSave_UI_EventType event_e = STREAM_AV_UI_EVENT_INVALID;
 #if defined (GTK_USE)
   UIStateType& state_r =
     const_cast<UIStateType&> (gtk_manager_p->getR ());
@@ -289,26 +290,28 @@ Stream_AVSave_EventHandler_T<NotificationType,
 #endif // GUI_SUPPORT
 
 #if defined (GUI_SUPPORT)
+  switch (message_in.getMediaType ())
+  {
+    case STREAM_MEDIATYPE_AUDIO:
+      event_e = STREAM_AV_UI_EVENT_DATA_AUDIO;
+      break;
+    case STREAM_MEDIATYPE_VIDEO:
+      event_e = STREAM_AV_UI_EVENT_DATA_VIDEO;
+      break;
+    default:
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("invalid/unknown message type (was: %d), returning\n"),
+                  message_in.getMediaType ()));
+      return;
+    }
+  } // end SWITCH
 #if defined (GTK_USE) || defined (WXWIDGETS_USE)
   { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, state_r.lock);
     CBData_->progressData.statistic.bytes += message_in.total_length ();
-    state_r.eventStack.push (COMMON_UI_EVENT_DATA);
+    state_r.eventStack.push (event_e);
   } // end lock scope
 #endif // GTK_USE || WXWIDGETS_USE
-#endif // GUI_SUPPORT
-
-#if defined (GUI_SUPPORT)
-#if defined (GTK_USE)
-//  guint event_source_id = g_idle_add (idle_update_video_display_cb,
-//                                      CBData_);
-//  if (event_source_id == 0)
-//  {
-//    ACE_DEBUG ((LM_ERROR,
-//                ACE_TEXT ("failed to g_idle_add(idle_update_video_display_cb): \"%m\", returning\n")));
-//    return;
-//  } // end IF
-//  CBData_->UIState.eventSourceIds.insert (event_source_id);
-#endif // GTK_USE
 #endif // GUI_SUPPORT
 }
 
@@ -341,8 +344,8 @@ Stream_AVSave_EventHandler_T<NotificationType,
 #if defined (GUI_SUPPORT)
   ACE_ASSERT (CBData_);
 #if defined (GTK_USE)
-  Common_UI_GTK_Manager_t* gtk_manager_p =
-    COMMON_UI_GTK_MANAGER_SINGLETON::instance ();
+  Stream_AVSave_UI_GTK_Manager_t* gtk_manager_p =
+    STREAM_AVSAVE_UI_GTK_MANAGER_SINGLETON::instance ();
   ACE_ASSERT (gtk_manager_p);
 #elif defined (WXWIDGETS_USE)
   ACE_ASSERT (interface_);
@@ -365,6 +368,16 @@ Stream_AVSave_EventHandler_T<NotificationType,
 #endif // GUI_SUPPORT
   switch (sessionMessage_in.type ())
   {
+    case STREAM_SESSION_MESSAGE_ABORT:
+#if defined (GUI_SUPPORT)
+      event_e = COMMON_UI_EVENT_ABORT;
+#endif // GUI_SUPPORT
+      break;
+    case STREAM_SESSION_MESSAGE_RESIZE:
+#if defined (GUI_SUPPORT)
+      event_e = COMMON_UI_EVENT_RESIZE;
+#endif // GUI_SUPPORT
+      break;
     case STREAM_SESSION_MESSAGE_STATISTIC:
     {
       float current_bytes = 0.0F;
@@ -416,7 +429,7 @@ continue_:
 #if defined (GUI_SUPPORT)
 #if defined (GTK_USE) || defined (WXWIDGETS_USE)
   { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, state_r.lock);
-    state_r.eventStack.push (event_e);
+    state_r.eventStack.push (static_cast<enum Stream_AVSave_UI_EventType> (event_e));
   } // end lock scope
 #else
   ACE_UNUSED_ARG (event_e);

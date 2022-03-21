@@ -161,8 +161,8 @@ Stream_AVSave_SignalHandler::handle (const struct Common_Signal& signal_in)
     //         compared to doing it here
 #if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
-    COMMON_UI_GTK_MANAGER_SINGLETON::instance ()->stop (false,  // wait ?
-                                                        true);  // high priority ?
+    STREAM_AVSAVE_UI_GTK_MANAGER_SINGLETON::instance ()->stop (false,  // wait ?
+                                                               true);  // high priority ?
 #elif defined (WXWIDGETS_USE)
     wxAppConsole* app_p = wxAppConsole::GetInstance ();
     ACE_ASSERT (app_p);
