@@ -350,6 +350,7 @@ class Stream_Base_T
   bool                      isInitialized_;
   LAYOUT_T                  layout_;
   MESSAGE_QUEUE_T           messageQueue_; // ('outbound'-) queue
+  std::string               name_;
   SessionDataContainerType* sessionData_;
   ACE_SYNCH_MUTEX_T         sessionDataLock_;
   StateType                 state_;
@@ -424,7 +425,6 @@ class Stream_Base_T
   void unlinkModules ();
 
   bool                      delete_; // delete modules ?
-  std::string               name_;
 };
 
 // include template definition

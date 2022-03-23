@@ -1864,6 +1864,7 @@ stream_processing_function (void* arg_in)
   //ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, data_p->CBData->UIState->lock);
   Stream_IStreamControlBase* stream_p = NULL, *stream_2 = NULL;
   Stream_Module_t* module_p = NULL;
+  bool result_2 = false;
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   struct Stream_AVSave_DirectShow_UI_CBData* directshow_cb_data_p = NULL;
@@ -2106,9 +2107,9 @@ stream_processing_function (void* arg_in)
       module_p =
         const_cast<Stream_Module_t*> (directshow_cb_data_p->audioStream->find (ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_LIBAV_ENCODER_DEFAULT_NAME_STRING)));
       ACE_ASSERT (module_p);
-      bool result_2 = directshow_cb_data_p->audioStream->remove (module_p,
-                                                                 true,
-                                                                 true);
+      result_2 = directshow_cb_data_p->audioStream->remove (module_p,
+                                                            true,
+                                                            true);
       ACE_ASSERT (result_2);
       result_2 = directshow_cb_data_p->videoStream->remove (module_p,
                                                             true,
@@ -2121,9 +2122,9 @@ stream_processing_function (void* arg_in)
       module_p =
         const_cast<Stream_Module_t*> (mediafoundation_cb_data_p->audioStream->find (ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_LIBAV_ENCODER_DEFAULT_NAME_STRING)));
       ACE_ASSERT (module_p);
-      bool result_2 = mediafoundation_cb_data_p->audioStream->remove (module_p,
-                                                                      true,
-                                                                      true);
+      result_2 = mediafoundation_cb_data_p->audioStream->remove (module_p,
+                                                                 true,
+                                                                 true);
       ACE_ASSERT (result_2);
       result_2 = mediafoundation_cb_data_p->videoStream->remove (module_p,
                                                                  true,
@@ -2145,9 +2146,9 @@ stream_processing_function (void* arg_in)
   module_p =
     const_cast<Stream_Module_t*> (cb_data_p->audioStream->find (ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_LIBAV_ENCODER_DEFAULT_NAME_STRING)));
   ACE_ASSERT (module_p);
-  bool result_2 = cb_data_p->audioStream->remove (module_p,
-                                                  true,
-                                                  true);
+  result_2 = cb_data_p->audioStream->remove (module_p,
+                                             true,
+                                             true);
   ACE_ASSERT (result_2);
   result_2 = cb_data_p->videoStream->remove (module_p,
                                              true,
@@ -6665,7 +6666,7 @@ drawingarea_video_resize_end (gpointer userData_in)
 #else
   struct Stream_AVSave_V4L_UI_CBData* ui_cb_data_p =
     static_cast<struct Stream_AVSave_V4L_UI_CBData*> (ui_cb_data_base_p);
-  stream_p = directshow_cb_data_p->videoStream;
+  stream_p = ui_cb_data_p->videoStream;
   ACE_ASSERT (ui_cb_data_p->configuration);
   Stream_AVSave_ALSA_V4L_StreamConfiguration_t::ITERATOR_T iterator_2 =
     ui_cb_data_p->configuration->videoStreamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));

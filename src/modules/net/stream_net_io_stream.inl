@@ -66,7 +66,6 @@ Stream_Module_Net_IO_Stream_T<ACE_SYNCH_USE,
  : inherited ()
  , finishOnDisconnect_ (false)
  , handle_ (ACE_INVALID_HANDLE)
- , name_ (ACE_TEXT_ALWAYS_CHAR (StreamName))
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Net_IO_Stream_T::Stream_Module_Net_IO_Stream_T"));
 
@@ -128,7 +127,7 @@ Stream_Module_Net_IO_Stream_T<ACE_SYNCH_USE,
   {
     ACE_DEBUG ((LM_CRITICAL,
                 ACE_TEXT ("%s: failed to allocate memory, aborting\n"),
-                ACE_TEXT (name_.c_str ())));
+                ACE_TEXT (inherited::name_.c_str ())));
     return false;
   } // end IF
   layout_in->append (module_p, NULL, 0);
@@ -276,7 +275,7 @@ Stream_Module_Net_IO_Stream_T<ACE_SYNCH_USE,
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to Stream_Base_T::initialize(), aborting\n"),
-                ACE_TEXT (name_.c_str ())));
+                ACE_TEXT (inherited::name_.c_str ())));
     goto error;
   } // end IF
   const_cast<typename inherited::CONFIGURATION_T&> (configuration_in).configuration_->setupPipeline =
@@ -290,7 +289,7 @@ Stream_Module_Net_IO_Stream_T<ACE_SYNCH_USE,
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to dynamic_cast<Common_ISet_T<bool>*>(), aborting\n"),
-                ACE_TEXT (name_.c_str ())));
+                ACE_TEXT (inherited::name_.c_str ())));
     goto error;
   } // end IF
   iset_p->set (true); // enqueue incoming head reader messages
@@ -304,7 +303,7 @@ Stream_Module_Net_IO_Stream_T<ACE_SYNCH_USE,
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to retrieve \"%s\" module handle, aborting\n"),
-                ACE_TEXT (name_.c_str ()),
+                ACE_TEXT (inherited::name_.c_str ()),
                 ACE_TEXT (MODULE_NET_IO_DEFAULT_NAME_STRING)));
     goto error;
   } // end IF
@@ -313,7 +312,7 @@ Stream_Module_Net_IO_Stream_T<ACE_SYNCH_USE,
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s/%s writer: dynamic_cast<Stream_Module_Net_IOWriter_T> failed, aborting\n"),
-                ACE_TEXT (name_.c_str ()),
+                ACE_TEXT (inherited::name_.c_str ()),
                 module_p->name ()));
     goto error;
   } // end IF
@@ -324,7 +323,7 @@ Stream_Module_Net_IO_Stream_T<ACE_SYNCH_USE,
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: failed to set up pipeline, aborting\n"),
-                  ACE_TEXT (name_.c_str ())));
+                  ACE_TEXT (inherited::name_.c_str ())));
       goto error;
     } // end IF
 
@@ -533,7 +532,7 @@ Stream_Module_Net_IO_Stream_T<ACE_SYNCH_USE,
       if (!inotify)
         ACE_DEBUG ((LM_WARNING,
                     ACE_TEXT ("%s: dynamic_cast<Stream_IOutboundDataNotify>(0x%@) failed, continuing\n"),
-                    ACE_TEXT (name_.c_str ()),
+                    ACE_TEXT (inherited::name_.c_str ()),
                     stream_p));
       else
         return inotify->getP (false);
@@ -569,7 +568,7 @@ retry:
 
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: no head module reader task found, aborting\n"),
-                ACE_TEXT (name_.c_str ())));
+                ACE_TEXT (inherited::name_.c_str ())));
     return NULL;
   } // end IF
   ACE_ASSERT (task_p->msg_queue_);
@@ -666,7 +665,7 @@ retry:
 
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: no module (name was: \"%s\") reader task found, aborting\n"),
-                ACE_TEXT (name_.c_str ()),
+                ACE_TEXT (inherited::name_.c_str ()),
                 ACE_TEXT (moduleName_in.c_str ())));
     return false;
   } // end IF
@@ -730,13 +729,13 @@ Stream_Module_Net_IO_Stream_T<ACE_SYNCH_USE,
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: failed to Stream_IOutboundDataNotify::initialize_2(%@), returning\n"),
-                    ACE_TEXT (name_.c_str ()),
+                    ACE_TEXT (inherited::name_.c_str ()),
                     notification_strategy_p));
         return;
       } // end IF
       ACE_DEBUG ((LM_DEBUG,
                   ACE_TEXT ("%s: reset upstream notification\n"),
-                  ACE_TEXT (name_.c_str ())));
+                  ACE_TEXT (inherited::name_.c_str ())));
     } // end IF
   } // end IF
   else
@@ -747,7 +746,7 @@ Stream_Module_Net_IO_Stream_T<ACE_SYNCH_USE,
       finishOnDisconnect_ = true;
       ACE_DEBUG ((LM_WARNING,
                   ACE_TEXT ("%s: reset finish-on-disconnect\n"),
-                  ACE_TEXT (name_.c_str ())));
+                  ACE_TEXT (inherited::name_.c_str ())));
     } // end ELSE
 
     // initiate read ?
@@ -773,7 +772,7 @@ Stream_Module_Net_IO_Stream_T<ACE_SYNCH_USE,
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: failed to Net_ISocketHandler::initiate_read(), aborting\n"),
-                    ACE_TEXT (name_.c_str ())));
+                    ACE_TEXT (inherited::name_.c_str ())));
         connection_p->close ();
       } // end IF
     connection_p->decrease ();

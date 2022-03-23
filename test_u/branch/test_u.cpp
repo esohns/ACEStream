@@ -288,6 +288,8 @@ clean:
       message_2 = static_cast<Branch_Message*> (message_p->duplicate ());
       ACE_ASSERT (message_2);
 
+      bool result_2 = false;
+
       if (!branch_stream.initialize (stream_configuration_2))
       {
         ACE_DEBUG ((LM_ERROR,
@@ -343,9 +345,9 @@ clean:
       ////////////////////////////////////
 
       // remove aggregator
-      bool result_2 = branch_stream.remove (&module_2,
-                                            true,  // lock ?
-                                            true); // reset ?
+      result_2 = branch_stream.remove (&module_2,
+                                       true,  // lock ?
+                                       true); // reset ?
       ACE_ASSERT (result_2);
       result_2 = branch_stream_2.remove (&module_2,
                                          true,  // lock ?

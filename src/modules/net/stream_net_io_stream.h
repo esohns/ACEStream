@@ -138,7 +138,6 @@ class Stream_Module_Net_IO_Stream_T
   // override (part of) Stream_IStream_T
   virtual bool load (Stream_ILayout*, // return value: layout
                      bool&);          // return value: delete modules ?
-  inline virtual std::string name () const { std::string name_s = StreamName; return (name_.empty () ? name_s : name_); }
 
   // override (part of) Stream_IStreamControl_T
   virtual void stop (bool = true,   // wait for completion ?
@@ -164,8 +163,9 @@ class Stream_Module_Net_IO_Stream_T
   virtual bool initialize_2 (ACE_Notification_Strategy*,                                     // strategy handle
                              const std::string& = ACE_TEXT_ALWAYS_CHAR ("ACE_Stream_Head")); // module name
 
+  // *TODO*: remove this and use Stream_IStream_T interface
   // implement Common_ISetR_T
-  inline virtual void setR (const std::string& name_in) { name_ = name_in; }
+  inline virtual void setR (const std::string& name_in) { inherited::name_ = name_in; }
 
  protected:
   // convenient types
@@ -214,7 +214,6 @@ class Stream_Module_Net_IO_Stream_T
   // *NOTE*: finish session on disconnect notification ?
   bool        finishOnDisconnect_;
   ACE_HANDLE  handle_; // socket-
-  std::string name_;
 
  private:
   // convenient types

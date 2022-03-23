@@ -69,12 +69,12 @@ Stream_Base_T<ACE_SYNCH_USE,
  , layout_ ()
  , messageQueue_ (STREAM_QUEUE_MAX_SLOTS,
                   NULL)
+ , name_ (StreamName)
  , sessionData_ (NULL)
  , sessionDataLock_ ()
  , state_ ()
  /////////////////////////////////////////
  , delete_ (false)
- , name_ (StreamName)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Base_T::Stream_Base_T"));
 
@@ -2666,14 +2666,14 @@ Stream_Base_T<ACE_SYNCH_USE,
     return ilock_p->hasLock (recurseUpstream_in);
   } // end IF
 
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
   ACE_thread_mutex_t& mutex_r = inherited::lock_.lock ();
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
   ACE_hthread_t thread_h = NULL;
   ACE_OS::thr_self (thread_h);
   ACE_ASSERT (thread_h);
   return static_cast<bool> (ACE_OS::thr_cmp (mutex_r.OwningThread, thread_h));
 #else
-  return (static_cast<bool> (ACE_OS::thr_equal (thread_id, ACE_OS::thr_self ()));
+  return (static_cast<bool> (ACE_OS::thr_equal (mutex_r.__data.__owner, ACE_OS::thr_self ())));
 #endif // ACE_WIN32 || ACE_WIN64
 }
 
