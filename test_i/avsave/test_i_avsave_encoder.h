@@ -33,13 +33,15 @@ extern "C"
 #include "ace/Condition_T.h"
 #include "ace/Thread_Mutex.h"
 
+#include "stream_streammodule_base.h"
 #include "stream_task_base_asynch.h"
 
 #include "stream_lib_mediatype_converter.h"
 
-#if defined (FFMPEG_SUPPORT)
 #include "stream_dec_libav_encoder.h"
-#endif // FFMPEG_SUPPORT
+
+#include "test_i_avsave_common.h"
+#include "test_i_avsave_message.h"
 
 // forward declaration(s)
 struct AVFrame;

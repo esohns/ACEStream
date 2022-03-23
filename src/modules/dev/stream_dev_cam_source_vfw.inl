@@ -188,6 +188,50 @@ Stream_Dev_Cam_Source_VfW_T<ACE_SYNCH_USE,
                             StatisticContainerType,
                             TimerManagerType,
                             UserDataType,
+                            MediaType>::handleDataMessage (DataMessageType*& message_inout,
+                                                           bool& passMessageDownstream_out)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Dev_Cam_Source_VfW_T::handleDataMessage"));
+
+  ACE_UNUSED_ARG (passMessageDownstream_out);
+
+  // sanity check(s)
+  ACE_ASSERT (inherited::sessionData_);
+
+  SessionDataType& session_data_r =
+    const_cast<SessionDataType&> (inherited::sessionData_->getR ());
+  message_inout->initialize (session_data_r.sessionId,
+                             NULL); // keep data block
+}
+
+template <ACE_SYNCH_DECL,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
+          typename ConfigurationType,
+          typename StreamControlType,
+          typename StreamNotificationType,
+          typename StreamStateType,
+          typename SessionDataType,
+          typename SessionDataContainerType,
+          typename StatisticContainerType,
+          typename TimerManagerType,
+          typename UserDataType,
+          typename MediaType>
+void
+Stream_Dev_Cam_Source_VfW_T<ACE_SYNCH_USE,
+                            ControlMessageType,
+                            DataMessageType,
+                            SessionMessageType,
+                            ConfigurationType,
+                            StreamControlType,
+                            StreamNotificationType,
+                            StreamStateType,
+                            SessionDataType,
+                            SessionDataContainerType,
+                            StatisticContainerType,
+                            TimerManagerType,
+                            UserDataType,
                             MediaType>::handleSessionMessage (SessionMessageType*& message_inout,
                                                               bool& passMessageDownstream_out)
 {

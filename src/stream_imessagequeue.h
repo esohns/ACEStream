@@ -31,12 +31,16 @@ class Stream_IMessageQueue
   // *WARNING*: caller needs to hold inherited::lock_ !
   virtual int enqueue_head_i (ACE_Message_Block*,       // message block handle
                               ACE_Time_Value* = 0) = 0; // timeout [NULL: block]
-   
-   // *NOTE*: returns #flushed messages
+
+  // *NOTE*: returns #flushed messages
   virtual unsigned int flush (bool = false) = 0; // flush session messages ?
 
   // *NOTE*: resets the 'shutting down' state
   virtual void reset () = 0;
+
+  // *WARNING*: handle with care !
+  // signal waiters
+  virtual void signal () = 0;
 
   virtual bool isShuttingDown () const = 0; // MB_STOP has been dequeued ?
   virtual void waitForIdleState () const = 0;

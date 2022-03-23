@@ -302,14 +302,15 @@ Stream_Module_QueueReader_T<ACE_SYNCH_USE,
   const SessionDataType* session_data_p = &inherited::sessionData_->getR ();
   bool stop_processing_b = false;
   bool done_b = false;
+  bool finish_b = true;
+  bool aborted_b = false;
 
   do
   {
     message_block_p = NULL;
     result_i = inherited::getq (message_block_p, NULL);
     if (likely (result_i == -1))
-    {
-      int error = ACE_OS::last_error ();
+    { int error = ACE_OS::last_error ();
       if (error != ESHUTDOWN)
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: failed to ACE_Task::getq(): \"%m\", aborting\n"),
@@ -354,7 +355,11 @@ Stream_Module_QueueReader_T<ACE_SYNCH_USE,
 
         // *IMPORTANT NOTE*: when close()d manually (i.e. on a user abort),
         //                   the stream may not have finish()ed
-        if (unlikely (inherited::current () != STREAM_STATE_FINISHED))
+        { ACE_GUARD_RETURN (ACE_Thread_Mutex, aGuard, inherited::lock_, -1);
+          if (unlikely (inherited::sessionEndSent_ || inherited::sessionEndProcessed_))
+            finish_b = false;
+        } // end lock scope
+        if (likely (finish_b))
         {
           // enqueue(/process) STREAM_SESSION_END
           inherited::finished (false); // recurse upstream ?
@@ -441,18 +446,21 @@ Stream_Module_QueueReader_T<ACE_SYNCH_USE,
                         inherited::mod_->name ()));
         } // end IF
 
-        // finished ?
         if (unlikely (stop_processing_b)) // <-- SESSION_END has been processed || serious error
         { stop_processing_b = false; // reset, just in case...
-//          { ACE_GUARD_RETURN (ACE_Thread_Mutex, aGuard, inherited::lock_, -1);
-            if (likely (inherited::current () != STREAM_STATE_FINISHED))
-            {
-              // enqueue(/process) STREAM_SESSION_END
-              inherited::finished (false); // recurse upstream ?
-              continue;
-            } // end IF
-//          } // end lock scope
-        } // end IF
+          finish_b = true;
+          {
+            ACE_GUARD_RETURN (ACE_Thread_Mutex, aGuard, inherited::lock_, -1);
+            if (unlikely (inherited::sessionEndSent_ || inherited::sessionEndProcessed_))
+              finish_b = false;
+          } // end lock scope
+          if (likely (finish_b))
+          {
+            // enqueue(/process) STREAM_SESSION_END
+            inherited::finished (false); // recurse upstream ?
+            continue;
+          } // end IF
+        }   // end IF
 
         break;
       }
@@ -460,28 +468,34 @@ Stream_Module_QueueReader_T<ACE_SYNCH_USE,
     // sanity check(s)
     if (unlikely (done_b))
       break;
+
     // session aborted ?
     // *TODO*: remove type inferences
-    { ACE_ASSERT (session_data_p && session_data_p->lock);
+    if (likely (session_data_p))
+    { ACE_ASSERT (session_data_p->lock);
       ACE_GUARD_RETURN (ACE_SYNCH_MUTEX_T, aGuard, *session_data_p->lock, -1);
       // *TODO*: remove type inferences
-      if (unlikely (session_data_p->aborted))
+      aborted_b = session_data_p->aborted;
+      if (unlikely (aborted_b))
+        ACE_DEBUG ((LM_DEBUG,
+                    ACE_TEXT ("%s: session (id was: %u) aborted\n"),
+                    inherited::mod_->name (),
+                    session_data_p->sessionId));
+    } // end IF/lock scope
+    if (unlikely (aborted_b))
+    {
+      finish_b = true;
+      { ACE_GUARD_RETURN (ACE_Thread_Mutex, aGuard, inherited::lock_, -1);
+        if (unlikely (inherited::sessionEndSent_ || inherited::sessionEndProcessed_))
+          finish_b = false;
+      } // end lock scope
+      if (likely (finish_b))
       {
-//        { ACE_GUARD_RETURN (ACE_Thread_Mutex, aGuard, inherited::lock_, -1);
-          if (likely (inherited::current () != STREAM_STATE_FINISHED))
-          {
-            // *TODO*: remove type inferences
-            ACE_DEBUG ((LM_DEBUG,
-                        ACE_TEXT ("%s: session (id was: %u) aborted\n"),
-                        inherited::mod_->name (),
-                        session_data_p->sessionId));
-            // enqueue(/process) STREAM_SESSION_END
-            inherited::finished (false); // recurse upstream ?
-            continue;
-          } // end IF
-//        } // end lock scope
+        // enqueue(/process) STREAM_SESSION_END
+        inherited::finished (false); // recurse upstream ?
+        continue;
       } // end IF
-    } // end lock scope
+    } // end IF
   } while (true);
 
   ACE_DEBUG ((LM_DEBUG,

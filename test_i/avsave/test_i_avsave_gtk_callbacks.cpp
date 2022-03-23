@@ -2099,8 +2099,61 @@ stream_processing_function (void* arg_in)
   stream_2->wait (true, false, false);
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
+  switch (thread_data_p->CBData->mediaFramework)
+  {
+    case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
+    {
+      module_p =
+        const_cast<Stream_Module_t*> (directshow_cb_data_p->audioStream->find (ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_LIBAV_ENCODER_DEFAULT_NAME_STRING)));
+      ACE_ASSERT (module_p);
+      bool result_2 = directshow_cb_data_p->audioStream->remove (module_p,
+                                                                 true,
+                                                                 true);
+      ACE_ASSERT (result_2);
+      result_2 = directshow_cb_data_p->videoStream->remove (module_p,
+                                                            true,
+                                                            true);
+      ACE_ASSERT (result_2);
+      break;
+    }
+    case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
+    {
+      module_p =
+        const_cast<Stream_Module_t*> (mediafoundation_cb_data_p->audioStream->find (ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_LIBAV_ENCODER_DEFAULT_NAME_STRING)));
+      ACE_ASSERT (module_p);
+      bool result_2 = mediafoundation_cb_data_p->audioStream->remove (module_p,
+                                                                      true,
+                                                                      true);
+      ACE_ASSERT (result_2);
+      result_2 = mediafoundation_cb_data_p->videoStream->remove (module_p,
+                                                                 true,
+                                                                 true);
+      ACE_ASSERT (result_2);
+      break;
+    }
+    default:
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("invalid/unknown media framework (was: %d), returning\n"),
+                  thread_data_p->CBData->mediaFramework));
+      goto error;
+    }
+  } // end SWITCH
+
   result = 0;
 #else
+  module_p =
+    const_cast<Stream_Module_t*> (cb_data_p->audioStream->find (ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_LIBAV_ENCODER_DEFAULT_NAME_STRING)));
+  ACE_ASSERT (module_p);
+  bool result_2 = cb_data_p->audioStream->remove (module_p,
+                                                  true,
+                                                  true);
+  ACE_ASSERT (result_2);
+  result_2 = cb_data_p->videoStream->remove (module_p,
+                                             true,
+                                             true);
+  ACE_ASSERT (result_2);
+
   result = NULL;
 #endif // ACE_WIN32 || ACE_WIN64
 

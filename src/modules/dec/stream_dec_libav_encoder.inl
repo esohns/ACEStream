@@ -83,7 +83,7 @@ Stream_Decoder_LibAVEncoder_T<ACE_SYNCH_USE,
  , videoFrameSize_ (0)
  , videoSamples_ (0)
  , videoStream_ (NULL)
- , condition_ (inherited::lock_)
+ //, condition_ (inherited::lock_)
  , isFirst_ (true)
  , isLast_ (false)
  , numberOfStreamsInitialized_ (0)
@@ -409,14 +409,12 @@ Stream_Decoder_LibAVEncoder_T<ACE_SYNCH_USE,
                                 video_media_type_s);
 
       // *IMPORTANT NOTE*: initialize the format/output context only once
-      { ACE_GUARD (ACE_Thread_Mutex, aGuard, inherited::lock_);
-        if (!isFirst_)
-        {
-          is_first_b = false;
-          goto continue_;
-        } // end IF
-        isFirst_ = false;
-      } // end lock scope
+      if (!isFirst_)
+      {
+        is_first_b = false;
+        goto continue_;
+      } // end IF
+      isFirst_ = false;
 
       output_format_p = av_guess_format (ACE_TEXT_ALWAYS_CHAR ("avi"),
                                          NULL,
@@ -580,17 +578,7 @@ audio:
       avcodec_parameters_from_context (audioStream_->codecpar,
                                        audioCodecContext_);
 
-      { ACE_GUARD (ACE_Thread_Mutex, aGuard, inherited::lock_);
-        ++numberOfStreamsInitialized_;
-        result = condition_.signal ();
-        if (unlikely (result == -1))
-        {
-          ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("%s: failed to ACE_Thread_Condition::signal(): \"%m\", aborting\n"),
-                      inherited::mod_->name ()));
-          goto error;
-        } // end IF
-      } // end lock scope
+      ++numberOfStreamsInitialized_;
 
       goto continue_2;
 
@@ -683,17 +671,7 @@ video:
                                         static_cast<int> (videoFrame_->width));
       ACE_ASSERT (result >= 0);
 
-      { ACE_GUARD (ACE_Thread_Mutex, aGuard, inherited::lock_);
-        ++numberOfStreamsInitialized_;
-        result = condition_.signal ();
-        if (unlikely (result == -1))
-        {
-          ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("%s: failed to ACE_Thread_Condition::signal(): \"%m\", aborting\n"),
-                      inherited::mod_->name ()));
-          goto error;
-        } // end IF
-      } // end lock scope
+      ++numberOfStreamsInitialized_;
 
       goto continue_2;
 
@@ -708,22 +686,8 @@ error:
       break;
 
 continue_2:
-      if (!is_first_b)
+      if (numberOfStreamsInitialized_ < 2)
         goto continue_3;
-
-      { ACE_GUARD (ACE_Thread_Mutex, aGuard, inherited::lock_);
-        while (numberOfStreamsInitialized_ < 2)
-        {
-          result = condition_.wait ();
-          if (unlikely (result == -1))
-          {
-            ACE_DEBUG ((LM_ERROR,
-                        ACE_TEXT ("%s: failed to ACE_Thread_Condition::wait(): \"%m\", aborting\n"),
-                        inherited::mod_->name ()));
-            goto error;
-          } // end IF
-        } // end WHILE
-      } // end lock scope
 
       result = avformat_write_header (formatContext_, NULL);
       if (unlikely (result < 0))
@@ -743,13 +707,11 @@ continue_3:
       int result = -1;
 
       // *IMPORTANT NOTE*: finalize the format context only once
-      { ACE_GUARD (ACE_Thread_Mutex, aGuard, inherited::lock_);
-        if (!isLast_)
-        {
-          isLast_ = true;
-          goto continue_4;
-        } // end IF
-      } // end lock scope
+      if (!isLast_)
+      {
+        isLast_ = true;
+        goto continue_4;
+      } // end IF
 
       if (!headerWritten_)
         goto continue_5;

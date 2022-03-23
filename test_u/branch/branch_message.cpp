@@ -63,54 +63,55 @@ Branch_Message::Branch_Message (Stream_SessionId_t sessionId_in,
 
 }
 
-//ACE_Message_Block*
-//Branch_Message::duplicate (void) const
-//{
-//  STREAM_TRACE (ACE_TEXT ("Branch_Message::duplicate"));
-//
-//  Branch_Message* message_p = NULL;
-//
-//  // create a new Branch_MessageBase that contains unique copies of
-//  // the message block fields, but a (reference counted) shallow duplicate of
-//  // the ACE_Data_Block.
-//
-//  // if there is no allocator, use the standard new and delete calls.
-//  if (inherited::message_block_allocator_ == NULL)
-//    ACE_NEW_NORETURN (message_p,
-//                      Branch_Message (*this));
-//  else // otherwise, use the existing message_block_allocator
-//  {
-//    // *NOTE*: the argument to malloc doesn't matter, as this will be
-//    //         a shallow copy which just references the same data block
-//    ACE_NEW_MALLOC_NORETURN (message_p,
-//                             static_cast<Branch_Message*> (inherited::message_block_allocator_->calloc (inherited::capacity (), '\0')),
-//                             Branch_Message (*this));
-//  } // end ELSE
-//  if (!message_p)
-//  {
-//    Stream_IAllocator* allocator_p =
-//      dynamic_cast<Stream_IAllocator*> (inherited::message_block_allocator_);
-//    ACE_ASSERT (allocator_p);
-//    if (allocator_p->block ())
-//      ACE_DEBUG ((LM_CRITICAL,
-//                  ACE_TEXT ("failed to allocate Branch_MessageBase: \"%m\", aborting\n")));
-//    return NULL;
-//  } // end IF
-//
-//  // increment the reference counts of any continuation messages
-//  if (inherited::cont_)
-//  {
-//    message_p->cont_ = inherited::cont_->duplicate ();
-//    if (!message_p->cont_)
-//    {
-//      ACE_DEBUG ((LM_ERROR,
-//                  ACE_TEXT ("failed to Branch_MessageBase::duplicate(): \"%m\", aborting\n")));
-//      message_p->release (); message_p = NULL;
-//      return NULL;
-//    } // end IF
-//  } // end IF
-//
-//  // *NOTE*: if "this" is initialized, so is the "clone" (and vice-versa)...
-//
-//  return message_p;
-//}
+ACE_Message_Block*
+Branch_Message::duplicate (void) const
+{
+  STREAM_TRACE (ACE_TEXT ("Branch_Message::duplicate"));
+
+  Branch_Message* message_p = NULL;
+
+  // create a new Branch_MessageBase that contains unique copies of
+  // the message block fields, but a (reference counted) shallow duplicate of
+  // the ACE_Data_Block
+
+  // if there is no allocator, use the standard new and delete calls.
+  if (inherited::message_block_allocator_ == NULL)
+    ACE_NEW_NORETURN (message_p,
+                      Branch_Message (*this));
+  else // otherwise, use the existing message_block_allocator
+  {
+    // *NOTE*: the argument to malloc doesn't matter, as this will be
+    //         a shallow copy which just references the same data block
+    ACE_NEW_MALLOC_NORETURN (message_p,
+                             static_cast<Branch_Message*> (inherited::message_block_allocator_->calloc (inherited::capacity (),
+                                                                                                        '\0')),
+                             Branch_Message (*this));
+  } // end ELSE
+  if (!message_p)
+  {
+    Stream_IAllocator* allocator_p =
+      dynamic_cast<Stream_IAllocator*> (inherited::message_block_allocator_);
+    ACE_ASSERT (allocator_p);
+    if (allocator_p->block ())
+      ACE_DEBUG ((LM_CRITICAL,
+                  ACE_TEXT ("failed to allocate Branch_MessageBase: \"%m\", aborting\n")));
+    return NULL;
+  } // end IF
+
+  // increment the reference counts of any continuation messages
+  if (inherited::cont_)
+  {
+    message_p->cont_ = inherited::cont_->duplicate ();
+    if (!message_p->cont_)
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to Branch_MessageBase::duplicate(): \"%m\", aborting\n")));
+      message_p->release (); message_p = NULL;
+      return NULL;
+    } // end IF
+  } // end IF
+
+  // *NOTE*: if "this" is initialized, so is the "clone" (and vice-versa)...
+
+  return message_p;
+}

@@ -86,10 +86,6 @@ acestream_vfw_video_cb (HWND window_in,
   ACE_Message_Block* message_block_p =
     static_cast<ACE_Message_Block*> (cb_data_p->allocator->malloc (videoHeader_in->dwBytesUsed));
   ACE_ASSERT (message_block_p);
-  Common_ISet_T<Stream_SessionId_t>* iset_p =
-    dynamic_cast<Common_ISet_T<Stream_SessionId_t>*> (message_block_p);
-  ACE_ASSERT (iset_p);
-  iset_p->set (cb_data_p->sessionId);
 
   int result =
     message_block_p->copy (reinterpret_cast<char*> (videoHeader_in->lpData),

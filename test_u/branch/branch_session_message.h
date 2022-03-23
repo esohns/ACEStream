@@ -24,8 +24,6 @@
 #include "ace/Global_Macros.h"
 #include "ace/Synch_Traits.h"
 
-//#include "common_Branch_common.h"
-
 #include "stream_common.h"
 #include "stream_session_message_base.h"
 

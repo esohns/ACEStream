@@ -399,6 +399,34 @@ template <ACE_SYNCH_DECL,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType>
+int
+Stream_Module_Aggregator_WriterTask_T<ACE_SYNCH_USE,
+                                      TimePolicyType,
+                                      ConfigurationType,
+                                      ControlMessageType,
+                                      DataMessageType,
+                                      SessionMessageType>::module_closed (void)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Module_Aggregator_WriterTask_T::module_closed"));
+
+  // *NOTE*: this is called during initialization as well
+  //         (see: stream_base.inl:260), so it is not possible to do real work
+  //         here
+
+  //{ ACE_GUARD_RETURN (ACE_SYNCH_MUTEX_T, aGuard, sessionLock_, -1);
+  //  ACE_ASSERT (readerLinks_.empty ());
+  //  ACE_ASSERT (writerLinks_.empty ());
+  //} // end lock scope
+
+  return 0;
+}
+
+template <ACE_SYNCH_DECL,
+          typename TimePolicyType,
+          typename ConfigurationType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType>
 bool
 Stream_Module_Aggregator_WriterTask_T<ACE_SYNCH_USE,
                                       TimePolicyType,
@@ -412,7 +440,7 @@ Stream_Module_Aggregator_WriterTask_T<ACE_SYNCH_USE,
 
   if (unlikely (inherited::isInitialized_))
   {
-    { ACE_GUARD_RETURN (ACE_SYNCH_MUTEX_T, aGuard, sessionLock_, -1);
+    { ACE_GUARD_RETURN (ACE_SYNCH_MUTEX_T, aGuard, sessionLock_, false);
       sessions_.clear ();
     } // end lock scope
 
@@ -615,31 +643,6 @@ error_4:
       break;
     }
   } // end SWITCH
-}
-
-template <ACE_SYNCH_DECL,
-          typename TimePolicyType,
-          typename ConfigurationType,
-          typename ControlMessageType,
-          typename DataMessageType,
-          typename SessionMessageType>
-void
-Stream_Module_Aggregator_WriterTask_T<ACE_SYNCH_USE,
-                                      TimePolicyType,
-                                      ConfigurationType,
-                                      ControlMessageType,
-                                      DataMessageType,
-                                      SessionMessageType>::handleDataMessage (DataMessageType*& message_inout,
-                                                                              bool& passMessageDownstream_out)
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_Module_Aggregator_WriterTask_T::handleDataMessage"));
-
-  // sanity check(s)
-  ACE_ASSERT (message_inout);
-
-  // clean up
-  passMessageDownstream_out = false;
-  message_inout->release (); message_inout = NULL;
 }
 
 template <ACE_SYNCH_DECL,
@@ -906,6 +909,7 @@ Stream_Module_Aggregator_WriterTask_2<ACE_SYNCH_USE,
  : inherited (stream_in)
  , readerLinks_ ()
  , writerLinks_ ()
+ , sessionEndCount_ (0)
  , sessionLock_ ()
  , sessionSessionData_ ()
  , sessions_ ()
@@ -1036,59 +1040,35 @@ template <ACE_SYNCH_DECL,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType>
-int
+void
 Stream_Module_Aggregator_WriterTask_2<ACE_SYNCH_USE,
                                       TimePolicyType,
                                       ConfigurationType,
                                       ControlMessageType,
                                       DataMessageType,
-                                      SessionMessageType>::put (ACE_Message_Block* messageBlock_in,
-                                                                ACE_Time_Value* timeValue_in)
+                                      SessionMessageType>::forward (ACE_Message_Block* messageBlock_in,
+                                                                    Stream_SessionId_t sessionId_in)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_Module_Aggregator_WriterTask_2::put"));
+  STREAM_TRACE (ACE_TEXT ("Stream_Module_Aggregator_WriterTask_2::forward"));
 
   // sanity check(s)
   ACE_ASSERT (messageBlock_in);
 
-  Stream_IMessage* imessage_p = NULL;
-  Stream_SessionId_t session_id = 0;
   SESSIONID_TO_STREAM_MAP_ITERATOR_T iterator;
   TASK_T* task_p = NULL;
-  int result = 0;
-  bool stop_processing = false;
-  bool forward_b = true;
+  int result = -1;
 
-  // step1: handle message
-  handleMessage (messageBlock_in,
-                 stop_processing);
-  ACE_UNUSED_ARG (stop_processing);
-
-  // step2: forward message to downstream module
-  try {
-    imessage_p =
-      dynamic_cast<Stream_IMessage*> (messageBlock_in);
-  } catch (...) {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: caught exception in dynamic_cast<Stream_IMessage*> (0x%@), returning\n"),
-                inherited::mod_->name (),
-                messageBlock_in));
-    result = -1;
-    goto continue_;
-  }
-  ACE_ASSERT (imessage_p);
-  session_id = imessage_p->sessionId ();
-
-  { ACE_GUARD_RETURN (ACE_SYNCH_MUTEX_T, aGuard, sessionLock_, -1);
+  { ACE_GUARD (ACE_SYNCH_MUTEX_T, aGuard, sessionLock_);
     // find correct stream
-    iterator = sessions_.find (session_id);
+    iterator = sessions_.find (sessionId_in);
     if (unlikely (iterator == sessions_.end ()))
-    { // *NOTE*: most probable cause: out-of-session statistic session message
-      //ACE_DEBUG ((LM_DEBUG,
-      //            ACE_TEXT ("%s: invalid session id (was: %u), returning\n"),
-      //            inherited::mod_->name (),
-      //            session_id));
-      result = -1;
-      goto continue_;
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("%s: invalid session id (was: %u), returning\n"),
+                  inherited::mod_->name (),
+                  sessionId_in));
+      messageBlock_in->release ();
+      return;
     } // end IF
 
     for (LINKS_ITERATOR_T iterator_2 = writerLinks_.begin ();
@@ -1102,28 +1082,21 @@ Stream_Module_Aggregator_WriterTask_2<ACE_SYNCH_USE,
       ACE_ASSERT ((*iterator_2).second);
       task_p = (*iterator_2).second->writer ();
 
-      forward_b = false;
-
       break;
     } // end FOR
   } // end lock scope
-
-continue_:
-  if (forward_b)
-    return inherited::put_next (messageBlock_in, timeValue_in);
-
   ACE_ASSERT (task_p);
+
   result = task_p->put (messageBlock_in,
-                        timeValue_in);
+                        NULL);
   if (unlikely (result == -1))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: failed to ACE_Task::put(): \"%m\", continuing\n"),
+                ACE_TEXT ("%s: failed to ACE_Task::put(): \"%m\", returning\n"),
                 inherited::mod_->name ()));
-    return -1;
+    messageBlock_in->release ();
+    return;
   } // end IF
-
-  return 0;
 }
 
 template <ACE_SYNCH_DECL,
@@ -1164,6 +1137,34 @@ template <ACE_SYNCH_DECL,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType>
+int
+Stream_Module_Aggregator_WriterTask_2<ACE_SYNCH_USE,
+                                      TimePolicyType,
+                                      ConfigurationType,
+                                      ControlMessageType,
+                                      DataMessageType,
+                                      SessionMessageType>::module_closed (void)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Module_Aggregator_WriterTask_2::module_closed"));
+
+  // *NOTE*: this is called during initialization as well
+  //         (see: stream_base.inl:260), so it is not possible to do real work
+  //         here
+
+  //{ ACE_GUARD_RETURN (ACE_SYNCH_MUTEX_T, aGuard, sessionLock_, -1);
+  //  ACE_ASSERT (readerLinks_.empty ());
+  //  ACE_ASSERT (writerLinks_.empty ());
+  //} // end lock scope
+
+  return 0;
+}
+
+template <ACE_SYNCH_DECL,
+          typename TimePolicyType,
+          typename ConfigurationType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType>
 bool
 Stream_Module_Aggregator_WriterTask_2<ACE_SYNCH_USE,
                                       TimePolicyType,
@@ -1177,7 +1178,8 @@ Stream_Module_Aggregator_WriterTask_2<ACE_SYNCH_USE,
 
   if (unlikely (inherited::isInitialized_))
   {
-    { ACE_GUARD_RETURN (ACE_SYNCH_MUTEX_T, aGuard, sessionLock_, -1);
+    { ACE_GUARD_RETURN (ACE_SYNCH_MUTEX_T, aGuard, sessionLock_, false);
+      sessionEndCount_ = 0;
       sessions_.clear ();
     } // end lock scope
 
@@ -1212,6 +1214,8 @@ Stream_Module_Aggregator_WriterTask_2<ACE_SYNCH_USE,
   ACE_ASSERT (messageBlock_in);
 
   bool forward_b = true;
+  Stream_SessionId_t session_id = 0;
+
   switch (messageBlock_in->msg_type ())
   {
     case STREAM_MESSAGE_CONTROL:
@@ -1238,6 +1242,7 @@ error:
     {
       SessionMessageType* session_message_p =
         static_cast<SessionMessageType*> (messageBlock_in);
+      session_id = session_message_p->sessionId ();
 
       enum Stream_SessionMessageType session_message_type =
         session_message_p->type ();
@@ -1290,8 +1295,11 @@ error:
       } // end IF
 
       // *NOTE*: iff this was a SESSION_END message, stop processing (see above)
-      if (unlikely (session_message_type == STREAM_SESSION_MESSAGE_END))
-        stopProcessing_out = true;
+      { ACE_GUARD (ACE_SYNCH_MUTEX_T, aGuard, sessionLock_);
+        if (unlikely ((session_message_type == STREAM_SESSION_MESSAGE_END) &&
+                      (++sessionEndCount_ == sessions_.size ())))
+          stopProcessing_out = true;
+      } // end lock scope
 
       break;
 
@@ -1304,6 +1312,7 @@ error_2:
     {
       DataMessageType* message_p =
         static_cast<DataMessageType*> (messageBlock_in);
+      session_id = message_p->sessionId ();
 
         //// *IMPORTANT NOTE*: in certain scenarios (e.g. asynchronous 
         ////                   configurations with a network data source), data may
@@ -1351,7 +1360,7 @@ error_3:
       break;
     }
     case ACE_Message_Block::MB_USER:
-    {
+    { // *TODO*: retrieve session id from message
       try {
         this->handleUserMessage (messageBlock_in,
                                  forward_b);
@@ -1379,31 +1388,9 @@ error_4:
       break;
     }
   } // end SWITCH
-}
 
-template <ACE_SYNCH_DECL,
-          typename TimePolicyType,
-          typename ConfigurationType,
-          typename ControlMessageType,
-          typename DataMessageType,
-          typename SessionMessageType>
-void
-Stream_Module_Aggregator_WriterTask_2<ACE_SYNCH_USE,
-                                      TimePolicyType,
-                                      ConfigurationType,
-                                      ControlMessageType,
-                                      DataMessageType,
-                                      SessionMessageType>::handleDataMessage (DataMessageType*& message_inout,
-                                                                              bool& passMessageDownstream_out)
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_Module_Aggregator_WriterTask_2::handleDataMessage"));
-
-  // sanity check(s)
-  ACE_ASSERT (message_inout);
-
-  // clean up
-  passMessageDownstream_out = false;
-  message_inout->release (); message_inout = NULL;
+  forward (messageBlock_in,
+           session_id);
 }
 
 template <ACE_SYNCH_DECL,
@@ -1470,7 +1457,7 @@ insert:
       //  if (likely (iterator != sessions_.end ()))
       //    sessions_.erase (iterator);
       //} // end lock scope
-    } // *WARNING*: control falls through here
+    }   // *WARNING*: control falls through here
     case STREAM_SESSION_MESSAGE_UNLINK:
     {
       SESSION_DATA_ITERATOR_T iterator;

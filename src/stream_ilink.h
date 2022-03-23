@@ -49,13 +49,6 @@ class Stream_IDistributorModule
 
 //////////////////////////////////////////
 
-class Stream_ILinkCB
-{
- public:
-  virtual void onLink () = 0;
-  virtual void onUnlink () = 0;
-};
-
 class Stream_IModuleLinkCB
 {
  public:
@@ -63,6 +56,13 @@ class Stream_IModuleLinkCB
   virtual void onLink (ACE_Module_Base*) = 0; // 'downstream' ? upstream predecessor handle : downstream successor handle
   // *NOTE*: invoked just before (!) the module is unlinked
   virtual void onUnlink (ACE_Module_Base*) = 0; // 'downstream' ? upstream predecessor handle : downstream successor handle
+};
+
+class Stream_ILinkCB
+{
+ public:
+  virtual void onLink () = 0;
+  virtual void onUnlink () = 0;
 };
 
 #endif

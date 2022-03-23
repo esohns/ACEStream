@@ -187,7 +187,32 @@ Stream_MessageQueueBase_T<ACE_SYNCH_USE,
     return 0;
   } // end IF
 
+  // signal waiters ?
+  if (unlikely (result &&
+                (inherited::cur_count_ < inherited::low_water_mark_)))
+  { ACE_GUARD_RETURN (ACE_SYNCH_MUTEX_T, aGuard, inherited::lock_, 0);
+    int result_2 = inherited::signal_enqueue_waiters ();
+    if (unlikely (result_2 == -1))
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to ACE_Message_Queue::signal_enqueue_waiters(): \"%m\", continuing\n")));
+  } // end IF/lock scope
+
   return static_cast<unsigned int> (result);
+}
+
+template <ACE_SYNCH_DECL,
+          typename TimePolicyType>
+void
+Stream_MessageQueueBase_T<ACE_SYNCH_USE,
+                          TimePolicyType>::signal ()
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_MessageQueueBase_T::signal"));
+
+  ACE_GUARD (ACE_SYNCH_MUTEX_T, aGuard, inherited::lock_);
+
+  // Wakeup all waiters.
+  inherited::not_empty_cond_.broadcast ();
+  inherited::not_full_cond_.broadcast ();
 }
 
 template <ACE_SYNCH_DECL,

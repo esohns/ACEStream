@@ -57,6 +57,7 @@ struct Branch_SessionData
 {
   Branch_SessionData ()
    : Stream_SessionData ()
+   , stream (NULL)
   {}
 
   struct Branch_SessionData& operator+= (const struct Branch_SessionData& rhs_in)
@@ -64,8 +65,13 @@ struct Branch_SessionData
     // *NOTE*: the idea is to 'merge' the data
     Stream_SessionData::operator+= (rhs_in);
 
+    stream = (stream ? stream : rhs_in.stream);
+
     return *this;
   }
+
+  Stream_IStream_T<ACE_MT_SYNCH,
+                   Common_TimePolicy_t>* stream; // used by aggregator modules
 };
 typedef Stream_SessionData_T<struct Branch_SessionData> Branch_SessionData_t;
 
@@ -78,23 +84,20 @@ typedef Branch_Subscribers_t::iterator Branch_SubscribersIterator_t;
 
 // forward declarations
 //extern const char stream_name_string_[];
+struct Branch_StreamConfiguration
+ : Stream_Configuration
+{
+  Branch_StreamConfiguration ()
+   : Stream_Configuration ()
+   , module_2 (NULL)
+  {}
+
+  Stream_Module_t* module_2;
+};
 struct Branch_ModuleHandlerConfiguration;
-typedef Stream_Configuration_T<//stream_name_string_,
-                               struct Stream_Configuration,
+typedef Stream_Configuration_T< // stream_name_string_,
+                               struct Branch_StreamConfiguration,
                                struct Branch_ModuleHandlerConfiguration> Branch_StreamConfiguration_t;
-//typedef Net_ConnectionConfiguration_T<struct Common_AllocatorConfiguration,
-//                                      Branch_StreamConfiguration_t,
-//                                      NET_TRANSPORTLAYER_TCP> Branch_ConnectionConfiguration_t;
-//typedef Net_IConnection_T<ACE_INET_Addr,
-//                          Branch_ConnectionConfiguration_t,
-//                          struct Net_StreamConnectionState,
-//                          Net_StreamStatistic_t> Branch_IConnection_t;
-//typedef Net_Connection_Manager_T<ACE_MT_SYNCH,
-//                                 ACE_INET_Addr,
-//                                 Branch_ConnectionConfiguration_t,
-//                                 struct Net_StreamConnectionState,
-//                                 Net_StreamStatistic_t,
-//                                 struct Net_UserData> Branch_ConnectionManager_t;
 struct Branch_ModuleHandlerConfiguration
  : Stream_ModuleHandlerConfiguration
 {

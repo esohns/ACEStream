@@ -74,7 +74,7 @@ class Stream_TaskBaseAsynch_T
   virtual int open (void* = NULL);
   virtual int close (u_long = 0);
   virtual int module_closed (void);
-
+  inline virtual int flush (u_long flags_in = ACE_Task_Flags::ACE_FLUSHALL) { return static_cast<int> (queue_.flush (/*ACE_BIT_ENABLED (flags_in, ACE_Task_Flags::ACE_FLUSHALL)*/false)); }
   virtual int put (ACE_Message_Block*,
                    ACE_Time_Value* = NULL);
 

@@ -55,7 +55,7 @@ Stream_MessageQueue_T<ACE_SYNCH_USE,
   int result_2 = -1;
   ACE_Message_Block* message_block_p = NULL;
 
-  { ACE_GUARD_RETURN (ACE_SYNCH_MUTEX_T, aGuard, inherited::lock_, -1);
+  { ACE_GUARD_RETURN (ACE_SYNCH_MUTEX_T, aGuard, inherited::lock_, 0);
     message_block_p = inherited::head_;
     while (message_block_p)
     {
@@ -106,7 +106,7 @@ Stream_MessageQueue_T<ACE_SYNCH_USE,
 
     // signal waiters ?
     if (unlikely (result &&
-                  (inherited::cur_count_ <= inherited::low_water_mark_)))
+                  (inherited::cur_count_ < inherited::low_water_mark_)))
     {
       result_2 = inherited::signal_enqueue_waiters ();
       if (unlikely (result_2 == -1))

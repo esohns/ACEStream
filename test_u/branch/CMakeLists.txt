@@ -73,15 +73,33 @@ install (TARGETS ${EXECUTABLE}
 #          DESTINATION "${INSTALL_SHARE_DIR}/${PROJECT_NAME}/${EXECUTABLE}" COMPONENT config)
 
 ################ launchers ###############
-file (TO_CMAKE_PATH $ENV{LIB_ROOT}/ACE_TAO/ACE/lib ACE_LIB_PATH)
-set (RUNTIME_LIBRARY_DIRS ${RUNTIME_LIBRARY_DIRS}
-                          ${ACE_LIB_PATH})
+if (WIN32)
+ file (TO_NATIVE_PATH "${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_BUILD_TYPE}/${EXECUTABLE}.exe" COMMAND)
+ string (REPLACE "\\" "\\\\" COMMAND ${COMMAND})
+ file (TO_CMAKE_PATH $ENV{LIB_ROOT}/ACE_TAO/ACE/lib ACE_LIB_PATH)
+ set (RUNTIME_LIBRARY_DIRS ${RUNTIME_LIBRARY_DIRS}
+                           ${ACE_LIB_PATH})
+
+ if (GUI_SUPPORT)
+  if (GTK_SUPPORT)
+   file (TO_CMAKE_PATH "${GTK_LIB_DIRS}" GTK_PATH)
+   set (RUNTIME_LIBRARY_DIRS ${RUNTIME_LIBRARY_DIRS}
+                             ${GTK_PATH})
+  endif (GTK_SUPPORT)
+  if (WXWIDGETS_SUPPORT)
+   file (TO_CMAKE_PATH "${wxWidgets_LIB_DIR}" WXWIDGETS_PATH)
+   set (RUNTIME_LIBRARY_DIRS ${RUNTIME_LIBRARY_DIRS}
+                             ${WXWIDGETS_PATH})
+  endif (WXWIDGETS_SUPPORT)
+ endif (GUI_SUPPORT)
+endif (WIN32)
 create_target_launcher (${EXECUTABLE}
-                        ARGS "-l -t"
+                        COMMAND ${COMMAND}
+                        ARGS "-l -m 1 -t"
 #                         FORWARD_ARGS
                         RUNTIME_LIBRARY_DIRS ${RUNTIME_LIBRARY_DIRS}
                                              ${PROJECT_SOURCE_DIR}/cmake/src/Debug
-                        WORKING_DIRECTORY ${PROJECT_BINARY_DIR}/../test_u/branch
+                        WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/test_u/branch
                         ENVIRONMENT foo=bar)
 
 ################ tests ###################

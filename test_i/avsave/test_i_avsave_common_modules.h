@@ -546,32 +546,32 @@ typedef Stream_Module_Vis_X11_Window_T<ACE_MT_SYNCH,
 #endif // ACE_WIN32 || ACE_WIN64
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-typedef Stream_Module_MessageHandlerA_T <ACE_MT_SYNCH,
-                                         Common_TimePolicy_t,
-                                         struct Stream_AVSave_DirectShow_ModuleHandlerConfiguration,
-                                         Stream_ControlMessage_t,
-                                         Stream_AVSave_DirectShow_Message_t,
-                                         Stream_AVSave_DirectShow_SessionMessage_t,
-                                         Stream_AVSave_DirectShow_SessionData,
-                                         struct Stream_UserData> Stream_AVSave_DirectShow_MessageHandler;
+typedef Stream_Module_MessageHandler_T <ACE_MT_SYNCH,
+                                        Common_TimePolicy_t,
+                                        struct Stream_AVSave_DirectShow_ModuleHandlerConfiguration,
+                                        Stream_ControlMessage_t,
+                                        Stream_AVSave_DirectShow_Message_t,
+                                        Stream_AVSave_DirectShow_SessionMessage_t,
+                                        Stream_AVSave_DirectShow_SessionData,
+                                        struct Stream_UserData> Stream_AVSave_DirectShow_MessageHandler;
 
-typedef Stream_Module_MessageHandlerA_T<ACE_MT_SYNCH,
-                                        Common_TimePolicy_t,
-                                        struct Stream_AVSave_MediaFoundation_ModuleHandlerConfiguration,
-                                        Stream_ControlMessage_t,
-                                        Stream_AVSave_MediaFoundation_Message_t,
-                                        Stream_AVSave_MediaFoundation_SessionMessage_t,
-                                        Stream_AVSave_MediaFoundation_SessionData,
-                                        struct Stream_UserData> Stream_AVSave_MediaFoundation_MessageHandler;
+typedef Stream_Module_MessageHandler_T<ACE_MT_SYNCH,
+                                       Common_TimePolicy_t,
+                                       struct Stream_AVSave_MediaFoundation_ModuleHandlerConfiguration,
+                                       Stream_ControlMessage_t,
+                                       Stream_AVSave_MediaFoundation_Message_t,
+                                       Stream_AVSave_MediaFoundation_SessionMessage_t,
+                                       Stream_AVSave_MediaFoundation_SessionData,
+                                       struct Stream_UserData> Stream_AVSave_MediaFoundation_MessageHandler;
 #else
-typedef Stream_Module_MessageHandlerA_T<ACE_MT_SYNCH,
-                                        Common_TimePolicy_t,
-                                        struct Stream_AVSave_ALSA_V4L_ModuleHandlerConfiguration,
-                                        Stream_ControlMessage_t,
-                                        Stream_AVSave_Message_t,
-                                        Stream_AVSave_ALSA_V4L_SessionMessage_t,
-                                        Stream_AVSave_ALSA_V4L_SessionData,
-                                        struct Stream_UserData> Stream_AVSave_MessageHandler;
+typedef Stream_Module_MessageHandler_T<ACE_MT_SYNCH,
+                                       Common_TimePolicy_t,
+                                       struct Stream_AVSave_ALSA_V4L_ModuleHandlerConfiguration,
+                                       Stream_ControlMessage_t,
+                                       Stream_AVSave_Message_t,
+                                       Stream_AVSave_ALSA_V4L_SessionMessage_t,
+                                       Stream_AVSave_ALSA_V4L_SessionData,
+                                       struct Stream_UserData> Stream_AVSave_MessageHandler;
 #endif // ACE_WIN32 || ACE_WIN64
 
 //////////////////////////////////////////
@@ -845,32 +845,26 @@ DATASTREAM_MODULE_INPUT_ONLY (Stream_AVSave_ALSA_V4L_SessionData,               
 #endif // ACE_WIN32 || ACE_WIN64
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-DATASTREAM_MODULE_DUPLEX_A (Stream_AVSave_DirectShow_SessionData,                        // session data type
-                            enum Stream_SessionMessageType,                              // session event type
-                            struct Stream_AVSave_DirectShow_ModuleHandlerConfiguration,  // module handler configuration type
-                            libacestream_default_misc_messagehandler_module_name_string,
-                            Stream_INotify_t,                                            // stream notification interface type
-                            Stream_AVSave_DirectShow_MessageHandler::READER_TASK_T,      // reader type
-                            Stream_AVSave_DirectShow_MessageHandler,                     // writer type
-                            Stream_AVSave_DirectShow_MessageHandler);                    // module name
+DATASTREAM_MODULE_INPUT_ONLY (Stream_AVSave_DirectShow_SessionData,                        // session data type
+                              enum Stream_SessionMessageType,                              // session event type
+                              struct Stream_AVSave_DirectShow_ModuleHandlerConfiguration,  // module handler configuration type
+                              libacestream_default_misc_messagehandler_module_name_string,
+                              Stream_INotify_t,                                            // stream notification interface type
+                              Stream_AVSave_DirectShow_MessageHandler);                    // writer type
 
-DATASTREAM_MODULE_DUPLEX_A (Stream_AVSave_MediaFoundation_SessionData,                       // session data type
-                            enum Stream_SessionMessageType,                                  // session event type
-                            struct Stream_AVSave_MediaFoundation_ModuleHandlerConfiguration, // module handler configuration type
-                            libacestream_default_misc_messagehandler_module_name_string,
-                            Stream_INotify_t,                                                // stream notification interface type
-                            Stream_AVSave_MediaFoundation_MessageHandler::READER_TASK_T,     // reader type
-                            Stream_AVSave_MediaFoundation_MessageHandler,                    // writer type
-                            Stream_AVSave_MediaFoundation_MessageHandler);                   // module name
+DATASTREAM_MODULE_INPUT_ONLY (Stream_AVSave_MediaFoundation_SessionData,                       // session data type
+                              enum Stream_SessionMessageType,                                  // session event type
+                              struct Stream_AVSave_MediaFoundation_ModuleHandlerConfiguration, // module handler configuration type
+                              libacestream_default_misc_messagehandler_module_name_string,
+                              Stream_INotify_t,                                                // stream notification interface type
+                              Stream_AVSave_MediaFoundation_MessageHandler);                   // writer type
 #else
-DATASTREAM_MODULE_DUPLEX_A (Stream_AVSave_ALSA_V4L_SessionData,                          // session data type
-                            enum Stream_SessionMessageType,                              // session event type
-                            struct Stream_AVSave_ALSA_V4L_ModuleHandlerConfiguration,    // module handler configuration type
-                            libacestream_default_misc_messagehandler_module_name_string,
-                            Stream_INotify_t,                                            // stream notification interface type
-                            Stream_AVSave_MessageHandler::READER_TASK_T,                 // reader type
-                            Stream_AVSave_MessageHandler,                                // writer type
-                            Stream_AVSave_MessageHandler);                               // module name
+DATASTREAM_MODULE_INPUT_ONLY (Stream_AVSave_ALSA_V4L_SessionData,                          // session data type
+                              enum Stream_SessionMessageType,                              // session event type
+                              struct Stream_AVSave_ALSA_V4L_ModuleHandlerConfiguration,    // module handler configuration type
+                              libacestream_default_misc_messagehandler_module_name_string,
+                              Stream_INotify_t,                                            // stream notification interface type
+                              Stream_AVSave_MessageHandler);                               // writer type
 #endif // ACE_WIN32 || ACE_WIN64
 
 #endif

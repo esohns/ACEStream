@@ -37,14 +37,6 @@ Branch_Stream::Branch_Stream ()
 
 }
 
-Branch_Stream::~Branch_Stream ()
-{
-  STREAM_TRACE (ACE_TEXT ("Branch_Stream::~Branch_Stream"));
-
-  // *NOTE*: this implements an ordered shutdown on destruction
-  inherited::shutdown ();
-}
-
 bool
 Branch_Stream::load (Stream_ILayout* layout_inout,
                      bool& delete_out)
@@ -116,94 +108,110 @@ Branch_Stream::initialize (const typename inherited::CONFIGURATION_T& configurat
 {
   STREAM_TRACE (ACE_TEXT ("Branch_Stream::initialize"));
 
-  // sanity check(s)
-  ACE_ASSERT (!this->isRunning ());
-
-  typename inherited::CONFIGURATION_T::ITERATOR_T iterator;
-//  struct Branch_SessionData* session_data_p = NULL;
-  Stream_Module_t* module_p = NULL;
-  Branch_Source* source_impl_p = NULL;
-
-//  bool result = false;
-  bool setup_pipeline = configuration_in.configuration_->setupPipeline;
-  bool reset_setup_pipeline = false;
-
-  // allocate a new session state, reset stream
-  const_cast<inherited::CONFIGURATION_T&> (configuration_in).configuration_->setupPipeline =
-    false;
-  reset_setup_pipeline = true;
-  if (!inherited::initialize (configuration_in))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: failed to Stream_Base_T::initialize(), aborting\n"),
-                ACE_TEXT (default_stream_name_string_)));
-    goto failed;
-  } // end IF
-  const_cast<inherited::CONFIGURATION_T&> (configuration_in).configuration_->setupPipeline =
-    setup_pipeline;
-  reset_setup_pipeline = false;
-//  ACE_ASSERT (inherited::sessionData_);
-//  session_data_p =
-//      &const_cast<struct Branch_SessionData&> (inherited::sessionData_->getR ());
-  // *TODO*: remove type inferences
-  iterator =
+  typename inherited::CONFIGURATION_T::ITERATOR_T iterator =
     const_cast<inherited::CONFIGURATION_T&> (configuration_in).find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (iterator != configuration_in.end ());
   //session_data_p->targetFileName = (*iterator).second.second->targetFileName;
 
-  // ---------------------------------------------------------------------------
-
-  // ******************* Source ************************
-  module_p =
-    const_cast<Stream_Module_t*> (inherited::find (ACE_TEXT_ALWAYS_CHAR (STREAM_MISC_QUEUE_DEFAULT_NAME_STRING)));
-  if (!module_p)
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: failed to retrieve \"%s\" module handle, aborting\n"),
-                ACE_TEXT (default_stream_name_string_),
-                ACE_TEXT (STREAM_MISC_QUEUE_DEFAULT_NAME_STRING)));
-    goto failed;
-  } // end IF
-
-  source_impl_p = dynamic_cast<Branch_Source*> (module_p->writer ());
-  if (!source_impl_p)
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: dynamic_cast<Branch_Parser*> failed, aborting\n"),
-                ACE_TEXT (default_stream_name_string_)));
-    goto failed;
-  } // end IF
-  source_impl_p->setP (&(inherited::state_));
-
-  // *NOTE*: push()ing the module will open() it
-  //         --> set the argument that is passed along (head module expects a
-  //             handle to the session data)
-  module_p->arg (inherited::sessionData_);
-
-  // ---------------------------------------------------------------------------
-
-  if (configuration_in.configuration_->setupPipeline)
-    if (!inherited::setup ())
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("%s: failed to set up pipeline, aborting\n"),
-                  ACE_TEXT (default_stream_name_string_)));
-      goto failed;
-    } // end IF
-
-  inherited::isInitialized_ = true;
   //inherited::dump_state ();
+
+  return inherited::initialize (configuration_in);
+}
+
+//////////////////////////////////////////
+
+Branch_Stream_2::Branch_Stream_2 ()
+ : inherited ()
+{
+  STREAM_TRACE (ACE_TEXT ("Branch_Stream_2::Branch_Stream_2"));
+
+}
+
+bool
+Branch_Stream_2::load (Stream_ILayout* layout_inout,
+                       bool& delete_out)
+{
+  STREAM_TRACE (ACE_TEXT ("Branch_Stream_2::load"));
+
+  // sanity check(s)
+  ACE_ASSERT (inherited::configuration_);
+
+  Stream_Module_t* module_p = NULL;
+  ACE_NEW_RETURN (module_p,
+                  Branch_Source_Module (this,
+                                        ACE_TEXT_ALWAYS_CHAR (STREAM_MISC_QUEUE_DEFAULT_NAME_STRING)),
+                  false);
+  ACE_ASSERT (module_p);
+  layout_inout->append (module_p, NULL, 0);
+
+  ACE_ASSERT (inherited::configuration_->configuration_->module_2);
+  layout_inout->append (inherited::configuration_->configuration_->module_2, NULL, 0);
+
+  delete_out = true;
+
+  return true;
+}
+
+bool
+Branch_Stream_2::initialize (const typename inherited::CONFIGURATION_T& configuration_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Branch_Stream_2::initialize"));
+
+  typename inherited::CONFIGURATION_T::ITERATOR_T iterator =
+    const_cast<inherited::CONFIGURATION_T&> (configuration_in).find (ACE_TEXT_ALWAYS_CHAR (""));
+  ACE_ASSERT (iterator != configuration_in.end ());
+  Branch_SessionData* session_data_p = NULL;
+
+   // sanity check(s)
+  ACE_ASSERT (configuration_in.configuration_);
+  ACE_ASSERT (configuration_in.configuration_->module_2);
+
+  // ---------------------------------------------------------------------------
+  // step1: allocate a new session state, reset stream
+  const_cast<inherited::CONFIGURATION_T&> (configuration_in).configuration_->setupPipeline =
+    false;
+  if (!inherited::initialize (configuration_in))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s: failed to Stream_Base_T::initialize(), aborting\n"),
+                ACE_TEXT (stream_name_string_)));
+    goto error;
+  } // end IF
+  const_cast<inherited::CONFIGURATION_T&> (configuration_in).configuration_->setupPipeline =
+    true;
+
+  // sanity check(s)
+  ACE_ASSERT (inherited::sessionData_);
+
+  session_data_p = &const_cast<Branch_SessionData&> (inherited::sessionData_->getR ());  
+  session_data_p->stream = this;
+  // session_data_p->targetFileName = (*iterator).second.second->targetFileName;
+
+  // ---------------------------------------------------------------------------
+
+  if (!inherited::setup (NULL))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s: failed to set up pipeline, aborting\n"),
+                ACE_TEXT (stream_name_string_)));
+    return false;
+  } // end IF
+
+  inherited::dump_state ();
 
   return true;
 
-failed:
-  if (reset_setup_pipeline)
-    const_cast<inherited::CONFIGURATION_T&> (configuration_in).configuration_->setupPipeline =
-      setup_pipeline;
-  if (!inherited::reset ())
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: failed to Stream_Base_T::reset(): \"%m\", continuing\n"),
-                ACE_TEXT (default_stream_name_string_)));
-
+error:
   return false;
+}
+
+void
+Branch_Stream_2::onSessionEnd (Stream_SessionId_t sessionId_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Branch_Stream_2::onSessionEnd"));
+
+  ACE_DEBUG ((LM_DEBUG,
+              ACE_TEXT ("%s: session end (id: %u)\n"),
+              ACE_TEXT (stream_name_string_),
+              sessionId_in));
 }

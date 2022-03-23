@@ -29,8 +29,9 @@ class ACE_Time_Value;
 class Stream_ISessionCB
 {
  public:
-  virtual void startCB () = 0;
-  virtual void endCB () = 0;
+  ////////////////////////////////////////
+  virtual void onSessionBegin (Stream_SessionId_t) = 0;
+  virtual void onSessionEnd (Stream_SessionId_t) = 0;
 };
 
 class Stream_ISession

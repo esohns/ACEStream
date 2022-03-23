@@ -760,8 +760,8 @@ Stream_TaskBaseAsynch_T<ACE_SYNCH_USE,
     } // end IF
 
     // process manually
-    inherited::handleMessage (message_block_p,
-                              stop_processing);
+    handleMessage (message_block_p,
+                   stop_processing);
     if (unlikely (stop_processing))
       this->stop (false, // wait ?
                   true); // high priority ?

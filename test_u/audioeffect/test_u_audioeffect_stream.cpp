@@ -909,7 +909,7 @@ Test_U_AudioEffect_MediaFoundation_Stream::start ()
     }
   } // end SWITCH
 
-  { ACE_GUARD (ACE_SYNCH_RECURSIVE_MUTEX, aGuard, inherited::lock_);
+  { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, inherited::lock_);
 #if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
     result = mediaSession_->BeginGetEvent (this, NULL);
     if (FAILED (result))
@@ -1934,7 +1934,7 @@ Test_U_AudioEffect_MediaFoundation_Stream::Invoke (IMFAsyncResult* result_in)
       // start media session ?
       if (topology_status == MF_TOPOSTATUS_READY)
       {
-        { ACE_GUARD_RETURN (ACE_SYNCH_RECURSIVE_MUTEX, aGuard, inherited::lock_, E_FAIL);
+        { ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, inherited::lock_, E_FAIL);
           if (SUCCEEDED (status))
             topologyIsReady_ = true;
           else

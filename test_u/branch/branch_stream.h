@@ -26,8 +26,6 @@
 
 #include "common_time_common.h"
 
-//#include "common_Branch_common.h"
-
 #include "stream_base.h"
 #include "stream_common.h"
 
@@ -38,15 +36,17 @@
 // forward declarations
 class Stream_IAllocator;
 
+extern const char stream_name_string_[];
+
 class Branch_Stream
  : public Stream_Base_T<ACE_MT_SYNCH,
                         Common_TimePolicy_t,
-                        default_stream_name_string_,
+                        stream_name_string_,
                         enum Stream_ControlType,
                         enum Stream_SessionMessageType,
                         enum Stream_StateMachine_ControlState,
                         struct Branch_StreamState,
-                        struct Stream_Configuration,
+                        struct Branch_StreamConfiguration,
                         struct Stream_Statistic,
                         struct Branch_ModuleHandlerConfiguration,
                         struct Branch_SessionData,
@@ -57,12 +57,12 @@ class Branch_Stream
 {
   typedef Stream_Base_T<ACE_MT_SYNCH,
                         Common_TimePolicy_t,
-                        default_stream_name_string_,
+                        stream_name_string_,
                         enum Stream_ControlType,
                         enum Stream_SessionMessageType,
                         enum Stream_StateMachine_ControlState,
                         struct Branch_StreamState,
-                        struct Stream_Configuration,
+                        struct Branch_StreamConfiguration,
                         struct Stream_Statistic,
                         struct Branch_ModuleHandlerConfiguration,
                         struct Branch_SessionData,
@@ -73,7 +73,7 @@ class Branch_Stream
 
  public:
   Branch_Stream ();
-  virtual ~Branch_Stream ();
+  inline virtual ~Branch_Stream () { inherited::shutdown (); }
 
   // implement (part of) Stream_IStreamControlBase
   virtual bool load (Stream_ILayout*, // layout handle
@@ -88,6 +88,63 @@ class Branch_Stream
 
   // *TODO*: re-consider this API
   inline void ping () { ACE_ASSERT (false); ACE_NOTSUP; ACE_NOTREACHED (return;) }
+};
+
+//////////////////////////////////////////
+
+class Branch_Stream_2
+ : public Stream_Base_T<ACE_MT_SYNCH,
+                        Common_TimePolicy_t,
+                        stream_name_string_,
+                        enum Stream_ControlType,
+                        enum Stream_SessionMessageType,
+                        enum Stream_StateMachine_ControlState,
+                        struct Branch_StreamState,
+                        struct Branch_StreamConfiguration,
+                        struct Stream_Statistic,
+                        struct Branch_ModuleHandlerConfiguration,
+                        struct Branch_SessionData,
+                        Branch_SessionData_t,
+                        Stream_ControlMessage_t,
+                        Branch_Message,
+                        Branch_SessionMessage>
+{
+  typedef Stream_Base_T<ACE_MT_SYNCH,
+                        Common_TimePolicy_t,
+                        stream_name_string_,
+                        enum Stream_ControlType,
+                        enum Stream_SessionMessageType,
+                        enum Stream_StateMachine_ControlState,
+                        struct Branch_StreamState,
+                        struct Branch_StreamConfiguration,
+                        struct Stream_Statistic,
+                        struct Branch_ModuleHandlerConfiguration,
+                        struct Branch_SessionData,
+                        Branch_SessionData_t,
+                        Stream_ControlMessage_t,
+                        Branch_Message,
+                        Branch_SessionMessage> inherited;
+
+ public:
+  Branch_Stream_2 ();
+  inline virtual ~Branch_Stream_2 () { inherited::shutdown (); }
+
+  // implement (part of) Stream_IStreamControlBase
+  virtual bool load (Stream_ILayout*, // layout handle
+                     bool&);          // return value: delete modules ?
+
+  // implement Common_IInitialize_T
+  virtual bool initialize (const typename inherited::CONFIGURATION_T&); // configuration
+
+  // implement (part of) Stream_ISessionCB
+  virtual void onSessionEnd (Stream_SessionId_t);
+
+ private:
+  ACE_UNIMPLEMENTED_FUNC (Branch_Stream_2 (const Branch_Stream_2&))
+  ACE_UNIMPLEMENTED_FUNC (Branch_Stream_2& operator= (const Branch_Stream_2&))
+
+  // *TODO*: re-consider this API
+  //inline void ping () { ACE_ASSERT (false); ACE_NOTSUP; ACE_NOTREACHED (return;) }
 };
 
 #endif

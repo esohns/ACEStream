@@ -32,9 +32,23 @@
 
 #include "test_u_defines.h"
 
+#include "branch_session_message.h"
+#include "branch_common_modules.h"
 #include "branch_eventhandler.h"
 #include "branch_module_eventhandler.h"
 #include "branch_stream.h"
+
+const char stream_name_string_[] = ACE_TEXT_ALWAYS_CHAR ("Branch_Stream");
+const char stream_name_string_2[] = ACE_TEXT_ALWAYS_CHAR ("Branch_Stream_2");
+
+enum Test_U_ModeType
+{
+  TEST_U_MODE_DEFAULT = 0,
+  TEST_U_MODE_AGGREGATION,
+  ////////////////////////////////////////
+  TEST_U_MODE_MAX,
+  TEST_U_MODE_INVALID
+};
 
 void
 do_print_usage (const std::string& programName_in)
@@ -56,6 +70,10 @@ do_print_usage (const std::string& programName_in)
             << false
             << ACE_TEXT_ALWAYS_CHAR ("]")
             << std::endl;
+  std::cout << ACE_TEXT_ALWAYS_CHAR ("-m          : program mode [")
+            << 0
+            << ACE_TEXT_ALWAYS_CHAR ("]")
+            << std::endl;
   std::cout << ACE_TEXT_ALWAYS_CHAR ("-t          : trace information [")
             << false
             << ACE_TEXT_ALWAYS_CHAR ("]")
@@ -66,6 +84,7 @@ bool
 do_process_arguments (int argc_in,
                       ACE_TCHAR** argv_in, // cannot be const...
                       bool& logToFile_out,
+                      enum Test_U_ModeType& mode_out,
                       bool& traceInformation_out)
 {
   std::string path_root =
@@ -77,7 +96,7 @@ do_process_arguments (int argc_in,
 
   ACE_Get_Opt argument_parser (argc_in,
                                argv_in,
-                               ACE_TEXT ("lt"),
+                               ACE_TEXT ("lm:t"),
                                1,                         // skip command name
                                1,                         // report parsing errors
                                ACE_Get_Opt::PERMUTE_ARGS, // ordering
@@ -92,6 +111,15 @@ do_process_arguments (int argc_in,
       case 'l':
       {
         logToFile_out = true;
+        break;
+      }
+      case 'm':
+      {
+        std::istringstream converter (ACE_TEXT_ALWAYS_CHAR (argument_parser.opt_arg ()),
+                                      std::ios_base::in);
+        int i = 0;
+        converter >> i;
+        mode_out = static_cast<enum Test_U_ModeType> (i);
         break;
       }
       case 't':
@@ -135,30 +163,15 @@ do_process_arguments (int argc_in,
 
 void
 do_work (int argc_in,
-         ACE_TCHAR* argv_in[])
+         ACE_TCHAR* argv_in[],
+         enum Test_U_ModeType mode_in)
 {
   int result = -1;
-  Branch_Message* message_p = NULL;
-  //struct Common_ParserConfiguration parser_configuration;
   struct Branch_ModuleHandlerConfiguration modulehandler_configuration;
   struct Common_AllocatorConfiguration allocator_configuration;
   struct Stream_ModuleConfiguration module_configuration;
-  struct Stream_Configuration stream_configuration;
+  struct Branch_StreamConfiguration stream_configuration;
   Branch_StreamConfiguration_t stream_configuration_2;
-  Branch_Stream branch_stream;
-  Branch_EventHandler event_handler (false);
-  Branch_Module_EventHandler_Module module (&branch_stream,
-                                            ACE_TEXT_ALWAYS_CHAR (STREAM_MISC_MESSAGEHANDLER_DEFAULT_NAME_STRING));
-  Stream_MessageQueueBase_T<ACE_MT_SYNCH,
-                            Common_TimePolicy_t> message_queue (STREAM_QUEUE_MAX_SLOTS,
-                                                                NULL);
-
-  ACE_NEW_NORETURN (message_p,
-                    Branch_Message (1,                                         // session id
-                                    STREAM_MESSAGE_DEFAULT_DATA_BUFFER_SIZE)); // size
-  ACE_ASSERT (message_p);
-  message_p->initialize (1,     // session id
-                         NULL); // data block [NULL --> do not change]
 
   // step2: initialize stream
   Stream_AllocatorHeap_T<ACE_MT_SYNCH,
@@ -172,44 +185,269 @@ do_work (int argc_in,
   Branch_MessageAllocator_t message_allocator (TEST_U_MAX_MESSAGES, // maximum #buffers
                                                &heap_allocator,     // heap allocator handle
                                                true);               // block ?
-  module_configuration.stream = &branch_stream;
-  modulehandler_configuration.concurrency = STREAM_HEADMODULECONCURRENCY_CONCURRENT;
   modulehandler_configuration.messageAllocator = &message_allocator;
-  modulehandler_configuration.queue = &message_queue;
-  modulehandler_configuration.subscriber = &event_handler;
   stream_configuration.messageAllocator = &message_allocator;
-  stream_configuration.module = &module;
   stream_configuration_2.initialize (module_configuration,
                                      modulehandler_configuration,
                                      stream_configuration);
-  if (!branch_stream.initialize (stream_configuration_2))
+
+  switch (mode_in)
   {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to initialize stream, returning\n")));
-    goto clean;
-  } // end IF
+    case TEST_U_MODE_DEFAULT:
+    {
+      Branch_Message* message_p = NULL;
+      modulehandler_configuration.concurrency = STREAM_HEADMODULECONCURRENCY_CONCURRENT;
+      Stream_MessageQueueBase_T<ACE_MT_SYNCH,
+                                Common_TimePolicy_t> message_queue (STREAM_QUEUE_MAX_SLOTS,
+                                                                    NULL);
+      modulehandler_configuration.queue = &message_queue;
+      Branch_EventHandler event_handler (false);
+      modulehandler_configuration.subscriber = &event_handler;
 
-  // step3: parse data
-  branch_stream.start ();
-  result = message_queue.enqueue (message_p, NULL);
-  if (result == -1)
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to ACE_Stream::put: \"%m\", returning\n")));
-    goto clean;
-  } // end IF
-  message_p = NULL;
+      Branch_Stream branch_stream;
+      module_configuration.stream = &branch_stream;
+      Branch_Module_EventHandler_Module module (&branch_stream,
+                                                ACE_TEXT_ALWAYS_CHAR (STREAM_MISC_MESSAGEHANDLER_DEFAULT_NAME_STRING));
+      stream_configuration.module = &module;
 
-  ACE_OS::sleep (ACE_Time_Value (1, 0));
+      ACE_NEW_NORETURN (message_p,
+                        Branch_Message (1,                                         // session id
+                                        STREAM_MESSAGE_DEFAULT_DATA_BUFFER_SIZE)); // size
+      ACE_ASSERT (message_p);
+      message_p->initialize (1,     // session id
+                             NULL); // data block [NULL --> do not change]
 
-  branch_stream.stop ();
-  branch_stream.wait ();
+      if (!branch_stream.initialize (stream_configuration_2))
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("failed to initialize stream, returning\n")));
+        goto clean;
+      } // end IF
+
+      // step3: parse data
+      branch_stream.start ();
+      result = message_queue.enqueue (message_p, NULL);
+      if (result == -1)
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("failed to ACE_Stream::put: \"%m\", returning\n")));
+        goto clean;
+      } // end IF
+      message_p = NULL;
+
+      ACE_OS::sleep (ACE_Time_Value (1, 0));
+
+      branch_stream.stop ();
+      branch_stream.wait ();
 
 clean:
-  if (message_p)
-  {
-    message_p->release (); message_p = NULL;
-  } // end IF
+      if (message_p)
+      {
+        message_p->release (); message_p = NULL;
+      } // end IF
+      break;
+    }
+    case TEST_U_MODE_AGGREGATION:
+    {
+      Branch_Message* message_p = NULL, *message_2 = NULL;
+      modulehandler_configuration.concurrency = STREAM_HEADMODULECONCURRENCY_ACTIVE;
+      Stream_MessageQueueBase_T<ACE_MT_SYNCH,
+                                Common_TimePolicy_t> message_queue (STREAM_QUEUE_MAX_SLOTS,
+                                                                    NULL);
+      Stream_MessageQueueBase_T<ACE_MT_SYNCH,
+                                Common_TimePolicy_t> message_queue_2 (STREAM_QUEUE_MAX_SLOTS,
+                                                                      NULL);
+      modulehandler_configuration.queue = &message_queue;
+      struct Branch_ModuleHandlerConfiguration modulehandler_configuration_2;
+      Branch_EventHandler event_handler (false);
+      modulehandler_configuration.subscriber = &event_handler;
+
+      modulehandler_configuration_2.concurrency = STREAM_HEADMODULECONCURRENCY_ACTIVE;
+      modulehandler_configuration_2.queue = &message_queue_2;
+      modulehandler_configuration_2.subscriber = &event_handler;
+
+      Branch_Stream_2 branch_stream, branch_stream_2;
+      Branch_Module_EventHandler_Module module (&branch_stream,
+                                                ACE_TEXT_ALWAYS_CHAR (STREAM_MISC_MESSAGEHANDLER_DEFAULT_NAME_STRING));
+      stream_configuration.module = &module;
+      Branch_Aggregator_Module module_2 (&branch_stream,
+                                         ACE_TEXT_ALWAYS_CHAR (STREAM_MISC_AGGREGATOR_DEFAULT_NAME_STRING));
+      stream_configuration.module_2 = &module_2;
+
+      Branch_StreamConfiguration_t stream_configuration_4;
+      stream_configuration_4.initialize (module_configuration,
+                                         modulehandler_configuration_2,
+                                         stream_configuration);
+
+      ACE_NEW_NORETURN (message_p,
+                        Branch_Message (1,                                         // session id
+                                        STREAM_MESSAGE_DEFAULT_DATA_BUFFER_SIZE)); // size
+      ACE_ASSERT (message_p);
+      message_p->initialize (1,     // session id
+                             NULL); // data block [NULL --> do not change]
+      message_2 = static_cast<Branch_Message*> (message_p->duplicate ());
+      ACE_ASSERT (message_2);
+
+      if (!branch_stream.initialize (stream_configuration_2))
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("failed to initialize stream, returning\n")));
+        goto clean_2;
+      } // end IF
+      branch_stream_2.name (stream_name_string_2);
+      if (!branch_stream_2.initialize (stream_configuration_4))
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("failed to initialize stream, returning\n")));
+        goto clean_2;
+      } // end IF
+      ACE_DEBUG ((LM_DEBUG, ACE_TEXT ("initialization complete\n")));
+
+      branch_stream.start ();
+      branch_stream_2.start ();
+      ACE_DEBUG ((LM_DEBUG, ACE_TEXT ("streams started\n")));
+
+      result = message_queue.enqueue (message_p, NULL);
+      if (result == -1)
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("failed to ACE_Stream::put: \"%m\", returning\n")));
+        goto clean_2;
+      } // end IF
+      message_p = NULL;
+
+      ACE_DEBUG ((LM_DEBUG, ACE_TEXT ("three...")));
+      ACE_OS::sleep (ACE_Time_Value (1, 0));
+      ACE_DEBUG ((LM_DEBUG, ACE_TEXT ("two...")));
+      ACE_OS::sleep (ACE_Time_Value (1, 0));
+      ACE_DEBUG ((LM_DEBUG, ACE_TEXT ("one...")));
+      ACE_OS::sleep (ACE_Time_Value (1, 0));
+      ACE_DEBUG ((LM_DEBUG, ACE_TEXT ("STOP !")));
+
+      branch_stream.stop (false,  // wait ?
+                          false,  // recurse ?
+                          false); // high priority ?
+      branch_stream_2.stop (false,
+                            false,
+                            false);
+      ACE_DEBUG ((LM_DEBUG, ACE_TEXT ("streams stopped\n")));
+
+      branch_stream.wait (true,   // wait for threads ?
+                          false,  // wait for upstream ?
+                          false); // wait for downstream ?
+      branch_stream_2.wait (true,
+                            false,
+                            false);
+      ACE_DEBUG ((LM_DEBUG, ACE_TEXT ("streams complete\n")));
+
+      ////////////////////////////////////
+
+      // remove aggregator
+      bool result_2 = branch_stream.remove (&module_2,
+                                            true,  // lock ?
+                                            true); // reset ?
+      ACE_ASSERT (result_2);
+      result_2 = branch_stream_2.remove (&module_2,
+                                         true,  // lock ?
+                                         true); // reset ?
+      ACE_ASSERT (result_2);
+      ACE_DEBUG ((LM_DEBUG,
+                  ACE_TEXT ("removed aggregator module\n")));
+
+      if (!branch_stream.initialize (stream_configuration_2))
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("failed to initialize stream, returning\n")));
+        goto clean_2;
+      } // end IF
+      if (!branch_stream_2.initialize (stream_configuration_2))
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("failed to initialize stream, returning\n")));
+        goto clean_2;
+      } // end IF
+      ACE_DEBUG ((LM_DEBUG, ACE_TEXT ("initialization (2) complete\n")));
+
+      branch_stream.start ();
+      branch_stream_2.start ();
+      ACE_DEBUG ((LM_DEBUG, ACE_TEXT ("streams (2) started\n")));
+
+      message_2->initialize (4,     // session id
+                             NULL); // data block [NULL --> do not change]
+      result = message_queue.enqueue (message_2, NULL);
+      if (result == -1)
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("failed to ACE_Stream::put: \"%m\", returning\n")));
+        goto clean_2;
+      } // end IF
+      message_2 = NULL;
+
+      ACE_DEBUG ((LM_DEBUG, ACE_TEXT ("three...")));
+      ACE_OS::sleep (ACE_Time_Value (1, 0));
+      ACE_DEBUG ((LM_DEBUG, ACE_TEXT ("two...")));
+      ACE_OS::sleep (ACE_Time_Value (1, 0));
+      ACE_DEBUG ((LM_DEBUG, ACE_TEXT ("one...")));
+      ACE_OS::sleep (ACE_Time_Value (1, 0));
+      ACE_DEBUG ((LM_DEBUG, ACE_TEXT ("STOP !")));
+
+      branch_stream.stop (false,  // wait ?
+                          false,  // recurse ?
+                          false); // high priority ?
+      branch_stream_2.stop (false,
+                            false,
+                            false);
+      ACE_DEBUG ((LM_DEBUG, ACE_TEXT ("streams (2) stopped\n")));
+
+      branch_stream.wait (true,   // wait for threads ?
+                          false,  // wait for upstream ?
+                          false); // wait for downstream ?
+      branch_stream_2.wait (true,
+                            false,
+                            false);
+      ACE_DEBUG ((LM_DEBUG, ACE_TEXT ("streams (2) complete\n")));
+
+      // remove aggregator
+      result_2 = branch_stream.remove (&module_2,
+                                       true,  // lock ?
+                                       true); // reset ?
+      ACE_ASSERT (result_2);
+      result_2 = branch_stream_2.remove (&module_2,
+                                         true,  // lock ?
+                                         true); // reset ?
+      ACE_ASSERT (result_2);
+      ACE_DEBUG ((LM_DEBUG,
+                  ACE_TEXT ("removed aggregator module (2)\n")));
+
+      result_2 = branch_stream.remove (&module,
+                                       true,  // lock ?
+                                       true); // reset ?
+      ACE_ASSERT (result_2);
+      result_2 = branch_stream_2.remove (&module,
+                                         true,  // lock ?
+                                         true); // reset ?
+      ACE_ASSERT (result_2);
+      ACE_DEBUG ((LM_DEBUG, ACE_TEXT ("removed message handler module\n")));
+
+clean_2:
+      if (message_p)
+      {
+        message_p->release (); message_p = NULL;
+      } // end IF
+      if (message_2)
+      {
+        message_2->release (); message_2 = NULL;
+      } // end IF
+      break;
+    }
+    default:
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("invalid/unknown program mode (was: %d), returning\n"),
+                  mode_in));
+      return;    
+    }
+  } // end SWITCH
 }
 
 int
@@ -243,12 +481,14 @@ ACE_TMAIN (int argc_in,
   // step1a set defaults
   bool log_to_file = false;
   std::string log_file_name;
+  enum Test_U_ModeType program_mode_e = TEST_U_MODE_INVALID;
   bool trace_information = false;
 
   // step1b: parse/process/validate configuration
   if (!do_process_arguments (argc_in,
                              argv_in,
                              log_to_file,
+                             program_mode_e,
                              trace_information))
   {
     do_print_usage (ACE::basename (argv_in[0]));
@@ -283,7 +523,8 @@ ACE_TMAIN (int argc_in,
   timer.start ();
   // step2: do actual work
   do_work (argc_in,
-           argv_in);
+           argv_in,
+           program_mode_e);
   timer.stop ();
 
   // debug info

@@ -74,9 +74,9 @@ Branch_SessionMessage::duplicate (void) const
 
   Branch_SessionMessage* message_p = NULL;
 
-  // create a new <Branch_SessionMessage> that contains unique copies of
+  // create a new Branch_SessionMessage that contains unique copies of
   // the message block fields, but a reference counted duplicate of
-  // the <ACE_Data_Block>.
+  // the ACE_Data_Block
 
   // if there is no allocator, use the standard new and delete calls.
   if (inherited::message_block_allocator_ == NULL)

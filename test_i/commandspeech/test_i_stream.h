@@ -163,7 +163,7 @@ class Test_I_MediaFoundation_Stream
   ACE_UNIMPLEMENTED_FUNC (Test_I_MediaFoundation_Stream (const Test_I_MediaFoundation_Stream&))
   ACE_UNIMPLEMENTED_FUNC (Test_I_MediaFoundation_Stream& operator= (const Test_I_MediaFoundation_Stream&))
 
-  ACE_SYNCH_RECURSIVE_CONDITION        condition_;
+  ACE_SYNCH_CONDITION                  condition_;
 #if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
   IMFMediaSession*                     mediaSession_;
 #endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)

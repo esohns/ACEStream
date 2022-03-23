@@ -118,6 +118,7 @@ class Stream_IStream_T
                      TimePolicyType> STREAM_T;
 
   virtual std::string name () const = 0;
+  virtual void name (const std::string&) = 0;
 
   // *WARNING*: this APIs is not thread-safe
   virtual const MODULE_T* find (const std::string&,      // module name

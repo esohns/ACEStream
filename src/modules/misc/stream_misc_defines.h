@@ -24,6 +24,7 @@
 #include "ace/config-lite.h"
 
 // module
+#define STREAM_MISC_AGGREGATOR_DEFAULT_NAME_STRING                  "Aggregator"
 #define STREAM_MISC_DISTRIBUTOR_DEFAULT_NAME_STRING                 "Distributor"
 #define STREAM_MISC_DELAY_DEFAULT_NAME_STRING                       "Delay"
 #define STREAM_MISC_DUMP_DEFAULT_NAME_STRING                        "Dump"

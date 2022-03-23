@@ -20,3 +20,8 @@
 #include "stdafx.h"
 
 #include "stream_misc_aggregator.h"
+
+#include "stream_misc_defines.h"
+
+const char libacestream_default_misc_aggregator_module_name_string[] =
+  ACE_TEXT_ALWAYS_CHAR (STREAM_MISC_AGGREGATOR_DEFAULT_NAME_STRING);

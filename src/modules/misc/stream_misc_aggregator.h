@@ -52,6 +52,8 @@ template <ACE_SYNCH_DECL,
           typename SessionMessageType>
 class Stream_Module_Aggregator_WriterTask_2;
 
+extern const char libacestream_default_misc_aggregator_module_name_string[];
+
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           ////////////////////////////////
@@ -203,15 +205,13 @@ class Stream_Module_Aggregator_WriterTask_T
                    ACE_Time_Value* = NULL); // timeout value
   // override ACE_Task member(s)
   virtual TASK_T* next (void);
+  virtual int module_closed (void);
 
   // override (part of) Stream_IModuleHandler_T
   virtual bool initialize (const ConfigurationType&,   // configuration handle
                            Stream_IAllocator* = NULL); // allocator handle
 
   // implement (part of) Stream_ITaskBase_T
-  // *IMPORTANT NOTE*: the default implementation release()s all messages !
-  virtual void handleDataMessage (DataMessageType*&, // message handle
-                                  bool&);            // return value: pass message downstream ?
   virtual void handleSessionMessage (SessionMessageType*&, // session message handle
                                      bool&);               // return value: pass message downstream ?
 
@@ -331,19 +331,15 @@ class Stream_Module_Aggregator_WriterTask_2
 
   // override ACE_Task_Base member(s)
   virtual int open (void* = NULL);
-  virtual int put (ACE_Message_Block*,      // data chunk
-                   ACE_Time_Value* = NULL); // timeout value
   // override ACE_Task member(s)
   virtual TASK_T* next (void);
+  virtual int module_closed (void);
 
   // override (part of) Stream_IModuleHandler_T
   virtual bool initialize (const ConfigurationType&,   // configuration handle
                            Stream_IAllocator* = NULL); // allocator handle
 
   // implement (part of) Stream_ITaskBase_T
-  // *IMPORTANT NOTE*: the default implementation release()s all messages !
-  virtual void handleDataMessage (DataMessageType*&, // message handle
-                                  bool&);            // return value: pass message downstream ?
   virtual void handleSessionMessage (SessionMessageType*&, // session message handle
                                      bool&);               // return value: pass message downstream ?
 
@@ -373,8 +369,13 @@ class Stream_Module_Aggregator_WriterTask_2
                    typename SessionMessageType::DATA_T*> SESSION_DATA_T;
   typedef typename SESSION_DATA_T::iterator SESSION_DATA_ITERATOR_T;
 
+  // helper methods
+  virtual void forward (ACE_Message_Block*,  // message block handle
+                        Stream_SessionId_t); // session id
+
   LINKS_T                   readerLinks_;
   LINKS_T                   writerLinks_;
+  unsigned int              sessionEndCount_;
   ACE_SYNCH_MUTEX_T         sessionLock_;
   SESSION_DATA_T            sessionSessionData_;
   SESSIONID_TO_STREAM_MAP_T sessions_;

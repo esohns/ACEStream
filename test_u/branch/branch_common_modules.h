@@ -30,6 +30,7 @@
 #include "stream_common.h"
 #include "stream_streammodule_base.h"
 
+#include "stream_misc_aggregator.h"
 #include "stream_misc_queue_source.h"
 
 #include "stream_stat_statistic_report.h"
@@ -110,5 +111,22 @@ DATASTREAM_MODULE_DUPLEX (struct Branch_SessionData,                 // session 
                           Branch_Distributor_Reader_t,               // reader type
                           Branch_Distributor_Writer_t,               // writer type
                           Branch_Distributor);                       // name
+
+//////////////////////////////////////////
+
+typedef Stream_Module_Aggregator_WriterTask_2<ACE_MT_SYNCH,
+                                              Common_TimePolicy_t,
+                                              Branch_ModuleHandlerConfiguration,
+                                              Stream_ControlMessage_t,
+                                              Branch_Message,
+                                              Branch_SessionMessage> Branch_Aggregator_Writer_t;
+DATASTREAM_MODULE_DUPLEX_A (struct Branch_SessionData,                 // session data type
+                            enum Stream_SessionMessageType,            // session event type
+                            struct Branch_ModuleHandlerConfiguration,  // module handler configuration type
+                            libacestream_default_misc_aggregator_module_name_string,
+                            Stream_INotify_t,                          // stream notification interface type
+                            Branch_Aggregator_Writer_t::READER_TASK_T, // reader type
+                            Branch_Aggregator_Writer_t,                // writer type
+                            Branch_Aggregator);                        // name
 
 #endif

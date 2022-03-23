@@ -75,7 +75,6 @@ class Stream_Module_Base_T
   virtual ~Stream_Module_Base_T ();
 
   // override ACE_Module members
-//  inline virtual ACE_Module<ACE_SYNCH_USE, TimePolicyType>* next (void) { return inherited::next (); }
   virtual void next (ACE_Module<ACE_SYNCH_USE, TimePolicyType>*); // downstream module handle
 
   // implement (part of) Stream_IModule_T
@@ -180,10 +179,6 @@ class Stream_Module_BaseA_T
 
  public:
   inline virtual ~Stream_Module_BaseA_T () {}
-
-  // override ACE_Module members
-//  inline virtual ACE_Module<ACE_SYNCH_USE, TimePolicyType>* next (void) { return NULL; }
-//  inline virtual void next (ACE_Module<ACE_SYNCH_USE, TimePolicyType>* module_in) { ACE_UNUSED_ARG (module_in); }
 
   // implement Common_ISetP_T
   inline virtual void setP (ACE_Stream<ACE_SYNCH_USE, TimePolicyType>* stream_in) { inherited::stream_ = stream_in; }

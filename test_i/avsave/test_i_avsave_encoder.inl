@@ -307,14 +307,12 @@ Test_I_AVSave_Encoder_T<ACE_SYNCH_USE,
                                video_media_type_s);
 
       // *IMPORTANT NOTE*: initialize the format/output context only once
-      { ACE_GUARD (ACE_Thread_Mutex, aGuard, inherited::lock_);
-        if (!inherited::isFirst_)
-        {
-          is_first_b = false;
-          goto continue_;
-        } // end IF
-        inherited::isFirst_ = false;
-      } // end lock scope
+      if (!inherited::isFirst_)
+      {
+        is_first_b = false;
+        goto continue_;
+      } // end IF
+      inherited::isFirst_ = false;
 
       output_format_p = av_guess_format (ACE_TEXT_ALWAYS_CHAR ("avi"),
                                          NULL,
@@ -491,17 +489,7 @@ audio:
       avcodec_parameters_from_context (inherited::audioStream_->codecpar,
                                        inherited::audioCodecContext_);
 
-      { ACE_GUARD (ACE_Thread_Mutex, aGuard, inherited::lock_);
-        ++inherited::numberOfStreamsInitialized_;
-        result = inherited::condition_.signal ();
-        if (unlikely (result == -1))
-        {
-          ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("%s: failed to ACE_Thread_Condition::signal(): \"%m\", aborting\n"),
-                      inherited::mod_->name ()));
-          goto error;
-        } // end IF
-      } // end lock scope
+      ++inherited::numberOfStreamsInitialized_;
 
       goto continue_2;
 
@@ -601,17 +589,7 @@ video:
                                         static_cast<int> (inherited::videoFrame_->width));
       ACE_ASSERT (result >= 0);
 
-      { ACE_GUARD (ACE_Thread_Mutex, aGuard, inherited::lock_);
-        ++inherited::numberOfStreamsInitialized_;
-        result = inherited::condition_.signal ();
-        if (unlikely (result == -1))
-        {
-          ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("%s: failed to ACE_Thread_Condition::signal(): \"%m\", aborting\n"),
-                      inherited::mod_->name ()));
-          goto error;
-        } // end IF
-      } // end lock scope
+      ++inherited::numberOfStreamsInitialized_;
 
       goto continue_2;
 
@@ -626,22 +604,8 @@ error:
       break;
 
 continue_2:
-      if (!is_first_b)
+      if (inherited::numberOfStreamsInitialized_ < 2)
         goto continue_3;
-
-      { ACE_GUARD (ACE_Thread_Mutex, aGuard, inherited::lock_);
-        while (inherited::numberOfStreamsInitialized_ < 2)
-        {
-          result = inherited::condition_.wait ();
-          if (unlikely (result == -1))
-          {
-            ACE_DEBUG ((LM_ERROR,
-                        ACE_TEXT ("%s: failed to ACE_Thread_Condition::wait(): \"%m\", aborting\n"),
-                        inherited::mod_->name ()));
-            goto error;
-          } // end IF
-        } // end WHILE
-      } // end lock scope
 
       result = avformat_write_header (inherited::formatContext_, NULL);
       if (unlikely (result < 0))
@@ -661,13 +625,11 @@ continue_3:
       int result = -1;
 
       // *IMPORTANT NOTE*: finalize the format context only once
-      { ACE_GUARD (ACE_Thread_Mutex, aGuard, inherited::lock_);
-        if (!inherited::isLast_)
-        {
-          inherited::isLast_ = true;
-          goto continue_4;
-        } // end IF
-      } // end lock scope
+      if (!inherited::isLast_)
+      {
+        inherited::isLast_ = true;
+        goto continue_4;
+      } // end IF
 
       if (!inherited::headerWritten_)
         goto continue_5;

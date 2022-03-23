@@ -19,9 +19,4 @@
  ***************************************************************************/
 #include "stdafx.h"
 
-#include "stream_dec_libav_encoder.h"
-
-#include "stream_dec_defines.h"
-
-const char libacestream_default_dec_libav_encoder_module_name_string[] =
-  ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_LIBAV_DECODER_DEFAULT_NAME_STRING);
+#include "test_i_avsave_encoder.h"

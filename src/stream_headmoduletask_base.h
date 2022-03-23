@@ -147,12 +147,12 @@ class Stream_HeadModuleTaskBase_T
   inline virtual enum Stream_StateMachine_ControlState status () const { enum Stream_StateMachine_ControlState result = inherited2::current (); return result; }
 
   // implement Stream_ILock_T
-  // *NOTE*: these just use queue_.lock_ (type ACE_SYNCH_MUTEX_T, non-recursive)
+  // *NOTE*: these just use queue_.lock_
   virtual bool lock (bool = true,  // block ?
                      bool = true); // N/A
   virtual int unlock (bool = false, // unblock ?
                       bool = true); // N/A
-  inline virtual ACE_SYNCH_RECURSIVE_MUTEX& getLock (bool = true) { static ACE_SYNCH_RECURSIVE_MUTEX dummy;  ACE_ASSERT (false); ACE_NOTSUP_RETURN (dummy); ACE_NOTREACHED (return dummy;) } // forward upstream (if any) ?
+  inline virtual ACE_SYNCH_MUTEX_T& getLock (bool = true) { static ACE_SYNCH_MUTEX_T dummy;  ACE_ASSERT (false); ACE_NOTSUP_RETURN (dummy); ACE_NOTREACHED (return dummy;) } // forward upstream (if any) ?
   // *TODO*: this isn't nearly accurate enough
   inline virtual bool hasLock (bool = true) { ACE_ASSERT (false); ACE_ASSERT (inherited::configuration_); return !inherited::configuration_->hasReentrantSynchronousSubDownstream; } // forward upstream (if any) ?
 

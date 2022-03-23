@@ -167,9 +167,6 @@ Stream_AVSave_DirectShow_Stream::initialize (const inherited::CONFIGURATION_T& c
 {
   STREAM_TRACE (ACE_TEXT ("Stream_AVSave_DirectShow_Stream::initialize"));
 
-  // sanity check(s)
-  ACE_ASSERT (!isRunning ());
-
   bool result = false;
   bool setup_pipeline = configuration_in.configuration_->setupPipeline;
   bool reset_setup_pipeline = false;
@@ -190,6 +187,7 @@ Stream_AVSave_DirectShow_Stream::initialize (const inherited::CONFIGURATION_T& c
   ISampleGrabber* isample_grabber_p = NULL;
   std::string log_file_name;
   struct Stream_MediaFramework_DirectShow_AudioVideoFormat media_type_s;
+  bool remove_module_2 = false;
 
   // sanity check(s)
   iterator =
@@ -453,6 +451,8 @@ continue_:
   const_cast<inherited::CONFIGURATION_T&> (configuration_in).configuration_->setupPipeline =
     false;
   reset_setup_pipeline = true;
+  //if (inherited::isInitialized_)
+  //  remove_module_2 = true;
   if (!inherited::initialize (configuration_in))
   {
     ACE_DEBUG ((LM_ERROR,
@@ -463,6 +463,15 @@ continue_:
   const_cast<inherited::CONFIGURATION_T&> (configuration_in).configuration_->setupPipeline =
     setup_pipeline;
   reset_setup_pipeline = false;
+
+  //if (remove_module_2 &&
+  //    unlikely (!remove (inherited::configuration_->configuration_->module_2,
+  //                       false,   // lock ?
+  //                       false))) // reset ? (see above)
+  //  ACE_DEBUG ((LM_ERROR,
+  //              ACE_TEXT ("%s: failed to Stream_Base_T::remove(\"%s\"): \"%m\", continuing\n"),
+  //              ACE_TEXT (stream_name_string_),
+  //              inherited::configuration_->configuration_->module_2->name ()));
 
   // sanity check(s)
   ACE_ASSERT (inherited::sessionData_);
@@ -493,9 +502,6 @@ continue_:
   //  configuration_in.moduleHandlerConfiguration->fileName;
   //session_data_r.size =
   //  Common_File_Tools::size (configuration_in.moduleHandlerConfiguration->fileName);
-
-  // OK: all went well
-  inherited::isInitialized_ = true;
 
   return true;
 

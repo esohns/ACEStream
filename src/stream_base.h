@@ -109,6 +109,7 @@ class Stream_Base_T
                                   StatusType,
                                   StateType>
  , public Stream_ILinkCB
+ , public Stream_ISessionCB
  , public Common_IInitialize_T<Stream_Configuration_T<//StreamName,
                                                       ConfigurationType,
                                                       HandlerConfigurationType> >
@@ -234,7 +235,7 @@ class Stream_Base_T
                      bool = true); // recurse upstream (if any) ?
   virtual int unlock (bool = false, // unblock ?
                       bool = true); // recurse upstream (if any) ?
-  virtual ACE_SYNCH_RECURSIVE_MUTEX& getLock (bool = true); // recurse upstream (if any) ?
+  virtual ACE_SYNCH_MUTEX_T& getLock (bool = true); // recurse upstream (if any) ?
   virtual bool hasLock (bool = true); // recurse upstream (if any) ?
 
   inline virtual const typename ISTREAM_T::STREAM_T& getR () const { return *this; }; // return value: type
@@ -244,7 +245,8 @@ class Stream_Base_T
   virtual const typename ISTREAM_T::MODULE_T* find (const std::string&,  // module name
                                                     bool = false,        // sanitize module names ?
                                                     bool = false) const; // recurse upstream (if any) ?
-  inline virtual std::string name () const { std::string name_s = StreamName; return name_s; }
+  inline virtual std::string name () const { return name_; }
+  inline virtual void name (const std::string& name_in) { name_ = name_in; }
   virtual bool link (typename ISTREAM_T::STREAM_T*);
   virtual void _unlink ();
   // *WARNING*: these APIs are not thread-safe
@@ -257,6 +259,10 @@ class Stream_Base_T
   // implement Stream_ILinkCB
   inline virtual void onLink () {}
   inline virtual void onUnlink () {}
+
+  // implement Stream_ISessionCB
+  inline virtual void onSessionBegin (Stream_SessionId_t) {}
+  inline virtual void onSessionEnd (Stream_SessionId_t) {}
 
   // implement Common_IDumpState
   virtual void dump_state () const;
@@ -337,18 +343,16 @@ class Stream_Base_T
   void shutdown ();
   bool setup (ACE_Notification_Strategy* = NULL); // head module reader task' queue notification handle
 
-  CONFIGURATION_T*                  configuration_;
+  CONFIGURATION_T*          configuration_;
   // *NOTE*: derived classes set this iff (!) their initialization succeeded;
   //         otherwise the dtor will NOT join any worker threads before
   //         close()ing the modules
-  bool                              isInitialized_;
-  LAYOUT_T                          layout_;
-  // *TODO*: use inherited::lock_ instead
-  mutable ACE_SYNCH_RECURSIVE_MUTEX lock_;
-  MESSAGE_QUEUE_T                   messageQueue_; // ('outbound'-) queue
-  SessionDataContainerType*         sessionData_;
-  ACE_SYNCH_MUTEX_T                 sessionDataLock_;
-  StateType                         state_;
+  bool                      isInitialized_;
+  LAYOUT_T                  layout_;
+  MESSAGE_QUEUE_T           messageQueue_; // ('outbound'-) queue
+  SessionDataContainerType* sessionData_;
+  ACE_SYNCH_MUTEX_T         sessionDataLock_;
+  StateType                 state_;
 
  private:
   // convenient types
@@ -419,7 +423,8 @@ class Stream_Base_T
   void deactivateModules ();
   void unlinkModules ();
 
-  bool                              delete_; // delete modules ?
+  bool                      delete_; // delete modules ?
+  std::string               name_;
 };
 
 // include template definition

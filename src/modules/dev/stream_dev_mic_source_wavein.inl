@@ -200,6 +200,7 @@ Stream_Dev_Mic_Source_WaveIn_T<ACE_SYNCH_USE,
   ACE_ASSERT (inherited::configuration_);
   ACE_ASSERT (inherited::configuration_->messageAllocator);
   ACE_ASSERT (inherited::configuration_->allocatorConfiguration);
+  ACE_ASSERT (inherited::sessionData_);
   typename DataMessageType::DATA_T& data_r =
     const_cast<typename DataMessageType::DATA_T&> (message_inout->getR ());
   ACE_ASSERT (data_r.index < STREAM_DEV_WAVEIN_DEFAULT_DEVICE_BUFFERS);
@@ -278,6 +279,11 @@ Stream_Dev_Mic_Source_WaveIn_T<ACE_SYNCH_USE,
   } // end IF
 
   ++CBData_.inFlightBuffers;
+
+  SessionDataType& session_data_r =
+    const_cast<SessionDataType&> (inherited::sessionData_->getR ());
+  message_inout->initialize (session_data_r.sessionId,
+                             NULL);
 }
 
 template <ACE_SYNCH_DECL,
