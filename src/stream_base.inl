@@ -321,7 +321,9 @@ Stream_Base_T<ACE_SYNCH_USE,
   } // end lock scope
 
   // step2: setup layout
-  { ACE_GUARD_RETURN (ACE_SYNCH_MUTEX_T, aGuard, inherited::lock_, false);
+  // *WARNING*: invokes this->close(), which acquires inherited::lock_ as well
+  //            --> do not lock here
+//  { ACE_GUARD_RETURN (ACE_SYNCH_MUTEX_T, aGuard, inherited::lock_, false);
     if (!layout_.setup (*this))
     {
       ACE_DEBUG ((LM_ERROR,
@@ -329,7 +331,7 @@ Stream_Base_T<ACE_SYNCH_USE,
                   ACE_TEXT (name_.c_str ())));
       return false;
     } // end IF
-  } // end lock scope
+//  } // end lock scope
 
 #if defined (_DEBUG)
   //layout_.dump_state ();
@@ -3303,8 +3305,8 @@ Stream_Base_T<ACE_SYNCH_USE,
 
   int result = 0;
 
-  { ACE_GUARD_RETURN (ACE_SYNCH_MUTEX_T, ace_mon, inherited::lock_, -1);
-    // Remove and cleanup all the intermediate modules.
+  { ACE_GUARD_RETURN (ACE_SYNCH_MUTEX_T, aGuard, inherited::lock_, -1);
+    // Remove and cleanup all the intermediate modules
     while (inherited::stream_head_->next () != inherited::stream_tail_)
       if (this->pop (delete_ ? STREAM_T::M_DELETE : 0) == -1)
         result = -1;
