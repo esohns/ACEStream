@@ -1517,6 +1517,11 @@ do_work (const struct Stream_Device_Identifier& deviceIdentifier_in,
                 ACE_TEXT ("failed to ::do_initialize_v4l(), returning\n")));
     return;
   } // end IF
+#if defined (GUI_SUPPORT)
+  CBData_in.progressData.audioFrameSize =
+    (snd_pcm_format_width (video_stream_configuration.format.audio.format) / 8) *
+      video_stream_configuration.format.audio.channels;
+#endif // GUI_SUPPORT
 
   configuration_in.audioStreamConfiguration.initialize (module_configuration,
                                                         audio_modulehandler_configuration,

@@ -3599,10 +3599,24 @@ idle_update_progress_cb (gpointer userData_in)
 
     done = true;
   } // end IF
+  ACE_Time_Value now = ACE_OS::gettimeofday ();
+  ACE_Time_Value elapsed_time = now - data_p->timeStamp;
+  data_p->timeStamp = now;
+  unsigned long milliseconds_i = elapsed_time.msec ();
+  unsigned long delta_audio_frames =
+    data_p->statistic.audioFrames - data_p->lastStatistic.audioFrames;
+  unsigned long delta_video_frames =
+    data_p->statistic.totalFrames - data_p->lastStatistic.totalFrames;
+  data_p->lastStatistic = data_p->statistic;
+  unsigned int audio_frames_per_second =
+    static_cast<unsigned int> ((1000.0F / (float)milliseconds_i) * (float)delta_audio_frames);
+  unsigned int video_frames_per_second =
+    static_cast<unsigned int> ((1000.0F / (float)milliseconds_i) * (float)delta_video_frames);
 
-  // synch access
   std::ostringstream converter;
-  converter << data_p->statistic.messagesPerSecond;
+  converter << audio_frames_per_second;
+  converter << ACE_TEXT_ALWAYS_CHAR (" / ");
+  converter << video_frames_per_second;
   converter << ACE_TEXT_ALWAYS_CHAR (" fps");
 
   GtkProgressBar* progress_bar_p =

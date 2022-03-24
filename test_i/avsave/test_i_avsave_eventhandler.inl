@@ -290,28 +290,33 @@ Stream_AVSave_EventHandler_T<NotificationType,
 #endif // GUI_SUPPORT
 
 #if defined (GUI_SUPPORT)
-  switch (message_in.getMediaType ())
-  {
-    case STREAM_MEDIATYPE_AUDIO:
-      event_e = STREAM_AV_UI_EVENT_DATA_AUDIO;
-      break;
-    case STREAM_MEDIATYPE_VIDEO:
-      event_e = STREAM_AV_UI_EVENT_DATA_VIDEO;
-      break;
-    default:
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("invalid/unknown message type (was: %d), returning\n"),
-                  message_in.getMediaType ()));
-      return;
-    }
-  } // end SWITCH
-#if defined (GTK_USE) || defined (WXWIDGETS_USE)
   { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, state_r.lock);
+    switch (message_in.getMediaType ())
+    {
+      case STREAM_MEDIATYPE_AUDIO:
+      { ACE_ASSERT (CBData_->progressData.audioFrameSize);
+        event_e = STREAM_AV_UI_EVENT_DATA_AUDIO;
+        CBData_->progressData.statistic.audioFrames +=
+          (message_in.total_length () / CBData_->progressData.audioFrameSize);
+        break;
+      }
+      case STREAM_MEDIATYPE_VIDEO:
+      {
+        event_e = STREAM_AV_UI_EVENT_DATA_VIDEO;
+        ++CBData_->progressData.statistic.totalFrames;
+        break;
+      }
+      default:
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("invalid/unknown message type (was: %d), returning\n"),
+                    message_in.getMediaType ()));
+        return;
+      }
+    } // end SWITCH
     CBData_->progressData.statistic.bytes += message_in.total_length ();
     state_r.eventStack.push (event_e);
   } // end lock scope
-#endif // GTK_USE || WXWIDGETS_USE
 #endif // GUI_SUPPORT
 }
 

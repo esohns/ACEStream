@@ -228,24 +228,20 @@ struct Stream_AVSave_StatisticData
 {
   Stream_AVSave_StatisticData ()
    : Stream_Statistic ()
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-   , capturedFrames (0)
-#endif // ACE_WIN32 || ACE_WIN64
+   , audioBytes (0)
+   , audioFrames (0)
   {}
 
   struct Stream_AVSave_StatisticData operator+= (const struct Stream_AVSave_StatisticData& rhs_in)
   {
     Stream_Statistic::operator+= (rhs_in);
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-    capturedFrames += rhs_in.capturedFrames;
-#endif // ACE_WIN32 || ACE_WIN64
+    audioFrames += rhs_in.audioFrames;
 
     return *this;
   }
 
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-  unsigned int capturedFrames;
-#endif // ACE_WIN32 || ACE_WIN64
+  ACE_UINT64 audioBytes;
+  ACE_UINT64 audioFrames;
 };
 typedef Common_StatisticHandler_T<struct Stream_AVSave_StatisticData> Test_I_AVSave_StatisticHandler_t;
 
@@ -978,12 +974,18 @@ struct Stream_AVSave_ProgressData
 {
   Stream_AVSave_ProgressData ()
    : Test_I_UI_ProgressData ()
+   , audioFrameSize (0)
    , state (NULL)
+   , lastStatistic ()
    , statistic ()
+   , timeStamp (ACE_Time_Value::zero)
   {}
 
+  unsigned int                       audioFrameSize;
   struct Stream_AVSave_UI_State*     state;
+  struct Stream_AVSave_StatisticData lastStatistic;
   struct Stream_AVSave_StatisticData statistic;
+  ACE_Time_Value                     timeStamp;
 };
 
 struct Stream_AVSave_UI_CBData
