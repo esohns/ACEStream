@@ -94,7 +94,9 @@
 
 #include "stream_dev_defines.h"
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
+#include "stream_dev_directshow_tools.h"
 #include "stream_dev_mediafoundation_tools.h"
+#include "stream_dev_vfw_tools.h"
 #endif // ACE_WIN32 || ACE_WIN64
 #include "stream_dev_tools.h"
 
@@ -231,7 +233,7 @@ do_printUsage (const std::string& programName_in)
             << std::endl;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   std::cout << ACE_TEXT_ALWAYS_CHAR ("-m          : use MediaFoundation framework [")
-            << (STREAM_LIB_DEFAULT_MEDIAFRAMEWORK == STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION)
+            << false
             << ACE_TEXT_ALWAYS_CHAR ("]")
             << std::endl;
 #endif // ACE_WIN32 || ACE_WIN64
@@ -253,10 +255,17 @@ do_printUsage (const std::string& programName_in)
             << false
             << ACE_TEXT_ALWAYS_CHAR ("]")
             << std::endl;
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  std::cout << ACE_TEXT_ALWAYS_CHAR ("-w          : use Video for Windows API [")
+            << false
+            << ACE_TEXT_ALWAYS_CHAR ("]")
+            << std::endl;
+#else
   std::cout << ACE_TEXT_ALWAYS_CHAR ("-x          : test device for method support and exit [")
             << false
             << ACE_TEXT_ALWAYS_CHAR ("]")
             << std::endl;
+#endif // ACE_WIN32 || ACE_WIN64
 }
 
 bool
@@ -274,7 +283,7 @@ do_processArguments (int argc_in,
 #endif // GUI_SUPPORT
                      bool& logToFile_out,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-                     enum Stream_MediaFramework_Type& mediaFramework_out,
+                     enum Stream_Device_Capturer& capturer_out,
 #endif // ACE_WIN32 || ACE_WIN64
                      struct Common_UI_DisplayDevice& displayDevice_out,
                      unsigned int& statisticReportingInterval_out,
@@ -312,7 +321,7 @@ do_processArguments (int argc_in,
 #endif // GUI_SUPPORT
   logToFile_out = false;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  mediaFramework_out = STREAM_LIB_DEFAULT_MEDIAFRAMEWORK;
+  capturer_out = STREAM_DEVICE_CAPTURER_DIRECTSHOW;
 #endif // ACE_WIN32 || ACE_WIN64
   displayDevice_out = Common_UI_Tools::getDefaultDisplay ();
   statisticReportingInterval_out =
@@ -324,13 +333,13 @@ do_processArguments (int argc_in,
                               argv_in,
 #if defined (GUI_SUPPORT)
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-                              ACE_TEXT ("cd:f::g::hlmo:s:tvx"),
+                              ACE_TEXT ("cd:f::g::hlmo:s:tvw"),
 #else
                               ACE_TEXT ("cd:f::g::hlo:s:tvx"),
 #endif // ACE_WIN32 || ACE_WIN64
 #else
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-                              ACE_TEXT ("cd:f::hlmo:s:tvx"),
+                              ACE_TEXT ("cd:f::hlmo:s:tvw"),
 #else
                               ACE_TEXT ("cd:f::hlo:s:tvx"),
 #endif // ACE_WIN32 || ACE_WIN64
@@ -396,7 +405,7 @@ do_processArguments (int argc_in,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
       case 'm':
       {
-        mediaFramework_out = STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION;
+        capturer_out = STREAM_DEVICE_CAPTURER_MEDIAFOUNDATION;
         break;
       }
 #endif // ACE_WIN32 || ACE_WIN64
@@ -424,12 +433,20 @@ do_processArguments (int argc_in,
         mode_out = STREAM_CAMSAVE_PROGRAMMODE_PRINT_VERSION;
         break;
       }
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+      case 'w':
+      {
+        capturer_out = STREAM_DEVICE_CAPTURER_VFW;
+        break;
+      }
+#else
       case 'x':
       {
         mode_out = STREAM_CAMSAVE_PROGRAMMODE_TEST_METHODS;
         break;
       }
-      //case 'y':
+#endif // ACE_WIN32 || ACE_WIN64
+      // case 'y':
       //{
       //  runStressTest_out = true;
       //  break;
@@ -546,6 +563,7 @@ do_initializeSignals (bool allowUserRuntimeConnect_in,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 bool
 do_initialize_directshow (const struct Stream_Device_Identifier& deviceIdentifier_in,
+                          enum Stream_Device_Capturer capturer_in,
                           bool hasUI_in,
                           IGraphBuilder*& IGraphBuilder_out,
                           IAMStreamConfig*& IAMStreamConfig_out,
@@ -568,6 +586,41 @@ do_initialize_directshow (const struct Stream_Device_Identifier& deviceIdentifie
   ACE_ASSERT (!IAMStreamConfig_out);
 
   Stream_MediaFramework_Tools::initialize (STREAM_MEDIAFRAMEWORK_DIRECTSHOW);
+
+  switch (capturer_in)
+  {
+    case STREAM_DEVICE_CAPTURER_VFW:
+    {
+      if (unlikely (!Stream_Device_VideoForWindows_Tools::getCaptureFormat (deviceIdentifier_in,
+                                                                            captureFormat_inout)))
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("failed to Stream_Device_VideoForWindows_Tools::getCaptureFormat(%u), aborting\n"),
+                    ACE_TEXT (deviceIdentifier_in.identifier._id)));
+        goto error;
+      } // end IF
+      ACE_ASSERT (InlineIsEqualGUID (captureFormat_inout.formattype, FORMAT_VideoInfo));
+      ACE_ASSERT (captureFormat_inout.cbFormat == sizeof (struct tagVIDEOINFOHEADER));
+      struct tagVIDEOINFOHEADER* video_info_header_p =
+        reinterpret_cast<struct tagVIDEOINFOHEADER*> (captureFormat_inout.pbFormat);
+      video_info_header_p->AvgTimePerFrame =
+        /*UNITS*/ 10000000 / STREAM_DEV_CAM_DEFAULT_CAPTURE_RATE;
+      video_info_header_p->dwBitRate =
+        (video_info_header_p->bmiHeader.biSizeImage * 8) *                    // bits / frame
+         (UNITS / static_cast<DWORD> (video_info_header_p->AvgTimePerFrame)); // fps
+      goto continue_;
+    }
+    case STREAM_DEVICE_CAPTURER_DIRECTSHOW:
+      break;
+    case STREAM_DEVICE_CAPTURER_MEDIAFOUNDATION:
+    default:
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("invalid/unknown capturer API (was: %d), aborting\n"),
+                  capturer_in));
+      return false;
+    }
+  } // end SWITCH
 
   if (!Stream_Device_DirectShow_Tools::loadDeviceGraph (deviceIdentifier_in,
                                                         CLSID_VideoInputDeviceCategory,
@@ -598,6 +651,7 @@ do_initialize_directshow (const struct Stream_Device_Identifier& deviceIdentifie
               ACE_TEXT ("\"%s\": default capture format: %s\n"),
               ACE_TEXT (Stream_Device_DirectShow_Tools::devicePathToString (deviceIdentifier_in.identifier._string).c_str ()),
               ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::toString (captureFormat_inout, true).c_str ())));
+continue_:
   media_type_p =
     Stream_MediaFramework_DirectShow_Tools::copy (captureFormat_inout);
   if (!media_type_p)
@@ -606,7 +660,6 @@ do_initialize_directshow (const struct Stream_Device_Identifier& deviceIdentifie
                 ACE_TEXT ("failed to Stream_MediaFramework_DirectShow_Tools::copy(), aborting\n")));
     goto error;
   } // end IF
-  ACE_ASSERT (media_type_p);
   saveFormat_inout = *media_type_p;
   delete media_type_p; media_type_p = NULL;
 
@@ -755,8 +808,14 @@ do_initialize_directshow (const struct Stream_Device_Identifier& deviceIdentifie
 
   if (hasUI_in)
   {
-    IAMStreamConfig_out->Release (); IAMStreamConfig_out = NULL;
-    IGraphBuilder_out->Release (); IGraphBuilder_out = NULL;
+    if (IAMStreamConfig_out)
+    {
+      IAMStreamConfig_out->Release (); IAMStreamConfig_out = NULL;
+    } // end IF
+    if (IGraphBuilder_out)
+    {
+      IGraphBuilder_out->Release (); IGraphBuilder_out = NULL;
+    } // end IF
     return true;
   } // end IF
 
@@ -1174,7 +1233,8 @@ do_work (const struct Stream_Device_Identifier& deviceIdentifier_in,
 #endif // ACE_WIN32 || ACE_WIN64
          const std::string& targetFilename_in,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-         enum Stream_MediaFramework_Type mediaFramework_in,
+         //enum Stream_MediaFramework_Type mediaFramework_in,
+         enum Stream_Device_Capturer capturer_in,
 #endif // ACE_WIN32 || ACE_WIN64
          const struct Common_UI_DisplayDevice& displayDevice_in,
          unsigned int statisticReportingInterval_in,
@@ -1206,6 +1266,7 @@ do_work (const struct Stream_Device_Identifier& deviceIdentifier_in,
 {
   STREAM_TRACE (ACE_TEXT ("::do_work"));
 
+  Stream_IStreamControlBase* stream_p = NULL;
 #if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
   Common_UI_GTK_Manager_t* gtk_manager_p =
@@ -1299,9 +1360,10 @@ do_work (const struct Stream_Device_Identifier& deviceIdentifier_in,
   Stream_CamSave_DirectShow_StreamConfiguration_t::ITERATOR_T directshow_stream_iterator_4; // converter_2
   Stream_CamSave_MediaFoundation_StreamConfiguration_t::ITERATOR_T mediafoundation_stream_iterator;
   Stream_CamSave_MediaFoundation_StreamConfiguration_t::ITERATOR_T mediafoundation_stream_iterator_2;
-  switch (mediaFramework_in)
+  switch (capturer_in)
   {
-    case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
+    case STREAM_DEVICE_CAPTURER_VFW:
+    case STREAM_DEVICE_CAPTURER_DIRECTSHOW:
     {
       directshow_modulehandler_configuration.allocatorConfiguration =
         &allocator_configuration;
@@ -1325,7 +1387,7 @@ do_work (const struct Stream_Device_Identifier& deviceIdentifier_in,
       directshow_modulehandler_configuration.targetFileName = targetFilename_in;
       break;
     }
-    case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
+    case STREAM_DEVICE_CAPTURER_MEDIAFOUNDATION:
     {
       mediafoundation_modulehandler_configuration.allocatorConfiguration =
         &allocator_configuration;
@@ -1353,8 +1415,8 @@ do_work (const struct Stream_Device_Identifier& deviceIdentifier_in,
     default:
     {
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("invalid/unknown media framework (was: %d), returning\n"),
-                  mediaFramework_in));
+                  ACE_TEXT ("invalid/unknown capturer API (was: %d), returning\n"),
+                  capturer_in));
       return;
     }
   } // end SWITCH
@@ -1449,9 +1511,10 @@ error:
   Stream_CamSave_MediaFoundation_MessageHandler_Module mediafoundation_message_handler (NULL,
                                                                                         ACE_TEXT_ALWAYS_CHAR (STREAM_MISC_MESSAGEHANDLER_DEFAULT_NAME_STRING));
   Stream_CamSave_MediaFoundation_Stream mediafoundation_stream;
-  switch (mediaFramework_in)
+  switch (capturer_in)
   {
-    case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
+    case STREAM_DEVICE_CAPTURER_VFW:
+    case STREAM_DEVICE_CAPTURER_DIRECTSHOW:
     {
       directshow_stream_configuration.messageAllocator =
         &directshow_message_allocator;
@@ -1464,6 +1527,7 @@ error:
       //  renderer_in;
 
       directshow_stream_configuration.allocatorConfiguration = &allocator_configuration;
+      directshow_stream_configuration.capturer = capturer_in;
 
       directShowConfiguration_in.streamConfiguration.initialize (module_configuration,
                                                                  directshow_modulehandler_configuration,
@@ -1505,7 +1569,7 @@ error:
 #endif // FFMPEG_SUPPORT
       break;
     }
-    case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
+    case STREAM_DEVICE_CAPTURER_MEDIAFOUNDATION:
     {
       mediafoundation_stream_configuration.messageAllocator =
           &mediafoundation_message_allocator;
@@ -1517,6 +1581,7 @@ error:
       //mediaFoundationConfiguration_in.streamConfiguration.configuration_.renderer =
       //  renderer_in;
       mediafoundation_stream_configuration.allocatorConfiguration = &allocator_configuration;
+      mediafoundation_stream_configuration.capturer = capturer_in;
 
       mediaFoundationConfiguration_in.streamConfiguration.initialize (module_configuration,
                                                                       mediafoundation_modulehandler_configuration,
@@ -1537,8 +1602,8 @@ error:
     default:
     {
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("invalid/unknown media framework (was: %d), returning\n"),
-                  mediaFramework_in));
+                  ACE_TEXT ("invalid/unknown capturer API (was: %d), returning\n"),
+                  capturer_in));
       return;
     }
   } // end SWITCH
@@ -1599,9 +1664,10 @@ error:
   //IAMBufferNegotiation* buffer_negotiation_p = NULL;
   IAMStreamConfig* stream_config_p = NULL;
   IMFMediaSession* media_session_p = NULL;
-  switch (mediaFramework_in)
+  switch (capturer_in)
   {
-    case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
+    case STREAM_DEVICE_CAPTURER_VFW:
+    case STREAM_DEVICE_CAPTURER_DIRECTSHOW:
     {
       struct _AMMediaType* media_type_p = NULL;
       struct _AMMediaType& media_type_r =
@@ -1613,6 +1679,7 @@ error:
       struct _AMMediaType& media_type_2 =
         (*directshow_stream_iterator).second.second->outputFormat;
       if (!do_initialize_directshow (deviceIdentifier_in,
+                                     capturer_in,
                                      !UIDefinitionFilename_in.empty (), // has UI ?
                                      directshow_modulehandler_configuration.builder,
                                      stream_config_p,
@@ -1637,7 +1704,7 @@ error:
       delete media_type_p; media_type_p = NULL;
       break;
     }
-    case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
+    case STREAM_DEVICE_CAPTURER_MEDIAFOUNDATION:
     {
       if (!do_initialize_mediafoundation (deviceIdentifier_in,
                                           window_handle,
@@ -1659,8 +1726,8 @@ error:
     default:
     {
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("invalid/unknown media framework (was: %d), returning\n"),
-                  mediaFramework_in));
+                  ACE_TEXT ("invalid/unknown capturer API (was: %d), returning\n"),
+                  capturer_in));
       return;
     }
   } // end SWITCH
@@ -1749,28 +1816,30 @@ error:
   ACE_ASSERT (v4l_stream_iterator != configuration_in.v4l_streamConfiguration.end ());
 #endif // ACE_WIN32 || ACE_WIN64
 
-#if defined (GUI_SUPPORT)
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   Common_Image_Resolution_t resolution_s;
-  switch (mediaFramework_in)
+  switch (capturer_in)
   {
-    case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
+    case STREAM_DEVICE_CAPTURER_VFW:
+    case STREAM_DEVICE_CAPTURER_DIRECTSHOW:
     {
       resolution_s =
         Stream_MediaFramework_DirectShow_Tools::toResolution (directshow_stream_configuration.format);
+      stream_p = &directshow_stream;
       break;
     }
-    case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
+    case STREAM_DEVICE_CAPTURER_MEDIAFOUNDATION:
     {
       resolution_s =
         Stream_MediaFramework_MediaFoundation_Tools::toResolution (mediafoundation_stream_configuration.format);
+      stream_p = &mediafoundation_stream;
       break;
     }
     default:
     {
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("invalid/unknown media framework (was: %d), returning\n"),
-                  mediaFramework_in));
+                  ACE_TEXT ("invalid/unknown capturer API (was: %d), returning\n"),
+                  capturer_in));
       return;
     }
   } // end SWITCH
@@ -1802,8 +1871,17 @@ error:
     direct3D_manager_p->Release (); direct3D_manager_p = NULL;
     reset_token = 0;
   } // end ELSE
+#else
+  if (useLibCamera_in)
+#if defined (LIBCAMERA_SUPPORT)
+    stream_p = &libcamera_stream;
+#else
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("useLibCamera_in specified, but LIBCAMERA_SUPPORT not set, continuing\n")));
+#endif // LIBCAMERA_SUPPORT
+  else
+    stream_p = &v4l_stream;
 #endif // ACE_WIN32 || ACE_WIN64
-#endif // GUI_SUPPORT
 
   struct Common_TimerConfiguration timer_configuration;
   Common_Timer_Manager_t* timer_manager_p = NULL;
@@ -1815,16 +1893,17 @@ error:
 
   // step0e: initialize signal handling
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  switch (mediaFramework_in)
+  switch (capturer_in)
   {
-    case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
+    case STREAM_DEVICE_CAPTURER_VFW:
+    case STREAM_DEVICE_CAPTURER_DIRECTSHOW:
     {
       directShowConfiguration_in.signalHandlerConfiguration.messageAllocator =
         &directshow_message_allocator;
       signalHandler_in.initialize (directShowConfiguration_in.signalHandlerConfiguration);
       break;
     }
-    case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
+    case STREAM_DEVICE_CAPTURER_MEDIAFOUNDATION:
     {
       mediaFoundationConfiguration_in.signalHandlerConfiguration.messageAllocator =
         &mediafoundation_message_allocator;
@@ -1834,8 +1913,8 @@ error:
     default:
     {
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("invalid/unknown media framework (was: %d), returning\n"),
-                  mediaFramework_in));
+                  ACE_TEXT ("invalid/unknown capturer API (was: %d), returning\n"),
+                  capturer_in));
       return;
     }
   } // end SWITCH
@@ -1872,9 +1951,10 @@ error:
   if (!UIDefinitionFilename_in.empty ())
   {
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-    switch (mediaFramework_in)
+    switch (capturer_in)
     {
-      case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
+      case STREAM_DEVICE_CAPTURER_VFW:
+      case STREAM_DEVICE_CAPTURER_DIRECTSHOW:
       {
         directShowCBData_in.stream = &directshow_stream;
 #if defined (GTK_USE)
@@ -1888,7 +1968,7 @@ error:
 #endif
         break;
       }
-      case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
+      case STREAM_DEVICE_CAPTURER_MEDIAFOUNDATION:
       {
         mediaFoundationCBData_in.stream = &mediafoundation_stream;
 #if defined (GTK_USE)
@@ -1905,8 +1985,8 @@ error:
       default:
       {
         ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("invalid/unknown media framework (was: %d), returning\n"),
-                    mediaFramework_in));
+                    ACE_TEXT ("invalid/unknown capturer API (was: %d), returning\n"),
+                    capturer_in));
         return;
       }
     } // end SWITCH
@@ -1971,47 +2051,19 @@ error:
     } // end IF
 #endif // GTK_USE || WXWIDGETS_USE
 
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-    switch (mediaFramework_in)
-    {
-      case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
-      {
-        directShowCBData_in.stream->wait ();
-        break;
-      }
-      case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
-      {
-        mediaFoundationCBData_in.stream->wait ();
-        break;
-      }
-      default:
-      {
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("invalid/unknown media framework (was: %d), returning\n"),
-                    mediaFramework_in));
-        return;
-      }
-    } // end SWITCH
-#else
-    if (useLibCamera_in)
-#if defined (LIBCAMERA_SUPPORT)
-      libcamera_stream.wait ();
-#else
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("useLibCamera_in specified, but LIBCAMERA_SUPPORT not set, continuing\n")));
-#endif // LIBCAMERA_SUPPORT
-    else
-      v4l_stream.wait ();
-#endif // ACE_WIN32 || ACE_WIN64
+    ACE_ASSERT (stream_p);
+    stream_p->wait (true,
+                    false,
+                    false);
   } // end IF
   else
   {
 #endif // GUI_SUPPORT
-    Stream_IStreamControlBase* stream_p = NULL;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-    switch (mediaFramework_in)
+    switch (capturer_in)
     {
-      case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
+      case STREAM_DEVICE_CAPTURER_VFW:
+      case STREAM_DEVICE_CAPTURER_DIRECTSHOW:
       {
         Common_UI_GTK_Tools::initialize (directShowCBData_in.configuration->GTKConfiguration.argc,
                                          directShowCBData_in.configuration->GTKConfiguration.argv);
@@ -2022,10 +2074,9 @@ error:
                       ACE_TEXT ("failed to initialize stream, returning\n")));
           goto clean;
         } // end IF
-        stream_p = &directshow_stream;
         break;
       }
-      case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
+      case STREAM_DEVICE_CAPTURER_MEDIAFOUNDATION:
       {
         Common_UI_GTK_Tools::initialize (mediaFoundationCBData_in.configuration->GTKConfiguration.argc,
                                          mediaFoundationCBData_in.configuration->GTKConfiguration.argv);
@@ -2036,14 +2087,13 @@ error:
                       ACE_TEXT ("failed to initialize stream, returning\n")));
           goto clean;
         } // end IF
-        stream_p = &mediafoundation_stream;
         break;
       }
       default:
       {
         ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("invalid/unknown media framework (was: %d), returning\n"),
-                    mediaFramework_in));
+                    ACE_TEXT ("invalid/unknown capturer API (was: %d), returning\n"),
+                    capturer_in));
         return;
       }
     } // end SWITCH
@@ -2078,13 +2128,6 @@ error:
                   ACE_TEXT ("failed to initialize stream, returning\n")));
       goto clean;
     } // end IF
-    if (useLibCamera_in)
-#if defined (LIBCAMERA_SUPPORT)
-      stream_p = &libcamera_stream
-#endif // LIBCAMERA_SUPPORT
-      ;
-    else
-      stream_p = &v4l_stream;
 #endif // ACE_WIN32 || ACE_WIN64
     ACE_ASSERT (stream_p);
     // *NOTE*: this will block until the file has been copied...
@@ -2096,7 +2139,9 @@ error:
 //      //timer_manager_p->stop ();
 //      return;
 //    } // end IF
-    stream_p->wait (true, false, false);
+    stream_p->wait (true,
+                    false,
+                    false);
 #if defined (GUI_SUPPORT)
   } // end ELSE
 #endif // GUI_SUPPORT
@@ -2111,18 +2156,19 @@ clean:
   timer_manager_p->stop ();
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  switch (mediaFramework_in)
+  switch (capturer_in)
   {
-    case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
+    case STREAM_DEVICE_CAPTURER_VFW:
+    case STREAM_DEVICE_CAPTURER_DIRECTSHOW:
 #if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
       do_finalize_directshow (directShowCBData_in.streamConfiguration);
 #elif defined (WXWIDGETS_USE)
       do_finalize_directshow (stream_config_p);
-#endif
+#endif // GTK_USE || WXWIDGETS_USE
 #endif // GUI_SUPPORT
       break;
-    case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
+    case STREAM_DEVICE_CAPTURER_MEDIAFOUNDATION:
     {
       Stream_CamSave_MediaFoundation_StreamConfiguration_t::ITERATOR_T iterator =
       mediaFoundationConfiguration_in.streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
@@ -2133,8 +2179,8 @@ clean:
     default:
     {
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("invalid/unknown media framework (was: %d), returning\n"),
-                  mediaFramework_in));
+                  ACE_TEXT ("invalid/unknown capturer API (was: %d), returning\n"),
+                  capturer_in));
       return;
     }
   } // end SWITCH
@@ -2348,8 +2394,8 @@ ACE_TMAIN (int argc_in,
 #endif // GUI_SUPPORT
   bool log_to_file = false;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  enum Stream_MediaFramework_Type media_framework_e =
-    STREAM_LIB_DEFAULT_MEDIAFRAMEWORK;
+  enum Stream_Device_Capturer capturer_e =
+    STREAM_DEVICE_CAPTURER_DIRECTSHOW;
 #endif // ACE_WIN32 || ACE_WIN64
   struct Common_UI_DisplayDevice display_device_s =
     Common_UI_Tools::getDefaultDisplay ();
@@ -2380,7 +2426,7 @@ ACE_TMAIN (int argc_in,
 #endif // GUI_SUPPORT
                             log_to_file,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-                            media_framework_e,
+                            capturer_e,
 #endif // ACE_WIN32 || ACE_WIN64
                             display_device_s,
                             statistic_reporting_interval,
@@ -2402,17 +2448,27 @@ ACE_TMAIN (int argc_in,
   // step1a set defaults (II)
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
+  enum Stream_MediaFramework_Type media_framework_e =
+    STREAM_LIB_DEFAULT_MEDIAFRAMEWORK;
   if (device_identifier.empty ())
-    switch (media_framework_e)
+    switch (capturer_e)
     {
-      case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
+      case STREAM_DEVICE_CAPTURER_VFW:
       {
+        device_identifier =
+          Stream_Device_VideoForWindows_Tools::getDefaultCaptureDevice ();
+        break;
+      }
+      case STREAM_DEVICE_CAPTURER_DIRECTSHOW:
+      {
+        media_framework_e = STREAM_MEDIAFRAMEWORK_DIRECTSHOW;
         device_identifier =
           Stream_Device_DirectShow_Tools::getDefaultCaptureDevice (CLSID_VideoInputDeviceCategory);
         break;
       }
-      case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
+      case STREAM_DEVICE_CAPTURER_MEDIAFOUNDATION:
       {
+        media_framework_e = STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION;
         device_identifier =
           Stream_Device_MediaFoundation_Tools::getDefaultCaptureDevice (MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE_VIDCAP_GUID);
         break;
@@ -2420,8 +2476,8 @@ ACE_TMAIN (int argc_in,
       default:
       {
         ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("invalid/unknown media framework (was: %d), returning\n"),
-                    media_framework_e));
+                    ACE_TEXT ("invalid/unknown capturer API (was: %d), aborting\n"),
+                    capturer_e));
 
         if (COM_initialized) Common_Tools::finalizeCOM ();
         // *PORTABILITY*: on Windows, finalize ACE...
@@ -3013,7 +3069,8 @@ ACE_TMAIN (int argc_in,
 #endif // ACE_WIN32 || ACE_WIN64
            target_filename,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-           media_framework_e,
+           //media_framework_e,
+           capturer_e,
 #endif // ACE_WIN32 || ACE_WIN64
            display_device_s,
            statistic_reporting_interval,

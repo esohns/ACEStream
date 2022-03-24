@@ -102,8 +102,8 @@ class Stream_CamSave_DirectShow_Stream
   ACE_UNIMPLEMENTED_FUNC (Stream_CamSave_DirectShow_Stream& operator= (const Stream_CamSave_DirectShow_Stream&))
 
   // modules
-  Stream_CamSave_VfW_Source_Module                   source_;
-  //Stream_CamSave_DirectShow_Source_Module            source_;
+  Stream_CamSave_VfW_Source_Module                   vFWSource_;
+  Stream_CamSave_DirectShow_Source_Module            directShowSource_;
   Stream_CamSave_DirectShow_StatisticReport_Module   statisticReport_;
   //Stream_CamSave_DirectShow_LibAVDecoder_Module      decoder_; // --> RGB
   Stream_CamSave_DirectShow_Distributor_Module       distributor_; // (sub-)branch ?

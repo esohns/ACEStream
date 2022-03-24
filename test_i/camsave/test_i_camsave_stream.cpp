@@ -47,10 +47,10 @@
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 Stream_CamSave_DirectShow_Stream::Stream_CamSave_DirectShow_Stream ()
  : inherited ()
- , source_ (this,
-            ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_CAM_SOURCE_VIDEOFORWINDOW_DEFAULT_NAME_STRING))
- //, source_ (this,
- //           ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_CAM_SOURCE_DIRECTSHOW_DEFAULT_NAME_STRING))
+ , vFWSource_ (this,
+               ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_CAM_SOURCE_VIDEOFORWINDOW_DEFAULT_NAME_STRING))
+ , directShowSource_ (this,
+                      ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_CAM_SOURCE_DIRECTSHOW_DEFAULT_NAME_STRING))
  , statisticReport_ (this,
                      ACE_TEXT_ALWAYS_CHAR (MODULE_STAT_REPORT_DEFAULT_NAME_STRING))
  , distributor_ (this,
@@ -122,7 +122,28 @@ Stream_CamSave_DirectShow_Stream::load (Stream_ILayout* layout_in,
   typename inherited::MODULE_T* branch_p = NULL; // NULL: 'main' branch
   unsigned int index_i = 0;
 
-  layout_in->append (&source_, NULL, 0);
+  switch (inherited::configuration_->configuration_->capturer)
+  {
+    case STREAM_DEVICE_CAPTURER_VFW:
+    {
+      layout_in->append (&vFWSource_, NULL, 0);
+      break;
+    }
+    case STREAM_DEVICE_CAPTURER_DIRECTSHOW:
+    {
+      layout_in->append (&directShowSource_, NULL, 0);
+      break;
+    }
+    case STREAM_DEVICE_CAPTURER_MEDIAFOUNDATION:
+    default:
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("invalid/unknown capturer API (was: %d), aborting\n"),
+                  inherited::configuration_->configuration_->capturer));
+      return false;
+    }
+  } // end SWITCH
+
   layout_in->append (&statisticReport_, NULL, 0);
   //layout_in->append (&decoder_, NULL, 0); // output is uncompressed RGB
   if (display_b || save_to_file_b)
@@ -212,15 +233,31 @@ Stream_CamSave_DirectShow_Stream::initialize (const inherited::CONFIGURATION_T& 
   ACE_ASSERT (iterator != const_cast<inherited::CONFIGURATION_T&> (configuration_in).end ());
   ACE_ASSERT (iterator_2 != const_cast<inherited::CONFIGURATION_T&> (configuration_in).end ());
 
+  switch (configuration_in.configuration_->capturer)
+  {
+    case STREAM_DEVICE_CAPTURER_VFW:
+      goto continue_;
+    case STREAM_DEVICE_CAPTURER_DIRECTSHOW:
+      break;
+    case STREAM_DEVICE_CAPTURER_MEDIAFOUNDATION:
+    default:
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("invalid/unknown capturer API (was: %d), aborting\n"),
+                  configuration_in.configuration_->capturer));
+      return false;
+    }
+  } // end SWITCH
+
   source_impl_p =
-    dynamic_cast<Stream_CamSave_DirectShow_Source*> (source_.writer ());
-  //if (!source_impl_p)
-  //{
-  //  ACE_DEBUG ((LM_ERROR,
-  //              ACE_TEXT ("%s: dynamic_cast<Strean_CamSave_DirectShow_Source> failed, aborting\n"),
-  //              ACE_TEXT (stream_name_string_)));
-  //  return false;
-  //} // end IF
+    dynamic_cast<Stream_CamSave_DirectShow_Source*> (directShowSource_.writer ());
+  if (!source_impl_p)
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s: dynamic_cast<Strean_CamSave_DirectShow_Source> failed, aborting\n"),
+                ACE_TEXT (stream_name_string_)));
+    return false;
+  } // end IF
 
   // ---------------------------------------------------------------------------
   // step1: set up directshow filter graph
@@ -284,15 +321,33 @@ Stream_CamSave_DirectShow_Stream::initialize (const inherited::CONFIGURATION_T& 
   stream_config_p->Release (); stream_config_p = NULL;
 
 continue_:
-  if (!Stream_Device_DirectShow_Tools::setCaptureFormat ((*iterator).second.second->builder,
-                                                         CLSID_VideoInputDeviceCategory,
-                                                         configuration_in.configuration_->format))
+  switch (configuration_in.configuration_->capturer)
   {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: failed to Stream_Device_DirectShow_Tools::setCaptureFormat(), aborting\n"),
-                ACE_TEXT (stream_name_string_)));
-    goto error;
-  } // end IF
+    case STREAM_DEVICE_CAPTURER_VFW:
+      goto continue_2; // cannot set capture format here; do it in the module
+    case STREAM_DEVICE_CAPTURER_DIRECTSHOW:
+    {
+      if (!Stream_Device_DirectShow_Tools::setCaptureFormat ((*iterator).second.second->builder,
+                                                             CLSID_VideoInputDeviceCategory,
+                                                             configuration_in.configuration_->format))
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("%s: failed to Stream_Device_DirectShow_Tools::setCaptureFormat(), aborting\n"),
+                    ACE_TEXT (stream_name_string_)));
+        goto error;
+      } // end IF
+
+      break;
+    }
+    case STREAM_DEVICE_CAPTURER_MEDIAFOUNDATION:
+    default:
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("invalid/unknown capturer API (was: %d), aborting\n"),
+                  configuration_in.configuration_->capturer));
+      return false;
+    }
+  } // end SWITCH
 
   //// sanity check(s)
   //ACE_ASSERT ((*iterator).second.second->direct3DConfiguration);
@@ -361,17 +416,14 @@ continue_:
                 ACE_TEXT (Common_Error_Tools::errorToString (result_2).c_str ())));
     goto error;
   } // end IF
-  if (source_impl_p)
+  result_2 = isample_grabber_p->SetCallback (source_impl_p, 0);
+  if (FAILED (result_2))
   {
-    result_2 = isample_grabber_p->SetCallback (source_impl_p, 0);
-    if (FAILED (result_2))
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("%s: failed to ISampleGrabber::SetCallback(): \"%s\", aborting\n"),
-                  ACE_TEXT (stream_name_string_),
-                  ACE_TEXT (Common_Error_Tools::errorToString (result_2).c_str ())));
-      goto error;
-    } // end IF
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s: failed to ISampleGrabber::SetCallback(): \"%s\", aborting\n"),
+                ACE_TEXT (stream_name_string_),
+                ACE_TEXT (Common_Error_Tools::errorToString (result_2).c_str ())));
+    goto error;
   } // end IF
   isample_grabber_p->Release (); isample_grabber_p = NULL;
 
@@ -474,6 +526,7 @@ continue_:
   } // end IF
   media_filter_p->Release (); media_filter_p = NULL;
 
+continue_2:
   // ---------------------------------------------------------------------------
   // step2: update stream module configuration(s)
   //(*iterator_2).second.second = (*iterator).second.second;
@@ -509,20 +562,6 @@ continue_:
   //    (*iterator).second.second->direct3DConfiguration->handle;
   //} // end IF
   session_data_p->targetFileName = (*iterator).second.second->targetFileName;
-
-  // ---------------------------------------------------------------------------
-  // step4: initialize module(s)
-
-  // ******************* Camera Source ************************
-  //source_impl_p =
-  //  dynamic_cast<Stream_CamSave_DirectShow_Source*> (source_.writer ());
-  //if (!source_impl_p)
-  //{
-  //  ACE_DEBUG ((LM_ERROR,
-  //              ACE_TEXT ("%s: dynamic_cast<Strean_CamSave_DirectShow_Source> failed, aborting\n"),
-  //              ACE_TEXT (stream_name_string_)));
-  //  goto error;
-  //} // end IF
 
   // ---------------------------------------------------------------------------
   // step5: update session data

@@ -3611,6 +3611,24 @@ Stream_MediaFramework_DirectShow_Tools::toWaveFormatEx (const struct _AMMediaTyp
   return result_p;
 }
 
+struct _GUID
+Stream_MediaFramework_DirectShow_Tools::compressionToSubType (DWORD biCompression_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_DirectShow_Tools::compressionToSubType"));
+
+  struct _GUID result = GUID_NULL;
+
+  FOURCCMap fourcc_map (biCompression_in);
+  result = fourcc_map;
+
+  //ACE_DEBUG ((LM_DEBUG,
+  //            ACE_TEXT ("converted %u compression to \"%s\" subtype\n"),
+  //            biCompression_in,
+  //            Stream_MediaFramework_Tools::mediaSubTypeToString (result, STREAM_MEDIAFRAMEWORK_DIRECTSHOW).c_str ()));
+
+  return result;
+}
+
 void
 Stream_MediaFramework_DirectShow_Tools::toBitmapInfo (const struct _AMMediaType& mediaType_in,
                                                       struct tagBITMAPINFO& bitmapInfo_out)

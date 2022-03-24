@@ -3599,6 +3599,7 @@ idle_update_progress_cb (gpointer userData_in)
 
     done = true;
   } // end IF
+
   ACE_Time_Value now = ACE_OS::gettimeofday ();
   ACE_Time_Value elapsed_time = now - data_p->timeStamp;
   data_p->timeStamp = now;

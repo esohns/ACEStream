@@ -103,10 +103,6 @@ endif (LIBCAMERA_SUPPORT)
 if (WIN32)
  set (source_files
       ${source_files}
-      stream_dev_directshow_tools.cpp
-      stream_dev_directshow_tools.h
-      stream_dev_mediafoundation_tools.cpp
-      stream_dev_mediafoundation_tools.h
       stream_dev_cam_source_directshow.cpp
       stream_dev_cam_source_directshow.h
       stream_dev_cam_source_directshow.inl
@@ -116,6 +112,10 @@ if (WIN32)
       stream_dev_cam_source_vfw.cpp
       stream_dev_cam_source_vfw.h
       stream_dev_cam_source_vfw.inl
+      stream_dev_directshow_tools.cpp
+      stream_dev_directshow_tools.h
+      stream_dev_mediafoundation_tools.cpp
+      stream_dev_mediafoundation_tools.h
       stream_dev_mic_source_directshow.cpp
       stream_dev_mic_source_directshow.h
       stream_dev_mic_source_directshow.inl
@@ -133,7 +133,9 @@ if (WIN32)
       stream_dev_target_wasapi.inl
       stream_dev_target_wavout.cpp
       stream_dev_target_wavout.h
-      stream_dev_target_wavout.inl)
+      stream_dev_target_wavout.inl
+      stream_dev_vfw_tools.cpp
+      stream_dev_vfw_tools.h)
 elseif (UNIX)
  set (source_files
       ${source_files}
@@ -241,14 +243,14 @@ if (UNIX)
           COMPONENT mod_include)
 elseif (WIN32)
  install (FILES
-          stream_dev_directshow_tools.h
-          stream_dev_mediafoundation_tools.h
           stream_dev_cam_source_directshow.h
           stream_dev_cam_source_directshow.inl
           stream_dev_cam_source_mediafoundation.h
           stream_dev_cam_source_mediafoundation.inl
           stream_dev_cam_source_vfw.h
           stream_dev_cam_source_vfw.inl
+          stream_dev_directshow_tools.h
+          stream_dev_mediafoundation_tools.h
           stream_dev_mic_source_directshow.h
           stream_dev_mic_source_directshow.inl
           stream_dev_mic_source_wasapi.h
@@ -261,6 +263,7 @@ elseif (WIN32)
           stream_dev_target_wasapi.inl
           stream_dev_target_wavout.h
           stream_dev_target_wavout.inl
+          stream_dev_vfw_tools.h
           DESTINATION "${INSTALL_INCLUDE_DIR}/${PROJECT_NAME}"
           COMPONENT mod_include)
 endif ()

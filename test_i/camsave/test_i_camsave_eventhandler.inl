@@ -290,6 +290,7 @@ Stream_CamSave_EventHandler_T<NotificationType,
 #if defined (GUI_SUPPORT)
 #if defined (GTK_USE) || defined (WXWIDGETS_USE)
   { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, state_r.lock);
+    ++CBData_->progressData.statistic.totalFrames;
     CBData_->progressData.statistic.bytes += message_in.total_length ();
     state_r.eventStack.push (COMMON_UI_EVENT_DATA);
   } // end lock scope

@@ -167,7 +167,10 @@ class Stream_CamSave_WxWidgetsDialog_T;
 enum Stream_Camsave_ProgramMode
 {
   STREAM_CAMSAVE_PROGRAMMODE_PRINT_VERSION = 0,
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#else
   STREAM_CAMSAVE_PROGRAMMODE_TEST_METHODS,
+#endif // ACE_WIN32 || ACE_WIN64
   STREAM_CAMSAVE_PROGRAMMODE_NORMAL,
   ////////////////////////////////////////
   STREAM_CAMSAVE_PROGRAMMODE_MAX,
@@ -784,9 +787,10 @@ struct Stream_CamSave_StreamConfiguration
 {
   Stream_CamSave_StreamConfiguration ()
    : Stream_Configuration ()
-  {
-    printFinalReport = true;
-  }
+   , capturer (STREAM_DEVICE_CAPTURER_INVALID)
+  {}
+
+  enum Stream_Device_Capturer capturer;
 };
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 struct Stream_CamSave_DirectShow_StreamConfiguration
@@ -1086,9 +1090,13 @@ struct Stream_CamSave_ProgressData
   Stream_CamSave_ProgressData ()
    : Test_I_UI_ProgressData ()
    , statistic ()
+   , lastStatistic ()
+   , timestamp (ACE_Time_Value::zero)
   {}
 
   struct Stream_CamSave_StatisticData statistic;
+  struct Stream_CamSave_StatisticData lastStatistic;
+  ACE_Time_Value                      timestamp;
 };
 
 struct Stream_CamSave_UI_CBData

@@ -263,12 +263,10 @@ Stream_Dev_Cam_Source_VfW_T<ACE_SYNCH_USE,
     {
       struct _AMMediaType media_type_s;
       ACE_OS::memset (&media_type_s, 0, sizeof (struct _AMMediaType));
-      Common_Image_Resolution_t resolution_s;
       HWND window_h = NULL;
       struct tagBITMAPINFO format_s;
       struct tagCaptureParms capture_parameters_s;
       unsigned int framerate_i;
-      char device_name_a[BUFSIZ] = {0}, device_version_a[BUFSIZ] = {0};
 
       CBData_.sessionId = session_data_r.sessionId;
 
@@ -299,21 +297,6 @@ Stream_Dev_Cam_Source_VfW_T<ACE_SYNCH_USE,
                     &inherited::configuration_->statisticCollectionInterval));
       } // end IF
 
-#if defined (_DEBUG)
-      for (UINT i = 0; i < 10; i++)
-        if (capGetDriverDescription (i,
-                                     device_name_a, sizeof (char[BUFSIZ]),
-                                     device_version_a, sizeof (char[BUFSIZ])))
-          ACE_DEBUG ((LM_DEBUG,
-                      ACE_TEXT ("%s: found device (index: %u) \"%s\" (version: \"%s\")\n"),
-                      inherited::mod_->name (),
-                      i,
-                      ACE_TEXT (device_name_a),
-                      ACE_TEXT (device_version_a)));
-#endif // _DEBUG
-
-      resolution_s =
-        Stream_MediaFramework_DirectShow_Tools::toResolution (media_type_s);
       if (!inherited::configuration_->window)
       {
         window_ =
@@ -325,9 +308,8 @@ Stream_Dev_Cam_Source_VfW_T<ACE_SYNCH_USE,
         if (unlikely (!window_))
         {
           ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("%s: failed to capCreateCaptureWindow(%u,%u), aborting\n"),
-                      inherited::mod_->name (),
-                      resolution_s.cx, resolution_s.cy));
+                      ACE_TEXT ("%s: failed to capCreateCaptureWindow(), aborting\n"),
+                      inherited::mod_->name ()));
           goto error;
         } // end IF
       } // end IF
@@ -341,28 +323,20 @@ Stream_Dev_Cam_Source_VfW_T<ACE_SYNCH_USE,
       window_h = window_;
       ACE_ASSERT (window_h);
 
-      if (unlikely (capDriverConnect (window_h, 0) == 0))
+      ACE_ASSERT (inherited::configuration_->deviceIdentifier.identifierDiscriminator == Stream_Device_Identifier::ID);
+      if (unlikely (capDriverConnect (window_h,
+                                      inherited::configuration_->deviceIdentifier.identifier._id) == 0))
       {
         ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("%s: failed to capDriverConnect(), aborting\n"),
-                    inherited::mod_->name ()));
+                    ACE_TEXT ("%s: failed to capDriverConnect(%u), aborting\n"),
+                    inherited::mod_->name (),
+                    inherited::configuration_->deviceIdentifier.identifier._id));
         goto error;
       } // end IF
 
       ACE_OS::memset (&format_s, 0, sizeof (struct tagBITMAPINFO));
-      //Stream_MediaFramework_DirectShow_Tools::toBitmapInfo (media_type_s,
-      //                                                      format_s);
-      if (unlikely (capGetVideoFormat (window_h,
-                                       &format_s,
-                                       sizeof (struct tagBITMAPINFO)) == 0))
-      {
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("%s: failed to capGetVideoFormat(), aborting\n"),
-                    inherited::mod_->name ()));
-        goto error;
-      } // end IF
-      format_s.bmiHeader.biWidth = resolution_s.cx;
-      format_s.bmiHeader.biHeight = resolution_s.cy;
+      Stream_MediaFramework_DirectShow_Tools::toBitmapInfo (media_type_s,
+                                                            format_s);
       if (unlikely (capSetVideoFormat (window_h,
                                        &format_s,
                                        sizeof (struct tagBITMAPINFO)) == 0))

@@ -83,10 +83,13 @@
 #include "stream_dev_defines.h"
 #include "stream_dev_tools.h"
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
+#include "stream_dev_vfw_tools.h"
+#include "stream_dev_directshow_tools.h"
 #include "stream_dev_mediafoundation_tools.h"
 #endif // ACE_WIN32 || ACE_WIN64
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
+#include "stream_lib_directshow_tools.h"
 #include "stream_lib_mediafoundation_tools.h"
 #include "stream_lib_tools.h"
 #endif // ACE_WIN32 || ACE_WIN64
@@ -142,7 +145,7 @@ dirent_comparator(const dirent** d1,
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 bool
-load_capture_devices (enum Stream_MediaFramework_Type mediaFrameWork_in,
+load_capture_devices (enum Stream_Device_Capturer capturer_in,
                       GtkListStore* listStore_in)
 {
   STREAM_TRACE (ACE_TEXT ("::load_capture_devices"));
@@ -156,9 +159,32 @@ load_capture_devices (enum Stream_MediaFramework_Type mediaFrameWork_in,
   HRESULT result_2 = E_FAIL;
   std::string friendly_name_string;
 
-  switch (mediaFrameWork_in)
+  switch (capturer_in)
   {
-    case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
+    case STREAM_DEVICE_CAPTURER_VFW:
+    {
+      Stream_Device_List_t devices_a =
+        Stream_Device_VideoForWindows_Tools::getCaptureDevices ();
+      GtkTreeIter iterator;
+      for (Stream_Device_ListIterator_t iterator_2 = devices_a.begin ();
+           iterator_2 != devices_a.end ();
+           ++iterator_2)
+      { ACE_ASSERT ((*iterator_2).identifierDiscriminator == Stream_Device_Identifier::ID);
+        gtk_list_store_append (listStore_in, &iterator);
+        gtk_list_store_set (listStore_in, &iterator,
+                            0, ACE_TEXT ((*iterator_2).description.c_str ()),
+                            1, ACE_TEXT (""),
+                            2, (*iterator_2).identifier._id,
+                            -1);
+        ACE_DEBUG ((LM_DEBUG,
+                    ACE_TEXT ("found video capture device \"%s\" (id: %u)...\n"),
+                    ACE_TEXT ((*iterator_2).description.c_str ()),
+                    ACE_TEXT ((*iterator_2).identifier._id)));
+      } // end FOR
+
+      return true;
+    }
+    case STREAM_DEVICE_CAPTURER_DIRECTSHOW:
     {
       ICreateDevEnum* enumerator_p = NULL;
       IEnumMoniker* enum_moniker_p = NULL;
@@ -260,7 +286,7 @@ error:
 
       break;
     }
-    case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
+    case STREAM_DEVICE_CAPTURER_MEDIAFOUNDATION:
     {
       IMFActivate** devices_pp = NULL;
       UINT32 count = 0;
@@ -363,8 +389,8 @@ error_2:
     default:
     {
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("invalid/unknown media framework (was: %d), aborting\n"),
-                  mediaFrameWork_in));
+                  ACE_TEXT ("invalid/unknown capturer API (was: %d), aborting\n"),
+                  capturer_in));
       return false;
     }
   } // end SWITCH
@@ -380,6 +406,7 @@ error_2:
     gtk_list_store_set (listStore_in, &iterator,
                         0, ACE_TEXT ((*iterator_2).first.c_str ()),
                         1, ACE_TEXT ((*iterator_2).second.c_str ()),
+                        2, -1,
                         -1);
     ACE_DEBUG ((LM_DEBUG,
                 ACE_TEXT ("found video capture device \"%s\" at \"%s\"...\n"),
@@ -2364,7 +2391,38 @@ idle_initialize_UI_cb (gpointer userData_in)
   gtk_tree_sortable_set_sort_column_id (GTK_TREE_SORTABLE (list_store_p),
                                         1, GTK_SORT_DESCENDING);
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  if (!load_capture_devices (ui_cb_data_base_p->mediaFramework,
+  struct Stream_CamSave_DirectShow_UI_CBData* directshow_cb_data_p = NULL;
+  struct Stream_CamSave_MediaFoundation_UI_CBData* mediafoundation_cb_data_p =
+    NULL;
+  enum Stream_Device_Capturer capturer_e = STREAM_DEVICE_CAPTURER_INVALID;
+  switch (ui_cb_data_base_p->mediaFramework)
+  {
+    case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
+    {
+      directshow_cb_data_p =
+        static_cast<struct Stream_CamSave_DirectShow_UI_CBData*> (ui_cb_data_base_p);
+      capturer_e =
+        directshow_cb_data_p->configuration->streamConfiguration.configuration_->capturer;
+      break;
+    }
+    case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
+    {
+      mediafoundation_cb_data_p =
+        static_cast<struct Stream_CamSave_MediaFoundation_UI_CBData*> (ui_cb_data_base_p);
+      capturer_e =
+        mediafoundation_cb_data_p->configuration->streamConfiguration.configuration_->capturer;
+      break;
+    }
+    default:
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("invalid/unknown media framework (was: %d), returning\n"),
+                  ui_cb_data_base_p->mediaFramework));
+      return G_SOURCE_REMOVE;
+    }
+  } // end SWITCH
+
+  if (!load_capture_devices (capturer_e,
                              list_store_p))
 #else
   if (!load_capture_devices (ui_cb_data_base_p->useLibCamera,
@@ -2437,22 +2495,17 @@ idle_initialize_UI_cb (gpointer userData_in)
 //  unsigned int buffer_size_i = 0;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   struct _GUID format_s = GUID_NULL;
-  struct Stream_CamSave_DirectShow_UI_CBData* directshow_cb_data_p = NULL;
   Stream_CamSave_DirectShow_StreamConfiguration_t::ITERATOR_T directshow_stream_iterator;
   Stream_CamSave_DirectShow_StreamConfiguration_t::ITERATOR_T directshow_stream_iterator_2; // renderer
 #if defined (FFMPEG_SUPPORT)
   Stream_CamSave_DirectShow_StreamConfiguration_t::ITERATOR_T directshow_stream_iterator_3; // resize
 #endif // FFMPEG_SUPPORT
-  struct Stream_CamSave_MediaFoundation_UI_CBData* mediafoundation_cb_data_p =
-    NULL;
   Stream_CamSave_MediaFoundation_StreamConfiguration_t::ITERATOR_T mediafoundation_stream_iterator;
   Stream_CamSave_MediaFoundation_StreamConfiguration_t::ITERATOR_T mediafoundation_stream_iterator_2;
   switch (ui_cb_data_base_p->mediaFramework)
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
-    {
-      directshow_cb_data_p =
-        static_cast<struct Stream_CamSave_DirectShow_UI_CBData*> (ui_cb_data_base_p);
+    { ACE_ASSERT (directshow_cb_data_p);
       ACE_ASSERT (directshow_cb_data_p->configuration);
       directshow_stream_iterator =
         directshow_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
@@ -2477,9 +2530,7 @@ idle_initialize_UI_cb (gpointer userData_in)
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
-    {
-      mediafoundation_cb_data_p =
-        static_cast<struct Stream_CamSave_MediaFoundation_UI_CBData*> (ui_cb_data_base_p);
+    { ACE_ASSERT (mediafoundation_cb_data_p);
       ACE_ASSERT (mediafoundation_cb_data_p->configuration);
       mediafoundation_stream_iterator =
         mediafoundation_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
@@ -3128,36 +3179,45 @@ idle_initialize_UI_cb (gpointer userData_in)
     gtk_widget_set_sensitive (GTK_WIDGET (combo_box_p), TRUE);
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  switch (ui_cb_data_base_p->mediaFramework)
-  {
-    case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
-    { ACE_ASSERT ((*directshow_stream_iterator).second.second->deviceIdentifier.identifierDiscriminator == Stream_Device_Identifier::STRING);
-      g_value_set_string (&value,
-                          (*directshow_stream_iterator).second.second->deviceIdentifier.identifier._string);
-      break;
-    }
-    case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
-    { ACE_ASSERT ((*mediafoundation_stream_iterator).second.second->deviceIdentifier.identifierDiscriminator == Stream_Device_Identifier::STRING);
-      g_value_set_string (&value,
-                          (*mediafoundation_stream_iterator).second.second->deviceIdentifier.identifier._string);
-      break;
-    }
-    default:
+    index_i = 1;
+    switch (capturer_e)
     {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("invalid/unknown media framework (was: %d), returning\n"),
-                  ui_cb_data_base_p->mediaFramework));
-      return G_SOURCE_REMOVE;
-    }
-  } // end SWITCH
+      case STREAM_DEVICE_CAPTURER_VFW:
+      { ACE_ASSERT ((*directshow_stream_iterator).second.second->deviceIdentifier.identifierDiscriminator == Stream_Device_Identifier::ID);
+        g_value_set_uint (&value,
+                          (*directshow_stream_iterator).second.second->deviceIdentifier.identifier._id);
+        index_i = 2;
+        break;
+      }
+      case STREAM_DEVICE_CAPTURER_DIRECTSHOW:
+      { ACE_ASSERT ((*directshow_stream_iterator).second.second->deviceIdentifier.identifierDiscriminator == Stream_Device_Identifier::STRING);
+        g_value_set_string (&value,
+                            (*directshow_stream_iterator).second.second->deviceIdentifier.identifier._string);
+        break;
+      }
+      case STREAM_DEVICE_CAPTURER_MEDIAFOUNDATION:
+      { ACE_ASSERT ((*mediafoundation_stream_iterator).second.second->deviceIdentifier.identifierDiscriminator == Stream_Device_Identifier::STRING);
+        g_value_set_string (&value,
+                            (*mediafoundation_stream_iterator).second.second->deviceIdentifier.identifier._string);
+        break;
+      }
+      default:
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("invalid/unknown capturer API (was: %d), returning\n"),
+                    capturer_e));
+        return G_SOURCE_REMOVE;
+      }
+    } // end SWITCH
 #else
+    index_i = 1;
     g_value_set_string (&value,
                         device_identifier_string.c_str ());
 #endif // ACE_WIN32 || ACE_WIN64
     if (!device_identifier_string.empty ())
       Common_UI_GTK_Tools::selectValue (combo_box_p,
                                         value,
-                                        1);
+                                        index_i);
     else
     {
       index_i = 0; // *NOTE*: should be the 'default' camera device
@@ -3728,9 +3788,18 @@ idle_update_progress_cb (gpointer userData_in)
     done = true;
   } // end IF
 
-  // synch access
+  ACE_Time_Value now = ACE_OS::gettimeofday ();
+  ACE_Time_Value elapsed_time = now - data_p->timestamp;
+  data_p->timestamp = now;
+  unsigned long milliseconds_i = elapsed_time.msec ();
+  unsigned long delta_video_frames =
+    data_p->statistic.totalFrames - data_p->lastStatistic.totalFrames;
+  data_p->lastStatistic = data_p->statistic;
+  unsigned int video_frames_per_second =
+    static_cast<unsigned int> ((1000.0F / (float)milliseconds_i) * (float)delta_video_frames);
+
   std::ostringstream converter;
-  converter << data_p->statistic.messagesPerSecond;
+  converter << video_frames_per_second;
   converter << ACE_TEXT_ALWAYS_CHAR (" fps");
   gtk_progress_bar_set_text (progress_bar_p,
                              (done ? ACE_TEXT_ALWAYS_CHAR ("")
@@ -5028,12 +5097,10 @@ combobox_source_changed_cb (GtkWidget* widget_in,
 {
   STREAM_TRACE (ACE_TEXT ("::combobox_source_changed_cb"));
 
+  // sanity check(s)
   struct Stream_CamSave_UI_CBData* ui_cb_data_base_p =
     static_cast<struct Stream_CamSave_UI_CBData*> (userData_in);
-
-  // sanity check(s)
   ACE_ASSERT (ui_cb_data_base_p);
-
   Common_UI_GTK_BuildersIterator_t iterator =
     ui_cb_data_base_p->UIState->builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN));
   ACE_ASSERT (iterator != ui_cb_data_base_p->UIState->builders.end ());
@@ -5045,12 +5112,15 @@ combobox_source_changed_cb (GtkWidget* widget_in,
   struct Stream_CamSave_MediaFoundation_UI_CBData* mediafoundation_cb_data_p =
     NULL;
   Stream_CamSave_MediaFoundation_StreamConfiguration_t::ITERATOR_T mediafoundation_stream_iterator;
+  enum Stream_Device_Capturer capturer_e = STREAM_DEVICE_CAPTURER_INVALID;
   switch (ui_cb_data_base_p->mediaFramework)
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
     {
       directshow_cb_data_p =
         static_cast<struct Stream_CamSave_DirectShow_UI_CBData*> (ui_cb_data_base_p);
+      capturer_e =
+        directshow_cb_data_p->configuration->streamConfiguration.configuration_->capturer;
       stream_p = directshow_cb_data_p->stream;
       ACE_ASSERT (directshow_cb_data_p->configuration);
       directshow_stream_iterator =
@@ -5062,6 +5132,8 @@ combobox_source_changed_cb (GtkWidget* widget_in,
     {
       mediafoundation_cb_data_p =
         static_cast<struct Stream_CamSave_MediaFoundation_UI_CBData*> (ui_cb_data_base_p);
+      capturer_e =
+        mediafoundation_cb_data_p->configuration->streamConfiguration.configuration_->capturer;
       stream_p = mediafoundation_cb_data_p->stream;
       ACE_ASSERT (mediafoundation_cb_data_p->configuration);
       mediafoundation_stream_iterator =
@@ -5110,6 +5182,11 @@ combobox_source_changed_cb (GtkWidget* widget_in,
   ACE_ASSERT (G_VALUE_TYPE (&value) == G_TYPE_STRING);
   std::string device_identifier_string = g_value_get_string (&value);
   g_value_unset (&value);
+  gtk_tree_model_get_value (GTK_TREE_MODEL (list_store_p),
+                            &iterator_3,
+                            2, &value);
+  guint card_id_i = g_value_get_uint (&value);
+  g_value_unset (&value);
 
   gint n_rows = 0;
 
@@ -5126,9 +5203,15 @@ combobox_source_changed_cb (GtkWidget* widget_in,
 #else
   IMFMediaSource* media_source_p = NULL;
 #endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0602)
-  switch (ui_cb_data_base_p->mediaFramework)
+  switch (capturer_e)
   {
-    case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
+    case STREAM_DEVICE_CAPTURER_VFW:
+    { ACE_ASSERT ((*directshow_stream_iterator).second.second->deviceIdentifier.identifierDiscriminator == Stream_Device_Identifier::ID);
+      (*directshow_stream_iterator).second.second->deviceIdentifier.identifier._id =
+        card_id_i;
+      break;
+    }
+    case STREAM_DEVICE_CAPTURER_DIRECTSHOW:
     {
       if ((*directshow_stream_iterator).second.second->builder)
       {
@@ -5184,7 +5267,7 @@ combobox_source_changed_cb (GtkWidget* widget_in,
 
       break;
     }
-    case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
+    case STREAM_DEVICE_CAPTURER_MEDIAFOUNDATION:
     {
       ACE_OS::strcpy ((*mediafoundation_stream_iterator).second.second->deviceIdentifier.identifier._string,
                       device_identifier_string.c_str ());
@@ -5321,23 +5404,26 @@ combobox_source_changed_cb (GtkWidget* widget_in,
     default:
     {
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("invalid/unknown media framework (was: %d), returning\n"),
-                  ui_cb_data_base_p->mediaFramework));
+                  ACE_TEXT ("invalid/unknown capturer API (was: %d), returning\n"),
+                  capturer_e));
       return;
     }
   } // end SWITCH
 #endif // ACE_WIN32 || ACE_WIN64
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  switch (ui_cb_data_base_p->mediaFramework)
+  switch (capturer_e)
   {
-    case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
-    {
+    case STREAM_DEVICE_CAPTURER_VFW:
+      result = true; // *TODO*
+      break;
+    case STREAM_DEVICE_CAPTURER_DIRECTSHOW:
+    { ACE_ASSERT (directshow_cb_data_p->streamConfiguration);
       result = load_formats (directshow_cb_data_p->streamConfiguration,
                              list_store_p);
       break;
     }
-    case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
+    case STREAM_DEVICE_CAPTURER_MEDIAFOUNDATION:
     {
 #if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
       if (!media_source_p)
@@ -5360,13 +5446,12 @@ combobox_source_changed_cb (GtkWidget* widget_in,
     default:
     {
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("invalid/unknown media framework (was: %d), returning\n"),
-                  ui_cb_data_base_p->mediaFramework));
+                  ACE_TEXT ("invalid/unknown capturer API (was: %d), returning\n"),
+                  capturer_e));
       return;
     }
   } // end SWITCH
 #else
-//  int result_2 = -1;
   result = load_formats (ui_cb_data_base_p->useLibCamera,
                          device_identifier_string,
                          list_store_p);
