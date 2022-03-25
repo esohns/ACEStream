@@ -33,6 +33,7 @@ class Stream_Device_VideoForWindows_Tools
   // *WARNING*: callers must Stream_MediaFramework_DirectShow_Tools::free() the return value !
   static bool getCaptureFormat (const struct Stream_Device_Identifier&, // device identifier
                                 struct _AMMediaType&);                  // return value: media type
+  static bool hasVideoSourceDialog (HWND); // 'capture window' handle
 
  private:
   ACE_UNIMPLEMENTED_FUNC (Stream_Device_VideoForWindows_Tools ())

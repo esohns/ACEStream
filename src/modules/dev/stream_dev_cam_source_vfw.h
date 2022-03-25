@@ -31,6 +31,8 @@
 #include "ace/Global_Macros.h"
 #include "ace/Synch_Traits.h"
 
+#include "common_iget.h"
+
 #include "common_time_common.h"
 
 #include "common_ui_windowtype_converter.h"
@@ -88,6 +90,8 @@ class Stream_Dev_Cam_Source_VfW_T
                                       UserDataType>
  , public Stream_MediaFramework_MediaTypeConverter_T<MediaType>
  , public Common_UI_WindowTypeConverter_T<HWND>
+ , public Common_IGet_T<HWND>
+ , public Common_IGetR_2_T<struct tagCapDriverCaps>
 {
   typedef Stream_HeadModuleTaskBase_T<ACE_MT_SYNCH,
                                       Common_TimePolicy_t,
@@ -145,6 +149,10 @@ class Stream_Dev_Cam_Source_VfW_T
   // *NOTE*: implements regular (timer-based) statistic collection
   virtual bool collect (StatisticContainerType&); // return value: (currently unused !)
 
+  // implement Common_IGet_T
+  inline virtual const HWND get () const { return window_; }
+  inline virtual const struct tagCapDriverCaps& getR_2 () const { return capabilities_; }
+
  private:
   ACE_UNIMPLEMENTED_FUNC (Stream_Dev_Cam_Source_VfW_T ())
   ACE_UNIMPLEMENTED_FUNC (Stream_Dev_Cam_Source_VfW_T (const Stream_Dev_Cam_Source_VfW_T&))
@@ -154,9 +162,13 @@ class Stream_Dev_Cam_Source_VfW_T
   bool initialize_VfW (const struct Stream_Device_Identifier&, // device identifier
                        HWND);                                  // (target) window handle [NULL: new window]
 
+  // override (part of) ACE_Task_Base
+  virtual int svc (void);
+
+  struct tagCapDriverCaps     capabilities_;
   struct acestream_vfw_cbdata CBData_;
-  bool                        isFirst_;
   bool                        passive_;
+  bool                        preview_; // 'preview' mode ? : 'overlay' mode
   HWND                        window_; // capture-
 };
 

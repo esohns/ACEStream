@@ -172,3 +172,18 @@ Stream_Device_VideoForWindows_Tools::getCaptureFormat (const struct Stream_Devic
 
   return true;
 }
+
+bool
+Stream_Device_VideoForWindows_Tools::hasVideoSourceDialog (HWND window_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Device_VideoForWindows_Tools::hasVideoSourceDialog"));
+
+  struct tagCapDriverCaps driver_capabilities_s;
+  ACE_OS::memset (&driver_capabilities_s, 0, sizeof (struct tagCapDriverCaps));
+  BOOL result = capDriverGetCaps (window_in,
+                                  &driver_capabilities_s,
+                                  sizeof (struct tagCapDriverCaps));
+  ACE_ASSERT (result == TRUE);
+
+  return (driver_capabilities_s.fHasDlgVideoSource == TRUE);
+}

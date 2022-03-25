@@ -546,8 +546,8 @@ struct Stream_CamSave_DirectShow_ModuleHandlerConfiguration
    , filterConfiguration (NULL)
    , filterCLSID (GUID_NULL)
    , outputFormat ()
+   , preview (STREAM_DEV_CAM_VIDEOFORWINDOW_DEFAULT_PREVIEW_MODE)
    , push (STREAM_LIB_DIRECTSHOW_FILTER_SOURCE_DEFAULT_PUSH)
-   //, sourceFormat ()
    , subscriber (NULL)
    , subscribers (NULL)
    , windowController (NULL)
@@ -604,8 +604,8 @@ struct Stream_CamSave_DirectShow_ModuleHandlerConfiguration
   struct Stream_CamSave_DirectShow_FilterConfiguration* filterConfiguration;
   CLSID                                                 filterCLSID;
   struct _AMMediaType                                   outputFormat;
+  bool                                                  preview; // VfW
   bool                                                  push;
-  //struct _AMMediaType                                   sourceFormat;
   Stream_CamSave_DirectShow_ISessionNotify_t*           subscriber;
   Stream_CamSave_DirectShow_Subscribers_t*              subscribers;
   IVideoWindow*                                         windowController;

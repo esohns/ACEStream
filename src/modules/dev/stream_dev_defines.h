@@ -30,8 +30,10 @@
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 // VfW
-#define STREAM_DEV_CAM_VIDEOFORWINDOW_DEFAULT_WINDOW_NAME_STRING  "ACEStream VfW Window"
 #define STREAM_DEV_CAM_VIDEOFORWINDOW_DEFAULT_DEVICE_BUFFERS      30
+#define STREAM_DEV_CAM_VIDEOFORWINDOW_DEFAULT_WINDOW_NAME_STRING  "ACEStream VfW Window"
+// capture in preview mode ? : 'overlay'
+#define STREAM_DEV_CAM_VIDEOFORWINDOW_DEFAULT_PREVIEW_MODE        false
 
 // DirectShow
 // *TODO*: move these somewhere else

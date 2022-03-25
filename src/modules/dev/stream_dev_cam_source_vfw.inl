@@ -65,12 +65,15 @@ Stream_Dev_Cam_Source_VfW_T<ACE_SYNCH_USE,
  : inherited (stream_in) // stream handle
  , inherited2 ()
  , inherited3 ()
+ , capabilities_ ()
  , CBData_ ()
- , isFirst_ (true)
  , passive_ (false)
+ , preview_ (STREAM_DEV_CAM_VIDEOFORWINDOW_DEFAULT_PREVIEW_MODE)
+ , window_ (NULL)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Dev_Cam_Source_VfW_T::Stream_Dev_Cam_Source_VfW_T"));
 
+  ACE_OS::memset (&capabilities_, 0, sizeof (struct tagCapDriverCaps));
   ACE_OS::memset (&CBData_, 0, sizeof (struct acestream_vfw_cbdata));
 }
 
@@ -142,7 +145,6 @@ Stream_Dev_Cam_Source_VfW_T<ACE_SYNCH_USE,
 
   if (inherited::isInitialized_)
   {
-    isFirst_ = true;
     if (likely (!passive_ && window_))
       if (unlikely (DestroyWindow (window_) == 0))
         ACE_DEBUG ((LM_ERROR,
@@ -150,11 +152,14 @@ Stream_Dev_Cam_Source_VfW_T<ACE_SYNCH_USE,
                     inherited::mod_->name (),
                     window_));
     passive_ = false;
+    preview_ = STREAM_DEV_CAM_VIDEOFORWINDOW_DEFAULT_PREVIEW_MODE;
     window_ = NULL;
   } // end IF
 
   CBData_.allocator = allocator_in;
   CBData_.queue = inherited::msg_queue_;
+
+  preview_ = configuration_in.preview;
 
   return inherited::initialize (configuration_in,
                                 allocator_in);
@@ -267,6 +272,7 @@ Stream_Dev_Cam_Source_VfW_T<ACE_SYNCH_USE,
       struct tagBITMAPINFO format_s;
       struct tagCaptureParms capture_parameters_s;
       unsigned int framerate_i;
+      BOOL result_2 = FALSE;
 
       CBData_.sessionId = session_data_r.sessionId;
 
@@ -325,7 +331,7 @@ Stream_Dev_Cam_Source_VfW_T<ACE_SYNCH_USE,
 
       ACE_ASSERT (inherited::configuration_->deviceIdentifier.identifierDiscriminator == Stream_Device_Identifier::ID);
       if (unlikely (capDriverConnect (window_h,
-                                      inherited::configuration_->deviceIdentifier.identifier._id) == 0))
+                                      inherited::configuration_->deviceIdentifier.identifier._id) == FALSE))
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: failed to capDriverConnect(%u), aborting\n"),
@@ -334,33 +340,47 @@ Stream_Dev_Cam_Source_VfW_T<ACE_SYNCH_USE,
         goto error;
       } // end IF
 
+      if (unlikely (capDriverGetCaps (window_h,
+                                      &capabilities_,
+                                      sizeof (struct tagCapDriverCaps)) == FALSE))
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("%s: failed to capDriverGetCaps(), aborting\n"),
+                    inherited::mod_->name ()));
+        goto error;
+      } // end IF
+      //ACE_DEBUG ((LM_DEBUG,
+      //            ACE_TEXT ("%s: read driver capabilities\n"),
+      //            inherited::mod_->name ()));
+
       ACE_OS::memset (&format_s, 0, sizeof (struct tagBITMAPINFO));
       Stream_MediaFramework_DirectShow_Tools::toBitmapInfo (media_type_s,
                                                             format_s);
       if (unlikely (capSetVideoFormat (window_h,
                                        &format_s,
-                                       sizeof (struct tagBITMAPINFO)) == 0))
+                                       sizeof (struct tagBITMAPINFO)) == FALSE))
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: failed to capSetVideoFormat(), aborting\n"),
                     inherited::mod_->name ()));
         goto error;
       } // end IF
-      ACE_DEBUG ((LM_DEBUG,
-                  ACE_TEXT ("%s: set capture format\n"),
-                  inherited::mod_->name ()));
+      //ACE_DEBUG ((LM_DEBUG,
+      //            ACE_TEXT ("%s: set capture format\n"),
+      //            inherited::mod_->name ()));
 
       framerate_i =
         Stream_MediaFramework_DirectShow_Tools::toFramerate (media_type_s);
-      capCaptureGetSetup (window_h,
-                          &capture_parameters_s,
-                          sizeof (struct tagCaptureParms));
+      result_2 = capCaptureGetSetup (window_h,
+                                     &capture_parameters_s,
+                                     sizeof (struct tagCaptureParms));
+      ACE_ASSERT (result_2 == TRUE);
       capture_parameters_s.dwRequestMicroSecPerFrame =
         (DWORD)(1.0e6 / (float)framerate_i);
       capture_parameters_s.fMakeUserHitOKToCapture = FALSE;
       //capture_parameters_s.wPercentDropForError = 10;
       capture_parameters_s.fYield = TRUE;
-      //capture_parameters_s.dwIndexSize = 0;
+      // capture_parameters_s.dwIndexSize = 0;
       //capture_parameters_s.wChunkGranularity = 0;
       //capture_parameters_s.fUsingDOSMemory = FALSE;
       capture_parameters_s.wNumVideoRequested =
@@ -380,20 +400,20 @@ Stream_Dev_Cam_Source_VfW_T<ACE_SYNCH_USE,
       //capture_parameters_s.wStepCaptureAverageFrames = 5;
       //capture_parameters_s.dwAudioBufferSize = 0;
       //capture_parameters_s.fDisableWriteCache = FALSE;
-      //capture_parameters_s.AVStreamMaster = AVSTREAMMASTER_NONE;
+      capture_parameters_s.AVStreamMaster = AVSTREAMMASTER_NONE;
       if (unlikely (capCaptureSetSetup (window_h,
                                         &capture_parameters_s,
-                                        sizeof (struct tagCaptureParms)) == 0))
+                                        sizeof (struct tagCaptureParms)) == FALSE))
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: failed to capCaptureSetSetup(), aborting\n"),
                     inherited::mod_->name ()));
         goto error;
       } // end IF
-      ACE_DEBUG ((LM_DEBUG,
-                ACE_TEXT ("%s: set framerate to %u/s\n"),
-                inherited::mod_->name (),
-                framerate_i));
+      //ACE_DEBUG ((LM_DEBUG,
+      //          ACE_TEXT ("%s: set framerate to %u/s\n"),
+      //          inherited::mod_->name (),
+      //          framerate_i));
 
       SetWindowLongPtr (window_h, GWLP_USERDATA, (LONG_PTR)&CBData_);
       //if (unlikely (capSetUserData (window_h, &CBData_) == 0))
@@ -404,44 +424,55 @@ Stream_Dev_Cam_Source_VfW_T<ACE_SYNCH_USE,
       //  goto error;
       //} // end IF
 
-      capSetCallbackOnError (window_h, acestream_vfw_error_cb);
-      capSetCallbackOnStatus (window_h, acestream_vfw_status_cb);
-      capSetCallbackOnCapControl (window_h, acestream_vfw_control_cb);
-      // if (unlikely (capSetCallbackOnFrame (window_h,
-      //                                      acestream_vfw_video_cb) == 0))
-      if (unlikely (capSetCallbackOnVideoStream (window_h,
-                                                 acestream_vfw_video_cb) == 0))
+      result_2 = capSetCallbackOnError (window_h, acestream_vfw_error_cb);
+      ACE_ASSERT (result_2 == TRUE);
+      result_2 = capSetCallbackOnStatus (window_h, acestream_vfw_status_cb);
+      ACE_ASSERT (result_2 == TRUE);
+      result_2 = capSetCallbackOnCapControl (window_h, acestream_vfw_control_cb);
+      ACE_ASSERT (result_2 == TRUE);
+      result_2 =
+        (preview_ ? capSetCallbackOnFrame (window_h, acestream_vfw_video_cb)
+                  : capSetCallbackOnVideoStream (window_h, acestream_vfw_video_cb));
+      ACE_ASSERT (result_2 == TRUE);
+
+      // *NOTE*: "...Enabling overlay mode automatically disables preview mode. ..."
+      if (!preview_ &&
+          capabilities_.fHasOverlay)
+        result_2 = capOverlay (window_h, TRUE);
+      else
+        result_2 = capOverlay (window_h, FALSE);
+      //ACE_ASSERT (result_2 == TRUE);
+      
+      if (preview_)
+      {
+        result_2 =
+          capPreviewRate (window_h,
+                          capture_parameters_s.dwRequestMicroSecPerFrame / 1000); // ms
+        ACE_ASSERT (result_2 == TRUE);
+        result_2 = capPreview (window_h, TRUE);
+      } // end IF
+      else
+        result_2 = capCaptureSequenceNoFile (window_h);
+      if (unlikely (result_2 == FALSE))
       {
         ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("%s: failed to capSetCallbackOnVideoStream(), aborting\n"),
-                    inherited::mod_->name ()));
+                    ACE_TEXT ("%s: failed to %s(), aborting\n"),
+                    inherited::mod_->name (),
+                    (preview_ ? ACE_TEXT ("capPreview") : ACE_TEXT ("capCaptureSequenceNoFile"))));
         goto error;
       } // end IF
-
-      //capPreviewRate (window_h, 33); // ms
-      //if (unlikely (capPreview (window_h, TRUE) == 0))
-      //{
-      //  ACE_DEBUG ((LM_ERROR,
-      //              ACE_TEXT ("%s: failed to capPreview(), aborting\n"),
-      //              inherited::mod_->name ()));
-      //  goto error;
-      //} // end IF
-      capOverlay (window_h, FALSE);
-      capPreview (window_h, FALSE);
-
-      if (unlikely (capCaptureSequenceNoFile (window_h) == 0))
-      {
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("%s: failed to capCaptureSequenceNoFile(), aborting\n"),
-                    inherited::mod_->name ()));
-        goto error;
-      } // end IF
-
       ACE_DEBUG ((LM_DEBUG,
                   ACE_TEXT ("%s: started capturing\n"),
                   inherited::mod_->name ()));
 
       Stream_MediaFramework_DirectShow_Tools::free (media_type_s);
+
+      //if (capture_parameters_s.fYield == FALSE)
+      //{
+      //  inherited::threadCount_ = 1;
+      //  inherited::TASK_BASE_T::start (NULL);
+      //  inherited::threadCount_ = 0;
+      //} // end IF
 
       break;
 
@@ -467,23 +498,26 @@ error:
         inherited::timerId_ = -1;
       } // end IF
 
+      BOOL result_2 = FALSE;
       if (likely (window_))
       {
-        // capPreview (window_, FALSE);
-        capCaptureStop (window_);
+        result_2 =
+          (preview_ ? capPreview (window_, FALSE)
+                    : capCaptureStop (window_));
+        ACE_ASSERT (result_2 == TRUE);
 
-        //if (unlikely (capSetCallbackOnFrame (window_,
-        //                                     NULL) == 0))
-        if (unlikely (capSetCallbackOnVideoStream (window_,
-                                                   NULL) == 0))
-          ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("%s: failed to capSetCallbackOnVideoStream(), continuing\n"),
-                      inherited::mod_->name ()));
-        capSetCallbackOnCapControl (window_, NULL);
-        capSetCallbackOnStatus (window_, NULL);
-        capSetCallbackOnError (window_, NULL);
+        result_2 =
+          (preview_ ? capSetCallbackOnFrame (window_, NULL)
+                    : capSetCallbackOnVideoStream (window_, NULL));
+        //ACE_ASSERT (result_2 == TRUE);
+        result_2 = capSetCallbackOnCapControl (window_, NULL);
+        //ACE_ASSERT (result_2 == TRUE);
+        result_2 = capSetCallbackOnStatus (window_, NULL);
+        ACE_ASSERT (result_2 == TRUE);
+        result_2 = capSetCallbackOnError (window_, NULL);
+        ACE_ASSERT (result_2 == TRUE);
 
-        if (unlikely (capDriverDisconnect (window_) == 0))
+        if (unlikely (capDriverDisconnect (window_) == FALSE))
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("%s: failed to capDriverDisconnect(), continuing\n"),
                       inherited::mod_->name ()));
@@ -493,7 +527,6 @@ error:
       { ACE_ASSERT (window_);
         DestroyWindow (window_); window_ = NULL;
       } // end IF
-      passive_ = false;
 
       if (likely (inherited::configuration_->concurrency != STREAM_HEADMODULECONCURRENCY_CONCURRENT))
       {
@@ -574,7 +607,7 @@ template <ACE_SYNCH_DECL,
           typename TimerManagerType,
           typename UserDataType,
           typename MediaType>
-bool
+int
 Stream_Dev_Cam_Source_VfW_T<ACE_SYNCH_USE,
                             ControlMessageType,
                             DataMessageType,
@@ -588,10 +621,38 @@ Stream_Dev_Cam_Source_VfW_T<ACE_SYNCH_USE,
                             StatisticContainerType,
                             TimerManagerType,
                             UserDataType,
-                            MediaType>::initialize_VfW (const struct Stream_Device_Identifier& deviceIdentifier_in,
-                                                        HWND windowHandle_in)
+                            MediaType>::svc (void)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_Dev_Cam_Source_VfW_T::initialize_VfW"));
+  STREAM_TRACE (ACE_TEXT ("Stream_Dev_Cam_Source_VfW_T::svc"));
 
-  return false;
+  // sanity check(s)
+  if (!window_)
+    return inherited::svc ();
+
+  ACE_DEBUG ((LM_DEBUG,
+              ACE_TEXT ("%s: window message loop starting (id: %t)\n"),
+              inherited::mod_->name ()));
+
+  int result = 0;
+  struct tagMSG message_s;
+  BOOL result_2 = FALSE;
+
+  while ((result_2 = GetMessage (&message_s, window_, 0, 0)) != FALSE)
+  { 
+    if (unlikely (result_2 == -1))
+    {
+      // handle the error and possibly exit
+      result = -1;
+      break;
+    }
+
+    TranslateMessage (&message_s);
+    DispatchMessage (&message_s);
+  } // end WHILE
+
+  ACE_DEBUG ((LM_DEBUG,
+              ACE_TEXT ("%s: window message loop ending (id: %t)\n"),
+              inherited::mod_->name ()));
+
+  return result;
 }

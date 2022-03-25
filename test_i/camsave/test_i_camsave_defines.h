@@ -68,7 +68,7 @@
 #define TEST_I_UI_GTK_FRAME_DISPLAY_NAME               "frame_display"
 #define TEST_I_UI_GTK_FRAME_OPTIONS_NAME               "frame_options"
 #define TEST_I_UI_GTK_FRAME_SAVE_NAME                  "frame_save"
-#define TEST_I_UI_GTK_FRAME_SOURCE_NAME                "frame_source"
+//#define TEST_I_UI_GTK_FRAME_SOURCE_NAME                "frame_source"
 #define TEST_I_UI_GTK_LISTSTORE_ADAPTER_NAME           "liststore_adapter"
 #define TEST_I_UI_GTK_LISTSTORE_DISPLAY_NAME           "liststore_display"
 #define TEST_I_UI_GTK_LISTSTORE_FORMAT_NAME            "liststore_format"

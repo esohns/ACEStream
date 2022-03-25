@@ -1363,6 +1363,10 @@ do_work (const struct Stream_Device_Identifier& deviceIdentifier_in,
   switch (capturer_in)
   {
     case STREAM_DEVICE_CAPTURER_VFW:
+    {
+      //directshow_modulehandler_configuration.preview = true;
+      // *WARNING*: falls through !
+    }
     case STREAM_DEVICE_CAPTURER_DIRECTSHOW:
     {
       directshow_modulehandler_configuration.allocatorConfiguration =
@@ -1514,6 +1518,9 @@ error:
   switch (capturer_in)
   {
     case STREAM_DEVICE_CAPTURER_VFW:
+    {
+      // *WARNING*: falls through !
+    }
     case STREAM_DEVICE_CAPTURER_DIRECTSHOW:
     {
       directshow_stream_configuration.messageAllocator =

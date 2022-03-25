@@ -3184,6 +3184,8 @@ idle_initialize_UI_cb (gpointer userData_in)
     {
       case STREAM_DEVICE_CAPTURER_VFW:
       { ACE_ASSERT ((*directshow_stream_iterator).second.second->deviceIdentifier.identifierDiscriminator == Stream_Device_Identifier::ID);
+        g_value_unset (&value);
+        g_value_init (&value, G_TYPE_UINT);
         g_value_set_uint (&value,
                           (*directshow_stream_iterator).second.second->deviceIdentifier.identifier._id);
         index_i = 2;
@@ -3423,12 +3425,17 @@ idle_session_end_cb (gpointer userData_in)
   ACE_ASSERT (button_p);
   gtk_widget_set_sensitive (GTK_WIDGET (button_p), FALSE);
 
+  //GtkFrame* frame_p =
+  //  GTK_FRAME (gtk_builder_get_object ((*iterator).second.second,
+  //                                     ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_FRAME_SOURCE_NAME)));
+  //ACE_ASSERT (frame_p);
+  //gtk_widget_set_sensitive (GTK_WIDGET (frame_p), TRUE);
+  GtkComboBox* combo_box_p =
+    GTK_COMBO_BOX (gtk_builder_get_object ((*iterator).second.second,
+                                           ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_COMBOBOX_SOURCE_NAME)));
+  ACE_ASSERT (combo_box_p);
+  gtk_widget_set_sensitive (GTK_WIDGET (combo_box_p), TRUE);
   GtkFrame* frame_p =
-    GTK_FRAME (gtk_builder_get_object ((*iterator).second.second,
-                                       ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_FRAME_SOURCE_NAME)));
-  ACE_ASSERT (frame_p);
-  gtk_widget_set_sensitive (GTK_WIDGET (frame_p), TRUE);
-  frame_p =
     GTK_FRAME (gtk_builder_get_object ((*iterator).second.second,
                                        ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_FRAME_OPTIONS_NAME)));
   ACE_ASSERT (frame_p);
@@ -3933,6 +3940,7 @@ togglebutton_record_toggled_cb (GtkToggleButton* toggleButton_in,
 
   GtkButton* button_p = NULL;
   GtkFrame* frame_p = NULL;
+  GtkComboBox* combo_box_p = NULL;
 
   // --> user pressed record
 
@@ -4191,11 +4199,16 @@ continue_:
                    userData_in);
   ACE_ASSERT (ui_cb_data_base_p->eventSourceId);
 
-  frame_p =
-    GTK_FRAME (gtk_builder_get_object ((*iterator).second.second,
-                                       ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_FRAME_SOURCE_NAME)));
-  ACE_ASSERT (frame_p);
-  gtk_widget_set_sensitive (GTK_WIDGET (frame_p), FALSE);
+  //frame_p =
+  //  GTK_FRAME (gtk_builder_get_object ((*iterator).second.second,
+  //                                     ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_FRAME_SOURCE_NAME)));
+  //ACE_ASSERT (frame_p);
+  //gtk_widget_set_sensitive (GTK_WIDGET (frame_p), FALSE);
+  combo_box_p =
+    GTK_COMBO_BOX (gtk_builder_get_object ((*iterator).second.second,
+                                           ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_COMBOBOX_SOURCE_NAME)));
+  ACE_ASSERT (combo_box_p);
+  gtk_widget_set_sensitive (GTK_WIDGET (combo_box_p), FALSE);
   frame_p =
     GTK_FRAME (gtk_builder_get_object ((*iterator).second.second,
                                        ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_FRAME_OPTIONS_NAME)));
@@ -4812,12 +4825,61 @@ button_hw_settings_clicked_cb (GtkButton* button_in,
   struct Stream_CamSave_DirectShow_UI_CBData* directshow_cb_data_p = NULL;
   struct Stream_CamSave_MediaFoundation_UI_CBData* mediafoundation_cb_data_p =
     NULL;
+  enum Stream_Device_Capturer capturer_e = STREAM_DEVICE_CAPTURER_INVALID;
   switch (ui_cb_data_base_p->mediaFramework)
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
     {
       directshow_cb_data_p =
         static_cast<struct Stream_CamSave_DirectShow_UI_CBData*> (ui_cb_data_base_p);
+      capturer_e =
+        directshow_cb_data_p->configuration->streamConfiguration.configuration_->capturer;
+      break;
+    }
+    case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
+    {
+      mediafoundation_cb_data_p =
+        static_cast<struct Stream_CamSave_MediaFoundation_UI_CBData*> (ui_cb_data_base_p);
+      capturer_e =
+        mediafoundation_cb_data_p->configuration->streamConfiguration.configuration_->capturer;
+      break;
+    }
+    default:
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("invalid/unknown media framework (was: %d), returning\n"),
+                  ui_cb_data_base_p->mediaFramework));
+      return;
+    }
+  } // end SWITCH
+
+  switch (capturer_e)
+  {
+    case STREAM_DEVICE_CAPTURER_VFW:
+    {
+      if (!directshow_cb_data_p->stream->isRunning ())
+        break; // there is no window (yet)
+      Stream_Module_t* module_p =
+        const_cast<Stream_Module_t*> (directshow_cb_data_p->stream->find (ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_CAM_SOURCE_VIDEOFORWINDOW_DEFAULT_NAME_STRING),
+                                                                          false,   // sanitize ?
+                                                                          false)); // recurse ?
+      ACE_ASSERT (module_p);
+      Common_IGetR_2_T<struct tagCapDriverCaps>* iget_p =
+        dynamic_cast<Common_IGetR_2_T<struct tagCapDriverCaps>*> (module_p->writer ());
+      ACE_ASSERT (iget_p);
+      const struct tagCapDriverCaps& capabilities_r = iget_p->getR_2 ();
+      Common_IGet_T<HWND>* iget_2 = dynamic_cast<Common_IGet_T<HWND>*> (module_p->writer ());
+      ACE_ASSERT (iget_2);
+      HWND window_h = iget_2->get ();
+      ACE_ASSERT (window_h);
+      if (capabilities_r.fHasDlgVideoSource == FALSE)
+        break; // there is no dialog
+      capDlgVideoSource (window_h);
+
+      break;
+    }
+    case STREAM_DEVICE_CAPTURER_DIRECTSHOW:
+    {
       Stream_CamSave_DirectShow_Stream::CONFIGURATION_T::ITERATOR_T stream_iterator =
         directshow_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
       ACE_ASSERT (stream_iterator != directshow_cb_data_p->configuration->streamConfiguration.end ());
@@ -4862,17 +4924,13 @@ button_hw_settings_clicked_cb (GtkButton* button_in,
 
       break;
     }
-    case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
-    {
-      mediafoundation_cb_data_p =
-        static_cast<struct Stream_CamSave_MediaFoundation_UI_CBData*> (ui_cb_data_base_p);
+    case STREAM_DEVICE_CAPTURER_MEDIAFOUNDATION:
       break;
-    }
     default:
     {
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("invalid/unknown media framework (was: %d), returning\n"),
-                  ui_cb_data_base_p->mediaFramework));
+                  ACE_TEXT ("invalid/unknown capturer API (was: %d), returning\n"),
+                  capturer_e));
       return;
     }
   } // end SWITCH
