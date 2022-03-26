@@ -36,7 +36,6 @@
     <property name="can-focus">False</property>
     <property name="border-width">5</property>
     <property name="resizable">False</property>
-    <property name="destroy-with-parent">True</property>
     <property name="type-hint">dialog</property>
     <property name="skip-taskbar-hint">True</property>
     <property name="skip-pager-hint">True</property>
@@ -1109,24 +1108,29 @@
   <object class="GtkTextBuffer" id="textview_textbuffer"/>
   <object class="GtkWindow" id="window_fullscreen">
     <property name="visible">True</property>
-    <property name="app-paintable">True</property>
-    <property name="can-focus">True</property>
-    <property name="can-default">True</property>
-    <property name="receives-default">True</property>
+    <property name="can-focus">False</property>
     <property name="events">GDK_EXPOSURE_MASK | GDK_KEY_PRESS_MASK | GDK_KEY_RELEASE_MASK | GDK_STRUCTURE_MASK</property>
     <property name="no-show-all">True</property>
-    <property name="double-buffered">False</property>
     <property name="resizable">False</property>
     <property name="hide-titlebar-when-maximized">True</property>
-    <property name="accept-focus">False</property>
-    <property name="focus-on-map">False</property>
     <property name="decorated">False</property>
     <property name="deletable">False</property>
-    <signal name="draw" handler="drawingarea_draw_cb" swapped="no"/>
-    <signal name="key-press-event" handler="drawingarea_key_press_event_cb" swapped="no"/>
-    <signal name="size-allocate" handler="drawingarea_size_allocate_cb" swapped="no"/>
     <child>
-      <placeholder/>
+      <object class="GtkDrawingArea" id="drawingarea_fullscreen">
+        <property name="visible">True</property>
+        <property name="app-paintable">True</property>
+        <property name="can-focus">True</property>
+        <property name="has-focus">True</property>
+        <property name="is-focus">True</property>
+        <property name="can-default">True</property>
+        <property name="has-default">True</property>
+        <property name="receives-default">True</property>
+        <property name="events">GDK_KEY_PRESS_MASK | GDK_KEY_RELEASE_MASK | GDK_STRUCTURE_MASK</property>
+        <property name="double-buffered">False</property>
+        <signal name="draw" handler="drawingarea_draw_cb" swapped="no"/>
+        <signal name="key-press-event" handler="drawingarea_key_press_event_cb" swapped="no"/>
+        <signal name="size-allocate" handler="drawingarea_size_allocate_cb" swapped="no"/>
+      </object>
     </child>
   </object>
 </interface>

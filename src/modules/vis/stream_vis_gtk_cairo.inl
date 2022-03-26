@@ -601,7 +601,7 @@ Stream_Module_Vis_GTK_Cairo_T<ACE_SYNCH_USE,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Vis_GTK_Cairo_T::toggle"));
 
-  ACE_ASSERT (false); // *TODO*
-  ACE_NOTSUP;
-  ACE_NOTREACHED (return;)
+  //ACE_ASSERT (false); // *TODO*
+  //ACE_NOTSUP;
+  //ACE_NOTREACHED (return;)
 }
