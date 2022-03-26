@@ -8254,9 +8254,30 @@ radiobutton_noise_toggled_cb (GtkToggleButton* toggleButton_in,
     GTK_RADIO_BUTTON (gtk_builder_get_object ((*iterator).second.second,
                                               ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_RADIOBUTTON_NOISE_NAME)));
   ACE_ASSERT (radio_button_p);
+  GtkRadioButton* radio_button_2 =
+    GTK_RADIO_BUTTON (gtk_builder_get_object ((*iterator).second.second,
+                                              ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_RADIOBUTTON_SAWTOOTH_NAME)));
+  ACE_ASSERT (radio_button_2);
+  GtkRadioButton* radio_button_3 =
+    GTK_RADIO_BUTTON (gtk_builder_get_object ((*iterator).second.second,
+                                              ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_RADIOBUTTON_SINUS_NAME)));
+  ACE_ASSERT (radio_button_3);
+  GtkRadioButton* radio_button_4 =
+    GTK_RADIO_BUTTON (gtk_builder_get_object ((*iterator).second.second,
+                                              ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_RADIOBUTTON_SQUARE_NAME)));
+  ACE_ASSERT (radio_button_4);
+  GtkRadioButton* radio_button_5 =
+    GTK_RADIO_BUTTON (gtk_builder_get_object ((*iterator).second.second,
+                                              ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_RADIOBUTTON_TRIANGLE_NAME)));
+  ACE_ASSERT (radio_button_5);
+
   enum Stream_MediaFramework_SoundGeneratorType noise_type_e =
     ((GTK_RADIO_BUTTON (toggleButton_in) == radio_button_p) ? STREAM_MEDIAFRAMEWORK_SOUNDGENERATOR_NOISE
-                                                            : STREAM_MEDIAFRAMEWORK_SOUNDGENERATOR_SINE);
+  :  (GTK_RADIO_BUTTON (toggleButton_in) == radio_button_2) ? STREAM_MEDIAFRAMEWORK_SOUNDGENERATOR_SAWTOOTH
+  :  (GTK_RADIO_BUTTON (toggleButton_in) == radio_button_3) ? STREAM_MEDIAFRAMEWORK_SOUNDGENERATOR_SINE
+  :  (GTK_RADIO_BUTTON (toggleButton_in) == radio_button_4) ? STREAM_MEDIAFRAMEWORK_SOUNDGENERATOR_SQUARE
+  :  STREAM_MEDIAFRAMEWORK_SOUNDGENERATOR_TRIANGLE);
+
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   struct Test_U_AudioEffect_DirectShow_UI_CBData* directshow_ui_cb_data_p =
     NULL;
@@ -8345,7 +8366,10 @@ radiobutton_noise_toggled_cb (GtkToggleButton* toggleButton_in,
   GtkFrame* frame_p = NULL;
   switch (noise_type_e)
   {
+    case STREAM_MEDIAFRAMEWORK_SOUNDGENERATOR_SAWTOOTH:
     case STREAM_MEDIAFRAMEWORK_SOUNDGENERATOR_SINE:
+    case STREAM_MEDIAFRAMEWORK_SOUNDGENERATOR_SQUARE:
+    case STREAM_MEDIAFRAMEWORK_SOUNDGENERATOR_TRIANGLE:
     {
       frame_p =
         GTK_FRAME (gtk_builder_get_object ((*iterator).second.second,
@@ -8356,8 +8380,6 @@ radiobutton_noise_toggled_cb (GtkToggleButton* toggleButton_in,
     }
     case STREAM_MEDIAFRAMEWORK_SOUNDGENERATOR_NOISE:
       break;
-    case STREAM_MEDIAFRAMEWORK_SOUNDGENERATOR_SAWTOOTH: // *TODO*
-    case STREAM_MEDIAFRAMEWORK_SOUNDGENERATOR_SQUARE: // *TODO*
     default:
     {
       ACE_DEBUG ((LM_ERROR,

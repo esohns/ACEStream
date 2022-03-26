@@ -129,8 +129,6 @@ class Stream_Dec_Noise_Source_T
   //virtual void report () const;
 
 //  // implement (part of) Stream_ITaskBase
-//  virtual void handleDataMessage (ProtocolMessageType*&, // data message handle
-//                                  bool&);                // return value: pass message downstream ?
   virtual void handleSessionMessage (SessionMessageType*&, // session message handle
                                      bool&);               // return value: pass message downstream ?
 

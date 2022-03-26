@@ -192,36 +192,6 @@ class Stream_Module_Decoder_Tools
                      uint8_t*[]);        // target buffer(s)
 #endif // FFMPEG_SUPPORT
 
-  // noise generators
-  // *TODO*: move these somewhere else
-  // *WARNING*: make sure the data buffer contains enough space to hold the
-  //            sample data
-  // *NOTE*: write random noise into the target buffer in the specified
-  //         audio format
-  template <typename DistributionType>
-  static void noise (unsigned int,       // sample rate (Hz)
-                     unsigned int,       // #bytes/(mono-)sample
-                     unsigned int,       // #channels
-                     bool,               // format is signed ? : unsigned
-                     bool,               // format is little endian ? : big endian
-                     uint8_t*,           // target buffer
-                     unsigned int,       // #'data' samples to write
-                     double,             // amplitude [0.0-1.0]
-                     DistributionType&); // in/out: float/integer distribution handle
-  // *NOTE*: write a sine waveform into the target buffer in the specified
-  //         audio format
-  static void sinus (unsigned int, // sample rate (Hz)
-                     unsigned int, // #bytes/(mono-)sample
-                     unsigned int, // #channels
-                     bool,         // format is floating point ? : integer
-                     bool,         // format is signed ? : unsigned
-                     bool,         // format is little endian ? : big endian
-                     uint8_t*,     // target buffer
-                     unsigned int, // #'data' samples to write
-                     double,       // amplitude [0.0-1.0]
-                     double,       // frequency (Hz)
-                     double&);     // in/out: current phase
-
 #if defined (OPENCV_SUPPORT)
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   static int mediaSubTypeToOpenCVFormat (REFGUID);
@@ -236,8 +206,5 @@ class Stream_Module_Decoder_Tools
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_Decoder_Tools (const Stream_Module_Decoder_Tools&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_Decoder_Tools& operator= (const Stream_Module_Decoder_Tools&))
 };
-
-// include template definition
-#include "stream_dec_tools.inl"
 
 #endif

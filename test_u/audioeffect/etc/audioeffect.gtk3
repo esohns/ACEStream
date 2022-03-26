@@ -601,6 +601,7 @@
                           <object class="GtkHBox" id="hbox_noise">
                             <property name="visible">True</property>
                             <property name="can-focus">False</property>
+                            <property name="homogeneous">True</property>
                             <child>
                               <object class="GtkRadioButton" id="radiobutton_noise">
                                 <property name="label" translatable="yes">_Noise</property>
@@ -621,6 +622,23 @@
                               </packing>
                             </child>
                             <child>
+                              <object class="GtkRadioButton" id="radiobutton_sawtooth">
+                                <property name="label" translatable="yes">Sawtooth</property>
+                                <property name="visible">True</property>
+                                <property name="can-focus">True</property>
+                                <property name="focus-on-click">False</property>
+                                <property name="receives-default">False</property>
+                                <property name="draw-indicator">False</property>
+                                <property name="group">radiobutton_noise</property>
+                                <signal name="toggled" handler="radiobutton_noise_toggled_cb" swapped="no"/>
+                              </object>
+                              <packing>
+                                <property name="expand">True</property>
+                                <property name="fill">True</property>
+                                <property name="position">1</property>
+                              </packing>
+                            </child>
+                            <child>
                               <object class="GtkRadioButton" id="radiobutton_sinus">
                                 <property name="label" translatable="yes">S_inus</property>
                                 <property name="visible">True</property>
@@ -637,7 +655,41 @@
                               <packing>
                                 <property name="expand">True</property>
                                 <property name="fill">True</property>
-                                <property name="position">1</property>
+                                <property name="position">2</property>
+                              </packing>
+                            </child>
+                            <child>
+                              <object class="GtkRadioButton" id="radiobutton_square">
+                                <property name="label" translatable="yes">Square</property>
+                                <property name="visible">True</property>
+                                <property name="can-focus">True</property>
+                                <property name="focus-on-click">False</property>
+                                <property name="receives-default">False</property>
+                                <property name="draw-indicator">False</property>
+                                <property name="group">radiobutton_noise</property>
+                                <signal name="toggled" handler="radiobutton_noise_toggled_cb" swapped="no"/>
+                              </object>
+                              <packing>
+                                <property name="expand">True</property>
+                                <property name="fill">True</property>
+                                <property name="position">3</property>
+                              </packing>
+                            </child>
+                            <child>
+                              <object class="GtkRadioButton" id="radiobutton_triangle">
+                                <property name="label" translatable="yes">Triangle</property>
+                                <property name="visible">True</property>
+                                <property name="can-focus">True</property>
+                                <property name="focus-on-click">False</property>
+                                <property name="receives-default">False</property>
+                                <property name="draw-indicator">False</property>
+                                <property name="group">radiobutton_noise</property>
+                                <signal name="toggled" handler="radiobutton_noise_toggled_cb" swapped="no"/>
+                              </object>
+                              <packing>
+                                <property name="expand">True</property>
+                                <property name="fill">True</property>
+                                <property name="position">4</property>
                               </packing>
                             </child>
                           </object>

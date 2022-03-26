@@ -165,12 +165,14 @@ set (source_files
      stream_dec_noise_source.cpp
      stream_dec_noise_source.h
      stream_dec_noise_source.inl
+     stream_dec_noise_tools.cpp
+     stream_dec_noise_tools.h
+     stream_dec_noise_tools.inl
      stream_dec_riff_common.h
      stream_dec_riff_scanner.cpp
      stream_dec_riff_scanner.h
      stream_dec_tools.cpp
      stream_dec_tools.h
-     stream_dec_tools.inl
      stream_dec_wav_encoder.cpp
      stream_dec_wav_encoder.h
      stream_dec_wav_encoder.inl)
@@ -395,10 +397,11 @@ set (${PROJECT_NAME}_Decoder_LIB_HDRS
      stream_dec_mpeg_ts_decoder.inl
      stream_dec_noise_source.h
      stream_dec_noise_source.inl
+     stream_dec_noise_tools.h
+     stream_dec_noise_tools.inl
      stream_dec_riff_common.h
      stream_dec_riff_scanner.h
      stream_dec_tools.h
-     stream_dec_tools.inl
      stream_dec_wav_encoder.h
      stream_dec_wav_encoder.inl)
 if (WIN32)

@@ -26,17 +26,17 @@
 
 template <typename DistributionType>
 void
-Stream_Module_Decoder_Tools::noise (unsigned int sampleRate_in,
-                                    unsigned int bytesPerSample_in,
-                                    unsigned int channels_in,
-                                    bool formatIsSigned_in,
-                                    bool formatIsLittleEndian_in,
-                                    uint8_t* buffer_in,
-                                    unsigned int samplesToWrite_in,
-                                    double amplitude_in,
-                                    DistributionType& distribution_inout)
+Stream_Module_Decoder_Noise_Tools::noise (unsigned int sampleRate_in,
+                                          unsigned int bytesPerSample_in,
+                                          unsigned int channels_in,
+                                          bool formatIsSigned_in,
+                                          bool formatIsLittleEndian_in,
+                                          ACE_UINT8* buffer_in,
+                                          unsigned int samplesToWrite_in,
+                                          double amplitude_in,
+                                          DistributionType& distribution_inout)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_Module_Decoder_Tools::noise"));
+  STREAM_TRACE (ACE_TEXT ("Stream_Module_Decoder_Noise_Tools::noise"));
 
   bool byte_swap_b =
     (formatIsLittleEndian_in ? (ACE_BYTE_ORDER != ACE_LITTLE_ENDIAN)
