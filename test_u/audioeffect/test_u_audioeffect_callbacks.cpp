@@ -2957,16 +2957,6 @@ load_sample_resolutions (struct _snd_pcm* handle_in,
     goto error;
   } // end IF
 
-//   result = snd_pcm_hw_params_set_access (handle_in,
-//                                          format_p,
-//                                          mediaType_in.access);
-//   if (result < 0)
-//   {
-//     ACE_DEBUG ((LM_ERROR,
-//                 ACE_TEXT ("failed to snd_pcm_hw_params_set_access(): \"%s\", aborting\n"),
-//                 ACE_TEXT (snd_strerror (result))));
-//     goto error;
-//   } // end IF
   result = snd_pcm_hw_params_set_format (handle_in,
                                          format_p,
                                          mediaType_in.format);
@@ -6672,7 +6662,9 @@ togglebutton_record_toggled_cb (GtkToggleButton* toggleButton_in,
   ACE_ASSERT (!(*modulehandler_configuration_iterator).second.second->ALSAConfiguration->format);
   (*modulehandler_configuration_iterator).second.second->ALSAConfiguration->format =
     &ui_cb_data_p->configuration->streamConfiguration.configuration_->format;
-  if (!Stream_MediaFramework_ALSA_Tools::setFormat (ui_cb_data_p->handle,
+
+  if ((ui_cb_data_p->configuration->streamConfiguration.configuration_->sourceType == AUDIOEFFECT_SOURCE_DEVICE) &&
+      !Stream_MediaFramework_ALSA_Tools::setFormat (ui_cb_data_p->handle,
                                                     *(*modulehandler_configuration_iterator).second.second->ALSAConfiguration))
   {
     ACE_DEBUG ((LM_ERROR,
