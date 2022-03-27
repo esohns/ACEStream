@@ -95,6 +95,7 @@
 #define TEST_U_STREAM_UI_GTK_FRAME_NOISE_NAME                  "frame_noise"
 #define TEST_U_STREAM_UI_GTK_FRAME_SAVE_NAME                   "frame_save"
 #define TEST_U_STREAM_UI_GTK_FRAME_SINUS_NAME                  "frame_sinus"
+#define TEST_U_STREAM_UI_GTK_GRID_NOISE_NAME                   "grid_noise"
 #define TEST_U_STREAM_UI_GTK_HBOX_EFFECT_NAME                  "hbox_effect"
 #define TEST_U_STREAM_UI_GTK_HBOX_NOISE_NAME                   "hbox_noise"
 #define TEST_U_STREAM_UI_GTK_HBOX_VISUALIZATION_NAME           "hbox_visualization_2"
@@ -110,6 +111,7 @@
 #define TEST_U_STREAM_UI_GTK_LISTSTORE_RESOLUTION_NAME         "liststore_resolution"
 #define TEST_U_STREAM_UI_GTK_LISTSTORE_SOURCE_NAME             "liststore_source"
 #define TEST_U_STREAM_UI_GTK_RADIOBUTTON_NOISE_NAME            "radiobutton_noise"
+#define TEST_U_STREAM_UI_GTK_RADIOBUTTON_CYCLOID_NAME          "radiobutton_cycloid"
 #define TEST_U_STREAM_UI_GTK_RADIOBUTTON_SAWTOOTH_NAME         "radiobutton_sawtooth"
 #define TEST_U_STREAM_UI_GTK_RADIOBUTTON_SINUS_NAME            "radiobutton_sinus"
 #define TEST_U_STREAM_UI_GTK_RADIOBUTTON_SQUARE_NAME           "radiobutton_square"
@@ -132,6 +134,7 @@
 #define TEST_U_STREAM_UI_GTK_VBOX_EFFECT_NAME                  "vbox_effect"
 #define TEST_U_STREAM_UI_GTK_VBOX_FORMAT_OPTIONS_NAME          "vbox_format_options"
 #define TEST_U_STREAM_UI_GTK_VBOX_NOISE_NAME                   "vbox_noise"
+#define TEST_U_STREAM_UI_GTK_VBOX_NOISE_OPTIONS_NAME           "vbox_noise_options"
 #endif // GTK_SUPPORT
 #endif // GUI_SUPPORT
 

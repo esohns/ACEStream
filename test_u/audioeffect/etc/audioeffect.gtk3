@@ -594,14 +594,16 @@
                     <property name="visible">True</property>
                     <property name="can-focus">False</property>
                     <child>
-                      <object class="GtkVBox" id="vbox_noise">
+                      <object class="GtkBox" id="vbox_noise">
                         <property name="visible">True</property>
                         <property name="can-focus">False</property>
+                        <property name="orientation">vertical</property>
                         <child>
-                          <object class="GtkHBox" id="hbox_noise">
+                          <!-- n-columns=3 n-rows=3 -->
+                          <object class="GtkGrid" id="grid_noise">
                             <property name="visible">True</property>
                             <property name="can-focus">False</property>
-                            <property name="homogeneous">True</property>
+                            <property name="column-homogeneous">True</property>
                             <child>
                               <object class="GtkRadioButton" id="radiobutton_noise">
                                 <property name="label" translatable="yes">_Noise</property>
@@ -610,15 +612,30 @@
                                 <property name="focus-on-click">False</property>
                                 <property name="receives-default">False</property>
                                 <property name="tooltip-text" translatable="yes">random noise</property>
-                                <property name="relief">half</property>
                                 <property name="use-underline">True</property>
+                                <property name="active">True</property>
                                 <property name="draw-indicator">False</property>
                                 <signal name="toggled" handler="radiobutton_noise_toggled_cb" swapped="no"/>
                               </object>
                               <packing>
-                                <property name="expand">True</property>
-                                <property name="fill">True</property>
-                                <property name="position">0</property>
+                                <property name="left-attach">0</property>
+                                <property name="top-attach">0</property>
+                              </packing>
+                            </child>
+                            <child>
+                              <object class="GtkRadioButton" id="radiobutton_cycloid">
+                                <property name="label" translatable="yes">Cycloid</property>
+                                <property name="visible">True</property>
+                                <property name="can-focus">True</property>
+                                <property name="focus-on-click">False</property>
+                                <property name="receives-default">False</property>
+                                <property name="draw-indicator">False</property>
+                                <property name="group">radiobutton_noise</property>
+                                <signal name="toggled" handler="radiobutton_noise_toggled_cb" swapped="no"/>
+                              </object>
+                              <packing>
+                                <property name="left-attach">0</property>
+                                <property name="top-attach">1</property>
                               </packing>
                             </child>
                             <child>
@@ -633,9 +650,8 @@
                                 <signal name="toggled" handler="radiobutton_noise_toggled_cb" swapped="no"/>
                               </object>
                               <packing>
-                                <property name="expand">True</property>
-                                <property name="fill">True</property>
-                                <property name="position">1</property>
+                                <property name="left-attach">1</property>
+                                <property name="top-attach">1</property>
                               </packing>
                             </child>
                             <child>
@@ -646,16 +662,14 @@
                                 <property name="focus-on-click">False</property>
                                 <property name="receives-default">False</property>
                                 <property name="tooltip-text" translatable="yes">sine wave</property>
-                                <property name="relief">half</property>
                                 <property name="use-underline">True</property>
                                 <property name="draw-indicator">False</property>
                                 <property name="group">radiobutton_noise</property>
                                 <signal name="toggled" handler="radiobutton_noise_toggled_cb" swapped="no"/>
                               </object>
                               <packing>
-                                <property name="expand">True</property>
-                                <property name="fill">True</property>
-                                <property name="position">2</property>
+                                <property name="left-attach">2</property>
+                                <property name="top-attach">1</property>
                               </packing>
                             </child>
                             <child>
@@ -670,9 +684,8 @@
                                 <signal name="toggled" handler="radiobutton_noise_toggled_cb" swapped="no"/>
                               </object>
                               <packing>
-                                <property name="expand">True</property>
-                                <property name="fill">True</property>
-                                <property name="position">3</property>
+                                <property name="left-attach">0</property>
+                                <property name="top-attach">2</property>
                               </packing>
                             </child>
                             <child>
@@ -687,17 +700,28 @@
                                 <signal name="toggled" handler="radiobutton_noise_toggled_cb" swapped="no"/>
                               </object>
                               <packing>
-                                <property name="expand">True</property>
-                                <property name="fill">True</property>
-                                <property name="position">4</property>
+                                <property name="left-attach">1</property>
+                                <property name="top-attach">2</property>
                               </packing>
+                            </child>
+                            <child>
+                              <placeholder/>
+                            </child>
+                            <child>
+                              <placeholder/>
+                            </child>
+                            <child>
+                              <placeholder/>
                             </child>
                           </object>
                           <packing>
-                            <property name="expand">True</property>
+                            <property name="expand">False</property>
                             <property name="fill">True</property>
                             <property name="position">0</property>
                           </packing>
+                        </child>
+                        <child>
+                          <placeholder/>
                         </child>
                       </object>
                     </child>
@@ -766,9 +790,6 @@
           <object class="GtkVBox" id="vbox_noise_options">
             <property name="visible">True</property>
             <property name="can-focus">False</property>
-            <child>
-              <placeholder/>
-            </child>
             <child>
               <object class="GtkFrame" id="frame_sinus">
                 <property name="visible">True</property>
@@ -1809,5 +1830,6 @@
       <action-widget response="0">button_quit</action-widget>
     </action-widgets>
   </object>
+  <object class="GtkSizeGroup" id="sizegroup_noise"/>
   <object class="GtkSizeGroup" id="sizegroup_options"/>
 </interface>

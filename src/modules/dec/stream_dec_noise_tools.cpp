@@ -25,29 +25,30 @@
 
 #include "ace/Log_Msg.h"
 
-#define MAXIMUM_PHASE_D 2.0 * M_PI
+//#define MAXIMUM_PHASE_D 2.0 * M_PI
+static double acestream_noise_maximum_phase_d = 2.0 * M_PI;
 
 void
-Stream_Module_Decoder_Noise_Tools::sawtooth (unsigned int sampleRate_in,
-                                             unsigned int bytesPerSample_in,
-                                             unsigned int channels_in,
-                                             bool formatIsFloat_in,
-                                             bool formatIsSigned_in,
-                                             bool formatIsLittleEndian_in,
-                                             ACE_UINT8* buffer_in,
-                                             unsigned int samplesToWrite_in,
-                                             double amplitude_in,
-                                             double frequency_in,
-                                             double& phase_inout)
+Stream_Module_Decoder_Noise_Tools::cycloid (unsigned int sampleRate_in,
+                                            unsigned int bytesPerSample_in,
+                                            unsigned int channels_in,
+                                            bool formatIsFloat_in,
+                                            bool formatIsSigned_in,
+                                            bool formatIsLittleEndian_in,
+                                            ACE_UINT8* buffer_in,
+                                            unsigned int samplesToWrite_in,
+                                            double amplitude_in,
+                                            double frequency_in,
+                                            double& phase_inout)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_Module_Decoder_Noise_Tools::sawtooth"));
+  STREAM_TRACE (ACE_TEXT ("Stream_Module_Decoder_Noise_Tools::cycloid"));
 
   // sanity check(s)
   ACE_ASSERT (bytesPerSample_in <= 16);
   ACE_ASSERT (amplitude_in >= 0.0 && amplitude_in <= 1.0);
 
   double step_d =
-    (MAXIMUM_PHASE_D * frequency_in) / static_cast<double> (sampleRate_in);
+    (acestream_noise_maximum_phase_d * frequency_in) / static_cast<double> (sampleRate_in);
   ACE_UINT64 maximum_value_i =
     Common_Tools::max<ACE_UINT64> (bytesPerSample_in,
                                    formatIsSigned_in);
@@ -58,8 +59,7 @@ Stream_Module_Decoder_Noise_Tools::sawtooth (unsigned int sampleRate_in,
   ACE_UINT8* data_p = buffer_in;
   for (unsigned int i = 0; i < samplesToWrite_in; ++i)
   {
-    value_d = (phase_inout / MAXIMUM_PHASE_D);
-    value_d = (2.0 * (value_d - std::floorl (0.5 + value_d)));
+    value_d = std::sin (phase_inout) * std::cos (frequency_in * phase_inout * M_PI);
     value_d = 
       (formatIsFloat_in ? value_d * amplitude_in
                         : (formatIsSigned_in ? value_d * static_cast<long double> (maximum_value_i) * amplitude_in
@@ -127,8 +127,113 @@ Stream_Module_Decoder_Noise_Tools::sawtooth (unsigned int sampleRate_in,
         }
       } // end SWITCH
     phase_inout += step_d;
-    if (unlikely (phase_inout >= MAXIMUM_PHASE_D))
-      phase_inout -= MAXIMUM_PHASE_D;
+    if (unlikely (phase_inout >= acestream_noise_maximum_phase_d))
+      phase_inout -= acestream_noise_maximum_phase_d;
+  } // end FOR
+}
+
+void
+Stream_Module_Decoder_Noise_Tools::sawtooth (unsigned int sampleRate_in,
+                                             unsigned int bytesPerSample_in,
+                                             unsigned int channels_in,
+                                             bool formatIsFloat_in,
+                                             bool formatIsSigned_in,
+                                             bool formatIsLittleEndian_in,
+                                             ACE_UINT8* buffer_in,
+                                             unsigned int samplesToWrite_in,
+                                             double amplitude_in,
+                                             double frequency_in,
+                                             double& phase_inout)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Module_Decoder_Noise_Tools::sawtooth"));
+
+  // sanity check(s)
+  ACE_ASSERT (bytesPerSample_in <= 16);
+  ACE_ASSERT (amplitude_in >= 0.0 && amplitude_in <= 1.0);
+
+  double step_d =
+    (acestream_noise_maximum_phase_d * frequency_in) / static_cast<double> (sampleRate_in);
+  ACE_UINT64 maximum_value_i =
+    Common_Tools::max<ACE_UINT64> (bytesPerSample_in,
+                                   formatIsSigned_in);
+  bool byte_swap_b =
+    (formatIsLittleEndian_in ? (ACE_BYTE_ORDER != ACE_LITTLE_ENDIAN)
+                             : (ACE_BYTE_ORDER == ACE_LITTLE_ENDIAN));
+  long double value_d = 0.0;
+  ACE_UINT8* data_p = buffer_in;
+  for (unsigned int i = 0; i < samplesToWrite_in; ++i)
+  {
+    value_d = (phase_inout / acestream_noise_maximum_phase_d);
+    value_d = (2.0 * (value_d - std::floor (0.5 + value_d)));
+    value_d = 
+      (formatIsFloat_in ? value_d * amplitude_in
+                        : (formatIsSigned_in ? value_d * static_cast<long double> (maximum_value_i) * amplitude_in
+                                             : (value_d + 1.0) * (static_cast<long double> (maximum_value_i) / 2.0) * amplitude_in));
+    for (unsigned int j = 0; j < channels_in; ++j, data_p += bytesPerSample_in)
+      switch (bytesPerSample_in)
+      {
+        case 1:
+        {
+          *data_p =
+            (formatIsSigned_in ? (ACE_UINT8) static_cast<ACE_INT8> (value_d)
+                               : static_cast<ACE_UINT8> (value_d));
+          break;
+        }
+        case 2:
+        {
+          *reinterpret_cast<ACE_UINT16*> (data_p) =
+            (byte_swap_b ? Common_Tools::byteSwap (formatIsSigned_in ? (ACE_UINT16)static_cast<ACE_INT16> (value_d)
+                                                                     : static_cast<ACE_UINT16> (value_d))
+                         : (formatIsSigned_in ? (ACE_UINT16)static_cast<ACE_INT16> (value_d)
+                                              : static_cast<ACE_UINT16> (value_d)));
+          break;
+        }
+        case 4:
+        {
+          if (formatIsFloat_in)
+            *reinterpret_cast<float*> (data_p) =
+              (byte_swap_b ? Common_Tools::byteSwap (static_cast<float> (value_d))
+                           : static_cast<float> (value_d));
+          else
+            *reinterpret_cast<ACE_UINT32*> (data_p) =
+              (byte_swap_b ? Common_Tools::byteSwap (formatIsSigned_in ? (ACE_UINT32)static_cast<ACE_INT32> (value_d)
+                                                                       : static_cast<ACE_UINT32> (value_d))
+                           : (formatIsSigned_in ? (ACE_UINT32)static_cast<ACE_INT32> (value_d)
+                                                : static_cast<ACE_UINT32> (value_d)));
+          break;
+        }
+        case 8:
+        {
+          if (formatIsFloat_in)
+            *reinterpret_cast<double*> (data_p) =
+              (byte_swap_b ? Common_Tools::byteSwap (static_cast<double> (value_d))
+                           : static_cast<double> (value_d));
+          else
+            *reinterpret_cast<ACE_UINT64*> (data_p) =
+              (byte_swap_b ? Common_Tools::byteSwap (formatIsSigned_in ? (ACE_UINT64)static_cast<ACE_INT64> (value_d)
+                                                                       : static_cast<ACE_UINT64> (value_d))
+                           : (formatIsSigned_in ? (ACE_UINT64)static_cast<ACE_INT64> (value_d)
+                                                : static_cast<ACE_UINT64> (value_d)));
+          break;
+        }
+        case 16:
+        { ACE_ASSERT (formatIsFloat_in);
+          ACE_ASSERT (ACE_SIZEOF_LONG_DOUBLE == 16);
+          *reinterpret_cast<long double*> (data_p) =
+            (byte_swap_b ? Common_Tools::byteSwap (value_d) : value_d);
+          break;
+        }
+        default:
+        {
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("invalid/unknown value size (was: %u), returning\n"),
+                      bytesPerSample_in));
+          return;
+        }
+      } // end SWITCH
+    phase_inout += step_d;
+    if (unlikely (phase_inout >= acestream_noise_maximum_phase_d))
+      phase_inout -= acestream_noise_maximum_phase_d;
   } // end FOR
 }
 
@@ -152,7 +257,7 @@ Stream_Module_Decoder_Noise_Tools::sinus (unsigned int sampleRate_in,
   ACE_ASSERT (amplitude_in >= 0.0 && amplitude_in <= 1.0);
 
   double step_d =
-    (MAXIMUM_PHASE_D * frequency_in) / static_cast<double> (sampleRate_in);
+    (acestream_noise_maximum_phase_d * frequency_in) / static_cast<double> (sampleRate_in);
   uint64_t maximum_value_i =
     Common_Tools::max<uint64_t> (bytesPerSample_in,
                                  formatIsSigned_in);
@@ -230,8 +335,8 @@ Stream_Module_Decoder_Noise_Tools::sinus (unsigned int sampleRate_in,
         }
       } // end SWITCH
     phase_inout += step_d;
-    if (unlikely (phase_inout >= MAXIMUM_PHASE_D))
-      phase_inout -= MAXIMUM_PHASE_D;
+    if (unlikely (phase_inout >= acestream_noise_maximum_phase_d))
+      phase_inout -= acestream_noise_maximum_phase_d;
   } // end FOR
 }
 
@@ -255,7 +360,7 @@ Stream_Module_Decoder_Noise_Tools::square (unsigned int sampleRate_in,
   ACE_ASSERT (amplitude_in >= 0.0 && amplitude_in <= 1.0);
 
   double step_d =
-    (MAXIMUM_PHASE_D * frequency_in) / static_cast<double> (sampleRate_in);
+    (acestream_noise_maximum_phase_d * frequency_in) / static_cast<double> (sampleRate_in);
   ACE_UINT64 maximum_value_i =
     Common_Tools::max<ACE_UINT64> (bytesPerSample_in,
                                    formatIsSigned_in);
@@ -337,8 +442,8 @@ Stream_Module_Decoder_Noise_Tools::square (unsigned int sampleRate_in,
         }
       } // end SWITCH
     phase_inout += step_d;
-    if (unlikely (phase_inout >= MAXIMUM_PHASE_D))
-      phase_inout -= MAXIMUM_PHASE_D;
+    if (unlikely (phase_inout >= acestream_noise_maximum_phase_d))
+      phase_inout -= acestream_noise_maximum_phase_d;
   } // end FOR
 }
 
@@ -362,7 +467,7 @@ Stream_Module_Decoder_Noise_Tools::triangle (unsigned int sampleRate_in,
   ACE_ASSERT (amplitude_in >= 0.0 && amplitude_in <= 1.0);
 
   double step_d =
-    (MAXIMUM_PHASE_D * frequency_in) / static_cast<double> (sampleRate_in);
+    (acestream_noise_maximum_phase_d * frequency_in) / static_cast<double> (sampleRate_in);
   ACE_UINT64 maximum_value_i =
     Common_Tools::max<ACE_UINT64> (bytesPerSample_in,
                                    formatIsSigned_in);
@@ -373,9 +478,9 @@ Stream_Module_Decoder_Noise_Tools::triangle (unsigned int sampleRate_in,
   ACE_UINT8* data_p = buffer_in;
   for (unsigned int i = 0; i < samplesToWrite_in; ++i)
   {
-    value_d = (phase_inout / MAXIMUM_PHASE_D);
+    value_d = (phase_inout / acestream_noise_maximum_phase_d);
     value_d =
-      (2.0 * std::abs (2.0 * (value_d - std::floorl (0.5 + value_d)))) - 1.0;
+      (2.0 * std::abs (2.0 * (value_d - std::floor (0.5 + value_d)))) - 1.0;
     value_d = 
       (formatIsFloat_in ? value_d * amplitude_in
                         : (formatIsSigned_in ? value_d * static_cast<long double> (maximum_value_i) * amplitude_in
@@ -443,7 +548,7 @@ Stream_Module_Decoder_Noise_Tools::triangle (unsigned int sampleRate_in,
         }
       } // end SWITCH
     phase_inout += step_d;
-    if (unlikely (phase_inout >= MAXIMUM_PHASE_D))
-      phase_inout -= MAXIMUM_PHASE_D;
+    if (unlikely (phase_inout >= acestream_noise_maximum_phase_d))
+      phase_inout -= acestream_noise_maximum_phase_d;
   } // end FOR
 }

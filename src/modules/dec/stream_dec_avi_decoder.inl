@@ -162,7 +162,8 @@ Stream_Decoder_AVIDecoder_T<ACE_SYNCH_USE,
   passMessageDownstream_out = false;
 
   // sanity check(s)
-  ACE_ASSERT (inherited::isInitialized_);
+  ACE_ASSERT (inherited::configuration_);
+  ACE_ASSERT (inherited::configuration_->allocatorConfiguration);
 
   // append the "\0\0"-sequence, as required by flex
   ACE_ASSERT ((message_inout->capacity () - message_inout->length ()) >= COMMON_PARSER_FLEX_BUFFER_BOUNDARY_SIZE);
@@ -228,16 +229,14 @@ dispatch:
   if (crunchMessages_ &&
       buffer_->cont ())
   {
-    //     message->dump_state();
-
     // step1: get a new message buffer
     DataMessageType* message_p =
-        inherited::allocateMessage (STREAM_DEC_BUFFER_SIZE);
+      inherited::allocateMessage (inherited::configuration_->allocatorConfiguration->defaultBufferSize);
     if (unlikely (!message_p))
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to allocate message(%u), returning\n"),
-                  STREAM_DEC_BUFFER_SIZE));
+                  inherited::configuration_->allocatorConfiguration->defaultBufferSize));
       goto error;
     } // end IF
 

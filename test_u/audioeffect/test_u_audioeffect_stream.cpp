@@ -1032,9 +1032,9 @@ Test_U_AudioEffect_MediaFoundation_Stream::load (Stream_ILayout* layout_in,
     inherited::configuration_->find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (iterator != inherited::configuration_->end ());
   ACE_ASSERT ((*iterator).second.second->generatorConfiguration);
-  //typename inherited::CONFIGURATION_T::ITERATOR_T iterator_2 =
-  //  inherited::configuration_->find (ACE_TEXT_ALWAYS_CHAR (STREAM_LIB_MEDIAFOUNDATION_TARGET_DEFAULT_NAME_STRING));
-  //ACE_ASSERT (iterator_2 != inherited::configuration_->end ());
+  typename inherited::CONFIGURATION_T::ITERATOR_T iterator_2 =
+    inherited::configuration_->find (ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_ENCODER_SOX_RESAMPLER_DEFAULT_NAME_STRING));
+  ACE_ASSERT (iterator_2 != inherited::configuration_->end ());
   typename inherited::CONFIGURATION_T::ITERATOR_T iterator_3 =
     inherited::configuration_->find (ACE_TEXT_ALWAYS_CHAR (STREAM_FILE_SINK_DEFAULT_NAME_STRING));
   ACE_ASSERT (iterator_3 != inherited::configuration_->end ());
@@ -1141,10 +1141,11 @@ Test_U_AudioEffect_MediaFoundation_Stream::load (Stream_ILayout* layout_in,
     {
       struct tWAVEFORMATEX* waveformatex_p = NULL;
       UINT32 cbSize = 0;
-      result = MFCreateWaveFormatExFromMFMediaType (inherited::configuration_->configuration_->format,
-                                                    &waveformatex_p,
-                                                    &cbSize,
-                                                    MFWaveFormatExConvertFlag_Normal);
+      result =
+        MFCreateWaveFormatExFromMFMediaType (inherited::configuration_->configuration_->format,
+                                             &waveformatex_p,
+                                             &cbSize,
+                                             MFWaveFormatExConvertFlag_Normal);
       ACE_ASSERT (SUCCEEDED (result) && waveformatex_p);
       ACE_ASSERT ((*iterator_3).second.second->deviceIdentifier.identifierDiscriminator == Stream_Device_Identifier::GUID);
       add_resampler_b |=
@@ -1152,6 +1153,19 @@ Test_U_AudioEffect_MediaFoundation_Stream::load (Stream_ILayout* layout_in,
                                                              STREAM_LIB_WASAPI_RENDER_DEFAULT_SHAREMODE,
                                                              *waveformatex_p);
       CoTaskMemFree (waveformatex_p); waveformatex_p = NULL;
+      waveformatex_p =
+        Stream_MediaFramework_DirectSound_Tools::getAudioEngineMixFormat ((*iterator_3).second.second->deviceIdentifier.identifier._guid);
+      ACE_ASSERT (waveformatex_p);
+      if ((*iterator_2).second.second->outputFormat)
+        (*iterator_2).second.second->outputFormat->DeleteAllItems ();
+      else
+        MFCreateMediaType (&(*iterator_2).second.second->outputFormat);
+      ACE_ASSERT ((*iterator_2).second.second->outputFormat);
+      result =
+        MFInitMediaTypeFromWaveFormatEx ((*iterator_2).second.second->outputFormat,
+                                         waveformatex_p,
+                                         sizeof (struct tWAVEFORMATEX) + waveformatex_p->cbSize);
+      ACE_ASSERT (SUCCEEDED (result));
       break;
     }
     case STREAM_DEVICE_RENDERER_MEDIAFOUNDATION:
@@ -1307,9 +1321,6 @@ bool
 Test_U_AudioEffect_MediaFoundation_Stream::initialize (const inherited::CONFIGURATION_T& configuration_in)
 {
   STREAM_TRACE (ACE_TEXT ("Test_U_AudioEffect_MediaFoundation_Stream::initialize"));
-
-  // sanity check(s)
-  ACE_ASSERT (!isRunning ());
 
   if (inherited::isInitialized_)
   {

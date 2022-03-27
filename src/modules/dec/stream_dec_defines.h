@@ -84,8 +84,8 @@
 #define STREAM_DEC_DEFAULT_ZLIB_WINDOWBITS                           15 // 0,(-)[8-15], see zlib.h
 #define STREAM_DEC_ZLIB_WINDOWBITS_GZIP_OFFSET                       16
 
-// stream
-#define STREAM_DEC_BUFFER_SIZE                                       16384 // bytes
+// noise
+#define STREAM_DEC_NOISE_BUFFER_LATENCY_MS                           10 // ms
 
 // "crunch" messages (for easier decoding/parsing/processing) ?
 // *NOTE*: this comes at the cost of alloc/free, memcopy and locking per

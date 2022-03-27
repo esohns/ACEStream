@@ -198,48 +198,9 @@ Stream_Decoder_ZIPDecoder_T<SynchStrategyType,
   //unsigned int read_bytes = 0;
   unsigned int written_bytes = 0;
 
-  //// "crunch" messages for easier decompression ?
-  //if (crunchMessages_ &&
-  //    buffer_->cont ())
-  //{
-  //  // sanity check(s)
-  //  ACE_ASSERT (buffer_->total_length () <= STREAM_DEC_BUFFER_SIZE);
-
-  //  // step1: get a new message buffer
-  //  message_p = allocateMessage (STREAM_DEC_BUFFER_SIZE);
-  //  if (!message_p)
-  //  {
-  //    ACE_DEBUG ((LM_ERROR,
-  //                ACE_TEXT ("failed to allocate message(%u), returning\n"),
-  //                STREAM_DEC_BUFFER_SIZE));
-  //    goto error;
-  //  } // end IF
-
-  //  // step2: copy available data
-  //  for (message_block_p = buffer_;
-  //       message_block_p;
-  //       message_block_p = message_block_p->cont ())
-  //  {
-  //    // sanity check(s)
-  //    ACE_ASSERT (message_block_p->length () <= message_p->space ());
-
-  //    result = message_p->copy (message_block_p->rd_ptr (),
-  //                              message_block_p->length ());
-  //    if (result == -1)
-  //    {
-  //      ACE_DEBUG ((LM_ERROR,
-  //                  ACE_TEXT ("failed to ACE_Message_Block::copy(): \"%m\", returning\n")));
-
-  //      // clean up
-  //      message_p->release ();
-
-  //      goto error;
-  //    } // end IF
-  //  } // end FOR
-
-  //  buffer_->release ();
-  //  buffer_ = message_p;
-  //} // end IF
+  // sanity check(s)
+  ACE_ASSERT (inherited::configuration_);
+  ACE_ASSERT (inherited::configuration_->allocatorConfiguration);
 
   // initialize stream
   stream_.next_in =
@@ -282,13 +243,14 @@ Stream_Decoder_ZIPDecoder_T<SynchStrategyType,
   } // end IF
 
   // step1: allocate a new message
-  message_p = inherited::allocateMessage (STREAM_DEC_BUFFER_SIZE);
+  message_p =
+    inherited::allocateMessage (inherited::configuration_->allocatorConfiguration->defaultBufferSize);
   if (!message_p)
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to allocate message(%u), returning\n"),
                 inherited::mod_->name (),
-                STREAM_DEC_BUFFER_SIZE));
+                inherited::configuration_->allocatorConfiguration->defaultBufferSize));
     goto error;
   } // end IF
   message_block_p = message_p;
@@ -358,13 +320,14 @@ Stream_Decoder_ZIPDecoder_T<SynchStrategyType,
     if (!stream_.avail_out)
     {
       message_block_2 = message_block_p;
-      message_block_p = inherited::allocateMessage (STREAM_DEC_BUFFER_SIZE);
+      message_block_p =
+        inherited::allocateMessage (inherited::configuration_->allocatorConfiguration->defaultBufferSize);
       if (!message_block_p)
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: failed to allocate message(%u), returning\n"),
                     inherited::mod_->name (),
-                    STREAM_DEC_BUFFER_SIZE));
+                    inherited::configuration_->allocatorConfiguration->defaultBufferSize));
         goto error;
       } // end IF
       message_block_2->cont (message_block_p);

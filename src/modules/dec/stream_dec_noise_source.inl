@@ -365,15 +365,15 @@ Stream_Dec_Noise_Source_T<ACE_SYNCH_USE,
       //                   latency
       ACE_ASSERT (inherited::configuration_->allocatorConfiguration);
       bufferSize_ =
-        static_cast<unsigned int> (inherited::configuration_->allocatorConfiguration->defaultBufferSize * 1.1);
+        static_cast<unsigned int> (inherited::configuration_->allocatorConfiguration->defaultBufferSize);
       if (bufferSize_ % frameSize_)
         bufferSize_ += frameSize_ - (bufferSize_ % frameSize_);
       ACE_ASSERT ((bufferSize_ % frameSize_) == 0);
       buffer_time_us =
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-        static_cast<suseconds_t> ((inherited::configuration_->allocatorConfiguration->defaultBufferSize * 1000000.0) / static_cast<double> (waveformatex_p->nAvgBytesPerSec));
+        static_cast<suseconds_t> ((bufferSize_ * 1000000.0) / static_cast<double> (waveformatex_p->nSamplesPerSec));
 #else
-        static_cast<suseconds_t> ((inherited::configuration_->allocatorConfiguration->defaultBufferSize * 1000000.0) / static_cast<double> (frameSize_ * mediaType_.rate));
+        static_cast<suseconds_t> ((bufferSize_ * 1000000.0) / static_cast<double> (frameSize_ * mediaType_.rate));
 #endif // ACE_WIN32 || ACE_WIN64
 
       // initialize noise generator
@@ -512,10 +512,10 @@ Stream_Dec_Noise_Source_T<ACE_SYNCH_USE,
       // start sample generator timer
       interval.set (0, buffer_time_us);
       timer_id =
-        itimer_manager_p->schedule_timer (&handler_,                  // event handler handle
-                                          NULL,                       // asynchronous completion token
-                                          COMMON_TIME_NOW + interval, // first wakeup time
-                                          interval);                  // interval
+        itimer_manager_p->schedule_timer (&handler_,       // event handler handle
+                                          NULL,            // asynchronous completion token
+                                          COMMON_TIME_NOW, // first wakeup time
+                                          interval);       // interval
       if (unlikely (timer_id == -1))
       {
         ACE_DEBUG ((LM_ERROR,
@@ -660,6 +660,21 @@ Stream_Dec_Noise_Source_T<ACE_SYNCH_USE,
   // step2: write frames
   switch (inherited::configuration_->generatorConfiguration->type)
   {
+    case STREAM_MEDIAFRAMEWORK_SOUNDGENERATOR_CYCLOID:
+    {
+      Stream_Module_Decoder_Noise_Tools::cycloid (inherited::configuration_->generatorConfiguration->samplesPerSecond,
+                                                  inherited::configuration_->generatorConfiguration->bytesPerSample,
+                                                  inherited::configuration_->generatorConfiguration->numberOfChannels,
+                                                  inherited::configuration_->generatorConfiguration->isFloatFormat,
+                                                  inherited::configuration_->generatorConfiguration->isSignedFormat,
+                                                  inherited::configuration_->generatorConfiguration->isLittleEndianFormat,
+                                                  reinterpret_cast<uint8_t*> (message_block_p->wr_ptr ()),
+                                                  bufferSize_ / frameSize_,
+                                                  inherited::configuration_->generatorConfiguration->amplitude,
+                                                  inherited::configuration_->generatorConfiguration->frequency, 
+                                                  phase_);
+      break;
+    }
     case STREAM_MEDIAFRAMEWORK_SOUNDGENERATOR_SAWTOOTH:
     {
       Stream_Module_Decoder_Noise_Tools::sawtooth (inherited::configuration_->generatorConfiguration->samplesPerSecond,
@@ -766,11 +781,11 @@ Stream_Dec_Noise_Source_T<ACE_SYNCH_USE,
   message_block_p->wr_ptr (bufferSize_);
 
   // step3: push data downstream
-  result = inherited::put_next (message_block_p, NULL);
+  result = this->put (message_block_p, NULL);
   if (unlikely (result == -1))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: failed to ACE_Task_Base::put_next(): \"%m\", aborting\n"),
+                ACE_TEXT ("%s: failed to ACE_Task_Base::put(): \"%m\", aborting\n"),
                 inherited::mod_->name ()));
     goto error;
   } // end IF
@@ -833,28 +848,3 @@ Stream_Dec_Noise_Source_T<ACE_SYNCH_USE,
 
   return true;
 }
-
-//template <ACE_SYNCH_DECL,
-//          typename SessionMessageType,
-//          typename ProtocolMessageType,
-//          typename ConfigurationType,
-//          typename StreamStateType,
-//          typename SessionDataType,
-//          typename SessionDataContainerType,
-//          typename StatisticContainerType>
-//void
-//Stream_Dec_Noise_Source_T<ACE_SYNCH_USE,
-//                                   SessionMessageType,
-//                                   ProtocolMessageType,
-//                                   ConfigurationType,
-//                                   StreamStateType,
-//                                   SessionDataType,
-//                                   SessionDataContainerType,
-//                                   StatisticContainerType>::report () const
-//{
-//  STREAM_TRACE (ACE_TEXT ("Stream_Dec_Noise_Source_T::report"));
-//
-//  ACE_ASSERT (false);
-//  ACE_NOTSUP;
-//  ACE_NOTREACHED (return;)
-//}

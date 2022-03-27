@@ -3554,11 +3554,7 @@ get_buffer_size (gpointer userData_in)
   return static_cast<unsigned int> ((STREAM_LIB_DIRECTSHOW_FILTER_SOURCE_MAX_LATENCY_MS * bps) / (double)MILLISECONDS);
 #else
   ACE_UNUSED_ARG (format_e);
-  ACE_UNUSED_ARG (bps);
-  ACE_ASSERT (ui_cb_data_p->configuration->streamConfiguration.configuration_);
-  ACE_ASSERT (ui_cb_data_p->configuration->streamConfiguration.configuration_->allocatorConfiguration);
-  return ui_cb_data_p->configuration->streamConfiguration.configuration_->allocatorConfiguration->defaultBufferSize;
-//  return (sample_rate * snd_pcm_format_size (format_e, 1) * channels);
+  return static_cast<unsigned int> ((STREAM_DEC_NOISE_BUFFER_LATENCY_MS * bps) / (double)1000);
 #endif // ACE_WIN32 || ACE_WIN64
 }
 
@@ -4619,18 +4615,36 @@ idle_initialize_UI_cb (gpointer userData_in)
     GtkRadioButton* radio_button_p = NULL;
     switch (noise_type_e)
     {
+      case STREAM_MEDIAFRAMEWORK_SOUNDGENERATOR_CYCLOID:
+        radio_button_p =
+          GTK_RADIO_BUTTON (gtk_builder_get_object ((*iterator).second.second,
+                                                    ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_RADIOBUTTON_CYCLOID_NAME)));
+        break;
+      case STREAM_MEDIAFRAMEWORK_SOUNDGENERATOR_SAWTOOTH:
+        radio_button_p =
+          GTK_RADIO_BUTTON (gtk_builder_get_object ((*iterator).second.second,
+                                                    ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_RADIOBUTTON_SAWTOOTH_NAME)));
+        break;
       case STREAM_MEDIAFRAMEWORK_SOUNDGENERATOR_SINE:
         radio_button_p =
           GTK_RADIO_BUTTON (gtk_builder_get_object ((*iterator).second.second,
                                                     ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_RADIOBUTTON_SINUS_NAME)));
+        break;
+      case STREAM_MEDIAFRAMEWORK_SOUNDGENERATOR_SQUARE:
+        radio_button_p =
+          GTK_RADIO_BUTTON (gtk_builder_get_object ((*iterator).second.second,
+                                                    ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_RADIOBUTTON_SQUARE_NAME)));
+        break;
+      case STREAM_MEDIAFRAMEWORK_SOUNDGENERATOR_TRIANGLE:
+        radio_button_p =
+          GTK_RADIO_BUTTON (gtk_builder_get_object ((*iterator).second.second,
+                                                    ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_RADIOBUTTON_TRIANGLE_NAME)));
         break;
       case STREAM_MEDIAFRAMEWORK_SOUNDGENERATOR_NOISE:
         radio_button_p =
           GTK_RADIO_BUTTON (gtk_builder_get_object ((*iterator).second.second,
                                                     ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_RADIOBUTTON_NOISE_NAME)));
         break;
-      case STREAM_MEDIAFRAMEWORK_SOUNDGENERATOR_SAWTOOTH: // *TODO*
-      case STREAM_MEDIAFRAMEWORK_SOUNDGENERATOR_SQUARE: // *TODO*
       default:
       {
         ACE_DEBUG ((LM_ERROR,
@@ -8256,26 +8270,31 @@ radiobutton_noise_toggled_cb (GtkToggleButton* toggleButton_in,
   ACE_ASSERT (radio_button_p);
   GtkRadioButton* radio_button_2 =
     GTK_RADIO_BUTTON (gtk_builder_get_object ((*iterator).second.second,
-                                              ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_RADIOBUTTON_SAWTOOTH_NAME)));
+                                              ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_RADIOBUTTON_CYCLOID_NAME)));
   ACE_ASSERT (radio_button_2);
   GtkRadioButton* radio_button_3 =
     GTK_RADIO_BUTTON (gtk_builder_get_object ((*iterator).second.second,
-                                              ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_RADIOBUTTON_SINUS_NAME)));
+                                              ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_RADIOBUTTON_SAWTOOTH_NAME)));
   ACE_ASSERT (radio_button_3);
   GtkRadioButton* radio_button_4 =
     GTK_RADIO_BUTTON (gtk_builder_get_object ((*iterator).second.second,
-                                              ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_RADIOBUTTON_SQUARE_NAME)));
+                                              ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_RADIOBUTTON_SINUS_NAME)));
   ACE_ASSERT (radio_button_4);
   GtkRadioButton* radio_button_5 =
     GTK_RADIO_BUTTON (gtk_builder_get_object ((*iterator).second.second,
-                                              ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_RADIOBUTTON_TRIANGLE_NAME)));
+                                              ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_RADIOBUTTON_SQUARE_NAME)));
   ACE_ASSERT (radio_button_5);
+  //GtkRadioButton* radio_button_6 =
+  //  GTK_RADIO_BUTTON (gtk_builder_get_object ((*iterator).second.second,
+  //                                            ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_RADIOBUTTON_TRIANGLE_NAME)));
+  //ACE_ASSERT (radio_button_6);
 
   enum Stream_MediaFramework_SoundGeneratorType noise_type_e =
     ((GTK_RADIO_BUTTON (toggleButton_in) == radio_button_p) ? STREAM_MEDIAFRAMEWORK_SOUNDGENERATOR_NOISE
-  :  (GTK_RADIO_BUTTON (toggleButton_in) == radio_button_2) ? STREAM_MEDIAFRAMEWORK_SOUNDGENERATOR_SAWTOOTH
-  :  (GTK_RADIO_BUTTON (toggleButton_in) == radio_button_3) ? STREAM_MEDIAFRAMEWORK_SOUNDGENERATOR_SINE
-  :  (GTK_RADIO_BUTTON (toggleButton_in) == radio_button_4) ? STREAM_MEDIAFRAMEWORK_SOUNDGENERATOR_SQUARE
+  :  (GTK_RADIO_BUTTON (toggleButton_in) == radio_button_2) ? STREAM_MEDIAFRAMEWORK_SOUNDGENERATOR_CYCLOID
+  :  (GTK_RADIO_BUTTON (toggleButton_in) == radio_button_3) ? STREAM_MEDIAFRAMEWORK_SOUNDGENERATOR_SAWTOOTH
+  :  (GTK_RADIO_BUTTON (toggleButton_in) == radio_button_4) ? STREAM_MEDIAFRAMEWORK_SOUNDGENERATOR_SINE
+  :  (GTK_RADIO_BUTTON (toggleButton_in) == radio_button_5) ? STREAM_MEDIAFRAMEWORK_SOUNDGENERATOR_SQUARE
   :  STREAM_MEDIAFRAMEWORK_SOUNDGENERATOR_TRIANGLE);
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -8346,12 +8365,12 @@ radiobutton_noise_toggled_cb (GtkToggleButton* toggleButton_in,
     GTK_BOX (gtk_builder_get_object ((*iterator).second.second,
                                      ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_VBOX_NOISE_NAME)));
   ACE_ASSERT (box_p);
-  GtkBox* box_2 =
-    GTK_BOX (gtk_builder_get_object ((*iterator).second.second,
-                                     ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_HBOX_NOISE_NAME)));
-  ACE_ASSERT (box_p);
+  GtkWidget* box_2 =
+    GTK_WIDGET (gtk_builder_get_object ((*iterator).second.second,
+                                        ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_GRID_NOISE_NAME)));
+  ACE_ASSERT (box_2);
   gtk_container_remove (GTK_CONTAINER (box_p),
-                        GTK_WIDGET (box_2));
+                        box_2);
   GList* list_p = NULL, * list_2 = NULL;
   list_p = gtk_container_get_children (GTK_CONTAINER (box_p));
   for (list_2 = list_p; list_2; list_2 = g_list_next (list_2))
@@ -8362,10 +8381,11 @@ radiobutton_noise_toggled_cb (GtkToggleButton* toggleButton_in,
   } // end FOR
   g_list_free (list_p); list_p = NULL;
   gtk_container_add (GTK_CONTAINER (box_p),
-                     GTK_WIDGET (box_2));
+                     box_2);
   GtkFrame* frame_p = NULL;
   switch (noise_type_e)
   {
+    case STREAM_MEDIAFRAMEWORK_SOUNDGENERATOR_CYCLOID:
     case STREAM_MEDIAFRAMEWORK_SOUNDGENERATOR_SAWTOOTH:
     case STREAM_MEDIAFRAMEWORK_SOUNDGENERATOR_SINE:
     case STREAM_MEDIAFRAMEWORK_SOUNDGENERATOR_SQUARE:
@@ -9251,34 +9271,23 @@ combobox_source_changed_cb (GtkWidget* widget_in,
                 ACE_TEXT ("failed to ::load_formats(), returning\n")));
     return;
   } // end IF
-  n_rows =
-    gtk_tree_model_iter_n_children (GTK_TREE_MODEL (list_store_p), NULL);
+  n_rows = gtk_tree_model_iter_n_children (GTK_TREE_MODEL (list_store_p), NULL);
   if (n_rows)
   {
     gtk_widget_set_sensitive (GTK_WIDGET (combo_box_p), TRUE);
-    gint index_i = 0;
-//#if GTK_CHECK_VERSION(2,30,0)
-//    GValue value = G_VALUE_INIT;
-//#else
-//    GValue value;
-//    ACE_OS::memset (&value, 0, sizeof (struct _GValue));
-//    g_value_init (&value, G_TYPE_INT);
-//#endif // GTK_CHECK_VERSION (2,30,0)
-//    g_value_set_int (&value,
-//                     ui_cb_data_p->configuration->streamConfiguration.configuration_->format.format);
-//    index_i =
-//        Common_UI_GTK_Tools::valueToIndex (gtk_combo_box_get_model (combo_box_p),
-//                                           value,
-//                                           2);
-//    if (index_i == -1)
-//    {
-//      ACE_DEBUG ((LM_WARNING,
-//                  ACE_TEXT ("invalid/unknown format (was: %d), continuing\n"),
-//                  ui_cb_data_p->configuration->streamConfiguration.configuration_->format.format));
-//      index_i = 0;
-//    } // end IF
-//    g_value_unset (&value);
-    gtk_combo_box_set_active (combo_box_p, index_i);
+#if GTK_CHECK_VERSION(2,30,0)
+    GValue value = G_VALUE_INIT;
+#else
+    GValue value;
+    ACE_OS::memset (&value, 0, sizeof (struct _GValue));
+    g_value_init (&value, G_TYPE_INT);
+#endif // GTK_CHECK_VERSION (2,30,0)
+    g_value_set_int (&value,
+                     ui_cb_data_p->configuration->streamConfiguration.configuration_->format.format);
+    Common_UI_GTK_Tools::selectValue (combo_box_p,
+                                      value,
+                                      2);
+    g_value_unset (&value);
   } // end IF
 
 continue_:
@@ -9343,18 +9352,36 @@ continue_:
       GtkRadioButton* radio_button_p = NULL;
       switch (noise_type_e)
       {
+        case STREAM_MEDIAFRAMEWORK_SOUNDGENERATOR_CYCLOID:
+          radio_button_p =
+            GTK_RADIO_BUTTON (gtk_builder_get_object ((*iterator).second.second,
+                                                      ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_RADIOBUTTON_CYCLOID_NAME)));
+          break;
+        case STREAM_MEDIAFRAMEWORK_SOUNDGENERATOR_SAWTOOTH:
+          radio_button_p =
+            GTK_RADIO_BUTTON (gtk_builder_get_object ((*iterator).second.second,
+                                                      ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_RADIOBUTTON_SAWTOOTH_NAME)));
+          break;
         case STREAM_MEDIAFRAMEWORK_SOUNDGENERATOR_SINE:
           radio_button_p =
             GTK_RADIO_BUTTON (gtk_builder_get_object ((*iterator).second.second,
                                                       ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_RADIOBUTTON_SINUS_NAME)));
+          break;
+        case STREAM_MEDIAFRAMEWORK_SOUNDGENERATOR_SQUARE:
+          radio_button_p =
+            GTK_RADIO_BUTTON (gtk_builder_get_object ((*iterator).second.second,
+                                                      ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_RADIOBUTTON_SQUARE_NAME)));
+          break;
+        case STREAM_MEDIAFRAMEWORK_SOUNDGENERATOR_TRIANGLE:
+          radio_button_p =
+            GTK_RADIO_BUTTON (gtk_builder_get_object ((*iterator).second.second,
+                                                      ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_RADIOBUTTON_TRIANGLE_NAME)));
           break;
         case STREAM_MEDIAFRAMEWORK_SOUNDGENERATOR_NOISE:
           radio_button_p =
             GTK_RADIO_BUTTON (gtk_builder_get_object ((*iterator).second.second,
                                                       ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_RADIOBUTTON_NOISE_NAME)));
           break;
-        case STREAM_MEDIAFRAMEWORK_SOUNDGENERATOR_SAWTOOTH: // *TODO*
-        case STREAM_MEDIAFRAMEWORK_SOUNDGENERATOR_SQUARE: // *TODO*
         default:
         {
           ACE_DEBUG ((LM_ERROR,
@@ -9367,7 +9394,6 @@ continue_:
       g_signal_emit_by_name (G_OBJECT (radio_button_p),
                              ACE_TEXT_ALWAYS_CHAR ("toggled"),
                              userData_in);
-      //gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (radio_button_p), TRUE);
       break;
     }
     case AUDIOEFFECT_SOURCE_FILE:
