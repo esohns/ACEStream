@@ -564,7 +564,7 @@ do_initialize_directshow (const struct Stream_Device_Identifier& deviceIdentifie
   } // end IF
   ACE_ASSERT (media_type_p);
   outputFormat_inout = *media_type_p;
-  CoTaskMemFree (media_type_p); media_type_p = NULL;
+  delete (media_type_p); media_type_p = NULL;
 
   // *NOTE*: the default save format is RGB32
   ACE_ASSERT (InlineIsEqualGUID (outputFormat_inout.majortype, MEDIATYPE_Video));
@@ -911,27 +911,38 @@ do_work (const struct Stream_Device_Identifier& deviceIdentifier_in,
 
   struct Stream_ModuleConfiguration module_configuration;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
+  struct Test_I_Source_DirectShow_ModuleHandlerConfiguration directshow_modulehandler_configuration;
+  struct Test_I_Source_DirectShow_ModuleHandlerConfiguration directshow_modulehandler_configuration_2; // visualization
+  Test_I_Source_DirectShow_StreamConfiguration_t directshow_stream_configuration;
+  struct Test_I_Source_DirectShow_StreamConfiguration directshow_stream_configuration_2;
+  Test_I_Source_DirectShow_StreamConfiguration_t directshow_stream_configuration_3;
+  struct Test_I_Source_DirectShow_StreamConfiguration directshow_stream_configuration_4;
   Test_I_Source_DirectShow_StreamConfigurationsIterator_t directshow_stream_iterator;
   Test_I_Source_DirectShow_StreamConfiguration_t::ITERATOR_T directshow_modulehandler_iterator;
+
+  struct Test_I_Source_MediaFoundation_ModuleHandlerConfiguration mediafoundation_modulehandler_configuration;
+  Test_I_Source_MediaFoundation_StreamConfiguration_t mediafoundation_stream_configuration;
+  struct Test_I_Source_MediaFoundation_StreamConfiguration mediafoundation_stream_configuration_2;
+  Test_I_Source_MediaFoundation_StreamConfiguration_t mediafoundation_stream_configuration_3;
+  struct Test_I_Source_MediaFoundation_StreamConfiguration mediafoundation_stream_configuration_4;
+
   Test_I_Source_MediaFoundation_StreamConfigurationsIterator_t mediafoundation_stream_iterator;
   Test_I_Source_MediaFoundation_StreamConfiguration_t::ITERATOR_T mediafoundation_modulehandler_iterator;
 
   Test_I_Source_DirectShow_EventHandler_Module directshow_event_handler ((useUDP_in ? directShowCBData_in.UDPStream : directShowCBData_in.stream),
-    ACE_TEXT_ALWAYS_CHAR (STREAM_MISC_MESSAGEHANDLER_DEFAULT_NAME_STRING));
+                                                                         ACE_TEXT_ALWAYS_CHAR (STREAM_MISC_MESSAGEHANDLER_DEFAULT_NAME_STRING));
   Test_I_Source_MediaFoundation_EventHandler_Module mediafoundation_event_handler ((useUDP_in ? mediaFoundationCBData_in.UDPStream : mediaFoundationCBData_in.stream),
-    ACE_TEXT_ALWAYS_CHAR (STREAM_MISC_MESSAGEHANDLER_DEFAULT_NAME_STRING));
+                                                                                   ACE_TEXT_ALWAYS_CHAR (STREAM_MISC_MESSAGEHANDLER_DEFAULT_NAME_STRING));
 
   switch (mediaFramework_in)
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
     {
-      struct Test_I_Source_DirectShow_ModuleHandlerConfiguration directshow_modulehandler_configuration;
       directshow_modulehandler_configuration.deviceIdentifier =
         deviceIdentifier_in;
-      Test_I_Source_DirectShow_StreamConfiguration_t directshow_stream_configuration;
-      struct Test_I_Source_DirectShow_StreamConfiguration directshow_stream_configuration_2;
-      Test_I_Source_DirectShow_StreamConfiguration_t directshow_stream_configuration_3;
-      struct Test_I_Source_DirectShow_StreamConfiguration directshow_stream_configuration_4;
+      directshow_modulehandler_configuration_2.display =
+        Common_UI_Tools::getDefaultDisplay ();
+
       directshow_stream_configuration_2.allocatorConfiguration = allocator_configuration_p;
       directshow_stream_configuration_2.messageAllocator = allocator_p;
       if (!UIDefinitionFilename_in.empty ())
@@ -940,10 +951,11 @@ do_work (const struct Stream_Device_Identifier& deviceIdentifier_in,
       directshow_stream_configuration.initialize (module_configuration,
                                                   directshow_modulehandler_configuration,
                                                   directshow_stream_configuration_2);
-      directshow_modulehandler_configuration.deviceIdentifier.clear ();
+
+      directshow_modulehandler_configuration_2.deviceIdentifier.clear ();
       directshow_stream_configuration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_DIRECTSHOW_DEFAULT_NAME_STRING),
                                                               std::make_pair (&module_configuration,
-                                                                              &directshow_modulehandler_configuration)));
+                                                                              &directshow_modulehandler_configuration_2)));
 
       directShowCBData_in.configuration->streamConfigurations.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (""),
                                                                                       directshow_stream_configuration));
@@ -963,7 +975,6 @@ do_work (const struct Stream_Device_Identifier& deviceIdentifier_in,
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
     {
-      struct Test_I_Source_MediaFoundation_ModuleHandlerConfiguration mediafoundation_modulehandler_configuration;
       mediafoundation_modulehandler_configuration.allocatorConfiguration =
         allocator_configuration_p;
       mediafoundation_modulehandler_configuration.configuration =
@@ -978,10 +989,6 @@ do_work (const struct Stream_Device_Identifier& deviceIdentifier_in,
       //  ((mediafoundation_configuration.protocol == NET_TRANSPORTLAYER_TCP) ? mediaFoundationCBData_in.stream
       //                                                                      : mediaFoundationCBData_in.UDPStream);
 
-      Test_I_Source_MediaFoundation_StreamConfiguration_t mediafoundation_stream_configuration;
-      struct Test_I_Source_MediaFoundation_StreamConfiguration mediafoundation_stream_configuration_2;
-      Test_I_Source_MediaFoundation_StreamConfiguration_t mediafoundation_stream_configuration_3;
-      struct Test_I_Source_MediaFoundation_StreamConfiguration mediafoundation_stream_configuration_4;
       mediafoundation_stream_configuration_2.allocatorConfiguration = allocator_configuration_p;
       mediafoundation_stream_configuration_2.mediaFoundationConfiguration =
         &mediaFoundationCBData_in.configuration->mediaFoundationConfiguration;
@@ -1193,8 +1200,7 @@ do_work (const struct Stream_Device_Identifier& deviceIdentifier_in,
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
-      result =
-        do_initialize_mediafoundation (useUncompressedFormat_in);
+      result = do_initialize_mediafoundation (useUncompressedFormat_in);
       break;
     default:
     {

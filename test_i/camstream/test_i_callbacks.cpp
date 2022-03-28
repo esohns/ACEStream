@@ -41,8 +41,6 @@
 #include "gdk/gdkwin32.h"
 #else
 #include "ace/Dirent_Selector.h"
-
-//#include "gdk/gdkpixbuf.h"
 #endif // ACE_WIN32 || ACE_WIN64
 
 #include "ace/Guard_T.h"
@@ -2051,9 +2049,9 @@ idle_initialize_source_UI_cb (gpointer userData_in)
   struct Test_I_Source_DirectShow_UI_CBData* directshow_ui_cb_data_p = NULL;
   struct Test_I_Source_MediaFoundation_UI_CBData* mediafoundation_ui_cb_data_p =
     NULL;
-
   Test_I_Source_DirectShow_StreamConfigurationsIterator_t directshow_stream_iterator;
   Test_I_Source_DirectShow_StreamConfiguration_t::ITERATOR_T directshow_modulehandler_iterator;
+  Test_I_Source_DirectShow_StreamConfiguration_t::ITERATOR_T directshow_modulehandler_iterator_2; // visualization
   Test_I_Source_MediaFoundation_StreamConfigurationsIterator_t mediafoundation_stream_iterator;
   Test_I_Source_MediaFoundation_StreamConfiguration_t::ITERATOR_T mediafoundation_modulehandler_iterator;
   switch (ui_cb_data_base_p->mediaFramework)
@@ -2071,6 +2069,9 @@ idle_initialize_source_UI_cb (gpointer userData_in)
       directshow_modulehandler_iterator =
         (*directshow_stream_iterator).second.find (ACE_TEXT_ALWAYS_CHAR (""));
       ACE_ASSERT (directshow_modulehandler_iterator != (*directshow_stream_iterator).second.end ());
+      directshow_modulehandler_iterator_2 =
+        (*directshow_stream_iterator).second.find (ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_DIRECTSHOW_DEFAULT_NAME_STRING));
+      ACE_ASSERT (directshow_modulehandler_iterator_2 != (*directshow_stream_iterator).second.end ());
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
@@ -2139,21 +2140,21 @@ idle_initialize_source_UI_cb (gpointer userData_in)
   ACE_ASSERT (spin_button_p);
   gtk_spin_button_set_range (spin_button_p,
                              0.0,
-                             std::numeric_limits<double>::max ());
+                             static_cast<gdouble> (std::numeric_limits<ACE_UINT32>::max ()));
   spin_button_p =
     GTK_SPIN_BUTTON (gtk_builder_get_object ((*iterator).second.second,
                                              ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_SPINBUTTON_DATAMESSAGES_NAME)));
   ACE_ASSERT (spin_button_p);
   gtk_spin_button_set_range (spin_button_p,
                              0.0,
-                             std::numeric_limits<double>::max ());
+                             static_cast<gdouble> (std::numeric_limits<ACE_UINT32>::max ()));
   spin_button_p =
     GTK_SPIN_BUTTON (gtk_builder_get_object ((*iterator).second.second,
                                              ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_SPINBUTTON_DATA_NAME)));
   ACE_ASSERT (spin_button_p);
   gtk_spin_button_set_range (spin_button_p,
                              0.0,
-                             std::numeric_limits<double>::max ());
+                             static_cast<gdouble> (std::numeric_limits<ACE_UINT64>::max ()));
 
   GtkListStore* list_store_p =
     GTK_LIST_STORE (gtk_builder_get_object ((*iterator).second.second,
@@ -2397,9 +2398,9 @@ idle_initialize_source_UI_cb (gpointer userData_in)
   ACE_ASSERT (spin_button_p);
   gtk_spin_button_set_range (spin_button_p,
                              0.0,
-                             std::numeric_limits<double>::max ());
+                             static_cast<gdouble> (std::numeric_limits<ACE_UINT32>::max ()));
   gtk_spin_button_set_value (spin_button_p,
-                             static_cast<double> (buffer_size));
+                             static_cast<gdouble> (buffer_size));
 
   GtkProgressBar* progress_bar_p =
     GTK_PROGRESS_BAR (gtk_builder_get_object ((*iterator).second.second,
@@ -2409,7 +2410,7 @@ idle_initialize_source_UI_cb (gpointer userData_in)
   gint width, height;
   gtk_widget_get_size_request (GTK_WIDGET (progress_bar_p), &width, &height);
   gtk_progress_bar_set_pulse_step (progress_bar_p,
-                                   1.0 / static_cast<double> (width));
+                                   1.0 / static_cast<gdouble> (width));
 
   // step4: initialize text view, setup auto-scrolling
   GtkTextView* view_p =
@@ -2709,14 +2710,14 @@ idle_initialize_source_UI_cb (gpointer userData_in)
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
     {
-      ACE_ASSERT (!(*directshow_modulehandler_iterator).second.second->window);
-      (*directshow_modulehandler_iterator).second.second->window =
+      ACE_ASSERT (!(*directshow_modulehandler_iterator_2).second.second->window);
+      (*directshow_modulehandler_iterator_2).second.second->window =
         gdk_win32_window_get_impl_hwnd (window_p);
       //static_cast<HWND> (GDK_WINDOW_HWND (GDK_DRAWABLE (window_p)));
-      ACE_ASSERT (IsWindow ((*directshow_modulehandler_iterator).second.second->window));
+      ACE_ASSERT (IsWindow ((*directshow_modulehandler_iterator_2).second.second->window));
       ACE_DEBUG ((LM_DEBUG,
                   ACE_TEXT ("drawing area window handle: 0x%@\n"),
-                  (*directshow_modulehandler_iterator).second.second->window));
+                  (*directshow_modulehandler_iterator_2).second.second->window));
 
       ACE_ASSERT (gdk_win32_window_is_win32 (window_p));
       directshow_ui_cb_data_p->configuration->direct3DConfiguration.presentationParameters.hDeviceWindow =
@@ -4310,6 +4311,16 @@ idle_update_info_display_cb (gpointer userData_in)
           spin_button_p =
             GTK_SPIN_BUTTON (gtk_builder_get_object ((*iterator).second.second,
                                                      ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_SPINBUTTON_SESSIONMESSAGES_NAME)));
+          ACE_ASSERT (spin_button_p);
+
+          is_session_message = true;
+          break;
+        }
+        case COMMON_UI_EVENT_ABORT:
+        {
+          spin_button_p =
+              GTK_SPIN_BUTTON (gtk_builder_get_object ((*iterator).second.second,
+                                                       ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_SPINBUTTON_SESSIONMESSAGES_NAME)));
           ACE_ASSERT (spin_button_p);
 
           is_session_message = true;
@@ -6559,7 +6570,6 @@ combobox_source_changed_cb (GtkComboBox* comboBox_in,
   struct Test_I_CamStream_UI_CBData* ui_cb_data_p =
     static_cast<struct Test_I_CamStream_UI_CBData*> (userData_in);
   ACE_ASSERT (ui_cb_data_p);
-
   Common_UI_GTK_Manager_t* gtk_manager_p =
     COMMON_UI_GTK_MANAGER_SINGLETON::instance ();
   ACE_ASSERT (gtk_manager_p);
@@ -6571,7 +6581,6 @@ combobox_source_changed_cb (GtkComboBox* comboBox_in,
   struct Test_I_Source_DirectShow_UI_CBData* directshow_ui_cb_data_p = NULL;
   struct Test_I_Source_MediaFoundation_UI_CBData* mediafoundation_ui_cb_data_p =
       NULL;
-
   Test_I_Source_DirectShow_StreamConfigurationsIterator_t directshow_stream_iterator;
   Test_I_Source_DirectShow_StreamConfiguration_t::ITERATOR_T directshow_modulehandler_iterator;
   Test_I_Source_MediaFoundation_StreamConfigurationsIterator_t mediafoundation_stream_iterator;
@@ -6580,36 +6589,30 @@ combobox_source_changed_cb (GtkComboBox* comboBox_in,
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
     {
+      // sanity check(s)
       directshow_ui_cb_data_p =
         static_cast<struct Test_I_Source_DirectShow_UI_CBData*> (userData_in);
-
-      // sanity check(s)
       ACE_ASSERT (directshow_ui_cb_data_p->configuration);
-
       directshow_stream_iterator =
         directshow_ui_cb_data_p->configuration->streamConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
       ACE_ASSERT (directshow_stream_iterator != directshow_ui_cb_data_p->configuration->streamConfigurations.end ());
       directshow_modulehandler_iterator =
         (*directshow_stream_iterator).second.find (ACE_TEXT_ALWAYS_CHAR (""));
       ACE_ASSERT (directshow_modulehandler_iterator != (*directshow_stream_iterator).second.end ());
-
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
     {
+      // sanity check(s)
       mediafoundation_ui_cb_data_p =
         static_cast<struct Test_I_Source_MediaFoundation_UI_CBData*> (userData_in);
-
-      // sanity check(s)
       ACE_ASSERT (mediafoundation_ui_cb_data_p->configuration);
-
       mediafoundation_stream_iterator =
         mediafoundation_ui_cb_data_p->configuration->streamConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
       ACE_ASSERT (mediafoundation_stream_iterator != mediafoundation_ui_cb_data_p->configuration->streamConfigurations.end ());
       mediafoundation_modulehandler_iterator =
         (*mediafoundation_stream_iterator).second.find (ACE_TEXT_ALWAYS_CHAR (""));
       ACE_ASSERT (mediafoundation_modulehandler_iterator != (*mediafoundation_stream_iterator).second.end ());
-
       break;
     }
     default:
@@ -6621,9 +6624,9 @@ combobox_source_changed_cb (GtkComboBox* comboBox_in,
     }
   } // end SWITCH
 #else
+  // sanity check(s)
   struct Test_I_Source_V4L_UI_CBData* V4L_ui_cb_data_p =
     static_cast<struct Test_I_Source_V4L_UI_CBData*> (userData_in);
-
   Test_I_Source_V4L_StreamConfigurationsIterator_t stream_iterator =
     V4L_ui_cb_data_p->configuration->streamConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (stream_iterator != V4L_ui_cb_data_p->configuration->streamConfigurations.end ());

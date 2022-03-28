@@ -258,21 +258,27 @@ elseif (WIN32)
   set (ARGS "-c -g -l -t")
  endif (GTK_SUPPORT)
  if (FFMPEG_SUPPORT)
-  file (TO_CMAKE_PATH "$ENV{LIB_ROOT}/ffmpeg/bin" FFMPEG_PATH)
+  file (TO_CMAKE_PATH "${ffmpeg_LIB_DIR}" FFMPEG_PATH)
  endif (FFMPEG_SUPPORT)
  if (IMAGEMAGICK_SUPPORT)
   file (TO_CMAKE_PATH "${ImageMagick_LIB_DIR}" IMAGEMAGICK_PATH)
  endif (IMAGEMAGICK_SUPPORT)
- file (TO_CMAKE_PATH "${GTK_LIB_DIRS}" GTK_PATH)
+ if (GTK_SUPPORT)
+  file (TO_CMAKE_PATH "${GTK_LIB_DIRS}" GTK_PATH)
+ endif (GTK_SUPPORT)
+ if (WXWIDGETS_SUPPORT)
+  file (TO_CMAKE_PATH "${wxWidgets_LIB_DIR}" WXWIDGETS_PATH)
+ endif (WXWIDGETS_SUPPORT)
  file (TO_CMAKE_PATH "${SSL_LIB_DIR}" SSL_PATH)
  file (TO_CMAKE_PATH "${ACE_LIB_DIR}" ACE_PATH)
  set (RUNTIME_LIBRARY_DIRS ${FFMPEG_PATH}
                            ${IMAGEMAGICK_PATH}
                            ${GTK_PATH}
+                           ${WXWIDGETS_PATH}
                            ${SSL_PATH}
                            G:/software/Development/dll
                            ${ACE_PATH})
- string (REPLACE "/" "\\\\" WORKING_DIRECTORY ${PROJECT_BINARY_DIR}/../test_i/camstream) 
+ string (REPLACE "/" "\\\\" WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/test_i/camstream) 
 endif ()
 create_target_launcher (${EXECUTABLE_SOURCE}
                         COMMAND ${COMMAND}
@@ -551,7 +557,7 @@ set (ENVIRONMENT "")
 if (UNIX)
  set (ARGS "-g./etc/target.glade -l -o -t")
  set (RUNTIME_LIBRARY_DIRS ${PROJECT_SOURCE_DIR}/modules/ACE/lib)
- file (TO_NATIVE_PATH ${PROJECT_BINARY_DIR}/../test_i/camstream WORKING_DIRECTORY)
+ file (TO_NATIVE_PATH ${PROJECT_SOURCE_DIR}/test_i/camstream WORKING_DIRECTORY)
 elseif (WIN32)
  file (TO_NATIVE_PATH "${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_BUILD_TYPE}/${EXECUTABLE_TARGET}.exe" COMMAND)
  string (REPLACE "\\" "\\\\" COMMAND ${COMMAND})
@@ -560,6 +566,8 @@ elseif (WIN32)
  else ()
   set (ARGS "-c -g -l -o -t")
  endif (GTK_SUPPORT)
+ file (TO_NATIVE_PATH ${PROJECT_SOURCE_DIR}/test_i/camstream WORKING_DIRECTORY)
+ string (REPLACE "\\" "\\\\" WORKING_DIRECTORY ${WORKING_DIRECTORY})
 endif ()
 create_target_launcher (${EXECUTABLE_TARGET}
                         COMMAND ${COMMAND}

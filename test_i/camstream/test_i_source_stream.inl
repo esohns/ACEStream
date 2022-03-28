@@ -492,8 +492,8 @@ continue_:
 
   // ---------------------------------------------------------------------------
   // step2: update stream module configuration(s)
-  (*iterator_2).second.second = (*iterator).second.second;
-  (*iterator_2).second.second->deviceIdentifier.clear ();
+  (*iterator_2).second.second->builder = (*iterator).second.second->builder;
+  (*iterator_2).second.second->builder->AddRef ();
 
   // ---------------------------------------------------------------------------
   // step3: allocate a new session state, reset stream
@@ -567,12 +567,12 @@ continue_:
 
   // ---------------------------------------------------------------------------
   // step6: initialize head module
-  source_impl_p->setP (&(inherited::state_));
-  //fileReader_impl_p->reset ();
-  // *NOTE*: push()ing the module will open() it
-  //         --> set the argument that is passed along (head module expects a
-  //             handle to the session data)
-  module_p->arg (inherited::sessionData_);
+  //source_impl_p->setP (&(inherited::state_));
+  ////fileReader_impl_p->reset ();
+  //// *NOTE*: push()ing the module will open() it
+  ////         --> set the argument that is passed along (head module expects a
+  ////             handle to the session data)
+  //module_p->arg (inherited::sessionData_);
 
   // step7: assemble stream
   if (configuration_in.configuration_->setupPipeline)

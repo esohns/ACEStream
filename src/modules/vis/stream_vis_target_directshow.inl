@@ -1094,7 +1094,6 @@ Stream_Vis_Target_DirectShow_T<ACE_SYNCH_USE,
   struct _GUID GUID_s = GUID_NULL;
   struct tagVIDEOINFOHEADER* video_info_header_p = NULL;
   //struct tagVIDEOINFOHEADER2* video_info_header2_p = NULL;
-  struct Common_UI_DisplayDevice display_device_s;
   MONITORINFOEX monitor_info_ex_s;
   unsigned int delta_x, delta_y;
 
@@ -1120,19 +1119,17 @@ Stream_Vis_Target_DirectShow_T<ACE_SYNCH_USE,
   if (windowHandle_inout)
     goto continue_;
   // retrieve display device 'geometry' data (i.e. monitor coordinates)
-  ACE_ASSERT (inherited::configuration_->deviceIdentifier.identifierDiscriminator == Stream_Device_Identifier::STRING);
-  display_device_s =
-    Common_UI_Tools::getDisplay (ACE_TEXT_ALWAYS_CHAR (inherited::configuration_->deviceIdentifier.identifier._string));
-  ACE_ASSERT (display_device_s.handle);
+  ACE_ASSERT (!inherited::configuration_->display.device.empty ());
+  ACE_ASSERT (inherited::configuration_->display.handle);
   ACE_OS::memset (&monitor_info_ex_s, 0, sizeof (MONITORINFOEX));
   monitor_info_ex_s.cbSize = sizeof (MONITORINFOEX);
-  if (unlikely (!GetMonitorInfo (display_device_s.handle,
+  if (unlikely (!GetMonitorInfo (inherited::configuration_->display.handle,
                                  reinterpret_cast<struct tagMONITORINFO*> (&monitor_info_ex_s))))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to GetMonitorInfo(\"%s\"): \"%s\", returning\n"),
                 inherited::mod_->name (),
-                ACE_TEXT (inherited::configuration_->deviceIdentifier.identifier._string),
+                ACE_TEXT (inherited::configuration_->display.device.c_str ()),
                 ACE_TEXT (Common_Error_Tools::errorToString (GetLastError ()).c_str ())));
     goto error;
   } // end IF
@@ -1148,27 +1145,21 @@ Stream_Vis_Target_DirectShow_T<ACE_SYNCH_USE,
     (fullScreen_in ? 0
                    : (static_cast<unsigned int> ((monitor_info_ex_s.rcWork.bottom - monitor_info_ex_s.rcWork.top) - video_info_header_p->bmiHeader.biHeight) / 2));
 
-  DWORD window_style = (WS_CAPTION     |
-                        WS_MAXIMIZEBOX |
-                        WS_MINIMIZEBOX |
-                        //WS_OVERLAPPED     |
-                        WS_SIZEBOX     |
-                        WS_SYSMENU     |
-                        WS_VISIBLE);
-  DWORD window_style_ex = (WS_EX_APPWINDOW     |
-                           WS_EX_RIGHTSCROLLBAR// |
-                           /*WS_EX_WINDOWEDGE*/);
+  DWORD window_style = WS_OVERLAPPED |
+                       WS_VISIBLE;
+  //DWORD window_style_ex = (WS_EX_APPWINDOW     |
+  //                         WS_EX_RIGHTSCROLLBAR// |
+  //                         /*WS_EX_WINDOWEDGE*/);
   windowHandle_inout =
-    CreateWindowEx (window_style_ex,                                  // dwExStyle
+    CreateWindowEx (0,                                                // dwExStyle
 #if defined (UNICODE)
-                    ACE_TEXT_ALWAYS_WCHAR (inherited::mod_->name ()), // lpClassName
+                    ACE_TEXT_ALWAYS_CHAR ("EDIT"),                    // lpClassName
                     ACE_TEXT_ALWAYS_WCHAR (inherited::mod_->name ()), // lpWindowName
 #else
-                    ACE_TEXT_ALWAYS_CHAR (inherited::mod_->name ()),  // lpClassName
+                    ACE_TEXT_ALWAYS_CHAR ("EDIT"),                    // lpClassName
                     ACE_TEXT_ALWAYS_CHAR (inherited::mod_->name ()),  // lpWindowName
 #endif // UNICODE
                     window_style,                                     // dwStyle
-                    //CW_USEDEFAULT, CW_USEDEFAULT,                    // x,y
                     delta_x, delta_y,                                 // x,y
                     video_info_header_p->bmiHeader.biWidth,           // width
                     video_info_header_p->bmiHeader.biHeight,          // height
@@ -1178,11 +1169,11 @@ Stream_Vis_Target_DirectShow_T<ACE_SYNCH_USE,
                     GetModuleHandle (NULL),                           // hInstance
                     NULL);                                            // lpParam
   if (unlikely (!windowHandle_inout))
-  {
+  { DWORD error_i = ::GetLastError ();
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to CreateWindow(): \"%s\", aborting\n"),
                 inherited::mod_->name (),
-                ACE_TEXT (Common_Error_Tools::errorToString (::GetLastError ()).c_str ())));
+                ACE_TEXT (Common_Error_Tools::errorToString (error_i, false, false).c_str ())));
     goto error;
   } // end IF
   closeWindow_ = true;

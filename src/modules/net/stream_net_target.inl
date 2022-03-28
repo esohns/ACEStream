@@ -56,7 +56,7 @@ Stream_Module_Net_Target_T<ACE_SYNCH_USE,
                            ConnectorType>::Stream_Module_Net_Target_T (ISTREAM_T* stream_in,
 #else
                            ConnectorType>::Stream_Module_Net_Target_T (typename inherited::ISTREAM_T* stream_in,
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
                                                                        bool isPassive_in)
  : inherited (stream_in)
  , connection_ (NULL)
@@ -533,6 +533,8 @@ error:
       } // end IF
 
       inherited::notify (STREAM_SESSION_MESSAGE_ABORT);
+      message_inout->release (); message_inout = NULL;
+      passMessageDownstream_out = false;
 
       break;
 

@@ -9267,18 +9267,54 @@ combobox_source_changed_cb (GtkWidget* widget_in,
   if (n_rows)
   {
     gtk_widget_set_sensitive (GTK_WIDGET (combo_box_p), TRUE);
-#if GTK_CHECK_VERSION(2,30,0)
+    gint index_i = 0;
+#if GTK_CHECK_VERSION (2,30,0)
     GValue value = G_VALUE_INIT;
 #else
     GValue value;
     ACE_OS::memset (&value, 0, sizeof (struct _GValue));
-    g_value_init (&value, G_TYPE_INT);
 #endif // GTK_CHECK_VERSION (2,30,0)
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+    index_i = 1;
+    struct _GUID GUID_s = GUID_NULL;
+    std::string format_string;
+    switch (ui_cb_data_base_p->mediaFramework)
+    {
+      case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
+      {
+        GUID_s =
+          directshow_ui_cb_data_p->configuration->streamConfiguration.configuration_->format.subtype;
+        break;
+      }
+      case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
+      {
+        HRESULT result =
+          mediafoundation_ui_cb_data_p->configuration->streamConfiguration.configuration_->format->GetGUID (MF_MT_SUBTYPE,
+                                                                                                            &GUID_s);
+        ACE_ASSERT (SUCCEEDED (result));
+        break;
+      }
+      default:
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("invalid/unknown media framework (was: %d), returning\n"),
+                    ui_cb_data_base_p->mediaFramework));
+        return;
+      }
+    } // end SWITCH
+    format_string = Common_Tools::GUIDToString (GUID_s);
+    g_value_init (&value, G_TYPE_STRING);
+    g_value_set_string (&value,
+                        format_string.c_str ());
+#else
+    index_i = 2;
+    g_value_init (&value, G_TYPE_INT);
     g_value_set_int (&value,
                      ui_cb_data_p->configuration->streamConfiguration.configuration_->format.format);
+#endif // ACE_WIN32 || ACE_WIN64
     Common_UI_GTK_Tools::selectValue (combo_box_p,
                                       value,
-                                      2);
+                                      index_i);
     g_value_unset (&value);
   } // end IF
 

@@ -275,6 +275,28 @@ Test_I_Source_EventHandler_T<SessionDataType,
   enum Common_UI_EventType event_e = COMMON_UI_EVENT_SESSION;
   switch (sessionMessage_in.type ())
   {
+    case STREAM_SESSION_MESSAGE_ABORT:
+    {
+#if defined (GUI_SUPPORT)
+#if defined (GTK_USE)
+      guint event_source_id = 0;
+      { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, state_r.lock);
+        event_source_id = g_idle_add (idle_end_source_UI_cb,
+                                      CBData_);
+        if (!event_source_id)
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("failed to g_idle_add(idle_end_source_UI_cb): \"%m\", continuing\n")));
+        else
+          state_r.eventSourceIds.insert (event_source_id);
+        state_r.eventStack.push (COMMON_UI_EVENT_STOPPED);
+      } // end lock scope
+#endif // GTK_USE
+#endif // GUI_SUPPORT
+    
+      event_e = COMMON_UI_EVENT_ABORT;
+
+      break;
+    }
     case STREAM_SESSION_MESSAGE_STATISTIC:
     {
 //      float current_bytes = 0.0F;

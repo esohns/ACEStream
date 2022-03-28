@@ -787,9 +787,9 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
         } // end IF
 
         // *IMPORTANT NOTE*: when close()d manually (i.e. on a user abort),
-        //                   the stream may not have finish()ed
+        //                   the stream may not have finish()ed at this point
         { ACE_GUARD_RETURN (ACE_Thread_Mutex, aGuard, inherited::lock_, -1);
-          if (unlikely (sessionEndSent_ || sessionEndProcessed_))
+          if (sessionEndSent_ || sessionEndProcessed_)
             finish_b = false;
         } // end lock scope
         if (likely (finish_b))
@@ -899,34 +899,6 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
     // sanity check(s)
     if (unlikely (done_b))
       break;
-
-    // session aborted ?
-    // *TODO*: remove type inferences
-    if (likely (session_data_p))
-    { ACE_ASSERT (session_data_p->lock);
-      ACE_GUARD_RETURN (ACE_SYNCH_MUTEX_T, aGuard, *session_data_p->lock, -1);
-      // *TODO*: remove type inferences
-      aborted_b = session_data_p->aborted;
-      if (unlikely (aborted_b))
-        ACE_DEBUG ((LM_DEBUG,
-                    ACE_TEXT ("%s: session (id was: %u) aborted\n"),
-                    inherited::mod_->name (),
-                    session_data_p->sessionId));
-    } // end IF/lock scope
-    if (unlikely (aborted_b))
-    {
-      finish_b = true;
-      { ACE_GUARD_RETURN (ACE_Thread_Mutex, aGuard, inherited::lock_, -1);
-        if (unlikely (sessionEndSent_ || sessionEndProcessed_))
-          finish_b = false;
-      } // end lock scope
-      if (likely (finish_b))
-      {
-        // enqueue(/process) STREAM_SESSION_END
-        finished (false); // recurse upstream ?
-        continue;
-      } // end IF
-    } // end IF
   } while (true);
 
   ACE_DEBUG ((LM_DEBUG,
@@ -1526,6 +1498,12 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
         session_data_r.aborted = true;
       } // end lock scope
       inherited::sessionData_->decrease ();
+
+      // *NOTE*: there is no SESSION_END message in this scenario
+      { ACE_GUARD (ACE_Thread_Mutex, aGuard, inherited::lock_);
+        sessionEndSent_ = true;
+        sessionEndProcessed_ = true;
+      } // end lock scope
 
       // *WARNING*: falls through
     }

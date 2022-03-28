@@ -352,7 +352,7 @@ struct Test_I_Source_DirectShow_ModuleHandlerConfiguration
       return *this;
     } // end IF
     outputFormat = *media_type_p;
-    CoTaskMemFree (media_type_p); media_type_p = NULL;
+    delete (media_type_p); media_type_p = NULL;
     push = rhs_in.push;
     //Stream_MediaFramework_DirectShow_Tools::free (sourceFormat);
     //media_type_p =

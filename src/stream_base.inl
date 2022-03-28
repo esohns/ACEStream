@@ -1201,6 +1201,9 @@ Stream_Base_T<ACE_SYNCH_USE,
   int result = -1;
   ISTREAM_CONTROL_T* istreamcontrol_p = NULL;
 
+  // sanity check(s)
+  ACE_ASSERT (state_.sessionData);
+
   // forward upstream ?
   if (inherited::linked_us_ &&
       recurseUpstream_in)
@@ -1253,6 +1256,32 @@ Stream_Base_T<ACE_SYNCH_USE,
   } // end IF
   switch (notification_in)
   {
+    case STREAM_SESSION_MESSAGE_ABORT:
+    {
+      // *NOTE*: there are two scenarios in this case:
+      //         - session initialization failed and is being notified here
+      //           --> stop session: set aborted flag and send SESSION_ABORT
+      //         - session abort is complete
+      //           --> end session normally
+      if ((istatemachine_p->current () == STREAM_STATE_SESSION_STARTING) &&
+          !state_.sessionData->aborted)
+      { // == first case; handled by head module writer task
+        break;
+      } // end IF
+
+      try {
+        istatemachine_p->change (STREAM_STATE_SESSION_STOPPING);
+      } catch (...) {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("%s/%s: caught exception in Common_IStateMachine_2::change(), returning\n"),
+                    ACE_TEXT (name_.c_str ()),
+                    module_p->name ()));
+        return;
+      }
+
+      // == second case
+      goto session_end;
+    }
     case STREAM_SESSION_MESSAGE_BEGIN:
     {
       try {
@@ -1278,6 +1307,7 @@ Stream_Base_T<ACE_SYNCH_USE,
     }
     case STREAM_SESSION_MESSAGE_END:
     {
+session_end:
       try {
         istatemachine_p->change (STREAM_STATE_STOPPED);
       } catch (...) {

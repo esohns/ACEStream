@@ -313,9 +313,7 @@ Stream_Dev_Cam_Source_DirectShow_T<ACE_SYNCH_USE,
   switch (message_inout->type ())
   {
     case STREAM_SESSION_MESSAGE_ABORT:
-    {
-      break;
-    }
+      goto abort;
     case STREAM_SESSION_MESSAGE_BEGIN:
     {
       std::string log_file_name;
@@ -665,10 +663,15 @@ error:
     }
     case STREAM_SESSION_MESSAGE_END:
     {
-      // sanity check(s)
-      // *TODO*: remove type inference
-      //ACE_ASSERT (inherited::configuration_->builder);
+      inherited::sessionEndProcessed_ = true;
+      if (likely (inherited::configuration_->concurrency != STREAM_HEADMODULECONCURRENCY_CONCURRENT))
+      {
+        Common_ITask* itask_p = this; // *TODO*: is the no other way ?
+        itask_p->stop (false,         // wait for completion ?
+                       false);        // high priority ?
+      }                               // end IF
 
+abort:
       if (inherited::timerId_ != -1)
       {
         const void* act_p = NULL;
@@ -743,25 +746,18 @@ error:
 
       if (ICaptureGraphBuilder2_)
       {
-        if (IAMVideoControl_)
-        {
-          IAMVideoControl_->Release (); IAMVideoControl_ = NULL;
-        } // end IF
-        if (IAMDroppedFrames_)
-        {
-          IAMDroppedFrames_->Release (); IAMDroppedFrames_ = NULL;
-        } // end IF
         ICaptureGraphBuilder2_->Release (); ICaptureGraphBuilder2_ = NULL;
+      } // end IF
+      if (IAMVideoControl_)
+      {
+        IAMVideoControl_->Release (); IAMVideoControl_ = NULL;
+      } // end IF
+      if (IAMDroppedFrames_)
+      {
+        IAMDroppedFrames_->Release (); IAMDroppedFrames_ = NULL;
       } // end IF
 
       if (COM_initialized) Common_Tools::finalizeCOM ();
-
-      inherited::sessionEndProcessed_ = true;
-      if (likely (inherited::configuration_->concurrency != STREAM_HEADMODULECONCURRENCY_CONCURRENT))
-      { Common_ITask* itask_p = this; // *TODO*: is the no other way ?
-        itask_p->stop (false,  // wait for completion ?
-                       false); // high priority ?
-      } // end IF
 
       break;
     }

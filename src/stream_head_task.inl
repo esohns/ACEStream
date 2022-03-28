@@ -92,37 +92,19 @@ Stream_HeadReaderTask_T<ACE_SYNCH_USE,
       break;
     case STREAM_MESSAGE_SESSION:
     {
+      // sanity check(s)
+      ACE_ASSERT (notify_);
+
       SessionMessageType* session_message_p =
         static_cast<SessionMessageType*> (messageBlock_in);
-      switch (session_message_p->type ())
-      {
-        case STREAM_SESSION_MESSAGE_BEGIN:
-        { ACE_ASSERT (notify_);
-          try {
-            notify_->notify (STREAM_SESSION_MESSAGE_BEGIN,
-                             false); // recurse upstream ?
-          } catch (...) {
-            ACE_DEBUG ((LM_ERROR,
-                        ACE_TEXT ("%s: caught exception in Stream_INotify_T::notify(), aborting\n"),
-                        inherited::mod_->name ()));
-          }
-          break;
-        }
-        case STREAM_SESSION_MESSAGE_END:
-        { ACE_ASSERT (notify_);
-          try {
-            notify_->notify (STREAM_SESSION_MESSAGE_END,
-                             false); // recurse upstream ?
-          } catch (...) {
-            ACE_DEBUG ((LM_ERROR,
-                        ACE_TEXT ("%s: caught exception in Stream_INotify_T::notify(), aborting\n"),
-                        inherited::mod_->name ()));
-          }
-          break;
-        }
-        default:
-          break;
-      } // end SWITCH
+      try {
+        notify_->notify (session_message_p->type (),
+                         false); // recurse upstream ?
+      } catch (...) {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("%s: caught exception in Stream_INotify_T::notify(), aborting\n"),
+                    inherited::mod_->name ()));
+      }
       break;
     }
     case STREAM_MESSAGE_DATA:
