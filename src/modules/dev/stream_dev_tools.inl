@@ -46,6 +46,10 @@ Stream_Device_Tools::initializeBuffers (int fd_in,
   // initialize return values(s)
   bufferMap_out.clear ();
 
+  // sanity check(s)
+  ACE_ASSERT (allocator_in);
+  ACE_ASSERT (allocatorConfiguration_in);
+
   int result = -1;
   struct v4l2_buffer buffer;
   ACE_OS::memset (&buffer, 0, sizeof (struct v4l2_buffer));

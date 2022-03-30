@@ -1066,14 +1066,16 @@ do_work (const struct Stream_Device_Identifier& deviceIdentifier_in,
   struct Stream_AllocatorConfiguration allocator_configuration;
   struct Test_I_Source_V4L_ModuleHandlerConfiguration modulehandler_configuration;
   struct Test_I_Source_V4L_ModuleHandlerConfiguration modulehandler_configuration_2; // net io
+  modulehandler_configuration.allocatorConfiguration = &allocator_configuration;
   modulehandler_configuration.connectionConfigurations =
       &v4l2CBData_in.configuration->connectionConfigurations;
   modulehandler_configuration.deviceIdentifier = deviceIdentifier_in;
   modulehandler_configuration.subscriber = &event_handler;
 
   struct Test_I_Source_V4L_StreamConfiguration stream_configuration;
-  Test_I_Source_V4L_StreamConfiguration_t stream_configuration_2;
+  struct Test_I_Source_V4L_StreamConfiguration stream_configuration_2;
   Test_I_Source_V4L_StreamConfiguration_t stream_configuration_3;
+  Test_I_Source_V4L_StreamConfiguration_t stream_configuration_4;
   stream_configuration.allocatorConfiguration = &allocator_configuration;
   stream_configuration.format.format.pixelformat = V4L2_PIX_FMT_RGB24;
   stream_configuration.format.format.width =
@@ -1083,11 +1085,11 @@ do_work (const struct Stream_Device_Identifier& deviceIdentifier_in,
   stream_configuration.messageAllocator = allocator_p;
   stream_configuration.module = &event_handler_module;
 
-  stream_configuration_2.initialize (module_configuration,
+  stream_configuration_3.initialize (module_configuration,
                                      modulehandler_configuration,
                                      stream_configuration);
   v4l2CBData_in.configuration->streamConfigurations.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (""),
-                                                                            stream_configuration_2));
+                                                                            stream_configuration_3));
   stream_iterator =
     v4l2CBData_in.configuration->streamConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (stream_iterator != v4l2CBData_in.configuration->streamConfigurations.end ());
@@ -1100,12 +1102,13 @@ do_work (const struct Stream_Device_Identifier& deviceIdentifier_in,
     STREAM_HEADMODULECONCURRENCY_CONCURRENT;
   modulehandler_configuration_2.inbound = false;
 
-  stream_configuration.module = NULL;
-  stream_configuration_3.initialize (module_configuration,
+  stream_configuration_2.allocatorConfiguration = &allocator_configuration;
+  stream_configuration_2.messageAllocator = allocator_p;
+  stream_configuration_4.initialize (module_configuration,
                                      modulehandler_configuration_2,
-                                     stream_configuration);
+                                     stream_configuration_2);
   v4l2CBData_in.configuration->streamConfigurations.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (STREAM_NET_DEFAULT_NAME_STRING),
-                                                            stream_configuration_3));
+                                                            stream_configuration_4));
 //  stream_iterator =
 //    v4l2CBData_in.configuration->streamConfigurations.find (ACE_TEXT_ALWAYS_CHAR (STREAM_NET_DEFAULT_NAME_STRING));
 //  ACE_ASSERT (stream_iterator != v4l2CBData_in.configuration->streamConfigurations.end ());
@@ -1553,7 +1556,7 @@ do_work (const struct Stream_Device_Identifier& deviceIdentifier_in,
   static_cast<Test_I_Source_V4L_TCPConnectionConfiguration_t*> ((*connection_iterator).second)->messageAllocator =
       &message_allocator;
   static_cast<Test_I_Source_V4L_TCPConnectionConfiguration_t*> ((*connection_iterator).second)->streamConfiguration =
-      &(*stream_iterator).second;
+      &stream_configuration_4;
 
   connection_manager_p->set (*static_cast<Test_I_Source_V4L_TCPConnectionConfiguration_t*> ((*connection_iterator).second),
                              &user_data_s);

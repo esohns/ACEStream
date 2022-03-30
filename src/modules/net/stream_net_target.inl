@@ -718,7 +718,7 @@ continue_2:
       iset_p->set (true);
 
 #if defined (_DEBUG)
-      const ISTREAM_T* istream_p = inherited::getP ();
+      const typename inherited::ISTREAM_T* istream_p = inherited::getP ();
       ACE_ASSERT (istream_p);
       istream_p->dump_state ();
 #endif // _DEBUG
@@ -745,7 +745,7 @@ continue_2:
       unlink_ = false;
 
 #if defined (_DEBUG)
-      const ISTREAM_T* istream_p = inherited::getP ();
+      const typename inherited::ISTREAM_T* istream_p = inherited::getP ();
       ACE_ASSERT (istream_p);
       istream_p->dump_state ();
 #endif // _DEBUG

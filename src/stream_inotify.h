@@ -25,7 +25,6 @@
 
 #include "ace/Notification_Strategy.h"
 
-
 template <typename NotificationType>
 class Stream_IEvent_T
 {

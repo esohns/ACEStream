@@ -39,6 +39,7 @@
 #include "stream_head_task.h"
 #include "stream_ilink.h"
 #include "stream_ilock.h"
+#include "stream_inotify.h"
 #include "stream_isessionnotify.h"
 #include "stream_istreamcontrol.h"
 #include "stream_itask.h"

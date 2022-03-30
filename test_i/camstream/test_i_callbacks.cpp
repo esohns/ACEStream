@@ -5024,26 +5024,16 @@ toggleaction_stream_toggled_cb (GtkToggleAction* toggleAction_in,
                 ACE_TEXT ("failed to allocate memory: \"%m\", returning\n")));
     goto error;
   } // end IF
-  ACE_OS::memset (thread_name, 0, sizeof (thread_name));
-  //  char* thread_name_p = NULL;
-  //  ACE_NEW_NORETURN (thread_name_p,
-  //                    ACE_TCHAR[BUFSIZ]);
-  //  if (!thread_name_p)
-  //  {
-  //    ACE_DEBUG ((LM_CRITICAL,
-  //                ACE_TEXT ("failed to allocate memory: \"%m\", returning\n")));
-
-  //    // clean up
-  //    delete thread_data_p;
-
-  //    return;
-  //  } // end IF
-  //  ACE_OS::memset (thread_name_p, 0, sizeof (thread_name_p));
-  //  ACE_OS::strcpy (thread_name_p,
-  //                  ACE_TEXT (TEST_I_STREAM_FILECOPY_THREAD_NAME));
-  //  const char* thread_name_2 = thread_name_p;
+  ACE_OS::memset (thread_name, 0, sizeof (ACE_TCHAR[BUFSIZ]));
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
   ACE_OS::strcpy (thread_name,
                   ACE_TEXT (TEST_I_STREAM_THREAD_NAME));
+#else
+  ACE_ASSERT (COMMON_THREAD_PTHREAD_NAME_MAX_LENGTH <= BUFSIZ);
+  ACE_OS::strncpy (thread_name,
+                   ACE_TEXT (TEST_I_STREAM_THREAD_NAME),
+                   std::min (static_cast<size_t> (COMMON_THREAD_PTHREAD_NAME_MAX_LENGTH - 1), static_cast<size_t> (ACE_OS::strlen (ACE_TEXT (TEST_I_STREAM_THREAD_NAME)))));
+#endif // ACE_WIN32 || ACE_WIN64
   thread_name_2 = thread_name;
   thread_manager_p = ACE_Thread_Manager::instance ();
   ACE_ASSERT (thread_manager_p);

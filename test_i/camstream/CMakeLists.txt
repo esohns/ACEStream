@@ -134,12 +134,31 @@ if (GUI_SUPPORT)
  endif (GTK_SUPPORT)
 endif (GUI_SUPPORT)
 
+set (ui_definition_file "")
+if (GUI_SUPPORT)
+ if (GTK_USE)
+  if (GTK3_USE)
+   set (ui_definition_file etc/source.gtk3)
+   set (ui_definition_file_2 etc/target.gtk3)
+  elseif (GTK2_USE)
+   set (ui_definition_file etc/source.gtk2)
+   set (ui_definition_file_2 etc/target.gtk2)
+  endif ()
+ elseif (WXWIDGETS_USE)
+  if (WIN32)
+#   add_definitions(-DUNICODE -D_UNICODE)
+   endif (WIN32)
+  set (ui_definition_file etc/source.xrc)
+  set (ui_definition_file_2 etc/target.xrc)
+ endif ()
+endif (GUI_SUPPORT)
+
 cmake_policy (SET CMP0065 OLD) # do not add flags to export symbols from executables without the ENABLE_EXPORTS target property
 add_executable (${EXECUTABLE_SOURCE}
                 EXCLUDE_FROM_ALL
                 ${${EXECUTABLE_SOURCE}_EXE_SRCS}
                 etc/resources.rc
-                etc/source.glade)
+                ${ui_definition_file})
 set_property (TARGET ${EXECUTABLE_SOURCE} PROPERTY FOLDER "test_i")
 if (WIN32)
  cmake_policy (SET CMP0012 NEW)
@@ -217,8 +236,8 @@ target_precompile_headers (${EXECUTABLE_SOURCE}
 
 set (RESOURCE_FILES
      etc/resources.rc
-     etc/source.glade
-     etc/target.glade)
+     ${ui_definition_file}
+     ${ui_definition_file_2})
 set_source_files_properties (${RESOURCE_FILES} PROPERTIES HEADER_FILE_ONLY TRUE)
 source_group (resources FILES ${RESOURCE_FILES})
 
@@ -235,28 +254,29 @@ elseif (WIN32)
 #          DESTINATION "$ENV{APPDATA}/${PROJECT_NAME}/camstream" COMPONENT config)
 endif ()
 
-#guess_runtime_library_dirs (<outputvarname> [<extralibrary> ...])
-#cmake_policy (SET CMP0053 OLD)
 set (COMMAND "$<TARGET_FILE:${EXECUTABLE_SOURCE}>")
 set (ENVIRONMENT "")
 if (UNIX)
- file (TO_NATIVE_PATH "${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_BUILD_TYPE}/${EXECUTABLE_SOURCE}" COMMAND)
+ file (TO_NATIVE_PATH "${CMAKE_CURRENT_BINARY_DIR}/${EXECUTABLE_SOURCE}" COMMAND)
  if (GTK_SUPPORT)
-  set (ARGS "-g./etc/source.glade -l -t")
+  set (ARGS "-g./${ui_definition_file} -l -t")
  else ()
   set (ARGS "-g -l -t")
  endif (GTK_SUPPORT)
  set (RUNTIME_LIBRARY_DIRS ${PROJECT_SOURCE_DIR}/modules/ACE/lib)
- file (TO_NATIVE_PATH ${PROJECT_BINARY_DIR}/../test_i/camstream WORKING_DIRECTORY)
+ file (TO_NATIVE_PATH ${PROJECT_SOURCE_DIR}/test_i/camstream WORKING_DIRECTORY)
 elseif (WIN32)
 # file (TO_NATIVE_PATH "${COMMAND}" COMMAND)
  file (TO_NATIVE_PATH "${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_BUILD_TYPE}/${EXECUTABLE_SOURCE}.exe" COMMAND)
  string (REPLACE "\\" "\\\\" COMMAND ${COMMAND})
- if (GTK_SUPPORT)
-  set (ARGS "-g.\\\\etc\\\\source.glade -l -t")
+ if (GUI_SUPPORT)
+  file (TO_NATIVE_PATH "${ui_definition_file}" ui_definition_file)
+  string (REGEX REPLACE "\\\\" "/" ui_definition_file "${ui_definition_file}")
+  set (ARGS "-g.\\\\${ui_definition_file} ${ARGS}")
+  set (ARGS "${ARGS} -l -t")
  else ()
   set (ARGS "-c -g -l -t")
- endif (GTK_SUPPORT)
+ endif (GUI_SUPPORT)
  if (FFMPEG_SUPPORT)
   file (TO_CMAKE_PATH "${ffmpeg_LIB_DIR}" FFMPEG_PATH)
  endif (FFMPEG_SUPPORT)
@@ -376,7 +396,7 @@ if (WIN32)
 
  set (LIBRARY_MF camtarget_source_mf)
  set (${LIBRARY_MF}_LIB_SRCS
-      stdafx.cpp
+#      stdafx.cpp
       stdafx.h
       camtarget_source_mf.cpp)
 
@@ -432,7 +452,7 @@ endif (WIN32)
 ############## next target ################
 set (EXECUTABLE_TARGET camtarget)
 set (${EXECUTABLE_TARGET}_EXE_SRCS
-     stdafx.cpp
+#     stdafx.cpp
      stdafx.h
      test_i_camstream_common.h
      test_i_camstream_defines.h
@@ -474,7 +494,7 @@ add_executable (${EXECUTABLE_TARGET}
                 EXCLUDE_FROM_ALL
                 ${${EXECUTABLE_TARGET}_EXE_SRCS}
                 etc/resources.rc
-                etc/target.glade)
+                ${ui_definition_file_2})
 set_property (TARGET ${EXECUTABLE_TARGET} PROPERTY FOLDER "test_i")
 if (WIN32)
  cmake_policy (SET CMP0012 NEW)
@@ -555,17 +575,20 @@ endif ()
 set (COMMAND "$<TARGET_FILE:${EXECUTABLE_TARGET}>")
 set (ENVIRONMENT "")
 if (UNIX)
- set (ARGS "-g./etc/target.glade -l -o -t")
+ set (ARGS "-g./${ui_definition_file_2} -l -o -t")
  set (RUNTIME_LIBRARY_DIRS ${PROJECT_SOURCE_DIR}/modules/ACE/lib)
  file (TO_NATIVE_PATH ${PROJECT_SOURCE_DIR}/test_i/camstream WORKING_DIRECTORY)
 elseif (WIN32)
  file (TO_NATIVE_PATH "${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_BUILD_TYPE}/${EXECUTABLE_TARGET}.exe" COMMAND)
  string (REPLACE "\\" "\\\\" COMMAND ${COMMAND})
- if (GTK_SUPPORT)
-  set (ARGS "-g.\\\\etc\\\\target.glade -l -o -t")
+ if (GUI_SUPPORT)
+  file (TO_NATIVE_PATH "${ui_definition_file_2}" ui_definition_file_2)
+  string (REGEX REPLACE "\\\\" "/" ui_definition_file_2 "${ui_definition_file_2}")
+  set (ARGS "-g.\\\\${ui_definition_file_2} ${ARGS}")
+  set (ARGS "${ARGS} -l -o -t")
  else ()
   set (ARGS "-c -g -l -o -t")
- endif (GTK_SUPPORT)
+ endif (GUI_SUPPORT)
  file (TO_NATIVE_PATH ${PROJECT_SOURCE_DIR}/test_i/camstream WORKING_DIRECTORY)
  string (REPLACE "\\" "\\\\" WORKING_DIRECTORY ${WORKING_DIRECTORY})
 endif ()

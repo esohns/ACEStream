@@ -1038,6 +1038,9 @@ do_work (unsigned int bufferSize_in,
   } // end SWITCH
 #else
   struct Test_I_Target_ModuleHandlerConfiguration modulehandler_configuration;
+  struct Test_I_Target_ModuleHandlerConfiguration modulehandler_configuration_2; // splitter
+  modulehandler_configuration.concurrency =
+    STREAM_HEADMODULECONCURRENCY_CONCURRENT;
   modulehandler_configuration.configuration = &configuration;
   modulehandler_configuration.connectionConfigurations =
     &configuration.connectionConfigurations;
@@ -1082,9 +1085,11 @@ do_work (unsigned int bufferSize_in,
   Test_I_Target_StreamConfiguration_t::ITERATOR_T iterator =
       configuration.streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (iterator != configuration.streamConfiguration.end ());
+
+  modulehandler_configuration_2 = modulehandler_configuration;
   configuration.streamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (STREAM_MISC_SPLITTER_DEFAULT_NAME_STRING),
                                                             std::make_pair (&module_configuration,
-                                                                            &modulehandler_configuration)));
+                                                                            &modulehandler_configuration_2)));
 #endif // ACE_WIN32 || ACE_WIN64
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)

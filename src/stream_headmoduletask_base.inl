@@ -736,7 +736,6 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
   bool stop_processing_b = false;
   bool done_b = false;
   bool finish_b = true;
-  bool aborted_b = false;
 
   do
   {
@@ -1997,40 +1996,16 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
 
   // sanity check(s)
   ACE_ASSERT (inherited::configuration_);
-  //ACE_ASSERT (streamLock_);
 
   int result = -1;
-  OWN_TYPE_T* this_p = const_cast<OWN_TYPE_T*> (this);
   ACE_Reverse_Lock<ACE_Thread_Mutex> reverse_lock (inherited::lock_);
-  //bool acquire_stream_lock_b = false;
-
-  // *NOTE*: be sure to release the (up-)stream lock to support 'concurrent'
-  //         scenarios (e.g. scenarios where upstream delivers data)
-  //try {
-  //  acquire_stream_lock_b = (streamLock_->unlock (true, // N/A
-  //                                                waitForUpStream_in) == 0);
-  //} catch (...) {
-  //  typename inherited::ISTREAM_T* istream_p =
-  //      const_cast<typename inherited::ISTREAM_T*> (inherited::getP ());
-  //  ACE_ASSERT (istream_p);
-  //  ACE_DEBUG ((LM_ERROR,
-  //              ACE_TEXT ("%s/%s: caught exception in Stream_ILock_T::unlock(), continuing\n"),
-  //              ACE_TEXT (istream_p->name ().c_str ()),
-  //              inherited::mod_->name ()));
-  //}
 
   // step1: wait for final state
   inherited2::wait (STREAM_STATE_FINISHED, NULL); // <-- block
 
   // step2: wait for worker(s) to join ?
   if (unlikely (!waitForThreads_in))
-  {
-    //if (unlikely (acquire_stream_lock_b))
-    //  STREAM_ILOCK_ACQUIRE_N (streamLock_,
-    //                          1,
-    //                          waitForUpStream_in);
     return;
-  } // end IF
 
   ACE_GUARD (ACE_Thread_Mutex, aGuard, inherited::lock_);
 
@@ -2094,10 +2069,6 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
 
 continue_:
   ;
-  //if (unlikely (acquire_stream_lock_b))
-  //  STREAM_ILOCK_ACQUIRE_N (streamLock_,
-  //                          1,
-  //                          waitForUpStream_in);
 }
 
 template <ACE_SYNCH_DECL,

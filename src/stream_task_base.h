@@ -118,8 +118,6 @@ class Stream_TaskBase_T
 
  protected:
   // convenient types
-  typedef ACE_Stream<ACE_SYNCH_USE,
-                     TimePolicyType> STREAM_T;
   typedef Common_IGetR_T<STREAM_T> IGET_T;
   typedef Stream_MessageQueue_T<ACE_SYNCH_USE,
                                 TimePolicyType,

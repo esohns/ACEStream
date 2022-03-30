@@ -23,9 +23,18 @@
 
 #include "ace/config-lite.h"
 
+#if defined (GUI_SUPPORT)
+#if defined (GTK_SUPPORT)
 #define TEST_I_DEFAULT_GTK_RC_FILE                                "resources.rc"
-#define TEST_I_DEFAULT_SOURCE_GLADE_FILE                          "source.glade"
-#define TEST_I_DEFAULT_TARGET_GLADE_FILE                          "target.glade"
+#if defined (GTK2_USE)
+#define TEST_I_DEFAULT_SOURCE_GLADE_FILE                          "source.gtk2"
+#define TEST_I_DEFAULT_TARGET_GLADE_FILE                          "target.gtk2"
+#else
+#define TEST_I_DEFAULT_SOURCE_GLADE_FILE                          "source.gtk3"
+#define TEST_I_DEFAULT_TARGET_GLADE_FILE                          "target.gtk3"
+#endif // GTKx_USE
+#endif // GTK_SUPPORT
+#endif // GUI_SUPPORT
 #define TEST_I_DEFAULT_OUTPUT_FILE                                "output.tmp"
 
 // *NOTE*: 640x480 RGB(A) --> 307200 * 1+1+1(+1) = 921600 (1228800)

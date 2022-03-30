@@ -53,6 +53,7 @@
 #include "stream_session_message_base.h"
 
 #include "stream_dec_defines.h"
+#include "stream_dev_defines.h"
 
 #include "stream_lib_tools.h"
 
